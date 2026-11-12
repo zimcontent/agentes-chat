@@ -381,7 +381,35 @@ export function Sidebar() {
   // no group, then each group of agents, each with my pinned ones on top and the rest in my order.
   const manages = can(org, "manage_agents");
   const team = dir.agents.filter((a) => !isRightHand(a));
-  const shownAgents = team.filter((a) => (manages && view.showAllAgents) || canTalk(a));
+  // Hidden from my AGENTES (my sidebar view, every device); Ctrl+K still finds them. "Mostrar ocultos" lists them again.
+  const hiddenIds = new Set(view.hiddenAgents ?? []);
+  const [showHidden, setShowHidden] = useState(false);
+  const hiddenCount = team.filter((a) => hiddenIds.has(a.id)).length;
+  const shownAgents = team.filter(
+    (a) => ((manages && view.showAllAgents) || canTalk(a)) && (showHidden || !hiddenIds.has(a.id)),
+  );
+  const hideToast = useToast();
+  const hideEntry = (a: Agent): MenuEntry[] => {
+    const hidden = hiddenIds.has(a.id);
+    return [
+      {
+        kind: "item",
+        id: hidden ? "unhide" : "hide",
+        label: t(hidden ? "sidebarAgents.unhide" : "sidebarAgents.hide"),
+        icon: hidden ? "eye" : "eyeOff",
+        run: () => {
+          setView((now) => {
+            const current = now.hiddenAgents ?? [];
+            return {
+              ...now,
+              hiddenAgents: hidden ? current.filter((id) => id !== a.id) : [...current.filter((id) => id !== a.id), a.id],
+            };
+          });
+          if (!hidden) hideToast.show(t("sidebarAgents.hiddenToast", { name: a.name }), "info");
+        },
+      },
+    ];
+  };
   const busyKey = useStreams((st) => [...runningAgents(st)].sort().join());
   const busy = useMemo(() => new Set(busyKey ? busyKey.split(",") : []), [busyKey]);
   const groups = useAgentGroups(orgId).data ?? [];
@@ -460,7 +488,7 @@ export function Sidebar() {
           onPrefetch={() => dm && prefetch(dm.channelId)}
           onOpen={() => markOpen(dm?.channelId ?? a.id)}
           drag={organize ? drag.row(a.id) : undefined}
-          menuExtra={manages ? groupEntries(a) : undefined}
+          menuExtra={[...hideEntry(a), ...(manages ? groupEntries(a) : [])]}
         />
       </ErrorBoundary>
     );
@@ -637,6 +665,14 @@ export function Sidebar() {
                         onCheckedChange={(on) => setView((now) => ({ ...now, showAllAgents: on }))}
                       >
                         {t("sidebarAgents.showAll")}
+                      </MenuCheckboxItem>
+                    </>
+                  )}
+                  {hiddenCount > 0 && (
+                    <>
+                      <MenuSeparator />
+                      <MenuCheckboxItem checked={showHidden} onCheckedChange={setShowHidden}>
+                        {t("sidebarAgents.showHidden", { count: hiddenCount })}
                       </MenuCheckboxItem>
                     </>
                   )}

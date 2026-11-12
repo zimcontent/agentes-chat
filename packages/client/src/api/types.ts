@@ -6608,6 +6608,8 @@ export interface SidebarView {
   showAllAgents: boolean;
   /** Never saved: the apps pin my own agents (`dayOnePins`). */
   pins: SidebarPins | null;
+  /** Agents hidden from my AGENTES; the command menu (Ctrl+K) still finds them. */
+  hiddenAgents?: string[];
 }
 
 /**

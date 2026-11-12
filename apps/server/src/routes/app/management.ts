@@ -999,6 +999,11 @@ export function managementRoutes(deps: AppDeps) {
         .openapi({
           description: `"Fixar no topo": agent, channel and user ids on top of their own section, at most ${SIDEBAR_PIN_LIMIT} each. \`null\` until you first pin or dismiss: the apps then pin your own agents.`,
         }),
+      hiddenAgents: z
+        .array(z.string().min(1).max(64))
+        .max(200)
+        .optional()
+        .openapi({ description: "Agent ids hidden from your AGENTES; the command menu (Ctrl+K) still finds them." }),
     })
     .openapi("SidebarView");
 

@@ -280,7 +280,12 @@ export interface SidebarView {
   agentSort: AgentSort;
   showAllAgents: boolean;
   pins: SidebarPins | null;
+  /** Agents hidden from my AGENTES (Ctrl+K still finds them), agent ids. */
+  hiddenAgents: string[];
 }
+
+/** At most this many hidden agents (the import's own agent cap). */
+export const SIDEBAR_HIDDEN_LIMIT = 200;
 
 const ids = (raw: unknown) =>
   Array.isArray(raw)
@@ -300,7 +305,14 @@ export function sidebarViewOf(raw: unknown): SidebarView {
           SIDEBAR_PIN_KINDS.map((k) => [k, ids((v.pins as Record<string, unknown>)[k])]),
         ) as SidebarPins)
       : null;
-  return { agentSort: sort, showAllAgents: v.showAllAgents === true, pins };
+  const hiddenAgents = Array.isArray(v.hiddenAgents)
+    ? [
+        ...new Set(
+          v.hiddenAgents.filter((x): x is string => typeof x === "string" && x.length > 0 && x.length <= 64),
+        ),
+      ].slice(0, SIDEBAR_HIDDEN_LIMIT)
+    : [];
+  return { agentSort: sort, showAllAgents: v.showAllAgents === true, pins, hiddenAgents };
 }
 
 /** The person's sidebar view in this workspace. */
