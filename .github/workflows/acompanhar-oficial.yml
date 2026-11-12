@@ -1,11 +1,11 @@
-# Doug: acompanha o agentes.chat oficial (upstream). Toda segunda, e quando rodado à mão:
+# Doug: acompanha o agentes.chat oficial (upstream). Todo dia, e quando rodado à mão:
 # se saiu uma versão nova (tag vX.Y.Z) que ainda não está no nosso main, mistura-a num branch
 # `oficial/vX.Y.Z` e abre uma issue com o que mudou e o link para abrir o PR.
 # Se a mistura der conflito com as nossas mudanças, o branch não é criado e a issue lista os arquivos.
 name: Acompanhar o agentes.chat oficial
 on:
   schedule:
-    - cron: "0 11 * * 1"
+    - cron: "0 11 * * *"
   workflow_dispatch:
 permissions:
   contents: write

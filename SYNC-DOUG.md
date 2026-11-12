@@ -15,7 +15,7 @@ git fetch upstream --tags
 ```
 
 ## Versão nova do oficial
-1. A Action **Acompanhar o agentes.chat oficial** (toda segunda, ou à mão em Actions) abre uma issue com o que mudou, as migrações de banco novas e o branch `oficial/vX.Y.Z` já misturado — ou a lista de arquivos em conflito.
+1. A Action **Acompanhar o agentes.chat oficial** (todo dia às 8h de Brasília, ou à mão em Actions) abre uma issue com o que mudou, as migrações de banco novas e o branch `oficial/vX.Y.Z` já misturado — ou a lista de arquivos em conflito.
 2. Ler as mudanças; resolver conflitos; rodar typecheck e testes.
 3. Migrações: as nossas colunas extras NÃO entram no journal do Drizzle (são aplicadas no boot por `EXTRA_COLUMNS` em `packages/db/src/client.ts`), então as migrações numeradas do oficial entram sem colidir.
 4. Produção: montar a imagem no servidor a partir do `main` e subir app **e runner juntos** (ver memória/HANDOFF do projeto).
