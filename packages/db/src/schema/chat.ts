@@ -60,6 +60,10 @@ export const channels = pgTable(
       .references(() => organizations.id, { onDelete: "cascade" }),
     /** Lower-case, unique per organization, e.g. `engineering`. */
     name: text().notNull(),
+    /** What everyone sees instead of `name`, free text (capitals, accents, spaces); null: the name. `#name` still mentions it. */
+    displayName: text(),
+    /** The channel's photo (`/api/app/channel-icons/{orgId}/{channelId}/{hash}.{ext}`), like the workspace logo; null: the `#`. */
+    icon: text(),
     topic: text().notNull().default(""),
     visibility: channelVisibilityEnum().notNull().default("public"),
     /**

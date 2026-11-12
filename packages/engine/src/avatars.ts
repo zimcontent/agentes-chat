@@ -1,12 +1,14 @@
 import { createHash } from "node:crypto";
-import type { BlobStore } from "@agenteschat/adapters";
-import { and, type Database, eq, schema, sql } from "@agenteschat/db";
+import type { BlobStore, PubSub } from "@agenteschat/adapters";
+import { and, type Database, eq, isNull, schema, sql } from "@agenteschat/db";
 import { recordAudit } from "./audit";
 import { caches } from "./cache";
-import { NotFoundError, ValidationError } from "./errors";
-import { getMembership, invitedOrgId, requirePermission } from "./organizations";
+import { managesChannel } from "./channels";
+import { ForbiddenError, NotFoundError, ValidationError } from "./errors";
+import { publishChannelsChanged } from "./events";
+import { getMembership, invitedOrgId, requireActiveMembership, requirePermission } from "./organizations";
 
-const { users, organizationMembers, organizations } = schema;
+const { users, organizationMembers, organizations, channels } = schema;
 
 export const AVATAR_LIMITS = { maxBytes: 2 * 1024 * 1024 };
 const TYPES: Record<string, string> = { "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp" };
@@ -106,7 +108,7 @@ export const PORTRAIT_CODE = /^1(\.[A-Za-z0-9]{1,24}){1,48}$/;
  * An uploaded image (base64): JPEG, PNG or WebP up to 2 MB, checked by its
  * bytes, without metadata; named by a hash of its content.
  */
-function readImage(input: { imageBase64: string; contentType: string }, code: "avatar" | "logo") {
+function readImage(input: { imageBase64: string; contentType: string }, code: "avatar" | "logo" | "channel_icon") {
   const clean = input.imageBase64.replace(/^data:[^;]+;base64,/, "").replace(/\s+/g, "");
   if (!/^[A-Za-z0-9+/]*={0,2}$/.test(clean)) throw new ValidationError("The image isn't base64", `${code}.not_base64`);
   const bytes = new Uint8Array(Buffer.from(clean, "base64"));
@@ -293,4 +295,94 @@ export async function invitationLogoFile(deps: { db: Database; blobs: BlobStore 
   const logo = orgId ? await currentOrgLogo(deps, orgId) : null;
   if (!logo || logo.file !== file) throw new NotFoundError("Not found");
   return logo;
+}
+
+// ── A channel's photo ────────────────────────────────────────────────────────
+
+/** Kept beside the workspace logo, so it leaves with the workspace (`purgeOrgBlobs`). */
+const channelIconKey = (orgId: string, channelId: string, file: string) =>
+  `org-logos/${orgId}/channels/${channelId}/${file}`;
+const CHANNEL_ICON_PATH = /^\/api\/app\/channel-icons\/([^/]+)\/([^/]+)\/([0-9a-f]{16}\.(jpg|png|webp))$/;
+
+/** The channel, when `actorId` may change it (`managesChannel`, the same rule as renaming it). */
+async function managedChannel(db: Database, actorId: string, orgId: string, channelId: string) {
+  const membership = await requireActiveMembership(db, actorId, orgId);
+  const [channel] = await db
+    .select()
+    .from(channels)
+    .where(and(eq(channels.id, channelId), eq(channels.orgId, orgId), isNull(channels.archivedAt)));
+  if (channel?.kind !== "channel") throw new NotFoundError("Channel not found");
+  if (!(await managesChannel(db, membership, actorId, channel))) {
+    throw new ForbiddenError("Only the channel's creator or an admin can change it");
+  }
+  return channel;
+}
+
+/**
+ * Sets a channel's photo (`PUT …/channels/{channelId}/icon`), like a group's picture: whoever may rename it; the
+ * workspace logo's checks (JPEG, PNG or WebP up to 2 MB, by its bytes, no metadata), in the platform bucket, served
+ * to the org's members by `GET /api/app/channel-icons/{orgId}/{channelId}/{file}`. The app crops it square.
+ */
+export async function setChannelIcon(
+  deps: { db: Database; blobs: BlobStore; pubsub?: PubSub },
+  actorId: string,
+  orgId: string,
+  channelId: string,
+  input: { imageBase64: string; contentType: string },
+): Promise<{ icon: string }> {
+  const channel = await managedChannel(deps.db, actorId, orgId, channelId);
+  const { body, type, file } = readImage(input, "channel_icon");
+  await deps.blobs.put(channelIconKey(orgId, channelId, file), body, { contentType: type });
+  const icon = `/api/app/channel-icons/${encodeURIComponent(orgId)}/${encodeURIComponent(channelId)}/${file}`;
+  await deps.db.update(channels).set({ icon }).where(eq(channels.id, channelId));
+  caches.channels.delete(`${orgId}:${channelId}`);
+  await removeStoredChannelIcon(deps.blobs, orgId, channelId, channel.icon, file);
+  await publishChannelsChanged(deps.pubsub, orgId);
+  return { icon };
+}
+
+/** Removes a channel's photo (`DELETE …/channels/{channelId}/icon`): back to the `#`. */
+export async function removeChannelIcon(
+  deps: { db: Database; blobs: BlobStore; pubsub?: PubSub },
+  actorId: string,
+  orgId: string,
+  channelId: string,
+) {
+  const channel = await managedChannel(deps.db, actorId, orgId, channelId);
+  await deps.db.update(channels).set({ icon: null }).where(eq(channels.id, channelId));
+  caches.channels.delete(`${orgId}:${channelId}`);
+  await removeStoredChannelIcon(deps.blobs, orgId, channelId, channel.icon, null);
+  await publishChannelsChanged(deps.pubsub, orgId);
+}
+
+async function removeStoredChannelIcon(
+  blobs: BlobStore,
+  orgId: string,
+  channelId: string,
+  icon: string | null | undefined,
+  keep: string | null,
+) {
+  const m = icon ? CHANNEL_ICON_PATH.exec(icon) : null;
+  if (!m || decodeURIComponent(m[1] ?? "") !== orgId || decodeURIComponent(m[2] ?? "") !== channelId) return;
+  if (m[3] === keep) return;
+  await blobs.delete(channelIconKey(orgId, channelId, m[3] as string)).catch(() => undefined);
+}
+
+/**
+ * The stored photo for `GET /api/app/channel-icons/{orgId}/{channelId}/{file}`: the workspace logo's rule, only for
+ * the org's members (the file is a content hash, so a new photo gets a new address).
+ */
+export async function channelIconFile(
+  deps: { db: Database; blobs: BlobStore },
+  viewerId: string,
+  orgId: string,
+  channelId: string,
+  file: string,
+) {
+  if (!/^[0-9a-f]{16}\.(jpg|png|webp)$/.test(file) || !/^[0-9a-f-]{36}$/i.test(channelId))
+    throw new NotFoundError("Not found");
+  if (!(await getMembership(deps.db, viewerId, orgId))) throw new NotFoundError("Not found");
+  const object = await deps.blobs.get(channelIconKey(orgId, channelId, file));
+  if (!object) throw new NotFoundError("Not found");
+  return object;
 }

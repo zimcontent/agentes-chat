@@ -39,6 +39,7 @@ import {
 } from "@agenteschat/client";
 import { agentSections, groupOf } from "@agenteschat/client/lib/agent-groups";
 import { audienceChip, audienceNames, audienceNotice, canTalk, hiddenAgentIds } from "@agenteschat/client/lib/audience";
+import { channelTitle } from "@agenteschat/client/lib/channel-name";
 import { workspaceNotes } from "@agenteschat/client/lib/deletion";
 import { ErrorBoundary } from "@agenteschat/client/lib/error-boundary";
 import { errorText } from "@agenteschat/client/lib/errors";
@@ -149,7 +150,7 @@ import { useNewAgent } from "./new-agent/NewAgentDialog";
 import { OpenOnPhoneDialog } from "./OpenOnPhone";
 import { useOrg } from "./org-context";
 import { StatusLine } from "./Presence";
-import { MyFace, OrgMark } from "./ProfilePhoto";
+import { ChannelPhoto, MyFace, OrgMark } from "./ProfilePhoto";
 import { sectionName, useSectionOrder } from "./SidebarOrder";
 import { SIDEBAR_TOOLS, SidebarSetupDialog, ToolList } from "./SidebarSetup";
 import { AgentGlow, AgentTrail, colorOf, MenuHorizon, SidebarHorizon, WorkspaceSky } from "./Sky";
@@ -402,7 +403,9 @@ export function Sidebar() {
             const current = now.hiddenAgents ?? [];
             return {
               ...now,
-              hiddenAgents: hidden ? current.filter((id) => id !== a.id) : [...current.filter((id) => id !== a.id), a.id],
+              hiddenAgents: hidden
+                ? current.filter((id) => id !== a.id)
+                : [...current.filter((id) => id !== a.id), a.id],
             };
           });
           if (!hidden) hideToast.show(t("sidebarAgents.hiddenToast", { name: a.name }), "info");
@@ -1424,7 +1427,7 @@ function SidebarChannels({
         to="/org/$orgId/c/$channelId"
         params={{ orgId, channelId: c.id }}
         className="sidebar__item"
-        title={`#${c.name}`}
+        title={c.displayName ? `${channelTitle(c)} · #${c.name}` : `#${c.name}`}
         data-kind="channel"
         data-unread={unread}
         data-muted={c.muted || undefined}
@@ -1443,11 +1446,18 @@ function SidebarChannels({
         onClick={() => markOpen(c.id)}
         {...channelMenu(c)}
       >
-        <Icon name="channel" className="sidebar__channel-icon" />
-        <span className="sidebar__channel-abbr" aria-hidden="true">
-          {channelInitials(c.name)}
-        </span>
-        <span className="sidebar__item-label">{c.name}</span>
+        {c.icon ? (
+          // Its photo, like a group's picture, where the "#" goes (and on the rail, where its initials go).
+          <ChannelPhoto icon={c.icon} className="sidebar__channel-photo" />
+        ) : (
+          <>
+            <Icon name="channel" className="sidebar__channel-icon" />
+            <span className="sidebar__channel-abbr" aria-hidden="true">
+              {channelInitials(channelTitle(c))}
+            </span>
+          </>
+        )}
+        <span className="sidebar__item-label">{channelTitle(c)}</span>
         {mentions > 0 ? (
           <UnreadCount count={mentions} mentions />
         ) : unread ? (
@@ -1529,7 +1539,7 @@ function SidebarChannels({
                 icon="lock"
                 onSelect={() => void navigate({ to: "/org/$orgId/c/$channelId", params: { orgId, channelId: c.id } })}
               >
-                {c.name}
+                {channelTitle(c)}
               </MenuItem>
             ))}
           </Menu>

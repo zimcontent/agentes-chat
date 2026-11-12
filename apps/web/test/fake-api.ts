@@ -3056,6 +3056,18 @@ export function createFakeHttpApi(state: FakeState): Omit<HttpApi, FakedParts> {
         Object.assign(c, input);
         return { ...c };
       },
+      setIcon: async (orgId, channelId, input) => {
+        log("chat.setIcon", orgId, channelId, { contentType: input.contentType });
+        const c = state.channels.find((x) => x.id === channelId);
+        if (!c) throw new ApiError(404, "not_found", "Channel not found");
+        c.icon = `data:${input.contentType};base64,${input.imageBase64}`;
+        return { icon: c.icon };
+      },
+      removeIcon: async (orgId, channelId) => {
+        log("chat.removeIcon", orgId, channelId);
+        const c = state.channels.find((x) => x.id === channelId);
+        if (c) c.icon = null;
+      },
       reactions: async (_orgId, messageId) => structuredClone(state.reactions[messageId] ?? []),
       react: async (orgId, messageId, reaction) => {
         log("chat.react", orgId, messageId, reaction);

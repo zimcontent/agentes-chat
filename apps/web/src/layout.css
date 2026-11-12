@@ -801,6 +801,57 @@ html:not([data-pointer]) .sidebar__item:focus-visible {
 .sidebar__channel-icon {
   color: var(--ink-muted);
 }
+/* A channel's photo, like a group's picture (ProfilePhoto.tsx, ChannelPhoto): a rounded square in its "#"'s place,
+   the icons' size in a row, the initials' tile on the rail. */
+.channel-photo {
+  display: block;
+  flex: none;
+  object-fit: cover;
+  border-radius: 4px;
+}
+.channel-photo--empty {
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 30%;
+  background: var(--plate);
+  box-shadow: inset 0 0 0 1px var(--line);
+  font-size: 24px;
+  font-weight: 650;
+  color: var(--ink-muted);
+}
+.channel-photo--field {
+  width: 40px;
+  height: 40px;
+  font-size: 18px;
+}
+/* "Foto do canal" in the channel's settings: the photo, then send or change it and remove it. */
+.channel-photo-field {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.channel-photo-field > .channel-photo {
+  margin-right: 4px;
+  border-radius: 8px;
+}
+/* In a `#channel` pill, the photo stands where its "#" would. */
+.channel-ref__photo {
+  display: inline-block;
+  vertical-align: -2px;
+  margin-right: 3px;
+  border-radius: 3px;
+}
+.sidebar__channel-photo {
+  width: 16px;
+  height: 16px;
+}
+.sidebar[data-rail="true"] .sidebar__channel-photo {
+  width: 24px;
+  height: 24px;
+  border-radius: 30%;
+}
 /* The icon rail: a channel's initials stand in for its "#" (Sidebar.tsx, channelInitials), on a tile as big as the
    faces under it, so they read as its mark and not as a cut name. */
 .sidebar__channel-abbr {

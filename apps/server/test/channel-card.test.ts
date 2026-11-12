@@ -32,6 +32,8 @@ test("a #channel link's card: a public one for everyone, a private one only for 
   expect(await card.json()).toEqual({
     id: vendas,
     name: "vendas",
+    displayName: null,
+    icon: null,
     topic: "",
     visibility: "public",
     audienceRoleIds: [],

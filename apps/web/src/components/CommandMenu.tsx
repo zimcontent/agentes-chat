@@ -1,6 +1,7 @@
 import { useAuthConfig, useChannels, useWikiTree } from "@agenteschat/client";
 import { canTalk, listsAgent } from "@agenteschat/client/lib/audience";
 import { joinable } from "@agenteschat/client/lib/channel-access";
+import { channelTitle } from "@agenteschat/client/lib/channel-name";
 import { setDraftFor } from "@agenteschat/client/lib/drafts";
 import { can } from "@agenteschat/client/lib/permissions";
 import { settingsSectionNameKey } from "@agenteschat/client/lib/personal-view";
@@ -12,7 +13,7 @@ import { useTranslation } from "react-i18next";
 import { AgentAvatar } from "@/components/AgentAvatar";
 import { useInviteDialog } from "@/components/invite/InviteDialog";
 import { useOrg } from "@/components/org-context";
-import { MyFace } from "@/components/ProfilePhoto";
+import { ChannelPhoto, MyFace } from "@/components/ProfilePhoto";
 import { useDirectory } from "@/hooks/useDirectory";
 import { SETTINGS_SECTIONS } from "@/pages/settings-sections";
 
@@ -63,10 +64,12 @@ export function CommandMenu() {
       list.push({
         key: `c:${c.id}`,
         group: goTo,
-        label: `#${c.name}`,
+        // Its display name when it has one, found by its name (`#name`) too.
+        label: c.displayName ? channelTitle(c) : `#${c.name}`,
+        keywords: c.displayName ? `#${c.name}` : undefined,
         // A personal workspace calls its channels group conversations (ADR 0159).
         sub: t(modeKey(org, "palette.channel")),
-        mark: <Icon name="channel" size={16} />,
+        mark: c.icon ? <ChannelPhoto icon={c.icon} /> : <Icon name="channel" size={16} />,
         onSelect: () => void navigate({ to: "/org/$orgId/c/$channelId", params: { orgId, channelId: c.id } }),
       });
     }

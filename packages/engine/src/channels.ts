@@ -53,6 +53,8 @@ const { channels, channelMembers, agents, organizationMembers, organizations, us
 export type Channel = typeof channels.$inferSelect;
 
 export const CHANNEL_NAME_PATTERN = /^[a-z0-9][a-z0-9_-]{0,79}$/;
+/** A display name's length: free text, shown instead of the name. */
+export const CHANNEL_DISPLAY_NAME_MAX = 80;
 
 /** The most departments or roles a channel is limited to (ADR 0125), as for an agent's audience. */
 export const CHANNEL_ROLES_MAX = 100;
@@ -241,6 +243,10 @@ export interface ChannelListItem {
   id: string;
   orgId: string;
   name: string;
+  /** What everyone sees instead of `name` (free text); null: the name. */
+  displayName: string | null;
+  /** The channel's photo (`/api/app/channel-icons/…`); null: the `#`. */
+  icon: string | null;
   topic: string;
   visibility: "public" | "private";
   /** Private and limited to these roles (ADR 0125); empty otherwise. */
@@ -282,6 +288,8 @@ interface ChannelListRow {
   id: string;
   org_id: string;
   name: string;
+  display_name: string | null;
+  icon: string | null;
   topic: string;
   visibility: "public" | "private";
   audience_role_ids: string[] | string;
@@ -333,7 +341,7 @@ export async function listChannels(db: Database, userId: string, orgId: string):
     -- Nor one more unread (ADR 0091): it is silent.
     and u.meta->>'mediaAfter' is null`;
   const rows = rowsOf<ChannelListRow>(
-    await db.execute(sql`select c.id, c.org_id, c.name, c.topic, c.visibility, c.audience_role_ids, c.created_by_user_id, c.created_at,
+    await db.execute(sql`select c.id, c.org_id, c.name, c.display_name, c.icon, c.topic, c.visibility, c.audience_role_ids, c.created_by_user_id, c.created_at,
         c.category_id, c.position,
         (cm.id is not null) as is_member,
         (cm.id is null and c.visibility <> 'public' and not ${channelAudienceSql("c", sql`${userId}`)}) as seen_as_admin,
@@ -382,6 +390,8 @@ export async function listChannels(db: Database, userId: string, orgId: string):
       id: r.id,
       orgId: r.org_id,
       name: r.name,
+      displayName: r.display_name,
+      icon: r.icon,
       topic: r.topic,
       visibility: r.visibility,
       audienceRoleIds: uuidArray(r.audience_role_ids),
@@ -417,6 +427,10 @@ export async function listChannels(db: Database, userId: string, orgId: string):
 export interface ChannelCard {
   id: string;
   name: string;
+  /** What everyone sees instead of `name`; null: the name. */
+  displayName: string | null;
+  /** The channel's photo; null: the `#`. */
+  icon: string | null;
   topic: string;
   visibility: "public" | "private";
   /** Private and limited to these roles (ADR 0125): I hold one, or I'm in it. */
@@ -443,6 +457,8 @@ export async function channelCard(
   const [row] = rowsOf<{
     id: string;
     name: string;
+    display_name: string | null;
+    icon: string | null;
     topic: string;
     visibility: "public" | "private";
     audience_role_ids: string[] | string;
@@ -453,7 +469,7 @@ export async function channelCard(
     people: number | string;
     agents: number | string;
   }>(
-    await db.execute(sql`select c.id, c.name, c.topic, c.visibility, c.audience_role_ids,
+    await db.execute(sql`select c.id, c.name, c.display_name, c.icon, c.topic, c.visibility, c.audience_role_ids,
         (c.archived_at is not null) as archived, ${channelAudienceSql("c", sql`${userId}`)} as by_role,
         ${maySql(sql`${orgId}::uuid`, sql`${userId}::text`, "administrator")} as admin,
         exists (select 1 from ${channelMembers} m where m.channel_id = c.id and m.user_id = ${userId}) as is_member,
@@ -468,6 +484,8 @@ export async function channelCard(
   return {
     id: row.id,
     name: row.name,
+    displayName: row.display_name,
+    icon: row.icon,
     topic: row.topic,
     visibility: row.visibility,
     audienceRoleIds: uuidArray(row.audience_role_ids),

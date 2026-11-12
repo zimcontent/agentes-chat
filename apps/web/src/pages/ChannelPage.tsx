@@ -63,6 +63,7 @@ import {
   usePostMessage,
   useRoster,
   useSendVoice,
+  useSetChannelIcon,
   useSettings,
   usesBrowser,
   useTaskManager,
@@ -83,6 +84,7 @@ import { approvalCardItems, asOfNow, cardDeadline } from "@agenteschat/client/li
 import { artifactRefs } from "@agenteschat/client/lib/artifacts";
 import { canTalk, unavailableNotice } from "@agenteschat/client/lib/audience";
 import { accessInput, accessOf, accessValid, type ChannelAccess } from "@agenteschat/client/lib/channel-access";
+import { channelTitle } from "@agenteschat/client/lib/channel-name";
 import { channelRefsOf } from "@agenteschat/client/lib/channel-refs";
 import {
   entersWithMotion,
@@ -317,6 +319,7 @@ import { OpensAgent } from "@/components/OpensAgent";
 import { useOrg } from "@/components/org-context";
 import { AuthorStatus } from "@/components/Presence";
 import { ProfileTrigger } from "@/components/ProfileCard";
+import { ChannelIconDialog, ChannelPhoto } from "@/components/ProfilePhoto";
 import { ReachLines } from "@/components/ReachLines";
 import { MessageReactions, useEmojiLabels } from "@/components/Reactions";
 import {
@@ -598,7 +601,11 @@ export function ChannelPage({
   const dms = useDms(org.id);
   const dm = channel ? undefined : dms.data?.find((d) => d.channelId === channelId);
   // "#loja · Acme": the window's name in the app (Window menu, Mission Control), the tab's in a browser.
-  useDocumentTitle(channel && !fallback && !thread ? `#${channel.name} · ${org.name}` : undefined);
+  useDocumentTitle(
+    channel && !fallback && !thread
+      ? `${channel.displayName ? channelTitle(channel) : `#${channel.name}`} · ${org.name}`
+      : undefined,
+  );
 
   if (channels.isPending && !fallback) return <ChannelSkeleton />;
   if (dm) {
@@ -4771,6 +4778,10 @@ function ChannelDetails({
   // Name: saved on blur or Enter, like the description.
   const [name, setName] = useState(channel.name);
   const [nameError, setNameError] = useState<string | undefined>();
+  // The display name (free text, shown instead of the name) and the photo, like a group's.
+  const [displayName, setDisplayName] = useState(channel.displayName ?? "");
+  const [photoOpen, setPhotoOpen] = useState(false);
+  const setIcon = useSetChannelIcon(org.id, channel.id);
   const categoryName =
     categories.data?.find((c) => c.id === channel.categoryId)?.name ?? t("channelCategories.noCategory");
   const [q, setQ] = useState("");
@@ -4809,6 +4820,9 @@ function ChannelDetails({
     setName(channel.name);
     setNameError(undefined);
   }, [open, channel.name]);
+  useEffect(() => {
+    if (open) setDisplayName(channel.displayName ?? "");
+  }, [open, channel.displayName]);
   useEffect(() => {
     if (!open) return;
     setTopic(channel.topic);
@@ -4855,11 +4869,24 @@ function ChannelDetails({
       },
     );
   };
+  // Blank clears it: the name shows again.
+  const saveDisplayName = () => {
+    const next = displayName.trim();
+    if (!editable || next === (channel.displayName ?? "")) return;
+    update.mutate(
+      { displayName: next || null },
+      {
+        onSuccess: () => setSaved(true),
+        onError: (e) => toast.show(errorText(t, e), "error"),
+      },
+    );
+  };
   // Inviting someone from Adicionar hands over to the invite dialog (ADR 0090): the details close as well, or they
   // would open again over it.
   const inviteInstead = () => {
     saveTopic();
     saveName();
+    saveDisplayName();
     setAdding(false);
     onOpenChange(false);
   };
@@ -4895,6 +4922,7 @@ function ChannelDetails({
   const leave = () => {
     saveTopic();
     saveName();
+    saveDisplayName();
     onOpenChange(false);
   };
   const needle = q.trim().toLowerCase();
@@ -5048,7 +5076,7 @@ function ChannelDetails({
   return (
     <>
       <Dialog
-        open={open && !adding && !removing && !goingPublic && !deleting}
+        open={open && !adding && !removing && !goingPublic && !deleting && !photoOpen}
         width={editable ? 760 : 600}
         onOpenChange={(o) => (o ? onOpenChange(o) : leave())}
         subtitle={t("channel.detailsSub", {
@@ -5114,6 +5142,7 @@ function ChannelDetails({
                       onClick={() => {
                         saveTopic();
                         saveName();
+                        saveDisplayName();
                         setDeleting(true);
                       }}
                     >
@@ -5149,6 +5178,58 @@ function ChannelDetails({
                       }}
                       autoComplete="off"
                     />
+                  </Field>
+                  <Field
+                    label={t("channel.displayNameLabel")}
+                    id="channel-edit-display-name"
+                    example={t("channel.displayNameHelp", { name: channel.name })}
+                  >
+                    <Input
+                      value={displayName}
+                      onChange={(e) => setDisplayName(e.target.value)}
+                      onBlur={saveDisplayName}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") e.currentTarget.blur();
+                      }}
+                      placeholder={channel.name}
+                      maxLength={80}
+                      autoComplete="off"
+                    />
+                  </Field>
+                  <Field label={t("channel.photo.label")} id="channel-edit-photo" group>
+                    <div className="channel-photo-field">
+                      {channel.icon ? (
+                        <ChannelPhoto icon={channel.icon} size={40} />
+                      ) : (
+                        <span className="channel-photo channel-photo--empty channel-photo--field" aria-hidden="true">
+                          #
+                        </span>
+                      )}
+                      <Button
+                        size="sm"
+                        onClick={() => {
+                          saveDisplayName();
+                          setPhotoOpen(true);
+                        }}
+                      >
+                        {t(channel.icon ? "channel.photo.change" : "channel.photo.upload")}
+                      </Button>
+                      {channel.icon && (
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          loading={setIcon.isPending}
+                          onClick={() =>
+                            setIcon.mutate(null, {
+                              onSuccess: () => setSaved(true),
+                              onError: (e) => toast.show(errorText(t, e), "error"),
+                            })
+                          }
+                        >
+                          {t("channel.photo.remove")}
+                        </Button>
+                      )}
+                    </div>
                   </Field>
                   <Field label={t("newChannel.topic")} id="channel-edit-topic">
                     <Input
@@ -5196,6 +5277,7 @@ function ChannelDetails({
           </>
         )}
       </Dialog>
+      <ChannelIconDialog open={open && photoOpen} onClose={() => setPhotoOpen(false)} channel={channel} />
       <DeleteChannelDialog
         channel={open && deleting ? channel : null}
         onClose={() => setDeleting(false)}

@@ -1,5 +1,6 @@
 import { useArchivedChannels, useChannelCard, useChannels, useJoinChannel } from "@agenteschat/client";
 import { joinable } from "@agenteschat/client/lib/channel-access";
+import { channelTitle } from "@agenteschat/client/lib/channel-name";
 import { channelCardFacts, resolveChannelRef } from "@agenteschat/client/lib/channel-refs";
 import { Button, Chip, Icon, movesByKeys, Popover, useHoverCard } from "@agenteschat/ui";
 import { Link, useNavigate } from "@tanstack/react-router";
@@ -8,6 +9,7 @@ import { useTranslation } from "react-i18next";
 import { useRestoreChannel } from "@/components/entity-menus";
 import { useOrg } from "@/components/org-context";
 import { HOVER_OPEN_MS } from "@/components/ProfileCard";
+import { ChannelPhoto } from "@/components/ProfilePhoto";
 
 /**
  * `#name` in a message: a link to the channel it means (`resolveChannelRef`), with its card on hover or keyboard
@@ -35,7 +37,10 @@ export function ChannelRef({ name, text, refs }: { name: string; text: string; r
     (body.current?.querySelector<HTMLElement>("button") ?? body.current)?.focus();
   });
   if (!ref || (!ref.known && !lookup.data)) return <>{text}</>;
-  const shown = ref.known?.name ?? lookup.data?.name ?? name;
+  // The pill shows its display name (and photo) when it has one; `#name` in the text still is what mentions it.
+  const target = ref.known ?? lookup.data;
+  const shown = target ? channelTitle(target) : name;
+  const mark = target?.icon ? <ChannelPhoto icon={target.icon} size={14} className="channel-ref__photo" /> : "#";
   const archived = !ref.known && lookup.data?.archived === true;
   const label = archived ? t("channelRefs.archivedLabel", { name: shown }) : t("channelRefs.label", { name: shown });
   const focus = {
@@ -61,7 +66,8 @@ export function ChannelRef({ name, text, refs }: { name: string; text: string; r
       trigger={
         archived ? (
           <button type="button" className={className} aria-label={label} aria-haspopup="dialog" {...focus}>
-            #{shown}
+            {mark}
+            {shown}
           </button>
         ) : (
           // The link navigates (and so keeps the card closed: a prevented click never toggles it).
@@ -88,7 +94,8 @@ export function ChannelRef({ name, text, refs }: { name: string; text: string; r
             }}
             {...focus}
           >
-            #{shown}
+            {mark}
+            {shown}
           </Link>
         )
       }
@@ -126,8 +133,14 @@ function ChannelCardBody({ channelId, onDone }: { channelId: string; onDone: () 
   return (
     <div className="profile-card__body">
       <div className="channel-card__head">
-        <Icon name={c.archived ? "archive" : c.visibility === "private" ? "lock" : "channel"} size={16} />
-        <span className="profile-card__name">#{c.name}</span>
+        {c.icon && !c.archived ? (
+          <ChannelPhoto icon={c.icon} />
+        ) : (
+          <Icon name={c.archived ? "archive" : c.visibility === "private" ? "lock" : "channel"} size={16} />
+        )}
+        <span className="profile-card__name" title={c.displayName ? `#${c.name}` : undefined}>
+          {c.displayName ? channelTitle(c) : `#${c.name}`}
+        </span>
         {c.archived && <Chip>{t("channelRefs.archived")}</Chip>}
       </div>
       {c.topic && <p className="channel-card__topic">{c.topic}</p>}

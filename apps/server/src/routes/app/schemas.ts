@@ -484,6 +484,14 @@ export const Channel = z
   .object({
     id: z.uuid(),
     name: z.string(),
+    displayName: z.string().nullable().optional().openapi({
+      description: "What everyone sees instead of `name` (free text); null: the name. `#name` still mentions it.",
+    }),
+    icon: z
+      .string()
+      .nullable()
+      .optional()
+      .openapi({ description: "The channel's photo (`/api/app/channel-icons/…`); null: the `#`." }),
     topic: z.string(),
     visibility: z.enum(["public", "private"]),
     audienceRoleIds: z.array(z.uuid()).optional().openapi({

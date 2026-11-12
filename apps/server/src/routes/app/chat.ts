@@ -95,6 +95,8 @@ export function chatRoutes(deps: AppDeps) {
           channels: rows.map((r) => ({
             id: r.id,
             name: r.name,
+            displayName: r.displayName,
+            icon: r.icon,
             topic: r.topic,
             visibility: r.visibility,
             audienceRoleIds: r.audienceRoleIds,
@@ -207,6 +209,8 @@ export function chatRoutes(deps: AppDeps) {
         {
           id: r.id,
           name: r.name,
+          displayName: r.displayName,
+          icon: r.icon,
           topic: r.topic,
           visibility: r.visibility,
           audienceRoleIds: r.audienceRoleIds,
@@ -251,6 +255,8 @@ export function chatRoutes(deps: AppDeps) {
           z.object({
             id: z.uuid(),
             name: z.string(),
+            displayName: z.string().nullable().openapi({ description: "Shown instead of `name`; null: the name." }),
+            icon: z.string().nullable().openapi({ description: "The channel's photo; null: the `#`." }),
             topic: z.string(),
             visibility: z.enum(["public", "private"]),
             audienceRoleIds: z.array(z.uuid()),

@@ -1116,7 +1116,12 @@ export interface AgentUsage {
 
 export interface Channel {
   id: string;
+  /** The technical name, lower-case: what `#name` mentions. */
   name: string;
+  /** What everyone sees instead of `name` (free text: capitals, accents, spaces); null or absent: the name. */
+  displayName?: string | null;
+  /** The channel's photo (`/api/app/channel-icons/…`), like a group's picture; null or absent: the `#`. */
+  icon?: string | null;
   topic: string;
   visibility: "public" | "private";
   /** Private and limited to these roles (departments, ADR 0125): their people see it and may join. Empty or absent: public or invite only. */
@@ -1165,6 +1170,8 @@ export interface ChannelOverride {
 
 /** Who may join a channel, on creating it or changing it later. */
 export interface ChannelInput {
+  /** Shown instead of the name (1–80, free text); null clears it. */
+  displayName?: string | null;
   topic?: string;
   visibility?: "public" | "private";
   /** Private only: limits it to people holding one of these roles (ADR 0125); empty: invite only. */
@@ -1213,6 +1220,10 @@ export type IdRef =
 export interface ChannelCard {
   id: string;
   name: string;
+  /** As on `Channel`. */
+  displayName?: string | null;
+  /** As on `Channel`. */
+  icon?: string | null;
   topic: string;
   visibility: "public" | "private";
   /** As on `Channel`. */

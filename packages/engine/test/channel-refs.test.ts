@@ -84,6 +84,8 @@ test("a channel's card: counts and membership; archived shows; a private one not
   expect(card).toEqual({
     id: secret.id,
     name: "diretoria",
+    displayName: null,
+    icon: null,
     topic: "",
     visibility: "private",
     audienceRoleIds: [],

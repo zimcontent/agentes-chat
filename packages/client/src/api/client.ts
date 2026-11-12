@@ -872,6 +872,13 @@ export interface ApiClient {
     /** What an internal id in a text names, as its pill; 404 for anything I can't see or that isn't ours. */
     idRef(orgId: string, id: string): Promise<IdRef>;
     update(orgId: string, channelId: string, input: ChannelInput & { name?: string }): Promise<Channel>;
+    /** The channel's photo (whoever may rename it): a square image (JSON only: base64), already cropped. */
+    setIcon(
+      orgId: string,
+      channelId: string,
+      input: { imageBase64: string; contentType: string },
+    ): Promise<{ icon: string }>;
+    removeIcon(orgId: string, channelId: string): Promise<void>;
     /** Creator or admin: the channel leaves everyone's list (its messages are kept). */
     archive(orgId: string, channelId: string): Promise<void>;
     /** An archived channel back as it was (its creator or who manages channels). */

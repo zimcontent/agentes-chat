@@ -8,6 +8,7 @@ import {
   usePeople,
   useRoles,
 } from "@agenteschat/client";
+import { channelTitle } from "@agenteschat/client/lib/channel-name";
 import { errorText } from "@agenteschat/client/lib/errors";
 import { agentGrammar } from "@agenteschat/client/lib/grammar";
 import { can, leavesChannel, managesChannel } from "@agenteschat/client/lib/permissions";
@@ -176,7 +177,7 @@ export function useChannelMenu() {
   return (c: Channel, extra: MenuEntry[] = []): MenuEntry[] => {
     const manages = managesChannel(c, me.user.id, org);
     return [
-      { kind: "header", label: `#${c.name}` },
+      { kind: "header", label: c.displayName ? channelTitle(c) : `#${c.name}` },
       ...markRead(c.id, c.unreadCount ?? 0),
       // Muted, it never looks unread to me (a mention of me still counts).
       ...(c.isMember

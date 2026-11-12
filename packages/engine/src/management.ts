@@ -8,6 +8,7 @@ import type { AutoModels } from "./auto-model";
 import { caches } from "./cache";
 import {
   announceChannelLeavers,
+  CHANNEL_DISPLAY_NAME_MAX,
   CHANNEL_NAME_PATTERN,
   channelRoleIds,
   dropRoleLeavers,
@@ -520,7 +521,8 @@ export async function setAgentChannels(
 // ── Channels ─────────────────────────────────────────────────────────────────
 
 /**
- * Renames a channel or changes its topic or who may join (creator or admin). `audienceRoleIds` limits a private
+ * Renames a channel or changes its display name, topic or who may join (creator or admin). `displayName` is free
+ * text shown instead of the name (null clears it; `#name` still mentions it). `audienceRoleIds` limits a private
  * channel to departments or roles (ADR 0125; empty: invite only); dropping a role takes out the people who were
  * there through it alone.
  */
@@ -529,7 +531,13 @@ export async function updateChannel(
   actorId: string,
   orgId: string,
   channelId: string,
-  input: { name?: string; topic?: string; visibility?: "public" | "private"; audienceRoleIds?: string[] },
+  input: {
+    name?: string;
+    displayName?: string | null;
+    topic?: string;
+    visibility?: "public" | "private";
+    audienceRoleIds?: string[];
+  },
   options: { pubsub?: PubSub } = {},
 ) {
   const membership = await requireActiveMembership(db, actorId, orgId);
@@ -544,6 +552,10 @@ export async function updateChannel(
   const name = input.name?.trim().toLowerCase();
   if (name !== undefined && !CHANNEL_NAME_PATTERN.test(name))
     throw new ValidationError("channel name: lower-case letters, digits, - or _ (max 80)");
+  // Blank (or only spaces) is no display name: the name shows again.
+  const displayName = input.displayName === undefined ? undefined : input.displayName?.trim() || null;
+  if (displayName && displayName.length > CHANNEL_DISPLAY_NAME_MAX)
+    throw new ValidationError(`display name: at most ${CHANNEL_DISPLAY_NAME_MAX} characters`);
   if (channel.name === "general" && name !== undefined && name !== "general")
     throw new ValidationError("#general can't be renamed");
   if (channel.kind === "dm") throw new ValidationError("A direct conversation keeps its participants");
@@ -575,6 +587,7 @@ export async function updateChannel(
         .update(channels)
         .set({
           ...(name !== undefined ? { name } : {}),
+          ...(displayName !== undefined ? { displayName } : {}),
           ...(input.topic !== undefined ? { topic: input.topic } : {}),
           ...access,
         })

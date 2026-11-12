@@ -1,4 +1,4 @@
-import { keys } from "@agenteschat/client";
+import { keys, useSetChannelIcon } from "@agenteschat/client";
 import {
   Avatar,
   type AvatarProps,
@@ -401,6 +401,61 @@ export function MyFace(props: Omit<AvatarProps, "name" | "imageUrl">) {
   const { org, me } = useOrg();
   const photo = useDirectory(org.id).memberById.get(me.user.id)?.image ?? me.user.image;
   return <Avatar {...props} name={me.user.name} imageUrl={photo} />;
+}
+
+/** A channel's photo (like a group's picture), a rounded square where its "#" goes. */
+export function ChannelPhoto({ icon, size = 16, className }: { icon: string; size?: number; className?: string }) {
+  return (
+    <img
+      className={cx("channel-photo", className)}
+      src={icon}
+      alt=""
+      width={size}
+      height={size}
+      decoding="async"
+      draggable={false}
+    />
+  );
+}
+
+/** "Foto do canal": whoever may rename the channel sets its square photo (PNG keeps transparency); everyone sees it. */
+export function ChannelIconDialog({
+  open,
+  onClose,
+  channel,
+}: {
+  open: boolean;
+  onClose: () => void;
+  channel: { id: string; name: string; icon?: string | null };
+}) {
+  const { t } = useTranslation();
+  const { org } = useOrg();
+  const setIcon = useSetChannelIcon(org.id, channel.id);
+  const toast = useToast();
+  return (
+    <ImageCropDialog
+      open={open}
+      onClose={onClose}
+      title={t("channel.photo.title")}
+      help={t("channel.photo.help")}
+      placeholder={
+        channel.icon ? (
+          <ChannelPhoto icon={channel.icon} size={56} />
+        ) : (
+          <span className="channel-photo channel-photo--empty" aria-hidden="true">
+            #
+          </span>
+        )
+      }
+      hasImage={Boolean(channel.icon)}
+      removeLabel={t("channel.photo.remove")}
+      format="image/png"
+      save={(image) => setIcon.mutateAsync(image)}
+      remove={() => setIcon.mutateAsync(null)}
+      onSaved={() => toast.show(t("channel.photo.saved"))}
+      onRemoved={() => toast.show(t("channel.photo.removed"))}
+    />
+  );
 }
 
 /** The workspace's mark: its logo when there is one, else the agent mark. */

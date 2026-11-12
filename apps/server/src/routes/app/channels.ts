@@ -1,6 +1,8 @@
 import {
   archiveChannel,
+  CHANNEL_DISPLAY_NAME_MAX,
   CHANNEL_KEYS,
+  channelIconFile,
   channelMembersDetail,
   createChannelCategory,
   deleteChannel,
@@ -12,16 +14,20 @@ import {
   pinMessage,
   placeChannel,
   placeChannelCategory,
+  removeChannelIcon,
   removeChannelMember,
   renameChannelCategory,
   requireChannelAccess,
   setChannelAgentAutoReply,
+  setChannelIcon,
   setChannelOverride,
   unarchiveChannel,
   unpinMessage,
   updateChannel,
 } from "@agenteschat/engine";
 import { createRoute, z } from "@hono/zod-openapi";
+import { apiError, errorResponse } from "../../http/errors";
+import { imageFile } from "../../http/image-file";
 import {
   type AppDeps,
   body,
@@ -71,7 +77,9 @@ export function channelRoutes(deps: AppDeps) {
   const { db, adapters } = deps;
   const app = createAppRouter(deps);
   app.use("/organizations/*", requireSession(deps.auth));
+  app.use("/channel-icons/*", requireSession(deps.auth));
   const opts = { pubsub: adapters.pubsub };
+  const icons = { db, blobs: adapters.platformBlobs, pubsub: adapters.pubsub };
 
   app.openapi(
     createRoute({
@@ -254,12 +262,16 @@ export function channelRoutes(deps: AppDeps) {
       path: "/organizations/{orgId}/channels/{channelId}",
       tags,
       security,
-      summary: "Rename, change topic or who may join (creator or admin)",
+      summary: "Rename, change display name, topic or who may join (creator or admin)",
       request: {
         params: ChannelParams,
         body: body(
           z.object({
             name: z.string().min(1).max(80).optional(),
+            displayName: z.string().max(CHANNEL_DISPLAY_NAME_MAX).nullable().optional().openapi({
+              description:
+                "What everyone sees instead of the name: free text (capitals, accents, spaces), 1–80 characters; null or blank clears it. `#name` still mentions the channel.",
+            }),
             topic: z.string().max(500).optional(),
             visibility: z.enum(["public", "private"]).optional(),
             audienceRoleIds: z.array(z.uuid()).max(100).optional().openapi({
@@ -278,6 +290,8 @@ export function channelRoutes(deps: AppDeps) {
         {
           id: r.id,
           name: r.name,
+          displayName: r.displayName,
+          icon: r.icon,
           topic: r.topic,
           visibility: r.visibility,
           audienceRoleIds: r.audienceRoleIds,
@@ -290,6 +304,72 @@ export function channelRoutes(deps: AppDeps) {
         200,
       );
     },
+  );
+
+  // The channel's photo, like a group's picture: whoever may rename it; the workspace logo's checks and storage.
+  app.openapi(
+    createRoute({
+      method: "put",
+      path: "/organizations/{orgId}/channels/{channelId}/icon",
+      tags,
+      security,
+      summary:
+        "Set the channel's photo (JPEG, PNG or WebP up to 2 MB; metadata is removed). Whoever may rename the channel.",
+      request: {
+        params: ChannelParams,
+        body: body(
+          z.object({
+            imageBase64: z
+              .string()
+              .min(1)
+              .max(3_000_000)
+              .openapi({ description: "The image bytes in base64 (a data: URL prefix is accepted)." }),
+            contentType: z.enum(["image/jpeg", "image/png", "image/webp"]),
+          }),
+        ),
+      },
+      responses: {
+        200: json(z.object({ icon: z.string() })),
+        429: errorResponse("Too many photo changes"),
+        ...errors,
+      },
+    }),
+    async (c) => {
+      const { orgId, channelId } = c.req.valid("param");
+      const limit = await adapters.rateLimiter.consume(`channel-icon:${channelId}`, { limit: 20, windowMs: 3600_000 });
+      if (!limit.allowed) return apiError(c, 429, "rate_limited", "Too many photo changes. Try again later.");
+      return c.json(await setChannelIcon(icons, c.get("user").id, orgId, channelId, c.req.valid("json")), 200);
+    },
+  );
+
+  app.openapi(
+    createRoute({
+      method: "delete",
+      path: "/organizations/{orgId}/channels/{channelId}/icon",
+      tags,
+      security,
+      summary: "Remove the channel's photo (back to the #). Whoever may rename the channel.",
+      request: { params: ChannelParams },
+      responses: { 204: noContent[204], ...errors },
+    }),
+    async (c) => {
+      const { orgId, channelId } = c.req.valid("param");
+      await removeChannelIcon(icons, c.get("user").id, orgId, channelId);
+      return c.body(null, 204);
+    },
+  );
+
+  // The photo's file, for the org's members, like the workspace logo. The name is a content hash: cached for good.
+  app.get("/channel-icons/:orgId/:channelId/:file", async (c) =>
+    imageFile(
+      await channelIconFile(
+        { db, blobs: adapters.platformBlobs },
+        c.get("user").id,
+        c.req.param("orgId"),
+        c.req.param("channelId"),
+        c.req.param("file"),
+      ),
+    ),
   );
 
   app.openapi(

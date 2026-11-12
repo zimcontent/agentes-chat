@@ -1,10 +1,12 @@
 import type { Agent, Channel, Member } from "@agenteschat/client";
+import { channelTitle } from "@agenteschat/client/lib/channel-name";
 import { Icon } from "@agenteschat/ui";
 import { useTranslation } from "react-i18next";
 import { ChannelPinsButton } from "@/components/ChannelPins";
 import { QueueButton } from "@/components/ComputerQueue";
 import { useChannelMenu } from "@/components/entity-menus";
 import { NavToggle } from "@/components/NavDrawer";
+import { ChannelPhoto } from "@/components/ProfilePhoto";
 import { HeaderSearch } from "@/components/search/HeaderSearch";
 import { ChannelThreadsButton } from "@/components/threads/ThreadLines";
 import { entityMenu } from "@/lib/entity-menu";
@@ -48,9 +50,13 @@ export function ChannelHeader({
       <NavToggle />
       <div className="ac-actline channel__line">
         <div className="channel__head-text" {...entityMenu(() => channelEntries(channel))}>
-          <h1 className="channel__title">
-            <Icon name="channel" className="channel__title-hash" />
-            <span>{channel.name}</span>
+          <h1 className="channel__title" title={channel.displayName ? `#${channel.name}` : undefined}>
+            {channel.icon ? (
+              <ChannelPhoto icon={channel.icon} size={20} className="channel__title-photo" />
+            ) : (
+              <Icon name="channel" className="channel__title-hash" />
+            )}
+            <span>{channelTitle(channel)}</span>
           </h1>
           {channel.topic && (
             <span className="channel__topic">

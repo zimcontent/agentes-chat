@@ -3218,6 +3218,22 @@ export function useUpdateChannel(orgId: string, channelId: string) {
   });
 }
 
+/** The channel's photo (whoever may rename it): set from a cropped square, or removed (`null`). */
+export function useSetChannelIcon(orgId: string, channelId: string) {
+  const api = useApi();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (image: { imageBase64: string; contentType: string } | null) => {
+      if (image) await api.chat.setIcon(orgId, channelId, image);
+      else await api.chat.removeIcon(orgId, channelId);
+    },
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: keys.channels(orgId) });
+      void qc.invalidateQueries({ queryKey: keys.channelCard(orgId, channelId) });
+    },
+  });
+}
+
 /** Archives a channel (creator or admin): it leaves the list. */
 export function useArchiveChannel(orgId: string) {
   const api = useApi();

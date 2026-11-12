@@ -987,6 +987,10 @@ export function createHttpApi(options: TransportOptions = {}): HttpApi {
       idRef: (orgId, id) => request<IdRef>(`${org(orgId)}/refs/${enc(id)}`),
       update: (orgId, channelId, input) =>
         request<Channel>(`${org(orgId)}/channels/${enc(channelId)}`, { method: "PATCH", json: input }),
+      setIcon: (orgId, channelId, input) =>
+        request<{ icon: string }>(`${org(orgId)}/channels/${enc(channelId)}/icon`, { method: "PUT", json: input }),
+      removeIcon: (orgId, channelId) =>
+        request<void>(`${org(orgId)}/channels/${enc(channelId)}/icon`, { method: "DELETE" }),
       reactions: async (orgId, messageId) =>
         (await request<{ reactions: ReactionCount[] }>(`${org(orgId)}/messages/${enc(messageId)}/reactions`)).reactions,
       react: async (orgId, messageId, reaction) =>
