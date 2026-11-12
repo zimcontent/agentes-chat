@@ -1,61 +1,386 @@
-# Doug: acompanha o agentes.chat oficial (upstream). Todo dia, e quando rodado à mão:
-# se saiu uma versão nova (tag vX.Y.Z) que ainda não está no nosso main, mistura-a num branch
-# `oficial/vX.Y.Z` e abre uma issue com o que mudou e o link para abrir o PR.
-# Se a mistura der conflito com as nossas mudanças, o branch não é criado e a issue lista os arquivos.
+# Doug: acompanha o agentes.chat oficial (upstream) todo dia, sozinho (fluxo em SYNC-DOUG.md).
+#
+#   1. Se o upstream/main já está contido no main, termina.
+#   2. Mistura o upstream/main num branch `atualizacao/oficial-AAAA-MM-DD` a partir do main.
+#      Conflito: aborta e abre (ou atualiza) a issue "Atualização do oficial com conflito".
+#   3. Portão de qualidade: install congelado, typecheck de todos os pacotes, check:migrations, build da web e
+#      os testes dos pacotes que têm as nossas mudanças.
+#   4. Passou: avança o main (fast-forward), cria a tag `doug-AAAAMMDD-<sha7>`, escreve o resumo e registra uma
+#      issue de histórico (já fechada). Falhou: o main não muda e abre (ou atualiza) uma issue com o log resumido.
+#
+# Não depende de nenhuma outra Action do repositório (CI, Android, Desktop, Mobile, Release setup), nem de segredo
+# além do GITHUB_TOKEN. O GITHUB_TOKEN não pode gravar arquivos em .github/workflows: quando o oficial mexe neles a
+# Action roda o portão, mas o push fica para uma pessoa (a issue diz os comandos).
+#
+# Ensaio: rodado à mão fora do main (ex.: `gh workflow run acompanhar-oficial.yml --ref <branch> -f base=<branch>`)
+# ou com `ensaio=true`, faz tudo, inclusive o portão, mas não grava nada: nem main, nem tag, nem issue.
 name: Acompanhar o agentes.chat oficial
 on:
   schedule:
-    - cron: "0 11 * * *"
+    - cron: "0 6 * * *"
   workflow_dispatch:
+    inputs:
+      base:
+        description: "Branch de partida (main em produção; outro branch só para ensaio)"
+        type: string
+        default: main
+      ensaio:
+        description: "Ensaio: roda o portão mesmo sem novidade e não grava nada"
+        type: boolean
+        default: false
+
 permissions:
   contents: write
   issues: write
+
+concurrency:
+  group: acompanhar-oficial
+  cancel-in-progress: false
+
+defaults:
+  run:
+    shell: bash
+
+env:
+  UPSTREAM_URL: https://github.com/agentes-chat/agentes-chat.git
+  BASE: ${{ inputs.base || 'main' }}
+  # Grava só quando roda a partir do main, sem ensaio e com base main.
+  ENSAIO: ${{ (inputs.ensaio || github.ref != 'refs/heads/main' || (inputs.base || 'main') != 'main') && 'true' || 'false' }}
+  TITULO_CONFLITO: "Atualização do oficial com conflito"
+  TITULO_FALHA: "Atualização do oficial falhou no portão de qualidade"
+  TITULO_MANUAL: "Atualização do oficial pronta, falta o push (mexe em workflows)"
+  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
 jobs:
-  oficial:
+  atualizar:
+    name: Misturar o oficial e passar no portão
     runs-on: ubuntu-latest
+    timeout-minutes: 75
     steps:
       - uses: actions/checkout@v4
         with:
+          ref: ${{ env.BASE }}
           fetch-depth: 0
-          ref: main
+
       - name: Buscar o oficial
-        run: |
-          git remote add upstream https://github.com/agentes-chat/agentes-chat.git
-          git fetch --quiet upstream --tags
-      - name: Versão nova?
-        id: nova
-        run: |
-          tag=$(git tag -l 'v*' --sort=-v:refname | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | head -1)
-          echo "tag=$tag" >> "$GITHUB_OUTPUT"
-          if git merge-base --is-ancestor "$tag" HEAD; then echo "nova=nao" >> "$GITHUB_OUTPUT"; else echo "nova=sim" >> "$GITHUB_OUTPUT"; fi
-      - name: Misturar e avisar
-        if: steps.nova.outputs.nova == 'sim'
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          TAG: ${{ steps.nova.outputs.tag }}
+        id: oficial
+        timeout-minutes: 5
         run: |
           git config user.name "Doug (acompanhar oficial)"
           git config user.email "info@zimcontent.com"
-          base=$(git describe --tags --abbrev=0 --match 'v*' HEAD)
-          titulo="agentes.chat $TAG saiu (estamos em $base)"
-          if gh issue list --state open --search "\"$titulo\" in:title" --json number --jq 'length' | grep -qv '^0$'; then exit 0; fi
-          mudancas=$(git log --no-merges --format='- %s' "$base..$TAG" | head -150)
-          banco=$(git diff --name-only "$base" "$TAG" -- packages/db/migrations | sed 's/^/- /')
-          git switch -c "oficial/$TAG"
-          if git merge --no-edit "$TAG"; then
-            git push -q origin "oficial/$TAG"
-            corpo=$(printf '%s\n\n%s\n\n%s\n%s\n\n%s\n%s\n' \
-              "Mistura feita sem conflito no branch \`oficial/$TAG\`." \
-              "Abrir o PR: https://github.com/${GITHUB_REPOSITORY}/compare/main...oficial/$TAG" \
-              "### Migrações de banco novas" "${banco:-- nenhuma}" \
-              "### O que mudou no oficial" "$mudancas")
+          git remote add upstream "$UPSTREAM_URL"
+          git fetch --quiet --no-tags upstream main
+          git fetch --quiet upstream 'refs/tags/*:refs/tags/upstream/*'
+          base_sha=$(git rev-parse HEAD)
+          up_sha=$(git rev-parse upstream/main)
+          echo "base_sha=$base_sha" >> "$GITHUB_OUTPUT"
+          echo "up_sha=$up_sha" >> "$GITHUB_OUTPUT"
+          if git merge-base --is-ancestor "$up_sha" "$base_sha"; then
+            echo "novo=nao" >> "$GITHUB_OUTPUT"
+            echo "O oficial ($up_sha) já está no $BASE. Nada a fazer." >> "$GITHUB_STEP_SUMMARY"
           else
-            conflitos=$(git diff --name-only --diff-filter=U | sed 's/^/- /')
-            git merge --abort
-            corpo=$(printf '%s\n\n%s\n%s\n\n%s\n%s\n\n%s\n%s\n' \
-              "A mistura com o nosso main deu conflito: resolver numa sessão (git fetch upstream --tags && git merge $TAG)." \
-              "### Arquivos em conflito" "$conflitos" \
-              "### Migrações de banco novas" "${banco:-- nenhuma}" \
-              "### O que mudou no oficial" "$mudancas")
+            echo "novo=sim" >> "$GITHUB_OUTPUT"
           fi
-          gh issue create --title "$titulo" --body "$corpo"
+          dia=$(date -u +%Y-%m-%d)
+          echo "dia=$dia" >> "$GITHUB_OUTPUT"
+          echo "branch=atualizacao/oficial-$dia" >> "$GITHUB_OUTPUT"
+          # O que chega: commits novos e migrações novas, para o resumo e as issues.
+          {
+            echo "### Commits novos do oficial ($(git rev-list --count --no-merges "$base_sha..$up_sha"), sem as misturas)"
+            git log --no-merges --format='- `%h` %s' "$base_sha..$up_sha" | head -300
+          } > "$RUNNER_TEMP/commits.md"
+          {
+            echo "### Migrações de banco novas"
+            novas=$(git diff --name-only --diff-filter=A "$base_sha" "$up_sha" -- 'packages/db/migrations/*.sql')
+            if [ -n "$novas" ]; then sed 's/^/- `/; s/$/`/' <<<"$novas"; else echo "- nenhuma"; fi
+          } > "$RUNNER_TEMP/migracoes.md"
+
+      # Uma pessoa já levou o oficial para o main (PR de conflito, push manual): as issues abertas ficaram resolvidas.
+      - name: Fechar issues resolvidas
+        if: steps.oficial.outputs.novo == 'nao' && env.ENSAIO != 'true'
+        timeout-minutes: 5
+        run: |
+          for titulo in "$TITULO_CONFLITO" "$TITULO_FALHA" "$TITULO_MANUAL"; do
+            for n in $(gh issue list --state open --search "\"$titulo\" in:title" --json number,title \
+              --jq "map(select(.title == \"$titulo\")) | .[].number"); do
+              gh issue close "$n" --comment "Resolvido: o main já contém o oficial ($(git rev-parse --short upstream/main))."
+            done
+          done
+
+      - name: Misturar
+        id: mistura
+        if: steps.oficial.outputs.novo == 'sim'
+        timeout-minutes: 5
+        env:
+          BRANCH: ${{ steps.oficial.outputs.branch }}
+          UP_SHA: ${{ steps.oficial.outputs.up_sha }}
+        run: |
+          git switch -c "$BRANCH"
+          if git merge --no-edit -m "atualizacao: mistura o oficial (upstream/main ${UP_SHA:0:7})" "$UP_SHA"; then
+            echo "ok=sim" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          echo "ok=nao" >> "$GITHUB_OUTPUT"
+          git diff --name-only --diff-filter=U | sed 's/^/- `/; s/$/`/' > "$RUNNER_TEMP/conflitos.md"
+          git merge --abort
+          {
+            echo "## Conflito ao misturar o oficial"
+            cat "$RUNNER_TEMP/conflitos.md"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Abrir ou atualizar a issue de conflito
+        if: steps.mistura.outputs.ok == 'nao' && env.ENSAIO != 'true'
+        timeout-minutes: 5
+        env:
+          UP_SHA: ${{ steps.oficial.outputs.up_sha }}
+          BASE_SHA: ${{ steps.oficial.outputs.base_sha }}
+        run: |
+          {
+            echo "A mistura automática do oficial (\`upstream/main\` em \`${UP_SHA:0:7}\`) com o \`main\` (\`${BASE_SHA:0:7}\`) deu conflito. O \`main\` não mudou."
+            echo
+            echo "Resolver numa sessão (passo a passo em SYNC-DOUG.md, \"Quando abre issue de conflito\"):"
+            echo '```sh'
+            echo 'git fetch origin && git fetch upstream --tags'
+            echo "git switch -c atualizacao/oficial-manual origin/main"
+            echo "git merge upstream/main   # resolver, typecheck, testes"
+            echo "git push -u origin atualizacao/oficial-manual   # e abrir o PR para main"
+            echo '```'
+            echo
+            echo "### Arquivos em conflito"
+            cat "$RUNNER_TEMP/conflitos.md"
+            echo
+            cat "$RUNNER_TEMP/migracoes.md"
+            echo
+            cat "$RUNNER_TEMP/commits.md"
+            echo
+            echo "Execução: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+          } | head -c 60000 > "$RUNNER_TEMP/corpo.md"
+          aberta=$(gh issue list --state open --search "\"$TITULO_CONFLITO\" in:title" --json number,title \
+            --jq "map(select(.title == \"$TITULO_CONFLITO\")) | .[0].number // empty")
+          if [ -n "$aberta" ]; then
+            gh issue edit "$aberta" --body-file "$RUNNER_TEMP/corpo.md"
+            gh issue comment "$aberta" --body "Ainda em conflito em $(date -u +%Y-%m-%d) (oficial em \`${UP_SHA:0:7}\`). Corpo da issue atualizado."
+          else
+            gh issue create --title "$TITULO_CONFLITO" --body-file "$RUNNER_TEMP/corpo.md"
+          fi
+
+      # O portão roda quando há mistura nova sem conflito, ou num ensaio mesmo sem novidade.
+      - name: Preparar o Bun
+        id: bun
+        if: steps.mistura.outputs.ok == 'sim' || (steps.oficial.outputs.novo == 'nao' && env.ENSAIO == 'true')
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.4.4
+
+      - name: Portão de qualidade
+        id: portao
+        if: steps.bun.outcome == 'success'
+        timeout-minutes: 60
+        run: |
+          set -o pipefail
+          mkdir -p "$RUNNER_TEMP/portao"
+          etapa() {
+            local nome=$1 limite=$2; shift 2
+            local log="$RUNNER_TEMP/portao/$nome.log"
+            echo "::group::$nome"
+            local inicio=$SECONDS codigo
+            set +e
+            timeout "$limite" "$@" 2>&1 | tee "$log"
+            codigo=${PIPESTATUS[0]}
+            set -e
+            echo "::endgroup::"
+            echo "| $nome | $([ "$codigo" -eq 0 ] && echo ok || echo "falhou ($codigo)") | $(( SECONDS - inicio )) s |" >> "$RUNNER_TEMP/portao/tabela.md"
+            if [ "$codigo" -ne 0 ]; then
+              echo "falhou=$nome" >> "$GITHUB_OUTPUT"
+              {
+                echo "Etapa: \`$nome\` (saída $codigo; 124 = estourou ${limite})"
+                echo
+                echo '```'
+                grep -E '^\(fail\)|^FALHOU|falhou em|error TS|^error:' "$log" | head -60
+                echo '--- fim do log ---'
+                tail -n 60 "$log"
+                echo '```'
+              } > "$RUNNER_TEMP/portao/falha.md"
+              exit 1
+            fi
+          }
+          typecheck_todos() {
+            local status=0
+            for dir in $(git ls-files '*/package.json' | xargs -n1 dirname | sort); do
+              jq -e '.scripts.typecheck' "$dir/package.json" >/dev/null || continue
+              echo "== $dir"
+              (cd "$dir" && timeout 300 bun run typecheck) || { echo "Typecheck falhou em $dir"; status=1; }
+            done
+            return $status
+          }
+          # Um arquivo por vez, cada um com seu limite: um que trava aparece pelo nome.
+          testes() {
+            local status=0
+            for f in "$@"; do
+              echo "== $f"
+              timeout 300 bun test --timeout 30000 "$f" || { echo "FALHOU: $f"; status=1; }
+            done
+            return $status
+          }
+          export -f typecheck_todos testes
+          # Testes rápidos dos pacotes que têm as nossas mudanças (sidebar, canais, navegador, conectores, banco).
+          TESTES=(
+            packages/engine/test/net-guard.test.ts
+            packages/engine/test/custom-mcp.test.ts
+            packages/engine/test/oauth-return.test.ts
+            packages/engine/test/connectors.test.ts
+            packages/engine/test/connectors-presets.test.ts
+            packages/engine/test/composio-connectors.test.ts
+            packages/engine/test/outbound.test.ts
+            packages/engine/test/outbound-pinning.test.ts
+            packages/engine/test/browser-handoff.test.ts
+            packages/engine/test/channel-refs.test.ts
+            apps/server/test/oauth.test.ts
+            apps/server/test/connectors.test.ts
+            apps/server/test/sidebar-items.test.ts
+            apps/server/test/channel-icon.test.ts
+            apps/server/test/channel-card.test.ts
+            apps/server/test/runner/browser.test.ts
+            packages/db/test/migrate-steps.test.ts
+            packages/db/test/schema.test.ts
+            apps/web/test/browser-card-stack.test.tsx
+            apps/web/test/channel-display-name.test.tsx
+          )
+          echo "| Etapa | Resultado | Tempo |" > "$RUNNER_TEMP/portao/tabela.md"
+          echo "|---|---|---|" >> "$RUNNER_TEMP/portao/tabela.md"
+          etapa install 10m bun install --frozen-lockfile
+          etapa typecheck 30m bash -c typecheck_todos
+          etapa migracoes 5m bun run check:migrations
+          etapa build-web 10m bun run --filter '@agenteschat/web' build
+          etapa testes 25m bash -c 'testes "$@"' _ "${TESTES[@]}"
+
+      - name: Resumo do portão
+        if: always() && steps.bun.outcome == 'success'
+        run: |
+          {
+            echo "## Portão de qualidade ($([ "${{ steps.portao.outcome }}" = success ] && echo passou || echo falhou))"
+            cat "$RUNNER_TEMP/portao/tabela.md" 2>/dev/null || true
+            [ -f "$RUNNER_TEMP/portao/falha.md" ] && { echo; cat "$RUNNER_TEMP/portao/falha.md"; }
+            echo
+            cat "$RUNNER_TEMP/migracoes.md" 2>/dev/null || true
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Avançar o main e marcar a versão
+        id: publicar
+        if: steps.portao.outcome == 'success' && steps.mistura.outputs.ok == 'sim' && env.ENSAIO != 'true'
+        timeout-minutes: 5
+        env:
+          BASE_SHA: ${{ steps.oficial.outputs.base_sha }}
+          DIA: ${{ steps.oficial.outputs.dia }}
+        run: |
+          sha=$(git rev-parse HEAD)
+          tag="doug-${DIA//-/}-${sha:0:7}"
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          # O GITHUB_TOKEN não grava .github/workflows: essa mistura fica para uma pessoa.
+          mexe=$(git diff --name-only "$BASE_SHA" "$sha" -- .github/workflows)
+          if [ -n "$mexe" ]; then
+            echo "manual=sim" >> "$GITHUB_OUTPUT"
+            sed 's/^/- `/; s/$/`/' <<<"$mexe" > "$RUNNER_TEMP/workflows.md"
+            exit 0
+          fi
+          # Fast-forward apenas: se o main andou durante a execução, o push é recusado e nada muda.
+          git push origin "HEAD:refs/heads/main"
+          git tag -a "$tag" -m "Doug com o oficial em $(git rev-parse --short upstream/main) ($DIA)"
+          git push origin "refs/tags/$tag"
+          {
+            echo "## main atualizado"
+            echo "- main: \`${BASE_SHA:0:7}\` → \`${sha:0:7}\`"
+            echo "- tag: \`$tag\`"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Registrar a atualização (issue fechada, só histórico)
+        if: steps.publicar.outcome == 'success' && steps.publicar.outputs.manual != 'sim'
+        timeout-minutes: 5
+        env:
+          TAG: ${{ steps.publicar.outputs.tag }}
+          DIA: ${{ steps.oficial.outputs.dia }}
+        run: |
+          {
+            echo "O \`main\` foi atualizado com o oficial e passou no portão de qualidade. Tag: \`$TAG\`."
+            echo
+            echo "Produção não muda sozinha: subir a imagem a partir do \`main\` (app e runner juntos), como em SYNC-DOUG.md."
+            echo
+            cat "$RUNNER_TEMP/migracoes.md"
+            echo
+            cat "$RUNNER_TEMP/commits.md"
+            echo
+            echo "Execução: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+          } | head -c 60000 > "$RUNNER_TEMP/corpo.md"
+          url=$(gh issue create --title "Doug atualizado com o oficial ($DIA)" --body-file "$RUNNER_TEMP/corpo.md")
+          gh issue close "$url" --reason completed
+          # Uma falha ou conflito anterior que estava aberto ficou resolvido por esta mistura.
+          for titulo in "$TITULO_CONFLITO" "$TITULO_FALHA" "$TITULO_MANUAL"; do
+            for n in $(gh issue list --state open --search "\"$titulo\" in:title" --json number,title \
+              --jq "map(select(.title == \"$titulo\")) | .[].number"); do
+              gh issue close "$n" --comment "Resolvido: o main foi atualizado em $DIA ($TAG)."
+            done
+          done
+
+      - name: Pedir o push manual (a mistura mexe em workflows)
+        if: steps.publicar.outputs.manual == 'sim'
+        timeout-minutes: 5
+        env:
+          UP_SHA: ${{ steps.oficial.outputs.up_sha }}
+        run: |
+          {
+            echo "A mistura do oficial (\`upstream/main\` em \`${UP_SHA:0:7}\`) **passou no portão de qualidade**, mas mexe em arquivos de \`.github/workflows\`, que o GITHUB_TOKEN não pode gravar. O \`main\` não mudou."
+            echo
+            echo "Para publicar, numa sessão com o gh logado (passo a passo em SYNC-DOUG.md):"
+            echo '```sh'
+            echo 'git fetch origin && git fetch upstream --tags'
+            echo 'git switch -c atualizacao/oficial-manual origin/main'
+            echo "git merge --no-edit ${UP_SHA}"
+            echo 'git push origin HEAD:main'
+            echo '```'
+            echo
+            echo "### Workflows alterados"
+            cat "$RUNNER_TEMP/workflows.md"
+            echo
+            cat "$RUNNER_TEMP/migracoes.md"
+            echo
+            cat "$RUNNER_TEMP/commits.md"
+            echo
+            echo "Execução: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+          } | head -c 60000 > "$RUNNER_TEMP/corpo.md"
+          aberta=$(gh issue list --state open --search "\"$TITULO_MANUAL\" in:title" --json number,title \
+            --jq "map(select(.title == \"$TITULO_MANUAL\")) | .[0].number // empty")
+          if [ -n "$aberta" ]; then
+            gh issue edit "$aberta" --body-file "$RUNNER_TEMP/corpo.md"
+          else
+            gh issue create --title "$TITULO_MANUAL" --body-file "$RUNNER_TEMP/corpo.md"
+          fi
+          echo "## Falta o push manual: a mistura mexe em .github/workflows" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Abrir ou atualizar a issue de falha
+        if: failure() && steps.mistura.outputs.ok == 'sim' && env.ENSAIO != 'true'
+        timeout-minutes: 5
+        env:
+          UP_SHA: ${{ steps.oficial.outputs.up_sha }}
+          BRANCH: ${{ steps.oficial.outputs.branch }}
+        run: |
+          {
+            echo "A mistura do oficial (\`upstream/main\` em \`${UP_SHA:0:7}\`) **não passou** no portão de qualidade. O \`main\` não mudou."
+            echo
+            echo "Reproduzir: \`git switch -c $BRANCH origin/main && git merge ${UP_SHA}\` e rodar a etapa abaixo."
+            echo
+            if [ -f "$RUNNER_TEMP/portao/falha.md" ]; then cat "$RUNNER_TEMP/portao/falha.md"; else echo "Falhou fora do portão (preparação ou push recusado porque o main andou): ver a execução."; fi
+            echo
+            cat "$RUNNER_TEMP/migracoes.md"
+            echo
+            cat "$RUNNER_TEMP/commits.md"
+            echo
+            echo "Execução: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+          } | head -c 60000 > "$RUNNER_TEMP/corpo.md"
+          aberta=$(gh issue list --state open --search "\"$TITULO_FALHA\" in:title" --json number,title \
+            --jq "map(select(.title == \"$TITULO_FALHA\")) | .[0].number // empty")
+          if [ -n "$aberta" ]; then
+            gh issue edit "$aberta" --body-file "$RUNNER_TEMP/corpo.md"
+            gh issue comment "$aberta" --body "Falhou de novo em $(date -u +%Y-%m-%d) (oficial em \`${UP_SHA:0:7}\`). Corpo atualizado."
+          else
+            gh issue create --title "$TITULO_FALHA" --body-file "$RUNNER_TEMP/corpo.md"
+          fi
