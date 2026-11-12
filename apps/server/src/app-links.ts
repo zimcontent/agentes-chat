@@ -80,6 +80,9 @@ export const listOf = (value: string | undefined) =>
     .map((v) => v.trim())
     .filter(Boolean);
 
+/** Where this server publishes its OAuth client metadata document. */
+export const CIMD_PATH = "/oauth/client-metadata.json";
+
 /** `apple-app-site-association`: the iOS apps (team + bundle ids) handle these paths. Null when not configured. */
 export function appleAppSiteAssociation(config: Pick<Config, "APPLE_TEAM_ID" | "APPLE_APP_BUNDLE_ID">) {
   const bundles = listOf(config.APPLE_APP_BUNDLE_ID);
@@ -122,6 +125,20 @@ export function registerAppLinks(app: OpenAPIHono, config: Config) {
   };
   app.get("/.well-known/apple-app-site-association", apple);
   app.get("/apple-app-site-association", apple);
+  // OAuth Client ID Metadata Document: our client to servers that take one instead of a registration
+  // (`MCP_CIMD_ISSUERS`, packages/engine connectors/oauth-mcp.ts); its address is the client_id.
+  app.get(CIMD_PATH, (c) => {
+    const origin = new URL(config.PUBLIC_URL).origin;
+    return c.json({
+      client_id: `${origin}${CIMD_PATH}`,
+      client_name: "agentes.chat",
+      client_uri: origin,
+      redirect_uris: [`${origin}/api/app/connectors/oauth/callback`],
+      grant_types: ["authorization_code", "refresh_token"],
+      response_types: ["code"],
+      token_endpoint_auth_method: "none",
+    });
+  });
   app.get("/.well-known/assetlinks.json", (c) => {
     const body = androidAssetLinks(config);
     return body ? c.json(body) : c.text("Not found", 404);

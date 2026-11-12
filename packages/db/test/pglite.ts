@@ -10,7 +10,7 @@ import { migrate as migratePglite } from "drizzle-orm/pglite/migrator";
 import { drizzle as drizzlePostgres } from "drizzle-orm/postgres-js";
 import { migrate as migratePostgres } from "drizzle-orm/postgres-js/migrator";
 import postgres from "postgres";
-import { type Database, migrationsFolder } from "../src/client";
+import { type Database, EXTRA_COLUMNS, migrationsFolder } from "../src/client";
 import * as schema from "../src/schema";
 import { tracingLogger } from "../src/trace";
 
@@ -54,6 +54,7 @@ async function loadTemplate(): Promise<Blob> {
 
   const client = new PGlite({ extensions: { vector } });
   await migratePglite(drizzlePglite(client, { schema, casing: "snake_case" }), { migrationsFolder });
+  for (const statement of EXTRA_COLUMNS) await client.exec(statement);
   const dump = await client.dumpDataDir("none");
   await client.close();
   // Written beside its final name and moved there: a process starting meanwhile never reads half a file.
@@ -72,6 +73,7 @@ function templateKey(): string {
   };
   hash.update(JSON.stringify([pins.dependencies, pins.devDependencies]));
   hash.update(readFileSync(join(migrationsFolder, "meta", "_journal.json")));
+  hash.update(EXTRA_COLUMNS.join(";"));
   for (const name of readdirSync(migrationsFolder).sort()) {
     if (name.endsWith(".sql")) hash.update(name).update(readFileSync(join(migrationsFolder, name)));
   }
@@ -99,6 +101,7 @@ async function createOnServer(serverUrl: string) {
   const client = postgres(url.toString(), { max: 5, onnotice: () => {} });
   const db = drizzlePostgres(client, { schema, casing: "snake_case", logger: tracingLogger });
   await migratePostgres(db, { migrationsFolder });
+  for (const statement of EXTRA_COLUMNS) await client.unsafe(statement);
 
   return {
     db: db as unknown as Database,

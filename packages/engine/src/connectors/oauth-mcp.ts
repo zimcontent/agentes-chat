@@ -147,6 +147,20 @@ export async function authServerMetadata(deps: McpOAuthDeps, issuer: string): Pr
 
 const clientAad = (orgId: string, id: string) => `oauth-client|${orgId}|${id}`;
 
+/** Our metadata document's address (the client_id) when `issuer` takes one and is in `MCP_CIMD_ISSUERS`; else null. */
+export function cimdClientId(issuer: string, meta: AuthServerMetadata, redirectUri: string): string | null {
+  if ((meta as { client_id_metadata_document_supported?: unknown }).client_id_metadata_document_supported !== true) {
+    return null;
+  }
+  const listed = (process.env.MCP_CIMD_ISSUERS ?? "")
+    .split(",")
+    .map((s) => s.trim().replace(/\/$/, ""))
+    .filter(Boolean);
+  if (!listed.includes(issuer.replace(/\/$/, ""))) return null;
+  const origin = new URL(redirectUri).origin;
+  return origin.startsWith("https://") ? `${origin}/oauth/client-metadata.json` : null;
+}
+
 /** It has OAuth but only takes clients it approved; `detail`: how it refused our registration, in its words. */
 export interface NotApproved {
   notApproved: true;
@@ -214,47 +228,53 @@ export async function ensureOAuthClient(
   }
   const methods = meta.code_challenge_methods_supported;
   if (methods && !methods.includes("S256")) return null;
-  const endpoint = meta.registration_endpoint;
-  if (!endpoint) return { notApproved: true };
-  await assertPublicHttpsUrl(endpoint, deps.resolveHost);
+  // A server that takes a Client ID Metadata Document and that this server's admin listed (`MCP_CIMD_ISSUERS`): our
+  // client is the document at our own address (apps/server app-links.ts), with no registration. HeyGen answers every
+  // registration with one shared client that doesn't hold our redirect URI.
   const { scope } = input;
-  // A public client with PKCE where it takes one (or doesn't say), else one with the secret it gives us.
-  const supported = meta.token_endpoint_auth_methods_supported;
-  const method =
-    !Array.isArray(supported) || supported.length === 0 || supported.includes("none")
-      ? "none"
-      : supported.includes("client_secret_post")
-        ? "client_secret_post"
-        : "client_secret_basic";
-  const register = async (clientName: string) => {
-    const res = await http(deps)(endpoint, {
-      method: "POST",
-      redirect: "error",
-      headers: { "content-type": "application/json", accept: "application/json" },
-      body: JSON.stringify({
-        client_name: clientName,
-        redirect_uris: [input.redirectUri],
-        grant_types: ["authorization_code", "refresh_token"],
-        response_types: ["code"],
-        token_endpoint_auth_method: method,
-        ...(scope ? { scope } : {}),
-      }),
-    }).catch(() => null);
-    return { res, refusal: res && !res.ok ? await res.text().catch(() => "") : "" };
-  };
-  let { res, refusal } = await register("agentes.chat");
-  // Calendly takes only letters, digits, hyphens and spaces in a client's name. The others keep the brand's,
-  // the name people see on the consent screen.
-  if (res?.status === 400 && /\b(client_)?name\b/i.test(refusal)) ({ res, refusal } = await register("agentes chat"));
-  // RFC 7591: 400 for a redirect URI or metadata it won't take, 401 or 403 for a registration closed to us.
-  if (res && [400, 401, 403].includes(res.status)) return { notApproved: true, ...refusalDetail(refusal) };
-  if (!res?.ok) return null;
-  const body = (await res.json().catch(() => ({}))) as {
-    client_id?: string;
-    client_secret?: string;
-    token_endpoint_auth_method?: string;
-  };
-  if (!body.client_id) return null;
+  const cimd = cimdClientId(issuer, meta, input.redirectUri);
+  let method = "none";
+  let body: { client_id?: string; client_secret?: string; token_endpoint_auth_method?: string };
+  if (cimd) body = { client_id: cimd, token_endpoint_auth_method: "none" };
+  else {
+    const endpoint = meta.registration_endpoint;
+    if (!endpoint) return { notApproved: true };
+    await assertPublicHttpsUrl(endpoint, deps.resolveHost);
+    // A public client with PKCE where it takes one (or doesn't say), else one with the secret it gives us.
+    const supported = meta.token_endpoint_auth_methods_supported;
+    method =
+      !Array.isArray(supported) || supported.length === 0 || supported.includes("none")
+        ? "none"
+        : supported.includes("client_secret_post")
+          ? "client_secret_post"
+          : "client_secret_basic";
+    const register = async (clientName: string) => {
+      const res = await http(deps)(endpoint, {
+        method: "POST",
+        redirect: "error",
+        headers: { "content-type": "application/json", accept: "application/json" },
+        body: JSON.stringify({
+          client_name: clientName,
+          redirect_uris: [input.redirectUri],
+          grant_types: ["authorization_code", "refresh_token"],
+          response_types: ["code"],
+          token_endpoint_auth_method: method,
+          ...(scope ? { scope } : {}),
+        }),
+      }).catch(() => null);
+      return { res, refusal: res && !res.ok ? await res.text().catch(() => "") : "" };
+    };
+    let { res, refusal } = await register("agentes.chat");
+    // Calendly takes only letters, digits, hyphens and spaces in a client's name. The others keep the brand's,
+    // the name people see on the consent screen.
+    if (res?.status === 400 && /\b(client_)?name\b/i.test(refusal)) ({ res, refusal } = await register("agentes chat"));
+    // RFC 7591: 400 for a redirect URI or metadata it won't take, 401 or 403 for a registration closed to us.
+    if (res && [400, 401, 403].includes(res.status)) return { notApproved: true, ...refusalDetail(refusal) };
+    if (!res?.ok) return null;
+    body = (await res.json().catch(() => ({}))) as typeof body;
+  }
+  const clientId = body.client_id;
+  if (!clientId) return null;
   // It may register another method than the one asked for (RFC 7591 §3.2.1): its answer is the one it checks. A
   // secret it gives for `none` without naming a method still goes, in the form, as for a client with no method stored.
   const answered = AUTH_METHODS.find((m) => m === body.token_endpoint_auth_method);
@@ -270,7 +290,7 @@ export async function ensureOAuthClient(
       .set({
         authorizationEndpoint: meta.authorization_endpoint,
         tokenEndpoint: meta.token_endpoint,
-        clientId: body.client_id,
+        clientId,
         secretCiphertext: sealed?.ciphertext ?? null,
         wrappedDataKey: sealed?.wrappedDataKey ?? null,
         kekId: sealed?.kekId ?? null,
@@ -289,7 +309,7 @@ export async function ensureOAuthClient(
       issuer,
       authorizationEndpoint: meta.authorization_endpoint,
       tokenEndpoint: meta.token_endpoint,
-      clientId: body.client_id,
+      clientId,
       secretCiphertext: sealed?.ciphertext ?? null,
       wrappedDataKey: sealed?.wrappedDataKey ?? null,
       kekId: sealed?.kekId ?? null,

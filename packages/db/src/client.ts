@@ -64,7 +64,15 @@ export async function migrateInSteps(db: unknown, folder: string, upTo?: number)
   for (const end of [...ends, all.length]) {
     await dialect.migrate(all.slice(0, end), session, { migrationsFolder: folder });
   }
+  // This instance's own columns (Zim), outside Drizzle's journal so the project's migrations keep their numbers.
+  if (upTo === undefined) for (const statement of EXTRA_COLUMNS) await session.execute(sql.raw(statement));
 }
+
+/** Idempotent: a database that has them already is left as it is. */
+export const EXTRA_COLUMNS = [
+  `ALTER TABLE "channels" ADD COLUMN IF NOT EXISTS "display_name" text`,
+  `ALTER TABLE "channels" ADD COLUMN IF NOT EXISTS "icon" text`,
+];
 
 /** The advisory lock every process takes around its migrations (`DatabaseHandle.migrate`). */
 export const MIGRATIONS_LOCK = 4_242_017;
