@@ -58,6 +58,7 @@ export {
   type BrainAgentLook,
   drawBrain,
 } from "./brain/portrait.js";
+export { BRAND_MARK_URL, BRAND_NAME, PIXEL_ART } from "./brand/doug";
 export { channelQuery, insertChannelRef } from "./channel-refs";
 export {
   type AccessBase,
@@ -203,7 +204,7 @@ export {
 export { GroupHeading } from "./components/GroupHeading";
 export { InfoHint, type InfoHintProps } from "./components/InfoHint";
 export { isApple, Kbd, modKey, shortcut } from "./components/Kbd";
-export { Logo, LogoMark, type LogoProps } from "./components/Logo";
+export { DougMark, Logo, LogoMark, type LogoProps } from "./components/Logo";
 export {
   GifPicker,
   type GifPickerLabels,

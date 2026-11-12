@@ -1,11 +1,12 @@
-import { type HTMLAttributes, useLayoutEffect, useRef } from "react";
+import { type CSSProperties, type HTMLAttributes, useLayoutEffect, useRef } from "react";
 import type { Expression } from "../agent/engine.js";
 import { addLiveAgent, drawLive, type LiveAgent } from "../agent/live";
+import { PIXEL_ART } from "../brand/doug";
 import { cx } from "../cx";
 import { initialsOf } from "../names";
 import { recipeOfUrl } from "../person/engine.js";
 import { canDrawPortraits, PersonPortrait } from "../person/PersonPortrait";
-import { type AgentAppearance, appearanceStyle } from "./AgentLook";
+import { type AgentAppearance, agentGradient, appearanceStyle } from "./AgentLook";
 import { type BadgePresence, PresenceBadge } from "./PresenceBadge";
 
 export type AvatarKind = "person" | "agent";
@@ -115,6 +116,18 @@ function AgentBody({
   return <canvas className="ac-avatar__canvas" ref={canvas} />;
 }
 
+/** An agent's monogram: the first letter of its name (a digit or symbol when the name starts with one). */
+export function agentMonogram(name: string): string {
+  const first = [...name.trim()][0];
+  return first ? first.toLocaleUpperCase() : "?";
+}
+
+/** The glass face's colors: the agent's own gradient (its configured color), top and bottom. */
+function glassStyle(appearance: AgentAppearance | undefined): CSSProperties {
+  const [top, bottom] = agentGradient(appearance?.color ?? "sky");
+  return { "--av-top": top, "--av-bottom": bottom } as CSSProperties;
+}
+
 /**
  * One tile for everyone: a rounded square (radius 30% of the side) with a
  * hairline and a faint top highlight. People show their photo, their pixel
@@ -143,7 +156,8 @@ export function Avatar({
   style,
   ...rest
 }: AvatarProps) {
-  const tile = framed ?? (size !== "xs" && size !== "xl");
+  const glass = kind === "agent" && !PIXEL_ART;
+  const tile = !glass && (framed ?? (size !== "xs" && size !== "xl"));
   const a11y = labelled ? ({ role: "img", "aria-label": name } as const) : ({ "aria-hidden": true } as const);
   const agent = kind === "agent";
   const mood: AgentState = state ?? (running ? "thinking" : "idle");
@@ -156,6 +170,7 @@ export function Avatar({
         kind === "agent" && "ac-avatar--agent",
         size !== "md" && `ac-avatar--${size}`,
         tile && "ac-avatar--framed",
+        glass && "ac-avatar--glass",
         agent && mood !== "idle" && mood !== "waiting" && mood !== "sleeping" && "ac-avatar--running",
         agent && mood !== "idle" && `ac-avatar--${mood}`,
         className,
@@ -167,10 +182,14 @@ export function Avatar({
         agent && appearance?.accessory && appearance.accessory !== "none" ? appearance.accessory : undefined
       }
       data-eyes={agent && appearance?.eyes && appearance.eyes !== "round" ? appearance.eyes : undefined}
-      style={agent ? { ...appearanceStyle(appearance), ...style } : style}
+      style={
+        glass ? { ...glassStyle(appearance), ...style } : agent ? { ...appearanceStyle(appearance), ...style } : style
+      }
       {...rest}
     >
-      {agent ? (
+      {glass ? (
+        <span className="ac-avatar__monogram">{initials ?? agentMonogram(name)}</span>
+      ) : agent ? (
         <AgentBody
           appearance={appearance}
           state={mood}

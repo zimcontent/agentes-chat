@@ -153,7 +153,7 @@ import { StatusLine } from "./Presence";
 import { ChannelPhoto, MyFace, OrgMark } from "./ProfilePhoto";
 import { sectionName, useSectionOrder } from "./SidebarOrder";
 import { SIDEBAR_TOOLS, SidebarSetupDialog, ToolList } from "./SidebarSetup";
-import { AgentGlow, AgentTrail, colorOf, MenuHorizon, SidebarHorizon, WorkspaceSky } from "./Sky";
+import { AgentGlow, AgentTrail, colorOf, MenuHorizon, WorkspaceSky } from "./Sky";
 import { SetStatusDialog, useSaveStatus } from "./StatusDialog";
 
 /** An agent's sky for its busy chip (`.sidebar__busy`): both themes, the CSS picks one. */
@@ -968,7 +968,13 @@ export function Sidebar() {
       {/* No foot in a personal workspace (ADR 0159): the person, the bell and the collapse are on top. */}
       {!personal && (
         <div className="sidebar__foot">
-          <SidebarHorizon working={working} total={dir.agents.length} />
+          {/* How many agents work now, as a quiet line over the account card (no sky rising from the foot). */}
+          {working > 0 && !rail && (
+            <span className="sidebar__working" role="status">
+              <span className="sidebar__working-dot" aria-hidden="true" />
+              {t("sidebarAgents.working", { count: working })}
+            </span>
+          )}
           {/* The full sidebar creates from the Agentes header's + (always shown on touch screens); the rail has no
               headers. */}
           {rail && can(org, "create_agents") && <CreateAgentTile onOpen={newAgent} />}

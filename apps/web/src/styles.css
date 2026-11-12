@@ -19,6 +19,8 @@
    `html[data-desktop]` ones too). */
 @import "./desktop.css";
 @import "./over-pages.css";
+/* Doug's dark theme and glass, over everything above (unlayered, last). */
+@import "@agenteschat/ui/doug.css";
 
 :root {
   /* The app reads in Source Sans 3, titles too; code in JetBrains Mono. */

@@ -1,57 +1,35 @@
-import { type CSSProperties, useId } from "react";
-import { bodyPath, eyeShapes } from "../agent/engine.js";
+import type { CSSProperties, ImgHTMLAttributes } from "react";
+import { BRAND_MARK_URL, BRAND_NAME } from "../brand/doug";
 import { cx } from "../cx";
-import { ditherUrl } from "../sky/dither";
-
-/** The domain in the expanded logo: a brand name, never translated. */
-const TLD = ".chat";
-
-/** The mark is the agent from the engine: body at (2, 2), side 28, and its eyes. */
-const BODY = bodyPath(2, 2, 28);
-const EYES = eyeShapes("round").map((e) => ({ x: 2 + e.x * 28, y: 2 + e.y * 28, w: e.w * 28, h: e.h * 28 }));
 
 /**
- * The agent mark: the square with the cut corner in the sky's dither (solid
- * `agent` under it, and alone in the mono logo) and the engine's white eyes.
+ * Doug's mark: the mascot's art from one swappable file (`BRAND_MARK_URL`), so the final art replaces the placeholder
+ * without touching any screen.
  */
-export function LogoMark({ size, className, label }: { size?: number; className?: string; label?: string }) {
-  const clip = `ac-logo-${useId().replace(/[^\w-]/g, "")}`;
+export function DougMark({
+  size,
+  className,
+  label,
+  ...rest
+}: { size?: number; className?: string; label?: string } & Omit<ImgHTMLAttributes<HTMLImageElement>, "src" | "alt">) {
   return (
-    <svg
-      viewBox="0 0 32 32"
+    <img
+      {...rest}
+      src={BRAND_MARK_URL}
       className={cx("ac-logo__mark", className)}
       style={size ? { width: size, height: size } : undefined}
-      role={label ? "img" : undefined}
-      aria-label={label}
+      alt={label ?? ""}
       aria-hidden={label ? undefined : true}
-    >
-      <defs>
-        <clipPath id={clip}>
-          <path d={BODY} />
-        </clipPath>
-      </defs>
-      <path className="ac-logo__body" d={BODY} />
-      <image
-        className="ac-logo__dither"
-        href={ditherUrl("sky", 12)}
-        x="2"
-        y="2"
-        width="28"
-        height="28"
-        preserveAspectRatio="none"
-        clipPath={`url(#${clip})`}
-      />
-      <g className="ac-logo__eyes">
-        {EYES.map((e) => (
-          <rect key={e.x} x={e.x} y={e.y} width={e.w} height={e.h} rx={e.w / 2} />
-        ))}
-      </g>
-    </svg>
+      draggable={false}
+    />
   );
 }
 
+/** The product's mark wherever the app showed its own (kept as `LogoMark` so every caller follows the brand). */
+export const LogoMark = DougMark;
+
 export interface LogoProps {
-  /** `main` (app) or `expanded` (+ ".chat" in dot matrix, where the domain matters). */
+  /** Kept for callers: both variants show the name alone. */
   variant?: "main" | "expanded";
   /** One-color version. */
   mono?: boolean;
@@ -61,25 +39,19 @@ export interface LogoProps {
   style?: CSSProperties;
 }
 
-/** "agentes" logo: mark + wordmark in Funnel Display light (".chat" in Doto). Accessible name "agentes" (or "agentes.chat" expanded). */
-export function Logo({ variant = "main", mono, size = 24, className, style }: LogoProps) {
-  const expanded = variant === "expanded";
+/** The product's logo: mark + name. Accessible name is the brand's. */
+export function Logo({ mono, size = 24, className, style }: LogoProps) {
   return (
     <span
       className={cx("ac-logo", mono && "ac-logo--mono", className)}
       style={{ fontSize: size, ...style }}
       role="img"
-      aria-label={expanded ? "agentes.chat" : "agentes"}
+      aria-label={BRAND_NAME}
     >
-      <LogoMark />
-      {expanded ? (
-        <span className="ac-logo__word" aria-hidden="true">
-          <span>agentes</span>
-          <span className="ac-logo__chat">{TLD}</span>
-        </span>
-      ) : (
-        <span aria-hidden="true">agentes</span>
-      )}
+      <DougMark />
+      <span className="ac-logo__word" aria-hidden="true">
+        {BRAND_NAME}
+      </span>
     </span>
   );
 }

@@ -92,7 +92,7 @@ describe("Button", () => {
 });
 
 describe("Avatar", () => {
-  test("people and agents share the framed tile; running ring only for agents", () => {
+  test("people keep the framed tile; agents are a glass circle with their monogram; running ring only for agents", () => {
     const { container } = render(
       <>
         <Avatar name="Marina" />
@@ -102,19 +102,21 @@ describe("Avatar", () => {
     );
     const [person, agent, notAgent] = Array.from(container.querySelectorAll(".ac-avatar"));
     expect(person?.className).toBe("ac-avatar ac-avatar--framed");
-    expect(agent?.className).toContain("ac-avatar--framed");
+    expect(agent?.className).toContain("ac-avatar--glass");
+    expect(agent?.className).not.toContain("ac-avatar--framed");
     expect(person?.textContent).toBe("M");
     expect(agent?.className).toContain("ac-avatar--agent");
     expect(agent?.className).toContain("ac-avatar--running");
-    // The agent symbol is drawn by the engine (no initials); running = thinking.
-    expect(agent?.textContent).toBe("");
-    expect(agent?.querySelector("canvas.ac-avatar__canvas")).not.toBeNull();
+    // No pixel symbol: the agent's monogram (its initials when given) on its own color; running = thinking.
+    expect(agent?.textContent).toBe("At");
+    expect(agent?.querySelector("canvas")).toBeNull();
+    expect((agent as HTMLElement | undefined)?.style.getPropertyValue("--av-top")).not.toBe("");
     expect(agent?.getAttribute("data-state")).toBe("thinking");
     expect(notAgent?.className).not.toContain("ac-avatar--running");
     expect(person?.getAttribute("aria-hidden")).toBe("true");
   });
 
-  test("the 18px receipt and the 112px hero stand unframed unless asked", () => {
+  test("agents' glass faces are never framed, at any size; a person's tile can be turned off", () => {
     const { container } = render(
       <>
         <Avatar kind="agent" name="Ada" size="xs" />
@@ -126,7 +128,8 @@ describe("Avatar", () => {
     const [xs, xl, xlFramed, person] = Array.from(container.querySelectorAll(".ac-avatar"));
     expect(xs?.className).not.toContain("ac-avatar--framed");
     expect(xl?.className).not.toContain("ac-avatar--framed");
-    expect(xlFramed?.className).toContain("ac-avatar--framed");
+    expect(xlFramed?.className).not.toContain("ac-avatar--framed");
+    expect(xs?.textContent).toBe("A");
     expect(person?.className).not.toContain("ac-avatar--framed");
   });
 
@@ -809,16 +812,17 @@ describe("Menu", () => {
 });
 
 describe("Logo, Icon, Meter", () => {
-  test("logo has an accessible name; the mark uses the agent token classes", () => {
+  test("logo has the brand's accessible name; the mark is the brand's swappable art", () => {
     const { container } = render(
       <>
         <Logo />
         <Logo variant="expanded" />
       </>,
     );
-    expect(body().getByRole("img", { name: "agentes" })).toBeTruthy();
-    expect(body().getByRole("img", { name: "agentes.chat" }).textContent).toBe("agentes.chat");
-    expect(container.querySelector(".ac-logo__body")).not.toBeNull();
+    const logos = body().getAllByRole("img", { name: "Doug" });
+    expect(logos.length).toBe(2);
+    expect(logos[0]?.textContent).toBe("Doug");
+    expect(container.querySelector("img.ac-logo__mark")?.getAttribute("src")).toBe("/brand/doug-mark.svg");
   });
 
   test("every icon renders a stroke-only 20px glyph, decorative unless labelled", () => {

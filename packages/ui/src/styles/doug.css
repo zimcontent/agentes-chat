@@ -1,0 +1,380 @@
+/*
+ * Doug: the dark theme and its glass. Loaded unlayered after the app's sheets (apps/web/src/styles.css), so it sits
+ * over the kit's tokens and the base layer without touching them: the light theme stays as it was.
+ *
+ * Tokens: near-black with a green cast, a green accent (#22c55e), ink #fcfcfc. Glass is one material for what floats
+ * over the content (the sidebar, menus, popovers, dialogs, the composer and the conversation's header): a blur with
+ * saturation, a translucent fill, a 1px rim brighter at the top and a soft shadow. Long text stays on solid ground.
+ */
+[data-theme="dark"] {
+  color-scheme: dark;
+  /* Ground and surfaces. */
+  --bg: #060908;
+  --pane: #0d1210;
+  --raised: #141b18;
+  --raised-2: #1a2320;
+  --sunken: #040605;
+  --side: #0a0f0d;
+  --glass-solid: #121916;
+  --line: rgba(255, 255, 255, 0.08);
+  --line2: rgba(255, 255, 255, 0.13);
+  --line-strong: #5f6b66;
+  /* Words: ink #fcfcfc, a secondary at 60% and a faint step that still reads 4.5:1 on the panel. */
+  --ink: #fcfcfc;
+  --ink2: #e4e9e6;
+  --muted: rgba(252, 252, 252, 0.64);
+  --faint: #8a958f;
+  /* Accent: Doug's green. `--agent` is the kit's accent token (links, focus of choice, sends). */
+  --agent: #22c55e;
+  --agent2: #4ade80;
+  --agent-soft: #0b3b2a;
+  --on-agent: #03140b;
+  --accent-text: #86efac;
+  --accent-deep: #064e3b;
+  /* States: success a cooler mint than the accent, so a done mark never reads as "selected". */
+  --ok: #34d399;
+  --warn: #f5b454;
+  --warn-soft: #33260e;
+  --danger: #ff5667;
+  --info: #7fc0ff;
+  --plate: rgba(255, 255, 255, 0.08);
+  --plate-soft: rgba(255, 255, 255, 0.05);
+  --side-hover: rgba(255, 255, 255, 0.06);
+  --side-chosen: rgba(34, 197, 94, 0.14);
+  --chosen-bg: #1c2622;
+  --scrim: rgba(2, 4, 3, 0.56);
+  --e1: 0 1px 2px rgba(0, 0, 0, 0.5), 0 0 0 1px var(--line);
+  --e2: 0 10px 30px -8px rgba(0, 0, 0, 0.6), 0 0 0 1px var(--line);
+  --e3: 0 28px 64px -16px rgba(0, 0, 0, 0.8), 0 0 0 1px var(--line2);
+  --top: inset 0 1px 0 rgba(255, 255, 255, 0.07);
+  --focus-color: #4ade80;
+  /* Glass: one material, in tokens. */
+  --dg-blur: 18px;
+  --dg-saturate: 160%;
+  --dg-fill: rgba(17, 24, 21, 0.58);
+  --dg-fill-thick: rgba(16, 22, 19, 0.86);
+  --dg-fill-clear: rgba(255, 255, 255, 0.035);
+  --dg-rim-top: rgba(255, 255, 255, 0.16);
+  --dg-rim: rgba(255, 255, 255, 0.08);
+  --dg-rim-bottom: rgba(255, 255, 255, 0.04);
+  --dg-reflection: rgba(255, 255, 255, 0.06);
+  --dg-shadow: 0 18px 40px -12px rgba(0, 0, 0, 0.65), 0 2px 6px rgba(0, 0, 0, 0.3);
+  --dg-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --dg-glass-edge: inset 0 1px 0 var(--dg-rim-top), inset 0 -1px 0 var(--dg-rim-bottom), inset 0 0 0 1px var(--dg-rim);
+}
+
+/* ── The ground: near black with a faint green light from the top, as the sign-in of mydoug.io ── */
+[data-theme="dark"] body,
+[data-theme="dark"] .shell,
+[data-theme="dark"] .auth {
+  background:
+    radial-gradient(70% 55% at 18% -8%, rgba(34, 197, 94, 0.1), transparent 70%),
+    radial-gradient(60% 50% at 100% 110%, rgba(6, 78, 59, 0.22), transparent 70%),
+    radial-gradient(120% 80% at 50% -20%, rgba(11, 59, 42, 0.35), transparent 60%), var(--bg);
+  background-attachment: fixed;
+}
+[data-theme="dark"] .shell__work {
+  background: transparent;
+}
+
+/* The glass material, for any piece of the kit that floats. */
+[data-theme="dark"] :is(.dg-glass, .ac-menu, .ac-popover, .ac-dialog, .ac-toast) {
+  background: radial-gradient(120% 50% at 50% -12%, var(--dg-reflection), transparent 60%), var(--dg-fill-thick);
+  -webkit-backdrop-filter: blur(24px) saturate(var(--dg-saturate));
+  backdrop-filter: blur(24px) saturate(var(--dg-saturate));
+  border-color: transparent;
+  box-shadow: var(--dg-glass-edge), var(--dg-shadow);
+}
+[data-theme="dark"] .ac-dialog__scrim {
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+}
+/* Menu rows: a glass pill under the pointer. */
+[data-theme="dark"] .ac-menu__item:is(:hover, [data-highlighted], [data-active], [data-state="open"]) {
+  background: rgba(255, 255, 255, 0.07);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+/* ── The work's sheet: the panel, a step lighter than the ground, with the glass's rim ── */
+@media (min-width: 761px) {
+  [data-theme="dark"] .shell__pages {
+    background: color-mix(in srgb, var(--pane) 92%, transparent);
+    border-radius: var(--radius-section);
+    box-shadow:
+      var(--dg-glass-edge),
+      0 24px 60px -24px rgba(0, 0, 0, 0.7);
+  }
+}
+
+/* ── Sidebar: a floating glass panel ── */
+[data-theme="dark"] .sidebar {
+  background: radial-gradient(140% 40% at 50% -8%, var(--dg-reflection), transparent 60%), var(--dg-fill);
+  -webkit-backdrop-filter: blur(var(--dg-blur)) saturate(var(--dg-saturate));
+  backdrop-filter: blur(var(--dg-blur)) saturate(var(--dg-saturate));
+  box-shadow: var(--dg-glass-edge), var(--dg-shadow);
+  --side-active: rgba(255, 255, 255, 0.07);
+}
+@media (min-width: 761px) {
+  [data-theme="dark"] .sidebar {
+    flex-basis: 264px;
+    width: 264px;
+    min-width: 264px;
+    height: auto;
+    margin: var(--space-2);
+    border-radius: var(--radius-section);
+  }
+  [data-theme="dark"] .sidebar[data-rail="true"] {
+    flex-basis: 64px;
+    width: 64px;
+    min-width: 64px;
+  }
+}
+/* The sky behind the workspace's header is gone: the glass is the header's ground. */
+[data-theme="dark"] .workspace-sky {
+  display: none;
+}
+/* Rows: a pill of glass on hover, the open one tinted with the accent and its rim. */
+[data-theme="dark"] .sidebar__item {
+  --item-r: var(--radius-full);
+  border-radius: var(--radius-full);
+  transition:
+    background-color 0.2s var(--dg-ease),
+    box-shadow 0.2s var(--dg-ease);
+}
+[data-theme="dark"] .sidebar__item:hover {
+  background: rgba(255, 255, 255, 0.055);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.05),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+}
+[data-theme="dark"] .sidebar__item[data-status="active"],
+[data-theme="dark"] .sidebar__item[data-status="active"]:hover {
+  background: radial-gradient(120% 120% at 0% 50%, rgba(34, 197, 94, 0.22), transparent 70%), rgba(255, 255, 255, 0.06);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    inset 0 0 0 1px rgba(74, 222, 128, 0.22),
+    0 6px 18px -10px rgba(34, 197, 94, 0.55);
+  color: var(--ink);
+}
+[data-theme="dark"] .sidebar__item[data-status="active"] > .ac-icon,
+[data-theme="dark"] .sidebar__item[data-status="active"] .sidebar__channel-icon {
+  color: var(--accent-text);
+}
+/* Line icons in one quiet tone, the open row's in the accent. */
+[data-theme="dark"] .sidebar__item > .ac-icon,
+[data-theme="dark"] .sidebar__item .sidebar__channel-icon {
+  color: var(--faint);
+}
+/* The chosen row's left pill (unread) in the accent. */
+[data-theme="dark"] .sidebar__item[data-kind="channel"][data-unread="true"]::before {
+  background: var(--agent2);
+}
+/* Section titles: small capitals, spaced. */
+[data-theme="dark"] .sidebar__label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--faint);
+}
+/* The workspace's header and Go to…: glass pieces of their own. */
+[data-theme="dark"] .sidebar__org-button:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+[data-theme="dark"] .sidebar__jump {
+  background: rgba(255, 255, 255, 0.04);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+[data-theme="dark"] .sidebar__jump:hover {
+  background: rgba(255, 255, 255, 0.07);
+}
+/* The person at the foot: a glass card. */
+[data-theme="dark"] .sidebar__me {
+  background:
+    radial-gradient(120% 80% at 50% -30%, rgba(255, 255, 255, 0.08), transparent 60%), rgba(255, 255, 255, 0.045);
+  box-shadow:
+    var(--dg-glass-edge),
+    0 8px 20px -10px rgba(0, 0, 0, 0.6);
+}
+[data-theme="dark"] .sidebar__me > .sidebar__user:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+/* How many agents work now: a breathing dot and a count, over the account card. */
+.sidebar__working {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 0 var(--space-3) var(--space-2);
+  font-size: var(--text-xs);
+  color: var(--muted);
+}
+.sidebar__working-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: var(--radius-full);
+  background: var(--agent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--agent) 22%, transparent);
+  animation: dg-breathe 2.4s var(--dg-ease, ease) infinite;
+}
+@keyframes dg-breathe {
+  50% {
+    box-shadow: 0 0 0 5px color-mix(in srgb, var(--agent) 8%, transparent);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sidebar__working-dot {
+    animation: none;
+  }
+}
+
+/* ── The conversation: its header and the composer in glass ── */
+[data-theme="dark"] .channel__header {
+  background: rgba(13, 18, 16, 0.6);
+  -webkit-backdrop-filter: blur(var(--dg-blur)) saturate(var(--dg-saturate));
+  backdrop-filter: blur(var(--dg-blur)) saturate(var(--dg-saturate));
+  border-bottom-color: rgba(255, 255, 255, 0.06);
+}
+[data-theme="dark"] .ac-composer {
+  background: radial-gradient(120% 60% at 50% -20%, var(--dg-reflection), transparent 60%), rgba(22, 30, 26, 0.72);
+  -webkit-backdrop-filter: blur(var(--dg-blur)) saturate(var(--dg-saturate));
+  backdrop-filter: blur(var(--dg-blur)) saturate(var(--dg-saturate));
+  box-shadow: var(--dg-glass-edge), var(--dg-shadow);
+}
+[data-theme="dark"] .ac-composer:focus-within {
+  box-shadow:
+    var(--dg-glass-edge),
+    0 0 0 1px rgba(74, 222, 128, 0.28),
+    var(--dg-shadow);
+}
+
+/* Cards on the panel: a quiet glass face. */
+[data-theme="dark"] .ac-card {
+  --card-face-top: rgba(255, 255, 255, 0.045);
+  background: linear-gradient(180deg, var(--card-face-top), rgba(255, 255, 255, 0.02) 64px);
+  box-shadow: var(--dg-glass-edge);
+}
+
+/* The main button: a light pill, as the sign-in's. */
+[data-theme="dark"] .ac-btn--primary {
+  background: #f4f7f5;
+  color: #050806;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.9),
+    0 6px 18px -8px rgba(255, 255, 255, 0.25);
+}
+[data-theme="dark"] .ac-btn--primary:hover {
+  background: #ffffff;
+}
+
+/* ── Agents' faces: a glass circle in the agent's own color, its monogram in white ── */
+.ac-avatar.ac-avatar--glass {
+  border-radius: var(--radius-full);
+  contain: none;
+  color: #fff;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  background:
+    radial-gradient(85% 60% at 32% 18%, rgba(255, 255, 255, 0.5), transparent 58%),
+    radial-gradient(120% 120% at 70% 110%, rgba(0, 0, 0, 0.35), transparent 60%),
+    linear-gradient(160deg, var(--av-top, #4ade80), var(--av-bottom, #15803d));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.45),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.25),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.14),
+    0 4px 12px -4px color-mix(in srgb, var(--av-bottom, #15803d) 70%, transparent);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+}
+.ac-avatar--glass {
+  container-type: inline-size;
+}
+/* The letter follows the face's own width, whatever size a screen gives it. */
+.ac-avatar__monogram {
+  font-size: 48cqi;
+  line-height: 1;
+  text-box: trim-both cap alphabetic;
+}
+/* The letter laid over the whole face, centred whatever the face's own layout. */
+.ac-avatar--glass > .ac-avatar__monogram {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+}
+/* A profile's band where the pixel sky was: the agent's color as soft light from the top. */
+.dg-band {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(90% 140% at 18% -10%, color-mix(in srgb, var(--av-top) 55%, transparent), transparent 70%),
+    linear-gradient(180deg, color-mix(in srgb, var(--av-bottom) 35%, transparent), transparent);
+}
+.dg-band[data-person] {
+  opacity: 0.5;
+}
+/* At work: a soft ring in its color that breathes. */
+.ac-avatar--glass.ac-avatar--running::after {
+  inset: -3px;
+  border: 2px solid color-mix(in srgb, var(--av-top, #4ade80) 55%, transparent);
+  border-radius: var(--radius-full);
+  animation: dg-ring 1.8s var(--dg-ease, ease) infinite;
+}
+@keyframes dg-ring {
+  50% {
+    opacity: 0.35;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ac-avatar--glass.ac-avatar--running::after {
+    animation: none;
+  }
+}
+
+/* ── Doug's mark (the mascot's art) and the boot ── */
+img.ac-logo__mark {
+  display: block;
+  object-fit: contain;
+}
+.ac-logo {
+  font-family: var(--font-sans);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+}
+.sky-boot {
+  background:
+    radial-gradient(70% 55% at 50% -10%, rgba(34, 197, 94, 0.16), transparent 70%),
+    radial-gradient(120% 80% at 50% -20%, rgba(11, 59, 42, 0.5), transparent 60%), #060908;
+}
+.sky-boot__in {
+  color: rgba(252, 252, 252, 0.72);
+  font-size: 13px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.sky-boot__in .ac-logo {
+  color: #fcfcfc;
+  text-transform: none;
+  letter-spacing: -0.03em;
+}
+
+/* ── Sign in: the mydoug.io card: a dark glass card with a hair rim, the mark on top ── */
+.auth__mark {
+  width: 44px;
+  height: 44px;
+  filter: drop-shadow(0 6px 16px rgba(34, 197, 94, 0.35));
+}
+.auth__mark[data-busy] {
+  animation: dg-ring 1.4s var(--dg-ease, ease) infinite;
+}
+[data-theme="dark"] .auth__bubble {
+  background: radial-gradient(120% 60% at 50% -20%, var(--dg-reflection), transparent 60%), rgba(17, 24, 21, 0.7);
+  -webkit-backdrop-filter: blur(var(--dg-blur)) saturate(var(--dg-saturate));
+  backdrop-filter: blur(var(--dg-blur)) saturate(var(--dg-saturate));
+  box-shadow: var(--dg-glass-edge), var(--dg-shadow);
+}
+/* The sign-in's main button: a light pill, as the mydoug.io sign-in's. */
+[data-theme="dark"] .auth .ac-btn--primary {
+  border-radius: var(--radius-full);
+}
