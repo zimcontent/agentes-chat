@@ -214,6 +214,14 @@ const DOWNLOAD_TIMEOUT_MS = 5 * 60_000;
 const QUICK_TIMEOUT_MS = 15_000;
 /** One input command on the relay: a click or a key answers in milliseconds. */
 const INPUT_TIMEOUT_MS = 5_000;
+/**
+ * How long the daemon may still be busy with the agent's command a person's taking control cut off. The daemon runs
+ * one command at a time behind one lock, the relay's too, and runs a command to its end even when its client is gone
+ * (checked in 0.39.1's source): an element it waits for gives up after 25 s (its default timeout, below its CLI's
+ * 30 s read timeout). A person's input waits that long for it instead of failing at `INPUT_TIMEOUT_MS`: the daemon
+ * would still run it afterwards, while the person had been told it never reached the page.
+ */
+const DAEMON_HOLD_MS = 30_000;
 /** After a failed download or install, wait this long before trying again. */
 const RETRY_FAILURE_MS = 10 * 60_000;
 const STREAM_OPEN_MS = 5000;
@@ -1014,6 +1022,8 @@ export interface InputState {
 
 /** Agent commands the runner does with a pointer path, a held button and typed keys (`humanSteps`). */
 const HUMAN_COMMANDS = new Set(["click", "dblclick", "hover", "fill", "type"]);
+/** Agent commands that may leave a mouse button down when a person's taking control cuts them off. */
+const POINTER_COMMANDS = new Set([...HUMAN_COMMANDS, "mouse", "drag"]);
 /** What `agent-browser` answers to each when the runner did it itself. */
 const HUMAN_DONE: Record<string, string> = { click: "clicked", hover: "hovered", fill: "filled" };
 /** The answer to a command a person's taking control cut short (`stopInput`). */
@@ -1384,6 +1394,8 @@ export interface BrowserManagerOptions {
    * newest, `pacing=ack`), so Chrome's pictures nobody would see are never relayed and parsed. Absent: always.
    */
   frameRoom?: (agentId: string) => boolean;
+  /** Tests: how long one input command waits for the relay (`INPUT_TIMEOUT_MS`). */
+  inputTimeoutMs?: number;
   /** Tests: how long a frame waits for `room` at most (`SOURCE_ACK_MS`). */
   sourceAckMs?: number;
   /** Tests: starts the agent's Chrome (default: `launchChrome`). */
@@ -1481,8 +1493,15 @@ interface Session {
   pointer?: Point;
   /** Where its `hover` left it. While that is still `pointer` (the same object), a menu it opened is taken to be open. */
   hovered?: Point;
-  /** Ends the agent's command under way when a person takes control (`stopInput`). */
-  acting?: AbortController;
+  /**
+   * The agent's `act` and `batch` calls queued or running, each ended when a person takes control (`stopInput`):
+   * one under way stops, and one still waiting in the queue never runs.
+   */
+  calls: Set<AbortController>;
+  /** Until when the daemon may still run an agent command that taking control cut off (`DAEMON_HOLD_MS`). */
+  daemonBusyUntil?: number;
+  /** How many `agent-browser` commands of this session are running now. */
+  running?: number;
   /** When its `mouse down` went, while no `mouse up` followed. */
   pressedAt?: number;
   /** When its desktop last failed to start for it (`desktopFor`). */
@@ -1872,6 +1891,7 @@ export class BrowserManager {
     const desktop = req.desktop === true;
     const queuedAt = this.now();
     const acts = actsOnPage(prepared);
+    const call = this.agentCall(session);
     const answer = await this.enqueue(session, async () => {
       this.mark(setup, "queued", queuedAt);
       // A page that died since the agent last heard, or while this ran, is an action's answer: it changed under it.
@@ -1879,15 +1899,23 @@ export class BrowserManager {
       if (before) return before;
       const opening = this.vaultOpening(actor, session);
       try {
-        const done = await this.perform(agent, session, prepared, allowed, req.link, desktop, signal, setup, {
-          actor,
-          opening,
-        });
+        const done = await this.perform(
+          agent,
+          session,
+          prepared,
+          allowed,
+          req.link,
+          desktop,
+          signal,
+          setup,
+          { actor, opening },
+          call.signal,
+        );
         return (acts ? (this.takeCrash(session, true) ?? this.takeBlocked(session)) : null) ?? done;
       } finally {
         opening.close();
       }
-    });
+    }).finally(() => session.calls.delete(call));
     return { ...answer, ...withSetup(setup), ...(session.viewport ? { emulated: session.viewport } : {}) };
   }
 
@@ -1912,6 +1940,7 @@ export class BrowserManager {
     const session = await this.timedSession(agent, folder, setup);
     const desktop = req.desktop === true;
     const queuedAt = this.now();
+    const call = this.agentCall(session);
     return this.enqueue(session, async (): Promise<MachineReplies["browser.batch"]> => {
       this.mark(setup, "queued", queuedAt);
       const answers: BrowserAnswer[] = [];
@@ -1948,10 +1977,18 @@ export class BrowserManager {
           if (acts) acted = answers.length;
           let answer: BrowserAnswer;
           try {
-            answer = await this.perform(agent, session, p, allowed, req.link, desktop, signal, setup, {
-              actor,
-              opening,
-            });
+            answer = await this.perform(
+              agent,
+              session,
+              p,
+              allowed,
+              req.link,
+              desktop,
+              signal,
+              setup,
+              { actor, opening },
+              call.signal,
+            );
           } catch (err) {
             // Nothing ran yet: refused as a whole (its error code reaches the server).
             if (answers.length === 0) throw err;
@@ -1965,6 +2002,8 @@ export class BrowserManager {
             break;
           }
           answers.push(answer);
+          // A person took control: nothing more of it runs, a step that tolerates failing either.
+          if (call.signal.aborted && !answer.success) break;
           if ((acted >= 0 && (died() || blocked())) || (!answer.success && !p.tolerate)) break;
         }
       } finally {
@@ -1972,7 +2011,14 @@ export class BrowserManager {
         opening.close();
       }
       return { answers, ...withSetup(setup), ...(session.viewport ? { emulated: session.viewport } : {}) };
-    });
+    }).finally(() => session.calls.delete(call));
+  }
+
+  /** An agent's `act` or `batch` as it is queued: a person taking control ends it (`stopInput`). */
+  private agentCall(session: Session): AbortController {
+    const call = new AbortController();
+    session.calls.add(call);
+    return call;
   }
 
   /**
@@ -2127,7 +2173,9 @@ export class BrowserManager {
 
   /**
    * Runs one prepared command in the session's queue (the caller holds it). `desktop`: where its Chrome belongs;
-   * `setup`: where starting its desktop and its Chrome go.
+   * `setup`: where starting its desktop and its Chrome go. `taken`: a person took control (`stopInput`): a command
+   * that hadn't started never runs, and one under way stops, whatever it is (a read or a wait holds the daemon, and
+   * the person's input waits behind it there), told as `TOOK_OVER`.
    */
   private async perform(
     agent: AgentScope,
@@ -2139,19 +2187,22 @@ export class BrowserManager {
     signal?: AbortSignal,
     setup?: BrowserSetup,
     vault?: { actor: AgentScope; opening: VaultOpening },
+    taken?: AbortSignal,
   ): Promise<BrowserAnswer> {
     const { command, args, timeoutMs } = p;
+    if (taken?.aborted) return TOOK_OVER;
     session.allowed = allowed;
     const actor = vault?.actor ?? agent;
+    const stops = signal && taken ? AbortSignal.any([signal, taken]) : (signal ?? taken);
     if (command === "agentes:type_secret") {
-      const answer = await this.typeSecret(agent, session, args, timeoutMs, signal, actor);
+      const answer = await this.typeSecret(agent, session, args, timeoutMs, stops, actor);
       this.noteAct(session, command, [], answer, link);
       return answer;
     }
     if (command === "agentes:type_vault") {
       const opening = vault?.opening ?? this.vaultOpening(actor, session);
       try {
-        const answer = await this.typeVault(actor, session, args, timeoutMs, opening, signal);
+        const answer = await this.typeVault(actor, session, args, timeoutMs, opening, stops);
         this.noteAct(session, command, [], answer, link);
         return answer;
       } finally {
@@ -2199,27 +2250,26 @@ export class BrowserManager {
         });
       }
     }
-    const acting = new AbortController();
-    session.acting = acting;
-    const stops = signal ? AbortSignal.any([signal, acting.signal]) : acting.signal;
     const human =
       (HUMAN_COMMANDS.has(command) ? await this.humanly(session, command, args, timeoutMs, stops) : null) ??
       (await this.humanAtPoint(session, command, args, timeoutMs, stops));
-    const taken = acting.signal.aborted && !human?.success;
-    // Cut off during a press, the button would stay down under the person's pointer.
-    if (taken) await this.run(session, ["mouse", "up"], { timeoutMs: QUICK_TIMEOUT_MS });
-    const answer = taken
-      ? TOOK_OVER
-      : (human ??
-        // `--human`: its drag goes along an eased curve from where the pointer is, slower than a script's.
-        (await this.run(
-          session,
-          [command, ...args, ...(command === "drag" && !args.includes("--human") ? ["--human"] : [])],
-          {
-            timeoutMs,
-            signal,
-          },
-        )));
+    if (taken?.aborted && !human?.success) {
+      // Cut off during a press, the button would stay down under the person's pointer.
+      if (POINTER_COMMANDS.has(command)) await this.run(session, ["mouse", "up"], { timeoutMs: QUICK_TIMEOUT_MS });
+      return TOOK_OVER;
+    }
+    const plain =
+      human ??
+      // `--human`: its drag goes along an eased curve from where the pointer is, slower than a script's.
+      (await this.run(
+        session,
+        [command, ...args, ...(command === "drag" && !args.includes("--human") ? ["--human"] : [])],
+        {
+          timeoutMs,
+          ...(stops ? { signal: stops } : {}),
+        },
+      ));
+    const answer = taken?.aborted && !plain.success ? TOOK_OVER : plain;
     // agent-browser sizes the page for a full-page shot and leaves it at the window's pixel ratio after (measured on
     // Chrome for Testing 156): the emulated size goes back.
     if (session.viewport && command === "screenshot" && (args.includes("--full") || args.includes("-f"))) {
@@ -2478,6 +2528,7 @@ export class BrowserManager {
       lastUsed: this.now(),
       aliveAt: null,
       crashes: new Map(),
+      calls: new Set(),
     };
     this.sessions.set(agentId, session);
     this.sweepTimer ??= setInterval(() => void this.sweep(), SWEEP_MS);
@@ -3033,11 +3084,14 @@ export class BrowserManager {
     const chrome = session.chrome;
     if (!chrome) return { success: false, data: null, error: "The browser isn't open: open a page first" };
     session.commandAt = this.now();
+    session.running = (session.running ?? 0) + 1;
     const out = await this.spawn(command, [...this.sessionFlags(session, chrome), ...args], {
       timeoutMs: opts.timeoutMs,
       cwd: session.folder,
       ...(opts.signal ? { signal: opts.signal } : {}),
       ...(opts.stdin !== undefined ? { stdin: opts.stdin } : {}),
+    }).finally(() => {
+      session.running = (session.running ?? 1) - 1;
     });
     if (out.timedOut) {
       return {
@@ -3559,12 +3613,21 @@ export class BrowserManager {
   }
 
   /**
-   * A person took control: the agent's pointer path or typing under way stops at its next step. `agent-browser` sends
-   * a batch's commands one by one from its own process, so killing that (`acting`) leaves only the one in flight, and
-   * what it typed isn't known: the agent reads the page before it acts again (`requirePageRead`).
+   * A person took control: the agent's command under way stops (its pointer path or typing at the next step, a read
+   * or a wait at once), and the ones it queued never run (`calls`). `agent-browser` sends a batch's commands one by
+   * one from its own process, so killing that leaves only the one in flight in the daemon, which the daemon still
+   * runs to its end (`DAEMON_HOLD_MS`: the person's input waits for it there). What it typed isn't known: the agent
+   * reads the page before it acts again (`requirePageRead`).
    */
   stopInput(agentId: string) {
-    this.sessions.get(agentId)?.acting?.abort();
+    const session = this.sessions.get(agentId);
+    if (session) this.takeOver(session);
+  }
+
+  private takeOver(session: Session) {
+    for (const call of session.calls) call.abort();
+    session.calls.clear();
+    if ((session.running ?? 0) > 0) session.daemonBusyUntil = this.now() + DAEMON_HOLD_MS;
   }
 
   /** A person's turn is open on the agent's browser, or was when the server connection dropped. */
@@ -3657,7 +3720,7 @@ export class BrowserManager {
     if (!session) throw new RunnerError("browser_closed", "The agent's browser isn't open");
     session.lastUsed = this.now();
     // Before the wait: opening a stream queues behind the very command this stops.
-    if (mode === "control") session.acting?.abort();
+    if (mode === "control") this.takeOver(session);
     // One socket per session: a start while another opens waits for it, then only changes the mode.
     while (session.streamOpening) await session.streamOpening.catch(() => undefined);
     if (session.stream) {
@@ -3703,7 +3766,9 @@ export class BrowserManager {
       }
       if (!session.chrome) return null;
       const disconnected = (a: BrowserAnswer) => isRecord(a.data) && a.data.connected !== true;
-      let status = await this.run(session, ["stream", "status"], { timeoutMs: QUICK_TIMEOUT_MS });
+      // Behind an agent command taking control cut off, which the daemon still finishes (`DAEMON_HOLD_MS`).
+      const behind = Math.max(0, (session.daemonBusyUntil ?? 0) - this.now());
+      let status = await this.run(session, ["stream", "status"], { timeoutMs: QUICK_TIMEOUT_MS + behind });
       if (disconnected(status)) {
         if (!held || reopened) return null;
         await reopen();
@@ -4038,11 +4103,11 @@ export class BrowserManager {
         }
         let ok = true;
         for (const command of relayCommands(e, stream.input)) {
-          if (!(await this.relay(stream.port, command))) ok = false;
+          if (!(await this.relay(stream.port, command, session))) ok = false;
         }
         if (e.kind === "text" && !asked) {
           asked = true;
-          const seen = await this.relayAnswer(stream.port, { action: "evaluate", script: TAKES_TEXT });
+          const seen = await this.relayAnswer(stream.port, { action: "evaluate", script: TAKES_TEXT }, session);
           nowhere = isRecord(seen?.data) && seen.data.result === false;
         }
         if (stream.input.pointer) session.pointer = stream.input.pointer;
@@ -4070,23 +4135,34 @@ export class BrowserManager {
   }
 
   /** One command on the daemon's relay; true when it ran. */
-  private async relay(port: number, command: Record<string, unknown>): Promise<boolean> {
-    return (await this.relayAnswer(port, command)) !== null;
+  private async relay(port: number, command: Record<string, unknown>, session?: Session): Promise<boolean> {
+    return (await this.relayAnswer(port, command, session)) !== null;
   }
 
-  /** One command on the daemon's relay (`POST /api/command` on the stream port): its answer, null if it didn't run. */
-  private async relayAnswer(port: number, command: Record<string, unknown>): Promise<Record<string, unknown> | null> {
+  /**
+   * One command on the daemon's relay (`POST /api/command` on the stream port): its answer, null if it didn't run.
+   * While the daemon may still be running an agent command that taking control cut off (`daemonBusyUntil`), it waits
+   * that long: the daemon runs it after that command, and failing it sooner would say it never reached the page.
+   */
+  private async relayAnswer(
+    port: number,
+    command: Record<string, unknown>,
+    session?: Session,
+  ): Promise<Record<string, unknown> | null> {
     const origin = `http://127.0.0.1:${port}`;
+    const busy = (session?.daemonBusyUntil ?? 0) - this.now();
     try {
       const res = await (this.opts.fetch ?? fetch)(`${origin}/api/command`, {
         method: "POST",
         redirect: "error",
-        signal: AbortSignal.timeout(INPUT_TIMEOUT_MS),
+        signal: AbortSignal.timeout(Math.max(this.opts.inputTimeoutMs ?? INPUT_TIMEOUT_MS, busy)),
         // The relay only takes a same-origin request.
         headers: { "Content-Type": "application/json", Origin: origin },
         body: JSON.stringify({ id: randomUUID(), ...command }),
       });
       const body = (await res.json().catch(() => null)) as unknown;
+      // The daemon answered: nothing of the agent's holds it any longer.
+      if (session) session.daemonBusyUntil = undefined;
       return res.ok && isRecord(body) && body.success !== false && !body.error ? body : null;
     } catch {
       // Timed out (the command may still be queued in the daemon) or the port closed.
