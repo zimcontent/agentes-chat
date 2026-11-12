@@ -1,0 +1,61 @@
+# Doug: acompanha o agentes.chat oficial (upstream). Toda segunda, e quando rodado à mão:
+# se saiu uma versão nova (tag vX.Y.Z) que ainda não está no nosso main, mistura-a num branch
+# `oficial/vX.Y.Z` e abre uma issue com o que mudou e o link para abrir o PR.
+# Se a mistura der conflito com as nossas mudanças, o branch não é criado e a issue lista os arquivos.
+name: Acompanhar o agentes.chat oficial
+on:
+  schedule:
+    - cron: "0 11 * * 1"
+  workflow_dispatch:
+permissions:
+  contents: write
+  issues: write
+jobs:
+  oficial:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: main
+      - name: Buscar o oficial
+        run: |
+          git remote add upstream https://github.com/agentes-chat/agentes-chat.git
+          git fetch --quiet upstream --tags
+      - name: Versão nova?
+        id: nova
+        run: |
+          tag=$(git tag -l 'v*' --sort=-v:refname | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | head -1)
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          if git merge-base --is-ancestor "$tag" HEAD; then echo "nova=nao" >> "$GITHUB_OUTPUT"; else echo "nova=sim" >> "$GITHUB_OUTPUT"; fi
+      - name: Misturar e avisar
+        if: steps.nova.outputs.nova == 'sim'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ steps.nova.outputs.tag }}
+        run: |
+          git config user.name "Doug (acompanhar oficial)"
+          git config user.email "info@zimcontent.com"
+          base=$(git describe --tags --abbrev=0 --match 'v*' HEAD)
+          titulo="agentes.chat $TAG saiu (estamos em $base)"
+          if gh issue list --state open --search "\"$titulo\" in:title" --json number --jq 'length' | grep -qv '^0$'; then exit 0; fi
+          mudancas=$(git log --no-merges --format='- %s' "$base..$TAG" | head -150)
+          banco=$(git diff --name-only "$base" "$TAG" -- packages/db/migrations | sed 's/^/- /')
+          git switch -c "oficial/$TAG"
+          if git merge --no-edit "$TAG"; then
+            git push -q origin "oficial/$TAG"
+            corpo=$(printf '%s\n\n%s\n\n%s\n%s\n\n%s\n%s\n' \
+              "Mistura feita sem conflito no branch \`oficial/$TAG\`." \
+              "Abrir o PR: https://github.com/${GITHUB_REPOSITORY}/compare/main...oficial/$TAG" \
+              "### Migrações de banco novas" "${banco:-- nenhuma}" \
+              "### O que mudou no oficial" "$mudancas")
+          else
+            conflitos=$(git diff --name-only --diff-filter=U | sed 's/^/- /')
+            git merge --abort
+            corpo=$(printf '%s\n\n%s\n%s\n\n%s\n%s\n\n%s\n%s\n' \
+              "A mistura com o nosso main deu conflito: resolver numa sessão (git fetch upstream --tags && git merge $TAG)." \
+              "### Arquivos em conflito" "$conflitos" \
+              "### Migrações de banco novas" "${banco:-- nenhuma}" \
+              "### O que mudou no oficial" "$mudancas")
+          fi
+          gh issue create --title "$titulo" --body "$corpo"
