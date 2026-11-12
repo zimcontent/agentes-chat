@@ -307,9 +307,7 @@ export function sidebarViewOf(raw: unknown): SidebarView {
       : null;
   const hiddenAgents = Array.isArray(v.hiddenAgents)
     ? [
-        ...new Set(
-          v.hiddenAgents.filter((x): x is string => typeof x === "string" && x.length > 0 && x.length <= 64),
-        ),
+        ...new Set(v.hiddenAgents.filter((x): x is string => typeof x === "string" && x.length > 0 && x.length <= 64)),
       ].slice(0, SIDEBAR_HIDDEN_LIMIT)
     : [];
   return { agentSort: sort, showAllAgents: v.showAllAgents === true, pins, hiddenAgents };
@@ -330,7 +328,8 @@ export async function setMySidebarView(
   db: Database,
   orgId: string,
   userId: string,
-  view: SidebarView,
+  // `hiddenAgents` may be left out (older apps): `sidebarViewOf` reads it as none.
+  view: Omit<SidebarView, "hiddenAgents"> & { hiddenAgents?: string[] },
 ): Promise<SidebarView> {
   await requirePermission(db, userId, orgId, "read");
   const clean = sidebarViewOf(view);

@@ -66,7 +66,12 @@ test("a saved layout holding a removed tool and an unknown one reads as the tool
 });
 
 test("a stored sidebar view is never trusted as is: known orders only, each pin once, five at most", () => {
-  expect(sidebarViewOf(undefined)).toEqual({ agentSort: "workspace", showAllAgents: false, pins: null });
+  expect(sidebarViewOf(undefined)).toEqual({
+    agentSort: "workspace",
+    showAllAgents: false,
+    pins: null,
+    hiddenAgents: [],
+  });
   expect(
     sidebarViewOf({
       agentSort: "nope",
@@ -77,6 +82,7 @@ test("a stored sidebar view is never trusted as is: known orders only, each pin 
     agentSort: "workspace",
     showAllAgents: false,
     pins: { agents: ["a", "b"], channels: ["1", "2", "3", "4", "5"], people: [] },
+    hiddenAgents: [],
   });
 });
 
@@ -287,12 +293,13 @@ test("the sidebar view: each person's own, per workspace, beside the tools' plac
   const put = (json: unknown, b = owner) => b(`${sidebar}/view`, { method: "PUT", json });
 
   // Never saved: no pins yet, so the apps pin the person's own agents.
-  expect(await view()).toEqual({ agentSort: "workspace", showAllAgents: false, pins: null });
+  expect(await view()).toEqual({ agentSort: "workspace", showAllAgents: false, pins: null, hiddenAgents: [] });
   await owner(sidebar, { method: "PATCH", json: { item: "wiki", place: "always" } });
   const mine = {
     agentSort: "mine",
     showAllAgents: true,
     pins: { agents: ["agent-1"], channels: ["channel-1", "channel-2"], people: [] },
+    hiddenAgents: ["agent-2"],
   };
   const saved = await put({ view: mine });
   expect(saved.status).toBe(200);
@@ -310,7 +317,7 @@ test("the sidebar view: each person's own, per workspace, beside the tools' plac
 
   // Someone else keeps their own.
   const member = await joinByInvitation(t, owner, orgId, "member@example.com");
-  expect(await view(member)).toEqual({ agentSort: "workspace", showAllAgents: false, pins: null });
+  expect(await view(member)).toEqual({ agentSort: "workspace", showAllAgents: false, pins: null, hiddenAgents: [] });
 });
 
 test("a personal workspace reads its own default orders (ADR 0159); a saved order stays, the team's included", async () => {
