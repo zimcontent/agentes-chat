@@ -94,6 +94,7 @@ import { colorOf } from "../Sky";
 import { useComputerEdition } from "../WorkspaceComputer";
 import { AddressBar } from "./AddressBar";
 import { Cover } from "./Cover";
+import { StackedBrowserCard } from "./card-stack";
 import { LivePicture } from "./LivePicture";
 import { requestBrowserCard, useBrowserCardRequest } from "./open";
 import { SiteIcon, siteName } from "./SiteIcon";
@@ -230,26 +231,35 @@ export function RunBrowserCard({ run, name }: { run: LiveRun; name: string }) {
   const open = useAgentBrowserHandoff(org.id, run.agentId, ask, HELD_STALE_MS);
   const held = isHeldTakeover(open.data, run.runId);
   if (ended ? !(held && controlledBy(open.data, me.user.id)) : steps.length === 0 && !held) return null;
+  const [host, path] = hostAndPath(browserSiteUrl(null, steps));
   return (
-    <BrowserCard
+    <StackedBrowserCard
       agentId={run.agentId}
-      name={name}
-      steps={steps}
-      runId={run.runId}
-      place={{ channelId: run.channelId, threadId: run.threadId }}
-      handoff={held ? (open.data ?? null) : null}
-      profileWait={run.browserWait ?? null}
-      {...(inProfile
-        ? {
-            profile: {
-              id: inProfile.id,
-              name: inProfile.name,
-              agentIds: inProfile.agentIds,
-              canDrive: canDo(org, "manage_connectors") && canDo(org, "control_browsers"),
-            },
-          }
-        : {})}
-    />
+      keep={held && controlledBy(open.data, me.user.id)}
+      host={host || null}
+      path={path}
+      at={run.startedAt ?? null}
+    >
+      <BrowserCard
+        agentId={run.agentId}
+        name={name}
+        steps={steps}
+        runId={run.runId}
+        place={{ channelId: run.channelId, threadId: run.threadId }}
+        handoff={held ? (open.data ?? null) : null}
+        profileWait={run.browserWait ?? null}
+        {...(inProfile
+          ? {
+              profile: {
+                id: inProfile.id,
+                name: inProfile.name,
+                agentIds: inProfile.agentIds,
+                canDrive: canDo(org, "manage_connectors") && canDo(org, "control_browsers"),
+              },
+            }
+          : {})}
+      />
+    </StackedBrowserCard>
   );
 }
 
@@ -271,9 +281,14 @@ export function HeldBrowserCard({
   /** Ask the server (a recent message); otherwise only what the realtime events said. */
   enabled?: boolean;
 }) {
+  const { me } = useOrg();
   const held = useHeldTakeover(agentId, runId, enabled);
   if (!held) return null;
-  return <BrowserCard agentId={agentId} name={name} runId={runId} handoff={held} />;
+  return (
+    <StackedBrowserCard agentId={agentId} keep={controlledBy(held, me.user.id)} host={null} at={held.createdAt}>
+      <BrowserCard agentId={agentId} name={name} runId={runId} handoff={held} />
+    </StackedBrowserCard>
+  );
 }
 
 /** The agent's open take over bound to this run, while the run has no live block here (`HeldBrowserCard`). */

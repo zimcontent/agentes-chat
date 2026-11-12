@@ -16494,6 +16494,11 @@ export const en = {
       stoppedByOther: "by {{person}} · {{time}}",
       stoppedAt: "at {{time}}",
       open: "View live",
+      /** An earlier live card of the agent's browser in the conversation, folded under the newest (`card-stack`). */
+      folded: "Browser",
+      foldedAt: "Browser · {{site}}",
+      showScreen: "Show the screen",
+      hideScreen: "Hide the screen",
       step: {
         browser_do: "Did several steps",
         browser_open: "Opened {{detail}}",

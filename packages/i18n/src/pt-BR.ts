@@ -16553,6 +16553,11 @@ export const ptBR = {
       stoppedByOther: "por {{person}} · {{time}}",
       stoppedAt: "às {{time}}",
       open: "Ver ao vivo",
+      /** An earlier live card of the agent's browser in the conversation, folded under the newest (`card-stack`). */
+      folded: "Navegador",
+      foldedAt: "Navegador · {{site}}",
+      showScreen: "Mostrar a tela",
+      hideScreen: "Esconder a tela",
       step: {
         browser_do: "Fez vários passos",
         browser_open: "Abriu {{detail}}",

@@ -240,6 +240,7 @@ import { MessageWorkLine } from "@/components/BackgroundWork";
 import { HeldBrowserCard, RunBrowserCard, useHeldTakeover } from "@/components/browser/BrowserCard";
 import { BrowserHandoffCard } from "@/components/browser/BrowserHandoffCard";
 import { BrowserTrailCard } from "@/components/browser/BrowserTrailCard";
+import { BrowserCardStackProvider, createBrowserCardStack } from "@/components/browser/card-stack";
 import { requestBrowserCard } from "@/components/browser/open";
 import { CategorySelect } from "@/components/ChannelCategoryDialogs";
 import { ChannelHeader } from "@/components/ChannelHeader";
@@ -3417,10 +3418,14 @@ function RowsProvider({
   drawn: () => void;
   children: ReactNode;
 }) {
+  // The agents' live browser cards of this timeline: one shows each agent's page, the earlier ones fold.
+  const [browserCards] = useState(createBrowserCardStack);
   return (
     <AskRegistryProvider value={asks}>
       <RowDrawnContext.Provider value={drawn}>
-        <RowStopContext.Provider value={stop}>{children}</RowStopContext.Provider>
+        <RowStopContext.Provider value={stop}>
+          <BrowserCardStackProvider stack={browserCards}>{children}</BrowserCardStackProvider>
+        </RowStopContext.Provider>
       </RowDrawnContext.Provider>
     </AskRegistryProvider>
   );
