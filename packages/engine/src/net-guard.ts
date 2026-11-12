@@ -79,6 +79,25 @@ export function isBlockedAddress(address: string): boolean {
  * between this check and the request; the check still stops the obvious
  * cases and every typed-in internal name.
  */
+/**
+ * Internal MCP servers this server's admin lets connectors reach (`MCP_PRIVATE_SERVERS`, comma-separated origins such
+ * as `http://host.docker.internal:8977`): the exact origin only, never a user or password. Unset: none, as before.
+ */
+export function privateServerAllowed(url: URL): boolean {
+  if (url.username || url.password) return false;
+  return (process.env.MCP_PRIVATE_SERVERS ?? "")
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean)
+    .some((allowed) => {
+      try {
+        return new URL(allowed).origin === url.origin;
+      } catch {
+        return false;
+      }
+    });
+}
+
 export async function assertPublicHttpsUrl(raw: string, resolve: ResolveHost = resolveHostDns): Promise<URL> {
   let url: URL;
   try {
@@ -86,6 +105,7 @@ export async function assertPublicHttpsUrl(raw: string, resolve: ResolveHost = r
   } catch {
     throw new ValidationError("Invalid address", "url.invalid");
   }
+  if (privateServerAllowed(url)) return url;
   if (url.protocol !== "https:") throw new ValidationError("Use an https:// address", "url.https_required");
   if (url.username || url.password)
     throw new ValidationError("The address can't have a user or password", "url.credentials");

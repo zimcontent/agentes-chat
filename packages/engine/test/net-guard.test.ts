@@ -157,3 +157,19 @@ test("publicHttpsFetch connects to the address it checked (IPv4 first), never fo
   });
   expect(await refusal(moved("https://vault.acme.example/api/sync"))).toBeInstanceOf(TypeError);
 });
+
+test("MCP_PRIVATE_SERVERS lets only its exact origins through as internal servers", async () => {
+  const before = process.env.MCP_PRIVATE_SERVERS;
+  process.env.MCP_PRIVATE_SERVERS = "http://host.docker.internal:8977, http://bad entry";
+  try {
+    const { assertPublicHttpsUrl: check, privateServerAllowed: allowed } = await import("../src/net-guard");
+    expect((await check("http://host.docker.internal:8977/cerebro/mcp")).pathname).toBe("/cerebro/mcp");
+    expect(allowed(new URL("http://host.docker.internal:8978/mcp"))).toBe(false);
+    expect(allowed(new URL("http://user:pw@host.docker.internal:8977/mcp"))).toBe(false);
+    await expect(check("http://localhost:8977/mcp")).rejects.toThrow();
+    await expect(check("https://10.0.0.1/mcp")).rejects.toThrow();
+  } finally {
+    if (before === undefined) delete process.env.MCP_PRIVATE_SERVERS;
+    else process.env.MCP_PRIVATE_SERVERS = before;
+  }
+});

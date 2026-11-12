@@ -7,7 +7,7 @@ import { caches } from "../cache";
 import { openSecret, randomToken, sealSecret, sha256 } from "../crypto";
 import { ConflictError, ForbiddenError, MisconfiguredError, NotFoundError, ValidationError } from "../errors";
 import { forgetInstallationTokens } from "../git/github-app";
-import type { ResolveHost } from "../net-guard";
+import { privateServerAllowed, type ResolveHost } from "../net-guard";
 import { requirePermission } from "../organizations";
 import { CONNECTOR_ALL } from "../tools/scopes";
 import { CONNECTOR_CATALOG, type ConnectorDefinition } from "./catalog";
@@ -215,7 +215,11 @@ function checkServerUrl(url: string) {
   } catch {
     throw new ValidationError("serverUrl must be a URL");
   }
-  if (parsed.protocol !== "https:" && !(parsed.protocol === "http:" && parsed.hostname === "localhost")) {
+  if (
+    parsed.protocol !== "https:" &&
+    !(parsed.protocol === "http:" && parsed.hostname === "localhost") &&
+    !privateServerAllowed(parsed)
+  ) {
     throw new ValidationError("serverUrl must use https");
   }
   return parsed.toString();
