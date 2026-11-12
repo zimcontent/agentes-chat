@@ -2609,7 +2609,7 @@
     "meHint": "내 사진은 내 워크스페이스의 사람들에게 표시돼요."
   },
   "brand": {
-    "basedOn": "Codari Global, LLC의 agentes.chat 기반 — AGPL-3.0",
+    "basedOn": "Codari Global, LLC의 agentes.chat 기반 · AGPL-3.0",
     "source": "DougBot 소스 코드"
   }
 }

@@ -113,7 +113,7 @@ export const MULTIPART_PATHS = [
   /\/organizations\/[^/]+\/channels\/[^/]+\/voice$/,
   /\/feedback\/files$/,
   // An agent's photo (`PUT`, the one upload that replaces rather than adds).
-  /\/orgs\/[^/]+\/agents\/[^/]+\/photo$/,
+  /\/organizations\/[^/]+\/agents\/[^/]+\/photo$/,
 ];
 /** Multipart overhead allowed on top of an uploaded file itself. */
 export const MULTIPART_SLACK_BYTES = 64 * 1024;

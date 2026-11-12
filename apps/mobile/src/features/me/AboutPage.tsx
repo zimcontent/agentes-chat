@@ -19,7 +19,7 @@ const link = (href: string) => (
 );
 
 /**
- * Sobre o DougBot, pushed from Você: DougBot's signature, "Baseado no agentes.chat da Codari Global, LLC — AGPL-3.0" and
+ * Sobre o DougBot, pushed from Você: DougBot's signature, "Baseado no agentes.chat da Codari Global, LLC · AGPL-3.0" and
  * the link to the fork's source, then AGPL-3.0's Appropriate Legal Notices and the attribution the license's
  * section 7(b) term in NOTICE requires. Shown on every self-hosted server, with no setting that hides it (`showsAbout`).
  */

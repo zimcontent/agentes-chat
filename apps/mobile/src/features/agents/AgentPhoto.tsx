@@ -17,7 +17,7 @@ export function photoForm(asset: { uri: string; mimeType?: string | null; fileNa
 }
 
 /**
- * An agent's real photo (this fork: `PUT`/`DELETE …/orgs/{orgId}/agents/{agentId}/photo`, the same contract as the
+ * An agent's real photo (this fork: `PUT`/`DELETE …/organizations/{orgId}/agents/{agentId}/photo`, the same contract as the
  * web): picked from the library or taken with the camera, cropped square by the system (`allowsEditing`, 1:1), sent as
  * a JPEG (the picker exports one, so a HEIC photo arrives as JPEG). Removing it brings the DougBot drawn by code back.
  * Who may: the same people as the agent's look (its owner, or `manage_agents`).

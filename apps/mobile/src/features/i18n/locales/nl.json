@@ -2721,7 +2721,7 @@
     "meHint": "Je foto is zichtbaar voor de mensen in je workspaces."
   },
   "brand": {
-    "basedOn": "Gebaseerd op agentes.chat van Codari Global, LLC — AGPL-3.0",
+    "basedOn": "Gebaseerd op agentes.chat van Codari Global, LLC · AGPL-3.0",
     "source": "Broncode van DougBot"
   }
 }

@@ -2820,7 +2820,7 @@
     "meHint": "La tua foto è visibile alle persone dei tuoi workspace."
   },
   "brand": {
-    "basedOn": "Basato su agentes.chat di Codari Global, LLC — AGPL-3.0",
+    "basedOn": "Basato su agentes.chat di Codari Global, LLC · AGPL-3.0",
     "source": "Codice sorgente di DougBot"
   }
 }

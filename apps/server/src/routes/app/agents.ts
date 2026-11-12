@@ -846,7 +846,8 @@ export function agentRoutes(deps: AppDeps) {
     role: z.string(),
     appearance: AgentAppearance.nullable(),
     photo: z.string().nullable().openapi({
-      description: "Its real photo (`/api/app/orgs/{orgId}/agents/{agentId}/photo/{file}`); null: the drawn look.",
+      description:
+        "Its real photo (`/api/app/organizations/{orgId}/agents/{agentId}/photo/{file}`); null: the drawn look.",
     }),
     ownerUserId: z.string().nullable(),
     reportsToAgentId: z.uuid().nullable().openapi({ description: "Responde a: the agent it reports to, if any." }),
@@ -1645,10 +1646,9 @@ export function agentRoutes(deps: AppDeps) {
   );
 
   // ── Its real photo (like a person's): whoever may change its look; the org's members see it ──────────────────
-  app.use("/orgs/*", requireSession(deps.auth));
   const photos = { db, blobs: adapters.platformBlobs, pubsub: adapters.pubsub };
   const photoTooLarge = (c: Context) => apiError(c, 413, "agent_photo.too_large", "The image can be up to 5 MB");
-  app.use("/orgs/:orgId/agents/:agentId/photo", async (c, next) =>
+  app.use("/organizations/:orgId/agents/:agentId/photo", async (c, next) =>
     c.req.method === "PUT"
       ? bodyLimit({ maxSize: AGENT_PHOTO_LIMITS.maxBytes + MULTIPART_SLACK_BYTES, onError: photoTooLarge })(c, next)
       : next(),
@@ -1656,7 +1656,7 @@ export function agentRoutes(deps: AppDeps) {
   app.openapi(
     createRoute({
       method: "put",
-      path: "/orgs/{orgId}/agents/{agentId}/photo",
+      path: "/organizations/{orgId}/agents/{agentId}/photo",
       tags,
       security,
       summary:
@@ -1693,7 +1693,7 @@ export function agentRoutes(deps: AppDeps) {
   app.openapi(
     createRoute({
       method: "delete",
-      path: "/orgs/{orgId}/agents/{agentId}/photo",
+      path: "/organizations/{orgId}/agents/{agentId}/photo",
       tags,
       security,
       summary: "Remove the agent's photo (back to its drawn look). Its owner or who manages agents.",
@@ -1707,7 +1707,7 @@ export function agentRoutes(deps: AppDeps) {
     },
   );
   // The photo's file, for the org's members. The name is a content hash: cached for good.
-  app.get("/orgs/:orgId/agents/:agentId/photo/:file", async (c) =>
+  app.get("/organizations/:orgId/agents/:agentId/photo/:file", async (c) =>
     imageFile(
       await agentPhotoFile(
         { db, blobs: adapters.platformBlobs },

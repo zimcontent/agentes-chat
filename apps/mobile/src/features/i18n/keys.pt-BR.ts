@@ -2774,7 +2774,7 @@ export const featureKeysPtBR = {
   },
   /** DougBot: o crédito do fork no Sobre (AGPL-3.0). */
   brand: {
-    basedOn: "Baseado no agentes.chat da Codari Global, LLC — AGPL-3.0",
+    basedOn: "Baseado no agentes.chat da Codari Global, LLC · AGPL-3.0",
     source: "Código-fonte do DougBot",
   },
 } satisfies LocaleStrings;

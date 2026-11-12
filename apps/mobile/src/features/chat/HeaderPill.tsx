@@ -329,7 +329,8 @@ function SlidingText({
 }
 
 const styles = StyleSheet.create({
-  slot: { alignItems: Platform.OS === "ios" ? "center" : "flex-start" },
+  // Centered on the screen's axis as iOS centers a bar's title (and in a browser); Android starts it after the back button.
+  slot: { alignItems: Platform.OS === "android" ? "flex-start" : "center" },
   measure: { position: "absolute", top: 0, left: 0, width: 1000, alignItems: "flex-start", opacity: 0 },
   pill: {
     flexDirection: "row",

@@ -2117,7 +2117,7 @@ export function createFakeHttpApi(state: FakeState): Omit<HttpApi, FakedParts> {
     },
     agents: {
       setAgentPhoto: async (_orgId, agentId) => {
-        const photo = `/api/app/orgs/org/agents/${agentId}/photo/0000000000000000.png`;
+        const photo = `/api/app/organizations/org/agents/${agentId}/photo/0000000000000000.png`;
         const a = state.agents.find((x) => x.id === agentId);
         if (a) a.photo = photo;
         return { photo };

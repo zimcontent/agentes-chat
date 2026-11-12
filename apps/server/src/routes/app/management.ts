@@ -331,7 +331,8 @@ const AgentDetail = z
     }),
     appearance: AgentAppearance.nullable(),
     photo: z.string().nullable().openapi({
-      description: "Its real photo (`/api/app/orgs/{orgId}/agents/{agentId}/photo/{file}`); null: the drawn look.",
+      description:
+        "Its real photo (`/api/app/organizations/{orgId}/agents/{agentId}/photo/{file}`); null: the drawn look.",
     }),
     mediaReplies: z.boolean().openapi({
       description:

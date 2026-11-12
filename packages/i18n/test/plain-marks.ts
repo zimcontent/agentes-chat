@@ -17,7 +17,6 @@ const CODE_BLOCK = /\.blocks\.\d+\.code$/;
 /** Keys allowed a mark, each with its reason. */
 export const MARKS_ALLOWED: Readonly<Record<string, string>> = {
   "members.column.group": "owner-approved Discord-style group header",
-  "brand.basedOn": "DougBot fork: the AGPL credit line in About, its text set by the owner",
 };
 
 /** A string tree's leaves that break the rule, as "key: text", for one readable failure. */

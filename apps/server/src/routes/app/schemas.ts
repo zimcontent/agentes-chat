@@ -369,7 +369,8 @@ export const FormerAgent = z
     role: z.string(),
     appearance: AgentAppearance.nullable(),
     photo: z.string().nullable().openapi({
-      description: "Its real photo (`/api/app/orgs/{orgId}/agents/{agentId}/photo/{file}`); null: the drawn look.",
+      description:
+        "Its real photo (`/api/app/organizations/{orgId}/agents/{agentId}/photo/{file}`); null: the drawn look.",
     }),
     deleted: z.boolean().openapi({ description: "Deleted for good; false: archived (an admin may still delete it)." }),
   })
@@ -433,7 +434,8 @@ export const Agent = z
     }),
     appearance: AgentAppearance.nullable().openapi({ description: "Its look; null = the default." }),
     photo: z.string().nullable().openapi({
-      description: "Its real photo (`/api/app/orgs/{orgId}/agents/{agentId}/photo/{file}`); null: the drawn look.",
+      description:
+        "Its real photo (`/api/app/organizations/{orgId}/agents/{agentId}/photo/{file}`); null: the drawn look.",
     }),
     mediaReplies: z.boolean().openapi({
       description:

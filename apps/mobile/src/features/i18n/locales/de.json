@@ -2721,7 +2721,7 @@
     "meHint": "Dein Foto sehen die Personen in deinen Workspaces."
   },
   "brand": {
-    "basedOn": "Basiert auf agentes.chat von Codari Global, LLC — AGPL-3.0",
+    "basedOn": "Basiert auf agentes.chat von Codari Global, LLC · AGPL-3.0",
     "source": "Quellcode von DougBot"
   }
 }

@@ -807,7 +807,7 @@ function Sobre() {
         </GroupedList>
         <GroupedFooter>
           {
-            "Baseado no agentes.chat da Codari Global, LLC — AGPL-3.0\n\nSoftware livre sob a GNU Affero General Public License v3, sem garantia.\n\nCopyright © 2026 Codari Global, LLC e colaboradores"
+            "Baseado no agentes.chat da Codari Global, LLC · AGPL-3.0\n\nSoftware livre sob a GNU Affero General Public License v3, sem garantia.\n\nCopyright © 2026 Codari Global, LLC e colaboradores"
           }
         </GroupedFooter>
       </View>

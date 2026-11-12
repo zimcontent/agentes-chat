@@ -2609,7 +2609,7 @@
     "meHint": "あなたの写真はワークスペースのメンバーに表示されます。"
   },
   "brand": {
-    "basedOn": "Codari Global, LLC の agentes.chat をベースにしています — AGPL-3.0",
+    "basedOn": "Codari Global, LLC の agentes.chat をベースにしています · AGPL-3.0",
     "source": "DougBotのソースコード"
   }
 }

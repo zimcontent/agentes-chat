@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, expect, test } from "bun:test";
 import { eq, schema } from "@agenteschat/db";
+import { agentPhotoKey, purgeOrgFiles } from "@agenteschat/engine";
 import { browser, createTestServer, joinByInvitation, seedOrg, signUp, type TestServer } from "./harness";
 
 let t: TestServer;
@@ -29,7 +30,7 @@ test("an agent's photo: its owner or an admin sets it (multipart), the org's mem
   const owner = browser(t);
   await signUp(owner, "owner@example.com");
   const { orgId, agentId } = await seedOrg(owner);
-  const photoApi = `/api/app/orgs/${orgId}/agents/${agentId}/photo`;
+  const photoApi = `/api/app/organizations/${orgId}/agents/${agentId}/photo`;
   const listed = async (who: typeof owner) =>
     ((await (await who(`/api/app/organizations/${orgId}/agents`)).json()) as { agents: Listed[] }).agents.find(
       (a) => a.id === agentId,
@@ -48,7 +49,7 @@ test("an agent's photo: its owner or an admin sets it (multipart), the org's mem
   const put = await owner(photoApi, { method: "PUT", body: form(JPEG) });
   expect(put.status).toBe(200);
   const { photo } = (await put.json()) as { photo: string };
-  expect(photo).toMatch(new RegExp(`^/api/app/orgs/${orgId}/agents/${agentId}/photo/[0-9a-f]{16}\\.jpg$`));
+  expect(photo).toMatch(new RegExp(`^/api/app/organizations/${orgId}/agents/${agentId}/photo/[0-9a-f]{16}\\.jpg$`));
   const [row] = await t.db
     .select({ photo: schema.agents.photo })
     .from(schema.agents)
@@ -101,6 +102,47 @@ test("an agent's photo: its owner or an admin sets it (multipart), the org's mem
   expect(after?.photo).toBeNull();
   expect((await owner(second)).status).toBe(404);
   const key = second.split("/photo/")[1];
-  expect(await t.platformBlobs.get(`avatars/agents/${agentId}/${key}`)).toBeNull();
+  expect(await t.platformBlobs.get(agentPhotoKey(orgId, agentId, key as string))).toBeNull();
   expect((await listed(owner))?.photo).toBeNull();
+});
+
+test("the photo routes are /organizations/…, behind the session: signed out is 401 on every verb", async () => {
+  const owner = browser(t);
+  await signUp(owner, "owner@example.com");
+  const { orgId, agentId } = await seedOrg(owner);
+  const photoApi = `/api/app/organizations/${orgId}/agents/${agentId}/photo`;
+  const put = await owner(photoApi, { method: "PUT", body: form(JPEG) });
+  const { photo } = (await put.json()) as { photo: string };
+  for (const [path, method] of [
+    [photoApi, "PUT"],
+    [photoApi, "DELETE"],
+    [photo, "GET"],
+  ] as const) {
+    const res = await t.app.request(path, {
+      method,
+      headers: { "X-Agentes-Client": "mobile" },
+      ...(method === "PUT" ? { body: form(JPEG) } : {}),
+    });
+    expect(res.status).toBe(401);
+  }
+  // The old address isn't a route.
+  expect((await owner(`/api/app/orgs/${orgId}/agents/${agentId}/photo`, { method: "DELETE" })).status).toBe(404);
+});
+
+test("the file lives in the workspace's folder (org-logos/{orgId}/agents/…) and leaves with the workspace", async () => {
+  const owner = browser(t);
+  await signUp(owner, "owner@example.com");
+  const { orgId, agentId } = await seedOrg(owner);
+  const put = await owner(`/api/app/organizations/${orgId}/agents/${agentId}/photo`, {
+    method: "PUT",
+    body: form(PNG, "p.png", "image/png"),
+  });
+  const file = ((await put.json()) as { photo: string }).photo.split("/photo/")[1] as string;
+  const key = agentPhotoKey(orgId, agentId, file);
+  expect(key).toBe(`org-logos/${orgId}/agents/${agentId}/${file}`);
+  expect(await t.platformBlobs.get(key)).not.toBeNull();
+  // The workspace deleted for good: its files job takes the photo with the logo and the groups' photos.
+  await t.db.delete(schema.organizations).where(eq(schema.organizations.id, orgId));
+  await purgeOrgFiles({ db: t.db, keyWrappers: [], platform: t.platformBlobs }, orgId);
+  expect(await t.platformBlobs.get(key)).toBeNull();
 });

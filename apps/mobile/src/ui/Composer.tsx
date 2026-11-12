@@ -471,6 +471,9 @@ export function Composer({
                 if (selection) setSelection(undefined);
               }}
               multiline
+              // A browser's textarea starts two rows tall: one row, so a one-line field is the 64 with its words on the
+              // buttons' middle (the phones size it from the text already).
+              {...(Platform.OS === "web" ? { numberOfLines: 1 } : {})}
               onFocus={() => setFocused(true)}
               onBlur={() => setFocused(false)}
               accessibilityLabel={placeholder}

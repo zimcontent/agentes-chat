@@ -2945,7 +2945,7 @@
     "meHint": "Ваше фото видят люди из ваших рабочих пространств."
   },
   "brand": {
-    "basedOn": "На основе agentes.chat от Codari Global, LLC — AGPL-3.0",
+    "basedOn": "На основе agentes.chat от Codari Global, LLC · AGPL-3.0",
     "source": "Исходный код DougBot"
   }
 }

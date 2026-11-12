@@ -102,12 +102,17 @@ export async function setAgentAppearance(
 export const AGENT_PHOTO_LIMITS = { maxBytes: 5 * 1024 * 1024 };
 const PHOTO_EXT = { "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp" } as const;
 const PHOTO_FILE = /^[0-9a-f]{16}\.(jpg|png|webp)$/;
-/** Among the people's photos (`avatars/…`), in a folder of the agents' own. */
-const agentPhotoKey = (agentId: string, file: string) => `avatars/agents/${agentId}/${file}`;
-const AGENT_PHOTO_PATH = /^\/api\/app\/orgs\/([^/]+)\/agents\/([^/]+)\/photo\/([0-9a-f]{16}\.(jpg|png|webp))$/;
-/** Where the photo is served (`GET …/orgs/{orgId}/agents/{agentId}/photo/{file}`), as the column keeps it. */
+/**
+ * Beside the workspace logo and the groups' photos (`org-logos/{orgId}/…`, the org's row in Postgres storage), so it
+ * leaves with the workspace (`purgeOrgBlobs`) and never counts against its files. A deleted agent keeps its photo with
+ * its look on the tombstone (ADR 0082: name, role and look stay for its old messages) until the workspace goes.
+ */
+export const agentPhotoKey = (orgId: string, agentId: string, file: string) =>
+  `org-logos/${orgId}/agents/${agentId}/${file}`;
+const AGENT_PHOTO_PATH = /^\/api\/app\/organizations\/([^/]+)\/agents\/([^/]+)\/photo\/([0-9a-f]{16}\.(jpg|png|webp))$/;
+/** Where the photo is served (`GET …/organizations/{orgId}/agents/{agentId}/photo/{file}`), as the column keeps it. */
 export const agentPhotoUrl = (orgId: string, agentId: string, file: string) =>
-  `/api/app/orgs/${encodeURIComponent(orgId)}/agents/${encodeURIComponent(agentId)}/photo/${file}`;
+  `/api/app/organizations/${encodeURIComponent(orgId)}/agents/${encodeURIComponent(agentId)}/photo/${file}`;
 
 /** The agent, when `actorId` may change its look: its owner or who manages agents (`setAgentAppearance`'s rule). */
 async function lookEditableAgent(db: Database, actorId: string, orgId: string, agentId: string) {
@@ -142,13 +147,13 @@ async function removeStoredAgentPhoto(
   const m = photo ? AGENT_PHOTO_PATH.exec(photo) : null;
   if (!m || decodeURIComponent(m[1] ?? "") !== orgId || decodeURIComponent(m[2] ?? "") !== agentId) return;
   if (m[3] === keep) return;
-  await blobs.delete(agentPhotoKey(agentId, m[3] as string)).catch(() => undefined);
+  await blobs.delete(agentPhotoKey(orgId, agentId, m[3] as string)).catch(() => undefined);
 }
 
 /**
- * Sets an agent's real photo (`PUT /api/app/orgs/{orgId}/agents/{agentId}/photo`, multipart `file`): whoever may
+ * Sets an agent's real photo (`PUT /api/app/organizations/{orgId}/agents/{agentId}/photo`, multipart `file`): whoever may
  * change its look; JPEG, PNG or WebP up to 5 MB by its bytes, no metadata, in the platform bucket
- * (`avatars/agents/{agentId}/{hash}.{ext}`), served to the org's members. The previous file is removed. Audited.
+ * (`org-logos/{orgId}/agents/{agentId}/{hash}.{ext}`), served to the org's members. The previous file is removed. Audited.
  */
 export async function setAgentPhoto(
   deps: { db: Database; blobs: BlobStore; pubsub?: PubSub },
@@ -159,7 +164,7 @@ export async function setAgentPhoto(
 ): Promise<{ photo: string }> {
   const agent = await lookEditableAgent(deps.db, actorId, orgId, agentId);
   const { body, type, file } = readAgentPhoto(bytes);
-  await deps.blobs.put(agentPhotoKey(agentId, file), body, { contentType: type });
+  await deps.blobs.put(agentPhotoKey(orgId, agentId, file), body, { contentType: type });
   const photo = agentPhotoUrl(orgId, agentId, file);
   await deps.db
     .update(agents)
@@ -201,7 +206,7 @@ export async function removeAgentPhoto(
 }
 
 /**
- * The stored photo for `GET /api/app/orgs/{orgId}/agents/{agentId}/photo/{file}`: only for the org's members, and
+ * The stored photo for `GET /api/app/organizations/{orgId}/agents/{agentId}/photo/{file}`: only for the org's members, and
  * only an agent of that org (a former one's too, which its old messages still show).
  */
 export async function agentPhotoFile(
@@ -219,7 +224,7 @@ export async function agentPhotoFile(
     .from(agents)
     .where(and(eq(agents.id, agentId), eq(agents.orgId, orgId)));
   if (!agent) throw new NotFoundError("Not found");
-  const object = await deps.blobs.get(agentPhotoKey(agentId, file));
+  const object = await deps.blobs.get(agentPhotoKey(orgId, agentId, file));
   if (!object) throw new NotFoundError("Not found");
   return object;
 }
