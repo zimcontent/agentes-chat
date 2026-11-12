@@ -426,7 +426,7 @@ describe("Computadores", () => {
     expect(machineFacts(t, "pt-BR", offline, NOW)).toBe("Linux · visto há 2 h");
     expect(seenText(t, "pt-BR", { online: false, lastSeenAt: null }, NOW)).toBe("ainda não conectou");
     expect(machineFacts(t, "pt-BR", machine({ id: "host", kind: "host", os: "linux" }), NOW)).toBe(
-      "Onde o agentes.chat está instalado, um usuário por agente.",
+      "Onde o DougBot está instalado, um usuário por agente.",
     );
   });
 

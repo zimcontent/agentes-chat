@@ -36,7 +36,6 @@ import Animated, {
 import { scheduleOnRN } from "react-native-worklets";
 import { PixelStop } from "@/agent/PixelMarks";
 import { readValueSync, STORED, writeValueSync } from "@/lib/storage";
-import { Glass } from "./Glass";
 import { haptics } from "./haptics";
 import { Icon, type IconName } from "./Icon";
 import { PressScale } from "./PressScale";
@@ -142,13 +141,18 @@ export interface ComposerProps {
   } | null;
 }
 
-/** The pill's height, the "+" and the send button's. */
-const FIELD = 48;
-const SEND = 36;
-/** Space around the send button inside the pill: it sits centered on the first line. */
+/**
+ * DougBot's conversation field (IDENTIDADE.md §6 "Campo de conversa", with the 16 of room every card and the composer
+ * keep): 64 tall, radius 22, its buttons 32 at 16 from every edge, their corners concentric (22 − 16 = 6). No pill.
+ */
+const FIELD = 64;
+const SEND = 32;
+/** Space around the buttons inside the field: they sit centered on the first line. */
 const INSET = (FIELD - SEND) / 2;
-/** The field's ring and its soft shadow; a voice take's bar wears the same. */
-const FIELD_SHADOW = (line: string) => `0px 0px 0px 0.5px ${line}, 0px 6px 18px -10px rgba(0, 0, 0, 0.25)`;
+const FIELD_RADIUS = 22;
+const BUTTON_RADIUS = FIELD_RADIUS - INSET;
+/** The field's 1 px edge (the green at 35% while it is active) and its soft shadow; a voice take's bar wears the same. */
+const FIELD_SHADOW = (line: string) => `0px 0px 0px 1px ${line}, 0px 6px 18px -10px rgba(0, 0, 0, 0.25)`;
 /** How long the send button is held to stop the agent and send; the ring around it fills meanwhile. */
 /** Words left in a conversation's field, by `draftKey`, while the app runs. */
 const DRAFTS = new Map<string, string>();
@@ -388,38 +392,8 @@ export function Composer({
         </Animated.View>
       ) : null}
       <View style={styles.row}>
-        {/* The "+" plate; while a take is held hands free or paused, the same plate holds its trash. */}
-        {voice?.leading ? (
-          <PressScale
-            to={0.9}
-            onPress={voice.leading.onPress}
-            accessibilityRole="button"
-            accessibilityLabel={voice.leading.label}
-            style={[styles.plus, { boxShadow: `0px 0px 0px 0.5px ${colors.line2}, ${shadows.top}` }]}
-          >
-            <Glass style={styles.plusGlass} intensity={50}>
-              <View style={styles.center}>
-                <Icon name={voice.leading.icon} size={22} color={colors.danger} />
-              </View>
-            </Glass>
-          </PressScale>
-        ) : onPlus ? (
-          <PressScale
-            to={0.9}
-            onPress={onPlus}
-            accessibilityRole="button"
-            accessibilityLabel={t("mobile.a11y.attach")}
-            style={[styles.plus, { boxShadow: `0px 0px 0px 0.5px ${colors.line2}, ${shadows.top}` }]}
-          >
-            <Glass style={styles.plusGlass} intensity={50}>
-              <View style={styles.center}>
-                <Icon name="plus" size={24} color={colors.ink2} />
-              </View>
-            </Glass>
-          </PressScale>
-        ) : null}
         {voice?.bar ? (
-          <View style={[styles.bar, { backgroundColor: colors.raised, boxShadow: FIELD_SHADOW(colors.line2) }]}>
+          <View style={[styles.bar, { backgroundColor: colors.raised2, boxShadow: FIELD_SHADOW(colors.glassEdge) }]}>
             {voice.bar}
           </View>
         ) : null}
@@ -427,14 +401,42 @@ export function Composer({
           style={[
             styles.field,
             {
-              backgroundColor: colors.raised,
-              boxShadow: FIELD_SHADOW(colors.line2),
-              paddingRight: button || mediaButton || mic ? INSET : 14,
+              backgroundColor: colors.raised2,
+              boxShadow: FIELD_SHADOW(focused ? colors.greenGlow : colors.glassEdge),
+              paddingRight: INSET,
             },
             // Kept mounted under a take's bar (the words and the keyboard's focus survive it), never drawn.
             voice?.bar ? styles.hidden : null,
           ]}
         >
+          {/* The "+" button, inside the field at its start; while a take is held hands free or paused, its trash. */}
+          {voice?.leading ? (
+            <PressScale
+              to={0.9}
+              onPress={voice.leading.onPress}
+              accessibilityRole="button"
+              accessibilityLabel={voice.leading.label}
+              hitSlop={6}
+              style={[styles.plus, { backgroundColor: colors.plate }]}
+            >
+              <View style={styles.center}>
+                <Icon name={voice.leading.icon} size={20} color={colors.danger} />
+              </View>
+            </PressScale>
+          ) : onPlus ? (
+            <PressScale
+              to={0.9}
+              onPress={onPlus}
+              accessibilityRole="button"
+              accessibilityLabel={t("mobile.a11y.attach")}
+              hitSlop={6}
+              style={[styles.plus, { backgroundColor: colors.plate }]}
+            >
+              <View style={styles.center}>
+                <Icon name="plus" size={20} color={colors.ink2} />
+              </View>
+            </PressScale>
+          ) : null}
           {face && !text ? (
             <Animated.View
               entering={reducedMotion ? undefined : FadeIn.duration(140)}
@@ -609,10 +611,10 @@ function SendButton({
   const glyphs = (
     <>
       <Animated.View style={[styles.glyph, sendGlyph]}>
-        <Icon name="send" size={18} color={colors.bg} />
+        <Icon name="send" size={17} color={colors.greenInk} />
       </Animated.View>
       <Animated.View style={[styles.glyph, stopGlyph]}>
-        <PixelStop size={13} color={colors.bg} moving={stop} />
+        <PixelStop size={12} color={colors.greenInk} moving={stop} />
       </Animated.View>
     </>
   );
@@ -632,7 +634,7 @@ function SendButton({
                 style="stroke"
                 strokeWidth={2.5}
                 strokeCap="round"
-                color={colors.ink}
+                color={colors.greenText}
                 start={0}
                 end={ring}
               />
@@ -644,7 +646,7 @@ function SendButton({
               accessibilityRole="button"
               accessibilityLabel={label}
               accessibilityHint={hold.hint}
-              style={[styles.send, { backgroundColor: colors.ink }, pressStyle]}
+              style={[styles.send, { backgroundColor: colors.green }, pressStyle]}
             >
               {glyphs}
             </Animated.View>
@@ -658,7 +660,7 @@ function SendButton({
           accessibilityRole="button"
           accessibilityLabel={label}
           hitSlop={6}
-          style={[styles.send, { backgroundColor: colors.ink }]}
+          style={[styles.send, { backgroundColor: colors.green }]}
         >
           {glyphs}
         </PressScale>
@@ -672,7 +674,7 @@ function SendButton({
  * line. iOS draws a multiline field's `lineHeight` from the top (the text sits low), so there the line
  * keeps the font's own height and the padding centers it; Android centers it itself.
  */
-const body = systemText("body");
+const body = { ...systemText("body"), fontSize: 16, lineHeight: 24 };
 const inputText: TextStyle = {
   flex: 1,
   minWidth: 0,
@@ -680,10 +682,13 @@ const inputText: TextStyle = {
   maxHeight: 140,
   fontSize: body.fontSize,
   fontWeight: body.fontWeight,
+  fontFamily: body.fontFamily,
   letterSpacing: body.letterSpacing,
   paddingHorizontal: 0,
   ...Platform.select<TextStyle>({
-    ios: { paddingTop: 8, paddingBottom: 8 },
+    // The board in a browser (prancha): no focus outline, the field's green edge says it.
+    web: { outlineStyle: "none", paddingTop: 4, paddingBottom: 4, lineHeight: body.lineHeight } as unknown as TextStyle,
+    ios: { paddingTop: 6, paddingBottom: 6 },
     // The one line centered in the send button's height: the field is exactly as tall.
     default: {
       lineHeight: body.lineHeight,
@@ -699,6 +704,7 @@ const inputText: TextStyle = {
 const placeholderText: TextStyle = {
   fontSize: body.fontSize,
   fontWeight: body.fontWeight,
+  fontFamily: body.fontFamily,
   letterSpacing: body.letterSpacing,
   ...Platform.select<TextStyle>({ android: { lineHeight: body.lineHeight, includeFontPadding: false } }),
 };
@@ -722,34 +728,33 @@ const styles = StyleSheet.create({
   // being cut at the padding.
   pillsBleed: { marginHorizontal: -10 },
   pills: { gap: 6, paddingHorizontal: 14, paddingBottom: 8 },
-  pill: { height: 32, borderRadius: 999 },
+  pill: { height: 32, borderRadius: 8 },
   // As the pills: to the screen edges, so on a narrow phone the last buttons scroll in instead of being cut.
   formatBleed: { marginHorizontal: -10 },
   formatRow: { paddingHorizontal: 10, paddingBottom: 8 },
-  format: { flexDirection: "row", height: 44, padding: 4, gap: 2, borderRadius: 22 },
-  formatButton: { width: SEND, height: SEND, borderRadius: SEND / 2 },
+  format: { flexDirection: "row", height: 44, padding: 6, gap: 2, borderRadius: 12 },
+  formatButton: { width: SEND, height: SEND, borderRadius: 6 },
   pillIn: { flexGrow: 1, flexDirection: "row", alignItems: "center", gap: 6, paddingHorizontal: 12 },
   row: { flexDirection: "row", alignItems: "flex-end", gap: 8 },
-  plus: { width: FIELD, height: FIELD, borderRadius: FIELD / 2 },
-  plusGlass: { flex: 1, borderRadius: FIELD / 2 },
+  plus: { width: SEND, height: SEND, borderRadius: BUTTON_RADIUS },
   center: { flex: 1, alignItems: "center", justifyContent: "center" },
   field: {
     flex: 1,
     minWidth: 0,
     minHeight: FIELD,
-    borderRadius: FIELD / 2,
+    borderRadius: FIELD_RADIUS,
     flexDirection: "row",
     alignItems: "flex-end",
-    gap: 8,
+    gap: 12,
     paddingVertical: INSET,
-    paddingLeft: 14,
+    paddingLeft: INSET,
   },
   // A take's bar: the field's capsule at its one-line height, its 36 controls INSET from every edge.
   bar: {
     flex: 1,
     minWidth: 0,
     height: FIELD,
-    borderRadius: FIELD / 2,
+    borderRadius: FIELD_RADIUS,
     flexDirection: "row",
     alignItems: "center",
     paddingHorizontal: INSET,
@@ -762,7 +767,7 @@ const styles = StyleSheet.create({
   ring: { position: "absolute", left: (SEND - RING) / 2, top: (SEND - RING) / 2, width: RING, height: RING },
   // Above the overlay: the finger that holds it stays on the same button while the field changes.
   micBox: { width: SEND, height: SEND, zIndex: 2 },
-  send: { width: SEND, height: SEND, borderRadius: SEND / 2 },
-  media: { width: SEND, height: SEND, borderRadius: SEND / 2 },
+  send: { width: SEND, height: SEND, borderRadius: BUTTON_RADIUS },
+  media: { width: SEND, height: SEND, borderRadius: BUTTON_RADIUS },
   glyph: { ...StyleSheet.absoluteFill, alignItems: "center", justifyContent: "center" },
 });

@@ -1,5 +1,4 @@
 import { describe, expect, test } from "bun:test";
-import { light as lightTokens } from "@agenteschat/tokens";
 import { nextRoutine, sortWaiting, upcomingDay, waitingCardOf } from "../../src/features/activity/logic";
 import type { WorkItem } from "../../src/features/agents/logic";
 import type { ConversationRow } from "../../src/features/chats/logic";
@@ -259,22 +258,24 @@ describe("Atividade: cards and what comes next", () => {
 });
 
 describe("the native look", () => {
-  test("light: white lists, grouped gray apart, darker secondary text, amber for waiting", () => {
+  test("light: DougBot's light stage, white cards, AA secondary text, amber for waiting, green only as its own tokens", () => {
     const c = appColors("light");
-    expect(c.bg).toBe("#ffffff");
-    expect(c.raised).toBe("#ffffff");
-    expect(c.grouped).toBe("#f2f2f7");
-    expect(c.muted).toBe("#48484d");
-    expect(c.amber).toBe("#b26a00");
-    // What it doesn't change stays the tokens' (the agent blue, danger).
-    expect(c.agent).toBe(lightTokens.agent);
-    expect(c.danger).toBe(lightTokens.danger);
+    expect(c.bg).toBe("#F4F6F2");
+    expect(c.raised).toBe("#FFFFFF");
+    expect(c.grouped).toBe(c.bg);
+    expect(c.amber).toBe("#9A5B00");
+    // The green is never a theme color: only its own tokens, and words in it take the dark variant (AA).
+    expect(c.agent).not.toBe("#9CFA05");
+    expect(c.green).toBe("#9CFA05");
+    expect(c.greenText).toBe("#3E6B00");
   });
 
-  test("dark stays the tokens' (grouped is the background)", () => {
+  test("dark: DougBot's stage (grouped is the background, my bubble one step up)", () => {
     const c = appColors("dark");
+    expect(c.bg).toBe("#0A0A0A");
     expect(c.grouped).toBe(c.bg);
-    expect(c.bubble).toBe(c.raised);
+    expect(c.bubble).toBe("#212121");
+    expect(c.greenText).toBe("#9CFA05");
     expect(appShadows("dark").e1.length).toBeGreaterThan(0);
   });
 

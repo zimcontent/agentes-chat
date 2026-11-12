@@ -1,8 +1,26 @@
-import { durations, motion as motionCurves, radius as radii, type ShadowLayer } from "@agenteschat/tokens";
+import { durations, motion as motionCurves, type ShadowLayer, radius as tokenRadii } from "@agenteschat/tokens";
 import { createContext, type ReactNode, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { AccessibilityInfo, Platform, useColorScheme } from "react-native";
 import { readValue, STORED, writeValue } from "@/lib/storage";
+import { DB_FONTES, DB_RAIO } from "../brand/tokens";
 import { type AppColors, appColors, appShadows, type Scheme } from "./palette";
+
+/**
+ * The radii, DougBot's (IDENTIDADE.md §6: 8 small items, 12 buttons and fields, 16 rows and notices, 22 panels, 34
+ * windows). No pills: `full` stays only for what is round by nature (a face, a dot, a switch's knob).
+ */
+const radii = {
+  ...tokenRadii,
+  xs: DB_RAIO.r1,
+  sm: DB_RAIO.r1,
+  item: DB_RAIO.r1,
+  md: DB_RAIO.r2,
+  btn: DB_RAIO.r2,
+  lg: DB_RAIO.r3,
+  xl: DB_RAIO.r3,
+  section: DB_RAIO.r4,
+  window: DB_RAIO.r5,
+} as const;
 
 /**
  * The theme for React Native, from `@agenteschat/tokens` (tokens.css is the source of truth), with the light
@@ -23,13 +41,18 @@ export const boxShadow = (layers: readonly ShadowLayer[]) =>
  * Body and UI text use the system font (SF Pro / Roboto) through `Text` and `systemText`, with `weights`.
  */
 export const fonts = {
-  /** Funnel Display Light: large titles. */
-  display: "FunnelDisplay-Light",
-  /** Doto, ROND 100 instance (weight 600): only a rare large hero number (`Count hero`). */
-  dot: "Doto",
-  /** Code only. */
-  mono: Platform.select({ ios: "Menlo", default: "monospace" }),
+  /** Manrope 800: titles, the name DougBot and the bots' names (DougBot's type, IDENTIDADE.md §5). */
+  display: DB_FONTES.titulo800,
+  /** A rare hero number: Manrope 800 too (the dotted Doto was the old brand's). */
+  dot: DB_FONTES.titulo800,
+  /** Values and code: JetBrains Mono 400. */
+  mono: DB_FONTES.codigo400,
+  /** Interface and conversation: Inter. */
+  text: DB_FONTES.texto400,
 } as const;
+
+/** Kept for the platform fallbacks some screens still read. */
+export const SYSTEM_MONO = Platform.select({ ios: "Menlo", default: "monospace" });
 
 const bezier = (c: readonly number[]) => c as unknown as [number, number, number, number];
 

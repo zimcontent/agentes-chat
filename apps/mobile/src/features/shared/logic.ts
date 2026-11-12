@@ -33,6 +33,12 @@ export interface AgentLook {
   color: AgentColor;
   eyes: AgentEyes;
   accessory?: AgentAccessory;
+  /** Who it is (its DougBot is drawn from its name, handle and role) and its real photo, when the agent is known. */
+  id?: string;
+  name?: string;
+  handle?: string;
+  role?: string;
+  photo?: string | null;
 }
 
 const pick = <T extends string>(list: readonly T[], v: unknown): T | undefined =>
@@ -43,14 +49,37 @@ export const colorOf = (v: unknown): AgentColor | undefined =>
   pick(AGENT_COLORS, v) ?? (isHexColor(v) ? (v.toLowerCase() as AgentColor) : undefined);
 
 /** The look the engine draws: only known values (the backend's allow-list), else the default agent. */
-export function agentLook(agent: { appearance?: unknown } | null | undefined): AgentLook {
+export function agentLook(
+  agent:
+    | {
+        appearance?: unknown;
+        id?: string;
+        name?: string;
+        handle?: string;
+        role?: string | null;
+        photo?: string | null;
+      }
+    | null
+    | undefined,
+): AgentLook {
   const raw = agent?.appearance;
   const o = (raw && typeof raw === "object" ? raw : {}) as Record<string, unknown>;
   const accessory = pick(AGENT_ACCESSORIES, o.accessory);
+  const text = (v: unknown) => (typeof v === "string" && v ? v : undefined);
+  const id = text(agent?.id);
+  const name = text(agent?.name);
+  const handle = text(agent?.handle);
+  const role = text(agent?.role);
+  const photo = text(agent?.photo);
   return {
     color: colorOf(o.color) ?? "sky",
     eyes: pick(AGENT_EYES, o.eyes) ?? "round",
     ...(accessory && accessory !== "none" ? { accessory } : {}),
+    ...(id ? { id } : {}),
+    ...(name ? { name } : {}),
+    ...(handle ? { handle } : {}),
+    ...(role ? { role } : {}),
+    ...(photo ? { photo } : {}),
   };
 }
 

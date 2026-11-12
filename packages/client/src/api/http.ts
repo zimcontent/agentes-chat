@@ -159,16 +159,16 @@ async function parseResponse<T>(res: Response): Promise<T> {
 export type Requester = ReturnType<typeof createRequester>;
 
 /**
- * Multipart uploads (only the Drive's two file routes accept them) and raw
+ * Multipart uploads (the routes in the server's `MULTIPART_PATHS`) and raw
  * downloads (file previews). Same origin, cookie and headers as the JSON requests.
  */
 export function createFileRequester(options: TransportOptions = {}) {
   const t = transport(options);
   return {
-    /** `POST` a form; the platform sets the multipart boundary. */
-    async upload<T>(path: string, form: FormData): Promise<T> {
+    /** `POST` (or `PUT`) a form; the platform sets the multipart boundary. */
+    async upload<T>(path: string, form: FormData, method: "POST" | "PUT" = "POST"): Promise<T> {
       const res = await t.fetch(t.base + path, {
-        method: "POST",
+        method,
         headers: { ...(t.headers ? await t.headers() : {}), accept: "application/json" },
         credentials: t.credentials,
         body: form,

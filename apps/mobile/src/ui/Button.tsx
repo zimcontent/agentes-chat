@@ -1,7 +1,7 @@
-import { mixHex } from "@agenteschat/ui/agent/engine";
 import { LinearGradient } from "expo-linear-gradient";
 import type { ReactNode } from "react";
 import { ActivityIndicator, Text as RNText, StyleSheet, View } from "react-native";
+import { VERDE_BOTAO } from "../brand/tokens";
 import type { IconName } from "./Icon";
 import { PressScale } from "./PressScale";
 import { TOOL_H, TOUCH } from "./rhythm";
@@ -33,11 +33,12 @@ export interface ButtonProps {
   hint?: string;
 }
 
-/** In a card or a row: the web's small button, 32 tall, its target grown to 44 past it (`slopOf`). */
-const SMALL = { height: TOOL_H, radius: 10, padding: 12, text: "subhead", icon: 16 } as const;
+/** In a card or a row: 32 tall, radius 8, its target grown to 44 past it (`slopOf`). */
+const SMALL = { height: TOOL_H, radius: 8, padding: 12, text: "subhead", icon: 16 } as const;
 
+/** DougBot's button (IDENTIDADE.md §6): 44 tall, radius 12, Inter 600 15/22. */
 export const BUTTON_SIZES = {
-  md: { height: 48, radius: 15, padding: 20, text: "headline", icon: 18 },
+  md: { height: 44, radius: 12, padding: 20, text: "subhead", icon: 18 },
   // A request's footer in the conversation: the in-card small button, so the card stays a message.
   card: SMALL,
   sm: SMALL,
@@ -51,15 +52,18 @@ export function slopOf(height: number) {
   return grow > 0 ? { top: grow, bottom: grow } : undefined;
 }
 
-/** Primary's tonal gradient (ink 82% → ink) and its shadow, as on the web (`.b1`). */
+/**
+ * The green button: the screen's one main action (IDENTIDADE.md §4 "Verde: só o Doug e a ação principal"), the three
+ * greens top to bottom (`--db-verde-botao`) with ink on it, the same in both themes.
+ */
 export function primaryLook(theme: Pick<Theme, "colors">) {
-  const { ink, bg } = theme.colors;
   return {
-    gradient: [mixHex(ink, bg, 0.18), ink] as const,
-    shadow: "0px 1px 2px 0px rgba(0, 0, 0, 0.18), 0px 6px 14px -6px rgba(0, 0, 0, 0.45)",
-    highlight: "rgba(255, 255, 255, 0.18)",
-    lowlight: "rgba(0, 0, 0, 0.3)",
-    text: bg,
+    gradient: VERDE_BOTAO.colors,
+    locations: VERDE_BOTAO.locations,
+    shadow: "0px 1px 2px 0px rgba(0, 0, 0, 0.18), 0px 6px 16px -8px rgba(132, 228, 7, 0.55)",
+    highlight: "rgba(255, 255, 255, 0.35)",
+    lowlight: "rgba(77, 145, 8, 0.35)",
+    text: theme.colors.greenInk,
   };
 }
 
@@ -76,7 +80,7 @@ export function Button({
   hint,
 }: ButtonProps) {
   const theme = useTheme();
-  const { colors, shadows } = theme;
+  const { colors } = theme;
   const s = BUTTON_SIZES[size];
   const primary = variant === "primary";
   const look = primaryLook(theme);
@@ -98,29 +102,33 @@ export function Button({
           alignSelf: wide ? "stretch" : "flex-start",
           opacity: disabled ? 0.5 : 1,
         },
-        primary ? { boxShadow: look.shadow } : variant === "secondary" ? { boxShadow: shadows.e1 } : null,
+        primary ? { boxShadow: look.shadow } : null,
       ]}
     >
       <View
         style={[
           styles.face,
           { minHeight: s.height, borderRadius: s.radius, paddingHorizontal: variant === "text" ? 0 : s.padding },
-          variant === "secondary" ? { backgroundColor: colors.raised } : null,
+          variant === "secondary"
+            ? {
+                borderWidth: StyleSheet.hairlineWidth * 2,
+                borderColor: colors.glassEdge,
+                backgroundColor: colors.raised,
+              }
+            : null,
         ]}
       >
         {primary ? (
           <>
-            <LinearGradient colors={look.gradient} style={StyleSheet.absoluteFill} />
+            <LinearGradient colors={look.gradient} locations={look.locations} style={StyleSheet.absoluteFill} />
             <View style={[styles.edge, { top: 0, backgroundColor: look.highlight }]} />
             <View style={[styles.edge, { bottom: 0, backgroundColor: look.lowlight }]} />
           </>
         ) : variant === "secondary" ? (
-          <View
-            style={[
-              styles.edge,
-              { top: 0, backgroundColor: theme.scheme === "dark" ? "rgba(255,255,255,0.08)" : "rgba(255,255,255,0.9)" },
-            ]}
-          />
+          <>
+            <LinearGradient colors={colors.glassCard} style={StyleSheet.absoluteFill} />
+            <View style={[styles.edge, { top: 0, backgroundColor: colors.glassTop }]} />
+          </>
         ) : null}
         {loading ? <ActivityIndicator size="small" color={textColor} /> : leading ? leading(textColor) : null}
         <RNText

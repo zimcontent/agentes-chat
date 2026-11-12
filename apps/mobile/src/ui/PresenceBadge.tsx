@@ -1,51 +1,80 @@
 import type { ReactNode } from "react";
 import { PixelRatio, StyleSheet, View } from "react-native";
-import Svg, { Path } from "react-native-svg";
-import { type BadgePath, type BadgePresence, badgeCell, badgeFills, badgeOverhang, badgePaths } from "./presence-badge";
+import Svg, { Circle } from "react-native-svg";
+import type { AppColors } from "./palette";
+import { type BadgePresence, badgeCell, badgeOverhang } from "./presence-badge";
 import { useTheme } from "./theme";
-
-/** The ten drawings (five presences, with or without the ring), made once. */
-const DRAWN = new Map<string, { size: number; paths: BadgePath[] }>();
-function drawing(presence: BadgePresence, ring: boolean) {
-  const key = `${presence}:${ring}`;
-  let d = DRAWN.get(key);
-  if (!d) {
-    d = badgePaths(presence, ring);
-    DRAWN.set(key, d);
-  }
-  return d;
-}
 
 export interface PresenceBadgeProps {
   presence: BadgePresence;
-  /** Points per cell (`badgeCell` for an avatar's size); snapped to the screen's pixels so the cells stay crisp. */
+  /** Points per cell of the old grid (`badgeCell` for an avatar's size): the dot is 9 cells wide, 11 with the ring. */
   cell?: number;
-  /** The surface behind it, drawn as a one-cell ring (default the page's color); null: no ring. */
+  /** The surface behind it, drawn as a ring one cell wide (default the page's color); null: no ring. */
   ring?: string | null;
 }
 
 /**
- * Presence in pixels (ADR 0084): a 9×9 cell badge in the agents' body shape, green online, red busy (a bar),
- * amber away (a clock), an empty outline offline and a dotted one hidden, ringed in the surface behind it.
- * Decorative: the row or the face around it says the presence in words.
+ * Turquoise is the identity's free bot color (`--db-turquesa`), so "available" never borrows the Doug's green
+ * (green is only the Doug and the screen's main action).
+ */
+const AVAILABLE = "#2DD4BF";
+
+/**
+ * How each presence is drawn (DougBot):
+ * - online (available, active): a turquoise dot;
+ * - busy: a red dot (`colors.danger`);
+ * - away: an amber dot (`colors.amber`);
+ * - out (out of office): a gray dot (`colors.muted`);
+ * - offline: an empty ring in the faint tone (`colors.faint`);
+ * - hidden: the same ring, dashed.
+ */
+function look(presence: BadgePresence, colors: AppColors): { fill?: string; stroke?: string; dashed?: boolean } {
+  switch (presence) {
+    case "online":
+      return { fill: AVAILABLE };
+    case "busy":
+      return { fill: colors.danger };
+    case "away":
+      return { fill: colors.amber };
+    case "out":
+      return { fill: colors.muted };
+    case "offline":
+      return { stroke: colors.faint };
+    case "hidden":
+      return { stroke: colors.faint, dashed: true };
+  }
+}
+
+/**
+ * Presence as a round dot (ADR 0084, redrawn for DougBot: a dot is round by nature), ringed in the surface behind
+ * it so it cuts cleanly into the avatar's edge. Same outer size as the old pixel badge. Decorative: the row or the
+ * face around it says the presence in words.
  */
 export function PresenceBadge({ presence, cell = 1.1, ring }: PresenceBadgeProps) {
-  const { scheme, colors } = useTheme();
+  const { colors } = useTheme();
   const ringColor = ring === undefined ? colors.bg : ring;
-  const { size, paths } = drawing(presence, ringColor !== null);
-  const fills = badgeFills(presence, scheme === "dark", ringColor ?? "transparent");
-  const side = PixelRatio.roundToNearestPixel(cell) * size;
+  const k = PixelRatio.roundToNearestPixel(cell);
+  const side = k * (ringColor !== null ? 11 : 9);
+  const c = side / 2;
+  const dot = k * 4.5;
+  const { fill, stroke, dashed } = look(presence, colors);
+  const width = Math.max(1.25, k * 1.4);
   return (
-    <Svg
-      width={side}
-      height={side}
-      viewBox={`0 0 ${size} ${size}`}
-      accessibilityElementsHidden
-      importantForAccessibility="no-hide-descendants"
-    >
-      {paths.map((p) => (
-        <Path key={p.tone} d={p.d} fill={fills[p.tone]} />
-      ))}
+    <Svg width={side} height={side} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+      {ringColor !== null ? <Circle cx={c} cy={c} r={c} fill={ringColor} /> : null}
+      {fill ? (
+        <Circle cx={c} cy={c} r={dot} fill={fill} />
+      ) : (
+        <Circle
+          cx={c}
+          cy={c}
+          r={dot - width / 2}
+          fill="none"
+          stroke={stroke}
+          strokeWidth={width}
+          strokeDasharray={dashed ? `${width * 1.2} ${width * 1.3}` : undefined}
+        />
+      )}
     </Svg>
   );
 }

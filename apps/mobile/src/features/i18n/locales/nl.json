@@ -335,6 +335,7 @@
     "someone": "Iemand",
     "messageTo": "Bericht aan {{name}}",
     "messageIn": "Bericht in {{channel}}",
+    "messagePlain": "Bericht",
     "reply": "Beantwoorden",
     "people_one": "{{count}} persoon",
     "people_other": "{{count}} mensen",
@@ -2708,5 +2709,19 @@
       "title": "Niets te controleren",
       "text": "Als een agent iets buiten het gesprek doet, verschijnt het hier."
     }
+  },
+  "photo": {
+    "section": "Foto",
+    "upload": "Foto uploaden",
+    "useBot": "DougBot-avatar gebruiken",
+    "fromLibrary": "Kiezen uit bibliotheek",
+    "fromCamera": "Foto maken",
+    "failed": "De foto kon niet worden geüpload. Probeer het opnieuw.",
+    "agentHint": "De foto verschijnt in plaats van de getekende bot, voor het hele team.",
+    "meHint": "Je foto is zichtbaar voor de mensen in je workspaces."
+  },
+  "brand": {
+    "basedOn": "Gebaseerd op agentes.chat van Codari Global, LLC — AGPL-3.0",
+    "source": "Broncode van DougBot"
   }
 }

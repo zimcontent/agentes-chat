@@ -1,7 +1,8 @@
 {
   "ios": {
-    "NSPhotoLibraryUsageDescription": "대화에서 사진을 보내는 데 사용합니다.",
-    "NSCameraUsageDescription": "대화에 쓸 사진을 찍고 QR 코드를 스캔하는 데 사용합니다.",
-    "NSPhotoLibraryAddUsageDescription": "대화의 사진을 사진 앱에 저장하는 데 사용합니다."
+    "NSPhotoLibraryUsageDescription": "대화에서 이미지를 보내고 에이전트와 내 사진을 고르기 위해서예요.",
+    "NSCameraUsageDescription": "대화용 사진, 에이전트와 내 사진을 찍고 QR 코드를 스캔하기 위해서예요.",
+    "NSPhotoLibraryAddUsageDescription": "대화의 사진을 사진 앱에 저장하는 데 사용합니다.",
+    "NSMicrophoneUsageDescription": "대화에서 음성 메시지를 녹음하기 위해서예요."
   }
 }

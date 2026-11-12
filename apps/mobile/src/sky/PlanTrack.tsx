@@ -1,29 +1,55 @@
 import type { AgentColorName } from "@agenteschat/ui/agent/engine";
-import type { StyleProp, ViewStyle } from "react-native";
+import { type StyleProp, View, type ViewStyle } from "react-native";
 import { useTheme } from "@/ui/theme";
-import { Dither } from "./Dither";
-import { fromSurface, MAX_PLAN_ITEMS, type PlanState, statesUniform } from "./math";
+import { Animated, usePulse } from "./Dither";
+import { MAX_PLAN_ITEMS, type PlanState } from "./math";
 
 export interface PlanTrackProps {
+  /** The agent (kept for the callers; the track is neutral). */
   color: AgentColorName;
-  /** One cell per plan item (the first 48). */
+  /** One segment per plan item (the first 48). */
   items: PlanState[];
-  /** Taller on the mission screen (default 10). */
+  /** The box's height (default 10); the segments are a thin line centered in it. */
   height?: number;
   style?: StyleProp<ViewStyle>;
 }
 
-/** A mission's plan as pixel cells: done in the agent's tones, the running one breathing, the rest dotted. */
-export function PlanTrack({ color, items, height = 10, style }: PlanTrackProps) {
+/** The segments' thickness and the gap between two. */
+const LINE = 4;
+const GAP = 2;
+
+/**
+ * A mission's plan as a segmented line: done segments in neutral ink, the running one pulsing lightly, the rest in
+ * the rail's tone. Decorative: the screen says the plan in words.
+ */
+export function PlanTrack({ items, height = 10, style }: PlanTrackProps) {
   const { colors } = useTheme();
   const list = items.slice(0, MAX_PLAN_ITEMS);
+  const pulse = usePulse(list.includes("run"));
+  const thickness = Math.min(LINE, height);
   return (
-    <Dither
-      kind="track"
-      tones={fromSurface(colors.raised, 1, color)}
-      pixel={2}
-      extra={{ count: list.length, states: statesUniform(list) }}
-      style={[{ height, alignSelf: "stretch" }, style]}
-    />
+    <View
+      style={[{ height, alignSelf: "stretch", flexDirection: "row", alignItems: "center", gap: GAP }, style]}
+      pointerEvents="none"
+      accessibilityElementsHidden
+      importantForAccessibility="no-hide-descendants"
+    >
+      {list.map((state, i) => {
+        const seg = {
+          flex: 1,
+          minWidth: 1,
+          height: thickness,
+          borderRadius: thickness / 2,
+          backgroundColor: state === "todo" ? colors.line : colors.ink2,
+        };
+        return state === "run" ? (
+          // biome-ignore lint/suspicious/noArrayIndexKey: the plan's order is its identity
+          <Animated.View key={i} style={[seg, pulse]} />
+        ) : (
+          // biome-ignore lint/suspicious/noArrayIndexKey: the plan's order is its identity
+          <View key={i} style={seg} />
+        );
+      })}
+    </View>
   );
 }

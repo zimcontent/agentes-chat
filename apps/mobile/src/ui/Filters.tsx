@@ -50,7 +50,7 @@ export function Filters({ items, value, onChange }: FiltersProps) {
     >
       {items.map((item) => {
         const on = item.key === value;
-        const color = on ? colors.bg : colors.muted;
+        const color = on ? colors.ink : colors.muted;
         return (
           <Pressable
             key={item.key}
@@ -69,8 +69,11 @@ export function Filters({ items, value, onChange }: FiltersProps) {
               style={{
                 minHeight: TOOL_H,
                 paddingHorizontal: 14,
-                borderRadius: 999,
-                backgroundColor: on ? colors.ink : colors.sunken,
+                // DougBot: radius 8, the chosen one on the soft green (`--db-verde-suave`) with a 1 px green edge.
+                borderRadius: 8,
+                backgroundColor: on ? colors.chosen : colors.sunken,
+                borderWidth: 1,
+                borderColor: on ? colors.greenGlow : "transparent",
                 flexDirection: "row",
                 alignItems: "center",
                 gap: 6,

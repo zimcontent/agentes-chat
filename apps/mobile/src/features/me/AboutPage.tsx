@@ -1,40 +1,48 @@
 import { instanceQuery, useApi } from "@agenteschat/client";
-import { LICENSE_URL, PUBLIC_SOURCE_URL } from "@agenteschat/client/lib/about";
+import { LICENSE_URL } from "@agenteschat/client/lib/about";
 import { shownAddress } from "@agenteschat/client/lib/sites";
-import { DOCS_SITE } from "@agenteschat/i18n/docs";
 import { useQuery } from "@tanstack/react-query";
 import { Trans, useTranslation } from "react-i18next";
 import { StyleSheet, View } from "react-native";
-import { GroupedFooter, GroupedList, GroupedRow, Text } from "@/ui";
+import { Assinatura, GroupedFooter, GroupedList, GroupedRow, Text } from "@/ui";
 import { openPage } from "../ai/parts";
 import { Page } from "./parts";
+
+/**
+ * DougBot's own source (the fork, AGPL-3.0 §13: whoever uses it over a network is offered the source); the server's
+ * `sourceUrl` wins when it says one.
+ */
+export const DOUGBOT_SOURCE_URL = "https://github.com/zimcontent/dougbot";
 
 const link = (href: string) => (
   <Text variant="footnote" accessibilityRole="link" style={styles.link} onPress={() => openPage(href)} />
 );
 
 /**
- * Sobre o agentes.chat, pushed from Você: AGPL-3.0's Appropriate Legal Notices and the attribution the license's
+ * Sobre o DougBot, pushed from Você: DougBot's signature, "Baseado no agentes.chat da Codari Global, LLC — AGPL-3.0" and
+ * the link to the fork's source, then AGPL-3.0's Appropriate Legal Notices and the attribution the license's
  * section 7(b) term in NOTICE requires. Shown on every self-hosted server, with no setting that hides it (`showsAbout`).
  */
 export function AboutPage() {
   const { t } = useTranslation();
   const instance = useQuery(instanceQuery(useApi()));
-  const source = instance.data?.sourceUrl ?? PUBLIC_SOURCE_URL;
+  const source = instance.data?.sourceUrl ?? DOUGBOT_SOURCE_URL;
   return (
     <Page title={t("settings.section.about")}>
-      <View style={styles.gap} />
+      <View style={styles.mark}>
+        <Assinatura size={28} />
+      </View>
       <GroupedList>
         <GroupedRow label={t("settings.about.version")} value={instance.data?.version ?? "…"} />
         <GroupedRow
-          label={t("settings.about.source")}
+          label={t("mobile.brand.source")}
           value={shownAddress(source)}
           chevron
           onPress={() => openPage(source)}
         />
       </GroupedList>
       <GroupedFooter>
-        <Trans i18nKey="settings.about.basedOn" components={{ site: link(DOCS_SITE) }} />
+        {t("mobile.brand.basedOn")}
         {"\n\n"}
         <Trans i18nKey="settings.about.license" components={{ license: link(LICENSE_URL) }} />
         {"\n\n"}
@@ -45,6 +53,6 @@ export function AboutPage() {
 }
 
 const styles = StyleSheet.create({
-  gap: { height: 14 },
+  mark: { alignItems: "center", paddingVertical: 24 },
   link: { textDecorationLine: "underline" },
 });

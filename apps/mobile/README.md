@@ -1,3 +1,38 @@
+# DougBot (phone app)
+
+DougBot is this fork's phone app: agentes.chat by Codari Global, LLC (AGPL-3.0), with the DougBot identity
+(`identidade/dougbot-identidade`: IDENTIDADE.md, tokens.css, dougbot-avatar.js).
+
+- **Brand**: name DougBot, bundle id / package `io.mydoug.app` (`.preview`, `.development`), scheme `dougbot` (plus
+  `agenteschat`, which the server trusts for sign-in, OAuth returns and its QR codes), default server
+  `https://time.zimcontent.com` (`EXPO_PUBLIC_API_URL` in eas.json, fallback in app.config.ts and `src/config.ts`).
+  The EAS project is not set: `eas init` creates the owner's own and writes its id into `DOUGBOT_EAS_PROJECT_ID`
+  (app.config.ts), or the build's `EAS_PROJECT_ID` gives it. Step by step for TestFlight: `TESTFLIGHT.md` beside the
+  repo (`AGENTES-CHAT/doug-mobile`).
+- **Tokens**: `src/brand/tokens.ts` (`--db-*` in TS, dark and light); `src/ui/palette.ts` maps them onto the app's
+  colors. Green (#9CFA05) only on the Doug and the screen's main action (Button primary, the composer's send);
+  a choice uses the soft green; on light, green words and edges take #3E6B00 (AA). Radii 8/12/16/22/34, no pills.
+  Theme: Escuro / Claro / Sistema (Você › Aparência), the system by default.
+- **Type**: Manrope (titles, names, the signature), Inter (interface, conversation), JetBrains Mono (code), embedded
+  from `@expo-google-fonts/*` (`src/providers/fonts.ts`); `Text`/`systemText` pick the family per weight.
+- **Bots are code, never images**: `src/brand/dougbot-avatar.js` (the identity's file, verbatim) drawn as SVG by
+  `AgentAvatar` (`react-native-svg`'s `SvgXml`); `src/brand/bots.ts` says which bot each agent is (the same rules as
+  the web) and maps the agent's mode to the five states. An agent may have a real photo (`agent.photo`, PUT/DELETE
+  `…/orgs/{orgId}/agents/{agentId}/photo`); without one, or if it fails, the drawn bot. The signature is live text
+  (`src/ui/Assinatura.tsx`). The only bitmaps are the store's (icon, adaptive icon, splash, notification glyph),
+  rendered from the avatar's code by `bun scripts/brand-assets.ts`.
+- **Groups**: channels are "Grupos" in pt-BR and "Groups" in en; a group shows its photo and display name
+  (`channels.icon`, `channels.display_name`). Agents hidden from AGENTES on the web stay hidden in the app's lists;
+  search still finds them.
+
+### Prancha (visual board in a browser)
+
+`DOUGBOT_PRANCHA=1 bunx expo start --web` (or `expo export --platform web`) serves `prancha/` instead of `app/`: the
+app's own components with sample data (`prancha-src/telas.tsx`), one screen per address (`/inicio`, `/dm`, `/grupo`,
+`/composer`, `/execucao`, `/busca`, `/configuracoes`, `/aparencia`, `/sobre`, `/agente`, `/time`, `/login`,
+`/servidor`, `/abas`). On the web, Skia needs `canvaskit.wasm` at the root (copy it from `canvaskit-wasm/bin/full`).
+It is not the app (no server, no navigation) and never goes into a build.
+
 # agentes (phone app)
 
 Expo + React Native app for agentes.chat (ADR 0035).

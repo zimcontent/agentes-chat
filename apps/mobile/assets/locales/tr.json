@@ -1,7 +1,8 @@
 {
   "ios": {
-    "NSPhotoLibraryUsageDescription": "Sohbetlerinizde resim göndermek için.",
-    "NSCameraUsageDescription": "Sohbetleriniz için fotoğraf çekmek ve QR kodlarını taramak için.",
-    "NSPhotoLibraryAddUsageDescription": "Sohbetlerinizdeki resimleri Fotoğraflar'a kaydetmek için."
+    "NSPhotoLibraryUsageDescription": "Sohbetlerinde görsel göndermek ve ajanlarının ve kendi fotoğrafını seçmek için.",
+    "NSCameraUsageDescription": "Sohbetlerin için, ajanlarının ve kendi fotoğrafın için fotoğraf çekmek ve QR kodlarını taramak için.",
+    "NSPhotoLibraryAddUsageDescription": "Sohbetlerinizdeki resimleri Fotoğraflar'a kaydetmek için.",
+    "NSMicrophoneUsageDescription": "Sohbetlerinde sesli mesaj kaydetmek için."
   }
 }

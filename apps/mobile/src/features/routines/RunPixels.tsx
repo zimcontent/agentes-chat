@@ -1,30 +1,30 @@
 import { type AgentColorName, mixHex } from "@agenteschat/ui/agent/engine";
-import { memo, useEffect, useMemo, useState } from "react";
+import { memo, useMemo } from "react";
 import { StyleSheet, View } from "react-native";
-import { useFrameTime, useLivePaused } from "@/agent/live";
-import { useReducedMotion, useTheme } from "@/ui/theme";
-import { CellCanvas } from "../browser/TrailPixels";
+import { Animated, usePulse } from "@/sky/Dither";
+import type { AppColors } from "@/ui/palette";
+import { useTheme } from "@/ui/theme";
 import { RUN_SLOTS } from "./logic";
 import {
   LANE_BASE,
   LANE_ROWS,
-  laneCells,
   laneWidth,
+  laneX,
   RUN_CELL,
   type RunPixel,
   type RunTones,
-  SPRITE,
   STRIP_ROWS,
-  spriteCells,
-  spritePose,
   spriteX,
-  stripCells,
   stripWidth,
 } from "./run-pixels";
 
-/** A routine's runs in pixels (./run-pixels.ts, the web's drawings) on Skia canvases. */
+/**
+ * A routine's runs drawn as clean vectors (DougBot: no pixel art): each run a small bar with rounded corners, as tall
+ * as its cost, neutral when it went well, red when it failed, amber when it was skipped, a stub when it found nothing
+ * new. The boxes keep the old pixel drawings' sizes (./run-pixels.ts), so nothing moves.
+ */
 
-/** The pixels' tones from the theme (the dots as the agent's month draws them). */
+/** The old pixel tones from the theme (kept for whoever still reads them). */
 export function useRunTones(): RunTones {
   const { colors } = useTheme();
   return useMemo(
@@ -38,13 +38,25 @@ export function useRunTones(): RunTones {
   );
 }
 
+const COLUMN_W = 3 * RUN_CELL;
+const COLUMN_GAP = RUN_CELL;
+const STRIP_H = STRIP_ROWS * RUN_CELL;
+
+/** A run's bar height (`full` the tallest) and tone. */
+function runBar(run: RunPixel, full: number, c: AppColors): { h: number; color: string } {
+  const min = Math.ceil(full * 0.4);
+  if (run.status === "ok") return { h: Math.round(min + (run.weight ?? 1) * (full - min)), color: c.muted };
+  if (run.status === "silent") return { h: 3, color: c.faint };
+  if (run.status === "failed") return { h: full, color: c.danger };
+  return { h: min, color: c.warn };
+}
+
 /**
- * The last runs as a strip of pixel columns, oldest left; a run at work flickers in the newest slot. `label` says
- * them: a screen reader hears the strip as one image. `dim`: a paused or finished routine's.
+ * The last runs as a row of bars, oldest left; empty slots are a dot on the line; a run at work pulses in the newest
+ * slot. `label` says them: a screen reader hears the strip as one image. `dim`: a paused or finished routine's.
  */
 export const RunStrip = memo(function RunStrip({
   runs,
-  color,
   label,
   running = false,
   dim = false,
@@ -56,33 +68,53 @@ export const RunStrip = memo(function RunStrip({
   running?: boolean;
   dim?: boolean;
 }) {
-  const tones = useRunTones();
-  const reduced = useReducedMotion();
-  // A run at work is redrawn about 12 times a second, as on the web.
-  const frame = Math.floor(useFrameTime(running && !reduced, 0) * 12);
-  const key = runs.map((r) => `${r.status}:${r.weight ?? 1}`).join(",");
-  // biome-ignore lint/correctness/useExhaustiveDependencies: `key` stands for the runs
-  const cells = useMemo(
-    () => stripCells(runs, color, tones, { slots: RUN_SLOTS, running, t: frame / 12 }),
-    [key, color, tones, running, frame],
-  );
+  const { colors } = useTheme();
+  const pulse = usePulse(running);
+  const shown = runs.slice(0, RUN_SLOTS - (running ? 1 : 0)).reverse();
+  const pad = Math.max(0, RUN_SLOTS - shown.length - (running ? 1 : 0));
   const w = stripWidth(RUN_SLOTS) * RUN_CELL;
-  const h = STRIP_ROWS * RUN_CELL;
   return (
     <View
-      style={[{ width: w, height: h }, dim ? styles.dim : null]}
+      style={[styles.strip, { width: w, height: STRIP_H }, dim ? styles.dim : null]}
       accessible
       accessibilityRole="image"
       accessibilityLabel={label}
     >
-      <CellCanvas runs={cells} width={w} height={h} cx={RUN_CELL} />
+      {Array.from({ length: pad }, (_, i) => (
+        // biome-ignore lint/suspicious/noArrayIndexKey: empty slots have no identity
+        <View key={`p${i}`} style={styles.slot}>
+          <View style={[styles.dot, { backgroundColor: colors.faint }]} />
+        </View>
+      ))}
+      {shown.map((run, i) => {
+        const { h, color } = runBar(run, STRIP_H, colors);
+        return (
+          // biome-ignore lint/suspicious/noArrayIndexKey: the runs' order is their identity
+          <View key={`r${i}`} style={styles.slot}>
+            <View style={[styles.bar, { height: h, backgroundColor: color }]} />
+          </View>
+        );
+      })}
+      {running ? (
+        <View style={styles.slot}>
+          <Animated.View style={[styles.bar, { height: STRIP_H * 0.7, backgroundColor: colors.ink2 }, pulse]} />
+        </View>
+      ) : null}
     </View>
   );
 });
 
+/** A lane's height and where its line runs, in points. */
+const LANE_H = LANE_ROWS * RUN_CELL;
+const LINE_Y = (LANE_BASE + 1) * RUN_CELL;
+/** A past run's tallest bar on a lane, and the marker's side. */
+const LANE_BAR = 8 * RUN_CELL;
+const MARK = 8;
+
 /**
- * One routine's lane on the horizon, `width` points wide: the dotted line, its past runs, its coming ones, and
- * the agent itself on its next run (or at "now" while it runs). Decorative: the lane's words are its button's.
+ * One routine's lane on the horizon, `width` points wide: a hairline, its past runs as small bars, its coming ones
+ * as dots, and a ring on its next run (a pulsing dot at "now" while it runs). Decorative: the lane's words are its
+ * button's. `look` is kept for the callers.
  */
 export const LaneTrack = memo(function LaneTrack({
   width,
@@ -91,7 +123,6 @@ export const LaneTrack = memo(function LaneTrack({
   now,
   past,
   future,
-  look,
   running,
 }: {
   width: number;
@@ -104,68 +135,70 @@ export const LaneTrack = memo(function LaneTrack({
   look: { color: AgentColorName; eyes: string };
   running: boolean;
 }) {
-  const tones = useRunTones();
+  const { colors } = useTheme();
+  const pulse = usePulse(running);
   const w = laneWidth(width);
   const cx = width / w;
-  const key = `${past.map((p) => `${p.status}:${p.at}:${p.weight ?? 1}`).join(",")}|${future.join(",")}`;
-  // biome-ignore lint/correctness/useExhaustiveDependencies: `key` stands for the runs
-  const cells = useMemo(
-    () => laneCells(w, new Date(from), new Date(to), past, future, look.color, tones, running),
-    [w, from, to, key, look.color, tones, running],
-  );
-  const x = spriteX(w, new Date(from), new Date(to), new Date(now), future, running);
-  const height = LANE_ROWS * RUN_CELL;
+  const start = new Date(from);
+  const end = new Date(to);
+  const x = spriteX(w, start, end, new Date(now), future, running);
+  const next = running ? undefined : future[0];
   return (
-    <View style={{ width, height }} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
-      <CellCanvas runs={cells} width={width} height={height} cx={cx} cy={RUN_CELL} />
-      {x === null ? null : <LaneSprite x={x} cx={cx} look={look} running={running} />}
+    <View style={{ width, height: LANE_H }} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+      <View style={[styles.line, { top: LINE_Y, backgroundColor: colors.line }]} />
+      {past.map((run, i) => {
+        const { h, color } = runBar(run, LANE_BAR, colors);
+        return (
+          <View
+            // biome-ignore lint/suspicious/noArrayIndexKey: the runs' order is their identity
+            key={i}
+            style={[
+              styles.laneBar,
+              { left: laneX(run.at, start, end, w) * cx - 2, top: LINE_Y - h, height: h, backgroundColor: color },
+            ]}
+          />
+        );
+      })}
+      {future.map((d) =>
+        d === next ? null : (
+          <View
+            key={d}
+            style={[
+              styles.laneDot,
+              { left: laneX(d, start, end, w) * cx - 1.5, top: LINE_Y - 1.5, backgroundColor: colors.muted },
+            ]}
+          />
+        ),
+      )}
+      {x === null ? null : running ? (
+        <Animated.View
+          style={[
+            styles.mark,
+            { left: x * cx - MARK / 2, top: LINE_Y - MARK / 2, backgroundColor: colors.ink2 },
+            pulse,
+          ]}
+        />
+      ) : (
+        <View
+          style={[
+            styles.mark,
+            { left: x * cx - MARK / 2, top: LINE_Y - MARK / 2, borderWidth: 1.5, borderColor: colors.ink2 },
+            { backgroundColor: colors.bg },
+          ]}
+        />
+      )}
     </View>
   );
 });
 
-/** The agent on its lane: it blinks and hops now and then (still with reduced motion). */
-function LaneSprite({
-  x,
-  cx,
-  look,
-  running,
-}: {
-  x: number;
-  cx: number;
-  look: { color: AgentColorName; eyes: string };
-  running: boolean;
-}) {
-  const reduced = useReducedMotion();
-  const t = useTicker(!reduced, 125);
-  const { hop, blink } = spritePose(t, look, running, reduced);
-  const cells = useMemo(
-    () => spriteCells(look.color, look.eyes, running, blink),
-    [look.color, look.eyes, running, blink],
-  );
-  return (
-    <View style={[styles.sprite, { left: (x - 4) * cx, top: (LANE_BASE - 8 - hop) * RUN_CELL }]}>
-      <CellCanvas runs={cells} width={SPRITE * cx} height={SPRITE * RUN_CELL} cx={cx} cy={RUN_CELL} />
-    </View>
-  );
-}
-
-/**
- * Seconds, ticking every `ms` while `active` on a screen that is showing: the sprites hop and blink at a few frames
- * a second (the shared clock's 25 would redraw every lane that often for a blink).
- */
-function useTicker(active: boolean, ms: number): number {
-  const paused = useLivePaused();
-  const on = active && !paused;
-  const [t, setT] = useState(() => Date.now() / 1000);
-  useEffect(() => {
-    if (!on) return;
-    const timer = setInterval(() => setT(Date.now() / 1000), ms);
-    return () => clearInterval(timer);
-  }, [on, ms]);
-  return on ? t : 0;
-}
-
 const styles = StyleSheet.create({
   dim: { opacity: 0.5 },
-  sprite: { position: "absolute" },
+  strip: { flexDirection: "row", alignItems: "flex-end", gap: COLUMN_GAP },
+  slot: { width: COLUMN_W, alignItems: "center", justifyContent: "flex-end" },
+  bar: { width: COLUMN_W, borderRadius: 2 },
+  dot: { width: 2, height: 2, borderRadius: 1 },
+  line: { position: "absolute", left: 0, right: 0, height: StyleSheet.hairlineWidth },
+  laneBar: { position: "absolute", width: 4, borderRadius: 2 },
+  laneDot: { position: "absolute", width: 3, height: 3, borderRadius: 1.5 },
+  mark: { position: "absolute", width: MARK, height: MARK, borderRadius: MARK / 2 },
 });

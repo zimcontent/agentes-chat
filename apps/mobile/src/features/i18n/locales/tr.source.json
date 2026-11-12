@@ -788,6 +788,9 @@
   "chat.messageIn": {
     "value": "Message {{channel}}"
   },
+  "chat.messagePlain": {
+    "value": "Message"
+  },
   "chat.reply": {
     "value": "Reply"
   },
@@ -6550,5 +6553,35 @@
   },
   "empty.audit.text": {
     "value": "When an agent does something outside the conversation, it shows up here."
+  },
+  "photo.section": {
+    "value": "Photo"
+  },
+  "photo.upload": {
+    "value": "Upload photo"
+  },
+  "photo.useBot": {
+    "value": "Use the DougBot avatar"
+  },
+  "photo.fromLibrary": {
+    "value": "Choose from library"
+  },
+  "photo.fromCamera": {
+    "value": "Take photo"
+  },
+  "photo.failed": {
+    "value": "Couldn't upload the photo. Try again."
+  },
+  "photo.agentHint": {
+    "value": "The photo shows instead of the drawn bot, for the whole team."
+  },
+  "photo.meHint": {
+    "value": "Your photo shows to the people in your workspaces."
+  },
+  "brand.basedOn": {
+    "value": "Based on agentes.chat by Codari Global, LLC — AGPL-3.0"
+  },
+  "brand.source": {
+    "value": "DougBot source code"
   }
 }

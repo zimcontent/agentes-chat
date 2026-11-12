@@ -68,9 +68,9 @@ export function SearchField({
           flexDirection: "row",
           alignItems: "center",
           gap: 8,
-          minHeight: 42,
+          minHeight: 44,
           paddingHorizontal: 12,
-          borderRadius: 14,
+          borderRadius: 12,
           // The system's fill (a gray at 10%) on white; white with a hairline on the grouped gray.
           backgroundColor: raised ? colors.raised : colors.plate,
           ...(raised ? { boxShadow: `0px 0px 0px 0.5px ${colors.line2}` } : {}),

@@ -155,7 +155,7 @@ export default function Scan() {
           accessibilityLiveRegion="polite"
         >
           <Glass style={styles.cardGlass}>
-            <AgentAvatar agent={{ color: "sky", eyes: "round", id: "agentes" }} size={36} mode="run" />
+            <AgentAvatar agent={{ color: "sky", eyes: "round", id: "doug", name: "Doug" }} size={36} mode="run" />
             <View style={styles.cardText}>
               <Text variant="body" numberOfLines={1} ellipsizeMode="middle" style={styles.bold}>
                 {host}

@@ -35,6 +35,6 @@ export function DatePill({ day, shown, top }: { day: string | null; shown: Share
 
 const styles = StyleSheet.create({
   dock: { position: "absolute", left: 0, right: 0, alignItems: "center" },
-  pill: { paddingHorizontal: 12, paddingVertical: 4, borderRadius: 999, borderWidth: StyleSheet.hairlineWidth },
+  pill: { paddingHorizontal: 12, paddingVertical: 4, borderRadius: 8, borderWidth: StyleSheet.hairlineWidth },
   text: { fontWeight: "600" },
 });

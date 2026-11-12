@@ -59,7 +59,7 @@ import { FirstUse } from "../shared/FirstUse";
 import { useColors, useDirectory, useNow, useOrgId, usePullRefresh } from "../shared/hooks";
 import { agentLook } from "../shared/logic";
 import { successHaptic, Tile } from "../shared/parts";
-import { useWaitingApprovals, useWorkingNow } from "../shared/queries";
+import { useHiddenAgents, useWaitingApprovals, useWorkingNow } from "../shared/queries";
 import { SheetHostProvider } from "../shared/SheetHost";
 import { useTabHeader } from "../shared/tabHeader";
 import { usePresenceOf } from "../status/hooks";
@@ -111,7 +111,9 @@ function Agents() {
   const outages = useMachineOutages();
   const groups = useAgentGroups(orgId);
   const offline = useMemo(() => waitingComputerByAgent(outages.outages), [outages.outages]);
-  const agents = dir.agents.filter((a) => listsAgent(org, a));
+  // The agents I hid from my AGENTES on the web stay off this list too (the fork's sidebar view); search finds them.
+  const { hidden } = useHiddenAgents();
+  const agents = dir.agents.filter((a) => listsAgent(org, a) && !hidden.has(a.id));
   const { waiting, working, free } = teamLines(agents, work, dms.data ?? [], asking, offline);
   const busy = waiting.length + working.length;
   // A routine's run works in the background, in no conversation (never "Trabalhando"): the agent is out on it.

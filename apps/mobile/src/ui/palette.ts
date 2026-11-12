@@ -1,11 +1,5 @@
-import {
-  dark as darkTokens,
-  light as lightTokens,
-  type ShadowLayer,
-  type ShadowName,
-  type ThemeColors,
-  shadows as tokenShadows,
-} from "@agenteschat/tokens";
+import { type ShadowLayer, type ShadowName, type ThemeColors, shadows as tokenShadows } from "@agenteschat/tokens";
+import { CORES_BOTS, dbTokens } from "../brand/tokens";
 
 /**
  * The phone app's colors (pure: no React Native import, so it is unit-tested). The design system's tokens,
@@ -30,63 +24,98 @@ export interface AppColors extends ThemeColors {
   badge: string;
   /** A sheet's grabber where we draw it (Android; iOS draws its own), the system's tone for it. */
   grabber: string;
+  /** DougBot's green (#9CFA05): only the Doug and the screen's main action. */
+  green: string;
+  /** Ink on the green. */
+  greenInk: string;
+  /** The green as words, an icon or a thin edge: the dark variant in light, for AA. */
+  greenText: string;
+  /** A chosen item's fill: the green at 12% (`--db-verde-suave`). */
+  chosen: string;
+  /** An active field's edge: the green at 35% (`--db-verde-luz`). */
+  greenGlow: string;
+  /** The glass's 1 px edge (`--db-vidro-borda`). */
+  glassEdge: string;
+  /** The glass's lit top line (`--db-vidro-brilho`). */
+  glassTop: string;
+  /** A small glass piece's fill, top to bottom (`--db-vidro-cartao`). */
+  glassCard: readonly [string, string];
 }
 
-/** Light, native: what changes from the tokens. */
-const NATIVE_LIGHT: Partial<ThemeColors> = {
-  bg: "#ffffff",
-  raised: "#ffffff",
-  raised2: "#ffffff",
-  sunken: "#f2f2f5",
-  glass: "rgba(255, 255, 255, 0.78)",
-  glassSolid: "#f9f9f9",
-  line: "rgba(60, 60, 67, 0.08)",
-  line2: "rgba(60, 60, 67, 0.14)",
-  ink: "#000000",
-  ink2: "#1c1c1e",
-  muted: "#48484d",
-  faint: "#6c6c70",
-  plate: "rgba(120, 120, 128, 0.1)",
-  plateSoft: "rgba(120, 120, 128, 0.06)",
-  surface: "#ffffff",
-  surfaceRaised: "#ffffff",
-  surfaceSunken: "#f2f2f5",
-  inkMuted: "#48484d",
-  action: "#000000",
-  onAction: "#ffffff",
-  success: "#000000",
-};
-
-export function appColors(scheme: Scheme): AppColors {
-  if (scheme === "dark") {
-    return {
-      ...darkTokens,
-      glass: "rgba(28, 28, 27, 0.86)",
-      grouped: darkTokens.bg,
-      bubble: darkTokens.raised,
-      amber: "#e8ac4c",
-      amberInk: "#e8ac4c",
-      chip: darkTokens.sunken,
-      badge: "#ff453a",
-      grabber: "rgba(235, 235, 245, 0.3)",
-    };
-  }
-  const base = { ...lightTokens, ...NATIVE_LIGHT };
+/**
+ * DougBot (identidade/dougbot-identidade, `src/brand/tokens.ts`): the app's colors are the identity's palco, vidro,
+ * texto and lines in both themes. Green (#9CFA05) is never a theme color here: only the Doug and the screen's main
+ * action (Button primary, the composer's send) paint it, and a chosen item uses the soft green (`chosen`). The
+ * "agent" accent of the old theme (links, work in progress) is the ink: color comes from the bots.
+ */
+function fromDoug(scheme: Scheme): AppColors {
+  const t = dbTokens(scheme);
+  const dark = scheme === "dark";
   return {
-    ...base,
-    grouped: "#f2f2f7",
-    // The web's own bubble on white: the ink at 6%, no tint.
-    bubble: "#efefee",
-    amber: "#b26a00",
-    amberInk: "#8a5200",
-    chip: "rgba(120, 120, 128, 0.1)",
-    badge: "#ff3b30",
-    grabber: "rgba(60, 60, 67, 0.3)",
+    bg: t.palco,
+    raised: t.palco2,
+    raised2: t.palco3,
+    sunken: t.palco3,
+    side: t.palco,
+    pane: t.palco2,
+    glass: t.vidro,
+    glassSolid: t.palco2,
+    line: t.linha,
+    line2: t.linha2,
+    lineStrong: t.linha3,
+    ink: t.texto,
+    ink2: dark ? "#D4D4D4" : "#1F211C",
+    muted: t.texto2,
+    faint: t.texto3,
+    focusColor: t.verdeTexto,
+    agent: t.texto,
+    agent2: t.texto2,
+    agentSoft: dark ? "#1A1A1A" : "#ECEFE8",
+    onAgent: t.palco,
+    ok: dark ? "#D4D4D4" : "#1F211C",
+    warn: t.atencao,
+    warnSoft: dark ? "#33270F" : "#FBEED5",
+    onWarn: t.verdeTinta,
+    danger: t.erro,
+    info: CORES_BOTS.azul,
+    plate: dark ? "rgba(255, 255, 255, 0.06)" : "rgba(10, 10, 10, 0.05)",
+    plateSoft: dark ? "rgba(255, 255, 255, 0.04)" : "rgba(10, 10, 10, 0.03)",
+    scrim: dark ? "rgba(0, 0, 0, 0.6)" : "rgba(10, 10, 10, 0.32)",
+    surface: t.palco,
+    surfaceRaised: t.palco2,
+    surfaceSunken: t.palco3,
+    inkMuted: t.texto2,
+    action: t.texto,
+    onAction: t.palco,
+    attention: t.atencao,
+    onAttention: t.verdeTinta,
+    attentionSoft: dark ? "#33270F" : "#FBEED5",
+    success: t.texto,
+    grouped: t.palco,
+    // The person's own message: one step up (`--db-palco-4` in dark), as the identity's "Mensagem".
+    bubble: t.palco4,
+    amber: t.atencao,
+    amberInk: dark ? t.atencao : "#7A4700",
+    chip: t.palco3,
+    badge: t.erro,
+    grabber: dark ? "rgba(237, 237, 237, 0.3)" : "rgba(10, 10, 10, 0.25)",
+    green: t.verde,
+    greenInk: t.verdeTinta,
+    greenText: t.verdeTexto,
+    chosen: t.verdeSuave,
+    greenGlow: t.verdeLuz,
+    glassEdge: t.vidroBorda,
+    glassTop: t.vidroBrilho,
+    glassCard: t.vidroCartao,
   };
 }
 
+export function appColors(scheme: Scheme): AppColors {
+  return fromDoug(scheme);
+}
+
 /** A card inside a dark sheet: one step above the sheet, as the sheet is one above the screen. */
-const DARK_SHEET_CARD = "#292928";
+const DARK_SHEET_CARD = "#262626";
 
 /**
  * The colors inside a form sheet. In dark the sheet is lifted one step above the screen behind it (the dark
@@ -97,9 +126,10 @@ export function sheetColors(colors: AppColors, scheme: Scheme): AppColors {
   if (scheme !== "dark") return colors;
   return {
     ...colors,
-    bg: colors.raised,
-    grouped: colors.raised,
-    surface: colors.raised,
+    // The sheet on the glass's own step (`--db-palco-3`), its cards one more: each step told apart.
+    bg: colors.raised2,
+    grouped: colors.raised2,
+    surface: colors.raised2,
     raised: DARK_SHEET_CARD,
     raised2: DARK_SHEET_CARD,
     surfaceRaised: DARK_SHEET_CARD,

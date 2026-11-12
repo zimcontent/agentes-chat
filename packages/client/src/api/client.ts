@@ -666,6 +666,13 @@ export interface ApiClient {
       input: { agentId: string; fromChannelId: string | null; toChannelId: string; reason: string },
     ): Promise<{ channelId: string; messageId: string; rightHandId: string }>;
     create(orgId: string, input: AgentInput): Promise<Agent>;
+    /**
+     * Its real photo (`PUT …/orgs/{orgId}/agents/{agentId}/photo`): a form with the image in `file` (JPEG, PNG or WebP
+     * up to 5 MB, already cropped square). Its owner or who manages agents. Answers the photo's address.
+     */
+    setAgentPhoto(orgId: string, agentId: string, body: FormData): Promise<{ photo: string }>;
+    /** Back to its drawn look. */
+    removeAgentPhoto(orgId: string, agentId: string): Promise<void>;
     /** An agent's proposal of a new agent, by its card's message (ADR 0081). */
     proposal(orgId: string, messageId: string): Promise<AgentProposal>;
     /**

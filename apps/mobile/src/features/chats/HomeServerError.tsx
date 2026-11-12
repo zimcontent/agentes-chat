@@ -82,7 +82,7 @@ export function HomeServerError({ retry }: { retry: () => Promise<unknown> }) {
   const rightHand = dir.agents.find((a) => a.builtin === "right_hand");
   const look = rightHand
     ? { ...agentLook(rightHand), id: rightHand.id }
-    : { color: "sky" as const, eyes: "round" as const, id: "agentes" };
+    : { color: "sky" as const, eyes: "round" as const, id: "doug", name: "Doug" };
   return (
     <View style={styles.full} accessibilityLiveRegion="polite">
       <AgentAvatar agent={look} size={96} mode="sleep" framed={false} />

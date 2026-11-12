@@ -2,20 +2,20 @@ import { rightHandOf } from "@agenteschat/client/lib/right-hand";
 import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { Pressable, StyleSheet, View } from "react-native";
-import { Icon, Sky, Text } from "@/ui";
+import { Icon, Text } from "@/ui";
 import { AgentFace } from "./Face";
 import { useColors, useDirectory } from "./hooks";
 
-/** How many of the team stand on the horizon. */
+/** How many of the team stand in the band. */
 const FACES = 3;
-/** The faces: framed in their skies, the list's small size. */
+/** The faces: the list's small size. */
 const FACE = 36;
 
 /**
- * A list with nothing in it, right on the page (no card, no box): the pixel sky as a horizon band, a few of the team
- * on it (the right hand first), blinking as they do in the list, then one headline and one calm line, and at most
- * one quiet action under them. Threads and Atividade empty, where the subject is the agents' work. With no agent
- * yet the sky stands alone.
+ * A list with nothing in it, right on the page (no card, no box): a few of the team standing in a band (the right
+ * hand first), blinking as they do in the list, then one headline and one calm line, and at most one quiet action
+ * under them. Threads and Atividade empty, where the subject is the agents' work. DougBot has no decorative sky: the
+ * band is the plain page, the same height as before; with no agent yet it is empty.
  */
 export function TeamSkyEmpty({
   title,
@@ -36,7 +36,6 @@ export function TeamSkyEmpty({
   return (
     <View style={styles.box}>
       <View style={styles.horizon} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
-        <Sky color="sky" depth={0.7} fade={0.35} style={StyleSheet.absoluteFill} />
         <View style={styles.faces}>
           {ids.map((id) => (
             <AgentFace key={id} agentId={id} size={FACE} live />
@@ -82,13 +81,11 @@ export function RetryLine({ onRetry }: { onRetry: () => void }) {
 
 const styles = StyleSheet.create({
   box: { paddingTop: 16, paddingHorizontal: 16, alignItems: "center", gap: 4 },
-  // The horizon band, edge to edge inside the margin: the team stands low on it, as on the home's sky.
+  // The team's band, edge to edge inside the margin: the team stands low in it.
   horizon: {
     alignSelf: "stretch",
     height: 96,
     marginBottom: 12,
-    borderRadius: 20,
-    overflow: "hidden",
     alignItems: "center",
     justifyContent: "flex-end",
     paddingBottom: 14,

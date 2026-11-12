@@ -34,7 +34,7 @@ test("the kit's screens, grouped rows and toolbar controls read those numbers in
 
 test("a small button and a card's footer button are the web's 32, their targets grown to 44 above and below only", () => {
   const button = source("Button.tsx");
-  expect(button).toContain("const SMALL = { height: TOOL_H, radius: 10, padding: 12");
+  expect(button).toContain("const SMALL = { height: TOOL_H, radius: 8, padding: 12");
   expect(button).toMatch(/card: SMALL,\s*sm: SMALL,/);
   expect(button).toContain("const grow = (TOUCH - height) / 2;");
   expect(button).toContain("return grow > 0 ? { top: grow, bottom: grow } : undefined;");
@@ -45,13 +45,13 @@ test("a small button and a card's footer button are the web's 32, their targets 
   expect(sized.map((f) => relative(SRC, f))).toEqual([]);
 });
 
-test("a chip's label wraps inside it instead of ending in …, its icon on the first line; one line is the 24 pill", () => {
+test("a chip's label wraps inside it instead of ending in …, its icon on the first line; one line is 24 tall, radius 8 (DougBot: no pills)", () => {
   const chip = source("Chip.tsx");
   const label = chip.slice(chip.indexOf("<RNText maxFontSizeMultiplier"), chip.indexOf("{label}"));
   expect(label).not.toContain("numberOfLines");
   expect(chip).toContain('alignItems: "flex-start"');
   expect(chip).toContain("paddingVertical: (HEIGHT - LINE) / 2");
-  expect(chip).toContain("borderRadius: HEIGHT / 2");
+  expect(chip).toContain("borderRadius: 8,");
   expect(chip).toContain('<View style={{ height: line, justifyContent: "center" }}>');
 });
 

@@ -10,6 +10,7 @@ import {
 import { type ReactNode, useLayoutEffect, useMemo, useState, useSyncExternalStore } from "react";
 import { useTranslation } from "react-i18next";
 import { Platform } from "react-native";
+import { DB_FONTES } from "@/brand/tokens";
 import { needsHeaderBlur, pushOnce } from "@/lib/nav";
 import { IconButton } from "./IconButton";
 import { sheetColors } from "./palette";
@@ -86,6 +87,13 @@ export function useNavigationTheme(): NavigationTheme {
     return {
       ...base,
       dark: scheme === "dark",
+      // DougBot's type in the system's bars too: Manrope for titles, Inter for the rest.
+      fonts: {
+        regular: { fontFamily: DB_FONTES.texto400, fontWeight: "400" },
+        medium: { fontFamily: DB_FONTES.texto500, fontWeight: "500" },
+        bold: { fontFamily: DB_FONTES.titulo700, fontWeight: "700" },
+        heavy: { fontFamily: DB_FONTES.titulo800, fontWeight: "800" },
+      },
       colors: {
         ...base.colors,
         primary: colors.ink,
@@ -131,7 +139,7 @@ export function useLargeTitleOptions(): NativeStackNavigationOptions {
       headerStyle: { backgroundColor: "transparent" },
       headerShadowVisible: false,
       headerLargeTitleEnabled: false,
-      headerTitleStyle: { color: colors.ink },
+      headerTitleStyle: { color: colors.ink, fontFamily: DB_FONTES.titulo700, fontWeight: "700" },
       headerTintColor: colors.ink,
       contentStyle: { backgroundColor: colors.bg },
     }),
@@ -166,7 +174,7 @@ export function CoverTabStack({ title }: { title: string }) {
       headerStyle: { backgroundColor: "transparent" },
       headerShadowVisible: false,
       headerLargeTitleEnabled: false,
-      headerTitleStyle: { color: colors.ink },
+      headerTitleStyle: { color: colors.ink, fontFamily: DB_FONTES.titulo700, fontWeight: "700" },
       headerTintColor: colors.ink,
       contentStyle: { backgroundColor: colors.bg },
     }),
@@ -200,7 +208,7 @@ export function usePushedOptions(): NativeStackNavigationOptions {
       headerTransparent: false,
       headerStyle: { backgroundColor: colors.bg },
       headerShadowVisible: false,
-      headerTitleStyle: { color: colors.ink },
+      headerTitleStyle: { color: colors.ink, fontFamily: DB_FONTES.titulo700, fontWeight: "700" },
       headerTintColor: colors.ink,
       gestureEnabled: true,
       // From the right on both platforms (Android's default rises from below); a cross-fade with less motion.

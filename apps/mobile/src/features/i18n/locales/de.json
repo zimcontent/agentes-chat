@@ -335,6 +335,7 @@
     "someone": "Jemand",
     "messageTo": "Nachricht an {{name}}",
     "messageIn": "Nachricht in {{channel}}",
+    "messagePlain": "Nachricht",
     "reply": "Antworten",
     "people_one": "{{count}} Person",
     "people_other": "{{count}} Personen",
@@ -2708,5 +2709,19 @@
       "title": "Nichts zu prüfen",
       "text": "Wenn ein Agent außerhalb des Gesprächs etwas tut, erscheint es hier."
     }
+  },
+  "photo": {
+    "section": "Foto",
+    "upload": "Foto hochladen",
+    "useBot": "DougBot-Avatar verwenden",
+    "fromLibrary": "Aus der Mediathek wählen",
+    "fromCamera": "Foto aufnehmen",
+    "failed": "Das Foto konnte nicht hochgeladen werden. Versuch es noch einmal.",
+    "agentHint": "Das Foto erscheint statt des gezeichneten Bots, für das ganze Team.",
+    "meHint": "Dein Foto sehen die Personen in deinen Workspaces."
+  },
+  "brand": {
+    "basedOn": "Basiert auf agentes.chat von Codari Global, LLC — AGPL-3.0",
+    "source": "Quellcode von DougBot"
   }
 }

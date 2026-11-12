@@ -25,9 +25,18 @@ export function Card({ children, style }: CardProps) {
   });
   return (
     <View
-      style={[{ borderRadius: 20, backgroundColor: colors.raised, boxShadow: `${shadows.e1}, ${shadows.top}` }, style]}
+      style={[
+        {
+          borderRadius: 22,
+          backgroundColor: colors.raised,
+          borderWidth: 1,
+          borderColor: colors.glassEdge,
+          boxShadow: shadows.top,
+        },
+        style,
+      ]}
     >
-      <View style={{ borderRadius: 20, overflow: "hidden" }}>{content}</View>
+      <View style={{ borderRadius: 21, overflow: "hidden" }}>{content}</View>
     </View>
   );
 }

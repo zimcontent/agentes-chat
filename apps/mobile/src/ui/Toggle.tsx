@@ -64,7 +64,8 @@ export function ToggleSwitch({ value }: { value: boolean }) {
         {
           width: 46,
           height: 28,
-          borderRadius: 999,
+          // DougBot: no pills; radius 8 outside, the knob 8 − 3 = 5 inside.
+          borderRadius: 8,
           boxShadow: "inset 0px 1px 2px 0px rgba(0, 0, 0, 0.1)",
         },
         track,
@@ -78,7 +79,7 @@ export function ToggleSwitch({ value }: { value: boolean }) {
             left: 3,
             width: 22,
             height: 22,
-            borderRadius: 11,
+            borderRadius: 5,
             boxShadow: "0px 1px 3px 0px rgba(0, 0, 0, 0.25)",
           },
           knob,

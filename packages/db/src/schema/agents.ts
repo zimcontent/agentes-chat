@@ -167,6 +167,11 @@ export const agents = pgTable(
     /** Its look in the app (color, eyes, accessory from a fixed allow-list). Null = the default look. */
     appearance: jsonb().$type<{ color: string; eyes: string; accessory: string }>(),
     /**
+     * Its real photo (`/api/app/orgs/{orgId}/agents/{agentId}/photo/{hash}.{ext}`), like a person's; null: the drawn
+     * look. A column of this instance's own (`EXTRA_COLUMNS`), outside the numbered migrations.
+     */
+    photo: text(),
+    /**
      * The setup checklist at the top of its chat (ADR 0155 §2): the ready-made role it started from (null: from
      * scratch or made elsewhere) and the steps a person confirmed. Null = made before the checklist: none shows.
      * No migration for its extras (jsonb).

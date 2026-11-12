@@ -9,11 +9,11 @@ export const featureKeysEn = {
   categories: {
     title: "Categories",
     where: "Where #{{channel}} shows",
-    whereHelp: "Changes for everyone. Who takes part in the channel stays the same.",
+    whereHelp: "Changes for everyone. Who takes part in the group stays the same.",
     create: "Create",
     endOfList: "Goes to the end of the list for everyone.",
-    channelCount_one: "{{count}} channel",
-    channelCount_other: "{{count}} channels",
+    channelCount_one: "{{count}} group",
+    channelCount_other: "{{count}} groups",
     none: "No categories yet.",
     manageHelp: "Tap a category to rename it, move it or delete it.",
     manageHint: "Order, names and delete",
@@ -23,7 +23,7 @@ export const featureKeysEn = {
     down: "Move down",
     position: "{{at}} of {{count}}.",
     channelPosition: "{{at}} of {{count}}.",
-    itsChannels: "Channels",
+    itsChannels: "Groups",
     seeAll: "See all",
   },
   blocks: {
@@ -198,12 +198,12 @@ export const featureKeysEn = {
     },
     section: {
       agents: "Agents",
-      channels: "Channels",
+      channels: "Groups",
       people: "People",
     },
     seeAll: {
       agents: "See all agents",
-      channels: "See all channels",
+      channels: "See all groups",
       people: "See all people",
     },
     wait: {
@@ -243,10 +243,10 @@ export const featureKeysEn = {
     mission: "Mission",
     unreadLabel_one: "{{count}} unread",
     unreadLabel_other: "{{count}} unread",
-    newChannel: "New channel",
+    newChannel: "New group",
     newChannelHint: "For a team or a topic",
-    channelPlaceholder: "Channel name, e.g. marketing",
-    createChannel: "Create channel",
+    channelPlaceholder: "Group name, e.g. marketing",
+    createChannel: "Create group",
     /** A personal workspace's channels are its group conversations (ADR 0159). */
     newChannelHintPersonal: "For one subject, with several agents",
     channelPlaceholderPersonal: "Name, e.g. travel",
@@ -358,6 +358,8 @@ export const featureKeysEn = {
     someone: "Someone",
     messageTo: "Message {{name}}",
     messageIn: "Message {{channel}}",
+    /** The composer's placeholder when the header already says who the conversation is with. */
+    messagePlain: "Message",
     reply: "Reply",
     people_one: "{{count}} person",
     people_other: "{{count}} people",
@@ -387,11 +389,11 @@ export const featureKeysEn = {
     switchTitle: "Switch conversation",
     switchSearch: "Search conversations",
     switchAgents: "Agents",
-    switchChannels: "Channels",
+    switchChannels: "Groups",
     switchPeople: "People",
     switchNone: "No conversation with that name.",
     switchWorking: "working",
-    join: "Join the channel",
+    join: "Join the group",
     sending: "Sending…",
     toLatest: "Go to the latest messages",
     toLatestNew: "Go to the latest messages: {{text}}",
@@ -847,11 +849,11 @@ export const featureKeysEn = {
   },
   /** Equipe (ADR 0148): its row on Agentes and the map's line. */
   team: {
-    entry: "Org chart and channels",
+    entry: "Org chart and groups",
     /** A department's row: who leads it and who stands in. */
     sectorLead: "{{name}} leads",
     sectorBackup: "{{name}} stands in",
-    mapHint: "To move an agent to another channel, use the map on the web or talk to {{name}}.",
+    mapHint: "To move an agent to another group, use the map on the web or talk to {{name}}.",
   },
   agentEdit: {
     missing: "This agent no longer exists.",
@@ -1084,21 +1086,21 @@ export const featureKeysEn = {
     },
   },
   channelRef: {
-    list: "Channels",
-    a11y: "Channel #{{name}}",
-    archivedA11y: "Channel #{{name}}, archived",
+    list: "Groups",
+    a11y: "Group #{{name}}",
+    archivedA11y: "Group #{{name}}, archived",
     archived: "#{{name}} was archived",
     notMember: "you're not in it",
   },
   mention: {
     list: "People and agents",
-    inChannel: "In this channel",
-    outside: "Not in the channel",
+    inChannel: "In this group",
+    outside: "Not in the group",
     agent: "agent",
     person: "person",
     add: "Add",
-    addA11y: "Add {{name}} to the channel",
-    added: "{{name}} joined the channel",
+    addA11y: "Add {{name}} to the group",
+    added: "{{name}} joined the group",
   },
   me: {
     title: "You",
@@ -1117,7 +1119,7 @@ export const featureKeysEn = {
     start: "When the app opens",
     startHome: "Conversations",
     startLast: "Where you left off",
-    startChannels: "A channel",
+    startChannels: "A group",
     startHint: "For this workspace, here and on your computer, where home is the Home page.",
     startFailed: "Couldn't save that. Try again.",
     activity: "Agents' replies",
@@ -1165,7 +1167,7 @@ export const featureKeysEn = {
     notificationsOnHint: "They also arrive in the browser and the desktop app, if they're on there.",
     notificationsOffHint: "Turn them on to get notifications here. The kinds below apply to all your devices.",
     notificationsKindsHint: "Activity keeps everything. This applies to this workspace, on all your devices.",
-    version: "agentes.chat · version {{version}}",
+    version: "DougBot · version {{version}}",
     /** The bar's word on Você: it opens Conta. */
     edit: "Edit",
     status: "Status",
@@ -1192,11 +1194,11 @@ export const featureKeysEn = {
     workspacesUnreachable: "No answer right now",
     addWorkspace: "Add workspace",
     addWorkspaceCreate: "Create a new workspace",
-    addWorkspaceCreateSub: "On agentes.chat",
+    addWorkspaceCreateSub: "On DougBot",
     addWorkspaceTeam: "Join your team's server",
     addWorkspaceTeamSub: "By its address or the QR code shown on the computer",
     teamServer: "Team server",
-    teamServerLead: "Your team's agentes.chat address, the same one shown in the browser.",
+    teamServerLead: "Your team's DougBot address, the same one shown in the browser.",
     teamServerFoot: "You don't leave any workspace: your team's server joins your list, with your account there.",
     /** The sheet from holding the workspace's mark in the bar, and its shorter words (ADR 0154). */
     workspacesHoldHint: "Hold to switch workspace",
@@ -1953,8 +1955,8 @@ export const featureKeysEn = {
       serverText: "One line to paste in its terminal",
       computer: "Another computer",
       computerText: "Install the app on it",
-      appNote: "On a Mac or a PC you use, the agentes.chat desktop app connects it too.",
-      appStep1: "Get the agentes.chat app on it",
+      appNote: "On a Mac or a PC you use, the DougBot desktop app connects it too.",
+      appStep1: "Get the DougBot app on it",
       appStep2: "Open it and sign in as yourself",
       appStep3: "Click Allow when it asks to let {{org}}'s agents use it",
       appShows: "It shows up here by itself, only for you until you share it.",
@@ -1977,7 +1979,7 @@ export const featureKeysEn = {
       connecting: "Connecting to {{host}}",
       computer: "Computer",
       noHost: "This phone works through a computer of yours. Connect one first.",
-      hostOffline: "{{host}} is offline. Turn it on and open agentes.chat there.",
+      hostOffline: "{{host}} is offline. Turn it on and open DougBot there.",
       step1: "Turn on Developer options",
       /** Android's own setting names; Samsung's own where its path differs. */
       step1Text:
@@ -2007,10 +2009,10 @@ export const featureKeysEn = {
       wifi2Text:
         "From Wireless debugging\u00a0›\u00a0Pair device with QR code. Don't use the camera: it reads the code as a Wi-Fi network and takes the phone off your Wi-Fi.",
       wifi2Hint:
-        "In agentes.chat on a computer, open Connect a device\u00a0›\u00a0Android phone\u00a0›\u00a0Over Wi-Fi and pick {{host}}.",
+        "In DougBot on a computer, open Connect a device\u00a0›\u00a0Android phone\u00a0›\u00a0Over Wi-Fi and pick {{host}}.",
       codeHead: "Pair with a pairing code",
       codeNote:
-        "From Wireless debugging\u00a0›\u00a0Pair device with pairing code. Open Settings and agentes.chat side by side so the code stays on screen.",
+        "From Wireless debugging\u00a0›\u00a0Pair device with pairing code. Open Settings and DougBot side by side so the code stays on screen.",
       wifiNote: "Wi-Fi can drop after a restart. A cable is more reliable.",
       done: "{{name}} is connected",
       openFailed: "This phone didn't open that screen. Find it in Settings.",
@@ -2170,7 +2172,7 @@ export const featureKeysEn = {
     fromAgent: "Connect a service",
     /** GitHub with the agentes.chat app (ADR 0156): the app first, an account as the other way. */
     githubApp: {
-      useApp: "Use the agentes.chat app",
+      useApp: "Use the DougBot app",
       useAccount: "Use a GitHub account",
       /** The server's owner makes the app on the web (GitHub's manifest flow needs the browser's session). */
       createInBrowser: "Create in the browser",
@@ -2233,7 +2235,7 @@ export const featureKeysEn = {
     here: "Already here",
     invited: "Already invited",
     fix: "Check this",
-    channels: "Channels",
+    channels: "Groups",
     optional: "Optional",
     ok: "OK",
     noteHelp: "It shows in the email with your name. Up to {{max}} characters.",
@@ -2279,13 +2281,13 @@ export const featureKeysEn = {
     anotherTitle: "What's the new workspace called?",
     /** Its first question (ADR 0159), before the name: "For me" or "For my team". */
     anotherPurpose: "What's the new workspace for?",
-    anotherLead: "On agentes.chat. You stay in {{org}} and can switch any time.",
+    anotherLead: "On DougBot. You stay in {{org}} and can switch any time.",
     /** The first run's name, suggested from a work address's domain. */
     suggested: "From your {{domain}} e-mail, I suggested {{org}}.",
     create: "Create",
     /** The onboarding's plan step on the phone, which can't take the plan: into the workspace, the team asleep. */
     enter: "Go to the workspace",
-    shareMessage: "Join {{org}} on agentes.chat: {{url}}",
+    shareMessage: "Join {{org}} on DougBot: {{url}}",
     failed: "Couldn't save. Try again.",
   },
   ai: {
@@ -2759,10 +2761,10 @@ export const featureKeysEn = {
     },
     channels: {
       title: "Bring people and agents together",
-      text: "Each channel gathers whoever takes care of one subject.",
-      viewerTitle: "The team's channels live here",
-      viewerText: "Whoever creates channels opens the first one, and it shows up here.",
-      action: "Create channel",
+      text: "Each group gathers whoever takes care of one subject.",
+      viewerTitle: "The team's groups live here",
+      viewerText: "Whoever creates groups opens the first one, and it shows up here.",
+      action: "Create group",
       titlePersonal: "Talk to several agents at once",
       textPersonal: "Each group conversation gathers the agents and people for one subject.",
       viewerTitlePersonal: "Group conversations live here",
@@ -2839,6 +2841,22 @@ export const featureKeysEn = {
       title: "Nothing to review",
       text: "When an agent does something outside the conversation, it shows up here.",
     },
+  },
+  /** DougBot: the photo of an agent or of the person, in place of the drawn bot. */
+  photo: {
+    section: "Photo",
+    upload: "Upload photo",
+    useBot: "Use the DougBot avatar",
+    fromLibrary: "Choose from library",
+    fromCamera: "Take photo",
+    failed: "Couldn't upload the photo. Try again.",
+    agentHint: "The photo shows instead of the drawn bot, for the whole team.",
+    meHint: "Your photo shows to the people in your workspaces.",
+  },
+  /** DougBot: the fork's credit in About (AGPL-3.0). */
+  brand: {
+    basedOn: "Based on agentes.chat by Codari Global, LLC — AGPL-3.0",
+    source: "DougBot source code",
   },
 };
 

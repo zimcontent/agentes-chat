@@ -8,6 +8,12 @@ export interface AgentLookInput {
   accessory?: string;
   /** Optional: keeps this agent's idle life out of step with the others. */
   id?: string;
+  /** Who it is, for its DougBot (`botDoAgente`: the identity's bot by name or handle, else a free bot by its trade). */
+  name?: string;
+  handle?: string;
+  role?: string;
+  /** Its real photo (a backend path), shown instead of the drawing when it loads. */
+  photo?: string | null;
 }
 
 /**
@@ -17,7 +23,17 @@ export interface AgentLookInput {
 const looks = new Map<string, AgentLookInput>();
 
 export function rememberAgentLooks(list: Iterable<{ id: string } & AgentLookInput>): void {
-  for (const a of list) looks.set(a.id, { color: a.color, eyes: a.eyes, accessory: a.accessory, id: a.id });
+  for (const a of list)
+    looks.set(a.id, {
+      color: a.color,
+      eyes: a.eyes,
+      accessory: a.accessory,
+      id: a.id,
+      ...(a.name ? { name: a.name } : {}),
+      ...(a.handle ? { handle: a.handle } : {}),
+      ...(a.role ? { role: a.role } : {}),
+      ...(a.photo ? { photo: a.photo } : {}),
+    });
 }
 
 export const lookOf = (id: string): AgentLookInput | undefined => looks.get(id);

@@ -45,6 +45,7 @@ const LEAVE_MS = 220;
 /** The toast's corner and the room around its icon tile: the tile's corner is the toast's less that room (concentric). */
 const TOAST_R = 22;
 const TOAST_PAD = 12;
+/* Radius 22 (a panel), the tile inside 22 − 12 = 10. */
 /** Where the toast rests off screen, above the top edge. */
 const HIDDEN_Y = -160;
 /** A swipe up this far, or a flick, puts it away. */

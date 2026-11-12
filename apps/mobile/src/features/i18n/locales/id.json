@@ -326,6 +326,7 @@
     "someone": "Seseorang",
     "messageTo": "Kirim pesan ke {{name}}",
     "messageIn": "Kirim pesan di {{channel}}",
+    "messagePlain": "Pesan",
     "reply": "Balas",
     "people_other": "{{count}} orang",
     "agentsHere_other": "{{count}} agen",
@@ -2596,5 +2597,19 @@
       "title": "Tidak ada yang perlu ditinjau",
       "text": "Saat agen melakukan sesuatu di luar percakapan, itu muncul di sini."
     }
+  },
+  "photo": {
+    "section": "Foto",
+    "upload": "Unggah foto",
+    "useBot": "Pakai avatar DougBot",
+    "fromLibrary": "Pilih dari galeri",
+    "fromCamera": "Ambil foto",
+    "failed": "Foto tidak bisa diunggah. Coba lagi.",
+    "agentHint": "Foto tampil menggantikan bot yang digambar, untuk seluruh tim.",
+    "meHint": "Foto Anda terlihat oleh orang-orang di workspace Anda."
+  },
+  "brand": {
+    "basedOn": "Berbasis agentes.chat oleh Codari Global, LLC — AGPL-3.0",
+    "source": "Kode sumber DougBot"
   }
 }

@@ -40,12 +40,12 @@ import { usePersonalView } from "../settings/hooks";
 import { useColors, useDirectory, useMeId, useOrgId } from "../shared/hooks";
 import { PushedHeader, successHaptic } from "../shared/parts";
 import { TextArea } from "../shared/TextArea";
+import { AgentPhotoSection } from "./AgentPhoto";
 import { BrakesSection } from "./BrakesSection";
 import { BudgetSection } from "./BudgetSection";
 import { openAgentDelete } from "./DeleteAgentScreen";
 import { type AgentDraft, agentChanges, editableFields, fullLook } from "./edit";
 import { ErrorLine, HandleInput } from "./HandleInput";
-import { LookList } from "./LookPicker";
 import { openAgentMore } from "./more-link";
 import { ReportsToSection } from "./ReportsToSection";
 import { RoleInput } from "./RoleInput";
@@ -172,7 +172,11 @@ export function AgentEditScreen({ id }: { id: string }) {
       >
         <Locked when={update.isPending}>
           <View style={styles.hero}>
-            <AgentAvatar agent={{ ...draft.look, id }} size={96} name={draft.name} />
+            <AgentAvatar
+              agent={{ ...draft.look, id, handle: draft.handle, role: draft.role, photo: agent.photo ?? null }}
+              size={96}
+              name={draft.name}
+            />
             <Text variant="footnote" tone="muted">
               @{draft.handle}
             </Text>
@@ -234,7 +238,9 @@ export function AgentEditScreen({ id }: { id: string }) {
             readOnly(t("agent.roleLabel"), agent.role)
           )}
 
-          {fields.has("look") ? <LookList look={draft.look} onChange={(look) => set("look", look)} /> : null}
+          {/* DougBot: the bot is drawn from who the agent is (its name and trade), so the old look picker gives way to a
+              real photo, or the drawn bot again (the same people who could change the look). */}
+          {fields.has("look") ? <AgentPhotoSection agentId={id} photo={agent.photo} /> : null}
 
           {/* With family in a personal workspace (ADR 0159), who talks to it is a row here for whoever may change
               it, to its step's screen (otherwise only the setup card opens it). The same audience, one more way in. */}

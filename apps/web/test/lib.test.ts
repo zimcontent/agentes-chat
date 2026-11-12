@@ -250,7 +250,7 @@ describe("grammar", () => {
     expect(te("chat.work.block", theo)).toBe("What he did");
     expect(te("chat.joined.tip", theo)).toBe("Nobody called Theo. He joined to help.");
     expect(te("channelMembers.removeAgentBody", ada)).toBe(
-      "She stops reading and answering in this channel. You can add her back later.",
+      "She stops reading and answering in this group. You can add her back later.",
     );
     // Where Portuguese needs no pronoun, English has none either.
     expect(te("agent.budgetHelp", { ...ada, ownerNote: "" }).trim()).toBe(
@@ -480,7 +480,7 @@ describe("the confirmation email", () => {
       );
     }
     expect(shown).toEqual([
-      "Sem conexão com o agentes.chat agora. Tente de novo em instantes.",
+      "Sem conexão com o DougBot agora. Tente de novo em instantes.",
       "Muitas tentativas. Espere alguns minutos e tente de novo.",
       "Não deu certo. Confira o que preencheu e tente de novo.",
     ]);

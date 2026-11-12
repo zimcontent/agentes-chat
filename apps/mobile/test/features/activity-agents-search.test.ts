@@ -153,7 +153,7 @@ describe("Atividade", () => {
       "Não deu certo",
     );
     expect(routine("routine_paused", { title: "Sentry diário", reason: "agent_not_in_channel" })).toBe(
-      "Pausada: o agente não está mais no canal",
+      "Pausada: o agente não está mais no grupo",
     );
   });
 

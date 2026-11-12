@@ -313,7 +313,7 @@ export function AppearancePage() {
     <Page title={t("mobile.me.appearance")}>
       <View style={styles.gap} />
       <GroupedList>
-        {(["system", "light", "dark"] as const).map((key) => (
+        {(["dark", "light", "system"] as const).map((key) => (
           <GroupedRow
             key={key}
             label={t(`mobile.theme.${key}`)}

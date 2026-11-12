@@ -1,10 +1,14 @@
 import type { ConfigContext, ExpoConfig } from "expo/config";
 
 /**
- * The app's Expo config. Builds: the "Android build" and "iOS build" workflows on GitHub Actions, or EAS (see
+ * DougBot's Expo config (the fork of agentes.chat by Codari Global, LLC, AGPL-3.0; identity in
+ * identidade/dougbot-identidade). The app's Expo config. Builds: the "Android build" and "iOS build" workflows on GitHub Actions, or EAS (see
  * README.md). The native projects are made from this file by `expo prebuild` and never committed.
- * - `EXPO_PUBLIC_API_URL`: the server the app talks to by default (production); people can pick their own.
- * - `EAS_PROJECT_ID`: overrides the EAS project (the iPhone's Expo push tokens need it); defaults to ours on expo.dev.
+ * - `EXPO_PUBLIC_API_URL`: the server the app talks to by default (production: https://time.zimcontent.com); people
+ *   can pick their own.
+ * - `EAS_PROJECT_ID`: the EAS project (the iPhone's Expo push tokens need it). Not set here on purpose: `eas init`
+ *   creates the owner's own project on expo.dev and writes its id below (`DOUGBOT_EAS_PROJECT_ID`), or the build's
+ *   environment gives it. Never upstream's project.
  * - `APP_VARIANT`: "development" | "preview" | "production" (from eas.json or the workflow), so the three install
  *   side by side.
  * - `GOOGLE_SERVICES_JSON`: path to Firebase's google-services.json, for push on Android (FCM).
@@ -17,8 +21,9 @@ import type { ConfigContext, ExpoConfig } from "expo/config";
  * (the SDK 58 config type no longer has it). Edge-to-edge on Android is likewise always on.
  */
 const variant = process.env.APP_VARIANT ?? "production";
+const prancha = process.env.DOUGBOT_PRANCHA === "1";
 const suffix = variant === "production" ? "" : `.${variant}`;
-const apiUrl = process.env.EXPO_PUBLIC_API_URL ?? "https://app.agentes.chat";
+const apiUrl = process.env.EXPO_PUBLIC_API_URL ?? "https://time.zimcontent.com";
 // Links to this host open the app (universal links / App Links); the server publishes the matching /.well-known
 // files (apps/server/src/app-links.ts).
 const linkHost = new URL(apiUrl).host;
@@ -79,10 +84,17 @@ export const APP_LINK_PATTERNS = [
   "/org/*/settings/computers/*",
   "/org/*/settings/devices/*",
 ];
-// Our EAS project on expo.dev (not a secret: it only names the project).
-const projectId = process.env.EAS_PROJECT_ID ?? "8514d5b3-87e0-4980-89a0-4c692f6f4702";
-// expo-image-picker and expo-camera both set iOS's camera text: one text for both uses.
-const CAMERA_USE = "To take pictures for your conversations and scan QR codes.";
+// DougBot's EAS project on expo.dev (not a secret: it only names the project). Empty until the owner runs `eas init`
+// (TESTFLIGHT.md), which fills it in; `EAS_PROJECT_ID` in the environment wins.
+const DOUGBOT_EAS_PROJECT_ID = "";
+const projectId = process.env.EAS_PROJECT_ID || DOUGBOT_EAS_PROJECT_ID || undefined;
+/** The app's name on the home screen and in the stores. */
+const APP_NAME = "DougBot";
+// The bundle id / package: io.mydoug.app, with .preview and .development side by side.
+const BUNDLE_ID = `io.mydoug.app${suffix}`;
+// expo-image-picker and expo-camera both set iOS's camera text: one text for both uses (pt-BR and the other languages
+// in assets/locales/*.json win on phones in those languages).
+const CAMERA_USE = "To take pictures for your conversations and your agents' photos, and to scan QR codes.";
 
 /**
  * Paths the app no longer has (the old Início and Conversas routes), sent to Conversas (`/`) so a stale link,
@@ -96,25 +108,30 @@ export const LEGACY_REDIRECTS = [
 
 export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
-  name: variant === "production" ? "agentes" : `agentes ${variant}`,
-  slug: "agentes",
-  scheme: "agenteschat",
+  name: variant === "production" ? APP_NAME : `${APP_NAME} ${variant}`,
+  slug: "dougbot",
+  // `dougbot://` is the app's own; `agenteschat://` stays as a second scheme because the server trusts it for the app's
+  // sign-in, OAuth returns and the "open on the phone" QR codes (apps/server/src/auth.ts `APP_SCHEME`,
+  // packages/engine/src/connectors/oauth-return.ts, packages/client/src/lib/server.ts).
+  scheme: ["dougbot", "agenteschat"],
   version: "0.1.0",
   // Upright everywhere (the plugin below); only the agent's screen, in control, lies down (`useSideways`).
   orientation: "default",
   icon: "./assets/images/icon.png",
   userInterfaceStyle: "automatic",
   ios: {
-    bundleIdentifier: `chat.agentes.app${suffix}`,
+    bundleIdentifier: BUNDLE_ID,
     ...(process.env.APPLE_TEAM_ID ? { appleTeamId: process.env.APPLE_TEAM_ID } : {}),
     ...(process.env.IOS_BUILD_NUMBER ? { buildNumber: process.env.IOS_BUILD_NUMBER } : {}),
     supportsTablet: false,
     usesAppleSignIn: true,
     associatedDomains: [`applinks:${linkHost}`],
+    // App Store Connect asks about encryption on every build: only the system's HTTPS, so exempt (no export papers).
     config: { usesNonExemptEncryption: false },
+    infoPlist: { ITSAppUsesNonExemptEncryption: false },
   },
   android: {
-    package: `chat.agentes.app${suffix}`,
+    package: BUNDLE_ID,
     // Firebase's config comes from the build's environment, so the public repo carries none and a self-built app
     // brings its own Firebase project.
     ...(process.env.GOOGLE_SERVICES_JSON ? { googleServicesFile: process.env.GOOGLE_SERVICES_JSON } : {}),
@@ -123,7 +140,8 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     adaptiveIcon: {
       foregroundImage: "./assets/images/adaptive-icon.png",
       backgroundImage: "./assets/images/adaptive-icon-background.png",
-      backgroundColor: "#02060f",
+      // The stage (`--db-palco`): the Doug's layer is drawn from his code (scripts/brand-assets.ts).
+      backgroundColor: "#0A0A0A",
     },
     predictiveBackGestureEnabled: false,
     intentFilters: [
@@ -158,7 +176,9 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     ru: "./assets/locales/ru.json",
   },
   plugins: [
-    ["expo-router", { redirects: LEGACY_REDIRECTS }],
+    // `DOUGBOT_PRANCHA=1 expo start --web`: the visual board (`prancha/`, the app's own components with sample data,
+    // for the Q&A in a browser). Never in a build.
+    ["expo-router", { redirects: LEGACY_REDIRECTS, ...(prancha ? { root: "./prancha" } : {}) }],
     ["expo-screen-orientation", { initialOrientation: "PORTRAIT_UP" }],
     "expo-secure-store",
     // Every ready language, so Android 13+ and iOS offer it as the app's own language.
@@ -178,15 +198,16 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
         image: "./assets/images/splash-icon.png",
         imageWidth: 120,
         resizeMode: "contain",
-        backgroundColor: "#ffffff",
-        dark: { image: "./assets/images/splash-icon.png", backgroundColor: "#0f0f0e" },
+        // DougBot's light stage and dark stage (`--db-palco`), the Doug drawn from his code (scripts/brand-assets.ts).
+        backgroundColor: "#F4F6F2",
+        dark: { image: "./assets/images/splash-icon.png", backgroundColor: "#0A0A0A" },
       },
     ],
     [
       "expo-notifications",
       {
         icon: "./assets/images/notification-icon.png",
-        color: "#0063d1",
+        color: "#9CFA05",
       },
     ],
     // Android release builds signed with the upload key from the environment (the Android build workflow).
@@ -194,7 +215,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     [
       "expo-image-picker",
       {
-        photosPermission: "To send pictures in your conversations.",
+        photosPermission: "To send pictures in your conversations and choose your agents' photos.",
         cameraPermission: CAMERA_USE,
       },
     ],
@@ -214,7 +235,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       // extension takes the app's name and shares its URL scheme; it reaches phones only with a new native build.
       "expo-share-intent",
       {
-        iosShareExtensionName: variant === "production" ? "agentes" : `agentes ${variant}`,
+        iosShareExtensionName: variant === "production" ? APP_NAME : `${APP_NAME} ${variant}`,
         iosActivationRules: {
           NSExtensionActivationSupportsText: true,
           NSExtensionActivationSupportsWebURLWithMaxCount: 1,
@@ -231,13 +252,14 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       // Salvar em Fotos: add-only access (the read text matches expo-image-picker's).
       "expo-media-library",
       {
-        photosPermission: "To send pictures in your conversations.",
+        photosPermission: "To send pictures in your conversations and choose your agents' photos.",
         savePhotosPermission: "To save pictures from your conversations to Photos.",
         granularPermissions: ["photo"],
       },
     ],
   ],
   experiments: { typedRoutes: false },
+  web: { bundler: "metro", output: "single" },
   extra: {
     apiUrl,
     variant,

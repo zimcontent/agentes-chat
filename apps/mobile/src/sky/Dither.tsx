@@ -1,15 +1,25 @@
-import { Canvas, Fill, Shader, Skia, type SkRuntimeEffect, useClock } from "@shopify/react-native-skia";
-import { useState } from "react";
-import { type LayoutChangeEvent, type StyleProp, View, type ViewStyle } from "react-native";
-import { type SharedValue, useDerivedValue } from "react-native-reanimated";
+import { Skia, type SkRuntimeEffect } from "@shopify/react-native-skia";
+import { useEffect } from "react";
+import { type StyleProp, View, type ViewStyle } from "react-native";
+import Animated, {
+  cancelAnimation,
+  Easing,
+  type SharedValue,
+  useAnimatedStyle,
+  useSharedValue,
+  withRepeat,
+  withTiming,
+} from "react-native-reanimated";
 import { useLivePaused } from "@/agent/live";
-import { useReducedMotion } from "@/ui/theme";
-import { paletteUniform } from "./math";
+import { useReducedMotion, useTheme } from "@/ui/theme";
 import { type DitherKind, shaderSource } from "./shaders";
 
 const effects = new Map<DitherKind, SkRuntimeEffect | null>();
 
-/** The compiled shader for a drawing (compiled once; null if the device refuses it). */
+/**
+ * The compiled shader for a drawing (compiled once; null if the device refuses it). Kept for the launch splash,
+ * which still reads it; nothing in the DougBot identity draws in dither any more.
+ */
 export function effectOf(kind: DitherKind): SkRuntimeEffect | null {
   if (!effects.has(kind)) {
     let effect: SkRuntimeEffect | null = null;
@@ -26,96 +36,96 @@ export function effectOf(kind: DitherKind): SkRuntimeEffect | null {
 
 export interface DitherProps {
   kind: DitherKind;
-  /** Tones, deep to light (up to 8). */
+  /** Tones, deep to light. Ignored: kept so the callers don't change. */
   tones: readonly string[];
-  /** Points per dither cell. */
+  /** Points per dither cell. Ignored. */
   pixel: number;
-  /** Drawing-specific uniforms (`remaining`, `value`, `count` + `states`). */
+  /** Drawing-specific values: `remaining` (fuse) and `value` (bar) still draw a plain bar. */
   extra?: Record<string, number | number[]>;
-  /** Moves with time (sky, fuse, plan track); the spend bar stays still. */
   animated?: boolean;
-  /** Fade out to the bottom from this height share (2 = none). */
   fade?: number;
-  /** Come in from nothing, in dither steps, down to this height share (0 = none): a band that doesn't start at the top. */
   fadeTop?: number;
-  /** The first tone is see-through (a drawing over glass). */
   clear?: boolean;
-  /** The drawing's width, from the UI thread, when it changes faster than a layout should (the canvas stays). */
   liveWidth?: SharedValue<number>;
-  /** The `pill` drawing's `work` uniform, from the UI thread: 0 at rest, 1 working. */
   liveWork?: SharedValue<number>;
   style?: StyleProp<ViewStyle>;
 }
 
-/**
- * A pixel/dither drawing on a Skia shader. Time runs on the UI thread (Skia's clock), so it costs the JS
- * thread nothing; with reduced motion it is drawn once at t = 0. If the shader can't compile, the first
- * tone fills the box.
- */
-export function Dither({
-  kind,
-  tones,
-  pixel,
-  extra,
-  animated = true,
-  fade = 2,
-  fadeTop = 0,
-  clear = false,
-  liveWidth,
-  liveWork,
-  style,
-}: DitherProps) {
-  const reduced = useReducedMotion();
-  // Off screen (LivePause): drawn still, so Skia stops redrawing.
-  const paused = useLivePaused();
-  const [size, setSize] = useState({ width: 0, height: 0 });
-  const onLayout = (e: LayoutChangeEvent) => {
-    const { width, height } = e.nativeEvent.layout;
-    if (width !== size.width || height !== size.height) setSize({ width, height });
-  };
-  const effect = effectOf(kind);
-  const { pal, last } = paletteUniform(tones);
-  const moving = animated && !reduced && !paused;
-  const clock = useClock();
-  const base = {
-    size: [size.width, size.height],
-    px: pixel,
-    last,
-    fade,
-    fadeTop,
-    clear: clear ? 1 : 0,
-    pal,
-    ...(extra ?? {}),
-  };
-  const uniforms = useDerivedValue(() => ({
-    ...base,
-    ...(liveWidth ? { size: [Math.max(1, liveWidth.value), size.height] } : {}),
-    ...(liveWork ? { work: liveWork.value } : {}),
-    t: moving ? clock.value / 1000 : 0,
-  }));
+const hidden = { accessibilityElementsHidden: true, importantForAccessibility: "no-hide-descendants" as const };
 
-  if (!effect)
-    return (
-      <View
-        style={[{ backgroundColor: clear ? "transparent" : (tones[0] ?? "transparent") }, style]}
-        onLayout={onLayout}
-      />
-    );
+/**
+ * What used to be a dither drawing. The DougBot identity has no pixel art and no decorative skies: the skies
+ * (`sky`, `workspace`, `computer`, `horizon`, `sweep`, `pill`) are an empty box with the same style, so no layout
+ * moves; the two drawings that meant something (`fuse`: time left, `bar`: a share used) are a plain `LineBar`.
+ */
+export function Dither({ kind, extra, style }: DitherProps) {
+  if (kind === "fuse" || kind === "bar") {
+    const v = Number(kind === "fuse" ? extra?.remaining : extra?.value);
+    return <LineBar value={Number.isFinite(v) ? v : 0} style={style} />;
+  }
+  return <View style={style} pointerEvents="none" {...hidden} />;
+}
+
+/** A plain bar's default thickness: thin, a stroke rather than a block. */
+export const BAR_HEIGHT = 4;
+
+/**
+ * A plain bar (DougBot): a `colors.line` rail and a `value` share (0..1) filled in `fill` (default the neutral
+ * `colors.ink2`; the warning and error tones only where the bar means an alert). The rail is `thickness` points
+ * high, centered in the box the caller gives (whose height stays the caller's), with round ends (half its height:
+ * the natural end of a stroke, not a pill).
+ */
+export function LineBar({
+  value,
+  fill,
+  thickness = BAR_HEIGHT,
+  style,
+}: {
+  value: number;
+  fill?: string;
+  thickness?: number;
+  style?: StyleProp<ViewStyle>;
+}) {
+  const { colors } = useTheme();
+  const share = Math.max(0, Math.min(1, value));
+  const radius = thickness / 2;
   return (
-    <View
-      style={style}
-      onLayout={onLayout}
-      pointerEvents="none"
-      accessibilityElementsHidden
-      importantForAccessibility="no-hide-descendants"
-    >
-      {size.width > 0 && size.height > 0 ? (
-        <Canvas style={{ width: size.width, height: size.height }}>
-          <Fill>
-            <Shader source={effect} uniforms={uniforms} />
-          </Fill>
-        </Canvas>
-      ) : null}
+    <View style={[{ justifyContent: "center" }, style]} pointerEvents="none" {...hidden}>
+      <View style={{ height: thickness, borderRadius: radius, backgroundColor: colors.line, overflow: "hidden" }}>
+        {share > 0 ? (
+          <View
+            style={{
+              width: `${share * 100}%`,
+              height: thickness,
+              borderRadius: radius,
+              backgroundColor: fill ?? colors.ink2,
+            }}
+          />
+        ) : null}
+      </View>
     </View>
   );
 }
+
+/**
+ * A slow, light opacity pulse (1 → 0.45 → 1) for what is in progress; still under reduced motion, off screen, or
+ * when `active` is false. Returns the animated style for an `Animated.View`.
+ */
+export function usePulse(active: boolean) {
+  const reduced = useReducedMotion();
+  const paused = useLivePaused();
+  const moving = active && !reduced && !paused;
+  const k = useSharedValue(1);
+  useEffect(() => {
+    if (!moving) {
+      cancelAnimation(k);
+      k.value = 1;
+      return;
+    }
+    k.value = withRepeat(withTiming(0.45, { duration: 800, easing: Easing.inOut(Easing.quad) }), -1, true);
+    return () => cancelAnimation(k);
+  }, [moving, k]);
+  return useAnimatedStyle(() => ({ opacity: k.value }));
+}
+
+export { Animated };

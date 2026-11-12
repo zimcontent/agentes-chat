@@ -4,6 +4,7 @@ import { Link } from "expo-router";
 import { memo, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { Platform, StyleSheet, View } from "react-native";
+import { GroupPhoto } from "@/features/shared/GroupPhoto";
 import { TAB_BADGE } from "@/lib/nav";
 import { useOrg } from "@/providers/org";
 import { Count, LIST_AVATAR, LIST_PREVIEW, LineIcon, ListRow, PixelOrbit, Text } from "@/ui";
@@ -15,7 +16,6 @@ import { chatHref } from "../links/logic";
 import { AgentFace, Face } from "../shared/Face";
 import { useColors, useDirectory, useWhen } from "../shared/hooks";
 import { agentLook } from "../shared/logic";
-import { Tile } from "../shared/parts";
 import { usePresenceOf } from "../status/hooks";
 import { type ConversationRow, type LastLine, rowBadge, threadRowLines } from "./logic";
 import type { AgentRowState } from "./now";
@@ -132,10 +132,15 @@ export const ConversationRowView = memo(function ConversationRowView({
     ) : r.kind === "thread" || r.kind === "mission" ? (
       <Face who={r.face} size={r.face.type === "agent" ? AVATAR - 2 : AVATAR} live={live} />
     ) : (
-      <Tile icon="hash" size={AVATAR} />
+      <GroupPhoto icon={r.kind === "channel" ? r.icon : null} size={AVATAR} />
     );
   // A thread on a GIF or a sticker has no words of its own to title it (ADR 0091).
-  const name = r.kind === "channel" ? r.name : r.kind === "dm" ? r.with.name : r.title || t("mobile.chat.thread");
+  const name =
+    r.kind === "channel"
+      ? (r.displayName ?? r.name)
+      : r.kind === "dm"
+        ? r.with.name
+        : r.title || t("mobile.chat.thread");
   // Whose orbit: the DM's agent, or the mission's.
   const orbitAgent = r.kind === "dm" ? r.with.id : r.kind === "mission" ? r.mission?.agentId : null;
   const orbitColor = agentLook(orbitAgent ? dir.agentById.get(orbitAgent) : undefined).color;

@@ -15,17 +15,20 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 import { scheduleOnRN } from "react-native-worklets";
+import { DB_FONTES } from "@/brand/tokens";
 import { Dither } from "@/sky/Dither";
 import { softTones } from "@/sky/math";
 import { Glass, haptics, PressScale, Text, useReducedMotion, useTheme } from "@/ui";
 
 /** The pill's own padding, the face's box and the gaps: the face sits in the capsule's curve. */
-const PAD_LEFT = 6;
+/** DougBot: a glass piece 48 tall, radius 16, the face 32 at 8 from the edge (16 − 8 = 8, concentric). No pill. */
+const PAD_LEFT = 8;
 const PAD_RIGHT = 16;
 const LEAD = 32;
 const GAP = 9;
 const TRAILING_GAP = 2;
-const HEIGHT = 44;
+const HEIGHT = 48;
+const RADIUS = 16;
 const BORDER = StyleSheet.hairlineWidth;
 const MIN_WIDTH = 120;
 const WIDTH_SPRING = { stiffness: 300, damping: 30, mass: 1 };
@@ -119,7 +122,13 @@ export function HeaderPill({
   const [trailingWidth, setTrailingWidth] = useState(0);
   // The hairline border is inside the pill's width too: without it a name sized to fit loses its last letters to "…".
   const chrome =
-    PAD_LEFT + PAD_RIGHT + 2 * BORDER + (lead ? LEAD + GAP : 0) + (trailing ? trailingWidth + GAP + TRAILING_GAP : 0);
+    // +2: a name measured to a fraction (Manrope's tracking) lost its last letter to "…" by a rounding.
+    PAD_LEFT +
+    PAD_RIGHT +
+    2 * BORDER +
+    2 +
+    (lead ? LEAD + GAP : 0) +
+    (trailing ? trailingWidth + GAP + TRAILING_GAP : 0);
   const words = Math.max(nameWidth ?? 0, subtitle ? lineWidth : 0);
   // Closed, the pill is a circle around its lead (no lead to close around: it stays open).
   const closed = collapsed && Boolean(lead);
@@ -205,7 +214,7 @@ export function HeaderPill({
         style={[
           sized,
           // Android's pill is opaque: a short shadow floats it over the conversation, as the glass does on iOS.
-          Platform.OS === "android" && { borderRadius: HEIGHT / 2, boxShadow: shadows.e1 },
+          Platform.OS === "android" && { borderRadius: RADIUS, boxShadow: shadows.e1 },
         ]}
       >
         {/* The same Liquid Glass as the bar's own buttons beside it (iOS 26); the blur and a hairline before. */}
@@ -329,7 +338,7 @@ const styles = StyleSheet.create({
     height: HEIGHT,
     paddingLeft: PAD_LEFT,
     paddingRight: PAD_RIGHT,
-    borderRadius: HEIGHT / 2,
+    borderRadius: RADIUS,
     borderWidth: BORDER,
     overflow: "hidden",
   },
@@ -339,7 +348,8 @@ const styles = StyleSheet.create({
   sky: { position: "absolute", top: 0, left: 0, height: HEIGHT },
   lead: { alignItems: "center", justifyContent: "center", width: LEAD },
   text: { flex: 1, minWidth: 0 },
-  title: { fontWeight: "600", lineHeight: 20 },
+  // The name in Manrope (DougBot's names and titles).
+  title: { fontFamily: DB_FONTES.titulo700, fontWeight: "700", lineHeight: 20, letterSpacing: -0.2 },
   lineBox: { height: 16, overflow: "hidden" },
   line: { position: "absolute", top: 0, left: 0, right: 0 },
   trailing: { flexDirection: "row", alignItems: "center", marginLeft: TRAILING_GAP },

@@ -20,7 +20,7 @@ test("deleting an agent for good (ADR 0082): owners and admins; it leaves the te
   const left = (await (await member(`${org}/agents`)).json()) as { agents: { handle: string }[] };
   expect(left.agents.map((a) => a.handle)).toEqual(["lodi"]);
   expect(await (await member(`${org}/former-agents`)).json()).toEqual({
-    agents: [{ id: agentId, name: "Dev", role: "", appearance: null, deleted: true }],
+    agents: [{ id: agentId, name: "Dev", role: "", appearance: null, photo: null, deleted: true }],
   });
   expect((await owner(agent)).status).toBe(404);
   expect((await owner(agent, { method: "PATCH", json: { name: "Back" } })).status).toBe(404);

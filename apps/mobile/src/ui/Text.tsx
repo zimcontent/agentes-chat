@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { Platform, Text as RNText, type TextProps as RNTextProps, StyleSheet, type TextStyle } from "react-native";
+import { DB_FONTES, interDoPeso, manropeDoPeso } from "../brand/tokens";
 import { useTextScale } from "./text-scale";
 import { useTheme } from "./theme";
 import {
@@ -51,7 +52,24 @@ export const os: OS = Platform.OS === "android" ? "android" : "ios";
 
 /** A system-font style from the native scale (for raw `RNText`/`TextInput` in the design system). */
 export function systemText(style: TypeStyle, fontWeight?: Weight): TextStyle {
-  return typeStyle(os, style, fontWeight);
+  const m = typeStyle(os, style, fontWeight);
+  return { ...m, fontFamily: interDoPeso(m.fontWeight) };
+}
+
+/** Manrope families: titles, names. A style in one of them keeps Manrope when its weight changes. */
+const MANROPE = new Set<string>([DB_FONTES.titulo800, DB_FONTES.titulo700, DB_FONTES.titulo500]);
+const INTER = new Set<string>([DB_FONTES.texto400, DB_FONTES.texto500, DB_FONTES.texto600, DB_FONTES.texto700]);
+
+/**
+ * The family for a flattened style: React Native picks no weight inside a family loaded from files, so a style that
+ * asks for another weight over Inter or Manrope gets that weight's own file. Any other family (mono, a mark) stays.
+ */
+export function familyFor(style: TextStyle | undefined): string | undefined {
+  const family = style?.fontFamily;
+  const weight = style?.fontWeight;
+  if (family && MANROPE.has(family)) return weight ? manropeDoPeso(weight) : family;
+  if (!family || INTER.has(family)) return interDoPeso(weight ?? 400);
+  return family;
 }
 
 /**
@@ -59,7 +77,7 @@ export function systemText(style: TypeStyle, fontWeight?: Weight): TextStyle {
  * (it sits lower than a label beside it). Multi-line fields keep `systemText`.
  */
 export function fieldText(style: TypeStyle, fontWeight?: Weight): TextStyle {
-  const { lineHeight: _drop, ...rest } = typeStyle(os, style, fontWeight);
+  const { lineHeight: _drop, ...rest } = systemText(style, fontWeight);
   return rest;
 }
 
@@ -69,8 +87,8 @@ export function fieldText(style: TypeStyle, fontWeight?: Weight): TextStyle {
  */
 export function useSystemText(style: TypeStyle, fontWeight?: Weight): TextStyle {
   const k = useTextScale();
-  const base = typeStyle(os, style, fontWeight);
-  return k === 1 ? base : { ...base, ...scaleMetrics(base.fontSize, base.lineHeight, k) };
+  const base = systemText(style, fontWeight);
+  return k === 1 ? base : { ...base, ...scaleMetrics(base.fontSize ?? 17, base.lineHeight ?? 22, k) };
 }
 
 /** `useSystemText` for a one-line field: no line height, as `fieldText`. */
@@ -80,8 +98,8 @@ export function useFieldText(style: TypeStyle, fontWeight?: Weight): TextStyle {
 }
 
 /** Where each variant sits on the native scale. */
-/** Large titles are bold on iOS (Mail, Settings) and regular on Android (Material headlines). */
-const TITLE_WEIGHT = os === "ios" ? weights.bold : weights.regular;
+/** DougBot's titles: Manrope 800 on both platforms, tracking −0,035em (IDENTIDADE.md §5). */
+const TITLE_WEIGHT = weights.extrabold;
 
 const VARIANT_STYLE: Record<TextVariant, [TypeStyle, Weight?]> = {
   display: ["largeTitle", TITLE_WEIGHT],
@@ -105,8 +123,20 @@ const VARIANT_STYLE: Record<TextVariant, [TypeStyle, Weight?]> = {
  */
 export function variantStyle(variant: TextVariant): TextStyle {
   const [style, weight] = VARIANT_STYLE[variant];
-  return systemText(style, weight);
+  const base = systemText(style, weight);
+  if (variant === "display" || variant === "display2")
+    return { ...base, fontFamily: DB_FONTES.titulo800, letterSpacing: -0.035 * (base.fontSize ?? 34) };
+  if (variant === "title2")
+    return {
+      ...base,
+      fontFamily: DB_FONTES.titulo700,
+      fontWeight: "700",
+      letterSpacing: -0.02 * (base.fontSize ?? 22),
+    };
+  return base;
 }
+
+const base0 = (variant: TextVariant) => variantStyle(variant);
 
 /** Variants that are chrome (timestamps, meta) or already big grow less with the text size setting. */
 const MAX_SCALE: Partial<Record<TextVariant, number>> = {
@@ -146,8 +176,9 @@ export function Text({ variant = "body", tone, style, maxFontSizeMultiplier, ...
   const appScale = useTextScale();
   const color = colors[tone ?? DEFAULT_TONE[variant]];
   const cap = maxFontSizeMultiplier ?? MAX_SCALE[variant];
-  const own = appScale === 1 ? null : StyleSheet.flatten(style);
+  const own = StyleSheet.flatten(style) as TextStyle | undefined;
   const fixed = own?.fontSize != null || (cap != null && cap > 0 && cap <= 1);
+  const family = familyFor({ ...base0(variant), ...own });
   const k = appScale === 1 || fixed ? 1 : cap != null && cap > 0 ? Math.min(appScale, cap) : appScale;
   const base = variantStyle(variant);
   const sized = k === 1 ? base : { ...base, ...scaleMetrics(base.fontSize ?? 17, base.lineHeight ?? 22, k) };
@@ -157,7 +188,7 @@ export function Text({ variant = "body", tone, style, maxFontSizeMultiplier, ...
     <RNText
       {...rest}
       maxFontSizeMultiplier={k !== 1 && cap != null && cap > 0 ? Math.max(1, cap / k) : cap}
-      style={[sized, { color }, style, line]}
+      style={[sized, { color }, style, line, family ? { fontFamily: family } : null]}
     />
   );
 }
