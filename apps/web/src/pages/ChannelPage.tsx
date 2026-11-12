@@ -1671,7 +1671,9 @@ function ChannelView({
         .filter((a): a is Agent => Boolean(a)),
     [draft, dir.agentByHandle, dir.agentById],
   );
-  const pillAgents = dmAgent ? [dmAgent] : draftAgents;
+  // Doug: a DM's header already says who answers, so its composer carries no chip of the agent; a channel keeps the
+  // chips of the agents its draft calls (who will answer).
+  const pillAgents = dmAgent ? [] : draftAgents;
   const composerPills =
     pillAgents.length > 0 || missionReply ? (
       <>

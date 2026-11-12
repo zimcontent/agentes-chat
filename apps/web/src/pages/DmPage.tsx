@@ -83,72 +83,79 @@ export function DmPage({ target, focusMessageId }: { target: DmTarget; focusMess
   const role = agent ? agent.role || `@${agent.handle}` : "";
   // The right hand (ADR 0137) says what it is and whose permissions it acts with, never an owner, nor a model: each
   // person's DM with it thinks with their own AI, shown with its maker's logo in the side panel's Como pensa.
-  const header = ({ onSearch, side }: { onSearch: () => void; side: DmSideControl | null }) => (
-    <header className="channel__header">
-      <NavToggle />
-      {/* Who it is with and the header's glyphs: the glyphs go under a name that can't keep its line beside them. */}
-      <div className="ac-actline channel__line">
-        <DmWho agentId={agent?.id} userId={person?.userId} label={t("profile.of", { name })}>
-          <div className="dm-who__text">
-            {agent ? (
-              <AgentAvatar agentId={agent.id} name={agent.name} />
-            ) : (
-              <Avatar name={name} imageUrl={person?.image} />
-            )}
-            <h1 className={agent || person ? "channel__title ac-captop" : "channel__title"}>
-              <span className="channel__name">{name}</span>
-              {agent && <AudienceChip agent={agent} />}
-            </h1>
-            {agent && (
-              <span className="channel__topic" data-right-hand={rightHand || undefined}>
-                {rightHand
-                  ? `${t("rightHand.label")} · ${t("rightHand.actsAsYou")}`
-                  : owner
-                    ? t("dm.subtitle", { role, owner: owner.name })
-                    : t("dm.subtitleNoOwner", { role })}
-                {thinks?.text && !rightHand && (
-                  <>
-                    {" · "}
-                    <span className="channel__brain ac-iconline">
-                      {thinks.mark ? (
-                        <ProviderLogo id={thinks.mark} size="xs" />
-                      ) : (
-                        <BrainIcon kind={thinks.kind} size={14} />
-                      )}
-                      {thinks.text}
-                    </span>
-                  </>
-                )}
-              </span>
-            )}
-            {person && <span className="channel__topic">{person.email}</span>}
-          </div>
-        </DmWho>
-        <div className="channel__acts">
-          {/* Its tasks (ADR 0128), while it has any: they open in the side panel. */}
-          {agent && <AgentTasksPill />}
-          {/* The sidebar has the computer: only a line of turns waiting for it still shows here. A viewer of its public
+  const header = ({ onSearch, side }: { onSearch: () => void; side: DmSideControl | null }) => {
+    // The agent's panel open beside the conversation already shows its owner and how it thinks: the header keeps its role.
+    const sideSays = Boolean(side?.open && side.docked);
+    return (
+      <header className="channel__header">
+        <NavToggle />
+        {/* Who it is with and the header's glyphs: the glyphs go under a name that can't keep its line beside them. */}
+        <div className="ac-actline channel__line">
+          <DmWho agentId={agent?.id} userId={person?.userId} label={t("profile.of", { name })}>
+            <div className="dm-who__text">
+              {agent ? (
+                <AgentAvatar agentId={agent.id} name={agent.name} />
+              ) : (
+                <Avatar name={name} imageUrl={person?.image} />
+              )}
+              <h1 className={agent || person ? "channel__title ac-captop" : "channel__title"}>
+                <span className="channel__name">{name}</span>
+                {agent && <AudienceChip agent={agent} />}
+              </h1>
+              {agent && (
+                <span className="channel__topic" data-right-hand={rightHand || undefined}>
+                  {rightHand
+                    ? `${t("rightHand.label")} · ${t("rightHand.actsAsYou")}`
+                    : // Doug: with the side panel open beside the chat, its Responsável and Como pensa say the rest.
+                      sideSays
+                      ? role
+                      : owner
+                        ? t("dm.subtitle", { role, owner: owner.name })
+                        : t("dm.subtitleNoOwner", { role })}
+                  {thinks?.text && !rightHand && !sideSays && (
+                    <>
+                      {" · "}
+                      <span className="channel__brain ac-iconline">
+                        {thinks.mark ? (
+                          <ProviderLogo id={thinks.mark} size="xs" />
+                        ) : (
+                          <BrainIcon kind={thinks.kind} size={14} />
+                        )}
+                        {thinks.text}
+                      </span>
+                    </>
+                  )}
+                </span>
+              )}
+              {person && <span className="channel__topic">{person.email}</span>}
+            </div>
+          </DmWho>
+          <div className="channel__acts">
+            {/* Its tasks (ADR 0128), while it has any: they open in the side panel. */}
+            {agent && <AgentTasksPill />}
+            {/* The sidebar has the computer: only a line of turns waiting for it still shows here. A viewer of its public
               card gets the sidebar's head alone, so the way in stays for one who may still watch the computer. */}
-          {agent && !rightHand && <ComputerButton agent={agent} queueOnly={side?.docked && seesDetails(agent)} />}
-          {/* The same field as a channel's, held to this DM. */}
-          <HeaderSearch channelId={dm.data.channelId} onOpen={onSearch} dm />
-          {side && (
-            <Button
-              size="sm"
-              variant="ghost"
-              iconOnly
-              icon="sidebar"
-              className="channel__icon dm-side-toggle"
-              aria-label={t("agentSide.label")}
-              aria-pressed={side.open}
-              title={t(side.open ? "agentSide.hide" : "agentSide.show")}
-              onClick={side.toggle}
-            />
-          )}
+            {agent && !rightHand && <ComputerButton agent={agent} queueOnly={side?.docked && seesDetails(agent)} />}
+            {/* The same field as a channel's, held to this DM. */}
+            <HeaderSearch channelId={dm.data.channelId} onOpen={onSearch} dm />
+            {side && (
+              <Button
+                size="sm"
+                variant="ghost"
+                iconOnly
+                icon="sidebar"
+                className="channel__icon dm-side-toggle"
+                aria-label={t("agentSide.label")}
+                aria-pressed={side.open}
+                title={t(side.open ? "agentSide.hide" : "agentSide.show")}
+                onClick={side.toggle}
+              />
+            )}
+          </div>
         </div>
-      </div>
-    </header>
-  );
+      </header>
+    );
+  };
   return (
     <ChannelPage
       channelId={dm.data.channelId}

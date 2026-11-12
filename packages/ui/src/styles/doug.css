@@ -948,6 +948,436 @@ img.ac-logo__mark {
   border-radius: 999px;
 }
 
+/* ── Round 3: concentric corners and even breathing room, as tokens ─────────────────────────────────────────────────
+   One rule for every rounded container: a child against its edge has the container's radius less the padding between
+   them (`--r-inner = --r-outer - --pad`), and the same padding on every side. A pill is its height's half, so a round
+   child in a pill is concentric when it is the pill's height less twice the padding. Words at a pill's round end keep
+   the inner radius past the padding (`--pad-end`), so they never touch the curve.
+   Scale: space 4, 8, 12, 16, 24; heights 56 (big pieces: a person, an identity), 48 (bars: header buttons, composer,
+   dock), 40 (rows, fields), 36 and 32 (buttons inside those). The shell's sheet and sidebar: 40, so a 48 piece sits 16
+   from their corner and a 56 one 12. */
+[data-theme="dark"] {
+  --dg-s1: 4px;
+  --dg-s2: 8px;
+  --dg-s3: 12px;
+  --dg-s4: 16px;
+  --dg-s5: 24px;
+  --dg-h-xl: 56px;
+  --dg-h-lg: 48px;
+  --dg-h-md: 40px;
+  --dg-h-sm: 36px;
+  --dg-h-xs: 32px;
+  --dg-r-shell: 40px;
+}
+[data-theme="dark"] .dg-concentric,
+[data-theme="dark"]
+  :is(
+    .sidebar,
+    .shell__pages,
+    .sidebar__me,
+    .sidebar__org-button,
+    .sidebar__jump,
+    .sidebar__dock,
+    .sidebar__hero-link,
+    .sidebar__item,
+    .channel__head-text,
+    .dm-who,
+    .channel__acts,
+    .search-box__field,
+    .ac-composer,
+    .ac-menu,
+    .ac-popover,
+    .ac-dialog,
+    .ac-card
+  ) {
+  --r-inner: calc(var(--r-outer) - var(--pad));
+}
+
+/* The shell: sidebar and sheet share one corner, 40. */
+@media (min-width: 761px) {
+  [data-theme="dark"] .sidebar {
+    --r-outer: var(--dg-r-shell);
+    --pad: var(--dg-s3);
+    border-radius: var(--r-outer);
+    padding: var(--pad);
+  }
+  [data-theme="dark"] .shell__pages {
+    --r-outer: var(--dg-r-shell);
+    --pad: var(--dg-s4);
+    border-radius: var(--r-outer);
+  }
+}
+
+/* ── Sidebar ── */
+/* The workspace's header: a 56 pill (28 = the sidebar's 40 less its 12), its mark a 40 circle 8 in. */
+[data-theme="dark"] .sidebar__org-button {
+  --r-outer: calc(var(--dg-h-xl) / 2);
+  --pad: var(--dg-s2);
+  min-height: var(--dg-h-xl);
+  box-sizing: border-box;
+  padding: var(--pad) var(--dg-s4) var(--pad) var(--pad);
+  border-radius: var(--r-outer);
+  gap: var(--dg-s3);
+}
+[data-theme="dark"] .sidebar__org-button .sidebar__org-mark {
+  width: calc(var(--dg-h-xl) - 2 * var(--pad));
+  height: calc(var(--dg-h-xl) - 2 * var(--pad));
+  border-radius: var(--r-inner);
+}
+/* Go to…: a 40 pill, its keys 24 high 8 in, so their corners are 12 (20 less 8); the words clear the round end. */
+[data-theme="dark"] .sidebar__jump-row {
+  gap: var(--dg-s2);
+}
+[data-theme="dark"] .sidebar__jump {
+  --r-outer: calc(var(--dg-h-md) / 2);
+  --pad: var(--dg-s2);
+  height: var(--dg-h-md);
+  min-height: var(--dg-h-md);
+  padding: 0 var(--pad) 0 var(--dg-s3);
+  border-radius: var(--r-outer);
+  gap: var(--dg-s2);
+}
+[data-theme="dark"] .sidebar__jump .ac-kbd {
+  height: calc(var(--dg-h-md) - 2 * var(--pad));
+  min-width: calc(var(--dg-h-md) - 2 * var(--pad));
+  padding: 0 var(--dg-s2);
+  border-radius: var(--r-inner);
+}
+[data-theme="dark"] .sidebar__jump .ac-kbd + .ac-kbd {
+  margin-left: calc(var(--dg-s1) - var(--dg-s2));
+}
+[data-theme="dark"] .sidebar__collapse.ac-btn {
+  width: var(--dg-h-md);
+  height: var(--dg-h-md);
+  border-radius: 999px;
+}
+/* The dock: a 48 pill, its 36 buttons 6 in. */
+.sidebar:not([data-rail="true"]) .sidebar__dock {
+  --r-outer: calc(var(--dg-h-lg, 48px) / 2);
+  --pad: 6px;
+  height: var(--dg-h-lg, 48px);
+  box-sizing: border-box;
+  padding: var(--pad);
+  border-radius: var(--r-outer);
+}
+.sidebar:not([data-rail="true"]) .sidebar__dock .sidebar__item {
+  height: calc(var(--dg-h-lg, 48px) - 12px);
+  min-height: 0;
+  border-radius: 999px;
+}
+/* The pinned hero: each a tall capsule whose top is concentric with its 48 face (24 + 8 = 32), name inside it. */
+[data-theme="dark"] .sidebar__hero {
+  gap: 0;
+  justify-content: space-between;
+}
+[data-theme="dark"] .sidebar__hero-link {
+  --r-outer: 30px;
+  --pad: 6px;
+  padding: var(--pad) var(--pad) var(--dg-s3);
+  border-radius: var(--r-outer);
+  gap: var(--dg-s2);
+}
+[data-theme="dark"] .sidebar__hero-face > .ac-avatar,
+[data-theme="dark"] .sidebar__hero[data-count="4"] .sidebar__hero-face > .ac-avatar {
+  width: calc(2 * var(--r-inner));
+  height: calc(2 * var(--r-inner));
+}
+[data-theme="dark"] .sidebar__hero-link[data-status="active"] {
+  background: var(--dg-lime-chosen);
+  box-shadow:
+    inset 0 1px 0 #d8ff9914,
+    inset 0 0 0 1px #a6fa1e59;
+}
+[data-theme="dark"] .sidebar__hero-link[data-status="active"] .sidebar__hero-face {
+  box-shadow: none;
+}
+/* Rows: 40 pills; an agent's two lines with its 32 face make a 48 pill with the face 8 in (16 = 24 less 8). */
+[data-theme="dark"] .sidebar:not([data-rail="true"]) .sidebar__item {
+  --r-outer: calc(var(--dg-h-md) / 2);
+  --pad: var(--dg-s1);
+  min-height: var(--dg-h-md);
+  padding-inline: var(--dg-s3) var(--dg-s3);
+  border-radius: var(--r-outer);
+  gap: var(--dg-s3);
+}
+[data-theme="dark"] .sidebar:not([data-rail="true"]) .sidebar__row .sidebar__item:has(> .ac-avatar) {
+  --r-outer: calc(var(--dg-h-lg) / 2);
+  --pad: var(--dg-s2);
+  min-height: var(--dg-h-lg);
+  padding-inline-start: var(--pad);
+}
+[data-theme="dark"] .sidebar:not([data-rail="true"]) .sidebar__row .sidebar__item > .ac-avatar {
+  width: calc(2 * var(--r-inner));
+  height: calc(2 * var(--r-inner));
+  border-radius: 999px;
+}
+/* The dock's buttons keep their 36 circles over the rows' rule above. */
+[data-theme="dark"] .sidebar:not([data-rail="true"]) .sidebar__dock .sidebar__item {
+  height: calc(var(--dg-h-lg) - 12px);
+  min-height: 0;
+  padding: 0;
+  gap: 0;
+  border-radius: 999px;
+}
+/* The open row's buttons (add people, settings): 32 circles, 4 from its round end (16 = 20 less 4). */
+[data-theme="dark"] .sidebar__row-acts {
+  right: var(--dg-s1);
+  gap: var(--dg-s1);
+}
+[data-theme="dark"] .sidebar__row-acts .ac-btn,
+[data-theme="dark"] .sidebar__row-menu.ac-btn {
+  width: var(--dg-h-xs);
+  height: var(--dg-h-xs);
+  border-radius: 999px;
+}
+/* Room for them on the open row: the kit's rule reads it (`--acts-room`), for the full list alone. */
+[data-theme="dark"] .sidebar__row[data-acts] {
+  --acts-room: calc(var(--dg-s1) + 2 * var(--dg-h-xs) + var(--dg-s1) + var(--dg-s2));
+}
+/* The open row's bar of light, on the sidebar's own edge. */
+[data-theme="dark"] .sidebar:not([data-rail="true"]) .sidebar__item[data-status="active"]::after {
+  left: calc(-1 * var(--dg-s3));
+  top: var(--dg-s3);
+  bottom: var(--dg-s3);
+}
+/* The person at the foot: a 56 pill (28 = 40 less 12), the face a 40 circle 8 in, the bell a 40 circle 8 in. */
+[data-theme="dark"] .sidebar__me {
+  --r-outer: calc(var(--dg-h-xl) / 2);
+  --pad: var(--dg-s2);
+  min-height: var(--dg-h-xl);
+  box-sizing: border-box;
+  padding: var(--pad);
+  gap: var(--dg-s2);
+  border-radius: var(--r-outer);
+  align-items: center;
+}
+[data-theme="dark"] .sidebar__me > .sidebar__user {
+  min-height: calc(var(--dg-h-xl) - 2 * var(--pad));
+  padding: 0 var(--dg-s3) 0 0;
+  gap: var(--dg-s3);
+  border-radius: var(--r-inner);
+}
+[data-theme="dark"] .sidebar__me > .sidebar__user > .ac-avatar {
+  width: calc(2 * var(--r-inner));
+  height: calc(2 * var(--r-inner));
+  border-radius: 999px;
+  font-size: 14px;
+}
+[data-theme="dark"] .sidebar__me .sidebar__bell {
+  width: calc(2 * var(--r-inner));
+  height: calc(2 * var(--r-inner));
+  border-radius: 999px;
+  flex: none;
+}
+[data-theme="dark"] .sidebar__foot {
+  padding-top: var(--dg-s1);
+}
+
+/* ── The conversation's head: pieces 16 from the sheet's corner (48 pills) ── */
+[data-theme="dark"] .channel__header,
+[data-theme="dark"] .channel__header:has(.channel__head-text) {
+  padding: var(--dg-s4) var(--dg-s4) var(--dg-s5);
+  min-height: 0;
+}
+/* A channel's name: a 48 pill, its # (or photo) a 32 circle 8 in; the words clear the round end. */
+[data-theme="dark"] .channel__head-text {
+  --r-outer: calc(var(--dg-h-lg) / 2);
+  --pad: var(--dg-s2);
+  min-height: var(--dg-h-lg);
+  box-sizing: border-box;
+  padding: var(--pad) var(--r-outer) var(--pad) var(--pad);
+  border-radius: var(--r-outer);
+  align-items: center;
+  column-gap: var(--dg-s3);
+}
+[data-theme="dark"] .channel__head-text .channel__title {
+  align-items: center;
+  gap: var(--dg-s3);
+  padding-block: 0;
+}
+[data-theme="dark"] .channel__head-text :is(.channel__title-hash.ac-icon, .channel__title-photo) {
+  width: calc(2 * var(--r-inner));
+  height: calc(2 * var(--r-inner));
+  padding: 8px;
+  border-radius: 999px;
+  translate: none;
+}
+[data-theme="dark"] .channel__head-text .channel__title-photo {
+  padding: 0;
+  object-fit: cover;
+}
+/* The header's buttons and search: a 48 pill, everything 36 high 6 in (18 = 24 less 6), never past its end. */
+[data-theme="dark"] .channel__acts {
+  --r-outer: calc(var(--dg-h-lg) / 2);
+  --pad: 6px;
+  min-height: var(--dg-h-lg);
+  box-sizing: border-box;
+  padding: var(--pad);
+  gap: var(--dg-s1);
+  border-radius: var(--r-outer);
+}
+[data-theme="dark"] .channel__acts > * {
+  margin: 0;
+}
+[data-theme="dark"] .channel__acts :is(.ac-btn--icon, .channel__icon).ac-btn {
+  width: calc(2 * var(--r-inner));
+  height: calc(2 * var(--r-inner));
+  border-radius: 999px;
+}
+[data-theme="dark"] .channel__acts .channel__search.search-box {
+  margin: 0;
+}
+[data-theme="dark"] .channel__search .search-box__field {
+  --r-outer: calc(var(--dg-h-sm) / 2);
+  --pad: 6px;
+  min-height: var(--dg-h-sm);
+  height: var(--dg-h-sm);
+  padding: 0 var(--dg-s3) 0 36px;
+  border-radius: var(--r-outer);
+  background: rgba(255, 255, 255, 0.05);
+}
+[data-theme="dark"] .channel__search .search-box__icon {
+  left: var(--dg-s3);
+}
+/* A filter in the field ("em: #lexeer"): 24 high, 6 in, so its corners are 12 (18 less 6). */
+[data-theme="dark"] .channel__search .search-box__field .ac-token {
+  height: calc(var(--dg-h-sm) - 2 * var(--pad));
+  border-radius: var(--r-inner);
+}
+[data-theme="dark"] .channel__search .search-box__x {
+  width: 24px;
+  height: 24px;
+  border-radius: 999px;
+}
+
+/* A DM's head: a 56 glass piece (12 from the sheet's corner): the face a 40 circle 8 in, the name in Manrope over one
+   quiet line, the words clear of the round end. */
+[data-theme="dark"] .channel__header:has(.dm-who) {
+  padding: var(--dg-s3) var(--dg-s4) var(--dg-s5) var(--dg-s3);
+}
+[data-theme="dark"] .dm-who {
+  --r-outer: calc(var(--dg-h-xl) / 2);
+  --pad: var(--dg-s2);
+  min-height: var(--dg-h-xl);
+  box-sizing: border-box;
+  padding: var(--pad) calc(var(--r-outer) + var(--dg-s1)) var(--pad) var(--pad);
+  border-radius: var(--r-outer);
+  display: flex;
+  align-items: center;
+}
+[data-theme="dark"] .dm-who__text {
+  column-gap: var(--dg-s3);
+  row-gap: 2px;
+}
+[data-theme="dark"] .dm-who__text > .ac-avatar {
+  width: calc(2 * var(--r-inner));
+  height: calc(2 * var(--r-inner));
+}
+[data-theme="dark"] .dm-who .channel__title {
+  font-size: 17px;
+  line-height: 22px;
+}
+[data-theme="dark"] .dm-who__text > .channel__topic {
+  font-size: 12.5px;
+  line-height: 16px;
+  color: var(--faint);
+}
+/* ── The composer: a 48 pill (16 from the sheet's corner), its buttons 36 circles 6 in (18 = 24 less 6) ── */
+[data-theme="dark"] .ac-composer {
+  --r-outer: calc(var(--dg-h-lg) / 2);
+  --pad: 6px;
+  border-radius: var(--r-outer);
+}
+[data-theme="dark"] .ac-composer__row {
+  padding: var(--pad);
+  gap: var(--dg-s1);
+  align-items: flex-end;
+}
+[data-theme="dark"] .ac-composer__tools {
+  gap: var(--dg-s1);
+}
+[data-theme="dark"] .ac-composer__tools .ac-btn {
+  width: calc(2 * var(--r-inner));
+  height: calc(2 * var(--r-inner));
+  min-height: 0;
+  border-radius: 999px;
+}
+[data-theme="dark"] .ac-composer textarea {
+  min-height: calc(2 * var(--r-inner));
+  padding: calc((2 * var(--r-inner) - 22px) / 2) var(--dg-s2);
+}
+/* The agent's pick above the words (Início): a 36 pill 6 in, its face a 24 circle 6 in (12 = 18 less 6). */
+[data-theme="dark"] .ac-composer__pills {
+  padding: var(--pad) var(--pad) 0;
+  gap: var(--dg-s1);
+}
+[data-theme="dark"] .ac-composer__pills :is(.ac-select__trigger, .ac-composer__agent, .ac-composer__pill) {
+  --r-outer: var(--r-inner);
+  height: calc(2 * var(--r-inner));
+  min-height: 0;
+  box-sizing: border-box;
+  padding: 6px var(--dg-s3) 6px 6px;
+  gap: var(--dg-s2);
+  border-radius: 999px;
+}
+[data-theme="dark"] .ac-composer__pills :is(.ac-select__trigger, .ac-composer__agent) .ac-avatar {
+  width: 24px;
+  height: 24px;
+}
+[data-theme="dark"] .channel__composer {
+  padding: var(--dg-s2) var(--dg-s4) var(--dg-s4);
+}
+
+/* ── Menus, popovers, dialogs, cards: rows and plates at the container's radius less its padding ── */
+[data-theme="dark"] :is(.ac-menu, .ac-popover) {
+  --r-outer: 16px;
+  --pad: var(--dg-s1);
+  border-radius: var(--r-outer);
+}
+[data-theme="dark"] .ac-menu .ac-menu__item,
+[data-theme="dark"] .ac-popover .ac-menu__item {
+  border-radius: var(--r-inner);
+}
+[data-theme="dark"] .ac-dialog {
+  --r-outer: 24px;
+  --pad: var(--dg-s3);
+  border-radius: var(--r-outer);
+}
+[data-theme="dark"] .ac-dialog__close .ac-btn,
+[data-theme="dark"] .ac-dialog__close.ac-btn {
+  border-radius: 999px;
+}
+/* The close keeps the head's padding on its side as on top (the kit lets its ink reach the padding line, so its round
+   plate would sit 8 from the edge). */
+[data-theme="dark"] .ac-dialog__close > .ac-btn--glyph {
+  --glyph-air: 0px;
+}
+/* A settings dialog's side list: rows in the 40 pill family. */
+[data-theme="dark"] .settings__link {
+  border-radius: 999px;
+  padding-inline: var(--dg-s3);
+}
+/* A channel's photo beside its pill button: a circle, as the header's. */
+[data-theme="dark"] .channel-photo--field {
+  border-radius: 999px;
+}
+/* New agent's empty face: a circle like the faces above it. */
+[data-theme="dark"] .sidebar__new-agent-face {
+  border-radius: 999px;
+}
+[data-theme="dark"] .ac-card {
+  --r-outer: 20px;
+  --pad: var(--dg-s4);
+  border-radius: var(--r-outer);
+}
+/* Fields and the plated buttons beside them: 40 pills, the same family as the rows. */
+[data-theme="dark"] :is(.ac-input, .ac-select__trigger, .ac-btn:not(.ac-btn--icon):not(.ac-btn--glyph)) {
+  border-radius: 999px;
+}
+[data-theme="dark"] .ac-textarea {
+  border-radius: 16px;
+}
+
 /* ── Reduced transparency: the glass turns into solid chips with the same rim (Nordus). ── */
 @media (prefers-reduced-transparency: reduce) {
   [data-theme="dark"]

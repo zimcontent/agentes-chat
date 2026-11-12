@@ -255,7 +255,7 @@ describe("what the viewer sees", () => {
     expect(side()?.textContent).not.toContain("Assistente do workspace");
   });
 
-  test("on Automático it is named by the maker of the key it thinks with, in its panel and its header", async () => {
+  test("on Automático it is named by the maker of the key it thinks with, in its panel (the header leaves it to the open panel)", async () => {
     widthIs(DM_SIDE_WIDE_QUERY);
     const state = seedState();
     const ada = state.agents.find((a) => a.id === ADA_ID);
@@ -267,7 +267,8 @@ describe("what the viewer sees", () => {
     await openDm({ state });
     expect(section("Como pensa")?.textContent).toContain("Claude");
     expect(section("Como pensa")?.textContent).not.toContain("Automático");
-    expect(document.querySelector(".channel__header .channel__brain")?.textContent).toBe("Claude");
+    // Doug: what the docked panel shows is not repeated in the header.
+    expect(document.querySelector(".channel__header .channel__brain")).toBeNull();
   });
 
   test("routines: a switch for who may change one, read-only for who may not, at most three, with the count", async () => {
