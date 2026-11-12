@@ -89,7 +89,7 @@ describe("Lodi made agents and channels while the app was open", () => {
     await act(async () => fireEvent.click(link as HTMLAnchorElement));
     await settle(8);
     expect(memberNames("vendas")).toContain("Iara");
-    expect(screen().getByRole("button", { name: "Membros do canal (2)" })).toBeTruthy();
+    expect(screen().getByRole("button", { name: "Membros do grupo (2)" })).toBeTruthy();
   });
 
   test("the sidebar hears of the channel from Lodi's receipt while the agent list stays old", async () => {
@@ -127,7 +127,7 @@ describe("Lodi made agents and channels while the app was open", () => {
     app.state.channelMembers[ENG_ID]?.push({ type: "agent", id: "a-iara" });
     await app.orgEvent("channels.changed");
     expect(memberNames("eng")).toContain("Iara");
-    expect(screen().getByRole("button", { name: "Membros do canal (5)" })).toBeTruthy();
+    expect(screen().getByRole("button", { name: "Membros do grupo (5)" })).toBeTruthy();
   });
 });
 
@@ -154,7 +154,7 @@ describe("what changes elsewhere shows everywhere, without a reload", () => {
     await app.orgEvent("agents.changed");
     await app.orgEvent("channels.changed");
     expect(memberNames("eng")).not.toContain("Ada");
-    expect(screen().getByRole("button", { name: "Membros do canal (3)" })).toBeTruthy();
+    expect(screen().getByRole("button", { name: "Membros do grupo (3)" })).toBeTruthy();
     expect(sidebarText()).not.toContain("Ada");
   });
 
@@ -171,7 +171,7 @@ describe("what changes elsewhere shows everywhere, without a reload", () => {
 
   test("the phone-width members sheet, open when an agent joins", async () => {
     const app = await open(seedState(), `/org/${ORG_ID}/c/${ENG_ID}`, COMPACT_QUERY);
-    await act(async () => fireEvent.click(screen().getByRole("button", { name: "Membros do canal (4)" })));
+    await act(async () => fireEvent.click(screen().getByRole("button", { name: "Membros do grupo (4)" })));
     await settle(2);
     const base = app.state.agents[0] as (typeof app.state.agents)[number];
     app.state.agents.push({ ...base, id: "a-iara", name: "Iara", handle: "iara" });

@@ -33,7 +33,7 @@ afterEach(() => {
 });
 
 const COLUMN_KEY = `${STORAGE_KEYS.membersColumn}.u-walter.${ORG_ID}`;
-const toggle = () => screen().getByRole("button", { name: "Membros do canal (4)" });
+const toggle = () => screen().getByRole("button", { name: "Membros do grupo (4)" });
 const column = () => screen().queryByRole("complementary", { name: "Membros de #eng" });
 const sheet = () => screen().queryByRole("dialog", { name: "Membros de #eng" });
 /** A member's row, found by the name it shows. */
@@ -276,7 +276,7 @@ describe("the members column", () => {
     const panel = sheet() as HTMLElement;
     expect(panel.classList.contains("members-sheet")).toBe(true);
     expect(panel.getAttribute("aria-modal")).toBe("true");
-    expect(within(panel).getByRole("button", { name: "Configurações do canal" })).toBeTruthy();
+    expect(within(panel).getByRole("button", { name: "Configurações do grupo" })).toBeTruthy();
     expect(within(panel).getByRole("button", { name: "Mensagens fixadas" })).toBeTruthy();
     expect(within(panel).getByRole("button", { name: /^Threads/ })).toBeTruthy();
     expect(row(panel, "Lodi")).toBeNull();
@@ -288,7 +288,7 @@ describe("the members column", () => {
     expect(row(panel, "Ada")).toBeNull();
     expect(row(panel, "Atlas")).toBeTruthy();
     // The cog closes the sheet for the channel's details.
-    await act(async () => fireEvent.click(within(panel).getByRole("button", { name: "Configurações do canal" })));
+    await act(async () => fireEvent.click(within(panel).getByRole("button", { name: "Configurações do grupo" })));
     await settle(3);
     expect(sheet()).toBeNull();
     expect(screen().getByRole("dialog", { name: /eng/ })).toBeTruthy();
@@ -441,7 +441,7 @@ describe("answering without a mention, as true for my own messages as who picks 
   /** The details' row line of an agent that answers on its own, and its menu's "Por conta própria" line. */
   const onItsOwn = async () => {
     await act(async () =>
-      fireEvent.click(within(screen().getByRole("main")).getByRole("button", { name: "Configurações do canal" })),
+      fireEvent.click(within(screen().getByRole("main")).getByRole("button", { name: "Configurações do grupo" })),
     );
     await settle(3);
     const dialog = screen().getByRole("dialog", { name: "#eng" });

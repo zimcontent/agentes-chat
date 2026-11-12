@@ -304,11 +304,11 @@ describe("Sua conta › Conversa", () => {
     const styles = () => screen().getByRole("radiogroup", { name: "Densidade da conversa" });
     // Doug: a channel opens in Bolhas, so its tones show until another style is picked.
     expect(within(styles()).getByRole("radio", { name: "Bolhas" }).getAttribute("aria-checked")).toBe("true");
-    expect(screen().queryByRole("radiogroup", { name: "Minhas mensagens nos canais" })).not.toBeNull();
+    expect(screen().queryByRole("radiogroup", { name: "Minhas mensagens nos grupos" })).not.toBeNull();
 
     await click(within(styles()).getByRole("radio", { name: "Compacta" }));
     expect(state.calls).toContainEqual({ method: "orgs.setChatPrefs", args: [ORG_ID, { channelStyle: "compact" }] });
-    expect(screen().queryByRole("radiogroup", { name: "Minhas mensagens nos canais" })).toBeNull();
+    expect(screen().queryByRole("radiogroup", { name: "Minhas mensagens nos grupos" })).toBeNull();
 
     await click(screen().getByRole("radio", { name: "DMs" }));
     expect(within(styles()).getByRole("radio", { name: "Bolhas" }).getAttribute("aria-checked")).toBe("true");

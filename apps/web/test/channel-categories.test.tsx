@@ -22,7 +22,7 @@ const go = async (state = seedState(), { api = createFakeApi(state), channel = G
 };
 const nav = () => screen().getByRole("navigation", { name: "Navegação do workspace" });
 /** "Canais", the sidebar's part with the channels in no category (all of them, with no categories). */
-const canais = () => within(nav()).getByRole("button", { name: "Canais" }).closest(".sidebar__section") as HTMLElement;
+const canais = () => within(nav()).getByRole("button", { name: "Grupos" }).closest(".sidebar__section") as HTMLElement;
 const names = () =>
   [...canais().querySelectorAll(".sidebar__section-body a.sidebar__item > .sidebar__item-label")].map(
     (l) => l.textContent,
@@ -45,7 +45,7 @@ const places = (state: ReturnType<typeof seedState>) =>
   state.calls.filter((c) => c.method === "chat.place").map((c) => c.args.slice(1));
 
 describe("the channels' order in the sidebar (ADR 0080)", () => {
-  test("with no categories, a channel drags above or below another one in Canais", async () => {
+  test("with no categories, a channel drags above or below another one in Grupos", async () => {
     const state = await go();
     expect(names()).toEqual(["eng", "general"]);
     expect(row("general").getAttribute("draggable")).toBe("true");
@@ -87,7 +87,7 @@ describe("the channels' order in the sidebar (ADR 0080)", () => {
   });
 });
 
-describe("Criar canal in a category made there (ADR 0080)", () => {
+describe("Criar grupo in a category made there (ADR 0080)", () => {
   const click = (el: Element) => act(async () => fireEvent.click(el));
   const type = (el: Element, value: string) => act(async () => fireEvent.change(el, { target: { value } }));
   const pick = async (combobox: HTMLElement, option: string) => {
@@ -102,21 +102,21 @@ describe("Criar canal in a category made there (ADR 0080)", () => {
   test("the new channel lands in the category made from its picker, not before it exists", async () => {
     const state = await go();
     // Canais' +: Novo canal or Nova categoria.
-    const plus = within(nav()).getByRole("button", { name: "Novo canal ou categoria" });
+    const plus = within(nav()).getByRole("button", { name: "Novo grupo ou categoria" });
     await act(async () => {
       fireEvent.keyDown(plus, { key: "Enter" });
       fireEvent.keyUp(plus, { key: "Enter" });
     });
     await settle(2);
-    const menu = screen().getByRole("menu", { name: "Novo canal ou categoria" });
+    const menu = screen().getByRole("menu", { name: "Novo grupo ou categoria" });
     expect(
       within(menu)
         .getAllByRole("menuitem")
         .map((i) => i.textContent),
-    ).toEqual(["Novo canal", "Nova categoria"]);
-    await click(within(menu).getByRole("menuitem", { name: "Novo canal" }));
+    ).toEqual(["Novo grupo", "Nova categoria"]);
+    await click(within(menu).getByRole("menuitem", { name: "Novo grupo" }));
     await settle(2);
-    const dialog = screen().getByRole("dialog", { name: "Criar canal" });
+    const dialog = screen().getByRole("dialog", { name: "Criar grupo" });
     await type(within(dialog).getByLabelText("Nome"), "vendas");
     await pick(within(dialog).getByRole("combobox", { name: "Categoria" }), "Nova categoria…");
 
@@ -131,7 +131,7 @@ describe("Criar canal in a category made there (ADR 0080)", () => {
     expect(created(state)).toEqual([]);
     const category = state.channelCategories?.find((c) => c.name === "Produto");
     expect(category).toBeDefined();
-    const still = screen().getByRole("dialog", { name: "Criar canal" });
+    const still = screen().getByRole("dialog", { name: "Criar grupo" });
     const picker = within(still).getByRole("combobox", { name: "Categoria" });
     expect(picker.textContent).toContain("Produto");
     expect(document.activeElement === picker).toBe(true);
@@ -147,8 +147,8 @@ describe("Criar canal in a category made there (ADR 0080)", () => {
     seeded.channelCategories = [{ id: "cat-produto", name: "Produto", position: 0 }];
     for (const c of seeded.channels) if (c.id === ENG_ID) c.categoryId = "cat-produto";
     const state = await go(seeded);
-    await click(within(nav()).getByRole("button", { name: "Novo canal em Produto" }));
-    const dialog = screen().getByRole("dialog", { name: "Criar canal" });
+    await click(within(nav()).getByRole("button", { name: "Novo grupo em Produto" }));
+    const dialog = screen().getByRole("dialog", { name: "Criar grupo" });
     expect(within(dialog).getByRole("combobox", { name: "Categoria" }).textContent).toContain("Produto");
     await type(within(dialog).getByLabelText("Nome"), "roadmap");
     await click(within(dialog).getByRole("button", { name: "Criar #roadmap" }));
@@ -180,7 +180,7 @@ describe("what a dialog makes or renames is never taken by itself, while it is s
     expect(dialog.isConnected).toBe(false);
   };
 
-  test("Criar canal: the channel being made, in the list before Criar is answered", async () => {
+  test("Criar grupo: the channel being made, in the list before Criar is answered", async () => {
     const state = seedState();
     const api = createFakeApi(state);
     // A new list on each read, as the server sends: the fake's own array would read as unchanged.
@@ -201,10 +201,10 @@ describe("what a dialog makes or renames is never taken by itself, while it is s
     await act(async () => sockets.last().open());
     await settle(2);
     exitsLast();
-    const plus = within(nav()).getByRole("button", { name: "Novo canal ou categoria" });
-    await click(within(await openMenu(plus)).getByRole("menuitem", { name: "Novo canal" }));
+    const plus = within(nav()).getByRole("button", { name: "Novo grupo ou categoria" });
+    await click(within(await openMenu(plus)).getByRole("menuitem", { name: "Novo grupo" }));
     await settle(2);
-    const dialog = screen().getByRole("dialog", { name: "Criar canal" });
+    const dialog = screen().getByRole("dialog", { name: "Criar grupo" });
     await type(within(dialog).getByLabelText("Nome"), "vendas");
     await click(within(dialog).getByRole("button", { name: "Criar #vendas" }));
     // Made on the server, which says so on the socket before it answers.
@@ -232,7 +232,7 @@ describe("what a dialog makes or renames is never taken by itself, while it is s
     };
     await go(state, { api });
     exitsLast();
-    const plus = within(nav()).getByRole("button", { name: "Novo canal ou categoria" });
+    const plus = within(nav()).getByRole("button", { name: "Novo grupo ou categoria" });
     await click(within(await openMenu(plus)).getByRole("menuitem", { name: "Nova categoria" }));
     await settle(2);
     const dialog = screen().getByRole("dialog", { name: "Nova categoria" });
@@ -356,7 +356,7 @@ describe("a category in the sidebar (ADR 0080)", () => {
     const { body } = category("Engenharia");
     expect(body.contains(channel("eng"))).toBe(true);
     // Under the Canais part, not in the category.
-    const loose = category("Canais").body;
+    const loose = category("Grupos").body;
     expect(loose.contains(channel("general"))).toBe(true);
     expect(body.contains(channel("general"))).toBe(false);
     // No step in: a channel's # sits in its header's chevron column, as the ones in no category (sidebar-css.test.ts).
@@ -427,13 +427,13 @@ describe("a category in the sidebar (ADR 0080)", () => {
     await switchTo(BETA_ID);
     expect(nav()).toBe(sidebar);
     expect(open("Mensagens diretas")).toBe("true");
-    await click(category("Canais").toggle);
+    await click(category("Grupos").toggle);
     expect(saved(BETA_ID)).toEqual(["channels"]);
     expect(saved(ORG_ID)).toEqual(["people"]);
 
     await switchTo(ORG_ID);
     expect(open("Mensagens diretas")).toBe("false");
-    expect(open("Canais")).toBe("true");
+    expect(open("Grupos")).toBe("true");
   });
 });
 
@@ -470,18 +470,18 @@ describe("dragging a channel into, out of and between categories (ADR 0080)", ()
     expect(head("Engenharia").getAttribute("data-drop")).toBeNull();
   });
 
-  test("out to Canais it leaves its category; let go on its own row, it stays where it was", async () => {
+  test("out to Grupos it leaves its category; let go on its own row, it stays where it was", async () => {
     const state = await go(withCategory());
-    expect(await dragInto(channel("eng"), category("Canais").body, () => category("Canais").root)).toBe("into");
+    expect(await dragInto(channel("eng"), category("Grupos").body, () => category("Grupos").root)).toBe("into");
     expect(places(state)).toEqual([[ENG_ID, { categoryId: null }]]);
-    expect(category("Canais").body.contains(channel("eng"))).toBe(true);
+    expect(category("Grupos").body.contains(channel("eng"))).toBe(true);
 
     // A short drag that ends on the row it started from sends nothing (not "to the end of the part around it").
     await act(async () => fireEvent.dragStart(channel("general"), { dataTransfer }));
     const own = createEvent.dragOver(channel("general"), { dataTransfer });
     await act(async () => fireEvent(channel("general"), own));
     expect(own.defaultPrevented).toBe(false);
-    expect(category("Canais").root.getAttribute("data-drop")).toBeNull();
+    expect(category("Grupos").root.getAttribute("data-drop")).toBeNull();
     await act(async () => fireEvent.drop(channel("general"), { dataTransfer }));
     await settle(3);
     expect(places(state)).toHaveLength(1);
@@ -501,11 +501,11 @@ describe("dragging a channel into, out of and between categories (ADR 0080)", ()
     expect(places(state)).toEqual([[GENERAL_ID, { categoryId: ENGINEERING }]]);
   });
 
-  test("into the part it's already in, a channel stays put: its category's header or body, Canais' body for one in none", async () => {
+  test("into the part it's already in, a channel stays put: its category's header or body, Grupos' body for one in none", async () => {
     const state = await go(withCategory());
     expect(await dragOnto(channel("eng"), head("Engenharia"), "top")).toBeNull();
     expect(await dragInto(channel("eng"), category("Engenharia").body, () => head("Engenharia"))).toBeNull();
-    expect(await dragInto(channel("general"), category("Canais").body, () => category("Canais").root)).toBeNull();
+    expect(await dragInto(channel("general"), category("Grupos").body, () => category("Grupos").root)).toBeNull();
     expect(places(state)).toEqual([]);
   });
 });

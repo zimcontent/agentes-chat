@@ -193,7 +193,7 @@ describe("Dialog", () => {
       const [inner, setInner] = useState(false);
       const name = useRef<HTMLInputElement>(null);
       return (
-        <Dialog open onOpenChange={() => {}} title="Criar canal" closeLabel="Fechar">
+        <Dialog open onOpenChange={() => {}} title="Criar grupo" closeLabel="Fechar">
           <Button onClick={() => setInner(true)}>Nova categoria</Button>
           <Dialog open={inner} onOpenChange={setInner} title="Nova categoria" closeLabel="Fechar" initialFocus={name}>
             <Input ref={name} aria-label="Nome" />

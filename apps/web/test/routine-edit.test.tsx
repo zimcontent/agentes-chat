@@ -287,12 +287,12 @@ describe("Rotinas: the routine's page, edited where it is", () => {
   test("Onde entrega changes at once from the strip, with who sees it as its meaning", async () => {
     const { state } = await open();
     const dialog = await page();
-    expect(aside(dialog).textContent).toContain("Todo mundo do canal vê");
+    expect(aside(dialog).textContent).toContain("Todo mundo do grupo vê");
     await pick(within(aside(dialog)).getByRole("combobox", { name: "Onde entrega" }), /^Minha DM com o agente/);
     await settle(3);
     expect(lastPatch(state)).toEqual({ target: { type: "dm" } });
     expect(aside(dialog).textContent).toContain("Só você vê");
-    expect(aside(dialog).textContent).not.toContain("Todo mundo do canal vê");
+    expect(aside(dialog).textContent).not.toContain("Todo mundo do grupo vê");
   });
 
   test("Quando posta changes at once, its meaning behind the ⓘ", async () => {

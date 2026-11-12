@@ -151,7 +151,7 @@ export const en = {
     },
     headline: { warning: "An agent passed 80% of its budget", exhausted: "An agent reached its budget" },
     used: (pct: string, org: string) => `Used ${pct} of this month's budget · ${org}`,
-    warning: "At 100% it stops and says so in the channel. An admin can change the limit on the agent's page.",
+    warning: "At 100% it stops and says so in the group. An admin can change the limit on the agent's page.",
     exhausted: "It won't answer until the month turns, or until an admin raises the limit.",
     button: "See the budget",
     why: (org: string) =>
@@ -508,7 +508,7 @@ export const en = {
     headline: "Your team is waiting",
     body: (agents: number, channels: number, routines: number): Text => {
       const a = plural("en", agents, { one: "1 agent", other: `${agents} agents` });
-      const c = plural("en", channels, { one: "1 channel", other: `${channels} channels` });
+      const c = plural("en", channels, { one: "1 group", other: `${channels} groups` });
       const r = plural("en", routines, { one: "1 routine", other: `${routines} routines` });
       return `${routines > 0 ? `${a}, ${c} and ${r}` : `${a} and ${c}`} are ready. They need an agentes.chat plan to start.`;
     },

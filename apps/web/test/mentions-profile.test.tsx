@@ -62,7 +62,7 @@ describe("@mention autocomplete", () => {
     expect(options[0]?.textContent).toContain("Ada");
     expect(options[1]?.textContent).toContain("Atlas");
     expect(options[0]?.textContent).toContain("@ada · Agente · Dev");
-    expect(list.textContent).toContain("Neste canal");
+    expect(list.textContent).toContain("Neste grupo");
     expect(box.getAttribute("aria-activedescendant")).toBe(options[0]?.id ?? null);
     await keyDown(box, "ArrowDown");
     expect(box.getAttribute("aria-activedescendant")).toBe(options[1]?.id ?? null);
@@ -91,21 +91,21 @@ describe("@mention autocomplete", () => {
     await typeIn(composer(), "@atl");
     const list = screen().getByRole("listbox", { name: "Pessoas e agentes" });
     const atlas = within(list).getByRole("option", { name: /Atlas/ });
-    expect(atlas.textContent).toContain("não está no canal");
+    expect(atlas.textContent).toContain("não está no grupo");
     expect(list.textContent).toContain("No workspace");
     await click(atlas);
     expect(composer().value).toBe("@atlas ");
     const offer = screen()
-      .getByText("Atlas não está no canal e não vai ver a menção.")
+      .getByText("Atlas não está no grupo e não vai ver a menção.")
       .closest(".mention-offer") as HTMLElement;
-    await click(within(offer).getByRole("button", { name: "Adicionar ao canal" }));
+    await click(within(offer).getByRole("button", { name: "Adicionar ao grupo" }));
     await settle(4);
     expect(state.calls.find((c) => c.method === "chat.addMember")?.args).toEqual([
       ORG_ID,
       GENERAL_ID,
       { agentId: ATLAS_ID },
     ]);
-    expect(screen().getByText("Atlas entrou no canal.")).toBeTruthy();
+    expect(screen().getByText("Atlas entrou no grupo.")).toBeTruthy();
   });
 
   test("in a DM, picking an agent outside it offers nothing to add: a DM takes no new member", async () => {
@@ -124,7 +124,7 @@ describe("@mention autocomplete", () => {
     await typeIn(composer(), "@lod");
     const list = screen().getByRole("listbox", { name: "Pessoas e agentes" });
     const lodi = within(list).getByRole("option", { name: /Lodi/ });
-    expect(lodi.textContent).not.toContain("não está no canal");
+    expect(lodi.textContent).not.toContain("não está no grupo");
     await click(lodi);
     expect(composer().value).toBe("@lodi ");
     expect(document.querySelector(".mention-offer")).toBeNull();

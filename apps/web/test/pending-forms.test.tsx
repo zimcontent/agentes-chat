@@ -66,15 +66,15 @@ describe("a form whose action is on its way", () => {
     await renderApp(`/org/${ORG_ID}/c/${GENERAL_ID}`, { api });
     await settle(8);
     const nav = screen().getByRole("navigation", { name: "Navegação do workspace" });
-    const plus = within(nav).getByRole("button", { name: "Novo canal ou categoria" });
+    const plus = within(nav).getByRole("button", { name: "Novo grupo ou categoria" });
     await act(async () => {
       fireEvent.keyDown(plus, { key: "Enter" });
       fireEvent.keyUp(plus, { key: "Enter" });
     });
     await settle(2);
-    await click(screen().getByRole("menuitem", { name: "Novo canal" }));
+    await click(screen().getByRole("menuitem", { name: "Novo grupo" }));
     await settle(2);
-    const dialog = within(screen().getByRole("dialog", { name: "Criar canal" }));
+    const dialog = within(screen().getByRole("dialog", { name: "Criar grupo" }));
     const name = dialog.getByLabelText("Nome") as HTMLInputElement;
     await type(name, "lancamento");
     await act(async () => fireEvent.submit(name.closest("form") as HTMLFormElement));

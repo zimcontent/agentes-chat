@@ -398,10 +398,10 @@ export function createMockPlanning(
     });
     s.routines.push(weekly, errors, pr, monthly);
     s.runs.set(weekly.id, [
-      run(7 * 1440, "Resumo postado no canal"),
-      run(14 * 1440, "Resumo postado no canal"),
+      run(7 * 1440, "Resumo postado no grupo"),
+      run(14 * 1440, "Resumo postado no grupo"),
       run(21 * 1440, "", "failed", "budget_exceeded"),
-      run(28 * 1440, "Resumo postado no canal"),
+      run(28 * 1440, "Resumo postado no grupo"),
     ]);
     s.runs.set(errors.id, [run(1440, "Abriu 1 issue")]);
     s.runs.set(pr.id, [run(180, "Revisou o PR #42")]);
@@ -432,7 +432,7 @@ export function createMockPlanning(
         title: "Daily de produto",
         start: at(0, 10),
         end: at(0, 11),
-        description: "Pauta preparada no canal.",
+        description: "Pauta preparada no grupo.",
         participants: [...people(0, 1), agent(3)],
       }),
       event({

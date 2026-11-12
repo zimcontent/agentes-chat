@@ -958,7 +958,7 @@ export function seedState(overrides: Partial<FakeState> = {}): FakeState {
         { type: "agent_instructions", agentId: ADA_ID },
         "Manter PRs pequenos e pedir revisão do João em pagamentos",
         "Programa em branches, nunca direto na main.\nAbre PRs pequenos, com teste para cada correção.\nPede ajuda ao João quando a mudança tocar em pagamentos.",
-        "Programa em branches, nunca direto na main.\nAbre PRs de até 300 linhas; se passar disso, divide em PRs menores.\nAbre PRs pequenos, com teste para cada correção.\nAntes de abrir PR que toque em pagamentos, pede revisão do João no canal.",
+        "Programa em branches, nunca direto na main.\nAbre PRs de até 300 linhas; se passar disso, divide em PRs menores.\nAbre PRs pequenos, com teste para cada correção.\nAntes de abrir PR que toque em pagamentos, pede revisão do João no grupo.",
         { type: "user", userId: "u-joao", name: "João" },
         60,
       ),
@@ -1188,7 +1188,7 @@ export const CATALOG: ConnectorCatalog = {
       iconUrl: "/brands/canva.svg",
     },
     {
-      ...remote("slack", "Slack", "support", "Canais e mensagens.", "https://mcp.slack.example/mcp", null, false),
+      ...remote("slack", "Slack", "support", "Grupos e mensagens.", "https://mcp.slack.example/mcp", null, false),
       kind: "catalog",
       available: false,
       oauthConfigured: false,

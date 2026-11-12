@@ -346,7 +346,7 @@ describe("the header search (Discord's)", () => {
     expect(document.activeElement).toBe(jump);
   });
 
-  test("Ver em #canal in a hit's thread closes the results too", async () => {
+  test("Ver em #grupo in a hit's thread closes the results too", async () => {
     await renderApp(`/org/${ORG_ID}/c/${ENG_ID}`, { api: createFakeApi(seeded()) });
     await settle(6);
     await act(async () => fireEvent.click(screen().getByRole("button", { name: "Remover em: #eng" })));

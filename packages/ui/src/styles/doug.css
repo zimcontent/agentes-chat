@@ -288,6 +288,7 @@ html:root:is(:lang(ja), :lang(ko), :lang(zh-Hans)) {
   margin-top: 0;
   padding: 0;
   background: none;
+  box-shadow: none;
   font-size: 12px;
   font-weight: 450;
   color: var(--faint);
@@ -948,28 +949,33 @@ img.ac-logo__mark {
   border-radius: 999px;
 }
 
-/* ── Round 3: concentric corners and even breathing room, as tokens ─────────────────────────────────────────────────
-   One rule for every rounded container: a child against its edge has the container's radius less the padding between
-   them (`--r-inner = --r-outer - --pad`), and the same padding on every side. A pill is its height's half, so a round
-   child in a pill is concentric when it is the pill's height less twice the padding. Words at a pill's round end keep
-   the inner radius past the padding (`--pad-end`), so they never touch the curve.
-   Scale: space 4, 8, 12, 16, 24; heights 56 (big pieces: a person, an identity), 48 (bars: header buttons, composer,
-   dock), 40 (rows, fields), 36 and 32 (buttons inside those). The shell's sheet and sidebar: 40, so a 48 piece sits 16
-   from their corner and a 56 one 12. */
+/* ── Round 3.1: framing. Concentric corners, and a clearance that never shrinks ──────────────────────────────────────
+   Every rounded container declares its radius (`--r-outer`) and its clearance (`--pad`): no child comes closer to its
+   edge than that, and a child against a corner has `--r-inner = --r-outer - --pad`. To make things fit, the child gets
+   smaller or the container bigger, never the clearance. The clearances:
+     12  compact pieces (pills of 40 to 64: rows, search, dock, header pieces, the person's card, menus);
+     16  boxes (the composer, Início's box, cards, bubbles' sides, notices);
+     20  the sidebar; 24 the sheet and dialogs.
+   Small controls under 40 (chips, keys, buttons) keep at least 6 around their own content.
+   A text block sits on its container's optical middle: no capitals' rise (`.ac-captop`) inside these pieces, and two
+   lines on tight line heights so their capitals' top and last baseline centre on the piece (measured: optic.py).
+   Shell: page margins and the gutter 12; sidebar 288 wide, corner 48 (28 + 20); sheet corner 56, so a 64 piece sits 24
+   from its corner, a 56 piece 28 and a 48 piece 32: every piece in a corner centres 56 from both edges. */
 [data-theme="dark"] {
   --dg-s1: 4px;
   --dg-s2: 8px;
   --dg-s3: 12px;
   --dg-s4: 16px;
   --dg-s5: 24px;
-  --dg-h-xl: 56px;
-  --dg-h-lg: 48px;
-  --dg-h-md: 40px;
-  --dg-h-sm: 36px;
-  --dg-h-xs: 32px;
-  --dg-r-shell: 40px;
+  --dg-s6: 32px;
+  --dg-gap-compact: 12px;
+  --dg-gap-box: 16px;
+  --dg-gap-side: 20px;
+  --dg-gap-panel: 24px;
+  --dg-r-side: 48px;
+  --dg-r-sheet: 56px;
+  --dg-side-w: 288px;
 }
-[data-theme="dark"] .dg-concentric,
 [data-theme="dark"]
   :is(
     .sidebar,
@@ -978,7 +984,6 @@ img.ac-logo__mark {
     .sidebar__org-button,
     .sidebar__jump,
     .sidebar__dock,
-    .sidebar__hero-link,
     .sidebar__item,
     .channel__head-text,
     .dm-who,
@@ -990,56 +995,68 @@ img.ac-logo__mark {
     .ac-dialog,
     .ac-card
   ) {
-  --r-inner: calc(var(--r-outer) - var(--pad));
+  --r-inner: max(4px, calc(var(--r-outer) - var(--pad)));
 }
 
-/* The shell: sidebar and sheet share one corner, 40. */
+/* ── The shell ── */
 @media (min-width: 761px) {
   [data-theme="dark"] .sidebar {
-    --r-outer: var(--dg-r-shell);
-    --pad: var(--dg-s3);
-    border-radius: var(--r-outer);
+    --r-outer: var(--dg-r-side);
+    --pad: var(--dg-gap-side);
+    flex-basis: var(--dg-side-w);
+    width: var(--dg-side-w);
+    min-width: var(--dg-side-w);
+    margin: var(--dg-s3) 0 var(--dg-s3) var(--dg-s3);
     padding: var(--pad);
+    gap: var(--dg-s4);
+    border-radius: var(--r-outer);
+  }
+  [data-theme="dark"] .sidebar__scroll {
+    margin-inline: calc(-1 * var(--pad));
+    padding-inline: var(--pad);
+  }
+  [data-theme="dark"] .shell__work:not(.shell__work--bare) {
+    padding: var(--dg-s3);
   }
   [data-theme="dark"] .shell__pages {
-    --r-outer: var(--dg-r-shell);
-    --pad: var(--dg-s4);
+    --r-outer: var(--dg-r-sheet);
+    --pad: var(--dg-gap-panel);
     border-radius: var(--r-outer);
   }
 }
 
 /* ── Sidebar ── */
-/* The workspace's header: a 56 pill (28 = the sidebar's 40 less its 12), its mark a 40 circle 8 in. */
+/* The workspace's header: a 56 pill (28 = 48 less 20), its mark a 32 circle 12 in (16 = 28 less 12). */
 [data-theme="dark"] .sidebar__org-button {
-  --r-outer: calc(var(--dg-h-xl) / 2);
-  --pad: var(--dg-s2);
-  min-height: var(--dg-h-xl);
+  --r-outer: 28px;
+  --pad: var(--dg-gap-compact);
+  min-height: 56px;
   box-sizing: border-box;
   padding: var(--pad) var(--dg-s4) var(--pad) var(--pad);
   border-radius: var(--r-outer);
   gap: var(--dg-s3);
 }
 [data-theme="dark"] .sidebar__org-button .sidebar__org-mark {
-  width: calc(var(--dg-h-xl) - 2 * var(--pad));
-  height: calc(var(--dg-h-xl) - 2 * var(--pad));
-  border-radius: var(--r-inner);
+  width: calc(2 * var(--r-inner));
+  height: calc(2 * var(--r-inner));
+  border-radius: 999px;
 }
-/* Go to…: a 40 pill, its keys 24 high 8 in, so their corners are 12 (20 less 8); the words clear the round end. */
+/* Go to…: a 48 pill, its keys 24 high 12 in (12 = 24 less 12); the collapse a 48 circle. */
 [data-theme="dark"] .sidebar__jump-row {
   gap: var(--dg-s2);
 }
 [data-theme="dark"] .sidebar__jump {
-  --r-outer: calc(var(--dg-h-md) / 2);
-  --pad: var(--dg-s2);
-  height: var(--dg-h-md);
-  min-height: var(--dg-h-md);
-  padding: 0 var(--pad) 0 var(--dg-s3);
+  --r-outer: 24px;
+  --pad: var(--dg-gap-compact);
+  height: 48px;
+  min-height: 48px;
+  padding: 0 var(--pad) 0 var(--dg-s4);
   border-radius: var(--r-outer);
   gap: var(--dg-s2);
 }
 [data-theme="dark"] .sidebar__jump .ac-kbd {
-  height: calc(var(--dg-h-md) - 2 * var(--pad));
-  min-width: calc(var(--dg-h-md) - 2 * var(--pad));
+  height: calc(2 * var(--r-inner));
+  min-width: calc(2 * var(--r-inner));
   padding: 0 var(--dg-s2);
   border-radius: var(--r-inner);
 }
@@ -1047,143 +1064,230 @@ img.ac-logo__mark {
   margin-left: calc(var(--dg-s1) - var(--dg-s2));
 }
 [data-theme="dark"] .sidebar__collapse.ac-btn {
-  width: var(--dg-h-md);
-  height: var(--dg-h-md);
+  width: 48px;
+  height: 48px;
+  flex: none;
   border-radius: 999px;
 }
-/* The dock: a 48 pill, its 36 buttons 6 in. */
+/* The dock: a 56 pill, its 32 buttons 12 in (16 = 28 less 12), spread across it. */
 .sidebar:not([data-rail="true"]) .sidebar__dock {
-  --r-outer: calc(var(--dg-h-lg, 48px) / 2);
-  --pad: 6px;
-  height: var(--dg-h-lg, 48px);
+  --r-outer: 28px;
+  --pad: 12px;
+  height: 56px;
   box-sizing: border-box;
   padding: var(--pad);
-  border-radius: var(--r-outer);
-}
-.sidebar:not([data-rail="true"]) .sidebar__dock .sidebar__item {
-  height: calc(var(--dg-h-lg, 48px) - 12px);
-  min-height: 0;
-  border-radius: 999px;
-}
-/* The pinned hero: each a tall capsule whose top is concentric with its 48 face (24 + 8 = 32), name inside it. */
-[data-theme="dark"] .sidebar__hero {
-  gap: 0;
   justify-content: space-between;
-}
-[data-theme="dark"] .sidebar__hero-link {
-  --r-outer: 30px;
-  --pad: 6px;
-  padding: var(--pad) var(--pad) var(--dg-s3);
   border-radius: var(--r-outer);
-  gap: var(--dg-s2);
 }
-[data-theme="dark"] .sidebar__hero-face > .ac-avatar,
-[data-theme="dark"] .sidebar__hero[data-count="4"] .sidebar__hero-face > .ac-avatar {
-  width: calc(2 * var(--r-inner));
-  height: calc(2 * var(--r-inner));
-}
-[data-theme="dark"] .sidebar__hero-link[data-status="active"] {
-  background: var(--dg-lime-chosen);
-  box-shadow:
-    inset 0 1px 0 #d8ff9914,
-    inset 0 0 0 1px #a6fa1e59;
-}
-[data-theme="dark"] .sidebar__hero-link[data-status="active"] .sidebar__hero-face {
-  box-shadow: none;
-}
-/* Rows: 40 pills; an agent's two lines with its 32 face make a 48 pill with the face 8 in (16 = 24 less 8). */
-[data-theme="dark"] .sidebar:not([data-rail="true"]) .sidebar__item {
-  --r-outer: calc(var(--dg-h-md) / 2);
-  --pad: var(--dg-s1);
-  min-height: var(--dg-h-md);
-  padding-inline: var(--dg-s3) var(--dg-s3);
-  border-radius: var(--r-outer);
-  gap: var(--dg-s3);
-}
-[data-theme="dark"] .sidebar:not([data-rail="true"]) .sidebar__row .sidebar__item:has(> .ac-avatar) {
-  --r-outer: calc(var(--dg-h-lg) / 2);
-  --pad: var(--dg-s2);
-  min-height: var(--dg-h-lg);
-  padding-inline-start: var(--pad);
-}
-[data-theme="dark"] .sidebar:not([data-rail="true"]) .sidebar__row .sidebar__item > .ac-avatar {
-  width: calc(2 * var(--r-inner));
-  height: calc(2 * var(--r-inner));
-  border-radius: 999px;
-}
-/* The dock's buttons keep their 36 circles over the rows' rule above. */
 [data-theme="dark"] .sidebar:not([data-rail="true"]) .sidebar__dock .sidebar__item {
-  height: calc(var(--dg-h-lg) - 12px);
+  flex: none;
+  width: 32px;
+  height: 32px;
   min-height: 0;
   padding: 0;
   gap: 0;
   border-radius: 999px;
 }
-/* The open row's buttons (add people, settings): 32 circles, 4 from its round end (16 = 20 less 4). */
+/* The pinned hero: big faces, the open one ringed in light (a lime ring 3 off the face and its glow), no plate. */
+[data-theme="dark"] .sidebar__hero {
+  gap: 0;
+  justify-content: space-between;
+  padding: var(--dg-s1) 0 0;
+}
+[data-theme="dark"] .sidebar__hero-item {
+  flex: 0 0 25%;
+}
+[data-theme="dark"] .sidebar__hero-link,
+[data-theme="dark"] .sidebar__hero-link:hover,
+[data-theme="dark"] .sidebar__hero-link[data-status="active"] {
+  padding: var(--dg-s1) 2px var(--dg-s1);
+  gap: var(--dg-s2);
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+}
+[data-theme="dark"] .sidebar__hero-face > .ac-avatar,
+[data-theme="dark"] .sidebar__hero[data-count="4"] .sidebar__hero-face > .ac-avatar {
+  width: 44px;
+  height: 44px;
+}
+[data-theme="dark"] .sidebar__hero-face,
+[data-theme="dark"] .sidebar__hero-link:is(:hover, [data-status="active"], [data-busy="true"]) .sidebar__hero-face {
+  box-shadow: none;
+}
+/* The ring is its own circle 3 off the face (concentric: the face's radius plus 3), so the gap shows the glass
+   behind, not a dark band; the glow comes from the ring. Hover: a faint white ring; working: a faint lime one. */
+[data-theme="dark"] .sidebar__hero-face::after {
+  content: "";
+  position: absolute;
+  inset: -5px;
+  border: 2px solid transparent;
+  border-radius: 999px;
+  pointer-events: none;
+  transition:
+    border-color 0.25s var(--dg-ease, ease),
+    box-shadow 0.25s var(--dg-ease, ease);
+}
+[data-theme="dark"] .sidebar__hero-link:hover .sidebar__hero-face::after {
+  border-color: rgba(255, 255, 255, 0.16);
+}
+[data-theme="dark"] .sidebar__hero-link[data-busy="true"]:not([data-status="active"]) .sidebar__hero-face::after {
+  border-color: rgba(156, 250, 5, 0.4);
+}
+[data-theme="dark"] .sidebar__hero-link[data-status="active"] .sidebar__hero-face::after {
+  border-color: rgba(156, 250, 5, 0.9);
+  box-shadow:
+    0 0 14px 1px rgba(156, 250, 5, 0.38),
+    inset 0 0 8px rgba(156, 250, 5, 0.22);
+}
+[data-theme="dark"] .sidebar__hero-face > :is(.ac-count, .sidebar__unread) {
+  z-index: 1;
+}
+[data-theme="dark"] .sidebar__hero-link[data-status="active"] .sidebar__hero-name {
+  color: #fff;
+}
+/* Rows: 48 pills, what leads them a 24 box 12 in (12 = 24 less 12): a group's photo a 24 circle; an agent's two lines
+   with its 32 face make a 56 pill with the face 12 in (16 = 28 less 12). The words centre on the row. */
+[data-theme="dark"] .sidebar:not([data-rail="true"]) .sidebar__item {
+  --r-outer: 24px;
+  --pad: var(--dg-gap-compact);
+  min-height: 48px;
+  padding-inline: var(--pad) var(--dg-s4);
+  border-radius: var(--r-outer);
+  gap: var(--dg-s3);
+}
+[data-theme="dark"] .sidebar:not([data-rail="true"]) .sidebar__item > :is(.sidebar__channel-icon, .ac-icon) {
+  width: 24px;
+  height: 24px;
+  padding: 4px;
+  box-sizing: border-box;
+  flex: none;
+}
+[data-theme="dark"] .sidebar:not([data-rail="true"]) .sidebar__item .sidebar__channel-photo {
+  width: 24px;
+  height: 24px;
+  border-radius: 999px;
+  flex: none;
+}
+/* Every row led by a face (agents, people, the right hand): a 56 pill, face and words on its middle. */
+[data-theme="dark"] .sidebar:not([data-rail="true"]) .sidebar__item:has(> .ac-avatar),
+[data-theme="dark"] .sidebar:not([data-rail="true"]) .sidebar__item:has(> .ac-avatar + .sidebar__item-text > .sidebar__item-role) {
+  --r-outer: 28px;
+  min-height: 56px;
+  padding-block: var(--pad);
+  align-items: center;
+}
+[data-theme="dark"] .sidebar:not([data-rail="true"]) .sidebar__item > .ac-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+}
+[data-theme="dark"] .sidebar .sidebar__item .ac-captop {
+  margin-block-start: 0;
+}
+[data-theme="dark"] .sidebar .sidebar__item-label {
+  line-height: 18px;
+}
+[data-theme="dark"] .sidebar .sidebar__item-role {
+  line-height: 16px;
+}
+[data-theme="dark"] .sidebar .sidebar__item-text {
+  justify-content: center;
+}
+/* The open row's buttons (add people, settings): 24 circles, 12 from its round end and its top and foot. */
 [data-theme="dark"] .sidebar__row-acts {
-  right: var(--dg-s1);
-  gap: var(--dg-s1);
+  right: var(--dg-gap-compact);
+  gap: var(--dg-s2);
 }
 [data-theme="dark"] .sidebar__row-acts .ac-btn,
 [data-theme="dark"] .sidebar__row-menu.ac-btn {
-  width: var(--dg-h-xs);
-  height: var(--dg-h-xs);
+  width: 24px;
+  height: 24px;
+  min-height: 0;
   border-radius: 999px;
 }
-/* Room for them on the open row: the kit's rule reads it (`--acts-room`), for the full list alone. */
 [data-theme="dark"] .sidebar__row[data-acts] {
-  --acts-room: calc(var(--dg-s1) + 2 * var(--dg-h-xs) + var(--dg-s1) + var(--dg-s2));
+  --acts-room: calc(var(--dg-gap-compact) + 2 * 24px + var(--dg-s2) + var(--dg-s2));
 }
 /* The open row's bar of light, on the sidebar's own edge. */
 [data-theme="dark"] .sidebar:not([data-rail="true"]) .sidebar__item[data-status="active"]::after {
-  left: calc(-1 * var(--dg-s3));
+  left: calc(-1 * var(--dg-gap-side));
   top: var(--dg-s3);
   bottom: var(--dg-s3);
 }
-/* The person at the foot: a 56 pill (28 = 40 less 12), the face a 40 circle 8 in, the bell a 40 circle 8 in. */
+[data-theme="dark"] .sidebar__new-agent-face {
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+}
+/* The person at the foot: a 56 pill (28 = 48 less 20), the face and the bell 32 circles 12 in (16 = 28 less 12),
+   the name and the line on the card's optical middle. */
 [data-theme="dark"] .sidebar__me {
-  --r-outer: calc(var(--dg-h-xl) / 2);
-  --pad: var(--dg-s2);
-  min-height: var(--dg-h-xl);
+  --r-outer: 28px;
+  --pad: var(--dg-gap-compact);
+  min-height: 56px;
   box-sizing: border-box;
   padding: var(--pad);
-  gap: var(--dg-s2);
+  gap: var(--dg-s3);
   border-radius: var(--r-outer);
   align-items: center;
 }
 [data-theme="dark"] .sidebar__me > .sidebar__user {
-  min-height: calc(var(--dg-h-xl) - 2 * var(--pad));
-  padding: 0 var(--dg-s3) 0 0;
+  min-height: calc(2 * var(--r-inner));
+  padding: 0;
   gap: var(--dg-s3);
+  align-items: center;
   border-radius: var(--r-inner);
+  background: none;
+}
+[data-theme="dark"] .sidebar__me > .sidebar__user:hover {
+  background: none;
 }
 [data-theme="dark"] .sidebar__me > .sidebar__user > .ac-avatar {
   width: calc(2 * var(--r-inner));
   height: calc(2 * var(--r-inner));
   border-radius: 999px;
-  font-size: 14px;
+  font-size: 12px;
+}
+[data-theme="dark"] .sidebar__me .sidebar__user-text .ac-captop,
+[data-theme="dark"] .sidebar__me .sidebar__user-name {
+  margin-block-start: 0;
+  line-height: 18px;
+}
+[data-theme="dark"] .sidebar__me .sidebar__user-line {
+  line-height: 16px;
 }
 [data-theme="dark"] .sidebar__me .sidebar__bell {
   width: calc(2 * var(--r-inner));
   height: calc(2 * var(--r-inner));
+  min-height: 0;
   border-radius: 999px;
   flex: none;
 }
+[data-theme="dark"] .sidebar__me .ac-avatar__badge {
+  right: -2px;
+  bottom: -2px;
+}
 [data-theme="dark"] .sidebar__foot {
-  padding-top: var(--dg-s1);
+  padding-top: 0;
 }
 
-/* ── The conversation's head: pieces 16 from the sheet's corner (48 pills) ── */
+/* ── The conversation's head: every corner piece centres 56 from the sheet's edges ── */
 [data-theme="dark"] .channel__header,
 [data-theme="dark"] .channel__header:has(.channel__head-text) {
-  padding: var(--dg-s4) var(--dg-s4) var(--dg-s5);
+  padding: var(--dg-gap-panel) var(--dg-gap-panel) var(--dg-s4);
   min-height: 0;
 }
-/* A channel's name: a 48 pill, its # (or photo) a 32 circle 8 in; the words clear the round end. */
+[data-theme="dark"] .channel__line {
+  min-height: 64px;
+  align-items: center;
+}
+/* A group's name: a 56 pill (28 from the corner), its photo or # a 32 circle 12 in (16 = 28 less 12). */
 [data-theme="dark"] .channel__head-text {
-  --r-outer: calc(var(--dg-h-lg) / 2);
-  --pad: var(--dg-s2);
-  min-height: var(--dg-h-lg);
+  --r-outer: 28px;
+  --pad: var(--dg-gap-compact);
+  min-height: 56px;
+  margin-left: 4px;
   box-sizing: border-box;
   padding: var(--pad) var(--r-outer) var(--pad) var(--pad);
   border-radius: var(--r-outer);
@@ -1202,18 +1306,19 @@ img.ac-logo__mark {
   border-radius: 999px;
   translate: none;
 }
-[data-theme="dark"] .channel__head-text .channel__title-photo {
+[data-theme="dark"] .channel__head-text .channel__title-photo.channel__title-photo.channel__title-photo {
   padding: 0;
   object-fit: cover;
 }
-/* The header's buttons and search: a 48 pill, everything 36 high 6 in (18 = 24 less 6), never past its end. */
+/* The header's buttons and search: a 56 pill (28 from the corner), everything 32 high 12 in (16 = 28 less 12). */
 [data-theme="dark"] .channel__acts {
-  --r-outer: calc(var(--dg-h-lg) / 2);
-  --pad: 6px;
-  min-height: var(--dg-h-lg);
+  --r-outer: 28px;
+  --pad: var(--dg-gap-compact);
+  min-height: 56px;
+  margin-right: 4px;
   box-sizing: border-box;
   padding: var(--pad);
-  gap: var(--dg-s1);
+  gap: var(--dg-s2);
   border-radius: var(--r-outer);
 }
 [data-theme="dark"] .channel__acts > * {
@@ -1222,16 +1327,18 @@ img.ac-logo__mark {
 [data-theme="dark"] .channel__acts :is(.ac-btn--icon, .channel__icon).ac-btn {
   width: calc(2 * var(--r-inner));
   height: calc(2 * var(--r-inner));
+  min-height: 0;
   border-radius: 999px;
 }
 [data-theme="dark"] .channel__acts .channel__search.search-box {
   margin: 0;
 }
+/* The search field: a 32 pill, its icon and words 12 in, a filter in it 24 high 4 in (12 = 16 less 4). */
 [data-theme="dark"] .channel__search .search-box__field {
-  --r-outer: calc(var(--dg-h-sm) / 2);
-  --pad: 6px;
-  min-height: var(--dg-h-sm);
-  height: var(--dg-h-sm);
+  --r-outer: 16px;
+  --pad: 4px;
+  min-height: 32px;
+  height: 32px;
   padding: 0 var(--dg-s3) 0 36px;
   border-radius: var(--r-outer);
   background: rgba(255, 255, 255, 0.05);
@@ -1239,28 +1346,24 @@ img.ac-logo__mark {
 [data-theme="dark"] .channel__search .search-box__icon {
   left: var(--dg-s3);
 }
-/* A filter in the field ("em: #lexeer"): 24 high, 6 in, so its corners are 12 (18 less 6). */
 [data-theme="dark"] .channel__search .search-box__field .ac-token {
-  height: calc(var(--dg-h-sm) - 2 * var(--pad));
-  border-radius: var(--r-inner);
+  height: 24px;
+  border-radius: 12px;
 }
 [data-theme="dark"] .channel__search .search-box__x {
   width: 24px;
   height: 24px;
   border-radius: 999px;
 }
-
-/* A DM's head: a 56 glass piece (12 from the sheet's corner): the face a 40 circle 8 in, the name in Manrope over one
-   quiet line, the words clear of the round end. */
-[data-theme="dark"] .channel__header:has(.dm-who) {
-  padding: var(--dg-s3) var(--dg-s4) var(--dg-s5) var(--dg-s3);
-}
+/* A DM's head: a 64 glass piece (24 from the corner), the face a 40 circle 12 in (20 = 32 less 12), the name in
+   Manrope over one quiet line, on the piece's optical middle; the words clear of the round end. */
 [data-theme="dark"] .dm-who {
-  --r-outer: calc(var(--dg-h-xl) / 2);
-  --pad: var(--dg-s2);
-  min-height: var(--dg-h-xl);
+  --r-outer: 32px;
+  --pad: var(--dg-gap-compact);
+  min-height: 64px;
+  margin-left: 0;
   box-sizing: border-box;
-  padding: var(--pad) calc(var(--r-outer) + var(--dg-s1)) var(--pad) var(--pad);
+  padding: var(--pad) var(--r-outer) var(--pad) var(--pad);
   border-radius: var(--r-outer);
   display: flex;
   align-items: center;
@@ -1275,45 +1378,78 @@ img.ac-logo__mark {
 }
 [data-theme="dark"] .dm-who .channel__title {
   font-size: 17px;
-  line-height: 22px;
+  line-height: 20px;
+}
+[data-theme="dark"] .dm-who__text > .channel__title.ac-captop {
+  margin-block-start: 0;
 }
 [data-theme="dark"] .dm-who__text > .channel__topic {
   font-size: 12.5px;
   line-height: 16px;
   color: var(--faint);
 }
-/* ── The composer: a 48 pill (16 from the sheet's corner), its buttons 36 circles 6 in (18 = 24 less 6) ── */
+@media (max-width: 760px) {
+  [data-theme="dark"] .channel__header,
+  [data-theme="dark"] .channel__header:has(.channel__head-text) {
+    padding: var(--dg-s3) var(--dg-s3) var(--dg-s3);
+  }
+  [data-theme="dark"] .channel__line {
+    min-height: 56px;
+  }
+  [data-theme="dark"] :is(.channel__head-text, .channel__acts) {
+    margin: 0;
+  }
+}
+
+/* ── The conversation: its rows start on the composer's and the head's edge (24 in); bubbles keep 12 above and below
+   their words and 16 at their sides, the time 12 from the corner. ── */
+[data-theme="dark"] .channel__messages[data-look="bubbles"] {
+  padding-inline: var(--dg-s4);
+}
+[data-theme="dark"] .ac-msg[data-look="bubbles"]:not(.ac-msg--own) .ac-msg__text,
+[data-theme="dark"] .ac-msg--own[data-look="bubbles"] .ac-msg__text {
+  padding: var(--dg-s3) var(--dg-s4);
+  border-radius: 20px;
+}
+[data-theme="dark"] .ac-msg[data-look="bubbles"] .ac-msg__stamp {
+  right: var(--dg-s3);
+  bottom: var(--dg-s3);
+}
+
+/* ── The composer: a 64 pill (24 from the sheet's corner), its buttons 32 circles 16 in (16 = 32 less 16) ── */
 [data-theme="dark"] .ac-composer {
-  --r-outer: calc(var(--dg-h-lg) / 2);
-  --pad: 6px;
+  --r-outer: 32px;
+  --pad: var(--dg-gap-box);
   border-radius: var(--r-outer);
 }
 [data-theme="dark"] .ac-composer__row {
   padding: var(--pad);
-  gap: var(--dg-s1);
+  gap: var(--dg-s2);
   align-items: flex-end;
 }
 [data-theme="dark"] .ac-composer__tools {
-  gap: var(--dg-s1);
+  gap: var(--dg-s2);
 }
 [data-theme="dark"] .ac-composer__tools .ac-btn {
-  width: calc(2 * var(--r-inner));
-  height: calc(2 * var(--r-inner));
+  width: 32px;
+  height: 32px;
   min-height: 0;
   border-radius: 999px;
 }
 [data-theme="dark"] .ac-composer textarea {
-  min-height: calc(2 * var(--r-inner));
-  padding: calc((2 * var(--r-inner) - 22px) / 2) var(--dg-s2);
+  min-height: 32px;
+  padding: 5px var(--dg-s2);
 }
-/* The agent's pick above the words (Início): a 36 pill 6 in, its face a 24 circle 6 in (12 = 18 less 6). */
+/* Início's box: the agent's pick a 32 pill 16 from the corner (16 = 32 less 16), its face a 20 circle 6 in. */
 [data-theme="dark"] .ac-composer__pills {
   padding: var(--pad) var(--pad) 0;
-  gap: var(--dg-s1);
+  gap: var(--dg-s2);
+}
+[data-theme="dark"] .ac-composer__pills + .ac-composer__row {
+  padding-top: var(--dg-s2);
 }
 [data-theme="dark"] .ac-composer__pills :is(.ac-select__trigger, .ac-composer__agent, .ac-composer__pill) {
-  --r-outer: var(--r-inner);
-  height: calc(2 * var(--r-inner));
+  height: 32px;
   min-height: 0;
   box-sizing: border-box;
   padding: 6px var(--dg-s3) 6px 6px;
@@ -1321,63 +1457,189 @@ img.ac-logo__mark {
   border-radius: 999px;
 }
 [data-theme="dark"] .ac-composer__pills :is(.ac-select__trigger, .ac-composer__agent) .ac-avatar {
-  width: 24px;
-  height: 24px;
+  width: 20px;
+  height: 20px;
 }
 [data-theme="dark"] .channel__composer {
-  padding: var(--dg-s2) var(--dg-s4) var(--dg-s4);
+  padding: var(--dg-s2) var(--dg-gap-panel) var(--dg-gap-panel);
+}
+@media (max-width: 760px) {
+  [data-theme="dark"] .channel__composer {
+    padding: var(--dg-s2) var(--dg-s3) var(--dg-s3);
+  }
 }
 
-/* ── Menus, popovers, dialogs, cards: rows and plates at the container's radius less its padding ── */
+/* ── Menus and popovers (compact panels): a 20 corner, 12 around the rows, rows at 8 (20 less 12) ── */
 [data-theme="dark"] :is(.ac-menu, .ac-popover) {
-  --r-outer: 16px;
-  --pad: var(--dg-s1);
+  --r-outer: 20px;
+  --pad: var(--dg-gap-compact);
+  padding: var(--pad);
   border-radius: var(--r-outer);
 }
 [data-theme="dark"] .ac-menu .ac-menu__item,
 [data-theme="dark"] .ac-popover .ac-menu__item {
   border-radius: var(--r-inner);
 }
+/* Dialogs: a 40 corner, 24 around everything, the close a 32 circle 24 in (16 = 40 less 24). */
 [data-theme="dark"] .ac-dialog {
-  --r-outer: 24px;
-  --pad: var(--dg-s3);
+  --r-outer: 40px;
+  --pad: var(--dg-gap-panel);
+  --dialog-pad: var(--dg-gap-panel);
   border-radius: var(--r-outer);
 }
 [data-theme="dark"] .ac-dialog__close .ac-btn,
 [data-theme="dark"] .ac-dialog__close.ac-btn {
   border-radius: 999px;
 }
-/* The close keeps the head's padding on its side as on top (the kit lets its ink reach the padding line, so its round
-   plate would sit 8 from the edge). */
 [data-theme="dark"] .ac-dialog__close > .ac-btn--glyph {
   --glyph-air: 0px;
 }
-/* A settings dialog's side list: rows in the 40 pill family. */
 [data-theme="dark"] .settings__link {
   border-radius: 999px;
   padding-inline: var(--dg-s3);
 }
-/* A channel's photo beside its pill button: a circle, as the header's. */
 [data-theme="dark"] .channel-photo--field {
   border-radius: 999px;
 }
-/* New agent's empty face: a circle like the faces above it. */
-[data-theme="dark"] .sidebar__new-agent-face {
-  border-radius: 999px;
-}
+/* Cards: a 24 corner, 16 around their words. */
 [data-theme="dark"] .ac-card {
-  --r-outer: 20px;
-  --pad: var(--dg-s4);
+  --r-outer: 24px;
+  --pad: var(--dg-gap-box);
   border-radius: var(--r-outer);
 }
-/* Fields and the plated buttons beside them: 40 pills, the same family as the rows. */
+/* Fields and plated buttons: pills, their words 16 (12 when small) from the round ends. */
 [data-theme="dark"] :is(.ac-input, .ac-select__trigger, .ac-btn:not(.ac-btn--icon):not(.ac-btn--glyph)) {
   border-radius: 999px;
+}
+[data-theme="dark"] .ac-btn:not(.ac-btn--icon):not(.ac-btn--glyph):not(.ac-btn--sm) {
+  padding-inline: var(--dg-s4);
+}
+[data-theme="dark"] .ac-btn--sm:not(.ac-btn--icon):not(.ac-btn--glyph) {
+  padding-inline: var(--dg-s3);
 }
 [data-theme="dark"] .ac-textarea {
   border-radius: 16px;
 }
+[data-theme="dark"] .ac-toast {
+  border-radius: 24px;
+  padding: var(--dg-s3) var(--dg-s4);
+}
 
+/* ── What the framing audit found (doug-ui/audit.mjs), each set to the rule ── */
+/* The person's two lines fit the 32 face's height, so they centre on it. */
+[data-theme="dark"] .sidebar__me .sidebar__user-text .ac-captop,
+[data-theme="dark"] .sidebar__me .sidebar__user-name {
+  font-size: 14px;
+  line-height: 16px;
+}
+[data-theme="dark"] .sidebar__me .sidebar__user-line {
+  font-size: 12px;
+  line-height: 14px;
+}
+/* "Os agentes ainda não têm uma IA": a 64 pill like the composer under it, 16 around, its button a 32 pill. */
+[data-theme="dark"] .noai-banner {
+  min-height: 64px;
+  box-sizing: border-box;
+  margin: 0 0 var(--dg-s2);
+  padding: var(--dg-gap-box);
+  border-radius: 32px;
+}
+[data-theme="dark"] .noai-banner .ac-btn {
+  height: 32px;
+  min-height: 0;
+}
+/* An agent's setup card in its DM: a 24 corner all round, 16 under its last row. */
+[data-theme="dark"] .setup-cl {
+  border-radius: 24px;
+  padding-bottom: 6px;
+}
+/* "Doug BOSS não vai responder…" and the other event pills: a box with a 32 corner, 16 around the words; its actions
+   go under the words (the kit's action line) as 32 pills 16 from the edge and the foot (16 = 32 less 16), never a
+   square segment against the corner. A pill with no action stays a 50 pill (25 = its half). */
+[data-theme="dark"] .ac-eventpill__frame {
+  border-radius: 25px;
+}
+[data-theme="dark"] .ac-eventpill__main {
+  padding: var(--dg-s4) var(--dg-s4);
+}
+[data-theme="dark"] .ac-eventpill__frame:has(.ac-eventpill__actions) {
+  flex-direction: column;
+  align-items: flex-start;
+  border-radius: 32px;
+}
+[data-theme="dark"] .ac-eventpill__frame:has(.ac-eventpill__actions) > .ac-eventpill__main {
+  padding-bottom: var(--dg-s3);
+}
+[data-theme="dark"] .ac-eventpill__actions {
+  gap: var(--dg-s2);
+  min-height: 0;
+  margin: 0;
+  padding: 0 var(--dg-s4) var(--dg-s4);
+  align-items: center;
+}
+[data-theme="dark"] .ac-eventpill__action {
+  height: 32px;
+  padding: 0 var(--dg-s4);
+  border: 0;
+  border-radius: 999px;
+  box-shadow: none;
+}
+/* Início's "Continue de onde parou": a 48 pill, its face 24 at 12 and its chevron 16 from the end. */
+[data-theme="dark"] .home-continue {
+  min-height: 48px;
+  padding: var(--dg-s3) var(--dg-s4) var(--dg-s3) var(--dg-s3);
+  border-radius: 24px;
+}
+/* Pages start 24 from the sheet's edges, as the conversation's pieces do. */
+@media (min-width: 761px) {
+  [data-theme="dark"] .shell__pages {
+    --page-top: var(--dg-gap-panel);
+    --page-x: var(--dg-gap-panel);
+  }
+}
+/* The agent's side panel: its words and buttons 24 from the sheet's edge. */
+[data-theme="dark"] .dm-side__sec {
+  padding-inline: var(--dg-gap-panel);
+}
+/* A group's settings: the side list 24 from the dialog's edges, its corner the dialog's own. */
+[data-theme="dark"] .channel-settings__nav {
+  padding: var(--dg-s4) var(--dg-s4) var(--dg-gap-panel) var(--dg-gap-panel);
+  border-bottom-left-radius: var(--r-outer, 40px);
+}
+[data-theme="dark"] .ac-dialog .channel-settings__nav {
+  --r-outer: 40px;
+}
+/* A field with a prefix: a pill like the others. */
+[data-theme="dark"] .ac-input-affix {
+  border-radius: 999px;
+}
+/* The setup card: its row checks (24 circles 16 in) are concentric with a 28 corner. */
+[data-theme="dark"] .setup-cl {
+  border-radius: 28px;
+}
+/* The dock's icons: 20 in their 32 circles, 6 around. */
+[data-theme="dark"] .sidebar:not([data-rail="true"]) .sidebar__dock .sidebar__item > .ac-icon {
+  width: 20px;
+  height: 20px;
+}
+/* Dialogs: a 44 corner, so a 40 field 24 from it is concentric (20 = 44 less 24). */
+[data-theme="dark"] .ac-dialog,
+[data-theme="dark"] .ac-dialog .channel-settings__nav {
+  --r-outer: 44px;
+}
+[data-theme="dark"] .ac-input-affix > input {
+  padding-right: var(--dg-s3);
+}
+/* The drag grips sit inside the sidebar's 20, on the row's own left padding. */
+[data-theme="dark"] .sidebar:not([data-rail="true"]) :is(.sidebar__grip, .sidebar__tool-grip) {
+  left: 0;
+}
+/* On touch the composer's row is a 40 target: the pill grows to 72 (36), its 32 buttons centred 20 in (16 = 36 less 20). */
+@media (max-width: 760px), (pointer: coarse) {
+  [data-theme="dark"] .ac-composer {
+    --r-outer: 36px;
+  }
+}
 /* ── Reduced transparency: the glass turns into solid chips with the same rim (Nordus). ── */
 @media (prefers-reduced-transparency: reduce) {
   [data-theme="dark"]
@@ -1398,4 +1660,60 @@ img.ac-logo__mark {
     backdrop-filter: none;
     background: #161616;
   }
+}
+/* The person's two lines on the card's optical middle: the name's capitals and the status line's baseline sit 2 low
+   in their line boxes (Inter 14/16 over 12/14, measured: optic.py +1.75), so the block rises 2. */
+[data-theme="dark"] .sidebar__me .sidebar__user-text {
+  position: relative;
+  top: -2px;
+}
+/* ── Groups' photos (round 3.1): a circle wherever a group shows its photo, as faces are, so it sits concentric in
+   every pill it leads (sidebar row, header, Go to, a mention's chip). ── */
+[data-theme="dark"] .channel-photo:not(.channel-photo--empty) {
+  border-radius: 999px;
+  background: #0a0a0a;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.08);
+}
+/* A #group mention: a 22 pill; with a photo, the photo a 14 circle 4 in (7 = 11 less 4) and the name 8 from the end. */
+[data-theme="dark"] .channel-ref {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  padding: 0 8px;
+  border-radius: 999px;
+  line-height: 22px;
+  background: rgba(255, 255, 255, 0.07);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+}
+[data-theme="dark"] .channel-ref:has(> .channel-ref__photo) {
+  padding-left: 4px;
+}
+[data-theme="dark"] .channel-ref > .channel-ref__photo {
+  align-self: center;
+  width: 14px;
+  height: 14px;
+  margin: 0;
+  vertical-align: 0;
+}
+/* Go to… (Ctrl K): a group's photo as big as the faces beside it. */
+[data-theme="dark"] .ac-palette__mark > .channel-photo {
+  width: 22px;
+  height: 22px;
+}
+/* The hero: an offline dot says nothing there and would sit on the open face's ring. */
+[data-theme="dark"] .sidebar__hero-face .ac-avatar__badge:has(> [data-presence="offline"]) {
+  display: none;
+}
+/* A dialog's close beside a title and its line: on the pair's optical middle (Manrope title over Inter line, measured
+   by optic.py: the close sat 1.25 above its middle), so the close comes down 1. */
+[data-theme="dark"] .ac-actline:has(> .ac-dialog__titles > .ac-dialog__sub:not(:empty)) + .ac-dialog__close {
+  translate: 0 1px;
+}
+/* The members column: an agent's role as plain quiet words under its name, as in the sidebar (no plate hugging it). */
+[data-theme="dark"] .members-side__line.ac-tag {
+  padding: 0;
+  background: none;
+  box-shadow: none;
+  font-size: 12px;
+  color: var(--faint);
 }

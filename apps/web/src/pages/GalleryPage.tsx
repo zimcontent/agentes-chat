@@ -424,7 +424,7 @@ export function GalleryPage() {
             ["Programa em branches, nunca direto na main.", "Pede ajuda ao João quando a mudança tocar em pagamentos."],
             [
               "Programa em branches, nunca direto na main.",
-              "Antes de abrir PR que toque em pagamentos, pede revisão do João no canal.",
+              "Antes de abrir PR que toque em pagamentos, pede revisão do João no grupo.",
             ],
           )}
         />

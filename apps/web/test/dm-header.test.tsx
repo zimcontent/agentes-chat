@@ -98,7 +98,7 @@ describe("the DM's search is the channel's, held to the DM", () => {
     await act(async () => fireEvent.focus(box));
     const menu = screen().getByRole("listbox", { name: "Opções de busca" });
     expect(within(menu).queryByRole("option", { name: /De uma pessoa ou agente/ })).toBeNull();
-    expect(within(menu).queryByRole("option", { name: /Enviada em um canal ou DM/ })).toBeNull();
+    expect(within(menu).queryByRole("option", { name: /Enviada em um grupo ou DM/ })).toBeNull();
     expect(within(menu).getByRole("option", { name: /Com link, arquivo, imagem ou cartão/ })).toBeTruthy();
     await click(within(menu).getByRole("option", { name: /Mais filtros/ }), 1);
     expect(screen().getByRole("option", { name: /Antes de uma data/ })).toBeTruthy();

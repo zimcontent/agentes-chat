@@ -16,7 +16,7 @@ import { AgentSetupIntro, useSetupSteps } from "@/components/AgentSetup";
 import { useAgentPanelShown, useOpenAgentPanel } from "@/components/agent-panel-context";
 import { ComputerButton } from "@/components/computer/ComputerDialog";
 import { ErrorState } from "@/components/Loading";
-import { NavToggle } from "@/components/NavDrawer";
+import { COMPACT_QUERY, NavToggle, useMediaQuery } from "@/components/NavDrawer";
 import { useOrg } from "@/components/org-context";
 import { ProfileTrigger } from "@/components/ProfileCard";
 import { LetMeTalkButton } from "@/components/ReachLines";
@@ -56,6 +56,8 @@ export function DmPage({ target, focusMessageId }: { target: DmTarget; focusMess
   // A new agent's setup checklist (ADR 0155 §2) for whoever sets it up: its greeting and the checklist on top.
   const setup = useSetupSteps(agent).length > 0;
   // Its DM is open, from its row or any other way in: its row's "Novo" goes.
+  // A phone keeps the DM's header line to the role (see `sideSays`).
+  const compact = useMediaQuery(COMPACT_QUERY);
   useEffect(() => {
     if (rightHand) rightHandSeen.mark(rightHandSeenKey(me.user.id, org.id));
   }, [rightHand, me.user.id, org.id]);
@@ -85,7 +87,8 @@ export function DmPage({ target, focusMessageId }: { target: DmTarget; focusMess
   // person's DM with it thinks with their own AI, shown with its maker's logo in the side panel's Como pensa.
   const header = ({ onSearch, side }: { onSearch: () => void; side: DmSideControl | null }) => {
     // The agent's panel open beside the conversation already shows its owner and how it thinks: the header keeps its role.
-    const sideSays = Boolean(side?.open && side.docked);
+    // On a phone the line keeps the role alone too: the rest is one tap away, on the agent's page.
+    const sideSays = Boolean(side?.open && side.docked) || compact;
     return (
       <header className="channel__header">
         <NavToggle />

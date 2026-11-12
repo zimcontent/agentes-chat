@@ -48,7 +48,7 @@ const CARD: TeamProposalCard = {
   kind: "team_proposal",
   forUserId: "u-walter",
   params: {
-    lead: "3 agentes para a Acme, cada um no seu canal.",
+    lead: "3 agentes para a Acme, cada um no seu grupo.",
     agents: [
       {
         name: "Iara",
@@ -151,13 +151,13 @@ describe("the team card", () => {
     await openDm(lodiDm());
     const card = teamCard();
     expect(card.hasAttribute("data-ask-mine")).toBe(true);
-    expect(card.textContent).toContain("3 agentes para a Acme, cada um no seu canal.");
+    expect(card.textContent).toContain("3 agentes para a Acme, cada um no seu grupo.");
     expect(card.textContent).toContain("Responde os clientes no WhatsApp e no e-mail.");
     expect(card.textContent).toContain("atendimentonovo");
     expect(card.textContent).toContain("Tom de voz · como a Acme fala");
     expect(card.textContent).toContain("As respostas da Iara esperam a sua aprovação.");
     expect(card.textContent).toContain("eu conto aqui como foi a semana do time");
-    expect(card.textContent).toContain("2 agentes · 1 canal novo · 2 rotinas");
+    expect(card.textContent).toContain("2 agentes · 1 grupo novo · 2 rotinas");
     for (const name of ["Criar o time", "Ver como mapa", "Descartar", "Ajustar Iara", "Ajustar Ada"])
       expect(within(card).getByRole("button", { name })).toBeTruthy();
     // Each agent a MediaRow: the face, the name and the role on one line, its channel and Ajustar at that line's end
@@ -218,7 +218,7 @@ describe("the team card", () => {
     await openDm(state);
     await click(button("Ajustar Iara"), 4);
     const dialog = screen().getByRole("dialog");
-    await act(async () => fireEvent.change(within(dialog).getByLabelText("Canal"), { target: { value: "suporte" } }));
+    await act(async () => fireEvent.change(within(dialog).getByLabelText("Grupo"), { target: { value: "suporte" } }));
     await click(within(dialog).getByRole("button", { name: "Salvar" }), 8);
     expect(calls(state, "agents.adjustTeamAgent")[0]?.args.slice(1, 3)).toEqual(["m-team", "iara"]);
     expect((calls(state, "agents.adjustTeamAgent")[0]?.args[3] as { channel: string } | undefined)?.channel).toBe(

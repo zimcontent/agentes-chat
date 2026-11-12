@@ -46,7 +46,7 @@ function asksOutOfView() {
 /** Waits, in real time, until `at` has passed: a request's own timer, with no event from the server. */
 const until = (at: number) => act(() => new Promise((r) => setTimeout(r, Math.max(0, at - Date.now()) + 50)));
 
-describe("Canal", () => {
+describe("Grupo", () => {
   test("header, messages with agent replies inline, neutral mentions and code", async () => {
     await open();
     expect(screen().getByRole("heading", { name: "eng" })).toBeTruthy();
@@ -537,7 +537,7 @@ describe("Canal", () => {
   test("channel details: agents and people in groups, no search on a short list", async () => {
     await open();
     await act(async () =>
-      fireEvent.click(within(screen().getByRole("main")).getByRole("button", { name: "Configurações do canal" })),
+      fireEvent.click(within(screen().getByRole("main")).getByRole("button", { name: "Configurações do grupo" })),
     );
     await settle(3);
     const dialog = screen().getByRole("dialog", { name: "#eng" });
@@ -625,7 +625,7 @@ describe("Canal", () => {
   test("admins edit the channel topic from the details", async () => {
     const { state } = await open();
     await act(async () =>
-      fireEvent.click(within(screen().getByRole("main")).getByRole("button", { name: "Configurações do canal" })),
+      fireEvent.click(within(screen().getByRole("main")).getByRole("button", { name: "Configurações do grupo" })),
     );
     await settle(3);
     const dialog = screen().getByRole("dialog", { name: "#eng" });

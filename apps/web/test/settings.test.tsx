@@ -774,7 +774,7 @@ describe("Buscar no workspace", () => {
     const { state } = await go(seeded, "search");
     const box = screen().getByRole("combobox", { name: "Buscar" });
     expect(box.getAttribute("placeholder")).toBe("Mensagens, decisões, resumos…");
-    expect(document.body.textContent).toContain("Busca nos canais em que você está.");
+    expect(document.body.textContent).toContain("Busca nos grupos em que você está.");
     await type(box, "login");
     await act(() => new Promise((r) => setTimeout(r, 300)));
     await settle(4);

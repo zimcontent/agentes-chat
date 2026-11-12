@@ -298,7 +298,7 @@ export function NewChannelDialog({
             <Field
               label={t("newChannel.name")}
               id="ch-name"
-              example={t("newChannel.nameHelp", { name: name || "canal" })}
+              example={t("newChannel.nameHelp", { name: name || "grupo" })}
               error={
                 touched || (name && error === "taken")
                   ? error === "invalid"
@@ -349,7 +349,7 @@ export function NewChannelDialog({
         <DialogFooter bar note={t("newChannel.selected", { count: selected.size })}>
           <Button onClick={() => onOpenChange(false)}>{t("common.cancel")}</Button>
           <Button type="submit" variant="primary" disabled={create.isPending} loading={create.isPending}>
-            {t("newChannel.create", { name: name || "canal" })}
+            {t("newChannel.create", { name: name || "grupo" })}
           </Button>
         </DialogFooter>
       </form>

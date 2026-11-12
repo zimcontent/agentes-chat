@@ -773,7 +773,7 @@ describe("a team with no agents for now (ADR 0162, amended 2026-11-11)", () => {
     expect(template.getAttribute("aria-checked")).toBe("false");
     expect(scratch.getAttribute("aria-checked")).toBe("true");
     expect(template.closest("label")?.textContent).toContain(
-      "3 agentes do modelo Loja online, cada um no seu canal, com as rotinas prontas.",
+      "3 agentes do modelo Loja online, cada um no seu grupo, com as rotinas prontas.",
     );
     expect(template.closest("label")?.querySelector(".onb-start__names")?.textContent).toBe("Iara, Otto e Lia");
     expect(scratch.closest("label")?.textContent).toContain(

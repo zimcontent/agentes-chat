@@ -139,7 +139,7 @@ describe("the picture on an agent's card", () => {
 describe("the picture in a channel's details", () => {
   test("opens the panel, and the dialog closes with what it was saving", async () => {
     await go(seedState());
-    await click(within(screen().getByRole("main")).getByRole("button", { name: "Configurações do canal" }));
+    await click(within(screen().getByRole("main")).getByRole("button", { name: "Configurações do grupo" }));
     const dialog = () => screen().queryByRole("dialog", { name: "#eng" });
     await click(within(dialog() as HTMLElement).getByRole("button", { name: "Membros" }));
     await click(within(dialog() as HTMLElement).getByRole("button", PICTURE));
@@ -154,7 +154,7 @@ describe("the picture on the card from the phone's members sheet", () => {
     widthIs(COMPACT_QUERY);
     await go(seedState());
     const sheet = () => screen().queryByRole("dialog", { name: "Membros de #eng" });
-    await click(screen().getByRole("button", { name: /^Membros do canal/ }));
+    await click(screen().getByRole("button", { name: /^Membros do grupo/ }));
     await click(within(sheet() as HTMLElement).getByRole("button", PICTURE));
     await click(picture(card() as HTMLElement) as HTMLElement);
     expect(panel()).toBeTruthy();

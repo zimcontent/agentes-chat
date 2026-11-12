@@ -67,7 +67,7 @@ describe("/autorizar: an AI app asks to act as this person (ADR 0119)", () => {
     ).toBe("true");
     const can = page().querySelector(".consent__list--can") as HTMLElement;
     expect([...can.querySelectorAll("li")].map((li) => li.textContent)).toEqual([
-      "Ver os agentes e os canais que você vê.",
+      "Ver os agentes e os grupos que você vê.",
       "Mandar mensagens como você, marcadas com via Claude.",
       "Ler as respostas e o que os agentes estão fazendo.",
     ]);

@@ -61,17 +61,17 @@ describe("sidebar: no agent twice", () => {
 
 /** Canais' + → Novo canal. */
 const newChannel = async () => {
-  const plus = within(nav()).getByRole("button", { name: "Novo canal ou categoria" });
+  const plus = within(nav()).getByRole("button", { name: "Novo grupo ou categoria" });
   await act(async () => {
     fireEvent.keyDown(plus, { key: "Enter" });
     fireEvent.keyUp(plus, { key: "Enter" });
   });
   await settle(2);
-  await click(within(screen().getByRole("menu")).getByRole("menuitem", { name: "Novo canal" }));
+  await click(within(screen().getByRole("menu")).getByRole("menuitem", { name: "Novo grupo" }));
   await settle(2);
 };
 
-describe("Criar canal", () => {
+describe("Criar grupo", () => {
   /** Opens "Criar canal" in a workspace with `count` agents. */
   const openWith = async (count: number) => {
     const state = seedState();
@@ -81,7 +81,7 @@ describe("Criar canal", () => {
     }
     await go(`c/${ENG_ID}`, state);
     await newChannel();
-    return screen().getByRole("dialog", { name: "Criar canal" });
+    return screen().getByRole("dialog", { name: "Criar grupo" });
   };
   const sheet = (path: string) => Bun.file(join(import.meta.dir, path)).text();
   const rule = (css: string, selector: string) => css.split(`\n${selector} {`)[1]?.split("}")[0] ?? "";
@@ -112,7 +112,7 @@ describe("Criar canal", () => {
       expect(foot.closest(".ac-dialog__body, .ac-dialog__list")).toBeNull();
       expect(foot.textContent).toContain("0 selecionado");
       expect(within(foot).getByRole("button", { name: "Cancelar" })).toBeTruthy();
-      expect(within(foot).getByRole("button", { name: "Criar #canal" })).toBeTruthy();
+      expect(within(foot).getByRole("button", { name: "Criar #grupo" })).toBeTruthy();
       // The column scrolls when the screen is short (a phone's sheet too); the list scrolls in its box; the footer
       // never shrinks.
       const ui = await sheet("../../../packages/ui/src/styles/components.css");
@@ -143,10 +143,10 @@ describe("Criar canal", () => {
   test("dialog from the '+': validates, picks initial members, creates and opens the channel", async () => {
     const { state, router } = await go(`c/${ENG_ID}`);
     await newChannel();
-    const dialog = screen().getByRole("dialog", { name: "Criar canal" });
+    const dialog = screen().getByRole("dialog", { name: "Criar grupo" });
     const name = within(dialog).getByLabelText("Nome");
     await type(name, "eng");
-    expect(dialog.textContent).toContain("Já existe um canal #eng.");
+    expect(dialog.textContent).toContain("Já existe um grupo #eng.");
     await type(name, "Vendas Sul");
     expect((name as HTMLInputElement).value).toBe("vendas-sul");
     await type(within(dialog).getByLabelText("Descrição"), "Leads e propostas");
@@ -176,9 +176,9 @@ describe("Criar canal", () => {
   });
 });
 
-describe("Detalhes do canal: membros", () => {
+describe("Detalhes do grupo: membros", () => {
   const openDetails = async () => {
-    await click(within(screen().getByRole("main")).getByRole("button", { name: "Configurações do canal" }));
+    await click(within(screen().getByRole("main")).getByRole("button", { name: "Configurações do grupo" }));
     await settle(3);
     const dialog = screen().getByRole("dialog", { name: "#eng" });
     // Who manages it lands on Visão geral (ADR 0134); a member sees the members alone.
@@ -226,10 +226,10 @@ describe("Detalhes do canal: membros", () => {
     expect(screen().getByRole("dialog", { name: "#eng" }).textContent).toContain("Espera alguém chamar @atlas");
     // Not on my own row; on another, it asks first.
     expect(within(dialog).queryByRole("button", { name: "Opções de Walter" })).toBeNull();
-    await click(within(await openMenu("João")).getByRole("menuitem", { name: "Tirar do canal" }));
+    await click(within(await openMenu("João")).getByRole("menuitem", { name: "Tirar do grupo" }));
     const confirm = screen().getByRole("dialog", { name: "Tirar João de #eng?" });
     expect(state.calls.find((c) => c.method === "chat.removeMember")).toBeUndefined();
-    await click(within(confirm).getByRole("button", { name: "Tirar do canal" }));
+    await click(within(confirm).getByRole("button", { name: "Tirar do grupo" }));
     await settle(4);
     expect(state.calls.find((c) => c.method === "chat.removeMember")?.args).toEqual([
       ORG_ID,
@@ -301,8 +301,8 @@ describe("Detalhes do canal: membros", () => {
     const dialog = await openDetails();
     expect(within(dialog).queryByRole("button", { name: "Adicionar pessoa ou agente" })).toBeNull();
     expect(within(dialog).queryByRole("button", { name: /^Opções de/ })).toBeNull();
-    expect(within(dialog).queryByRole("textbox", { name: "Descrição do canal" })).toBeNull();
-    expect(dialog.textContent).toContain("Só quem criou o canal e os admins mudam os membros.");
+    expect(within(dialog).queryByRole("textbox", { name: "Descrição do grupo" })).toBeNull();
+    expect(dialog.textContent).toContain("Só quem criou o grupo e os admins mudam os membros.");
   });
 
   test("the channel's creator, not an admin, sets how an agent replies here", async () => {
@@ -332,7 +332,7 @@ describe("Detalhes do canal: membros", () => {
     ).toEqual(["Opções de Atlas"]);
     expect(within(dialog).queryByRole("button", { name: "Adicionar pessoa ou agente" })).toBeNull();
     const menu = await openMenu("Atlas");
-    expect(within(menu).queryByRole("menuitem", { name: "Tirar do canal" })).toBeNull();
+    expect(within(menu).queryByRole("menuitem", { name: "Tirar do grupo" })).toBeNull();
     expect(await mentionOnly(state, menu)).toEqual({ patch: [ORG_ID, ENG_ID, ATLAS_ID, false], put: false });
   });
 });

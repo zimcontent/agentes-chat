@@ -301,14 +301,14 @@ describe("agent page: the budget on the overview", () => {
     const work = screen().getByRole("region", { name: "Como trabalha" });
     const team = screen().getByRole("region", { name: "Com quem" });
     // Its channels are names as written: no capital on the letter after the # (a sentence's value gets one).
-    const channels = within(team).getByRole("button", { name: "Canais" }).querySelector(".agp-cell__value");
+    const channels = within(team).getByRole("button", { name: "Grupos" }).querySelector(".agp-cell__value");
     expect(channels?.textContent).toMatch(/^#/);
     expect(channels?.hasAttribute("data-name")).toBe(true);
     expect(within(team).getByRole("button", { name: "Responsável" }).querySelector("[data-name]")).toBeNull();
     for (const [row, title] of [
       ["Responsável", "Responsável"],
       ["Quem pode falar", "Quem pode falar com a Ada"],
-      ["Canais", "Canais"],
+      ["Grupos", "Grupos"],
     ] as const) {
       const button = within(team).getByRole("button", { name: row });
       await click(button);
@@ -491,7 +491,7 @@ describe("agent page: who edits what", () => {
     const card = document.getElementById("agp-sec-channels") as HTMLElement;
     expect(within(card).queryByRole("checkbox", { name: "#design" })).toBeNull();
     expect(card.querySelector(".agp-chips")?.textContent).toBe("design");
-    expect(hintText(card, "Canais")).toBe("Você muda só os canais em que está. Para mexer em outro, entre nele antes.");
+    expect(hintText(card, "Grupos")).toBe("Você muda só os grupos em que está. Para mexer em outro, entre nele antes.");
     await click(within(card).getByRole("checkbox", { name: "#general" }));
     await click(within(card).getByRole("checkbox", { name: "#eng" }));
     await click(within(saveBar() as HTMLElement).getByRole("button", { name: /^Salvar/ }));
@@ -928,7 +928,7 @@ describe("agent page: activity", () => {
       extra({ id: "run-f", what: "roda a suíte de checkout", status: "failed", errorCode: "run.budget_exceeded" }),
       extra({
         id: "run-k",
-        what: "resume o canal",
+        what: "resume o grupo",
         status: "failed",
         errorCode: "run.missing_credential",
         errorParams: { provider: "Claude" },

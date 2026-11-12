@@ -90,13 +90,13 @@ const shown = (el: Element) => {
 };
 
 describe("the parts' headers", () => {
-  test("Canais holds the channels in no category, then its categories; no lines, no Nova categoria row", async () => {
+  test("Grupos holds the channels in no category, then its categories; no lines, no Nova categoria row", async () => {
     await go(withCategory());
     const titles = [...nav().querySelectorAll(".sidebar__section--part .sidebar__section-toggle")].map(
       (b) => b.textContent,
     );
-    expect(titles).toEqual(["Canais", "Agentes", "Mensagens diretas"]);
-    const canais = head("Canais").closest(".sidebar__section") as HTMLElement;
+    expect(titles).toEqual(["Grupos", "Agentes", "Mensagens diretas"]);
+    const canais = head("Grupos").closest(".sidebar__section") as HTMLElement;
     expect(within(canais).getByRole("link", { name: /general/ })).toBeTruthy();
     expect(canais.nextElementSibling?.querySelector(".sidebar__section-toggle")?.textContent).toBe("Engenharia");
     expect(nav().querySelector(".sidebar__divider")).toBeNull();
@@ -143,10 +143,10 @@ describe("the parts' headers", () => {
     expect(nav().querySelector(".sidebar__see-all")).toBeNull();
   });
 
-  test("closed, Canais hides its categories too, but the open channel", async () => {
+  test("closed, Grupos hides its categories too, but the open channel", async () => {
     await withLayout();
     await go(withCategory(), `c/${ENG_ID}`);
-    await click(within(nav()).getByRole("button", { name: "Canais" }));
+    await click(within(nav()).getByRole("button", { name: "Grupos" }));
     expect(shown(channelRow("eng"))).toBe(true);
     expect(shown(nav().querySelector('a.sidebar__item[title="#general"]') as Element)).toBe(false);
   });
@@ -166,23 +166,23 @@ describe("the parts' headers", () => {
 });
 
 describe("one + per part", () => {
-  test("Canais: Novo canal and Nova categoria, each opening its dialog", async () => {
+  test("Grupos: Novo grupo and Nova categoria, each opening its dialog", async () => {
     await go();
-    expect(head("Canais").contains(within(nav()).getByRole("button", { name: "Novo canal ou categoria" }))).toBe(true);
-    let menu = await openPlus("Novo canal ou categoria");
-    expect(labels(menu)).toEqual(["Novo canal", "Nova categoria"]);
-    await click(within(menu).getByRole("menuitem", { name: "Novo canal" }));
-    expect(screen().getByRole("dialog", { name: "Criar canal" })).toBeTruthy();
+    expect(head("Grupos").contains(within(nav()).getByRole("button", { name: "Novo grupo ou categoria" }))).toBe(true);
+    let menu = await openPlus("Novo grupo ou categoria");
+    expect(labels(menu)).toEqual(["Novo grupo", "Nova categoria"]);
+    await click(within(menu).getByRole("menuitem", { name: "Novo grupo" }));
+    expect(screen().getByRole("dialog", { name: "Criar grupo" })).toBeTruthy();
     cleanup();
     await go();
-    menu = await openPlus("Novo canal ou categoria");
+    menu = await openPlus("Novo grupo ou categoria");
     await click(within(menu).getByRole("menuitem", { name: "Nova categoria" }));
     expect(screen().getByRole("dialog", { name: "Nova categoria" })).toBeTruthy();
   });
 
-  test("a member creates channels but not categories: Novo canal alone", async () => {
+  test("a member creates channels but not categories: Novo grupo alone", async () => {
     await go(asMember());
-    expect(labels(await openPlus("Novo canal ou categoria"))).toEqual(["Novo canal"]);
+    expect(labels(await openPlus("Novo grupo ou categoria"))).toEqual(["Novo grupo"]);
   });
 
   test("Agentes: Criar agente opens the new agent's dialog over the page (ADR 0164); Equipe is a tool row of its own", async () => {
@@ -216,7 +216,7 @@ describe("the sidebar's own menu, on its empty space", () => {
     expect(event.defaultPrevented).toBe(true);
     expect(labels(appMenu())).toEqual([
       "Personalizar a barra lateral",
-      "Novo canal",
+      "Novo grupo",
       "Nova categoria",
       "Criar agente",
       "Novo setor",
@@ -235,7 +235,7 @@ describe("the sidebar's own menu, on its empty space", () => {
     await rightClick(scroll());
     expect(labels(appMenu())).toEqual([
       "Personalizar a barra lateral",
-      "Novo canal",
+      "Novo grupo",
       "Equipe",
       "Restaurar ordem padrão",
     ]);
@@ -263,8 +263,8 @@ describe("the sidebar's own menu, on its empty space", () => {
         .map((i) => i.textContent)
         .filter((l) => l === "Personalizar a barra lateral" || l === "Mover para cima");
     await go(withCategory());
-    const menu = await openPlus("Novo canal ou categoria");
-    const item = within(menu).getByRole("menuitem", { name: "Novo canal" });
+    const menu = await openPlus("Novo grupo ou categoria");
+    const item = within(menu).getByRole("menuitem", { name: "Novo grupo" });
     await rightClick(item);
     expect(ours()).toEqual([]);
     await act(async () => fireEvent.keyDown(item, { key: "F10", shiftKey: true }));
@@ -294,7 +294,7 @@ describe("a row's buttons on hover or focus", () => {
     await settle(4);
     expect(screen().queryByRole("dialog")).toBeNull();
 
-    await click(within(channelRow("general")).getByRole("button", { name: "Configurações do canal" }));
+    await click(within(channelRow("general")).getByRole("button", { name: "Configurações do grupo" }));
     expect(router.state.location.pathname).toBe(`/org/${ORG_ID}/c/${GENERAL_ID}`);
     expect(screen().getByRole("dialog", { name: "#general" })).toBeTruthy();
   });
@@ -306,7 +306,7 @@ describe("a row's buttons on hover or focus", () => {
     expect(stops.map((el) => el.getAttribute("aria-label") ?? el.tagName)).toEqual([
       "A",
       "Adicionar pessoas ou agentes",
-      "Configurações do canal",
+      "Configurações do grupo",
     ]);
     expect(stops.every((el) => el.tabIndex === 0)).toBe(true);
   });
@@ -320,7 +320,7 @@ describe("a row's buttons on hover or focus", () => {
     await go(state);
     const link = nav().querySelector('a.sidebar__item[title="#eng"]') as HTMLElement;
     expect(link.parentElement?.classList.contains("sidebar__row")).toBe(false);
-    expect(within(nav()).queryByRole("button", { name: "Configurações do canal" })).toBeNull();
+    expect(within(nav()).queryByRole("button", { name: "Configurações do grupo" })).toBeNull();
     expect(link.querySelector(".sidebar__unread")?.textContent).toBe("2");
   });
 
@@ -405,7 +405,7 @@ describe("unread marks, Discord's way", () => {
     await go();
     const row = channelRow("general");
     expect((row.querySelector("a.sidebar__item") as HTMLElement).dataset.status).toBe("active");
-    const cog = within(row).getByRole("button", { name: "Configurações do canal" });
+    const cog = within(row).getByRole("button", { name: "Configurações do grupo" });
     expect(cog.querySelector("svg path")?.getAttribute("d")).toStartWith("M15.26 8.39");
   });
 });

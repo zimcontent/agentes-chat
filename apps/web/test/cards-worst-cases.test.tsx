@@ -235,6 +235,6 @@ describe("headers at their worst: the name wraps whole, the glyphs go under it a
     const { header, line, acts } = lineOf();
     expect(line.firstElementChild?.matches(".channel__head-text")).toBe(true);
     expect(within(header).getByRole("heading", { level: 1, name: LONG_CHANNEL })).toBeTruthy();
-    expect(within(acts).getByRole("button", { name: "Configurações do canal" })).toBeTruthy();
+    expect(within(acts).getByRole("button", { name: "Configurações do grupo" })).toBeTruthy();
   });
 });

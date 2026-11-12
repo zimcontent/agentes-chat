@@ -1072,7 +1072,7 @@ describe("Conectar uma IA for an agent with no AI: what the person already has, 
 describe("receipts and the live block", () => {
   test("routed to nobody for want of an AI: 'Ninguém vai responder: falta uma IA · Conectar' under the message", async () => {
     const { socket, state } = await open(seedState({ aiStatus: aiStatus(false, ADA_ID, ATLAS_ID) }));
-    await sendText("alguém resume o canal?");
+    await sendText("alguém resume o grupo?");
     const mine = state.messages.at(-1) as Message;
     await push(socket, {
       type: "message.routed",
@@ -1083,7 +1083,7 @@ describe("receipts and the live block", () => {
       reason: "no_ai",
       intent: "task",
     });
-    const receipt = receiptOf("alguém resume o canal?");
+    const receipt = receiptOf("alguém resume o grupo?");
     expect(receipt.textContent).toContain("Ninguém vai responder: falta uma IA·Conectar");
     await click(within(receipt).getByRole("button", { name: "Conectar" }));
     expect(dialog("Conectar uma IA")).not.toBeNull();
@@ -1255,7 +1255,7 @@ describe("Tentar de novo under my message an agent couldn't answer", () => {
     channelId: ENG_ID,
     threadId: null,
     author: { type: "person", id: "u-walter" },
-    body: "@ada resume o canal",
+    body: "@ada resume o grupo",
     mentionedAgentIds: [ADA_ID],
     agentRunId: null,
     createdAt: new Date(NOW.getTime() - 1000).toISOString(),
@@ -1272,7 +1272,7 @@ describe("Tentar de novo under my message an agent couldn't answer", () => {
     state.messages.push(failed());
     state.answerNowRuns = [{ agentId: ADA_ID, runId: "r-again" }];
     await open(state);
-    const receipt = receiptOf("resume o canal");
+    const receipt = receiptOf("resume o grupo");
     await click(within(receipt).getByRole("button", { name: "Tentar de novo" }));
     expect(calls(state, "chat.answerNow").map((c) => c.args)).toEqual([[ORG_ID, "m-failed"]]);
     expect(calls(state, "chat.post")).toEqual([]);
@@ -1282,7 +1282,7 @@ describe("Tentar de novo under my message an agent couldn't answer", () => {
     const state = seedState({ aiStatus: aiStatus(true) });
     state.messages.push({ ...failed(), author: { type: "person", id: "u-bia" } });
     await open(state);
-    expect(within(receiptOf("resume o canal")).queryByRole("button", { name: "Tentar de novo" })).toBeNull();
+    expect(within(receiptOf("resume o grupo")).queryByRole("button", { name: "Tentar de novo" })).toBeNull();
   });
 
   test("her computer's error code is said in words, the code only on hover", async () => {
@@ -1327,17 +1327,17 @@ describe("Tentar de novo under my message an agent couldn't answer", () => {
     state.messages.push(failed());
     state.answerNowError = new ApiError(409, "run.not_restartable", "already started");
     await open(state);
-    await click(within(receiptOf("resume o canal")).getByRole("button", { name: "Tentar de novo" }));
-    expect(calls(state, "chat.post").map((c) => (c.args[2] as { body: string }).body)).toEqual(["@ada resume o canal"]);
+    await click(within(receiptOf("resume o grupo")).getByRole("button", { name: "Tentar de novo" }));
+    expect(calls(state, "chat.post").map((c) => (c.args[2] as { body: string }).body)).toEqual(["@ada resume o grupo"]);
   });
 
   test("a voice message that can't start over is never sent again as text: the words say to record it again", async () => {
     const state = seedState({ aiStatus: aiStatus(true) });
     const voice = { clipId: "clip-1", durationMs: 4000, peaks: [] };
-    state.messages.push({ ...failed(), body: "resume o canal", meta: { voice } });
+    state.messages.push({ ...failed(), body: "resume o grupo", meta: { voice } });
     state.answerNowError = new ApiError(409, "run.not_restartable", "already started");
     await open(state);
-    await click(within(receiptOf("resume o canal")).getByRole("button", { name: "Tentar de novo" }));
+    await click(within(receiptOf("resume o grupo")).getByRole("button", { name: "Tentar de novo" }));
     expect(calls(state, "chat.post")).toEqual([]);
     expect([...document.querySelectorAll(".ac-toast")].at(-1)?.textContent).toContain(
       "Esta resposta já tinha começado, então não dá para recomeçar. Grave a mensagem de novo.",

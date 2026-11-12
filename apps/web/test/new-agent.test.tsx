@@ -1511,7 +1511,7 @@ describe("Criar agente: what gets created", () => {
     );
     expect(screen().getByRole("heading", { name: "Iris entrou no time" })).toBeTruthy();
     expect(document.body.textContent).toContain(
-      "Adicione Iris a um canal e mencione @iris numa conversa para começar.",
+      "Adicione Iris a um grupo e mencione @iris numa conversa para começar.",
     );
     // What came after the channels was still saved.
     expect(state.calls.some((c) => c.method === "access.set")).toBe(true);
@@ -1592,7 +1592,7 @@ describe("Criar agente in a personal workspace (ADR 0159)", () => {
     await proceed(2);
     expect(screen().getByText("Passo 4 de 4")).toBeTruthy();
     // Revisar still opens them.
-    await click(screen().getByRole("button", { name: "Editar Canais" }));
+    await click(screen().getByRole("button", { name: "Editar Grupos" }));
     expect(title()).toBe("Onde trabalha e com quem");
     expect(screen().queryByRole("combobox", { name: "Responsável" })).toBeNull();
     expect(screen().queryByRole("radiogroup", { name: "Quem pode falar com a Clara" })).toBeNull();
@@ -1609,7 +1609,7 @@ describe("Criar agente in a personal workspace (ADR 0159)", () => {
     const state = await open(personal(false));
     await startAs("Clara");
     await proceed(2);
-    await click(screen().getByRole("button", { name: "Editar Canais" }));
+    await click(screen().getByRole("button", { name: "Editar Grupos" }));
     // The owner's list names each person without their role.
     const owner = screen().getByRole("combobox", { name: "Responsável" });
     owner.focus();

@@ -137,7 +137,7 @@ describe("the invite dialog", () => {
     await settle(4);
 
     expect(stepOf()).toBe("Passo 3 de 4 · Onde começam");
-    expect(asked()).toBe("Em que canais essas pessoas já entram?");
+    expect(asked()).toBe("Em que grupos essas pessoas já entram?");
     // #general first, always on; the others with who is there, the agents by face and name.
     const [first] = within(dialog()).getAllByRole("checkbox");
     expect(first).toBe(box("#general"));
@@ -345,7 +345,7 @@ describe("the invite dialog", () => {
     expect(asked()).toBe("Com que papel Nova entra?");
     await press("Continuar");
     await settle(4);
-    expect(asked()).toBe("Em que canais Nova já entra?");
+    expect(asked()).toBe("Em que grupos Nova já entra?");
     await press("Continuar");
     expect(dialog().querySelector(".invite-mail-label")?.textContent).toBe("Assim chega para Nova");
     await press("Convidar 1 pessoa");
@@ -404,7 +404,7 @@ describe("the invite dialog", () => {
     const state = seedState();
     await renderApp(`/org/${ORG_ID}/c/${ENG_ID}`, { api: createFakeApi(state) });
     await settle(6);
-    await click(within(screen().getByRole("main")).getByRole("button", { name: "Configurações do canal" }));
+    await click(within(screen().getByRole("main")).getByRole("button", { name: "Configurações do grupo" }));
     await settle(3);
     const details = screen().getByRole("dialog", { name: "#eng" });
     await click(within(details).getByRole("button", { name: "Membros" }));
@@ -447,7 +447,7 @@ describe("the invite dialog", () => {
   test("a channel's Adicionar: nothing typed lists who can come in, a search says what it missed, invite and create there", async () => {
     await renderApp(`/org/${ORG_ID}/c/${ENG_ID}`, { api: createFakeApi(seedState()) });
     await settle(6);
-    await click(within(screen().getByRole("main")).getByRole("button", { name: "Configurações do canal" }));
+    await click(within(screen().getByRole("main")).getByRole("button", { name: "Configurações do grupo" }));
     await settle(3);
     const details = screen().getByRole("dialog", { name: "#eng" });
     await click(within(details).getByRole("button", { name: "Membros" }));
@@ -457,7 +457,7 @@ describe("the invite dialog", () => {
     expect(add.textContent).not.toContain("“”");
     expect(within(add).getByRole("button", { name: "Criar agente" })).toBeTruthy();
     await type(within(add).getByRole("searchbox", { name: "Buscar pessoa ou agente" }), "zzz");
-    expect(add.textContent).toContain("Ninguém fora do canal com “zzz”.");
+    expect(add.textContent).toContain("Ninguém fora do grupo com “zzz”.");
     await click(within(add).getByRole("button", { name: "Convidar pessoas" }));
     await settle(2);
     expect(screen().queryByRole("dialog", { name: "Adicionar a #eng" })).toBeNull();

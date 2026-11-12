@@ -386,12 +386,12 @@ describe("Fixar no topo", () => {
     expect(views(state).at(-1)).toMatchObject({ pins: { agents: [ADA_ID, ATLAS_ID] } });
   });
 
-  test("a channel pinned from its right click goes on top of Canais; Tirar do topo puts it back", async () => {
+  test("a channel pinned from its right click goes on top of Grupos; Tirar do topo puts it back", async () => {
     const { state } = await go();
     const eng = () => nav().querySelector(`a.sidebar__item[title="#eng"]`) as HTMLElement;
     await rightClick(eng());
     await pick("Fixar no topo");
-    const canais = section("Canais");
+    const canais = section("Grupos");
     expect(canais.querySelector("a.sidebar__item")?.getAttribute("title")).toBe("#eng");
     expect(canais.querySelector(".sidebar__pins-end")).not.toBeNull();
     expect(views(state).at(-1)).toMatchObject({ pins: { channels: [ENG_ID] } });
@@ -433,7 +433,7 @@ describe("Fixar no topo", () => {
     await go(state);
     await rightClick(nav().querySelector(`a.sidebar__item[title="#eng"]`) as HTMLElement);
     await pick("Fixar no topo");
-    expect(screen().getByText("Você já fixou 5 canais. Tire um do topo para fixar este.")).toBeTruthy();
+    expect(screen().getByText("Você já fixou 5 grupos. Tire um do topo para fixar este.")).toBeTruthy();
     expect(views(state)).toEqual([]);
   });
 });
