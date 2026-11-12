@@ -1,10 +1,10 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
-  <!-- Placeholder for the Doug mascot: a green glass disc with two eyes. Swap this file for the final art. -->
+  <!-- Placeholder for the Doug mascot: a lime glass disc (the mydoug.io portal's #9cfa05) with two eyes. Swap this file for the final art. -->
   <defs>
     <radialGradient id="fill" cx="35%" cy="28%" r="80%">
-      <stop offset="0" stop-color="#4ADE80"/>
-      <stop offset="0.55" stop-color="#16A34A"/>
-      <stop offset="1" stop-color="#064E3B"/>
+      <stop offset="0" stop-color="#D9FF7A"/>
+      <stop offset="0.55" stop-color="#9CFA05"/>
+      <stop offset="1" stop-color="#3F6A06"/>
     </radialGradient>
     <radialGradient id="shine" cx="38%" cy="18%" r="45%">
       <stop offset="0" stop-color="#ffffff" stop-opacity="0.55"/>
@@ -19,7 +19,7 @@
   <circle cx="32" cy="32" r="30" fill="url(#fill)"/>
   <circle cx="32" cy="32" r="30" fill="url(#shine)"/>
   <circle cx="32" cy="32" r="29.25" fill="none" stroke="url(#rim)" stroke-width="1.5"/>
-  <rect x="21" y="23" width="7" height="13" rx="3.5" fill="#ffffff"/>
-  <rect x="36" y="23" width="7" height="13" rx="3.5" fill="#ffffff"/>
-  <path d="M25 44 Q32 48.5 39 44" fill="none" stroke="#ffffff" stroke-opacity="0.85" stroke-width="2.6" stroke-linecap="round"/>
+  <rect x="21" y="23" width="7" height="13" rx="3.5" fill="#0A0A0A"/>
+  <rect x="36" y="23" width="7" height="13" rx="3.5" fill="#0A0A0A"/>
+  <path d="M25 44 Q32 48.5 39 44" fill="none" stroke="#0A0A0A" stroke-opacity="0.85" stroke-width="2.6" stroke-linecap="round"/>
 </svg>

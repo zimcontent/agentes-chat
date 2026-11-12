@@ -33,8 +33,11 @@ export interface ChatPrefs {
   feedbackAuto?: boolean;
 }
 
-/** Owner's decision: a channel reads as one log, and in a DM right and left already say who spoke. */
-export const DEFAULT_CHANNEL_STYLE: ChatStyle = "left";
+/**
+ * Owner's decision: a channel reads as one log, and in a DM right and left already say who spoke. Doug (after Nordus's
+ * chat): a channel opens in bubbles too, mine on the right; whoever chose another look keeps it.
+ */
+export const DEFAULT_CHANNEL_STYLE: ChatStyle = "bubbles";
 export const DEFAULT_DM_STYLE: ChatStyle = "bubbles";
 export const DEFAULT_CHAT_TONE: ChatTone = "light";
 /** Owner's decision: smaller words than before the setting existed, which `lg` comes close to. */

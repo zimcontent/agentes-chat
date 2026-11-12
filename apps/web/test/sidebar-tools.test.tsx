@@ -108,11 +108,11 @@ describe("the tools on top", () => {
     expect(section.getAttribute("title")).toBe("Arraste para mover a seção Ferramentas ou clique para ver as opções");
   });
 
-  test("a row says its name on hover only in the rail, which hides it: beside the words it would just repeat them", async () => {
+  test("a row says its name on hover where its words are hidden: Doug's dock of icons and the rail", async () => {
     await go();
     const row = (name: string) => within(nav()).getByRole("link", { name });
-    expect(row("Tarefas").getAttribute("title")).toBeNull();
-    expect(row("Início").getAttribute("title")).toBeNull();
+    expect(row("Tarefas").getAttribute("title")).toBe("Tarefas");
+    expect(row("Início").getAttribute("title")).toBe("Início");
     await click(within(nav()).getByRole("button", { name: "Minimizar barra lateral" }));
     expect(row("Tarefas").getAttribute("title")).toBe("Tarefas");
     expect(row("Início").getAttribute("title")).toBe("Início");

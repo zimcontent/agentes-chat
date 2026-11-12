@@ -23,15 +23,15 @@ const said = (id: string, author: { type: "person" | "agent"; id: string }, crea
   createdAt,
 });
 
-test("whoever hasn't chosen: channels on the left, DMs in light bubbles", () => {
-  expect(chatLookOf(undefined, false)).toEqual({ style: "left", tone: "light" });
+test("whoever hasn't chosen: Doug opens channels and DMs alike in light bubbles", () => {
+  expect(chatLookOf(undefined, false)).toEqual({ style: "bubbles", tone: "light" });
   expect(chatLookOf({}, true)).toEqual({ style: "bubbles", tone: "light" });
 });
 
-test("in a personal workspace every conversation opens in bubbles; a team's channels stay on the left (ADR 0159)", () => {
+test("in a personal workspace every conversation opens in bubbles (ADR 0159); in Doug a team's channels do too", () => {
   expect(chatLookOf(undefined, false, true)).toEqual({ style: "bubbles", tone: "light" });
   expect(chatLookOf({}, true, true)).toEqual({ style: "bubbles", tone: "light" });
-  expect(chatLookOf({}, false, false)).toEqual({ style: "left", tone: "light" });
+  expect(chatLookOf({}, false, false)).toEqual({ style: "bubbles", tone: "light" });
 });
 
 test("the person's own choice wins over a personal workspace's default", () => {

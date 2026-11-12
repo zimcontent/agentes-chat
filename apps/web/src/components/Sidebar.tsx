@@ -308,8 +308,8 @@ export function Sidebar() {
     ) : id === "issues" && taskMentions > 0 ? (
       <UnreadCount count={taskMentions} mentions />
     ) : null;
-  // The name is on the row: only the rail, which hides it, says it on hover.
-  const railTip = (id: SidebarItem | "home") => (rail ? t(`shell.${id}`) : undefined);
+  // The name is on the row: only the rail and Doug's dock of tools (icons in a glass bar), which hide it, say it on hover.
+  const railTip = (id: SidebarItem | "home") => (rail || !personal ? t(`shell.${id}`) : undefined);
   const toolRow = (id: SidebarItem) => (
     <Link
       key={id}
@@ -422,6 +422,10 @@ export function Sidebar() {
     return { top, rest: sortAgents(rest, view.agentSort, me.user.id, busy) };
   };
   const loose = ordered(byGroup.ungrouped);
+  // Doug (after Nordus's pinned hero): up to four agents pinned on top leave the list for a row of big faces under the
+  // search. The rail keeps them as rows.
+  const hero = rail || personal ? [] : loose.top.slice(0, HERO_MAX);
+  const looseTop = loose.top.filter((a) => !hero.includes(a));
   // Members never see an empty group; who arranges the agents keeps them, to drop agents in.
   const agentGroups = byGroup.groups.filter((g) => g.items.length > 0 || (manages && g.group.agentIds.length === 0));
   const groupIds = agentGroups.map((g) => `group:${g.group.id}` as SectionId);
@@ -581,10 +585,8 @@ export function Sidebar() {
         />
       )}
       {dir.loading && team.length === 0 && <SidebarSkeleton count={2} avatar label={t("common.loadingList")} />}
-      {loose.top.map(agentRow)}
-      {loose.top.length > 0 && (loose.rest.length > 0 || agentGroups.length > 0) && (
-        <hr className="sidebar__pins-end" />
-      )}
+      {looseTop.map(agentRow)}
+      {looseTop.length > 0 && (loose.rest.length > 0 || agentGroups.length > 0) && <hr className="sidebar__pins-end" />}
       {loose.rest.map(agentRow)}
     </>
   );
@@ -598,8 +600,9 @@ export function Sidebar() {
         </div>
       )
     ) : (
-      // The tools each person keeps in sight; the rest open beside the sidebar from More.
-      <div className="sidebar__group sidebar__tools">
+      // The tools each person keeps in sight; the rest open beside the sidebar from More. Doug draws them as a dock: a
+      // glass bar of icons (after Nordus's footer nav), each named on hover and to a screen reader.
+      <div className="sidebar__group sidebar__tools sidebar__dock">
         <Link to="/org/$orgId/home" params={{ orgId }} className="sidebar__item" title={railTip("home")}>
           <Icon name="home" />
           <span className="sidebar__item-label">{t("shell.home")}</span>
@@ -923,6 +926,19 @@ export function Sidebar() {
                 />
               )}
             </div>
+            {hero.length > 0 && (
+              <PinnedHero
+                agents={hero}
+                unreadOf={(id) => dmOf.get(id)?.unread ?? 0}
+                onPrefetch={(id) => {
+                  const dm = dmOf.get(id);
+                  if (dm) prefetch(dm.channelId);
+                }}
+                onOpen={(id) => markOpen(dmOf.get(id)?.channelId ?? id)}
+                drag={organize ? (id) => drag.row(id) : undefined}
+                menuExtra={(a) => [...hideEntry(a), ...(manages ? groupEntries(a) : [])]}
+              />
+            )}
           </>
         )}
       </div>
@@ -1753,6 +1769,102 @@ function PinnedMark() {
  * the rail) and the line under its name says where. For who manages agents it drags to another group (`drag`) and its
  * right click has Mudar de grupo (`menuExtra`). `live`: it works, waits or wrote to me, so a closed group still shows it.
  */
+/** Doug: how many pinned agents the hero row shows; past it, the rest stay pinned rows on top of the list. */
+const HERO_MAX = 4;
+
+/**
+ * Doug's pinned hero (after Nordus's PinnedHero): the agents pinned on top as a row of big glass faces under the search,
+ * each with its name under it. Each is its DM's link, with the row's own right-click menu (pin, hide, group, settings),
+ * its unread count on the face and its drag into a group, so nothing the row did is lost.
+ */
+function PinnedHero({
+  agents,
+  unreadOf,
+  onPrefetch,
+  onOpen,
+  drag,
+  menuExtra,
+}: {
+  agents: Agent[];
+  unreadOf: (agentId: string) => number;
+  onPrefetch: (agentId: string) => void;
+  onOpen: (agentId: string) => void;
+  drag?: (agentId: string) => ReturnType<ReturnType<typeof useAgentDrag>["row"]>;
+  menuExtra: (a: Agent) => MenuEntry[];
+}) {
+  const { t } = useTranslation();
+  return (
+    <ul className="sidebar__hero" aria-label={t("sidebarPins.pinned")} data-count={agents.length}>
+      {agents.map((a) => (
+        <HeroAgent
+          key={a.id}
+          agent={a}
+          unread={unreadOf(a.id)}
+          onPrefetch={() => onPrefetch(a.id)}
+          onOpen={() => onOpen(a.id)}
+          drag={drag?.(a.id)}
+          menuExtra={menuExtra(a)}
+        />
+      ))}
+    </ul>
+  );
+}
+
+function HeroAgent({
+  agent: a,
+  unread,
+  onPrefetch,
+  onOpen,
+  drag,
+  menuExtra,
+}: {
+  agent: Agent;
+  unread: number;
+  onPrefetch: () => void;
+  onOpen: () => void;
+  drag?: ReturnType<ReturnType<typeof useAgentDrag>["row"]>;
+  menuExtra: MenuEntry[];
+}) {
+  const { t } = useTranslation();
+  const { org } = useOrg();
+  const state = useStreams((st) => agentStateIn(st, a.id));
+  const busy = state !== "idle";
+  const shown = useAgentPresence(a.id);
+  const word = shown ? t(`presence.${shown.presence}`) : null;
+  const agentEntries = useAgentMenu();
+  const rowMenu = entityMenu(() => agentEntries(a, menuExtra));
+  return (
+    <li className="sidebar__hero-item" data-hero-agent={a.id}>
+      <Link
+        {...rowMenu}
+        to="/org/$orgId/dm/agent/$agentId"
+        params={{ orgId: org.id, agentId: a.id }}
+        className="sidebar__hero-link"
+        title={[a.name, a.role, busy ? t(`sky.busy.${state}`) : word].filter(Boolean).join(" · ")}
+        onMouseEnter={onPrefetch}
+        onFocus={onPrefetch}
+        onClick={onOpen}
+        data-unread={unread > 0}
+        data-busy={busy}
+        {...drag}
+      >
+        <span className="sidebar__hero-face">
+          <AgentAvatar
+            agentId={a.id}
+            name={a.name}
+            size="lg"
+            presence={shown?.presence ?? null}
+            presenceLabel={word ?? undefined}
+            asleep={isOutOfOffice(shown?.line)}
+          />
+          {unread > 0 && <UnreadCount count={unread} />}
+        </span>
+        <span className="sidebar__hero-name">{a.name}</span>
+      </Link>
+    </li>
+  );
+}
+
 function AgentRow({
   agent: a,
   unread,

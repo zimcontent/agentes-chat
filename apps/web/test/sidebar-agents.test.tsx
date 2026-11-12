@@ -45,6 +45,9 @@ const head = (name: string) =>
 const section = (name: string) => head(name).closest(".sidebar__section") as HTMLElement;
 const rowsIn = (el: HTMLElement) =>
   [...el.querySelectorAll("[data-agent-row] .sidebar__item-label")].map((l) => l.textContent);
+// Doug: up to four agents pinned on top (and in no setor) leave Agentes for the row of faces under the search.
+const hero = () => [...nav().querySelectorAll(".sidebar__hero-name")].map((l) => l.textContent);
+const heroList = () => within(nav()).getByRole("list", { name: "Fixado no topo" });
 const click = async (el: Element) => {
   await act(async () => fireEvent.click(el));
   await settle(4);
@@ -203,7 +206,7 @@ describe("Dragging into a setor", () => {
   };
   const dragInto = async (agentId: string, zone: HTMLElement, at: { clientY?: number } = {}) => {
     const dt = dataTransfer();
-    const row = nav().querySelector(`[data-agent-row="${agentId}"] a`) as HTMLElement;
+    const row = nav().querySelector(`[data-agent-row="${agentId}"] a, [data-hero-agent="${agentId}"] a`) as HTMLElement;
     await act(async () => fireEvent.dragStart(row, { dataTransfer: dt }));
     await act(async () => fireEvent.dragOver(zone, { dataTransfer: dt, ...at }));
     await act(async () => fireEvent.drop(zone, { dataTransfer: dt, ...at }));
@@ -216,18 +219,20 @@ describe("Dragging into a setor", () => {
 
   test("an agent pinned on top lands in the empty setor it's dropped on and leaves the pins; Desfazer pins it back", async () => {
     const { state } = await go(pinned(withGroups(), [ADA_ID]));
-    expect(rowsIn(section("Agentes"))).toEqual(["Ada"]);
+    expect(hero()).toEqual(["Ada"]);
+    expect(rowsIn(section("Agentes"))).toEqual([]);
     await dragInto(ADA_ID, section("Diretoria"));
     expect(screen().getByText("Ada foi para o setor Diretoria")).toBeTruthy();
     expect(rowsIn(section("Diretoria"))).toEqual(["Ada"]);
     expect(rowsIn(section("Agentes"))).toEqual([]);
+    expect(hero()).toEqual([]);
     expect(views(state).at(-1)).toMatchObject({ pins: { agents: [] } });
     const toast = screen()
       .getByText("Ada foi para o setor Diretoria")
       .closest("[role='status'], li, div") as HTMLElement;
     await click(within(toast.parentElement as HTMLElement).getByRole("button", { name: "Desfazer" }));
-    expect(rowsIn(section("Agentes"))).toEqual(["Ada"]);
-    expect(within(nav()).getByRole("img", { name: "Fixado no topo" })).toBeTruthy();
+    expect(hero()).toEqual(["Ada"]);
+    expect(within(heroList()).getByRole("link", { name: /^Ada/ })).toBeTruthy();
     expect(views(state).at(-1)).toMatchObject({ pins: { agents: [ADA_ID] } });
   });
 
@@ -300,10 +305,10 @@ describe("Fixar no topo", () => {
     const atlas = state.agents.find((a) => a.id === ATLAS_ID);
     if (atlas) atlas.ownerUserId = "u-walter";
     await go(state);
-    expect(rowsIn(section("Agentes"))).toEqual(["Atlas", "Ada"]);
-    const pinned = nav().querySelector(`[data-agent-row="${ATLAS_ID}"]`) as HTMLElement;
-    expect(within(pinned).getByRole("img", { name: "Fixado no topo" })).toBeTruthy();
-    expect(section("Agentes").querySelector(".sidebar__pins-end")).not.toBeNull();
+    // Doug: my own agent, pinned on top, is a face in the row under the search; the rest stay in Agentes.
+    expect(hero()).toEqual(["Atlas"]);
+    expect(within(heroList()).getByRole("link", { name: /^Atlas/ })).toBeTruthy();
+    expect(rowsIn(section("Agentes"))).toEqual(["Ada"]);
     expect(section("Agentes").querySelector('[role="note"]')).toBeNull();
     expect(section("Agentes").textContent).not.toContain("Seus agentes ficam no topo.");
   });
@@ -332,7 +337,7 @@ describe("Fixar no topo", () => {
     const socket = r.sockets.last();
     await act(async () => socket.open());
     await settle(3);
-    expect(rowsIn(section("Agentes"))).toEqual(["Ada"]);
+    expect(hero()).toEqual(["Ada"]);
     // Someone else puts Ada in Integrations (another admin, her page, the right hand): my pin is still there.
     state.agentGroups = [
       { id: INTEGRATIONS, name: "Integrations", agentIds: [ATLAS_ID, ADA_ID] },
@@ -345,6 +350,7 @@ describe("Fixar no topo", () => {
     const ada = nav().querySelector(`[data-agent-row="${ADA_ID}"]`) as HTMLElement;
     expect(within(ada).getByRole("img", { name: "Fixado no topo" })).toBeTruthy();
     expect(rowsIn(section("Agentes"))).toEqual([]);
+    expect(hero()).toEqual([]);
   });
 
   test("Fixar no topo puts the agent first, so the row moves where the person looks", async () => {
@@ -355,10 +361,12 @@ describe("Fixar no topo", () => {
       pins: { agents: [ATLAS_ID], channels: [], people: [] },
     };
     await go(state);
-    expect(rowsIn(section("Agentes"))).toEqual(["Atlas", "Ada"]);
+    expect(hero()).toEqual(["Atlas"]);
+    expect(rowsIn(section("Agentes"))).toEqual(["Ada"]);
     await rightClick(within(nav()).getByRole("link", { name: /^Ada/ }));
     await pick("Fixar no topo");
-    expect(rowsIn(section("Agentes"))).toEqual(["Ada", "Atlas"]);
+    expect(hero()).toEqual(["Ada", "Atlas"]);
+    expect(rowsIn(section("Agentes"))).toEqual([]);
     expect(views(state).at(-1)).toMatchObject({ pins: { agents: [ADA_ID, ATLAS_ID] } });
   });
 
@@ -374,7 +382,7 @@ describe("Fixar no topo", () => {
     await rightClick(within(nav()).getByRole("link", { name: /^Ada/ }));
     await pick("Fixar no topo");
     expect(screen().queryByText("Você já fixou 5 agentes. Tire um do topo para fixar este.")).toBeNull();
-    expect(rowsIn(section("Agentes"))).toEqual(["Ada", "Atlas"]);
+    expect(hero()).toEqual(["Ada", "Atlas"]);
     expect(views(state).at(-1)).toMatchObject({ pins: { agents: [ADA_ID, ATLAS_ID] } });
   });
 

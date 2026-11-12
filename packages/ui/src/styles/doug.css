@@ -1,207 +1,538 @@
 /*
- * Doug: the dark theme and its glass. Loaded unlayered after the app's sheets (apps/web/src/styles.css), so it sits
- * over the kit's tokens and the base layer without touching them: the light theme stays as it was.
+ * Doug: the dark theme, its type and its glass. Loaded unlayered after the app's sheets (apps/web/src/styles.css), so it
+ * sits over the kit's tokens and the base layer without touching them: the light theme keeps its colors.
  *
- * Tokens: near-black with a green cast, a green accent (#22c55e), ink #fcfcfc. Glass is one material for what floats
- * over the content (the sidebar, menus, popovers, dialogs, the composer and the conversation's header): a blur with
- * saturation, a translucent fill, a 1px rim brighter at the top and a soft shadow. Long text stays on solid ground.
+ * Three sources, mixed:
+ * - Palette and type from the mydoug.io portal (its built CSS): neutral grays (#0a0a0a ground, #121212 cards, #1a1a1a,
+ *   #212121), lines #262626/#303030/#424242, ink #ededed/#999/#6b6b6b, the lime #9cfa05 (accent-2 #b4fb41, ink on it
+ *   #0a0a0a) only on what is chosen, pressed or live, Inter for words and Manrope for titles, 1rem corners.
+ * - Material and structure from Nordus (styles.css `.nb-glass`, lib/liquid-glass.ts, the sidebar's pinned hero, rows,
+ *   section headers and footer nav, the chathead pill, the composer, menus and the glass segmented control).
+ * - Everything else, and every behavior, from agentes.chat.
  */
-[data-theme="dark"] {
-  color-scheme: dark;
-  /* Ground and surfaces. */
-  --bg: #060908;
-  --pane: #0d1210;
-  --raised: #141b18;
-  --raised-2: #1a2320;
-  --sunken: #040605;
-  --side: #0a0f0d;
-  --glass-solid: #121916;
-  --line: rgba(255, 255, 255, 0.08);
-  --line2: rgba(255, 255, 255, 0.13);
-  --line-strong: #5f6b66;
-  /* Words: ink #fcfcfc, a secondary at 60% and a faint step that still reads 4.5:1 on the panel. */
-  --ink: #fcfcfc;
-  --ink2: #e4e9e6;
-  --muted: rgba(252, 252, 252, 0.64);
-  --faint: #8a958f;
-  /* Accent: Doug's green. `--agent` is the kit's accent token (links, focus of choice, sends). */
-  --agent: #22c55e;
-  --agent2: #4ade80;
-  --agent-soft: #0b3b2a;
-  --on-agent: #03140b;
-  --accent-text: #86efac;
-  --accent-deep: #064e3b;
-  /* States: success a cooler mint than the accent, so a done mark never reads as "selected". */
-  --ok: #34d399;
-  --warn: #f5b454;
-  --warn-soft: #33260e;
-  --danger: #ff5667;
-  --info: #7fc0ff;
-  --plate: rgba(255, 255, 255, 0.08);
-  --plate-soft: rgba(255, 255, 255, 0.05);
-  --side-hover: rgba(255, 255, 255, 0.06);
-  --side-chosen: rgba(34, 197, 94, 0.14);
-  --chosen-bg: #1c2622;
-  --scrim: rgba(2, 4, 3, 0.56);
-  --e1: 0 1px 2px rgba(0, 0, 0, 0.5), 0 0 0 1px var(--line);
-  --e2: 0 10px 30px -8px rgba(0, 0, 0, 0.6), 0 0 0 1px var(--line);
-  --e3: 0 28px 64px -16px rgba(0, 0, 0, 0.8), 0 0 0 1px var(--line2);
-  --top: inset 0 1px 0 rgba(255, 255, 255, 0.07);
-  --focus-color: #4ade80;
-  /* Glass: one material, in tokens. */
-  --dg-blur: 18px;
-  --dg-saturate: 160%;
-  --dg-fill: rgba(17, 24, 21, 0.58);
-  --dg-fill-thick: rgba(16, 22, 19, 0.86);
-  --dg-fill-clear: rgba(255, 255, 255, 0.035);
-  --dg-rim-top: rgba(255, 255, 255, 0.16);
-  --dg-rim: rgba(255, 255, 255, 0.08);
-  --dg-rim-bottom: rgba(255, 255, 255, 0.04);
-  --dg-reflection: rgba(255, 255, 255, 0.06);
-  --dg-shadow: 0 18px 40px -12px rgba(0, 0, 0, 0.65), 0 2px 6px rgba(0, 0, 0, 0.3);
-  --dg-ease: cubic-bezier(0.22, 1, 0.36, 1);
-  --dg-glass-edge: inset 0 1px 0 var(--dg-rim-top), inset 0 -1px 0 var(--dg-rim-bottom), inset 0 0 0 1px var(--dg-rim);
+
+/* ── Type: Inter for the app's words, Manrope for titles. Measured in Chromium (doug-ui/measure-fonts.mjs) as the kit
+   asks of a new face: Inter's capitals' middle 0.01ex above the line's middle, their top 0.68ex; Manrope's -0.04ex and
+   0.61ex. `html:root` so it wins over the app's own `:root` (styles.css), loaded after this sheet. ── */
+html:root {
+  --font-sans: "Inter Variable", Inter, "Segoe UI", system-ui, sans-serif;
+  --font-display: "Manrope Variable", Manrope, var(--font-sans);
+  --font-display-weight: 700;
+  --cap-mid: 0.01ex;
+  --cap-top: 0.68ex;
+  /* A dialog title (Manrope 700, 18/24), measured on screen (doug-ui/measure-titles.py, measure-dialog-title.mjs):
+     its capitals' middle 0.25px above its line's (Source Sans 3 measured the same way gave the kit's value back). */
+  --title-cap-mid: 0.25px;
+  font-feature-settings: "cv11", "ss01";
+}
+/* The connectors catalog's big title (30/33, 24 at phone width) in Manrope, measured the same way. */
+html .catalog .ac-dialog__head {
+  --title-cap-mid: -0.12px;
+}
+@media (max-width: 760px) {
+  html .catalog .ac-dialog__head {
+    --title-cap-mid: -0.42px;
+  }
+}
+html:root:is(:lang(ja), :lang(ko), :lang(zh-Hans)) {
+  --font-sans: "Inter Variable", Inter, system-ui, sans-serif;
+}
+:is(.ac-dialog__title, .ac-pagehead__title, .channel__title, .sidebar__org-name, .auth h1, .auth h2) {
+  /* What sits on a title's line (the channel's #, a lead icon) centres on Manrope's own capitals. */
+  --cap-mid: -0.04ex;
+  --cap-top: 0.61ex;
+  font-family: var(--font-display);
+  letter-spacing: -0.02em;
+}
+.ac-dialog__title,
+.ac-pagehead__title,
+.channel__title {
+  font-weight: 700;
 }
 
-/* ── The ground: near black with a faint green light from the top, as the sign-in of mydoug.io ── */
+[data-theme="dark"] {
+  color-scheme: dark;
+  /* Ground and surfaces: the portal's grays, no tint. */
+  --bg: #0a0a0a;
+  --pane: #121212;
+  --raised: #1a1a1a;
+  --raised-2: #212121;
+  --sunken: #070707;
+  --side: #0f0f0f;
+  --glass: rgba(18, 18, 18, 0.78);
+  --glass-solid: #121212;
+  --line: rgba(255, 255, 255, 0.1);
+  --line2: rgba(255, 255, 255, 0.15);
+  --line-strong: #6b6b6b;
+  /* Words: #ededed, #999 and a faint step (#808080, the portal's #6b6b6b lifted to read 4.5:1 on the cards). */
+  --ink: #ededed;
+  --ink2: #d4d4d4;
+  --muted: #999999;
+  --faint: #808080;
+  /* The lime: `--agent` is the kit's accent (links, chosen states, sends), `--action` its primary button. */
+  --agent: #9cfa05;
+  --agent2: #b4fb41;
+  --agent-soft: #1b2709;
+  --on-agent: #0a0a0a;
+  --accent-text: #b4fb41;
+  --action: #9cfa05;
+  --on-action: #0a0a0a;
+  /* States: approved is the lime itself (the portal's `--ok`), the rest the portal's own. */
+  --ok: #9cfa05;
+  --warn: #f5b544;
+  --warn-soft: #33270f;
+  --on-warn: #1f1400;
+  --danger: #f2555a;
+  --info: #60a5fa;
+  --plate: rgba(255, 255, 255, 0.07);
+  --plate-soft: rgba(255, 255, 255, 0.04);
+  --side-hover: rgba(255, 255, 255, 0.06);
+  --side-chosen: rgba(156, 250, 5, 0.12);
+  --chosen-bg: #1a1a1a;
+  --scrim: rgba(0, 0, 0, 0.6);
+  --e1: inset 0 1px 0 #ffffff0a, 0 1px 2px rgba(0, 0, 0, 0.5), 0 0 0 1px var(--line);
+  --e2: 0 1px 0 #ffffff0a inset, 0 8px 24px #00000073, 0 0 0 1px var(--line);
+  --e3: 0 1px 0 #ffffff0d inset, 0 24px 64px -16px #000c, 0 2px 8px #0006, 0 0 0 1px var(--line2);
+  --top: inset 0 1px 0 #ffffff0a;
+  --focus-color: #9cfa05;
+  /* The portal's glass and Nordus's rim. */
+  --dg-blur: 20px;
+  --dg-saturate: 140%;
+  --dg-glass-bg: rgba(18, 18, 18, 0.78);
+  --dg-glass-card: linear-gradient(180deg, #ffffff0b, #ffffff04);
+  --dg-pill: rgba(255, 255, 255, 0.055);
+  --dg-pill-hover: rgba(255, 255, 255, 0.09);
+  --dg-rim-top: rgba(255, 255, 255, 0.16);
+  --dg-rim: rgba(255, 255, 255, 0.085);
+  --dg-rim-bottom: rgba(255, 255, 255, 0.04);
+  --dg-reflection: rgba(255, 255, 255, 0.07);
+  --dg-shadow: 0 8px 24px #00000073;
+  --dg-shadow-lg: 0 24px 64px -16px #000c, 0 2px 8px #0006;
+  --dg-edge: inset 0 1px 0 var(--dg-rim-top), inset 0 -1px 0 var(--dg-rim-bottom), inset 0 0 0 1px var(--dg-rim);
+  --dg-glow: rgba(156, 250, 5, 0.35);
+  --dg-ease: cubic-bezier(0.16, 1, 0.3, 1);
+  --dg-lime-chosen: linear-gradient(100deg, #9cfa0533, #9cfa050f 55%, #9cfa0508);
+}
+
+/* ── The ground: the portal's near black, neutral, with a soft white light from the top ── */
 [data-theme="dark"] body,
 [data-theme="dark"] .shell,
 [data-theme="dark"] .auth {
-  background:
-    radial-gradient(70% 55% at 18% -8%, rgba(34, 197, 94, 0.1), transparent 70%),
-    radial-gradient(60% 50% at 100% 110%, rgba(6, 78, 59, 0.22), transparent 70%),
-    radial-gradient(120% 80% at 50% -20%, rgba(11, 59, 42, 0.35), transparent 60%), var(--bg);
+  background: radial-gradient(80% 50% at 50% -18%, rgba(255, 255, 255, 0.045), transparent 70%), var(--bg);
   background-attachment: fixed;
 }
-[data-theme="dark"] .shell__work {
+[data-theme="dark"] .shell__work:not(.shell__work--bare) {
   background: transparent;
 }
 
-/* The glass material, for any piece of the kit that floats. */
+/* ── The glass, after Nordus's `.nb-glass`: what floats over the content (pills, bars, menus) ── */
 [data-theme="dark"] :is(.dg-glass, .ac-menu, .ac-popover, .ac-dialog, .ac-toast) {
-  background: radial-gradient(120% 50% at 50% -12%, var(--dg-reflection), transparent 60%), var(--dg-fill-thick);
+  background: radial-gradient(120% 50% at 50% -12%, var(--dg-reflection), transparent 60%), rgba(20, 20, 20, 0.9);
   -webkit-backdrop-filter: blur(24px) saturate(var(--dg-saturate));
   backdrop-filter: blur(24px) saturate(var(--dg-saturate));
   border-color: transparent;
-  box-shadow: var(--dg-glass-edge), var(--dg-shadow);
+  box-shadow: var(--dg-edge), var(--dg-shadow-lg);
+}
+[data-theme="dark"] :is(.ac-menu, .ac-popover) {
+  border-radius: 16px;
+}
+[data-theme="dark"] .ac-dialog {
+  border-radius: 20px;
 }
 [data-theme="dark"] .ac-dialog__scrim {
-  -webkit-backdrop-filter: blur(6px);
-  backdrop-filter: blur(6px);
+  background: rgba(0, 0, 0, 0.55);
+  -webkit-backdrop-filter: blur(8px) saturate(120%);
+  backdrop-filter: blur(8px) saturate(120%);
 }
-/* Menu rows: a glass pill under the pointer. */
+/* Menu rows: a glass pill under the pointer (Nordus), the checked one's mark in lime. */
+[data-theme="dark"] .ac-menu__item {
+  border-radius: 10px;
+}
 [data-theme="dark"] .ac-menu__item:is(:hover, [data-highlighted], [data-active], [data-state="open"]) {
-  background: rgba(255, 255, 255, 0.07);
+  background: rgba(255, 255, 255, 0.075);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
 }
+[data-theme="dark"] .ac-menu__item[data-state="checked"] > .ac-icon {
+  color: var(--agent);
+}
+/* The lens: on Chromium the floating pieces' rims bend the backdrop (packages/ui/src/brand/liquid-glass.ts sets
+   `--dg-lens` and `<html data-glass-lens>`); a no-op stands in until a piece has its filter. */
+[data-theme="dark"][data-glass-lens]
+:is(
+  .dg-glass,
+  .channel__head-text,
+  .channel__acts,
+  .dm-who,
+  .ac-composer,
+  .ac-composer__plus,
+  .sidebar__dock,
+  .sidebar__jump,
+  .sidebar__me
+) {
+  -webkit-backdrop-filter: var(--dg-lens, blur(0px)) blur(var(--dg-blur)) saturate(var(--dg-saturate));
+  backdrop-filter: var(--dg-lens, blur(0px)) blur(var(--dg-blur)) saturate(var(--dg-saturate));
+}
 
-/* ── The work's sheet: the panel, a step lighter than the ground, with the glass's rim ── */
+/* ── The work's sheet: the portal's card, a step lighter than the ground, with the glass's rim ── */
 @media (min-width: 761px) {
   [data-theme="dark"] .shell__pages {
-    background: color-mix(in srgb, var(--pane) 92%, transparent);
-    border-radius: var(--radius-section);
+    background: linear-gradient(180deg, #131313, #101010);
+    border-radius: 24px;
     box-shadow:
-      var(--dg-glass-edge),
-      0 24px 60px -24px rgba(0, 0, 0, 0.7);
+      inset 0 1px 0 #ffffff0d,
+      inset 0 0 0 1px #ffffff0f,
+      0 30px 60px -30px #000000e6;
   }
 }
 
-/* ── Sidebar: a floating glass panel ── */
+/* ── Sidebar: the portal's floating glass panel (`.side`), Nordus's structure inside ── */
 [data-theme="dark"] .sidebar {
-  background: radial-gradient(140% 40% at 50% -8%, var(--dg-reflection), transparent 60%), var(--dg-fill);
-  -webkit-backdrop-filter: blur(var(--dg-blur)) saturate(var(--dg-saturate));
-  backdrop-filter: blur(var(--dg-blur)) saturate(var(--dg-saturate));
-  box-shadow: var(--dg-glass-edge), var(--dg-shadow);
+  background: linear-gradient(#171717d1, #0f0f0fdb);
+  -webkit-backdrop-filter: blur(18px) saturate(140%);
+  backdrop-filter: blur(18px) saturate(140%);
+  box-shadow:
+    inset 0 1px 0 #ffffff0d,
+    inset 0 0 0 1px #ffffff12,
+    0 30px 60px -30px #000000e6;
   --side-active: rgba(255, 255, 255, 0.07);
 }
 @media (min-width: 761px) {
   [data-theme="dark"] .sidebar {
-    flex-basis: 264px;
-    width: 264px;
-    min-width: 264px;
+    flex-basis: 272px;
+    width: 272px;
+    min-width: 272px;
     height: auto;
-    margin: var(--space-2);
-    border-radius: var(--radius-section);
+    margin: 12px 0 12px 12px;
+    border-radius: 24px;
   }
   [data-theme="dark"] .sidebar[data-rail="true"] {
-    flex-basis: 64px;
-    width: 64px;
-    min-width: 64px;
+    flex-basis: 68px;
+    width: 68px;
+    min-width: 68px;
+  }
+  [data-theme="dark"] .shell__work:not(.shell__work--bare) {
+    padding: 12px;
   }
 }
-/* The sky behind the workspace's header is gone: the glass is the header's ground. */
 [data-theme="dark"] .workspace-sky {
   display: none;
 }
-/* Rows: a pill of glass on hover, the open one tinted with the accent and its rim. */
+/* Rows: the portal's side items. A glass hover; the open one in the lime wash with its hairline, glow and the bar of
+   light on its left edge. */
 [data-theme="dark"] .sidebar__item {
-  --item-r: var(--radius-full);
-  border-radius: var(--radius-full);
+  --item-r: 12px;
+  border-radius: 12px;
+  font-weight: 500;
+  font-size: 14px;
+  color: var(--muted);
   transition:
-    background-color 0.2s var(--dg-ease),
-    box-shadow 0.2s var(--dg-ease);
+    background-color 0.18s var(--dg-ease),
+    box-shadow 0.18s var(--dg-ease),
+    color 0.18s var(--dg-ease);
 }
 [data-theme="dark"] .sidebar__item:hover {
-  background: rgba(255, 255, 255, 0.055);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.05),
-    inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--ink);
 }
 [data-theme="dark"] .sidebar__item[data-status="active"],
 [data-theme="dark"] .sidebar__item[data-status="active"]:hover {
-  background: radial-gradient(120% 120% at 0% 50%, rgba(34, 197, 94, 0.22), transparent 70%), rgba(255, 255, 255, 0.06);
+  background: var(--dg-lime-chosen);
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.12),
-    inset 0 0 0 1px rgba(74, 222, 128, 0.22),
-    0 6px 18px -10px rgba(34, 197, 94, 0.55);
-  color: var(--ink);
+    inset 0 1px 0 #d8ff9914,
+    inset 0 0 0 1px #a6fa1e59,
+    0 0 24px -8px #9cfa0573;
+  color: #fff;
+}
+[data-theme="dark"] .sidebar:not([data-rail="true"]) .sidebar__item[data-status="active"]::after {
+  content: "";
+  position: absolute;
+  left: -12px;
+  top: 10px;
+  bottom: 10px;
+  width: 4px;
+  border-radius: 0 4px 4px 0;
+  background: var(--agent);
+  box-shadow:
+    0 0 14px var(--dg-glow),
+    0 0 4px var(--agent);
+  pointer-events: none;
+}
+[data-theme="dark"] .sidebar__item > .ac-icon,
+[data-theme="dark"] .sidebar__item .sidebar__channel-icon {
+  color: #6b6b6b;
 }
 [data-theme="dark"] .sidebar__item[data-status="active"] > .ac-icon,
 [data-theme="dark"] .sidebar__item[data-status="active"] .sidebar__channel-icon {
-  color: var(--accent-text);
+  color: var(--agent);
+  filter: drop-shadow(0 0 8px rgba(156, 250, 5, 0.55));
 }
-/* Line icons in one quiet tone, the open row's in the accent. */
-[data-theme="dark"] .sidebar__item > .ac-icon,
-[data-theme="dark"] .sidebar__item .sidebar__channel-icon {
-  color: var(--faint);
+[data-theme="dark"] .sidebar__item[data-kind="channel"] .sidebar__item-label {
+  color: var(--muted);
 }
-/* The chosen row's left pill (unread) in the accent. */
+[data-theme="dark"]
+  .sidebar__item[data-kind="channel"]:is([data-unread="true"], [data-status="active"])
+  .sidebar__item-label {
+  color: var(--ink);
+}
 [data-theme="dark"] .sidebar__item[data-kind="channel"][data-unread="true"]::before {
-  background: var(--agent2);
+  background: var(--agent);
+  box-shadow: 0 0 8px var(--dg-glow);
 }
-/* Section titles: small capitals, spaced. */
-[data-theme="dark"] .sidebar__label {
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
+/* An agent's row (Nordus's bot row): the name in ink, the role under it as plain words, no plate. */
+[data-theme="dark"] .sidebar__row .sidebar__item .sidebar__item-label {
+  color: var(--ink);
+  font-weight: 550;
+}
+[data-theme="dark"] .sidebar__item-role.ac-tag,
+[data-theme="dark"] .sidebar__item[data-status="active"] .sidebar__item-role.ac-tag {
+  margin-top: 0;
+  padding: 0;
+  background: none;
+  font-size: 12px;
+  font-weight: 450;
   color: var(--faint);
 }
-/* The workspace's header and Go to…: glass pieces of their own. */
+[data-theme="dark"] .sidebar__item[data-status="active"] .sidebar__item-role {
+  color: #c9d8b4;
+}
+/* Section headers, as Nordus's: a short title in sentence case, its chevron after it. */
+[data-theme="dark"] .sidebar__label,
+[data-theme="dark"] .sidebar__section--part .sidebar__section-head .sidebar__label {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  text-transform: none;
+  color: var(--faint);
+}
+[data-theme="dark"] .sidebar__section-head .sidebar__label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--faint);
+}
+[data-theme="dark"] .sidebar__section-toggle:hover .sidebar__label {
+  color: var(--ink);
+}
+[data-theme="dark"] .sidebar__section-head:hover {
+  background: transparent;
+}
+[data-theme="dark"] .sidebar__pins-end {
+  border-color: rgba(255, 255, 255, 0.06);
+}
+
+/* The workspace's header: the name in Manrope. */
+[data-theme="dark"] .sidebar__org-name {
+  font-size: 15px;
+  font-weight: 750;
+}
 [data-theme="dark"] .sidebar__org-button:hover {
   background: rgba(255, 255, 255, 0.05);
 }
+/* Go to…: a round glass pill (Nordus's search). */
 [data-theme="dark"] .sidebar__jump {
-  background: rgba(255, 255, 255, 0.04);
-  box-shadow:
-    inset 0 0 0 1px rgba(255, 255, 255, 0.06),
-    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  border-radius: 999px;
+  background: var(--dg-pill);
+  box-shadow: var(--dg-edge);
 }
 [data-theme="dark"] .sidebar__jump:hover {
-  background: rgba(255, 255, 255, 0.07);
+  background: var(--dg-pill-hover);
 }
-/* The person at the foot: a glass card. */
-[data-theme="dark"] .sidebar__me {
-  background:
-    radial-gradient(120% 80% at 50% -30%, rgba(255, 255, 255, 0.08), transparent 60%), rgba(255, 255, 255, 0.045);
+[data-theme="dark"] .sidebar__jump .ac-kbd {
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.06);
+  box-shadow: none;
+}
+[data-theme="dark"] .sidebar__collapse.ac-btn {
+  border-radius: 999px;
+}
+
+/* ── The dock: the tools as one glass bar of icons (after Nordus's footer nav in its toolbar form and its glass
+   segmented control). Each icon keeps its name for a screen reader and on hover; counts sit on its corner. ── */
+.sidebar:not([data-rail="true"]) .sidebar__dock {
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2px;
+  padding: 4px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.045);
   box-shadow:
-    var(--dg-glass-edge),
-    0 8px 20px -10px rgba(0, 0, 0, 0.6);
+    var(--dg-edge),
+    0 6px 18px -10px rgba(0, 0, 0, 0.7);
+  -webkit-backdrop-filter: blur(var(--dg-blur, 20px)) saturate(var(--dg-saturate, 140%));
+  backdrop-filter: blur(var(--dg-blur, 20px)) saturate(var(--dg-saturate, 140%));
+}
+/* A tool's own drag grip has no room between the dock's icons: the order is set in Personalizar (More's menu) and the
+   section keeps its grip. */
+.sidebar:not([data-rail="true"]) .sidebar__dock .sidebar__tool-grip {
+  display: none;
+}
+.sidebar:not([data-rail="true"]) .sidebar__dock > .sidebar__more-active {
+  display: contents;
+}
+.sidebar:not([data-rail="true"]) .sidebar__dock .sidebar__item {
+  position: relative;
+  flex: 1 1 0;
+  min-width: 0;
+  justify-content: center;
+  gap: 0;
+  height: 36px;
+  min-height: 36px;
+  padding: 0;
+  border-radius: 999px;
+}
+.sidebar:not([data-rail="true"]) .sidebar__dock .sidebar__item::after {
+  display: none;
+}
+.sidebar:not([data-rail="true"]) .sidebar__dock .sidebar__item > .ac-icon {
+  width: 18px;
+  height: 18px;
+  color: var(--muted);
+}
+.sidebar:not([data-rail="true"]) .sidebar__dock .sidebar__item:hover > .ac-icon {
+  color: var(--ink);
+}
+.sidebar:not([data-rail="true"]) .sidebar__dock .sidebar__item :is(.sidebar__item-label, .sidebar__more-chevron) {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+.sidebar:not([data-rail="true"]) .sidebar__dock .sidebar__item > :is(.ac-count, .ac-countchip, .sidebar__unread) {
+  position: absolute;
+  top: -2px;
+  right: 2px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  font-size: 10px;
+}
+[data-theme="dark"] .sidebar:not([data-rail="true"]) .sidebar__dock .sidebar__item[data-status="active"] {
+  background: linear-gradient(#c5ff52, #9cfa0f 55%, #84e407);
+  box-shadow:
+    inset 0 1px #ecffb3e6,
+    inset 0 -2px #4d910838,
+    0 0 0 1px #7dc80480,
+    0 6px 18px -6px #9cfa058c;
+}
+[data-theme="dark"] .sidebar:not([data-rail="true"]) .sidebar__dock .sidebar__item[data-status="active"] > .ac-icon {
+  color: #0a0a0a;
+  filter: none;
+}
+.sidebar:not([data-rail="true"]) .sidebar__dock .sidebar__item[data-unread="true"]::before {
+  content: "";
+  position: absolute;
+  top: 6px;
+  right: 8px;
+  left: auto;
+  width: 6px;
+  height: 6px;
+  margin: 0;
+  border-radius: 999px;
+  background: var(--agent);
+}
+
+/* ── The pinned hero (Nordus's PinnedHero): big glass faces in a row under the search, the name under each ── */
+.sidebar__hero {
+  display: flex;
+  justify-content: center;
+  gap: 4px;
+  margin: 0;
+  padding: 2px 0 0;
+  list-style: none;
+}
+.sidebar__hero-item {
+  flex: 0 1 25%;
+  min-width: 0;
+}
+.sidebar__hero-link {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 2px 4px;
+  border-radius: 16px;
+  color: var(--muted);
+  text-decoration: none;
+  transition:
+    background-color 0.18s var(--dg-ease, ease),
+    color 0.18s var(--dg-ease, ease);
+}
+.sidebar__hero-link:hover {
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--ink);
+}
+html:not([data-pointer]) .sidebar__hero-link:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+.sidebar__hero-face {
+  position: relative;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  transition: box-shadow 0.22s var(--dg-ease, ease);
+}
+.sidebar__hero-face > .ac-avatar {
+  width: 48px;
+  height: 48px;
+}
+.sidebar__hero[data-count="4"] .sidebar__hero-face > .ac-avatar {
+  width: 44px;
+  height: 44px;
+}
+.sidebar__hero-link[data-status="active"] {
+  color: #fff;
+}
+.sidebar__hero-link[data-status="active"] .sidebar__hero-face {
+  box-shadow:
+    0 0 0 2px var(--bg, #0a0a0a),
+    0 0 0 4px var(--agent),
+    0 0 22px -2px var(--dg-glow, rgba(156, 250, 5, 0.35));
+}
+.sidebar__hero-link[data-busy="true"] .sidebar__hero-face {
+  box-shadow:
+    0 0 0 2px var(--bg, #0a0a0a),
+    0 0 0 3px color-mix(in srgb, var(--agent) 60%, transparent);
+}
+.sidebar__hero-face > :is(.ac-count, .sidebar__unread) {
+  position: absolute;
+  top: -3px;
+  right: -5px;
+}
+/* The whole name, on two lines when it needs them (no ellipsis). */
+.sidebar__hero-name {
+  max-width: 100%;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 15px;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+.sidebar__hero-link[data-unread="true"] .sidebar__hero-name {
+  color: var(--ink);
+}
+
+/* The person at the foot: a glass pill (Nordus's profile button), the bell a round glass button beside. */
+[data-theme="dark"] .sidebar__me {
+  border-radius: 999px;
+  background: var(--dg-pill);
+  box-shadow:
+    var(--dg-edge),
+    0 8px 20px -12px rgba(0, 0, 0, 0.7);
+}
+[data-theme="dark"] .sidebar__me > .sidebar__user {
+  border-radius: 999px;
 }
 [data-theme="dark"] .sidebar__me > .sidebar__user:hover {
   background: rgba(255, 255, 255, 0.06);
 }
-/* How many agents work now: a breathing dot and a count, over the account card. */
+[data-theme="dark"] .sidebar__bell.ac-btn {
+  border-radius: 999px;
+}
+/* How many agents work now: a breathing lime dot and a count, over the account pill. */
 .sidebar__working {
   display: flex;
   align-items: center;
@@ -229,43 +560,277 @@
   }
 }
 
-/* ── The conversation: its header and the composer in glass ── */
+/* ── The conversation's head: no bar. Nordus's chathead: the name in a glass pill and the buttons in another,
+   floating over the conversation, which fades out under them. ── */
 [data-theme="dark"] .channel__header {
-  background: rgba(13, 18, 16, 0.6);
-  -webkit-backdrop-filter: blur(var(--dg-blur)) saturate(var(--dg-saturate));
-  backdrop-filter: blur(var(--dg-blur)) saturate(var(--dg-saturate));
-  border-bottom-color: rgba(255, 255, 255, 0.06);
+  position: relative;
+  z-index: 3;
+  margin-bottom: -16px;
+  padding-bottom: 20px;
+  border-bottom: 0;
+  background: linear-gradient(to bottom, #111111 calc(100% - 22px), transparent);
 }
-[data-theme="dark"] .ac-composer {
-  background: radial-gradient(120% 60% at 50% -20%, var(--dg-reflection), transparent 60%), rgba(22, 30, 26, 0.72);
+@media (min-width: 761px) {
+  [data-theme="dark"] .channel__header {
+    background: linear-gradient(to bottom, #121212 calc(100% - 22px), transparent);
+  }
+}
+[data-theme="dark"] .channel__head-text {
+  flex: 0 1 auto;
+  margin-right: auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  max-width: 100%;
+  padding: 6px 16px 6px 10px;
+  border-radius: 999px;
+  background: var(--dg-pill);
+  box-shadow: var(--dg-edge), var(--dg-shadow);
   -webkit-backdrop-filter: blur(var(--dg-blur)) saturate(var(--dg-saturate));
   backdrop-filter: blur(var(--dg-blur)) saturate(var(--dg-saturate));
-  box-shadow: var(--dg-glass-edge), var(--dg-shadow);
+}
+[data-theme="dark"] .channel__title {
+  font-size: 16px;
+  line-height: 24px;
+}
+[data-theme="dark"] .channel__title-hash {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  padding: 3px;
+  box-sizing: border-box;
+  border-radius: 999px;
+  background: var(--agent-soft);
+  color: var(--agent);
+}
+[data-theme="dark"] .channel__topic {
+  color: var(--muted);
+}
+/* In the hugging pill the topic takes the room its words need (the kit's grows from nothing and is kept out of the
+   line's width); words that don't fit still wrap to the hidden second line, so it shows whole or not at all. Its
+   empty first item (the kit's trick) becomes a small dot between the name and the topic. */
+[data-theme="dark"] .channel__head-text > .channel__topic {
+  flex: 0 1 auto;
+  min-width: 0;
+  contain: none;
+}
+[data-theme="dark"] .channel__head-text > .channel__topic::before {
+  width: 4px;
+  margin-right: 10px;
+  background: radial-gradient(circle, #4a4a4a 2px, transparent 2.5px);
+}
+[data-theme="dark"] .channel__acts {
+  gap: 2px;
+  padding: 3px;
+  border-radius: 999px;
+  background: var(--dg-pill);
+  box-shadow: var(--dg-edge), var(--dg-shadow);
+  -webkit-backdrop-filter: blur(var(--dg-blur)) saturate(var(--dg-saturate));
+  backdrop-filter: blur(var(--dg-blur)) saturate(var(--dg-saturate));
+}
+[data-theme="dark"] .channel__acts .ac-btn--icon,
+[data-theme="dark"] .channel__acts .channel__icon {
+  border-radius: 999px;
+}
+[data-theme="dark"] .channel__acts .ac-btn[aria-pressed="true"] {
+  color: var(--agent);
+}
+/* A DM's face and lines (DmWho): the same pill. */
+[data-theme="dark"] .dm-who {
+  flex: 0 1 auto;
+  width: max-content;
+  max-width: min(100%, 640px);
+  margin: 0 auto 0 0;
+  padding: 5px 16px 5px 6px;
+  border-radius: 999px;
+  background: var(--dg-pill);
+  box-shadow: var(--dg-edge), var(--dg-shadow);
+  -webkit-backdrop-filter: blur(var(--dg-blur)) saturate(var(--dg-saturate));
+  backdrop-filter: blur(var(--dg-blur)) saturate(var(--dg-saturate));
+}
+/* In the pill the face keeps a column beside its two short lines (the name, the line under it), as Nordus's chathead:
+   the line under the name sets the pill's width too, wrapping only at the pill's cap. */
+[data-theme="dark"] .dm-who__text {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  column-gap: 10px;
+}
+[data-theme="dark"] .dm-who__text > .ac-avatar {
+  float: none;
+  grid-row: 1 / span 2;
+  margin: 0;
+}
+[data-theme="dark"] .dm-who__text > :not(.ac-avatar) {
+  grid-column: 2;
+}
+[data-theme="dark"] .dm-who__text > .channel__title.ac-captop {
+  margin-top: 0;
+}
+[data-theme="dark"] .dm-who__text > .channel__topic {
+  contain: none;
+}
+[data-theme="dark"] .dm-who:hover {
+  background: var(--dg-pill-hover);
+}
+/* The messages run under the pills. */
+[data-theme="dark"] .channel__messages {
+  padding-top: 28px;
+}
+
+/* ── The composer (Nordus's): a 26px pill of glass, a round glass + to attach, the send a lime circle ── */
+[data-theme="dark"] .ac-composer {
+  border-radius: 26px;
+  border-color: transparent;
+  background: radial-gradient(120% 60% at 50% -20%, var(--dg-reflection), transparent 60%), rgba(26, 26, 26, 0.82);
+  -webkit-backdrop-filter: blur(var(--dg-blur)) saturate(var(--dg-saturate));
+  backdrop-filter: blur(var(--dg-blur)) saturate(var(--dg-saturate));
+  box-shadow: var(--dg-edge), var(--dg-shadow-lg);
 }
 [data-theme="dark"] .ac-composer:focus-within {
   box-shadow:
-    var(--dg-glass-edge),
-    0 0 0 1px rgba(74, 222, 128, 0.28),
-    var(--dg-shadow);
+    var(--dg-edge),
+    0 0 0 1px rgba(156, 250, 5, 0.35),
+    0 0 28px -10px var(--dg-glow),
+    var(--dg-shadow-lg);
 }
-
-/* Cards on the panel: a quiet glass face. */
-[data-theme="dark"] .ac-card {
-  --card-face-top: rgba(255, 255, 255, 0.045);
-  background: linear-gradient(180deg, var(--card-face-top), rgba(255, 255, 255, 0.02) 64px);
-  box-shadow: var(--dg-glass-edge);
+[data-theme="dark"] .ac-composer .ac-btn--icon,
+[data-theme="dark"] .ac-composer .ac-btn[data-icon-only] {
+  border-radius: 999px;
 }
-
-/* The main button: a light pill, as the sign-in's. */
-[data-theme="dark"] .ac-btn--primary {
-  background: #f4f7f5;
-  color: #050806;
+[data-theme="dark"] .ac-composer__plus.ac-btn {
+  border-radius: 999px;
+  background: var(--dg-pill);
+  box-shadow: var(--dg-edge);
+  color: var(--ink);
+}
+[data-theme="dark"] .ac-composer__plus.ac-btn:hover {
+  background: var(--dg-pill-hover);
+}
+[data-theme="dark"] .ac-composer__send.ac-btn {
+  border-radius: 999px;
+  border-color: transparent;
+  background: #262626;
+  color: #6b6b6b;
+}
+[data-theme="dark"] .ac-composer__send.ac-btn:is([data-ready], [data-mode="stop"]) {
+  background: linear-gradient(#c5ff52, #9cfa0f 55%, #84e407);
+  color: #0a0a0a;
+  opacity: 1;
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.9),
-    0 6px 18px -8px rgba(255, 255, 255, 0.25);
+    inset 0 1px #ecffb3e6,
+    inset 0 -2px #4d910838,
+    0 0 0 1px #7dc80480,
+    0 6px 18px -6px #9cfa058c;
 }
-[data-theme="dark"] .ac-btn--primary:hover {
-  background: #ffffff;
+
+/* ── Messages, in bubbles (Nordus's chat): theirs on a glass card on the left, mine on the right in the lime's
+   wash. Cards, threads and files keep the kit's places. ── */
+[data-theme="dark"] .ac-msg[data-look="bubbles"]:not(.ac-msg--own) .ac-msg__text {
+  background: linear-gradient(180deg, #1d1d1d, #181818);
+  box-shadow:
+    inset 0 1px 0 #ffffff0d,
+    inset 0 0 0 1px #ffffff0c;
+}
+[data-theme="dark"] .ac-msg--own[data-look="bubbles"] {
+  --own-bubble: #1f2b10;
+}
+[data-theme="dark"] .ac-msg--own[data-look="bubbles"] .ac-msg__text {
+  box-shadow:
+    inset 0 1px 0 rgba(216, 255, 153, 0.1),
+    inset 0 0 0 1px rgba(166, 250, 30, 0.2);
+}
+/* A message's actions on hover (Nordus's MessageActions): a glass pill of round buttons. */
+[data-theme="dark"] .ac-msg__actions {
+  --bar-r: 999px;
+  --bar-pad: 3px;
+  --bar-btn: 28px;
+  background: rgba(30, 30, 30, 0.82);
+  -webkit-backdrop-filter: blur(16px) saturate(140%);
+  backdrop-filter: blur(16px) saturate(140%);
+  box-shadow: var(--dg-edge), var(--dg-shadow);
+}
+[data-theme="dark"] .ac-msg__actions .ac-btn--sm {
+  border-radius: 999px;
+}
+[data-theme="dark"] .ac-msg__name {
+  font-weight: 650;
+}
+/* Cards on the panel: the portal's glass card. */
+[data-theme="dark"] .ac-card {
+  --card-face-top: rgba(255, 255, 255, 0.043);
+  border-radius: 16px;
+  background: var(--dg-glass-card);
+  box-shadow:
+    inset 0 1px 0 #ffffff0a,
+    inset 0 0 0 1px #ffffff12;
+}
+
+/* ── Buttons: the portal's. The primary is the lime gradient with its glow; the rest graphite with a top light. ── */
+[data-theme="dark"] .ac-btn--primary {
+  border-color: transparent;
+  background: linear-gradient(#c5ff52, #9cfa0f 55%, #84e407);
+  color: #0a0a0a;
+  font-weight: 650;
+  box-shadow:
+    inset 0 1px #ecffb3e6,
+    inset 0 -2px #4d910838,
+    0 0 0 1px #7dc80480,
+    0 10px 30px -8px #9cfa058c,
+    0 0 22px -6px #9cfa0573;
+}
+[data-theme="dark"] .ac-btn--primary:hover:not(:disabled) {
+  background: linear-gradient(#cf6, #a4fb23 55%, #8df207);
+  opacity: 1;
+}
+[data-theme="dark"] .ac-btn--secondary {
+  background: #1a1a1a;
+  border-color: #303030;
+  box-shadow: inset 0 1px 0 #ffffff0a;
+}
+/* Tags and counts: the portal's chips. */
+[data-theme="dark"] .ac-tag {
+  background: rgba(255, 255, 255, 0.06);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+}
+/* The segmented control in glass (Nordus's GlassSegmented): a pill track, the chosen option on a glass pill. */
+[data-theme="dark"] .ac-seg {
+  --seg-r: 999px;
+  background: rgba(255, 255, 255, 0.05);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+}
+[data-theme="dark"] .ac-seg__pill {
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.12);
+  box-shadow:
+    inset 0 1px 0 var(--dg-rim-top),
+    inset 0 0 0 1px var(--dg-rim),
+    0 6px 18px rgba(0, 0, 0, 0.28);
+}
+[data-theme="dark"] .ac-seg__item {
+  border-radius: 999px;
+}
+/* Fields: the portal's inputs. */
+[data-theme="dark"] :is(.ac-input, .ac-select__trigger, .ac-textarea) {
+  background: #121212;
+}
+/* Presence: round dots with a ring cut from the surface (Nordus's StatusDot), no pixel cells. Offline and hidden stay
+   outlines, as the kit draws them. */
+[data-theme="dark"] .ac-presence {
+  border-radius: 999px;
+  background: var(--presence);
+  box-shadow: 0 0 0 2px var(--presence-ring, #141414);
+}
+[data-theme="dark"] .ac-presence > path {
+  display: none;
+}
+[data-theme="dark"] .ac-presence:is([data-presence="offline"], [data-presence="hidden"]) {
+  background: #141414;
+  box-shadow:
+    inset 0 0 0 1.5px #6b6b6b,
+    0 0 0 2px var(--presence-ring, #141414);
 }
 
 /* ── Agents' faces: a glass circle in the agent's own color, its monogram in white ── */
@@ -278,46 +843,44 @@
   background:
     radial-gradient(85% 60% at 32% 18%, rgba(255, 255, 255, 0.5), transparent 58%),
     radial-gradient(120% 120% at 70% 110%, rgba(0, 0, 0, 0.35), transparent 60%),
-    linear-gradient(160deg, var(--av-top, #4ade80), var(--av-bottom, #15803d));
+    linear-gradient(160deg, var(--av-top, #b4fb41), var(--av-bottom, #4d7c0f));
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.45),
     inset 0 -1px 0 rgba(0, 0, 0, 0.25),
     inset 0 0 0 1px rgba(255, 255, 255, 0.14),
-    0 4px 12px -4px color-mix(in srgb, var(--av-bottom, #15803d) 70%, transparent);
+    0 4px 12px -4px color-mix(in srgb, var(--av-bottom, #4d7c0f) 70%, transparent);
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
 }
 .ac-avatar--glass {
   container-type: inline-size;
 }
-/* The letter follows the face's own width, whatever size a screen gives it. */
 .ac-avatar__monogram {
-  font-size: 48cqi;
+  font-family: var(--font-display);
+  font-size: 46cqi;
+  font-weight: 800;
   line-height: 1;
   text-box: trim-both cap alphabetic;
 }
-/* The letter laid over the whole face, centred whatever the face's own layout. */
 .ac-avatar--glass > .ac-avatar__monogram {
   position: absolute;
   inset: 0;
   display: grid;
   place-items: center;
 }
-/* A profile's band where the pixel sky was: the agent's color as soft light from the top. */
 .dg-band {
   position: absolute;
   inset: 0;
   pointer-events: none;
   background:
-    radial-gradient(90% 140% at 18% -10%, color-mix(in srgb, var(--av-top) 55%, transparent), transparent 70%),
-    linear-gradient(180deg, color-mix(in srgb, var(--av-bottom) 35%, transparent), transparent);
+    radial-gradient(90% 140% at 18% -10%, color-mix(in srgb, var(--av-top) 45%, transparent), transparent 70%),
+    linear-gradient(180deg, color-mix(in srgb, var(--av-bottom) 28%, transparent), transparent);
 }
 .dg-band[data-person] {
   opacity: 0.5;
 }
-/* At work: a soft ring in its color that breathes. */
 .ac-avatar--glass.ac-avatar--running::after {
   inset: -3px;
-  border: 2px solid color-mix(in srgb, var(--av-top, #4ade80) 55%, transparent);
+  border: 2px solid color-mix(in srgb, var(--av-top, #b4fb41) 55%, transparent);
   border-radius: var(--radius-full);
   animation: dg-ring 1.8s var(--dg-ease, ease) infinite;
 }
@@ -331,50 +894,78 @@
     animation: none;
   }
 }
+/* People's faces: rounded squares of the portal's 1rem family, so a person never reads as an agent. */
+[data-theme="dark"] .ac-avatar:not(.ac-avatar--glass) {
+  border-radius: 30%;
+}
 
-/* ── Doug's mark (the mascot's art) and the boot ── */
+/* ── Doug's mark and the boot ── */
 img.ac-logo__mark {
   display: block;
   object-fit: contain;
 }
 .ac-logo {
-  font-family: var(--font-sans);
-  font-weight: 700;
-  letter-spacing: -0.03em;
+  font-family: var(--font-display);
+  font-weight: 800;
+  letter-spacing: -0.04em;
 }
 .sky-boot {
-  background:
-    radial-gradient(70% 55% at 50% -10%, rgba(34, 197, 94, 0.16), transparent 70%),
-    radial-gradient(120% 80% at 50% -20%, rgba(11, 59, 42, 0.5), transparent 60%), #060908;
+  background: radial-gradient(60% 45% at 50% 42%, rgba(156, 250, 5, 0.1), transparent 70%), #0a0a0a;
 }
 .sky-boot__in {
-  color: rgba(252, 252, 252, 0.72);
-  font-size: 13px;
-  letter-spacing: 0.12em;
+  color: #999999;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.3em;
   text-transform: uppercase;
 }
 .sky-boot__in .ac-logo {
-  color: #fcfcfc;
+  color: #ededed;
   text-transform: none;
-  letter-spacing: -0.03em;
+  letter-spacing: -0.04em;
 }
 
-/* ── Sign in: the mydoug.io card: a dark glass card with a hair rim, the mark on top ── */
+/* ── Sign in: the portal's card, glass with a hair rim, the mark with its lime glow ── */
 .auth__mark {
-  width: 44px;
-  height: 44px;
-  filter: drop-shadow(0 6px 16px rgba(34, 197, 94, 0.35));
+  width: 48px;
+  height: 48px;
+  filter: drop-shadow(0 6px 22px rgba(156, 250, 5, 0.25));
 }
 .auth__mark[data-busy] {
   animation: dg-ring 1.4s var(--dg-ease, ease) infinite;
 }
 [data-theme="dark"] .auth__bubble {
-  background: radial-gradient(120% 60% at 50% -20%, var(--dg-reflection), transparent 60%), rgba(17, 24, 21, 0.7);
-  -webkit-backdrop-filter: blur(var(--dg-blur)) saturate(var(--dg-saturate));
-  backdrop-filter: blur(var(--dg-blur)) saturate(var(--dg-saturate));
-  box-shadow: var(--dg-glass-edge), var(--dg-shadow);
+  border-radius: 24px;
+  background: linear-gradient(#171717d1, #0f0f0fdb);
+  -webkit-backdrop-filter: blur(18px) saturate(140%);
+  backdrop-filter: blur(18px) saturate(140%);
+  box-shadow:
+    inset 0 1px 0 #ffffff0d,
+    inset 0 0 0 1px #ffffff12,
+    0 30px 60px -30px #000000e6;
 }
-/* The sign-in's main button: a light pill, as the mydoug.io sign-in's. */
 [data-theme="dark"] .auth .ac-btn--primary {
-  border-radius: var(--radius-full);
+  border-radius: 999px;
+}
+
+/* ── Reduced transparency: the glass turns into solid chips with the same rim (Nordus). ── */
+@media (prefers-reduced-transparency: reduce) {
+  [data-theme="dark"]
+    :is(
+      .dg-glass,
+      .ac-menu,
+      .ac-popover,
+      .ac-dialog,
+      .ac-toast,
+      .sidebar,
+      .sidebar__dock,
+      .channel__head-text,
+      .channel__acts,
+      .dm-who,
+      .ac-composer
+    ) {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    background: #161616;
+  }
 }

@@ -59,6 +59,7 @@ export {
   drawBrain,
 } from "./brain/portrait.js";
 export { BRAND_MARK_URL, BRAND_NAME, PIXEL_ART } from "./brand/doug";
+export { installLiquidGlass, lensSupported } from "./brand/liquid-glass";
 export { channelQuery, insertChannelRef } from "./channel-refs";
 export {
   type AccessBase,
