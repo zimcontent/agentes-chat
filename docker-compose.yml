@@ -169,6 +169,70 @@ services:
     tmpfs:
       - /tmp
 
+  whatsapp-db:
+    # The WhatsApp gateway's two databases, beside the app's on the same Postgres: made once, left alone after.
+    image: pgvector/pgvector:0.8.7-pg18@sha256:2358fcba361ed2233a5ed81b5fe4ca779ccb304120ce531a3bf51c0ed7e2bc11
+    profiles: ["whatsapp"]
+    environment:
+      PGHOST: postgres
+      PGUSER: agentes
+      PGPASSWORD: "${POSTGRES_PASSWORD:-}"
+    entrypoint:
+      - sh
+      - -c
+      - |
+        for name in evogo_auth evogo_users; do
+          psql -d agentes -tAc "select 1 from pg_database where datname = '$$name'" | grep -q 1 || createdb "$$name"
+        done
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: "no"
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+
+  whatsapp:
+    # WhatsApp numbers in the app (SELF_HOSTING.md, WhatsApp): Evolution Go (Apache-2.0) keeps each number's
+    # WhatsApp Web session and posts its events to the app, which stores the conversations. On with whatsapp in
+    # COMPOSE_PROFILES, WHATSAPP_GATEWAY_URL=http://whatsapp:8080, WHATSAPP_HOOK_URL=http://agentes:3000 and a
+    # WHATSAPP_GATEWAY_KEY of your own. No port is published: only the app reaches it, its own admin page included.
+    # There is no image to pull: build one from its source and name it in WHATSAPP_GATEWAY_IMAGE.
+    image: "${WHATSAPP_GATEWAY_IMAGE:-evolution-go:local}"
+    profiles: ["whatsapp"]
+    environment:
+      SERVER_PORT: "8080"
+      GLOBAL_API_KEY: "${WHATSAPP_GATEWAY_KEY:-}"
+      POSTGRES_AUTH_DB: "postgresql://agentes:${POSTGRES_PASSWORD:-}@postgres:5432/evogo_auth?sslmode=disable"
+      POSTGRES_USERS_DB: "postgresql://agentes:${POSTGRES_PASSWORD:-}@postgres:5432/evogo_users?sslmode=disable"
+      # The app keeps the conversations; the gateway keeps none.
+      DATABASE_SAVE_MESSAGES: "false"
+      # Files never ride on events: the app asks for one when it wants it.
+      WEBHOOK_FILES: "false"
+      # Status updates ("stories") aren't conversations.
+      EVENT_IGNORE_STATUS: "true"
+      # After a restart every number comes back by itself, without a new QR code.
+      CONNECT_ON_STARTUP: "true"
+      # What a phone lists under "Linked devices".
+      OS_NAME: "${WHATSAPP_DEVICE_NAME:-agentes.chat}"
+      CLIENT_NAME: evolution
+      LOGTYPE: console
+      WADEBUG: INFO
+    volumes:
+      - whatsapp-data:/app/dbdata
+    depends_on:
+      whatsapp-db:
+        condition: service_completed_successfully
+    restart: unless-stopped
+    mem_limit: "${WHATSAPP_MEMORY:-1g}"
+    memswap_limit: "${WHATSAPP_MEMORY:-1g}"
+    init: true
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+
   tailscale:
     image: tailscale/tailscale:v1.102.5@sha256:c507f3a2a6ab1cabd8d809b98edeb41edbd5c3fb6ad9632ffd098b4c7d0b4065
     profiles: ["tailscale"]
@@ -443,6 +507,7 @@ networks:
 volumes:
   pgdata:
   files:
+  whatsapp-data:
   embeddings-models:
   caddy-data:
   tailscale-state:

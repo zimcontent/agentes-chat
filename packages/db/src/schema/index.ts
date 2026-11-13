@@ -28,5 +28,6 @@ export * from "./tenancy";
 export * from "./vault";
 export * from "./voice";
 export * from "./waitlist";
+export * from "./whatsapp";
 export * from "./wiki";
 export * from "./work";

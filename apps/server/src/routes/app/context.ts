@@ -15,6 +15,7 @@ import {
   type RoutineHookConfig,
   type RoutineHookDeps,
   requireAgentDetails,
+  type WhatsAppDeps,
   withComposio,
 } from "@agenteschat/engine";
 import { OpenAPIHono, z } from "@hono/zod-openapi";
@@ -51,6 +52,15 @@ export const routineHookDeps = (deps: AppDeps): RoutineHookDeps => ({
   keyWrappers: [deps.adapters.keyWrapper, ...deps.adapters.legacyKeyWrappers],
   rateLimiter: deps.adapters.rateLimiter,
   pubsub: deps.adapters.pubsub,
+});
+
+/** What the WhatsApp numbers need: the gateway (null: off), the keys that seal each number's token, where it posts. */
+export const whatsappDeps = (deps: AppDeps): WhatsAppDeps => ({
+  db: deps.db,
+  gateway: deps.adapters.whatsapp ?? null,
+  keyWrappers: [deps.adapters.keyWrapper, ...deps.adapters.legacyKeyWrappers],
+  pubsub: deps.adapters.pubsub,
+  hookBase: (deps.config.WHATSAPP_HOOK_URL ?? deps.config.PUBLIC_URL).replace(/\/+$/, ""),
 });
 
 /** How routines reach a connection's service to register their connector events (ADR 0130), as connectors do. */

@@ -8,6 +8,7 @@ import {
   createComposioMailConnector,
   createDiskBlobStore,
   createErrorReporter,
+  createEvolutionGoGateway,
   createExpoPushSender,
   createFcmPushSender,
   createGiphyGifs,
@@ -274,6 +275,11 @@ async function boot(
         : null,
     // GIFs in chat (ADR 0091), only with a key: without one nothing reaches GIPHY and the app shows no GIFs.
     gifs: gifProvider(config, () => gifKey?.key() ?? null),
+    // WhatsApp numbers, only with a gateway and its key: without them nothing in the app says WhatsApp.
+    whatsapp:
+      config.WHATSAPP_GATEWAY_URL && config.WHATSAPP_GATEWAY_KEY
+        ? createEvolutionGoGateway({ url: config.WHATSAPP_GATEWAY_URL, apiKey: config.WHATSAPP_GATEWAY_KEY })
+        : null,
     // The Vault's external sources (ADR 0144): nothing reaches them until a person connects one. A self-hosted
     // Bitwarden's address is typed by a person, so its requests go only to public addresses, pinned at connect time.
     vaultSources: Object.fromEntries(
@@ -329,6 +335,7 @@ async function boot(
     });
     await gifKey.ready();
   }
+  log.info("WhatsApp numbers", { gateway: adapters.whatsapp?.name ?? "off" });
   log.info("GIFs in chat", { provider: adapters.gifs?.name ?? "off", available: adapters.gifs?.available() ?? false });
   try {
     await checkHumanCheckAtBoot(adapters.humanCheck, log);

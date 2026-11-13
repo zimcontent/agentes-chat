@@ -1,0 +1,125 @@
+import { afterEach, describe, expect, test } from "bun:test";
+import { createFakeWhatsAppGateway } from "@agenteschat/adapters";
+import { type Browser, browser, createTestServer, joinByInvitation, seedOrg, signUp, type TestServer } from "./harness";
+
+/** WhatsApp numbers over HTTP: the app's routes and the address the gateway posts events to. */
+
+let t: TestServer;
+afterEach(async () => {
+  const current = t;
+  t = undefined as unknown as TestServer;
+  await current?.close();
+});
+
+type Account = { id: string; status: string; qr: string | null; mine: boolean; manage: boolean };
+type Chat = { id: string; name: string; unread: number; lastText: string };
+
+async function start(gateway: ReturnType<typeof createFakeWhatsAppGateway> | null = createFakeWhatsAppGateway()) {
+  t = await createTestServer({
+    ...(gateway ? { whatsapp: gateway } : {}),
+    env: { WHATSAPP_HOOK_URL: "http://agentes:3000" },
+  });
+  const owner = browser(t);
+  await signUp(owner, "owner@example.com");
+  const { orgId } = await seedOrg(owner);
+  const api = (path: string, init?: Parameters<Browser>[1]) =>
+    owner(`/api/app/organizations/${orgId}/whatsapp${path}`, init);
+  /** The gateway posting an event: no session, no origin, only the secret in the address. */
+  const post = (secret: string, payload: unknown) =>
+    t.app.request(`/api/webhooks/whatsapp/${secret}`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: typeof payload === "string" ? payload : JSON.stringify(payload),
+    });
+  const secret = () => {
+    const connect = gateway?.last("connect");
+    if (!connect) throw new Error("never connected");
+    return connect.webhookUrl.split("/").at(-1) as string;
+  };
+  return { owner, orgId, api, post, secret, gateway };
+}
+
+const event = (name: string, data: unknown) => ({ event: name, data, instanceId: "instance-1" });
+const hello = event("Message", {
+  Info: {
+    Chat: "5511999990000@s.whatsapp.net",
+    Sender: "5511999990000@s.whatsapp.net",
+    ID: "A1",
+    PushName: "Ana",
+    Timestamp: "2026-11-13T12:00:00Z",
+  },
+  Message: { conversation: "bom dia" },
+});
+
+describe("WhatsApp over HTTP", () => {
+  test("without a gateway the list says off and connecting is a 404", async () => {
+    const { api } = await start(null);
+    expect(await (await api("")).json()).toEqual({ on: false, manage: true, accounts: [] });
+    expect((await api("/accounts", { json: { label: "Comercial" } })).status).toBe(404);
+  });
+
+  test("connect by QR code, receive, read and answer", async () => {
+    const { api, post, secret, gateway } = await start();
+    const made = await api("/accounts", { json: { label: "Comercial" } });
+    expect(made.status).toBe(201);
+    const account = (await made.json()) as Account;
+    expect([account.status, account.mine, account.manage]).toEqual(["pending", true, true]);
+
+    expect((await post(secret(), event("QRCode", { qrcode: "data:image/png;base64,AA", code: "2@x" }))).status).toBe(
+      200,
+    );
+    let list = (await (await api("")).json()) as { accounts: Account[] };
+    expect([list.accounts[0]?.status, list.accounts[0]?.qr]).toEqual(["qr", "data:image/png;base64,AA"]);
+
+    await post(
+      secret(),
+      event("Connected", { status: "open", jid: "5511911112222:3@s.whatsapp.net", pushName: "Zim" }),
+    );
+    await post(secret(), hello);
+    list = (await (await api("")).json()) as { accounts: Account[] };
+    expect(list.accounts[0]?.status).toBe("connected");
+
+    const { chats } = (await (await api(`/accounts/${account.id}/chats`)).json()) as { chats: Chat[] };
+    expect(chats).toMatchObject([{ name: "Ana", unread: 1, lastText: "bom dia" }]);
+    const chatId = chats[0]?.id as string;
+
+    expect(await (await api(`/accounts/${account.id}/chats/${chatId}/read`, { json: {} })).json()).toEqual({ read: 1 });
+    const sent = await api(`/accounts/${account.id}/messages`, { json: { chatId, text: "oi, Ana" } });
+    expect(sent.status).toBe(201);
+    expect(gateway?.last("send")).toMatchObject({ text: "oi, Ana" });
+    const page = (await (await api(`/accounts/${account.id}/chats/${chatId}/messages`)).json()) as {
+      messages: { body: string; fromMe: boolean }[];
+    };
+    expect(page.messages.map((m) => [m.body, m.fromMe])).toEqual([
+      ["oi, Ana", true],
+      ["bom dia", false],
+    ]);
+  });
+
+  test("the events' address answers only its own secret, and only JSON", async () => {
+    const { api, post, secret } = await start();
+    await api("/accounts", { json: { label: "Comercial" } });
+    expect((await post("0".repeat(64), hello)).status).toBe(404);
+    expect((await post(secret(), "not json")).status).toBe(400);
+    expect((await post(secret(), { ...hello, instanceId: "instance-9" })).status).toBe(404);
+    expect(await (await post(secret(), event("Presence", {}))).json()).toEqual({ ok: true, kind: "ignored" });
+  });
+
+  test("a gateway that refuses is a 502 of ours, and a member who isn't listed finds no number", async () => {
+    const { owner, orgId, api, post, secret, gateway } = await start();
+    const account = (await (await api("/accounts", { json: { label: "Comercial" } })).json()) as Account;
+    await post(secret(), event("Connected", { status: "open", jid: "5511911112222@s.whatsapp.net", pushName: "Zim" }));
+    if (gateway) gateway.failNext = "no active session found";
+    const refused = await api(`/accounts/${account.id}/messages`, { json: { phone: "5511988887777", text: "olá" } });
+    expect(refused.status).toBe(502);
+    expect(((await refused.json()) as { error: { code: string } }).error.code).toBe("whatsapp.unavailable");
+
+    const member = await joinByInvitation(t, owner, orgId, "leticia@example.com");
+    const hers = await member(`/api/app/organizations/${orgId}/whatsapp`);
+    expect(await hers.json()).toEqual({ on: true, manage: false, accounts: [] });
+    expect((await member(`/api/app/organizations/${orgId}/whatsapp/accounts/${account.id}/chats`)).status).toBe(404);
+    expect((await member(`/api/app/organizations/${orgId}/whatsapp/accounts`, { json: { label: "X" } })).status).toBe(
+      403,
+    );
+  });
+});
