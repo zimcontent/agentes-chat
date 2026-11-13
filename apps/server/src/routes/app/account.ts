@@ -347,6 +347,10 @@ export function accountRoutes(deps: AppDeps) {
               description:
                 "Every workspace gets a computer of its own (MACHINE_PROVISIONING=external): a new person's setup has none to connect.",
             }),
+            approvalPortal: z.boolean().openapi({
+              description:
+                "This server has an approval portal (APPROVAL_PORTAL_URL, ADR 0177): the apps show the Portal page.",
+            }),
             billingUrl: z.string().nullable().openapi({
               description:
                 "The billing service (BILLING_URL, ADR 0079): owners and admins open a workspace's plan and billing there through `POST …/billing-link`. Null: no billing.",
@@ -392,6 +396,7 @@ export function accountRoutes(deps: AppDeps) {
           passwordReset: deps.adapters.email.delivers === true,
           workspaceComputer: config.MACHINE_PROVISIONING === "external",
           billingUrl: config.BILLING_URL ?? null,
+          approvalPortal: Boolean(deps.adapters.approvalPortal),
           cloud: isAgentesCloud(config.PUBLIC_URL),
           turnstileSiteKey: deps.adapters.humanCheck?.siteKey ?? null,
           errorReports: reportsTo(config.SENTRY_WEB_DSN),

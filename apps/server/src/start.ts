@@ -10,6 +10,7 @@ import {
   createErrorReporter,
   createExpoPushSender,
   createFcmPushSender,
+  createBridgeApprovalPortal,
   createGiphyGifs,
   createImapConnectionTester,
   createImapMailConnector,
@@ -274,6 +275,11 @@ async function boot(
         : null,
     // GIFs in chat (ADR 0091), only with a key: without one nothing reaches GIPHY and the app shows no GIFs.
     gifs: gifProvider(config, () => gifKey?.key() ?? null),
+    // The approval portal (ADR 0177), only with its bridge's address and token.
+    approvalPortal:
+      config.APPROVAL_PORTAL_URL && config.APPROVAL_PORTAL_TOKEN
+        ? createBridgeApprovalPortal({ url: config.APPROVAL_PORTAL_URL, token: config.APPROVAL_PORTAL_TOKEN })
+        : null,
     // The Vault's external sources (ADR 0144): nothing reaches them until a person connects one. A self-hosted
     // Bitwarden's address is typed by a person, so its requests go only to public addresses, pinned at connect time.
     vaultSources: Object.fromEntries(

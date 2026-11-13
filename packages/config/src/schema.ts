@@ -523,6 +523,20 @@ export const envVars = {
       "Base URL of a SearXNG instance with the JSON format turned on (`search.formats: [html, json]`), optional. Agents' `web_search` uses it when `BRAVE_SEARCH_API_KEY` isn't set. It may be on your own network: only this server calls it.",
     section: "Search",
   },
+  APPROVAL_PORTAL_URL: {
+    schema: z.url().optional(),
+    description:
+      "Address of your approval portal's bridge, optional: a small HTTP service you run next to a portal where your clients approve what the team made for them. With it and `APPROVAL_PORTAL_TOKEN`, the workspace gets the Portal page (each client's board: to do, in production, waiting for approval, adjustments, ready, posted) and agents get `send_for_approval`, which sends Drive files to the portal with no model in the way. It may be on your own network: only this server calls it. Unset (default): no portal anywhere.",
+    section: "Connectors",
+    example: "http://127.0.0.1:8978",
+  },
+  APPROVAL_PORTAL_TOKEN: {
+    schema: z.string().min(24, "must be at least 24 characters").optional(),
+    description:
+      "The bearer token your approval portal's bridge expects. Goes with `APPROVAL_PORTAL_URL`; it never leaves this server.",
+    section: "Connectors",
+    secret: true,
+  },
   GIPHY_API_KEY: {
     schema: z.string().optional(),
     description:

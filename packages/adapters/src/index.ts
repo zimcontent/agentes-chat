@@ -1,6 +1,7 @@
 import type { BlobStore } from "./blob";
 import type { DatabaseDriver } from "./database";
 import type { EmailSender } from "./email";
+import type { ApprovalPortal } from "./approval-portal";
 import type { GifProvider } from "./gifs";
 import type { HumanCheck } from "./human-check";
 import type { KeyWrapper, PlatformCredentials } from "./keys";
@@ -23,6 +24,7 @@ export * from "./database";
 export * from "./email";
 export * from "./error-reports";
 export * from "./error-scrub";
+export * from "./approval-portal";
 export * from "./gifs";
 export { cleanOutside, decodeEntities, hasInvisible, htmlToText, replaceDisguised } from "./html-text";
 export * from "./human-check";
@@ -92,6 +94,11 @@ export interface Adapters {
    * null/absent = no GIFs.
    */
   gifs?: GifProvider | null;
+  /**
+   * The approval portal (ADR 0177), reached through the installation's bridge (`APPROVAL_PORTAL_URL`);
+   * null/absent = no portal: no page, no tools.
+   */
+  approvalPortal?: ApprovalPortal | null;
   /**
    * The Vault's external sources by kind (ADR 0144): 1Password and Bitwarden by default, a module's merged by kind.
    * The built-in source is the engine's own. null/absent = only built-in items.
