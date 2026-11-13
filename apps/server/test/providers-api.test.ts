@@ -104,7 +104,8 @@ test("a Gemini key: Gemini third among the providers, its three models available
   expect(models.providers.find((p) => p.id === "gemini")).toMatchObject({ label: "Gemini", hasKey: true });
   expect(models.models.filter((m) => m.provider === "gemini")).toMatchObject([
     { id: "gemini-4-argon", available: true, recommended: false },
-    { id: "gemini-3.8-flash", available: true, recommended: true },
+    { id: "gemini-4-hydrogen", available: true, recommended: true },
+    { id: "gemini-3.8-flash", available: true, recommended: false },
     { id: "gemini-3.5-flash-lite", available: true, recommended: false },
   ]);
 });

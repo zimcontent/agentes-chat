@@ -122,7 +122,7 @@ describe("pricing", () => {
     expect(recommended).toEqual([
       ["claude-sonnet-5-5"],
       ["gpt-6.1-sol"],
-      ["gemini-3.8-flash"],
+      ["gemini-4-hydrogen"],
       ["deepseek-flash"],
       ["kimi-k3.1-pro"],
       ["glm-5.3"],
@@ -161,7 +161,7 @@ describe("pricing", () => {
       null,
     ]);
     const line = (provider: string) => MODEL_TIERS.map((tier) => modelForTier(provider, tier));
-    expect(line("gemini")).toEqual(["gemini-3.5-flash-lite", "gemini-3.8-flash", "gemini-4-argon"]);
+    expect(line("gemini")).toEqual(["gemini-3.5-flash-lite", "gemini-4-hydrogen", "gemini-4-argon"]);
     expect(line("deepseek")).toEqual(["deepseek-flash", "deepseek-flash", "deepseek-v4-pro"]);
     expect(line("moonshot")).toEqual(["kimi-k3.1-pro", "kimi-k3.1-pro", "kimi-k3.1-pro"]);
     expect(line("zai")).toEqual(["glm-5.3-flash", "glm-5.3", "glm-5.3"]);
