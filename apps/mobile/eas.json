@@ -40,7 +40,7 @@
   "submit": {
     "production": {
       "ios": {
-        "ascAppName": "DougBot",
+        "appName": "DougBot",
         "language": "pt-BR",
         "sku": "io.mydoug.app"
       },
