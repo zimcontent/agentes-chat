@@ -13,8 +13,8 @@ import { START_FILE } from "@agenteschat/adapters/browser-start";
 import type { AgentScope, MachineEgress } from "@agenteschat/adapters/machine-protocol";
 import { countryFlagUrl } from "@agenteschat/ui/brand/flags";
 import { type AgentUser, agentGid } from "./agent-users";
-import MARK from "./assets/desktop-mark.png.b64" with { type: "text" };
-import DOTO from "./assets/start/doto.woff2.b64" with { type: "text" };
+import CLOCK from "./assets/start/clock.woff2.b64" with { type: "text" };
+import DOUG from "./assets/start/doug.svg.txt" with { type: "text" };
 import CSS from "./assets/start/start.css.txt" with { type: "text" };
 import HTML from "./assets/start/start.html.txt" with { type: "text" };
 import JS from "./assets/start/start.js.txt" with { type: "text" };
@@ -45,10 +45,10 @@ export function startPageHtml(agent: Pick<AgentScope, "name" | "handle">, data: 
     flag: countryFlagUrl(data.egress?.country),
   }).replace(/</g, "\\u003c");
   const parts: Record<string, string> = {
-    CSS: CSS.replace("{{DOTO}}", () => `data:font/woff2;base64,${DOTO.trim()}`),
+    CSS: CSS.replace("{{CLOCK}}", () => `data:font/woff2;base64,${CLOCK.trim()}`),
     JS,
     DATA: json,
-    MARK: `data:image/png;base64,${MARK.trim()}`,
+    MARK: `data:image/svg+xml;base64,${Buffer.from(DOUG.trim()).toString("base64")}`,
     LANG: locale,
   };
   return HTML.replace(/\{\{(CSS|JS|DATA|MARK|LANG)\}\}/g, (_, key: string) => parts[key] ?? "");
