@@ -85,7 +85,7 @@ export const listOf = (value: string | undefined) =>
  * Used when the server's own variables leave the app unnamed (unset, not blank), so a DougBot server trusts the DougBot
  * app with its links once `APPLE_TEAM_ID` (and, on Android, `ANDROID_APP_CERT_SHA256`) is set.
  */
-export const DOUGBOT_APP_IDS = ["io.mydoug.app", "io.mydoug.app.preview", "io.mydoug.app.development"];
+export const DOUGBOT_APP_IDS = ["app.dougbot", "app.dougbot.preview", "app.dougbot.development"];
 
 /** Where this server publishes its OAuth client metadata document. */
 export const CIMD_PATH = "/oauth/client-metadata.json";

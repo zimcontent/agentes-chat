@@ -82,13 +82,13 @@ test("served as JSON with no redirect, Apple's at /.well-known/ and at the root;
   expect((await bare.request("/.well-known/assetlinks.json")).status).toBe(404);
 });
 
-test("DougBot: with the app unnamed on the server, its own builds (io.mydoug.app) get the links", () => {
-  expect(DOUGBOT_APP_IDS).toEqual(["io.mydoug.app", "io.mydoug.app.preview", "io.mydoug.app.development"]);
+test("DougBot: with the app unnamed on the server, its own builds (app.dougbot) get the links", () => {
+  expect(DOUGBOT_APP_IDS).toEqual(["app.dougbot", "app.dougbot.preview", "app.dougbot.development"]);
   const aasa = appleAppSiteAssociation({ APPLE_TEAM_ID: "ABCDE12345", APPLE_APP_BUNDLE_ID: undefined });
   expect(aasa?.applinks.details[0]?.appIDs).toEqual([
-    "ABCDE12345.io.mydoug.app",
-    "ABCDE12345.io.mydoug.app.preview",
-    "ABCDE12345.io.mydoug.app.development",
+    "ABCDE12345.app.dougbot",
+    "ABCDE12345.app.dougbot.preview",
+    "ABCDE12345.app.dougbot.development",
   ]);
   // Still nothing without the team, and a blank variable still means none.
   expect(appleAppSiteAssociation({ APPLE_TEAM_ID: undefined, APPLE_APP_BUNDLE_ID: undefined })).toBeNull();

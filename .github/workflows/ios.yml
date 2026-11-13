@@ -8,7 +8,7 @@ name: iOS build
 # Runs only by hand (Actions → Run workflow). See apps/mobile/README.md, "iOS on GitHub Actions".
 #
 # Secrets (repository settings, never in the repo):
-#   APPLE_TEAM_ID: the Apple Developer team that owns io.mydoug.app (DougBot)
+#   APPLE_TEAM_ID: the Apple Developer team that owns app.dougbot (DougBot)
 #   ASC_API_KEY_ID, ASC_API_ISSUER_ID, ASC_API_KEY_P8: an App Store Connect API key (its id, the issuer id and the
 #     .p8 file's text) with the Admin role, which automatic signing needs
 # Variable (optional): IOS_BUILD_NUMBER_BASE, added to the run number (above the last build in App Store Connect).
