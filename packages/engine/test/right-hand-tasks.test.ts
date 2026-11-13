@@ -29,7 +29,7 @@ const lodiOf = async () => {
   return lodi;
 };
 
-/** A run of Lodi on what `userId` wrote in their DM with it. */
+/** A run of Doug on what `userId` wrote in their DM with it. */
 async function lodiRun(userId: string, body: string): Promise<ToolContext & { dmId: string }> {
   const lodi = await lodiOf();
   const dm = await openPersonAgentDm(f.db, f.org.id, userId, lodi.id);
@@ -72,8 +72,8 @@ async function createIssue(ctx: ToolContext, input: Record<string, unknown>) {
   return res.output as { content: string; isError?: boolean; data?: Record<string, unknown> };
 }
 
-describe("a task Lodi hands on (ADR 0137 §13)", () => {
-  test("its agent starts on it in the task's conversation, written as Lodi, and the reply carries its chip", async () => {
+describe("a task Doug hands on (ADR 0137 §13)", () => {
+  test("its agent starts on it in the task's conversation, written as Doug, and the reply carries its chip", async () => {
     f = await setup({ rightHand: true });
     const lodi = await lodiOf();
     const ctx = await lodiRun(f.owner.id, "pede pro dev preparar a campanha de natal");
@@ -137,7 +137,7 @@ describe("a task Lodi hands on (ADR 0137 §13)", () => {
     expect(answersHandOffs({ kind: "channel", dmKey: null })).toBe(false);
   });
 
-  test("what came of it goes back to the person's DM with Lodi, by itself", async () => {
+  test("what came of it goes back to the person's DM with Doug, by itself", async () => {
     f = await setup({ rightHand: true });
     const ctx = await lodiRun(f.owner.id, "pede pro dev preparar a campanha");
     await createIssue(ctx, { title: "Campanha", assignee: "@dev" });

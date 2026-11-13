@@ -131,7 +131,7 @@ describe("every old address opens its new home", () => {
     cleanup();
     await go("settings/general", withRightHand(seedState()));
     await act(async () => fireEvent.click(within(nav()).getByRole("button", { name: "Avançado" })));
-    expect(rows().join(" ")).not.toMatch(/Lodi|Braço direito/);
-    expect(tabs().join(" ")).not.toMatch(/Lodi|Braço direito/);
+    expect(rows().join(" ")).not.toMatch(/Doug|Braço direito/);
+    expect(tabs().join(" ")).not.toMatch(/Doug|Braço direito/);
   });
 });

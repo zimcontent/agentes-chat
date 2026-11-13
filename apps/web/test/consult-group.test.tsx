@@ -398,7 +398,7 @@ describe("the pair row before the reply that asked (ConsultPairRow)", () => {
     const reach = () => screen().getByRole("group", { name: "Quem a mensagem não chamou direto" });
     expect(within(reach()).getByRole("button", { name: "Adicionar ao grupo" }).className).toBe("ag-rc__btn");
     cleanup();
-    await open(reachOf(LODI_ID, "lodi"));
+    await open(reachOf(LODI_ID, "doug"));
     expect(reach().querySelector(".consult-pair")).toBeTruthy();
     expect(within(reach()).queryByRole("button", { name: "Adicionar ao grupo" })).toBeNull();
   });

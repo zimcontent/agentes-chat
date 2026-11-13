@@ -166,9 +166,9 @@ describe("whom it is for: the right hand never picks the computer", () => {
     expect(calls(state, "agents.setBrain").map((c) => c.args[1])).toEqual([ADA_ID, ATLAS_ID]);
     // The right hand is counted by its own AI status: still none, so it is named apart, with its own Connect.
     expect(shownText(dialog)).toContain("2 agentes acordaram");
-    expect(shownText(dialog)).toMatch(/(O|A) Lodi ainda não tem IA para você\./);
+    expect(shownText(dialog)).toMatch(/(O|A) Doug ainda não tem IA para você\./);
     expect(facesOf(dialog)).toEqual(["done", "done", "failed"]);
-    expect(within(dialog).getByRole("button", { name: /^Conectar (o|a) Lodi$/ })).toBeTruthy();
+    expect(within(dialog).getByRole("button", { name: /^Conectar (o|a) Doug$/ })).toBeTruthy();
     // Once the status says it thinks (the person's own AI now serves it), the whole team is awake.
     state.aiStatus = {
       any: true,
@@ -187,7 +187,7 @@ describe("whom it is for: the right hand never picks the computer", () => {
     for (const n of [1, 2, 3]) machines?.endLogin(`login_${n}`, { state: "done", account: max(n) });
     await pickPlan(dialog, "Claude");
     for (const _ of [1, 2, 3]) await signIn(dialog);
-    await click(within(dialog).getByRole("button", { name: /^Conectar (o|a) Lodi$/ }));
+    await click(within(dialog).getByRole("button", { name: /^Conectar (o|a) Doug$/ }));
     await settle(4);
     const own = screen().getByRole("dialog");
     expect(inBand(own)).toBe(false);
@@ -199,7 +199,7 @@ describe("whom it is for: the right hand never picks the computer", () => {
     expect(inBand(dialog)).toBe(false);
     expect(dialog.querySelector(".ai-picker")).toBeTruthy();
     // Its own dialog, named for it, never the generic one over agents that already think.
-    expect(screen().getByRole("dialog", { name: /^Conectar uma IA para (o|a) Lodi$/ })).toBe(dialog);
+    expect(screen().getByRole("dialog", { name: /^Conectar uma IA para (o|a) Doug$/ })).toBe(dialog);
     expect(within(dialog).queryByRole("combobox", { name: "Agentes que usam este plano" })).toBeNull();
   });
 });
@@ -233,7 +233,7 @@ describe("the arrival's Connect: the right hand never picks the computer either"
     const dialog = screen().getByRole("dialog", { name: "Conecte uma IA para o seu time pensar" });
     await pickPlan(dialog, "Claude");
     const panel = within(dialog).getByRole("region", { name: "Seu plano do Claude" });
-    expect(shownText(panel)).not.toContain("Lodi");
+    expect(shownText(panel)).not.toContain("Doug");
     expect(shownText(panel)).toMatch(/Ada|Atlas|Todos os agentes/);
   });
 });

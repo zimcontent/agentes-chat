@@ -120,11 +120,11 @@ export const rightHandOf = <A extends Pick<Agent, "builtin">>(agents: readonly A
  * `RIGHT_HAND_DEFAULTS` (packages/engine/src/right-hand.ts).
  */
 export const RIGHT_HAND_DEFAULT = {
-  name: "Lodi",
+  name: "Doug",
   appearance: { color: "teal", eyes: "happy", accessory: "headset" },
 } as const;
 
-/** Where its name comes from ("lodestar") is told only while it keeps that name: a renamed one has another story. */
+/** Who the Doug is (DougBot: the team's CEO) is told only while it keeps that name: a renamed one has another story. */
 export const tellsNameStory = (agent: Pick<Agent, "builtin" | "name"> | null | undefined) =>
   isRightHand(agent) && agent?.name === RIGHT_HAND_DEFAULT.name;
 

@@ -63,13 +63,15 @@ export interface AgenteParaBot {
   name: string;
   handle?: string | null;
   role?: string | null;
+  /** `right_hand`: the team's right hand (ADR 0137), the Doug whatever its name. */
+  builtin?: string | null;
 }
 
 /** The identity's bot for an agent, or its free bot. Same answer for the same agent, everywhere. */
 export function botDoAgente(a: AgenteParaBot): DougBotOpcoes {
   const nome = plain(a.name);
   const handle = plain(a.handle ?? "");
-  const time = BOTS_DO_TIME[handle] ?? BOTS_DO_TIME[nome];
+  const time = a.builtin === "right_hand" ? "doug" : (BOTS_DO_TIME[handle] ?? BOTS_DO_TIME[nome]);
   if (time) return { bot: time };
   const texto = plain(`${a.role ?? ""} ${handle.replace(/[-_]/g, " ")} ${nome}`);
   const forma = OFICIOS.find((o) => o.palavras.test(texto))?.forma ?? "squircle";

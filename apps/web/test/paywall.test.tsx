@@ -256,7 +256,7 @@ test("a first task opens with the caret at its blank, in the box", async () => {
   expect(screen().queryByRole("note")).toBeNull();
 });
 
-describe("Lodi's DM on a hold", () => {
+describe("Doug's DM on a hold", () => {
   const dm = `dm/agent/${LODI_ID}`;
   const lodi = (aiStatus: AiStatus = noAi(LODI_ID)) => {
     const state = held(seedState({ aiStatus, authConfig: { billingUrl: BILLING } }));
@@ -314,7 +314,7 @@ describe("Lodi's DM on a hold", () => {
     expect(count()).toBe("0 de 4");
   });
 
-  test("with a team, the banner leaves Lodi's DM to the card's plan row and stays everywhere else", async () => {
+  test("with a team, the banner leaves Doug's DM to the card's plan row and stays everywhere else", async () => {
     const team = () =>
       withRightHand(held(seedState({ authConfig: { billingUrl: BILLING } })), { setup: { role: null, done: [] } });
     await open(team(), dm);

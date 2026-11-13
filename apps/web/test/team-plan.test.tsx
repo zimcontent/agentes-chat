@@ -85,7 +85,7 @@ const CARD: TeamProposalCard = {
   expiresAt: new Date(Date.now() + 3_600_000).toISOString(),
 };
 
-/** Lodi's DM with a team card (and a question with answers to tap, when `chips`). */
+/** Doug's DM with a team card (and a question with answers to tap, when `chips`). */
 function lodiDm(chips = false) {
   const state = withRightHand(seedState({ agents: [] }));
   state.members = state.members.slice(0, 1);
@@ -173,7 +173,7 @@ describe("the team card", () => {
 
   test("Criar o time makes it in one click; the receipt has Desfazer and a first task per agent", async () => {
     const state = lodiDm();
-    // Lodi's checklist above it, its asks out once the team can think.
+    // Doug's checklist above it, its asks out once the team can think.
     const lodi = state.agents.find((a) => a.id === LODI_ID);
     if (lodi) lodi.setup = { role: null, done: ["apps"] };
     const { router } = await openDm(state);
@@ -227,14 +227,14 @@ describe("the team card", () => {
     expect(teamCard().textContent).toContain("suporte");
   });
 
-  test("Ver como mapa: a column per channel, the people on top, Lodi as the weekly reviewer", async () => {
+  test("Ver como mapa: a column per channel, the people on top, Doug as the weekly reviewer", async () => {
     await openDm(lodiDm());
     await click(button("Ver como mapa"), 4);
     const dialog = screen().getByRole("dialog", { name: "O time como mapa" });
     expect(within(dialog).getByRole("region", { name: "#atendimento" }).textContent).toContain("Iara");
     expect(within(dialog).getByRole("region", { name: "#eng" }).textContent).toContain("Ada");
     expect(dialog.textContent).toContain("Bruno");
-    expect(dialog.textContent).toContain("Lodi revisa a semana do time");
+    expect(dialog.textContent).toContain("Doug revisa a semana do time");
   });
 });
 

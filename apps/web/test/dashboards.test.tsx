@@ -145,7 +145,7 @@ describe("Dashboards: in the sidebar's More, and the list (ADR 0135 §14)", () =
     // One way in: the empty state's Novo painel, the header's steps aside.
     expect(screen().getAllByRole("button", { name: "Novo painel" })).toHaveLength(1);
     expect(document.querySelector(".ac-pagehead__actions")).toBeNull();
-    expect(within(empty).getByRole("button", { name: "Peça ao Lodi" })).toBeTruthy();
+    expect(within(empty).getByRole("button", { name: "Peça ao Doug" })).toBeTruthy();
     await act(async () => fireEvent.click(within(empty).getByRole("button", { name: "Novo painel" })));
     expect(screen().getByRole("dialog", { name: "Novo painel" })).toBeTruthy();
   });

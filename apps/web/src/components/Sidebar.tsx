@@ -6,6 +6,7 @@ import type {
   Channel,
   ChannelCategory,
   Member,
+  MemberPresence,
   SidebarSection as SectionKey,
   SidebarItem,
 } from "@agenteschat/client";
@@ -95,6 +96,7 @@ import {
   Fragment,
   type HTMLAttributes,
   type ReactNode,
+  type RefObject,
   useEffect,
   useLayoutEffect,
   useMemo,
@@ -154,7 +156,7 @@ import { StatusLine } from "./Presence";
 import { ChannelPhoto, MyFace, OrgMark } from "./ProfilePhoto";
 import { sectionName, useSectionOrder } from "./SidebarOrder";
 import { SIDEBAR_TOOLS, SidebarSetupDialog, ToolList } from "./SidebarSetup";
-import { AgentGlow, AgentTrail, colorOf, MenuHorizon, WorkspaceSky } from "./Sky";
+import { AgentGlow, AgentTrail, colorOf, WorkspaceSky } from "./Sky";
 import { SetStatusDialog, useSaveStatus } from "./StatusDialog";
 
 /** An agent's sky for its busy chip (`.sidebar__busy`): both themes, the CSS picks one. */
@@ -425,7 +427,8 @@ export function Sidebar() {
   const loose = ordered(byGroup.ungrouped);
   // Doug (after Nordus's pinned hero): up to four agents pinned on top leave the list for a row of big faces under the
   // search. The rail keeps them as rows.
-  const hero = rail || personal ? [] : loose.top.slice(0, HERO_MAX);
+  // DougBot: the right hand (the Doug, the team's chief) always first in the row, fixed; then the pinned ones.
+  const hero = rail || personal ? [] : [...(rightHand ? [rightHand] : []), ...loose.top].slice(0, HERO_MAX);
   const looseTop = loose.top.filter((a) => !hero.includes(a));
   // Members never see an empty group; who arranges the agents keeps them, to drop agents in.
   const agentGroups = byGroup.groups.filter((g) => g.items.length > 0 || (manages && g.group.agentIds.length === 0));
@@ -861,6 +864,10 @@ export function Sidebar() {
   );
   // The collapse shows at desktop widths only: tablets always have the rail, a phone the drawer.
   const collapseLabel = collapsed ? t("shell.expandNav") : t("shell.collapseNav");
+  // DougBot's head opens the workspace's own menu from the person's.
+  const headRef = useRef<HTMLDivElement>(null);
+  const [workspaceOpen, setWorkspaceOpen] = useState(false);
+  const accountActions = useRef<AccountActions | null>(null);
   // The workspace header's line. Each count with its own plural: one summary string followed the people's, so
   // "1 agentes".
   const summary = overview.data
@@ -905,9 +912,28 @@ export function Sidebar() {
           </div>
         ) : (
           <>
-            <div className="sidebar__org">
-              <WorkspaceMenu summary={summary} />
-            </div>
+            {/* DougBot: the person on top (their face, name, the workspace under it, the bell beside), one menu for the
+                workspaces and the account; no card at the foot repeating it. */}
+            {rail ? (
+              <div className="sidebar__org">
+                <WorkspaceMenu summary={summary} />
+              </div>
+            ) : (
+              <div className="sidebar__org sidebar__org--person sidebar__org--head" ref={headRef}>
+                <AccountMenu
+                  head
+                  sub={[org.name, summary]}
+                  onWorkspace={() => setWorkspaceOpen(true)}
+                  actions={accountActions}
+                />
+                {bell}
+                <WorkspaceMenu
+                  summary={summary}
+                  control={{ open: workspaceOpen, onOpenChange: setWorkspaceOpen, anchor: headRef }}
+                  you={accountActions}
+                />
+              </div>
+            )}
 
             <div className="sidebar__jump-row">
               <button type="button" className="sidebar__jump" onClick={openPalette} title={t("palette.jump")}>
@@ -938,8 +964,8 @@ export function Sidebar() {
                   if (dm) prefetch(dm.channelId);
                 }}
                 onOpen={(id) => markOpen(dmOf.get(id)?.channelId ?? id)}
-                drag={organize ? (id) => drag.row(id) : undefined}
-                menuExtra={(a) => [...hideEntry(a), ...(manages ? groupEntries(a) : [])]}
+                drag={organize ? (id) => (id === rightHand?.id ? undefined : drag.row(id)) : undefined}
+                menuExtra={(a) => (isRightHand(a) ? [] : [...hideEntry(a), ...(manages ? groupEntries(a) : [])])}
               />
             )}
           </>
@@ -997,10 +1023,13 @@ export function Sidebar() {
           {/* The full sidebar creates from the Agentes header's + (always shown on touch screens); the rail has no
               headers. */}
           {rail && can(org, "create_agents") && <CreateAgentTile onOpen={newAgent} />}
-          <div className="sidebar__me">
-            <AccountMenu />
-            {bell}
-          </div>
+          {/* The rail keeps the person at its foot (the head has no room there). */}
+          {rail && (
+            <div className="sidebar__me">
+              <AccountMenu />
+              {bell}
+            </div>
+          )}
         </div>
       )}
     </nav>
@@ -1792,7 +1821,7 @@ function PinnedHero({
   unreadOf: (agentId: string) => number;
   onPrefetch: (agentId: string) => void;
   onOpen: (agentId: string) => void;
-  drag?: (agentId: string) => ReturnType<ReturnType<typeof useAgentDrag>["row"]>;
+  drag?: (agentId: string) => ReturnType<ReturnType<typeof useAgentDrag>["row"]> | undefined;
   menuExtra: (a: Agent) => MenuEntry[];
 }) {
   const { t } = useTranslation();
@@ -2149,7 +2178,37 @@ function UnreadCount({
  * opening down, also holds what the workspace menu held for one person: Your account, Settings and the person's
  * workspaces. Mounted once either way: the dialogs live here.
  */
-function AccountMenu({ personal = false }: { personal?: boolean }) {
+/** The account's actions the full-screen menu's "Você" card runs (DougBot's head). */
+interface AccountActions {
+  status: () => void;
+  profile: () => void;
+  photo: () => void;
+  account: () => void;
+  signOut: () => void;
+  who: { presence: MemberPresence | null; presenceWord?: string; handle?: string; line: string | null };
+}
+
+/**
+ * The person's menu. On top (`personal`, or `head` in a team's workspace, DougBot's sidebar): their face, name and a
+ * line under it (`sub`: the workspace and its counts), opening the workspaces to switch and the account's actions.
+ */
+function AccountMenu({
+  personal = false,
+  head = false,
+  sub,
+  onWorkspace,
+  actions,
+}: {
+  personal?: boolean;
+  head?: boolean;
+  /** In the head: opens the workspace's full-screen menu, which holds the account's actions too ("Você"). */
+  onWorkspace?: () => void;
+  /** In the head: what the full-screen menu's "Você" card does, handed to it (the dialogs stay mounted here). */
+  actions?: { current: AccountActions | null };
+  /** Under the name in the head: the workspace, then its counts (each kept whole, one under the other if need be). */
+  sub?: (string | null)[];
+}) {
+  const onTop = personal || head;
   const { t, i18n } = useTranslation();
   const { org, me } = useOrg();
   const dir = useDirectory(org.id);
@@ -2200,6 +2259,15 @@ function AccountMenu({ personal = false }: { personal?: boolean }) {
     void (section
       ? navigate({ to: "/org/$orgId/settings/$section", params: { orgId: org.id, section } })
       : navigate({ to: "/org/$orgId/settings", params: { orgId: org.id } }));
+  if (actions)
+    actions.current = {
+      status: () => setStatusOpen(true),
+      profile: () => setProfile(true),
+      photo: () => setPhoto(true),
+      account: () => openSettings("account"),
+      signOut: () => void signOut(),
+      who: { presence, presenceWord, handle, line: line?.text ?? null },
+    };
   // A dialog opens once the menu is gone and focus is back on this row, so closing the dialog lands here too.
   const afterMenu = useRef<(() => void) | null>(null);
   const openAfter = (open: () => void) => () => {
@@ -2225,17 +2293,54 @@ function AccountMenu({ personal = false }: { personal?: boolean }) {
     </>
   );
 
+  if (head)
+    return (
+      <>
+        <button
+          type="button"
+          className="sidebar__org-button sidebar__org-button--me"
+          aria-haspopup="dialog"
+          aria-label={`${t("shell.account")}: ${who}`}
+          title={who}
+          onClick={onWorkspace}
+        >
+          <MyFace size="sm" presence={presence} presenceLabel={presenceWord} />
+          <span className="sidebar__org-text">
+            {/* The chevron follows the name, so the line under it keeps the row's width. */}
+            <span className="sidebar__org-name">
+              {me.user.name}
+              <Icon name="chevronDown" size={16} />
+            </span>
+            {sub && (
+              <span className="sidebar__org-meta">
+                {/* The "·" before each part is drawn by the sheet: one that lands at a line's start is clipped. */}
+                {sub.filter(Boolean).map((part) => (
+                  <span key={part}>{part}</span>
+                ))}
+              </span>
+            )}
+          </span>
+        </button>
+        <ProfileDialog focus={profile ? "name" : null} onClose={() => setProfile(false)} />
+        <ChangeAvatarDialog open={photo} onClose={() => setPhoto(false)} />
+        <SetStatusDialog open={statusOpen} onClose={() => setStatusOpen(false)} />
+        <OpenOnPhoneDialog open={phone} onClose={() => setPhone(false)} />
+        <AddPasswordDialog open={account === "password"} onClose={() => setAccount(null)} />
+        <DeleteAccountDialog open={account === "delete"} onClose={() => setAccount(null)} />
+      </>
+    );
+
   return (
     <>
       <Menu
-        side={personal ? "bottom" : "top"}
+        side={onTop ? "bottom" : "top"}
         className="profile-menu"
         onClosed={() => {
           afterMenu.current?.();
           afterMenu.current = null;
         }}
         trigger={
-          personal ? (
+          onTop ? (
             // On top, as the workspace's header is in a team's: the face (how you appear on it) and the name.
             <button
               type="button"
@@ -2245,9 +2350,21 @@ function AccountMenu({ personal = false }: { personal?: boolean }) {
             >
               <MyFace size="sm" presence={presence} presenceLabel={presenceWord} />
               <span className="sidebar__org-text">
-                <span className="sidebar__org-name">{me.user.name}</span>
+                {/* In the head the chevron follows the name, so the line under it keeps the row's width. */}
+                <span className="sidebar__org-name">
+                  {me.user.name}
+                  {head && <Icon name="chevronDown" size={16} />}
+                </span>
+                {head && sub && (
+                  <span className="sidebar__org-meta">
+                    {/* The "·" before each part is drawn by the sheet: one that lands at a line's start is clipped. */}
+                    {sub.filter(Boolean).map((part) => (
+                      <span key={part}>{part}</span>
+                    ))}
+                  </span>
+                )}
               </span>
-              <Icon name="chevronDown" size={16} />
+              {!head && <Icon name="chevronDown" size={16} />}
             </button>
           ) : (
             <button
@@ -2321,9 +2438,14 @@ function AccountMenu({ personal = false }: { personal?: boolean }) {
             {t("shell.gallery")}
           </MenuItem>
         )}
-        {personal && (
+        {onTop && (
           <>
             <MenuSeparator />
+            {onWorkspace && (
+              <MenuItem icon="settings" onSelect={openAfter(onWorkspace)}>
+                {t("shell.workspaceMenuOf", { name: org.name })}
+              </MenuItem>
+            )}
             <MenuWorkspaces />
           </>
         )}
@@ -2480,36 +2602,51 @@ function PlanNearLimitItem() {
  * agents' access, skills and settings as far as the role allows, then the
  * other workspaces to switch to.
  */
-function WorkspaceMenu({ summary }: { summary: string | null }) {
+function WorkspaceMenu({
+  summary,
+  control,
+  you,
+}: {
+  summary: string | null;
+  /** DougBot's head: the person's own card ("Você") on the same full-screen menu. */
+  you?: { current: AccountActions | null };
+  /** Opened from elsewhere (DougBot's head: the person's menu), with no button of its own. */
+  control?: { open: boolean; onOpenChange: (open: boolean) => void; anchor: RefObject<HTMLElement | null> };
+}) {
   const { t } = useTranslation();
   const { org } = useOrg();
   const dir = useDirectory(org.id);
-  const [open, setOpen] = useState(false);
-  const trigger = useRef<HTMLButtonElement>(null);
+  const [ownOpen, setOwnOpen] = useState(false);
+  const own = useRef<HTMLButtonElement>(null);
+  const open = control?.open ?? ownOpen;
+  const setOpen = control?.onOpenChange ?? setOwnOpen;
+  const trigger = control?.anchor ?? own;
   return (
     <>
-      <button
-        ref={trigger}
-        type="button"
-        className="sidebar__org-button"
-        aria-haspopup="dialog"
-        aria-label={t("shell.workspaceMenuOf", { name: org.name })}
-        onClick={() => setOpen(true)}
-      >
-        <OrgMark logo={org.logo} name={org.name} className="sidebar__org-mark" />
-        <span className="sidebar__org-text">
-          <span className="sidebar__org-name">{org.name}</span>
-          {summary && <span className="sidebar__org-meta">{summary}</span>}
-        </span>
-        <Icon name="chevronDown" size={16} />
-      </button>
+      {!control && (
+        <button
+          ref={own}
+          type="button"
+          className="sidebar__org-button"
+          aria-haspopup="dialog"
+          aria-label={t("shell.workspaceMenuOf", { name: org.name })}
+          onClick={() => setOpen(true)}
+        >
+          <OrgMark logo={org.logo} name={org.name} className="sidebar__org-mark" />
+          <span className="sidebar__org-text">
+            <span className="sidebar__org-name">{org.name}</span>
+            {summary && <span className="sidebar__org-meta">{summary}</span>}
+          </span>
+          <Icon name="chevronDown" size={16} />
+        </button>
+      )}
       <MenuOverlay
         open={open}
         onOpenChange={setOpen}
         anchor={trigger}
         closeLabel={t("common.close")}
-        backdrop={<MenuHorizon />}
-        mark={<OrgMark logo={org.logo} name={org.name} size={82} />}
+        // DougBot: no pixel horizon under it; the workspace's logo, or the Doug drawn by code.
+        mark={<OrgMark logo={org.logo} size={82} />}
         title={org.name}
         meta={
           <>
@@ -2517,8 +2654,13 @@ function WorkspaceMenu({ summary }: { summary: string | null }) {
             {/* The agents the summary counts: the right hand isn't one of them, so no face beside "0 agents". */}
             {dir.agents.some((a) => !isRightHand(a)) && (
               <span className="sidebar__menu-crew">
-                {dir.agents
-                  .filter((a) => !isRightHand(a))
+                {/* The bots drawn by code, the Doug first (DougBot's chief). */}
+                {[...dir.agents]
+                  .filter((a) => !isRightHand(a) || a.handle === "doug")
+                  .sort(
+                    (x, y) =>
+                      Number(y.handle === "doug" || isRightHand(y)) - Number(x.handle === "doug" || isRightHand(x)),
+                  )
                   .slice(0, 4)
                   .map((a) => (
                     <AgentAvatar key={a.id} agent={a} name={a.name} size="xs" />
@@ -2528,9 +2670,51 @@ function WorkspaceMenu({ summary }: { summary: string | null }) {
           </>
         }
       >
+        {you && <YouOptions actions={you} onDone={() => setOpen(false)} />}
         <WorkspaceMenuOptions onDone={() => setOpen(false)} />
       </MenuOverlay>
     </>
+  );
+}
+
+/**
+ * "Você" on the workspace's full-screen menu (DougBot's head): your face, name, @handle and how you appear, then your
+ * status, profile, account settings and Sair. The dialogs live in the head's `AccountMenu`; this card runs them.
+ */
+function YouOptions({ actions, onDone }: { actions: { current: AccountActions | null }; onDone: () => void }) {
+  const { t } = useTranslation();
+  const { me } = useOrg();
+  const a = actions.current;
+  if (!a) return null;
+  const run = (f: () => void) => () => {
+    onDone();
+    // After the full-screen menu is gone, so a dialog opens over the page.
+    setTimeout(f, 0);
+  };
+  return (
+    <MenuOverlayGroup heading={t("shell.you")}>
+      <div className="mo-you">
+        <MyFace size="lg" presence={a.who.presence} presenceLabel={a.who.presenceWord} />
+        <span className="mo-you__text">
+          <b className="mo-you__name">{me.user.name}</b>
+          <span className="mo-you__line">
+            {[a.who.handle && `@${a.who.handle}`, a.who.line ?? a.who.presenceWord].filter(Boolean).join(" · ")}
+          </span>
+        </span>
+      </div>
+      <MenuOverlayItem icon="smile" onSelect={run(a.status)}>
+        {t("presence.setStatus")}
+      </MenuOverlayItem>
+      <MenuOverlayItem icon="edit" onSelect={run(a.profile)}>
+        {t("shell.editProfile")}
+      </MenuOverlayItem>
+      <MenuOverlayItem icon="person" onSelect={run(a.account)}>
+        {t("settings.section.account")}
+      </MenuOverlayItem>
+      <MenuOverlayItem icon="arrowRight" danger onSelect={run(a.signOut)}>
+        {t("auth.signOut")}
+      </MenuOverlayItem>
+    </MenuOverlayGroup>
   );
 }
 

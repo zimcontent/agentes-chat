@@ -77,6 +77,13 @@ const invitation = (
   ...over,
 });
 
+/** DougBot's head: the person on top opens the workspace's full-screen menu; its workspace card is the one named so. */
+const openWorkspaceMenu = async () => {
+  await act(async () => fireEvent.click(screen().getByRole("button", { name: /^Conta: / })));
+  await act(() => new Promise((r) => setTimeout(r, 30)));
+  return within(screen().getByRole("dialog")).getByRole("menu", { name: "Menu do workspace Acme" });
+};
+
 describe("the invite dialog", () => {
   /** The line under the dialog's title ("Passo 2 de 4 · Papel"), and what the host asks in its bubble. */
   const stepOf = () => dialog().querySelector(".ac-dialog__sub")?.textContent ?? null;
@@ -364,7 +371,7 @@ describe("the invite dialog", () => {
   test("one dialog from everywhere: the workspace menu and ⌘K open it over the page; who may not invite has neither", async () => {
     const { router } = await renderApp(`/org/${ORG_ID}/issues`, { api: createFakeApi(seedState()) });
     await settle(6);
-    await click(screen().getByRole("button", { name: "Menu do workspace Acme" }));
+    await openWorkspaceMenu();
     await settle(1);
     await click(screen().getByRole("menuitem", { name: /^Convidar pessoas/ }));
     await settle(2);

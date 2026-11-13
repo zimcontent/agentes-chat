@@ -233,6 +233,7 @@ export * from "./recovery";
 export * from "./reply-policy";
 export * from "./reporting";
 export * from "./right-hand";
+export * from "./right-hand-swap";
 export * from "./right-hand-approvals";
 export * from "./right-hand-prompt";
 export * from "./roles";

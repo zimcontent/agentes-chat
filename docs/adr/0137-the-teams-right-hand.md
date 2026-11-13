@@ -346,3 +346,12 @@ adjusts for them without asking (ADR 0139 §2). "Para todo o workspace", only wi
 quem não tem um" (before "Atende outras pessoas"), its monthly budget where something bills per use, and who may use
 it. A value that changes is one row that opens its choice in a dialog (a sheet on the phone). Alone in a personal
 workspace, lending and the audience are not shown.
+
+## Addendum 2026-11-13 (DougBot fork): the Doug is the right hand, and keeps his own instructions
+
+- The built-in right hand starts as "Doug" (`@doug`), drawn as the Doug of the DougBot identity; the apps keep it first
+  in the sidebar's row of agents and at the top of Agentes, with no Hide and no reordering.
+- A right hand whose row was an agent of the team before (a workspace that turned its own chief into the right hand,
+  `doug-ui/doug-braco-direito.sql`) keeps what it was told: its own `instructions` now follow the product's right-hand
+  block in its prompt (`context.ts`) instead of being dropped. Its tools stay the right hand's (`RIGHT_HAND_TOOLS`,
+  fixed grants); its memories, skills and connections are its row's and stay with it.

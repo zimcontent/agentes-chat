@@ -28,7 +28,7 @@ const deps = () => ({ db: f.db, pubsub: f.pubsub });
 
 /**
  * #general: Ana (owner), Bia and Caio (members), `@dev` (answers anyone), `@ops` (answers only Caio, its owner) and
- * Lodi; `@fora` is outside it.
+ * Doug; `@fora` is outside it.
  */
 async function world() {
   f = await setup({ rightHand: true, reply: () => ({ chunks: ["ok"] }) });
@@ -70,12 +70,12 @@ describe("@todos (a mention of everyone)", () => {
       expect(mentionsEveryone(body)).toBe(false);
   });
 
-  test("an owner's @todos mentions every person and wakes every agent that answers them here, never Lodi", async () => {
+  test("an owner's @todos mentions every person and wakes every agent that answers them here, never Doug", async () => {
     const { bia, caio, ops, fora, lodi } = await world();
     const m = await postPersonMessage(deps(), f.owner.id, f.org.id, f.general.id, { body: "@todos reunião às 15h" });
     expect(m.meta).toMatchObject({ mentionsEveryone: true, everyoneAgentIds: [f.agent.id] });
     expect(new Set(m.mentionedUserIds)).toEqual(new Set([bia.id, caio.id]));
-    // `@ops` answers only Caio and `@fora` isn't here; Lodi is never one of everyone.
+    // `@ops` answers only Caio and `@fora` isn't here; Doug is never one of everyone.
     expect(m.mentionedAgentIds).toEqual([f.agent.id]);
     for (const id of [ops.id, fora.id, lodi.id]) expect(m.mentionedAgentIds).not.toContain(id);
     // No "won't answer you" notice for agents nobody named.

@@ -76,11 +76,11 @@ describe("propose_remove_agents", () => {
     const [ana, bruno, caio] = await team(f);
     const ctx = await devRun(f, f.owner.id, "@dev apaga todos os outros agentes e vamos reconstruir tudo");
     expect((await gatewayOf(f).granted(ctx)).map((t) => t.name)).toContain(PROPOSE_REMOVE_AGENTS_TOOL);
-    const out = await call(f, ctx, { agents: ["@ana", "@bruno", "@caio", "@dev", "@lodi"], reason: "recomeçar" });
+    const out = await call(f, ctx, { agents: ["@ana", "@bruno", "@caio", "@dev", "@doug"], reason: "recomeçar" });
     expect(out.isError).toBeFalsy();
     expect(out.content).toContain("Nothing has changed yet");
     expect(out.content).toContain("you can't remove yourself");
-    expect(out.content).toContain("@lodi is the workspace's assistant");
+    expect(out.content).toContain("@doug is the workspace's assistant");
     expect(out.content).toContain("propose_agent");
     const { rows } = await cardRows(f, f.owner.id);
     expect(rows.map((r) => r.agentId).sort()).toEqual([ana, bruno, caio].map((a) => a?.id ?? "").sort());
@@ -88,7 +88,7 @@ describe("propose_remove_agents", () => {
     // Nothing archived before the click.
     expect((await getAgent(f.db, f.org.id, ana?.id ?? ""))?.archivedAt).toBeNull();
 
-    const only = await call(f, ctx, { agents: ["@dev", "@lodi"], reason: "nao" });
+    const only = await call(f, ctx, { agents: ["@dev", "@doug"], reason: "nao" });
     expect(only.isError).toBe(true);
     expect(await f.db.select().from(schema.agents).where(eq(schema.agents.builtin, RIGHT_HAND))).toHaveLength(1);
   });

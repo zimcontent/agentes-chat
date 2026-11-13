@@ -20,7 +20,7 @@ afterEach(() => {
 
 const VENDAS_ID = "c-vendas";
 
-/** What Lodi leaves behind: an agent and a channel with it inside, written on the server. */
+/** What Doug leaves behind: an agent and a channel with it inside, written on the server. */
 function lodiMakes(state: FakeState) {
   const base = state.agents[0] as (typeof state.agents)[number];
   state.agents.push({ ...base, id: "a-iara", name: "Iara", handle: "iara", role: "Vendas" });
@@ -77,7 +77,7 @@ const channelLink = (name: string) => rows().find((a) => label(a) === name);
 const sidebarText = () => screen().getByRole("navigation", { name: "Navegação do workspace" }).textContent;
 const composer = () => screen().getByRole("combobox", { name: /Mensagem para/ }) as HTMLTextAreaElement;
 
-describe("Lodi made agents and channels while the app was open", () => {
+describe("Doug made agents and channels while the app was open", () => {
   test("the sidebar lists the channel by itself, and its column has the new agent, on opening it", async () => {
     const app = await open();
     expect(channelLink("vendas")).toBeUndefined();
@@ -92,7 +92,7 @@ describe("Lodi made agents and channels while the app was open", () => {
     expect(screen().getByRole("button", { name: "Membros do grupo (2)" })).toBeTruthy();
   });
 
-  test("the sidebar hears of the channel from Lodi's receipt while the agent list stays old", async () => {
+  test("the sidebar hears of the channel from Doug's receipt while the agent list stays old", async () => {
     const app = await open();
     lodiMakes(app.state);
     const receipt = {

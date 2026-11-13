@@ -249,7 +249,7 @@ describe("the other places a plan is chosen", () => {
     expect(mainButton(d)?.disabled).toBe(true);
   });
 
-  test("Lodi's settings: why and the way on in place of the plan row", async () => {
+  test("Doug's settings: why and the way on in place of the plan row", async () => {
     await open("owner", `/org/${ORG_ID}/settings/right_hand`);
     const body = document.querySelector(".page") as HTMLElement;
     expect(shownText(body)).toContain(WHY);

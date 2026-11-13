@@ -121,7 +121,7 @@ describe("when it comes", () => {
     await setTeamWeekPrefs(f.db, f.org.id, f.owner.id, { off: true });
     expect(await enqueueTeamWeeks(f.db, new Date(at.getTime() + 7 * DAY))).toBe(0);
     await setTeamWeekPrefs(f.db, f.org.id, f.owner.id, { off: false });
-    // No agent but Lodi: no team, no card.
+    // No agent but Doug: no team, no card.
     await f.db.update(schema.agents).set({ archivedAt: new Date() }).where(eq(schema.agents.id, f.agent.id));
     expect(await enqueueTeamWeeks(f.db, new Date(at.getTime() + 7 * DAY))).toBe(0);
   });
@@ -202,7 +202,7 @@ describe("the card", () => {
     return { m, card };
   };
 
-  test("posted in the admin's DM with Lodi from stored data, each fix a row, once a week", async () => {
+  test("posted in the admin's DM with Doug from stored data, each fix a row, once a week", async () => {
     f = await setup({ rightHand: true });
     const { lodi, lia, parent } = await busyWeek(f);
     const id = await postTeamWeek({ db: f.db, pubsub: f.pubsub }, f.org.id, {
@@ -283,7 +283,7 @@ describe("the card", () => {
     ).toBeNull();
   });
 
-  test("rows apply as whoever clicks: the budget with Undo on the card, a routine, Lodi asked, the task's agent told", async () => {
+  test("rows apply as whoever clicks: the budget with Undo on the card, a routine, Doug asked, the task's agent told", async () => {
     f = await setup({ rightHand: true });
     const { lodi, dm, parent } = await busyWeek(f);
     const id = (await postTeamWeek({ db: f.db, pubsub: f.pubsub }, f.org.id, {
@@ -318,7 +318,7 @@ describe("the card", () => {
     expect(routine?.rule).toMatchObject({ freq: "daily", times: ["18:00"], timezone: ZONE });
     await expect(actOnTeamWeek(deps, f.owner.id, f.org.id, id, { rowId: row("routine").id })).rejects.toThrow();
 
-    // Lodi asked for an agent, as the person, in their DM with it.
+    // Doug asked for an agent, as the person, in their DM with it.
     await actOnTeamWeek(deps, f.owner.id, f.org.id, id, {
       rowId: row("unanswered").id,
       text: "Proponha um agente para as perguntas de #general.",
@@ -379,7 +379,7 @@ describe("the card", () => {
     expect(receipt?.kind).toBe("agent.settings_changed");
   });
 
-  test("telling Lodi to stop it: set_team_week, for the person behind the run", async () => {
+  test("telling Doug to stop it: set_team_week, for the person behind the run", async () => {
     f = await setup({ rightHand: true });
     const lodi = await lodiOf(f);
     const dm = await openPersonAgentDm(f.db, f.org.id, f.owner.id, lodi.id);
@@ -505,7 +505,7 @@ describe("Resumo do dia", () => {
     expect(await f.db.select().from(schema.contextProposals)).toEqual([]);
   });
 
-  test("asked of Lodi: set_team_week turns it on for the person behind the run", async () => {
+  test("asked of Doug: set_team_week turns it on for the person behind the run", async () => {
     f = await setup({ rightHand: true });
     const bia = await addMember(f.db, f.org.id, "member", "bia");
     const lodi = await lodiOf(f);
@@ -533,7 +533,7 @@ describe("Resumo do dia", () => {
   });
 });
 
-test("Lodi's settings name what it posts unasked: Team week, on by default, in every language", () => {
+test("Doug's settings name what it posts unasked: Team week, on by default, in every language", () => {
   expect(TEAM_WEEK_DEFAULTS.off).toBe(false);
   for (const [code, strings] of Object.entries(STRINGS)) {
     const words = strings as {

@@ -39,7 +39,7 @@ beforeEach(async () => {
 });
 afterEach(() => t.close());
 
-/** Posts Lodi's card in the owner's DM with it, as its tools do. */
+/** Posts Doug's card in the owner's DM with it, as its tools do. */
 async function lodiCard(orgId: string, userId: string, actionCard: Record<string, unknown>) {
   const [lodi] = await t.db
     .select()

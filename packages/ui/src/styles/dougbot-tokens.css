@@ -64,6 +64,8 @@
   --db-sombra: 0 8px 24px -8px rgba(0, 0, 0, 0.6);
   --db-sombra-grande: 0 24px 56px -16px rgba(0, 0, 0, 0.75);
   --db-veu: rgba(0, 0, 0, 0.55);
+  /* The light that rims glass (round 3.1's white rims and top highlights): white on the dark stage. */
+  --dg-luz: #ffffff;
 
   /* raio */
   --db-r-1: 8px;
@@ -117,4 +119,5 @@
   --db-sombra: 0 8px 24px -10px rgba(10, 10, 10, 0.18);
   --db-sombra-grande: 0 24px 56px -18px rgba(10, 10, 10, 0.22);
   --db-veu: rgba(10, 10, 10, 0.28);
+  --dg-luz: #0a0a0a;
 }

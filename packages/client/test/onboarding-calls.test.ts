@@ -11,7 +11,7 @@ const ME: Me = { user: { id: "u1", name: "Walter", email: "walter@example.com", 
 /** A server that answers only what finishing a workspace asks, each call written down. `old`: one that says neither. */
 function server(old = false) {
   const calls: string[] = [];
-  const opened = old ? {} : { rightHandId: "lodi", me: ME };
+  const opened = old ? {} : { rightHandId: "doug", me: ME };
   const api = {
     orgs: {
       saveOnboarding: async (orgId: string, input: object) => {
@@ -22,7 +22,7 @@ function server(old = false) {
     agents: {
       list: async () => {
         calls.push("agents.list");
-        return [{ id: "ada" }, { id: "lodi", builtin: "right_hand" }];
+        return [{ id: "ada" }, { id: "doug", builtin: "right_hand" }];
       },
     },
   } as unknown as ApiClient;
@@ -32,13 +32,13 @@ function server(old = false) {
 describe("opening a workspace in round trips (#1)", () => {
   test("finishing one is one call, its answer saying where it opens and who the person is now", async () => {
     const { api, calls } = server();
-    expect(await finishOnboarding(api, "o1")).toEqual({ orgId: "o1", agentId: "lodi", me: ME });
+    expect(await finishOnboarding(api, "o1")).toEqual({ orgId: "o1", agentId: "doug", me: ME });
     expect(calls).toEqual(['orgs.saveOnboarding o1 {"finished":true}']);
   });
 
   test("an older server that says neither: its agents say which is the right hand", async () => {
     const { api, calls } = server(true);
-    expect(await finishOnboarding(api, "o1")).toEqual({ orgId: "o1", agentId: "lodi", me: null });
+    expect(await finishOnboarding(api, "o1")).toEqual({ orgId: "o1", agentId: "doug", me: null });
     expect(calls).toEqual(['orgs.saveOnboarding o1 {"finished":true}', "agents.list"]);
   });
 });
@@ -46,7 +46,7 @@ describe("opening a workspace in round trips (#1)", () => {
 describe("a DM opened from its own answer, the list not read again for it (#1)", () => {
   const dm = {
     channelId: "d-lodi",
-    with: { type: "agent", id: "lodi", name: "Lodi", handle: "lodi" },
+    with: { type: "agent", id: "doug", name: "Doug", handle: "doug" },
   } as DirectMessage;
   const watch = (qc: QueryClient, answer: () => Promise<DirectMessage[]>) => {
     let reads = 0;

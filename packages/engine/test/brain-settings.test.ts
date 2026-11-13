@@ -703,12 +703,12 @@ describe("Usar planos de outras pessoas (ADR 0059 §3, amended 2026-11-04)", () 
     expect(await row(bea.id)).toMatchObject({ brainAccountId: BIAS, brainAccountLentBy: null });
   });
 
-  test("Lodi on a teammate's plan: given by an admin who may use other people's plans, not by one who may not", async () => {
+  test("Doug on a teammate's plan: given by an admin who may use other people's plans, not by one who may not", async () => {
     const { fx, deps, bia, caio, account, editor } = await world();
     await account(BIAS, bia.id);
     const [lodi] = await fx.db
       .insert(schema.agents)
-      .values({ orgId: fx.org.id, name: "Lodi", handle: "lodi", model: "claude-sonnet-5-5", builtin: "right_hand" })
+      .values({ orgId: fx.org.id, name: "Doug", handle: "doug", model: "claude-sonnet-5-5", builtin: "right_hand" })
       .returning();
     if (!lodi) throw new Error("no agent");
     const dan = await editor();

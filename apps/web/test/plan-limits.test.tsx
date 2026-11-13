@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, test } from "bun:test";
+import { afterAll, afterEach, beforeAll, describe, expect, test } from "bun:test";
 import { setupDom } from "@agenteschat/ui/testing/dom";
 
 setupDom();
@@ -6,9 +6,19 @@ setupDom();
 import { join } from "node:path";
 import type { AiAccounts, AiComputer, PlanUsage } from "@agenteschat/client";
 import { act, cleanup, fireEvent, within } from "@testing-library/react";
+import { toggleSidebar } from "@/components/Sidebar";
 import { declarations, topLevel } from "./built-css";
 import { ADA_ID, ATLAS_ID, createFakeApi, fakeMachinesOf, ORG_ID, seedState } from "./fake-api";
 import { renderApp, screen, settle } from "./render";
+
+// DougBot: the full sidebar has the person on top, opening the workspace's full-screen menu; the account's own menu
+// (this file's) is the collapsed sidebar's, at its foot.
+beforeAll(() => {
+  if (globalThis.localStorage?.getItem("agentes.sidebar.collapsed") !== "1") toggleSidebar();
+});
+afterAll(() => {
+  if (globalThis.localStorage?.getItem("agentes.sidebar.collapsed") === "1") toggleSidebar();
+});
 
 /*
  * Your plans' limits where the workspace's budget was (ADR 0063 §5): in Sua conta, in the account menu near a limit,

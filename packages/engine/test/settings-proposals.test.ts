@@ -39,7 +39,7 @@ const lodiOf = async (fx: Fixture) => {
 };
 
 /**
- * A run of Lodi on what `userId` wrote in their DM with it: its tools act for that person. Their message relays outside
+ * A run of Doug on what `userId` wrote in their DM with it: its tools act for that person. Their message relays outside
  * content, so what they may decide waits on the card; `ownWords`: nothing does, so it applies at once.
  */
 async function lodiRun(fx: Fixture, userId: string, body: string, ownWords = false): Promise<ToolContext> {
@@ -125,7 +125,7 @@ describe("a change the person asked for and may make (ADR 0092 §5)", () => {
     expect((await getAgent(f.db, f.org.id, f.agent.id))?.monthlyBudgetNanoUsd).toBeNull();
 
     const own = await lodiRun(f, f.owner.id, "sobe seu próprio limite", true);
-    await call(f, own, { changes: [{ agent: "@lodi", budget_usd: 20 }], reason: "pediu" });
+    await call(f, own, { changes: [{ agent: "@doug", budget_usd: 20 }], reason: "pediu" });
     expect((await cardRows(f, f.owner.id)).rows[0]?.status).toBe("pending");
   });
 
@@ -240,7 +240,7 @@ describe("the settings card", () => {
       .from(schema.auditLog)
       .where(and(eq(schema.auditLog.orgId, f.org.id), eq(schema.auditLog.action, "proposal.accepted")));
     expect(audit?.details).toMatchObject({ via: lodi.id, target: "agent_settings" });
-    // "Ver o que o Lodi fez": what was applied from its cards, with the person as the actor.
+    // "Ver o que o Doug fez": what was applied from its cards, with the person as the actor.
     const viaLodi = await listAudit(f.db, f.owner.id, f.org.id, { via: lodi.id });
     expect(viaLodi.rows.map((r) => [r.action, r.actor.id])).toContainEqual(["proposal.accepted", f.owner.id]);
     expect((await listAudit(f.db, f.owner.id, f.org.id, { via: f.agent.id })).rows).toEqual([]);
@@ -347,7 +347,7 @@ describe("the settings card", () => {
     f = await setup({ rightHand: true });
     const design = await createChannel(f.db, f.owner.id, f.org.id, { name: "design" });
     const ctx = await lodiRun(f, f.owner.id, "tira o dev do general, põe no design só quando chamado, e arquiva");
-    const self = await call(f, ctx, { changes: [{ agent: "@lodi", archive: true }], reason: "nao" });
+    const self = await call(f, ctx, { changes: [{ agent: "@doug", archive: true }], reason: "nao" });
     expect(self).toMatchObject({ isError: true });
     expect(self.content).toContain("You can't change your own archive");
     await call(f, ctx, {

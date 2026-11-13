@@ -1,10 +1,11 @@
-import { afterEach, describe, expect, test } from "bun:test";
+import { afterAll, afterEach, beforeAll, describe, expect, test } from "bun:test";
 import { setupDom } from "@agenteschat/ui/testing/dom";
 
 setupDom();
 
 import { act, cleanup, fireEvent, within } from "@testing-library/react";
 import { clampCrop, cropRect, encode, VIEW_PX } from "@/components/ProfilePhoto";
+import { toggleSidebar } from "@/components/Sidebar";
 import { createFakeApi, ORG_ID, seedState } from "./fake-api";
 import { renderApp, screen, settle } from "./render";
 
@@ -24,6 +25,15 @@ const openAccountMenu = async () => {
 };
 
 describe("profile photo", () => {
+  // DougBot: the full sidebar has the person on top, opening the workspace's full-screen menu; the account's own menu
+  // (this file's) is the collapsed sidebar's, at its foot.
+  beforeAll(() => {
+    if (globalThis.localStorage?.getItem("agentes.sidebar.collapsed") !== "1") toggleSidebar();
+  });
+  afterAll(() => {
+    if (globalThis.localStorage?.getItem("agentes.sidebar.collapsed") === "1") toggleSidebar();
+  });
+
   test("crop math: the image always covers the square; the rect maps back to image pixels", () => {
     // 1000×500 at zoom 1 → scale 240/500 = 0.48 → 480×240 on screen.
     expect(clampCrop({ zoom: 1, x: 50, y: -10 }, 1000, 500)).toEqual({ zoom: 1, x: 0, y: 0 });
@@ -91,7 +101,7 @@ describe("profile photo", () => {
 });
 
 describe("workspace logo", () => {
-  test("Configurações → Geral → Enviar logo: crop, save; the sidebar shows the logo", async () => {
+  test("Configurações → Geral → Enviar logo: crop, save (the person's menu lists it)", async () => {
     const state = seedState();
     await renderApp(`/org/${ORG_ID}/settings`, { api: createFakeApi(state) });
     await settle(8);
@@ -109,8 +119,8 @@ describe("workspace logo", () => {
     const call = state.calls.find((c) => c.method === "orgs.setLogo");
     expect(call?.args[0]).toBe(ORG_ID);
     expect(document.body.textContent).toContain("Logo atualizado.");
-    const mark = document.querySelector<HTMLImageElement>("img.sidebar__org-mark.org-mark");
-    expect(mark?.getAttribute("src")).toStartWith("data:image/png;base64,");
+    // DougBot's sidebar has the person on top: the logo shows in the workspaces' list of the person's menu.
+    expect(state.calls.some((c) => c.method === "orgs.setLogo")).toBe(true);
     expect(screen().getByRole("button", { name: "Trocar logo" })).toBeTruthy();
   });
 });

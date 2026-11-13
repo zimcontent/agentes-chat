@@ -396,7 +396,7 @@ describe("the team's right hand", () => {
     f = await world();
     const lodi = await lodiOf();
     const file = await upload(f.general.id);
-    const run = await runOf(lodi.id, f.general.id, "@lodi lê esse arquivo", f.owner.id, [file.id]);
+    const run = await runOf(lodi.id, f.general.id, "@doug lê esse arquivo", f.owner.id, [file.id]);
     expect((await bridged(run, "read_artifact", { artifact_id: file.id })).content).toContain("Plano Ouro");
     expect((await bridged(run, "list_artifacts", {})).content).toContain(file.id);
   });
@@ -479,7 +479,7 @@ describe("what reading by id must not open", () => {
     const room = await publicRoom();
     const file = await upload(room.id);
     await addChannelMember(f.db, f.owner.id, f.org.id, room.id, { userId: bob.id });
-    const run = await runOf(lodi.id, room.id, "@lodi lista", bob.id);
+    const run = await runOf(lodi.id, room.id, "@doug lista", bob.id);
     expect((await bridged(run, "list_artifacts", {})).content).toContain(file.id);
     await removeMember(f.db, f.owner.id, f.org.id, bob.id);
     expect((await bridged(run, "list_artifacts", {})).content).not.toContain(file.id);

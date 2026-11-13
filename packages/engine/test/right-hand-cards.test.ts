@@ -40,7 +40,7 @@ const lodiOf = async (fx: Fixture) => {
   return lodi;
 };
 
-/** A run of Lodi on what `userId` wrote in their DM with it: its tools act for that person (`outside`: it relays outside content). */
+/** A run of Doug on what `userId` wrote in their DM with it: its tools act for that person (`outside`: it relays outside content). */
 async function lodiRun(fx: Fixture, userId: string, body: string, outside = false): Promise<ToolContext> {
   const lodi = await lodiOf(fx);
   const dm = await openPersonAgentDm(fx.db, fx.org.id, userId, lodi.id);

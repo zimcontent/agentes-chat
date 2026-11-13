@@ -251,7 +251,7 @@ describe("what the viewer sees", () => {
     expect(section("Computador")).toBeNull();
     expect(section("Como pensa")).toBeTruthy();
     // One role name, the sidebar's and its header's: never a second one in its panel.
-    expect((side() as HTMLElement).querySelector(".dm-side__role")?.textContent).toBe("Seu braço direito");
+    expect((side() as HTMLElement).querySelector(".dm-side__role")?.textContent).toBe("CEO · braço direito");
     expect(side()?.textContent).not.toContain("Assistente do workspace");
   });
 

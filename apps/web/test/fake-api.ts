@@ -296,7 +296,7 @@ export interface FakeState {
   /** A person's month by id; unset: an empty month. */
   personUsage?: Record<string, PersonUsage>;
   personLimits?: PersonLimits;
-  /** Lodi's weekly card for the signed-in person. */
+  /** Doug's weekly card for the signed-in person. */
   teamWeek?: TeamWeekPrefs;
   memories: Memory[];
   proposals: Proposal[];
@@ -670,12 +670,12 @@ function mediaSettings(state: FakeState): Pick<OrgSettings, MediaSetting> {
  */
 export const LODI_ID = "00000000-0000-4000-8000-0000000000a9";
 
-/** The workspace's right hand (ADR 0137), as the server makes it: Lodi, teal, owned by the workspace owner. */
+/** The workspace's right hand (ADR 0137), as the server makes it: Doug, teal, owned by the workspace owner. */
 export function withRightHand(state: FakeState, extra: Partial<Agent> = {}) {
   state.agents.push({
     id: LODI_ID,
-    name: "Lodi",
-    handle: "lodi",
+    name: "Doug",
+    handle: "doug",
     role: "",
     instructions: "",
     model: "auto",

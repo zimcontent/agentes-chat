@@ -109,21 +109,31 @@ pre,
   --e1: var(--db-vidro-brilho), 0 0 0 1px var(--db-vidro-borda);
   --e2: var(--db-vidro-brilho), 0 0 0 1px var(--db-vidro-borda), var(--db-sombra);
   --e3: var(--db-vidro-brilho), 0 0 0 1px var(--db-vidro-borda), var(--db-sombra-grande);
-  /* The identity's radius scale on the kit's controls (§6): 8 small items, 12 buttons and fields, 16 rows. */
-  --radius-xs: 4px;
-  --radius-sm: var(--db-r-1);
-  --radius-item: var(--db-r-1);
-  --radius-md: var(--db-r-2);
-  --radius-btn: var(--db-r-2);
-  --radius-lg: var(--db-r-3);
-  --radius-xl: var(--db-r-4);
-  --radius-section: var(--db-r-4);
-  --control-r-sm: var(--db-r-1);
-  --control-r-md: var(--db-r-2);
-  --control-r-lg: var(--db-r-2);
-  --control-h-lg: 44px;
-  --control-fs-lg: 15px;
   --dg-ease: var(--db-saida);
+  /* Round 3.1's glass (Nordus's rim, the portal's card), on the identity's light: white rims on the dark stage, ink
+     rims on the light one (`--dg-luz`). */
+  --dg-blur: 20px;
+  --dg-sombra-funda: rgba(0, 0, 0, 0.85);
+  --dg-sombra-media: rgba(0, 0, 0, 0.45);
+  --dg-saturate: 140%;
+  --dg-glass-bg: var(--db-vidro);
+  --dg-glass-card: var(--db-vidro-cartao);
+  --dg-pill: color-mix(in srgb, var(--dg-luz) 5.5%, transparent);
+  --dg-pill-hover: color-mix(in srgb, var(--dg-luz) 9%, transparent);
+  --dg-rim-top: color-mix(in srgb, var(--dg-luz) 16%, transparent);
+  --dg-rim: color-mix(in srgb, var(--dg-luz) 8.5%, transparent);
+  --dg-rim-bottom: color-mix(in srgb, var(--dg-luz) 4%, transparent);
+  --dg-reflection: color-mix(in srgb, var(--dg-luz) 7%, transparent);
+  --dg-shadow: var(--db-sombra);
+  --dg-shadow-lg: var(--db-sombra-grande);
+  --dg-edge: inset 0 1px 0 var(--dg-rim-top), inset 0 -1px 0 var(--dg-rim-bottom), inset 0 0 0 1px var(--dg-rim);
+  --dg-glow: color-mix(in srgb, var(--db-verde-acento) 35%, transparent);
+  --dg-lime-chosen: linear-gradient(
+    100deg,
+    color-mix(in srgb, var(--db-verde-acento) 20%, transparent),
+    color-mix(in srgb, var(--db-verde-acento) 6%, transparent) 55%,
+    color-mix(in srgb, var(--db-verde-acento) 3%, transparent)
+  );
   /* Geometry. */
   --dg-s1: 4px;
   --dg-s2: 8px;
@@ -138,186 +148,260 @@ pre,
   --dg-side-w: 288px;
 }
 
-/* ── The ground: the stage, flat ── */
-body,
-.shell,
-.auth {
-  background: var(--db-palco);
+
+/* ════ Layout and structure: round 3.1's (commit 68d307310), its colors on the identity's tokens, both themes (its
+   `[data-theme]` keeps the weight 3.1's rules had over the kit's page sheets) ════ */
+/* ── The ground: the portal's near black, neutral, with a soft white light from the top ── */
+[data-theme] body,
+[data-theme] .shell,
+[data-theme] .auth {
+  background: radial-gradient(80% 50% at 50% -18%, color-mix(in srgb, var(--dg-luz) 4.5%, transparent), transparent 70%), var(--bg);
+  background-attachment: fixed;
 }
-.shell__work:not(.shell__work--bare) {
+[data-theme] .shell__work:not(.shell__work--bare) {
   background: transparent;
 }
-.workspace-sky {
-  display: none;
+
+/* ── The glass, after Nordus's `.nb-glass`: what floats over the content (pills, bars, menus) ── */
+[data-theme] :is(.dg-glass, .ac-menu, .ac-popover, .ac-dialog, .ac-toast) {
+  background: radial-gradient(120% 50% at 50% -12%, var(--dg-reflection), transparent 60%), var(--db-vidro);
+  -webkit-backdrop-filter: blur(24px) saturate(var(--dg-saturate));
+  backdrop-filter: blur(24px) saturate(var(--dg-saturate));
+  border-color: transparent;
+  box-shadow: var(--dg-edge), var(--dg-shadow-lg);
+}
+[data-theme] :is(.ac-menu, .ac-popover) {
+  border-radius: 16px;
+}
+[data-theme] .ac-dialog {
+  border-radius: 20px;
+}
+[data-theme] .ac-dialog__scrim {
+  background: rgba(0, 0, 0, 0.55);
+  -webkit-backdrop-filter: blur(8px) saturate(120%);
+  backdrop-filter: blur(8px) saturate(120%);
+}
+/* Menu rows: a glass pill under the pointer (Nordus), the checked one's mark in lime. */
+[data-theme] .ac-menu__item {
+  border-radius: 10px;
+}
+[data-theme] .ac-menu__item:is(:hover, [data-highlighted], [data-active], [data-state="open"]) {
+  background: color-mix(in srgb, var(--dg-luz) 7.5%, transparent);
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--dg-luz) 6%, transparent);
+}
+[data-theme] .ac-menu__item[data-state="checked"] > .ac-icon {
+  color: var(--agent);
+}
+/* The lens: on Chromium the floating pieces' rims bend the backdrop (packages/ui/src/brand/liquid-glass.ts sets
+   `--dg-lens` and `<html data-glass-lens>`); a no-op stands in until a piece has its filter. */
+[data-theme][data-glass-lens]
+:is(
+  .dg-glass,
+  .channel__head-text,
+  .channel__acts,
+  .dm-who,
+  .ac-composer,
+  .ac-composer__plus,
+  .sidebar__dock,
+  .sidebar__jump,
+  .sidebar__me
+) {
+  -webkit-backdrop-filter: var(--dg-lens, blur(0px)) blur(var(--dg-blur)) saturate(var(--dg-saturate));
+  backdrop-filter: var(--dg-lens, blur(0px)) blur(var(--dg-blur)) saturate(var(--dg-saturate));
 }
 
-/* ── Frosted glass (§6 "Vidro e luz"): what floats (menus, popovers, dialogs, toasts) ── */
-:is(.dg-glass, .ac-menu, .ac-popover, .ac-dialog, .ac-toast) {
-  background: var(--db-vidro);
-  -webkit-backdrop-filter: var(--db-desfoque);
-  backdrop-filter: var(--db-desfoque);
-  border: 1px solid var(--db-vidro-borda);
-  box-shadow: var(--db-vidro-brilho), var(--db-sombra-grande);
-}
-.ac-dialog__scrim {
-  background: var(--db-veu);
-  -webkit-backdrop-filter: blur(6px);
-  backdrop-filter: blur(6px);
-}
-
-/* ── The two windows: the sidebar and the work's sheet, glass panes 12 off the edges (36, 20 in) ── */
+/* ── The work's sheet: the portal's card, a step lighter than the ground, with the glass's rim ── */
 @media (min-width: 761px) {
-  .sidebar {
-    --r-outer: var(--dg-r-window);
-    --pad: var(--dg-gap-window);
-    flex-basis: var(--dg-side-w);
-    width: var(--dg-side-w);
-    min-width: var(--dg-side-w);
+  [data-theme] .shell__pages {
+    background: var(--db-palco-2);
+    border-radius: 24px;
+    box-shadow:
+      inset 0 1px 0 color-mix(in srgb, var(--dg-luz) 5.1%, transparent),
+      inset 0 0 0 1px color-mix(in srgb, var(--dg-luz) 5.9%, transparent),
+      0 30px 60px -30px var(--dg-sombra-funda);
+  }
+}
+
+/* ── Sidebar: the portal's floating glass panel (`.side`), Nordus's structure inside ── */
+[data-theme] .sidebar {
+  background: var(--db-vidro);
+  -webkit-backdrop-filter: blur(18px) saturate(140%);
+  backdrop-filter: blur(18px) saturate(140%);
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, var(--dg-luz) 5.1%, transparent),
+    inset 0 0 0 1px color-mix(in srgb, var(--dg-luz) 7.1%, transparent),
+    0 30px 60px -30px var(--dg-sombra-funda);
+  --side-active: color-mix(in srgb, var(--dg-luz) 7%, transparent);
+}
+@media (min-width: 761px) {
+  [data-theme] .sidebar {
+    flex-basis: 272px;
+    width: 272px;
+    min-width: 272px;
     height: auto;
     margin: 12px 0 12px 12px;
-    padding: var(--pad);
-    gap: var(--dg-s4);
-    border-radius: var(--r-outer);
-    background: var(--db-vidro);
-    -webkit-backdrop-filter: var(--db-desfoque);
-    backdrop-filter: var(--db-desfoque);
-    border: 1px solid var(--db-vidro-borda);
-    box-shadow: var(--db-vidro-brilho);
+    border-radius: 24px;
   }
-  .sidebar[data-rail="true"] {
-    flex-basis: 76px;
-    width: 76px;
-    min-width: 76px;
-    padding-inline: 12px;
+  [data-theme] .sidebar[data-rail="true"] {
+    flex-basis: 68px;
+    width: 68px;
+    min-width: 68px;
   }
-  .sidebar__scroll {
-    margin-inline: calc(-1 * var(--pad));
-    padding-inline: var(--pad);
-  }
-  .shell__work:not(.shell__work--bare) {
+  [data-theme] .shell__work:not(.shell__work--bare) {
     padding: 12px;
   }
-  .shell__pages {
-    --r-outer: var(--dg-r-window);
-    --pad: var(--dg-gap-window);
-    --page-top: var(--dg-gap-window);
-    --page-x: 24px;
-    border-radius: var(--r-outer);
-    background: var(--db-palco-2);
-    border: 1px solid var(--db-vidro-borda);
-    box-shadow: var(--db-vidro-brilho);
-    overflow: hidden;
-  }
 }
-@media (max-width: 760px) {
-  .sidebar {
-    background: var(--db-palco-2);
-  }
+[data-theme] .workspace-sky {
+  display: none;
 }
-
-/* ── Sidebar ── */
-/* The signature on top (§3): no box; half the Doug's height free around it. */
-.sidebar__assina {
-  --t: 18px;
-  align-self: flex-start;
-  margin: 0 0 var(--dg-s1) var(--dg-s1);
+/* Rows: the portal's side items. A glass hover; the open one in the lime wash with its hairline, glow and the bar of
+   light on its left edge. */
+[data-theme] .sidebar__item {
+  --item-r: 12px;
+  border-radius: 12px;
+  font-weight: 500;
+  font-size: 14px;
+  color: var(--muted);
+  transition:
+    background-color 0.18s var(--dg-ease),
+    box-shadow 0.18s var(--dg-ease),
+    color 0.18s var(--dg-ease);
 }
-/* The workspace: a 56 row (16 = the window's 36 less 20), its mark a 32 tile with a radius of 8. */
-.sidebar__org-button {
-  --r-outer: var(--db-r-3);
-  --pad: var(--dg-gap-control);
-  min-height: 56px;
-  box-sizing: border-box;
-  padding: var(--pad) var(--dg-s4) var(--pad) var(--pad);
-  border-radius: var(--r-outer);
-  gap: var(--dg-s3);
-  background: transparent;
+[data-theme] .sidebar__item:hover {
+  background: color-mix(in srgb, var(--dg-luz) 4%, transparent);
+  color: var(--ink);
 }
-.sidebar__org-button:hover {
-  background: var(--db-chapa-leve);
-}
-.sidebar__org-mark,
-.sidebar__org-button .sidebar__org-mark {
-  width: 32px;
-  height: 32px;
-  border-radius: var(--db-r-1);
-  flex: none;
-}
-.sidebar__org-name {
-  font-size: 15px;
-  line-height: 18px;
-  font-weight: 800;
-  letter-spacing: -0.02em;
-}
-.sidebar__org-meta {
-  font-size: 12px;
-  line-height: 16px;
-  color: var(--db-texto-leve);
-}
-/* A workspace without a logo: its initial on a quiet tile. */
-.org-mark--initial {
-  display: inline-grid;
-  place-items: center;
-  flex: none;
-  border-radius: var(--db-r-1);
-  background: var(--db-palco-4);
-  box-shadow: inset 0 0 0 1px var(--db-vidro-borda);
+[data-theme] .sidebar__item[data-status="active"],
+[data-theme] .sidebar__item[data-status="active"]:hover {
+  background: var(--dg-lime-chosen);
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, var(--db-verde-acento) 7.8%, transparent),
+    inset 0 0 0 1px color-mix(in srgb, var(--db-verde-acento) 34.9%, transparent),
+    0 0 24px -8px color-mix(in srgb, var(--db-verde-acento) 45.1%, transparent);
   color: var(--db-texto);
-  font-family: var(--db-f-titulo);
-  font-weight: 800;
-  line-height: 1;
 }
-/* Go to…: a field (12) 44 high, its keys 24 high 10 in. */
-.sidebar__jump-row {
-  gap: var(--dg-s2);
+[data-theme] .sidebar:not([data-rail="true"]) .sidebar__item[data-status="active"]::after {
+  content: "";
+  position: absolute;
+  left: -12px;
+  top: 10px;
+  bottom: 10px;
+  width: 4px;
+  border-radius: 0 4px 4px 0;
+  background: var(--agent);
+  box-shadow:
+    0 0 14px var(--dg-glow),
+    0 0 4px var(--agent);
+  pointer-events: none;
 }
-.sidebar__jump {
-  --r-outer: var(--db-r-2);
-  --pad: 10px;
-  height: 44px;
-  min-height: 44px;
-  padding: 0 var(--pad) 0 var(--dg-s3);
-  border-radius: var(--r-outer);
-  gap: var(--dg-s2);
-  background: var(--db-palco-3);
-  border: 1px solid var(--db-vidro-borda);
-  color: var(--db-texto-2);
+[data-theme] .sidebar__item > .ac-icon,
+[data-theme] .sidebar__item .sidebar__channel-icon {
+  color: var(--db-texto-3);
 }
-.sidebar__jump:hover {
-  background: var(--db-palco-4);
+[data-theme] .sidebar__item[data-status="active"] > .ac-icon,
+[data-theme] .sidebar__item[data-status="active"] .sidebar__channel-icon {
+  color: var(--agent);
+  filter: drop-shadow(0 0 8px color-mix(in srgb, var(--db-verde-acento) 55%, transparent));
 }
-.sidebar__jump .ac-kbd {
-  height: 24px;
-  min-width: 24px;
-  padding: 0 6px;
-  border-radius: 4px;
-  background: var(--db-chapa);
-  box-shadow: none;
-  font-size: 11px;
+[data-theme] .sidebar__item[data-kind="channel"] .sidebar__item-label {
+  color: var(--muted);
 }
-.sidebar__jump .ac-kbd + .ac-kbd {
-  margin-left: -4px;
+[data-theme]
+  .sidebar__item[data-kind="channel"]:is([data-unread="true"], [data-status="active"])
+  .sidebar__item-label {
+  color: var(--ink);
 }
-.sidebar__collapse.ac-btn {
-  width: 44px;
-  height: 44px;
-  flex: none;
-  border-radius: var(--db-r-2);
+[data-theme] .sidebar__item[data-kind="channel"][data-unread="true"]::before {
+  background: var(--agent);
+  box-shadow: 0 0 8px var(--dg-glow);
 }
-
-/* The tools: a clean grid of tiles, each its 20 icon over its name (Inter 500 12/16), no pill. The open one is the
-   chosen item's green at 12% (§4). Counts sit on the icon's corner. */
-.sidebar:not([data-rail="true"]) .sidebar__dock {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: var(--dg-s1);
+/* An agent's row (Nordus's bot row): the name in ink, the role under it as plain words, no plate. */
+[data-theme] .sidebar__row .sidebar__item .sidebar__item-label {
+  color: var(--ink);
+  font-weight: 550;
+}
+[data-theme] .sidebar__item-role.ac-tag,
+[data-theme] .sidebar__item[data-status="active"] .sidebar__item-role.ac-tag {
+  margin-top: 0;
   padding: 0;
   background: none;
   box-shadow: none;
-  border: 0;
-  -webkit-backdrop-filter: none;
-  backdrop-filter: none;
+  font-size: 12px;
+  font-weight: 450;
+  color: var(--faint);
 }
+[data-theme] .sidebar__item[data-status="active"] .sidebar__item-role {
+  color: var(--db-texto-2);
+}
+/* Section headers, as Nordus's: a short title in sentence case, its chevron after it. */
+[data-theme] .sidebar__label,
+[data-theme] .sidebar__section--part .sidebar__section-head .sidebar__label {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  text-transform: none;
+  color: var(--faint);
+}
+[data-theme] .sidebar__section-head .sidebar__label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--faint);
+}
+[data-theme] .sidebar__section-toggle:hover .sidebar__label {
+  color: var(--ink);
+}
+[data-theme] .sidebar__section-head:hover {
+  background: transparent;
+}
+[data-theme] .sidebar__pins-end {
+  border-color: color-mix(in srgb, var(--dg-luz) 6%, transparent);
+}
+
+/* The workspace's header: the name in Manrope. */
+[data-theme] .sidebar__org-name {
+  font-size: 15px;
+  font-weight: 750;
+}
+[data-theme] .sidebar__org-button:hover {
+  background: color-mix(in srgb, var(--dg-luz) 5%, transparent);
+}
+/* Go to…: a round glass pill (Nordus's search). */
+[data-theme] .sidebar__jump {
+  border-radius: 999px;
+  background: var(--dg-pill);
+  box-shadow: var(--dg-edge);
+}
+[data-theme] .sidebar__jump:hover {
+  background: var(--dg-pill-hover);
+}
+[data-theme] .sidebar__jump .ac-kbd {
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--dg-luz) 6%, transparent);
+  box-shadow: none;
+}
+[data-theme] .sidebar__collapse.ac-btn {
+  border-radius: 999px;
+}
+
+/* ── The dock: the tools as one glass bar of icons (after Nordus's footer nav in its toolbar form and its glass
+   segmented control). Each icon keeps its name for a screen reader and on hover; counts sit on its corner. ── */
+.sidebar:not([data-rail="true"]) .sidebar__dock {
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2px;
+  padding: 4px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--dg-luz) 4.5%, transparent);
+  box-shadow:
+    var(--dg-edge),
+    0 6px 18px -10px var(--dg-sombra-media);
+  -webkit-backdrop-filter: blur(var(--dg-blur, 20px)) saturate(var(--dg-saturate, 140%));
+  backdrop-filter: blur(var(--dg-blur, 20px)) saturate(var(--dg-saturate, 140%));
+}
+/* A tool's own drag grip has no room between the dock's icons: the order is set in Personalizar (More's menu) and the
+   section keeps its grip. */
 .sidebar:not([data-rail="true"]) .sidebar__dock .sidebar__tool-grip {
   display: none;
 }
@@ -325,126 +409,98 @@ body,
   display: contents;
 }
 .sidebar:not([data-rail="true"]) .sidebar__dock .sidebar__item {
-  --r-outer: var(--db-r-2);
-  --pad: var(--dg-gap-control);
   position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: var(--dg-s1);
-  width: auto;
+  flex: 1 1 0;
   min-width: 0;
-  height: 64px;
-  min-height: 64px;
-  padding: var(--pad) var(--dg-s1);
-  box-sizing: border-box;
-  border-radius: var(--r-outer);
-  background: transparent;
-  box-shadow: none;
-  color: var(--db-texto-2);
+  justify-content: center;
+  gap: 0;
+  height: 36px;
+  min-height: 36px;
+  padding: 0;
+  border-radius: 999px;
 }
-.sidebar:not([data-rail="true"]) .sidebar__dock .sidebar__item::after,
-.sidebar:not([data-rail="true"]) .sidebar__dock .sidebar__item::before {
+.sidebar:not([data-rail="true"]) .sidebar__dock .sidebar__item::after {
   display: none;
 }
 .sidebar:not([data-rail="true"]) .sidebar__dock .sidebar__item > .ac-icon {
-  width: 20px;
-  height: 20px;
-  padding: 0;
-  color: var(--db-texto);
-  filter: none;
+  width: 18px;
+  height: 18px;
+  color: var(--muted);
 }
-.sidebar:not([data-rail="true"]) .sidebar__dock .sidebar__item :is(.sidebar__item-label) {
-  position: static;
-  width: auto;
-  height: auto;
-  overflow: visible;
-  clip-path: none;
-  max-width: 100%;
-  font-size: 12px;
-  line-height: 16px;
-  font-weight: 500;
-  color: var(--db-texto-2);
+.sidebar:not([data-rail="true"]) .sidebar__dock .sidebar__item:hover > .ac-icon {
+  color: var(--ink);
+}
+.sidebar:not([data-rail="true"]) .sidebar__dock .sidebar__item :is(.sidebar__item-label, .sidebar__more-chevron) {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
   white-space: nowrap;
-  text-overflow: clip;
-}
-.sidebar:not([data-rail="true"]) .sidebar__dock .sidebar__more-chevron {
-  display: none;
-}
-.sidebar:not([data-rail="true"]) .sidebar__dock .sidebar__item:hover {
-  background: var(--db-chapa-leve);
-}
-.sidebar:not([data-rail="true"]) .sidebar__dock .sidebar__item:hover .sidebar__item-label,
-.sidebar:not([data-rail="true"]) .sidebar__dock .sidebar__item[data-status="active"] .sidebar__item-label,
-.sidebar:not([data-rail="true"]) .sidebar__dock .sidebar__item.active .sidebar__item-label {
-  color: var(--db-texto);
-}
-.sidebar:not([data-rail="true"]) .sidebar__dock .sidebar__item:is([data-status="active"], .active),
-.sidebar:not([data-rail="true"]) .sidebar__dock .sidebar__item:is([data-status="active"], .active):hover {
-  background: var(--db-verde-suave);
-  box-shadow: none;
 }
 .sidebar:not([data-rail="true"]) .sidebar__dock .sidebar__item > :is(.ac-count, .ac-countchip, .sidebar__unread) {
   position: absolute;
-  top: 6px;
-  left: calc(50% + 6px);
-  right: auto;
+  top: -2px;
+  right: 2px;
   min-width: 16px;
   height: 16px;
   padding: 0 4px;
   font-size: 10px;
 }
+[data-theme] .sidebar:not([data-rail="true"]) .sidebar__dock .sidebar__item[data-status="active"] {
+  background: var(--db-verde-botao);
+  box-shadow:
+    inset 0 1px color-mix(in srgb, #fff 90%, transparent),
+    inset 0 -2px color-mix(in srgb, var(--db-verde-acento) 22%, transparent),
+    0 0 0 1px color-mix(in srgb, var(--db-verde-acento) 50.2%, transparent),
+    0 6px 18px -6px color-mix(in srgb, var(--db-verde-acento) 54.9%, transparent);
+}
+[data-theme] .sidebar:not([data-rail="true"]) .sidebar__dock .sidebar__item[data-status="active"] > .ac-icon {
+  color: var(--db-palco);
+  filter: none;
+}
 .sidebar:not([data-rail="true"]) .sidebar__dock .sidebar__item[data-unread="true"]::before {
   content: "";
-  display: block;
   position: absolute;
-  top: 10px;
-  left: calc(50% + 10px);
+  top: 6px;
+  right: 8px;
+  left: auto;
   width: 6px;
   height: 6px;
   margin: 0;
-  border-radius: 3px;
-  background: var(--db-texto);
+  border-radius: 999px;
+  background: var(--agent);
 }
 
-/* The pinned agents (hero): their bots in a row, the name under each (Manrope 800, capitals as written); the open one
-   on the chosen item's green (§4), no ring and no glow. A tile of 12 with 12 around its words. */
+/* ── The pinned hero (Nordus's PinnedHero): big glass faces in a row under the search, the name under each ── */
 .sidebar__hero {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: var(--dg-s1);
+  display: flex;
+  justify-content: center;
+  gap: 4px;
   margin: 0;
-  padding: 0;
+  padding: 2px 0 0;
   list-style: none;
 }
 .sidebar__hero-item {
+  flex: 0 1 25%;
   min-width: 0;
 }
-.sidebar__hero-link,
-.sidebar__hero-link:hover {
-  --r-outer: var(--db-r-2);
-  --pad: var(--dg-gap-control);
+.sidebar__hero-link {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: var(--dg-s1);
-  padding: var(--pad) 2px;
-  border-radius: var(--r-outer);
-  background: transparent;
-  box-shadow: none;
-  color: var(--db-texto-2);
+  gap: 6px;
+  padding: 6px 2px 4px;
+  border-radius: 16px;
+  color: var(--muted);
   text-decoration: none;
-  transition: background-color 0.18s var(--db-saida);
+  transition:
+    background-color 0.18s var(--dg-ease, ease),
+    color 0.18s var(--dg-ease, ease);
 }
 .sidebar__hero-link:hover {
-  background: var(--db-chapa-leve);
-  color: var(--db-texto);
-}
-.sidebar__hero-link[data-status="active"],
-.sidebar__hero-link[data-status="active"]:hover {
-  background: var(--db-verde-suave);
-  color: var(--db-texto);
+  background: color-mix(in srgb, var(--dg-luz) 4%, transparent);
+  color: var(--ink);
 }
 html:not([data-pointer]) .sidebar__hero-link:focus-visible {
   outline: none;
@@ -454,787 +510,1263 @@ html:not([data-pointer]) .sidebar__hero-link:focus-visible {
   position: relative;
   display: grid;
   place-items: center;
-  box-shadow: none;
+  border-radius: 999px;
+  transition: box-shadow 0.22s var(--dg-ease, ease);
 }
-.sidebar__hero-face::after {
-  display: none;
+.sidebar__hero-face > .ac-avatar {
+  width: 48px;
+  height: 48px;
 }
-.sidebar__hero-face > .ac-avatar,
-.sidebar__hero[data-count] .sidebar__hero-face > .ac-avatar {
-  width: 34px;
-  height: 34px;
+.sidebar__hero[data-count="4"] .sidebar__hero-face > .ac-avatar {
+  width: 44px;
+  height: 44px;
+}
+.sidebar__hero-link[data-status="active"] {
+  color: var(--db-texto);
+}
+.sidebar__hero-link[data-status="active"] .sidebar__hero-face {
+  box-shadow:
+    0 0 0 2px var(--bg, var(--db-palco)),
+    0 0 0 4px var(--agent),
+    0 0 22px -2px var(--dg-glow, color-mix(in srgb, var(--db-verde-acento) 35%, transparent));
+}
+.sidebar__hero-link[data-busy="true"] .sidebar__hero-face {
+  box-shadow:
+    0 0 0 2px var(--bg, var(--db-palco)),
+    0 0 0 3px color-mix(in srgb, var(--agent) 60%, transparent);
 }
 .sidebar__hero-face > :is(.ac-count, .sidebar__unread) {
   position: absolute;
-  top: -4px;
-  right: -8px;
-  z-index: 1;
+  top: -3px;
+  right: -5px;
 }
+/* The whole name, on two lines when it needs them (no ellipsis). */
 .sidebar__hero-name {
   max-width: 100%;
-  font-family: var(--db-f-titulo);
-  font-size: 11px;
-  font-weight: 800;
-  line-height: 14px;
-  letter-spacing: 0.02em;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 15px;
   text-align: center;
   overflow-wrap: anywhere;
 }
+.sidebar__hero-link[data-unread="true"] .sidebar__hero-name {
+  color: var(--ink);
+}
 
-/* Rows (§6 "Linha"): 16, 12 around what they hold. A group's photo 24, an agent's bot 32 (a 56 row), its name in
-   Manrope 800 13/16 capitals as the bots' names are written (§5), its trade 12/16 under. */
-.sidebar:not([data-rail="true"]) .sidebar__item {
-  --r-outer: var(--db-r-3);
-  --pad: var(--dg-gap-control);
-  min-height: 48px;
-  padding-inline: var(--pad) var(--dg-s4);
-  border-radius: var(--r-outer);
-  gap: var(--dg-s3);
-  font-weight: 500;
-  font-size: 14px;
-  color: var(--db-texto-2);
-  transition:
-    background-color 0.18s var(--db-saida),
-    color 0.18s var(--db-saida);
+/* The person at the foot: a glass pill (Nordus's profile button), the bell a round glass button beside. */
+[data-theme] .sidebar__me {
+  border-radius: 999px;
+  background: var(--dg-pill);
+  box-shadow:
+    var(--dg-edge),
+    0 8px 20px -12px var(--dg-sombra-media);
 }
-.sidebar:not([data-rail="true"]) .sidebar__item:hover {
-  background: var(--db-chapa-leve);
-  color: var(--db-texto);
+[data-theme] .sidebar__me > .sidebar__user {
+  border-radius: 999px;
 }
-.sidebar .sidebar__item[data-status="active"],
-.sidebar .sidebar__item[data-status="active"]:hover {
-  background: var(--db-verde-suave);
-  box-shadow: none;
-  color: var(--db-texto);
+[data-theme] .sidebar__me > .sidebar__user:hover {
+  background: color-mix(in srgb, var(--dg-luz) 6%, transparent);
 }
-.sidebar .sidebar__item[data-status="active"]::after {
-  display: none;
+[data-theme] .sidebar__bell.ac-btn {
+  border-radius: 999px;
 }
-.sidebar .sidebar__item > .ac-icon,
-.sidebar .sidebar__item .sidebar__channel-icon {
-  color: var(--db-texto-2);
-  filter: none;
-}
-.sidebar .sidebar__item[data-status="active"] > .ac-icon,
-.sidebar .sidebar__item[data-status="active"] .sidebar__channel-icon {
-  color: var(--db-texto);
-  filter: none;
-}
-.sidebar:not([data-rail="true"]) .sidebar__item > :is(.sidebar__channel-icon, .ac-icon) {
-  width: 24px;
-  height: 24px;
-  padding: 2px;
-  box-sizing: border-box;
-  flex: none;
-}
-.sidebar:not([data-rail="true"]) .sidebar__item .sidebar__channel-photo {
-  width: 24px;
-  height: 24px;
-  border-radius: var(--db-r-1);
-  flex: none;
-}
-.sidebar .sidebar__item[data-kind="channel"] .sidebar__item-label {
-  color: var(--db-texto-2);
-}
-.sidebar .sidebar__item[data-kind="channel"]:is([data-unread="true"], [data-status="active"]) .sidebar__item-label {
-  color: var(--db-texto);
-}
-.sidebar .sidebar__item[data-kind="channel"][data-unread="true"]::before {
-  background: var(--db-texto);
-  box-shadow: none;
-}
-.sidebar:not([data-rail="true"]) .sidebar__item:has(> .ac-avatar) {
-  min-height: 56px;
-  padding-block: var(--pad);
-  align-items: center;
-}
-.sidebar:not([data-rail="true"]) .sidebar__item > .ac-avatar {
-  width: 32px;
-  height: 32px;
-}
-.sidebar .sidebar__item .ac-captop {
-  margin-block-start: 0;
-}
-.sidebar .sidebar__item-label {
-  line-height: 18px;
-}
-.sidebar .sidebar__row .sidebar__item:has(> .ac-avatar--bot) .sidebar__item-label {
-  font-family: var(--db-f-titulo);
-  font-size: 13px;
-  line-height: 16px;
-  font-weight: 800;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  color: var(--db-texto);
-}
-.sidebar .sidebar__item-text {
-  justify-content: center;
-}
-.sidebar__item-role.ac-tag,
-.sidebar .sidebar__item[data-status="active"] .sidebar__item-role.ac-tag {
-  margin-top: 0;
-  padding: 0;
-  background: none;
-  box-shadow: none;
-  font-size: 12px;
-  line-height: 16px;
-  font-weight: 400;
-  color: var(--db-texto-leve);
-}
-.sidebar .sidebar__item[data-status="active"] .sidebar__item-role {
-  color: var(--db-texto-2);
-}
-.sidebar__new-agent-face {
-  width: 32px;
-  height: 32px;
-  border-radius: var(--db-r-1);
-}
-/* The open row's buttons (add people, settings): 24 items of 8, 12 from the row's end. */
-.sidebar__row-acts {
-  right: var(--dg-gap-control);
-  gap: var(--dg-s2);
-}
-.sidebar__row-acts .ac-btn,
-.sidebar__row-menu.ac-btn {
-  width: 24px;
-  height: 24px;
-  min-height: 0;
-  border-radius: 4px;
-}
-.sidebar__row[data-acts] {
-  --acts-room: calc(var(--dg-gap-control) + 2 * 24px + var(--dg-s2) + var(--dg-s2));
-}
-:is(.sidebar__grip, .sidebar__tool-grip) {
-  left: 0;
-}
-/* Section headers: a short title in sentence case, its chevron after it. */
-.sidebar__label,
-.sidebar__section--part .sidebar__section-head .sidebar__label,
-.sidebar__section-head .sidebar__label {
-  font-size: 12px;
-  line-height: 16px;
-  font-weight: 600;
-  letter-spacing: 0;
-  text-transform: none;
-  color: var(--db-texto-leve);
-}
-.sidebar__section-toggle:hover .sidebar__label {
-  color: var(--db-texto);
-}
-.sidebar__section-head:hover {
-  background: transparent;
-}
-.sidebar__pins-end {
-  border-color: var(--db-vidro-borda);
-}
-/* The person at the foot: a 16 row (concentric: 36 less 20), their photo and the bell 32, 12 in. */
-.sidebar__me {
-  --r-outer: var(--db-r-3);
-  --pad: var(--dg-gap-control);
-  min-height: 56px;
-  box-sizing: border-box;
-  padding: var(--pad);
-  gap: var(--dg-s3);
-  border-radius: var(--r-outer);
-  align-items: center;
-  background: var(--db-vidro-cartao);
-  border: 1px solid var(--db-vidro-borda);
-  box-shadow: var(--db-vidro-brilho);
-}
-.sidebar__me > .sidebar__user {
-  min-height: 32px;
-  padding: 0;
-  gap: var(--dg-s3);
-  align-items: center;
-  border-radius: 4px;
-  background: none;
-}
-.sidebar__me > .sidebar__user:hover {
-  background: none;
-}
-.sidebar__me > .sidebar__user > .ac-avatar {
-  width: 32px;
-  height: 32px;
-  border-radius: var(--db-r-1);
-  font-size: 12px;
-}
-.sidebar__me .sidebar__user-text .ac-captop,
-.sidebar__me .sidebar__user-name {
-  margin-block-start: 0;
-  font-size: 14px;
-  line-height: 16px;
-  font-weight: 600;
-}
-.sidebar__me .sidebar__user-line {
-  font-size: 12px;
-  line-height: 14px;
-  color: var(--db-texto-leve);
-}
-/* Inter 14/16 over 12/14: the pair's capitals and last baseline sit 2 low in their boxes (optic.py), so they rise 2. */
-.sidebar__me .sidebar__user-text {
-  position: relative;
-  top: -2px;
-}
-.sidebar__me .sidebar__bell {
-  width: 32px;
-  height: 32px;
-  min-height: 0;
-  border-radius: 4px;
-  flex: none;
-}
-.sidebar__me .ac-avatar__badge {
-  right: -2px;
-  bottom: -2px;
-}
-.sidebar__foot {
-  padding-top: 0;
-}
-/* How many agents work now: a quiet dot and a count. */
+/* How many agents work now: a breathing lime dot and a count, over the account pill. */
 .sidebar__working {
   display: flex;
   align-items: center;
-  gap: var(--dg-s2);
-  padding: 0 var(--dg-s3) var(--dg-s2);
-  font-size: 12px;
-  color: var(--db-texto-2);
+  gap: var(--space-2);
+  padding: 0 var(--space-3) var(--space-2);
+  font-size: var(--text-xs);
+  color: var(--muted);
 }
 .sidebar__working-dot {
   width: 8px;
   height: 8px;
-  border-radius: 4px;
-  background: var(--db-texto-2);
+  border-radius: var(--radius-full);
+  background: var(--agent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--agent) 22%, transparent);
+  animation: dg-breathe 2.4s var(--dg-ease, ease) infinite;
+}
+@keyframes dg-breathe {
+  50% {
+    box-shadow: 0 0 0 5px color-mix(in srgb, var(--agent) 8%, transparent);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sidebar__working-dot {
+    animation: none;
+  }
 }
 
-/* ── The conversation's head (§6, the prancha's window): no box, a 1 px hairline under it. A group: its photo 32
-   and its name; a DM: the bot's row (its bot 40, its NAME 13/16 capitals, its trade and what it does now). The
-   conversation starts under it, never under it. ── */
-html .channel__header,
-html .channel__header:has(.channel__head-text) {
+/* ── The conversation's head: no bar. Nordus's chathead: the name in a glass pill and the buttons in another,
+   floating over the conversation, which fades out under them. ── */
+[data-theme] .channel__header {
   position: relative;
-  z-index: 1;
-  min-height: 0;
-  margin: 0;
-  padding: var(--dg-gap-window) var(--dg-gap-window) var(--dg-s4);
-  border-bottom: 1px solid var(--db-linha);
-  background: transparent;
+  z-index: 3;
+  margin-bottom: -16px;
+  padding-bottom: 20px;
+  border-bottom: 0;
+  background: linear-gradient(to bottom, var(--db-palco-2) calc(100% - 22px), transparent);
 }
-.channel__line {
-  min-height: 44px;
-  align-items: center;
+@media (min-width: 761px) {
+  [data-theme] .channel__header {
+    background: linear-gradient(to bottom, var(--db-palco-2) calc(100% - 22px), transparent);
+  }
 }
-.channel__head-text {
+[data-theme] .channel__head-text {
   flex: 0 1 auto;
   margin-right: auto;
   display: flex;
   align-items: center;
-  gap: var(--dg-s3);
+  gap: 10px;
   min-width: 0;
   max-width: 100%;
-  padding: 0;
-  background: none;
-  box-shadow: none;
+  padding: 6px 16px 6px 10px;
+  border-radius: 999px;
+  background: var(--dg-pill);
+  box-shadow: var(--dg-edge), var(--dg-shadow);
+  -webkit-backdrop-filter: blur(var(--dg-blur)) saturate(var(--dg-saturate));
+  backdrop-filter: blur(var(--dg-blur)) saturate(var(--dg-saturate));
 }
-.channel__title {
-  font-size: 20px;
-  line-height: 26px;
+[data-theme] .channel__title {
+  font-size: 16px;
+  line-height: 24px;
 }
-.channel__head-text .channel__title {
-  align-items: center;
-  gap: var(--dg-s3);
-  padding-block: 0;
-}
-html .channel__head-text :is(.channel__title-hash.ac-icon, .channel__title-photo) {
-  width: 32px;
-  height: 32px;
-  padding: 6px;
+[data-theme] .channel__title-hash {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  padding: 3px;
   box-sizing: border-box;
-  border-radius: var(--db-r-1);
-  background: var(--db-palco-4);
-  color: var(--db-texto-2);
-  translate: none;
+  border-radius: 999px;
+  background: var(--agent-soft);
+  color: var(--agent);
 }
-.channel__head-text .channel__title-photo.channel__title-photo.channel__title-photo {
-  padding: 0;
-  object-fit: cover;
-  background: var(--db-palco);
+[data-theme] .channel__topic {
+  color: var(--muted);
 }
-.channel__topic {
-  color: var(--db-texto-2);
-}
-.channel__head-text > .channel__topic {
+/* In the hugging pill the topic takes the room its words need (the kit's grows from nothing and is kept out of the
+   line's width); words that don't fit still wrap to the hidden second line, so it shows whole or not at all. Its
+   empty first item (the kit's trick) becomes a small dot between the name and the topic. */
+[data-theme] .channel__head-text > .channel__topic {
   flex: 0 1 auto;
   min-width: 0;
   contain: none;
-  font-size: 13px;
 }
-.channel__head-text > .channel__topic::before {
-  width: 1px;
-  height: 16px;
-  margin-right: var(--dg-s3);
-  background: var(--db-linha-2);
+[data-theme] .channel__head-text > .channel__topic::before {
+  width: 4px;
+  margin-right: 10px;
+  background: radial-gradient(circle, var(--db-texto-3) 2px, transparent 2.5px);
 }
-/* The head's buttons: plain icons (no plate until hover), 8 apart; the search a field of 12. */
-.channel__acts {
-  gap: var(--dg-s2);
-  padding: 0;
-  background: none;
-  box-shadow: none;
+[data-theme] .channel__acts {
+  gap: 2px;
+  padding: 3px;
+  border-radius: 999px;
+  background: var(--dg-pill);
+  box-shadow: var(--dg-edge), var(--dg-shadow);
+  -webkit-backdrop-filter: blur(var(--dg-blur)) saturate(var(--dg-saturate));
+  backdrop-filter: blur(var(--dg-blur)) saturate(var(--dg-saturate));
 }
-html .channel__acts > *,
-html .channel__acts > .channel__icon.ac-btn:last-child {
-  margin: 0;
+[data-theme] .channel__acts .ac-btn--icon,
+[data-theme] .channel__acts .channel__icon {
+  border-radius: 999px;
 }
-.channel__acts :is(.ac-btn--icon, .channel__icon).ac-btn {
-  width: 36px;
-  height: 36px;
-  min-height: 0;
-  border-radius: var(--db-r-1);
-  color: var(--db-texto-2);
+[data-theme] .channel__acts .ac-btn[aria-pressed="true"] {
+  color: var(--agent);
 }
-.channel__acts :is(.ac-btn--icon, .channel__icon).ac-btn:hover {
-  color: var(--db-texto);
-}
-.channel__acts .ac-btn[aria-pressed="true"] {
-  color: var(--db-texto);
-  background: var(--db-verde-suave);
-}
-.channel__search .search-box__field {
-  --r-outer: var(--db-r-2);
-  --pad: 6px;
-  min-height: 36px;
-  height: 36px;
-  padding: 0 var(--dg-s3) 0 36px;
-  border-radius: var(--r-outer);
-  background: var(--db-palco-3);
-  border: 1px solid var(--db-vidro-borda);
-}
-.channel__search .search-box__icon {
-  left: var(--dg-s3);
-}
-.channel__search .search-box__field .ac-token {
-  height: 24px;
-  border-radius: 6px;
-}
-.channel__search .search-box__x {
-  width: 24px;
-  height: 24px;
-  border-radius: 6px;
-}
-/* A DM's head: the bot's row (§6), no box. */
-.dm-who {
+/* A DM's face and lines (DmWho): the same pill. */
+[data-theme] .dm-who {
   flex: 0 1 auto;
   width: max-content;
   max-width: min(100%, 640px);
   margin: 0 auto 0 0;
-  padding: 0;
-  border-radius: var(--db-r-2);
-  background: none;
-  box-shadow: none;
-  display: flex;
-  align-items: center;
+  padding: 5px 16px 5px 6px;
+  border-radius: 999px;
+  background: var(--dg-pill);
+  box-shadow: var(--dg-edge), var(--dg-shadow);
+  -webkit-backdrop-filter: blur(var(--dg-blur)) saturate(var(--dg-saturate));
+  backdrop-filter: blur(var(--dg-blur)) saturate(var(--dg-saturate));
 }
-.dm-who:has(> .dm-who__hit:hover) {
-  background: none;
-}
-.dm-who__text {
+/* In the pill the face keeps a column beside its two short lines (the name, the line under it), as Nordus's chathead:
+   the line under the name sets the pill's width too, wrapping only at the pill's cap. */
+[data-theme] .dm-who__text {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
   align-items: center;
-  column-gap: var(--dg-s3);
-  row-gap: 0;
+  column-gap: 10px;
 }
-.dm-who__text > .ac-avatar {
+[data-theme] .dm-who__text > .ac-avatar {
   float: none;
   grid-row: 1 / span 2;
-  width: 40px;
-  height: 40px;
   margin: 0;
 }
-.dm-who__text > :not(.ac-avatar) {
+[data-theme] .dm-who__text > :not(.ac-avatar) {
   grid-column: 2;
 }
-.dm-who .channel__title,
-.dm-who__text > .channel__title.ac-captop {
-  margin-block-start: 0;
-  font-size: 13px;
-  line-height: 16px;
+[data-theme] .dm-who__text > .channel__title.ac-captop {
+  margin-top: 0;
+}
+[data-theme] .dm-who__text > .channel__topic {
+  contain: none;
+}
+[data-theme] .dm-who:hover {
+  background: var(--dg-pill-hover);
+}
+/* The messages run under the pills. */
+[data-theme] .channel__messages {
+  padding-top: 28px;
+}
+
+/* ── The composer (Nordus's): a 26px pill of glass, a round glass + to attach, the send a lime circle ── */
+[data-theme] .ac-composer {
+  border-radius: 26px;
+  border-color: transparent;
+  background: radial-gradient(120% 60% at 50% -20%, var(--dg-reflection), transparent 60%), var(--db-palco-3);
+  -webkit-backdrop-filter: blur(var(--dg-blur)) saturate(var(--dg-saturate));
+  backdrop-filter: blur(var(--dg-blur)) saturate(var(--dg-saturate));
+  box-shadow: var(--dg-edge), var(--dg-shadow-lg);
+}
+[data-theme] .ac-composer:focus-within {
+  box-shadow:
+    var(--dg-edge),
+    0 0 0 1px color-mix(in srgb, var(--db-verde-acento) 35%, transparent),
+    0 0 28px -10px var(--dg-glow),
+    var(--dg-shadow-lg);
+}
+[data-theme] .ac-composer .ac-btn--icon,
+[data-theme] .ac-composer .ac-btn[data-icon-only] {
+  border-radius: 999px;
+}
+[data-theme] .ac-composer__plus.ac-btn {
+  border-radius: 999px;
+  background: var(--dg-pill);
+  box-shadow: var(--dg-edge);
+  color: var(--ink);
+}
+[data-theme] .ac-composer__plus.ac-btn:hover {
+  background: var(--dg-pill-hover);
+}
+[data-theme] .ac-composer__send.ac-btn {
+  border-radius: 999px;
+  border-color: transparent;
+  background: var(--db-palco-4);
+  color: var(--db-texto-3);
+}
+[data-theme] .ac-composer__send.ac-btn:is([data-ready], [data-mode="stop"]) {
+  background: var(--db-verde-botao);
+  color: var(--db-palco);
+  opacity: 1;
+  box-shadow:
+    inset 0 1px color-mix(in srgb, #fff 90%, transparent),
+    inset 0 -2px color-mix(in srgb, var(--db-verde-acento) 22%, transparent),
+    0 0 0 1px color-mix(in srgb, var(--db-verde-acento) 50.2%, transparent),
+    0 6px 18px -6px color-mix(in srgb, var(--db-verde-acento) 54.9%, transparent);
+}
+
+/* ── Messages, in bubbles (Nordus's chat): theirs on a glass card on the left, mine on the right in the lime's
+   wash. Cards, threads and files keep the kit's places. ── */
+[data-theme] .ac-msg[data-look="bubbles"]:not(.ac-msg--own) .ac-msg__text {
+  background: var(--db-palco-3);
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, var(--dg-luz) 5.1%, transparent),
+    inset 0 0 0 1px color-mix(in srgb, var(--dg-luz) 4.7%, transparent);
+}
+[data-theme] .ac-msg--own[data-look="bubbles"] {
+  --own-bubble: color-mix(in srgb, var(--db-verde-acento) 14%, var(--db-palco-3));
+}
+[data-theme] .ac-msg--own[data-look="bubbles"] .ac-msg__text {
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, var(--db-verde-acento) 10%, transparent),
+    inset 0 0 0 1px color-mix(in srgb, var(--db-verde-acento) 20%, transparent);
+}
+/* A message's actions on hover (Nordus's MessageActions): a glass pill of round buttons. */
+[data-theme] .ac-msg__actions {
+  --bar-r: 999px;
+  --bar-pad: 3px;
+  --bar-btn: 28px;
+  background: var(--db-vidro);
+  -webkit-backdrop-filter: blur(16px) saturate(140%);
+  backdrop-filter: blur(16px) saturate(140%);
+  box-shadow: var(--dg-edge), var(--dg-shadow);
+}
+[data-theme] .ac-msg__actions .ac-btn--sm {
+  border-radius: 999px;
+}
+[data-theme] .ac-msg__name {
+  font-weight: 650;
+}
+/* Cards on the panel: the portal's glass card. */
+[data-theme] .ac-card {
+  --card-face-top: color-mix(in srgb, var(--dg-luz) 4.3%, transparent);
+  border-radius: 16px;
+  background: var(--dg-glass-card);
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, var(--dg-luz) 3.9%, transparent),
+    inset 0 0 0 1px color-mix(in srgb, var(--dg-luz) 7.1%, transparent);
+}
+
+/* ── Buttons: the portal's. The primary is the lime gradient with its glow; the rest graphite with a top light. ── */
+[data-theme] .ac-btn--primary {
+  border-color: transparent;
+  background: var(--db-verde-botao);
+  color: var(--db-palco);
+  font-weight: 650;
+  box-shadow:
+    inset 0 1px color-mix(in srgb, #fff 90%, transparent),
+    inset 0 -2px color-mix(in srgb, var(--db-verde-acento) 22%, transparent),
+    0 0 0 1px color-mix(in srgb, var(--db-verde-acento) 50.2%, transparent),
+    0 10px 30px -8px color-mix(in srgb, var(--db-verde-acento) 54.9%, transparent),
+    0 0 22px -6px color-mix(in srgb, var(--db-verde-acento) 45.1%, transparent);
+}
+[data-theme] .ac-btn--primary:hover:not(:disabled) {
+  background: var(--db-verde-botao);
+  opacity: 1;
+}
+[data-theme] .ac-btn--secondary {
+  background: var(--db-palco-3);
+  border-color: var(--db-linha-2);
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--dg-luz) 3.9%, transparent);
+}
+/* Tags and counts: the portal's chips. */
+[data-theme] .ac-tag {
+  background: color-mix(in srgb, var(--dg-luz) 6%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--dg-luz) 6%, transparent);
+}
+/* The segmented control in glass (Nordus's GlassSegmented): a pill track, the chosen option on a glass pill. */
+[data-theme] .ac-seg {
+  --seg-r: 999px;
+  background: color-mix(in srgb, var(--dg-luz) 5%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--dg-luz) 6%, transparent);
+}
+[data-theme] .ac-seg__pill {
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--dg-luz) 12%, transparent);
+  box-shadow:
+    inset 0 1px 0 var(--dg-rim-top),
+    inset 0 0 0 1px var(--dg-rim),
+    0 6px 18px rgba(0, 0, 0, 0.28);
+}
+[data-theme] .ac-seg__item {
+  border-radius: 999px;
+}
+/* Fields: the portal's inputs. */
+[data-theme] :is(.ac-input, .ac-select__trigger, .ac-textarea) {
+  background: var(--db-palco-2);
+}
+/* Presence: round dots with a ring cut from the surface (Nordus's StatusDot), no pixel cells. Offline and hidden stay
+   outlines, as the kit draws them. */
+[data-theme] .ac-presence {
+  border-radius: 999px;
+  background: var(--presence);
+  box-shadow: 0 0 0 2px var(--presence-ring, var(--db-palco-2));
+}
+[data-theme] .ac-presence > path {
+  display: none;
+}
+[data-theme] .ac-presence:is([data-presence="offline"], [data-presence="hidden"]) {
+  background: var(--db-palco-2);
+  box-shadow:
+    inset 0 0 0 1.5px var(--db-texto-3),
+    0 0 0 2px var(--presence-ring, var(--db-palco-2));
+}
+
+/* ── Agents' faces: a glass circle in the agent's own color, its monogram in white ── */
+.ac-avatar.ac-avatar--glass {
+  border-radius: var(--radius-full);
+  contain: none;
+  color: var(--db-texto);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  background:
+    radial-gradient(85% 60% at 32% 18%, color-mix(in srgb, var(--dg-luz) 50%, transparent), transparent 58%),
+    radial-gradient(120% 120% at 70% 110%, rgba(0, 0, 0, 0.35), transparent 60%),
+    linear-gradient(160deg, var(--av-top, var(--db-verde-acento)), var(--av-bottom, var(--db-verde-acento)));
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, var(--dg-luz) 45%, transparent),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.25),
+    inset 0 0 0 1px color-mix(in srgb, var(--dg-luz) 14%, transparent),
+    0 4px 12px -4px color-mix(in srgb, var(--av-bottom, var(--db-verde-acento)) 70%, transparent);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+}
+.ac-avatar--glass {
+  container-type: inline-size;
+}
+.ac-avatar__monogram {
+  font-family: var(--font-display);
+  font-size: 46cqi;
   font-weight: 800;
-  letter-spacing: 0.05em;
+  line-height: 1;
+  text-box: trim-both cap alphabetic;
+}
+.ac-avatar--glass > .ac-avatar__monogram {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+}
+.dg-band {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(90% 140% at 18% -10%, color-mix(in srgb, var(--av-top) 45%, transparent), transparent 70%),
+    linear-gradient(180deg, color-mix(in srgb, var(--av-bottom) 28%, transparent), transparent);
+}
+.dg-band[data-person] {
+  opacity: 0.5;
+}
+.ac-avatar--glass.ac-avatar--running::after {
+  inset: -3px;
+  border: 2px solid color-mix(in srgb, var(--av-top, var(--db-verde-acento)) 55%, transparent);
+  border-radius: var(--radius-full);
+  animation: dg-ring 1.8s var(--dg-ease, ease) infinite;
+}
+@keyframes dg-ring {
+  50% {
+    opacity: 0.35;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ac-avatar--glass.ac-avatar--running::after {
+    animation: none;
+  }
+}
+/* People's faces: rounded squares of the portal's 1rem family, so a person never reads as an agent. */
+[data-theme] .ac-avatar:not(.ac-avatar--glass) {
+  border-radius: 30%;
+}
+
+/* ── Doug's mark and the boot ── */
+img.ac-logo__mark {
+  display: block;
+  object-fit: contain;
+}
+.ac-logo {
+  font-family: var(--font-display);
+  font-weight: 800;
+  letter-spacing: -0.04em;
+}
+.sky-boot {
+  background: radial-gradient(60% 45% at 50% 42%, color-mix(in srgb, var(--db-verde-acento) 10%, transparent), transparent 70%), var(--db-palco);
+}
+.sky-boot__in {
+  color: var(--db-texto-2);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.3em;
   text-transform: uppercase;
 }
-.dm-who__text > .channel__topic {
-  contain: none;
-  font-size: 12px;
-  line-height: 16px;
-  color: var(--db-texto-2);
+.sky-boot__in .ac-logo {
+  color: var(--db-texto);
+  text-transform: none;
+  letter-spacing: -0.04em;
 }
-.dm-who__hit.profile-trigger {
-  border-radius: var(--db-r-2);
+
+/* ── Sign in: the portal's card, glass with a hair rim, the mark with its lime glow ── */
+.auth__mark {
+  width: 48px;
+  height: 48px;
+  filter: drop-shadow(0 6px 22px color-mix(in srgb, var(--db-verde-acento) 25%, transparent));
 }
-/* The conversation scrolls under nothing: it starts below the head's hairline. */
-.channel__messages {
-  padding-top: var(--dg-s4);
+.auth__mark[data-busy] {
+  animation: dg-ring 1.4s var(--dg-ease, ease) infinite;
 }
-.channel__messages[data-look="bubbles"] {
-  padding-inline: var(--dg-s4);
+[data-theme] .auth__bubble {
+  border-radius: 24px;
+  background: var(--db-vidro);
+  -webkit-backdrop-filter: blur(18px) saturate(140%);
+  backdrop-filter: blur(18px) saturate(140%);
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, var(--dg-luz) 5.1%, transparent),
+    inset 0 0 0 1px color-mix(in srgb, var(--dg-luz) 7.1%, transparent),
+    0 30px 60px -30px var(--dg-sombra-funda);
 }
-@media (max-width: 760px) {
-  html .channel__header,
-  html .channel__header:has(.channel__head-text) {
-    padding: var(--dg-s3) var(--dg-s4);
+[data-theme] .auth .ac-btn--primary {
+  border-radius: 999px;
+}
+
+/* ── Round 3.1: framing. Concentric corners, and a clearance that never shrinks ──────────────────────────────────────
+   Every rounded container declares its radius (`--r-outer`) and its clearance (`--pad`): no child comes closer to its
+   edge than that, and a child against a corner has `--r-inner = --r-outer - --pad`. To make things fit, the child gets
+   smaller or the container bigger, never the clearance. The clearances:
+     12  compact pieces (pills of 40 to 64: rows, search, dock, header pieces, the person's card, menus);
+     16  boxes (the composer, Início's box, cards, bubbles' sides, notices);
+     20  the sidebar; 24 the sheet and dialogs.
+   Small controls under 40 (chips, keys, buttons) keep at least 6 around their own content.
+   A text block sits on its container's optical middle: no capitals' rise (`.ac-captop`) inside these pieces, and two
+   lines on tight line heights so their capitals' top and last baseline centre on the piece (measured: optic.py).
+   Shell: page margins and the gutter 12; sidebar 288 wide, corner 48 (28 + 20); sheet corner 56, so a 64 piece sits 24
+   from its corner, a 56 piece 28 and a 48 piece 32: every piece in a corner centres 56 from both edges. */
+[data-theme] {
+  --dg-s1: 4px;
+  --dg-s2: 8px;
+  --dg-s3: 12px;
+  --dg-s4: 16px;
+  --dg-s5: 24px;
+  --dg-s6: 32px;
+  --dg-gap-compact: 12px;
+  --dg-gap-box: 16px;
+  --dg-gap-side: 20px;
+  --dg-gap-panel: 24px;
+  --dg-r-side: 48px;
+  --dg-r-sheet: 56px;
+  --dg-side-w: 288px;
+}
+[data-theme]
+  :is(
+    .sidebar,
+    .shell__pages,
+    .sidebar__me,
+    .sidebar__org-button,
+    .sidebar__jump,
+    .sidebar__dock,
+    .sidebar__item,
+    .channel__head-text,
+    .dm-who,
+    .channel__acts,
+    .search-box__field,
+    .ac-composer,
+    .ac-menu,
+    .ac-popover,
+    .ac-dialog,
+    .ac-card
+  ) {
+  --r-inner: max(4px, calc(var(--r-outer) - var(--pad)));
+}
+
+/* ── The shell ── */
+@media (min-width: 761px) {
+  [data-theme] .sidebar {
+    --r-outer: var(--dg-r-side);
+    --pad: var(--dg-gap-side);
+    flex-basis: var(--dg-side-w);
+    width: var(--dg-side-w);
+    min-width: var(--dg-side-w);
+    margin: var(--dg-s3) 0 var(--dg-s3) var(--dg-s3);
+    padding: var(--pad);
+    gap: var(--dg-s4);
+    border-radius: var(--r-outer);
   }
-  .channel__line {
-    min-height: 40px;
+  [data-theme] .sidebar__scroll {
+    margin-inline: calc(-1 * var(--pad));
+    padding-inline: var(--pad);
+  }
+  [data-theme] .shell__work:not(.shell__work--bare) {
+    padding: var(--dg-s3);
+  }
+  [data-theme] .shell__pages {
+    --r-outer: var(--dg-r-sheet);
+    --pad: var(--dg-gap-panel);
+    border-radius: var(--r-outer);
   }
 }
 
-/* ── Messages (§6 "Mensagem"): 16 with one corner of 6. A bot's on the left in #1A1A1A, its name in its own color;
-   yours on the right in #212121, with no name. ── */
-.ac-msg[data-look="bubbles"]:not(.ac-msg--own) .ac-msg__text {
-  padding: var(--dg-s3) var(--dg-s4);
-  border-radius: 16px 16px 16px 6px;
-  background: var(--db-palco-3);
-  border: 1px solid var(--db-vidro-borda);
+/* ── Sidebar ── */
+/* The workspace's header: a 56 pill (28 = 48 less 20), its mark a 32 circle 12 in (16 = 28 less 12). */
+[data-theme] .sidebar__org-button {
+  --r-outer: 28px;
+  --pad: var(--dg-gap-compact);
+  min-height: 56px;
+  box-sizing: border-box;
+  padding: var(--pad) var(--dg-s4) var(--pad) var(--pad);
+  border-radius: var(--r-outer);
+  gap: var(--dg-s3);
+}
+[data-theme] .sidebar__org-button .sidebar__org-mark {
+  width: calc(2 * var(--r-inner));
+  height: calc(2 * var(--r-inner));
+  border-radius: 999px;
+}
+/* Go to…: a 48 pill, its keys 24 high 12 in (12 = 24 less 12); the collapse a 48 circle. */
+[data-theme] .sidebar__jump-row {
+  gap: var(--dg-s2);
+}
+[data-theme] .sidebar__jump {
+  --r-outer: 24px;
+  --pad: var(--dg-gap-compact);
+  height: 48px;
+  min-height: 48px;
+  padding: 0 var(--pad) 0 var(--dg-s4);
+  border-radius: var(--r-outer);
+  gap: var(--dg-s2);
+}
+[data-theme] .sidebar__jump .ac-kbd {
+  height: calc(2 * var(--r-inner));
+  min-width: calc(2 * var(--r-inner));
+  padding: 0 var(--dg-s2);
+  border-radius: var(--r-inner);
+}
+[data-theme] .sidebar__jump .ac-kbd + .ac-kbd {
+  margin-left: calc(var(--dg-s1) - var(--dg-s2));
+}
+[data-theme] .sidebar__collapse.ac-btn {
+  width: 48px;
+  height: 48px;
+  flex: none;
+  border-radius: 999px;
+}
+/* The dock: a 56 pill, its 32 buttons 12 in (16 = 28 less 12), spread across it. */
+.sidebar:not([data-rail="true"]) .sidebar__dock {
+  --r-outer: 28px;
+  --pad: 12px;
+  height: 56px;
+  box-sizing: border-box;
+  padding: var(--pad);
+  justify-content: space-between;
+  border-radius: var(--r-outer);
+}
+[data-theme] .sidebar:not([data-rail="true"]) .sidebar__dock .sidebar__item {
+  flex: none;
+  width: 32px;
+  height: 32px;
+  min-height: 0;
+  padding: 0;
+  gap: 0;
+  border-radius: 999px;
+}
+/* The pinned hero: big faces, the open one ringed in light (a lime ring 3 off the face and its glow), no plate. */
+[data-theme] .sidebar__hero {
+  gap: 0;
+  justify-content: space-between;
+  padding: var(--dg-s1) 0 0;
+}
+[data-theme] .sidebar__hero-item {
+  flex: 0 0 25%;
+}
+[data-theme] .sidebar__hero-link,
+[data-theme] .sidebar__hero-link:hover,
+[data-theme] .sidebar__hero-link[data-status="active"] {
+  padding: var(--dg-s1) 2px var(--dg-s1);
+  gap: var(--dg-s2);
+  border-radius: 0;
+  background: none;
   box-shadow: none;
 }
-.ac-msg--own[data-look="bubbles"] {
-  --own-bubble: var(--db-palco-4);
+[data-theme] .sidebar__hero-face > .ac-avatar,
+[data-theme] .sidebar__hero[data-count="4"] .sidebar__hero-face > .ac-avatar {
+  width: 44px;
+  height: 44px;
 }
-.ac-msg--own[data-look="bubbles"] .ac-msg__text {
-  padding: var(--dg-s3) var(--dg-s4);
-  border-radius: 16px 16px 6px 16px;
-  background: var(--db-palco-4);
-  border: 1px solid var(--db-vidro-borda);
+[data-theme] .sidebar__hero-face,
+[data-theme] .sidebar__hero-link:is(:hover, [data-status="active"], [data-busy="true"]) .sidebar__hero-face {
   box-shadow: none;
+}
+/* The ring is its own circle 3 off the face (concentric: the face's radius plus 3), so the gap shows the glass
+   behind, not a dark band; the glow comes from the ring. Hover: a faint white ring; working: a faint lime one. */
+[data-theme] .sidebar__hero-face::after {
+  content: "";
+  position: absolute;
+  inset: -5px;
+  border: 2px solid transparent;
+  border-radius: 999px;
+  pointer-events: none;
+  transition:
+    border-color 0.25s var(--dg-ease, ease),
+    box-shadow 0.25s var(--dg-ease, ease);
+}
+[data-theme] .sidebar__hero-link:hover .sidebar__hero-face::after {
+  border-color: color-mix(in srgb, var(--dg-luz) 16%, transparent);
+}
+[data-theme] .sidebar__hero-link[data-busy="true"]:not([data-status="active"]) .sidebar__hero-face::after {
+  border-color: color-mix(in srgb, var(--db-verde-acento) 40%, transparent);
+}
+[data-theme] .sidebar__hero-link[data-status="active"] .sidebar__hero-face::after {
+  border-color: color-mix(in srgb, var(--db-verde-acento) 90%, transparent);
+  box-shadow:
+    0 0 14px 1px color-mix(in srgb, var(--db-verde-acento) 38%, transparent),
+    inset 0 0 8px color-mix(in srgb, var(--db-verde-acento) 22%, transparent);
+}
+[data-theme] .sidebar__hero-face > :is(.ac-count, .sidebar__unread) {
+  z-index: 1;
+}
+[data-theme] .sidebar__hero-link[data-status="active"] .sidebar__hero-name {
   color: var(--db-texto);
 }
-.ac-msg[data-look="bubbles"] .ac-msg__stamp {
+/* Rows: 48 pills, what leads them a 24 box 12 in (12 = 24 less 12): a group's photo a 24 circle; an agent's two lines
+   with its 32 face make a 56 pill with the face 12 in (16 = 28 less 12). The words centre on the row. */
+[data-theme] .sidebar:not([data-rail="true"]) .sidebar__item {
+  --r-outer: 24px;
+  --pad: var(--dg-gap-compact);
+  min-height: 48px;
+  padding-inline: var(--pad) var(--dg-s4);
+  border-radius: var(--r-outer);
+  gap: var(--dg-s3);
+}
+[data-theme] .sidebar:not([data-rail="true"]) .sidebar__item > :is(.sidebar__channel-icon, .ac-icon) {
+  width: 24px;
+  height: 24px;
+  padding: 4px;
+  box-sizing: border-box;
+  flex: none;
+}
+[data-theme] .sidebar:not([data-rail="true"]) .sidebar__item .sidebar__channel-photo {
+  width: 24px;
+  height: 24px;
+  border-radius: 999px;
+  flex: none;
+}
+/* Every row led by a face (agents, people, the right hand): a 56 pill, face and words on its middle. */
+[data-theme] .sidebar:not([data-rail="true"]) .sidebar__item:has(> .ac-avatar),
+[data-theme] .sidebar:not([data-rail="true"]) .sidebar__item:has(> .ac-avatar + .sidebar__item-text > .sidebar__item-role) {
+  --r-outer: 28px;
+  min-height: 56px;
+  padding-block: var(--pad);
+  align-items: center;
+}
+[data-theme] .sidebar:not([data-rail="true"]) .sidebar__item > .ac-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+}
+[data-theme] .sidebar .sidebar__item .ac-captop {
+  margin-block-start: 0;
+}
+[data-theme] .sidebar .sidebar__item-label {
+  line-height: 18px;
+}
+[data-theme] .sidebar .sidebar__item-role {
+  line-height: 16px;
+}
+[data-theme] .sidebar .sidebar__item-text {
+  justify-content: center;
+}
+/* The open row's buttons (add people, settings): 24 circles, 12 from its round end and its top and foot. */
+[data-theme] .sidebar__row-acts {
+  right: var(--dg-gap-compact);
+  gap: var(--dg-s2);
+}
+[data-theme] .sidebar__row-acts .ac-btn,
+[data-theme] .sidebar__row-menu.ac-btn {
+  width: 24px;
+  height: 24px;
+  min-height: 0;
+  border-radius: 999px;
+}
+[data-theme] .sidebar__row[data-acts] {
+  --acts-room: calc(var(--dg-gap-compact) + 2 * 24px + var(--dg-s2) + var(--dg-s2));
+}
+/* The open row's bar of light, on the sidebar's own edge. */
+[data-theme] .sidebar:not([data-rail="true"]) .sidebar__item[data-status="active"]::after {
+  left: calc(-1 * var(--dg-gap-side));
+  top: var(--dg-s3);
+  bottom: var(--dg-s3);
+}
+[data-theme] .sidebar__new-agent-face {
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+}
+/* The person at the foot: a 56 pill (28 = 48 less 20), the face and the bell 32 circles 12 in (16 = 28 less 12),
+   the name and the line on the card's optical middle. */
+[data-theme] .sidebar__me {
+  --r-outer: 28px;
+  --pad: var(--dg-gap-compact);
+  min-height: 56px;
+  box-sizing: border-box;
+  padding: var(--pad);
+  gap: var(--dg-s3);
+  border-radius: var(--r-outer);
+  align-items: center;
+}
+[data-theme] .sidebar__me > .sidebar__user {
+  min-height: calc(2 * var(--r-inner));
+  padding: 0;
+  gap: var(--dg-s3);
+  align-items: center;
+  border-radius: var(--r-inner);
+  background: none;
+}
+[data-theme] .sidebar__me > .sidebar__user:hover {
+  background: none;
+}
+[data-theme] .sidebar__me > .sidebar__user > .ac-avatar {
+  width: calc(2 * var(--r-inner));
+  height: calc(2 * var(--r-inner));
+  border-radius: 999px;
+  font-size: 12px;
+}
+[data-theme] .sidebar__me .sidebar__user-text .ac-captop,
+[data-theme] .sidebar__me .sidebar__user-name {
+  margin-block-start: 0;
+  line-height: 18px;
+}
+[data-theme] .sidebar__me .sidebar__user-line {
+  line-height: 16px;
+}
+[data-theme] .sidebar__me .sidebar__bell {
+  width: calc(2 * var(--r-inner));
+  height: calc(2 * var(--r-inner));
+  min-height: 0;
+  border-radius: 999px;
+  flex: none;
+}
+[data-theme] .sidebar__me .ac-avatar__badge {
+  right: -2px;
+  bottom: -2px;
+}
+[data-theme] .sidebar__foot {
+  padding-top: 0;
+}
+
+/* ── The conversation's head: every corner piece centres 56 from the sheet's edges ── */
+[data-theme] .channel__header,
+[data-theme] .channel__header:has(.channel__head-text) {
+  padding: var(--dg-gap-panel) var(--dg-gap-panel) var(--dg-s4);
+  min-height: 0;
+}
+[data-theme] .channel__line {
+  min-height: 64px;
+  align-items: center;
+}
+/* A group's name: a 56 pill (28 from the corner), its photo or # a 32 circle 12 in (16 = 28 less 12). */
+[data-theme] .channel__head-text {
+  --r-outer: 28px;
+  --pad: var(--dg-gap-compact);
+  min-height: 56px;
+  margin-left: 4px;
+  box-sizing: border-box;
+  padding: var(--pad) var(--r-outer) var(--pad) var(--pad);
+  border-radius: var(--r-outer);
+  align-items: center;
+  column-gap: var(--dg-s3);
+}
+[data-theme] .channel__head-text .channel__title {
+  align-items: center;
+  gap: var(--dg-s3);
+  padding-block: 0;
+}
+[data-theme] .channel__head-text :is(.channel__title-hash.ac-icon, .channel__title-photo) {
+  width: calc(2 * var(--r-inner));
+  height: calc(2 * var(--r-inner));
+  padding: 8px;
+  border-radius: 999px;
+  translate: none;
+}
+[data-theme] .channel__head-text .channel__title-photo.channel__title-photo.channel__title-photo {
+  padding: 0;
+  object-fit: cover;
+}
+/* The header's buttons and search: a 56 pill (28 from the corner), everything 32 high 12 in (16 = 28 less 12). */
+[data-theme] .channel__acts {
+  --r-outer: 28px;
+  --pad: var(--dg-gap-compact);
+  min-height: 56px;
+  margin-right: 4px;
+  box-sizing: border-box;
+  padding: var(--pad);
+  gap: var(--dg-s2);
+  border-radius: var(--r-outer);
+}
+[data-theme] .channel__acts > * {
+  margin: 0;
+}
+[data-theme] .channel__acts :is(.ac-btn--icon, .channel__icon).ac-btn {
+  width: calc(2 * var(--r-inner));
+  height: calc(2 * var(--r-inner));
+  min-height: 0;
+  border-radius: 999px;
+}
+[data-theme] .channel__acts .channel__search.search-box {
+  margin: 0;
+}
+/* The search field: a 32 pill, its icon and words 12 in, a filter in it 24 high 4 in (12 = 16 less 4). */
+[data-theme] .channel__search .search-box__field {
+  --r-outer: 16px;
+  --pad: 4px;
+  min-height: 32px;
+  height: 32px;
+  padding: 0 var(--dg-s3) 0 36px;
+  border-radius: var(--r-outer);
+  background: color-mix(in srgb, var(--dg-luz) 5%, transparent);
+}
+[data-theme] .channel__search .search-box__icon {
+  left: var(--dg-s3);
+}
+[data-theme] .channel__search .search-box__field .ac-token {
+  height: 24px;
+  border-radius: 12px;
+}
+[data-theme] .channel__search .search-box__x {
+  width: 24px;
+  height: 24px;
+  border-radius: 999px;
+}
+/* A DM's head: a 64 glass piece (24 from the corner), the face a 40 circle 12 in (20 = 32 less 12), the name in
+   Manrope over one quiet line, on the piece's optical middle; the words clear of the round end. */
+[data-theme] .dm-who {
+  --r-outer: 32px;
+  --pad: var(--dg-gap-compact);
+  min-height: 64px;
+  margin-left: 0;
+  box-sizing: border-box;
+  padding: var(--pad) var(--r-outer) var(--pad) var(--pad);
+  border-radius: var(--r-outer);
+  display: flex;
+  align-items: center;
+}
+[data-theme] .dm-who__text {
+  column-gap: var(--dg-s3);
+  row-gap: 2px;
+}
+[data-theme] .dm-who__text > .ac-avatar {
+  width: calc(2 * var(--r-inner));
+  height: calc(2 * var(--r-inner));
+}
+[data-theme] .dm-who .channel__title {
+  font-size: 17px;
+  line-height: 20px;
+}
+[data-theme] .dm-who__text > .channel__title.ac-captop {
+  margin-block-start: 0;
+}
+[data-theme] .dm-who__text > .channel__topic {
+  font-size: 12.5px;
+  line-height: 16px;
+  color: var(--faint);
+}
+@media (max-width: 760px) {
+  [data-theme] .channel__header,
+  [data-theme] .channel__header:has(.channel__head-text) {
+    padding: var(--dg-s3) var(--dg-s3) var(--dg-s3);
+  }
+  [data-theme] .channel__line {
+    min-height: 56px;
+  }
+  [data-theme] :is(.channel__head-text, .channel__acts) {
+    margin: 0;
+  }
+}
+
+/* ── The conversation: its rows start on the composer's and the head's edge (24 in); bubbles keep 12 above and below
+   their words and 16 at their sides, the time 12 from the corner. ── */
+[data-theme] .channel__messages[data-look="bubbles"] {
+  padding-inline: var(--dg-s4);
+}
+[data-theme] .ac-msg[data-look="bubbles"]:not(.ac-msg--own) .ac-msg__text,
+[data-theme] .ac-msg--own[data-look="bubbles"] .ac-msg__text {
+  padding: var(--dg-s3) var(--dg-s4);
+  border-radius: 20px;
+}
+[data-theme] .ac-msg[data-look="bubbles"] .ac-msg__stamp {
   right: var(--dg-s3);
   bottom: var(--dg-s3);
 }
-.ac-msg__name,
-.ac-msg__author {
-  font-family: var(--db-f-titulo);
-  font-weight: 800;
-  letter-spacing: 0.05em;
-}
-.ac-msg[data-look="bubbles"] .ac-msg__bubble-head .ac-msg__author {
-  font-size: 12px;
-  line-height: 16px;
-  text-transform: uppercase;
-}
-/* A message's actions on hover: a small glass bar, its buttons items of 8. */
-.ac-msg__actions {
-  --bar-r: var(--db-r-2);
-  --bar-pad: 4px;
-  --bar-btn: 28px;
-  background: var(--db-vidro);
-  -webkit-backdrop-filter: var(--db-desfoque);
-  backdrop-filter: var(--db-desfoque);
-  border: 1px solid var(--db-vidro-borda);
-  box-shadow: var(--db-vidro-brilho), var(--db-sombra);
-}
-.ac-msg__actions .ac-btn--sm {
-  border-radius: var(--db-r-1);
-}
 
-/* ── The conversation's field (§6): 16, #1A1A1A, its hairline lit green at 35% while active. 16 around its words and
-   buttons (64 high on one line); the buttons plain icons, the send the screen's green action, square in its corner
-   (concentric: 16 less 16). ── */
-.ac-composer {
-  --r-outer: var(--db-r-3);
+/* ── The composer: a 64 pill (24 from the sheet's corner), its buttons 32 circles 16 in (16 = 32 less 16) ── */
+[data-theme] .ac-composer {
+  --r-outer: 32px;
   --pad: var(--dg-gap-box);
   border-radius: var(--r-outer);
-  border: 1px solid var(--db-vidro-borda);
-  background: var(--db-palco-3);
-  -webkit-backdrop-filter: none;
-  backdrop-filter: none;
-  box-shadow: var(--db-vidro-brilho);
 }
-.ac-composer:focus-within {
-  border-color: var(--db-verde-luz);
-  box-shadow: var(--db-vidro-brilho);
-}
-.ac-composer__row {
+[data-theme] .ac-composer__row {
   padding: var(--pad);
   gap: var(--dg-s2);
   align-items: flex-end;
 }
-.ac-composer__tools {
-  gap: var(--dg-s1);
+[data-theme] .ac-composer__tools {
+  gap: var(--dg-s2);
 }
-.ac-composer__tools .ac-btn,
-.ac-composer .ac-btn--icon,
-.ac-composer .ac-btn[data-icon-only] {
+[data-theme] .ac-composer__tools .ac-btn {
   width: 32px;
   height: 32px;
   min-height: 0;
-  border-radius: 4px;
+  border-radius: 999px;
 }
-.ac-composer__plus.ac-btn {
-  background: transparent;
-  box-shadow: none;
-  border: 0;
-  color: var(--db-texto-2);
-}
-.ac-composer__plus.ac-btn:hover {
-  background: var(--db-chapa-leve);
-  color: var(--db-texto);
-}
-.ac-composer textarea {
+[data-theme] .ac-composer textarea {
   min-height: 32px;
   padding: 5px var(--dg-s2);
-  font-size: 16px;
-  line-height: 22px;
 }
-.ac-composer__send.ac-btn {
-  border-radius: 4px;
-  border: 0;
-  background: var(--db-palco-4);
-  color: var(--db-texto-3);
-  box-shadow: none;
-}
-.ac-composer__send.ac-btn:is([data-ready], [data-mode="stop"]) {
-  background: var(--db-verde-botao);
-  color: var(--db-verde-tinta);
-  opacity: 1;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4);
-}
-/* Início's box: the agent's pick a 32 field 16 from the corner (concentric: 4), its bot 20. */
-.ac-composer__pills {
+/* Início's box: the agent's pick a 32 pill 16 from the corner (16 = 32 less 16), its face a 20 circle 6 in. */
+[data-theme] .ac-composer__pills {
   padding: var(--pad) var(--pad) 0;
   gap: var(--dg-s2);
 }
-.ac-composer__pills + .ac-composer__row {
+[data-theme] .ac-composer__pills + .ac-composer__row {
   padding-top: var(--dg-s2);
 }
-.ac-composer__pills :is(.ac-select__trigger, .ac-composer__agent, .ac-composer__pill) {
+[data-theme] .ac-composer__pills :is(.ac-select__trigger, .ac-composer__agent, .ac-composer__pill) {
   height: 32px;
   min-height: 0;
   box-sizing: border-box;
   padding: 6px var(--dg-s3) 6px 6px;
   gap: var(--dg-s2);
-  border-radius: 4px;
-  background: var(--db-palco-4);
-  box-shadow: none;
+  border-radius: 999px;
 }
-.ac-composer__pills :is(.ac-select__trigger, .ac-composer__agent) .ac-avatar {
+[data-theme] .ac-composer__pills :is(.ac-select__trigger, .ac-composer__agent) .ac-avatar {
   width: 20px;
   height: 20px;
 }
-.channel__composer {
-  padding: var(--dg-s2) var(--dg-gap-window) var(--dg-gap-window);
+[data-theme] .channel__composer {
+  padding: var(--dg-s2) var(--dg-gap-panel) var(--dg-gap-panel);
 }
 @media (max-width: 760px) {
-  .channel__composer {
+  [data-theme] .channel__composer {
     padding: var(--dg-s2) var(--dg-s3) var(--dg-s3);
   }
 }
 
-/* ── Buttons (§6): the green one is the screen's one main action (44, 12, Inter 600 15/22, the three greens, ink);
-   every other button glass. ── */
-.ac-btn--primary {
-  border: 0;
-  background: var(--db-verde-botao);
-  color: var(--db-verde-tinta);
-  font-weight: 600;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4);
-}
-.ac-btn--primary:hover:not(:disabled) {
-  background: var(--db-verde-botao);
-  filter: brightness(1.04);
-  opacity: 1;
-}
-.ac-btn--lg {
-  height: 44px;
-  font-size: 15px;
-  line-height: 22px;
-}
-.ac-btn--secondary,
-.ac-btn:not(.ac-btn--primary):not(.ac-btn--ghost):not(.ac-btn--danger):not(.ac-btn--icon):not(.ac-btn--glyph) {
-  background: var(--db-vidro-cartao);
-  border: 1px solid var(--db-vidro-borda);
-  box-shadow: var(--db-vidro-brilho);
-  color: var(--db-texto);
-}
-.ac-btn--ghost {
-  box-shadow: none;
-}
-/* Fields (§6): 12, on the glass. */
-:is(.ac-input, .ac-select__trigger, .ac-textarea, .ac-input-affix) {
-  border-radius: var(--db-r-2);
-  background: var(--db-palco-3);
-}
-.ac-textarea {
-  border-radius: var(--db-r-2);
-}
-/* Tabs (§6 "Abas"): 16 outside, 12 inside, Inter 500 14/20; the open one only lightens. */
-.ac-seg {
-  --seg-r: var(--db-r-3);
-  padding: 4px;
-  border-radius: var(--db-r-3);
-  background: var(--db-palco-2);
-  box-shadow: inset 0 0 0 1px var(--db-vidro-borda);
-}
-.ac-seg__pill {
-  border-radius: var(--db-r-2);
-  background: var(--db-palco-4);
-  box-shadow: var(--db-vidro-brilho);
-}
-.ac-seg__item {
-  border-radius: var(--db-r-2);
-  font-weight: 500;
-}
-/* Chips and counts. */
-.ac-tag {
-  border-radius: var(--db-r-1);
-  background: var(--db-chapa);
-  box-shadow: none;
-}
-.ac-count,
-.ac-countchip {
-  background: var(--db-texto);
-  color: var(--db-palco);
-}
-/* Cards: the glass of a small piece, a row's 16, 16 around. */
-.ac-card {
-  --r-outer: var(--db-r-3);
-  --pad: var(--dg-gap-box);
-  --card-face-top: transparent;
-  border-radius: var(--r-outer);
-  background: var(--db-vidro-cartao);
-  border: 1px solid var(--db-vidro-borda);
-  box-shadow: var(--db-vidro-brilho);
-}
-/* Menus and popovers: panels of 22, 12 around their rows; the rows small items of 8. */
-:is(.ac-menu, .ac-popover) {
-  --r-outer: var(--db-r-4);
-  --pad: var(--dg-gap-control);
+/* ── Menus and popovers (compact panels): a 20 corner, 12 around the rows, rows at 8 (20 less 12) ── */
+[data-theme] :is(.ac-menu, .ac-popover) {
+  --r-outer: 20px;
+  --pad: var(--dg-gap-compact);
   padding: var(--pad);
   border-radius: var(--r-outer);
 }
-.ac-menu .ac-menu__item,
-.ac-popover .ac-menu__item {
-  border-radius: var(--db-r-1);
+[data-theme] .ac-menu .ac-menu__item,
+[data-theme] .ac-popover .ac-menu__item {
+  border-radius: var(--r-inner);
 }
-.ac-menu__item:is(:hover, [data-highlighted], [data-active], [data-state="open"]) {
-  background: var(--db-chapa);
-  box-shadow: none;
-}
-.ac-menu__item[data-state="checked"] > .ac-icon {
-  color: var(--db-texto);
-}
-/* Dialogs: windows of 34, 22 around everything (concentric with its 12 buttons and fields), the close an item of 8. */
-.ac-dialog {
-  --r-outer: var(--db-r-5);
-  --pad: 22px;
-  --dialog-pad: 22px;
+/* Dialogs: a 40 corner, 24 around everything, the close a 32 circle 24 in (16 = 40 less 24). */
+[data-theme] .ac-dialog {
+  --r-outer: 40px;
+  --pad: var(--dg-gap-panel);
+  --dialog-pad: var(--dg-gap-panel);
   border-radius: var(--r-outer);
 }
-.ac-dialog__close .ac-btn,
-.ac-dialog__close.ac-btn {
-  border-radius: var(--db-r-1);
+[data-theme] .ac-dialog__close .ac-btn,
+[data-theme] .ac-dialog__close.ac-btn {
+  border-radius: 999px;
 }
-.ac-dialog__close > .ac-btn--glyph {
+[data-theme] .ac-dialog__close > .ac-btn--glyph {
   --glyph-air: 0px;
 }
-.ac-actline:has(> .ac-dialog__titles > .ac-dialog__sub:not(:empty)) + .ac-dialog__close {
-  translate: 0 1px;
-}
-.channel-settings__nav {
-  padding: var(--dg-s4) var(--dg-s4) 22px 22px;
-  border-bottom-left-radius: var(--db-r-5);
-}
-.settings__link {
-  border-radius: var(--db-r-1);
+[data-theme] .settings__link {
+  border-radius: 999px;
   padding-inline: var(--dg-s3);
 }
-.ac-toast {
-  border-radius: var(--db-r-3);
+[data-theme] .channel-photo--field {
+  border-radius: 999px;
+}
+/* Cards: a 24 corner, 16 around their words. */
+[data-theme] .ac-card {
+  --r-outer: 24px;
+  --pad: var(--dg-gap-box);
+  border-radius: var(--r-outer);
+}
+/* Fields and plated buttons: pills, their words 16 (12 when small) from the round ends. */
+[data-theme] :is(.ac-input, .ac-select__trigger, .ac-btn:not(.ac-btn--icon):not(.ac-btn--glyph)) {
+  border-radius: 999px;
+}
+[data-theme] .ac-btn:not(.ac-btn--icon):not(.ac-btn--glyph):not(.ac-btn--sm) {
+  padding-inline: var(--dg-s4);
+}
+[data-theme] .ac-btn--sm:not(.ac-btn--icon):not(.ac-btn--glyph) {
+  padding-inline: var(--dg-s3);
+}
+[data-theme] .ac-textarea {
+  border-radius: 16px;
+}
+[data-theme] .ac-toast {
+  border-radius: 24px;
   padding: var(--dg-s3) var(--dg-s4);
 }
 
-/* ── Notices (§6 "Aviso"): only when someone is needed, 16, glass; a bot asking lights the edge in its color at 44%
-   (`--bot-cor`, set where the bot is known). ── */
-html .noai-banner {
+/* ── What the framing audit found (doug-ui/audit.mjs), each set to the rule ── */
+/* The person's two lines fit the 32 face's height, so they centre on it. */
+[data-theme] .sidebar__me .sidebar__user-text .ac-captop,
+[data-theme] .sidebar__me .sidebar__user-name {
+  font-size: 14px;
+  line-height: 16px;
+}
+[data-theme] .sidebar__me .sidebar__user-line {
+  font-size: 12px;
+  line-height: 14px;
+}
+/* "Os agentes ainda não têm uma IA": a 64 pill like the composer under it, 16 around, its button a 32 pill. */
+[data-theme] .noai-banner {
   min-height: 64px;
   box-sizing: border-box;
   margin: 0 0 var(--dg-s2);
   padding: var(--dg-gap-box);
-  border-radius: var(--db-r-3);
-  background: var(--db-vidro);
-  border: 1px solid var(--db-vidro-borda);
-  box-shadow: var(--db-vidro-brilho);
+  border-radius: 32px;
 }
-html .noai-banner .ac-btn {
+[data-theme] .noai-banner .ac-btn {
   height: 32px;
   min-height: 0;
-  border-radius: 4px;
 }
-.ac-eventpill__frame {
-  border-radius: var(--db-r-3);
-  background: var(--db-vidro);
-  border: 1px solid color-mix(in srgb, var(--bot-cor, var(--db-texto-3)) 44%, transparent);
-  box-shadow: var(--db-vidro-brilho);
+/* An agent's setup card in its DM: a 24 corner all round, 16 under its last row. */
+[data-theme] .setup-cl {
+  border-radius: 24px;
+  padding-bottom: 6px;
 }
-.ac-eventpill__main {
-  padding: var(--dg-s4);
+/* "Doug BOSS não vai responder…" and the other event pills: a box with a 32 corner, 16 around the words; its actions
+   go under the words (the kit's action line) as 32 pills 16 from the edge and the foot (16 = 32 less 16), never a
+   square segment against the corner. A pill with no action stays a 50 pill (25 = its half). */
+[data-theme] .ac-eventpill__frame {
+  border-radius: 25px;
 }
-.ac-eventpill__frame:has(.ac-eventpill__actions) {
+[data-theme] .ac-eventpill__main {
+  padding: var(--dg-s4) var(--dg-s4);
+}
+[data-theme] .ac-eventpill__frame:has(.ac-eventpill__actions) {
   flex-direction: column;
   align-items: flex-start;
+  border-radius: 32px;
 }
-.ac-eventpill__frame:has(.ac-eventpill__actions) > .ac-eventpill__main {
+[data-theme] .ac-eventpill__frame:has(.ac-eventpill__actions) > .ac-eventpill__main {
   padding-bottom: var(--dg-s3);
 }
-.ac-eventpill__actions {
+[data-theme] .ac-eventpill__actions {
   gap: var(--dg-s2);
   min-height: 0;
   margin: 0;
   padding: 0 var(--dg-s4) var(--dg-s4);
   align-items: center;
 }
-.ac-eventpill__action {
+[data-theme] .ac-eventpill__action {
   height: 32px;
-  padding: 0 var(--dg-s3);
-  border: 1px solid var(--db-vidro-borda);
-  border-radius: 4px;
-  background: var(--db-vidro-cartao);
+  padding: 0 var(--dg-s4);
+  border: 0;
+  border-radius: 999px;
   box-shadow: none;
 }
-.setup-cl {
-  border-radius: var(--db-r-3);
-  padding-bottom: 6px;
-}
-.home-continue {
+/* Início's "Continue de onde parou": a 48 pill, its face 24 at 12 and its chevron 16 from the end. */
+[data-theme] .home-continue {
   min-height: 48px;
   padding: var(--dg-s3) var(--dg-s4) var(--dg-s3) var(--dg-s3);
-  border-radius: var(--db-r-3);
+  border-radius: 24px;
 }
-html .dm-side__sec {
-  padding-inline: var(--dg-gap-window);
+/* Pages start 24 from the sheet's edges, as the conversation's pieces do. */
+@media (min-width: 761px) {
+  [data-theme] .shell__pages {
+    --page-top: var(--dg-gap-panel);
+    --page-x: var(--dg-gap-panel);
+  }
 }
-
-/* ── Presence of people: round dots with a ring cut from the surface. Offline and hidden stay outlines. ── */
-.ac-presence {
+/* The agent's side panel: its words and buttons 24 from the sheet's edge. */
+[data-theme] .dm-side__sec {
+  padding-inline: var(--dg-gap-panel);
+}
+/* A group's settings: the side list 24 from the dialog's edges, its corner the dialog's own. */
+[data-theme] .channel-settings__nav {
+  padding: var(--dg-s4) var(--dg-s4) var(--dg-gap-panel) var(--dg-gap-panel);
+  border-bottom-left-radius: var(--r-outer, 40px);
+}
+[data-theme] .ac-dialog .channel-settings__nav {
+  --r-outer: 40px;
+}
+/* A field with a prefix: a pill like the others. */
+[data-theme] .ac-input-affix {
   border-radius: 999px;
-  background: var(--presence);
-  box-shadow: 0 0 0 2px var(--presence-ring, var(--db-palco-2));
 }
-.ac-presence > path {
+/* The setup card: its row checks (24 circles 16 in) are concentric with a 28 corner. */
+[data-theme] .setup-cl {
+  border-radius: 28px;
+}
+/* The dock's icons: 20 in their 32 circles, 6 around. */
+[data-theme] .sidebar:not([data-rail="true"]) .sidebar__dock .sidebar__item > .ac-icon {
+  width: 20px;
+  height: 20px;
+}
+/* Dialogs: a 44 corner, so a 40 field 24 from it is concentric (20 = 44 less 24). */
+[data-theme] .ac-dialog,
+[data-theme] .ac-dialog .channel-settings__nav {
+  --r-outer: 44px;
+}
+[data-theme] .ac-input-affix > input {
+  padding-right: var(--dg-s3);
+}
+/* The drag grips sit inside the sidebar's 20, on the row's own left padding. */
+[data-theme] .sidebar:not([data-rail="true"]) :is(.sidebar__grip, .sidebar__tool-grip) {
+  left: 0;
+}
+/* On touch the composer's row is a 40 target: the pill grows to 72 (36), its 32 buttons centred 20 in (16 = 36 less 20). */
+@media (max-width: 760px), (pointer: coarse) {
+  [data-theme] .ac-composer {
+    --r-outer: 36px;
+  }
+}
+/* ── Reduced transparency: the glass turns into solid chips with the same rim (Nordus). ── */
+@media (prefers-reduced-transparency: reduce) {
+  [data-theme]
+    :is(
+      .dg-glass,
+      .ac-menu,
+      .ac-popover,
+      .ac-dialog,
+      .ac-toast,
+      .sidebar,
+      .sidebar__dock,
+      .channel__head-text,
+      .channel__acts,
+      .dm-who,
+      .ac-composer
+    ) {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    background: var(--db-palco-2);
+  }
+}
+/* The person's two lines on the card's optical middle: the name's capitals and the status line's baseline sit 2 low
+   in their line boxes (Inter 14/16 over 12/14, measured: optic.py +1.75), so the block rises 2. */
+[data-theme] .sidebar__me .sidebar__user-text {
+  position: relative;
+  top: -2px;
+}
+/* ── Groups' photos (round 3.1): a circle wherever a group shows its photo, as faces are, so it sits concentric in
+   every pill it leads (sidebar row, header, Go to, a mention's chip). ── */
+[data-theme] .channel-photo:not(.channel-photo--empty) {
+  border-radius: 999px;
+  background: var(--db-palco);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--dg-luz) 8%, transparent);
+}
+/* A #group mention: a 22 pill; with a photo, the photo a 14 circle 4 in (7 = 11 less 4) and the name 8 from the end. */
+[data-theme] .channel-ref {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  padding: 0 8px;
+  border-radius: 999px;
+  line-height: 22px;
+  background: color-mix(in srgb, var(--dg-luz) 7%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--dg-luz) 6%, transparent);
+}
+[data-theme] .channel-ref:has(> .channel-ref__photo) {
+  padding-left: 4px;
+}
+[data-theme] .channel-ref > .channel-ref__photo {
+  align-self: center;
+  width: 14px;
+  height: 14px;
+  margin: 0;
+  vertical-align: 0;
+}
+/* Go to… (Ctrl K): a group's photo as big as the faces beside it. */
+[data-theme] .ac-palette__mark > .channel-photo {
+  width: 22px;
+  height: 22px;
+}
+/* The hero: an offline dot says nothing there and would sit on the open face's ring. */
+[data-theme] .sidebar__hero-face .ac-avatar__badge:has(> [data-presence="offline"]) {
   display: none;
 }
-.ac-presence:is([data-presence="offline"], [data-presence="hidden"]) {
-  background: var(--db-palco-2);
-  box-shadow:
-    inset 0 0 0 1.5px var(--db-texto-3),
-    0 0 0 2px var(--presence-ring, var(--db-palco-2));
+/* A dialog's close beside a title and its line: on the pair's optical middle (Manrope title over Inter line, measured
+   by optic.py: the close sat 1.25 above its middle), so the close comes down 1. */
+[data-theme] .ac-actline:has(> .ac-dialog__titles > .ac-dialog__sub:not(:empty)) + .ac-dialog__close {
+  translate: 0 1px;
 }
-/* People: a tile of 8 (photo or initial), so a person never reads as a bot. */
-.ac-avatar:not(.ac-avatar--bot) {
-  border-radius: var(--db-r-1);
+/* The members column: an agent's role as plain quiet words under its name, as in the sidebar (no plate hugging it). */
+[data-theme] .members-side__line.ac-tag {
+  padding: 0;
+  background: none;
+  box-shadow: none;
+  font-size: 12px;
+  color: var(--faint);
 }
 
+
+/* The light theme: 3.1's rims and glows drawn in ink would read heavy; a quieter edge and shadow. */
+[data-theme="light"] {
+  --dg-sombra-funda: rgba(10, 10, 10, 0.1);
+  --dg-sombra-media: rgba(10, 10, 10, 0.08);
+  --dg-rim-top: rgba(255, 255, 255, 0.9);
+  --dg-rim: rgba(10, 10, 10, 0.09);
+  --dg-rim-bottom: rgba(10, 10, 10, 0.04);
+  --dg-reflection: rgba(255, 255, 255, 0.6);
+}
+
+/* ════ The identity over it: the bots, the signature, the boot, the agent's photo ════ */
 /* ── The bots (§2, §6–8): drawn by dougbot-avatar.js in the DOM. No tile, no ring: the bot's own glass and the
    light on its floor, which spills past its box. A photo takes the bot's shape. ── */
 .ac-avatar.ac-avatar--bot {
@@ -1426,14 +1958,6 @@ html .dm-side__sec {
   color: var(--db-texto-leve);
 }
 
-/* ── Reduced transparency: the glass turns solid, same edge. ── */
-@media (prefers-reduced-transparency: reduce) {
-  :is(.dg-glass, .ac-menu, .ac-popover, .ac-dialog, .ac-toast, .sidebar, .auth__bubble, .ac-msg__actions) {
-    -webkit-backdrop-filter: none;
-    backdrop-filter: none;
-    background: var(--db-palco-2);
-  }
-}
 /* ── Reduced motion: nothing moves (the Doug's wink is a drawing, not a motion). ── */
 @media (prefers-reduced-motion: reduce) {
   .ac-bot,
@@ -1441,10 +1965,6 @@ html .dm-side__sec {
     animation: none;
     transition: none;
   }
-}
-/* A tool opened from More stays in sight under the tools; the rest of More's list stays in its menu. */
-.sidebar .sidebar__dock .sidebar__more-active > :not([data-status="active"]) {
-  display: none;
 }
 /* Equipe's list: each agent a bot's row (§6): its bot 40, its NAME 13/16 capitals in Manrope 800, the handle 12/16. */
 .team-table__row .team-who > .ac-avatar--bot {
@@ -1464,21 +1984,6 @@ html .dm-side__sec {
   font-size: 12px;
   line-height: 16px;
   color: var(--db-texto-leve);
-}
-/* A field with a prefix keeps its words 12 from its end; the select's chevron and a search field's glyph 12 in. */
-html .ac-input-affix > input {
-  padding-right: var(--dg-s3);
-}
-html .ac-select__trigger {
-  padding-right: var(--dg-s3);
-}
-html .ac-searchfield__icon {
-  left: var(--dg-s3);
-}
-/* Buttons of 40: their glyph 16, so it keeps 12 from the top and the foot. */
-html .ac-btn:not(.ac-btn--sm):not(.ac-btn--lg):not(.channel__icon) > .ac-icon {
-  width: 16px;
-  height: 16px;
 }
 /* Equipe: a group's chip keeps one line. */
 .team-chip {
@@ -1532,69 +2037,320 @@ html .ac-btn:not(.ac-btn--sm):not(.ac-btn--lg):not(.channel__icon) > .ac-icon {
   --bot-cor: var(--msg-name);
 }
 /* No decorative gradients (§11): the agent's cover is the stage itself; its bot carries the color. */
-html .agp-cover,
-html .agp-cover__sky {
+[data-theme] .agp-cover,
+[data-theme] .agp-cover__sky {
   background: none;
 }
 .dg-band {
   display: none;
 }
 /* The agent's panel beside its DM: the bot at 72 (the Doug in his bust from 60), its name as the bots' are written. */
-html .dm-side__face .ac-avatar {
+[data-theme] .dm-side__face .ac-avatar {
   width: 72px;
   height: 72px;
 }
-html .dm-side__name {
+[data-theme] .dm-side__name {
   font: 800 16px/20px var(--db-f-titulo);
   letter-spacing: 0.05em;
   text-transform: uppercase;
 }
-/* A settings list's open item: the chosen item's green at 12% (§4), no ring. */
-html .settings__link[aria-current="page"] {
-  background: var(--db-verde-suave);
-  box-shadow: none;
-  border-color: transparent;
-  color: var(--db-texto);
-}
-html .settings__link[aria-current="page"] > .ac-icon {
-  color: var(--db-texto);
-}
-/* Optical middle of the stacked pieces (measured, doug-ui/optic.py): an icon or a bot over a name reads as one block
-   from the icon's top to the name's last baseline, so the room under the baseline (3 to 3.5 px of the line) is given
-   back above. The tools: 68 high, 16 over the icon, 12 under the name's line (its descenders keep 12 from the foot). */
-.sidebar:not([data-rail="true"]) .sidebar__dock .sidebar__item {
-  height: 68px;
-  min-height: 68px;
-  padding: 16px var(--dg-s1) 12px;
-  justify-content: center;
-}
-/* The pinned agents: their names as the bots' are written (capitals, no descender), the block centred, 3 given back. */
-.sidebar__hero-link,
-.sidebar__hero-link:hover,
-.sidebar__hero-link[data-status="active"] {
-  justify-content: center;
-  height: 100%;
-  box-sizing: border-box;
-  padding: 15px 2px 12px;
-}
-.sidebar__hero-item {
-  display: flex;
-}
-.sidebar__hero-item > .sidebar__hero-link {
-  flex: 1;
-}
-.sidebar__hero-name {
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-}
-/* A group's head: its photo and name on one middle (the kit's own sheet loads after this one, hence `html`). */
-html .channel__head-text,
-html .channel__head-text .channel__title {
-  align-items: center;
-  padding-block: 0;
-}
 /* The agent's identity card: its bot (or photo) on the stage, no colored tile behind it. */
-html .agp-id__look {
+[data-theme] .agp-id__look {
   background: none;
   box-shadow: none;
+}
+
+
+/* ════ Round 5: 3.1's layout with the identity, and what the owner asked over it ════ */
+/* The conversation never starts under the head: 3.1's head pulled the list up under its fade (-16), which covered the
+   first card of a DM; now the list starts below it. */
+[data-theme] .channel__header,
+[data-theme] .channel__header:has(.channel__head-text) {
+  margin-bottom: 0;
+}
+[data-theme] .channel__messages {
+  padding-top: var(--dg-s3);
+}
+/* The tools: one row of icons in one glass piece, as in 3.1, with the identity's 22 instead of a pill: 12 around the
+   32 buttons (their 10 = 22 less 12), each icon 20 in the ink (it read faint and small), its name on hover. */
+.sidebar:not([data-rail="true"]) .sidebar__dock {
+  --r-outer: var(--db-r-4);
+  border-radius: var(--r-outer);
+}
+[data-theme] .sidebar:not([data-rail="true"]) .sidebar__dock .sidebar__item {
+  border-radius: 10px;
+}
+[data-theme] .sidebar:not([data-rail="true"]) .sidebar__dock .sidebar__item > .ac-icon {
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  color: var(--db-texto);
+}
+[data-theme] .sidebar:not([data-rail="true"]) .sidebar__dock .sidebar__item[data-status="active"] > .ac-icon {
+  color: var(--db-verde-tinta);
+}
+/* The pinned agents: their bots where the letters were; the open one keeps 3.1's ring of light, drawn around the bot's
+   glass (16, the bots' corner) instead of a circle. */
+[data-theme] .sidebar__hero-face::after {
+  inset: -14px;
+  border: 0;
+  border-radius: 50%;
+  z-index: -1;
+  box-shadow: none;
+  opacity: 0;
+  background: radial-gradient(closest-side, var(--hero-glow, transparent), transparent);
+  transition: opacity 0.25s var(--dg-ease, ease);
+}
+[data-theme] .sidebar__hero-link:is(:hover, [data-busy="true"], [data-status="active"]) .sidebar__hero-face::after {
+  border-color: transparent;
+  box-shadow: none;
+  opacity: 1;
+}
+[data-theme] .sidebar__hero-link:hover .sidebar__hero-face {
+  --hero-glow: color-mix(in srgb, var(--dg-luz) 12%, transparent);
+}
+[data-theme] .sidebar__hero-link[data-busy="true"] .sidebar__hero-face {
+  --hero-glow: color-mix(in srgb, var(--db-verde-acento) 22%, transparent);
+}
+[data-theme] .sidebar__hero-link[data-status="active"] .sidebar__hero-face {
+  --hero-glow: color-mix(in srgb, var(--db-verde-acento) 45%, transparent);
+}
+[data-theme] .sidebar__hero-face {
+  isolation: isolate;
+}
+/* The signature on top of the sidebar (IDENTIDADE.md §3): no box, its Doug on the workspace mark's left edge below
+   it (12 in, the header's own), half the Doug's height free under it before the header. */
+[data-theme] .sidebar__assina {
+  --t: 18px;
+  align-self: flex-start;
+  margin: 2px 0 0 var(--dg-s3);
+}
+/* A workspace without a logo: its initial on a quiet round tile (the Doug is right above; never twice in a row). */
+.org-mark--initial {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  border-radius: 999px;
+  background: var(--db-palco-4);
+  box-shadow: inset 0 0 0 1px var(--db-vidro-borda);
+  color: var(--db-texto);
+  font-family: var(--db-f-titulo);
+  font-weight: 800;
+  line-height: 1;
+  text-box: trim-both cap alphabetic;
+}
+/* A group's head: its photo, name and topic on the piece's middle, the piece as wide as its words. */
+[data-theme] .channel__head-text,
+[data-theme] .channel__head-text .channel__title {
+  align-items: center;
+}
+/* The sidebar's list ends 28 over the window's foot (48 with its 20): its last row clears the 48 corner, so a row's
+   16 never sits in the corner's curve (the kit's own fade at the scroller's end). */
+@media (min-width: 761px) {
+  [data-theme] .sidebar__scroll {
+    padding-bottom: 28px;
+  }
+}
+/* The person on top (the owner's sketch): one glass block 64 high, 16 around: their photo 32 with its presence, the
+   name and under it the workspace with its counts, the chevron, then the bell (32) on the same middle. The block's
+   32 corner is concentric with the 32 circles 16 in (16 = 32 less 16). It opens the workspaces and the account. */
+[data-theme] .sidebar:not([data-rail="true"]) .sidebar__org--head {
+  --r-outer: 32px;
+  --pad: var(--dg-gap-box);
+  display: flex;
+  align-items: center;
+  gap: var(--dg-s2);
+  min-height: 64px;
+  box-sizing: border-box;
+  padding: var(--pad);
+  border-radius: var(--r-outer);
+  background: var(--dg-pill);
+  box-shadow: var(--dg-edge), 0 8px 20px -12px var(--dg-sombra-media);
+}
+[data-theme] .sidebar__org--head .sidebar__org-button.sidebar__org-button--me {
+  flex: 1;
+  min-width: 0;
+  min-height: 32px;
+  padding: 0;
+  gap: var(--dg-s3);
+  border-radius: 16px;
+  background: none;
+  box-shadow: none;
+}
+[data-theme] .sidebar__org--head .sidebar__org-button--me:hover {
+  background: none;
+}
+[data-theme] .sidebar__org--head .sidebar__org-button--me > .ac-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  flex: none;
+}
+[data-theme] .sidebar__org--head .sidebar__org-text {
+  display: grid;
+  min-width: 0;
+  flex: 1 1 auto;
+  gap: 1px;
+}
+[data-theme] .sidebar__org--head .sidebar__org-name {
+  font-size: 14px;
+  line-height: 16px;
+  font-weight: 700;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+/* The whole line, never cut: it wraps under itself when the workspace's name and counts don't fit beside the face. */
+[data-theme] .sidebar__org--head .sidebar__org-meta {
+  font-size: 12px;
+  line-height: 14px;
+  color: var(--db-texto-leve);
+  white-space: normal;
+  overflow: visible;
+}
+/* Its parts wrap whole; each opens with its "·" in a 1em lead the text column clips, so a part that starts a line
+   shows no dot ("Time Zim" / "1 membro · 13 agentes"), and one line reads "Time Zim · 1 membro · 13 agentes". */
+[data-theme] .sidebar__org--head .sidebar__org-text {
+  overflow: hidden;
+}
+[data-theme] .sidebar__org--head .sidebar__org-meta {
+  display: flex;
+  flex-wrap: wrap;
+  margin-left: -1em;
+}
+[data-theme] .sidebar__org--head .sidebar__org-meta > span {
+  white-space: nowrap;
+}
+[data-theme] .sidebar__org--head .sidebar__org-meta > span::before {
+  content: "·";
+  display: inline-block;
+  width: 1em;
+  text-align: center;
+}
+[data-theme] .sidebar__org--head .sidebar__org-name {
+  display: flex;
+  align-items: center;
+  gap: var(--dg-s1);
+}
+[data-theme] .sidebar__org--head .sidebar__org-name > .ac-icon {
+  flex: none;
+  color: var(--db-texto-2);
+}
+[data-theme] .sidebar:not([data-rail="true"]) .sidebar__org--head .sidebar__bell {
+  margin-left: auto;
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+}
+[data-theme] .sidebar__org--head .ac-avatar__badge {
+  right: -2px;
+  bottom: -2px;
+}
+/* A field with a prefix keeps its words 12 from its end; the select's chevron and a search field's glyph 12 in. */
+[data-theme] .ac-input-affix > input {
+  padding-right: var(--dg-s3);
+}
+[data-theme] .ac-select__trigger {
+  padding-right: var(--dg-s3);
+}
+[data-theme] .ac-searchfield__icon {
+  left: var(--dg-s3);
+}
+/* Buttons of 40: their glyph 16, so it keeps 12 from the top and the foot. */
+[data-theme] .ac-btn:not(.ac-btn--sm):not(.ac-btn--lg):not(.channel__icon) > .ac-icon {
+  width: 16px;
+  height: 16px;
+}
+/* A mention's chip inside a bubble keeps a small corner (it can sit on the bubble's first line, near its corner). */
+[data-theme] .ac-msg__text .ac-mention {
+  border-radius: 4px;
+}
+/* The members column ends 24 above the sheet's foot, as its top. */
+[data-theme] .members-side {
+  padding-bottom: var(--dg-s6);
+}
+/* ── The workspace's full-screen menu (the head opens it): the app blurred under the stage, no pixel horizon; the
+   person's card ("Você") beside the workspace's on a wide screen, stacked on a phone. Cards of 22, 10 around their
+   rows of 12 (concentric), the close 24 from the corner. ── */
+[data-theme] .ac-mo__scrim {
+  background: color-mix(in srgb, var(--db-palco) 72%, transparent);
+  -webkit-backdrop-filter: blur(18px) saturate(120%);
+  backdrop-filter: blur(18px) saturate(120%);
+}
+[data-theme] .ac-mo__backdrop {
+  display: none;
+}
+[data-theme] .ac-mo__close {
+  top: var(--dg-s6);
+  right: var(--dg-s6);
+}
+[data-theme] .ac-mo__title {
+  font-weight: 800;
+  letter-spacing: -0.045em;
+}
+[data-theme] .ac-mo__group {
+  --menu-pad: 10px;
+  border-radius: var(--db-r-4);
+  background: var(--db-vidro);
+  border: 1px solid var(--db-vidro-borda);
+  box-shadow: var(--db-vidro-brilho), var(--db-sombra);
+}
+[data-theme] .ac-mo__item {
+  border-radius: var(--db-r-2);
+}
+[data-theme] .sidebar__menu-crew .ac-avatar {
+  width: 22px;
+  height: 22px;
+}
+.mo-you {
+  display: flex;
+  align-items: center;
+  gap: var(--dg-s3);
+  padding: 6px 14px 10px;
+}
+.mo-you > .ac-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 999px;
+}
+.mo-you__text {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+.mo-you__name {
+  font: 700 17px/22px var(--db-f-titulo);
+  letter-spacing: -0.01em;
+}
+.mo-you__line {
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--db-texto-2);
+  overflow-wrap: anywhere;
+}
+@media (min-width: 900px) {
+  [data-theme] .ac-mo__wrap:has(.mo-you) {
+    max-width: 980px;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    align-items: start;
+    gap: var(--dg-s6);
+  }
+  [data-theme] .ac-mo__wrap:has(.mo-you) > .ac-mo__head {
+    grid-column: 1 / -1;
+  }
+  /* "Você" and, under it, "Seus workspaces" on the left; the workspace's card on the right, both tops aligned. */
+  [data-theme] .ac-mo__wrap:has(.mo-you) > .ac-mo__group:has(.mo-you) {
+    grid-column: 1;
+    grid-row: 2;
+  }
+  [data-theme] .ac-mo__wrap:has(.mo-you) > .ac-mo__group:last-child {
+    grid-column: 1;
+    grid-row: 3;
+  }
+  [data-theme] .ac-mo__wrap:has(.mo-you) > .ac-mo__group:not(:has(.mo-you)):not(:last-child) {
+    grid-column: 2;
+    grid-row: 2 / span 2;
+  }
 }

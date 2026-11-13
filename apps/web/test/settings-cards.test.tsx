@@ -31,7 +31,7 @@ afterEach(() => {
 const HOUR = 3_600_000;
 const DM = `dm-${LODI_ID}`;
 
-/** Lodi's card changing Ada's model and budget, asked for by me (Walter). */
+/** Doug's card changing Ada's model and budget, asked for by me (Walter). */
 const settingsRow = (over: Partial<Proposal> = {}): Proposal => ({
   id: "set-1",
   agentId: ADA_ID,
@@ -345,7 +345,7 @@ describe("archiving several agents, on one card", () => {
 describe("a new agent, on the right hand's card", () => {
   test("Criar e testar creates it and opens its DM with the first task in the composer, unsent; Editar antes and Descartar beside it", async () => {
     const { state, router } = await go(withAgentCard(seedState(), agentCard()));
-    const c = card("Lodi propõe um novo agente");
+    const c = card("Doug propõe um novo agente");
     expect(within(c).getByRole("button", { name: "Editar antes" })).toBeTruthy();
     expect(within(c).getByRole("button", { name: "Descartar" })).toBeTruthy();
     await click(within(c).getByRole("button", { name: "Criar e testar" }), 10);
@@ -362,7 +362,7 @@ describe("a new agent, on the right hand's card", () => {
 
   test("someone it wasn't written for (an admin, from the inbox) gets the plain Criar", async () => {
     await go(withAgentCard(seedState(), agentCard({ forUserId: "u-joao" })));
-    const c = card("Lodi propõe um novo agente");
+    const c = card("Doug propõe um novo agente");
     expect(within(c).queryByRole("button", { name: "Criar e testar" })).toBeNull();
     expect(within(c).getByRole("button", { name: "Criar Iara" })).toBeTruthy();
   });
@@ -386,11 +386,11 @@ describe("a new agent, on the right hand's card", () => {
   test("a member who can't create agents asks an admin, then reads whom it went to", async () => {
     const state = asMember(withAgentCard(seedState(), agentCard()));
     await go(state);
-    const c = card("Lodi propõe um novo agente");
+    const c = card("Doug propõe um novo agente");
     expect(c.textContent).toContain("Só admins criam agentes");
     expect(within(c).queryByRole("button", { name: "Criar e testar" })).toBeNull();
     await click(within(c).getByRole("button", { name: "Pedir a um admin" }));
     expect(state.calls.some((x) => x.method === "agents.askProposal" && x.args[1] === "m-iara")).toBe(true);
-    expect(card("Lodi propõe um novo agente").textContent).toContain("Enviado para João");
+    expect(card("Doug propõe um novo agente").textContent).toContain("Enviado para João");
   });
 });

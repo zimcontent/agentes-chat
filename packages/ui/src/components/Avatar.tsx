@@ -215,7 +215,7 @@ export function Avatar({
   const tile = !bot && (framed ?? (size !== "xs" && size !== "xl"));
   const a11y = labelled ? ({ role: "img", "aria-label": name } as const) : ({ "aria-hidden": true } as const);
   const mood: AgentState = state ?? (running ? "thinking" : "idle");
-  const key = `${who?.name ?? name}|${who?.handle ?? ""}|${who?.role ?? ""}`;
+  const key = `${who?.name ?? name}|${who?.handle ?? ""}|${who?.role ?? ""}|${who?.builtin ?? ""}`;
   // biome-ignore lint/correctness/useExhaustiveDependencies: the key is who it is
   const spec = useMemo(() => botDoAgente(who ?? { name }), [key]);
   const look = estado ?? botEstado(mood, presence);

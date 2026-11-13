@@ -37,8 +37,9 @@ export const isRightHand = (a: { builtin?: string | null } | null | undefined) =
 
 /** What it starts with. The name is the same in every language; admins may rename it and change its look. */
 export const RIGHT_HAND_DEFAULTS = {
-  name: "Lodi",
-  handle: "lodi",
+  // DougBot: the right hand is the Doug, the team's chief (drawn by code as the Doug, apps/web's DougBot identity).
+  name: "Doug",
+  handle: "doug",
   model: AUTO_MODEL,
   appearance: { color: "teal", eyes: "happy", accessory: "headset" },
 } as const;

@@ -52,11 +52,14 @@ export function AgentAvatar(props: AgentAvatarProps) {
   const given = typeof props.presence === "string" ? props.presence : null;
   if (id) return <LiveAgentAvatar {...props} presence={given} agentId={id} />;
   const { agent, appearance, state, running, asleep: _s, channelId: _c, agentId: _a, presence: _p, ...rest } = props;
-  const draft = agent as { name?: string; handle?: string; role?: string; photo?: string | null } | null | undefined;
+  const draft = agent as
+    | { name?: string; handle?: string; role?: string; builtin?: string | null; photo?: string | null }
+    | null
+    | undefined;
   return (
     <Avatar
       kind="agent"
-      who={{ name: draft?.name ?? props.name, handle: draft?.handle, role: draft?.role }}
+      who={{ name: draft?.name ?? props.name, handle: draft?.handle, role: draft?.role, builtin: draft?.builtin }}
       imageUrl={draft?.photo ?? undefined}
       appearance={appearance ?? lookOf(agent)}
       state={state ?? (running ? "thinking" : undefined)}
@@ -189,7 +192,7 @@ function LiveAgentAvatar({
       state={state ?? (live === "idle" ? idle : live)}
       estado={!state && live === "idle" && finished && !asks ? "terminou" : undefined}
       appearance={appearance ?? lookOf(known ?? agent)}
-      who={known ? { name: known.name, handle: known.handle, role: known.role } : { name: rest.name }}
+      who={known ? { name: known.name, handle: known.handle, role: known.role, builtin: known.builtin } : { name: rest.name }}
       imageUrl={(known as { photo?: string | null } | undefined)?.photo ?? undefined}
       initials={dir.agentInitials(agentId)}
       presence={presence ?? shown?.presence ?? null}

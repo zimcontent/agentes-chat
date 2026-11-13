@@ -160,7 +160,10 @@ describe("route guards", () => {
   test("under the person's name only their status line: no budget bar (ADR 0084)", async () => {
     await renderApp(`/org/${ORG_ID}/c/${ENG_ID}`, { api: createFakeApi() });
     await settle();
-    expect(document.querySelector(".sidebar__user .sidebar__usage")).toBeNull();
-    expect(document.querySelector(".sidebar__user")?.textContent).not.toContain("26%");
+    // DougBot: the person is on top (the head), the workspace under the name; no budget bar there either.
+    const me = document.querySelector(".sidebar__org-button--me");
+    expect(me).not.toBeNull();
+    expect(me?.querySelector(".sidebar__usage")).toBeNull();
+    expect(me?.textContent).not.toContain("26%");
   });
 });
