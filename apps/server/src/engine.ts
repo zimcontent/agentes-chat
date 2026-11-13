@@ -120,6 +120,7 @@ import {
   type SkillDeps,
   type StorageDeps,
   setWorkOrgCap,
+  shareSavedFile,
   smallModelFor,
   standingJudge,
   streamClosed,
@@ -727,6 +728,8 @@ export function buildEngine(o: EngineOptions) {
       { fetch: o.speechFetch },
     ),
   });
+  // An audio file an agent opens is heard by the same engines as a voice message.
+  artifacts.speech = speech.chain;
   const voice: VoiceDeps = {
     db,
     pubsub: adapters.pubsub,
@@ -788,6 +791,15 @@ export function buildEngine(o: EngineOptions) {
     warmBrowser,
     brains,
     prepareCode,
+    // An image Codex's own tool made on the agent's computer goes to the Drive, as a shared screenshot does.
+    shareFile: (ctx, machineId, path) =>
+      shareSavedFile(
+        { machines: { hub: machineHub }, pubsub: adapters.pubsub, publicUrl: config.PUBLIC_URL },
+        ctx,
+        machineId,
+        path,
+        { content: `Saved ${path} in your folder.` },
+      ),
     machines: machineHub,
     workspaceComputer,
     releaseRunPhones: (run) => releaseRunPhones({ db, hub: machineHub }, run),

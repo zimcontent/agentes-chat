@@ -49,6 +49,12 @@ describe("composer row and formatting", () => {
     await open();
     expect(rowOf(composer())).toEqual(["Anexar arquivo", "Emojis, GIFs e figurinhas", "Mensagem para #eng", "Enviar"]);
     expect(screen().queryByRole("toolbar", { name: "Formatação" })).toBeNull();
+    // Doug: a group's draft that calls an agent shows that agent's chip over the text (who will answer), gone with
+    // the call.
+    await act(async () => fireEvent.change(composer(), { target: { value: "@ada olha isso" } }));
+    expect(composer().closest(".ac-composer")?.querySelector(".ac-composer__agent")?.textContent).toContain("Ada");
+    await act(async () => fireEvent.change(composer(), { target: { value: "" } }));
+    expect(composer().closest(".ac-composer")?.querySelector(".ac-composer__pills")).toBeNull();
     const bar = within(article("o login está devolvendo 401")).getByRole("toolbar");
     await act(async () => fireEvent.click(within(bar).getByRole("button", { name: "Responder" })));
     await settle(6);
@@ -59,8 +65,8 @@ describe("composer row and formatting", () => {
     await settle(8);
     const dm = screen().getByRole("combobox", { name: "Mensagem para Ada" });
     expect(rowOf(dm)).toEqual(["Anexar arquivo", "Emojis, GIFs e figurinhas", "Mensagem para Ada", "Enviar"]);
-    // Doug: the header says who answers; the composer repeats no chip of the agent.
-    expect(dm.closest(".ac-composer")?.querySelector(".ac-composer__agent")).toBeNull();
+    // No chip for the DM's agent: the header and the placeholder already say who.
+    expect(dm.closest(".ac-composer")?.querySelector(".ac-composer__pills")).toBeNull();
     expect(screen().queryByRole("toolbar", { name: "Formatação" })).toBeNull();
   });
 

@@ -99,7 +99,7 @@ import {
   screenAboveEnd,
   usageLine,
 } from "@agenteschat/client/lib/chat";
-import { firstUnreadId, opensAtLastRead } from "@agenteschat/client/lib/chat-look";
+import { firstUnreadId, opensAtLastRead, unreadThreadRootId } from "@agenteschat/client/lib/chat-look";
 import { choiceReplyLine } from "@agenteschat/client/lib/choices";
 import { draftKeyOf } from "@agenteschat/client/lib/composer-drafts";
 import { consultsForLine } from "@agenteschat/client/lib/consult-group";
@@ -110,6 +110,7 @@ import { ErrorBoundary } from "@agenteschat/client/lib/error-boundary";
 import {
   errorCode,
   errorText,
+  filesTextOnlyOf,
   restrictionLine,
   runErrorText,
   runFailureLine,
@@ -144,6 +145,7 @@ import { noAiCardOf } from "@agenteschat/client/lib/no-ai";
 import { isTalkerReply, noticeOf, routineReportText, talkerWaited } from "@agenteschat/client/lib/notices";
 import { brainUnavailableOf, isOfflineNotice } from "@agenteschat/client/lib/outages";
 import { can, leavesChannel, makesAgents, managesChannel, setsAutoReply } from "@agenteschat/client/lib/permissions";
+import { modelStandInText } from "@agenteschat/client/lib/plan-usage";
 import { reachHandoffs } from "@agenteschat/client/lib/reach";
 import { localMeta, replyOf } from "@agenteschat/client/lib/reply";
 import { isReminderMessage, reminderBody, routineReplyOf } from "@agenteschat/client/lib/routines";
@@ -156,7 +158,7 @@ import { usageWaitOf } from "@agenteschat/client/lib/usage-pause";
 import { appVia } from "@agenteschat/client/lib/via";
 import { voiceOf } from "@agenteschat/client/lib/voice";
 import { waitingAway, waitingNotification } from "@agenteschat/client/lib/waiting";
-import { barStep, showsActivity, splitCanceled } from "@agenteschat/client/lib/work";
+import { barStep, makingImage, showsActivity, splitCanceled } from "@agenteschat/client/lib/work";
 import {
   AffixInput,
   Avatar,
@@ -241,15 +243,18 @@ import {
 } from "@/chat/run-slots";
 import { dividerIsFar, earlierKey, firstNewKey, landedKey, pillParts, unseenOf } from "@/chat/unseen";
 import { ActionCard } from "@/components/ActionCard";
+import { AskAdminButton } from "@/components/AdminAsk";
 import { AgentActionReceipts } from "@/components/AgentActions";
 import { ActorAvatar, AgentAvatar, PersonAvatar } from "@/components/AgentAvatar";
 import { AgentPanel } from "@/components/AgentPanel";
 import { ApprovalAsk, ApprovalGroupAsk } from "@/components/ApprovalAsk";
 import { AgentPanelContext, AgentPanelShownContext, useOpenAgentPanel } from "@/components/agent-panel-context";
 import { AgentSidebar } from "@/components/agents/AgentSidebar";
+import { ModelStandInLine } from "@/components/ai/ModelPicker";
 import { ArtifactCard } from "@/components/artifacts/ArtifactCard";
 import { ImageSet } from "@/components/artifacts/ArtifactViewer";
 import { objectUrls } from "@/components/artifacts/FileView";
+import { ImageMaking } from "@/components/artifacts/ImageMaking";
 import { MessageWorkLine } from "@/components/BackgroundWork";
 import { HeldBrowserCard, RunBrowserCard, useHeldTakeover } from "@/components/browser/BrowserCard";
 import { BrowserHandoffCard } from "@/components/browser/BrowserHandoffCard";
@@ -271,10 +276,11 @@ import {
   StopsProvider,
   stopsOf,
   UnshownLine,
+  useStopMovedOn,
   useStopNotice,
 } from "@/components/ChatNotices";
 import { QueueWaitTurns, useAgentsMachineId } from "@/components/ComputerQueue";
-import { ConsultationPanel } from "@/components/ConsultationPanel";
+import { ConsultationDialog } from "@/components/ConsultationDialog";
 import {
   ConsultAnswerLine,
   type ConsultGroups,
@@ -290,6 +296,7 @@ import { DatePill, type DatePillHandle } from "@/components/DatePill";
 import { DeleteChannelDialog } from "@/components/DeleteChannelDialog";
 import { MenuEntries } from "@/components/DesktopMenus";
 import { DeviceWaitCard } from "@/components/devices/DeviceWaitCard";
+import { WaitToolOffAction } from "@/components/devices/ToolOneClick";
 import { useArchiveChannelWithUndo } from "@/components/entity-menus";
 import { FeedbackOfferRow } from "@/components/FeedbackOffer";
 import { InPlaceProvider } from "@/components/InPlace";
@@ -384,7 +391,7 @@ import { TYPED_VALUES } from "@/i18n";
 import { onAgentPanel, takeAgentPanel } from "@/lib/agent-panel-ask";
 import { onChannelDetails, takeChannelDetails } from "@/lib/channel-details";
 import { selectingIn } from "@/lib/context-menu";
-import { desktopPlatform, useDocumentTitle } from "@/lib/desktop";
+import { desktopPlatform, thisMac, useDocumentTitle } from "@/lib/desktop";
 import { holdOnScreen } from "@/lib/island";
 import { typingInField } from "@/lib/keys";
 import { lookOf } from "@/lib/look";
@@ -945,21 +952,20 @@ function ChannelView({
   useEffect(() => {
     if (!panelId || profileKeeps()) return;
     setProfile(null);
-    setConsultId(null);
     if (panelId !== hitThread.current) setSearchOpen(false);
   }, [panelId]);
-  // A question an agent asked another from here, opened from its line in the reply ("Theo ⇄ Iris"): one panel too.
+  // A question an agent asked another from here, opened from its line in the reply ("Theo ⇄ Iris"): a dialog over
+  // the conversation, whatever pane is open beside it.
   const [consultId, setConsultId] = useState<string | null>(null);
   // A DM with an agent: its tasks (ADR 0128), from the pill in the header; one panel too, any other one closes it.
   const [tasksOpen, setTasksOpen] = useState(false);
   useEffect(() => {
-    if (panel || profile || consultId || searchOpen) setTasksOpen(false);
-  }, [panel, profile, consultId, searchOpen]);
+    if (panel || profile || searchOpen) setTasksOpen(false);
+  }, [panel, profile, searchOpen]);
   const toggleTasks = useCallback(() => {
     if (profileKeeps()) return;
     setPanel(null);
     setProfile(null);
-    setConsultId(null);
     setSearchOpen(false);
     setTasksOpen((open) => !open);
   }, [profileKeeps, setPanel]);
@@ -969,7 +975,6 @@ function ChannelView({
       if (profileKeeps()) return;
       setPanel(null);
       setSearchOpen(false);
-      setConsultId(null);
       const from = document.activeElement instanceof HTMLElement ? document.activeElement : null;
       setProfile((open) => {
         if (open?.agentId === agentId && open.tab === tab && open.item === item)
@@ -1705,7 +1710,6 @@ function ChannelView({
 
   // `[[` in the composer links wiki pages.
   const wikiPages = useWikiTree(org.id);
-  // Composer context: who it goes to (the DM agent, or the agents @mentioned in the draft).
   const dmAgent = chrome?.dmAgentId ? dir.agentById.get(chrome.dmAgentId) : undefined;
   const look = useConversationLook(
     Boolean(chrome?.dmAgentId || chrome?.dmPersonId || thread?.channelKind === "dm"),
@@ -1726,7 +1730,8 @@ function ChannelView({
     [draft, dir.agentByHandle, dir.agentById],
   );
   // Doug: a DM's header already says who answers, so its composer carries no chip of the agent; a channel keeps the
-  // chips of the agents its draft calls (who will answer).
+  // chips of the agents its draft calls (who will answer). The kit's composer draws no agent chip of its own: these
+  // take their look from the DougBot theme (`doug.css`).
   const pillAgents = dmAgent ? [] : draftAgents;
   const composerPills =
     pillAgents.length > 0 || missionReply ? (
@@ -1935,6 +1940,24 @@ function ChannelView({
     setFocusTarget(messageId);
     setFocusDone(false);
   };
+  // Opened with something unread that isn't at its end: a reply in a thread, one line under its root, maybe far
+  // above. That root comes into view, highlighted, instead of an end with nothing new. Once, with what was unread
+  // on opening (reading moves it).
+  const [openedUnread] = useState(() => ({
+    count: thread || focusMessageId || adjustThreadId ? 0 : (channel.unreadCount ?? dmRead?.unread ?? 0),
+    at: channel.lastReadAt ?? dmRead?.lastReadAt,
+  }));
+  const threadLanded = useRef(openedUnread.count === 0);
+  // biome-ignore lint/correctness/useExhaustiveDependencies: once, when the messages and the threads are in
+  useEffect(() => {
+    // The threads as the server has them now: a list kept from an earlier visit knows nothing of the new reply.
+    if (threadLanded.current || !serverRead || !openThreads.isSuccess || openThreads.isFetching || !channelList) return;
+    threadLanded.current = true;
+    // A thread made from a range has no root in the conversation (its marker stands there).
+    const threads = (openThreads.data?.threads ?? []).filter((x) => !x.context);
+    const root = unreadThreadRootId(channelList.visible, threads, openedUnread.at, me.user.id);
+    if (root) jumpTo(root);
+  }, [serverRead, openThreads.isSuccess, openThreads.isFetching, channelList]);
   // A message link to this same conversation (a pill) changes only `?m=`: the page stays, so jump to it.
   const linked = useRef(focusMessageId);
   // biome-ignore lint/correctness/useExhaustiveDependencies: only a new `?m=`
@@ -2074,7 +2097,13 @@ function ChannelView({
           },
           onNotice: (notice: VoiceNotice) => {
             if (notice === "blocked") {
-              toast.show(t(desktopPlatform() === "mac" ? "voice.blockedMac" : "voice.blockedWeb"), "error");
+              // In the Mac app the way out opens right there: System Settings on the microphone's list.
+              if (desktopPlatform() === "mac")
+                toast.show(t("voice.blockedMac"), "error", {
+                  label: t("voice.openMacSettings"),
+                  run: () => void thisMac.openMicrophoneSettings().catch(() => {}),
+                });
+              else toast.show(t("voice.blockedWeb"), "error");
             } else {
               toast.show(t(`voice.${notice}`), notice === "deleted" ? undefined : "error");
             }
@@ -2290,24 +2319,16 @@ function ChannelView({
       : (message) => {
           if (profileKeeps()) return;
           setProfile(null);
-          setConsultId(null);
           setSearchOpen(false);
           setPanel({ id: message.threadId ?? message.id, reply: true });
         },
     openThread: (id, focus) => {
       if (profileKeeps()) return;
       setProfile(null);
-      setConsultId(null);
       setSearchOpen(false);
       setPanel({ id, reply: false, focus });
     },
-    openConsultation: (id) => {
-      if (profileKeeps()) return;
-      setProfile(null);
-      setPanel(null);
-      setSearchOpen(false);
-      setConsultId(id);
-    },
+    openConsultation: (id) => setConsultId(id),
     requestCorrection: (message, text) => {
       const handle = message.author.type === "agent" ? dir.agentById.get(message.author.id ?? "")?.handle : undefined;
       toBottom(true);
@@ -2342,15 +2363,14 @@ function ChannelView({
       reply: replies ? (message) => now().reply(message) : undefined,
       // A thread view has no panel: its links go to the thread's page.
       openThread: inThread ? undefined : (id, focus) => now().openThread(id, focus),
-      // In a thread view the question opens in place, inside the reply's block.
-      openConsultation: inThread ? undefined : (id) => now().openConsultation(id),
+      openConsultation: (id) => now().openConsultation(id),
       requestCorrection: (message, text) => now().requestCorrection(message, text),
       jumpTo: (messageId) => now().jumpTo(messageId),
       replyToMission: (missionId, label) => now().replyToMission(missionId, label),
     };
   }, [channelAgents, inThread, replies]);
 
-  // A DM with an agent: the agent's chip sits in the composer's toolbar row.
+  // A DM with an agent (not one of its threads): its side column.
   const agentDm = Boolean(chrome?.dmAgentId) && !thread;
   const tasksControl = useMemo(
     () => (tasksAgentId ? { tasks: agentTasks, open: tasksOpen, toggle: toggleTasks } : null),
@@ -2362,18 +2382,16 @@ function ChannelView({
     if (profileKeeps()) return;
     setPanel(null);
     setProfile(null);
-    setConsultId(null);
     setSearchOpen(true);
   };
   // Anything open in the column's place: its toggle closes that and shows the column.
-  const paneOpen = Boolean(panel || profile || searchOpen || consultId || tasksOpen);
+  const paneOpen = Boolean(panel || profile || searchOpen || tasksOpen);
   const toggleColumn = (column: { open: boolean; toggle: () => void }) => {
     if (!paneOpen) return column.toggle();
     if (profileKeeps()) return;
     setPanel(null);
     setProfile(null);
     setSearchOpen(false);
-    setConsultId(null);
     setTasksOpen(false);
     if (!column.open) column.toggle();
   };
@@ -2796,7 +2814,6 @@ function ChannelView({
                                 sendText={t("channel.send")}
                                 attachLabel={t("channel.attach")}
                                 pills={composerPills}
-                                inlinePills={agentDm}
                                 links={{
                                   listLabel: t("wiki.editor.suggest"),
                                   search: (q) =>
@@ -2892,36 +2909,6 @@ function ChannelView({
                       closeRequest={profile.close}
                       onClose={closeProfile}
                     />
-                  ) : consultId ? (
-                    /* Rows from more than the two people of a DM: they keep their names there too. */
-                    <MessageLookContext.Provider value={namedLook}>
-                      <ConsultationPanel
-                        key={consultId}
-                        channelId={channel.id}
-                        channelName={chrome?.composerTarget ? null : channel.name}
-                        consultationId={consultId}
-                        onClose={() => setConsultId(null)}
-                        onTalk={(handle) => {
-                          setConsultId(null);
-                          actions.insertMention(handle);
-                        }}
-                        onAnswer={() => {
-                          setConsultId(null);
-                          actions.focusComposer();
-                        }}
-                        renderMessage={(m, grouped) => (
-                          <ErrorBoundary resetKey={m} fallback={unshownLine}>
-                            <TimelineMessage
-                              message={m}
-                              grouped={grouped}
-                              entering={false}
-                              modelLabels={NO_LABELS}
-                              readOnly
-                            />
-                          </ErrorBoundary>
-                        )}
-                      />
-                    </MessageLookContext.Provider>
                   ) : tasksOpen && tasksAgentId ? (
                     <AgentTasksPanel
                       agentId={tasksAgentId}
@@ -3000,6 +2987,39 @@ function ChannelView({
                   )}
                 </div>
               </Tag>
+              {consultId && (
+                /* Rows from more than the two people of a DM: they keep their names there too. */
+                <MessageLookContext.Provider value={namedLook}>
+                  <ConsultationDialog
+                    key={consultId}
+                    channelId={channel.id}
+                    channelName={chrome?.composerTarget ? null : channel.name}
+                    consultationId={consultId}
+                    onClose={() => setConsultId(null)}
+                    // The composer takes the focus once the dialog is gone: its trap would hold it while open.
+                    onTalk={(handle) => {
+                      setConsultId(null);
+                      actions.insertMention(handle);
+                      requestAnimationFrame(() => actions.focusComposer());
+                    }}
+                    onAnswer={() => {
+                      setConsultId(null);
+                      requestAnimationFrame(() => actions.focusComposer());
+                    }}
+                    renderMessage={(m, grouped) => (
+                      <ErrorBoundary resetKey={m} fallback={unshownLine}>
+                        <TimelineMessage
+                          message={m}
+                          grouped={grouped}
+                          entering={false}
+                          modelLabels={NO_LABELS}
+                          readOnly
+                        />
+                      </ErrorBoundary>
+                    )}
+                  />
+                </MessageLookContext.Provider>
+              )}
               {!chrome && !profile && membersColumn.sheet && (
                 <MembersSheet
                   channel={channel}
@@ -3207,14 +3227,7 @@ const Timeline = memo(function Timeline({
   );
   const shownMessages = useMemo(() => items.flatMap((i) => (i.kind === "message" ? [i.message] : [])), [items]);
   // One stop, one pill: a stopped task's notice goes into its reply's pill while that reply (or its block) is here.
-  const stops = useMemo(
-    () =>
-      stopsOf(
-        shownMessages,
-        slots.map((s) => s.runId),
-      ),
-    [shownMessages, slots],
-  );
+  const stops = useMemo(() => stopsOf(shownMessages, slots), [shownMessages, slots]);
   const rows: ReactElement<{ message?: MessageType }>[] = [];
   const afterUnshown = () => unshown.has(rows.at(-1)?.key ?? "");
   const blockRow = (slot: RunSlot) => {
@@ -3618,11 +3631,13 @@ function StoppedLine({
   const cont = useContinueRun();
   const continued = useWasContinued(runId, message);
   const stop = useStopNotice(runId);
+  // The agent works here again, or wrote after the stop: it went on, so the stop is over and offers nothing.
+  const movedOn = useStopMovedOn(runId);
   // Its words when no person stopped it: the step limit, stuck; long work its provider cut off says it in its text.
   const fallback = limit ? (limit === "failed" ? null : t(limit === "stuck" ? "run.stuck" : "run.stepLimit")) : note;
   const said = Boolean(stop || byUserId || fallback);
   // Only a run a person stopped, one at its step limit, or long work its provider cut off, picks up again.
-  const can = Boolean(runId && (byUserId || stop || limit) && owner && !continued && canStop(owner));
+  const can = Boolean(runId && (byUserId || stop || limit) && owner && !continued && !movedOn && canStop(owner));
   if (!said && !can) return null;
   // Nothing to say (its text already says why): Continuar alone.
   if (!said && runId)
@@ -4242,6 +4257,7 @@ export const TimelineMessage = memo(function TimelineMessage({
     );
   };
   const meta = m.meta ?? {};
+  const standIn = modelStandInText(t, meta);
   const approvalId = typeof meta.approvalId === "string" ? meta.approvalId : null;
   const proposalId = typeof meta.proposalId === "string" ? meta.proposalId : null;
   const memoryUpdates = Array.isArray(meta.memoryUpdates)
@@ -4328,6 +4344,8 @@ export const TimelineMessage = memo(function TimelineMessage({
   const weekCard = actionCard && actionCardOf(meta)?.kind === "team_week";
   // "I'll answer when the plan resets": "Don't run it" while that run still waits.
   const usageWait = m.author.type === "agent" ? usageWaitOf(meta) : null;
+  // A picture or PDF it opened reached its AI as text only: "Trocar modelo" under the reply that says so.
+  const filesFix = m.author.type === "agent" ? filesTextOnlyOf(meta) : null;
   const card =
     approvalId ||
     waitNotice ||
@@ -4534,6 +4552,7 @@ export const TimelineMessage = memo(function TimelineMessage({
         {live && waiting ? (
           <Parts resetKey={m}>
             <LiveRunStatus run={live} />
+            {makingImage(live) && <ImageMaking color={colorOf(agent)} />}
             <RunBrowserCard run={live} name={name} />
             <span className="ac-visually-hidden">{t("channel.writing")}</span>
           </Parts>
@@ -4615,6 +4634,7 @@ export const TimelineMessage = memo(function TimelineMessage({
             {media && <ChatMedia media={media} />}
             {voice && <ChatVoice message={m} voice={voice} />}
             {m.author.type === "agent" && meta.speedFallback === true && <SpeedFallbackLine agent={agent} />}
+            {m.author.type === "agent" && standIn && <ModelStandInLine text={standIn} agent={agent} meta={meta} />}
             {(stopped.canceled || atLimit || providerCut) && (
               <StoppedLine
                 runId={m.agentRunId}
@@ -4732,9 +4752,11 @@ export const TimelineMessage = memo(function TimelineMessage({
                 .filter((u) => u.action === "proposed")
                 .map((u) => <MemoryChangeCard key={`${u.action}-${u.itemId}`} update={u} agentId={agent.id} />)}
             {waitNotice && <WaitingCard notice={waitNotice} agentId={m.author.id ?? null} />}
+            {m.author.type === "agent" && <WaitToolOffAction meta={meta} />}
             {deviceWait && <DeviceWaitCard wait={deviceWait} message={m} />}
             {noAi && <NoAiCard message={m} />}
             {actionCard && <ActionCard message={m} />}
+            {filesFix && m.author.id && <FailedRunFix code={filesFix} agentId={m.author.id} />}
             {m.author.type === "agent" && !m.local && m.meta?.replyChips ? <ReplyChips message={m} /> : null}
             {pushAsk?.messageId === m.id && !readOnly && <PushAskInline agent={agent} onClose={pushAsk.close} />}
             {usageWait?.closed ? (
@@ -5626,7 +5648,7 @@ function AddToChannelOffer({ channelId, agentId, onDone }: { channelId: string; 
           {t("mentions.add")}
         </Button>
       ) : (
-        <span className="small muted">{t("mentions.askAdmin")}</span>
+        <AskAdminButton ask={{ what: "channel_agent", channelId, agentId }} />
       )}
       <Button size="sm" variant="ghost" onClick={onDone}>
         {t("mentions.dismiss")}

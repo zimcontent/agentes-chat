@@ -28,6 +28,7 @@ import type {
   AccountLoginStart,
   AccountLoginStatus,
   ActiveRun,
+  AdminAsk,
   Agent,
   AgentAccess,
   AgentAction,
@@ -43,6 +44,7 @@ import type {
   AgentForYou,
   AgentGroup,
   AgentGroupPatch,
+  AgentHolds,
   AgentInput,
   AgentLineChange,
   AgentMailbox,
@@ -187,6 +189,7 @@ import type {
   MachineOutages,
   MachinePause,
   MachineTask,
+  MachineTool,
   MailAccount,
   MailAccountUpdate,
   MailFolder,
@@ -244,6 +247,7 @@ import type {
   PhoneDevice,
   PhoneDeviceInput,
   PhoneSignIn,
+  PlanServes,
   Poll,
   PostMedia,
   Proposal,
@@ -345,6 +349,7 @@ import type {
   WorkspaceActionCardView,
   WorkspaceLimits,
   WorkspaceMode,
+  XcodeFixView,
 } from "./types";
 
 /**
@@ -1089,6 +1094,10 @@ export interface ApiClient {
     wifiIphones(orgId: string, machineId: string): Promise<WifiIphones>;
     /** Uses that iPhone over Wi-Fi from now on; forgetting the phone stops it. */
     pickIphoneOverWifi(orgId: string, machineId: string, serial: string): Promise<WifiIphones>;
+    /** Fixes the Mac's Xcode (its owner or an admin); `select` asks for the Mac's password on the Mac. */
+    startXcodeFix(orgId: string, machineId: string, kind: "select" | "update"): Promise<XcodeFixView>;
+    xcodeFix(orgId: string, machineId: string): Promise<XcodeFixView>;
+    cancelXcodeFix(orgId: string, machineId: string): Promise<XcodeFixView>;
   };
   /** Connected computers (ADR 0025): machines running `agentes-runner`. */
   machines: {
@@ -1113,6 +1122,10 @@ export interface ApiClient {
     denyDevice(userCode: string): Promise<void>;
     /** ADR 0036 §8: the site only takes away (a folder, for everyone or one agent; a tool). The new access. */
     reduceAccess(orgId: string, machineId: string, input: MachineAccessReduce): Promise<MachineAccess>;
+    /** Only the person who paired it: turns `tool` on there (the computer says so, with Undo). The new access. */
+    allowTool(orgId: string, machineId: string, tool: MachineTool): Promise<MachineAccess>;
+    /** Anyone else: asks whoever paired it to turn `tool` on (an inbox row with the same button). */
+    askTool(orgId: string, machineId: string, tool: MachineTool): Promise<void>;
     /** Pauses it (`until` null: until resumed) or resumes it (`resume`); the pause as it stands then. */
     setPause(
       orgId: string,
@@ -1151,6 +1164,12 @@ export interface ApiClient {
      * such agent.
      */
     takeBackPlan(orgId: string, accountId: string, agentId?: string): Promise<{ agentIds: string[] }>;
+    /** Who the viewer's plan thinks for (ADR 0059 §3): everyone in the workspace, or only them. */
+    setAccountServes(
+      orgId: string,
+      accountId: string,
+      serves: PlanServes,
+    ): Promise<{ serves: PlanServes; agentIds: string[] }>;
     /** Its owner names it (1 to 40 characters). */
     renameAccount(orgId: string, machineId: string, accountId: string, label: string): Promise<MachineAccount>;
     /** Its owner (or whoever connected the computer) disconnects it; the computer signs it out and deletes it. */
@@ -1629,6 +1648,8 @@ export interface ApiClient {
     /** What reaches my devices as a notification in this workspace (ADR 0071 §8). */
     prefs(orgId: string): Promise<NoticePrefs>;
     setPref(orgId: string, category: NoticeCategory, on: boolean): Promise<NoticePrefs>;
+    /** "Pedir a um admin": an inbox row for whoever may do it (`admin_ask`); how many it reached. */
+    askAdmins(orgId: string, ask: AdminAsk): Promise<{ sent: number }>;
   };
   calendar: {
     /** Events, routine runs, reminders, issue deadlines and proposals between `from` and `to` (ISO). */
@@ -1989,6 +2010,10 @@ export interface ApiClient {
     status(orgId: string, agentId: string): Promise<DesktopStatus>;
     /** A recent picture of the agent's screen; never starts a stopped one. 403 for who may not watch it. */
     picture(orgId: string, agentId: string): Promise<DesktopPictureView>;
+    /** What the agent keeps running there (ADR 0176); 403 for who may not watch its computer. */
+    holds(orgId: string, agentId: string): Promise<AgentHolds>;
+    /** Stop: the hold ends, and its program stops or its browser closes. 403 for who may not (`canStop`). */
+    stopHold(orgId: string, agentId: string, holdId: string): Promise<void>;
   };
   /**
    * GIF search (ADR 0091), through our server: the browser and the phone never talk to the provider. Every member;

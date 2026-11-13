@@ -1497,6 +1497,25 @@ img.ac-logo__mark {
   width: 20px;
   height: 20px;
 }
+/* The chips of the agents a group's draft calls. The kit's composer draws no agent chip of its own, so their base is
+   here: a pill like the kit's context pills, in the agent's tint, its name ending in "…" before its face is squeezed. */
+[data-theme] .ac-composer__agent {
+  display: inline-flex;
+  align-items: center;
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 600;
+  line-height: normal;
+  background: var(--agent-soft);
+  color: var(--agent);
+  border: 0;
+  white-space: nowrap;
+  min-width: 0;
+  max-width: 100%;
+}
+[data-theme] .ac-composer__agent > :not(.ac-composer__pill-text) {
+  flex: none;
+}
 [data-theme] .channel__composer {
   padding: var(--dg-s2) var(--dg-gap-panel) var(--dg-gap-panel);
 }
