@@ -124,7 +124,9 @@ export function DmPage({ target, focusMessageId }: { target: DmTarget; focusMess
             {agent && <AgentTasksPill />}
             {/* The sidebar has the computer: only a line of turns waiting for it still shows here. A viewer of its public
               card gets the sidebar's head alone, so the way in stays for one who may still watch the computer. */}
-            {agent && !rightHand && <ModelPickerButton agent={agent} className="channel__brain" />}
+            {/* Doug: the header leaves how it thinks to the side panel's Como pensa while that panel says it (open
+              beside the chat, or one tap away on a phone), so the line of glyphs keeps to one row. */}
+            {agent && !rightHand && !sideSays && <ModelPickerButton agent={agent} className="channel__brain" />}
             {agent && !rightHand && <ComputerButton agent={agent} queueOnly={side?.docked && seesDetails(agent)} />}
             {/* The same field as a channel's, held to this DM. */}
             <HeaderSearch channelId={dm.data.channelId} onOpen={onSearch} dm />

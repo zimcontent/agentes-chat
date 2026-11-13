@@ -462,7 +462,10 @@ export function AuthPage({
   // once the server said whether it is the Cloud (and, in the app, whether it is the app's own).
   const here = window.location.origin;
   const cloudHere = instance.data?.cloud;
-  const changes = !desktop || desktopPicksServer();
+  // DougBot: on the web, a server of one's own names itself and offers no Change. "Onde fica o seu workspace?"
+  // recommends agentes.chat Cloud, another product for the people this server is for; it stays where the page is the
+  // Cloud's own. The desktop app keeps its window of servers.
+  const changes = desktop ? desktopPicksServer() : cloudHere === true;
   const serverLine = cloudHere !== undefined && placeKnown && (
     <p className="auth__place">
       <Icon name={local ? "computer" : cloudHere ? "cloud" : "globe"} size={14} />

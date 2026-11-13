@@ -19,8 +19,9 @@ export function useOnCloud(): boolean {
 
 /**
  * The quiet line under the sign-in: where it goes, "Entrando no agentes.chat Cloud · Trocar" (the server says whether
- * it is the Cloud) or "Entrando em <host> · Trocar", as on the web. Trocar opens "Onde fica o seu workspace?", in front
- * of the address and QR screens. The language follows the phone's (and its per-app setting in iOS Settings); signed in,
+ * it is the Cloud) or "Entrando em <host> · Trocar", as on the web. On the Cloud, Trocar opens "Onde fica o seu
+ * workspace?", in front of the address and QR screens; on a team's server it opens those screens directly (DougBot:
+ * the sheet recommends the Cloud). The language follows the phone's (and its per-app setting in iOS Settings); signed in,
  * it changes in Você (ADR 0122). Signed in on another server (this one added from Workspaces): "Voltar para …" goes
  * back to it, still signed in there.
  */
@@ -36,7 +37,9 @@ export function AuthFootLine() {
   return (
     <View style={styles.foot}>
       <Pressable
-        onPress={() => router.push("/where")}
+        // DougBot: on a team's server Trocar goes straight to the address and QR screen, as before the sheet.
+        // "Onde fica o seu workspace?" recommends agentes.chat Cloud, so it opens only when the phone is on it.
+        onPress={() => router.push(onCloud ? "/where" : "/scan")}
         accessibilityRole="button"
         accessibilityLabel={`${where}. ${t("mobile.auth.server.footSwitch")}`}
         // An 18-point line: 12 of slop above and below reaches the 44-point target.

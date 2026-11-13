@@ -49,10 +49,12 @@ describe("composer row and formatting", () => {
     await open();
     expect(rowOf(composer())).toEqual(["Anexar arquivo", "Emojis, GIFs e figurinhas", "Mensagem para #eng", "Enviar"]);
     expect(screen().queryByRole("toolbar", { name: "Formatação" })).toBeNull();
-    // A draft that calls an agent grows no chip over the text: the @ picker and the sent message say who.
+    // Doug: a group's draft that calls an agent shows that agent's chip over the text (who will answer), gone with
+    // the call.
     await act(async () => fireEvent.change(composer(), { target: { value: "@ada olha isso" } }));
-    expect(composer().closest(".ac-composer")?.querySelector(".ac-composer__pills")).toBeNull();
+    expect(composer().closest(".ac-composer")?.querySelector(".ac-composer__agent")?.textContent).toContain("Ada");
     await act(async () => fireEvent.change(composer(), { target: { value: "" } }));
+    expect(composer().closest(".ac-composer")?.querySelector(".ac-composer__pills")).toBeNull();
     const bar = within(article("o login está devolvendo 401")).getByRole("toolbar");
     await act(async () => fireEvent.click(within(bar).getByRole("button", { name: "Responder" })));
     await settle(6);

@@ -1716,21 +1716,48 @@ function ChannelView({
     dmAgent ? colorOf(dmAgent) : undefined,
   );
   const namedLook = useMemo(() => ({ ...look, names: true, faces: true }), [look]);
-  // The composer's one pill: the mission this message answers, which can be called off.
-  const composerPills = missionReply ? (
-    <span className="ac-composer__pill composer-reply">
-      <Icon name="message" size={14} />
-      <span className="ac-composer__pill-text">{t("missions.reply.pill", { label: missionReply.label })}</span>
-      <button
-        type="button"
-        className="composer-reply__close"
-        aria-label={t("missions.reply.cancel")}
-        onClick={() => setMissionReply(null)}
-      >
-        <Icon name="close" size={14} />
-      </button>
-    </span>
-  ) : undefined;
+  const draftAgents = useMemo(
+    () =>
+      [
+        ...new Set(
+          tokenizeBody(draft).flatMap((tok) =>
+            tok.type === "mention" ? [dir.agentByHandle.get(tok.handle.toLowerCase())?.id] : [],
+          ),
+        ),
+      ]
+        .map((id) => (id ? dir.agentById.get(id) : undefined))
+        .filter((a): a is Agent => Boolean(a)),
+    [draft, dir.agentByHandle, dir.agentById],
+  );
+  // Doug: a DM's header already says who answers, so its composer carries no chip of the agent; a channel keeps the
+  // chips of the agents its draft calls (who will answer). The kit's composer draws no agent chip of its own: these
+  // take their look from the DougBot theme (`doug.css`).
+  const pillAgents = dmAgent ? [] : draftAgents;
+  const composerPills =
+    pillAgents.length > 0 || missionReply ? (
+      <>
+        {missionReply && (
+          <span className="ac-composer__pill composer-reply">
+            <Icon name="message" size={14} />
+            <span className="ac-composer__pill-text">{t("missions.reply.pill", { label: missionReply.label })}</span>
+            <button
+              type="button"
+              className="composer-reply__close"
+              aria-label={t("missions.reply.cancel")}
+              onClick={() => setMissionReply(null)}
+            >
+              <Icon name="close" size={14} />
+            </button>
+          </span>
+        )}
+        {pillAgents.map((a) => (
+          <span key={a.id} className="ac-composer__agent">
+            <AgentAvatar agentId={a.id} channelId={channel.id} name={a.name} size="xs" />
+            <span className="ac-composer__pill-text">{a.name}</span>
+          </span>
+        ))}
+      </>
+    ) : undefined;
   // "/" commands, for the DM agent or the channel's suggested agent.
   const commandAgent = dmAgent ?? suggestedAgent;
   const navigateTo = useNavigate();
