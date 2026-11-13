@@ -233,6 +233,13 @@ export const exposedToolName = (connector: string, tool: string) =>
   `${connector}_${tool}`.replace(/[^a-zA-Z0-9_-]/g, "_").slice(0, 64);
 
 const LIST_TTL_MS = 60_000;
+/**
+ * DougBot: a server that doesn't list its tools in this time is skipped for the run (its tools are missing, nothing
+ * else waits), and for `DOWN_RETRY_MS` after: an unreachable server (a bridge whose far end is off) held every run's
+ * start for the MCP client's own 60 s.
+ */
+export const LIST_TIMEOUT_MS = 8000;
+const DOWN_RETRY_MS = 2 * 60_000;
 
 /** Read before Composio's own words in its executor's description: what asks a person and what doesn't. */
 const EXECUTOR_NOTE =
@@ -255,10 +262,15 @@ export function createConnectorToolSource(
     judge?: Judge;
     /** The server's GitHub App (ADR 0156): GitHub's tools act as it wherever the workspace installed it. */
     githubApp?: GitHubAppAccess;
+    /** Tests: `LIST_TIMEOUT_MS`. */
+    listTimeoutMs?: number;
   },
 ): ToolSource {
+  const listTimeoutMs = deps.listTimeoutMs ?? LIST_TIMEOUT_MS;
   const connect = deps.connect ?? connectOverHttp;
   const cache = new Map<string, { at: number; tools: McpTool[] }>();
+  /** Connections whose last listing failed or timed out, until when they are skipped. */
+  const down = new Map<string, number>();
   /** How many times a listing found changed tools and worked out a custom server's levels again. */
   let reclassified = 0;
   const github = { fetch: deps.http ?? fetch, apiUrl: "https://api.github.com", ...deps.githubApp?.http };
@@ -294,7 +306,31 @@ export function createConnectorToolSource(
         ? await githubListingHeaders(deps, deps.githubApp, { db: deps.db, orgId: connection.orgId }, connection)
         : undefined;
     if (auth === null) throw new Error("no installation of the GitHub App to list GitHub's tools with");
-    const listed = await withSession(connection, (s) => s.listTools(), auth);
+    const skipUntil = down.get(connection.id) ?? 0;
+    if (Date.now() < skipUntil) throw new Error("connector unreachable a moment ago; skipped");
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    let listed: McpTool[];
+    try {
+      listed = await Promise.race([
+        withSession(connection, (s) => s.listTools(), auth),
+        new Promise<never>((_, reject) => {
+          timer = setTimeout(
+            () => reject(new Error(`connector didn't list its tools in ${listTimeoutMs / 1000} s`)),
+            listTimeoutMs,
+          );
+        }),
+      ]);
+    } catch (error) {
+      down.set(connection.id, Date.now() + DOWN_RETRY_MS);
+      deps.log?.warn("connector listing failed; skipped for a while", {
+        connectionId: connection.id,
+        error: error instanceof Error ? error.message : String(error),
+      });
+      throw error;
+    } finally {
+      if (timer) clearTimeout(timer);
+    }
+    down.delete(connection.id);
     const reclassify = isCustom(connection)
       ? () => syncCustomTools({ ...deps, connect }, connection).finally(() => reclassified++)
       : undefined;

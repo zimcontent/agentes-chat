@@ -220,6 +220,32 @@ describe("GitHub and the GitHub App's installations (ADR 0156)", () => {
 });
 
 describe("MCP tools through the Tool Gateway", () => {
+  test("a server that doesn't answer is skipped after its timeout, and not asked again for a while", async () => {
+    f = await setup();
+    let dials = 0;
+    // Never answers (a bridge whose far end is off): the run must not wait the MCP client's own 60 s.
+    const connect = async () => {
+      dials++;
+      return new Promise<never>(() => {});
+    };
+    await createApiKeyConnection(depsOf(f), f.owner.id, f.org.id, { connector: "github", apiKey: "ghp_secret_123456" });
+    const source = createConnectorToolSource({ ...depsOf(f), connect, listTimeoutMs: 50 });
+    const ctx = {
+      db: f.db,
+      orgId: f.org.id,
+      agentId: f.agent.id,
+      runId: crypto.randomUUID(),
+      channelId: f.general.id,
+      threadRootId: crypto.randomUUID(),
+      triggerMessageId: crypto.randomUUID(),
+    };
+    const started = Date.now();
+    expect((await source.tools(ctx)).filter((t) => t.name.startsWith("github_"))).toEqual([]);
+    expect(Date.now() - started).toBeLessThan(2000);
+    await source.tools(ctx);
+    expect(dials).toBe(1);
+  });
+
   test("only catalog tools the agent was granted are exposed; calls go over MCP with the org's key", async () => {
     f = await setup();
     const mcp = fakeGithubMcp();
