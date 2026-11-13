@@ -235,7 +235,9 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       // extension takes the app's name and shares its URL scheme; it reaches phones only with a new native build.
       "expo-share-intent",
       {
-        iosShareExtensionName: variant === "production" ? APP_NAME : `${APP_NAME} ${variant}`,
+        // "Doug", not the app's name: the extension's target is named from it, and two targets both called "DougBot"
+        // made EAS sign the app with the extension's provisioning profile.
+        iosShareExtensionName: variant === "production" ? "Doug" : `Doug ${variant}`,
         iosActivationRules: {
           NSExtensionActivationSupportsText: true,
           NSExtensionActivationSupportsWebURLWithMaxCount: 1,
