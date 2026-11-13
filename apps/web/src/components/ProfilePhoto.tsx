@@ -378,7 +378,7 @@ export function OrgLogoDialog({ open, onClose }: { open: boolean; onClose: () =>
       onClose={onClose}
       title={t("orgLogo.title")}
       help={t("orgLogo.help")}
-      placeholder={<OrgMark logo={org.logo} size={56} />}
+      placeholder={<OrgMark logo={org.logo} name={org.name} size={56} />}
       hasImage={Boolean(org.logo)}
       removeLabel={t("orgLogo.remove")}
       format="image/png"
@@ -458,8 +458,31 @@ export function ChannelIconDialog({
   );
 }
 
-/** The workspace's mark: its logo when there is one, else the agent mark. */
-export function OrgMark({ logo, size = 28, className }: { logo?: string | null; size?: number; className?: string }) {
+/**
+ * The workspace's mark: its logo when there is one, else its initial on a quiet tile (the Doug is the product's
+ * signature, never a workspace's: one mark, never repeated beside it). With no name, the Doug.
+ */
+export function OrgMark({
+  logo,
+  name,
+  size = 28,
+  className,
+}: {
+  logo?: string | null;
+  name?: string;
+  size?: number;
+  className?: string;
+}) {
   if (logo) return <img className={cx("org-mark", className)} src={logo} alt="" width={size} height={size} />;
+  if (name)
+    return (
+      <span
+        className={cx("org-mark", "org-mark--initial", className)}
+        style={{ width: size, height: size, fontSize: Math.round(size * 0.46) }}
+        aria-hidden="true"
+      >
+        {[...name.trim()][0]?.toLocaleUpperCase() ?? "?"}
+      </span>
+    );
   return <LogoMark className={className} size={size} />;
 }

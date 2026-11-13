@@ -826,7 +826,7 @@ describe("why a plan can't sign in yet, in plain words (`gateLine`)", () => {
       rechecks: true,
     });
     const runner =
-      "O programa do agentes.chat no Computador da Acme está desatualizado e a atualização já está a caminho. Isto muda sozinho quando ela terminar.";
+      "O programa do DougBot no Computador da Acme está desatualizado e a atualização já está a caminho. Isto muda sozinho quando ela terminar.";
     expect(line(off("runner_old"), "cloud")).toEqual({ text: runner, rechecks: true });
     expect(line(off("keys"), "cloud")).toEqual({ text: runner, rechecks: true });
     expect(line(off("exec_off"), "cloud", "claude_code")).toEqual({
@@ -965,8 +965,8 @@ describe("a card says the real cause, not that the agent has no AI", () => {
 
   test("the right hand: a model's own limit or region, and commands off, each with its cause", () => {
     expect(card("model_limit", { model: "Kimi K2" })).toMatchObject({ planLine: "model_limit", model: "Kimi K2" });
-    expect(pt("noAi.rightHand.model_limit", { name: "Lodi", model: "Kimi K2" })).toBe(
-      "Lodi não consegue responder agora: o Kimi K2 chegou ao limite dele no plano. Os outros modelos do plano continuam funcionando.",
+    expect(pt("noAi.rightHand.model_limit", { name: "Doug", model: "Kimi K2" })).toBe(
+      "Doug não consegue responder agora: o Kimi K2 chegou ao limite dele no plano. Os outros modelos do plano continuam funcionando.",
     );
     expect(serverBody(pt, "…", meta("model_limit", { model: "Kimi K2" }))).toBe(
       "Agora não consigo responder: o Kimi K2 chegou ao limite dele no meu plano.",

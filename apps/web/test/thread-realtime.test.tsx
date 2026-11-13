@@ -405,7 +405,7 @@ describe("a thread opened after the live events began its list", () => {
     await settle(3);
     await go(GENERAL_ID);
     await settle(4);
-    state.messages.push(reply("r-away", "enquanto fora do canal"));
+    state.messages.push(reply("r-away", "enquanto fora do grupo"));
     await go(ENG_ID);
     await settle(4);
     const m = reply("r-new", "resposta nova");
@@ -415,7 +415,7 @@ describe("a thread opened after the live events began its list", () => {
     const again = await openPanel();
     await settle(5);
     expect(inView(again, "resposta nova")).toHaveLength(1);
-    expect(inView(again, "enquanto fora do canal")).toHaveLength(1);
+    expect(inView(again, "enquanto fora do grupo")).toHaveLength(1);
   });
 });
 

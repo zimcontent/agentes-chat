@@ -1,4 +1,5 @@
 import { type RefObject, useEffect, useRef } from "react";
+import { PIXEL_ART } from "../brand/doug";
 import { HORIZON_CELL as CELL, horizonCrest, horizonHeight, horizonTones, HORIZON_WAVE as WAVE } from "../sky/horizon";
 import { bayerAt } from "../sky/math";
 import type { AgentColor } from "./AgentLook";
@@ -35,7 +36,12 @@ function contentBottom(holder: HTMLElement): number {
  * canvas's parent, positioned, a stacking context: the canvas sits under its text), and draws nothing when that room
  * is small, so a full card never has it.
  */
-export function CardHorizon({
+export function CardHorizon(props: { content: RefObject<HTMLElement | null>; color?: AgentColor }) {
+  if (!PIXEL_ART) return null;
+  return <DitherHorizon {...props} />;
+}
+
+function DitherHorizon({
   content,
   color = "sky",
 }: {

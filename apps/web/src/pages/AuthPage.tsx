@@ -24,14 +24,13 @@ import {
   passwordState,
   webmailOf,
 } from "@agenteschat/client/lib/text";
-import { Button, Icon, Input, Locked } from "@agenteschat/ui";
+import { Button, DougMark, Icon, Input, Locked } from "@agenteschat/ui";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import type { TFunction } from "i18next";
 import { type FormEvent, type KeyboardEvent, useEffect, useRef, useState } from "react";
 import { Trans, useTranslation } from "react-i18next";
 import { useAuth } from "@/auth/context";
-import { AgentAvatar } from "@/components/AgentAvatar";
 import { AuthShell } from "@/components/AuthLayout";
 import { prepareBurst } from "@/components/Sky";
 import { rememberSignIn, SocialButtons, useSocialProviders } from "@/components/SocialButtons";
@@ -528,11 +527,12 @@ export function AuthPage({
       <form className="auth__form" onSubmit={submit} noValidate>
         {serverLine}
         <header className="auth__ask" ref={header} data-burst>
-          <AgentAvatar
-            name="agentes.chat"
-            size="lg"
-            state={pending || step === "browser" ? "writing" : undefined}
-            expression={expression}
+          <DougMark
+            size={44}
+            className="auth__mark"
+            data-busy={pending || step === "browser" || undefined}
+            data-mood={expression}
+            estado={pending || step === "browser" ? "trabalhando" : "ok"}
           />
           <div className="auth__bubble" key={`${shown}-${wrong}`} aria-live="polite">
             <h1 className="auth__title">{title}</h1>

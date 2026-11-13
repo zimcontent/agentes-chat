@@ -138,7 +138,7 @@ function OwnerChip({ userId }: { userId: string | null }) {
   return owner ? (
     <Chip lead={<Avatar kind="person" size="xs" name={owner.name} imageUrl={owner.image} />}>{owner.name}</Chip>
   ) : (
-    <Chip lead={<OrgMark logo={org.logo} size={14} />}>{t("devices.workspace")}</Chip>
+    <Chip lead={<OrgMark logo={org.logo} name={org.name} size={14} />}>{t("devices.workspace")}</Chip>
   );
 }
 

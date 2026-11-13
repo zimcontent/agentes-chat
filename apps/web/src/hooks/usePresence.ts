@@ -83,6 +83,8 @@ export interface AgentShown {
   activeAt: string | null;
   /** No AI to think with: drawn offline (ADR 0084 §3). */
   noAi: boolean;
+  /** A run of its waits on a person's approval or answer: its bot asks (IDENTIDADE.md §7), AI or not. */
+  waiting: boolean;
 }
 
 /** An agent's presence as the apps draw it and its line; null while the list loads. */
@@ -119,6 +121,11 @@ export function useAgentPresence(agentId: string | null | undefined): AgentShown
     line: noAi ? null : live(status?.status),
     activeAt: status?.activeAt ?? null,
     noAi,
+    waiting:
+      status?.status?.wait === "approval" ||
+      status?.status?.wait === "answer" ||
+      status?.status?.kind === "waiting_approval" ||
+      status?.status?.kind === "waiting_answer",
   };
 }
 

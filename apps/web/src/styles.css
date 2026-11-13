@@ -10,6 +10,9 @@
 @import "@fontsource-variable/jetbrains-mono/index.css";
 /* Onest: the design system's own default face (`--font-sans` in its tokens). */
 @import "@fontsource-variable/onest/index.css";
+/* Doug: Inter for the app's words, Manrope for titles (the mydoug.io portal's pair), from local packages, no CDN. */
+@import "@fontsource-variable/inter/index.css";
+@import "@fontsource-variable/manrope/index.css";
 @import "./fonts.css";
 @import "@agenteschat/ui/styles.css" layer(base);
 @import "./layout.css" layer(base);
@@ -19,6 +22,8 @@
    `html[data-desktop]` ones too). */
 @import "./desktop.css";
 @import "./over-pages.css";
+/* Doug's dark theme and glass, over everything above (unlayered, last). */
+@import "@agenteschat/ui/doug.css";
 
 :root {
   /* The app reads in Source Sans 3, titles too; code in JetBrains Mono. */

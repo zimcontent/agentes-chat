@@ -4,7 +4,7 @@ import Constants from "expo-constants";
 export const trimBase = (url: string) => url.replace(/\/+$/, "");
 
 /** DougBot's own server (the Time Zim's), the default when the build names none. */
-export const DOUGBOT_SERVER = "https://time.zimcontent.com";
+export const DOUGBOT_SERVER = "https://dougbot.app";
 
 const extra = (Constants.expoConfig?.extra ?? {}) as { apiUrl?: string; variant?: string };
 

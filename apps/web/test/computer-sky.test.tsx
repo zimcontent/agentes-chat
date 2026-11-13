@@ -3,7 +3,7 @@ import { canvasPage, setupDom } from "@agenteschat/ui/testing";
 
 setupDom();
 
-import { agentTones, EYE, pixelOf, SKY_TONES, softTones, spriteTone } from "@agenteschat/ui";
+import { agentTones, EYE, PIXEL_ART, pixelOf, SKY_TONES, softTones, spriteTone } from "@agenteschat/ui";
 import { act, render } from "@testing-library/react";
 import { ComputerSky } from "../src/components/Sky";
 
@@ -44,14 +44,17 @@ const subset = (drawn: Set<number>, tones: readonly string[]) => {
   return [...drawn].every((p) => allowed.has(p));
 };
 
-test("the computer's sky: the agent's day sky in a light window, the dark window's own surface rising into it", async () => {
-  const light = await colorsOn("#ffffff");
-  expect(light.size).toBeGreaterThan(3);
-  expect(subset(light, agentTones("sky"))).toBe(true);
+test.skipIf(!PIXEL_ART)(
+  "the computer's sky: the agent's day sky in a light window, the dark window's own surface rising into it",
+  async () => {
+    const light = await colorsOn("#ffffff");
+    expect(light.size).toBeGreaterThan(3);
+    expect(subset(light, agentTones("sky"))).toBe(true);
 
-  const dark = await colorsOn("#1c1c1b");
-  expect(dark.size).toBeGreaterThan(3);
-  expect(subset(dark, softTones("sky", "#1c1c1b"))).toBe(true);
-  // None of the day sky's own tones: neither its deep blues nor its near whites.
-  expect(SKY_TONES.some((tone) => dark.has(pixelOf(tone)))).toBe(false);
-});
+    const dark = await colorsOn("#1c1c1b");
+    expect(dark.size).toBeGreaterThan(3);
+    expect(subset(dark, softTones("sky", "#1c1c1b"))).toBe(true);
+    // None of the day sky's own tones: neither its deep blues nor its near whites.
+    expect(SKY_TONES.some((tone) => dark.has(pixelOf(tone)))).toBe(false);
+  },
+);

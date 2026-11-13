@@ -17,7 +17,7 @@ const DM = `dm-${LODI_ID}`;
 const ROOT = "00000000-0000-4000-8000-0000000000f1";
 const TASK = "00000000-0000-4000-8000-0000000000f2";
 
-test("Lodi's reply carries the task it handed on as a chip that opens the task's conversation (ADR 0137 §14)", async () => {
+test("Doug's reply carries the task it handed on as a chip that opens the task's conversation (ADR 0137 §14)", async () => {
   const state = withRightHand(seedState());
   seedDm(state, { type: "agent", id: LODI_ID });
   const created: AgentAction = {

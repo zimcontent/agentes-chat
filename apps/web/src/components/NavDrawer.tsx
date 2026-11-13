@@ -231,7 +231,7 @@ export function ShellBar() {
     <header className="shell__bar">
       <NavToggle />
       <span className="shell__bar-org">
-        {isPersonal(org) ? <MyFace size="sm" /> : <OrgMark logo={org.logo} size={22} />}
+        {isPersonal(org) ? <MyFace size="sm" /> : <OrgMark logo={org.logo} name={org.name} size={22} />}
         <span className="shell__bar-name">{isPersonal(org) ? me.user.name : org.name}</span>
       </span>
       <Button variant="ghost" iconOnly icon="search" aria-label={t("palette.jump")} onClick={openPalette} />

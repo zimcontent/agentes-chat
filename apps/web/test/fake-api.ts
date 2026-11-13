@@ -296,7 +296,7 @@ export interface FakeState {
   /** A person's month by id; unset: an empty month. */
   personUsage?: Record<string, PersonUsage>;
   personLimits?: PersonLimits;
-  /** Lodi's weekly card for the signed-in person. */
+  /** Doug's weekly card for the signed-in person. */
   teamWeek?: TeamWeekPrefs;
   memories: Memory[];
   proposals: Proposal[];
@@ -670,12 +670,12 @@ function mediaSettings(state: FakeState): Pick<OrgSettings, MediaSetting> {
  */
 export const LODI_ID = "00000000-0000-4000-8000-0000000000a9";
 
-/** The workspace's right hand (ADR 0137), as the server makes it: Lodi, teal, owned by the workspace owner. */
+/** The workspace's right hand (ADR 0137), as the server makes it: Doug, teal, owned by the workspace owner. */
 export function withRightHand(state: FakeState, extra: Partial<Agent> = {}) {
   state.agents.push({
     id: LODI_ID,
-    name: "Lodi",
-    handle: "lodi",
+    name: "Doug",
+    handle: "doug",
     role: "",
     instructions: "",
     model: "auto",
@@ -958,7 +958,7 @@ export function seedState(overrides: Partial<FakeState> = {}): FakeState {
         { type: "agent_instructions", agentId: ADA_ID },
         "Manter PRs pequenos e pedir revisão do João em pagamentos",
         "Programa em branches, nunca direto na main.\nAbre PRs pequenos, com teste para cada correção.\nPede ajuda ao João quando a mudança tocar em pagamentos.",
-        "Programa em branches, nunca direto na main.\nAbre PRs de até 300 linhas; se passar disso, divide em PRs menores.\nAbre PRs pequenos, com teste para cada correção.\nAntes de abrir PR que toque em pagamentos, pede revisão do João no canal.",
+        "Programa em branches, nunca direto na main.\nAbre PRs de até 300 linhas; se passar disso, divide em PRs menores.\nAbre PRs pequenos, com teste para cada correção.\nAntes de abrir PR que toque em pagamentos, pede revisão do João no grupo.",
         { type: "user", userId: "u-joao", name: "João" },
         60,
       ),
@@ -1188,7 +1188,7 @@ export const CATALOG: ConnectorCatalog = {
       iconUrl: "/brands/canva.svg",
     },
     {
-      ...remote("slack", "Slack", "support", "Canais e mensagens.", "https://mcp.slack.example/mcp", null, false),
+      ...remote("slack", "Slack", "support", "Grupos e mensagens.", "https://mcp.slack.example/mcp", null, false),
       kind: "catalog",
       available: false,
       oauthConfigured: false,
@@ -2116,15 +2116,19 @@ export function createFakeHttpApi(state: FakeState): Omit<HttpApi, FakedParts> {
       },
     },
     agents: {
-      setAgentPhoto: async (_orgId, agentId) => {
-        const photo = `/api/app/organizations/org/agents/${agentId}/photo/0000000000000000.png`;
-        const a = state.agents.find((x) => x.id === agentId);
-        if (a) a.photo = photo;
+      setAgentPhoto: async (orgId, agentId, body) => {
+        state.calls.push({ method: "agents.setAgentPhoto", args: [orgId, agentId, body] });
+        const agent = state.agents.find((a) => a.id === agentId);
+        if (!agent) throw new Error("no agent");
+        const photo = `/api/app/organizations/${orgId}/agents/${agentId}/photo/0123456789abcdef.png`;
+        agent.photo = photo;
         return { photo };
       },
-      removeAgentPhoto: async (_orgId, agentId) => {
-        const a = state.agents.find((x) => x.id === agentId);
-        if (a) a.photo = null;
+      removeAgentPhoto: async (orgId, agentId) => {
+        state.calls.push({ method: "agents.removeAgentPhoto", args: [orgId, agentId] });
+        const agent = state.agents.find((a) => a.id === agentId);
+        if (!agent) throw new Error("no agent");
+        agent.photo = null;
       },
       planUsage: async (_orgId, agentId) => {
         const money = seesCost();

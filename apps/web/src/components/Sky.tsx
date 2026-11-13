@@ -15,6 +15,7 @@ import {
   isDarkSurface,
   Logo,
   mix,
+  PIXEL_ART,
   PixelSky,
   parseColor,
   pixelBurst,
@@ -28,7 +29,7 @@ import {
   workspaceInk,
   workspaceTones,
 } from "@agenteschat/ui";
-import { useEffect, useRef, useState } from "react";
+import { type CSSProperties, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { AgentAvatar } from "@/components/AgentAvatar";
 import { useOrg } from "@/components/org-context";
@@ -178,7 +179,11 @@ export function AgentCover({
   const host = useRef<HTMLDivElement>(null);
   return (
     <div className="agp-cover__sky" data-busy={busy || undefined} aria-hidden="true" ref={host}>
-      <PixelSky options={agentCoverOptions(color, { busy, clear, pool: facePool(host, clear, at) })} />
+      {PIXEL_ART ? (
+        <PixelSky options={agentCoverOptions(color, { busy, clear, pool: facePool(host, clear, at) })} />
+      ) : (
+        <ProfileSky color={color} busy={busy} />
+      )}
     </div>
   );
 }
@@ -262,6 +267,18 @@ export function agentCoverOptions(
  * band), or a person's soft sky fading into the card.
  */
 export function ProfileSky({ color, person, busy = false }: { color: AgentColor; person?: boolean; busy?: boolean }) {
+  // Doug draws no pixel sky: a soft glass band in the agent's own color instead.
+  if (!PIXEL_ART) {
+    const [top, bottom] = agentGradient(color);
+    return (
+      <span
+        className="dg-band"
+        data-person={person || undefined}
+        aria-hidden="true"
+        style={{ "--av-top": top, "--av-bottom": bottom } as CSSProperties}
+      />
+    );
+  }
   return (
     <PixelSky
       options={

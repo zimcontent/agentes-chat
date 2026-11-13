@@ -973,7 +973,9 @@ export function Composer({
                     variant="ghost"
                     iconOnly
                     size="sm"
-                    icon="attach"
+                    // Doug (after Nordus's composer): a round glass + where the clip was; it still attaches.
+                    icon="plus"
+                    className="ac-composer__plus"
                     aria-label={attachLabel}
                     onClick={onAttach ?? (onFiles ? () => fileInput.current?.click() : undefined)}
                     disabled={(!onAttach && !onFiles) || disabled}

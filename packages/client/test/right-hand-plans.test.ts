@@ -8,7 +8,7 @@ import { noAiCardOf, planLineKey } from "../src/lib/no-ai";
 
 const meta = (reason: string) => ({
   bodyCode: "no_ai",
-  noAi: { agentId: "lodi", forUserId: null, reason, intent: "task", runId: "r1" },
+  noAi: { agentId: "doug", forUserId: null, reason, intent: "task", runId: "r1" },
 });
 
 test("its plan's line: the computer away, the limit, a plan for its owner only; anything else is an ordinary card", () => {
@@ -38,19 +38,19 @@ test("its plan's CLI failing: the line says what the CLI said, in the reader's l
   for (const [lng, line, body] of [
     [
       "pt-BR",
-      "Lodi não consegue responder agora: a IA do plano parou com um erro (spawn bwrap ENOENT).",
+      "Doug não consegue responder agora: a IA do plano parou com um erro (spawn bwrap ENOENT).",
       "Agora não consigo responder: a IA do meu plano parou com um erro (spawn bwrap ENOENT).",
     ],
     [
       "en",
-      "Lodi can't answer now: the plan's AI stopped with an error (spawn bwrap ENOENT).",
+      "Doug can't answer now: the plan's AI stopped with an error (spawn bwrap ENOENT).",
       "I can't answer now: my plan's AI stopped with an error (spawn bwrap ENOENT).",
     ],
   ] as const) {
     const i18n = i18next.createInstance();
     void i18n.init({ lng, fallbackLng: "en", resources, initAsync: false });
     const t = i18n.t.bind(i18n) as TFunction;
-    expect(t(planLineKey("cli_failed", card?.why), { name: "Lodi", why: card?.why })).toBe(line);
+    expect(t(planLineKey("cli_failed", card?.why), { name: "Doug", why: card?.why })).toBe(line);
     expect(serverBody(t, "…", said("cli_failed", "spawn bwrap ENOENT"))).toBe(body);
   }
   // A card from before, with no words: its line as it was.

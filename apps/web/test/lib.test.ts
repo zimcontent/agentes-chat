@@ -254,14 +254,14 @@ describe("grammar", () => {
     );
     // Where Portuguese needs no pronoun, English has none either.
     expect(te("agent.budgetHelp", { ...ada, ownerNote: "" }).trim()).toBe(
-      "At the limit, Ada stops and says so in the channel.",
+      "At the limit, Ada stops and says so in the group.",
     );
     expect(te("newAgent.budgetHelp", ada)).toBe("At the limit, Ada stops and says so.");
     expect(te("look.onHead")).toBe("On the head");
     expect(te("database.agent.levelText")).toBe("Queries the tables the rules allow, read-only.");
     expect(te("agentPage.memory.counts")).toBe("What's in memory");
     // Her Access tab says what each level gives her in her own words.
-    expect(te("access.areaText.context.read", ada)).toBe("Searches messages, summaries and facts in the channels.");
+    expect(te("access.areaText.context.read", ada)).toBe("Searches messages, summaries and facts in the groups.");
     expect(te("access.areaText.context.write", ada)).toBe("Searches the context and keeps her own notes.");
     expect(te("access.areaText.browser.write", theo)).toBe(
       "Browses websites in his own browser, on his computer. Logins are kept per agent.",

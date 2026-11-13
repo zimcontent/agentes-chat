@@ -4,7 +4,7 @@ import type { ConfigContext, ExpoConfig } from "expo/config";
  * DougBot's Expo config (the fork of agentes.chat by Codari Global, LLC, AGPL-3.0; identity in
  * identidade/dougbot-identidade). The app's Expo config. Builds: the "Android build" and "iOS build" workflows on GitHub Actions, or EAS (see
  * README.md). The native projects are made from this file by `expo prebuild` and never committed.
- * - `EXPO_PUBLIC_API_URL`: the server the app talks to by default (production: https://time.zimcontent.com); people
+ * - `EXPO_PUBLIC_API_URL`: the server the app talks to by default (production: https://dougbot.app); people
  *   can pick their own.
  * - `EAS_PROJECT_ID`: the EAS project (the iPhone's Expo push tokens need it). Not set here on purpose: `eas init`
  *   creates the owner's own project on expo.dev and writes its id below (`DOUGBOT_EAS_PROJECT_ID`), or the build's
@@ -23,7 +23,7 @@ import type { ConfigContext, ExpoConfig } from "expo/config";
 const variant = process.env.APP_VARIANT ?? "production";
 const prancha = process.env.DOUGBOT_PRANCHA === "1";
 const suffix = variant === "production" ? "" : `.${variant}`;
-const apiUrl = process.env.EXPO_PUBLIC_API_URL ?? "https://time.zimcontent.com";
+const apiUrl = process.env.EXPO_PUBLIC_API_URL ?? "https://dougbot.app";
 // Links to this host open the app (universal links / App Links); the server publishes the matching /.well-known
 // files (apps/server/src/app-links.ts).
 const linkHost = new URL(apiUrl).host;
@@ -86,12 +86,12 @@ export const APP_LINK_PATTERNS = [
 ];
 // DougBot's EAS project on expo.dev (not a secret: it only names the project). Empty until the owner runs `eas init`
 // (TESTFLIGHT.md), which fills it in; `EAS_PROJECT_ID` in the environment wins.
-const DOUGBOT_EAS_PROJECT_ID = "";
+const DOUGBOT_EAS_PROJECT_ID = "da14fac0-0136-48a5-a4ab-f59280bf25d6";
 const projectId = process.env.EAS_PROJECT_ID || DOUGBOT_EAS_PROJECT_ID || undefined;
 /** The app's name on the home screen and in the stores. */
 const APP_NAME = "DougBot";
-// The bundle id / package: io.mydoug.app, with .preview and .development side by side.
-const BUNDLE_ID = `io.mydoug.app${suffix}`;
+// The bundle id / package: app.dougbot (the dougbot.app domain, reversed), with .preview and .development side by side.
+const BUNDLE_ID = `app.dougbot${suffix}`;
 // expo-image-picker and expo-camera both set iOS's camera text: one text for both uses (pt-BR and the other languages
 // in assets/locales/*.json win on phones in those languages).
 const CAMERA_USE = "To take pictures for your conversations and your agents' photos, and to scan QR codes.";
@@ -235,7 +235,9 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       // extension takes the app's name and shares its URL scheme; it reaches phones only with a new native build.
       "expo-share-intent",
       {
-        iosShareExtensionName: variant === "production" ? APP_NAME : `${APP_NAME} ${variant}`,
+        // "Doug", not the app's name: the extension's target is named from it, and two targets both called "DougBot"
+        // made EAS sign the app with the extension's provisioning profile.
+        iosShareExtensionName: variant === "production" ? "Doug" : `Doug ${variant}`,
         iosActivationRules: {
           NSExtensionActivationSupportsText: true,
           NSExtensionActivationSupportsWebURLWithMaxCount: 1,

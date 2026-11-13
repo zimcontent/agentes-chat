@@ -34,7 +34,7 @@ const click = async (el: Element, rounds = 8) => {
   await settle(rounds);
 };
 const calls = (state: FakeState, method: string) => state.calls.filter((c) => c.method === method);
-/** A new workspace: nobody else, no agent besides Lodi, nothing connected, Lodi with its checklist and an AI. */
+/** A new workspace: nobody else, no agent besides Doug, nothing connected, Doug with its checklist and an AI. */
 const fresh = () => {
   const state = withRightHand(seedState({ agents: [] }), { setup: { role: null, done: [] } });
   state.members = state.members.slice(0, 1);
@@ -123,11 +123,11 @@ describe("the first-run checklist", () => {
     expect(calls(state, "orgs.billingLink").map((c) => c.args)).toEqual([[ORG_ID, "hold"]]);
   });
 
-  test("the AI row connects the whole team, naming no one, and a key saved there is Lodi's AI too", async () => {
+  test("the AI row connects the whole team, naming no one, and a key saved there is Doug's AI too", async () => {
     const state = withRightHand(seedState(), { setup: { role: null, done: [] } });
     state.members = state.members.slice(0, 1);
     state.connections = [];
-    // The team the person made: theirs, so it wakes with the right hand (alone, Lodi would get the narrow dialog for it alone).
+    // The team the person made: theirs, so it wakes with the right hand (alone, Doug would get the narrow dialog for it alone).
     for (const a of state.agents) a.ownerUserId = "u-walter";
     state.aiStatus = {
       any: false,
@@ -142,7 +142,7 @@ describe("the first-run checklist", () => {
       fireEvent.change(within(add).getByLabelText("Cole aqui"), { target: { value: "sk-ant-api03-abcdefghijklmnop" } }),
     );
     await click(within(add).getByRole("button", { name: "Salvar chave" }), 10);
-    // Lodi's DM answers with the key from now on: it is the workspace's AI.
+    // Doug's DM answers with the key from now on: it is the workspace's AI.
     expect(calls(state, "agents.setBrain").map((c) => c.args.slice(1))).toContainEqual([
       LODI_ID,
       { scope: "workspace", brain: "model" },
@@ -187,7 +187,7 @@ describe("the first-run checklist", () => {
     expect(within(dialog).queryByRole("button", { name: "Cancelar" })).toBeNull();
   });
 
-  test("complete: Tudo pronto, then how agents talk, and the asks that go to Lodi", async () => {
+  test("complete: Tudo pronto, then how agents talk, and the asks that go to Doug", async () => {
     const state = withRightHand(seedState(), { setup: { role: null, done: ["apps"] } });
     state.aiStatus = { any: true, agents: [{ agentId: LODI_ID, state: "ready" }] };
     if (state.me?.organizations[0]) state.me.organizations[0].agentStyle = null;
@@ -243,7 +243,7 @@ describe("in a personal workspace (ADR 0159)", () => {
       "Conecte os seus apps.",
     ]);
     expect(card().querySelector(".setup-cl__head small")?.textContent).toBe("1 de 4");
-    expect(screen().getByText("Oi, eu sou o Lodi. Monto os seus agentes com você.")).toBeTruthy();
+    expect(screen().getByText("Oi, eu sou o Doug. Monto os seus agentes com você.")).toBeTruthy();
   });
 
   test("row 1 asks the areas of life and one sentence, saved as the context; then the agents for them", async () => {

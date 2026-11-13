@@ -802,7 +802,7 @@ describe("Rotinas", () => {
     expect(details.textContent).toContain("Parada por");
     expect(details.textContent).toContain("O orçamento do mês acabou");
     expect(details.textContent).toContain("Contou o que achou");
-    expect(details.textContent).toContain("Resumo postado no canal");
+    expect(details.textContent).toContain("Resumo postado no grupo");
     await click(within(details).getByRole("button", { name: "Fechar detalhes" }));
     expect(screen().queryByRole("dialog", { name: "Resumo da semana" })).toBeNull();
   });
@@ -885,7 +885,7 @@ describe("Rotinas", () => {
     expect(within(dialog).getByRole("link", { name: "Abrir Conectores" }).getAttribute("href")).toBe(
       `/org/${ORG_ID}/settings/connectors`,
     );
-    await pick(within(dialog).getByRole("combobox", { name: "Começar de um modelo" }), /Resumo diário de um canal/);
+    await pick(within(dialog).getByRole("combobox", { name: "Começar de um modelo" }), /Resumo diário de um grupo/);
     expect(dialog.textContent).not.toContain("Precisa deste app");
     expect(dialog.textContent).toContain("De segunda a sexta, às 09:00");
     await pick(within(dialog).getByRole("combobox", { name: "Começar de um modelo" }), /Organizar tarefas novas/);

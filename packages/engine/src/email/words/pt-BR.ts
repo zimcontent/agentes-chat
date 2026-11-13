@@ -127,7 +127,7 @@ export const ptBR: Words = {
     },
     headline: { warning: "Um agente passou de 80% do orçamento", exhausted: "Um agente atingiu o orçamento" },
     used: (pct, org) => `Usou ${pct} do orçamento deste mês · ${org}`,
-    warning: "Em 100%, ele para e avisa no canal. Um admin pode mudar o limite na página do agente.",
+    warning: "Em 100%, ele para e avisa no grupo. Um admin pode mudar o limite na página do agente.",
     exhausted: "Ele não responde até o mês virar, ou até um admin subir o limite.",
     button: "Ver o orçamento",
     why: (org) =>
@@ -472,7 +472,7 @@ export const ptBR: Words = {
     headline: "Seu time está esperando",
     body: (agents, channels, routines) => {
       const a = plural("pt-BR", agents, { one: `1 agente`, other: `${agents} agentes` });
-      const c = plural("pt-BR", channels, { one: `1 canal`, other: `${channels} canais` });
+      const c = plural("pt-BR", channels, { one: `1 grupo`, other: `${channels} grupos` });
       const r = plural("pt-BR", routines, { one: `1 rotina`, other: `${routines} rotinas` });
       return routines > 0
         ? `${a}, ${c} e ${r} estão prontos. Falta um plano do agentes.chat para eles começarem.`

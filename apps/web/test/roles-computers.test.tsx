@@ -116,7 +116,7 @@ describe("Mencionar todos (`@todos`): one key in Conversas", () => {
     const { saved } = await openRole("Suporte");
     await click(screen().getByRole("button", { name: /Ajustar Conversas/ }));
     await settle(2);
-    expect(screen().getByText("Usar @todos para avisar todo mundo de um canal, pessoas e agentes.")).toBeTruthy();
+    expect(screen().getByText("Usar @todos para avisar todo mundo de um grupo, pessoas e agentes.")).toBeTruthy();
     const toggle = screen().getByRole("switch", { name: /Mencionar todos/ });
     expect(toggle.getAttribute("aria-checked")).toBe("false");
     await click(toggle);

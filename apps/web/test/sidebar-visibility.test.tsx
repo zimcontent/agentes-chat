@@ -66,7 +66,7 @@ describe("what a member's sidebar lists", () => {
 
   test("no category whose channels are all private ones they're not in", async () => {
     await go(acme("member"));
-    expect(sections()).toEqual(["Canais", "Engenharia", "Agentes", "Mensagens diretas"]);
+    expect(sections()).toEqual(["Grupos", "Engenharia", "Agentes", "Mensagens diretas"]);
   });
 
   test("@ offers only the agents that answer them", async () => {
@@ -97,11 +97,11 @@ describe("what a member's sidebar lists", () => {
     expect(box.value).toBe("@atlas monte um relatório sobre ");
   });
 
-  test("Criar canal offers only the agents that answer them", async () => {
+  test("Criar grupo offers only the agents that answer them", async () => {
     await go(acme("member"));
     await act(async () => window.dispatchEvent(new Event(NEW_CHANNEL_EVENT)));
     await settle(3);
-    const dialog = screen().getByRole("dialog", { name: "Criar canal" });
+    const dialog = screen().getByRole("dialog", { name: "Criar grupo" });
     const picker = within(dialog).getByRole("region", { name: "Buscar pessoa ou agente" });
     expect(picker.textContent).toContain("Atlas");
     expect(picker.textContent).not.toContain("Ada");
@@ -109,13 +109,13 @@ describe("what a member's sidebar lists", () => {
 
   test("owners and admins see every category, and the agents that talk to them until they show the rest", async () => {
     await go(acme("owner"));
-    expect(sections()).toEqual(["Canais", "Engenharia", "Diretoria", "Agentes", "Mensagens diretas"]);
+    expect(sections()).toEqual(["Grupos", "Engenharia", "Diretoria", "Agentes", "Mensagens diretas"]);
     expect(agentRows()).toEqual(["Atlas"]);
     cleanup();
     const state = acme("owner");
     state.sidebarView = { agentSort: "workspace", showAllAgents: true, pins: null };
     await go(state);
-    expect(sections()).toEqual(["Canais", "Engenharia", "Diretoria", "Agentes", "Integrations", "Mensagens diretas"]);
+    expect(sections()).toEqual(["Grupos", "Engenharia", "Diretoria", "Agentes", "Integrations", "Mensagens diretas"]);
     expect(agentRows()).toEqual(["Atlas", "Ada"]);
     // The lock explains itself: the line under the name says who it talks to.
     const ada = within(nav()).getByRole("link", { name: /^Ada/ });

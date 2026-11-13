@@ -36,7 +36,7 @@ const agent = (id: string, over: Partial<TeamAgent> = {}): TeamAgent => ({
 const ada = agent("Ada", { role: "Dev", ownerUserId: "u-lukas", channelIds: ["c-eng"], busy: true });
 const kai = agent("Kai", { role: "Revisor", channelIds: ["c-eng", "c-ops"] });
 const milo = agent("Milo", { role: "Financeiro", ownerUserId: "u-amara" });
-const lodi = agent("Lodi");
+const lodi = agent("Doug");
 const eng: AgentGroup = { id: "g-eng", name: "Engenharia", agentIds: ["Kai", "Ada"], leadUserId: "u-lukas" };
 const members = new Set(["u-lukas", "u-amara"]);
 
@@ -72,7 +72,7 @@ describe("Equipe's views (ADR 0148)", () => {
     expect(reportsTo(kai, [eng], members)).toBe("u-lukas");
     // A lead who left the workspace leads nobody.
     expect(reportsTo(kai, [eng], new Set(["u-amara"]))).toBeNull();
-    const cols = chartByPerson([ada, kai, milo, lodi], [eng], members, (a) => a.id === "Lodi");
+    const cols = chartByPerson([ada, kai, milo, lodi], [eng], members, (a) => a.id === "Doug");
     expect(cols.map((c) => [c.personId, c.agents.map((a) => a.name)])).toEqual([
       ["u-lukas", ["Ada", "Kai"]],
       ["u-amara", ["Milo"]],
@@ -81,7 +81,7 @@ describe("Equipe's views (ADR 0148)", () => {
   });
 
   test("the map: a column per channel in the sidebar's order, an agent in each of its channels, none last", () => {
-    const cols = mapColumns([ada, kai, milo, lodi], ["c-ops", "c-eng", "c-empty"], (a) => a.id === "Lodi");
+    const cols = mapColumns([ada, kai, milo, lodi], ["c-ops", "c-eng", "c-empty"], (a) => a.id === "Doug");
     expect(cols.map((c) => [c.channelId, c.agents.map((a) => a.name)])).toEqual([
       ["c-ops", ["Kai"]],
       ["c-eng", ["Ada", "Kai"]],

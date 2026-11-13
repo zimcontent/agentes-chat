@@ -18,7 +18,7 @@ test("deleting an agent for good (ADR 0082): owners and admins; it leaves the te
 
   // Only the workspace's right hand is left (ADR 0137).
   const left = (await (await member(`${org}/agents`)).json()) as { agents: { handle: string }[] };
-  expect(left.agents.map((a) => a.handle)).toEqual(["lodi"]);
+  expect(left.agents.map((a) => a.handle)).toEqual(["doug"]);
   expect(await (await member(`${org}/former-agents`)).json()).toEqual({
     agents: [{ id: agentId, name: "Dev", role: "", appearance: null, photo: null, deleted: true }],
   });
@@ -46,11 +46,11 @@ test("an archived agent comes back from Equipe (who manages agents): in the team
     ((await (await member(`${org}/agents`)).json()) as { agents: { handle: string }[] }).agents
       .map((a) => a.handle)
       .sort();
-  expect(await handles()).toEqual(["lodi"]);
+  expect(await handles()).toEqual(["doug"]);
 
   expect((await member(`${agent}/unarchive`, { json: {} })).status).toBe(403);
   expect((await owner(`${agent}/unarchive`, { json: {} })).status).toBe(204);
-  expect(await handles()).toEqual(["dev", "lodi"]);
+  expect(await handles()).toEqual(["dev", "doug"]);
   expect(await (await member(`${org}/former-agents`)).json()).toEqual({ agents: [] });
   const audit = (await (await owner(`${org}/audit?kind=change`)).json()) as { rows: { action: string }[] };
   expect(audit.rows.map((r) => r.action)).toContain("agent.unarchived");

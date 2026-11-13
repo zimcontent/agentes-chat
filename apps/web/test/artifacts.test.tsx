@@ -609,9 +609,9 @@ describe("Drive", () => {
     const pickChannel = async (name: string) => {
       const trigger = screen()
         .getAllByRole("button")
-        .find((b) => b.classList.contains("ac-filter__trigger") && /Canal|#|canais/.test(b.textContent ?? ""));
+        .find((b) => b.classList.contains("ac-filter__trigger") && /Grupo|#|grupos/.test(b.textContent ?? ""));
       await click(trigger as HTMLElement);
-      await click(within(screen().getByRole("listbox", { name: "Canal" })).getByRole("option", { name: `#${name}` }));
+      await click(within(screen().getByRole("listbox", { name: "Grupo" })).getByRole("option", { name: `#${name}` }));
       await act(async () => fireEvent.keyDown(document.activeElement ?? document.body, { key: "Escape" }));
       await settle(4);
     };
@@ -621,7 +621,7 @@ describe("Drive", () => {
     // Several channels: any of them, and the chip counts them.
     await pickChannel(home?.name ?? "");
     expect(names()).toEqual([doc.title]);
-    expect(screen().getByRole("button", { name: "2 canais" })).toBeTruthy();
+    expect(screen().getByRole("button", { name: "2 grupos" })).toBeTruthy();
   });
 
   // The worst case for CI's geometry check (the capture keeps each of these screens): German words, a long channel,
@@ -705,7 +705,7 @@ describe("Drive", () => {
       "Pedidos mais comuns nos reviews",
       "Relatório de incidente: checkout",
     ]);
-    await pickRadio(/^Organizar:/, "Canal");
+    await pickRadio(/^Organizar:/, "Grupo");
     expect(document.querySelector(".drive-group__head .ac-grouphead__title")?.textContent).toMatch(/^#/);
   });
 
@@ -756,7 +756,7 @@ describe("Drive", () => {
     const more = within(panel).getByRole("button", { name: "Mais ações: Organograma do time" });
     expect(more.className).toBe(within(panel).getByRole("button", { name: "Copiar link" }).className);
     expect(panel.querySelector(".drive-audience")?.textContent).toBe(
-      "Todo o workspace pode ver: está no canal público #eng",
+      "Todo o workspace pode ver: está no grupo público #eng",
     );
   });
 

@@ -1,7 +1,7 @@
 import { useDesktopLatest } from "@agenteschat/client";
 import { formatBytes } from "@agenteschat/client/lib/files";
 import { downloadHref } from "@agenteschat/client/lib/machines";
-import { Button, Icon, Logo, Segmented } from "@agenteschat/ui";
+import { Button, DougMark, Icon, Logo, Segmented } from "@agenteschat/ui";
 import { Link } from "@tanstack/react-router";
 import { useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -51,7 +51,7 @@ export function DownloadPage({ initial, initialArm }: { initial?: InstallSystem;
       </header>
       <main className="dlp__main">
         <section className="dlp__hero" ref={hero}>
-          <img className="dlp__icon" src="/icon-512.png" alt="" />
+          <DougMark className="dlp__icon" />
           <div>
             <h1>
               {t("install.page.title")}

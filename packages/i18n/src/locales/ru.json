@@ -15766,7 +15766,7 @@
       "rolesPersonal": "Что может делать каждый здесь. Владелец может всё."
     },
     "about": {
-      "basedOn": "Основано на <site>agentes.chat</site> от Codari Global, LLC",
+      "basedOn": "Основано на <site>agentes.chat</site> от Codari Global, LLC · AGPL-3.0",
       "version": "Версия",
       "license": "Свободное ПО по лицензии <license>GNU Affero General Public License v3</license>, без гарантий.",
       "source": "Исходный код",

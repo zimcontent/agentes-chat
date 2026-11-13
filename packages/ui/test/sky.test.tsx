@@ -24,6 +24,7 @@ import {
   spriteTone,
   startSky,
 } from "../src";
+import { PIXEL_ART } from "../src/brand/doug";
 import { CLEAR_PX } from "../src/sky/engine";
 import { type CalmZone, lightToward, opaque, placeSprite, riseColumn, spriteNear } from "../src/sky/math";
 
@@ -94,7 +95,16 @@ test("the pointer light follows at the same pace at any frame rate: 5% of the wa
 });
 
 describe("PixelSky", () => {
-  test("a decorative canvas with nothing to read", () => {
+  test("draws nothing while the brand's pixel art is off", () => {
+    const { container } = render(
+      <div>
+        <PixelSky options={opts} />
+      </div>,
+    );
+    expect(container.querySelector("canvas")).toBeNull();
+  });
+
+  test.skipIf(!PIXEL_ART)("a decorative canvas with nothing to read", () => {
     const { container } = render(
       <div>
         <PixelSky options={opts} />

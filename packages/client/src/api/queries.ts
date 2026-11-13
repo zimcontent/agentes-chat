@@ -897,12 +897,41 @@ function agentChanged(qc: QueryClient, orgId: string, agentId: string) {
   void qc.invalidateQueries({ queryKey: keys.usageReport(orgId) });
 }
 
+/** An agent's photo shows wherever it does: the lists (former agents too), its page and the team. */
+function agentPhotoChanged(qc: QueryClient, orgId: string, agentId: string) {
+  agentChanged(qc, orgId, agentId);
+  void qc.invalidateQueries({ queryKey: keys.team(orgId) });
+}
+
 export function useUpdateAgent(orgId: string, agentId: string) {
   const api = useApi();
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (input: Partial<AgentInput>) => api.agents.update(orgId, agentId, input),
     onSuccess: () => agentChanged(qc, orgId, agentId),
+  });
+}
+
+/**
+ * Sets an agent's real photo (its owner or who manages agents): a form with the image, already cropped square, in
+ * `file`. The answer is only `{ photo }`, so the agent lists, its page and the team reload.
+ */
+export function useSetAgentPhoto(orgId: string, agentId: string) {
+  const api = useApi();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (body: FormData) => api.agents.setAgentPhoto(orgId, agentId, body),
+    onSuccess: () => agentPhotoChanged(qc, orgId, agentId),
+  });
+}
+
+/** Removes an agent's photo: back to its drawn look. The same lists reload. */
+export function useRemoveAgentPhoto(orgId: string, agentId: string) {
+  const api = useApi();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: () => api.agents.removeAgentPhoto(orgId, agentId),
+    onSuccess: () => agentPhotoChanged(qc, orgId, agentId),
   });
 }
 

@@ -28,7 +28,7 @@ afterEach(() => {
 
 const DM = `dm-${LODI_ID}`;
 
-/** A card of Lodi's in its DM, `ago` ms old. A second card joins the same DM: Lodi and the DM are seeded once. */
+/** A card of Doug's in its DM, `ago` ms old. A second card joins the same DM: Doug and the DM are seeded once. */
 const withLodiCard = (state: FakeState, actionCard: Record<string, unknown>, id = "m-card", ago = 60_000) => {
   if (!state.agents.some((a) => a.id === LODI_ID)) {
     withRightHand(state);

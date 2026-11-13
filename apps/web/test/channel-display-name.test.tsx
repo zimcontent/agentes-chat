@@ -47,7 +47,7 @@ describe("a channel's display name and photo, like a group's", () => {
 
   test("the channel's settings save the display name (blank clears it) and send or remove the photo", async () => {
     const state = await go();
-    await click(within(screen().getByRole("main")).getByRole("button", { name: "Configurações do canal" }));
+    await click(within(screen().getByRole("main")).getByRole("button", { name: "Configurações do grupo" }));
     await settle(3);
     const dialog = screen().getByRole("dialog", { name: "#eng" });
     expect(dialog.textContent).toContain("O nome técnico (#eng) continua valendo para mencionar.");
@@ -65,14 +65,14 @@ describe("a channel's display name and photo, like a group's", () => {
     expect(within(dialog).queryByRole("button", { name: "Remover foto" })).toBeNull();
     await click(within(dialog).getByRole("button", { name: "Enviar foto" }));
     await settle(2);
-    expect(screen().getByRole("dialog", { name: "Foto do canal" })).toBeTruthy();
+    expect(screen().getByRole("dialog", { name: "Foto do grupo" })).toBeTruthy();
   });
 
   test("with a photo: Trocar foto and Remover foto, which takes it off", async () => {
     const state = await go(named);
-    await click(within(screen().getByRole("main")).getByRole("button", { name: "Configurações do canal" }));
+    await click(within(screen().getByRole("main")).getByRole("button", { name: "Configurações do grupo" }));
     await settle(3);
-    const dialog = screen().getByRole("dialog", { name: "#eng" });
+    const dialog = screen().getByRole("dialog", { name: "Engenharia & Deploy" });
     expect(within(dialog).getByRole("button", { name: "Trocar foto" })).toBeTruthy();
     await click(within(dialog).getByRole("button", { name: "Remover foto" }));
     await settle(3);

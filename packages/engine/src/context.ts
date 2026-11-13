@@ -1083,16 +1083,20 @@ export async function buildRunContext(
       cache: true,
     },
     {
-      text:
-        rightHand ??
-        [
-          `You are ${agent.name} (@${agent.handle})${agent.role ? `, ${agent.role}` : ""}, ${personal ? "one of this person's AI agents" : "an AI agent of this organization"}.`,
-          agent.instructions.trim() ? `# Your instructions\n${agent.instructions.trim()}` : "",
-          // The right hand with nobody behind the run (another agent's message) still keeps to its tools.
-          isRightHand(agent) ? RIGHT_HAND_TOOLS : "",
-        ]
-          .filter(Boolean)
-          .join("\n\n"),
+      text: rightHand
+        ? // A right hand that was an agent of the team before (ADR 0137 addendum, DougBot: the team's own agent made the
+          // right hand keeps what it was told): its own instructions follow the product's block, never replace it.
+          [rightHand, agent.instructions.trim() ? `# Your own instructions\n${agent.instructions.trim()}` : ""]
+            .filter(Boolean)
+            .join("\n\n")
+        : [
+            `You are ${agent.name} (@${agent.handle})${agent.role ? `, ${agent.role}` : ""}, ${personal ? "one of this person's AI agents" : "an AI agent of this organization"}.`,
+            agent.instructions.trim() ? `# Your instructions\n${agent.instructions.trim()}` : "",
+            // The right hand with nobody behind the run (another agent's message) still keeps to its tools.
+            isRightHand(agent) ? RIGHT_HAND_TOOLS : "",
+          ]
+            .filter(Boolean)
+            .join("\n\n"),
     },
     ...(capabilities ? [{ text: capabilities }] : []),
     // Follows the requester (whose part of the team it names).

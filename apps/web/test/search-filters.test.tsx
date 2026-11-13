@@ -138,7 +138,7 @@ describe("search filters (ADR 0123)", () => {
     await settle(6);
     expect(router.state.location.pathname).toBe(`/org/${ORG_ID}/dm/agent/${ADA_ID}`);
     expect(router.state.location.search).toEqual({ m: "m-dm" });
-    expect(text()).not.toContain("Este canal não existe");
+    expect(text()).not.toContain("Este grupo não existe");
     expect(text()).toContain("zebra no privado");
 
     await act(() => router.navigate({ to: "/org/$orgId/search", params: { orgId: ORG_ID } }));

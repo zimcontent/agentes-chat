@@ -68,17 +68,17 @@ const proposal = (delegate: CardDelegate, card: Partial<AgentProposalCard> = {})
   createdAt: NOW.toISOString(),
 });
 
-describe("Lodi's page: what it does for me without asking (ADR 0139 §2)", () => {
+describe("Doug's page: what it does for me without asking (ADR 0139 §2)", () => {
   test("one switch, two kinds, the budget per agent and the guidance, each saved at once; the lock closes it", async () => {
     const state = seedState();
     withRightHand(state);
     await renderApp(`/org/${ORG_ID}/agents/${LODI_ID}`, { api: createFakeApi(state) });
     await settle(6);
-    const card = section().getByRole("region", { name: "Lodi cria e ajusta agentes por você" });
+    const card = section().getByRole("region", { name: "Doug cria e ajusta agentes por você" });
     expect(within(card).getByText(/Sempre com você: dinheiro/)).toBeTruthy();
     expect(within(card).queryByRole("checkbox")).toBeNull();
 
-    await click(within(card).getByRole("switch", { name: "Lodi cria e ajusta agentes por você" }));
+    await click(within(card).getByRole("switch", { name: "Doug cria e ajusta agentes por você" }));
     expect(last(state, "approvals.setRightHand")).toEqual([ORG_ID, { enabled: true }]);
     await click(within(card).getByRole("checkbox", { name: "Criar agentes que outros agentes propõem" }));
     expect(last(state, "approvals.setRightHand")).toEqual([ORG_ID, { newAgents: false }]);
@@ -92,7 +92,7 @@ describe("Lodi's page: what it does for me without asking (ADR 0139 §2)", () =>
     await settle(4);
     expect(last(state, "approvals.setRightHand")).toEqual([ORG_ID, { budgetCapNanoUsd: 30_000_000_000 }]);
 
-    const guidance = within(card).getByRole("textbox", { name: "Como Lodi decide por você" });
+    const guidance = within(card).getByRole("textbox", { name: "Como Doug decide por você" });
     const guidanceRow = guidance.closest(".settings-row") as HTMLElement;
     expect(guidanceRow).not.toBe(budget.closest(".settings-row"));
     expect(within(guidanceRow).queryByRole("textbox", { name: "Orçamento a mais, por agente" })).toBeNull();
@@ -100,7 +100,7 @@ describe("Lodi's page: what it does for me without asking (ADR 0139 §2)", () =>
     // The last row, right over the card's foot: the rule that gives it its own depth below (stacked-ask-css).
     expect(guidanceRow.nextElementSibling).toBeNull();
     expect(guidanceRow.parentElement?.nextElementSibling?.classList.contains("ac-card__foot")).toBe(true);
-    expect(within(guidanceRow).getByText("Lodi lê isto antes de decidir. Opcional.")).toBeTruthy();
+    expect(within(guidanceRow).getByText("Doug lê isto antes de decidir. Opcional.")).toBeTruthy();
     expect(guidance.getAttribute("placeholder")).toContain("Ex.: nada de agente duplicado\n");
     await act(async () => {
       fireEvent.change(guidance, { target: { value: "Nada de agente duplicado." } });
@@ -120,7 +120,7 @@ describe("Lodi's page: what it does for me without asking (ADR 0139 §2)", () =>
       budgetCapNanoUsd: 20_000_000_000,
       guidance: "",
       pausedAt: null,
-      rightHand: { id: LODI_ID, name: "Lodi" },
+      rightHand: { id: LODI_ID, name: "Doug" },
       mayDecide: { newAgents: false, agentChanges: true },
       caps: { decisionsPerDay: 10, newAgentsPerDay: 2, monthNanoUsd: 50_000_000_000 },
       used: { decisionsToday: 0, newAgentsToday: 0, monthNanoUsd: 0 },
@@ -160,7 +160,7 @@ describe("a card the right hand looked at", () => {
     expect(line.classList.contains("rq--ended")).toBe(true);
     expect(line.querySelector(".rq__wt b")?.textContent).toBe("Nina");
     expect(line.querySelector(".rq__lead")?.textContent).toBe("Veio do seu pedido e não há outro igual.");
-    expect(line.querySelector(".rq__answer-text")?.textContent).toContain("Aprovado por Lodi em seu nome");
+    expect(line.querySelector(".rq__answer-text")?.textContent).toContain("Aprovado por Doug em seu nome");
     expect(line.querySelector(".rq__answer-note")?.textContent).toContain("Desfazer arquiva Nina. Vale até");
     await click(within(line).getByRole("button", { name: "Desfazer" }));
     expect(last(state, "approvals.undoRightHand")).toEqual([ORG_ID, "d-1"]);
@@ -174,7 +174,7 @@ describe("a card the right hand looked at", () => {
     state.messages.push(proposal({ ...passed, forUserId: me }));
     await renderApp(`/org/${ORG_ID}/c/${ENG_ID}`, { api: createFakeApi(state) });
     await settle(6);
-    expect(screen().getByText("Lodi passou para você: Já existe a Ada.")).toBeTruthy();
+    expect(screen().getByText("Doug passou para você: Já existe a Ada.")).toBeTruthy();
     cleanup();
 
     const other = seedState();

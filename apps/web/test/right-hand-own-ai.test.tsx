@@ -8,7 +8,7 @@ import { createFakeApi, fakeAgentBrain, LODI_ID, ORG_ID, seedDm, seedState, with
 import { renderApp, screen, settle } from "./render";
 
 /**
- * ADR 0137 §11: "Sua IA" is every person's, the workspace's AI is the admins', and every row of Lodi's settings has the
+ * ADR 0137 §11: "Sua IA" is every person's, the workspace's AI is the admins', and every row of Doug's settings has the
  * same structure. Its page opens docked beside its conversation, like a thread, with nothing dimmed.
  */
 
@@ -32,7 +32,7 @@ const planOf = (ownerId: string | undefined) =>
 const groups = () => [...document.querySelectorAll(".rh-group .ac-grouphead__title")].map((h) => h.textContent);
 const row = (name: RegExp) => screen().getByRole("button", { name });
 
-test("Lodi's old settings address opens Lodi's page: two groups, the face opens the look, the fallback AI is one row that opens", async () => {
+test("Doug's old settings address opens Doug's page: two groups, the face opens the look, the fallback AI is one row that opens", async () => {
   const state = withRightHand(seedState(), { brain: { kind: "claude_code", model: "Sonnet" } });
   const api = createFakeApi(state);
   let onPlan = true;
@@ -68,7 +68,7 @@ test("Lodi's old settings address opens Lodi's page: two groups, the face opens 
   // The weekly card's button stands on a plate like the selects beside it: wrapped under them on a phone, it starts
   // on their edge, never a padding further in as bare words would.
   expect(screen().getByRole("button", { name: "Parar de receber" }).classList.contains("ac-btn--ghost")).toBe(false);
-  await act(async () => fireEvent.click(screen().getByRole("button", { name: "Mudar o visual do Lodi" })));
+  await act(async () => fireEvent.click(screen().getByRole("button", { name: "Mudar o visual do Doug" })));
   await settle(4);
   expect(screen().getByRole("dialog", { name: "Mudar visual" })).toBeTruthy();
   await act(async () => fireEvent.click(screen().getByRole("button", { name: "Cancelar" })));
@@ -107,7 +107,7 @@ test("Lodi's old settings address opens Lodi's page: two groups, the face opens 
   expect(screen().queryByRole("switch", { name: "Emprestar este plano a quem não tem um" })).toBeNull();
 });
 
-test("a member's Lodi page is only Só para você: Sua IA is one row that opens, and connects their plan from its dialog", async () => {
+test("a member's Doug page is only Só para você: Sua IA is one row that opens, and connects their plan from its dialog", async () => {
   const state = withRightHand(seedState());
   const me = state.me?.organizations[0];
   if (me) me.role = "member";
@@ -132,11 +132,11 @@ test("a member's Lodi page is only Só para você: Sua IA is one row that opens,
   await settle(4);
   const dialog = screen().getByRole("dialog", { name: "Sua IA" });
   // Why it is theirs alone: the dialog's sentence.
-  expect(dialog.textContent).toContain("Sua conversa com o Lodi pensa com um plano seu");
+  expect(dialog.textContent).toContain("Sua conversa com o Doug pensa com um plano seu");
   await act(async () => fireEvent.click(within(dialog).getByRole("radio", { name: /Conectar meu plano/ })));
   await settle(6);
   expect(screen().queryByRole("dialog", { name: "Sua IA" })).toBeNull();
-  expect(screen().getByRole("dialog", { name: /Lodi/ })).toBeTruthy();
+  expect(screen().getByRole("dialog", { name: /Doug/ })).toBeTruthy();
 });
 
 test("Sua IA on a plan of mine: the dialog goes back to the workspace's AI, and the row says so", async () => {
@@ -236,7 +236,7 @@ test("a plan and its model are one choice: the model is picked under the plan in
   }
 });
 
-test("Poderes do workspace is one row for everyone that opens what only Lodi does, and no Computador row without a computer", async () => {
+test("Poderes do workspace is one row for everyone that opens what only Doug does, and no Computador row without a computer", async () => {
   const state = withRightHand(seedState());
   const me = state.me?.organizations[0];
   if (me) me.role = "member";
@@ -256,11 +256,11 @@ test("Poderes do workspace is one row for everyone that opens what only Lodi doe
   ]);
 });
 
-test("Lodi's page has three tabs: its settings, what it may use on the agent page's own access tab, and what it keeps for the viewer", async () => {
+test("Doug's page has three tabs: its settings, what it may use on the agent page's own access tab, and what it keeps for the viewer", async () => {
   const state = withRightHand(seedState());
   await renderApp(`/org/${ORG_ID}/agents/${LODI_ID}`, { api: createFakeApi(state) });
   await settle(8);
-  const tabs = () => within(screen().getByRole("tablist", { name: "Seções do Lodi" })).getAllByRole("tab");
+  const tabs = () => within(screen().getByRole("tablist", { name: "Seções do Doug" })).getAllByRole("tab");
   expect(tabs().map((tab) => tab.textContent)).toEqual(["Configurações", "Ferramentas e acesso", "Memória"]);
   expect(tabs()[0]?.getAttribute("aria-selected")).toBe("true");
   expect(row(/^Poderes do workspace/)).toBeTruthy();

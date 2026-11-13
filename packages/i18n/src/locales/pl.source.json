@@ -36151,7 +36151,7 @@
     "value": "What each person here can do. The owner can do everything."
   },
   "settings.about.basedOn": {
-    "value": "Based on <site>agentes.chat</site> by Codari Global, LLC"
+    "value": "Based on <site>agentes.chat</site> by Codari Global, LLC · AGPL-3.0"
   },
   "settings.about.version": {
     "value": "Version"

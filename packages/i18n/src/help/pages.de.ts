@@ -419,7 +419,7 @@ export const helpDe: Partial<Record<HelpSlug, HelpDocument>> = {
             ],
           },
           "Eine Aktion im eigenen Postfach von jemandem wartet nur auf diese Person. Neuer Zugriff für einen Agenten wartet auf die, die Agenten verwalten.",
-          "Lodi, deine rechte Hand, kann außerdem für dich neue Agenten freigeben, die andere Agenten vorschlagen, und Änderungen an Modell, Budget und Kanälen eines Agenten, nur wenn du darum gebeten hast. Wer dich vertritt und was Lodi freigibt, legst du unter **Einstellungen\u00a0›\u00a0Du\u00a0›\u00a0Freigaben** fest.",
+          "Doug, deine rechte Hand, kann außerdem für dich neue Agenten freigeben, die andere Agenten vorschlagen, und Änderungen an Modell, Budget und Kanälen eines Agenten, nur wenn du darum gebeten hast. Wer dich vertritt und was Doug freigibt, legst du unter **Einstellungen\u00a0›\u00a0Du\u00a0›\u00a0Freigaben** fest.",
         ],
       },
       {

@@ -114,7 +114,7 @@ describe("Button", () => {
 });
 
 describe("Avatar", () => {
-  test("people and agents share the framed tile; running ring only for agents", () => {
+  test("people keep the framed tile; agents are their DougBot, drawn by code (no tile, no canvas, no image)", () => {
     const { container } = render(
       <>
         <Avatar name="Marina" />
@@ -124,31 +124,35 @@ describe("Avatar", () => {
     );
     const [person, agent, notAgent] = Array.from(container.querySelectorAll(".ac-avatar"));
     expect(person?.className).toBe("ac-avatar ac-avatar--framed");
-    expect(agent?.className).toContain("ac-avatar--framed");
-    expect(person?.textContent).toBe("M");
+    expect(agent?.className).toContain("ac-avatar--bot");
     expect(agent?.className).toContain("ac-avatar--agent");
-    expect(agent?.className).toContain("ac-avatar--running");
-    // The agent symbol is drawn by the engine (no initials); running = thinking.
-    expect(agent?.textContent).toBe("");
-    expect(agent?.querySelector("canvas.ac-avatar__canvas")).not.toBeNull();
+    expect(agent?.className).not.toContain("ac-avatar--framed");
+    expect(person?.textContent).toBe("M");
+    // The bot (IDENTIDADE.md §8): an SVG from dougbot-avatar.js, its state from the agent's (running = at work).
+    expect(agent?.querySelector(".ac-bot > svg")).not.toBeNull();
+    expect(agent?.querySelector("canvas, img")).toBeNull();
     expect(agent?.getAttribute("data-state")).toBe("thinking");
+    expect(agent?.getAttribute("data-estado")).toBe("trabalhando");
     expect(notAgent?.className).not.toContain("ac-avatar--running");
     expect(person?.getAttribute("aria-hidden")).toBe("true");
   });
 
-  test("the 18px receipt and the 112px hero stand unframed unless asked", () => {
+  test("agents are never framed, at any size; the Doug is the Doug's portrait; a person's tile can be turned off", () => {
     const { container } = render(
       <>
         <Avatar kind="agent" name="Ada" size="xs" />
         <Avatar kind="agent" name="Ada" size="xl" />
-        <Avatar kind="agent" name="Ada" size="xl" framed />
+        <Avatar kind="agent" name="Doug BOSS" who={{ name: "Doug BOSS", handle: "doug" }} size="xl" framed />
         <Avatar name="Marina" size="sm" framed={false} />
       </>,
     );
-    const [xs, xl, xlFramed, person] = Array.from(container.querySelectorAll(".ac-avatar"));
+    const [xs, xl, doug, person] = Array.from(container.querySelectorAll(".ac-avatar"));
     expect(xs?.className).not.toContain("ac-avatar--framed");
     expect(xl?.className).not.toContain("ac-avatar--framed");
-    expect(xlFramed?.className).toContain("ac-avatar--framed");
+    expect(doug?.className).not.toContain("ac-avatar--framed");
+    // Only the Doug is a person: his portrait has a smile; a free bot only eyes, never green.
+    expect(doug?.innerHTML).toContain("#9CFA05");
+    expect(xs?.innerHTML).not.toContain("#9CFA05");
     expect(person?.className).not.toContain("ac-avatar--framed");
   });
 
@@ -831,16 +835,20 @@ describe("Menu", () => {
 });
 
 describe("Logo, Icon, Meter", () => {
-  test("logo has an accessible name; the mark uses the agent token classes", () => {
+  test("logo has the brand's accessible name; the mark is the Doug drawn by code", () => {
     const { container } = render(
       <>
         <Logo />
         <Logo variant="expanded" />
       </>,
     );
-    expect(body().getByRole("img", { name: "agentes" })).toBeTruthy();
-    expect(body().getByRole("img", { name: "agentes.chat" }).textContent).toBe("agentes.chat");
-    expect(container.querySelector(".ac-logo__body")).not.toBeNull();
+    const logos = body().getAllByRole("img", { name: "DougBot" });
+    expect(logos.length).toBe(2);
+    // The signature (IDENTIDADE.md §3): the Doug close up drawn by code beside the name in live text, no image.
+    expect(logos[0]?.textContent).toBe("DougBot");
+    expect(logos[0]?.querySelector("b")?.textContent).toBe("Doug");
+    expect(container.querySelector(".ac-logo__mark .ac-bot > svg")).not.toBeNull();
+    expect(container.querySelector("img")).toBeNull();
   });
 
   test("every icon renders a stroke-only 20px glyph, decorative unless labelled", () => {

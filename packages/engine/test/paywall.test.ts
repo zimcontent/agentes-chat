@@ -166,7 +166,7 @@ describe("what isn't a person's message to keep", () => {
 });
 
 describe("the agents a new person meets first", () => {
-  test("Lodi in its own DM keeps the message, and no model is called", async () => {
+  test("Doug in its own DM keeps the message, and no model is called", async () => {
     f = await setup({ rightHand: true, reply: () => ({ chunks: ["On it."] }) });
     await hold("payment");
     const used = await useTeamTemplate({ db: f.db, pubsub: f.pubsub }, f.owner.id, f.org.id, "store", "en");

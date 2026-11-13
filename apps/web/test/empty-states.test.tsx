@@ -36,12 +36,12 @@ const title = () => empty().querySelector(".ac-empty__title")?.textContent;
 const buttons = () => within(empty()).queryAllByRole("button");
 
 describe("first use: what the place gives, and the one next step", () => {
-  test("Tarefas: the agent, one Nova tarefa, and Lodi with the ask already written", async () => {
+  test("Tarefas: the agent, one Nova tarefa, and Doug with the ask already written", async () => {
     const { router } = await go(fresh(), "issues");
     expect(empty().querySelector(".ac-empty__agent canvas")).not.toBeNull();
     expect(title()).toBe("Dê dono e prazo ao trabalho");
     expect(screen().getAllByRole("button", { name: "Nova tarefa" })).toHaveLength(1);
-    await click(within(empty()).getByRole("button", { name: "Peça ao Lodi" }));
+    await click(within(empty()).getByRole("button", { name: "Peça ao Doug" }));
     expect(router.state.location.pathname).toContain("/dm/agent/");
     expect(document.body.textContent).toContain("Me ajuda a criar as primeiras tarefas do time.");
   });
@@ -55,7 +55,7 @@ describe("who can't act gets an honest line and no button that fails", () => {
     expect(screen().queryByRole("button", { name: "Nova tarefa" })).toBeNull();
   });
 
-  test("Peça ao Lodi goes with talk_to_agents, the task stays", async () => {
+  test("Peça ao Doug goes with talk_to_agents, the task stays", async () => {
     await go(fresh(["read", "post"]), "issues");
     expect(buttons().map((b) => b.textContent)).toEqual(["Nova tarefa"]);
   });

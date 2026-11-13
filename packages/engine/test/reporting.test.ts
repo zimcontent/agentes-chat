@@ -53,10 +53,10 @@ describe("the line's rules", () => {
     [id, { id, builtin, reportsToAgentId }] as const;
 
   test("refuses itself, the right hand at either end, a loop and more than 3 agents deep", () => {
-    const rows = new Map([row("a"), row("b", "a"), row("c", "b"), row("d"), row("lodi", null, "right_hand")]);
+    const rows = new Map([row("a"), row("b", "a"), row("c", "b"), row("d"), row("doug", null, "right_hand")]);
     expect(lineRefusal(rows, "a", "a")).toContain("itself");
-    expect(lineRefusal(rows, "lodi", "a")).toContain("right hand");
-    expect(lineRefusal(rows, "d", "lodi")).toContain("right hand");
+    expect(lineRefusal(rows, "doug", "a")).toContain("right hand");
+    expect(lineRefusal(rows, "d", "doug")).toContain("right hand");
     expect(lineRefusal(rows, "a", "c")).toContain("loop");
     // d → c makes a, b, c, d: four agents top to bottom.
     expect(lineRefusal(rows, "d", "c")).toContain("at most 3");

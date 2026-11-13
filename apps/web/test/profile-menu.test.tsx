@@ -1,13 +1,23 @@
-import { afterEach, describe, expect, test } from "bun:test";
+import { afterAll, afterEach, beforeAll, describe, expect, test } from "bun:test";
 import { setupDom } from "@agenteschat/ui/testing/dom";
 
 setupDom();
 
 import { act, cleanup, fireEvent, within } from "@testing-library/react";
 import { COMPACT_QUERY } from "@/components/NavDrawer";
+import { toggleSidebar } from "@/components/Sidebar";
 import { createFakeApi, ENG_ID, ORG_ID, seedState } from "./fake-api";
 import { createFakeAuth } from "./fake-auth";
 import { renderApp, screen, settle } from "./render";
+
+// DougBot: the full sidebar has the person on top, opening the workspace's full-screen menu; the account's own menu
+// (this file's) is the collapsed sidebar's, at its foot.
+beforeAll(() => {
+  if (globalThis.localStorage?.getItem("agentes.sidebar.collapsed") !== "1") toggleSidebar();
+});
+afterAll(() => {
+  if (globalThis.localStorage?.getItem("agentes.sidebar.collapsed") === "1") toggleSidebar();
+});
 
 /* The account button at the foot of the sidebar: a menu right above it, me on top, my status in a menu beside it. */
 
@@ -236,7 +246,7 @@ describe("the account menu", () => {
     expect(screen().queryByRole("dialog", { name: "Seu avatar" })).toBeNull();
   });
 
-  test("a long name and @ are whole on top and at the foot, the name's capitals at the face's top", async () => {
+  test("a long name and @ are whole on top, the name's capitals at the face's top in the menu", async () => {
     const long = "Maria Eduarda Albuquerque de Vasconcelos Figueiredo";
     const state = seedState();
     const walter = state.members.find((m) => m.userId === "u-walter");
@@ -298,25 +308,19 @@ describe("the account menu", () => {
     expect(router.state.location.pathname).toBe("/login");
   });
 
-  test("on a phone, with no room beside it, how I appear is in the menu itself", async () => {
+  test("on a phone, the person on top opens the full-screen menu: Você (status, profile, account, Sair), then the workspace", async () => {
     onPhone();
     await go();
     await click(screen().getAllByRole("button", { name: "Abrir menu" })[0] as HTMLElement);
-    const menu = await openMenu();
-    expect(within(menu).queryByRole("menuitem", { name: "Definir status" })).toBeNull();
-    expect(names(within(menu).getAllByRole("menuitemradio"))).toEqual([
-      "Online",
-      "Ausente",
-      "Ocupado",
-      "Fora do escritório",
-      "Oculto",
-    ]);
-    expect(names(within(menu).getAllByRole("menuitem"))).toEqual([
-      "Trocar foto",
-      "O que você está fazendo?",
+    await click(account());
+    const you = within(screen().getByRole("dialog")).getByRole("menu", { name: "Você" });
+    expect(you.textContent).toContain("Walter");
+    expect(names(within(you).getAllByRole("menuitem"))).toEqual([
+      "Definir status",
       "Editar perfil",
-      "Configurações",
+      "Sua conta",
       "Sair",
     ]);
+    expect(within(screen().getByRole("dialog")).getByRole("menu", { name: "Menu do workspace Acme" })).toBeTruthy();
   });
 });

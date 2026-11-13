@@ -412,7 +412,7 @@ export const helpEn: Record<HelpSlug, HelpDocument> = {
             ],
           },
           "An action in someone's own mailbox waits for that person alone. New access for an agent waits for those who manage agents.",
-          "Lodi, your right hand, can also approve for you the new agents other agents propose and changes to an agent's model, budget and channels, only when you asked for them. Who covers you and what Lodi approves are chosen in **Settings\u00a0›\u00a0You\u00a0›\u00a0Approvals**.",
+          "Doug, your right hand, can also approve for you the new agents other agents propose and changes to an agent's model, budget and channels, only when you asked for them. Who covers you and what Doug approves are chosen in **Settings\u00a0›\u00a0You\u00a0›\u00a0Approvals**.",
         ],
       },
       {

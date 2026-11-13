@@ -219,7 +219,7 @@ describe("Connect an AI, the rail's last step", () => {
     expect(document.querySelector(".onb-ai__connected .ac-option__title")?.textContent).toBe("Chave de API");
   });
 
-  test("on agentes.chat Cloud, a plan left for later skips the step: Lodi's DM, the beta notice alone", async () => {
+  test("on agentes.chat Cloud, a plan left for later skips the step: Doug's DM, the beta notice alone", async () => {
     const state = madeTeam({ held: true });
     // The billing service's plan list can't be read: the plan step names a plan generically.
     globalThis.fetch = (async () => new Response("", { status: 404 })) as unknown as typeof fetch;
@@ -264,11 +264,11 @@ describe("a personal workspace (ADR 0159)", () => {
       await click(button("Seguir sem agentes"), 16);
       expect(heading()).toBe("Conecte uma IA para os seus agentes pensarem");
       const stage = () => document.querySelector(".onb-stage")?.textContent ?? "";
-      expect(stage()).toContain("O Lodi está pronto");
+      expect(stage()).toContain("O Doug está pronto");
       expect(stage()).toContain("Só falta uma IA para acordar.");
       expect(stage()).not.toContain("time");
       await allThink(state, services);
-      expect(stage()).toContain("O Lodi acordou");
+      expect(stage()).toContain("O Doug acordou");
       expect(stage()).not.toContain("time");
     } finally {
       restore();
@@ -339,7 +339,7 @@ describe("each card opens Connect for the whole team on its own steps (ADR 0162)
     expect(within(dialog).getByRole("region", { name: "Seu plano do Claude" })).toBeTruthy();
     // Back leads to the choices, under its own name.
     await click(within(dialog).getByRole("button", { name: "Voltar" }), 4);
-    expect(screen().getByRole("dialog", { name: "Conectar uma IA para o Lodi" })).toBeTruthy();
+    expect(screen().getByRole("dialog", { name: "Conectar uma IA para o Doug" })).toBeTruthy();
   });
 
   test("the team already thinking and the right hand not: a card opens the right hand's own dialog", async () => {
