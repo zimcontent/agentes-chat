@@ -376,7 +376,7 @@
     "recommended": "Empfohlen",
     "free": "Kostenlos · Open Source",
     "cloud": {
-      "name": "agentes.chat Cloud",
+      "name": "DougBot",
       "short": "Immer an, nichts zu installieren.",
       "on": "Der Computer der Agenten ist immer an",
       "care": "Updates und Backups übernehmen wir",
@@ -547,7 +547,7 @@
     "server": {
       "into": "Anmeldung bei <b>{{server}}</b>",
       "intoHere": "Anmeldung bei agentes.chat <b>auf diesem {{device}}</b>",
-      "intoCloud": "Anmeldung bei <b>agentes.chat Cloud</b>",
+      "intoCloud": "Anmeldung bei <b>DougBot</b>",
       "change": "Server wechseln"
     },
     "forgotHere": {

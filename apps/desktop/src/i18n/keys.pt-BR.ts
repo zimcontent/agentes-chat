@@ -150,6 +150,9 @@ export const desktopPtBR = {
   },
   /** First run (FirstRun.tsx), adding a workspace: its title and the Cloud's ways (the choice itself is `hosting`). */
   first: {
+    title: "Conecte este computador ao DougBot",
+    lead: "Entre com a sua conta e os seus agentes aparecem aqui.",
+    connect: "Conectar ao DougBot",
     addTitle: "Adicionar um workspace",
     addLead: "Os que você já tem continuam aqui, cada um com o seu login.",
     addCloud: "Criar um workspace no DougBot",

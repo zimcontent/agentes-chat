@@ -241,7 +241,7 @@ describe("Entrar (e-mail primeiro)", () => {
       await renderApp("/login", { api: authApi(ACCOUNT).api, auth: createFakeAuth().auth });
       await settle(4);
       const line = document.querySelector(".auth__place") as HTMLElement;
-      expect(line.textContent).toContain("Entrando no agentes.chat Cloud");
+      expect(line.textContent).toContain("Entrando no DougBot");
       await act(async () => fireEvent.click(within(line).getByRole("button", { name: "Trocar de servidor" })));
       await settle(2);
       const sheet = screen().getByRole("dialog", { name: "Onde fica o seu workspace?" });

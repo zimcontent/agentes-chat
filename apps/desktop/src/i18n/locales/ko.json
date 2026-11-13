@@ -139,6 +139,9 @@
     "quitConfirm": "종료"
   },
   "first": {
+    "title": "이 컴퓨터를 DougBot에 연결하세요",
+    "lead": "계정으로 로그인하면 에이전트가 여기에 나타납니다.",
+    "connect": "DougBot에 연결",
     "addTitle": "워크스페이스 추가",
     "addLead": "이미 있는 워크스페이스는 각자의 로그인으로 그대로 남습니다.",
     "addCloud": "DougBot에 워크스페이스 만들기",

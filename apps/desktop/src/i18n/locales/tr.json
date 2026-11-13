@@ -142,6 +142,9 @@
     "quitConfirm": "Çık"
   },
   "first": {
+    "title": "Bu bilgisayarı DougBot'a bağlayın",
+    "lead": "Hesabınızla giriş yapın, ajanlarınız burada görünsün.",
+    "connect": "DougBot'a bağlan",
     "addTitle": "Çalışma alanı ekle",
     "addLead": "Zaten sahip olduklarınız, her biri kendi girişiyle burada kalır.",
     "addCloud": "DougBot'te çalışma alanı oluştur",

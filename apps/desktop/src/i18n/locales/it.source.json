@@ -383,6 +383,15 @@
   "tray.quitConfirm": {
     "value": "Quit"
   },
+  "first.title": {
+    "value": "Connect this computer to DougBot"
+  },
+  "first.lead": {
+    "value": "Sign in with your account and your agents show up here."
+  },
+  "first.connect": {
+    "value": "Connect to DougBot"
+  },
   "first.addTitle": {
     "value": "Add a workspace"
   },

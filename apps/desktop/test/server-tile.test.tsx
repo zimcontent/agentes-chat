@@ -161,14 +161,12 @@ test("Connect to my server: what it finds on the Tailscale network by Tailscale'
         <I18nextProvider i18n={createDesktopI18n("en", host.platform)}>
           <AppProvider host={host} store={store}>
             <ToastProvider>
-              <FirstRun />
+              <FirstRun start="own" />
             </ToastProvider>
           </AppProvider>
         </I18nextProvider>,
       ),
     );
-    await act(async () => button("On your own server")?.click());
-    await act(async () => button("Continue on my server")?.click());
     await act(async () => button("Connect to my server")?.click());
     // Each found server shows as soon as its own check answers: both, then.
     for (let i = 0; i < 100 && el.querySelectorAll(".dk-fr__foundrow").length < 2; i++) {

@@ -142,6 +142,9 @@
     "quitConfirm": "Afsluiten"
   },
   "first": {
+    "title": "Verbind deze computer met DougBot",
+    "lead": "Meld je aan met je account en je agenten verschijnen hier.",
+    "connect": "Verbinden met DougBot",
     "addTitle": "Een werkruimte toevoegen",
     "addLead": "Die je al hebt blijven hier, elk met een eigen aanmelding.",
     "addCloud": "Een werkruimte maken bij DougBot",

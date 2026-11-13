@@ -7,6 +7,7 @@ import { act } from "react";
 import { createRoot } from "react-dom/client";
 import { I18nextProvider } from "react-i18next";
 import { AppProvider } from "../src/app";
+import { ownServerScreen } from "../src/control/first-run";
 import type { Tailnet } from "../src/control/local-server";
 import { DesktopStore } from "../src/control/store";
 import { createFakeHost, type FakeHost, type HereOptions, type Scenario } from "../src/host/fake";
@@ -26,7 +27,7 @@ const USAGE_TEXT =
 async function firstRun(
   scenario: Scenario,
   check: (screen: ReturnType<typeof screenOf>) => Promise<void>,
-  options: { here?: HereOptions; lang?: AppLocale; host?: (host: FakeHost) => void } = {},
+  options: { here?: HereOptions; lang?: AppLocale; host?: (host: FakeHost) => void; first?: boolean } = {},
 ) {
   const host = createFakeHost("welcome", scenario, { here: options.here });
   options.host?.(host);
@@ -40,6 +41,8 @@ async function firstRun(
   };
   // Nothing else answers on this computer, and at once (the fake host waits like a network would).
   host.checkServer = async (server) => ({ ok: false, server, problem: "unreachable" });
+  // The first screen no longer leads to the own-server screens: they open directly, unless `first` is asked for.
+  const start = options.first ? undefined : ownServerScreen((await host.localServer()).bundled);
   const store = new DesktopStore(host, {});
   const stop = store.start();
   const el = document.body.appendChild(document.createElement("div"));
@@ -50,7 +53,7 @@ async function firstRun(
         <I18nextProvider i18n={createDesktopI18n(options.lang ?? "en", host.platform)}>
           <AppProvider host={host} store={store}>
             <ToastProvider>
-              <FirstRun />
+              <FirstRun start={start} />
             </ToastProvider>
           </AppProvider>
         </I18nextProvider>,
@@ -103,8 +106,6 @@ function switchRows(el: HTMLElement) {
 describe("Run DougBot on this Mac", () => {
   test("the title, one sentence, the two fields alone, two one-line switches with their ⓘ, and Start", () =>
     firstRun("first", async ({ el, press, until, button }) => {
-      await press("On your own server");
-      await press("Continue on my server");
       await press("Run DougBot on this Mac");
       // Tailscale connected: the reach row has nothing under its label.
       await until(() => el.querySelector("form.dk-fr__here") && switchRows(el)[0]?.line === null);
@@ -148,8 +149,6 @@ describe("Run DougBot on this Mac", () => {
     firstRun(
       "here",
       async ({ el, press, until }) => {
-        await press("On your own server");
-        await press("Continue on my server");
         await press("Run DougBot on this Mac");
         await until(() => el.querySelector("form.dk-fr__here"));
         expect(el.querySelector(".dk-lead")?.textContent).toBe(
@@ -162,8 +161,6 @@ describe("Run DougBot on this Mac", () => {
 
   test("running here already: one sentence, never its address", () =>
     firstRun("here", async ({ el, press, until }) => {
-      await press("On your own server");
-      await press("Continue on my server");
       await press("Run DougBot on this Mac");
       await until(() => el.querySelector("h1")?.textContent === "DougBot already runs on this Mac");
       expect(el.querySelector(".dk-lead")?.textContent).toBe("This app runs it. Open it to sign in.");
@@ -173,8 +170,6 @@ describe("Run DougBot on this Mac", () => {
     await firstRun(
       "first",
       async ({ el, press, until, tailscale }) => {
-        await press("On your own server");
-        await press("Continue on my server");
         await press("Run DougBot on this Mac");
         await until(() => switchRows(el)[0]?.line?.startsWith("Needs"));
         const [reach] = switchRows(el);
@@ -189,8 +184,6 @@ describe("Run DougBot on this Mac", () => {
     await firstRun(
       "first",
       async ({ el, press, until, tailscale }) => {
-        await press("On your own server");
-        await press("Continue on my server");
         await press("Run DougBot on this Mac");
         await until(() => switchRows(el)[0]?.line?.startsWith("Tailscale"));
         expect(switchRows(el)[0]?.line).toBe("Tailscale isn't connected. Open Tailscale");
@@ -202,8 +195,6 @@ describe("Run DougBot on this Mac", () => {
     await firstRun(
       "linux",
       async ({ el, press, until }) => {
-        await press("On your own server");
-        await press("Continue on my server");
         await press("Run DougBot on this computer");
         await until(() => switchRows(el)[0]?.line?.startsWith("Tailscale"));
         const row = el.querySelector(".dk-card > .dk-crow");
@@ -219,8 +210,6 @@ describe("Run DougBot on this Mac", () => {
     await firstRun(
       "first",
       async ({ el, press, until }) => {
-        await press("On your own server");
-        await press("Continue on my server");
         await press("Run DougBot on this Mac");
         await until(() => switchRows(el)[0]?.line?.startsWith("Tailscale"));
         const row = el.querySelector(".dk-card > .dk-crow");
@@ -240,8 +229,6 @@ describe("Run DougBot on this Mac", () => {
     await firstRun(
       "windows",
       async ({ el, press, until }) => {
-        await press("On your own server");
-        await press("Continue on my server");
         await press("Run DougBot on this PC");
         await until(() => switchRows(el)[0]?.line?.startsWith("Tailscale"));
         const line = el.querySelector(".dk-card > .dk-crow small");
@@ -260,8 +247,6 @@ describe("Run here, while Tailscale is read", () => {
     await firstRun(
       "first",
       async ({ el, press, until }) => {
-        await press("On your own server");
-        await press("Continue on my server");
         await press("Run DougBot on this Mac");
         await until(() => el.querySelector("form.dk-fr__here"));
         expect(switchRows(el)[0]?.line).toBe("Checking whether Tailscale is connected…");
@@ -282,33 +267,33 @@ describe("Run here, while Tailscale is read", () => {
   });
 });
 
-describe("Where does your workspace live?", () => {
-  test("the Cloud chosen and recommended, one's own server free beside it, one button that follows the choice", () => {
+describe("Connect this computer to DougBot", () => {
+  test("one title, one sentence, one button to DougBot's sign-in, and nothing about other servers or agentes.chat", () => {
     const chosen: (string | undefined)[] = [];
+    const servers: string[] = [];
     return firstRun(
       "first",
       async ({ el, press, button }) => {
-        expect(el.querySelector("h1")?.textContent).toBe("Where does your workspace live?");
-        const cards = [...el.querySelectorAll<HTMLElement>('[role="radio"]')];
-        expect(cards.map((c) => c.getAttribute("aria-checked"))).toEqual(["true", "false"]);
-        expect(cards[0]?.textContent).toContain("Recommended");
-        expect(cards[0]?.textContent).toContain("The agents' computer always on");
-        expect(cards[1]?.textContent).toContain("Free · open source");
-        // No radio dot: the chosen card's border says it.
-        expect(el.querySelector(".ac-optrow__dot")).toBeNull();
-        // Day over the Cloud's server; night and the team asleep on one's own.
-        expect(el.querySelector(".ac-hosting")?.getAttribute("data-hosting")).toBe("cloud");
-        await press("On your own server");
-        expect(el.querySelector(".ac-hosting")?.getAttribute("data-hosting")).toBe("own");
-        expect(el.textContent).toContain("The agents stop when it's off");
-        expect(button("Continue on Cloud")).toBeUndefined();
-        await press("agentes.chat Cloud");
-        await press("Continue on Cloud");
+        expect(el.querySelector("h1")?.textContent).toBe("Connect this computer to DougBot");
+        expect(el.querySelector(".dk-lead")?.textContent).toBe(
+          "Sign in with your account and your agents show up here.",
+        );
+        expect(el.querySelector('[role="radio"]')).toBeNull();
+        expect(el.textContent).not.toContain("agentes.chat");
+        // No way to another server, nor to run one on this computer.
+        const labels = [...el.querySelectorAll("button")].map((b) => b.textContent);
+        expect(labels).toEqual(["Connect to DougBot"]);
+        expect(button("server")).toBeUndefined();
+        expect(button("this Mac")).toBeUndefined();
+        await press("Connect to DougBot");
+        expect(servers).toEqual(["https://dougbot.app"]);
         expect(chosen).toEqual(["/login"]);
       },
       {
+        first: true,
         host: (host) => {
-          host.chooseServer = async (_server, page) => {
+          host.chooseServer = async (server, page) => {
+            servers.push(server);
             chosen.push(page);
           };
           host.hideWindow = async () => {};
@@ -321,8 +306,6 @@ describe("Where does your workspace live?", () => {
 describe("Your own server", () => {
   test("Which one to choose? opens the page's answer in the browser, in the app's language", async () => {
     await firstRun("first", async ({ el, press, button, opened }) => {
-      await press("On your own server");
-      await press("Continue on my server");
       expect(el.querySelector("h1")?.textContent).toBe("Your own server");
       expect(el.textContent).toContain("This Mac becomes the server, while it's on.");
       expect(button("Which one to choose?")?.className).toBe("ac-link ac-link--muted dk-link");
@@ -332,8 +315,6 @@ describe("Your own server", () => {
     await firstRun(
       "first",
       async ({ press, opened }) => {
-        await press("No seu servidor");
-        await press("Continuar no meu servidor");
         await press("Qual escolher?");
         expect(opened).toEqual(["https://agentes.chat/pt/docs/run-on-your-computer#who"]);
       },
@@ -342,9 +323,7 @@ describe("Your own server", () => {
   });
 
   test("on Windows it runs here too: the same card and its help", () =>
-    firstRun("windows", async ({ el, press, button }) => {
-      await press("On your own server");
-      await press("Continue on my server");
+    firstRun("windows", async ({ el, button }) => {
       expect(el.textContent).toContain("This PC becomes the server, while it's on.");
       expect(button("Which one to choose?")).toBeDefined();
     }));
@@ -364,14 +343,10 @@ const pressEscape = () =>
 async function startSetup(
   { el, press, until }: ReturnType<typeof screenOf>,
   words = {
-    own: "On your own server",
-    ownGo: "Continue on my server",
     here: "Run DougBot on this Mac",
     start: "Start DougBot",
   },
 ) {
-  await press(words.own);
-  await press(words.ownGo);
   await press(words.here);
   await until(() => el.querySelector("form.dk-fr__here"));
   await act(async () => typeInto(el.querySelector('input[type="email"]'), "ana@example.com"));
@@ -507,8 +482,6 @@ describe("Setting it up here", () => {
         "first",
         async (screen) => {
           const { el, until, button, press } = screen;
-          await press("On your own server");
-          await press("Continue on my server");
           await press("Run DougBot on this Mac");
           await until(() => el.querySelector("#here-reach:not([disabled])"));
           await act(async () => typeInto(el.querySelector('input[type="email"]'), "ana@example.com"));
@@ -563,8 +536,6 @@ describe("Setting it up here", () => {
       await firstRun(
         "first",
         async ({ el, until, button, press }) => {
-          await press("On your own server");
-          await press("Continue on my server");
           await press("Run DougBot on this Mac");
           await until(() => el.querySelector("#here-reach:not([disabled])"));
           await act(async () => typeInto(el.querySelector('input[type="email"]'), "ana@example.com"));
@@ -591,8 +562,6 @@ describe("Setting it up here", () => {
       async (screen) => {
         const { el, until, button, press } = screen;
         const switchOn = (id: string) => el.querySelector(`#${id}`)?.getAttribute("aria-checked");
-        await press("On your own server");
-        await press("Continue on my server");
         await press("Run DougBot on this Mac");
         await until(() => el.querySelector("#here-reach:not([disabled])"));
         await act(async () => typeInto(el.querySelector('input[type="email"]'), "ana@example.com"));
@@ -731,8 +700,6 @@ describe("Setting it up here", () => {
       async (screen) => {
         const { el, until } = screen;
         await startSetup(screen, {
-          own: "On your own server",
-          ownGo: "Continue on my server",
           here: "Run DougBot on this PC",
           start: "Start DougBot",
         });
@@ -748,8 +715,6 @@ describe("Setting it up here", () => {
       async (screen) => {
         const { el, until } = screen;
         await startSetup(screen, {
-          own: "No seu servidor",
-          ownGo: "Continuar no meu servidor",
           here: "Rodar o DougBot neste Mac",
           start: "Iniciar o DougBot",
         });
@@ -779,12 +744,12 @@ describe("Add a workspace", () => {
       "first",
       async ({ press, until, button }) => {
         await until(() => button("Want a new workspace?") || button("Create one"));
-        await press("Continue on Cloud");
+        await press("Connect to DougBot");
         await press("Create one");
         expect(chosen).toEqual(["/login", "/onboarding"]);
         expect(button("Create an account")).toBeUndefined();
       },
-      { host: adding(false, chosen) },
+      { host: adding(false, chosen), first: true },
     );
   });
 
@@ -798,7 +763,7 @@ describe("Add a workspace", () => {
         await press("Create a workspace on DougBot");
         expect(chosen).toEqual(["/onboarding"]);
       },
-      { host: adding(true, chosen) },
+      { host: adding(true, chosen), first: true },
     );
   });
 });

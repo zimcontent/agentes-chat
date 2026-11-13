@@ -145,6 +145,9 @@
     "quitConfirm": "Quitter"
   },
   "first": {
+    "title": "Connectez ce poste à DougBot",
+    "lead": "Connectez-vous avec votre compte et vos agents apparaissent ici.",
+    "connect": "Se connecter à DougBot",
     "addTitle": "Ajouter un espace de travail",
     "addLead": "Ceux que vous avez déjà restent ici, chacun avec sa propre connexion.",
     "addCloud": "Créer un espace de travail sur DougBot",

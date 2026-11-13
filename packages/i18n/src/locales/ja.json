@@ -371,7 +371,7 @@
     "recommended": "おすすめ",
     "free": "無料 · オープンソース",
     "cloud": {
-      "name": "agentes.chat Cloud",
+      "name": "DougBot",
       "short": "常に稼働、インストール不要。",
       "on": "エージェントのコンピューターは常に稼働",
       "care": "アップデートとバックアップはこちらで対応",
@@ -541,7 +541,7 @@
     "server": {
       "into": "<b>{{server}}</b> にサインイン",
       "intoHere": "この{{device}}の<b>agentes.chat</b>にサインイン",
-      "intoCloud": "<b>agentes.chat Cloud</b> にログイン中",
+      "intoCloud": "<b>DougBot</b> にログイン中",
       "change": "サーバーを変更"
     },
     "forgotHere": {

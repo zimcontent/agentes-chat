@@ -371,7 +371,7 @@
     "recommended": "推荐",
     "free": "免费 · 开源",
     "cloud": {
-      "name": "agentes.chat Cloud",
+      "name": "DougBot",
       "short": "始终在线，无需安装。",
       "on": "智能体的电脑始终开机",
       "care": "更新和备份由我们负责",
@@ -541,7 +541,7 @@
     "server": {
       "into": "正在登录 <b>{{server}}</b>",
       "intoHere": "正在登录<b>这台 {{device}}</b> 上的 agentes.chat",
-      "intoCloud": "正在登录 <b>agentes.chat Cloud</b>",
+      "intoCloud": "正在登录 <b>DougBot</b>",
       "change": "更换服务器"
     },
     "forgotHere": {
