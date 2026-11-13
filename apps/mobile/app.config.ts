@@ -90,8 +90,8 @@ const DOUGBOT_EAS_PROJECT_ID = "da14fac0-0136-48a5-a4ab-f59280bf25d6";
 const projectId = process.env.EAS_PROJECT_ID || DOUGBOT_EAS_PROJECT_ID || undefined;
 /** The app's name on the home screen and in the stores. */
 const APP_NAME = "DougBot";
-// The bundle id / package: io.mydoug.app, with .preview and .development side by side.
-const BUNDLE_ID = `io.mydoug.app${suffix}`;
+// The bundle id / package: app.dougbot (the dougbot.app domain, reversed), with .preview and .development side by side.
+const BUNDLE_ID = `app.dougbot${suffix}`;
 // expo-image-picker and expo-camera both set iOS's camera text: one text for both uses (pt-BR and the other languages
 // in assets/locales/*.json win on phones in those languages).
 const CAMERA_USE = "To take pictures for your conversations and your agents' photos, and to scan QR codes.";

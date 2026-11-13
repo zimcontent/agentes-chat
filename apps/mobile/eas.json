@@ -42,7 +42,7 @@
       "ios": {
         "appName": "DougBot",
         "language": "pt-BR",
-        "sku": "io.mydoug.app"
+        "sku": "app.dougbot"
       },
       "android": {
         "track": "internal",

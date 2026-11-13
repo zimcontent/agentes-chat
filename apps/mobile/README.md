@@ -3,7 +3,7 @@
 DougBot is this fork's phone app: agentes.chat by Codari Global, LLC (AGPL-3.0), with the DougBot identity
 (`identidade/dougbot-identidade`: IDENTIDADE.md, tokens.css, dougbot-avatar.js).
 
-- **Brand**: name DougBot, bundle id / package `io.mydoug.app` (`.preview`, `.development`), scheme `dougbot` (plus
+- **Brand**: name DougBot, bundle id / package `app.dougbot` (`.preview`, `.development`), scheme `dougbot` (plus
   `agenteschat`, which the server trusts for sign-in, OAuth returns and its QR codes), default server
   `https://time.zimcontent.com` (`EXPO_PUBLIC_API_URL` in eas.json, fallback in app.config.ts and `src/config.ts`).
   The EAS project is not set: `eas init` creates the owner's own and writes its id into `DOUGBOT_EAS_PROJECT_ID`
