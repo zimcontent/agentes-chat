@@ -88,6 +88,7 @@ import {
   SCREEN_ROW_KEYS,
   type ScreenKey,
   type ScreenRowKey,
+  screenOffersRetry,
   screenWaits,
   typedSince,
 } from "./screen-page";
@@ -363,25 +364,48 @@ export function AgentScreen({
     text: `${t("desktop.control.notice", g)}${f?.edition === "cloud" ? ` ${t("desktop.session.screening")}` : ""}`,
     variant: "footnote",
   });
-  const dock = inControl ? (
-    <>
-      <View style={styles.dockInfo}>{notice.button}</View>
-      <DockIcon icon="keyboard" label={t("desktop.keyboard.label")} onPress={() => setTyping("screen")} />
-      <DockIcon icon="expand" label={t("agentComputer.phone.turn")} onPress={sideways.lieDown} />
-      {ask ? <DockIcon icon="x" label={t("mobile.browser.live.couldnt")} onPress={couldnt} /> : null}
-      <DockIcon icon="compose" label={t("browser.inCard.addNote")} onPress={leaveNote} />
-      <DockRule />
-      <DockDone label={doneLabel} loading={finishing} onPress={handBack} />
-    </>
-  ) : mayTake ? (
-    <DockText
-      icon="person"
-      label={words.browserOnly ? t("desktop.takeBrowser") : t("desktop.takeover")}
-      loading={taking}
-      onPress={() => void take()}
-    />
-  ) : null;
+  const retry = () => {
+    setStuck(false);
+    setPage("connecting");
+    if (ready) web.current?.call("retry");
+    else setLife((n) => n + 1);
+    void view.desktopQ.refetch();
+  };
+  const again = <DockText label={t("desktop.retry")} onPress={retry} />;
+  // The screen can't be shown and says so with Tentar de novo: one capsule holds it, never the cover's own under
+  // the screen's (they sat on each other). In control only the way out stays beside it, the screen's tools reach nothing.
+  const offersRetry = screenOffersRetry({ lost, shown, switching: switching !== null, stuck });
+  const dock =
+    inControl && offersRetry ? (
+      <>
+        {again}
+        {ask ? <DockIcon icon="x" label={t("mobile.browser.live.couldnt")} onPress={couldnt} /> : null}
+        <DockRule />
+        <DockDone label={doneLabel} loading={finishing} onPress={handBack} />
+      </>
+    ) : inControl ? (
+      <>
+        <View style={styles.dockInfo}>{notice.button}</View>
+        <DockIcon icon="keyboard" label={t("desktop.keyboard.label")} onPress={() => setTyping("screen")} />
+        <DockIcon icon="expand" label={t("agentComputer.phone.turn")} onPress={sideways.lieDown} />
+        {ask ? <DockIcon icon="x" label={t("mobile.browser.live.couldnt")} onPress={couldnt} /> : null}
+        <DockIcon icon="compose" label={t("browser.inCard.addNote")} onPress={leaveNote} />
+        <DockRule />
+        <DockDone label={doneLabel} loading={finishing} onPress={handBack} />
+      </>
+    ) : mayTake && offersRetry ? (
+      again
+    ) : mayTake ? (
+      <DockText
+        icon="person"
+        label={words.browserOnly ? t("desktop.takeBrowser") : t("desktop.takeover")}
+        loading={taking}
+        onPress={() => void take()}
+      />
+    ) : null;
   const docked = dock !== null && !wide;
+  // The cover carries Tentar de novo only where the screen has no capsule of its own.
+  const coverAgain = docked ? undefined : again;
 
   // A request on this screen is the chat's request card, under the screen: Ajudar and Agora não for whom it asks.
   const notNow = useNotNow(waiting);
@@ -421,14 +445,6 @@ export function AgentScreen({
     />
   ) : null;
 
-  const retry = () => {
-    setStuck(false);
-    setPage("connecting");
-    if (ready) web.current?.call("retry");
-    else setLife((n) => n + 1);
-    void view.desktopQ.refetch();
-  };
-  const again = <DockText label={t("desktop.retry")} onPress={retry} />;
   const { color } = agentLook(agent);
   const tones = bodyTones(color);
   const opening = <Cover fill sky spinner color={color} text={t("agentComputer.state.opening", g)} />;
@@ -438,7 +454,7 @@ export function AgentScreen({
       icon="eyeoff"
       text={t("agentComputer.state.unavailable", g)}
       help={t("agentComputer.state.unavailableHelp")}
-      action={again}
+      action={coverAgain}
     />
   );
   const computer = computerName(t, org?.name ?? "", view.machine, isPersonal(org));
@@ -486,13 +502,13 @@ export function AgentScreen({
       />
     ),
     busy: <Cover fill spinner color={color} text={t("desktop.state.busy")} help={t("desktop.state.retrying")} />,
-    noRoom: <Cover fill icon="clock" text={t("agentComputer.state.noRoom", { computer })} action={again} />,
+    noRoom: <Cover fill icon="clock" text={t("agentComputer.state.noRoom", { computer })} action={coverAgain} />,
     paused: <Cover fill icon="pause" text={t("agentComputer.state.pausedPlain", { computer })} />,
     held: <Cover fill icon="pause" text={t("agentComputer.state.held", g)} help={t("agentComputer.state.heldHelp")} />,
     forbidden: <Cover fill icon="lock" text={t("agentComputer.state.forbidden")} />,
     outdated: <Cover fill icon="eyeoff" text={t("agentComputer.state.outdated", { ...g, computer })} />,
     unavailable: cantShow,
-    ended: <Cover fill icon="eyeoff" text={t("desktop.state.ended")} action={again} />,
+    ended: <Cover fill icon="eyeoff" text={t("desktop.state.ended")} action={coverAgain} />,
   };
 
   const frame = useAnimatedStyle(() => ({
