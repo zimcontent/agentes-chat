@@ -1,15 +1,17 @@
 import { exampleSenders } from "@agenteschat/client/lib/push-offer";
-import { Image } from "expo-image";
+import { SvgXml } from "react-native-svg";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { StyleSheet, View } from "react-native";
+import { svgDoBot } from "@/brand/bots";
 import { pushPermission } from "@/lib/push";
 import { usePush } from "@/providers/push";
 import { Button, SheetScreen, Text, useToast } from "@/ui";
 import { useDirectory } from "../shared/hooks";
 import { useSurface } from "../shared/parts";
 
-const APP_ICON = require("../../../assets/images/icon-small.png");
+/** The app's icon in the example notifications: the Doug, drawn by code like everywhere else (no bitmap in the UI). */
+const APP_ICON = svgDoBot({ bot: "doug", tamanho: 34, id: "push-ask-icon" });
 
 /** The examples, top to bottom: what someone gets most, fading a little as they stack. */
 const EXAMPLES = [
@@ -77,7 +79,9 @@ function Example({ title, body, time, opacity }: { title: string; body: string; 
   const surface = useSurface();
   return (
     <View style={[styles.example, surface, { opacity }]}>
-      <Image source={APP_ICON} style={styles.icon} />
+      <View style={styles.icon}>
+        <SvgXml xml={APP_ICON} width={34} height={34} />
+      </View>
       <View style={styles.exampleText}>
         <View style={styles.exampleTop}>
           <Text variant="label" tone="ink" numberOfLines={1} style={styles.grow}>
@@ -99,7 +103,7 @@ const styles = StyleSheet.create({
   stack: { gap: 8, paddingBottom: 6 },
   example: { flexDirection: "row", alignItems: "center", gap: 10, borderRadius: 18, padding: 11, paddingRight: 13 },
   // The app's icon at a notification's size, its corners like the home screen's.
-  icon: { width: 34, height: 34, borderRadius: 8 },
+  icon: { width: 34, height: 34, borderRadius: 8, overflow: "hidden" },
   exampleText: { flex: 1, minWidth: 0, gap: 1 },
   exampleTop: { flexDirection: "row", alignItems: "baseline", gap: 8 },
   grow: { flex: 1, minWidth: 0 },

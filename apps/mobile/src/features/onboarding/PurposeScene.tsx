@@ -6,7 +6,7 @@ import {
   SCENE_LINES,
   SCENE_W,
 } from "@agenteschat/client/lib/purpose-scene";
-import { Image, StyleSheet, View } from "react-native";
+import { StyleSheet, View } from "react-native";
 import Svg, { Path } from "react-native-svg";
 import { AgentAvatar } from "@/agent/AgentAvatar";
 import { PersonAvatar } from "@/agent/PersonAvatar";
@@ -15,7 +15,6 @@ import { CardHorizon } from "@/sky/CardHorizon";
 import { useTheme } from "@/ui";
 
 /** A pixel portrait of someone on the team (anyone), as the web's. */
-const TEAMMATE = require("../../../assets/images/onboarding-teammate.jpg");
 
 /** The air between the drawing and the card's edges. */
 const PAD = 6;
@@ -87,7 +86,7 @@ export function PurposeScene({
               ) : "you" in f ? (
                 <PersonAvatar name={you.name} size={size} photo={you.photo} />
               ) : (
-                <Image source={TEAMMATE} style={{ width: size, height: size, borderRadius: size * 0.3 }} />
+                <PersonAvatar name="Letícia" size={size} />
               )}
             </View>
           );
