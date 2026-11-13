@@ -1815,7 +1815,7 @@ export const ptBR = {
       noMail:
         "Este servidor não envia e-mails, então não dá para confirmar o novo endereço. Peça a quem cuida do servidor para configurar o envio de e-mails.",
     },
-    openOnPhone: "Abrir no celular",
+    openOnPhone: "Parear celular",
     openOnPhoneHint: "Entre no app com um QR code",
     addPassword: "Adicionar uma senha",
     addPasswordHint: "Para entrar por outros navegadores e aparelhos",
