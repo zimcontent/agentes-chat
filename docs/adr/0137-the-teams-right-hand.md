@@ -509,3 +509,11 @@ threw its rows away. The owner decided it has every tool an agent can have, by d
   change after it waits on a card, a send still asks a person, and its replies keep the scrub of §4.
 - Its one budget on an API key (§13) now also carries the turns that read the web, write files and do long work for
   everyone who talks to it.
+## Addendum 2026-11-13 (DougBot fork): the Doug is the right hand, and keeps his own instructions
+
+- The built-in right hand starts as "Doug" (`@doug`), drawn as the Doug of the DougBot identity; the apps keep it first
+  in the sidebar's row of agents and at the top of Agentes, with no Hide and no reordering.
+- A right hand whose row was an agent of the team before (a workspace that turned its own chief into the right hand,
+  `doug-ui/doug-braco-direito.sql`) keeps what it was told: its own `instructions` now follow the product's right-hand
+  block in its prompt (`context.ts`) instead of being dropped. Its tools stay the right hand's (`RIGHT_HAND_TOOLS`,
+  fixed grants); its memories, skills and connections are its row's and stay with it.

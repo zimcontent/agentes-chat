@@ -414,7 +414,7 @@ export const helpPtBR: Record<HelpSlug, HelpDocument> = {
             ],
           },
           "Uma ação na caixa de e-mail de alguém espera só essa pessoa. Um acesso novo para um agente espera quem gerencia agentes.",
-          "O Lodi, seu braço direito, também pode aprovar por você os agentes novos que outros agentes propõem e mudanças de modelo, orçamento e canais de um agente, só quando foi você quem pediu. Quem cobre você e o que o Lodi aprova ficam em **Configurações\u00a0›\u00a0Você\u00a0›\u00a0Aprovações**.",
+          "O Doug, seu braço direito, também pode aprovar por você os agentes novos que outros agentes propõem e mudanças de modelo, orçamento e canais de um agente, só quando foi você quem pediu. Quem cobre você e o que o Doug aprova ficam em **Configurações\u00a0›\u00a0Você\u00a0›\u00a0Aprovações**.",
         ],
       },
       {

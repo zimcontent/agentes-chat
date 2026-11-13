@@ -1,3 +1,4 @@
+import { AgentPhotoBlock } from "@/components/AgentPhoto";
 import {
   type AgentAudience,
   useAgentDetail,
@@ -13,22 +14,18 @@ import { modelUnpriced } from "@agenteschat/client/lib/endpoints";
 import { formatMonth, formatPercent, formatTokensShort, formatUsd } from "@agenteschat/client/lib/format";
 import { addsAgentsTo } from "@agenteschat/client/lib/permissions";
 import {
-  type AgentAppearance,
-  agentGradient,
   Button,
   Card,
   CheckboxPill,
   Chip,
-  colorKey,
   Field,
   Icon,
   type IconName,
   Meter,
-  randomAppearance,
   Select,
   SettingNote,
 } from "@agenteschat/ui";
-import type { CSSProperties, ReactNode } from "react";
+import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { AudienceChoice } from "@/components/AgentAudience";
 import { AgentAvatar } from "@/components/AgentAvatar";
@@ -36,7 +33,6 @@ import { AgentComputerPanel } from "@/components/AgentComputer";
 import {
   BudgetField,
   InPlaceText,
-  LookRows,
   NO_OWNER,
   OwnerSelect,
   OwnerValue,
@@ -56,7 +52,7 @@ import {
   type Field as EditField,
   FIELD_PLACE,
 } from "@/lib/agent-edit";
-import { BLANK_LOOK, cleanHandle } from "@/lib/new-agent";
+import { cleanHandle } from "@/lib/new-agent";
 import { BrakesCard } from "./BrakesCard";
 import { CardHead, useAgentEdit, WasLine } from "./context";
 import { ReadOnlyNote, useVisibleChannels } from "./pieces";
@@ -243,7 +239,6 @@ export function SettingsTab({
   const visibleChannels = useVisibleChannels().list;
   // Where I may put it or take it out (the channels' ⓘ says so when some aren't).
   const placeable = visibleChannels.filter((c) => addsAgentsTo(c, me.user.id, org));
-  const look = draft.look;
   return (
     <>
       <ReadOnlyNote />
@@ -284,26 +279,10 @@ export function SettingsTab({
                 name: t("common.about", { label: t("agentPage.settings.identity") }),
                 text: t("agent.identityHelp"),
               }}
-              action={
-                can("look") ? (
-                  <Button
-                    size="sm"
-                    icon="shuffle"
-                    onClick={() =>
-                      set("look", { ...BLANK_LOOK, ...randomAppearance(look) } as Required<AgentAppearance>)
-                    }
-                  >
-                    {t("newAgent.shuffle")}
-                  </Button>
-                ) : undefined
-              }
             >
               <div className="agp-id">
-                <span
-                  className="agp-id__look"
-                  style={{ "--a": agentGradient(look.color)[0], "--b": agentGradient(look.color)[1] } as CSSProperties}
-                >
-                  <AgentAvatar size="lg" framed={false} name={draft.name || agent.name} appearance={look} />
+                <span className="agp-id__look">
+                  <AgentAvatar agentId={agent.id} size="lg" framed={false} name={draft.name || agent.name} />
                 </span>
                 <div className="agp-id__fields">
                   <IdentityCard />
@@ -335,22 +314,8 @@ export function SettingsTab({
                   {part === "all" && <ReportsTo />}
                 </div>
               </div>
-              {can("look") ? (
-                <>
-                  <LookRows look={look} onChange={(next) => set("look", next)} />
-                  <WasLine changeKey="look" />
-                </>
-              ) : (
-                <span className="agp-chips">
-                  <Chip icon="agent">
-                    {[
-                      t(`look.colors.${colorKey(look.color)}`),
-                      t(`look.eyesNames.${look.eyes}`),
-                      ...(look.accessory !== "none" ? [t(`look.accessories.${look.accessory}`)] : []),
-                    ].join(" · ")}
-                  </Chip>
-                </span>
-              )}
+              {/* DougBot: the bot comes from the agent's trade (IDENTIDADE.md §6); what a person picks is a photo. */}
+              <AgentPhotoBlock agent={agent} canEdit={can("look")} />
             </Section>
           )}
 

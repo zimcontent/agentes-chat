@@ -885,7 +885,7 @@ describe("an agent's role says what it does, in as many words as it takes", () =
 });
 
 describe("the right hand's agent cards (ADR 0137)", () => {
-  /** A run of Lodi on what `userId` wrote in their DM with it. */
+  /** A run of Doug on what `userId` wrote in their DM with it. */
   async function lodiRun(fx: Fixture, userId: string): Promise<ToolContext> {
     const [lodi] = await fx.db
       .select()

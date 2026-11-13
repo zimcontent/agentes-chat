@@ -130,7 +130,7 @@ const runsTab = async (panel: HTMLElement) => {
 };
 
 describe("Rotinas: each routine's state, with its one-tap fix", () => {
-  test("paused because the agent left the channel: the reason and 'Adicionar agente ao canal'", async () => {
+  test("paused because the agent left the channel: the reason and 'Adicionar agente ao grupo'", async () => {
     const { calls, state } = await open([
       routine({
         id: "rt-left",
@@ -142,8 +142,8 @@ describe("Rotinas: each routine's state, with its one-tap fix", () => {
       }),
     ]);
     const row = card("Vigiar erros");
-    expect(row.textContent).toContain("Pausada: o agente não está mais no canal");
-    await click(within(row).getByRole("button", { name: "Adicionar agente ao canal" }));
+    expect(row.textContent).toContain("Pausada: o agente não está mais no grupo");
+    await click(within(row).getByRole("button", { name: "Adicionar agente ao grupo" }));
     await settle(6);
     // The agent joins the channel it reports to, then the routine runs again.
     expect(state.calls.find((c) => c.method === "chat.addMember")?.args).toEqual([
@@ -152,7 +152,7 @@ describe("Rotinas: each routine's state, with its one-tap fix", () => {
       { agentId: ATLAS_ID },
     ]);
     expect(calls).toContain("active:rt-left:true");
-    expect(screen().getByText("Atlas voltou ao canal e a rotina está ativa de novo.")).toBeTruthy();
+    expect(screen().getByText("Atlas voltou ao grupo e a rotina está ativa de novo.")).toBeTruthy();
   });
 
   test("paused because its creator left: someone takes it over", async () => {
@@ -470,7 +470,7 @@ describe("Rotinas: a routine's details", () => {
       "Posta depois de toda execução, mesmo quando nada mudou, ou só quando encontra algo novo.",
     );
     // Where it delivers, with who sees it.
-    expect(meaning(within(aside).getByRole("combobox", { name: "Onde entrega" }))).toBe("Todo mundo do canal vê");
+    expect(meaning(within(aside).getByRole("combobox", { name: "Onde entrega" }))).toBe("Todo mundo do grupo vê");
     // The runs are their own tab.
     expect(panel.textContent).not.toContain("Contou o que achou");
     await runsTab(panel);
@@ -556,7 +556,7 @@ describe("Rotinas: a routine's details", () => {
     expect(aside.textContent).toContain("Quem faz");
     expect(aside.textContent).toContain("Atlas");
     expect(aside.textContent).toContain("#eng");
-    expect(aside.textContent).toContain("Todo mundo do canal vê");
+    expect(aside.textContent).toContain("Todo mundo do grupo vê");
     expect(aside.textContent).toContain("Só quando tiver novidade");
     expect(panel.textContent).toContain("Olhe os erros novos do Sentry e conte o que achar.");
     expect(within(panel).queryByRole("button", { name: "Editar o nome" })).toBeNull();

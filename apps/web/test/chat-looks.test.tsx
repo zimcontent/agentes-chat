@@ -73,8 +73,12 @@ async function openDm(prefs?: ChatPrefs) {
 }
 
 describe("the defaults", () => {
-  test("a channel lists everyone on the left: my row has its face, name and time", async () => {
+  test("a channel opens in bubbles (Doug), mine on the right; Tudo à esquerda lists everyone with face, name and time", async () => {
     await openChannel();
+    expect(row("w1").dataset.look).toBe("bubbles");
+    expect(row("w1").classList.contains("ac-msg--own")).toBe(true);
+    cleanup();
+    await openChannel({ channelStyle: "left" });
     const mine = row("w1");
     expect(mine.dataset.look).toBe("left");
     expect(mine.classList.contains("ac-msg--own")).toBe(false);
@@ -298,11 +302,13 @@ describe("Sua conta › Conversa", () => {
     const state = withChatPrefs(seedState());
     await openSettings(state);
     const styles = () => screen().getByRole("radiogroup", { name: "Densidade da conversa" });
-    expect(within(styles()).getByRole("radio", { name: "Tudo à esquerda" }).getAttribute("aria-checked")).toBe("true");
-    expect(screen().queryByRole("radiogroup", { name: "Minhas mensagens nos canais" })).toBeNull();
+    // Doug: a channel opens in Bolhas, so its tones show until another style is picked.
+    expect(within(styles()).getByRole("radio", { name: "Bolhas" }).getAttribute("aria-checked")).toBe("true");
+    expect(screen().queryByRole("radiogroup", { name: "Minhas mensagens nos grupos" })).not.toBeNull();
 
     await click(within(styles()).getByRole("radio", { name: "Compacta" }));
     expect(state.calls).toContainEqual({ method: "orgs.setChatPrefs", args: [ORG_ID, { channelStyle: "compact" }] });
+    expect(screen().queryByRole("radiogroup", { name: "Minhas mensagens nos grupos" })).toBeNull();
 
     await click(screen().getByRole("radio", { name: "DMs" }));
     expect(within(styles()).getByRole("radio", { name: "Bolhas" }).getAttribute("aria-checked")).toBe("true");
@@ -354,7 +360,7 @@ describe("Sua conta › Conversa", () => {
     const preview = () => document.querySelector<HTMLElement>(".chat-look__mini--real");
     expect(preview()?.dataset.textSize).toBe("md");
     expect(preview()?.querySelectorAll("article.ac-msg")).toHaveLength(2);
-    expect(preview()?.querySelector(".channel__messages")?.getAttribute("data-look")).toBe("left");
+    expect(preview()?.querySelector(".channel__messages")?.getAttribute("data-look")).toBe("bubbles");
 
     await click(within(sizes).getByRole("radio", { name: "Maior" }));
     expect(state.calls).toContainEqual({ method: "orgs.setChatPrefs", args: [ORG_ID, { textSize: "xl" }] });

@@ -81,9 +81,9 @@ describe("worst cases", () => {
                 active: true,
                 node: (
                   <FilterChip
-                    label="Canal"
+                    label="Grupo"
                     icon="channel"
-                    clearLabel="Limpar Canal"
+                    clearLabel="Limpar Grupo"
                     value={["c"]}
                     onChange={() => {}}
                     valueText={(o) => o.label}

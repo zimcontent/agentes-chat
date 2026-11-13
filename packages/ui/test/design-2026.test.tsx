@@ -382,7 +382,9 @@ describe("the presence badge (ADR 0084)", () => {
     const [sm, lg, agent, none] = Array.from(container.querySelectorAll(".ac-avatar"));
     expect([badge(sm)?.getAttribute("width"), badge(lg)?.getAttribute("width")]).toEqual(["11", "16.5"]);
     expect(sm?.querySelector(".ac-avatar__badge")?.getAttribute("title")).toBe("Ocupado");
-    expect(badge(agent)?.getAttribute("data-presence")).toBe("online");
+    // An agent is its DougBot (IDENTIDADE.md §7): its state is drawn in the bot, no badge beside it.
+    expect(badge(agent)).toBeFalsy();
+    expect(agent?.getAttribute("data-estado")).toBe("ok");
     expect(none?.querySelector(".ac-avatar__badge")).toBeNull();
   });
 
@@ -412,7 +414,7 @@ describe("the presence badge (ADR 0084)", () => {
 describe("command palette", () => {
   const picked: string[] = [];
   const items: PaletteItem[] = [
-    { key: "c", group: "Ir para", label: "#general", sub: "canal", onSelect: () => picked.push("general") },
+    { key: "c", group: "Ir para", label: "#general", sub: "grupo", onSelect: () => picked.push("general") },
     { key: "a", group: "Ir para", label: "Theo", sub: "agente · PM", onSelect: () => picked.push("theo") },
     { key: "s1", group: "Ir para", label: "Conectores", sub: "configurações", onSelect: () => picked.push("conn") },
     { key: "s2", group: "Ir para", label: "Skills", sub: "configurações", onSelect: () => picked.push("skills") },

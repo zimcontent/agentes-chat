@@ -59,9 +59,8 @@ describe("composer row and formatting", () => {
     await settle(8);
     const dm = screen().getByRole("combobox", { name: "Mensagem para Ada" });
     expect(rowOf(dm)).toEqual(["Anexar arquivo", "Emojis, GIFs e figurinhas", "Mensagem para Ada", "Enviar"]);
-    // Who answers stays: the agent's chip opens the row.
-    const row = dm.closest(".ac-composer__row") as HTMLElement;
-    expect(row.firstElementChild?.querySelector(".ac-composer__agent")?.textContent).toContain("Ada");
+    // Doug: the header says who answers; the composer repeats no chip of the agent.
+    expect(dm.closest(".ac-composer")?.querySelector(".ac-composer__agent")).toBeNull();
     expect(screen().queryByRole("toolbar", { name: "Formatação" })).toBeNull();
   });
 

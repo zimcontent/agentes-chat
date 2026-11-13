@@ -25,7 +25,7 @@ const access = async (dialog: HTMLElement, option: RegExp) => {
   await click(screen().getByRole("option", { name: option }));
 };
 /** "Papéis que veem o canal", its own dialog: tick these and "Pronto". */
-const rolesDialog = () => screen().getByRole("dialog", { name: "Papéis que veem o canal" });
+const rolesDialog = () => screen().getByRole("dialog", { name: "Papéis que veem o grupo" });
 const pickRoles = async (...names: RegExp[]) => {
   const d = rolesDialog();
   for (const name of names) await click(within(d).getByRole("checkbox", { name }));
@@ -36,18 +36,18 @@ const calls = (state: ReturnType<typeof seedState>, method: string) =>
   state.calls.filter((c) => c.method === method).map((c) => c.args.at(-1));
 
 describe("a channel for departments or roles (ADR 0125)", () => {
-  test("Criar canal: the third choice asks for a role, then creates it private and limited to the roles ticked", async () => {
+  test("Criar grupo: the third choice asks for a role, then creates it private and limited to the roles ticked", async () => {
     const state = await go(GENERAL_ID);
     const nav = screen().getByRole("navigation", { name: "Navegação do workspace" });
-    const plus = within(nav).getByRole("button", { name: "Novo canal ou categoria" });
+    const plus = within(nav).getByRole("button", { name: "Novo grupo ou categoria" });
     await act(async () => {
       fireEvent.keyDown(plus, { key: "Enter" });
       fireEvent.keyUp(plus, { key: "Enter" });
     });
     await settle(2);
-    await click(screen().getByRole("menuitem", { name: "Novo canal" }));
+    await click(screen().getByRole("menuitem", { name: "Novo grupo" }));
     await settle(2);
-    const dialog = screen().getByRole("dialog", { name: "Criar canal" });
+    const dialog = screen().getByRole("dialog", { name: "Criar grupo" });
     await act(async () => fireEvent.change(within(dialog).getByLabelText("Nome"), { target: { value: "vendas" } }));
     await access(dialog, /Departamentos ou papéis/);
     await settle(3);
@@ -71,9 +71,9 @@ describe("a channel for departments or roles (ADR 0125)", () => {
     ]);
   });
 
-  test("Detalhes do canal: changed later, saved once a role is ticked; back to Público drops the roles", async () => {
+  test("Detalhes do grupo: changed later, saved once a role is ticked; back to Público drops the roles", async () => {
     const state = await go(ENG_ID);
-    await click(within(screen().getByRole("main")).getByRole("button", { name: "Configurações do canal" }));
+    await click(within(screen().getByRole("main")).getByRole("button", { name: "Configurações do grupo" }));
     await settle(3);
     const dialog = screen().getByRole("dialog", { name: "#eng" });
     // "Quem pode entrar" lives under Permissões (ADR 0134).

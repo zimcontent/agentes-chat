@@ -29,7 +29,7 @@ function Box({ sent }: { sent: string[] }) {
       label="Mensagem"
       sendLabel="Enviar"
       mentions={{ search: (q) => PEOPLE.filter((p) => p.insert.startsWith(q)), listLabel: "Pessoas e agentes" }}
-      channels={{ search: (q) => CHANNELS.filter((c) => c.insert.startsWith(q)), listLabel: "Canais" }}
+      channels={{ search: (q) => CHANNELS.filter((c) => c.insert.startsWith(q)), listLabel: "Grupos" }}
     />
   );
 }

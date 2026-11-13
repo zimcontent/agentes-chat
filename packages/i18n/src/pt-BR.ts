@@ -704,7 +704,7 @@ export const ptBR = {
       done: "Tudo certo",
     },
     /**
-     * The blue rail with Lodi (ADR 0162): its steps, Lodi's line on each, the preview, the team step's question and
+     * The blue rail with Doug (ADR 0162): its steps, Doug's line on each, the preview, the team step's question and
      * import, the plan step and the AI step. `<key>Personal`: a personal workspace's words (ADR 0159).
      */
     flow: {
@@ -1668,6 +1668,8 @@ export const ptBR = {
     },
   },
   shell: {
+    /** The person's own card on the workspace's full-screen menu (DougBot). */
+    you: "Você",
     otherChannels: "Outros grupos",
     otherChannelsPersonal: "Outras conversas em grupo",
     // The Mac app's own title bar (ADR 0036).
@@ -1982,7 +1984,7 @@ export const ptBR = {
       subSector: "Cada setor com seus agentes. {{name}} trabalha com todos.",
       workspace: "Workspace",
       responsible: "Responsáveis: {{names}}",
-      /** O Lodi ao lado do workspace, fora da linha de quem responde a quem. */
+      /** O Doug ao lado do workspace, fora da linha de quem responde a quem. */
       lodi: "acompanha tudo com você",
       supervisor: "Supervisor: {{name}}",
       dragSector: "Arraste até um agente para os agentes deste setor responderem a ele",
@@ -2172,9 +2174,9 @@ export const ptBR = {
     messages: "Mensagens",
     members: "Membros: {{names}}",
     details: "Detalhes do grupo",
-    composerLabel: "Mensagem para #{{channel}}",
-    composerDm: "Mensagem para {{name}}",
-    composerPlaceholder: "Mensagem para #{{channel}} · use @ para chamar um agente",
+    composerLabel: "Mensagem para {{channel}}",
+    composerDm: "Mensagem",
+    composerPlaceholder: "Mensagem · @ chama um agente",
     send: "Enviar",
     attach: "Anexar arquivo",
     writing: "escrevendo…",
@@ -2374,11 +2376,11 @@ export const ptBR = {
   },
   /**
    * O braço direito do time (ADR 0137): a linha fixa, a DM, o perfil, a página nas Configurações e os cards. O nome é
-   * dos admins (`{{name}}`); "Lodi" só por padrão.
+   * dos admins (`{{name}}`); "Doug" só por padrão.
    */
   rightHand: {
-    label: "seu braço direito",
-    labelCapitalized: "Seu braço direito",
+    label: "CEO · braço direito",
+    labelCapitalized: "CEO · braço direito",
     newDot: "Novo",
     actsAsYou: "age com as suas permissões",
     composerHint: "nada muda sem você",
@@ -2427,7 +2429,7 @@ export const ptBR = {
       model: "Modelo",
       message: "Mensagem",
       configure: "Configurar",
-      nameStory: "O nome vem de lodestar, a estrela que guia os navegantes.",
+      nameStory: "O Doug é o CEO do time: organiza o time e acompanha tudo com você.",
     },
     saved: {
       workspace: "O {{name}} agora pensa com {{label}} para todo mundo sem plano próprio.",
@@ -10284,6 +10286,15 @@ export const ptBR = {
     copied: "Código copiado.",
   },
   photo: {
+    agent: {
+      title: "Foto",
+      help: "Uma foto de verdade no lugar do bot desenhado. Sem foto, fica o avatar do DougBot.",
+      dialogTitle: "Foto do agente",
+      send: "Enviar foto",
+      useBot: "Usar avatar do DougBot",
+      saved: "Foto do agente atualizada.",
+      removed: "O agente voltou ao avatar do DougBot.",
+    },
     label: "Foto",
     change: "Trocar foto",
     title: "Foto do perfil",
@@ -14931,7 +14942,7 @@ export const ptBR = {
       rolesPersonal: "O que cada pessoa daqui pode fazer. Quem é dono pode tudo.",
     },
     about: {
-      basedOn: "Baseado no <site>agentes.chat</site> da Codari Global, LLC",
+      basedOn: "Baseado no <site>agentes.chat</site> da Codari Global, LLC · AGPL-3.0",
       version: "Versão",
       license: "Software livre sob a <license>GNU Affero General Public License v3</license>, sem garantia.",
       source: "Código-fonte",
@@ -18467,7 +18478,7 @@ export const ptBR = {
       sub: "Contabilidade, advocacia, consultoria",
       desc: "Para um escritório que agenda clientes, manda propostas e cobra.",
     },
-    /** The team's hello in #general once it can work (ADR 0162): Lodi's line, then each agent's. */
+    /** The team's hello in #general once it can work (ADR 0162): Doug's line, then each agent's. */
     hello: {
       lodi: {
         starting: "Plano ativo. Meu computador já está iniciando. Vamos começar o trabalho.",

@@ -26,7 +26,7 @@ import { renderApp, screen, settle, showIn } from "./render";
 import "@/pages/onboarding/TeamSourceBody";
 
 /*
- * The onboarding (ADR 0162): what the workspace is for first (ADR 0159), then the blue rail with Lodi, its steps read
+ * The onboarding (ADR 0162): what the workspace is for first (ADR 0159), then the blue rail with Doug, its steps read
  * from the workspace's own data: a team's name, business and team, a personal workspace's agents, the plan only where
  * the workspace waits for its first one, an AI for the team to think with, and where the workspace opens after it.
  */
@@ -58,7 +58,7 @@ const heading = () => document.querySelector(".onb__title")?.textContent;
 const eyebrow = () => document.querySelector(".onb__eyebrow")?.textContent;
 /** The plan step's card: its button shares the rail step's name, "Ligar o time". */
 const planCard = () => document.querySelector(".onb__plan") as HTMLElement;
-const GREETING = "Oi, eu sou o Lodi. Monto o time com você.";
+const GREETING = "Oi, eu sou o Doug. Monto o time com você.";
 /** How a team with no agents yet starts, after "I don't use any yet" (ADR 0162, amended 2026-11-11). */
 const START = "Como você quer começar o time?";
 /** The team step's question, before a template or an import. */
@@ -232,7 +232,7 @@ describe("the steps", () => {
     const state = newcomer(false);
     await renderApp("/onboarding", { api: createFakeApi(state) });
     await settle(10);
-    expect(document.querySelector(".onb__say")?.textContent).toContain("Eu sou o Lodi.");
+    expect(document.querySelector(".onb__say")?.textContent).toContain("Eu sou o Doug.");
     await forATeam();
     expect(eyebrow()).toBe("Passo 1 de 5");
     // The whole path on the rail, connecting an AI last.
@@ -455,7 +455,7 @@ describe("the steps", () => {
         [...(preview().querySelectorAll(".sidebar__section")[1]?.querySelectorAll(".sidebar__item-label") ?? [])].map(
           (e) => e.textContent,
         );
-      // Never the field's example ("Ex.: Acme"), and Lodi, listed under Agentes, is counted there.
+      // Never the field's example ("Ex.: Acme"), and Doug, listed under Agentes, is counted there.
       expect(name()).toBe("Seu workspace");
       expect(meta()).toBe("1 membro · 1 agente");
       await forATeam();
@@ -464,27 +464,27 @@ describe("the steps", () => {
       await click(button("Continuar"), 14);
       await click(button("Loja online"), 4);
       await click(button("Continuar"), 14);
-      // On the team's question, nobody but Lodi yet.
-      expect(agents()).toEqual(["Lodi"]);
+      // On the team's question, nobody but Doug yet.
+      expect(agents()).toEqual(["Doug"]);
       await noneYet();
-      // Starting from scratch: still Lodi alone, the team's place empty.
-      expect(agents()).toEqual(["Lodi"]);
+      // Starting from scratch: still Doug alone, the team's place empty.
+      expect(agents()).toEqual(["Doug"]);
       expect(preview().querySelector(".onb-preview__ghost")?.textContent).toBe("O time aparece aqui");
       // The ready-made team picked: the template's agents and channels show as they would come.
       await click(answer(/Começar com um time pronto/), 4);
-      expect(agents()).toEqual(["Lodi", "Iara", "Otto", "Lia"]);
+      expect(agents()).toEqual(["Doug", "Iara", "Otto", "Lia"]);
       expect(preview().querySelectorAll(".sidebar__item[data-fresh]").length).toBeGreaterThan(3);
       await click(answer(/Começar do zero/), 4);
-      expect(agents()).toEqual(["Lodi"]);
+      expect(agents()).toEqual(["Doug"]);
       await readyMade();
       // The template's order, the one step 3 lists, before and after the team is made.
       expect(
         [...document.querySelectorAll(".onb__body .tp-agent .ac-mediarow__head b")].map((b) => b.textContent),
       ).toEqual(["Iara", "Otto", "Lia"]);
-      expect(agents()).toEqual(["Lodi", "Iara", "Otto", "Lia"]);
+      expect(agents()).toEqual(["Doug", "Iara", "Otto", "Lia"]);
       expect(meta()).toBe("1 membro · 4 agentes");
       await click(button("Criar o time"), 16);
-      expect(agents()).toEqual(["Lodi", "Iara", "Otto", "Lia"]);
+      expect(agents()).toEqual(["Doug", "Iara", "Otto", "Lia"]);
       expect([...planCard().querySelectorAll(".onb__plan-week b")].map((b) => b.textContent)).toEqual([
         "Iara",
         "Otto",
@@ -497,7 +497,7 @@ describe("the steps", () => {
   });
 });
 
-describe("the plan step (agentes.chat Cloud)", () => {
+describe("the plan step (DougBot Cloud)", () => {
   test("the team asleep, the plan with its price from the billing service, the link to that plan's Checkout", async () => {
     const state = newcomer(true);
     const asked = plans(PLANS);
@@ -543,13 +543,13 @@ describe("the plan step (agentes.chat Cloud)", () => {
     const state = newcomer(true);
     plans(null);
     await throughTheTeam(state);
-    expect(document.querySelector(".onb__plan-price")?.textContent).toContain("Um plano do agentes.chat");
+    expect(document.querySelector(".onb__plan-price")?.textContent).toContain("Um plano do DougBot");
     expect(screen().queryByRole("button", { name: "Ver todos os planos" })).toBeNull();
     await click(within(planCard()).getByRole("button", { name: "Ligar o time" }), 6);
     expect(calls(state, "orgs.billingLink").map((c) => c.args.length)).toEqual([2]);
   });
 
-  test("Ligar depois e só conhecer o workspace finishes it and opens Lodi's DM, with the beta notice alone", async () => {
+  test("Ligar depois e só conhecer o workspace finishes it and opens Doug's DM, with the beta notice alone", async () => {
     const state = newcomer(true);
     plans(PLANS);
     const { router, landed } = await throughTheTeam(state);
@@ -722,9 +722,9 @@ describe("a team with no agents for now (ADR 0162, amended 2026-11-11)", () => {
     expect(calls(state, "orgs.saveOnboarding").map((c) => c.args)).toEqual([[ORG_ID, { step: "agents" }]]);
     expect(calls(state, "agents.applyTeamTemplate")).toEqual([]);
     // Its right hand alone thinks with it: named, never a team that isn't there.
-    expect(heading()).toBe("Conecte uma IA para o Lodi pensar");
+    expect(heading()).toBe("Conecte uma IA para o Doug pensar");
     expect(eyebrow()).toBe("Passo 4 de 5");
-    // The team step answered, its agents to come; Lodi alone wakes with the AI, the people still to come.
+    // The team step answered, its agents to come; Doug alone wakes with the AI, the people still to come.
     expect(document.querySelector(".onb__steps")?.textContent).toContain("Depois");
     expect(document.querySelector(".onb__say")?.textContent).toBe(
       "Escolha a IA que você já usa e eu acordo. Depois, falta só chamar as pessoas.",
@@ -773,14 +773,14 @@ describe("a team with no agents for now (ADR 0162, amended 2026-11-11)", () => {
     expect(template.getAttribute("aria-checked")).toBe("false");
     expect(scratch.getAttribute("aria-checked")).toBe("true");
     expect(template.closest("label")?.textContent).toContain(
-      "3 agentes do modelo Loja online, cada um no seu canal, com as rotinas prontas.",
+      "3 agentes do modelo Loja online, cada um no seu grupo, com as rotinas prontas.",
     );
     expect(template.closest("label")?.querySelector(".onb-start__names")?.textContent).toBe("Iara, Otto e Lia");
     expect(scratch.closest("label")?.textContent).toContain(
-      "Só o Lodi, o seu braço direito. Você cria cada agente depois, do seu jeito.",
+      "Só o Doug, o seu braço direito. Você cria cada agente depois, do seu jeito.",
     );
-    expect(scratch.closest("label")?.querySelector(".onb-start__names")?.textContent).toBe("Lodi e quem você criar");
-    await click(button("Seguir só com o Lodi"), 16);
+    expect(scratch.closest("label")?.querySelector(".onb-start__names")?.textContent).toBe("Doug e quem você criar");
+    await click(button("Seguir só com o Doug"), 16);
     expect(calls(state, "orgs.saveOnboarding").map((c) => c.args)).toEqual([
       [ORG_ID, { step: "import" }],
       [ORG_ID, { step: "agents" }],
@@ -793,7 +793,7 @@ describe("a team with no agents for now (ADR 0162, amended 2026-11-11)", () => {
     );
     // Its right hand alone, asleep until the plan, said as what it is.
     expect(planCard().querySelectorAll(".onb__plan-face")).toHaveLength(1);
-    expect(planCard().querySelector(".onb__plan-week")?.textContent).toBe("Lodi · Seu braço direito");
+    expect(planCard().querySelector(".onb__plan-week")?.textContent).toBe("Doug · CEO · braço direito");
     cleanup();
 
     // Another visit: after the team step, never back on how to start.
@@ -872,7 +872,7 @@ describe("the person's own area, asked once per account", () => {
     await click(button("Loja online"), 4);
     await click(button("Continuar"), 14);
     expect(heading()).toBe(AREA);
-    expect(document.querySelector(".onb__lead")?.textContent).toBe("Só para a gente entender quem usa o agentes.chat.");
+    expect(document.querySelector(".onb__lead")?.textContent).toBe("Só para a gente entender quem usa o DougBot.");
     // Still "What you do" on the rail: no step of its own.
     expect(eyebrow()).toBe("Passo 2 de 5");
     expect(document.querySelector(".onb__step[aria-current='step']")?.textContent).toContain("O que vocês fazem");
@@ -1073,7 +1073,7 @@ describe("the name step's other cases", () => {
 });
 
 describe("for me (ADR 0159)", () => {
-  test("no name nor business to ask: its agents, its plan, and the plan left for later opens Lodi's DM", async () => {
+  test("no name nor business to ask: its agents, its plan, and the plan left for later opens Doug's DM", async () => {
     const state = newcomer(true);
     plans(PLANS);
     const api = createFakeApi(state);
@@ -1082,7 +1082,7 @@ describe("for me (ADR 0159)", () => {
     const { router } = await renderApp("/onboarding", { api });
     const landed = landings(router);
     await settle(10);
-    expect(heading()).toBe("Para que você vai usar o agentes.chat?");
+    expect(heading()).toBe("Para que você vai usar o DougBot?");
     expect((button("Continuar") as HTMLButtonElement).disabled).toBe(true);
     // "For me", not "For my team", whose words start the same in Portuguese.
     await click(answer(/^Para mim(?!ha)/), 4);
@@ -1105,7 +1105,7 @@ describe("for me (ADR 0159)", () => {
     expect(document.querySelector(".onb__steps")?.textContent).toContain("Depois");
     // Its right hand alone, asleep until the plan, said as what it is (it has no role), and the button in its words.
     expect(planCard().querySelectorAll(".onb__plan-face")).toHaveLength(1);
-    expect(planCard().querySelector(".onb__plan-week")?.textContent).toBe("Lodi · Seu braço direito");
+    expect(planCard().querySelector(".onb__plan-week")?.textContent).toBe("Doug · CEO · braço direito");
     expect(within(planCard()).getByRole("button", { name: "Ligar os agentes" })).toBeTruthy();
     expect(within(planCard()).queryByRole("button", { name: "Ligar o time" })).toBeNull();
     await click(button("Ligar depois e só conhecer o workspace"), 16);
@@ -1119,7 +1119,7 @@ describe("for me (ADR 0159)", () => {
     expect(calls(state, "agents.applyTeamTemplate")).toEqual([]);
   });
 
-  test("self-hosted with no AI yet: the AI step for its right hand, and Conectar depois opens Lodi's DM", async () => {
+  test("self-hosted with no AI yet: the AI step for its right hand, and Conectar depois opens Doug's DM", async () => {
     const state = noAiYet(newcomer(false));
     const { router } = await renderApp("/onboarding", { api: createFakeApi(state) });
     const landed = landings(router);
@@ -1177,7 +1177,7 @@ function recorded(api: ApiClient) {
  * How long "Abrindo seu workspace" waits is its calls one after another: each is a round trip to the server (#1).
  */
 describe("opening a new workspace, in round trips", () => {
-  test("For me: one call makes it with both zones, one finishes it and opens Lodi's DM, nobody asked again", async () => {
+  test("For me: one call makes it with both zones, one finishes it and opens Doug's DM, nobody asked again", async () => {
     const state = noAiYet(newcomer(false));
     const { api, log } = recorded(createFakeApi(state));
     const { router } = await renderApp("/onboarding", { api });
@@ -1301,7 +1301,7 @@ describe("the worst case, measured by CI's geometry in German and Russian too", 
   });
 });
 
-describe("the top of Lodi's DM without its checklist", () => {
+describe("the top of Doug's DM without its checklist", () => {
   test("with a team and an AI: the greeting and the way to build the team again, no card", async () => {
     const state = withRightHand(seedState());
     await renderApp(`/org/${ORG_ID}/dm/agent/${LODI_ID}`, { api: createFakeApi(state) });

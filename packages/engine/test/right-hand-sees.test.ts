@@ -49,7 +49,7 @@ const lodiOf = async () => {
   return lodi;
 };
 
-/** A run of Lodi on what `userId` wrote in `channelId` (their DM with it when left out). */
+/** A run of Doug on what `userId` wrote in `channelId` (their DM with it when left out). */
 async function lodiRun(userId: string, body = "como está o time?", channelId?: string): Promise<ToolContext> {
   const lodi = await lodiOf();
   const place = channelId ?? (await openPersonAgentDm(f.db, f.org.id, userId, lodi.id)).id;
@@ -183,7 +183,7 @@ describe("tasks stay in the person's DM, and go no further than they could", () 
       title: "Reajuste de salários",
       audience: { mode: "people", userIds: [f.owner.id] },
     });
-    const ctx = await lodiRun(f.owner.id, "@lodi quais as tarefas?", f.general.id);
+    const ctx = await lodiRun(f.owner.id, "@doug quais as tarefas?", f.general.id);
     for (const input of [{}, { issue: `#${made.number}` }]) {
       const out = await use(issueTools(), ctx, "list_issues", input);
       expect(out.isError).toBe(true);
@@ -242,7 +242,7 @@ describe("tasks stay in the person's DM, and go no further than they could", () 
       assignee: `@${lodi.handle}`,
     });
     expect(itself.isError).toBe(true);
-    const away = await lodiRun(f.owner.id, "@lodi fecha a tarefa", f.general.id);
+    const away = await lodiRun(f.owner.id, "@doug fecha a tarefa", f.general.id);
     expect((await use(issueTools(), away, "update_issue", { issue: `#${hers.number}`, status: "done" })).isError).toBe(
       true,
     );
@@ -263,7 +263,7 @@ describe("tasks stay in the person's DM, and go no further than they could", () 
     expect(said.isError).toBeFalsy();
     const hidden = await use(issueTools(), ctx, "comment_issue", { issue: `#${secret.number}`, text: "Oi" });
     expect(hidden.isError).toBe(true);
-    const away = await lodiRun(f.owner.id, "@lodi comenta", f.general.id);
+    const away = await lodiRun(f.owner.id, "@doug comenta", f.general.id);
     const there = await use(issueTools(), away, "comment_issue", { issue: `#${hers.number}`, text: "Oi" });
     expect(there.isError).toBe(true);
     const lodi = await lodiOf();
@@ -355,7 +355,7 @@ describe("it reads what the person may, in their DM", () => {
   test("in a channel it keeps its reach: others read that reply", async () => {
     f = await setup({ rightHand: true });
     await privateChannel(f.owner.id, "folha", "folha de pagamento de novembro");
-    const ctx = await lodiRun(f.owner.id, "@lodi resume", f.general.id);
+    const ctx = await lodiRun(f.owner.id, "@doug resume", f.general.id);
     const out = await use(contextTools(), ctx, "read_conversation", { channel: "folha" });
     expect(out.isError).toBe(true);
   });
@@ -432,7 +432,7 @@ describe("what it remembers is each person's, kept in their own DM with it", () 
 
   test("called in a channel it keeps nothing: others read that conversation", async () => {
     f = await setup({ rightHand: true });
-    const away = await lodiRun(f.owner.id, "@lodi lembra que o lançamento é em dezembro", f.general.id);
+    const away = await lodiRun(f.owner.id, "@doug lembra que o lançamento é em dezembro", f.general.id);
     for (const [name, input] of [
       ["remember", { content: "O lançamento é em dezembro", everywhere: true }],
       ["save_how_to", { title: "Lançar o produto", key: "lancar produto", how: "Seguir a lista do lançamento." }],
@@ -507,7 +507,7 @@ describe("what it remembers is each person's, kept in their own DM with it", () 
 
   test("asked in a channel to keep something for the whole team, it saves it: nothing of one person's is in it", async () => {
     f = await setup({ rightHand: true });
-    const away = await lodiRun(f.owner.id, "@lodi pessoal, lembrem que o lançamento é em dezembro", f.general.id);
+    const away = await lodiRun(f.owner.id, "@doug pessoal, lembrem que o lançamento é em dezembro", f.general.id);
     const out = await use(contextTools(), away, "remember", {
       content: "O lançamento é em dezembro",
       for: "team",
@@ -754,7 +754,7 @@ describe("team_status", () => {
 
   test("only in the person's own DM", async () => {
     f = await setup({ rightHand: true });
-    const out = await status(await lodiRun(f.owner.id, "@lodi como vai?", f.general.id));
+    const out = await status(await lodiRun(f.owner.id, "@doug como vai?", f.general.id));
     expect(out).toMatchObject({ isError: true, content: "Only in your private conversation with a person." });
   });
 });
@@ -771,7 +771,7 @@ describe("its prompt", () => {
     for (const name of ["team_status", "ask_agent", "tell_agent", "follow_up", "create_issue"])
       expect(first).toContain(name);
     expect(RIGHT_HAND_AUTO.instructions).toContain("the medium tier");
-    console.log(`Lodi's own block: ${text.length} chars`);
+    console.log(`Doug's own block: ${text.length} chars`);
   });
 
   test("lists what it handed on and hasn't heard back", async () => {

@@ -18,7 +18,7 @@ import {
   weekDay,
 } from "../src/lib/team-week";
 
-/** Lodi's weekly card (ADR 0137 §9): parsed, its rows' state from live data, and its words in every language. */
+/** Doug's weekly card (ADR 0137 §9): parsed, its rows' state from live data, and its words in every language. */
 
 const tOf = (lng: string) => {
   const instance = i18next.createInstance();

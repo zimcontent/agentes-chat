@@ -1725,7 +1725,9 @@ function ChannelView({
         .filter((a): a is Agent => Boolean(a)),
     [draft, dir.agentByHandle, dir.agentById],
   );
-  const pillAgents = dmAgent ? [dmAgent] : draftAgents;
+  // Doug: a DM's header already says who answers, so its composer carries no chip of the agent; a channel keeps the
+  // chips of the agents its draft calls (who will answer).
+  const pillAgents = dmAgent ? [] : draftAgents;
   const composerPills =
     pillAgents.length > 0 || missionReply ? (
       <>
@@ -2776,17 +2778,19 @@ function ChannelView({
                                 voice={voice}
                                 disabled={Boolean(chrome?.locked)}
                                 label={
+                                  // For a screen reader the field still says whom it writes to; on screen the header says it.
                                   chrome?.composerLabel ??
-                                  (chrome?.composerTarget
-                                    ? t("channel.composerDm", { name: chrome.composerTarget })
-                                    : t("channel.composerLabel", { channel: channel.name }))
+                                  t("channel.composerLabel", {
+                                    channel: chrome?.composerTarget ?? composerName(channel),
+                                  })
                                 }
                                 placeholder={
-                                  // DMs name the person or agent ("Mensagem para Theo"); channels keep "#nome".
+                                  // Never the header's name again (the owner's rule): "Mensagem" in a DM, "Mensagem · @
+                                  // chama um agente" in a group.
                                   chrome?.composerLabel ??
                                   (chrome?.composerTarget
                                     ? t("channel.composerDm", { name: chrome.composerTarget })
-                                    : t("channel.composerPlaceholder", { channel: channel.name }))
+                                    : t("channel.composerPlaceholder", { channel: composerName(channel) }))
                                 }
                                 sendLabel={t("channel.send")}
                                 sendText={t("channel.send")}
@@ -5188,7 +5192,10 @@ function ChannelDetails({
         })}
         title={
           <>
-            {t("channel.detailsTitle", { channel: channel.name })}
+            {/* Doug: a group with a shown name is titled by it, as its header is; `#name` otherwise. */}
+            {channel.displayName?.trim()
+              ? channelTitle(channel)
+              : t("channel.detailsTitle", { channel: channel.name })}
             {editable && <SavedNote shown={saved} label={t("common.saved")} className="channel-topic__saved" />}
           </>
         }
@@ -5626,4 +5633,9 @@ function AddToChannelOffer({ channelId, agentId, onDone }: { channelId: string; 
       </Button>
     </div>
   );
+}
+
+/** Doug: the composer names a group by its shown name when it has one ("LEXEER"), else by `#name` as before. */
+function composerName(c: { name: string; displayName?: string | null }) {
+  return c.displayName?.trim() ? channelTitle(c) : `#${c.name}`;
 }

@@ -52,7 +52,7 @@ describe("#channel autocomplete", () => {
     await go(`c/${GENERAL_ID}`);
     const box = composer();
     await typeIn(box, "veja #");
-    const list = screen().getByRole("listbox", { name: "Canais" });
+    const list = screen().getByRole("listbox", { name: "Grupos" });
     const options = within(list).getAllByRole("option");
     expect(options).toHaveLength(2);
     expect(options[0]?.textContent).toContain("#eng");
@@ -61,7 +61,7 @@ describe("#channel autocomplete", () => {
     await keyDown(box, "ArrowDown");
     expect(box.getAttribute("aria-activedescendant")).toBe(options[1]?.id ?? null);
     await typeIn(box, "veja #ge");
-    expect(within(screen().getByRole("listbox", { name: "Canais" })).getAllByRole("option")).toHaveLength(1);
+    expect(within(screen().getByRole("listbox", { name: "Grupos" })).getAllByRole("option")).toHaveLength(1);
     await keyDown(box, "Enter");
     expect(box.value).toBe("veja #general ");
     expect(box.getAttribute("aria-expanded")).toBe("false");
@@ -102,12 +102,12 @@ describe("@mention autocomplete", () => {
 describe("#channel links in messages", () => {
   test("a #name of a channel I see links to it (any case); code and other words stay text", async () => {
     await go(`c/${GENERAL_ID}`, withMessage("Leva para #ENG, não `#eng` nem #nada"));
-    const link = screen().getByRole("link", { name: "Canal #eng" });
+    const link = screen().getByRole("link", { name: "Grupo #eng" });
     expect(link.getAttribute("href")).toBe(`/org/${ORG_ID}/c/${ENG_ID}`);
     expect(link.textContent).toBe("#eng");
     const text = link.closest(".ac-msg__text")?.textContent ?? "";
     expect(text).toContain("#nada");
-    expect(screen().queryByRole("link", { name: "Canal #nada" })).toBeNull();
+    expect(screen().queryByRole("link", { name: "Grupo #nada" })).toBeNull();
     expect(link.closest(".ac-msg__text")?.querySelector("code")?.textContent).toBe("#eng");
   });
 
@@ -117,14 +117,14 @@ describe("#channel links in messages", () => {
     });
     await go(`c/${GENERAL_ID}`, state);
     await settle(4);
-    expect(screen().getByRole("link", { name: "Canal #eng" }).textContent).toBe("#eng");
+    expect(screen().getByRole("link", { name: "Grupo #eng" }).textContent).toBe("#eng");
     expect(screen().queryByRole("link", { name: /segredo/ })).toBeNull();
     expect(screen().getByText(/#segredo/)).toBeTruthy();
   });
 
   test("hovering shows the card: topic, counts, membership and Open", async () => {
     await go(`c/${GENERAL_ID}`, withMessage("veja #eng"));
-    const link = screen().getByRole("link", { name: "Canal #eng" });
+    const link = screen().getByRole("link", { name: "Grupo #eng" });
     await act(async () => fireEvent.pointerEnter(link, { pointerType: "mouse" }));
     await wait(450);
     await settle(4);
@@ -137,7 +137,7 @@ describe("#channel links in messages", () => {
 
   test("a click on the link opens the channel, also while its hover card shows", async () => {
     const { router } = await go(`c/${GENERAL_ID}`, withMessage("veja #eng"));
-    const link = screen().getByRole("link", { name: "Canal #eng" });
+    const link = screen().getByRole("link", { name: "Grupo #eng" });
     await act(async () => fireEvent.pointerEnter(link, { pointerType: "mouse" }));
     await wait(450);
     await settle(4);
@@ -150,7 +150,7 @@ describe("#channel links in messages", () => {
 
   test("from the keyboard: focus shows the card, ArrowDown moves into it and Tab reaches Open", async () => {
     await go(`c/${GENERAL_ID}`, withMessage("veja #eng"));
-    const link = screen().getByRole("link", { name: "Canal #eng" });
+    const link = screen().getByRole("link", { name: "Grupo #eng" });
     // Focus a script hands back (a panel closing) opens nothing; the keys' does.
     trackInput();
     // Other test files in the same process may have pressed keys: start from a press, as a page load with the mouse would.
@@ -198,7 +198,7 @@ describe("an archived #channel", () => {
         : card(orgId, channelId);
     const { router } = await renderApp(`/org/${ORG_ID}/c/${GENERAL_ID}`, { api });
     await settle(8);
-    await act(async () => fireEvent.click(screen().getByRole("button", { name: "Canal #lancamento, arquivado" })));
+    await act(async () => fireEvent.click(screen().getByRole("button", { name: "Grupo #lancamento, arquivado" })));
     await settle(6);
     const sheet = screen().getByRole("dialog", { name: "Sobre #lancamento" });
     await act(async () => fireEvent.click(within(sheet).getByRole("button", { name: "Restaurar" })));

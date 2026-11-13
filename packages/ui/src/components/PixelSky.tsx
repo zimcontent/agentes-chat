@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import { PIXEL_ART } from "../brand/doug";
 import { cx } from "../cx";
 import { drawSprite, redrawSkies, type SkyOptions, startSky } from "../sky/engine";
 import { glowTones, pixelOf, spriteTone } from "../sky/tones";
@@ -11,6 +12,11 @@ import type { AgentColor } from "./AgentLook";
  * Decorative: a presentation canvas with nothing to read.
  */
 export function PixelSky({ options, className }: { options: SkyOptions; className?: string }) {
+  if (!PIXEL_ART) return null;
+  return <LiveSky options={options} className={className} />;
+}
+
+function LiveSky({ options, className }: { options: SkyOptions; className?: string }) {
   const ref = useRef<HTMLCanvasElement>(null);
   const opts = useRef(options);
   opts.current = options;

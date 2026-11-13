@@ -59,7 +59,7 @@ const drag = async (from: Element, to: Element) => {
   await settle(4);
 };
 const BIA = "00000000-0000-4000-8000-0000000000b7";
-/** Ada reports to Atlas; Lodi is the workspace's right hand. */
+/** Ada reports to Atlas; Doug is the workspace's right hand. */
 const lined = () => {
   const state = withRightHand(seedState());
   const ada = state.agents.find((a) => a.id === ADA_ID);
@@ -71,11 +71,11 @@ describe("Responde a, by clicking (ADR 0148 addendum)", () => {
   test("the agent's page sets it at once and Desfazer puts it back", async () => {
     const state = await go(withRightHand(seedState()), `agents/${ADA_ID}?tab=settings&sec=identity`);
     expect(document.body.textContent).toContain("Só diz a quem este agente presta contas. Não dá nenhuma permissão.");
-    // Lodi is never a choice.
+    // Doug is never a choice.
     const field = screen().getByRole("combobox", { name: "Responde a" });
     field.focus();
     await act(async () => fireEvent.keyDown(field, { key: "Enter" }));
-    expect(screen().queryByRole("option", { name: "Lodi" })).toBeNull();
+    expect(screen().queryByRole("option", { name: "Doug" })).toBeNull();
     await click(screen().getByRole("option", { name: "Atlas" }));
     expect(calls(state, "agents.setLines")).toEqual([[[{ agentId: ADA_ID, reportsToAgentId: ATLAS_ID }]]]);
     // No save bar: it applied.
@@ -91,13 +91,13 @@ describe("Responde a, by clicking (ADR 0148 addendum)", () => {
     expect(document.querySelector(".team-reports")?.textContent).toContain("Ada");
   });
 
-  test("Organograma: the line indented under its supervisor, counted, and Lodi out of it", async () => {
+  test("Organograma: the line indented under its supervisor, counted, and Doug out of it", async () => {
     await team(lined(), "chart");
     const line = document.querySelector(".team-line__reports") as HTMLElement;
     expect(line.textContent).toContain("Ada");
     expect(line.textContent).toContain("1 agente");
     const chip = document.querySelector(".team-lodi-chip") as HTMLElement;
-    expect(chip.textContent).toContain("Lodi");
+    expect(chip.textContent).toContain("Doug");
     expect(chip.textContent).toContain("acompanha tudo com você");
   });
 

@@ -718,7 +718,7 @@ export const en = {
       done: "All set",
     },
     /**
-     * The blue rail with Lodi (ADR 0162): its steps, Lodi's line on each, the preview, the team step's question and
+     * The blue rail with Doug (ADR 0162): its steps, Doug's line on each, the preview, the team step's question and
      * import, the plan step and the AI step. `<key>Personal`: a personal workspace's words (ADR 0159).
      */
     flow: {
@@ -764,7 +764,7 @@ export const en = {
         bringMcp: "Follow the steps in the app and it creates the agents here itself. I'll watch for them.",
         found: "Found your team. Check that everyone is here.",
         foundPersonal: "Found your agents. Check that they're all here.",
-        /** The AI step: picking an AI wakes the team (or, alone, Lodi). */
+        /** The AI step: picking an AI wakes the team (or, alone, Doug). */
         ai: "Last step. Pick the AI you already use and the team wakes up.",
         aiPersonal: "Last step. Pick the AI you already use and I wake up.",
         /** The same where inviting people comes after it (a team's rail), for the team or the right hand alone. */
@@ -899,7 +899,7 @@ export const en = {
       ai: {
         /** A personal workspace's heading for the step (a team's is `arrival.connect.title`). */
         titlePersonal: "Connect an AI for your agents to think",
-        /** A team's heading for it with no agents but its right hand: `{{name}}`, the right hand ("Lodi"). */
+        /** A team's heading for it with no agents but its right hand: `{{name}}`, the right hand ("Doug"). */
         titleAlone: "Connect an AI for {{name}} to think",
         later: "Connect later",
         /** `{{org}}`: the workspace's name. */
@@ -912,7 +912,7 @@ export const en = {
         /** The tag on the card of the AI just connected ("Claude"). */
         connected: "Connected",
         enter: "Go to the workspace",
-        /** Under the team, once it wakes. `{{names}}`: the agents, already joined ("Lodi, Nina and Leo"). */
+        /** Under the team, once it wakes. `{{names}}`: the agents, already joined ("Doug, Nina and Leo"). */
         awake: "Your team woke up",
         answer_one: "{{names}} answers now.",
         answer_other: "{{names}} answer now.",
@@ -1742,6 +1742,8 @@ export const en = {
     },
   },
   shell: {
+    /** The person's own card on the workspace's full-screen menu (DougBot). */
+    you: "You",
     otherChannels: "Other groups",
     /** A personal workspace's channels (ADR 0159). */
     otherChannelsPersonal: "Other group conversations",
@@ -2066,7 +2068,7 @@ export const en = {
       subSector: "Each department with its agents. {{name}} works with everyone.",
       workspace: "Workspace",
       responsible: "Responsible: {{names}}",
-      /** Lodi beside the workspace, out of the reporting line. */
+      /** Doug beside the workspace, out of the reporting line. */
       lodi: "follows everything with you",
       supervisor: "Supervisor: {{name}}",
       dragSector: "Drag onto an agent to make this sector's agents report to it",
@@ -2261,9 +2263,9 @@ export const en = {
     messages: "Messages",
     members: "Members: {{names}}",
     details: "Group details",
-    composerLabel: "Message #{{channel}}",
-    composerDm: "Message {{name}}",
-    composerPlaceholder: "Message #{{channel}} · use @ to call an agent",
+    composerLabel: "Message {{channel}}",
+    composerDm: "Message",
+    composerPlaceholder: "Message · @ calls an agent",
     send: "Send",
     attach: "Attach file",
     writing: "writing…",
@@ -2457,13 +2459,13 @@ export const en = {
   },
   /**
    * The team's right hand (ADR 0137): its pin row, its DM, its profile, its page in Settings and its cards. Its name
-   * is the admins' to change (`{{name}}`); "Lodi" only by default.
+   * is the admins' to change (`{{name}}`); "Doug" only by default.
    */
   rightHand: {
     /** Muted, lowercase, on the right of its row in the sidebar. */
-    label: "your right hand",
+    label: "CEO · right hand",
     /** The same where it starts a line: under its name on its page and side panel, and on its phone settings row. */
-    labelCapitalized: "Your right hand",
+    labelCapitalized: "CEO · right hand",
     /** The one-time dot on its row until it is first opened. */
     newDot: "New",
     /** In its DM's header, after the label. */
@@ -2516,7 +2518,7 @@ export const en = {
       model: "Model",
       message: "Message",
       configure: "Configure",
-      nameStory: "The name comes from lodestar, the star sailors steer by.",
+      nameStory: "Doug is the team's CEO: he sets the team up and follows everything with you.",
     },
     /** What a connect flow says: the right hand has two AIs, and the words say which moved. */
     saved: {
@@ -2718,7 +2720,7 @@ export const en = {
       set_action_check_off: "Turn off the check of what the team already did",
     },
   },
-  /** Lodi's weekly card in an admin's DM with it (ADR 0137 §9). */
+  /** Doug's weekly card in an admin's DM with it (ADR 0137 §9). */
   teamWeek: {
     title: "Team week",
     /** The same card, daily ("Resumo do dia"). */
@@ -10226,6 +10228,15 @@ export const en = {
     copied: "Code copied.",
   },
   photo: {
+    agent: {
+      title: "Photo",
+      help: "A real photo in place of the drawn bot. With no photo, the DougBot avatar stays.",
+      dialogTitle: "Agent's photo",
+      send: "Upload photo",
+      useBot: "Use the DougBot avatar",
+      saved: "Agent's photo updated.",
+      removed: "The agent is back to the DougBot avatar.",
+    },
     label: "Photo",
     change: "Change photo",
     title: "Profile photo",
@@ -14943,7 +14954,7 @@ export const en = {
      * "agentes.chat" and "Codari Global, LLC" and its meaning.
      */
     about: {
-      basedOn: "Based on <site>agentes.chat</site> by Codari Global, LLC",
+      basedOn: "Based on <site>agentes.chat</site> by Codari Global, LLC · AGPL-3.0",
       version: "Version",
       license: "Free software under the <license>GNU Affero General Public License v3</license>, with no warranty.",
       source: "Source code",
@@ -18408,7 +18419,7 @@ export const en = {
       sub: "Accounting, law, consulting",
       desc: "For an office that books clients, sends proposals and bills them.",
     },
-    /** The team's hello in #general once it can work (ADR 0162): Lodi's line, then each agent's. */
+    /** The team's hello in #general once it can work (ADR 0162): Doug's line, then each agent's. */
     hello: {
       lodi: {
         starting: "Plan active. My computer is starting up. Let's get to work.",

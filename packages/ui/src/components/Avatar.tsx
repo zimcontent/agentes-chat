@@ -1,11 +1,15 @@
-import { type HTMLAttributes, useLayoutEffect, useRef } from "react";
+import { type CSSProperties, type HTMLAttributes, useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { Expression } from "../agent/engine.js";
 import { addLiveAgent, drawLive, type LiveAgent } from "../agent/live";
+import { PIXEL_ART } from "../brand/doug";
+import DougBot, { type DougBotEstado } from "../brand/dougbot-avatar.js";
+import { type AgenteParaBot, botDoAgente, corDoBot } from "../brand/dougbot-time";
 import { cx } from "../cx";
 import { initialsOf } from "../names";
 import { recipeOfUrl } from "../person/engine.js";
 import { canDrawPortraits, PersonPortrait } from "../person/PersonPortrait";
 import { type AgentAppearance, appearanceStyle } from "./AgentLook";
+import { BotFace } from "./BotFace";
 import { type BadgePresence, PresenceBadge } from "./PresenceBadge";
 
 export type AvatarKind = "person" | "agent";
@@ -53,6 +57,29 @@ export interface AvatarProps extends HTMLAttributes<HTMLSpanElement> {
    * page's own sky.
    */
   framed?: boolean;
+  /**
+   * DougBot (IDENTIDADE.md): an agent is its bot, drawn by code. Who it is (name, handle, role) picks the bot
+   * (`brand/dougbot-time.ts`); left out, the name alone does.
+   */
+  who?: AgenteParaBot;
+  /** The bot's state, when the caller knows it better than `state` and `presence` (a reply that just ended). */
+  estado?: DougBotEstado;
+}
+
+/** The size each class draws at before the face measures itself. */
+const GUESS = { xs: 18, sm: 24, md: 36, lg: 56, xl: 112 } as const;
+
+/**
+ * The bot's state from the agent's: at work (thinking or writing, or busy) it works, waiting on a person it asks,
+ * asleep or with no AI or out of office it sleeps, else it is available (IDENTIDADE.md §7).
+ */
+export function botEstado(state: AgentState, presence: BadgePresence | null | undefined): DougBotEstado {
+  if (state === "thinking" || state === "writing") return "trabalhando";
+  if (state === "waiting") return "pedindo";
+  if (state === "sleeping") return "dormindo";
+  if (presence === "busy") return "trabalhando";
+  if (presence === "offline" || presence === "out") return "dormindo";
+  return "ok";
 }
 
 /** A steady number per name, so agents next to each other move out of step. */
@@ -115,14 +142,52 @@ function AgentBody({
   return <canvas className="ac-avatar__canvas" ref={canvas} />;
 }
 
+/** An agent's monogram: the first letter of its name (a digit or symbol when the name starts with one). */
+export function agentMonogram(name: string): string {
+  const first = [...name.trim()][0];
+  return first ? first.toLocaleUpperCase() : "?";
+}
+
+/** The bot's own shell (IDENTIDADE.md §6), as a clip for a photo: a photo takes the same shape as the drawn bot. */
+function shellOf(bot: ReturnType<typeof botDoAgente>): string {
+  if (bot.bot === "doug") return DougBot.QUADRO;
+  const forma = bot.bot ? DougBot.TIME[bot.bot].forma : bot.forma;
+  return DougBot.CORPOS[(forma === "retrato" ? "squircle" : forma) ?? "squircle"];
+}
+
 /**
- * One tile for everyone: a rounded square (radius 30% of the side) with a
- * hairline and a faint top highlight. People show their photo, their pixel
- * portrait or initials in it, with an optional presence badge on the corner. Agents are the living
- * symbol from the agent engine standing in their own pixel sky: the dithered
- * body with the cut corner, white eyes and a pixel accessory, turning its
- * head, blinking and now and then making a face (see `state` and
- * `expression`). Unframed (`xs`, `xl`), the agent stands on its own.
+ * An agent's photo, sent by a person: cut to its bot's shape, its state laid over it as the bot shows it (asleep: dim;
+ * asking: the white seal on the corner; at work: a ring in its color). It falls back to the drawn bot if it fails.
+ */
+function BotPhoto({
+  url,
+  bot,
+  estado,
+  onFail,
+}: {
+  url: string;
+  bot: ReturnType<typeof botDoAgente>;
+  estado: DougBotEstado;
+  onFail: () => void;
+}) {
+  const id = `p${useId().replace(/[^a-zA-Z0-9]/g, "")}`;
+  return (
+    <span className="ac-bot ac-bot--photo" data-estado={estado}>
+      <svg width="0" height="0" aria-hidden="true" focusable="false" style={{ position: "absolute" }}>
+        <clipPath id={id} clipPathUnits="objectBoundingBox">
+          <path d={shellOf(bot)} transform="scale(0.008333333)" />
+        </clipPath>
+      </svg>
+      <img src={url} alt="" style={{ clipPath: `url(#${id})` }} onError={onFail} draggable={false} />
+    </span>
+  );
+}
+
+/**
+ * One face for everyone. People show their photo, their pixel portrait or initials in a tile, with an optional
+ * presence badge on the corner. Agents are their DougBot (IDENTIDADE.md): a glass piece drawn by code, its form
+ * from its trade, its eyes saying its state; the Doug is the only portrait. An agent with a photo shows it cut to its
+ * bot's shape. With the pixel art on (`PIXEL_ART`), agents are the pixel symbol from the agent engine instead.
  */
 export function Avatar({
   kind = "person",
@@ -139,23 +204,34 @@ export function Avatar({
   expression,
   reactionKey,
   framed,
+  who,
+  estado,
   className,
   style,
   ...rest
 }: AvatarProps) {
-  const tile = framed ?? (size !== "xs" && size !== "xl");
-  const a11y = labelled ? ({ role: "img", "aria-label": name } as const) : ({ "aria-hidden": true } as const);
   const agent = kind === "agent";
+  const bot = agent && !PIXEL_ART;
+  const tile = !bot && (framed ?? (size !== "xs" && size !== "xl"));
+  const a11y = labelled ? ({ role: "img", "aria-label": name } as const) : ({ "aria-hidden": true } as const);
   const mood: AgentState = state ?? (running ? "thinking" : "idle");
-  // A photo that is a drawn portrait (ADR 0166) is drawn here from its recipe, crisp at this size.
+  const key = `${who?.name ?? name}|${who?.handle ?? ""}|${who?.role ?? ""}|${who?.builtin ?? ""}`;
+  // biome-ignore lint/correctness/useExhaustiveDependencies: the key is who it is
+  const spec = useMemo(() => botDoAgente(who ?? { name }), [key]);
+  const look = estado ?? botEstado(mood, presence);
+  const [photoFailed, setPhotoFailed] = useState(false);
+  // biome-ignore lint/correctness/useExhaustiveDependencies: a new address gets a new try
+  useEffect(() => setPhotoFailed(false), [imageUrl]);
+  // A person's photo that is a drawn portrait (ADR 0166) is drawn here from its recipe, crisp at this size.
   const portrait = !agent && imageUrl && canDrawPortraits() ? recipeOfUrl(imageUrl) : null;
   return (
     <span
       className={cx(
         "ac-avatar",
-        kind === "agent" && "ac-avatar--agent",
+        agent && "ac-avatar--agent",
         size !== "md" && `ac-avatar--${size}`,
         tile && "ac-avatar--framed",
+        bot && "ac-avatar--bot",
         agent && mood !== "idle" && mood !== "waiting" && mood !== "sleeping" && "ac-avatar--running",
         agent && mood !== "idle" && `ac-avatar--${mood}`,
         className,
@@ -163,14 +239,27 @@ export function Avatar({
       {...a11y}
       data-kind={kind}
       data-state={agent ? mood : undefined}
+      data-estado={bot ? look : undefined}
       data-accessory={
         agent && appearance?.accessory && appearance.accessory !== "none" ? appearance.accessory : undefined
       }
       data-eyes={agent && appearance?.eyes && appearance.eyes !== "round" ? appearance.eyes : undefined}
-      style={agent ? { ...appearanceStyle(appearance), ...style } : style}
+      style={
+        bot
+          ? ({ "--bot-cor": corDoBot(spec), ...style } as CSSProperties)
+          : agent
+            ? { ...appearanceStyle(appearance), ...style }
+            : style
+      }
       {...rest}
     >
-      {agent ? (
+      {bot ? (
+        imageUrl && !photoFailed ? (
+          <BotPhoto url={imageUrl} bot={spec} estado={look} onFail={() => setPhotoFailed(true)} />
+        ) : (
+          <BotFace bot={spec} estado={look} guess={GUESS[size]} titulo={name} />
+        )
+      ) : agent ? (
         <AgentBody
           appearance={appearance}
           state={mood}
@@ -186,8 +275,8 @@ export function Avatar({
       ) : (
         <span className="ac-avatar__initials">{initials ?? initialsOf(name)}</span>
       )}
-      {presence && (
-        // Pixels of 1 px on the small faces, 1.5 px from the profile cards' 56 px up.
+      {presence && !bot && (
+        // Pixels of 1 px on the small faces, 1.5 px from the profile cards' 56 px up. A bot says its state itself.
         <span className="ac-avatar__badge" title={presenceLabel}>
           <PresenceBadge presence={presence} size={size === "lg" || size === "xl" ? "lg" : "sm"} />
         </span>

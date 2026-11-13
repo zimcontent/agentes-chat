@@ -243,11 +243,11 @@ describe("the onboarding's rail (ADR 0162)", () => {
       agents: Object.entries(states).map(([agentId, state]) => ({ agentId, state })),
     });
     // Waiting for its computer still thinks.
-    expect(teamThinks(["lodi", "nina"], status({ lodi: "ready", nina: "waiting" }))).toBe(true);
-    expect(teamThinks(["lodi", "nina"], status({ lodi: "ready", nina: "no_ai" }))).toBe(false);
+    expect(teamThinks(["doug", "nina"], status({ lodi: "ready", nina: "waiting" }))).toBe(true);
+    expect(teamThinks(["doug", "nina"], status({ lodi: "ready", nina: "no_ai" }))).toBe(false);
     // Not read yet, or read before an agent was made: no answer, so the page waits for a fresh read.
-    expect(teamThinks(["lodi"], undefined)).toBeUndefined();
-    expect(teamThinks(["lodi", "nina"], status({ lodi: "ready" }))).toBeUndefined();
+    expect(teamThinks(["doug"], undefined)).toBeUndefined();
+    expect(teamThinks(["doug", "nina"], status({ lodi: "ready" }))).toBeUndefined();
     expect(teamThinks([], status({}))).toBe(false);
   });
 

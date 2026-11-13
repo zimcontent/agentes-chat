@@ -356,7 +356,7 @@ describe("Entrar a caminho de algum lugar: a página diz para onde", () => {
 
     // An AI app's sign-in (ADR 0119): back to its consent page.
     await renderApp(at("/autorizar?req=0192"), { api, auth: createFakeAuth().auth });
-    expect(lead()).toBe("Para conectar um app ao agentes.chat.");
+    expect(lead()).toBe("Para conectar um app ao DougBot.");
   });
 
   test("a link that no longer works, an unknown one, or anywhere else: the general line", async () => {
@@ -1286,11 +1286,11 @@ describe("Onboarding: the workspace's name", () => {
   const next = () => click(button("Continuar"), 8);
   const calls = (state: ReturnType<typeof seedState>, method: string) => state.calls.filter((c) => c.method === method);
 
-  test("the name, step 1 on the rail, Lodi's line on its horizon, never a guide among the presets", async () => {
+  test("the name, step 1 on the rail, Doug's line on its horizon, never a guide among the presets", async () => {
     await start();
     expect(screen().getByRole("heading", { name: "Como se chama o seu workspace?" })).toBeTruthy();
     expect(screen().getByRole("navigation", { name: "Passos para começar" })).toBeTruthy();
-    expect(document.querySelector(".onb__say")?.textContent).toContain("Eu sou o Lodi.");
+    expect(document.querySelector(".onb__say")?.textContent).toContain("Eu sou o Doug.");
     expect(document.body.textContent).not.toContain("Oi, eu sou a Ada");
     // A name is no misspelling.
     expect(screen().getByLabelText("Nome").getAttribute("spellcheck")).toBe("false");
@@ -1463,7 +1463,7 @@ describe("Onboarding: the workspace's name", () => {
     await next();
     expect(screen().getByRole("heading", { name: "Como se chama o seu workspace?" })).toBeTruthy();
     const said =
-      "Você já tem um workspace esperando um plano do agentes.chat. Escolha o plano dele antes de criar outro.";
+      "Você já tem um workspace esperando um plano do DougBot. Escolha o plano dele antes de criar outro.";
     expect(screen().getByRole("alert").textContent).toBe(said);
     // Said once, in place: no toast says it again.
     expect(document.body.textContent?.split(said)).toHaveLength(2);

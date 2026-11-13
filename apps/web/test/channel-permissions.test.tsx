@@ -18,7 +18,7 @@ const go = async (edit?: (state: ReturnType<typeof seedState>) => void) => {
   return state;
 };
 const openSettings = async () => {
-  await click(within(screen().getByRole("main")).getByRole("button", { name: "Configurações do canal" }));
+  await click(within(screen().getByRole("main")).getByRole("button", { name: "Configurações do grupo" }));
   await settle(3);
   return screen().getByRole("dialog", { name: "#eng" });
 };
@@ -27,12 +27,12 @@ describe("channel permissions (ADR 0134)", () => {
   test("who manages it gets a nav: Visão geral, Permissões, Membros; archive and delete at its foot", async () => {
     await go();
     const dialog = await openSettings();
-    const nav = within(dialog).getByRole("navigation", { name: "Configurações do canal" });
+    const nav = within(dialog).getByRole("navigation", { name: "Configurações do grupo" });
     expect(
       within(nav)
         .getAllByRole("button")
         .map((b) => b.textContent),
-    ).toEqual(["Visão geral", "Permissões", "Membros", "Sair do canal", "Arquivar canal", "Apagar canal"]);
+    ).toEqual(["Visão geral", "Permissões", "Membros", "Sair do grupo", "Arquivar grupo", "Apagar grupo"]);
     expect(within(nav).getByRole("button", { name: "Visão geral" }).getAttribute("aria-current")).toBe("page");
     expect(within(dialog).getByLabelText("Nome")).toBeTruthy();
   });
@@ -42,7 +42,7 @@ describe("channel permissions (ADR 0134)", () => {
     const dialog = await openSettings();
     await click(within(dialog).getByRole("button", { name: "Permissões" }));
     await settle(3);
-    expect(dialog.textContent).toContain("Exceções valem só neste canal. Padrão segue os papéis do workspace.");
+    expect(dialog.textContent).toContain("Exceções valem só neste grupo. Padrão segue os papéis do workspace.");
     const targets = within(dialog).getByRole("list", { name: "Papéis e pessoas com exceção" });
     expect(
       within(targets)
@@ -98,7 +98,7 @@ describe("channel permissions (ADR 0134)", () => {
       const eng = state.channels.find((c) => c.id === ENG_ID);
       if (eng) eng.can = { post: false, callAgents: true, manage: false };
     });
-    expect(screen().getByText("Você não pode enviar mensagens neste canal")).toBeTruthy();
+    expect(screen().getByText("Você não pode enviar mensagens neste grupo")).toBeTruthy();
     expect(screen().queryByRole("combobox", { name: "Mensagem para #eng" })).toBeNull();
   });
 
@@ -106,7 +106,7 @@ describe("channel permissions (ADR 0134)", () => {
     await go();
     const column = document.querySelector(".members-side");
     expect(column?.querySelector(".members-side__title")?.textContent).toBe("Membros");
-    expect(within(column as HTMLElement).queryByText("Quem pode ver este canal")).toBeNull();
+    expect(within(column as HTMLElement).queryByText("Quem pode ver este grupo")).toBeNull();
   });
 
   test("Membros says who the list is by access: open to the workspace when public, who can see it otherwise", async () => {
@@ -115,7 +115,7 @@ describe("channel permissions (ADR 0134)", () => {
     await click(within(dialog).getByRole("button", { name: "Membros" }));
     await settle(3);
     expect(within(dialog).getByText("Aberto para todo o workspace")).toBeTruthy();
-    expect(within(dialog).queryByText("Quem pode ver este canal")).toBeNull();
+    expect(within(dialog).queryByText("Quem pode ver este grupo")).toBeNull();
     cleanup();
     await go((state) => {
       const eng = state.channels.find((c) => c.id === ENG_ID);
@@ -124,7 +124,7 @@ describe("channel permissions (ADR 0134)", () => {
     dialog = await openSettings();
     await click(within(dialog).getByRole("button", { name: "Membros" }));
     await settle(3);
-    expect(within(dialog).getByText("Quem pode ver este canal")).toBeTruthy();
+    expect(within(dialog).getByText("Quem pode ver este grupo")).toBeTruthy();
     expect(within(dialog).queryByText("Aberto para todo o workspace")).toBeNull();
   });
 });

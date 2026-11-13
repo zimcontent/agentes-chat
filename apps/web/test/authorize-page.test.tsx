@@ -67,12 +67,12 @@ describe("/autorizar: an AI app asks to act as this person (ADR 0119)", () => {
     ).toBe("true");
     const can = page().querySelector(".consent__list--can") as HTMLElement;
     expect([...can.querySelectorAll("li")].map((li) => li.textContent)).toEqual([
-      "Ver os agentes e os canais que você vê.",
+      "Ver os agentes e os grupos que você vê.",
       "Mandar mensagens como você, marcadas com via Claude.",
       "Ler as respostas e o que os agentes estão fazendo.",
     ]);
     const never = page().querySelector(".consent__list--never") as HTMLElement;
-    expect(never.textContent).toContain("Aprovar ações dos agentes. Aprovações ficam com pessoas no agentes.chat.");
+    expect(never.textContent).toContain("Aprovar ações dos agentes. Aprovações ficam com pessoas no DougBot.");
     expect(page().textContent).toContain("Volta para claude.ai");
     expect(page().textContent).toContain("Continue só se você começou esta conexão agora.");
     expect(within(page()).queryByRole("alert")).toBeNull();
@@ -335,7 +335,7 @@ describe("/autorizar: an AI app asks to act as this person (ADR 0119)", () => {
   test("a request unknown, already answered or expired: back to the app; it never revokes anything", async () => {
     const { state } = await open();
     expect(page().textContent).toContain("Este pedido expirou");
-    expect(within(page()).getByRole("link", { name: "Ir para o agentes.chat" }).getAttribute("href")).toBe("/");
+    expect(within(page()).getByRole("link", { name: "Ir para o DougBot" }).getAttribute("href")).toBe("/");
     expect(page().querySelector(".ac-empty:not(.consent__state)")).toBeNull();
     expect(page().textContent).toContain("Volte ao app e conecte de novo.");
     expect(calls(state, "apps.decide")).toEqual([]);

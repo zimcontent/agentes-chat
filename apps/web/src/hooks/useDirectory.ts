@@ -2,10 +2,9 @@ import type { Agent, Member, Message } from "@agenteschat/client";
 import { useAgents, useFormerAgents, useMembers, useRoles } from "@agenteschat/client";
 import { agentsByAnyHandle, formerById } from "@agenteschat/client/lib/directory";
 import { memberRoleColor } from "@agenteschat/client/lib/member-groups";
-import { type AgentColor, agentGradient } from "@agenteschat/ui";
+import { type AgentColor, agentGradient, botDoAgente, corDoBot, DougBot } from "@agenteschat/ui";
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
-import { lookOf } from "@/lib/look";
 
 /** People and agents of the organization, by id and handle, for names and avatars. */
 export function useDirectory(orgId: string) {
@@ -49,14 +48,21 @@ export function useDirectory(orgId: string) {
     /** A mentioned agent's color; none for a person or an unknown handle (their chip stays neutral). */
     const mentionTone = (handle: string) => {
       const agent = agentByHandle.get(handle.toLowerCase());
-      return agent ? (lookOf(agent)?.color ?? "sky") : undefined;
+      // Its bot's color (IDENTIDADE.md: a bot's color shows where it is), a hex the chip's gradient takes.
+      return agent
+        ? (corDoBot(botDoAgente({ name: agent.name, handle: agent.handle, role: agent.role, builtin: agent.builtin })) as AgentColor)
+        : undefined;
     };
     /** A name's color in the bubbles, on a light and a dark surface: an agent's own, a person's role's; none: the ink. */
     const nameColorOf = (author: Message["author"]) => {
-      const color =
-        author.type === "agent"
-          ? (lookOf(anyAgent(author.id ?? ""))?.color ?? "sky")
-          : memberRoleColor(memberById.get(author.id ?? "") ?? { role: "member" }, roles.data?.roles ?? []);
+      // An agent's name in its bot's color (IDENTIDADE.md §6 "Mensagem"); on a light surface a darker tone of it, to
+      // read AA on white.
+      if (author.type === "agent") {
+        const a = anyAgent(author.id ?? "");
+        const cor = corDoBot(botDoAgente(a ? { name: a.name, handle: a.handle, role: a.role, builtin: a.builtin } : { name: "" }));
+        return [DougBot.mix(cor, "#000000", 0.55), cor] as const;
+      }
+      const color = memberRoleColor(memberById.get(author.id ?? "") ?? { role: "member" }, roles.data?.roles ?? []);
       if (!color) return undefined;
       const [top, deep] = agentGradient(color as AgentColor);
       return [deep, top] as const;

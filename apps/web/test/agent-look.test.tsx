@@ -54,38 +54,21 @@ describe("the agent's look", () => {
     expect(a.querySelector("canvas.ac-avatar__canvas")).not.toBeNull();
   });
 
-  test("Configurações: pick color, eyes and accessory in place; the cover shows it; Salvar; the sidebar shows it", async () => {
+  test("Configurações: the bot comes from the trade; what a person picks is a photo (Enviar foto, Usar avatar do DougBot)", async () => {
     const state = seedState();
     seedDm(state, { type: "agent", id: ADA_ID });
     await renderApp(`/org/${ORG_ID}/agents/${ADA_ID}?tab=settings`, { api: createFakeApi(state) });
     await settle(8);
-    // In place: the colors, then the eyes and what it wears as one sliding row each.
-    const page = screen();
-    await click(within(page.getByRole("group", { name: "Cor" })).getByRole("button", { name: "Rosa" }));
-    await click(within(page.getByRole("group", { name: "Olhos" })).getByRole("button", { name: /Felizes/ }));
-    await click(within(page.getByRole("group", { name: "Acessório" })).getByRole("button", { name: /Coroa/ }));
-    expect(document.querySelector(".ac-carousel")).not.toBeNull();
-    // The agent's face over the cover's edge is the draft.
-    const cover = document.querySelector(".agp-face .ac-avatar") as HTMLElement;
-    expect(cover.getAttribute("data-eyes")).toBe("happy");
-    expect(cover.getAttribute("data-accessory")).toBe("crown");
-    expect(document.body.textContent).toContain("Antes: Céu · Redondos");
-    const bar = screen().getByRole("region", { name: "Alterações não salvas" });
-    await click(within(bar).getByRole("button", { name: /^Salvar/ }));
-    await settle(6);
-    expect(state.calls.find((c) => c.method === "agents.update")?.args[2]).toEqual({
-      appearance: { color: "rose", eyes: "happy", accessory: "crown" },
-    });
-    const nav = screen().getByRole("navigation", { name: "Navegação do workspace" });
-    expect(nav.querySelector('[data-accessory="crown"]')).not.toBeNull();
-  });
-
-  test("Sortear changes the look (the save bar shows up)", async () => {
-    await renderApp(`/org/${ORG_ID}/agents/${ADA_ID}?tab=settings`, { api: createFakeApi(seedState()) });
-    await settle(8);
-    expect(screen().queryByRole("region", { name: "Alterações não salvas" })).toBeNull();
-    await click(screen().getByRole("button", { name: "Sortear" }));
-    expect(screen().getByRole("region", { name: "Alterações não salvas" }).textContent).toContain("Jeito");
+    // DougBot (IDENTIDADE.md §6): no color, eyes or accessory to pick; the photo block instead.
+    expect(screen().queryByRole("group", { name: "Cor" })).toBeNull();
+    const block = document.querySelector(".agent-photo") as HTMLElement;
+    expect(block).not.toBeNull();
+    expect(within(block).getByRole("button", { name: /Enviar foto/ })).toBeTruthy();
+    // No photo yet: going back to the bot has nothing to undo.
+    expect((within(block).getByRole("button", { name: /Usar avatar do DougBot/ }) as HTMLButtonElement).disabled).toBe(
+      true,
+    );
+    expect(block.querySelector(".ac-avatar--bot .ac-bot > svg")).not.toBeNull();
   });
 });
 

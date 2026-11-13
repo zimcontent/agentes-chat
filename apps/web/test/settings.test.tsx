@@ -121,7 +121,7 @@ describe("Configurações do workspace", () => {
     await go(seedState({ telemetry: { enabled: true, envOff: true, report: { report: 1, install: "desktop" } } }));
     const desktop = screen().getByRole("region", { name: "Estatísticas de uso" });
     expect(desktop.querySelector(".settings-row__status")?.textContent).toBe(
-      "Desligado no app do agentes.chat no computador deste servidor (Preferências\u00a0›\u00a0Servidores).",
+      "Desligado no app do DougBot no computador deste servidor (Preferências\u00a0›\u00a0Servidores).",
     );
     expect(desktop.textContent).not.toContain("TELEMETRY=off");
     cleanup();
@@ -141,11 +141,11 @@ describe("Configurações do workspace", () => {
     );
     const github = screen().getByRole("region", { name: "Repositórios do GitHub" });
     expect(hintOf("Repositórios do GitHub", github).text).toBe(
-      "Onde o app agentes.chat está instalado, os agentes abrem pull requests, issues, comentários e commits como o app, com o nome do agente e de quem pediu.",
+      "Onde o app DougBot está instalado, os agentes abrem pull requests, issues, comentários e commits como o app, com o nome do agente e de quem pediu.",
     );
     expect(
       within(github)
-        .getAllByText(/^Onde o app agentes.chat está instalado/)
+        .getAllByText(/^Onde o app DougBot está instalado/)
         .map((el) => el.hidden),
     ).toEqual([true]);
     // A connected service is one line (its name, its pill, who uses it) that opens to its details and actions.
@@ -613,7 +613,7 @@ describe("Configurações do workspace", () => {
         .getAllByRole("link")
         .slice(4)
         .map((l) => l.lastChild?.textContent),
-    ).toEqual(["Dispositivos", "Sobre o agentes.chat"]);
+    ).toEqual(["Dispositivos", "Sobre o DougBot"]);
     // Settings opens on their account: what the agents know of the workspace is not theirs to read.
     expect(screen().queryByLabelText("O que os agentes sabem da Acme")).toBeNull();
     expect(document.body.textContent).not.toContain("Acme builds rockets");
@@ -797,7 +797,7 @@ describe("Buscar no workspace", () => {
     const { state } = await go(seeded, "search");
     const box = screen().getByRole("combobox", { name: "Buscar" });
     expect(box.getAttribute("placeholder")).toBe("Mensagens, decisões, resumos…");
-    expect(document.body.textContent).toContain("Busca nos canais em que você está.");
+    expect(document.body.textContent).toContain("Busca nos grupos em que você está.");
     await type(box, "login");
     await act(() => new Promise((r) => setTimeout(r, 300)));
     await settle(4);

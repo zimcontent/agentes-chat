@@ -45,13 +45,13 @@ test("its plan's computer away: one plain line in its DM, and Usar uma chave de 
   await renderApp(`/org/${ORG_ID}/dm/agent/${LODI_ID}`, { api: createFakeApi(lodiOnPlan("computer_away")) });
   await settle(8);
   const card = document.querySelector(".rq-open") as HTMLElement;
-  expect(card.textContent).toContain("Lodi não consegue responder agora: o computador do plano está fora do ar.");
+  expect(card.textContent).toContain("Doug não consegue responder agora: o computador do plano está fora do ar.");
   // Never a spinner, never "Conectar" as if it had no AI.
   expect(card.querySelector(".ac-spinner")).toBeNull();
   expect(within(card).queryByRole("button", { name: "Conectar" })).toBeNull();
   await act(async () => fireEvent.click(within(card).getByRole("button", { name: "Usar uma chave de API" })));
   await settle(6);
-  const dialog = screen().getByRole("dialog", { name: /Lodi/ });
+  const dialog = screen().getByRole("dialog", { name: /Doug/ });
   // Every plan, as for any agent: Codex's and Cursor's too (ADR 0137 §4, the owner's accepted risk).
   await act(async () => fireEvent.click(payWith(dialog, "Com um plano")));
   await settle(4);
@@ -64,12 +64,12 @@ test("the workspace's plan serves only its owner: the line says so, and Conectar
   await settle(8);
   const card = document.querySelector(".rq-open") as HTMLElement;
   expect(card.textContent).toContain(
-    "Conecte o seu plano para conversar com Lodi: o plano do workspace só atende o próprio dono.",
+    "Conecte o seu plano para conversar com Doug: o plano do workspace só atende o próprio dono.",
   );
   expect(within(card).queryByRole("button", { name: "Usar uma chave de API" })).toBeNull();
   await act(async () => fireEvent.click(within(card).getByRole("button", { name: "Conectar meu plano" })));
   await settle(6);
-  expect(screen().getByRole("dialog", { name: /Lodi/ })).toBeTruthy();
+  expect(screen().getByRole("dialog", { name: /Doug/ })).toBeTruthy();
 });
 
 test("its computer's runner too old: the line says to update it, never that it has no AI", async () => {
@@ -77,13 +77,13 @@ test("its computer's runner too old: the line says to update it, never that it h
   await settle(8);
   const card = document.querySelector(".rq-open") as HTMLElement;
   expect(card.textContent).toContain(
-    "Lodi não consegue responder agora: o programa no computador do plano precisa ser atualizado.",
+    "Doug não consegue responder agora: o programa no computador do plano precisa ser atualizado.",
   );
   expect(card.textContent).not.toContain("nenhuma IA");
   expect(within(card).getByRole("button", { name: "Usar uma chave de API" })).toBeTruthy();
 });
 
-test("Settings › Lodi on someone else's OpenCode plan: an admin may still let other people's DMs use it", async () => {
+test("Settings › Doug on someone else's OpenCode plan: an admin may still let other people's DMs use it", async () => {
   const state = withRightHand(seedState(), { brain: { kind: "opencode", model: "opencode/glm-5.3" } });
   const api = createFakeApi(state);
   api.agents.brain = async () =>
@@ -158,7 +158,7 @@ test("Connect for it, with a ChatGPT plan another agent already thinks with: tha
   await act(async () => fireEvent.click(within(card).getByRole("button", { name: "Conectar" })));
   await settle(8);
   // The narrow dialog under the sky, for the right hand alone: what the person already has comes first.
-  const dialog = screen().getByRole("dialog", { name: "Conectar uma IA para o Lodi" });
+  const dialog = screen().getByRole("dialog", { name: "Conectar uma IA para o Doug" });
   expect(dialog.querySelector(".arrival-hero")).not.toBeNull();
   expect(dialog.querySelector(".ai-picker")).toBeNull();
   expect(dialog.textContent).toContain("ChatGPT · Plus");

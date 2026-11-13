@@ -145,7 +145,7 @@ async function teamCard(fx: Fixture, agents: Record<string, unknown>[]) {
   return (out.data as { actionCard: { messageId: string } }).actionCard.messageId;
 }
 
-describe("what Lodi creates reaches every open app, after its transaction commits", () => {
+describe("what Doug creates reaches every open app, after its transaction commits", () => {
   test("Criar o time: the agents and the channels are announced once, and nothing goes out before the commit", async () => {
     f = await setup({ rightHand: true });
     const id = await teamCard(f, [IARA, CAIO, ADA]);

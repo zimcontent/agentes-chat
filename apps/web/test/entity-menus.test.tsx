@@ -60,13 +60,13 @@ describe("a channel", () => {
     expect(event.defaultPrevented).toBe(true);
     expect(items()).toEqual([
       "Marcar como lida",
-      "Silenciar canal",
-      "Editar canal",
+      "Silenciar grupo",
+      "Editar grupo",
       "Fixar no topo",
-      "Nova categoria com este canal",
+      "Nova categoria com este grupo",
       "Copiar link",
-      "Sair do canal",
-      "Arquivar canal",
+      "Sair do grupo",
+      "Arquivar grupo",
     ]);
     await pick("Marcar como lida");
     expect(state.calls.some((c) => c.method === "dms.markRead" && c.args[1] === ENG_ID)).toBe(true);
@@ -75,30 +75,30 @@ describe("a channel", () => {
   test("#general can't be archived; Copiar link copies the channel's address", async () => {
     await go();
     await rightClick(sidebarLink("general"));
-    expect(items()).not.toContain("Arquivar canal");
-    expect(items()).not.toContain("Sair do canal");
+    expect(items()).not.toContain("Arquivar grupo");
+    expect(items()).not.toContain("Sair do grupo");
     await pick("Copiar link");
     expect(copied.at(-1)).toMatch(new RegExp(`/org/${ORG_ID}/c/`));
   });
 
-  test("Sair do canal: a public channel goes at once, with Desfazer, and off its page", async () => {
+  test("Sair do grupo: a public channel goes at once, with Desfazer, and off its page", async () => {
     const state = seedState();
     const { router } = await go(`c/${ENG_ID}`, state);
     await rightClick(sidebarLink("eng"));
-    await pick("Sair do canal");
+    await pick("Sair do grupo");
     expect(state.calls.some((c) => c.method === "chat.leave" && c.args[1] === ENG_ID)).toBe(true);
     expect(router.state.location.pathname).not.toContain(ENG_ID);
     expect(screen().getByRole("button", { name: "Desfazer" })).toBeTruthy();
     expect(screen().queryByRole("dialog")).toBeNull();
   });
 
-  test("Sair do canal: a private channel asks first, and the last person out reads that it archives", async () => {
+  test("Sair do grupo: a private channel asks first, and the last person out reads that it archives", async () => {
     const state = seedState();
     const eng = state.channels.find((c) => c.id === ENG_ID);
     if (eng) eng.visibility = "private";
     await go(`c/${ENG_ID}`, state);
     await rightClick(sidebarLink("eng"));
-    await pick("Sair do canal");
+    await pick("Sair do grupo");
     const asked = screen().getByRole("dialog", { name: "Sair de #eng?" });
     expect(asked.textContent).toContain("alguém de dentro precisa adicionar você");
     expect(state.calls.some((c) => c.method === "chat.leave")).toBe(false);
@@ -111,12 +111,12 @@ describe("a channel", () => {
     await go();
     await rightClick(screen().getByRole("heading", { level: 1, name: "eng" }));
     expect(items()).toEqual([
-      "Silenciar canal",
-      "Editar canal",
+      "Silenciar grupo",
+      "Editar grupo",
       "Fixar no topo",
       "Copiar link",
-      "Sair do canal",
-      "Arquivar canal",
+      "Sair do grupo",
+      "Arquivar grupo",
     ]);
   });
 });
@@ -232,12 +232,12 @@ describe("typing keeps the browser's menu", () => {
 describe("the sidebar's sections, in my order", () => {
   const blocks = () => [...nav().querySelectorAll<HTMLElement>(".sidebar__block")].map((b) => b.dataset.section);
 
-  test("the default order; Mover para baixo on Canais saves the new one; Restaurar ordem padrão goes back", async () => {
+  test("the default order; Mover para baixo on Grupos saves the new one; Restaurar ordem padrão goes back", async () => {
     const { state } = await go();
     expect(blocks()).toEqual(["tools", "channels", "agents", "people"]);
     await act(async () =>
       fireEvent.click(
-        within(nav()).getByRole("button", { name: "Arraste para mover a seção Canais ou clique para ver as opções" }),
+        within(nav()).getByRole("button", { name: "Arraste para mover a seção Grupos ou clique para ver as opções" }),
       ),
     );
     await settle(2);
@@ -268,12 +268,12 @@ describe("dragging in the sidebar", () => {
     const images: Element[] = [];
     const dataTransfer = { setData: () => {}, setDragImage: (el: Element) => void images.push(el) };
     const grip = within(nav()).getByRole("button", {
-      name: "Arraste para mover a seção Canais ou clique para ver as opções",
+      name: "Arraste para mover a seção Grupos ou clique para ver as opções",
     });
     await act(async () => fireEvent.dragStart(grip, { dataTransfer }));
     expect(images).toHaveLength(1);
     expect(images[0]?.classList.contains("sidebar__section-head")).toBe(true);
-    expect(images[0]?.textContent).toContain("Canais");
+    expect(images[0]?.textContent).toContain("Grupos");
     await act(async () => fireEvent.dragEnd(grip, { dataTransfer }));
     await act(async () =>
       fireEvent.dragStart(

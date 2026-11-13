@@ -292,7 +292,7 @@ describe("My Home as a mural (ADR 0135)", () => {
     };
     const { state } = await open(`/org/${ORG_ID}/home`, onPlan());
     const card = widget("Resumo");
-    expect(card.textContent).toContain("O plano de Lodi só atende o próprio dono, então não atualiza widgets.");
+    expect(card.textContent).toContain("O plano de Doug só atende o próprio dono, então não atualiza widgets.");
     expect(calls(state, "dashboards.refreshWidget")).toEqual([]);
     await click(within(card).getByRole("button", { name: "Conectar" }));
     expect(within(screen().getByRole("dialog", { name: /Conectar uma IA/ })).getByLabelText("Cole aqui")).toBeTruthy();
@@ -306,7 +306,7 @@ describe("My Home as a mural (ADR 0135)", () => {
     const locked = widget("Resumo");
     expect(within(locked).queryByRole("button", { name: "Conectar" })).toBeNull();
     expect(locked.textContent).toContain(
-      "Quem conecta a IA de Lodi: um admin, com uma chave de API, ou João, com o próprio plano.",
+      "Quem conecta a IA de Doug: um admin, com uma chave de API, ou João, com o próprio plano.",
     );
   });
 
@@ -592,10 +592,10 @@ describe("a widget's side panel", () => {
     expect(last(state, "dashboards.updateWidget")).toEqual([ORG_ID, sales.id, { schedule: "day" }]);
 
     const ask = within(panel).getByRole("textbox", { name: "Pedir mudança" });
-    await act(async () => fireEvent.change(ask, { target: { value: "Separa por canal" } }));
+    await act(async () => fireEvent.change(ask, { target: { value: "Separa por grupo" } }));
     await act(async () => fireEvent.keyDown(ask, { key: "Enter" }));
     await settle(3);
-    expect(last(state, "dashboards.askWidgetChange")).toEqual([ORG_ID, sales.id, "Separa por canal"]);
+    expect(last(state, "dashboards.askWidgetChange")).toEqual([ORG_ID, sales.id, "Separa por grupo"]);
     expect(document.body.textContent).toContain("Ada está refazendo o widget.");
 
     // Closed: the address forgets it.
@@ -760,7 +760,7 @@ describe("a board's notices in Waiting on you", () => {
 describe("Pin from the chat", () => {
   const CHART = JSON.stringify({
     type: "bar",
-    title: "Pedidos por canal",
+    title: "Pedidos por grupo",
     labels: ["Site", "App", "WhatsApp"],
     series: [{ name: "Pedidos", values: [41, 26, 9] }],
   });
@@ -786,7 +786,7 @@ describe("Pin from the chat", () => {
         agentId: ADA_ID,
         at: ago(3),
         block: CHART,
-        title: "Pedidos por canal",
+        title: "Pedidos por grupo",
         spec: { kind: "bars", labels: ["Site", "App", "WhatsApp"], values: [41, 26, 9] },
         place: { kind: "channel", name: "eng" },
       },
@@ -806,6 +806,6 @@ describe("Pin from the chat", () => {
     expect(pinned).toEqual([ORG_ID, s.home.id, { messageId: "m-chart", block: CHART, schedule: "day", size: "m" }]);
     expect(document.body.textContent).toContain("Fixado em Meu Início · Ada refaz todo dia às 8h");
     const added = s.fake.boards.find((b) => b.id === s.home.id)?.widgets.find((w: Widget) => w.sourceMessageId);
-    expect(added?.title).toBe("Pedidos por canal");
+    expect(added?.title).toBe("Pedidos por grupo");
   });
 });

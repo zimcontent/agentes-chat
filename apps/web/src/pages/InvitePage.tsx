@@ -196,7 +196,7 @@ function OrgLine({ org }: { org: OrgFacts }) {
   const from = org.by && !org.personal ? t("invite.from", { name: org.by }) : null;
   return (
     <div className="invite__org ac-faceline">
-      <OrgMark logo={org.logo} size={32} />
+      <OrgMark logo={org.logo} name={org.name} size={32} />
       <div className="invite__org-text">
         <b className={cx("invite__org-name", (from || crew) && "ac-captop")}>{name}</b>
         {from && <span>{from}</span>}

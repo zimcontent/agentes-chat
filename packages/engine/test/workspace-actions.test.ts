@@ -55,7 +55,7 @@ const lodiOf = async (fx: Fixture) => {
   return lodi;
 };
 
-/** A run of Lodi on what `userId` wrote in their DM with it; `outside`: their message relays outside content. */
+/** A run of Doug on what `userId` wrote in their DM with it; `outside`: their message relays outside content. */
 async function lodiRun(fx: Fixture, userId: string, body: string, outside = false): Promise<ToolContext> {
   const lodi = await lodiOf(fx);
   const dm = await openPersonAgentDm(fx.db, fx.org.id, userId, lodi.id);
@@ -91,7 +91,7 @@ async function act(fx: Fixture, ctx: ToolContext, input: Record<string, unknown>
   return res.output;
 }
 
-/** Lodi's reply to the run, carrying its receipts. */
+/** Doug's reply to the run, carrying its receipts. */
 async function reply(fx: Fixture, ctx: ToolContext) {
   const message = await insertMessage(fx.db, {
     orgId: fx.org.id,
@@ -577,7 +577,7 @@ describe("the rest of the app through the right hand", () => {
       "Done at once",
     );
     expect((await status())?.status).toBe("canceled");
-    const self = await act(f, ctx, { action: "stop_work", input: { agent: "@lodi" } });
+    const self = await act(f, ctx, { action: "stop_work", input: { agent: "@doug" } });
     expect(self).toMatchObject({ isError: true, content: "That is you: say so, and stop nothing." });
     const none = await act(f, ctx, { action: "continue_work", input: { agent: "@dev" } });
     expect(none.isError).toBe(true);

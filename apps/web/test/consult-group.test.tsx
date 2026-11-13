@@ -386,7 +386,7 @@ describe("the pair row before the reply that asked (ConsultPairRow)", () => {
     expect(panel()?.textContent).not.toContain("mentioned you");
   });
 
-  test("the row offers Adicionar ao canal for a teammate, as a text action; never for the right hand, which joins no channel", async () => {
+  test("the row offers Adicionar ao grupo for a teammate, as a text action; never for the right hand, which joins no channel", async () => {
     const reachOf = (agentId: string, handle: string) => {
       const c = consultation({ kind: "note", consultedAgentId: agentId });
       const state = withRightHand(withTalk(withAsk([c]), c));
@@ -396,11 +396,11 @@ describe("the pair row before the reply that asked (ConsultPairRow)", () => {
     };
     await open(reachOf(ATLAS_ID, "atlas"));
     const reach = () => screen().getByRole("group", { name: "Quem a mensagem não chamou direto" });
-    expect(within(reach()).getByRole("button", { name: "Adicionar ao canal" }).className).toBe("ag-rc__btn");
+    expect(within(reach()).getByRole("button", { name: "Adicionar ao grupo" }).className).toBe("ag-rc__btn");
     cleanup();
-    await open(reachOf(LODI_ID, "lodi"));
+    await open(reachOf(LODI_ID, "doug"));
     expect(reach().querySelector(".consult-pair")).toBeTruthy();
-    expect(within(reach()).queryByRole("button", { name: "Adicionar ao canal" })).toBeNull();
+    expect(within(reach()).queryByRole("button", { name: "Adicionar ao grupo" })).toBeNull();
   });
 
   test("a hand-off older than the conversation's list goes back is still the pair row, never 'Entregue ao'", async () => {

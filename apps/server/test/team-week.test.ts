@@ -3,7 +3,7 @@ import { and, eq, schema } from "@agenteschat/db";
 import { openPersonAgentDm, RIGHT_HAND } from "@agenteschat/engine";
 import { browser, createTestServer, joinByInvitation, seedOrg, signUp, type TestServer } from "./harness";
 
-/** Lodi's weekly card (ADR 0137 §9) over HTTP: my own schedule, and a row applied as me, never as someone else. */
+/** Doug's weekly card (ADR 0137 §9) over HTTP: my own schedule, and a row applied as me, never as someone else. */
 
 let t: TestServer;
 beforeEach(async () => {

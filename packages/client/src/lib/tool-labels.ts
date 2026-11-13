@@ -622,7 +622,7 @@ const LABELS: Record<string, readonly [en: string, ptBR: string]> = {
   // agentes.chat's own tools
   send_dm: ["Send direct message", "Enviar mensagem direta"],
   read_conversation: ["Read conversation", "Ler conversa"],
-  add_agent_to_channel: ["Add agent to a channel", "Adicionar agente a um canal"],
+  add_agent_to_channel: ["Add agent to a group", "Adicionar agente a um grupo"],
   ask_agent: ["Ask another agent", "Perguntar a outro agente"],
   tell_agent: ["Tell another agent", "Avisar outro agente"],
   find_agent: ["Find agent", "Encontrar agente"],

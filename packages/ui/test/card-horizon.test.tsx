@@ -5,6 +5,7 @@ setupDom();
 
 import { cleanup, fireEvent, render } from "@testing-library/react";
 import { CardMore, horizonCrest, horizonHeight, horizonTones, WidgetCard } from "../src";
+import { PIXEL_ART } from "../src/brand/doug";
 import type { WidgetSpec } from "../src/widgets/spec";
 
 afterEach(() => cleanup());
@@ -65,7 +66,9 @@ describe("a widget on a board", () => {
     const { container } = card({ kind: "text", items: ["All orders shipped."] }, { board: labels });
     const el = container.querySelector(".wg");
     expect(el?.hasAttribute("data-capped")).toBe(true);
-    expect(container.querySelector("canvas.ac-card-horizon")?.getAttribute("aria-hidden")).toBe("true");
+    // The horizon is pixel art: only while the brand draws it.
+    if (PIXEL_ART) expect(container.querySelector("canvas.ac-card-horizon")?.getAttribute("aria-hidden")).toBe("true");
+    else expect(container.querySelector(".ac-card-horizon")).toBeNull();
   });
 
   test("a number with its trend keeps the trend at its foot, no horizon", () => {

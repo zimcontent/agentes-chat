@@ -157,7 +157,7 @@ describe("organizations, agents and credentials", () => {
     const agents = await (await owner(`/api/app/organizations/${orgId}/agents`)).json();
     expect(agents).toMatchObject({
       agents: [
-        { handle: "lodi", hasCredential: false },
+        { handle: "doug", hasCredential: false },
         { handle: "dev", model: "claude-sonnet-5-5", hasCredential: true, monthlyBudgetUsd: 50 },
       ],
     });
@@ -195,7 +195,7 @@ describe("organizations, agents and credentials", () => {
       agents: { id: string; handle: string; builtin: string | null }[];
     };
     expect(agents.map((a) => [a.handle, a.builtin])).toEqual([
-      ["lodi", "right_hand"],
+      ["doug", "right_hand"],
       ["dev", null],
     ]);
     const lodi = agents[0]?.id;

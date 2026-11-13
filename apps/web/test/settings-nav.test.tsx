@@ -11,14 +11,14 @@ afterEach(() => cleanup());
 
 const click = (el: Element) => act(async () => fireEvent.click(el));
 const type = (el: Element, value: string) => act(async () => fireEvent.change(el, { target: { value } }));
-// The workspace card opens a full-screen menu (MenuOverlay): a dialog with our menu items.
-const openMenu = async (trigger: HTMLElement) => {
-  await act(async () => fireEvent.click(trigger));
-  await act(() => new Promise((r) => setTimeout(r, 0)));
-  return screen().getAllByRole("menu")[0] as HTMLElement;
-};
 /** An item's name without its count chip, shortcut or description. */
 const itemName = (el: Element) => el.querySelector(".ac-mo__name")?.firstChild?.textContent ?? "";
+/** DougBot's head: the person on top opens the workspace's full-screen menu; its workspace card is the one named so. */
+const openWorkspaceMenu = async () => {
+  await act(async () => fireEvent.click(screen().getByRole("button", { name: /^Conta: / })));
+  await act(() => new Promise((r) => setTimeout(r, 30)));
+  return within(screen().getByRole("dialog")).getByRole("menu", { name: "Menu do workspace Acme" });
+};
 const go = async (path: string, state = seedState()) => {
   const r = await renderApp(`/org/${ORG_ID}/${path}`, { api: createFakeApi(state) });
   await settle(6);
@@ -28,7 +28,7 @@ const go = async (path: string, state = seedState()) => {
 describe("finding the settings", () => {
   test("the workspace header opens its full-screen menu: invite, members, settings sections", async () => {
     const { router } = await go("issues");
-    const menu = await openMenu(screen().getByRole("button", { name: "Menu do workspace Acme" }));
+    const menu = await openWorkspaceMenu();
     expect(within(menu).getAllByRole("menuitem").map(itemName)).toEqual([
       "Convidar pessoas",
       "Membros",
@@ -46,7 +46,7 @@ describe("finding the settings", () => {
 
   test("the workspace menu lists my workspaces (this one marked) and a digit opens an option", async () => {
     const { router } = await go("issues");
-    await openMenu(screen().getByRole("button", { name: "Menu do workspace Acme" }));
+    await openWorkspaceMenu();
     const dialog = screen().getByRole("dialog", { name: "Acme" });
     const mine = within(dialog).getByRole("menu", { name: "Seus workspaces" });
     const current = within(mine)
@@ -59,7 +59,7 @@ describe("finding the settings", () => {
     expect(document.documentElement.hasAttribute("data-menu-overlay")).toBe(false);
   });
 
-  test("New workspace only for whoever can make one (on agentes.chat Cloud, by invitation for now)", async () => {
+  test("New workspace only for whoever can make one (on DougBot Cloud, by invitation for now)", async () => {
     for (const [can, offered] of [
       [undefined, true],
       [false, false],
@@ -67,7 +67,7 @@ describe("finding the settings", () => {
       const state = seedState();
       if (state.me && can === false) state.me.user.canCreateWorkspace = false;
       await go("issues", state);
-      await openMenu(screen().getByRole("button", { name: "Menu do workspace Acme" }));
+      await openWorkspaceMenu();
       const mine = within(screen().getByRole("dialog", { name: "Acme" })).getByRole("menu", {
         name: "Seus workspaces",
       });
@@ -80,7 +80,7 @@ describe("finding the settings", () => {
     const state = seedState();
     if (state.me?.organizations[0]) state.me.organizations[0].role = "member";
     await go("issues", state);
-    const menu = await openMenu(screen().getByRole("button", { name: "Menu do workspace Acme" }));
+    const menu = await openWorkspaceMenu();
     expect(within(menu).getAllByRole("menuitem").map(itemName)).toEqual([
       "Membros",
       "Conectores e MCPs",
@@ -130,14 +130,14 @@ describe("finding the settings", () => {
     expect(org.textContent).toBe(name);
   });
 
-  test("Sobre o agentes.chat: for a member too, with the license's attribution, the version and the source", async () => {
+  test("Sobre o DougBot: for a member too, with the license's attribution, the version and the source", async () => {
     const state = seedState();
     if (state.me?.organizations[0]) state.me.organizations[0].role = "member";
     state.instance = { version: "2026.11.06.1", sourceUrl: "https://git.example.com/fork" };
     await go("settings/about", state);
-    expect(screen().getAllByRole("heading", { level: 2, name: "Sobre o agentes.chat" }).length).toBeGreaterThan(0);
+    expect(screen().getAllByRole("heading", { level: 2, name: "Sobre o DougBot" }).length).toBeGreaterThan(0);
     const site = screen().getByRole("link", { name: "agentes.chat" });
-    expect(site.closest("h2")?.textContent).toBe("Baseado no agentes.chat da Codari Global, LLC");
+    expect(site.closest("h2")?.textContent).toBe("Baseado no agentes.chat da Codari Global, LLC · AGPL-3.0");
     expect(site.getAttribute("href")).toBe("https://agentes.chat");
     expect(screen().getByText("2026.11.06.1")).toBeTruthy();
     expect(screen().getByRole("link", { name: "GNU Affero General Public License v3" }).getAttribute("href")).toBe(
@@ -151,22 +151,22 @@ describe("finding the settings", () => {
     expect(screen().getByText("Copyright © 2026 Codari Global, LLC e colaboradores")).toBeTruthy();
   });
 
-  test("Sobre o agentes.chat only on a self-hosted server: agentes.chat Cloud lists it nowhere, its link opens Sua conta", async () => {
+  test("Sobre o DougBot only on a self-hosted server: DougBot Cloud lists it nowhere, its link opens Sua conta", async () => {
     const nav = () => within(screen().getByRole("navigation", { name: "Seções das configurações" }));
     const license = () => screen().queryByRole("link", { name: "GNU Affero General Public License v3" });
     const inPalette = async () => {
       await act(async () => fireEvent.keyDown(window, { key: "k", metaKey: true }));
       await type(screen().getByRole("combobox", { name: "Ir para, ou pedir a um agente" }), "sobre");
-      return screen().queryByRole("option", { name: /Sobre o agentes\.chat/ }) !== null;
+      return screen().queryByRole("option", { name: /Sobre o DougBot/ }) !== null;
     };
     await go("settings/about", seedState({ authConfig: { cloud: false } }));
-    expect(nav().getByRole("link", { name: "Sobre o agentes.chat" }).getAttribute("aria-current")).toBe("page");
+    expect(nav().getByRole("link", { name: "Sobre o DougBot" }).getAttribute("aria-current")).toBe("page");
     expect(license()).not.toBeNull();
     expect(await inPalette()).toBe(true);
     cleanup();
 
     await go("settings/about", seedState({ authConfig: { cloud: true } }));
-    expect(nav().queryByRole("link", { name: "Sobre o agentes.chat" })).toBeNull();
+    expect(nav().queryByRole("link", { name: "Sobre o DougBot" })).toBeNull();
     expect(screen().getByRole("heading", { level: 2, name: "Sua conta" })).toBeTruthy();
     // The Cloud has no Sobre for anyone: nothing to say about the person's role.
     expect(screen().queryByText(/não abre com o seu papel/)).toBeNull();

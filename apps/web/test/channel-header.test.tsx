@@ -30,20 +30,20 @@ describe("the channel header, as Discord's", () => {
       .filter((b) => !b.classList.contains("channel__search-icon"))
       .map((b) => b.getAttribute("aria-label"));
     expect(icons).toEqual([
-      expect.stringMatching(/^Threads: \d+ neste canal$/),
+      expect.stringMatching(/^Threads: \d+ neste grupo$/),
       "Mensagens fixadas",
-      "Configurações do canal",
-      "Membros do canal (4)",
+      "Configurações do grupo",
+      "Membros do grupo (4)",
     ] as never);
     expect(within(header).getByRole("combobox", { name: "Buscar" })).toBeTruthy();
     expect(header.querySelectorAll(".ac-avatar")).toHaveLength(0);
-    expect(within(header).queryByRole("button", { name: "Detalhes do canal" })).toBeNull();
+    expect(within(header).queryByRole("button", { name: "Detalhes do grupo" })).toBeNull();
     expect(within(header).queryByRole("link", { name: "Buscar nesta conversa" })).toBeNull();
   });
 
   test("the cog opens the channel's details; the pin lists the pins, or says there are none", async () => {
     const header = await open();
-    await act(async () => fireEvent.click(within(header).getByRole("button", { name: "Configurações do canal" })));
+    await act(async () => fireEvent.click(within(header).getByRole("button", { name: "Configurações do grupo" })));
     await settle(3);
     expect(screen().getByRole("dialog", { name: /eng/ })).toBeTruthy();
     await act(async () => fireEvent.keyDown(document.activeElement as HTMLElement, { key: "Escape" }));

@@ -6,7 +6,7 @@ import "./styles.css";
 import { authConfigQuery, createApiClient, createSnapshot, keys, type Me, meQuery, outbox } from "@agenteschat/client";
 import { ErrorBoundary } from "@agenteschat/client/lib/error-boundary";
 import { errorText } from "@agenteschat/client/lib/errors";
-import { holdSkies, installTitleTips, trackInput } from "@agenteschat/ui";
+import { holdSkies, installLiquidGlass, installTitleTips, trackInput } from "@agenteschat/ui";
 import { AppProviders, type AppServices } from "./app/providers";
 import { createQueryClient } from "./app/query-client";
 import { createBetterAuthClient } from "./auth/better-auth";
@@ -66,6 +66,8 @@ if (platform) {
 trackInput();
 // Every `title` and icon-only control says its words in the product's tooltip, not the browser's.
 installTitleTips();
+// Doug: the glass pieces' rims bend what is behind them where the browser can (Chromium); elsewhere, blur only.
+installLiquidGlass();
 const toasts = createToastStore();
 // The app's sounds (ADR 0070): a click or a key switches audio on; the person's choice is in Sua conta.
 installSounds();

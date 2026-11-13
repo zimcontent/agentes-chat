@@ -185,7 +185,7 @@ describe("a widget's body, by kind", () => {
     const read = chartBlockToWidgetSpec(
       JSON.stringify({
         type: "bar",
-        title: "Pedidos por canal",
+        title: "Pedidos por grupo",
         labels: ["Site", "App"],
         series: [{ values: [41, 26] }],
       }),

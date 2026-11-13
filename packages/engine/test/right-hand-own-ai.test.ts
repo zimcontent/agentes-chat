@@ -111,7 +111,7 @@ async function world() {
 
 const codeOf = (p: Promise<unknown>) => p.then(() => null).catch((e: { code?: string }) => e.code);
 
-test("a member gives their own DM with Lodi their plan; everyone else keeps the workspace's", async () => {
+test("a member gives their own DM with Doug their plan; everyone else keeps the workspace's", async () => {
   const { fx, deps, machineId, bia, caio, lodi, runIn } = await world();
   const before = await getAgentBrain(deps, bia.id, fx.org.id, lodi.id, "mine");
   expect(before).toMatchObject({
@@ -134,7 +134,7 @@ test("a member gives their own DM with Lodi their plan; everyone else keeps the 
   expect(await codeOf(getAgentBrain(deps, bia.id, fx.org.id, lodi.id, "workspace"))).toBe("agent.not_owner");
   expect(await runIn(bia.id)).toMatchObject({ kind: "claude_code", account: { id: BIAS }, session: { machineId } });
   expect((await runIn(fx.owner.id)).kind).toBe("model");
-  // Her computer's frame lends Lodi's user her sign-in.
+  // Her computer's frame lends Doug's user her sign-in.
   const frame = (await machineAgents(fx.db, fx.org.id, machineId)).find((a) => a.id === lodi.id);
   expect(frame?.account).toBe(BIAS);
   // Two people's plans on one computer: its user keeps both.
@@ -270,7 +270,7 @@ test("a decision on its card wakes it for the person behind the card's run, on t
   expect(plan.unavailable).toBeUndefined();
 });
 
-test("a person's plan on Lodi is an AI of the workspace, though Lodi's own row has none", async () => {
+test("a person's plan on Doug is an AI of the workspace, though Doug's own row has none", async () => {
   const { fx, deps, bia, lodi } = await world();
   const status = { db: fx.db, gateway: { hasModelCredential: async () => false }, machines };
   expect(await orgHasAi(status, fx.org.id)).toBe(false);
@@ -278,7 +278,7 @@ test("a person's plan on Lodi is an AI of the workspace, though Lodi's own row h
   expect(await orgHasAi(status, fx.org.id)).toBe(true);
 });
 
-test("a plan taken back from a person's Lodi tells the computers, so its user lets the sign-in go", async () => {
+test("a plan taken back from a person's Doug tells the computers, so its user lets the sign-in go", async () => {
   const { fx, deps, caio, lodi } = await world();
   await setAgentBrain(deps, caio.id, fx.org.id, lodi.id, { scope: "mine", brain: "claude_code", account: ANAS });
   const heard: unknown[] = [];
@@ -287,7 +287,7 @@ test("a plan taken back from a person's Lodi tells the computers, so its user le
   expect(heard).toContainEqual({ type: "machine.agents", orgId: fx.org.id });
 });
 
-test("the plans page names Lodi, and a plan that goes takes people's Lodi back to the workspace's at once", async () => {
+test("the plans page names Doug, and a plan that goes takes people's Doug back to the workspace's at once", async () => {
   const { fx, deps, machineId, bia, lodi, runIn } = await world();
   await setAgentBrain(deps, bia.id, fx.org.id, lodi.id, { scope: "mine", brain: "claude_code", account: BIAS });
   const views = await listMachineAccounts(deps, fx.org.id, machineId, bia.id);
@@ -297,7 +297,7 @@ test("the plans page names Lodi, and a plan that goes takes people's Lodi back t
   expect((await runIn(bia.id)).kind).toBe("model");
 });
 
-test("a login made for one agent moves to a person's Lodi only when they say so, and to one agent only", async () => {
+test("a login made for one agent moves to a person's Doug only when they say so, and to one agent only", async () => {
   const { fx, deps, machineId, bia, lodi } = await world();
   await fx.db.update(schema.machineAccounts).set({ shared: false }).where(eq(schema.machineAccounts.id, BIAS));
   await fx.db
@@ -309,7 +309,7 @@ test("a login made for one agent moves to a person's Lodi only when they say so,
   await setAgentBrain(deps, bia.id, fx.org.id, lodi.id, { ...input, moveAccount: true });
   const [agent] = await fx.db.select().from(schema.agents).where(eq(schema.agents.id, fx.agent.id));
   expect(agent?.brainAccountId).toBeNull();
-  // Back to an agent: it leaves her Lodi, which goes back to the workspace's.
+  // Back to an agent: it leaves her Doug, which goes back to the workspace's.
   await setAgentBrain(deps, bia.id, fx.org.id, fx.agent.id, { brain: "claude_code", account: BIAS });
   expect((await getAgentBrain(deps, bia.id, fx.org.id, lodi.id, "mine")).account).toBeNull();
 });

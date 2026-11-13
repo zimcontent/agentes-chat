@@ -48,7 +48,7 @@ const CARD: TeamProposalCard = {
   kind: "team_proposal",
   forUserId: "u-walter",
   params: {
-    lead: "3 agentes para a Acme, cada um no seu canal.",
+    lead: "3 agentes para a Acme, cada um no seu grupo.",
     agents: [
       {
         name: "Iara",
@@ -85,7 +85,7 @@ const CARD: TeamProposalCard = {
   expiresAt: new Date(Date.now() + 3_600_000).toISOString(),
 };
 
-/** Lodi's DM with a team card (and a question with answers to tap, when `chips`). */
+/** Doug's DM with a team card (and a question with answers to tap, when `chips`). */
 function lodiDm(chips = false) {
   const state = withRightHand(seedState({ agents: [] }));
   state.members = state.members.slice(0, 1);
@@ -151,13 +151,13 @@ describe("the team card", () => {
     await openDm(lodiDm());
     const card = teamCard();
     expect(card.hasAttribute("data-ask-mine")).toBe(true);
-    expect(card.textContent).toContain("3 agentes para a Acme, cada um no seu canal.");
+    expect(card.textContent).toContain("3 agentes para a Acme, cada um no seu grupo.");
     expect(card.textContent).toContain("Responde os clientes no WhatsApp e no e-mail.");
     expect(card.textContent).toContain("atendimentonovo");
     expect(card.textContent).toContain("Tom de voz · como a Acme fala");
     expect(card.textContent).toContain("As respostas da Iara esperam a sua aprovação.");
     expect(card.textContent).toContain("eu conto aqui como foi a semana do time");
-    expect(card.textContent).toContain("2 agentes · 1 canal novo · 2 rotinas");
+    expect(card.textContent).toContain("2 agentes · 1 grupo novo · 2 rotinas");
     for (const name of ["Criar o time", "Ver como mapa", "Descartar", "Ajustar Iara", "Ajustar Ada"])
       expect(within(card).getByRole("button", { name })).toBeTruthy();
     // Each agent a MediaRow: the face, the name and the role on one line, its channel and Ajustar at that line's end
@@ -173,7 +173,7 @@ describe("the team card", () => {
 
   test("Criar o time makes it in one click; the receipt has Desfazer and a first task per agent", async () => {
     const state = lodiDm();
-    // Lodi's checklist above it, its asks out once the team can think.
+    // Doug's checklist above it, its asks out once the team can think.
     const lodi = state.agents.find((a) => a.id === LODI_ID);
     if (lodi) lodi.setup = { role: null, done: ["apps"] };
     const { router } = await openDm(state);
@@ -218,7 +218,7 @@ describe("the team card", () => {
     await openDm(state);
     await click(button("Ajustar Iara"), 4);
     const dialog = screen().getByRole("dialog");
-    await act(async () => fireEvent.change(within(dialog).getByLabelText("Canal"), { target: { value: "suporte" } }));
+    await act(async () => fireEvent.change(within(dialog).getByLabelText("Grupo"), { target: { value: "suporte" } }));
     await click(within(dialog).getByRole("button", { name: "Salvar" }), 8);
     expect(calls(state, "agents.adjustTeamAgent")[0]?.args.slice(1, 3)).toEqual(["m-team", "iara"]);
     expect((calls(state, "agents.adjustTeamAgent")[0]?.args[3] as { channel: string } | undefined)?.channel).toBe(
@@ -227,14 +227,14 @@ describe("the team card", () => {
     expect(teamCard().textContent).toContain("suporte");
   });
 
-  test("Ver como mapa: a column per channel, the people on top, Lodi as the weekly reviewer", async () => {
+  test("Ver como mapa: a column per channel, the people on top, Doug as the weekly reviewer", async () => {
     await openDm(lodiDm());
     await click(button("Ver como mapa"), 4);
     const dialog = screen().getByRole("dialog", { name: "O time como mapa" });
     expect(within(dialog).getByRole("region", { name: "#atendimento" }).textContent).toContain("Iara");
     expect(within(dialog).getByRole("region", { name: "#eng" }).textContent).toContain("Ada");
     expect(dialog.textContent).toContain("Bruno");
-    expect(dialog.textContent).toContain("Lodi revisa a semana do time");
+    expect(dialog.textContent).toContain("Doug revisa a semana do time");
   });
 });
 

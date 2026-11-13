@@ -39,7 +39,7 @@ describe("route guards", () => {
     if (state.me) state.me.organizations = [];
     const { router } = await renderApp("/", { api: createFakeApi(state) });
     expect(router.state.location.pathname).toBe("/onboarding");
-    expect(screen().getByRole("heading", { name: "Para que você vai usar o agentes.chat?" })).toBeTruthy();
+    expect(screen().getByRole("heading", { name: "Para que você vai usar o DougBot?" })).toBeTruthy();
   });
 
   test("a workspace still being set up resumes in the onboarding for its owner, at its next step; never for someone invited", async () => {
@@ -57,7 +57,7 @@ describe("route guards", () => {
       // At what it does, its next step (ADR 0162): never the questions that would make another workspace.
       expect(screen().getByRole("heading", { name: "O que a Acme faz?" })).toBeTruthy();
       expect(screen().queryByRole("heading", { name: "Como se chama o seu workspace?" })).toBeNull();
-      expect(screen().queryByRole("heading", { name: "Para que você vai usar o agentes.chat?" })).toBeNull();
+      expect(screen().queryByRole("heading", { name: "Para que você vai usar o DougBot?" })).toBeNull();
       cleanup();
     }
     const { router } = await renderApp(`/org/${ORG_ID}/drive`, { api: as("member") });
@@ -107,11 +107,11 @@ describe("route guards", () => {
     await renderApp(`/org/${ORG_ID}/threads`, { api: createFakeApi() });
     await settle();
     expect(screen().getByRole("heading", { level: 1, name: "Threads" })).toBeTruthy();
-    expect(document.querySelector(".ac-pagehead__meta")?.textContent).toBe("Assuntos que saíram dos canais e das DMs.");
+    expect(document.querySelector(".ac-pagehead__meta")?.textContent).toBe("Assuntos que saíram dos grupos e das DMs.");
     expect(screen().getByText("Cada assunto na sua própria conversa")).toBeTruthy();
     // All teaches how a thread starts; the other tabs only say they're empty and lead back to All.
     expect(document.querySelector(".ac-empty__text")?.textContent).toBe(
-      "Responda a uma mensagem para abrir uma thread, e o canal continua limpo.",
+      "Responda a uma mensagem para abrir uma thread, e o grupo continua limpo.",
     );
     cleanup();
     for (const [tab, title] of [
@@ -149,7 +149,7 @@ describe("route guards", () => {
     expect(nav.textContent).toContain("2 membros · 2 agentes");
     // Two approvals and the two proposals waiting: proposals count in Aprovações unless they have a row of their own.
     expect(screen().getByLabelText("4 aprovações pendentes").textContent).toBe("4");
-    for (const name of ["Canais", "eng", "general", "Mensagens diretas", "Ada", "Atlas", "João"]) {
+    for (const name of ["Grupos", "eng", "general", "Mensagens diretas", "Ada", "Atlas", "João"]) {
       expect(nav.textContent).toContain(name);
     }
     // Money never shows in the sidebar (US$ 15,40 of US$ 60); the budget's use is the account menu's.
@@ -160,7 +160,10 @@ describe("route guards", () => {
   test("under the person's name only their status line: no budget bar (ADR 0084)", async () => {
     await renderApp(`/org/${ORG_ID}/c/${ENG_ID}`, { api: createFakeApi() });
     await settle();
-    expect(document.querySelector(".sidebar__user .sidebar__usage")).toBeNull();
-    expect(document.querySelector(".sidebar__user")?.textContent).not.toContain("26%");
+    // DougBot: the person is on top (the head), the workspace under the name; no budget bar there either.
+    const me = document.querySelector(".sidebar__org-button--me");
+    expect(me).not.toBeNull();
+    expect(me?.querySelector(".sidebar__usage")).toBeNull();
+    expect(me?.textContent).not.toContain("26%");
   });
 });

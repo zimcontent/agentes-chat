@@ -98,7 +98,7 @@ describe("the DM's search is the channel's, held to the DM", () => {
     await act(async () => fireEvent.focus(box));
     const menu = screen().getByRole("listbox", { name: "Opções de busca" });
     expect(within(menu).queryByRole("option", { name: /De uma pessoa ou agente/ })).toBeNull();
-    expect(within(menu).queryByRole("option", { name: /Enviada em um canal ou DM/ })).toBeNull();
+    expect(within(menu).queryByRole("option", { name: /Enviada em um grupo ou DM/ })).toBeNull();
     expect(within(menu).getByRole("option", { name: /Com link, arquivo, imagem ou cartão/ })).toBeTruthy();
     await click(within(menu).getByRole("option", { name: /Mais filtros/ }), 1);
     expect(screen().getByRole("option", { name: /Antes de uma data/ })).toBeTruthy();
@@ -137,8 +137,8 @@ describe("the DM's search is the channel's, held to the DM", () => {
   });
 });
 
-describe("where Lodi's name comes from", () => {
-  const story = "O nome vem de lodestar, a estrela que guia os navegantes.";
+describe("where Doug's name comes from", () => {
+  const story = "O Doug é o CEO do time: organiza o time e acompanha tudo com você.";
   const cardOf = async (state: FakeState) => {
     seedDm(state, { type: "agent", id: LODI_ID });
     await go(state, `dm/agent/${LODI_ID}`);
@@ -151,7 +151,7 @@ describe("where Lodi's name comes from", () => {
     expect(card.textContent).toContain(story);
     cleanup();
     const header = await go(withRightHand(seedState()), `dm/agent/${LODI_ID}`);
-    await click(within(header).getByRole("button", { name: "Perfil de Lodi" }));
+    await click(within(header).getByRole("button", { name: "Perfil de Doug" }));
     expect(document.body.textContent).toContain(story);
   });
 
@@ -210,13 +210,13 @@ describe("the profile in the panel closes", () => {
     expect(screen().queryByRole("complementary", PANEL)).toBeNull();
   });
 
-  test("Lodi's, for an admin (its settings, no tabs): its × and Esc close it", async () => {
+  test("Doug's, for an admin (its settings, no tabs): its × and Esc close it", async () => {
     const state = withRightHand(seedState());
     seedDm(state, { type: "agent", id: LODI_ID });
     const header = await go(state, `dm/agent/${LODI_ID}`);
-    const trigger = within(header).getByRole("button", { name: "Perfil de Lodi" });
+    const trigger = within(header).getByRole("button", { name: "Perfil de Doug" });
     await click(trigger);
-    const panel = () => screen().queryByRole("complementary", { name: /Lodi/ });
+    const panel = () => screen().queryByRole("complementary", { name: /Doug/ });
     await click(within(panel() as HTMLElement).getByRole("button", { name: "Fechar" }));
     expect(panel()).toBeNull();
     await click(trigger);

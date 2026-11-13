@@ -54,7 +54,7 @@ const lodiOf = async (fx: Fixture) => {
 };
 
 /**
- * A run of Lodi on what `userId` wrote in their DM with it: its tools act for that person. Their message relays outside
+ * A run of Doug on what `userId` wrote in their DM with it: its tools act for that person. Their message relays outside
  * content, so what they may decide waits on the card; `ownWords`: nothing does, so it applies at once.
  */
 async function lodiRun(fx: Fixture, userId: string, body: string, ownWords = false): Promise<ToolContext> {
@@ -140,7 +140,7 @@ describe("a change the person asked for and may make (ADR 0092 §5)", () => {
     expect((await getAgent(f.db, f.org.id, f.agent.id))?.monthlyBudgetNanoUsd).toBeNull();
 
     const own = await lodiRun(f, f.owner.id, "sobe seu próprio limite", true);
-    await call(f, own, { changes: [{ agent: "@lodi", budget_usd: 20 }], reason: "pediu" });
+    await call(f, own, { changes: [{ agent: "@doug", budget_usd: 20 }], reason: "pediu" });
     expect((await cardRows(f, f.owner.id)).rows[0]?.status).toBe("pending");
   });
 
@@ -255,7 +255,7 @@ describe("the settings card", () => {
       .from(schema.auditLog)
       .where(and(eq(schema.auditLog.orgId, f.org.id), eq(schema.auditLog.action, "proposal.accepted")));
     expect(audit?.details).toMatchObject({ via: lodi.id, target: "agent_settings" });
-    // "Ver o que o Lodi fez": what was applied from its cards, with the person as the actor.
+    // "Ver o que o Doug fez": what was applied from its cards, with the person as the actor.
     const viaLodi = await listAudit(f.db, f.owner.id, f.org.id, { via: lodi.id });
     expect(viaLodi.rows.map((r) => [r.action, r.actor.id])).toContainEqual(["proposal.accepted", f.owner.id]);
     expect((await listAudit(f.db, f.owner.id, f.org.id, { via: f.agent.id })).rows).toEqual([]);
@@ -362,7 +362,7 @@ describe("the settings card", () => {
     f = await setup({ rightHand: true });
     const design = await createChannel(f.db, f.owner.id, f.org.id, { name: "design" });
     const ctx = await lodiRun(f, f.owner.id, "tira o dev do general, põe no design só quando chamado, e arquiva");
-    const self = await call(f, ctx, { changes: [{ agent: "@lodi", archive: true }], reason: "nao" });
+    const self = await call(f, ctx, { changes: [{ agent: "@doug", archive: true }], reason: "nao" });
     expect(self).toMatchObject({ isError: true });
     expect(self.content).toContain("You can't change your own archive");
     await call(f, ctx, {
@@ -499,7 +499,7 @@ describe("an agent's skills on the card, as on its page", () => {
     f = await setup({ rightHand: true });
     const pdf = await install(f, "pdf");
     const ctx = await lodiRun(f, f.owner.id, "liga a skill pdf pra você");
-    const own = await call(f, ctx, { changes: [{ agent: "@lodi", add_skills: ["pdf"] }], reason: "pediu" });
+    const own = await call(f, ctx, { changes: [{ agent: "@doug", add_skills: ["pdf"] }], reason: "pediu" });
     expect(own.isError).toBeFalsy();
     expect(own.content).toContain("Your own settings wait for that click");
     const [row] = (await cardRows(f, f.owner.id)).rows;
@@ -585,9 +585,9 @@ describe("an agent asks for its own settings on the same card (request_settings_
     f = await setup({ rightHand: true });
     const excel = await install(f, "excel");
     const ctx = await devRun(f, f.owner.id, "liga a skill excel pra você");
-    // Lodi's card would apply this at once: the admin wrote it, and may.
+    // Doug's card would apply this at once: the admin wrote it, and may.
     expect(await ownWords(ctx)).toBe(f.owner.id);
-    const other = await ask(f, ctx, { agent: "@lodi", add_skills: ["excel"], reason: "pediu" });
+    const other = await ask(f, ctx, { agent: "@doug", add_skills: ["excel"], reason: "pediu" });
     expect(other).toMatchObject({ isError: true });
     expect(other.content).toContain("input.agent: not allowed");
     const out = await ask(f, ctx, { add_skills: ["excel"], reason: "Preciso dela para ler a planilha" });
@@ -699,7 +699,7 @@ describe("an agent asks for its own settings on the same card (request_settings_
     const ctx = await devRun(f, f.owner.id, "liga a skill excel pra você e sobe o limite do lodi", true);
     await ask(f, ctx, { add_skills: ["excel"], reason: "pediu" });
     expect(await looks()).toBe(0);
-    await call(f, ctx, { changes: [{ agent: "@lodi", budget_usd: 20 }], reason: "pediu" });
+    await call(f, ctx, { changes: [{ agent: "@doug", budget_usd: 20 }], reason: "pediu" });
     expect(await looks()).toBe(1);
   });
 

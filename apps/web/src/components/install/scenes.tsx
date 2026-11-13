@@ -1,4 +1,5 @@
 import type { CSSProperties, ReactNode } from "react";
+import { DougMark } from "@agenteschat/ui";
 import { useTranslation } from "react-i18next";
 
 /*
@@ -23,7 +24,6 @@ export const SCENE_W = 400;
 export const SCENE_H = 250;
 
 const APP = "agentes.chat";
-const ICON = "/icon-512.png";
 const CLOCK = "9:41";
 /** Names the systems show as they are, in every language. */
 const FILEVAULT = "FileVault";
@@ -43,9 +43,8 @@ function Pointer({ drag = false }: { drag?: boolean }) {
   );
 }
 
-const AppIcon = ({ className = "isc-icon" }: { className?: string }) => (
-  <img className={className} src={ICON} alt="" draggable={false} />
-);
+/** The app's icon in the scenes: the Doug close up, drawn by the identity's code. */
+const AppIcon = ({ className = "isc-icon" }: { className?: string }) => <DougMark className={className} />;
 
 const Lights = () => (
   <span className="isc-lights">

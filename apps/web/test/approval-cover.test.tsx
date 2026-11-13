@@ -72,10 +72,10 @@ describe("Configurações › Você › Aprovações (ADR 0139)", () => {
     expect(section().queryByRole("region", { name: "Você aprova por" })).toBeNull();
   });
 
-  test("what Lodi does for me is on Lodi's page: one row here opens it", async () => {
+  test("what Doug does for me is on Doug's page: one row here opens it", async () => {
     const { router } = await go(withRightHand(seedState()));
-    expect(section().queryByRole("switch", { name: /Lodi/ })).toBeNull();
-    await click(section().getByRole("button", { name: "Lodi cria e ajusta agentes por você" }));
+    expect(section().queryByRole("switch", { name: /Doug/ })).toBeNull();
+    await click(section().getByRole("button", { name: "Doug cria e ajusta agentes por você" }));
     expect(router.state.location.pathname).toBe(`/org/${ORG_ID}/agents/${LODI_ID}`);
   });
 
