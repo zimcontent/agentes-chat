@@ -145,6 +145,9 @@ export const desktopEn = {
     quitConfirm: "Quit",
   },
   first: {
+    title: "Connect this computer to DougBot",
+    lead: "Sign in with your account and your agents show up here.",
+    connect: "Connect to DougBot",
     /** The welcome window opened by the site's "Add workspace" (ADR 0154). */
     addTitle: "Add a workspace",
     addLead: "The ones you have stay here, each with its own sign-in.",

@@ -145,6 +145,9 @@
     "quitConfirm": "Salir"
   },
   "first": {
+    "title": "Conecta esta computadora a DougBot",
+    "lead": "Inicia sesión con tu cuenta y tus agentes aparecen aquí.",
+    "connect": "Conectar con DougBot",
     "addTitle": "Añadir un espacio de trabajo",
     "addLead": "Los que ya tienes siguen aquí, cada uno con su propio inicio de sesión.",
     "addCloud": "Crear un espacio de trabajo en DougBot",

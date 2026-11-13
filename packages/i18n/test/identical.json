@@ -286,7 +286,8 @@
       "install.scene.finder",
       "install.scene.downloads",
       "devices.armBuild",
-      "devices.iphone.xcodeFix.ok"
+      "devices.iphone.xcodeFix.ok",
+      "hosting.cloud.name"
     ],
     "es": [
       "devices.iphone.path.general",
@@ -531,7 +532,8 @@
       "machines.oneClick.tools.cursor",
       "machines.oneClick.tools.opencode",
       "machines.oneClick.tools.grok",
-      "machines.oneClick.tools.antigravity"
+      "machines.oneClick.tools.antigravity",
+      "hosting.cloud.name"
     ],
     "fr": [
       "channel.tooLong.fileName",
@@ -943,7 +945,8 @@
       "machines.oneClick.tools.cursor",
       "machines.oneClick.tools.opencode",
       "machines.oneClick.tools.grok",
-      "machines.oneClick.tools.antigravity"
+      "machines.oneClick.tools.antigravity",
+      "hosting.cloud.name"
     ],
     "de": [
       "devices.iphone.steps.account",
@@ -1379,7 +1382,8 @@
       "machines.oneClick.tools.cursor",
       "machines.oneClick.tools.opencode",
       "machines.oneClick.tools.grok",
-      "machines.oneClick.tools.antigravity"
+      "machines.oneClick.tools.antigravity",
+      "hosting.cloud.name"
     ],
     "it": [
       "shell.email.label",
@@ -1734,7 +1738,8 @@
       "machines.oneClick.tools.cursor",
       "machines.oneClick.tools.opencode",
       "machines.oneClick.tools.grok",
-      "machines.oneClick.tools.antigravity"
+      "machines.oneClick.tools.antigravity",
+      "hosting.cloud.name"
     ],
     "nl": [
       "calendar.moreRuns",
@@ -2313,7 +2318,8 @@
       "machines.oneClick.tools.cursor",
       "machines.oneClick.tools.opencode",
       "machines.oneClick.tools.grok",
-      "machines.oneClick.tools.antigravity"
+      "machines.oneClick.tools.antigravity",
+      "hosting.cloud.name"
     ],
     "ja": [
       "channel.tooLong.fileName",
@@ -2478,7 +2484,8 @@
       "machines.oneClick.tools.cursor",
       "machines.oneClick.tools.opencode",
       "machines.oneClick.tools.grok",
-      "machines.oneClick.tools.antigravity"
+      "machines.oneClick.tools.antigravity",
+      "hosting.cloud.name"
     ],
     "ko": [
       "channel.tooLong.fileName",
@@ -2637,7 +2644,8 @@
       "machines.oneClick.tools.cursor",
       "machines.oneClick.tools.opencode",
       "machines.oneClick.tools.grok",
-      "machines.oneClick.tools.antigravity"
+      "machines.oneClick.tools.antigravity",
+      "hosting.cloud.name"
     ],
     "zh-Hans": [
       "channel.tooLong.fileName",
@@ -2787,7 +2795,8 @@
       "machines.oneClick.tools.cursor",
       "machines.oneClick.tools.opencode",
       "machines.oneClick.tools.grok",
-      "machines.oneClick.tools.antigravity"
+      "machines.oneClick.tools.antigravity",
+      "hosting.cloud.name"
     ],
     "id": [
       "shell.email.label",
@@ -3084,7 +3093,8 @@
       "machines.oneClick.tools.grok",
       "machines.oneClick.tools.antigravity",
       "machines.oneClick.tools.browser",
-      "machines.oneClick.tools.terminal"
+      "machines.oneClick.tools.terminal",
+      "hosting.cloud.name"
     ],
     "tr": [
       "devices.cpus",
@@ -3268,7 +3278,8 @@
       "machines.oneClick.tools.cursor",
       "machines.oneClick.tools.opencode",
       "machines.oneClick.tools.grok",
-      "machines.oneClick.tools.antigravity"
+      "machines.oneClick.tools.antigravity",
+      "hosting.cloud.name"
     ],
     "pl": [
       "devices.cpus",
@@ -3552,7 +3563,8 @@
       "machines.oneClick.tools.cursor",
       "machines.oneClick.tools.opencode",
       "machines.oneClick.tools.grok",
-      "machines.oneClick.tools.antigravity"
+      "machines.oneClick.tools.antigravity",
+      "hosting.cloud.name"
     ],
     "ru": [
       "channel.tooLong.fileName",
@@ -3702,7 +3714,8 @@
       "machines.oneClick.tools.cursor",
       "machines.oneClick.tools.opencode",
       "machines.oneClick.tools.grok",
-      "machines.oneClick.tools.antigravity"
+      "machines.oneClick.tools.antigravity",
+      "hosting.cloud.name"
     ]
   },
   "mobile-base": {

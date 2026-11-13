@@ -377,7 +377,7 @@ export const ptBR = {
     recommended: "Recomendado",
     free: "Grátis · código aberto",
     cloud: {
-      name: "agentes.chat Cloud",
+      name: "DougBot",
       short: "Sempre ligado, sem nada para instalar.",
       on: "Computador dos agentes sempre ligado",
       care: "Atualizações e backups por nossa conta",
@@ -551,7 +551,7 @@ export const ptBR = {
     server: {
       into: "Entrando em <b>{{server}}</b>",
       intoHere: "Entrando no DougBot <b>deste {{device}}</b>",
-      intoCloud: "Entrando no <b>agentes.chat Cloud</b>",
+      intoCloud: "Entrando no <b>DougBot</b>",
       /** Trocar's name for screen readers: the e-mail's Trocar sits on the same screen. */
       change: "Trocar de servidor",
     },

@@ -139,6 +139,9 @@
     "quitConfirm": "Keluar"
   },
   "first": {
+    "title": "Hubungkan komputer ini ke DougBot",
+    "lead": "Masuk dengan akunmu dan agen-agenmu muncul di sini.",
+    "connect": "Hubungkan ke DougBot",
     "addTitle": "Tambah ruang kerja",
     "addLead": "Yang sudah kamu punya tetap di sini, masing-masing dengan login sendiri.",
     "addCloud": "Buat ruang kerja di DougBot",

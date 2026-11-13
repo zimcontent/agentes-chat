@@ -142,7 +142,7 @@ describe("Entrar no servidor que o app roda neste computador", () => {
     (win().__agentesDesktop as Record<string, unknown>).servers = true;
     await renderApp("/login", { api: signedOut() });
     await settle(6);
-    expect(document.querySelector(".auth__place")?.textContent).toContain("Entrando no agentes.chat Cloud");
+    expect(document.querySelector(".auth__place")?.textContent).toContain("Entrando no DougBot");
   });
 
   test("forgot password on this computer's server: Continue on this Mac, then a new password (ADR 0158)", async () => {

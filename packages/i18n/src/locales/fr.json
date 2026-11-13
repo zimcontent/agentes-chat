@@ -381,7 +381,7 @@
     "recommended": "Recommandé",
     "free": "Gratuit · open source",
     "cloud": {
-      "name": "agentes.chat Cloud",
+      "name": "DougBot",
       "short": "Toujours allumé, rien à installer.",
       "on": "L'ordinateur des agents toujours allumé",
       "care": "Mises à jour et sauvegardes à notre charge",
@@ -553,7 +553,7 @@
     "server": {
       "into": "Connexion à <b>{{server}}</b>",
       "intoHere": "Connexion à l’agentes.chat <b>de ce {{device}}</b>",
-      "intoCloud": "Connexion à <b>agentes.chat Cloud</b>",
+      "intoCloud": "Connexion à <b>DougBot</b>",
       "change": "Changer de serveur"
     },
     "forgotHere": {

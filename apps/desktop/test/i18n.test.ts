@@ -125,7 +125,10 @@ describe("desktop strings", () => {
     const get = (tree: object, path: string) =>
       path.split(".").reduce<unknown>((o, k) => (o as Record<string, unknown>)?.[k], tree);
     const cloudKeys = [
-      ...leaves(desktopEn.first).map((k) => `first.${k}`),
+      // DougBot: the first screen's title names the computer being connected, not the workspace's.
+      ...leaves(desktopEn.first)
+        .filter((k) => k !== "title")
+        .map((k) => `first.${k}`),
       "servers.title",
       "servers.lead",
       "servers.cloud",

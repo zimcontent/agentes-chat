@@ -376,7 +376,7 @@
     "recommended": "Önerilen",
     "free": "Ücretsiz · açık kaynak",
     "cloud": {
-      "name": "agentes.chat Cloud",
+      "name": "DougBot",
       "short": "Her zaman açık, kurulacak bir şey yok.",
       "on": "Ajanların bilgisayarı her zaman açık",
       "care": "Güncellemeler ve yedekler bizden",
@@ -547,7 +547,7 @@
     "server": {
       "into": "<b>{{server}}</b> sunucusuna giriş",
       "intoHere": "Bu {{device}} üzerindeki <b>agentes.chat</b>'e giriş",
-      "intoCloud": "<b>agentes.chat Cloud</b> hesabına giriliyor",
+      "intoCloud": "<b>DougBot</b> hesabına giriliyor",
       "change": "Sunucuyu değiştir"
     },
     "forgotHere": {

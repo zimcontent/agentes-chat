@@ -386,7 +386,7 @@ export const en = {
     recommended: "Recommended",
     free: "Free · open source",
     cloud: {
-      name: "agentes.chat Cloud",
+      name: "DougBot",
       short: "Always on, nothing to install.",
       on: "The agents' computer always on",
       care: "Updates and backups are on us",
@@ -559,7 +559,7 @@ export const en = {
     server: {
       into: "Signing in to <b>{{server}}</b>",
       intoHere: "Signing in to the DougBot <b>on this {{device}}</b>",
-      intoCloud: "Signing in to <b>agentes.chat Cloud</b>",
+      intoCloud: "Signing in to <b>DougBot</b>",
       /** Change's name for screen readers: the email's Change sits on the same screen. */
       change: "Change server",
     },

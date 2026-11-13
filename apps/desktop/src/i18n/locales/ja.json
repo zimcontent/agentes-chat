@@ -139,6 +139,9 @@
     "quitConfirm": "終了"
   },
   "first": {
+    "title": "このコンピューターをDougBotに接続",
+    "lead": "アカウントでログインすると、エージェントがここに表示されます。",
+    "connect": "DougBotに接続",
     "addTitle": "ワークスペースを追加",
     "addLead": "今あるワークスペースはそれぞれのログインのまま残ります。",
     "addCloud": "DougBotでワークスペースを作成",

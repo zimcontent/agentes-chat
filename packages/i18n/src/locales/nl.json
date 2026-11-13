@@ -376,7 +376,7 @@
     "recommended": "Aanbevolen",
     "free": "Gratis · open source",
     "cloud": {
-      "name": "agentes.chat Cloud",
+      "name": "DougBot",
       "short": "Altijd aan, niets te installeren.",
       "on": "De computer van de agents staat altijd aan",
       "care": "Updates en back-ups regelen wij",
@@ -547,7 +547,7 @@
     "server": {
       "into": "Aanmelden bij <b>{{server}}</b>",
       "intoHere": "Aanmelden bij agentes.chat <b>op deze {{device}}</b>",
-      "intoCloud": "Inloggen bij <b>agentes.chat Cloud</b>",
+      "intoCloud": "Inloggen bij <b>DougBot</b>",
       "change": "Andere server"
     },
     "forgotHere": {

@@ -371,7 +371,7 @@
     "recommended": "Disarankan",
     "free": "Gratis · sumber terbuka",
     "cloud": {
-      "name": "agentes.chat Cloud",
+      "name": "DougBot",
       "short": "Selalu menyala, tanpa perlu instal apa pun.",
       "on": "Komputer agen selalu menyala",
       "care": "Pembaruan dan cadangan kami yang urus",
@@ -541,7 +541,7 @@
     "server": {
       "into": "Masuk ke <b>{{server}}</b>",
       "intoHere": "Masuk ke agentes.chat <b>di {{device}} ini</b>",
-      "intoCloud": "Masuk ke <b>agentes.chat Cloud</b>",
+      "intoCloud": "Masuk ke <b>DougBot</b>",
       "change": "Ganti server"
     },
     "forgotHere": {

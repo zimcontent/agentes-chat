@@ -371,7 +371,7 @@
     "recommended": "추천",
     "free": "무료 · 오픈 소스",
     "cloud": {
-      "name": "agentes.chat Cloud",
+      "name": "DougBot",
       "short": "항상 켜져 있고, 설치할 것이 없어요.",
       "on": "에이전트의 컴퓨터가 항상 켜져 있어요",
       "care": "업데이트와 백업은 저희가 맡아요",
@@ -541,7 +541,7 @@
     "server": {
       "into": "<b>{{server}}</b>에 로그인",
       "intoHere": "이 {{device}}의 <b>agentes.chat</b>에 로그인",
-      "intoCloud": "<b>agentes.chat Cloud</b>에 로그인 중",
+      "intoCloud": "<b>DougBot</b>에 로그인 중",
       "change": "서버 변경"
     },
     "forgotHere": {

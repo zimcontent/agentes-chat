@@ -142,6 +142,9 @@
     "quitConfirm": "Beenden"
   },
   "first": {
+    "title": "Verbinde diesen Computer mit DougBot",
+    "lead": "Melde dich mit deinem Konto an, und deine Agenten erscheinen hier.",
+    "connect": "Mit DougBot verbinden",
     "addTitle": "Workspace hinzufügen",
     "addLead": "Die du schon hast, bleiben hier, jeder mit seiner eigenen Anmeldung.",
     "addCloud": "Workspace bei DougBot erstellen",

@@ -139,6 +139,9 @@
     "quitConfirm": "退出"
   },
   "first": {
+    "title": "将这台电脑连接到 DougBot",
+    "lead": "用你的账号登录，你的智能体就会出现在这里。",
+    "connect": "连接到 DougBot",
     "addTitle": "添加工作区",
     "addLead": "你已有的工作区都保留在这里，各自保持登录。",
     "addCloud": "在 DougBot 创建工作区",

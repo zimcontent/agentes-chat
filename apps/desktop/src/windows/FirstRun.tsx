@@ -1,17 +1,14 @@
 /**
- * The welcome window: how the app finds its server. "Onde fica o seu workspace?" first, the Cloud chosen and one's
- * own server beside it; one's own server leads to Connect (an address, or one found on this computer or the Tailscale
- * network, and the one-command setup for a server that has none yet) or to running agentes.chat on this
- * computer. A connect link (`agenteschat://connect`) opens here
- * too: the server in large type, nothing changes before Connect. Choosing a server opens the main window there
- * and closes this one. A pair link (`agenteschat://pair`) asks to connect this computer instead (`PairLinkSheet`).
+ * The welcome window: how the app finds its server. DougBot's own server first: one button signs in there. A
+ * connect link (`agenteschat://connect`) opens here too: the server in large type, nothing changes before Connect.
+ * Choosing a server opens the main window there and closes this one. A pair link (`agenteschat://pair`) asks to
+ * connect this computer instead (`PairLinkSheet`). The own-server screens (`own`, `connect`, `here`) stay in the code
+ * as the project has them, with no way in from the first screen.
  */
 import {
   CLOUD_SERVER,
   type ConnectLink,
   connectLink,
-  HOSTING_FOOT,
-  HOSTING_POINTS,
   isLoopback,
   parseConnectLink,
   type ServerCheck,
@@ -22,12 +19,10 @@ import {
   Chip,
   ComputerPortrait,
   Field,
-  type Hosting,
   HostingScene,
   Icon,
   InfoHint,
   Input,
-  OptionList,
   PixelSpinner,
   Switch,
   useNow,
@@ -49,7 +44,6 @@ import {
   LOOK_MS,
   linkView,
   ownAddresses,
-  ownServerScreen,
   PROBLEM_TEXT,
   terminalStartCommand,
   typedServer,
@@ -78,20 +72,19 @@ import { PairLinkSheet } from "./Pair";
 
 const PROBLEM_HOSTLESS: ReadonlySet<ConnectProblem> = new Set(["invalid"]);
 
-export function FirstRun() {
+// DougBot: `start` opens on another screen (with the first one behind it) for tests, since the first screen no longer leads there.
+export function FirstRun({ start }: { start?: FirstScreen } = {}) {
   const host = useHost();
-  const [screen, setScreen] = useState<FirstScreen>("choose");
+  const [screen, setScreen] = useState<FirstScreen>(start ?? "choose");
   // Opened by the site's "Add a workspace" (ADR 0154): its first screen says so.
   const [adding, setAdding] = useState(false);
   // Adding a workspace with agentes.chat already signed in here: making one is the big button, not signing in.
   const [cloudSignedIn, setCloudSignedIn] = useState(false);
-  const [trail, setTrail] = useState<FirstScreen[]>([]);
+  const [trail, setTrail] = useState<FirstScreen[]>(start ? ["choose"] : []);
   // `typed`: the sheet confirms an address typed or picked in Connect, so Cancel goes back there with it.
   const [link, setLink] = useState<{ raw: string; parsed: ConnectLink | null; view: LinkView; typed?: boolean } | null>(
     null,
   );
-  // This build carries the server (Mac and Linux): "Run agentes.chat on this computer" is offered.
-  const [canRunHere, setCanRunHere] = useState(false);
   // The agentes.chat this computer runs (the app's, or one from the terminal): named as such, never by its address,
   // and its owner page opened directly while it waits for one.
   const [local, setLocal] = useState<LocalServerStatus | null>(null);
@@ -197,7 +190,6 @@ export function FirstRun() {
     void host
       .localServer()
       .then((s) => {
-        setCanRunHere(s.bundled);
         setLocal(s);
       })
       .catch(() => {});
@@ -245,12 +237,7 @@ export function FirstRun() {
     <div className="dk-fr" data-screen={screen}>
       <div className="dk-fr__body" key={screen}>
         {screen === "choose" && (
-          <Choose
-            adding={adding}
-            cloudSignedIn={cloudSignedIn}
-            onCloud={(page) => void finish(CLOUD_SERVER, page)}
-            onOwn={() => go(ownServerScreen(canRunHere))}
-          />
+          <Choose adding={adding} cloudSignedIn={cloudSignedIn} onCloud={(page) => void finish(CLOUD_SERVER, page)} />
         )}
         {screen === "own" && (
           <Own adding={adding} onBack={back} onConnect={() => go("connect")} onHere={() => go("here")} />
@@ -310,82 +297,46 @@ export function FirstRun() {
 }
 
 /**
- * "Onde fica o seu workspace?": the team's sky on the left, day over the Cloud's always-on server, night over a dark
- * laptop with the team asleep when one's own server is picked; on the right the two options as cards (the Cloud
- * chosen, recommended; one's own server free and open source), each said by what it takes on, and one button that
- * goes on with the chosen one. `adding` (the site's "Add a workspace", ADR 0154): its own title, the Cloud's button
- * signs in to the workspaces an account has (a new workspace the line under it); with agentes.chat already signed in
- * here, making one is the button.
+ * DougBot: the first screen asks straight to connect this computer to DougBot's server, with no hosting choice and
+ * no way to run a server here (those screens stay for links that arrive from outside). The brand panel on the
+ * left, title, one sentence and one button on the right. `adding` (the site's "Add a workspace", ADR 0154): its own
+ * title, the button signs in to the workspaces an account has (a new workspace the line under it); with DougBot
+ * already signed in here, making one is the button.
  */
 function Choose({
   adding,
   cloudSignedIn,
   onCloud,
-  onOwn,
 }: {
   adding: boolean;
   cloudSignedIn: boolean;
   onCloud: (page: string) => void;
-  onOwn: () => void;
 }) {
   const { t } = useTranslation();
-  const [pick, setPick] = useState<Hosting>("cloud");
   const makeFirst = adding && cloudSignedIn;
-  const name = (hosting: Hosting) => (
-    <>
-      {t(`hosting.${hosting}.name`)}
-      <Chip tone={hosting === "cloud" ? "info" : undefined} className="dk-choose__tag">
-        {t(hosting === "cloud" ? "hosting.recommended" : "hosting.free")}
-      </Chip>
-    </>
-  );
-  const points = (hosting: Hosting) => (
-    <span className="dk-choose__points">
-      {HOSTING_POINTS[hosting].map(([key, icon]) => (
-        <span key={key} className="ac-iconline">
-          <Icon name={icon} size={14} />
-          {t(key)}
-        </span>
-      ))}
-      <span className="dk-choose__foot">{t(HOSTING_FOOT[hosting])}</span>
-    </span>
-  );
   return (
     <div className="dk-choose">
       <div className="dk-choose__sky">
-        <HostingScene hosting={pick} shape="tall" />
+        <HostingScene hosting="cloud" shape="tall" />
         <span className="dk-choose__brand" aria-hidden="true">
           <BrandFace size="sm" />
           DougBot
         </span>
       </div>
       <div className="dk-choose__main">
-        <h1>{t(adding ? "desktop.first.addTitle" : "hosting.title")}</h1>
-        <p className="dk-lead">{t(adding ? "desktop.first.addLead" : "hosting.lead")}</p>
-        <OptionList<Hosting>
-          className="dk-choose__list"
-          aria-label={t("hosting.title")}
-          value={pick}
-          onValueChange={setPick}
-          options={(["cloud", "own"] as const).map((h) => ({
-            value: h,
-            title: name(h),
-            description: pick === h ? points(h) : t(`hosting.${h}.short`),
-          }))}
-        />
+        <h1>{t(adding ? "desktop.first.addTitle" : "desktop.first.title")}</h1>
+        <p className="dk-lead">{t(adding ? "desktop.first.addLead" : "desktop.first.lead")}</p>
         <Button
           variant="primary"
           className="dk-btn-lg dk-choose__go"
           autoFocus
-          onClick={() => (pick === "own" ? onOwn() : onCloud(makeFirst ? "/onboarding" : "/login"))}
+          onClick={() => onCloud(makeFirst ? "/onboarding" : "/login")}
         >
-          {pick === "own"
-            ? t("hosting.own.continue")
-            : t(makeFirst ? "desktop.first.addCloud" : "hosting.cloud.continue")}
+          {t(makeFirst ? "desktop.first.addCloud" : "desktop.first.connect")}
           <Icon name="arrowRight" size={16} />
         </Button>
-        {/* Adding, not signed in to the Cloud here: a new workspace there is the line under it. */}
-        {adding && !makeFirst && pick === "cloud" && (
+        {/* Adding, not signed in to DougBot here: a new workspace there is the line under it. */}
+        {adding && !makeFirst && (
           <span className="dk-help dk-choose__more">
             {t("desktop.first.addNew")}{" "}
             <button type="button" className="ac-link dk-link" onClick={() => onCloud("/onboarding")}>
