@@ -35,9 +35,10 @@ export const PAIR_OFFERED_PREF = "pairOffered";
 
 export const targetKey = (t: Pick<PairTarget, "server" | "orgId">) => `${t.server} ${t.orgId}`;
 
-const PAIR_LINK = /^agenteschat:\/\/pair\/?\?(.*)$/i;
+// DougBot: Rust hands the link over with the app's own scheme (deep_link.rs `pair_url`); the other one is still read.
+const PAIR_LINK = /^(?:dougbot|agenteschat):\/\/pair\/?\?(.*)$/i;
 
-/** `agenteschat://pair?server=&link=` as Rust hands it over: the server and the code as stored (`ABCDEFGH`). */
+/** `dougbot://pair?server=&link=` as Rust hands it over: the server and the code as stored (`ABCDEFGH`). */
 export function parsePairLink(raw: string): { server: string; code: string } | null {
   const query = PAIR_LINK.exec(raw.trim())?.[1];
   if (query === undefined) return null;

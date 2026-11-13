@@ -1,20 +1,22 @@
 /**
- * Draws the desktop app's icons from the agent engine (packages/ui/src/agent/engine.js), so the
- * tray and the app icon are the same symbol as everywhere else: the body with the cut corner and
- * two pill eyes. Run by CI before `tauri build` (`bun apps/desktop/scripts/icons.ts`), then
+ * Draws the desktop app's icons. DougBot: the tray glyphs are the Doug's glass frame (a rounded square) with the
+ * agent engine's pill eyes (packages/ui/src/agent/engine.js), and the app icon is the Doug's own drawing
+ * (apps/mobile/src/brand/bots.ts, the identity's code) rendered with resvg. Run by CI before `tauri build` (`bun apps/desktop/scripts/icons.ts`), then
  * `tauri icon app-icon.png` makes the .icns and the PNG sizes from the 1024 px master.
  *
  * Outputs (all ignored by git):
  *   src-tauri/icons/tray/{idle,working,paused,offline,update,browsing,needs}.png  36×36 template images (18 pt @2x)
  *   app-icon.png                                                   1024×1024 app icon master
  *
- * No dependencies: a tiny PNG encoder over node:zlib.
+ * Dependencies: a tiny PNG encoder over node:zlib for the tray; resvg for the app icon.
  */
 import { mkdirSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { deflateSync } from "node:zlib";
-import { bodyTones, eyeShapes, inBody, toneAt } from "../../../packages/ui/src/agent/engine.js";
+import { Resvg } from "@resvg/resvg-js";
+import { eyeShapes } from "../../../packages/ui/src/agent/engine.js";
+import { svgDoBot } from "../../mobile/src/brand/bots";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 
@@ -72,6 +74,19 @@ export function encodePng(width: number, height: number, rgba: Uint8Array): Uint
     at += p.length;
   }
   return out;
+}
+
+/**
+ * DougBot: the body's silhouette is the Doug's glass frame, a rounded square (the phone app's path
+ * `M38 10H82C101 10 110 19 110 38V82…` on a 120 viewBox: the square 10..110 with a corner radius of 28), in unit
+ * coordinates over the body's square.
+ */
+const FRAME_RADIUS = 0.28;
+function inBody(u: number, v: number): boolean {
+  if (u < 0 || u > 1 || v < 0 || v > 1) return false;
+  const cx = Math.min(Math.max(u, FRAME_RADIUS), 1 - FRAME_RADIUS);
+  const cy = Math.min(Math.max(v, FRAME_RADIUS), 1 - FRAME_RADIUS);
+  return (u - cx) ** 2 + (v - cy) ** 2 <= FRAME_RADIUS ** 2;
 }
 
 /* ---------- Shapes (unit body coordinates: u, v in 0..1 over the body's square) ---------- */
@@ -174,64 +189,20 @@ function trayPng(state: TrayState): Uint8Array {
   return encodePng(TRAY_PX, TRAY_PX, rgba);
 }
 
-/* ---------- App icon: 1024 px, the agent in the sky's dither on a dark tile ---------- */
+/* ---------- App icon: 1024 px, the Doug's glass piece on a transparent canvas ---------- */
 
-const hex = (h: string): [number, number, number] => {
-  const n = Number.parseInt(h.slice(1, 7), 16);
-  return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
-};
-
+/**
+ * DougBot: the piece is its own tile (macOS icon grid), about 80% of the side with a transparent margin around.
+ * The Doug's drawing spans 10..110 of its 120 viewBox, so it is scaled by `0.8 * side / 100`.
+ */
 function appIconPng(): Uint8Array {
   const S = 1024;
-  const tile = { x: 100, y: 100, s: 824, r: 185 };
-  const body = { x: 232, y: 222, s: 560 };
-  const cells = 22;
-  const tones = (bodyTones("sky") as string[]).map(hex);
-  const bg = hex("#151514");
-  const rgba = new Uint8Array(S * S * 4);
-  const inTile = (x: number, y: number) => {
-    const cx = Math.min(Math.max(x, tile.x + tile.r), tile.x + tile.s - tile.r);
-    const cy = Math.min(Math.max(y, tile.y + tile.r), tile.y + tile.s - tile.r);
-    return (x - cx) ** 2 + (y - cy) ** 2 <= tile.r * tile.r;
-  };
-  const n = 3; // supersampling for the icon's edges
-  for (let y = 0; y < S; y++)
-    for (let x = 0; x < S; x++) {
-      let r = 0;
-      let g = 0;
-      let b = 0;
-      let a = 0;
-      for (let sy = 0; sy < n; sy++)
-        for (let sx = 0; sx < n; sx++) {
-          const px = x + (sx + 0.5) / n;
-          const py = y + (sy + 0.5) / n;
-          if (!inTile(px, py)) continue;
-          let c = bg;
-          const u = (px - body.x) / body.s;
-          const v = (py - body.y) / body.s;
-          if (inBody(u, v)) {
-            const eye = ROUND_EYES.some((e) => inPill(u, v, e));
-            if (eye) c = [255, 255, 255];
-            else {
-              const cx = Math.min(cells - 1, Math.floor(u * cells));
-              const cy = Math.min(cells - 1, Math.floor(v * cells));
-              c = tones[toneAt(cx, cy, cells) as number] ?? tones[2] ?? bg;
-            }
-          }
-          r += c[0];
-          g += c[1];
-          b += c[2];
-          a += 1;
-        }
-      const i = (y * S + x) * 4;
-      if (a > 0) {
-        rgba[i] = Math.round(r / a);
-        rgba[i + 1] = Math.round(g / a);
-        rgba[i + 2] = Math.round(b / a);
-      }
-      rgba[i + 3] = Math.round((a / (n * n)) * 255);
-    }
-  return encodePng(S, S, rgba);
+  const k = (S * 0.8) / 100;
+  const inner = svgDoBot({ bot: "doug", tamanho: 120, perto: false, brilho: false, id: "d" })
+    .replace(/^<svg[^>]*>/, "")
+    .replace(/<\/svg>$/, "");
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${S}" height="${S}" viewBox="0 0 ${S} ${S}"><g transform="translate(${S / 2 - 60 * k} ${S / 2 - 60 * k}) scale(${k})">${inner}</g></svg>`;
+  return new Resvg(svg, { fitTo: { mode: "width", value: S }, font: { loadSystemFonts: false } }).render().asPng();
 }
 
 /* ---------- Write ---------- */

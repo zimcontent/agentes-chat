@@ -13,7 +13,9 @@ const tags = ["Desktop app"];
  * updater), named as `desktopAssets` says; an optional line
  * `min-version: x.y.z` in the release body (the rest of the body is the notes).
  */
-export const DESKTOP_TAG_PREFIX = "desktop-v";
+// DougBot: a prefix of this fork's own. The upstream's `desktop-v*` tags arrive with every sync and name commits
+// that are not this fork's builds, so its releases are tagged apart from them.
+export const DESKTOP_TAG_PREFIX = "dougbot-desktop-v";
 const LATEST_TTL_MS = 5 * 60_000;
 const GITHUB_API = "https://api.github.com";
 const SEMVER = /^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/;
@@ -410,6 +412,13 @@ export function registerDesktopRoutes(api: OpenAPIHono, deps: AppDeps, releases:
   registerDownload(api, deps, "desktop", releases);
 }
 
+/**
+ * DougBot: the name a downloaded desktop build is saved under. The release files keep their published names
+ * (`agentes_<version>_…`); only the saved name carries the product's.
+ */
+export const savedName = (name: string, kind: "desktop" | "native") =>
+  kind === "desktop" ? name.replace(/^agentes_/, "DougBot_") : name;
+
 /** `GET /api/<kind>/download/{version}/{file}`: one asset of a release, streamed under our own headers. */
 function registerDownload(
   api: OpenAPIHono,
@@ -426,7 +435,7 @@ function registerDownload(
     const upstream = found.response;
     const headers = new Headers({
       "content-type": upstream.headers.get("content-type") || "application/octet-stream",
-      "content-disposition": `attachment; filename="${found.name}"`,
+      "content-disposition": `attachment; filename="${savedName(found.name, kind)}"`,
       "cache-control": "private, max-age=300",
       "x-content-type-options": "nosniff",
     });

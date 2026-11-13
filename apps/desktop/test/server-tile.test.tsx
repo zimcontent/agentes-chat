@@ -106,7 +106,7 @@ test("Preferences › Servers: the server on the Tailscale network by Tailscale'
       ]);
       expect(rows).toEqual([
         ["agentes.tail1234.ts.net", "dk-tailscale"],
-        ["agentes.chat", "ac-icon"],
+        ["DougBot", "ac-icon"],
       ]);
       // Jev's key is a server's own: nothing about it for one this app only opens.
       expect(el.textContent).not.toContain("Jev");
@@ -179,7 +179,7 @@ test("Connect to my server: what it finds on the Tailscale network by Tailscale'
       row.querySelector(".dk-logo--lg svg")?.getAttribute("class"),
     ]);
     expect(rows).toEqual([
-      ["agentes.chat is running here", "ac-icon"],
+      ["DougBot is running here", "ac-icon"],
       ["On your Tailscale network", "dk-tailscale"],
     ]);
   } finally {

@@ -39,13 +39,13 @@ test("the desktop app's window: its marker with a path on our site, never anothe
 
 test("the desktop app's deep link carries the organization with state and code, or the error", () => {
   const ok = new URL(desktopOAuthRedirect({ org: "o1", state: "s1", code: "c 2" }));
-  expect(`${ok.protocol}//${ok.host}${ok.pathname}`).toBe("agenteschat://desktop/connectors/oauth");
+  expect(`${ok.protocol}//${ok.host}${ok.pathname}`).toBe("dougbot://desktop/connectors/oauth");
   expect([...ok.searchParams]).toEqual([
     ["org", "o1"],
     ["state", "s1"],
     ["code", "c 2"],
   ]);
   expect(desktopOAuthRedirect({ org: "o1", error: "access_denied" })).toBe(
-    "agenteschat://desktop/connectors/oauth?org=o1&error=access_denied",
+    "dougbot://desktop/connectors/oauth?org=o1&error=access_denied",
   );
 });

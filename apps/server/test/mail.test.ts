@@ -294,7 +294,7 @@ test("Gmail started in the desktop app: the browser without our session hands th
   const back = await callback(gmail.accountId);
   expect(back.status).toBe(302);
   expect(back.headers.get("location")).toBe(
-    `agenteschat://desktop/connectors/oauth?org=${orgId}&state=mail&code=connected`,
+    `dougbot://desktop/connectors/oauth?org=${orgId}&state=mail&code=connected`,
   );
   const { accounts } = (await (await api("/mail/accounts")).json()) as {
     accounts: { id: string; address: string; status: string }[];
@@ -311,10 +311,10 @@ test("Gmail started in the desktop app: the browser without our session hands th
   const remote = fake.composio.state.accounts.get(refused.ca);
   if (remote) remote.status = "failed";
   expect((await callback(refused.accountId)).headers.get("location")).toBe(
-    `agenteschat://desktop/connectors/oauth?org=${orgId}&state=mail&code=failed`,
+    `dougbot://desktop/connectors/oauth?org=${orgId}&state=mail&code=failed`,
   );
   expect((await callback(crypto.randomUUID())).headers.get("location")).toBe(
-    "agenteschat://desktop/connectors/oauth?state=mail&code=failed",
+    "dougbot://desktop/connectors/oauth?state=mail&code=failed",
   );
 
   // Started on the web, back in a browser that isn't signed in: it connects all the same.

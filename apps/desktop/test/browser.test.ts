@@ -71,11 +71,9 @@ describe("the agent's row", () => {
     expect(browsersOf(status([{ agentId: "a2", open: false, handoff: { status: "pending" } }]))).toHaveLength(1);
   });
   test("links go only to the runner's server, and only to /org paths", () => {
-    expect(siteLink("https://app.agentes.chat", "/org/o1/c/c1?m=h1", "home")).toBe(
-      "https://app.agentes.chat/org/o1/c/c1?m=h1",
-    );
-    expect(siteLink("https://app.agentes.chat", "//evil.example/x", "home")).toBe("home");
-    expect(siteLink("https://app.agentes.chat", "https://evil.example/org/x/", "home")).toBe("home");
+    expect(siteLink("https://dougbot.app", "/org/o1/c/c1?m=h1", "home")).toBe("https://dougbot.app/org/o1/c/c1?m=h1");
+    expect(siteLink("https://dougbot.app", "//evil.example/x", "home")).toBe("home");
+    expect(siteLink("https://dougbot.app", "https://evil.example/org/x/", "home")).toBe("home");
     expect(siteLink("http://agentes.chat", "/org/o1/c/c1", "home")).toBe("home");
     expect(siteLink(undefined, "/org/o1/c/c1", "home")).toBe("home");
   });

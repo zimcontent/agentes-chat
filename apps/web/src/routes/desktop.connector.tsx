@@ -5,7 +5,7 @@ const text = (value: unknown) => (typeof value === "string" && value.length <= 2
 
 /**
  * The app's window, opened by the app with what a connector's provider sent back to the browser
- * (`agenteschat://desktop/connectors/oauth`, deep_link.rs): it finishes the connection with the window's session.
+ * (`dougbot://desktop/connectors/oauth`, deep_link.rs): it finishes the connection with the window's session.
  */
 export const Route = createFileRoute("/desktop/connector")({
   validateSearch: (

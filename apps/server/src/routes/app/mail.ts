@@ -242,7 +242,7 @@ export function mailRoutes(deps: AppDeps, log: Logger) {
       tags,
       summary: "Where Composio sends the person back (browser navigation, no session needed)",
       description:
-        "Reads the connected account, then redirects to the connectors screen with `mail=connected` or `mail=failed`, and `account=<id>`. Started in the desktop app (`from=desktop`): to the app's link instead (`agenteschat://desktop/connectors/oauth?org=…&state=mail&code=connected|failed`), which opens the connectors screen in its window.",
+        "Reads the connected account, then redirects to the connectors screen with `mail=connected` or `mail=failed`, and `account=<id>`. Started in the desktop app (`from=desktop`): to the app's link instead (`dougbot://desktop/connectors/oauth?org=…&state=mail&code=connected|failed`), which opens the connectors screen in its window.",
       request: { query: z.object({ account: z.uuid(), from: z.enum(["desktop"]).optional() }) },
       responses: {
         302: { description: "Back to the web app, or to the desktop app" },

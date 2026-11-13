@@ -219,7 +219,7 @@ describe("Connect a device", () => {
     const dialog = screen().getByRole("dialog", { name: "This computer" });
     expect(calls(state, "devices.createLink")[0]?.args).toEqual([ORG_ID, "computer"]);
     const app = within(dialog).getByRole("link", { name: "Open the agentes.chat app" });
-    expect(app.getAttribute("href")).toBe("agenteschat://pair?server=https%3A%2F%2Fapp.agentes.chat&link=7KQ2-M9X1");
+    expect(app.getAttribute("href")).toBe("dougbot://pair?server=https%3A%2F%2Fapp.agentes.chat&link=7KQ2-M9X1");
     expect(dialog.textContent).toContain("Waiting for the app on this computer…");
     expect(within(dialog).getByRole("heading", { name: "Don't have the app?" })).toBeTruthy();
     expect(dialog.textContent).toContain("After installing, press Open the agentes.chat app again.");

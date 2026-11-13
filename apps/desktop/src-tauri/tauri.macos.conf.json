@@ -1,9 +1,10 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
+  "productName": "DougBot",
+  "identifier": "app.dougbot.desktop",
   "bundle": {
     "macOS": {
       "dmg": {
-        "background": "dmg/background.tiff",
         "windowSize": { "width": 660, "height": 400 },
         "appPosition": { "x": 180, "y": 170 },
         "applicationFolderPosition": { "x": 480, "y": 170 }

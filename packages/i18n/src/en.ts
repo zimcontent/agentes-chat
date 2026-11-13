@@ -1644,7 +1644,7 @@ export const en = {
       open: "Open DougBot",
       version: "Version {{version}}",
       versionSize: "Version {{version}} · {{size}}",
-      soon: "There's no version for {{system}} yet.",
+      soon: "Coming soon for {{system}}.",
       useArm: "Computer with an ARM chip? Get the ARM version",
       useX64: "Get the x64 version",
       unavailable: "The app can't be downloaded from here right now. Try again in a moment.",

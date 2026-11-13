@@ -13,7 +13,8 @@ use tauri::ipc::CapabilityBuilder;
 use tauri::{AppHandle, Manager, Url};
 
 /// agentes.chat Cloud.
-pub const CLOUD: &str = "https://app.agentes.chat";
+// DougBot: the app's cloud server is this fork's own site.
+pub const CLOUD: &str = "https://dougbot.app";
 const FILE: &str = "servers.json";
 /// Servers kept in the list; choosing another past this drops the oldest that isn't open.
 const MAX_SERVERS: usize = 20;

@@ -37,7 +37,7 @@ export interface WorkspaceRow {
 export interface WorkspaceGroup {
   /** The server's origin. */
   server: string;
-  /** "agentes.chat" for the Cloud, its host otherwise (the app's own server is named by what it is instead). */
+  /** "DougBot" for the Cloud, its host otherwise (the app's own server is named by what it is instead). */
   name: string;
   cloud: boolean;
   /** The server this page is on. */
@@ -54,7 +54,8 @@ export interface WorkspaceGroup {
 }
 
 /** How a server reads in the menu: agentes.chat for the Cloud, its host otherwise. */
-export const serverLabel = (server: string) => (server === CLOUD_SERVER ? "agentes.chat" : serverHost(server));
+// DougBot: the cloud server is named after the product.
+export const serverLabel = (server: string) => (server === CLOUD_SERVER ? "DougBot" : serverHost(server));
 
 /**
  * Whether the workspace menus offer New workspace, made on the server open now: when the person may make one there (on

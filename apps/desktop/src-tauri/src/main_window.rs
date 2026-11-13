@@ -85,7 +85,8 @@ enum Route {
 /// checks those again when they come back).
 fn outside_or_drop(url: &Url) -> Route {
     match url.scheme() {
-        "http" | "https" | "mailto" | crate::deep_link::SCHEME => Route::Outside,
+        // DougBot: both of the app's schemes leave the window.
+        "http" | "https" | "mailto" | crate::deep_link::SCHEME | crate::deep_link::LEGACY_SCHEME => Route::Outside,
         _ => Route::Drop,
     }
 }
@@ -205,7 +206,7 @@ pub fn open(app: &AppHandle, url: Option<Url>) -> Result<(), String> {
         .and_then(|w| w.theme().ok())
         .unwrap_or(Theme::Light);
     let builder = WebviewWindowBuilder::new(app, LABEL, WebviewUrl::External(url.unwrap_or_else(|| site.clone())))
-        .title("agentes.chat")
+        .title("DougBot") // DougBot: the window's name
         .min_inner_size(960.0, 600.0)
         // As the person left it (window_state.rs), on a screen that is still there.
         .inner_size(saved.width.unwrap_or(1240.0), saved.height.unwrap_or(800.0))
@@ -320,8 +321,9 @@ pub fn open(app: &AppHandle, url: Option<Url>) -> Result<(), String> {
 /// The window's name for the page's title: the site's own long title (sign-in, the landing) is just the app's.
 fn window_title(title: &str) -> &str {
     let title = title.trim();
-    if title.is_empty() || title.starts_with("agentes.chat ·") {
-        "agentes.chat"
+    // DougBot: the window is named DougBot; the site's long title may still start with either name.
+    if title.is_empty() || title.starts_with("agentes.chat ·") || title.starts_with("DougBot ·") {
+        "DougBot"
     } else {
         title
     }
@@ -1250,8 +1252,9 @@ mod tests {
             Some(r#"(window.__agentesNavigate || ((p) => location.assign(p)))("/org/o1/c/c1?m=9#x")"#)
         );
         assert_eq!(window_title("#loja · Acme"), "#loja · Acme");
-        assert_eq!(window_title("agentes.chat · Your team and your agents"), "agentes.chat");
-        assert_eq!(window_title("  "), "agentes.chat");
+        assert_eq!(window_title("agentes.chat · Your team and your agents"), "DougBot");
+        assert_eq!(window_title("DougBot · Your team and your agents"), "DougBot");
+        assert_eq!(window_title("  "), "DougBot");
     }
 
     #[test]
@@ -1285,6 +1288,7 @@ mod tests {
         assert_eq!(r("http://127.0.0.1:4311/", "http://127.0.0.1:4310"), Route::Outside);
         assert_eq!(r("mailto:a@b.c", own), Route::Outside);
         assert_eq!(r("agenteschat://desktop/sign-in?code=x", own), Route::Outside);
+        assert_eq!(r("dougbot://desktop/sign-in?code=x", own), Route::Outside);
         for other in ["file:///etc/passwd", "smb://host/share", "tel:+5511", "vscode://file/x", "javascript:alert(1)"] {
             assert_eq!(r(other, own), Route::Drop, "{other}");
         }
