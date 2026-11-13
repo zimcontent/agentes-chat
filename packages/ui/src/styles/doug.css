@@ -1544,8 +1544,9 @@ img.ac-logo__mark {
   --pad: var(--dg-gap-box);
   border-radius: var(--r-outer);
 }
-/* Fields and plated buttons: pills, their words 16 (12 when small) from the round ends. */
-[data-theme] :is(.ac-input, .ac-select__trigger, .ac-btn:not(.ac-btn--icon):not(.ac-btn--glyph)) {
+/* Fields of one line and plated buttons: pills, their words 16 (12 when small) from the round ends. A field of
+   several lines is never a pill: its round ends would cut the text, so it keeps the textarea's 16. */
+[data-theme] :is(.ac-input:not(textarea), .ac-select__trigger, .ac-btn:not(.ac-btn--icon):not(.ac-btn--glyph)) {
   border-radius: 999px;
 }
 [data-theme] .ac-btn:not(.ac-btn--icon):not(.ac-btn--glyph):not(.ac-btn--sm) {
@@ -1554,7 +1555,7 @@ img.ac-logo__mark {
 [data-theme] .ac-btn--sm:not(.ac-btn--icon):not(.ac-btn--glyph) {
   padding-inline: var(--dg-s3);
 }
-[data-theme] .ac-textarea {
+[data-theme] :is(.ac-textarea, textarea.ac-input) {
   border-radius: 16px;
 }
 [data-theme] .ac-toast {
