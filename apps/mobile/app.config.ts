@@ -4,7 +4,7 @@ import type { ConfigContext, ExpoConfig } from "expo/config";
  * DougBot's Expo config (the fork of agentes.chat by Codari Global, LLC, AGPL-3.0; identity in
  * identidade/dougbot-identidade). The app's Expo config. Builds: the "Android build" and "iOS build" workflows on GitHub Actions, or EAS (see
  * README.md). The native projects are made from this file by `expo prebuild` and never committed.
- * - `EXPO_PUBLIC_API_URL`: the server the app talks to by default (production: https://time.zimcontent.com); people
+ * - `EXPO_PUBLIC_API_URL`: the server the app talks to by default (production: https://dougbot.app); people
  *   can pick their own.
  * - `EAS_PROJECT_ID`: the EAS project (the iPhone's Expo push tokens need it). Not set here on purpose: `eas init`
  *   creates the owner's own project on expo.dev and writes its id below (`DOUGBOT_EAS_PROJECT_ID`), or the build's
@@ -23,7 +23,7 @@ import type { ConfigContext, ExpoConfig } from "expo/config";
 const variant = process.env.APP_VARIANT ?? "production";
 const prancha = process.env.DOUGBOT_PRANCHA === "1";
 const suffix = variant === "production" ? "" : `.${variant}`;
-const apiUrl = process.env.EXPO_PUBLIC_API_URL ?? "https://time.zimcontent.com";
+const apiUrl = process.env.EXPO_PUBLIC_API_URL ?? "https://dougbot.app";
 // Links to this host open the app (universal links / App Links); the server publishes the matching /.well-known
 // files (apps/server/src/app-links.ts).
 const linkHost = new URL(apiUrl).host;

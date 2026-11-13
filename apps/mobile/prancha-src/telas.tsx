@@ -392,7 +392,7 @@ function Login() {
           Entrar
         </Text>
         <Text variant="subhead" tone="muted" style={[styles.center, { marginTop: 8 }]}>
-          time.zimcontent.com
+          dougbot.app
         </Text>
         <View style={{ marginTop: 24, gap: 12 }}>
           <Field value={email} onChange={setEmail} label="E-mail" />
@@ -447,7 +447,7 @@ function Field({
 }
 
 function Servidor() {
-  const [url, setUrl] = useState("time.zimcontent.com");
+  const [url, setUrl] = useState("dougbot.app");
   return (
     <Frame scroll={false}>
       <View style={styles.authHero}>
@@ -744,7 +744,7 @@ function Configuracoes() {
         </GroupedList>
         <GroupedHeader>DougBot</GroupedHeader>
         <GroupedList>
-          <GroupedRow icon="server" label="Servidor" value="time.zimcontent.com" chevron onPress={() => {}} />
+          <GroupedRow icon="server" label="Servidor" value="dougbot.app" chevron onPress={() => {}} />
           <GroupedRow icon="info" label="Sobre o DougBot" chevron onPress={() => {}} />
         </GroupedList>
       </View>
