@@ -1204,7 +1204,7 @@ of memory (under 1.5 GB free) or of displays (50) does it close the desktops nob
 least used first; each starts again at its next use. An agent's desktop stops when the agent leaves the
 computer (archived, or moved to another one).
 
-Each agent's desktop has the agentes.chat look: its wallpaper and a dock at the bottom center (the mark,
+Each agent's desktop has the DougBot look: its wallpaper and a dock at the bottom center (the Doug,
 which opens the apps menu, then Browser, Files and Terminal), one workspace and no desktop icons; its
 terminal's prompt shows the agent's name. Browser opens the agent's own browser on its desktop, the one
 it browses with, so a person who signs in to a site there signs the agent in (the first time, unless
