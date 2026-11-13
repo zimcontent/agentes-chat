@@ -191,6 +191,10 @@ import type {
   PhoneSignIn,
   PlanServes,
   Poll,
+  PortalBoard,
+  PortalCard,
+  PortalJob,
+  PortalOverview,
   Proposal,
   ReactionCount,
   Reminder,
@@ -1567,6 +1571,32 @@ export function createHttpApi(options: TransportOptions = {}): HttpApi {
         request<ThreadInfo>(`${org(orgId)}/threads/${enc(threadId)}/${action}`, { json: {} }),
     },
     dashboards: createDashboardsApi(request),
+    portal: {
+      overview: (orgId) => request<PortalOverview>(`${org(orgId)}/portal`),
+      board: (orgId, client) => request<PortalBoard>(`${org(orgId)}/portal/clients/${enc(client)}`),
+      createCard: async (orgId, input) =>
+        (await request<{ card: PortalCard }>(`${org(orgId)}/portal/cards`, { json: input })).card,
+      updateCard: async (orgId, cardId, input) =>
+        (
+          await request<{ card: PortalCard }>(`${org(orgId)}/portal/cards/${enc(cardId)}`, {
+            method: "PATCH",
+            json: input,
+          })
+        ).card,
+      deleteCard: (orgId, cardId) => request<void>(`${org(orgId)}/portal/cards/${enc(cardId)}`, { method: "DELETE" }),
+      send: async (orgId, input) =>
+        (await request<{ job: PortalJob }>(`${org(orgId)}/portal/send`, { json: input })).job,
+      job: async (orgId, jobId) => (await request<{ job: PortalJob }>(`${org(orgId)}/portal/jobs/${enc(jobId)}`)).job,
+      editItem: (orgId, client, itemId, edit) =>
+        request<void>(`${org(orgId)}/portal/clients/${enc(client)}/items/${enc(itemId)}`, {
+          method: "PATCH",
+          json: edit,
+        }),
+      schedule: (orgId, client, itemId, scheduledFor) =>
+        request<void>(`${org(orgId)}/portal/clients/${enc(client)}/items/${enc(itemId)}/schedule`, {
+          json: { scheduledFor },
+        }),
+    },
     missions: ((): HttpApi["missions"] => {
       const one = (orgId: string, missionId: string) => `${org(orgId)}/missions/${enc(missionId)}`;
       return {

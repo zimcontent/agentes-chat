@@ -1,11 +1,7 @@
-import {
-  ApprovalPortalError,
-  PORTAL_CARD_STATES,
-  PORTAL_STATUSES,
-  PORTAL_TYPES,
-} from "@agenteschat/adapters";
+import { ApprovalPortalError, PORTAL_CARD_STATES, PORTAL_STATUSES, PORTAL_TYPES } from "@agenteschat/adapters";
 import {
   PORTAL_SEND_FILES,
+  PORTAL_WHEN,
   personPortalReader,
   portalBoard,
   portalOverview,
@@ -16,7 +12,17 @@ import {
 import { createRoute, z } from "@hono/zod-openapi";
 import type { Context } from "hono";
 import { apiError, errorResponse } from "../../http/errors";
-import { type AppDeps, body, createAppRouter, errors, json, noContent, OrgParams, requireSession, security } from "./context";
+import {
+  type AppDeps,
+  body,
+  createAppRouter,
+  errors,
+  json,
+  noContent,
+  OrgParams,
+  requireSession,
+  security,
+} from "./context";
 
 const tags = ["Approval portal"];
 
@@ -32,7 +38,8 @@ const Counts = z.object({
   doing: z.number().int(),
   approval: z.number().int(),
   adjusting: z.number().int(),
-  ready: z.number().int(),
+  approved: z.number().int(),
+  scheduled: z.number().int(),
   posted: z.number().int(),
 });
 const Item = z
@@ -52,6 +59,9 @@ const Item = z
     video: z.boolean(),
     version: z.number().int(),
     missing: z.array(Missing),
+    released: z.boolean().openapi({
+      description: "Approved and already released for scheduling: `scheduled` within minutes, never released twice.",
+    }),
     lastNote: z.object({ at: z.string().nullable(), by: z.string().nullable(), text: z.string() }).nullable(),
     postUrl: z.string().nullable(),
     link: z.string(),
@@ -98,11 +108,20 @@ const CardFields = {
   note: z.string().max(2000),
   files: z.array(CardFile).max(PORTAL_SEND_FILES),
 };
+const State = z
+  .object({
+    stale: z.boolean().openapi({
+      description: "The portal isn't answering: the posts are the last good read, taken at `readAt`.",
+    }),
+    readAt: z.string().nullable(),
+    queued: z.number().int().openapi({ description: "Edits and schedules still on their way to the portal." }),
+  })
+  .openapi("PortalState");
 const off = errorResponse("This server has no approval portal");
 const unavailable = errorResponse("The approval portal didn't answer");
 
 /**
- * The approval portal (ADR 0177): the team's board per client and the send for a client's approval. Everything goes
+ * The approval portal (ADR 9001): the team's board per client and the send for a client's approval. Everything goes
  * through the server to the installation's bridge, so its token never reaches a browser. Members read; whoever may
  * give agents work (`assign_work`) changes cards and sends. 404 `portal.off` on a server with no portal.
  */
@@ -135,6 +154,7 @@ export function portalRoutes(deps: AppDeps) {
             clients: z.array(
               z.object({ client: z.string(), counts: Counts, open: z.number().int(), next: z.string().nullable() }),
             ),
+            state: State,
           }),
         ),
         502: unavailable,
@@ -148,7 +168,8 @@ export function portalRoutes(deps: AppDeps) {
       const portal = adapters.approvalPortal;
       if (!portal) return portalOff(c);
       try {
-        return await (async () => c.json({ clients: await portalOverview(portal) }, 200))();
+        return await (async () =>
+          c.json({ clients: await portalOverview(portal), state: await portal.state() }, 200))();
       } catch (error) {
         return refused(c, error);
       }
@@ -167,11 +188,13 @@ export function portalRoutes(deps: AppDeps) {
         200: json(
           z.object({
             client: z.string(),
+            state: State,
             cards: z.object({ todo: z.array(Card), doing: z.array(Card) }),
             items: z.object({
               approval: z.array(Item),
               adjusting: z.array(Item),
-              ready: z.array(Item),
+              approved: z.array(Item),
+              scheduled: z.array(Item),
               posted: z.array(Item),
             }),
           }),
@@ -203,7 +226,12 @@ export function portalRoutes(deps: AppDeps) {
       summary: "Create a card: a post the team still has to make (assign_work)",
       request: {
         params: OrgParams,
-        body: body(z.object({ client: ClientId, ...CardFields }).partial().required({ client: true, title: true })),
+        body: body(
+          z
+            .object({ client: ClientId, ...CardFields })
+            .partial()
+            .required({ client: true, title: true }),
+        ),
       },
       responses: { 200: json(z.object({ card: Card })), 502: unavailable, ...errors, 404: off },
     }),
@@ -240,8 +268,7 @@ export function portalRoutes(deps: AppDeps) {
       if (!portal) return portalOff(c);
       try {
         return await (async () =>
-        c.json({ card: await portal.updateCard(cardId, c.req.valid("json"), user.id) }, 200),
-      )();
+          c.json({ card: await portal.updateCard(cardId, c.req.valid("json"), user.id) }, 200))();
       } catch (error) {
         return refused(c, error);
       }
@@ -266,9 +293,9 @@ export function portalRoutes(deps: AppDeps) {
       if (!portal) return portalOff(c);
       try {
         return await (async () => {
-        await portal.deleteCard(cardId, user.id);
-        return c.body(null, 204);
-      })();
+          await portal.deleteCard(cardId, user.id);
+          return c.body(null, 204);
+        })();
       } catch (error) {
         return refused(c, error);
       }
@@ -327,13 +354,13 @@ export function portalRoutes(deps: AppDeps) {
       if (!portal) return portalOff(c);
       try {
         return await (async () => {
-        const job = await sendForApproval(portal, personPortalReader(artifacts, user.id, orgId), {
-          ...input,
-          key: input.key ? `${orgId}:${input.key}` : undefined,
-          by: user.id,
-        });
-        return c.json({ job }, 200);
-      })();
+          const job = await sendForApproval(portal, personPortalReader(artifacts, user.id, orgId), {
+            ...input,
+            key: input.key ? `${orgId}:${input.key}` : undefined,
+            by: user.id,
+          });
+          return c.json({ job }, 200);
+        })();
       } catch (error) {
         return refused(c, error);
       }
@@ -357,9 +384,9 @@ export function portalRoutes(deps: AppDeps) {
       if (!portal) return portalOff(c);
       try {
         return await (async () => {
-        const job = await portal.job(jobId);
-        return job ? c.json({ job }, 200) : apiError(c, 404, "not_found", "No such send");
-      })();
+          const job = await portal.job(jobId);
+          return job ? c.json({ job }, 200) : apiError(c, 404, "not_found", "No such send");
+        })();
       } catch (error) {
         return refused(c, error);
       }
@@ -397,9 +424,40 @@ export function portalRoutes(deps: AppDeps) {
       if (!portal) return portalOff(c);
       try {
         return await (async () => {
-        await portal.editItem(client, itemId, c.req.valid("json"), user.id);
+          await portal.editItem(client, itemId, c.req.valid("json"), user.id);
+          return c.body(null, 204);
+        })();
+      } catch (error) {
+        return refused(c, error);
+      }
+    },
+  );
+
+  app.openapi(
+    createRoute({
+      method: "post",
+      path: "/organizations/{orgId}/portal/clients/{client}/items/{itemId}/schedule",
+      tags,
+      security,
+      summary:
+        "Schedule an approved post: released at the portal, which takes it to the publishing service (assign_work)",
+      description:
+        "Only a post the client approved, at a time in the future. The post turns `scheduled` once the publishing service has it, usually within minutes; until then it stays `approved` with its date.",
+      request: {
+        params: OrgParams.extend({ client: ClientId, itemId: ItemId }),
+        body: body(z.object({ scheduledFor: z.string().regex(PORTAL_WHEN).max(40) })),
+      },
+      responses: { ...noContent, 502: unavailable, ...errors, 404: off },
+    }),
+    async (c) => {
+      const { orgId, client, itemId } = c.req.valid("param");
+      const user = c.get("user");
+      await requireChangePermission(db, user.id, orgId, "assign_work");
+      const portal = adapters.approvalPortal;
+      if (!portal) return portalOff(c);
+      try {
+        await portal.scheduleItem(client, itemId, c.req.valid("json").scheduledFor, user.id);
         return c.body(null, 204);
-      })();
       } catch (error) {
         return refused(c, error);
       }

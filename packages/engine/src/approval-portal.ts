@@ -7,6 +7,7 @@ import {
   type PortalCard,
   type PortalItem,
   type PortalJob,
+  type PortalState,
   type PortalStatus,
   type PortalType,
 } from "@agenteschat/adapters";
@@ -18,25 +19,28 @@ import type { ToolContext, ToolDefinition, ToolOutput, ToolSource } from "./tool
 import { untrustedBlock } from "./untrusted";
 
 /**
- * The approval portal inside the workspace (ADR 0177): the team's board of what it makes for each client, and the
+ * The approval portal inside the workspace (ADR 9001): the team's board of what it makes for each client, and the
  * one way a post goes up for the client's approval. Two cards are the team's own (`todo`, `doing`); from the send on,
  * a post is the portal's and its column follows what the client does there. The send is code from end to end: a
  * person's button and an agent's tool both end in `sendForApproval`, and no model sits between them and the portal.
  */
 
 /** The board's columns, in order. `posted` is the board's second tab. */
-export const PORTAL_COLUMNS = ["todo", "doing", "approval", "adjusting", "ready", "posted"] as const;
+export const PORTAL_COLUMNS = ["todo", "doing", "approval", "adjusting", "approved", "scheduled", "posted"] as const;
 export type PortalColumn = (typeof PORTAL_COLUMNS)[number];
 
-/** Whose move it is: the client's (`approval`), the team's (`adjusting`), nobody's (`ready`, `posted`). */
+/**
+ * Whose move it is: the client's (`approval`), the team's (`adjusting`, and `approved`: it waits for the team to
+ * schedule it), nobody's (`scheduled`, `posted`).
+ */
 const COLUMN_OF: Record<PortalStatus, PortalColumn> = {
   sent: "approval",
   seen: "approval",
   adjusted: "approval",
   adjust_requested: "adjusting",
   adjusting: "adjusting",
-  approved: "ready",
-  scheduled: "ready",
+  approved: "approved",
+  scheduled: "scheduled",
   published: "posted",
 };
 
@@ -47,14 +51,21 @@ export interface PortalClientSummary {
   counts: Record<PortalColumn, number>;
   /** Everything not posted yet. */
   open: number;
-  /** The next date among what is ready, if any. */
+  /** The next date among what is scheduled, if any. */
   next: string | null;
 }
 
 export interface PortalBoard {
   client: string;
+  state: PortalState;
   cards: { todo: PortalCard[]; doing: PortalCard[] };
-  items: { approval: PortalItem[]; adjusting: PortalItem[]; ready: PortalItem[]; posted: PortalItem[] };
+  items: {
+    approval: PortalItem[];
+    adjusting: PortalItem[];
+    approved: PortalItem[];
+    scheduled: PortalItem[];
+    posted: PortalItem[];
+  };
 }
 
 const emptyCounts = (): Record<PortalColumn, number> => ({
@@ -62,7 +73,8 @@ const emptyCounts = (): Record<PortalColumn, number> => ({
   doing: 0,
   approval: 0,
   adjusting: 0,
-  ready: 0,
+  approved: 0,
+  scheduled: 0,
   posted: 0,
 });
 
@@ -82,7 +94,7 @@ export async function portalOverview(portal: ApprovalPortal): Promise<PortalClie
     const summary = of(item.client);
     const column = portalColumnOf(item);
     summary.counts[column] += 1;
-    if (column === "ready" && item.scheduledFor && (!summary.next || item.scheduledFor < summary.next)) {
+    if (column === "scheduled" && item.scheduledFor && (!summary.next || item.scheduledFor < summary.next)) {
       summary.next = item.scheduledFor;
     }
   }
@@ -98,8 +110,10 @@ export async function portalBoard(portal: ApprovalPortal, client: string): Promi
   const [items, cards] = await Promise.all([portal.items(), portal.cards(client)]);
   const board: PortalBoard = {
     client,
+    // Read after the posts: it says how fresh that very read was.
+    state: await portal.state(),
     cards: { todo: [], doing: [] },
-    items: { approval: [], adjusting: [], ready: [], posted: [] },
+    items: { approval: [], adjusting: [], approved: [], scheduled: [], posted: [] },
   };
   for (const card of cards) board.cards[card.state].push(card);
   for (const item of items) {
@@ -109,7 +123,8 @@ export async function portalBoard(portal: ApprovalPortal, client: string): Promi
   const byDate = (a: PortalItem, b: PortalItem) =>
     (a.scheduledFor ?? "9999").localeCompare(b.scheduledFor ?? "9999") ||
     (b.updatedAt ?? "").localeCompare(a.updatedAt ?? "");
-  board.items.ready.sort(byDate);
+  board.items.approved.sort(byDate);
+  board.items.scheduled.sort(byDate);
   board.items.posted.sort((a, b) =>
     (b.publishedAt ?? b.scheduledFor ?? "").localeCompare(a.publishedAt ?? a.scheduledFor ?? ""),
   );
@@ -194,6 +209,7 @@ export const agentPortalReader = (deps: ArtifactDeps, actor: ArtifactActor, orgI
 export const PORTAL_BOARD_TOOL = "portal_board";
 export const PORTAL_CARD_TOOL = "portal_card";
 export const SEND_FOR_APPROVAL_TOOL = "send_for_approval";
+export const SCHEDULE_POST_TOOL = "schedule_post";
 
 export interface PortalToolDeps {
   /** null: this server has no approval portal, and the tools aren't listed. */
@@ -220,6 +236,7 @@ const itemLine = (item: PortalItem) =>
   `- [${item.status}] ${item.type} "${item.title}" (item ${item.id})` +
   (item.scheduledFor ? `, date ${item.scheduledFor}` : "") +
   (item.missing.length ? `, missing: ${item.missing.join(", ")}` : "") +
+  (item.released ? ", already released for scheduling" : "") +
   (item.lastNote?.text && portalColumnOf(item) === "adjusting" ? `\n  client's note: ${item.lastNote.text}` : "");
 const cardLine = (card: PortalCard) =>
   `- ${card.type} "${card.title}" (card ${card.id})` +
@@ -232,7 +249,7 @@ function boardTool(portal: ApprovalPortal): ToolDefinition {
   return {
     name: PORTAL_BOARD_TOOL,
     description:
-      "The approval portal's board: what the team makes for each client and where each post is (to do, in production, waiting for the client's approval, adjustment asked by the client, ready, posted). With no `client`: every client and its counts. With a `client`: that client's cards and posts, with ids, dates, what is missing and the client's adjustment notes.",
+      "The approval portal's board: what the team makes for each client and where each post is (to do, in production, waiting for the client's approval, adjustment asked by the client, approved, scheduled, posted). With no `client`: every client and its counts. With a `client`: that client's cards and posts, with ids, dates, what is missing and the client's adjustment notes.",
     scope: "",
     inputSchema: {
       type: "object",
@@ -252,7 +269,7 @@ function boardTool(portal: ApprovalPortal): ToolDefinition {
             content: clients
               .map(
                 (c) =>
-                  `- ${c.client}: to do ${c.counts.todo}, in production ${c.counts.doing}, waiting for approval ${c.counts.approval}, adjustment asked ${c.counts.adjusting}, ready ${c.counts.ready}, posted ${c.counts.posted}` +
+                  `- ${c.client}: to do ${c.counts.todo}, in production ${c.counts.doing}, waiting for approval ${c.counts.approval}, adjustment asked ${c.counts.adjusting}, approved ${c.counts.approved}, scheduled ${c.counts.scheduled}, posted ${c.counts.posted}` +
                   (c.next ? `, next date ${c.next}` : ""),
               )
               .join("\n"),
@@ -265,7 +282,8 @@ function boardTool(portal: ApprovalPortal): ToolDefinition {
           section("In production", board.cards.doing.map(cardLine)),
           section("Waiting for the client's approval", board.items.approval.map(itemLine)),
           section("Adjustment asked by the client", board.items.adjusting.map(itemLine)),
-          section("Ready (approved or scheduled)", board.items.ready.map(itemLine)),
+          section("Approved by the client (to schedule)", board.items.approved.map(itemLine)),
+          section("Scheduled", board.items.scheduled.map(itemLine)),
           input.posted === true ? section("Posted", board.items.posted.slice(0, 40).map(itemLine)) : "",
         ]
           .filter(Boolean)
@@ -400,6 +418,42 @@ function sendTool(deps: PortalToolDeps, portal: ApprovalPortal): ToolDefinition 
   };
 }
 
+/** `YYYY-MM-DDTHH:MM`, with or without seconds and an offset: what a schedule's time looks like. */
+export const PORTAL_WHEN = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2})?(Z|[+-]\d{2}:\d{2})?$/;
+
+function scheduleTool(portal: ApprovalPortal): ToolDefinition {
+  return {
+    name: SCHEDULE_POST_TOOL,
+    description:
+      "Schedule a post the client already approved: it is released at the approval portal and goes to the publishing service by itself, with the portal's own caption and files. Use it when a person of the team tells you to schedule an approved post, never on your own judgment. Only a post in the board's approved column is scheduled, at a time in the future.",
+    scope: "",
+    external: true,
+    inputSchema: {
+      type: "object",
+      properties: {
+        client: { type: "string", maxLength: 64 },
+        item: { type: "string", maxLength: 80, description: "The post's id, as `portal_board` lists it." },
+        when: { type: "string", maxLength: 40, description: "YYYY-MM-DDTHH:MM, the portal's own time zone." },
+      },
+      required: ["client", "item", "when"],
+      additionalProperties: false,
+    },
+    describe: (input) => ({ title: `Schedule ${str(input.client)}'s post ${str(input.item)} for ${str(input.when)}` }),
+    async execute(input, ctx) {
+      try {
+        if (!PORTAL_WHEN.test(str(input.when))) throw new ValidationError("`when` is YYYY-MM-DDTHH:MM");
+        const by = (await personBehindCall(ctx)) ?? `agent:${ctx.agentId}`;
+        await portal.scheduleItem(str(input.client), str(input.item), str(input.when), by);
+        return {
+          content: `Released for ${str(input.when)}: the portal takes it to the publishing service within minutes.`,
+        };
+      } catch (error) {
+        return failed(error);
+      }
+    },
+  };
+}
+
 /** Waits a short while for a send to end, so the answer usually carries the link. */
 async function settled(portal: ApprovalPortal, job: PortalJob, waitMs = 20_000): Promise<PortalJob> {
   const until = Date.now() + waitMs;
@@ -421,7 +475,7 @@ export function createPortalToolSource(deps: PortalToolDeps): ToolSource {
     async tools(ctx) {
       const portal = deps.portal;
       if (!portal || !ctx.runId || ctx.background) return [];
-      return [boardTool(portal), cardTool(portal), sendTool(deps, portal)];
+      return [boardTool(portal), cardTool(portal), sendTool(deps, portal), scheduleTool(portal)];
     },
   };
 }

@@ -13073,6 +13073,55 @@ html:not([data-pointer]) .sidebar__more:focus-visible {
 .sidebar__tools > .sidebar__item {
   position: relative;
 }
+/* "Waiting on you" and Portal on one row (ADR 9001; ToolList's `TOOL_PAIR`), only where the server has an approval
+   portal: two smaller buttons (the 32 step, not the list's 40) that share the row's width, each as wide as its words
+   need and the room left split between them. Words that don't fit side by side (a long language, a wide count) put
+   the second button on a row of its own instead of cutting either. The pair moves as its two tools do, so it shows
+   no grip of its own. The rail and Doug's dock draw icons, not rows: there the two are plain neighbours. */
+.sidebar__pair {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-2);
+}
+.sidebar:not([data-rail="true"]) .sidebar__tools:not(.sidebar__dock) > .sidebar__pair > .sidebar__item {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: var(--control-h-sm);
+  padding: 0 var(--space-2);
+  gap: var(--space-1);
+  font-size: 13.5px;
+}
+/* Its glyph a step smaller too (16, not the list's 20), with no plate of its own: that is the room the two names need
+   to stay whole side by side. */
+[data-theme]
+  .sidebar:not([data-rail="true"])
+  .sidebar__tools:not(.sidebar__dock)
+  > .sidebar__pair
+  > .sidebar__item
+  > .ac-icon {
+  width: 16px;
+  height: 16px;
+  padding: 0;
+}
+.sidebar__pair .sidebar__tool-grip {
+  display: none;
+}
+/* The open page's bar sits 12 before a row's start, which for the second button is over the first one's end (its
+   count): in the pair the plate alone says which of the two is open. */
+[data-theme]
+  .sidebar:not([data-rail="true"])
+  .sidebar__tools:not(.sidebar__dock)
+  > .sidebar__pair
+  > .sidebar__item[data-status="active"]::after {
+  display: none;
+}
+.sidebar[data-rail="true"] .sidebar__pair,
+.sidebar__dock > .sidebar__pair {
+  display: contents;
+}
+.sidebar__pair > .sidebar__item {
+  position: relative;
+}
 .sidebar__tool-grip {
   bottom: 0;
 }

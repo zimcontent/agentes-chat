@@ -1758,6 +1758,7 @@
     }
   },
   "shell": {
+    "you": "Tu",
     "otherChannels": "Altri canali",
     "otherChannelsPersonal": "Altre conversazioni di gruppo",
     "titleBar": {
@@ -1768,6 +1769,7 @@
     "more": "Altro",
     "moreWhat": {
       "waiting": "Tutto ciò che aspetta una tua risposta",
+      "portal": "Ciò che i tuoi clienti approvano e ciò che hanno rimandato indietro",
       "approvals": "Cosa ti chiedono di consentire gli agenti",
       "proposals": "Cosa propongono di cambiare gli agenti",
       "threads": "Conversazioni che si diramano, e missioni",
@@ -1879,6 +1881,7 @@
     "summary_many": "{{people}} membri · {{agents}} agenti",
     "summary_other": "{{people}} membri · {{agents}} agenti",
     "waiting": "Ti aspetta",
+    "portal": "Portale",
     "approvals": "Approvazioni",
     "proposals": "Proposte di miglioramento",
     "issues": "Attività",
@@ -1973,6 +1976,10 @@
       "working": "Al lavoro prima"
     },
     "showAll": "Mostra gli agenti che non parlano con me",
+    "showHidden": "Mostra agenti nascosti ({{count}})",
+    "hide": "Nascondi dalla barra laterale",
+    "unhide": "Mostra nella barra laterale",
+    "hiddenToast": "{{name}} è nascosto. Trovalo con Ctrl+K.",
     "collapseAll": "Comprimi tutti",
     "expandAll": "Espandi tutti",
     "organize": "Organizza i reparti in Team",
@@ -2292,8 +2299,8 @@
     "members": "Membri: {{names}}",
     "details": "Dettagli del canale",
     "composerLabel": "Scrivi in #{{channel}}",
-    "composerDm": "Scrivi a {{name}}",
-    "composerPlaceholder": "Scrivi in #{{channel}} · usa @ per chiamare un agente",
+    "composerDm": "Messaggio",
+    "composerPlaceholder": "Messaggio · @ chiama un agente",
     "send": "Invia",
     "attach": "Allega file",
     "writing": "sta scrivendo…",
@@ -2322,6 +2329,18 @@
     "nameHelp": "Cambia per tutti. I vecchi link continuano a funzionare.",
     "nameTaken": "Esiste già #{{name}}.",
     "generalName": "#general mantiene il suo nome.",
+    "displayNameLabel": "Nome visualizzato",
+    "displayNameHelp": "Come il gruppo appare a tutti. Il nome tecnico (#{{name}}) funziona ancora per le menzioni.",
+    "photo": {
+      "label": "Foto del gruppo",
+      "title": "Foto del gruppo",
+      "help": "Un'immagine quadrata che tutti vedono accanto al nome del gruppo. JPEG, PNG o WebP fino a 2 MB.",
+      "upload": "Carica foto",
+      "change": "Cambia foto",
+      "remove": "Rimuovi foto",
+      "saved": "Foto del gruppo salvata",
+      "removed": "Foto del gruppo rimossa"
+    },
     "archive": "Archivia canale",
     "archived": "#{{channel}} archiviato. La conversazione resta.",
     "archivedTitle": "Canali archiviati",
@@ -10547,6 +10566,15 @@
     "copied": "Codice copiato."
   },
   "photo": {
+    "agent": {
+      "title": "Foto",
+      "help": "Una foto vera al posto del bot disegnato. Senza foto resta l'avatar di DougBot.",
+      "dialogTitle": "Foto dell'agente",
+      "send": "Carica foto",
+      "useBot": "Usa l'avatar di DougBot",
+      "saved": "Foto dell'agente aggiornata.",
+      "removed": "L'agente è tornato all'avatar di DougBot."
+    },
     "label": "Foto",
     "change": "Cambia foto",
     "title": "Foto del profilo",
@@ -16473,6 +16501,9 @@
         "askingChoices": "Ha chiesto con delle opzioni",
         "usingVault": "Ha lavorato nel Vault",
         "makingPassword": "Ha creato una password",
+        "usingPortal": "Ha lavorato sulla bacheca di approvazione",
+        "sendingForApproval": "Ha inviato in approvazione",
+        "schedulingPost": "Ha programmato un post",
         "startingWork": "Ha iniziato un lavoro lungo",
         "updatingWork": "Ha aggiornato un lavoro lungo",
         "withdrawingRequest": "Ha ritirato una richiesta",
@@ -16589,6 +16620,9 @@
       "askingChoices": "chiedendo con delle opzioni",
       "usingVault": "lavorando nel Vault",
       "makingPassword": "creando una password",
+      "usingPortal": "lavorando sulla bacheca di approvazione",
+      "sendingForApproval": "inviando in approvazione",
+      "schedulingPost": "programmando un post",
       "startingWork": "iniziando un lavoro lungo",
       "updatingWork": "aggiornando un lavoro lungo",
       "withdrawingRequest": "ritirando una richiesta",
@@ -17504,6 +17538,10 @@
       "stoppedByOther": "da {{person}} · {{time}}",
       "stoppedAt": "alle {{time}}",
       "open": "Guarda in diretta",
+      "folded": "Browser",
+      "foldedAt": "Browser · {{site}}",
+      "showScreen": "Mostra lo schermo",
+      "hideScreen": "Nascondi lo schermo",
       "step": {
         "browser_do": "Ha fatto diversi passaggi",
         "browser_open": "Ha aperto {{detail}}",
@@ -19307,6 +19345,141 @@
       "always": "Invia sempre",
       "alwaysOn": "D'ora in poi, segnalazioni come questa partono senza chiedere.",
       "askFirst": "Chiedi prima di inviare"
+    }
+  },
+  "portal": {
+    "title": "Portale",
+    "subtitle": "Ciò che i tuoi clienti approvano, per cliente",
+    "overview": "Panoramica",
+    "board": "Bacheca",
+    "allClients": "Tutti i clienti",
+    "unavailable": "Il portale di approvazione non risponde in questo momento.",
+    "stale": "Il portale non risponde. Si mostrano i dati di {{time}}.",
+    "staleNoTime": "Il portale non risponde. Si mostra l'ultima lettura.",
+    "queued_one": "{{count}} modifica in attesa di arrivare al portale.",
+    "queued_many": "{{count}} modifiche in attesa di arrivare al portale.",
+    "queued_other": "{{count}} modifiche in attesa di arrivare al portale.",
+    "off": {
+      "title": "Nessun portale di approvazione collegato",
+      "text": "La bacheca compare qui quando ce n'è uno."
+    },
+    "columns": {
+      "todo": "Da fare",
+      "doing": "In produzione",
+      "approval": "In attesa di approvazione",
+      "adjusting": "Modifica richiesta",
+      "approved": "Approvato",
+      "scheduled": "Programmato",
+      "posted": "Pubblicati"
+    },
+    "types": {
+      "reel": "Reel",
+      "carousel": "Carosello",
+      "image": "Immagine",
+      "story": "Story"
+    },
+    "status": {
+      "sent": "Inviato",
+      "seen": "Visto",
+      "approved": "Approvato",
+      "adjust_requested": "Modifica richiesta",
+      "adjusting": "In modifica",
+      "adjusted": "Modificato",
+      "scheduled": "Programmato",
+      "published": "Pubblicato"
+    },
+    "missing": {
+      "cover": "Senza copertina",
+      "caption": "Senza didascalia",
+      "editor": "Senza editor",
+      "date": "Senza data"
+    },
+    "open_one": "{{count}} aperto",
+    "open_many": "{{count}} aperti",
+    "open_other": "{{count}} aperti",
+    "clients_one": "{{count}} cliente",
+    "clients_many": "{{count}} clienti",
+    "clients_other": "{{count}} clienti",
+    "adjustments_one": "{{count}} modifica richiesta",
+    "adjustments_many": "{{count}} modifiche richieste",
+    "adjustments_other": "{{count}} modifiche richieste",
+    "files_one": "{{count}} file",
+    "files_many": "{{count}} file",
+    "files_other": "{{count}} file",
+    "next": "Prossimo: {{when}}",
+    "clientAsked": "Il cliente ha chiesto",
+    "empty": {
+      "clients": "Ancora nessun cliente nel portale",
+      "clientsText": "Un cliente compare qui non appena il portale ne ha uno.",
+      "column": "Niente qui",
+      "posted": "Ancora niente di pubblicato",
+      "noDate": "Senza data"
+    },
+    "newCard": "Nuova scheda",
+    "send": "Invia in approvazione",
+    "openAtPortal": "Apri nel portale",
+    "seePost": "Vedi il post",
+    "edit": "Modifica",
+    "delete": "Elimina",
+    "actionsOf": "Azioni: {{title}}",
+    "moveTo": "Sposta in {{column}}",
+    "card": {
+      "newTitle": "Nuova scheda",
+      "editTitle": "Modifica scheda",
+      "created": "Scheda creata.",
+      "saved": "Scheda salvata.",
+      "deleted": "Scheda eliminata.",
+      "deleteTitle": "Eliminare questa scheda?",
+      "deleteText": "“{{title}}” esce dalla bacheca. I suoi file restano nel Drive."
+    },
+    "post": {
+      "editTitle": "Modifica post",
+      "saved": "Post aggiornato."
+    },
+    "schedule": {
+      "action": "Programma post",
+      "text": "Il post va da solo al servizio di pubblicazione, con la didascalia e i file che ha nel portale. Passa a Programmato in pochi minuti.",
+      "confirm": "Conferma",
+      "done": "Rilasciato per {{when}}.",
+      "past": "Scegli un orario che non sia già passato.",
+      "pending": "programmazione…"
+    },
+    "form": {
+      "client": "Cliente",
+      "title": "Titolo",
+      "type": "Tipo",
+      "date": "Data",
+      "time": "Ora",
+      "owner": "Responsabile",
+      "editor": "Editor",
+      "note": "Nota",
+      "caption": "Didascalia",
+      "files": "File",
+      "cover": "Copertina",
+      "addFiles": "Aggiungi dal Drive",
+      "chooseCover": "Scegli una copertina"
+    },
+    "sending": {
+      "description": "I file passano dal Drive all'approvazione del cliente. Servono solo il cliente, il tipo e i file.",
+      "submit": "Invia",
+      "progress": "Invio all'approvazione di {{client}}…",
+      "video": "Un video richiede qualche minuto.",
+      "done": "Inviato in approvazione.",
+      "stillMissing": "Manca ancora",
+      "failed": "L'invio non è andato a buon fine.",
+      "tooMany": "Un invio contiene al massimo {{max}} file.",
+      "reelOneVideo": "Un reel è un solo video. La copertina va a parte.",
+      "notMedia": "Solo immagini e video vanno in approvazione.",
+      "coverNotImage": "La copertina deve essere un'immagine."
+    },
+    "picker": {
+      "title": "File dal Drive",
+      "search": "Cerca file",
+      "empty": "Nessun file caricato nel Drive.",
+      "more": "Mostra altro",
+      "add_one": "Aggiungi {{count}} file",
+      "add_many": "Aggiungi {{count}} file",
+      "add_other": "Aggiungi {{count}} file"
     }
   }
 }

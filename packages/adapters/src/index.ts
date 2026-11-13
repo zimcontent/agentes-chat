@@ -95,7 +95,7 @@ export interface Adapters {
    */
   gifs?: GifProvider | null;
   /**
-   * The approval portal (ADR 0177), reached through the installation's bridge (`APPROVAL_PORTAL_URL`);
+   * The approval portal (ADR 9001), reached through the installation's bridge (`APPROVAL_PORTAL_URL`);
    * null/absent = no portal: no page, no tools.
    */
   approvalPortal?: ApprovalPortal | null;

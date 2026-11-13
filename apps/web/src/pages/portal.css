@@ -1,0 +1,316 @@
+/*
+ * The approval portal (ADR 9001): every client at a glance, then one client's board. The board itself is the task
+ * board's (issues.css: its frame, its columns and its cards), so the two read as the same kind of screen; what is
+ * here is the overview's cards and what a portal card holds that a task card doesn't.
+ */
+
+/* The board's tabs scroll sideways on a phone instead of wrapping, out to the page's edges. */
+.portal-tabs {
+  overflow-x: auto;
+  scrollbar-width: none;
+  margin: 0 calc(-1 * var(--page-x));
+  padding: var(--space-1) var(--page-x);
+}
+.portal-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+/* What the page says about its own freshness (the portal not answering, changes on their way), one under the other. */
+.portal-notices {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+/* ── Overview ───────────────────────────────────────────────────────────── */
+.portal-overview {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+.portal-overview > .ac-grouphead {
+  margin-bottom: calc(var(--space-2) - var(--space-4));
+}
+/* The totals in a card of their own: every column's count on one line that wraps between them. */
+.portal-totals {
+  padding: var(--card-pad, var(--space-4));
+  border-radius: var(--radius-section);
+  background: var(--raised);
+  box-shadow: var(--e1), var(--top);
+}
+/* A count reads before its column's name does: the number in the ink, the name quiet. */
+.portal-overview .ac-factline__fact > b {
+  color: var(--ink);
+  font-weight: 650;
+}
+.portal-clients {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-3);
+}
+@media (max-width: 1180px) {
+  .portal-clients {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 720px) {
+  .portal-clients {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+.portal-client {
+  color: inherit;
+  text-decoration: none;
+  align-content: start;
+}
+.portal-client:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--e2), var(--top);
+}
+html:not([data-pointer]) .portal-client:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+/* The name and how many are open on one line while both fit, the count under the name when they don't. */
+.portal-client__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-1) var(--space-3);
+  min-width: 0;
+}
+.portal-client__name {
+  min-width: 0;
+  font-size: 15px;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+  overflow-wrap: anywhere;
+}
+.portal-client__open,
+.portal-client__next {
+  font-size: 12.5px;
+  color: var(--muted);
+  white-space: nowrap;
+}
+.portal-client > .ac-chip {
+  align-self: flex-start;
+}
+
+/* ── Board ──────────────────────────────────────────────────────────────── */
+/* A portal card is read and acted on through its own buttons: nothing drags, so it neither lifts nor shows a grab. */
+.portal-card,
+.portal-card:hover {
+  cursor: default;
+  transform: none;
+  box-shadow: var(--e1), var(--top);
+}
+/* The title beside its menu: the words wrap whole, the 32 button stays on the first line, clear of the card's edge. */
+.portal-card__head {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+}
+.portal-card__head > .issue-card__title {
+  flex: 1;
+  min-width: 0;
+  padding-block: calc((var(--control-h-sm) - 19px) / 2);
+}
+.portal-card__head > .ac-btn {
+  flex: none;
+  margin: 0 calc(var(--action-clear) - var(--space-3)) 0 0;
+}
+.portal-card__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+}
+/* The team's note, or what the client asked: plain words, whole, a word longer than the card broken where it must. */
+.portal-card__note {
+  margin: 0;
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--ink2);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.portal-card__note--asked {
+  padding: var(--space-2);
+  border-radius: var(--radius-sm);
+  background: var(--sunken);
+}
+.portal-card__note--asked > b {
+  display: block;
+  font-size: 12.5px;
+  font-weight: 650;
+  color: var(--ink);
+}
+.portal-card__link {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+/* ── Posted ─────────────────────────────────────────────────────────────── */
+.portal-posted__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.portal-posted__row {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--row-py) var(--space-4);
+}
+.portal-posted__row + .portal-posted__row {
+  border-top: 1px solid var(--line2);
+}
+.portal-posted__text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+.portal-posted__title {
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+.portal-posted__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+.portal-posted__meta > .ac-link {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+/* The dates end on one right edge. */
+.portal-posted__when {
+  flex: none;
+  font-size: 12.5px;
+  line-height: 20px;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+/* ── Dialogs ────────────────────────────────────────────────────────────── */
+/* Two short fields side by side (type and date, date and time), each as wide as its half; one column on a phone. */
+.portal-form__pair {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-4);
+}
+@media (max-width: 520px) {
+  .portal-form__pair {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+/* A list of files with its button, under the field's own label (4 from it, as a Field's is from its control). */
+.portal-files {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-2);
+}
+.portal-files > .ac-field__label {
+  margin-bottom: calc(var(--space-1) - var(--space-2));
+}
+.portal-files > .ac-field__error {
+  margin: 0;
+}
+.portal-files__list {
+  align-self: stretch;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-radius: var(--radius-sm);
+  box-shadow: inset 0 0 0 1px var(--line);
+}
+.portal-files__row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: var(--control-h-lg);
+  padding: 0 var(--action-clear) 0 var(--space-3);
+}
+.portal-files__row + .portal-files__row {
+  border-top: 1px solid var(--line2);
+}
+.portal-files__row > .ac-icon {
+  flex: none;
+  color: var(--muted);
+}
+.portal-files__name {
+  flex: 1;
+  min-width: 0;
+  padding-block: var(--space-2);
+  overflow-wrap: anywhere;
+}
+.portal-files__acts {
+  flex: none;
+  display: flex;
+  gap: var(--space-2);
+}
+.portal-pick {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+.portal-pick > .ac-btn {
+  align-self: flex-start;
+}
+.portal-pick__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.portal-pick__row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--row-py) var(--space-2);
+  border-radius: var(--radius-sm);
+}
+.portal-pick__row:hover {
+  background: var(--surface);
+}
+.portal-pick__name {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  cursor: pointer;
+  overflow-wrap: anywhere;
+}
+.portal-pick__name > .ac-icon {
+  flex: none;
+  color: var(--muted);
+}
+.portal-send {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+.portal-send p {
+  margin: 0;
+}
+.portal-send__status {
+  font-weight: 600;
+}
+.portal-send__missing {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+/* The portal's own words: plain text, whole. */
+.portal-send__error {
+  color: var(--ink2);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}

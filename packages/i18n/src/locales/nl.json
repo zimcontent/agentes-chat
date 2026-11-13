@@ -1715,6 +1715,7 @@
     }
   },
   "shell": {
+    "you": "Jij",
     "otherChannels": "Andere kanalen",
     "otherChannelsPersonal": "Andere groepsgesprekken",
     "titleBar": {
@@ -1725,6 +1726,7 @@
     "more": "Meer",
     "moreWhat": {
       "waiting": "Alles wat op jouw antwoord wacht",
+      "portal": "Wat je klanten goedkeuren en wat ze hebben teruggestuurd",
       "approvals": "Wat agents je vragen toe te staan",
       "proposals": "Wat agents willen veranderen",
       "threads": "Gesprekken die aftakken, en missies",
@@ -1835,6 +1837,7 @@
     "summary_one": "{{people}} lid · {{agents}} agents",
     "summary_other": "{{people}} leden · {{agents}} agents",
     "waiting": "Wacht op jou",
+    "portal": "Portaal",
     "approvals": "Goedkeuringen",
     "proposals": "Verbeteringsvoorstellen",
     "issues": "Taken",
@@ -1922,6 +1925,10 @@
       "working": "Aan het werk eerst"
     },
     "showAll": "Agents tonen die niet met mij praten",
+    "showHidden": "Verborgen agents tonen ({{count}})",
+    "hide": "Verbergen in de zijbalk",
+    "unhide": "Tonen in de zijbalk",
+    "hiddenToast": "{{name}} is verborgen. Terug te vinden met Ctrl+K.",
     "collapseAll": "Alles inklappen",
     "expandAll": "Alles uitklappen",
     "organize": "Afdelingen ordenen in Team",
@@ -2223,8 +2230,8 @@
     "members": "Leden: {{names}}",
     "details": "Kanaaldetails",
     "composerLabel": "Bericht aan #{{channel}}",
-    "composerDm": "Bericht aan {{name}}",
-    "composerPlaceholder": "Bericht aan #{{channel}} · gebruik @ om een agent te roepen",
+    "composerDm": "Bericht",
+    "composerPlaceholder": "Bericht · @ roept een agent",
     "send": "Versturen",
     "attach": "Bestand bijvoegen",
     "writing": "schrijft…",
@@ -2253,6 +2260,18 @@
     "nameHelp": "Verandert voor iedereen. Oude links blijven werken.",
     "nameTaken": "Er is al een #{{name}}.",
     "generalName": "#general houdt zijn naam.",
+    "displayNameLabel": "Weergavenaam",
+    "displayNameHelp": "Hoe de groep er voor iedereen uitziet. De technische naam (#{{name}}) werkt nog steeds voor vermeldingen.",
+    "photo": {
+      "label": "Groepsfoto",
+      "title": "Groepsfoto",
+      "help": "Een vierkante afbeelding die iedereen naast de naam van de groep ziet. JPEG, PNG of WebP tot 2 MB.",
+      "upload": "Foto uploaden",
+      "change": "Foto wijzigen",
+      "remove": "Foto verwijderen",
+      "saved": "Groepsfoto opgeslagen",
+      "removed": "Groepsfoto verwijderd"
+    },
     "archive": "Kanaal archiveren",
     "archived": "#{{channel}} gearchiveerd. Het gesprek blijft bewaard.",
     "archivedTitle": "Gearchiveerde kanalen",
@@ -10220,6 +10239,15 @@
     "copied": "Code gekopieerd."
   },
   "photo": {
+    "agent": {
+      "title": "Foto",
+      "help": "Een echte foto in plaats van de getekende bot. Zonder foto blijft de DougBot-avatar staan.",
+      "dialogTitle": "Foto van de agent",
+      "send": "Foto uploaden",
+      "useBot": "De DougBot-avatar gebruiken",
+      "saved": "Foto van de agent bijgewerkt.",
+      "removed": "De agent heeft weer de DougBot-avatar."
+    },
     "label": "Foto",
     "change": "Foto wijzigen",
     "title": "Profielfoto",
@@ -16022,6 +16050,9 @@
         "askingChoices": "Met opties gevraagd",
         "usingVault": "In de Vault gewerkt",
         "makingPassword": "Een wachtwoord gemaakt",
+        "usingPortal": "Aan het goedkeuringsbord gewerkt",
+        "sendingForApproval": "Ter goedkeuring verstuurd",
+        "schedulingPost": "Een post ingepland",
         "startingWork": "Een lang werk begonnen",
         "updatingWork": "Een lang werk bijgewerkt",
         "withdrawingRequest": "Een verzoek ingetrokken",
@@ -16138,6 +16169,9 @@
       "askingChoices": "met opties aan het vragen",
       "usingVault": "in de Vault aan het werken",
       "makingPassword": "een wachtwoord aan het maken",
+      "usingPortal": "aan het goedkeuringsbord aan het werken",
+      "sendingForApproval": "ter goedkeuring aan het versturen",
+      "schedulingPost": "een post aan het inplannen",
       "startingWork": "een lang werk aan het beginnen",
       "updatingWork": "een lang werk aan het bijwerken",
       "withdrawingRequest": "een verzoek aan het intrekken",
@@ -17045,6 +17079,10 @@
       "stoppedByOther": "door {{person}} · {{time}}",
       "stoppedAt": "om {{time}}",
       "open": "Live bekijken",
+      "folded": "Browser",
+      "foldedAt": "Browser · {{site}}",
+      "showScreen": "Het scherm tonen",
+      "hideScreen": "Het scherm verbergen",
       "step": {
         "browser_do": "Deed meerdere stappen",
         "browser_open": "{{detail}} geopend",
@@ -18822,6 +18860,135 @@
       "always": "Altijd versturen",
       "alwaysOn": "Vanaf nu gaan zulke meldingen weg zonder te vragen.",
       "askFirst": "Vragen voor het versturen"
+    }
+  },
+  "portal": {
+    "title": "Portaal",
+    "subtitle": "Wat je klanten goedkeuren, per klant",
+    "overview": "Overzicht",
+    "board": "Bord",
+    "allClients": "Alle klanten",
+    "unavailable": "Het goedkeuringsportaal reageert nu niet.",
+    "stale": "Het portaal reageert niet. Je ziet de gegevens van {{time}}.",
+    "staleNoTime": "Het portaal reageert niet. Je ziet de laatst gelezen gegevens.",
+    "queued_one": "{{count}} wijziging wacht om het portaal te bereiken.",
+    "queued_other": "{{count}} wijzigingen wachten om het portaal te bereiken.",
+    "off": {
+      "title": "Er is geen goedkeuringsportaal gekoppeld",
+      "text": "Het bord staat hier zodra er een is."
+    },
+    "columns": {
+      "todo": "Te doen",
+      "doing": "In productie",
+      "approval": "Wacht op goedkeuring",
+      "adjusting": "Aanpassing gevraagd",
+      "approved": "Goedgekeurd",
+      "scheduled": "Gepland",
+      "posted": "Geplaatst"
+    },
+    "types": {
+      "reel": "Reel",
+      "carousel": "Carrousel",
+      "image": "Afbeelding",
+      "story": "Story"
+    },
+    "status": {
+      "sent": "Verstuurd",
+      "seen": "Gezien",
+      "approved": "Goedgekeurd",
+      "adjust_requested": "Aanpassing gevraagd",
+      "adjusting": "Wordt aangepast",
+      "adjusted": "Aangepast",
+      "scheduled": "Gepland",
+      "published": "Gepubliceerd"
+    },
+    "missing": {
+      "cover": "Geen omslag",
+      "caption": "Geen bijschrift",
+      "editor": "Geen editor",
+      "date": "Geen datum"
+    },
+    "open_one": "{{count}} openstaand",
+    "open_other": "{{count}} openstaand",
+    "clients_one": "{{count}} klant",
+    "clients_other": "{{count}} klanten",
+    "adjustments_one": "{{count}} aanpassing gevraagd",
+    "adjustments_other": "{{count}} aanpassingen gevraagd",
+    "files_one": "{{count}} bestand",
+    "files_other": "{{count}} bestanden",
+    "next": "Volgende: {{when}}",
+    "clientAsked": "De klant vroeg",
+    "empty": {
+      "clients": "Nog geen klanten in het portaal",
+      "clientsText": "Een klant staat hier zodra het portaal er een heeft.",
+      "column": "Niets hier",
+      "posted": "Nog niets geplaatst",
+      "noDate": "Geen datum"
+    },
+    "newCard": "Nieuwe kaart",
+    "send": "Ter goedkeuring versturen",
+    "openAtPortal": "Openen in het portaal",
+    "seePost": "De post bekijken",
+    "edit": "Bewerken",
+    "delete": "Verwijderen",
+    "actionsOf": "Acties: {{title}}",
+    "moveTo": "Verplaatsen naar {{column}}",
+    "card": {
+      "newTitle": "Nieuwe kaart",
+      "editTitle": "Kaart bewerken",
+      "created": "Kaart gemaakt.",
+      "saved": "Kaart opgeslagen.",
+      "deleted": "Kaart verwijderd.",
+      "deleteTitle": "Deze kaart verwijderen?",
+      "deleteText": "“{{title}}” verdwijnt van het bord. De bestanden blijven in de Drive."
+    },
+    "post": {
+      "editTitle": "Post bewerken",
+      "saved": "Post bijgewerkt."
+    },
+    "schedule": {
+      "action": "Post inplannen",
+      "text": "De post gaat vanzelf naar de publicatiedienst, met het bijschrift en de bestanden uit het portaal. Binnen een paar minuten staat hij bij Gepland.",
+      "confirm": "Bevestigen",
+      "done": "Vrijgegeven voor {{when}}.",
+      "past": "Kies een tijd die nog niet voorbij is.",
+      "pending": "wordt ingepland…"
+    },
+    "form": {
+      "client": "Klant",
+      "title": "Titel",
+      "type": "Type",
+      "date": "Datum",
+      "time": "Tijd",
+      "owner": "Verantwoordelijke",
+      "editor": "Editor",
+      "note": "Notitie",
+      "caption": "Bijschrift",
+      "files": "Bestanden",
+      "cover": "Omslag",
+      "addFiles": "Toevoegen uit de Drive",
+      "chooseCover": "Een omslag kiezen"
+    },
+    "sending": {
+      "description": "De bestanden gaan van de Drive naar de goedkeuring van de klant. Alleen de klant, het type en de bestanden zijn nodig.",
+      "submit": "Versturen",
+      "progress": "Versturen naar de goedkeuring van {{client}}…",
+      "video": "Een video duurt een paar minuten.",
+      "done": "Ter goedkeuring verstuurd.",
+      "stillMissing": "Ontbreekt nog",
+      "failed": "Het versturen is niet gelukt.",
+      "tooMany": "Een verzending bevat hoogstens {{max}} bestanden.",
+      "reelOneVideo": "Een reel is één video. De omslag gaat apart.",
+      "notMedia": "Alleen afbeeldingen en video's gaan ter goedkeuring.",
+      "coverNotImage": "De omslag moet een afbeelding zijn."
+    },
+    "picker": {
+      "title": "Bestanden uit de Drive",
+      "search": "Bestanden zoeken",
+      "empty": "Geen geüploade bestanden in de Drive.",
+      "more": "Meer tonen",
+      "add_one": "{{count}} bestand toevoegen",
+      "add_other": "{{count}} bestanden toevoegen"
     }
   }
 }

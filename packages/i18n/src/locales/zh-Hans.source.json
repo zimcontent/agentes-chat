@@ -4196,6 +4196,9 @@
   "webPushAsk.inline.why": {
     "value": "Even with the tab closed. Change it anytime in Settings › Notifications."
   },
+  "shell.you": {
+    "value": "You"
+  },
   "shell.otherChannels": {
     "value": "Other channels"
   },
@@ -4216,6 +4219,9 @@
   },
   "shell.moreWhat.waiting": {
     "value": "Everything waiting for your answer"
+  },
+  "shell.moreWhat.portal": {
+    "value": "What your clients approve, and what they sent back"
   },
   "shell.moreWhat.approvals": {
     "value": "What agents ask you to allow"
@@ -4526,6 +4532,9 @@
   "shell.waiting": {
     "value": "Waiting on you"
   },
+  "shell.portal": {
+    "value": "Portal"
+  },
   "shell.approvals": {
     "value": "Approvals"
   },
@@ -4768,6 +4777,18 @@
   },
   "sidebarAgents.showAll": {
     "value": "Show agents that don't talk to me"
+  },
+  "sidebarAgents.showHidden": {
+    "value": "Show hidden agents ({{count}})"
+  },
+  "sidebarAgents.hide": {
+    "value": "Hide from the sidebar"
+  },
+  "sidebarAgents.unhide": {
+    "value": "Show in the sidebar"
+  },
+  "sidebarAgents.hiddenToast": {
+    "value": "{{name}} is hidden. Find it with Ctrl+K."
   },
   "sidebarAgents.collapseAll": {
     "value": "Collapse all"
@@ -5493,10 +5514,10 @@
     "value": "Message #{{channel}}"
   },
   "channel.composerDm": {
-    "value": "Message {{name}}"
+    "value": "Message"
   },
   "channel.composerPlaceholder": {
-    "value": "Message #{{channel}} · use @ to call an agent"
+    "value": "Message · @ calls an agent"
   },
   "channel.send": {
     "value": "Send"
@@ -5581,6 +5602,36 @@
   },
   "channel.generalName": {
     "value": "#general keeps its name."
+  },
+  "channel.displayNameLabel": {
+    "value": "Display name"
+  },
+  "channel.displayNameHelp": {
+    "value": "How the group shows to everyone. Its technical name (#{{name}}) still works for mentions."
+  },
+  "channel.photo.label": {
+    "value": "Group photo"
+  },
+  "channel.photo.title": {
+    "value": "Group photo"
+  },
+  "channel.photo.help": {
+    "value": "A square image everyone sees beside the group's name. JPEG, PNG or WebP up to 2 MB."
+  },
+  "channel.photo.upload": {
+    "value": "Upload photo"
+  },
+  "channel.photo.change": {
+    "value": "Change photo"
+  },
+  "channel.photo.remove": {
+    "value": "Remove photo"
+  },
+  "channel.photo.saved": {
+    "value": "Group photo saved"
+  },
+  "channel.photo.removed": {
+    "value": "Group photo removed"
   },
   "channel.archive": {
     "value": "Archive channel"
@@ -24649,6 +24700,27 @@
   "code.copied": {
     "value": "Code copied."
   },
+  "photo.agent.title": {
+    "value": "Photo"
+  },
+  "photo.agent.help": {
+    "value": "A real photo in place of the drawn bot. With no photo, the DougBot avatar stays."
+  },
+  "photo.agent.dialogTitle": {
+    "value": "Agent's photo"
+  },
+  "photo.agent.send": {
+    "value": "Upload photo"
+  },
+  "photo.agent.useBot": {
+    "value": "Use the DougBot avatar"
+  },
+  "photo.agent.saved": {
+    "value": "Agent's photo updated."
+  },
+  "photo.agent.removed": {
+    "value": "The agent is back to the DougBot avatar."
+  },
   "photo.label": {
     "value": "Photo"
   },
@@ -38891,6 +38963,15 @@
   "chat.work.step.makingPassword": {
     "value": "Made a password"
   },
+  "chat.work.step.usingPortal": {
+    "value": "Worked on the approval board"
+  },
+  "chat.work.step.sendingForApproval": {
+    "value": "Sent for approval"
+  },
+  "chat.work.step.schedulingPost": {
+    "value": "Scheduled a post"
+  },
   "chat.work.step.startingWork": {
     "value": "Started a long work"
   },
@@ -39229,6 +39310,15 @@
   },
   "chat.activity.makingPassword": {
     "value": "making a password"
+  },
+  "chat.activity.usingPortal": {
+    "value": "working on the approval board"
+  },
+  "chat.activity.sendingForApproval": {
+    "value": "sending for approval"
+  },
+  "chat.activity.schedulingPost": {
+    "value": "scheduling a post"
   },
   "chat.activity.startingWork": {
     "value": "starting a long work"
@@ -41159,6 +41249,18 @@
   },
   "browser.watch.open": {
     "value": "View live"
+  },
+  "browser.watch.folded": {
+    "value": "Browser"
+  },
+  "browser.watch.foldedAt": {
+    "value": "Browser · {{site}}"
+  },
+  "browser.watch.showScreen": {
+    "value": "Show the screen"
+  },
+  "browser.watch.hideScreen": {
+    "value": "Hide the screen"
   },
   "browser.watch.step.browser_do": {
     "value": "Did several steps"
@@ -45096,5 +45198,314 @@
   },
   "feedback.offer.askFirst": {
     "value": "Ask before sending"
+  },
+  "portal.title": {
+    "value": "Portal"
+  },
+  "portal.subtitle": {
+    "value": "What your clients approve, by client"
+  },
+  "portal.overview": {
+    "value": "Overview"
+  },
+  "portal.board": {
+    "value": "Board"
+  },
+  "portal.allClients": {
+    "value": "All clients"
+  },
+  "portal.unavailable": {
+    "value": "The approval portal isn't answering right now."
+  },
+  "portal.stale": {
+    "value": "The portal isn't answering. Showing what was read at {{time}}."
+  },
+  "portal.staleNoTime": {
+    "value": "The portal isn't answering. Showing the last read."
+  },
+  "portal.queued": {
+    "value": {
+      "one": "{{count}} change waiting to reach the portal.",
+      "other": "{{count}} changes waiting to reach the portal."
+    }
+  },
+  "portal.off.title": {
+    "value": "No approval portal is connected"
+  },
+  "portal.off.text": {
+    "value": "The board shows here once one is."
+  },
+  "portal.columns.todo": {
+    "value": "To do"
+  },
+  "portal.columns.doing": {
+    "value": "In production"
+  },
+  "portal.columns.approval": {
+    "value": "Waiting for approval"
+  },
+  "portal.columns.adjusting": {
+    "value": "Adjustment asked"
+  },
+  "portal.columns.approved": {
+    "value": "Approved"
+  },
+  "portal.columns.scheduled": {
+    "value": "Scheduled"
+  },
+  "portal.columns.posted": {
+    "value": "Posted"
+  },
+  "portal.types.reel": {
+    "value": "Reel"
+  },
+  "portal.types.carousel": {
+    "value": "Carousel"
+  },
+  "portal.types.image": {
+    "value": "Image"
+  },
+  "portal.types.story": {
+    "value": "Story"
+  },
+  "portal.status.sent": {
+    "value": "Sent"
+  },
+  "portal.status.seen": {
+    "value": "Seen"
+  },
+  "portal.status.approved": {
+    "value": "Approved"
+  },
+  "portal.status.adjust_requested": {
+    "value": "Adjustment asked"
+  },
+  "portal.status.adjusting": {
+    "value": "Adjusting"
+  },
+  "portal.status.adjusted": {
+    "value": "Adjusted"
+  },
+  "portal.status.scheduled": {
+    "value": "Scheduled"
+  },
+  "portal.status.published": {
+    "value": "Published"
+  },
+  "portal.missing.cover": {
+    "value": "No cover"
+  },
+  "portal.missing.caption": {
+    "value": "No caption"
+  },
+  "portal.missing.editor": {
+    "value": "No editor"
+  },
+  "portal.missing.date": {
+    "value": "No date"
+  },
+  "portal.open": {
+    "value": {
+      "one": "{{count}} open",
+      "other": "{{count}} open"
+    }
+  },
+  "portal.clients": {
+    "value": {
+      "one": "{{count}} client",
+      "other": "{{count}} clients"
+    }
+  },
+  "portal.adjustments": {
+    "value": {
+      "one": "{{count}} adjustment asked",
+      "other": "{{count}} adjustments asked"
+    }
+  },
+  "portal.files": {
+    "value": {
+      "one": "{{count}} file",
+      "other": "{{count}} files"
+    }
+  },
+  "portal.next": {
+    "value": "Next: {{when}}"
+  },
+  "portal.clientAsked": {
+    "value": "The client asked"
+  },
+  "portal.empty.clients": {
+    "value": "No clients at the portal yet"
+  },
+  "portal.empty.clientsText": {
+    "value": "A client shows here once the portal has one."
+  },
+  "portal.empty.column": {
+    "value": "Nothing here"
+  },
+  "portal.empty.posted": {
+    "value": "Nothing posted yet"
+  },
+  "portal.empty.noDate": {
+    "value": "No date"
+  },
+  "portal.newCard": {
+    "value": "New card"
+  },
+  "portal.send": {
+    "value": "Send for approval"
+  },
+  "portal.openAtPortal": {
+    "value": "Open at the portal"
+  },
+  "portal.seePost": {
+    "value": "See the post"
+  },
+  "portal.edit": {
+    "value": "Edit"
+  },
+  "portal.delete": {
+    "value": "Delete"
+  },
+  "portal.actionsOf": {
+    "value": "Actions: {{title}}"
+  },
+  "portal.moveTo": {
+    "value": "Move to {{column}}"
+  },
+  "portal.card.newTitle": {
+    "value": "New card"
+  },
+  "portal.card.editTitle": {
+    "value": "Edit card"
+  },
+  "portal.card.created": {
+    "value": "Card created."
+  },
+  "portal.card.saved": {
+    "value": "Card saved."
+  },
+  "portal.card.deleted": {
+    "value": "Card deleted."
+  },
+  "portal.card.deleteTitle": {
+    "value": "Delete this card?"
+  },
+  "portal.card.deleteText": {
+    "value": "“{{title}}” leaves the board. Its files stay in the Drive."
+  },
+  "portal.post.editTitle": {
+    "value": "Edit post"
+  },
+  "portal.post.saved": {
+    "value": "Post updated."
+  },
+  "portal.schedule.action": {
+    "value": "Schedule post"
+  },
+  "portal.schedule.text": {
+    "value": "The post goes to the publishing service by itself, with the caption and files it has at the portal. It moves to Scheduled within a few minutes."
+  },
+  "portal.schedule.confirm": {
+    "value": "Confirm"
+  },
+  "portal.schedule.done": {
+    "value": "Released for {{when}}."
+  },
+  "portal.schedule.past": {
+    "value": "Choose a time that hasn't passed."
+  },
+  "portal.schedule.pending": {
+    "value": "scheduling…"
+  },
+  "portal.form.client": {
+    "value": "Client"
+  },
+  "portal.form.title": {
+    "value": "Title"
+  },
+  "portal.form.type": {
+    "value": "Type"
+  },
+  "portal.form.date": {
+    "value": "Date"
+  },
+  "portal.form.time": {
+    "value": "Time"
+  },
+  "portal.form.owner": {
+    "value": "Owner"
+  },
+  "portal.form.editor": {
+    "value": "Editor"
+  },
+  "portal.form.note": {
+    "value": "Note"
+  },
+  "portal.form.caption": {
+    "value": "Caption"
+  },
+  "portal.form.files": {
+    "value": "Files"
+  },
+  "portal.form.cover": {
+    "value": "Cover"
+  },
+  "portal.form.addFiles": {
+    "value": "Add from the Drive"
+  },
+  "portal.form.chooseCover": {
+    "value": "Choose a cover"
+  },
+  "portal.sending.description": {
+    "value": "The files go from the Drive to the client's approval. Only the client, the type and the files are needed."
+  },
+  "portal.sending.submit": {
+    "value": "Send"
+  },
+  "portal.sending.progress": {
+    "value": "Sending to {{client}}'s approval…"
+  },
+  "portal.sending.video": {
+    "value": "A video takes a few minutes."
+  },
+  "portal.sending.done": {
+    "value": "Sent for approval."
+  },
+  "portal.sending.stillMissing": {
+    "value": "Still missing"
+  },
+  "portal.sending.failed": {
+    "value": "The send didn't go through."
+  },
+  "portal.sending.tooMany": {
+    "value": "A send takes at most {{max}} files."
+  },
+  "portal.sending.reelOneVideo": {
+    "value": "A reel is one video. Its cover goes apart."
+  },
+  "portal.sending.notMedia": {
+    "value": "Only pictures and videos go for approval."
+  },
+  "portal.sending.coverNotImage": {
+    "value": "The cover must be a picture."
+  },
+  "portal.picker.title": {
+    "value": "Files from the Drive"
+  },
+  "portal.picker.search": {
+    "value": "Search files"
+  },
+  "portal.picker.empty": {
+    "value": "No uploaded files in the Drive."
+  },
+  "portal.picker.more": {
+    "value": "Show more"
+  },
+  "portal.picker.add": {
+    "value": {
+      "one": "Add {{count}} file",
+      "other": "Add {{count}} files"
+    }
   }
 }

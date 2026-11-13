@@ -349,7 +349,7 @@ export function accountRoutes(deps: AppDeps) {
             }),
             approvalPortal: z.boolean().openapi({
               description:
-                "This server has an approval portal (APPROVAL_PORTAL_URL, ADR 0177): the apps show the Portal page.",
+                "This server has an approval portal (APPROVAL_PORTAL_URL, ADR 9001): the apps show the Portal page.",
             }),
             billingUrl: z.string().nullable().openapi({
               description:

@@ -157,7 +157,7 @@ import { useOrg } from "./org-context";
 import { StatusLine } from "./Presence";
 import { ChannelPhoto, MyFace, OrgMark } from "./ProfilePhoto";
 import { sectionName, useSectionOrder } from "./SidebarOrder";
-import { SIDEBAR_TOOLS, SidebarSetupDialog, ToolList } from "./SidebarSetup";
+import { SIDEBAR_TOOLS, SidebarSetupDialog, ToolList, toolsHere, usePortalOn } from "./SidebarSetup";
 import { AgentGlow, AgentTrail, colorOf, WorkspaceSky } from "./Sky";
 import { SetStatusDialog, useSaveStatus } from "./StatusDialog";
 
@@ -297,7 +297,8 @@ export function Sidebar() {
     threads: missionsWaiting + unreadThreads,
   };
   // The mode's defaults and order (ADR 0159): in a personal workspace, Routines and Drive in sight, the rest in More.
-  const toolOrder = sidebarItemOrder(personal);
+  // Portal is a tool only where the server has an approval portal (ADR 9001): elsewhere nothing lists it.
+  const toolOrder = toolsHere(sidebarItemOrder(personal), usePortalOn());
   const listed = toolOrder.filter((id) => inSidebarList(sidebarPlace(sidebarItems, id, personal), counts[id] ?? 0));
   const inMore = toolOrder.filter((id) => !listed.includes(id));
   const countOf = (id: SidebarItem) =>
@@ -1740,9 +1741,9 @@ function SidebarChannels({
 }
 
 /** The tools whose line in More has a personal workspace's words (ADR 0159); the others' fit both. */
-type PersonalWhat = Exclude<SidebarItem, "routines" | "drive" | "waiting">;
+type PersonalWhat = Exclude<SidebarItem, "routines" | "drive" | "waiting" | "portal">;
 const hasPersonalWhat = (id: SidebarItem): id is PersonalWhat =>
-  id !== "routines" && id !== "drive" && id !== "waiting";
+  id !== "routines" && id !== "drive" && id !== "waiting" && id !== "portal";
 
 /**
  * More: the tools the person keeps out of the list, in a panel beside the sidebar (so nothing below moves), each with a

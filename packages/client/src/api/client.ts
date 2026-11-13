@@ -249,6 +249,13 @@ import type {
   PhoneSignIn,
   PlanServes,
   Poll,
+  PortalBoard,
+  PortalCard,
+  PortalCardInput,
+  PortalItemEdit,
+  PortalJob,
+  PortalOverview,
+  PortalSendInput,
   PostMedia,
   Proposal,
   PushDeviceInput,
@@ -1379,6 +1386,32 @@ export interface ApiClient {
   };
   /** Boards and widgets (ADR 0135). */
   dashboards: DashboardsApi;
+  /**
+   * The approval portal (ADR 9001): the team's board per client and the send for a client's approval. Optional: a
+   * client built before it has none. Every call answers 404 `portal.off` on a server without a portal
+   * (`AuthConfig.approvalPortal`), 400 `portal.refused` with the portal's own words, 502 `portal.unavailable`.
+   * Members read; whoever may give agents work (`assign_work`) changes cards, posts and sends.
+   */
+  portal?: {
+    /** Every client with its counts per column, and how fresh the portal's side is. */
+    overview(orgId: string): Promise<PortalOverview>;
+    board(orgId: string, client: string): Promise<PortalBoard>;
+    createCard(orgId: string, input: PortalCardInput & { client: string; title: string }): Promise<PortalCard>;
+    /** Changes a card, or moves it between `todo` and `doing`. */
+    updateCard(orgId: string, cardId: string, input: PortalCardInput): Promise<PortalCard>;
+    deleteCard(orgId: string, cardId: string): Promise<void>;
+    /** Sends Drive files to a client's approval: answers at once with the job, read `job` until it ends. */
+    send(orgId: string, input: PortalSendInput): Promise<PortalJob>;
+    job(orgId: string, jobId: string): Promise<PortalJob>;
+    /** Completes or changes a post at the portal. */
+    editItem(orgId: string, client: string, itemId: string, edit: PortalItemEdit): Promise<void>;
+    /**
+     * Schedules a post the client approved (`scheduledFor`: `YYYY-MM-DDTHH:MM`, in the future): the portal takes it
+     * to the publishing service by itself. It turns `scheduled` once that service has it, usually within minutes, and
+     * stays `approved` with its date until then.
+     */
+    schedule(orgId: string, client: string, itemId: string, scheduledFor: string): Promise<void>;
+  };
   /** Missions (ADR 0029): long work by the agent's executor on a connected computer, in one thread. */
   missions: {
     /** Missions you can see (the Missões tab), most recently changed first, with the counts for the tabs. */

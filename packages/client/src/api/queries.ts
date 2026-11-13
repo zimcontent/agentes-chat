@@ -148,6 +148,11 @@ import type {
   Person,
   PersonalTokenInput,
   PersonLimits,
+  PortalCard,
+  PortalCardInput,
+  PortalItemEdit,
+  PortalJob,
+  PortalSendInput,
   Proposal,
   ReactionCount,
   ReminderInput,
@@ -6771,4 +6776,142 @@ export function useWifiPairState(orgId: string, machineId: string | null, starte
     return () => void api.devices.cancelWifiPairing(orgId, machineId, id).catch(() => undefined);
   }, [api, orgId, machineId, id]);
   return started && state.data ? { ...state.data, qr: started.qr } : started;
+}
+
+/** The portal changes when clients act there, with no event to this server: an open page reads it again this often. */
+export const PORTAL_REFRESH_MS = 60_000;
+/** How often a send still going is asked about. */
+export const PORTAL_JOB_POLL_MS = 2000;
+
+/** Whether an error is the server saying it has no approval portal (404 `portal.off`): nothing to retry. */
+export const isPortalOff = (error: unknown) => error instanceof ApiError && error.code === "portal.off";
+
+const portalOf = (api: ApiClient) => {
+  if (!api.portal) throw new ApiError(404, "portal.off", "This server has no approval portal");
+  return api.portal;
+};
+const refreshPortal = (qc: QueryClient, orgId: string) => qc.invalidateQueries({ queryKey: keys.portal(orgId) });
+
+/** The approval portal's clients with their counts per column (ADR 9001): any member. */
+export const usePortalOverview = (orgId: string, enabled = true) => {
+  const api = useApi();
+  return useQuery({
+    queryKey: keys.portalOverview(orgId),
+    queryFn: () => portalOf(api).overview(orgId),
+    enabled,
+    refetchInterval: (q) => (isPortalOff(q.state.error) ? false : PORTAL_REFRESH_MS),
+    retry: false,
+    // Read again by itself every minute: no bar across the page for that.
+    meta: { quiet: true },
+  });
+};
+
+/** One client's board, read again every minute while it is open; null: no client picked. */
+export const usePortalBoard = (orgId: string, client: string | null) => {
+  const api = useApi();
+  return useQuery({
+    queryKey: keys.portalBoard(orgId, client ?? ""),
+    queryFn: () => portalOf(api).board(orgId, client ?? ""),
+    enabled: client !== null,
+    refetchInterval: (q) => (isPortalOff(q.state.error) ? false : PORTAL_REFRESH_MS),
+    retry: false,
+    // Read again by itself every minute: no bar across the page for that.
+    meta: { quiet: true },
+  });
+};
+
+/**
+ * Creates a card (`client` and `title`) or changes one (`cardId`), a move between To do and In production included.
+ * The screens say what went wrong themselves (the portal's own words), so nothing is toasted here.
+ */
+export function useSavePortalCard(orgId: string) {
+  const api = useApi();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (
+      input:
+        | ({ cardId?: undefined; client: string; title: string } & PortalCardInput)
+        | ({ cardId: string } & PortalCardInput),
+    ): Promise<PortalCard> => {
+      if (input.cardId === undefined) return portalOf(api).createCard(orgId, input);
+      const { cardId, ...fields } = input;
+      return portalOf(api).updateCard(orgId, cardId, fields);
+    },
+    meta: { silent: true },
+    onSettled: () => refreshPortal(qc, orgId),
+  });
+}
+
+export function useDeletePortalCard(orgId: string) {
+  const api = useApi();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (cardId: string) => portalOf(api).deleteCard(orgId, cardId),
+    meta: { silent: true },
+    onSettled: () => refreshPortal(qc, orgId),
+  });
+}
+
+/** Starts a send for a client's approval: the job it answers is followed with `usePortalJob`. */
+export function useSendForApproval(orgId: string) {
+  const api = useApi();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (input: PortalSendInput) => portalOf(api).send(orgId, input),
+    meta: { silent: true },
+    onSuccess: (job) => {
+      qc.setQueryData(keys.portalJob(orgId, job.id), job);
+      // A send the portal took at once is already on the board.
+      if (job.state !== "sending") void refreshPortal(qc, orgId);
+    },
+  });
+}
+
+/** How a send is going, asked every 2 s while it is `sending`; the overview and the boards are read again as it ends. */
+export function usePortalJob(orgId: string, jobId: string | null) {
+  const api = useApi();
+  const qc = useQueryClient();
+  const query = useQuery({
+    queryKey: keys.portalJob(orgId, jobId ?? ""),
+    queryFn: () => portalOf(api).job(orgId, jobId ?? ""),
+    enabled: jobId !== null,
+    refetchInterval: (q) => (q.state.data?.state === "sending" ? PORTAL_JOB_POLL_MS : false),
+    refetchIntervalInBackground: true,
+    meta: { quiet: true },
+  });
+  const state = query.data?.state;
+  const last = useRef<{ jobId: string | null; state: PortalJob["state"] | undefined }>({ jobId, state });
+  useEffect(() => {
+    const was = last.current;
+    last.current = { jobId, state };
+    if (was.jobId === jobId && was.state === "sending" && state && state !== "sending") void refreshPortal(qc, orgId);
+  }, [qc, orgId, jobId, state]);
+  return query;
+}
+
+/** Completes or changes a post at the portal (title, caption, date, status, editor). */
+export function useEditPortalItem(orgId: string) {
+  const api = useApi();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (input: { client: string; itemId: string; edit: PortalItemEdit }) =>
+      portalOf(api).editItem(orgId, input.client, input.itemId, input.edit),
+    meta: { silent: true },
+    onSettled: () => refreshPortal(qc, orgId),
+  });
+}
+
+/**
+ * Schedules an approved post: the board and the overview are read again, where it shows in Approved with its date
+ * until the publishing service has it (then Scheduled, on a later read).
+ */
+export function useSchedulePortalItem(orgId: string) {
+  const api = useApi();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (input: { client: string; itemId: string; scheduledFor: string }) =>
+      portalOf(api).schedule(orgId, input.client, input.itemId, input.scheduledFor),
+    meta: { silent: true },
+    onSettled: () => refreshPortal(qc, orgId),
+  });
 }

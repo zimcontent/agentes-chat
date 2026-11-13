@@ -275,7 +275,7 @@ async function boot(
         : null,
     // GIFs in chat (ADR 0091), only with a key: without one nothing reaches GIPHY and the app shows no GIFs.
     gifs: gifProvider(config, () => gifKey?.key() ?? null),
-    // The approval portal (ADR 0177), only with its bridge's address and token.
+    // The approval portal (ADR 9001), only with its bridge's address and token.
     approvalPortal:
       config.APPROVAL_PORTAL_URL && config.APPROVAL_PORTAL_TOKEN
         ? createBridgeApprovalPortal({ url: config.APPROVAL_PORTAL_URL, token: config.APPROVAL_PORTAL_TOKEN })

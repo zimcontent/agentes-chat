@@ -166,6 +166,8 @@ export interface AuthConfig {
   errorReports?: ErrorReportsConfig | null;
   /** The same for the phone app; null or absent (a server from before it): nowhere. */
   mobileErrorReports?: ErrorReportsConfig | null;
+  /** The server has an approval portal (ADR 9001): the apps show Portal; absent or false: none. */
+  approvalPortal?: boolean;
 }
 
 export interface ErrorReportsConfig {
@@ -6734,6 +6736,7 @@ export interface NoticePrefs {
 /** A tool at the top of the sidebar (`SIDEBAR_ITEMS` in packages/engine/src/sidebar-items.ts). */
 export type SidebarItem =
   | "waiting"
+  | "portal"
   | "approvals"
   | "proposals"
   | "threads"
@@ -7884,4 +7887,170 @@ export interface ComputerDeviceInput {
 export interface PhoneDeviceInput {
   name?: string;
   audience?: DeviceAudience;
+}
+
+/** Where a post is at the approval portal (ADR 9001; `PORTAL_STATUSES` in packages/adapters/src/approval-portal.ts). */
+export type PortalStatus =
+  | "sent"
+  | "seen"
+  | "approved"
+  | "adjust_requested"
+  | "adjusting"
+  | "adjusted"
+  | "scheduled"
+  | "published";
+export type PortalType = "reel" | "carousel" | "image" | "story";
+/** A card the team still works on: the portal only knows a post once it is sent. */
+export type PortalCardState = "todo" | "doing";
+/** What a sent post still lacks. Never shown to the client. */
+export type PortalMissing = "cover" | "caption" | "editor" | "date";
+/**
+ * The board's columns: the team's cards in the first two, the portal's posts in the others (`approved` waits for the
+ * team to schedule it; `posted` is the board's second tab).
+ */
+export type PortalColumn = "todo" | "doing" | "approval" | "adjusting" | "approved" | "scheduled" | "posted";
+
+/** A post at the approval portal. Its title, caption and note are outside text: typed at the portal. */
+export interface PortalItem {
+  client: string;
+  id: string;
+  title: string;
+  type: PortalType;
+  status: PortalStatus;
+  /** ISO with an offset, or null: no date yet. On an approved post it may be only a proposed date. */
+  scheduledFor: string | null;
+  /**
+   * An approved post already released for scheduling: on its way to the publishing service, `scheduled` within
+   * minutes. It can't be released again.
+   */
+  released: boolean;
+  publishedAt: string | null;
+  createdAt: string | null;
+  updatedAt: string | null;
+  editor: string | null;
+  caption: string;
+  files: number;
+  video: boolean;
+  version: number;
+  missing: PortalMissing[];
+  /** The last thing said on it (the client's adjustment request, an approval's note). */
+  lastNote: { at: string | null; by: string | null; text: string } | null;
+  /** Where it was published, once it was. */
+  postUrl: string | null;
+  /** The post at the portal, for a signed-in person. */
+  link: string;
+}
+
+/** A Drive file that goes up with a card. */
+export interface PortalCardFile {
+  id: string;
+  name: string;
+}
+
+export interface PortalCard {
+  id: string;
+  client: string;
+  title: string;
+  type: PortalType;
+  state: PortalCardState;
+  caption: string;
+  date: string | null;
+  editor: string | null;
+  owner: string | null;
+  note: string;
+  files: PortalCardFile[];
+  createdAt: number;
+  updatedAt: number;
+}
+
+export interface PortalCardInput {
+  title?: string;
+  type?: PortalType;
+  state?: PortalCardState;
+  caption?: string;
+  date?: string | null;
+  editor?: string | null;
+  owner?: string | null;
+  note?: string;
+  files?: PortalCardFile[];
+}
+
+/** One client on the overview: how many it has per column, how many are still open, and the next date scheduled. */
+export interface PortalClientSummary {
+  client: string;
+  counts: Record<PortalColumn, number>;
+  open: number;
+  next: string | null;
+}
+
+/**
+ * How fresh the portal's side is. While the portal doesn't answer, the server shows its last good read (`stale`, read
+ * at `readAt`) and keeps what couldn't reach the portal in a queue it retries (`queued`).
+ */
+export interface PortalState {
+  stale: boolean;
+  /** When the posts shown were read from the portal (ISO), if known. */
+  readAt: string | null;
+  /** Edits and schedules still on their way to the portal. */
+  queued: number;
+}
+
+/** Every client at a glance (`GET …/portal`). */
+export interface PortalOverview {
+  clients: PortalClientSummary[];
+  /** Absent from a server that doesn't say. */
+  state?: PortalState;
+}
+
+/** One client's board (`GET …/portal/clients/{client}`). */
+export interface PortalBoard {
+  client: string;
+  /** Absent from a server that doesn't say. */
+  state?: PortalState;
+  cards: { todo: PortalCard[]; doing: PortalCard[] };
+  items: {
+    approval: PortalItem[];
+    adjusting: PortalItem[];
+    approved: PortalItem[];
+    scheduled: PortalItem[];
+    posted: PortalItem[];
+  };
+}
+
+/** A send for a client's approval (`POST …/portal/send`). */
+export interface PortalSendInput {
+  client: string;
+  type: PortalType;
+  /** Uploaded Drive files, in the carousel's order. */
+  artifactIds: string[];
+  coverArtifactId?: string;
+  title?: string;
+  caption?: string;
+  /** `YYYY-MM-DDTHH:MM`. */
+  date?: string;
+  editor?: string;
+  /** The board's card this send finishes: removed once the send is done. */
+  card?: string;
+  /** The same key never sends twice. */
+  key?: string;
+}
+
+/** How a send is going: `missing` is what the post still lacks, `error` the portal's own words. */
+export interface PortalJob {
+  id: string;
+  state: "sending" | "done" | "failed";
+  client: string;
+  item: string | null;
+  title: string | null;
+  missing: PortalMissing[];
+  link: string | null;
+  error: string | null;
+}
+
+export interface PortalItemEdit {
+  title?: string;
+  caption?: string;
+  scheduledFor?: string | null;
+  status?: PortalStatus;
+  editor?: string;
 }

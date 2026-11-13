@@ -1,5 +1,5 @@
 /**
- * Approval portal (ADR 0177): a place outside this server where a team's clients approve what the team made for
+ * Approval portal (ADR 9001): a place outside this server where a team's clients approve what the team made for
  * them (posts, reels, carousels). Optional, behind this interface: the server reaches it through a bridge, a small
  * HTTP service the installation runs next to the portal (`APPROVAL_PORTAL_URL`, `APPROVAL_PORTAL_TOKEN`), so no
  * model and no agent is in the way of a send, and the bridge's token never leaves the server.
@@ -45,6 +45,11 @@ export interface PortalItem {
   video: boolean;
   version: number;
   missing: PortalMissing[];
+  /**
+   * An approved post already released for scheduling: on its way to the publishing service, `scheduled` within
+   * minutes. It can't be released again.
+   */
+  released: boolean;
   /** The last thing said on it (the client's adjustment request, an approval's note). Outside text. */
   lastNote: { at: string | null; by: string | null; text: string } | null;
   /** Where it was published, once it was. */
@@ -120,7 +125,20 @@ export interface PortalItemEdit {
   editor?: string;
 }
 
+/**
+ * How fresh the portal's side is. While the portal doesn't answer, the bridge serves its last good read (`stale`,
+ * read at `readAt`) and keeps what couldn't reach the portal in a queue it retries (`queued`).
+ */
+export interface PortalState {
+  stale: boolean;
+  /** When the posts shown were read from the portal (ISO), if known. */
+  readAt: string | null;
+  /** Edits and schedules still on their way to the portal. */
+  queued: number;
+}
+
 export interface ApprovalPortal {
+  state(): Promise<PortalState>;
   items(): Promise<PortalItem[]>;
   cards(client?: string): Promise<PortalCard[]>;
   createCard(client: string, input: PortalCardInput & { title: string }, by?: string): Promise<PortalCard>;
@@ -131,6 +149,11 @@ export interface ApprovalPortal {
   send(input: PortalSend): Promise<PortalJob>;
   job(id: string): Promise<PortalJob | null>;
   editItem(client: string, item: string, edit: PortalItemEdit, by?: string): Promise<void>;
+  /**
+   * Releases an approved post for publication at `when` (ISO with an offset): from there the portal's own scheduler
+   * takes it to the publishing service, and the post turns `scheduled` once that service has it.
+   */
+  scheduleItem(client: string, item: string, when: string, by?: string): Promise<void>;
 }
 
 /** The portal answered no, in its own words (safe to show a member: never a secret). */
@@ -198,6 +221,7 @@ function itemOf(wire: Wire): PortalItem {
     video: wire.video === true,
     version: Number(wire.versao) || 1,
     missing: missingOf(wire.pendencias),
+    released: wire.liberado === true,
     lastNote: note
       ? {
           at: text(note.ts),
@@ -295,8 +319,18 @@ export function createBridgeApprovalPortal(options: BridgePortalOptions): Approv
     return answer ?? {};
   };
   const list = (value: unknown) => (Array.isArray(value) ? (value as Wire[]) : []);
+  // The freshness of the last read of the posts: the bridge says it on every answer.
+  let read: { stale: boolean; readAt: string | null } = { stale: false, readAt: null };
   return {
-    items: async () => list((await request("/itens")).itens).map(itemOf),
+    state: async () => {
+      const answer = await request("/estado");
+      return { ...read, queued: list(answer.fila).length };
+    },
+    items: async () => {
+      const answer = await request("/itens");
+      read = { stale: answer.desatualizado === true, readAt: text(answer.lido_em) };
+      return list(answer.itens).map(itemOf);
+    },
     cards: async (client) =>
       list((await request(`/cartoes${client ? `?tenant=${encodeURIComponent(client)}` : ""}`)).cartoes).map(cardOf),
     createCard: async (client, input, by) =>
@@ -350,5 +384,171 @@ export function createBridgeApprovalPortal(options: BridgePortalOptions): Approv
       if (edit.editor !== undefined) json.editor = edit.editor;
       await request(`/itens/${encodeURIComponent(client)}/${encodeURIComponent(item)}/editar`, { json });
     },
+    scheduleItem: async (client, item, when, by) => {
+      await request(`/itens/${encodeURIComponent(client)}/${encodeURIComponent(item)}/agendar`, {
+        json: { agendado_para: when, por: by },
+        timeoutMs: 60_000,
+      });
+    },
   };
+}
+
+/**
+ * A portal kept in memory, for tests: no bridge, no network. A send ends at once (`done`), and `fail` makes the next
+ * call answer like a portal that said no.
+ */
+export function createFakeApprovalPortal(seed: { items?: PortalItem[]; cards?: PortalCard[] } = {}) {
+  const items = [...(seed.items ?? [])];
+  const cards = new Map((seed.cards ?? []).map((card) => [card.id, card]));
+  const jobs = new Map<string, PortalJob>();
+  const uploads = new Map<string, { name: string; bytes: Uint8Array }>();
+  const sends: (PortalSend & { names: string[] })[] = [];
+  const edits: { client: string; item: string; edit: PortalItemEdit; by?: string }[] = [];
+  const scheduled: { client: string; item: string; when: string; by?: string }[] = [];
+  let failure: ApprovalPortalError | null = null;
+  let count = 0;
+  const next = (prefix: string) => `${prefix}${(++count).toString(16).padStart(12, "0")}`;
+  const check = () => {
+    const error = failure;
+    failure = null;
+    if (error) throw error;
+  };
+  const cardOrRefuse = (id: string) => {
+    const card = cards.get(id);
+    if (!card) throw new ApprovalPortalError(404, "card not found");
+    return card;
+  };
+  let state: PortalState = { stale: false, readAt: null, queued: 0 };
+  const portal: ApprovalPortal = {
+    state: async () => state,
+    items: async () => {
+      check();
+      return [...items];
+    },
+    cards: async (client) => {
+      check();
+      return [...cards.values()].filter((card) => !client || card.client === client);
+    },
+    createCard: async (client, input) => {
+      check();
+      const card: PortalCard = {
+        id: next("c-"),
+        client,
+        type: "image",
+        state: "todo",
+        caption: "",
+        date: null,
+        editor: null,
+        owner: null,
+        note: "",
+        files: [],
+        ...input,
+        createdAt: count,
+        updatedAt: count,
+      };
+      cards.set(card.id, card);
+      return card;
+    },
+    updateCard: async (id, input) => {
+      check();
+      const card = { ...cardOrRefuse(id), ...input, updatedAt: ++count };
+      cards.set(id, card);
+      return card;
+    },
+    deleteCard: async (id) => {
+      check();
+      cards.delete(id);
+    },
+    upload: async (name, bytes) => {
+      check();
+      const id = next("f");
+      uploads.set(id, { name, bytes });
+      return id;
+    },
+    send: async (input) => {
+      check();
+      const again = input.key ? [...jobs.values()].find((job) => keys.get(job.id) === input.key) : undefined;
+      if (again) return again;
+      const names = input.files.map((id) => uploads.get(id)?.name ?? "?");
+      sends.push({ ...input, names });
+      const id = next("");
+      const item: PortalItem = {
+        client: input.client,
+        id: `up-${id}`,
+        title: input.title ?? names[0] ?? "",
+        type: input.type,
+        status: "sent",
+        scheduledFor: input.date ?? null,
+        publishedAt: null,
+        createdAt: null,
+        updatedAt: null,
+        editor: input.editor ?? null,
+        caption: input.caption ?? "",
+        files: input.files.length,
+        video: input.type === "reel",
+        version: 1,
+        missing: [...(input.caption ? [] : (["caption"] as const)), ...(input.date ? [] : (["date"] as const))],
+        released: false,
+        lastNote: null,
+        postUrl: null,
+        link: `https://portal.example.com/i/${input.client}/up-${id}`,
+      };
+      items.push(item);
+      if (input.card) cards.delete(input.card);
+      const job: PortalJob = {
+        id,
+        state: "done",
+        client: input.client,
+        item: item.id,
+        title: item.title,
+        missing: item.missing,
+        link: item.link,
+        error: null,
+      };
+      jobs.set(id, job);
+      if (input.key) keys.set(id, input.key);
+      return job;
+    },
+    job: async (id) => {
+      check();
+      return jobs.get(id) ?? null;
+    },
+    editItem: async (client, item, edit, by) => {
+      check();
+      const found = items.find((i) => i.client === client && i.id === item);
+      if (!found) throw new ApprovalPortalError(404, "item not found");
+      edits.push({ client, item, edit, by });
+      if (edit.title !== undefined) found.title = edit.title;
+      if (edit.caption !== undefined) found.caption = edit.caption;
+      if (edit.scheduledFor !== undefined) found.scheduledFor = edit.scheduledFor;
+      if (edit.status !== undefined) found.status = edit.status;
+      if (edit.editor !== undefined) found.editor = edit.editor;
+    },
+    scheduleItem: async (client, item, when, by) => {
+      check();
+      const found = items.find((i) => i.client === client && i.id === item);
+      if (!found) throw new ApprovalPortalError(404, "item not found");
+      if (found.status !== "approved") throw new ApprovalPortalError(409, "only an approved post is scheduled");
+      if (found.released) throw new ApprovalPortalError(409, "this post was already released");
+      scheduled.push({ client, item, when, by });
+      // As at a real portal: released at once, `scheduled` only when the publishing service has it.
+      found.scheduledFor = when;
+      found.released = true;
+    },
+  };
+  const keys = new Map<string, string>();
+  return Object.assign(portal, {
+    sends,
+    edits,
+    scheduled,
+    /** What `state()` answers from now on. */
+    setState: (next: Partial<PortalState>) => {
+      state = { ...state, ...next };
+    },
+    uploads,
+    /** The next call fails with this status and message. */
+    fail: (status: number, message: string) => {
+      failure = new ApprovalPortalError(status, message);
+    },
+  });
 }
