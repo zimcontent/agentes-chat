@@ -259,6 +259,12 @@ export const keys = {
   agentBrowser: (orgId: string, agentId: string) => ["org", orgId, "browser", "agent", agentId] as const,
   /** The workspace's browser profiles (ADR 0110). */
   browserProfiles: (orgId: string) => ["org", orgId, "browser", "profiles"] as const,
+  /** Everything of the WhatsApp numbers, the prefix `whatsapp.changed` refreshes. */
+  whatsapp: (orgId: string) => ["org", orgId, "whatsapp"] as const,
+  whatsappOverview: (orgId: string) => ["org", orgId, "whatsapp", "overview"] as const,
+  whatsappChats: (orgId: string, accountId: string) => ["org", orgId, "whatsapp", accountId, "chats"] as const,
+  whatsappMessages: (orgId: string, accountId: string, chatId: string) =>
+    ["org", orgId, "whatsapp", accountId, "chats", chatId] as const,
   /** Everything of the Vault (ADR 0144), the prefix `vault.changed` refreshes. */
   vault: (orgId: string) => ["org", orgId, "vault"] as const,
   /** The Vault as this person sees it: items (never a value), connections, sources. */

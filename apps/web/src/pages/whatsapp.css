@@ -1,0 +1,438 @@
+/*
+ * WhatsApp: a number's conversations beside the open one. The list and the conversation are the two panes people
+ * know from a messenger; under 761 one shows at a time (`data-open`).
+ */
+.wa {
+  --wa-side: 340px;
+  /* Our own messages: the app's accent, soft, so the two sides read apart in both themes. */
+  --wa-mine: var(--agent-soft);
+  display: grid;
+  grid-template-columns: var(--wa-side) minmax(0, 1fr);
+  flex: 1;
+  min-height: 0;
+}
+.wa--blank {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.wa-mark {
+  flex: none;
+}
+
+/* The list's side. */
+.wa-side {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  border-inline-end: 1px solid var(--line);
+}
+.wa-side__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  padding: var(--page-top) var(--space-4) 0;
+}
+.wa-side__title {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0;
+  font-size: var(--text-h2);
+  line-height: var(--control-h-sm);
+  font-weight: 700;
+}
+.wa-side__tools {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-4) var(--space-4) var(--space-2);
+}
+.wa-side__notice {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin: 0 var(--space-4) var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-md);
+  background: var(--warn-soft);
+  font-size: var(--text-sm);
+}
+.wa-side__notice > span:nth-child(2) {
+  flex: 1;
+  min-width: 0;
+}
+.wa-side__list {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  gap: 2px;
+  padding: 0 var(--space-2) var(--space-2);
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+}
+.wa-side__list:hover {
+  scrollbar-color: var(--line2) transparent;
+}
+.wa-side__wait,
+.wa-conv__wait {
+  display: flex;
+  justify-content: center;
+  padding: var(--space-6);
+}
+.wa-side__more {
+  align-self: center;
+  margin-top: var(--space-2);
+}
+
+.wa-dot {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border-radius: var(--radius-full);
+  background: var(--faint);
+}
+.wa-dot[data-status="connected"] {
+  background: var(--ok);
+}
+.wa-dot[data-status="qr"],
+.wa-dot[data-status="pending"],
+.wa-dot[data-status="disconnected"] {
+  background: var(--warn);
+}
+.wa-dot[data-status="logged_out"] {
+  background: var(--danger);
+}
+
+/* One conversation in the list: a face, then its name and time over its latest words and its count. */
+.wa-chat {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-width: 0;
+  padding: var(--space-2);
+  border: 0;
+  border-radius: var(--radius-item);
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+.wa-chat:hover {
+  background: var(--plate-soft);
+}
+.wa-chat[data-active="true"] {
+  background: var(--chosen-bg);
+}
+.wa-chat:focus-visible {
+  outline: 2px solid var(--agent);
+  outline-offset: -2px;
+}
+.wa-chat__text {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+  gap: 2px;
+}
+.wa-chat__top,
+.wa-chat__bottom {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+}
+.wa-chat__name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  font-weight: 500;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.wa-chat[data-unread="true"] .wa-chat__name {
+  font-weight: 700;
+}
+.wa-chat__time {
+  flex: none;
+  color: var(--muted);
+  font-size: var(--text-xs);
+  font-variant-numeric: tabular-nums;
+}
+.wa-chat[data-unread="true"] .wa-chat__time {
+  color: var(--agent);
+  font-weight: 600;
+}
+.wa-chat__last {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  min-width: 0;
+  gap: var(--space-1);
+  overflow: hidden;
+  color: var(--muted);
+  font-size: var(--text-sm);
+}
+/* The words alone give way: the "You:" before them and a file's icon stay whole. */
+.wa-chat__words {
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.wa-chat__last .ac-icon {
+  flex: none;
+}
+.wa-chat__you {
+  flex: none;
+}
+.wa-chat__count {
+  flex: none;
+  background: var(--agent);
+  color: var(--on-agent);
+}
+
+/* The open conversation. */
+.wa-main {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  align-items: stretch;
+  justify-content: center;
+}
+.wa-conv {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+.wa-conv__head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-height: calc(var(--control-h-md) + var(--space-4) * 2);
+  padding: var(--space-4) var(--page-x);
+  border-block-end: 1px solid var(--line);
+}
+.wa-conv__back {
+  display: none;
+}
+.wa-conv__who {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  line-height: 1.25;
+}
+.wa-conv__name {
+  overflow-wrap: anywhere;
+  font-size: var(--text-lg);
+}
+.wa-conv__phone {
+  color: var(--muted);
+  font-size: var(--text-sm);
+}
+.wa-conv__scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  background: var(--sunken);
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+}
+.wa-conv__scroll:hover {
+  scrollbar-color: var(--line2) transparent;
+}
+.wa-conv__list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  /* The latest message sits on the composer: a short conversation starts from the bottom, as in a messenger. */
+  min-height: 100%;
+  justify-content: flex-end;
+  padding: var(--space-4) var(--page-x);
+}
+.wa-conv__item {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+.wa-conv__older {
+  align-self: center;
+  margin-bottom: var(--space-2);
+}
+.wa-conv__foot {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--page-x) var(--space-4);
+  border-block-start: 1px solid var(--line);
+}
+.wa-conv__input {
+  flex: 1;
+  min-width: 0;
+  min-height: var(--control-h-md);
+  max-height: 160px;
+  resize: none;
+}
+
+/* A message: ours on the right, theirs on the left, each as wide as its words up to most of the column. */
+.wa-msg {
+  display: flex;
+}
+.wa-msg[data-mine="true"] {
+  justify-content: flex-end;
+}
+.wa-bubble {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  max-width: min(72%, 560px);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-lg);
+  border-start-start-radius: var(--radius-xs);
+  background: var(--raised);
+  box-shadow: 0 0 0 1px var(--line);
+}
+.wa-msg[data-mine="true"] .wa-bubble {
+  border-start-start-radius: var(--radius-lg);
+  border-start-end-radius: var(--radius-xs);
+  background: var(--wa-mine);
+}
+.wa-bubble__who {
+  color: var(--agent);
+  font-size: var(--text-sm);
+  font-weight: 600;
+}
+.wa-bubble__reply {
+  padding: var(--space-1) var(--space-2);
+  border-inline-start: 3px solid var(--agent);
+  border-radius: var(--radius-xs);
+  background: var(--plate);
+  color: var(--muted);
+  font-size: var(--text-sm);
+  overflow-wrap: anywhere;
+}
+.wa-bubble__file {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2);
+  border-radius: var(--radius-md);
+  background: var(--plate);
+}
+.wa-bubble__file > span {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  line-height: 1.3;
+}
+.wa-bubble__file strong {
+  overflow-wrap: anywhere;
+  font-weight: 600;
+}
+.wa-bubble__file small {
+  color: var(--muted);
+  font-size: var(--text-xs);
+}
+.wa-bubble__text {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.wa-bubble__meta {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+  color: var(--muted);
+  font-size: var(--text-xs);
+  font-variant-numeric: tabular-nums;
+}
+.wa-bubble__by::after {
+  content: "·";
+  margin-inline-start: var(--space-1);
+}
+.wa-tick {
+  display: inline-flex;
+}
+.wa-tick[data-status="read"] {
+  color: var(--agent);
+}
+
+/* The QR code's dialog. */
+.wa-qr {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-4);
+}
+.wa-qr__code {
+  display: grid;
+  place-items: center;
+  width: 256px;
+  height: 256px;
+  /* White whatever the theme: a phone's camera reads dark on white best. */
+  border-radius: var(--radius-lg);
+  background: #fff;
+  box-shadow: 0 0 0 1px var(--line2);
+}
+.wa-qr__code img {
+  display: block;
+  image-rendering: pixelated;
+}
+.wa-qr__wait {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  color: #5c5c58;
+  font-size: var(--text-sm);
+}
+.wa-qr__steps {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  margin: 0;
+  padding-inline-start: var(--space-6);
+  color: var(--ink2);
+}
+.wa-qr--done {
+  gap: var(--space-1);
+  padding: var(--space-6) 0;
+  text-align: center;
+}
+.wa-qr--done strong {
+  color: var(--ok);
+  font-size: var(--text-h3);
+}
+.wa-people {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+/* A phone, or a narrow window: the list or the conversation, one at a time. */
+@media (max-width: 760px) {
+  .wa {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .wa[data-open="chat"] .wa-side,
+  .wa[data-open="list"] .wa-main {
+    display: none;
+  }
+  .wa-side {
+    border-inline-end: 0;
+  }
+  .wa-conv__back {
+    display: inline-flex;
+  }
+  .wa-bubble {
+    max-width: 86%;
+  }
+}
