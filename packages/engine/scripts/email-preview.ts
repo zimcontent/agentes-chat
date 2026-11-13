@@ -54,7 +54,7 @@ if (to) {
   };
   for (const [id, template] of Object.entries(samples)) {
     if (!template) continue;
-    const home = id.endsWith("selfhost.en") ? "https://chat.alvesstudio.com" : "https://agentes.chat";
+    const home = id.endsWith("selfhost.en") ? "https://chat.alvesstudio.com" : "https://dougbot.app";
     const email = renderEmail(template, { home, base, files: null });
     writeFileSync(join(out, `${id}.html`), email.html);
     writeFileSync(join(out, `${id}.txt`), `Subject: ${email.subject}\nPreheader: ${email.preheader}\n\n${email.text}`);

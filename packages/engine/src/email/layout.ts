@@ -1,16 +1,14 @@
 import type { InlinePart } from "@agenteschat/adapters";
 import type { AppLocale } from "@agenteschat/i18n/locale";
-import { dark, light, type ThemeColors } from "@agenteschat/tokens";
 import {
-  type AccessoryName,
-  AGENT_GRADIENTS,
-  type AgentColorName,
-  type EyeStyle,
-  nearestPreset,
-} from "@agenteschat/ui/agent/engine";
-import { COMPUTER_ART, COMPUTER_ROWS } from "@agenteschat/ui/computer/portrait";
+  botDoAgente,
+  CORES_LIVRES,
+  DougBot,
+  type DougBotOpcoes,
+  FORMAS_LIVRES,
+  OLHOS_LIVRES,
+} from "@agenteschat/ui/brand/dougbot-time";
 import { initialsOf } from "@agenteschat/ui/names";
-import { mix, opaque } from "@agenteschat/ui/sky/math";
 
 /** The recipient's language: every language of the app (`@agenteschat/i18n/locale`). */
 export type EmailLocale = AppLocale;
@@ -31,8 +29,8 @@ export type Block =
   | { steps: [title: string, text: string][] }
   | { facts: [label: string, value: Text][] }
   | { note: Text; tone?: "warn" }
-  /** A name with a line under it. `agent`: the agent's color (its face); none: a person's initials tile. */
-  | { people: { name: string; detail: Text; agent?: string }[] }
+  /** A name with a line under it. `agent`: who the agent is (its bot); none: a person's initials tile. */
+  | { people: { name: string; detail: Text; agent?: Look }[] }
   /** The primary button, and an optional second action as a link beside it. */
   | { button: string; url: string; also?: { label: string; url: string; danger?: boolean } }
   /** For emails whose link is the point: the address to copy when the button doesn't work. */
@@ -40,17 +38,26 @@ export type Block =
   /** A one-time code to type: large in a well, selectable as one word. */
   | { code: string };
 
-/** An agent's look as the app keeps it (`appearance`): a part left out is the app's default (sky, round eyes, none). */
+/**
+ * Who an agent is, for its bot: what the app draws it from (`botDoAgente` in packages/ui/src/brand/dougbot-time.ts),
+ * so an email shows the bot the app shows. `color`, `eyes` and `accessory` are the look an email queued before the
+ * bots kept: none is drawn, and its colour only tells such agents apart.
+ */
 export interface Look {
+  name?: string;
+  handle?: string | null;
+  role?: string | null;
+  /** `right_hand`: the team's right hand (ADR 0137), the Doug whatever its name. */
+  builtin?: string | null;
   color?: string;
   eyes?: string;
   accessory?: string;
 }
 
 /**
- * A picture at the card's top: the agents standing on one floor, half on each side of the workspace's computer
- * (`computer`: its alt text, our words), or in a row without it. The words never depend on it, so the faces have no
- * alt text.
+ * A picture at the card's top: the workspace's bots in a row over the headline. `computer` (the workspace's computer,
+ * our words) is kept for the emails about it, which show the same row: the identity draws no computer. The words never
+ * depend on the picture, so the bots have no alt text.
  */
 export interface Scene {
   crew: readonly Look[];
@@ -82,84 +89,110 @@ export interface EmailArt {
   files: Map<string, Uint8Array> | null;
 }
 
-const AGENT_FACES = Object.keys(AGENT_GRADIENTS);
 /**
- * The workspace's computer as the app draws it (a server: `WORKSPACE_COMPUTER_KIND` in packages/client), online, its
- * lights on at `t`, shown at `cell` px a cell, with `margin` empty columns on each side: room for its alt text to fit
- * with the pictures off. `packages/engine/scripts/email-art.ts` draws its file.
+ * The pictures' version, in their file names: a changed drawing gets a new name, since Gmail's image proxy caches by
+ * name and the emails already sent keep theirs.
  */
-export const COMPUTER = { file: "computer.png", kind: "linux", cell: 2, t: 0.75, margin: 3 } as const;
+const ART = "1";
+/** A bot as an email shows it, in px: beside a name, and in the row over a headline. Its file is twice the larger. */
+export const BOT_SHOWN = { row: 32, scene: 44 } as const;
 /**
- * The onboarding's own agents, Theo, Ada, Lia and Atlas (`PRESET_LOOK` in packages/client/src/lib/onboarding.ts and
- * apps/mobile/src/features/onboarding/logic.ts), each drawn whole by `packages/engine/scripts/email-art.ts`. Any other
- * look is its colour's face.
+ * Every bot an email may show (`apps/mobile/scripts/email-art.ts` draws their files): the identity's team, and each
+ * free bot by form, colour and eyes, which is all `botDoAgente` ever answers.
  */
-export const ONBOARDING_CREW = [
-  { color: "indigo", eyes: "round", accessory: "cap" },
-  { color: "green", eyes: "wide", accessory: "headphones" },
-  { color: "rose", eyes: "dots", accessory: "flower" },
-  { color: "amber", eyes: "round", accessory: "antenna" },
-] as const satisfies readonly { color: AgentColorName; eyes: EyeStyle; accessory: AccessoryName }[];
-/**
- * A look drawn whole, in px as shown: the colour face's body (`body` wide, at `x` and `y`, as far from the left and the
- * bottom as `agent-<colour>.png` has it) in a box with room above and to the right for any accessory (ACCESSORY_REACH
- * in the agent engine, and a cap's brim one cell past it).
- */
-export const WHOLE = { width: 36, height: 46, x: 2, y: 16, body: 28 } as const;
-export const wholeFile = (look: Required<Look>) => `agent-${look.color}-${look.eyes}-${look.accessory}.png`;
-/**
- * The ink logo with its wordmark on a rounded tile of the page's colour: unseen on our light page, and the wordmark
- * still reads where a client darkens the page but not the picture (the Gmail apps, Gmail with other accounts, classic
- * Outlook), or inverts the picture too. `logo-ink.png`, without the tile, stays for the emails already sent.
- */
-const LOGO_INK = "logo-ink-tile.png";
-/** Every picture an email may show, as the web app serves them (`apps/web/public/email/`). */
-export const EMAIL_PICTURES = [
-  LOGO_INK,
-  "logo-bone.png",
-  COMPUTER.file,
-  "sky-band.png",
-  ...AGENT_FACES.map((c) => `agent-${c}.png`),
-  ...ONBOARDING_CREW.map(wholeFile),
+export const EMAIL_BOTS: readonly DougBotOpcoes[] = [
+  ...DougBot.ORDEM.map((bot) => ({ bot })),
+  ...FORMAS_LIVRES.flatMap((forma) =>
+    CORES_LIVRES.flatMap((cor) => OLHOS_LIVRES.map((olhos) => ({ forma, cor, olhos, sorriso: false }))),
+  ),
 ];
-const FONT = "source-sans-3-latin.woff2";
-const LOGO = { width: 173, height: 36, alt: "agentes.chat" } as const;
-const SKY = { width: 552, height: 27 } as const;
-/** An agent's face for its colour: a custom "#rrggbb" is the closest preset's, an unknown one is sky, as the app draws it. */
-const faceOf = (color: string) => `agent-${nearestPreset(color)}.png`;
-/** A look's picture: drawn whole when it is one of the onboarding's, else its colour's face. */
-function pictureOf({ color = "sky", eyes = "round", accessory = "none" }: Look) {
-  const whole = ONBOARDING_CREW.find((o) => o.color === color && o.eyes === eyes && o.accessory === accessory);
-  return whole
-    ? { file: wholeFile(whole), width: WHOLE.width, height: WHOLE.height }
-    : { file: faceOf(color), width: 32, height: 32 };
-}
+export const botFile = (b: DougBotOpcoes) =>
+  b.bot
+    ? `bot-${b.bot}-${ART}.png`
+    : `bot-${b.forma}-${CORES_LIVRES.indexOf(b.cor as (typeof CORES_LIVRES)[number])}-${b.olhos}-${ART}.png`;
+/** An agent's bot: the app's own answer for who it is. */
+const botOf = (look: Look) =>
+  botFile(
+    botDoAgente({
+      // An email queued before the bots has no name: its colour keeps two such agents apart.
+      name: look.name ?? look.color ?? "",
+      handle: look.handle,
+      role: look.role,
+      builtin: look.builtin,
+    }),
+  );
+/** The team a picture shows when the workspace has no agents yet: the identity's first four, the Doug first. */
+export const ONBOARDING_CREW: readonly Look[] = DougBot.ORDEM.slice(0, 4).map((name) => ({ name }));
+/**
+ * The signature (the Doug close up and the name) in ink on a rounded tile of the page's colour: unseen on our light
+ * page, and the name still reads where a client darkens the page but not the picture (the Gmail apps, Gmail with other
+ * accounts, classic Outlook), or inverts the picture too. In bone for our own dark design.
+ */
+export const LOGO_INK = `doug-logo-ink-${ART}.png`;
+export const LOGO_BONE = `doug-logo-bone-${ART}.png`;
+/** The Doug alone: the picture of a browser notification (`apps/web/public/sw.js`). */
+export const MARK = `doug-mark-${ART}.png`;
+/** Every picture an email may show, as the web app serves them (`apps/web/public/email/`). */
+export const EMAIL_PICTURES = [LOGO_INK, LOGO_BONE, ...EMAIL_BOTS.map(botFile)];
+/** The app's faces, from this server's own `/email/`: Inter for the words, Manrope for the headline. */
+const FONTS = [
+  ["Inter", "inter-latin.woff2", "100 900"],
+  ["Manrope", "manrope-latin.woff2", "200 800"],
+] as const;
+/** The signature as shown, in px: `name` is the name's size, which the Doug and the space between follow. */
+export const LOGO = { width: 144, height: 36, name: 24, alt: "DougBot" } as const;
 
-/** Classic Outlook has no rgba: hairlines are the solid color they show over their surface. */
-const palette = (t: ThemeColors) => ({
-  page: t.bg,
-  card: t.raised,
-  border: opaque(t.line2, t.raised),
-  well: t.sunken,
-  wellHair: opaque(t.line, t.sunken),
-  ink: t.ink,
-  text: t.ink2,
-  muted: t.muted,
-  faint: t.faint,
-  action: t.action,
-  /** The top of the primary button's gradient, as the app's `color-mix(in srgb, var(--ink) 82%, var(--bg))`. */
-  actionTop: mix(t.action, t.bg, 0.18),
-  onAction: t.onAction,
-  warnSoft: t.warnSoft,
-  warn: t.warn,
-  danger: t.danger,
-});
-const L = palette(light);
-const D = palette(dark);
+/**
+ * The identity's colours (`packages/ui/src/styles/dougbot-tokens.css`), as the app's kit reads them
+ * (`packages/ui/src/styles/doug.css`): the light stage and the dark one. Solid colours only: classic Outlook has no
+ * rgba. The green is the Doug's and the main action's alone, the same in both.
+ */
+const L = {
+  page: "#f4f6f2",
+  card: "#ffffff",
+  border: "#dde0d8",
+  well: "#eef0eb",
+  wellHair: "#dde0d8",
+  ink: "#0a0a0a",
+  text: "#0a0a0a",
+  muted: "#565a52",
+  faint: "#62665e",
+  action: "#9cfa05",
+  /** The main button's three greens, top to bottom (`--db-verde-botao`). */
+  actionTop: "#c5ff52",
+  actionEnd: "#84e407",
+  onAction: "#0a0a0a",
+  warnSoft: "#f6ecd2",
+  warn: "#8a5a00",
+  danger: "#c4282e",
+};
+const D: typeof L = {
+  page: "#0a0a0a",
+  card: "#121212",
+  border: "#262626",
+  well: "#1a1a1a",
+  wellHair: "#262626",
+  ink: "#ededed",
+  text: "#ededed",
+  muted: "#999999",
+  faint: "#8a8a8a",
+  action: "#9cfa05",
+  actionTop: "#c5ff52",
+  actionEnd: "#84e407",
+  onAction: "#0a0a0a",
+  warnSoft: "#2e2410",
+  warn: "#f5b544",
+  danger: "#f2555a",
+};
+/** The page's colour, for the tile under the ink signature. */
+export const LOGO_PAGE = L.page;
 
 /** Japanese, Chinese and Korean fall back to each system's own fonts before the generic one. */
 const SANS =
-  "'Source Sans 3',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,'Hiragino Sans','PingFang SC','Microsoft YaHei','Apple SD Gothic Neo','Malgun Gothic',sans-serif";
+  "'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,'Hiragino Sans','PingFang SC','Microsoft YaHei','Apple SD Gothic Neo','Malgun Gothic',sans-serif";
+
+/** The headline's face: the identity's titles are Manrope. */
+const TITLE = `'Manrope',${SANS}`;
 
 /**
  * The bottom margin of the card's last block, by what its lowest ink is: the room under that ink then matches the
@@ -203,7 +236,6 @@ const PHONE = [
   ".px{padding-left:16px!important;padding-right:16px!important}",
   ".card{padding:24px 20px!important}",
   ".h1{font-size:22px!important;line-height:28px!important}",
-  ".sky{width:100%!important;height:auto!important}",
 ];
 
 const esc = (s: string) =>
@@ -269,14 +301,14 @@ const PW = `${P};word-break:break-word`;
 /** `P` for a link button: classic Outlook clips a button whose line height is exact. */
 const PB = `font-family:${SANS};mso-line-height-rule:at-least`;
 /**
- * The app's primary button (`.ac-btn--primary` in `packages/ui/src/styles/components.css`): its highlight, bottom
- * edge and shadows. Every client that draws box-shadow reads rgba(). The app's dark highlight is .12, too close to
- * matter on a 1 px line, so one value serves both themes.
+ * The app's primary button (`.ac-btn--primary` in `packages/ui/src/styles/doug.css`): its highlight, its darker green
+ * bottom edge and the green's light under it. Every client that draws box-shadow reads rgba(); one value serves both
+ * themes.
  */
 const LIFT =
-  "inset 0 1px 0 rgba(255,255,255,.18),inset 0 -1px 0 rgba(0,0,0,.3),0 1px 2px rgba(0,0,0,.18),0 6px 14px -6px rgba(0,0,0,.45)";
+  "inset 0 1px 0 rgba(255,255,255,.9),inset 0 -2px 0 rgba(63,102,0,.22),0 1px 2px rgba(10,10,10,.14),0 8px 18px -8px rgba(63,102,0,.55)";
 
-const cidOf = (file: string) => `${file.replace(/\.png$/, "")}@agentes.chat`;
+const cidOf = (file: string) => `${file.replace(/\.png$/, "")}@dougbot.app`;
 
 /** The pictures one email shows: linked, or attached (only those its HTML names). */
 function pictures(art: EmailArt) {
@@ -328,15 +360,15 @@ function block(b: Block, src: (file: string) => string, last: boolean): string {
 <td class="${warn ? "warn-t" : "tx"}" style="padding:14px 16px;${PW};font-size:15px;line-height:22px;color:${warn ? L.warn : L.text}">${html(b.note, warn ? "font-weight:700" : `font-weight:600;color:${L.ink}`)}</td></tr></table>`;
   }
   if ("people" in b)
-    // The face starts 5 px down, where the name's capitals start on its 15/20 px line (4.5 to 5.7 px across Source
-    // Sans 3 and the system fonts): beside a name with a line under it, as the app's `.ac-captop`. Padding, not a
+    // The face starts 5 px down, where the name's capitals start on its 15/20 px line (4.5 to 5.7 px across Inter
+    // and the system fonts): beside a name with a line under it, as the app's `.ac-captop`. Padding, not a
     // negative margin, which classic Outlook ignores.
     return `<table width="100%" ${T(`margin:0 0 ${gap(8)}px`)}>${b.people
       .map(
         (p, i) => `<tr>
 <td width="44" valign="top" style="width:44px;padding:5px 0 ${under(i, b.people, 12)}px">${
           p.agent
-            ? `<img src="${esc(src(faceOf(p.agent)))}" width="32" height="32" alt="" style="display:block;border:0;outline:none;width:32px;height:32px">`
+            ? `<img src="${esc(src(botOf(p.agent)))}" width="${BOT_SHOWN.row}" height="${BOT_SHOWN.row}" alt="" style="display:block;border:0;outline:none;width:${BOT_SHOWN.row}px;height:${BOT_SHOWN.row}px">`
             : `<table ${T("")}><tr><td class="avp" width="30" height="30" align="center" valign="middle" style="width:30px;height:30px;border:1px solid ${L.border};border-radius:10px;background:${L.well};color:${L.text};${P};font-size:13px;line-height:30px;font-weight:700">${esc(initialsOf(p.name))}</td></tr></table>`
         }</td>
 <td valign="top" style="padding:0 0 ${under(i, b.people, 12)}px">
@@ -366,34 +398,17 @@ function block(b: Block, src: (file: string) => string, last: boolean): string {
 }
 
 /**
- * The scene at the card's top. With the computer, a stage in a well, as the app's onboarding scene: the computer in
- * the middle whatever the crew's size (two cells split the rest), the faces standing 2 px up so their bodies end where
- * the tower's does, above its shadow. Without it, the faces in a row over the headline, the first at the text's edge.
- * With the pictures off, the computer's alt says what is missing, set as a caption.
+ * The scene at the card's top: the bots in a row over the headline, the first at the text's edge. The same row with or
+ * without the workspace's computer (`Scene`).
  */
 function scene(s: Scene, src: (file: string) => string): string {
-  const img = (file: string, width: number, height: number, alt: string) =>
-    `<img src="${esc(src(file))}" width="${width}" height="${height}" alt="${esc(alt)}" style="display:block;border:0;outline:none;width:${width}px;height:${height}px;${P};font-size:11px;line-height:14px;color:${L.muted}">`;
-  // A look drawn whole is wider on the right, for its accessory: that much less room after it keeps the bodies' spacing.
-  const faces = (crew: readonly Look[], left: number, right: number, bottom: number) =>
-    crew
-      .map((look) => {
-        const p = pictureOf(look);
-        return `<td valign="bottom" style="padding:0 ${right - (p.width - 32)}px ${bottom}px ${left}px">${img(p.file, p.width, p.height, "")}</td>`;
-      })
-      .join("");
-  if (s.computer === undefined) return `<table ${T("margin:0 0 20px")}><tr>${faces(s.crew, 0, 8, 0)}</tr></table>`;
-  const side = (crew: readonly Look[]) =>
-    crew.length ? `<table ${T("")}><tr>${faces(crew, 4, 4, 2)}</tr></table>` : "";
-  const half = Math.ceil(s.crew.length / 2);
-  const width = (COMPUTER_ART[COMPUTER.kind][1] + 2 * COMPUTER.margin) * COMPUTER.cell;
-  const height = COMPUTER_ROWS[COMPUTER.kind][1] * COMPUTER.cell;
-  return `<table width="100%" class="well" ${T(`background:${L.well};border-radius:14px 14px 14px 3px;margin:0 0 24px`)}><tr><td style="padding:20px 8px 16px">
-<table width="100%" ${T("")}><tr>
-<td width="50%" align="right" valign="bottom">${side(s.crew.slice(0, half))}</td>
-<td valign="bottom" style="padding:0 2px">${img(COMPUTER.file, width, height, s.computer)}</td>
-<td width="50%" align="left" valign="bottom">${side(s.crew.slice(half))}</td>
-</tr></table></td></tr></table>`;
+  const side = BOT_SHOWN.scene;
+  return `<table ${T("margin:0 0 20px")}><tr>${s.crew
+    .map(
+      (look) =>
+        `<td valign="bottom" style="padding:0 8px 0 0"><img src="${esc(src(botOf(look)))}" width="${side}" height="${side}" alt="" style="display:block;border:0;outline:none;width:${side}px;height:${side}px"></td>`,
+    )
+    .join("")}</tr></table>`;
 }
 
 /** The plain-text part of a block: the same words, a button as `Label: url`. */
@@ -431,10 +446,10 @@ export const EMAIL_DARK_HEAD = `<meta name="color-scheme" content="light dark">
 ${DARK.map((r) => `[data-ogsc] ${r}[data-ogsb] ${r}`).join("\n")}
 </style>
 <style>
-@media (prefers-color-scheme:light){.btn{background-image:linear-gradient(180deg,${L.actionTop} 0%,${L.action} 100%)!important}}
+@media (prefers-color-scheme:light){.btn{background-image:linear-gradient(180deg,${L.actionTop} 0%,${L.action} 55%,${L.actionEnd} 100%)!important}}
 </style>
 <style>
-@media (prefers-color-scheme:dark){.btn{background-image:linear-gradient(180deg,${D.actionTop} 0%,${D.action} 100%)!important}}
+@media (prefers-color-scheme:dark){.btn{background-image:linear-gradient(180deg,${D.actionTop} 0%,${D.action} 55%,${D.actionEnd} 100%)!important}}
 </style>`;
 
 /** After the preheader, so the body's first words don't trail into the inbox preview (iOS and Yahoo need the last two). */
@@ -470,7 +485,7 @@ body{margin:0!important;padding:0!important;width:100%!important}
 a[x-apple-data-detectors]{color:inherit!important;text-decoration:none!important}
 @media (max-width:620px){${PHONE.join("")}}
 </style>
-${fonts ? `<!--[if !mso]><!--><style>@font-face{font-family:'Source Sans 3';font-style:normal;font-weight:200 900;font-display:swap;size-adjust:107%;src:url('${esc(`${fonts}${FONT}`)}') format('woff2')}</style><!--<![endif]-->` : ""}
+${fonts ? `<!--[if !mso]><!--><style>${FONTS.map(([family, file, weights]) => `@font-face{font-family:'${family}';font-style:normal;font-weight:${weights};font-display:swap;src:url('${esc(`${fonts}${file}`)}') format('woff2')}`).join("")}</style><!--<![endif]-->` : ""}
 </head>
 <body class="body bg" style="margin:0;padding:0;width:100%;background:${L.page};-webkit-text-size-adjust:100%;-ms-text-size-adjust:100%">
 <div style="display:none;max-height:0;max-width:0;overflow:hidden;mso-hide:all">${esc(doc.preheader)}${FILLER}</div>
@@ -482,15 +497,14 @@ ${fonts ? `<!--[if !mso]><!--><style>@font-face{font-family:'Source Sans 3';font
 <tr><td style="padding:32px 0 20px">
 <a href="${esc(art.home)}" target="_blank" style="display:inline-block;text-decoration:none">
 ${logo(LOGO_INK, "logo-ink", "block", L.ink)}
-<!--[if !mso]><!-->${logo("logo-bone.png", "logo-bone", "none", D.ink)}<!--<![endif]-->
+<!--[if !mso]><!-->${logo(LOGO_BONE, "logo-bone", "none", D.ink)}<!--<![endif]-->
 </a>
 </td></tr>
 <tr><td class="card" style="background:${L.card};border:1px solid ${L.border};border-radius:16px;padding:32px">
-${doc.scene ? scene(doc.scene, src) : ""}<h1 class="h1 ink" style="margin:0 0 16px;${P};font-size:24px;line-height:30px;font-weight:600;letter-spacing:-0.01em;color:${L.ink}">${html(doc.headline)}</h1>
+${doc.scene ? scene(doc.scene, src) : ""}<h1 class="h1 ink" style="margin:0 0 16px;font-family:${TITLE};mso-line-height-rule:exactly;font-size:24px;line-height:30px;font-weight:700;letter-spacing:-0.02em;color:${L.ink}">${html(doc.headline)}</h1>
 ${body}
 </td></tr>
-<tr><td style="padding:24px 0 0"><img class="sky" src="${esc(src("sky-band.png"))}" width="${SKY.width}" height="${SKY.height}" alt="" style="display:block;border:0;outline:none;width:${SKY.width}px;max-width:100%;height:auto"></td></tr>
-<tr><td style="padding:16px 0 40px">
+<tr><td style="padding:20px 0 40px">
 ${doc.footer.map((f) => `<p class="fa" style="margin:0 0 6px;${PW};font-size:13px;line-height:19px;color:${L.faint}">${html(f)}</p>`).join("\n")}
 </td></tr>
 </table>

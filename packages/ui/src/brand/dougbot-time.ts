@@ -44,6 +44,13 @@ export const CORES_LIVRES = [
 
 const OLHOS: DougBotOlhos[] = ["pilula", "largo", "meia", "ponto"];
 
+/**
+ * Every form and every pair of eyes a free bot may have: with `CORES_LIVRES`, all `botDoAgente` answers besides the
+ * team. For what must draw each bot ahead of time (the emails' pictures).
+ */
+export const FORMAS_LIVRES: readonly DougBotForma[] = [...new Set(OFICIOS.map((o) => o.forma)), "squircle"];
+export const OLHOS_LIVRES: readonly DougBotOlhos[] = OLHOS;
+
 const plain = (s: string) =>
   s
     .normalize("NFD")
@@ -89,4 +96,5 @@ export function corDoBot(b: DougBotOpcoes): string {
   return b.bot ? DougBot.TIME[b.bot].cor : (b.cor ?? CORES_LIVRES[0]);
 }
 
+export type { DougBotOpcoes };
 export { DougBot };

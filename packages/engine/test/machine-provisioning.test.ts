@@ -717,7 +717,7 @@ describe("external provisioning", () => {
         specs: null,
         needsAi: false,
         hasAgents: true,
-        crew: [{}],
+        crew: [{ name: "Dev", handle: "dev", role: "Developer" }],
         url: `https://chat.example.com/org/${f.org.id}`,
       },
     });
