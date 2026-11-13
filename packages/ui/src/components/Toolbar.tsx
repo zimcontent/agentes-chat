@@ -32,14 +32,36 @@ export interface SearchFieldProps extends Omit<InputHTMLAttributes<HTMLInputElem
 
 /** The search box of every list: a field of the ruler with the search icon and, with text, a ×. Role `searchbox`. */
 export const SearchField = forwardRef<HTMLInputElement, SearchFieldProps>(function SearchField(
-  { size = "md", onClear, clearLabel, shortcut, className, value, ...rest },
+  { size = "md", onClear, clearLabel, shortcut, className, value, onKeyDown, ...rest },
   ref,
 ) {
   const filled = typeof value === "string" ? value.length > 0 : value !== undefined && value !== null;
   return (
     <span className={cx("ac-searchfield", size === "sm" && "ac-searchfield--sm", className)}>
       <Icon name="search" size={16} className="ac-searchfield__icon" />
-      <input ref={ref} type="search" autoComplete="off" className="ac-searchfield__input" value={value} {...rest} />
+      <input
+        ref={ref}
+        type="search"
+        autoComplete="off"
+        className="ac-searchfield__input"
+        value={value}
+        {...rest}
+        onKeyDown={(e) => {
+          onKeyDown?.(e);
+          // Doug: Escape with text only clears the field (as the × does); with an empty field it goes on to close
+          // whatever holds the field, a dialog included.
+          if (e.key !== "Escape" || e.defaultPrevented || e.currentTarget.value === "") return;
+          e.preventDefault();
+          e.stopPropagation();
+          if (onClear) {
+            onClear();
+            return;
+          }
+          const input = e.currentTarget;
+          Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")?.set?.call(input, "");
+          input.dispatchEvent(new Event("input", { bubbles: true }));
+        }}
+      />
       {shortcut && !filled && <span className="ac-searchfield__hint">{shortcut}</span>}
       {onClear && filled && (
         <button

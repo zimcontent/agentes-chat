@@ -5,12 +5,14 @@ import { aiStateOf } from "@agenteschat/client/lib/no-ai";
 import { rightHandOf } from "@agenteschat/client/lib/right-hand";
 import {
   Button,
+  Checkbox,
   Chip,
   Dialog,
   DialogBody,
   DialogFooter,
   type Expression,
   Icon,
+  InfoHint,
   modKey,
   PixelSpinner,
   Textarea,
@@ -123,6 +125,8 @@ export function FeedbackDialog({ reported, onClose }: { reported: Reported | nul
   const [about, setAbout] = useState(reported);
   const [quoting, setQuoting] = useState(Boolean(reported?.about.text));
   const [files, setFiles] = useState<Added[]>([]);
+  // Doug: device details are opt-in, so nothing about the browser leaves the page unless the person ticks this.
+  const [withDevice, setWithDevice] = useState(false);
   const keys = useRef(0);
   // One id per message: sent again after a failure, the server sends it once.
   const id = useRef(crypto.randomUUID());
@@ -223,7 +227,8 @@ export function FeedbackDialog({ reported, onClose }: { reported: Reported | nul
       ...(at.agentId ? ([["Agent id", at.agentId]] as [string, string][]) : []),
       ...rest.map(([k, v]): [string, string] => [`Param ${k}`.slice(0, 40), String(v)]),
       ...(about?.facts ?? []),
-      ...deviceFacts(),
+      // Doug: only when the person asked for them.
+      ...(withDevice ? deviceFacts() : []),
     ];
     return list.filter(([, v]) => v !== "").slice(0, FACTS);
   };
@@ -395,6 +400,21 @@ export function FeedbackDialog({ reported, onClose }: { reported: Reported | nul
                 ))}
               </ul>
             )}
+            {/* Doug: opt-in device details, with what goes behind the ⓘ. */}
+            <div className="row" style={{ alignItems: "center", gap: 8 }}>
+              <Checkbox
+                id="feedback-device"
+                checked={withDevice}
+                onCheckedChange={setWithDevice}
+                aria-describedby="feedback-device-hint"
+              />
+              <span className="ac-hintline">
+                <label htmlFor="feedback-device">{t("feedback.device")}</label>
+                <InfoHint id="feedback-device-hint" name={t("common.about", { label: t("feedback.device") })}>
+                  {t("feedback.deviceHint")}
+                </InfoHint>
+              </span>
+            </div>
             <div className="arrival-feedback__attach">
               <input
                 ref={picker}

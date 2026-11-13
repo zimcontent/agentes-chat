@@ -2268,6 +2268,8 @@ export const ptBR = {
     runFailed: "{{agent}} não conseguiu responder: {{reason}}",
     runRefused: "{{agent}} não respondeu. {{reason}}",
     runFailedNoReason: "{{agent}} não conseguiu responder. Tente de novo.",
+    copyRunDetails: "Copiar detalhes",
+    runDetailsCopied: "Detalhes copiados.",
     runBusy:
       "{{agent}} não conseguiu responder: o computador continuou ocupado com outras tarefas. Tente de novo daqui a pouco.",
     waitingApproval: "esperando aprovação",
@@ -2380,6 +2382,7 @@ export const ptBR = {
     },
     unreadDivider: "Novas",
     offline: "Sem conexão. O que você mandar sai sozinho quando voltar.",
+    serverReconnecting: "Reconectando ao DougBot. O que você mandar sai sozinho quando voltar.",
     backOnline: "Conectado de novo",
     sendingOffline: "sai quando a conexão voltar",
     endOfReply: "Fim da resposta",
@@ -6978,6 +6981,7 @@ export const ptBR = {
     create: "Criar {{name}}",
     createBlank: "Criar agente",
     failed: "Não deu para criar: {{reason}}",
+    stillCreating: "Ainda criando. Pode levar mais um pouco.",
     level: {
       read: "Lê",
       write: "Lê e escreve",
@@ -19037,6 +19041,8 @@ export const ptBR = {
     photosHint: "Até {{images}} fotos de {{imageMb}} MB.",
     photoType: "Só dá para anexar foto.",
     photosTooMany: "Um feedback leva até {{images}} fotos.",
+    device: "Incluir dados do dispositivo",
+    deviceHint: "Navegador, tamanho da janela, tema, fuso e erros recentes. Ajuda a achar o problema.",
     send: "Enviar",
     thanks: "Recado entregue. Obrigado.",
     reply: "Tudo é lido. A resposta, se precisar, chega em {{email}}.",

@@ -21,6 +21,7 @@ import {
 import type { TFunction } from "i18next";
 import { type CSSProperties, type ReactNode, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { matchRank } from "@/components/connector-rank";
 import { DatabaseIcon } from "@/components/DatabaseConnect";
 import { LoadingCards } from "@/components/Loading";
 import { MailIcon, mailAuthKind, mailChoiceName } from "@/components/MailConnect";
@@ -277,11 +278,13 @@ export function ConnectorCatalogDialog({
         ? entries.filter((e) => e.connected).length
         : entries.filter((e) => e.category === c).length;
   const needle = q.trim().toLowerCase();
-  const matches = (e: Entry) =>
-    !needle ||
-    `${e.key} ${e.name} ${e.description} ${t(`connectors.category.${e.category}`)} ${e.key === "database" ? "postgres postgresql sql" : ""} ${e.category === "email" ? "email" : ""}`
-      .toLowerCase()
-      .includes(needle);
+  const rankOf = (e: Entry) =>
+    matchRank(
+      e.name,
+      `${e.key} ${e.name} ${e.description} ${t(`connectors.category.${e.category}`)} ${e.key === "database" ? "postgres postgresql sql" : ""} ${e.category === "email" ? "email" : ""}`,
+      needle,
+    );
+  const matches = (e: Entry) => rankOf(e) !== null;
   const inCategory = (e: Entry) =>
     category === "all" || (category === "connected" ? e.connected : e.category === category);
   const showSuggestions = category === "all" && !needle;
@@ -290,7 +293,13 @@ export function ConnectorCatalogDialog({
         .filter((e): e is Entry => !!e && !e.connected && e.available)
         .slice(0, 3)
     : [];
-  const shown = entries.filter((e) => inCategory(e) && matches(e) && !suggested.includes(e));
+  // Doug: while searching, a name that starts with the text comes first, then a name that contains it, then the rest;
+  // ready-to-connect before "Em breve" (the sort above) stays inside each of the three. Not searching: unchanged.
+  const shown = entries
+    .filter((e) => inCategory(e) && matches(e) && !suggested.includes(e))
+    .map((e, i) => ({ e, i, rank: needle ? (rankOf(e) ?? 2) : 0 }))
+    .sort((a, b) => a.rank - b.rank || a.i - b.i)
+    .map(({ e }) => e);
   const current = selected === OTHER ? null : (entries.find((e) => e.key === selected) ?? null);
 
   const close = (next: boolean) => {

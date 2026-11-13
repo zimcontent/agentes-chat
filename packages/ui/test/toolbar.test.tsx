@@ -4,6 +4,7 @@ import { setupDom } from "../testing/dom";
 setupDom();
 
 import { act, fireEvent, render, within } from "@testing-library/react";
+import type { ReactNode } from "react";
 import { Button, FilterChip, FilterToggle, SearchField, Toolbar } from "../src";
 
 const body = () => within(document.body);
@@ -157,4 +158,53 @@ test("a raised button in a toolbar takes the field look of the search beside it:
   expect(look).toContain("box-shadow: inset 0 0 0 1px var(--field-line)");
   // The search's own look, so the row reads as one kind of control.
   expect(css.split("\n.ac-searchfield {")[1]?.split("}")[0]).toContain("box-shadow: inset 0 0 0 1px var(--field-line)");
+});
+
+/** A stand-in for a dialog that closes on Escape. */
+function Listens({ onKey, children }: { onKey: () => void; children: ReactNode }) {
+  // biome-ignore lint/a11y/noStaticElementInteractions: a test wrapper that only counts the keys that reach it
+  return <div onKeyDown={onKey}>{children}</div>;
+}
+
+describe("SearchField Escape", () => {
+  test("with text it clears the field and stops there", () => {
+    let outer = 0;
+    let cleared = 0;
+    const { getByRole } = render(
+      <Listens onKey={() => outer++}>
+        <SearchField
+          aria-label="Buscar"
+          value="abc"
+          onChange={() => {}}
+          onClear={() => cleared++}
+          clearLabel="Limpar"
+        />
+      </Listens>,
+    );
+    fireEvent.keyDown(getByRole("searchbox"), { key: "Escape" });
+    expect(cleared).toBe(1);
+    expect(outer).toBe(0);
+  });
+
+  test("without onClear it calls onChange with an empty value", () => {
+    const seen: string[] = [];
+    const { getByRole } = render(
+      <SearchField aria-label="Buscar" defaultValue="abc" onChange={(e) => seen.push(e.target.value)} />,
+    );
+    fireEvent.keyDown(getByRole("searchbox"), { key: "Escape" });
+    expect(seen).toEqual([""]);
+  });
+
+  test("empty it lets Escape through", () => {
+    let outer = 0;
+    let cleared = 0;
+    const { getByRole } = render(
+      <Listens onKey={() => outer++}>
+        <SearchField aria-label="Buscar" value="" onChange={() => {}} onClear={() => cleared++} clearLabel="Limpar" />
+      </Listens>,
+    );
+    fireEvent.keyDown(getByRole("searchbox"), { key: "Escape" });
+    expect(cleared).toBe(0);
+    expect(outer).toBe(1);
+  });
 });

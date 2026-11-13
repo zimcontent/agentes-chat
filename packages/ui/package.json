@@ -37,6 +37,7 @@
     "./sky/workspace": "./src/sky/workspace.ts",
     "./sky/team": "./src/sky/team.ts",
     "./channel-refs": "./src/channel-refs.ts",
+    "./clip": "./src/clip.ts",
     "./diff": "./src/diff.ts",
     "./format": "./src/format.ts",
     "./markdown": "./src/markdown.ts",

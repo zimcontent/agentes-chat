@@ -1554,6 +1554,10 @@ function RoutineDetails({ routine: r, now, onClose }: { routine: Routine; now: D
                   ))}
                 </ol>
               )}
+              {/* Doug: a history that didn't load says so, with a retry, instead of an empty tab. */}
+              {runs.isError && list.length === 0 && (
+                <ErrorState error={runs.error} onRetry={() => void runs.refetch()} />
+              )}
               {runs.isSuccess && list.length === 0 && (
                 <p className="small muted">
                   {t("routines.noRuns")}
