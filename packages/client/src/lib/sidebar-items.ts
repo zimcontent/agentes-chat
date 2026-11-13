@@ -27,7 +27,8 @@ export const SIDEBAR_DEFAULTS: Record<SidebarItem, SidebarPlace> = {
   drive: "always",
   routines: "more",
   calendar: "more",
-  team: "always",
+  // DougBot: in More; the agents' list already ends with "Mais N agentes na Equipe".
+  team: "more",
   dashboards: "more",
   taskManager: "more",
 };

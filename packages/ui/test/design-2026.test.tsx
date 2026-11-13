@@ -382,8 +382,8 @@ describe("the presence badge (ADR 0084)", () => {
     const [sm, lg, agent, none] = Array.from(container.querySelectorAll(".ac-avatar"));
     expect([badge(sm)?.getAttribute("width"), badge(lg)?.getAttribute("width")]).toEqual(["11", "16.5"]);
     expect(sm?.querySelector(".ac-avatar__badge")?.getAttribute("title")).toBe("Ocupado");
-    // An agent is its DougBot (IDENTIDADE.md §7): its state is drawn in the bot, no badge beside it.
-    expect(badge(agent)).toBeFalsy();
+    // An agent is its DougBot (IDENTIDADE.md §7): its state is drawn in the bot, and its small dot says it too.
+    expect(agent?.querySelector(".ac-avatar__badge [data-presence='online']")).toBeTruthy();
     expect(agent?.getAttribute("data-estado")).toBe("ok");
     expect(none?.querySelector(".ac-avatar__badge")).toBeNull();
   });

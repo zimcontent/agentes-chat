@@ -1,4 +1,13 @@
-import { type CSSProperties, type HTMLAttributes, useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from "react";
+import {
+  type CSSProperties,
+  type HTMLAttributes,
+  useEffect,
+  useId,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import type { Expression } from "../agent/engine.js";
 import { addLiveAgent, drawLive, type LiveAgent } from "../agent/live";
 import { PIXEL_ART } from "../brand/doug";
@@ -275,8 +284,9 @@ export function Avatar({
       ) : (
         <span className="ac-avatar__initials">{initials ?? initialsOf(name)}</span>
       )}
-      {presence && !bot && (
-        // Pixels of 1 px on the small faces, 1.5 px from the profile cards' 56 px up. A bot says its state itself.
+      {presence && (
+        // Pixels of 1 px on the small faces, 1.5 px from the profile cards' 56 px up. A bot's face says its state, and
+        // its dot says it to a glance across the list (DougBot, the owner's note of 2026-11-13).
         <span className="ac-avatar__badge" title={presenceLabel}>
           <PresenceBadge presence={presence} size={size === "lg" || size === "xl" ? "lg" : "sm"} />
         </span>
