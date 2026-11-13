@@ -103,7 +103,6 @@ import {
   useMemo,
   useRef,
   useState,
-  useSyncExternalStore,
 } from "react";
 import { useTranslation } from "react-i18next";
 import { useApi } from "@/api/context";
@@ -144,7 +143,6 @@ import { ArchivedChannelsDialog } from "./ArchivedChannelsDialog";
 import { ChangeAvatarDialog } from "./AvatarBuilder";
 import { MoveChannelDialog, NewCategoryDialog, RenameCategoryDialog } from "./ChannelCategoryDialogs";
 import { openPalette } from "./CommandMenu";
-import { NEW_CHANNEL_EVENT, TABLET_QUERY, toggleSidebar, useSidebarCollapsed } from "./shell-events";
 import { DeleteAccountDialog } from "./DeleteAccount";
 import { MenuEntries } from "./DesktopMenus";
 import { useAgentMenu, useChannelMenu, usePersonMenu } from "./entity-menus";
@@ -161,6 +159,7 @@ import { sectionName, useSectionOrder } from "./SidebarOrder";
 import { SIDEBAR_TOOLS, SidebarSetupDialog, ToolList } from "./SidebarSetup";
 import { AgentGlow, AgentTrail, colorOf, WorkspaceSky } from "./Sky";
 import { SetStatusDialog, useSaveStatus } from "./StatusDialog";
+import { NEW_CHANNEL_EVENT, TABLET_QUERY, toggleSidebar, useSidebarCollapsed } from "./shell-events";
 
 /** An agent's sky for its busy chip (`.sidebar__busy`): both themes, the CSS picks one. */
 const selectionSky = (color: AgentColor) =>

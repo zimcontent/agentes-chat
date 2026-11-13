@@ -1,11 +1,12 @@
 import type { DesktopRelease } from "@agenteschat/client";
-import { type Platform, platformOf } from "@agenteschat/client/lib/machines";
+import { platformOf } from "@agenteschat/client/lib/machines";
 import { Button, Icon } from "@agenteschat/ui";
 import { type CSSProperties, useLayoutEffect, useRef, useState } from "react";
 import { Trans, useTranslation } from "react-i18next";
 import { type DesktopDownload, DownloadButtons, useBuildName, useDesktopDownloads } from "@/components/devices/parts";
 import { CommandBlock } from "@/components/machine-bits";
 import { SCENE_H, SCENE_W, Scene, type SceneId } from "./scenes";
+import type { InstallSystem } from "./system";
 import "./install.css";
 
 /*
@@ -15,13 +16,8 @@ import "./install.css";
  * page (`InstallSteps`: every step with its drawing).
  */
 
-/** The systems as the `/download` page's address names them (`?system=`). */
-export type InstallSystem = Platform;
-export const INSTALL_SYSTEMS: InstallSystem[] = ["mac", "windows", "linux"];
-
-export function systemOfParam(value: unknown): InstallSystem | undefined {
-  return INSTALL_SYSTEMS.find((s) => s === value);
-}
+// Doug: in system.ts, so the `/download` route's search check loads without the guide (see there).
+export { INSTALL_SYSTEMS, type InstallSystem, systemOfParam } from "./system";
 
 /** A system and, on Windows and Linux, whether its ARM64 build (a Mac has one build for both chips). */
 export interface InstallBuild {

@@ -3,9 +3,9 @@ import { useRouter } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useMediaQuery } from "./NavDrawer";
+import { WorkspaceSky } from "./Sky";
 // Doug: from shell-events.ts, not Sidebar.tsx and CommandMenu.tsx: the error screen loads this before the first paint.
 import { openPalette, TABLET_QUERY, useSidebarCollapsed } from "./shell-events";
-import { WorkspaceSky } from "./Sky";
 
 /**
  * The Mac app's title bar (ADR 0036): room for the

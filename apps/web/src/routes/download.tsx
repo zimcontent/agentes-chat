@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { type InstallSystem, systemOfParam } from "@/components/install/guide";
+// Doug: from system.ts, not guide.tsx: route files load with the first screen.
+import { type InstallSystem, systemOfParam } from "@/components/install/system";
 import { DownloadPage } from "@/pages/DownloadPage";
 
 /**
