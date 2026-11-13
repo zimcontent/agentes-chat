@@ -191,7 +191,9 @@ describe("Rotinas: editar, duplicar, apagar", () => {
     await settle(8);
     const avatar = card("Resumo da semana").querySelector(".ac-avatar--agent") as HTMLElement;
     expect(avatar.getAttribute("data-accessory")).toBe("hat");
-    expect(avatar.style.getPropertyValue("--av-top")).toBeTruthy();
+    // DougBot: the agent is its bot drawn by code, its color on the face (IDENTIDADE.md §8).
+    expect(avatar.querySelector(".ac-bot > svg")).not.toBeNull();
+    expect(avatar.style.getPropertyValue("--bot-cor")).toBeTruthy();
   });
 });
 

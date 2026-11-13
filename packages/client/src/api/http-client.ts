@@ -766,6 +766,10 @@ export function createHttpApi(options: TransportOptions = {}): HttpApi {
         request<{ previous: AgentLineChange[] }>(`${org(orgId)}/agent-lines`, { method: "PUT", json: { changes } }),
       proposeChannelMove: (orgId, input) => request(`${org(orgId)}/team/channel-move`, { json: input }),
       create: (orgId, input) => request<Agent>(`${org(orgId)}/agents`, { json: input }),
+      setAgentPhoto: (orgId, agentId, body) =>
+        files.upload<{ photo: string }>(`${org(orgId)}/agents/${enc(agentId)}/photo`, body, "PUT"),
+      removeAgentPhoto: (orgId, agentId) =>
+        request<void>(`${org(orgId)}/agents/${enc(agentId)}/photo`, { method: "DELETE" }),
       proposal: (orgId, messageId) => request<AgentProposal>(`${org(orgId)}/agent-proposals/${enc(messageId)}`),
       denyProposal: (orgId, messageId) =>
         request<AgentProposal>(`${org(orgId)}/agent-proposals/${enc(messageId)}/deny`, { json: {} }),

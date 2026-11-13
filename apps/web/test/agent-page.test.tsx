@@ -456,13 +456,12 @@ describe("agent page: who edits what", () => {
     expect(saveBar()).toBeNull();
   });
 
-  test("the owner changes the look, audience and computer, not access; the save sends only what they may", async () => {
+  test("the owner changes the photo, audience and computer, not access", async () => {
     const { state } = await go("?tab=settings", asOwner());
     expect(screen().queryByLabelText("Nome")).toBeNull();
     expect(document.body.textContent).toContain("Você é responsável da Ada");
-    // The look is right on the page: colors, then the eyes and what it wears as sliding rows.
-    await click(within(screen().getByRole("group", { name: "Cor" })).getByRole("button", { name: "Rosa" }));
-    expect(saveBar()?.textContent).toContain("1 alteração");
+    // DougBot: what the owner picks for its face is a photo (the bot comes from its trade).
+    expect(screen().getByRole("button", { name: /Enviar foto/ })).toBeTruthy();
     await openTab(/^Instruções/);
     expect(screen().queryByRole("textbox", { name: "Instruções" })).toBeNull();
     expect(document.body.textContent).toContain("Só admins editam as instruções.");
@@ -470,9 +469,8 @@ describe("agent page: who edits what", () => {
     await openTab(/^Ferramentas/);
     expect(screen().queryByRole("radiogroup", { name: "Nível em GitHub" })).toBeNull();
     expect(document.body.textContent).toContain("Só admins dão ou tiram acessos e repositórios.");
-    await click(within(saveBar() as HTMLElement).getByRole("button", { name: /^Salvar/ }));
-    await settle(6);
-    expect(updates(state)).toEqual([{ appearance: { color: "rose", eyes: "round", accessory: "none" } }]);
+    expect(saveBar()).toBeFalsy();
+    expect(updates(state)).toEqual([]);
   });
 
   test("the owner puts it in and takes it out of the channels they're in; the others show as they are", async () => {

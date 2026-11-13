@@ -399,6 +399,23 @@ describe("HTTP client: drive, storage, issues, routines, calendar, custom MCP, i
     expect(await (await api.artifacts.fileBlob("o1", "a1", 1)).text()).toBe('{"raw":true}');
   });
 
+  test("an agent's photo: a multipart PUT with the form at …/agents/{id}/photo answers { photo }; DELETE is 204", async () => {
+    const photos = `${org}/agents/a1/photo`;
+    const photo = `${org}/agents/a1/photo/0123456789abcdef.png`;
+    const { fetch, calls } = fakeFetch({
+      [`PUT ${photos}`]: { status: 200, body: { photo } },
+      [`DELETE ${photos}`]: { status: 204 },
+    });
+    const api = createHttpApi({ fetch });
+    const body = new FormData();
+    body.set("file", new File(["png"], "photo.png", { type: "image/png" }));
+    expect(await api.agents.setAgentPhoto("o1", "a1", body)).toEqual({ photo });
+    expect(calls[0]?.init.body).toBe(body);
+    expect(((calls[0] as Call).init.headers as Record<string, string>)["content-type"]).toBeUndefined();
+    expect(await api.agents.removeAgentPhoto("o1", "a1")).toBeUndefined();
+    expect(calls.map((c) => `${c.init.method} ${c.url}`)).toEqual([`PUT ${photos}`, `DELETE ${photos}`]);
+  });
+
   test("connected computers: the device code, desktop release and access reduce (ADR 0036)", async () => {
     const access = { folders: [], tools: { claude: true, codex: false, commands: false } };
     const release = {

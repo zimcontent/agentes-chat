@@ -361,6 +361,10 @@ export const FormerAgent = z
     id: z.uuid(),
     name: z.string(),
     role: z.string(),
+    photo: z.string().nullable().openapi({
+      description:
+        "Its real photo (`/api/app/organizations/{orgId}/agents/{agentId}/photo/{file}`); null: the drawn look.",
+    }),
     appearance: AgentAppearance.nullable(),
     deleted: z.boolean().openapi({ description: "Deleted for good; false: archived (an admin may still delete it)." }),
   })
@@ -423,6 +427,10 @@ export const Agent = z
         "Whether the current person sees how it works: its owner, who manages agents, and whoever it answers. Without it `instructions` is empty and its tools, memory, usage and activity answer 403 `agent.details_hidden`.",
     }),
     appearance: AgentAppearance.nullable().openapi({ description: "Its look; null = the default." }),
+    photo: z.string().nullable().openapi({
+      description:
+        "Its real photo (`/api/app/organizations/{orgId}/agents/{agentId}/photo/{file}`); null: the drawn look.",
+    }),
     mediaReplies: z.boolean().openapi({
       description:
         "It may send a sticker or a GIF (ADR 0091): when someone asks for one, and after a light reply as often as the workspace's `agentMedia` allows.",

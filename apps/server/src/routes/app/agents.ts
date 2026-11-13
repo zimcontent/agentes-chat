@@ -1,9 +1,11 @@
 import {
+  AGENT_PHOTO_LIMITS,
   type AgentBrainSummary,
   type Agent as AgentRow,
   adjustTeamAgent,
   agentBrainLines,
   agentBudgetsThisMonth,
+  agentPhotoFile,
   agentStatuses,
   agentView,
   allowsPrivateEndpoints,
@@ -59,6 +61,7 @@ import {
   proposeChannelMove,
   publishAgentsChanged,
   publishMachineAgentsChanged,
+  removeAgentPhoto,
   requirePermission,
   revokeCredential,
   SETUP_AGENTS_MAX,
@@ -66,6 +69,7 @@ import {
   setAgentAppearance,
   setAgentAudience,
   setAgentBrain,
+  setAgentPhoto,
   setReportsTo,
   speakerOf,
   summaryModelReady,
@@ -78,10 +82,15 @@ import {
   usageQueue,
   usageSummary,
   useTeamTemplate,
+  ValidationError,
 } from "@agenteschat/engine";
 import { contextWindowOf, nanoUsdToUsd, pricesAt, usdToNanoUsd } from "@agenteschat/providers";
 import { learnedPlanModels } from "@agenteschat/providers/plans";
 import { createRoute, z } from "@hono/zod-openapi";
+import type { Context } from "hono";
+import { bodyLimit } from "hono/body-limit";
+import { apiError, errorResponse } from "../../http/errors";
+import { imageFile } from "../../http/image-file";
 import {
   type AppDeps,
   aiStatusDeps,
@@ -90,6 +99,7 @@ import {
   errors,
   json,
   keyTester,
+  MULTIPART_SLACK_BYTES,
   noContent,
   OrgParams,
   requireSession,
@@ -826,6 +836,10 @@ export function agentRoutes(deps: AppDeps) {
     handle: z.string(),
     role: z.string(),
     appearance: AgentAppearance.nullable(),
+    photo: z.string().nullable().openapi({
+      description:
+        "Its real photo (`/api/app/organizations/{orgId}/agents/{agentId}/photo/{file}`); null: the drawn look.",
+    }),
     ownerUserId: z.string().nullable(),
     reportsToAgentId: z.uuid().nullable().openapi({ description: "Responde a: the agent it reports to, if any." }),
     capabilities: z.array(z.string()).openapi({
@@ -1525,6 +1539,80 @@ export function agentRoutes(deps: AppDeps) {
         200,
       );
     },
+  );
+
+  // ── Its real photo (like a person's): whoever may change its look; the org's members see it ──────────────────
+  const photos = { db, blobs: adapters.platformBlobs, pubsub: adapters.pubsub };
+  const photoTooLarge = (c: Context) => apiError(c, 413, "agent_photo.too_large", "The image can be up to 5 MB");
+  app.use("/organizations/:orgId/agents/:agentId/photo", async (c, next) =>
+    c.req.method === "PUT"
+      ? bodyLimit({ maxSize: AGENT_PHOTO_LIMITS.maxBytes + MULTIPART_SLACK_BYTES, onError: photoTooLarge })(c, next)
+      : next(),
+  );
+  app.openapi(
+    createRoute({
+      method: "put",
+      path: "/organizations/{orgId}/agents/{agentId}/photo",
+      tags,
+      security,
+      summary:
+        "Set the agent's real photo (multipart `file`: JPEG, PNG or WebP up to 5 MB, told by its bytes; metadata is removed). Its owner or who manages agents.",
+      request: {
+        params: AgentParams,
+        body: {
+          required: true,
+          content: {
+            "multipart/form-data": {
+              schema: z.object({ file: z.any().openapi({ type: "string", format: "binary" }) }),
+            },
+          },
+        },
+      },
+      responses: {
+        200: json(z.object({ photo: z.string() })),
+        413: errorResponse("The image is too large (`agent_photo.too_large`)"),
+        429: errorResponse("Too many photo changes"),
+        ...errors,
+      },
+    }),
+    async (c) => {
+      const { orgId, agentId } = c.req.valid("param");
+      const file: unknown = c.req.valid("form").file;
+      if (!(file instanceof File)) throw new ValidationError("Send the image in the field file", "agent_photo.file");
+      if (file.size > AGENT_PHOTO_LIMITS.maxBytes) return photoTooLarge(c);
+      const limit = await adapters.rateLimiter.consume(`agent-photo:${agentId}`, { limit: 20, windowMs: 3600_000 });
+      if (!limit.allowed) return apiError(c, 429, "rate_limited", "Too many photo changes. Try again later.");
+      const bytes = new Uint8Array(await file.arrayBuffer());
+      return c.json(await setAgentPhoto(photos, c.get("user").id, orgId, agentId, bytes), 200);
+    },
+  );
+  app.openapi(
+    createRoute({
+      method: "delete",
+      path: "/organizations/{orgId}/agents/{agentId}/photo",
+      tags,
+      security,
+      summary: "Remove the agent's photo (back to its drawn look). Its owner or who manages agents.",
+      request: { params: AgentParams },
+      responses: { 204: noContent[204], ...errors },
+    }),
+    async (c) => {
+      const { orgId, agentId } = c.req.valid("param");
+      await removeAgentPhoto(photos, c.get("user").id, orgId, agentId);
+      return c.body(null, 204);
+    },
+  );
+  // The photo's file, for the org's members. The name is a content hash: cached for good.
+  app.get("/organizations/:orgId/agents/:agentId/photo/:file", async (c) =>
+    imageFile(
+      await agentPhotoFile(
+        { db, blobs: adapters.platformBlobs },
+        c.get("user").id,
+        c.req.param("orgId"),
+        c.req.param("agentId"),
+        c.req.param("file"),
+      ),
+    ),
   );
 
   app.openapi(

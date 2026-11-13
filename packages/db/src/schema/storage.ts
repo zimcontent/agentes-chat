@@ -23,7 +23,8 @@ import { organizations } from "./tenancy";
  * neither a bucket (S3_*) nor a folder on disk (FILES_DIR). Keys start with
  * `orgs/{org_id}/` or `org-logos/{org_id}/` (the row carries that org and is
  * deleted with it) or `avatars/{user_id}/` (a person's photo, shown in every
- * org they are in, so org_id is null). Content is base64 (artifacts are
+ * org they are in, so org_id is null). An agent's photo is under its org's
+ * `org-logos/{org_id}/agents/{agent_id}/`. Content is base64 (artifacts are
  * small; big files belong in a bucket).
  */
 export const blobs = pgTable(

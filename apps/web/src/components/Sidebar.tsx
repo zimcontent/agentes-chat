@@ -64,6 +64,7 @@ import {
   Icon,
   type IconName,
   Kbd,
+  Logo,
   Menu,
   MenuCheckboxItem,
   MenuFace,
@@ -880,6 +881,8 @@ export function Sidebar() {
     >
       <div className="sidebar__top">
         <WorkspaceSky part="side" rail={rail} />
+        {/* The signature on top (IDENTIDADE.md §3): the Doug close up and the name, no box. */}
+        {!rail && <Logo className="sidebar__assina" size={18} />}
         {personal ? (
           // A personal workspace (ADR 0159): the person on top (their account, settings and workspaces in one menu),
           // the bell and the collapse beside them. The desktop app's title bar has its own collapse (desktop.css).
@@ -2360,7 +2363,7 @@ function useWorkspaceLook() {
           sub: null,
           personal: true,
         }
-      : { leading: <OrgMark logo={o.logo} size={mark} />, name: o.name, sub: null, personal: false };
+      : { leading: <OrgMark logo={o.logo} name={o.name} size={mark} />, name: o.name, sub: null, personal: false };
 }
 
 /**
@@ -2493,7 +2496,7 @@ function WorkspaceMenu({ summary }: { summary: string | null }) {
         aria-label={t("shell.workspaceMenuOf", { name: org.name })}
         onClick={() => setOpen(true)}
       >
-        <OrgMark logo={org.logo} className="sidebar__org-mark" />
+        <OrgMark logo={org.logo} name={org.name} className="sidebar__org-mark" />
         <span className="sidebar__org-text">
           <span className="sidebar__org-name">{org.name}</span>
           {summary && <span className="sidebar__org-meta">{summary}</span>}
@@ -2506,7 +2509,7 @@ function WorkspaceMenu({ summary }: { summary: string | null }) {
         anchor={trigger}
         closeLabel={t("common.close")}
         backdrop={<MenuHorizon />}
-        mark={<OrgMark logo={org.logo} size={82} />}
+        mark={<OrgMark logo={org.logo} name={org.name} size={82} />}
         title={org.name}
         meta={
           <>

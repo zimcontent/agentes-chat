@@ -17,6 +17,27 @@ import {
   setChannelIcon,
 } from "@agenteschat/engine";
 
+/**
+ * The DougBot team (identidade/dougbot-identidade, §7) and a few free bots, with the trades that pick their forms, and
+ * the states the shots show: run again, it adds who is missing and sets the roles. Without an AI in this pilot an
+ * agent with nothing going on reads offline (asleep); background work (`agent_works` live, no run) reads at work, and
+ * a run waiting on an approval reads as asking.
+ */
+const TEAM = [
+  { name: "Doug BOSS", handle: "doug", role: "Chefe de operações", color: "green" },
+  { name: "SONY", handle: "sony", role: "Edição de vídeo", color: "indigo" },
+  { name: "ROSA", handle: "rosa", role: "Design e capas", color: "rose" },
+  { name: "KIARA", handle: "kiara", role: "Financeiro e cobrança", color: "violet" },
+  { name: "JUNIN", handle: "junin", role: "Código e automações", color: "amber" },
+  { name: "MARK", handle: "mark", role: "Marketing e tráfego", color: "amber" },
+  { name: "CHESS", handle: "chess", role: "Estratégia e planejamento", color: "violet" },
+  { name: "Copywriter", handle: "copywriter", role: "Redação de anúncios", color: "sky" },
+  { name: "Editorzim", handle: "editorzim", role: "Cortes para Reels", color: "sky" },
+  { name: "Pesquisador Growth", handle: "pesquisador-growth", role: "Pesquisa de mercado", color: "sky" },
+  { name: "Suporte Zim Studio", handle: "suporte-zimstudio", role: "Suporte técnico", color: "sky" },
+  { name: "Humanizador", handle: "humanizador", role: "Revisão de textos", color: "sky" },
+];
+
 const email = process.argv[2] ?? "gabriel@timezim.test";
 const handle = createDatabase({ url: process.env.DATABASE_URL ?? "", poolMax: 1 });
 const db = handle.db;
@@ -41,18 +62,13 @@ const [seeded] = await db
   .from(schema.channels)
   .where(and(eq(schema.channels.orgId, orgId), eq(schema.channels.name, "lexeer")));
 if (!seeded) await seedContent();
+await seedTeam();
 await seedPhotos();
 await handle.close();
 process.exit(0);
 
 async function seedContent() {
-const agentDefs = [
-  { name: "Doug BOSS", handle: "doug", role: "Chefe de operações", color: "green" },
-  { name: "SONY", handle: "sony", role: "Edição de vídeo", color: "indigo" },
-  { name: "ROSA", handle: "rosa", role: "Roteiro e copy", color: "rose" },
-  { name: "KIARA", handle: "kiara", role: "Design e thumbnails", color: "violet" },
-  { name: "JUNIN", handle: "junin", role: "Pesquisa e dados", color: "amber" },
-];
+const agentDefs = TEAM.slice(0, 5);
 const agents: Record<string, string> = {};
 for (const a of agentDefs) {
   const made = await createAgent(
@@ -156,6 +172,125 @@ await person(dm.id, "Pode cobrar, valeu!");
 await agent(dm.id, "doug", "Feito. Te aviso assim que ela mandar.");
 
 console.log(JSON.stringify({ orgId, channels, agents, dm: dm.id }));
+}
+
+async function seedTeam() {
+  const rows = await db
+    .select({ id: schema.agents.id, handle: schema.agents.handle })
+    .from(schema.agents)
+    .where(eq(schema.agents.orgId, orgId));
+  const ids: Record<string, string> = Object.fromEntries(rows.map((r) => [r.handle, r.id]));
+  const [lexeer] = await db
+    .select({ id: schema.channels.id })
+    .from(schema.channels)
+    .where(and(eq(schema.channels.orgId, orgId), eq(schema.channels.name, "lexeer")));
+  for (const a of TEAM) {
+    if (!ids[a.handle]) {
+      const made = await createAgent(
+        db,
+        userId,
+        orgId,
+        { name: a.name, handle: a.handle, role: a.role, instructions: `Você é ${a.name}, ${a.role}.` },
+        { model: "auto" },
+      );
+      ids[a.handle] = made.id;
+      if (lexeer) await db.insert(schema.channelMembers).values({ orgId, channelId: lexeer.id, agentId: made.id });
+    }
+    await db.update(schema.agents).set({ role: a.role }).where(eq(schema.agents.id, ids[a.handle] as string));
+  }
+  if (!lexeer) return;
+  // At work: a conversation run going in LEXEER for SONY, ROSA and Editorzim. This pilot has no worker for them, so
+  // their heartbeat is set ahead (a run reads at work while its heartbeat is fresh): they stay at work until the next
+  // seed. A long run reads busy.
+  const [already] = await db
+    .select({ id: schema.agentRuns.id })
+    .from(schema.agentRuns)
+    .where(and(eq(schema.agentRuns.orgId, orgId), eq(schema.agentRuns.status, "running")))
+    .limit(1);
+  if (!already) {
+    const working = async (handle: string, body: string) => {
+      const said = await insertMessage(db, {
+        orgId,
+        channelId: lexeer.id,
+        author: { type: "person", userId },
+        body,
+        createdAt: new Date(Date.now() - 12 * 60_000),
+      });
+      await db.insert(schema.agentRuns).values({
+        orgId,
+        agentId: ids[handle] as string,
+        channelId: lexeer.id,
+        threadRootId: said.id,
+        triggerMessageId: said.id,
+        trigger: "mention",
+        hop: 0,
+        status: "running",
+        startedAt: new Date(Date.now() - 10 * 60_000),
+        heartbeatAt: new Date(Date.now() + 30 * 24 * 3600_000),
+      });
+    };
+    await working("sony", "@sony monta o reels 724 Palm no ritmo da trilha.");
+    await working("rosa", "@rosa fecha as três capas de quinta.");
+    await working("editorzim", "@editorzim corta o podcast em três Reels.");
+  }
+  // Asking: MARK waits on your approval to publish (a run waiting, as the approval card leaves it).
+  const [asking] = await db
+    .select({ id: schema.agentRuns.id })
+    .from(schema.agentRuns)
+    .where(and(eq(schema.agentRuns.orgId, orgId), eq(schema.agentRuns.agentId, ids.mark as string)))
+    .limit(1);
+  if (!asking) {
+    const ask = await insertMessage(db, {
+      orgId,
+      channelId: lexeer.id,
+      author: { type: "agent", agentId: ids.mark as string, runId: null, hop: 0, stretchId: null },
+      body: "Posso publicar a campanha de sexta? Preciso do seu ok.",
+      createdAt: new Date(Date.now() - 5 * 60_000),
+    });
+    await db.insert(schema.agentRuns).values({
+      orgId,
+      agentId: ids.mark as string,
+      channelId: lexeer.id,
+      threadRootId: ask.id,
+      triggerMessageId: ask.id,
+      trigger: "mention",
+      hop: 0,
+      status: "waiting_approval",
+      startedAt: new Date(Date.now() - 5 * 60_000),
+    });
+  }
+  // A DM with ROSA.
+  const rosa = await openPersonAgentDm(db, orgId, userId, ids.rosa as string);
+  const [said] = await db
+    .select({ id: schema.messages.id })
+    .from(schema.messages)
+    .where(and(eq(schema.messages.orgId, orgId), eq(schema.messages.channelId, rosa.id)))
+    .limit(1);
+  if (!said) {
+    const at = (min: number) => new Date(Date.now() - min * 60_000);
+    await insertMessage(db, {
+      orgId,
+      channelId: rosa.id,
+      author: { type: "person", userId },
+      body: "Rosa, preciso de três capas para o reels de quinta.",
+      createdAt: at(40),
+    });
+    await insertMessage(db, {
+      orgId,
+      channelId: rosa.id,
+      author: { type: "agent", agentId: ids.rosa as string, runId: null, hop: 0, stretchId: null },
+      body: "Fechado. Faço em prata fosca, com o gancho em uma linha só. Te mando as três ainda hoje.",
+      createdAt: at(38),
+    });
+    await insertMessage(db, {
+      orgId,
+      channelId: rosa.id,
+      author: { type: "person", userId },
+      body: "Perfeito, valeu!",
+      createdAt: at(36),
+    });
+  }
+  console.log("team", ids);
 }
 
 // The photos, as the app's photo endpoints store them (the platform files in Postgres when no S3 nor FILES_DIR is set,

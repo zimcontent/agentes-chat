@@ -1,0 +1,120 @@
+/*
+ * DougBot: the identity's tokens (identidade/dougbot-identidade/tokens.css, approved 12 November 2026), the same names
+ * and values, in two themes. Dark is the identity's own; light is the same system on a light stage (the identity
+ * defines only the signature on light, §10): its grays from the signature's light ground #F4F6F2, the green
+ * #9CFA05 still only on the Doug and the main action, and a darker green #3F6600 for the green's words and edges, where
+ * the light green on white falls under AA.
+ *
+ * Added beside the identity's names (both themes): --db-texto-leve (the quiet text, 4.5:1 on every surface; the
+ * identity's #6B6B6B stays for marks), --db-verde-acento (the green on words and edges), --db-chapa(-leve) (a hover's
+ * plate), --db-sombra(-grande) and --db-veu (what lies under a floating piece and a dialog).
+ */
+:root,
+[data-theme="dark"] {
+  color-scheme: dark;
+
+  /* palco e linhas */
+  --db-palco: #0a0a0a;
+  --db-palco-2: #121212;
+  --db-palco-3: #1a1a1a;
+  --db-palco-4: #212121;
+  --db-linha: #262626;
+  --db-linha-2: #303030;
+  --db-linha-3: #424242;
+
+  /* texto */
+  --db-texto: #ededed;
+  --db-texto-2: #999999;
+  --db-texto-3: #6b6b6b;
+  --db-texto-leve: #8a8a8a;
+
+  /* verde do Doug: só ele e a ação principal */
+  --db-verde: #9cfa05;
+  --db-verde-claro: #c5ff52;
+  --db-verde-fundo: #84e407;
+  --db-verde-tinta: #0a0a0a;
+  --db-verde-suave: rgba(156, 250, 5, 0.12);
+  --db-verde-luz: rgba(156, 250, 5, 0.35);
+  --db-verde-botao: linear-gradient(180deg, #c5ff52, #9cfa05 55%, #84e407);
+  --db-verde-acento: #9cfa05;
+
+  /* cores dos bots */
+  --db-rosa: #ec4899;
+  --db-ciano: #22d3ee;
+  --db-laranja: #fb923c;
+  --db-violeta: #a78bfa;
+  --db-amarelo: #facc15;
+  --db-azul: #60a5fa;
+  --db-turquesa: #2dd4bf;
+  --db-fucsia: #e879f9;
+
+  /* avisos */
+  --db-atencao: #f5b544;
+  --db-erro: #f2555a;
+
+  /* vidro */
+  --db-vidro: rgba(18, 18, 18, 0.78);
+  --db-vidro-leve: rgba(18, 18, 18, 0.58);
+  --db-vidro-cartao: linear-gradient(180deg, rgba(255, 255, 255, 0.043), rgba(255, 255, 255, 0.016));
+  --db-vidro-borda: rgba(255, 255, 255, 0.086);
+  --db-vidro-brilho: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  --db-desfoque: blur(20px) saturate(140%);
+  --db-chapa: rgba(255, 255, 255, 0.07);
+  --db-chapa-leve: rgba(255, 255, 255, 0.04);
+  --db-sombra: 0 8px 24px -8px rgba(0, 0, 0, 0.6);
+  --db-sombra-grande: 0 24px 56px -16px rgba(0, 0, 0, 0.75);
+  --db-veu: rgba(0, 0, 0, 0.55);
+
+  /* raio */
+  --db-r-1: 8px;
+  --db-r-2: 12px;
+  --db-r-3: 16px;
+  --db-r-4: 22px;
+  --db-r-5: 34px;
+
+  /* fontes (self-hosted @fontsource-variable: their family names first) */
+  --db-f-titulo: "Manrope Variable", "Manrope", "Inter Variable", "Inter", ui-sans-serif, system-ui, -apple-system,
+    "Segoe UI", sans-serif;
+  --db-f-texto: "Inter Variable", "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --db-f-codigo: "JetBrains Mono Variable", "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+  /* movimento */
+  --db-mola: cubic-bezier(0.34, 1.4, 0.64, 1);
+  --db-saida: cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+[data-theme="light"] {
+  color-scheme: light;
+
+  --db-palco: #f4f6f2;
+  --db-palco-2: #ffffff;
+  --db-palco-3: #eef0eb;
+  --db-palco-4: #e5e8e1;
+  --db-linha: #dde0d8;
+  --db-linha-2: #cfd3ca;
+  --db-linha-3: #b5bab0;
+
+  --db-texto: #0a0a0a;
+  --db-texto-2: #565a52;
+  --db-texto-3: #8a8e85;
+  --db-texto-leve: #62665e;
+
+  /* The green fills stay the identity's; its words and edges go darker to read AA on white. */
+  --db-verde-suave: rgba(124, 200, 0, 0.16);
+  --db-verde-luz: rgba(63, 102, 0, 0.45);
+  --db-verde-acento: #3f6600;
+
+  --db-atencao: #8a5a00;
+  --db-erro: #c4282e;
+
+  --db-vidro: rgba(255, 255, 255, 0.82);
+  --db-vidro-leve: rgba(255, 255, 255, 0.62);
+  --db-vidro-cartao: linear-gradient(180deg, #ffffff, #fafbf8);
+  --db-vidro-borda: rgba(10, 10, 10, 0.09);
+  --db-vidro-brilho: inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  --db-chapa: rgba(10, 10, 10, 0.06);
+  --db-chapa-leve: rgba(10, 10, 10, 0.035);
+  --db-sombra: 0 8px 24px -10px rgba(10, 10, 10, 0.18);
+  --db-sombra-grande: 0 24px 56px -18px rgba(10, 10, 10, 0.22);
+  --db-veu: rgba(10, 10, 10, 0.28);
+}

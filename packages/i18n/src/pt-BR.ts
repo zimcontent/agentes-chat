@@ -7,7 +7,7 @@ import type { LocaleStrings } from "./plurals";
  * no exclamation marks, buttons start with a verb, "agentes" in lower case.
  */
 export const ptBR = {
-  app: { name: "Doug" },
+  app: { name: "DougBot" },
   common: {
     close: "Fechar",
     joinSentences: "{{a}} {{b}}",
@@ -35,7 +35,7 @@ export const ptBR = {
     /** A server error (a 5xx of its own): nothing the person did, and nothing they can fix. */
     ourSide: "Algo deu errado do nosso lado. Tente de novo daqui a pouco.",
     signedOut: "Sua sessão terminou. Entre de novo para continuar.",
-    newVersion: "Tem uma versão nova do Doug.",
+    newVersion: "Tem uma versão nova do DougBot.",
     reload: "Recarregar",
     copy: "Copiar",
     copied: "Copiado",
@@ -60,7 +60,7 @@ export const ptBR = {
     tooMany: "Muitas tentativas. Tente de novo mais tarde.",
     /** A request with no answer at all (`errorText`): the browser offline, or the server out of reach. */
     offline: "Você está sem internet. Confira a conexão e tente de novo.",
-    unreachable: "Sem conexão com o Doug agora. Tente de novo em instantes.",
+    unreachable: "Sem conexão com o DougBot agora. Tente de novo em instantes.",
   },
   roles: {
     owner: "Dono",
@@ -457,11 +457,11 @@ export const ptBR = {
       openMail: "Abrir o {{app}}",
       ownerWaits: "Este servidor espera o seu dono.",
       ownerWaitsLead: "Abra o link de dono deste servidor (termina em /owner#claim=…), neste computador ou no celular.",
-      noPassword: "Esta conta entra pelo app do Doug.",
+      noPassword: "Esta conta entra pelo app do DougBot.",
       noPasswordLead:
         "No computador onde este servidor roda, abra o app e escolha Adicionar uma senha em Configurações\u00a0›\u00a0Sua conta.",
       backToSignIn: "Voltar para entrar",
-      toAuthorizeApp: "Para conectar um app ao Doug.",
+      toAuthorizeApp: "Para conectar um app ao DougBot.",
     },
     desktop: {
       browser: "Continue no navegador",
@@ -472,11 +472,11 @@ export const ptBR = {
       otherServer: "Usar outro servidor",
       opening: "Abrindo {{provider}}…",
       confirm: "É o seu app?",
-      confirmLead: "Este código tem que ser o mesmo que aparece no app Doug no seu computador.",
+      confirmLead: "Este código tem que ser o mesmo que aparece no app DougBot no seu computador.",
       confirmYes: "Sim, entrar no app",
       confirmNo: "Não fui eu",
       done: "Tudo certo.",
-      doneLead: "Você entrou no app Doug. Pode fechar esta aba.",
+      doneLead: "Você entrou no app DougBot. Pode fechar esta aba.",
       expired: "Esse pedido expirou.",
       expiredLead: "Volte ao app e escolha {{provider}} de novo.",
       handover: "Entrando com a sua conta do outro aparelho…",
@@ -498,17 +498,17 @@ export const ptBR = {
     },
     desktopOwner: {
       continue: "Continuar neste {{device}}",
-      text: "Você instalou o Doug neste {{device}}: não precisa de senha.",
+      text: "Você instalou o DougBot neste {{device}}: não precisa de senha.",
     },
     /** The line over the sign-in in the desktop app: which server it signs in to (ADR 0158). */
     server: {
       into: "Entrando em <b>{{server}}</b>",
-      intoHere: "Entrando no Doug <b>deste {{device}}</b>",
+      intoHere: "Entrando no DougBot <b>deste {{device}}</b>",
     },
     /** "Forgot password" on a server that sends no email (ADR 0158). */
     forgotHere: {
       ownerTitle: "Aqui você não precisa de senha.",
-      ownerLead: "Você instalou o Doug neste {{device}}. Entre por aqui e crie uma senha nova em seguida.",
+      ownerLead: "Você instalou o DougBot neste {{device}}. Entre por aqui e crie uma senha nova em seguida.",
       notOwner: "Não é a conta de quem instalou? Peça a um dono do seu workspace um link de senha nova.",
       title: "Este servidor não manda e-mail.",
       lead: "Peça a um dono do seu workspace um link de senha nova. Ele gera em Membros, e o link vale por 1 hora.",
@@ -10058,6 +10058,15 @@ export const ptBR = {
     copied: "Código copiado.",
   },
   photo: {
+    agent: {
+      title: "Foto",
+      help: "Uma foto de verdade no lugar do bot desenhado. Sem foto, fica o avatar do DougBot.",
+      dialogTitle: "Foto do agente",
+      send: "Enviar foto",
+      useBot: "Usar avatar do DougBot",
+      saved: "Foto do agente atualizada.",
+      removed: "O agente voltou ao avatar do DougBot.",
+    },
     label: "Foto",
     change: "Trocar foto",
     title: "Foto do perfil",
@@ -14600,7 +14609,7 @@ export const ptBR = {
       rolesPersonal: "O que cada pessoa daqui pode fazer. Quem é dono pode tudo.",
     },
     about: {
-      basedOn: "Doug — baseado em <site>agentes.chat</site> by Codari Global, LLC (https://agentes.chat)",
+      basedOn: "Baseado no <site>agentes.chat</site> da Codari Global, LLC · AGPL-3.0",
       version: "Versão",
       license: "Software livre sob a <license>GNU Affero General Public License v3</license>, sem garantia.",
       source: "Código-fonte",

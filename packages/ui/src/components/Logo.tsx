@@ -1,27 +1,43 @@
-import type { CSSProperties, ImgHTMLAttributes } from "react";
-import { BRAND_MARK_URL, BRAND_NAME } from "../brand/doug";
+import type { CSSProperties, HTMLAttributes } from "react";
+import type { DougBotEstado } from "../brand/dougbot-avatar.js";
+import { BRAND_NAME } from "../brand/doug";
 import { cx } from "../cx";
+import { BotFace } from "./BotFace";
+
+const DOUG = { bot: "doug" } as const;
 
 /**
- * Doug's mark: the mascot's art from one swappable file (`BRAND_MARK_URL`), so the final art replaces the placeholder
- * without touching any screen.
+ * The Doug close up (IDENTIDADE.md §2–3): the product's mark, drawn by the identity's code, never an image. No light
+ * on the floor: it sits beside words.
  */
 export function DougMark({
   size,
   className,
   label,
+  style,
+  estado,
   ...rest
-}: { size?: number; className?: string; label?: string } & Omit<ImgHTMLAttributes<HTMLImageElement>, "src" | "alt">) {
-  return (
-    <img
-      {...rest}
-      src={BRAND_MARK_URL}
-      className={cx("ac-logo__mark", className)}
-      style={size ? { width: size, height: size } : undefined}
-      alt={label ?? ""}
-      aria-hidden={label ? undefined : true}
-      draggable={false}
-    />
+}: {
+  size?: number;
+  className?: string;
+  label?: string;
+  /** His state (§2): at work while something loads. */
+  estado?: DougBotEstado;
+} & Omit<HTMLAttributes<HTMLSpanElement>, "children">) {
+  const shared = {
+    ...rest,
+    className: cx("ac-logo__mark", className),
+    style: size ? { width: size, height: size, ...style } : style,
+  };
+  const face = <BotFace bot={DOUG} estado={estado} guess={size ?? 32} semBrilho />;
+  return label ? (
+    <span {...shared} role="img" aria-label={label}>
+      {face}
+    </span>
+  ) : (
+    <span {...shared} aria-hidden="true">
+      {face}
+    </span>
   );
 }
 
@@ -29,28 +45,31 @@ export function DougMark({
 export const LogoMark = DougMark;
 
 export interface LogoProps {
-  /** Kept for callers: both variants show the name alone. */
+  /** Kept for callers: both variants show the signature. */
   variant?: "main" | "expanded";
   /** One-color version. */
   mono?: boolean;
-  /** Font size in px; the mark scales with it. Below 18px use `LogoMark` alone. */
+  /** The name's size in px; the Doug is 1.42 times it, 0.36 of it away (IDENTIDADE.md §3). */
   size?: number;
   className?: string;
   style?: CSSProperties;
 }
 
-/** The product's logo: mark + name. Accessible name is the brand's. */
-export function Logo({ mono, size = 24, className, style }: LogoProps) {
+/**
+ * The signature (IDENTIDADE.md §3): the Doug close up and the name, side by side, live text in Manrope ("Doug" 800,
+ * "Bot" 500, one color). No box, no seal, no shadow. Its accessible name is the brand's.
+ */
+export function Logo({ mono, size = 22, className, style }: LogoProps) {
   return (
     <span
-      className={cx("ac-logo", mono && "ac-logo--mono", className)}
-      style={{ fontSize: size, ...style }}
+      className={cx("ac-logo", "db-assina", mono && "ac-logo--mono", className)}
+      style={{ "--t": `${size}px`, ...style } as CSSProperties}
       role="img"
       aria-label={BRAND_NAME}
     >
       <DougMark />
       <span className="ac-logo__word" aria-hidden="true">
-        {BRAND_NAME}
+        <b>Doug</b>Bot
       </span>
     </span>
   );

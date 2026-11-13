@@ -328,6 +328,10 @@ const AgentDetail = z
         "Whether the current person sees how it works (its owner, who manages agents, whoever it answers). Without it the instructions are empty and the month's numbers zero: only its public card.",
     }),
     appearance: AgentAppearance.nullable(),
+    photo: z.string().nullable().openapi({
+      description:
+        "Its real photo (`/api/app/organizations/{orgId}/agents/{agentId}/photo/{file}`); null: the drawn look.",
+    }),
     mediaReplies: z.boolean().openapi({
       description:
         "It may send a sticker or a GIF (ADR 0091): when someone asks for one, and after a light reply as often as the workspace's `agentMedia` allows.",
@@ -1428,6 +1432,7 @@ export function managementRoutes(deps: AppDeps) {
           canTalk: canTalkTo(d.agent, userId, speakerOf(viewer)),
           seesDetails,
           appearance: v.appearance,
+          photo: v.photo,
           mediaReplies: v.mediaReplies,
           channels: d.channels,
           createdAt: v.createdAt.toISOString(),

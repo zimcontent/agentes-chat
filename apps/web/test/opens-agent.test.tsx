@@ -105,14 +105,11 @@ describe("the picture on an agent's card", () => {
     expect(screen().queryByRole("alertdialog")).toBeNull();
   });
 
-  test("its status dot opens nothing", async () => {
+  test("its bot carries its state, no status dot beside it (IDENTIDADE.md §7)", async () => {
     await go(seedState());
     const c = await openCard();
-    const dot = c.querySelector(".ac-avatar__badge") as HTMLElement;
-    expect(dot).toBeTruthy();
-    await click(dot);
-    expect(panel()).toBeNull();
-    expect(card()).toBeTruthy();
+    expect(c.querySelector(".ac-avatar__badge")).toBeNull();
+    expect(c.querySelector(".ac-avatar--bot[data-estado]")).toBeTruthy();
   });
 
   test("plain for who sees only its public card", async () => {

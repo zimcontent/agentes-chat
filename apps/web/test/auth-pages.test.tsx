@@ -46,7 +46,7 @@ const ACCOUNT: SignInOptions = { account: true, password: true, providers: [], c
 const NEW: SignInOptions = { account: false, password: false, providers: [], canSignUp: true };
 
 describe("the sign-in forms when the server doesn't answer", () => {
-  const UNREACHABLE = "Sem conexão com o Doug agora. Tente de novo em instantes.";
+  const UNREACHABLE = "Sem conexão com o DougBot agora. Tente de novo em instantes.";
   const alertText = () => screen().getByRole("alert").textContent;
 
   test("Continuar with no answer: why, under the field, and Continuar works again", async () => {
@@ -356,7 +356,7 @@ describe("Entrar a caminho de algum lugar: a página diz para onde", () => {
 
     // An AI app's sign-in (ADR 0119): back to its consent page.
     await renderApp(at("/autorizar?req=0192"), { api, auth: createFakeAuth().auth });
-    expect(lead()).toBe("Para conectar um app ao Doug.");
+    expect(lead()).toBe("Para conectar um app ao DougBot.");
   });
 
   test("a link that no longer works, an unknown one, or anywhere else: the general line", async () => {

@@ -10,7 +10,7 @@ import {
   PixelSpinner,
   type PixelSpinnerSize,
 } from "@agenteschat/ui";
-import type { ReactNode } from "react";
+import { type ReactNode, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useOrg } from "@/components/org-context";
 import { colorOf } from "@/components/Sky";
@@ -52,9 +52,12 @@ export function AgentAvatar(props: AgentAvatarProps) {
   const given = typeof props.presence === "string" ? props.presence : null;
   if (id) return <LiveAgentAvatar {...props} presence={given} agentId={id} />;
   const { agent, appearance, state, running, asleep: _s, channelId: _c, agentId: _a, presence: _p, ...rest } = props;
+  const draft = agent as { name?: string; handle?: string; role?: string; photo?: string | null } | null | undefined;
   return (
     <Avatar
       kind="agent"
+      who={{ name: draft?.name ?? props.name, handle: draft?.handle, role: draft?.role }}
+      imageUrl={draft?.photo ?? undefined}
       appearance={appearance ?? lookOf(agent)}
       state={state ?? (running ? "thinking" : undefined)}
       presence={given}
@@ -175,17 +178,41 @@ function LiveAgentAvatar({
   const { org } = useOrg();
   const dir = useDirectory(org.id);
   const known = dir.anyAgent(agentId);
-  const idle = running ? "thinking" : asleep ? "sleeping" : "idle";
+  // The bot shows its state on every face (IDENTIDADE.md §7), the badge only where asked for (`presence`).
+  const shown = useAgentPresence(agentId);
+  const asks = shown?.waiting === true;
+  const idle = running ? "thinking" : asks ? "waiting" : asleep || isOutOfOffice(shown?.line) ? "sleeping" : "idle";
+  const finished = useJustFinished(live);
   return (
     <Avatar
       kind="agent"
       state={state ?? (live === "idle" ? idle : live)}
+      estado={!state && live === "idle" && finished && !asks ? "terminou" : undefined}
       appearance={appearance ?? lookOf(known ?? agent)}
+      who={known ? { name: known.name, handle: known.handle, role: known.role } : { name: rest.name }}
+      imageUrl={(known as { photo?: string | null } | undefined)?.photo ?? undefined}
       initials={dir.agentInitials(agentId)}
-      presence={presence}
+      presence={presence ?? shown?.presence ?? null}
       {...rest}
     />
   );
+}
+
+/** A reply that just ended: the bot shows "terminou" for a few seconds (IDENTIDADE.md §7), then rests. */
+const FINISHED_MS = 4000;
+function useJustFinished(live: string): boolean {
+  const [until, setUntil] = useState(0);
+  const was = useRef(live);
+  useEffect(() => {
+    if (was.current !== "idle" && live === "idle") setUntil(Date.now() + FINISHED_MS);
+    was.current = live;
+  }, [live]);
+  useEffect(() => {
+    if (!until) return;
+    const timer = setTimeout(() => setUntil(0), Math.max(0, until - Date.now()));
+    return () => clearTimeout(timer);
+  }, [until]);
+  return until > 0;
 }
 
 /**

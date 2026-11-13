@@ -532,6 +532,7 @@ export function AuthPage({
             className="auth__mark"
             data-busy={pending || step === "browser" || undefined}
             data-mood={expression}
+            estado={pending || step === "browser" ? "trabalhando" : "ok"}
           />
           <div className="auth__bubble" key={`${shown}-${wrong}`} aria-live="polite">
             <h1 className="auth__title">{title}</h1>

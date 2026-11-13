@@ -2116,6 +2116,20 @@ export function createFakeHttpApi(state: FakeState): Omit<HttpApi, FakedParts> {
       },
     },
     agents: {
+      setAgentPhoto: async (orgId, agentId, body) => {
+        state.calls.push({ method: "agents.setAgentPhoto", args: [orgId, agentId, body] });
+        const agent = state.agents.find((a) => a.id === agentId);
+        if (!agent) throw new Error("no agent");
+        const photo = `/api/app/organizations/${orgId}/agents/${agentId}/photo/0123456789abcdef.png`;
+        agent.photo = photo;
+        return { photo };
+      },
+      removeAgentPhoto: async (orgId, agentId) => {
+        state.calls.push({ method: "agents.removeAgentPhoto", args: [orgId, agentId] });
+        const agent = state.agents.find((a) => a.id === agentId);
+        if (!agent) throw new Error("no agent");
+        agent.photo = null;
+      },
       planUsage: async (_orgId, agentId) => {
         const money = seesCost();
         const account = fakePlanAccount(money);

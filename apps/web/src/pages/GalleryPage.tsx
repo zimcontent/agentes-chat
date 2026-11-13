@@ -104,6 +104,32 @@ export function GalleryPage() {
         </div>
       </Section>
 
+      <Section title="DougBot">
+        {/* The identity's bots (IDENTIDADE.md §7), drawn by code: each one in its five states, the Doug in his two cuts. */}
+        <div className="db-galeria">
+          {(["ok", "trabalhando", "pedindo", "terminou", "dormindo"] as const).map((estado) => (
+            <div key={estado} className="row db-galeria__linha" data-estado={estado}>
+              {["doug", "rosa", "sony", "mark", "chess", "kiara", "junin"].map((h) => (
+                <Avatar
+                  key={h}
+                  kind="agent"
+                  name={h.toUpperCase()}
+                  who={{ name: h, handle: h }}
+                  estado={estado}
+                  style={{ width: 64, height: 64 }}
+                />
+              ))}
+              <span className="small muted">{estado}</span>
+            </div>
+          ))}
+          <div className="row db-galeria__doug">
+            <Avatar kind="agent" name="Doug" who={{ name: "doug", handle: "doug" }} style={{ width: 120, height: 120 }} />
+            <Avatar kind="agent" name="Doug" who={{ name: "doug", handle: "doug" }} style={{ width: 44, height: 44 }} />
+            <Logo size={22} />
+          </div>
+        </div>
+      </Section>
+
       <Section title="Button">
         <div className="row">
           <Button variant="primary">Aprovar merge</Button>

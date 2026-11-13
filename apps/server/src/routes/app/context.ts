@@ -108,6 +108,8 @@ const MULTIPART_PATHS = [
   /\/organizations\/[^/]+\/imports\/files$/,
   /\/organizations\/[^/]+\/channels\/[^/]+\/voice$/,
   /\/feedback\/files$/,
+  // An agent's photo (`PUT`, the one upload that replaces rather than adds).
+  /\/organizations\/[^/]+\/agents\/[^/]+\/photo$/,
 ];
 /** Multipart overhead allowed on top of an uploaded file itself. */
 export const MULTIPART_SLACK_BYTES = 64 * 1024;
@@ -126,7 +128,7 @@ export function createAppRouter(deps: AppDeps) {
     }
     const type = c.req.header("content-type") ?? "";
     const upload =
-      c.req.method === "POST" &&
+      (c.req.method === "POST" || c.req.method === "PUT") &&
       type.startsWith("multipart/form-data") &&
       MULTIPART_PATHS.some((p) => p.test(c.req.path));
     if (c.req.method !== "DELETE" && !type.startsWith("application/json") && !upload) {

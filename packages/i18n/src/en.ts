@@ -7,7 +7,7 @@ import type { Widen } from "./widen";
  * no exclamation marks, buttons start with a verb, "agentes" in lower case.
  */
 export const en = {
-  app: { name: "Doug" },
+  app: { name: "DougBot" },
   common: {
     close: "Close",
     joinSentences: "{{a}} {{b}}",
@@ -34,7 +34,7 @@ export const en = {
     /** A server error (a 5xx of its own): nothing the person did, and nothing they can fix. */
     ourSide: "Something went wrong on our side. Try again in a little while.",
     signedOut: "Your session ended. Sign in again to continue.",
-    newVersion: "A new version of Doug is out.",
+    newVersion: "A new version of DougBot is out.",
     reload: "Reload",
     copy: "Copy",
     copied: "Copied",
@@ -59,7 +59,7 @@ export const en = {
     notAllowed: "You don't have permission for this.",
     tooMany: "Too many tries. Try again later.",
     offline: "You're offline. Check your connection and try again.",
-    unreachable: "Can't reach Doug right now. Try again in a moment.",
+    unreachable: "Can't reach DougBot right now. Try again in a moment.",
   },
   roles: {
     owner: "Owner",
@@ -467,11 +467,11 @@ export const en = {
       openMail: "Open {{app}}",
       ownerWaits: "This server waits for its owner.",
       ownerWaitsLead: "Open this server's owner link (it ends in /owner#claim=…), on this computer or on your phone.",
-      noPassword: "This account signs in from the Doug app.",
+      noPassword: "This account signs in from the DougBot app.",
       noPasswordLead:
         "On the computer that runs this server, open the app and choose Add a password in Settings\u00a0›\u00a0Your account.",
       backToSignIn: "Back to sign in",
-      toAuthorizeApp: "To connect an app to Doug.",
+      toAuthorizeApp: "To connect an app to DougBot.",
     },
     desktop: {
       browser: "Continue in your browser",
@@ -482,11 +482,11 @@ export const en = {
       otherServer: "Use another server",
       opening: "Opening {{provider}}…",
       confirm: "Is this your app?",
-      confirmLead: "This code should match the one shown by the Doug app on your computer.",
+      confirmLead: "This code should match the one shown by the DougBot app on your computer.",
       confirmYes: "Yes, sign the app in",
       confirmNo: "This wasn't me",
       done: "All set.",
-      doneLead: "You're signed in to the Doug app. You can close this tab.",
+      doneLead: "You're signed in to the DougBot app. You can close this tab.",
       expired: "This request expired.",
       expiredLead: "Go back to the app and choose {{provider}} again.",
       handover: "Signing in with your account from the other device…",
@@ -506,17 +506,17 @@ export const en = {
     },
     desktopOwner: {
       continue: "Continue on this {{device}}",
-      text: "You set up Doug on this {{device}}: no password needed.",
+      text: "You set up DougBot on this {{device}}: no password needed.",
     },
     /** The line over the sign-in in the desktop app: which server it signs in to (ADR 0158). */
     server: {
       into: "Signing in to <b>{{server}}</b>",
-      intoHere: "Signing in to the Doug <b>on this {{device}}</b>",
+      intoHere: "Signing in to the DougBot <b>on this {{device}}</b>",
     },
     /** "Forgot password" on a server that sends no email (ADR 0158). */
     forgotHere: {
       ownerTitle: "You don't need a password here.",
-      ownerLead: "You set up Doug on this {{device}}. Sign in here, then create a new password.",
+      ownerLead: "You set up DougBot on this {{device}}. Sign in here, then create a new password.",
       notOwner: "Not the account of whoever set it up? Ask an owner of your workspace for a new-password link.",
       title: "This server doesn't send email.",
       lead: "Ask an owner of your workspace for a new-password link. They make it in Members, and it works for 1 hour.",
@@ -815,8 +815,7 @@ export const en = {
           lead: "You can change all of it later, nothing is lost.",
           template: "Start with a ready-made team",
           /** `{{template}}`: the template's name ("Marketing agency"). */
-          templateText_one:
-            "{{count}} agent from the {{template}} template, in its own group, with its routine ready.",
+          templateText_one: "{{count}} agent from the {{template}} template, in its own group, with its routine ready.",
           templateText_other:
             "{{count}} agents from the {{template}} template, each in its own group, with their routines ready.",
           scratch: "Start from scratch",
@@ -5409,8 +5408,7 @@ export const en = {
       memberOwner: "You see how {{name}} works. Who edits: admins and {{owner}} (owner).",
       memberOwnerPersonal:
         "You see how {{name}} works. Who edits: {{owner}} (owner) and the people who run this space.",
-      owner:
-        "You own {{name}}: you change the look, who can talk, the groups and the computer. The rest, only admins.",
+      owner: "You own {{name}}: you change the look, who can talk, the groups and the computer. The rest, only admins.",
       ownerKeeper:
         "You own {{name}}: you change the look, who can talk, the group conversations and the computer. The rest, only {{keeper}}.",
       ownerPersonal:
@@ -9992,6 +9990,15 @@ export const en = {
     copied: "Code copied.",
   },
   photo: {
+    agent: {
+      title: "Photo",
+      help: "A real photo in place of the drawn bot. With no photo, the DougBot avatar stays.",
+      dialogTitle: "Agent's photo",
+      send: "Upload photo",
+      useBot: "Use the DougBot avatar",
+      saved: "Agent's photo updated.",
+      removed: "The agent is back to the DougBot avatar.",
+    },
     label: "Photo",
     change: "Change photo",
     title: "Profile photo",
@@ -14595,7 +14602,7 @@ export const en = {
      * "agentes.chat" and "Codari Global, LLC" and its meaning.
      */
     about: {
-      basedOn: "Doug — based on <site>agentes.chat</site> by Codari Global, LLC (https://agentes.chat)",
+      basedOn: "Based on <site>agentes.chat</site> by Codari Global, LLC · AGPL-3.0",
       version: "Version",
       license: "Free software under the <license>GNU Affero General Public License v3</license>, with no warranty.",
       source: "Source code",

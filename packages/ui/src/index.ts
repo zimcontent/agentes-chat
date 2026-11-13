@@ -59,6 +59,21 @@ export {
   drawBrain,
 } from "./brain/portrait.js";
 export { BRAND_MARK_URL, BRAND_NAME, PIXEL_ART } from "./brand/doug";
+export {
+  default as DougBot,
+  type DougBotEstado,
+  type DougBotForma,
+  type DougBotNome,
+  type DougBotOpcoes,
+} from "./brand/dougbot-avatar.js";
+export {
+  type AgenteParaBot,
+  BOTS_DO_TIME,
+  botDoAgente,
+  CORES_LIVRES,
+  corDoBot,
+  OFICIOS,
+} from "./brand/dougbot-time";
 export { installLiquidGlass, lensSupported } from "./brand/liquid-glass";
 export { channelQuery, insertChannelRef } from "./channel-refs";
 export {
@@ -88,6 +103,7 @@ export { type AutonomyKind, AutonomyPixels, drawAutonomy } from "./components/Au
 export {
   type AgentState,
   Avatar,
+  botEstado,
   type AvatarKind,
   type AvatarProps,
   AvatarStack,
@@ -205,6 +221,7 @@ export {
 export { GroupHeading } from "./components/GroupHeading";
 export { InfoHint, type InfoHintProps } from "./components/InfoHint";
 export { isApple, Kbd, modKey, shortcut } from "./components/Kbd";
+export { BotFace } from "./components/BotFace";
 export { DougMark, Logo, LogoMark, type LogoProps } from "./components/Logo";
 export {
   GifPicker,
