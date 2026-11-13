@@ -802,7 +802,8 @@ export function Sidebar() {
       </>
     ),
     // A personal workspace lists people only once someone else is a member (a family, ADR 0159).
-    people: !(personal && alone) && (
+    // The rail has no header or empty line to show: no one to list leaves no section (nor its rule) there.
+    people: !(personal && alone) && !(rail && pinnedPeople.length === 0 && directs.length === 0) && (
       <SidebarSection
         id="people"
         label={t("shell.directMessages")}
@@ -958,12 +959,9 @@ export function Sidebar() {
         ) : (
           <>
             {/* DougBot: the person on top (their face, name, the workspace under it, the bell beside), one menu for the
-                workspaces and the account; no card at the foot repeating it. */}
-            {rail ? (
-              <div className="sidebar__org">
-                <WorkspaceMenu summary={summary} />
-              </div>
-            ) : (
+                workspaces and the account; no card at the foot repeating it. The rail has nothing on top: its list
+                starts there and the person, the bell, Go to… and the toggle are one card at its foot. */}
+            {!rail && (
               <div className="sidebar__head-row">
                 <div className="sidebar__org sidebar__org--person sidebar__org--head" ref={headRef}>
                   <AccountMenu
@@ -981,26 +979,16 @@ export function Sidebar() {
               </div>
             )}
 
-            <div className="sidebar__jump-row">
-              <button type="button" className="sidebar__jump" onClick={openPalette} title={t("palette.jump")}>
-                <Icon name="search" />
-                <span className="sidebar__item-label">{t("palette.jump")}</span>
-                <Kbd>{modKey()}</Kbd>
-                <Kbd>K</Kbd>
-              </button>
-              {rail && !compact && !tablet && (
-                <Button
-                  variant="ghost"
-                  iconOnly
-                  icon="sidebar"
-                  className="sidebar__collapse"
-                  aria-label={collapseLabel}
-                  title={collapseLabel}
-                  aria-expanded={!collapsed}
-                  onClick={toggleCollapsed}
-                />
-              )}
-            </div>
+            {!rail && (
+              <div className="sidebar__jump-row">
+                <button type="button" className="sidebar__jump" onClick={openPalette} title={t("palette.jump")}>
+                  <Icon name="search" />
+                  <span className="sidebar__item-label">{t("palette.jump")}</span>
+                  <Kbd>{modKey()}</Kbd>
+                  <Kbd>K</Kbd>
+                </button>
+              </div>
+            )}
             {hero.length > 0 && (
               <PinnedHero
                 agents={hero}
@@ -1069,11 +1057,38 @@ export function Sidebar() {
           {/* The full sidebar creates from the Agentes header's + (always shown on touch screens); the rail has no
               headers. */}
           {rail && createAgentItem.length > 0 && <CreateAgentTile onOpen={newAgent} />}
-          {/* The rail keeps the person at its foot (the head has no room there). */}
+          {/* The rail's one card at its foot, read from the bottom up: me (my account's menu, which also opens the
+              workspace's full-screen one: the rail has no workspace mark on top), the bell, Go to… and the toggle. */}
           {rail && (
-            <div className="sidebar__me">
-              <AccountMenu />
+            <div className="sidebar__me sidebar__me--rail" ref={headRef}>
+              {!compact && !tablet && (
+                <Button
+                  variant="ghost"
+                  iconOnly
+                  icon="sidebar"
+                  className="sidebar__collapse"
+                  aria-label={collapseLabel}
+                  title={collapseLabel}
+                  aria-expanded={!collapsed}
+                  onClick={toggleCollapsed}
+                />
+              )}
+              <Button
+                variant="ghost"
+                iconOnly
+                icon="search"
+                className="sidebar__rail-jump"
+                aria-label={t("palette.jump")}
+                title={t("palette.jump")}
+                onClick={openPalette}
+              />
               {bell}
+              <AccountMenu onWorkspace={() => setWorkspaceOpen(true)} actions={accountActions} />
+              <WorkspaceMenu
+                summary={summary}
+                control={{ open: workspaceOpen, onOpenChange: setWorkspaceOpen, anchor: headRef }}
+                you={accountActions}
+              />
             </div>
           )}
         </div>
@@ -2256,7 +2271,8 @@ function AccountMenu({
 }: {
   personal?: boolean;
   head?: boolean;
-  /** In the head: opens the workspace's full-screen menu, which holds the account's actions too ("Você"). */
+  /** Opens the workspace's full-screen menu, which holds the account's actions too ("Você"): from the head, and as an
+   * item of the menu at the rail's foot. */
   onWorkspace?: () => void;
   /** In the head: what the full-screen menu's "Você" card does, handed to it (the dialogs stay mounted here). */
   actions?: { current: AccountActions | null };
@@ -2502,6 +2518,15 @@ function AccountMenu({
               </MenuItem>
             )}
             <MenuWorkspaces />
+          </>
+        )}
+        {/* At the rail's foot: the workspace's own menu (its workspaces, members and settings), as no mark opens it there. */}
+        {!onTop && onWorkspace && (
+          <>
+            <MenuSeparator />
+            <MenuItem icon="grid" onSelect={openAfter(onWorkspace)}>
+              {t("shell.workspaceMenuOf", { name: org.name })}
+            </MenuItem>
           </>
         )}
         <MenuSeparator />
