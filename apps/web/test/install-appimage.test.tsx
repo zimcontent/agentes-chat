@@ -38,9 +38,9 @@ describe("the download page on Linux: the AppImage for a distribution that takes
     const link = block?.querySelector("a");
     expect(link?.textContent).toBe("Download the AppImage");
     expect(link?.getAttribute("href")).toBe(APP_IMAGE);
-    expect(block?.textContent).toContain("chmod +x ./agentes_0.7.1_amd64.AppImage && ./agentes_0.7.1_amd64.AppImage");
+    expect(block?.textContent).toContain("chmod +x ./DougBot_0.7.1_amd64.AppImage && ./DougBot_0.7.1_amd64.AppImage");
     // The deb's own steps stay as they were.
-    expect(el.textContent).toContain("sudo apt install ./agentes_0.7.1_amd64.deb");
+    expect(el.textContent).toContain("sudo apt install ./DougBot_0.7.1_amd64.deb");
   });
 
   test("a release without an AppImage, and a Mac, show none", () => {
@@ -49,9 +49,19 @@ describe("the download page on Linux: the AppImage for a distribution that takes
     expect(mac.textContent).not.toContain("AppImage");
   });
 
+  // DougBot: the drawings and the commands name this app.
+  test("the steps and their drawings name DougBot, never the project it comes from", () => {
+    for (const system of ["mac", "linux"] as const) {
+      const el = steps(system, release({ appImage: { url: APP_IMAGE, sha256: "b".repeat(64) } }));
+      expect(el.textContent).not.toContain("agentes.chat");
+      expect(el.textContent).not.toContain("agentes_");
+    }
+    expect(steps("mac", release()).textContent).toContain("DougBot");
+  });
+
   test("the line names the file the link downloads", () => {
     expect(appImageCommand(`${APP_IMAGE}?x=1`)).toBe(
-      "chmod +x ./agentes_0.7.1_amd64.AppImage && ./agentes_0.7.1_amd64.AppImage",
+      "chmod +x ./DougBot_0.7.1_amd64.AppImage && ./DougBot_0.7.1_amd64.AppImage",
     );
   });
 });

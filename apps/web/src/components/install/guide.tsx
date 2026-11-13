@@ -38,16 +38,18 @@ export function buildTarget({ system, arm }: InstallBuild) {
 /** The file a release's link downloads (`agentes_<v>_arm64-setup.exe`…), or the name a build's file would have. */
 export function fileOf({ system, arm }: InstallBuild, release: DesktopRelease | null): string {
   const named = release?.url.split("?")[0]?.split("/").pop();
-  if (named) return decodeURIComponent(named);
+  // DougBot: the server saves the download under this app's own name (`savedName`), so the steps name that file.
+  if (named) return decodeURIComponent(named).replace(/^agentes_/, "DougBot_");
   const v = release?.version ?? "<version>";
-  if (system === "windows") return `agentes_${v}_${arm ? "arm64" : "x64"}-setup.exe`;
-  if (system === "linux") return `agentes_${v}_${arm ? "arm64" : "amd64"}.deb`;
-  return `agentes_${v}_universal.dmg`;
+  if (system === "windows") return `DougBot_${v}_${arm ? "arm64" : "x64"}-setup.exe`;
+  if (system === "linux") return `DougBot_${v}_${arm ? "arm64" : "amd64"}.deb`;
+  return `DougBot_${v}_universal.dmg`;
 }
 
 /** What makes a downloaded AppImage run: it comes without the right to, and has no installer. */
 export function appImageCommand(url: string): string {
-  const file = decodeURIComponent(url.split("?")[0]?.split("/").pop() ?? "");
+  // DougBot: the file as the server saves it (`savedName`).
+  const file = decodeURIComponent(url.split("?")[0]?.split("/").pop() ?? "").replace(/^agentes_/, "DougBot_");
   return `chmod +x ./${file} && ./${file}`;
 }
 

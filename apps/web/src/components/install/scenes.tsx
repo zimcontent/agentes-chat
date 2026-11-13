@@ -23,7 +23,8 @@ export type SceneId =
 export const SCENE_W = 400;
 export const SCENE_H = 250;
 
-const APP = "agentes.chat";
+// DougBot: the name the drawings show is this app's own.
+const APP = "DougBot";
 const CLOCK = "9:41";
 /** Names the systems show as they are, in every language. */
 const FILEVAULT = "FileVault";
@@ -144,8 +145,8 @@ function Linux({ children }: { children: ReactNode }) {
 export function Scene({ id, version, file }: { id: SceneId; version: string; file?: string }) {
   const { t } = useTranslation();
   const v = version || "1.0.0";
-  const installer = file?.endsWith(".exe") ? file : `agentes_${v}_x64-setup.exe`;
-  const deb = file?.endsWith(".deb") ? file : `agentes_${v}_amd64.deb`;
+  const installer = file?.endsWith(".exe") ? file : `DougBot_${v}_x64-setup.exe`;
+  const deb = file?.endsWith(".deb") ? file : `DougBot_${v}_amd64.deb`;
   switch (id) {
     case "macDrag":
       return (
