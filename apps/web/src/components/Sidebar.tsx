@@ -50,6 +50,7 @@ import { can, makesAgents, managesChannel } from "@agenteschat/client/lib/permis
 import { AVAILABILITIES, isOutOfOffice, presenceOfAvailability, statusEndNote } from "@agenteschat/client/lib/presence";
 import { recentDms } from "@agenteschat/client/lib/recent";
 import { isRightHand, rightHandSeenKey } from "@agenteschat/client/lib/right-hand";
+import { SERVER_PLACE_ICON } from "@agenteschat/client/lib/server";
 import { inSidebarList, sidebarItemOrder, sidebarPlace } from "@agenteschat/client/lib/sidebar-items";
 import { AGENT_SORTS, sortAgents, splitPinned } from "@agenteschat/client/lib/sidebar-view";
 import { badgeCount, looksUnread } from "@agenteschat/client/lib/unread";
@@ -109,6 +110,7 @@ import { useApi } from "@/api/context";
 import { useAuth } from "@/auth/context";
 import { useDirectory } from "@/hooks/useDirectory";
 import { agentLine, availabilityOf, personLine, useAgentPresence, usePersonPresence } from "@/hooks/usePresence";
+import { useServerPlace } from "@/hooks/useServerPlace";
 import { useSidebarPins } from "@/hooks/useSidebarPins";
 import { useUnreadTitle } from "@/hooks/useUnreadTitle";
 import { useWorkspaceGroups } from "@/hooks/useWorkspaceGroups";
@@ -123,6 +125,7 @@ import { ownPlanLines, planNearLimit, planWord } from "@/lib/plan-usage";
 import { useScrollEdges } from "@/lib/scroll-edges";
 import { rightHandSeen, STORAGE_KEYS, sessionStore, storage, storedStrings } from "@/lib/storage";
 import { useToast } from "@/lib/toast";
+import { offersNewWorkspace } from "@/lib/workspaces";
 import type { SettingsSection } from "@/pages/settings-sections";
 import { useStreams } from "@/realtime/context";
 import { ProfileDialog } from "./AccountSettings";
@@ -2505,9 +2508,11 @@ function useWorkspaceLook() {
 }
 
 /**
- * Your workspaces in the account menu of a personal workspace (ADR 0159): the workspace menu's list (by server in the
- * desktop app, ADR 0154), then New workspace or Add workspace. Mounted only while the menu is open: the counts load
- * then. No role beside each: one person's own workspaces.
+ * Your workspaces in the account menu of a personal workspace (ADR 0159): the workspace menu's list, then New
+ * workspace when the person may make one. In the desktop app (ADR 0154) by server, then Add workspace; New workspace
+ * (it makes one here) sits under this server's workspaces only on a server of one's own, since on agentes.chat Add
+ * workspace makes one (`offersNewWorkspace`). Mounted only while the menu is open: the counts load then. No role beside
+ * each: one person's own workspaces.
  */
 function MenuWorkspaces() {
   const { t, i18n } = useTranslation();
@@ -2517,6 +2522,11 @@ function MenuWorkspaces() {
   const groups = useWorkspaceGroups({ orgs: me.organizations, currentOrgId: org.id });
   const navigate = useNavigate();
   const go = (orgId: string) => void navigate({ to: "/org/$orgId", params: { orgId } });
+  const newWorkspace = offersNewWorkspace(me.user.canCreateWorkspace, groups) && (
+    <MenuItem icon="plus" onSelect={() => void navigate({ to: "/onboarding" })}>
+      {t("shell.newWorkspace")}
+    </MenuItem>
+  );
   if (groups)
     return (
       <>
@@ -2545,6 +2555,7 @@ function MenuWorkspaces() {
                 </MenuItem>
               );
             })}
+            {g.here && newWorkspace}
           </Fragment>
         ))}
         <MenuItem
@@ -2573,12 +2584,7 @@ function MenuWorkspaces() {
           </MenuItem>
         );
       })}
-      {/* On agentes.chat Cloud, while sign-up is by invitation, only an invitation makes a workspace (ADR 0078). */}
-      {me.user.canCreateWorkspace !== false && (
-        <MenuItem icon="plus" onSelect={() => void navigate({ to: "/onboarding" })}>
-          {t("shell.newWorkspace")}
-        </MenuItem>
-      )}
+      {newWorkspace}
     </>
   );
 }
@@ -2632,6 +2638,7 @@ function WorkspaceMenu({
   const { t } = useTranslation();
   const { org } = useOrg();
   const dir = useDirectory(org.id);
+  const place = useServerPlace();
   const [ownOpen, setOwnOpen] = useState(false);
   const own = useRef<HTMLButtonElement>(null);
   const open = control?.open ?? ownOpen;
@@ -2651,7 +2658,18 @@ function WorkspaceMenu({
           <OrgMark logo={org.logo} name={org.name} className="sidebar__org-mark" />
           <span className="sidebar__org-text">
             <span className="sidebar__org-name">{org.name}</span>
-            {summary && <span className="sidebar__org-meta">{summary}</span>}
+            {(place || summary) && (
+              <span className="sidebar__org-line">
+                {/* Where it lives, before its counts: the Cloud, this computer or one's own server. */}
+                {place && (
+                  <span className="sidebar__org-where">
+                    <Icon name={SERVER_PLACE_ICON[place]} size={14} />
+                    {t(`hosting.badge.${place}`)}
+                  </span>
+                )}
+                {summary && <span className="sidebar__org-meta">{summary}</span>}
+              </span>
+            )}
           </span>
           <Icon name="chevronDown" size={16} />
         </button>
@@ -2760,6 +2778,17 @@ function WorkspaceMenuOptions({ onDone }: { onDone: () => void }) {
       invite.open();
     } else go("members")();
   };
+  const newWorkspace = offersNewWorkspace(me.user.canCreateWorkspace, groups) && (
+    <MenuOverlayItem
+      icon="plus"
+      onSelect={() => {
+        onDone();
+        void navigate({ to: "/onboarding" });
+      }}
+    >
+      {t("shell.newWorkspace")}
+    </MenuOverlayItem>
+  );
   let key = 0;
   const next = () => String(++key);
   return (
@@ -2870,6 +2899,7 @@ function WorkspaceMenuOptions({ onDone }: { onDone: () => void }) {
                     </MenuOverlayItem>
                   );
                 })}
+                {g.here && newWorkspace}
               </Fragment>
             ))}
             <MenuOverlaySeparator />
@@ -2907,19 +2937,10 @@ function WorkspaceMenuOptions({ onDone }: { onDone: () => void }) {
                 </MenuOverlayItem>
               );
             })}
-            {/* On agentes.chat Cloud, while sign-up is by invitation, only an invitation makes a workspace (ADR 0078). */}
-            {me.user.canCreateWorkspace !== false && (
+            {newWorkspace && (
               <>
                 <MenuOverlaySeparator />
-                <MenuOverlayItem
-                  icon="plus"
-                  onSelect={() => {
-                    onDone();
-                    void navigate({ to: "/onboarding" });
-                  }}
-                >
-                  {t("shell.newWorkspace")}
-                </MenuOverlayItem>
+                {newWorkspace}
               </>
             )}
           </>
