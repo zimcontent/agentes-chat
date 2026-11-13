@@ -738,42 +738,24 @@ export function ExpiryFuse({
  * it (a person is in control). Decorative.
  */
 export function SkyStrip({
-  color = "sky",
   muted = false,
   moving = true,
   className,
 }: {
+  /** Kept for callers: DougBot draws the strip in its one green (no pixels in the agent's colors). */
   color?: AgentColor;
   muted?: boolean;
   moving?: boolean;
   className?: string;
 }) {
-  const ref = useCanvas((ctx, canvas, t) => {
-    const w = Math.max(8, Math.ceil(canvas.clientWidth / 3) || 120);
-    if (canvas.width !== w) canvas.width = w;
-    if (canvas.height !== 2) canvas.height = 2;
-    // Its holder's own ground: inside a raised container (a dialog) the strip itself reads one step up (`--raised-2`).
-    const surface = token(canvas.parentElement ?? canvas, "--raised", "#ffffff");
-    const dark = document.documentElement.dataset.theme === "dark";
-    const [top, bottom] = gradientOf(color);
-    const pal = dark
-      ? [surface, mixHex(surface, bottom, 0.45), mixHex(bottom, top, 0.35), mixHex(top, bottom, 0.2)]
-      : [surface, mixHex(surface, top, 0.35), mixHex(surface, top, 0.7), top];
-    const last = pal.length - 1;
-    for (let y = 0; y < 2; y++)
-      for (let x = 0; x < w; x++) {
-        const u = x / w;
-        const f = Math.min(
-          1,
-          Math.max(0, 0.42 + 0.22 * Math.sin(u * 9 - t * 0.8) + 0.16 * Math.sin(u * 23 + t * 1.3) + (y ? -0.1 : 0.1)),
-        );
-        const s = f * last;
-        const b = Math.floor(s);
-        ctx.fillStyle = pal[Math.min(last, s - b > (BAYER[((y & 3) << 2) | (x & 3)] ?? 0.5) ? b + 1 : b)] ?? surface;
-        ctx.fillRect(x, y, 1, 1);
-      }
-  }, moving);
-  return <canvas ref={ref} className={cx("ac-sky-strip", muted && "is-muted", className)} />;
+  // DougBot: a line of green glass instead of the dithered pixels; light runs along it while the agent works.
+  return (
+    <span
+      aria-hidden="true"
+      className={cx("ac-sky-strip", muted && "is-muted", className)}
+      data-moving={moving || undefined}
+    />
+  );
 }
 
 /** The blocks of a generic page, as fractions of the picture (a bar, a search field, cards, lines). */
