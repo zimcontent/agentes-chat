@@ -69,6 +69,7 @@ jobs:
           RELEASE: ${{ inputs.release }}
           NOTES: ${{ inputs.notes }}
           HAS_KEY: ${{ secrets.RELEASE_DEPLOY_KEY != '' }}
+          GH_TOKEN: ${{ github.token }}
         run: |
           # DougBot: `current` publishes the version main already carries (the upstream's bumps arrive with every
           # sync), so this fork never edits the version lines the upstream changes: only a tag goes up, with this
@@ -81,14 +82,15 @@ jobs:
             fi
             CURRENT=$(jq -r .version apps/desktop/src-tauri/tauri.conf.json)
             TAG="dougbot-desktop-v$CURRENT"
-            if git rev-parse -q --verify "refs/tags/$TAG" > /dev/null; then
+            # A tag with no release is a run whose builds failed: this run takes the tag over.
+            if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" > /dev/null 2>&1; then
               echo "::error::Version $CURRENT is already released ($TAG): wait for the next version to arrive on main"
               exit 1
             fi
             git config user.name "github-actions[bot]"
             git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git tag -a "$TAG" -m "${NOTES:-DougBot $CURRENT}"
-            git push origin "refs/tags/$TAG"
+            git tag -f -a "$TAG" -m "${NOTES:-DougBot $CURRENT}"
+            git push --force origin "refs/tags/$TAG"
             echo "RELEASE_TAG=$TAG" >> "$GITHUB_ENV"
             exit 0
           fi
