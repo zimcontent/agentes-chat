@@ -254,7 +254,7 @@ function ClosedScreen({
     <AuthShell languages={false}>
       <div className="auth__form">
         <header className="auth__ask">
-          <AgentAvatar name="agentes.chat" size="lg" />
+          <AgentAvatar name="DougBot" size="lg" />
           <div className="auth__bubble">
             <h1 className="auth__title">{title}</h1>
             <p className="auth__lead">

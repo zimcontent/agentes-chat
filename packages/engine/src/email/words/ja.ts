@@ -8,40 +8,40 @@ import type { EmailWords } from "./index";
 export const words: EmailWords = {
   sentBy: (host) =>
     host
-      ? ["このメールは ", { nobr: host }, " の agentes.chat サーバーから送信されました。"]
-      : "このメールは agentes.chat から送信されました。",
+      ? ["このメールは ", { nobr: host }, " の DougBot サーバーから送信されました。"]
+      : "このメールは DougBot から送信されました。",
   fallback: "ボタンが動かない場合は、このアドレスをブラウザにコピーしてください:",
   role: { owner: "オーナー", member: "メンバー" },
   anAgent: "エージェント",
   someone: "誰か",
   verify: {
-    subject: "agentes.chat のメールアドレスを確認してください",
+    subject: "DougBot のメールアドレスを確認してください",
     preheader: "ワンクリックでこのアドレスを確認できます。リンクの有効期限は1時間です。",
     headline: "メールアドレスを確認してください",
     body: "あと一歩です。このアドレスがあなたのものか確認してください。",
     button: "メールアドレスを確認",
     small: "リンクの有効期限は1時間です。登録した覚えがない場合は、このメールを無視してください。",
-    why: "このアドレスで agentes.chat に登録があったため、このメールをお送りしています。",
+    why: "このアドレスで DougBot に登録があったため、このメールをお送りしています。",
   },
   reset: {
-    subject: "agentes.chat のパスワードを再設定してください",
+    subject: "DougBot のパスワードを再設定してください",
     preheader: "新しいパスワードを設定してください。リンクの有効期限は1時間です。",
     headline: "新しいパスワードを設定",
     body: "このアドレスのパスワード再設定のリクエストを受け付けました。",
     button: "新しいパスワードを設定",
     note: "心当たりがない場合は、このメールを無視してください。パスワードは変わりません。",
     small: "リンクの有効期限は1時間です。",
-    why: "agentes.chat でこのアドレスのパスワード再設定がリクエストされたため、このメールをお送りしています。",
+    why: "DougBot でこのアドレスのパスワード再設定がリクエストされたため、このメールをお送りしています。",
   },
   invitation: {
-    subject: "agentes.chat のワークスペースに招待されました",
+    subject: "DougBot のワークスペースに招待されました",
     preheader: "7日以内に、このメールアドレスで承諾してください。",
     headline: "ワークスペースに招待されました",
     body: (inviter, email, org, role) =>
       inviter
         ? [{ b: inviter }, `${email ? ` (${email})` : ""} から、`, { b: org }, ` に${role}として招待されました。`]
         : [{ b: org }, ` に${role}として招待されました。`],
-    what: "agentes.chat は、人と AI エージェントが一緒に働く場所です。",
+    what: "DougBot は、人と AI エージェントが一緒に働く場所です。",
     noteFrom: (inviter, note) => [{ b: inviter ? `${inviter}: ` : "メッセージ: " }, `「${note}」`],
     button: "招待を承諾",
     small: "招待の有効期限は7日間です。このメールアドレスで承諾してください。",
@@ -50,8 +50,8 @@ export const words: EmailWords = {
     personal: {
       body: (inviter, email) =>
         inviter
-          ? [{ b: inviter }, `${email ? ` (${email})` : ""} から、agentes.chat の個人ワークスペースに招待されました。`]
-          : "agentes.chat の個人ワークスペースに招待されました。",
+          ? [{ b: inviter }, `${email ? ` (${email})` : ""} から、DougBot の個人ワークスペースに招待されました。`]
+          : "DougBot の個人ワークスペースに招待されました。",
       why: () =>
         "誰かがこのアドレスを個人ワークスペースに招待したため、このメールをお送りしています。心当たりがなければ無視してください。承諾するまで何も起こりません。",
     },
@@ -89,29 +89,29 @@ export const words: EmailWords = {
     },
   },
   waitlist: {
-    subject: "agentes.chat の待機リストへの登録を確認してください",
+    subject: "DougBot の待機リストへの登録を確認してください",
     preheader: "ワンクリックで登録が確定します。",
     headline: "待機リストへの登録を確認",
     body: (email) =>
       email
-        ? [{ b: email }, " を agentes.chat の待機リストに追加するリクエストを受け付けました。"]
-        : "このアドレスを agentes.chat の待機リストに追加するリクエストを受け付けました。",
-    approve: "agentes.chat では、大事なことは人が承認するまで何も起こりません。このリクエストも同じです。",
+        ? [{ b: email }, " を DougBot の待機リストに追加するリクエストを受け付けました。"]
+        : "このアドレスを DougBot の待機リストに追加するリクエストを受け付けました。",
+    approve: "DougBot では、大事なことは人が承認するまで何も起こりません。このリクエストも同じです。",
     button: "メールアドレスを確認",
     small:
       "リンクの有効期限は48時間です。心当たりがない場合は、このメールを無視してください。クリックしない限り、アドレスがリストに載ることはありません。",
-    why: "このアドレスが agentes.chat の待機リストに入力されたため、このメールをお送りしています。",
+    why: "このアドレスが DougBot の待機リストに入力されたため、このメールをお送りしています。",
   },
   earlyAccess: {
-    subject: "agentes.chat への招待が届きました",
+    subject: "DougBot への招待が届きました",
     preheader: (days) => `${days}日以内に、このメールアドレスでアカウントを作成してください。`,
     headline: "利用の準備ができました",
-    body: (email) => [{ b: email }, " で agentes.chat のアカウントとワークスペースを作成できるようになりました。"],
-    what: "agentes.chat は、人と AI エージェントが一緒に働く場所です。",
+    body: (email) => [{ b: email }, " で DougBot のアカウントとワークスペースを作成できるようになりました。"],
+    what: "DougBot は、人と AI エージェントが一緒に働く場所です。",
     button: "アカウントを作成",
     small: (days) =>
       `リンクの有効期限は${days}日間で、このアドレス専用です。パスワードで登録するか、同じアドレスの Google、GitHub、Apple で登録してください。`,
-    why: "このアドレスが agentes.chat の待機リストに登録されているか、agentes.chat に招待されたため、このメールをお送りしています。登録するまで何も起こりません。",
+    why: "このアドレスが DougBot の待機リストに登録されているか、DougBot に招待されたため、このメールをお送りしています。登録するまで何も起こりません。",
   },
   earlyAccessAllowed: {
     subject: "自分のワークスペースを作成できるようになりました",
@@ -120,10 +120,10 @@ export const words: EmailWords = {
     body: (email) => [
       "今お持ちのアカウント ",
       { b: email },
-      " で、agentes.chat に自分のワークスペースを作成できるようになりました。",
+      " で、DougBot に自分のワークスペースを作成できるようになりました。",
     ],
     button: "ワークスペースを作成",
-    why: "このアカウントに agentes.chat の早期アクセスが付与されたため、このメールをお送りしています。",
+    why: "このアカウントに DougBot の早期アクセスが付与されたため、このメールをお送りしています。",
   },
   budget: {
     subject: {
@@ -200,7 +200,7 @@ export const words: EmailWords = {
     },
     button: { ai: "AI を接続", task: "最初のタスクを渡す", create: "エージェントを作成" },
     why: (org) =>
-      `agentes.chat で ${org} のオーナーであるため、このメールをお送りしています。このコンピューターについてのメールはこれだけです。`,
+      `DougBot で ${org} のオーナーであるため、このメールをお送りしています。このコンピューターについてのメールはこれだけです。`,
     personal: {
       body: () =>
         "お待たせしました。あなたのエージェントのコンピューターは起動済みで設定も完了し、エージェントごとに専用のユーザーがあります。昼も夜も起動したままなので、エージェントはいつでも作業できます。",
@@ -208,7 +208,7 @@ export const words: EmailWords = {
         task: ["最初のタスクを渡す", "どれかのエージェントとの会話を開いて、してほしいことを伝えてください。"],
       },
       why: () =>
-        "agentes.chat のこのワークスペースはあなたのものであるため、このメールをお送りしています。このコンピューターについてのメールはこれだけです。",
+        "DougBot のこのワークスペースはあなたのものであるため、このメールをお送りしています。このコンピューターについてのメールはこれだけです。",
     },
   },
   joinRequest: {
@@ -252,8 +252,7 @@ export const words: EmailWords = {
       reason: (reason) => [{ b: "メッセージ: " }, `「${reason}」`],
       small: "間違いだと思う場合は、そのワークスペースの人にメールで招待してもらってください。",
     },
-    why: (org) =>
-      `このアドレスから agentes.chat の ${org} への参加がリクエストされたため、このメールをお送りしています。`,
+    why: (org) => `このアドレスから DougBot の ${org} への参加がリクエストされたため、このメールをお送りしています。`,
     personal: {
       joined: { body: (who) => `${who} がリクエストを承認しました。これでワークスペースに参加しています。` },
       invited: { body: (who) => `${who} がワークスペースへの参加リクエストを承認しました。` },
@@ -263,27 +262,26 @@ export const words: EmailWords = {
         small: "間違いだと思う場合は、その人にメールで招待してもらってください。",
       },
       why: () =>
-        "このアドレスから agentes.chat の個人ワークスペースへの参加がリクエストされたため、このメールをお送りしています。",
+        "このアドレスから DougBot の個人ワークスペースへの参加がリクエストされたため、このメールをお送りしています。",
     },
   },
   joinCode: {
-    subject: (code) => `agentes.chat の確認コード: ${code}`,
+    subject: (code) => `DougBot の確認コード: ${code}`,
     preheader: "ページに入力すると参加をリクエストできます。有効期限は10分です。",
     headline: "確認コード",
     body: (org) => ["このコードをページに入力すると、", { b: org }, " への参加をリクエストできます。"],
     small: "有効期限は10分です。心当たりがない場合は、このメールを無視してください。",
-    why: (org) =>
-      `agentes.chat の ${org} への参加リクエストでこのアドレスが入力されたため、このメールをお送りしています。`,
+    why: (org) => `DougBot の ${org} への参加リクエストでこのアドレスが入力されたため、このメールをお送りしています。`,
     personal: {
       body: () => "このコードをページに入力すると、このワークスペースへの参加をリクエストできます。",
       why: () =>
-        "agentes.chat の個人ワークスペースへの参加リクエストでこのアドレスが入力されたため、このメールをお送りしています。",
+        "DougBot の個人ワークスペースへの参加リクエストでこのアドレスが入力されたため、このメールをお送りしています。",
     },
   },
   deletionCode: {
     subjectWorkspace: (code) => `ワークスペース削除の確認コード: ${code}`,
     subjectAccount: (code) => `アカウント全体の削除の確認コード: ${code}`,
-    preheader: "agentes.chat に入力して確定してください。有効期限は10分です。",
+    preheader: "DougBot に入力して確定してください。有効期限は10分です。",
     headline: "確認コード",
     workspace: (org) => [
       "このコードを入力すると、ワークスペース ",
@@ -303,9 +301,8 @@ export const words: EmailWords = {
     noSupport:
       "有効期限は10分で、このコードがなければ何も削除されません。心当たりがない場合は、コードを誰にも教えず、このサーバーの管理者に知らせてください。",
     whyWorkspace: (org) =>
-      `あなたのアカウントから agentes.chat の ${org} の削除がリクエストされたため、このメールをお送りしています。`,
-    whyAccount:
-      "あなたのアカウントから agentes.chat のアカウント削除がリクエストされたため、このメールをお送りしています。",
+      `あなたのアカウントから DougBot の ${org} の削除がリクエストされたため、このメールをお送りしています。`,
+    whyAccount: "あなたのアカウントから DougBot のアカウント削除がリクエストされたため、このメールをお送りしています。",
     personal: {
       workspace: (org) => [
         "このコードを入力すると、あなたのワークスペース ",
@@ -327,10 +324,10 @@ export const words: EmailWords = {
     owner: "気が変わりましたか? それまでに復元してください。",
     button: "ワークスペースを復元",
     member: "間違いの場合は、オーナーに復元を頼んでください。",
-    why: (org) => `agentes.chat の ${org} に参加しているため、このメールをお送りしています。`,
+    why: (org) => `DougBot の ${org} に参加しているため、このメールをお送りしています。`,
     personal: {
       member: "間違いの場合は、削除した人に復元を頼んでください。",
-      why: () => "agentes.chat のこのワークスペースに参加しているため、このメールをお送りしています。",
+      why: () => "DougBot のこのワークスペースに参加しているため、このメールをお送りしています。",
     },
   },
   restored: {
@@ -339,27 +336,27 @@ export const words: EmailWords = {
     headline: "ワークスペースが復元されました",
     body: (by, org) => [{ b: by }, " が ", { b: org }, " を復元しました。また使えるようになっています。"],
     button: "ワークスペースを開く",
-    why: (org) => `agentes.chat の ${org} に参加しているため、このメールをお送りしています。`,
+    why: (org) => `DougBot の ${org} に参加しているため、このメールをお送りしています。`,
     personal: {
-      why: () => "agentes.chat のこのワークスペースに参加しているため、このメールをお送りしています。",
+      why: () => "DougBot のこのワークスペースに参加しているため、このメールをお送りしています。",
     },
   },
   appConnected: {
-    subject: "agentes.chat のアカウントにアプリが接続されました",
+    subject: "DougBot のアカウントにアプリが接続されました",
     preheader: "1つのワークスペースで、あなたとしてエージェントのタスクを閲覧・送信できます。",
     headline: "アプリが接続されました",
     body: (app, org) => [{ b: app }, " が ", { b: org }, " のあなたのアカウントにアクセスできるようになりました。"],
     note: "接続した覚えがない場合は、すぐに接続を解除してパスワードを変更してください。",
     button: "接続中のアプリを見る",
-    why: (org) => `agentes.chat の ${org} であなたのアカウントにアプリが接続されたため、このメールをお送りしています。`,
+    why: (org) => `DougBot の ${org} であなたのアカウントにアプリが接続されたため、このメールをお送りしています。`,
     personal: {
       body: (app) => [{ b: app }, " が、個人ワークスペースのあなたのアカウントにアクセスできるようになりました。"],
       why: () =>
-        "agentes.chat の個人ワークスペースであなたのアカウントにアプリが接続されたため、このメールをお送りしています。",
+        "DougBot の個人ワークスペースであなたのアカウントにアプリが接続されたため、このメールをお送りしています。",
     },
   },
   accountDeleting: {
-    subject: (day) => `agentes.chat のアカウントは ${day}に削除されます`,
+    subject: (day) => `DougBot のアカウントは ${day}に削除されます`,
     preheader: "考え直せる期間は7日間です。",
     headline: "アカウントを削除しています",
     body: (email, day, time) => [
@@ -374,10 +371,10 @@ export const words: EmailWords = {
     ],
     undo: "考え直しましたか？その日より前にログインして、「復元」を押してください。",
     button: "ログインして復元",
-    why: "このアドレスに agentes.chat のアカウントがあるため、このメールをお送りしています。",
+    why: "このアドレスに DougBot のアカウントがあるため、このメールをお送りしています。",
   },
   accountDeleted: {
-    subject: "agentes.chat のアカウントが削除されました",
+    subject: "DougBot のアカウントが削除されました",
     preheader: "すべての端末からログアウトされ、今後ログインすることはできません。",
     headline: "アカウントが削除されました",
     body: (email) => ["アカウント ", { b: email }, " を削除しました。"],
@@ -388,7 +385,7 @@ export const words: EmailWords = {
     ],
     support: (address) => ["心当たりがない場合は、", { mail: address }, " までご連絡ください。"],
     noSupport: "心当たりがない場合は、このサーバーの管理者に知らせてください。",
-    why: "このアドレスで agentes.chat のアカウントが作成されていたため、このメールをお送りしています。",
+    why: "このアドレスで DougBot のアカウントが作成されていたため、このメールをお送りしています。",
   },
   autonomy: {
     subject: (day, stalls, noise) => `${day} のエージェント: 停滞 ${stalls} 件、空回り ${noise} 件`,
@@ -469,28 +466,28 @@ export const words: EmailWords = {
   },
   planWaiting: {
     subject: "チームが待っています",
-    preheader: "ワークスペースの準備ができました。開始にはagentes.chatのプランが必要です。",
+    preheader: "ワークスペースの準備ができました。開始にはDougBotのプランが必要です。",
     headline: "チームが待っています",
     body: (agents, channels, routines) => {
       const a = `エージェント${agents}体`;
       const c = `チャンネル${channels}件`;
       const r = `ルーティン${routines}件`;
       return routines > 0
-        ? `${a}、${c}、${r}の準備ができています。開始にはagentes.chatのプランが必要です。`
-        : `${a}、${c}の準備ができています。開始にはagentes.chatのプランが必要です。`;
+        ? `${a}、${c}、${r}の準備ができています。開始にはDougBotのプランが必要です。`
+        : `${a}、${c}の準備ができています。開始にはDougBotのプランが必要です。`;
     },
-    button: "agentes.chatのプランを見る",
-    why: (org) => `agentes.chatで${org}を管理しているため、このメールをお送りしています。このお知らせは2回だけです。`,
+    button: "DougBotのプランを見る",
+    why: (org) => `DougBotで${org}を管理しているため、このメールをお送りしています。このお知らせは2回だけです。`,
     personal: {
       subject: "エージェントが待っています",
       headline: "エージェントが待っています",
       body: (agents, _channels, routines) => {
         const a = `エージェント${agents}体`;
         const r = `ルーティン${routines}件`;
-        return `${routines > 0 ? `${a}と${r}` : a}の準備ができています。あとはagentes.chatのプランだけです。`;
+        return `${routines > 0 ? `${a}と${r}` : a}の準備ができています。あとはDougBotのプランだけです。`;
       },
       why: () =>
-        "agentes.chatのこのワークスペースはあなたのものであるため、このメールをお送りしています。このお知らせは2回だけです。",
+        "DougBotのこのワークスペースはあなたのものであるため、このメールをお送りしています。このお知らせは2回だけです。",
     },
   },
 };

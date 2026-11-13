@@ -1,10 +1,10 @@
-// agentes.chat service worker: notifications in this browser (Web Push, ADR 0071), nothing else.
+// DougBot service worker: notifications in this browser (Web Push, ADR 0071), nothing else.
 // It has no fetch handler and caches nothing, so the app loads exactly as it does without it. The page
 // registers it only when the person turns notifications on (apps/web/src/lib/web-push.ts).
 
 /** What a click on a notification asks of a tab already open (`PUSH_OPEN_MESSAGE` in web-push.ts). */
 const OPEN_MESSAGE = "agentes.push.open";
-const ICON = "/email/mark.png";
+const ICON = "/email/doug-mark-1.png";
 const BADGE = "/push-badge.png";
 
 // A new version takes over at once: it holds no state, so there is nothing to wait for.
@@ -56,7 +56,7 @@ function readPayload(event) {
     if (!data || typeof data !== "object") return null;
     const open = readOpenData(data.data);
     return {
-      title: typeof data.title === "string" && data.title ? data.title : "agentes.chat",
+      title: typeof data.title === "string" && data.title ? data.title : "DougBot",
       body: typeof data.body === "string" ? data.body : "",
       tag: typeof data.tag === "string" && data.tag ? data.tag : undefined,
       url: openUrl(data.url, open),
