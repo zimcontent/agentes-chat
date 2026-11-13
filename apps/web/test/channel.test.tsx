@@ -75,7 +75,7 @@ describe("Grupo", () => {
   test("the composer posts with Enter and the message appears once (HTTP + event)", async () => {
     const { socket, state } = await open();
     const box = screen().getByRole("combobox", { name: "Mensagem para #eng" });
-    expect(box.getAttribute("placeholder")).toBe("Mensagem para #eng · use @ para chamar um agente");
+    expect(box.getAttribute("placeholder")).toBe("Mensagem · @ chama um agente");
     await act(async () => fireEvent.change(box, { target: { value: "@atlas acompanha o deploy?" } }));
     await act(async () => fireEvent.keyDown(box, { key: "Enter" }));
     await settle(4);

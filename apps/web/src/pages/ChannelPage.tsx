@@ -2692,13 +2692,15 @@ function ChannelView({
                                 voice={voice}
                                 disabled={Boolean(chrome?.locked)}
                                 label={
+                                  // For a screen reader the field still says whom it writes to; on screen the header says it.
                                   chrome?.composerLabel ??
-                                  (chrome?.composerTarget
-                                    ? t("channel.composerDm", { name: chrome.composerTarget })
-                                    : t("channel.composerLabel", { channel: composerName(channel) }))
+                                  t("channel.composerLabel", {
+                                    channel: chrome?.composerTarget ?? composerName(channel),
+                                  })
                                 }
                                 placeholder={
-                                  // DMs name the person or agent ("Mensagem para Theo"); a group by its shown name ("Mensagem para LEXEER"), else "#nome".
+                                  // Never the header's name again (the owner's rule): "Mensagem" in a DM, "Mensagem · @
+                                  // chama um agente" in a group.
                                   chrome?.composerLabel ??
                                   (chrome?.composerTarget
                                     ? t("channel.composerDm", { name: chrome.composerTarget })

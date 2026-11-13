@@ -176,7 +176,7 @@ export function DmPage({ target, focusMessageId }: { target: DmTarget; focusMess
         composerTarget: name,
         ...(rightHand && agent
           ? {
-              composerLabel: `${t("channel.composerDm", { name })} · ${t("rightHand.composerHint")}`,
+              composerLabel: `${t("channel.composerDm")} · ${t("rightHand.composerHint")}`,
               intro: <RightHandIntro agent={agent} channelId={dm.data.channelId} />,
             }
           : setup && agent

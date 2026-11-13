@@ -781,10 +781,10 @@ describe("DM composer", () => {
     await go(`dm/agent/${ADA_ID}`);
     await settle(4);
     const box = screen().getByRole("combobox", { name: "Mensagem para Ada" });
-    expect(box.getAttribute("placeholder")).toBe("Mensagem para Ada");
+    expect(box.getAttribute("placeholder")).toBe("Mensagem");
     cleanup();
     await go(`c/${ENG_ID}`);
     const channel = screen().getByRole("combobox", { name: "Mensagem para #eng" });
-    expect(channel.getAttribute("placeholder")).toContain("Mensagem para #eng");
+    expect(channel.getAttribute("placeholder")).toBe("Mensagem · @ chama um agente");
   });
 });

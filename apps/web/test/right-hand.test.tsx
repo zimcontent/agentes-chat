@@ -146,7 +146,7 @@ describe("the right hand elsewhere", () => {
     expect(header.querySelector(".channel__brain")).toBeNull();
     expect(header.textContent).not.toContain("Automático");
     expect(header.textContent).not.toContain("Computador");
-    expect(screen().getByRole("combobox", { name: "Mensagem para Lodi · nada muda sem você" })).toBeTruthy();
+    expect(screen().getByRole("combobox", { name: "Mensagem · nada muda sem você" })).toBeTruthy();
   });
 
   test("its greeting's paragraphs sit in a typed message's Markdown wrapper, so its first line is where any message's is", async () => {
