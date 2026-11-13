@@ -603,27 +603,38 @@ export function Sidebar() {
       {loose.rest.map(agentRow)}
     </>
   );
+  // The tools each person keeps in sight; the rest open beside the sidebar from More. Doug draws them as a dock: a
+  // glass bar of icons (after Nordus's footer nav), each named on hover and to a screen reader, Configurações last.
+  const dock = (
+    <div className="sidebar__group sidebar__tools sidebar__dock">
+      <Link to="/org/$orgId/home" params={{ orgId }} className="sidebar__item" title={railTip("home")}>
+        <Icon name="home" />
+        <span className="sidebar__item-label">{t("shell.home")}</span>
+      </Link>
+      <ToolList items={listed} row={toolRow} />
+      <MoreTools items={inMore} row={toolRow} countOf={countOf} onCustomize={() => setCustomizing(true)} />
+      <Link
+        to="/org/$orgId/settings"
+        params={{ orgId }}
+        className="sidebar__item sidebar__dock-settings"
+        title={t("shell.settings")}
+      >
+        <Icon name="settings" />
+        <span className="sidebar__item-label">{t("shell.settings")}</span>
+      </Link>
+    </div>
+  );
   const blocks: Record<SectionKey, ReactNode> = {
     // A personal workspace's list is its conversations (ADR 0159): a tool comes into sight only while something
     // waits in it, or once the person put it there; Início, Go to… and the other tools are in More at the end.
-    tools: personal ? (
-      listed.length > 0 && (
-        <div className="sidebar__group sidebar__tools">
-          <ToolList items={listed} row={toolRow} />
-        </div>
-      )
-    ) : (
-      // The tools each person keeps in sight; the rest open beside the sidebar from More. Doug draws them as a dock: a
-      // glass bar of icons (after Nordus's footer nav), each named on hover and to a screen reader.
-      <div className="sidebar__group sidebar__tools sidebar__dock">
-        <Link to="/org/$orgId/home" params={{ orgId }} className="sidebar__item" title={railTip("home")}>
-          <Icon name="home" />
-          <span className="sidebar__item-label">{t("shell.home")}</span>
-        </Link>
-        <ToolList items={listed} row={toolRow} />
-        <MoreTools items={inMore} row={toolRow} countOf={countOf} onCustomize={() => setCustomizing(true)} />
-      </div>
-    ),
+    tools: personal
+      ? listed.length > 0 && (
+          <div className="sidebar__group sidebar__tools">
+            <ToolList items={listed} row={toolRow} />
+          </div>
+        )
+      : // The full sidebar keeps its dock fixed at the foot (below); the rail keeps it in its list.
+        rail && dock,
     channels: channelsShown && (
       <SidebarChannels
         channels={listedChannels}
@@ -879,12 +890,13 @@ export function Sidebar() {
   const accountActions = useRef<AccountActions | null>(null);
   // The workspace header's line. Each count with its own plural: one summary string followed the people's, so
   // "1 agentes".
-  const summary = overview.data
+  const headCounts = overview.data
     ? [
         t("settings.tileState.members", { count: overview.data.people }),
         t("sidebarAgents.count", { count: overview.data.agents }),
-      ].join(" · ")
-    : null;
+      ]
+    : [];
+  const summary = headCounts.length > 0 ? headCounts.join(" · ") : null;
 
   return (
     <nav
@@ -898,7 +910,31 @@ export function Sidebar() {
       <div className="sidebar__top">
         <WorkspaceSky part="side" rail={rail} />
         {/* The signature on top (IDENTIDADE.md §3): the Doug close up and the name, no box. */}
-        {!rail && <Logo className="sidebar__assina" size={18} />}
+        {!rail &&
+          (personal ? (
+            <Logo className="sidebar__assina" size={18} />
+          ) : (
+            // DougBot: the signature, then the bell and the collapse as loose icons on its line, so the person's block
+            // and Go to… below have the whole width.
+            <div className="sidebar__brand-row">
+              <Logo className="sidebar__assina" size={18} />
+              <span className="sidebar__brand-acts">
+                {bell}
+                {!compact && !tablet && (
+                  <Button
+                    variant="ghost"
+                    iconOnly
+                    icon="sidebar"
+                    className="sidebar__collapse"
+                    aria-label={collapseLabel}
+                    title={collapseLabel}
+                    aria-expanded={!collapsed}
+                    onClick={toggleCollapsed}
+                  />
+                )}
+              </span>
+            </div>
+          ))}
         {personal ? (
           // A personal workspace (ADR 0159): the person on top (their account, settings and workspaces in one menu),
           // the bell and the collapse beside them. The desktop app's title bar has its own collapse (desktop.css).
@@ -928,19 +964,20 @@ export function Sidebar() {
                 <WorkspaceMenu summary={summary} />
               </div>
             ) : (
-              <div className="sidebar__org sidebar__org--person sidebar__org--head" ref={headRef}>
-                <AccountMenu
-                  head
-                  sub={[org.name, summary]}
-                  onWorkspace={() => setWorkspaceOpen(true)}
-                  actions={accountActions}
-                />
-                {bell}
-                <WorkspaceMenu
-                  summary={summary}
-                  control={{ open: workspaceOpen, onOpenChange: setWorkspaceOpen, anchor: headRef }}
-                  you={accountActions}
-                />
+              <div className="sidebar__head-row">
+                <div className="sidebar__org sidebar__org--person sidebar__org--head" ref={headRef}>
+                  <AccountMenu
+                    head
+                    sub={[org.name, headCounts[1] ?? null]}
+                    onWorkspace={() => setWorkspaceOpen(true)}
+                    actions={accountActions}
+                  />
+                  <WorkspaceMenu
+                    summary={summary}
+                    control={{ open: workspaceOpen, onOpenChange: setWorkspaceOpen, anchor: headRef }}
+                    you={accountActions}
+                  />
+                </div>
               </div>
             )}
 
@@ -951,7 +988,7 @@ export function Sidebar() {
                 <Kbd>{modKey()}</Kbd>
                 <Kbd>K</Kbd>
               </button>
-              {!compact && !tablet && (
+              {rail && !compact && !tablet && (
                 <Button
                   variant="ghost"
                   iconOnly
@@ -1027,6 +1064,8 @@ export function Sidebar() {
               {t("sidebarAgents.working", { count: working })}
             </span>
           )}
+          {/* DougBot: the tools stay at the foot whatever the list scrolls to. */}
+          {!rail && dock}
           {/* The full sidebar creates from the Agentes header's + (always shown on touch screens); the rail has no
               headers. */}
           {rail && createAgentItem.length > 0 && <CreateAgentTile onOpen={newAgent} />}
