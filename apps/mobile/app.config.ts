@@ -86,7 +86,7 @@ export const APP_LINK_PATTERNS = [
 ];
 // DougBot's EAS project on expo.dev (not a secret: it only names the project). Empty until the owner runs `eas init`
 // (TESTFLIGHT.md), which fills it in; `EAS_PROJECT_ID` in the environment wins.
-const DOUGBOT_EAS_PROJECT_ID = "";
+const DOUGBOT_EAS_PROJECT_ID = "da14fac0-0136-48a5-a4ab-f59280bf25d6";
 const projectId = process.env.EAS_PROJECT_ID || DOUGBOT_EAS_PROJECT_ID || undefined;
 /** The app's name on the home screen and in the stores. */
 const APP_NAME = "DougBot";
