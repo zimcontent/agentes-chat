@@ -14,7 +14,7 @@ import {
   useSyncExternalStore,
 } from "react";
 import { useTranslation } from "react-i18next";
-import { openPalette } from "./CommandMenu";
+import { openPalette } from "./shell-events"; // Doug: not CommandMenu.tsx, see shell-events.ts
 import { useOrg } from "./org-context";
 import { MyFace, OrgMark } from "./ProfilePhoto";
 

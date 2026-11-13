@@ -144,6 +144,7 @@ import { ArchivedChannelsDialog } from "./ArchivedChannelsDialog";
 import { ChangeAvatarDialog } from "./AvatarBuilder";
 import { MoveChannelDialog, NewCategoryDialog, RenameCategoryDialog } from "./ChannelCategoryDialogs";
 import { openPalette } from "./CommandMenu";
+import { NEW_CHANNEL_EVENT, TABLET_QUERY, toggleSidebar, useSidebarCollapsed } from "./shell-events";
 import { DeleteAccountDialog } from "./DeleteAccount";
 import { MenuEntries } from "./DesktopMenus";
 import { useAgentMenu, useChannelMenu, usePersonMenu } from "./entity-menus";
@@ -192,35 +193,8 @@ function UnshownRow() {
 }
 export const unshownRow = () => <UnshownRow />;
 
-/** Tablet widths: the sidebar is always an icon rail (NavDrawer.tsx has the other breakpoints). */
-export const TABLET_QUERY = "(min-width: 761px) and (max-width: 1199px)";
-
-/**
- * The sidebar shrunk to its icon rail at desktop widths (remembered), shared with the Mac app's title bar,
- * which carries the toggle there (DesktopTitleBar.tsx). In memory too, for when storage is blocked.
- */
-const SIDEBAR_EVENT = "agentes:sidebar";
-let sidebarCollapsed = storage.get(STORAGE_KEYS.sidebarCollapsed) === "1";
-const onSidebarChange = (cb: () => void) => {
-  window.addEventListener(SIDEBAR_EVENT, cb);
-  return () => window.removeEventListener(SIDEBAR_EVENT, cb);
-};
-export const toggleSidebar = () => {
-  sidebarCollapsed = !sidebarCollapsed;
-  storage.set(STORAGE_KEYS.sidebarCollapsed, sidebarCollapsed ? "1" : "0");
-  window.dispatchEvent(new Event(SIDEBAR_EVENT));
-};
-export function useSidebarCollapsed(): [boolean, () => void] {
-  const collapsed = useSyncExternalStore(
-    onSidebarChange,
-    () => sidebarCollapsed,
-    () => false,
-  );
-  return [collapsed, toggleSidebar];
-}
-
-/** File → Novo canal in the desktop app's menu bar (DesktopMenus.tsx): the sidebar opens its dialog. */
-export const NEW_CHANNEL_EVENT = "agentes:new-channel";
+// Doug: these live in shell-events.ts, so the shell can use them without loading the sidebar (see there).
+export { NEW_CHANNEL_EVENT, TABLET_QUERY, toggleSidebar, useSidebarCollapsed };
 
 /**
  * On the icon rail every channel would be the same "#": its initials instead ("eng-backend" → "Eb",

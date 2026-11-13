@@ -86,6 +86,7 @@ import { AppsPickerDialog } from "./AppsPicker";
 import { useNewAgentBrain } from "./useNewAgentBrain";
 import "../team-plan.css";
 import "./new-agent-card.css";
+import { NEW_AGENT_EVENT } from "@/components/shell-events";
 
 /** "Trazer agentes de outro app", loaded when it opens: every app's reader stays out of the app's first load. */
 const ImportAgentsDialog = lazy(() => import("./ImportAgentsDialog").then((m) => ({ default: m.ImportAgentsDialog })));
@@ -276,8 +277,8 @@ export function CreateAgentLink() {
   );
 }
 
-/** The Mac menu bar's New agent (`MenuBarActions`, mounted outside the dialog's provider) asks through this event. */
-export const NEW_AGENT_EVENT = "agentes:new-agent";
+// Doug: NEW_AGENT_EVENT lives in shell-events.ts, so the menu bar can ask without loading this dialog (see there).
+export { NEW_AGENT_EVENT };
 
 /** The ready-made words of a starting point: a personal starter's (`teamTemplates.agents`) or a role's. */
 const isStarter = (pick: Pick): pick is PersonalStarter["id"] => PERSONAL_STARTERS.some((s) => s.id === pick);

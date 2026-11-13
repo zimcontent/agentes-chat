@@ -2,9 +2,9 @@ import { Button, Icon, Kbd, modKey } from "@agenteschat/ui";
 import { useRouter } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { openPalette } from "./CommandMenu";
 import { useMediaQuery } from "./NavDrawer";
-import { TABLET_QUERY, useSidebarCollapsed } from "./Sidebar";
+// Doug: from shell-events.ts, not Sidebar.tsx and CommandMenu.tsx: the error screen loads this before the first paint.
+import { openPalette, TABLET_QUERY, useSidebarCollapsed } from "./shell-events";
 import { WorkspaceSky } from "./Sky";
 
 /**
