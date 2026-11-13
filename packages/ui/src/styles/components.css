@@ -1665,10 +1665,7 @@ html:not([data-pointer]) .ac-msg__time--details:focus-visible {
   font-size: var(--msg-text);
   line-height: var(--msg-line);
 }
-/* Doug: the copy button and the × share the last column, 8 apart, hung over the first line as the × alone was. */
-.ac-msg__error-row > .ac-msg__error-acts {
-  display: flex;
-  gap: var(--space-2);
+.ac-msg__error-row > .ac-btn--icon {
   margin-block: calc((var(--msg-line) - var(--control-h-sm)) / 2);
 }
 /* In the reason's column only: spanning the ×'s too, its width went to that column, sized by its content. */

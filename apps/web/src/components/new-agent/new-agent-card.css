@@ -512,14 +512,6 @@
 .nac__keys[data-step="card"] .nac__body {
   overflow: visible;
 }
-/* Doug: the line that says a slow create is still going; alone on the narrow footer, it takes the row above Create. */
-.nac__slow {
-  font-size: 13px;
-  color: var(--ink-muted);
-}
-.nac__foot--create > .nac__slow {
-  flex: 1 1 100%;
-}
 /* Create on the card's step: the sheet's width, as a phone's main action is. */
 .nac__foot--create > .ac-btn {
   flex: 1 1 auto;
