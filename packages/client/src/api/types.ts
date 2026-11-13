@@ -7959,8 +7959,93 @@ export interface PortalCard {
   owner: string | null;
   note: string;
   files: PortalCardFile[];
+  /** The day whoever is on it makes it (`YYYY-MM-DD`). Not `date`, the day the post goes out. */
+  produceOn: string | null;
+  /** The schedule's list it is in; null: none. */
+  list: string | null;
+  /** Its place in its list: lower first. */
+  order: number;
+  description: string;
+  /** Label ids (`PortalLabel`). */
+  labels: string[];
+  /** Workspace members on it (user ids). */
+  members: string[];
+  checklist: PortalCheck[];
+  comments: PortalComment[];
+  /** The portal's post this card became, once sent: the card stays, tied to it. */
+  item: string | null;
   createdAt: number;
   updatedAt: number;
+}
+
+export interface PortalCheck {
+  id: string;
+  text: string;
+  done: boolean;
+}
+
+/** `by`: a user id, or `agent:<id>`. `at`: milliseconds. */
+export interface PortalComment {
+  id: string;
+  by: string;
+  text: string;
+  at: number;
+}
+
+/** A list of the strategic schedule: usually a week, named by the team. */
+export interface PortalList {
+  id: string;
+  name: string;
+}
+
+export type PortalLabelColor =
+  | "green"
+  | "mint"
+  | "olive"
+  | "yellow"
+  | "wine"
+  | "red"
+  | "purple"
+  | "lilac"
+  | "blue"
+  | "gray";
+
+/** A label the team puts on cards by hand, one set for every client. */
+export interface PortalLabel {
+  id: string;
+  name: string;
+  color: PortalLabelColor;
+}
+
+/** A card as the schedule shows it. */
+export interface PlanCard extends PortalCard {
+  /** Where the post is: the card's own stage, or the portal's once it was sent. Never typed. */
+  stage: PortalColumn;
+  /** When it goes out: the portal's date once it is there, else the card's own. */
+  postOn: string | null;
+  /** The post at the portal, once it was sent. */
+  link: string | null;
+}
+
+/** A client's strategic schedule (`GET …/portal/clients/{client}/plan`). */
+export interface PortalPlan {
+  client: string;
+  state?: PortalState;
+  lists: (PortalList & { cards: PlanCard[] })[];
+  /** Cards in no list. */
+  unlisted: PlanCard[];
+  /** Posts at the portal no card stands for: the calendar shows them. */
+  loose: PortalItem[];
+  labels: PortalLabel[];
+}
+
+/** The caller's own open work by production day (`GET …/portal/mine`); `day` is the portal's own today. */
+export interface PortalMine {
+  day: string;
+  late: PlanCard[];
+  today: PlanCard[];
+  next: PlanCard[];
+  undated: PlanCard[];
 }
 
 export interface PortalCardInput {
@@ -7973,6 +8058,13 @@ export interface PortalCardInput {
   owner?: string | null;
   note?: string;
   files?: PortalCardFile[];
+  produceOn?: string | null;
+  list?: string | null;
+  order?: number;
+  description?: string;
+  labels?: string[];
+  members?: string[];
+  checklist?: PortalCheck[];
 }
 
 /** One client on the overview: how many it has per column, how many are still open, and the next date scheduled. */

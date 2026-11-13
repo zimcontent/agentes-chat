@@ -299,7 +299,18 @@
       "portal.form.note",
       "portal.form.date",
       "portal.form.client",
-      "portal.clients"
+      "portal.clients",
+      "portal.plan.posted",
+      "portal.plan.checks",
+      "portal.detail.checklist",
+      "portal.plan.postOn",
+      "portal.mine.post",
+      "portal.calendar.more",
+      "portal.labelsDialog.colors.lilac",
+      "portal.labelsDialog.colors.olive",
+      "portal.detail.stage",
+      "portal.plan.labels",
+      "portal.plan.viewBoard"
     ],
     "es": [
       "devices.iphone.path.general",
@@ -557,7 +568,18 @@
       "portal.form.note",
       "portal.form.date",
       "portal.form.client",
-      "portal.clients"
+      "portal.clients",
+      "portal.plan.posted",
+      "portal.plan.checks",
+      "portal.detail.checklist",
+      "portal.plan.postOn",
+      "portal.mine.post",
+      "portal.calendar.more",
+      "portal.labelsDialog.colors.lilac",
+      "portal.labelsDialog.colors.olive",
+      "portal.detail.stage",
+      "portal.plan.labels",
+      "portal.plan.viewBoard"
     ],
     "fr": [
       "channel.tooLong.fileName",
@@ -983,7 +1005,19 @@
       "portal.form.date",
       "portal.form.client",
       "portal.clients",
-      "photo.agent.title"
+      "photo.agent.title",
+      "portal.plan.posted",
+      "portal.plan.checks",
+      "portal.detail.checklist",
+      "portal.plan.postOn",
+      "portal.mine.post",
+      "portal.calendar.more",
+      "portal.labelsDialog.colors.lilac",
+      "portal.labelsDialog.colors.olive",
+      "portal.detail.stage",
+      "portal.plan.labels",
+      "portal.plan.viewBoard",
+      "portal.detail.description"
     ],
     "de": [
       "devices.iphone.steps.account",
@@ -1435,7 +1469,18 @@
       "portal.clients",
       "browser.watch.folded",
       "browser.watch.foldedAt",
-      "portal.board"
+      "portal.board",
+      "portal.plan.posted",
+      "portal.plan.checks",
+      "portal.detail.checklist",
+      "portal.plan.postOn",
+      "portal.mine.post",
+      "portal.calendar.more",
+      "portal.labelsDialog.colors.lilac",
+      "portal.labelsDialog.colors.olive",
+      "portal.detail.stage",
+      "portal.plan.labels",
+      "portal.plan.viewBoard"
     ],
     "it": [
       "shell.email.label",
@@ -1806,7 +1851,18 @@
       "portal.clients",
       "browser.watch.folded",
       "browser.watch.foldedAt",
-      "portal.files"
+      "portal.files",
+      "portal.plan.posted",
+      "portal.plan.checks",
+      "portal.detail.checklist",
+      "portal.plan.postOn",
+      "portal.mine.post",
+      "portal.calendar.more",
+      "portal.labelsDialog.colors.lilac",
+      "portal.labelsDialog.colors.olive",
+      "portal.detail.stage",
+      "portal.plan.labels",
+      "portal.plan.viewBoard"
     ],
     "nl": [
       "calendar.moreRuns",
@@ -2400,7 +2456,18 @@
       "portal.form.client",
       "portal.clients",
       "browser.watch.folded",
-      "browser.watch.foldedAt"
+      "browser.watch.foldedAt",
+      "portal.plan.posted",
+      "portal.plan.checks",
+      "portal.detail.checklist",
+      "portal.plan.postOn",
+      "portal.mine.post",
+      "portal.calendar.more",
+      "portal.labelsDialog.colors.lilac",
+      "portal.labelsDialog.colors.olive",
+      "portal.detail.stage",
+      "portal.plan.labels",
+      "portal.plan.viewBoard"
     ],
     "ja": [
       "channel.tooLong.fileName",
@@ -2578,7 +2645,18 @@
       "portal.form.note",
       "portal.form.date",
       "portal.form.client",
-      "portal.clients"
+      "portal.clients",
+      "portal.plan.posted",
+      "portal.plan.checks",
+      "portal.detail.checklist",
+      "portal.plan.postOn",
+      "portal.mine.post",
+      "portal.calendar.more",
+      "portal.labelsDialog.colors.lilac",
+      "portal.labelsDialog.colors.olive",
+      "portal.detail.stage",
+      "portal.plan.labels",
+      "portal.plan.viewBoard"
     ],
     "ko": [
       "channel.tooLong.fileName",
@@ -2750,7 +2828,18 @@
       "portal.form.note",
       "portal.form.date",
       "portal.form.client",
-      "portal.clients"
+      "portal.clients",
+      "portal.plan.posted",
+      "portal.plan.checks",
+      "portal.detail.checklist",
+      "portal.plan.postOn",
+      "portal.mine.post",
+      "portal.calendar.more",
+      "portal.labelsDialog.colors.lilac",
+      "portal.labelsDialog.colors.olive",
+      "portal.detail.stage",
+      "portal.plan.labels",
+      "portal.plan.viewBoard"
     ],
     "zh-Hans": [
       "channel.tooLong.fileName",
@@ -2913,7 +3002,18 @@
       "portal.form.note",
       "portal.form.date",
       "portal.form.client",
-      "portal.clients"
+      "portal.clients",
+      "portal.plan.posted",
+      "portal.plan.checks",
+      "portal.detail.checklist",
+      "portal.plan.postOn",
+      "portal.mine.post",
+      "portal.calendar.more",
+      "portal.labelsDialog.colors.lilac",
+      "portal.labelsDialog.colors.olive",
+      "portal.detail.stage",
+      "portal.plan.labels",
+      "portal.plan.viewBoard"
     ],
     "id": [
       "shell.email.label",
@@ -3223,7 +3323,18 @@
       "portal.form.note",
       "portal.form.date",
       "portal.form.client",
-      "portal.clients"
+      "portal.clients",
+      "portal.plan.posted",
+      "portal.plan.checks",
+      "portal.detail.checklist",
+      "portal.plan.postOn",
+      "portal.mine.post",
+      "portal.calendar.more",
+      "portal.labelsDialog.colors.lilac",
+      "portal.labelsDialog.colors.olive",
+      "portal.detail.stage",
+      "portal.plan.labels",
+      "portal.plan.viewBoard"
     ],
     "tr": [
       "devices.cpus",
@@ -3420,7 +3531,18 @@
       "portal.form.note",
       "portal.form.date",
       "portal.form.client",
-      "portal.clients"
+      "portal.clients",
+      "portal.plan.posted",
+      "portal.plan.checks",
+      "portal.detail.checklist",
+      "portal.plan.postOn",
+      "portal.mine.post",
+      "portal.calendar.more",
+      "portal.labelsDialog.colors.lilac",
+      "portal.labelsDialog.colors.olive",
+      "portal.detail.stage",
+      "portal.plan.labels",
+      "portal.plan.viewBoard"
     ],
     "pl": [
       "devices.cpus",
@@ -3717,7 +3839,18 @@
       "portal.form.note",
       "portal.form.date",
       "portal.form.client",
-      "portal.clients"
+      "portal.clients",
+      "portal.plan.posted",
+      "portal.plan.checks",
+      "portal.detail.checklist",
+      "portal.plan.postOn",
+      "portal.mine.post",
+      "portal.calendar.more",
+      "portal.labelsDialog.colors.lilac",
+      "portal.labelsDialog.colors.olive",
+      "portal.detail.stage",
+      "portal.plan.labels",
+      "portal.plan.viewBoard"
     ],
     "ru": [
       "channel.tooLong.fileName",
@@ -3880,7 +4013,18 @@
       "portal.form.note",
       "portal.form.date",
       "portal.form.client",
-      "portal.clients"
+      "portal.clients",
+      "portal.plan.posted",
+      "portal.plan.checks",
+      "portal.detail.checklist",
+      "portal.plan.postOn",
+      "portal.mine.post",
+      "portal.calendar.more",
+      "portal.labelsDialog.colors.lilac",
+      "portal.labelsDialog.colors.olive",
+      "portal.detail.stage",
+      "portal.plan.labels",
+      "portal.plan.viewBoard"
     ]
   },
   "mobile-base": {

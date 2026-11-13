@@ -3,18 +3,21 @@
  * on every call) unless the test's server says it has a portal (`authConfig.approvalPortal`). Empty until a test adds
  * cards (`fake.cards`) and posts (`fake.items`); the overview and the boards are worked out from them as the server
  * does. A send starts a job that is `sending`, then `done` on its next read (the post lands in Waiting for approval
- * and its card leaves), or stays `sending` while `fake.holdSends` until `fake.finish`. `fake.fail` makes the next
+ * and its card stays, tied to it: off the board, still on the schedule), or stays `sending` while `fake.holdSends` until `fake.finish`. `fake.fail` makes the next
  * call throw (a refusal in the portal's words, or 502). Scheduling an approved post gives it its date and leaves it
  * `approved`, as the real one does until the publishing service has it; a test sets `status: "scheduled"` itself for
  * what comes after. Changes are logged; reads are not.
  */
 import type {
   ApiClient,
+  PlanCard,
   PortalCard,
   PortalClientSummary,
   PortalColumn,
   PortalItem,
   PortalJob,
+  PortalLabel,
+  PortalList,
   PortalState,
   PortalStatus,
 } from "@agenteschat/client";
@@ -27,6 +30,12 @@ export interface FakePortal {
   clients: string[];
   cards: PortalCard[];
   items: PortalItem[];
+  /** The schedule's lists, each a client's, in the team's order. */
+  lists: (PortalList & { client: string })[];
+  /** The team's labels, one set for every client. */
+  labels: PortalLabel[];
+  /** The portal's own today (`YYYY-MM-DD`), which `mine` reads production dates against (default: this machine's). */
+  day: string;
   jobs: Map<string, PortalJob>;
   /** How fresh the portal's side is, sent with the overview and every board (default: fresh, nothing queued). */
   state: PortalState;
@@ -60,6 +69,15 @@ export function portalCard(over: Partial<PortalCard> & Pick<PortalCard, "id" | "
     owner: null,
     note: "",
     files: [],
+    produceOn: null,
+    list: null,
+    order: 0,
+    description: "",
+    labels: [],
+    members: [],
+    checklist: [],
+    comments: [],
+    item: null,
     createdAt: 1,
     updatedAt: 1,
     ...over,
@@ -89,7 +107,11 @@ export function portalItem(over: Partial<PortalItem> & Pick<PortalItem, "id" | "
   };
 }
 
-export function createFakePortal(log: (method: string, ...args: unknown[]) => void, on: () => boolean): FakePortal {
+export function createFakePortal(
+  log: (method: string, ...args: unknown[]) => void,
+  on: () => boolean,
+  me: () => string | null = () => null,
+): FakePortal {
   let seq = 0;
   const hex = () => (++seq).toString(16).padStart(8, "0");
   const guard = () => {
@@ -110,7 +132,8 @@ export function createFakePortal(log: (method: string, ...args: unknown[]) => vo
       scheduled: 0,
       posted: 0,
     };
-    for (const c of fake.cards) if (c.client === client) counts[c.state] += 1;
+    // A card that was sent stands for its post: the post is what counts from then on.
+    for (const c of fake.cards) if (c.client === client && !c.item) counts[c.state] += 1;
     for (const i of fake.items) if (i.client === client) counts[COLUMN_OF[i.status]] += 1;
     return counts;
   };
@@ -137,13 +160,34 @@ export function createFakePortal(log: (method: string, ...args: unknown[]) => vo
         missing: result.missing,
       }),
     );
-    if (sent?.card) fake.cards = fake.cards.filter((c) => c.id !== sent.card);
+    // The card stays, tied to its post.
+    const card = fake.cards.find((c) => c.id === sent?.card);
+    if (card) card.item = id;
   };
   const sends = new Map<string, { type: PortalItem["type"]; files: number; card?: string }>();
+  const stageOf = (card: PortalCard): PlanCard => {
+    const item = card.item ? fake.items.find((i) => i.client === card.client && i.id === card.item) : undefined;
+    return {
+      ...card,
+      stage: item ? COLUMN_OF[item.status] : card.item ? "approval" : card.state,
+      postOn: item?.scheduledFor ?? card.date,
+      link: item?.link ?? null,
+    };
+  };
+  const byOrder = (a: PortalCard, b: PortalCard) => a.order - b.order || a.createdAt - b.createdAt;
+  const cardOf = (cardId: string) => {
+    const card = fake.cards.find((c) => c.id === cardId);
+    if (!card) throw new ApiError(400, "portal.refused", "No such card");
+    return card;
+  };
+  const today = new Date();
   const fake: FakePortal = {
     clients: [],
     cards: [],
     items: [],
+    lists: [],
+    labels: [],
+    day: `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`,
     jobs: new Map(),
     state: { stale: false, readAt: null, queued: 0 },
     fail: null,
@@ -175,7 +219,7 @@ export function createFakePortal(log: (method: string, ...args: unknown[]) => vo
       },
       board: async (_orgId, client) => {
         guard();
-        const cards = fake.cards.filter((c) => c.client === client);
+        const cards = fake.cards.filter((c) => c.client === client && !c.item);
         const items = fake.items.filter((i) => i.client === client);
         const at = (column: PortalColumn) => items.filter((i) => COLUMN_OF[i.status] === column);
         return clone({
@@ -194,7 +238,8 @@ export function createFakePortal(log: (method: string, ...args: unknown[]) => vo
       createCard: async (orgId, input) => {
         log("portal.createCard", orgId, input);
         guard();
-        const card = portalCard({ id: `c-${hex()}`, ...input });
+        const last = Math.max(0, ...fake.cards.filter((c) => c.client === input.client).map((c) => c.order));
+        const card = portalCard({ id: `c-${hex()}`, order: last + 1, ...input });
         fake.cards.push(card);
         return clone(card);
       },
@@ -241,6 +286,114 @@ export function createFakePortal(log: (method: string, ...args: unknown[]) => vo
         const item = fake.items.find((i) => i.client === client && i.id === itemId);
         if (!item) throw new ApiError(400, "portal.refused", "No such post");
         Object.assign(item, edit);
+      },
+      plan: async (_orgId, client) => {
+        guard();
+        const cards = fake.cards
+          .filter((c) => c.client === client)
+          .sort(byOrder)
+          .map(stageOf);
+        const lists = fake.lists.filter((l) => l.client === client);
+        const known = new Set(lists.map((l) => l.id));
+        const carded = new Set(cards.map((c) => c.item).filter(Boolean));
+        return clone({
+          client,
+          state: fake.state,
+          lists: lists.map(({ id, name }) => ({ id, name, cards: cards.filter((c) => c.list === id) })),
+          unlisted: cards.filter((c) => !c.list || !known.has(c.list)),
+          loose: fake.items.filter((i) => i.client === client && !carded.has(i.id)),
+          labels: fake.labels,
+        });
+      },
+      mine: async () => {
+        guard();
+        const user = me();
+        const open = fake.cards
+          .filter((c) => user !== null && c.members.includes(user))
+          .map(stageOf)
+          .filter((c) => c.stage === "todo" || c.stage === "doing" || c.stage === "adjusting");
+        const byDay = (a: PlanCard, b: PlanCard) =>
+          (a.produceOn ?? "").localeCompare(b.produceOn ?? "") || byOrder(a, b);
+        return clone({
+          day: fake.day,
+          late: open.filter((c) => c.produceOn !== null && c.produceOn < fake.day).sort(byDay),
+          today: open.filter((c) => c.produceOn === fake.day).sort(byOrder),
+          next: open.filter((c) => c.produceOn !== null && c.produceOn > fake.day).sort(byDay),
+          undated: open.filter((c) => c.produceOn === null).sort(byOrder),
+        });
+      },
+      createList: async (orgId, client, name) => {
+        log("portal.createList", orgId, client, name);
+        guard();
+        const same = fake.lists.find((l) => l.client === client && l.name.toLowerCase() === name.trim().toLowerCase());
+        if (same) return { id: same.id, name: same.name };
+        const list = { id: `l-${hex()}`, name: name.trim(), client };
+        fake.lists.push(list);
+        return { id: list.id, name: list.name };
+      },
+      orderLists: async (orgId, client, ids) => {
+        log("portal.orderLists", orgId, client, ids);
+        guard();
+        const mine = fake.lists.filter((l) => l.client === client);
+        const ordered = [
+          ...ids.flatMap((id) => mine.find((l) => l.id === id) ?? []),
+          ...mine.filter((l) => !ids.includes(l.id)),
+        ];
+        fake.lists = [...fake.lists.filter((l) => l.client !== client), ...ordered];
+        return ordered.map(({ id, name }) => ({ id, name }));
+      },
+      renameList: async (orgId, listId, name) => {
+        log("portal.renameList", orgId, listId, name);
+        guard();
+        const list = fake.lists.find((l) => l.id === listId);
+        if (!list) throw new ApiError(400, "portal.refused", "No such list");
+        list.name = name.trim();
+        return { id: list.id, name: list.name };
+      },
+      deleteList: async (orgId, listId) => {
+        log("portal.deleteList", orgId, listId);
+        guard();
+        fake.lists = fake.lists.filter((l) => l.id !== listId);
+        for (const card of fake.cards) if (card.list === listId) card.list = null;
+      },
+      labels: async () => {
+        guard();
+        return clone(fake.labels);
+      },
+      createLabel: async (orgId, input) => {
+        log("portal.createLabel", orgId, input);
+        guard();
+        const label = { id: `e-${hex()}`, name: input.name.trim(), color: input.color };
+        fake.labels.push(label);
+        return clone(label);
+      },
+      updateLabel: async (orgId, labelId, change) => {
+        log("portal.updateLabel", orgId, labelId, change);
+        guard();
+        const label = fake.labels.find((l) => l.id === labelId);
+        if (!label) throw new ApiError(400, "portal.refused", "No such label");
+        Object.assign(label, change);
+        return clone(label);
+      },
+      deleteLabel: async (orgId, labelId) => {
+        log("portal.deleteLabel", orgId, labelId);
+        guard();
+        fake.labels = fake.labels.filter((l) => l.id !== labelId);
+        for (const card of fake.cards) card.labels = card.labels.filter((id) => id !== labelId);
+      },
+      addComment: async (orgId, cardId, text) => {
+        log("portal.addComment", orgId, cardId, text);
+        guard();
+        const card = cardOf(cardId);
+        card.comments.push({ id: `m-${hex()}`, by: me() ?? "", text: text.trim(), at: Date.now() });
+        return clone(card);
+      },
+      deleteComment: async (orgId, cardId, commentId) => {
+        log("portal.deleteComment", orgId, cardId, commentId);
+        guard();
+        const card = cardOf(cardId);
+        card.comments = card.comments.filter((m) => m.id !== commentId);
+        return clone(card);
       },
       schedule: async (orgId, client, itemId, scheduledFor) => {
         log("portal.schedule", orgId, client, itemId, scheduledFor);

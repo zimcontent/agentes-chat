@@ -1,10 +1,14 @@
 import type { TFunction } from "i18next";
 import { ApiError } from "../api/http";
 import type {
+  PlanCard,
+  PortalCard,
   PortalClientSummary,
   PortalColumn,
   PortalItem,
+  PortalLabelColor,
   PortalMissing,
+  PortalPlan,
   PortalStatus,
   PortalType,
 } from "../api/types";
@@ -201,3 +205,129 @@ export function portalMonthName(locale: string, month: string): string {
 
 /** A link the portal sent, only when it is a web address: outside text never becomes another kind of link. */
 export const portalLink = (url: string | null | undefined) => (url && /^https?:\/\//i.test(url) ? url : null);
+
+/** The colours a label takes (`PORTAL_LABEL_COLORS`, packages/adapters/src/approval-portal.ts): names the apps draw. */
+export const PORTAL_LABEL_COLORS: readonly PortalLabelColor[] = [
+  "green",
+  "mint",
+  "olive",
+  "yellow",
+  "wine",
+  "red",
+  "purple",
+  "lilac",
+  "blue",
+  "gray",
+];
+
+/** The column of the schedule that holds the cards in no list. */
+export const PORTAL_NO_LIST = "none";
+
+/**
+ * The `order` of a card dropped at `index` among `others` (its new list's cards without it, in order): the midpoint
+ * between its neighbours, one before the first, one past the last, so nothing else has to be renumbered.
+ */
+export function portalOrderAt(others: readonly { order: number }[], index: number): number {
+  const at = Math.max(0, Math.min(index, others.length));
+  const before = others[at - 1]?.order;
+  const after = others[at]?.order;
+  if (before === undefined && after === undefined) return 1;
+  if (before === undefined) return (after as number) - 1;
+  if (after === undefined) return before + 1;
+  return (before + after) / 2;
+}
+
+/** Every card of a schedule, the listed ones first. */
+export const planCards = (plan: Pick<PortalPlan, "lists" | "unlisted">): PlanCard[] => [
+  ...plan.lists.flatMap((list) => list.cards),
+  ...plan.unlisted,
+];
+
+/** The schedule with one card in another list or place: what a move shows before the portal answers. */
+export function movedInPlan(plan: PortalPlan, cardId: string, list: string | null, order: number): PortalPlan {
+  const card = planCards(plan).find((c) => c.id === cardId);
+  if (!card) return plan;
+  const moved = { ...card, list, order };
+  const without = (cards: PlanCard[]) => cards.filter((c) => c.id !== cardId);
+  const withIt = (cards: PlanCard[]) => [...without(cards), moved].sort((a, b) => a.order - b.order);
+  const known = list !== null && plan.lists.some((l) => l.id === list);
+  return {
+    ...plan,
+    lists: plan.lists.map((l) => ({ ...l, cards: l.id === list ? withIt(l.cards) : without(l.cards) })),
+    unlisted: known ? without(plan.unlisted) : withIt(plan.unlisted),
+  };
+}
+
+/** How many of a checklist are done, or null when it has none. */
+export const portalChecks = (card: Pick<PortalCard, "checklist">) =>
+  card.checklist.length > 0
+    ? { done: card.checklist.filter((c) => c.done).length, total: card.checklist.length }
+    : null;
+
+/** What a calendar shows a day for: the day the post goes out, or the day it is made. */
+export type PortalCalendarBy = "post" | "produce";
+
+/** One thing on the calendar: a card of the schedule, or a post at the portal no card stands for. */
+export type PortalCalendarEntry =
+  | { kind: "card"; id: string; title: string; stage: PortalColumn; card: PlanCard }
+  | { kind: "item"; id: string; title: string; stage: PortalColumn; item: PortalItem };
+
+const ITEM_STAGE: Record<PortalStatus, PortalColumn> = {
+  sent: "approval",
+  seen: "approval",
+  adjusted: "approval",
+  adjust_requested: "adjusting",
+  adjusting: "adjusting",
+  approved: "approved",
+  scheduled: "scheduled",
+  published: "posted",
+};
+
+/**
+ * What each day (`YYYY-MM-DD`) of a calendar holds: by post date, every card on the day it goes out and every loose
+ * post on the day it is set for or went out; by production date, only the cards (a loose post has none). Days are read
+ * as the portal wrote them.
+ */
+export function portalCalendar(plan: PortalPlan, by: PortalCalendarBy): Map<string, PortalCalendarEntry[]> {
+  const days = new Map<string, PortalCalendarEntry[]>();
+  const put = (day: string | null, entry: PortalCalendarEntry) => {
+    if (day) days.set(day, [...(days.get(day) ?? []), entry]);
+  };
+  for (const card of planCards(plan)) {
+    put(by === "post" ? portalDayOf(card.postOn) : card.produceOn, {
+      kind: "card",
+      id: card.id,
+      title: card.title,
+      stage: card.stage,
+      card,
+    });
+  }
+  if (by === "post") {
+    for (const item of plan.loose) {
+      put(portalDayOf(item.scheduledFor ?? item.publishedAt), {
+        kind: "item",
+        id: item.id,
+        title: item.title,
+        stage: ITEM_STAGE[item.status],
+        item,
+      });
+    }
+  }
+  return days;
+}
+
+/** A text with its web addresses apart, to draw them as links: plain words only, never markup. */
+export function portalTextParts(text: string): { text: string; href?: string }[] {
+  const parts: { text: string; href?: string }[] = [];
+  let last = 0;
+  for (const match of text.matchAll(/https?:\/\/[^\s<>"']+/g)) {
+    const at = match.index ?? 0;
+    // A sentence's own full stop or bracket after an address isn't part of it.
+    const url = match[0].replace(/[.,;:!?)\]]+$/, "");
+    if (at > last) parts.push({ text: text.slice(last, at) });
+    parts.push({ text: url, href: url });
+    last = at + url.length;
+  }
+  if (last < text.length) parts.push({ text: text.slice(last) });
+  return parts;
+}

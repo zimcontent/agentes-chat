@@ -30,7 +30,7 @@ the client sent back and what is ready.
 
 3. **Cards live with the bridge, not in this database.** The portal only knows a post once it is sent, so the two
    first columns need a home. They are the bridge's, kept beside the portal it serves: this server adds no table, and an
-   installation without a portal carries nothing of it. A card that is sent leaves the cards when the send ends well.
+   installation without a portal carries nothing of it. A card that is sent stays, tied to its post (§8).
 
 4. **The send is code from end to end.** `sendForApproval` reads each Drive file through the caller's own reader (a
    person's download, an agent's `storedFileOfArtifact`), so every file passes that caller's access check, and all
@@ -53,6 +53,21 @@ the client sent back and what is ready.
 7. **Who may.** Members read the board. Whoever may give agents work (`assign_work`) changes cards, completes a post,
    sends and schedules. The portal's refusal comes back in its own words as 400 `portal.refused`; a bridge that doesn't answer,
    or refuses this server's token, is 502 `portal.unavailable`.
+
+8. **The strategic schedule.** Beside the board, each client has a schedule the team plans in: lists it names (usually
+   weeks), ordered by hand, and the same cards in them. A card carries a brief, a checklist, comments, the team's
+   labels (one set for every client, a name and one of ten colours), the workspace members on it, and two dates that
+   are never one: `produceOn`, the day whoever is on it makes it, and `date`, the day the post goes out. A card that
+   is sent is no longer removed: it keeps its place and is tied to the post (`item`), and from then on its stage is
+   the portal's. The stage is never typed, so the schedule's colours follow what the client does there with nobody
+   moving a card. `portalPlan` answers a client's schedule; `myPortalWork` answers one member's open work (a card
+   they are on whose post isn't with the client, approved or out) as late, today, next and undated, read against
+   the portal's own day, which is what Home shows each person.
+
+9. **Agents plan and tell.** `portal_plan` writes a strategy into a client's schedule (lists found by name, so a
+   week planned twice is one week; labels and members said by name, all resolved before the first card is made).
+   `portal_work` reads a member's work or a client's whole schedule. The two tools that only read are also listed
+   for a routine's run, so a routine can tell each person their day; nothing that changes or sends is.
 
 ## Consequences
 

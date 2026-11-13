@@ -258,6 +258,8 @@ const BUILTIN: Record<string, ActivityKind> = {
   // The approval portal (ADR 9001): the board and its cards, and a send for a client's approval.
   portal_board: "usingPortal",
   portal_card: "usingPortal",
+  portal_plan: "usingPortal",
+  portal_work: "usingPortal",
   send_for_approval: "sendingForApproval",
   schedule_post: "schedulingPost",
   work_in_background: "startingWork",

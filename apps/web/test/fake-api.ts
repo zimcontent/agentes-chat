@@ -3940,6 +3940,7 @@ export function createFakeApi(state: FakeState = seedState(), options: { seed?: 
   const portal = createFakePortal(
     (method, ...args) => state.calls.push({ method, args }),
     () => state.authConfig?.approvalPortal === true,
+    () => state.me?.user.id ?? null,
   );
   const apps = createFakeApps((method, ...args) => state.calls.push({ method, args }), ctx.now);
   const artifacts = createMockArtifacts(ctx, (method, ...args) => state.calls.push({ method, args }));

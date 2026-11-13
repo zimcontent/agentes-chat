@@ -45490,6 +45490,249 @@
   "portal.sending.coverNotImage": {
     "value": "The cover must be a picture."
   },
+  "portal.plan.tab": {
+    "value": "Strategic schedule"
+  },
+  "portal.plan.view": {
+    "value": "View"
+  },
+  "portal.plan.viewBoard": {
+    "value": "Board"
+  },
+  "portal.plan.viewCalendar": {
+    "value": "Calendar"
+  },
+  "portal.plan.noList": {
+    "value": "No list"
+  },
+  "portal.plan.addList": {
+    "value": "Add a list"
+  },
+  "portal.plan.listName": {
+    "value": "List name"
+  },
+  "portal.plan.addCard": {
+    "value": "Add a card"
+  },
+  "portal.plan.cardTitle": {
+    "value": "Card title"
+  },
+  "portal.plan.listActions": {
+    "value": "Actions: {{name}}"
+  },
+  "portal.plan.rename": {
+    "value": "Rename"
+  },
+  "portal.plan.moveLeft": {
+    "value": "Move left"
+  },
+  "portal.plan.moveRight": {
+    "value": "Move right"
+  },
+  "portal.plan.deleteList": {
+    "value": "Delete list"
+  },
+  "portal.plan.deleteListTitle": {
+    "value": "Delete this list?"
+  },
+  "portal.plan.deleteListText": {
+    "value": "“{{name}}” goes away. Its cards stay, in no list."
+  },
+  "portal.plan.moveCard": {
+    "value": "Move to another list"
+  },
+  "portal.plan.empty": {
+    "value": "No lists yet"
+  },
+  "portal.plan.emptyText": {
+    "value": "A list is usually a week. Add the first one."
+  },
+  "portal.plan.legend": {
+    "value": "Legend"
+  },
+  "portal.plan.stages": {
+    "value": "Stages"
+  },
+  "portal.plan.posted": {
+    "value": "Posted"
+  },
+  "portal.plan.labels": {
+    "value": "Labels"
+  },
+  "portal.plan.manageLabels": {
+    "value": "Manage labels"
+  },
+  "portal.plan.noLabels": {
+    "value": "No labels yet"
+  },
+  "portal.plan.comments": {
+    "value": {
+      "one": "{{count}} comment",
+      "other": "{{count}} comments"
+    }
+  },
+  "portal.plan.checks": {
+    "value": "{{done}} of {{total}} done"
+  },
+  "portal.plan.hasDescription": {
+    "value": "Has a description"
+  },
+  "portal.plan.postOn": {
+    "value": "Post: {{when}}"
+  },
+  "portal.plan.produceOn": {
+    "value": "Production: {{when}}"
+  },
+  "portal.plan.drag.help": {
+    "value": "Press Space to pick the card up, the arrows to move it, Space again to drop it."
+  },
+  "portal.plan.drag.picked": {
+    "value": "Picked up {{title}}."
+  },
+  "portal.plan.drag.moved": {
+    "value": "{{title}}: {{group}}, {{position}} of {{total}}."
+  },
+  "portal.plan.drag.dropped": {
+    "value": "{{title}} dropped in {{group}}."
+  },
+  "portal.plan.drag.canceled": {
+    "value": "{{title}} went back."
+  },
+  "portal.calendar.by": {
+    "value": "Show by"
+  },
+  "portal.calendar.byPost": {
+    "value": "Post date"
+  },
+  "portal.calendar.byProduce": {
+    "value": "Production date"
+  },
+  "portal.calendar.today": {
+    "value": "Today"
+  },
+  "portal.calendar.more": {
+    "value": "+{{count}} more"
+  },
+  "portal.labelsDialog.name": {
+    "value": "Label name"
+  },
+  "portal.labelsDialog.color": {
+    "value": "Colour"
+  },
+  "portal.labelsDialog.add": {
+    "value": "Add label"
+  },
+  "portal.labelsDialog.delete": {
+    "value": "Delete label {{name}}"
+  },
+  "portal.labelsDialog.colors.green": {
+    "value": "Green"
+  },
+  "portal.labelsDialog.colors.mint": {
+    "value": "Mint"
+  },
+  "portal.labelsDialog.colors.olive": {
+    "value": "Olive"
+  },
+  "portal.labelsDialog.colors.yellow": {
+    "value": "Yellow"
+  },
+  "portal.labelsDialog.colors.wine": {
+    "value": "Wine"
+  },
+  "portal.labelsDialog.colors.red": {
+    "value": "Red"
+  },
+  "portal.labelsDialog.colors.purple": {
+    "value": "Purple"
+  },
+  "portal.labelsDialog.colors.lilac": {
+    "value": "Lilac"
+  },
+  "portal.labelsDialog.colors.blue": {
+    "value": "Blue"
+  },
+  "portal.labelsDialog.colors.gray": {
+    "value": "Gray"
+  },
+  "portal.detail.produceOn": {
+    "value": "Production date"
+  },
+  "portal.detail.produceHint": {
+    "value": "The day the team makes it."
+  },
+  "portal.detail.postOn": {
+    "value": "Post date"
+  },
+  "portal.detail.postHint": {
+    "value": "The day and time it goes out."
+  },
+  "portal.detail.list": {
+    "value": "List"
+  },
+  "portal.detail.stage": {
+    "value": "Stage"
+  },
+  "portal.detail.stageHint": {
+    "value": "Automatic: it follows the post at the portal."
+  },
+  "portal.detail.members": {
+    "value": "Members"
+  },
+  "portal.detail.description": {
+    "value": "Description"
+  },
+  "portal.detail.checklist": {
+    "value": "Checklist"
+  },
+  "portal.detail.addCheck": {
+    "value": "Add an item"
+  },
+  "portal.detail.comments": {
+    "value": "Comments"
+  },
+  "portal.detail.writeComment": {
+    "value": "Write a comment"
+  },
+  "portal.detail.comment": {
+    "value": "Comment"
+  },
+  "portal.detail.deleteComment": {
+    "value": "Delete comment"
+  },
+  "portal.detail.noComments": {
+    "value": "No comments yet"
+  },
+  "portal.detail.someone": {
+    "value": "Someone"
+  },
+  "portal.detail.ask": {
+    "value": "Ask {{name}}"
+  },
+  "portal.detail.askDraft": {
+    "value": "About the task “{{title}}” ({{client}}, card {{id}}): "
+  },
+  "portal.mine.title": {
+    "value": "Your tasks"
+  },
+  "portal.mine.late": {
+    "value": "Late"
+  },
+  "portal.mine.today": {
+    "value": "Today"
+  },
+  "portal.mine.next": {
+    "value": "Next"
+  },
+  "portal.mine.undated": {
+    "value": "No date"
+  },
+  "portal.mine.produce": {
+    "value": "Production {{when}}"
+  },
+  "portal.mine.post": {
+    "value": "Post {{when}}"
+  },
   "portal.picker.title": {
     "value": "Files from the Drive"
   },

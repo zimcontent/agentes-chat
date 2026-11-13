@@ -254,7 +254,12 @@ import type {
   PortalCardInput,
   PortalItemEdit,
   PortalJob,
+  PortalLabel,
+  PortalLabelColor,
+  PortalList,
+  PortalMine,
   PortalOverview,
+  PortalPlan,
   PortalSendInput,
   PostMedia,
   Proposal,
@@ -1411,6 +1416,29 @@ export interface ApiClient {
      * stays `approved` with its date until then.
      */
     schedule(orgId: string, client: string, itemId: string, scheduledFor: string): Promise<void>;
+    /** A client's strategic schedule: its lists with their cards, the cards in no list, the labels. */
+    plan(orgId: string, client: string): Promise<PortalPlan>;
+    /** The caller's own open work by production day. */
+    mine(orgId: string): Promise<PortalMine>;
+    /** Makes a list (the same name answers the same list). */
+    createList(orgId: string, client: string, name: string): Promise<PortalList>;
+    /** Every list of the client, once each, in the new order. */
+    orderLists(orgId: string, client: string, ids: string[]): Promise<PortalList[]>;
+    renameList(orgId: string, listId: string, name: string): Promise<PortalList>;
+    /** Its cards stay, in no list. */
+    deleteList(orgId: string, listId: string): Promise<void>;
+    labels(orgId: string): Promise<PortalLabel[]>;
+    createLabel(orgId: string, input: { name: string; color: PortalLabelColor }): Promise<PortalLabel>;
+    updateLabel(
+      orgId: string,
+      labelId: string,
+      change: { name?: string; color?: PortalLabelColor },
+    ): Promise<PortalLabel>;
+    deleteLabel(orgId: string, labelId: string): Promise<void>;
+    /** Anyone who may post comments; answers the card with it. */
+    addComment(orgId: string, cardId: string, text: string): Promise<PortalCard>;
+    /** One's own, or any for who may give agents work. */
+    deleteComment(orgId: string, cardId: string, commentId: string): Promise<PortalCard>;
   };
   /** Missions (ADR 0029): long work by the agent's executor on a connected computer, in one thread. */
   missions: {

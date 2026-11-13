@@ -696,6 +696,8 @@ const LABELS: Record<string, readonly [en: string, ptBR: string]> = {
   vault_delete: ["Delete password", "Apagar senha"],
   vault_make_password: ["Make a password", "Criar senha"],
   portal_board: ["See the approval board", "Ver o quadro de aprovação"],
+  portal_plan: ["See the strategic schedule", "Ver o cronograma estratégico"],
+  portal_work: ["See a person's tasks", "Ver as tarefas de uma pessoa"],
   portal_card: ["Update the approval board", "Atualizar o quadro de aprovação"],
   send_for_approval: ["Send for approval", "Subir para aprovação"],
   schedule_post: ["Schedule post", "Agendar post"],

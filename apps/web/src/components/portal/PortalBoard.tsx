@@ -1,9 +1,8 @@
-import type { PortalBoard as Board, PortalCard, PortalItem } from "@agenteschat/client";
-import { useDeletePortalCard, useSavePortalCard } from "@agenteschat/client";
+import type { PortalBoard as Board, PortalCard, PortalCardState, PortalItem } from "@agenteschat/client";
+import { useDeletePortalCard, useMovePortalCardState } from "@agenteschat/client";
 import {
   PORTAL_BOARD_COLUMNS,
   PORTAL_STATUS_LOOK,
-  type PortalBoardColumn,
   portalErrorText,
   portalLink,
   portalScheduling,
@@ -21,115 +20,183 @@ import {
   MenuItem,
   MenuSeparator,
 } from "@agenteschat/ui";
-import { useState } from "react";
+import { useId, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useOrg } from "@/components/org-context";
 import { useToast } from "@/lib/toast";
-import { CardDialog } from "./CardDialog";
+import { useIssueDrag } from "@/pages/issue-drag";
+import {
+  BoardColumn,
+  BoardFrame,
+  type CardDrag,
+  CardFace,
+  type CardMove,
+  CardSlots,
+  type DropResult,
+} from "./board-parts";
 import { ItemDialog } from "./ItemDialog";
 import { COLUMN_ICON } from "./PortalOverview";
 import { ScheduleDialog } from "./ScheduleDialog";
 
+/** The two columns the team's own cards move between; the others are the portal's to fill. */
+const TEAM_COLUMNS: readonly PortalCardState[] = ["todo", "doing"];
+const isTeam = (column: string): column is PortalCardState => (TEAM_COLUMNS as readonly string[]).includes(column);
+
 /**
  * One client's board (ADR 9001), in the task board's columns: To do and In production hold the team's cards, the
  * other four the posts as the portal has them (Waiting for approval: the client's turn; Adjustment asked and
- * Approved: the team's, to change it or to schedule it; Scheduled: nobody's). It scrolls sideways where the columns
- * don't fit. `changes`: the person may give agents work, so the cards carry their actions; everyone else reads.
+ * Approved: the team's, to change it or to schedule it; Scheduled: nobody's). A team card is dragged between its two
+ * columns (a mouse, a finger, or Space and the arrows), shown there at once and put back when the portal refuses;
+ * while one moves, the portal's columns show they take none, since the portal decides what is in them. The board's
+ * empty space drags it sideways. `changes`: the person may give agents work, so the cards carry their actions and
+ * move; everyone else reads.
  */
 export function PortalBoard({
   board,
   changes,
+  onOpen,
   onSend,
 }: {
   board: Board;
   changes: boolean;
+  /** A team card pressed: it opens in the card's dialog. */
+  onOpen: (cardId: string) => void;
   onSend: (card: PortalCard) => void;
 }) {
-  const { t } = useTranslation();
-  const [editing, setEditing] = useState<PortalCard | null>(null);
+  const { t, i18n } = useTranslation();
+  const { org } = useOrg();
+  const toast = useToast();
+  const helpId = useId();
+  const move = useMovePortalCardState(org.id, board.client);
   const [deleting, setDeleting] = useState<PortalCard | null>(null);
   const [editingItem, setEditingItem] = useState<PortalItem | null>(null);
   const [scheduling, setScheduling] = useState<PortalItem | null>(null);
-  const cards = (column: PortalBoardColumn) =>
-    column === "todo" || column === "doing"
-      ? board.cards[column].map((card) => (
-          <TeamCard
-            key={card.id}
-            card={card}
-            changes={changes}
-            onEdit={() => setEditing(card)}
-            onDelete={() => setDeleting(card)}
-            onSend={() => onSend(card)}
-          />
-        ))
-      : board.items[column].map((item) => (
-          <PostCard
-            key={item.id}
-            item={item}
-            onEdit={changes ? () => setEditingItem(item) : undefined}
-            // Only what the client approved can be scheduled, only by who may change the board, and only once:
-            // the portal refuses to release a post again.
-            onSchedule={changes && column === "approved" && !item.released ? () => setScheduling(item) : undefined}
-          />
-        ));
+  const moveTo = (card: PortalCard, state: PortalCardState) =>
+    move.mutate(
+      { cardId: card.id, state },
+      { onError: (error) => toast.show(portalErrorText(t, error, i18n.language), "error") },
+    );
+  const onDrop = ({ id, from, to }: CardMove): DropResult => {
+    const card = [...board.cards.todo, ...board.cards.doing].find((c) => c.id === id);
+    // Inside a column the order is the board's own: only a change of column is a move.
+    if (!changes || !card || from === to || !isTeam(to)) return { changed: false };
+    moveTo(card, to);
+    return { changed: true };
+  };
+  const name = (column: string) => t(`portal.columns.${column as PortalCardState}`);
+  const dnd = useIssueDrag<PortalCard>({
+    groups: TEAM_COLUMNS.map((id) => ({ id, items: board.cards[id] })),
+    layout: "board",
+    onDrop,
+    words: {
+      picked: (c) => t("portal.plan.drag.picked", { title: c.title }),
+      moved: (c, group, position, total) =>
+        t("portal.plan.drag.moved", { title: c.title, group: name(group), position, total }),
+      dropped: (c, group) => t("portal.plan.drag.dropped", { title: c.title, group: name(group) }),
+      canceled: (c) => t("portal.plan.drag.canceled", { title: c.title }),
+    },
+  });
   return (
-    <>
-      <div className="issues-boardframe">
-        <div className="issues-boardwrap">
-          <div className="issues-board portal-board">
-            {PORTAL_BOARD_COLUMNS.map((column) => {
-              const list = cards(column);
-              const name = t(`portal.columns.${column}`);
-              return (
-                <section
-                  key={column}
-                  className="issues-col"
-                  aria-label={name}
-                  data-attention={(column === "adjusting" && list.length > 0) || undefined}
-                >
-                  <div className="issues-col__head">
-                    <Icon name={COLUMN_ICON[column]} size={16} />
-                    <h2>{name}</h2>
-                    <span className="tabular">{list.length}</span>
-                  </div>
-                  <div className="issues-col__cards">
-                    {list.length > 0 ? list : <p className="issues-col__empty">{t("portal.empty.column")}</p>}
-                  </div>
-                </section>
-              );
-            })}
-          </div>
-        </div>
-      </div>
-      <CardDialog open={editing !== null} client={board.client} card={editing} onClose={() => setEditing(null)} />
+    <div ref={dnd.root} className="portal-quadro">
+      <p id={helpId} className="ac-visually-hidden">
+        {t("portal.plan.drag.help")}
+      </p>
+      <p className="ac-visually-hidden" aria-live="assertive">
+        {dnd.live}
+      </p>
+      <BoardFrame>
+        {PORTAL_BOARD_COLUMNS.map((column) =>
+          isTeam(column) ? (
+            <BoardColumn
+              key={column}
+              name={name(column)}
+              icon={COLUMN_ICON[column]}
+              count={dnd.count(column)}
+              countKey={column}
+              over={dnd.over === column}
+            >
+              <CardSlots
+                group={column}
+                dnd={dnd}
+                empty={t("portal.empty.column")}
+                render={(card, picked) => (
+                  <TeamCard
+                    card={card}
+                    changes={changes}
+                    picked={picked}
+                    drag={changes ? { ...dnd.card(card, column), help: helpId } : undefined}
+                    onOpen={() => onOpen(card.id)}
+                    onMove={() => moveTo(card, card.state === "todo" ? "doing" : "todo")}
+                    onDelete={() => setDeleting(card)}
+                    onSend={() => onSend(card)}
+                  />
+                )}
+              />
+            </BoardColumn>
+          ) : (
+            <BoardColumn
+              key={column}
+              name={name(column)}
+              icon={COLUMN_ICON[column]}
+              count={board.items[column].length}
+              // A card is moving: the portal's columns take none.
+              closed={dnd.active}
+              data-attention={(column === "adjusting" && board.items[column].length > 0) || undefined}
+            >
+              <div className="issues-col__cards">
+                {board.items[column].length > 0 ? (
+                  board.items[column].map((item) => (
+                    <PostCard
+                      key={item.id}
+                      item={item}
+                      onEdit={changes ? () => setEditingItem(item) : undefined}
+                      // Only what the client approved can be scheduled, only by who may change the board, and only
+                      // once: the portal refuses to release a post again.
+                      onSchedule={
+                        changes && column === "approved" && !item.released ? () => setScheduling(item) : undefined
+                      }
+                    />
+                  ))
+                ) : (
+                  <p className="issues-col__empty">{t("portal.empty.column")}</p>
+                )}
+              </div>
+            </BoardColumn>
+          ),
+        )}
+      </BoardFrame>
       <ItemDialog item={editingItem} onClose={() => setEditingItem(null)} />
       <ScheduleDialog item={scheduling} onClose={() => setScheduling(null)} />
       <DeleteCardDialog card={deleting} onClose={() => setDeleting(null)} />
-    </>
+    </div>
   );
 }
 
 /**
  * A post the team still has to make: its title, type, date, owner, how many files go up with it and its note, then,
- * for who may change it, its menu (move, edit, delete) and "Send for approval", the card's own main action.
+ * for who may change it, its menu (move, edit, delete) and "Send for approval" (plated, not green: green is the
+ * page's one main action). A press on the card opens it; it is dragged to the other column, or moved from its menu.
  */
 function TeamCard({
   card,
   changes,
-  onEdit,
+  picked,
+  drag,
+  onOpen,
+  onMove,
   onDelete,
   onSend,
 }: {
   card: PortalCard;
   changes: boolean;
-  onEdit: () => void;
+  picked: boolean;
+  drag?: CardDrag;
+  onOpen: () => void;
+  onMove: () => void;
   onDelete: () => void;
   onSend: () => void;
 }) {
   const { t, i18n } = useTranslation();
-  const { org } = useOrg();
-  const toast = useToast();
-  const save = useSavePortalCard(org.id);
   const other = card.state === "todo" ? "doing" : "todo";
   const when = portalWhen(i18n.language, card.date);
   const facts: LineFact[] = [
@@ -140,10 +207,14 @@ function TeamCard({
       : []),
   ];
   return (
-    <article className="issue-card portal-card" aria-label={card.title}>
-      <div className="portal-card__head">
-        <span className="issue-card__title">{card.title}</span>
-        {changes && (
+    <CardFace
+      id={card.id}
+      title={card.title}
+      picked={picked}
+      drag={drag}
+      onOpen={onOpen}
+      headEnd={
+        changes && (
           <Menu
             align="end"
             trigger={
@@ -156,19 +227,10 @@ function TeamCard({
               />
             }
           >
-            <MenuItem
-              icon="move"
-              disabled={save.isPending}
-              onSelect={() =>
-                save.mutate(
-                  { cardId: card.id, state: other },
-                  { onError: (error) => toast.show(portalErrorText(t, error, i18n.language), "error") },
-                )
-              }
-            >
+            <MenuItem icon="move" onSelect={onMove}>
               {t("portal.moveTo", { column: t(`portal.columns.${other}`) })}
             </MenuItem>
-            <MenuItem icon="edit" onSelect={onEdit}>
+            <MenuItem icon="edit" onSelect={onOpen}>
               {t("portal.edit")}
             </MenuItem>
             <MenuSeparator />
@@ -176,19 +238,18 @@ function TeamCard({
               {t("portal.delete")}
             </MenuItem>
           </Menu>
-        )}
-      </div>
-      <div className="portal-card__chips">
-        <Chip>{t(`portal.types.${card.type}`)}</Chip>
-      </div>
-      <FactLine facts={facts} />
+        )
+      }
+      chips={<Chip>{t(`portal.types.${card.type}`)}</Chip>}
+      facts={facts}
+    >
       {card.note && <p className="portal-card__note">{card.note}</p>}
       {changes && (
-        <Button size="sm" variant="primary" icon="send" block onClick={onSend}>
+        <Button size="sm" icon="send" block onClick={onSend}>
           {t("portal.send")}
         </Button>
       )}
-    </article>
+    </CardFace>
   );
 }
 

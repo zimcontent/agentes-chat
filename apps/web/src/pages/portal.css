@@ -314,3 +314,652 @@ html:not([data-pointer]) .portal-client:focus-visible {
   white-space: pre-wrap;
   overflow-wrap: anywhere;
 }
+
+/* ── Stages and labels (ADR 9001 §8) ────────────────────────────────────── */
+/* A stage's colour is the same wherever it shows (a card's edge, a calendar chip, the legend) and in both themes, so
+   the schedule reads at a glance. A label's colour is the team's pick among ten names. */
+:is(.portal-dot, .plan-cal__chip)[data-stage] {
+  --stage: #8a909c;
+}
+:is(.portal-dot, .plan-cal__chip)[data-stage="doing"] {
+  --stage: #3b82f6;
+}
+:is(.portal-dot, .plan-cal__chip)[data-stage="approval"] {
+  --stage: #f59e0b;
+}
+:is(.portal-dot, .plan-cal__chip)[data-stage="adjusting"] {
+  --stage: #ef4444;
+}
+:is(.portal-dot, .plan-cal__chip)[data-stage="approved"] {
+  --stage: #22c55e;
+}
+:is(.portal-dot, .plan-cal__chip)[data-stage="scheduled"] {
+  --stage: #8b5cf6;
+}
+:is(.portal-dot, .plan-cal__chip)[data-stage="posted"] {
+  --stage: #14b8a6;
+}
+[data-color="green"] {
+  --label: #22a34a;
+}
+[data-color="mint"] {
+  --label: #2bb39a;
+}
+[data-color="olive"] {
+  --label: #7c8a2a;
+}
+[data-color="yellow"] {
+  --label: #d9a406;
+}
+[data-color="wine"] {
+  --label: #8e2a4a;
+}
+[data-color="red"] {
+  --label: #d93a3a;
+}
+[data-color="purple"] {
+  --label: #7b4bd6;
+}
+[data-color="lilac"] {
+  --label: #a78bda;
+}
+[data-color="blue"] {
+  --label: #2f7fe0;
+}
+[data-color="gray"] {
+  --label: #7d838f;
+}
+/* The mark a chip leads with: a dot in its stage's colour, a small bar in its label's. */
+.portal-dot {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--stage);
+}
+.portal-swatch {
+  flex: none;
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  background: var(--label);
+}
+.portal-swatch--mark {
+  width: 12px;
+  height: 6px;
+  border-radius: 3px;
+}
+
+/* ── Strategic schedule ─────────────────────────────────────────────────── */
+/* The tabs' row ends with the schedule's two views. */
+.portal-tabs {
+  flex: 1 1 auto;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+.portal-views {
+  flex: none;
+  display: flex;
+  gap: var(--space-2);
+  margin: 0 0 0 auto;
+  padding: 0;
+  border: 0;
+}
+.portal-views > .ac-btn[aria-pressed="true"] {
+  background: var(--sunken);
+  box-shadow: inset 0 0 0 1px var(--line);
+}
+.portal-plan {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+.portal-plan__hint {
+  margin: 0;
+}
+/* The task board's drag marks (issues.css scopes them to its own page). */
+.portal [data-slot][hidden] {
+  display: none;
+}
+.portal [data-landing] {
+  visibility: hidden;
+}
+.plan-board {
+  --cw: 264px;
+}
+.plan-col {
+  display: flex;
+  flex-direction: column;
+  flex: 0 0 var(--cw);
+}
+/* Where a moving list would land: a bar in the gap on that side of this one. */
+.plan-col[data-list-drop] {
+  position: relative;
+}
+.plan-col[data-list-drop]::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  border-radius: 2px;
+  background: var(--ink);
+}
+.plan-col[data-list-drop="before"]::after {
+  left: -8px;
+}
+.plan-col[data-list-drop="after"]::after {
+  right: -8px;
+}
+/* A list's name is pressed to rename it: the heading's own look, no button face. */
+.plan-col__name {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: text;
+  overflow-wrap: anywhere;
+}
+.plan-col__add {
+  align-self: flex-start;
+  margin-top: var(--space-2);
+}
+.plan-add {
+  flex: 0 0 var(--cw);
+  min-width: var(--cw);
+}
+.plan-add__form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+}
+.plan-add > .plan-add__form {
+  margin-top: 0;
+  padding: var(--space-2);
+  border-radius: var(--radius-section);
+  background: var(--sunken);
+  box-shadow: inset 0 0 0 1px var(--line);
+}
+.plan-add__acts {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+/* A card's facts with the faces of who is on it at the line's end. */
+.portal-card__meta {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--space-2);
+}
+.portal-card__meta > .ac-factline {
+  flex: 1;
+}
+.portal-card__who {
+  flex: none;
+  margin-left: auto;
+}
+/* A card that opens or moves keeps the board card's lift on hover; the press is the card's own. */
+.portal-card.is-opening {
+  cursor: pointer;
+}
+.portal-card.is-movable:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--e2), var(--top);
+}
+/* A column the moving card can't go to (the portal decides what is in it) steps back while one moves. */
+.portal-col[data-closed] {
+  opacity: 0.45;
+  transition: opacity 0.15s;
+}
+/* The board's empty space drags it sideways (the kit's useDragScroll sets grabbing while it does). */
+.portal-pan {
+  cursor: grab;
+}
+.portal-pan :is(.issue-card, .issues-col__head, .ac-btn, a, input, textarea, .plan-add__form) {
+  cursor: auto;
+}
+.portal-pan .issue-card.is-opening,
+.portal-pan :is(.ac-btn, a) {
+  cursor: pointer;
+}
+/* A list is picked up by its head. Lifted, it follows the pointer above the others. */
+.portal-pan .issues-col__head[data-grab] {
+  cursor: grab;
+  touch-action: manipulation;
+  -webkit-user-select: none;
+  user-select: none;
+}
+.plan-col[data-lifted] {
+  position: relative;
+  z-index: 2;
+  /* Whole over what it passes: the columns' own face is see-through. */
+  background: var(--pane);
+  box-shadow:
+    inset 0 0 0 1px var(--line),
+    var(--e3);
+  pointer-events: none;
+}
+
+/* ── Calendar ───────────────────────────────────────────────────────────── */
+.plan-cal {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+.plan-cal__bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-4);
+}
+.plan-cal__month {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 650;
+  line-height: var(--control-h-sm);
+}
+.plan-cal__nav {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-right: auto;
+}
+/* A week keeps seven days side by side: on a phone the month scrolls sideways instead of squeezing its chips. */
+.plan-cal__scroll {
+  overflow-x: auto;
+  margin: 0 calc(-1 * var(--page-x));
+  padding: 2px var(--page-x) var(--space-2);
+}
+.plan-cal__grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(108px, 1fr));
+  border-radius: var(--radius-section);
+  background: var(--raised);
+  box-shadow: var(--e1), var(--top);
+  overflow: hidden;
+}
+.plan-cal__dow {
+  padding: var(--space-2);
+  border-bottom: 1px solid var(--line2);
+  font-size: 12px;
+  font-weight: 650;
+  color: var(--muted);
+}
+.plan-cal__day {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-width: 0;
+  min-height: 104px;
+  padding: var(--space-2);
+  border-top: 1px solid var(--line2);
+  border-left: 1px solid var(--line2);
+}
+.plan-cal__day:nth-child(7n + 1) {
+  border-left: 0;
+}
+.plan-cal__day[data-out] {
+  background: var(--sunken);
+}
+.plan-cal__num {
+  align-self: flex-start;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 var(--space-1);
+  border-radius: 11px;
+  font-size: 12.5px;
+  line-height: 22px;
+  text-align: center;
+  color: var(--ink2);
+}
+.plan-cal__day[data-out] .plan-cal__num {
+  color: var(--faint);
+}
+.plan-cal__day[data-today] .plan-cal__num {
+  background: var(--ink);
+  color: var(--pane);
+  font-weight: 650;
+}
+.plan-cal__chips {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+/* An event as Google Calendar draws it: a flat chip in its colour, no accent edge; the name in the ink. */
+.plan-cal__chip,
+.plan-cal__more {
+  display: block;
+  width: 100%;
+  margin: 0;
+  padding: 2px 6px;
+  border: 0;
+  border-radius: 6px;
+  font: inherit;
+  font-size: 12px;
+  line-height: 16px;
+  text-align: left;
+  color: var(--ink);
+  cursor: pointer;
+}
+.plan-cal__chip {
+  background: color-mix(in srgb, var(--stage) 30%, var(--raised));
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+.plan-cal__chip:hover {
+  background: color-mix(in srgb, var(--stage) 44%, var(--raised));
+}
+.plan-cal__more {
+  background: none;
+  color: var(--muted);
+}
+
+/* ── Legend and labels ──────────────────────────────────────────────────── */
+.plan-legend {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--space-3);
+  padding: var(--card-pad, var(--space-4));
+  border-radius: var(--radius-section);
+  background: var(--raised);
+  box-shadow: var(--e1), var(--top);
+}
+.plan-legend__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-3);
+}
+.plan-legend__name {
+  flex: none;
+  margin: 0;
+  min-width: 72px;
+  font-size: 12.5px;
+  font-weight: 650;
+  color: var(--muted);
+}
+.plan-legend__list {
+  flex: 1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.plan-labels,
+.plan-labels__list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+.plan-labels__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.plan-labels__row {
+  display: grid;
+  grid-template-columns: 16px minmax(0, 1fr) 132px var(--control-h-md);
+  align-items: center;
+  gap: var(--space-2);
+}
+.plan-labels__new {
+  grid-template-columns: 16px minmax(0, 1fr) 132px auto;
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--line2);
+}
+@media (max-width: 520px) {
+  .plan-labels__row,
+  .plan-labels__new {
+    grid-template-columns: 16px minmax(0, 1fr) var(--control-h-md);
+  }
+  .plan-labels__row > .ac-select,
+  .plan-labels__new > .ac-select {
+    grid-column: 2;
+  }
+  .plan-labels__new > .ac-btn {
+    grid-column: 2 / -1;
+  }
+}
+
+/* ── A card opened ──────────────────────────────────────────────────────── */
+/* What the post is on the left, what was said about it on the right; one column where the two don't fit. */
+.portal-detail__body {
+  display: grid;
+  grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+  gap: var(--space-6);
+  align-items: start;
+}
+@media (max-width: 820px) {
+  .portal-detail__body {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+.portal-detail__main {
+  min-width: 0;
+}
+.portal-detail__group {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-1);
+}
+.portal-detail__group > :is(.ac-field__label-row, .ac-meter, ul, .ac-input) {
+  align-self: stretch;
+}
+.portal-detail__chips {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+.portal-detail__person {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-size: 13.5px;
+}
+.portal-detail__pick {
+  padding: var(--space-2);
+}
+.portal-detail__options {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  max-height: 280px;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  list-style: none;
+}
+.portal-detail__options > li {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: var(--control-h-sm);
+  padding: 0 var(--space-2);
+}
+.portal-detail__options label {
+  flex: 1;
+  cursor: pointer;
+}
+/* The two dates side by side, each under its own name and its own line on what it is; the post's time beside it. */
+.portal-detail__dates {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-4);
+  align-items: start;
+}
+@media (max-width: 520px) {
+  .portal-detail__dates {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+.portal-detail__checks {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.portal-detail__checks > li {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: var(--control-h-sm);
+}
+.portal-detail__checks label {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  cursor: pointer;
+}
+.portal-detail__checks > li[data-done] label {
+  color: var(--muted);
+  text-decoration: line-through;
+}
+.portal-detail__side {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  min-width: 0;
+}
+.portal-detail__side > h3,
+.portal-detail__side > p {
+  margin: 0;
+}
+.portal-detail__say {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--space-2);
+}
+.portal-detail__say > .ac-input {
+  align-self: stretch;
+}
+.portal-detail__comments {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.portal-comment {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+}
+.portal-comment > .ac-avatar {
+  flex: none;
+}
+.portal-comment__body {
+  flex: 1;
+  min-width: 0;
+}
+.portal-comment__head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: 24px;
+}
+.portal-comment__head > time {
+  margin-right: auto;
+}
+/* Plain words, whole: line breaks as written, a long address broken where it must. */
+.portal-comment__text {
+  margin: 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.portal-comment__text > .ac-link {
+  display: inline;
+}
+.portal-detail__grow {
+  flex: 1;
+}
+
+/* ── Home: your tasks ───────────────────────────────────────────────────── */
+.home-tasks__card {
+  display: flex;
+  flex-direction: column;
+}
+.home-tasks__group + .home-tasks__group {
+  border-top: 1px solid var(--line2);
+}
+.home-tasks__name {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0;
+  padding: var(--space-3) var(--space-4) var(--space-1);
+  font-size: 12.5px;
+  font-weight: 650;
+  color: var(--muted);
+}
+.home-tasks__name > span {
+  font-weight: 400;
+  color: var(--faint);
+}
+/* Late is what the person must look at first. */
+.home-tasks__group[data-group="late"] > .home-tasks__name {
+  color: var(--attention);
+}
+.home-tasks__list {
+  margin: 0;
+  padding: 0 0 var(--space-1);
+  list-style: none;
+}
+.home-tasks__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1) var(--space-3);
+  padding: var(--row-py) var(--space-4);
+  color: inherit;
+  text-decoration: none;
+}
+.home-tasks__row:hover {
+  background: var(--surface);
+}
+.home-tasks__text {
+  flex: 1 1 240px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+.home-tasks__title {
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+.home-tasks__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 var(--space-3);
+  font-size: 12.5px;
+  color: var(--muted);
+}
+.home-tasks__chips {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+/* Words on a card that isn't picked up (a post of the portal's) can be selected, as any text. */
+.portal-card:not(.is-movable) {
+  -webkit-user-select: text;
+  user-select: text;
+}

@@ -194,7 +194,11 @@ import type {
   PortalBoard,
   PortalCard,
   PortalJob,
+  PortalLabel,
+  PortalList,
+  PortalMine,
   PortalOverview,
+  PortalPlan,
   Proposal,
   ReactionCount,
   Reminder,
@@ -1596,6 +1600,50 @@ export function createHttpApi(options: TransportOptions = {}): HttpApi {
         request<void>(`${org(orgId)}/portal/clients/${enc(client)}/items/${enc(itemId)}/schedule`, {
           json: { scheduledFor },
         }),
+      plan: (orgId, client) => request<PortalPlan>(`${org(orgId)}/portal/clients/${enc(client)}/plan`),
+      mine: (orgId) => request<PortalMine>(`${org(orgId)}/portal/mine`),
+      createList: async (orgId, client, name) =>
+        (await request<{ list: PortalList }>(`${org(orgId)}/portal/clients/${enc(client)}/lists`, { json: { name } }))
+          .list,
+      orderLists: async (orgId, client, ids) =>
+        (
+          await request<{ lists: PortalList[] }>(`${org(orgId)}/portal/clients/${enc(client)}/lists/order`, {
+            method: "PUT",
+            json: { ids },
+          })
+        ).lists,
+      renameList: async (orgId, listId, name) =>
+        (
+          await request<{ list: PortalList }>(`${org(orgId)}/portal/lists/${enc(listId)}`, {
+            method: "PATCH",
+            json: { name },
+          })
+        ).list,
+      deleteList: (orgId, listId) => request<void>(`${org(orgId)}/portal/lists/${enc(listId)}`, { method: "DELETE" }),
+      labels: async (orgId) => (await request<{ labels: PortalLabel[] }>(`${org(orgId)}/portal/labels`)).labels,
+      createLabel: async (orgId, input) =>
+        (await request<{ label: PortalLabel }>(`${org(orgId)}/portal/labels`, { json: input })).label,
+      updateLabel: async (orgId, labelId, change) =>
+        (
+          await request<{ label: PortalLabel }>(`${org(orgId)}/portal/labels/${enc(labelId)}`, {
+            method: "PATCH",
+            json: change,
+          })
+        ).label,
+      deleteLabel: (orgId, labelId) =>
+        request<void>(`${org(orgId)}/portal/labels/${enc(labelId)}`, { method: "DELETE" }),
+      addComment: async (orgId, cardId, text) =>
+        (
+          await request<{ card: PortalCard }>(`${org(orgId)}/portal/cards/${enc(cardId)}/comments`, {
+            json: { text },
+          })
+        ).card,
+      deleteComment: async (orgId, cardId, commentId) =>
+        (
+          await request<{ card: PortalCard }>(`${org(orgId)}/portal/cards/${enc(cardId)}/comments/${enc(commentId)}`, {
+            method: "DELETE",
+          })
+        ).card,
     },
     missions: ((): HttpApi["missions"] => {
       const one = (orgId: string, missionId: string) => `${org(orgId)}/missions/${enc(missionId)}`;
