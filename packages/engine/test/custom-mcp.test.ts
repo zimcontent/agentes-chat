@@ -18,6 +18,8 @@ import {
   createToolGateway,
   DIRECTORY_MAX_TOOLS,
   getAgentAccess,
+  listAudit,
+  listCustomServers,
   type McpConnect,
   mcpPreset,
   mcpSessionOver,
@@ -36,7 +38,7 @@ import {
   ValidationError,
   wrapExternal,
 } from "../src";
-import { type Fixture, setup } from "./fixtures";
+import { addMember, type Fixture, setup } from "./fixtures";
 
 let f: Fixture;
 afterEach(async () => {
@@ -102,6 +104,8 @@ function oauthServer(
     /** The authorization server's `scopes_supported` and `token_endpoint_auth_methods_supported`. */
     serverScopes?: string[];
     authMethods?: string[];
+    /** The authorization server says it takes a Client ID Metadata Document. */
+    cimd?: boolean;
     /** Each refresh token works once, and a refresh gives a new one, good for an hour. */
     rotate?: boolean;
   } = {},
@@ -148,6 +152,7 @@ function oauthServer(
         code_challenge_methods_supported: ["S256"],
         ...(options.serverScopes ? { scopes_supported: options.serverScopes } : {}),
         ...(options.authMethods ? { token_endpoint_auth_methods_supported: options.authMethods } : {}),
+        ...(options.cimd ? { client_id_metadata_document_supported: true } : {}),
       });
     }
     if (url.toString() === "https://auth.example.com/register") {
@@ -308,6 +313,56 @@ describe("custom MCP servers", () => {
     expect(suggestFor({ name: "execute_sql" })).toBe("approval");
     expect(suggestFor({ name: "apply_migration" }, ["execute_sql"])).toBe("write");
     expect(suggestFor({ name: "delete_branch" }, ["execute_sql"])).toBe("approval");
+  });
+
+  test("an address's path and query go only to who manages connectors: members and the audit log get its origin", async () => {
+    f = await setup();
+    const member = await addMember(f.db, f.org.id, "member", "reader");
+    const deps = depsOf(f, {
+      resolveHost: async () => ["93.184.216.34"],
+      // It answers without asking for a sign-in: the address is all it takes to call it.
+      http: (async () => new Response("{}", { status: 200 })) as unknown as typeof fetch,
+      connect: async () => {
+        throw new Error("offline in tests");
+      },
+    });
+    const address = "https://mcp.example.com/api/s/fake-path-token/mcp?key=fake-query-token";
+    const started = await connectCustomServer(deps, f.owner.id, f.org.id, { serverUrl: address, label: "Tools" });
+    if (started.status !== "connected") throw new Error(`expected connected, got ${started.status}`);
+    expect(started.server.serverUrl).toBe(address);
+    expect((await listCustomServers(f.db, f.owner.id, f.org.id))[0]?.serverUrl).toBe(address);
+
+    const seen = await listCustomServers(f.db, member.id, f.org.id);
+    expect(seen.map((s) => [s.label, s.serverUrl])).toEqual([["Tools", "https://mcp.example.com"]]);
+    expect(JSON.stringify(seen)).not.toContain("fake-");
+    const audit = await f.db.select().from(schema.auditLog);
+    expect(audit.some((row) => row.action === "connector.custom_connected")).toBe(true);
+    expect(JSON.stringify(audit.map((row) => row.details))).not.toContain("fake-");
+
+    // A row stored with the whole address is listed with its origin.
+    await f.db
+      .update(schema.auditLog)
+      .set({ details: { serverUrl: address, label: "Tools" } })
+      .where(eq(schema.auditLog.action, "connector.custom_connected"));
+    const listed = (await listAudit(f.db, f.owner.id, f.org.id)).rows.find(
+      (row) => row.action === "connector.custom_connected",
+    );
+    expect(listed?.details.serverUrl).toBe("https://mcp.example.com");
+
+    // An address the catalog publishes carries no secret, and the apps match it to its entry: it stays whole.
+    const linear = mcpPreset("linear")?.serverUrl ?? "";
+    await storeCustomConnection(deps, {
+      orgId: f.org.id,
+      actorId: f.owner.id,
+      serverUrl: linear,
+      label: "Linear",
+      authType: "none",
+      secret: null,
+    });
+    expect((await listCustomServers(f.db, member.id, f.org.id)).map((s) => s.serverUrl)).toEqual([
+      "https://mcp.example.com",
+      linear,
+    ]);
   });
 
   test("a preset's connection keeps its URL (query and all) and our usual suggestions", async () => {
@@ -1005,6 +1060,61 @@ describe("custom MCP servers", () => {
     await connectCustomServer(deps, f.owner.id, f.org.id, { serverUrl: SERVER });
     expect(auth.seen.registrations).toBe(2);
     expect(await f.db.select().from(schema.oauthClients)).toHaveLength(1);
+  });
+
+  test("MCP_CIMD_ISSUERS (HeyGen): a listed issuer that takes a metadata document gets ours as client_id, no registration", async () => {
+    const before = process.env.MCP_CIMD_ISSUERS;
+    try {
+      f = await setup();
+      const auth = oauthServer({ cimd: true });
+      const deps = depsOf(f, { connect: ticketsMcp().connect, http: auth.http });
+      // Not listed: it registers as any other server, even though it takes a document.
+      delete process.env.MCP_CIMD_ISSUERS;
+      const registered = await connectCustomServer(deps, f.owner.id, f.org.id, { serverUrl: SERVER });
+      if (registered.status !== "oauth") throw new Error(`expected oauth, got ${registered.status}`);
+      expect(new URL(registered.authorizeUrl).searchParams.get("client_id")).toBe("dcr-client-1");
+      expect(auth.seen.registrations).toBe(1);
+      await f.db.delete(schema.oauthClients);
+      // Listed (a trailing slash is the same issuer): our document's address, nothing registered.
+      process.env.MCP_CIMD_ISSUERS = "https://other.example.com, https://auth.example.com/";
+      const { url, connection } = await signIn(deps, auth);
+      expect(url.searchParams.get("client_id")).toBe("https://chat.example.com/oauth/client-metadata.json");
+      expect(auth.seen.registrations).toBe(1);
+      expect(auth.seen.tokenForms.at(-1)?.get("client_id")).toBe("https://chat.example.com/oauth/client-metadata.json");
+      expect(auth.seen.tokenAuth.at(-1)).toBeNull();
+      expect(connection.authType).toBe("oauth");
+    } finally {
+      if (before === undefined) delete process.env.MCP_CIMD_ISSUERS;
+      else process.env.MCP_CIMD_ISSUERS = before;
+    }
+  });
+
+  test("MCP_PRIVATE_SERVERS: its exact internal origin connects over http; any other internal address is still refused", async () => {
+    const before = process.env.MCP_PRIVATE_SERVERS;
+    process.env.MCP_PRIVATE_SERVERS = "http://host.docker.internal:8977";
+    try {
+      f = await setup();
+      const deps = depsOf(f, { connect: ticketsMcp().connect, http: oauthServer({ metadata: false }).http });
+      const res = await connectCustomServer(deps, f.owner.id, f.org.id, {
+        serverUrl: "http://host.docker.internal:8977/cerebro/mcp",
+        apiKey: "sk-cerebro",
+        label: "Segundo Cérebro",
+      });
+      expect(res.status).toBe("connected");
+      for (const serverUrl of [
+        "http://host.docker.internal:8978/mcp",
+        "https://host.docker.internal/mcp",
+        "http://user:pw@host.docker.internal:8977/mcp",
+        "http://10.0.0.9:8977/mcp",
+      ]) {
+        await expect(
+          connectCustomServer(deps, f.owner.id, f.org.id, { serverUrl, apiKey: "sk-cerebro" }),
+        ).rejects.toBeInstanceOf(ValidationError);
+      }
+    } finally {
+      if (before === undefined) delete process.env.MCP_PRIVATE_SERVERS;
+      else process.env.MCP_PRIVATE_SERVERS = before;
+    }
   });
 
   test("offline_access goes with the scopes asked for when the authorization server lists it (Vercel asks only openid), never alone", async () => {
