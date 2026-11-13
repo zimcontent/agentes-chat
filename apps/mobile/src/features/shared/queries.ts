@@ -4,6 +4,7 @@ import {
   useDms,
   useMissionList,
   useNotificationCount,
+  useSidebarView,
   useTasksUnread,
   useThreadList,
   useWorkingRuns,
@@ -47,11 +48,21 @@ export function useWorkingNow() {
 /** My threads and missions, the latest 50 (Conversas' rows and the Threads tab). */
 const THREAD_LIST = { tab: "all", mine: true, limit: 50 } as const;
 
-/** The agents my lists leave out (`hiddenAgentIds`), and whether the directory that names them is still loading. */
+/**
+ * The agents my lists leave out, and whether the directory that names them is still loading: the ones I can't talk to
+ * (`hiddenAgentIds`) and the ones I hid from my AGENTES on the web (this fork's sidebar view, `hiddenAgents`). Search
+ * still finds both (it never reads this), as the web's Ctrl+K does.
+ */
 export function useHiddenAgents() {
   const org = useOrg().org;
+  const orgId = useOrgId();
   const dir = useDirectory();
-  const hidden = useMemo(() => hiddenAgentIds(org, dir.agents), [dir.agents, org]);
+  const mine = useSidebarView(orgId).hiddenAgents;
+  const hidden = useMemo(() => {
+    const all = hiddenAgentIds(org, dir.agents);
+    for (const id of mine ?? []) all.add(id);
+    return all;
+  }, [dir.agents, org, mine]);
   return { hidden, loading: dir.loading };
 }
 

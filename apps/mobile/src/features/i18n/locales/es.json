@@ -6,12 +6,12 @@
   "categories": {
     "title": "Categorías",
     "where": "Dónde aparece #{{channel}}",
-    "whereHelp": "Cambia para todos. Quién participa en el canal no cambia.",
+    "whereHelp": "Cambia para todos. Quién participa en el grupo no cambia.",
     "create": "Crear",
     "endOfList": "Va al final de la lista para todos.",
-    "channelCount_one": "{{count}} canal",
-    "channelCount_many": "{{count}} canales",
-    "channelCount_other": "{{count}} canales",
+    "channelCount_one": "{{count}} grupo",
+    "channelCount_many": "{{count}} grupos",
+    "channelCount_other": "{{count}} grupos",
     "none": "Todavía no hay categorías.",
     "manageHelp": "Toca una categoría para cambiarle el nombre, moverla o eliminarla.",
     "manageHint": "Orden, nombres y eliminar",
@@ -21,7 +21,7 @@
     "down": "Bajar",
     "position": "{{at}} de {{count}}.",
     "channelPosition": "{{at}} de {{count}}.",
-    "itsChannels": "Canales",
+    "itsChannels": "Grupos",
     "seeAll": "Ver todo"
   },
   "blocks": {
@@ -195,12 +195,12 @@
     },
     "section": {
       "agents": "Agentes",
-      "channels": "Canales",
+      "channels": "Grupos",
       "people": "Personas"
     },
     "seeAll": {
       "agents": "Ver todos los agentes",
-      "channels": "Ver todos los canales",
+      "channels": "Ver todos los grupos",
       "people": "Ver todas las personas"
     },
     "wait": {
@@ -242,10 +242,10 @@
     "unreadLabel_one": "{{count}} sin leer",
     "unreadLabel_many": "{{count}} sin leer",
     "unreadLabel_other": "{{count}} sin leer",
-    "newChannel": "Nuevo canal",
+    "newChannel": "Nuevo grupo",
     "newChannelHint": "Para un equipo o un tema",
-    "channelPlaceholder": "Nombre del canal, p. ej. marketing",
-    "createChannel": "Crear canal",
+    "channelPlaceholder": "Nombre del grupo, p. ej. marketing",
+    "createChannel": "Crear grupo",
     "newChannelHintPersonal": "Para un tema, con varios agentes",
     "channelPlaceholderPersonal": "Nombre, p. ej. viaje",
     "createChannelPersonal": "Crear conversación en grupo",
@@ -344,6 +344,7 @@
     "someone": "Alguien",
     "messageTo": "Mensaje para {{name}}",
     "messageIn": "Mensaje en {{channel}}",
+    "messagePlain": "Mensaje",
     "reply": "Responder",
     "people_one": "{{count}} persona",
     "people_many": "{{count}} personas",
@@ -378,11 +379,11 @@
     "switchTitle": "Cambiar de conversación",
     "switchSearch": "Buscar conversaciones",
     "switchAgents": "Agentes",
-    "switchChannels": "Canales",
+    "switchChannels": "Grupos",
     "switchPeople": "Personas",
     "switchNone": "No hay ninguna conversación con ese nombre.",
     "switchWorking": "trabajando",
-    "join": "Unirte al canal",
+    "join": "Unirte al grupo",
     "sending": "Enviando…",
     "toLatest": "Ir a los mensajes más recientes",
     "toLatestNew": "Ir a los mensajes más recientes: {{text}}",
@@ -825,10 +826,10 @@
     "thinksWith": "Piensa con {{label}}"
   },
   "team": {
-    "entry": "Organigrama y canales",
+    "entry": "Organigrama y grupos",
     "sectorLead": "Responsable: {{name}}",
     "sectorBackup": "Suplente: {{name}}",
-    "mapHint": "Para mover un agente a otro canal, usa el mapa en la web o habla con {{name}}."
+    "mapHint": "Para mover un agente a otro grupo, usa el mapa en la web o habla con {{name}}."
   },
   "agentEdit": {
     "missing": "Este agente ya no existe.",
@@ -1094,21 +1095,21 @@
     }
   },
   "channelRef": {
-    "list": "Canales",
-    "a11y": "Canal #{{name}}",
-    "archivedA11y": "Canal #{{name}}, archivado",
+    "list": "Grupos",
+    "a11y": "Grupo #{{name}}",
+    "archivedA11y": "Grupo #{{name}}, archivado",
     "archived": "#{{name}} se archivó",
     "notMember": "no estás en él"
   },
   "mention": {
     "list": "Personas y agentes",
-    "inChannel": "En este canal",
-    "outside": "Fuera del canal",
+    "inChannel": "En este grupo",
+    "outside": "Fuera del grupo",
     "agent": "agente",
     "person": "persona",
     "add": "Agregar",
-    "addA11y": "Agregar a {{name}} al canal",
-    "added": "{{name}} se unió al canal"
+    "addA11y": "Agregar a {{name}} al grupo",
+    "added": "{{name}} se unió al grupo"
   },
   "me": {
     "title": "Tú",
@@ -1126,7 +1127,7 @@
     "start": "Al abrir la app",
     "startHome": "Conversaciones",
     "startLast": "Donde lo dejaste",
-    "startChannels": "Un canal",
+    "startChannels": "Un grupo",
     "startHint": "Para este espacio de trabajo, aquí y en tu computadora, donde el inicio es la página Inicio.",
     "startFailed": "No se pudo guardar. Inténtalo de nuevo.",
     "activity": "Respuestas de los agentes",
@@ -2220,7 +2221,7 @@
     "here": "Ya está aquí",
     "invited": "Ya invitado",
     "fix": "Revisa esto",
-    "channels": "Canales",
+    "channels": "Grupos",
     "optional": "Opcional",
     "ok": "OK",
     "noteHelp": "Aparece en el correo con tu nombre. Hasta {{max}} caracteres.",
@@ -2726,11 +2727,11 @@
       "action": "Nuevo chat"
     },
     "channels": {
-      "title": "Reúne a personas y agentes en un canal",
-      "text": "Cada canal reúne a quienes se ocupan de un tema.",
-      "viewerTitle": "Los canales del equipo están aquí",
-      "viewerText": "Quien crea canales abre el primero, y aparece aquí.",
-      "action": "Crear canal",
+      "title": "Reúne a personas y agentes en un grupo",
+      "text": "Cada grupo reúne a quienes se ocupan de un tema.",
+      "viewerTitle": "Los grupos del equipo están aquí",
+      "viewerText": "Quien crea grupos abre el primero, y aparece aquí.",
+      "action": "Crear grupo",
       "titlePersonal": "Habla con varios agentes a la vez",
       "textPersonal": "Cada conversación en grupo reúne a los agentes y las personas de un tema.",
       "viewerTitlePersonal": "Las conversaciones en grupo están aquí",
@@ -2807,5 +2808,19 @@
       "title": "Nada que revisar",
       "text": "Cuando un agente haga algo fuera de la conversación, aparecerá aquí."
     }
+  },
+  "photo": {
+    "section": "Foto",
+    "upload": "Subir foto",
+    "useBot": "Usar el avatar de DougBot",
+    "fromLibrary": "Elegir de la galería",
+    "fromCamera": "Tomar foto",
+    "failed": "No se pudo subir la foto. Inténtalo de nuevo.",
+    "agentHint": "La foto aparece en lugar del bot dibujado, para todo el equipo.",
+    "meHint": "Tu foto la ven las personas de tus espacios de trabajo."
+  },
+  "brand": {
+    "basedOn": "Basado en agentes.chat de Codari Global, LLC · AGPL-3.0",
+    "source": "Código fuente de DougBot"
   }
 }

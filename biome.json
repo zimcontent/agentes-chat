@@ -14,7 +14,9 @@
       "!**/routeTree.gen.ts",
       "!**/src-tauri/target",
       "!**/src-tauri/gen",
-      "!packages/engine/eval/out"
+      "!packages/engine/eval/out",
+      "!apps/mobile/src/brand/dougbot-avatar.js",
+      "!packages/ui/src/brand/dougbot-avatar.js"
     ]
   },
   "formatter": {

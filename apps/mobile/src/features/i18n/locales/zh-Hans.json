@@ -326,6 +326,7 @@
     "someone": "某人",
     "messageTo": "发消息给 {{name}}",
     "messageIn": "在 {{channel}} 发消息",
+    "messagePlain": "消息",
     "reply": "回复",
     "people_other": "{{count}} 位成员",
     "agentsHere_other": "{{count}} 个智能体",
@@ -2596,5 +2597,19 @@
       "title": "没有需要查看的内容",
       "text": "智能体在对话之外做事时，会显示在这里。"
     }
+  },
+  "photo": {
+    "section": "照片",
+    "upload": "上传照片",
+    "useBot": "使用 DougBot 头像",
+    "fromLibrary": "从相册选择",
+    "fromCamera": "拍照",
+    "failed": "无法上传照片。请重试。",
+    "agentHint": "照片会代替绘制的机器人，向整个团队显示。",
+    "meHint": "你的照片会向你所在工作区的成员显示。"
+  },
+  "brand": {
+    "basedOn": "基于 Codari Global, LLC 的 agentes.chat · AGPL-3.0",
+    "source": "DougBot 源代码"
   }
 }

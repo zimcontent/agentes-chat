@@ -326,6 +326,7 @@
     "someone": "誰か",
     "messageTo": "{{name}}にメッセージ",
     "messageIn": "{{channel}}にメッセージ",
+    "messagePlain": "メッセージ",
     "reply": "返信",
     "people_other": "{{count}}人",
     "agentsHere_other": "{{count}}体のエージェント",
@@ -2596,5 +2597,19 @@
       "title": "確認するものはありません",
       "text": "エージェントが会話の外で何かを行うと、ここに表示されます。"
     }
+  },
+  "photo": {
+    "section": "写真",
+    "upload": "写真をアップロード",
+    "useBot": "DougBotのアバターを使う",
+    "fromLibrary": "ライブラリから選ぶ",
+    "fromCamera": "写真を撮る",
+    "failed": "写真をアップロードできませんでした。もう一度お試しください。",
+    "agentHint": "描かれたボットの代わりに写真がチーム全員に表示されます。",
+    "meHint": "あなたの写真はワークスペースのメンバーに表示されます。"
+  },
+  "brand": {
+    "basedOn": "Codari Global, LLC の agentes.chat をベースにしています · AGPL-3.0",
+    "source": "DougBotのソースコード"
   }
 }

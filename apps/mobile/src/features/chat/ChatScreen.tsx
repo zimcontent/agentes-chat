@@ -111,6 +111,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { frameClock } from "@/agent/clock";
 import { StickerStageContext } from "@/agent/StickerCanvas";
 import { createStickerStage } from "@/agent/sticker-stage";
+import { GroupPhoto } from "@/features/shared/GroupPhoto";
 import { holdOpenConversation } from "@/lib/push";
 import { rightHandSeen } from "@/lib/storage";
 import { useOrg } from "@/providers/org";
@@ -1341,7 +1342,7 @@ function Chat({
     : dm
       ? dm.with.name
       : channel
-        ? `#${channel.name}`
+        ? groupTitle(channel)
         : "";
   const agentsHere = (roster.data ?? []).filter((r) => r.type === "agent").length;
   const subtitle = isThread
@@ -1608,8 +1609,8 @@ function Chat({
       />
     ) : channel ? (
       <HeaderPill
-        lead={<Icon name="hash" size={18} color={c.muted} />}
-        title={channel.name}
+        lead={<GroupPhoto icon={channel.icon} size={32} />}
+        title={groupTitle(channel)}
         subtitle={roster.data ? t("mobile.chat.here", { count: roster.data.length }) : undefined}
         // The channel's sky in the pill, as an agent's DM: the color of the first agent in it.
         color={agentLook(dir.agentById.get(roster.data?.find((r) => r.type === "agent")?.id ?? "")).color}
@@ -1683,10 +1684,8 @@ function Chat({
       ? // One line on the phone: the tip after "·" in the web's placeholder doesn't fit.
         t("issues.comment")
       : t("mobile.chat.reply")
-    : dm
-      ? // One line on the phone: the right hand's "nada muda sem você" doesn't fit beside its name.
-        t("mobile.chat.messageTo", { name: dm.with.name })
-      : t("mobile.chat.messageIn", { channel: channel ? `#${channel.name}` : "" });
+    : // The header already says who or where this is (DougBot: nothing said twice), so the field just says "Mensagem".
+      t("mobile.chat.messagePlain");
   // What to say next comes from the latest card: a code change, a file; none
   // while the agent works, asks or waits for an approval.
   const people = useMemo(
@@ -2605,3 +2604,8 @@ const styles = StyleSheet.create({
   faces: { flexDirection: "row" },
   round: { borderRadius: 12 },
 });
+
+/** A group's title (this fork's display name, `channels.display_name`), else its `#name`. */
+function groupTitle(channel: { name: string; displayName?: string | null }) {
+  return channel.displayName?.trim() || `#${channel.name}`;
+}

@@ -56,7 +56,7 @@ export function Entering({ org }: { org: string | null }) {
         {org ? (
           <OrgAvatar logo={state?.org?.logo} size={72} />
         ) : (
-          <AgentAvatar agent={{ color: "sky", eyes: "round", id: "agentes" }} size={88} expression="happy" />
+          <AgentAvatar agent={{ color: "sky", eyes: "round", id: "doug", name: "Doug" }} size={88} expression="happy" />
         )}
         <Text variant="display" style={styles.text}>
           {org ? t("mobile.entering.title", { org }) : t("mobile.entering.titleNew")}

@@ -51,7 +51,7 @@ export function OptionTile({
 }
 
 const styles = StyleSheet.create({
-  tile: { borderRadius: 14, padding: 12 },
+  tile: { borderRadius: 16, padding: 16 },
   down: { transform: [{ scale: 0.98 }] },
   check: {
     position: "absolute",

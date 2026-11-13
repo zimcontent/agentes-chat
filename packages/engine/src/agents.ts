@@ -599,6 +599,7 @@ export async function listFormerAgents(db: Database, actorId: string, orgId: str
       name: agents.name,
       role: agents.role,
       appearance: agents.appearance,
+      photo: agents.photo,
       deletedAt: agents.deletedAt,
     })
     .from(agents)
@@ -627,6 +628,8 @@ export const agentView = (a: Agent) => ({
   monthlyBudgetNanoUsd: a.monthlyBudgetNanoUsd,
   /** Its look (color, eyes, accessory); null = the default. */
   appearance: (a.appearance ?? null) as AgentAppearance | null,
+  /** Its real photo (`/api/app/organizations/{orgId}/agents/{agentId}/photo/{file}`); null: the drawn look. */
+  photo: a.photo ?? null,
   /** It may follow a light reply with a sticker or a GIF (ADR 0091). */
   mediaReplies: a.mediaReplies,
   /** A built-in agent the product ships (ADR 0137): `right_hand`, the team's right hand. Null for the others. */

@@ -39,7 +39,8 @@ export function Chip({ icon, label, leading, trailing, tone = "neutral" }: ChipP
         minHeight: HEIGHT,
         paddingHorizontal: 10,
         paddingVertical: (HEIGHT - LINE) / 2,
-        borderRadius: HEIGHT / 2,
+        // A small item: radius 8 (DougBot: no pills).
+        borderRadius: 8,
         backgroundColor: tone === "wait" ? `${colors.amber}22` : colors.chip,
         alignSelf: "flex-start",
         maxWidth: "100%",

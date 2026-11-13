@@ -46,7 +46,7 @@ const ACCOUNT: SignInOptions = { account: true, password: true, providers: [], c
 const NEW: SignInOptions = { account: false, password: false, providers: [], canSignUp: true };
 
 describe("the sign-in forms when the server doesn't answer", () => {
-  const UNREACHABLE = "Sem conexão com o agentes.chat agora. Tente de novo em instantes.";
+  const UNREACHABLE = "Sem conexão com o DougBot agora. Tente de novo em instantes.";
   const alertText = () => screen().getByRole("alert").textContent;
 
   test("Continuar with no answer: why, under the field, and Continuar works again", async () => {

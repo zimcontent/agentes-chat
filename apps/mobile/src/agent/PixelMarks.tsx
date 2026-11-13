@@ -1,49 +1,27 @@
 import { useEffect } from "react";
 import { View } from "react-native";
 import Animated, { useAnimatedStyle, useSharedValue, withSequence, withTiming } from "react-native-reanimated";
+import Svg, { Circle, Path } from "react-native-svg";
 import { useReducedMotion, useTheme } from "@/ui/theme";
 import { useFrameTime } from "./live";
-import { inkOrbitCells, orbitHead, RING, stopBreath } from "./orbit";
+import { stopBreath } from "./orbit";
+import { Spinner } from "./PixelOrbit";
 
 /**
- * The pixel marks next to the agent's orbit: the neutral orbit ("enviando", "lê na próxima
- * pausa"), a finished step's one green pixel, a failed step's red exclamation, a stopped step's dim block
- * and the composer's rounded stop square. Same grid and gaps as `PixelOrbit`; nothing moves with reduced motion.
+ * The step marks next to the agent's work, drawn as clean vectors (DougBot: no pixels): the neutral turning ring
+ * ("enviando", "lê na próxima pausa"), a finished step's check, a failed step's exclamation, a stopped step's dim
+ * square and the composer's rounded stop square. Nothing moves with reduced motion.
  */
-
-const cellBox = (size: number, n: number, x: number, y: number) => {
-  const cell = size / n;
-  const gap = Math.max(0.5, cell * 0.14);
-  return {
-    position: "absolute" as const,
-    left: x * cell + gap / 2,
-    top: y * cell + gap / 2,
-    width: cell - gap,
-    height: cell - gap,
-  };
-};
 
 const hidden = { accessibilityElementsHidden: true, importantForAccessibility: "no-hide-descendants" as const };
 
-/** The 3×3 orbit in ink (no agent color): something on its way that isn't an agent's work. */
+/** The thin turning ring in ink (no agent color): something on its way that isn't an agent's work. */
 export function InkOrbit({ size = 12, color }: { size?: number; color?: string }) {
   const { colors } = useTheme();
-  const reduced = useReducedMotion();
-  const t = useFrameTime(!reduced, 0);
-  const ink = color ?? colors.muted;
-  return (
-    <View style={{ width: size, height: size }} {...hidden}>
-      {inkOrbitCells(orbitHead(t * 1000, reduced)).map((c) => (
-        <View
-          key={`${c.x}-${c.y}`}
-          style={[cellBox(size, 3, c.x, c.y), { backgroundColor: ink, opacity: c.opacity }]}
-        />
-      ))}
-    </View>
-  );
+  return <Spinner size={size} color={color ?? colors.muted} />;
 }
 
-/** A finished step: one green pixel, the size of the grid's center cell, popping in (~160 ms). */
+/** A finished step: a check in a 2-point stroke, popping in (~160 ms). */
 export function PixelDone({ size = 14 }: { size?: number }) {
   const { colors } = useTheme();
   const reduced = useReducedMotion();
@@ -55,38 +33,57 @@ export function PixelDone({ size = 14 }: { size?: number }) {
     pop.value = withSequence(withTiming(1.15, { duration: 100 }), withTiming(1, { duration: 60 }));
   }, [reduced, k, pop]);
   const style = useAnimatedStyle(() => ({ opacity: k.value, transform: [{ scale: pop.value }] }));
+  const s = size / 14;
   return (
     <View style={{ width: size, height: size }} {...hidden}>
-      <Animated.View style={[cellBox(size, 3, 1, 1), { backgroundColor: colors.ok }, style]} />
+      <Animated.View style={[{ width: size, height: size }, style]}>
+        <Svg width={size} height={size}>
+          <Path
+            d={`M${2.8 * s} ${7.4 * s}L${5.8 * s} ${10.2 * s}L${11.2 * s} ${3.9 * s}`}
+            stroke={colors.ok}
+            strokeWidth={2}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            fill="none"
+          />
+        </Svg>
+      </Animated.View>
     </View>
   );
 }
 
-/** A failed step: an exclamation of two pixels in the danger color (a tall one over the center column's last cell). */
+/** A failed step: an exclamation (a 2-point stroke and its dot) in the danger color. */
 export function PixelFail({ size = 14 }: { size?: number }) {
   const { colors } = useTheme();
-  const top = cellBox(size, 3, 1, 0);
+  const x = size / 2;
   return (
     <View style={{ width: size, height: size }} {...hidden}>
-      <View style={[top, { height: top.height + size / 3, backgroundColor: colors.danger }]} />
-      <View style={[cellBox(size, 3, 1, 2), { backgroundColor: colors.danger }]} />
+      <Svg width={size} height={size}>
+        <Path
+          d={`M${x} ${size * 0.16}V${size * 0.6}`}
+          stroke={colors.danger}
+          strokeWidth={2}
+          strokeLinecap="round"
+          fill="none"
+        />
+        <Circle cx={x} cy={size * 0.83} r={1.25} fill={colors.danger} />
+      </Svg>
     </View>
   );
 }
 
-/** A step cut short by a stop: the 3×3 block, dim. */
+/** A step cut short by a stop: a small square with rounded corners, dim. */
 export function PixelStopped({ size = 14 }: { size?: number }) {
   const { colors } = useTheme();
+  const side = Math.round(size * 0.64);
   return (
-    <View style={{ width: size, height: size }} {...hidden}>
-      {[...RING, [1, 1] as const].map(([x, y]) => (
-        <View key={`${x}-${y}`} style={[cellBox(size, 3, x, y), { backgroundColor: colors.muted, opacity: 0.55 }]} />
-      ))}
+    <View style={{ width: size, height: size, alignItems: "center", justifyContent: "center" }} {...hidden}>
+      <View style={{ width: side, height: side, borderRadius: 2, backgroundColor: colors.muted, opacity: 0.55 }} />
     </View>
   );
 }
 
-/** "Parar": one rounded square (reads as stop, ~3/4 of the box); it breathes while the agent works (`moving`). */
+/** "Parar": one rounded square (reads as stop, ~3/4 of the box); it breathes lightly while the agent works (`moving`). */
 export function PixelStop({ size = 13, color, moving = true }: { size?: number; color: string; moving?: boolean }) {
   const reduced = useReducedMotion();
   const still = reduced || !moving;

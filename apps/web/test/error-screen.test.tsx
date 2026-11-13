@@ -278,7 +278,7 @@ describe("a request that got no answer, or only the proxy's", () => {
       return text;
     };
     expect(await said(new NetworkError(new TypeError("Failed to fetch")))).toBe(
-      "Sem conexão com o agentes.chat agora. Tente de novo em instantes.",
+      "Sem conexão com o DougBot agora. Tente de novo em instantes.",
     );
     expect(await said(new TypeError("Cannot read properties of undefined"))).toBe("Algo deu errado. Tente de novo.");
     const failedLoad = "Não foi possível carregar. Confira a conexão e tente de novo.";

@@ -6,8 +6,7 @@ import { serverUrl } from "@/lib/server";
 import { LogoMark } from "@/ui";
 
 /**
- * A workspace's face, as the web's `OrgMark`: its logo in the agent's shape (rounded, the bottom-left corner cut
- * closer), else the agent mark.
+ * A workspace's face: its logo in the Doug's frame (rounded square), else DougBot's mark (the Doug, drawn by code).
  */
 export function OrgAvatar({
   logo,
@@ -25,18 +24,11 @@ export function OrgAvatar({
     return photoSource(logo, on, appHeaders(lastCookie(on)));
   }, [logo, server]);
   if (!source) return <LogoMark size={size} />;
-  const round = size * 0.3;
+  // DougBot: the logo in the Doug's glass frame's corner (28 of 100), every corner the same.
   return (
     <Image
       source={source}
-      style={{
-        width: size,
-        height: size,
-        borderTopLeftRadius: round,
-        borderTopRightRadius: round,
-        borderBottomRightRadius: round,
-        borderBottomLeftRadius: size * 0.09,
-      }}
+      style={{ width: size, height: size, borderRadius: Math.round(size * 0.28) }}
       accessibilityIgnoresInvertColors
     />
   );

@@ -80,12 +80,19 @@ export const listOf = (value: string | undefined) =>
     .map((v) => v.trim())
     .filter(Boolean);
 
+/**
+ * DougBot (this fork's phone app, apps/mobile/app.config.ts): the store build and its preview and development builds.
+ * Used when the server's own variables leave the app unnamed (unset, not blank), so a DougBot server trusts the DougBot
+ * app with its links once `APPLE_TEAM_ID` (and, on Android, `ANDROID_APP_CERT_SHA256`) is set.
+ */
+export const DOUGBOT_APP_IDS = ["io.mydoug.app", "io.mydoug.app.preview", "io.mydoug.app.development"];
+
 /** Where this server publishes its OAuth client metadata document. */
 export const CIMD_PATH = "/oauth/client-metadata.json";
 
 /** `apple-app-site-association`: the iOS apps (team + bundle ids) handle these paths. Null when not configured. */
 export function appleAppSiteAssociation(config: Pick<Config, "APPLE_TEAM_ID" | "APPLE_APP_BUNDLE_ID">) {
-  const bundles = listOf(config.APPLE_APP_BUNDLE_ID);
+  const bundles = config.APPLE_APP_BUNDLE_ID === undefined ? DOUGBOT_APP_IDS : listOf(config.APPLE_APP_BUNDLE_ID);
   if (!config.APPLE_TEAM_ID || bundles.length === 0) return null;
   return {
     applinks: {
@@ -106,7 +113,7 @@ export function appleAppSiteAssociation(config: Pick<Config, "APPLE_TEAM_ID" | "
 /** `assetlinks.json`: the Android apps (packages + signing certificates) handle our links. Null when not configured. */
 export function androidAssetLinks(config: Pick<Config, "ANDROID_APP_PACKAGE" | "ANDROID_APP_CERT_SHA256">) {
   const fingerprints = listOf(config.ANDROID_APP_CERT_SHA256).map((f) => f.toUpperCase());
-  const packages = listOf(config.ANDROID_APP_PACKAGE);
+  const packages = config.ANDROID_APP_PACKAGE === undefined ? DOUGBOT_APP_IDS : listOf(config.ANDROID_APP_PACKAGE);
   if (packages.length === 0 || fingerprints.length === 0) return null;
   return packages.map((name) => ({
     relation: ["delegate_permission/common.handle_all_urls"],
@@ -131,7 +138,7 @@ export function registerAppLinks(app: OpenAPIHono, config: Config) {
     const origin = new URL(config.PUBLIC_URL).origin;
     return c.json({
       client_id: `${origin}${CIMD_PATH}`,
-      client_name: "agentes.chat",
+      client_name: "DougBot",
       client_uri: origin,
       redirect_uris: [`${origin}/api/app/connectors/oauth/callback`],
       grant_types: ["authorization_code", "refresh_token"],

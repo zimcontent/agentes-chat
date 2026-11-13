@@ -353,6 +353,7 @@
     "someone": "Ktoś",
     "messageTo": "Wiadomość do: {{name}}",
     "messageIn": "Wiadomość w {{channel}}",
+    "messagePlain": "Wiadomość",
     "reply": "Odpowiedz",
     "people_one": "{{count}} osoba",
     "people_few": "{{count}} osoby",
@@ -2932,5 +2933,19 @@
       "title": "Nic do sprawdzenia",
       "text": "Gdy agent zrobi coś poza rozmową, pojawi się to tutaj."
     }
+  },
+  "photo": {
+    "section": "Zdjęcie",
+    "upload": "Prześlij zdjęcie",
+    "useBot": "Użyj awatara DougBot",
+    "fromLibrary": "Wybierz z galerii",
+    "fromCamera": "Zrób zdjęcie",
+    "failed": "Nie udało się przesłać zdjęcia. Spróbuj ponownie.",
+    "agentHint": "Zdjęcie pojawia się zamiast narysowanego bota, dla całego zespołu.",
+    "meHint": "Twoje zdjęcie widzą osoby z Twoich przestrzeni roboczych."
+  },
+  "brand": {
+    "basedOn": "Na podstawie agentes.chat od Codari Global, LLC · AGPL-3.0",
+    "source": "Kod źródłowy DougBot"
   }
 }

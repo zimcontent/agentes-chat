@@ -579,7 +579,7 @@ function HintedField({ label, hint, children, onPress }: GroupedFieldProps & { h
 
 const styles = StyleSheet.create({
   marked: { fontWeight: "600" },
-  list: { borderRadius: 14, overflow: "hidden" },
+  list: { borderRadius: 16, overflow: "hidden" },
   divider: { height: StyleSheet.hairlineWidth },
   header: { paddingTop: 20, paddingBottom: 8, paddingHorizontal: 16, letterSpacing: 0.4 },
   headerRoom: { paddingTop: 20, paddingBottom: 8, paddingHorizontal: 16 },

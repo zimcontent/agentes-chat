@@ -16,6 +16,8 @@ export const weights = {
   medium: "500",
   semibold: "600",
   bold: "700",
+  /** Manrope 800: DougBot's titles. */
+  extrabold: "800",
 } as const;
 
 export type Weight = (typeof weights)[keyof typeof weights];

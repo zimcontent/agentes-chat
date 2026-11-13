@@ -35,10 +35,10 @@ export const mobileEn = {
       line: "Server: {{host}} ·",
       change: "Change",
       /** The question is the title; the keyboard's return key ("go") is the action. */
-      title: "Where is your agentes.chat?",
+      title: "Where is your DougBot?",
       subtitle: "The address your team opens in the browser.",
       label: "Server address",
-      placeholder: "agentes.yourteam.ts.net",
+      placeholder: "team.yourteam.com",
       use: "Use this server",
       checking: "Checking…",
       scan: "Scan QR code",
@@ -55,14 +55,14 @@ export const mobileEn = {
       footOn: "Signing in on {{host}}",
       footSwitch: "Change",
       now: "Now on {{host}}",
-      invalid: "Check the address, something like agentes.yourteam.ts.net.",
+      invalid: "Check the address, something like team.yourteam.com.",
       unreachable: "We can't reach {{host}}. Check the address and your connection, and try again.",
       unreachableTailscale:
         "We can't reach {{host}}. It's on Tailscale: open the Tailscale app, connect and try again. Connected already? The computer it runs on may be asleep, or its app closed.",
       certificate: "The certificate of {{host}} isn't valid. Talk to whoever runs the server.",
-      notAgentes: "{{host}} isn't an agentes.chat server. Check the address.",
+      notAgentes: "{{host}} isn't a DougBot server. Check the address.",
       serverTooOld: "{{host}} needs an update to work with this app.",
-      appTooOld: "Update the agentes app to use {{host}}.",
+      appTooOld: "Update the DougBot app to use {{host}}.",
       down: {
         line: "{{host}} didn't answer.",
         text: "It may be down or outside your network. The app opens on its own once it's back.",
@@ -82,7 +82,7 @@ export const mobileEn = {
       confirm: "Connect",
       notNow: "Not now",
       checking: "Checking the server…",
-      notALink: "This link isn't from an agentes.chat server.",
+      notALink: "This link isn't from a DougBot server.",
       tokenFailed: "The code expired or was already used. Sign in with your email, or show a new code on the computer.",
       signInSlow:
         "Signing in is taking longer than it should. Sign in with your email, or show a new code on the computer.",
@@ -91,7 +91,7 @@ export const mobileEn = {
       hint: "Point at the QR code on the computer",
       /** Under the camera: the address, for whoever has no code to scan. */
       typeAddress: "Type the address",
-      notOurs: "This QR code isn't from an agentes.chat server.",
+      notOurs: "This QR code isn't from a DougBot server.",
       cameraTitle: "Use the camera",
       cameraText: "It's only used to read the QR code.",
       allow: "Allow camera",
@@ -110,7 +110,7 @@ export const mobileEn = {
     signedOut: "You signed out.",
   },
   theme: {
-    system: "Same as the phone",
+    system: "System",
     light: "Light",
     dark: "Dark",
   },

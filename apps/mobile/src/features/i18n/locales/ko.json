@@ -326,6 +326,7 @@
     "someone": "누군가",
     "messageTo": "{{name}}에게 메시지 보내기",
     "messageIn": "{{channel}}에 메시지 보내기",
+    "messagePlain": "메시지",
     "reply": "답장",
     "people_other": "{{count}}명",
     "agentsHere_other": "에이전트 {{count}}명",
@@ -2596,5 +2597,19 @@
       "title": "확인할 것이 없어요",
       "text": "에이전트가 대화 밖에서 무언가를 하면 여기에 나타나요."
     }
+  },
+  "photo": {
+    "section": "사진",
+    "upload": "사진 업로드",
+    "useBot": "DougBot 아바타 사용",
+    "fromLibrary": "보관함에서 선택",
+    "fromCamera": "사진 찍기",
+    "failed": "사진을 업로드하지 못했어요. 다시 시도하세요.",
+    "agentHint": "그려진 봇 대신 사진이 팀 전체에 표시돼요.",
+    "meHint": "내 사진은 내 워크스페이스의 사람들에게 표시돼요."
+  },
+  "brand": {
+    "basedOn": "Codari Global, LLC의 agentes.chat 기반 · AGPL-3.0",
+    "source": "DougBot 소스 코드"
   }
 }

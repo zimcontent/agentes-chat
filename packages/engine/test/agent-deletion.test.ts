@@ -327,7 +327,7 @@ describe("deleting an agent", () => {
     const reply = messages.find((m) => m.author.type === "agent");
     expect(reply?.author.id).toBe(f.agent.id);
     expect(await listFormerAgents(f.db, f.owner.id, f.org.id)).toEqual([
-      { id: f.agent.id, name: "Dev", role: "Developer", appearance: null, deleted: true },
+      { id: f.agent.id, name: "Dev", role: "Developer", appearance: null, photo: null, deleted: true },
     ]);
   });
 

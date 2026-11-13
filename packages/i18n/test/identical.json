@@ -4,6 +4,7 @@
       "chat.wait.said",
       "access.area.skills",
       "agent.builtinName",
+      "contextMenu.lookOurs",
       "agentComputer.phone.trackpad",
       "agentPage.activity.tokens",
       "agentPage.fields.skills",
@@ -3711,6 +3712,8 @@
       "vault.tab.personal"
     ],
     "fr": [
+      "photo.section",
+      "chat.messagePlain",
       "devices.os.android",
       "devices.os.ios",
       "devices.cpus",

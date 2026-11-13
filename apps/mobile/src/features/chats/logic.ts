@@ -38,6 +38,9 @@ export type ConversationRow =
       key: string;
       channelId: string;
       name: string;
+      /** This fork's group name and photo (`channels.display_name`, `channels.icon`); null: the `#name` and the "#". */
+      displayName: string | null;
+      icon: string | null;
       topic: string;
       /** Its sidebar category (ADR 0080); null: none. */
       categoryId: string | null;
@@ -184,6 +187,8 @@ export function buildConversations(input: {
       key: `c:${c.id}`,
       channelId: c.id,
       name: c.name,
+      displayName: c.displayName?.trim() || null,
+      icon: c.icon ?? null,
       topic: c.topic,
       categoryId: c.categoryId ?? null,
       last: last

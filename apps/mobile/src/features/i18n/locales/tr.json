@@ -335,6 +335,7 @@
     "someone": "Biri",
     "messageTo": "{{name}} kişisine mesaj",
     "messageIn": "{{channel}} kanalına mesaj",
+    "messagePlain": "Mesaj",
     "reply": "Yanıtla",
     "people_one": "{{count}} kişi",
     "people_other": "{{count}} kişi",
@@ -2708,5 +2709,19 @@
       "title": "İncelenecek bir şey yok",
       "text": "Bir ajan sohbet dışında bir şey yaptığında burada görünür."
     }
+  },
+  "photo": {
+    "section": "Fotoğraf",
+    "upload": "Fotoğraf yükle",
+    "useBot": "DougBot avatarını kullan",
+    "fromLibrary": "Galeriden seç",
+    "fromCamera": "Fotoğraf çek",
+    "failed": "Fotoğraf yüklenemedi. Tekrar dene.",
+    "agentHint": "Fotoğraf, çizilmiş botun yerine tüm ekibe görünür.",
+    "meHint": "Fotoğrafın, çalışma alanlarındaki kişilere görünür."
+  },
+  "brand": {
+    "basedOn": "Codari Global, LLC'nin agentes.chat projesine dayanır · AGPL-3.0",
+    "source": "DougBot kaynak kodu"
   }
 }

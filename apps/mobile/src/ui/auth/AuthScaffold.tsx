@@ -26,7 +26,7 @@ const AGENT_OVERLAP = 8;
 const TOOLBAR = 42;
 
 /** The app's own agent, on the sky of every screen before the app. */
-const APP_AGENT: AgentLookInput = { color: "sky", eyes: "round", id: "agentes" };
+const APP_AGENT: AgentLookInput = { color: "sky", eyes: "round", id: "doug", name: "Doug" };
 
 /** The text of the screens before the app: centered under the agent (fields and buttons keep the width). */
 export const CENTER = { textAlign: "center" } as const;

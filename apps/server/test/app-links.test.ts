@@ -5,6 +5,7 @@ import {
   APP_LINK_WEB_QUERIES,
   androidAssetLinks,
   appleAppSiteAssociation,
+  DOUGBOT_APP_IDS,
   listOf,
   registerAppLinks,
 } from "../src/app-links";
@@ -36,7 +37,6 @@ test("iOS: the app's pages open the app once team and bundle ids are set, the on
 
 test("Android: every package with every signing fingerprint, upper-cased; nothing without them", () => {
   expect(androidAssetLinks({ ANDROID_APP_PACKAGE: "chat.agentes.app", ANDROID_APP_CERT_SHA256: " " })).toBeNull();
-  expect(androidAssetLinks({ ANDROID_APP_PACKAGE: undefined, ANDROID_APP_CERT_SHA256: "AA:BB" })).toBeNull();
   const target = (name: string) => ({
     relation: ["delegate_permission/common.handle_all_urls"],
     target: { namespace: "android_app", package_name: name, sha256_cert_fingerprints: ["AA:BB", "CC:DD"] },
@@ -80,4 +80,21 @@ test("served as JSON with no redirect, Apple's at /.well-known/ and at the root;
   registerAppLinks(bare, {} as Parameters<typeof registerAppLinks>[1]);
   expect((await bare.request("/apple-app-site-association")).status).toBe(404);
   expect((await bare.request("/.well-known/assetlinks.json")).status).toBe(404);
+});
+
+test("DougBot: with the app unnamed on the server, its own builds (io.mydoug.app) get the links", () => {
+  expect(DOUGBOT_APP_IDS).toEqual(["io.mydoug.app", "io.mydoug.app.preview", "io.mydoug.app.development"]);
+  const aasa = appleAppSiteAssociation({ APPLE_TEAM_ID: "ABCDE12345", APPLE_APP_BUNDLE_ID: undefined });
+  expect(aasa?.applinks.details[0]?.appIDs).toEqual([
+    "ABCDE12345.io.mydoug.app",
+    "ABCDE12345.io.mydoug.app.preview",
+    "ABCDE12345.io.mydoug.app.development",
+  ]);
+  // Still nothing without the team, and a blank variable still means none.
+  expect(appleAppSiteAssociation({ APPLE_TEAM_ID: undefined, APPLE_APP_BUNDLE_ID: undefined })).toBeNull();
+  expect(
+    androidAssetLinks({ ANDROID_APP_PACKAGE: undefined, ANDROID_APP_CERT_SHA256: "aa:bb" })?.map(
+      (t) => t.target.package_name,
+    ),
+  ).toEqual(DOUGBOT_APP_IDS);
 });

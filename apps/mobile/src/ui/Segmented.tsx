@@ -21,11 +21,12 @@ export type SegmentedProps = FiltersProps & {
 /** The track's inset around the segments; a segment's corner is the track's less it, so the two stay concentric. */
 const PAD = 4;
 /** 30% of the control's height, as every control's corner. */
-const RADIUS = Math.round(TOOL_H * 0.3);
+/** Radius 12 outside, 8 inside (12 − 4): concentric (DougBot §6). */
+const RADIUS = 12;
 
 /** A segmented control: a sunken track, the selected segment raised; the raised plate slides to a new choice. */
 export function Segmented({ items, value, onChange, wide = false }: SegmentedProps) {
-  const { colors, shadows, motion, reducedMotion } = useTheme();
+  const { colors, motion, reducedMotion } = useTheme();
   const [boxes, setBoxes] = useState<Record<string, { x: number; width: number }>>({});
   const at = boxes[value];
   const x = useSharedValue(0);
@@ -43,7 +44,8 @@ export function Segmented({ items, value, onChange, wide = false }: SegmentedPro
     placed.current = true;
   }, [at, x, width, reducedMotion, motion]);
   const plate = useAnimatedStyle(() => ({ transform: [{ translateX: x.value }], width: width.value }));
-  const raised = { backgroundColor: colors.raised, boxShadow: `${shadows.e1}, ${shadows.top}` };
+  // The chosen segment: the soft green with its 1 px edge (DougBot: a choice is never the solid green).
+  const raised = { backgroundColor: colors.chosen, borderWidth: 1, borderColor: colors.greenGlow };
   return (
     <View
       style={{
@@ -51,7 +53,8 @@ export function Segmented({ items, value, onChange, wide = false }: SegmentedPro
         padding: PAD,
         borderRadius: RADIUS,
         backgroundColor: colors.sunken,
-        boxShadow: "inset 0px 1px 2px 0px rgba(0, 0, 0, 0.06)",
+        borderWidth: 1,
+        borderColor: colors.glassEdge,
         alignSelf: wide ? "stretch" : "flex-start",
       }}
       accessibilityRole="tablist"

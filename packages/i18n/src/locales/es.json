@@ -1,6 +1,6 @@
 {
   "app": {
-    "name": "agentes"
+    "name": "DougBot"
   },
   "common": {
     "close": "Cerrar",
@@ -131,7 +131,7 @@
       "owners": "Dar y quitar la propiedad",
       "ownersDesc": "Puede haber más de un propietario.",
       "delete": "Eliminar el espacio de trabajo",
-      "deleteDesc": "Con todo lo que tiene: canales, agentes y archivos.",
+      "deleteDesc": "Con todo lo que tiene: grupos, agentes y archivos.",
       "foot": "Todo espacio de trabajo tiene al menos un propietario."
     },
     "peopleTitle": "Personas",
@@ -176,7 +176,7 @@
       "blank": "Nada",
       "blankDesc": "Solo lo que pueden Todos. Tú eliges el resto.",
       "mod": "Mantiene ordenadas las conversaciones",
-      "modDesc": "Crea y organiza canales y categorías.",
+      "modDesc": "Crea y organiza grupos y categorías.",
       "agents": "Se encarga de los agentes",
       "agentsDesc": "Crea y edita agentes, aprueba acciones, crea rutinas y revisa la memoria.",
       "costs": "Sigue los costos",
@@ -214,27 +214,27 @@
     },
     "post": {
       "title": "Enviar mensajes",
-      "desc": "Escribir y reaccionar en los canales donde está.",
+      "desc": "Escribir y reaccionar en los grupos donde está.",
       "short": "enviar mensajes",
       "say": "envía mensajes"
     },
     "create_channels": {
-      "title": "Crear canales",
+      "title": "Crear grupos",
       "desc": "Abiertos o privados.",
-      "short": "crear canales",
-      "say": "crea canales"
+      "short": "crear grupos",
+      "say": "crea grupos"
     },
     "mention_everyone": {
       "title": "Mencionar a todos",
-      "desc": "Usar @todos para avisar a todos en un canal, personas y agentes.",
+      "desc": "Usar @todos para avisar a todos en un grupo, personas y agentes.",
       "short": "mencionar a todos",
       "say": "menciona a todos"
     },
     "manage_channels": {
-      "title": "Organizar canales",
+      "title": "Organizar grupos",
       "desc": "Renombrar, archivar, cambiar quién está y organizar categorías.",
-      "short": "organizar canales",
-      "say": "organiza canales"
+      "short": "organizar grupos",
+      "say": "organiza grupos"
     },
     "talk_to_agents": {
       "title": "Hablar con agentes",
@@ -774,9 +774,9 @@
           "title": "¿Cómo quieres empezar el equipo?",
           "lead": "Puedes cambiarlo todo después, no se pierde nada.",
           "template": "Empezar con un equipo listo",
-          "templateText_one": "{{count}} agente de la plantilla {{template}}, en su propio canal, con su rutina lista.",
-          "templateText_many": "{{count}} agentes de la plantilla {{template}}, cada uno en su canal, con sus rutinas listas.",
-          "templateText_other": "{{count}} agentes de la plantilla {{template}}, cada uno en su canal, con sus rutinas listas.",
+          "templateText_one": "{{count}} agente de la plantilla {{template}}, en su propio grupo, con su rutina lista.",
+          "templateText_many": "{{count}} agentes de la plantilla {{template}}, cada uno en su grupo, con sus rutinas listas.",
+          "templateText_other": "{{count}} agentes de la plantilla {{template}}, cada uno en su grupo, con sus rutinas listas.",
           "scratch": "Empezar desde cero",
           "scratchText": "Solo {{name}}, tu mano derecha. Creas cada agente después, a tu manera.",
           "scratchWho": "{{name}} y quien tú crees",
@@ -895,7 +895,7 @@
       "personal": "Para mí",
       "personalText": "Agentes para tu agenda, tus cuentas, tu entrenamiento y todo lo que les pidas.",
       "team": "Para mi equipo",
-      "teamText": "Personas y agentes trabajan juntos, con canales, roles y aprobaciones.",
+      "teamText": "Personas y agentes trabajan juntos, con grupos, roles y aprobaciones.",
       "personalExamples": "Tu día a las 7 · Cuentas · Entreno",
       "teamExamples": "Atención al cliente · Finanzas · Informes",
       "personalLine": "Agentes que cuidan de tu día.",
@@ -1043,7 +1043,7 @@
       "groups": {
         "agent": "Agentes",
         "skill": "Habilidades",
-        "channel": "Canales",
+        "channel": "Grupos",
         "routine": "Rutinas",
         "note": "Memoria"
       },
@@ -1067,14 +1067,14 @@
         "schedule_in_past": "Su fecha ya pasó.",
         "secret_like": "Tiene algo que parece una clave o contraseña, así que queda afuera.",
         "agent_not_picked": "Su agente no viene.",
-        "channel_not_picked": "Su canal no viene.",
+        "channel_not_picked": "Su grupo no viene.",
         "invalid": "Llegó incompleto, o en una forma que no podemos usar aquí.",
         "failed": "No se pudo crear ahora. Inténtalo de nuevo.",
         "too_many_routines": "Llega en pausa: su agente está en el límite de rutinas activas."
       },
       "whyExists": {
         "skill": "Ya existe aquí una habilidad con este nombre. Se queda como está.",
-        "channel": "Ya existe aquí un canal privado o archivado con este nombre. Se queda como está."
+        "channel": "Ya existe aquí un grupo privado o archivado con este nombre. Se queda como está."
       },
       "renamed": "Pasa a ser @{{handle}}: @{{wanted}} ya existe aquí.",
       "joins": "Los agentes entran en el #{{name}} que ya existe.",
@@ -1177,9 +1177,9 @@
           "skill_one": "{{count}} habilidad",
           "skill_many": "{{count}} habilidades",
           "skill_other": "{{count}} habilidades",
-          "channel_one": "{{count}} canal",
-          "channel_many": "{{count}} canales",
-          "channel_other": "{{count}} canales",
+          "channel_one": "{{count}} grupo",
+          "channel_many": "{{count}} grupos",
+          "channel_other": "{{count}} grupos",
           "routine_one": "{{count}} rutina",
           "routine_many": "{{count}} rutinas",
           "routine_other": "{{count}} rutinas",
@@ -1440,8 +1440,8 @@
     "lookOurs": "agentes.chat",
     "lookSystem": "Del sistema",
     "markRead": "Marcar como leído",
-    "muteChannel": "Silenciar canal",
-    "unmuteChannel": "Reactivar canal",
+    "muteChannel": "Silenciar grupo",
+    "unmuteChannel": "Reactivar grupo",
     "mention": "Mencionar",
     "copyHandle": "Copiar @{{handle}}",
     "handleCopied": "@ copiado.",
@@ -1598,8 +1598,8 @@
     "title": "{{name}} crea y ajusta agentes por ti",
     "subtitle": "Solo lo que vino de un pedido tuyo. Lo que no aprobaría, te lo pasa.",
     "newAgents": "Crear agentes que proponen otros agentes",
-    "newAgentsHelp": "Sin apps, solo en canales abiertos. Puedes deshacerlo durante 24 h.",
-    "agentChanges": "Cambiar el modelo, el presupuesto y los canales de un agente",
+    "newAgentsHelp": "Sin apps, solo en grupos abiertos. Puedes deshacerlo durante 24 h.",
+    "agentChanges": "Cambiar el modelo, el presupuesto y los grupos de un agente",
     "agentChangesHelp": "El modelo solo en la misma cuenta de IA.",
     "cantDecide": "Hoy no decides esto",
     "budget": "Presupuesto extra, por agente",
@@ -1607,7 +1607,7 @@
     "perMonth": "/mes",
     "guidanceLabel": "Cómo decide {{name}} por ti",
     "guidanceHelp": "{{name}} lo lee antes de decidir. Opcional.",
-    "guidancePlaceholder": "Ej.: nada de agentes duplicados\nSolo modelos baratos para agentes nuevos\nNunca en canales de clientes",
+    "guidancePlaceholder": "Ej.: nada de agentes duplicados\nSolo modelos baratos para agentes nuevos\nNunca en grupos de clientes",
     "paused": "En pausa: deshiciste 3 de sus decisiones esta semana. Vuelve a activarlo cuando quieras.",
     "card": {
       "deciding": "{{name}} lo está analizando en nombre de {{for}}…",
@@ -1691,7 +1691,7 @@
     }
   },
   "shell": {
-    "otherChannels": "Otros canales",
+    "otherChannels": "Otros grupos",
     "otherChannelsPersonal": "Otras conversaciones en grupo",
     "titleBar": {
       "back": "Atrás",
@@ -1726,13 +1726,13 @@
     "customizeSidebar": "Personalizar la barra lateral",
     "sidebarMenu": {
       "title": "Barra lateral",
-      "newChannel": "Nuevo canal",
+      "newChannel": "Nuevo grupo",
       "newChannelPersonal": "Nueva conversación en grupo",
-      "addToChannels": "Nuevo canal o categoría",
+      "addToChannels": "Nuevo grupo o categoría",
       "addToChannelsPersonal": "Nueva conversación en grupo o categoría",
       "newMessage": "Nuevo mensaje",
       "addMembers": "Agregar personas o agentes",
-      "channelSettings": "Configuración del canal",
+      "channelSettings": "Configuración del grupo",
       "agentSettings": "Configuración de {{name}}"
     },
     "sidebarSetup": {
@@ -1815,7 +1815,7 @@
     "calendar": "Calendario",
     "drive": "Drive",
     "members": "Miembros",
-    "channels": "Canales",
+    "channels": "Grupos",
     "channelsPersonal": "Conversaciones en grupo",
     "agents": "Agentes",
     "directMessages": "Mensajes directos",
@@ -1923,7 +1923,7 @@
     "pinned": "Fijado arriba",
     "full": {
       "agents": "Ya fijaste 5 agentes. Quita uno para fijar este.",
-      "channels": "Ya fijaste 5 canales. Quita uno para fijar este.",
+      "channels": "Ya fijaste 5 grupos. Quita uno para fijar este.",
       "people": "Ya fijaste 5 personas. Quita una para fijar esta."
     }
   },
@@ -1968,7 +1968,7 @@
     "restoreAction": "Restaurar a {{name}}",
     "restored": "{{name}} volvió al equipo.",
     "emptyTitle": "Arma tu equipo de agentes",
-    "empty": "Cada agente tiene un rol y trabaja junto a las personas, en los mismos canales.",
+    "empty": "Cada agente tiene un rol y trabaja junto a las personas, en los mismos grupos.",
     "emptyViewerTitle": "Tu equipo de agentes aparece aquí",
     "emptyViewer": "Quien puede crear agentes arma el equipo, y cada uno aparece aquí.",
     "list": {
@@ -1999,7 +1999,7 @@
         "roles": "Roles",
         "caresFor": "Se ocupa de"
       },
-      "noChannel": "En ningún canal",
+      "noChannel": "En ningún grupo",
       "none": "Ningún agente coincide."
     },
     "chart": {
@@ -2015,10 +2015,10 @@
       "dragSector": "Arrastra hasta un agente para que los agentes de este sector le respondan"
     },
     "map": {
-      "lead": "Quién se ocupa de los agentes, los canales donde están, lo que cada uno hace por su cuenta y lo que espera a una persona. Las líneas punteadas son agentes que se pidieron ayuda en el último día.",
+      "lead": "Quién se ocupa de los agentes, los grupos donde están, lo que cada uno hace por su cuenta y lo que espera a una persona. Las líneas punteadas son agentes que se pidieron ayuda en el último día.",
       "short": "Quién se ocupa de cada agente y dónde trabaja.",
       "lodi": "Organiza el equipo contigo",
-      "hint": "Arrastra un agente a otro canal y {{name}} prepara el cambio para que lo apliques",
+      "hint": "Arrastra un agente a otro grupo y {{name}} prepara el cambio para que lo apliques",
       "proposed": "{{name}} preparó el cambio en tu conversación. Aplícalo allí.",
       "open": "Abrir",
       "reasonMove": "Mover a {{agent}} de #{{from}} a #{{to}}, desde el mapa del equipo.",
@@ -2029,16 +2029,16 @@
       "moreRoutines_one": "y {{count}} rutina más",
       "moreRoutines_many": "y {{count}} rutinas más",
       "moreRoutines_other": "y {{count}} rutinas más",
-      "empty": "Agrega un agente a un canal y aparecerá aquí, con quien lo cuida.",
+      "empty": "Agrega un agente a un grupo y aparecerá aquí, con quien lo cuida.",
       "emptyTitle": "Mira dónde trabaja cada agente",
-      "emptyAction": "Agregar a un canal",
-      "emptyViewer": "Quien gestiona los agentes los agrega a los canales, y el mapa aparece aquí.",
-      "others": "Otros canales",
+      "emptyAction": "Agregar a un grupo",
+      "emptyViewer": "Quien gestiona los agentes los agrega a los grupos, y el mapa aparece aquí.",
+      "others": "Otros grupos",
       "band": "Supervisores",
       "reportsTo": "Responde a {{name}}"
     },
     "sectors": {
-      "lead": "Cada departamento tiene un responsable, un suplente, sus agentes y los canales y rutinas de ellos.",
+      "lead": "Cada departamento tiene un responsable, un suplente, sus agentes y los grupos y rutinas de ellos.",
       "ask": "Hablar con {{name}}",
       "askText": "Ayúdame a organizar el equipo en departamentos.",
       "leadLabel": "Responsable",
@@ -2059,7 +2059,7 @@
       "supervisorCleared_other": "{{count}} agentes de {{sector}} ya no responden a un supervisor",
       "nobody": "Nadie",
       "none": "Ninguno",
-      "channels": "Canales",
+      "channels": "Grupos",
       "routines": "Rutinas",
       "leads": "Responsable de {{name}}",
       "covers": "Suplente en {{name}}",
@@ -2093,12 +2093,12 @@
       "afternoon": "Buenas tardes, {{name}}.",
       "evening": "Buenas noches, {{name}}.",
       "lastVisit": "Última visita: {{when}}",
-      "activityOne_one": "{{names}} dejó 1 mensaje en este canal.",
-      "activityOne_many": "{{names}} dejó {{count}} mensajes en este canal.",
-      "activityOne_other": "{{names}} dejó {{count}} mensajes en este canal.",
-      "activityMany_one": "{{names}} dejaron {{count}} mensaje en este canal.",
-      "activityMany_many": "{{names}} dejaron {{count}} mensajes en este canal.",
-      "activityMany_other": "{{names}} dejaron {{count}} mensajes en este canal.",
+      "activityOne_one": "{{names}} dejó 1 mensaje en este grupo.",
+      "activityOne_many": "{{names}} dejó {{count}} mensajes en este grupo.",
+      "activityOne_other": "{{names}} dejó {{count}} mensajes en este grupo.",
+      "activityMany_one": "{{names}} dejaron {{count}} mensaje en este grupo.",
+      "activityMany_many": "{{names}} dejaron {{count}} mensajes en este grupo.",
+      "activityMany_other": "{{names}} dejaron {{count}} mensajes en este grupo.",
       "quiet": "Ningún agente escribió aquí desde entonces.",
       "approvals_one": "{{count}} aprobación te espera.",
       "approvals_many": "{{count}} aprobaciones te esperan.",
@@ -2116,14 +2116,14 @@
   },
   "channel": {
     "settingsNav": {
-      "label": "Configuración del canal",
+      "label": "Configuración del grupo",
       "overview": "General",
       "permissions": "Permisos",
       "members": "Miembros"
     },
     "perms": {
       "advanced": "Permisos avanzados",
-      "intro": "Las excepciones valen solo en este canal. Predeterminado sigue los roles del espacio de trabajo.",
+      "intro": "Las excepciones valen solo en este grupo. Predeterminado sigue los roles del espacio de trabajo.",
       "targets": "Roles y personas con excepción",
       "add": "Agregar un rol o una persona",
       "addSearch": "Buscar roles o personas",
@@ -2144,21 +2144,21 @@
         },
         "callAgents": {
           "title": "Llamar a agentes",
-          "line": "Recibir respuestas de los agentes de este canal"
+          "line": "Recibir respuestas de los agentes de este grupo"
         },
         "manage": {
-          "title": "Administrar el canal",
+          "title": "Administrar el grupo",
           "line": "Cambiar su nombre, quién lo ve, los miembros y estos permisos"
         }
       },
       "default": {
         "allowedBy": "Predeterminado: permitido por el rol {{role}}",
         "notHeld": "Predeterminado: no permitido por el rol {{role}}",
-        "followsEveryone": "Predeterminado: sigue a {{role}} en este canal",
+        "followsEveryone": "Predeterminado: sigue a {{role}} en este grupo",
         "person": "Predeterminado: sigue los roles de esta persona"
       },
-      "readOnlyComposer": "No puedes enviar mensajes en este canal",
-      "agentsDenied": "En este canal no puedes llamar a agentes",
+      "readOnlyComposer": "No puedes enviar mensajes en este grupo",
+      "agentsDenied": "En este grupo no puedes llamar a agentes",
       "forbidden": "Solo puedes cambiar permisos que tienes, para roles y personas por debajo de ti"
     },
     "pins": {
@@ -2176,9 +2176,9 @@
       "showMembers": "Mostrar miembros",
       "hideMembers": "Ocultar miembros"
     },
-    "membersButton_one": "Miembros del canal ({{count}})",
-    "membersButton_many": "Miembros del canal ({{count}})",
-    "membersButton_other": "Miembros del canal ({{count}})",
+    "membersButton_one": "Miembros del grupo ({{count}})",
+    "membersButton_many": "Miembros del grupo ({{count}})",
+    "membersButton_other": "Miembros del grupo ({{count}})",
     "membersAgents": "Agentes",
     "you": "tú",
     "agentState": {
@@ -2212,7 +2212,7 @@
     "routineReportHide": "Ocultar el informe",
     "messages": "Mensajes",
     "members": "Miembros: {{names}}",
-    "details": "Detalles del canal",
+    "details": "Detalles del grupo",
     "composerLabel": "Mensaje en #{{channel}}",
     "composerDm": "Mensaje para {{name}}",
     "composerPlaceholder": "Mensaje en #{{channel}} · usa @ para llamar a un agente",
@@ -2224,11 +2224,11 @@
     "runFailedNoReason": "{{agent}} no pudo responder. Inténtalo de nuevo.",
     "runBusy": "{{agent}} no pudo responder: la computadora siguió ocupada con otras tareas. Inténtalo de nuevo en un momento.",
     "waitingApproval": "esperando aprobación",
-    "notMemberTitle": "No estás en este canal",
+    "notMemberTitle": "No estás en este grupo",
     "notMemberText": "Únete para leer los mensajes y hablar con las personas y los agentes de aquí.",
-    "adminReading": "No estás en este canal. Los administradores pueden leerlo.",
+    "adminReading": "No estás en este grupo. Los administradores pueden leerlo.",
     "join": "Unirse a #{{channel}}",
-    "notFound": "Este canal no existe o ya no está disponible.",
+    "notFound": "Este grupo no existe o ya no está disponible.",
     "loadOlder": "Cargar mensajes anteriores",
     "unknownPerson": "Persona",
     "unknownAgent": "Agente",
@@ -2237,36 +2237,36 @@
     "detailsTitle": "#{{channel}}",
     "detailsSearch": "Buscar personas o agentes",
     "detailsEmpty": "No se encontró a nadie para “{{q}}”.",
-    "topicLabel": "Descripción del canal",
-    "topicPlaceholder": "¿De qué trata este canal?",
+    "topicLabel": "Descripción del grupo",
+    "topicPlaceholder": "¿De qué trata este grupo?",
     "noTopic": "Sin descripción",
     "nameLabel": "Nombre",
     "nameHelp": "Cambia para todos. Los enlaces antiguos siguen funcionando.",
     "nameTaken": "Ya existe #{{name}}.",
     "generalName": "#general mantiene su nombre.",
-    "archive": "Archivar canal",
+    "archive": "Archivar grupo",
     "archived": "#{{channel}} archivado. La conversación se conserva.",
-    "archivedTitle": "Canales archivados",
-    "archivedCount_one": "{{count}} canal archivado",
-    "archivedCount_many": "{{count}} canales archivados",
-    "archivedCount_other": "{{count}} canales archivados",
-    "archivedNone": "No hay canales archivados para restaurar",
+    "archivedTitle": "Grupos archivados",
+    "archivedCount_one": "{{count}} grupo archivado",
+    "archivedCount_many": "{{count}} grupos archivados",
+    "archivedCount_other": "{{count}} grupos archivados",
+    "archivedNone": "No hay grupos archivados para restaurar",
     "archivedOn": "Archivado el {{date}}",
     "restore": "Restaurar",
     "restoreName": "Restaurar #{{channel}}",
     "restored": "#{{channel}} volvió.",
-    "leave": "Salir del canal",
+    "leave": "Salir del grupo",
     "left": "Saliste de #{{channel}}",
     "leaveTitle": "¿Salir de #{{channel}}?",
-    "leavePrivate": "Es un canal privado: para volver, alguien de dentro tiene que agregarte.",
-    "leaveLast": "Eres la última persona aquí: salir archiva el canal.",
+    "leavePrivate": "Es un grupo privado: para volver, alguien de dentro tiene que agregarte.",
+    "leaveLast": "Eres la última persona aquí: salir archiva el grupo.",
     "leaveConfirm": "Salir",
     "leaveLastConfirm": "Salir y archivar",
-    "delete": "Eliminar canal",
+    "delete": "Eliminar grupo",
     "deleteTitle": "¿Eliminar #{{channel}} para siempre?",
-    "deleteGoes": "Se va ahora: mensajes, hilos, archivos y fijados, lo que los agentes guardaron del canal y las rutinas que publican en él.",
-    "deleteIssues": "Sus tareas también se van, porque solo los miembros del canal y los administradores podían verlas.",
-    "deleteOrArchive": "Para conservar la conversación, archiva el canal en lugar de eliminarlo.",
+    "deleteGoes": "Se va ahora: mensajes, hilos, archivos y fijados, lo que los agentes guardaron del grupo y las rutinas que publican en él.",
+    "deleteIssues": "Sus tareas también se van, porque solo los miembros del grupo y los administradores podían verlas.",
+    "deleteOrArchive": "Para conservar la conversación, archiva el grupo en lugar de eliminarlo.",
     "deleteTypeName": "Escribe {{channel}} para confirmar",
     "deleteDone": "#{{channel}} se eliminó.",
     "detailsSub": "{{category}} · {{visibility}}",
@@ -2302,7 +2302,7 @@
     "typing_many": "{{names}} están escribiendo…",
     "typing_other": "{{names}} están escribiendo…",
     "callAgent": "Llamar a un agente",
-    "callAgentMenu": "Agentes en este canal",
+    "callAgentMenu": "Agentes en este grupo",
     "toLatest": "Ir a los mensajes más recientes",
     "newPill": {
       "label": "Ir a los mensajes más recientes: {{text}}",
@@ -2442,7 +2442,7 @@
       "how": "Cómo funciona",
       "permissions": "Actúa con tus permisos",
       "private": "Lo que es tuyo se queda en tu DM",
-      "channels": "Responde en los canales cuando lo llaman",
+      "channels": "Responde en los grupos cuando lo llaman",
       "model": "Modelo",
       "message": "Mensaje",
       "configure": "Configurar",
@@ -2498,7 +2498,7 @@
       "team": "Monta y cambia todo el equipo con tarjetas que una persona aplica: agentes, personas y ajustes del workspace",
       "routines": "Ejecuta y elimina rutinas de cualquier agente que puedas gestionar",
       "asYou": "En tu propia conversación, lee el Drive, la wiki y las tareas que puedes ver",
-      "mentions": "Responde a una @mención en cualquier canal sin ser miembro"
+      "mentions": "Responde a una @mención en cualquier grupo sin ser miembro"
     },
     "card": {
       "settings": "{{name}} · Configuración",
@@ -2530,7 +2530,7 @@
         "archive": "Solo los admins archivan un agente",
         "delete": "Solo los admins eliminan un agente",
         "audience": "Solo los admins y su responsable cambian quién habla con él",
-        "channels": "Solo los admins y su responsable cambian sus canales",
+        "channels": "Solo los admins y su responsable cambian sus grupos",
         "skill": "Solo los admins cambian las habilidades de un agente",
         "ai_account": "Solo el dueño de la cuenta la asigna",
         "name": "Solo los admins cambian el nombre de un agente",
@@ -2546,7 +2546,7 @@
       "owner": "Responsable",
       "audience": "Quién habla",
       "archive": "Estado",
-      "channel": "Canal",
+      "channel": "Grupo",
       "name": "Nombre",
       "look": "Aspecto",
       "reports_to": "Responde a",
@@ -2564,7 +2564,7 @@
       "active": "Activo",
       "archived": "Archivado",
       "deleted": "Eliminado",
-      "notIn": "Fuera del canal",
+      "notIn": "Fuera del grupo",
       "withoutMention": "Por su cuenta",
       "mentionOnly": "Solo cuando lo mencionan",
       "skillOn": "Activada",
@@ -2621,11 +2621,11 @@
       "set_my_timezone": "Poner tu zona horaria en <b>{{timezone}}</b>",
       "set_my_timezone_workspace": "Volver a seguir la zona horaria del espacio de trabajo",
       "set_invitation_roles": "Cambiar los roles que da la invitación de <b>{{email}}</b>: {{change}}",
-      "update_channel": "Cambiar el canal <b>#{{channel}}</b>",
+      "update_channel": "Cambiar el grupo <b>#{{channel}}</b>",
       "archive_channel": "Archivar <b>#{{channel}}</b>",
       "archive_channel_back": "Recuperar <b>#{{channel}}</b>",
       "channel_people": "Cambiar quién está en <b>#{{channel}}</b>: {{change}}",
-      "delete_channel": "Eliminar para siempre el canal <b>#{{channel}}</b>, con sus mensajes y archivos",
+      "delete_channel": "Eliminar para siempre el grupo <b>#{{channel}}</b>, con sus mensajes y archivos",
       "revoke_invitation": "Cancelar la invitación de <b>{{email}}</b>",
       "resend_invitation": "Volver a enviar la invitación a <b>{{email}}</b>",
       "decide_join_request_approve": "Dejar entrar a <b>{{email}}</b> al espacio de trabajo",
@@ -2673,7 +2673,7 @@
     },
     "channel": {
       "title": "Poner a {{name}} en #{{channel}}",
-      "line": "{{name}} no está en ningún canal, así que nadie le habló en toda la semana."
+      "line": "{{name}} no está en ningún grupo, así que nadie le habló en toda la semana."
     },
     "unanswered": {
       "title": "Un agente para las preguntas de #{{channel}}",
@@ -3247,7 +3247,7 @@
       "aiNone": "Todavía sin IA. Conecta una después de crearlo",
       "reviewTitle": "Revisar a {{name}}",
       "lines": "Lo que recibe {{name}}",
-      "aChannel": "un canal",
+      "aChannel": "un grupo",
       "anApp": "una app",
       "needsAdmin": "lo concede un admin",
       "needsPerson": "solo lo concede {{name}}",
@@ -3292,8 +3292,8 @@
     "routinePost_female": "No llamé a <b>{{name}}</b>: una rutina que solo mira y cuenta no despierta a nadie",
     "outside": "No está {{place}}",
     "routine": "Rutina {{name}}",
-    "add": "Agregar al canal",
-    "added": "{{name}} se unió al canal.",
+    "add": "Agregar al grupo",
+    "added": "{{name}} se unió al grupo.",
     "allow": "Dejar que {{person}} hable con él",
     "allow_female": "Dejar que {{person}} hable con ella",
     "allowed": "Listo: {{person}} ya puede hablar con {{name}}.",
@@ -3345,7 +3345,7 @@
     },
     "channel": {
       "agent_added": "Sumé a {{agentName}} a <b>#{{channel}}</b>",
-      "created": "Creé el canal <b>#{{name}}</b>"
+      "created": "Creé el grupo <b>#{{name}}</b>"
     },
     "wiki": {
       "page_created": "Creé la página de la wiki <b>{{title}}</b>",
@@ -3384,11 +3384,11 @@
       "changed_set_my_timezone": "Puse tu zona horaria en <b>{{timezone}}</b>",
       "changed_set_my_timezone_workspace": "Tu zona horaria vuelve a seguir la del espacio de trabajo",
       "changed_set_invitation_roles": "Cambié los roles que da la invitación de <b>{{email}}</b>: {{change}}",
-      "changed_update_channel": "Cambié el canal <b>#{{channel}}</b>",
+      "changed_update_channel": "Cambié el grupo <b>#{{channel}}</b>",
       "changed_archive_channel": "Archivé <b>#{{channel}}</b>",
       "changed_archive_channel_back": "Recuperé <b>#{{channel}}</b>",
       "changed_channel_people": "Cambié quién está en <b>#{{channel}}</b>: {{change}}",
-      "changed_delete_channel": "Eliminé el canal <b>#{{channel}}</b>",
+      "changed_delete_channel": "Eliminé el grupo <b>#{{channel}}</b>",
       "changed_revoke_invitation": "Cancelé la invitación de <b>{{email}}</b>",
       "changed_resend_invitation": "Volví a enviar la invitación a <b>{{email}}</b>",
       "changed_decide_join_request_approve": "Dejé entrar a <b>{{email}}</b> al espacio de trabajo",
@@ -3448,7 +3448,7 @@
       },
       "channel": {
         "agent_added": "Sumé a {{agentName}} a {{refs}}",
-        "created": "Creé los canales {{refs}}"
+        "created": "Creé los grupos {{refs}}"
       },
       "wiki": {
         "page_created": "Creé las páginas de la wiki {{refs}}",
@@ -3486,15 +3486,15 @@
     "open": "Abrir en Propuestas"
   },
   "newChannel": {
-    "open": "Crear canal",
-    "title": "Crear canal",
+    "open": "Crear grupo",
+    "title": "Crear grupo",
     "titlePersonal": "Nueva conversación en grupo",
     "name": "Nombre",
     "namePlaceholder": "ej.: marketing",
     "namePlaceholderPersonal": "ej.: viaje",
     "nameHelp": "Letras minúsculas, números y guiones. Se muestra como #{{name}}.",
     "nameInvalid": "Usa letras minúsculas, números y guiones, empezando con una letra o un número.",
-    "nameTaken": "Ya existe un canal #{{name}}.",
+    "nameTaken": "Ya existe un grupo #{{name}}.",
     "nameTakenPersonal": "Ya existe una conversación en grupo llamada #{{name}}.",
     "topic": "Descripción",
     "topicPlaceholder": "De qué se habla aquí",
@@ -3509,10 +3509,10 @@
     "privateDescPersonal": "Solo la ven las personas que añadas.",
     "roles": "Departamentos o roles",
     "rolesDesc": "Quien tenga uno de los roles elegidos lo ve y entra, ahora o más adelante.",
-    "rolesPick": "Roles que ven el canal",
+    "rolesPick": "Roles que ven el grupo",
     "rolesNone": "El workspace aún no tiene roles.",
     "rolesNeeded": "Elige al menos un rol.",
-    "rolesLeave": "Quien pierde el rol sale del canal.",
+    "rolesLeave": "Quien pierde el rol sale del grupo.",
     "rolesChoose": "Elegir roles",
     "rolesChange": "Cambiar roles",
     "rolesDone": "Listo",
@@ -3531,56 +3531,56 @@
   "channelCategories": {
     "newCategory": "Nueva categoría",
     "newCategoryHelp": "Va al final de la lista. Puedes arrastrarla después.",
-    "newCategoryDesc": "Agrupa canales bajo un nombre en la barra lateral de todos.",
+    "newCategoryDesc": "Agrupa grupos bajo un nombre en la barra lateral de todos.",
     "name": "Nombre",
     "namePlaceholder": "ej.: Producto",
     "nameEmpty": "Ponle un nombre a la categoría.",
     "nameTaken": "Ya existe una categoría {{name}}.",
-    "channels": "Canales que van en ella",
-    "channelsSearch": "Buscar canales",
-    "channelsEmpty": "Ningún canal coincide con “{{q}}”.",
+    "channels": "Grupos que van en ella",
+    "channelsSearch": "Buscar grupos",
+    "channelsEmpty": "Ningún grupo coincide con “{{q}}”.",
     "inCategory": "Ahora en {{name}}",
     "noCategory": "Sin categoría",
     "noCategoryDesc": "Arriba, sin encabezado",
     "create": "Crear categoría",
-    "createWith_one": "Crear con {{count}} canal",
-    "createWith_many": "Crear con {{count}} canales",
-    "createWith_other": "Crear con {{count}} canales",
+    "createWith_one": "Crear con {{count}} grupo",
+    "createWith_many": "Crear con {{count}} grupos",
+    "createWith_other": "Crear con {{count}} grupos",
     "created": "{{name}} creada.",
     "rename": "Cambiar nombre",
     "renameTitle": "Cambiar nombre de la categoría",
     "save": "Guardar",
     "delete": "Eliminar categoría",
-    "deleteDesc": "Sus canales van arriba",
-    "deleted_one": "{{name}} eliminada. {{count}} canal pasó arriba.",
-    "deleted_many": "{{name}} eliminada. {{count}} canales pasaron arriba.",
-    "deleted_other": "{{name}} eliminada. {{count}} canales pasaron arriba.",
+    "deleteDesc": "Sus grupos van arriba",
+    "deleted_one": "{{name}} eliminada. {{count}} grupo pasó arriba.",
+    "deleted_many": "{{name}} eliminada. {{count}} grupos pasaron arriba.",
+    "deleted_other": "{{name}} eliminada. {{count}} grupos pasaron arriba.",
     "deletedEmpty": "{{name}} eliminada.",
     "undo": "Deshacer",
     "collapseAll": "Cerrar todas",
     "expandAll": "Abrir todas",
-    "newChannelHere": "Nuevo canal aquí",
-    "newChannelIn": "Nuevo canal en {{name}}",
+    "newChannelHere": "Nuevo grupo aquí",
+    "newChannelIn": "Nuevo grupo en {{name}}",
     "options": "Opciones de {{name}}",
     "category": "Categoría",
-    "categoryHelp": "Dónde aparece el canal en la barra lateral de todos.",
+    "categoryHelp": "Dónde aparece el grupo en la barra lateral de todos.",
     "newCategoryOption": "Nueva categoría…",
     "move": "Mover a…",
     "moveTitle": "Mover #{{channel}}",
-    "moveDesc": "Cambia dónde está el canal en la barra lateral de todos. Quién participa sigue igual.",
+    "moveDesc": "Cambia dónde está el grupo en la barra lateral de todos. Quién participa sigue igual.",
     "moveSearch": "Buscar categorías",
     "moveEmpty": "Ninguna categoría coincide con “{{q}}”.",
     "moveTo": "Mover a {{name}}",
     "moveSame": "Mover",
     "moveNow": "Ahora",
-    "moveEmptyCategory": "Todavía sin canales",
+    "moveEmptyCategory": "Todavía sin grupos",
     "moveCreate": "Crear “{{name}}”",
     "moved": "#{{channel}} ahora está en {{name}}.",
-    "newWithChannel": "Nueva categoría con este canal",
-    "editChannel": "Editar canal"
+    "newWithChannel": "Nueva categoría con este grupo",
+    "editChannel": "Editar grupo"
   },
   "channelMembers": {
-    "caption": "Quién puede ver este canal",
+    "caption": "Quién puede ver este grupo",
     "captionOpen": "Abierto a todo el espacio de trabajo",
     "addRow": "Agregar personas o agentes",
     "invite": "Invitar a {{email}} a {{org}} y a #{{channel}}",
@@ -3589,18 +3589,18 @@
     "inviteOrgPersonal": "Invitar a {{email}} a tu espacio de trabajo",
     "addTitle": "Agregar a #{{channel}}",
     "addSearch": "Buscar personas o agentes",
-    "addEmpty": "Nadie fuera del canal coincide con “{{q}}”.",
+    "addEmpty": "Nadie fuera del grupo coincide con “{{q}}”.",
     "addEveryone": "Todos en {{org}} ya están en #{{channel}}.",
     "addConfirm_one": "Agregar {{count}}",
     "addConfirm_many": "Agregar {{count}}",
     "addConfirm_other": "Agregar {{count}}",
     "actions": "Opciones de {{name}}",
-    "remove": "Quitar del canal",
+    "remove": "Quitar del grupo",
     "removeTitle": "¿Quitar a {{name}} de #{{channel}}?",
-    "removePersonBody": "Deja de ver el canal y de recibir sus mensajes. Puedes volver a agregarlo después.",
-    "removeAgentBody": "Deja de leer y responder en este canal. Puedes volver a agregarlo después.",
-    "removeAgentBody_female": "Deja de leer y responder en este canal. Puedes volver a agregarla después.",
-    "removeConfirm": "Quitar del canal",
+    "removePersonBody": "Deja de ver el grupo y de recibir sus mensajes. Puedes volver a agregarlo después.",
+    "removeAgentBody": "Deja de leer y responder en este grupo. Puedes volver a agregarlo después.",
+    "removeAgentBody_female": "Deja de leer y responder en este grupo. Puedes volver a agregarla después.",
+    "removeConfirm": "Quitar del grupo",
     "replyHeading": "Cuándo responde",
     "replyHeading_female": "Cuándo responde",
     "replyAlone": "Por su cuenta",
@@ -3614,7 +3614,7 @@
     "aloneLine": "Se suma a la conversación por su cuenta",
     "aloneLine_female": "Se suma a la conversación por su cuenta",
     "mentionLine": "Espera a que alguien escriba @{{handle}}",
-    "readOnly": "Solo quien creó el canal y los admins cambian los miembros.",
+    "readOnly": "Solo quien creó el grupo y los admins cambian los miembros.",
     "people": "Personas",
     "agents": "Agentes"
   },
@@ -3743,23 +3743,23 @@
   },
   "mentions": {
     "list": "Personas y agentes",
-    "inChannel": "En este canal",
+    "inChannel": "En este grupo",
     "inWorkspace": "En el espacio de trabajo",
-    "notInChannel": "no está en el canal",
+    "notInChannel": "no está en el grupo",
     "everyone": "Todos en esta conversación, personas y agentes",
-    "offer": "{{name}} no está en el canal y no verá la mención.",
-    "add": "Añadir al canal",
+    "offer": "{{name}} no está en el grupo y no verá la mención.",
+    "add": "Añadir al grupo",
     "dismiss": "Ahora no",
-    "added": "{{name}} se unió al canal.",
+    "added": "{{name}} se unió al grupo.",
     "askAdmin": "Pide a un admin que lo añada."
   },
   "channelRefs": {
-    "list": "Canales",
-    "label": "Canal #{{name}}",
-    "archivedLabel": "Canal #{{name}}, archivado",
+    "list": "Grupos",
+    "label": "Grupo #{{name}}",
+    "archivedLabel": "Grupo #{{name}}, archivado",
     "card": "Sobre #{{name}}",
     "loading": "Cargando…",
-    "gone": "Este canal no está disponible.",
+    "gone": "Este grupo no está disponible.",
     "people_one": "{{count}} persona",
     "people_many": "{{count}} personas",
     "people_other": "{{count}} personas",
@@ -4414,7 +4414,7 @@
     },
     "refuse": "Rechazar",
     "viewDiff": "Ver diff",
-    "viewInChannel": "Ver en el canal",
+    "viewInChannel": "Ver en el grupo",
     "group": "Solicitud de aprobación",
     "groupDone": "Aprobación lista",
     "groupRefused": "Solicitud rechazada",
@@ -4500,7 +4500,7 @@
       "label": "Al abrir la app",
       "home": "Inicio",
       "last": "Donde lo dejaste",
-      "channels": "Un canal"
+      "channels": "Un grupo"
     },
     "ask": {
       "title": "Pídele algo a un agente",
@@ -5020,14 +5020,14 @@
     "asksApproval": "{{scopes}} pide aprobación",
     "viewMemory": "Ver memoria",
     "runsSearch": "Buscar ejecuciones",
-    "runsPlaceholder": "Busca por canal, PR o tema",
+    "runsPlaceholder": "Busca por grupo, PR o tema",
     "runsEmpty": "No hay ejecuciones que coincidan con “{{q}}”.",
     "runsNone": "Todavía no hay ejecuciones.",
     "runNoText": "Sin texto",
     "runPrivate": "En una conversación de la que no formas parte",
     "runTokens": "{{input}} de entrada · {{cached}} en caché · {{output}} de salida",
     "runTokensTip": "{{input}} tokens de entrada nuevos, {{cached}} leídos de la caché (más baratos), {{output}} de salida",
-    "budgetHelp": "Al llegar al límite, {{name}} se detiene y lo avisa en el canal. {{ownerNote}}",
+    "budgetHelp": "Al llegar al límite, {{name}} se detiene y lo avisa en el grupo. {{ownerNote}}",
     "budgetDefaultChoice": "Predeterminado del espacio de trabajo ({{amount}})",
     "budgetOther": "Otro monto",
     "budgetDefaultHelp": "Vacío: el predeterminado del espacio de trabajo.",
@@ -5404,7 +5404,7 @@
       "budget": "Presupuesto",
       "owner": "Responsable",
       "audience": "Quién puede hablar",
-      "channels": "Canales",
+      "channels": "Grupos",
       "machine": "Computadora",
       "brain": "Quién piensa",
       "repos": "Repositorios de GitHub",
@@ -5444,7 +5444,7 @@
       "memberPersonal": "Ves cómo trabaja {{name}}. Solo editan quienes administran este espacio.",
       "memberOwner": "Ves cómo trabaja {{name}}. Quién edita: los admins y {{owner}} (responsable).",
       "memberOwnerPersonal": "Ves cómo trabaja {{name}}. Quién edita: {{owner}} (responsable) y quienes administran este espacio.",
-      "owner": "{{name}} es tuyo: cambias la apariencia, quién puede hablar, los canales y la computadora. El resto, solo los admins.",
+      "owner": "{{name}} es tuyo: cambias la apariencia, quién puede hablar, los grupos y la computadora. El resto, solo los admins.",
       "ownerKeeper": "{{name}} es tuyo: cambias la apariencia, quién puede hablar, las conversaciones en grupo y la computadora. El resto, solo {{keeper}}.",
       "ownerPersonal": "{{name}} es tuyo: cambias la apariencia, quién puede hablar, las conversaciones en grupo y la computadora. El resto, solo quienes administran este espacio.",
       "ownerInstructions": "Solo los admins editan las instrucciones. Como responsable, apruebas los cambios propuestos.",
@@ -5517,7 +5517,7 @@
       "ownerRole": "Responsable · recibe las aprobaciones y las alertas de presupuesto",
       "where": "Dónde trabaja",
       "where_female": "Dónde trabaja",
-      "noChannels": "Sin canales: llama a @{{handle}} o envía un mensaje directo.",
+      "noChannels": "Sin grupos: llama a @{{handle}} o envía un mensaje directo.",
       "routines": "Rutinas",
       "nextRun": "próxima: {{when}}",
       "paused": "en pausa",
@@ -5721,7 +5721,7 @@
       "budget": "Presupuesto",
       "owner": "Responsable",
       "audience": "Quién puede hablar",
-      "channels": "Canales",
+      "channels": "Grupos",
       "computer": "Computadora",
       "danger": "Archivar o eliminar",
       "keySafe": "La clave queda cifrada en el servidor. Nadie la ve.",
@@ -5734,15 +5734,15 @@
       "limit": "Límite mensual",
       "useDefault": "Usar el predeterminado",
       "budgetAdmins": "Solo los admins ven lo que gastan los agentes y cambian el límite.",
-      "channelsHelp": "Se une a los canales marcados. En otros, llama a @{{handle}} o envía un mensaje directo.",
-      "channelsYours": "Solo cambias los canales en los que estás. Para cambiar otro, únete primero."
+      "channelsHelp": "Se une a los grupos marcados. En otros, llama a @{{handle}} o envía un mensaje directo.",
+      "channelsYours": "Solo cambias los grupos en los que estás. Para cambiar otro, únete primero."
     },
     "archive": {
       "action": "Archivar a {{name}}",
       "button": "Archivar",
-      "help": "Sale de la lista de agentes y de los canales, y las rutinas se detienen. Se conservan las conversaciones, la memoria y el historial.",
+      "help": "Sale de la lista de agentes y de los grupos, y las rutinas se detienen. Se conservan las conversaciones, la memoria y el historial.",
       "title": "¿Archivar a {{name}}?",
-      "text": "{{name}} sale de la lista de agentes y de los canales, y las rutinas se detienen. Se conservan las conversaciones, la memoria y el historial.",
+      "text": "{{name}} sale de la lista de agentes y de los grupos, y las rutinas se detienen. Se conservan las conversaciones, la memoria y el historial.",
       "done": "{{name}} fue archivado."
     },
     "delete": {
@@ -5750,7 +5750,7 @@
       "button": "Eliminar",
       "help": "Para siempre. Sus mensajes quedan, con su nombre y su cara.",
       "title": "¿Eliminar a {{name}} para siempre?",
-      "goes": "Se va ahora: instrucciones, memoria, rutinas, acceso, presupuesto, canales y su sesión en la computadora.",
+      "goes": "Se va ahora: instrucciones, memoria, rutinas, acceso, presupuesto, grupos y su sesión en la computadora.",
       "stays": "Queda: sus mensajes e hilos, con su nombre y su cara, y su uso en los informes.",
       "typeName": "Escribe {{name}} para confirmar",
       "done": "{{name}} fue eliminado."
@@ -5766,7 +5766,7 @@
       "title": "Archivos de {{name}}",
       "subtitle": "Los archivos del Drive que {{name}} creó o cambió, los más recientes primero.",
       "drive": "Abrir el Drive",
-      "search": "Busca un archivo o canal",
+      "search": "Busca un archivo o grupo",
       "all": "Todos",
       "changedOther": "Archivo de {{owner}}, {{name}} lo cambió",
       "empty": "Pide un informe, una tabla o un documento",
@@ -5875,7 +5875,7 @@
       "skill": "Surgió al usar esta skill.",
       "asked": "Pedido en una conversación.",
       "budget": "Se detuvo esta semana al llegar a su presupuesto mensual.",
-      "noChannel": "No está en ningún canal."
+      "noChannel": "No está en ningún grupo."
     },
     "subtitle": "Cambios que proponen los agentes. Nada cambia hasta que alguien acepta.",
     "subtitlePersonal": "Cambios que proponen tus agentes. Nada cambia hasta que aceptes.",
@@ -6023,7 +6023,7 @@
       "todo": "Unirse a {{channel}}",
       "todoDesc": "Respondo cuando alguien me llama allí.",
       "action": "Unirse",
-      "todoNone": "Unirse a un canal",
+      "todoNone": "Unirse a un grupo",
       "done": "Estoy en {{channels}}",
       "doneNone": "Me quedo en nuestro chat directo",
       "title": "Dónde trabaja {{name}}",
@@ -6031,9 +6031,9 @@
       "desc": "Responde cuando alguien le habla allí. El chat directo siempre cuenta.",
       "okNone": "Solo chat directo",
       "okOne": "Unirse a {{channel}}",
-      "ok_one": "Unirse a {{count}} canal",
-      "ok_many": "Unirse a {{count}} de canales",
-      "ok_other": "Unirse a {{count}} canales"
+      "ok_one": "Unirse a {{count}} grupo",
+      "ok_many": "Unirse a {{count}} de grupos",
+      "ok_other": "Unirse a {{count}} grupos"
     },
     "who": {
       "todo": "Hablar con todos en {{org}}",
@@ -6207,7 +6207,7 @@
       "where": {
         "name": "Dónde y con quién",
         "title": "Dónde trabaja y con quién",
-        "lead": "{{name}} entra en los canales que marques y tiene un responsable en el equipo.",
+        "lead": "{{name}} entra en los grupos que marques y tiene un responsable en el equipo.",
         "leadPersonal": "{{name}} habla contigo en su propio chat y entra en las conversaciones en grupo que marques."
       },
       "model": {
@@ -6236,7 +6236,7 @@
         "name": "Ops",
         "agent": "Atlas",
         "desc": "Vigila errores, colas y deploys.",
-        "instructions": "Sigue los errores y los deploys y escribe informes de incidentes.\nCuando salta una alerta, investiga primero (errores, logs, deploys recientes) y publica en el canal lo que encontró: desde cuándo, qué tan grave, la causa probable y el próximo paso.\nRollback y deploy solo con aprobación.",
+        "instructions": "Sigue los errores y los deploys y escribe informes de incidentes.\nCuando salta una alerta, investiga primero (errores, logs, deploys recientes) y publica en el grupo lo que encontró: desde cuándo, qué tan grave, la causa probable y el próximo paso.\nRollback y deploy solo con aprobación.",
         "tasks": {
           "a": "¿Algo raro desde el último despliegue?",
           "b": "Resume los errores de hoy",
@@ -6416,7 +6416,7 @@
       "help": {
         "title": "A quién pedir ayuda",
         "desc": "Cuando se traba",
-        "text": "Cuando te trabes, pregúntale a {{name}} en el canal."
+        "text": "Cuando te trabes, pregúntale a {{name}} en el grupo."
       }
     },
     "noInstructions": "Sin instrucciones, {{name}} sigue solo el contexto del espacio de trabajo.",
@@ -6434,10 +6434,10 @@
     "skillsHelp": "Manuales que {{name}} abre cuando los necesita.",
     "importCard": "De otra app",
     "importCardLine": "Trae los agentes que ya tienes en otra app.",
-    "channels": "Canales",
-    "channelsJoin": "Entra en los canales",
-    "channelsHelp": "Entra ahora. Puedes añadirlo a otros canales después.",
-    "noChannels": "Todavía no estás en ningún canal. Puedes añadir el agente a un canal después.",
+    "channels": "Grupos",
+    "channelsJoin": "Entra en los grupos",
+    "channelsHelp": "Entra ahora. Puedes añadirlo a otros grupos después.",
+    "noChannels": "Todavía no estás en ningún grupo. Puedes añadir el agente a un grupo después.",
     "owner": "Responsable",
     "you": "{{name}} (tú)",
     "noOwnerOption": "Sin responsable",
@@ -6491,7 +6491,7 @@
     "tools": "Herramientas",
     "noTools": "Sin herramientas",
     "onlyContext": "Solo el contexto del espacio de trabajo",
-    "noChannelsReview": "Sin canales: llámalo con @ o por mensaje directo",
+    "noChannelsReview": "Sin grupos: llámalo con @ o por mensaje directo",
     "noOwnerAdmins": "Sin responsable (admins)",
     "editSection": "Editar {{section}}",
     "hints": {
@@ -6502,12 +6502,12 @@
       "tools_many": "{{count}} apps con acceso",
       "tools_other": "{{count}} apps con acceso",
       "noTools": "Sin apps: solo conversa",
-      "where_one": "Entra en {{count}} canal",
-      "where_many": "Entra en {{count}} canales",
-      "where_other": "Entra en {{count}} canales",
+      "where_one": "Entra en {{count}} grupo",
+      "where_many": "Entra en {{count}} grupos",
+      "where_other": "Entra en {{count}} grupos",
       "review": "Puedes cambiar todo después en el perfil"
     },
-    "noChannelsYet": "Aún no hay canales",
+    "noChannelsYet": "Aún no hay grupos",
     "preview": {
       "label": "Vista previa del agente",
       "title": "Vista previa",
@@ -6528,7 +6528,7 @@
     "newOnTeamPersonal": "Agente nuevo",
     "createdTitlePersonal": "{{name}} ya está aquí",
     "createdText": "Ya está en {{channels}}. Menciona a @{{handle}} en una conversación para empezar.",
-    "createdTextNoChannels": "Añade a {{name}} a un canal y menciona a @{{handle}} en una conversación para empezar.",
+    "createdTextNoChannels": "Añade a {{name}} a un grupo y menciona a @{{handle}} en una conversación para empezar.",
     "createdTextNoChannelsPersonal": "Abre tu chat con {{name}} y pídele algo para empezar.",
     "goTo": "Ir a #{{channel}}",
     "openProfile": "Abrir perfil",
@@ -6898,12 +6898,12 @@
         "line_other": "<agents/> responderán a quien entre."
       },
       "where": {
-        "titleOne": "¿En qué canales entra {{name}} desde ya?",
-        "titleMany": "¿En qué canales entran estas personas desde ya?",
+        "titleOne": "¿En qué grupos entra {{name}} desde ya?",
+        "titleMany": "¿En qué grupos entran estas personas desde ya?",
         "titleOnePersonal": "¿A qué conversaciones en grupo se une {{name}} de inmediato?",
         "titleManyPersonal": "¿A qué conversaciones en grupo se unen estas personas de inmediato?",
         "lead": "Todo el mundo empieza en #{{channel}}. Los demás los eliges tú.",
-        "label": "Canales",
+        "label": "Grupos",
         "labelPersonal": "Conversaciones en grupo",
         "everyone": "Todo el mundo entra",
         "private": "Privado · estás en él",
@@ -7086,11 +7086,11 @@
   "empty": {
     "thread": {
       "title": "Hilos",
-      "text": "Las respuestas en hilos aparecerán aquí, sin ocupar el canal."
+      "text": "Las respuestas en hilos aparecerán aquí, sin ocupar el grupo."
     },
     "dm": {
       "title": "Mensaje directo con {{name}}",
-      "text": "Los mensajes directos todavía no llegaron. Por ahora, habla con {{name}} en un canal."
+      "text": "Los mensajes directos todavía no llegaron. Por ahora, habla con {{name}} en un grupo."
     },
     "search": {
       "title": "Buscar en el espacio de trabajo",
@@ -7119,7 +7119,7 @@
   "scopes": {
     "context_read": {
       "label": "Leer contexto",
-      "description": "Buscar mensajes, resúmenes y datos en los canales del agente."
+      "description": "Buscar mensajes, resúmenes y datos en los grupos del agente."
     },
     "memory_write": {
       "label": "Recordar",
@@ -7259,7 +7259,7 @@
     },
     "setup_write": {
       "label": "Configurar el espacio de trabajo",
-      "description": "Ofrecer conectar una IA, una app o un servidor MCP, o invitar personas, con una tarjeta en la que una persona hace clic, y crear canales para quien lo pidió, con Deshacer."
+      "description": "Ofrecer conectar una IA, una app o un servidor MCP, o invitar personas, con una tarjeta en la que una persona hace clic, y crear grupos para quien lo pidió, con Deshacer."
     },
     "vault_read": {
       "label": "Ver el Vault",
@@ -7920,7 +7920,7 @@
       "week": "Esta semana",
       "whereHint": {
         "thread": "Cada ejecución responde en el mismo hilo",
-        "channel": "Todos en el canal lo ven",
+        "channel": "Todos en el grupo lo ven",
         "dm": "Solo tú lo ves",
         "artifact": "Se vuelve un documento en el Drive",
         "widget": "Actualiza su widget, sin mensaje"
@@ -7994,7 +7994,7 @@
       "unanswered": {
         "name": "Preguntas sin respuesta",
         "text": "Días laborables a las 16, lo que nadie respondió hoy.",
-        "prompt": "Busca en el canal las preguntas y los pedidos de hoy que quedaron sin respuesta. Enumera cada uno con quién preguntó."
+        "prompt": "Busca en el grupo las preguntas y los pedidos de hoy que quedaron sin respuesta. Enumera cada uno con quién preguntó."
       },
       "leads": {
         "name": "Nuevos contactos del CRM",
@@ -8079,7 +8079,7 @@
       "pulse": {
         "name": "Pregunta de la semana",
         "text": "Jueves a las 16, una pregunta para el equipo.",
-        "prompt": "Resume las respuestas a la pregunta de la semana pasada, sin nombrar a nadie. Luego publica en el canal una pregunta corta sobre cómo fue la semana."
+        "prompt": "Resume las respuestas a la pregunta de la semana pasada, sin nombrar a nadie. Luego publica en el grupo una pregunta corta sobre cómo fue la semana."
       },
       "away": {
         "name": "Quién está fuera esta semana",
@@ -8087,9 +8087,9 @@
         "prompt": "Revisa en el calendario los días libres y los viajes de esta semana. Enuméralos por día y di qué necesita cobertura."
       },
       "digest": {
-        "name": "Resumen diario del canal",
+        "name": "Resumen diario del grupo",
         "text": "Días hábiles a las 9, lo que pasó ayer.",
-        "prompt": "Resume lo que pasó en el canal desde el último resumen: pedidos, lo que se resolvió y lo que quedó sin respuesta."
+        "prompt": "Resume lo que pasó en el grupo desde el último resumen: pedidos, lo que se resolvió y lo que quedó sin respuesta."
       },
       "errors": {
         "name": "Vigilar errores nuevos",
@@ -8196,15 +8196,15 @@
       "creator_left": "En pausa: quien la creó dejó el espacio de trabajo",
       "creator_no_access": "En pausa: quien la creó ya no puede publicar en esa conversación",
       "agent_archived": "En pausa: el agente se archivó",
-      "agent_not_in_channel": "En pausa: el agente ya no está en el canal",
+      "agent_not_in_channel": "En pausa: el agente ya no está en el grupo",
       "audience": "En pausa: quien la creó ya no puede hablar con el agente",
       "failing": "En pausa: no funcionó 5 veces seguidas"
     },
     "fix": {
-      "add_agent": "Agregar el agente al canal",
+      "add_agent": "Agregar el agente al grupo",
       "take_over": "Hacerme cargo de la rutina",
       "resume": "Reanudar",
-      "addedToast": "{{name}} volvió al canal y la rutina está activa de nuevo.",
+      "addedToast": "{{name}} volvió al grupo y la rutina está activa de nuevo.",
       "takenToast": "Ahora la rutina es tuya y está activa de nuevo."
     },
     "health": {
@@ -8275,7 +8275,7 @@
       "creator_left": "Detenida: quien la creó dejó el espacio de trabajo",
       "creator_no_access": "No pudo contarlo: quien la creó ya no puede publicar allí",
       "audience": "No se ejecutó: quien la creó ya no puede hablar con el agente",
-      "agent_not_in_channel": "No se ejecutó: el agente ya no está en el canal",
+      "agent_not_in_channel": "No se ejecutó: el agente ya no está en el grupo",
       "budget_exceeded": "Se agotó el presupuesto de este mes",
       "provider_error": "El modelo dio un error",
       "provider_unavailable": "El modelo no respondió",
@@ -8869,9 +8869,9 @@
       "computer": "Computadora",
       "noMachine": "Ninguna conectada",
       "home": "Dónde vive",
-      "channel": "Canal",
+      "channel": "Grupo",
       "dm": "MD",
-      "pickChannel": "Elige un canal",
+      "pickChannel": "Elige un grupo",
       "dmWith": "MD con {{name}}",
       "homeHint": "La misión tiene un hilo: ahí {{name}} habla, pide decisiones y muestra su trabajo.",
       "homeHint_female": "La misión tiene un hilo: ahí {{name}} habla, pide decisiones y muestra su trabajo.",
@@ -9051,7 +9051,7 @@
   },
   "threads": {
     "title": "Hilos",
-    "subtitle": "Temas que salieron de canales y mensajes directos.",
+    "subtitle": "Temas que salieron de grupos y mensajes directos.",
     "tabsLabel": "Filtro de hilos",
     "tabs": {
       "all": "Todos",
@@ -9063,7 +9063,7 @@
     "search": "Buscar hilos",
     "searchArchived": "Buscar en archivados",
     "filters": "Filtros",
-    "filterChannel": "Canal",
+    "filterChannel": "Grupo",
     "filterAgent": "Agente",
     "needsYou": "Te necesita",
     "mine": "Míos",
@@ -9104,8 +9104,8 @@
       "reopen": "Reabrir",
       "archive": "Archivar",
       "unarchive": "Desarchivar",
-      "move": "Sacar del canal",
-      "return": "Devolver al canal"
+      "move": "Sacar del grupo",
+      "return": "Devolver al grupo"
     },
     "notes": {
       "archivedTitle": "Solo lectura.",
@@ -9116,7 +9116,7 @@
       "missionsTitle": "Aún no hay misiones",
       "missions": "Una misión es un hilo con un plan, decisiones y el trabajo de un agente en su computadora.",
       "allTitle": "Cada tema en su propia conversación",
-      "all": "Responde a un mensaje para abrir un hilo, y el canal sigue ordenado.",
+      "all": "Responde a un mensaje para abrir un hilo, y el grupo sigue ordenado.",
       "workingTitle": "Ningún agente está trabajando ahora",
       "closedTitle": "Nada cerrado aquí",
       "archivedTitle": "No hay hilos archivados",
@@ -9129,7 +9129,7 @@
       "created_one": "Hilo creado con {{count}} mensaje",
       "created_many": "Hilo creado con {{count}} mensajes",
       "created_other": "Hilo creado con {{count}} mensajes",
-      "undone": "Deshecho: el hilo se borró y el canal quedó como estaba.",
+      "undone": "Deshecho: el hilo se borró y el grupo quedó como estaba.",
       "close": "Hilo cerrado. Aparece como una línea en #{{channel}} y se reabre si alguien responde.",
       "closeMany_one": "{{count}} hilo cerrado",
       "closeMany_many": "{{count}} hilos cerrados",
@@ -9147,13 +9147,13 @@
       "unarchiveMany_many": "{{count}} hilos desarchivados",
       "unarchiveMany_other": "{{count}} hilos desarchivados",
       "move": "Los mensajes salieron de #{{channel}}. Allí queda un aviso con el enlace.",
-      "moveMany_one": "{{count}} tramo sacado del canal",
-      "moveMany_many": "{{count}} tramos sacados del canal",
-      "moveMany_other": "{{count}} tramos sacados del canal",
-      "return": "Devuelto al canal: los mensajes volvieron a #{{channel}}.",
-      "returnMany_one": "{{count}} tramo devuelto al canal",
-      "returnMany_many": "{{count}} tramos devueltos al canal",
-      "returnMany_other": "{{count}} tramos devueltos al canal"
+      "moveMany_one": "{{count}} tramo sacado del grupo",
+      "moveMany_many": "{{count}} tramos sacados del grupo",
+      "moveMany_other": "{{count}} tramos sacados del grupo",
+      "return": "Devuelto al grupo: los mensajes volvieron a #{{channel}}.",
+      "returnMany_one": "{{count}} tramo devuelto al grupo",
+      "returnMany_many": "{{count}} tramos devueltos al grupo",
+      "returnMany_other": "{{count}} tramos devueltos al grupo"
     },
     "work": {
       "titleOne": "Un agente está trabajando en “{{title}}”",
@@ -9195,14 +9195,14 @@
     },
     "popover": {
       "title": "Hilos",
-      "button_one": "Hilos: {{count}} en este canal",
-      "button_many": "Hilos: {{count}} en este canal",
-      "button_other": "Hilos: {{count}} en este canal",
+      "button_one": "Hilos: {{count}} en este grupo",
+      "button_many": "Hilos: {{count}} en este grupo",
+      "button_other": "Hilos: {{count}} en este grupo",
       "many": "{{count}}+",
       "label": "Hilos en #{{channel}}",
       "in": "Hilos en #{{channel}}",
       "countArchived": "{{count}} · {{archived}} archivados",
-      "empty": "No hay hilos en este canal.",
+      "empty": "No hay hilos en este grupo.",
       "seeAll": "Ver todos en Hilos"
     },
     "side": {
@@ -9228,7 +9228,7 @@
       "archivedTitle": "Archivado · solo lectura.",
       "archivedText": "Desarchívalo para responder.",
       "notFoundTitle": "Hilo no encontrado",
-      "notFound": "Se deshizo, o ya no estás en el canal donde vive."
+      "notFound": "Se deshizo, o ya no estás en el grupo donde vive."
     },
     "context": {
       "label": "Contexto del hilo",
@@ -9238,20 +9238,20 @@
       "titleNoSpan_one": "Contexto: {{count}} mensaje de #{{channel}}",
       "titleNoSpan_many": "Contexto: {{count}} mensajes de #{{channel}}",
       "titleNoSpan_other": "Contexto: {{count}} mensajes de #{{channel}}",
-      "otherChannel": "otro canal",
-      "reference": "apunta al canal",
-      "moved": "movido desde el canal",
+      "otherChannel": "otro grupo",
+      "reference": "apunta al grupo",
+      "moved": "movido desde el grupo",
       "agentsRead": "Los agentes leen esto antes de responder",
       "adjust": "Ajustar tramo",
-      "move": "Sacar del canal",
-      "return": "Devolver al canal",
+      "move": "Sacar del grupo",
+      "return": "Devolver al grupo",
       "referenceNote": "No se copió nada: si alguien edita uno de estos mensajes en #{{channel}}, el hilo ve la nueva versión.",
-      "movedNote": "Estos mensajes salieron de #{{channel}} y ahora viven aquí. En el canal quedó un aviso con el enlace."
+      "movedNote": "Estos mensajes salieron de #{{channel}} y ahora viven aquí. En el grupo quedó un aviso con el enlace."
     },
     "adjust": {
       "region": "Tramo seleccionado",
-      "rows": "Mensajes del canal: toca para incluir o dejar fuera",
-      "loading": "Buscando el tramo en el canal…",
+      "rows": "Mensajes del grupo: toca para incluir o dejar fuera",
+      "loading": "Buscando el tramo en el grupo…",
       "of": "Ajustando el tramo de {{title}}",
       "start": "Inicio del tramo, {{time}}. Arrastra o usa las flechas del teclado",
       "end": "Fin del tramo, {{time}}. Arrastra o usa las flechas del teclado",
@@ -9282,9 +9282,9 @@
     "search": "Buscar",
     "searchPlaceholder": "Buscar…",
     "noResults": "No hay nada con ese nombre.",
-    "channels_one": "{{count}} canal",
-    "channels_many": "{{count}} canales",
-    "channels_other": "{{count}} canales",
+    "channels_one": "{{count}} grupo",
+    "channels_many": "{{count}} grupos",
+    "channels_other": "{{count}} grupos",
     "people_one": "{{count}} persona o agente",
     "people_many": "{{count}} personas o agentes",
     "people_other": "{{count}} personas o agentes",
@@ -10280,7 +10280,7 @@
     "results": "Resultados",
     "goTo": "Ir a",
     "ask": "Preguntar a un agente",
-    "channel": "canal",
+    "channel": "grupo",
     "channelPersonal": "conversación en grupo",
     "agent": "agente",
     "agentRole": "agente · {{role}}",
@@ -11412,7 +11412,7 @@
     },
     "areaText": {
       "context": {
-        "read": "Busca mensajes, resúmenes y datos en los canales.",
+        "read": "Busca mensajes, resúmenes y datos en los grupos.",
         "write": "Busca en el contexto y guarda sus propias notas.",
         "write_female": "Busca en el contexto y guarda sus propias notas."
       },
@@ -11446,7 +11446,7 @@
         "write_female": "Navega por sitios web con su propio navegador, en su computadora. Las sesiones se guardan por agente."
       },
       "setup": {
-        "write": "Ofrece conectar una IA y crea canales para quien lo pidió."
+        "write": "Ofrece conectar una IA y crea grupos para quien lo pidió."
       },
       "desktop": {
         "write": "Usa cualquier app en su propio escritorio, en su computadora, mientras las personas miran o toman el control. También necesita Ejecutar código.",
@@ -11466,7 +11466,7 @@
     "formatOriginal": "Original",
     "more": "Más acciones: {{title}}",
     "moreShort": "Más acciones",
-    "openInChannel": "Abrir en el canal",
+    "openInChannel": "Abrir en el grupo",
     "openInDm": "Abrir la conversación",
     "seeVersions": "Ver versiones",
     "delete": "Mover a la papelera",
@@ -11529,7 +11529,7 @@
     "htmlPreview": "Página interactiva. Ábrela para verla.",
     "subtitle": "{{kind}} · {{name}} · {{where}} · {{when}}",
     "subtitleSize": "{{kind}} · {{name}} · {{where}} · {{when}} · {{size}}",
-    "noChannel": "sin canal",
+    "noChannel": "sin grupo",
     "download": "Descargar",
     "downloadCsv": "Descargar CSV",
     "downloadPdf": "Descargar PDF",
@@ -11619,8 +11619,8 @@
     "kind": "Tipo",
     "filters": "Filtros",
     "allKinds": "Todos los tipos",
-    "channel": "Canal",
-    "allChannels": "Todos los canales",
+    "channel": "Grupo",
+    "allChannels": "Todos los grupos",
     "author": "Persona o agente",
     "allAuthors": "Todos",
     "agents": "Agentes",
@@ -11661,7 +11661,7 @@
     "groupBy": "Agrupar por",
     "group": {
       "date": "Fecha",
-      "channel": "Canal",
+      "channel": "Grupo",
       "author": "Autor",
       "none": "Sin grupos"
     },
@@ -11674,7 +11674,7 @@
     "today": "Hoy",
     "thisWeek": "Esta semana",
     "earlier": "Antes",
-    "noChannel": "Sin canal",
+    "noChannel": "Sin grupo",
     "files": "Archivos",
     "select": "Seleccionar {{title}}",
     "selectAll_one": "Seleccionar {{count}}",
@@ -11701,9 +11701,9 @@
     "seeVersion": "Ver",
     "seeVersionLabel": "Ver v{{version}}",
     "whereShown": "Dónde aparece",
-    "sharedIn": "Compartido en el canal",
+    "sharedIn": "Compartido en el grupo",
     "onlyDrive": "Solo en el Drive",
-    "onlyDriveText": "Todavía no se compartió en un canal.",
+    "onlyDriveText": "Todavía no se compartió en un grupo.",
     "dm": "Mensaje directo",
     "dmWith": "Mensaje directo con {{name}}",
     "dmBetween": "Mensaje directo entre {{names}}",
@@ -11711,14 +11711,14 @@
     "inThread": "En un hilo de la conversación",
     "audience": {
       "workspace": "Todos en el espacio de trabajo pueden verlo",
-      "publicChannel": "Todos en el espacio de trabajo pueden verlo: está en el canal público #{{name}}",
+      "publicChannel": "Todos en el espacio de trabajo pueden verlo: está en el grupo público #{{name}}",
       "privateChannel": "Solo los miembros de #{{name}} y los administradores pueden verlo",
       "dm": "Solo tú y {{name}} pueden verlo: vino de un mensaje directo",
       "dmGone": "Solo las personas de esa conversación pueden verlo: vino de un mensaje directo",
       "dmBetween": "Solo {{names}} pueden verlo: vino de un mensaje directo"
     },
     "private": "Privado",
-    "privateHint": "Solo las personas de la conversación ven estos archivos. En un canal, también los administradores.",
+    "privateHint": "Solo las personas de la conversación ven estos archivos. En un grupo, también los administradores.",
     "downloadAs": "Descargar como",
     "uploading_one": "Subiendo {{count}} archivo",
     "uploading_many": "Subiendo {{count}} archivos",
@@ -11728,7 +11728,7 @@
     "uploadDone": "listo",
     "uploadFailed": "falló",
     "hideUploads": "Ocultar subidas",
-    "dropText": "Imágenes, PDF, hojas de cálculo, cualquier archivo. Para enviarlo a un canal, suéltalo en la conversación.",
+    "dropText": "Imágenes, PDF, hojas de cálculo, cualquier archivo. Para enviarlo a un grupo, suéltalo en la conversación.",
     "trashNote": "Pueden restaurarlo quien lo creó, quien se lo pidió al agente, el dueño del agente o un admin.",
     "trashEmptyText": "Lo que se elimina en el Drive se queda aquí 30 días.",
     "trashStorage": "Mientras estén aquí, los archivos no cuentan para el almacenamiento del espacio de trabajo.",
@@ -12255,11 +12255,11 @@
         "ask": "Compartir siempre pide tu aprobación"
       },
       "slack": {
-        "1": "Leer canales, mensajes e hilos",
+        "1": "Leer grupos, mensajes e hilos",
         "ask": "Enviar mensajes siempre pide tu aprobación"
       },
       "microsoft_teams": {
-        "1": "Leer canales y chats",
+        "1": "Leer grupos y chats",
         "ask": "Enviar mensajes siempre pide tu aprobación"
       },
       "zendesk": {
@@ -12676,7 +12676,7 @@
       "reply": "respuesta|respuestas|de la respuesta",
       "error": "error|errores|del error",
       "alert": "alerta|alertas|de la alerta",
-      "channel": "canal|canales|del canal",
+      "channel": "grupo|grupos|del grupo",
       "cycle": "ciclo|ciclos|del ciclo",
       "analytics": "analíticas|analíticas|de las analíticas",
       "revenue": "ingresos|ingresos|de los ingresos",
@@ -13333,7 +13333,7 @@
   },
   "searchPage": {
     "title": "Buscar en el espacio de trabajo",
-    "subtitle": "Mensajes, contexto y acciones del equipo en tus canales.",
+    "subtitle": "Mensajes, contexto y acciones del equipo en tus grupos.",
     "label": "Buscar",
     "placeholder": "Mensajes, decisiones, resúmenes…",
     "filter": "Tipo",
@@ -13344,7 +13344,7 @@
       "action": "Acciones del equipo"
     },
     "empty": "No se encontró nada para “{{q}}”.",
-    "hint": "Busca en los canales donde estás.",
+    "hint": "Busca en los grupos donde estás.",
     "inChannel": "en #{{channel}}",
     "count_one": "{{count}} resultado",
     "count_many": "{{count}} resultados",
@@ -13376,7 +13376,7 @@
     "options": "Opciones de búsqueda",
     "option": {
       "from": "De una persona o agente concreto",
-      "in": "Enviado en un canal o MD concreto",
+      "in": "Enviado en un grupo o MD concreto",
       "has": "Incluye un enlace, archivo, imagen o tarjeta",
       "mentions": "Menciona a una persona o agente concreto",
       "before": "Antes de una fecha",
@@ -13406,7 +13406,7 @@
     "pickDate": "Fecha",
     "dateHint": "Escribe una fecha: 2026-10-05, 2026-10 o 2026",
     "noMatch": "No hay nadie con ese nombre aquí.",
-    "noPlace": "No hay ningún canal ni MD con ese nombre.",
+    "noPlace": "No hay ningún grupo ni MD con ese nombre.",
     "sort": {
       "label": "Ordenar",
       "newest": "Más recientes",
@@ -13416,7 +13416,7 @@
     "searchHere": "Buscar en esta conversación",
     "optionHint": {
       "from": "nombre",
-      "in": "canal",
+      "in": "grupo",
       "has": "enlace, archivo, imagen o tarjeta",
       "mentions": "nombre"
     },
@@ -13521,7 +13521,7 @@
       "takeControl": "Toma primero el control del perfil.",
       "profileBusy": "Otra persona está usando este perfil.",
       "nameTaken": "Ese nombre ya está en uso. Elige otro.",
-      "deleteName": "Escribe el nombre del canal para borrarlo.",
+      "deleteName": "Escribe el nombre del grupo para borrarlo.",
       "generalKept": "#general no se puede borrar.",
       "generalStays": "Todos se quedan en #general.",
       "mcpUnreachable": "No se pudo conectar al servidor MCP. Revisa su dirección e inténtalo de nuevo.",
@@ -13699,8 +13699,8 @@
       "contextNotVisible": "No todos en esta conversación pueden ver de dónde vienen estos mensajes.",
       "archived": "Este hilo está archivado: solo lectura. Desarchívalo para responder.",
       "hasReplies": "Alguien ya respondió en este hilo: ya no se puede deshacer.",
-      "rangeHasReplies": "Algunos de estos mensajes tienen sus propias respuestas y no pueden salir del canal.",
-      "moveOtherChannel": "Solo los mensajes del canal de este hilo pueden moverse a él.",
+      "rangeHasReplies": "Algunos de estos mensajes tienen sus propias respuestas y no pueden salir del grupo.",
+      "moveOtherChannel": "Solo los mensajes del grupo de este hilo pueden moverse a él.",
       "notAllowed": "Solo quien creó el hilo, el autor del primer mensaje o un admin puede hacer esto.",
       "rangeInvalid": "El rango debe empezar y terminar en mensajes de la conversación (no en respuestas).",
       "rangeEmpty": "Al rango ya no le quedan mensajes.",
@@ -13802,7 +13802,7 @@
       "tooMany": "Este espacio de trabajo ya tiene {{max}} departamentos. Elimina uno primero."
     },
     "rightHand": {
-      "permanent": "La mano derecha forma parte del espacio de trabajo y queda fuera de los canales. Una @mención la llama en cualquiera de ellos."
+      "permanent": "La mano derecha forma parte del espacio de trabajo y queda fuera de los grupos. Una @mención la llama en cualquiera de ellos."
     },
     "agent": {
       "ownerOrAdmin": "Solo el dueño del agente o un admin puede hacer esto.",
@@ -13816,7 +13816,7 @@
       "notOwner": "Solo quien conectó esta cuenta o plan puede hacer esto."
     },
     "channel": {
-      "membersForbidden": "Solo quien creó el canal o un admin puede agregar o quitar personas."
+      "membersForbidden": "Solo quien creó el grupo o un admin puede agregar o quitar personas."
     },
     "handle": {
       "invalid": "Un @ tiene de {{min}} a {{max}} minúsculas, números, - o _.",
@@ -14773,9 +14773,9 @@
       "memory_one": "{{count}} recuerdo",
       "memory_many": "{{count}} recuerdos",
       "memory_other": "{{count}} recuerdos",
-      "channel_one": "{{count}} canal",
-      "channel_many": "{{count}} canales",
-      "channel_other": "{{count}} canales"
+      "channel_one": "{{count}} grupo",
+      "channel_many": "{{count}} grupos",
+      "channel_other": "{{count}} grupos"
     },
     "connectedAt": "Conectada {{when}}",
     "usedAt": "Usada {{when}}",
@@ -14960,9 +14960,9 @@
       "manage": "Crear y editar agentes, rutinas y habilidades",
       "manageHelp": "También crea agentes, rutinas, habilidades y recuerdos por ti, con tus permisos.",
       "read": "Solo lectura",
-      "readHelp": "Ve agentes, canales y respuestas, sin enviar nada.",
+      "readHelp": "Ve agentes, grupos y respuestas, sin enviar nada.",
       "can": "Puede",
-      "canSee": "Ver los agentes y canales que tú ves.",
+      "canSee": "Ver los agentes y grupos que tú ves.",
       "canSend": "Enviar mensajes en tu nombre, marcados con via {{app}}.",
       "canRead": "Leer las respuestas y lo que están haciendo los agentes.",
       "canManage": "Crear y editar agentes, rutinas y habilidades en tu nombre. Recibes un aviso de lo que crea.",
@@ -15128,7 +15128,7 @@
         "wiki": "una página de la wiki",
         "mission": "una misión",
         "thread": "un hilo",
-        "channel": "un canal",
+        "channel": "un grupo",
         "artifact": "un archivo del Drive",
         "agent": "un agente",
         "machine": "una computadora",
@@ -15282,7 +15282,7 @@
         "density": "Densidad de la conversación",
         "densityHelp": "Cambia solo para ti, en todos tus dispositivos",
         "where": "Dónde se aplica",
-        "channels": "Canales",
+        "channels": "Grupos",
         "channelsPersonal": "Grupos",
         "dms": "Mensajes directos",
         "comfortable": "Cómoda",
@@ -15291,7 +15291,7 @@
         "compact": "Compacta",
         "toneDms": "Mis mensajes en los mensajes directos",
         "toneDmsHelp": "Del color del agente con el que hablas",
-        "toneChannels": "Mis mensajes en los canales",
+        "toneChannels": "Mis mensajes en los grupos",
         "toneChannelsPersonal": "Mis mensajes en los grupos",
         "toneChannelsHelp": "En azul",
         "toneLight": "Clara",
@@ -15358,7 +15358,7 @@
       "label": "Modo del espacio de trabajo",
       "team": "Equipo",
       "personal": "Personal",
-      "teamHelp": "Canales, personas y roles para trabajar juntos. Cambiar solo cambia lo que está a la vista.",
+      "teamHelp": "Grupos, personas y roles para trabajar juntos. Cambiar solo cambia lo que está a la vista.",
       "personalHelp": "Más simple, para ti y tu familia si la invitas. Cambiar solo cambia lo que está a la vista.",
       "toTeam": "Cambiar a equipo…",
       "toPersonal": "Cambiar a personal…"
@@ -15517,8 +15517,8 @@
   "personalMode": {
     "toTeam": {
       "title": "Cambiar a un espacio de trabajo de equipo",
-      "lead": "Para trabajar con otras personas. Aparecen los canales y las personas.",
-      "channels": "Canales y personas en la barra lateral",
+      "lead": "Para trabajar con otras personas. Aparecen los grupos y las personas.",
+      "channels": "Grupos y personas en la barra lateral",
       "roles": "Invitar personas, con roles para lo que cada una puede hacer",
       "admin": "Aprobar por otros y el registro de auditoría, de vuelta en Configuración",
       "stays": "Tus agentes, conversaciones, rutinas y archivos siguen como están.",
@@ -15530,7 +15530,7 @@
       "title": "Cambiar a un espacio de trabajo personal",
       "lead": "El mismo espacio de trabajo, más simple de usar por tu cuenta.",
       "sidebar": "La barra lateral muestra lo que más usas, el resto queda en Más",
-      "channels": "Los canales aparecen como conversaciones en grupo",
+      "channels": "Los grupos aparecen como conversaciones en grupo",
       "settings": "La Configuración se acorta, con el resto en Avanzado",
       "bubbles": "Las conversaciones se abren en burbujas",
       "others_one": "La otra persona de aquí también lo ve así",
@@ -15546,7 +15546,7 @@
       "family": "Familia o amigos",
       "familyText": "Se unen a ti aquí, y el espacio de trabajo sigue siendo personal.",
       "work": "Personas con las que trabajas",
-      "workText": "Primero cámbialo a un espacio de trabajo de equipo: aparecen los canales, las personas y los roles.",
+      "workText": "Primero cámbialo a un espacio de trabajo de equipo: aparecen los grupos, las personas y los roles.",
       "workLocked": "Solo quien administra este espacio de trabajo puede cambiarlo a equipo."
     }
   },
@@ -15608,7 +15608,7 @@
     "now": {
       "channel": "Con {{agent}} en #{{channel}}",
       "private": "En una conversación privada con {{agent}}",
-      "hidden": "Con {{agent}} en un canal privado",
+      "hidden": "Con {{agent}} en un grupo privado",
       "routine": "Rutina {{name}}",
       "last": "Último uso {{when}}",
       "never": "Sin uso"
@@ -15649,7 +15649,7 @@
       "with": "con {{agent}}",
       "minutes": "{{n}} min",
       "private": "Conversación privada con {{agent}}",
-      "hidden": "En un canal privado con {{agent}}",
+      "hidden": "En un grupo privado con {{agent}}",
       "routine": "Rutina {{name}}",
       "created": "Agentes que creó",
       "createdAt": "creado el {{date}}",
@@ -16102,7 +16102,7 @@
         "writingWiki": "Escribió en la wiki",
         "readingWiki": "Leyó la wiki",
         "linkingWiki": "Vinculó una página de la wiki",
-        "creatingChannel": "Creó un canal",
+        "creatingChannel": "Creó un grupo",
         "offeringConnectAi": "Ofreció conectar una IA",
         "offeringConnectApp": "Ofreció conectar una app",
         "offeringSkill": "Ofreció instalar una habilidad",
@@ -16153,7 +16153,7 @@
         "proposingChange": "Propuso un cambio",
         "workingOnWorkspace": "Trabajó en el espacio de trabajo",
         "updatingThread": "Actualizó un hilo",
-        "addingAgent": "Agregó un agente a un canal",
+        "addingAgent": "Agregó un agente a un grupo",
         "readingConversation": "Leyó la conversación",
         "usingTool": "Usó la herramienta {{tool}}",
         "thinking": "Pensó",
@@ -16216,7 +16216,7 @@
       "writingWiki": "escribiendo en la wiki",
       "readingWiki": "leyendo la wiki",
       "linkingWiki": "vinculando una página de la wiki",
-      "creatingChannel": "creando un canal",
+      "creatingChannel": "creando un grupo",
       "offeringConnectAi": "preparando una IA para conectar",
       "offeringConnectApp": "preparando una app para conectar",
       "offeringSkill": "preparando una habilidad para instalar",
@@ -16267,7 +16267,7 @@
       "proposingChange": "proponiendo un cambio",
       "workingOnWorkspace": "trabajando en el espacio de trabajo",
       "updatingThread": "actualizando un hilo",
-      "addingAgent": "agregando un agente a un canal",
+      "addingAgent": "agregando un agente a un grupo",
       "readingConversation": "leyendo la conversación",
       "usingTool": "usando una herramienta"
     },
@@ -16570,7 +16570,7 @@
     },
     "create_routine": {
       "label": "Crear rutina",
-      "description": "Crea una rutina recurrente en esta conversación o en un canal."
+      "description": "Crea una rutina recurrente en esta conversación o en un grupo."
     },
     "list_routines": {
       "label": "Ver rutinas",
@@ -16578,7 +16578,7 @@
     },
     "update_routine": {
       "label": "Cambiar rutina",
-      "description": "Cambia las instrucciones, el horario o el canal de una rutina."
+      "description": "Cambia las instrucciones, el horario o el grupo de una rutina."
     },
     "list_reminders": {
       "label": "Ver recordatorios",
@@ -16642,11 +16642,11 @@
     },
     "propose_team": {
       "label": "Proponer un equipo",
-      "description": "Publica una tarjeta con varios agentes, sus canales, rutinas y habilidades. Una persona lo crea."
+      "description": "Publica una tarjeta con varios agentes, sus grupos, rutinas y habilidades. Una persona lo crea."
     },
     "propose_settings_change": {
       "label": "Proponer ajustes de un compañero",
-      "description": "Publica una tarjeta con el nuevo modelo, IA, presupuesto, responsable, público o canales de un compañero. Una persona la aplica."
+      "description": "Publica una tarjeta con el nuevo modelo, IA, presupuesto, responsable, público o grupos de un compañero. Una persona la aplica."
     },
     "offer_approvals": {
       "label": "Mostrar lo que espera aprobación",
@@ -16669,8 +16669,8 @@
       "description": "Publica una tarjeta con un nuevo agente para revisar. Una persona lo crea."
     },
     "create_channel": {
-      "label": "Crear canal",
-      "description": "Crea un canal con personas y agentes para quien pregunta, con opción de Deshacer."
+      "label": "Crear grupo",
+      "description": "Crea un grupo con personas y agentes para quien pregunta, con opción de Deshacer."
     },
     "run_code": {
       "label": "Ejecutar código",
@@ -18040,7 +18040,7 @@
       "alerted": "alertó: {{text}}",
       "changed": "Cambió: {{text}}",
       "ask": "Pedir un cambio",
-      "askPlaceholder": "Ej.: sepáralo por canal, o compáralo con la misma semana del año pasado",
+      "askPlaceholder": "Ej.: sepáralo por grupo, o compáralo con la misma semana del año pasado",
       "askTo": "a {{name}}",
       "send": "Enviar",
       "sent": "{{name}} está rehaciendo el widget.",
@@ -18389,8 +18389,8 @@
       "map": "Ver como mapa",
       "agents_one": "{{count}} agente",
       "agents_other": "{{count}} agentes",
-      "newChannels_one": "{{count}} canal nuevo",
-      "newChannels_other": "{{count}} canales nuevos",
+      "newChannels_one": "{{count}} grupo nuevo",
+      "newChannels_other": "{{count}} grupos nuevos",
       "routineCount_one": "{{count}} rutina",
       "routineCount_other": "{{count}} rutinas",
       "weekly": "te cuento aquí cómo fue la semana del equipo",
@@ -18423,7 +18423,7 @@
       "role": "Función",
       "line": "Qué hace",
       "instructions": "Instrucciones",
-      "channel": "Canal",
+      "channel": "Grupo",
       "firstTask": "Primera tarea"
     },
     "map": {
@@ -18565,7 +18565,7 @@
     "errorId": "Código del error: {{id}}"
   },
   "teamTemplates": {
-    "lead": "Un equipo para {{org}}, cada agente en su canal. Puedes ajustarlo antes de crearlo.",
+    "lead": "Un equipo para {{org}}, cada agente en su grupo. Puedes ajustarlo antes de crearlo.",
     "leadPersonal": "Tus agentes, cada uno hablando contigo en su propio chat. Puedes ajustarlos antes de crearlos.",
     "life": {
       "name": "Vida en orden",

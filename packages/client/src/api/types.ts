@@ -702,6 +702,8 @@ export interface Agent {
   seesDetails?: boolean;
   /** Its look (color, eyes, accessory), from the backend's allow-list. */
   appearance?: AgentLookInput;
+  /** Its real photo (`/api/app/organizations/{orgId}/agents/{agentId}/photo/{file}`); null: the drawn look (absent from an older server). */
+  photo?: string | null;
   /** Who thinks for it (ADR 0032): the brain, a computer brain's model label, its computer (owner and admins). */
   brain?: AgentBrainLine;
   /** A built-in agent the product ships (ADR 0137): `right_hand`, the team's right hand. Null or absent for the others. */
@@ -790,6 +792,8 @@ export interface FormerAgent {
   name: string;
   role: string;
   appearance: AgentLookInput | null;
+  /** Its real photo (`/api/app/organizations/{orgId}/agents/{agentId}/photo/{file}`); null: the drawn look (absent from an older server). */
+  photo?: string | null;
   /** Deleted for good; false: archived (an admin may still delete it). */
   deleted: boolean;
 }
@@ -830,6 +834,8 @@ export interface TeamAgent {
   handle: string;
   role: string;
   appearance: AgentLookInput | null;
+  /** Its real photo (`/api/app/organizations/{orgId}/agents/{agentId}/photo/{file}`); null: the drawn look (absent from an older server). */
+  photo?: string | null;
   ownerUserId: string | null;
   /** Responde a: the agent it reports to (absent from an older server). */
   reportsToAgentId?: string | null;
@@ -2565,6 +2571,8 @@ export interface AgentDetail {
   pendingApprovals: number;
   channels: AgentChannel[];
   createdAt: string;
+  /** Its real photo (`/api/app/organizations/{orgId}/agents/{agentId}/photo/{file}`); null: the drawn look (absent from an older server). */
+  photo?: string | null;
 }
 
 export interface Run {

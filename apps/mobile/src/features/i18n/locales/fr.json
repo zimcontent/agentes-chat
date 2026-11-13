@@ -344,6 +344,7 @@
     "someone": "Quelqu'un",
     "messageTo": "Message à {{name}}",
     "messageIn": "Message dans {{channel}}",
+    "messagePlain": "Message",
     "reply": "Répondre",
     "people_one": "{{count}} personne",
     "people_many": "{{count}} personnes",
@@ -2807,5 +2808,19 @@
       "title": "Rien à vérifier",
       "text": "Quand un agent fait quelque chose hors de la discussion, cela apparaît ici."
     }
+  },
+  "photo": {
+    "section": "Photo",
+    "upload": "Envoyer une photo",
+    "useBot": "Utiliser l'avatar DougBot",
+    "fromLibrary": "Choisir dans la galerie",
+    "fromCamera": "Prendre une photo",
+    "failed": "Impossible d'envoyer la photo. Réessayez.",
+    "agentHint": "La photo remplace le bot dessiné, pour toute l'équipe.",
+    "meHint": "Votre photo est visible par les personnes de vos espaces de travail."
+  },
+  "brand": {
+    "basedOn": "Basé sur agentes.chat de Codari Global, LLC · AGPL-3.0",
+    "source": "Code source de DougBot"
   }
 }

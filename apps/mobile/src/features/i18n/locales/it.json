@@ -344,6 +344,7 @@
     "someone": "Qualcuno",
     "messageTo": "Scrivi a {{name}}",
     "messageIn": "Scrivi in {{channel}}",
+    "messagePlain": "Messaggio",
     "reply": "Rispondi",
     "people_one": "{{count}} persona",
     "people_many": "{{count}} persone",
@@ -2807,5 +2808,19 @@
       "title": "Niente da controllare",
       "text": "Quando un agente fa qualcosa fuori dalla conversazione, compare qui."
     }
+  },
+  "photo": {
+    "section": "Foto",
+    "upload": "Carica foto",
+    "useBot": "Usa l'avatar di DougBot",
+    "fromLibrary": "Scegli dalla galleria",
+    "fromCamera": "Scatta foto",
+    "failed": "Non è stato possibile caricare la foto. Riprova.",
+    "agentHint": "La foto appare al posto del bot disegnato, per tutto il team.",
+    "meHint": "La tua foto è visibile alle persone dei tuoi workspace."
+  },
+  "brand": {
+    "basedOn": "Basato su agentes.chat di Codari Global, LLC · AGPL-3.0",
+    "source": "Codice sorgente di DougBot"
   }
 }

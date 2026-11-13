@@ -6,8 +6,8 @@ describe("a form sheet's colors", () => {
   test("dark: the sheet a step above the screen behind it, its cards one more", () => {
     const screen = appColors("dark");
     const sheet = sheetColors(screen, "dark");
-    expect(sheet.grouped).toBe(screen.raised);
-    expect(sheet.bg).toBe(screen.raised);
+    expect(sheet.grouped).toBe(screen.raised2);
+    expect(sheet.bg).toBe(screen.raised2);
     // Each step can be told apart: the sheet from the screen, a card from the sheet.
     expect(contrastRatio(sheet.grouped, screen.bg)).toBeGreaterThan(1.1);
     expect(contrastRatio(sheet.raised, sheet.grouped)).toBeGreaterThan(1.1);

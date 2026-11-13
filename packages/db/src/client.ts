@@ -72,6 +72,7 @@ export async function migrateInSteps(db: unknown, folder: string, upTo?: number)
 export const EXTRA_COLUMNS = [
   `ALTER TABLE "channels" ADD COLUMN IF NOT EXISTS "display_name" text`,
   `ALTER TABLE "channels" ADD COLUMN IF NOT EXISTS "icon" text`,
+  `ALTER TABLE "agents" ADD COLUMN IF NOT EXISTS "photo" text`,
 ];
 
 /** The advisory lock every process takes around its migrations (`DatabaseHandle.migrate`). */

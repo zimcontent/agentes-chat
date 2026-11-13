@@ -7,7 +7,7 @@ import type { Widen } from "./widen";
  * no exclamation marks, buttons start with a verb, "agentes" in lower case.
  */
 export const en = {
-  app: { name: "agentes" },
+  app: { name: "DougBot" },
   common: {
     close: "Close",
     joinSentences: "{{a}} {{b}}",
@@ -34,7 +34,7 @@ export const en = {
     /** A server error (a 5xx of its own): nothing the person did, and nothing they can fix. */
     ourSide: "Something went wrong on our side. Try again in a little while.",
     signedOut: "Your session ended. Sign in again to continue.",
-    newVersion: "A new version of agentes.chat is out.",
+    newVersion: "A new version of DougBot is out.",
     reload: "Reload",
     copy: "Copy",
     copied: "Copied",
@@ -59,7 +59,7 @@ export const en = {
     notAllowed: "You don't have permission for this.",
     tooMany: "Too many tries. Try again later.",
     offline: "You're offline. Check your connection and try again.",
-    unreachable: "Can't reach agentes.chat right now. Try again in a moment.",
+    unreachable: "Can't reach DougBot right now. Try again in a moment.",
   },
   roles: {
     owner: "Owner",
@@ -137,7 +137,7 @@ export const en = {
       owners: "Give and take ownership",
       ownersDesc: "There can be more than one owner.",
       delete: "Delete the workspace",
-      deleteDesc: "With everything in it: channels, agents and files.",
+      deleteDesc: "With everything in it: groups, agents and files.",
       foot: "Every workspace has at least one owner.",
     },
     peopleTitle: "People",
@@ -181,7 +181,7 @@ export const en = {
       blank: "Nothing",
       blankDesc: "Only what Everyone can. You pick the rest.",
       mod: "Keeps conversations tidy",
-      modDesc: "Creates and arranges channels and categories.",
+      modDesc: "Creates and arranges groups and categories.",
       agents: "Looks after the agents",
       agentsDesc: "Creates and edits agents, approves actions, makes routines and reviews memory.",
       costs: "Follows costs",
@@ -217,28 +217,28 @@ export const en = {
     },
     post: {
       title: "Send messages",
-      desc: "Write and react in the channels they're in.",
+      desc: "Write and react in the groups they're in.",
       short: "send messages",
       say: "sends messages",
     },
     create_channels: {
-      title: "Create channels",
+      title: "Create groups",
       desc: "Open or private.",
-      short: "create channels",
-      say: "creates channels",
+      short: "create groups",
+      say: "creates groups",
     },
     /** `@everyone` is this language's word for the mention of everyone (packages/i18n/src/everyone.ts). */
     mention_everyone: {
       title: "Mention everyone",
-      desc: "Use @everyone to notify everyone in a channel, people and agents.",
+      desc: "Use @everyone to notify everyone in a group, people and agents.",
       short: "mention everyone",
       say: "mentions everyone",
     },
     manage_channels: {
-      title: "Arrange channels",
+      title: "Arrange groups",
       desc: "Rename, archive, change who's in, and arrange categories.",
-      short: "arrange channels",
-      say: "arranges channels",
+      short: "arrange groups",
+      say: "arranges groups",
     },
     talk_to_agents: {
       title: "Talk to agents",
@@ -467,11 +467,11 @@ export const en = {
       openMail: "Open {{app}}",
       ownerWaits: "This server waits for its owner.",
       ownerWaitsLead: "Open this server's owner link (it ends in /owner#claim=…), on this computer or on your phone.",
-      noPassword: "This account signs in from the agentes.chat app.",
+      noPassword: "This account signs in from the DougBot app.",
       noPasswordLead:
         "On the computer that runs this server, open the app and choose Add a password in Settings\u00a0›\u00a0Your account.",
       backToSignIn: "Back to sign in",
-      toAuthorizeApp: "To connect an app to agentes.chat.",
+      toAuthorizeApp: "To connect an app to DougBot.",
     },
     desktop: {
       browser: "Continue in your browser",
@@ -482,11 +482,11 @@ export const en = {
       otherServer: "Use another server",
       opening: "Opening {{provider}}…",
       confirm: "Is this your app?",
-      confirmLead: "This code should match the one shown by the agentes.chat app on your computer.",
+      confirmLead: "This code should match the one shown by the DougBot app on your computer.",
       confirmYes: "Yes, sign the app in",
       confirmNo: "This wasn't me",
       done: "All set.",
-      doneLead: "You're signed in to the agentes app. You can close this tab.",
+      doneLead: "You're signed in to the DougBot app. You can close this tab.",
       expired: "This request expired.",
       expiredLead: "Go back to the app and choose {{provider}} again.",
       handover: "Signing in with your account from the other device…",
@@ -506,17 +506,17 @@ export const en = {
     },
     desktopOwner: {
       continue: "Continue on this {{device}}",
-      text: "You set up agentes.chat on this {{device}}: no password needed.",
+      text: "You set up DougBot on this {{device}}: no password needed.",
     },
     /** The line over the sign-in in the desktop app: which server it signs in to (ADR 0158). */
     server: {
       into: "Signing in to <b>{{server}}</b>",
-      intoHere: "Signing in to the agentes.chat <b>on this {{device}}</b>",
+      intoHere: "Signing in to the DougBot <b>on this {{device}}</b>",
     },
     /** "Forgot password" on a server that sends no email (ADR 0158). */
     forgotHere: {
       ownerTitle: "You don't need a password here.",
-      ownerLead: "You set up agentes.chat on this {{device}}. Sign in here, then create a new password.",
+      ownerLead: "You set up DougBot on this {{device}}. Sign in here, then create a new password.",
       notOwner: "Not the account of whoever set it up? Ask an owner of your workspace for a new-password link.",
       title: "This server doesn't send email.",
       lead: "Ask an owner of your workspace for a new-password link. They make it in Members, and it works for 1 hour.",
@@ -784,7 +784,7 @@ export const en = {
        */
       area: {
         title: "And you, what do you work on?",
-        lead: "Just so we know who uses agentes.chat.",
+        lead: "Just so we know who uses DougBot.",
         skip: "Skip this step",
         options: {
           dev: "Development",
@@ -817,10 +817,9 @@ export const en = {
           lead: "You can change all of it later, nothing is lost.",
           template: "Start with a ready-made team",
           /** `{{template}}`: the template's name ("Marketing agency"). */
-          templateText_one:
-            "{{count}} agent from the {{template}} template, in its own channel, with its routine ready.",
+          templateText_one: "{{count}} agent from the {{template}} template, in its own group, with its routine ready.",
           templateText_other:
-            "{{count}} agents from the {{template}} template, each in its own channel, with their routines ready.",
+            "{{count}} agents from the {{template}} template, each in its own group, with their routines ready.",
           scratch: "Start from scratch",
           /** `{{name}}`: the right hand's name. */
           scratchText: "Just {{name}}, your right hand. You create each agent later, your way.",
@@ -883,7 +882,7 @@ export const en = {
         asleep: "Asleep until the plan",
         price: "<b>{{name}} plan</b> · {{price}} a month",
         name: "<b>{{name}} plan</b>",
-        generic: "An agentes.chat plan",
+        generic: "A DougBot plan",
         cancel: "Cancel anytime",
         cta: "Turn the team on",
         all: "See all plans",
@@ -962,12 +961,12 @@ export const en = {
     yourCompany: "your company",
     /** The first question (ADR 0159): who the workspace is for. "For me" makes a personal one at once. */
     purpose: {
-      title: "What will you use agentes.chat for?",
+      title: "What will you use DougBot for?",
       lead: "You can change this later, nothing is lost.",
       personal: "For me",
       personalText: "Agents that look after your day.",
       team: "For my team",
-      teamText: "People and agents work together, with channels, roles and approvals.",
+      teamText: "People and agents work together, with groups, roles and approvals.",
       /** A quiet line of what it does, under each answer. */
       personalExamples: "Your day at 7 · Bills · Training",
       teamExamples: "Customer support · Finance · Reports",
@@ -1046,7 +1045,7 @@ export const en = {
         howTo: "How to connect, app by app",
         paste: "Paste this request into the app:",
         prompt:
-          "Use the agentes.chat MCP server you just connected ({{url}}) to move what you have to agentes.chat. First call import_summary to see what is already there, so nothing is duplicated. Then, for every agent, instruction, skill and routine you have, create the equivalent with create_agent, create_skill and create_routine, and save what each agent should remember with add_memory.",
+          "Use the DougBot MCP server you just connected ({{url}}) to move what you have to DougBot. First call import_summary to see what is already there, so nothing is duplicated. Then, for every agent, instruction, skill and routine you have, create the equivalent with create_agent, create_skill and create_routine, and save what each agent should remember with add_memory.",
         promptLabel: "Request for your AI app",
         copy: "Copy the request",
         copied: "Now paste it into your AI app.",
@@ -1123,7 +1122,7 @@ export const en = {
       groups: {
         agent: "Agents",
         skill: "Skills",
-        channel: "Channels",
+        channel: "Groups",
         routine: "Routines",
         note: "Memory",
       },
@@ -1146,14 +1145,14 @@ export const en = {
         schedule_in_past: "Its date has passed.",
         secret_like: "It has something that looks like a key or password, so it stays out.",
         agent_not_picked: "Its agent isn't coming.",
-        channel_not_picked: "Its channel isn't coming.",
+        channel_not_picked: "Its group isn't coming.",
         invalid: "It came incomplete, or in a shape we can't use here.",
         failed: "Couldn't be created right now. Try again.",
         too_many_routines: "Arrives paused: its agent is at the limit of active routines.",
       },
       whyExists: {
         skill: "A skill with this name already exists here. It stays as it is.",
-        channel: "A private or archived channel with this name already exists here. It stays as it is.",
+        channel: "A private or archived group with this name already exists here. It stays as it is.",
       },
       renamed: "Becomes @{{handle}}: @{{wanted}} already exists here.",
       joins: "The agents join the existing #{{name}}.",
@@ -1244,8 +1243,8 @@ export const en = {
           agent_other: "{{count}} agents",
           skill_one: "{{count}} skill",
           skill_other: "{{count}} skills",
-          channel_one: "{{count}} channel",
-          channel_other: "{{count}} channels",
+          channel_one: "{{count}} group",
+          channel_other: "{{count}} groups",
           routine_one: "{{count}} routine",
           routine_other: "{{count}} routines",
           note_one: "{{count}} memory",
@@ -1312,9 +1311,9 @@ export const en = {
     keyStep: {
       title: "Which AI will they use?",
       lead: "Sign in with your AI plan: no\u00a0API\u00a0key needed.",
-      paid: "Your agentes.chat plan is active. Their computer is on its way.",
+      paid: "Your DougBot plan is active. Their computer is on its way.",
       /** Back from paying, for a minute at most, until the billing service lifts the workspace's hold (ADR 0079). */
-      confirming: "Confirming the payment for this workspace's agentes.chat plan.",
+      confirming: "Confirming the payment for this workspace's DougBot plan.",
       leadNoComputer: "Your agents think with an API\u00a0key, or with your AI plan on a computer you connect.",
     },
     jev: {
@@ -1326,7 +1325,7 @@ export const en = {
       label: "Monthly limit per agent, in dollars",
       perMonth: "/month",
       noteKey:
-        "Only for API usage, charged by the key's provider, not by agentes.chat. When an agent reaches it, it stops and tells you. Plans don't count here.",
+        "Only for API usage, charged by the key's provider, not by DougBot. When an agent reaches it, it stops and tells you. Plans don't count here.",
       notePlatform: "Only for API usage. When an agent reaches it, it stops and tells you.",
     },
     keySite: "Create the key at {{site}}.",
@@ -1383,7 +1382,7 @@ export const en = {
     },
     team: {
       title: "Who else works with you?",
-      payment: "You can invite your team once you choose an agentes.chat plan.",
+      payment: "You can invite your team once you choose a DougBot plan.",
       lead: "Invite them by email, or share the link.",
       leadLink: "Share the invitation link with them.",
       emails: "Emails",
@@ -1499,11 +1498,11 @@ export const en = {
     reload: "Reload",
     search: "Search or ask…",
     look: "Right click",
-    lookOurs: "agentes.chat",
+    lookOurs: "DougBot",
     lookSystem: "System",
     markRead: "Mark as read",
-    muteChannel: "Mute channel",
-    unmuteChannel: "Unmute channel",
+    muteChannel: "Mute group",
+    unmuteChannel: "Unmute group",
     mention: "Mention",
     copyHandle: "Copy @{{handle}}",
     handleCopied: "@ copied.",
@@ -1525,8 +1524,8 @@ export const en = {
     copied: "Copied. Paste it in the terminal.",
     mac: {
       why: "<b>The app is in beta.</b> So the first time, your Mac asks you to confirm:",
-      drag: "Drag agentes.chat to Applications.",
-      dragLong: "Open the downloaded file and drag agentes.chat to Applications.",
+      drag: "Drag DougBot to Applications.",
+      dragLong: "Open the downloaded file and drag DougBot to Applications.",
       blocked: "Open the app and click Done.",
       blockedSub: "Don't click Move to Trash.",
       settings: "In Settings\u00a0›\u00a0Privacy & Security, click Open Anyway.",
@@ -1555,7 +1554,7 @@ export const en = {
       why: "For Ubuntu, Debian and similar systems (x64). Linux doesn't ask for anything extra:",
       apt: "Install the .deb with a double-click, or from the terminal.",
       aptLong: "Double-click the downloaded file and click Install, or paste this in the terminal:",
-      open: "Open agentes.chat from your apps.",
+      open: "Open DougBot from your apps.",
       /** Under the steps: the AppImage, for a distribution without .deb packages. */
       otherTitle: "On Arch, Fedora or another system that doesn't take a .deb?",
       otherText:
@@ -1563,11 +1562,11 @@ export const en = {
       appImage: "Download the AppImage",
     },
     page: {
-      docTitle: "Download the app · agentes.chat",
-      title: "Download the agentes.chat app",
+      docTitle: "Download the app · DougBot",
+      title: "Download the DougBot app",
       beta: "Beta",
       text: "Your workspace in a window of its own, with your system's notifications. With one click, agents work on this computer, in folders of their own.",
-      open: "Open agentes.chat",
+      open: "Open DougBot",
       version: "Version {{version}}",
       versionSize: "Version {{version}} · {{size}}",
       soon: "There's no version for {{system}} yet.",
@@ -1578,7 +1577,7 @@ export const en = {
       system: "System",
       whyTitle: "Why does my computer ask to confirm?",
       whyText:
-        "agentes.chat is in beta: the Mac version isn't notarized by Apple yet, and the Windows installer doesn't carry a Microsoft certificate yet. Without them, your computer asks once before it opens an app downloaded from the internet. After that, it opens straight away and updates itself. Before the beta ends, this step goes away.",
+        "DougBot is in beta: the Mac version isn't notarized by Apple yet, and the Windows installer doesn't carry a Microsoft certificate yet. Without them, your computer asks once before it opens an app downloaded from the internet. After that, it opens straight away and updates itself. Before the beta ends, this step goes away.",
       openSource: "Open source",
       onlyHere: "Published only here and in the project's releases",
       signedUpdates: "Signed updates",
@@ -1673,8 +1672,8 @@ export const en = {
     title: "{{name}} creates and adjusts agents for you",
     subtitle: "Only what came from a request of yours. What it wouldn't approve, it passes to you.",
     newAgents: "Create agents other agents propose",
-    newAgentsHelp: "No apps, open channels only. You can undo it for 24 h.",
-    agentChanges: "Change an agent's model, budget and channels",
+    newAgentsHelp: "No apps, open groups only. You can undo it for 24 h.",
+    agentChanges: "Change an agent's model, budget and groups",
     agentChangesHelp: "The model only on the same AI account.",
     cantDecide: "You don't decide this today",
     budget: "Extra budget, per agent",
@@ -1682,7 +1681,7 @@ export const en = {
     perMonth: "/month",
     guidanceLabel: "How {{name}} decides for you",
     guidanceHelp: "{{name}} reads this before deciding. Optional.",
-    guidancePlaceholder: "E.g.: no duplicate agents\nOnly cheap models for new agents\nNever in customer channels",
+    guidancePlaceholder: "E.g.: no duplicate agents\nOnly cheap models for new agents\nNever in customer groups",
     paused: "Paused: you undid 3 of its decisions this week. Turn it back on when you want.",
     card: {
       deciding: "{{name}} is looking at it for {{for}}…",
@@ -1743,7 +1742,7 @@ export const en = {
     },
   },
   shell: {
-    otherChannels: "Other channels",
+    otherChannels: "Other groups",
     /** A personal workspace's channels (ADR 0159). */
     otherChannelsPersonal: "Other group conversations",
     // The Mac app's own title bar (ADR 0036).
@@ -1780,14 +1779,14 @@ export const en = {
     /** The sidebar's own menu (right click on its empty space), its headers' + and its rows' hover buttons. */
     sidebarMenu: {
       title: "Sidebar",
-      newChannel: "New channel",
+      newChannel: "New group",
       /** A personal workspace calls its channels group conversations (ADR 0159). */
       newChannelPersonal: "New group conversation",
-      addToChannels: "New channel or category",
+      addToChannels: "New group or category",
       addToChannelsPersonal: "New group conversation or category",
       newMessage: "New message",
       addMembers: "Add people or agents",
-      channelSettings: "Channel settings",
+      channelSettings: "Group settings",
       agentSettings: "{{name}} settings",
     },
     sidebarSetup: {
@@ -1829,7 +1828,7 @@ export const en = {
     /** Beside a server's name above its workspaces, when it isn't agentes.chat. */
     yourServer: "Your server",
     /** A server's line in "Your workspaces" in the desktop app: the one on this computer, and its state (ADR 0158). */
-    serverHere: "The agentes.chat on this {{device}}",
+    serverHere: "The DougBot on this {{device}}",
     serverStopped: "stopped",
     serverOffline: "offline since {{time}}",
     serverSignedOut: "not signed in",
@@ -1872,7 +1871,7 @@ export const en = {
     calendar: "Calendar",
     drive: "Drive",
     members: "Members",
-    channels: "Channels",
+    channels: "Groups",
     /** The channels' section in a personal workspace's sidebar (ADR 0159). */
     channelsPersonal: "Group conversations",
     agents: "Agents",
@@ -1978,15 +1977,15 @@ export const en = {
     pinned: "Pinned",
     full: {
       agents: "You already pinned 5 agents. Unpin one to pin this one.",
-      channels: "You already pinned 5 channels. Unpin one to pin this one.",
+      channels: "You already pinned 5 groups. Unpin one to pin this one.",
       people: "You already pinned 5 people. Unpin one to pin this one.",
     },
   },
   openOnPhone: {
-    qr: "QR code to sign in to the agentes app",
+    qr: "QR code to sign in to the DougBot app",
     making: "Making the code…",
     /** Followed by the App Store and Google Play, each marked Soon until the app is in it. */
-    stepApp: "Install the agentes app on your phone.",
+    stepApp: "Install the DougBot app on your phone.",
     stepTailscale: "Install Tailscale on your phone and sign in with the same Tailscale account as this server.",
     /** The links to Tailscale in each store, after the step: the store's own name. */
     appStore: "App Store",
@@ -1998,7 +1997,7 @@ export const en = {
     /** The desktop app's server with access from other devices off: no phone reaches it. */
     localOnly: "This server only opens on the computer it runs on, so your phone can't reach it.",
     localOnlyHow:
-      "In the agentes.chat app on that computer, turn on Reach it from your phone and teammates in Preferences › Servers. Then come back here.",
+      "In the DougBot app on that computer, turn on Reach it from your phone and teammates in Preferences › Servers. Then come back here.",
   },
   team: {
     title: "Team",
@@ -2025,7 +2024,7 @@ export const en = {
     restoreAction: "Restore {{name}}",
     restored: "{{name}} is back on the team.",
     emptyTitle: "Build your team of agents",
-    empty: "Each agent has a role and works alongside people, in the same channels.",
+    empty: "Each agent has a role and works alongside people, in the same groups.",
     emptyViewerTitle: "Your team of agents shows up here",
     emptyViewer: "Whoever can create agents builds the team, and each one shows up here.",
     list: {
@@ -2056,7 +2055,7 @@ export const en = {
         roles: "Roles",
         caresFor: "Looks after",
       },
-      noChannel: "In no channel",
+      noChannel: "In no group",
       none: "No agent matches.",
     },
     chart: {
@@ -2074,11 +2073,11 @@ export const en = {
     },
     /** The team map: people on top, a column per channel, the right hand below. */
     map: {
-      lead: "Who looks after the agents, the channels they are in, what each one does on its own and what waits for a person. Dashed lines are agents that asked each other in the last day.",
+      lead: "Who looks after the agents, the groups they are in, what each one does on its own and what waits for a person. Dashed lines are agents that asked each other in the last day.",
       /** The one line over the map, with `lead` behind its ⓘ. */
       short: "Who looks after each agent and where it works.",
       lodi: "Organizes the team with you",
-      hint: "Drag an agent to another channel and {{name}} prepares the change for you to apply",
+      hint: "Drag an agent to another group and {{name}} prepares the change for you to apply",
       proposed: "{{name}} prepared the change in your conversation. Apply it there.",
       open: "Open",
       /** The card's reason line, in the right hand's DM. */
@@ -2088,17 +2087,17 @@ export const en = {
       waiting_other: "{{count}} requests wait for approval",
       moreRoutines_one: "and {{count}} more routine",
       moreRoutines_other: "and {{count}} more routines",
-      empty: "Add an agent to a channel and it shows up here, with who looks after it.",
+      empty: "Add an agent to a group and it shows up here, with who looks after it.",
       emptyTitle: "See where each agent works",
-      emptyAction: "Add to a channel",
-      emptyViewer: "Whoever manages the agents adds them to channels, and the map shows up here.",
+      emptyAction: "Add to a group",
+      emptyViewer: "Whoever manages the agents adds them to groups, and the map shows up here.",
       /** Channels with no agent yet, under the columns: drop an agent on one. */
-      others: "Other channels",
+      others: "Other groups",
       band: "Supervisors",
       reportsTo: "Reports to {{name}}",
     },
     sectors: {
-      lead: "Each department has a lead, a substitute, its agents and their channels and routines.",
+      lead: "Each department has a lead, a substitute, its agents and their groups and routines.",
       ask: "Talk to {{name}}",
       /** Left in the right hand's composer, not sent. */
       askText: "Help me organize the team into departments.",
@@ -2117,7 +2116,7 @@ export const en = {
       supervisorCleared_other: "{{count}} agents of {{sector}} no longer report to a supervisor",
       nobody: "Nobody",
       none: "None",
-      channels: "Channels",
+      channels: "Groups",
       routines: "Routines",
       leads: "Leads {{name}}",
       covers: "Covers {{name}}",
@@ -2153,10 +2152,10 @@ export const en = {
       afternoon: "Good afternoon, {{name}}.",
       evening: "Good evening, {{name}}.",
       lastVisit: "Last visit: {{when}}",
-      activityOne_one: "{{names}} left 1 message in this channel.",
-      activityOne_other: "{{names}} left {{count}} messages in this channel.",
-      activityMany_one: "{{names}} left {{count}} messages in this channel.",
-      activityMany_other: "{{names}} left {{count}} messages in this channel.",
+      activityOne_one: "{{names}} left 1 message in this group.",
+      activityOne_other: "{{names}} left {{count}} messages in this group.",
+      activityMany_one: "{{names}} left {{count}} messages in this group.",
+      activityMany_other: "{{names}} left {{count}} messages in this group.",
       quiet: "No agent has written here since then.",
       approvals_one: "{{count}} approval is waiting for you.",
       approvals_other: "{{count}} approvals are waiting for you.",
@@ -2170,7 +2169,7 @@ export const en = {
   channel: {
     /** Channel settings' sections, for who manages it (ADR 0134). */
     settingsNav: {
-      label: "Channel settings",
+      label: "Group settings",
       overview: "Overview",
       permissions: "Permissions",
       members: "Members",
@@ -2178,7 +2177,7 @@ export const en = {
     /** A channel's exceptions to the workspace's roles (ADR 0134), said for people who never used Discord. */
     perms: {
       advanced: "Advanced permissions",
-      intro: "Exceptions apply to this channel only. Default follows the workspace's roles.",
+      intro: "Exceptions apply to this group only. Default follows the workspace's roles.",
       targets: "Roles and people with an exception",
       add: "Add a role or person",
       addSearch: "Search roles or people",
@@ -2200,10 +2199,10 @@ export const en = {
         },
         callAgents: {
           title: "Call agents",
-          line: "Get replies from this channel's agents",
+          line: "Get replies from this group's agents",
         },
         manage: {
-          title: "Manage the channel",
+          title: "Manage the group",
           line: "Change its name, who sees it, members and these permissions",
         },
       },
@@ -2211,13 +2210,13 @@ export const en = {
       default: {
         allowedBy: "Default: allowed by the {{role}} role",
         notHeld: "Default: not allowed by the {{role}} role",
-        followsEveryone: "Default: follows {{role}} in this channel",
+        followsEveryone: "Default: follows {{role}} in this group",
         person: "Default: follows this person's roles",
       },
       /** In place of the composer when the channel's exceptions keep me from sending. */
-      readOnlyComposer: "You can't send messages in this channel",
+      readOnlyComposer: "You can't send messages in this group",
       /** Only for me, after my message mentioned an agent here. */
-      agentsDenied: "You can't call agents in this channel",
+      agentsDenied: "You can't call agents in this group",
       forbidden: "You can only change permissions you have, for roles and people below you",
     },
     pins: {
@@ -2230,8 +2229,8 @@ export const en = {
       empty: "Nothing pinned here yet",
     },
     header: { pins: "Pinned messages", showMembers: "Show members", hideMembers: "Hide members" },
-    membersButton_one: "Channel members ({{count}})",
-    membersButton_other: "Channel members ({{count}})",
+    membersButton_one: "Group members ({{count}})",
+    membersButton_other: "Group members ({{count}})",
     membersAgents: "Agents",
     you: "you",
     agentState: { idle: "available", thinking: "thinking", writing: "writing" },
@@ -2261,7 +2260,7 @@ export const en = {
     routineReportHide: "Hide the report",
     messages: "Messages",
     members: "Members: {{names}}",
-    details: "Channel details",
+    details: "Group details",
     composerLabel: "Message #{{channel}}",
     composerDm: "Message {{name}}",
     composerPlaceholder: "Message #{{channel}} · use @ to call an agent",
@@ -2273,11 +2272,11 @@ export const en = {
     runFailedNoReason: "{{agent}} couldn't answer. Try again.",
     runBusy: "{{agent}} couldn't answer: the computer stayed busy with other tasks. Try again in a moment.",
     waitingApproval: "waiting for approval",
-    notMemberTitle: "You're not in this channel",
+    notMemberTitle: "You're not in this group",
     notMemberText: "Join to read the messages and talk with the people and agents here.",
-    adminReading: "You're not in this channel. Administrators can read it.",
+    adminReading: "You're not in this group. Administrators can read it.",
     join: "Join #{{channel}}",
-    notFound: "This channel doesn't exist or is no longer available.",
+    notFound: "This group doesn't exist or is no longer available.",
     loadOlder: "Load earlier messages",
     unknownPerson: "Person",
     unknownAgent: "Agent",
@@ -2286,50 +2285,50 @@ export const en = {
     detailsTitle: "#{{channel}}",
     detailsSearch: "Search people or agents",
     detailsEmpty: "Nobody found for “{{q}}”.",
-    topicLabel: "Channel description",
-    topicPlaceholder: "What is this channel about?",
+    topicLabel: "Group description",
+    topicPlaceholder: "What is this group about?",
     noTopic: "No description",
     nameLabel: "Name",
     nameHelp: "Changes for everyone. Old links keep working.",
     nameTaken: "There is already #{{name}}.",
     generalName: "#general keeps its name.",
     displayNameLabel: "Display name",
-    displayNameHelp: "How the channel shows to everyone. Its technical name (#{{name}}) still works for mentions.",
+    displayNameHelp: "How the group shows to everyone. Its technical name (#{{name}}) still works for mentions.",
     photo: {
-      label: "Channel photo",
-      title: "Channel photo",
-      help: "A square image everyone sees beside the channel's name. JPEG, PNG or WebP up to 2 MB.",
+      label: "Group photo",
+      title: "Group photo",
+      help: "A square image everyone sees beside the group's name. JPEG, PNG or WebP up to 2 MB.",
       upload: "Upload photo",
       change: "Change photo",
       remove: "Remove photo",
-      saved: "Channel photo saved",
-      removed: "Channel photo removed",
+      saved: "Group photo saved",
+      removed: "Group photo removed",
     },
-    archive: "Archive channel",
+    archive: "Archive group",
     archived: "#{{channel}} archived. The conversation is kept.",
-    archivedTitle: "Archived channels",
-    archivedCount_one: "{{count}} archived channel",
-    archivedCount_other: "{{count}} archived channels",
-    archivedNone: "No archived channels to restore",
+    archivedTitle: "Archived groups",
+    archivedCount_one: "{{count}} archived group",
+    archivedCount_other: "{{count}} archived groups",
+    archivedNone: "No archived groups to restore",
     archivedOn: "Archived {{date}}",
     restore: "Restore",
     restoreName: "Restore #{{channel}}",
     restored: "#{{channel}} is back.",
-    leave: "Leave channel",
+    leave: "Leave group",
     left: "You left #{{channel}}",
     leaveTitle: "Leave #{{channel}}?",
-    leavePrivate: "It's a private channel: to come back, someone in it has to add you.",
-    leaveLast: "You're the last person here: leaving archives the channel.",
+    leavePrivate: "It's a private group: to come back, someone in it has to add you.",
+    leaveLast: "You're the last person here: leaving archives the group.",
     leaveConfirm: "Leave",
     leaveLastConfirm: "Leave and archive",
     /** Delete channel: owners and admins, never #general; its name typed to confirm. */
-    delete: "Delete channel",
+    delete: "Delete group",
     deleteTitle: "Delete #{{channel}} for good?",
     deleteGoes:
-      "Goes now: messages, threads, files and pins, what agents kept from the channel and the routines that post in it.",
+      "Goes now: messages, threads, files and pins, what agents kept from the group and the routines that post in it.",
     /** A private channel's tasks (issues): nobody could open them once its members are gone. */
-    deleteIssues: "Its tasks go too, as only the channel's members and administrators could see them.",
-    deleteOrArchive: "To keep the conversation, archive the channel instead.",
+    deleteIssues: "Its tasks go too, as only the group's members and administrators could see them.",
+    deleteOrArchive: "To keep the conversation, archive the group instead.",
     deleteTypeName: "Type {{channel}} to confirm",
     deleteDone: "#{{channel}} was deleted.",
     detailsSub: "{{category}} · {{visibility}}",
@@ -2368,7 +2367,7 @@ export const en = {
     typing_one: "{{names}} is typing…",
     typing_other: "{{names}} are typing…",
     callAgent: "Call an agent",
-    callAgentMenu: "Agents in this channel",
+    callAgentMenu: "Agents in this group",
     toLatest: "Go to the latest messages",
     newPill: {
       label: "Go to the latest messages: {{text}}",
@@ -2480,9 +2479,9 @@ export const en = {
       leadPersonal: "I create your agents and connect your apps. Nothing changes unless you ask.",
       /** In place of `lead` on a billing hold: the team costs no model call, and the plan is said up front. */
       heldLead:
-        "Pick what your business does and the team shows up here. The agents start working once the workspace has an agentes.chat plan.",
+        "Pick what your business does and the team shows up here. The agents start working once the workspace has a DougBot plan.",
       heldLeadPersonal:
-        "Pick what you want help with and your agents show up here. They start working once you have an agentes.chat plan.",
+        "Pick what you want help with and your agents show up here. They start working once you have a DougBot plan.",
       connect: {
         title: "Connect an AI for the team",
         titlePersonal: "Connect an AI for your agents",
@@ -2513,7 +2512,7 @@ export const en = {
       how: "How it works",
       permissions: "Acts with your permissions",
       private: "Keeps what is yours in your DM",
-      channels: "Replies in channels when called",
+      channels: "Replies in groups when called",
       model: "Model",
       message: "Message",
       configure: "Configure",
@@ -2581,7 +2580,7 @@ export const en = {
       team: "Sets up and changes the whole team with cards a person applies: agents, people and workspace settings",
       routines: "Runs and deletes any agent's routine you may manage",
       asYou: "In your own conversation, reads the Drive, the wiki and the tasks you can see",
-      mentions: "Answers an @mention in any channel without being a member",
+      mentions: "Answers an @mention in any group without being a member",
     },
     card: {
       settings: "{{name}} · Settings",
@@ -2615,7 +2614,7 @@ export const en = {
         archive: "Only admins archive an agent",
         delete: "Only admins delete an agent",
         audience: "Only admins and its owner change who talks to it",
-        channels: "Only admins and its owner change its channels",
+        channels: "Only admins and its owner change its groups",
         skill: "Only admins change an agent's skills",
         ai_account: "Only the account's owner gives it",
         name: "Only admins rename an agent",
@@ -2631,7 +2630,7 @@ export const en = {
       owner: "Owner",
       audience: "Who can talk",
       archive: "Status",
-      channel: "Channel",
+      channel: "Group",
       name: "Name",
       look: "Look",
       reports_to: "Reports to",
@@ -2703,11 +2702,11 @@ export const en = {
       set_my_timezone: "Set your time zone to <b>{{timezone}}</b>",
       set_my_timezone_workspace: "Follow the workspace's time zone again",
       set_invitation_roles: "Change the roles the invitation of <b>{{email}}</b> gives: {{change}}",
-      update_channel: "Change the channel <b>#{{channel}}</b>",
+      update_channel: "Change the group <b>#{{channel}}</b>",
       archive_channel: "Archive <b>#{{channel}}</b>",
       archive_channel_back: "Bring <b>#{{channel}}</b> back",
       channel_people: "Change who is in <b>#{{channel}}</b>: {{change}}",
-      delete_channel: "Delete the channel <b>#{{channel}}</b> for good, with its messages and files",
+      delete_channel: "Delete the group <b>#{{channel}}</b> for good, with its messages and files",
       revoke_invitation: "Cancel the invitation of <b>{{email}}</b>",
       resend_invitation: "Send the invitation to <b>{{email}}</b> again",
       decide_join_request_approve: "Let <b>{{email}}</b> into the workspace",
@@ -2753,7 +2752,7 @@ export const en = {
     },
     channel: {
       title: "Put {{name}} in #{{channel}}",
-      line: "{{name}} is in no channel, so nobody talked to it all week.",
+      line: "{{name}} is in no group, so nobody talked to it all week.",
     },
     unanswered: {
       title: "An agent for the questions in #{{channel}}",
@@ -2888,7 +2887,7 @@ export const en = {
         "{{name}} didn't answer: the request didn't come from a person, and the workspace's plan serves only its owner.",
       runner_outdated: "{{name}} can't answer now: the program on the plan's computer needs an update.",
       plan_tools:
-        "{{name}} stopped before answering: the plan's AI on that computer didn't stay within agentes.chat's tools.",
+        "{{name}} stopped before answering: the plan's AI on that computer didn't stay within DougBot's tools.",
       /** `model`: the model whose own limit it is (not the plan's); the plan's other models still work. */
       model_limit:
         "{{name}} can't answer now: {{model}} reached its own limit on the plan. The plan's other models still work.",
@@ -2910,12 +2909,12 @@ export const en = {
       title: "I kept your message",
       /** The card's one sentence, by the hold's code. */
       wait: {
-        payment: "I'll answer here once the workspace has an agentes.chat plan.",
-        unpaid: "I'll answer here once the agentes.chat plan's payment goes through.",
-        ended: "I'll answer here once the workspace subscribes to agentes.chat again.",
+        payment: "I'll answer here once the workspace has a DougBot plan.",
+        unpaid: "I'll answer here once the DougBot plan's payment goes through.",
+        ended: "I'll answer here once the workspace subscribes to DougBot again.",
       },
       /** The same for whoever can't pay. */
-      askAdmin: "I'll answer here once an admin sorts out the agentes.chat plan.",
+      askAdmin: "I'll answer here once an admin sorts out the DougBot plan.",
       /** Behind the card's ⓘ on a first plan. */
       plan: "The plan brings the agents' computer, always on. The AI is the one you already pay for: Claude, ChatGPT and more, or an API key.",
       /** The hold lifted: the plan is paid, an AI is what's left. */
@@ -2924,7 +2923,7 @@ export const en = {
       /** A second message's receipt, where it would say no AI. */
       receipt: "Kept",
       /** The receipt of a channel message nobody mentioned. */
-      channel: "Kept. The agents answer once the workspace has an agentes.chat plan.",
+      channel: "Kept. The agents answer once the workspace has a DougBot plan.",
     },
     receipt: "Nobody will answer: no\u00a0AI connected",
     chip: "No AI",
@@ -2948,7 +2947,7 @@ export const en = {
       text: "{{computer}} is connected, but {{program}} is switched off on it. For safety, it can only be turned on at the computer itself.",
       where: "On {{computer}}",
       /** `<mark/>`: the app's icon, drawn. */
-      one: "Click the agentes.chat icon <mark/> by the clock",
+      one: "Click the DougBot icon <mark/> by the clock",
       oneWindows: "On Windows, it may be behind the taskbar's ^ arrow.",
       two: "Open <b>Preferences</b>",
       three: "Under <b>Tools</b>, turn on <b>{{program}}</b>",
@@ -3036,9 +3035,9 @@ export const en = {
       },
     },
     /** The Cloud's workspace on a billing hold, where a plan would sign in. */
-    billing: "A plan signs in on the workspace's computer, and the computer comes with an active agentes.chat plan.",
+    billing: "A plan signs in on the workspace's computer, and the computer comes with an active DougBot plan.",
     /** After `billing`, on the phone, where paying isn't offered. */
-    billingWeb: "Choose one on the web, at agentes.chat.",
+    billingWeb: "Choose one on the web, at DougBot.",
     orPayGo: "Or pay as you go",
     /** The two ways to pay, on a control the width of a phone: keep them short. */
     pay: {
@@ -3085,7 +3084,7 @@ export const en = {
       savedUnchecked:
         "Saved, but {{provider}} didn't answer, so the key couldn't be checked. If it fails, the chat says why.",
       /** On a billing hold, in place of any way to add a key. */
-      closed: "API keys open with the workspace's agentes.chat plan.",
+      closed: "API keys open with the workspace's DougBot plan.",
       notPlan: "A coding plan's key goes in its own option above.",
       billing: "Turn on billing for the key's project. Without billing, Google may use what your agents send.",
       privacy: "Your OpenRouter privacy settings decide which providers may keep what your agents send.",
@@ -3361,7 +3360,7 @@ export const en = {
       aiNone: "No AI yet. Connect one after creating it",
       reviewTitle: "Review {{name}}",
       lines: "What {{name}} gets",
-      aChannel: "a channel",
+      aChannel: "a group",
       anApp: "an app",
       needsAdmin: "an admin gives it",
       needsPerson: "only {{name}} gives it",
@@ -3404,8 +3403,8 @@ export const en = {
     routinePost: "Didn't call <b>{{name}}</b>: a routine that only looks and tells wakes nobody",
     outside: "Not {{place}}",
     routine: "Routine {{name}}",
-    add: "Add to channel",
-    added: "{{name}} joined the channel.",
+    add: "Add to group",
+    added: "{{name}} joined the group.",
     allow: "Let {{person}} talk to him",
     allow_female: "Let {{person}} talk to her",
     allowed: "Done: {{person}} can now talk to {{name}}.",
@@ -3469,7 +3468,7 @@ export const en = {
     },
     channel: {
       agent_added: "Brought {{agentName}} into <b>#{{channel}}</b>",
-      created: "Created the channel <b>#{{name}}</b>",
+      created: "Created the group <b>#{{name}}</b>",
     },
     wiki: {
       page_created: "Created the wiki page <b>{{title}}</b>",
@@ -3512,11 +3511,11 @@ export const en = {
       changed_set_my_timezone: "Set your time zone to <b>{{timezone}}</b>",
       changed_set_my_timezone_workspace: "Your time zone follows the workspace's again",
       changed_set_invitation_roles: "Changed the roles the invitation of <b>{{email}}</b> gives: {{change}}",
-      changed_update_channel: "Changed the channel <b>#{{channel}}</b>",
+      changed_update_channel: "Changed the group <b>#{{channel}}</b>",
       changed_archive_channel: "Archived <b>#{{channel}}</b>",
       changed_archive_channel_back: "Brought <b>#{{channel}}</b> back",
       changed_channel_people: "Changed who is in <b>#{{channel}}</b>: {{change}}",
-      changed_delete_channel: "Deleted the channel <b>#{{channel}}</b>",
+      changed_delete_channel: "Deleted the group <b>#{{channel}}</b>",
       changed_revoke_invitation: "Canceled the invitation of <b>{{email}}</b>",
       changed_resend_invitation: "Sent the invitation to <b>{{email}}</b> again",
       changed_decide_join_request_approve: "Let <b>{{email}}</b> into the workspace",
@@ -3580,7 +3579,7 @@ export const en = {
       },
       channel: {
         agent_added: "Brought {{agentName}} into {{refs}}",
-        created: "Created the channels {{refs}}",
+        created: "Created the groups {{refs}}",
       },
       wiki: {
         page_created: "Created the wiki pages {{refs}}",
@@ -3618,8 +3617,8 @@ export const en = {
     open: "Open in Proposals",
   },
   newChannel: {
-    open: "Create channel",
-    title: "Create channel",
+    open: "Create group",
+    title: "Create group",
     /** `<key>Personal`: a personal workspace calls a channel a group conversation (ADR 0159). */
     titlePersonal: "New group conversation",
     name: "Name",
@@ -3627,7 +3626,7 @@ export const en = {
     namePlaceholderPersonal: "e.g. trip",
     nameHelp: "Lowercase letters, digits and hyphens. Shows as #{{name}}.",
     nameInvalid: "Use lowercase letters, digits and hyphens, starting with a letter or digit.",
-    nameTaken: "There is already a #{{name}} channel.",
+    nameTaken: "There is already a #{{name}} group.",
     nameTakenPersonal: "There is already a group conversation called #{{name}}.",
     topic: "Description",
     topicPlaceholder: "What is talked about here",
@@ -3642,10 +3641,10 @@ export const en = {
     privateDescPersonal: "Only the people you add see it.",
     roles: "Departments or roles",
     rolesDesc: "Whoever holds a role you pick sees and joins it, now or later.",
-    rolesPick: "Roles that see the channel",
+    rolesPick: "Roles that see the group",
     rolesNone: "The workspace has no roles yet.",
     rolesNeeded: "Pick at least one role.",
-    rolesLeave: "Whoever loses the role leaves the channel.",
+    rolesLeave: "Whoever loses the role leaves the group.",
     rolesChoose: "Choose roles",
     rolesChange: "Change roles",
     rolesDone: "Done",
@@ -3663,55 +3662,55 @@ export const en = {
   channelCategories: {
     newCategory: "New category",
     newCategoryHelp: "Goes to the end of the list. You can drag it later.",
-    newCategoryDesc: "Groups channels under one name in everyone's sidebar.",
+    newCategoryDesc: "Groups groups under one name in everyone's sidebar.",
     name: "Name",
     namePlaceholder: "e.g. Product",
     nameEmpty: "Give the category a name.",
     nameTaken: "There is already a category {{name}}.",
-    channels: "Channels that go into it",
-    channelsSearch: "Search channels",
-    channelsEmpty: "No channel matches “{{q}}”.",
+    channels: "Groups that go into it",
+    channelsSearch: "Search groups",
+    channelsEmpty: "No group matches “{{q}}”.",
     inCategory: "Now in {{name}}",
     noCategory: "No category",
     noCategoryDesc: "On top, with no header",
     create: "Create category",
-    createWith_one: "Create with {{count}} channel",
-    createWith_other: "Create with {{count}} channels",
+    createWith_one: "Create with {{count}} group",
+    createWith_other: "Create with {{count}} groups",
     created: "{{name}} created.",
     rename: "Rename",
     renameTitle: "Rename category",
     save: "Save",
     delete: "Delete category",
-    deleteDesc: "Its channels go to the top",
-    deleted_one: "{{name}} deleted. {{count}} channel went to the top.",
-    deleted_other: "{{name}} deleted. {{count}} channels went to the top.",
+    deleteDesc: "Its groups go to the top",
+    deleted_one: "{{name}} deleted. {{count}} group went to the top.",
+    deleted_other: "{{name}} deleted. {{count}} groups went to the top.",
     deletedEmpty: "{{name}} deleted.",
     undo: "Undo",
     collapseAll: "Close all",
     expandAll: "Open all",
-    newChannelHere: "New channel here",
-    newChannelIn: "New channel in {{name}}",
+    newChannelHere: "New group here",
+    newChannelIn: "New group in {{name}}",
     options: "{{name}} options",
     category: "Category",
-    categoryHelp: "Where the channel shows in everyone's sidebar.",
+    categoryHelp: "Where the group shows in everyone's sidebar.",
     newCategoryOption: "New category…",
     move: "Move to…",
     moveTitle: "Move #{{channel}}",
-    moveDesc: "Changes where the channel sits in everyone's sidebar. Who takes part stays the same.",
+    moveDesc: "Changes where the group sits in everyone's sidebar. Who takes part stays the same.",
     moveSearch: "Search categories",
     moveEmpty: "No category matches “{{q}}”.",
     moveTo: "Move to {{name}}",
     moveSame: "Move",
     moveNow: "Now",
-    moveEmptyCategory: "No channels yet",
+    moveEmptyCategory: "No groups yet",
     moveCreate: "Create “{{name}}”",
     moved: "#{{channel}} is now in {{name}}.",
-    newWithChannel: "New category with this channel",
-    editChannel: "Edit channel",
+    newWithChannel: "New category with this group",
+    editChannel: "Edit group",
   },
   channelMembers: {
     /** A small line on top of the members column and sheet: what the list is. */
-    caption: "Who can see this channel",
+    caption: "Who can see this group",
     /** The same line in the channel settings' members, for a public channel: no list limits who sees it. */
     captionOpen: "Open to the whole workspace",
     addRow: "Add people or agents",
@@ -3723,17 +3722,17 @@ export const en = {
     inviteOrgPersonal: "Invite {{email}} to your workspace",
     addTitle: "Add to #{{channel}}",
     addSearch: "Search people or agents",
-    addEmpty: "Nobody outside the channel matches “{{q}}”.",
+    addEmpty: "Nobody outside the group matches “{{q}}”.",
     addEveryone: "Everyone in {{org}} is already in #{{channel}}.",
     addConfirm_one: "Add {{count}}",
     addConfirm_other: "Add {{count}}",
     actions: "Options for {{name}}",
-    remove: "Remove from channel",
+    remove: "Remove from group",
     removeTitle: "Remove {{name}} from #{{channel}}?",
-    removePersonBody: "They stop seeing the channel and getting its messages. You can add them back later.",
-    removeAgentBody: "He stops reading and answering in this channel. You can add him back later.",
-    removeAgentBody_female: "She stops reading and answering in this channel. You can add her back later.",
-    removeConfirm: "Remove from channel",
+    removePersonBody: "They stop seeing the group and getting its messages. You can add them back later.",
+    removeAgentBody: "He stops reading and answering in this group. You can add him back later.",
+    removeAgentBody_female: "She stops reading and answering in this group. You can add her back later.",
+    removeConfirm: "Remove from group",
     replyHeading: "When he answers",
     replyHeading_female: "When she answers",
     replyAlone: "On his own",
@@ -3747,7 +3746,7 @@ export const en = {
     aloneLine: "Joins the conversation on his own",
     aloneLine_female: "Joins the conversation on her own",
     mentionLine: "Waits for someone to write @{{handle}}",
-    readOnly: "Only the channel's creator and admins change members.",
+    readOnly: "Only the group's creator and admins change members.",
     people: "People",
     agents: "Agents",
   },
@@ -3813,7 +3812,7 @@ export const en = {
     clearsAt: "Clears at {{time}}",
     clearsOn: "Clears {{when}}",
     help: {
-      auto: "Online while agentes.chat is open.",
+      auto: "Online while DougBot is open.",
       away: "Out for a while: people know answers may take time.",
       busy: "Everyone sees it's better not to interrupt right now.",
       out: "Away from work (vacation, a day off): everyone sees it until your status clears.",
@@ -3878,24 +3877,24 @@ export const en = {
   },
   mentions: {
     list: "People and agents",
-    inChannel: "In this channel",
+    inChannel: "In this group",
     inWorkspace: "In the workspace",
-    notInChannel: "not in the channel",
+    notInChannel: "not in the group",
     /** Under `@everyone` (this language's word) in the "@" list. */
     everyone: "Everyone in this conversation, people and agents",
-    offer: "{{name}} isn't in the channel and won't see the mention.",
-    add: "Add to channel",
+    offer: "{{name}} isn't in the group and won't see the mention.",
+    add: "Add to group",
     dismiss: "Not now",
-    added: "{{name}} joined the channel.",
+    added: "{{name}} joined the group.",
     askAdmin: "Ask an admin to add them.",
   },
   channelRefs: {
-    list: "Channels",
-    label: "Channel #{{name}}",
-    archivedLabel: "Channel #{{name}}, archived",
+    list: "Groups",
+    label: "Group #{{name}}",
+    archivedLabel: "Group #{{name}}, archived",
     card: "About #{{name}}",
     loading: "Loading…",
-    gone: "This channel isn't available.",
+    gone: "This group isn't available.",
     people_one: "{{count}} person",
     people_other: "{{count}} people",
     agents_one: "{{count}} agent",
@@ -4319,7 +4318,7 @@ export const en = {
         "Its {{count}} items leave the Vault and your agents stop using them. Nothing changes in {{name}}.",
       removed: "{{name}} disconnected",
       listOf: "Connections to {{name}}",
-      note: "Your agents read what is there when they need it. Nothing is copied into agentes.chat but names and addresses.",
+      note: "Your agents read what is there when they need it. Nothing is copied into DougBot but names and addresses.",
       error: {
         auth_failed: "Sign-in refused",
         locked: "Wrong password",
@@ -4593,7 +4592,7 @@ export const en = {
     },
     refuse: "Refuse",
     viewDiff: "View diff",
-    viewInChannel: "View in channel",
+    viewInChannel: "View in group",
     group: "Approval request",
     groupDone: "Approval done",
     groupRefused: "Request refused",
@@ -4679,7 +4678,7 @@ export const en = {
       label: "When the app opens",
       home: "Home",
       last: "Where you left off",
-      channels: "A channel",
+      channels: "A group",
     },
     ask: {
       title: "Ask an agent",
@@ -5050,7 +5049,7 @@ export const en = {
       eyebrow: "Approval request",
       close: "Close",
       exact: "The exact action",
-      builtIn: "agentes.chat tool",
+      builtIn: "DougBot tool",
       orgConnector: "Your workspace's connector",
       bound: "Only for these values: any change needs a new approval.",
       why: "Why",
@@ -5144,7 +5143,7 @@ export const en = {
     noInstructions: "{{name}} has no instructions yet. Say how he should work.",
     noInstructions_female: "{{name}} has no instructions yet. Say how she should work.",
     savedToast: "{{name}}'s changes saved.",
-    builtinName: "agentes",
+    builtinName: "DougBot",
     builtinNote: "built-in permissions",
     connectHint: "Connect services",
     subtitle: "{{role}} · owned by <b>{{owner}}</b> · {{model}} {{key}}",
@@ -5171,14 +5170,14 @@ export const en = {
     asksApproval: "{{scopes}} asks for approval",
     viewMemory: "View memory",
     runsSearch: "Search runs",
-    runsPlaceholder: "Search by channel, PR or topic",
+    runsPlaceholder: "Search by group, PR or topic",
     runsEmpty: "No runs matching “{{q}}”.",
     runsNone: "No runs yet.",
     runNoText: "No text",
     runPrivate: "In a conversation you're not in",
     runTokens: "{{input}} in · {{cached}} cached · {{output}} out",
     runTokensTip: "{{input}} new input tokens, {{cached}} read from the cache (cheaper), {{output}} output",
-    budgetHelp: "At the limit, {{name}} stops and says so in the channel. {{ownerNote}}",
+    budgetHelp: "At the limit, {{name}} stops and says so in the group. {{ownerNote}}",
     budgetDefaultChoice: "Workspace default ({{amount}})",
     budgetOther: "Other amount",
     budgetDefaultHelp: "Empty: the workspace default.",
@@ -5512,7 +5511,7 @@ export const en = {
       steps: {
         title: "One step left, on {{computer}} itself",
         waiting: "Waiting",
-        one: "Click the agentes.chat icon by the clock",
+        one: "Click the DougBot icon by the clock",
         two: "Preferences",
         three: "Turn on Browser",
         done: "That's it. This page notices on its own, no reload needed.",
@@ -5573,7 +5572,7 @@ export const en = {
       budget: "Budget",
       owner: "Owner",
       audience: "Who can talk",
-      channels: "Channels",
+      channels: "Groups",
       machine: "Computer",
       brain: "Who thinks",
       repos: "GitHub repositories",
@@ -5611,8 +5610,7 @@ export const en = {
       memberOwner: "You see how {{name}} works. Who edits: admins and {{owner}} (owner).",
       memberOwnerPersonal:
         "You see how {{name}} works. Who edits: {{owner}} (owner) and the people who run this space.",
-      owner:
-        "You own {{name}}: you change the look, who can talk, the channels and the computer. The rest, only admins.",
+      owner: "You own {{name}}: you change the look, who can talk, the groups and the computer. The rest, only admins.",
       ownerKeeper:
         "You own {{name}}: you change the look, who can talk, the group conversations and the computer. The rest, only {{keeper}}.",
       ownerPersonal:
@@ -5683,7 +5681,7 @@ export const en = {
       ownerRole: "Owner · gets approvals and budget alerts",
       where: "Where he works",
       where_female: "Where she works",
-      noChannels: "No channels: call @{{handle}} or send a direct message.",
+      noChannels: "No groups: call @{{handle}} or send a direct message.",
       routines: "Routines",
       nextRun: "next: {{when}}",
       paused: "paused",
@@ -5710,7 +5708,7 @@ export const en = {
       connectors: "{{org}}'s connectors",
       connectorsPersonal: "Your connectors",
       oneLevel: "One level per app",
-      builtin: "Built into agentes",
+      builtin: "Built into DougBot",
       builtinHelp: "Drive, tasks, memory and more",
       noMatch: "Nothing matching “{{q}}”",
       noneHere: "Nothing in this filter",
@@ -5887,7 +5885,7 @@ export const en = {
       budget: "Budget",
       owner: "Owner",
       audience: "Who can talk",
-      channels: "Channels",
+      channels: "Groups",
       computer: "Computer",
       danger: "Archive or delete",
       keySafe: "The key stays encrypted on the server. Nobody sees it.",
@@ -5900,15 +5898,15 @@ export const en = {
       limit: "Monthly limit",
       useDefault: "Use the default",
       budgetAdmins: "Only admins see what agents spend and change the limit.",
-      channelsHelp: "Joins the checked channels. Elsewhere, call @{{handle}} or send a direct message.",
-      channelsYours: "You change only the channels you're in. To change another one, join it first.",
+      channelsHelp: "Joins the checked groups. Elsewhere, call @{{handle}} or send a direct message.",
+      channelsYours: "You change only the groups you're in. To change another one, join it first.",
     },
     archive: {
       action: "Archive {{name}}",
       button: "Archive",
-      help: "Leaves the agent list and the channels, and routines stop. Conversations, memory and history are kept.",
+      help: "Leaves the agent list and the groups, and routines stop. Conversations, memory and history are kept.",
       title: "Archive {{name}}?",
-      text: "{{name}} leaves the agent list and the channels, and routines stop. Conversations, memory and history are kept.",
+      text: "{{name}} leaves the agent list and the groups, and routines stop. Conversations, memory and history are kept.",
       done: "{{name}} was archived.",
     },
     delete: {
@@ -5916,7 +5914,7 @@ export const en = {
       button: "Delete",
       help: "For good. Its messages stay, with its name and face.",
       title: "Delete {{name}} for good?",
-      goes: "Goes now: instructions, memory, routines, access, budget, channels and its sign-in on the computer.",
+      goes: "Goes now: instructions, memory, routines, access, budget, groups and its sign-in on the computer.",
       stays: "Stays: its messages and threads, with its name and face, and its usage in the reports.",
       typeName: "Type {{name}} to confirm",
       done: "{{name}} was deleted.",
@@ -5931,7 +5929,7 @@ export const en = {
       title: "{{name}}'s files",
       subtitle: "The Drive files {{name}} made or changed, newest first.",
       drive: "Open the Drive",
-      search: "Search a file or channel",
+      search: "Search a file or group",
       all: "All",
       changedOther: "{{owner}}'s file, {{name}} changed it",
       empty: "Ask for a report, a table or a document",
@@ -6026,7 +6024,7 @@ export const en = {
       skill: "It came from using this skill.",
       asked: "Asked for in a conversation.",
       budget: "It stopped at its monthly budget this week.",
-      noChannel: "It is in no channel.",
+      noChannel: "It is in no group.",
     },
     subtitle: "Changes the agents propose. Nothing changes until someone accepts.",
     subtitlePersonal: "Changes your agents propose. Nothing changes until you accept.",
@@ -6159,15 +6157,15 @@ export const en = {
       todo: "Join {{channel}}",
       todoDesc: "I answer when someone calls me there.",
       action: "Join",
-      todoNone: "Join a channel",
+      todoNone: "Join a group",
       done: "I'm in {{channels}}",
       doneNone: "I stay in our direct chat",
       title: "Where {{name}} works",
       desc: "It answers when someone calls it there. The direct chat always counts.",
       okNone: "Direct chat only",
       okOne: "Join {{channel}}",
-      ok_one: "Join {{count}} channel",
-      ok_other: "Join {{count}} channels",
+      ok_one: "Join {{count}} group",
+      ok_other: "Join {{count}} groups",
     },
     who: {
       todo: "Talk to everyone at {{org}}",
@@ -6235,10 +6233,10 @@ export const en = {
       /** The first row while the workspace waits for its first plan (ADR 0162), its button opening the billing page. */
       plan: {
         todo: "Turn the team on.",
-        todoDesc: "With an agentes.chat plan, the agents start working.",
+        todoDesc: "With a DougBot plan, the agents start working.",
         action: "See plans",
         todoPersonal: "Turn your agents on.",
-        todoDescPersonal: "With an agentes.chat plan, your agents start working.",
+        todoDescPersonal: "With a DougBot plan, your agents start working.",
       },
       about: {
         /** A personal workspace's row 1, its button (ADR 0159). */
@@ -6353,7 +6351,7 @@ export const en = {
       where: {
         name: "Where and who",
         title: "Where it works and with whom",
-        lead: "{{name}} joins the channels you check and has an owner on the team.",
+        lead: "{{name}} joins the groups you check and has an owner on the team.",
         leadPersonal: "{{name}} talks to you in its own chat and joins the group conversations you check.",
       },
       model: {
@@ -6384,7 +6382,7 @@ export const en = {
         agent: "Atlas",
         desc: "Watches errors, queues and deploys.",
         instructions:
-          "Follows errors and deploys and writes incident reports.\nWhen an alert fires, investigates first (errors, logs, recent deploys) and posts in the channel what it found: since when, how big, the likely cause and the next step.\nRollback and deploy only with approval.",
+          "Follows errors and deploys and writes incident reports.\nWhen an alert fires, investigates first (errors, logs, recent deploys) and posts in the group what it found: since when, how big, the likely cause and the next step.\nRollback and deploy only with approval.",
         tasks: {
           a: "Anything odd since the last deploy?",
           b: "Summarize today's errors",
@@ -6550,7 +6548,7 @@ export const en = {
     tips: {
       do: { title: "What to do", desc: "Day-to-day tasks", text: "Day to day: " },
       avoid: { title: "What to avoid", desc: "Clear limits", text: "Avoid: " },
-      help: { title: "Who to ask for help", desc: "When stuck", text: "When stuck, ask {{name}} in the channel." },
+      help: { title: "Who to ask for help", desc: "When stuck", text: "When stuck, ask {{name}} in the group." },
     },
     noInstructions: "Without instructions, {{name}} follows only the workspace context.",
     connectedCount_one: "{{count}} connected by the workspace",
@@ -6566,10 +6564,10 @@ export const en = {
     skillsHelp: "Manuals {{name}} opens when needed.",
     importCard: "From another app",
     importCardLine: "Bring the agents you already have in another app.",
-    channels: "Channels",
-    channelsJoin: "Joins these channels",
-    channelsHelp: "Joins now. You can add it to other channels later.",
-    noChannels: "You're not in any channel yet. You can add the agent to a channel later.",
+    channels: "Groups",
+    channelsJoin: "Joins these groups",
+    channelsHelp: "Joins now. You can add it to other groups later.",
+    noChannels: "You're not in any group yet. You can add the agent to a group later.",
     owner: "Owner",
     you: "{{name}} (you)",
     noOwnerOption: "No owner",
@@ -6629,7 +6627,7 @@ export const en = {
     tools: "Tools",
     noTools: "No tools",
     onlyContext: "Only the workspace context",
-    noChannelsReview: "No channels: call it by @ or direct message",
+    noChannelsReview: "No groups: call it by @ or direct message",
     noOwnerAdmins: "No owner (admins)",
     editSection: "Edit {{section}}",
     hints: {
@@ -6639,11 +6637,11 @@ export const en = {
       tools_one: "{{count}} app granted",
       tools_other: "{{count}} apps granted",
       noTools: "No apps: just talks",
-      where_one: "Joins {{count}} channel",
-      where_other: "Joins {{count}} channels",
+      where_one: "Joins {{count}} group",
+      where_other: "Joins {{count}} groups",
       review: "You can change everything later on the profile",
     },
-    noChannelsYet: "No channels yet",
+    noChannelsYet: "No groups yet",
     preview: {
       label: "Agent preview",
       title: "Preview",
@@ -6664,7 +6662,7 @@ export const en = {
     newOnTeamPersonal: "New agent",
     createdTitlePersonal: "{{name}} is here",
     createdText: "Already in {{channels}}. Mention @{{handle}} in a conversation to start.",
-    createdTextNoChannels: "Add {{name}} to a channel and mention @{{handle}} in a conversation to start.",
+    createdTextNoChannels: "Add {{name}} to a group and mention @{{handle}} in a conversation to start.",
     createdTextNoChannelsPersonal: "Open your chat with {{name}} and ask for something to start.",
     goTo: "Go to #{{channel}}",
     openProfile: "Open profile",
@@ -7042,13 +7040,13 @@ export const en = {
         line_other: "<agents/> will answer whoever joins.",
       },
       where: {
-        titleOne: "Which channels does {{name}} join right away?",
-        titleMany: "Which channels do these people join right away?",
+        titleOne: "Which groups does {{name}} join right away?",
+        titleMany: "Which groups do these people join right away?",
         /** A personal workspace calls its channels group conversations. */
         titleOnePersonal: "Which group conversations does {{name}} join right away?",
         titleManyPersonal: "Which group conversations do these people join right away?",
         lead: "Everyone starts in #{{channel}}. You pick the others.",
-        label: "Channels",
+        label: "Groups",
         labelPersonal: "Group conversations",
         everyone: "Everyone joins",
         private: "Private · you're in it",
@@ -7064,13 +7062,13 @@ export const en = {
       mailFor: "This is how it reaches {{names}}",
       // The invitation email in the words the server sends it in (packages/engine/src/email/words): keep them alike.
       mail: {
-        from: "agentes.chat · to {{to}}",
+        from: "DougBot · to {{to}}",
         toMany: "{{email}} and {{count}} more",
-        subject: "You're invited to a workspace on agentes.chat",
+        subject: "You're invited to a workspace on DougBot",
         headline: "You're invited to a workspace",
         body: "<b>{{name}}</b> ({{email}}) invited you to join <b>{{org}}</b> as a member.",
         noteFrom: "<b>{{name}}:</b> “{{note}}”",
-        what: "agentes.chat is where people and AI agents work together.",
+        what: "DougBot is where people and AI agents work together.",
         button: "Accept invitation",
         small: "The invitation works for 7 days. Accept it with this email address.",
       },
@@ -7238,10 +7236,10 @@ export const en = {
     noAgents: "No agents yet.",
   },
   empty: {
-    thread: { title: "Threads", text: "Thread replies will show up here, without taking over the channel." },
+    thread: { title: "Threads", text: "Thread replies will show up here, without taking over the group." },
     dm: {
       title: "Direct message with {{name}}",
-      text: "Direct messages haven't arrived yet. For now, talk with {{name}} in a channel.",
+      text: "Direct messages haven't arrived yet. For now, talk with {{name}} in a group.",
     },
     search: {
       title: "Search the workspace",
@@ -7262,7 +7260,7 @@ export const en = {
     crashTitle: "Something went wrong",
     crashText: "Reload the page to carry on.",
     crashCode: "If you ask for help, give the code {{id}}.",
-    unreachableTitle: "Can't reach agentes.chat",
+    unreachableTitle: "Can't reach DougBot",
     unreachableText: "It may be restarting. This page opens by itself as soon as it's back.",
     offlineTitle: "You're offline",
     offlineText: "This page opens by itself when you're back online.",
@@ -7270,7 +7268,7 @@ export const en = {
   scopes: {
     context_read: {
       label: "Read context",
-      description: "Search messages, summaries and facts in the agent's channels.",
+      description: "Search messages, summaries and facts in the agent's groups.",
     },
     memory_write: { label: "Remember", description: "Save and forget its own notes (memories)." },
     drive_read: { label: "Read files", description: "Read files in the Drive." },
@@ -7372,7 +7370,7 @@ export const en = {
     setup_write: {
       label: "Set up the workspace",
       description:
-        "Offer to connect an AI, an app or an MCP server, or to invite people, with a card a person clicks, and create channels for whoever asked, with Undo.",
+        "Offer to connect an AI, an app or an MCP server, or to invite people, with a card a person clicks, and create groups for whoever asked, with Undo.",
     },
     vault_read: {
       label: "See the Vault",
@@ -7995,7 +7993,7 @@ export const en = {
       week: "This week",
       whereHint: {
         thread: "Every run answers in the same thread",
-        channel: "Everyone in the channel sees it",
+        channel: "Everyone in the group sees it",
         dm: "Only you see it",
         artifact: "Becomes a document in the Drive",
         widget: "Updates its widget, with no message",
@@ -8070,7 +8068,7 @@ export const en = {
         name: "Unanswered questions",
         text: "Weekdays at 4pm, what nobody answered today.",
         prompt:
-          "Look in the channel for today's questions and requests that got no answer. List each one with who asked.",
+          "Look in the group for today's questions and requests that got no answer. List each one with who asked.",
       },
       leads: {
         name: "New CRM contacts",
@@ -8170,7 +8168,7 @@ export const en = {
         name: "Question of the week",
         text: "Thursdays at 4pm, one question for the team.",
         prompt:
-          "Summarize the answers to last week's question without naming anyone. Then post a short new question in the channel about how the week went.",
+          "Summarize the answers to last week's question without naming anyone. Then post a short new question in the group about how the week went.",
       },
       away: {
         name: "Who's out this week",
@@ -8178,10 +8176,10 @@ export const en = {
         prompt: "Check the calendar for time off and trips this week. List them by day and say what needs covering.",
       },
       digest: {
-        name: "Daily channel digest",
+        name: "Daily group digest",
         text: "Weekdays at 9am, what happened yesterday.",
         prompt:
-          "Summarize what happened in the channel since the last digest: requests, what got solved and what was left unanswered.",
+          "Summarize what happened in the group since the last digest: requests, what got solved and what was left unanswered.",
       },
       errors: {
         name: "Watch for new errors",
@@ -8204,7 +8202,7 @@ export const en = {
     event: {
       "sentry.issue_created": "New Sentry error",
       "github.pr_opened": "PR opened on GitHub",
-      "issue.created": "Task created in agentes",
+      "issue.created": "Task created in DougBot",
       "deploy.succeeded": "Deploy finished",
     },
     when: { event: "When: {{event}}" },
@@ -8272,15 +8270,15 @@ export const en = {
       creator_left: "Paused: whoever created it left the workspace",
       creator_no_access: "Paused: whoever created it can no longer post in that conversation",
       agent_archived: "Paused: the agent was archived",
-      agent_not_in_channel: "Paused: the agent is no longer in the channel",
+      agent_not_in_channel: "Paused: the agent is no longer in the group",
       audience: "Paused: whoever created it can no longer talk to the agent",
       failing: "Paused: it didn't work 5 times in a row",
     },
     fix: {
-      add_agent: "Add the agent to the channel",
+      add_agent: "Add the agent to the group",
       take_over: "Take over the routine",
       resume: "Resume",
-      addedToast: "{{name}} is back in the channel and the routine is active again.",
+      addedToast: "{{name}} is back in the group and the routine is active again.",
       takenToast: "The routine is yours now and active again.",
     },
     health: {
@@ -8348,7 +8346,7 @@ export const en = {
       creator_left: "Stopped: whoever created it left the workspace",
       creator_no_access: "Couldn't tell: whoever created it can no longer post there",
       audience: "Didn't run: whoever created it can no longer talk to the agent",
-      agent_not_in_channel: "Didn't run: the agent is no longer in the channel",
+      agent_not_in_channel: "Didn't run: the agent is no longer in the group",
       budget_exceeded: "This month's budget ran out",
       provider_error: "The model gave an error",
       provider_unavailable: "The model didn't answer",
@@ -8816,7 +8814,7 @@ export const en = {
       title: "Mission files",
       folder: "folder",
       tabs: "File",
-      missionSub: "Plan and rules · updated by agentes.chat",
+      missionSub: "Plan and rules · updated by DougBot",
       decisionsSub: "Approved decisions",
       notesSub: "{{executor}}'s notes",
       synced: "synced {{when}}",
@@ -8887,14 +8885,14 @@ export const en = {
       title: "New mission",
       text: "A long project for an agent. It proposes a plan, works on its computer and asks for decisions and reviews in the thread.",
       goal: "Goal",
-      goalPlaceholder: "E.g. build the agentes.chat mobile app in Expo, based on the current web app.",
+      goalPlaceholder: "E.g. build the DougBot mobile app in Expo, based on the current web app.",
       agent: "Agent",
       computer: "Computer",
       noMachine: "None connected",
       home: "Where it lives",
-      channel: "Channel",
+      channel: "Group",
       dm: "DM",
-      pickChannel: "Pick a channel",
+      pickChannel: "Pick a group",
       dmWith: "DM with {{name}}",
       homeHint: "The mission gets a thread: that's where {{name}} talks, asks for decisions and shows his work.",
       homeHint_female: "The mission gets a thread: that's where {{name}} talks, asks for decisions and shows her work.",
@@ -9070,13 +9068,13 @@ export const en = {
   },
   threads: {
     title: "Threads",
-    subtitle: "Subjects that left channels and DMs.",
+    subtitle: "Subjects that left groups and DMs.",
     tabsLabel: "Thread filter",
     tabs: { all: "All", working: "With work", missions: "Missions", closed: "Closed", archived: "Archived" },
     search: "Search threads",
     searchArchived: "Search archived",
     filters: "Filters",
-    filterChannel: "Channel",
+    filterChannel: "Group",
     filterAgent: "Agent",
     needsYou: "Needs you",
     mine: "Mine",
@@ -9115,8 +9113,8 @@ export const en = {
       reopen: "Reopen",
       archive: "Archive",
       unarchive: "Unarchive",
-      move: "Take out of the channel",
-      return: "Return to the channel",
+      move: "Take out of the group",
+      return: "Return to the group",
     },
     notes: {
       archivedTitle: "Read only.",
@@ -9127,7 +9125,7 @@ export const en = {
       missionsTitle: "No missions yet",
       missions: "A mission is a thread with a plan, decisions and an agent's work on its computer.",
       allTitle: "Every topic in its own conversation",
-      all: "Reply to a message to open a thread, and the channel stays clear.",
+      all: "Reply to a message to open a thread, and the group stays clear.",
       workingTitle: "No agent working right now",
       closedTitle: "Nothing closed here",
       archivedTitle: "No archived threads",
@@ -9139,7 +9137,7 @@ export const en = {
     toast: {
       created_one: "Thread created with {{count}} message",
       created_other: "Thread created with {{count}} messages",
-      undone: "Undone: the thread was deleted and the channel is as it was.",
+      undone: "Undone: the thread was deleted and the group is as it was.",
       close: "Thread closed. It shows as one line in #{{channel}} and reopens if someone replies.",
       closeMany_one: "{{count}} thread closed",
       closeMany_other: "{{count}} threads closed",
@@ -9153,11 +9151,11 @@ export const en = {
       unarchiveMany_one: "{{count}} thread unarchived",
       unarchiveMany_other: "{{count}} threads unarchived",
       move: "The messages left #{{channel}}. A notice with the link stays there.",
-      moveMany_one: "{{count}} range taken out of the channel",
-      moveMany_other: "{{count}} ranges taken out of the channel",
-      return: "Returned to the channel: the messages are back in #{{channel}}.",
-      returnMany_one: "{{count}} range returned to the channel",
-      returnMany_other: "{{count}} ranges returned to the channel",
+      moveMany_one: "{{count}} range taken out of the group",
+      moveMany_other: "{{count}} ranges taken out of the group",
+      return: "Returned to the group: the messages are back in #{{channel}}.",
+      returnMany_one: "{{count}} range returned to the group",
+      returnMany_other: "{{count}} ranges returned to the group",
     },
     work: {
       titleOne: "An agent is working in “{{title}}”",
@@ -9188,13 +9186,13 @@ export const en = {
     },
     popover: {
       title: "Threads",
-      button_one: "Threads: {{count}} in this channel",
-      button_other: "Threads: {{count}} in this channel",
+      button_one: "Threads: {{count}} in this group",
+      button_other: "Threads: {{count}} in this group",
       many: "{{count}}+",
       label: "Threads in #{{channel}}",
       in: "Threads in #{{channel}}",
       countArchived: "{{count}} · {{archived}} archived",
-      empty: "No threads in this channel.",
+      empty: "No threads in this group.",
       seeAll: "See all in Threads",
     },
     side: {
@@ -9219,7 +9217,7 @@ export const en = {
       archivedTitle: "Archived · read only.",
       archivedText: "Unarchive to reply.",
       notFoundTitle: "Thread not found",
-      notFound: "It was undone, or you are no longer in the channel where it lives.",
+      notFound: "It was undone, or you are no longer in the group where it lives.",
     },
     context: {
       label: "Thread context",
@@ -9227,21 +9225,21 @@ export const en = {
       title_other: "Context: {{count}} messages from #{{channel}}, {{span}}",
       titleNoSpan_one: "Context: {{count}} message from #{{channel}}",
       titleNoSpan_other: "Context: {{count}} messages from #{{channel}}",
-      otherChannel: "another channel",
-      reference: "points to the channel",
-      moved: "moved from the channel",
+      otherChannel: "another group",
+      reference: "points to the group",
+      moved: "moved from the group",
       agentsRead: "Agents read this before replying",
       adjust: "Adjust range",
-      move: "Take out of the channel",
-      return: "Return to the channel",
+      move: "Take out of the group",
+      return: "Return to the group",
       referenceNote:
         "Nothing was copied: if someone edits one of these messages in #{{channel}}, the thread sees the new version.",
-      movedNote: "These messages left #{{channel}} and live here now. A notice with the link stayed in the channel.",
+      movedNote: "These messages left #{{channel}} and live here now. A notice with the link stayed in the group.",
     },
     adjust: {
       region: "Selected range",
-      rows: "Channel messages: tap to include or leave out",
-      loading: "Looking for the range in the channel…",
+      rows: "Group messages: tap to include or leave out",
+      loading: "Looking for the range in the group…",
       of: "Adjusting the range of {{title}}",
       start: "Start of the range, {{time}}. Drag or use the arrow keys",
       end: "End of the range, {{time}}. Drag or use the arrow keys",
@@ -9270,8 +9268,8 @@ export const en = {
     search: "Search",
     searchPlaceholder: "Search…",
     noResults: "Nothing by that name.",
-    channels_one: "{{count}} channel",
-    channels_other: "{{count}} channels",
+    channels_one: "{{count}} group",
+    channels_other: "{{count}} groups",
     people_one: "{{count}} person or agent",
     people_other: "{{count}} people or agents",
     kinds_one: "{{count}} type",
@@ -9723,7 +9721,7 @@ export const en = {
   jev: {
     title: "Jev",
     about:
-      "A fast model by TypeSafe, made for quick decisions. agentes.chat asks it small questions, like who should answer. You pay TypeSafe directly.",
+      "A fast model by TypeSafe, made for quick decisions. DougBot asks it small questions, like who should answer. You pay TypeSafe directly.",
     lead: "Helps your agents work as a team.",
     how: "How Jev works",
     why: {
@@ -9843,7 +9841,7 @@ export const en = {
         installing: "{{program}} is being installed on {{computer}}. This changes by itself when it's done.",
         updating: "{{program}} is being updated on {{computer}}. This changes by itself when it's done.",
         runnerOld:
-          "The agentes.chat program on {{computer}} is out of date and an update is on its way. This changes by itself when it's done.",
+          "The DougBot program on {{computer}} is out of date and an update is on its way. This changes by itself when it's done.",
         execOff: "{{computer}} can't run {{program}} yet. We're on it, and this changes by itself.",
         toolOff: "{{program}} isn't allowed on {{computer}} yet. That's on our side: try again later.",
         preparing: "{{computer}} is getting ready. This changes by itself when it's done.",
@@ -9859,7 +9857,7 @@ export const en = {
     },
     page: {
       title: "Your plans",
-      hint: "Each plan stays on the computer it was connected on, and whoever runs that computer can reach it. agentes.chat keeps only its name, email and usage.",
+      hint: "Each plan stays on the computer it was connected on, and whoever runs that computer can reach it. DougBot keeps only its name, email and usage.",
       emptyTitle: "Use the AI plan you already pay for",
       emptyViewer: "Whoever looks after the workspace's AI connects a plan, and it shows up here.",
       connect: "Connect an AI",
@@ -10202,7 +10200,7 @@ export const en = {
     results: "Results",
     goTo: "Go to",
     ask: "Ask an agent",
-    channel: "channel",
+    channel: "group",
     /** A channel's row in a personal workspace (ADR 0159). */
     channelPersonal: "group conversation",
     agent: "agent",
@@ -11072,12 +11070,11 @@ export const en = {
     reasons: {
       no_computer: "Choose a connected computer under Computer to use it.",
       exec_off: "The computer was connected without permission to run programs.",
-      runner_old: "Update the agentes.chat program on the computer to use it.",
+      runner_old: "Update the DougBot program on the computer to use it.",
       /** `program`: "Claude Code" or "Codex" (`brain.card`). */
-      tool_off:
-        "{{program}} is turned off on {{computer}}. Turn it on there, in the agentes.chat app: Preferences → Tools.",
+      tool_off: "{{program}} is turned off on {{computer}}. Turn it on there, in the DougBot app: Preferences → Tools.",
       tool_offLinux:
-        "{{program}} is turned off on {{computer}}. Turn it on there, in the agentes.chat app or with {{command}}.",
+        "{{program}} is turned off on {{computer}}. Turn it on there, in the DougBot app or with {{command}}.",
       not_installed: "{{program}} isn't installed on {{computer}}.",
       /** Its runner hasn't said which CLIs it has yet: nobody knows whether this one is there. */
       not_reported: "{{computer}} is still checking which programs it has. This changes by itself when it's done.",
@@ -11290,7 +11287,7 @@ export const en = {
     },
     areaText: {
       context: {
-        read: "Searches messages, summaries and facts in the channels.",
+        read: "Searches messages, summaries and facts in the groups.",
         write: "Searches the context and keeps his own notes.",
         write_female: "Searches the context and keeps her own notes.",
       },
@@ -11308,7 +11305,7 @@ export const en = {
         write: "Browses websites in his own browser, on his computer. Logins are kept per agent.",
         write_female: "Browses websites in her own browser, on her computer. Logins are kept per agent.",
       },
-      setup: { write: "Offers to connect an AI and creates channels for whoever asked." },
+      setup: { write: "Offers to connect an AI and creates groups for whoever asked." },
       desktop: {
         write:
           "Uses any app on his own desktop on his computer, while people watch or take control. Needs Run code too.",
@@ -11329,7 +11326,7 @@ export const en = {
     formatOriginal: "Original",
     more: "More actions: {{title}}",
     moreShort: "More actions",
-    openInChannel: "Open in the channel",
+    openInChannel: "Open in the group",
     openInDm: "Open the conversation",
     seeVersions: "See versions",
     delete: "Move to trash",
@@ -11388,7 +11385,7 @@ export const en = {
     htmlPreview: "Interactive page. Open to see it.",
     subtitle: "{{kind}} · {{name}} · {{where}} · {{when}}",
     subtitleSize: "{{kind}} · {{name}} · {{where}} · {{when}} · {{size}}",
-    noChannel: "no channel",
+    noChannel: "no group",
     download: "Download",
     downloadCsv: "Download CSV",
     downloadPdf: "Download PDF",
@@ -11479,8 +11476,8 @@ export const en = {
     kind: "Type",
     filters: "Filters",
     allKinds: "All types",
-    channel: "Channel",
-    allChannels: "All channels",
+    channel: "Group",
+    allChannels: "All groups",
     author: "Person or agent",
     allAuthors: "Everyone",
     agents: "Agents",
@@ -11520,7 +11517,7 @@ export const en = {
     groupBy: "Group by",
     group: {
       date: "Date",
-      channel: "Channel",
+      channel: "Group",
       author: "Author",
       none: "No groups",
     },
@@ -11533,7 +11530,7 @@ export const en = {
     today: "Today",
     thisWeek: "This week",
     earlier: "Earlier",
-    noChannel: "No channel",
+    noChannel: "No group",
     files: "Files",
     select: "Select {{title}}",
     /** The list's head checkbox and the selection bar's button: everything the Drive shows now. */
@@ -11558,9 +11555,9 @@ export const en = {
     seeVersion: "View",
     seeVersionLabel: "View v{{version}}",
     whereShown: "Where it shows up",
-    sharedIn: "Shared in the channel",
+    sharedIn: "Shared in the group",
     onlyDrive: "Only in the Drive",
-    onlyDriveText: "Not shared in a channel yet.",
+    onlyDriveText: "Not shared in a group yet.",
     dm: "Direct message",
     dmWith: "Direct message with {{name}}",
     /** A file of a DM the person isn't in, shared with them (ADR 0157): the DM's two sides. */
@@ -11569,7 +11566,7 @@ export const en = {
     inThread: "In a thread of the conversation",
     audience: {
       workspace: "Everyone in the workspace can see it",
-      publicChannel: "Everyone in the workspace can see it: it's in the public channel #{{name}}",
+      publicChannel: "Everyone in the workspace can see it: it's in the public group #{{name}}",
       privateChannel: "Only members of #{{name}} and administrators can see it",
       dm: "Only you and {{name}} can see it: it came from a direct message",
       dmGone: "Only the people in that conversation can see it: it came from a direct message",
@@ -11577,7 +11574,7 @@ export const en = {
       dmBetween: "Only {{names}} can see it: it came from a direct message",
     },
     private: "Private",
-    privateHint: "Only the people in the conversation see these files. In a channel, administrators do too.",
+    privateHint: "Only the people in the conversation see these files. In a group, administrators do too.",
     downloadAs: "Download as",
     uploading_one: "Uploading {{count}} file",
     uploading_other: "Uploading {{count}} files",
@@ -11586,7 +11583,7 @@ export const en = {
     uploadDone: "done",
     uploadFailed: "failed",
     hideUploads: "Hide uploads",
-    dropText: "Images, PDFs, spreadsheets, any file. To send it to a channel, drop it on the conversation.",
+    dropText: "Images, PDFs, spreadsheets, any file. To send it to a group, drop it on the conversation.",
     trashNote: "Whoever created it, asked the agent for it, owns the agent, or an admin can restore it.",
     trashEmptyText: "What's deleted in the Drive stays here for 30 days.",
     trashStorage: "While they're here, files don't count toward the workspace's storage.",
@@ -11605,7 +11602,7 @@ export const en = {
   storage: {
     title: "Storage",
     options: "Where to keep files",
-    agentes: "agentes.chat storage",
+    agentes: "DougBot storage",
     agentesText: "Your files stay in our storage, kept apart per workspace.",
     server: "This server",
     serverText: {
@@ -11616,7 +11613,7 @@ export const en = {
     },
     showFolder: "Show the folder",
     place: {
-      agentes: "agentes.chat storage",
+      agentes: "DougBot storage",
       server: "this server",
     },
     s3: "Your own bucket",
@@ -11674,13 +11671,12 @@ export const en = {
   },
   githubApp: {
     title: "GitHub repositories",
-    text: "Where the agentes.chat app is installed, agents open pull requests, issues, comments and commits as the app, with the agent's name and who asked.",
-    install: "Install the agentes.chat app",
+    text: "Where the DougBot app is installed, agents open pull requests, issues, comments and commits as the app, with the agent's name and who asked.",
+    install: "Install the DougBot app",
     installMore: "Install on another account",
     none: "No GitHub account yet.",
     /** Nothing installed yet, and agents use the workspace's GitHub account: who they show up as today. */
-    usingAccount:
-      "Today agents show up on GitHub as {{account}}. Install the app so they show up as the agentes.chat app.",
+    usingAccount: "Today agents show up on GitHub as {{account}}. Install the app so they show up as the DougBot app.",
     allRepos: "All repositories",
     someRepos: "Selected repositories",
     suspended: "Suspended on GitHub",
@@ -11691,7 +11687,7 @@ export const en = {
     removeName: "Remove {{account}}",
     removeTitle: "Remove the app from {{account}}?",
     removeText:
-      "The agentes.chat app is uninstalled from {{account}} on GitHub, and agents stop using that account's repositories through it.",
+      "The DougBot app is uninstalled from {{account}} on GitHub, and agents stop using that account's repositories through it.",
     /** After removeText when it's the app's last account and no GitHub account is connected. */
     removeLast: "It's the last one, so agents lose GitHub until someone installs the app or connects an account.",
     removed: "App removed from {{account}} and uninstalled on GitHub.",
@@ -11699,7 +11695,7 @@ export const en = {
     notUninstalled: "App removed here, but GitHub didn't confirm the uninstall from {{account}}. Uninstall it there.",
     /** That toast's button, short enough to leave its words room beside it on a phone. */
     openPage: "Open",
-    installed: "agentes.chat app installed.",
+    installed: "DougBot app installed.",
     /** An installation approved on GitHub never links here: the account's owner installs it from agentes.chat. */
     requested:
       "Only the GitHub account's owner can install the app. Ask them to install it from Connectors › GitHub in this workspace.",
@@ -11708,7 +11704,7 @@ export const en = {
       "That GitHub account is already linked to another workspace. Remove the app there before installing it here.",
     /** The app was installed on GitHub itself, not from agentes.chat (`github_app_error=installed_outside`). */
     installedOutside:
-      "The app was installed on that GitHub account outside agentes.chat. Remove it on GitHub and install it again from Connectors › GitHub.",
+      "The app was installed on that GitHub account outside DougBot. Remove it on GitHub and install it again from Connectors › GitHub.",
     /**
      * GitHub refused to say whether the person owns the organization (`github_app_error=owner_unknown`, a 403): most
      * likely this server's own GitHub App was made without the organization permission Members, which only whoever
@@ -11727,14 +11723,14 @@ export const en = {
     /** For admins who aren't the server's owner, on a server without the app (never on agentes.chat). */
     ownerHint: "This server's owner can create its GitHub app here in Connectors.",
     /** A connected row of GitHub through the app alone: the accounts it is installed on. */
-    viaApp: "Through the agentes.chat app on {{accounts}}",
-    disconnectApp: "The agentes.chat app is also uninstalled from {{accounts}} on GitHub.",
-    disconnectKeepsApp: "Agents stay on GitHub through the agentes.chat app on {{accounts}}.",
-    keptApp: "GitHub account disconnected. Agents stay on GitHub through the agentes.chat app.",
+    viaApp: "Through the DougBot app on {{accounts}}",
+    disconnectApp: "The DougBot app is also uninstalled from {{accounts}} on GitHub.",
+    disconnectKeepsApp: "Agents stay on GitHub through the DougBot app on {{accounts}}.",
+    keptApp: "GitHub account disconnected. Agents stay on GitHub through the DougBot app.",
     /** The line under what an agent writes on GitHub (pull requests, issues, comments), in the workspace's language. */
     signature: {
-      forPerson: "{{agent}}, agent for {{person}} on agentes.chat",
-      alone: "{{agent}}, an agent on agentes.chat",
+      forPerson: "{{agent}}, agent for {{person}} on DougBot",
+      alone: "{{agent}}, an agent on DougBot",
     },
     /** The server's page that sends its owner to GitHub to create the app (it goes on by itself). */
     manifestPage: {
@@ -12010,8 +12006,8 @@ export const en = {
         "2": "Create folders and move files",
         ask: "Sharing always asks for your approval",
       },
-      slack: { "1": "Read channels, messages and threads", ask: "Sending messages always asks for your approval" },
-      microsoft_teams: { "1": "Read channels and chats", ask: "Sending messages always asks for your approval" },
+      slack: { "1": "Read groups, messages and threads", ask: "Sending messages always asks for your approval" },
+      microsoft_teams: { "1": "Read groups and chats", ask: "Sending messages always asks for your approval" },
       zendesk: {
         "1": "Read tickets and comments",
         ask: "Creating, changing and answering tickets always asks for your approval",
@@ -12385,7 +12381,7 @@ export const en = {
       reply: "reply|replies",
       error: "error|errors",
       alert: "alert|alerts",
-      channel: "channel|channels",
+      channel: "group|groups",
       cycle: "cycle|cycles",
       analytics: "analytics|analytics",
       revenue: "revenue|revenue",
@@ -12507,7 +12503,7 @@ export const en = {
     /** Connecting GitHub where the server has the agentes.chat app: the app first, an account second. */
     github: {
       how: "How agents reach GitHub",
-      app: "The agentes.chat app",
+      app: "The DougBot app",
       recommended: "Recommended",
       appText: "Agents show up as the app, and you pick the repositories on GitHub.",
       account: "A GitHub account",
@@ -12532,7 +12528,7 @@ export const en = {
     withKey: "Connect with an API key",
     needsKey: "This server doesn't support OAuth. Connect with an API key.",
     notApproved:
-      "{{name}} only lets apps it approved sign in, and agentes.chat isn't approved yet. If it gives you an API key, you can connect with that.",
+      "{{name}} only lets apps it approved sign in, and DougBot isn't approved yet. If it gives you an API key, you can connect with that.",
     serverSaid: "The server answered: {{detail}}",
     nothingYet: "Nothing is available to agents until step 3.",
     allCanUse: "Once connected, every agent can use it. You can adjust that later.",
@@ -12965,14 +12961,14 @@ export const en = {
   },
   searchPage: {
     title: "Search the workspace",
-    subtitle: "Messages, context and team actions in the channels you're in.",
+    subtitle: "Messages, context and team actions in the groups you're in.",
     label: "Search",
     placeholder: "Messages, decisions, summaries…",
     filter: "Type",
     all: "All",
     kinds: { message: "Messages", context_item: "Context", action: "Team actions" },
     empty: "Nothing found for “{{q}}”.",
-    hint: "Searches the channels you're in.",
+    hint: "Searches the groups you're in.",
     inChannel: "in #{{channel}}",
     count_one: "{{count}} result",
     count_other: "{{count}} results",
@@ -12996,7 +12992,7 @@ export const en = {
     options: "Search options",
     option: {
       from: "From a specific person or agent",
-      in: "Sent in a specific channel or DM",
+      in: "Sent in a specific group or DM",
       has: "Includes a link, file, image or card",
       mentions: "Mentions a specific person or agent",
       before: "Before a date",
@@ -13017,10 +13013,10 @@ export const en = {
     pickDate: "Date",
     dateHint: "Type a date: 2026-10-05, 2026-10 or 2026",
     noMatch: "No one by that name here.",
-    noPlace: "No channel or DM by that name.",
+    noPlace: "No group or DM by that name.",
     sort: { label: "Sort", newest: "Newest", oldest: "Oldest", relevance: "Most relevant" },
     searchHere: "Search in this conversation",
-    optionHint: { from: "name", in: "channel", has: "link, file, image or card", mentions: "name" },
+    optionHint: { from: "name", in: "group", has: "link, file, image or card", mentions: "name" },
     moreFiltersHint: "dates, agents only, pinned",
     clearRecentAll: "Clear recent searches",
     /** The search at the top of a channel (Discord style): the field, and the results in the panel beside it. */
@@ -13129,11 +13125,11 @@ export const en = {
       takeControl: "Take control of the profile first.",
       profileBusy: "Someone else is using this profile.",
       nameTaken: "That name is already in use. Pick another one.",
-      deleteName: "Type the channel's name to delete it.",
+      deleteName: "Type the group's name to delete it.",
       generalKept: "#general can't be deleted.",
       generalStays: "Everyone stays in #general.",
       mcpUnreachable: "Couldn't connect to the MCP server. Check its address and try again.",
-      notApproved: "This service hasn't approved agentes.chat yet.",
+      notApproved: "This service hasn't approved DougBot yet.",
       alreadyInvited: "This person already has an invitation.",
       alreadyAsked: "Someone already asked for this person.",
       mailboxConnected: "This mailbox is already connected.",
@@ -13295,7 +13291,7 @@ export const en = {
       computerOffline: "The agent's computer is offline.",
       execDisabled: "Commands are turned off on that computer.",
       runnerOutdated:
-        "The program on the computer is too old for missions: update the agentes.chat app there, or run its install command again.",
+        "The program on the computer is too old for missions: update the DougBot app there, or run its install command again.",
       exists: "This thread already has a mission.",
       closed: "This mission is closed.",
       wrongStatus: "The mission isn't in a state that allows this.",
@@ -13327,8 +13323,8 @@ export const en = {
       contextNotVisible: "Not everyone in this conversation can see where these messages come from.",
       archived: "This thread is archived: read only. Unarchive it to reply.",
       hasReplies: "Someone already replied in this thread: it can't be undone anymore.",
-      rangeHasReplies: "Some of these messages have replies of their own and can't leave the channel.",
-      moveOtherChannel: "Only messages of this thread's channel can move into it.",
+      rangeHasReplies: "Some of these messages have replies of their own and can't leave the group.",
+      moveOtherChannel: "Only messages of this thread's group can move into it.",
       notAllowed: "Only who created the thread, the first message's author or an admin can do this.",
       rangeInvalid: "The range must start and end on messages of the conversation (not replies).",
       rangeEmpty: "The range has no messages left.",
@@ -13398,7 +13394,7 @@ export const en = {
       targetPaused: "That computer is paused. Choose another one.",
       pausePast: "Choose a time in the future.",
       accountMethodUnsupported:
-        "This computer can't connect Claude this way yet. Update the agentes.chat program on it, or use an API key.",
+        "This computer can't connect Claude this way yet. Update the DougBot program on it, or use an API key.",
       offline: "{{name}} is offline right now. Try again once it's back.",
       paused: "{{name}} is paused: nothing new starts on it until it's resumed.",
       timeout: "The computer didn't answer in time. Try again.",
@@ -13437,7 +13433,7 @@ export const en = {
     /** `agent.right_hand_permanent`: archiving, deleting or adding the right hand to a channel (ADR 0137). */
     rightHand: {
       permanent:
-        "The right hand is part of the workspace and stays out of channels. An @mention reaches it in any of them.",
+        "The right hand is part of the workspace and stays out of groups. An @mention reaches it in any of them.",
     },
     agent: {
       ownerOrAdmin: "Only the agent's owner or an admin can do this.",
@@ -13452,7 +13448,7 @@ export const en = {
       notOwner: "Only the person who connected this account or plan can do this.",
     },
     channel: {
-      membersForbidden: "Only the channel's creator or an admin can add or remove people.",
+      membersForbidden: "Only the group's creator or an admin can add or remove people.",
     },
     handle: {
       invalid: "An @ has {{min}} to {{max}} lowercase letters, numbers, - or _.",
@@ -13553,7 +13549,7 @@ export const en = {
       byYouUntil: "Paused by you until {{time}}.",
       byName: "Paused by {{name}}.",
       byNameUntil: "Paused by {{name}} until {{time}}.",
-      outdated: "Update the agentes.chat app on this computer to pause it from here.",
+      outdated: "Update the DougBot app on this computer to pause it from here.",
       paused: "{{name}} is paused",
       resumed: "{{name}} is back to work",
     },
@@ -13607,9 +13603,9 @@ export const en = {
     // The server's own computer (`HOST_COMPUTER_TOKEN`): the machine agentes.chat is installed on.
     host: {
       label: "This server's computer",
-      desc: "Where agentes.chat is installed.",
-      descUsers: "Where agentes.chat is installed, one user per agent.",
-      descShared: "The computer agentes.chat is installed on. Agents work as the person who installed it.",
+      desc: "Where DougBot is installed.",
+      descUsers: "Where DougBot is installed, one user per agent.",
+      descShared: "The computer DougBot is installed on. Agents work as the person who installed it.",
       stop: "Stop using it in this workspace",
       stopTitle: "Stop using this server's computer?",
       stopText: "This workspace's agents stop using this computer now. You can use it again whenever you want.",
@@ -13620,7 +13616,7 @@ export const en = {
     },
     download: {
       title: "Connect another computer",
-      text: "Install the agentes.chat app on the computer.",
+      text: "Install the DougBot app on the computer.",
       mac: "Download the app for {{system}}",
       version: "Version {{version}}",
       versionSize: "Version {{version}} · {{size}}",
@@ -13631,7 +13627,7 @@ export const en = {
       unavailable: "The app isn't available yet.",
       unavailableCommand: "The app isn't available yet. For now, use the command below.",
       firstTime: "The first time",
-      step1: "Open the downloaded file and drag agentes.chat to Applications.",
+      step1: "Open the downloaded file and drag DougBot to Applications.",
       step1Install: "Open the downloaded file to install it.",
       otherText: "Run this in the computer's terminal, then confirm the code it shows.",
       waiting: "Waiting for the computer to connect…",
@@ -13663,7 +13659,7 @@ export const en = {
       ownFolder: "Each agent's folder",
       ownFolderText: "Always. An agent doesn't see another's.",
       noFolders: "No extra folders. Each agent only uses its own folder.",
-      noReport: "This computer hasn't said what it allows yet. Update agentes.chat on it.",
+      noReport: "This computer hasn't said what it allows yet. Update DougBot on it.",
       hidden: "Only admins and whoever connected it see this computer's folders and tools.",
       nobody: "No agent uses it yet",
       usedBy: "Who uses {{folder}}",
@@ -13706,7 +13702,7 @@ export const en = {
       disableText: "Agents stop using {{tool}} on this computer. To turn it back on, only on the computer itself.",
       disabled: "{{tool}} turned off.",
       grantTitle: "To allow more",
-      grantText: "Allowing happens on the computer itself: open the agentes.chat app there (Preferences → Folders).",
+      grantText: "Allowing happens on the computer itself: open the DougBot app there (Preferences → Folders).",
       grantTextTerminal: "Allowing happens on the computer itself, in its Terminal:",
       grantTextAdmin: "Allowing happens on the computer itself, in its Terminal, as its administrator:",
       grantTerminal: "No app? In the computer's terminal:",
@@ -13799,7 +13795,7 @@ export const en = {
       forbidden: "You can't see this screen",
       forbiddenText: "Its owner chooses who can use {{name}}.",
       outdated: "The app on {{host}} is too old for this",
-      outdatedText: "Update agentes.chat on {{host}}, then try again.",
+      outdatedText: "Update DougBot on {{host}}, then try again.",
       unavailable: "This screen can't be shown",
       unavailableText: "Check that {{host}} has adb or Xcode installed, then try again.",
       needsHelper: "Finish the iPhone setup on the Mac to add the test helper it needs.",
@@ -13956,7 +13952,7 @@ export const en = {
       thisMac: "This Mac",
       thisPc: "This PC",
       thisComputer: "This computer",
-      thisLine: "Through the agentes.chat app",
+      thisLine: "Through the DougBot app",
       openApp: "Open the app",
       server: "A server or VPS",
       serverLine: "One line to paste in its terminal",
@@ -13972,7 +13968,7 @@ export const en = {
     },
     computer: {
       title: "Connect another computer",
-      step1: "Get the agentes.chat app on it:",
+      step1: "Get the DougBot app on it:",
       step2: "Open it and sign in as yourself.",
       step3: "Click Allow when it asks to let {{org}}'s agents use it.",
       shows: "It shows up here by itself, only for you until you share it.",
@@ -13983,11 +13979,11 @@ export const en = {
     },
     /** This computer, from a browser: the desktop app on it opens a link, asks the person, then asks to join. */
     thisApp: {
-      text: "The agentes.chat app connects it in one click, and asks you first.",
-      open: "Open the agentes.chat app",
+      text: "The DougBot app connects it in one click, and asks you first.",
+      open: "Open the DougBot app",
       browserAsks: "Your browser asks to open it: choose Open, and Always allow if it offers.",
       noApp: "Don't have the app?",
-      afterInstall: "After installing, press Open the agentes.chat app again. The link works once, for 10 minutes.",
+      afterInstall: "After installing, press Open the DougBot app again. The link works once, for 10 minutes.",
       waiting: "Waiting for the app on this computer…",
       expired: "This link expired.",
       again: "Make a new link",
@@ -14071,7 +14067,7 @@ export const en = {
       },
       qrLabel: "QR code that opens these steps on the phone",
       qrLine: "Do it from your phone",
-      qrCaption: "Scan to open these steps in the agentes.chat app, with buttons for each setting.",
+      qrCaption: "Scan to open these steps in the DougBot app, with buttons for each setting.",
       /** Android's own words for these settings rows, as the phone shows them in this language. */
       buildNumber: "Build number",
       buildNumberSub: "BP2A.250605.031",
@@ -14122,30 +14118,30 @@ export const en = {
           "{{computer}} can't look for phones on the Wi-Fi. Update Android platform-tools there, or use a cable.",
         /** On a Mac: macOS's own names for its Local Network privacy setting, as System Settings shows them in this language. */
         mdns_offMac:
-          "{{computer}} can't look for phones on the Wi-Fi. On that Mac, turn on agentes.chat in System Settings\u00a0›\u00a0Privacy & Security\u00a0›\u00a0Local Network, then try again.",
+          "{{computer}} can't look for phones on the Wi-Fi. On that Mac, turn on DougBot in System Settings\u00a0›\u00a0Privacy & Security\u00a0›\u00a0Local Network, then try again.",
         same_wifi:
           "Couldn't reach the phone. It's not on the same network as {{computer}}. Put it on the same Wi-Fi and try again.",
         /** On a Mac: macOS's own names for its Local Network privacy setting, as System Settings shows them in this language. */
         same_wifiMac:
-          "Couldn't reach the phone. Put it on the same Wi-Fi as {{computer}}. On that Mac, also turn on agentes.chat in System Settings\u00a0›\u00a0Privacy & Security\u00a0›\u00a0Local Network.",
+          "Couldn't reach the phone. Put it on the same Wi-Fi as {{computer}}. On that Mac, also turn on DougBot in System Settings\u00a0›\u00a0Privacy & Security\u00a0›\u00a0Local Network.",
         refused: "The phone stopped the pairing. Keep its pairing screen open and try again.",
         refusedCode: "The phone didn't take that code. Check the code and the address, then pair again.",
         timed_out:
           "No phone paired in 2 minutes. If the camera scanned the code or the phone left the Wi-Fi, put it on the same Wi-Fi as {{computer}} and scan from Wireless debugging.",
         /** On a Mac: macOS's own names for its Local Network privacy setting, as System Settings shows them in this language. */
         timed_outMac:
-          "No phone paired in 2 minutes. If the camera scanned the code or the phone left the Wi-Fi, put it on the same Wi-Fi as {{computer}} and scan from Wireless debugging. On that Mac, also turn on agentes.chat in System Settings\u00a0›\u00a0Privacy & Security\u00a0›\u00a0Local Network.",
+          "No phone paired in 2 minutes. If the camera scanned the code or the phone left the Wi-Fi, put it on the same Wi-Fi as {{computer}} and scan from Wireless debugging. On that Mac, also turn on DougBot in System Settings\u00a0›\u00a0Privacy & Security\u00a0›\u00a0Local Network.",
         outdated:
           "Wi-Fi pairing needs Android 14 or newer with the May 2026 security update. Update the phone, or use a cable.",
         adb_missing: "{{computer}} has no Android platform-tools. Install Android Studio there, then try again.",
-        update: "Wi-Fi pairing needs a newer agentes.chat on {{computer}}. Update it, then try again.",
+        update: "Wi-Fi pairing needs a newer DougBot on {{computer}}. Update it, then try again.",
         canceled: "The pairing stopped. Try again.",
         failed: "The pairing didn't work. Try again, or use a cable.",
       },
     },
     iphone: {
       title: "Connect an iPhone",
-      lead: "iPhones connect through a Mac, where the agentes.chat app does the setup.",
+      lead: "iPhones connect through a Mac, where the DougBot app does the setup.",
       mac: "Mac",
       noMac: "Agents can use an iPhone only through a Mac, and none is connected yet.",
       noMacNote: "No Mac? Ask a teammate to connect theirs.",
@@ -14402,7 +14398,7 @@ export const en = {
     reconnectDoneText: "{{name}} is back in {{org}}.",
     deniedTitle: "Not connected",
     denied: "The computer wasn't connected. If it wasn't you who opened it, nobody got access.",
-    home: "Go to agentes",
+    home: "Go to DougBot",
   },
   apps: {
     connect: "Connect an app",
@@ -14428,8 +14424,8 @@ export const en = {
       skill_other: "{{count}} skills",
       memory_one: "{{count}} memory",
       memory_other: "{{count}} memories",
-      channel_one: "{{count}} channel",
-      channel_other: "{{count}} channels",
+      channel_one: "{{count}} group",
+      channel_other: "{{count}} groups",
     },
     connectedAt: "Connected {{when}}",
     usedAt: "Used {{when}}",
@@ -14509,7 +14505,7 @@ export const en = {
       claude: {
         lead: "claude.ai, Claude Desktop and phone: one connector works everywhere.",
         step1: "Open Customize\u00a0›\u00a0Connectors on claude.ai or Claude Desktop.",
-        step2: "Click + Add, then Add custom connector, name it agentes.chat, paste the address and click Continue.",
+        step2: "Click + Add, then Add custom connector, name it DougBot, paste the address and click Continue.",
         step3: "Choose Sign in now, click Add and authorize on the page that opens.",
         phone: "It shows on your phone once added on the computer.",
         team: "On Team and Enterprise plans, the Claude organization's Owner adds the connector in Organization settings\u00a0›\u00a0Connectors. Then each person clicks Connect in Customize\u00a0›\u00a0Connectors.",
@@ -14549,9 +14545,9 @@ export const en = {
         open: "Open {{place}}.",
         click: "Click {{button}}.",
         clickThen: "Click {{button}}, then {{next}}.",
-        name: "Name it agentes.chat and paste the address.",
-        nameDescribe: "Name it agentes.chat and add a description.",
-        nameConnect: "Name it agentes.chat and click {{button}}.",
+        name: "Name it DougBot and paste the address.",
+        nameDescribe: "Name it DougBot and add a description.",
+        nameConnect: "Name it DougBot and click {{button}}.",
         paste: "Paste the address.",
         pasteIn: "Paste the address into {{field}}.",
         choosePaste: "Choose {{option}} and paste the address.",
@@ -14575,9 +14571,9 @@ export const en = {
         reload: "Then type <code>{{command}}</code> in the chat.",
         loginRun: "To sign in, run <code>{{command}}</code>.",
         loginType: "To sign in, type <code>{{command}}</code> in the app.",
-        signIn: "Sign in with your agentes.chat account on the page that opens.",
+        signIn: "Sign in with your DougBot account on the page that opens.",
         /** {{access}}: the consent page's option, as it reads there. */
-        signInManage: "Sign in with your agentes.chat account on the page that opens, and pick {{access}}.",
+        signInManage: "Sign in with your DougBot account on the page that opens, and pick {{access}}.",
         /** Grok Bot uses a connected server only once it is attached to the message. */
         mention: "In the chat, type <code>@</code> and pick <code>{{name}}</code>.",
         signInFirst: "The app asks you to sign in the first time you use it.",
@@ -14629,14 +14625,14 @@ export const en = {
       manage: "Create and edit agents, routines and skills",
       manageHelp: "Also creates agents, routines, skills and memories for you, with your permissions.",
       read: "Read only",
-      readHelp: "Sees agents, channels and replies, without sending anything.",
+      readHelp: "Sees agents, groups and replies, without sending anything.",
       can: "Can",
-      canSee: "See the agents and channels you see.",
+      canSee: "See the agents and groups you see.",
       canSend: "Send messages as you, marked via {{app}}.",
       canRead: "Read the replies and what agents are doing.",
       canManage: "Create and edit agents, routines and skills as you. You get a notice of what it creates.",
       never: "Never",
-      neverApprove: "Approve agents' actions. Approvals stay with people in agentes.chat.",
+      neverApprove: "Approve agents' actions. Approvals stay with people in DougBot.",
       neverSettings: "Change settings, members or permissions.",
       neverHidden: "See what you can't see.",
       loopbackWarning:
@@ -14651,7 +14647,7 @@ export const en = {
       done: "You can go back to {{app}}.",
       cancelledTitle: "Connection cancelled",
       cancelled: "Nothing was shared.",
-      goHome: "Go to agentes.chat",
+      goHome: "Go to DougBot",
       language: "Language",
       error: {
         app_desconhecido: "We don't recognize this app",
@@ -14801,7 +14797,7 @@ export const en = {
         wiki: "a wiki page",
         mission: "a mission",
         thread: "a thread",
-        channel: "a channel",
+        channel: "a group",
         artifact: "a Drive file",
         agent: "an agent",
         machine: "a computer",
@@ -14903,7 +14899,7 @@ export const en = {
       voice: "Voice",
       apps: "AI apps",
       approvals: "Approvals",
-      about: "About agentes.chat",
+      about: "About DougBot",
       // A personal workspace's names (ADR 0159): General and Members in their own words.
       generalPersonal: "About you",
       /** The phone's AI accounts screen. */
@@ -14967,7 +14963,7 @@ export const en = {
         density: "Conversation density",
         densityHelp: "Changes only for you, on all your devices",
         where: "Where it applies",
-        channels: "Channels",
+        channels: "Groups",
         /** A personal workspace's channels (ADR 0159). */
         channelsPersonal: "Groups",
         dms: "DMs",
@@ -14977,7 +14973,7 @@ export const en = {
         compact: "Compact",
         toneDms: "My messages in DMs",
         toneDmsHelp: "In the color of the agent you're talking to",
-        toneChannels: "My messages in channels",
+        toneChannels: "My messages in groups",
         toneChannelsPersonal: "My messages in groups",
         toneChannelsHelp: "In blue",
         toneLight: "Light",
@@ -15055,7 +15051,7 @@ export const en = {
       team: "Team",
       personal: "Personal",
       /** Behind the row's ⓘ. */
-      teamHelp: "Channels, people and roles for working together. Switching changes only what's in sight.",
+      teamHelp: "Groups, people and roles for working together. Switching changes only what's in sight.",
       personalHelp: "Simpler, for you and your family if you invite them. Switching changes only what's in sight.",
       toTeam: "Switch to team…",
       toPersonal: "Switch to personal…",
@@ -15065,7 +15061,7 @@ export const en = {
       label: "Send anonymous usage statistics to agentes.chat",
       help: "Counts such as people, agents, machine sizes, AI tokens used and how much data the agents' browsers send and receive. Never messages, files, names or sites.",
       envOff: "Turned off in this server's settings (TELEMETRY=off).",
-      envOffDesktop: "Turned off in the agentes.chat app on this server's computer (Preferences\u00a0›\u00a0Servers).",
+      envOffDesktop: "Turned off in the DougBot app on this server's computer (Preferences\u00a0›\u00a0Servers).",
       see: "See what is sent",
       dialogTitle: "What is sent",
       dialogText: "Once a day. This is the next report, exactly.",
@@ -15206,8 +15202,8 @@ export const en = {
   personalMode: {
     toTeam: {
       title: "Switch to a team workspace",
-      lead: "For working with other people. Channels and people come into sight.",
-      channels: "Channels and people in the sidebar",
+      lead: "For working with other people. Groups and people come into sight.",
+      channels: "Groups and people in the sidebar",
       roles: "Inviting people, with roles for what each one can do",
       admin: "Approving for others and the audit log, back in Settings",
       stays: "Your agents, conversations, routines and files stay as they are.",
@@ -15219,7 +15215,7 @@ export const en = {
       title: "Switch to a personal workspace",
       lead: "The same workspace, simpler to use on your own.",
       sidebar: "The sidebar shows what you use most, the rest is under More",
-      channels: "Channels show as group conversations",
+      channels: "Groups show as group conversations",
       settings: "Settings get shorter, with the rest under Advanced",
       bubbles: "Conversations open as bubbles",
       others_one: "The other person here sees it this way too",
@@ -15235,7 +15231,7 @@ export const en = {
       family: "Family or friends",
       familyText: "They join you here, and the workspace stays personal.",
       work: "People you work with",
-      workText: "Switch to a team workspace first: channels, people and roles come into sight.",
+      workText: "Switch to a team workspace first: groups, people and roles come into sight.",
       workLocked: "Only whoever manages this workspace can switch it to a team's.",
     },
   },
@@ -15276,7 +15272,7 @@ export const en = {
     now: {
       channel: "With {{agent}} in #{{channel}}",
       private: "In a private conversation with {{agent}}",
-      hidden: "With {{agent}} in a private channel",
+      hidden: "With {{agent}} in a private group",
       routine: "Routine {{name}}",
       last: "Last used {{when}}",
       never: "No use",
@@ -15313,7 +15309,7 @@ export const en = {
       with: "with {{agent}}",
       minutes: "{{n}} min",
       private: "Private conversation with {{agent}}",
-      hidden: "In a private channel with {{agent}}",
+      hidden: "In a private group with {{agent}}",
       routine: "Routine {{name}}",
       created: "Agents they created",
       createdAt: "created on {{date}}",
@@ -15679,7 +15675,7 @@ export const en = {
         commentIssue: "{{who}} commented on issue #{{number}} ({{repo}}) on GitHub",
         commentDiscussion: "{{who}} commented on discussion #{{number}} ({{repo}}) on GitHub",
         /** A new pull request, issue or discussion that names the app. */
-        opened: "{{who}} called the agentes.chat app in #{{number}} ({{repo}}) on GitHub",
+        opened: "{{who}} called the DougBot app in #{{number}} ({{repo}}) on GitHub",
         reviewed: "{{who}} reviewed PR #{{number}} ({{repo}}) on GitHub",
         approved: "{{who}} approved PR #{{number}} ({{repo}}) on GitHub",
         changes: "{{who}} asked for changes on PR #{{number}} ({{repo}}) on GitHub",
@@ -15808,7 +15804,7 @@ export const en = {
         writingWiki: "Wrote in the wiki",
         readingWiki: "Read the wiki",
         linkingWiki: "Linked a wiki page",
-        creatingChannel: "Created a channel",
+        creatingChannel: "Created a group",
         offeringConnectAi: "Offered to connect an AI",
         offeringConnectApp: "Offered to connect an app",
         offeringSkill: "Offered to install a skill",
@@ -15859,7 +15855,7 @@ export const en = {
         proposingChange: "Proposed a change",
         workingOnWorkspace: "Worked on the workspace",
         updatingThread: "Updated a thread",
-        addingAgent: "Added an agent to a channel",
+        addingAgent: "Added an agent to a group",
         readingConversation: "Read the conversation",
         usingTool: "Used the {{tool}} tool",
         thinking: "Thought",
@@ -15922,7 +15918,7 @@ export const en = {
       writingWiki: "writing in the wiki",
       readingWiki: "reading the wiki",
       linkingWiki: "linking a wiki page",
-      creatingChannel: "creating a channel",
+      creatingChannel: "creating a group",
       offeringConnectAi: "getting an AI ready to connect",
       offeringConnectApp: "getting an app ready to connect",
       offeringSkill: "getting a skill ready to install",
@@ -15973,7 +15969,7 @@ export const en = {
       proposingChange: "proposing a change",
       workingOnWorkspace: "working on the workspace",
       updatingThread: "updating a thread",
-      addingAgent: "adding an agent to a channel",
+      addingAgent: "adding an agent to a group",
       readingConversation: "reading the conversation",
       usingTool: "using a tool",
     },
@@ -16132,8 +16128,7 @@ export const en = {
       no_ai_plan_unattended:
         "I didn't answer: the request didn't come from a person, and the workspace's plan serves only its owner.",
       no_ai_runner_outdated: "I can't answer now: the program on my plan's computer needs an update.",
-      no_ai_plan_tools:
-        "I stopped before answering: my plan's AI on that computer didn't stay within agentes.chat's tools.",
+      no_ai_plan_tools: "I stopped before answering: my plan's AI on that computer didn't stay within DougBot's tools.",
       no_ai_model_limit: "I can't answer now: {{model}} reached its own limit on my plan.",
       no_ai_model_region:
         "I can't answer: {{model}} needs the Global region on in OpenCode (Settings\u00a0›\u00a0Privacy).",
@@ -16144,7 +16139,7 @@ export const en = {
       no_ai_commands_off: "I can't answer now: commands are turned off on my plan's computer.",
       no_ai_cli_missing: "I can't answer yet: my AI's program isn't installed on my computer.",
       no_ai_plan_hold:
-        "I kept your message. I'll answer here once the workspace has an agentes.chat plan and an AI connected.",
+        "I kept your message. I'll answer here once the workspace has a DougBot plan and an AI connected.",
       no_ai_no_computer: "I can't answer yet: my AI needs a computer and I have none.",
       /** Where the server took a sign-in or a key out of the team's right hand's reply, in place of it. */
       redacted: "[removed: it looked like a sign-in or a key]",
@@ -16313,7 +16308,7 @@ export const en = {
     },
     create_routine: {
       label: "Create routine",
-      description: "Creates a recurring routine in this conversation or in a channel.",
+      description: "Creates a recurring routine in this conversation or in a group.",
     },
     list_routines: {
       label: "View routines",
@@ -16321,7 +16316,7 @@ export const en = {
     },
     update_routine: {
       label: "Change routine",
-      description: "Changes a routine's instructions, schedule or channel.",
+      description: "Changes a routine's instructions, schedule or group.",
     },
     list_reminders: {
       label: "View reminders",
@@ -16385,12 +16380,12 @@ export const en = {
     },
     propose_team: {
       label: "Propose a team",
-      description: "Posts one card with several agents, their channels, routines and skills. A person creates it.",
+      description: "Posts one card with several agents, their groups, routines and skills. A person creates it.",
     },
     propose_settings_change: {
       label: "Propose a teammate's settings",
       description:
-        "Posts a card with a teammate's new model, AI, budget, owner, audience or channels. A person applies it.",
+        "Posts a card with a teammate's new model, AI, budget, owner, audience or groups. A person applies it.",
     },
     offer_approvals: {
       label: "Show what waits for approval",
@@ -16413,8 +16408,8 @@ export const en = {
       description: "Posts a card with a new agent to review. A person creates it.",
     },
     create_channel: {
-      label: "Create channel",
-      description: "Creates a channel with people and agents for the person asking, with Undo.",
+      label: "Create group",
+      description: "Creates a group with people and agents for the person asking, with Undo.",
     },
     run_code: {
       label: "Run code",
@@ -16634,7 +16629,7 @@ export const en = {
     machine: {
       ready: "Ready",
       off: "Off",
-      offHelp: "Only someone at the computer turns it on, in the agentes.chat app: Preferences → Tools.",
+      offHelp: "Only someone at the computer turns it on, in the DougBot app: Preferences → Tools.",
       needsCommand: "Needs a command",
       notReady: "Not ready yet",
       turnOff: "Turn off",
@@ -16877,8 +16872,7 @@ export const en = {
     paused: "Agents in this workspace are paused for review.",
     suspended: "This workspace is unavailable for now.",
     createRefused: "You can't create a workspace right now.",
-    createUnpaid:
-      "You already have a workspace waiting for an agentes.chat plan. Choose its plan before creating another.",
+    createUnpaid: "You already have a workspace waiting for a DougBot plan. Choose its plan before creating another.",
     /** The button under it: into the workspace they already have. */
     createUnpaidOpen: "Open {{name}}",
     /** The same refusal with no call to pay, for the phone app: the stores allow paying only in their own flow. */
@@ -16904,30 +16898,30 @@ export const en = {
       agentHold: "{{name}} is paused",
       /** A hold the billing service set (ADR 0079): its code, never shown as it comes. */
       billing: {
-        payment: "The workspace needs an agentes.chat plan",
-        unpaid: "The agentes.chat plan payment didn't go through",
-        ended: "The workspace's agentes.chat plan ended",
+        payment: "The workspace needs a DougBot plan",
+        unpaid: "The DougBot plan payment didn't go through",
+        ended: "The workspace's DougBot plan ended",
       },
     },
     /** A hold the billing service set (ADR 0079), said in place of its code. */
     billing: {
-      payment: "This workspace doesn't have an agentes.chat plan yet. Its agents start working once it does.",
-      unpaid: "This workspace's agentes.chat plan payment didn't go through, and its agents stopped.",
+      payment: "This workspace doesn't have a DougBot plan yet. Its agents start working once it does.",
+      unpaid: "This workspace's DougBot plan payment didn't go through, and its agents stopped.",
       ended:
-        "This workspace's agentes.chat plan ended, and its agents stopped. Its conversations and files are still here to read and download.",
-      sub: "You can still read and write here. The agents come back once the agentes.chat plan is in order.",
+        "This workspace's DougBot plan ended, and its agents stopped. Its conversations and files are still here to read and download.",
+      sub: "You can still read and write here. The agents come back once the DougBot plan is in order.",
       cta: {
-        payment: "See agentes.chat plans",
+        payment: "See DougBot plans",
         unpaid: "Update payment",
         ended: "Subscribe again",
       },
       askAdmin: "Whoever runs this workspace can sort this out.",
       /** In place of the hold's words, back from paying until the billing service lifts it. */
-      paid: "Payment received. The agentes.chat plan starts in a moment.",
+      paid: "Payment received. The DougBot plan starts in a moment.",
       /** The banner's one line on a `payment` hold once there is a team. */
-      teamReady: "Your team is ready. It needs an agentes.chat plan to start.",
+      teamReady: "Your team is ready. It needs a DougBot plan to start.",
       /** In place of the invite form. */
-      invites: "Invitations open with the agentes.chat plan.",
+      invites: "Invitations open with the DougBot plan.",
     },
     /** agentes.chat Cloud only: what the restriction is, the Terms section and how to contest it (`restrictionLine`). */
     cloud: {
@@ -17088,7 +17082,7 @@ export const en = {
     open: "Open plan and billing",
     opening: "Opening…",
     failed: "Couldn't open it now. Try again in a moment.",
-    adminsOnly: "Only the workspace's owners and admins manage its agentes.chat plan.",
+    adminsOnly: "Only the workspace's owners and admins manage its DougBot plan.",
     seeOptions: "See options",
     people: "People",
     files: "Files",
@@ -17103,8 +17097,8 @@ export const en = {
   limits: {
     members: {
       full: "This workspace has {{members}} of {{limit}} people.",
-      fullOne: "This workspace's agentes.chat plan fits 1 person.",
-      fullAdmin: "To bring more people in, see the agentes.chat plan's options.",
+      fullOne: "This workspace's DougBot plan fits 1 person.",
+      fullAdmin: "To bring more people in, see the DougBot plan's options.",
       fullMember: "Ask whoever runs the workspace to make room.",
       /** To whoever manages billing, below the plan's top. "Plan and billing" is the section in Settings. */
       fullAddSeat: "Every paid seat is taken. Add a seat in Plan and billing.",
@@ -17128,7 +17122,7 @@ export const en = {
       near: "You've used {{used}} of {{limit}}. Uploads pause at the limit, and nothing is deleted.",
       full: "Uploads paused at {{limit}}. Nothing was deleted.",
       fullAdmin:
-        "Change the agentes.chat plan, delete files you no longer use, or connect your own bucket in Settings\u00a0›\u00a0Storage.",
+        "Change the DougBot plan, delete files you no longer use, or connect your own bucket in Settings\u00a0›\u00a0Storage.",
       dailyFull: "Today's uploads reached {{limit}}. You can upload again in a few hours.",
     },
   },
@@ -17466,7 +17460,7 @@ export const en = {
       turn: "Turn sideways",
       upright: "Turn upright",
       message: "Message {{name}}",
-      chooseOnWeb: "Choose it on agentes.chat, in Settings\u00a0›\u00a0Devices.",
+      chooseOnWeb: "Choose it on DougBot, in Settings\u00a0›\u00a0Devices.",
     },
   },
   taskManager: {
@@ -17571,7 +17565,7 @@ export const en = {
       browser: "Browser",
       screen: "Computer screen",
       terminal: "Terminal",
-      agentes: "agentes",
+      agentes: "DougBot",
       thinking: "Thinking",
       inside: "{{program}} · {{detail}}",
     },
@@ -17802,7 +17796,7 @@ export const en = {
       alerted: "alerted: {{text}}",
       changed: "Changed: {{text}}",
       ask: "Ask for a change",
-      askPlaceholder: "E.g.: split it by channel, or compare with the same week last year",
+      askPlaceholder: "E.g.: split it by group, or compare with the same week last year",
       askTo: "to {{name}}",
       send: "Send",
       sent: "{{name}} is redoing the widget.",
@@ -18159,8 +18153,8 @@ export const en = {
       map: "See as a map",
       agents_one: "{{count}} agent",
       agents_other: "{{count}} agents",
-      newChannels_one: "{{count}} new channel",
-      newChannels_other: "{{count}} new channels",
+      newChannels_one: "{{count}} new group",
+      newChannels_other: "{{count}} new groups",
       routineCount_one: "{{count}} routine",
       routineCount_other: "{{count}} routines",
       weekly: "I tell you here how the team's week went",
@@ -18194,7 +18188,7 @@ export const en = {
       role: "Role",
       line: "What it does",
       instructions: "Instructions",
-      channel: "Channel",
+      channel: "Group",
       firstTask: "First task",
     },
     map: {
@@ -18343,7 +18337,7 @@ export const en = {
     },
     action: {
       signIn: "Sign in",
-      open: "Open agentes.chat",
+      open: "Open DougBot",
       latest: "Open the latest version",
       file: "Open the file",
       retry: "Try again",
@@ -18351,7 +18345,7 @@ export const en = {
     errorId: "Error code: {{id}}",
   },
   teamTemplates: {
-    lead: "A team for {{org}}, each agent in its own channel. You can adjust it before creating.",
+    lead: "A team for {{org}}, each agent in its own group. You can adjust it before creating.",
     /** A personal workspace's templates (ADR 0159): agents for one person's life, each in its own chat with them. */
     leadPersonal: "Your agents, each one talking to you in its own chat. You can adjust them before creating.",
     life: {
@@ -18586,7 +18580,7 @@ export const en = {
       /** Drawn large over the sky: the word itself, in capitals. */
       word: "BETA",
       title: "You're early. We're glad.",
-      text: "agentes.chat is in beta: you can already do real work with it, and we're still polishing.",
+      text: "DougBot is in beta: you can already do real work with it, and we're still polishing.",
       weekly: {
         title: "It gets better every week",
         text: "New things and fixes come out all the time.",
