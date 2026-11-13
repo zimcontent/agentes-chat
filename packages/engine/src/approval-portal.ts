@@ -11,7 +11,16 @@ import {
   type PortalStatus,
   type PortalType,
 } from "@agenteschat/adapters";
+import type { Database } from "@agenteschat/db";
 import { type ArtifactActor, type ArtifactDeps, artifactFile, storedFileOfArtifact } from "./artifacts";
+import {
+  labelIdsByName,
+  memberIdsByName,
+  myPortalWork,
+  type PlanCard,
+  planTool,
+  portalPlan,
+} from "./approval-portal-plan";
 import { ValidationError } from "./errors";
 import { personBehindCall } from "./requester";
 import { replyThreadOf } from "./runs";
@@ -98,7 +107,8 @@ export async function portalOverview(portal: ApprovalPortal): Promise<PortalClie
       summary.next = item.scheduledFor;
     }
   }
-  for (const card of cards) of(card.client).counts[card.state] += 1;
+  // A card that was sent is counted as its post, in the portal's column.
+  for (const card of cards) if (!card.item) of(card.client).counts[card.state] += 1;
   for (const summary of byClient.values()) {
     summary.open = PORTAL_COLUMNS.reduce((sum, c) => sum + (c === "posted" ? 0 : summary.counts[c]), 0);
   }
@@ -115,7 +125,7 @@ export async function portalBoard(portal: ApprovalPortal, client: string): Promi
     cards: { todo: [], doing: [] },
     items: { approval: [], adjusting: [], approved: [], scheduled: [], posted: [] },
   };
-  for (const card of cards) board.cards[card.state].push(card);
+  for (const card of cards) if (!card.item) board.cards[card.state].push(card);
   for (const item of items) {
     if (item.client !== client) continue;
     board.items[portalColumnOf(item) as keyof PortalBoard["items"]].push(item);
@@ -316,6 +326,25 @@ function cardTool(portal: ApprovalPortal): ToolDefinition {
         date: { type: "string", maxLength: 40, description: "When it should go out: YYYY-MM-DDTHH:MM." },
         owner: { type: "string", maxLength: 120, description: "Who makes it (a person's or an agent's name)." },
         note: { type: "string", maxLength: 2000 },
+        description: { type: "string", maxLength: 20000, description: "The brief: idea, script, references." },
+        list: { type: "string", maxLength: 80, description: "The schedule's list by name (a week); made if new." },
+        produce_on: {
+          type: "string",
+          maxLength: 10,
+          description: "The day whoever is on it makes it (YYYY-MM-DD). Not the day it goes out (`date`).",
+        },
+        members: {
+          type: "array",
+          items: { type: "string", maxLength: 120 },
+          maxItems: 10,
+          description: "People of the workspace on it, by name. Replaces who was on it.",
+        },
+        labels: {
+          type: "array",
+          items: { type: "string", maxLength: 40 },
+          maxItems: 10,
+          description: "The team's labels by name. Replaces the card's labels.",
+        },
       },
       required: ["action"],
       additionalProperties: false,
@@ -331,11 +360,28 @@ function cardTool(portal: ApprovalPortal): ToolDefinition {
           ...(input.date !== undefined ? { date: str(input.date) || null } : {}),
           ...(input.owner !== undefined ? { owner: str(input.owner) || null } : {}),
           ...(input.note !== undefined ? { note: str(input.note) } : {}),
+          ...(input.description !== undefined ? { description: str(input.description) } : {}),
+          ...(input.produce_on !== undefined ? { produceOn: str(input.produce_on) || null } : {}),
+          ...(input.labels !== undefined
+            ? { labels: await labelIdsByName(portal, (input.labels as string[]) ?? []) }
+            : {}),
+          ...(input.members !== undefined
+            ? { members: await memberIdsByName(ctx.db as Database, ctx.orgId, (input.members as string[]) ?? []) }
+            : {}),
         };
+        if (fields.produceOn && !/^\d{4}-\d{2}-\d{2}$/.test(fields.produceOn)) {
+          throw new ValidationError("`produce_on` is YYYY-MM-DD");
+        }
+        const listed = async (client: string) =>
+          str(input.list).trim() ? { list: (await portal.createList(client, str(input.list).trim())).id } : {};
         if (input.action === "create") {
           const title = str(input.title).trim();
           if (!str(input.client) || !title) throw new ValidationError("create needs `client` and `title`");
-          const card = await portal.createCard(str(input.client), { ...fields, title }, by);
+          const card = await portal.createCard(
+            str(input.client),
+            { ...fields, ...(await listed(str(input.client))), title },
+            by,
+          );
           return { content: `Created card ${card.id} for ${card.client}: "${card.title}" (${card.state}).` };
         }
         if (!str(input.card)) throw new ValidationError(`${String(input.action)} needs \`card\``);
@@ -343,7 +389,15 @@ function cardTool(portal: ApprovalPortal): ToolDefinition {
           await portal.deleteCard(str(input.card), by);
           return { content: `Deleted card ${str(input.card)}.` };
         }
-        const card = await portal.updateCard(str(input.card), fields, by);
+        const current = str(input.list).trim()
+          ? (await portal.cards()).find((c) => c.id === str(input.card))
+          : undefined;
+        if (str(input.list).trim() && !current) throw new ValidationError("no such card");
+        const card = await portal.updateCard(
+          str(input.card),
+          { ...fields, ...(current ? await listed(current.client) : {}) },
+          by,
+        );
         return { content: `Card ${card.id} is now "${card.title}" (${card.state}).` };
       } catch (error) {
         return failed(error);
@@ -454,6 +508,73 @@ function scheduleTool(portal: ApprovalPortal): ToolDefinition {
   };
 }
 
+export const PORTAL_WORK_TOOL = "portal_work";
+
+const workLine = (card: PlanCard, labels: Map<string, string>) =>
+  `- ${card.type} "${card.title}" for ${card.client} (card ${card.id}, ${card.stage})` +
+  (card.produceOn ? `, to make on ${card.produceOn}` : "") +
+  (card.postOn ? `, goes out ${card.postOn}` : "") +
+  (card.labels.length ? `, labels: ${card.labels.map((id) => labels.get(id) ?? id).join(", ")}` : "") +
+  (card.files.length ? `, files: ${card.files.map((f) => `"${f.name}" (artifact ${f.id})`).join(", ")}` : "") +
+  (card.link ? `, at the portal: ${card.link}` : "") +
+  (card.description ? `\n  brief: ${card.description.slice(0, 1500)}` : "") +
+  (card.checklist.length
+    ? `\n  checklist: ${card.checklist.map((c) => `[${c.done ? "x" : " "}] ${c.text}`).join("; ")}`
+    : "") +
+  (card.comments.length ? `\n  last comment: ${card.comments.at(-1)?.text.slice(0, 500)}` : "");
+
+function workTool(portal: ApprovalPortal): ToolDefinition {
+  return {
+    name: PORTAL_WORK_TOOL,
+    description:
+      "What a person of the workspace has to make at the approval portal's board: the cards they are on that aren't out yet, late ones first, then today's, then what comes next, each with its brief, checklist, files and links. `member` is the person's name; with none, the person behind this conversation. With a `client`, that client's whole strategic schedule instead (lists, cards, stages). Use it to tell someone their day, or to answer a question about a task.",
+    scope: "",
+    inputSchema: {
+      type: "object",
+      properties: {
+        member: { type: "string", maxLength: 120 },
+        client: { type: "string", maxLength: 64 },
+      },
+      additionalProperties: false,
+    },
+    async execute(input, ctx) {
+      try {
+        const names = new Map((await portal.labels()).map((label) => [label.id, label.name]));
+        if (str(input.client)) {
+          const plan = await portalPlan(portal, str(input.client));
+          const text = [...plan.lists, { name: "In no list", cards: plan.unlisted }]
+            .filter((list) => list.cards.length)
+            .map((list) => `## ${list.name}\n${list.cards.map((card) => workLine(card, names)).join("\n")}`)
+            .join("\n\n");
+          return {
+            content: text
+              ? untrustedBlock(`approval portal schedule, ${plan.client}`, text)
+              : `${plan.client}'s schedule is empty.`,
+          };
+        }
+        const member = str(input.member)
+          ? (await memberIdsByName(ctx.db as Database, ctx.orgId, [str(input.member)]))[0]
+          : await personBehindCall(ctx);
+        if (!member) throw new ValidationError("say whose work: `member` is a person's name");
+        const work = await myPortalWork(portal, member);
+        const section = (title: string, cards: PlanCard[]) =>
+          cards.length ? `## ${title}\n${cards.map((card) => workLine(card, names)).join("\n")}` : "";
+        const text = [
+          section("Late", work.late),
+          section(`Today (${work.today})`, work.today_),
+          section("Next", work.next),
+          section("With no production date", work.undated),
+        ]
+          .filter(Boolean)
+          .join("\n\n");
+        return { content: text ? untrustedBlock("approval portal work", text) : "Nothing to make right now." };
+      } catch (error) {
+        return failed(error);
+      }
+    },
+  };
+}
+
 /** Waits a short while for a send to end, so the answer usually carries the link. */
 async function settled(portal: ApprovalPortal, job: PortalJob, waitMs = 20_000): Promise<PortalJob> {
   const until = Date.now() + waitMs;
@@ -466,16 +587,19 @@ async function settled(portal: ApprovalPortal, job: PortalJob, waitMs = 20_000):
 }
 
 /**
- * The portal's tools for a run: listed only on a server with an approval portal, and only where a person is behind
- * the run (a routine reads and sends nothing here).
+ * The portal's tools for a run: listed only on a server with an approval portal. A routine gets the two that read;
+ * the ones that change or send need a person behind the run.
  */
 export function createPortalToolSource(deps: PortalToolDeps): ToolSource {
   return {
     name: "approval-portal",
     async tools(ctx) {
       const portal = deps.portal;
-      if (!portal || !ctx.runId || ctx.background) return [];
-      return [boardTool(portal), cardTool(portal), sendTool(deps, portal), scheduleTool(portal)];
+      if (!portal || !ctx.runId) return [];
+      // A routine reads (it tells each person their day) and changes nothing here.
+      const reads = [boardTool(portal), workTool(portal)];
+      if (ctx.background) return reads;
+      return [...reads, cardTool(portal), planTool(portal), sendTool(deps, portal), scheduleTool(portal)];
     },
   };
 }

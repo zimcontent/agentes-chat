@@ -1,10 +1,20 @@
-import { ApprovalPortalError, PORTAL_CARD_STATES, PORTAL_STATUSES, PORTAL_TYPES } from "@agenteschat/adapters";
 import {
+  ApprovalPortalError,
+  PORTAL_CARD_STATES,
+  PORTAL_LABEL_COLORS,
+  PORTAL_STATUSES,
+  PORTAL_TYPES,
+} from "@agenteschat/adapters";
+import {
+  can,
+  myPortalWork,
+  PORTAL_COLUMNS,
   PORTAL_SEND_FILES,
   PORTAL_WHEN,
   personPortalReader,
   portalBoard,
   portalOverview,
+  portalPlan,
   requireChangePermission,
   requirePermission,
   sendForApproval,
@@ -81,10 +91,34 @@ const Card = z
     owner: z.string().nullable(),
     note: z.string(),
     files: z.array(z.object({ id: z.string(), name: z.string() })),
+    produceOn: z.string().nullable().openapi({
+      description: "The day whoever is on it makes it (YYYY-MM-DD). Not `date`, the day the post goes out.",
+    }),
+    list: z.string().nullable(),
+    order: z.number(),
+    description: z.string(),
+    labels: z.array(z.string()),
+    members: z.array(z.string()).openapi({ description: "Workspace members on it (user ids)." }),
+    checklist: z.array(z.object({ id: z.string(), text: z.string(), done: z.boolean() })),
+    comments: z.array(z.object({ id: z.string(), by: z.string(), text: z.string(), at: z.number() })),
+    item: z.string().nullable().openapi({ description: "The portal's post this card became, once sent." }),
     createdAt: z.number(),
     updatedAt: z.number(),
   })
   .openapi("PortalCard");
+const PlanCard = Card.extend({
+  stage: z.enum(PORTAL_COLUMNS).openapi({
+    description: "Where the post is: the card's own stage, or the portal's once it was sent. Never typed.",
+  }),
+  postOn: z.string().nullable(),
+  link: z.string().nullable(),
+}).openapi("PortalPlanCard");
+const ListId = z.string().regex(/^l-[0-9a-f]{6,32}$/);
+const LabelId = z.string().regex(/^e-[0-9a-f]{6,32}$/);
+const List = z.object({ id: z.string(), name: z.string() }).openapi("PortalList");
+const Label = z.object({ id: z.string(), name: z.string(), color: z.enum(PORTAL_LABEL_COLORS) }).openapi("PortalLabel");
+const ListName = z.string().trim().min(1).max(80);
+const LabelName = z.string().trim().min(1).max(40);
 const Job = z
   .object({
     id: z.string(),
@@ -107,6 +141,16 @@ const CardFields = {
   owner: z.string().max(120).nullable(),
   note: z.string().max(2000),
   files: z.array(CardFile).max(PORTAL_SEND_FILES),
+  produceOn: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/)
+    .nullable(),
+  list: ListId.nullable(),
+  order: z.number().finite(),
+  description: z.string().max(20000),
+  labels: z.array(LabelId).max(30),
+  members: z.array(z.string().min(1).max(64)).max(30),
+  checklist: z.array(z.object({ id: z.string().min(1).max(40), text: z.string().max(300), done: z.boolean() })).max(60),
 };
 const State = z
   .object({
@@ -461,6 +505,300 @@ export function portalRoutes(deps: AppDeps) {
       } catch (error) {
         return refused(c, error);
       }
+    },
+  );
+
+  // ── The strategic schedule (ADR 9001 §8) ──────────────────────────────────────────────────────────────────────
+
+  /** One typed handler for a portal call: off, the call, or the portal's refusal as an answer. */
+  const guarded = async <C extends Context, T>(
+    c: C,
+    run: (portal: NonNullable<typeof adapters.approvalPortal>) => Promise<T>,
+  ) => {
+    const portal = adapters.approvalPortal;
+    if (!portal) return { ok: false as const, response: portalOff(c) };
+    try {
+      return { ok: true as const, value: await run(portal) };
+    } catch (error) {
+      return { ok: false as const, response: refused(c, error) };
+    }
+  };
+
+  app.openapi(
+    createRoute({
+      method: "get",
+      path: "/organizations/{orgId}/portal/clients/{client}/plan",
+      tags,
+      security,
+      summary:
+        "A client's strategic schedule: its lists with their cards, the labels, and posts no card stands for (members)",
+      request: { params: OrgParams.extend({ client: ClientId }) },
+      responses: {
+        200: json(
+          z.object({
+            client: z.string(),
+            state: State,
+            lists: z.array(List.extend({ cards: z.array(PlanCard) })),
+            unlisted: z.array(PlanCard),
+            loose: z.array(Item),
+            labels: z.array(Label),
+          }),
+        ),
+        502: unavailable,
+        ...errors,
+        404: off,
+      },
+    }),
+    async (c) => {
+      const { orgId, client } = c.req.valid("param");
+      await requirePermission(db, c.get("user").id, orgId, "read");
+      const out = await guarded(c, (portal) => portalPlan(portal, client));
+      return out.ok ? c.json(out.value, 200) : out.response;
+    },
+  );
+
+  app.openapi(
+    createRoute({
+      method: "get",
+      path: "/organizations/{orgId}/portal/mine",
+      tags,
+      security,
+      summary: "What the caller has to make: the cards they are on that aren't out yet, by production date (members)",
+      description:
+        "`late` (production date before today), `today`, `next` and `undated`. Today is the portal's own day. A card leaves once its post is with the client, approved or out.",
+      request: { params: OrgParams },
+      responses: {
+        200: json(
+          z.object({
+            day: z.string(),
+            late: z.array(PlanCard),
+            today: z.array(PlanCard),
+            next: z.array(PlanCard),
+            undated: z.array(PlanCard),
+          }),
+        ),
+        502: unavailable,
+        ...errors,
+        404: off,
+      },
+    }),
+    async (c) => {
+      const { orgId } = c.req.valid("param");
+      const user = c.get("user");
+      await requirePermission(db, user.id, orgId, "read");
+      const out = await guarded(c, (portal) => myPortalWork(portal, user.id));
+      if (!out.ok) return out.response;
+      const work = out.value;
+      return c.json(
+        { day: work.today, late: work.late, today: work.today_, next: work.next, undated: work.undated },
+        200,
+      );
+    },
+  );
+
+  app.openapi(
+    createRoute({
+      method: "post",
+      path: "/organizations/{orgId}/portal/clients/{client}/lists",
+      tags,
+      security,
+      summary: "Add a list to a client's schedule; a name it already has answers that list (assign_work)",
+      request: { params: OrgParams.extend({ client: ClientId }), body: body(z.object({ name: ListName })) },
+      responses: { 200: json(z.object({ list: List })), 502: unavailable, ...errors, 404: off },
+    }),
+    async (c) => {
+      const { orgId, client } = c.req.valid("param");
+      await requireChangePermission(db, c.get("user").id, orgId, "assign_work");
+      const out = await guarded(c, (portal) => portal.createList(client, c.req.valid("json").name));
+      return out.ok ? c.json({ list: out.value }, 200) : out.response;
+    },
+  );
+
+  app.openapi(
+    createRoute({
+      method: "put",
+      path: "/organizations/{orgId}/portal/clients/{client}/lists/order",
+      tags,
+      security,
+      summary: "Reorder a client's lists: every list once, in the new order (assign_work)",
+      request: {
+        params: OrgParams.extend({ client: ClientId }),
+        body: body(z.object({ ids: z.array(ListId).max(200) })),
+      },
+      responses: { 200: json(z.object({ lists: z.array(List) })), 502: unavailable, ...errors, 404: off },
+    }),
+    async (c) => {
+      const { orgId, client } = c.req.valid("param");
+      await requireChangePermission(db, c.get("user").id, orgId, "assign_work");
+      const out = await guarded(c, (portal) => portal.orderLists(client, c.req.valid("json").ids));
+      return out.ok ? c.json({ lists: out.value }, 200) : out.response;
+    },
+  );
+
+  app.openapi(
+    createRoute({
+      method: "patch",
+      path: "/organizations/{orgId}/portal/lists/{listId}",
+      tags,
+      security,
+      summary: "Rename a list (assign_work)",
+      request: { params: OrgParams.extend({ listId: ListId }), body: body(z.object({ name: ListName })) },
+      responses: { 200: json(z.object({ list: List })), 502: unavailable, ...errors, 404: off },
+    }),
+    async (c) => {
+      const { orgId, listId } = c.req.valid("param");
+      await requireChangePermission(db, c.get("user").id, orgId, "assign_work");
+      const out = await guarded(c, (portal) => portal.renameList(listId, c.req.valid("json").name));
+      return out.ok ? c.json({ list: out.value }, 200) : out.response;
+    },
+  );
+
+  app.openapi(
+    createRoute({
+      method: "delete",
+      path: "/organizations/{orgId}/portal/lists/{listId}",
+      tags,
+      security,
+      summary: "Delete a list; its cards stay, in no list (assign_work)",
+      request: { params: OrgParams.extend({ listId: ListId }) },
+      responses: { ...noContent, 502: unavailable, ...errors, 404: off },
+    }),
+    async (c) => {
+      const { orgId, listId } = c.req.valid("param");
+      await requireChangePermission(db, c.get("user").id, orgId, "assign_work");
+      const out = await guarded(c, (portal) => portal.deleteList(listId));
+      return out.ok ? c.body(null, 204) : out.response;
+    },
+  );
+
+  app.openapi(
+    createRoute({
+      method: "get",
+      path: "/organizations/{orgId}/portal/labels",
+      tags,
+      security,
+      summary: "The team's labels, the same for every client (members)",
+      request: { params: OrgParams },
+      responses: { 200: json(z.object({ labels: z.array(Label) })), 502: unavailable, ...errors, 404: off },
+    }),
+    async (c) => {
+      const { orgId } = c.req.valid("param");
+      await requirePermission(db, c.get("user").id, orgId, "read");
+      const out = await guarded(c, (portal) => portal.labels());
+      return out.ok ? c.json({ labels: out.value }, 200) : out.response;
+    },
+  );
+
+  app.openapi(
+    createRoute({
+      method: "post",
+      path: "/organizations/{orgId}/portal/labels",
+      tags,
+      security,
+      summary: "Create a label (assign_work)",
+      request: {
+        params: OrgParams,
+        body: body(z.object({ name: LabelName, color: z.enum(PORTAL_LABEL_COLORS) })),
+      },
+      responses: { 200: json(z.object({ label: Label })), 502: unavailable, ...errors, 404: off },
+    }),
+    async (c) => {
+      const { orgId } = c.req.valid("param");
+      await requireChangePermission(db, c.get("user").id, orgId, "assign_work");
+      const { name, color } = c.req.valid("json");
+      const out = await guarded(c, (portal) => portal.createLabel(name, color));
+      return out.ok ? c.json({ label: out.value }, 200) : out.response;
+    },
+  );
+
+  app.openapi(
+    createRoute({
+      method: "patch",
+      path: "/organizations/{orgId}/portal/labels/{labelId}",
+      tags,
+      security,
+      summary: "Rename or recolour a label (assign_work)",
+      request: {
+        params: OrgParams.extend({ labelId: LabelId }),
+        body: body(z.object({ name: LabelName, color: z.enum(PORTAL_LABEL_COLORS) }).partial()),
+      },
+      responses: { 200: json(z.object({ label: Label })), 502: unavailable, ...errors, 404: off },
+    }),
+    async (c) => {
+      const { orgId, labelId } = c.req.valid("param");
+      await requireChangePermission(db, c.get("user").id, orgId, "assign_work");
+      const out = await guarded(c, (portal) => portal.updateLabel(labelId, c.req.valid("json")));
+      return out.ok ? c.json({ label: out.value }, 200) : out.response;
+    },
+  );
+
+  app.openapi(
+    createRoute({
+      method: "delete",
+      path: "/organizations/{orgId}/portal/labels/{labelId}",
+      tags,
+      security,
+      summary: "Delete a label; it leaves every card (assign_work)",
+      request: { params: OrgParams.extend({ labelId: LabelId }) },
+      responses: { ...noContent, 502: unavailable, ...errors, 404: off },
+    }),
+    async (c) => {
+      const { orgId, labelId } = c.req.valid("param");
+      await requireChangePermission(db, c.get("user").id, orgId, "assign_work");
+      const out = await guarded(c, (portal) => portal.deleteLabel(labelId));
+      return out.ok ? c.body(null, 204) : out.response;
+    },
+  );
+
+  app.openapi(
+    createRoute({
+      method: "post",
+      path: "/organizations/{orgId}/portal/cards/{cardId}/comments",
+      tags,
+      security,
+      summary: "Comment on a card (members who may post)",
+      request: {
+        params: OrgParams.extend({ cardId: CardId }),
+        body: body(z.object({ text: z.string().trim().min(1).max(5000) })),
+      },
+      responses: { 200: json(z.object({ card: Card })), 502: unavailable, ...errors, 404: off },
+    }),
+    async (c) => {
+      const { orgId, cardId } = c.req.valid("param");
+      const user = c.get("user");
+      await requireChangePermission(db, user.id, orgId, "post");
+      const out = await guarded(c, (portal) => portal.comment(cardId, c.req.valid("json").text, user.id));
+      return out.ok ? c.json({ card: out.value }, 200) : out.response;
+    },
+  );
+
+  app.openapi(
+    createRoute({
+      method: "delete",
+      path: "/organizations/{orgId}/portal/cards/{cardId}/comments/{commentId}",
+      tags,
+      security,
+      summary: "Delete a comment: one's own, or any with assign_work",
+      request: {
+        params: OrgParams.extend({ cardId: CardId, commentId: z.string().regex(/^m-[0-9a-f]{6,32}$/) }),
+      },
+      responses: { 200: json(z.object({ card: Card })), 502: unavailable, ...errors, 404: off },
+    }),
+    async (c) => {
+      const { orgId, cardId, commentId } = c.req.valid("param");
+      const user = c.get("user");
+      const membership = await requireChangePermission(db, user.id, orgId, "post");
+      const out = await guarded(c, async (portal) => {
+        const card = (await portal.cards()).find((found) => found.id === cardId);
+        const comment = card?.comments.find((m) => m.id === commentId);
+        if (!comment) return null;
+        if (comment.by !== user.id && !can(membership, "assign_work")) return "forbidden" as const;
+        return portal.deleteComment(cardId, commentId);
+      });
+      if (!out.ok) return out.response;
+      if (out.value === null) return apiError(c, 404, "not_found", "No such comment");
+      if (out.value === "forbidden") return apiError(c, 403, "forbidden", "That comment isn't yours");
+      return c.json({ card: out.value }, 200);
     },
   );
 

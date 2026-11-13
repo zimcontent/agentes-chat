@@ -3,8 +3,13 @@ import { createFakeApprovalPortal, type PortalItem } from "@agenteschat/adapters
 import {
   type ArtifactDeps,
   createPortalToolSource,
+  labelIdsByName,
+  myPortalWork,
+  portalPlan,
   PORTAL_BOARD_TOOL,
   PORTAL_CARD_TOOL,
+  PORTAL_PLAN_TOOL,
+  PORTAL_WORK_TOOL,
   portalColumnOf,
   SCHEDULE_POST_TOOL,
   SEND_FOR_APPROVAL_TOOL,
@@ -53,12 +58,14 @@ describe("the portal's tools", () => {
     const source = createPortalToolSource({ portal, artifacts });
     expect(await names(source, ctx())).toEqual([
       PORTAL_BOARD_TOOL,
+      PORTAL_WORK_TOOL,
       PORTAL_CARD_TOOL,
+      PORTAL_PLAN_TOOL,
       SEND_FOR_APPROVAL_TOOL,
       SCHEDULE_POST_TOOL,
     ]);
-    // A routine's run and a call with no run get none.
-    expect(await names(source, ctx({ background: true }))).toEqual([]);
+    // A routine's run only reads (it tells each person their day); a call with no run gets none.
+    expect(await names(source, ctx({ background: true }))).toEqual([PORTAL_BOARD_TOOL, PORTAL_WORK_TOOL]);
     expect(await names(source, ctx({ runId: null as unknown as string }))).toEqual([]);
   });
 
@@ -68,6 +75,8 @@ describe("the portal's tools", () => {
     expect(toolKind(builtIn(PORTAL_CARD_TOOL)).kind).toBe("elsewhere");
     expect(toolKind(builtIn(SCHEDULE_POST_TOOL)).kind).toBe("elsewhere");
     expect(toolKind(builtIn(PORTAL_BOARD_TOOL)).kind).toBe("read");
+    expect(toolKind(builtIn(PORTAL_WORK_TOOL)).kind).toBe("read");
+    expect(toolKind(builtIn(PORTAL_PLAN_TOOL)).kind).toBe("elsewhere");
   });
 
   test("the board: every client's counts, then one client's posts with the client's note as outside text", async () => {
@@ -153,5 +162,53 @@ describe("sendForApproval", () => {
       "Nothing to send",
     );
     expect(portal.sends).toHaveLength(0);
+  });
+});
+
+describe("a member's work and a plan written by an agent", () => {
+  const day = new Date("2026-11-14T15:00:00Z");
+
+  test("work is what the member is on and isn't out yet: late, today, next, undated, by production day", async () => {
+    const portal = createFakeApprovalPortal({ items: [item({ id: "up-9", status: "sent" })] });
+    const on = (title: string, produceOn: string | null, extra = {}) =>
+      portal.createCard("acme", { title, members: ["ronny"], produceOn, ...extra });
+    await on("Late video", "2026-11-12");
+    await on("Today video", "2026-11-14");
+    await on("Next video", "2026-11-20");
+    await on("No day", null);
+    await on("With the client", "2026-11-14", { item: "up-9" });
+    await portal.createCard("acme", { title: "Someone else's", members: ["leticia"], produceOn: "2026-11-14" });
+    const work = await myPortalWork(portal, "ronny", day);
+    expect(work.today).toBe("2026-11-14");
+    expect(work.late.map((c) => c.title)).toEqual(["Late video"]);
+    expect(work.today_.map((c) => c.title)).toEqual(["Today video"]);
+    expect(work.next.map((c) => c.title)).toEqual(["Next video"]);
+    expect(work.undated.map((c) => c.title)).toEqual(["No day"]);
+    // The portal's day, not the server's: 01:00 UTC on the 15th is still the 14th there.
+    expect((await myPortalWork(portal, "ronny", new Date("2026-11-15T01:00:00Z"))).today).toBe("2026-11-14");
+  });
+
+  test("the plan: a card's stage is its own until it is sent, the portal's after; posts with no card are loose", async () => {
+    const portal = createFakeApprovalPortal({
+      items: [item({ id: "up-1", status: "approved", scheduledFor: "2026-11-20T10:00" }), item({ id: "up-2" })],
+    });
+    const week = await portal.createList("acme", "Week 1");
+    await portal.createCard("acme", { title: "B", list: week.id, order: 2, state: "doing" });
+    await portal.createCard("acme", { title: "A", list: week.id, order: 1, item: "up-1", date: "2026-11-19T09:00" });
+    await portal.createCard("acme", { title: "Loose card" });
+    const plan = await portalPlan(portal, "acme");
+    expect(plan.lists[0]?.cards.map((c) => [c.title, c.stage, c.postOn])).toEqual([
+      ["A", "approved", "2026-11-20T10:00"],
+      ["B", "doing", null],
+    ]);
+    expect(plan.unlisted.map((c) => c.title)).toEqual(["Loose card"]);
+    expect(plan.loose.map((i) => i.id)).toEqual(["up-2"]);
+  });
+
+  test("labels are said by name; a name the team doesn't have stops with the ones it has", async () => {
+    const portal = createFakeApprovalPortal();
+    const label = await portal.createLabel("Em edição", "olive");
+    expect(await labelIdsByName(portal, ["em edição"])).toEqual([label.id]);
+    await expect(labelIdsByName(portal, ["urgente"])).rejects.toThrow('no label "urgente"; the labels are: Em edição');
   });
 });

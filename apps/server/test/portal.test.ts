@@ -164,8 +164,8 @@ test("a send reads the Drive files, hands them over in order and finishes the ca
     [1, 2, 3],
     [4, 5],
   ]);
-  // The card it finished is gone, and the post is on the board, waiting for the client.
-  expect(await portal.cards()).toEqual([]);
+  // The card it finished stays, tied to the post, which is on the board, waiting for the client.
+  expect((await portal.cards()).map((c) => c.item)).toEqual([job.item]);
   const board = (await (await api("/portal/clients/acme")).json()) as { items: { approval: { id: string }[] } };
   expect(board.items.approval.map((i) => i.id)).toEqual([job.item]);
   expect(((await (await api(`/portal/jobs/${job.id}`)).json()) as { job: { id: string } }).job.id).toBe(job.id);
@@ -249,4 +249,95 @@ test("a portal that stopped answering: the last good read comes marked stale, wi
   const board = (await (await api("/portal/clients/acme")).json()) as State & { items: { approval: unknown[] } };
   expect(board.state).toEqual(state);
   expect(board.items.approval).toHaveLength(1);
+});
+
+test("the strategic schedule: lists the team names, cards with labels and members, and a stage that follows the portal", async () => {
+  const portal = createFakeApprovalPortal();
+  const { api, owner, upload } = await start(portal);
+  const me = ((await (await owner("/api/app/me")).json()) as { user: { id: string } }).user.id;
+  const list = async (name: string) =>
+    ((await (await api("/portal/clients/acme/lists", { json: { name } })).json()) as { list: { id: string } }).list.id;
+  const week1 = await list("Semana 16 a 20/11");
+  const week2 = await list("Semana 23 a 27/11");
+  // The same name, whatever its capitals, is the same list.
+  expect(await list("semana 16 a 20/11")).toBe(week1);
+  const label = (
+    (await (await api("/portal/labels", { json: { name: "em edição", color: "olive" } })).json()) as {
+      label: { id: string };
+    }
+  ).label.id;
+
+  const made = await api("/portal/cards", {
+    json: {
+      client: "acme",
+      title: "Tour video",
+      type: "reel",
+      list: week1,
+      labels: [label],
+      members: [me],
+      produceOn: "2026-11-14",
+      date: "2026-11-18T10:00",
+      description: "Walk through the house",
+      checklist: [{ id: "a", text: "Film", done: false }],
+    },
+  });
+  expect(made.status).toBe(200);
+  const card = ((await made.json()) as { card: { id: string } }).card.id;
+  expect((await api("/portal/cards", { json: { client: "acme", title: "x", produceOn: "saturday" } })).status).toBe(
+    400,
+  );
+
+  // Dragged to the other week, then the weeks swap places.
+  expect((await api(`/portal/cards/${card}`, { method: "PATCH", json: { list: week2, order: 1 } })).status).toBe(200);
+  const order = await api("/portal/clients/acme/lists/order", { method: "PUT", json: { ids: [week2, week1] } });
+  expect(order.status).toBe(200);
+  expect((await api(`/portal/lists/${week2}`, { method: "PATCH", json: { name: "Week two" } })).status).toBe(200);
+  const commented = await api(`/portal/cards/${card}/comments`, { json: { text: "Edited: link" } });
+  expect(commented.status).toBe(200);
+
+  type Plan = {
+    lists: {
+      name: string;
+      cards: { id: string; stage: string; postOn: string | null; comments: { by: string }[] }[];
+    }[];
+    loose: unknown[];
+    labels: { name: string; color: string }[];
+  };
+  const plan = (await (await api("/portal/clients/acme/plan")).json()) as Plan;
+  expect(plan.lists.map((l) => [l.name, l.cards.length])).toEqual([
+    ["Week two", 1],
+    ["Semana 16 a 20/11", 0],
+  ]);
+  expect(plan.lists[0]?.cards[0]).toMatchObject({ id: card, stage: "todo", postOn: "2026-11-18T10:00" });
+  expect(plan.lists[0]?.cards[0]?.comments[0]?.by).toBe(me);
+  expect(plan.labels).toEqual([expect.objectContaining({ name: "em edição", color: "olive" })]);
+
+  // It is the caller's work, on its production day; the day it goes out is another thing.
+  type Mine = { day: string; late: { id: string }[]; today: unknown[]; next: unknown[]; undated: unknown[] };
+  const mine = (await (await api("/portal/mine")).json()) as Mine;
+  expect([...mine.late, ...mine.today, ...mine.next].map((c) => (c as { id: string }).id)).toEqual([card]);
+
+  // Sent: the card stays in its week, its stage is now the portal's, and it is nobody's task while the client has it.
+  const file = await upload("tour.mp4", "video/mp4", new Uint8Array([1]));
+  const sent = await api("/portal/send", { json: { client: "acme", type: "reel", artifactIds: [file], card } });
+  expect(sent.status).toBe(200);
+  const after = (await (await api("/portal/clients/acme/plan")).json()) as Plan;
+  expect(after.lists[0]?.cards[0]).toMatchObject({ id: card, stage: "approval" });
+  expect(after.loose).toEqual([]);
+  const board = (await (await api("/portal/clients/acme")).json()) as {
+    cards: { todo: unknown[]; doing: unknown[] };
+    items: { approval: unknown[] };
+  };
+  expect(board.cards.todo).toEqual([]);
+  expect(board.items.approval).toHaveLength(1);
+  const done = (await (await api("/portal/mine")).json()) as Mine;
+  expect([...done.late, ...done.today, ...done.next, ...done.undated]).toEqual([]);
+
+  // A deleted list leaves its cards, in no list; a deleted label leaves every card.
+  expect((await api(`/portal/lists/${week2}`, { method: "DELETE" })).status).toBe(204);
+  expect((await api(`/portal/labels/${label}`, { method: "DELETE" })).status).toBe(204);
+  const last = (await (await api("/portal/clients/acme/plan")).json()) as Plan & {
+    unlisted: { id: string; labels: string[] }[];
+  };
+  expect(last.unlisted).toEqual([expect.objectContaining({ id: card, labels: [] })]);
 });

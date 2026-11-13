@@ -138,6 +138,7 @@ const ELSEWHERE = new Set([
   // A post leaves for a client's eyes (ADR 9001): only a run a person is behind sends it.
   "send_for_approval",
   "schedule_post",
+  "portal_plan",
   "portal_card",
 ]);
 
@@ -196,6 +197,7 @@ const READS = new Set([
   "phone_screenshot",
   "phone_logs",
   "portal_board",
+  "portal_work",
 ]);
 
 /**

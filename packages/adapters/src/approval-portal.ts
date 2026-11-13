@@ -58,6 +58,48 @@ export interface PortalItem {
   link: string;
 }
 
+/** The colours a label takes: names, drawn by the apps in their own palette. */
+export const PORTAL_LABEL_COLORS = [
+  "green",
+  "mint",
+  "olive",
+  "yellow",
+  "wine",
+  "red",
+  "purple",
+  "lilac",
+  "blue",
+  "gray",
+] as const;
+export type PortalLabelColor = (typeof PORTAL_LABEL_COLORS)[number];
+
+/** A list of the strategic schedule: usually a week, named by the team. */
+export interface PortalList {
+  id: string;
+  name: string;
+}
+
+/** A label of the team's own, the same for every client. */
+export interface PortalLabel {
+  id: string;
+  name: string;
+  color: PortalLabelColor;
+}
+
+export interface PortalComment {
+  id: string;
+  /** Who wrote it: a member's id, or an agent's as `agent:<id>`. */
+  by: string;
+  text: string;
+  at: number;
+}
+
+export interface PortalCheck {
+  id: string;
+  text: string;
+  done: boolean;
+}
+
 export interface PortalCard {
   id: string;
   client: string;
@@ -71,6 +113,24 @@ export interface PortalCard {
   note: string;
   /** Files of this workspace's Drive that go up with it. */
   files: { id: string; name: string }[];
+  /**
+   * The day whoever is on it makes it (`YYYY-MM-DD`). Not `date`, the day the post goes out: a video is edited
+   * days before it is posted.
+   */
+  produceOn: string | null;
+  /** The schedule's list it is in; null: in none. */
+  list: string | null;
+  /** Its place in the list: lower first. */
+  order: number;
+  description: string;
+  /** Label ids. */
+  labels: string[];
+  /** Workspace members on it (user ids). */
+  members: string[];
+  checklist: PortalCheck[];
+  comments: PortalComment[];
+  /** The portal's post this card became, once sent: from then on its stage is the post's. */
+  item: string | null;
   createdAt: number;
   updatedAt: number;
 }
@@ -85,6 +145,15 @@ export interface PortalCardInput {
   owner?: string | null;
   note?: string;
   files?: { id: string; name: string }[];
+  produceOn?: string | null;
+  list?: string | null;
+  order?: number;
+  description?: string;
+  labels?: string[];
+  members?: string[];
+  checklist?: PortalCheck[];
+  /** Ties the card to a post already at the portal. */
+  item?: string | null;
 }
 
 export interface PortalJob {
@@ -144,6 +213,21 @@ export interface ApprovalPortal {
   createCard(client: string, input: PortalCardInput & { title: string }, by?: string): Promise<PortalCard>;
   updateCard(id: string, input: PortalCardInput, by?: string): Promise<PortalCard>;
   deleteCard(id: string, by?: string): Promise<void>;
+  comment(card: string, text: string, by: string): Promise<PortalCard>;
+  deleteComment(card: string, comment: string): Promise<PortalCard>;
+  /** A client's lists, in the team's order. */
+  lists(client: string): Promise<PortalList[]>;
+  /** A list by name: the one that already has it (whatever its capitals), else a new one at the end. */
+  createList(client: string, name: string): Promise<PortalList>;
+  renameList(id: string, name: string): Promise<PortalList>;
+  /** Every list of the client, once each, in the new order. */
+  orderLists(client: string, ids: string[]): Promise<PortalList[]>;
+  /** Its cards stay, in no list. */
+  deleteList(id: string): Promise<void>;
+  labels(): Promise<PortalLabel[]>;
+  createLabel(name: string, color: PortalLabelColor): Promise<PortalLabel>;
+  updateLabel(id: string, change: { name?: string; color?: PortalLabelColor }): Promise<PortalLabel>;
+  deleteLabel(id: string): Promise<void>;
   /** One file's bytes; answers the id `send` takes. */
   upload(name: string, bytes: Uint8Array): Promise<string>;
   send(input: PortalSend): Promise<PortalJob>;
@@ -234,6 +318,31 @@ function itemOf(wire: Wire): PortalItem {
   };
 }
 
+const COLOR_IN: Record<string, PortalLabelColor> = {
+  verde: "green",
+  menta: "mint",
+  oliva: "olive",
+  amarelo: "yellow",
+  vinho: "wine",
+  vermelho: "red",
+  roxo: "purple",
+  lilas: "lilac",
+  azul: "blue",
+  cinza: "gray",
+};
+const COLOR_OUT = Object.fromEntries(Object.entries(COLOR_IN).map(([wire, ours]) => [ours, wire])) as Record<
+  PortalLabelColor,
+  string
+>;
+const rows = (value: unknown) => (Array.isArray(value) ? (value as Wire[]) : []);
+const strings = (value: unknown) => (Array.isArray(value) ? value.map(String) : []);
+const listOf = (wire: Wire): PortalList => ({ id: String(wire.id), name: text(wire.nome) ?? "" });
+const labelOf = (wire: Wire): PortalLabel => ({
+  id: String(wire.id),
+  name: text(wire.nome) ?? "",
+  color: COLOR_IN[String(wire.cor)] ?? "gray",
+});
+
 function cardOf(wire: Wire): PortalCard {
   const files = Array.isArray(wire.arquivos) ? (wire.arquivos as Wire[]) : [];
   return {
@@ -248,6 +357,24 @@ function cardOf(wire: Wire): PortalCard {
     owner: text(wire.responsavel),
     note: text(wire.nota) ?? "",
     files: files.map((f) => ({ id: String(f.id ?? ""), name: String(f.nome ?? "") })),
+    produceOn: text(wire.producao),
+    list: text(wire.lista),
+    order: Number(wire.ordem) || 0,
+    description: text(wire.descricao) ?? "",
+    labels: strings(wire.etiquetas),
+    members: strings(wire.membros),
+    checklist: rows(wire.checklist).map((c) => ({
+      id: String(c.id ?? ""),
+      text: text(c.texto) ?? "",
+      done: c.feito === true,
+    })),
+    comments: rows(wire.comentarios).map((m) => ({
+      id: String(m.id ?? ""),
+      by: text(m.por) ?? "",
+      text: text(m.texto) ?? "",
+      at: Math.round(Number(m.ts) * 1000) || 0,
+    })),
+    item: text(wire.item),
     createdAt: Math.round(Number(wire.criado) * 1000) || 0,
     updatedAt: Math.round(Number(wire.atualizado) * 1000) || 0,
   };
@@ -264,6 +391,16 @@ function cardWire(input: PortalCardInput): Wire {
   if (input.owner !== undefined) wire.responsavel = input.owner;
   if (input.note !== undefined) wire.nota = input.note;
   if (input.files !== undefined) wire.arquivos = input.files.map((f) => ({ id: f.id, nome: f.name }));
+  if (input.produceOn !== undefined) wire.producao = input.produceOn;
+  if (input.list !== undefined) wire.lista = input.list;
+  if (input.order !== undefined) wire.ordem = input.order;
+  if (input.description !== undefined) wire.descricao = input.description;
+  if (input.labels !== undefined) wire.etiquetas = input.labels;
+  if (input.members !== undefined) wire.membros = input.members;
+  if (input.checklist !== undefined) {
+    wire.checklist = input.checklist.map((c) => ({ id: c.id, texto: c.text, feito: c.done }));
+  }
+  if (input.item !== undefined) wire.item = input.item;
   return wire;
 }
 
@@ -342,6 +479,46 @@ export function createBridgeApprovalPortal(options: BridgePortalOptions): Approv
     deleteCard: async (id, by) => {
       await request(`/cartoes/${encodeURIComponent(id)}/apagar`, { json: { por: by } });
     },
+    comment: async (card, body, by) =>
+      cardOf(
+        (await request(`/cartoes/${encodeURIComponent(card)}/comentarios`, { json: { texto: body, por: by } }))
+          .cartao as Wire,
+      ),
+    deleteComment: async (card, comment) =>
+      cardOf(
+        (
+          await request(`/cartoes/${encodeURIComponent(card)}/comentarios/${encodeURIComponent(comment)}/apagar`, {
+            json: {},
+          })
+        ).cartao as Wire,
+      ),
+    lists: async (client) => rows((await request(`/listas?tenant=${encodeURIComponent(client)}`)).listas).map(listOf),
+    createList: async (client, name) =>
+      listOf((await request("/listas", { json: { tenant: client, nome: name } })).lista as Wire),
+    renameList: async (id, name) =>
+      listOf((await request(`/listas/${encodeURIComponent(id)}`, { json: { nome: name } })).lista as Wire),
+    orderLists: async (client, ids) =>
+      rows((await request("/listas/ordem", { json: { tenant: client, ids } })).listas).map(listOf),
+    deleteList: async (id) => {
+      await request(`/listas/${encodeURIComponent(id)}/apagar`, { json: {} });
+    },
+    labels: async () => rows((await request("/etiquetas")).etiquetas).map(labelOf),
+    createLabel: async (name, color) =>
+      labelOf((await request("/etiquetas", { json: { nome: name, cor: COLOR_OUT[color] } })).etiqueta as Wire),
+    updateLabel: async (id, change) =>
+      labelOf(
+        (
+          await request(`/etiquetas/${encodeURIComponent(id)}`, {
+            json: {
+              ...(change.name !== undefined ? { nome: change.name } : {}),
+              ...(change.color !== undefined ? { cor: COLOR_OUT[change.color] } : {}),
+            },
+          })
+        ).etiqueta as Wire,
+      ),
+    deleteLabel: async (id) => {
+      await request(`/etiquetas/${encodeURIComponent(id)}/apagar`, { json: {} });
+    },
     upload: async (name, bytes) => {
       if (bytes.byteLength > PORTAL_FILE_BYTES) throw new ApprovalPortalError(413, "That file is too large to send");
       const answer = await request(`/arquivos?nome=${encodeURIComponent(name)}`, { bytes, timeoutMs: 600_000 });
@@ -401,6 +578,8 @@ export function createFakeApprovalPortal(seed: { items?: PortalItem[]; cards?: P
   const items = [...(seed.items ?? [])];
   const cards = new Map((seed.cards ?? []).map((card) => [card.id, card]));
   const jobs = new Map<string, PortalJob>();
+  const lists = new Map<string, PortalList[]>();
+  const labels: PortalLabel[] = [];
   const uploads = new Map<string, { name: string; bytes: Uint8Array }>();
   const sends: (PortalSend & { names: string[] })[] = [];
   const edits: { client: string; item: string; edit: PortalItemEdit; by?: string }[] = [];
@@ -442,6 +621,15 @@ export function createFakeApprovalPortal(seed: { items?: PortalItem[]; cards?: P
         owner: null,
         note: "",
         files: [],
+        produceOn: null,
+        list: null,
+        order: count + 1,
+        description: "",
+        labels: [],
+        members: [],
+        checklist: [],
+        comments: [],
+        item: null,
         ...input,
         createdAt: count,
         updatedAt: count,
@@ -458,6 +646,88 @@ export function createFakeApprovalPortal(seed: { items?: PortalItem[]; cards?: P
     deleteCard: async (id) => {
       check();
       cards.delete(id);
+    },
+    comment: async (id, body, by) => {
+      check();
+      const card = cardOrRefuse(id);
+      const next_ = { ...card, comments: [...card.comments, { id: next("m-"), by, text: body, at: count }] };
+      cards.set(id, next_);
+      return next_;
+    },
+    deleteComment: async (id, comment) => {
+      check();
+      const card = cardOrRefuse(id);
+      const next_ = { ...card, comments: card.comments.filter((m) => m.id !== comment) };
+      cards.set(id, next_);
+      return next_;
+    },
+    lists: async (client) => {
+      check();
+      return [...(lists.get(client) ?? [])];
+    },
+    createList: async (client, name) => {
+      check();
+      const of = lists.get(client) ?? [];
+      const same = of.find((l) => l.name.toLowerCase() === name.toLowerCase());
+      if (same) return same;
+      const list = { id: next("l-"), name };
+      lists.set(client, [...of, list]);
+      return list;
+    },
+    renameList: async (id, name) => {
+      check();
+      for (const of of lists.values()) {
+        const list = of.find((l) => l.id === id);
+        if (list) {
+          list.name = name;
+          return list;
+        }
+      }
+      throw new ApprovalPortalError(404, "list not found");
+    },
+    orderLists: async (client, ids) => {
+      check();
+      const of = lists.get(client) ?? [];
+      if (ids.length !== of.length || of.some((l) => !ids.includes(l.id))) {
+        throw new ApprovalPortalError(409, "the order must carry every list once");
+      }
+      const ordered = ids.map((id) => of.find((l) => l.id === id) as PortalList);
+      lists.set(client, ordered);
+      return ordered;
+    },
+    deleteList: async (id) => {
+      check();
+      for (const [client, of] of lists)
+        lists.set(
+          client,
+          of.filter((l) => l.id !== id),
+        );
+      for (const [key, card] of cards) if (card.list === id) cards.set(key, { ...card, list: null });
+    },
+    labels: async () => {
+      check();
+      return [...labels];
+    },
+    createLabel: async (name, color) => {
+      check();
+      const label = { id: next("e-"), name, color };
+      labels.push(label);
+      return label;
+    },
+    updateLabel: async (id, change) => {
+      check();
+      const label = labels.find((l) => l.id === id);
+      if (!label) throw new ApprovalPortalError(404, "label not found");
+      Object.assign(label, change);
+      return label;
+    },
+    deleteLabel: async (id) => {
+      check();
+      const at = labels.findIndex((l) => l.id === id);
+      if (at >= 0) labels.splice(at, 1);
+      for (const [key, card] of cards) {
+        if (card.labels.includes(id)) cards.set(key, { ...card, labels: card.labels.filter((l) => l !== id) });
+      }
     },
     upload: async (name, bytes) => {
       check();
@@ -494,7 +764,9 @@ export function createFakeApprovalPortal(seed: { items?: PortalItem[]; cards?: P
         link: `https://portal.example.com/i/${input.client}/up-${id}`,
       };
       items.push(item);
-      if (input.card) cards.delete(input.card);
+      // The card stays in the schedule, tied to the post it became.
+      const sent = input.card ? cards.get(input.card) : undefined;
+      if (sent) cards.set(sent.id, { ...sent, item: item.id });
       const job: PortalJob = {
         id,
         state: "done",

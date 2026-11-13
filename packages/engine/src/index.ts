@@ -186,6 +186,7 @@ export * from "./mail/watches";
 export * from "./management";
 export * from "./media";
 export * from "./approval-portal";
+export * from "./approval-portal-plan";
 export * from "./media-tools";
 export * from "./member-status";
 export * from "./message-links";
