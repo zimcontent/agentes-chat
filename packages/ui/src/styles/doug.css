@@ -2354,3 +2354,47 @@ img.ac-logo__mark {
     grid-row: 2 / span 2;
   }
 }
+/* The pinned row's bot and its name as one block on the tile's middle (optic.py: the name's line leaves 3.5 under its
+   baseline, given back above). */
+[data-theme] .sidebar__hero-link,
+[data-theme] .sidebar__hero-link:hover,
+[data-theme] .sidebar__hero-link[data-status="active"] {
+  padding-top: 7.5px;
+}
+/* The list's end under the foot: a clean fade 48 long that is clear 16 before the foot ("3 trabalhando"), so a row
+   cut by the scroller reads as gone, never half there against the foot. With the kit's scrollbar strip. */
+@media (min-width: 761px) {
+  [data-theme] .sidebar__scroll[data-fade-bottom="true"] {
+    -webkit-mask-image:
+      linear-gradient(
+        to bottom,
+        transparent 0,
+        #000 var(--sidebar-fade-top),
+        #000 calc(100% - 64px),
+        transparent calc(100% - 16px)
+      ),
+      var(--scroll-strip);
+    mask-image:
+      linear-gradient(
+        to bottom,
+        transparent 0,
+        #000 var(--sidebar-fade-top),
+        #000 calc(100% - 64px),
+        transparent calc(100% - 16px)
+      ),
+      var(--scroll-strip);
+  }
+}
+/* What scrolls ends 20 to 28 before its window's foot, so a row never sits in a window's corner curve nor closer than
+   the window's clearance: the sidebar's list (48 with the window's 20), the members column and a page's body. */
+@media (min-width: 761px) {
+  [data-theme] .sidebar:not([data-rail="true"]) .sidebar__scroll {
+    margin-bottom: 28px;
+  }
+  [data-theme] .members-side {
+    margin-bottom: var(--dg-s5);
+  }
+  [data-theme] .shell__main:not(.shell__main--chat) {
+    margin-bottom: var(--dg-s5);
+  }
+}
