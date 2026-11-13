@@ -245,7 +245,8 @@ export const MODEL_CATALOG: Record<string, ModelInfo> = {
   },
   // Gemini (Interactions API), Standard tier, from ai.google.dev/gemini-api/docs/pricing (2026-10-27). Thinking is
   // billed as output. Caching is implicit, with no write charge, so a cache write costs the input rate (none is ever
-  // reported). Argon and 3.8 Flash cost half until the day in `intro`.
+  // reported). Argon and 3.8 Flash cost half until the day in `intro`. Gemini 4 Hydrogen (GA 2026-11-12, the Flash
+  // tier of Gemini 4) is at 3.8 Flash's list price with no intro discount, and is the line's recommended model.
   "gemini-4-argon": {
     provider: "gemini",
     label: "Gemini 4 Argon",
@@ -255,6 +256,15 @@ export const MODEL_CATALOG: Record<string, ModelInfo> = {
     serverSideFallback: false,
     tier: "large",
   },
+  "gemini-4-hydrogen": {
+    provider: "gemini",
+    label: "Gemini 4 Hydrogen",
+    prices: { input: 1500, output: 7500, cacheRead: 150, cacheWrite: 1500 },
+    contextWindow: 1_048_576,
+    serverSideFallback: false,
+    recommended: true,
+    tier: "medium",
+  },
   "gemini-3.8-flash": {
     provider: "gemini",
     label: "Gemini 3.8 Flash",
@@ -262,7 +272,6 @@ export const MODEL_CATALOG: Record<string, ModelInfo> = {
     intro: { until: "2027-01-01", prices: { input: 750, output: 3750, cacheRead: 75, cacheWrite: 750 } },
     contextWindow: 1_048_576,
     serverSideFallback: false,
-    recommended: true,
     tier: "medium",
   },
   // It can't stop thinking: `minimal` is the least.
