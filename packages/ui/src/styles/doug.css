@@ -2418,3 +2418,471 @@ img.ac-logo__mark {
     margin-bottom: var(--dg-s5);
   }
 }
+
+/* ── The sidebar's top and foot (the owner's notes of 2026-11-13): less round, on two columns, the tools fixed at the
+   foot ── */
+/* Two rows on one grid: the person's block beside the bell, Go to… beside the collapse; the bell and the collapse are
+   loose icons (no glass), 40 squares in one column, so they sit on one axis. */
+[data-theme] .sidebar:not([data-rail="true"]) .sidebar__head-row {
+  display: flex;
+  align-items: center;
+  gap: var(--dg-s2);
+}
+[data-theme] .sidebar:not([data-rail="true"]) .sidebar__head-row > .sidebar__org--head {
+  --r-outer: 20px;
+  flex: 1;
+  min-width: 0;
+  min-height: 64px;
+  padding: var(--dg-s3);
+  border-radius: var(--r-outer);
+}
+[data-theme] .sidebar:not([data-rail="true"]) .sidebar__head-row .sidebar__org-button--me {
+  gap: 10px;
+}
+[data-theme] .sidebar:not([data-rail="true"]) :is(.sidebar__head-row > .sidebar__bell, .sidebar__collapse.ac-btn) {
+  position: relative;
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  border-radius: 12px;
+  color: var(--db-texto-2);
+  background: none;
+  box-shadow: none;
+}
+[data-theme] .sidebar:not([data-rail="true"]) :is(.sidebar__head-row > .sidebar__bell, .sidebar__collapse.ac-btn):hover {
+  color: var(--db-texto);
+  background: color-mix(in srgb, var(--dg-luz) 6%, transparent);
+}
+[data-theme] .sidebar:not([data-rail="true"]) .sidebar__head-row > .sidebar__bell > .ac-icon {
+  width: 20px;
+  height: 20px;
+}
+[data-theme] .sidebar:not([data-rail="true"]) .sidebar__head-row > .sidebar__bell > .sidebar__unread {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+}
+/* Go to…: 40 high (48 read tall), a 14 corner; its keys 22 high, 9 in, so 5 (14 less 9). */
+[data-theme] .sidebar:not([data-rail="true"]) .sidebar__jump {
+  --r-outer: 14px;
+  height: 40px;
+  min-height: 40px;
+  padding: 0 9px 0 var(--dg-s3);
+  border-radius: var(--r-outer);
+}
+[data-theme] .sidebar:not([data-rail="true"]) .sidebar__jump .ac-kbd {
+  height: 22px;
+  min-width: 22px;
+  border-radius: 5px;
+}
+/* The tools at the foot: fixed under the list whatever it scrolls to, Configurações last. */
+[data-theme] .sidebar:not([data-rail="true"]) .sidebar__foot {
+  padding-top: var(--dg-s2);
+}
+[data-theme] .sidebar:not([data-rail="true"]) .sidebar__foot > .sidebar__dock {
+  margin: 0;
+  padding-inline: 20px;
+}
+
+/* ── The live screen's edge (SkyStrip): green glass, not pixels. A hairline of the identity's green that fades at both
+   ends, a soft glow under it; while the agent works a brighter light runs along it. ── */
+[data-theme] .ac-sky-strip {
+  display: block;
+  width: 100%;
+  height: 2px;
+  flex: none;
+  background:
+    linear-gradient(
+      90deg,
+      transparent 0%,
+      color-mix(in srgb, var(--db-verde-acento) 90%, white) 50%,
+      transparent 100%
+    )
+    0 0 / 40% 100% no-repeat,
+    linear-gradient(
+      90deg,
+      transparent 0%,
+      color-mix(in srgb, var(--db-verde-acento) 45%, transparent) 20%,
+      color-mix(in srgb, var(--db-verde-acento) 45%, transparent) 80%,
+      transparent 100%
+    );
+  background-position: -60% 0, 0 0;
+  box-shadow: 0 1px 10px color-mix(in srgb, var(--db-verde-acento) 28%, transparent);
+  -webkit-backdrop-filter: blur(var(--dg-blur, 20px)) saturate(var(--dg-saturate, 140%));
+  backdrop-filter: blur(var(--dg-blur, 20px)) saturate(var(--dg-saturate, 140%));
+}
+[data-theme] .ac-sky-strip[data-moving] {
+  animation: dg-strip-run 2.6s var(--dg-ease, ease-in-out) infinite;
+}
+[data-theme] .ac-sky-strip.is-muted {
+  filter: saturate(0.2);
+  opacity: 0.6;
+  animation: none;
+}
+@keyframes dg-strip-run {
+  from {
+    background-position: -60% 0, 0 0;
+  }
+  to {
+    background-position: 160% 0, 0 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  [data-theme] .ac-sky-strip[data-moving] {
+    animation: none;
+  }
+}
+/* With the tools fixed at the foot, the list no longer meets the window's corner: it runs to the dock, 8 over it, and
+   only its last 24 fade (the 28 + 28 clearance and the 64 fade left an empty band over the dock). */
+@media (min-width: 761px) {
+  [data-theme] .sidebar:not([data-rail="true"]) .sidebar__scroll {
+    margin-bottom: 0;
+    padding-bottom: var(--dg-s2);
+  }
+  [data-theme] .sidebar:not([data-rail="true"]) .sidebar__scroll[data-fade-bottom="true"] {
+    -webkit-mask-image:
+      linear-gradient(to bottom, transparent 0, #000 var(--sidebar-fade-top), #000 calc(100% - 24px), transparent 100%),
+      var(--scroll-strip);
+    mask-image:
+      linear-gradient(to bottom, transparent 0, #000 var(--sidebar-fade-top), #000 calc(100% - 24px), transparent 100%),
+      var(--scroll-strip);
+  }
+}
+/* The person's block, lower and longer (the owner's note): 52 high, one line under the name (the workspace and its
+   agents, cut with an ellipsis, never wrapped), the loose bell and collapse 32 wide, 4 from it. */
+[data-theme] .sidebar:not([data-rail="true"]) .sidebar__head-row,
+[data-theme] .sidebar:not([data-rail="true"]) .sidebar__jump-row {
+  gap: var(--dg-s1);
+}
+[data-theme] .sidebar:not([data-rail="true"]) .sidebar__head-row > .sidebar__org--head {
+  min-height: 52px;
+  padding: 10px var(--dg-s3);
+}
+[data-theme] .sidebar:not([data-rail="true"]) :is(.sidebar__head-row > .sidebar__bell, .sidebar__collapse.ac-btn) {
+  width: 32px;
+  border-radius: 10px;
+}
+[data-theme] .sidebar:not([data-rail="true"]) .sidebar__head-row .sidebar__org-meta {
+  display: block;
+  margin-left: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+[data-theme] .sidebar:not([data-rail="true"]) .sidebar__head-row .sidebar__org-meta > span + span::before {
+  content: " · ";
+  display: inline;
+  white-space: pre;
+  width: auto;
+}
+[data-theme] .sidebar:not([data-rail="true"]) .sidebar__head-row .sidebar__org-meta > span:first-child::before {
+  content: none;
+}
+
+/* The signature's line holds the bell and the collapse (the owner's note): loose 32 icons at its end, on the logo's
+   middle; the person's block and Go to… take the whole width under it. */
+[data-theme] .sidebar:not([data-rail="true"]) .sidebar__brand-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--dg-s2);
+}
+[data-theme] .sidebar:not([data-rail="true"]) .sidebar__brand-acts {
+  display: flex;
+  align-items: center;
+  gap: var(--dg-s1);
+}
+[data-theme] .sidebar:not([data-rail="true"]) :is(.sidebar__brand-acts > .sidebar__bell, .sidebar__brand-acts > .sidebar__collapse.ac-btn) {
+  position: relative;
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  border-radius: 10px;
+  color: var(--db-texto-2);
+  background: none;
+  box-shadow: none;
+}
+[data-theme] .sidebar:not([data-rail="true"]) :is(.sidebar__brand-acts > .sidebar__bell, .sidebar__brand-acts > .sidebar__collapse.ac-btn):hover {
+  color: var(--db-texto);
+  background: color-mix(in srgb, var(--dg-luz) 6%, transparent);
+}
+[data-theme] .sidebar:not([data-rail="true"]) .sidebar__brand-acts > .sidebar__bell > .ac-icon {
+  width: 20px;
+  height: 20px;
+}
+[data-theme] .sidebar:not([data-rail="true"]) .sidebar__brand-acts > .sidebar__bell > .sidebar__unread {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+}
+[data-theme] .sidebar:not([data-rail="true"]) .sidebar__head-row > .sidebar__org--head,
+[data-theme] .sidebar:not([data-rail="true"]) .sidebar__jump-row > .sidebar__jump {
+  flex: 1;
+  width: 100%;
+}
+/* Less round (the owner's note): the person's block 14, Go to… 12, its keys 3 (12 less 9). */
+[data-theme] .sidebar:not([data-rail="true"]) .sidebar__head-row > .sidebar__org--head {
+  --r-outer: 14px;
+  border-radius: var(--r-outer);
+}
+[data-theme] .sidebar:not([data-rail="true"]) .sidebar__jump {
+  --r-outer: 12px;
+  border-radius: var(--r-outer);
+}
+[data-theme] .sidebar:not([data-rail="true"]) .sidebar__jump .ac-kbd {
+  border-radius: 3px;
+}
+
+/* ── A bot at work (the owner's note of 2026-11-13: Rosa working read as asleep): its eyes stay open, a little
+   narrowed, and scan from side to side as if reading; with less motion asked for, they rest looking aside. ── */
+.ac-bot[data-estado="trabalhando"] .db-varre {
+  transform-box: fill-box;
+  animation: db-varre 2.2s var(--dg-ease, ease-in-out) infinite alternate;
+}
+@keyframes db-varre {
+  0%,
+  12% {
+    transform: translateX(-2.5px);
+  }
+  88%,
+  100% {
+    transform: translateX(2.5px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ac-bot[data-estado="trabalhando"] .db-varre {
+    animation: none;
+    transform: translateX(2px);
+  }
+}
+/* Its status dot on the corner, as people's: online, busy, away, out, offline at a glance across the list. */
+[data-theme] .ac-avatar--bot > .ac-avatar__badge {
+  position: absolute;
+  right: -2px;
+  bottom: -2px;
+  z-index: 2;
+  line-height: 0;
+}
+[data-theme] .ac-avatar--bot {
+  position: relative;
+}
+/* …and a small "working" bubble on its top corner (the identity's green, three dots that light in turn), from the
+   36 faces up: the list and the hero row say who is at work without reading a line. */
+.ac-avatar--bot:not(.ac-avatar--xs, .ac-avatar--sm):has(> .ac-bot[data-estado="trabalhando"])::before {
+  content: "";
+  position: absolute;
+  top: -4px;
+  right: -6px;
+  z-index: 2;
+  width: 20px;
+  height: 11px;
+  border-radius: 6px;
+  background:
+    radial-gradient(circle, var(--db-tinta-verde, #10200a) 1.6px, transparent 1.9px) 3px 50% / 5px 5px no-repeat,
+    radial-gradient(circle, var(--db-tinta-verde, #10200a) 1.6px, transparent 1.9px) 7.5px 50% / 5px 5px no-repeat,
+    radial-gradient(circle, var(--db-tinta-verde, #10200a) 1.6px, transparent 1.9px) 12px 50% / 5px 5px no-repeat,
+    var(--db-verde-acento);
+  box-shadow:
+    0 0 0 2px var(--db-palco-2, var(--bg)),
+    0 2px 8px color-mix(in srgb, var(--db-verde-acento) 45%, transparent);
+  animation: db-bolha 1.2s steps(1, end) infinite;
+}
+@keyframes db-bolha {
+  0% {
+    background-size: 5px 5px, 0 0, 0 0, auto;
+  }
+  33% {
+    background-size: 5px 5px, 5px 5px, 0 0, auto;
+  }
+  66% {
+    background-size: 5px 5px, 5px 5px, 5px 5px, auto;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ac-avatar--bot:has(> .ac-bot[data-estado="trabalhando"])::before {
+    animation: none;
+  }
+}
+/* At work the body moves too (the owner's note): a light bob with a small sway, and the eyes blink now and then
+   while they scan. */
+.ac-bot[data-estado="trabalhando"] > svg {
+  transform-origin: 50% 85%;
+  animation: db-corpo 1.6s var(--dg-ease, ease-in-out) infinite;
+}
+@keyframes db-corpo {
+  0%,
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  25% {
+    transform: translateY(-1.5px) rotate(-2.5deg);
+  }
+  50% {
+    transform: translateY(0) rotate(0deg);
+  }
+  75% {
+    transform: translateY(-1.5px) rotate(2.5deg);
+  }
+}
+.ac-bot[data-estado="trabalhando"] .db-varre > rect {
+  transform-box: fill-box;
+  transform-origin: 50% 50%;
+  animation: db-pisca 3.4s linear infinite;
+}
+@keyframes db-pisca {
+  0%,
+  44%,
+  50%,
+  100% {
+    transform: scaleY(1);
+  }
+  47% {
+    transform: scaleY(0.12);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ac-bot[data-estado="trabalhando"] > svg,
+  .ac-bot[data-estado="trabalhando"] .db-varre > rect {
+    animation: none;
+  }
+}
+/* Every bot shows its dot, the hero's offline ones too (the owner asked for the dots back). */
+[data-theme] .sidebar__hero-face .ac-avatar__badge:has(> [data-presence="offline"]) {
+  display: block;
+}
+/* Discreet (the owner's note): a bot's dot is small, 6 on the big faces and 5 on the list's, with a thin ring, in
+   the status set's own colors (Online, Ausente, Ocupado, Fora do escritório, Oculto). */
+/* On the body's own lower corner (where the owner marked it), not on the box's: the glass sits inside the box. */
+[data-theme] .ac-avatar--bot > .ac-avatar__badge {
+  right: 9%;
+  bottom: 4%;
+}
+[data-theme] .ac-avatar--bot > .ac-avatar__badge .ac-presence {
+  width: 6px;
+  height: 6px;
+  box-shadow: 0 0 0 1.5px var(--presence-ring, var(--db-palco-2));
+}
+[data-theme] .ac-avatar--bot:is(.ac-avatar--xs, .ac-avatar--sm) > .ac-avatar__badge .ac-presence {
+  width: 5px;
+  height: 5px;
+}
+[data-theme] .ac-avatar--bot > .ac-avatar__badge .ac-presence:is([data-presence="offline"], [data-presence="hidden"]) {
+  box-shadow:
+    inset 0 0 0 1.25px var(--db-texto-3),
+    0 0 0 1.5px var(--presence-ring, var(--db-palco-2));
+}
+/* The working bubble, quieter: 14 by 8, its dots 1.2. */
+.ac-avatar--bot:not(.ac-avatar--xs, .ac-avatar--sm):has(> .ac-bot[data-estado="trabalhando"])::before {
+  top: -2px;
+  right: -3px;
+  width: 14px;
+  height: 8px;
+  border-radius: 4px;
+  background:
+    radial-gradient(circle, var(--db-tinta-verde, #10200a) 1.1px, transparent 1.4px) 2px 50% / 4px 4px no-repeat,
+    radial-gradient(circle, var(--db-tinta-verde, #10200a) 1.1px, transparent 1.4px) 5px 50% / 4px 4px no-repeat,
+    radial-gradient(circle, var(--db-tinta-verde, #10200a) 1.1px, transparent 1.4px) 8px 50% / 4px 4px no-repeat,
+    var(--db-verde-acento);
+  box-shadow: 0 0 0 1.5px var(--db-palco-2, var(--bg));
+}
+@keyframes db-bolha {
+  0% {
+    background-size: 4px 4px, 0 0, 0 0, auto;
+  }
+  33% {
+    background-size: 4px 4px, 4px 4px, 0 0, auto;
+  }
+  66% {
+    background-size: 4px 4px, 4px 4px, 4px 4px, auto;
+  }
+}
+
+/* ── The rail (the sidebar collapsed) ──
+   Nothing on top: the list starts there, 24 under the rail's edge (its 20 and the focus ring's 4). The person,
+   the bell, Go to… and the toggle are one glass card at the foot (read from the bottom up: me, the bell, Go to…, the
+   toggle). The card is the full sidebar's dock turned upright (56: 32 circles 12 in) and keeps the window's 20 from
+   every edge, so the rail is 96 wide: its 48 corner, the card's 28 and the circles' 16 are concentric (48 = 28 + 20,
+   28 = 16 + 12). */
+@media (min-width: 761px) {
+  [data-theme] .sidebar[data-rail="true"] {
+    --r-outer: var(--dg-r-side);
+    --pad: var(--dg-gap-side);
+    flex-basis: 96px;
+    width: 96px;
+    min-width: 96px;
+    padding: 0 var(--pad) var(--pad);
+    border-radius: var(--r-outer);
+  }
+  [data-theme] .sidebar[data-rail="true"]:not([data-personal]) .sidebar__top {
+    display: none;
+  }
+  /* One 48 column (a 40 tile and its focus ring) on the rail's middle. The list takes the rail's top 24 as its own
+     padding, so the open tile's glow has room under the rail's edge instead of a straight cut at the list's. */
+  [data-theme] .sidebar[data-rail="true"] .sidebar__scroll {
+    grid-template-columns: 48px;
+    justify-content: center;
+    margin: 0 calc(-1 * var(--pad));
+    padding: var(--dg-s5) var(--dg-s4) var(--dg-s4);
+    justify-items: center;
+  }
+  /* The first group starts the list: no rule over it. */
+  [data-theme] .sidebar[data-rail="true"] .sidebar__scroll > :first-child > .sidebar__group:first-child {
+    padding-top: 0;
+    border-top: 0;
+  }
+  [data-theme] .sidebar[data-rail="true"] .sidebar__foot {
+    align-self: stretch;
+    width: auto;
+    gap: var(--dg-gap-compact);
+  }
+  [data-theme] .sidebar[data-rail="true"] .sidebar__me--rail {
+    --r-outer: 28px;
+    --pad: var(--dg-gap-compact);
+    flex-direction: column;
+    align-items: center;
+    align-self: stretch;
+    width: auto;
+    min-height: 0;
+    padding: var(--pad);
+    gap: var(--dg-gap-compact);
+    border-radius: var(--r-outer);
+    background: var(--dg-pill);
+    box-shadow:
+      var(--dg-edge),
+      0 8px 20px -12px var(--dg-sombra-media);
+    --presence-ring: var(--side);
+  }
+  [data-theme] .sidebar[data-rail="true"] .sidebar__me--rail > :is(.ac-btn, .sidebar__bell, .sidebar__user) {
+    flex: none;
+    width: calc(2 * var(--r-inner));
+    height: calc(2 * var(--r-inner));
+    min-width: 0;
+    min-height: 0;
+    margin: 0;
+    padding: 0;
+    justify-content: center;
+    border-radius: var(--r-inner);
+  }
+  [data-theme] .sidebar[data-rail="true"] .sidebar__me--rail > .sidebar__user > .ac-avatar {
+    width: calc(2 * var(--r-inner));
+    height: calc(2 * var(--r-inner));
+  }
+  /* Every glyph 20, the bell's size. */
+  [data-theme] .sidebar[data-rail="true"] .sidebar__me--rail > .ac-btn > .ac-icon {
+    width: 20px;
+    height: 20px;
+  }
+  [data-theme] .sidebar[data-rail="true"] .sidebar__me--rail > :is(.ac-btn, .sidebar__bell):hover {
+    background: color-mix(in srgb, var(--dg-luz) 8%, transparent);
+  }
+}

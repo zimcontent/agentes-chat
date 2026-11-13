@@ -112,7 +112,9 @@ const __alvo = {};
 
   function olho(x, y, estilo, estado, tinta, e) {
     e = e || 1;
-    if (estado === 'trabalhando') return traco('M' + n(x - 6 * e) + ' ' + n(y + 1) + 'H' + n(x + 6 * e), tinta, n(4.4 * e));
+    // Trabalhando: olhos abertos, um pouco apertados de concentração, que varrem de um lado a outro (doug.css
+    // anima `.db-varre`): não pode ler como dormindo.
+    if (estado === 'trabalhando') return '<g class="db-varre"><rect x="' + n(x - 4 * e) + '" y="' + n(y - 5 * e) + '" width="' + n(8 * e) + '" height="' + n(10 * e) + '" rx="' + n(4 * e) + '" fill="' + tinta + '"/></g>';
     if (estado === 'terminou') return traco('M' + n(x - 6 * e) + ' ' + n(y + 3 * e) + 'Q' + n(x) + ' ' + n(y - 7 * e) + ' ' + n(x + 6 * e) + ' ' + n(y + 3 * e), tinta, n(4.4 * e));
     if (estado === 'dormindo') return traco('M' + n(x - 6 * e) + ' ' + n(y - 1) + 'Q' + n(x) + ' ' + n(y + 6 * e) + ' ' + n(x + 6 * e) + ' ' + n(y - 1), tinta, n(4 * e));
     if (estado === 'pedindo') y -= 3 * e;

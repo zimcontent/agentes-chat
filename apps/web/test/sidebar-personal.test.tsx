@@ -422,9 +422,10 @@ describe("a personal workspace's sidebar", () => {
     await go(seedState());
     expect(nav().querySelector(".sidebar__end")).toBeNull();
     expect(nav().querySelector(".sidebar__jump")).not.toBeNull();
-    expect(nav().querySelector(".sidebar__org--head .sidebar__bell")).not.toBeNull();
+    expect(nav().querySelector(".sidebar__brand-acts > .sidebar__bell")).not.toBeNull();
     expect(nav().querySelector(".sidebar__org--head .sidebar__org-meta")?.textContent).toContain("Acme");
     expect(nav().querySelector(".sidebar__foot .sidebar__me")).toBeNull();
-    expect(blocks()).toEqual(["tools", "channels", "agents", "people"]);
+    expect(nav().querySelector(".sidebar__foot .sidebar__dock")).not.toBeNull();
+    expect(blocks()).toEqual(["channels", "agents", "people"]);
   });
 });
