@@ -605,7 +605,7 @@ export function createFakeHost(
     openSystemSettings: async (page) => {
       console.info("[fake] open System Settings:", page);
     },
-    localDiagnostics: async () => `agentes.chat app ${version} (macos aarch64)\nserver here: ${local.phase}`,
+    localDiagnostics: async () => `DougBot app ${version} (macos aarch64)\nserver here: ${local.phase}`,
     syncLocalHomes: async () => {},
     onLocalReach: (cb) => {
       reachListeners.add(cb);

@@ -113,6 +113,10 @@ describe("connect links", () => {
     expect(parseConnectLink("agenteschat:///connect?server=https://app.agentes.chat")).toEqual({
       server: "https://app.agentes.chat",
     });
+    // DougBot: the desktop app's own scheme is read too; the links made for the phone stay `agenteschat://`.
+    expect(parseConnectLink("dougbot://connect?server=https%3A%2F%2Fbox.tail1234.ts.net")).toEqual({
+      server: "https://box.tail1234.ts.net",
+    });
   });
 
   test("the owner claim the setup prints, and other parameters ignored", () => {
@@ -152,7 +156,7 @@ describe("connect links", () => {
 
   test("the desktop app's pair link: the server and the connect link's code", () => {
     expect(pairLink("https://app.agentes.chat", "K7QM-4ZPA")).toBe(
-      "agenteschat://pair?server=https%3A%2F%2Fapp.agentes.chat&link=K7QM-4ZPA",
+      "dougbot://pair?server=https%3A%2F%2Fapp.agentes.chat&link=K7QM-4ZPA",
     );
     expect(parseConnectLink(pairLink("https://app.agentes.chat", "K7QM-4ZPA"))).toBeNull();
     // Only where the app takes it: https, not on this computer.

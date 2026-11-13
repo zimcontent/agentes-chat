@@ -22,7 +22,8 @@ export const DESKTOP_OAUTH_RETURN = "desktop:";
  * The desktop app's deep link (its scheme in apps/desktop tauri.conf.json, read by deep_link.rs) that receives
  * `org`, `state` and `code`: the app opens them in its window, which finishes with the window's session.
  */
-export const DESKTOP_OAUTH_REDIRECT = "agenteschat://desktop/connectors/oauth";
+// DougBot: only the desktop app reads this link, so it carries the app's own scheme (it answers to both).
+export const DESKTOP_OAUTH_REDIRECT = "dougbot://desktop/connectors/oauth";
 
 const sitePath = (input: string | undefined): input is string =>
   Boolean(input?.startsWith("/") && !input.startsWith("//") && !input.startsWith("/\\"));

@@ -185,7 +185,7 @@ describe("what the popover, the cover and Preferences say", () => {
     expect(isHereServer(running, LOCAL)).toBe(true);
     expect(isHereServer(reached, TAILNET)).toBe(true);
     expect(isHereServer(reached, LOCAL)).toBe(true);
-    expect(isHereServer(running, "https://app.agentes.chat")).toBe(false);
+    expect(isHereServer(running, "https://dougbot.app")).toBe(false);
     expect(isHereServer({ ...running, run: false }, LOCAL)).toBe(false);
   });
 
@@ -199,26 +199,26 @@ describe("what the popover, the cover and Preferences say", () => {
     expect(coverHere(reached, TAILNET, false)).toBe("tailnetOff");
     expect(coverHere(reached, TAILNET, true)).toBeNull();
     // Another server: the cover's own reachability words, not these.
-    expect(coverHere({ ...running, phase: "stopped" }, "https://app.agentes.chat", false)).toBeNull();
+    expect(coverHere({ ...running, phase: "stopped" }, "https://dougbot.app", false)).toBeNull();
   });
 
   test("Rust's labels for the tray line and the notifications, with {version} left for Rust", () => {
     const labels = menuLabels(createDesktopI18n("en", "linux").t);
-    expect(labels.serverTitle).toBe("agentes.chat on this computer");
+    expect(labels.serverTitle).toBe("DougBot on this computer");
     expect(labels.serverStop).toBe("Stop");
-    expect(labels.hereBack).toBe("The update didn't start. agentes.chat is back on {version}.");
+    expect(labels.hereBack).toBe("The update didn't start. DougBot is back on {version}.");
   });
 
   test("Rust's notification for a setup that failed while its window was closed, in both languages", () => {
     const en = menuLabels(createDesktopI18n("en", "mac").t);
     expect([en.setupFailed, en.setupFailedBody]).toEqual([
-      "Setting up agentes.chat on this Mac didn't finish",
-      "Open agentes.chat to see what happened.",
+      "Setting up DougBot on this Mac didn't finish",
+      "Open DougBot to see what happened.",
     ]);
     const pt = menuLabels(createDesktopI18n("pt-BR", "windows").t);
     expect([pt.setupFailed, pt.setupFailedBody]).toEqual([
-      "A preparação do agentes.chat neste PC não terminou",
-      "Abra o agentes.chat para ver o que aconteceu.",
+      "A preparação do DougBot neste PC não terminou",
+      "Abra o DougBot para ver o que aconteceu.",
     ]);
   });
 });

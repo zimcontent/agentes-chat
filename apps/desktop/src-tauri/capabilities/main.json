@@ -4,7 +4,7 @@
   "webviews": ["main"],
   "local": false,
   "remote": {
-    "urls": ["https://app.agentes.chat/*"]
+    "urls": ["https://dougbot.app/*"]
   },
   "permissions": [
     "core:window:allow-start-dragging",

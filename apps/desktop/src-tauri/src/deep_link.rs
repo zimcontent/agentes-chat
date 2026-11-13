@@ -18,7 +18,10 @@ use serde_json::Value;
 use tauri::{AppHandle, Emitter, Manager, Url};
 use tauri_plugin_deep_link::DeepLinkExt;
 
-pub const SCHEME: &str = "agenteschat";
+// DougBot: this app's own scheme; links only this app reads are made with it.
+pub const SCHEME: &str = "dougbot";
+// DougBot: servers and the phone app's QR code still emit this scheme, so the app answers to both.
+pub const LEGACY_SCHEME: &str = "agenteschat";
 /// A connect link is short (a server and a token or a claim); anything longer isn't one.
 const MAX_LINK: usize = 2048;
 /// A connect link's code: 8 of these, shown as `ABCD-EFGH` (packages/engine machine-device.ts `USER_CODE_ALPHABET`).
@@ -28,9 +31,14 @@ const INFO_TIMEOUT: Duration = Duration::from_secs(10);
 #[derive(Default)]
 pub struct PendingLink(Mutex<Option<String>>);
 
+/// DougBot: either of the two schemes the app answers to.
+fn is_ours(scheme: &str) -> bool {
+    scheme == SCHEME || scheme == LEGACY_SCHEME
+}
+
 /// One of ours, of a size a link can be.
 pub fn accept(url: &Url) -> bool {
-    url.scheme() == SCHEME && url.as_str().len() <= MAX_LINK
+    is_ours(url.scheme()) && url.as_str().len() <= MAX_LINK
 }
 
 /// A connector's sign-in that the browser handed back (apps/server connectors.ts `oauth/callback`).
@@ -77,7 +85,7 @@ fn link_code(raw: &str) -> Option<String> {
 /// `agenteschat://pair?server=<origin>&link=<code>`: a server the app may open (https, or http on loopback) and a
 /// connect link's code. Other fields are ignored; None when it isn't one.
 pub fn pair_link(url: &Url) -> Option<PairLink> {
-    if url.scheme() != SCHEME || url.host_str() != Some("pair") || !matches!(url.path(), "" | "/") {
+    if !is_ours(url.scheme()) || url.host_str() != Some("pair") || !matches!(url.path(), "" | "/") {
         return None;
     }
     let field = |name: &str| url.query_pairs().find(|(k, _)| k == name).map(|(_, v)| v.into_owned());
@@ -88,7 +96,7 @@ pub fn pair_link(url: &Url) -> Option<PairLink> {
 
 /// The link the welcome window takes: only its checked fields.
 fn pair_url(pair: &PairLink) -> String {
-    let mut url = Url::parse("agenteschat://pair").expect("a fixed URL");
+    let mut url = Url::parse("dougbot://pair").expect("a fixed URL");
     url.query_pairs_mut().append_pair("server", &pair.server).append_pair("link", &pair.code);
     url.to_string()
 }
@@ -139,7 +147,7 @@ pub fn setup(app: &AppHandle) {
 
 /// A second launch carrying a link (Windows, Linux): the link is handled, the main window stays as it is.
 pub fn in_args(args: &[String]) -> bool {
-    args.iter().any(|a| a.starts_with("agenteschat:"))
+    args.iter().any(|a| a.starts_with("dougbot:") || a.starts_with("agenteschat:"))
 }
 
 #[tauri::command]
@@ -228,10 +236,12 @@ mod tests {
     fn only_our_links() {
         let ok: Url = "agenteschat://connect?server=https%3A%2F%2Fagentes.tail1234.ts.net".parse().unwrap();
         assert!(accept(&ok));
+        assert!(accept(&"dougbot://connect?server=x".parse().unwrap()));
         assert!(!accept(&"https://app.agentes.chat/connect".parse().unwrap()));
         let long: Url = format!("agenteschat://connect?server=x&pad={}", "a".repeat(MAX_LINK)).parse().unwrap();
         assert!(!accept(&long));
         assert!(in_args(&["/usr/bin/agentes".into(), "agenteschat://connect?server=x".into()]));
+        assert!(in_args(&["/usr/bin/agentes".into(), "dougbot://pair?server=x".into()]));
         assert!(!in_args(&["/usr/bin/agentes".into(), "--autostart".into()]));
     }
 
@@ -240,6 +250,7 @@ mod tests {
         let pair = |u: &str| pair_link(&u.parse().unwrap());
         let ok = Some(PairLink { server: "https://app.agentes.chat".into(), code: "ABCDEFGH".into() });
         assert_eq!(pair("agenteschat://pair?server=https%3A%2F%2Fapp.agentes.chat&link=ABCD-EFGH"), ok);
+        assert_eq!(pair("dougbot://pair?server=https%3A%2F%2Fapp.agentes.chat&link=ABCD-EFGH"), ok);
         assert_eq!(pair("agenteschat://pair/?link=abcdefgh&server=https://app.agentes.chat/&utm=x"), ok);
         assert_eq!(
             pair("agenteschat://pair?server=http%3A%2F%2F127.0.0.1%3A4310&link=ABCD-EFGH").map(|p| p.server),
@@ -264,7 +275,7 @@ mod tests {
         // The window gets only the two fields, as the server stores the code.
         assert_eq!(
             pair_url(&PairLink { server: "https://app.agentes.chat".into(), code: "ABCDEFGH".into() }),
-            "agenteschat://pair?server=https%3A%2F%2Fapp.agentes.chat&link=ABCDEFGH"
+            "dougbot://pair?server=https%3A%2F%2Fapp.agentes.chat&link=ABCDEFGH"
         );
     }
 

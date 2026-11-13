@@ -356,7 +356,7 @@ function Choose({
         <HostingScene hosting={pick} shape="tall" />
         <span className="dk-choose__brand" aria-hidden="true">
           <BrandFace size="sm" />
-          agentes.chat
+          DougBot
         </span>
       </div>
       <div className="dk-choose__main">

@@ -427,7 +427,7 @@ describe("the desktop app lists every server's workspaces (ADR 0154)", () => {
       expect.stringContaining("Acme"),
       expect.stringContaining("Beta"),
       "Novo workspace",
-      "agentes.chat",
+      "DougBot",
       expect.stringMatching(/Oficina.*4/),
       expect.stringContaining("Adicionar workspace"),
     ]);
@@ -440,8 +440,8 @@ describe("the desktop app lists every server's workspaces (ADR 0154)", () => {
     const own = "agentes.exemplo.com.br · Seu servidor";
     const oficina = expect.stringMatching(/Oficina.*4/);
     for (const [here, other, servers] of [
-      [CLOUD_SERVER, OWN, ["agentes.chat", expect.anything(), "Beta", own, oficina]],
-      [OWN, CLOUD_SERVER, [own, expect.anything(), "Beta", "Novo workspace", "agentes.chat", oficina]],
+      [CLOUD_SERVER, OWN, ["DougBot", expect.anything(), "Beta", own, oficina]],
+      [OWN, CLOUD_SERVER, [own, expect.anything(), "Beta", "Novo workspace", "DougBot", oficina]],
     ] as const) {
       inDesktop(here, other);
       const { router } = await open(`/org/${ORG_ID}/issues`, { mode: "personal" });

@@ -9,7 +9,8 @@ import type { Instance } from "../api/types";
  * agentes.chat server these apps can talk to.
  */
 
-export const CLOUD_SERVER = "https://app.agentes.chat";
+// DougBot: the apps' cloud server is this fork's own site.
+export const CLOUD_SERVER = "https://dougbot.app";
 
 /**
  * A help page on the public docs site, in the reader's language, at a section. Every edition and app links there,
@@ -24,9 +25,9 @@ export const APP_API = 1;
 
 /**
  * `agenteschat://connect?server=<origin>[&token=<one-time sign-in>][&claim=<owner claim>]` opens the phone or
- * the desktop app on that server.
+ * the desktop app on that server. DougBot: the desktop app also answers to `dougbot://`, so both are read.
  */
-const CONNECT_LINK = /^agenteschat:\/\/\/?connect\/?(?:\?(.*))?$/i;
+const CONNECT_LINK = /^(?:agenteschat|dougbot):\/\/\/?connect\/?(?:\?(.*))?$/i;
 /** A one-time sign-in or an owner claim inside a connect link. */
 const LINK_SECRET = /^[A-Za-z0-9_-]{20,200}$/;
 const MAX_LINK = 2048;
@@ -108,6 +109,8 @@ export type ConnectLink = {
   claim?: string;
 };
 
+// DougBot: stays `agenteschat://`; the phone app reads this link too (the QR code, the setup), and the desktop app
+// answers to both schemes.
 export function connectLink(server: string, { token, claim }: Omit<ConnectLink, "server"> = {}): string {
   const query = new URLSearchParams({ server });
   if (token) query.set("token", token);
@@ -119,7 +122,8 @@ export function connectLink(server: string, { token, claim }: Omit<ConnectLink, 
  * The desktop app connects this computer with a connect link (`link`, as `ABCD-EFGH`) of `server`, after the
  * person confirms in the app; the link's maker still lets it join on the web.
  */
-export const pairLink = (server: string, link: string) => `agenteschat://pair?${new URLSearchParams({ server, link })}`;
+// DougBot: only the desktop app reads a pair link, so it carries the app's own scheme.
+export const pairLink = (server: string, link: string) => `dougbot://pair?${new URLSearchParams({ server, link })}`;
 
 /**
  * Whether the desktop app takes a `pairLink` of `server`: https, and not on this computer itself. The app drops any

@@ -1,6 +1,6 @@
 import { afterEach, expect, test } from "bun:test";
 import { MACHINE_PROTOCOL_VERSION, type ServerFrame } from "@agenteschat/adapters";
-import { parseReleaseBody, parseSha256 } from "../src/routes/desktop";
+import { DESKTOP_TAG_PREFIX, parseReleaseBody, parseSha256, savedName } from "../src/routes/desktop";
 import { browser, createTestServer, pairComputer, seedOrg, signUp, type TestServer } from "./harness";
 
 let t: TestServer | null = null;
@@ -19,7 +19,7 @@ const MANIFEST = '{"version":"1.4.0","pgMajor":18,"pglite":"0.5.8","files":{}}\n
 const ASSETS = "https://api.github.com/repos/agentes-chat/agentes-chat/releases/assets";
 const asset = (name: string) => ({ name, url: `${ASSETS}/${name}` });
 const release = (version: string, extra: Record<string, unknown> = {}) => ({
-  tag_name: `desktop-v${version}`,
+  tag_name: `${DESKTOP_TAG_PREFIX}${version}`,
   body: "Melhorias.\nmin-version: 0.1.0\n",
   published_at: "2026-10-17T12:00:00Z",
   assets: [asset(`agentes_${version}_universal.dmg`), asset(`agentes_${version}_universal.dmg.sha256`)],
@@ -259,7 +259,7 @@ test("download streams an asset of a desktop-v* release, as an attachment; nothi
   t = await createTestServer({ env: { DESKTOP_RELEASES_TOKEN: "ghp_test" }, desktopFetch: github.fetch });
   const res = await server().app.request("/api/desktop/download/0.2.0/agentes_0.2.0_universal.dmg");
   expect(res.status).toBe(200);
-  expect(res.headers.get("content-disposition")).toBe('attachment; filename="agentes_0.2.0_universal.dmg"');
+  expect(res.headers.get("content-disposition")).toBe('attachment; filename="DougBot_0.2.0_universal.dmg"');
   expect(res.headers.get("content-type")).toBe("application/x-apple-diskimage");
   expect(await res.text()).toBe("DMG-BYTES");
   expect((await server().app.request("/api/desktop/download/0.2.0/other.dmg")).status).toBe(404);
@@ -357,3 +357,10 @@ test("reduce over HTTP: admins or the pairer, only removing or turning off", asy
   // A sign-up and a pairing on a fresh database: seconds on a loaded runner, and the preload's longer
   // default timeout reaches only the first test file of a run.
 }, 30_000);
+
+test("the saved name of a desktop build carries the product's name; native packages keep theirs", () => {
+  expect(savedName("agentes_0.2.0_universal.dmg", "desktop")).toBe("DougBot_0.2.0_universal.dmg");
+  expect(savedName("agentes_0.2.0_x64-setup.exe", "desktop")).toBe("DougBot_0.2.0_x64-setup.exe");
+  expect(savedName("native.json", "desktop")).toBe("native.json");
+  expect(savedName("agentes-native-1.4.0-linux-x64.tar.gz", "native")).toBe("agentes-native-1.4.0-linux-x64.tar.gz");
+});

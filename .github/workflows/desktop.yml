@@ -24,7 +24,8 @@ on:
       release:
         description: "fix = 0.0.x, feature = 0.x.0, major = x.0.0; none = build only, no release"
         type: choice
-        options: [fix, feature, major, none]
+        # DougBot: `current` releases the version main already has, without a version commit (see the version job).
+        options: [fix, feature, major, none, current]
         default: fix
       notes:
         description: "Release notes (optional; default = commit subjects since the last release)"
@@ -68,7 +69,31 @@ jobs:
           RELEASE: ${{ inputs.release }}
           NOTES: ${{ inputs.notes }}
           HAS_KEY: ${{ secrets.RELEASE_DEPLOY_KEY != '' }}
+          GH_TOKEN: ${{ github.token }}
         run: |
+          # DougBot: `current` publishes the version main already carries (the upstream's bumps arrive with every
+          # sync), so this fork never edits the version lines the upstream changes: only a tag goes up, with this
+          # job's own token, and no deploy key is needed. The tag is `dougbot-desktop-v<version>`: the upstream's
+          # `desktop-v*` tags come with the sync and name other commits (apps/server/src/routes/desktop.ts reads ours).
+          if [ "$RELEASE" = "current" ]; then
+            if [ "$GITHUB_REF" != "refs/heads/main" ]; then
+              echo "::error::Releases are cut from main (this run is on $GITHUB_REF); pick release = none for a test build"
+              exit 1
+            fi
+            CURRENT=$(jq -r .version apps/desktop/src-tauri/tauri.conf.json)
+            TAG="dougbot-desktop-v$CURRENT"
+            # A tag with no release is a run whose builds failed: this run takes the tag over.
+            if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" > /dev/null 2>&1; then
+              echo "::error::Version $CURRENT is already released ($TAG): wait for the next version to arrive on main"
+              exit 1
+            fi
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git tag -f -a "$TAG" -m "${NOTES:-DougBot $CURRENT}"
+            git push --force origin "refs/tags/$TAG"
+            echo "RELEASE_TAG=$TAG" >> "$GITHUB_ENV"
+            exit 0
+          fi
           if [ "$HAS_KEY" != "true" ]; then
             echo "::error::The RELEASE_DEPLOY_KEY secret is missing: a release pushes its version commit to main with that deploy key"
             exit 1
@@ -124,7 +149,7 @@ jobs:
             echo "::error::Versions differ: tauri.conf.json $VERSION, package.json $PKG, Cargo.toml $CARGO"
             exit 1
           fi
-          if [ -n "${RELEASE_TAG:-}" ] && [ "${RELEASE_TAG#desktop-v}" != "$VERSION" ]; then
+          if [ -n "${RELEASE_TAG:-}" ] && [ "${RELEASE_TAG##*desktop-v}" != "$VERSION" ]; then
             echo "::error::Tag $RELEASE_TAG doesn't match the app version $VERSION"
             exit 1
           fi
@@ -699,9 +724,9 @@ jobs:
             local name=$1 home
             home=$(mktemp -d)
             if [ "$name" = cloud ]; then
-              mkdir -p "$home/.config/chat.agentes.desktop"
-              echo '{"current":"https://app.agentes.chat","servers":["https://app.agentes.chat"]}' \
-                > "$home/.config/chat.agentes.desktop/servers.json"
+              mkdir -p "$home/.config/app.dougbot.desktop"
+              echo '{"current":"https://dougbot.app","servers":["https://dougbot.app"]}' \
+                > "$home/.config/app.dougbot.desktop/servers.json"
             fi
             # Its own folders, whatever the runner sets for XDG.
             HOME="$home" XDG_CONFIG_HOME="$home/.config" XDG_DATA_HOME="$home/.local/share" XDG_CACHE_HOME="$home/.cache" \
@@ -756,9 +781,9 @@ jobs:
         run: |
           git fetch --force origin "refs/tags/$TAG:refs/tags/$TAG"
           git tag -l --format='%(contents)' "$TAG" | sed '/^-----BEGIN PGP SIGNATURE-----/,$d' > notes.txt
-          if [ ! -s notes.txt ] || ! grep -q '[^[:space:]]' notes.txt; then echo "agentes.chat $VERSION" > notes.txt; fi
+          if [ ! -s notes.txt ] || ! grep -q '[^[:space:]]' notes.txt; then echo "DougBot $VERSION" > notes.txt; fi
           # How to open it the first time while the builds aren't notarized/signed (ADR 0036 §10). It starts with
           # <!-- install -->, where the server cuts the notes the app shows on an update.
           { echo; sed -e "s|{{repo}}|$GITHUB_REPOSITORY|g" -e "s|{{version}}|$VERSION|g" .github/desktop-install.md; } >> notes.txt
           ls -l out
-          gh release create "$TAG" out/* --title "agentes.chat $VERSION" --notes-file notes.txt
+          gh release create "$TAG" out/* --title "DougBot $VERSION" --notes-file notes.txt

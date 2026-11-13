@@ -190,7 +190,7 @@ test("connectors API: the phone app's OAuth hands the code back to the app, whic
   });
   const desktopLink = new URL(toDesktop.headers.get("location") ?? "");
   expect(`${desktopLink.protocol}//${desktopLink.host}${desktopLink.pathname}`).toBe(
-    "agenteschat://desktop/connectors/oauth",
+    "dougbot://desktop/connectors/oauth",
   );
   expect(desktopLink.searchParams.get("org")).toBe(orgId);
   expect(desktopLink.searchParams.get("state")).toBe(desktop);
@@ -210,9 +210,7 @@ test("connectors API: the phone app's OAuth hands the code back to the app, whic
     `/api/app/connectors/oauth/callback?state=${refusedDesktop}&error=access_denied`,
     { origin: null },
   );
-  expect(noDesktop.headers.get("location")).toBe(
-    `agenteschat://desktop/connectors/oauth?org=${orgId}&error=access_denied`,
-  );
+  expect(noDesktop.headers.get("location")).toBe(`dougbot://desktop/connectors/oauth?org=${orgId}&error=access_denied`);
 
   // A web callback without our session: the sign-in page first, which comes back to it to finish.
   const webAgain = await start("/settings");

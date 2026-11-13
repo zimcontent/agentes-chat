@@ -42,7 +42,7 @@ afterAll(() => {
 });
 
 /**
- * The menu, by default with agentes.chat on this Mac, a folder request and two jobs (taller than the menu gets),
+ * The menu, by default with DougBot on this Mac, a folder request and two jobs (taller than the menu gets),
  * once `ready` says it shows what the test looks at.
  */
 async function withMenu(
@@ -92,7 +92,7 @@ test("the menu bar menu: what goes on here scrolls, and Open, Preferences and Qu
     expect(body?.querySelector(".dk-job")).toBeTruthy();
     expect(body?.querySelector("button.dk-mi")).toBeNull();
     const actions = [...(foot?.querySelectorAll("button.dk-mi") ?? [])].map((b) => b.textContent ?? "");
-    for (const label of ["Open agentes.chat", "Preferences…", "Quit agentes.chat"]) {
+    for (const label of ["Open DougBot", "Preferences…", "Quit DougBot"]) {
       expect(actions.some((text) => text.includes(label))).toBe(true);
     }
   }));
@@ -132,7 +132,7 @@ describe("the menu's banners say only what matters there", () => {
     globalThis.fetch = (async () =>
       Response.json({
         version: "9.9.9",
-        url: "https://app.agentes.chat/api/desktop/download/9.9.9/agentes_9.9.9_universal.dmg",
+        url: "https://dougbot.app/api/desktop/download/9.9.9/agentes_9.9.9_universal.dmg",
       })) as unknown as typeof fetch;
     try {
       await run();
@@ -156,11 +156,11 @@ describe("the menu's banners say only what matters there", () => {
       );
     }));
 
-  test("agentes.chat not starting here: its title, why and where to look, Copy details, the logs and Try again", () =>
+  test("DougBot not starting here: its title, why and where to look, Copy details, the logs and Try again", () =>
     withMenu(
       (el) =>
         expect(banners(el)).toContainEqual({
-          title: "agentes.chat isn't starting on this Mac",
+          title: "DougBot isn't starting on this Mac",
           line: "The details say why: copy them for whoever helps you, or look at the logs. Help",
           actions: ["Copy details", "Show the logs", "Try again"],
         }),
@@ -225,9 +225,9 @@ describe("the menu's banners say only what matters there", () => {
       await until(() => !banners(el).some((b) => b.title === "Paused until you resume"));
     }));
 
-  test("Quit: what happens to the work running here, and to everyone when agentes.chat runs here", async () => {
+  test("Quit: what happens to the work running here, and to everyone when DougBot runs here", async () => {
     const quit = async (el: HTMLElement) => {
-      const button = [...el.querySelectorAll("button.dk-mi")].find((b) => b.textContent?.includes("Quit agentes.chat"));
+      const button = [...el.querySelectorAll("button.dk-mi")].find((b) => b.textContent?.includes("Quit DougBot"));
       await act(async () => (button as HTMLButtonElement | undefined)?.click());
       return el.querySelector(".dk-confirm p")?.textContent;
     };
@@ -240,7 +240,7 @@ describe("the menu's banners say only what matters there", () => {
     );
     await withMenu(async (el) =>
       expect(await quit(el)).toBe(
-        "agentes.chat stops on this Mac: nobody can use it, here, on your phone or your teammates', until you open the app again.",
+        "DougBot stops on this Mac: nobody can use it, here, on your phone or your teammates', until you open the app again.",
       ),
     );
   });

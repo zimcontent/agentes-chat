@@ -45,8 +45,9 @@ export function serverKind(server: string): ServerKind {
 /** An address as the app takes it: https, or plain http on this computer only. */
 export const appServer = (input: string) => normalizeServer(input, { allowHttp: "loopback" });
 
-/** How a server reads in the app: "agentes.chat" for the Cloud, its host otherwise. */
-export const serverName = (server: string) => (server === CLOUD_SERVER ? "agentes.chat" : serverHost(server));
+/** How a server reads in the app: "DougBot" for the Cloud, its host otherwise. */
+// DougBot: the cloud server is named after the product.
+export const serverName = (server: string) => (server === CLOUD_SERVER ? "DougBot" : serverHost(server));
 
 /** The server a home is paired with, as an origin. */
 export const homeServer = (h: Home) => (h.status?.server ? appServer(h.status.server) : null);

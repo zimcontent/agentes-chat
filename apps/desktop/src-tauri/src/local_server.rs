@@ -2377,7 +2377,7 @@ fn diagnostics(app: &AppHandle) -> String {
         })
         .unwrap_or_default();
     format!(
-        "agentes.chat app {} ({} {})\nserver here: {:?}, version {}, at {}, reach {}, usage statistics {}\n\n{}\n\n{}",
+        "DougBot app {} ({} {})\nserver here: {:?}, version {}, at {}, reach {}, usage statistics {}\n\n{}\n\n{}",
         app.package_info().version,
         std::env::consts::OS,
         std::env::consts::ARCH,

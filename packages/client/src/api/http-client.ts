@@ -1292,7 +1292,7 @@ export function createHttpApi(options: TransportOptions = {}): HttpApi {
             { json: input === "resume" ? {} : input },
           )
         ).paused,
-      // A self-hosted server has no builds of its own (no `DESKTOP_RELEASES_TOKEN`): agentes.chat's, then.
+      // A self-hosted server has no builds of its own (no `DESKTOP_RELEASES_TOKEN`): the cloud server's, then (DougBot's own site; none yet is `null`).
       desktopLatest: async (target, arch) =>
         (await nullOn(404, () => request<DesktopRelease>("/api/desktop/latest", { query: { target, arch } }))) ??
         (await nullOn(404, () => cloud<DesktopRelease>("/api/desktop/latest", { query: { target, arch } }))),

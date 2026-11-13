@@ -4236,7 +4236,11 @@
       "tools.codexName",
       "tools.cursorName",
       "tools.grokName",
-      "tools.opencodeName"
+      "tools.opencodeName",
+      "tray.label",
+      "servers.cloud",
+      "prefs.thisMac.placeCloud",
+      "own.back"
     ],
     "es": [
       "common.hours",
@@ -4255,7 +4259,11 @@
       "tools.codexName",
       "tools.cursorName",
       "tools.grokName",
-      "tools.opencodeName"
+      "tools.opencodeName",
+      "tray.label",
+      "servers.cloud",
+      "prefs.thisMac.placeCloud",
+      "own.back"
     ],
     "fr": [
       "common.hours",
@@ -4277,7 +4285,11 @@
       "tools.codexName",
       "tools.cursorName",
       "tools.grokName",
-      "tools.opencodeName"
+      "tools.opencodeName",
+      "tray.label",
+      "servers.cloud",
+      "prefs.thisMac.placeCloud",
+      "own.back"
     ],
     "de": [
       "device.mac",
@@ -4303,7 +4315,11 @@
       "tools.codexName",
       "tools.cursorName",
       "tools.grokName",
-      "tools.opencodeName"
+      "tools.opencodeName",
+      "tray.label",
+      "servers.cloud",
+      "prefs.thisMac.placeCloud",
+      "own.back"
     ],
     "it": [
       "common.hours",
@@ -4325,7 +4341,11 @@
       "tools.codexName",
       "tools.cursorName",
       "tools.grokName",
-      "tools.opencodeName"
+      "tools.opencodeName",
+      "tray.label",
+      "servers.cloud",
+      "prefs.thisMac.placeCloud",
+      "own.back"
     ],
     "nl": [
       "common.minutes",
@@ -4355,7 +4375,11 @@
       "tools.codexName",
       "tools.cursorName",
       "tools.grokName",
-      "tools.opencodeName"
+      "tools.opencodeName",
+      "tray.label",
+      "servers.cloud",
+      "prefs.thisMac.placeCloud",
+      "own.back"
     ],
     "ja": [
       "connect.placeholder",
@@ -4370,7 +4394,11 @@
       "tools.codexName",
       "tools.cursorName",
       "tools.grokName",
-      "tools.opencodeName"
+      "tools.opencodeName",
+      "tray.label",
+      "servers.cloud",
+      "prefs.thisMac.placeCloud",
+      "own.back"
     ],
     "ko": [
       "connect.placeholder",
@@ -4384,7 +4412,11 @@
       "tools.codexName",
       "tools.cursorName",
       "tools.grokName",
-      "tools.opencodeName"
+      "tools.opencodeName",
+      "tray.label",
+      "servers.cloud",
+      "prefs.thisMac.placeCloud",
+      "own.back"
     ],
     "zh-Hans": [
       "connect.placeholder",
@@ -4398,7 +4430,11 @@
       "tools.codexName",
       "tools.cursorName",
       "tools.grokName",
-      "tools.opencodeName"
+      "tools.opencodeName",
+      "tray.label",
+      "servers.cloud",
+      "prefs.thisMac.placeCloud",
+      "own.back"
     ],
     "id": [
       "device.mac",
@@ -4417,7 +4453,11 @@
       "tools.codexName",
       "tools.cursorName",
       "tools.grokName",
-      "tools.opencodeName"
+      "tools.opencodeName",
+      "tray.label",
+      "servers.cloud",
+      "prefs.thisMac.placeCloud",
+      "own.back"
     ],
     "tr": [
       "device.mac",
@@ -4430,7 +4470,11 @@
       "tools.codexName",
       "tools.cursorName",
       "tools.grokName",
-      "tools.opencodeName"
+      "tools.opencodeName",
+      "tray.label",
+      "servers.cloud",
+      "prefs.thisMac.placeCloud",
+      "own.back"
     ],
     "pl": [
       "common.minutes",
@@ -4446,7 +4490,11 @@
       "tools.codexName",
       "tools.cursorName",
       "tools.grokName",
-      "tools.opencodeName"
+      "tools.opencodeName",
+      "tray.label",
+      "servers.cloud",
+      "prefs.thisMac.placeCloud",
+      "own.back"
     ],
     "ru": [
       "connect.placeholder",
@@ -4459,7 +4507,11 @@
       "tools.codexName",
       "tools.cursorName",
       "tools.grokName",
-      "tools.opencodeName"
+      "tools.opencodeName",
+      "tray.label",
+      "servers.cloud",
+      "prefs.thisMac.placeCloud",
+      "own.back"
     ]
   }
 }

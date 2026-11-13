@@ -1565,7 +1565,7 @@ export const ptBR = {
       open: "Abrir o DougBot",
       version: "Versão {{version}}",
       versionSize: "Versão {{version}} · {{size}}",
-      soon: "Ainda não há versão para {{system}}.",
+      soon: "Em breve para {{system}}.",
       useArm: "Computador com processador ARM? Baixe a versão ARM",
       useX64: "Baixar a versão x64",
       unavailable: "Não dá para baixar o app daqui agora. Tente de novo em instantes.",

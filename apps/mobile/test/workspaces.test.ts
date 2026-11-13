@@ -22,7 +22,7 @@ import {
 } from "../src/lib/server-choice";
 
 // Workspaces across servers (ADR 0154).
-const cloud = "https://app.agentes.chat";
+const cloud = "https://dougbot.app";
 const box = "https://agentes.exemplo.com.br";
 const lab = "https://lab.tail1234.ts.net";
 
@@ -138,7 +138,7 @@ describe("Workspaces", () => {
       ],
       failed: false,
     });
-    expect(here.host).toBe("agentes.chat");
+    expect(here.host).toBe("DougBot");
     expect(here.orgs.map((o) => [o.id, o.unread])).toEqual([
       ["a", 2],
       ["n", 3],

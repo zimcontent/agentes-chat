@@ -121,7 +121,7 @@ export function desktopNotice(
 
 /**
  * A connector's OAuth started in the app's window: the provider opens in the browser, which isn't signed in, so
- * the server hands what it sent back to the app (`agenteschat://desktop/connectors/oauth`), which opens
+ * the server hands what it sent back to the app (`dougbot://desktop/connectors/oauth`), which opens
  * `/desktop/connector` in its window to finish there (packages/engine oauth-return.ts). Apps from before say
  * nothing and keep the web's return.
  */
