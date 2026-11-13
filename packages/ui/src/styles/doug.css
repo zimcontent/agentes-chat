@@ -2806,3 +2806,83 @@ img.ac-logo__mark {
     background-size: 4px 4px, 4px 4px, 4px 4px, auto;
   }
 }
+
+/* ── The rail (the sidebar collapsed) ──
+   Nothing on top: the list starts there, 24 under the rail's edge (its 20 and the focus ring's 4). The person,
+   the bell, Go to… and the toggle are one glass card at the foot (read from the bottom up: me, the bell, Go to…, the
+   toggle). The card is the full sidebar's dock turned upright (56: 32 circles 12 in) and keeps the window's 20 from
+   every edge, so the rail is 96 wide: its 48 corner, the card's 28 and the circles' 16 are concentric (48 = 28 + 20,
+   28 = 16 + 12). */
+@media (min-width: 761px) {
+  [data-theme] .sidebar[data-rail="true"] {
+    --r-outer: var(--dg-r-side);
+    --pad: var(--dg-gap-side);
+    flex-basis: 96px;
+    width: 96px;
+    min-width: 96px;
+    padding: 0 var(--pad) var(--pad);
+    border-radius: var(--r-outer);
+  }
+  [data-theme] .sidebar[data-rail="true"]:not([data-personal]) .sidebar__top {
+    display: none;
+  }
+  /* One 48 column (a 40 tile and its focus ring) on the rail's middle. The list takes the rail's top 24 as its own
+     padding, so the open tile's glow has room under the rail's edge instead of a straight cut at the list's. */
+  [data-theme] .sidebar[data-rail="true"] .sidebar__scroll {
+    grid-template-columns: 48px;
+    justify-content: center;
+    margin: 0 calc(-1 * var(--pad));
+    padding: var(--dg-s5) var(--dg-s4) var(--dg-s4);
+    justify-items: center;
+  }
+  /* The first group starts the list: no rule over it. */
+  [data-theme] .sidebar[data-rail="true"] .sidebar__scroll > :first-child > .sidebar__group:first-child {
+    padding-top: 0;
+    border-top: 0;
+  }
+  [data-theme] .sidebar[data-rail="true"] .sidebar__foot {
+    align-self: stretch;
+    width: auto;
+    gap: var(--dg-gap-compact);
+  }
+  [data-theme] .sidebar[data-rail="true"] .sidebar__me--rail {
+    --r-outer: 28px;
+    --pad: var(--dg-gap-compact);
+    flex-direction: column;
+    align-items: center;
+    align-self: stretch;
+    width: auto;
+    min-height: 0;
+    padding: var(--pad);
+    gap: var(--dg-gap-compact);
+    border-radius: var(--r-outer);
+    background: var(--dg-pill);
+    box-shadow:
+      var(--dg-edge),
+      0 8px 20px -12px var(--dg-sombra-media);
+    --presence-ring: var(--side);
+  }
+  [data-theme] .sidebar[data-rail="true"] .sidebar__me--rail > :is(.ac-btn, .sidebar__bell, .sidebar__user) {
+    flex: none;
+    width: calc(2 * var(--r-inner));
+    height: calc(2 * var(--r-inner));
+    min-width: 0;
+    min-height: 0;
+    margin: 0;
+    padding: 0;
+    justify-content: center;
+    border-radius: var(--r-inner);
+  }
+  [data-theme] .sidebar[data-rail="true"] .sidebar__me--rail > .sidebar__user > .ac-avatar {
+    width: calc(2 * var(--r-inner));
+    height: calc(2 * var(--r-inner));
+  }
+  /* Every glyph 20, the bell's size. */
+  [data-theme] .sidebar[data-rail="true"] .sidebar__me--rail > .ac-btn > .ac-icon {
+    width: 20px;
+    height: 20px;
+  }
+  [data-theme] .sidebar[data-rail="true"] .sidebar__me--rail > :is(.ac-btn, .sidebar__bell):hover {
+    background: color-mix(in srgb, var(--dg-luz) 8%, transparent);
+  }
+}

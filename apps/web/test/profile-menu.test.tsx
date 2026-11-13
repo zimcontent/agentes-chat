@@ -116,6 +116,7 @@ describe("the account menu", () => {
       "Definir status",
       "Editar perfil",
       "Configurações",
+      "Menu do workspace Acme",
       "Sair",
     ]);
     expect(document.activeElement?.getAttribute("aria-label")).toBe("Trocar foto");
@@ -298,6 +299,21 @@ describe("the account menu", () => {
     await settle(4);
     expect(router.state.location.pathname).toBe(`/org/${ORG_ID}/settings/account`);
     expect(screen().getByRole("heading", { level: 2, name: "Sua conta" })).toBeTruthy();
+  });
+
+  test("the rail has no workspace mark on top: its menu opens from mine, the full-screen one with me in it", async () => {
+    await go();
+    const nav = screen().getByRole("navigation", { name: /./ });
+    // The list starts on top: no workspace button and no Go to… row there; Go to… and the toggle are in my card.
+    expect(nav.querySelector(".sidebar__top .sidebar__org-button, .sidebar__top .sidebar__jump")).toBeNull();
+    const card = nav.querySelector(".sidebar__me--rail") as HTMLElement;
+    expect(
+      [...card.querySelectorAll("a, button")].map((b) => b.getAttribute("aria-label")?.replace(/:.*/, "")),
+    ).toEqual(["Expandir barra lateral", "Ir para…", "Notificações", "Conta"]);
+    await click(within(await openMenu()).getByRole("menuitem", { name: "Menu do workspace Acme" }));
+    await settle(4);
+    const sheet = screen().getByRole("dialog");
+    expect(within(sheet).getByRole("menu", { name: "Você" }).textContent).toContain("Walter");
   });
 
   test("Sair signs out and goes to sign in", async () => {

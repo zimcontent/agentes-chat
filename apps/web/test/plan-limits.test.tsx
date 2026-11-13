@@ -234,7 +234,13 @@ describe("IA e uso › Contas with many accounts and long names", () => {
 describe("the account menu: a plan near its limit", () => {
   test("under 80%: no line, the menu as it was", async () => {
     await go("settings", onPlans(), [{ ...TEAM, usage: used(12, 79) }]);
-    expect(names(await openMenu())).toEqual(["Definir status", "Editar perfil", "Configurações", "Sair"]);
+    expect(names(await openMenu())).toEqual([
+      "Definir status",
+      "Editar perfil",
+      "Configurações",
+      "Menu do workspace Acme",
+      "Sair",
+    ]);
   });
 
   test("opening it asks your computers to look your plans' usage up again", async () => {
@@ -253,6 +259,7 @@ describe("the account menu: a plan near its limit", () => {
       "Definir status",
       "Editar perfil",
       "Configurações",
+      "Menu do workspace Acme",
       "Sair",
     ]);
     const plan = within(menu).getByRole("menuitem", { name: /^Claude Team/ });
