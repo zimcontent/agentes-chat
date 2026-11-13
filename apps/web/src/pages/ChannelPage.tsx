@@ -5250,7 +5250,9 @@ function ChannelDetails({
         title={
           <>
             {/* Doug: a group with a shown name is titled by it, as its header is; `#name` otherwise. */}
-            {channel.displayName?.trim() ? channelTitle(channel) : t("channel.detailsTitle", { channel: channel.name })}
+            {channel.displayName?.trim()
+              ? channelTitle(channel)
+              : t("channel.detailsTitle", { channel: channel.name })}
             {editable && <SavedNote shown={saved} label={t("common.saved")} className="channel-topic__saved" />}
           </>
         }

@@ -47,7 +47,16 @@ export const SearchField = forwardRef<HTMLInputElement, SearchFieldProps>(functi
   useLayoutEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       const input = own.current;
-      if (e.key !== "Escape" || !input || e.target !== input || input.value === "" || e.defaultPrevented) return;
+      // An Escape while an input method is composing cancels the composition, not the search.
+      if (
+        e.key !== "Escape" ||
+        e.isComposing ||
+        !input ||
+        e.target !== input ||
+        input.value === "" ||
+        e.defaultPrevented
+      )
+        return;
       e.preventDefault();
       e.stopPropagation();
       if (clear.current) {

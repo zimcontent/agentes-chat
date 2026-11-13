@@ -188,6 +188,15 @@ describe("SearchField Escape", () => {
     expect(seen).toEqual([""]);
   });
 
+  test("while an input method composes, Escape leaves the text alone", () => {
+    let cleared = 0;
+    const { getByRole } = render(
+      <SearchField aria-label="Buscar" value="abc" onChange={() => {}} onClear={() => cleared++} clearLabel="Limpar" />,
+    );
+    fireEvent.keyDown(getByRole("searchbox"), { key: "Escape", isComposing: true });
+    expect(cleared).toBe(0);
+  });
+
   test("empty, Escape goes on and closes the dialog", () => {
     const changes: boolean[] = [];
     let cleared = 0;
