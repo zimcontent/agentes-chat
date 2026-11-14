@@ -3,7 +3,7 @@ import { useRef } from "react";
 import type { ApiClient } from "../api/client";
 import { useApi } from "../api/context";
 import { keys } from "../api/keys";
-import type { WhatsAppAccountPatch, WhatsAppSendInput } from "./types";
+import type { WhatsAppAccountPatch, WhatsAppBrainInput, WhatsAppSendInput } from "./types";
 
 /*
  * WhatsApp numbers in the apps. Everything a number's people see refetches on the user event `whatsapp.changed`
@@ -204,4 +204,27 @@ export function useWhatsAppTyping(orgId: string, accountId: string, chatId: stri
       tell(false);
     },
   };
+}
+
+/** What thinks on a number, for its settings (managers who may choose its agent's AI). */
+export function useWhatsAppBrain(orgId: string, accountId: string, enabled = true) {
+  const api = useApi();
+  return useQuery({
+    queryKey: keys.whatsappBrain(orgId, accountId),
+    queryFn: () => whatsappOf(api).brain(orgId, accountId),
+    enabled: enabled && Boolean(orgId && accountId) && Boolean(api.whatsapp),
+    retry: false,
+  });
+}
+
+/** Gives the number an AI of its own (`input`), or back its agent's (`null`). */
+export function useSetWhatsAppBrain(orgId: string, accountId: string) {
+  const api = useApi();
+  const refresh = useWhatsAppRefresh(orgId);
+  return useMutation({
+    mutationFn: (input: WhatsAppBrainInput | null) =>
+      input ? whatsappOf(api).setBrain(orgId, accountId, input) : whatsappOf(api).clearBrain(orgId, accountId),
+    meta: { silent: true },
+    onSuccess: () => void refresh(),
+  });
 }

@@ -1,0 +1,59 @@
+# doug-0004: the number's own AI, and one person on both sides
+
+Status: accepted. This instance's own (see doug-0001 for the numbers, doug-0002 for the agent answering them).
+
+## Context
+
+A number names one of the workspace's agents, and that agent answers there with its own AI (doug-0002 addendum).
+Two things were missing.
+
+- People want the agent on WhatsApp to be the agent they work with (its instructions, what it remembers, its skills)
+  while WhatsApp thinks with another AI: a cheaper or faster model for many short conversations, or a plan, without
+  changing what the agent thinks with in the workspace.
+- The agent in the workspace knew nothing of WhatsApp. Asked "did the client write?", it offered to connect WhatsApp
+  through a connector, though the number was already connected here and the same agent was answering it. Someone who
+  works on both sides is one person: what happens on the phone is what they know at their desk.
+
+## Decision
+
+**The number may think with an AI of its own** (`whatsapp_accounts.brain`, `whatsapp/brain.ts`). `{ brain, model,
+account, effort }`: an API model through the Model Gateway, or a Claude or ChatGPT plan on the agent's computer
+through `brain.route`, the two ways `ask` reaches. Null: the agent's own AI, as before. The agent stays who answers:
+its name, instructions, memory and skills, and its budget and usage (every answer is recorded under the agent). It is
+the agent with another brain (`whatsappThinker`), not a second agent.
+
+- Chosen in the number's settings with the app's own model picker, pointed at the number instead of the agent
+  (`BrainTarget` in `ModelPicker.tsx`). "A IA do próprio agente" changes the agent everywhere, as before; "Uma IA só
+  deste número" starts as a copy of the agent's and changes only the number.
+- Who may choose: whoever manages the number (`manage_connectors`) and may choose the agent's AI (an admin or its
+  owner). Only what the agent's computer offers and the accounts its own picker lists. Audited as
+  `whatsapp.brain_changed`. Another agent for the number clears it: it was chosen among that agent's accounts.
+- A plan account the agent doesn't think with elsewhere may not be lent to it on a computer in system mode: the
+  answer then fails like any other (the job's retries, then a handoff naming why).
+
+**WhatsApp answers with what the agent knows.** Besides its instructions and the number's, each answer reads the
+organization's context, the team's memory, the agent's memory found for the latest messages (`retrieveForRun` with no
+conversation of the workspace: only what came from public channels or the agent's own notes, never a DM's), and its
+skills: every name and description, and the text of the ones that fit 12,000 characters (all of them when they fit,
+else those whose words the conversation shares; there is no `load_skill` without tools). The rules gain: what is
+internal (other customers, the team's discussions, people's private matters, costs, keys) never goes to the contact.
+Still no tools on WhatsApp (doug-0002): outside text reaches no action.
+
+**The agent in the workspace reads the numbers** (`whatsapp/tools.ts`): `whatsapp_conversations` (the latest, those
+waiting for a person first), `whatsapp_read` (one conversation, who wrote each message: them, the agent, a teammate in
+the app or on the phone) and `whatsapp_search` (words across them). Every word from WhatsApp comes inside
+`untrustedBlock`. Which numbers: the ones it answers itself, and those the person behind the run is on (`people`):
+never more than that person reads in the app. A routine's run reads too. Their descriptions say the numbers are
+connected here, so no agent offers a connector for them.
+
+**It writes only with a person's approval** (`whatsapp_send`, `sensitive`, run policy `elsewhere`): a text, as the
+number, into a conversation that already exists (never a new contact, the ban risk of doug-0001), stored as the
+agent's message, so the number's agent reads it as its own and the day's caps count it. Never a routine's.
+
+## Consequences
+
+- One agent, one memory, two places. What the agent learns in the workspace reaches WhatsApp through memory; what
+  happens on WhatsApp reaches the workspace when asked, by reading it. WhatsApp text is not written into memory by
+  itself: outside text that became memory would become instructions.
+- Each WhatsApp answer reads more (up to about 30,000 characters of knowledge): a cheap model on the number pays for it.
+- The column is added at boot (`EXTRA_COLUMNS`), outside the numbered migrations, as the tables were.

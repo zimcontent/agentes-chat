@@ -14,7 +14,13 @@ import type {
   VaultKeysImportResult,
   VaultOverview,
 } from "../vault/types";
-import type { WhatsAppAccount, WhatsAppChatPage, WhatsAppMessagePage, WhatsAppOverview } from "../whatsapp/types";
+import type {
+  WhatsAppAccount,
+  WhatsAppBrain,
+  WhatsAppChatPage,
+  WhatsAppMessagePage,
+  WhatsAppOverview,
+} from "../whatsapp/types";
 import type { HttpApi, OpenedWorkspace } from "./client";
 import { ApiError, createFileRequester, createRequester, enc, type TransportOptions } from "./http";
 import type {
@@ -592,6 +598,14 @@ export function createHttpApi(options: TransportOptions = {}): HttpApi {
         request<{ on: boolean }>(`${org(orgId)}/whatsapp/accounts/${enc(accountId)}/chats/${enc(chatId)}/agent`, {
           json: { on },
         }),
+      brain: (orgId, accountId) => request<WhatsAppBrain>(`${org(orgId)}/whatsapp/accounts/${enc(accountId)}/brain`),
+      setBrain: (orgId, accountId, input) =>
+        request<WhatsAppBrain>(`${org(orgId)}/whatsapp/accounts/${enc(accountId)}/brain`, {
+          method: "PUT",
+          json: input,
+        }),
+      clearBrain: (orgId, accountId) =>
+        request<WhatsAppBrain>(`${org(orgId)}/whatsapp/accounts/${enc(accountId)}/brain`, { method: "DELETE" }),
     },
     gifs: {
       search: (orgId, query) =>

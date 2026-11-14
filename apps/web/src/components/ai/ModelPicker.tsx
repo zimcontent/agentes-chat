@@ -1,4 +1,4 @@
-import type { Agent, AgentBrain, Message } from "@agenteschat/client";
+import type { Agent, AgentBrain, AgentBrainInput, Message } from "@agenteschat/client";
 import {
   keys,
   useAgentBrain,
@@ -64,14 +64,18 @@ export function ModelPickerButton({
   agent,
   size = "sm",
   className,
+  target,
 }: {
   agent: Agent;
   size?: "sm" | "row";
   className?: string;
+  /** Somewhere else the agent thinks with its own AI (a WhatsApp number): the picker reads and saves that. */
+  target?: BrainTarget;
 }) {
   const { t } = useTranslation();
   const { org, me } = useOrg();
-  const thinks = useAgentThinks(agent);
+  const own = useAgentThinks(agent);
+  const thinks = target?.thinks ?? own;
   if (!thinks?.text) return null;
   const mark = thinks.mark ? <ProviderLogo id={thinks.mark} size="xs" /> : <BrainIcon kind={thinks.kind} size={14} />;
   // The team's right hand thinks with each person's own AI ("Sua IA"), set where that is: never picked here.
@@ -89,6 +93,7 @@ export function ModelPickerButton({
   return (
     <ModelPickerPopover
       agent={agent}
+      {...(target ? { target } : {})}
       trigger={(open) => (
         <button
           type="button"
@@ -108,7 +113,15 @@ export function ModelPickerButton({
 }
 
 /** The picker, opened from `trigger` (the header's button, a reply's "Escolher modelo"). */
-function ModelPickerPopover({ agent, trigger }: { agent: Agent; trigger: (open: boolean) => ReactElement }) {
+function ModelPickerPopover({
+  agent,
+  trigger,
+  target,
+}: {
+  agent: Agent;
+  trigger: (open: boolean) => ReactElement;
+  target?: BrainTarget;
+}) {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   return (
@@ -121,7 +134,12 @@ function ModelPickerPopover({ agent, trigger }: { agent: Agent; trigger: (open: 
       className="mp"
       trigger={trigger(open)}
     >
-      {open && <ModelPickerPanel agent={agent} onClose={() => setOpen(false)} />}
+      {open &&
+        (target ? (
+          <PickerBody agent={agent} view={target.view} target={target} onClose={() => setOpen(false)} />
+        ) : (
+          <ModelPickerPanel agent={agent} onClose={() => setOpen(false)} />
+        ))}
     </Popover>
   );
 }
@@ -186,7 +204,36 @@ function ModelPickerPanel({ agent, onClose }: { agent: Agent; onClose: () => voi
   return <PickerBody agent={agent} view={brain.data} onClose={onClose} />;
 }
 
-function PickerBody({ agent, view, onClose }: { agent: Agent; view: AgentBrain; onClose: () => void }) {
+/**
+ * What the picker reads and saves when it isn't the agent's own AI: an AI the agent thinks with somewhere else (a
+ * WhatsApp number's, docs/adr/doug-0004-whatsapp-bridge.md). The agent's own stays as it is.
+ */
+export interface BrainTarget {
+  /** The agent's brain view with this place's choice in it. */
+  view: AgentBrain;
+  /** The API model this place thinks with. */
+  apiModel: string;
+  /** The kinds this place can think with; absent: every one. */
+  kinds?: readonly AgentBrain["brain"][];
+  /** What the button says (`agentThinks` of this place's line). */
+  thinks: { text: string; short: string; kind: Parameters<typeof BrainIcon>[0]["kind"]; mark: string | null } | null;
+  /** Saves a pick: the picker's choice for a plan, or the API model. */
+  apply(brain: AgentBrainInput | null, model?: string): Promise<void>;
+  /** The toast after a pick. */
+  saved(model: string): string;
+}
+
+function PickerBody({
+  agent,
+  view,
+  onClose,
+  target,
+}: {
+  agent: Agent;
+  view: AgentBrain;
+  onClose: () => void;
+  target?: BrainTarget;
+}) {
   const { t, i18n } = useTranslation();
   const { org } = useOrg();
   const api = useApi();
@@ -200,12 +247,15 @@ function PickerBody({ agent, view, onClose }: { agent: Agent; view: AgentBrain; 
   const platform = usePlatformKey(org.id);
   const all = models.data?.models ?? [];
   const choices = modelChoices(all, credentials.data ?? view.keys ?? [], platform.data ?? false);
-  const tiles = modelPickerTiles(t, view, agent.ownerUserId, choices, agent.model, all);
+  const apiModel = target?.apiModel ?? agent.model;
+  const tiles = modelPickerTiles(t, view, agent.ownerUserId, choices, apiModel, all).filter(
+    (x) => !target?.kinds || target.kinds.includes(x.kind),
+  );
   const [tileKey, setTileKey] = useState(() => (tiles.find((x) => x.current) ?? tiles[0])?.key);
   const tile = tiles.find((x) => x.key === tileKey) ?? tiles[0];
   const [accountId, setAccountId] = useState<string | null | undefined>(undefined);
   const account = tile?.accounts.find((a) => a.id === accountId) ?? tile?.accounts[0];
-  const rows = tile ? modelPickerModels(t, i18n.language, view, tile, account, choices, agent.model) : [];
+  const rows = tile ? modelPickerModels(t, i18n.language, view, tile, account, choices, apiModel) : [];
   const [q, setQ] = useState("");
   const shown = q.trim() ? rows.filter((r) => r.label.toLowerCase().includes(q.trim().toLowerCase())) : rows;
   const [busy, setBusy] = useState(false);
@@ -220,6 +270,7 @@ function PickerBody({ agent, view, onClose }: { agent: Agent; view: AgentBrain; 
       void qc.invalidateQueries({ queryKey: key });
   };
   const apply = async (brainInput: Parameters<typeof api.agents.setBrain>[2] | null, model?: string) => {
+    if (target) return target.apply(brainInput, model);
     if (brainInput) await api.agents.setBrain(org.id, agent.id, brainInput);
     if (model !== undefined) await update.mutateAsync({ model });
   };
@@ -239,17 +290,21 @@ function PickerBody({ agent, view, onClose }: { agent: Agent; view: AgentBrain; 
       account: view.account,
       model: view.model,
       effort: view.effort,
-      apiModel: agent.model,
+      apiModel,
     };
     const saving = modelPickerSave(view, tile, account, row.value);
     setBusy(true);
     try {
       await apply(saving.brain, saving.model);
       onClose();
-      toast.show(t("brain.picker.saved", { agent: agent.name, model: row.label }), "success", {
-        label: t("brain.picker.undo"),
-        run: () => void putBack(modelPickerUndo(before, saving)),
-      });
+      toast.show(
+        target ? target.saved(row.label) : t("brain.picker.saved", { agent: agent.name, model: row.label }),
+        "success",
+        {
+          label: t("brain.picker.undo"),
+          run: () => void putBack(modelPickerUndo(before, saving)),
+        },
+      );
     } catch {
       toast.show(t("agentPage.work.failed"), "error");
     } finally {
@@ -260,7 +315,7 @@ function PickerBody({ agent, view, onClose }: { agent: Agent; view: AgentBrain; 
   const setEffort = async (e: EffortLevel) => {
     if (!tile || tile.kind === "model" || e === view.effort) return;
     try {
-      await api.agents.setBrain(org.id, agent.id, { brain: tile.kind, effort: e });
+      await apply({ brain: tile.kind, effort: e });
     } catch {
       toast.show(t("agentPage.work.failed"), "error");
     } finally {
@@ -326,7 +381,7 @@ function PickerBody({ agent, view, onClose }: { agent: Agent; view: AgentBrain; 
             </button>
           );
         })}
-        {connect && (
+        {connect && !target && (
           <button
             type="button"
             className="mp__tile mp__tile--add"
@@ -420,7 +475,7 @@ function PickerBody({ agent, view, onClose }: { agent: Agent; view: AgentBrain; 
       )}
       <div className="mp__foot">
         <small>{t("brain.picker.applies")}</small>
-        {openPanel && (
+        {openPanel && !target && (
           <Button
             size="sm"
             variant="ghost"

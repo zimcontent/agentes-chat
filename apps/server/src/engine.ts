@@ -81,6 +81,7 @@ import {
   createUsageToolSource,
   createVaultToolSource,
   createWebToolSource,
+  createWhatsAppToolSource,
   createWikiToolSource,
   createWithdrawRequestToolSource,
   createWorkspaceToolSource,
@@ -448,6 +449,19 @@ export function buildEngine(o: EngineOptions) {
       createArtifactToolSource(artifacts),
       // The approval portal's board and `send_for_approval` (ADR 9001): listed only with a portal.
       createPortalToolSource({ portal: adapters.approvalPortal ?? null, artifacts }),
+      // The workspace's WhatsApp numbers, read and written by their agent and the people on them, as the same person
+      // who answers there (docs/adr/doug-0004-whatsapp-bridge.md): listed only for an agent that may see one.
+      createWhatsAppToolSource(
+        adapters.whatsapp
+          ? {
+              db,
+              gateway: adapters.whatsapp,
+              keyWrappers,
+              pubsub: adapters.pubsub,
+              hookBase: (config.WHATSAPP_HOOK_URL ?? config.PUBLIC_URL).replace(/\/+$/, ""),
+            }
+          : null,
+      ),
       // Live blocks and votes in the agent's own conversation (ADR 0113).
       createBlockToolSource(artifacts),
       createChatToolSource({ pubsub: adapters.pubsub, artifacts, gif: createAgentGifPoster(adapters.gifs) }),
@@ -766,6 +780,8 @@ export function buildEngine(o: EngineOptions) {
             hookBase: (config.WHATSAPP_HOOK_URL ?? config.PUBLIC_URL).replace(/\/+$/, ""),
             models: gateway,
             machines: machineHub,
+            // What the agent knows from its work comes into its WhatsApp answers (docs/adr/doug-0004-whatsapp-bridge.md).
+            context,
           },
         }
       : {}),

@@ -1,16 +1,21 @@
 import {
+  type Agent,
   ApiError,
   useAgents,
   useConnectWhatsApp,
   useCreateAgent,
+  useModels,
   useReconnectWhatsApp,
   useRemoveWhatsApp,
   useSendWhatsApp,
+  useSetWhatsAppBrain,
   useUpdateWhatsApp,
   useWhatsApp,
+  useWhatsAppBrain,
   type WhatsAppAccount,
   type WhatsAppPace,
 } from "@agenteschat/client";
+import { agentThinks } from "@agenteschat/client/lib/brain";
 import { errorText } from "@agenteschat/client/lib/errors";
 import { freeHandle, handleForName } from "@agenteschat/client/lib/new-agent";
 import {
@@ -32,7 +37,7 @@ import {
 } from "@agenteschat/ui";
 import { type FormEvent, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { ModelPickerButton } from "@/components/ai/ModelPicker";
+import { type BrainTarget, ModelPickerButton } from "@/components/ai/ModelPicker";
 import { useOrg } from "@/components/org-context";
 import { useDirectory } from "@/hooks/useDirectory";
 import { useToast } from "@/lib/toast";
@@ -397,9 +402,14 @@ export function NumberDialog({ account, onClose }: { account: WhatsAppAccount; o
           </Field>
           {chosen && (
             <Field label={w.settings.ai} hint={{ name: w.settings.ai, text: w.settings.aiHint }}>
-              <div className="wa-ai">
-                <ModelPickerButton agent={chosen} size="row" />
-              </div>
+              {/* The number's own AI is chosen among the saved agent's accounts: a new agent shows its own first. */}
+              {chosen.id === account.agentId ? (
+                <NumberAi account={account} agent={chosen} />
+              ) : (
+                <div className="wa-ai">
+                  <ModelPickerButton agent={chosen} size="row" />
+                </div>
+              )}
             </Field>
           )}
           {agentId !== "none" && (
@@ -559,5 +569,75 @@ export function NewChatDialog({ accountId, onClose }: { accountId: string; onClo
         </DialogFooter>
       </form>
     </Dialog>
+  );
+}
+
+/** The kinds a number can answer with (`whatsapp/brain.ts` on the server). */
+const NUMBER_KINDS = ["model", "claude_code", "codex"] as const;
+
+/**
+ * What thinks on the number (docs/adr/doug-0004-whatsapp-bridge.md): the agent's own AI, changed for the agent
+ * everywhere, or one for this number alone, the agent untouched. Either way the agent answers with what it knows.
+ */
+function NumberAi({ account, agent }: { account: WhatsAppAccount; agent: Agent }) {
+  const w = useWords();
+  const { t } = useTranslation();
+  const { org } = useOrg();
+  const toast = useToast();
+  const say = useWhatsAppError();
+  const dir = useDirectory(org.id);
+  const models = useModels();
+  const brain = useWhatsAppBrain(org.id, account.id);
+  const setBrain = useSetWhatsAppBrain(org.id, account.id);
+  // The agent's admin or owner only: anyone else reads the agent's own AI, as before.
+  const mayChoose = brain.data?.canEdit === true;
+  const own = brain.data?.own ?? account.ownAi ?? false;
+  const owner = agent.ownerUserId ? dir.memberById.get(agent.ownerUserId) : undefined;
+  const target: BrainTarget | undefined = brain.data
+    ? {
+        view: brain.data,
+        apiModel: brain.data.apiModel,
+        kinds: NUMBER_KINDS,
+        thinks: agentThinks(
+          t,
+          { id: agent.id, brain: brain.data.line ?? undefined, model: brain.data.apiModel },
+          { owner: owner?.name.split(" ")[0], agents: dir.agents, models: models.data?.models ?? [] },
+        ),
+        apply: async (pick, model) => {
+          await setBrain.mutateAsync({ ...(pick ? { brain: pick } : {}), ...(model !== undefined ? { model } : {}) });
+          await brain.refetch();
+        },
+        saved: (model) => w.settings.aiSaved(model),
+      }
+    : undefined;
+  const choose = (next: string) => {
+    if ((next === "own") === own) return;
+    // An AI of its own starts as the agent's: what thinks doesn't change until another one is picked.
+    setBrain.mutate(next === "own" ? {} : null, {
+      onSuccess: () => void brain.refetch(),
+      onError: (e) => toast.show(say(e), "error"),
+    });
+  };
+  return (
+    <div className="wa-ai">
+      {mayChoose && (
+        <div className="wa-ai__which">
+          <Select
+            value={own ? "own" : "same"}
+            onValueChange={choose}
+            disabled={setBrain.isPending}
+            options={[
+              { value: "same", label: w.settings.aiSame },
+              { value: "own", label: w.settings.aiOwn },
+            ]}
+          />
+        </div>
+      )}
+      {own && target ? (
+        <ModelPickerButton agent={agent} size="row" target={target} />
+      ) : (
+        <ModelPickerButton agent={agent} size="row" />
+      )}
+    </div>
   );
 }

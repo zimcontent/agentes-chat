@@ -71,6 +71,8 @@ export interface WhatsAppAccountView {
   agentOn: boolean;
   /** How the agent talks here (`WHATSAPP_AGENT_STYLE`). */
   agentStyle: WhatsAppAgentStyle;
+  /** The number answers with an AI of its own (`whatsapp/brain.ts`); false: with its agent's. */
+  ownAi: boolean;
   /** Whether the asker may read and answer its conversations. */
   mine: boolean;
   /** Whether the asker may change or remove it. */
@@ -116,6 +118,7 @@ function view(row: WhatsAppAccountRow, userId: string, manage: boolean, now = Da
       messages: row.agentMessages,
       quietMinutes: row.agentQuietMinutes,
     },
+    ownAi: row.agentId !== null && row.brain !== null,
     mine: row.people.includes(userId),
     manage,
     createdAt: row.createdAt.toISOString(),
@@ -286,6 +289,8 @@ export async function updateWhatsAppAccount(
       if (!agent) throw new ValidationError("That agent isn't in this workspace");
     }
     set.agentId = input.agentId;
+    // The number's own AI was chosen among that agent's accounts and computer: another agent starts on its own.
+    if (input.agentId !== current.agentId) set.brain = null;
     // A number with no agent has nothing to turn on.
     if (input.agentId === null) set.agentOn = false;
   }
