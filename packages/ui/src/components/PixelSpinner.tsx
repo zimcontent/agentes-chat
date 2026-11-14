@@ -1,14 +1,14 @@
 import { type CSSProperties, useEffect, useRef } from "react";
 import { bodyTones } from "../agent/engine.js";
+import { DOUG_OUTLINE_BOX, dougOutline, type OutlinePoint, outlineSlice } from "../brand/doug-outline";
 import { cx } from "../cx";
 import type { AgentColor } from "./AgentLook";
 
 /**
- * Our working indicator, the pixel orbit: a 3×3 grid where one lit cell walks the ring with a fading
- * trail. Tied to an agent it is drawn in that agent's own `bodyTones`;
- * otherwise in the text color around it (ink, the same tones as the words).
- * Still under prefers-reduced-motion. Decorative unless `label` is given:
- * the chip or button next to it says what is happening.
+ * Our working indicator: the Doug's head in outline, a stretch of light running round it with a fading trail.
+ * Tied to an agent it is drawn in that agent's own `bodyTones`; otherwise in the text color around it (ink, the
+ * same tones as the words). Under prefers-reduced-motion the whole outline is lit and still. Decorative unless
+ * `label` is given: the chip or button next to it says what is happening.
  */
 export type PixelSpinnerSize = 14 | 16 | 24 | 32;
 
@@ -22,43 +22,33 @@ export interface PixelSpinnerProps {
   className?: string;
 }
 
-/** The ring, clockwise from the top-left cell (the center stays dark). */
-export const ORBIT_RING = [
-  [0, 0],
-  [1, 0],
-  [2, 0],
-  [2, 1],
-  [2, 2],
-  [1, 2],
-  [0, 2],
-  [0, 1],
-] as const;
-/** One step of the lit cell (110 ms). */
-export const ORBIT_STEP_MS = 110;
-/** Neutral trail: the lit cell, two fading ones, then the dim ring. */
-const INK_ALPHA = [1, 0.62, 0.38, 0.16] as const;
+/** One lap of the light round the head. */
+export const OUTLINE_LAP_MS = 1300;
+/** The light's three stretches, from its head back: where each ends, in laps behind the head. */
+export const OUTLINE_TRAIL = [0.16, 0.29, 0.42] as const;
+/** Neutral ink: the head of the light, two fading stretches, then the rest of the outline. */
+const INK_ALPHA = [1, 0.62, 0.38, 0.2] as const;
+const TICK_MS = 33;
 
-/** Which shade each ring cell takes when the lit cell is at `head` (0 lit, 1 and 2 the trail, 3 the rest). */
-export function orbitShades(head: number): number[] {
-  const n = ORBIT_RING.length;
-  return ORBIT_RING.map((_, i) => Math.min(3, (((head - i) % n) + n) % n));
-}
+/** Where the light's head is at `ms`, in laps (0–1). */
+export const outlinePhase = (ms: number) => (ms % OUTLINE_LAP_MS) / OUTLINE_LAP_MS;
 
 const reduced = () =>
   typeof matchMedia === "function" && matchMedia("(prefers-reduced-motion: reduce)").matches === true;
+const now = () => (typeof performance === "object" ? performance.now() : Date.now());
 
 // One clock for every spinner on the page (not one timer each).
-const draws = new Set<(head: number) => void>();
+const draws = new Set<(phase: number | null) => void>();
 let timer: ReturnType<typeof setInterval> | null = null;
-let head = 0;
-function join(draw: (head: number) => void) {
+function join(draw: (phase: number | null) => void) {
   draws.add(draw);
-  draw(head);
-  if (!timer && !reduced()) {
+  const still = reduced();
+  draw(still ? null : outlinePhase(now()));
+  if (!timer && !still) {
     timer = setInterval(() => {
-      head = (head + 1) % ORBIT_RING.length;
-      for (const d of draws) d(head);
-    }, ORBIT_STEP_MS);
+      const phase = outlinePhase(now());
+      for (const d of draws) d(phase);
+    }, TICK_MS);
   }
   return () => {
     draws.delete(draw);
@@ -69,28 +59,67 @@ function join(draw: (head: number) => void) {
   };
 }
 
-function paint(canvas: HTMLCanvasElement, color: AgentColor | undefined, at: number) {
+/** Whether a CSS color (`rgb(…)`, as computed) is a light one: the ink of a dark ground. */
+function lightInk(color: string) {
+  const [r = 0, g = 0, b = 0] = (color.match(/\d+(\.\d+)?/g) ?? []).map(Number);
+  return 0.299 * r + 0.587 * g + 0.114 * b > 140;
+}
+
+type Place = (p: OutlinePoint) => OutlinePoint;
+
+function line(ctx: CanvasRenderingContext2D, pts: readonly OutlinePoint[], place: Place, close = false) {
+  ctx.beginPath();
+  pts.forEach((p, i) => {
+    const [x, y] = place(p);
+    if (i) ctx.lineTo(x, y);
+    else ctx.moveTo(x, y);
+  });
+  if (close) ctx.closePath();
+  ctx.stroke();
+}
+
+/** `phase` null: no motion, the whole outline lit. */
+function paint(canvas: HTMLCanvasElement, color: AgentColor | undefined, phase: number | null) {
   const ctx = canvas.getContext?.("2d");
-  if (!ctx) return;
+  // Nothing to draw on, or a context that draws no lines (a partial one, as a test's): the box stays empty.
+  if (!ctx || typeof ctx.stroke !== "function" || typeof ctx.clearRect !== "function") return;
   const w = canvas.width;
-  const cell = w / 3;
-  const gap = Math.max(1, Math.round(cell * 0.14));
   const tones = color ? bodyTones(color) : null;
   const ink = tones ? "" : getComputedStyle(canvas).color || "#151514";
+  const box = DOUG_OUTLINE_BOX;
+  // The line is 1/9 of the box (1.5 px at 14), and the head keeps half of it clear on every side.
+  const stroke = w / 9;
+  const scale = (w - stroke) / Math.max(box.w, box.h);
+  const dx = (w - box.w * scale) / 2 - box.x * scale;
+  const dy = (w - box.h * scale) / 2 - box.y * scale;
+  const place: Place = ([x, y]) => [x * scale + dx, y * scale + dy];
   ctx.clearRect(0, 0, w, w);
-  orbitShades(at).forEach((shade, i) => {
-    const [x, y] = ORBIT_RING[i] ?? [0, 0];
+  ctx.lineWidth = stroke;
+  ctx.lineJoin = "round";
+  // An agent's tones run dark to light: the light is the one that stands out from the ground (the words' ink
+  // says which ground it is), the rest of the outline the one nearest to it.
+  const onDark = !!tones && lightInk(getComputedStyle(canvas).color);
+  const lit = tones ? (onDark ? [tones[3], tones[2], tones[1]] : [tones[1], tones[2], tones[3]]) : [];
+  const shade = (i: number) => {
     if (tones) {
-      ctx.fillStyle = (shade === 3 ? tones[3] : tones[shade]) ?? "#888888";
-      ctx.globalAlpha = shade === 3 ? 0.35 : 1;
+      ctx.strokeStyle = (i === 3 ? (onDark ? tones[1] : tones[3]) : lit[i]) ?? "#888888";
+      ctx.globalAlpha = i === 3 ? 0.5 : 1;
     } else {
-      ctx.fillStyle = ink;
-      ctx.globalAlpha = INK_ALPHA[shade] ?? 0.16;
+      ctx.strokeStyle = ink;
+      ctx.globalAlpha = INK_ALPHA[i] ?? 0.2;
     }
-    const x0 = Math.round(x * cell + gap / 2);
-    const y0 = Math.round(y * cell + gap / 2);
-    ctx.fillRect(x0, y0, Math.round((x + 1) * cell - gap / 2) - x0, Math.round((y + 1) * cell - gap / 2) - y0);
-  });
+  };
+  ctx.lineCap = "butt";
+  shade(phase === null ? 0 : 3);
+  line(ctx, dougOutline().points, place, true);
+  if (phase !== null) {
+    // The farthest stretch first: each nearer one starts where the last ended, the head's end is round.
+    for (let i = OUTLINE_TRAIL.length - 1; i >= 0; i--) {
+      shade(i);
+      ctx.lineCap = i === 0 ? "round" : "butt";
+      line(ctx, outlineSlice(phase - (OUTLINE_TRAIL[i] ?? 0), phase - (OUTLINE_TRAIL[i - 1] ?? 0)), place);
+    }
+  }
   ctx.globalAlpha = 1;
 }
 
@@ -102,7 +131,7 @@ export function PixelSpinner({ size = 16, color, label, className }: PixelSpinne
     const dpr = typeof devicePixelRatio === "number" && devicePixelRatio > 0 ? devicePixelRatio : 1;
     canvas.width = Math.round(size * dpr);
     canvas.height = Math.round(size * dpr);
-    return join((at) => paint(canvas, color, at));
+    return join((phase) => paint(canvas, color, phase));
   }, [size, color]);
   return (
     <canvas

@@ -1,4 +1,5 @@
 import type { CSSProperties } from "react";
+import { DOUG_OUTLINE_BOX, DOUG_OUTLINE_PATH } from "../brand/doug-outline";
 import { cx } from "../cx";
 
 /**
@@ -82,5 +83,38 @@ export function PixelStop({ size = 13, animated = false, dim = false, label, cla
     >
       <span />
     </span>
+  );
+}
+
+export interface DougOutlineProps {
+  size?: number;
+  label?: string;
+  className?: string;
+}
+
+/**
+ * The Doug's head in outline, still: the working indicator's shape (PixelSpinner) for a mark that doesn't run, as
+ * "waiting for you". The line is 1/8 of the box and takes the text color.
+ */
+export function DougOutline({ size = 12, label, className }: DougOutlineProps) {
+  const box = DOUG_OUTLINE_BOX;
+  const side = Math.max(box.w, box.h);
+  // The frame leaves half a line clear on every side, the head centred in it.
+  const line = side / 7;
+  const frame = side + line;
+  return (
+    <svg
+      className={cx("ac-dougline", className)}
+      width={size}
+      height={size}
+      viewBox={`${box.x + box.w / 2 - frame / 2} ${box.y + box.h / 2 - frame / 2} ${frame} ${frame}`}
+      style={{ "--mark-size": `${size}px` } as CSSProperties}
+      focusable="false"
+      role={label ? "img" : undefined}
+      aria-label={label}
+      aria-hidden={label ? undefined : true}
+    >
+      <path d={DOUG_OUTLINE_PATH} strokeWidth={line} />
+    </svg>
   );
 }

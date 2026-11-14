@@ -2,6 +2,7 @@ import type { Agent } from "@agenteschat/client";
 import { askKindWords } from "@agenteschat/client/lib/approval-words";
 import {
   cx,
+  DougOutline,
   EventPill,
   EventPillMore,
   ExpiryFuse,
@@ -446,7 +447,7 @@ export function RequestDone({
 
 /**
  * A request still waiting, as the same event pill it becomes once decided (`RequestDone`): its words in ink, and
- * - waiting for the viewer (`mine`): the pulsing pixel square (`WaitMark`) and what it asks for as the `primary`
+ * - waiting for the viewer (`mine`): the pulsing Doug outline (`WaitMark`) and what it asks for as the `primary`
  *   `EventPillAction` ("Connect", "Continue now"), the other actions plain after it;
  * - waiting for someone else (or for something, a computer): a quiet icon and no primary action.
  * Its words stay one sentence: a why, what a proposal gives or a command go under the frame (`below`), or behind
@@ -642,13 +643,9 @@ export function RequestKeys({ count }: { count: number }) {
   return <span className="rq__keys">{t("question.keysHint", { count: Math.min(count, CHOICE_KEYS) })}</span>;
 }
 
-/** Waiting for you: a small pixel square outline that pulses (also in the bar above the composer). */
+/** Waiting for you: the Doug's head in outline, in the warn color, pulsing (also in the bar above the composer). */
 export function WaitMark() {
-  return (
-    <span className="rq-wait" aria-hidden="true">
-      <span />
-    </span>
-  );
+  return <DougOutline size={12} className="rq-wait" />;
 }
 
 /** The footer's right end: the fuse burning down to the expiry, and its words. */
