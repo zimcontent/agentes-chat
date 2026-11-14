@@ -5,7 +5,7 @@ import { Button, useDarkTheme, widgetTileVars } from "@agenteschat/ui";
 import { useTranslation } from "react-i18next";
 import { AgentAvatar } from "@/components/AgentAvatar";
 import { useOrg } from "@/components/org-context";
-import { colorOf } from "@/components/Sky";
+import { botColorOf } from "@/components/Sky";
 import { useDirectory } from "@/hooks/useDirectory";
 import { inlineWords } from "@/lib/markdown";
 import { useToast } from "@/lib/toast";
@@ -46,7 +46,7 @@ export function ProposalBanner({ board }: { board: Dashboard }) {
     <section
       className="db-proposal ac-mediarow ac-mediarow--row"
       aria-label={t("dashboards.proposal.title", { name })}
-      style={widgetTileVars(colorOf(agent), dark)}
+      style={widgetTileVars(botColorOf(agent), dark)}
     >
       <span className="ac-mediarow__face">
         <AgentAvatar agentId={proposal.agentId} name={name} size="sm" />
