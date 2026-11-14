@@ -135,6 +135,17 @@ export const EXTRA_COLUMNS = [
   )`,
   `CREATE UNIQUE INDEX IF NOT EXISTS "whatsapp_messages_wa" ON "whatsapp_messages" ("account_id", "wa_id")`,
   `CREATE INDEX IF NOT EXISTS "whatsapp_messages_chat" ON "whatsapp_messages" ("chat_id", "at")`,
+  // Connections brought from one workspace to another (ADR 9002).
+  `CREATE TABLE IF NOT EXISTS "connector_sign_ins" (
+    "id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+    "user_id" text REFERENCES "users"("id") ON DELETE set null,
+    "refreshing_until" timestamp with time zone,
+    "created_at" timestamp with time zone DEFAULT now() NOT NULL
+  )`,
+  `ALTER TABLE "connector_connections" ADD COLUMN IF NOT EXISTS "sign_in_id" uuid REFERENCES "connector_sign_ins"("id") ON DELETE set null`,
+  `ALTER TABLE "connector_connections" ADD COLUMN IF NOT EXISTS "carried_from_id" uuid`,
+  `ALTER TABLE "connector_connections" ADD COLUMN IF NOT EXISTS "composio_user_org_id" uuid`,
+  `CREATE INDEX IF NOT EXISTS "connector_connections_sign_in_id_index" ON "connector_connections" ("sign_in_id")`,
 ];
 
 /** The advisory lock every process takes around its migrations (`DatabaseHandle.migrate`). */

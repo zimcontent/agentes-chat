@@ -12106,6 +12106,28 @@ export const ptBR = {
     deniedRun_female: "{{repo}} não está entre os repositórios da {{name}}.",
     added: "{{repo}} entra na lista ao salvar.",
   },
+  /** Bringing connections and agents from the person's other workspaces (Settings › Connectors, the onboarding). */
+  carry: {
+    open: "Trazer de outro workspace",
+    text: "O que você conectou em outro workspace vem pronto, sem entrar de novo.",
+    none: "Nada para trazer ainda. O que você conectar em um workspace aparece aqui nos outros.",
+    connections: "Conexões",
+    /** Under an agent's name: the connections that come with it. */
+    with: "Vem com {{names}}",
+    here: "Já está aqui",
+    needsReconnect: "Precisa reconectar",
+    githubApp: "Instale o GitHub App aqui",
+    bring: "Trazer",
+    bringCount_one: "Trazer {{count}} item",
+    bringCount_other: "Trazer {{count}} itens",
+    done_one: "{{count}} item trazido para este workspace",
+    done_other: "{{count}} itens trazidos para este workspace",
+    skipped_one: "{{count}} item não pôde vir",
+    skipped_other: "{{count}} itens não puderam vir",
+    nothingNew: "Tudo o que você escolheu já está aqui",
+    failed: "Não deu para trazer. Tente de novo.",
+    fromOnboarding: "Trazer agentes e conexões de outro workspace",
+  },
   connectors: {
     title: "Conectores",
     add: "Adicionar conector",

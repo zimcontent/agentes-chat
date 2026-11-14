@@ -11337,6 +11337,23 @@
     "deniedRun_female": "{{repo}}은(는) {{name}}의 저장소가 아니에요.",
     "added": "저장하면 {{repo}}이(가) 목록에 추가돼요."
   },
+  "carry": {
+    "open": "다른 워크스페이스에서 가져오기",
+    "text": "다른 워크스페이스에서 연결한 것이 다시 로그인할 필요 없이 바로 준비돼요.",
+    "none": "아직 가져올 것이 없어요. 한 워크스페이스에서 연결한 것은 다른 워크스페이스의 여기에 표시돼요.",
+    "connections": "연결",
+    "with": "{{names}} 포함",
+    "here": "이미 여기 있음",
+    "needsReconnect": "다시 연결 필요",
+    "githubApp": "여기에 GitHub App을 설치하세요",
+    "bring": "가져오기",
+    "bringCount_other": "항목 {{count}}개 가져오기",
+    "done_other": "항목 {{count}}개를 이 워크스페이스로 가져왔어요",
+    "skipped_other": "항목 {{count}}개는 가져오지 못했어요",
+    "nothingNew": "선택한 것이 모두 이미 여기에 있어요",
+    "failed": "가져오지 못했어요. 다시 시도해 주세요.",
+    "fromOnboarding": "다른 워크스페이스에서 에이전트와 연결 가져오기"
+  },
   "connectors": {
     "title": "커넥터",
     "add": "커넥터 추가",

@@ -12054,6 +12054,28 @@ export const en = {
     deniedRun: "{{repo}} isn't one of {{name}}'s repositories.",
     added: "{{repo}} joins the list when you save.",
   },
+  /** Bringing connections and agents from the person's other workspaces (Settings › Connectors, the onboarding). */
+  carry: {
+    open: "Bring from another workspace",
+    text: "What you connected in another workspace comes ready, with no signing in again.",
+    none: "Nothing to bring yet. What you connect in one workspace shows here in the others.",
+    connections: "Connections",
+    /** Under an agent's name: the connections that come with it. */
+    with: "Comes with {{names}}",
+    here: "Already here",
+    needsReconnect: "Needs reconnecting",
+    githubApp: "Install the GitHub App here",
+    bring: "Bring",
+    bringCount_one: "Bring {{count}} item",
+    bringCount_other: "Bring {{count}} items",
+    done_one: "{{count}} item brought to this workspace",
+    done_other: "{{count}} items brought to this workspace",
+    skipped_one: "{{count}} item couldn't come",
+    skipped_other: "{{count}} items couldn't come",
+    nothingNew: "Everything you picked is already here",
+    failed: "Couldn't bring it. Try again.",
+    fromOnboarding: "Bring agents and connections from another workspace",
+  },
   connectors: {
     title: "Connectors",
     add: "Add connector",

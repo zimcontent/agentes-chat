@@ -28827,6 +28827,60 @@
   "repos.added": {
     "value": "{{repo}} joins the list when you save."
   },
+  "carry.open": {
+    "value": "Bring from another workspace"
+  },
+  "carry.text": {
+    "value": "What you connected in another workspace comes ready, with no signing in again."
+  },
+  "carry.none": {
+    "value": "Nothing to bring yet. What you connect in one workspace shows here in the others."
+  },
+  "carry.connections": {
+    "value": "Connections"
+  },
+  "carry.with": {
+    "value": "Comes with {{names}}"
+  },
+  "carry.here": {
+    "value": "Already here"
+  },
+  "carry.needsReconnect": {
+    "value": "Needs reconnecting"
+  },
+  "carry.githubApp": {
+    "value": "Install the GitHub App here"
+  },
+  "carry.bring": {
+    "value": "Bring"
+  },
+  "carry.bringCount": {
+    "value": {
+      "one": "Bring {{count}} item",
+      "other": "Bring {{count}} items"
+    }
+  },
+  "carry.done": {
+    "value": {
+      "one": "{{count}} item brought to this workspace",
+      "other": "{{count}} items brought to this workspace"
+    }
+  },
+  "carry.skipped": {
+    "value": {
+      "one": "{{count}} item couldn't come",
+      "other": "{{count}} items couldn't come"
+    }
+  },
+  "carry.nothingNew": {
+    "value": "Everything you picked is already here"
+  },
+  "carry.failed": {
+    "value": "Couldn't bring it. Try again."
+  },
+  "carry.fromOnboarding": {
+    "value": "Bring agents and connections from another workspace"
+  },
   "connectors.title": {
     "value": "Connectors"
   },

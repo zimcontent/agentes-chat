@@ -74,7 +74,7 @@ export interface McpSession {
  */
 export type McpConnect = (
   connection: Pick<ConnectorConnection, "serverUrl"> &
-    Partial<Pick<ConnectorConnection, "orgId" | "composioAccountId">>,
+    Partial<Pick<ConnectorConnection, "orgId" | "composioAccountId" | "composioUserOrgId">>,
   headers: Record<string, string>,
 ) => Promise<McpSession>;
 

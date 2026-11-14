@@ -153,7 +153,7 @@ export async function authServerMetadata(deps: McpOAuthDeps, issuer: string): Pr
   return null;
 }
 
-const clientAad = (orgId: string, id: string) => `oauth-client|${orgId}|${id}`;
+export const clientAad = (orgId: string, id: string) => `oauth-client|${orgId}|${id}`;
 
 /** Our metadata document's address (the client_id) when `issuer` takes one and is in `MCP_CIMD_ISSUERS`; else null. */
 export function cimdClientId(issuer: string, meta: AuthServerMetadata, redirectUri: string): string | null {

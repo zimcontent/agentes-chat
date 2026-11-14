@@ -11806,6 +11806,26 @@
     "deniedRun_female": "{{repo}} gehört nicht zu den Repositorys von {{name}}.",
     "added": "{{repo}} kommt beim Speichern auf die Liste."
   },
+  "carry": {
+    "open": "Aus einem anderen Workspace holen",
+    "text": "Was du in einem anderen Workspace verbunden hast, kommt fertig mit, ohne erneute Anmeldung.",
+    "none": "Noch nichts zum Holen. Was du in einem Workspace verbindest, erscheint hier in den anderen.",
+    "connections": "Verbindungen",
+    "with": "Kommt mit {{names}}",
+    "here": "Schon hier",
+    "needsReconnect": "Muss neu verbunden werden",
+    "githubApp": "Installiere die GitHub App hier",
+    "bring": "Holen",
+    "bringCount_one": "{{count}} Element holen",
+    "bringCount_other": "{{count}} Elemente holen",
+    "done_one": "{{count}} Element in diesen Workspace geholt",
+    "done_other": "{{count}} Elemente in diesen Workspace geholt",
+    "skipped_one": "{{count}} Element konnte nicht mitkommen",
+    "skipped_other": "{{count}} Elemente konnten nicht mitkommen",
+    "nothingNew": "Alles, was du ausgewählt hast, ist schon hier",
+    "failed": "Das Holen hat nicht geklappt. Versuch es noch einmal.",
+    "fromOnboarding": "Agenten und Verbindungen aus einem anderen Workspace holen"
+  },
   "connectors": {
     "title": "Konnektoren",
     "add": "Konnektor hinzufügen",

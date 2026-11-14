@@ -69,6 +69,8 @@ import type {
   BrowserProfile,
   CalendarEvent,
   CalendarRange,
+  CarryResult,
+  CarrySource,
   Channel,
   ChannelCard,
   ChannelCategory,
@@ -1185,6 +1187,10 @@ export function createHttpApi(options: TransportOptions = {}): HttpApi {
         request<Connection>(`${org(orgId)}/connectors/${enc(connectionId)}`, { method: "PATCH", json: { label } }),
       disconnect: (orgId, connectionId) =>
         request<void>(`${org(orgId)}/connectors/${enc(connectionId)}`, { method: "DELETE" }),
+    },
+    carry: {
+      sources: async (orgId) => (await request<{ sources: CarrySource[] }>(`${org(orgId)}/carry`)).sources,
+      bring: (orgId, input) => request<CarryResult>(`${org(orgId)}/carry`, { json: input }),
     },
     githubApp: {
       info: (orgId) => request<GitHubAppInfo>(`${org(orgId)}/github-app`),

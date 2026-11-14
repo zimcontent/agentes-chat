@@ -2255,6 +2255,31 @@ export function useRenameConnection(orgId: string) {
   });
 }
 
+/** What the person can bring into this workspace from their others. For who manages connectors or creates agents. */
+export function useCarrySources(orgId: string, enabled = true) {
+  const api = useApi();
+  return useQuery({ queryKey: keys.carrySources(orgId), queryFn: () => api.carry.sources(orgId), enabled });
+}
+
+/** Brings connections and agents from the person's other workspaces: every list they show in is read again. */
+export function useCarry(orgId: string) {
+  const api = useApi();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (input: { connectionIds?: string[]; agentIds?: string[] }) => api.carry.bring(orgId, input),
+    onSuccess: () =>
+      Promise.all([
+        qc.invalidateQueries({ queryKey: keys.carrySources(orgId) }),
+        qc.invalidateQueries({ queryKey: keys.connections(orgId) }),
+        qc.invalidateQueries({ queryKey: keys.customServers(orgId) }),
+        qc.invalidateQueries({ queryKey: keys.access(orgId) }),
+        qc.invalidateQueries({ queryKey: keys.agents(orgId) }),
+        qc.invalidateQueries({ queryKey: keys.skills(orgId) }),
+      ]),
+    meta: { silent: true },
+  });
+}
+
 /** Where the phone app's OAuth lands: the callback hands `state` and `code` back to the app. */
 export const APP_OAUTH_RETURN = "app:connectors";
 

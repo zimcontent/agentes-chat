@@ -11868,6 +11868,26 @@
     "deniedRun": "{{repo}} is geen repository van {{name}}.",
     "added": "{{repo}} komt in de lijst als je opslaat."
   },
+  "carry": {
+    "open": "Meenemen uit een andere werkruimte",
+    "text": "Wat je in een andere werkruimte hebt gekoppeld, komt kant-en-klaar mee, zonder opnieuw in te loggen.",
+    "none": "Nog niets om mee te nemen. Wat je in de ene werkruimte koppelt, verschijnt hier in de andere.",
+    "connections": "Koppelingen",
+    "with": "Komt met {{names}}",
+    "here": "Staat er al",
+    "needsReconnect": "Moet opnieuw gekoppeld worden",
+    "githubApp": "Installeer de GitHub App hier",
+    "bring": "Meenemen",
+    "bringCount_one": "{{count}} item meenemen",
+    "bringCount_other": "{{count}} items meenemen",
+    "done_one": "{{count}} item meegenomen naar deze werkruimte",
+    "done_other": "{{count}} items meegenomen naar deze werkruimte",
+    "skipped_one": "{{count}} item kon niet mee",
+    "skipped_other": "{{count}} items konden niet mee",
+    "nothingNew": "Alles wat je koos, staat hier al",
+    "failed": "Meenemen is niet gelukt. Probeer het opnieuw.",
+    "fromOnboarding": "Agents en koppelingen meenemen uit een andere werkruimte"
+  },
   "connectors": {
     "title": "Connectors",
     "add": "Connector toevoegen",
