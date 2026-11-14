@@ -193,14 +193,14 @@ describe("the right hand elsewhere", () => {
       { type: "agent", id: LODI_ID },
     ];
     await go(state, `dm/agent/${LODI_ID}`);
-    const sticker = document.querySelector('.ac-msg canvas.ac-sticker[data-mood="wave"]');
+    const sticker = document.querySelector('.ac-msg .ac-sticker[data-mood="wave"]');
     expect(sticker?.getAttribute("aria-hidden")).toBe("true");
     expect(sticker?.classList.contains("ac-msg-media")).toBe(true);
     expect(state.calls).toContainEqual({ method: "dms.markRead", args: [ORG_ID, "dm-lodi"] });
     cleanup();
     await go(state, `dm/agent/${LODI_ID}`);
     expect(document.querySelector(".ac-msg__text b")?.textContent).toStartWith("Oi, eu sou o Doug");
-    expect(document.querySelector('canvas[data-mood="wave"]')).toBeNull();
+    expect(document.querySelector('.ac-sticker[data-mood="wave"]')).toBeNull();
   });
 
   test("Doug's page: its name, the lock line and its audit link", async () => {

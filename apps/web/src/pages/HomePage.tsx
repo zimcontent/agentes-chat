@@ -173,6 +173,7 @@ export function HomePage() {
               <EmptyState
                 size="panel"
                 agent={lookOf(askable[0] ?? dir.agents[0]) ?? true}
+                who={askable[0] ?? dir.agents[0]}
                 mood="deal"
                 title={t("home.calm.title")}
               >

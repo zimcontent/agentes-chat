@@ -292,6 +292,7 @@ export function ActivityTab() {
           <EmptyState
             size="panel"
             agent={lookOf(agent) ?? true}
+            who={agent}
             title={t("agentPage.activity.emptyTitle")}
             actions={<AskAgentButton agent={agent} variant="primary" />}
           >

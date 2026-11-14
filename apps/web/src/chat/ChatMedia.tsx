@@ -36,6 +36,7 @@ export function ChatMedia({ media }: { media: MessageMedia }) {
   return (
     <AgentSticker
       appearance={lookOf(agent)}
+      who={agent}
       mood={media.mood}
       size={MESSAGE_STICKER}
       seed={media.agentId}

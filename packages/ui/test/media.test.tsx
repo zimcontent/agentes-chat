@@ -26,6 +26,7 @@ import {
   WAVE_SECONDS,
 } from "../src";
 import type { Ctx2D } from "../src/agent/engine.js";
+import { PIXEL_ART } from "../src/brand/doug";
 
 afterEach(() => {
   cleanup();
@@ -142,26 +143,49 @@ describe("the agents' stickers (ADR 0091)", () => {
     expect(stickerSeed("ag-1")).toBeLessThan(10);
   });
 
-  test("AgentSticker: a canvas of its size, named when labelled, in the shared loop while mounted", () => {
-    const before = liveStickerCount();
-    const { container, unmount } = render(
+  test.skipIf(PIXEL_ART)("AgentSticker in DougBot: the agent's bot in its mood's face, named when labelled", () => {
+    const { container } = render(
       <>
-        <AgentSticker appearance={{ color: "amber" }} mood="love" size={120} label="Figurinha do Dev: amei" />
-        <AgentSticker mood="wow" size={72} />
+        <AgentSticker who={{ name: "Dev" }} mood="love" size={120} label="Figurinha do Dev: amei" />
+        <AgentSticker mood="thinking" size={72} />
       </>,
     );
     const named = body().getByRole("img", { name: "Figurinha do Dev: amei" });
-    expect(named.tagName).toBe("CANVAS");
+    expect(named.classList.contains("ac-sticker--bot")).toBe(true);
     expect((named as HTMLElement).style.width).toBe("120px");
     expect(named.getAttribute("data-mood")).toBe("love");
-    const quiet = container.querySelectorAll("canvas")[1] as HTMLCanvasElement;
+    expect(named.querySelector(".ac-bot")?.getAttribute("data-estado")).toBe("terminou");
+    const quiet = container.querySelectorAll(".ac-sticker")[1] as HTMLElement;
     expect(quiet.getAttribute("aria-hidden")).toBe("true");
-    expect(quiet.style.height).toBe("72px");
-    // One loop draws them all, and lets them go.
-    expect(liveStickerCount()).toBe(before + 2);
-    unmount();
-    expect(liveStickerCount()).toBe(before);
+    expect(quiet.querySelector(".ac-bot")?.getAttribute("data-estado")).toBe("trabalhando");
+    // No pixel agent left: every sticker is drawn by the identity's code, in SVG.
+    expect(container.querySelectorAll("canvas")).toHaveLength(0);
+    expect(container.querySelectorAll("svg")).toHaveLength(2);
   });
+
+  test.skipIf(!PIXEL_ART)(
+    "AgentSticker: a canvas of its size, named when labelled, in the shared loop while mounted",
+    () => {
+      const before = liveStickerCount();
+      const { container, unmount } = render(
+        <>
+          <AgentSticker appearance={{ color: "amber" }} mood="love" size={120} label="Figurinha do Dev: amei" />
+          <AgentSticker mood="wow" size={72} />
+        </>,
+      );
+      const named = body().getByRole("img", { name: "Figurinha do Dev: amei" });
+      expect(named.tagName).toBe("CANVAS");
+      expect((named as HTMLElement).style.width).toBe("120px");
+      expect(named.getAttribute("data-mood")).toBe("love");
+      const quiet = container.querySelectorAll("canvas")[1] as HTMLCanvasElement;
+      expect(quiet.getAttribute("aria-hidden")).toBe("true");
+      expect(quiet.style.height).toBe("72px");
+      // One loop draws them all, and lets them go.
+      expect(liveStickerCount()).toBe(before + 2);
+      unmount();
+      expect(liveStickerCount()).toBe(before);
+    },
+  );
 });
 
 describe("a GIF in a message", () => {

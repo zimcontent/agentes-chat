@@ -431,6 +431,7 @@ function LearnedList({ list }: { list: Memory[] }) {
       <EmptyState
         size="panel"
         agent={lookOf(agent) ?? true}
+        who={agent}
         title={t("agentPage.memory.learnedEmptyTitle")}
         actions={<AskAgentButton agent={agent} variant="primary" />}
       >
