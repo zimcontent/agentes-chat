@@ -223,21 +223,45 @@ export function approvalLetter(
 export const approvalLetterTo = (t: TFunction, letter: NonNullable<ReturnType<typeof approvalLetter>>) =>
   letter.to ? t("approval.email.toList", { to: letter.to }) : letter.reply ? t("approval.email.toSender") : "";
 
+/** Values that are code (a script, a query, a command line), by their name in the call. */
+const CODE_KEYS = new Set(["code", "script", "source", "sql", "command", "cmd"]);
+const isCodeKey = (key: string) => CODE_KEYS.has(key.toLowerCase());
+
+/**
+ * The code an action runs, label and text, one level into objects: a person decides by what the agent says it does
+ * (its `why`), so a screen that leaves code out of the values (`approvalValues` with `code: false`) keeps it here,
+ * for its technical details.
+ */
+export function approvalCode(approval: Pick<Approval, "params">): [string, string][] {
+  const out: [string, string][] = [];
+  const walk = (obj: Record<string, unknown>, top: boolean) => {
+    for (const [k, v] of Object.entries(obj)) {
+      if (typeof v === "string" && isCodeKey(k) && v.trim()) out.push([humanize(k), v.trim()]);
+      else if (top && v && typeof v === "object" && !Array.isArray(v)) walk(v as Record<string, unknown>, false);
+    }
+  };
+  walk(approval.params ?? {}, true);
+  return out;
+}
+
 /**
  * Its values in words, label and value ("Issue id", "ACME-177"), one level into objects, without the inner
  * tool's name. Lists keep them short (`long: false`, at most `max`): without ids (a UUID says nothing to a person) and,
  * for a message (`approvalLetter`), without its subject, recipients and text, which its card shows as the message. The details
- * show every one.
+ * show every one, but code where the screen asks (`code: false`: it shows `approvalCode` apart).
  */
 export function approvalValues(
   approval: Pick<Approval, "params" | "connector" | "email"> & Partial<Pick<Approval, "tool">>,
   {
     max = Number.POSITIVE_INFINITY,
     long = false,
+    code = true,
     locale,
   }: {
     max?: number;
     long?: boolean;
+    /** False leaves out the values that are code (`approvalCode`). */
+    code?: boolean;
     /** Numbers in the locale's format ("97.000"); grouped from five digits, so a year or an id stays as is. */
     locale?: string;
   } = {},
@@ -256,6 +280,7 @@ export function approvalValues(
   const walk = (obj: Record<string, unknown>, top: boolean) => {
     for (const [k, v] of Object.entries(obj)) {
       if (top && k === skip) continue;
+      if (!code && typeof v === "string" && isCodeKey(k)) continue;
       if (letter && (k === "subject" || k === "to" || (BODY_KEYS as readonly string[]).includes(k))) continue;
       if (plain(v)) {
         const text = typeof v === "number" && formatNumber ? formatNumber(v) : String(v).trim();
