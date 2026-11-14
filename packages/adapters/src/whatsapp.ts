@@ -27,6 +27,12 @@ export interface WhatsAppMessage {
   /** WhatsApp's own id: the same message never has two. */
   id: string;
   chat: WhatsAppJid;
+  /**
+   * The same person's other address. WhatsApp names a person by their number (`…@s.whatsapp.net`) or by a hidden
+   * id (`…@lid`), and not always the same one for both directions of one conversation: `chat` is the number
+   * whenever the event tells it, and this the hidden id, so both land in one conversation. Null: not told.
+   */
+  chatLid?: WhatsAppJid | null;
   /** Who wrote it. In a one-to-one chat, the other person or this number. */
   sender: WhatsAppJid;
   /** The sender's name as their own phone tells it (outside text); empty when unknown. */
@@ -57,7 +63,22 @@ export type WhatsAppEvent =
   /** `logged_out`: the phone removed this device, so only a new QR code brings it back. */
   | { kind: "disconnected"; instanceId: string; reason: "logged_out" | "dropped" | "qr_timeout" }
   | { kind: "message"; instanceId: string; message: WhatsAppMessage }
-  | { kind: "receipt"; instanceId: string; chat: WhatsAppJid; ids: string[]; state: "delivered" | "read" };
+  | { kind: "receipt"; instanceId: string; chat: WhatsAppJid; ids: string[]; state: "delivered" | "read" }
+  /**
+   * Conversations as the phone had them: WhatsApp sends them in pieces right after a number is linked, and again
+   * when older messages of one conversation are asked for (`requestHistory`).
+   */
+  | { kind: "history"; instanceId: string; chats: WhatsAppHistoryChat[]; names: { jid: WhatsAppJid; name: string }[] };
+
+/** One conversation of a piece of history, with the messages that piece carries. */
+export interface WhatsAppHistoryChat {
+  jid: WhatsAppJid;
+  /** The person's hidden id, when the phone told both (`WhatsAppMessage.chatLid`). */
+  lid?: WhatsAppJid | null;
+  /** A group's subject, or the contact's name; empty when the phone told none. */
+  name: string;
+  messages: (WhatsAppMessage & { status: "received" | "sent" | "delivered" | "read" })[];
+}
 
 export interface WhatsAppSent {
   id: string;
@@ -75,6 +96,23 @@ export interface WhatsAppGateway {
   logout(token: string): Promise<void>;
   deleteInstance(instanceId: string): Promise<void>;
   sendText(token: string, input: { to: WhatsAppJid; text: string; replyTo?: string | null }): Promise<WhatsAppSent>;
+  /**
+   * Sends a file. `kind` is how WhatsApp shows it: a picture (JPEG, PNG or WebP), a video (MP4), a voice message
+   * (`audio`: any recording, which the gateway turns into WhatsApp's own format) or a document (anything). The
+   * answer carries the file's message, kept to open the file later.
+   */
+  sendFile(
+    token: string,
+    input: {
+      to: WhatsAppJid;
+      kind: WhatsAppFileKind;
+      bytes: Uint8Array;
+      mimeType: string;
+      fileName: string;
+      caption?: string;
+      replyTo?: string | null;
+    },
+  ): Promise<WhatsAppSent & { message: Record<string, unknown> | null }>;
   markRead(token: string, input: { chat: WhatsAppJid; ids: string[] }): Promise<void>;
   /** "Typing…" on the other side's screen, as WhatsApp's own apps show while someone writes; `false` ends it. */
   setTyping(token: string, input: { chat: WhatsAppJid; typing: boolean }): Promise<void>;
@@ -83,6 +121,28 @@ export interface WhatsAppGateway {
    * arrived (`whatsappFileMessage`). WhatsApp keeps a file for a few weeks: later the gateway refuses.
    */
   downloadMedia(token: string, input: { message: Record<string, unknown> }): Promise<WhatsAppFile>;
+  /**
+   * Asks the phone for up to `count` messages of one conversation from before `before`, the oldest one we have.
+   * They arrive later as a `history` event, only while the phone is on.
+   */
+  requestHistory(
+    token: string,
+    input: { chat: WhatsAppJid; before: { id: string; fromMe: boolean; at: Date }; count: number },
+  ): Promise<void>;
+}
+
+export type WhatsAppFileKind = "image" | "video" | "audio" | "document";
+
+/**
+ * How WhatsApp shows a file of this type: only what its apps draw as a picture or play as a video goes as one,
+ * a recording goes as a voice message, and everything else as a document.
+ */
+export function whatsappFileKind(mimeType: string, voice = false): WhatsAppFileKind {
+  const type = mimeType.split(";")[0]?.trim().toLowerCase() ?? "";
+  if (voice || type.startsWith("audio/")) return "audio";
+  if (type === "image/jpeg" || type === "image/png" || type === "image/webp") return "image";
+  if (type === "video/mp4") return "video";
+  return "document";
 }
 
 export interface WhatsAppFile {
@@ -111,8 +171,10 @@ export interface EvolutionGoOptions {
 }
 
 /** What every event of a number's is asked for: messages both ways, receipts, the connection and its QR code. */
-const SUBSCRIBE = ["MESSAGE", "SEND_MESSAGE", "READ_RECEIPT", "CONNECTION", "QRCODE"];
+const SUBSCRIBE = ["MESSAGE", "SEND_MESSAGE", "READ_RECEIPT", "CONNECTION", "QRCODE", "HISTORY_SYNC"];
 const TIMEOUT_MS = 30_000;
+/** A file is uploaded to WhatsApp before its message goes, and a recording is converted first. */
+const FILE_TIMEOUT_MS = 120_000;
 
 /**
  * Evolution Go's REST API (Apache-2.0, a separate service on the network): `apikey` is the global key for
@@ -180,11 +242,52 @@ export function createEvolutionGoGateway(options: EvolutionGoOptions): WhatsAppG
       if (!id) throw new WhatsAppGatewayError(502, "The WhatsApp gateway sent a message without an id");
       return { id, at: date(info.Timestamp) };
     },
+    async sendFile(token, { to, kind, bytes, mimeType, fileName, caption, replyTo }) {
+      // The file goes as a form (`multipart/form-data`): as JSON it would be a third larger.
+      const form = new FormData();
+      form.set("number", to);
+      form.set("type", kind);
+      form.set("filename", fileName);
+      if (caption) form.set("caption", caption);
+      if (replyTo) form.set("quoted.messageId", replyTo);
+      form.set("file", new Blob([bytes], { type: mimeType }), fileName);
+      let res: Response;
+      try {
+        res = await http(`${base}/send/media`, {
+          method: "POST",
+          headers: { apikey: token },
+          body: form,
+          signal: AbortSignal.timeout(FILE_TIMEOUT_MS),
+        });
+      } catch (error) {
+        throw new WhatsAppGatewayError(0, `The WhatsApp gateway didn't answer: ${String(error)}`);
+      }
+      const parsed = rec(await res.json().catch(() => null));
+      if (!res.ok) throw new WhatsAppGatewayError(res.status, str(parsed.error) || `HTTP ${res.status}`);
+      const data = rec(parsed.data);
+      const info = rec(data.Info);
+      const id = str(info.ID);
+      if (!id) throw new WhatsAppGatewayError(502, "The WhatsApp gateway sent a file without an id");
+      const message = rec(data.Message);
+      return { id, at: date(info.Timestamp), message: Object.keys(message).length > 0 ? message : null };
+    },
     async markRead(token, { chat, ids }) {
       if (ids.length > 0) await call("POST", "/message/markread", token, { id: ids, number: chat });
     },
     async setTyping(token, { chat, typing }) {
       await call("POST", "/message/presence", token, { number: chat, state: typing ? "composing" : "paused" });
+    },
+    async requestHistory(token, { chat, before, count }) {
+      await call("POST", "/chat/history-sync", token, {
+        messageInfo: {
+          Chat: chat,
+          IsFromMe: before.fromMe,
+          IsGroup: isGroupJid(chat),
+          ID: before.id,
+          Timestamp: before.at.toISOString(),
+        },
+        count,
+      });
     },
     async downloadMedia(token, { message }) {
       // The answer is a `data:` address: `data:<type>;base64,<bytes>`.
@@ -266,7 +369,7 @@ export function whatsappFileMessage(raw: unknown): Record<string, unknown> | nul
 }
 
 /** What kind of message it is, its words and the id of the one it answers. */
-function content(message: Record<string, unknown>): Pick<WhatsAppMessage, "kind" | "text" | "replyTo" | "media"> {
+function contentOf(message: Record<string, unknown>): Pick<WhatsAppMessage, "kind" | "text" | "replyTo" | "media"> {
   const body = unwrap(message);
   const reply = (part: unknown) => str(rec(rec(part).contextInfo).stanzaID) || null;
 
@@ -313,19 +416,27 @@ function content(message: Record<string, unknown>): Pick<WhatsAppMessage, "kind"
 function message(data: Record<string, unknown>): WhatsAppMessage | null {
   const info = rec(data.Info);
   const id = str(info.ID);
-  const chat = bareJid(str(info.Chat));
-  if (!id || !chat) return null;
+  const told = bareJid(str(info.Chat));
+  if (!id || !told) return null;
+  const fromMe = info.IsFromMe === true;
+  // One person, two addresses: the event names the other one beside the chat's (`RecipientAlt` on what this number
+  // sent, `SenderAlt` on what it received).
+  const other = bareJid(str(fromMe ? info.RecipientAlt : info.SenderAlt));
+  const hidden = told.endsWith("@lid") ? told : other.endsWith("@lid") ? other : null;
+  const chat = told.endsWith("@lid") && other.endsWith("@s.whatsapp.net") ? other : told;
   const body = rec(data.Message);
-  const parsed = content(body);
+  const parsed = contentOf(body);
   // Edits, deletions and key exchanges ride on messages too: nothing a person reads.
   if (parsed.kind === "other" && body.protocolMessage !== undefined) return null;
   const group = isGroupJid(chat);
   return {
     id,
     chat,
-    sender: bareJid(str(info.Sender)) || chat,
+    chatLid: group ? null : hidden,
+    // In a one-to-one chat the other side is the chat itself, under whichever address it wrote from.
+    sender: group || fromMe ? bareJid(str(info.Sender)) || chat : chat,
     senderName: str(info.PushName),
-    fromMe: info.IsFromMe === true,
+    fromMe,
     group,
     groupName: group ? str(rec(data.groupData).Name) : "",
     at: date(info.Timestamp),
@@ -339,6 +450,62 @@ function message(data: Record<string, unknown>): WhatsAppMessage | null {
 function withoutInline(body: Record<string, unknown>) {
   const { base64: _base64, mediaUrl: _mediaUrl, ...rest } = body;
   return rest;
+}
+
+/** WhatsApp's own mark of how far a sent message got (`WebMessageInfo.status`): 3 delivered, 4 read, 5 played. */
+function historyStatus(fromMe: boolean, status: unknown): WhatsAppHistoryChat["messages"][number]["status"] {
+  if (!fromMe) return "received";
+  const n = num(status) ?? 0;
+  return n >= 4 ? "read" : n === 3 ? "delivered" : "sent";
+}
+
+/**
+ * A piece of history (`events.HistorySync`): `Data.conversations`, each with its messages as WhatsApp keeps them
+ * (`WebMessageInfo`: `key`, `message`, `messageTimestamp` in seconds), and `Data.pushnames`, people's own names.
+ * A conversation WhatsApp addresses by a hidden id (`@lid`) is filed under the person's number when it names one.
+ * Status updates, channels, reactions and the lines WhatsApp writes itself ("you were added") are left out.
+ */
+function history(data: Record<string, unknown>): Pick<Extract<WhatsAppEvent, { kind: "history" }>, "chats" | "names"> {
+  const body = rec(data.Data);
+  const chats: WhatsAppHistoryChat[] = [];
+  for (const entry of Array.isArray(body.conversations) ? body.conversations : []) {
+    const conversation = rec(entry);
+    const id = bareJid(str(conversation.ID));
+    const jid = id.endsWith("@lid") && str(conversation.pnJID) ? bareJid(str(conversation.pnJID)) : id;
+    const lid = id.endsWith("@lid") ? id : bareJid(str(conversation.lidJID)) || null;
+    if (!jid || jid.endsWith("@broadcast") || jid.endsWith("@newsletter")) continue;
+    const group = isGroupJid(jid);
+    const messages: WhatsAppHistoryChat["messages"] = [];
+    for (const item of Array.isArray(conversation.messages) ? conversation.messages : []) {
+      const info = rec(rec(item).message);
+      const key = rec(info.key);
+      const waId = str(key.ID);
+      const seconds = num(info.messageTimestamp) ?? Number(info.messageTimestamp);
+      if (!waId || !Number.isFinite(seconds) || seconds <= 0) continue;
+      const content = rec(info.message);
+      const parsed = contentOf(content);
+      if (parsed.kind === "reaction" || (parsed.kind === "other" && !parsed.text)) continue;
+      const fromMe = key.fromMe === true;
+      messages.push({
+        id: waId,
+        chat: jid,
+        sender: fromMe ? "" : bareJid(str(info.participant) || str(key.participant)) || jid,
+        senderName: fromMe ? "" : str(info.pushName),
+        fromMe,
+        group,
+        groupName: "",
+        at: new Date(seconds * 1000),
+        ...parsed,
+        raw: parsed.media ? withoutInline(content) : null,
+        status: historyStatus(fromMe, info.status),
+      });
+    }
+    chats.push({ jid, lid, name: str(conversation.name) || str(conversation.displayName), messages });
+  }
+  const names = (Array.isArray(body.pushnames) ? body.pushnames : [])
+    .map((entry) => ({ jid: bareJid(str(rec(entry).ID)), name: str(rec(entry).pushname) }))
+    .filter((entry) => entry.jid && entry.name && entry.name !== "-");
+  return { chats, names };
 }
 
 /**
@@ -375,6 +542,8 @@ export function parseEvolutionEvent(payload: unknown): WhatsAppEvent | null {
       const parsed = message(data);
       return parsed ? { kind: "message", instanceId, message: { ...parsed, fromMe: true } } : null;
     }
+    case "HistorySync":
+      return { kind: "history", instanceId, ...history(data) };
     case "Receipt": {
       const state = str(root.state);
       const ids = Array.isArray(data.MessageIDs) ? data.MessageIDs.filter((id) => typeof id === "string") : [];
@@ -394,9 +563,19 @@ export type FakeWhatsAppCall =
   | { op: "logout"; token: string }
   | { op: "delete"; instanceId: string }
   | { op: "send"; token: string; to: WhatsAppJid; text: string; replyTo: string | null }
+  | {
+      op: "file";
+      token: string;
+      to: WhatsAppJid;
+      kind: WhatsAppFileKind;
+      fileName: string;
+      caption: string;
+      size: number;
+    }
   | { op: "read"; token: string; chat: WhatsAppJid; ids: string[] }
   | { op: "typing"; token: string; chat: WhatsAppJid; typing: boolean }
-  | { op: "download"; token: string; message: Record<string, unknown> };
+  | { op: "download"; token: string; message: Record<string, unknown> }
+  | { op: "history"; token: string; chat: WhatsAppJid; before: string; count: number };
 
 /** A gateway that only remembers what it was asked (tests): no network, no WhatsApp. */
 export function createFakeWhatsAppGateway(): WhatsAppGateway & {
@@ -450,6 +629,33 @@ export function createFakeWhatsAppGateway(): WhatsAppGateway & {
       fake.calls.push({ op: "send", token, to: input.to, text: input.text, replyTo: input.replyTo ?? null });
       return { id: `SENT${++sent}`, at: new Date() };
     },
+    async sendFile(
+      token: string,
+      input: {
+        to: WhatsAppJid;
+        kind: WhatsAppFileKind;
+        bytes: Uint8Array;
+        mimeType: string;
+        fileName: string;
+        caption?: string;
+      },
+    ) {
+      guard();
+      fake.calls.push({
+        op: "file",
+        token,
+        to: input.to,
+        kind: input.kind,
+        fileName: input.fileName,
+        caption: input.caption ?? "",
+        size: input.bytes.byteLength,
+      });
+      return {
+        id: `SENT${++sent}`,
+        at: new Date(),
+        message: { [`${input.kind}Message`]: { mimetype: input.mimeType, fileName: input.fileName } },
+      };
+    },
     async markRead(token: string, { chat, ids }: { chat: WhatsAppJid; ids: string[] }) {
       guard();
       fake.calls.push({ op: "read", token, chat, ids });
@@ -457,6 +663,13 @@ export function createFakeWhatsAppGateway(): WhatsAppGateway & {
     async setTyping(token: string, { chat, typing }: { chat: WhatsAppJid; typing: boolean }) {
       guard();
       fake.calls.push({ op: "typing", token, chat, typing });
+    },
+    async requestHistory(
+      token: string,
+      input: { chat: WhatsAppJid; before: { id: string; fromMe: boolean; at: Date }; count: number },
+    ) {
+      guard();
+      fake.calls.push({ op: "history", token, chat: input.chat, before: input.before.id, count: input.count });
     },
     async downloadMedia(token: string, { message }: { message: Record<string, unknown> }) {
       guard();

@@ -174,6 +174,43 @@ describe("answering", () => {
   });
 });
 
+describe("how it talks on a number", () => {
+  test("the number's own wait, pace, one message only, and quiet time", async () => {
+    f = await setup({ reply: answerOf({ messages: ["Primeira parte.", "Segunda parte."] }) });
+    const { gateway, deps, account, hears, chat, slept } = await answering();
+    const saved = await updateWhatsAppAccount(deps, f.owner.id, f.org.id, account.id, {
+      agentStyle: { waitSeconds: 60, pace: "slow", messages: 1, quietMinutes: 15 },
+    });
+    expect(saved.agentStyle).toEqual({ waitSeconds: 60, pace: "slow", messages: 1, quietMinutes: 15 });
+    const job = await hears("oi");
+    if (!job) throw new Error("no job queued");
+    expect(job.runAt.getTime()).toBeGreaterThan(Date.now() + 55_000);
+    expect(await answerWhatsAppChat(deps, job)).toBe("reply");
+    // One message whatever the model wrote, typed slower than the natural pace would.
+    expect(gateway.calls.filter((c) => c.op === "send").map((c) => c.text)).toEqual(["Primeira parte."]);
+    expect(slept[0]).toBeGreaterThan(2500);
+    expect(String(f.provider.calls.at(-1)?.request.system)).toContain("exactly one message");
+
+    await sendWhatsAppText(deps, f.owner.id, f.org.id, account.id, { chatId: job.chatId, text: "sou eu" });
+    const until = new Date((await chat())?.agentQuietUntil ?? 0).getTime();
+    expect(until).toBeGreaterThan(Date.now() + 13 * 60_000);
+    expect(until).toBeLessThan(Date.now() + 16 * 60_000);
+    await expect(
+      updateWhatsAppAccount(deps, f.owner.id, f.org.id, account.id, { agentStyle: { waitSeconds: 0 } }),
+    ).rejects.toThrow("from 3 to 300");
+  });
+
+  test("an agent on the automatic model answers with a model of its key's line", async () => {
+    f = await setup({ reply: answerOf({ messages: ["oi"] }) });
+    await f.db.update(schema.agents).set({ model: "auto" }).where(eq(schema.agents.id, f.agent.id));
+    const { deps, hears } = await answering();
+    const job = await hears("oi");
+    if (!job) throw new Error("no job queued");
+    expect(await answerWhatsAppChat(deps, job)).toBe("reply");
+    expect(f.provider.calls.at(-1)?.request.model).toMatch(/^claude-/);
+  });
+});
+
 describe("staying quiet", () => {
   test("no job for a group, for a number whose agent is off, or for a message WhatsApp kept from long ago", async () => {
     f = await setup();
@@ -209,7 +246,7 @@ describe("staying quiet", () => {
     const later = new Date(Date.now() + 61 * 60_000);
     expect(
       whatsappAgentState(
-        { agentId: f.agent.id, agentOn: true },
+        { agentId: f.agent.id, agentOn: true, agentQuietMinutes: 60 },
         { group: false, agentOff: false, needsPerson: false, personAt: new Date() },
         later,
       ).state,
@@ -267,7 +304,9 @@ describe("handing over", () => {
     await expect(answerWhatsAppChat(deps, job)).rejects.toThrow();
     expect((await chat())?.agent).toBe("on");
     expect(await answerWhatsAppChat(deps, job, { finalAttempt: true })).toBe("failed");
-    expect([(await chat())?.agent, (await chat())?.agentNote]).toEqual(["person", "failed"]);
+    expect((await chat())?.agent).toBe("person");
+    // Why it failed is kept for whoever opens the conversation.
+    expect((await chat())?.agentNote).toStartWith("failed: ");
     expect(gateway.calls.some((c) => c.op === "send")).toBe(false);
   });
 
@@ -291,7 +330,13 @@ describe("an agent that thinks with a plan", () => {
     });
     await f.db
       .update(schema.agents)
-      .set({ brain: "claude_code", machineId: paired.machineId, brainModel: "sonnet", brainFallback: false })
+      .set({
+        brain: "claude_code",
+        machineId: paired.machineId,
+        brainModel: "sonnet",
+        brainEffort: "high",
+        brainFallback: false,
+      })
       .where(eq(schema.agents.id, f.agent.id));
     const asked: Record<string, unknown>[] = [];
     let busy = true;
@@ -315,7 +360,12 @@ describe("an agent that thinks with a plan", () => {
     busy = false;
     expect(await answerWhatsAppChat(deps, job)).toBe("reply");
     expect(gateway.last("send")?.text).toBe("Oi! Já te respondo.");
-    expect([asked[1]?.op, asked[1]?.kind, asked[1]?.model]).toEqual(["brain.route", "claude_code", "sonnet"]);
+    expect([asked[1]?.op, asked[1]?.kind, asked[1]?.model, asked[1]?.effort]).toEqual([
+      "brain.route",
+      "claude_code",
+      "sonnet",
+      "high",
+    ]);
     expect(f.provider.calls).toHaveLength(0);
     const usage = await f.db.select().from(schema.usageRecords).where(eq(schema.usageRecords.agentId, f.agent.id));
     expect(usage.map((u) => [u.provider, u.inputTokens])).toEqual([["claude_code", 900]]);

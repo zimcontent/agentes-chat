@@ -296,23 +296,79 @@
   margin-bottom: var(--space-2);
 }
 .wa-conv__foot {
-  display: flex;
-  align-items: flex-end;
-  gap: var(--space-2);
   padding: var(--space-3) var(--page-x) var(--space-4);
   border-block-start: 1px solid var(--line);
 }
-.wa-conv__input {
+/* The message being answered, above the words. */
+.wa-quote {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+  color: var(--muted);
+  font-size: var(--text-sm);
+}
+.wa-quote__words {
   flex: 1;
   min-width: 0;
-  min-height: var(--control-h-md);
-  max-height: 160px;
-  resize: none;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+/* A file held over the conversation: where it lands. */
+.wa-conv {
+  position: relative;
+}
+.wa-conv__drop {
+  position: absolute;
+  inset: var(--space-2);
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  border: 2px dashed var(--agent);
+  border-radius: var(--radius-lg);
+  background: color-mix(in srgb, var(--surface) 88%, transparent);
+  font-weight: 600;
+  pointer-events: none;
+}
+/* A picture opened: as large as the dialog and the window let it be, whole. */
+.wa-picture {
+  display: block;
+  max-width: 100%;
+  max-height: 70vh;
+  margin-inline: auto;
+  border-radius: var(--radius-md);
+  object-fit: contain;
 }
 
 /* A message: ours on the right, theirs on the left, each as wide as its words up to most of the column. */
 .wa-msg {
   display: flex;
+}
+/* "Reply" beside the bubble: there on hover or focus, always on touch. */
+.wa-msg {
+  align-items: center;
+  gap: var(--space-1);
+}
+.wa-msg__reply {
+  flex: none;
+  order: 2;
+  opacity: 0;
+}
+.wa-msg[data-mine="true"] .wa-msg__reply {
+  order: 0;
+}
+.wa-msg:hover .wa-msg__reply,
+.wa-msg__reply:focus-visible {
+  opacity: 1;
+}
+@media (hover: none) {
+  .wa-msg__reply {
+    opacity: 1;
+  }
 }
 .wa-msg[data-mine="true"] {
   justify-content: flex-end;
@@ -376,6 +432,9 @@ a.wa-bubble__file {
 /* A picture keeps one box whatever its size, so the list doesn't move as pictures load. */
 .wa-bubble__pic {
   display: block;
+  padding: 0;
+  border: 0;
+  cursor: zoom-in;
   width: min(280px, 100%);
   aspect-ratio: 1;
   overflow: hidden;
@@ -489,6 +548,16 @@ a.wa-bubble__file {
 .wa-instructions[data-dropping="true"] {
   outline: 2px dashed var(--agent);
   outline-offset: 2px;
+}
+/* The agent's AI as the picker's own button, at the form's edge. */
+.wa-ai {
+  display: flex;
+}
+/* How the agent talks: four short choices, two by two while there is room. */
+.wa-style {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: var(--space-4);
 }
 .wa-people {
   margin: 0;

@@ -1023,6 +1023,7 @@ export function OnboardingPage() {
                   />
                 ) : view === "start" ? (
                   <TeamStart
+                    orgId={orgId}
                     state={source}
                     template={template}
                     lodi={{ name: lodiName, look: lookOf(lodi) ?? RIGHT_HAND_DEFAULT.appearance }}

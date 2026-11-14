@@ -135,6 +135,17 @@ export const EXTRA_COLUMNS = [
   )`,
   `CREATE UNIQUE INDEX IF NOT EXISTS "whatsapp_messages_wa" ON "whatsapp_messages" ("account_id", "wa_id")`,
   `CREATE INDEX IF NOT EXISTS "whatsapp_messages_chat" ON "whatsapp_messages" ("chat_id", "at")`,
+  // Connections brought from one workspace to another (ADR 9002).
+  `CREATE TABLE IF NOT EXISTS "connector_sign_ins" (
+    "id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+    "user_id" text REFERENCES "users"("id") ON DELETE set null,
+    "refreshing_until" timestamp with time zone,
+    "created_at" timestamp with time zone DEFAULT now() NOT NULL
+  )`,
+  `ALTER TABLE "connector_connections" ADD COLUMN IF NOT EXISTS "sign_in_id" uuid REFERENCES "connector_sign_ins"("id") ON DELETE set null`,
+  `ALTER TABLE "connector_connections" ADD COLUMN IF NOT EXISTS "carried_from_id" uuid`,
+  `ALTER TABLE "connector_connections" ADD COLUMN IF NOT EXISTS "composio_user_org_id" uuid`,
+  `CREATE INDEX IF NOT EXISTS "connector_connections_sign_in_id_index" ON "connector_connections" ("sign_in_id")`,
   // The number's agent answering (docs/adr/doug-0002-whatsapp-agent.md): added to tables that may already exist.
   `ALTER TABLE "whatsapp_accounts" ADD COLUMN IF NOT EXISTS "agent_on" boolean NOT NULL DEFAULT false`,
   `ALTER TABLE "whatsapp_chats" ADD COLUMN IF NOT EXISTS "agent_off" boolean NOT NULL DEFAULT false`,
@@ -142,6 +153,11 @@ export const EXTRA_COLUMNS = [
   `ALTER TABLE "whatsapp_chats" ADD COLUMN IF NOT EXISTS "needs_person" boolean NOT NULL DEFAULT false`,
   `ALTER TABLE "whatsapp_chats" ADD COLUMN IF NOT EXISTS "agent_note" text NOT NULL DEFAULT ''`,
   `ALTER TABLE "whatsapp_messages" ADD COLUMN IF NOT EXISTS "sent_by_agent_id" uuid REFERENCES "agents"("id") ON DELETE SET NULL`,
+  `ALTER TABLE "whatsapp_accounts" ADD COLUMN IF NOT EXISTS "agent_wait_seconds" integer NOT NULL DEFAULT 8`,
+  `ALTER TABLE "whatsapp_accounts" ADD COLUMN IF NOT EXISTS "agent_pace" text NOT NULL DEFAULT 'natural'`,
+  `ALTER TABLE "whatsapp_accounts" ADD COLUMN IF NOT EXISTS "agent_messages" integer NOT NULL DEFAULT 3`,
+  `ALTER TABLE "whatsapp_accounts" ADD COLUMN IF NOT EXISTS "agent_quiet_minutes" integer NOT NULL DEFAULT 60`,
+  `ALTER TABLE "whatsapp_chats" ADD COLUMN IF NOT EXISTS "lid" text`,
 ];
 
 /** The advisory lock every process takes around its migrations (`DatabaseHandle.migrate`). */

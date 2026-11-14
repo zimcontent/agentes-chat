@@ -7,6 +7,9 @@ const ORG_KEY = /^(?:orgs|org-logos)\/([0-9a-f-]{36})\//i;
 /** A person's photo (`avatars/{userId}/…`): theirs in every org, so it belongs to none. */
 const PERSON_KEY = /^avatars\/[^/]+\//;
 
+/** The largest file a Postgres row keeps: what the Drive took before files went up to 2 GB (ADR 0025). */
+export const POSTGRES_OBJECT_BYTES = 50 * 1024 * 1024;
+
 /**
  * Platform storage in Postgres, for deployments without a bucket. A key
  * starts with `orgs/{orgId}/` or `org-logos/{orgId}/` (the row carries that
@@ -23,6 +26,8 @@ export function createPostgresBlobStore(db: Database): BlobStore {
   };
   return {
     kind: "postgres",
+    // A row holds the bytes as base64 text, read and written whole: files past this go on disk or in a bucket.
+    maxObjectBytes: POSTGRES_OBJECT_BYTES,
     async put(key, body, { contentType }) {
       const row = {
         key,

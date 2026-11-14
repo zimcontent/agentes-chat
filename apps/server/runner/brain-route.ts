@@ -8,8 +8,10 @@ import {
   type BrainRouteRequest,
   isAccountId,
   isAccountKind,
+  ROUTE_EFFORTS,
   ROUTE_LIMITS,
   ROUTE_MODELS,
+  ROUTE_TIMEOUT_MAX_MS,
   ROUTE_TIMEOUT_MS,
 } from "@agenteschat/adapters/machine-protocol";
 import {
@@ -46,12 +48,22 @@ import { resolveCommand } from "./executors";
  * the sign-in, and with no tools the CLI has nothing to delegate.
  */
 
+/** Only an effort named in the protocol goes on a command line. */
+const effortOf = (req: BrainRouteRequest) => ROUTE_EFFORTS.find((e) => e === req.effort);
+/** The time the request asks for, within the protocol's most. */
+const timeoutOf = (req: BrainRouteRequest) =>
+  typeof req.timeoutMs === "number" && req.timeoutMs > 0
+    ? Math.min(req.timeoutMs, ROUTE_TIMEOUT_MAX_MS)
+    : ROUTE_TIMEOUT_MS;
+
 /** Claude Code's argv for a route; the prompt goes on standard input. */
 export function claudeRouteArgs(o: {
   systemFile: string;
   schema: Record<string, unknown>;
   /** One of `ROUTE_MODELS`; absent: the smallest. */
   model?: string;
+  /** One of `ROUTE_EFFORTS`; absent: low. */
+  effort?: string;
 }): string[] {
   return [
     "-p",
@@ -59,7 +71,7 @@ export function claudeRouteArgs(o: {
     "--model",
     o.model ?? "haiku",
     "--effort",
-    "low",
+    o.effort ?? "low",
     "--tools",
     "",
     "--no-session-persistence",
@@ -87,7 +99,7 @@ export const CODEX_ROUTE_OFF = [
 ] as const;
 
 /** Codex's argv for a route; the prompt goes on standard input (`-`). */
-export function codexRouteArgs(o: { model: string; schemaFile: string; lastFile: string }): string[] {
+export function codexRouteArgs(o: { model: string; schemaFile: string; lastFile: string; effort?: string }): string[] {
   return [
     "exec",
     "--json",
@@ -99,7 +111,7 @@ export function codexRouteArgs(o: { model: string; schemaFile: string; lastFile:
     "-m",
     o.model,
     "-c",
-    'model_reasoning_effort="low"',
+    `model_reasoning_effort="${o.effort ?? "low"}"`,
     ...CODEX_ROUTE_OFF.flatMap((feature) => ["--disable", feature]),
     "--output-schema",
     o.schemaFile,
@@ -304,11 +316,11 @@ async function claudeRoute(req: BrainRouteRequest, o: RouteDeps & { dir: string;
   const command = launched?.command ?? o.claudeCommand ?? ["claude"];
   // Only a model named in the protocol goes on the command line; anything else answers with the smallest.
   const model = ROUTE_MODELS.find((m) => m === req.model);
-  const run = await runCli(command, claudeRouteArgs({ systemFile, schema: req.schema, model }), {
+  const run = await runCli(command, claudeRouteArgs({ systemFile, schema: req.schema, model, effort: effortOf(req) }), {
     cwd: launched?.cwd ?? o.dir,
     env,
     input: req.prompt,
-    timeoutMs: o.timeoutMs ?? ROUTE_TIMEOUT_MS,
+    timeoutMs: o.timeoutMs ?? timeoutOf(req),
     signal: o.signal,
     ...(token ? { token } : {}),
   });
@@ -324,14 +336,18 @@ async function codexRoute(req: BrainRouteRequest, o: RouteDeps & { dir: string; 
   const lastFile = path.join(o.dir, "last.txt");
   writeFileSync(schemaFile, JSON.stringify(req.schema), { mode: 0o600 });
   const started = Date.now();
-  const run = await runCli(o.codexCommand ?? ["codex"], codexRouteArgs({ model, schemaFile, lastFile }), {
-    cwd: o.dir,
-    env,
-    // `codex exec` has no system prompt of its own here (`--ignore-user-config`): it leads the prompt.
-    input: `${req.system}\n\n${req.prompt}`,
-    timeoutMs: o.timeoutMs ?? ROUTE_TIMEOUT_MS,
-    signal: o.signal,
-  });
+  const run = await runCli(
+    o.codexCommand ?? ["codex"],
+    codexRouteArgs({ model, schemaFile, lastFile, effort: effortOf(req) }),
+    {
+      cwd: o.dir,
+      env,
+      // `codex exec` has no system prompt of its own here (`--ignore-user-config`): it leads the prompt.
+      input: `${req.system}\n\n${req.prompt}`,
+      timeoutMs: o.timeoutMs ?? timeoutOf(req),
+      signal: o.signal,
+    },
+  );
   let json: unknown = null;
   try {
     json = existsSync(lastFile) ? JSON.parse(readFileSync(lastFile, "utf8")) : null;

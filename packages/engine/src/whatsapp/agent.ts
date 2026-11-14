@@ -1,6 +1,14 @@
-import { bareJid, type WhatsAppMessage } from "@agenteschat/adapters";
+import {
+  bareJid,
+  ROUTE_EFFORTS,
+  ROUTE_MODELS,
+  ROUTE_TIMEOUT_MAX_MS,
+  type WhatsAppMessage,
+} from "@agenteschat/adapters";
 import { and, desc, eq, gt, isNotNull, schema, sql } from "@agenteschat/db";
+import { isAutoModel } from "@agenteschat/providers";
 import { type Agent, getAgent } from "../agents";
+import { autoModelFor, autoProvider, orgAutoModels } from "../auto-model";
 import { recordPlanUsage, toolOff } from "../brains/claude-code";
 import { NotFoundError, ValidationError } from "../errors";
 import type { ModelGateway } from "../gateway";
@@ -30,8 +38,8 @@ export interface WhatsAppAgentDeps extends WhatsAppDeps {
   now?(): Date;
 }
 
-/** After a person writes in a conversation (in the app or on the phone), the agent says nothing there this long. */
-export const WHATSAPP_AGENT_QUIET_MS = 60 * 60_000;
+/** How much longer or shorter "typing…" lasts at each pace. */
+const PACE: Record<WhatsAppAccountRow["agentPace"], number> = { fast: 0.5, natural: 1, slow: 1.8 };
 /** The most answers a day in one conversation (two machines answering each other stop here) and on one number. */
 export const WHATSAPP_AGENT_PER_CHAT = 40;
 export const WHATSAPP_AGENT_PER_NUMBER = 500;
@@ -48,19 +56,19 @@ type ChatRow = typeof schema.whatsappChats.$inferSelect;
 /**
  * Where the agent stands in one conversation: `null` (the number has no agent answering, or it is a group),
  * `off` (someone turned it off here), `person` (it left the conversation to a person), `quiet` (a person wrote
- * here less than `WHATSAPP_AGENT_QUIET_MS` ago) or `on`.
+ * here less than the number's quiet time ago) or `on`.
  */
 export type WhatsAppAgentState = "on" | "quiet" | "off" | "person" | null;
 
 export function whatsappAgentState(
-  account: Pick<WhatsAppAccountRow, "agentId" | "agentOn">,
+  account: Pick<WhatsAppAccountRow, "agentId" | "agentOn" | "agentQuietMinutes">,
   chat: Pick<ChatRow, "group" | "agentOff" | "needsPerson" | "personAt">,
   now = new Date(),
 ): { state: WhatsAppAgentState; quietUntil: Date | null } {
   if (!account.agentId || !account.agentOn || chat.group) return { state: null, quietUntil: null };
   if (chat.agentOff) return { state: "off", quietUntil: null };
   if (chat.needsPerson) return { state: "person", quietUntil: null };
-  const until = chat.personAt ? new Date(chat.personAt.getTime() + WHATSAPP_AGENT_QUIET_MS) : null;
+  const until = chat.personAt ? new Date(chat.personAt.getTime() + account.agentQuietMinutes * 60_000) : null;
   if (until && until > now) return { state: "quiet", quietUntil: until };
   return { state: "on", quietUntil: null };
 }
@@ -84,11 +92,13 @@ const ANSWER_SCHEMA = {
   },
 } as const;
 
-const SYSTEM = `You answer WhatsApp messages on a business's own WhatsApp number. The person you are writing to is outside the business and wrote first. The message you receive has who you are, how the business wants you to behave on this number, and the conversation so far.
+const systemFor = (
+  most: number,
+) => `You answer WhatsApp messages on a business's own WhatsApp number. The person you are writing to is outside the business and wrote first. The message you receive has who you are, how the business wants you to behave on this number, and the conversation so far.
 
 How to write:
 - Like a person typing on a phone: short, plain messages in the language the other person writes in. No Markdown, no headings, no lists, no emoji unless the business's instructions use them.
-- One message is usually enough. Never more than ${WHATSAPP_AGENT_MESSAGES} short ones.
+- ${most === 1 ? "Answer in exactly one message." : `One message is usually enough. Never more than ${most} short ones.`}
 - Say only what the instructions let you know. Never invent a price, a date, a deadline, stock, a policy or a promise. When you don't know, say you will check with the team and hand the conversation over.
 - You can't open files, pictures, audio, video or links, and you can't do anything outside this conversation. A line like [audio] or [image] is a file you couldn't open: ask for it in writing, or hand the conversation over.
 
@@ -141,7 +151,7 @@ export function whatsappAgentPrompt(input: {
 }
 
 /** The model's answer, checked: anything that isn't the shape asked for is no answer. */
-export function parseWhatsAppAgentAnswer(value: unknown): WhatsAppAgentAnswer | null {
+export function parseWhatsAppAgentAnswer(value: unknown, most = WHATSAPP_AGENT_MESSAGES): WhatsAppAgentAnswer | null {
   let found = value;
   if (typeof value === "string") {
     const from = value.indexOf("{");
@@ -160,7 +170,7 @@ export function parseWhatsAppAgentAnswer(value: unknown): WhatsAppAgentAnswer | 
     .filter((m): m is string => typeof m === "string")
     .map((m) => m.trim().slice(0, WHATSAPP_AGENT_TEXT_MAX))
     .filter(Boolean)
-    .slice(0, WHATSAPP_AGENT_MESSAGES);
+    .slice(0, most);
   if (action === "reply" && texts.length === 0) return null;
   return {
     action,
@@ -179,22 +189,33 @@ export class WhatsAppAgentBusy extends Error {
 const tokens = (n: unknown) => (typeof n === "number" && Number.isFinite(n) ? Math.max(0, Math.round(n)) : 0);
 
 /** One answer from the agent's own brain: its plan on its computer when it thinks with one, else its API model. */
-async function ask(deps: WhatsAppAgentDeps, agent: Agent, prompt: string): Promise<WhatsAppAgentAnswer> {
+async function ask(deps: WhatsAppAgentDeps, agent: Agent, prompt: string, most: number): Promise<WhatsAppAgentAnswer> {
+  const system = systemFor(most);
   const plan = agent.brain === "claude_code" || agent.brain === "codex" ? agent.brain : null;
   if (plan && agent.machineId && deps.machines) {
     const status = await deps.machines.status(agent.machineId).catch(() => null);
     const ready = status?.online && !status.paused && !toolOff(status, plan === "codex" ? "codex" : "claude");
     if (ready) {
-      const reply = await deps.machines.call(agent.machineId, {
-        op: "brain.route",
-        agent: { id: agent.id, handle: agent.handle },
-        kind: plan,
-        ...(agent.brainAccountId ? { account: agent.brainAccountId } : {}),
-        ...(plan === "claude_code" && agent.brainModel ? { model: agent.brainModel } : {}),
-        system: SYSTEM,
-        prompt,
-        schema: ANSWER_SCHEMA,
-      });
+      const reply = await deps.machines.call(
+        agent.machineId,
+        {
+          op: "brain.route",
+          agent: { id: agent.id, handle: agent.handle },
+          kind: plan,
+          ...(agent.brainAccountId ? { account: agent.brainAccountId } : {}),
+          // The model and effort the agent is set to, where the runner takes them: anything else (Automático, a
+          // model of another kind) answers with its smallest, thinking little.
+          ...(plan === "claude_code" && ROUTE_MODELS.some((m) => m === agent.brainModel)
+            ? { model: agent.brainModel as string }
+            : {}),
+          ...(ROUTE_EFFORTS.some((e) => e === agent.brainEffort) ? { effort: agent.brainEffort as string } : {}),
+          timeoutMs: ROUTE_TIMEOUT_MAX_MS,
+          system,
+          prompt,
+          schema: ANSWER_SCHEMA,
+        },
+        { timeoutMs: ROUTE_TIMEOUT_MAX_MS + 10_000 },
+      );
       if ("busy" in reply) throw new WhatsAppAgentBusy();
       await recordPlanUsage(deps.db, {
         orgId: agent.orgId,
@@ -208,7 +229,7 @@ async function ask(deps: WhatsAppAgentDeps, agent: Agent, prompt: string): Promi
         cacheReadTokens: tokens(reply.usage?.cacheRead),
         cacheWriteTokens: tokens(reply.usage?.cacheWrite),
       }).catch(() => null);
-      const answer = parseWhatsAppAgentAnswer(reply.json);
+      const answer = parseWhatsAppAgentAnswer(reply.json, most);
       if (!answer) throw new Error("the agent's answer wasn't in the shape asked for");
       return answer;
     }
@@ -218,16 +239,24 @@ async function ask(deps: WhatsAppAgentDeps, agent: Agent, prompt: string): Promi
       "this agent's AI account can't answer WhatsApp (it needs a Claude or ChatGPT plan, or an API model)",
     );
   }
+  // On Automático there is no run to choose a model for: the middle one of its key's line answers.
+  let thinker = agent;
+  if (isAutoModel(agent.model)) {
+    const provider = await autoProvider(deps.db, agent);
+    const model = autoModelFor(provider, "medium", (await orgAutoModels(deps.db, agent.orgId))[provider]);
+    if (!model) throw new PermanentJobError("choose a model for this agent: its AI account lists none for Automático");
+    thinker = { ...agent, model };
+  }
   const result = await deps.models.stream({
     orgId: agent.orgId,
     agentId: agent.id,
-    agent,
-    system: SYSTEM,
+    agent: thinker,
+    system,
     messages: [{ role: "user", content: prompt }],
     maxTokens: 900,
     onDelta() {},
   });
-  const answer = parseWhatsAppAgentAnswer(result.text);
+  const answer = parseWhatsAppAgentAnswer(result.text, most);
   if (!answer) throw new Error("the agent's answer wasn't in the shape asked for");
   return answer;
 }
@@ -345,10 +374,12 @@ export async function answerWhatsAppChat(
 
   let answer: WhatsAppAgentAnswer;
   try {
-    answer = await ask(deps, agent, prompt);
+    answer = await ask(deps, agent, prompt, account.agentMessages);
   } catch (error) {
     if (!options.finalAttempt && !(error instanceof PermanentJobError)) throw error;
-    await handOver(deps, account, chat.id, "failed");
+    // Why, in the error's own words, for whoever opens the conversation: nothing of it goes to WhatsApp.
+    const why = error instanceof Error ? error.message.replace(/\s+/g, " ").trim() : "";
+    await handOver(deps, account, chat.id, why ? `failed: ${why}` : "failed");
     return "failed";
   }
   if (answer.action === "wait") return "wait";
@@ -370,10 +401,13 @@ export async function answerWhatsAppChat(
   }
   let typed = 0;
   for (const text of answer.messages) {
-    const wait = Math.min(
-      Math.max(TYPING_MS.base + text.length * TYPING_MS.perChar, TYPING_MS.min),
-      TYPING_MS.max,
-      Math.max(TYPING_MS.total - typed, TYPING_MS.min),
+    const pace = PACE[account.agentPace] ?? 1;
+    const wait = Math.round(
+      Math.min(
+        Math.max(TYPING_MS.base + text.length * TYPING_MS.perChar, TYPING_MS.min),
+        TYPING_MS.max,
+        Math.max(TYPING_MS.total - typed, TYPING_MS.min),
+      ) * pace,
     );
     typed += wait;
     await gateway.setTyping(token, { chat: chat.jid, typing: true }).catch(() => {});

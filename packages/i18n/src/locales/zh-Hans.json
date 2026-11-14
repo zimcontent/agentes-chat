@@ -11405,6 +11405,23 @@
     "deniedRun": "{{repo}} 不在 {{name}} 的仓库中。",
     "added": "保存后，{{repo}} 会加入列表。"
   },
+  "carry": {
+    "open": "从其他工作区带过来",
+    "text": "你在其他工作区连接的内容会直接带过来，无需重新登录。",
+    "none": "暂时没有可带过来的内容。你在一个工作区连接的内容会显示在其他工作区的这里。",
+    "connections": "连接",
+    "with": "附带 {{names}}",
+    "here": "已在这里",
+    "needsReconnect": "需要重新连接",
+    "githubApp": "在这里安装 GitHub App",
+    "bring": "带过来",
+    "bringCount_other": "带过来 {{count}} 项",
+    "done_other": "已将 {{count}} 项带到此工作区",
+    "skipped_other": "{{count}} 项无法带过来",
+    "nothingNew": "你选择的内容都已在这里",
+    "failed": "无法带过来，请重试。",
+    "fromOnboarding": "从其他工作区带来智能体和连接"
+  },
   "connectors": {
     "title": "连接器",
     "add": "添加连接器",

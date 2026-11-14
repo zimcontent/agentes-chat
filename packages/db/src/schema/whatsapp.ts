@@ -52,6 +52,15 @@ export const whatsappAccounts = pgTable(
     instructions: text().notNull().default(""),
     /** The agent answers this number's conversations now. Off: it is chosen, and says nothing. */
     agentOn: boolean().notNull().default(false),
+    /**
+     * How the agent talks on this number: how long it waits after a message before reading the conversation
+     * (seconds), how fast it "types" (`fast`, `natural`, `slow`), the most messages one answer is split in, and how
+     * long it stays quiet in a conversation a person answered (minutes).
+     */
+    agentWaitSeconds: integer().notNull().default(8),
+    agentPace: text().$type<"fast" | "natural" | "slow">().notNull().default("natural"),
+    agentMessages: integer().notNull().default(3),
+    agentQuietMinutes: integer().notNull().default(60),
     lastError: text(),
     createdBy: text().references(() => users.id, { onDelete: "set null" }),
     createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
@@ -76,6 +85,8 @@ export const whatsappChats = pgTable(
     jid: text().notNull(),
     /** The person's or the group's name as WhatsApp tells it (outside text); empty until one arrives. */
     name: text().notNull().default(""),
+    /** The person's hidden id on WhatsApp (`…@lid`), when told: messages addressed to it are this conversation's. */
+    lid: text(),
     group: boolean().notNull().default(false),
     /** The latest message, for the list: when, its words and whether this number sent it. */
     lastAt: timestamp({ withTimezone: true }),

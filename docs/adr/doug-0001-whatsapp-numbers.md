@@ -23,7 +23,7 @@ WhatsApp offers no API for an ordinary number. The options are the Business Plat
 ### Conversations live in our database
 
 - The gateway keeps sessions. Every message, both ways, is written here from the events it posts: `whatsapp_accounts`, `whatsapp_chats`, `whatsapp_messages`, all with `org_id`.
-- Only what arrives or is sent after a number connects is kept. WhatsApp's history sync returns part of the past at best, so it isn't read.
+- Addendum 2026-11-14: the past is read too. When a number is linked, WhatsApp sends the phone's conversations in pieces (the gateway asks for the full sync) and each piece is stored as it arrives (`storeWhatsAppHistory`): as read, without moving a conversation above newer ones and without waking the number's agent. How far back it goes is WhatsApp's decision, not ours. Older messages of one conversation are asked of the phone 50 at a time (`requestWhatsAppHistory`), as WhatsApp's own apps do, and arrive only while the phone is on. A number linked before this reads its past the next time it is linked. A piece can be tens of megabytes, so the events' address takes up to 64 MB, only once the secret in it is known to be a number's.
 - An event told twice is one message (`account_id`, WhatsApp's id). A message older than the one a chat shows doesn't move the list.
 - Files: the event's inline copy is dropped (`WEBHOOK_FILES=false`, and the parser removes it anyway). A file's message is kept as WhatsApp carries it, which is what the gateway needs to fetch the file later. Fetching and storing files is the next step, not built here.
 
@@ -71,3 +71,4 @@ The three tables are made at boot by the list of this instance's own statements 
 - Routes: `apps/server/src/routes/app/whatsapp.ts` (`/api/app/organizations/{orgId}/whatsapp…`), the receiver in `routes/webhooks.ts`.
 - Schema: `packages/db/src/schema/whatsapp.ts`; statements in `packages/db/src/client.ts`.
 - Compose: services `whatsapp-db` (makes the gateway's two databases on the same Postgres) and `whatsapp`.
+- Addendum 2026-11-14: files go out too. A file sent from the app goes to the gateway as a form (`/send/media`) as a picture (JPEG, PNG, WebP), a video (MP4), a voice message (any recording, which the gateway converts to WhatsApp's own format) or a document (anything else), up to 32 MB. What the gateway sent is kept with the message, so a sent file opens here like a received one. The conversation writes with the kit's own composer: attach, drop, paste, emoji and the microphone.

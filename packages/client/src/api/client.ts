@@ -102,6 +102,8 @@ import type {
   CalendarEventInput,
   CalendarEventPatch,
   CalendarRange,
+  CarryResult,
+  CarrySource,
   Channel,
   ChannelCard,
   ChannelCategory,
@@ -1047,6 +1049,13 @@ export interface ApiClient {
     /** Renames a connection, any kind (admins); its tools keep their names. 409 `connector.label_taken`. */
     rename(orgId: string, connectionId: string, label: string): Promise<Connection>;
     disconnect(orgId: string, connectionId: string): Promise<void>;
+  };
+  /** Connections and agents from the person's other workspaces. */
+  carry: {
+    /** Their other workspaces with something to bring into this one. */
+    sources(orgId: string): Promise<CarrySource[]>;
+    /** Brings them: an agent's own connections come with it. */
+    bring(orgId: string, input: { connectionIds?: string[]; agentIds?: string[] }): Promise<CarryResult>;
   };
   githubApp: {
     /** Whether this server can install the GitHub App, the organization's installations, and the server's app. */
@@ -2078,6 +2087,14 @@ export interface ApiClient {
     read(orgId: string, accountId: string, chatId: string): Promise<{ read: number }>;
     /** The person is writing there (or stopped): the other side sees "typing…". */
     typing(orgId: string, accountId: string, chatId: string, typing: boolean): Promise<{ told: boolean }>;
+    /** Sends a file, or a recording as a voice message (`voice`), into a conversation. */
+    sendFile(
+      orgId: string,
+      accountId: string,
+      input: { chatId: string; file: Blob; fileName: string; caption?: string; voice?: boolean },
+    ): Promise<{ chatId: string; kind: string }>;
+    /** Asks the phone for the conversation's older messages: they arrive a moment later, if the phone has them. */
+    olderHistory(orgId: string, accountId: string, chatId: string): Promise<{ asked: number }>;
     /** The number's agent on or off in one conversation; on gives the conversation back to it. */
     chatAgent(orgId: string, accountId: string, chatId: string, on: boolean): Promise<{ on: boolean }>;
   };

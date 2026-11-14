@@ -69,6 +69,8 @@ import type {
   BrowserProfile,
   CalendarEvent,
   CalendarRange,
+  CarryResult,
+  CarrySource,
   Channel,
   ChannelCard,
   ChannelCategory,
@@ -564,6 +566,21 @@ export function createHttpApi(options: TransportOptions = {}): HttpApi {
       typing: (orgId, accountId, chatId, typing) =>
         request<{ told: boolean }>(`${org(orgId)}/whatsapp/accounts/${enc(accountId)}/chats/${enc(chatId)}/typing`, {
           json: { typing },
+        }),
+      sendFile: (orgId, accountId, input) => {
+        const form = new FormData();
+        form.set("file", input.file, input.fileName);
+        form.set("chatId", input.chatId);
+        if (input.caption) form.set("caption", input.caption);
+        if (input.voice) form.set("voice", "true");
+        return files.upload<{ chatId: string; kind: string }>(
+          `${org(orgId)}/whatsapp/accounts/${enc(accountId)}/files`,
+          form,
+        );
+      },
+      olderHistory: (orgId, accountId, chatId) =>
+        request<{ asked: number }>(`${org(orgId)}/whatsapp/accounts/${enc(accountId)}/chats/${enc(chatId)}/history`, {
+          json: {},
         }),
       chatAgent: (orgId, accountId, chatId, on) =>
         request<{ on: boolean }>(`${org(orgId)}/whatsapp/accounts/${enc(accountId)}/chats/${enc(chatId)}/agent`, {
@@ -1189,6 +1206,10 @@ export function createHttpApi(options: TransportOptions = {}): HttpApi {
         request<Connection>(`${org(orgId)}/connectors/${enc(connectionId)}`, { method: "PATCH", json: { label } }),
       disconnect: (orgId, connectionId) =>
         request<void>(`${org(orgId)}/connectors/${enc(connectionId)}`, { method: "DELETE" }),
+    },
+    carry: {
+      sources: async (orgId) => (await request<{ sources: CarrySource[] }>(`${org(orgId)}/carry`)).sources,
+      bring: (orgId, input) => request<CarryResult>(`${org(orgId)}/carry`, { json: input }),
     },
     githubApp: {
       info: (orgId) => request<GitHubAppInfo>(`${org(orgId)}/github-app`),

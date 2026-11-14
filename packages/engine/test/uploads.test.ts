@@ -208,16 +208,31 @@ describe("file artifacts", () => {
     ).rejects.toThrow(ValidationError);
   });
 
-  test("at most 50 MB; a name is required", async () => {
+  test("any type up to 2 GB, past it refused before anything is read; a name is required", async () => {
     f = await setup();
-    const big = new Uint8Array(ARTIFACT_LIMITS.fileBytes + 1);
+    expect(ARTIFACT_LIMITS.fileBytes).toBe(2 * 1024 * 1024 * 1024);
+    // Counted as it arrived: a spooled upload past the limit is refused by its size alone, nothing read or stored.
+    const big = {
+      path: "/nonexistent/upload",
+      size: ARTIFACT_LIMITS.fileBytes + 1,
+      sha256: "",
+      head: new Uint8Array(),
+    };
     const error = await createFileArtifact(f.artifactDeps, person(), f.org.id, {
       title: "Grande",
       name: "big.bin",
-      bytes: big,
+      spooled: big,
     }).catch((e) => e);
     expect(error).toBeInstanceOf(ValidationError);
     expect(error.code).toBe("artifact.file_too_large");
+    expect(error.params).toEqual({ maxMb: 2048 });
+    // Bytes already in memory (a connector's, a mailbox's, an agent's) keep the 50 MB they had.
+    const held = await createFileArtifact(f.artifactDeps, person(), f.org.id, {
+      title: "Anexo",
+      name: "anexo.bin",
+      bytes: new Uint8Array(ARTIFACT_LIMITS.heldFileBytes + 1),
+    }).catch((e) => e);
+    expect(held.params).toEqual({ maxMb: 50 });
     await expect(
       createFileArtifact(f.artifactDeps, person(), f.org.id, { title: "Sem nome", name: "/", bytes: PNG }),
     ).rejects.toThrow(ValidationError);
@@ -244,7 +259,7 @@ describe("uploads", () => {
   test("completed as the agent in its run's channel; audited; a second completion is refused", async () => {
     f = await setup();
     const up = await newUpload({ title: "Relatório", note: "do computador" });
-    expect(up).toMatchObject({ status: "pending", maxBytes: ARTIFACT_LIMITS.fileBytes });
+    expect(up).toMatchObject({ status: "pending", maxBytes: ARTIFACT_LIMITS.heldFileBytes });
     expect(up.expiresAt.getTime() - up.createdAt.getTime()).toBe(10 * 60_000);
     const { upload, artifact } = await completeUpload(uploadDeps(), up.id, {
       name: "report.pdf",
@@ -447,7 +462,7 @@ describe("upload_file", () => {
     expect(pushes[0]).toMatchObject({
       url: `http://localhost:3000/api/machines/uploads/${up?.id}`,
       uploadId: up?.id,
-      maxBytes: ARTIFACT_LIMITS.fileBytes,
+      maxBytes: ARTIFACT_LIMITS.heldFileBytes,
     });
     expect(up).toMatchObject({ status: "done" });
     const [v] = await f.db.select().from(schema.artifactVersions);

@@ -1,6 +1,9 @@
-/** Same limit as the server (`ARTIFACT_LIMITS.fileBytes`): 50 MB per file version. */
-export const MAX_UPLOAD_BYTES = 50 * 1024 * 1024;
+/** Same limit as the server (`ARTIFACT_LIMITS.fileBytes`): 2 GB per file version, any type (ADR 0025). */
+export const MAX_UPLOAD_BYTES = 2 * 1024 * 1024 * 1024;
 export const MAX_UPLOAD_MB = MAX_UPLOAD_BYTES / 1024 / 1024;
+/** Same limit as the server (`ARTIFACT_LIMITS.heldFileBytes`): an imported agent's file, read whole in memory. */
+export const MAX_IMPORT_FILE_BYTES = 50 * 1024 * 1024;
+export const MAX_IMPORT_FILE_MB = MAX_IMPORT_FILE_BYTES / 1024 / 1024;
 /** Same limit as the server (`SKILL_LIMITS.assetBytes`): the images and other files a skill keeps, in MB. */
 export const SKILL_ASSET_MB = 40;
 
@@ -158,8 +161,23 @@ export function formatBytes(locale: string, bytes: number) {
   }).format(value);
 }
 
-/** Within the upload limit (checked before sending; the server checks again). */
+/** Within the upload limit (checked before sending; the server checks again). Any type: only the size counts. */
 export const fitsUpload = (file: { size: number }) => file.size <= MAX_UPLOAD_BYTES;
+
+/**
+ * A link dragged in from a page or the address bar: the first address of `text/uri-list`, else plain text that is one
+ * web address. Null when the drag carries no link.
+ */
+export function droppedLink(data: { getData(type: string): string } | null | undefined): string | null {
+  if (!data) return null;
+  const listed = data
+    .getData("text/uri-list")
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .find((line) => line && !line.startsWith("#"));
+  const link = listed || data.getData("text/plain").trim();
+  return /^https?:\/\/\S+$/i.test(link) ? link : null;
+}
 
 /**
  * A picture's width over its height, when the server read both (`width`/`height` on the file's content or on its ref

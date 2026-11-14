@@ -2,15 +2,17 @@ import {
   ApiError,
   useAgents,
   useConnectWhatsApp,
+  useCreateAgent,
   useReconnectWhatsApp,
   useRemoveWhatsApp,
   useSendWhatsApp,
   useUpdateWhatsApp,
   useWhatsApp,
   type WhatsAppAccount,
+  type WhatsAppPace,
 } from "@agenteschat/client";
-
 import { errorText } from "@agenteschat/client/lib/errors";
+import { freeHandle, handleForName } from "@agenteschat/client/lib/new-agent";
 import {
   AccessDialog,
   type AccessSubject,
@@ -30,6 +32,7 @@ import {
 } from "@agenteschat/ui";
 import { type FormEvent, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { ModelPickerButton } from "@/components/ai/ModelPicker";
 import { useOrg } from "@/components/org-context";
 import { useDirectory } from "@/hooks/useDirectory";
 import { useToast } from "@/lib/toast";
@@ -161,6 +164,12 @@ export function ConnectDialog({ accountId, onClose }: { accountId?: string; onCl
   );
 }
 
+/** The waits and quiet times offered; one set some other way (the API) shows beside them. */
+const WAITS = [3, 8, 15, 30, 60, 120];
+const QUIETS = [15, 60, 240, 1440];
+const PACES: readonly WhatsAppPace[] = ["fast", "natural", "slow"];
+const withOwn = (list: number[], own: number) => (list.includes(own) ? list : [...list, own].sort((a, b) => a - b));
+
 /** A number's name, its people, the agent in charge, and removing it. */
 export function NumberDialog({ account, onClose }: { account: WhatsAppAccount; onClose: () => void }) {
   const w = useWords();
@@ -176,6 +185,9 @@ export function NumberDialog({ account, onClose }: { account: WhatsAppAccount; o
   const [people, setPeople] = useState(account.people);
   const [agentId, setAgentId] = useState(account.agentId ?? "none");
   const [agentOn, setAgentOn] = useState(account.agentOn);
+  const [style, setStyle] = useState(account.agentStyle);
+  const createAgent = useCreateAgent(org.id);
+  const [newName, setNewName] = useState("");
   const [instructions, setInstructions] = useState(account.instructions ?? "");
   const [dropping, setDropping] = useState(false);
   const filePicker = useRef<HTMLInputElement>(null);
@@ -189,7 +201,30 @@ export function NumberDialog({ account, onClose }: { account: WhatsAppAccount; o
     }
     setInstructions((await file.text()).slice(0, INSTRUCTIONS_MAX));
   };
-  const [step, setStep] = useState<"form" | "people" | "remove">("form");
+  const [step, setStep] = useState<"form" | "people" | "remove" | "newAgent">("form");
+  const chosen = (agents.data ?? []).find((a) => a.id === agentId);
+  /** An agent made here, for this number: named by the person, with a handle nobody has. */
+  const makeAgent = () => {
+    const name = newName.trim();
+    if (!name) return;
+    const taken = new Set([
+      ...(agents.data ?? []).map((a) => a.handle),
+      ...dir.members.map((m) => m.handle).filter((h): h is string => Boolean(h)),
+    ]);
+    const handle = handleForName(name) || "whatsapp";
+    createAgent.mutate(
+      { name, handle: taken.has(handle) ? freeHandle(handle, taken) : handle, role: w.settings.newAgentRole },
+      {
+        onSuccess: (made) => {
+          setAgentId(made.id);
+          setAgentOn(true);
+          setNewName("");
+          setStep("form");
+        },
+        onError: (e) => toast.show(say(e), "error"),
+      },
+    );
+  };
   const names = people.map((id) => dir.memberById.get(id)?.name).filter((name): name is string => Boolean(name));
 
   const save = () =>
@@ -200,6 +235,7 @@ export function NumberDialog({ account, onClose }: { account: WhatsAppAccount; o
         people,
         agentId: agentId === "none" ? null : agentId,
         agentOn: agentId !== "none" && agentOn,
+        agentStyle: style,
         instructions,
       },
       {
@@ -244,6 +280,42 @@ export function NumberDialog({ account, onClose }: { account: WhatsAppAccount; o
         onSave={() => setStep("form")}
         onClose={() => setStep("form")}
       />
+    );
+  }
+
+  if (step === "newAgent") {
+    return (
+      <Dialog
+        open
+        onOpenChange={(open) => !open && setStep("form")}
+        title={w.settings.newAgentTitle}
+        description={w.settings.newAgentText}
+        closeLabel={w.connectDialog.close}
+        width={440}
+      >
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            makeAgent();
+          }}
+        >
+          <DialogBody>
+            <FormStack>
+              <Field label={w.settings.newAgentName} example={w.settings.newAgentExample}>
+                <Input value={newName} onChange={(e) => setNewName(e.target.value)} maxLength={60} autoFocus />
+              </Field>
+            </FormStack>
+          </DialogBody>
+          <DialogFooter>
+            <Button type="button" variant="default" onClick={() => setStep("form")}>
+              {w.connectDialog.cancel}
+            </Button>
+            <Button type="submit" variant="primary" loading={createAgent.isPending} disabled={!newName.trim()}>
+              {w.settings.newAgentCreate}
+            </Button>
+          </DialogFooter>
+        </form>
+      </Dialog>
     );
   }
 
@@ -307,13 +379,29 @@ export function NumberDialog({ account, onClose }: { account: WhatsAppAccount; o
           <Field label={w.settings.agent} hint={{ name: w.settings.agent, text: w.settings.agentHint }}>
             <Select
               value={agentId}
-              onValueChange={setAgentId}
+              onValueChange={(next) => {
+                if (next === "new") {
+                  setStep("newAgent");
+                  return;
+                }
+                // Choosing an agent for a number that had none is asking it to answer: the switch starts on.
+                if (agentId === "none" && next !== "none") setAgentOn(true);
+                setAgentId(next);
+              }}
               options={[
                 { value: "none", label: w.settings.agentNone },
                 ...(agents.data ?? []).map((a) => ({ value: a.id, label: a.name })),
+                { value: "new", label: w.settings.newAgent },
               ]}
             />
           </Field>
+          {chosen && (
+            <Field label={w.settings.ai} hint={{ name: w.settings.ai, text: w.settings.aiHint }}>
+              <div className="wa-ai">
+                <ModelPickerButton agent={chosen} size="row" />
+              </div>
+            </Field>
+          )}
           {agentId !== "none" && (
             <SettingRow
               title={w.settings.agentOn}
@@ -322,6 +410,44 @@ export function NumberDialog({ account, onClose }: { account: WhatsAppAccount; o
             >
               <Switch id="wa-agent-on" checked={agentOn} onCheckedChange={setAgentOn} />
             </SettingRow>
+          )}
+          {agentId !== "none" && (
+            <div className="wa-style">
+              <Field label={w.style.wait} hint={{ name: w.style.wait, text: w.style.waitHint }}>
+                <Select
+                  value={String(style.waitSeconds)}
+                  onValueChange={(v) => setStyle((s) => ({ ...s, waitSeconds: Number(v) }))}
+                  options={withOwn(WAITS, style.waitSeconds).map((n) => ({
+                    value: String(n),
+                    label: w.style.seconds(n),
+                  }))}
+                />
+              </Field>
+              <Field label={w.style.pace} hint={{ name: w.style.pace, text: w.style.paceHint }}>
+                <Select
+                  value={style.pace}
+                  onValueChange={(v) => setStyle((s) => ({ ...s, pace: v as WhatsAppPace }))}
+                  options={PACES.map((pace) => ({ value: pace, label: w.style.paces[pace] }))}
+                />
+              </Field>
+              <Field label={w.style.messages} hint={{ name: w.style.messages, text: w.style.messagesHint }}>
+                <Select
+                  value={String(style.messages)}
+                  onValueChange={(v) => setStyle((s) => ({ ...s, messages: Number(v) }))}
+                  options={[1, 2, 3].map((n) => ({ value: String(n), label: w.style.upTo(n) }))}
+                />
+              </Field>
+              <Field label={w.style.quiet} hint={{ name: w.style.quiet, text: w.style.quietHint }}>
+                <Select
+                  value={String(style.quietMinutes)}
+                  onValueChange={(v) => setStyle((s) => ({ ...s, quietMinutes: Number(v) }))}
+                  options={withOwn(QUIETS, style.quietMinutes).map((n) => ({
+                    value: String(n),
+                    label: w.style.minutes(n),
+                  }))}
+                />
+              </Field>
+            </div>
           )}
           <Field
             label={w.settings.instructions}

@@ -52,11 +52,21 @@ Addendum 2026-11-05. Chat and the Drive take files up to 50 MB, while a `write` 
 
 A new artifact kind `file` (migration adds the enum value): any bytes, with the original name, MIME type, size and SHA-256 in the version row.
 
-- Limit: 50 MB per file version (`ARTIFACT_LIMITS.fileBytes`).
+- Limit: 2 GB per file version (`ARTIFACT_LIMITS.fileBytes`), any type (section 3a). Bytes that cross the server whole in memory (a computer's `push`, a connector's or a mailbox's file, an imported agent's file) keep 50 MB (`ARTIFACT_LIMITS.heldFileBytes`).
 - Always `untrusted`: downloaded as an attachment with `nosniff`, never rendered on the app's origin. The app previews only raster images (`png`, `jpeg`, `gif`, `webp`) and PDF from a download URL, and plays videos (`mp4`, `webm`, `mov`) in its own player straight from the download, which answers `Range` requests (a media element never runs the file as a page); `svg` and everything else is download-only.
 - Search indexes the title and file name only.
 - `read_artifact` returns the metadata (and the text of small UTF-8 text files); `import_file` copies the bytes back into a computer.
 - Versions work like other kinds (`upload_file` with `artifact_id`).
+
+### 3a. A conversation's file: any type, up to 2 GB
+
+Addendum 2026-11-14. Decided: a file dragged into a conversation, a channel or a direct message with any agent, is taken whatever its type (photo, video, audio, PDF, zip, a file with no type) and up to 2 GB. Below that nothing is refused for its size, and nothing is ever refused for its extension or MIME type: the type only decides how the file is served (`fileContentType`, `nosniff`, attachment), as before.
+
+- **Never whole in memory.** Two gigabytes held at once would take the server down. `POST …/artifacts/files` and `…/artifacts/{id}/files` read their multipart body as it arrives (`readStreamedUpload`, `apps/server/src/http/multipart-stream.ts`): the file part goes to a temporary file, counted and hashed (SHA-256) on the way, cut with `413 artifact.file_too_large` the moment it passes 2 GB, or before a byte is read when its `Content-Length` says so. The route's OpenAPI schema is plain, so no validator parses the form first.
+- **Into storage from disk.** `BlobStore.putFile` stores that file without reading it whole: disk copies file to file, S3 sends one `PUT` (up to 5 GB) signed with the hash counted on the way. Postgres storage keeps bytes as text in a row, so it says its own most (`maxObjectBytes`, 50 MB) and refuses a larger file in words that name the way out (`FILES_DIR` or a bucket). The temporary file goes once the upload is stored or refused.
+- **Every gate moved.** The apps' `MAX_UPLOAD_BYTES` and `fitsUpload`, the engine's `fileBytes`, the HTTP server's body limit (`maxRequestBodySize`, `SERVER_BODY_BYTES`; Bun's own is 128 MB), and no idle limit while such an upload is stored. Caddy limits bodies only on `/mcp*`; the nginx example in `SELF_HOSTING.md` gives these two paths 2 GB and passes them on unbuffered.
+- **The whole conversation takes a drop**, not only the composer's card: files attach as from the clip, and a link dragged from a page goes into the message as text.
+- Other limits stay: wiki, skills, GIFs, e-mail, secrets, an agent's import, and the sizes of documents, tables and blocks.
 
 ### 4. `upload_file` tool
 

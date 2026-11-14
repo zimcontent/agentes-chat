@@ -19,6 +19,8 @@ export interface S3Settings {
 
 /** How long a streamed object may take: the whole read, at the pace of whoever receives it. */
 const STREAM_TIMEOUT_MS = 10 * 60_000;
+/** How long a file sent from disk may take: 2 GB at a little over 1 MB/s (a single PUT takes up to 5 GB). */
+const PUT_FILE_TIMEOUT_MS = 30 * 60_000;
 
 export type StorageErrorCode =
   | "auth"
@@ -135,12 +137,19 @@ export function createS3BlobStore(
   async function send(
     method: "GET" | "PUT" | "DELETE" | "HEAD",
     key: string,
-    init: { query?: Record<string, string>; body?: Uint8Array; contentType?: string; timeoutMs?: number } = {},
+    init: {
+      query?: Record<string, string>;
+      body?: Uint8Array | Blob;
+      /** The body's SHA-256 (hex) when it was counted already: a file read from disk as it is sent. */
+      payloadHash?: string;
+      contentType?: string;
+      timeoutMs?: number;
+    } = {},
   ): Promise<Response> {
     const { origin, host, path } = locate(settings, key);
     const query = init.query ?? {};
     const { amzDate, date } = amzDates(now());
-    const payloadHash = sha256Hex(init.body ?? new Uint8Array());
+    const payloadHash = init.payloadHash ?? sha256Hex(init.body instanceof Uint8Array ? init.body : new Uint8Array());
     const headers: Record<string, string> = {
       host,
       "x-amz-content-sha256": payloadHash,
@@ -189,6 +198,15 @@ export function createS3BlobStore(
     kind: "s3",
     async put(key, body, { contentType }) {
       const res = await send("PUT", key, { body, contentType });
+      if (!res.ok) throw await fail(res);
+    },
+    async putFile(key, path, { contentType, sha256 }) {
+      const res = await send("PUT", key, {
+        body: Bun.file(path),
+        payloadHash: sha256,
+        contentType,
+        timeoutMs: PUT_FILE_TIMEOUT_MS,
+      });
       if (!res.ok) throw await fail(res);
     },
     async get(key) {

@@ -396,7 +396,8 @@ point the proxy at `127.0.0.1:3000`. The proxy must:
 
 - upgrade WebSockets on `/api/ws` (browsers), `/api/machines/connect` (connected computers), and
   `/api/desktop`, `/api/terminal` and `/api/machines/stream` (agents' screens and terminals);
-- accept request bodies up to 100 MB: files for the Drive (50 MB each) and agents' git pushes (up to 100 MB);
+- accept request bodies up to 100 MB (agents' git pushes), and up to 2 GB on file uploads to the
+  Drive and conversations (any type, 2 GB each), passed on as they arrive;
 - keep sockets open: the app and its clients exchange a ping at least every 30 s, so a read timeout
   of 60 s (nginx's default) or more works;
 - send the client's address in `X-Forwarded-For`.
@@ -424,6 +425,18 @@ server {
         proxy_set_header X-Forwarded-Proto $scheme;
         proxy_set_header X-Forwarded-For $remote_addr;
         proxy_read_timeout 300s;
+    }
+
+    # Files for the Drive and conversations: any type, up to 2 GB each, passed on as they arrive.
+    location ~ ^/api/app/organizations/[^/]+/artifacts(/[^/]+)?/files$ {
+        client_max_body_size 2050m;
+        proxy_request_buffering off;
+        proxy_pass http://127.0.0.1:3000;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header X-Forwarded-For $remote_addr;
+        proxy_read_timeout 3600s;
     }
 
     location / {
@@ -829,7 +842,7 @@ links, and budget and approval alerts. `MILLIONSEND_API_KEY` wins when both are 
 **Password reset** needs email, so it shows only with `SMTP_URL` or `MILLIONSEND_API_KEY` set: "Forgot
 my password" on the sign-in page emails a link to the web app's reset page (`/reset-password`).
 
-**WhatsApp numbers.** People who manage connectors connect WhatsApp numbers by QR code, and the people each number lists read and answer its conversations in the app. It runs on Evolution Go (Apache-2.0), a separate service that speaks WhatsApp Web: WhatsApp offers no API for an ordinary number, so a number can be banned for it. There is no image to pull: build one from its source, `git clone --recurse-submodules -b develop https://github.com/fmedeiros95/evolution-go && docker build -t evolution-go:local evolution-go` (`WHATSAPP_GATEWAY_IMAGE` names another). Then add `whatsapp` to `COMPOSE_PROFILES`, set `WHATSAPP_GATEWAY_URL=http://whatsapp:8080`, `WHATSAPP_HOOK_URL=http://agentes:3000` and a long random `WHATSAPP_GATEWAY_KEY`, and `docker compose up -d`. Its two databases (`evogo_auth`, `evogo_users`) are made beside the app's on the same Postgres, which the backup's dump of the app's database doesn't include: they hold the sessions, so after a restore each number reads a new QR code. No port is published, so only the app reaches it. The gateway keeps the sessions; the conversations are stored in the app's database, from the moment a number connects (WhatsApp's earlier history isn't read). A number may have one of the workspace's agents answer it, turned on in the number's settings: it answers only someone who wrote, with that agent's own AI account and no tools, stays quiet for an hour in a conversation a person answered, and hands over to a person what it can't answer. `WHATSAPP_DEVICE_NAME` is what a phone lists under "Linked devices", and `WHATSAPP_MEMORY` (1g) the most memory it may take.
+**WhatsApp numbers.** People who manage connectors connect WhatsApp numbers by QR code, and the people each number lists read and answer its conversations in the app. It runs on Evolution Go (Apache-2.0), a separate service that speaks WhatsApp Web: WhatsApp offers no API for an ordinary number, so a number can be banned for it. There is no image to pull: build one from its source, `git clone --recurse-submodules -b develop https://github.com/fmedeiros95/evolution-go && docker build -t evolution-go:local evolution-go` (`WHATSAPP_GATEWAY_IMAGE` names another). Then add `whatsapp` to `COMPOSE_PROFILES`, set `WHATSAPP_GATEWAY_URL=http://whatsapp:8080`, `WHATSAPP_HOOK_URL=http://agentes:3000` and a long random `WHATSAPP_GATEWAY_KEY`, and `docker compose up -d`. Its two databases (`evogo_auth`, `evogo_users`) are made beside the app's on the same Postgres, which the backup's dump of the app's database doesn't include: they hold the sessions, so after a restore each number reads a new QR code. No port is published, so only the app reaches it. The gateway keeps the sessions; the conversations are stored in the app's database, from the moment a number connects with what the phone sends of its earlier conversations when it is linked (how far back is WhatsApp's choice, and a conversation's older messages can be asked of the phone from the app). A number may have one of the workspace's agents answer it, turned on in the number's settings: it answers only someone who wrote, with that agent's own AI account and no tools, stays quiet for an hour in a conversation a person answered, and hands over to a person what it can't answer. `WHATSAPP_DEVICE_NAME` is what a phone lists under "Linked devices", and `WHATSAPP_MEMORY` (1g) the most memory it may take.
 
 **Voice messages.** People hold the microphone and send audio; agents read its words, and the audio's words stay hidden until someone opens them on that message. The microphone shows only with a speech engine. As the server's owner, pick a provider and paste its key in **Settings**, or set it in the environment: `ASSEMBLYAI_API_KEY`, `ELEVENLABS_API_KEY`, `SONIOX_API_KEY`, `GROQ_API_KEY`, `OPENAI_SPEECH_API_KEY` or `DEEPINFRA_API_KEY`, with `SPEECH_ENGINES` for the order they are tried. With any of these, the audio goes to that provider to become text. DeepInfra is the cheapest of them, with the same Whisper as Groq. `LOCAL_SPEECH_URL` points at a server of your own that speaks the OpenAI format (Speaches, a local Whisper or Parakeet), and the audio stays with you: `LOCAL_SPEECH_API_KEY` if it asks for a key, and `LOCAL_SPEECH_WARM=on` if it loads its model on demand and can start when someone presses the microphone (`POST <LOCAL_SPEECH_URL>/warm`). Every request to it names the workspace in `X-Agentes-Org`, and one that takes more than half a minute plus twice the recording goes to the next engine. A self-hosted server has no limit on minutes. Engines hear the language in the audio: the app's language goes only to Soniox, as a hint.
 
