@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import type { BlobStore, PubSub } from "@agenteschat/adapters";
+import { type ApprovalPortal, type BlobStore, PORTAL_LOGO_FILE, type PubSub } from "@agenteschat/adapters";
 import { and, type Database, eq, isNull, schema, sql } from "@agenteschat/db";
 import { recordAudit } from "./audit";
 import { caches } from "./cache";
@@ -298,6 +298,61 @@ export async function invitationLogoFile(deps: { db: Database; blobs: BlobStore 
   const logo = orgId ? await currentOrgLogo(deps, orgId) : null;
   if (!logo || logo.file !== file) throw new NotFoundError("Not found");
   return logo;
+}
+
+// ── A portal client's logo (ADR 9001 §16) ────────────────────────────────────
+
+/** Kept beside the workspace logo, so it leaves with the workspace (`purgeOrgBlobs`). */
+const portalLogoKey = (orgId: string, client: string, file: string) => `org-logos/${orgId}/portal/${client}/${file}`;
+const PORTAL_CLIENT = /^[a-z0-9][a-z0-9-]{0,63}$/;
+
+/** Where the apps read a client's logo: `GET /api/app/portal-logos/{orgId}/{client}/{file}`. */
+export const portalLogoPath = (orgId: string, client: string, file: string) =>
+  `/api/app/portal-logos/${encodeURIComponent(orgId)}/${encodeURIComponent(client)}/${file}`;
+
+/**
+ * Sets a portal client's logo (`PUT …/portal/clients/{client}/logo`): the workspace logo's checks (JPEG, PNG or WebP
+ * up to 2 MB, by its bytes, no metadata), in the platform bucket. The portal's side keeps only the file's name, so
+ * the bytes never leave this server. The route checks who may (`assign_work`). The app crops it square.
+ */
+export async function setPortalClientLogo(
+  deps: { blobs: BlobStore; portal: ApprovalPortal },
+  orgId: string,
+  client: string,
+  input: { imageBase64: string; contentType: string },
+): Promise<{ logo: string }> {
+  const { body, type, file } = readImage(input, "logo");
+  const before = (await deps.portal.clientLooks()).logos[client];
+  await deps.blobs.put(portalLogoKey(orgId, client, file), body, { contentType: type });
+  await deps.portal.setClientLogo(client, file);
+  if (before && before !== file) await deps.blobs.delete(portalLogoKey(orgId, client, before)).catch(() => undefined);
+  return { logo: portalLogoPath(orgId, client, file) };
+}
+
+/** Removes a portal client's logo (`DELETE …/portal/clients/{client}/logo`): back to its initials. */
+export async function removePortalClientLogo(
+  deps: { blobs: BlobStore; portal: ApprovalPortal },
+  orgId: string,
+  client: string,
+) {
+  const before = (await deps.portal.clientLooks()).logos[client];
+  await deps.portal.setClientLogo(client, null);
+  if (before) await deps.blobs.delete(portalLogoKey(orgId, client, before)).catch(() => undefined);
+}
+
+/** The stored logo for `GET /api/app/portal-logos/{orgId}/{client}/{file}`: only for the org's members. */
+export async function portalClientLogoFile(
+  deps: { db: Database; blobs: BlobStore },
+  viewerId: string,
+  orgId: string,
+  client: string,
+  file: string,
+) {
+  if (!PORTAL_LOGO_FILE.test(file) || !PORTAL_CLIENT.test(client)) throw new NotFoundError("Not found");
+  if (!(await getMembership(deps.db, viewerId, orgId))) throw new NotFoundError("Not found");
+  const object = await deps.blobs.get(portalLogoKey(orgId, client, file));
+  if (!object) throw new NotFoundError("Not found");
+  return object;
 }
 
 // ── A channel's photo ────────────────────────────────────────────────────────

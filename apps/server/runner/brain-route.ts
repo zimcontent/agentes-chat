@@ -9,6 +9,7 @@ import {
   isAccountId,
   isAccountKind,
   ROUTE_LIMITS,
+  ROUTE_MODELS,
   ROUTE_TIMEOUT_MS,
 } from "@agenteschat/adapters/machine-protocol";
 import {
@@ -46,12 +47,17 @@ import { resolveCommand } from "./executors";
  */
 
 /** Claude Code's argv for a route; the prompt goes on standard input. */
-export function claudeRouteArgs(o: { systemFile: string; schema: Record<string, unknown> }): string[] {
+export function claudeRouteArgs(o: {
+  systemFile: string;
+  schema: Record<string, unknown>;
+  /** One of `ROUTE_MODELS`; absent: the smallest. */
+  model?: string;
+}): string[] {
   return [
     "-p",
     "--safe-mode",
     "--model",
-    "haiku",
+    o.model ?? "haiku",
     "--effort",
     "low",
     "--tools",
@@ -296,7 +302,9 @@ async function claudeRoute(req: BrainRouteRequest, o: RouteDeps & { dir: string;
       : process.env;
   const started = Date.now();
   const command = launched?.command ?? o.claudeCommand ?? ["claude"];
-  const run = await runCli(command, claudeRouteArgs({ systemFile, schema: req.schema }), {
+  // Only a model named in the protocol goes on the command line; anything else answers with the smallest.
+  const model = ROUTE_MODELS.find((m) => m === req.model);
+  const run = await runCli(command, claudeRouteArgs({ systemFile, schema: req.schema, model }), {
     cwd: launched?.cwd ?? o.dir,
     env,
     input: req.prompt,

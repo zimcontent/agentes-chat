@@ -1,9 +1,22 @@
 import { jidPhone, parseEvolutionEvent, type WhatsAppEvent, type WhatsAppMessage } from "@agenteschat/adapters";
 import { and, type Database, eq, inArray, schema, sql } from "@agenteschat/db";
 import { NotFoundError } from "../errors";
+import { enqueue } from "../outbox";
 import { hookHash, publishWhatsAppChanged, type WhatsAppAccountRow, type WhatsAppDeps } from "./accounts";
 
 type InboundDeps = Pick<WhatsAppDeps, "db" | "pubsub">;
+
+/** The number's agent answers a conversation (`answerWhatsAppChat`). */
+export const WHATSAPP_AGENT_JOB = "whatsapp.agent_reply";
+/**
+ * How long the agent waits after a message before it reads the conversation: someone who writes three messages
+ * in a row gets one answer, and no answer comes back faster than a person could have read. Plus up to the jitter.
+ */
+export const WHATSAPP_AGENT_WAIT_MS = 8_000;
+export const WHATSAPP_AGENT_JITTER_MS = 5_000;
+/** A message older than this when it arrives (kept by WhatsApp while the number was out) starts no answer. */
+export const WHATSAPP_AGENT_FRESH_MS = 10 * 60_000;
+export const WHATSAPP_AGENT_ATTEMPTS = 4;
 
 /** What the list shows for a message without words. */
 export function whatsappPreview(message: Pick<WhatsAppMessage, "kind" | "text">) {
@@ -18,7 +31,7 @@ export async function storeWhatsAppMessage(
   db: Database,
   account: Pick<WhatsAppAccountRow, "id" | "orgId">,
   message: WhatsAppMessage,
-  sentByUserId: string | null = null,
+  by: { userId?: string | null; agentId?: string | null } = {},
 ) {
   // The other side's name: in a one-to-one chat, what their phone says when they write; a group's, its own.
   const name = message.group ? message.groupName : message.fromMe ? "" : message.senderName;
@@ -47,7 +60,8 @@ export async function storeWhatsAppMessage(
       media: message.media,
       raw: message.raw,
       status: message.fromMe ? "sent" : "received",
-      sentByUserId,
+      sentByUserId: by.userId ?? null,
+      sentByAgentId: by.agentId ?? null,
       at: message.at,
     })
     .onConflictDoNothing({ target: [schema.whatsappMessages.accountId, schema.whatsappMessages.waId] })
@@ -121,7 +135,31 @@ async function apply(deps: InboundDeps, account: WhatsAppAccountRow, event: What
       // Status updates ("stories") and channels aren't conversations.
       if (event.message.chat.endsWith("@broadcast") || event.message.chat.endsWith("@newsletter")) return null;
       const stored = await storeWhatsAppMessage(db, account, event.message);
-      return stored.fresh ? { chatId: stored.chatId } : null;
+      if (!stored.fresh) return null;
+      if (event.message.fromMe) {
+        // Written on the phone itself (what the app or the agent sends is stored before its event arrives, or
+        // put right after): a person took the conversation, so the agent stays quiet there for a while.
+        await db
+          .update(schema.whatsappChats)
+          .set({ personAt: event.message.at, needsPerson: false, agentNote: "" })
+          .where(eq(schema.whatsappChats.id, stored.chatId));
+      } else if (
+        stored.messageId &&
+        account.agentId &&
+        account.agentOn &&
+        !event.message.group &&
+        Date.now() - event.message.at.getTime() < WHATSAPP_AGENT_FRESH_MS
+      ) {
+        await enqueue(db, {
+          orgId: account.orgId,
+          kind: WHATSAPP_AGENT_JOB,
+          payload: { chatId: stored.chatId, messageId: stored.messageId },
+          dedupeKey: `whatsapp.agent:${stored.messageId}`,
+          runAt: new Date(Date.now() + WHATSAPP_AGENT_WAIT_MS + Math.floor(Math.random() * WHATSAPP_AGENT_JITTER_MS)),
+          maxAttempts: WHATSAPP_AGENT_ATTEMPTS,
+        });
+      }
+      return { chatId: stored.chatId };
     }
     case "receipt": {
       // Delivered never takes back a read.

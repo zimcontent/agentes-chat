@@ -323,6 +323,7 @@ export * from "./web-push";
 export * from "./web-tools";
 export * from "./webhooks";
 export * from "./whatsapp/accounts";
+export * from "./whatsapp/agent";
 export * from "./whatsapp/conversations";
 export * from "./whatsapp/inbound";
 export * from "./wiki";

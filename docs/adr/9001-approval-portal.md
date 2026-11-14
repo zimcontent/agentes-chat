@@ -122,6 +122,28 @@ the client sent back and what is ready.
       many posts are on the way per client, the late ones, the next three days', what a client sent back and what
       has nobody, with the rule of how it hands one on.
 
+13. **A client has a colour.** Wherever several clients' work shows together (the overview's client cards, the
+    pipeline's cards and table) whose a card is should read at a glance. The team picks one of twelve named
+    colours per client on the client's own page (`assign_work`); the apps draw it in their own palette: the
+    client's mark solid in it, each of its cards in the pipeline as glass in it (with the label of its name), a
+    dot before its name in a table. Never a bar down a card's edge.
+    It lives with the bridge, beside
+    the labels (`GET /v1/cores`, `POST /v1/cores/<client>`), and reaches the apps on the overview's client summary
+    (`color`), so no page asks for it apart. A bridge from before the colours answers 404 and every client has
+    none; a client with none keeps the hue of its name.
+14. **A published post opens its file in the Drive.** In a client's list of what went out, beside the way to the
+    published post, a post whose card carries files links to the first of them in the workspace's own Drive. A post
+    with no card, or a card with no files, shows no such link.
+15. **One bar moves a board.** A board wider than its frame has the rail above its columns to drag it by. The track
+    that sat at its foot said the same thing twice and is gone.
+
+16. **A client has a logo.** On the client's own page whoever may give agents work sets a square picture (the
+    workspace logo's checks: JPEG, PNG or WebP up to 2 MB, by its bytes, no metadata). The bytes stay in this
+    server's platform bucket, beside the workspace's logo, and are read by the workspace's members at
+    `GET /api/app/portal-logos/{orgId}/{client}/{file}`; the bridge keeps only the file's name, with the colours.
+    The apps draw it as the client's mark, before the picture of the group named after the client and before its
+    initials.
+
 ## Consequences
 
 - The clients' side doesn't change: the same portal, the same link. The team stops opening it to administer.

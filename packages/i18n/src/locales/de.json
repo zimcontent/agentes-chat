@@ -18775,6 +18775,33 @@
     "send": "Zur Freigabe senden",
     "openAtPortal": "Im Portal öffnen",
     "seePost": "Beitrag ansehen",
+    "seeDrive": "Drive-Link",
+    "clientLogo": {
+      "menu": "Logo des Kunden",
+      "title": "Logo von {{name}}",
+      "help": "Ein quadratisches Bild anstelle der Initialen des Kunden. JPEG, PNG oder WebP bis 2 MB.",
+      "remove": "Logo entfernen",
+      "saved": "Logo gespeichert",
+      "removed": "Logo entfernt"
+    },
+    "clientColor": {
+      "label": "Farbe des Kunden",
+      "none": "Keine Farbe",
+      "colors": {
+        "green": "Grün",
+        "blue": "Blau",
+        "navy": "Dunkelblau",
+        "sky": "Hellblau",
+        "white": "Weiß",
+        "teal": "Türkis",
+        "yellow": "Gelb",
+        "orange": "Orangefarben",
+        "red": "Rot",
+        "pink": "Rosa",
+        "purple": "Lila",
+        "gray": "Grau"
+      }
+    },
     "edit": "Bearbeiten",
     "delete": "Löschen",
     "actionsOf": "Aktionen: {{title}}",

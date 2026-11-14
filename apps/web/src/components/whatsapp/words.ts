@@ -30,7 +30,9 @@ const en = {
     poll: "Poll",
     other: "Message",
   },
-  fileSoon: "Open it on the phone for now",
+  fileSoon: "Open it on the phone",
+  fileDownload: "Download",
+  fileGone: "WhatsApp no longer has this file",
   status: {
     pending: "Waiting for the QR code",
     qr: "Waiting to be read",
@@ -41,6 +43,22 @@ const en = {
   tick: { sent: "Sent", delivered: "Delivered", read: "Read", received: "" },
   composer: { placeholder: "Message", send: "Send", offline: "This number isn't connected" },
   sentBy: (name: string) => `Sent by ${name}`,
+  agent: {
+    label: "Agent answering this conversation",
+    on: "Agent answering",
+    quiet: (time: string) => `Agent paused until ${time}`,
+    off: "Agent off here",
+    person: "Waiting for a person",
+    yourTurn: "Your turn",
+    handed: "The agent left this conversation to a person.",
+    limit: "The agent answered as much as it may in a day here.",
+    failed: "The agent's AI account didn't answer.",
+    giveBack: "Give back to the agent",
+    turnOn: "Turn the agent on",
+    turnOff: "Turn the agent off",
+    turnedOn: "The agent is answering this number",
+    turnedOff: "The agent stopped answering this number",
+  },
   empty: {
     offTitle: "WhatsApp isn't set up on this server",
     noneTitle: "Connect your first number",
@@ -81,7 +99,11 @@ const en = {
     peopleEdit: "Change",
     peopleNone: "Nobody yet",
     agent: "Agent in charge",
-    agentHint: "An agent answering this number is coming. Until then only people do.",
+    agentHint:
+      "It answers with its own AI account, only someone who wrote first, never a group. It hands over to a person what it can't answer.",
+    agentOn: "Agent answering",
+    agentOnHint:
+      "On, it answers this number's conversations. When a person answers one, it stays quiet there for an hour. You can turn it off in a single conversation.",
     agentNone: "Nobody, only people",
     instructions: "How the agent behaves on this number",
     instructionsHint:
@@ -150,7 +172,9 @@ const ptBR: typeof en = {
     poll: "Enquete",
     other: "Mensagem",
   },
-  fileSoon: "Por enquanto, abra no celular",
+  fileSoon: "Abra no celular",
+  fileDownload: "Baixar",
+  fileGone: "O WhatsApp não tem mais este arquivo",
   status: {
     pending: "Esperando o QR code",
     qr: "Esperando a leitura",
@@ -161,6 +185,22 @@ const ptBR: typeof en = {
   tick: { sent: "Enviada", delivered: "Entregue", read: "Lida", received: "" },
   composer: { placeholder: "Mensagem", send: "Enviar", offline: "Este número não está conectado" },
   sentBy: (name: string) => `Enviada por ${name}`,
+  agent: {
+    label: "Agente respondendo esta conversa",
+    on: "Agente respondendo",
+    quiet: (time: string) => `Agente em pausa até ${time}`,
+    off: "Agente desligado aqui",
+    person: "Esperando uma pessoa",
+    yourTurn: "Sua vez",
+    handed: "O agente passou esta conversa para uma pessoa.",
+    limit: "O agente já respondeu o máximo de um dia aqui.",
+    failed: "A conta de IA do agente não respondeu.",
+    giveBack: "Devolver ao agente",
+    turnOn: "Ligar o agente",
+    turnOff: "Desligar o agente",
+    turnedOn: "O agente está respondendo este número",
+    turnedOff: "O agente parou de responder este número",
+  },
   empty: {
     offTitle: "O WhatsApp não está configurado neste servidor",
     noneTitle: "Conecte seu primeiro número",
@@ -201,7 +241,11 @@ const ptBR: typeof en = {
     peopleEdit: "Mudar",
     peopleNone: "Ninguém ainda",
     agent: "Agente responsável",
-    agentHint: "O agente respondendo por este número ainda vai chegar. Até lá, só pessoas respondem.",
+    agentHint:
+      "Responde com a conta de IA dele, só a quem escreveu primeiro, nunca em grupo. O que não souber responder, passa para uma pessoa.",
+    agentOn: "Agente respondendo",
+    agentOnHint:
+      "Ligado, ele responde as conversas deste número. Quando uma pessoa responde uma conversa, ele fica quieto nela por uma hora. Dá para desligar em uma conversa só.",
     agentNone: "Ninguém, só pessoas",
     instructions: "Como o agente se porta neste número",
     instructionsHint:

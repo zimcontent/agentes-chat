@@ -18294,6 +18294,33 @@
     "send": "Kirim untuk persetujuan",
     "openAtPortal": "Buka di portal",
     "seePost": "Lihat postingan",
+    "seeDrive": "Tautan Drive",
+    "clientLogo": {
+      "menu": "Logo klien",
+      "title": "Logo {{name}}",
+      "help": "Gambar persegi sebagai pengganti inisial klien. JPEG, PNG, atau WebP hingga 2 MB.",
+      "remove": "Hapus logo",
+      "saved": "Logo disimpan",
+      "removed": "Logo dihapus"
+    },
+    "clientColor": {
+      "label": "Warna klien",
+      "none": "Tanpa warna",
+      "colors": {
+        "green": "Hijau",
+        "blue": "Biru",
+        "navy": "Biru tua",
+        "sky": "Biru muda",
+        "white": "Putih",
+        "teal": "Toska",
+        "yellow": "Kuning",
+        "orange": "Oranye",
+        "red": "Merah",
+        "pink": "Merah muda",
+        "purple": "Ungu",
+        "gray": "Abu-abu"
+      }
+    },
     "edit": "Ubah",
     "delete": "Hapus",
     "actionsOf": "Tindakan: {{title}}",

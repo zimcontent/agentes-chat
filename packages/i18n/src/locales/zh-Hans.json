@@ -18368,6 +18368,33 @@
     "send": "送去审批",
     "openAtPortal": "在门户中打开",
     "seePost": "查看帖子",
+    "seeDrive": "Drive 链接",
+    "clientLogo": {
+      "menu": "客户徽标",
+      "title": "{{name}} 的徽标",
+      "help": "用来代替客户姓名首字母的方形图片。JPEG、PNG 或 WebP，最大 2 MB。",
+      "remove": "移除徽标",
+      "saved": "徽标已保存",
+      "removed": "徽标已移除"
+    },
+    "clientColor": {
+      "label": "客户颜色",
+      "none": "无颜色",
+      "colors": {
+        "green": "绿色",
+        "blue": "蓝色",
+        "navy": "深蓝色",
+        "sky": "浅蓝色",
+        "white": "白色",
+        "teal": "青绿色",
+        "yellow": "黄色",
+        "orange": "橙色",
+        "red": "红色",
+        "pink": "粉色",
+        "purple": "紫色",
+        "gray": "灰色"
+      }
+    },
     "edit": "编辑",
     "delete": "删除",
     "actionsOf": "操作：{{title}}",

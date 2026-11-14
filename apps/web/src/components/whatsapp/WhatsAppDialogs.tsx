@@ -23,7 +23,9 @@ import {
   FormStack,
   Input,
   Select,
+  SettingRow,
   Spinner,
+  Switch,
   Textarea,
 } from "@agenteschat/ui";
 import { type FormEvent, useRef, useState } from "react";
@@ -173,6 +175,7 @@ export function NumberDialog({ account, onClose }: { account: WhatsAppAccount; o
   const [label, setLabel] = useState(account.label);
   const [people, setPeople] = useState(account.people);
   const [agentId, setAgentId] = useState(account.agentId ?? "none");
+  const [agentOn, setAgentOn] = useState(account.agentOn);
   const [instructions, setInstructions] = useState(account.instructions ?? "");
   const [dropping, setDropping] = useState(false);
   const filePicker = useRef<HTMLInputElement>(null);
@@ -191,7 +194,14 @@ export function NumberDialog({ account, onClose }: { account: WhatsAppAccount; o
 
   const save = () =>
     update.mutate(
-      { accountId: account.id, label, people, agentId: agentId === "none" ? null : agentId, instructions },
+      {
+        accountId: account.id,
+        label,
+        people,
+        agentId: agentId === "none" ? null : agentId,
+        agentOn: agentId !== "none" && agentOn,
+        instructions,
+      },
       {
         onSuccess: () => {
           toast.show(w.settings.saved);
@@ -304,6 +314,15 @@ export function NumberDialog({ account, onClose }: { account: WhatsAppAccount; o
               ]}
             />
           </Field>
+          {agentId !== "none" && (
+            <SettingRow
+              title={w.settings.agentOn}
+              hint={{ name: w.settings.agentOn, text: w.settings.agentOnHint }}
+              htmlFor="wa-agent-on"
+            >
+              <Switch id="wa-agent-on" checked={agentOn} onCheckedChange={setAgentOn} />
+            </SettingRow>
+          )}
           <Field
             label={w.settings.instructions}
             hint={{ name: w.settings.instructions, text: w.settings.instructionsHint }}

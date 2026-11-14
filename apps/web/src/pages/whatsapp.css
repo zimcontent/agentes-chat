@@ -193,6 +193,9 @@
 .wa-chat__you {
   flex: none;
 }
+.wa-chat__turn {
+  flex: none;
+}
 .wa-chat__count {
   flex: none;
   background: var(--agent);
@@ -238,6 +241,30 @@
 .wa-conv__phone {
   color: var(--muted);
   font-size: var(--text-sm);
+}
+.wa-conv__phone[data-agent="on"] {
+  color: var(--agent);
+}
+.wa-conv__agent {
+  flex: none;
+  margin-inline-start: auto;
+}
+/* The agent left the conversation: said above the composer, with the way to give it back. */
+.wa-conv__notice {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-4);
+  padding: var(--space-2) var(--page-x);
+  border-block-start: 1px solid var(--line);
+  background: var(--warn-soft);
+  font-size: var(--text-sm);
+  overflow-wrap: anywhere;
+}
+/* The button sits beside the words while they fit on one line, else under them. */
+.wa-conv__notice > span {
+  flex: 1 1 240px;
+  min-width: 0;
 }
 .wa-conv__scroll {
   flex: 1;
@@ -341,6 +368,44 @@
 .wa-bubble__file small {
   color: var(--muted);
   font-size: var(--text-xs);
+}
+a.wa-bubble__file {
+  color: inherit;
+  text-decoration: none;
+}
+/* A picture keeps one box whatever its size, so the list doesn't move as pictures load. */
+.wa-bubble__pic {
+  display: block;
+  width: min(280px, 100%);
+  aspect-ratio: 1;
+  overflow: hidden;
+  border-radius: var(--radius-md);
+  background: var(--plate);
+}
+.wa-bubble__pic[data-kind="sticker"] {
+  width: 128px;
+  background: none;
+}
+.wa-bubble__pic > img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.wa-bubble__pic[data-kind="sticker"] > img {
+  object-fit: contain;
+}
+.wa-bubble__audio {
+  display: block;
+  width: min(280px, 100%);
+  height: var(--control-h-md);
+}
+.wa-bubble__video {
+  display: block;
+  width: min(320px, 100%);
+  aspect-ratio: 16 / 9;
+  border-radius: var(--radius-md);
+  background: var(--plate);
 }
 .wa-bubble__text {
   white-space: pre-wrap;

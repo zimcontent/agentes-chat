@@ -567,6 +567,10 @@ export function createHttpApi(options: TransportOptions = {}): HttpApi {
         request<{ told: boolean }>(`${org(orgId)}/whatsapp/accounts/${enc(accountId)}/chats/${enc(chatId)}/typing`, {
           json: { typing },
         }),
+      chatAgent: (orgId, accountId, chatId, on) =>
+        request<{ on: boolean }>(`${org(orgId)}/whatsapp/accounts/${enc(accountId)}/chats/${enc(chatId)}/agent`, {
+          json: { on },
+        }),
     },
     gifs: {
       search: (orgId, query) =>
@@ -1673,6 +1677,13 @@ export function createHttpApi(options: TransportOptions = {}): HttpApi {
         ).label,
       deleteLabel: (orgId, labelId) =>
         request<void>(`${org(orgId)}/portal/labels/${enc(labelId)}`, { method: "DELETE" }),
+      setClientColor: (orgId, client, color) =>
+        request<void>(`${org(orgId)}/portal/clients/${enc(client)}/color`, { method: "PUT", json: { color } }),
+      setClientLogo: async (orgId, client, image) => {
+        const path = `${org(orgId)}/portal/clients/${enc(client)}/logo`;
+        if (image) await request<{ logo: string }>(path, { method: "PUT", json: image });
+        else await request<void>(path, { method: "DELETE" });
+      },
       addComment: async (orgId, cardId, text) =>
         (
           await request<{ card: PortalCard }>(`${org(orgId)}/portal/cards/${enc(cardId)}/comments`, {
