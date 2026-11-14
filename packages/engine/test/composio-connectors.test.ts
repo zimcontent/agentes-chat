@@ -577,7 +577,7 @@ describe("tools through Composio", () => {
       { content: "", isError: false, data: { file: { name: "backup.zip", s3url: "https://files.example/big" } } },
       "Google Drive",
     );
-    expect(asked).toEqual([["https://files.example/big", ARTIFACT_LIMITS.fileBytes]]);
+    expect(asked).toEqual([["https://files.example/big", ARTIFACT_LIMITS.heldFileBytes]]);
     expect(JSON.parse(kept)).toEqual({
       file: { file: "backup.zip", error: "The file is over 50 MB, too large to keep." },
     });

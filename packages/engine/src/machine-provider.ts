@@ -102,7 +102,7 @@ function explain(
     case "too_large":
       return said(
         tooLarge ??
-          `${path ?? "The file"} is too large to read here (max ${MB(MAX_INLINE_FILE_BYTES)}). upload_file sends it to the Drive, up to ${MB(ARTIFACT_LIMITS.fileBytes)}.`,
+          `${path ?? "The file"} is too large to read here (max ${MB(MAX_INLINE_FILE_BYTES)}). upload_file sends it to the Drive, up to ${MB(ARTIFACT_LIMITS.heldFileBytes)}.`,
       );
     case "upload_failed":
       return said(`${path ?? "The file"} didn't reach the Drive. ${error.message}`);
@@ -226,7 +226,7 @@ export function createMachineSandboxProvider(hub: MachineCaller, agent: AgentSco
     async writeFile(id, path, data) {
       if (data.byteLength > MAX_INLINE_FILE_BYTES) {
         throw new Error(
-          `${path} is too large to write in one piece (max ${MB(MAX_INLINE_FILE_BYTES)}). A Drive file reaches the computer whole with import_file, up to ${MB(ARTIFACT_LIMITS.fileBytes)}.`,
+          `${path} is too large to write in one piece (max ${MB(MAX_INLINE_FILE_BYTES)}). A Drive file reaches the computer whole with import_file, up to ${MB(ARTIFACT_LIMITS.heldFileBytes)}.`,
         );
       }
       await guard(

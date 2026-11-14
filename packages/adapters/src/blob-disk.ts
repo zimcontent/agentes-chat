@@ -1,4 +1,4 @@
-import { mkdir, readdir, readFile, rm, writeFile } from "node:fs/promises";
+import { chmod, mkdir, readdir, readFile, rm, writeFile } from "node:fs/promises";
 import { dirname, relative, resolve, sep } from "node:path";
 import type { BlobStore } from "./blob";
 
@@ -25,6 +25,14 @@ export function createDiskBlobStore(root: string): BlobStore {
       // Readable by the server's user alone: other accounts on the host never see uploads.
       await mkdir(dirname(path), { recursive: true, mode: 0o700 });
       await writeFile(path, body, { mode: 0o600 });
+      await writeFile(`${path}.type`, contentType, { mode: 0o600 });
+    },
+    async putFile(key, source, { contentType }) {
+      const path = pathOf(key);
+      await mkdir(dirname(path), { recursive: true, mode: 0o700 });
+      // File to file, copied by the kernel where it can: the bytes never pass through memory whole.
+      await Bun.write(path, Bun.file(source));
+      await chmod(path, 0o600);
       await writeFile(`${path}.type`, contentType, { mode: 0o600 });
     },
     async get(key) {

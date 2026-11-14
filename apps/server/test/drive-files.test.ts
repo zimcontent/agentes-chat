@@ -100,7 +100,7 @@ test("people upload files as is: download with the real name and type, versions,
   expect(list.artifacts.map((x) => x.id)).toEqual([a.id]);
 });
 
-test("uploads: a file is required, other origins are refused, multipart only where it uploads, 50 MB at most", async () => {
+test("uploads: a file is required, other origins are refused, multipart only where it uploads, 2 GB at most", async () => {
   const owner = browser(t);
   await signUp(owner, "owner@example.com");
   const { orgId } = await seedOrg(owner);
@@ -118,12 +118,26 @@ test("uploads: a file is required, other origins are refused, multipart only whe
   // Other routes still take JSON only.
   expect((await upload(owner, `${base}/artifacts`, { title: "x" })).status).toBe(415);
 
-  const big = await upload(owner, `${base}/artifacts/files`, {
-    file: new File([new Uint8Array(ARTIFACT_LIMITS.fileBytes + 1)], "big.bin"),
+  expect(ARTIFACT_LIMITS.fileBytes).toBe(2 * 1024 * 1024 * 1024);
+  // Past 2 GB, refused from the length it states, before a byte is read (nothing that large is made here).
+  const form = new FormData();
+  form.set("file", new File([PDF], "big.bin"));
+  const body = new Uint8Array(await new Response(form).arrayBuffer());
+  const type = new Response(form).headers.get("content-type") ?? "";
+  const big = await t.app.request(`${base}/artifacts/files`, {
+    method: "POST",
+    headers: {
+      cookie: owner.cookie(),
+      origin: ORIGIN,
+      "content-type": type,
+      "content-length": String(ARTIFACT_LIMITS.fileBytes + 128 * 1024),
+    },
+    body,
   });
-  // Refused from Content-Length (413) or after reading (400); either way nothing is stored.
-  expect([400, 413]).toContain(big.status);
-  expect(((await big.json()) as { error: { code: string } }).error.code).toBe("artifact.file_too_large");
+  expect(big.status).toBe(413);
+  const refused = (await big.json()) as { error: { code: string; message: string } };
+  expect(refused.error.code).toBe("artifact.file_too_large");
+  expect(refused.error.message).toContain("2048 MB");
   const list = (await (await owner(`${base}/artifacts`)).json()) as { artifacts: unknown[] };
   expect(list.artifacts).toEqual([]);
 });
@@ -144,4 +158,32 @@ test("a picture is a snapshot: no versions, so a new one is refused in words the
   });
   expect(shotV2.status).toBe(400);
   expect(((await shotV2.json()) as { error: { code: string } }).error.code).toBe("artifact.not_versioned");
+});
+
+test("a conversation takes any type: a zip, an mp3, a file with no type, and past the old 50 MB", async () => {
+  const owner = browser(t);
+  await signUp(owner, "owner@example.com");
+  const { orgId } = await seedOrg(owner);
+  const base = `/api/app/organizations/${orgId}`;
+  const channels = (await (await owner(`${base}/channels`)).json()) as { channels: { id: string }[] };
+  const channelId = channels.channels[0]?.id ?? "";
+  const send = async (file: File) => {
+    const res = await upload(owner, `${base}/artifacts/files`, { file, channelId });
+    expect(res.status).toBe(201);
+    return (await res.json()) as { content: { name: string; contentType: string; size: number } };
+  };
+  const zip = await send(
+    new File([new Uint8Array([0x50, 0x4b, 3, 4, 0, 0])], "fotos.zip", { type: "application/zip" }),
+  );
+  expect(zip.content).toMatchObject({ name: "fotos.zip", contentType: "application/zip", size: 6 });
+  const mp3 = await send(new File([new Uint8Array([0x49, 0x44, 0x33, 4])], "audio.mp3", { type: "audio/mpeg" }));
+  expect(mp3.content.name).toBe("audio.mp3");
+  expect(mp3.content.contentType).toBe("audio/mpeg");
+  // No type and an extension nobody knows: kept as plain bytes, never refused.
+  const odd = await send(new File([new Uint8Array([1, 2, 3])], "dados.xyz123"));
+  expect(odd.content).toMatchObject({ name: "dados.xyz123", contentType: "application/octet-stream", size: 3 });
+  // What the 50 MB limit stopped goes through now, read as it arrives.
+  const past = 50 * 1024 * 1024 + 1;
+  const video = await send(new File([new Uint8Array(past)], "video.mov", { type: "video/quicktime" }));
+  expect(video.content.size).toBe(past);
 });

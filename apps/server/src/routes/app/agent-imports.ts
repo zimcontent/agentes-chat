@@ -237,9 +237,9 @@ export function agentImportRoutes(deps: AppDeps) {
   app.use(
     "/organizations/:orgId/imports/files",
     bodyLimit({
-      maxSize: ARTIFACT_LIMITS.fileBytes + MULTIPART_SLACK_BYTES,
+      maxSize: ARTIFACT_LIMITS.heldFileBytes + MULTIPART_SLACK_BYTES,
       onError: (c) => {
-        const maxMb = ARTIFACT_LIMITS.fileBytes / 1024 / 1024;
+        const maxMb = ARTIFACT_LIMITS.heldFileBytes / 1024 / 1024;
         return apiError(c, 413, "artifact.file_too_large", `The file is too large (max ${maxMb} MB)`, { maxMb });
       },
     }),
@@ -376,6 +376,11 @@ export function agentImportRoutes(deps: AppDeps) {
       const form = c.req.valid("form");
       if (!(form.file instanceof File)) {
         throw new ValidationError("send the file in the field file", "artifact.file_required");
+      }
+      // Read whole in memory: an import's file keeps 50 MB, under a conversation's 2 GB.
+      if (form.file.size > ARTIFACT_LIMITS.heldFileBytes) {
+        const maxMb = ARTIFACT_LIMITS.heldFileBytes / 1024 / 1024;
+        throw new ValidationError(`the file is too large (max ${maxMb} MB)`, "artifact.file_too_large", { maxMb });
       }
       const copied = await copyImportedFile(artifacts, c.get("user").id, c.req.valid("param").orgId, {
         agentId: form.agentId,

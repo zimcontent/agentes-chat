@@ -781,7 +781,12 @@ export function knownErrorText(t: TFunction, error: unknown, locale = "en"): str
   }
   // Own keys only: a code from an address (`/login?error=toString`) names no line of Object's.
   const key = Object.hasOwn(KNOWN, error.code) ? KNOWN[error.code as keyof typeof KNOWN] : undefined;
-  if (key) return t(key, { max: MAX_UPLOAD_MB, ...error.params });
+  // The limit the server said (`maxMb`: an import's file keeps 50 MB), else a conversation's file's.
+  if (key)
+    return t(key, {
+      max: typeof error.params?.maxMb === "number" ? error.params.maxMb : MAX_UPLOAD_MB,
+      ...error.params,
+    });
   // The server's validator refused a field: its English is for developers, never shown in any language.
   const issue = error.code === "invalid_request" ? error.params?.issue : undefined;
   if (typeof issue === "string")

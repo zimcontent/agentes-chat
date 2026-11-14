@@ -83,7 +83,7 @@ export async function createUpload(
       note: input.note?.trim().slice(0, 500) || null,
       targetArtifactId: input.targetArtifactId ?? null,
       status: "pending",
-      maxBytes: Math.min(input.maxBytes ?? ARTIFACT_LIMITS.fileBytes, ARTIFACT_LIMITS.fileBytes),
+      maxBytes: Math.min(input.maxBytes ?? ARTIFACT_LIMITS.heldFileBytes, ARTIFACT_LIMITS.heldFileBytes),
       expiresAt: new Date(now.getTime() + UPLOAD_TTL_MS),
       createdAt: now,
     })

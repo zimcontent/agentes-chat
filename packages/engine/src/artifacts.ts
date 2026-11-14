@@ -248,8 +248,16 @@ export const ARTIFACT_LIMITS = {
   tableBytes: 5_000_000,
   diffFiles: 500,
   diffBytes: 2_000_000,
-  /** One `file` version (ADR 0025). */
-  fileBytes: 50 * 1024 * 1024,
+  /**
+   * One `file` version (ADR 0025): any type, up to 2 GB. A person's upload reaches storage as it arrives
+   * (`SpooledFile`), never whole in memory.
+   */
+  fileBytes: 2 * 1024 * 1024 * 1024,
+  /**
+   * A file that crosses this server whole in memory on its way: a computer's upload, a connector's or a mailbox's
+   * attachment, an imported agent's file. Kept at the size those paths held before files went up to 2 GB.
+   */
+  heldFileBytes: 50 * 1024 * 1024,
   fileNameChars: 255,
   /** `file` versions whose text `read_artifact` and the app get (UTF-8 text files only). */
   fileTextChars: 40_000,
@@ -954,30 +962,66 @@ async function writable(deps: ArtifactDeps, actor: ArtifactActor, orgId: string,
 
 // ── Writes ───────────────────────────────────────────────────────────────────
 
-/** What a version stores: the bytes and their type (and, for a `file`, its name). */
+/**
+ * An upload already on this server's disk, counted and hashed as it arrived: stored from there, so a file of up to
+ * `ARTIFACT_LIMITS.fileBytes` never sits whole in memory.
+ */
+export interface SpooledFile {
+  path: string;
+  size: number;
+  sha256: string;
+  /** Its first bytes (all of a small file): enough for a picture's size and a short text. */
+  head: Uint8Array;
+}
+
+/** What a version stores: the bytes (or a file on disk) and their type (and, for a `file`, its name). */
 interface Stored {
-  body: Uint8Array;
+  body: Uint8Array | SpooledFile;
   contentType: string;
   fileName?: string | null;
 }
 
+const isSpooled = (body: Uint8Array | SpooledFile): body is SpooledFile => !(body instanceof Uint8Array);
+
 async function writeBlob(deps: ArtifactDeps, orgId: string, artifactId: string, version: number, stored: Stored) {
   const location = await deps.blobs.forOrg(orgId);
   const { body, contentType } = stored;
+  const spooled = isSpooled(body) ? body : null;
+  const byteLength = spooled ? spooled.size : (body as Uint8Array).byteLength;
   // The workspace's own bucket counts against no limit of ours.
-  if (location.storageConfigId === null) await assertStorageRoom(deps.db, orgId, body.byteLength);
+  if (location.storageConfigId === null) await assertStorageRoom(deps.db, orgId, byteLength);
   // A per-write suffix so two saves racing on the same version number never share a key: without it the
   // loser's put overwrites the winner's committed bytes, leaving the row's size and sha not matching disk.
   const key = `${location.prefix}artifacts/${artifactId}/v${version}-${Bun.randomUUIDv7()}`;
-  await location.store.put(key, body, { contentType });
+  if (spooled) {
+    const { store } = location;
+    if (store.putFile) {
+      await store.putFile(key, spooled.path, { contentType, size: spooled.size, sha256: spooled.sha256 });
+    } else {
+      // A store that only takes bytes (Postgres) holds them in a row: it says how large one may be.
+      const most = store.maxObjectBytes ?? ARTIFACT_LIMITS.heldFileBytes;
+      if (spooled.size > most) {
+        const maxMb = Math.floor(most / 1024 / 1024);
+        throw new ValidationError(
+          `the file is too large for this server's storage (max ${maxMb} MB): an admin can store files on disk (FILES_DIR) or in a bucket (S3_*) for files up to 2 GB`,
+          "artifact.file_too_large",
+          { maxMb },
+        );
+      }
+      await store.put(key, new Uint8Array(await Bun.file(spooled.path).arrayBuffer()), { contentType });
+    }
+  } else {
+    await location.store.put(key, body as Uint8Array, { contentType });
+  }
   // A picture keeps its size, so a conversation draws its box before it loads.
-  const size = stored.fileName !== undefined && stored.fileName !== null ? imageSize(body) : null;
+  const picture = spooled ? spooled.head : (body as Uint8Array);
+  const size = stored.fileName !== undefined && stored.fileName !== null ? imageSize(picture) : null;
   return {
     storageConfigId: location.storageConfigId,
     key,
     contentType,
-    size: body.byteLength,
-    sha: sha256Hex(body),
+    size: byteLength,
+    sha: spooled ? spooled.sha256 : sha256Hex(body as Uint8Array),
     width: size?.width ?? null,
     height: size?.height ?? null,
   };
@@ -1275,15 +1319,28 @@ export async function updateArtifact(
   return detail(artifact, version, content);
 }
 
-/** Checks a file's name and size and describes it (ADR 0025). */
-function fileInput(input: { name: string; bytes: Uint8Array; contentType?: string | null }) {
+/** A file's bytes: in memory, or an upload spooled to disk (`SpooledFile`). */
+type FileBytes = { bytes: Uint8Array; spooled?: undefined } | { spooled: SpooledFile; bytes?: undefined };
+
+/** What of a file's bytes its content reads: all of them in memory, or the head of a spooled one. */
+const readableBytes = (input: FileBytes) => input.bytes ?? input.spooled.head;
+
+/**
+ * Checks a file's name and size and describes it (ADR 0025). Any type is taken: the type only decides how it is
+ * served (`fileContentType`), never whether it is. Bytes already in memory (an agent's, a connector's, a mailbox's)
+ * keep `heldFileBytes`; a person's upload, spooled to disk as it arrived, goes up to `fileBytes`.
+ */
+function fileInput(input: { name: string; contentType?: string | null } & FileBytes) {
   const name = cleanFileName(input.name);
-  if (input.bytes.byteLength > ARTIFACT_LIMITS.fileBytes) {
-    const maxMb = ARTIFACT_LIMITS.fileBytes / 1024 / 1024;
+  const size = input.bytes ? input.bytes.byteLength : input.spooled.size;
+  const most = input.bytes ? ARTIFACT_LIMITS.heldFileBytes : ARTIFACT_LIMITS.fileBytes;
+  if (size > most) {
+    const maxMb = most / 1024 / 1024;
     throw new ValidationError(`the file is too large (max ${maxMb} MB)`, "artifact.file_too_large", { maxMb });
   }
   const contentType = fileContentType(name, input.contentType);
-  return { name, stored: { body: input.bytes, contentType, fileName: name } satisfies Stored };
+  const body = input.bytes ?? input.spooled;
+  return { name, stored: { body, contentType, fileName: name } satisfies Stored };
 }
 
 /**
@@ -1298,7 +1355,6 @@ export async function createFileArtifact(
   input: {
     title: string;
     name: string;
-    bytes: Uint8Array;
     contentType?: string | null;
     channelId?: string | null;
     threadId?: string | null;
@@ -1306,7 +1362,7 @@ export async function createFileArtifact(
     author?: ArtifactAuthor;
     /** What a tool brought back for the agent to work on, not saved for anyone: it stays in the run's conversation. */
     byProduct?: boolean;
-  },
+  } & FileBytes,
 ): Promise<ArtifactDetailView> {
   const place = await (input.byProduct ? placeNew : placeFile)(deps.db, actor, orgId, input);
   const file = fileInput(input);
@@ -1319,7 +1375,7 @@ export async function createFileArtifact(
     note: input.note,
     author: input.author,
   });
-  return detail(artifact, 1, storedFileContent(file.name, blob, input.bytes));
+  return detail(artifact, 1, storedFileContent(file.name, blob, readableBytes(input)));
 }
 
 /** A new version of a `file` artifact from bytes (who may: like documents and tables). */
@@ -1330,12 +1386,11 @@ export async function addFileVersion(
   artifactId: string,
   input: {
     name: string;
-    bytes: Uint8Array;
     contentType?: string | null;
     note?: string | null;
     title?: string;
     baseVersion?: number;
-  },
+  } & FileBytes,
 ): Promise<ArtifactDetailView> {
   const current = await writable(deps, actor, orgId, artifactId);
   if (current.kind !== "file") {
@@ -1358,7 +1413,7 @@ export async function addFileVersion(
     note: input.note,
     title: input.title,
   });
-  return detail(artifact, version, storedFileContent(file.name, blob, input.bytes));
+  return detail(artifact, version, storedFileContent(file.name, blob, readableBytes(input)));
 }
 
 /**
