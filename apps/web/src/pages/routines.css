@@ -1,7 +1,7 @@
 /*
  * Rotinas: the horizon of the next hours, one aligned
  * row per routine (agent, title, when, runs in pixels, switch, actions) and a
- * details panel. The pixel pieces are RunStrip / RunLane from @agenteschat/ui.
+ * details panel. The run marks are RunStrip / RunLane from @agenteschat/ui.
  */
 .routines {
   max-width: none;
@@ -188,22 +188,21 @@ html:not([data-pointer]) .routines-horizon__label:focus-visible {
   box-shadow: none;
   overflow: visible;
 }
-/* "agora": a pixel line (2px on, 2px off) with its tag below. */
+/* "agora": a hairline with its tag below. */
 .routines-horizon__now {
   position: absolute;
   top: 18px;
   bottom: 22px;
   left: calc(var(--lab) + (100% - var(--lab)) * var(--now-k, 0));
-  width: 2px;
-  margin-left: -1px;
-  background: repeating-linear-gradient(180deg, var(--ink) 0 2px, transparent 2px 4px);
+  width: 1px;
+  background: color-mix(in srgb, var(--ink) 55%, transparent);
   pointer-events: none;
   z-index: 1;
 }
 .routines-horizon__now span {
   position: absolute;
   bottom: -20px;
-  left: 1px;
+  left: 0.5px;
   transform: translateX(-50%);
   padding: 1px 7px;
   border-radius: 6px;
