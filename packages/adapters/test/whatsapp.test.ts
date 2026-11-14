@@ -234,7 +234,7 @@ describe("events the gateway posts", () => {
     expect(parseEvolutionEvent(posted("QRTimeout", {}))?.kind).toBe("disconnected");
   });
 
-  test("receipts say which messages were delivered or read; our own reading elsewhere says nothing", () => {
+  test("receipts say which messages were delivered or read, and when the number read a conversation elsewhere", () => {
     const data = { Chat: "5511999990000@s.whatsapp.net", MessageIDs: ["A", "B"] };
     expect(parseEvolutionEvent(posted("Receipt", data, { state: "Read" }))).toEqual({
       kind: "receipt",
@@ -244,7 +244,8 @@ describe("events the gateway posts", () => {
       state: "read",
     });
     expect(parseEvolutionEvent(posted("Receipt", data, { state: "Delivered" }))?.kind).toBe("receipt");
-    expect(parseEvolutionEvent(posted("Receipt", data, { state: "ReadSelf" }))).toBeNull();
+    expect(parseEvolutionEvent(posted("Receipt", data, { state: "ReadSelf" }))?.kind).toBe("read_self");
+    expect(parseEvolutionEvent(posted("Receipt", data, { state: "Played" }))).toBeNull();
   });
 
   test("events we keep nothing of, and anything that isn't an event, are null", () => {
@@ -414,5 +415,32 @@ describe("one person, two addresses", () => {
     // The hidden id alone: the conversation is under it until the number is told.
     expect(says({ Chat: LID, Sender: LID })).toEqual([LID, LID, LID]);
     expect(says({ Chat: PN, Sender: PN })).toEqual([PN, null, PN]);
+  });
+});
+
+describe("what the phone did elsewhere", () => {
+  test("a conversation read on the phone, a message taken back and one edited each name what they change", () => {
+    expect(
+      parseEvolutionEvent(
+        posted("Receipt", { Chat: "5511999990000@s.whatsapp.net", MessageIDs: ["A1"] }, { state: "ReadSelf" }),
+      ),
+    ).toEqual({ kind: "read_self", instanceId: "inst-1", chat: "5511999990000@s.whatsapp.net" });
+    expect(
+      parseEvolutionEvent(
+        posted("Message", { Info: info({ ID: "R1" }), Message: { protocolMessage: { type: 0, key: { ID: "A1" } } } }),
+      ),
+    ).toEqual({ kind: "revoked", instanceId: "inst-1", id: "A1" });
+    expect(
+      parseEvolutionEvent(
+        posted("Message", {
+          Info: info({ ID: "E1" }),
+          Message: { protocolMessage: { type: 14, key: { ID: "A1" }, editedMessage: { conversation: "bom dia!" } } },
+        }),
+      ),
+    ).toEqual({ kind: "edited", instanceId: "inst-1", id: "A1", text: "bom dia!" });
+    // Any other protocol message (a key exchange) is still nothing a person reads.
+    expect(
+      parseEvolutionEvent(posted("Message", { Info: info(), Message: { protocolMessage: { type: 5 } } })),
+    ).toBeNull();
   });
 });

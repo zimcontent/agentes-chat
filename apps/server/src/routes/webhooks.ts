@@ -18,6 +18,7 @@ import {
   type WebhookProvider,
   webhookSetup,
   whatsappHookKnown,
+  whatsappStickerFile,
 } from "@agenteschat/engine";
 import { createRoute, type OpenAPIHono, z } from "@hono/zod-openapi";
 import { requestLimitIp } from "../http/client-ip";
@@ -91,6 +92,29 @@ export function registerWebhookReceiver(api: OpenAPIHono, deps: AppDeps) {
   });
   // A WhatsApp number's events, from the gateway on this machine's network. The secret in the address is the
   // credential (the gateway signs nothing) and says which number. Before the generic route.
+  // A sticker's picture, fetched by the gateway when it is asked to send one: no session, only the signature
+  // `sendWhatsAppSticker` put in the address, good for two minutes.
+  api.get("/webhooks/whatsapp-sticker/:messageId", async (c) => {
+    try {
+      const file = await whatsappStickerFile(
+        whatsappDeps(deps),
+        c.req.param("messageId"),
+        Number(c.req.query("e")),
+        c.req.query("s") ?? "",
+      );
+      return new Response(file.bytes, {
+        headers: {
+          "Content-Type": "image/webp",
+          "Content-Length": String(file.bytes.byteLength),
+          "X-Content-Type-Options": "nosniff",
+          "Cache-Control": "no-store",
+        },
+      });
+    } catch {
+      // Whatever went wrong, the address says nothing about it.
+      return c.json({ error: "not found" }, 404);
+    }
+  });
   api.post("/webhooks/whatsapp/:secret", async (c) => {
     // Nobody who doesn't hold a number's secret makes the server read a body this large.
     if (!(await whatsappHookKnown(whatsappDeps(deps), c.req.param("secret")))) {

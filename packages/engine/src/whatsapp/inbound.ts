@@ -334,6 +334,41 @@ async function apply(deps: InboundDeps, account: WhatsAppAccountRow, event: What
       const added = await storeWhatsAppHistory(db, account, event.chats, event.names);
       return added > 0 || event.names.length > 0 ? {} : null;
     }
+    case "read_self": {
+      // Read on the phone: read here too, without telling WhatsApp again.
+      const changed = await db
+        .update(schema.whatsappChats)
+        .set({ unread: 0 })
+        .where(
+          and(
+            eq(schema.whatsappChats.accountId, account.id),
+            or(eq(schema.whatsappChats.jid, event.chat), eq(schema.whatsappChats.lid, event.chat)),
+            sql`${schema.whatsappChats.unread} > 0`,
+          ),
+        )
+        .returning({ id: schema.whatsappChats.id });
+      return changed[0] ? { chatId: changed[0].id } : null;
+    }
+    case "revoked":
+    case "edited": {
+      // Its words go (or change) and the row stays: the conversation still says something was there.
+      const set =
+        event.kind === "revoked"
+          ? { kind: "deleted", body: "", media: null, raw: null, replyToWaId: null }
+          : { body: event.text };
+      const [changed] = await db
+        .update(schema.whatsappMessages)
+        .set(set)
+        .where(and(eq(schema.whatsappMessages.accountId, account.id), eq(schema.whatsappMessages.waId, event.id)))
+        .returning({ chatId: schema.whatsappMessages.chatId, at: schema.whatsappMessages.at });
+      if (!changed) return null;
+      // The list's line follows when it was the conversation's latest message.
+      await db
+        .update(schema.whatsappChats)
+        .set(event.kind === "revoked" ? { lastText: "", lastKind: "deleted" } : { lastText: event.text.slice(0, 200) })
+        .where(and(eq(schema.whatsappChats.id, changed.chatId), eq(schema.whatsappChats.lastAt, changed.at)));
+      return { chatId: changed.chatId };
+    }
     case "receipt": {
       // Delivered never takes back a read.
       const from = event.state === "read" ? ["sent", "delivered"] : ["sent"];

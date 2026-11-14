@@ -64,6 +64,12 @@ export type WhatsAppEvent =
   | { kind: "disconnected"; instanceId: string; reason: "logged_out" | "dropped" | "qr_timeout" }
   | { kind: "message"; instanceId: string; message: WhatsAppMessage }
   | { kind: "receipt"; instanceId: string; chat: WhatsAppJid; ids: string[]; state: "delivered" | "read" }
+  /** The conversation was read on the phone, or another device of this number: nothing in it is unread anymore. */
+  | { kind: "read_self"; instanceId: string; chat: WhatsAppJid }
+  /** A message was deleted for everyone. */
+  | { kind: "revoked"; instanceId: string; id: string }
+  /** A message's words were changed by whoever wrote it. */
+  | { kind: "edited"; instanceId: string; id: string; text: string }
   /**
    * Conversations as the phone had them: WhatsApp sends them in pieces right after a number is linked, and again
    * when older messages of one conversation are asked for (`requestHistory`).
@@ -112,6 +118,14 @@ export interface WhatsAppGateway {
       caption?: string;
       replyTo?: string | null;
     },
+  ): Promise<WhatsAppSent & { message: Record<string, unknown> | null }>;
+  /**
+   * Sends a sticker. The gateway fetches the picture itself from `url` (an address it can reach) and sends it as a
+   * still sticker: one that moved arrives without its motion.
+   */
+  sendSticker(
+    token: string,
+    input: { to: WhatsAppJid; url: string },
   ): Promise<WhatsAppSent & { message: Record<string, unknown> | null }>;
   markRead(token: string, input: { chat: WhatsAppJid; ids: string[] }): Promise<void>;
   /** "Typing…" on the other side's screen, as WhatsApp's own apps show while someone writes; `false` ends it. */
@@ -268,6 +282,14 @@ export function createEvolutionGoGateway(options: EvolutionGoOptions): WhatsAppG
       const info = rec(data.Info);
       const id = str(info.ID);
       if (!id) throw new WhatsAppGatewayError(502, "The WhatsApp gateway sent a file without an id");
+      const message = rec(data.Message);
+      return { id, at: date(info.Timestamp), message: Object.keys(message).length > 0 ? message : null };
+    },
+    async sendSticker(token, { to, url }) {
+      const data = rec(await call("POST", "/send/sticker", token, { number: to, sticker: url }));
+      const info = rec(data.Info);
+      const id = str(info.ID);
+      if (!id) throw new WhatsAppGatewayError(502, "The WhatsApp gateway sent a sticker without an id");
       const message = rec(data.Message);
       return { id, at: date(info.Timestamp), message: Object.keys(message).length > 0 ? message : null };
     },
@@ -534,6 +556,14 @@ export function parseEvolutionEvent(payload: unknown): WhatsAppEvent | null {
     case "Disconnected":
       return { kind: "disconnected", instanceId, reason: "dropped" };
     case "Message": {
+      // A deletion or an edit rides on a message of its own (`protocolMessage`): 0 takes a message back for
+      // everyone, 14 carries its new words. Both name the message they change by its id.
+      const protocol = rec(unwrap(rec(data.Message)).protocolMessage);
+      const target = str(rec(protocol.key).ID);
+      if (target && protocol.type === 0) return { kind: "revoked", instanceId, id: target };
+      if (target && protocol.type === 14) {
+        return { kind: "edited", instanceId, id: target, text: contentOf(rec(protocol.editedMessage)).text };
+      }
       const parsed = message(data);
       return parsed ? { kind: "message", instanceId, message: parsed } : null;
     }
@@ -548,6 +578,7 @@ export function parseEvolutionEvent(payload: unknown): WhatsAppEvent | null {
       const state = str(root.state);
       const ids = Array.isArray(data.MessageIDs) ? data.MessageIDs.filter((id) => typeof id === "string") : [];
       const chat = bareJid(str(data.Chat));
+      if (chat && state === "ReadSelf") return { kind: "read_self", instanceId, chat };
       if (!chat || ids.length === 0 || (state !== "Read" && state !== "Delivered")) return null;
       return { kind: "receipt", instanceId, chat, ids, state: state === "Read" ? "read" : "delivered" };
     }
@@ -572,6 +603,7 @@ export type FakeWhatsAppCall =
       caption: string;
       size: number;
     }
+  | { op: "sticker"; token: string; to: WhatsAppJid; url: string }
   | { op: "read"; token: string; chat: WhatsAppJid; ids: string[] }
   | { op: "typing"; token: string; chat: WhatsAppJid; typing: boolean }
   | { op: "download"; token: string; message: Record<string, unknown> }
@@ -655,6 +687,11 @@ export function createFakeWhatsAppGateway(): WhatsAppGateway & {
         at: new Date(),
         message: { [`${input.kind}Message`]: { mimetype: input.mimeType, fileName: input.fileName } },
       };
+    },
+    async sendSticker(token: string, input: { to: WhatsAppJid; url: string }) {
+      guard();
+      fake.calls.push({ op: "sticker", token, to: input.to, url: input.url });
+      return { id: `SENT${++sent}`, at: new Date(), message: { stickerMessage: { mimetype: "image/webp" } } };
     },
     async markRead(token: string, { chat, ids }: { chat: WhatsAppJid; ids: string[] }) {
       guard();
