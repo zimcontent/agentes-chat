@@ -196,22 +196,23 @@ test("the dock's CSS: glass and a hairline rounded at both ends, a mark under ea
   const css = textOf("/home/ag-01a142cb", look({ dock: "docklike" }), ".config/gtk-3.0/gtk.css");
   expect(textOf("/home/ag-01a142cb", look(), ".config/gtk-3.0/gtk.css")).toBe(css);
   // docklike's window fills the dock's right end inside its 1 px frame: its corners' radius is the dock's less that
-  // pixel, and the ring around them is where the frame's hairline goes, in the tone the frame shows: the ink at 0.18
-  // over the glass's white at 0.88 is one colour, at 1 - 0.12 × 0.82 ≈ 0.9 alpha. docklike's launchers carry
-  // `open_group` while their app has windows and `active_group` while one of them is active; the panel's own dock
-  // has a button for each window instead, checked while it is active.
-  expect([4, 32, 63].map((ink) => Math.round((ink * 0.18 + 255 * 0.88 * 0.82) / (1 - 0.12 * 0.82)))).toEqual([
-    205, 210, 217,
-  ]);
+  // pixel, and the ring around them is where the frame's hairline goes, in the tone the frame shows: the light at
+  // 0.086 over the glass, which is the identity's #121212 (18) at 0.78 over the wallpaper's counter (#121212 at 0.58
+  // over the stage's 10). docklike's launchers carry `open_group` while their app has windows and `active_group`
+  // while one of them is active; the panel's own dock has a button for each window instead, checked while it is
+  // active.
+  const counter = 18 * 0.58 + 10 * 0.42;
+  const glass = 18 * 0.78 + counter * 0.22;
+  expect(Math.round(glass + (255 - glass) * 0.086)).toBe(38);
   expect(
     css,
-  ).toBe(`/* The dock: the design system's glass, rounded, with a hairline that still shows on the sky's pale band. */
+  ).toBe(`/* The dock: the identity's dark glass, rounded, with its hairline and the line of light along its top. */
 .xfce4-panel.background {
-  background-color: rgba(255, 255, 255, 0.88);
+  background-color: rgba(18, 18, 18, 0.78);
   background-image: none;
-  border: 1px solid rgba(4, 32, 63, 0.18);
+  border: 1px solid rgba(255, 255, 255, 0.086);
   border-radius: 16px;
-  box-shadow: inset 0 1px rgba(255, 255, 255, 0.9);
+  box-shadow: inset 0 1px rgba(255, 255, 255, 0.06);
 }
 
 /*
@@ -225,7 +226,7 @@ test("the dock's CSS: glass and a hairline rounded at both ends, a mark under ea
 #XfcePanelWindowWrapper.xfce4-panel.background {
   border: none;
   border-radius: 0 15px 15px 0;
-  box-shadow: inset 0 1px rgba(255, 255, 255, 0.9), 0 0 0 1px rgba(205, 210, 217, 0.9);
+  box-shadow: inset 0 1px rgba(255, 255, 255, 0.06), 0 0 0 1px rgb(38, 38, 38);
 }
 
 .xfce4-panel.background button {
@@ -239,17 +240,17 @@ test("the dock's CSS: glass and a hairline rounded at both ends, a mark under ea
 }
 
 .xfce4-panel.background button:hover {
-  background-color: rgba(4, 32, 63, 0.07);
+  background-color: rgba(255, 255, 255, 0.07);
 }
 
 .xfce4-panel.background button:active,
 .xfce4-panel.background button:checked,
 .xfce4-panel.background button.active_group {
-  background-color: rgba(4, 32, 63, 0.11);
+  background-color: rgba(255, 255, 255, 0.11);
 }
 
 #separator-2 {
-  color: rgba(4, 32, 63, 0.16);
+  color: rgba(255, 255, 255, 0.16);
 }
 
 /* A minimized window's icon as bright as the others' (faded, it reads as disabled). */
@@ -258,12 +259,12 @@ test("the dock's CSS: glass and a hairline rounded at both ends, a mark under ea
 }
 
 /*
- * A short bar under the icon of each app with windows, a longer, darker one under the active window's: docklike's
+ * A short bar under the icon of each app with windows, a longer, brighter one under the active window's: docklike's
  * launchers say which by their classes, the panel's own dock has a button for each window.
  */
 .xfce4-panel.background .tasklist button,
 .xfce4-panel.background button.open_group {
-  background-image: linear-gradient(rgba(4, 32, 63, 0.65), rgba(4, 32, 63, 0.65));
+  background-image: linear-gradient(rgba(237, 237, 237, 0.55), rgba(237, 237, 237, 0.55));
   background-size: 8px 3px;
   background-repeat: no-repeat;
   background-position: 50% 100%;
@@ -271,7 +272,7 @@ test("the dock's CSS: glass and a hairline rounded at both ends, a mark under ea
 
 .xfce4-panel.background .tasklist button:checked,
 .xfce4-panel.background button.active_group {
-  background-image: linear-gradient(rgb(4, 32, 63), rgb(4, 32, 63));
+  background-image: linear-gradient(rgb(237, 237, 237), rgb(237, 237, 237));
   background-size: 16px 3px;
 }
 `);
@@ -284,8 +285,8 @@ test("Browser: the runner's own command with the desktop's socket, nothing else;
       "Type=Application",
       "Name=Browser",
       `Exec=${RUNNER.join(" ")} desktop-browser ${SOCKET}`,
-      // The theme's globe: its web browser's (org.xfce.webbrowser) has a mouse pointer drawn into it.
-      "Icon=applications-internet",
+      // The look's own icon, by its path in the look's folder.
+      "Icon=/home/ag-01a142cb/.local/share/agentes/browser.png",
       "StartupWMClass=agentes-browser",
       "StartupNotify=false",
       "Categories=X-Xfce-Toplevel;",
@@ -300,6 +301,7 @@ test("Browser: the runner's own command with the desktop's socket, nothing else;
       "Type=Application",
       "Name=Browser",
       `Exec=${RUNNER.join(" ")} desktop-browser ${SOCKET}`,
+      // The theme's globe: its web browser's (org.xfce.webbrowser) has a mouse pointer drawn into it.
       "Icon=applications-internet",
       "StartupWMClass=agentes-wait",
       "StartupNotify=false",
@@ -328,6 +330,13 @@ test("Browser: the runner's own command with the desktop's socket, nothing else;
   expect(execArg("/srv/$HOME/`x`")).toBe('"/srv/\\\\$HOME/\\\\`x\\\\`"');
   expect(execArg("/srv/a\\b")).toBe('"/srv/a\\\\\\\\b"');
   expect(execArg("/srv/100%")).toBe('"/srv/100%%"');
+  // Files and Terminal have the look's own icons too; a home's path is the entry's string, its `\` escaped.
+  expect(textOf("/srv/a b/home", look(), ".local/share/applications/agentes-files.desktop")).toContain(
+    "\nIcon=/srv/a b/home/.local/share/agentes/files.png\n",
+  );
+  expect(textOf("/srv/a\\b", look(), ".local/share/applications/agentes-terminal.desktop")).toContain(
+    "\nIcon=/srv/a\\\\b/.local/share/agentes/terminal.png\n",
+  );
   const spaced = look({ browser: ["/home/Joe Doe/.agentes-runner/runtime/bun", "/x.mjs", "desktop-browser", "/s"] });
   expect(textOf("/h", spaced, ".local/share/applications/agentes-browser.desktop")).toContain(
     'Exec="/home/Joe Doe/.agentes-runner/runtime/bun" /x.mjs desktop-browser /s\n',
@@ -545,7 +554,7 @@ test("the keeper: its source, its settings and its autostart entry, so it starts
     [
       "[Desktop Entry]",
       "Type=Application",
-      "Name=agentes.chat",
+      "Name=DougBot",
       "Comment=Lists the windows open on this desktop, to open them again after its computer restarted or moved",
       `Exec=python3 -I ${home}/.local/share/agentes/keeper.py ${home}/.local/share/agentes/keeper.json`,
       "NoDisplay=true",
@@ -559,7 +568,7 @@ test("the keeper: its source, its settings and its autostart entry, so it starts
   );
 });
 
-test("the images ship as committed (their base64 text is the PNGs): the wallpaper the desktop's size, the mark the dock's icon size", () => {
+test("the images ship as committed (their base64 text is the PNGs): the wallpaper the desktop's size, the mark and the apps' icons the dock's icon size", () => {
   const wallpaper = fileOf("/h", look(), ".local/share/agentes/wallpaper.png");
   const mark = fileOf("/h", look(), ".local/share/agentes/mark.png");
   expect(wallpaper.equals(readFileSync(path.join(ASSETS, "desktop-wallpaper.png")))).toBe(true);
@@ -567,6 +576,11 @@ test("the images ship as committed (their base64 text is the PNGs): the wallpape
   // Shown 1:1: a desktop of another size needs the wallpaper rendered again (docs/design/desktop/render.sh).
   expect(pngSize(wallpaper)).toEqual({ ...DESKTOP_SIZE });
   expect(pngSize(mark)).toEqual({ width: 32, height: 32 });
+  for (const app of ["browser", "files", "terminal"]) {
+    const icon = fileOf("/h", look(), `.local/share/agentes/${app}.png`);
+    expect(icon.equals(readFileSync(path.join(ASSETS, `desktop-${app}.png`)))).toBe(true);
+    expect(pngSize(icon)).toEqual({ width: 32, height: 32 });
+  }
 });
 
 test("the command line: the script and a few words, the files on its input (systemd-run's scope is named after it)", () => {
@@ -604,8 +618,8 @@ test("files that change come with a new LOOK_VERSION: desktops that have the loo
   }
   // Changed the look on purpose? Bump LOOK_VERSION and put the new hash here.
   expect({ version: LOOK_VERSION, files: hash.digest("hex").slice(0, 16) }).toEqual({
-    version: 7,
-    files: "dd23e758f11b0aa7",
+    version: 9,
+    files: "929538ea8aef7ced",
   });
 });
 
@@ -767,7 +781,7 @@ test("its settings for a running session: every property its channels give a val
     "/backdrop/screen0/monitorVNC-0/workspace0/rgba1",
     "-n",
     "-a",
-    ...["0.811765", "0.901961", "1.000000", "1.000000"].flatMap((v) => ["-t", "double", "-s", v]),
+    ...["0.039216", "0.039216", "0.039216", "1.000000"].flatMap((v) => ["-t", "double", "-s", v]),
   ]);
   expect(settings).toContainEqual(set("xfwm4", "/general/theme", "string", "Orchis-Light"));
   expect(settings).toContainEqual(set("xfwm4", "/general/margin_bottom", "int", "60"));

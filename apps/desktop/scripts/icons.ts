@@ -1,8 +1,9 @@
 /**
- * Draws the desktop app's icons. DougBot: the tray glyphs are the Doug's glass frame (a rounded square) with the
- * agent engine's pill eyes (packages/ui/src/agent/engine.js), and the app icon is the Doug's own drawing
- * (apps/mobile/src/brand/bots.ts, the identity's code) rendered with resvg. Run by CI before `tauri build` (`bun apps/desktop/scripts/icons.ts`), then
- * `tauri icon app-icon.png` makes the .icns and the PNG sizes from the 1024 px master.
+ * Draws the desktop app's icons. DougBot: the tray glyphs are the Doug's head with his two eyes cut out of it
+ * (the outline and the eyes are the identity's drawer's, apps/mobile/src/brand/dougbot-avatar.js), and the app icon
+ * is the Doug's own drawing (apps/mobile/src/brand/bots.ts, the identity's code) rendered with resvg. Run by CI
+ * before `tauri build` (`bun apps/desktop/scripts/icons.ts`), then `tauri icon app-icon.png` makes the .icns and the
+ * PNG sizes from the 1024 px master.
  *
  * Outputs (all ignored by git):
  *   src-tauri/icons/tray/{idle,working,paused,offline,update,browsing,needs}.png  36×36 template images (18 pt @2x)
@@ -15,8 +16,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { deflateSync } from "node:zlib";
 import { Resvg } from "@resvg/resvg-js";
-import { eyeShapes } from "../../../packages/ui/src/agent/engine.js";
-import { svgDoBot } from "../../mobile/src/brand/bots";
+import { DougBot, svgDoBot } from "../../mobile/src/brand/bots";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 
@@ -77,16 +77,55 @@ export function encodePng(width: number, height: number, rgba: Uint8Array): Uint
 }
 
 /**
- * DougBot: the body's silhouette is the Doug's glass frame, a rounded square (the phone app's path
- * `M38 10H82C101 10 110 19 110 38V82…` on a 120 viewBox: the square 10..110 with a corner radius of 28), in unit
- * coordinates over the body's square.
+ * DougBot: the body's silhouette is the Doug's head (`CABECA`, the drawer's path on its 120 frame: x 24…96, y
+ * 20.9…102), in unit coordinates over the body's square: its height fills the square, its width sits centered.
  */
-const FRAME_RADIUS = 0.28;
+const HEAD = { top: 20.9, height: 81.1, middle: 60 };
+const unitX = (x: number) => 0.5 + (x - HEAD.middle) / HEAD.height;
+const unitY = (y: number) => (y - HEAD.top) / HEAD.height;
+
+/** The head's outline as a polygon: the path's curves (M, C, H, V, absolute) walked in short straight steps. */
+const OUTLINE: [number, number][] = (() => {
+  const words = DougBot.CABECA.match(/[MCHVZ]|-?\d*\.?\d+/g) ?? [];
+  const pts: [number, number][] = [];
+  let [x, y] = [0, 0];
+  let i = 0;
+  const num = () => Number(words[i++]);
+  while (i < words.length) {
+    const c = words[i++];
+    if (c === "M") {
+      [x, y] = [num(), num()];
+      pts.push([x, y]);
+    } else if (c === "H") {
+      x = num();
+      pts.push([x, y]);
+    } else if (c === "V") {
+      y = num();
+      pts.push([x, y]);
+    } else if (c === "C") {
+      const [x1, y1, x2, y2, x3, y3] = [num(), num(), num(), num(), num(), num()];
+      for (let k = 1; k <= 16; k++) {
+        const t = k / 16;
+        const m = 1 - t;
+        pts.push([
+          m * m * m * x + 3 * m * m * t * x1 + 3 * m * t * t * x2 + t * t * t * x3,
+          m * m * m * y + 3 * m * m * t * y1 + 3 * m * t * t * y2 + t * t * t * y3,
+        ]);
+      }
+      [x, y] = [x3, y3];
+    }
+  }
+  return pts.map(([px, py]) => [unitX(px), unitY(py)]);
+})();
+
 function inBody(u: number, v: number): boolean {
-  if (u < 0 || u > 1 || v < 0 || v > 1) return false;
-  const cx = Math.min(Math.max(u, FRAME_RADIUS), 1 - FRAME_RADIUS);
-  const cy = Math.min(Math.max(v, FRAME_RADIUS), 1 - FRAME_RADIUS);
-  return (u - cx) ** 2 + (v - cy) ** 2 <= FRAME_RADIUS ** 2;
+  let inside = false;
+  for (let i = 0, j = OUTLINE.length - 1; i < OUTLINE.length; j = i++) {
+    const [ax, ay] = OUTLINE[i] as [number, number];
+    const [bx, by] = OUTLINE[j] as [number, number];
+    if (ay > v !== by > v && u < ((bx - ax) * (v - ay)) / (by - ay) + ax) inside = !inside;
+  }
+  return inside;
 }
 
 /* ---------- Shapes (unit body coordinates: u, v in 0..1 over the body's square) ---------- */
@@ -107,14 +146,25 @@ function inPill(u: number, v: number, b: Box): boolean {
   return (u - cx) ** 2 + (v - cy) ** 2 <= r * r;
 }
 
-const ROUND_EYES: Box[] = eyeShapes("round").map((e: Box) => ({ x: e.x, y: e.y, w: e.w, h: e.h }));
+/** His eyes at rest: two upright pills (the drawer's: 11 by 20.8 around x 46.6 and 73.2, y 69.6). */
+const ROUND_EYES: Box[] = [46.6, 73.2].map((x) => ({
+  x: unitX(x - 5.5),
+  y: unitY(69.6 - 10.4),
+  w: 11 / HEAD.height,
+  h: 20.8 / HEAD.height,
+}));
 
 function shifted(eyes: Box[], dx: number): Box[] {
   return eyes.map((e) => ({ ...e, x: e.x + dx }));
 }
 
-/** Paused: the eyes are short dashes. */
-const DASH_EYES: Box[] = [0.375, 0.625].map((cx) => ({ x: cx - 0.085, y: 0.47, w: 0.17, h: 0.085 }));
+/** Paused: the eyes are closed, a dash each (the drawer's: 18 by 6.8, a little under the eyes' middle). */
+const DASH_EYES: Box[] = [46.6, 73.2].map((x) => ({
+  x: unitX(x - 9),
+  y: unitY(70.9 - 3.4),
+  w: 18 / HEAD.height,
+  h: 6.8 / HEAD.height,
+}));
 
 function distToSegment(px: number, py: number, ax: number, ay: number, bx: number, by: number): number {
   const dx = bx - ax;

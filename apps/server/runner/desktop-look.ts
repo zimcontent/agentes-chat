@@ -2,16 +2,20 @@ import { createHash } from "node:crypto";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 import { type AgentScope, DESKTOP_SIZE } from "@agenteschat/adapters/machine-protocol";
+import BROWSER_BASE64 from "./assets/desktop-browser.png.b64" with { type: "text" };
+import FILES_BASE64 from "./assets/desktop-files.png.b64" with { type: "text" };
 import MARK_BASE64 from "./assets/desktop-mark.png.b64" with { type: "text" };
+import TERMINAL_BASE64 from "./assets/desktop-terminal.png.b64" with { type: "text" };
 import WALLPAPER_BASE64 from "./assets/desktop-wallpaper.png.b64" with { type: "text" };
 import KEEPER_SOURCE from "./desktop-keeper.py" with { type: "text" };
 import { shQuote } from "./install-script";
 import { xmlEscape, xmlUnescape } from "./xml";
 
 /**
- * The agents' desktops' own look (ADR 0058 §15): the agentes.chat wallpaper and a dock floating at the bottom
- * center (the mark, which opens the apps menu, then Browser, Files and Terminal), one workspace, no top panel and
- * no desktop icons, Orchis's light theme where it is installed.
+ * The agents' desktops' own look (ADR 0058 §15), in the DougBot identity: its wallpaper (the stage, the team behind
+ * the glass counter, the signature) and a dock of dark glass floating at the bottom center (the Doug, which opens the
+ * apps menu, then Browser, Files and Terminal with the look's own icons), one workspace, no top panel and no desktop
+ * icons, Orchis's light theme where it is installed.
  *
  * - It is XFCE's own settings, written into the desktop session's HOME only (the agent's own home in system
  *   mode, `<agent folder>/.agentes/home` otherwise), by the agent's own process (`LOOK_SCRIPT`): never the
@@ -34,7 +38,7 @@ import { xmlEscape, xmlUnescape } from "./xml";
  */
 
 /** Bumped whenever what `lookFiles` writes changes. */
-export const LOOK_VERSION = 7;
+export const LOOK_VERSION = 9;
 
 /** Orchis's light theme (GTK and xfwm4), else GTK's Adwaita and xfwm4's Default. */
 export type LookTheme = "orchis" | "stock";
@@ -94,7 +98,8 @@ const XFCONF = ".config/xfce4/xfconf/xfce-perchannel-xml";
 /** The agent's Chrome on its desktop has this window class (`browser.ts`), so the dock shows it on Browser. */
 export const BROWSER_WM_CLASS = "agentes-browser";
 /**
- * The icon theme's globe, next to its Files and Terminal icons. Not its web browser's (`org.xfce.webbrowser`, a link
+ * The icon of Browser's notes (the dock's launchers have the look's own, `dockApps`): the icon theme's globe. Not
+ * its web browser's (`org.xfce.webbrowser`, a link
  * to `web-browser`): that globe has a mouse pointer drawn into it, which reads as a stray pointer on the dock.
  * elementary-xfce has this one at every size, 16 to 128 px, in 0.16 to 0.21 (Ubuntu 22.04 and 24.04, Debian 12
  * and 13).
@@ -110,23 +115,32 @@ export const NOTE_WM_CLASS = "agentes-note";
 export const NOTE_ICON = "dialog-warning";
 
 /**
- * 1280×900, the exact desktop size: shown 1:1, its logo centered on the dock's line below maximized windows. The
+ * 1280×900, the exact desktop size: shown 1:1, its signature centered on the dock's line below maximized windows. The
  * images are base64 text (`assets/*.png.b64`, written next to the PNGs by docs/design/desktop/render.sh): Bun's
  * text loader inlines them in the one-file runner, and would mangle a PNG's bytes.
  */
 const WALLPAPER = Buffer.from(WALLPAPER_BASE64, "base64");
-/** The favicon at the dock's icon size: the same mark as the wallpaper's logo. */
+/** The favicon at the dock's icon size: the Doug close up, the same mark as the wallpaper's signature. */
 const MARK = Buffer.from(MARK_BASE64, "base64");
+/** Browser's, Files' and Terminal's icons at the dock's icon size, by their file's name in the look's folder. */
+const APP_ICONS = {
+  "browser.png": Buffer.from(BROWSER_BASE64, "base64"),
+  "files.png": Buffer.from(FILES_BASE64, "base64"),
+  "terminal.png": Buffer.from(TERMINAL_BASE64, "base64"),
+};
 
-/** The ink of the sky's agents (the wallpaper's logo): the dock's lines and its window bars. */
-const INK = "4, 32, 63";
+/** The light on the identity's dark glass: the dock's frame, its lines and what a pointer lights. */
+const LIGHT = "255, 255, 255";
+/** The identity's text on the stage (#EDEDED): the bars under the apps with windows. */
+const TEXT = "237, 237, 237";
 /** The dock's rounded ends; its frame is 1 px. */
 const DOCK_RADIUS = 16;
 /**
- * The dock's hairline as it shows on its glass, in one colour: the ink at 0.18 over white at 0.88. Where a ring
- * draws it on nothing (docklike's corners), it lands on the wallpaper in the same tone as the dock's own frame.
+ * The dock's hairline as it shows on its glass, in one colour: the light at 0.086 over the glass (18 at 0.78 on the
+ * counter's 15). Where a ring draws it on nothing (docklike's corners), it lands on the wallpaper in the same tone
+ * as the dock's own frame.
  */
-const HAIRLINE_ON_GLASS = "rgba(205, 210, 217, 0.9)";
+const HAIRLINE_ON_GLASS = "rgb(38, 38, 38)";
 
 /** Browser, Files and Terminal, in the dock's and the menu's order. */
 interface DockApp {
@@ -151,12 +165,18 @@ export const execArg = (arg: string) =>
     .replace(/\\/g, "\\\\")
     .replace(/%/g, "%%");
 
-const dockApps = (browser: string[]): DockApp[] => [
+/**
+ * An icon of the look's own, by its file: a desktop entry's Icon is a name in the icon theme or a file's absolute
+ * path, a string value where `\` is escaped.
+ */
+const ownIcon = (home: string, file: keyof typeof APP_ICONS) => `${home}/${LOOK_DIR}/${file}`.replace(/\\/g, "\\\\");
+
+const dockApps = (home: string, browser: string[]): DockApp[] => [
   {
     id: "agentes-browser",
     name: "Browser",
     exec: browser.map(execArg).join(" "),
-    icon: BROWSER_ICON,
+    icon: ownIcon(home, "browser.png"),
     wmClass: BROWSER_WM_CLASS,
     notify: false,
   },
@@ -164,7 +184,7 @@ const dockApps = (browser: string[]): DockApp[] => [
     id: "agentes-files",
     name: "Files",
     exec: "thunar",
-    icon: "org.xfce.thunar",
+    icon: ownIcon(home, "files.png"),
     wmClass: "Thunar",
     notify: true,
   },
@@ -172,7 +192,7 @@ const dockApps = (browser: string[]): DockApp[] => [
     id: "agentes-terminal",
     name: "Terminal",
     exec: "xfce4-terminal",
-    icon: "org.xfce.terminalemulator",
+    icon: ownIcon(home, "terminal.png"),
     wmClass: "Xfce4-terminal",
     notify: true,
   },
@@ -299,7 +319,7 @@ indicatorStyle=5
 inactiveIndicatorStyle=5
 `;
 
-/** One workspace, the wallpaper zoomed (an image of the screen's size: 1:1) over the bottom band's tone, no icons. */
+/** One workspace, the wallpaper zoomed (an image of the screen's size: 1:1) over the stage's tone (#0A0A0A), no icons. */
 const backdrop = (home: string) => `<?xml version="1.0" encoding="UTF-8"?>
 
 <channel name="xfce4-desktop" version="1.0">
@@ -312,9 +332,9 @@ const backdrop = (home: string) => `<?xml version="1.0" encoding="UTF-8"?>
         <property name="workspace0" type="empty">
           <property name="color-style" type="int" value="0"/>
           <property name="rgba1" type="array">
-            <value type="double" value="0.811765"/>
-            <value type="double" value="0.901961"/>
-            <value type="double" value="1.000000"/>
+            <value type="double" value="0.039216"/>
+            <value type="double" value="0.039216"/>
+            <value type="double" value="0.039216"/>
             <value type="double" value="1.000000"/>
           </property>
           <property name="image-style" type="int" value="5"/>
@@ -381,19 +401,20 @@ const settings = (theme: LookTheme) => `<?xml version="1.0" encoding="UTF-8"?>
 const BASHRC = `${LOOK_DIR}/bashrc`;
 
 /**
- * The design system's dark tokens, also for the 16 colors programs print in (the shell's prompt among them). With
- * bash, each new terminal runs it on the look's own startup file (`BASHRC`).
+ * The identity's stage and text, the Doug's green for the cursor, and its colors for the 16 programs print in (the
+ * shell's prompt among them): the errors' red, the Doug's green, then the bots' yellow, blue, violet and cyan, each
+ * with its lighter tone. With bash, each new terminal runs it on the look's own startup file (`BASHRC`).
  */
 const terminal = (home: string, bash: string | null) => `<?xml version="1.0" encoding="UTF-8"?>
 
 <channel name="xfce4-terminal" version="1.0">
   <property name="color-use-theme" type="bool" value="false"/>
-  <property name="color-background" type="string" value="#1c1c1b"/>
-  <property name="color-foreground" type="string" value="#efefec"/>
+  <property name="color-background" type="string" value="#0a0a0a"/>
+  <property name="color-foreground" type="string" value="#ededed"/>
   <property name="color-cursor-use-default" type="bool" value="false"/>
-  <property name="color-cursor" type="string" value="#5aa8ff"/>
+  <property name="color-cursor" type="string" value="#9cfa05"/>
   <property name="color-bold-use-default" type="bool" value="true"/>
-  <property name="color-palette" type="string" value="#242423;#f08a80;#5fc48a;#e0a84a;#5aa8ff;#c9a2f5;#6cc7d6;#d6d6d2;#71716c;#f5a69e;#7fd3a2;#ebbd6a;#8cc3ff;#d9bdfa;#92d8e3;#efefec"/>
+  <property name="color-palette" type="string" value="#1a1a1a;#f2555a;#9cfa05;#facc15;#60a5fa;#a78bfa;#22d3ee;#cfcfcf;#6b6b6b;#f6888c;#c5ff52;#fcdb5b;#90c0fc;#c1aefc;#64e0f3;#ededed"/>
 ${
   bash
     ? `  <property name="run-custom-command" type="bool" value="true"/>
@@ -436,20 +457,20 @@ const keeperAutostart = (home: string) =>
   [
     "[Desktop Entry]",
     "Type=Application",
-    "Name=agentes.chat",
+    "Name=DougBot",
     "Comment=Lists the windows open on this desktop, to open them again after its computer restarted or moved",
     `Exec=python3 -I ${execArg(`${home}/${KEEPER_FILE}`)} ${execArg(`${home}/${KEEPER_SETTINGS}`)}`,
     "NoDisplay=true",
     "",
   ].join("\n");
 
-const GTK_CSS = `/* The dock: the design system's glass, rounded, with a hairline that still shows on the sky's pale band. */
+const GTK_CSS = `/* The dock: the identity's dark glass, rounded, with its hairline and the line of light along its top. */
 .xfce4-panel.background {
-  background-color: rgba(255, 255, 255, 0.88);
+  background-color: rgba(18, 18, 18, 0.78);
   background-image: none;
-  border: 1px solid rgba(${INK}, 0.18);
+  border: 1px solid rgba(${LIGHT}, 0.086);
   border-radius: ${DOCK_RADIUS}px;
-  box-shadow: inset 0 1px rgba(255, 255, 255, 0.9);
+  box-shadow: inset 0 1px rgba(${LIGHT}, 0.06);
 }
 
 /*
@@ -463,7 +484,7 @@ const GTK_CSS = `/* The dock: the design system's glass, rounded, with a hairlin
 #XfcePanelWindowWrapper.xfce4-panel.background {
   border: none;
   border-radius: 0 ${DOCK_RADIUS - 1}px ${DOCK_RADIUS - 1}px 0;
-  box-shadow: inset 0 1px rgba(255, 255, 255, 0.9), 0 0 0 1px ${HAIRLINE_ON_GLASS};
+  box-shadow: inset 0 1px rgba(${LIGHT}, 0.06), 0 0 0 1px ${HAIRLINE_ON_GLASS};
 }
 
 .xfce4-panel.background button {
@@ -477,17 +498,17 @@ const GTK_CSS = `/* The dock: the design system's glass, rounded, with a hairlin
 }
 
 .xfce4-panel.background button:hover {
-  background-color: rgba(${INK}, 0.07);
+  background-color: rgba(${LIGHT}, 0.07);
 }
 
 .xfce4-panel.background button:active,
 .xfce4-panel.background button:checked,
 .xfce4-panel.background button.active_group {
-  background-color: rgba(${INK}, 0.11);
+  background-color: rgba(${LIGHT}, 0.11);
 }
 
 #separator-2 {
-  color: rgba(${INK}, 0.16);
+  color: rgba(${LIGHT}, 0.16);
 }
 
 /* A minimized window's icon as bright as the others' (faded, it reads as disabled). */
@@ -496,12 +517,12 @@ const GTK_CSS = `/* The dock: the design system's glass, rounded, with a hairlin
 }
 
 /*
- * A short bar under the icon of each app with windows, a longer, darker one under the active window's: docklike's
+ * A short bar under the icon of each app with windows, a longer, brighter one under the active window's: docklike's
  * launchers say which by their classes, the panel's own dock has a button for each window.
  */
 .xfce4-panel.background .tasklist button,
 .xfce4-panel.background button.open_group {
-  background-image: linear-gradient(rgba(${INK}, 0.65), rgba(${INK}, 0.65));
+  background-image: linear-gradient(rgba(${TEXT}, 0.55), rgba(${TEXT}, 0.55));
   background-size: 8px 3px;
   background-repeat: no-repeat;
   background-position: 50% 100%;
@@ -509,7 +530,7 @@ const GTK_CSS = `/* The dock: the design system's glass, rounded, with a hairlin
 
 .xfce4-panel.background .tasklist button:checked,
 .xfce4-panel.background button.active_group {
-  background-image: linear-gradient(rgb(${INK}), rgb(${INK}));
+  background-image: linear-gradient(rgb(${TEXT}), rgb(${TEXT}));
   background-size: 16px 3px;
 }
 `;
@@ -579,7 +600,7 @@ interface LookFile {
 
 /** Every file of the look, by its path under HOME. */
 export function lookFiles(home: string, o: LookOptions): LookFile[] {
-  const apps = dockApps(o.browser);
+  const apps = dockApps(home, o.browser);
   const bash = path.basename(o.shell) === "bash" ? o.shell : null;
   const dock: [string, string][] =
     o.dock === "docklike"
@@ -614,6 +635,7 @@ export function lookFiles(home: string, o: LookOptions): LookFile[] {
     [KEEPER_AUTOSTART, keeperAutostart(home)],
     [`${LOOK_DIR}/wallpaper.png`, WALLPAPER],
     [`${LOOK_DIR}/mark.png`, MARK],
+    ...Object.entries(APP_ICONS).map(([name, data]): [string, Buffer] => [`${LOOK_DIR}/${name}`, data]),
   ];
   return files.map(([file, data]) => ({ path: file, data: Buffer.isBuffer(data) ? data : Buffer.from(data) }));
 }

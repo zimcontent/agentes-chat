@@ -160,7 +160,7 @@ describe("the look", () => {
     const { html } = renderEmail(verify, art);
     expect(html).toContain('<meta name="color-scheme" content="light dark">');
     expect(html).toContain(":root{color-scheme:light dark;");
-    expect(html).toContain("@media (prefers-color-scheme:dark){.bg{background:#0f0f0e!important}");
+    expect(html).toContain("@media (prefers-color-scheme:dark){.bg{background:#0a0a0a!important}");
     expect(html).toContain("[data-ogsb] .logo-ink{display:none!important}");
     expect(html).toContain('<!--[if !mso]><!--><img class="logo-bone"');
   });
@@ -168,23 +168,23 @@ describe("the look", () => {
   test("the button is the app's primary at its large size, in layers a client can drop one by one", () => {
     const { html } = renderEmail(EMAIL_SAMPLES["join_request.en"] as EmailTemplate, art);
     const lift =
-      "inset 0 1px 0 rgba(255,255,255,.18),inset 0 -1px 0 rgba(0,0,0,.3),0 1px 2px rgba(0,0,0,.18),0 6px 14px -6px rgba(0,0,0,.45)";
-    // The flat fill and the lift inline; the gradient only where a client reads the colour scheme.
-    expect(html).toContain(`background-color:#151514;border:1px solid #151514;border-radius:14px;box-shadow:${lift}`);
+      "inset 0 1px 0 rgba(255,255,255,.9),inset 0 -2px 0 rgba(63,102,0,.22),0 1px 2px rgba(10,10,10,.14),0 8px 18px -8px rgba(63,102,0,.55)";
+    // The flat green and the lift inline; the gradient only where a client reads the colour scheme.
+    expect(html).toContain(`background-color:#9cfa05;border:1px solid #9cfa05;border-radius:14px;box-shadow:${lift}`);
     expect(html).toContain(
-      "@media (prefers-color-scheme:light){.btn{background-image:linear-gradient(180deg,#3e3e3d 0%,#151514 100%)!important}}",
+      "@media (prefers-color-scheme:light){.btn{background-image:linear-gradient(180deg,#c5ff52 0%,#9cfa05 55%,#84e407 100%)!important}}",
     );
     expect(html).not.toMatch(/style="[^"]*background-image/);
     expect(html).toContain("font-size:15px;line-height:20px;font-weight:600;text-decoration:none;padding:13px 15px");
-    // Dark: the flat bone wherever our dark applies, and the bone gradient in a block of its own after Outlook's hooks.
-    expect(html).toContain(".btn{background:#efefec!important;color:#0f0f0e!important;border-color:#efefec!important}");
+    // Dark: the same green wherever our dark applies, and its gradient in a block of its own after Outlook's hooks.
+    expect(html).toContain(".btn{background:#9cfa05!important;color:#0a0a0a!important;border-color:#9cfa05!important}");
     const gradient =
-      "<style>\n@media (prefers-color-scheme:dark){.btn{background-image:linear-gradient(180deg,#c7c7c4 0%,#efefec 100%)!important}}\n</style>";
+      "<style>\n@media (prefers-color-scheme:dark){.btn{background-image:linear-gradient(180deg,#c5ff52 0%,#9cfa05 55%,#84e407 100%)!important}}\n</style>";
     expect(html.indexOf(gradient)).toBeGreaterThan(html.lastIndexOf("[data-ogsb] "));
     // Classic Outlook: its spacers in em at the 15 px label, both labels raised alike, no exact line height on a link.
     expect(html).toContain('<i style="mso-font-width:107%;mso-text-raise:187%" hidden>&emsp;</i>');
     expect(html).toContain('<i style="mso-font-width:107%" hidden>&emsp;&#8203;</i>');
-    expect(html).toContain('<span style="mso-text-raise:93%;color:#fbfbfa">Approve</span>');
+    expect(html).toContain('<span style="mso-text-raise:93%;color:#0a0a0a">Approve</span>');
     expect(html).toContain('<span style="mso-text-raise:93%">Deny</span>');
     expect(html).not.toMatch(/<a [^>]*mso-line-height-rule:exactly/);
     // Deny 16 px after the button, as the app spaces its actions. Four spaces where the width is ignored.
@@ -195,23 +195,51 @@ describe("the look", () => {
 
   test("the app's primary button is still the one the emails copy", () => {
     const styles = resolve(import.meta.dir, "../../ui/src/styles");
-    const css = readFileSync(`${styles}/components.css`, "utf8");
-    const at = css.lastIndexOf(".ac-btn--primary {");
+    // The identity's green button: its three greens, and the ink on it.
+    const identity = readFileSync(`${styles}/dougbot-tokens.css`, "utf8");
+    expect(identity).toContain("--db-verde-botao: linear-gradient(180deg, #c5ff52, #9cfa05 55%, #84e407);");
+    expect(identity).toContain("--db-verde-tinta: #0a0a0a;");
+    const css = readFileSync(`${styles}/doug.css`, "utf8");
+    const at = css.indexOf("[data-theme] .ac-btn--primary {");
     const primary = css.slice(at, css.indexOf("}", at));
-    expect(primary).toContain(
-      "linear-gradient(180deg, color-mix(in srgb, var(--ink) 82%, var(--bg)) 0%, var(--ink) 100%)",
-    );
-    for (const layer of [
-      "inset 0 1px 0 var(--b1-light)",
-      "inset 0 -1px 0 rgba(0, 0, 0, 0.3)",
-      "0 1px 2px rgba(0, 0, 0, 0.18)",
-      "0 6px 14px -6px rgba(0, 0, 0, 0.45)",
-    ])
-      expect(primary).toContain(layer);
-    expect(css).toMatch(/\[data-theme="light"\] \{[^}]*--b1-light: rgba\(255, 255, 255, 0\.18\);/);
+    expect(primary).toContain("background: var(--db-verde-botao);");
+    expect(primary).toContain("color: var(--db-palco);");
     const tokens = readFileSync(`${styles}/tokens.css`, "utf8");
     for (const lg of ["--control-h-lg: 48px", "--control-r-lg: 14px", "--control-px-lg: 16px", "--control-fs-lg: 15px"])
       expect(tokens).toContain(lg);
+  });
+
+  test("the colours are the identity's, light and dark", () => {
+    const identity = readFileSync(resolve(import.meta.dir, "../../ui/src/styles/dougbot-tokens.css"), "utf8");
+    const [darkStage, lightStage = ""] = identity.split('[data-theme="light"]');
+    const { html } = renderEmail(verify, art);
+    // Light, inline: the page, the card, its edge, the words.
+    for (const [token, used] of [
+      ["--db-palco: #f4f6f2;", `<body class="body bg" style="margin:0;padding:0;width:100%;background:#f4f6f2;`],
+      ["--db-palco-2: #ffffff;", `<td class="card" style="background:#ffffff;border:1px solid #dde0d8;`],
+      ["--db-linha: #dde0d8;", "border:1px solid #dde0d8;"],
+      ["--db-texto: #0a0a0a;", "font-weight:700;letter-spacing:-0.02em;color:#0a0a0a"],
+      ["--db-texto-2: #565a52;", "color:#565a52"],
+      ["--db-texto-leve: #62665e;", "color:#62665e"],
+    ] as const) {
+      expect(lightStage).toContain(token);
+      expect(html).toContain(used);
+    }
+    // Dark, by class.
+    for (const [token, used] of [
+      ["--db-palco: #0a0a0a;", ".bg{background:#0a0a0a!important}"],
+      ["--db-palco-2: #121212;", ".card{background:#121212!important;border-color:#262626!important}"],
+      ["--db-texto: #ededed;", ".ink{color:#ededed!important}"],
+      ["--db-texto-2: #999999;", ".mu{color:#999999!important}"],
+      ["--db-texto-leve: #8a8a8a;", ".fa{color:#8a8a8a!important}"],
+    ] as const) {
+      expect(darkStage).toContain(token);
+      expect(html).toContain(used);
+    }
+    // The headline in the identity's title face, the words in its text face.
+    expect(html).toContain("<h1 class=\"h1 ink\" style=\"margin:0 0 16px;font-family:'Manrope','Inter',");
+    // Nothing of the look this one replaced.
+    expect(html).not.toMatch(/sky-band|logo-ink-tile|Source Sans|alt="agentes\.chat"|Sent by agentes/);
   });
 
   test("the preheader is hidden by display alone, never coloured like the page", () => {
@@ -278,14 +306,14 @@ describe("the look", () => {
   test("the join code: first in the subject, large in a well, alone on its line, and no button", () => {
     const sample = EMAIL_SAMPLES["join_code.en"] as Extract<EmailTemplate, { kind: "join_code" }>;
     for (const [locale, subject, body] of [
-      ["en", "482913 is your agentes.chat code", "Type this code on the page to ask to join"],
-      ["pt-BR", "482913 é seu código do agentes.chat", "Digite este código na página para pedir para entrar na"],
+      ["en", "482913 is your DougBot code", "Type this code on the page to ask to join"],
+      ["pt-BR", "482913 é seu código do DougBot", "Digite este código na página para pedir para entrar na"],
     ] as const) {
       const e = renderEmail({ ...sample, locale, orgName: "Acme evil.com" }, art);
       expect(e.subject).toBe(subject);
       expect(e.text).toContain(`\n\n${body} Acme evil.${BREAK}com.\n\n482913\n\n`);
       expect(e.html).toContain(
-        'letter-spacing:8px;font-variant-numeric:tabular-nums;color:#151514;text-align:center">482913</td>',
+        'letter-spacing:8px;font-variant-numeric:tabular-nums;color:#0a0a0a;text-align:center">482913</td>',
       );
       expect(e.html).toContain('<table width="100%" class="well"');
       expect(e.html).not.toContain('class="btn"');
@@ -293,41 +321,41 @@ describe("the look", () => {
     }
   });
 
-  test("without EMAIL_FROM, the sender is agentes.chat at this server's host", () => {
-    expect(defaultEmailFrom("https://agentes.chat")).toBe("agentes.chat <ping@agentes.chat>");
-    expect(defaultEmailFrom("https://chat.acme.com:8443/")).toBe("agentes.chat <ping@chat.acme.com>");
+  test("without EMAIL_FROM, the sender is DougBot at this server's host", () => {
+    expect(defaultEmailFrom("https://dougbot.app")).toBe("DougBot <ping@dougbot.app>");
+    expect(defaultEmailFrom("https://chat.acme.com:8443/")).toBe("DougBot <ping@chat.acme.com>");
   });
 
-  test("the footer says who sent it: agentes.chat, or a self-hosted server by its host", () => {
-    expect(renderEmail(verify, emailArtAt("https://agentes.chat")).text).toContain("\nSent by agentes.chat.\n");
+  test("the footer says who sent it: DougBot, or a self-hosted server by its host", () => {
+    expect(renderEmail(verify, emailArtAt("https://agentes.chat")).text).toContain("\nSent by DougBot.\n");
     expect(renderEmail(verify, emailArtAt("https://chat.acme.com/")).text).toContain(
-      "\nSent by the agentes.chat server at chat.acme.com.\n",
+      "\nSent by the DougBot server at chat.acme.com.\n",
     );
     expect(renderEmail({ ...verify, locale: "pt-BR" }, emailArtAt("https://chat.acme.com")).text).toContain(
-      "Enviado pelo servidor do agentes.chat em chat.acme.com.",
+      "Enviado pelo servidor do DougBot em chat.acme.com.",
     );
   });
 
   test("on a narrow screen the host moves to the next line whole, with the word before it, never split at a hyphen", () => {
     const box = emailArtAt("https://161-97-103-35.sslip.io");
     expect(renderEmail(verify, box).html).toContain(
-      'Sent by the agentes.chat server <span style="display:inline-block">at 161-97-103-35.sslip.io.</span></p>',
+      'Sent by the DougBot server <span style="display:inline-block">at 161-97-103-35.sslip.io.</span></p>',
     );
     expect(renderEmail({ ...verify, locale: "pt-BR" }, box).html).toContain(
-      'Enviado pelo servidor do agentes.chat <span style="display:inline-block">em 161-97-103-35.sslip.io.</span></p>',
+      'Enviado pelo servidor do DougBot <span style="display:inline-block">em 161-97-103-35.sslip.io.</span></p>',
     );
-    expect(renderEmail(verify, box).text).toContain("\nSent by the agentes.chat server at 161-97-103-35.sslip.io.\n");
+    expect(renderEmail(verify, box).text).toContain("\nSent by the DougBot server at 161-97-103-35.sslip.io.\n");
     // Too long to share a 320 px line with the word before it, which would split it again or leave the word alone on
     // a line: it moves down alone.
     for (const host of ["ec2-203-0-113-25.compute-1.amazonaws.com", "agentes.consultoriaempresarialpaulista.com.br"]) {
       const far = emailArtAt(`https://${host}`);
       expect(renderEmail(verify, far).html).toContain(
-        `Sent by the agentes.chat server at <span style="display:inline-block">${host}.</span></p>`,
+        `Sent by the DougBot server at <span style="display:inline-block">${host}.</span></p>`,
       );
       expect(renderEmail({ ...verify, locale: "pt-BR" }, far).html).toContain(
-        `Enviado pelo servidor do agentes.chat em <span style="display:inline-block">${host}.</span></p>`,
+        `Enviado pelo servidor do DougBot em <span style="display:inline-block">${host}.</span></p>`,
       );
-      expect(renderEmail(verify, far).text).toContain(`\nSent by the agentes.chat server at ${host}.\n`);
+      expect(renderEmail(verify, far).text).toContain(`\nSent by the DougBot server at ${host}.\n`);
     }
   });
 
@@ -352,10 +380,10 @@ describe("the look", () => {
     const html = (id: string) => renderEmail(EMAIL_SAMPLES[id] as EmailTemplate, art).html;
     expect(html("verify_email.pt-BR")).toContain(`pode ignorar ${nobr}este e-mail.</span></p>`);
     expect(html("join_request.pt-BR")).toContain(`e pediu ${nobr}para entrar.</span></p>`);
-    expect(html("join_code.en")).toContain(`Souza Bakery ${nobr}on agentes.chat.</span></p>`);
+    expect(html("join_code.en")).toContain(`Souza Bakery ${nobr}on DougBot.</span></p>`);
     // A name in bold moves down with its period, still bold.
     expect(html("join_code.en")).toContain(
-      `to ask to join ${nobr}<b class="ink" style="font-weight:600;color:#151514">Souza Bakery</b>.</span></p>`,
+      `to ask to join ${nobr}<b class="ink" style="font-weight:600;color:#0a0a0a">Souza Bakery</b>.</span></p>`,
     );
     expect(html("computer_ready-ai.pt-BR")).toContain(`dos seus agentes ${nobr}está pronto</span></h1>`);
     // Headlines and paragraphs of every kind, the fallback's words before its address (which breaks anywhere); the
@@ -381,7 +409,7 @@ describe("the look", () => {
       const { html } = renderEmail(sample, art);
       const card = html.slice(
         html.indexOf('<td class="card"'),
-        html.indexOf('\n</td></tr>\n<tr><td style="padding:24px 0 0">'),
+        html.indexOf('\n</td></tr>\n<tr><td style="padding:20px 0 40px">'),
       );
       const last = card.slice(card.lastIndexOf("\n") + 1);
       // 2 px under a line of text; 6 px under the button for its shadow, 4 in dark, where the shadow doesn't show.
@@ -438,18 +466,8 @@ describe("the computer ready email's button: its first step", () => {
 
 describe("the picture over the headline", () => {
   const ready = EMAIL_SAMPLES["computer_ready-ai.en"] as Extract<EmailTemplate, { kind: "computer_ready" }>;
-  // The onboarding's own (`PRESET_LOOK` in the web and phone apps).
-  const theo = { color: "indigo", eyes: "round", accessory: "cap" };
-  const ada = { color: "green", eyes: "wide", accessory: "headphones" };
-  const lia = { color: "rose", eyes: "dots", accessory: "flower" };
-  const atlas = { color: "amber", eyes: "round", accessory: "antenna" };
-  const ONBOARDING = [
-    "agent-indigo-round-cap.png 36×46",
-    "agent-green-wide-headphones.png 36×46",
-    "agent-rose-dots-flower.png 36×46",
-    "agent-amber-round-antenna.png 36×46",
-  ];
-  const plain = (...colors: string[]) => colors.map((color) => ({ color, eyes: "round", accessory: "none" }));
+  /** The team a workspace with no agents shows: the identity's first four, the Doug first. */
+  const TEAM = ["bot-doug-2.png 44×44", "bot-rosa-1.png 44×44", "bot-sony-1.png 44×44", "bot-mark-1.png 44×44"];
   /** The pictures between the card's top and the headline, in order: file, size and alt text. */
   const scene = (t: EmailTemplate) => {
     const { html } = renderEmail(t, art);
@@ -458,75 +476,72 @@ describe("the picture over the headline", () => {
       ...top.matchAll(/<img src="https:\/\/x\.test\/email\/([^"]+)" width="(\d+)" height="(\d+)" alt="([^"]*)"/g),
     ].map(([, file, width, height, alt = ""]) => `${file} ${width}×${height} ${alt.replaceAll("&#39;", "'")}`.trim());
   };
-  const faces = (...colors: string[]) => colors.map((c) => `agent-${c}.png 32×32`);
-  const shown = (crew: typeof ready.crew) => scene({ ...ready, crew }).filter((p) => p.startsWith("agent-"));
+  const shown = (crew: typeof ready.crew) => scene({ ...ready, crew });
 
-  test("the computer ready email: its computer in a well, the workspace's agents half on each side, oldest first", () => {
-    const [teal, sky, computer, violet] = scene({ ...ready, crew: plain("teal", "sky", "violet") });
-    expect([teal, sky, violet]).toEqual(faces("teal", "sky", "violet"));
-    expect(computer).toBe("computer.png 62×84 Your agents' computer");
-    expect(scene({ ...ready, locale: "pt-BR" })).toContain("computer.png 62×84 O computador dos seus agentes");
-    const { html } = renderEmail({ ...ready, crew: plain("teal") }, art);
-    expect(html).toContain('<td width="50%" align="right" valign="bottom"><table');
-    expect(html).toContain('<td width="50%" align="left" valign="bottom"></td>');
-    expect(html.indexOf('class="well"')).toBeLessThan(html.indexOf("<h1 "));
-  });
-
-  test("at most four agents; none, or a job queued before pictures: the onboarding's own; an unknown colour is sky", () => {
-    expect(shown(plain("sky", "teal", "rose", "green", "amber", "violet"))).toEqual(
-      faces("sky", "teal", "rose", "green"),
-    );
-    expect(shown([])).toEqual(ONBOARDING);
-    expect(shown(undefined)).toEqual(ONBOARDING);
-    expect(shown([{ color: "mauve" }, {}])).toEqual(faces("sky", "sky"));
-    expect(shown([{ color: "#e0457b" }, { color: "#808080" }])).toEqual(faces("rose", "graphite"));
-  });
-
-  test("an onboarding agent's look is drawn whole, eyes and accessory; any other look is its colour's face", () => {
-    expect(shown([theo, ada, lia, atlas])).toEqual(ONBOARDING);
-    // Eyes left out are round, as the app draws them.
-    expect(shown([{ color: "indigo", accessory: "cap" }, { ...ada, eyes: "round" }, ...plain("rose")])).toEqual([
-      "agent-indigo-round-cap.png 36×46",
-      ...faces("green", "rose"),
+  test("each agent is the bot the app draws for it: the team's by name or handle, its trade's form otherwise", () => {
+    expect(
+      shown([
+        { name: "Rosa", handle: "rosa" },
+        // A name of its own, the team's handle.
+        { name: "Financeiro", handle: "chess" },
+        // The team's right hand is the Doug, whatever it is called.
+        { name: "Braço direito", handle: "bd", builtin: "right_hand" },
+        { name: "Sony" },
+      ]),
+    ).toEqual(["bot-rosa-1.png 44×44", "bot-chess-1.png 44×44", "bot-doug-2.png 44×44", "bot-sony-1.png 44×44"]);
+    // A free bot: its form from its trade (role, handle, name), its colour and eyes from its handle. Never the team's.
+    const [social, dev, other] = shown([
+      { name: "Social Media (ELMX)", handle: "social-elmx", role: "Posta nas redes" },
+      { name: "Ada", handle: "ada", role: "Engenharia de software" },
+      { name: "Ada", handle: "ada" },
     ]);
-    // A whole look's room for its accessory comes out of the gap after it: the bodies keep their spacing.
-    const stage = renderEmail({ ...ready, crew: [theo, ...plain("indigo")] }, art).html;
-    expect(stage).toContain(
-      '<td valign="bottom" style="padding:0 0px 2px 4px"><img src="https://x.test/email/agent-indigo-round-cap.png" width="36" height="46"',
-    );
-    expect(stage).toContain(
-      '<td valign="bottom" style="padding:0 4px 2px 4px"><img src="https://x.test/email/agent-indigo.png" width="32" height="32"',
-    );
-    const invitation = EMAIL_SAMPLES["invitation.en"] as Extract<EmailTemplate, { kind: "invitation" }>;
-    const row = renderEmail({ ...invitation, crew: [lia] }, art).html;
-    expect(row).toContain(
-      '<td valign="bottom" style="padding:0 4px 0px 0px"><img src="https://x.test/email/agent-rose-dots-flower.png"',
-    );
+    expect(social).toMatch(/^bot-quadrado-[0-3]-(pilula|largo|meia|ponto)-1\.png 44×44$/);
+    expect(dev).toMatch(/^bot-hexagono-[0-3]-(pilula|largo|meia|ponto)-1\.png 44×44$/);
+    expect(other).toMatch(/^bot-squircle-[0-3]-(pilula|largo|meia|ponto)-1\.png 44×44$/);
+    // The same agent, the same colour and eyes, whatever its trade says of its form.
+    expect(dev?.replace("hexagono", "squircle")).toBe(other);
   });
 
-  test("the welcome emails show the workspace's agents in a row, with no computer; the others show none", () => {
-    const withCrew: Record<string, string[]> = {
-      "invitation.en": faces("sky", "violet", "teal"),
-      "invitation.pt-BR": ONBOARDING,
-      "early_access.en": ONBOARDING,
-      "early_access_allowed.en": ONBOARDING,
-      "join_answer-joined.en": [...faces("graphite"), "agent-rose-dots-flower.png 36×46"],
-      "join_answer-invited.en": ONBOARDING,
-      "plan_waiting.pt-BR": ONBOARDING,
-    };
-    for (const [id, sample] of Object.entries(EMAIL_SAMPLES)) {
-      const expected = id.startsWith("computer_ready")
-        ? expect.arrayContaining([expect.stringMatching(/^computer\.png/)])
-        : (withCrew[id] ?? (id.startsWith("early_access") ? ONBOARDING : []));
-      expect({ id, pictures: scene(sample) }).toEqual({ id, pictures: expected });
-    }
-    // A row on the card itself; only the computer stands in a well.
-    const top = (id: string) => {
+  test("the bots stand in a row on the card, with or without the workspace's computer", () => {
+    for (const id of ["computer_ready-ai.en", "invitation.en"]) {
       const { html } = renderEmail(EMAIL_SAMPLES[id] as EmailTemplate, art);
-      return html.slice(html.indexOf('<td class="card"'), html.indexOf("<h1 "));
-    };
-    expect(top("invitation.en")).not.toContain('class="well"');
-    expect(top("computer_ready-ai.en")).toContain('class="well"');
+      const top = html.slice(html.indexOf('<td class="card"'), html.indexOf("<h1 "));
+      expect(top).toContain('<td valign="bottom" style="padding:0 8px 0 0"><img src="https://x.test/email/bot-');
+      expect(top).not.toContain('class="well"');
+      expect(top).not.toMatch(/computer\.png|agent-/);
+    }
+  });
+
+  test("at most four agents; none, or a job queued before pictures: the identity's own team", () => {
+    const six = ["a", "b", "c", "d", "e", "f"].map((handle) => ({ name: handle, handle }));
+    expect(shown(six)).toHaveLength(4);
+    expect(shown([])).toEqual(TEAM);
+    expect(shown(undefined)).toEqual(TEAM);
+  });
+
+  test("a look queued before the bots, a colour and no name, still shows a bot: two colours, two bots apart", () => {
+    const [sky, rose, none] = shown([{ color: "sky", eyes: "round", accessory: "none" }, { color: "rose" }, {}]);
+    for (const bot of [sky, rose, none])
+      expect(bot).toMatch(/^bot-squircle-[0-3]-(pilula|largo|meia|ponto)-1\.png 44×44$/);
+    expect(shown([{ color: "sky" }])).toEqual([sky ?? ""]);
+  });
+
+  test("the welcome emails show the workspace's agents in a row; the others show none", () => {
+    const withCrew = new Set([
+      "invitation.en",
+      "invitation.pt-BR",
+      "join_answer-joined.en",
+      "join_answer-invited.en",
+      "plan_waiting.pt-BR",
+    ]);
+    for (const [id, sample] of Object.entries(EMAIL_SAMPLES)) {
+      const pictures = scene(sample);
+      const has = withCrew.has(id) || id.startsWith("early_access") || id.startsWith("computer_ready");
+      expect({ id, shows: pictures.length > 0 }).toEqual({ id, shows: has });
+      // The Doug's picture has a version of its own (`DOUG_ART`): his drawing changed, the other bots' did not.
+      for (const picture of pictures) expect(picture).toMatch(/^bot-(doug-2|[a-z0-9-]+-1)\.png 44×44$/);
+    }
+    expect(scene(EMAIL_SAMPLES["early_access.en"] as EmailTemplate)).toEqual(TEAM);
   });
 
   test("the plain-text part is the same words, with no picture in it", () => {
@@ -535,69 +550,92 @@ describe("the picture over the headline", () => {
     expect(text).not.toContain(".png");
   });
 
-  test("a picture's agents are the workspace's oldest four, each with its look, the archived left out", async () => {
+  test("a picture's agents are the workspace's oldest four, each with who it is, the archived left out", async () => {
     f = await setup();
     const at = (minute: number) => new Date(Date.UTC(2026, 9, 1, 12, minute));
-    // The fixture's agent has no look: its face is sky.
     await f.db
       .update(schema.agents)
       .set({ createdAt: at(5) })
       .where(eq(schema.agents.id, f.agent.id));
-    const agent = (name: string, minute: number, appearance: typeof theo, archived = false) => ({
+    const look = { color: "rose", eyes: "dots", accessory: "flower" };
+    const agent = (name: string, minute: number, role: string, archived = false) => ({
       orgId: f.org.id,
       name,
       handle: name.toLowerCase(),
+      role,
       model: "claude-sonnet-5-5",
-      appearance,
+      appearance: look,
       createdAt: at(minute),
       archivedAt: archived ? at(30) : null,
     });
     await f.db
       .insert(schema.agents)
       .values([
-        agent("Lia", 3, lia),
-        agent("Theo", 1, theo),
-        agent("Gone", 0, atlas, true),
-        agent("Ada", 2, ada),
-        agent("Atlas", 9, atlas),
+        agent("Lia", 3, "Design"),
+        agent("Theo", 1, "Código"),
+        agent("Gone", 0, "", true),
+        agent("Ada", 2, "Financeiro"),
+        agent("Atlas", 9, ""),
       ]);
-    expect(await emailCrew(f.db, f.org.id)).toEqual([theo, ada, lia, {}]);
+    const crew = await emailCrew(f.db, f.org.id);
+    expect(crew.map((c) => [c.name, c.handle, c.role])).toEqual([
+      ["Theo", "theo", "Código"],
+      ["Ada", "ada", "Financeiro"],
+      ["Lia", "lia", "Design"],
+      [f.agent.name, f.agent.handle, expect.any(String)],
+    ]);
+    // Each one's trade is its bot's form.
+    expect(shown(crew).slice(0, 3)).toEqual([
+      expect.stringMatching(/^bot-hexagono-/),
+      expect.stringMatching(/^bot-moeda-/),
+      expect.stringMatching(/^bot-petala-/),
+    ]);
   });
 });
 
 describe("where the pictures come from", () => {
   test("every picture an email names is listed, and the web app has each one", () => {
-    expect(EMAIL_PICTURES).toContain("computer.png");
+    expect(EMAIL_PICTURES).toContain("doug-logo-ink-2.png");
+    expect(EMAIL_PICTURES).toContain("bot-doug-2.png");
+    // The team's seven, and every free bot: seven forms, four colours, four pairs of eyes.
+    expect(EMAIL_PICTURES).toHaveLength(2 + 7 + 7 * 4 * 4);
+    expect(new Set(EMAIL_PICTURES).size).toBe(EMAIL_PICTURES.length);
     for (const file of EMAIL_PICTURES)
       expect({ file, there: existsSync(join(WEB_DIR, "email", file)) }).toEqual({ file, there: true });
     for (const sample of Object.values(EMAIL_SAMPLES))
       for (const [, file = ""] of renderEmail(sample, art).html.matchAll(/src="https:\/\/x\.test\/email\/([^"]+)"/g))
         expect(EMAIL_PICTURES).toContain(file);
+    // The fonts and the browser notification's picture, served from the same folder.
+    for (const file of ["inter-latin.woff2", "manrope-latin.woff2", "doug-mark-2.png"])
+      expect({ file, there: existsSync(join(WEB_DIR, "email", file)) }).toEqual({ file, there: true });
+    expect(readFileSync(join(WEB_DIR, "sw.js"), "utf8")).toContain('const ICON = "/email/doug-mark-2.png";');
   });
 
-  test("attached: the computer ready email carries its computer and each face it shows once", async () => {
+  test("attached: the computer ready email carries each bot it shows once", async () => {
     const attached = await emailArtFor("http://localhost:3000", WEB_DIR, "auto");
     const ready = EMAIL_SAMPLES["computer_ready-ai.en"] as Extract<EmailTemplate, { kind: "computer_ready" }>;
-    const lia = { color: "rose", eyes: "dots", accessory: "flower" };
-    const teal = { color: "teal", eyes: "round", accessory: "none" };
-    const { html, inline } = renderEmail({ ...ready, crew: [lia, lia, teal, { color: "rose" }] }, attached);
-    expect(html).toContain('src="cid:computer@agentes.chat"');
-    expect(html).toContain('src="cid:agent-rose-dots-flower@agentes.chat"');
+    const rosa = { name: "Rosa" };
+    const { html, inline } = renderEmail(
+      { ...ready, crew: [rosa, rosa, { name: "Doug" }, { name: "Mark" }] },
+      attached,
+    );
+    expect(html).toContain('src="cid:bot-rosa-1@dougbot.app"');
+    expect(html).not.toContain('src="http');
     expect(inline.map((p) => p.filename)).toEqual([
-      "logo-ink-tile.png",
-      "logo-bone.png",
-      "computer.png",
-      "sky-band.png",
-      "agent-rose.png",
-      "agent-teal.png",
-      "agent-rose-dots-flower.png",
+      "doug-logo-ink-2.png",
+      "doug-logo-bone-2.png",
+      "bot-doug-2.png",
+      "bot-rosa-1.png",
+      "bot-mark-1.png",
     ]);
   });
 
   test("linked from this server's /email/, with the web font", () => {
     const { html, inline } = renderEmail(EMAIL_SAMPLES["verify_email.en"] as EmailTemplate, art);
-    expect(html).toContain('src="https://x.test/email/logo-ink-tile.png"');
-    expect(html).toContain("src:url('https://x.test/email/source-sans-3-latin.woff2')");
+    expect(html).toContain('src="https://x.test/email/doug-logo-ink-2.png"');
+    expect(html).toContain('alt="DougBot"');
+    expect(html).toContain("src:url('https://x.test/email/inter-latin.woff2')");
+    expect(html).toContain("src:url('https://x.test/email/manrope-latin.woff2')");
     expect(html).toContain('<a href="https://x.test" target="_blank"');
     expect(inline).toEqual([]);
   });
@@ -614,7 +652,8 @@ describe("where the pictures come from", () => {
       expect(faces).toEqual(
         from
           ? [
-              `@font-face{font-family:'Source Sans 3';font-style:normal;font-weight:200 900;font-display:swap;size-adjust:107%;src:url('${from}/email/source-sans-3-latin.woff2') format('woff2')}`,
+              `@font-face{font-family:'Inter';font-style:normal;font-weight:100 900;font-display:swap;src:url('${from}/email/inter-latin.woff2') format('woff2')}`,
+              `@font-face{font-family:'Manrope';font-style:normal;font-weight:200 800;font-display:swap;src:url('${from}/email/manrope-latin.woff2') format('woff2')}`,
             ]
           : [],
       );
@@ -625,9 +664,9 @@ describe("where the pictures come from", () => {
       expect(new Set(fetched)).toEqual(new Set(from ? [from] : []));
       // Its own style block, inside the comment classic Outlook skips. The face is the stack's first font, and
       // classic Outlook is told its own.
-      if (from) expect(html).toContain(`<!--[if !mso]><!--><style>${faces[0]}</style><!--<![endif]-->`);
+      if (from) expect(html).toContain(`<!--[if !mso]><!--><style>${faces.join("")}</style><!--<![endif]-->`);
       expect(html).toContain(
-        "font-family:'Source Sans 3',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,'Hiragino Sans','PingFang SC','Microsoft YaHei','Apple SD Gothic Neo','Malgun Gothic',sans-serif",
+        "font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,'Hiragino Sans','PingFang SC','Microsoft YaHei','Apple SD Gothic Neo','Malgun Gothic',sans-serif",
       );
       expect(html).toContain("<!--[if mso]>");
       expect(html).toMatch(/<!--\[if mso\]>.*font-family:'Segoe UI',Arial,sans-serif!important.*<!\[endif\]-->/);
@@ -642,19 +681,14 @@ describe("where the pictures come from", () => {
         kind: "approval_digest",
         locale: "en",
         orgName: "Acme",
-        items: [{ agentName: "Lia", agentColor: "rose", title: "Deploy", ageHours: 5 }],
+        items: [{ agentName: "Rosa", agentColor: "rose", title: "Deploy", ageHours: 5 }],
         url: "http://localhost:3000/org/o/approvals?open=a",
       },
       attached,
     );
-    expect(html).toContain('src="cid:logo-ink-tile@agentes.chat"');
-    expect(inline.map((p) => p.filename)).toEqual([
-      "logo-ink-tile.png",
-      "logo-bone.png",
-      "sky-band.png",
-      "agent-rose.png",
-    ]);
-    expect(inline[0]).toMatchObject({ cid: "logo-ink-tile@agentes.chat", contentType: "image/png" });
+    expect(html).toContain('src="cid:doug-logo-ink-2@dougbot.app"');
+    expect(inline.map((p) => p.filename)).toEqual(["doug-logo-ink-2.png", "doug-logo-bone-2.png", "bot-rosa-1.png"]);
+    expect(inline[0]).toMatchObject({ cid: "doug-logo-ink-2@dougbot.app", contentType: "image/png" });
     expect([...(inline[0]?.content ?? []).slice(1, 4)].map((c) => String.fromCharCode(c)).join("")).toBe("PNG");
   });
 
@@ -691,7 +725,7 @@ describe("where the pictures come from", () => {
 describe("jobs queued before this look", () => {
   test("old payloads, with no language or new fields, still render (in English, every language's fallback)", () => {
     const e = renderEmail({ kind: "verify_email", url: "u" });
-    expect(e.subject).toBe("Confirm your email for agentes.chat");
+    expect(e.subject).toBe("Confirm your email for DougBot");
     expect(e.html).toContain('<html lang="en"');
     const old: EmailTemplate[] = [
       { kind: "invitation", orgName: "Acme", inviterName: "", url: "https://x/invite/t", role: "member" },
@@ -750,9 +784,8 @@ describe("outbox delivery", () => {
     const attached: EmailArt = await emailArtFor("http://localhost:3000", WEB_DIR, "attach");
     await sendQueuedEmail(sender, { key: "k", to: ["a@b.c"], template: EMAIL_SAMPLES["verify_email.en"] }, attached);
     expect(sender.sent[0]?.inline?.map((p) => p.cid)).toEqual([
-      "logo-ink-tile@agentes.chat",
-      "logo-bone@agentes.chat",
-      "sky-band@agentes.chat",
+      "doug-logo-ink-2@dougbot.app",
+      "doug-logo-bone-2@dougbot.app",
     ]);
     await sendQueuedEmail(sender, { key: "k2", to: ["a@b.c"], template: EMAIL_SAMPLES["verify_email.en"] }, art);
     expect(sender.sent[1]).not.toHaveProperty("inline");
@@ -773,6 +806,8 @@ describe("outbox delivery", () => {
       template: {
         kind: "budget",
         agentColor: "rose",
+        // Who it is, for the bot the app draws for it.
+        agentLook: { handle: f.agent.handle, role: expect.any(String), builtin: null },
         url: `https://chat.example.com/org/${f.org.id}/agents/${f.agent.id}?tab=settings&sec=budget`,
       },
     });

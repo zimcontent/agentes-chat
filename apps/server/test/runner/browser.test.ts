@@ -214,7 +214,7 @@ function setup(over: Partial<BrowserManagerOptions> = {}, secrets: Record<string
       ...(extra.allowedDomains ? { allowedDomains: extra.allowedDomains } : {}),
     });
   // The fake appends one line per call: a line still being written (no newline yet) is left for the next read.
-  const logged = (): Logged[] =>
+  const everyCall = (): Logged[] =>
     existsSync(log)
       ? readFileSync(log, "utf8")
           .split("\n")
@@ -222,11 +222,13 @@ function setup(over: Partial<BrowserManagerOptions> = {}, secrets: Record<string
           .filter(Boolean)
           .map((l) => JSON.parse(l) as Logged)
       : [];
+  // Without the runner's own look at whether the agent's tab shows (`foreground`), which goes before any command.
+  const logged = (): Logged[] => everyCall().filter((l) => l.args.at(-1) !== "document.visibilityState");
   const page = (patch: Record<string, unknown>) => {
     const cur = existsSync(stateFile) ? JSON.parse(readFileSync(stateFile, "utf8")) : {};
     writeFileSync(stateFile, JSON.stringify({ ...cur, ...patch }));
   };
-  return { ws, home, manager, frames, sockets, folder, act, logged, page, chromes: chromes.started };
+  return { ws, home, manager, frames, sockets, folder, act, logged, everyCall, page, chromes: chromes.started };
 }
 
 class FakeSocket implements StreamSocket {
@@ -656,6 +658,57 @@ test("a click goes as a person's: the box, then a pointer path into it, a check 
   expect(t.logged().at(-1)?.args.slice(-4)).toEqual(["drag", "@e1", "@e2", "--human"]);
 });
 
+test("a tab in the background comes to the front before a command; one that shows is left alone", async () => {
+  let now = 1_000_000;
+  const logs: string[] = [];
+  const t = setup({ now: () => now, log: (l) => logs.push(l) });
+  const calls = () => t.everyCall().map((l) => l.args.slice(l.args.indexOf("--screenshot-dir") + 2).join(" "));
+  const LOOK = "eval document.visibilityState";
+  // Chrome came up with the tabs it had: the one `agent-browser` holds is behind the page Chrome started on.
+  t.page({ hidden: true });
+  expect(await t.act("open", ["https://a.example/"])).toMatchObject({ success: true });
+  // Looked at, found hidden, switched to again (which brings it to the front), then the command.
+  expect(calls()).toEqual([LOOK, "tab", "tab t1", "open https://a.example/"]);
+  expect(logs).toContain("the browser of dev brought its tab to the front");
+
+  // The commands of one batch share that look; a second later it is looked at again, and shows.
+  expect(await t.act("snapshot")).toMatchObject({ success: true });
+  expect(
+    calls()
+      .slice(4)
+      .filter((c) => c === LOOK),
+  ).toEqual([]);
+  now += 1_001;
+  expect(await t.act("snapshot")).toMatchObject({ success: true });
+  expect(calls().filter((c) => c === LOOK)).toHaveLength(2);
+  expect(calls().filter((c) => c === "tab t1")).toHaveLength(1);
+
+  // A tab that stays hidden (a window that can't come up) doesn't fail the command, and isn't tried at each one.
+  t.page({ hidden: true, staysHidden: true });
+  now += 1_001;
+  expect(await t.act("snapshot")).toMatchObject({ success: true });
+  now += 1_001;
+  expect(await t.act("snapshot")).toMatchObject({ success: true });
+  now += 1_001;
+  expect(await t.act("snapshot")).toMatchObject({ success: true });
+  expect(calls().filter((c) => c === "tab t1")).toHaveLength(2);
+  // Once it shows again, the next time it hides it is brought up as before.
+  t.page({ hidden: false, staysHidden: false });
+  now += 30_000;
+  expect(await t.act("snapshot")).toMatchObject({ success: true });
+  t.page({ hidden: true });
+  now += 1_001;
+  expect(await t.act("snapshot")).toMatchObject({ success: true });
+  expect(calls().filter((c) => c === "tab t1")).toHaveLength(3);
+
+  // Switching tabs and waiting need no page in front.
+  const before = calls().filter((c) => c === LOOK).length;
+  now += 31_000;
+  expect(await t.act("tab", ["2"])).toMatchObject({ success: true });
+  expect(await t.act("wait", ["10"])).toMatchObject({ success: true });
+  expect(calls().filter((c) => c === LOOK)).toHaveLength(before);
+});
+
 test("an action on a point of the page: the pointer goes along a path, text as keys when a field has the focus", async () => {
   const t = setup();
   await t.act("open", ["https://shop.example.com"]);
@@ -983,6 +1036,15 @@ describe("a person takes control while the agent's pointer and keys are going", 
       });
       // An idle page sends no frame: its first picture comes from the tab's socket too, not the held daemon.
       await waitFor(() => t.frames.some((f) => f.type === "browser.frame" && f.seq === 0));
+      // It says the size the tab itself has (a narrow sign-in window), not the 1280 the stream's status says for
+      // any page: a click mapped with the wrong width lands elsewhere on the page.
+      expect(t.frames.find((f) => f.type === "browser.frame" && f.seq === 0)).toMatchObject({
+        metadata: { deviceWidth: 500, deviceHeight: 487 },
+      });
+      // So does a frame of the stream, which `agent-browser` labels 1280×720 whatever its picture shows.
+      const labelled = { deviceWidth: 1280, deviceHeight: 720 };
+      stream.push({ type: "frame", seq: 4, data: jpegOf(500, 487), metadata: labelled });
+      expect(t.frames.at(-1)).toMatchObject({ seq: 4, metadata: { deviceWidth: 500, deviceHeight: 487 } });
       const startedAt = performance.now();
       const res = await t.manager.input(dev, [
         { kind: "mouse", type: "mouseMoved", x: 40, y: 50 },
@@ -997,7 +1059,9 @@ describe("a person takes control while the agent's pointer and keys are going", 
       expect(took).toBeLessThan(300);
       expect(relayed).toBe(0);
       expect(pages.map((p) => p.url)).toEqual([`ws://127.0.0.1:${t.chromes[0]?.port}/devtools/page/AB12CD34`]);
-      const calls = (pages[0] as FakePage).calls.filter((c) => c.method !== "Page.captureScreenshot");
+      const calls = (pages[0] as FakePage).calls.filter(
+        (c) => c.method !== "Page.captureScreenshot" && c.method !== "Page.getLayoutMetrics",
+      );
       expect(calls).toEqual([
         {
           method: "Input.dispatchMouseEvent",
@@ -1084,6 +1148,12 @@ describe("a person takes control while the agent's pointer and keys are going", 
   });
 });
 
+/** The start of a JPEG of that size, in base64: all a frame's size is read from. */
+function jpegOf(width: number, height: number): string {
+  const head = [0xff, 0xd8, 0xff, 0xc0, 0x00, 0x11, 0x08, height >> 8, height & 0xff, width >> 8, width & 0xff, 0x03];
+  return Buffer.from([...head, ...new Array(12).fill(0)]).toString("base64");
+}
+
 /** A tab's own DevTools socket (`connectPage`): records each call and answers it as Chrome does. */
 class FakePage extends FakeSocket {
   calls: { method: string; params: Record<string, unknown> }[] = [];
@@ -1095,7 +1165,9 @@ class FakePage extends FakeSocket {
         ? { result: { type: "boolean", value: true } }
         : msg.method === "Page.captureScreenshot"
           ? { data: Buffer.from("jpeg").toString("base64") }
-          : {};
+          : msg.method === "Page.getLayoutMetrics"
+            ? { cssLayoutViewport: { pageX: 0, pageY: 0, clientWidth: 500, clientHeight: 487 } }
+            : {};
     queueMicrotask(() => this.push({ id: msg.id, result }));
   }
 }
@@ -1326,14 +1398,17 @@ function fakeDevtools(down: number[], answer: (reply: () => void) => void = (rep
         const event = (method: string, params: object, sessionId?: string) =>
           ws.send(JSON.stringify({ method, params, ...(sessionId ? { sessionId } : {}) }));
         const result = (r: object) => ws.send(JSON.stringify({ id: msg.id, result: r }));
-        if (msg.method === "Target.setAutoAttach" && !msg.sessionId) {
+        if (msg.method === "Target.setDiscoverTargets") {
           answer(() => {
+            event("Target.targetCreated", { targetInfo: { type: "page", targetId: `tab-${n}` } });
             result({});
-            event("Target.attachedToTarget", {
-              sessionId: `page-${n}`,
-              targetInfo: { type: "page", targetId: `tab-${n}` },
-            });
           });
+        } else if (msg.method === "Target.attachToTarget") {
+          event("Target.attachedToTarget", {
+            sessionId: `page-${n}`,
+            targetInfo: { type: "page", targetId: `tab-${n}` },
+          });
+          result({});
         } else if (msg.method === "Network.enable") {
           event(
             "Network.requestWillBeSentExtraInfo",
@@ -1380,7 +1455,7 @@ test.if(posix)("a new Chrome's first command waits for its traffic counter to at
   try {
     const t = setup({ startChrome: chromesAt(held).start });
     const opened = t.act("open", ["https://a.example/"]);
-    await waitFor(() => held.asked.includes("Target.setAutoAttach"));
+    await waitFor(() => held.asked.includes("Target.setDiscoverTargets"));
     await Bun.sleep(300);
     expect(t.logged()).toEqual([]);
     reply();
@@ -2774,8 +2849,9 @@ test.if(posix)(
       seq: 0,
       data: expect.stringMatching(/^\/9j\//), // the JPEG the fake writes for a .jpg
       metadata: {
+        // The page's own size (what it answers), not the 1280×720 the stream's status says.
         deviceWidth: 1280,
-        deviceHeight: 720,
+        deviceHeight: 800,
         capturedAt: expect.any(Number),
         url: "https://shop.example.com/",
         title: "Loja",

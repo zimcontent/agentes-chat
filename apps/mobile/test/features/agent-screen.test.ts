@@ -7,6 +7,7 @@ import {
   pageCall,
   screenCall,
   screenEvent,
+  screenOffersRetry,
   screenPageStays,
   screenPageUrl,
   screenWaits,
@@ -133,6 +134,25 @@ describe("the page behind the agent's screen", () => {
     expect(screenWaits({ active: true, shown: "live", switching: false })).toBe(false);
     expect(screenWaits({ active: true, shown: "hidden", switching: false })).toBe(false);
     expect(screenWaits({ active: false, shown: "connecting", switching: false })).toBe(false);
+  });
+
+  test("a screen that can't be shown offers Tentar de novo on its one capsule, in every state that has it", () => {
+    const at = { lost: false, switching: false, stuck: false };
+    for (const shown of ["noRoom", "unavailable", "ended"] as const) {
+      expect(screenOffersRetry({ ...at, shown })).toBe(true);
+      expect(screenOffersRetry({ ...at, shown, switching: true })).toBe(true);
+    }
+    // Opening past its time, and a switch the live stream never took.
+    expect(screenOffersRetry({ ...at, shown: "connecting", stuck: true })).toBe(true);
+    expect(screenOffersRetry({ lost: true, shown: "live", switching: true, stuck: true })).toBe(true);
+    // Still opening, a switch over an opening screen, the live screen and the states with nothing to try again.
+    expect(screenOffersRetry({ ...at, shown: "connecting" })).toBe(false);
+    expect(screenOffersRetry({ ...at, shown: "connecting", switching: true, stuck: true })).toBe(false);
+    expect(screenOffersRetry({ ...at, shown: "live" })).toBe(false);
+    expect(screenOffersRetry({ ...at, shown: "live", switching: true })).toBe(false);
+    for (const shown of ["hidden", "offline", "busy", "paused", "held", "forbidden", "outdated"] as const) {
+      expect(screenOffersRetry({ ...at, shown })).toBe(false);
+    }
   });
 
   test("what a person typed stays a value, never code", () => {

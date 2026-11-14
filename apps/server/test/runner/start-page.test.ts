@@ -38,11 +38,13 @@ test("the start page is one self-contained file: no network, no other file, the 
   expect(html).toContain('<meta name="google" content="notranslate">');
   expect(html).toContain('aria-hidden="true"');
   expect(html).not.toMatch(/<a\b|<button\b/);
-  // The desktop's band right below the window shows the agentes.chat logo: the page carries no second one, and
-  // fades into that band's tone (desktop-look.ts's backdrop, 0.81 0.90 1.00).
-  expect(html).not.toContain("agentes<b>.chat");
+  // The desktop's counter right below the window shows the DougBot signature: the page carries no second one, only
+  // the Doug (drawn by the identity's code, an SVG inside the page) on the identity's light stage, no gradient.
+  expect(html).not.toContain("<b>Doug</b>");
   expect(html).not.toContain("wallpaper.png");
-  expect(html).toContain("linear-gradient(transparent,#cfe6ff)");
+  expect(html).toContain('<img src="data:image/svg+xml;base64,');
+  expect(html).toContain("background:#f4f6f2");
+  expect(html).not.toContain("gradient(transparent");
   // The same details: the file isn't written again. New ones: it is.
   const before = statSync(file).mtimeMs;
   prepareStartPage(dir, evil, data);

@@ -104,6 +104,19 @@ export const sessionAnswer = (event: ScreenEvent, cookie: string, server: string
 export const screenWaits = (s: { active: boolean; shown: DesktopViewState; switching: boolean }) =>
   s.active && (s.shown === "connecting" || (s.shown === "live" && s.switching));
 
+/**
+ * Whether the agent's screen says it can't be shown and offers Tentar de novo: it waited past its time (`lost`), or
+ * the stream is out of room, unavailable or ended. A switch still under way over an opening screen says that instead.
+ * The screen has one capsule: where this is true its tools give way to Tentar de novo, so two never sit on each other.
+ */
+export const screenOffersRetry = (s: { lost: boolean; shown: DesktopViewState; switching: boolean; stuck: boolean }) =>
+  s.lost ||
+  (!(s.switching && s.shown === "connecting") &&
+    (s.shown === "noRoom" ||
+      s.shown === "unavailable" ||
+      s.shown === "ended" ||
+      (s.shown === "connecting" && s.stuck)));
+
 export type PageCalls = {
   set: [{ connect: boolean; mode: DesktopMode }];
   retry: [];

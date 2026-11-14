@@ -16,7 +16,7 @@ export interface AgentAvatarProps {
   /** Box size in points. */
   size: number;
   mode?: AgentMode;
-  /** Kept for callers: DougBot's bots are still drawings (the Doug's wink is in the drawing itself). */
+  /** Kept for callers: DougBot's bots are still drawings (their eyes say the state by their shape). */
   live?: boolean;
   /** The agent's name, for screen readers. */
   name?: string;
@@ -43,9 +43,10 @@ export const PHOTO_RADIUS = 28 / 120;
 /**
  * An agent: its real photo when the person gave it one (`agent.photo`, ADR-less fork feature: the same contract as the
  * web), else its DougBot drawn by code (`dougbot-avatar.js`, IDENTIDADE.md §8) as SVG, never an image file. The form
- * says the trade, only the Doug is a portrait and smiles, and the mode/presence picks one of the five states (ok,
- * trabalhando, pedindo, terminou, dormindo). Below 60 the Doug closes on his face; from 44 up, and only on the dark
- * stage, the bot lights the floor under it (§7 "Tamanhos"). A photo that fails falls back to the drawing.
+ * says the trade, the Doug is a bot's head in a piece of green glass, and the mode/presence picks one of the five
+ * states (ok, trabalhando, pedindo, terminou, dormindo). Below 60 the Doug's head fills his piece; from 44 up, and
+ * only on the dark stage, the bot lights the floor under it (§7 "Tamanhos"). A photo that fails falls back to the
+ * drawing.
  */
 function AgentAvatarView({ agent, size, mode = "idle", name, expression, bodyless = false }: AgentAvatarProps) {
   const { scheme } = useTheme();

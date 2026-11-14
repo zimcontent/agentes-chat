@@ -54,7 +54,7 @@ const { users, organizations, organizationInvitations, agents, approvals } = sch
  * The sender's name when `EMAIL_FROM` is unset: the name on the logo and in the subjects. The self-host setup
  * writes the same into a new server's `.env` (`senderAt` in packages/setup/src/lib.ts).
  */
-const SENDER_NAME = "agentes.chat";
+const SENDER_NAME = "DougBot";
 
 /** The sender when `EMAIL_FROM` is unset, at this server's host (`loadConfig` sets the Cloud's: ping@agentes.chat). */
 export const defaultEmailFrom = (publicUrl: string) => `${SENDER_NAME} <ping@${new URL(publicUrl).hostname}>`;
@@ -179,8 +179,10 @@ export type EmailTemplate =
       locale?: EmailLocale;
       level: "warning" | "exhausted";
       agentName: string;
-      /** The agent's color (its face); none is sky. */
+      /** The agent's color, as the emails queued before the bots carry it. */
       agentColor?: string;
+      /** Who the agent is, for its bot (`botDoAgente`); none: its name alone says. */
+      agentLook?: Look;
       orgName: string;
       /** Share of the budget used (owners who aren't admins never see money). */
       percent: number;
@@ -192,7 +194,7 @@ export type EmailTemplate =
       locale?: EmailLocale;
       orgName: string;
       /** `agentName` empty: "an agent" in the email's language. */
-      items: { agentName: string; agentColor?: string; title: string; ageHours: number }[];
+      items: { agentName: string; agentColor?: string; agentLook?: Look; title: string; ageHours: number }[];
       url: string;
       /** `APPROVAL_REMINDER_HOURS` when it was queued: the footer says how often it comes. */
       afterHours?: number;
@@ -379,13 +381,24 @@ const CREW = 4;
  */
 export async function emailCrew(db: Executor, orgId: string): Promise<Look[]> {
   const rows = await db
-    .select({ appearance: agents.appearance })
+    .select({ name: agents.name, handle: agents.handle, role: agents.role, appearance: agents.appearance })
     .from(agents)
     .where(and(eq(agents.orgId, orgId), isNull(agents.archivedAt), isNull(agents.builtin)))
     .orderBy(asc(agents.createdAt), asc(agents.id))
     .limit(CREW);
-  return rows.map(({ appearance: a }) => ({ color: a?.color, eyes: a?.eyes, accessory: a?.accessory }));
+  return rows.map(({ name, handle, role, appearance: a }) => ({
+    name,
+    handle,
+    role,
+    color: a?.color,
+    eyes: a?.eyes,
+    accessory: a?.accessory,
+  }));
 }
+
+/** Who an agent is, for its bot in an email (`Look`). */
+const lookOf = (a: { handle: string; role: string; builtin: string | null } | undefined): Look | undefined =>
+  a && { handle: a.handle, role: a.role, builtin: a.builtin };
 
 /** A picture's agents: a job's own (cut to `CREW`), or the onboarding's when it has none. */
 const crewOr = (crew: Look[] | undefined) => (crew?.length ? crew.slice(0, CREW) : ONBOARDING_CREW);
@@ -567,7 +580,7 @@ function docOf(t: EmailTemplate, sender: string | null): EmailDoc {
             people: [
               {
                 name: inertText(t.agentName) || w.anAgent,
-                agent: t.agentColor ?? "sky",
+                agent: { ...t.agentLook, name: t.agentName, color: t.agentColor },
                 detail: c.used(`${Math.round(t.percent)}%`, org),
               },
             ],
@@ -592,7 +605,7 @@ function docOf(t: EmailTemplate, sender: string | null): EmailDoc {
           {
             people: shown.map((i) => ({
               name: inertText(i.agentName) || w.anAgent,
-              agent: i.agentColor ?? "sky",
+              agent: { ...i.agentLook, name: i.agentName, color: i.agentColor },
               detail: `${inertText(i.title, 120)} · ${c.age(Math.max(1, Math.round(i.ageHours)))}`,
             })),
           },
@@ -1112,7 +1125,10 @@ export async function queueBudgetEmail(
     .from(organizations)
     .where(eq(organizations.id, e.agent.orgId));
   if (recipients.length === 0 || !org) return;
-  const [look] = await db.select({ appearance: agents.appearance }).from(agents).where(eq(agents.id, e.agent.id));
+  const [look] = await db
+    .select({ handle: agents.handle, role: agents.role, builtin: agents.builtin, appearance: agents.appearance })
+    .from(agents)
+    .where(eq(agents.id, e.agent.id));
   const month = new Date().toISOString().slice(0, 7);
   const mode = await modeStamp(db, e.agent.orgId);
   const groups = emailsByLocale(
@@ -1130,6 +1146,7 @@ export async function queueBudgetEmail(
         level: e.level,
         agentName: e.agent.name,
         agentColor: look?.appearance?.color,
+        agentLook: lookOf(look),
         orgName: org.name,
         percent: budgetPercent(e.spentNanoUsd, e.budgetNanoUsd),
         url: `${publicUrl.replace(/\/$/, "")}/org/${e.agent.orgId}/agents/${e.agent.id}?tab=settings&sec=budget`,
@@ -1333,7 +1350,14 @@ export async function queueApprovalDigests(db: Database, publicUrl: string, afte
     .limit(500);
   if (due.length === 0) return 0;
   const agentRows = await db
-    .select({ id: agents.id, name: agents.name, appearance: agents.appearance })
+    .select({
+      id: agents.id,
+      name: agents.name,
+      handle: agents.handle,
+      role: agents.role,
+      builtin: agents.builtin,
+      appearance: agents.appearance,
+    })
     .from(agents)
     .where(inArray(agents.id, [...new Set(due.map((a) => a.agentId))]));
   const agentOf = new Map(agentRows.map((a) => [a.id, a]));
@@ -1372,6 +1396,7 @@ export async function queueApprovalDigests(db: Database, publicUrl: string, afte
             items: items.map((i) => ({
               agentName: agentOf.get(i.agentId)?.name ?? "",
               agentColor: agentOf.get(i.agentId)?.appearance?.color,
+              agentLook: lookOf(agentOf.get(i.agentId)),
               title: i.title,
               ageHours: (now.getTime() - i.createdAt.getTime()) / 3600_000,
             })),

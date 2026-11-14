@@ -30,17 +30,19 @@ export function LinkPill({ href, pill }: { href: string; pill: Pill }) {
       aria-label={linkPillLabel(t, pill)}
     >
       <span className="link-pill__mark" style={mark} />
-      {pill.kind ? (
-        <>
-          {pill.name}{" "}
-          <span className="link-pill__ref">
-            <Icon name={KIND_ICON[pill.kind]} size={14} />
-            {pill.ref}
-          </span>
-        </>
-      ) : (
-        linkPillText(t, pill)
-      )}
+      <span className="link-pill__text">
+        {pill.kind ? (
+          <>
+            {pill.name}{" "}
+            <span className="link-pill__ref">
+              <Icon name={KIND_ICON[pill.kind]} size={14} />
+              {pill.ref}
+            </span>
+          </>
+        ) : (
+          linkPillText(t, pill)
+        )}
+      </span>
     </a>
   );
 }

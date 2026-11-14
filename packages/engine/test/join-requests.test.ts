@@ -692,7 +692,7 @@ describe("words", () => {
       expect(shown.length).toBeLessThanOrEqual(60);
       // A real link, so no client links it on its own, and no hair spaces to break a copied address.
       expect(address).toBe("ana@example.com");
-      expect(e.html).toContain('<a class="ln-m" href="mailto:ana@example.com" style="color:#5c5c58;');
+      expect(e.html).toContain('<a class="ln-m" href="mailto:ana@example.com" style="color:#565a52;');
       expect(e.html).toContain(">ana@example.com</a>");
     }
   });
@@ -734,7 +734,7 @@ describe("words", () => {
     expect(answer("en", "denied").html).toContain("“Full &lt;b&gt;team&lt;/b&gt;”");
     expect(answer("en", "denied").html).not.toContain("https://a.test/x");
     expect(answer("en", "denied").html).toContain(
-      'this address asked to join Acme <span style="display:inline-block">on agentes.chat.</span>',
+      'this address asked to join Acme <span style="display:inline-block">on DougBot.</span>',
     );
     expect(answer("pt-BR", "joined").html).toContain("este endereço pediu para entrar na Acme");
   });

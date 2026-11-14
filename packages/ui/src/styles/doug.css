@@ -1983,7 +1983,7 @@ img.ac-logo__mark {
   color: var(--db-texto-leve);
 }
 
-/* ── Reduced motion: nothing moves (the Doug's wink is a drawing, not a motion). ── */
+/* ── Reduced motion: nothing moves (a bot's eyes say its state by their shape, not by moving). ── */
 @media (prefers-reduced-motion: reduce) {
   .ac-bot,
   .ac-bot * {

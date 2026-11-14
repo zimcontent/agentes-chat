@@ -2,7 +2,7 @@
  * Which DougBot each agent is: the one file to edit when the team changes (IDENTIDADE.md §6–7).
  *
  * 1. `BOTS_DO_TIME`: an agent whose name or handle is one of these is that bot of the identity (its form, color, eyes
- *    and detail are the package's). The Doug is the only portrait and the only one who smiles.
+ *    and detail are the package's). The Doug is the bot's head in the piece of green glass, the only green one.
  * 2. Every other agent gets a "free" bot, the same on every screen: its form from its trade (`OFICIOS`, read in its
  *    role, handle and name, first match wins), its color from `CORES_LIVRES` and its eyes from its handle's hash.
  *    Never green, never a mouth.
@@ -43,6 +43,13 @@ export const CORES_LIVRES = [
 ] as const;
 
 const OLHOS: DougBotOlhos[] = ["pilula", "largo", "meia", "ponto"];
+
+/**
+ * Every form and every pair of eyes a free bot may have: with `CORES_LIVRES`, all `botDoAgente` answers besides the
+ * team. For what must draw each bot ahead of time (the emails' pictures).
+ */
+export const FORMAS_LIVRES: readonly DougBotForma[] = [...new Set(OFICIOS.map((o) => o.forma)), "squircle"];
+export const OLHOS_LIVRES: readonly DougBotOlhos[] = OLHOS;
 
 const plain = (s: string) =>
   s
@@ -89,4 +96,5 @@ export function corDoBot(b: DougBotOpcoes): string {
   return b.bot ? DougBot.TIME[b.bot].cor : (b.cor ?? CORES_LIVRES[0]);
 }
 
+export type { DougBotOpcoes };
 export { DougBot };

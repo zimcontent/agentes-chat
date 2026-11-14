@@ -1072,7 +1072,20 @@ const BATCH_STEP_MS = 8;
  * own `click` watches for the dialog, `mouse up` doesn't): the batch outlasts that, to hear why.
  */
 const HELD_PRESS_MS = 33_000;
+/** How long a tab found showing is taken to still be: the commands of one batch share one look. */
+const SHOWN_MS = 1_000;
+/** How long before a tab that couldn't be told, or brought to the front, is looked at again. */
+const SHOWN_RETRY_MS = 30_000;
+/** Commands that need no page showing: they change which tab it is, or only wait. */
+const NO_PAGE = new Set(["tab", "wait", "dialog", "agentes:viewport"]);
 const VIEWPORT = "[window.innerWidth, window.innerHeight]";
+
+/** A page's size in its own pixels, or null when what was read isn't one. */
+function pageSize(width: unknown, height: unknown): { width: number; height: number } | null {
+  const w = Math.round(Number(width));
+  const h = Math.round(Number(height));
+  return Number.isFinite(w) && Number.isFinite(h) && w > 0 && h > 0 ? { width: w, height: h } : null;
+}
 
 /**
  * Run before every `snapshot`: a button or link with no words of its own (an icon, or an icon font's ligature such as
@@ -1627,6 +1640,13 @@ interface Stream {
   page?: PageLink;
   /** The page's size in CSS pixels, from the stream's status. */
   viewport?: { width: number; height: number };
+  /**
+   * The size of the page its frames show, read from the tab itself while a person drives it (`measureShown`), for the
+   * tab and picture size of `key`.
+   */
+  shown?: { key: string; width: number; height: number };
+  /** The `key` being read now. */
+  measuring?: string;
   /** A frame went out on this stream. */
   framed?: boolean;
   /** Closed by us (stop, mode off): no `ended` frame for an expected close. */
@@ -1696,6 +1716,10 @@ interface Session {
   link?: string;
   /** Where the agent's pointer was left on the page (`humanly`). */
   pointer?: Point;
+  /** Until when the agent's tab needs no look at whether it shows (`foreground`). */
+  shownUntil?: number;
+  /** Its tab was brought to the front and hasn't been seen showing since. */
+  broughtUp?: boolean;
   /** Where its `hover` left it. While that is still `pointer` (the same object), a menu it opened is taken to be open. */
   hovered?: Point;
   /**
@@ -2482,6 +2506,7 @@ export class BrowserManager {
       return answer;
     }
     if (!READS.has(command)) await this.ensureOwnChrome(agent, session, desktop, allowed, false, setup);
+    if (!NO_PAGE.has(command)) await this.foreground(session, stops);
     if (command === "agentes:viewport") {
       const answer = this.setViewport(session, browserViewportOf(args) ?? null);
       this.noteAct(session, command, args, answer, link);
@@ -2538,6 +2563,44 @@ export class BrowserManager {
       if (left) return { success: false, data: null, error: left };
     }
     return answer;
+  }
+
+  /**
+   * The tab `agent-browser` works in, brought to the front when it doesn't show. Chrome starts with the tabs it had
+   * (the agent's sign-ins on session cookies come back with them) in front of which it puts the page it was started
+   * on, and `agent-browser` attaches to the first tab it finds: one in the background. A page that doesn't show
+   * draws nothing and answers no pointer event. Measured on Chrome 156 with `agent-browser` 0.39.1: each
+   * `mouse move` there waited out 5 s, so a click's path ran into the 33 s of its batch (17% of the clicks and 41%
+   * of the fills of a day on one computer), a page's timers ran once a second, and a live view got no picture.
+   * `agent-browser`'s own tab switch brings a tab to the front, so it is told to switch to the tab it holds.
+   * Never an answer of its own: a look that fails, or a tab still hidden after it was brought up (a window someone
+   * minimized on the agent's desktop comes back up; one that can't is left), is tried again later and the command
+   * goes on.
+   */
+  private async foreground(session: Session, signal?: AbortSignal): Promise<void> {
+    if (!session.chrome || (session.shownUntil !== undefined && this.now() < session.shownUntil)) return;
+    const opts = { timeoutMs: QUICK_TIMEOUT_MS, ...(signal ? { signal } : {}) };
+    const later = () => {
+      session.shownUntil = this.now() + SHOWN_RETRY_MS;
+    };
+    const seen = await this.run(session, ["eval", "document.visibilityState"], opts);
+    const state = isRecord(seen.data) ? seen.data.result : null;
+    if (state !== "hidden") {
+      if (state !== "visible") return later();
+      session.shownUntil = this.now() + SHOWN_MS;
+      session.broughtUp = false;
+      return;
+    }
+    // Brought to the front the last time, and still hidden: it can't show now.
+    if (session.broughtUp) return later();
+    const tabs = await this.run(session, ["tab"], opts);
+    const list = isRecord(tabs.data) && Array.isArray(tabs.data.tabs) ? tabs.data.tabs : [];
+    const held = list.find((t) => isRecord(t) && t.active === true);
+    const id = isRecord(held) && typeof held.tabId === "string" ? held.tabId : null;
+    if (!id || !(await this.run(session, ["tab", id], opts)).success) return later();
+    session.shownUntil = this.now() + SHOWN_MS;
+    session.broughtUp = true;
+    this.opts.log(`the browser of ${session.agent.handle} brought its tab to the front`);
   }
 
   /**
@@ -2921,6 +2984,8 @@ export class BrowserManager {
       session.outdatedAt = undefined;
       session.headed = chrome.display !== undefined;
       session.aliveAt = null;
+      session.shownUntil = undefined;
+      session.broughtUp = false;
       session.memory = this.memoryCounters();
       await this.rememberChrome(chrome.pid, profile, chrome.display);
       void chrome.exited.then(() => {
@@ -4077,6 +4142,8 @@ export class BrowserManager {
         status = await this.run(session, ["stream", "status"], { timeoutMs: QUICK_TIMEOUT_MS });
         if (disconnected(status)) return null;
       }
+      // A tab in the background sends no picture: the person would watch a still page.
+      await this.foreground(session);
       if (!isRecord(status.data) || status.data.enabled !== true) {
         await this.run(session, ["stream", "enable"], { timeoutMs: QUICK_TIMEOUT_MS });
         status = await this.run(session, ["stream", "status"], { timeoutMs: QUICK_TIMEOUT_MS });
@@ -4239,6 +4306,7 @@ export class BrowserManager {
       return;
     }
     const scale = Number(m.pageScaleFactor);
+    const shown = this.shownSize(session, stream, msg.data) ?? { width, height };
     session.lastUsed = this.now();
     stream.framed = true;
     // Newest wins: the live view's window (`BrowserViews`) holds only the newest while the link is busy.
@@ -4248,8 +4316,8 @@ export class BrowserManager {
       seq,
       data: msg.data,
       metadata: {
-        deviceWidth: width,
-        deviceHeight: height,
+        deviceWidth: shown.width,
+        deviceHeight: shown.height,
         ...(Number.isFinite(scale) ? { pageScaleFactor: scale } : {}),
         capturedAt: captureTime(m.timestamp) ?? this.now(),
         ...pageMeta(session, stream),
@@ -4261,6 +4329,40 @@ export class BrowserManager {
     if (stream.owedTimer) return;
     stream.owedTimer = setTimeout(() => this.ackSource(stream), this.opts.sourceAckMs ?? SOURCE_ACK_MS);
     (stream.owedTimer as { unref?: () => void }).unref?.();
+  }
+
+  /**
+   * The size of the page a frame shows, which is where a person's click on it lands. `agent-browser` labels every
+   * frame 1280×720 whatever the page's size (a 500 pixel wide sign-in window, a 1264 pixel wide tab), so a click
+   * mapped with its label lands somewhere else on the page. The picture's own pixels are the page's on a screen of
+   * density 1 that fits the stream (headless and the agents' desktops); while a person drives, the tab says its
+   * size itself, read once per tab and picture size. Null when the picture can't be read: the label stays.
+   */
+  private shownSize(session: Session, stream: Stream, data: string): { width: number; height: number } | null {
+    // The start of the file holds its size: 64 KiB of it at most.
+    const picture = jpegSize(Buffer.from(data.slice(0, 87_380), "base64"));
+    if (!picture) return null;
+    const key = `${stream.targetId ?? ""}:${picture.width}x${picture.height}`;
+    if (stream.shown?.key === key) return stream.shown;
+    if (this.driving(session) && stream.measuring !== key) void this.measureShown(session, stream, key);
+    return picture;
+  }
+
+  private async measureShown(session: Session, stream: Stream, key: string) {
+    stream.measuring = key;
+    try {
+      const link = await this.pageLink(session, stream);
+      const metrics = link
+        ? await this.pageCall(link, { method: "Page.getLayoutMetrics", params: {} }, QUICK_TIMEOUT_MS)
+        : null;
+      const layout = metrics && isRecord(metrics.result) ? metrics.result.cssLayoutViewport : null;
+      const size = isRecord(layout) ? pageSize(layout.clientWidth, layout.clientHeight) : null;
+      if (size && session.stream === stream) stream.shown = { key, ...size };
+    } catch {
+      // not read: the picture's own size stays
+    } finally {
+      if (stream.measuring === key) stream.measuring = undefined;
+    }
   }
 
   /**
@@ -4308,8 +4410,11 @@ export class BrowserManager {
     });
     const waiting = () => session.stream === stream && !stream.framed && !this.closed && !!stream.viewport;
     if (!waiting()) return;
-    const sendShot = (data: string) => {
-      const size = stream.viewport;
+    // The picture is of the page as it is, so its size is the page's own: the stream's `status` says 1280×720 for a
+    // page of any size (a 500 pixel wide sign-in window among them), and a click on a picture labelled with a width
+    // the page doesn't have lands somewhere else on it.
+    const sendShot = (data: string, page: { width: number; height: number } | null) => {
+      const size = page ?? stream.viewport;
       if (!data || data.length > BROWSER_LIMITS.frameBytes || !size || !waiting()) return;
       stream.framed = true;
       this.opts.send({
@@ -4329,13 +4434,17 @@ export class BrowserManager {
     // in front of their input, nor holding that queue while they type.
     const link = this.driving(session) ? await this.pageLink(session, stream) : null;
     if (link) {
-      const shot = await this.pageCall(
-        link,
-        { method: "Page.captureScreenshot", params: { format: "jpeg", quality: 70 } },
-        QUICK_TIMEOUT_MS,
-      );
+      const [shot, metrics] = await Promise.all([
+        this.pageCall(
+          link,
+          { method: "Page.captureScreenshot", params: { format: "jpeg", quality: 70 } },
+          QUICK_TIMEOUT_MS,
+        ),
+        this.pageCall(link, { method: "Page.getLayoutMetrics", params: {} }, QUICK_TIMEOUT_MS),
+      ]);
       const data = shot && isRecord(shot.result) && typeof shot.result.data === "string" ? shot.result.data : "";
-      if (data) return sendShot(data);
+      const layout = metrics && isRecord(metrics.result) ? metrics.result.cssLayoutViewport : null;
+      if (data) return sendShot(data, isRecord(layout) ? pageSize(layout.clientWidth, layout.clientHeight) : null);
       if (!waiting()) return;
     }
     const file = path.join(this.opts.home, "browser", `${session.name}-frame.jpg`);
@@ -4347,7 +4456,11 @@ export class BrowserManager {
           ["screenshot", file, "--screenshot-format", "jpeg", "--screenshot-quality", "70"],
           { timeoutMs: QUICK_TIMEOUT_MS },
         );
-        sendShot(shot.success ? (await readFile(file)).toString("base64") : "");
+        if (!shot.success) return;
+        const seen = await this.run(session, ["eval", VIEWPORT], { timeoutMs: QUICK_TIMEOUT_MS });
+        const read = seen.success && isRecord(seen.data) ? seen.data.result : null;
+        const [width, height] = Array.isArray(read) ? read : [];
+        sendShot((await readFile(file)).toString("base64"), pageSize(width, height));
       } finally {
         await rm(file, { force: true }).catch(() => undefined);
       }

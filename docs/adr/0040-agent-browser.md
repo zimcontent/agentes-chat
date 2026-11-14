@@ -234,6 +234,32 @@ A person in control saw "this didn't reach the page" on a Cloudflare check: each
 - The relay stays the fallback: no target known, or a socket that doesn't open within 1 s (tried again after 10 s). A call the tab's socket took isn't sent again on the relay.
 - The socket closes with the stream, once the input queued on it has run. Nothing else changes: the agent's commands, frames and pacing stay on `agent-browser`.
 
+### 18. A frame says the size of the page it shows (2026-11-13)
+
+A person in control could type but not click: the page looked enlarged and every click landed elsewhere on it. `agent-browser` labels every frame of its stream 1280×720, and says the same in the stream's status, whatever the page's size: a sign-in window 500 pixels wide went out as 1280 wide, and the apps map a click on the picture with that width, so each landed 2.5 times too far right and down (measured with 0.39.1: a 1264×726 tab's frames say 1280×720).
+
+- A frame goes out with the size of its own picture, which is the page's on a screen of density 1 that fits the stream (headless, and the agents' desktops). While a person drives, the tab says its size itself (`Page.getLayoutMetrics` on its own socket, section 17), read once per tab and picture size, for screens where the picture is scaled.
+- The first picture of an idle page (a screenshot) says the size the page answers (`Page.getLayoutMetrics` on the tab's socket, else `window.innerWidth`/`innerHeight`), not the stream's status.
+- A picture that can't be read keeps the stream's label.
+
+### 19. The agent's tab is in front before a command (2026-11-14)
+
+On one computer over a day, 17% of the agents' clicks and 41% of their fills answered "The browser didn't answer within 33 s" (53 of the 61 that took over 30 s), each exactly at the limit of the batch that presses as a person does (`HELD_PRESS_MS`), in headless Chrome and on the agents' desktops alike. Chrome starts with the tabs it had (`--restore-last-session`, section 13) and shows the page it was started on, while `agent-browser` attaches to the first tab it finds: one in the background. A page that doesn't show draws nothing and answers no pointer event. Measured on Chrome 156 with `agent-browser` 0.39.1: each `mouse move` on such a tab waits out 5 s, so a pointer path of twenty moves never ends; its timers run once a second (the settle waits); and a live view gets no picture. Brought to the front, the same move takes 12 ms and the same click 0.7 s.
+
+- Before a command that needs the page, the runner asks the tab whether it shows (`document.visibilityState`), at most once a second, so the commands of one batch share one look. A hidden one is brought to the front by `agent-browser`'s own tab switch, to the tab it already holds (`foreground`).
+- A live view that opens does the same first.
+- It never fails a command. A look that can't be read, or a tab still hidden after it was brought up, is left for 30 s: on an agent's desktop a minimized window comes back up, and one that can't show is not asked at every command.
+- `tab`, `wait`, `dialog` and the page size are not preceded by it.
+
+### 20. A press that opens a window hears of its release (2026-11-14)
+
+A click on something that opens a new window (`window.open`: a "Continue with Google" button) answered "CDP command timed out: Input.dispatchMouseEvent" 30 s later, though it had landed (5 of the 61 slow ones of section 19, by their time). The runner's own connection to each Chrome (its traffic counter, which also tells of a page that died and guards a typed password, ADR 0144) asked for `Target.setAutoAttach` at the browser's level. Measured on Chrome 156 with `agent-browser` 0.39.1: while any client auto-attaches there, even one that leaves pages out and pauses nothing, the release of a press that opens a window is never answered; with none, or with one that only asks to be told of targets, it is answered in 0.1 s.
+
+- At the browser's level the runner asks to be told of targets (`Target.setDiscoverTargets`, Chrome's own UI and the tabs' wrappers left out) and attaches to each page, extension page, service worker and shared worker itself (`Target.attachToTarget`, flat). Frames and dedicated workers are still auto-attached under their page, as before: that does not hold a release.
+- What each session gets is unchanged (network events, the password guard's pause, the page size, the auto-attach under it), and so is what the guard waits for: a page that opens while a password is guarded is paused once it is attached, which neither way does before its first request.
+- The counter is attached once Chrome told of the targets it has and answered for each: a first command still waits for that.
+- The same click now takes 0.8 s.
+
 ## Order
 
 First version: stages 0–7. Difficulty: **easy** (known pattern, little risk), **medium** (new pieces on known patterns).
