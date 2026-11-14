@@ -89,6 +89,7 @@
   margin-top: var(--space-3);
 }
 .mp__tile {
+  position: relative;
   display: grid;
   place-items: center;
   width: 40px;

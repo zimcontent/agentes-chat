@@ -33,6 +33,8 @@ import {
   Meter,
   OptionCard,
   PageHeader,
+  ProviderLogo,
+  planLevel,
   RadioCard,
   RadioGroup,
   SearchField,
@@ -42,11 +44,13 @@ import {
   TabPanel,
   Tabs,
   Toolbar,
+  UsageRing,
 } from "@agenteschat/ui";
 import { type ReactNode, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { AgentAvatar } from "@/components/AgentAvatar";
 import { useTheme } from "@/lib/theme";
+import "@/components/ai/model-picker.css";
 
 /*
  * Development-only gallery (`/dev/gallery`). The sample content below is
@@ -308,6 +312,38 @@ export function GalleryPage() {
           </Chip>
           <Chip icon="close">Recusado</Chip>
           <CountBadge>2</CountBadge>
+        </div>
+      </Section>
+
+      <Section title="UsageRing">
+        <div className="mp__tiles">
+          {(
+            [
+              ["grok", 0],
+              ["claude_code", 12],
+              ["codex", 60],
+              ["cursor", 85],
+              ["antigravity", 93],
+              ["grok", 100],
+            ] as const
+          ).map(([id, used], i) => (
+            <button
+              key={`${id}:${used}`}
+              type="button"
+              className="mp__tile"
+              aria-pressed={i === 2}
+              aria-label={`${id}, 5h ${used}%`}
+              title={`${id}
+5 horas ${used}% · renova às 15:40
+Semana ${Math.round(used / 2)}% · renova sex às 10:00`}
+            >
+              <ProviderLogo id={id} size="sm" />
+              <UsageRing used={used} level={planLevel(used)} />
+            </button>
+          ))}
+          <button type="button" className="mp__tile" aria-label="anthropic" title="anthropic">
+            <ProviderLogo id="anthropic" size="sm" />
+          </button>
         </div>
       </Section>
 

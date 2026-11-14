@@ -1,7 +1,7 @@
-import { type Database, type Executor, eq, schema } from "@agenteschat/db";
+import { type Database, type Executor, eq, rowsOf, schema, sql } from "@agenteschat/db";
 import { isAutoModel, MODEL_TIERS, type ModelTier, modelForTier, modelInfo } from "@agenteschat/providers";
 import type { Agent } from "./agents";
-import { agentBrainSummaries, brainOf, CLAUDE_CODE_MODELS } from "./brain-settings";
+import { agentBrainSummaries, brainModelOptions, brainOf, CLAUDE_CODE_MODELS } from "./brain-settings";
 import type { BrainPlan } from "./brains/select";
 import type { BrainKind } from "./brains/types";
 import { caches } from "./cache";
@@ -295,8 +295,43 @@ export async function autoProvider(db: Executor, agent: Pick<Agent, "orgId" | "c
 }
 
 /**
+ * The model that last answered for each of these agents, as the apps name it: its label among the brain's models, the
+ * catalog's, else the id as the provider said it. One read per agent on `(org_id, agent_id, created_at)`. A computer
+ * brain reads only its own CLI's turns (a row from a brain it had before says nothing of now), an API brain only the
+ * calls a key paid. A row with no model named (`recordPlanUsage` stores the provider then) says nothing.
+ */
+async function lastAnswered(
+  db: Database,
+  orgId: string,
+  agents: readonly { id: string; kind: BrainKind }[],
+): Promise<Map<string, string>> {
+  const out = new Map<string, string>();
+  if (agents.length === 0) return out;
+  const rows = rowsOf<{ id: string; model: string; provider: string; plan: boolean }>(
+    await db.execute(sql`select a.id, u.model, u.provider, u.billed_to = 'plan' as plan
+      from unnest(${`{${agents.map((a) => a.id).join(",")}}`}::uuid[]) as a(id)
+      cross join lateral (
+        select r.model, r.provider, r.billed_to from ${schema.usageRecords} r
+        where r.org_id = ${orgId}::uuid and r.agent_id = a.id and r.kind = 'agent'
+        order by r.created_at desc limit 8
+      ) u`),
+  );
+  const kinds = new Map(agents.map((a) => [a.id, a.kind]));
+  for (const r of rows) {
+    const kind = kinds.get(r.id);
+    if (!kind || out.has(r.id) || r.model === r.provider) continue;
+    if (kind === "model" ? r.plan : r.provider !== kind) continue;
+    const known =
+      kind === "model" ? undefined : brainModelOptions(kind).find((o) => o.value === r.model || o.modelId === r.model);
+    out.set(r.id, known?.label ?? modelInfo(r.model)?.label ?? r.model);
+  }
+  return out;
+}
+
+/**
  * Each agent's brain summary for this viewer (`agentBrainSummaries`) and, for an API brain on Automático, the maker its
- * models come from (`autoProvider`), so the app shows that maker's logo and never a generic mark.
+ * models come from (`autoProvider`), so the app shows that maker's logo and never a generic mark. Where nobody chose
+ * a model (Automático, a CLI's own default), `answered` is the one that last answered for it (`lastAnswered`).
  */
 export async function agentBrainLines(
   db: Database,
@@ -306,9 +341,19 @@ export async function agentBrainLines(
     Pick<Agent, "orgId" | "model" | "credentialId">)[],
 ) {
   const out = await agentBrainSummaries(db, viewerId, orgId, agents);
+  const open = agents.flatMap((a) => {
+    const line = out.get(a.id);
+    if (!line) return [];
+    const chosen = line.kind === "model" ? !isAutoModel(a.model) : line.model !== null && !isAutoModel(a.brainModel);
+    return chosen ? [] : [{ id: a.id, kind: line.kind }];
+  });
+  const answered = await lastAnswered(db, orgId, open);
   for (const a of agents) {
     const line = out.get(a.id);
-    if (line?.kind === "model" && isAutoModel(a.model)) out.set(a.id, { ...line, maker: await autoProvider(db, a) });
+    if (!line) continue;
+    const model = answered.get(a.id);
+    const next = model ? { ...line, answered: model } : line;
+    out.set(a.id, line.kind === "model" && isAutoModel(a.model) ? { ...next, maker: await autoProvider(db, a) } : next);
   }
   return out;
 }
