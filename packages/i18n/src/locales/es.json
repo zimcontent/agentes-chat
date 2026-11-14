@@ -10742,6 +10742,16 @@
     "hue": "Tono",
     "hex": "Código hex",
     "useColor": "Usar este color",
+    "shape": "Forma",
+    "shapes": {
+      "squircle": "Redondeado",
+      "quadrado": "Cuadrado",
+      "petala": "Pétalo",
+      "monitor": "Monitor",
+      "torre": "Torre",
+      "moeda": "Moneda",
+      "hexagono": "Hexágono"
+    },
     "eyesNames": {
       "round": "Redondos",
       "dots": "Puntos",
@@ -10761,7 +10771,9 @@
       "beanie": "Gorro de lana",
       "party": "Gorro de fiesta",
       "flower": "Flor",
-      "scarf": "Bufanda"
+      "scarf": "Bufanda",
+      "tie": "Corbata",
+      "keys": "Llaves"
     }
   },
   "wiki": {

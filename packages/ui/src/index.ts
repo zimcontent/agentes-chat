@@ -67,12 +67,16 @@ export {
   default as DougBot,
 } from "./brand/dougbot-avatar.js";
 export {
+  ACESSORIOS_DO_PICKER,
   type AgenteParaBot,
   BOTS_DO_TIME,
   botDoAgente,
   CORES_LIVRES,
   corDoBot,
+  corDoLook,
+  lookDoBot,
   OFICIOS,
+  OLHOS_DO_PICKER,
 } from "./brand/dougbot-time";
 export { installLiquidGlass, lensSupported } from "./brand/liquid-glass";
 export { channelQuery, insertChannelRef } from "./channel-refs";
@@ -86,12 +90,16 @@ export {
 } from "./components/AccessDialog";
 export {
   AGENT_ACCESSORIES,
+  AGENT_BOT_ACCESSORIES,
   AGENT_COLORS,
   AGENT_EYES,
+  AGENT_SHAPES,
   type AgentAccessory,
   type AgentAppearance,
   type AgentColor,
   type AgentEyes,
+  type AgentFullLook,
+  type AgentShape,
   agentGradient,
   appearanceStyle,
   normalizeAppearance,

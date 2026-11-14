@@ -10050,6 +10050,16 @@
     "hue": "色相",
     "hex": "16進コード",
     "useColor": "この色を使う",
+    "shape": "形",
+    "shapes": {
+      "squircle": "角丸",
+      "quadrado": "四角",
+      "petala": "花びら",
+      "monitor": "モニター",
+      "torre": "タワー",
+      "moeda": "コイン",
+      "hexagono": "六角形"
+    },
     "eyesNames": {
       "round": "まる",
       "dots": "ドット",
@@ -10069,7 +10079,9 @@
       "beanie": "ニット帽",
       "party": "パーティー帽",
       "flower": "花",
-      "scarf": "マフラー"
+      "scarf": "マフラー",
+      "tie": "ネクタイ",
+      "keys": "鍵"
     }
   },
   "wiki": {

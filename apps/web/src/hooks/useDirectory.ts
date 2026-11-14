@@ -5,6 +5,7 @@ import { memberRoleColor } from "@agenteschat/client/lib/member-groups";
 import { type AgentColor, agentGradient, botDoAgente, corDoBot, DougBot } from "@agenteschat/ui";
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
+import { lookOf } from "@/lib/look";
 
 /** People and agents of the organization, by id and handle, for names and avatars. */
 export function useDirectory(orgId: string) {
@@ -50,7 +51,15 @@ export function useDirectory(orgId: string) {
       const agent = agentByHandle.get(handle.toLowerCase());
       // Its bot's color (IDENTIDADE.md: a bot's color shows where it is), a hex the chip's gradient takes.
       return agent
-        ? (corDoBot(botDoAgente({ name: agent.name, handle: agent.handle, role: agent.role, builtin: agent.builtin })) as AgentColor)
+        ? (corDoBot(
+            botDoAgente({
+              name: agent.name,
+              handle: agent.handle,
+              role: agent.role,
+              builtin: agent.builtin,
+              look: lookOf(agent),
+            }),
+          ) as AgentColor)
         : undefined;
     };
     /** A name's color in the bubbles, on a light and a dark surface: an agent's own, a person's role's; none: the ink. */
@@ -59,7 +68,11 @@ export function useDirectory(orgId: string) {
       // read AA on white.
       if (author.type === "agent") {
         const a = anyAgent(author.id ?? "");
-        const cor = corDoBot(botDoAgente(a ? { name: a.name, handle: a.handle, role: a.role, builtin: a.builtin } : { name: "" }));
+        const cor = corDoBot(
+          botDoAgente(
+            a ? { name: a.name, handle: a.handle, role: a.role, builtin: a.builtin, look: lookOf(a) } : { name: "" },
+          ),
+        );
         return [DougBot.mix(cor, "#000000", 0.55), cor] as const;
       }
       const color = memberRoleColor(memberById.get(author.id ?? "") ?? { role: "member" }, roles.data?.roles ?? []);

@@ -11,7 +11,7 @@ import {
 } from "@agenteschat/client/lib/agent-edit";
 import { handleAfterRename } from "@agenteschat/client/lib/new-agent";
 import { type RepoChoice, sameRepoChoice } from "@agenteschat/client/lib/repos";
-import type { AgentAppearance } from "@agenteschat/ui";
+import type { AgentFullLook } from "@agenteschat/ui";
 
 export * from "@agenteschat/client/lib/agent-edit";
 
@@ -22,7 +22,7 @@ export * from "@agenteschat/client/lib/agent-edit";
  * parts that load later (access, skills, the computer) never reset a draft.
  */
 
-export type Look = Required<AgentAppearance>;
+export type Look = AgentFullLook;
 
 /** What can be edited, as the server has it now. Parts not loaded yet are absent. */
 export interface Saved {

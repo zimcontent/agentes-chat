@@ -10829,6 +10829,16 @@
     "hue": "Tonalità",
     "hex": "Codice esadecimale",
     "useColor": "Usa questo colore",
+    "shape": "Forma",
+    "shapes": {
+      "squircle": "Arrotondato",
+      "quadrado": "Quadrato",
+      "petala": "Petalo",
+      "monitor": "Monitor",
+      "torre": "Torre",
+      "moeda": "Moneta",
+      "hexagono": "Esagono"
+    },
     "eyesNames": {
       "round": "Tondi",
       "dots": "Puntini",
@@ -10848,7 +10858,9 @@
       "beanie": "Berretta",
       "party": "Cappellino da festa",
       "flower": "Fiore",
-      "scarf": "Sciarpa"
+      "scarf": "Sciarpa",
+      "tie": "Cravatta",
+      "keys": "Chiavi"
     }
   },
   "wiki": {

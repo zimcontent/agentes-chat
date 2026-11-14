@@ -1,6 +1,6 @@
 import type { Level } from "@agenteschat/client/lib/access-levels";
 import { ROLE_DEFAULTS, ROLE_IDS, type RoleId } from "@agenteschat/client/lib/new-agent";
-import type { AgentAppearance, IconName } from "@agenteschat/ui";
+import type { AgentFullLook, IconName } from "@agenteschat/ui";
 
 export * from "@agenteschat/client/lib/new-agent";
 
@@ -11,7 +11,7 @@ export * from "@agenteschat/client/lib/new-agent";
 
 export interface RolePreset {
   icon: IconName;
-  look: Required<AgentAppearance>;
+  look: AgentFullLook;
   /** Levels by catalog connector id ("github"); connectors not listed start at "Sem acesso". */
   levels: Record<string, Level>;
   /** Channels it joins when the workspace has them (by name; only channels you're in). */

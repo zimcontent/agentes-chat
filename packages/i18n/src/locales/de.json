@@ -10435,6 +10435,16 @@
     "hue": "Farbton",
     "hex": "Hex-Code",
     "useColor": "Diese Farbe verwenden",
+    "shape": "Form",
+    "shapes": {
+      "squircle": "Abgerundet",
+      "quadrado": "Quadrat",
+      "petala": "Blütenblatt",
+      "monitor": "Monitor",
+      "torre": "Turm",
+      "moeda": "Münze",
+      "hexagono": "Sechseck"
+    },
     "eyesNames": {
       "round": "Rund",
       "dots": "Punkte",
@@ -10454,7 +10464,9 @@
       "beanie": "Mütze",
       "party": "Partyhut",
       "flower": "Blume",
-      "scarf": "Schal"
+      "scarf": "Schal",
+      "tie": "Krawatte",
+      "keys": "Schlüssel"
     }
   },
   "wiki": {

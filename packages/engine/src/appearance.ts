@@ -30,7 +30,12 @@ export const AGENT_LOOK = {
     "party",
     "flower",
     "scarf",
+    // Drawn only by the DougBot (IDENTIDADE.md §6): a tie and keys.
+    "tie",
+    "keys",
   ],
+  // The DougBot's forms: a look with a shape was picked for the bot and draws as picked (packages/tokens/src/look.ts).
+  shapes: ["squircle", "quadrado", "petala", "monitor", "torre", "moeda", "hexagono"],
 } as const;
 
 /** A custom color picked in "Personalizar": "#rrggbb", stored lowercase in the same field as a preset name. */
@@ -40,9 +45,15 @@ export interface AgentAppearance {
   color: (typeof AGENT_LOOK.colors)[number] | `#${string}`;
   eyes: (typeof AGENT_LOOK.eyes)[number];
   accessory: (typeof AGENT_LOOK.accessories)[number];
+  shape?: (typeof AGENT_LOOK.shapes)[number];
 }
 
-export function validateAppearance(input: { color?: unknown; eyes?: unknown; accessory?: unknown }): AgentAppearance {
+export function validateAppearance(input: {
+  color?: unknown;
+  eyes?: unknown;
+  accessory?: unknown;
+  shape?: unknown;
+}): AgentAppearance {
   const pick = <T extends string>(value: unknown, allowed: readonly T[], field: string, or = ""): T => {
     if (typeof value !== "string" || !allowed.includes(value as T)) {
       throw new ValidationError(`appearance.${field} must be one of: ${allowed.join(", ")}${or}`);
@@ -56,6 +67,7 @@ export function validateAppearance(input: { color?: unknown; eyes?: unknown; acc
         : pick(input.color, AGENT_LOOK.colors, "color", " or #rrggbb"),
     eyes: pick(input.eyes, AGENT_LOOK.eyes, "eyes"),
     accessory: pick(input.accessory ?? "none", AGENT_LOOK.accessories, "accessory"),
+    ...(input.shape == null ? {} : { shape: pick(input.shape, AGENT_LOOK.shapes, "shape") }),
   };
 }
 
@@ -68,7 +80,7 @@ export async function setAgentAppearance(
   actorId: string,
   orgId: string,
   agentId: string,
-  appearance: { color?: unknown; eyes?: unknown; accessory?: unknown } | null,
+  appearance: { color?: unknown; eyes?: unknown; accessory?: unknown; shape?: unknown } | null,
   options: { pubsub?: PubSub } = {},
 ): Promise<Agent> {
   const membership = await requirePermission(db, actorId, orgId, "read");

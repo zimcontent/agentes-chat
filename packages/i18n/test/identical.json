@@ -1,6 +1,7 @@
 {
   "app": {
     "pt-BR": [
+      "look.shapes.monitor",
       "usageViews.logins",
       "chat.wait.said",
       "access.area.skills",
@@ -589,7 +590,8 @@
       "portal.home.pipeline",
       "portal.home.produce",
       "portal.home.scheduled",
-      "portal.home.viewList"
+      "portal.home.viewList",
+      "look.shapes.monitor"
     ],
     "fr": [
       "channel.tooLong.fileName",
@@ -1502,7 +1504,8 @@
       "portal.home.produce",
       "portal.home.scheduled",
       "portal.home.viewList",
-      "portal.home.person"
+      "portal.home.person",
+      "look.shapes.monitor"
     ],
     "it": [
       "shell.email.label",
@@ -1889,7 +1892,8 @@
       "portal.home.pipeline",
       "portal.home.produce",
       "portal.home.scheduled",
-      "portal.home.viewList"
+      "portal.home.viewList",
+      "look.shapes.monitor"
     ],
     "nl": [
       "calendar.moreRuns",
@@ -2499,7 +2503,8 @@
       "portal.home.pipeline",
       "portal.home.produce",
       "portal.home.scheduled",
-      "portal.home.viewList"
+      "portal.home.viewList",
+      "look.shapes.monitor"
     ],
     "ja": [
       "channel.tooLong.fileName",
@@ -3386,7 +3391,8 @@
       "portal.home.pipeline",
       "portal.home.produce",
       "portal.home.scheduled",
-      "portal.home.viewList"
+      "portal.home.viewList",
+      "look.shapes.monitor"
     ],
     "tr": [
       "devices.cpus",
@@ -3912,7 +3918,8 @@
       "portal.home.pipeline",
       "portal.home.produce",
       "portal.home.scheduled",
-      "portal.home.viewList"
+      "portal.home.viewList",
+      "look.shapes.monitor"
     ],
     "ru": [
       "channel.tooLong.fileName",

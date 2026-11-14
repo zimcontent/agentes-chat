@@ -18,8 +18,8 @@ import { addsAgentsTo, can } from "@agenteschat/client/lib/permissions";
 import { connectorName, scopeText } from "@agenteschat/client/lib/scopes";
 import { isPersonal } from "@agenteschat/client/lib/workspace-mode";
 import {
-  type AgentAppearance,
   type AgentColor,
+  type AgentFullLook,
   agentTones,
   Button,
   Dialog,
@@ -58,11 +58,13 @@ import { useApi } from "@/api/context";
 import { useConnectedById } from "@/components/AccessLevels";
 import { AgentAvatar } from "@/components/AgentAvatar";
 import { LookPicker } from "@/components/AgentFields";
+import { type CroppedPhoto, photoForm, photoUrlOf } from "@/components/AgentPhoto";
 import { useConnectAi } from "@/components/ConnectAi";
 import { ConnectFlow, type FlowState } from "@/components/ConnectFlow";
 import { ConnectorIcon } from "@/components/ConnectorCatalog";
 import { useMediaQuery } from "@/components/NavDrawer";
 import { useOrg } from "@/components/org-context";
+import { ImageCropDialog } from "@/components/ProfilePhoto";
 import { agentCoverOptions, facePool } from "@/components/Sky";
 import {
   BLANK_LOOK,
@@ -99,7 +101,7 @@ const ImportAgentsDialog = lazy(() => import("./ImportAgentsDialog").then((m) =>
  * what is missing (first tasks and the apps still to connect included).
  */
 
-type Look = Required<AgentAppearance>;
+type Look = AgentFullLook;
 type LookPatch = Partial<Look>;
 type TeamRole = Exclude<RoleId, "custom">;
 /** A starting point: from scratch, a personal starter or a team's ready-made role. */
@@ -385,6 +387,9 @@ function NewAgentDialog({
     return all;
   });
   const [lookOpen, setLookOpen] = useState(false);
+  // A photo for the card being made (sent once the agent exists), each card its own.
+  const [photos, setPhotos] = useState<Partial<Record<Pick, CroppedPhoto>>>({});
+  const [photoOpen, setPhotoOpen] = useState(false);
   // Narrow: the list, then the card (back keeps the pick and every card's edits). Back from a provider's page, the card.
   const steps = useMediaQuery(NEW_AGENT_STEPS_QUERY);
   const [step, setStep] = useState<"list" | "card">(back ? "card" : "list");
@@ -458,6 +463,8 @@ function NewAgentDialog({
   const draft = drafts[sel] ?? fresh(sel);
   const update = (patch: Partial<Draft>) => setDrafts((all) => ({ ...all, [sel]: { ...draft, ...patch } }));
   const look: Look = preview ? { ...draft.look, ...preview } : draft.look;
+  const photo = photos[sel];
+  const photoUrl = photo ? photoUrlOf(photo) : null;
   const name = draft.name.trim();
   const g = agentGrammar(name);
   const role = roleOf(sel);
@@ -698,6 +705,7 @@ function NewAgentDialog({
       // The rest one part at a time: what fails is said, and it still ends on the new agent.
       const failures: unknown[] = [];
       await savePart(failures, () => brain.apply(agent.id));
+      if (photo) await savePart(failures, () => api.agents.setAgentPhoto(org.id, agent.id, photoForm(photo)));
       if (joins.length > 0)
         await savePart(failures, () =>
           api.agents.setChannels(
@@ -914,6 +922,7 @@ function NewAgentDialog({
                   <span className="nac__hero" ref={hero}>
                     <AgentAvatar
                       appearance={look}
+                      agent={{ name: name || t("newAgentCard.zero"), role: roleName, handle, photo: photoUrl }}
                       name={name || t("newAgentCard.zero")}
                       size="xl"
                       framed={false}
@@ -1021,7 +1030,33 @@ function NewAgentDialog({
                 <div className="nac__body" ref={body}>
                   {lookOpen ? (
                     <div className="nac__look">
-                      <LookPicker look={draft.look} onPick={setLook} onPreview={setPreview} />
+                      <LookPicker
+                        look={draft.look}
+                        who={{ name: name || t("newAgentCard.zero"), role: roleName, handle }}
+                        onPick={setLook}
+                        onPreview={setPreview}
+                        photo={{
+                          url: photoUrl,
+                          onSend: () => setPhotoOpen(true),
+                          onRemove: () => setPhotos((all) => ({ ...all, [sel]: undefined })),
+                        }}
+                      />
+                      <ImageCropDialog
+                        open={photoOpen}
+                        onClose={() => setPhotoOpen(false)}
+                        title={t("photo.agent.dialogTitle")}
+                        help={t("photo.help")}
+                        placeholder={<AgentAvatar appearance={look} name={name} size="lg" />}
+                        hasImage={Boolean(photo)}
+                        removeLabel={t("photo.agent.useBot")}
+                        save={async (image) => {
+                          setPhotos((all) => ({ ...all, [sel]: image }));
+                          react();
+                        }}
+                        remove={async () => setPhotos((all) => ({ ...all, [sel]: undefined }))}
+                        onSaved={() => {}}
+                        onRemoved={() => {}}
+                      />
                     </div>
                   ) : (
                     <>

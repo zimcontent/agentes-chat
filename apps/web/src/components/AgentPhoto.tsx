@@ -8,10 +8,24 @@ import { ImageCropDialog } from "@/components/ProfilePhoto";
 import { useToast } from "@/lib/toast";
 
 /** The cropped square (base64) as the file the photo endpoint takes (multipart, its `file` field). */
-function blobOf(image: { imageBase64: string; contentType: string }): Blob {
+export function blobOf(image: CroppedPhoto): Blob {
   const bytes = Uint8Array.from(atob(image.imageBase64.replace(/^data:[^;]+;base64,/, "")), (c) => c.charCodeAt(0));
   return new Blob([bytes], { type: image.contentType });
 }
+
+/** A square cut by `ImageCropDialog`, before it is sent. */
+export type CroppedPhoto = { imageBase64: string; contentType: string };
+
+/** The photo endpoint's form: the image in `file`. */
+export function photoForm(image: CroppedPhoto): FormData {
+  const form = new FormData();
+  form.append("file", blobOf(image), "photo");
+  return form;
+}
+
+/** A cropped square as an address an `<img>` shows (the preview before the agent exists). */
+export const photoUrlOf = (image: CroppedPhoto) =>
+  image.imageBase64.startsWith("data:") ? image.imageBase64 : `data:${image.contentType};base64,${image.imageBase64}`;
 
 /**
  * "Foto": an agent's real photo in place of its drawn bot (cut to the bot's shape, its state still shown), or back to
@@ -61,11 +75,7 @@ export function AgentPhotoBlock({
         placeholder={<AgentAvatar agentId={agent.id} name={agent.name} size="lg" />}
         hasImage={Boolean(agent.photo)}
         removeLabel={t("photo.agent.useBot")}
-        save={(image) => {
-          const form = new FormData();
-          form.append("file", blobOf(image), "photo");
-          return send.mutateAsync(form);
-        }}
+        save={(image) => send.mutateAsync(photoForm(image))}
         remove={() => remove.mutateAsync()}
         onSaved={() => toast.show(t("photo.agent.saved"))}
         onRemoved={() => toast.show(t("photo.agent.removed"))}

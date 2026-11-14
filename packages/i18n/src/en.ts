@@ -10655,6 +10655,16 @@ export const en = {
     hue: "Hue",
     hex: "Hex code",
     useColor: "Use this color",
+    shape: "Shape",
+    shapes: {
+      squircle: "Rounded",
+      quadrado: "Square",
+      petala: "Petal",
+      monitor: "Monitor",
+      torre: "Tower",
+      moeda: "Coin",
+      hexagono: "Hexagon",
+    },
     eyesNames: { round: "Round", dots: "Dots", wide: "Wide", happy: "Happy", sleepy: "Sleepy" },
     accessories: {
       none: "None",
@@ -10669,6 +10679,8 @@ export const en = {
       party: "Party hat",
       flower: "Flower",
       scarf: "Scarf",
+      tie: "Tie",
+      keys: "Keys",
     },
   },
   wiki: {

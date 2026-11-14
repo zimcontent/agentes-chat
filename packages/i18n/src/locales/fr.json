@@ -10811,6 +10811,16 @@
     "hue": "Teinte",
     "hex": "Code hexadécimal",
     "useColor": "Choisir cette couleur",
+    "shape": "Forme",
+    "shapes": {
+      "squircle": "Arrondi",
+      "quadrado": "Carré",
+      "petala": "Pétale",
+      "monitor": "Écran",
+      "torre": "Tour",
+      "moeda": "Pièce",
+      "hexagono": "Hexagone"
+    },
     "eyesNames": {
       "round": "Ronds",
       "dots": "Points",
@@ -10830,7 +10840,9 @@
       "beanie": "Bonnet",
       "party": "Chapeau de fête",
       "flower": "Fleur",
-      "scarf": "Écharpe"
+      "scarf": "Écharpe",
+      "tie": "Cravate",
+      "keys": "Clés"
     }
   },
   "wiki": {

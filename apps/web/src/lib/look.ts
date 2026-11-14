@@ -1,5 +1,5 @@
 import { BLANK_LOOK } from "@agenteschat/client/lib/new-agent";
-import { type AgentAppearance, normalizeAppearance, type RunWho } from "@agenteschat/ui";
+import { type AgentAppearance, type AgentFullLook, normalizeAppearance, type RunWho } from "@agenteschat/ui";
 
 /** An agent's look for `<Avatar appearance>` (unknown values fall back to the default). */
 export const lookOf = (agent: { appearance?: unknown } | undefined | null): AgentAppearance | undefined =>
@@ -11,9 +11,10 @@ export const botWhoOf = (
 ): RunWho | undefined =>
   agent ? { name: agent.name, handle: agent.handle, role: agent.role, builtin: agent.builtin } : undefined;
 
-/** Every part of a look, the blank one's where it has none (the editors need all three). */
-export const fullLook = (a: AgentAppearance | undefined): Required<AgentAppearance> => ({
+/** Every part of a look, the blank one's where it has none (the editors need all three), and its form if picked. */
+export const fullLook = (a: AgentAppearance | undefined): AgentFullLook => ({
   color: a?.color ?? BLANK_LOOK.color,
   eyes: a?.eyes ?? BLANK_LOOK.eyes,
   accessory: a?.accessory ?? BLANK_LOOK.accessory,
+  ...(a?.shape ? { shape: a.shape } : {}),
 });

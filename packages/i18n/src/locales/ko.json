@@ -10044,6 +10044,16 @@
     "hue": "색조",
     "hex": "헥스 코드",
     "useColor": "이 색상 사용",
+    "shape": "모양",
+    "shapes": {
+      "squircle": "둥근 모양",
+      "quadrado": "사각형",
+      "petala": "꽃잎",
+      "monitor": "모니터",
+      "torre": "타워",
+      "moeda": "동전",
+      "hexagono": "육각형"
+    },
     "eyesNames": {
       "round": "동그란 눈",
       "dots": "점 눈",
@@ -10063,7 +10073,9 @@
       "beanie": "비니",
       "party": "파티 모자",
       "flower": "꽃",
-      "scarf": "목도리"
+      "scarf": "목도리",
+      "tie": "넥타이",
+      "keys": "열쇠"
     }
   },
   "wiki": {

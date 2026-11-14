@@ -1,4 +1,3 @@
-import { AgentPhotoBlock } from "@/components/AgentPhoto";
 import {
   type AgentAudience,
   useAgentDetail,
@@ -33,12 +32,14 @@ import { AgentComputerPanel } from "@/components/AgentComputer";
 import {
   BudgetField,
   InPlaceText,
+  LookRows,
   NO_OWNER,
   OwnerSelect,
   OwnerValue,
   RoleTag,
   usd,
 } from "@/components/AgentFields";
+import { AgentPhotoBlock } from "@/components/AgentPhoto";
 import { AgentSecretsList } from "@/components/AgentSecrets";
 import { LoadingLine } from "@/components/Loading";
 import { useOrg } from "@/components/org-context";
@@ -282,7 +283,13 @@ export function SettingsTab({
             >
               <div className="agp-id">
                 <span className="agp-id__look">
-                  <AgentAvatar agentId={agent.id} size="lg" framed={false} name={draft.name || agent.name} />
+                  <AgentAvatar
+                    agentId={agent.id}
+                    appearance={draft.look}
+                    size="lg"
+                    framed={false}
+                    name={draft.name || agent.name}
+                  />
                 </span>
                 <div className="agp-id__fields">
                   <IdentityCard />
@@ -314,7 +321,15 @@ export function SettingsTab({
                   {part === "all" && <ReportsTo />}
                 </div>
               </div>
-              {/* DougBot: the bot comes from the agent's trade (IDENTIDADE.md §6); what a person picks is a photo. */}
+              {/* DougBot: the bot comes from the agent's trade (IDENTIDADE.md §6) until a person picks its form, color,
+                eyes and accessory here, or a photo in its place. */}
+              {can("look") && (
+                <LookRows
+                  look={draft.look}
+                  who={{ name: draft.name || agent.name, handle: draft.handle, role: draft.role }}
+                  onChange={(look) => set("look", look)}
+                />
+              )}
               <AgentPhotoBlock agent={agent} canEdit={can("look")} />
             </Section>
           )}

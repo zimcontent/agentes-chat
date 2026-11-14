@@ -10,7 +10,9 @@
  *
  * Pure (no React Native): unit-tested.
  */
+import { gradientOf } from "@agenteschat/ui/agent/engine";
 import DougBot, {
+  type DougBotAcessorio,
   type DougBotEstado,
   type DougBotForma,
   type DougBotNome,
@@ -80,6 +82,31 @@ export interface AgenteParaBot {
   role?: string | null;
   /** When there is no name (a look being picked, a sample): a steady key for the free bot. */
   id?: string | null;
+  /** The look picked for it (the web's picker): with a `shape`, the bot is drawn as picked (the Doug stays the Doug). */
+  look?: { shape?: string; color?: string; eyes?: string; accessory?: string } | null;
+}
+
+/** The look's eyes and accessories → the bot's, as on the web (`packages/ui/src/brand/dougbot-time.ts`). */
+const OLHOS_DO_LOOK: Record<string, DougBotOlhos> = {
+  round: "pilula",
+  dots: "ponto",
+  wide: "largo",
+  sleepy: "meia",
+  happy: "pilula",
+};
+const ACESSORIO_DO_LOOK: Record<string, DougBotAcessorio> = {
+  headphones: "fone",
+  headset: "fone",
+  tie: "gravata",
+  keys: "chaves",
+};
+const FORMAS: readonly string[] = ["squircle", "quadrado", "petala", "monitor", "torre", "moeda", "hexagono"];
+
+/** A look color as the bot's one color: a custom "#rrggbb" as is, a preset the middle of its gradient. */
+function corDoLook(color: string | undefined): string {
+  if (color && /^#[0-9a-f]{6}$/i.test(color)) return color.toLowerCase();
+  const [top, bottom] = gradientOf(color ?? "sky");
+  return DougBot.mix(top, bottom, 0.5);
 }
 
 /** The identity's bot for an agent, or its free bot. Same answer for the same agent, everywhere. */
@@ -87,6 +114,18 @@ export function botDoAgente(a: AgenteParaBot): DougBotOpcoes {
   const nome = plain(a.name ?? "");
   const handle = plain(a.handle ?? "");
   const time = BOTS_DO_TIME[handle] ?? BOTS_DO_TIME[nome];
+  if (time === "doug") return { bot: time };
+  const look = a.look;
+  if (look?.shape && FORMAS.includes(look.shape)) {
+    const acessorio = look.accessory ? ACESSORIO_DO_LOOK[look.accessory] : undefined;
+    return {
+      forma: look.shape as DougBotForma,
+      cor: corDoLook(look.color),
+      olhos: OLHOS_DO_LOOK[look.eyes ?? "round"] ?? "pilula",
+      ...(acessorio ? { acessorio } : {}),
+      sorriso: false,
+    };
+  }
   if (time) return { bot: time };
   const texto = plain(`${a.role ?? ""} ${handle.replace(/[-_]/g, " ")} ${nome}`);
   const forma = OFICIOS.find((o) => o.palavras.test(texto))?.forma ?? "squircle";

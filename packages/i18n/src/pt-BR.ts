@@ -10713,6 +10713,16 @@ export const ptBR = {
     hue: "Matiz",
     hex: "Código hex",
     useColor: "Usar esta cor",
+    shape: "Formato",
+    shapes: {
+      squircle: "Arredondado",
+      quadrado: "Quadrado",
+      petala: "Pétala",
+      monitor: "Monitor",
+      torre: "Torre",
+      moeda: "Moeda",
+      hexagono: "Hexágono",
+    },
     eyesNames: { round: "Redondos", dots: "Pontinhos", wide: "Grandes", happy: "Felizes", sleepy: "Sonolentos" },
     accessories: {
       none: "Nenhum",
@@ -10727,6 +10737,8 @@ export const ptBR = {
       party: "Chapéu de festa",
       flower: "Flor",
       scarf: "Cachecol",
+      tie: "Gravata",
+      keys: "Chaves",
     },
   },
   wiki: {

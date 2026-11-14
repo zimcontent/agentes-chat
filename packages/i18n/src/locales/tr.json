@@ -10378,6 +10378,16 @@
     "hue": "Ton",
     "hex": "Hex kodu",
     "useColor": "Bu rengi kullan",
+    "shape": "Şekil",
+    "shapes": {
+      "squircle": "Yuvarlak",
+      "quadrado": "Kare",
+      "petala": "Taç yaprağı",
+      "monitor": "Monitör",
+      "torre": "Kule",
+      "moeda": "Madeni para",
+      "hexagono": "Altıgen"
+    },
     "eyesNames": {
       "round": "Yuvarlak",
       "dots": "Noktalar",
@@ -10397,7 +10407,9 @@
       "beanie": "Bere",
       "party": "Parti şapkası",
       "flower": "Çiçek",
-      "scarf": "Atkı"
+      "scarf": "Atkı",
+      "tie": "Kravat",
+      "keys": "Anahtarlar"
     }
   },
   "wiki": {
