@@ -340,6 +340,7 @@ export {
   type RunPixel,
   type RunPixelStatus,
   RunStrip,
+  type RunWho,
   SkyStrip,
   STRIP_CELL,
   WorkSweep,
