@@ -3,7 +3,7 @@ import { Popover, RunLane } from "@agenteschat/ui";
 import type { CSSProperties, ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { useActors } from "@/components/actors";
-import { lookOf } from "@/lib/look";
+import { botWhoOf, lookOf } from "@/lib/look";
 import { useCadence } from "./EventChip";
 
 /**
@@ -34,7 +34,8 @@ export function RoutineBand({
   const { t } = useTranslation();
   const actors = useActors();
   const cadence = useCadence()(item);
-  const look = lookOf(actors.dir.agentById.get(item.agentId ?? ""));
+  const agent = actors.dir.agentById.get(item.agentId ?? "");
+  const look = lookOf(agent);
   const past = (item.pastRuns ?? []).filter((r) => r.at >= item.start && r.at <= now);
   const future = (item.runs ?? []).filter((r) => r > now);
   return (
@@ -73,6 +74,7 @@ export function RoutineBand({
               future={future}
               color={look?.color ?? "sky"}
               eyes={look?.eyes ?? "round"}
+              who={botWhoOf(agent)}
               running={item.running}
             />
           </span>

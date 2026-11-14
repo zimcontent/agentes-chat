@@ -1,7 +1,10 @@
 import { useEffect, useRef } from "react";
 import { AGENT_GRADIENTS, bodyTones, gradientOf, mixHex, spriteGrid } from "../agent/engine.js";
+import { PIXEL_ART } from "../brand/doug";
+import { type AgenteParaBot, botDoAgente, corDoBot } from "../brand/dougbot-time";
 import { cx } from "../cx";
 import type { AgentColor, AgentEyes } from "./AgentLook";
+import { BotFace } from "./BotFace";
 
 /**
  * A routine's runs in pixels: each run is a dithered
@@ -127,11 +130,124 @@ export function useCanvas(
     const canvas = ref.current;
     const ctx = canvas?.getContext?.("2d");
     if (!canvas || !ctx || typeof MutationObserver === "undefined") return;
-    const theme = new MutationObserver(() => fn.current(ctx, canvas, performance.now() / 1000));
+    const again = () => fn.current(ctx, canvas, performance.now() / 1000);
+    const theme = new MutationObserver(again);
     theme.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
-    return () => theme.disconnect();
+    // What is drawn at the box's own size (the glass marks) is drawn again when the box changes.
+    const box = !PIXEL_ART && typeof ResizeObserver !== "undefined" ? new ResizeObserver(again) : null;
+    box?.observe(canvas);
+    return () => {
+      theme.disconnect();
+      box?.disconnect();
+    };
   }, []);
   return ref;
+}
+
+/**
+ * DougBot (`PIXEL_ART` off): the same marks in the identity's glass. A run is a round-ended bar of glass in its
+ * bot's own color (light from above, the color deeper below), a slot without one a round dot, and the next run on a
+ * lane is the agent's bot itself. Drawn at the screen's own resolution, never as blown-up pixels.
+ */
+export type RunWho = AgenteParaBot;
+
+/** The run marks' color: the bot's own when the caller says who the agent is, else its look's middle tone. */
+const tintOf = (who: RunWho | undefined, color: AgentColor) =>
+  who ? corDoBot(botDoAgente(who)) : (bodyTones(color)[2] ?? "#888888");
+
+/** A theme color as the sheet gives it (any CSS color: the canvas reads them all). */
+function themed(el: Element, name: string, fallback: string) {
+  return getComputedStyle(el).getPropertyValue(name).trim() || fallback;
+}
+
+interface Glass {
+  ctx: CanvasRenderingContext2D;
+  w: number;
+  h: number;
+  tint: string;
+  danger: string;
+  warn: string;
+  dot: string;
+  line: string;
+}
+
+/**
+ * Sizes the canvas to its box at the screen's resolution and hands back a context in CSS pixels, or null where
+ * there is nothing to draw curves on (a test's partial canvas).
+ */
+function glass(
+  ctx: CanvasRenderingContext2D,
+  canvas: HTMLCanvasElement,
+  w: number,
+  h: number,
+  tint: string,
+): Glass | null {
+  if (typeof ctx.arcTo !== "function" || typeof ctx.createLinearGradient !== "function") return null;
+  const dpr = typeof devicePixelRatio === "number" && devicePixelRatio > 0 ? devicePixelRatio : 1;
+  const cw = Math.round(w * dpr);
+  const ch = Math.round(h * dpr);
+  if (canvas.width !== cw) canvas.width = cw;
+  if (canvas.height !== ch) canvas.height = ch;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.clearRect(0, 0, w, h);
+  ctx.globalAlpha = 1;
+  return {
+    ctx,
+    w,
+    h,
+    tint,
+    danger: themed(canvas, "--danger", "#e5484d"),
+    warn: themed(canvas, "--warn", "#d9a514"),
+    dot: themed(canvas, "--line-strong", "#8a8a85"),
+    line: themed(canvas, "--line", "rgba(138,138,133,0.25)"),
+  };
+}
+
+function pillPath(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number) {
+  const r = Math.min(w, h) / 2;
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.arcTo(x + w, y, x + w, y + h, r);
+  ctx.arcTo(x + w, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r);
+  ctx.arcTo(x, y, x + w, y, r);
+  ctx.closePath();
+}
+
+/** A bar of glass standing on `base`: the color, the light on its top and the depth at its foot. */
+function glassBar(g: Glass, x: number, base: number, w: number, h: number, color: string, alpha = 1) {
+  const { ctx } = g;
+  const y = base - h;
+  pillPath(ctx, x, y, w, h);
+  ctx.globalAlpha = alpha;
+  ctx.fillStyle = color;
+  ctx.fill();
+  const light = ctx.createLinearGradient(0, y, 0, base);
+  light.addColorStop(0, "rgba(255,255,255,0.42)");
+  light.addColorStop(0.45, "rgba(255,255,255,0)");
+  light.addColorStop(1, "rgba(0,0,0,0.3)");
+  ctx.fillStyle = light;
+  ctx.fill();
+  ctx.globalAlpha = 1;
+}
+
+function glassDot(g: Glass, x: number, y: number, r: number, color: string, alpha = 1) {
+  const { ctx } = g;
+  ctx.beginPath();
+  ctx.arc(x, y, r, 0, Math.PI * 2);
+  ctx.globalAlpha = alpha;
+  ctx.fillStyle = color;
+  ctx.fill();
+  ctx.globalAlpha = 1;
+}
+
+/** One run as glass, `w` wide and at most `rows` tall: as `drawRun`, a height per status. */
+function glassRun(g: Glass, x: number, w: number, rows: number, base: number, run: RunPixel) {
+  const min = Math.max(w, rows * 0.4);
+  if (run.status === "ok") glassBar(g, x, base, w, min + (run.weight ?? 1) * (rows - min), g.tint);
+  else if (run.status === "silent") glassBar(g, x, base, w, Math.min(w, 4), g.tint, 0.45);
+  else if (run.status === "failed") glassBar(g, x, base, w, rows, g.danger);
+  else glassBar(g, x, base, w, min, g.warn);
 }
 
 /** The last runs as a strip of pixel columns, oldest left; empty slots are a dot on the line. */
@@ -140,11 +256,14 @@ export function RunStrip({
   color = "sky",
   slots = 14,
   running = false,
+  who,
   className,
 }: {
   /** Newest first (as the API sends them). */
   runs: RunPixel[];
   color?: AgentColor;
+  /** Who the agent is: in DougBot the runs take its bot's color. */
+  who?: RunWho;
   slots?: number;
   /** The newest slot shows a run in progress. */
   running?: boolean;
@@ -154,11 +273,25 @@ export function RunStrip({
   const GAP = 1;
   const ROWS = 10;
   const width = slots * (COLW + GAP) - GAP;
+  const tint = tintOf(who, color);
   const ref = useCanvas((ctx, canvas, t) => {
-    const p = paletteFor(canvas, color);
-    ctx.clearRect(0, 0, width, ROWS);
     const shown = runs.slice(0, slots - (running ? 1 : 0)).reverse();
     const pad = slots - shown.length - (running ? 1 : 0);
+    if (!PIXEL_ART) {
+      const g = glass(ctx, canvas, width * CELL, ROWS * CELL, tint);
+      if (!g) return;
+      const step = (COLW + GAP) * CELL;
+      const bar = COLW * CELL;
+      for (let i = 0; i < pad; i++) glassDot(g, i * step + bar / 2, g.h - 1.5, 1.5, g.dot);
+      shown.forEach((run, j) => {
+        glassRun(g, (pad + j) * step, bar, g.h, g.h, run);
+      });
+      // At work: a full bar whose light breathes.
+      if (running) glassBar(g, (slots - 1) * step, g.h, bar, g.h, tint, reduced() ? 1 : 0.55 + 0.45 * Math.sin(t * 4));
+      return;
+    }
+    const p = paletteFor(canvas, color);
+    ctx.clearRect(0, 0, width, ROWS);
     for (let i = 0; i < pad; i++) {
       ctx.fillStyle = p.dot;
       ctx.fillRect(i * (COLW + GAP) + 1, ROWS - 1, 1, 1);
@@ -171,7 +304,7 @@ export function RunStrip({
   return (
     <canvas
       ref={ref}
-      className={cx("ac-run-strip", className)}
+      className={cx("ac-run-strip", !PIXEL_ART && "ac-run-glass", className)}
       width={width}
       height={ROWS}
       style={{ width: width * CELL, height: ROWS * CELL }}
@@ -204,6 +337,7 @@ export function RunLane({
   color = "sky",
   eyes = "round",
   running = false,
+  who,
   className,
 }: {
   from: Date;
@@ -213,12 +347,30 @@ export function RunLane({
   future: (string | Date)[];
   color?: AgentColor;
   eyes?: AgentEyes;
+  /** Who the agent is: in DougBot the next run is its bot, and the runs take the bot's color. */
+  who?: RunWho;
   running?: boolean;
   className?: string;
 }) {
   const ROWS = 15;
   const BASE = 11;
+  const tint = tintOf(who, color);
   const ref = useCanvas((ctx, canvas, t) => {
+    if (!PIXEL_ART) {
+      const g = glass(ctx, canvas, Math.max(20, canvas.clientWidth || 600), canvas.clientHeight || ROWS * CELL, tint);
+      if (!g) return;
+      const span = to.getTime() - from.getTime() || 1;
+      const X = (d: string | Date) => ((new Date(d).getTime() - from.getTime()) / span) * g.w;
+      // The line the runs stand on, where the pixel lane's dotted one was.
+      const base = Math.round(g.h / 2) + (BASE - 7) * CELL;
+      ctx.fillStyle = g.line;
+      ctx.fillRect(0, base + 1, g.w, 1);
+      for (const run of past) glassRun(g, X(run.at) - 2, 4, 8 * CELL, base, run);
+      // The next run is the bot (drawn over the lane, below), the ones after it dots in its color.
+      const next = running ? undefined : future[0];
+      for (const d of future) if (d !== next) glassDot(g, X(d), base - 1.5, 1.5, tint, 0.7);
+      return;
+    }
     const w = Math.max(10, Math.round(canvas.clientWidth / CELL) || 300);
     if (canvas.width !== w) canvas.width = w;
     if (canvas.height !== ROWS) canvas.height = ROWS;
@@ -267,8 +419,29 @@ export function RunLane({
         ctx.fillRect(cx0 - 4 + x, top + y, 1, 1);
       }
     });
-  }, true);
-  return <canvas ref={ref} className={cx("ac-run-lane", className)} />;
+  }, PIXEL_ART);
+  if (PIXEL_ART) return <canvas ref={ref} className={cx("ac-run-lane", className)} />;
+  const span = to.getTime() - from.getTime() || 1;
+  const at = (d: string | Date) => ((new Date(d).getTime() - from.getTime()) / span) * 100;
+  const next = running ? undefined : future[0];
+  // Where the sprite stood: on its run, never nearer to "now" than its own half and a breath (12 px).
+  const left =
+    running || next === undefined ? `calc(${at(now)}% + 12px)` : `max(${at(next)}%, calc(${at(now)}% + 12px))`;
+  return (
+    <span className={cx("ac-run-lane", "ac-run-lane--glass", className)}>
+      <canvas ref={ref} className="ac-run-glass" />
+      {(running || next !== undefined) && (
+        <span className="ac-run-lane__bot" style={{ left }} data-running={running || undefined}>
+          <BotFace
+            bot={botDoAgente(who ?? { name: "" })}
+            estado={running ? "trabalhando" : "ok"}
+            guess={20}
+            semBrilho
+          />
+        </span>
+      )}
+    </span>
+  );
 }
 
 /**
@@ -280,14 +453,28 @@ export function RunLane({
 export function RunMark({
   color = "sky",
   status = "next",
+  who,
   className,
 }: {
   color?: AgentColor;
   status?: RunPixelStatus | "next";
+  /** Who the agent is: in DougBot the mark takes its bot's color. */
+  who?: RunWho;
   className?: string;
 }) {
   const N = 4;
+  const tint = tintOf(who, color);
   const ref = useCanvas((ctx, canvas) => {
+    if (!PIXEL_ART) {
+      const g = glass(ctx, canvas, N * CELL, N * CELL, tint);
+      if (!g) return;
+      // A bead of glass: its bot's color when it went fine, pale when it said nothing new or is still to come.
+      if (status === "ok") glassBar(g, 0, g.h, g.w, g.h, tint);
+      else if (status === "failed") glassBar(g, 0, g.h, g.w, g.h, g.danger);
+      else if (status === "skipped") glassBar(g, 0, g.h, g.w, g.h, g.warn);
+      else glassBar(g, 0, g.h, g.w, g.h, tint, status === "silent" ? 0.45 : 0.25);
+      return;
+    }
     const p = paletteFor(canvas, color);
     const tones = bodyTones(color);
     const next = [p.future, tones[4] ?? p.future];
@@ -307,7 +494,7 @@ export function RunMark({
   return (
     <canvas
       ref={ref}
-      className={cx("ac-run-mark", className)}
+      className={cx("ac-run-mark", !PIXEL_ART && "ac-run-glass", className)}
       data-status={status}
       width={N}
       height={N}
@@ -319,6 +506,13 @@ export function RunMark({
 /** A legend key (3×5 cells) in neutral tones, for the horizon's legend. */
 export function RunKey({ status }: { status: RunPixelStatus | "next" }) {
   const ref = useCanvas((ctx, canvas) => {
+    if (!PIXEL_ART) {
+      const g = glass(ctx, canvas, 3 * CELL, 5 * CELL, themed(canvas, "--muted", "#8a8a85"));
+      if (!g) return;
+      if (status === "next") glassDot(g, g.w / 2, g.h - 1.5, 1.5, g.tint);
+      else glassRun(g, 1, 4, g.h, g.h, { status, weight: 1 });
+      return;
+    }
     const p = paletteFor(canvas, "graphite");
     ctx.clearRect(0, 0, 3, 5);
     if (status === "next") {
@@ -326,7 +520,7 @@ export function RunKey({ status }: { status: RunPixelStatus | "next" }) {
       ctx.fillRect(1, 4, 1, 1);
     } else drawRun(ctx, p, 0, 3, 5, 4, { status, weight: 1 });
   }, false);
-  return <canvas ref={ref} className="ac-run-key" width={3} height={5} />;
+  return <canvas ref={ref} className={cx("ac-run-key", !PIXEL_ART && "ac-run-glass")} width={3} height={5} />;
 }
 
 /** A day of an agent's month: its runs and how many failed. */
@@ -346,8 +540,11 @@ export function MonthRuns({
   today,
   perDay,
   color = "sky",
+  who,
   className,
 }: {
+  /** Who the agent is: in DougBot the days take its bot's color. */
+  who?: RunWho;
   /** Days in the month. */
   days: number;
   /** Today's day of the month: later days are still to come. */
@@ -358,7 +555,29 @@ export function MonthRuns({
   className?: string;
 }) {
   const ROWS = 40;
+  const tint = tintOf(who, color);
   const ref = useCanvas((ctx, canvas) => {
+    if (!PIXEL_ART) {
+      const g = glass(ctx, canvas, Math.max(days * 6, canvas.clientWidth || days * 16), ROWS * CELL, tint);
+      if (!g) return;
+      const byDay = new Map(perDay.map((d) => [d.day, d]));
+      const max = Math.max(1, ...perDay.map((d) => d.runs));
+      const slot = g.w / days;
+      const bar = Math.min(12, Math.max(4, Math.floor(slot * 0.62)));
+      for (let d = 1; d <= days; d++) {
+        const x0 = (d - 1) * slot + (slot - bar) / 2;
+        const day = byDay.get(d);
+        if (d > today || !day || day.runs === 0) {
+          glassDot(g, x0 + bar / 2, g.h - 1.5, 1.5, g.dot);
+          continue;
+        }
+        // A failure's cap sits a breath above its day's bar.
+        const h = Math.max(bar, (day.runs / max) * (g.h - bar - 4));
+        glassBar(g, x0, g.h, bar, h, tint);
+        if (day.failed > 0) glassBar(g, x0, g.h - h - 2, bar, Math.min(bar, 6), g.danger);
+      }
+      return;
+    }
     const w = Math.max(days * 3, Math.round(canvas.clientWidth / CELL) || days * 8);
     if (canvas.width !== w) canvas.width = w;
     if (canvas.height !== ROWS) canvas.height = ROWS;
@@ -382,7 +601,7 @@ export function MonthRuns({
       if (day.failed > 0) column(ctx, x0, colW, 2, base - h - 1, p.failed);
     }
   }, false);
-  return <canvas ref={ref} className={cx("ac-month-runs", className)} />;
+  return <canvas ref={ref} className={cx("ac-month-runs", !PIXEL_ART && "ac-run-glass", className)} />;
 }
 
 /**

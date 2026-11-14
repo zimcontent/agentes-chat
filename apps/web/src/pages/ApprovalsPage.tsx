@@ -84,6 +84,7 @@ import {
   AheadLine,
   ApproveAlways,
   approvalAction,
+  approvalCode,
   approvalReadsOnly,
   approvalRisk,
   approvalTitle,
@@ -145,10 +146,11 @@ export function approvalPhase(a: Approval, now = Date.now()): ApprovalPhase {
   return a.status;
 }
 
+/** Only what still waits for a decision is pending: an approved request leaves that list at once, running or done. */
 const bucketOf = (p: ApprovalPhase): Exclude<Filter, "all"> =>
-  p === "waiting" || p === "running"
+  p === "waiting"
     ? "pending"
-    : p === "done" || p === "failed" || p === "scheduled"
+    : p === "running" || p === "done" || p === "failed" || p === "scheduled"
       ? "approved"
       : p === "refused"
         ? "refused"
@@ -228,11 +230,10 @@ export function ApprovalsPage() {
   const urgent = mine[0];
   const urgentLeft = urgent && new Date(urgent.expiresAt).getTime() - Date.now();
   const shownOpen = filter === "pending" || filter === "all" ? open.filter(matches) : [];
-  const shownDecided = decided.filter(
-    (a) => matches(a) && (filter === "all" || filter === "pending" || bucketOf(approvalPhase(a)) === filter),
-  );
+  // Decided requests show only under their own filter (and "all"): never among the pending ones.
+  const shownDecided = decided.filter((a) => matches(a) && (filter === "all" || bucketOf(approvalPhase(a)) === filter));
   // The rows in the order shown; the open one (`?open=<id>`), else the first, is the request beside the list.
-  const order = [...shownOpen, ...(filter === "pending" ? shownDecided.slice(0, 3) : shownDecided)].map((a) => a.id);
+  const order = [...shownOpen, ...shownDecided].map((a) => a.id);
   const selectedId = openId && order.includes(openId) ? openId : (order[0] ?? null);
   const selected = all.find((a) => a.id === selectedId) ?? null;
   const cardOf = new Map(approvalCards(shownOpen).flatMap((items) => items.map((a) => [a.id, items] as const)));
@@ -460,34 +461,16 @@ export function ApprovalsPage() {
                     </section>
                   );
                 })}
-              {filter === "pending"
-                ? shownDecided.length > 0 && (
-                    <section className="ap-list__section">
-                      <GroupHeading
-                        title={t("approvals.recent")}
-                        aside={
-                          <button type="button" className="ac-link ac-link--muted" onClick={() => setFilter("all")}>
-                            {t("approvals.seeHistory")}
-                          </button>
-                        }
-                      />
-                      <div className="ap-list__rows">
-                        {shownDecided.slice(0, 3).map((a) => (
-                          <ReqRow key={a.id} approval={a} selected={selectedId === a.id} onOpen={() => select(a.id)} />
-                        ))}
-                      </div>
-                    </section>
-                  )
-                : groups(shownDecided).map(([key, list]) => (
-                    <section key={key} className="ap-list__section">
-                      <GroupHeading title={t(`approvals.groups.${key}`)} count={list.length} />
-                      <div className="ap-list__rows">
-                        {list.map((a) => (
-                          <ReqRow key={a.id} approval={a} selected={selectedId === a.id} onOpen={() => select(a.id)} />
-                        ))}
-                      </div>
-                    </section>
-                  ))}
+              {groups(shownDecided).map(([key, list]) => (
+                <section key={key} className="ap-list__section">
+                  <GroupHeading title={t(`approvals.groups.${key}`)} count={list.length} />
+                  <div className="ap-list__rows">
+                    {list.map((a) => (
+                      <ReqRow key={a.id} approval={a} selected={selectedId === a.id} onOpen={() => select(a.id)} />
+                    ))}
+                  </div>
+                </section>
+              ))}
             </nav>
             {selected && (
               <section
@@ -639,7 +622,10 @@ export function ExactAction({
   // An email shows as the email itself (folded in lists, whole in the details).
   if (approval.email) return <EmailLetter email={approval.email} full={!max} />;
   const full = max === undefined;
-  const values = approvalValues(approval, full ? { long: true } : { max });
+  // Code (a script, a query, a command) is never a value here: the agent's own words say what it does, and the code
+  // itself reads behind "Detalhes técnicos", with its lines kept.
+  const values = approvalValues(approval, full ? { long: true, code: false } : { max, code: false });
+  const code = full ? approvalCode(approval) : [];
   return (
     <div className="ap-exact">
       {!bare && (
@@ -670,6 +656,9 @@ export function ExactAction({
       {full && (
         <details className="ap-exact__tech">
           <summary>{t("approvals.technical")}</summary>
+          {code.map(([label, text]) => (
+            <pre key={label}>{text}</pre>
+          ))}
           <pre>{`${approval.tool}\n${JSON.stringify(approval.params ?? {}, null, 2)}`}</pre>
         </details>
       )}
@@ -1244,6 +1233,23 @@ function ReviewBody({ approval: a, channel }: { approval: Approval; channel: str
   ];
   const durationMs = around ? workFromSteps(around.before, run.data?.run).durationMs : null;
   const long = (text?.text.length ?? 0) > TEXT_FOLD || (text?.text.split("\n").length ?? 0) > 6;
+  // An action that runs code reads by the agent's own words: they lead "O que vai fazer", where the code would be
+  // (it stays behind "Detalhes técnicos"), instead of a card of their own above it.
+  const runsCode = !a.email && !text && approvalCode(a).length > 0;
+  const said = why ? (
+    <>
+      <p className="ap-review__why">{inlineWords(why)}</p>
+      {a.issue && (
+        <Link
+          className="ap-link"
+          to="/org/$orgId/issues/$number"
+          params={{ orgId: org.id, number: String(a.issue.number) }}
+        >
+          #{a.issue.number} {a.issue.title}
+        </Link>
+      )}
+    </>
+  ) : null;
 
   return (
     <div className="ap-review__body">
@@ -1251,19 +1257,10 @@ function ReviewBody({ approval: a, channel }: { approval: Approval; channel: str
       <AheadLine approval={a} className="ap-card__ahead" />
       <Outcome approval={a} agent={agent} />
 
-      {why && (
+      {said && !runsCode && (
         <Card className="ap-review__card">
           <CardHeader icon="message" title={t("approvals.review.why", { name })} />
-          <p className="ap-review__why">{inlineWords(why)}</p>
-          {a.issue && (
-            <Link
-              className="ap-link"
-              to="/org/$orgId/issues/$number"
-              params={{ orgId: org.id, number: String(a.issue.number) }}
-            >
-              #{a.issue.number} {a.issue.title}
-            </Link>
-          )}
+          {said}
         </Card>
       )}
 
@@ -1293,7 +1290,10 @@ function ReviewBody({ approval: a, channel }: { approval: Approval; channel: str
             <Markdown source={text.text} variant="message" />
           </div>
         ) : (
-          <ExactAction approval={a} bare />
+          <>
+            {runsCode && said}
+            <ExactAction approval={a} bare />
+          </>
         )}
         {pr && (
           <a className="ap-link" href={pr} target="_blank" rel="noreferrer">

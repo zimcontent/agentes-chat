@@ -158,7 +158,7 @@ import { useEdited } from "@/hooks/useEdited";
 import { useRightHandLook } from "@/hooks/useRightHandLook";
 import { copyText, type MenuEntry } from "@/lib/context-menu";
 import { entityMenu } from "@/lib/entity-menu";
-import { lookOf } from "@/lib/look";
+import { botWhoOf, lookOf } from "@/lib/look";
 import { useOpenParam } from "@/lib/open-param";
 import { defaultRule, fromApiRule, recurrenceLabels, ruleSentence, toApiRule, upcomingLabels } from "@/lib/recurrence";
 import { useToast } from "@/lib/toast";
@@ -264,12 +264,13 @@ const targetIcon = (target: RoutineTarget): IconName =>
           ? "grid"
           : "channel";
 
-/** The agent's look for the pixel pieces (color and eyes). */
+/** The agent's look for its runs' marks (color and eyes), and who it is (its bot). */
 function useLook() {
   const actors = useActors();
   return (agentId: string) => {
-    const look = lookOf(actors.dir.agentById.get(agentId));
-    return { color: look?.color ?? "sky", eyes: look?.eyes ?? "round" };
+    const agent = actors.dir.agentById.get(agentId);
+    const look = lookOf(agent);
+    return { color: look?.color ?? "sky", eyes: look?.eyes ?? "round", who: botWhoOf(agent) };
   };
 }
 
@@ -954,7 +955,13 @@ function RoutineRow({
         </span>
       </div>
       <div className="routine-row__runs" role="img" aria-label={words.label(r)}>
-        <RunStrip runs={runPixels(r.recentRuns)} color={look.color} slots={RUN_SLOTS} running={running} />
+        <RunStrip
+          runs={runPixels(r.recentRuns)}
+          color={look.color}
+          who={look.who}
+          slots={RUN_SLOTS}
+          running={running}
+        />
         <small>{words.caption(r, now)}</small>
       </div>
       <div className="routine-row__actions">
@@ -1156,7 +1163,7 @@ function RoutineHorizon({
       {list.map((a) => {
         const next = a.nexts[0];
         const name = actors.name({ type: "agent", id: a.agentId });
-        const { color, eyes } = look(a.agentId);
+        const { color, eyes, who } = look(a.agentId);
         const soon = next && time(next.at) - now.getTime() < 3_600_000;
         // The routines that run with the first one (within half an hour of it) are counted beside its name.
         const together = next ? a.nexts.filter((x) => time(x.at) - time(next.at) < 1_800_000).length - 1 : 0;
@@ -1190,6 +1197,7 @@ function RoutineHorizon({
                 now={now}
                 color={color}
                 eyes={eyes}
+                who={who}
                 running={a.running}
                 past={a.past}
                 future={a.future}
@@ -1709,7 +1717,7 @@ function RoutineWeek({ routine: r, runs, now }: { routine: Routine; runs: Routin
   const { t, i18n } = useTranslation();
   const say = useSay();
   const words = useRunWords();
-  const { color } = useLook()(r.agentId);
+  const { color, who } = useLook()(r.agentId);
   const [first, ...rest] = healthWords(r.health) ?? [];
   const days = Array.from({ length: 7 }, (_, k) => {
     const start = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 6 + k);
@@ -1738,7 +1746,7 @@ function RoutineWeek({ routine: r, runs, now }: { routine: Routine; runs: Routin
               {d.cells.length > 0 ? (
                 d.cells.map((status, i) => (
                   // biome-ignore lint/suspicious/noArrayIndexKey: a day's runs in order, never reordered
-                  <RunMark key={i} color={color} status={status} />
+                  <RunMark key={i} color={color} who={who} status={status} />
                 ))
               ) : (
                 <i className="routine-week__none" />

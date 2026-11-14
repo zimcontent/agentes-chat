@@ -208,8 +208,9 @@ const END = { text: 2, box: 4, button: 6 };
 /**
  * The dark design, by class. The media query reaches Apple Mail, the Outlook apps, Samsung and Thunderbird;
  * the same rules under `[data-ogsc]`/`[data-ogsb]` reach Outlook.com and new Outlook, which stamp what
- * they recolour. No rule uses #ffffff: Apple Mail ignores it in dark rules. The Gmail apps read no media query and
- * darken the light design themselves, so nothing in it may depend on a colour they leave alone (`EMAIL_DARK_HEAD`).
+ * they recolour. No rule uses #ffffff: Apple Mail ignores it in dark rules. The Gmail apps read no media query: with a
+ * Google account they keep the light design, with any other they darken it themselves, so nothing in it may depend on
+ * a colour they leave alone (`EMAIL_DARK_HEAD`).
  */
 const DARK = [
   `.bg{background:${D.page}!important}`,
@@ -430,13 +431,15 @@ function text(b: Block): string {
 }
 
 /**
- * Light and dark, in every email: both schemes declared, our dark design by media query and again under Outlook.com's
- * hooks, and the button's gradients. Declaring dark lets the Gmail apps darken the light design themselves, the only
- * dark they draw (`light only` would keep them light inside their dark UI). Risky rules sit in blocks of their own, so a
- * client that drops one keeps the rest. Each gradient comes after the flat fill it paints over: a client that rejects
- * it keeps the flat fill, and Outlook.com's hooks outrank the light one.
+ * Light and dark, in every email: our dark design by media query and again under Outlook.com's hooks, and the button's
+ * gradients. The meta says `light only`, which the Gmail apps honour for Google accounts: they show the email as the
+ * light design draws it, the same as on a computer. The only dark they draw is their own conversion of it, which
+ * reads as another email (a dark green button, a grey card). `:root` still declares both schemes, so Apple Mail applies
+ * our dark design. Risky rules sit in blocks of their own, so a client that drops one keeps the rest. Each gradient
+ * comes after the flat fill it paints over: a client that rejects it keeps the flat fill, and Outlook.com's hooks
+ * outrank the light one.
  */
-export const EMAIL_DARK_HEAD = `<meta name="color-scheme" content="light dark">
+export const EMAIL_DARK_HEAD = `<meta name="color-scheme" content="light only">
 <meta name="supported-color-schemes" content="light dark">
 <style>
 :root{color-scheme:light dark;supported-color-schemes:light dark}
