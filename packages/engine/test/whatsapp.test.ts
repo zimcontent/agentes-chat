@@ -266,6 +266,43 @@ describe("sending and reading", () => {
   });
 });
 
+describe("one person, two addresses", () => {
+  const LID = "98765432101234@lid";
+
+  test("an answer written on the phone, addressed by the hidden id, stays in the same conversation", async () => {
+    f = await setup();
+    const { deps, account, post } = await connected();
+    await post(text("A1", "bom dia"));
+    await post(
+      text("P1", "respondi do celular", {
+        Chat: LID,
+        IsFromMe: true,
+        Sender: "5511911112222@s.whatsapp.net",
+        RecipientAlt: ANA,
+      }),
+    );
+    // Later the same person writes under the hidden id alone: still theirs.
+    await post(text("A2", "obrigada", { Chat: LID, Sender: LID }));
+    const { chats } = await listWhatsAppChats(deps, f.owner.id, f.org.id, account.id);
+    expect(chats.map((c) => [c.phone, c.name, c.lastText])).toEqual([["5511999990000", "Ana", "obrigada"]]);
+    const page = await listWhatsAppMessages(deps, f.owner.id, f.org.id, account.id, chats[0]?.id as string);
+    expect(page.messages.map((m) => m.body)).toEqual(["obrigada", "respondi do celular", "bom dia"]);
+  });
+
+  test("two conversations made before the pair was told become one, with every message", async () => {
+    f = await setup();
+    const { deps, account, post } = await connected();
+    await post(text("A1", "pelo número"));
+    await post(text("L1", "pelo id escondido", { Chat: LID, Sender: LID }));
+    expect((await listWhatsAppChats(deps, f.owner.id, f.org.id, account.id)).chats).toHaveLength(2);
+    await post(text("A3", "agora com os dois", { SenderAlt: LID }));
+    const { chats } = await listWhatsAppChats(deps, f.owner.id, f.org.id, account.id);
+    expect(chats.map((c) => [c.phone, c.unread, c.lastText])).toEqual([["5511999990000", 3, "agora com os dois"]]);
+    const page = await listWhatsAppMessages(deps, f.owner.id, f.org.id, account.id, chats[0]?.id as string);
+    expect(page.messages).toHaveLength(3);
+  });
+});
+
 describe("history", () => {
   const old = (id: string, seconds: number, body: string, fromMe = false) => ({
     message: {

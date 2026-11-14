@@ -5,7 +5,7 @@ import {
   type WhatsAppHistoryChat,
   type WhatsAppMessage,
 } from "@agenteschat/adapters";
-import { and, type Database, eq, inArray, schema, sql } from "@agenteschat/db";
+import { and, asc, type Database, desc, eq, inArray, or, schema, sql } from "@agenteschat/db";
 import { NotFoundError } from "../errors";
 import { enqueue } from "../outbox";
 import { hookHash, publishWhatsAppChanged, type WhatsAppAccountRow, type WhatsAppDeps } from "./accounts";
@@ -15,10 +15,10 @@ type InboundDeps = Pick<WhatsAppDeps, "db" | "pubsub">;
 /** The number's agent answers a conversation (`answerWhatsAppChat`). */
 export const WHATSAPP_AGENT_JOB = "whatsapp.agent_reply";
 /**
- * How long the agent waits after a message before it reads the conversation: someone who writes three messages
- * in a row gets one answer, and no answer comes back faster than a person could have read. Plus up to the jitter.
+ * The agent waits the number's own time after a message before it reads the conversation (`agent_wait_seconds`):
+ * someone who writes three messages in a row gets one answer, and no answer comes back faster than a person could
+ * have read. Plus up to this much more, so the wait is never the same twice.
  */
-export const WHATSAPP_AGENT_WAIT_MS = 8_000;
 export const WHATSAPP_AGENT_JITTER_MS = 5_000;
 /** A message older than this when it arrives (kept by WhatsApp while the number was out) starts no answer. */
 export const WHATSAPP_AGENT_FRESH_MS = 10 * 60_000;
@@ -27,6 +27,86 @@ export const WHATSAPP_AGENT_ATTEMPTS = 4;
 /** What the list shows for a message without words. */
 export function whatsappPreview(message: Pick<WhatsAppMessage, "kind" | "text">) {
   return message.text.slice(0, 200);
+}
+
+/**
+ * The conversation an address belongs to, made when it is new. WhatsApp names one person by two addresses, their
+ * number and a hidden id (`lid`), and uses either: a conversation is found by both, kept under the number once it is
+ * known, and two rows that turn out to be the same person (made before the pair was told) become one, with all
+ * their messages. `name` replaces the one kept, or with `keepName` only fills an empty one.
+ */
+export async function whatsappChatFor(
+  db: Database,
+  account: Pick<WhatsAppAccountRow, "id" | "orgId">,
+  input: { jid: string; lid?: string | null; name: string; group: boolean; keepName?: boolean },
+) {
+  const chats = schema.whatsappChats;
+  const lid = input.lid && input.lid !== input.jid ? input.lid : input.jid.endsWith("@lid") ? input.jid : null;
+  const addresses = lid && lid !== input.jid ? [input.jid, lid] : [input.jid];
+  const found = await db
+    .select()
+    .from(chats)
+    .where(and(eq(chats.accountId, account.id), or(inArray(chats.jid, addresses), inArray(chats.lid, addresses))))
+    .orderBy(asc(chats.createdAt));
+  if (found.length === 0) {
+    const [made] = await db
+      .insert(chats)
+      .values({
+        orgId: account.orgId,
+        accountId: account.id,
+        jid: input.jid,
+        lid,
+        name: input.name,
+        group: input.group,
+      })
+      .onConflictDoUpdate({ target: [chats.accountId, chats.jid], set: { jid: input.jid } })
+      .returning({ id: chats.id });
+    if (!made) throw new Error("whatsapp chat not stored");
+    return made.id;
+  }
+  // The row under the person's number is the one kept; else the oldest.
+  const kept = found.find((row) => !row.jid.endsWith("@lid")) ?? (found[0] as (typeof found)[number]);
+  const extra = found.filter((row) => row.id !== kept.id);
+  for (const row of extra) {
+    await db.update(schema.whatsappMessages).set({ chatId: kept.id }).where(eq(schema.whatsappMessages.chatId, row.id));
+    await db.delete(chats).where(eq(chats.id, row.id));
+  }
+  const name =
+    input.name && (!input.keepName || !kept.name) ? input.name : kept.name || extra.find((r) => r.name)?.name;
+  const jid = kept.jid.endsWith("@lid") && !input.jid.endsWith("@lid") ? input.jid : kept.jid;
+  const set = {
+    ...(jid !== kept.jid ? { jid } : {}),
+    ...(lid && lid !== kept.lid ? { lid } : {}),
+    ...(name && name !== kept.name ? { name } : {}),
+    ...(extra.length > 0
+      ? {
+          unread: kept.unread + extra.reduce((n, row) => n + row.unread, 0),
+          agentOff: kept.agentOff || extra.some((row) => row.agentOff),
+        }
+      : {}),
+  };
+  if (Object.keys(set).length > 0) await db.update(chats).set(set).where(eq(chats.id, kept.id));
+  if (extra.length > 0) {
+    // What the list shows comes from the joined conversation's own latest message.
+    const [latest] = await db
+      .select()
+      .from(schema.whatsappMessages)
+      .where(eq(schema.whatsappMessages.chatId, kept.id))
+      .orderBy(desc(schema.whatsappMessages.at), desc(schema.whatsappMessages.createdAt))
+      .limit(1);
+    if (latest) {
+      await db
+        .update(chats)
+        .set({
+          lastAt: latest.at,
+          lastText: latest.body.slice(0, 200),
+          lastKind: latest.kind,
+          lastFromMe: latest.fromMe,
+        })
+        .where(eq(chats.id, kept.id));
+    }
+  }
+  return kept.id;
 }
 
 /**
@@ -41,15 +121,9 @@ export async function storeWhatsAppMessage(
 ) {
   // The other side's name: in a one-to-one chat, what their phone says when they write; a group's, its own.
   const name = message.group ? message.groupName : message.fromMe ? "" : message.senderName;
-  const [chat] = await db
-    .insert(schema.whatsappChats)
-    .values({ orgId: account.orgId, accountId: account.id, jid: message.chat, name, group: message.group })
-    .onConflictDoUpdate({
-      target: [schema.whatsappChats.accountId, schema.whatsappChats.jid],
-      set: name ? { name } : { jid: message.chat },
-    })
-    .returning({ id: schema.whatsappChats.id });
-  if (!chat) throw new Error("whatsapp chat not stored");
+  const chat = {
+    id: await whatsappChatFor(db, account, { jid: message.chat, lid: message.chatLid, name, group: message.group }),
+  };
   const inserted = await db
     .insert(schema.whatsappMessages)
     .values({
@@ -119,20 +193,9 @@ export async function storeWhatsAppHistory(
   for (const history of chats) {
     const group = history.jid.endsWith("@g.us");
     const name = history.name || nameOf.get(history.jid) || "";
-    const [chat] = await db
-      .insert(schema.whatsappChats)
-      .values({ orgId: account.orgId, accountId: account.id, jid: history.jid, name, group })
-      .onConflictDoUpdate({
-        target: [schema.whatsappChats.accountId, schema.whatsappChats.jid],
-        // A name the conversation already has (told live, by the person's own phone) is the fresher one.
-        set: name
-          ? {
-              name: sql`case when ${schema.whatsappChats.name} = '' then ${name} else ${schema.whatsappChats.name} end`,
-            }
-          : { jid: history.jid },
-      })
-      .returning({ id: schema.whatsappChats.id });
-    if (!chat) continue;
+    const chat = {
+      id: await whatsappChatFor(db, account, { jid: history.jid, lid: history.lid, name, group, keepName: true }),
+    };
     for (let from = 0; from < history.messages.length; from += HISTORY_BATCH) {
       const rows = await db
         .insert(schema.whatsappMessages)
@@ -256,7 +319,12 @@ async function apply(deps: InboundDeps, account: WhatsAppAccountRow, event: What
           kind: WHATSAPP_AGENT_JOB,
           payload: { chatId: stored.chatId, messageId: stored.messageId },
           dedupeKey: `whatsapp.agent:${stored.messageId}`,
-          runAt: new Date(Date.now() + WHATSAPP_AGENT_WAIT_MS + Math.floor(Math.random() * WHATSAPP_AGENT_JITTER_MS)),
+          // The number's own wait, never the same twice: a little more, up to half of it again.
+          runAt: new Date(
+            Date.now() +
+              account.agentWaitSeconds * 1000 +
+              Math.floor(Math.random() * Math.min(WHATSAPP_AGENT_JITTER_MS, account.agentWaitSeconds * 500)),
+          ),
           maxAttempts: WHATSAPP_AGENT_ATTEMPTS,
         });
       }

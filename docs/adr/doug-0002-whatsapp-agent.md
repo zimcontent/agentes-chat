@@ -50,3 +50,18 @@ with its smallest. A plan busy with the agent's other work answers `busy` and th
 - A workspace that wants the agent to act for a customer (book, look something up) doesn't get it here. That would
   mean tools reachable from outside text, and needs its own decision.
 - The columns are added at boot (`EXTRA_COLUMNS`), outside the numbered migrations, as the tables were.
+
+## Addendum 2026-11-14: who thinks, how it talks, one person's two addresses
+
+- **Who thinks is the agent's own AI, chosen where the number is set up.** The number's settings show the agent's AI
+  with the app's own picker (account, model, effort) and can make an agent for the number on the spot: an ordinary
+  agent with the role "WhatsApp". There is no second place where a model is stored: an agent made for WhatsApp is
+  how a number gets an AI of its own. `brain.route` takes the agent's effort and up to two minutes, and an agent on
+  Automático answers with the middle model of its key's line (there is no run to choose one for).
+- **How it talks is the number's** (`whatsapp_accounts.agent_wait_seconds`, `agent_pace`, `agent_messages`,
+  `agent_quiet_minutes`): the wait before it reads a conversation (3 s at least: an answer that comes back at once
+  is what a machine does), how fast it types, one message or up to three, and how long it stays quiet after a
+  person wrote.
+- **One person, two addresses.** WhatsApp names a person by their number or by a hidden id (`@lid`), and what the
+  phone sends may use the other one. A conversation is found by both (`whatsappChatFor`, `whatsapp_chats.lid`), kept
+  under the number once it is told, and two rows that turn out to be the same person become one.

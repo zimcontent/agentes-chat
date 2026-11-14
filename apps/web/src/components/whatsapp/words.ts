@@ -95,6 +95,21 @@ const en = {
     banNote: "WhatsApp can ban a number used outside its own apps.",
     newCode: "New code",
   },
+  style: {
+    wait: "Wait before answering",
+    waitHint:
+      "How long the agent waits after the last message before it reads the conversation. Messages sent in a row get one answer.",
+    seconds: (n: number) => (n < 60 ? `${n} seconds` : n === 60 ? "1 minute" : `${n / 60} minutes`),
+    pace: "Typing speed",
+    paceHint: 'How long "typing…" shows before each message. A longer message takes longer.',
+    paces: { fast: "Fast", natural: "Natural", slow: "Slow" },
+    messages: "Messages per answer",
+    messagesHint: "Whether the agent may split an answer in short messages, as people do, or always sends one.",
+    upTo: (n: number) => (n === 1 ? "Always one" : `Up to ${n} short ones`),
+    quiet: "Pause when a person answers",
+    quietHint: "After you or someone on the team answers a conversation, the agent stays quiet in it this long.",
+    minutes: (n: number) => (n < 60 ? `${n} minutes` : n === 60 ? "1 hour" : `${n / 60} hours`),
+  },
   settings: {
     title: "Number settings",
     name: "Name",
@@ -104,6 +119,16 @@ const en = {
     agent: "Agent in charge",
     agentHint:
       "It answers with its own AI account, only someone who wrote first, never a group. It hands over to a person what it can't answer.",
+    newAgent: "Create an agent just for WhatsApp",
+    newAgentTitle: "New WhatsApp agent",
+    newAgentText: "It answers this number. Its AI and its instructions are set here.",
+    newAgentName: "Name",
+    newAgentExample: "e.g. Sales assistant",
+    newAgentRole: "WhatsApp",
+    newAgentCreate: "Create agent",
+    ai: "AI that answers",
+    aiHint:
+      "The agent's own AI account, model and effort. Change it here and it changes for the agent everywhere. Works with a Claude or ChatGPT plan and with any API key.",
     agentOn: "Agent answering",
     agentOnHint:
       "On, it answers this number's conversations. When a person answers one, it stays quiet there for an hour. You can turn it off in a single conversation.",
@@ -240,6 +265,22 @@ const ptBR: typeof en = {
     banNote: "O WhatsApp pode banir um número usado fora dos apps dele.",
     newCode: "Novo código",
   },
+  style: {
+    wait: "Espera antes de responder",
+    waitHint:
+      "Quanto o agente espera depois da última mensagem antes de ler a conversa. Mensagens seguidas recebem uma resposta só.",
+    seconds: (n: number) => (n < 60 ? `${n} segundos` : n === 60 ? "1 minuto" : `${n / 60} minutos`),
+    pace: "Velocidade de digitação",
+    paceHint: 'Quanto tempo aparece "digitando…" antes de cada mensagem. Mensagem maior demora mais.',
+    paces: { fast: "Rápida", natural: "Natural", slow: "Lenta" },
+    messages: "Mensagens por resposta",
+    messagesHint:
+      "Se o agente pode dividir a resposta em mensagens curtas, como as pessoas fazem, ou manda sempre uma só.",
+    upTo: (n: number) => (n === 1 ? "Sempre uma" : `Até ${n} curtas`),
+    quiet: "Pausa quando uma pessoa responde",
+    quietHint: "Depois que você ou alguém do time responde uma conversa, o agente fica quieto nela por este tempo.",
+    minutes: (n: number) => (n < 60 ? `${n} minutos` : n === 60 ? "1 hora" : `${n / 60} horas`),
+  },
   settings: {
     title: "Configurar número",
     name: "Nome",
@@ -249,6 +290,16 @@ const ptBR: typeof en = {
     agent: "Agente responsável",
     agentHint:
       "Responde com a conta de IA dele, só a quem escreveu primeiro, nunca em grupo. O que não souber responder, passa para uma pessoa.",
+    newAgent: "Criar um agente só para o WhatsApp",
+    newAgentTitle: "Novo agente de WhatsApp",
+    newAgentText: "Ele responde este número. A IA e as instruções dele são escolhidas aqui.",
+    newAgentName: "Nome",
+    newAgentExample: "ex.: Atendente comercial",
+    newAgentRole: "WhatsApp",
+    newAgentCreate: "Criar agente",
+    ai: "IA que responde",
+    aiHint:
+      "A conta de IA, o modelo e o esforço do próprio agente. Mudar aqui muda para o agente em todo lugar. Funciona com plano Claude ou ChatGPT e com qualquer chave de API.",
     agentOn: "Agente respondendo",
     agentOnHint:
       "Ligado, ele responde as conversas deste número. Quando uma pessoa responde uma conversa, ele fica quieto nela por uma hora. Dá para desligar em uma conversa só.",

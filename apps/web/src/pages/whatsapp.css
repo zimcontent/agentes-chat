@@ -490,6 +490,16 @@ a.wa-bubble__file {
   outline: 2px dashed var(--agent);
   outline-offset: 2px;
 }
+/* The agent's AI as the picker's own button, at the form's edge. */
+.wa-ai {
+  display: flex;
+}
+/* How the agent talks: four short choices, two by two while there is room. */
+.wa-style {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: var(--space-4);
+}
 .wa-people {
   margin: 0;
   overflow-wrap: anywhere;

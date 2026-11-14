@@ -12,6 +12,7 @@ import {
   setWhatsAppChatAgent,
   typingInWhatsAppChat,
   updateWhatsAppAccount,
+  WHATSAPP_AGENT_STYLE_BOUNDS,
   WHATSAPP_INSTRUCTIONS_MAX,
   WHATSAPP_LABEL_MAX,
   WHATSAPP_PAGE_MAX,
@@ -75,6 +76,22 @@ const ChatParams = AccountParams.extend({
   chatId: z.uuid().openapi({ param: { name: "chatId", in: "path" } }),
 });
 
+const STYLE = WHATSAPP_AGENT_STYLE_BOUNDS;
+const AgentStyle = z
+  .object({
+    waitSeconds: z.number().int().min(STYLE.waitSeconds.min).max(STYLE.waitSeconds.max).openapi({
+      description: "Seconds the agent waits after a message before it reads the conversation.",
+    }),
+    pace: z.enum(STYLE.paces).openapi({ description: "How fast it types: `fast`, `natural` or `slow`." }),
+    messages: z.number().int().min(STYLE.messages.min).max(STYLE.messages.max).openapi({
+      description: "The most messages one answer is split in. 1: always a single message.",
+    }),
+    quietMinutes: z.number().int().min(STYLE.quietMinutes.min).max(STYLE.quietMinutes.max).openapi({
+      description: "Minutes it stays quiet in a conversation after a person wrote there.",
+    }),
+  })
+  .openapi("WhatsAppAgentStyle");
+
 const Account = z
   .object({
     id: z.string(),
@@ -99,6 +116,7 @@ const Account = z
       description:
         "The agent answers this number's conversations now: only someone who wrote, never a group, and never a conversation where a person wrote in the last hour.",
     }),
+    agentStyle: AgentStyle,
     mine: z.boolean().openapi({ description: "The asker is on its list." }),
     manage: z.boolean().openapi({ description: "The asker may change or remove it." }),
     createdAt: z.string(),
@@ -252,6 +270,7 @@ export function whatsappRoutes(deps: AppDeps) {
             agentId: z.uuid().nullable().optional(),
             instructions: z.string().max(WHATSAPP_INSTRUCTIONS_MAX).optional(),
             agentOn: z.boolean().optional().openapi({ description: "400 to turn it on with no agent chosen." }),
+            agentStyle: AgentStyle.partial().optional(),
           }),
         ),
       },

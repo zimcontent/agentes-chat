@@ -27,6 +27,12 @@ export interface WhatsAppMessage {
   /** WhatsApp's own id: the same message never has two. */
   id: string;
   chat: WhatsAppJid;
+  /**
+   * The same person's other address. WhatsApp names a person by their number (`…@s.whatsapp.net`) or by a hidden
+   * id (`…@lid`), and not always the same one for both directions of one conversation: `chat` is the number
+   * whenever the event tells it, and this the hidden id, so both land in one conversation. Null: not told.
+   */
+  chatLid?: WhatsAppJid | null;
   /** Who wrote it. In a one-to-one chat, the other person or this number. */
   sender: WhatsAppJid;
   /** The sender's name as their own phone tells it (outside text); empty when unknown. */
@@ -67,6 +73,8 @@ export type WhatsAppEvent =
 /** One conversation of a piece of history, with the messages that piece carries. */
 export interface WhatsAppHistoryChat {
   jid: WhatsAppJid;
+  /** The person's hidden id, when the phone told both (`WhatsAppMessage.chatLid`). */
+  lid?: WhatsAppJid | null;
   /** A group's subject, or the contact's name; empty when the phone told none. */
   name: string;
   messages: (WhatsAppMessage & { status: "received" | "sent" | "delivered" | "read" })[];
@@ -346,8 +354,14 @@ function contentOf(message: Record<string, unknown>): Pick<WhatsAppMessage, "kin
 function message(data: Record<string, unknown>): WhatsAppMessage | null {
   const info = rec(data.Info);
   const id = str(info.ID);
-  const chat = bareJid(str(info.Chat));
-  if (!id || !chat) return null;
+  const told = bareJid(str(info.Chat));
+  if (!id || !told) return null;
+  const fromMe = info.IsFromMe === true;
+  // One person, two addresses: the event names the other one beside the chat's (`RecipientAlt` on what this number
+  // sent, `SenderAlt` on what it received).
+  const other = bareJid(str(fromMe ? info.RecipientAlt : info.SenderAlt));
+  const hidden = told.endsWith("@lid") ? told : other.endsWith("@lid") ? other : null;
+  const chat = told.endsWith("@lid") && other.endsWith("@s.whatsapp.net") ? other : told;
   const body = rec(data.Message);
   const parsed = contentOf(body);
   // Edits, deletions and key exchanges ride on messages too: nothing a person reads.
@@ -356,9 +370,11 @@ function message(data: Record<string, unknown>): WhatsAppMessage | null {
   return {
     id,
     chat,
-    sender: bareJid(str(info.Sender)) || chat,
+    chatLid: group ? null : hidden,
+    // In a one-to-one chat the other side is the chat itself, under whichever address it wrote from.
+    sender: group || fromMe ? bareJid(str(info.Sender)) || chat : chat,
     senderName: str(info.PushName),
-    fromMe: info.IsFromMe === true,
+    fromMe,
     group,
     groupName: group ? str(rec(data.groupData).Name) : "",
     at: date(info.Timestamp),
@@ -394,6 +410,7 @@ function history(data: Record<string, unknown>): Pick<Extract<WhatsAppEvent, { k
     const conversation = rec(entry);
     const id = bareJid(str(conversation.ID));
     const jid = id.endsWith("@lid") && str(conversation.pnJID) ? bareJid(str(conversation.pnJID)) : id;
+    const lid = id.endsWith("@lid") ? id : bareJid(str(conversation.lidJID)) || null;
     if (!jid || jid.endsWith("@broadcast") || jid.endsWith("@newsletter")) continue;
     const group = isGroupJid(jid);
     const messages: WhatsAppHistoryChat["messages"] = [];
@@ -421,7 +438,7 @@ function history(data: Record<string, unknown>): Pick<Extract<WhatsAppEvent, { k
         status: historyStatus(fromMe, info.status),
       });
     }
-    chats.push({ jid, name: str(conversation.name) || str(conversation.displayName), messages });
+    chats.push({ jid, lid, name: str(conversation.name) || str(conversation.displayName), messages });
   }
   const names = (Array.isArray(body.pushnames) ? body.pushnames : [])
     .map((entry) => ({ jid: bareJid(str(rec(entry).ID)), name: str(rec(entry).pushname) }))

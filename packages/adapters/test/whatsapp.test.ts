@@ -127,6 +127,7 @@ describe("events the gateway posts", () => {
       message: {
         id: "3EB0AAA",
         chat: "5511999990000@s.whatsapp.net",
+        chatLid: null,
         sender: "5511999990000@s.whatsapp.net",
         senderName: "Ana",
         fromMe: false,
@@ -387,5 +388,31 @@ describe("history", () => {
         },
       },
     });
+  });
+});
+
+describe("one person, two addresses", () => {
+  const LID = "98765432101234@lid";
+  const PN = "5511999990000@s.whatsapp.net";
+  const says = (over: Record<string, unknown>) => {
+    const event = parseEvolutionEvent(posted("Message", { Info: info(over), Message: { conversation: "oi" } }));
+    if (event?.kind !== "message") throw new Error("not a message");
+    return [event.message.chat, event.message.chatLid, event.message.sender];
+  };
+
+  test("a message filed under the hidden id lands on the number when the event names it, either way", () => {
+    // Received, addressed by the hidden id, the number told beside it.
+    expect(says({ Chat: LID, Sender: `${LID.split("@")[0]}:4@lid`, SenderAlt: PN })).toEqual([PN, LID, PN]);
+    // Sent from the phone to the hidden id: the recipient's number is told beside it.
+    expect(says({ Chat: LID, IsFromMe: true, Sender: "5511911112222:3@s.whatsapp.net", RecipientAlt: PN })).toEqual([
+      PN,
+      LID,
+      "5511911112222@s.whatsapp.net",
+    ]);
+    // Addressed by the number, the hidden id told beside it: kept for later.
+    expect(says({ Chat: PN, Sender: PN, SenderAlt: LID })).toEqual([PN, LID, PN]);
+    // The hidden id alone: the conversation is under it until the number is told.
+    expect(says({ Chat: LID, Sender: LID })).toEqual([LID, LID, LID]);
+    expect(says({ Chat: PN, Sender: PN })).toEqual([PN, null, PN]);
   });
 });

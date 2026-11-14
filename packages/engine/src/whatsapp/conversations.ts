@@ -66,7 +66,7 @@ export interface WhatsAppMessageView {
 
 const phoneOf = (jid: string) => /^(\d{6,20})@s\.whatsapp\.net$/.exec(jid)?.[1] ?? null;
 
-type AgentOf = Pick<typeof schema.whatsappAccounts.$inferSelect, "agentId" | "agentOn">;
+type AgentOf = Pick<typeof schema.whatsappAccounts.$inferSelect, "agentId" | "agentOn" | "agentQuietMinutes">;
 
 const chatView = (row: ChatRow, account: AgentOf, now = new Date()): WhatsAppChatView => {
   const agent = whatsappAgentState(account, row, now);
