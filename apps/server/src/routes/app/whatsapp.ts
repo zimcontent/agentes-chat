@@ -417,13 +417,11 @@ export function whatsappRoutes(deps: AppDeps) {
   // A message's file, for the number's people: what an `<img>`, an `<audio>` or a download link loads. Fetched from
   // WhatsApp by the gateway on each ask and cached by the browser for a day. Never drawn as a page (`INLINE_TYPES`).
   app.get("/organizations/:orgId/whatsapp/accounts/:accountId/messages/:messageId/file", async (c) => {
-    const params = z
-      .object({ orgId: z.uuid(), accountId: z.uuid(), messageId: z.uuid() })
-      .safeParse({
-        orgId: c.req.param("orgId"),
-        accountId: c.req.param("accountId"),
-        messageId: c.req.param("messageId"),
-      });
+    const params = z.object({ orgId: z.uuid(), accountId: z.uuid(), messageId: z.uuid() }).safeParse({
+      orgId: c.req.param("orgId"),
+      accountId: c.req.param("accountId"),
+      messageId: c.req.param("messageId"),
+    });
     if (!params.success) return apiError(c, 400, "invalid_request", "Not a message");
     const user = c.get("user");
     if (await limited(`whatsapp-file:${user.id}`, WHATSAPP_FILES_PER_PERSON)) {
