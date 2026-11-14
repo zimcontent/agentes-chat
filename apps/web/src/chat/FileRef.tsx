@@ -19,7 +19,7 @@ export interface PillFile {
 
 /**
  * A file's pill in a text, wherever it came from (a file's link, `FileRef`; an id, `IdRef`): its icon and name in the
- * #channel pill, a link inline so a long name wraps with the words around it. A click opens the viewer here; another
+ * #channel pill, the icon beside the name and never over it, the name wrapping inside the pill. A click opens the viewer here; another
  * workspace's file, or a page with no viewer, opens its Drive.
  */
 export function FilePill({ orgId, file, version }: { orgId: string; file: PillFile; version?: number }) {
@@ -40,7 +40,7 @@ export function FilePill({ orgId, file, version }: { orgId: string; file: PillFi
       onClick={orgId === org.id && viewer ? (e) => inPlaceClick(e, () => viewer.open(file.id, version)) : undefined}
     >
       <Icon name={icon} />
-      {file.title}
+      <span className="channel-ref__text">{file.title}</span>
     </a>
   );
 }

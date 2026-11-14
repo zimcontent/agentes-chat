@@ -3578,37 +3578,44 @@ html:not([data-pointer]) .channel-ref:focus-visible {
   font-weight: 600;
 }
 /* A file's pill (FilePill: a file's link or its id) and what else an id names (IdRef: a task, the pill while it loads):
-   laid out as a known service's pill (.link-pill below), its words wrapping like the ones around it and its icon in the
-   padding, never ending a line alone. */
+   laid out as a known service's pill (.link-pill below). */
 .id-ref,
 .file-ref {
-  position: relative;
-  padding-left: calc(1em + 6px);
+  display: inline-flex;
+  align-items: flex-start;
+  gap: 6px;
+  max-width: 100%;
+  padding: 0 4px;
   overflow-wrap: break-word;
+  vertical-align: baseline;
 }
 .id-ref > .ac-icon,
 .file-ref > .ac-icon {
-  position: absolute;
-  top: 0.27em;
-  left: 3px;
+  flex: none;
   width: 1em;
   height: 1em;
+  margin-top: calc((1lh - 1em) / 2);
 }
-/* A known service's address (LinkPill): the #channel pill, led by the service's logo. Its words wrap like the ones around
-   it, so a long repository or title never pushes past a narrow bubble; `break-word`, not `anywhere`, which would let a
-   table squeeze the column to a letter per line. The logo sits in the padding, not in the text: a picture in the text
-   could end a line alone, its words on the next. */
+/* A known service's address (LinkPill): the #channel pill, led by the service's logo. The logo is in the flow, its own
+   box beside the words with a clear gap, so it never covers a letter: a logo laid over the padding did, by the width
+   of the plate's 3px. Its words wrap inside the pill, the logo on their first line, and a long repository or title
+   never pushes past a narrow bubble (`max-width`, the words' `min-width: 0`); `break-word`, not `anywhere`, which would
+   let a table squeeze the column to a letter per line. The words give the pill its baseline (`align-self`), so it sits
+   on the line of the words around it. */
 .link-pill {
-  position: relative;
-  padding-left: calc(1em + 6px);
+  display: inline-flex;
+  align-items: flex-start;
+  gap: 6px;
+  max-width: 100%;
+  padding: 0 4px;
   overflow-wrap: break-word;
+  vertical-align: baseline;
 }
 .link-pill__mark {
-  position: absolute;
-  top: 0.27em;
-  left: 3px;
+  flex: none;
   width: 1em;
   height: 1em;
+  margin-top: calc((1lh - 1em) / 2);
   background: var(--connector-color, var(--ink));
   -webkit-mask: var(--connector-icon) center / contain no-repeat;
   mask: var(--connector-icon) center / contain no-repeat;
@@ -3617,6 +3624,11 @@ html:not([data-pointer]) .channel-ref:focus-visible {
 [data-theme="dark"] .link-pill__mark {
   background: color-mix(in srgb, var(--connector-color, var(--ink)) 75%, var(--ink));
 }
+.link-pill__text,
+.channel-ref__text {
+  min-width: 0;
+  align-self: baseline;
+}
 .link-pill__ref {
   white-space: nowrap;
 }
@@ -3624,7 +3636,7 @@ html:not([data-pointer]) .channel-ref:focus-visible {
   display: inline-block;
   width: 1em;
   height: 1em;
-  margin-right: 1px;
+  margin-right: 6px;
   vertical-align: -0.17em;
   color: var(--ink-muted);
 }
