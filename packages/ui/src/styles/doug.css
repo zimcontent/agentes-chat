@@ -2105,9 +2105,14 @@ img.ac-logo__mark {
 .sidebar:not([data-rail="true"]) .sidebar__dock {
   --r-outer: var(--db-r-4);
   border-radius: var(--r-outer);
+  /* The buttons are spread by the room left over: a gap of their own would push a seventh one out of the bar. */
+  gap: 0;
 }
 [data-theme] .sidebar:not([data-rail="true"]) .sidebar__dock .sidebar__item {
   border-radius: 10px;
+  /* With more tools in sight than the bar holds at 32, each gives a little rather than the last one being cut. */
+  flex: 0 1 32px;
+  min-width: 24px;
 }
 [data-theme] .sidebar:not([data-rail="true"]) .sidebar__dock .sidebar__item > .ac-icon {
   width: 20px;

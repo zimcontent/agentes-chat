@@ -14,6 +14,7 @@ import type {
   VaultKeysImportResult,
   VaultOverview,
 } from "../vault/types";
+import type { WhatsAppAccount, WhatsAppChatPage, WhatsAppMessagePage, WhatsAppOverview } from "../whatsapp/types";
 import type { HttpApi, OpenedWorkspace } from "./client";
 import { ApiError, createFileRequester, createRequester, enc, type TransportOptions } from "./http";
 import type {
@@ -534,6 +535,36 @@ export function createHttpApi(options: TransportOptions = {}): HttpApi {
         request<VaultConnection>(`${org(orgId)}/vault/connections/${enc(connectionId)}/sync`, { json: {} }),
       removeConnection: (orgId, connectionId) =>
         request<void>(`${org(orgId)}/vault/connections/${enc(connectionId)}`, { method: "DELETE" }),
+    },
+    whatsapp: {
+      overview: (orgId) => request<WhatsAppOverview>(`${org(orgId)}/whatsapp`),
+      connect: (orgId, label) => request<WhatsAppAccount>(`${org(orgId)}/whatsapp/accounts`, { json: { label } }),
+      reconnect: (orgId, accountId) =>
+        request<WhatsAppAccount>(`${org(orgId)}/whatsapp/accounts/${enc(accountId)}/reconnect`, { json: {} }),
+      update: (orgId, accountId, patch) =>
+        request<WhatsAppAccount>(`${org(orgId)}/whatsapp/accounts/${enc(accountId)}`, { method: "PATCH", json: patch }),
+      remove: (orgId, accountId) =>
+        request<{ removed: boolean; leftover: string | null }>(`${org(orgId)}/whatsapp/accounts/${enc(accountId)}`, {
+          method: "DELETE",
+        }),
+      chats: (orgId, accountId, before) =>
+        request<WhatsAppChatPage>(
+          `${org(orgId)}/whatsapp/accounts/${enc(accountId)}/chats${before ? `?before=${enc(before)}` : ""}`,
+        ),
+      messages: (orgId, accountId, chatId, before) =>
+        request<WhatsAppMessagePage>(
+          `${org(orgId)}/whatsapp/accounts/${enc(accountId)}/chats/${enc(chatId)}/messages${before ? `?before=${enc(before)}` : ""}`,
+        ),
+      send: (orgId, accountId, input) =>
+        request<{ chatId: string }>(`${org(orgId)}/whatsapp/accounts/${enc(accountId)}/messages`, { json: input }),
+      read: (orgId, accountId, chatId) =>
+        request<{ read: number }>(`${org(orgId)}/whatsapp/accounts/${enc(accountId)}/chats/${enc(chatId)}/read`, {
+          json: {},
+        }),
+      typing: (orgId, accountId, chatId, typing) =>
+        request<{ told: boolean }>(`${org(orgId)}/whatsapp/accounts/${enc(accountId)}/chats/${enc(chatId)}/typing`, {
+          json: { typing },
+        }),
     },
     gifs: {
       search: (orgId, query) =>

@@ -8,6 +8,7 @@ import {
   HOOK_LIMIT_PER_IP,
   handleComposioWebhook,
   handleWebhook,
+  handleWhatsAppEvent,
   NotFoundError,
   portalTasksNow,
   receiveRoutineHook,
@@ -30,9 +31,16 @@ import {
   requireSession,
   routineHookDeps,
   security,
+  whatsappDeps,
 } from "./app/context";
 import { githubAccess } from "./github-app";
 import { readWebhookBytes, readWebhookText } from "./webhook-body";
+
+/**
+ * The largest event the WhatsApp gateway may post. Files never ride on events (`WEBHOOK_FILES=false` at the gateway,
+ * and the parser drops an inline copy anyway), so this is a group's member list at its largest.
+ */
+const WHATSAPP_EVENT_MAX = 2_000_000;
 
 /** What a routine's address answers when it refuses a call (English: the caller is a program). */
 const HOOK_REFUSALS = {
@@ -74,6 +82,20 @@ export function registerWebhookReceiver(api: OpenAPIHono, deps: AppDeps) {
       return c.json({ ok: true, type: result.type, fired: result.fired }, 202);
     } catch (error) {
       if (error instanceof ComposioSignatureError) return c.json({ error: "invalid signature" }, 401);
+      if (error instanceof NotFoundError) return c.json({ error: "not found" }, 404);
+      if (error instanceof SyntaxError) return c.json({ error: "invalid body" }, 400);
+      throw error;
+    }
+  });
+  // A WhatsApp number's events, from the gateway on this machine's network. The secret in the address is the
+  // credential (the gateway signs nothing) and says which number. Before the generic route.
+  api.post("/webhooks/whatsapp/:secret", async (c) => {
+    const raw = await readWebhookText(c.req.raw, WHATSAPP_EVENT_MAX);
+    if (raw === null) return c.json({ error: "too large" }, 413);
+    try {
+      const result = await handleWhatsAppEvent(whatsappDeps(deps), c.req.param("secret"), JSON.parse(raw));
+      return c.json({ ok: true, kind: result.kind }, 200);
+    } catch (error) {
       if (error instanceof NotFoundError) return c.json({ error: "not found" }, 404);
       if (error instanceof SyntaxError) return c.json({ error: "invalid body" }, 400);
       throw error;

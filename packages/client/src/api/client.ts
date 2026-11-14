@@ -23,6 +23,14 @@ import type {
   VaultScope,
 } from "../vault/types";
 import type {
+  WhatsAppAccount,
+  WhatsAppAccountPatch,
+  WhatsAppChatPage,
+  WhatsAppMessagePage,
+  WhatsAppOverview,
+  WhatsAppSendInput,
+} from "../whatsapp/types";
+import type {
   AccessInput,
   AccountDeletionPlan,
   AccountLoginStart,
@@ -2041,6 +2049,26 @@ export interface ApiClient {
     setDefault(orgId: string, agentId: string, profileId: string | null): Promise<void>;
     /** "Pedir mais um perfil": the people who grant profiles hear of it. */
     request(orgId: string, agentId: string): Promise<void>;
+  };
+  /**
+   * WhatsApp numbers the workspace connected and their conversations. Connecting and changing a number takes
+   * `manage_connectors`; its conversations are its listed people's. 404 while the server has no gateway and for a
+   * number the person isn't listed on; 502 `whatsapp.unavailable` when the gateway refuses. Optional so older fakes
+   * type-check (`createHttpApi` has it).
+   */
+  whatsapp?: {
+    overview(orgId: string): Promise<WhatsAppOverview>;
+    connect(orgId: string, label: string): Promise<WhatsAppAccount>;
+    reconnect(orgId: string, accountId: string): Promise<WhatsAppAccount>;
+    update(orgId: string, accountId: string, patch: WhatsAppAccountPatch): Promise<WhatsAppAccount>;
+    remove(orgId: string, accountId: string): Promise<{ removed: boolean; leftover: string | null }>;
+    /** `before`: the `next` of the page before. */
+    chats(orgId: string, accountId: string, before?: string): Promise<WhatsAppChatPage>;
+    messages(orgId: string, accountId: string, chatId: string, before?: string): Promise<WhatsAppMessagePage>;
+    send(orgId: string, accountId: string, input: WhatsAppSendInput): Promise<{ chatId: string }>;
+    read(orgId: string, accountId: string, chatId: string): Promise<{ read: number }>;
+    /** The person is writing there (or stopped): the other side sees "typing…". */
+    typing(orgId: string, accountId: string, chatId: string, typing: boolean): Promise<{ told: boolean }>;
   };
   /**
    * The Vault (ADR 0144): logins, keys and contacts agents use without seeing a password or a key. No answer carries

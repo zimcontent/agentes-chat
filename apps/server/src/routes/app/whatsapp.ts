@@ -1,0 +1,376 @@
+import { WhatsAppGatewayError } from "@agenteschat/adapters";
+import {
+  createWhatsAppAccount,
+  listWhatsAppAccounts,
+  listWhatsAppChats,
+  listWhatsAppMessages,
+  readWhatsAppChat,
+  reconnectWhatsAppAccount,
+  removeWhatsAppAccount,
+  sendWhatsAppText,
+  typingInWhatsAppChat,
+  updateWhatsAppAccount,
+  WHATSAPP_INSTRUCTIONS_MAX,
+  WHATSAPP_LABEL_MAX,
+  WHATSAPP_PAGE_MAX,
+  WHATSAPP_TEXT_MAX,
+} from "@agenteschat/engine";
+import { createRoute, z } from "@hono/zod-openapi";
+import type { Context } from "hono";
+import { apiError, errorResponse } from "../../http/errors";
+import {
+  type AppDeps,
+  body,
+  createAppRouter,
+  errors,
+  json,
+  OrgParams,
+  requireSession,
+  security,
+  whatsappDeps,
+} from "./context";
+
+const tags = ["WhatsApp"];
+
+/** Messages one person may send through the gateway: a conversation's pace, not a broadcast's. */
+export const WHATSAPP_SENDS_PER_PERSON = { limit: 30, windowMs: 60_000 };
+/**
+ * Conversations one number may start with phone numbers it never talked to, a day. Writing first to many strangers
+ * is what WhatsApp bans numbers for, whoever types: past this the number only answers and continues conversations.
+ */
+export const WHATSAPP_NEW_CHATS_PER_NUMBER = { limit: 20, windowMs: 24 * 60 * 60_000 };
+/** "Typing…" signals one person may send: the app tells it every few seconds while they write. */
+export const WHATSAPP_TYPING_PER_PERSON = { limit: 60, windowMs: 60_000 };
+/** Numbers one person may connect or reconnect: each try makes the gateway open a session with WhatsApp. */
+export const WHATSAPP_CONNECTS_PER_PERSON = { limit: 10, windowMs: 60 * 60_000 };
+
+const AccountParams = OrgParams.extend({
+  accountId: z.uuid().openapi({ param: { name: "accountId", in: "path" } }),
+});
+const ChatParams = AccountParams.extend({
+  chatId: z.uuid().openapi({ param: { name: "chatId", in: "path" } }),
+});
+
+const Account = z
+  .object({
+    id: z.string(),
+    label: z.string(),
+    status: z.enum(["pending", "qr", "connected", "disconnected", "logged_out"]).openapi({
+      description:
+        "`pending`: made, its QR code is on its way. `qr`: a code is waiting to be read. `disconnected`: the session dropped and comes back by itself. `logged_out`: the phone removed it; reconnect for a new code.",
+    }),
+    phone: z.string().nullable().openapi({ description: "The number's digits once connected." }),
+    pushName: z.string().openapi({ description: "The name the phone shows for itself (outside text)." }),
+    qr: z.string().nullable().openapi({
+      description:
+        "A `data:image/png` address to show now, only to someone who may connect numbers; null when there is none or it is over a minute old (a new one follows, told by `whatsapp.changed`).",
+    }),
+    people: z.array(z.string()).openapi({ description: "User ids who read and answer its conversations." }),
+    agentId: z.string().nullable().openapi({ description: "The agent that answers it; null: only people." }),
+    instructions: z.string().nullable().openapi({
+      description:
+        "How the agent carries itself on this number (Markdown), on top of its own instructions; null for someone who can't change the number.",
+    }),
+    mine: z.boolean().openapi({ description: "The asker is on its list." }),
+    manage: z.boolean().openapi({ description: "The asker may change or remove it." }),
+    createdAt: z.string(),
+  })
+  .openapi("WhatsAppAccount");
+
+const Chat = z
+  .object({
+    id: z.string(),
+    phone: z.string().nullable().openapi({ description: "The other person's digits; null for a group." }),
+    name: z.string().openapi({ description: "As WhatsApp tells it (outside text); empty until it does." }),
+    group: z.boolean(),
+    lastAt: z.string().nullable(),
+    lastText: z.string().openapi({ description: "The latest message's words (outside text); empty for a file." }),
+    lastKind: z.string(),
+    lastFromMe: z.boolean(),
+    unread: z.number().int(),
+  })
+  .openapi("WhatsAppChat");
+
+const Message = z
+  .object({
+    id: z.string(),
+    chatId: z.string(),
+    fromMe: z.boolean(),
+    senderName: z.string().openapi({ description: "Outside text." }),
+    senderPhone: z.string().nullable(),
+    kind: z.string().openapi({
+      description:
+        "`text`, `image`, `video`, `audio`, `document`, `sticker`, `location`, `contact`, `poll` or `other`.",
+    }),
+    body: z.string().openapi({ description: "A text, or a file's caption (outside text)." }),
+    replyToId: z.string().nullable(),
+    media: z
+      .object({ mimeType: z.string(), fileName: z.string().nullable(), seconds: z.number().nullable() })
+      .nullable(),
+    status: z.enum(["received", "sent", "delivered", "read"]),
+    sentByUserId: z.string().nullable().openapi({ description: "Who wrote it here; null: from the phone." }),
+    at: z.string(),
+  })
+  .openapi("WhatsAppMessage");
+
+const Page = z.object({
+  before: z.iso.datetime().optional().openapi({ description: "The `next` of the page before." }),
+  limit: z.coerce.number().int().min(1).max(WHATSAPP_PAGE_MAX).optional().openapi({ description: "Default 50." }),
+});
+
+const gatewayDown = { 502: errorResponse("The WhatsApp gateway refused or didn't answer (`whatsapp.unavailable`)") };
+const tooMany = { 429: errorResponse("Too many tries (`rate_limited`)") };
+const off =
+  "404 while the server has no WhatsApp gateway (`WHATSAPP_GATEWAY_URL`), and for a number the asker isn't listed on.";
+
+/**
+ * WhatsApp numbers and their conversations. The gateway is reached only from here, with keys that never leave the
+ * server. Connecting and changing a number: `manage_connectors`; its conversations: the people on its list.
+ */
+export function whatsappRoutes(deps: AppDeps) {
+  const app = createAppRouter(deps);
+  app.use("/organizations/*", requireSession(deps.auth));
+  const wa = whatsappDeps(deps);
+  const limited = async (key: string, limit: { limit: number; windowMs: number }) =>
+    !(await deps.adapters.rateLimiter.consume(key, limit)).allowed;
+
+  /** Runs a call that reaches the gateway: its refusal is a 502 of ours, never a 500. */
+  const reaching = async <T>(c: Context, call: () => Promise<T>) => {
+    try {
+      return { value: await call() };
+    } catch (error) {
+      if (!(error instanceof WhatsAppGatewayError)) throw error;
+      deps.log?.warn("WhatsApp gateway call failed", { status: error.status, error: error.message });
+      return { refused: apiError(c, 502, "whatsapp.unavailable", "WhatsApp isn't answering right now") };
+    }
+  };
+
+  app.openapi(
+    createRoute({
+      method: "get",
+      path: "/organizations/{orgId}/whatsapp",
+      tags,
+      security,
+      summary: "The WhatsApp numbers the asker may use (members)",
+      description:
+        "`on`: the server has a gateway. Someone who manages connectors gets every number (`manage`), anyone else only the ones they are listed on. A change to a number or its conversations is told to its people as the user event `whatsapp.changed` (`accountId`, `chatId` when it is about one conversation).",
+      request: { params: OrgParams },
+      responses: {
+        200: json(z.object({ on: z.boolean(), manage: z.boolean(), accounts: z.array(Account) })),
+        ...errors,
+      },
+    }),
+    async (c) => {
+      const { orgId } = c.req.valid("param");
+      return c.json(await listWhatsAppAccounts(wa, c.get("user").id, orgId), 200);
+    },
+  );
+
+  app.openapi(
+    createRoute({
+      method: "post",
+      path: "/organizations/{orgId}/whatsapp/accounts",
+      tags,
+      security,
+      summary: "Connect a WhatsApp number (manage_connectors)",
+      description: `Makes the number and starts its session; its QR code arrives a moment later (\`whatsapp.changed\`, then \`qr\` on the number). The asker starts on its list. ${off}`,
+      request: {
+        params: OrgParams,
+        body: body(z.object({ label: z.string().trim().min(1).max(WHATSAPP_LABEL_MAX) })),
+      },
+      responses: { 201: json(Account, "Created"), ...tooMany, ...gatewayDown, ...errors },
+    }),
+    async (c) => {
+      const { orgId } = c.req.valid("param");
+      const user = c.get("user");
+      if (await limited(`whatsapp-connect:${user.id}`, WHATSAPP_CONNECTS_PER_PERSON)) {
+        return apiError(c, 429, "rate_limited", "Slow down");
+      }
+      const made = await reaching(c, () => createWhatsAppAccount(wa, user.id, orgId, c.req.valid("json")));
+      return made.refused ?? c.json(made.value, 201);
+    },
+  );
+
+  app.openapi(
+    createRoute({
+      method: "patch",
+      path: "/organizations/{orgId}/whatsapp/accounts/{accountId}",
+      tags,
+      security,
+      summary: "Rename a number, choose its people and the agent that answers it (manage_connectors)",
+      description: "`people` replaces the list (members of the workspace). `agentId` null: only people answer it.",
+      request: {
+        params: AccountParams,
+        body: body(
+          z.object({
+            label: z.string().trim().min(1).max(WHATSAPP_LABEL_MAX).optional(),
+            people: z.array(z.string().min(1).max(64)).max(50).optional(),
+            agentId: z.uuid().nullable().optional(),
+            instructions: z.string().max(WHATSAPP_INSTRUCTIONS_MAX).optional(),
+          }),
+        ),
+      },
+      responses: { 200: json(Account), ...errors },
+    }),
+    async (c) => {
+      const { orgId, accountId } = c.req.valid("param");
+      return c.json(await updateWhatsAppAccount(wa, c.get("user").id, orgId, accountId, c.req.valid("json")), 200);
+    },
+  );
+
+  app.openapi(
+    createRoute({
+      method: "post",
+      path: "/organizations/{orgId}/whatsapp/accounts/{accountId}/reconnect",
+      tags,
+      security,
+      summary: "A new QR code for a number that is out (manage_connectors)",
+      description: `400 while the number is connected. ${off}`,
+      request: { params: AccountParams },
+      responses: { 200: json(Account), ...tooMany, ...gatewayDown, ...errors },
+    }),
+    async (c) => {
+      const { orgId, accountId } = c.req.valid("param");
+      const user = c.get("user");
+      if (await limited(`whatsapp-connect:${user.id}`, WHATSAPP_CONNECTS_PER_PERSON)) {
+        return apiError(c, 429, "rate_limited", "Slow down");
+      }
+      const again = await reaching(c, () => reconnectWhatsAppAccount(wa, user.id, orgId, accountId));
+      return again.refused ?? c.json(again.value, 200);
+    },
+  );
+
+  app.openapi(
+    createRoute({
+      method: "delete",
+      path: "/organizations/{orgId}/whatsapp/accounts/{accountId}",
+      tags,
+      security,
+      summary: "Remove a number and its conversations here (manage_connectors)",
+      description:
+        "Its session ends on the phone too. `leftover`: why the gateway's side couldn't be cleaned (it didn't answer); the number is gone here all the same.",
+      request: { params: AccountParams },
+      responses: { 200: json(z.object({ removed: z.boolean(), leftover: z.string().nullable() })), ...errors },
+    }),
+    async (c) => {
+      const { orgId, accountId } = c.req.valid("param");
+      return c.json(await removeWhatsAppAccount(wa, c.get("user").id, orgId, accountId), 200);
+    },
+  );
+
+  app.openapi(
+    createRoute({
+      method: "get",
+      path: "/organizations/{orgId}/whatsapp/accounts/{accountId}/chats",
+      tags,
+      security,
+      summary: "A number's conversations, the latest first (its people)",
+      request: { params: AccountParams, query: Page },
+      responses: { 200: json(z.object({ chats: z.array(Chat), next: z.string().nullable() })), ...errors },
+    }),
+    async (c) => {
+      const { orgId, accountId } = c.req.valid("param");
+      return c.json(await listWhatsAppChats(wa, c.get("user").id, orgId, accountId, c.req.valid("query")), 200);
+    },
+  );
+
+  app.openapi(
+    createRoute({
+      method: "get",
+      path: "/organizations/{orgId}/whatsapp/accounts/{accountId}/chats/{chatId}/messages",
+      tags,
+      security,
+      summary: "A conversation's messages, the latest first (the number's people)",
+      description: "Only what arrived or was sent since the number was connected here: WhatsApp's history isn't read.",
+      request: { params: ChatParams, query: Page },
+      responses: {
+        200: json(z.object({ chat: Chat, messages: z.array(Message), next: z.string().nullable() })),
+        ...errors,
+      },
+    }),
+    async (c) => {
+      const { orgId, accountId, chatId } = c.req.valid("param");
+      return c.json(
+        await listWhatsAppMessages(wa, c.get("user").id, orgId, accountId, chatId, c.req.valid("query")),
+        200,
+      );
+    },
+  );
+
+  app.openapi(
+    createRoute({
+      method: "post",
+      path: "/organizations/{orgId}/whatsapp/accounts/{accountId}/messages",
+      tags,
+      security,
+      summary: "Send a text from the number (its people)",
+      description: `Into a conversation it has (\`chatId\`) or to a phone number with its country code (\`phone\`), which starts one. 400 while the number isn't connected; 429 past 30 messages a minute, and \`whatsapp.new_chats_limit\` past 20 conversations started by phone number in a day for this number. ${off}`,
+      request: {
+        params: AccountParams,
+        body: body(
+          z.object({
+            chatId: z.uuid().optional(),
+            phone: z.string().max(32).optional(),
+            text: z.string().min(1).max(WHATSAPP_TEXT_MAX),
+            replyToId: z.uuid().nullable().optional(),
+          }),
+        ),
+      },
+      responses: { 201: json(z.object({ chatId: z.string() }), "Sent"), ...tooMany, ...gatewayDown, ...errors },
+    }),
+    async (c) => {
+      const { orgId, accountId } = c.req.valid("param");
+      const user = c.get("user");
+      if (await limited(`whatsapp-send:${user.id}`, WHATSAPP_SENDS_PER_PERSON)) {
+        return apiError(c, 429, "rate_limited", "Slow down");
+      }
+      if (c.req.valid("json").phone && (await limited(`whatsapp-new:${accountId}`, WHATSAPP_NEW_CHATS_PER_NUMBER))) {
+        return apiError(c, 429, "whatsapp.new_chats_limit", "This number started too many conversations today");
+      }
+      const sent = await reaching(c, () => sendWhatsAppText(wa, user.id, orgId, accountId, c.req.valid("json")));
+      return sent.refused ?? c.json(sent.value, 201);
+    },
+  );
+
+  app.openapi(
+    createRoute({
+      method: "post",
+      path: "/organizations/{orgId}/whatsapp/accounts/{accountId}/chats/{chatId}/read",
+      tags,
+      security,
+      summary: "The asker opened the conversation: nothing in it is unread (the number's people)",
+      description: "The other side sees its messages read, as opening the conversation on the phone does.",
+      request: { params: ChatParams },
+      responses: { 200: json(z.object({ read: z.number().int() })), ...errors },
+    }),
+    async (c) => {
+      const { orgId, accountId, chatId } = c.req.valid("param");
+      return c.json(await readWhatsAppChat(wa, c.get("user").id, orgId, accountId, chatId), 200);
+    },
+  );
+
+  app.openapi(
+    createRoute({
+      method: "post",
+      path: "/organizations/{orgId}/whatsapp/accounts/{accountId}/chats/{chatId}/typing",
+      tags,
+      security,
+      summary: "The asker is writing in the conversation, or stopped (the number's people)",
+      description:
+        "The other side sees \"typing…\", as when someone writes in WhatsApp's own apps. Tell it every few seconds while the person writes and `typing: false` when they stop. `told` false: the gateway didn't take it, which stops nothing.",
+      request: { params: ChatParams, body: body(z.object({ typing: z.boolean() })) },
+      responses: { 200: json(z.object({ told: z.boolean() })), ...tooMany, ...errors },
+    }),
+    async (c) => {
+      const { orgId, accountId, chatId } = c.req.valid("param");
+      const user = c.get("user");
+      if (await limited(`whatsapp-typing:${user.id}`, WHATSAPP_TYPING_PER_PERSON)) {
+        return apiError(c, 429, "rate_limited", "Slow down");
+      }
+      const { typing } = c.req.valid("json");
+      return c.json(await typingInWhatsAppChat(wa, user.id, orgId, accountId, chatId, typing), 200);
+    },
+  );
+
+  return app;
+}

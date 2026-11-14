@@ -38,6 +38,7 @@ import {
   useTasksUnread,
   useUnreadThreads,
   useWaitingOnMe,
+  useWhatsApp,
 } from "@agenteschat/client";
 import { agentSections, groupOf } from "@agenteschat/client/lib/agent-groups";
 import { audienceChip, audienceNames, audienceNotice, canTalk, hiddenAgentIds } from "@agenteschat/client/lib/audience";
@@ -161,6 +162,7 @@ import { sectionName, useSectionOrder } from "./SidebarOrder";
 import { SIDEBAR_TOOLS, SidebarSetupDialog, ToolList, toolsHere, usePortalOn } from "./SidebarSetup";
 import { AgentGlow, AgentTrail, colorOf, WorkspaceSky } from "./Sky";
 import { SetStatusDialog, useSaveStatus } from "./StatusDialog";
+import { WhatsAppMark } from "./whatsapp/WhatsAppMark";
 
 /** An agent's sky for its busy chip (`.sidebar__busy`): both themes, the CSS picks one. */
 const selectionSky = (color: AgentColor) =>
@@ -616,6 +618,8 @@ export function Sidebar() {
   );
   // The tools each person keeps in sight; the rest open beside the sidebar from More. Doug draws them as a dock: a
   // glass bar of icons (after Nordus's footer nav), each named on hover and to a screen reader, Configurações last.
+  const whatsapp = useWhatsApp(orgId).data;
+  const whatsappShown = !!whatsapp?.on && (whatsapp.manage || whatsapp.accounts.length > 0);
   const dock = (
     <div className="sidebar__group sidebar__tools sidebar__dock">
       <Link to="/org/$orgId/home" params={{ orgId }} className="sidebar__item" title={railTip("home")}>
@@ -623,6 +627,13 @@ export function Sidebar() {
         <span className="sidebar__item-label">{t("shell.home")}</span>
       </Link>
       <ToolList items={listed} row={toolRow} />
+      {/* WhatsApp, this instance's own: in sight for anyone with a number, and for who may connect the first one. */}
+      {whatsappShown && (
+        <Link to="/org/$orgId/whatsapp" params={{ orgId }} className="sidebar__item" title="WhatsApp">
+          <WhatsAppMark size={18} />
+          <span className="sidebar__item-label">WhatsApp</span>
+        </Link>
+      )}
       <MoreTools items={inMore} row={toolRow} countOf={countOf} onCustomize={() => setCustomizing(true)} />
       <Link
         to="/org/$orgId/settings"
