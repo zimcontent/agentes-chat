@@ -43,6 +43,28 @@ describe("web app serving", () => {
     }
   });
 
+  test("a file the build compressed goes compressed to a browser that takes it, else as it is", async () => {
+    writeFileSync(join(dir, "assets", "big.js"), "console.log('plain')");
+    writeFileSync(join(dir, "assets", "big.js.br"), "br-bytes");
+    writeFileSync(join(dir, "assets", "big.js.gz"), "gz-bytes");
+    const br = await app.request("/assets/big.js", { headers: { "accept-encoding": "gzip, deflate, br" } });
+    expect(br.headers.get("content-encoding")).toBe("br");
+    expect(br.headers.get("vary")).toContain("Accept-Encoding");
+    expect(br.headers.get("content-type")).toContain("text/javascript");
+    expect(br.headers.get("cache-control")).toBe("public, max-age=31536000, immutable");
+    expect(await br.text()).toBe("br-bytes");
+    const gz = await app.request("/assets/big.js", { headers: { "accept-encoding": "gzip" } });
+    expect(gz.headers.get("content-encoding")).toBe("gzip");
+    expect(await gz.text()).toBe("gz-bytes");
+    const plain = await app.request("/assets/big.js");
+    expect(plain.headers.get("content-encoding")).toBeNull();
+    expect(await plain.text()).toBe("console.log('plain')");
+    // No copy beside it: the file itself.
+    const none = await app.request("/assets/app.js", { headers: { "accept-encoding": "gzip, br" } });
+    expect(none.headers.get("content-encoding")).toBeNull();
+    expect(await none.text()).toBe("console.log(1)");
+  });
+
   test("a build file that isn't there is a 404 nobody keeps, never index.html", async () => {
     for (const path of ["/assets/missing.js", "/assets/index-old.css"]) {
       const res = await app.request(path);
