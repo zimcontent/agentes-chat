@@ -3318,6 +3318,32 @@ html:not([data-pointer]) .ac-tab:focus-visible {
   color: var(--danger);
 }
 
+/* A plan's use as an outline around its logo (UsageRing.tsx), inside a 40px tile: green, amber from 80%, red from 90%. */
+.ac-usagering {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  fill: none;
+  stroke-width: 2;
+  pointer-events: none;
+  color: var(--ok);
+}
+.ac-usagering[data-level="almost"] {
+  color: var(--warn);
+}
+.ac-usagering:is([data-level="critical"], [data-level="limited"]) {
+  color: var(--danger);
+}
+.ac-usagering__track {
+  stroke: var(--line2);
+}
+.ac-usagering__fill {
+  stroke: currentColor;
+  stroke-linecap: round;
+  transition: stroke-dasharray 0.3s;
+}
+
 /* A month day by day (UsageDays.tsx): a column per day stacked by source, in 1-px rows; days ahead dotted. */
 .ac-usage-days {
   --dot: color-mix(in srgb, var(--line-strong) 45%, transparent);
@@ -4880,13 +4906,20 @@ html:not([data-pointer]) .ac-switch:focus-visible {
     transform: translateX(250%);
   }
 }
-/* The working indicator (PixelSpinner): a 3×3
-   pixel orbit drawn on a canvas; it reads `color` for the neutral ink. Still
-   under reduced motion (the component stops its clock). */
+/* The working indicator (PixelSpinner): the Doug's head in outline, drawn on a canvas, a light running round it;
+   it reads `color` for the neutral ink. Still under reduced motion (the component stops its clock). */
 .ac-pixspin {
   display: inline-block;
   flex: none;
-  image-rendering: pixelated;
+}
+/* The Doug's head in outline, still (DougOutline): the line takes the text color around it. */
+.ac-dougline {
+  display: inline-block;
+  flex: none;
+  overflow: visible;
+  fill: none;
+  stroke: currentColor;
+  stroke-linejoin: round;
 }
 /*
  * In a line of text the pixel marks centre on the capitals, as an `.ac-iconline` lead does (a flex or grid item
@@ -4894,6 +4927,7 @@ html:not([data-pointer]) .ac-switch:focus-visible {
  * absolute child), raised by half the capitals' height less half their size (`--mark-size`, set by each).
  */
 .ac-pixspin,
+.ac-dougline,
 .ac-pixdone,
 .ac-pixstop {
   vertical-align: calc(var(--cap-top) - var(--cap-mid) - var(--mark-size, 14px) / 2);

@@ -7,6 +7,7 @@ import {
   useState,
 } from "react";
 import { type StickerMood, WAVE_SECONDS } from "../agent/stickers";
+import type { AgenteParaBot } from "../brand/dougbot-time";
 import { cx } from "../cx";
 import { Icon, type IconName } from "../icons/Icon";
 import type { MeterSegment } from "../plan-state";
@@ -147,6 +148,8 @@ export interface EmptyStateProps {
   size?: "page" | "panel" | "inline";
   /** The agent standing over the words, in its light: a place's own agent's look, or `true` for the default one. */
   agent?: AgentAppearance | true;
+  /** Who that agent is, for its DougBot (`brand/dougbot-time.ts`); left out, the Doug. */
+  who?: AgenteParaBot;
   /** What the agent does. A wave plays once and holds, the other moods loop. */
   mood?: StickerMood;
 }
@@ -166,6 +169,7 @@ export function EmptyState({
   art,
   size,
   agent,
+  who,
   mood = "wave",
 }: EmptyStateProps) {
   const stands = agent && size !== "inline";
@@ -186,6 +190,7 @@ export function EmptyState({
           <SkyGlow bare color={look?.color ?? "sky"} surface="--empty-surface" />
           <AgentSticker
             appearance={look}
+            who={who}
             mood={mood}
             size={EMPTY_AGENT[size === "panel" ? "panel" : "page"]}
             playFor={mood === "wave" ? WAVE_SECONDS : undefined}

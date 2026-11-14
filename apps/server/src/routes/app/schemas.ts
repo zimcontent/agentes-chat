@@ -480,6 +480,10 @@ export const Agent = z
           description:
             "An API brain on Automático: the maker its models come from (its own key's, else the workspace's), whose logo shows beside it.",
         }),
+        answered: z.string().optional().openapi({
+          description:
+            "Nobody chose its model (Automático, a CLI's own default): the label of the model that last answered for it; absent before its first answer.",
+        }),
       })
       .optional()
       .openapi({ description: "Who thinks for it (ADR 0032), to show next to its name." }),

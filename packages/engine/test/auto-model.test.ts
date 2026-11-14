@@ -255,6 +255,43 @@ describe("the maker beside an agent on Automático", () => {
   });
 });
 
+describe("the model that last answered, where nobody chose one", () => {
+  test("Automático on the API and a CLI's own default name it; a chosen model and another brain's turns don't", async () => {
+    f = await setup();
+    const line = async () => {
+      const agent = await getAgent(f.db, f.org.id, f.agent.id);
+      return agent ? (await agentBrainLines(f.db, f.owner.id, f.org.id, [agent])).get(agent.id) : undefined;
+    };
+    const answer = (provider: string, model: string, billedTo: string, at: string) =>
+      f.db.insert(schema.usageRecords).values({
+        orgId: f.org.id,
+        agentId: f.agent.id,
+        provider,
+        model,
+        requestedModel: model,
+        inputTokens: 1,
+        outputTokens: 1,
+        costNanoUsd: 0,
+        billedTo,
+        createdAt: new Date(at),
+      });
+    await answer("anthropic", "claude-fable-5-1", "org", "2030-01-01T10:00:00Z");
+    // A fixed model is the one that runs: nothing to add.
+    expect((await line())?.answered).toBeUndefined();
+    await updateAgent(f.db, f.owner.id, f.org.id, f.agent.id, { model: AUTO_MODEL });
+    expect(await line()).toMatchObject({ kind: "model", answered: "Claude Fable 5.1" });
+    // On Grok with no model chosen (its CLI's default): only Grok's own turns say what runs.
+    await f.db.update(schema.agents).set({ brain: "grok", brainModel: null }).where(eq(schema.agents.id, f.agent.id));
+    expect(await line()).toMatchObject({ kind: "grok", model: null });
+    expect((await line())?.answered).toBeUndefined();
+    await answer("grok", "grok-code-fast-9", "plan", "2030-01-01T11:00:00Z");
+    expect((await line())?.answered).toBe("grok-code-fast-9");
+    // A turn that named no model is stored as its provider: the one before it still says.
+    await answer("grok", "grok", "plan", "2030-01-01T12:00:00Z");
+    expect((await line())?.answered).toBe("grok-code-fast-9");
+  });
+});
+
 describe("new agents start on Automático", () => {
   test("no model chosen: auto for the API and for any computer brain; a fixed model leaves the brain's default", async () => {
     f = await setup();

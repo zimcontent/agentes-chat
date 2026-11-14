@@ -1,11 +1,12 @@
-/* The main window's cover (cover.rs): the boot sky with the agent, over the site. */
+/* The main window's cover (cover.rs): the DougBot ground (the site's boot, `.sky-boot` in doug.css) with the Doug. */
 .cover {
   position: fixed;
   inset: 0;
   display: grid;
   place-items: center;
   overflow: hidden;
-  background: #0a3f9c;
+  background:
+    radial-gradient(60% 45% at 50% 42%, color-mix(in srgb, #9cfa05 10%, transparent), transparent 70%), #0a0a0a;
   color: #fff;
   font:
     500 13.5px / 1.5 "Onest Variable",
@@ -21,12 +22,6 @@
 .cover[data-fading] {
   opacity: 0;
 }
-.cover__sky {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-}
 .cover__in {
   position: relative;
   display: flex;
@@ -37,8 +32,16 @@
   pointer-events: none;
 }
 .cover__agent {
+  display: block;
   width: 72px;
   height: 72px;
+  line-height: 0;
+}
+.cover__agent > svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
 }
 .cover__word {
   margin: 0;

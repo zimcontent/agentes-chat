@@ -192,6 +192,16 @@ import type {
   PhoneSignIn,
   PlanServes,
   Poll,
+  PortalBoard,
+  PortalCard,
+  PortalJob,
+  PortalLabel,
+  PortalList,
+  PortalMine,
+  PortalOverview,
+  PortalPipeline,
+  PortalPlan,
+  PortalTaskRef,
   Proposal,
   ReactionCount,
   Reminder,
@@ -1598,6 +1608,78 @@ export function createHttpApi(options: TransportOptions = {}): HttpApi {
         request<ThreadInfo>(`${org(orgId)}/threads/${enc(threadId)}/${action}`, { json: {} }),
     },
     dashboards: createDashboardsApi(request),
+    portal: {
+      overview: (orgId) => request<PortalOverview>(`${org(orgId)}/portal`),
+      board: (orgId, client) => request<PortalBoard>(`${org(orgId)}/portal/clients/${enc(client)}`),
+      createCard: async (orgId, input) =>
+        (await request<{ card: PortalCard }>(`${org(orgId)}/portal/cards`, { json: input })).card,
+      updateCard: async (orgId, cardId, input) =>
+        (
+          await request<{ card: PortalCard }>(`${org(orgId)}/portal/cards/${enc(cardId)}`, {
+            method: "PATCH",
+            json: input,
+          })
+        ).card,
+      deleteCard: (orgId, cardId) => request<void>(`${org(orgId)}/portal/cards/${enc(cardId)}`, { method: "DELETE" }),
+      send: async (orgId, input) =>
+        (await request<{ job: PortalJob }>(`${org(orgId)}/portal/send`, { json: input })).job,
+      job: async (orgId, jobId) => (await request<{ job: PortalJob }>(`${org(orgId)}/portal/jobs/${enc(jobId)}`)).job,
+      editItem: (orgId, client, itemId, edit) =>
+        request<void>(`${org(orgId)}/portal/clients/${enc(client)}/items/${enc(itemId)}`, {
+          method: "PATCH",
+          json: edit,
+        }),
+      schedule: (orgId, client, itemId, scheduledFor) =>
+        request<void>(`${org(orgId)}/portal/clients/${enc(client)}/items/${enc(itemId)}/schedule`, {
+          json: { scheduledFor },
+        }),
+      plan: (orgId, client) => request<PortalPlan>(`${org(orgId)}/portal/clients/${enc(client)}/plan`),
+      mine: (orgId) => request<PortalMine>(`${org(orgId)}/portal/mine`),
+      pipeline: (orgId) => request<PortalPipeline>(`${org(orgId)}/portal/pipeline`),
+      tasks: async (orgId) => (await request<{ tasks: PortalTaskRef[] }>(`${org(orgId)}/portal/tasks`)).tasks,
+      createList: async (orgId, client, name) =>
+        (await request<{ list: PortalList }>(`${org(orgId)}/portal/clients/${enc(client)}/lists`, { json: { name } }))
+          .list,
+      orderLists: async (orgId, client, ids) =>
+        (
+          await request<{ lists: PortalList[] }>(`${org(orgId)}/portal/clients/${enc(client)}/lists/order`, {
+            method: "PUT",
+            json: { ids },
+          })
+        ).lists,
+      renameList: async (orgId, listId, name) =>
+        (
+          await request<{ list: PortalList }>(`${org(orgId)}/portal/lists/${enc(listId)}`, {
+            method: "PATCH",
+            json: { name },
+          })
+        ).list,
+      deleteList: (orgId, listId) => request<void>(`${org(orgId)}/portal/lists/${enc(listId)}`, { method: "DELETE" }),
+      labels: async (orgId) => (await request<{ labels: PortalLabel[] }>(`${org(orgId)}/portal/labels`)).labels,
+      createLabel: async (orgId, input) =>
+        (await request<{ label: PortalLabel }>(`${org(orgId)}/portal/labels`, { json: input })).label,
+      updateLabel: async (orgId, labelId, change) =>
+        (
+          await request<{ label: PortalLabel }>(`${org(orgId)}/portal/labels/${enc(labelId)}`, {
+            method: "PATCH",
+            json: change,
+          })
+        ).label,
+      deleteLabel: (orgId, labelId) =>
+        request<void>(`${org(orgId)}/portal/labels/${enc(labelId)}`, { method: "DELETE" }),
+      addComment: async (orgId, cardId, text) =>
+        (
+          await request<{ card: PortalCard }>(`${org(orgId)}/portal/cards/${enc(cardId)}/comments`, {
+            json: { text },
+          })
+        ).card,
+      deleteComment: async (orgId, cardId, commentId) =>
+        (
+          await request<{ card: PortalCard }>(`${org(orgId)}/portal/cards/${enc(cardId)}/comments/${enc(commentId)}`, {
+            method: "DELETE",
+          })
+        ).card,
+    },
     missions: ((): HttpApi["missions"] => {
       const one = (orgId: string, missionId: string) => `${org(orgId)}/missions/${enc(missionId)}`;
       return {

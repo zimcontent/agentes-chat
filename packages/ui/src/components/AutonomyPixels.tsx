@@ -1,6 +1,8 @@
 import { bodyTones, drawAgent, idlePose, mixHex, type Pose } from "../agent/engine.js";
+import { PIXEL_ART } from "../brand/doug";
 import { cx } from "../cx";
 import type { AgentColor, AgentEyes } from "./AgentLook";
+import { AgentSticker } from "./AgentSticker";
 import { reduced, token, useCanvas } from "./RunPixels";
 
 /**
@@ -118,7 +120,33 @@ export function drawAutonomy(
   }
 }
 
-export function AutonomyPixels({
+/** How much a mission asks, as the Doug's face says it: asking always, at ease, or straight at work. */
+const AUTONOMY_MOOD = { always: "wow", low_risk_auto: "deal", never: "thinking" } as const;
+
+export function AutonomyPixels(props: {
+  kind: AutonomyKind;
+  color?: AgentColor;
+  eyes?: AgentEyes;
+  alive?: boolean;
+  size?: number;
+  className?: string;
+}) {
+  if (PIXEL_ART) return <PixelAutonomy {...props} />;
+  const { kind, alive = false, size = 44, className } = props;
+  return (
+    <span
+      className={cx("ac-autonomy", className)}
+      data-kind={kind}
+      data-alive={alive || undefined}
+      style={{ width: size, height: size }}
+      aria-hidden="true"
+    >
+      <AgentSticker mood={AUTONOMY_MOOD[kind]} size={size} />
+    </span>
+  );
+}
+
+function PixelAutonomy({
   kind,
   color = "sky",
   eyes = "round",

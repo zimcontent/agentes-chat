@@ -137,7 +137,7 @@ describe("Avatar", () => {
     expect(person?.getAttribute("aria-hidden")).toBe("true");
   });
 
-  test("agents are never framed, at any size; the Doug is the Doug's portrait; a person's tile can be turned off", () => {
+  test("agents are never framed, at any size; the Doug is the green piece; a person's tile can be turned off", () => {
     const { container } = render(
       <>
         <Avatar kind="agent" name="Ada" size="xs" />
@@ -150,7 +150,7 @@ describe("Avatar", () => {
     expect(xs?.className).not.toContain("ac-avatar--framed");
     expect(xl?.className).not.toContain("ac-avatar--framed");
     expect(doug?.className).not.toContain("ac-avatar--framed");
-    // Only the Doug is a person: his portrait has a smile; a free bot only eyes, never green.
+    // Only the Doug is green: his head sits in the piece of green glass; a free bot never is.
     expect(doug?.innerHTML).toContain("#9CFA05");
     expect(xs?.innerHTML).not.toContain("#9CFA05");
     expect(person?.className).not.toContain("ac-avatar--framed");

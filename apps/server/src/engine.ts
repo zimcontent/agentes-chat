@@ -58,6 +58,7 @@ import {
   createMachineHub,
   createMailToolSource,
   createMediaToolSource,
+  createPortalToolSource,
   createMissionHooks,
   createMissionRunToolSource,
   createMissionToolSource,
@@ -445,6 +446,8 @@ export function buildEngine(o: EngineOptions) {
       // Runs nobody called by name may stay quiet (reply-policy.ts): listed only for them.
       createPassToolSource(),
       createArtifactToolSource(artifacts),
+      // The approval portal's board and `send_for_approval` (ADR 9001): listed only with a portal.
+      createPortalToolSource({ portal: adapters.approvalPortal ?? null, artifacts }),
       // Live blocks and votes in the agent's own conversation (ADR 0113).
       createBlockToolSource(artifacts),
       createChatToolSource({ pubsub: adapters.pubsub, artifacts, gif: createAgentGifPoster(adapters.gifs) }),

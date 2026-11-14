@@ -27,8 +27,8 @@ pub const LABEL: &str = "main-cover";
 pub const OPENING: Duration = Duration::from_secs(1);
 /// The cover fades out (cover.css) before it is hidden.
 const FADE: Duration = Duration::from_millis(260);
-/// The sky's deepest tone (packages/ui sky SKY_TONES[0]), before the cover's page paints.
-const SKY: Color = Color(10, 63, 156, 255);
+/// The DougBot ground (`--db-palco`, packages/ui dougbot-tokens.css), before the cover's page paints.
+const SKY: Color = Color(10, 10, 10, 255);
 /// Written when the window opens, removed when the site paints: still there at the next opening, the last one
 /// never painted.
 const PENDING_FILE: &str = "page-pending";

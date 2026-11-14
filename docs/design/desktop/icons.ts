@@ -1,7 +1,7 @@
 /**
  * The dock's icons at its icon size, 32 px: the mark (the Doug close up, the browser tab's icon) and Browser, Files
  * and Terminal, each a glyph of the app's own icon set on a small piece of dark glass. Only the Doug has color (the
- * identity's rule: the green is his). Then the Doug of the agent browser's start page, a bust, as SVG. render.sh
+ * identity's rule: the green is his). Then the Doug of the agent browser's start page, whole, as SVG. render.sh
  * bundles this file and reads what icons.html leaves as its text, a `<name> <base64>` line each.
  */
 import DougBot from "../../../packages/ui/src/brand/dougbot-avatar.js";
@@ -66,9 +66,10 @@ async function png(svg: string): Promise<string> {
 async function main() {
   const lines: string[] = [];
   for (const [name, svg] of ICONS) lines.push(`${name} ${await png(svg)}`);
-  // From 60 px the Doug is a bust (the identity's §2); no light on the floor on a light ground.
-  const bust = DougBot.avatar({ bot: "doug", perto: false, brilho: false, id: "dbs", titulo: "DougBot" });
-  lines.push(`start-doug ${btoa(bust)}`);
+  // From 60 px the Doug is whole, his head with room in its piece (the identity's §2); no light on the floor on a
+  // light ground.
+  const whole = DougBot.avatar({ bot: "doug", perto: false, brilho: false, id: "dbs", titulo: "DougBot" });
+  lines.push(`start-doug ${btoa(whole)}`);
   document.body.textContent =`\n${lines.join("\n")}\n`;
 }
 

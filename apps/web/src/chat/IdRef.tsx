@@ -50,7 +50,10 @@ export function IdRef({ id, text, shown }: { id: string; text: string; shown?: R
         className="channel-ref id-ref"
         onClick={inPlace ? (e) => inPlaceClick(e, () => inPlace.issue(number)) : undefined}
       >
-        <Icon name="issues" />#{number} {ref.title}
+        <Icon name="issues" />
+        <span className="channel-ref__text">
+          #{number} {ref.title}
+        </span>
       </Link>
     );
   }

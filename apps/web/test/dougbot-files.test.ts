@@ -1,9 +1,9 @@
 import { describe, expect, test } from "bun:test";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { dougBoot, dougFavicon } from "../../../packages/ui/src/brand/dougbot-files";
+import { dougBoot, dougFavicon, dougOutageIcon, dougOutageMark } from "../../../packages/ui/src/brand/dougbot-files";
 
-// The two places that can't run the identity's code are written from it (packages/ui/scripts/dougbot-files.ts):
+// The places that can't run the identity's code are written from it (packages/ui/scripts/dougbot-files.ts):
 // a new dougbot-avatar.js shows up here until they are written again. No image files: the mark is SVG from code.
 const web = join(import.meta.dir, "..");
 const read = (p: string) => readFileSync(join(web, p), "utf8").replace(/\r\n/g, "\n");
@@ -17,5 +17,14 @@ describe("DougBot's files", () => {
     expect(html).toContain(`<!-- dougbot:boot -->${dougBoot()}<!-- /dougbot:boot -->`);
     expect(html).not.toMatch(/<img[^>]+doug/);
     expect(html).toContain("<title>DougBot</title>");
+  });
+  test("the page shown while the server is away carries the Doug in its tab and asleep in its middle", () => {
+    const html = read("public/unavailable.html");
+    expect(html).toContain(dougOutageIcon());
+    expect(html).toContain(dougOutageMark());
+    // The mark is decoration there (the title says the product), and the page stays free of what Compose reads.
+    expect(dougOutageMark()).toStartWith('<svg class="doug" ');
+    expect(dougOutageMark()).toContain('aria-hidden="true"');
+    expect(dougOutageIcon() + dougOutageMark()).not.toContain("$");
   });
 });

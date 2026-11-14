@@ -358,6 +358,7 @@ describe("the tools on top", () => {
       expect(toolOrder(state)).toEqual([
         [
           "waiting",
+          "portal",
           "approvals",
           "proposals",
           "threads",
@@ -402,6 +403,7 @@ describe("the tools on top", () => {
       // Wiki stays where the steps left it, in More: the order is Drive's own spot now, not the default's.
       expect(toolOrder(state).at(-1)).toEqual([
         "waiting",
+        "portal",
         "approvals",
         "proposals",
         "threads",

@@ -251,6 +251,7 @@ export function AccessTab({ part = "all" }: { part?: "all" | "basic" | "advanced
                 <EmptyState
                   size="panel"
                   agent={lookOf(agent) ?? true}
+                  who={agent}
                   title={t("skills.emptyTitle")}
                   actions={
                     viewer === "admin" && (

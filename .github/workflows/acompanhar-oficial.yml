@@ -235,11 +235,17 @@ jobs:
             packages/engine/test/outbound-pinning.test.ts
             packages/engine/test/browser-handoff.test.ts
             packages/engine/test/channel-refs.test.ts
+            packages/engine/test/approval-portal.test.ts
+            packages/engine/test/approval-portal-tasks.test.ts
             apps/server/test/oauth.test.ts
             apps/server/test/connectors.test.ts
             apps/server/test/sidebar-items.test.ts
             apps/server/test/channel-icon.test.ts
             apps/server/test/channel-card.test.ts
+            apps/server/test/portal.test.ts
+            apps/web/test/portal.test.tsx
+            apps/web/test/portal-plan.test.tsx
+            apps/web/test/portal-overview.test.tsx
             apps/server/test/runner/browser.test.ts
             packages/db/test/migrate-steps.test.ts
             packages/db/test/schema.test.ts

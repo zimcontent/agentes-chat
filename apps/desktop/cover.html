@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>DougBot</title>
-    <!-- The sky's deepest tone before anything else paints (cover.rs paints the same behind it). -->
+    <!-- The DougBot ground before anything else paints (cover.rs paints the same behind it). -->
     <style>
       html,
       body {
@@ -16,9 +16,8 @@
   </head>
   <body>
     <main class="cover" data-tauri-drag-region>
-      <canvas class="cover__sky" aria-hidden="true"></canvas>
       <div class="cover__in">
-        <canvas class="cover__agent" aria-hidden="true"></canvas>
+        <span class="cover__agent" aria-hidden="true"></span>
         <p class="cover__word" aria-label="DougBot">Doug<span>Bot</span></p>
         <p class="cover__line" role="status" aria-live="polite"></p>
         <p class="cover__time" aria-hidden="true"></p>

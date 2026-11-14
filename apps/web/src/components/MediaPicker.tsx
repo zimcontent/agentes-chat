@@ -203,6 +203,7 @@ function StickerTab({ autoFocus, onPick }: { autoFocus: boolean; onPick: (media:
         id: a.id,
         name: a.name,
         appearance: lookOf(a),
+        who: a,
         avatar: <AgentAvatar agentId={a.id} name={a.name} size="xs" />,
       })),
     [dir.agents],

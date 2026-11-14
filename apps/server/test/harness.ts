@@ -1,5 +1,6 @@
 import {
   type Adapters,
+  type ApprovalPortal,
   checkGiphyKey,
   createFakeEmailSender,
   createFakeGifs,
@@ -102,6 +103,8 @@ export async function createTestServer(
     webPush?: WebPushSender | null;
     /** Where error lines are reported (`createFakeErrorReporter`); absent = nowhere. */
     errors?: ErrorReporter;
+    /** The approval portal (ADR 9001); absent or null = none, as without its bridge. */
+    approvalPortal?: ApprovalPortal | null;
     /** GIF search (ADR 0091); absent = the fake provider (`createFakeGifs`), null = none, as without its key. */
     gifs?: GifProvider | null;
     /**
@@ -162,6 +165,7 @@ export async function createTestServer(
     humanCheck: options.humanCheck ?? null,
     gifs,
     whatsapp: options.whatsapp ?? null,
+    approvalPortal: options.approvalPortal ?? null,
   };
   const provider = createFakeProvider(options.reply);
   const embeddings = createFakeEmbeddings();

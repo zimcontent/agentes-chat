@@ -4,6 +4,7 @@ import { join, resolve } from "node:path";
 import {
   type Adapters,
   createBitwardenSource,
+  createBridgeApprovalPortal,
   createComposioClient,
   createComposioMailConnector,
   createDiskBlobStore,
@@ -280,6 +281,11 @@ async function boot(
       config.WHATSAPP_GATEWAY_URL && config.WHATSAPP_GATEWAY_KEY
         ? createEvolutionGoGateway({ url: config.WHATSAPP_GATEWAY_URL, apiKey: config.WHATSAPP_GATEWAY_KEY })
         : null,
+    // The approval portal (ADR 9001), only with its bridge's address and token.
+    approvalPortal:
+      config.APPROVAL_PORTAL_URL && config.APPROVAL_PORTAL_TOKEN
+        ? createBridgeApprovalPortal({ url: config.APPROVAL_PORTAL_URL, token: config.APPROVAL_PORTAL_TOKEN })
+        : null,
     // The Vault's external sources (ADR 0144): nothing reaches them until a person connects one. A self-hosted
     // Bitwarden's address is typed by a person, so its requests go only to public addresses, pinned at connect time.
     vaultSources: Object.fromEntries(
@@ -482,6 +488,7 @@ async function boot(
     voice: engine.voice,
     approvalDigest: { publicUrl: config.PUBLIC_URL, afterHours: config.APPROVAL_REMINDER_HOURS },
     mail: { deps: engine.mail, pollSeconds: config.MAIL_POLL_SECONDS },
+    approvalPortal: adapters.approvalPortal ?? undefined,
     browserLive: engine.browserLive,
     desktops: engine.desktops,
     machines: engine.machineHub,

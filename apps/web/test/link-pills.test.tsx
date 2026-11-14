@@ -73,6 +73,35 @@ describe("a bare address of a known service", () => {
     expect(css.match(/\.link-pill \{[^}]*\}/)?.[0]).toContain("overflow-wrap: break-word");
   });
 
+  test("the logo sits beside the words, in the flow, never over them", () => {
+    const a = anchor(body(`Abri o ${PR} para revisão.`));
+    const [mark, words] = Array.from(a.children);
+    expect(mark?.className).toBe("link-pill__mark");
+    expect(words?.className).toBe("link-pill__text");
+    expect(words?.textContent).toBe("agentes.chat #148");
+    const css = readFileSync(join(import.meta.dir, "../src/layout.css"), "utf8");
+    const rule = (selector: string) => css.match(new RegExp(`(^|\\n)${selector} \\{[^}]*\\}`))?.[0] ?? "";
+    const pill = rule("\\.link-pill");
+    expect(pill).toContain("display: inline-flex");
+    expect(pill).toContain("gap: 6px");
+    expect(pill).toContain("max-width: 100%");
+    expect(pill).toContain("padding: 0 4px");
+    // After .channel-ref's own `display: inline` and padding, so the pill's win.
+    expect(css.indexOf(pill)).toBeGreaterThan(css.indexOf(".channel-ref {"));
+    expect(rule("\\.link-pill__mark")).toContain("flex: none");
+    expect(css).toMatch(/\.link-pill__text,[^{]*\{[^}]*min-width: 0/);
+    expect(css).not.toMatch(/\.link-pill__mark \{[^}]*position: absolute/);
+  });
+
+  test("a file's and a task's pill lay out the same way: the icon beside the name", () => {
+    const css = readFileSync(join(import.meta.dir, "../src/layout.css"), "utf8");
+    const pill = css.match(/\.id-ref,\n\.file-ref \{[^}]*\}/)?.[0] ?? "";
+    expect(pill).toContain("display: inline-flex");
+    expect(pill).toContain("gap: 6px");
+    expect(pill).toContain("max-width: 100%");
+    expect(css).not.toMatch(/\.file-ref > \.ac-icon \{[^}]*position: absolute/);
+  });
+
   test("inside code it stays code", () => {
     expect(body(`\`${PR}\``).querySelector("a")).toBeNull();
   });

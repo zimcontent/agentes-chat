@@ -27,6 +27,11 @@
     },
     "./brand/marks": "./src/brand/marks.ts",
     "./brand/dougbot-time": "./src/brand/dougbot-time.ts",
+    "./brand/dougbot-files": "./src/brand/dougbot-files.ts",
+    "./brand/dougbot-avatar": {
+      "types": "./src/brand/dougbot-avatar.d.ts",
+      "default": "./src/brand/dougbot-avatar.js"
+    },
     "./presence/badge": "./src/presence/badge.ts",
     "./sfx": "./src/sfx/synth.ts",
     "./sky/engine": "./src/sky/engine.ts",

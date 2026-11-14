@@ -144,6 +144,7 @@ export function NoMemories({
     <EmptyState
       size="panel"
       agent={lookOf(agent) ?? true}
+      who={agent}
       title={t("memory.emptyTitle", { name: agent.name })}
       actions={<AskAgentButton agent={agent} variant="primary" />}
     >

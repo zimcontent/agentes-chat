@@ -2,7 +2,7 @@
  * Which DougBot each agent is: the one file to edit when the team changes (IDENTIDADE.md §6–7).
  *
  * 1. `BOTS_DO_TIME`: an agent whose name or handle is one of these is that bot of the identity (its form, color, eyes
- *    and detail are the package's). The Doug is the only portrait and the only one who smiles.
+ *    and detail are the package's). The Doug is the bot's head in the piece of green glass, the only green one.
  * 2. Every other agent gets a "free" bot, the same on every screen: its form from its trade (`OFICIOS`, read in its
  *    role, handle and name, first match wins), its color from `CORES_LIVRES` and its eyes from its handle's hash.
  *    Never green, never a mouth.

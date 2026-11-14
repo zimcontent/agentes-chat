@@ -99,6 +99,7 @@ export function RightHandIntro({ agent, channelId }: { agent: Agent; channelId: 
       {wave && (
         <AgentSticker
           appearance={lookOf(agent)}
+          who={agent}
           mood="wave"
           playFor={WAVE_SECONDS}
           size={MESSAGE_STICKER}

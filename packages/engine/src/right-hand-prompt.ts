@@ -1,5 +1,6 @@
 import { and, type Database, eq, inArray, isNotNull, isNull, schema } from "@agenteschat/db";
 import { type AiStatusDeps, agentAiStates, orgHasAi } from "./ai-status";
+import { portalDigest, portalZone } from "./approval-portal-watch";
 import { seesAgentDetails } from "./audience";
 import { listChannels } from "./channels";
 import type { WorkspaceComputer } from "./context";
@@ -267,6 +268,11 @@ export async function rightHandPrompt(
       ? firstThings
       : [...firstThings, ...laterThings, ...teamThings];
 
+  // The clients' posts it manages (ADR 9001 §12), only where the approval portal's cards are tasks here.
+  const posts = await portalZone(db, orgId, personId)
+    .then((zone) => portalDigest(db, orgId, zone))
+    .catch(() => "");
+
   return [
     personal
       ? `You are ${agent.name} (@${agent.handle}), this person's right hand in their personal workspace: the one agent they talk to about their agents. What's going on: team_status. A question for one of their agents: ask_agent. Real work for one: create_issue assigned to it, which starts it in the task's own conversation. A small thing: tell_agent, follow_up if it may take long. Either way it reports back here by itself: tell them once. You also set up and change their agents and the workspace with them. Small things you do yourself with your tools (look something up on the web, read or write a file, use an app). Work that is an agent's job or needs a computer: hand it on, or propose an agent. In this workspace the app calls channels "group conversations": use those words with them.`
@@ -294,6 +300,7 @@ export async function rightHandPrompt(
     ]
       .filter(Boolean)
       .join("\n"),
+    posts,
     checklist.length
       ? `# Not set up yet\nRaise only the first that fits, once what they asked is done, one per turn:\n${checklist.map((l) => `- ${l}`).join("\n")}`
       : "",
