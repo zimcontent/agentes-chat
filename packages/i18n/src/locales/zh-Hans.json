@@ -12974,6 +12974,8 @@
       "gone": "那个账号已不再连接。",
       "unfinished": "在 Composio 的登录没有完成，请重试。",
       "unavailable": "这个服务无法在这里连接。",
+      "busy": "此连接正在更新登录，请稍后重试。",
+      "whatsappNoAgent": "请先选择这个号码的智能体。",
       "misconfigured": "服务器上与 {{provider}} 的连接配置有误，所以无法完成连接。运行服务器的人需要在应用的设置中更换密钥。"
     },
     "wiki": {
@@ -13213,6 +13215,7 @@
       "ownerOrAdmin": "只有智能体负责人或管理员可以执行此操作。",
       "detailsHidden": "只有与 {{agentName}} 对话的人可以看到它的工作方式。",
       "extraOwnerOnly": "只有智能体负责人可以开启或关闭套餐的付费额外用量。",
+      "brainNotAllowed": "只有管理员或智能体负责人可以选择它的 AI。",
       "undoForbidden": "只有智能体为其工作的人、智能体负责人或管理员可以撤销此操作。",
       "undoSkillsAdmins": "只有管理员能撤销或重做对智能体技能的更改。"
     },

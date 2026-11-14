@@ -12966,6 +12966,8 @@
       "gone": "Akun itu sudah tidak terhubung.",
       "unfinished": "Proses masuk di Composio tidak selesai. Coba lagi.",
       "unavailable": "Layanan ini tidak bisa dihubungkan di sini.",
+      "busy": "Koneksi ini sedang memperbarui proses masuknya. Coba lagi sebentar lagi.",
+      "whatsappNoAgent": "Pilih dulu agen untuk nomor ini.",
       "misconfigured": "Koneksi ke {{provider}} di server salah diatur, jadi tidak bisa selesai. Pengelola server perlu mengganti kunci di pengaturan aplikasi."
     },
     "wiki": {
@@ -13205,6 +13207,7 @@
       "ownerOrAdmin": "Hanya pemilik agen atau Admin yang bisa melakukan ini.",
       "detailsHidden": "Hanya orang yang berbicara dengan {{agentName}} yang bisa melihat cara kerjanya.",
       "extraOwnerOnly": "Hanya pemilik agen yang bisa menyalakan atau mematikan penggunaan ekstra berbayar pada paket.",
+      "brainNotAllowed": "Hanya admin atau pemilik agen yang bisa memilih AI-nya.",
       "undoForbidden": "Hanya orang yang dibantu agen, pemiliknya, atau Admin yang bisa membatalkan ini.",
       "undoSkillsAdmins": "Hanya Admin yang bisa membatalkan atau mengulang perubahan pada skill agen."
     },

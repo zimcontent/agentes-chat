@@ -13440,6 +13440,10 @@ export const en = {
       gone: "That account is no longer connected.",
       unfinished: "The sign-in at Composio didn't finish. Try again.",
       unavailable: "This service can't be connected here.",
+      /** The connection is renewing its sign-in at this very moment (`connector.busy`): a second try works. */
+      busy: "This connection is renewing its sign-in. Try again in a moment.",
+      /** A WhatsApp number whose agent's AI is asked for before the number has an agent (`whatsapp.no_agent`). */
+      whatsappNoAgent: "Choose this number's agent first.",
       /**
        * {{provider}} refused this server's own OAuth app for it, whose client secret (or id) is wrong
        * (`connector_error=misconfigured`): trying again can't help, only whoever runs the server can fix it.
@@ -13704,6 +13708,8 @@ export const en = {
       ownerOrAdmin: "Only the agent's owner or an admin can do this.",
       detailsHidden: "Only who talks to {{agentName}} sees how it works.",
       extraOwnerOnly: "Only the agent's owner turns its plan's paid extra usage on or off.",
+      /** Someone who isn't an admin nor the agent's owner tried to choose its AI (`brain.not_allowed`). */
+      brainNotAllowed: "Only an admin or the agent's owner chooses its AI.",
       undoForbidden: "Only the person the agent worked for, its owner or an admin can undo this.",
       /** `action.skills_admins`: skills are only admins' on the agent's page, so are their Undo and Redo. */
       undoSkillsAdmins: "Only an admin can undo or redo a change to an agent's skills.",
