@@ -115,6 +115,7 @@ export function FilesTab() {
         <EmptyState
           size="panel"
           agent={lookOf(agent) ?? true}
+          who={agent}
           title={mayAsk(org, agent) ? t("agentPage.files.empty") : undefined}
           actions={
             <AskAgentButton

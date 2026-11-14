@@ -223,6 +223,7 @@ function Board({
         <EmptyState
           size="page"
           agent={lookOf(artAgent) ?? true}
+          who={artAgent ?? undefined}
           title={t("dashboards.empty.title")}
           actions={
             board.canEdit && (

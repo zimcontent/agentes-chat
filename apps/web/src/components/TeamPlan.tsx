@@ -416,6 +416,7 @@ export function TeamPlanCardView({ message, card }: { message: Message; card: Te
                 <AgentSticker
                   key={a.handle}
                   appearance={lookOf(a)}
+                  who={a}
                   mood="wave"
                   playFor={WAVE_SECONDS}
                   size={MESSAGE_STICKER}

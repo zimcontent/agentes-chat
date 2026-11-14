@@ -8,7 +8,9 @@ import {
   mixHex,
   toneAt,
 } from "../agent/engine.js";
+import { PIXEL_ART } from "../brand/doug";
 import { cx } from "../cx";
+import { AgentSticker } from "./AgentSticker";
 import { reduced, useCanvas } from "./RunPixels";
 
 /**
@@ -48,6 +50,15 @@ const CELL = 4;
  * cell. Still with reduced motion. Every cell lands on whole device pixels. Decorative: the caller says it in words.
  */
 export function AgentSearching({ className }: { className?: string }) {
+  // In DougBot (`PIXEL_ART` off) nothing found is the Doug, looking around (IDENTIDADE.md §7: no pixel agents).
+  return PIXEL_ART ? (
+    <PixelSearching className={className} />
+  ) : (
+    <AgentSticker mood="thinking" size={64} className={className} />
+  );
+}
+
+function PixelSearching({ className }: { className?: string }) {
   const ref = useCanvas((ctx, canvas, tt) => {
     const dpr = (typeof devicePixelRatio === "number" && devicePixelRatio) || 1;
     const P = Math.max(1, Math.round(CELL * dpr));

@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import { bodyTones, drawAgent, idlePose, mixHex } from "../agent/engine.js";
+import { PIXEL_ART } from "../brand/doug";
 import { cx } from "../cx";
 import type { AgentColor, AgentEyes } from "./AgentLook";
+import { AgentSticker } from "./AgentSticker";
 import { BAYER, reduced, token, useCanvas } from "./RunPixels";
 
 /**
@@ -214,7 +216,16 @@ const ASK = [
  * family): the agent bottom-left and a "?" bubble top-right, alive (it
  * blinks, the bubble bobs); still with reduced motion.
  */
-export function AskPixels({
+export function AskPixels(props: { color?: AgentColor; eyes?: AgentEyes; className?: string }) {
+  // In DougBot the Doug asking (its "pedindo" face and bubble), not the pixel agent.
+  return PIXEL_ART ? (
+    <PixelAsk {...props} />
+  ) : (
+    <AgentSticker mood="wow" size={44} className={cx("ac-toolpx-ask", props.className)} />
+  );
+}
+
+function PixelAsk({
   color = "sky",
   eyes = "round",
   className,
@@ -257,7 +268,16 @@ export function AskPixels({
 }
 
 /** The done card's agent: happy, idle, alive (still with reduced motion). Its size comes from CSS (64px). */
-export function HappyAgent({
+export function HappyAgent(props: { color?: AgentColor; eyes?: AgentEyes; size?: number; className?: string }) {
+  // In DougBot the Doug, done and happy, not the pixel agent.
+  return PIXEL_ART ? (
+    <PixelHappy {...props} />
+  ) : (
+    <AgentSticker mood="celebrate" size={props.size ?? 64} className={cx("ac-toolpx-agent", props.className)} />
+  );
+}
+
+function PixelHappy({
   color = "sky",
   eyes = "round",
   size = 64,

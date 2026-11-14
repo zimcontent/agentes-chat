@@ -1,5 +1,5 @@
 /**
- * The main window's cover (cover.rs): the boot sky with the agent, over the server's page while it
+ * The main window's cover (cover.rs): the DougBot ground with the Doug, over the server's page while it
  * loads, so the window is never blank. Rust shows it and hides it (the page says when it painted); this page
  * only tells, while it shows, whether the server open now can be reached ("No internet connection…" or
  * "Can't reach {{host}}…"), and when it is back it asks to load the page again. Over the server here it says
@@ -9,9 +9,7 @@
  */
 
 import { CLOUD_SERVER, isTailnet, serverHost } from "@agenteschat/client/lib/server";
-import { drawAgent, idlePose } from "@agenteschat/ui/agent/engine";
-import { startSky } from "@agenteschat/ui/sky/engine";
-import { SKY_TONES } from "@agenteschat/ui/sky/math";
+import DougBot from "@agenteschat/ui/brand/dougbot-avatar";
 import { invoke } from "@tauri-apps/api/core";
 import "@fontsource-variable/onest/index.css";
 import "../fonts.css";
@@ -42,8 +40,7 @@ const device = strings.device[platform];
 const root = document.querySelector<HTMLElement>(".cover");
 const line = document.querySelector<HTMLElement>(".cover__line");
 const time = document.querySelector<HTMLElement>(".cover__time");
-const sky = document.querySelector<HTMLCanvasElement>(".cover__sky");
-const agent = document.querySelector<HTMLCanvasElement>(".cover__agent");
+const agent = document.querySelector<HTMLElement>(".cover__agent");
 const acts = document.querySelector<HTMLElement>(".cover__acts");
 document.documentElement.lang = systemLocale();
 
@@ -66,48 +63,24 @@ function sayAside(text: string) {
   tick();
 }
 
-if (sky) {
-  // The same sky as the site's BootSplash (apps/web Sky.tsx), so the hand-over doesn't show.
-  startSky(sky, () => ({
-    pixel: 4,
-    palette: SKY_TONES,
-    sprites: { area: 700, max: 40 },
-    rise: 2.2,
-    light: 0.12,
-    base: (u, v, t) => {
-      const fill = Math.min(1, (performance.now() - shownAt) / 1800) * (unreachable ? 0.55 : 1);
-      return -0.3 + 1.15 * fill * (0.35 + 0.65 * v) + 0.05 * Math.sin(u * 6 + t);
-    },
-  }));
-}
+/** The face drawn last, so a word said again doesn't draw it again. */
+let drawn = "";
 
-if (agent) {
-  const dpr = Math.min(2, window.devicePixelRatio || 1);
-  const size = 72;
-  agent.width = agent.height = Math.round(size * dpr);
-  const ctx = agent.getContext("2d");
-  const seed = Math.random() * 9;
-  // With reduced motion the agent is drawn still (the sky does the same, packages/ui sky engine).
-  const still = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  const frame = (now: number) => {
-    if (ctx) {
-      const s = agent.width;
-      const inner = s * 0.84;
-      ctx.clearRect(0, 0, s, s);
-      const pose = idlePose(now / 1000, seed, { every: 10 });
-      drawAgent(ctx, (s - inner) / 2, s - inner + s * 0.04, inner, {
-        color: "sky",
-        eyes: "round",
-        cells: 12,
-        pose: unreachable ? { ...pose, blink: false, expression: "closed" } : pose,
-      });
-    }
-    if (!still) requestAnimationFrame(frame);
-  };
-  requestAnimationFrame(frame);
+/**
+ * The Doug over the cover (the identity's code, `dougbot-avatar.js`, as the site's avatars): at ease while the page
+ * loads, asleep while the server can't be reached.
+ */
+function drawDoug() {
+  if (!agent) return;
+  const estado = unreachable ? "dormindo" : "ok";
+  if (drawn === estado) return;
+  drawn = estado;
+  agent.innerHTML = DougBot.avatar({ bot: "doug", estado, tamanho: 72, brilho: true, id: "cover" });
 }
+drawDoug();
 
 function say(text: string) {
+  drawDoug();
   if (line) line.textContent = text;
 }
 
@@ -149,7 +122,7 @@ function tick() {
   buttons(clock.slow ? [[words.copy, copyDiagnostics]] : []);
 }
 
-/** Shown again (cover.rs `show`): the sky fills again, nothing is said yet. */
+/** Shown again (cover.rs `show`): the Doug at ease again, nothing is said yet. */
 function shown() {
   shownAt = performance.now();
   unreachable = false;
