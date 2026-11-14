@@ -2,6 +2,8 @@ import type { ApprovalPortal, PortalCard, PortalItem, PubSub } from "@agentescha
 import { and, asc, type Database, eq, isNull, schema, sql } from "@agenteschat/db";
 import type { PortalColumn } from "./approval-portal";
 import { planCard } from "./approval-portal-plan";
+import { localDay, type PortalOpenTask, portalOpenTasks, portalZone, shiftDay } from "./approval-portal-watch";
+import { openPersonAgentDm } from "./dms";
 import { publishMessageCreated } from "./events";
 import { projectByName } from "./issue-projects";
 import {
@@ -13,7 +15,7 @@ import {
   updateIssue,
   type WorkActor,
 } from "./issues";
-import { insertMessage, messageView } from "./messages";
+import { insertMessage, messageView, postPersonMessage } from "./messages";
 import { notifyMessage } from "./notification-producers";
 import { rightHandId } from "./right-hand";
 
@@ -54,7 +56,8 @@ interface Side {
   lead: string | null;
 }
 interface Synced {
-  card: Side & { stage: PortalColumn };
+  /** `kind`: the post's kind (reel, carousel…), kept for whoever reads the board from the tasks. */
+  card: Side & { stage: PortalColumn; kind?: string };
   issue: Side & { status: IssueStatus };
 }
 
@@ -67,6 +70,8 @@ export interface PortalStageChange {
   client: string;
   cardId: string;
   title: string;
+  /** The post's kind on its card (reel, carousel, image, story). */
+  kind: string;
   from: PortalColumn;
   to: PortalColumn;
   assignee: WorkActor | null;
@@ -89,6 +94,7 @@ const cardSide = (card: PortalCard, stage: PortalColumn): Synced["card"] => ({
   due: card.produceOn,
   lead: card.members[0] ?? null,
   stage,
+  kind: card.type,
 });
 const issueSide = (
   row: Pick<IssueRow, "title" | "description" | "dueDate" | "assigneeId" | "status">,
@@ -125,6 +131,8 @@ async function ownerOf(db: Database, orgId: string) {
     .limit(1);
   return row ?? null;
 }
+
+type Writers = NonNullable<Awaited<ReturnType<typeof writers>>>;
 
 /** Who a pass writes as: the right hand, which every workspace has, else the owner. */
 async function writers(db: Database, orgId: string) {
@@ -176,7 +184,8 @@ const withLead = (members: string[], lead: string | null, before: string | null)
 };
 
 async function saveSynced(db: Database, row: IssueRow, client: string, cardId: string, synced: Synced) {
-  const source = { type: "portal" as const, client, cardId, synced };
+  const nudged = (row.source as { nudged?: string }).nudged;
+  const source = { type: "portal" as const, client, cardId, synced, ...(nudged ? { nudged } : {}) };
   if (JSON.stringify(row.source) === JSON.stringify(source)) return;
   await db.update(issues).set({ source }).where(eq(issues.id, row.id));
 }
@@ -330,6 +339,7 @@ async function onePass(
           client: card.client,
           cardId: card.id,
           title: card.title,
+          kind: card.type,
           from: was.card.stage,
           to: stage,
           assignee,
@@ -429,6 +439,62 @@ const NOTICES: Record<NoticeLocale, Partial<Record<PortalColumn, (title: string)
     posted: (t) => `"${t}" is out.`,
   },
 };
+/** The lines about a post's day, said once each: the day it is for, and the day after when it still isn't up. */
+const DATE_NOTICES: Record<NoticeLocale, Record<"today" | "late", (title: string) => string>> = {
+  "pt-BR": {
+    today: (t) => `"${t}" é para hoje.`,
+    late: (t) => `"${t}" era para ontem e ainda não subiu para aprovação.`,
+  },
+  en: {
+    today: (t) => `"${t}" is for today.`,
+    late: (t) => `"${t}" was for yesterday and hasn't gone up for approval yet.`,
+  },
+};
+/** What the assistant is told in its owner's conversation with it about the posts nobody has. */
+const UNOWNED: Record<NoticeLocale, { head: string; why: Record<"adjusting" | "today" | "late", string> }> = {
+  "pt-BR": {
+    head: "Aviso automático do Portal: estes posts estão sem responsável. Passe cada um para quem deve fazer e me diga em uma linha com quem ficou.",
+    why: { adjusting: "o cliente pediu ajuste", today: "é para hoje", late: "era para ontem" },
+  },
+  en: {
+    head: "Automatic notice from the Portal: nobody has these posts. Hand each to whoever should make it and tell me in one line who has it.",
+    why: { adjusting: "the client asked for a change", today: "it is for today", late: "it was for yesterday" },
+  },
+};
+const localeOf = (locale: string | null | undefined): NoticeLocale =>
+  locale?.toLowerCase().startsWith("pt") ? "pt-BR" : "en";
+
+interface Unowned {
+  number: number;
+  title: string;
+  client: string;
+  kind: string | null;
+  why: "adjusting" | "today" | "late";
+}
+
+/**
+ * Posts nobody has, given to the workspace's assistant to hand on (ADR 9001 §12): one message in its owner's own
+ * conversation with it, the only place it may assign a task, written by code in the owner's name and saying so. The
+ * assistant decides who (the one judgment here that isn't a rule); nothing a client wrote goes in the message.
+ */
+async function askAssistant(deps: PortalTaskDeps, orgId: string, who: Writers, unowned: Unowned[]) {
+  if (unowned.length === 0 || !who.rightHand || !deps.pubsub) return;
+  const words = UNOWNED[localeOf(who.locale)];
+  const dm = await openPersonAgentDm(deps.db, orgId, who.owner, who.rightHand);
+  const listed = unowned.slice(0, 20);
+  const body = [
+    words.head,
+    ...listed.map(
+      (u) =>
+        `- #${u.number} "${u.title.slice(0, 120)}" (${u.client}${u.kind ? `, ${u.kind}` : ""}): ${words.why[u.why]}`,
+    ),
+  ].join("\n");
+  await postPersonMessage({ db: deps.db, pubsub: deps.pubsub }, who.owner, orgId, dm.id, {
+    body,
+    meta: { portalUnowned: listed.map((u) => u.number) },
+  });
+}
+
 /** The stages a client's group hears about: what the client did, and the post going out. */
 const GROUP_STAGES: PortalColumn[] = ["adjusting", "approved", "posted"];
 
@@ -462,12 +528,16 @@ export async function announcePortalStages(deps: PortalTaskDeps, orgId: string, 
   if (changes.length === 0 || !pubsub) return;
   const who = await writers(db, orgId);
   if (!who) return;
-  const locale: NoticeLocale = who.locale?.toLowerCase().startsWith("pt") ? "pt-BR" : "en";
+  const locale = localeOf(who.locale);
+  const unowned: Unowned[] = [];
   for (const change of changes) {
     try {
       const line = NOTICES[locale][change.to]?.(change.title);
       if (line && who.rightHand) {
-        const said = await commentIssue({ db, pubsub }, who.script, orgId, change.issueId, line);
+        // A person who has it is named, so the line reaches them wherever they are.
+        const to = change.to === "adjusting" && change.assignee?.type === "person" ? change.assignee.id : null;
+        const name = to ? await mentionOf(db, orgId, to) : "";
+        const said = await commentIssue({ db, pubsub }, who.script, orgId, change.issueId, `${name}${line}`);
         await notifyMessage({ db, pubsub }, orgId, said.id).catch(() => {});
         const group = GROUP_STAGES.includes(change.to) ? await clientChannel(db, orgId, change.client) : null;
         if (group) {
@@ -481,8 +551,13 @@ export async function announcePortalStages(deps: PortalTaskDeps, orgId: string, 
           await publishMessageCreated(pubsub, messageView(message));
         }
       }
-      if (change.to === "adjusting" && change.assignee?.type === "agent") {
-        await askAgentToImplement({ db, pubsub }, who.owner, orgId, change.issueId, change.assignee.id);
+      if (change.to === "adjusting") {
+        // The agent that has it starts on the change at once; a post nobody has goes to the assistant to hand on.
+        if (change.assignee?.type === "agent") {
+          await askAgentToImplement({ db, pubsub }, who.owner, orgId, change.issueId, change.assignee.id);
+        } else if (!change.assignee) {
+          unowned.push({ ...change, why: "adjusting" });
+        }
       }
     } catch (error) {
       deps.log?.warn("approval portal: a stage's notice could not be written", {
@@ -491,16 +566,119 @@ export async function announcePortalStages(deps: PortalTaskDeps, orgId: string, 
       });
     }
   }
+  await askAssistant(deps, orgId, who, unowned).catch((error: unknown) =>
+    deps.log?.warn("approval portal: the assistant could not be told of posts nobody has", {
+      error: error instanceof Error ? error.message : String(error),
+    }),
+  );
+}
+
+/** `@handle ` of a person, to open a line that is for them; "" when they have none. */
+async function mentionOf(db: Database, orgId: string, userId: string) {
+  const [row] = await db
+    .select({ handle: organizationMembers.handle })
+    .from(organizationMembers)
+    .where(and(eq(organizationMembers.orgId, orgId), eq(organizationMembers.userId, userId)));
+  return row?.handle ? `@${row.handle} ` : "";
+}
+
+/** The hour of the day, in the owner's time, from which the day's lines are written. */
+const DATES_FROM_HOUR = 8;
+
+/**
+ * The posts' days, watched by code (ADR 9001 §12): on the day a post is to be made, and the day after when it still
+ * hasn't gone up, the assistant says so once in the task's conversation, naming the person who has it. A post nobody
+ * has goes to the assistant to hand on. Older ones are not gone over again: the assistant's own view lists them.
+ */
+export async function watchPortalDates(deps: PortalTaskDeps, orgId: string, at = new Date()) {
+  const { db, pubsub } = deps;
+  if (!pubsub) return 0;
+  const who = await writers(db, orgId);
+  if (!who?.rightHand) return 0;
+  const { day, hour } = localDay(await portalZone(db, orgId, who.owner), at);
+  if (hour < DATES_FROM_HOUR) return 0;
+  const yesterday = shiftDay(day, -1);
+  const due: { task: PortalOpenTask; kind: "today" | "late"; key: string }[] = [];
+  for (const task of await portalOpenTasks(db, orgId)) {
+    if (task.stage !== "todo" && task.stage !== "doing") continue;
+    const kind = task.due === day ? "today" : task.due === yesterday ? "late" : null;
+    if (!kind) continue;
+    const key = `${task.due}:${kind}`;
+    if (task.nudged !== key) due.push({ task, kind, key });
+  }
+  if (due.length === 0) return 0;
+  const locale = localeOf(who.locale);
+  const unowned: Unowned[] = [];
+  let said = 0;
+  for (const { task, kind, key } of due) {
+    try {
+      // Marked first: a line that fails is skipped, never said twice.
+      await db
+        .update(issues)
+        .set({ source: sql`${issues.source} || ${JSON.stringify({ nudged: key })}::jsonb` })
+        .where(eq(issues.id, task.id));
+      const name = task.assignee?.type === "person" ? await mentionOf(db, orgId, task.assignee.id) : "";
+      const line = `${name}${DATE_NOTICES[locale][kind](task.title)}`;
+      const message = await commentIssue({ db, pubsub }, who.script, orgId, task.id, line);
+      await notifyMessage({ db, pubsub }, orgId, message.id).catch(() => {});
+      if (!task.assignee) unowned.push({ ...task, why: kind });
+      said++;
+    } catch (error) {
+      deps.log?.warn("approval portal: a post's day could not be said", {
+        card: task.cardId,
+        error: error instanceof Error ? error.message : String(error),
+      });
+    }
+  }
+  await askAssistant(deps, orgId, who, unowned).catch((error: unknown) =>
+    deps.log?.warn("approval portal: the assistant could not be told of posts nobody has", {
+      error: error instanceof Error ? error.message : String(error),
+    }),
+  );
+  return said;
 }
 
 /**
  * One tick of the portal's worker: bring every card and task in step, then say what changed at the portal's side.
  * Nothing when the installation has no workspace yet.
  */
-export async function portalTasksTick(deps: PortalTaskDeps, portal: ApprovalPortal) {
-  const orgId = await portalWorkspace(deps.db);
-  if (!orgId) return null;
-  const result = await syncPortalTasks(deps, portal, orgId);
-  await announcePortalStages(deps, orgId, result.changes);
-  return result;
+export function portalTasksTick(deps: PortalTaskDeps, portal: ApprovalPortal): Promise<PortalSyncResult | null> {
+  // One tick at a time in a process: the worker's and the one the bridge asks for never say the same thing twice.
+  const tick = ticks.then(async () => {
+    const orgId = await portalWorkspace(deps.db);
+    if (!orgId) return null;
+    const result = await syncPortalTasks(deps, portal, orgId);
+    await announcePortalStages(deps, orgId, result.changes);
+    await watchPortalDates(deps, orgId).catch((error: unknown) =>
+      deps.log?.warn("approval portal: the posts' days could not be watched", {
+        error: error instanceof Error ? error.message : String(error),
+      }),
+    );
+    return result;
+  });
+  ticks = tick.catch(() => {});
+  return tick;
+}
+
+let ticks: Promise<unknown> = Promise.resolve();
+let asked = false;
+
+/**
+ * The bridge saw something change at the portal (ADR 9001 §12): one tick now, in place of waiting for the worker's.
+ * Calls that come while one already waits are that same tick.
+ */
+export function portalTasksNow(deps: PortalTaskDeps, portal: ApprovalPortal, after?: () => void) {
+  if (asked) return;
+  asked = true;
+  void ticks
+    .then(() => {
+      asked = false;
+      return portalTasksTick(deps, portal);
+    })
+    .then(() => after?.())
+    .catch((error: unknown) =>
+      deps.log?.warn("approval portal: the tick the bridge asked for failed", {
+        error: error instanceof Error ? error.message : String(error),
+      }),
+    );
 }

@@ -396,3 +396,41 @@ test("a card is a task too: made with it, started by the agent put on it, cancel
   expect((await api(`/portal/cards/${card.id}`, { method: "DELETE" })).status).toBe(204);
   expect((await task()).status).toBe("canceled");
 });
+
+test("the bridge's call is taken only with the portal's token, and puts cards and tasks in step at once", async () => {
+  const portal = createFakeApprovalPortal();
+  t = await createTestServer({
+    approvalPortal: portal,
+    env: {
+      ALLOW_SIGNUP: "true",
+      APPROVAL_PORTAL_URL: "http://bridge.example",
+      APPROVAL_PORTAL_TOKEN: "bridge-secret-for-the-tests-0001",
+    },
+  });
+  const owner = browser(t);
+  await signUp(owner, "owner@example.com");
+  const { orgId } = await seedOrg(owner);
+  await portal.createCard("acme", { title: "Launch reel" });
+  const call = (token?: string) =>
+    t.app.request("/api/webhooks/approval-portal", {
+      method: "POST",
+      headers: token ? { authorization: `Bearer ${token}` } : {},
+    });
+  expect((await call()).status).toBe(401);
+  expect((await call("wrong")).status).toBe(401);
+  expect((await call("bridge-secret-for-the-tests-0001")).status).toBe(202);
+  for (let i = 0; i < 50 && !(await portal.cards())[0]?.task; i++) await Bun.sleep(20);
+  const { tasks } = (await (await owner(`/api/app/organizations/${orgId}/portal/tasks`)).json()) as {
+    tasks: { number: number }[];
+  };
+  expect(tasks).toHaveLength(1);
+});
+
+test("without a portal the bridge's address isn't there", async () => {
+  t = await createTestServer({ approvalPortal: null });
+  const res = await t.app.request("/api/webhooks/approval-portal", {
+    method: "POST",
+    headers: { authorization: "Bearer anything" },
+  });
+  expect(res.status).toBe(404);
+});

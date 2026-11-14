@@ -77,7 +77,7 @@ export type IssueSource =
   | { type: "agent"; agentId: string; workId?: string; channelId?: string; messageId?: string }
   | { type: "webhook"; provider: string }
   /** A post of the approval portal's board (ADR 9001 §11): the card it stands for, kept in step by code. */
-  | { type: "portal"; client: string; cardId: string; synced?: unknown };
+  | { type: "portal"; client: string; cardId: string; synced?: unknown; nudged?: string };
 
 /** An issue as the app shows it. */
 export interface IssueView {
