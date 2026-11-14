@@ -28,66 +28,23 @@ export const pansBoard = (target: EventTarget | null) =>
  * The frame both boards share (ADR 9001): the task board's own sideways scroller, which a mouse drags by its empty
  * space as Trello's (a finger pans it natively, the wheel and the keyboard scroll it as ever). It sits on a canvas
  * of its own, light under dark cards and dark under light ones. A board wider than its frame gets a rail above its
- * columns: a full row of empty space to drag it by, there however full the columns are, and a track under them that
- * shows which part of the board is in view. The track stays at the foot of the window while the page scrolls, since
- * the scroller's own bar is at the foot of the tallest column.
+ * columns: a full row of empty space to drag it by, there however full the columns are. It is the one bar the board
+ * has: a second one at its foot said the same thing twice.
  */
 export function BoardFrame({ className, children }: { className?: string; children: ReactNode }) {
   const wrap = useRef<HTMLDivElement>(null);
   const [wide, setWide] = useState(false);
   useDragScroll(wrap, PORTAL_BOARD_SPACE);
-  const thumb = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const el = wrap.current;
     if (!el) return;
-    // The thumb is as wide as the part in view and sits where it is, written straight to the element: a scroll
-    // draws no React pass.
-    const place = () => {
-      const bar = thumb.current;
-      if (!bar || el.scrollWidth <= 0) return;
-      bar.style.width = `${(el.clientWidth / el.scrollWidth) * 100}%`;
-      bar.style.left = `${(el.scrollLeft / el.scrollWidth) * 100}%`;
-    };
-    const measure = () => {
-      setWide(el.scrollWidth > el.clientWidth + 1);
-      place();
-    };
+    const measure = () => setWide(el.scrollWidth > el.clientWidth + 1);
     measure();
-    el.addEventListener("scroll", place, { passive: true });
     const watch = typeof ResizeObserver === "function" ? new ResizeObserver(measure) : null;
     watch?.observe(el);
     for (const child of el.children) watch?.observe(child);
-    return () => {
-      el.removeEventListener("scroll", place);
-      watch?.disconnect();
-    };
+    return () => watch?.disconnect();
   }, []);
-  // The track moves the board: its thumb dragged, or a press beside it, which brings that part to the middle.
-  const onTrack = (e: ReactPointerEvent<HTMLDivElement>) => {
-    const el = wrap.current;
-    const track = e.currentTarget;
-    if (!el || e.button !== 0) return;
-    e.preventDefault();
-    const box = track.getBoundingClientRect();
-    const scale = el.scrollWidth / box.width;
-    if (e.target === track) el.scrollLeft = (e.clientX - box.left) * scale - el.clientWidth / 2;
-    const x0 = e.clientX;
-    const left0 = el.scrollLeft;
-    track.setPointerCapture(e.pointerId);
-    track.dataset.held = "";
-    const onMove = (m: PointerEvent) => {
-      el.scrollLeft = left0 + (m.clientX - x0) * scale;
-    };
-    const onUp = () => {
-      delete track.dataset.held;
-      track.removeEventListener("pointermove", onMove);
-      track.removeEventListener("pointerup", onUp);
-      track.removeEventListener("pointercancel", onUp);
-    };
-    track.addEventListener("pointermove", onMove);
-    track.addEventListener("pointerup", onUp);
-    track.addEventListener("pointercancel", onUp);
-  };
   return (
     <div className="issues-boardframe portal-canvas">
       <div className="issues-boardwrap portal-pan" ref={wrap}>
@@ -96,9 +53,6 @@ export function BoardFrame({ className, children }: { className?: string; childr
           <Icon name="grip" size={16} />
         </div>
         <div className={cx("issues-board portal-board", className)}>{children}</div>
-      </div>
-      <div className="portal-track" aria-hidden="true" hidden={!wide} onPointerDown={onTrack}>
-        <div className="portal-track__thumb" ref={thumb} />
       </div>
     </div>
   );

@@ -4,16 +4,24 @@ import {
   listWhatsAppAccounts,
   listWhatsAppChats,
   listWhatsAppMessages,
+  listWhatsAppStickers,
   readWhatsAppChat,
   reconnectWhatsAppAccount,
   removeWhatsAppAccount,
+  requestWhatsAppHistory,
+  sendWhatsAppFile,
+  sendWhatsAppSticker,
   sendWhatsAppText,
+  setWhatsAppChatAgent,
   typingInWhatsAppChat,
   updateWhatsAppAccount,
+  WHATSAPP_AGENT_STYLE_BOUNDS,
   WHATSAPP_INSTRUCTIONS_MAX,
   WHATSAPP_LABEL_MAX,
   WHATSAPP_PAGE_MAX,
+  WHATSAPP_SEND_FILE_MAX_BYTES,
   WHATSAPP_TEXT_MAX,
+  whatsappMessageFile,
 } from "@agenteschat/engine";
 import { createRoute, z } from "@hono/zod-openapi";
 import type { Context } from "hono";
@@ -39,6 +47,27 @@ export const WHATSAPP_SENDS_PER_PERSON = { limit: 30, windowMs: 60_000 };
  * is what WhatsApp bans numbers for, whoever types: past this the number only answers and continues conversations.
  */
 export const WHATSAPP_NEW_CHATS_PER_NUMBER = { limit: 20, windowMs: 24 * 60 * 60_000 };
+/** Times one person may ask the phone for older messages: each one wakes the phone. */
+export const WHATSAPP_HISTORY_PER_PERSON = { limit: 20, windowMs: 60_000 };
+/** Files one person may load: a conversation full of pictures, opened and scrolled. */
+export const WHATSAPP_FILES_PER_PERSON = { limit: 120, windowMs: 60_000 };
+/**
+ * The types a browser may draw from our address: pictures, sound and video it can't run. Anything else (a PDF, an
+ * HTML page, an SVG someone sent) is only ever downloaded: opened here it would run as our own page.
+ */
+const INLINE_TYPES = /^(image\/(jpeg|png|webp|gif)|audio\/[a-z0-9.+-]+|video\/(mp4|webm|3gpp|quicktime))$/;
+const EXTENSIONS: Record<string, string> = {
+  "image/jpeg": "jpg",
+  "image/png": "png",
+  "image/webp": "webp",
+  "image/gif": "gif",
+  "audio/ogg": "ogg",
+  "audio/mpeg": "mp3",
+  "audio/mp4": "m4a",
+  "video/mp4": "mp4",
+  "application/pdf": "pdf",
+};
+
 /** "Typing…" signals one person may send: the app tells it every few seconds while they write. */
 export const WHATSAPP_TYPING_PER_PERSON = { limit: 60, windowMs: 60_000 };
 /** Numbers one person may connect or reconnect: each try makes the gateway open a session with WhatsApp. */
@@ -50,6 +79,22 @@ const AccountParams = OrgParams.extend({
 const ChatParams = AccountParams.extend({
   chatId: z.uuid().openapi({ param: { name: "chatId", in: "path" } }),
 });
+
+const STYLE = WHATSAPP_AGENT_STYLE_BOUNDS;
+const AgentStyle = z
+  .object({
+    waitSeconds: z.number().int().min(STYLE.waitSeconds.min).max(STYLE.waitSeconds.max).openapi({
+      description: "Seconds the agent waits after a message before it reads the conversation.",
+    }),
+    pace: z.enum(STYLE.paces).openapi({ description: "How fast it types: `fast`, `natural` or `slow`." }),
+    messages: z.number().int().min(STYLE.messages.min).max(STYLE.messages.max).openapi({
+      description: "The most messages one answer is split in. 1: always a single message.",
+    }),
+    quietMinutes: z.number().int().min(STYLE.quietMinutes.min).max(STYLE.quietMinutes.max).openapi({
+      description: "Minutes it stays quiet in a conversation after a person wrote there.",
+    }),
+  })
+  .openapi("WhatsAppAgentStyle");
 
 const Account = z
   .object({
@@ -71,6 +116,11 @@ const Account = z
       description:
         "How the agent carries itself on this number (Markdown), on top of its own instructions; null for someone who can't change the number.",
     }),
+    agentOn: z.boolean().openapi({
+      description:
+        "The agent answers this number's conversations now: only someone who wrote, never a group, and never a conversation where a person wrote in the last hour.",
+    }),
+    agentStyle: AgentStyle,
     mine: z.boolean().openapi({ description: "The asker is on its list." }),
     manage: z.boolean().openapi({ description: "The asker may change or remove it." }),
     createdAt: z.string(),
@@ -88,6 +138,15 @@ const Chat = z
     lastKind: z.string(),
     lastFromMe: z.boolean(),
     unread: z.number().int(),
+    agent: z.enum(["on", "quiet", "off", "person"]).nullable().openapi({
+      description:
+        "Where the number's agent stands here. `on`: it answers. `quiet`: a person wrote here less than an hour ago, it answers again at `agentQuietUntil`. `off`: someone turned it off here. `person`: it left the conversation to a person (`agentNote`). null: no agent answers this conversation (the number has none on, or it is a group).",
+    }),
+    agentQuietUntil: z.string().nullable(),
+    agentNote: z.string().openapi({
+      description:
+        "While `agent` is `person`: why, in the agent's own words (written by a model: show it as text), or `limit` (it answered as much as it may in a day) or `failed` (its AI account didn't answer).",
+    }),
   })
   .openapi("WhatsAppChat");
 
@@ -100,15 +159,22 @@ const Message = z
     senderPhone: z.string().nullable(),
     kind: z.string().openapi({
       description:
-        "`text`, `image`, `video`, `audio`, `document`, `sticker`, `location`, `contact`, `poll` or `other`.",
+        "`text`, `image`, `video`, `audio`, `document`, `sticker`, `location`, `contact`, `poll`, `other`, or `deleted` (taken back for everyone: no words, no file).",
     }),
     body: z.string().openapi({ description: "A text, or a file's caption (outside text)." }),
     replyToId: z.string().nullable(),
     media: z
       .object({ mimeType: z.string(), fileName: z.string().nullable(), seconds: z.number().nullable() })
       .nullable(),
+    file: z.boolean().openapi({
+      description: "Its file can be loaded with `GET …/accounts/{accountId}/messages/{messageId}/file`.",
+    }),
     status: z.enum(["received", "sent", "delivered", "read"]),
     sentByUserId: z.string().nullable().openapi({ description: "Who wrote it here; null: from the phone." }),
+    sentByAgentId: z
+      .string()
+      .nullable()
+      .openapi({ description: "The agent that wrote it, when the number's agent answered." }),
     at: z.string(),
   })
   .openapi("WhatsAppMessage");
@@ -207,6 +273,8 @@ export function whatsappRoutes(deps: AppDeps) {
             people: z.array(z.string().min(1).max(64)).max(50).optional(),
             agentId: z.uuid().nullable().optional(),
             instructions: z.string().max(WHATSAPP_INSTRUCTIONS_MAX).optional(),
+            agentOn: z.boolean().optional().openapi({ description: "400 to turn it on with no agent chosen." }),
+            agentStyle: AgentStyle.partial().optional(),
           }),
         ),
       },
@@ -369,6 +437,184 @@ export function whatsappRoutes(deps: AppDeps) {
       }
       const { typing } = c.req.valid("json");
       return c.json(await typingInWhatsAppChat(wa, user.id, orgId, accountId, chatId, typing), 200);
+    },
+  );
+
+  app.openapi(
+    createRoute({
+      method: "post",
+      path: "/organizations/{orgId}/whatsapp/accounts/{accountId}/files",
+      tags,
+      security,
+      summary: "Send a file or a voice message from the number (its people)",
+      description:
+        "A form with the file in `file`. It goes as a picture (JPEG, PNG, WebP), a video (MP4), a voice message (any audio, or `voice: true` for a recording made in the app) or a document (anything else), by its type. `caption` goes with a picture, a video or a document. 413 past 32 MB; 400 while the number isn't connected; 429 past 30 sends a minute.",
+      request: {
+        params: AccountParams,
+        body: {
+          required: true,
+          content: {
+            "multipart/form-data": {
+              schema: z.object({
+                file: z.any().openapi({ type: "string", format: "binary" }),
+                chatId: z.uuid(),
+                caption: z.string().max(WHATSAPP_TEXT_MAX).optional(),
+                voice: z.enum(["true", "false"]).optional(),
+              }),
+            },
+          },
+        },
+      },
+      responses: {
+        201: json(z.object({ chatId: z.string(), kind: z.enum(["image", "video", "audio", "document"]) }), "Sent"),
+        413: errorResponse("The file is too large (`too_large`)"),
+        ...tooMany,
+        ...gatewayDown,
+        ...errors,
+      },
+    }),
+    async (c) => {
+      const { orgId, accountId } = c.req.valid("param");
+      const user = c.get("user");
+      if (await limited(`whatsapp-send:${user.id}`, WHATSAPP_SENDS_PER_PERSON)) {
+        return apiError(c, 429, "rate_limited", "Slow down");
+      }
+      const form = c.req.valid("form");
+      const file: unknown = form.file;
+      if (!(file instanceof File)) return apiError(c, 400, "invalid_request", "Send the file in the field file");
+      if (file.size > WHATSAPP_SEND_FILE_MAX_BYTES) return apiError(c, 413, "too_large", "The file is too large");
+      const sent = await reaching(c, async () =>
+        sendWhatsAppFile(wa, user.id, orgId, accountId, {
+          chatId: form.chatId,
+          bytes: new Uint8Array(await file.arrayBuffer()),
+          mimeType: file.type,
+          fileName: file.name,
+          caption: form.caption,
+          voice: form.voice === "true",
+        }),
+      );
+      return sent.refused ?? c.json(sent.value, 201);
+    },
+  );
+
+  app.openapi(
+    createRoute({
+      method: "get",
+      path: "/organizations/{orgId}/whatsapp/accounts/{accountId}/stickers",
+      tags,
+      security,
+      summary: "The stickers the number sent or received lately (its people)",
+      description:
+        "The latest first, each once, up to 60. Each is a message's id: its picture loads with `GET …/messages/{messageId}/file`, and `POST …/stickers` sends it again.",
+      request: { params: AccountParams },
+      responses: {
+        200: json(z.object({ stickers: z.array(z.object({ messageId: z.string(), at: z.string() })) })),
+        ...errors,
+      },
+    }),
+    async (c) => {
+      const { orgId, accountId } = c.req.valid("param");
+      return c.json(await listWhatsAppStickers(wa, c.get("user").id, orgId, accountId), 200);
+    },
+  );
+
+  app.openapi(
+    createRoute({
+      method: "post",
+      path: "/organizations/{orgId}/whatsapp/accounts/{accountId}/stickers",
+      tags,
+      security,
+      summary: "Send a sticker the number already has (its people)",
+      description:
+        "`messageId`: a message of this number that carried the sticker. It goes as a still sticker: one that moved arrives without its motion. 400 while the number isn't connected, or when the message isn't a sticker of this number; 429 past 30 sends a minute.",
+      request: { params: AccountParams, body: body(z.object({ chatId: z.uuid(), messageId: z.uuid() })) },
+      responses: { 201: json(z.object({ chatId: z.string() }), "Sent"), ...tooMany, ...gatewayDown, ...errors },
+    }),
+    async (c) => {
+      const { orgId, accountId } = c.req.valid("param");
+      const user = c.get("user");
+      if (await limited(`whatsapp-send:${user.id}`, WHATSAPP_SENDS_PER_PERSON)) {
+        return apiError(c, 429, "rate_limited", "Slow down");
+      }
+      const sent = await reaching(c, () => sendWhatsAppSticker(wa, user.id, orgId, accountId, c.req.valid("json")));
+      return sent.refused ?? c.json(sent.value, 201);
+    },
+  );
+
+  // A message's file, for the number's people: what an `<img>`, an `<audio>` or a download link loads. Fetched from
+  // WhatsApp by the gateway on each ask and cached by the browser for a day. Never drawn as a page (`INLINE_TYPES`).
+  app.get("/organizations/:orgId/whatsapp/accounts/:accountId/messages/:messageId/file", async (c) => {
+    const params = z.object({ orgId: z.uuid(), accountId: z.uuid(), messageId: z.uuid() }).safeParse({
+      orgId: c.req.param("orgId"),
+      accountId: c.req.param("accountId"),
+      messageId: c.req.param("messageId"),
+    });
+    if (!params.success) return apiError(c, 400, "invalid_request", "Not a message");
+    const user = c.get("user");
+    if (await limited(`whatsapp-file:${user.id}`, WHATSAPP_FILES_PER_PERSON)) {
+      return apiError(c, 429, "rate_limited", "Slow down");
+    }
+    const { orgId, accountId, messageId } = params.data;
+    const got = await reaching(c, () => whatsappMessageFile(wa, user.id, orgId, accountId, messageId));
+    if (got.refused) return got.refused;
+    const file = got.value;
+    const type = file.mimeType.split(";")[0]?.trim().toLowerCase() ?? "";
+    const inline = INLINE_TYPES.test(type);
+    const name = (file.fileName ?? `whatsapp-${messageId.slice(0, 8)}.${EXTENSIONS[type] ?? "bin"}`).replace(
+      /[\r\n"\\/]/g,
+      "_",
+    );
+    return new Response(file.bytes, {
+      headers: {
+        "Content-Type": inline ? type : "application/octet-stream",
+        "Content-Length": String(file.bytes.byteLength),
+        "Content-Disposition": `${inline ? "inline" : "attachment"}; filename*=UTF-8''${encodeURIComponent(name)}`,
+        "X-Content-Type-Options": "nosniff",
+        "Content-Security-Policy": "default-src 'none'; sandbox",
+        "Cache-Control": "private, max-age=86400, immutable",
+      },
+    });
+  });
+
+  app.openapi(
+    createRoute({
+      method: "post",
+      path: "/organizations/{orgId}/whatsapp/accounts/{accountId}/chats/{chatId}/history",
+      tags,
+      security,
+      summary: "Ask the phone for the conversation's older messages (the number's people)",
+      description:
+        "Up to 50 messages from before the oldest one kept here. They arrive a moment later (`whatsapp.changed`), only while the phone is on and still has them: an answer here says the phone was asked, not that anything came. 400 while the number isn't connected.",
+      request: { params: ChatParams },
+      responses: { 202: json(z.object({ asked: z.number().int() }), "Asked"), ...tooMany, ...gatewayDown, ...errors },
+    }),
+    async (c) => {
+      const { orgId, accountId, chatId } = c.req.valid("param");
+      const user = c.get("user");
+      if (await limited(`whatsapp-history:${user.id}`, WHATSAPP_HISTORY_PER_PERSON)) {
+        return apiError(c, 429, "rate_limited", "Slow down");
+      }
+      const asked = await reaching(c, () => requestWhatsAppHistory(wa, user.id, orgId, accountId, chatId));
+      return asked.refused ?? c.json(asked.value, 202);
+    },
+  );
+
+  app.openapi(
+    createRoute({
+      method: "post",
+      path: "/organizations/{orgId}/whatsapp/accounts/{accountId}/chats/{chatId}/agent",
+      tags,
+      security,
+      summary: "Turn the number's agent on or off in one conversation (the number's people)",
+      description:
+        "`on: false`: it says nothing more here until someone turns it back on. `on: true` gives the conversation back to it: whatever kept it quiet (a person who wrote, its own handoff) is cleared, and a message still waiting gets its answer. 400 for a group.",
+      request: { params: ChatParams, body: body(z.object({ on: z.boolean() })) },
+      responses: { 200: json(z.object({ on: z.boolean() })), ...errors },
+    }),
+    async (c) => {
+      const { orgId, accountId, chatId } = c.req.valid("param");
+      const { on } = c.req.valid("json");
+      return c.json(await setWhatsAppChatAgent(wa, c.get("user").id, orgId, accountId, chatId, on), 200);
     },
   );
 

@@ -11818,6 +11818,26 @@
     "deniedRun_female": "{{repo}} gehört nicht zu den Repositorys von {{name}}.",
     "added": "{{repo}} kommt beim Speichern auf die Liste."
   },
+  "carry": {
+    "open": "Aus einem anderen Workspace holen",
+    "text": "Was du in einem anderen Workspace verbunden hast, kommt fertig mit, ohne erneute Anmeldung.",
+    "none": "Noch nichts zum Holen. Was du in einem Workspace verbindest, erscheint hier in den anderen.",
+    "connections": "Verbindungen",
+    "with": "Kommt mit {{names}}",
+    "here": "Schon hier",
+    "needsReconnect": "Muss neu verbunden werden",
+    "githubApp": "Installiere die GitHub App hier",
+    "bring": "Holen",
+    "bringCount_one": "{{count}} Element holen",
+    "bringCount_other": "{{count}} Elemente holen",
+    "done_one": "{{count}} Element in diesen Workspace geholt",
+    "done_other": "{{count}} Elemente in diesen Workspace geholt",
+    "skipped_one": "{{count}} Element konnte nicht mitkommen",
+    "skipped_other": "{{count}} Elemente konnten nicht mitkommen",
+    "nothingNew": "Alles, was du ausgewählt hast, ist schon hier",
+    "failed": "Das Holen hat nicht geklappt. Versuch es noch einmal.",
+    "fromOnboarding": "Agenten und Verbindungen aus einem anderen Workspace holen"
+  },
   "connectors": {
     "title": "Konnektoren",
     "add": "Konnektor hinzufügen",
@@ -18767,6 +18787,33 @@
     "send": "Zur Freigabe senden",
     "openAtPortal": "Im Portal öffnen",
     "seePost": "Beitrag ansehen",
+    "seeDrive": "Drive-Link",
+    "clientLogo": {
+      "menu": "Logo des Kunden",
+      "title": "Logo von {{name}}",
+      "help": "Ein quadratisches Bild anstelle der Initialen des Kunden. JPEG, PNG oder WebP bis 2 MB.",
+      "remove": "Logo entfernen",
+      "saved": "Logo gespeichert",
+      "removed": "Logo entfernt"
+    },
+    "clientColor": {
+      "label": "Farbe des Kunden",
+      "none": "Keine Farbe",
+      "colors": {
+        "green": "Grün",
+        "blue": "Blau",
+        "navy": "Dunkelblau",
+        "sky": "Hellblau",
+        "white": "Weiß",
+        "teal": "Türkis",
+        "yellow": "Gelb",
+        "orange": "Orangefarben",
+        "red": "Rot",
+        "pink": "Rosa",
+        "purple": "Lila",
+        "gray": "Grau"
+      }
+    },
     "edit": "Bearbeiten",
     "delete": "Löschen",
     "actionsOf": "Aktionen: {{title}}",

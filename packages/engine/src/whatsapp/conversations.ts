@@ -1,4 +1,11 @@
-import { bareJid, isGroupJid, type WhatsAppMessage } from "@agenteschat/adapters";
+import { createHmac, timingSafeEqual } from "node:crypto";
+import {
+  bareJid,
+  isGroupJid,
+  type WhatsAppMessage,
+  whatsappFileKind,
+  whatsappFileMessage,
+} from "@agenteschat/adapters";
 import { and, desc, eq, inArray, lt, schema, sql } from "@agenteschat/db";
 import { NotFoundError, ValidationError } from "../errors";
 import {
@@ -8,6 +15,7 @@ import {
   type WhatsAppDeps,
   whatsappGateway,
 } from "./accounts";
+import { type WhatsAppAgentState, whatsappAgentState } from "./agent";
 import { storeWhatsAppMessage } from "./inbound";
 
 export const WHATSAPP_PAGE = 50;
@@ -32,6 +40,12 @@ export interface WhatsAppChatView {
   lastKind: string;
   lastFromMe: boolean;
   unread: number;
+  /** Where the number's agent stands here (`whatsappAgentState`); null: no agent answers this conversation. */
+  agent: WhatsAppAgentState;
+  /** While `agent` is `quiet`: when it answers again. */
+  agentQuietUntil: string | null;
+  /** While `agent` is `person`: why it left, in its own words, or `limit` / `failed`. */
+  agentNote: string;
 }
 
 export interface WhatsAppMessageView {
@@ -47,25 +61,37 @@ export interface WhatsAppMessageView {
   /** The message this one answers, by this API's id; null when it isn't here. */
   replyToId: string | null;
   media: MessageRow["media"];
+  /** Its file can be asked for (`whatsappMessageFile`): it arrived with one and we kept what fetches it. */
+  file: boolean;
   status: MessageRow["status"];
   /** Who wrote it in our app. */
   sentByUserId: string | null;
+  /** The agent that wrote it. */
+  sentByAgentId: string | null;
   at: string;
 }
 
 const phoneOf = (jid: string) => /^(\d{6,20})@s\.whatsapp\.net$/.exec(jid)?.[1] ?? null;
 
-const chatView = (row: ChatRow): WhatsAppChatView => ({
-  id: row.id,
-  phone: phoneOf(row.jid),
-  name: row.name,
-  group: row.group,
-  lastAt: row.lastAt?.toISOString() ?? null,
-  lastText: row.lastText,
-  lastKind: row.lastKind,
-  lastFromMe: row.lastFromMe,
-  unread: row.unread,
-});
+type AgentOf = Pick<typeof schema.whatsappAccounts.$inferSelect, "agentId" | "agentOn" | "agentQuietMinutes">;
+
+const chatView = (row: ChatRow, account: AgentOf, now = new Date()): WhatsAppChatView => {
+  const agent = whatsappAgentState(account, row, now);
+  return {
+    id: row.id,
+    phone: phoneOf(row.jid),
+    name: row.name,
+    group: row.group,
+    lastAt: row.lastAt?.toISOString() ?? null,
+    lastText: row.lastText,
+    lastKind: row.lastKind,
+    lastFromMe: row.lastFromMe,
+    unread: row.unread,
+    agent: agent.state,
+    agentQuietUntil: agent.quietUntil?.toISOString() ?? null,
+    agentNote: agent.state === "person" ? row.agentNote : "",
+  };
+};
 
 /** A number's conversations, the latest first. `before`: the `lastAt` of the page before's last one. */
 export async function listWhatsAppChats(
@@ -75,7 +101,7 @@ export async function listWhatsAppChats(
   accountId: string,
   page: { before?: string; limit?: number } = {},
 ) {
-  await requireWhatsAppUse(deps.db, userId, orgId, accountId);
+  const account = await requireWhatsAppUse(deps.db, userId, orgId, accountId);
   const limit = Math.min(page.limit ?? WHATSAPP_PAGE, WHATSAPP_PAGE_MAX);
   const chats = schema.whatsappChats;
   const rows = await deps.db
@@ -92,7 +118,7 @@ export async function listWhatsAppChats(
     .limit(limit + 1);
   const shown = rows.slice(0, limit);
   return {
-    chats: shown.map(chatView),
+    chats: shown.map((row) => chatView(row, account)),
     next: rows.length > limit ? (shown.at(-1)?.lastAt?.toISOString() ?? null) : null,
   };
 }
@@ -115,7 +141,7 @@ export async function listWhatsAppMessages(
   chatId: string,
   page: { before?: string; limit?: number } = {},
 ) {
-  await requireWhatsAppUse(deps.db, userId, orgId, accountId);
+  const account = await requireWhatsAppUse(deps.db, userId, orgId, accountId);
   const chat = await chatOf(deps, accountId, chatId);
   const limit = Math.min(page.limit ?? WHATSAPP_PAGE, WHATSAPP_PAGE_MAX);
   const messages = schema.whatsappMessages;
@@ -135,7 +161,7 @@ export async function listWhatsAppMessages(
     : [];
   const idOf = new Map(answered.map((row) => [row.waId, row.id]));
   return {
-    chat: chatView(chat),
+    chat: chatView(chat, account),
     messages: shown.map(
       (row): WhatsAppMessageView => ({
         id: row.id,
@@ -147,8 +173,10 @@ export async function listWhatsAppMessages(
         body: row.body,
         replyToId: row.replyToWaId ? (idOf.get(row.replyToWaId) ?? null) : null,
         media: row.media,
+        file: row.media !== null && whatsappFileMessage(row.raw) !== null,
         status: row.status,
         sentByUserId: row.sentByUserId,
+        sentByAgentId: row.sentByAgentId,
         at: row.at.toISOString(),
       }),
     ),
@@ -212,7 +240,7 @@ export async function sendWhatsAppText(
     media: null,
     raw: null,
   };
-  const stored = await storeWhatsAppMessage(deps.db, account, message, userId);
+  const stored = await storeWhatsAppMessage(deps.db, account, message, { userId });
   // The gateway's own event for this message may have arrived first: it is the person's all the same.
   if (!stored.fresh) {
     await deps.db
@@ -220,8 +248,268 @@ export async function sendWhatsAppText(
       .set({ sentByUserId: userId })
       .where(and(eq(schema.whatsappMessages.accountId, accountId), eq(schema.whatsappMessages.waId, sent.id)));
   }
+  // A person took the conversation: the number's agent stays quiet in it for a while (`whatsappAgentState`).
+  await deps.db
+    .update(schema.whatsappChats)
+    .set({ personAt: new Date(), needsPerson: false, agentNote: "" })
+    .where(eq(schema.whatsappChats.id, stored.chatId));
   await publishWhatsAppChanged(deps, account, { chatId: stored.chatId });
   return { chatId: stored.chatId };
+}
+
+/** The largest file sent from the app: above what phones send each other day to day, within what a form may carry. */
+export const WHATSAPP_SEND_FILE_MAX_BYTES = 32 * 1024 * 1024;
+
+/**
+ * Sends a file into a conversation, as the person: a picture, a video, a voice message (`voice`: a recording made
+ * in the app) or a document, by its type (`whatsappFileKind`). `caption` goes with it where WhatsApp shows one.
+ */
+export async function sendWhatsAppFile(
+  deps: WhatsAppDeps,
+  userId: string,
+  orgId: string,
+  accountId: string,
+  input: { chatId: string; bytes: Uint8Array; mimeType: string; fileName: string; caption?: string; voice?: boolean },
+) {
+  const account = await requireWhatsAppUse(deps.db, userId, orgId, accountId);
+  const gateway = whatsappGateway(deps);
+  if (account.status !== "connected") throw new ValidationError("This number isn't connected");
+  if (input.bytes.byteLength === 0) throw new ValidationError("The file is empty");
+  if (input.bytes.byteLength > WHATSAPP_SEND_FILE_MAX_BYTES) throw new ValidationError("The file is too large to send");
+  const chat = await chatOf(deps, accountId, input.chatId);
+  const mimeType = input.mimeType || "application/octet-stream";
+  const kind = whatsappFileKind(mimeType, input.voice);
+  const fileName = input.fileName.replace(/[\\/\r\n]/g, "_").slice(0, 200) || "file";
+  // A voice message carries no words, and a caption is at most a message long.
+  const caption = kind === "audio" ? "" : (input.caption ?? "").trim().slice(0, WHATSAPP_TEXT_MAX);
+  const sent = await gateway.sendFile(await accountToken(deps, account), {
+    to: chat.jid,
+    kind,
+    bytes: input.bytes,
+    mimeType,
+    fileName,
+    caption,
+  });
+  const message: WhatsAppMessage = {
+    id: sent.id,
+    chat: bareJid(chat.jid),
+    sender: account.jid ?? "",
+    senderName: account.pushName,
+    fromMe: true,
+    group: isGroupJid(chat.jid),
+    groupName: "",
+    at: sent.at,
+    kind,
+    text: caption,
+    replyTo: null,
+    media: { mimeType, fileName: kind === "document" ? fileName : null, seconds: null },
+    // What the gateway sent, kept to open the file here later.
+    raw: sent.message,
+  };
+  const stored = await storeWhatsAppMessage(deps.db, account, message, { userId });
+  if (!stored.fresh) {
+    await deps.db
+      .update(schema.whatsappMessages)
+      .set({ sentByUserId: userId })
+      .where(and(eq(schema.whatsappMessages.accountId, accountId), eq(schema.whatsappMessages.waId, sent.id)));
+  }
+  await deps.db
+    .update(schema.whatsappChats)
+    .set({ personAt: new Date(), needsPerson: false, agentNote: "" })
+    .where(eq(schema.whatsappChats.id, stored.chatId));
+  await publishWhatsAppChanged(deps, account, { chatId: stored.chatId });
+  return { chatId: stored.chatId, kind };
+}
+
+/** Stickers offered to send again: the number's latest ones, each once. */
+export const WHATSAPP_STICKERS = 60;
+/** How long the gateway has to fetch a sticker it was asked to send. */
+const STICKER_LINK_MS = 2 * 60_000;
+
+type AccountRow = typeof schema.whatsappAccounts.$inferSelect;
+
+/**
+ * The signature on a sticker's one-use address: the gateway fetches the picture itself, with no session, so the
+ * address carries the proof. Keyed by the number's own `hook_hash`, which only this server holds.
+ */
+const stickerSignature = (account: Pick<AccountRow, "hookHash">, messageId: string, expires: number) =>
+  createHmac("sha256", account.hookHash).update(`${messageId}:${expires}`).digest("hex");
+
+/**
+ * The stickers this number sent or received lately, the latest first and each once: what its people pick from to
+ * send one again. Each is a message's id, loaded like any message's file.
+ */
+export async function listWhatsAppStickers(deps: WhatsAppDeps, userId: string, orgId: string, accountId: string) {
+  await requireWhatsAppUse(deps.db, userId, orgId, accountId);
+  const messages = schema.whatsappMessages;
+  const rows = await deps.db
+    .select({ id: messages.id, raw: messages.raw, at: messages.at })
+    .from(messages)
+    .where(and(eq(messages.accountId, accountId), eq(messages.kind, "sticker"), sql`${messages.raw} is not null`))
+    .orderBy(desc(messages.at))
+    .limit(WHATSAPP_STICKERS * 5);
+  const seen = new Set<string>();
+  const stickers: { messageId: string; at: string }[] = [];
+  for (const row of rows) {
+    const part = (whatsappFileMessage(row.raw)?.stickerMessage ?? {}) as Record<string, unknown>;
+    // The same sticker sent twice is one file: WhatsApp names it by its hash.
+    const key = typeof part.fileSHA256 === "string" && part.fileSHA256 ? part.fileSHA256 : row.id;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    stickers.push({ messageId: row.id, at: row.at.toISOString() });
+    if (stickers.length >= WHATSAPP_STICKERS) break;
+  }
+  return { stickers };
+}
+
+/**
+ * Sends a sticker this number already has (`messageId`: a message that carried it) into a conversation. The
+ * gateway fetches the picture from this server, at an address signed for two minutes (`whatsappStickerFile`).
+ */
+export async function sendWhatsAppSticker(
+  deps: WhatsAppDeps,
+  userId: string,
+  orgId: string,
+  accountId: string,
+  input: { chatId: string; messageId: string },
+) {
+  const account = await requireWhatsAppUse(deps.db, userId, orgId, accountId);
+  const gateway = whatsappGateway(deps);
+  if (account.status !== "connected") throw new ValidationError("This number isn't connected");
+  const chat = await chatOf(deps, accountId, input.chatId);
+  const [source] = await deps.db
+    .select({ id: schema.whatsappMessages.id, raw: schema.whatsappMessages.raw, kind: schema.whatsappMessages.kind })
+    .from(schema.whatsappMessages)
+    .where(and(eq(schema.whatsappMessages.accountId, accountId), eq(schema.whatsappMessages.id, input.messageId)));
+  if (!source || source.kind !== "sticker" || !whatsappFileMessage(source.raw)) {
+    throw new ValidationError("That message isn't a sticker of this number");
+  }
+  const expires = Date.now() + STICKER_LINK_MS;
+  const url = `${deps.hookBase}/api/webhooks/whatsapp-sticker/${source.id}?e=${expires}&s=${stickerSignature(account, source.id, expires)}`;
+  const sent = await gateway.sendSticker(await accountToken(deps, account), { to: chat.jid, url });
+  const message: WhatsAppMessage = {
+    id: sent.id,
+    chat: bareJid(chat.jid),
+    sender: account.jid ?? "",
+    senderName: account.pushName,
+    fromMe: true,
+    group: isGroupJid(chat.jid),
+    groupName: "",
+    at: sent.at,
+    kind: "sticker",
+    text: "",
+    replyTo: null,
+    media: { mimeType: "image/webp", fileName: null, seconds: null },
+    raw: sent.message,
+  };
+  const stored = await storeWhatsAppMessage(deps.db, account, message, { userId });
+  if (!stored.fresh) {
+    await deps.db
+      .update(schema.whatsappMessages)
+      .set({ sentByUserId: userId })
+      .where(and(eq(schema.whatsappMessages.accountId, accountId), eq(schema.whatsappMessages.waId, sent.id)));
+  }
+  await deps.db
+    .update(schema.whatsappChats)
+    .set({ personAt: new Date(), needsPerson: false, agentNote: "" })
+    .where(eq(schema.whatsappChats.id, stored.chatId));
+  await publishWhatsAppChanged(deps, account, { chatId: stored.chatId });
+  return { chatId: stored.chatId };
+}
+
+/**
+ * A sticker's picture for the gateway, at the address `sendWhatsAppSticker` signed: no session, only the
+ * signature, and only until it expires. `NotFoundError` for anything else.
+ */
+export async function whatsappStickerFile(
+  deps: WhatsAppDeps,
+  messageId: string,
+  expires: number,
+  signature: string,
+  now = Date.now(),
+) {
+  const gone = new NotFoundError("No sticker at this address");
+  if (!Number.isFinite(expires) || expires < now) throw gone;
+  const [row] = await deps.db.select().from(schema.whatsappMessages).where(eq(schema.whatsappMessages.id, messageId));
+  const message = row?.kind === "sticker" ? whatsappFileMessage(row.raw) : null;
+  if (!row || !message) throw gone;
+  const [account] = await deps.db
+    .select()
+    .from(schema.whatsappAccounts)
+    .where(eq(schema.whatsappAccounts.id, row.accountId));
+  if (!account) throw gone;
+  const expected = Buffer.from(stickerSignature(account, messageId, expires));
+  const given = Buffer.from(signature);
+  if (expected.length !== given.length || !timingSafeEqual(expected, given)) throw gone;
+  return whatsappGateway(deps).downloadMedia(await accountToken(deps, account), { message });
+}
+
+/** Older messages asked of the phone at a time: what WhatsApp's own apps ask for. */
+export const WHATSAPP_HISTORY_COUNT = 50;
+
+/**
+ * Asks the phone for the messages before the oldest one we have of a conversation. They arrive as a piece of
+ * history a moment later (told by `whatsapp.changed`), only while the phone is on and has them.
+ */
+export async function requestWhatsAppHistory(
+  deps: WhatsAppDeps,
+  userId: string,
+  orgId: string,
+  accountId: string,
+  chatId: string,
+) {
+  const account = await requireWhatsAppUse(deps.db, userId, orgId, accountId);
+  const gateway = whatsappGateway(deps);
+  const chat = await chatOf(deps, accountId, chatId);
+  if (account.status !== "connected") throw new ValidationError("This number isn't connected");
+  const messages = schema.whatsappMessages;
+  const [oldest] = await deps.db
+    .select({ waId: messages.waId, fromMe: messages.fromMe, at: messages.at })
+    .from(messages)
+    .where(eq(messages.chatId, chatId))
+    .orderBy(messages.at, messages.id)
+    .limit(1);
+  if (!oldest) throw new ValidationError("This conversation has no message to look before");
+  await gateway.requestHistory(await accountToken(deps, account), {
+    chat: chat.jid,
+    before: { id: oldest.waId, fromMe: oldest.fromMe, at: oldest.at },
+    count: WHATSAPP_HISTORY_COUNT,
+  });
+  return { asked: WHATSAPP_HISTORY_COUNT };
+}
+
+/** The largest file served: WhatsApp's own limit for a document is far above what a browser tab should hold. */
+export const WHATSAPP_FILE_MAX_BYTES = 64 * 1024 * 1024;
+
+/**
+ * A message's file, for the number's people: fetched from WhatsApp by the gateway each time (nothing of it is
+ * kept here). `NotFoundError` for a message without one; the gateway refuses a file WhatsApp no longer has.
+ */
+export async function whatsappMessageFile(
+  deps: WhatsAppDeps,
+  userId: string,
+  orgId: string,
+  accountId: string,
+  messageId: string,
+) {
+  const account = await requireWhatsAppUse(deps.db, userId, orgId, accountId);
+  const gateway = whatsappGateway(deps);
+  const [row] = await deps.db
+    .select()
+    .from(schema.whatsappMessages)
+    .where(and(eq(schema.whatsappMessages.accountId, accountId), eq(schema.whatsappMessages.id, messageId)));
+  const message = row ? whatsappFileMessage(row.raw) : null;
+  if (!row || !message) throw new NotFoundError("This message has no file");
+  if (account.status !== "connected") throw new ValidationError("This number isn't connected");
+  const file = await gateway.downloadMedia(await accountToken(deps, account), { message });
+  if (file.bytes.byteLength > WHATSAPP_FILE_MAX_BYTES) throw new ValidationError("This file is too large to open here");
+  return {
+    bytes: file.bytes,
+    // What the message itself said it is: the gateway's answer names the same type, less reliably.
+    mimeType: row.media?.mimeType || file.mimeType,
+    fileName: row.media?.fileName ?? null,
+    kind: row.kind,
+  };
 }
 
 /**

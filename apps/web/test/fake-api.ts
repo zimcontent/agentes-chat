@@ -22,6 +22,7 @@ import type {
   AuthConfig,
   Availability,
   BrainMachine,
+  CarrySource,
   Channel,
   ChannelCategory,
   ChannelMember,
@@ -263,6 +264,8 @@ export interface FakeState {
   githubAccess?: { orgs: string[] | null; manageUrl: string | null };
   /** The workspace's Composio calls this month (default: none counted, no cap). */
   composioUsage?: ComposioUsage;
+  /** What the person can bring from their other workspaces (none unless a test sets it). */
+  carrySources?: CarrySource[];
   /** What the organization's GitHub reaches (`githubApp.repositories`); unset = not connected. */
   githubRepos?: GitHubRepositories;
   /** The GitHub connection whose token GitHub no longer takes (its id): skills from private links say so. */
@@ -3429,6 +3432,28 @@ export function createFakeHttpApi(state: FakeState): Omit<HttpApi, FakedParts> {
         state.connections = state.connections.filter((c) => c.id !== connectionId);
         for (const k of Object.keys(state.scopes))
           state.scopes[k] = (state.scopes[k] ?? []).filter((g) => g.connectionId !== connectionId);
+      },
+    },
+    carry: {
+      sources: async () => structuredClone(state.carrySources ?? []),
+      bring: async (orgId, input) => {
+        log("carry.bring", orgId, input);
+        const all = state.carrySources ?? [];
+        const connections = all.flatMap((s) => s.connections).filter((c) => input.connectionIds?.includes(c.id));
+        const agents = all.flatMap((s) => s.agents).filter((a) => input.agentIds?.includes(a.id));
+        for (const c of connections) c.here = true;
+        for (const a of agents) a.here = true;
+        return {
+          connections: connections.map((c) => ({
+            sourceId: c.id,
+            id: id("conn"),
+            label: c.label,
+            outcome: "brought" as const,
+          })),
+          agents: agents.map((a) => ({ sourceId: a.id, id: id("agent"), name: a.name, handle: a.handle })),
+          skills: 0,
+          skipped: [],
+        };
       },
     },
     githubApp: {

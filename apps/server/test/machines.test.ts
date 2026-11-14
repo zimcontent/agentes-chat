@@ -293,7 +293,7 @@ test("a pull end to end: the route on a real socket, streamed from a disk store,
   const disk = createDiskBlobStore(dir);
   const { store, prefix, storageConfigId } = await t.engine.artifacts.blobs.forOrg(orgId);
   store.stream = disk.stream;
-  const bytes = new Uint8Array(ARTIFACT_LIMITS.fileBytes);
+  const bytes = new Uint8Array(ARTIFACT_LIMITS.heldFileBytes);
   for (let at = 0; at < bytes.length; at += 4099) bytes[at] = at % 251;
   const sha256 = createHash("sha256").update(bytes).digest("hex");
   const blobKey = `${prefix}big`;
@@ -370,7 +370,7 @@ test("uploads PUT: machine token, its own upload only, size refused before readi
   expect(wrong.status).toBe(403);
   expect(((await wrong.json()) as { error: { code: string } }).error.code).toBe("upload.wrong_machine");
 
-  const big = new Uint8Array(ARTIFACT_LIMITS.fileBytes + 128 * 1024);
+  const big = new Uint8Array(ARTIFACT_LIMITS.heldFileBytes + 128 * 1024);
   const tooBig = await put(a.token, big);
   expect(tooBig.status).toBe(413);
 

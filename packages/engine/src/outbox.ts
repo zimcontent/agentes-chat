@@ -98,6 +98,8 @@ export const LONG_JOB_KINDS = [
   "autonomy.later",
   "agent_work.check_in",
   "agent.follow_up",
+  // A WhatsApp answer waits on the agent's brain and then types at a person's pace (doug-0002).
+  "whatsapp.agent_reply",
   "context.consolidate",
   "context.reflect",
   "search.reindex",

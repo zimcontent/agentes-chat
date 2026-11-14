@@ -58,6 +58,7 @@ export const keys = {
   approval: (orgId: string, approvalId: string) => ["org", orgId, "approvals", approvalId] as const,
   catalog: ["connector-catalog"] as const,
   connections: (orgId: string) => ["org", orgId, "connections"] as const,
+  carrySources: (orgId: string) => ["org", orgId, "carry-sources"] as const,
   githubApp: (orgId: string) => ["org", orgId, "github-app"] as const,
   githubRepos: (orgId: string) => ["org", orgId, "github-repositories"] as const,
   githubAccess: (orgId: string) => ["org", orgId, "github-access"] as const,
@@ -263,6 +264,7 @@ export const keys = {
   whatsapp: (orgId: string) => ["org", orgId, "whatsapp"] as const,
   whatsappOverview: (orgId: string) => ["org", orgId, "whatsapp", "overview"] as const,
   whatsappChats: (orgId: string, accountId: string) => ["org", orgId, "whatsapp", accountId, "chats"] as const,
+  whatsappStickers: (orgId: string, accountId: string) => ["org", orgId, "whatsapp", accountId, "stickers"] as const,
   whatsappMessages: (orgId: string, accountId: string, chatId: string) =>
     ["org", orgId, "whatsapp", accountId, "chats", chatId] as const,
   /** Everything of the Vault (ADR 0144), the prefix `vault.changed` refreshes. */

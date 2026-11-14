@@ -28857,6 +28857,60 @@
   "repos.added": {
     "value": "{{repo}} joins the list when you save."
   },
+  "carry.open": {
+    "value": "Bring from another workspace"
+  },
+  "carry.text": {
+    "value": "What you connected in another workspace comes ready, with no signing in again."
+  },
+  "carry.none": {
+    "value": "Nothing to bring yet. What you connect in one workspace shows here in the others."
+  },
+  "carry.connections": {
+    "value": "Connections"
+  },
+  "carry.with": {
+    "value": "Comes with {{names}}"
+  },
+  "carry.here": {
+    "value": "Already here"
+  },
+  "carry.needsReconnect": {
+    "value": "Needs reconnecting"
+  },
+  "carry.githubApp": {
+    "value": "Install the GitHub App here"
+  },
+  "carry.bring": {
+    "value": "Bring"
+  },
+  "carry.bringCount": {
+    "value": {
+      "one": "Bring {{count}} item",
+      "other": "Bring {{count}} items"
+    }
+  },
+  "carry.done": {
+    "value": {
+      "one": "{{count}} item brought to this workspace",
+      "other": "{{count}} items brought to this workspace"
+    }
+  },
+  "carry.skipped": {
+    "value": {
+      "one": "{{count}} item couldn't come",
+      "other": "{{count}} items couldn't come"
+    }
+  },
+  "carry.nothingNew": {
+    "value": "Everything you picked is already here"
+  },
+  "carry.failed": {
+    "value": "Couldn't bring it. Try again."
+  },
+  "carry.fromOnboarding": {
+    "value": "Bring agents and connections from another workspace"
+  },
   "connectors.title": {
     "value": "Connectors"
   },
@@ -45396,6 +45450,69 @@
   },
   "portal.seePost": {
     "value": "See the post"
+  },
+  "portal.seeDrive": {
+    "value": "Drive link"
+  },
+  "portal.clientLogo.menu": {
+    "value": "Client's logo"
+  },
+  "portal.clientLogo.title": {
+    "value": "{{name}}'s logo"
+  },
+  "portal.clientLogo.help": {
+    "value": "A square image shown in place of the client's initials. JPEG, PNG or WebP up to 2 MB."
+  },
+  "portal.clientLogo.remove": {
+    "value": "Remove logo"
+  },
+  "portal.clientLogo.saved": {
+    "value": "Logo saved"
+  },
+  "portal.clientLogo.removed": {
+    "value": "Logo removed"
+  },
+  "portal.clientColor.label": {
+    "value": "Client's colour"
+  },
+  "portal.clientColor.none": {
+    "value": "No colour"
+  },
+  "portal.clientColor.colors.green": {
+    "value": "Green"
+  },
+  "portal.clientColor.colors.blue": {
+    "value": "Blue"
+  },
+  "portal.clientColor.colors.navy": {
+    "value": "Dark blue"
+  },
+  "portal.clientColor.colors.sky": {
+    "value": "Light blue"
+  },
+  "portal.clientColor.colors.white": {
+    "value": "White"
+  },
+  "portal.clientColor.colors.teal": {
+    "value": "Teal"
+  },
+  "portal.clientColor.colors.yellow": {
+    "value": "Yellow"
+  },
+  "portal.clientColor.colors.orange": {
+    "value": "Orange"
+  },
+  "portal.clientColor.colors.red": {
+    "value": "Red"
+  },
+  "portal.clientColor.colors.pink": {
+    "value": "Pink"
+  },
+  "portal.clientColor.colors.purple": {
+    "value": "Purple"
+  },
+  "portal.clientColor.colors.gray": {
+    "value": "Gray"
   },
   "portal.edit": {
     "value": "Edit"

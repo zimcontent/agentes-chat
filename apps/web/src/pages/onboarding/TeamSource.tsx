@@ -5,7 +5,9 @@ import { Skeleton } from "@agenteschat/ui";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import type { TFunction } from "i18next";
 import { lazy, Suspense, useCallback, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useApi } from "@/api/context";
+import { BringOver } from "@/components/BringOver";
 import type { PreviewAgent } from "./OnboardingPreview";
 import "@/components/import-flow.css";
 import "./team-source.css";
@@ -267,6 +269,31 @@ const WAITING = [0, 1, 2, 3, 4, 5, 6, 7, 8];
  * `state`. `org`: the workspace's name.
  */
 export function TeamSource({
+  state,
+  orgId,
+  personal,
+  org,
+}: {
+  state: TeamSourceState;
+  orgId: string;
+  personal: boolean;
+  org: string;
+}) {
+  const { t } = useTranslation();
+  return (
+    <>
+      <TeamSourceViews state={state} orgId={orgId} personal={personal} org={org} />
+      {/* Asked once, to who has another workspace: its agents and connections, before bringing or building any. */}
+      {state.view === "ask" && (
+        <p className="onb__skip">
+          <BringOver orgId={orgId} allowed ask variant="link" label={t("carry.fromOnboarding")} />
+        </p>
+      )}
+    </>
+  );
+}
+
+function TeamSourceViews({
   state,
   orgId,
   personal,

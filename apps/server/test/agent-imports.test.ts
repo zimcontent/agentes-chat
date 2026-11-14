@@ -533,7 +533,7 @@ describe("an imported agent's own files into the Drive", () => {
     });
     // And 50 MB a file.
     const big = await send(b, `${base}/imports/files`, {
-      file: new File([new Uint8Array(ARTIFACT_LIMITS.fileBytes + 1)], "video.mp4"),
+      file: new File([new Uint8Array(ARTIFACT_LIMITS.heldFileBytes + 1)], "video.mp4"),
       agentId: scout,
       path: "video.mp4",
     });

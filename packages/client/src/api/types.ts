@@ -2099,6 +2099,50 @@ export interface ConnectorCatalog {
 }
 
 /** The organization's connection to a connector (no secrets). */
+/** A connection of another workspace of the person's, as what they can bring (no secrets). */
+export interface CarrySourceConnection {
+  id: string;
+  connector: string;
+  label: string;
+  serverUrl: string;
+  authType: string;
+  accountLabel: string | null;
+  icon: string | null;
+  /** Why it can't be brought; null when it can. */
+  blocked: "github_app" | "needs_reconnect" | null;
+  /** The workspace asking already has it. */
+  here: boolean;
+}
+
+/** An agent of another workspace of the person's: its profile, its skills and the connections that come with it. */
+export interface CarrySourceAgent {
+  id: string;
+  name: string;
+  handle: string;
+  role: string;
+  appearance: { color: string; eyes: string; accessory: string } | null;
+  skills: string[];
+  connectionIds: string[];
+  here: boolean;
+}
+
+/** One of the person's other workspaces with something to bring. */
+export interface CarrySource {
+  id: string;
+  name: string;
+  logo: string | null;
+  connections: CarrySourceConnection[];
+  agents: CarrySourceAgent[];
+}
+
+/** What bringing did: what came, what was here already and what stayed behind, with why. */
+export interface CarryResult {
+  connections: { sourceId: string; id: string; label: string; outcome: "brought" | "here" }[];
+  agents: { sourceId: string; id: string; name: string; handle: string }[];
+  skills: number;
+  skipped: { kind: "connection" | "agent" | "skill"; id: string; label: string; reason: string }[];
+}
+
 export interface Connection {
   id: string;
   connector: string;
@@ -8018,6 +8062,21 @@ export type PortalLabelColor =
   | "blue"
   | "gray";
 
+/** The colour the team gave a client (`PORTAL_CLIENT_COLORS`): whose a card is reads at a glance. */
+export type PortalClientColor =
+  | "green"
+  | "blue"
+  | "navy"
+  | "sky"
+  | "white"
+  | "teal"
+  | "yellow"
+  | "orange"
+  | "red"
+  | "pink"
+  | "purple"
+  | "gray";
+
 /** A label the team puts on cards by hand, one set for every client. */
 export interface PortalLabel {
   id: string;
@@ -8089,6 +8148,10 @@ export interface PortalClientSummary {
   counts: Record<PortalColumn, number>;
   open: number;
   next: string | null;
+  /** The colour the team gave it; null or absent (a server that doesn't say): none. */
+  color?: PortalClientColor | null;
+  /** Where its logo is read (the server's own address); null or absent: none. */
+  logo?: string | null;
 }
 
 /**

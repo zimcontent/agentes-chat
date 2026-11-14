@@ -102,6 +102,8 @@ import type {
   CalendarEventInput,
   CalendarEventPatch,
   CalendarRange,
+  CarryResult,
+  CarrySource,
   Channel,
   ChannelCard,
   ChannelCategory,
@@ -260,6 +262,7 @@ import type {
   PortalBoard,
   PortalCard,
   PortalCardInput,
+  PortalClientColor,
   PortalItemEdit,
   PortalJob,
   PortalLabel,
@@ -1047,6 +1050,13 @@ export interface ApiClient {
     rename(orgId: string, connectionId: string, label: string): Promise<Connection>;
     disconnect(orgId: string, connectionId: string): Promise<void>;
   };
+  /** Connections and agents from the person's other workspaces. */
+  carry: {
+    /** Their other workspaces with something to bring into this one. */
+    sources(orgId: string): Promise<CarrySource[]>;
+    /** Brings them: an agent's own connections come with it. */
+    bring(orgId: string, input: { connectionIds?: string[]; agentIds?: string[] }): Promise<CarryResult>;
+  };
   githubApp: {
     /** Whether this server can install the GitHub App, the organization's installations, and the server's app. */
     info(orgId: string): Promise<GitHubAppInfo>;
@@ -1449,6 +1459,14 @@ export interface ApiClient {
       change: { name?: string; color?: PortalLabelColor },
     ): Promise<PortalLabel>;
     deleteLabel(orgId: string, labelId: string): Promise<void>;
+    /** A client's colour; `null` takes it away. */
+    setClientColor(orgId: string, client: string, color: PortalClientColor | null): Promise<void>;
+    /** A client's logo, cropped square by the app; `null` takes it away. */
+    setClientLogo(
+      orgId: string,
+      client: string,
+      image: { imageBase64: string; contentType: string } | null,
+    ): Promise<void>;
     /** Anyone who may post comments; answers the card with it. */
     addComment(orgId: string, cardId: string, text: string): Promise<PortalCard>;
     /** One's own, or any for who may give agents work. */
@@ -2069,6 +2087,24 @@ export interface ApiClient {
     read(orgId: string, accountId: string, chatId: string): Promise<{ read: number }>;
     /** The person is writing there (or stopped): the other side sees "typing…". */
     typing(orgId: string, accountId: string, chatId: string, typing: boolean): Promise<{ told: boolean }>;
+    /** Sends a file, or a recording as a voice message (`voice`), into a conversation. */
+    sendFile(
+      orgId: string,
+      accountId: string,
+      input: { chatId: string; file: Blob; fileName: string; caption?: string; voice?: boolean },
+    ): Promise<{ chatId: string; kind: string }>;
+    /** The stickers the number sent or received lately, each a message's id (its picture: `whatsappFileUrl`). */
+    stickers(orgId: string, accountId: string): Promise<{ stickers: { messageId: string; at: string }[] }>;
+    /** Sends a sticker the number already has into a conversation. */
+    sendSticker(
+      orgId: string,
+      accountId: string,
+      input: { chatId: string; messageId: string },
+    ): Promise<{ chatId: string }>;
+    /** Asks the phone for the conversation's older messages: they arrive a moment later, if the phone has them. */
+    olderHistory(orgId: string, accountId: string, chatId: string): Promise<{ asked: number }>;
+    /** The number's agent on or off in one conversation; on gives the conversation back to it. */
+    chatAgent(orgId: string, accountId: string, chatId: string, on: boolean): Promise<{ on: boolean }>;
   };
   /**
    * The Vault (ADR 0144): logins, keys and contacts agents use without seeing a password or a key. No answer carries

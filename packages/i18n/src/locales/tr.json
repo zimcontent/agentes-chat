@@ -11753,6 +11753,26 @@
     "deniedRun": "{{repo}}, {{name}} ajanının depolarından biri değil.",
     "added": "{{repo}} kaydettiğinizde listeye eklenir."
   },
+  "carry": {
+    "open": "Başka bir çalışma alanından getir",
+    "text": "Başka bir çalışma alanında bağladıklarınız, yeniden giriş yapmadan hazır gelir.",
+    "none": "Henüz getirilecek bir şey yok. Bir çalışma alanında bağladıklarınız diğerlerinde burada görünür.",
+    "connections": "Bağlantılar",
+    "with": "{{names}} ile gelir",
+    "here": "Zaten burada",
+    "needsReconnect": "Yeniden bağlanması gerekiyor",
+    "githubApp": "GitHub App'i buraya yükleyin",
+    "bring": "Getir",
+    "bringCount_one": "{{count}} öğeyi getir",
+    "bringCount_other": "{{count}} öğeyi getir",
+    "done_one": "{{count}} öğe bu çalışma alanına getirildi",
+    "done_other": "{{count}} öğe bu çalışma alanına getirildi",
+    "skipped_one": "{{count}} öğe getirilemedi",
+    "skipped_other": "{{count}} öğe getirilemedi",
+    "nothingNew": "Seçtiğiniz her şey zaten burada",
+    "failed": "Getirilemedi. Tekrar deneyin.",
+    "fromOnboarding": "Ajanları ve bağlantıları başka bir çalışma alanından getir"
+  },
   "connectors": {
     "title": "Bağlayıcılar",
     "add": "Bağlayıcı ekle",
@@ -18696,6 +18716,33 @@
     "send": "Onaya gönder",
     "openAtPortal": "Portalda aç",
     "seePost": "Gönderiyi gör",
+    "seeDrive": "Drive bağlantısı",
+    "clientLogo": {
+      "menu": "Müşterinin logosu",
+      "title": "{{name}} logosu",
+      "help": "Müşterinin baş harfleri yerine gösterilen kare bir görsel. JPEG, PNG veya WebP, en fazla 2 MB.",
+      "remove": "Logoyu kaldır",
+      "saved": "Logo kaydedildi",
+      "removed": "Logo kaldırıldı"
+    },
+    "clientColor": {
+      "label": "Müşterinin rengi",
+      "none": "Renk yok",
+      "colors": {
+        "green": "Yeşil",
+        "blue": "Mavi",
+        "navy": "Lacivert",
+        "sky": "Açık mavi",
+        "white": "Beyaz",
+        "teal": "Turkuaz",
+        "yellow": "Sarı",
+        "orange": "Turuncu",
+        "red": "Kırmızı",
+        "pink": "Pembe",
+        "purple": "Mor",
+        "gray": "Gri"
+      }
+    },
     "edit": "Düzenle",
     "delete": "Sil",
     "actionsOf": "İşlemler: {{title}}",

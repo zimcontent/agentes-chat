@@ -2,7 +2,14 @@ import type { ApprovalPortal, PortalCard, PortalItem, PubSub } from "@agentescha
 import { and, asc, type Database, eq, isNull, schema, sql } from "@agenteschat/db";
 import { type PortalColumn, portalColumnOf } from "./approval-portal";
 import { planCard } from "./approval-portal-plan";
-import { localDay, type PortalOpenTask, portalOpenTasks, portalZone, shiftDay } from "./approval-portal-watch";
+import {
+  localDay,
+  type PortalOpenTask,
+  portalAssigneeNames,
+  portalOpenTasks,
+  portalZone,
+  shiftDay,
+} from "./approval-portal-watch";
 import { openPersonAgentDm } from "./dms";
 import { publishMessageCreated } from "./events";
 import { projectByName } from "./issue-projects";
@@ -56,8 +63,12 @@ interface Side {
   lead: string | null;
 }
 interface Synced {
-  /** `kind`: the post's kind (reel, carousel…), kept for whoever reads the board from the tasks. */
-  card: Side & { stage: PortalColumn; kind?: string };
+  /**
+   * `kind`: the post's kind (reel, carousel…), kept for whoever reads the board from the tasks. `item`: the post at
+   * the portal the card became, which is what a new version is put on. `note`: when the client last wrote on a post
+   * they wait on a change of, so a second request made meanwhile is told from the first.
+   */
+  card: Side & { stage: PortalColumn; kind?: string; item?: string; note?: string };
   issue: Side & { status: IssueStatus };
 }
 
@@ -75,6 +86,10 @@ export interface PortalStageChange {
   from: PortalColumn;
   to: PortalColumn;
   assignee: WorkActor | null;
+  /** The post at the portal, for a signed-in person; null while the card has no post there. */
+  link: string | null;
+  /** Who the portal says holds the post (a name of its own, as `heldBy` cleans it); null when it names nobody. */
+  holder: string | null;
 }
 
 export interface PortalSyncResult {
@@ -88,13 +103,15 @@ const NO_CHANNEL = "00000000-0000-0000-0000-000000000000";
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const hash = (text: string) => Bun.hash(text).toString(36);
 
-const cardSide = (card: PortalCard, stage: PortalColumn): Synced["card"] => ({
+const cardSide = (card: PortalCard, stage: PortalColumn, note?: string | null): Synced["card"] => ({
   title: card.title,
   description: hash(card.description),
   due: card.produceOn,
   lead: card.members[0] ?? null,
   stage,
   kind: card.type,
+  ...(card.item ? { item: card.item } : {}),
+  ...(note && stage === "adjusting" ? { note } : {}),
 });
 const issueSide = (
   row: Pick<IssueRow, "title" | "description" | "dueDate" | "assigneeId" | "status">,
@@ -181,6 +198,16 @@ const stageOf = (card: PortalCard, items: Map<string, PortalItem>) =>
 const ADOPTED: PortalColumn[] = ["approval", "adjusting", "approved"];
 const ADOPT_AFTER_MS = 15 * 60_000;
 
+/**
+ * The name the portal gives whoever holds a post, as it goes into a line: letters, digits and spaces only, short.
+ * It is the portal's word, not ours, so nothing else of it is kept.
+ */
+const heldBy = (name: string | null | undefined) =>
+  (name ?? "")
+    .replace(/[^\p{L}\p{N} ._-]/gu, "")
+    .trim()
+    .slice(0, 40) || null;
+
 const plain = (text: string) =>
   text
     .normalize("NFD")
@@ -222,8 +249,18 @@ const withLead = (members: string[], lead: string | null, before: string | null)
 };
 
 async function saveSynced(db: Database, row: IssueRow, client: string, cardId: string, synced: Synced) {
-  const nudged = (row.source as { nudged?: string }).nudged;
-  const source = { type: "portal" as const, client, cardId, synced, ...(nudged ? { nudged } : {}) };
+  const kept = row.source as { nudged?: string; asked?: { at: string; told?: boolean } };
+  const nudged = kept.nudged;
+  // Since when the client waits on a change: kept while the post is still theirs to get back.
+  const asked = synced.card.stage === "adjusting" ? kept.asked : undefined;
+  const source = {
+    type: "portal" as const,
+    client,
+    cardId,
+    synced,
+    ...(nudged ? { nudged } : {}),
+    ...(asked ? { asked } : {}),
+  };
   if (JSON.stringify(row.source) === JSON.stringify(source)) return;
   await db.update(issues).set({ source }).where(eq(issues.id, row.id));
 }
@@ -261,11 +298,16 @@ async function onePass(
   if (!who) return result;
   const [allCards, allItems] = await Promise.all([portal.cards(), portal.items()]);
   const items = new Map(allItems.map((item) => [`${item.client}/${item.id}`, item]));
+  let names: Map<string, string> | null = null;
+  const byName = async () => {
+    names ??= await editorsByName(db, orgId);
+    return names;
+  };
   if (!only) {
     // A post that went up some other way and is still open gets a card, so it has a task like any other: what the
     // client says about it reaches someone. Posts already scheduled or out are left as the portal has them.
     const carded = new Set(allCards.flatMap((card) => (card.item ? [`${card.client}/${card.item}`] : [])));
-    const people = await editorsByName(db, orgId);
+    const people = await byName();
     for (const item of allItems) {
       if (carded.has(`${item.client}/${item.id}`) || !ADOPTED.includes(portalColumnOf(item))) continue;
       // One that just went up may be a card's own post, a moment before the card is tied to it.
@@ -301,6 +343,16 @@ async function onePass(
     .where(and(eq(issues.orgId, orgId), sql`${issues.source}->>'type' = 'portal'`));
   const byCard = new Map(rows.map((row) => [(row.source as { cardId?: string }).cardId ?? "", row]));
   const seen = new Map<string, WorkActor | null>();
+  const postOf = (card: PortalCard) => (card.item ? items.get(`${card.client}/${card.item}`) : undefined);
+  /**
+   * Who the portal says holds a post (its designer, a video's editor), when one person or agent of the workspace
+   * answers to that name: a change the client asks for on a post nobody has here goes to them (ADR 9001 §17).
+   */
+  const holderOf = async (card: PortalCard) => {
+    const name = postOf(card)?.editor;
+    const id = name ? (await byName()).get(plain(name)) : undefined;
+    return id ? await assigneeOf(db, orgId, id, seen) : null;
+  };
   const projects = new Map<string, string>();
   for (const row of rows) {
     const client = (row.source as { client?: string }).client;
@@ -319,7 +371,8 @@ async function onePass(
           projectId = (await projectByName({ db, pubsub: deps.pubsub }, orgId, card.client, "new")).id;
           projects.set(card.client, projectId);
         }
-        const assignee = await assigneeOf(db, orgId, card.members[0] ?? null, seen);
+        const held = stage === "adjusting" && card.members.length === 0 ? await holderOf(card) : null;
+        const assignee = held ?? (await assigneeOf(db, orgId, card.members[0] ?? null, seen));
         const made = await createIssue({ db, pubsub: deps.pubsub }, who.person, orgId, {
           title: card.title,
           description: card.description,
@@ -332,10 +385,17 @@ async function onePass(
         if (status !== "todo") {
           await updateIssue({ db, pubsub: deps.pubsub }, who.script, orgId, made.id, { status });
         }
-        await portal.updateCard(card.id, { task: made.id }, "sync");
+        const tied = await portal.updateCard(
+          card.id,
+          { task: made.id, ...(held ? { members: [held.id] } : {}) },
+          "sync",
+        );
         const fresh = await reload(db, made.id);
         if (fresh)
-          await saveSynced(db, fresh, card.client, card.id, { card: cardSide(card, stage), issue: issueSide(fresh) });
+          await saveSynced(db, fresh, card.client, card.id, {
+            card: cardSide(tied, stage, postOf(card)?.lastNote?.at),
+            issue: issueSide(fresh),
+          });
         result.created++;
         // Made while the client already waits on a change: said and handed on like one that came in just now.
         if (stage === "adjusting") {
@@ -349,13 +409,16 @@ async function onePass(
             from: "approval",
             to: stage,
             assignee,
+            link: postOf(card)?.link || null,
+            holder: heldBy(postOf(card)?.editor),
           });
         }
         continue;
       }
 
       const was = (row.source as { synced?: Synced }).synced ?? null;
-      const now = { card: cardSide(card, stage), issue: issueSide(row) };
+      const noteAt = postOf(card)?.lastNote?.at ?? null;
+      const now = { card: cardSide(card, stage, noteAt), issue: issueSide(row) };
       const toTask: Parameters<typeof updateIssue>[4] = {};
       const toCard: Parameters<ApprovalPortal["updateCard"]>[1] = {};
       // Each field on its own: the card's change goes to the task; else the task's goes to the card.
@@ -394,6 +457,14 @@ async function onePass(
         const state = row.status === "todo" ? "todo" : row.status === "in_progress" ? "doing" : null;
         if (state && state !== card.state) toCard.state = state;
       }
+      // A change the client asked for, on a post nobody has: whoever the portal says holds it takes it.
+      if (stageMoved && stage === "adjusting" && !row.assigneeId && !now.card.lead && toTask.assignee === undefined) {
+        const held = await holderOf(card);
+        if (held) {
+          toTask.assignee = held;
+          toCard.members = withLead(card.members, held.id, null);
+        }
+      }
 
       let issueNow: Pick<IssueRow, "title" | "description" | "dueDate" | "assigneeId" | "status"> = row;
       if (Object.keys(toTask).length > 0) {
@@ -409,14 +480,16 @@ async function onePass(
       if (!card.task) await portal.updateCard(card.id, { task: row.id }, "sync");
       const stageNow = cardNow.item ? stage : cardNow.state;
       await saveSynced(db, row, card.client, card.id, {
-        card: cardSide(cardNow, stageNow),
+        card: cardSide(cardNow, stageNow, noteAt),
         issue: issueSide(issueNow),
       });
-      if (was && stageMoved) {
-        const assignee: WorkActor | null =
-          issueNow.assigneeId && (row.assigneeType === "agent" || row.assigneeType === "person")
-            ? ((await assigneeOf(db, orgId, issueNow.assigneeId, seen)) ?? null)
-            : null;
+      // The client wrote again on a post they already wait on a change of: one more request, told like the first.
+      const again =
+        !stageMoved && stage === "adjusting" && Boolean(was?.card.note && noteAt && was.card.note !== noteAt);
+      if (was && (stageMoved || again)) {
+        const assignee: WorkActor | null = issueNow.assigneeId
+          ? ((await assigneeOf(db, orgId, issueNow.assigneeId, seen)) ?? null)
+          : null;
         result.changes.push({
           issueId: row.id,
           number: row.number,
@@ -427,6 +500,8 @@ async function onePass(
           from: was.card.stage,
           to: stage,
           assignee,
+          link: postOf(card)?.link || null,
+          holder: heldBy(postOf(card)?.editor),
         });
       }
     } catch (error) {
@@ -523,6 +598,29 @@ const NOTICES: Record<NoticeLocale, Partial<Record<PortalColumn, (title: string)
     posted: (t) => `"${t}" is out.`,
   },
 };
+/**
+ * What a change the client asked for adds to those lines (ADR 9001 §17): its new version going up, what a person who
+ * has the post is asked to do, and the post's own address at the portal.
+ */
+const VERSION_NOTICES: Record<
+  NoticeLocale,
+  { up: (title: string) => string; more: (title: string) => string; yours: string; at: (link: string) => string }
+> = {
+  "pt-BR": {
+    up: (t) => `A nova versão de "${t}" já está no portal, pronta para o cliente aprovar.`,
+    more: (t) =>
+      `O cliente pediu mais um ajuste em "${t}", antes de a nova versão subir. O pedido está no cartão do Portal.`,
+    yours: "Quando terminar, suba a nova versão direto no portal.",
+    at: (link) => `Abrir no portal: ${link}`,
+  },
+  en: {
+    up: (t) => `The new version of "${t}" is at the portal, ready for the client to approve.`,
+    more: (t) =>
+      `The client asked for one more change on "${t}", before the new version went up. The request is on the card in the Portal.`,
+    yours: "When it is done, put the new version up at the portal itself.",
+    at: (link) => `Open at the portal: ${link}`,
+  },
+};
 /** The lines about a post's day, said once each: the day it is for, and the day after when it still isn't up. */
 const DATE_NOTICES: Record<NoticeLocale, Record<"today" | "late", (title: string) => string>> = {
   "pt-BR": {
@@ -535,14 +633,19 @@ const DATE_NOTICES: Record<NoticeLocale, Record<"today" | "late", (title: string
   },
 };
 /** What the assistant is told in its owner's conversation with it about the posts nobody has. */
-const UNOWNED: Record<NoticeLocale, { head: string; why: Record<"adjusting" | "today" | "late", string> }> = {
+const UNOWNED: Record<
+  NoticeLocale,
+  { head: string; why: Record<"adjusting" | "today" | "late", string>; held: (name: string) => string }
+> = {
   "pt-BR": {
     head: "Aviso automático do Portal: estes posts estão sem responsável. Passe cada um para quem deve fazer e me diga em uma linha com quem ficou.",
     why: { adjusting: "o cliente pediu ajuste", today: "é para hoje", late: "era para ontem" },
+    held: (name) => `; no portal está com ${name}, que não está neste workspace`,
   },
   en: {
     head: "Automatic notice from the Portal: nobody has these posts. Hand each to whoever should make it and tell me in one line who has it.",
     why: { adjusting: "the client asked for a change", today: "it is for today", late: "it was for yesterday" },
+    held: (name) => `; at the portal ${name} has it, who isn't in this workspace`,
   },
 };
 const localeOf = (locale: string | null | undefined): NoticeLocale =>
@@ -554,6 +657,8 @@ interface Unowned {
   client: string;
   kind: string | null;
   why: "adjusting" | "today" | "late";
+  /** Who the portal says has it, when nobody of the workspace answers to that name. */
+  holder?: string | null;
 }
 
 /**
@@ -570,7 +675,9 @@ async function askAssistant(deps: PortalTaskDeps, orgId: string, who: Writers, u
     words.head,
     ...listed.map(
       (u) =>
-        `- #${u.number} "${u.title.slice(0, 120)}" (${u.client}${u.kind ? `, ${u.kind}` : ""}): ${words.why[u.why]}`,
+        `- #${u.number} "${u.title.slice(0, 120)}" (${u.client}${u.kind ? `, ${u.kind}` : ""}): ${words.why[u.why]}${
+          u.holder ? words.held(u.holder) : ""
+        }`,
     ),
   ].join("\n");
   await postPersonMessage({ db: deps.db, pubsub: deps.pubsub }, who.owner, orgId, dm.id, {
@@ -579,7 +686,10 @@ async function askAssistant(deps: PortalTaskDeps, orgId: string, who: Writers, u
   });
 }
 
-/** The stages a client's group hears about: what the client did, and the post going out. */
+/**
+ * The stages a client's group hears about: what the client did, and the post going out. A new version going up after
+ * a change the client asked for is said there too (`redone`).
+ */
 const GROUP_STAGES: PortalColumn[] = ["adjusting", "approved", "posted"];
 
 /** The client's group: the open channel whose name carries the client's id (`acme` → `#acme`, `#clientes-acme`). */
@@ -616,26 +726,49 @@ export async function announcePortalStages(deps: PortalTaskDeps, orgId: string, 
   const unowned: Unowned[] = [];
   for (const change of changes) {
     try {
-      const line = NOTICES[locale][change.to]?.(change.title);
+      const words = VERSION_NOTICES[locale];
+      // Back with the client after a change they asked for: the new version is up, whoever put it there.
+      const redone = change.from === "adjusting" && change.to === "approval";
+      const more = change.from === "adjusting" && change.to === "adjusting";
+      const line = redone
+        ? words.up(change.title)
+        : more
+          ? words.more(change.title)
+          : NOTICES[locale][change.to]?.(change.title);
+      const at = change.link ? ` ${words.at(change.link)}` : "";
       if (line && who.rightHand) {
-        // A person who has it is named, so the line reaches them wherever they are.
+        // A person who has it is named, so the line reaches them wherever they are, and told where the new version
+        // goes: the portal itself takes it from them.
         const to = change.to === "adjusting" && change.assignee?.type === "person" ? change.assignee.id : null;
         const name = to ? await mentionOf(db, orgId, to) : "";
-        const said = await commentIssue({ db, pubsub }, who.script, orgId, change.issueId, `${name}${line}`);
+        const said = await commentIssue(
+          { db, pubsub },
+          who.script,
+          orgId,
+          change.issueId,
+          `${name}${line}${to ? ` ${words.yours}` : ""}${at}`,
+        );
         await notifyMessage({ db, pubsub }, orgId, said.id).catch(() => {});
-        const group = GROUP_STAGES.includes(change.to) ? await clientChannel(db, orgId, change.client) : null;
+        const group = redone || GROUP_STAGES.includes(change.to) ? await clientChannel(db, orgId, change.client) : null;
         if (group) {
           const message = await insertMessage(db, {
             orgId,
             channelId: group.id,
             author: { type: "agent", agentId: who.rightHand, runId: null, hop: 1, stretchId: null },
-            body: line,
+            body: `${line}${at}`,
             meta: { portalNotice: { client: change.client, cardId: change.cardId, stage: change.to } },
           });
           await publishMessageCreated(pubsub, messageView(message));
         }
       }
       if (change.to === "adjusting") {
+        // Since when the client waits: what `watchPortalAdjustments` reads.
+        await db
+          .update(issues)
+          .set({
+            source: sql`${issues.source} || ${JSON.stringify({ asked: { at: new Date().toISOString() } })}::jsonb`,
+          })
+          .where(eq(issues.id, change.issueId));
         // The agent that has it starts on the change at once; a post nobody has goes to the assistant to hand on.
         if (change.assignee?.type === "agent") {
           await askAgentToImplement({ db, pubsub }, who.owner, orgId, change.issueId, change.assignee.id);
@@ -722,6 +855,71 @@ export async function watchPortalDates(deps: PortalTaskDeps, orgId: string, at =
   return said;
 }
 
+/** How long a change a client asked for may wait for its new version before the assistant is told to look. */
+export const PORTAL_ADJUST_STALL_MS = 2 * 60 * 60_000;
+
+const STALLED: Record<NoticeLocale, { head: string; held: (name: string) => string; nobody: string }> = {
+  "pt-BR": {
+    head: "Aviso automático do Portal: o cliente pediu ajuste nestes posts há mais de 2 horas e a nova versão ainda não subiu. Veja o que travou com quem está com cada um, destrave e me diga em uma linha como ficou.",
+    held: (name) => `está com ${name}`,
+    nobody: "sem responsável",
+  },
+  en: {
+    head: "Automatic notice from the Portal: the client asked for a change on these posts over 2 hours ago and the new version isn't up yet. See what is holding each with whoever has it, get it moving and tell me in one line how it stands.",
+    held: (name) => `${name} has it`,
+    nobody: "nobody has it",
+  },
+};
+
+/**
+ * The changes clients asked for, watched by code (ADR 9001 §17): the loop needs nobody while it runs, so the
+ * assistant is the one who looks when it doesn't. A post still waiting for its new version two hours after the
+ * client asked is told to the assistant once, in its owner's own conversation with it, with who has it; what to do
+ * about it is the assistant's judgment. Nothing the client wrote goes in the message.
+ */
+export async function watchPortalAdjustments(deps: PortalTaskDeps, orgId: string, at = new Date()) {
+  const { db, pubsub } = deps;
+  if (!pubsub) return 0;
+  const who = await writers(db, orgId);
+  if (!who?.rightHand) return 0;
+  const { hour } = localDay(await portalZone(db, orgId, who.owner), at);
+  if (hour < DATES_FROM_HOUR) return 0;
+  const stalled = (await portalOpenTasks(db, orgId))
+    .filter(
+      (task) =>
+        task.stage === "adjusting" &&
+        task.asked &&
+        !task.asked.told &&
+        at.getTime() - Date.parse(task.asked.at) >= PORTAL_ADJUST_STALL_MS,
+    )
+    .slice(0, 20);
+  if (stalled.length === 0) return 0;
+  // Marked first: a message that fails is skipped, never sent twice.
+  for (const task of stalled) {
+    await db
+      .update(issues)
+      .set({ source: sql`jsonb_set(${issues.source}, '{asked,told}', 'true'::jsonb)` })
+      .where(eq(issues.id, task.id));
+  }
+  const names = await portalAssigneeNames(db, orgId, stalled);
+  const words = STALLED[localeOf(who.locale)];
+  const dm = await openPersonAgentDm(db, orgId, who.owner, who.rightHand);
+  const body = [
+    words.head,
+    ...stalled.map(
+      (task) =>
+        `- #${task.number} "${task.title.slice(0, 120)}" (${task.client}${task.kind ? `, ${task.kind}` : ""}): ${
+          task.assignee ? words.held(names.get(task.assignee.id) ?? "?") : words.nobody
+        }`,
+    ),
+  ].join("\n");
+  await postPersonMessage({ db, pubsub }, who.owner, orgId, dm.id, {
+    body,
+    meta: { portalStalled: stalled.map((task) => task.number) },
+  });
+  return stalled.length;
+}
+
 /**
  * One tick of the portal's worker: bring every card and task in step, then say what changed at the portal's side.
  * Nothing when the installation has no workspace yet.
@@ -735,6 +933,11 @@ export function portalTasksTick(deps: PortalTaskDeps, portal: ApprovalPortal): P
     await announcePortalStages(deps, orgId, result.changes);
     await watchPortalDates(deps, orgId).catch((error: unknown) =>
       deps.log?.warn("approval portal: the posts' days could not be watched", {
+        error: error instanceof Error ? error.message : String(error),
+      }),
+    );
+    await watchPortalAdjustments(deps, orgId).catch((error: unknown) =>
+      deps.log?.warn("approval portal: the changes clients wait on could not be watched", {
         error: error instanceof Error ? error.message : String(error),
       }),
     );

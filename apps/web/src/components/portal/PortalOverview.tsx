@@ -12,8 +12,6 @@ import {
   pipelinePeople,
   pipelineSteps,
   pipelineTiles,
-  portalClientHue,
-  portalClientInitials,
   portalClientName,
   portalStatusWaits,
   portalTaskNumbers,
@@ -34,14 +32,14 @@ import {
 } from "@agenteschat/ui";
 import { Link, useNavigate } from "@tanstack/react-router";
 import type { TFunction } from "i18next";
-import { type CSSProperties, useState } from "react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { PersonAvatar } from "@/components/AgentAvatar";
 import { ErrorState, LoadingCards } from "@/components/Loading";
 import { useOrg } from "@/components/org-context";
-import { ChannelPhoto } from "@/components/ProfilePhoto";
 import { BoardColumn, BoardFrame, CardFace } from "./board-parts";
 import { CardDialog } from "./CardDialog";
+import { ClientDot, ClientMark, usePortalClientColors, usePortalClientLogos } from "./client-color";
 import { MemberFaces, usePortalPeople, WhoFace } from "./members";
 import { StageLegend } from "./PlanLegend";
 import { type PortalSearch, usePortalSearch } from "./search";
@@ -240,6 +238,8 @@ function Clients({ names, entries, day }: { names: string[]; entries: PortalPipe
   const who = usePortalPeople();
   const channels = useChannels(org.id).data ?? [];
   const rows = pipelineClients(names, entries);
+  const colors = usePortalClientColors();
+  const logos = usePortalClientLogos();
   return (
     <section className="portal-home__part" aria-label={t("portal.home.clients")}>
       <GroupHeading title={t("portal.home.clients")} count={rows.length} />
@@ -262,18 +262,8 @@ function Clients({ names, entries, day }: { names: string[]; entries: PortalPipe
                 search={{ client }}
                 data-idle={status.kind === "idle" || undefined}
               >
-                <span className="portal-clientcard__head">
-                  {photo ? (
-                    <ChannelPhoto icon={photo} size={40} className="portal-mark" />
-                  ) : (
-                    <span
-                      className="portal-mark"
-                      style={{ "--mark-hue": portalClientHue(client) } as CSSProperties}
-                      aria-hidden="true"
-                    >
-                      {portalClientInitials(client)}
-                    </span>
-                  )}
+                <span className="portal-clientcard__head" data-client-color={colors.get(client)}>
+                  <ClientMark client={client} logo={logos.get(client)} photo={photo} color={colors.get(client)} />
                   <span className="portal-clientcard__name" title={name}>
                     {name}
                   </span>
@@ -289,19 +279,17 @@ function Clients({ names, entries, day }: { names: string[]; entries: PortalPipe
                   ) : null}
                   {statusText(t, status)}
                 </span>
-                <ol className="portal-steps" aria-label={t("portal.home.pipeline")}>
+                <ol className="portal-stats" aria-label={t("portal.home.pipeline")}>
                   {pipelineSteps(own).map((step) => (
                     <li
                       key={step.stage}
-                      className="portal-step"
+                      className="portal-stat"
                       data-stage={step.stage}
                       data-empty={step.count === 0 || undefined}
-                      title={`${stageName(t, step.stage)}: ${step.count}`}
                     >
-                      <span className="portal-step__node tabular" aria-hidden="true">
-                        {step.count > 0 ? step.count : ""}
-                      </span>
-                      <span className="ac-visually-hidden">{`${stageName(t, step.stage)}: ${step.count}`}</span>
+                      <span className="portal-dot" data-stage={step.stage} aria-hidden="true" />
+                      <span className="portal-stat__name">{stageName(t, step.stage)}</span>
+                      <b className="portal-stat__num tabular">{step.count}</b>
                     </li>
                   ))}
                 </ol>
@@ -431,6 +419,7 @@ function PipelineBoard({ entries, numbers }: { entries: PortalPipelineEntry[]; n
   const { t, i18n } = useTranslation();
   const { org } = useOrg();
   const navigate = useNavigate();
+  const colors = usePortalClientColors();
   return (
     <BoardFrame className="portal-pipeline">
       {PORTAL_PIPELINE_STAGES.map((stage) => {
@@ -482,12 +471,15 @@ function PipelineBoard({ entries, numbers }: { entries: PortalPipelineEntry[]; n
                     title={e.title}
                     label={`${portalClientName(e.client)}: ${e.title}`}
                     data-late={e.late || undefined}
+                    data-client-color={colors.get(e.client)}
                     onOpen={() =>
                       void navigate({ to: "/org/$orgId/portal", params: { orgId: org.id }, search: entrySearch(e) })
                     }
                     chips={
                       <>
-                        <Chip className="portal-clientchip">{portalClientName(e.client)}</Chip>
+                        <Chip className="portal-clientchip" data-client-color={colors.get(e.client)}>
+                          {portalClientName(e.client)}
+                        </Chip>
                         <Chip>{t(`portal.types.${e.type}`)}</Chip>
                         {e.late && (
                           <Chip icon="alert" tone="waiting">
@@ -526,6 +518,7 @@ function PipelineList({ entries, numbers }: { entries: PortalPipelineEntry[]; nu
   const { t, i18n } = useTranslation();
   const { org } = useOrg();
   const [desc, setDesc] = useState(false);
+  const colors = usePortalClientColors();
   return (
     <div className="list-card portal-table__wrap">
       <table className="portal-table">
@@ -567,7 +560,10 @@ function PipelineList({ entries, numbers }: { entries: PortalPipelineEntry[]; nu
                 const task = taskOf(numbers, e);
                 return (
                   <tr key={`${e.client}/${e.kind}/${e.id}`} data-late={e.late || undefined}>
-                    <td className="portal-table__client">{portalClientName(e.client)}</td>
+                    <td className="portal-table__client">
+                      <ClientDot color={colors.get(e.client)} />
+                      {portalClientName(e.client)}
+                    </td>
                     <td className="portal-table__title">
                       <Link to="/org/$orgId/portal" params={{ orgId: org.id }} search={entrySearch(e)} title={e.title}>
                         {e.title}

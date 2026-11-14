@@ -243,25 +243,25 @@
 /* ── Stages and labels (ADR 9001 §8) ────────────────────────────────────── */
 /* A stage's colour is the same wherever it shows (a card's edge, a calendar chip, the legend) and in both themes, so
    the schedule reads at a glance. A label's colour is the team's pick among ten names. */
-:is(.portal-dot, .plan-cal__chip, .portal-step)[data-stage] {
+:is(.portal-dot, .plan-cal__chip)[data-stage] {
   --stage: #8a909c;
 }
-:is(.portal-dot, .plan-cal__chip, .portal-step)[data-stage="doing"] {
+:is(.portal-dot, .plan-cal__chip)[data-stage="doing"] {
   --stage: #3b82f6;
 }
-:is(.portal-dot, .plan-cal__chip, .portal-step)[data-stage="approval"] {
+:is(.portal-dot, .plan-cal__chip)[data-stage="approval"] {
   --stage: #f59e0b;
 }
-:is(.portal-dot, .plan-cal__chip, .portal-step)[data-stage="adjusting"] {
+:is(.portal-dot, .plan-cal__chip)[data-stage="adjusting"] {
   --stage: #ef4444;
 }
-:is(.portal-dot, .plan-cal__chip, .portal-step)[data-stage="approved"] {
+:is(.portal-dot, .plan-cal__chip)[data-stage="approved"] {
   --stage: #22c55e;
 }
-:is(.portal-dot, .plan-cal__chip, .portal-step)[data-stage="scheduled"] {
+:is(.portal-dot, .plan-cal__chip)[data-stage="scheduled"] {
   --stage: #8b5cf6;
 }
-:is(.portal-dot, .plan-cal__chip, .portal-step)[data-stage="posted"] {
+:is(.portal-dot, .plan-cal__chip)[data-stage="posted"] {
   --stage: #14b8a6;
 }
 [data-color="green"] {
@@ -293,6 +293,99 @@
 }
 [data-color="gray"] {
   --label: #7d838f;
+}
+/*
+ * A client's colour (ADR 9001 §13): the team picks one per client. The client's mark is solid in it, and each of its
+ * cards in the pipeline is glass in it. `--client-ink` is what reads on the solid colour (4.5:1 at least).
+ */
+[data-client-color] {
+  --client-ink: #101114;
+}
+[data-client-color="green"] {
+  --client: #35c46a;
+}
+[data-client-color="blue"] {
+  --client: #2563eb;
+  --client-ink: #fff;
+}
+[data-client-color="navy"] {
+  --client: #24409e;
+  --client-ink: #fff;
+}
+[data-client-color="sky"] {
+  --client: #7cc8f5;
+}
+[data-client-color="white"] {
+  --client: #f2f2f0;
+}
+[data-client-color="teal"] {
+  --client: #1fb5a6;
+}
+[data-client-color="yellow"] {
+  --client: #e8c21a;
+}
+[data-client-color="orange"] {
+  --client: #f08a3c;
+}
+[data-client-color="red"] {
+  --client: #cf3535;
+  --client-ink: #fff;
+}
+[data-client-color="pink"] {
+  --client: #ee6fb0;
+}
+[data-client-color="purple"] {
+  --client: #8448e0;
+  --client-ink: #fff;
+}
+[data-client-color="gray"] {
+  --client: #8a909c;
+}
+/* The colour alone, as a dot: where a client is only a word (the pipeline's table, the menu that picks it). With
+   none chosen, an empty ring. */
+.portal-clientdot {
+  flex: none;
+  display: inline-block;
+  width: var(--space-2);
+  height: var(--space-2);
+  border-radius: 50%;
+  background: var(--client, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ink) 30%, transparent);
+}
+.portal-clientdot--lg {
+  width: 14px;
+  height: 14px;
+}
+.portal-table__client > .portal-clientdot {
+  margin-right: var(--space-2);
+}
+.portal-colorbtn {
+  gap: var(--space-2);
+}
+/* A pipeline card of a client with a colour is glass in that colour: the light of it from one corner, the column
+   showing through, a rim and a glow of the same colour. No bar down its edge. */
+.portal-pipeline .portal-card[data-client-color],
+.portal-pipeline .portal-card[data-client-color]:hover {
+  background:
+    radial-gradient(130% 90% at 0% 0%, color-mix(in srgb, var(--client) 36%, transparent), transparent 72%),
+    linear-gradient(
+      160deg,
+      color-mix(in srgb, var(--client) 20%, transparent),
+      color-mix(in srgb, var(--client) 7%, transparent)
+    );
+  -webkit-backdrop-filter: blur(16px) saturate(150%);
+  backdrop-filter: blur(16px) saturate(150%);
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, #fff 18%, transparent),
+    inset 0 0 0 1px color-mix(in srgb, var(--client) 40%, transparent),
+    0 12px 24px -18px color-mix(in srgb, var(--client) 80%, transparent);
+}
+/* The label with the client's name on that glass: a deeper pane of the same colour. */
+.portal-card .portal-clientchip[data-client-color] {
+  border-color: transparent;
+  background: color-mix(in srgb, var(--client) 30%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--client) 55%, transparent);
+  color: var(--ink);
 }
 /* The mark a chip leads with: a dot in its stage's colour, a small bar in its label's. */
 .portal-dot {
@@ -446,7 +539,7 @@
    stand out of it as they do on Trello. Its scroller ends at the canvas, not at the page's edges. */
 .portal-canvas {
   --canvas: color-mix(in srgb, var(--ink) 78%, var(--pane));
-  /* What is drawn on the canvas itself (the rail, the track): the columns' tone, see-through. */
+  /* What is drawn on the canvas itself (the rail): the columns' tone, see-through. */
   --on-canvas: var(--pane);
   container-type: inline-size;
   border-radius: var(--radius-section);
@@ -461,7 +554,7 @@
   margin: 0;
   padding: var(--space-3);
   scroll-padding-inline: var(--space-3);
-  /* The track under it says where the board is: the scroller's own bar would say it twice. */
+  /* The rail above the columns moves the board: the scroller's own bar would be a second one at its foot. */
   scrollbar-width: none;
 }
 .portal-canvas > .issues-boardwrap::-webkit-scrollbar {
@@ -494,41 +587,11 @@
   background: color-mix(in srgb, var(--on-canvas) 12%, transparent);
   transition: background 0.15s;
 }
-.portal-rail[hidden],
-.portal-track[hidden] {
+.portal-rail[hidden] {
   display: none;
 }
 .portal-rail:hover {
   background: color-mix(in srgb, var(--on-canvas) 22%, transparent);
-}
-/* The track: which part of the board is in view. It holds to the foot of the window while the page scrolls. */
-.portal-track {
-  position: sticky;
-  bottom: var(--space-2);
-  z-index: 1;
-  height: var(--space-3);
-  margin: 0 var(--space-3) var(--space-3);
-  border-radius: var(--space-3);
-  background: color-mix(in srgb, var(--on-canvas) 22%, var(--canvas));
-  cursor: pointer;
-  touch-action: none;
-}
-.portal-track__thumb {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  min-width: var(--space-6);
-  border-radius: inherit;
-  background: color-mix(in srgb, var(--on-canvas) 72%, var(--canvas));
-  cursor: grab;
-  transition: background 0.15s;
-}
-.portal-track:hover > .portal-track__thumb,
-.portal-track[data-held] > .portal-track__thumb {
-  background: var(--on-canvas);
-}
-.portal-track[data-held] > .portal-track__thumb {
-  cursor: grabbing;
 }
 .portal-rail > .ac-icon {
   pointer-events: none;
@@ -1324,6 +1387,17 @@ html:not([data-pointer]) .portal-tile:focus-visible {
   color: var(--ink);
   object-fit: cover;
 }
+/* With a colour chosen, the mark is in it, solid, and not in the hue of the client's name. A photo keeps its
+   picture and takes the colour as a ring. */
+.portal-mark[data-client-color] {
+  background: var(--client);
+  box-shadow: none;
+  color: var(--client-ink);
+}
+[data-client-color] > .portal-mark:not([data-client-color]) {
+  outline: 2px solid var(--client);
+  outline-offset: 2px;
+}
 .portal-clientcard__name {
   flex: 1;
   min-width: 0;
@@ -1358,60 +1432,33 @@ html:not([data-pointer]) .portal-tile:focus-visible {
 .portal-clientcard__status[data-attention] > .ac-icon {
   color: var(--attention);
 }
-/* The client's work along the line: a stop per stage, joined by a thin line through their middles. */
-.portal-steps {
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  height: 24px;
+/* The client's work stage by stage: each stage's name beside how many it has, three to a row, the same places on
+   every client's card. A stage with none steps back. */
+.portal-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(112px, 1fr));
+  gap: var(--space-2) var(--space-3);
   margin: 0;
   padding: 0;
   list-style: none;
 }
-.portal-steps::before {
-  content: "";
-  position: absolute;
-  left: 12px;
-  right: 12px;
-  top: 50%;
-  height: 2px;
-  margin-top: -1px;
-  border-radius: 1px;
-  background: var(--line);
-}
-.portal-step {
-  position: relative;
-  display: grid;
-  place-items: center;
-  width: 24px;
-  height: 24px;
-}
-/* A stop with work: the stage's colour, its count inside in dark words (4.5:1 on every stage's colour). */
-.portal-step__node {
-  display: grid;
-  place-items: center;
-  min-width: 24px;
-  height: 24px;
-  padding: 0 var(--space-1);
-  border-radius: 12px;
-  background: var(--stage);
-  box-shadow: 0 0 0 3px var(--raised);
-  color: #101114;
+.portal-stat {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
   font-size: 12px;
-  font-weight: 700;
-  line-height: 1;
+  line-height: 16px;
+  color: var(--ink-muted);
+  white-space: nowrap;
 }
-/* An empty stop: a small hollow dot on the line. */
-.portal-step[data-empty] > .portal-step__node {
-  min-width: 8px;
-  width: 8px;
-  height: 8px;
-  padding: 0;
-  background: var(--raised);
-  box-shadow:
-    inset 0 0 0 2px var(--line),
-    0 0 0 2px var(--raised);
+.portal-stat__num {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--ink);
+}
+.portal-stat[data-empty] {
+  opacity: 0.45;
 }
 .portal-clientcard__foot {
   display: flex;

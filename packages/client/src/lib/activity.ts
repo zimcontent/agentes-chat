@@ -261,6 +261,7 @@ const BUILTIN: Record<string, ActivityKind> = {
   portal_plan: "usingPortal",
   portal_work: "usingPortal",
   send_for_approval: "sendingForApproval",
+  send_new_version: "sendingForApproval",
   schedule_post: "schedulingPost",
   work_in_background: "startingWork",
   steer_work: "updatingWork",

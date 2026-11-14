@@ -50,6 +50,17 @@ export const whatsappAccounts = pgTable(
      * promise, when it hands over to a person. On top of the agent's own instructions, for this number alone.
      */
     instructions: text().notNull().default(""),
+    /** The agent answers this number's conversations now. Off: it is chosen, and says nothing. */
+    agentOn: boolean().notNull().default(false),
+    /**
+     * How the agent talks on this number: how long it waits after a message before reading the conversation
+     * (seconds), how fast it "types" (`fast`, `natural`, `slow`), the most messages one answer is split in, and how
+     * long it stays quiet in a conversation a person answered (minutes).
+     */
+    agentWaitSeconds: integer().notNull().default(8),
+    agentPace: text().$type<"fast" | "natural" | "slow">().notNull().default("natural"),
+    agentMessages: integer().notNull().default(3),
+    agentQuietMinutes: integer().notNull().default(60),
     lastError: text(),
     createdBy: text().references(() => users.id, { onDelete: "set null" }),
     createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
@@ -74,6 +85,8 @@ export const whatsappChats = pgTable(
     jid: text().notNull(),
     /** The person's or the group's name as WhatsApp tells it (outside text); empty until one arrives. */
     name: text().notNull().default(""),
+    /** The person's hidden id on WhatsApp (`…@lid`), when told: messages addressed to it are this conversation's. */
+    lid: text(),
     group: boolean().notNull().default(false),
     /** The latest message, for the list: when, its words and whether this number sent it. */
     lastAt: timestamp({ withTimezone: true }),
@@ -82,6 +95,13 @@ export const whatsappChats = pgTable(
     lastFromMe: boolean().notNull().default(false),
     /** Messages received since someone last opened the chat here. */
     unread: integer().notNull().default(0),
+    /** Someone turned the number's agent off in this conversation: it stays quiet here until they turn it back on. */
+    agentOff: boolean().notNull().default(false),
+    /** When a person last wrote here (in the app or on the phone): the agent stays quiet for a while after it. */
+    personAt: timestamp({ withTimezone: true }),
+    /** The agent left this conversation to a person, and why in its own words (written by a model: shown as text). */
+    needsPerson: boolean().notNull().default(false),
+    agentNote: text().notNull().default(""),
     createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [
@@ -123,6 +143,8 @@ export const whatsappMessages = pgTable(
     status: text().$type<"received" | "sent" | "delivered" | "read">().notNull(),
     /** Who wrote it in our app; null when it came from the phone or from outside. */
     sentByUserId: text().references(() => users.id, { onDelete: "set null" }),
+    /** The agent that wrote it, when the number's agent answered. */
+    sentByAgentId: uuid().references(() => agents.id, { onDelete: "set null" }),
     at: timestamp({ withTimezone: true }).notNull(),
     createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
   },

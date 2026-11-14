@@ -5,7 +5,9 @@ import {
   type AgentColor,
   agentGradient,
   agentTones,
+  botDoAgente,
   cloudAt,
+  corDoBot,
   cx,
   drawSprite,
   EYE,
@@ -51,6 +53,19 @@ const C = Math.cos;
 /** An agent's color for drawing (its look, or the default sky). */
 export const colorOf = (agent: { appearance?: unknown } | undefined | null): AgentColor =>
   lookOf(agent)?.color ?? "sky";
+
+/**
+ * An agent's color where the Doug's look draws glass in it (a widget's lines and fills): its bot's own (IDENTIDADE.md
+ * §4, a bot's color shows where it is), the Doug's green for the Doug. A hex, as `widgetTileVars` takes it.
+ */
+export const botColorOf = (
+  agent: { name: string; handle?: string | null; role?: string | null; builtin?: string | null } | undefined | null,
+): AgentColor =>
+  corDoBot(
+    botDoAgente(
+      agent ? { name: agent.name, handle: agent.handle, role: agent.role, builtin: agent.builtin } : { name: "" },
+    ),
+  ) as AgentColor;
 
 /* ---------- Channel: the greeting of a new day ---------- */
 

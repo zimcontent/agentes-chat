@@ -11409,6 +11409,23 @@
     "deniedRun_female": "{{repo}} bukan salah satu repositori {{name}}.",
     "added": "{{repo}} masuk ke daftar saat kamu menyimpan."
   },
+  "carry": {
+    "open": "Bawa dari ruang kerja lain",
+    "text": "Yang kamu hubungkan di ruang kerja lain datang siap pakai, tanpa perlu masuk lagi.",
+    "none": "Belum ada yang bisa dibawa. Yang kamu hubungkan di satu ruang kerja muncul di sini di ruang kerja lainnya.",
+    "connections": "Koneksi",
+    "with": "Datang dengan {{names}}",
+    "here": "Sudah ada di sini",
+    "needsReconnect": "Perlu dihubungkan ulang",
+    "githubApp": "Pasang GitHub App di sini",
+    "bring": "Bawa",
+    "bringCount_other": "Bawa {{count}} item",
+    "done_other": "{{count}} item dibawa ke ruang kerja ini",
+    "skipped_other": "{{count}} item tidak bisa dibawa",
+    "nothingNew": "Semua yang kamu pilih sudah ada di sini",
+    "failed": "Tidak bisa membawanya. Coba lagi.",
+    "fromOnboarding": "Bawa agen dan koneksi dari ruang kerja lain"
+  },
   "connectors": {
     "title": "Konektor",
     "add": "Tambah konektor",
@@ -18289,6 +18306,33 @@
     "send": "Kirim untuk persetujuan",
     "openAtPortal": "Buka di portal",
     "seePost": "Lihat postingan",
+    "seeDrive": "Tautan Drive",
+    "clientLogo": {
+      "menu": "Logo klien",
+      "title": "Logo {{name}}",
+      "help": "Gambar persegi sebagai pengganti inisial klien. JPEG, PNG, atau WebP hingga 2 MB.",
+      "remove": "Hapus logo",
+      "saved": "Logo disimpan",
+      "removed": "Logo dihapus"
+    },
+    "clientColor": {
+      "label": "Warna klien",
+      "none": "Tanpa warna",
+      "colors": {
+        "green": "Hijau",
+        "blue": "Biru",
+        "navy": "Biru tua",
+        "sky": "Biru muda",
+        "white": "Putih",
+        "teal": "Toska",
+        "yellow": "Kuning",
+        "orange": "Oranye",
+        "red": "Merah",
+        "pink": "Merah muda",
+        "purple": "Ungu",
+        "gray": "Abu-abu"
+      }
+    },
     "edit": "Ubah",
     "delete": "Hapus",
     "actionsOf": "Tindakan: {{title}}",

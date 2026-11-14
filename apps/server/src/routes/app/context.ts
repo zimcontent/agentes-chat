@@ -121,6 +121,8 @@ export const MULTIPART_PATHS = [
   /\/organizations\/[^/]+\/artifacts(\/[^/]+)?\/files$/,
   /\/organizations\/[^/]+\/imports\/files$/,
   /\/organizations\/[^/]+\/channels\/[^/]+\/voice$/,
+  // A file or a recording sent from a WhatsApp number.
+  /\/organizations\/[^/]+\/whatsapp\/accounts\/[^/]+\/files$/,
   /\/feedback\/files$/,
   // An agent's photo (`PUT`, the one upload that replaces rather than adds).
   /\/organizations\/[^/]+\/agents\/[^/]+\/photo$/,

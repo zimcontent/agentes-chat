@@ -69,6 +69,8 @@ import type {
   BrowserProfile,
   CalendarEvent,
   CalendarRange,
+  CarryResult,
+  CarrySource,
   Channel,
   ChannelCard,
   ChannelCategory,
@@ -564,6 +566,31 @@ export function createHttpApi(options: TransportOptions = {}): HttpApi {
       typing: (orgId, accountId, chatId, typing) =>
         request<{ told: boolean }>(`${org(orgId)}/whatsapp/accounts/${enc(accountId)}/chats/${enc(chatId)}/typing`, {
           json: { typing },
+        }),
+      sendFile: (orgId, accountId, input) => {
+        const form = new FormData();
+        form.set("file", input.file, input.fileName);
+        form.set("chatId", input.chatId);
+        if (input.caption) form.set("caption", input.caption);
+        if (input.voice) form.set("voice", "true");
+        return files.upload<{ chatId: string; kind: string }>(
+          `${org(orgId)}/whatsapp/accounts/${enc(accountId)}/files`,
+          form,
+        );
+      },
+      stickers: (orgId, accountId) =>
+        request<{ stickers: { messageId: string; at: string }[] }>(
+          `${org(orgId)}/whatsapp/accounts/${enc(accountId)}/stickers`,
+        ),
+      sendSticker: (orgId, accountId, input) =>
+        request<{ chatId: string }>(`${org(orgId)}/whatsapp/accounts/${enc(accountId)}/stickers`, { json: input }),
+      olderHistory: (orgId, accountId, chatId) =>
+        request<{ asked: number }>(`${org(orgId)}/whatsapp/accounts/${enc(accountId)}/chats/${enc(chatId)}/history`, {
+          json: {},
+        }),
+      chatAgent: (orgId, accountId, chatId, on) =>
+        request<{ on: boolean }>(`${org(orgId)}/whatsapp/accounts/${enc(accountId)}/chats/${enc(chatId)}/agent`, {
+          json: { on },
         }),
     },
     gifs: {
@@ -1186,6 +1213,10 @@ export function createHttpApi(options: TransportOptions = {}): HttpApi {
       disconnect: (orgId, connectionId) =>
         request<void>(`${org(orgId)}/connectors/${enc(connectionId)}`, { method: "DELETE" }),
     },
+    carry: {
+      sources: async (orgId) => (await request<{ sources: CarrySource[] }>(`${org(orgId)}/carry`)).sources,
+      bring: (orgId, input) => request<CarryResult>(`${org(orgId)}/carry`, { json: input }),
+    },
     githubApp: {
       info: (orgId) => request<GitHubAppInfo>(`${org(orgId)}/github-app`),
       install: async (orgId, returnTo) =>
@@ -1667,6 +1698,13 @@ export function createHttpApi(options: TransportOptions = {}): HttpApi {
         ).label,
       deleteLabel: (orgId, labelId) =>
         request<void>(`${org(orgId)}/portal/labels/${enc(labelId)}`, { method: "DELETE" }),
+      setClientColor: (orgId, client, color) =>
+        request<void>(`${org(orgId)}/portal/clients/${enc(client)}/color`, { method: "PUT", json: { color } }),
+      setClientLogo: async (orgId, client, image) => {
+        const path = `${org(orgId)}/portal/clients/${enc(client)}/logo`;
+        if (image) await request<{ logo: string }>(path, { method: "PUT", json: image });
+        else await request<void>(path, { method: "DELETE" });
+      },
       addComment: async (orgId, cardId, text) =>
         (
           await request<{ card: PortalCard }>(`${org(orgId)}/portal/cards/${enc(cardId)}/comments`, {

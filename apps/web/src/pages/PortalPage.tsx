@@ -9,6 +9,7 @@ import { ErrorState, LoadingCards } from "@/components/Loading";
 import { useOrg } from "@/components/org-context";
 import { CardDetailDialog } from "@/components/portal/CardDetailDialog";
 import { CardDialog } from "@/components/portal/CardDialog";
+import { ClientColorMenu } from "@/components/portal/client-color";
 import { PortalBoard } from "@/components/portal/PortalBoard";
 import { PortalNotices } from "@/components/portal/PortalNotices";
 import { PortalOverview } from "@/components/portal/PortalOverview";
@@ -50,6 +51,7 @@ export function PortalPage() {
   const known = clients.map((c) => c.client);
   const actions = changes && !off && (client ? board.data : clients.length > 0) && (
     <>
+      {client && <ClientColorMenu client={client} />}
       <Button icon="send" onClick={() => setSending({ card: null })}>
         {t("portal.send")}
       </Button>
@@ -150,7 +152,7 @@ export function PortalPage() {
           {client &&
             board.data &&
             (tab === "posted" ? (
-              <PortalPosted items={board.data.items.posted} />
+              <PortalPosted client={client} items={board.data.items.posted} />
             ) : tab === "plan" ? (
               <PortalPlanTab client={client} view={view} changes={changes} onOpen={openCard} />
             ) : (

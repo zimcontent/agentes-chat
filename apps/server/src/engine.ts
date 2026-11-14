@@ -58,13 +58,13 @@ import {
   createMachineHub,
   createMailToolSource,
   createMediaToolSource,
-  createPortalToolSource,
   createMissionHooks,
   createMissionRunToolSource,
   createMissionToolSource,
   createModelGateway,
   createPassToolSource,
   createPermissionToolSource,
+  createPortalToolSource,
   createReactToolSource,
   createReleaseAsksToolSource,
   createSandboxToolSource,
@@ -755,6 +755,20 @@ export function buildEngine(o: EngineOptions) {
     accountEmails: adapters.email.delivers ? { publicUrl: config.PUBLIC_URL, support: config.SUPPORT_EMAIL } : null,
     appleRevoke: o.appleRevoke ?? appleTokenRevoker(config),
     voice,
+    // The agent answering a WhatsApp number, with its own brain: its API model, or its plan on its computer.
+    ...(adapters.whatsapp
+      ? {
+          whatsapp: {
+            db,
+            gateway: adapters.whatsapp,
+            keyWrappers,
+            pubsub: adapters.pubsub,
+            hookBase: (config.WHATSAPP_HOOK_URL ?? config.PUBLIC_URL).replace(/\/+$/, ""),
+            models: gateway,
+            machines: machineHub,
+          },
+        }
+      : {}),
     db,
     gateway,
     pubsub: adapters.pubsub,

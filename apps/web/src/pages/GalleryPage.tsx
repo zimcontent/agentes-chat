@@ -45,10 +45,13 @@ import {
   Tabs,
   Toolbar,
   UsageRing,
+  WidgetCard,
 } from "@agenteschat/ui";
+import type { WidgetSpec, WidgetStatus } from "@agenteschat/ui/widgets/spec";
 import { type ReactNode, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { AgentAvatar } from "@/components/AgentAvatar";
+import { botColorOf } from "@/components/Sky";
 import { useTheme } from "@/lib/theme";
 import "@/components/ai/model-picker.css";
 
@@ -57,6 +60,53 @@ import "@/components/ai/model-picker.css";
  * the design's demo copy and is not shipped: the route is
  * unreachable in production builds.
  */
+
+/** Widgets in every state a board shows, in two bots' glass (the Doug's green and Rosa's pink). */
+const WIDGETS: { title: string; spec: WidgetSpec | null; status: WidgetStatus; w: 1 | 2; building?: string }[] = [
+  {
+    title: "Sendo montado",
+    spec: null,
+    status: "building",
+    w: 2,
+    building: "Montando o widget e a rotina que vai atualizar…",
+  },
+  {
+    title: "Atualizando",
+    spec: { kind: "kpi", value: 1284, spark: [3, 5, 4, 7, 6, 9, 8, 12] },
+    status: "updating",
+    w: 1,
+  },
+  {
+    title: "Vendas hoje",
+    spec: { kind: "kpi", value: 48210, prefix: "R$", spark: [2, 4, 3, 6, 5, 8, 9, 11] },
+    status: "ok",
+    w: 1,
+  },
+  { title: "Meta do mês", spec: { kind: "goal", pct: 72, line: "R$ 36 mil de R$ 50 mil" }, status: "ok", w: 1 },
+  { title: "Meta no começo", spec: { kind: "goal", pct: 3, line: "R$ 1,5 mil de R$ 50 mil" }, status: "ok", w: 1 },
+  {
+    title: "Pedidos por etapa",
+    spec: {
+      kind: "bars",
+      labels: ["Novos", "Separando", "Enviados", "Atrasados"],
+      values: [41, 26, 58, 7],
+      alertIndex: 3,
+    },
+    status: "ok",
+    w: 2,
+  },
+  {
+    title: "Tempo de resposta",
+    spec: {
+      kind: "line",
+      labels: ["qua", "qui", "sex", "sáb", "dom", "seg", "ter"],
+      values: [6.1, 5.8, 6.4, 4.9, 4.2, 4.4, 3.9],
+      unit: "min",
+    },
+    status: "ok",
+    w: 2,
+  },
+];
 
 function Section({ title, children }: { title: string; children: ReactNode }) {
   return (
@@ -127,11 +177,38 @@ export function GalleryPage() {
             </div>
           ))}
           <div className="row db-galeria__doug">
-            <Avatar kind="agent" name="Doug" who={{ name: "doug", handle: "doug" }} style={{ width: 120, height: 120 }} />
+            <Avatar
+              kind="agent"
+              name="Doug"
+              who={{ name: "doug", handle: "doug" }}
+              style={{ width: 120, height: 120 }}
+            />
             <Avatar kind="agent" name="Doug" who={{ name: "doug", handle: "doug" }} style={{ width: 44, height: 44 }} />
             <Logo size={22} />
           </div>
         </div>
+      </Section>
+
+      <Section title="Widgets">
+        {["doug", "rosa"].map((bot) => (
+          <div key={bot} className="wgrid" style={{ marginBottom: 12 }}>
+            {WIDGETS.map((w) => (
+              <div key={w.title} className="wb-cell" data-w={w.w}>
+                <WidgetCard
+                  title={w.title}
+                  spec={w.spec}
+                  status={w.status}
+                  color={botColorOf({ name: bot, handle: bot })}
+                  size={{ w: w.w, h: 1 }}
+                  locale="pt-BR"
+                  buildingText={w.building}
+                  face={<Avatar kind="agent" name={bot} who={{ name: bot, handle: bot }} size="xs" />}
+                  footer={bot.toUpperCase()}
+                />
+              </div>
+            ))}
+          </div>
+        ))}
       </Section>
 
       <Section title="Button">

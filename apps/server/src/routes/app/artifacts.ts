@@ -35,9 +35,10 @@ import {
   withPersonFacts,
 } from "@agenteschat/engine";
 import { createRoute, z } from "@hono/zod-openapi";
-import { bodyLimit } from "hono/body-limit";
+import type { Context } from "hono";
 import { rangedResponse } from "../../http/byte-range";
 import { apiError, errorResponse } from "../../http/errors";
+import { BadUpload, readStreamedUpload, type StreamedUpload, UploadTooLarge } from "../../http/multipart-stream";
 import {
   type AppDeps,
   body,
@@ -138,11 +139,24 @@ const Content = z
   ])
   .openapi("ArtifactContent");
 
-/** A file upload (multipart): at most 50 MB. */
-const fileField = z.any().openapi({ type: "string", format: "binary", description: "The file (≤ 50 MB)." });
-const multipart = <T extends z.ZodType>(schema: T) => ({
+/**
+ * A file upload (multipart): any type, at most 2 GB (ADR 0025). Described here, read by the route itself as it
+ * arrives (`readStreamedUpload`): a plain schema, so no validator holds the whole form in memory first.
+ */
+const multipart = (fields: Record<string, { type: "string"; format?: string; description?: string }>) => ({
   required: true,
-  content: { "multipart/form-data": { schema } },
+  content: {
+    "multipart/form-data": {
+      schema: {
+        type: "object" as const,
+        required: ["file"],
+        properties: {
+          file: { type: "string" as const, format: "binary", description: "The file (any type, ≤ 2 GB)." },
+          ...fields,
+        },
+      },
+    },
+  },
 });
 
 const Audience = z
@@ -277,25 +291,44 @@ export function artifactRoutes(deps: AppDeps) {
   const { db } = deps;
   const app = createAppRouter(deps);
   app.use("/organizations/*", requireSession(deps.auth));
-  // Uploads: the bytes are counted as they arrive, so a request that states no length is held to the same size.
-  const sizeGuard = bodyLimit({
-    maxSize: ARTIFACT_LIMITS.fileBytes + MULTIPART_SLACK_BYTES,
-    onError: (c) => {
-      const maxMb = ARTIFACT_LIMITS.fileBytes / 1024 / 1024;
-      return apiError(c, 413, "artifact.file_too_large", `The file is too large (max ${maxMb} MB)`, { maxMb });
-    },
-  });
-  app.use("/organizations/:orgId/artifacts/files", sizeGuard);
-  app.use("/organizations/:orgId/artifacts/:artifactId/files", sizeGuard);
-  /** The `file` field of an upload, checked, as bytes. */
-  const uploaded = async (value: unknown) => {
-    if (!(value instanceof File))
-      throw new ValidationError("send the file in the field file", "artifact.file_required");
-    if (value.size > ARTIFACT_LIMITS.fileBytes) {
-      const maxMb = ARTIFACT_LIMITS.fileBytes / 1024 / 1024;
-      throw new ValidationError(`the file is too large (max ${maxMb} MB)`, "artifact.file_too_large", { maxMb });
+  /**
+   * An upload read as it arrives (`readStreamedUpload`): the file goes to disk, counted and hashed, so up to
+   * `ARTIFACT_LIMITS.fileBytes` never sits whole in memory, and a request that states no length is held to the same
+   * size. `use` gets its fields and file; the file on disk goes once it returns, stored or refused.
+   */
+  const withUpload = async <R>(
+    c: Context,
+    use: (fields: Record<string, string>, file: NonNullable<StreamedUpload["file"]>) => Promise<R>,
+  ) => {
+    const maxMb = ARTIFACT_LIMITS.fileBytes / 1024 / 1024;
+    let upload: StreamedUpload;
+    try {
+      upload = await readStreamedUpload(c.req.raw, {
+        maxFileBytes: ARTIFACT_LIMITS.fileBytes,
+        fieldBytes: MULTIPART_SLACK_BYTES,
+      });
+    } catch (error) {
+      if (error instanceof UploadTooLarge) {
+        return apiError(c, 413, "artifact.file_too_large", `The file is too large (max ${maxMb} MB)`, { maxMb });
+      }
+      if (error instanceof BadUpload) throw new ValidationError(error.message, "artifact.file_required");
+      throw error;
     }
-    return { name: value.name, contentType: value.type || null, bytes: new Uint8Array(await value.arrayBuffer()) };
+    try {
+      if (!upload.file) throw new ValidationError("send the file in the field file", "artifact.file_required");
+      return await use(upload.fields, upload.file);
+    } finally {
+      await upload.discard();
+    }
+  };
+  /** A short text field of an upload, checked like the schema says. */
+  const field = (fields: Record<string, string>, name: string, max: number, uuid = false) => {
+    const value = fields[name];
+    if (value === undefined || value === "") return undefined;
+    if (value.length > max || (uuid && !z.uuid().safeParse(value).success)) {
+      throw new ValidationError(`${name} is not valid`);
+    }
+    return value;
   };
   const artifacts = (): ArtifactDeps => {
     const a = deps.extras?.artifacts;
@@ -425,32 +458,31 @@ export function artifactRoutes(deps: AppDeps) {
       path: "/organizations/{orgId}/artifacts/files",
       tags,
       security,
-      summary: "Upload a file as is (any type, ≤ 50 MB) to the Drive, or to a channel you belong to",
+      summary: "Upload a file as is (any type, ≤ 2 GB) to the Drive, or to a channel you belong to",
       request: {
         params: OrgParams,
-        body: multipart(
-          z.object({
-            file: fileField,
-            title: z.string().max(200).optional().openapi({ description: "Default: the file name." }),
-            channelId: z.uuid().optional(),
-            threadId: z.uuid().optional(),
-          }),
-        ),
+        body: multipart({
+          title: { type: "string", description: "Default: the file name (at most 200 characters)." },
+          channelId: { type: "string", format: "uuid" },
+          threadId: { type: "string", format: "uuid" },
+        }),
       },
       responses: { 201: json(ArtifactDetail, "Created"), 413: errorResponse("The file is too large"), ...errors },
     }),
     async (c) => {
-      const form = c.req.valid("form");
-      const file = await uploaded(form.file);
       const userId = c.get("user").id;
       const { orgId } = c.req.valid("param");
-      const created = await createFileArtifact(artifacts(), person(userId), orgId, {
-        ...file,
-        title: form.title?.trim() || file.name,
-        channelId: form.channelId ?? null,
-        threadId: form.threadId ?? null,
+      return withUpload(c, async (fields, file) => {
+        const created = await createFileArtifact(artifacts(), person(userId), orgId, {
+          name: file.name,
+          contentType: file.contentType,
+          spooled: file,
+          title: field(fields, "title", 200)?.trim() || file.name,
+          channelId: field(fields, "channelId", 36, true) ?? null,
+          threadId: field(fields, "threadId", 36, true) ?? null,
+        });
+        return c.json(await withFacts(userId, orgId, created), 201);
       });
-      return c.json(await withFacts(userId, orgId, created), 201);
     },
   );
 
@@ -460,23 +492,25 @@ export function artifactRoutes(deps: AppDeps) {
       path: "/organizations/{orgId}/artifacts/{artifactId}/files",
       tags,
       security,
-      summary: "Upload a new version of a file (≤ 50 MB)",
+      summary: "Upload a new version of a file (any type, ≤ 2 GB)",
       request: {
         params: ArtifactParams,
-        body: multipart(z.object({ file: fileField, note: z.string().max(500).optional() })),
+        body: multipart({ note: { type: "string", description: "At most 500 characters." } }),
       },
       responses: { 200: json(ArtifactDetail), 413: errorResponse("The file is too large"), ...errors },
     }),
     async (c) => {
       const { orgId, artifactId } = c.req.valid("param");
-      const form = c.req.valid("form");
-      const file = await uploaded(form.file);
       const userId = c.get("user").id;
-      const saved = await addFileVersion(artifacts(), person(userId), orgId, artifactId, {
-        ...file,
-        note: form.note ?? null,
+      return withUpload(c, async (fields, file) => {
+        const saved = await addFileVersion(artifacts(), person(userId), orgId, artifactId, {
+          name: file.name,
+          contentType: file.contentType,
+          spooled: file,
+          note: field(fields, "note", 500) ?? null,
+        });
+        return c.json(await withFacts(userId, orgId, saved), 200);
       });
-      return c.json(await withFacts(userId, orgId, saved), 200);
     },
   );
 

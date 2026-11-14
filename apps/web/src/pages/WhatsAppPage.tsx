@@ -1,20 +1,35 @@
 import {
   useReadWhatsAppChat,
   useSendWhatsApp,
+  useSendWhatsAppFile,
+  useSendWhatsAppSticker,
+  useUpdateWhatsApp,
   useWhatsApp,
+  useWhatsAppChatAgent,
   useWhatsAppChats,
   useWhatsAppMessages,
+  useWhatsAppOlderHistory,
+  useWhatsAppStickers,
   useWhatsAppTyping,
   type WhatsAppAccount,
   type WhatsAppChat,
   type WhatsAppMessage,
+  whatsappFileUrl,
 } from "@agenteschat/client";
+import { formatBytes } from "@agenteschat/client/lib/files";
 import { clockAt, dayLabel, formatTime } from "@agenteschat/client/lib/format";
 import {
   Avatar,
   Button,
+  Chip,
+  Composer,
+  ComposerFile,
+  type ComposerVoice,
   CountBadge,
   DayDivider,
+  Dialog,
+  DialogBody,
+  DialogFooter,
   EmptyState,
   Icon,
   Menu,
@@ -22,12 +37,14 @@ import {
   SearchInput,
   Select,
   Spinner,
-  Textarea,
+  Switch,
+  type VoiceNotice,
 } from "@agenteschat/ui";
-import { type KeyboardEvent, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { type DragEvent, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ErrorState } from "@/components/Loading";
 import { useOrg } from "@/components/org-context";
+import { useEmojiLabels } from "@/components/Reactions";
 import { ConnectDialog, NewChatDialog, NumberDialog, useWhatsAppError } from "@/components/whatsapp/WhatsAppDialogs";
 import { WhatsAppMark } from "@/components/whatsapp/WhatsAppMark";
 import { showPhone, useWords, type WhatsAppWords } from "@/components/whatsapp/words";
@@ -88,6 +105,11 @@ function ChatRow({
             {kindIcon && <Icon name={kindIcon} size={14} />}
             <span className="wa-chat__words">{preview(chat.lastKind, chat.lastText, w)}</span>
           </span>
+          {chat.agent === "person" && (
+            <Chip className="wa-chat__turn" tone="waiting">
+              {w.agent.yourTurn}
+            </Chip>
+          )}
           {chat.unread > 0 && (
             <CountBadge className="wa-chat__count">{chat.unread > 99 ? "99+" : chat.unread}</CountBadge>
           )}
@@ -97,15 +119,123 @@ function ChatRow({
   );
 }
 
+/**
+ * The number's latest stickers, in the picker beside the emoji: one click sends it. Read when the tab opens.
+ */
+function StickerTab({
+  accountId,
+  onPick,
+  w,
+}: {
+  accountId: string;
+  onPick: (messageId: string) => void;
+  w: WhatsAppWords;
+}) {
+  const { org } = useOrg();
+  const stickers = useWhatsAppStickers(org.id, accountId, true);
+  if (stickers.isPending) {
+    return (
+      <span className="wa-stickers__wait" role="status">
+        <Spinner />
+      </span>
+    );
+  }
+  const list = stickers.data?.stickers ?? [];
+  if (list.length === 0) return <p className="wa-stickers__none">{w.stickers.none}</p>;
+  return (
+    <div className="wa-stickers">
+      {list.map((sticker) => (
+        <button
+          key={sticker.messageId}
+          type="button"
+          className="wa-stickers__one"
+          aria-label={w.stickers.send}
+          onClick={() => onPick(sticker.messageId)}
+        >
+          <img src={whatsappFileUrl(org.id, accountId, sticker.messageId)} alt="" loading="lazy" />
+        </button>
+      ))}
+    </div>
+  );
+}
+
+/** A file waiting in the composer to be sent. */
+interface Pending {
+  key: string;
+  file: File;
+  /** A picture's local address, for its thumbnail. */
+  preview?: string;
+}
+/** What the server takes, and how many go in one send. */
+const FILE_MAX = 32 * 1024 * 1024;
+const FILES_MAX = 10;
+
+/**
+ * A message's file: a picture or a sticker drawn, sound and video with their player, anything else a link that
+ * downloads it. One we kept nothing to fetch with, or that WhatsApp no longer has, says so.
+ */
+function FileView({
+  message,
+  url,
+  onOpen,
+  w,
+}: {
+  message: WhatsAppMessage;
+  url: string;
+  onOpen: () => void;
+  w: WhatsAppWords;
+}) {
+  const [gone, setGone] = useState(false);
+  const kind = message.kind as keyof typeof KIND_ICONS;
+  const name = message.media?.fileName ?? w.kind[kind as keyof WhatsAppWords["kind"]];
+  if (message.file && !gone && (kind === "image" || kind === "sticker")) {
+    return (
+      <button type="button" className="wa-bubble__pic" data-kind={kind} aria-label={w.openPicture} onClick={onOpen}>
+        <img src={url} alt={name} loading="lazy" onError={() => setGone(true)} />
+      </button>
+    );
+  }
+  if (message.file && !gone && kind === "audio") {
+    // biome-ignore lint/a11y/useMediaCaption: a voice message someone sent has no captions to offer
+    return <audio className="wa-bubble__audio" src={url} controls preload="none" onError={() => setGone(true)} />;
+  }
+  if (message.file && !gone && kind === "video") {
+    // biome-ignore lint/a11y/useMediaCaption: a video someone sent has no captions to offer
+    return <video className="wa-bubble__video" src={url} controls preload="none" onError={() => setGone(true)} />;
+  }
+  const words = (
+    <>
+      <Icon name={KIND_ICONS[kind]} />
+      <span>
+        <strong>{name}</strong>
+        <small>{gone ? w.fileGone : message.file ? w.fileDownload : w.fileSoon}</small>
+      </span>
+    </>
+  );
+  return message.file && !gone ? (
+    <a className="wa-bubble__file" href={url} download>
+      {words}
+    </a>
+  ) : (
+    <span className="wa-bubble__file">{words}</span>
+  );
+}
+
 /** One message as a bubble: ours on the right with its ticks, theirs on the left. */
 function Bubble({
   message,
+  fileUrl,
+  onOpenFile,
+  onReply,
   group,
   answered,
   author,
   w,
 }: {
   message: WhatsAppMessage;
+  fileUrl: string;
+  onOpenFile: () => void;
+  onReply: () => void;
   group: boolean;
   answered: WhatsAppMessage | undefined;
   author: string | undefined;
@@ -116,20 +246,30 @@ function Bubble({
   const tick = message.fromMe ? w.tick[message.status] : "";
   return (
     <div className="wa-msg" data-mine={message.fromMe}>
+      <Button
+        className="wa-msg__reply"
+        variant="ghost"
+        size="sm"
+        iconOnly
+        icon="reply"
+        aria-label={w.reply}
+        onClick={onReply}
+      />
       <div className="wa-bubble">
         {group && !message.fromMe && (
           <span className="wa-bubble__who">{message.senderName || showPhone(message.senderPhone) || w.unknown}</span>
         )}
         {answered && <span className="wa-bubble__reply">{preview(answered.kind, answered.body, w)}</span>}
-        {file && (
+        {file && message.media && <FileView message={message} url={fileUrl} onOpen={onOpenFile} w={w} />}
+        {file && !message.media && (
           <span className="wa-bubble__file">
             <Icon name={KIND_ICONS[message.kind as keyof typeof KIND_ICONS]} />
             <span>
-              <strong>{message.media?.fileName ?? w.kind[message.kind as keyof WhatsAppWords["kind"]]}</strong>
-              {message.media && <small>{w.fileSoon}</small>}
+              <strong>{w.kind[message.kind as keyof WhatsAppWords["kind"]]}</strong>
             </span>
           </span>
         )}
+        {message.kind === "deleted" && <span className="wa-bubble__gone">{w.kind.deleted}</span>}
         {message.body && <span className="wa-bubble__text">{message.body}</span>}
         <span className="wa-bubble__meta">
           {message.fromMe && author && <span className="wa-bubble__by">{w.sentBy(author)}</span>}
@@ -162,12 +302,45 @@ function Conversation({
   const dir = useDirectory(org.id);
   const query = useWhatsAppMessages(org.id, account.id, chatId);
   const send = useSendWhatsApp(org.id, account.id);
+  const setAgent = useWhatsAppChatAgent(org.id, account.id);
+  const older = useWhatsAppOlderHistory(org.id, account.id);
   const read = useReadWhatsAppChat(org.id, account.id);
   const say = useWhatsAppError();
   const toast = useToast();
   const [text, setText] = useState("");
+  const sendFile = useSendWhatsAppFile(org.id, account.id);
+  const sendSticker = useSendWhatsAppSticker(org.id, account.id);
+  const emoji = useEmojiLabels();
+  const [files, setFiles] = useState<Pending[]>([]);
+  const [sending, setSending] = useState(false);
+  const [dropping, setDropping] = useState(false);
+  const [quote, setQuote] = useState<WhatsAppMessage | null>(null);
+  const [picture, setPicture] = useState<WhatsAppMessage | null>(null);
+  const box = useRef<HTMLTextAreaElement>(null);
+  const addFiles = (picked: File[]) => {
+    const fit = picked.filter((file) => file.size > 0 && file.size <= FILE_MAX);
+    if (fit.length < picked.length) toast.show(w.fileTooLarge, "error");
+    setFiles((list) =>
+      [
+        ...list,
+        ...fit.map((file) => ({
+          key: `${file.name}:${file.size}:${file.lastModified}:${Math.random()}`,
+          file,
+          preview: file.type.startsWith("image/") ? URL.createObjectURL(file) : undefined,
+        })),
+      ].slice(0, FILES_MAX),
+    );
+  };
+  const dropFile = (key: string) =>
+    setFiles((list) => {
+      const gone = list.find((f) => f.key === key);
+      if (gone?.preview) URL.revokeObjectURL(gone.preview);
+      return list.filter((f) => f.key !== key);
+    });
   const typing = useWhatsAppTyping(org.id, account.id, chatId);
   const scroller = useRef<HTMLDivElement>(null);
+  /** The person is reading the latest messages (not scrolled up into the past). */
+  const stuck = useRef(true);
   const chat = query.data?.pages[0]?.chat;
   // Pages come the latest first: the screen reads from the oldest down.
   const messages = useMemo(
@@ -180,8 +353,31 @@ function Conversation({
   // biome-ignore lint/correctness/useExhaustiveDependencies: the newest message's id is what moves the list
   useLayoutEffect(() => {
     const el = scroller.current;
-    if (el) el.scrollTop = el.scrollHeight;
+    if (!el) return;
+    stuck.current = true;
+    el.scrollTop = el.scrollHeight;
   }, [last, chatId]);
+  // While the person is at the bottom it stays there through whatever changes the heights after a message is drawn:
+  // the composer growing, a picture's box, the window. Scrolling up to read lets go of it.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: the list is only there once the messages are, so it is watched again then
+  useEffect(() => {
+    const el = scroller.current;
+    if (!el || typeof ResizeObserver === "undefined") return;
+    const pin = () => {
+      if (stuck.current) el.scrollTop = el.scrollHeight;
+    };
+    const watch = new ResizeObserver(pin);
+    watch.observe(el);
+    if (el.firstElementChild) watch.observe(el.firstElementChild);
+    const onScroll = () => {
+      stuck.current = el.scrollHeight - el.scrollTop - el.clientHeight < 80;
+    };
+    el.addEventListener("scroll", onScroll, { passive: true });
+    return () => {
+      watch.disconnect();
+      el.removeEventListener("scroll", onScroll);
+    };
+  }, [chatId, query.isPending]);
   // Opening it, or a message arriving while it is open, is reading it.
   const unread = chat?.unread ?? 0;
   const markRead = read.mutate;
@@ -190,32 +386,86 @@ function Conversation({
   }, [unread, chatId, markRead]);
 
   const connected = account.status === "connected";
-  const submit = () => {
-    const body = text.trim();
-    if (!body || send.isPending || !connected) return;
-    send.mutate(
-      { chatId, text: body },
-      {
-        onSuccess: () => {
-          setText("");
-          typing.stopped();
-        },
-        onError: (e) => toast.show(say(e), "error"),
-      },
-    );
-  };
-  const onKey = (event: KeyboardEvent<HTMLTextAreaElement>) => {
-    if (event.key === "Enter" && !event.shiftKey && !event.nativeEvent.isComposing) {
-      event.preventDefault();
-      submit();
+  /** The files go one after the other, the words as the first one's caption; with no file, the words alone. */
+  const submit = async (body: string) => {
+    if (sending || !connected || (!body && files.length === 0)) return;
+    setSending(true);
+    try {
+      if (files.length === 0) {
+        await send.mutateAsync({ chatId, text: body, replyToId: quote?.id ?? null });
+      } else {
+        let caption = body;
+        for (const pending of files) {
+          await sendFile.mutateAsync({ chatId, file: pending.file, fileName: pending.file.name, caption });
+          caption = "";
+          dropFile(pending.key);
+        }
+      }
+      setText("");
+      setQuote(null);
+      typing.stopped();
+    } catch (e) {
+      toast.show(say(e), "error");
+    } finally {
+      setSending(false);
     }
+  };
+  const voice: ComposerVoice | undefined = connected
+    ? {
+        scope: chatId,
+        onTake: ({ blob }) => {
+          const fileName = blob.type.startsWith("audio/webm") ? "voice.webm" : "voice.m4a";
+          sendFile.mutate(
+            { chatId, file: blob, fileName, voice: true },
+            { onError: (e) => toast.show(say(e), "error") },
+          );
+        },
+        onNotice: (notice: VoiceNotice) =>
+          toast.show(
+            t(notice === "blocked" ? "voice.blockedWeb" : `voice.${notice}`),
+            notice === "deleted" ? undefined : "error",
+          ),
+        labels: {
+          record: t("voice.record"),
+          recording: t("voice.recording"),
+          pause: t("voice.pause"),
+          resume: t("voice.resume"),
+          discard: t("voice.discard"),
+          send: t("voice.send"),
+          listen: t("voice.listen"),
+          stopListening: t("voice.stopListening"),
+          keys: t("voice.keys"),
+          keysHold: t("voice.keysHold"),
+          keysPaused: t("voice.keysPaused"),
+          left: (seconds) => t("voice.left", { seconds }),
+        },
+      }
+    : undefined;
+  /** A file dragged over the conversation, anywhere in it, is one to send. */
+  const onDrop = (event: DragEvent) => {
+    if (!connected || event.dataTransfer.files.length === 0) return;
+    event.preventDefault();
+    setDropping(false);
+    addFiles([...event.dataTransfer.files]);
   };
 
   if (query.isError && !query.data) return <ErrorState error={query.error} onRetry={() => void query.refetch()} />;
   const title = chat ? chatTitle(chat, w) : "";
   let day = "";
   return (
-    <section className="wa-conv" aria-label={title}>
+    <section
+      className="wa-conv"
+      aria-label={title}
+      onDragOver={(event) => {
+        if (!connected || !event.dataTransfer.types.includes("Files")) return;
+        event.preventDefault();
+        setDropping(true);
+      }}
+      onDragLeave={(event) => {
+        if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setDropping(false);
+      }}
+      onDrop={onDrop}
+    >
       <header className="wa-conv__head">
         <Button
           className="wa-conv__back"
@@ -229,8 +479,25 @@ function Conversation({
         {chat && <Avatar name={title} size="md" />}
         <span className="wa-conv__who">
           <strong className="wa-conv__name">{title}</strong>
-          {chat?.name && chat.phone && <span className="wa-conv__phone">{showPhone(chat.phone)}</span>}
+          {chat?.agent ? (
+            <span className="wa-conv__phone" data-agent={chat.agent}>
+              {chat.agent === "quiet" && chat.agentQuietUntil
+                ? w.agent.quiet(formatTime(i18n.language, chat.agentQuietUntil))
+                : w.agent[chat.agent === "quiet" ? "on" : chat.agent]}
+            </span>
+          ) : (
+            chat?.name && chat.phone && <span className="wa-conv__phone">{showPhone(chat.phone)}</span>
+          )}
         </span>
+        {chat?.agent && (
+          <Switch
+            className="wa-conv__agent"
+            aria-label={w.agent.label}
+            checked={chat.agent === "on"}
+            disabled={setAgent.isPending}
+            onCheckedChange={(on) => setAgent.mutate({ chatId, on }, { onError: (e) => toast.show(say(e), "error") })}
+          />
+        )}
       </header>
       <div className="wa-conv__scroll" ref={scroller}>
         {query.isPending ? (
@@ -239,7 +506,7 @@ function Conversation({
           </span>
         ) : (
           <div className="wa-conv__list">
-            {query.hasNextPage && (
+            {query.hasNextPage ? (
               <Button
                 className="wa-conv__older"
                 variant="ghost"
@@ -249,6 +516,25 @@ function Conversation({
               >
                 {w.loadOlder}
               </Button>
+            ) : (
+              // Everything kept here is on screen: the phone may still have what came before.
+              connected &&
+              messages.length > 0 && (
+                <Button
+                  className="wa-conv__older"
+                  variant="ghost"
+                  size="sm"
+                  loading={older.isPending}
+                  onClick={() =>
+                    older.mutate(chatId, {
+                      onSuccess: () => toast.show(w.askedPhone),
+                      onError: (e) => toast.show(say(e), "error"),
+                    })
+                  }
+                >
+                  {w.askPhone}
+                </Button>
+              )
             )}
             {messages.map((message) => {
               const label = dayLabel(t, i18n.language, message.at);
@@ -259,9 +545,21 @@ function Conversation({
                   {divider && <DayDivider day={message.at}>{label}</DayDivider>}
                   <Bubble
                     message={message}
+                    fileUrl={whatsappFileUrl(org.id, account.id, message.id)}
+                    onOpenFile={() => setPicture(message)}
+                    onReply={() => {
+                      setQuote(message);
+                      box.current?.focus();
+                    }}
                     group={chat?.group ?? false}
                     answered={message.replyToId ? byId.get(message.replyToId) : undefined}
-                    author={message.sentByUserId ? dir.memberById.get(message.sentByUserId)?.name : undefined}
+                    author={
+                      message.sentByAgentId
+                        ? dir.agentById.get(message.sentByAgentId)?.name
+                        : message.sentByUserId
+                          ? dir.memberById.get(message.sentByUserId)?.name
+                          : undefined
+                    }
                     w={w}
                   />
                 </div>
@@ -270,35 +568,142 @@ function Conversation({
           </div>
         )}
       </div>
+      {chat?.agent === "person" && (
+        <div className="wa-conv__notice" role="status">
+          <span>
+            {chat.agentNote === "limit"
+              ? w.agent.limit
+              : chat.agentNote === "failed"
+                ? w.agent.failed
+                : chat.agentNote.startsWith("failed: ")
+                  ? w.agent.failedWhy(chat.agentNote.slice(8))
+                  : chat.agentNote && chat.agentNote !== "handoff"
+                    ? `${w.agent.handed} ${chat.agentNote}`
+                    : w.agent.handed}
+          </span>
+          <Button
+            variant="default"
+            size="sm"
+            loading={setAgent.isPending}
+            onClick={() => setAgent.mutate({ chatId, on: true }, { onError: (e) => toast.show(say(e), "error") })}
+          >
+            {w.agent.giveBack}
+          </Button>
+        </div>
+      )}
       <footer className="wa-conv__foot">
-        <Textarea
-          className="wa-conv__input"
+        <Composer
+          id={`wa-composer-${chatId}`}
+          textareaRef={box}
           value={text}
-          onChange={(e) => {
-            setText(e.target.value);
+          onChange={(value) => {
+            setText(value);
             // The other side sees "typing…" while there are words here, as in WhatsApp's own apps.
-            if (e.target.value.trim()) typing.typing();
+            if (value.trim()) typing.typing();
             else typing.stopped();
           }}
-          onBlur={typing.stopped}
-          onKeyDown={onKey}
+          onSend={(body) => void submit(body)}
+          label={w.composer.placeholder}
           placeholder={connected ? w.composer.placeholder : w.composer.offline}
-          aria-label={w.composer.placeholder}
+          sendLabel={w.composer.send}
+          attachLabel={w.composer.attach}
+          onFiles={connected ? addFiles : undefined}
+          emoji={{ ...emoji, button: w.stickers.button }}
+          pickerLabels={{ dialog: w.stickers.button, tabs: w.stickers.tabs }}
+          pickerTabs={
+            connected
+              ? [
+                  {
+                    id: "wa-stickers",
+                    label: w.stickers.tab,
+                    render: ({ close }) => (
+                      <StickerTab
+                        accountId={account.id}
+                        w={w}
+                        onPick={(messageId) => {
+                          close();
+                          sendSticker.mutate({ chatId, messageId }, { onError: (e) => toast.show(say(e), "error") });
+                        }}
+                      />
+                    ),
+                  },
+                ]
+              : undefined
+          }
+          voice={voice}
           disabled={!connected}
-          maxLength={4096}
-          rows={1}
-          autoGrow
-        />
-        <Button
-          variant="primary"
-          iconOnly
-          icon="send"
-          aria-label={w.composer.send}
-          loading={send.isPending}
-          disabled={!connected || !text.trim()}
-          onClick={submit}
+          canSendEmpty={files.length > 0}
+          sendBlocked={sending}
+          header={
+            quote ? (
+              <div className="wa-quote">
+                <Icon name="reply" size={16} />
+                <span className="wa-quote__words">{preview(quote.kind, quote.body, w)}</span>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  iconOnly
+                  icon="close"
+                  aria-label={w.cancelReply}
+                  onClick={() => setQuote(null)}
+                />
+              </div>
+            ) : undefined
+          }
+          attachments={
+            files.length > 0
+              ? files.map((pending) => (
+                  <ComposerFile
+                    key={pending.key}
+                    name={pending.file.name}
+                    preview={pending.preview}
+                    detail={formatBytes(i18n.language, pending.file.size)}
+                    status={sending ? "uploading" : "done"}
+                    removeLabel={w.removeFile(pending.file.name)}
+                    onRemove={() => dropFile(pending.key)}
+                  />
+                ))
+              : undefined
+          }
         />
       </footer>
+      {dropping && (
+        <div className="wa-conv__drop" aria-hidden="true">
+          <Icon name="attach" size={20} />
+          <span>{w.dropHere}</span>
+        </div>
+      )}
+      {picture && (
+        <Dialog
+          open
+          onOpenChange={(open) => !open && setPicture(null)}
+          title={picture.body || w.kind.image}
+          closeLabel={w.connectDialog.close}
+          width={960}
+        >
+          <DialogBody>
+            <img
+              className="wa-picture"
+              src={whatsappFileUrl(org.id, account.id, picture.id)}
+              alt={picture.body || w.kind.image}
+            />
+          </DialogBody>
+          <DialogFooter>
+            <Button
+              variant="default"
+              icon="download"
+              onClick={() => {
+                const link = document.createElement("a");
+                link.href = whatsappFileUrl(org.id, account.id, picture.id);
+                link.download = picture.media?.fileName ?? "whatsapp";
+                link.click();
+              }}
+            >
+              {w.fileDownload}
+            </Button>
+          </DialogFooter>
+        </Dialog>
+      )}
     </section>
   );
 }
@@ -322,6 +727,9 @@ export function WhatsAppPage({
   const accounts = overview.data?.accounts ?? [];
   const account = accounts.find((a) => a.id === accountId) ?? accounts.find((a) => a.mine) ?? accounts[0];
   const chats = useWhatsAppChats(org.id, account?.mine ? account.id : null);
+  const update = useUpdateWhatsApp(org.id);
+  const toast = useToast();
+  const say = useWhatsAppError();
   const [filter, setFilter] = useState("");
   const [dialog, setDialog] = useState<"connect" | "settings" | "newChat" | "qr" | null>(null);
 
@@ -392,6 +800,22 @@ export function WhatsAppPage({
             {account.mine && account.status === "connected" && (
               <MenuItem icon="edit" onSelect={() => setDialog("newChat")}>
                 {w.newChat}
+              </MenuItem>
+            )}
+            {account.manage && account.agentId && (
+              <MenuItem
+                icon="agent"
+                onSelect={() =>
+                  update.mutate(
+                    { accountId: account.id, agentOn: !account.agentOn },
+                    {
+                      onSuccess: (saved) => toast.show(saved.agentOn ? w.agent.turnedOn : w.agent.turnedOff),
+                      onError: (e) => toast.show(say(e), "error"),
+                    },
+                  )
+                }
+              >
+                {account.agentOn ? w.agent.turnOff : w.agent.turnOn}
               </MenuItem>
             )}
             {account.manage && (

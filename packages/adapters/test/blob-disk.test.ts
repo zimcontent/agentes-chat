@@ -70,3 +70,15 @@ test("streamed: the file as it is read; nothing for a missing key", async () => 
   expect(await store.stream?.("orgs/o1/gone")).toBeNull();
   expect(store.stream?.("../outside")).rejects.toThrow("outside the files folder");
 });
+
+test("a file on disk is copied to its key as is, never read whole: a conversation's upload (ADR 0025)", async () => {
+  const store = createDiskBlobStore(join(dir, "store"));
+  const source = join(dir, "upload");
+  await Bun.write(source, bytes("PK\u0003\u0004 zip"));
+  await store.putFile?.("orgs/o1/artifacts/a1/v1", source, { contentType: "application/zip", size: 9, sha256: "" });
+  expect(await store.get("orgs/o1/artifacts/a1/v1")).toEqual({
+    body: bytes("PK\u0003\u0004 zip"),
+    contentType: "application/zip",
+  });
+  expect((await stat(join(dir, "store/orgs/o1/artifacts/a1/v1"))).mode & 0o777).toBe(0o600);
+});

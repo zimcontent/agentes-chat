@@ -7,13 +7,18 @@ import {
   listWhatsAppAccounts,
   listWhatsAppChats,
   listWhatsAppMessages,
+  listWhatsAppStickers,
   readWhatsAppChat,
   reconnectWhatsAppAccount,
   removeWhatsAppAccount,
+  requestWhatsAppHistory,
+  sendWhatsAppFile,
+  sendWhatsAppSticker,
   sendWhatsAppText,
   typingInWhatsAppChat,
   updateWhatsAppAccount,
   type WhatsAppDeps,
+  whatsappStickerFile,
 } from "../src";
 import { addMember, type Fixture, setup } from "./fixtures";
 
@@ -262,6 +267,219 @@ describe("sending and reading", () => {
     expect(gateway.last("read")).toMatchObject({ chat: ANA, ids: ["A2", "A1"] });
     expect((await listWhatsAppChats(deps, f.owner.id, f.org.id, account.id)).chats[0]?.unread).toBe(0);
     expect(await readWhatsAppChat(deps, f.owner.id, f.org.id, account.id, chatId)).toEqual({ read: 0 });
+  });
+});
+
+describe("sending a file", () => {
+  test("a picture goes as a picture with its caption, a recording as a voice message, the rest as a document", async () => {
+    f = await setup();
+    const { gateway, deps, account, post } = await connected();
+    await post(text("A1", "manda a proposta?"));
+    const { chats } = await listWhatsAppChats(deps, f.owner.id, f.org.id, account.id);
+    const chatId = chats[0]?.id as string;
+    const bytes = new TextEncoder().encode("bytes");
+    const sendIt = (input: { mimeType: string; fileName: string; caption?: string; voice?: boolean }) =>
+      sendWhatsAppFile(deps, f.owner.id, f.org.id, account.id, { chatId, bytes, ...input });
+    expect((await sendIt({ mimeType: "image/png", fileName: "foto.png", caption: " olha " })).kind).toBe("image");
+    expect((await sendIt({ mimeType: "audio/webm;codecs=opus", fileName: "voice.webm", voice: true })).kind).toBe(
+      "audio",
+    );
+    expect((await sendIt({ mimeType: "application/pdf", fileName: "proposta.pdf" })).kind).toBe("document");
+    // A GIF or a MOV isn't one WhatsApp draws from here: it goes as a file.
+    expect((await sendIt({ mimeType: "image/gif", fileName: "anim.gif" })).kind).toBe("document");
+    expect(gateway.calls.filter((c) => c.op === "file").map((c) => [c.kind, c.fileName, c.caption])).toEqual([
+      ["image", "foto.png", "olha"],
+      ["audio", "voice.webm", ""],
+      ["document", "proposta.pdf", ""],
+      ["document", "anim.gif", ""],
+    ]);
+    const page = await listWhatsAppMessages(deps, f.owner.id, f.org.id, account.id, chatId, { limit: 4 });
+    expect(page.messages.map((m) => [m.kind, m.body, m.file, m.sentByUserId === f.owner.id])).toEqual([
+      ["document", "", true, true],
+      ["document", "", true, true],
+      ["audio", "", true, true],
+      ["image", "olha", true, true],
+    ]);
+    await expect(sendIt({ mimeType: "image/png", fileName: "vazio.png" }).then(() => null)).resolves.toBeNull();
+    await expect(
+      sendWhatsAppFile(deps, f.owner.id, f.org.id, account.id, {
+        chatId,
+        bytes: new Uint8Array(0),
+        mimeType: "image/png",
+        fileName: "vazio.png",
+      }),
+    ).rejects.toThrow("empty");
+  });
+});
+
+describe("stickers", () => {
+  const sticker = (id: string, hash: string, over: Record<string, unknown> = {}) =>
+    event("Message", {
+      Info: { Chat: ANA, Sender: ANA, IsFromMe: false, ID: id, PushName: "Ana", Timestamp: AT, ...over },
+      Message: { stickerMessage: { mimetype: "image/webp", fileSHA256: hash, mediaKey: "a2V5" } },
+    });
+
+  test("the number's latest stickers are offered once each, and one is sent again from a signed address", async () => {
+    f = await setup();
+    const { gateway, deps, account, post } = await connected();
+    await post(sticker("S1", "aGFzaDE=", { Timestamp: "2026-11-13T12:00:00Z" }));
+    await post(sticker("S2", "aGFzaDI=", { Timestamp: "2026-11-13T12:01:00Z" }));
+    await post(sticker("S3", "aGFzaDE=", { Timestamp: "2026-11-13T12:02:00Z" }));
+    const { stickers } = await listWhatsAppStickers(deps, f.owner.id, f.org.id, account.id);
+    // The same sticker received twice is one, by its hash: the latest message of each.
+    expect(stickers).toHaveLength(2);
+    const { chats } = await listWhatsAppChats(deps, f.owner.id, f.org.id, account.id);
+    const chatId = chats[0]?.id as string;
+    const messageId = stickers[0]?.messageId as string;
+    await sendWhatsAppSticker(deps, f.owner.id, f.org.id, account.id, { chatId, messageId });
+    const url = new URL(gateway.last("sticker")?.url as string);
+    expect(url.pathname).toBe(`/api/webhooks/whatsapp-sticker/${messageId}`);
+    const expires = Number(url.searchParams.get("e"));
+    const signature = url.searchParams.get("s") as string;
+    // The gateway fetches it with that signature alone, until it expires.
+    const file = await whatsappStickerFile(deps, messageId, expires, signature);
+    expect([file.mimeType, new TextDecoder().decode(file.bytes)]).toEqual(["image/webp", "file"]);
+    await expect(whatsappStickerFile(deps, messageId, expires, "0".repeat(64))).rejects.toThrow("No sticker");
+    await expect(whatsappStickerFile(deps, messageId, expires + 1, signature)).rejects.toThrow("No sticker");
+    await expect(whatsappStickerFile(deps, messageId, expires, signature, expires + 1)).rejects.toThrow("No sticker");
+    const page = await listWhatsAppMessages(deps, f.owner.id, f.org.id, account.id, chatId, { limit: 1 });
+    expect(page.messages[0]).toMatchObject({ kind: "sticker", fromMe: true, sentByUserId: f.owner.id, file: true });
+    // A text isn't a sticker to send.
+    await post(text("T1", "oi", { Timestamp: new Date(Date.now() + 1000).toISOString() }));
+    const [words] = (await listWhatsAppMessages(deps, f.owner.id, f.org.id, account.id, chatId, { limit: 1 })).messages;
+    await expect(
+      sendWhatsAppSticker(deps, f.owner.id, f.org.id, account.id, { chatId, messageId: words?.id as string }),
+    ).rejects.toThrow("isn't a sticker");
+  });
+});
+
+describe("what the phone did elsewhere", () => {
+  test("read on the phone is read here, a message taken back loses its words and an edited one changes them", async () => {
+    f = await setup();
+    const { gateway, deps, account, post } = await connected();
+    await post(text("A1", "bom dia"));
+    await post(text("A2", "tudo bem?"));
+    const chat = async () => (await listWhatsAppChats(deps, f.owner.id, f.org.id, account.id)).chats[0];
+    expect((await chat())?.unread).toBe(2);
+    await post(event("Receipt", { Chat: ANA, MessageIDs: ["A2"] }, { state: "ReadSelf" }));
+    expect((await chat())?.unread).toBe(0);
+    // Reading it there tells WhatsApp nothing from here: the phone already did.
+    expect(gateway.calls.some((c) => c.op === "read")).toBe(false);
+
+    await post(
+      event("Message", {
+        Info: { Chat: ANA, Sender: ANA, ID: "E1", Timestamp: AT },
+        Message: { protocolMessage: { type: 14, key: { ID: "A1" }, editedMessage: { conversation: "boa tarde" } } },
+      }),
+    );
+    await post(
+      event("Message", {
+        Info: { Chat: ANA, Sender: ANA, ID: "R1", Timestamp: AT },
+        Message: { protocolMessage: { type: 0, key: { ID: "A2" } } },
+      }),
+    );
+    const page = await listWhatsAppMessages(deps, f.owner.id, f.org.id, account.id, (await chat())?.id as string);
+    expect(page.messages.map((m) => [m.kind, m.body]).sort()).toEqual([
+      ["deleted", ""],
+      ["text", "boa tarde"],
+    ]);
+  });
+});
+
+describe("one person, two addresses", () => {
+  const LID = "98765432101234@lid";
+
+  test("an answer written on the phone, addressed by the hidden id, stays in the same conversation", async () => {
+    f = await setup();
+    const { deps, account, post } = await connected();
+    await post(text("A1", "bom dia"));
+    await post(
+      text("P1", "respondi do celular", {
+        Chat: LID,
+        IsFromMe: true,
+        Sender: "5511911112222@s.whatsapp.net",
+        RecipientAlt: ANA,
+      }),
+    );
+    // Later the same person writes under the hidden id alone: still theirs.
+    await post(text("A2", "obrigada", { Chat: LID, Sender: LID }));
+    const { chats } = await listWhatsAppChats(deps, f.owner.id, f.org.id, account.id);
+    expect(chats.map((c) => [c.phone, c.name, c.lastText])).toEqual([["5511999990000", "Ana", "obrigada"]]);
+    const page = await listWhatsAppMessages(deps, f.owner.id, f.org.id, account.id, chats[0]?.id as string);
+    expect(page.messages.map((m) => m.body)).toEqual(["obrigada", "respondi do celular", "bom dia"]);
+  });
+
+  test("two conversations made before the pair was told become one, with every message", async () => {
+    f = await setup();
+    const { deps, account, post } = await connected();
+    await post(text("A1", "pelo número"));
+    await post(text("L1", "pelo id escondido", { Chat: LID, Sender: LID }));
+    expect((await listWhatsAppChats(deps, f.owner.id, f.org.id, account.id)).chats).toHaveLength(2);
+    await post(text("A3", "agora com os dois", { SenderAlt: LID }));
+    const { chats } = await listWhatsAppChats(deps, f.owner.id, f.org.id, account.id);
+    expect(chats.map((c) => [c.phone, c.unread, c.lastText])).toEqual([["5511999990000", 3, "agora com os dois"]]);
+    const page = await listWhatsAppMessages(deps, f.owner.id, f.org.id, account.id, chats[0]?.id as string);
+    expect(page.messages).toHaveLength(3);
+  });
+});
+
+describe("history", () => {
+  const old = (id: string, seconds: number, body: string, fromMe = false) => ({
+    message: {
+      key: { remoteJID: ANA, fromMe, ID: id },
+      message: { conversation: body },
+      messageTimestamp: seconds,
+      status: 4,
+      pushName: "Ana",
+    },
+  });
+  const piece = (messages: unknown[], extra: Record<string, unknown> = {}) =>
+    event("HistorySync", { Data: { syncType: 2, conversations: [{ ID: ANA, messages }], ...extra } });
+
+  test("what the phone had before comes in as read, in order, and told twice changes nothing", async () => {
+    f = await setup();
+    const { deps, account, post } = await connected();
+    await post(text("A1", "mensagem de agora"));
+    const many = Array.from({ length: 1200 }, (_, i) => old(`H${i}`, 1_700_000_000 + i, `antiga ${i}`, i % 2 === 1));
+    expect((await post(piece(many, { pushnames: [{ ID: ANA, pushname: "Ana Souza" }] }))).kind).toBe("history");
+    await post(piece(many));
+    const { chats } = await listWhatsAppChats(deps, f.owner.id, f.org.id, account.id);
+    // The list still shows the live message, unread as it was: history is older and nobody's news.
+    expect(chats.map((c) => [c.lastText, c.unread, c.name])).toEqual([["mensagem de agora", 1, "Ana"]]);
+    const stored = await f.db.select({ id: schema.whatsappMessages.id }).from(schema.whatsappMessages);
+    expect(stored).toHaveLength(1201);
+    const page = await listWhatsAppMessages(deps, f.owner.id, f.org.id, account.id, chats[0]?.id as string, {
+      limit: 3,
+    });
+    expect(page.messages.map((m) => [m.body, m.fromMe, m.status])).toEqual([
+      ["mensagem de agora", false, "received"],
+      ["antiga 1199", true, "read"],
+      ["antiga 1198", false, "received"],
+    ]);
+  });
+
+  test("a conversation known only from history shows by its latest message, with the name the phone told", async () => {
+    f = await setup();
+    const { deps, account, post } = await connected();
+    await post(
+      piece([old("H1", 1_700_000_000, "primeira"), old("H2", 1_700_000_100, "última", true)], {
+        pushnames: [{ ID: ANA, pushname: "Ana Souza" }],
+      }),
+    );
+    const { chats } = await listWhatsAppChats(deps, f.owner.id, f.org.id, account.id);
+    expect(chats.map((c) => [c.name, c.lastText, c.lastFromMe, c.unread])).toEqual([["Ana Souza", "última", true, 0]]);
+  });
+
+  test("older messages are asked of the phone from the oldest one kept", async () => {
+    f = await setup();
+    const { gateway, deps, account, post } = await connected();
+    await post(piece([old("H7", 1_700_000_700, "sete"), old("H3", 1_700_000_300, "três", true)]));
+    const { chats } = await listWhatsAppChats(deps, f.owner.id, f.org.id, account.id);
+    const chatId = chats[0]?.id as string;
+    expect(await requestWhatsAppHistory(deps, f.owner.id, f.org.id, account.id, chatId)).toEqual({ asked: 50 });
+    expect(gateway.last("history")).toMatchObject({ chat: ANA, before: "H3", count: 50 });
+    const leticia = await addMember(f.db, f.org.id, "member", "leticia");
+    await expect(requestWhatsAppHistory(deps, leticia.id, f.org.id, account.id, chatId)).rejects.toThrow("not found");
   });
 });
 

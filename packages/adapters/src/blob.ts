@@ -13,6 +13,13 @@ export interface BlobStore {
   /** `s3`, `postgres`, `memory`… */
   readonly kind: string;
   put(key: string, body: Uint8Array, options: { contentType: string }): Promise<void>;
+  /**
+   * Stores the file at `path` on this server's disk as it is read, never whole in memory, where the store can (a
+   * conversation's file of up to 2 GB, ADR 0025). `sha256` (hex) and `size` were counted as it arrived.
+   */
+  putFile?(key: string, path: string, options: { contentType: string; size: number; sha256: string }): Promise<void>;
+  /** The largest object `put` takes, where the store has a limit of its own (a database row). */
+  readonly maxObjectBytes?: number;
   get(key: string): Promise<{ body: Uint8Array; contentType: string } | null>;
   /** The object's bytes as they are read, where the store can; without it, `get`. */
   stream?(key: string): Promise<ReadableStream<Uint8Array> | null>;
@@ -68,6 +75,9 @@ export function createMemoryBlobStore(options: { sign?: boolean; kind?: string }
     objects,
     async put(key, body, { contentType }) {
       objects.set(key, { body: new Uint8Array(body), contentType });
+    },
+    async putFile(key, path, { contentType }) {
+      objects.set(key, { body: new Uint8Array(await Bun.file(path).arrayBuffer()), contentType });
     },
     async get(key) {
       const o = objects.get(key);

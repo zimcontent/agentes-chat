@@ -992,7 +992,7 @@ test("browser_screenshot with share: sent to the Drive and attached to the reply
       path,
       url: `http://localhost:3000/api/machines/uploads/${up?.id}`,
       uploadId: up?.id as string,
-      maxBytes: ARTIFACT_LIMITS.fileBytes,
+      maxBytes: ARTIFACT_LIMITS.heldFileBytes,
     },
   ]);
 });

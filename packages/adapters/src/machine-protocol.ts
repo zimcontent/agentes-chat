@@ -2078,7 +2078,22 @@ export interface BrainRouteRequest {
   prompt: string;
   /** JSON Schema of the answer. */
   schema: Record<string, unknown>;
+  /**
+   * Claude Code's model for this answer (`ROUTE_MODELS`); absent, or a runner that doesn't know the field: its
+   * smallest. Codex always answers with its smallest.
+   */
+  model?: string;
+  /** How hard it thinks (`ROUTE_EFFORTS`); absent, or a runner that doesn't know the field: low. */
+  effort?: string;
+  /** How long the CLI may take, up to `ROUTE_TIMEOUT_MAX_MS`; absent: `ROUTE_TIMEOUT_MS`. */
+  timeoutMs?: number;
 }
+
+/** The Claude Code models a `brain.route` may ask for. */
+export const ROUTE_MODELS = ["haiku", "sonnet", "opus"] as const;
+export const ROUTE_EFFORTS = ["low", "medium", "high"] as const;
+/** The longest a `brain.route` may ask for: a larger model thinking harder than the router's does. */
+export const ROUTE_TIMEOUT_MAX_MS = 120_000;
 
 /** What a route answers: the CLI's answer as a JSON object, or `busy` while that sign-in has a process open. */
 export type BrainRouteReply =

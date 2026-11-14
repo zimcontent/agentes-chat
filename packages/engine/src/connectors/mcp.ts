@@ -74,7 +74,7 @@ export interface McpSession {
  */
 export type McpConnect = (
   connection: Pick<ConnectorConnection, "serverUrl"> &
-    Partial<Pick<ConnectorConnection, "orgId" | "composioAccountId">>,
+    Partial<Pick<ConnectorConnection, "orgId" | "composioAccountId" | "composioUserOrgId">>,
   headers: Record<string, string>,
 ) => Promise<McpSession>;
 
@@ -592,7 +592,7 @@ export async function keepComposioFiles(
   const client: Pick<ComposioClient, "fetchFile"> = {
     fetchFile: async (url) => {
       await assertPublicHttpsUrl(url, deps.resolveHost);
-      return deps.client.fetchFile(url, ARTIFACT_LIMITS.fileBytes);
+      return deps.client.fetchFile(url, ARTIFACT_LIMITS.heldFileBytes);
     },
   };
   const keep = async (file: Record<string, unknown>) => {

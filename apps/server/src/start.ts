@@ -98,6 +98,7 @@ import { createApp } from "./app";
 import { createAuth } from "./auth";
 import { buildEngine } from "./engine";
 import { startFreezeWatch } from "./freeze-watch";
+import { FILE_UPLOAD_PATH, SERVER_BODY_BYTES } from "./http/body-limit";
 import { checkHumanCheckAtBoot } from "./http/human-check";
 import { createLogger, type Logger } from "./logger";
 import { OPERATOR_API_PREFIX, serveOperatorApi } from "./operator/app";
@@ -593,7 +594,14 @@ async function boot(
         // Bun's default (10 s) cuts a request still waiting on its answer: opening a site in an agent's
         // browser waits for the page, and a closed browser starts first (up to 90 s on the computer).
         idleTimeout: 120,
-        fetch: (req, srv) => ownHostAnswer(req) ?? realtime.fetch(req, srv, (r) => app.fetch(r)),
+        // A conversation's file streams in up to 2 GB; each route still caps its own body (`apiBodyLimit`).
+        maxRequestBodySize: SERVER_BODY_BYTES,
+        fetch: (req, srv) => {
+          // A conversation's file of up to 2 GB is copied to storage after its last byte arrives, longer than the
+          // idle limit above may allow: its request waits on no idle limit (the route still caps its size).
+          if (req.method === "POST" && FILE_UPLOAD_PATH.test(new URL(req.url).pathname)) srv.timeout(req, 0);
+          return ownHostAnswer(req) ?? realtime.fetch(req, srv, (r) => app.fetch(r));
+        },
         websocket: realtime.websocket,
         // What the HTTP app doesn't answer itself: a WebSocket upgrade that failed before the socket opened.
         error(error) {

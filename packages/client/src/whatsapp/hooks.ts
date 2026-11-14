@@ -126,6 +126,60 @@ export function useReadWhatsAppChat(orgId: string, accountId: string) {
   });
 }
 
+/** Sends a file or a recording into a conversation. */
+export function useSendWhatsAppFile(orgId: string, accountId: string) {
+  const api = useApi();
+  const refresh = useWhatsAppRefresh(orgId);
+  return useMutation({
+    mutationFn: (input: { chatId: string; file: Blob; fileName: string; caption?: string; voice?: boolean }) =>
+      whatsappOf(api).sendFile(orgId, accountId, input),
+    meta: { silent: true },
+    onSuccess: () => void refresh(),
+  });
+}
+
+/** The number's latest stickers, read when the picker's tab opens (`enabled`). */
+export function useWhatsAppStickers(orgId: string, accountId: string, enabled: boolean) {
+  const api = useApi();
+  return useQuery({
+    queryKey: keys.whatsappStickers(orgId, accountId),
+    queryFn: () => whatsappOf(api).stickers(orgId, accountId),
+    enabled,
+  });
+}
+
+/** Sends a sticker the number already has. */
+export function useSendWhatsAppSticker(orgId: string, accountId: string) {
+  const api = useApi();
+  const refresh = useWhatsAppRefresh(orgId);
+  return useMutation({
+    mutationFn: (input: { chatId: string; messageId: string }) => whatsappOf(api).sendSticker(orgId, accountId, input),
+    meta: { silent: true },
+    onSuccess: () => void refresh(),
+  });
+}
+
+/** Asks the phone for a conversation's older messages; what comes arrives by itself (`whatsapp.changed`). */
+export function useWhatsAppOlderHistory(orgId: string, accountId: string) {
+  const api = useApi();
+  return useMutation({
+    mutationFn: (chatId: string) => whatsappOf(api).olderHistory(orgId, accountId, chatId),
+    meta: { silent: true },
+  });
+}
+
+/** The number's agent on or off in one conversation. */
+export function useWhatsAppChatAgent(orgId: string, accountId: string) {
+  const api = useApi();
+  const refresh = useWhatsAppRefresh(orgId);
+  return useMutation({
+    mutationFn: (input: { chatId: string; on: boolean }) =>
+      whatsappOf(api).chatAgent(orgId, accountId, input.chatId, input.on),
+    meta: { silent: true },
+    onSuccess: () => void refresh(),
+  });
+}
+
 /** How often "typing…" is told again while the person keeps writing: WhatsApp drops it after about 10 s. */
 const TYPING_EVERY_MS = 5_000;
 

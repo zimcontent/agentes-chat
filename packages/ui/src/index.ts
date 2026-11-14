@@ -560,7 +560,7 @@ export {
 export { installTitleTips, TITLE_TIP_GRACE_MS, TITLE_TIP_ID, TITLE_TIP_OPEN_MS } from "./title-tips";
 export { DitherLine, fillEnds, paintCells, paintLineArea, useElementWidth } from "./widgets/ChartPieces";
 export { formatWidgetNumber, formatWithUnit, useCountUp, widgetDigits } from "./widgets/format";
-export { ditherTile, WIDGET_CELL, widgetTileVars, widgetTones } from "./widgets/tiles";
+export { ditherTile, glassTile, WIDGET_CELL, widgetTileVars, widgetTones } from "./widgets/tiles";
 export { BuildingDither, WidgetBody, type WidgetBodyProps } from "./widgets/WidgetBody";
 export {
   type CardBoardLabels,

@@ -11349,6 +11349,23 @@
     "deniedRun_female": "{{repo}}은(는) {{name}}의 저장소가 아니에요.",
     "added": "저장하면 {{repo}}이(가) 목록에 추가돼요."
   },
+  "carry": {
+    "open": "다른 워크스페이스에서 가져오기",
+    "text": "다른 워크스페이스에서 연결한 것이 다시 로그인할 필요 없이 바로 준비돼요.",
+    "none": "아직 가져올 것이 없어요. 한 워크스페이스에서 연결한 것은 다른 워크스페이스의 여기에 표시돼요.",
+    "connections": "연결",
+    "with": "{{names}} 포함",
+    "here": "이미 여기 있음",
+    "needsReconnect": "다시 연결 필요",
+    "githubApp": "여기에 GitHub App을 설치하세요",
+    "bring": "가져오기",
+    "bringCount_other": "항목 {{count}}개 가져오기",
+    "done_other": "항목 {{count}}개를 이 워크스페이스로 가져왔어요",
+    "skipped_other": "항목 {{count}}개는 가져오지 못했어요",
+    "nothingNew": "선택한 것이 모두 이미 여기에 있어요",
+    "failed": "가져오지 못했어요. 다시 시도해 주세요.",
+    "fromOnboarding": "다른 워크스페이스에서 에이전트와 연결 가져오기"
+  },
   "connectors": {
     "title": "커넥터",
     "add": "커넥터 추가",
@@ -18179,6 +18196,33 @@
     "send": "승인 요청 보내기",
     "openAtPortal": "포털에서 열기",
     "seePost": "게시물 보기",
+    "seeDrive": "Drive 링크",
+    "clientLogo": {
+      "menu": "클라이언트 로고",
+      "title": "{{name}} 로고",
+      "help": "클라이언트의 이니셜 대신 표시되는 정사각형 이미지입니다. JPEG, PNG 또는 WebP, 최대 2 MB.",
+      "remove": "로고 삭제",
+      "saved": "로고를 저장했습니다",
+      "removed": "로고를 삭제했습니다"
+    },
+    "clientColor": {
+      "label": "클라이언트 색상",
+      "none": "색상 없음",
+      "colors": {
+        "green": "초록",
+        "blue": "파랑",
+        "navy": "남색",
+        "sky": "하늘색",
+        "white": "흰색",
+        "teal": "청록",
+        "yellow": "노랑",
+        "orange": "주황",
+        "red": "빨강",
+        "pink": "분홍",
+        "purple": "보라",
+        "gray": "회색"
+      }
+    },
     "edit": "편집",
     "delete": "삭제",
     "actionsOf": "작업: {{title}}",

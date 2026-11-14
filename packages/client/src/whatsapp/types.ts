@@ -18,11 +18,27 @@ export interface WhatsAppAccount {
   agentId: string | null;
   /** How the agent carries itself on this number (Markdown); null for someone who can't change the number. */
   instructions: string | null;
+  /** The agent answers this number's conversations now. */
+  agentOn: boolean;
+  /** How the agent talks here. */
+  agentStyle: WhatsAppAgentStyle;
   /** The person is on its list. */
   mine: boolean;
   /** The person may change or remove it. */
   manage: boolean;
   createdAt: string;
+}
+
+export type WhatsAppPace = "fast" | "natural" | "slow";
+
+export interface WhatsAppAgentStyle {
+  /** Seconds it waits after a message before reading the conversation (3 to 300). */
+  waitSeconds: number;
+  pace: WhatsAppPace;
+  /** The most messages one answer is split in (1 to 3). */
+  messages: number;
+  /** Minutes it stays quiet in a conversation after a person wrote there (5 to 1440). */
+  quietMinutes: number;
 }
 
 export interface WhatsAppOverview {
@@ -44,7 +60,18 @@ export interface WhatsAppChat {
   lastKind: string;
   lastFromMe: boolean;
   unread: number;
+  /**
+   * Where the number's agent stands here: `on` (it answers), `quiet` (a person wrote here less than an hour ago),
+   * `off` (someone turned it off here), `person` (it left the conversation to a person). null: no agent answers it.
+   */
+  agent: WhatsAppChatAgent | null;
+  /** While `quiet`: when it answers again. */
+  agentQuietUntil: string | null;
+  /** While `person`: why, in the agent's words (a model's: text only), or `limit` or `failed`. */
+  agentNote: string;
 }
+
+export type WhatsAppChatAgent = "on" | "quiet" | "off" | "person";
 
 export type WhatsAppMessageStatus = "received" | "sent" | "delivered" | "read";
 
@@ -59,10 +86,23 @@ export interface WhatsAppMessage {
   body: string;
   replyToId: string | null;
   media: { mimeType: string; fileName: string | null; seconds: number | null } | null;
+  /** Its file can be loaded (`whatsappFileUrl`). */
+  file: boolean;
   status: WhatsAppMessageStatus;
   /** Who wrote it in the app; null: from the phone. */
   sentByUserId: string | null;
+  /** The agent that wrote it. */
+  sentByAgentId: string | null;
   at: string;
+}
+
+/**
+ * Where a message's file loads from: our server, which fetches it from WhatsApp. `base` is the server for the
+ * phone app (`""` on the web: the same origin).
+ */
+export function whatsappFileUrl(orgId: string, accountId: string, messageId: string, base = "") {
+  const path = `/api/app/organizations/${encodeURIComponent(orgId)}/whatsapp/accounts/${encodeURIComponent(accountId)}/messages/${encodeURIComponent(messageId)}/file`;
+  return `${base.replace(/\/+$/, "")}${path}`;
 }
 
 export interface WhatsAppChatPage {
@@ -82,6 +122,8 @@ export interface WhatsAppAccountPatch {
   people?: string[];
   agentId?: string | null;
   instructions?: string;
+  agentOn?: boolean;
+  agentStyle?: Partial<WhatsAppAgentStyle>;
 }
 
 export interface WhatsAppSendInput {

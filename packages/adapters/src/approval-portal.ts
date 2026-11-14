@@ -73,6 +73,35 @@ export const PORTAL_LABEL_COLORS = [
 ] as const;
 export type PortalLabelColor = (typeof PORTAL_LABEL_COLORS)[number];
 
+/**
+ * The colours a client takes: one the team picks per client, so whose a card is reads at a glance wherever several
+ * clients' work shows together. Names, drawn by the apps in their own palette.
+ */
+export const PORTAL_CLIENT_COLORS = [
+  "green",
+  "blue",
+  "navy",
+  "sky",
+  "white",
+  "teal",
+  "yellow",
+  "orange",
+  "red",
+  "pink",
+  "purple",
+  "gray",
+] as const;
+export type PortalClientColor = (typeof PORTAL_CLIENT_COLORS)[number];
+
+/** A client's logo is kept by the server that took it; the portal's side only names its file (a content hash). */
+export const PORTAL_LOGO_FILE = /^[0-9a-f]{16}\.(jpg|png|webp)$/;
+
+export interface PortalClientLooks {
+  colors: Record<string, PortalClientColor>;
+  /** The logo's file name, by client. */
+  logos: Record<string, string>;
+}
+
 /** A list of the strategic schedule: usually a week, named by the team. */
 export interface PortalList {
   id: string;
@@ -196,6 +225,18 @@ export interface PortalSend {
   by?: string;
 }
 
+/** A new version of a post the client sent back (ADR 9001 §17). */
+export interface PortalVersion {
+  /** Ids `upload` answered, in the carousel's order: the whole post again, not only what changed. */
+  files: string[];
+  /** What changed, for the client and the team. */
+  note?: string;
+  /** The same key never sends twice. */
+  key?: string;
+  /** Who asked, for the bridge's log. */
+  by?: string;
+}
+
 export interface PortalItemEdit {
   title?: string;
   caption?: string;
@@ -238,10 +279,21 @@ export interface ApprovalPortal {
   createLabel(name: string, color: PortalLabelColor): Promise<PortalLabel>;
   updateLabel(id: string, change: { name?: string; color?: PortalLabelColor }): Promise<PortalLabel>;
   deleteLabel(id: string): Promise<void>;
+  /** What the team gave each client to be known by: a colour, a logo. A client with none is absent from each. */
+  clientLooks(): Promise<PortalClientLooks>;
+  /** `null` takes the client's colour away. */
+  setClientColor(client: string, color: PortalClientColor | null): Promise<void>;
+  /** The name of the logo's stored file (`PORTAL_LOGO_FILE`); `null` takes the logo away. */
+  setClientLogo(client: string, file: string | null): Promise<void>;
   /** One file's bytes; answers the id `send` takes. */
   upload(name: string, bytes: Uint8Array): Promise<string>;
   send(input: PortalSend): Promise<PortalJob>;
   job(id: string): Promise<PortalJob | null>;
+  /**
+   * Puts a new version on a post the client asked a change on. It goes to the client at once: a portal that holds
+   * a team's version back for an OK of its own is given that OK by the bridge. The job says how it ended.
+   */
+  newVersion(client: string, item: string, input: PortalVersion): Promise<PortalJob>;
   editItem(client: string, item: string, edit: PortalItemEdit, by?: string): Promise<void>;
   /**
    * Releases an approved post for publication at `when` (ISO with an offset): from there the portal's own scheduler
@@ -344,6 +396,23 @@ const COLOR_OUT = Object.fromEntries(Object.entries(COLOR_IN).map(([wire, ours])
   PortalLabelColor,
   string
 >;
+const CLIENT_COLOR_IN: Record<string, PortalClientColor> = {
+  verde: "green",
+  azul: "blue",
+  "azul-escuro": "navy",
+  "azul-claro": "sky",
+  branco: "white",
+  turquesa: "teal",
+  amarelo: "yellow",
+  laranja: "orange",
+  vermelho: "red",
+  rosa: "pink",
+  roxo: "purple",
+  cinza: "gray",
+};
+const CLIENT_COLOR_OUT = Object.fromEntries(
+  Object.entries(CLIENT_COLOR_IN).map(([wire, ours]) => [ours, wire]),
+) as Record<PortalClientColor, string>;
 const rows = (value: unknown) => (Array.isArray(value) ? (value as Wire[]) : []);
 const strings = (value: unknown) => (Array.isArray(value) ? value.map(String) : []);
 const listOf = (wire: Wire): PortalList => ({ id: String(wire.id), name: text(wire.nome) ?? "" });
@@ -533,6 +602,32 @@ export function createBridgeApprovalPortal(options: BridgePortalOptions): Approv
     deleteLabel: async (id) => {
       await request(`/etiquetas/${encodeURIComponent(id)}/apagar`, { json: {} });
     },
+    clientLooks: async () => {
+      let answer: Wire;
+      try {
+        answer = await request("/cores");
+      } catch (error) {
+        // A bridge from before the clients had colours: none has one.
+        if (error instanceof ApprovalPortalError && error.status === 404) return { colors: {}, logos: {} };
+        throw error;
+      }
+      const colors: Record<string, PortalClientColor> = {};
+      for (const [client, wire] of Object.entries((answer.cores as Record<string, unknown> | undefined) ?? {})) {
+        const color = CLIENT_COLOR_IN[String(wire)];
+        if (color) colors[client] = color;
+      }
+      const logos: Record<string, string> = {};
+      for (const [client, wire] of Object.entries((answer.logos as Record<string, unknown> | undefined) ?? {})) {
+        if (typeof wire === "string" && PORTAL_LOGO_FILE.test(wire)) logos[client] = wire;
+      }
+      return { colors, logos };
+    },
+    setClientLogo: async (client, file) => {
+      await request(`/cores/${encodeURIComponent(client)}`, { json: { logo: file } });
+    },
+    setClientColor: async (client, color) => {
+      await request(`/cores/${encodeURIComponent(client)}`, { json: { cor: color ? CLIENT_COLOR_OUT[color] : null } });
+    },
     upload: async (name, bytes) => {
       if (bytes.byteLength > PORTAL_FILE_BYTES) throw new ApprovalPortalError(413, "That file is too large to send");
       const answer = await request(`/arquivos?nome=${encodeURIComponent(name)}`, { bytes, timeoutMs: 600_000 });
@@ -566,6 +661,14 @@ export function createBridgeApprovalPortal(options: BridgePortalOptions): Approv
         throw error;
       }
     },
+    newVersion: async (client, item, input) =>
+      jobOf(
+        (
+          await request(`/itens/${encodeURIComponent(client)}/${encodeURIComponent(item)}/versao`, {
+            json: { arquivos: input.files, nota: input.note, chave: input.key, por: input.by },
+          })
+        ).trabalho as Wire,
+      ),
     editItem: async (client, item, edit, by) => {
       const json: Wire = { por: by };
       if (edit.title !== undefined) json.titulo = edit.title;
@@ -594,10 +697,13 @@ export function createFakeApprovalPortal(seed: { items?: PortalItem[]; cards?: P
   const jobs = new Map<string, PortalJob>();
   const lists = new Map<string, PortalList[]>();
   const labels: PortalLabel[] = [];
+  const colors: Record<string, PortalClientColor> = {};
+  const logos: Record<string, string> = {};
   const uploads = new Map<string, { name: string; bytes: Uint8Array }>();
   const sends: (PortalSend & { names: string[] })[] = [];
   const edits: { client: string; item: string; edit: PortalItemEdit; by?: string }[] = [];
   const scheduled: { client: string; item: string; when: string; by?: string }[] = [];
+  const versions: (PortalVersion & { client: string; item: string; names: string[] })[] = [];
   let failure: ApprovalPortalError | null = null;
   let count = 0;
   const next = (prefix: string) => `${prefix}${(++count).toString(16).padStart(12, "0")}`;
@@ -724,6 +830,20 @@ export function createFakeApprovalPortal(seed: { items?: PortalItem[]; cards?: P
       check();
       return [...labels];
     },
+    clientLooks: async () => {
+      check();
+      return { colors: { ...colors }, logos: { ...logos } };
+    },
+    setClientLogo: async (client, file) => {
+      check();
+      if (file) logos[client] = file;
+      else delete logos[client];
+    },
+    setClientColor: async (client, color) => {
+      check();
+      if (color) colors[client] = color;
+      else delete colors[client];
+    },
     createLabel: async (name, color) => {
       check();
       const label = { id: next("e-"), name, color };
@@ -801,6 +921,35 @@ export function createFakeApprovalPortal(seed: { items?: PortalItem[]; cards?: P
       check();
       return jobs.get(id) ?? null;
     },
+    newVersion: async (client, item, input) => {
+      check();
+      const again = input.key ? [...jobs.values()].find((job) => keys.get(job.id) === input.key) : undefined;
+      if (again) return again;
+      const found = items.find((i) => i.client === client && i.id === item);
+      if (!found) throw new ApprovalPortalError(404, "item not found");
+      if (found.status !== "adjust_requested" && found.status !== "adjusting") {
+        throw new ApprovalPortalError(409, "a new version only goes up on a post the client asked a change on");
+      }
+      versions.push({ ...input, client, item, names: input.files.map((id) => uploads.get(id)?.name ?? "?") });
+      // As at a real portal: the version is the client's to approve again.
+      found.version += 1;
+      found.files = input.files.length;
+      found.status = "adjusted";
+      const id = next("");
+      const job: PortalJob = {
+        id,
+        state: "done",
+        client,
+        item,
+        title: found.title,
+        missing: [],
+        link: found.link,
+        error: null,
+      };
+      jobs.set(id, job);
+      if (input.key) keys.set(id, input.key);
+      return job;
+    },
     editItem: async (client, item, edit, by) => {
       check();
       const found = items.find((i) => i.client === client && i.id === item);
@@ -829,6 +978,7 @@ export function createFakeApprovalPortal(seed: { items?: PortalItem[]; cards?: P
     sends,
     edits,
     scheduled,
+    versions,
     /** What `state()` answers from now on. */
     setState: (next: Partial<PortalState>) => {
       state = { ...state, ...next };

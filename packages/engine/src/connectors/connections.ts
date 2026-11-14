@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto";
 import type { KeyWrapper } from "@agenteschat/adapters";
-import { and, asc, type Database, type Executor, eq, isNull, lt, or, schema, sql } from "@agenteschat/db";
+import { and, asc, type Database, type Executor, eq, isNull, lt, ne, or, schema, sql } from "@agenteschat/db";
 import { StreamableHTTPError } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
 import { type AuditEntry, recordAudit } from "../audit";
 import { caches } from "../cache";
@@ -19,7 +19,15 @@ import { clientAuth, getOAuthClient, type McpOAuthDeps, probeMcpServer } from ".
 import { oauthReturnTo } from "./oauth-return";
 import { presetForServer } from "./presets";
 
-const { connectorConnections, oauthStates, agentScopes, agents, approvalRules, githubAppInstallations } = schema;
+const {
+  connectorConnections,
+  connectorSignIns,
+  oauthStates,
+  agentScopes,
+  agents,
+  approvalRules,
+  githubAppInstallations,
+} = schema;
 
 export type ConnectorConnection = typeof connectorConnections.$inferSelect;
 
@@ -170,7 +178,7 @@ export interface ConnectorDeps {
   composioPollMs?: number;
 }
 
-const aadFor = (orgId: string, id: string) => `connector-connection|${orgId}|${id}`;
+export const aadFor = (orgId: string, id: string) => `connector-connection|${orgId}|${id}`;
 const stateAad = (orgId: string, id: string) => `oauth-state|${orgId}|${id}`;
 export const OAUTH_STATE_TTL_MS = 10 * 60_000;
 export const oauthRedirectUri = (publicUrl: string) =>
@@ -394,6 +402,8 @@ export async function revokeAtProvider(deps: ConnectorDeps, orgId: string, conne
     .from(connectorConnections)
     .where(and(eq(connectorConnections.id, connectionId), eq(connectorConnections.orgId, orgId)));
   if (!c || c.revokedAt || c.connector !== "github" || c.authType !== "oauth") return false;
+  // A sign-in another workspace uses too (ADR 9002): its token stays, for them.
+  if (await signInShared(deps.db, c)) return false;
   const app = deps.oauthApps?.github;
   const secret = await openConnectionSecret(deps.keyWrappers, c).catch(() => null);
   if (!app || !secret?.accessToken) return false;
@@ -470,7 +480,39 @@ export async function revokeConnection(
   for (const i of unbound) forgetInstallationTokens(i.installationId);
   caches.connections.delete(`${orgId}:active`);
   caches.scopes.deletePrefix(`${orgId}:`);
-  if (gone?.composioAccountId && composio) await forgetComposioAccount(composio.client, gone.composioAccountId);
+  if (gone?.composioAccountId && composio && !(await composioAccountInUse(db, gone.composioAccountId))) {
+    await forgetComposioAccount(composio.client, gone.composioAccountId);
+  }
+}
+
+/** Whether a live connection in another workspace renews with the same sign-in (ADR 9002). */
+export async function signInShared(db: Executor, c: Pick<ConnectorConnection, "id" | "signInId">) {
+  if (!c.signInId) return false;
+  const [other] = await db
+    .select({ id: connectorConnections.id })
+    .from(connectorConnections)
+    .where(
+      and(
+        eq(connectorConnections.signInId, c.signInId),
+        ne(connectorConnections.id, c.id),
+        isNull(connectorConnections.revokedAt),
+      ),
+    )
+    .limit(1);
+  return Boolean(other);
+}
+
+/**
+ * Whether a live connection still uses a Composio account: one brought to other workspaces (ADR 9002) goes away at
+ * Composio only with the last of them.
+ */
+export async function composioAccountInUse(db: Executor, accountId: string) {
+  const [live] = await db
+    .select({ id: connectorConnections.id })
+    .from(connectorConnections)
+    .where(and(eq(connectorConnections.composioAccountId, accountId), isNull(connectorConnections.revokedAt)))
+    .limit(1);
+  return Boolean(live);
 }
 
 /** Revokes a live connection in the caller's transaction: agents lose its scopes and its "Aprovar sempre" rules. */
@@ -503,6 +545,8 @@ const APP_ALONE = {
   resource: null,
   oauthScopes: null,
   refreshingUntil: null,
+  signInId: null,
+  composioUserOrgId: null,
 };
 
 /** The GitHub accounts of the workspace's GitHub App installations, in the order they were bound. */
@@ -882,17 +926,23 @@ async function refreshOnce(deps: ConnectorDeps, id: string, at: Date): Promise<C
   if (!expiring(row, stored, at)) return stored;
   const old = row.secretCiphertext;
   for (;;) {
-    const [leased] = await deps.db
-      .update(connectorConnections)
-      .set({ refreshingUntil: sql`now() + interval '30 seconds'` })
-      .where(
-        and(
-          eq(connectorConnections.id, id),
-          eq(connectorConnections.secretCiphertext, old),
-          or(isNull(connectorConnections.refreshingUntil), lt(connectorConnections.refreshingUntil, sql`now()`)),
-        ),
-      )
-      .returning({ id: connectorConnections.id });
+    const leased = row.signInId
+      ? await leaseSignIn(deps.db, row.signInId, id, old)
+      : (
+          await deps.db
+            .update(connectorConnections)
+            .set({ refreshingUntil: sql`now() + interval '30 seconds'` })
+            .where(
+              and(
+                eq(connectorConnections.id, id),
+                eq(connectorConnections.secretCiphertext, old),
+                // Brought to another workspace a moment ago: its renewal is the shared sign-in's from now on.
+                isNull(connectorConnections.signInId),
+                or(isNull(connectorConnections.refreshingUntil), lt(connectorConnections.refreshingUntil, sql`now()`)),
+              ),
+            )
+            .returning({ id: connectorConnections.id })
+        )[0];
     if (leased) {
       try {
         return (await refreshTokens(deps, row, stored, at)) ?? stored;
@@ -901,18 +951,44 @@ async function refreshOnce(deps: ConnectorDeps, id: string, at: Date): Promise<C
         throw error;
       } finally {
         // Left alone (the process died), the lease ends by itself.
-        await deps.db
-          .update(connectorConnections)
-          .set({ refreshingUntil: null })
-          .where(eq(connectorConnections.id, id))
-          .catch(() => {});
+        await (row.signInId
+          ? deps.db.update(connectorSignIns).set({ refreshingUntil: null }).where(eq(connectorSignIns.id, row.signInId))
+          : deps.db.update(connectorConnections).set({ refreshingUntil: null }).where(eq(connectorConnections.id, id))
+        ).catch(() => {});
       }
     }
     const latest = await read();
     if (!latest?.secretCiphertext) return null;
     if (latest.secretCiphertext !== old) return openConnectionSecret(deps.keyWrappers, latest);
+    if (latest.signInId !== row.signInId) return refreshOnce(deps, id, at);
     await Bun.sleep(200);
   }
+}
+
+/**
+ * The lease of a sign-in several workspaces use (ADR 9002): one renewal at a time for all its connections, taken on
+ * the sign-in's own row. Given back at once when another connection of it renewed meanwhile and wrote this one's
+ * tokens (its row no longer holds `old`): the caller reads them.
+ */
+async function leaseSignIn(db: Database, signInId: string, connectionId: string, old: string) {
+  const [lease] = await db
+    .update(connectorSignIns)
+    .set({ refreshingUntil: sql`now() + interval '30 seconds'` })
+    .where(
+      and(
+        eq(connectorSignIns.id, signInId),
+        or(isNull(connectorSignIns.refreshingUntil), lt(connectorSignIns.refreshingUntil, sql`now()`)),
+      ),
+    )
+    .returning({ id: connectorSignIns.id });
+  if (!lease) return null;
+  const [mine] = await db
+    .select({ secret: connectorConnections.secretCiphertext })
+    .from(connectorConnections)
+    .where(eq(connectorConnections.id, connectionId));
+  if (mine?.secret === old) return lease;
+  await db.update(connectorSignIns).set({ refreshingUntil: null }).where(eq(connectorSignIns.id, signInId));
+  return null;
 }
 
 /**
@@ -954,17 +1030,49 @@ async function refreshTokens(
   };
   const wrapper = deps.keyWrappers[0];
   if (!wrapper) throw new Error("no key wrapper");
-  const sealed = await sealSecret(wrapper, JSON.stringify(next), aadFor(c.orgId, c.id));
-  // No `updatedAt`: a new token for the same sign-in lists the same tools, and the tool listing cache is keyed on it.
-  await deps.db
-    .update(connectorConnections)
-    .set({
+  const tokenExpiresAt = token.expires_in ? new Date(at.getTime() + token.expires_in * 1000) : null;
+  const sealedFor = async (row: { orgId: string; id: string }) => {
+    const sealed = await sealSecret(wrapper, JSON.stringify(next), aadFor(row.orgId, row.id));
+    return {
       secretCiphertext: sealed.ciphertext,
       wrappedDataKey: sealed.wrappedDataKey,
       kekId: sealed.kekId,
-      tokenExpiresAt: token.expires_in ? new Date(at.getTime() + token.expires_in * 1000) : null,
-    })
-    .where(and(eq(connectorConnections.id, c.id), eq(connectorConnections.secretCiphertext, c.secretCiphertext ?? "")));
+      tokenExpiresAt,
+    };
+  };
+  // The same sign-in in other workspaces (ADR 9002): the provider may have spent the refresh token they hold, so they
+  // get these tokens too, each sealed for its own row, in the transaction that writes this one's.
+  const signInId = c.signInId;
+  const others = signInId
+    ? await deps.db
+        .select({ id: connectorConnections.id, orgId: connectorConnections.orgId })
+        .from(connectorConnections)
+        .where(
+          and(
+            eq(connectorConnections.signInId, signInId),
+            ne(connectorConnections.id, c.id),
+            isNull(connectorConnections.revokedAt),
+          ),
+        )
+    : [];
+  const mine = await sealedFor(c);
+  const theirs = await Promise.all(others.map(async (o) => ({ ...o, set: await sealedFor(o) })));
+  // No `updatedAt`: a new token for the same sign-in lists the same tools, and the tool listing cache is keyed on it.
+  await deps.db.transaction(async (tx) => {
+    await tx
+      .update(connectorConnections)
+      .set(mine)
+      .where(
+        and(eq(connectorConnections.id, c.id), eq(connectorConnections.secretCiphertext, c.secretCiphertext ?? "")),
+      );
+    for (const o of theirs) {
+      await tx
+        .update(connectorConnections)
+        .set(o.set)
+        .where(and(eq(connectorConnections.id, o.id), eq(connectorConnections.signInId, signInId ?? "")));
+    }
+  });
+  for (const o of theirs) caches.connections.delete(`${o.orgId}:active`);
   return next;
 }
 
