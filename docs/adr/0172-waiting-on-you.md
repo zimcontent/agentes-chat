@@ -63,3 +63,21 @@ decide shows in "Esperando você" as its own card and is decided there or in Apr
   until answered or expired.
 - A question asked of "anyone here" waits on the person behind the run, as its inbox row does, not on every member.
 - One more statement before the model call on turns with tools (`budget-queries.test.ts`).
+
+## Addendum (2026-11-14): one entry in the web sidebar
+
+§4 and §5 gave the web two tools, "Esperando você" and Aprovações, each with its own count. An approval a person may
+decide was in both, so the same thing showed twice, under two numbers that never matched. People asked which of the
+two to open.
+
+- The web sidebar lists one tool for what waits on a person: "Esperando você". Aprovações is no longer a tool there
+  (`toolsHere`), neither in the list nor in More. A place a person saved for it is kept and unused.
+- Its page has three tabs (`ApprovalsTabs`): "Esperando você" (the inbox's waiting rows, each answered in place),
+  Aprovações (the requests with their history, rules and approving for someone else) and proposals. The addresses
+  stay: `/waiting`, `/approvals`, `/proposals`. On any of them the one row is lit, unless proposals have a row of
+  their own.
+- One count: the approvals and proposals waiting for the person, plus what else waits in the inbox (a question, a
+  secret, a device). An approval counts once. Until the waiting list loads, the larger of the two counts shows.
+- Go to… still names each page.
+
+Aprovações keeps everything §5 says only it has; it is reached as a tab, not as a second entry.

@@ -282,7 +282,7 @@ describe("Memória e propostas (fase 5)", () => {
     await settle(6);
     expect(r.router.state.location.pathname).toBe(`/org/${ORG_ID}/proposals`);
     expect(screen().getByRole("article").textContent).toContain("Uma pessoa corrigiu: Remover o sistema antigo.");
-    await act(async () => fireEvent.mouseDown(screen().getByRole("tab", { name: /Pedidos/ }), { button: 0 }));
+    await act(async () => fireEvent.mouseDown(screen().getByRole("tab", { name: /Aprovações/ }), { button: 0 }));
     await settle(6);
     expect(r.router.state.location.pathname).toBe(`/org/${ORG_ID}/approvals`);
   });
@@ -306,7 +306,7 @@ describe("Memória e propostas (fase 5)", () => {
     state.approvals = [];
     for (const p of state.proposals) p.canDecide = false;
     await go("proposals", state);
-    expect(screen().getByRole("tab", { name: /Pedidos/ }).textContent).toBe("Pedidos");
+    expect(screen().getByRole("tab", { name: /Aprovações/ }).textContent).toBe("Aprovações");
   });
 
   test("Aceitar todas at the tabs' right asks once, then decides every waiting proposal oldest first", async () => {

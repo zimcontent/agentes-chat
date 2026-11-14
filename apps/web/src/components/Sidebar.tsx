@@ -37,6 +37,7 @@ import {
   useSkills,
   useTasksUnread,
   useUnreadThreads,
+  useWaitingOnMe,
   useWhatsApp,
 } from "@agenteschat/client";
 import { agentSections, groupOf } from "@agenteschat/client/lib/agent-groups";
@@ -261,6 +262,7 @@ export function Sidebar() {
   const [customizing, setCustomizing] = useState(false);
   const navigate = useNavigate();
   const onProposals = useRouterState({ select: (r) => r.location.pathname.endsWith("/proposals") });
+  const onApprovals = useRouterState({ select: (r) => r.location.pathname.endsWith("/approvals") });
   useEffect(() => {
     const open = () => setCreatingChannel(true);
     window.addEventListener(NEW_CHANNEL_EVENT, open);
@@ -272,6 +274,7 @@ export function Sidebar() {
   const unreadNotifications = notificationCount?.unread ?? 0;
   // "Esperando você": everything that waits on me, the same live count (ADR 0172).
   const waitingOnMe = notificationCount?.waiting ?? 0;
+  const waitingItems = useWaitingOnMe(orgId).data?.items;
   const lastUnread = useRef(unreadNotifications);
   const [bumps, setBumps] = useState(0);
   useEffect(() => {
@@ -292,8 +295,14 @@ export function Sidebar() {
   // Proposals are a tab of Aprovações and count there, unless the person gave them a row of their own.
   const proposalsRow = inSidebarList(sidebarPlace(sidebarItems, "proposals", personal), proposalsWaiting);
   const pending = (overview.data?.approvalsWaitingForMe ?? 0) + (proposalsRow ? 0 : proposalsWaiting);
+  // One entry for all of it (ADR 0172 addendum): Aprovações is a tab of "Esperando você", so its count joins this
+  // one. An approval I may decide is in both lists and counts once: the approvals, plus what else waits (a question,
+  // a secret, a device). Until that list loads, the larger of the two counts.
+  const waitingTotal = waitingItems
+    ? pending + waitingItems.filter((i) => i.kind !== "approval").length
+    : Math.max(waitingOnMe, pending);
   const counts: Partial<Record<SidebarItem, number>> = {
-    waiting: waitingOnMe,
+    waiting: waitingTotal,
     approvals: pending,
     proposals: proposalsWaiting,
     threads: missionsWaiting + unreadThreads,
@@ -304,12 +313,10 @@ export function Sidebar() {
   const listed = toolOrder.filter((id) => inSidebarList(sidebarPlace(sidebarItems, id, personal), counts[id] ?? 0));
   const inMore = toolOrder.filter((id) => !listed.includes(id));
   const countOf = (id: SidebarItem) =>
-    id === "waiting" && waitingOnMe > 0 ? (
-      <CountBadge aria-label={t("notifications.summaryWaiting", { count: waitingOnMe })}>
-        {badgeCount(waitingOnMe)}
+    id === "waiting" && waitingTotal > 0 ? (
+      <CountBadge aria-label={t("notifications.summaryWaiting", { count: waitingTotal })}>
+        {badgeCount(waitingTotal)}
       </CountBadge>
-    ) : id === "approvals" && pending > 0 ? (
-      <CountBadge aria-label={t("shell.pendingApprovals", { count: pending })}>{pending}</CountBadge>
     ) : id === "proposals" && proposalsWaiting > 0 ? (
       <CountBadge aria-label={t("shell.pendingProposals", { count: proposalsWaiting })}>{proposalsWaiting}</CountBadge>
     ) : id === "threads" && missionsWaiting > 0 ? (
@@ -334,7 +341,10 @@ export function Sidebar() {
       className="sidebar__item"
       title={id === "threads" && unreadThreads > 0 ? t("shell.unreadThreads", { count: unreadThreads }) : railTip(id)}
       data-unread={(id === "threads" && unreadThreads > 0) || (id === "issues" && unreadTasks > 0)}
-      inactiveProps={id === "approvals" && onProposals && !proposalsRow ? { "data-status": "active" } : undefined}
+      // Aprovações and Propostas are tabs of "Esperando você": its row is the one lit on them.
+      inactiveProps={
+        id === "waiting" && (onApprovals || (onProposals && !proposalsRow)) ? { "data-status": "active" } : undefined
+      }
     >
       <Icon name={SIDEBAR_TOOLS[id].icon} />
       <span className="sidebar__item-label">{t(`shell.${id}`)}</span>
