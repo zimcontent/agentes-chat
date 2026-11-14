@@ -1,10 +1,12 @@
 import type { PortalCardFile } from "@agenteschat/client";
-import { useArtifacts } from "@agenteschat/client";
+import { useArtifact, useArtifacts } from "@agenteschat/client";
 import { fileIcon, previewKindOfName } from "@agenteschat/client/lib/files";
 import { PORTAL_SEND_FILES } from "@agenteschat/client/lib/portal";
 import { Button, Checkbox, Dialog, DialogBody, DialogFooter, EmptyState, Icon, SearchField } from "@agenteschat/ui";
 import { type ReactNode, useDeferredValue, useId, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { useMaybeArtifactViewer } from "@/components/artifacts/ArtifactViewer";
+import { usePreviewUrl } from "@/components/artifacts/FileView";
 import { ErrorState, LoadingList } from "@/components/Loading";
 import { useOrg } from "@/components/org-context";
 
@@ -46,6 +48,43 @@ function FileGroup({ label, error, children }: { label: string; error?: string; 
 }
 
 /**
+ * A file's face in a list of attachments: the picture itself, small, when it is one the Drive can show; else its
+ * kind's icon. The tile has its size before the picture comes.
+ */
+function FileThumb({ file }: { file: PortalCardFile }) {
+  const { org } = useOrg();
+  const picture = previewKindOfName(file.name) === "image";
+  const detail = useArtifact(org.id, picture ? file.id : null).data;
+  const content = detail?.content.kind === "file" ? detail.content : null;
+  return (
+    <span className="portal-files__thumb">
+      {detail && content ? (
+        <ThumbPicture id={detail.id} version={detail.shownVersion} contentType={content.contentType} name={file.name} />
+      ) : (
+        <Icon name={fileIcon(file.name)} size={18} />
+      )}
+    </span>
+  );
+}
+
+function ThumbPicture({
+  id,
+  version,
+  contentType,
+  name,
+}: {
+  id: string;
+  version: number;
+  contentType: string;
+  name: string;
+}) {
+  const { url, failed } = usePreviewUrl(id, version, contentType, true);
+  if (failed) return <Icon name={fileIcon(name)} size={18} />;
+  // Beside its name: the name says what it is.
+  return url ? <img src={url} alt="" /> : null;
+}
+
+/**
  * The files that go up with a card or a send (ADR 9001), in the order a carousel shows them: each with its place
  * (up, down) and a way out, then "Add from the Drive". Only uploaded files of the workspace's Drive can go.
  */
@@ -55,6 +94,7 @@ export function PortalFiles({
   onChange,
   error,
   max = PORTAL_SEND_FILES,
+  preview = false,
 }: {
   label: string;
   files: PortalCardFile[];
@@ -62,18 +102,32 @@ export function PortalFiles({
   /** Why these files can't go as they are. */
   error?: string;
   max?: number;
+  /** Attachments to look at (a card opened): each with its picture, small, and a way to open it. */
+  preview?: boolean;
 }) {
   const { t } = useTranslation();
   const [picking, setPicking] = useState(false);
+  const viewer = useMaybeArtifactViewer();
   return (
     <FileGroup label={label} error={error}>
       {files.length > 0 && (
         <ol className="portal-files__list">
           {files.map((file, i) => (
-            <li key={file.id} className="portal-files__row">
-              <Icon name={fileIcon(file.name)} size={16} />
+            <li key={file.id} className="portal-files__row" data-preview={preview || undefined}>
+              {preview ? <FileThumb file={file} /> : <Icon name={fileIcon(file.name)} size={16} />}
               <span className="portal-files__name">{file.name}</span>
               <span className="portal-files__acts">
+                {preview && viewer && (
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    iconOnly
+                    icon="external"
+                    aria-label={t("portal.detail.openFile", { name: file.name })}
+                    title={t("portal.detail.openFile", { name: file.name })}
+                    onClick={() => viewer.open(file.id)}
+                  />
+                )}
                 {files.length > 1 && (
                   <>
                     <Button

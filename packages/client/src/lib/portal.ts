@@ -334,6 +334,37 @@ export function portalTextParts(text: string): { text: string; href?: string }[]
   return parts;
 }
 
+/**
+ * A card's description as the page's own formatting reads it. What another board wrote is kept, minus what only that
+ * board understands: a link's title (`[text](address "smartCard-inline")`), the invisible marks it leaves between
+ * paragraphs, and a line of underscores for a rule.
+ */
+export function portalArticle(text: string): string {
+  return (
+    text
+      .replace(/\r\n?/g, "\n")
+      .replace(/\u200b|\u200c|\u200d|\ufeff/g, "")
+      .replace(/\]\((https?:\/\/[^)\s]+)\s+"[^"\n]*"\)/g, "]($1)")
+      // On lines of its own, so it is a rule and never the heading mark of the line above.
+      .replace(/^[ \t]*_{5,}[ \t]*$/gm, "\n---\n")
+      .trim()
+  );
+}
+
+/** How many lines a description shows before "Show more", and whether `text` is longer than that. */
+export const PORTAL_ARTICLE_LINES = 14;
+export const portalArticleIsLong = (text: string) =>
+  text.split("\n").reduce((lines, line) => lines + Math.max(1, Math.ceil(line.length / 80)), 0) > PORTAL_ARTICLE_LINES;
+
+/**
+ * Who wrote a comment that no member or agent of the workspace answers for: a comment brought from another board
+ * carries its writer's name as it was there (optionally as `name:<name>`). Null: not a name, so nobody we can say.
+ */
+export function portalWriterName(by: string): string | null {
+  const name = (by.startsWith("name:") ? by.slice(5) : by).trim();
+  return /^\p{L}[\p{L} .'’-]{0,59}$/u.test(name) ? name : null;
+}
+
 // ---------- the overview's pipeline (ADR 9001 §10) ----------
 
 /** The stages the pipeline shows: everything not posted yet. */

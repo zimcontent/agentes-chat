@@ -19245,6 +19245,19 @@ export const en = {
       /** Under the members while the one responsible is an agent. */
       agentStarts: "The agent starts on it right away.",
       description: "Description",
+      edit: "Edit",
+      editDescription: "Edit description",
+      noDescription: "No description",
+      showMore: "Show more",
+      showLess: "Show less",
+      /** The words the link button puts between the brackets for the person to replace. */
+      linkText: "link text",
+      attachments: "Attachments",
+      openFile: "Open {{name}}",
+      /** The check beside a card's title: the work is finished. */
+      done: "Done",
+      markDone: "Mark as done",
+      markOpen: "Mark as not done",
       checklist: "Checklist",
       addCheck: "Add an item",
       comments: "Comments",
