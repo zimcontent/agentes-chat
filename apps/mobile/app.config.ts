@@ -121,6 +121,14 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   userInterfaceStyle: "automatic",
   ios: {
     bundleIdentifier: BUNDLE_ID,
+    // The icon in iOS's three appearances (scripts/brand-assets.ts draws them from the Doug's code): his black head
+    // on the green glass, his head in green glass on the stage for dark icons, and that picture in greys for the
+    // system to tint.
+    icon: {
+      light: "./assets/images/icon.png",
+      dark: "./assets/images/icon-dark.png",
+      tinted: "./assets/images/icon-tinted.png",
+    },
     ...(process.env.APPLE_TEAM_ID ? { appleTeamId: process.env.APPLE_TEAM_ID } : {}),
     ...(process.env.IOS_BUILD_NUMBER ? { buildNumber: process.env.IOS_BUILD_NUMBER } : {}),
     supportsTablet: false,
@@ -136,12 +144,14 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     // brings its own Firebase project.
     ...(process.env.GOOGLE_SERVICES_JSON ? { googleServicesFile: process.env.GOOGLE_SERVICES_JSON } : {}),
     ...(process.env.ANDROID_VERSION_CODE ? { versionCode: Number(process.env.ANDROID_VERSION_CODE) } : {}),
-    // Two layers (the night sky, the tilted agent), so the launcher's mask and motion cut them like the iOS icon.
+    // Two layers (the green glass, the Doug's head on it), so the launcher's mask and motion cut them like the iOS
+    // icon, and the one-colour layer a themed home screen tints. All drawn from his code (scripts/brand-assets.ts).
     adaptiveIcon: {
       foregroundImage: "./assets/images/adaptive-icon.png",
       backgroundImage: "./assets/images/adaptive-icon-background.png",
-      // The stage (`--db-palco`): the Doug's layer is drawn from his code (scripts/brand-assets.ts).
-      backgroundColor: "#0A0A0A",
+      monochromeImage: "./assets/images/adaptive-icon-monochrome.png",
+      // The glass's own green, under its picture.
+      backgroundColor: "#9CFA05",
     },
     predictiveBackGestureEnabled: false,
     // Never read the phone's photos or play in the background: the image picker is Android's photo picker, Salvar em

@@ -7,7 +7,7 @@ const escapeXml = (s: string) =>
 
 /**
  * A DougBot drawn by the identity's code (`dougbot-avatar.js`, IDENTIDADE.md §8): SVG in the DOM, never an image.
- * It reads its own size: under 60 px the Doug closes on his face, under 44 px the light on the floor goes out
+ * It reads its own size: under 60 px the Doug's head fills his piece, under 44 px the light on the floor goes out
  * (§7 "Tamanhos"). `guess` is the size before the first measure (the class's), so the first paint is already right.
  */
 export function BotFace({

@@ -15,7 +15,7 @@ DougBot is this fork's phone app: agentes.chat by Codari Global, LLC (AGPL-3.0),
   Theme: Escuro / Claro / Sistema (Você › Aparência), the system by default.
 - **Type**: Manrope (titles, names, the signature), Inter (interface, conversation), JetBrains Mono (code), embedded
   from `@expo-google-fonts/*` (`src/providers/fonts.ts`); `Text`/`systemText` pick the family per weight.
-- **Bots are code, never images**: `src/brand/dougbot-avatar.js` (the identity's file, verbatim) drawn as SVG by
+- **Bots are code, never images**: `src/brand/dougbot-avatar.js` (the identity's drawer) drawn as SVG by
   `AgentAvatar` (`react-native-svg`'s `SvgXml`); `src/brand/bots.ts` says which bot each agent is (the same rules as
   the web) and maps the agent's mode to the five states. An agent may have a real photo (`agent.photo`, PUT/DELETE
   `…/orgs/{orgId}/agents/{agentId}/photo`); without one, or if it fails, the drawn bot. The signature is live text

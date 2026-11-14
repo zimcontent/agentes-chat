@@ -467,7 +467,7 @@ describe("the computer ready email's button: its first step", () => {
 describe("the picture over the headline", () => {
   const ready = EMAIL_SAMPLES["computer_ready-ai.en"] as Extract<EmailTemplate, { kind: "computer_ready" }>;
   /** The team a workspace with no agents shows: the identity's first four, the Doug first. */
-  const TEAM = ["bot-doug-1.png 44×44", "bot-rosa-1.png 44×44", "bot-sony-1.png 44×44", "bot-mark-1.png 44×44"];
+  const TEAM = ["bot-doug-2.png 44×44", "bot-rosa-1.png 44×44", "bot-sony-1.png 44×44", "bot-mark-1.png 44×44"];
   /** The pictures between the card's top and the headline, in order: file, size and alt text. */
   const scene = (t: EmailTemplate) => {
     const { html } = renderEmail(t, art);
@@ -488,7 +488,7 @@ describe("the picture over the headline", () => {
         { name: "Braço direito", handle: "bd", builtin: "right_hand" },
         { name: "Sony" },
       ]),
-    ).toEqual(["bot-rosa-1.png 44×44", "bot-chess-1.png 44×44", "bot-doug-1.png 44×44", "bot-sony-1.png 44×44"]);
+    ).toEqual(["bot-rosa-1.png 44×44", "bot-chess-1.png 44×44", "bot-doug-2.png 44×44", "bot-sony-1.png 44×44"]);
     // A free bot: its form from its trade (role, handle, name), its colour and eyes from its handle. Never the team's.
     const [social, dev, other] = shown([
       { name: "Social Media (ELMX)", handle: "social-elmx", role: "Posta nas redes" },
@@ -538,7 +538,8 @@ describe("the picture over the headline", () => {
       const pictures = scene(sample);
       const has = withCrew.has(id) || id.startsWith("early_access") || id.startsWith("computer_ready");
       expect({ id, shows: pictures.length > 0 }).toEqual({ id, shows: has });
-      for (const picture of pictures) expect(picture).toMatch(/^bot-[a-z0-9-]+-1\.png 44×44$/);
+      // The Doug's picture has a version of its own (`DOUG_ART`): his drawing changed, the other bots' did not.
+      for (const picture of pictures) expect(picture).toMatch(/^bot-(doug-2|[a-z0-9-]+-1)\.png 44×44$/);
     }
     expect(scene(EMAIL_SAMPLES["early_access.en"] as EmailTemplate)).toEqual(TEAM);
   });
@@ -594,8 +595,8 @@ describe("the picture over the headline", () => {
 
 describe("where the pictures come from", () => {
   test("every picture an email names is listed, and the web app has each one", () => {
-    expect(EMAIL_PICTURES).toContain("doug-logo-ink-1.png");
-    expect(EMAIL_PICTURES).toContain("bot-doug-1.png");
+    expect(EMAIL_PICTURES).toContain("doug-logo-ink-2.png");
+    expect(EMAIL_PICTURES).toContain("bot-doug-2.png");
     // The team's seven, and every free bot: seven forms, four colours, four pairs of eyes.
     expect(EMAIL_PICTURES).toHaveLength(2 + 7 + 7 * 4 * 4);
     expect(new Set(EMAIL_PICTURES).size).toBe(EMAIL_PICTURES.length);
@@ -605,9 +606,9 @@ describe("where the pictures come from", () => {
       for (const [, file = ""] of renderEmail(sample, art).html.matchAll(/src="https:\/\/x\.test\/email\/([^"]+)"/g))
         expect(EMAIL_PICTURES).toContain(file);
     // The fonts and the browser notification's picture, served from the same folder.
-    for (const file of ["inter-latin.woff2", "manrope-latin.woff2", "doug-mark-1.png"])
+    for (const file of ["inter-latin.woff2", "manrope-latin.woff2", "doug-mark-2.png"])
       expect({ file, there: existsSync(join(WEB_DIR, "email", file)) }).toEqual({ file, there: true });
-    expect(readFileSync(join(WEB_DIR, "sw.js"), "utf8")).toContain('const ICON = "/email/doug-mark-1.png";');
+    expect(readFileSync(join(WEB_DIR, "sw.js"), "utf8")).toContain('const ICON = "/email/doug-mark-2.png";');
   });
 
   test("attached: the computer ready email carries each bot it shows once", async () => {
@@ -621,9 +622,9 @@ describe("where the pictures come from", () => {
     expect(html).toContain('src="cid:bot-rosa-1@dougbot.app"');
     expect(html).not.toContain('src="http');
     expect(inline.map((p) => p.filename)).toEqual([
-      "doug-logo-ink-1.png",
-      "doug-logo-bone-1.png",
-      "bot-doug-1.png",
+      "doug-logo-ink-2.png",
+      "doug-logo-bone-2.png",
+      "bot-doug-2.png",
       "bot-rosa-1.png",
       "bot-mark-1.png",
     ]);
@@ -631,7 +632,7 @@ describe("where the pictures come from", () => {
 
   test("linked from this server's /email/, with the web font", () => {
     const { html, inline } = renderEmail(EMAIL_SAMPLES["verify_email.en"] as EmailTemplate, art);
-    expect(html).toContain('src="https://x.test/email/doug-logo-ink-1.png"');
+    expect(html).toContain('src="https://x.test/email/doug-logo-ink-2.png"');
     expect(html).toContain('alt="DougBot"');
     expect(html).toContain("src:url('https://x.test/email/inter-latin.woff2')");
     expect(html).toContain("src:url('https://x.test/email/manrope-latin.woff2')");
@@ -685,9 +686,9 @@ describe("where the pictures come from", () => {
       },
       attached,
     );
-    expect(html).toContain('src="cid:doug-logo-ink-1@dougbot.app"');
-    expect(inline.map((p) => p.filename)).toEqual(["doug-logo-ink-1.png", "doug-logo-bone-1.png", "bot-rosa-1.png"]);
-    expect(inline[0]).toMatchObject({ cid: "doug-logo-ink-1@dougbot.app", contentType: "image/png" });
+    expect(html).toContain('src="cid:doug-logo-ink-2@dougbot.app"');
+    expect(inline.map((p) => p.filename)).toEqual(["doug-logo-ink-2.png", "doug-logo-bone-2.png", "bot-rosa-1.png"]);
+    expect(inline[0]).toMatchObject({ cid: "doug-logo-ink-2@dougbot.app", contentType: "image/png" });
     expect([...(inline[0]?.content ?? []).slice(1, 4)].map((c) => String.fromCharCode(c)).join("")).toBe("PNG");
   });
 
@@ -783,8 +784,8 @@ describe("outbox delivery", () => {
     const attached: EmailArt = await emailArtFor("http://localhost:3000", WEB_DIR, "attach");
     await sendQueuedEmail(sender, { key: "k", to: ["a@b.c"], template: EMAIL_SAMPLES["verify_email.en"] }, attached);
     expect(sender.sent[0]?.inline?.map((p) => p.cid)).toEqual([
-      "doug-logo-ink-1@dougbot.app",
-      "doug-logo-bone-1@dougbot.app",
+      "doug-logo-ink-2@dougbot.app",
+      "doug-logo-bone-2@dougbot.app",
     ]);
     await sendQueuedEmail(sender, { key: "k2", to: ["a@b.c"], template: EMAIL_SAMPLES["verify_email.en"] }, art);
     expect(sender.sent[1]).not.toHaveProperty("inline");

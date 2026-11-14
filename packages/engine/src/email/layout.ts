@@ -91,9 +91,11 @@ export interface EmailArt {
 
 /**
  * The pictures' version, in their file names: a changed drawing gets a new name, since Gmail's image proxy caches by
- * name and the emails already sent keep theirs.
+ * name and the emails already sent keep theirs. The Doug's pictures have a version of their own: his drawing changed
+ * (a bot's head where his portrait was) while the other bots' did not.
  */
 const ART = "1";
+const DOUG_ART = "2";
 /** A bot as an email shows it, in px: beside a name, and in the row over a headline. Its file is twice the larger. */
 export const BOT_SHOWN = { row: 32, scene: 44 } as const;
 /**
@@ -108,7 +110,7 @@ export const EMAIL_BOTS: readonly DougBotOpcoes[] = [
 ];
 export const botFile = (b: DougBotOpcoes) =>
   b.bot
-    ? `bot-${b.bot}-${ART}.png`
+    ? `bot-${b.bot}-${b.bot === "doug" ? DOUG_ART : ART}.png`
     : `bot-${b.forma}-${CORES_LIVRES.indexOf(b.cor as (typeof CORES_LIVRES)[number])}-${b.olhos}-${ART}.png`;
 /** An agent's bot: the app's own answer for who it is. */
 const botOf = (look: Look) =>
@@ -128,10 +130,10 @@ export const ONBOARDING_CREW: readonly Look[] = DougBot.ORDEM.slice(0, 4).map((n
  * page, and the name still reads where a client darkens the page but not the picture (the Gmail apps, Gmail with other
  * accounts, classic Outlook), or inverts the picture too. In bone for our own dark design.
  */
-export const LOGO_INK = `doug-logo-ink-${ART}.png`;
-export const LOGO_BONE = `doug-logo-bone-${ART}.png`;
+export const LOGO_INK = `doug-logo-ink-${DOUG_ART}.png`;
+export const LOGO_BONE = `doug-logo-bone-${DOUG_ART}.png`;
 /** The Doug alone: the picture of a browser notification (`apps/web/public/sw.js`). */
-export const MARK = `doug-mark-${ART}.png`;
+export const MARK = `doug-mark-${DOUG_ART}.png`;
 /** Every picture an email may show, as the web app serves them (`apps/web/public/email/`). */
 export const EMAIL_PICTURES = [LOGO_INK, LOGO_BONE, ...EMAIL_BOTS.map(botFile)];
 /** The app's faces, from this server's own `/email/`: Inter for the words, Manrope for the headline. */

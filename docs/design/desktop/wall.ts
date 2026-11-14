@@ -8,7 +8,7 @@ import DougBot, { type DougBotNome } from "../../../packages/ui/src/brand/dougbo
 const COUNTER = 804;
 /** How far a bot's piece goes down behind the counter's glass. */
 const BEHIND = 8;
-/** The Doug in the middle, a bust; the team at his sides, in the identity's order. */
+/** The Doug in the middle, larger; the team at his sides, in the identity's order. */
 const TEAM: { bot: DougBotNome; size: number }[] = [
   { bot: "rosa", size: 96 },
   { bot: "sony", size: 96 },

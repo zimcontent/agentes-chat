@@ -161,7 +161,7 @@ export function agentMonogram(name: string): string {
 function shellOf(bot: ReturnType<typeof botDoAgente>): string {
   if (bot.bot === "doug") return DougBot.QUADRO;
   const forma = bot.bot ? DougBot.TIME[bot.bot].forma : bot.forma;
-  return DougBot.CORPOS[(forma === "retrato" ? "squircle" : forma) ?? "squircle"];
+  return DougBot.CORPOS[(forma === "cabeca" ? "squircle" : forma) ?? "squircle"];
 }
 
 /**
@@ -195,8 +195,9 @@ function BotPhoto({
 /**
  * One face for everyone. People show their photo, their pixel portrait or initials in a tile, with an optional
  * presence badge on the corner. Agents are their DougBot (IDENTIDADE.md): a glass piece drawn by code, its form
- * from its trade, its eyes saying its state; the Doug is the only portrait. An agent with a photo shows it cut to its
- * bot's shape. With the pixel art on (`PIXEL_ART`), agents are the pixel symbol from the agent engine instead.
+ * from its trade, its eyes saying its state; the Doug is a bot's head in a piece of green glass. An agent with a
+ * photo shows it cut to its bot's shape. With the pixel art on (`PIXEL_ART`), agents are the pixel symbol from the
+ * agent engine instead.
  */
 export function Avatar({
   kind = "person",

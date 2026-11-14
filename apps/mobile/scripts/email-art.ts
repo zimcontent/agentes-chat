@@ -11,7 +11,7 @@
  * stores' (`brand-assets.ts`). It lives here because the app already has resvg and Manrope's files.
  *
  * Rendered with resvg (SVG → PNG, filters included). A changed drawing gets a new file name (Gmail's image proxy
- * caches by name): bump `ART` in the layout.
+ * caches by name): bump `ART` in the layout, or `DOUG_ART` when only the Doug's changed.
  */
 import { writeFileSync } from "node:fs";
 import { join } from "node:path";

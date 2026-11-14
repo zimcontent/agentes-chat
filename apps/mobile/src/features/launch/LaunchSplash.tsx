@@ -152,8 +152,9 @@ export function LaunchSplash({
     requestAnimationFrame(onShown);
   };
 
-  // The Doug, drawn by the identity's code (never an image): he winks and smiles at rest; leaving, he finished; with
-  // nothing happening (no network, nobody answers) his eyes close. The same drawing as the native launch image.
+  // The Doug, drawn by the identity's code (never an image): his eyes open at rest; leaving, they smile (he
+  // finished); with nothing happening (no network, nobody answers) they close. The same drawing as the native
+  // launch image.
   const estado = leaving ? "terminou" : offline || eyesClosed ? "dormindo" : "ok";
   const svgId = `s${useId().replace(/[^a-zA-Z0-9]/g, "")}`;
   const doug = useMemo(

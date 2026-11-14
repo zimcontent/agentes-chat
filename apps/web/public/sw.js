@@ -4,7 +4,7 @@
 
 /** What a click on a notification asks of a tab already open (`PUSH_OPEN_MESSAGE` in web-push.ts). */
 const OPEN_MESSAGE = "agentes.push.open";
-const ICON = "/email/doug-mark-1.png";
+const ICON = "/email/doug-mark-2.png";
 const BADGE = "/push-badge.png";
 
 // A new version takes over at once: it holds no state, so there is nothing to wait for.
