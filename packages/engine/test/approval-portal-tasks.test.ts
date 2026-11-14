@@ -21,6 +21,7 @@ import {
   shiftDay,
   syncPortalTasks,
   updateIssue,
+  watchPortalAdjustments,
   watchPortalDates,
 } from "../src";
 import { addMember, type Fixture, setup } from "./fixtures";
@@ -336,6 +337,25 @@ describe("the approval portal's cards as tasks", () => {
     expect(brief).toContain("send_new_version");
     expect(brief).not.toContain("only when a person of the team tells you to send it");
 
+    // While the change is on its way nobody is bothered; two hours on with no new version, the assistant is told
+    // once, in the owner's conversation with it, with who has the post.
+    const noon = (days: number) => {
+      const at = new Date(Date.now() + days * 24 * 3600_000);
+      at.setUTCHours(12, 0, 0, 0);
+      return at;
+    };
+    expect(await watchPortalAdjustments(deps, f.org.id, new Date())).toBe(0);
+    await portalTasksTick(deps, portal);
+    expect(await watchPortalAdjustments(deps, f.org.id, noon(1))).toBe(1);
+    expect(await watchPortalAdjustments(deps, f.org.id, noon(2))).toBe(0);
+    const stalled = await f.db
+      .select({ body: schema.messages.body })
+      .from(schema.messages)
+      .where(eq(schema.messages.channelId, dm.id));
+    expect(stalled).toHaveLength(1);
+    expect(stalled[0]?.body).toContain("há mais de 2 horas e a nova versão ainda não subiu");
+    expect(stalled[0]?.body).toContain(`#${task.number} "Carrossel" (${f.general.name}, carousel): está com @dev`);
+
     // The agent hands the new version back: code puts it up, and the next pass says so where the team reads.
     await sendNewVersion(portal, async (id) => ({ name: `${id}.png`, bytes: new Uint8Array([1]) }), {
       client: f.general.name,
@@ -353,8 +373,11 @@ describe("the approval portal's cards as tasks", () => {
       'A nova versão de "Carrossel" já está no portal, pronta para o cliente aprovar. Abrir no portal: https://portal.example/p1';
     expect(said.find((m) => m.channelId === f.general.id)?.body).toBe(line);
     expect(said.find((m) => m.channelId === task.conversationChannelId)?.body).toBe(line);
-    // Said once.
+    // Said once, and a post that is back with the client is no longer watched.
     expect((await portalTasksTick(deps, portal))?.changes).toEqual([]);
+    expect(await watchPortalAdjustments(deps, f.org.id, noon(3))).toBe(0);
+    const back = await portalTaskOf(f.db, f.org.id, card.id);
+    expect((back?.source as { asked?: unknown } | undefined)?.asked).toBeUndefined();
   });
 
   test("a post's day is said once on the day and once the day after, and the assistant sees the board", async () => {

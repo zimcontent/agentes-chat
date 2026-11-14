@@ -23,6 +23,8 @@ export interface PortalOpenTask {
   assignee: { type: "agent" | "person"; id: string } | null;
   /** The date notices already written for it (`<day>:<kind>`). */
   nudged: string | null;
+  /** The change its client asked for and still waits on: since when, and whether the assistant was told it stalls. */
+  asked: { at: string; told: boolean } | null;
 }
 
 /** The day (`YYYY-MM-DD`) and hour it is in `zone`. */
@@ -94,6 +96,7 @@ export async function portalOpenTasks(db: Executor, orgId: string): Promise<Port
       client?: string;
       cardId?: string;
       nudged?: string;
+      asked?: { at?: string; told?: boolean };
       synced?: { card?: { stage?: PortalColumn; kind?: string } };
     };
     return {
@@ -110,6 +113,7 @@ export async function portalOpenTasks(db: Executor, orgId: string): Promise<Port
           ? { type: row.assigneeType, id: row.assigneeId }
           : null,
       nudged: source.nudged ?? null,
+      asked: source.asked?.at ? { at: source.asked.at, told: source.asked.told === true } : null,
     };
   });
 }

@@ -2,7 +2,14 @@ import type { ApprovalPortal, PortalCard, PortalItem, PubSub } from "@agentescha
 import { and, asc, type Database, eq, isNull, schema, sql } from "@agenteschat/db";
 import { type PortalColumn, portalColumnOf } from "./approval-portal";
 import { planCard } from "./approval-portal-plan";
-import { localDay, type PortalOpenTask, portalOpenTasks, portalZone, shiftDay } from "./approval-portal-watch";
+import {
+  localDay,
+  type PortalOpenTask,
+  portalAssigneeNames,
+  portalOpenTasks,
+  portalZone,
+  shiftDay,
+} from "./approval-portal-watch";
 import { openPersonAgentDm } from "./dms";
 import { publishMessageCreated } from "./events";
 import { projectByName } from "./issue-projects";
@@ -240,8 +247,18 @@ const withLead = (members: string[], lead: string | null, before: string | null)
 };
 
 async function saveSynced(db: Database, row: IssueRow, client: string, cardId: string, synced: Synced) {
-  const nudged = (row.source as { nudged?: string }).nudged;
-  const source = { type: "portal" as const, client, cardId, synced, ...(nudged ? { nudged } : {}) };
+  const kept = row.source as { nudged?: string; asked?: { at: string; told?: boolean } };
+  const nudged = kept.nudged;
+  // Since when the client waits on a change: kept while the post is still theirs to get back.
+  const asked = synced.card.stage === "adjusting" ? kept.asked : undefined;
+  const source = {
+    type: "portal" as const,
+    client,
+    cardId,
+    synced,
+    ...(nudged ? { nudged } : {}),
+    ...(asked ? { asked } : {}),
+  };
   if (JSON.stringify(row.source) === JSON.stringify(source)) return;
   await db.update(issues).set({ source }).where(eq(issues.id, row.id));
 }
@@ -727,6 +744,13 @@ export async function announcePortalStages(deps: PortalTaskDeps, orgId: string, 
         }
       }
       if (change.to === "adjusting") {
+        // Since when the client waits: what `watchPortalAdjustments` reads.
+        await db
+          .update(issues)
+          .set({
+            source: sql`${issues.source} || ${JSON.stringify({ asked: { at: new Date().toISOString() } })}::jsonb`,
+          })
+          .where(eq(issues.id, change.issueId));
         // The agent that has it starts on the change at once; a post nobody has goes to the assistant to hand on.
         if (change.assignee?.type === "agent") {
           await askAgentToImplement({ db, pubsub }, who.owner, orgId, change.issueId, change.assignee.id);
@@ -813,6 +837,71 @@ export async function watchPortalDates(deps: PortalTaskDeps, orgId: string, at =
   return said;
 }
 
+/** How long a change a client asked for may wait for its new version before the assistant is told to look. */
+export const PORTAL_ADJUST_STALL_MS = 2 * 60 * 60_000;
+
+const STALLED: Record<NoticeLocale, { head: string; held: (name: string) => string; nobody: string }> = {
+  "pt-BR": {
+    head: "Aviso automático do Portal: o cliente pediu ajuste nestes posts há mais de 2 horas e a nova versão ainda não subiu. Veja o que travou com quem está com cada um, destrave e me diga em uma linha como ficou.",
+    held: (name) => `está com ${name}`,
+    nobody: "sem responsável",
+  },
+  en: {
+    head: "Automatic notice from the Portal: the client asked for a change on these posts over 2 hours ago and the new version isn't up yet. See what is holding each with whoever has it, get it moving and tell me in one line how it stands.",
+    held: (name) => `${name} has it`,
+    nobody: "nobody has it",
+  },
+};
+
+/**
+ * The changes clients asked for, watched by code (ADR 9001 §17): the loop needs nobody while it runs, so the
+ * assistant is the one who looks when it doesn't. A post still waiting for its new version two hours after the
+ * client asked is told to the assistant once, in its owner's own conversation with it, with who has it; what to do
+ * about it is the assistant's judgment. Nothing the client wrote goes in the message.
+ */
+export async function watchPortalAdjustments(deps: PortalTaskDeps, orgId: string, at = new Date()) {
+  const { db, pubsub } = deps;
+  if (!pubsub) return 0;
+  const who = await writers(db, orgId);
+  if (!who?.rightHand) return 0;
+  const { hour } = localDay(await portalZone(db, orgId, who.owner), at);
+  if (hour < DATES_FROM_HOUR) return 0;
+  const stalled = (await portalOpenTasks(db, orgId))
+    .filter(
+      (task) =>
+        task.stage === "adjusting" &&
+        task.asked &&
+        !task.asked.told &&
+        at.getTime() - Date.parse(task.asked.at) >= PORTAL_ADJUST_STALL_MS,
+    )
+    .slice(0, 20);
+  if (stalled.length === 0) return 0;
+  // Marked first: a message that fails is skipped, never sent twice.
+  for (const task of stalled) {
+    await db
+      .update(issues)
+      .set({ source: sql`jsonb_set(${issues.source}, '{asked,told}', 'true'::jsonb)` })
+      .where(eq(issues.id, task.id));
+  }
+  const names = await portalAssigneeNames(db, orgId, stalled);
+  const words = STALLED[localeOf(who.locale)];
+  const dm = await openPersonAgentDm(db, orgId, who.owner, who.rightHand);
+  const body = [
+    words.head,
+    ...stalled.map(
+      (task) =>
+        `- #${task.number} "${task.title.slice(0, 120)}" (${task.client}${task.kind ? `, ${task.kind}` : ""}): ${
+          task.assignee ? words.held(names.get(task.assignee.id) ?? "?") : words.nobody
+        }`,
+    ),
+  ].join("\n");
+  await postPersonMessage({ db, pubsub }, who.owner, orgId, dm.id, {
+    body,
+    meta: { portalStalled: stalled.map((task) => task.number) },
+  });
+  return stalled.length;
+}
+
 /**
  * One tick of the portal's worker: bring every card and task in step, then say what changed at the portal's side.
  * Nothing when the installation has no workspace yet.
@@ -826,6 +915,11 @@ export function portalTasksTick(deps: PortalTaskDeps, portal: ApprovalPortal): P
     await announcePortalStages(deps, orgId, result.changes);
     await watchPortalDates(deps, orgId).catch((error: unknown) =>
       deps.log?.warn("approval portal: the posts' days could not be watched", {
+        error: error instanceof Error ? error.message : String(error),
+      }),
+    );
+    await watchPortalAdjustments(deps, orgId).catch((error: unknown) =>
+      deps.log?.warn("approval portal: the changes clients wait on could not be watched", {
         error: error instanceof Error ? error.message : String(error),
       }),
     );

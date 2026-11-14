@@ -165,6 +165,11 @@ the client sent back and what is ready.
     - **A person** who has the post is named in the task's conversation and told to put the new version up at the
       portal itself, with the post's address. This server has no upload of its own for people: the portal's is
       the one they already use.
+    - **The assistant looks when it stalls.** The loop needs nobody while it runs, so the one who watches it is
+      the assistant, by a rule: a post still waiting for its new version two hours after the client asked
+      (`watchPortalAdjustments`, from 8h in the owner's time) is told to it once, in its owner's own conversation
+      with it, with who has the post. What to do about it is its judgment. When the change was asked is kept on
+      the task (`source.asked`) while the post is still the team's to give back.
     - **Said where the team reads.** When the post is back with the client, whoever put the version there, the
       assistant says so in words written in code, in the task's conversation and in the client's group, with the
       post's address at the portal. The same address closes the line about the change being asked.
