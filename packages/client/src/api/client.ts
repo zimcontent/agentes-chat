@@ -260,6 +260,7 @@ import type {
   PortalBoard,
   PortalCard,
   PortalCardInput,
+  PortalClientColor,
   PortalItemEdit,
   PortalJob,
   PortalLabel,
@@ -1449,6 +1450,14 @@ export interface ApiClient {
       change: { name?: string; color?: PortalLabelColor },
     ): Promise<PortalLabel>;
     deleteLabel(orgId: string, labelId: string): Promise<void>;
+    /** A client's colour; `null` takes it away. */
+    setClientColor(orgId: string, client: string, color: PortalClientColor | null): Promise<void>;
+    /** A client's logo, cropped square by the app; `null` takes it away. */
+    setClientLogo(
+      orgId: string,
+      client: string,
+      image: { imageBase64: string; contentType: string } | null,
+    ): Promise<void>;
     /** Anyone who may post comments; answers the card with it. */
     addComment(orgId: string, cardId: string, text: string): Promise<PortalCard>;
     /** One's own, or any for who may give agents work. */

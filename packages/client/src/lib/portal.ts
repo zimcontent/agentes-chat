@@ -3,6 +3,7 @@ import { ApiError } from "../api/http";
 import type {
   PlanCard,
   PortalCard,
+  PortalClientColor,
   PortalClientSummary,
   PortalColumn,
   PortalItem,
@@ -503,6 +504,34 @@ export const portalClientInitials = (client: string) =>
     .map((word) => word.charAt(0))
     .join("")
     .toUpperCase();
+
+/** The colours a client takes (`PORTAL_CLIENT_COLORS`, packages/adapters/src/approval-portal.ts): names the apps draw. */
+export const PORTAL_CLIENT_COLORS: readonly PortalClientColor[] = [
+  "green",
+  "blue",
+  "navy",
+  "sky",
+  "white",
+  "teal",
+  "yellow",
+  "orange",
+  "red",
+  "pink",
+  "purple",
+  "gray",
+];
+
+/** Each client's colour, from the overview: only the clients the team gave one. */
+export const portalClientColors = (
+  clients: readonly Pick<PortalClientSummary, "client" | "color">[] | undefined,
+): ReadonlyMap<string, PortalClientColor> =>
+  new Map((clients ?? []).flatMap((c) => (c.color ? [[c.client, c.color] as const] : [])));
+
+/** Each client's logo, from the overview: only the clients the team gave one. */
+export const portalClientLogos = (
+  clients: readonly Pick<PortalClientSummary, "client" | "logo">[] | undefined,
+): ReadonlyMap<string, string> =>
+  new Map((clients ?? []).flatMap((c) => (c.logo ? [[c.client, c.logo] as const] : [])));
 
 /** A hue for a client's mark, the same every time for the same client (0 to 359). */
 export function portalClientHue(client: string): number {

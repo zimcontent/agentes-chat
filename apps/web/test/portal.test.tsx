@@ -246,6 +246,65 @@ describe("a client's board", () => {
       "https://social.example/p/abc",
     );
     expect(main().querySelector(".issues-col")).toBeNull();
+    // No card stands for this post: nothing of it is in the Drive.
+    expect(within(month).queryByRole("link", { name: "Link do Drive" })).toBeNull();
+  });
+
+  test("Postados: a post whose card carries files also opens its file in the Drive", async () => {
+    await go("portal?client=acme-foods&tab=posted", withPortal(), (portal) => {
+      fill(portal);
+      portal.cards.push(
+        portalCard({
+          id: "c-000009",
+          client: "acme-foods",
+          title: "Abertura da loja",
+          item: "p4",
+          files: [{ id: "22222222-2222-4222-8222-222222222222", name: "abertura.mp4" }],
+        }),
+      );
+    });
+    const month = within(main()).getByRole("region", { name: "outubro de 2026" });
+    expect(within(month).getByRole("link", { name: "Ver o post" })).toBeTruthy();
+    expect(within(month).getByRole("link", { name: "Link do Drive" }).getAttribute("href")).toBe(
+      `/org/${ORG_ID}/drive?artifact=22222222-2222-4222-8222-222222222222`,
+    );
+  });
+
+  test("a client's colour: picked on its page, it marks the client and its work on the overview", async () => {
+    const { state, portal } = await go("portal?client=acme-foods");
+    const menu = await openMenu(within(main()).getByRole("button", { name: /Cor do cliente/ }));
+    // Twelve colours, "No colour", and the way to the client's logo.
+    expect(within(menu).getAllByRole("menuitem")).toHaveLength(14);
+    expect(within(menu).getByRole("menuitem", { name: "Logo do cliente" })).toBeTruthy();
+    await click(within(menu).getByRole("menuitem", { name: /Azul escuro/ }));
+    expect(calls(state, "portal.setClientColor")).toEqual([[ORG_ID, "acme-foods", "navy"]]);
+    expect(portal.colors).toEqual({ "acme-foods": "navy" });
+    // The button says the colour chosen.
+    expect(within(main()).getByRole("button", { name: /Azul escuro/ })).toBeTruthy();
+    cleanup();
+
+    await go("portal", withPortal(), (fake) => {
+      fill(fake);
+      fake.colors = { "acme-foods": "navy" };
+    });
+    const mark = (client: string) => main().querySelector(`.portal-clientcard[href*="client=${client}"] .portal-mark`);
+    expect(mark("acme-foods")?.getAttribute("data-client-color")).toBe("navy");
+    expect(mark("blue-studio")?.getAttribute("data-client-color")).toBeNull();
+    // A logo takes the place of the client's initials.
+    expect(mark("blue-studio")?.textContent).toBe("BS");
+    cleanup();
+    await go("portal", withPortal(), (fake) => {
+      fill(fake);
+      fake.colors = { "acme-foods": "navy" };
+      fake.logos = { "blue-studio": "/api/app/portal-logos/o/blue-studio/0123456789abcdef.png" };
+    });
+    expect(mark("blue-studio")?.getAttribute("src")).toBe("/api/app/portal-logos/o/blue-studio/0123456789abcdef.png");
+    // In the pipeline each of the client's cards is glass in its colour, the label with its name too.
+    const cards = [...main().querySelectorAll(".portal-pipeline .portal-card[data-client-color]")];
+    expect(cards.length).toBeGreaterThan(0);
+    expect(cards.every((el) => el.getAttribute("data-client-color") === "navy")).toBe(true);
+    expect(cards.every((el) => el.querySelector(".portal-clientchip")?.textContent === "Acme Foods")).toBe(true);
+    expect(cards[0]?.querySelector(".portal-clientchip")?.getAttribute("data-client-color")).toBe("navy");
   });
 
   test("a card moves between A produzir and Em produção from its menu", async () => {

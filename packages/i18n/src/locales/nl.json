@@ -18931,6 +18931,33 @@
     "send": "Ter goedkeuring versturen",
     "openAtPortal": "Openen in het portaal",
     "seePost": "De post bekijken",
+    "seeDrive": "Drive-link",
+    "clientLogo": {
+      "menu": "Logo van de klant",
+      "title": "Logo van {{name}}",
+      "help": "Een vierkante afbeelding in plaats van de initialen van de klant. JPEG, PNG of WebP tot 2 MB.",
+      "remove": "Logo verwijderen",
+      "saved": "Logo opgeslagen",
+      "removed": "Logo verwijderd"
+    },
+    "clientColor": {
+      "label": "Kleur van de klant",
+      "none": "Geen kleur",
+      "colors": {
+        "green": "Groen",
+        "blue": "Blauw",
+        "navy": "Donkerblauw",
+        "sky": "Lichtblauw",
+        "white": "Wit",
+        "teal": "Turquoise",
+        "yellow": "Geel",
+        "orange": "Oranje",
+        "red": "Rood",
+        "pink": "Roze",
+        "purple": "Paars",
+        "gray": "Grijs"
+      }
+    },
     "edit": "Bewerken",
     "delete": "Verwijderen",
     "actionsOf": "Acties: {{title}}",

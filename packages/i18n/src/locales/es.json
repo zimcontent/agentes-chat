@@ -19274,6 +19274,33 @@
     "send": "Enviar a aprobación",
     "openAtPortal": "Abrir en el portal",
     "seePost": "Ver la publicación",
+    "seeDrive": "Enlace de Drive",
+    "clientLogo": {
+      "menu": "Logo del cliente",
+      "title": "Logo de {{name}}",
+      "help": "Una imagen cuadrada en lugar de las iniciales del cliente. JPEG, PNG o WebP de hasta 2 MB.",
+      "remove": "Quitar logo",
+      "saved": "Logo guardado",
+      "removed": "Logo quitado"
+    },
+    "clientColor": {
+      "label": "Color del cliente",
+      "none": "Sin color",
+      "colors": {
+        "green": "Verde",
+        "blue": "Azul",
+        "navy": "Azul oscuro",
+        "sky": "Azul claro",
+        "white": "Blanco",
+        "teal": "Turquesa",
+        "yellow": "Amarillo",
+        "orange": "Naranja",
+        "red": "Rojo",
+        "pink": "Rosa",
+        "purple": "Morado",
+        "gray": "Gris"
+      }
+    },
     "edit": "Editar",
     "delete": "Eliminar",
     "actionsOf": "Acciones: {{title}}",

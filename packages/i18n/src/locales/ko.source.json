@@ -45367,6 +45367,69 @@
   "portal.seePost": {
     "value": "See the post"
   },
+  "portal.seeDrive": {
+    "value": "Drive link"
+  },
+  "portal.clientLogo.menu": {
+    "value": "Client's logo"
+  },
+  "portal.clientLogo.title": {
+    "value": "{{name}}'s logo"
+  },
+  "portal.clientLogo.help": {
+    "value": "A square image shown in place of the client's initials. JPEG, PNG or WebP up to 2 MB."
+  },
+  "portal.clientLogo.remove": {
+    "value": "Remove logo"
+  },
+  "portal.clientLogo.saved": {
+    "value": "Logo saved"
+  },
+  "portal.clientLogo.removed": {
+    "value": "Logo removed"
+  },
+  "portal.clientColor.label": {
+    "value": "Client's colour"
+  },
+  "portal.clientColor.none": {
+    "value": "No colour"
+  },
+  "portal.clientColor.colors.green": {
+    "value": "Green"
+  },
+  "portal.clientColor.colors.blue": {
+    "value": "Blue"
+  },
+  "portal.clientColor.colors.navy": {
+    "value": "Dark blue"
+  },
+  "portal.clientColor.colors.sky": {
+    "value": "Light blue"
+  },
+  "portal.clientColor.colors.white": {
+    "value": "White"
+  },
+  "portal.clientColor.colors.teal": {
+    "value": "Teal"
+  },
+  "portal.clientColor.colors.yellow": {
+    "value": "Yellow"
+  },
+  "portal.clientColor.colors.orange": {
+    "value": "Orange"
+  },
+  "portal.clientColor.colors.red": {
+    "value": "Red"
+  },
+  "portal.clientColor.colors.pink": {
+    "value": "Pink"
+  },
+  "portal.clientColor.colors.purple": {
+    "value": "Purple"
+  },
+  "portal.clientColor.colors.gray": {
+    "value": "Gray"
+  },
   "portal.edit": {
     "value": "Edit"
   },
