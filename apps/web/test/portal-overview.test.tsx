@@ -101,11 +101,11 @@ describe("the portal's first screen", () => {
     expect(acme.querySelector(".portal-mark")?.textContent).toBe("A");
     expect(row("Norte Moveis").querySelector(".portal-mark")?.textContent).toBe("NM");
     expect(acme.querySelector(".portal-clientcard__open")?.textContent).toBe("6 em aberto");
-    // Six stops, always, in the pipeline's order: filled with its count where work sits, hollow where none does.
+    // Six stages, always, in the pipeline's order: each one's name beside how many it has, the empty ones stepped back.
     const steps = (client: string) =>
-      [...row(client).querySelectorAll(".portal-step")].map((s) => [
+      [...row(client).querySelectorAll(".portal-stat")].map((s) => [
         s.getAttribute("data-stage"),
-        s.querySelector(".portal-step__node")?.textContent,
+        s.querySelector(".portal-stat__num")?.textContent,
         s.hasAttribute("data-empty"),
       ]);
     expect(steps("Acme")).toEqual([
@@ -119,12 +119,12 @@ describe("the portal's first screen", () => {
     expect(steps("Zeta")).toEqual([
       ["todo", "1", false],
       ["doing", "2", false],
-      ["approval", "", true],
-      ["adjusting", "", true],
-      ["approved", "", true],
-      ["scheduled", "", true],
+      ["approval", "0", true],
+      ["adjusting", "0", true],
+      ["approved", "0", true],
+      ["scheduled", "0", true],
     ]);
-    expect(row("Zeta").querySelector('.portal-step[data-stage="doing"]')?.getAttribute("title")).toBe("Em produção: 2");
+    expect(row("Zeta").querySelector('.portal-stat[data-stage="doing"]')?.textContent).toBe("Em produção2");
     // Four people across Acme's work, each once, and its next post.
     expect(acme.querySelectorAll(".portal-clientcard__people .ac-avatar").length).toBe(4);
     expect(acme.querySelector(".portal-clientcard__next")?.textContent).toMatch(/^Próximo post\d+ de .*18:00$/);

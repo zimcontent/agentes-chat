@@ -124,9 +124,9 @@ the client sent back and what is ready.
 
 13. **A client has a colour.** Wherever several clients' work shows together (the overview's client cards, the
     pipeline's cards and table) whose a card is should read at a glance. The team picks one of twelve named
-    colours per client on the client's own page (`assign_work`); the apps draw it in their own palette, solid
-    and small as a board's labels are: the client's mark, the label with its name that leads each of its cards,
-    a dot before its name in a table. The card itself stays the board's own, with no bar or wash of the colour.
+    colours per client on the client's own page (`assign_work`); the apps draw it in their own palette: the
+    client's mark solid in it, each of its cards in the pipeline as glass in it (with the label of its name), a
+    dot before its name in a table. Never a bar down a card's edge.
     It lives with the bridge, beside
     the labels (`GET /v1/cores`, `POST /v1/cores/<client>`), and reaches the apps on the overview's client summary
     (`color`), so no page asks for it apart. A bridge from before the colours answers 404 and every client has

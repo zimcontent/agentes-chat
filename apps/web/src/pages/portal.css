@@ -243,25 +243,25 @@
 /* ── Stages and labels (ADR 9001 §8) ────────────────────────────────────── */
 /* A stage's colour is the same wherever it shows (a card's edge, a calendar chip, the legend) and in both themes, so
    the schedule reads at a glance. A label's colour is the team's pick among ten names. */
-:is(.portal-dot, .plan-cal__chip, .portal-step)[data-stage] {
+:is(.portal-dot, .plan-cal__chip)[data-stage] {
   --stage: #8a909c;
 }
-:is(.portal-dot, .plan-cal__chip, .portal-step)[data-stage="doing"] {
+:is(.portal-dot, .plan-cal__chip)[data-stage="doing"] {
   --stage: #3b82f6;
 }
-:is(.portal-dot, .plan-cal__chip, .portal-step)[data-stage="approval"] {
+:is(.portal-dot, .plan-cal__chip)[data-stage="approval"] {
   --stage: #f59e0b;
 }
-:is(.portal-dot, .plan-cal__chip, .portal-step)[data-stage="adjusting"] {
+:is(.portal-dot, .plan-cal__chip)[data-stage="adjusting"] {
   --stage: #ef4444;
 }
-:is(.portal-dot, .plan-cal__chip, .portal-step)[data-stage="approved"] {
+:is(.portal-dot, .plan-cal__chip)[data-stage="approved"] {
   --stage: #22c55e;
 }
-:is(.portal-dot, .plan-cal__chip, .portal-step)[data-stage="scheduled"] {
+:is(.portal-dot, .plan-cal__chip)[data-stage="scheduled"] {
   --stage: #8b5cf6;
 }
-:is(.portal-dot, .plan-cal__chip, .portal-step)[data-stage="posted"] {
+:is(.portal-dot, .plan-cal__chip)[data-stage="posted"] {
   --stage: #14b8a6;
 }
 [data-color="green"] {
@@ -295,9 +295,8 @@
   --label: #7d838f;
 }
 /*
- * A client's colour (ADR 9001 §13): the team picks one per client. It is drawn solid and small, as a board's labels
- * are (the client's mark, the label with its name), and the card under it stays the board's own: no bar down its
- * edge, no wash over it. `--client-ink` is what reads on the colour (4.5:1 at least).
+ * A client's colour (ADR 9001 §13): the team picks one per client. The client's mark is solid in it, and each of its
+ * cards in the pipeline is glass in it. `--client-ink` is what reads on the solid colour (4.5:1 at least).
  */
 [data-client-color] {
   --client-ink: #101114;
@@ -363,11 +362,30 @@
 .portal-colorbtn {
   gap: var(--space-2);
 }
-/* The label that leads a pipeline card, in the client's colour: whose it is, before a word is read. */
+/* A pipeline card of a client with a colour is glass in that colour: the light of it from one corner, the column
+   showing through, a rim and a glow of the same colour. No bar down its edge. */
+.portal-pipeline .portal-card[data-client-color],
+.portal-pipeline .portal-card[data-client-color]:hover {
+  background:
+    radial-gradient(130% 90% at 0% 0%, color-mix(in srgb, var(--client) 36%, transparent), transparent 72%),
+    linear-gradient(
+      160deg,
+      color-mix(in srgb, var(--client) 20%, transparent),
+      color-mix(in srgb, var(--client) 7%, transparent)
+    );
+  -webkit-backdrop-filter: blur(16px) saturate(150%);
+  backdrop-filter: blur(16px) saturate(150%);
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, #fff 18%, transparent),
+    inset 0 0 0 1px color-mix(in srgb, var(--client) 40%, transparent),
+    0 12px 24px -18px color-mix(in srgb, var(--client) 80%, transparent);
+}
+/* The label with the client's name on that glass: a deeper pane of the same colour. */
 .portal-card .portal-clientchip[data-client-color] {
   border-color: transparent;
-  background: var(--client);
-  color: var(--client-ink);
+  background: color-mix(in srgb, var(--client) 30%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--client) 55%, transparent);
+  color: var(--ink);
 }
 /* The mark a chip leads with: a dot in its stage's colour, a small bar in its label's. */
 .portal-dot {
@@ -1414,60 +1432,33 @@ html:not([data-pointer]) .portal-tile:focus-visible {
 .portal-clientcard__status[data-attention] > .ac-icon {
   color: var(--attention);
 }
-/* The client's work along the line: a stop per stage, joined by a thin line through their middles. */
-.portal-steps {
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  height: 24px;
+/* The client's work stage by stage: each stage's name beside how many it has, three to a row, the same places on
+   every client's card. A stage with none steps back. */
+.portal-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(112px, 1fr));
+  gap: var(--space-2) var(--space-3);
   margin: 0;
   padding: 0;
   list-style: none;
 }
-.portal-steps::before {
-  content: "";
-  position: absolute;
-  left: 12px;
-  right: 12px;
-  top: 50%;
-  height: 2px;
-  margin-top: -1px;
-  border-radius: 1px;
-  background: var(--line);
-}
-.portal-step {
-  position: relative;
-  display: grid;
-  place-items: center;
-  width: 24px;
-  height: 24px;
-}
-/* A stop with work: the stage's colour, its count inside in dark words (4.5:1 on every stage's colour). */
-.portal-step__node {
-  display: grid;
-  place-items: center;
-  min-width: 24px;
-  height: 24px;
-  padding: 0 var(--space-1);
-  border-radius: 12px;
-  background: var(--stage);
-  box-shadow: 0 0 0 3px var(--raised);
-  color: #101114;
+.portal-stat {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
   font-size: 12px;
-  font-weight: 700;
-  line-height: 1;
+  line-height: 16px;
+  color: var(--ink-muted);
+  white-space: nowrap;
 }
-/* An empty stop: a small hollow dot on the line. */
-.portal-step[data-empty] > .portal-step__node {
-  min-width: 8px;
-  width: 8px;
-  height: 8px;
-  padding: 0;
-  background: var(--raised);
-  box-shadow:
-    inset 0 0 0 2px var(--line),
-    0 0 0 2px var(--raised);
+.portal-stat__num {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--ink);
+}
+.portal-stat[data-empty] {
+  opacity: 0.45;
 }
 .portal-clientcard__foot {
   display: flex;

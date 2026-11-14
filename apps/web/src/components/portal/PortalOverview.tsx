@@ -292,19 +292,17 @@ function Clients({ names, entries, day }: { names: string[]; entries: PortalPipe
                   ) : null}
                   {statusText(t, status)}
                 </span>
-                <ol className="portal-steps" aria-label={t("portal.home.pipeline")}>
+                <ol className="portal-stats" aria-label={t("portal.home.pipeline")}>
                   {pipelineSteps(own).map((step) => (
                     <li
                       key={step.stage}
-                      className="portal-step"
+                      className="portal-stat"
                       data-stage={step.stage}
                       data-empty={step.count === 0 || undefined}
-                      title={`${stageName(t, step.stage)}: ${step.count}`}
                     >
-                      <span className="portal-step__node tabular" aria-hidden="true">
-                        {step.count > 0 ? step.count : ""}
-                      </span>
-                      <span className="ac-visually-hidden">{`${stageName(t, step.stage)}: ${step.count}`}</span>
+                      <span className="portal-dot" data-stage={step.stage} aria-hidden="true" />
+                      <span className="portal-stat__name">{stageName(t, step.stage)}</span>
+                      <b className="portal-stat__num tabular">{step.count}</b>
                     </li>
                   ))}
                 </ol>
@@ -486,6 +484,7 @@ function PipelineBoard({ entries, numbers }: { entries: PortalPipelineEntry[]; n
                     title={e.title}
                     label={`${portalClientName(e.client)}: ${e.title}`}
                     data-late={e.late || undefined}
+                    data-client-color={colors.get(e.client)}
                     onOpen={() =>
                       void navigate({ to: "/org/$orgId/portal", params: { orgId: org.id }, search: entrySearch(e) })
                     }

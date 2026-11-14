@@ -288,12 +288,12 @@ describe("a client's board", () => {
     const mark = (client: string) => main().querySelector(`.portal-clientcard[href*="client=${client}"] .portal-mark`);
     expect(mark("acme-foods")?.getAttribute("data-client-color")).toBe("navy");
     expect(mark("blue-studio")?.getAttribute("data-client-color")).toBeNull();
-    // In the pipeline the label with the client's name is in its colour; the card itself stays the board's own.
-    const labels = [...main().querySelectorAll(".portal-pipeline .portal-clientchip[data-client-color]")];
-    expect(labels.length).toBeGreaterThan(0);
-    expect(labels.every((el) => el.textContent === "Acme Foods")).toBe(true);
-    expect(labels.every((el) => el.getAttribute("data-client-color") === "navy")).toBe(true);
-    expect(main().querySelector(".portal-pipeline .portal-card[data-client-color]")).toBeNull();
+    // In the pipeline each of the client's cards is glass in its colour, the label with its name too.
+    const cards = [...main().querySelectorAll(".portal-pipeline .portal-card[data-client-color]")];
+    expect(cards.length).toBeGreaterThan(0);
+    expect(cards.every((el) => el.getAttribute("data-client-color") === "navy")).toBe(true);
+    expect(cards.every((el) => el.querySelector(".portal-clientchip")?.textContent === "Acme Foods")).toBe(true);
+    expect(cards[0]?.querySelector(".portal-clientchip")?.getAttribute("data-client-color")).toBe("navy");
   });
 
   test("a card moves between A produzir and Em produção from its menu", async () => {
