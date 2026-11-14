@@ -285,8 +285,7 @@ describe("a client's board", () => {
       fill(fake);
       fake.colors = { "acme-foods": "navy" };
     });
-    const mark = (client: string) =>
-      main().querySelector(`.portal-clientcard[href*="client=${client}"] .portal-mark`);
+    const mark = (client: string) => main().querySelector(`.portal-clientcard[href*="client=${client}"] .portal-mark`);
     expect(mark("acme-foods")?.getAttribute("data-client-color")).toBe("navy");
     expect(mark("blue-studio")?.getAttribute("data-client-color")).toBeNull();
     // In the pipeline the label with the client's name is in its colour; the card itself stays the board's own.
