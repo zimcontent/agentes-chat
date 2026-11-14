@@ -396,7 +396,8 @@ point the proxy at `127.0.0.1:3000`. The proxy must:
 
 - upgrade WebSockets on `/api/ws` (browsers), `/api/machines/connect` (connected computers), and
   `/api/desktop`, `/api/terminal` and `/api/machines/stream` (agents' screens and terminals);
-- accept request bodies up to 100 MB: files for the Drive (50 MB each) and agents' git pushes (up to 100 MB);
+- accept request bodies up to 100 MB (agents' git pushes), and up to 2 GB on file uploads to the
+  Drive and conversations (any type, 2 GB each), passed on as they arrive;
 - keep sockets open: the app and its clients exchange a ping at least every 30 s, so a read timeout
   of 60 s (nginx's default) or more works;
 - send the client's address in `X-Forwarded-For`.
@@ -424,6 +425,18 @@ server {
         proxy_set_header X-Forwarded-Proto $scheme;
         proxy_set_header X-Forwarded-For $remote_addr;
         proxy_read_timeout 300s;
+    }
+
+    # Files for the Drive and conversations: any type, up to 2 GB each, passed on as they arrive.
+    location ~ ^/api/app/organizations/[^/]+/artifacts(/[^/]+)?/files$ {
+        client_max_body_size 2050m;
+        proxy_request_buffering off;
+        proxy_pass http://127.0.0.1:3000;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header X-Forwarded-For $remote_addr;
+        proxy_read_timeout 3600s;
     }
 
     location / {

@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, setSystemTime, test } from "bun:test";
+import { createHash } from "node:crypto";
 import { mkdtemp, readdir, rm, stat } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -98,6 +99,21 @@ describe("S3 client against the fake server", () => {
       expect((await f.s3.fetch(url.replace(/X-Amz-Signature=\w+/, "X-Amz-Signature=00"), {})).status).toBe(403);
       await store.delete("a/b c.txt");
       expect(await store.get("a/b c.txt")).toBeNull();
+      // A file on disk goes up as it is read, signed with the hash counted as it arrived (ADR 0025).
+      const path = join(tmpdir(), `agentes-s3-${Bun.randomUUIDv7()}`);
+      const body = new TextEncoder().encode("ID3 mp3");
+      await Bun.write(path, body);
+      const sha256 = createHash("sha256").update(body).digest("hex");
+      await store.putFile?.("a/audio.mp3", path, { contentType: "audio/mpeg", size: body.length, sha256 });
+      expect((await store.get("a/audio.mp3"))?.body).toEqual(body);
+      const wrongHash = store.putFile?.("a/x.mp3", path, {
+        contentType: "audio/mpeg",
+        size: 7,
+        sha256: "0".repeat(64),
+      });
+      await expect(wrongHash).rejects.toThrow();
+      await rm(path, { force: true });
+      await store.delete("a/audio.mp3");
     }
     const settings = { ...bucket(), accessKeyId: "AKIATEST", secretAccessKey: "nope" };
     const wrong = createS3BlobStore(settings, { fetch: f.s3.fetch });

@@ -1,6 +1,6 @@
 import { isSecretFile } from "@agenteschat/tokens/names";
 import type { MigrationBundle } from "../../api/types";
-import { MAX_UPLOAD_BYTES } from "../files";
+import { MAX_IMPORT_FILE_BYTES } from "../files";
 import { excerpt } from "../text";
 import * as agenteschat from "./agenteschat";
 import * as hermes from "./hermes";
@@ -208,7 +208,7 @@ function ownerOf(d: Draft, path: string): { agent: string; path: string } | null
 
 /**
  * One of an agent's files: copied unless it is a credential store (by its name, or a key in its text or in what the
- * reader peeked at), has no bytes we can read, or is over the Drive's limit.
+ * reader peeked at), has no bytes we can read, or is over what an import carries (`MAX_IMPORT_FILE_BYTES`).
  */
 function agentFile(agent: string, path: string, f: ImportFile): AgentFile {
   const size = f.size ?? new TextEncoder().encode(f.text).byteLength;
@@ -218,7 +218,7 @@ function agentFile(agent: string, path: string, f: ImportFile): AgentFile {
       ? "secret"
       : !read
         ? "unreadable"
-        : size > MAX_UPLOAD_BYTES
+        : size > MAX_IMPORT_FILE_BYTES
           ? "too_large"
           : undefined;
   return skip ? { agent, path, size, skip } : { agent, path, size, read };

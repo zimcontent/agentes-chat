@@ -118,7 +118,14 @@ import {
   sendNeedsEdit,
 } from "@agenteschat/client/lib/errors";
 import { everyoneWord, isEveryoneMention, mentionsReader, offersEveryone } from "@agenteschat/client/lib/everyone";
-import { fileIcon, fitsUpload, formatBytes, MAX_UPLOAD_MB, previewKind } from "@agenteschat/client/lib/files";
+import {
+  droppedLink,
+  fileIcon,
+  fitsUpload,
+  formatBytes,
+  MAX_UPLOAD_MB,
+  previewKind,
+} from "@agenteschat/client/lib/files";
 import { dayLabel, formatFullDate, formatTime } from "@agenteschat/client/lib/format";
 import { agentGrammar } from "@agenteschat/client/lib/grammar";
 import { useHeldWhile } from "@agenteschat/client/lib/hold";
@@ -207,6 +214,7 @@ import { Link, Navigate, useNavigate, useRouter } from "@tanstack/react-router";
 import {
   Children,
   createContext,
+  type DragEvent,
   Fragment,
   memo,
   type ReactElement,
@@ -2019,6 +2027,36 @@ function ChannelView({
     addFiles([new File([draft], t("channel.tooLong.fileName"), { type: "text/plain" })]);
     setDraft("");
   };
+  // The whole conversation takes a drop, not only the composer's card: files attach as from the clip, any type, and a
+  // link dragged from a page goes into the message as text. A drop on the composer stays its own (its files, or a
+  // link the browser types into the box itself).
+  const takesDrop =
+    !adjustThreadId &&
+    !org.deletion &&
+    !chrome?.composerReplacement &&
+    !chrome?.locked &&
+    isMember &&
+    channel.can?.post !== false;
+  const onConversationDragOver = (e: DragEvent) => {
+    const types = Array.from(e.dataTransfer?.types ?? []);
+    if (!types.includes("Files") && !types.includes("text/uri-list")) return;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "copy";
+  };
+  const onConversationDrop = (e: DragEvent) => {
+    if (e.defaultPrevented || (e.target instanceof Element && e.target.closest(".ac-composer"))) return;
+    const dropped = Array.from(e.dataTransfer?.files ?? []);
+    if (dropped.length > 0) {
+      e.preventDefault();
+      addFiles(dropped);
+      return;
+    }
+    const link = droppedLink(e.dataTransfer);
+    if (!link) return;
+    e.preventDefault();
+    setDraft((old) => (old && !/\s$/.test(old) ? `${old} ${link}` : `${old}${link}`));
+    composer.current?.focus();
+  };
   const attached = files.flatMap((f) => (f.status === "done" && f.ref ? [f.ref] : []));
   const uploading = files.some((f) => f.status === "uploading");
 
@@ -2444,7 +2482,12 @@ function ChannelView({
                 )}
                 {/* Under the header: the conversation, and the members beside it (the header spans both, as Discord's). */}
                 <div className="channel__body">
-                  <div className="channel__col">
+                  {/* biome-ignore lint/a11y/noStaticElementInteractions: a drop target only; the clip and paste stay the keyboard's way to attach */}
+                  <div
+                    className="channel__col"
+                    onDragOver={takesDrop ? onConversationDragOver : undefined}
+                    onDrop={takesDrop ? onConversationDrop : undefined}
+                  >
                     {isMember && (
                       <ChannelPinnedBar
                         channelId={channel.id}
@@ -5215,9 +5258,7 @@ function ChannelDetails({
         title={
           <>
             {/* Doug: a group with a shown name is titled by it, as its header is; `#name` otherwise. */}
-            {channel.displayName?.trim()
-              ? channelTitle(channel)
-              : t("channel.detailsTitle", { channel: channel.name })}
+            {channel.displayName?.trim() ? channelTitle(channel) : t("channel.detailsTitle", { channel: channel.name })}
             {editable && <SavedNote shown={saved} label={t("common.saved")} className="channel-topic__saved" />}
           </>
         }

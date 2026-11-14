@@ -1,8 +1,8 @@
-import { FEEDBACK_INBOX_BYTES, SKILL_LIMITS } from "@agenteschat/engine";
+import { ARTIFACT_LIMITS, FEEDBACK_INBOX_BYTES, SKILL_LIMITS } from "@agenteschat/engine";
 import type { Context } from "hono";
 import { bodyLimit } from "hono/body-limit";
 import { createMiddleware } from "hono/factory";
-import { MULTIPART_PATHS } from "../routes/app/context";
+import { MULTIPART_PATHS, MULTIPART_SLACK_BYTES } from "../routes/app/context";
 import { apiError } from "./errors";
 
 const KIB = 1024;
@@ -29,6 +29,15 @@ const OWN_LIMIT = [
   /^\/api\/github-app\/webhook$/,
   /^\/api\/git\//,
 ];
+
+/**
+ * The most the HTTP server reads of any request (Bun's own default is 128 MB): a conversation's file, up to 2 GB
+ * (ADR 0025), with its form around it. Every other route holds its body far below that (`apiBodyLimit`).
+ */
+export const SERVER_BODY_BYTES = ARTIFACT_LIMITS.fileBytes + MULTIPART_SLACK_BYTES;
+
+/** A file sent to the Drive or a conversation, or a new version of one: the uploads that take up to 2 GB. */
+export const FILE_UPLOAD_PATH = /^\/api\/app\/organizations\/[^/]+\/artifacts(\/[^/]+)?\/files$/;
 
 /** A skill's folder as a base64 zip: what the import's own schema accepts, and the fields around it. */
 const SKILL_ZIP_BYTES = Math.ceil(((SKILL_LIMITS.maxBytes + SKILL_LIMITS.assetBytes) * 4) / 3) + 2 * MIB;

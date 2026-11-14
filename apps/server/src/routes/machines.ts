@@ -1137,8 +1137,8 @@ export function registerMachinePublicRoutes(api: OpenAPIHono, deps: AppDeps) {
     const token = auth.startsWith("Bearer ") ? auth.slice(7).trim() : "";
     const machine = token ? await authenticateMachine(db, token) : null;
     if (!machine) return apiError(c, 401, "machine.unauthorized", "This computer's token is not valid");
-    const max = ARTIFACT_LIMITS.fileBytes + UPLOAD_SLACK_BYTES;
-    const maxMb = ARTIFACT_LIMITS.fileBytes / 1024 / 1024;
+    const max = ARTIFACT_LIMITS.heldFileBytes + UPLOAD_SLACK_BYTES;
+    const maxMb = ARTIFACT_LIMITS.heldFileBytes / 1024 / 1024;
     const tooLarge = () =>
       apiError(c, 413, "artifact.file_too_large", `The file is too large (max ${maxMb} MB)`, { maxMb });
     if (Number(c.req.header("content-length") ?? "0") > max) return tooLarge();
