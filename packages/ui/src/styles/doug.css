@@ -2981,3 +2981,68 @@ img.ac-logo__mark {
     animation: none;
   }
 }
+
+/* ── The channel's greeting of a new day (ChannelWelcome): the portal's glass panel, not the blue pixel sky (§11, no
+   decorative gradients). Words in the stage's ink, the title in Manrope; the only color is the green's faint light
+   behind the bots on the right, where the Doug stands. The bots sit whole inside the panel. ── */
+[data-theme] .sky-welcome {
+  height: auto;
+  min-height: 148px;
+  display: flex;
+  align-items: center;
+  border-radius: 22px;
+  background:
+    radial-gradient(42% 120% at 100% 100%, color-mix(in srgb, var(--db-verde-acento) 9%, transparent), transparent 70%),
+    var(--dg-glass-card), var(--db-palco-2);
+  box-shadow: var(--dg-edge);
+  color: var(--ink);
+}
+[data-theme] .sky-welcome .ac-sky {
+  display: none;
+}
+[data-theme] .sky-welcome__text {
+  gap: var(--dg-s2);
+  padding: var(--dg-s6);
+}
+[data-theme] .sky-welcome__when {
+  font: 600 11px/14px var(--db-f-texto);
+  letter-spacing: 0.12em;
+  color: var(--db-texto-leve);
+}
+[data-theme] .sky-welcome__title {
+  font-family: var(--db-f-titulo);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: var(--db-texto);
+}
+[data-theme] .sky-welcome__lead {
+  color: var(--db-texto-2);
+  font-size: 14px;
+}
+[data-theme] .sky-welcome__crew {
+  top: 50%;
+  bottom: auto;
+  right: 72px;
+  transform: translateY(-50%);
+  align-items: center;
+}
+[data-theme] .sky-welcome__close {
+  top: 12px;
+  right: 12px;
+  border-radius: 999px;
+  background: var(--dg-pill);
+  color: var(--db-texto-2);
+  box-shadow: var(--dg-edge);
+  transition:
+    background-color 0.18s var(--dg-ease),
+    color 0.18s var(--dg-ease);
+}
+[data-theme] .sky-welcome__close:hover {
+  background: var(--dg-pill-hover);
+  color: var(--db-texto);
+}
+html[data-theme]:not([data-pointer]) .sky-welcome__close:focus-visible {
+  box-shadow:
+    0 0 0 2px var(--db-palco),
+    0 0 0 4px var(--focus-color);
+}
