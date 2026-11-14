@@ -39,6 +39,7 @@ import { useMissionsWaitingYou } from "@/components/missions/MissionWaiting";
 import { useNotificationOpener } from "@/components/NotificationOpen";
 import { Face, Headline, SystemFace } from "@/components/NotificationParts";
 import { useOrg } from "@/components/org-context";
+import { HomeTasks } from "@/components/portal/HomeTasks";
 import { HomeMural } from "@/components/widgets/HomeMural";
 import { WidgetNoticeActions, widgetNoticeLine } from "@/components/widgets/WidgetNotice";
 import { useDirectory } from "@/hooks/useDirectory";
@@ -141,6 +142,9 @@ export function HomePage() {
 
       {/* Being deleted, the workspace takes no message: the line on top says why. */}
       {askable.length > 0 && !org.deletion && <AskAgent agents={askable} composer={composer} />}
+
+      {/* The person's own cards of the approval portal (ADR 9001 §8), only where the server has one and they have some. */}
+      <HomeTasks />
 
       <HomeMural
         orgId={org.id}

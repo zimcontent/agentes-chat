@@ -201,6 +201,8 @@ const KNOWN = {
   "join.rate_limited": "errors.join.rateLimited",
   "join.link_busy": "errors.join.linkBusy",
   "join.member": "errors.join.member",
+  "portal.unavailable": "portal.unavailable",
+  "portal.off": "portal.off.title",
   "join.denied": "errors.join.denied",
   "join.answered": "errors.join.answered",
   "join.expired": "errors.join.expired",

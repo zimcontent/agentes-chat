@@ -148,14 +148,15 @@ pre,
   --dg-side-w: 288px;
 }
 
-
 /* ════ Layout and structure: round 3.1's (commit 68d307310), its colors on the identity's tokens, both themes (its
    `[data-theme]` keeps the weight 3.1's rules had over the kit's page sheets) ════ */
 /* ── The ground: the portal's near black, neutral, with a soft white light from the top ── */
 [data-theme] body,
 [data-theme] .shell,
 [data-theme] .auth {
-  background: radial-gradient(80% 50% at 50% -18%, color-mix(in srgb, var(--dg-luz) 4.5%, transparent), transparent 70%), var(--bg);
+  background:
+    radial-gradient(80% 50% at 50% -18%, color-mix(in srgb, var(--dg-luz) 4.5%, transparent), transparent 70%),
+    var(--bg);
   background-attachment: fixed;
 }
 [data-theme] .shell__work:not(.shell__work--bare) {
@@ -306,9 +307,7 @@ pre,
 [data-theme] .sidebar__item[data-kind="channel"] .sidebar__item-label {
   color: var(--muted);
 }
-[data-theme]
-  .sidebar__item[data-kind="channel"]:is([data-unread="true"], [data-status="active"])
-  .sidebar__item-label {
+[data-theme] .sidebar__item[data-kind="channel"]:is([data-unread="true"], [data-status="active"]) .sidebar__item-label {
   color: var(--ink);
 }
 [data-theme] .sidebar__item[data-kind="channel"][data-unread="true"]::before {
@@ -456,7 +455,8 @@ pre,
     0 6px 18px -6px color-mix(in srgb, var(--db-verde-acento) 54.9%, transparent);
 }
 [data-theme] .sidebar:not([data-rail="true"]) .sidebar__dock .sidebar__item[data-status="active"] > .ac-icon {
-  color: var(--db-palco);
+  /* The ink on the green is its own token: dark in both themes (the stage turns light in the light theme). */
+  color: var(--db-verde-tinta);
   filter: none;
 }
 .sidebar:not([data-rail="true"]) .sidebar__dock .sidebar__item[data-unread="true"]::before {
@@ -755,7 +755,8 @@ html:not([data-pointer]) .sidebar__hero-link:focus-visible {
 }
 [data-theme] .ac-composer__send.ac-btn:is([data-ready], [data-mode="stop"]) {
   background: var(--db-verde-botao);
-  color: var(--db-palco);
+  /* The ink on the green is its own token: dark in both themes (the stage turns light in the light theme). */
+  color: var(--db-verde-tinta);
   opacity: 1;
   box-shadow:
     inset 0 1px color-mix(in srgb, #fff 90%, transparent),
@@ -810,7 +811,8 @@ html:not([data-pointer]) .sidebar__hero-link:focus-visible {
 [data-theme] .ac-btn--primary {
   border-color: transparent;
   background: var(--db-verde-botao);
-  color: var(--db-palco);
+  /* The ink on the green is its own token: dark in both themes (the stage turns light in the light theme). */
+  color: var(--db-verde-tinta);
   font-weight: 650;
   box-shadow:
     inset 0 1px color-mix(in srgb, #fff 90%, transparent),
@@ -948,7 +950,9 @@ img.ac-logo__mark {
   letter-spacing: -0.04em;
 }
 .sky-boot {
-  background: radial-gradient(60% 45% at 50% 42%, color-mix(in srgb, var(--db-verde-acento) 10%, transparent), transparent 70%), var(--db-palco);
+  background:
+    radial-gradient(60% 45% at 50% 42%, color-mix(in srgb, var(--db-verde-acento) 10%, transparent), transparent 70%),
+    var(--db-palco);
 }
 .sky-boot__in {
   color: var(--db-texto-2);
@@ -1208,7 +1212,9 @@ img.ac-logo__mark {
 }
 /* Every row led by a face (agents, people, the right hand): a 56 pill, face and words on its middle. */
 [data-theme] .sidebar:not([data-rail="true"]) .sidebar__item:has(> .ac-avatar),
-[data-theme] .sidebar:not([data-rail="true"]) .sidebar__item:has(> .ac-avatar + .sidebar__item-text > .sidebar__item-role) {
+[data-theme]
+  .sidebar:not([data-rail="true"])
+  .sidebar__item:has(> .ac-avatar + .sidebar__item-text > .sidebar__item-role) {
   --r-outer: 28px;
   min-height: 56px;
   padding-block: var(--pad);
@@ -1775,7 +1781,6 @@ img.ac-logo__mark {
   color: var(--faint);
 }
 
-
 /* The light theme: 3.1's rims and glows drawn in ink would read heavy; a quieter edge and shadow. */
 [data-theme="light"] {
   --dg-sombra-funda: rgba(10, 10, 10, 0.1);
@@ -1966,7 +1971,7 @@ img.ac-logo__mark {
 }
 .db-linha-bot__nome {
   display: block;
-  font: 800 13px/16px var(--db-f-titulo);
+  font: 800 13px / 16px var(--db-f-titulo);
   letter-spacing: 0.05em;
   text-transform: uppercase;
   color: var(--db-texto);
@@ -1996,7 +2001,7 @@ img.ac-logo__mark {
   align-items: center;
 }
 .team-table__row .team-who__text > b {
-  font: 800 13px/16px var(--db-f-titulo);
+  font: 800 13px / 16px var(--db-f-titulo);
   letter-spacing: 0.05em;
   text-transform: uppercase;
 }
@@ -2035,7 +2040,7 @@ img.ac-logo__mark {
   min-width: 0;
 }
 .agent-photo__title {
-  font: 700 15px/20px var(--db-f-titulo);
+  font: 700 15px / 20px var(--db-f-titulo);
   letter-spacing: -0.01em;
 }
 .agent-photo__help {
@@ -2070,7 +2075,7 @@ img.ac-logo__mark {
   height: 72px;
 }
 [data-theme] .dm-side__name {
-  font: 800 16px/20px var(--db-f-titulo);
+  font: 800 16px / 20px var(--db-f-titulo);
   letter-spacing: 0.05em;
   text-transform: uppercase;
 }
@@ -2079,7 +2084,6 @@ img.ac-logo__mark {
   background: none;
   box-shadow: none;
 }
-
 
 /* ════ Round 5: 3.1's layout with the identity, and what the owner asked over it ════ */
 /* The conversation never starts under the head: 3.1's head pulled the list up under its fade (-16), which covered the
@@ -2108,6 +2112,13 @@ img.ac-logo__mark {
 }
 [data-theme] .sidebar:not([data-rail="true"]) .sidebar__dock .sidebar__item[data-status="active"] > .ac-icon {
   color: var(--db-verde-tinta);
+}
+/* The dock's icons share its width: six fit at 32, and past six (a tool that comes into sight while something waits
+   in it, Portal beside "Waiting on you" where the server has an approval portal, ADR 9001) each gives way evenly
+   instead of the last one running out of the bar. An icon is 20, so nine still show whole. */
+[data-theme] .sidebar:not([data-rail="true"]) .sidebar__dock .sidebar__item {
+  flex: 0 1 32px;
+  min-width: 0;
 }
 /* The pinned agents: their bots where the letters were; the open one keeps 3.1's ring of light, drawn around the bot's
    glass (16, the bots' corner) instead of a circle. */
@@ -2185,7 +2196,9 @@ img.ac-logo__mark {
   padding: var(--pad);
   border-radius: var(--r-outer);
   background: var(--dg-pill);
-  box-shadow: var(--dg-edge), 0 8px 20px -12px var(--dg-sombra-media);
+  box-shadow:
+    var(--dg-edge),
+    0 8px 20px -12px var(--dg-sombra-media);
 }
 [data-theme] .sidebar__org--head .sidebar__org-button.sidebar__org-button--me {
   flex: 1;
@@ -2340,7 +2353,7 @@ img.ac-logo__mark {
   min-width: 0;
 }
 .mo-you__name {
-  font: 700 17px/22px var(--db-f-titulo);
+  font: 700 17px / 22px var(--db-f-titulo);
   letter-spacing: -0.01em;
 }
 .mo-you__line {
@@ -2454,7 +2467,9 @@ img.ac-logo__mark {
   background: none;
   box-shadow: none;
 }
-[data-theme] .sidebar:not([data-rail="true"]) :is(.sidebar__head-row > .sidebar__bell, .sidebar__collapse.ac-btn):hover {
+[data-theme]
+  .sidebar:not([data-rail="true"])
+  :is(.sidebar__head-row > .sidebar__bell, .sidebar__collapse.ac-btn):hover {
   color: var(--db-texto);
   background: color-mix(in srgb, var(--dg-luz) 6%, transparent);
 }
@@ -2497,12 +2512,7 @@ img.ac-logo__mark {
   height: 2px;
   flex: none;
   background:
-    linear-gradient(
-      90deg,
-      transparent 0%,
-      color-mix(in srgb, var(--db-verde-acento) 90%, white) 50%,
-      transparent 100%
-    )
+    linear-gradient(90deg, transparent 0%, color-mix(in srgb, var(--db-verde-acento) 90%, white) 50%, transparent 100%)
     0 0 / 40% 100% no-repeat,
     linear-gradient(
       90deg,
@@ -2511,7 +2521,9 @@ img.ac-logo__mark {
       color-mix(in srgb, var(--db-verde-acento) 45%, transparent) 80%,
       transparent 100%
     );
-  background-position: -60% 0, 0 0;
+  background-position:
+    -60% 0,
+    0 0;
   box-shadow: 0 1px 10px color-mix(in srgb, var(--db-verde-acento) 28%, transparent);
   -webkit-backdrop-filter: blur(var(--dg-blur, 20px)) saturate(var(--dg-saturate, 140%));
   backdrop-filter: blur(var(--dg-blur, 20px)) saturate(var(--dg-saturate, 140%));
@@ -2526,10 +2538,14 @@ img.ac-logo__mark {
 }
 @keyframes dg-strip-run {
   from {
-    background-position: -60% 0, 0 0;
+    background-position:
+      -60% 0,
+      0 0;
   }
   to {
-    background-position: 160% 0, 0 0;
+    background-position:
+      160% 0,
+      0 0;
   }
 }
 @media (prefers-reduced-motion: reduce) {
@@ -2597,7 +2613,9 @@ img.ac-logo__mark {
   align-items: center;
   gap: var(--dg-s1);
 }
-[data-theme] .sidebar:not([data-rail="true"]) :is(.sidebar__brand-acts > .sidebar__bell, .sidebar__brand-acts > .sidebar__collapse.ac-btn) {
+[data-theme]
+  .sidebar:not([data-rail="true"])
+  :is(.sidebar__brand-acts > .sidebar__bell, .sidebar__brand-acts > .sidebar__collapse.ac-btn) {
   position: relative;
   flex: none;
   display: grid;
@@ -2612,7 +2630,9 @@ img.ac-logo__mark {
   background: none;
   box-shadow: none;
 }
-[data-theme] .sidebar:not([data-rail="true"]) :is(.sidebar__brand-acts > .sidebar__bell, .sidebar__brand-acts > .sidebar__collapse.ac-btn):hover {
+[data-theme]
+  .sidebar:not([data-rail="true"])
+  :is(.sidebar__brand-acts > .sidebar__bell, .sidebar__brand-acts > .sidebar__collapse.ac-btn):hover {
   color: var(--db-texto);
   background: color-mix(in srgb, var(--dg-luz) 6%, transparent);
 }
@@ -2699,13 +2719,25 @@ img.ac-logo__mark {
 }
 @keyframes db-bolha {
   0% {
-    background-size: 5px 5px, 0 0, 0 0, auto;
+    background-size:
+      5px 5px,
+      0 0,
+      0 0,
+      auto;
   }
   33% {
-    background-size: 5px 5px, 5px 5px, 0 0, auto;
+    background-size:
+      5px 5px,
+      5px 5px,
+      0 0,
+      auto;
   }
   66% {
-    background-size: 5px 5px, 5px 5px, 5px 5px, auto;
+    background-size:
+      5px 5px,
+      5px 5px,
+      5px 5px,
+      auto;
   }
 }
 @media (prefers-reduced-motion: reduce) {
@@ -2797,13 +2829,25 @@ img.ac-logo__mark {
 }
 @keyframes db-bolha {
   0% {
-    background-size: 4px 4px, 0 0, 0 0, auto;
+    background-size:
+      4px 4px,
+      0 0,
+      0 0,
+      auto;
   }
   33% {
-    background-size: 4px 4px, 4px 4px, 0 0, auto;
+    background-size:
+      4px 4px,
+      4px 4px,
+      0 0,
+      auto;
   }
   66% {
-    background-size: 4px 4px, 4px 4px, 4px 4px, auto;
+    background-size:
+      4px 4px,
+      4px 4px,
+      4px 4px,
+      auto;
   }
 }
 

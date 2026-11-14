@@ -288,4 +288,14 @@ export const keys = {
     ["org", orgId, "dashboards", "cost", agentId, schedule] as const,
   widgetSuggestions: (orgId: string, agentId: string) => ["org", orgId, "dashboards", "suggestions", agentId] as const,
   widgetPinnable: (orgId: string) => ["org", orgId, "dashboards", "pinnable"] as const,
+  /** The approval portal (ADR 9001): the overview and every board sit under it, so one change refreshes both. */
+  portal: (orgId: string) => ["org", orgId, "portal"] as const,
+  portalOverview: (orgId: string) => ["org", orgId, "portal", "overview"] as const,
+  portalBoard: (orgId: string, client: string) => ["org", orgId, "portal", "board", client] as const,
+  portalPlan: (orgId: string, client: string) => ["org", orgId, "portal", "plan", client] as const,
+  portalMine: (orgId: string) => ["org", orgId, "portal", "mine"] as const,
+  portalPipeline: (orgId: string) => ["org", orgId, "portal", "pipeline"] as const,
+  portalTasks: (orgId: string) => ["org", orgId, "portal", "tasks"] as const,
+  /** Outside `portal`: a change to the board never reads a send again. */
+  portalJob: (orgId: string, jobId: string) => ["org", orgId, "portal-job", jobId] as const,
 };

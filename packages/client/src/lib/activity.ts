@@ -94,6 +94,9 @@ export type ActivityKind =
   | "askingChoices"
   | "usingVault"
   | "makingPassword"
+  | "usingPortal"
+  | "sendingForApproval"
+  | "schedulingPost"
   | "startingWork"
   | "updatingWork"
   | "withdrawingRequest"
@@ -252,6 +255,13 @@ const BUILTIN: Record<string, ActivityKind> = {
   vault_save: "usingVault",
   vault_delete: "usingVault",
   vault_make_password: "makingPassword",
+  // The approval portal (ADR 9001): the board and its cards, and a send for a client's approval.
+  portal_board: "usingPortal",
+  portal_card: "usingPortal",
+  portal_plan: "usingPortal",
+  portal_work: "usingPortal",
+  send_for_approval: "sendingForApproval",
+  schedule_post: "schedulingPost",
   work_in_background: "startingWork",
   steer_work: "updatingWork",
   stop_work: "updatingWork",

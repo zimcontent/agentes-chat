@@ -37,6 +37,29 @@ export function issueWorkOf(
  * the last one. The conversation itself is the thread the run reads. `asked`: the agent was asked to implement it
  * (the assignee working on it); else it was called into the task's conversation.
  */
+/**
+ * A task that stands for a post of the approval portal's board (ADR 9001 §11): where the post is and which tools
+ * move it. The client's own words are never here: the card's tool brings them as outside text.
+ */
+function portalPost(source: unknown) {
+  const s = source as { type?: string; client?: string; cardId?: string; synced?: { card?: { stage?: string } } };
+  if (s?.type !== "portal" || !s.client || !s.cardId) return "";
+  const stage = s.synced?.card?.stage;
+  return [
+    "## The post this task is",
+    `This task is a post for the client "${s.client}" on the approval portal's board (card ${s.cardId}${stage ? `, stage: ${stage}` : ""}).`,
+    "- Read the card first with `portal_board` for that client: its type, caption, files, production and post dates, and what the client last asked.",
+    "- Write what you make on the card with `portal_card` (caption, files, description).",
+    "- When the post is ready, say so here. It goes to the client with `send_for_approval` naming this card, and only when a person of the team tells you to send it.",
+    "- The stage and the task's status follow the portal on their own: never set them yourself.",
+    stage === "adjusting"
+      ? "- The client asked for a change. Read the request on the card, make the change, and say here that it is ready to go up again."
+      : "",
+  ]
+    .filter(Boolean)
+    .join("\n");
+}
+
 export async function issueWorkBrief(
   db: Executor,
   orgId: string,
@@ -68,6 +91,7 @@ export async function issueWorkBrief(
     issue.description.trim() ? `## Description\n${issue.description.trim()}` : "",
     criteria ? `## Acceptance criteria\n${criteria}` : "",
     prs ? `## Pull requests linked\n${prs}` : "",
+    portalPost(issue.source),
     files.length
       ? `## Files attached to the issue\n${files.map((f) => `- ${f.title} (artifact ${f.id})`).join("\n")}\nOpen each with \`read_artifact\` before you work on it: pictures and PDFs are shown to you, documents, sheets and audio come as text.`
       : "",

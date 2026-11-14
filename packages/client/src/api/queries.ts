@@ -42,6 +42,7 @@ import {
 } from "../lib/notifications";
 import { workspaceUsesApi } from "../lib/plan-usage";
 import { learnPlanModels } from "../lib/plans";
+import { movedInPlan } from "../lib/portal";
 import { setMyReaction } from "../lib/reactions";
 import { recentConversations } from "../lib/recent";
 import { replyOf } from "../lib/reply";
@@ -148,6 +149,15 @@ import type {
   Person,
   PersonalTokenInput,
   PersonLimits,
+  PortalBoard,
+  PortalCard,
+  PortalCardInput,
+  PortalCardState,
+  PortalItemEdit,
+  PortalJob,
+  PortalLabelColor,
+  PortalPlan,
+  PortalSendInput,
   Proposal,
   ReactionCount,
   ReminderInput,
@@ -6772,3 +6782,343 @@ export function useWifiPairState(orgId: string, machineId: string | null, starte
   }, [api, orgId, machineId, id]);
   return started && state.data ? { ...state.data, qr: started.qr } : started;
 }
+
+/** The portal changes when clients act there, with no event to this server: an open page reads it again this often. */
+export const PORTAL_REFRESH_MS = 60_000;
+/** How often a send still going is asked about. */
+export const PORTAL_JOB_POLL_MS = 2000;
+
+/** Whether an error is the server saying it has no approval portal (404 `portal.off`): nothing to retry. */
+export const isPortalOff = (error: unknown) => error instanceof ApiError && error.code === "portal.off";
+
+const portalOf = (api: ApiClient) => {
+  if (!api.portal) throw new ApiError(404, "portal.off", "This server has no approval portal");
+  return api.portal;
+};
+const refreshPortal = (qc: QueryClient, orgId: string) => qc.invalidateQueries({ queryKey: keys.portal(orgId) });
+
+/** The approval portal's clients with their counts per column (ADR 9001): any member. */
+export const usePortalOverview = (orgId: string, enabled = true) => {
+  const api = useApi();
+  return useQuery({
+    queryKey: keys.portalOverview(orgId),
+    queryFn: () => portalOf(api).overview(orgId),
+    enabled,
+    refetchInterval: (q) => (isPortalOff(q.state.error) ? false : PORTAL_REFRESH_MS),
+    retry: false,
+    // Read again by itself every minute: no bar across the page for that.
+    meta: { quiet: true },
+  });
+};
+
+/** One client's board, read again every minute while it is open; null: no client picked. */
+export const usePortalBoard = (orgId: string, client: string | null) => {
+  const api = useApi();
+  return useQuery({
+    queryKey: keys.portalBoard(orgId, client ?? ""),
+    queryFn: () => portalOf(api).board(orgId, client ?? ""),
+    enabled: client !== null,
+    refetchInterval: (q) => (isPortalOff(q.state.error) ? false : PORTAL_REFRESH_MS),
+    retry: false,
+    // Read again by itself every minute: no bar across the page for that.
+    meta: { quiet: true },
+  });
+};
+
+/**
+ * Creates a card (`client` and `title`) or changes one (`cardId`), a move between To do and In production included.
+ * The screens say what went wrong themselves (the portal's own words), so nothing is toasted here.
+ */
+export function useSavePortalCard(orgId: string) {
+  const api = useApi();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (
+      input:
+        | ({ cardId?: undefined; client: string; title: string } & PortalCardInput)
+        | ({ cardId: string } & PortalCardInput),
+    ): Promise<PortalCard> => {
+      if (input.cardId === undefined) return portalOf(api).createCard(orgId, input);
+      const { cardId, ...fields } = input;
+      return portalOf(api).updateCard(orgId, cardId, fields);
+    },
+    meta: { silent: true },
+    onSettled: () => refreshPortal(qc, orgId),
+  });
+}
+
+export function useDeletePortalCard(orgId: string) {
+  const api = useApi();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (cardId: string) => portalOf(api).deleteCard(orgId, cardId),
+    meta: { silent: true },
+    onSettled: () => refreshPortal(qc, orgId),
+  });
+}
+
+/** Starts a send for a client's approval: the job it answers is followed with `usePortalJob`. */
+export function useSendForApproval(orgId: string) {
+  const api = useApi();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (input: PortalSendInput) => portalOf(api).send(orgId, input),
+    meta: { silent: true },
+    onSuccess: (job) => {
+      qc.setQueryData(keys.portalJob(orgId, job.id), job);
+      // A send the portal took at once is already on the board.
+      if (job.state !== "sending") void refreshPortal(qc, orgId);
+    },
+  });
+}
+
+/** How a send is going, asked every 2 s while it is `sending`; the overview and the boards are read again as it ends. */
+export function usePortalJob(orgId: string, jobId: string | null) {
+  const api = useApi();
+  const qc = useQueryClient();
+  const query = useQuery({
+    queryKey: keys.portalJob(orgId, jobId ?? ""),
+    queryFn: () => portalOf(api).job(orgId, jobId ?? ""),
+    enabled: jobId !== null,
+    refetchInterval: (q) => (q.state.data?.state === "sending" ? PORTAL_JOB_POLL_MS : false),
+    refetchIntervalInBackground: true,
+    meta: { quiet: true },
+  });
+  const state = query.data?.state;
+  const last = useRef<{ jobId: string | null; state: PortalJob["state"] | undefined }>({ jobId, state });
+  useEffect(() => {
+    const was = last.current;
+    last.current = { jobId, state };
+    if (was.jobId === jobId && was.state === "sending" && state && state !== "sending") void refreshPortal(qc, orgId);
+  }, [qc, orgId, jobId, state]);
+  return query;
+}
+
+/** Completes or changes a post at the portal (title, caption, date, status, editor). */
+export function useEditPortalItem(orgId: string) {
+  const api = useApi();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (input: { client: string; itemId: string; edit: PortalItemEdit }) =>
+      portalOf(api).editItem(orgId, input.client, input.itemId, input.edit),
+    meta: { silent: true },
+    onSettled: () => refreshPortal(qc, orgId),
+  });
+}
+
+/**
+ * Schedules an approved post: the board and the overview are read again, where it shows in Approved with its date
+ * until the publishing service has it (then Scheduled, on a later read).
+ */
+export function useSchedulePortalItem(orgId: string) {
+  const api = useApi();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (input: { client: string; itemId: string; scheduledFor: string }) =>
+      portalOf(api).schedule(orgId, input.client, input.itemId, input.scheduledFor),
+    meta: { silent: true },
+    onSettled: () => refreshPortal(qc, orgId),
+  });
+}
+
+/** A person's own work is asked about again this often while Home is open, and when the window comes back. */
+export const PORTAL_MINE_REFRESH_MS = 5 * 60_000;
+
+/** A client's strategic schedule (ADR 9001 §8), read again every minute while it is open; null: no client picked. */
+export const usePortalPlan = (orgId: string, client: string | null) => {
+  const api = useApi();
+  return useQuery({
+    queryKey: keys.portalPlan(orgId, client ?? ""),
+    queryFn: () => portalOf(api).plan(orgId, client ?? ""),
+    enabled: client !== null,
+    refetchInterval: (q) => (isPortalOff(q.state.error) ? false : PORTAL_REFRESH_MS),
+    retry: false,
+    meta: { quiet: true },
+  });
+};
+
+/** The caller's own open work by production day, for Home: every 5 minutes and when the window comes back. */
+export const usePortalMine = (orgId: string, enabled = true) => {
+  const api = useApi();
+  return useQuery({
+    queryKey: keys.portalMine(orgId),
+    queryFn: () => portalOf(api).mine(orgId),
+    enabled,
+    refetchInterval: (q) => (q.state.error ? false : PORTAL_MINE_REFRESH_MS),
+    refetchOnWindowFocus: "always",
+    retry: false,
+    meta: { quiet: true },
+  });
+};
+
+/**
+ * Moves a card to a list and a place in it. The schedule shows it there at once and goes back to what it had when the
+ * portal refuses; either way it is read again after.
+ */
+export function useMovePortalCard(orgId: string, client: string) {
+  const api = useApi();
+  const qc = useQueryClient();
+  const key = keys.portalPlan(orgId, client);
+  return useMutation({
+    mutationFn: (input: { cardId: string; list: string | null; order: number }) =>
+      portalOf(api).updateCard(orgId, input.cardId, { list: input.list, order: input.order }),
+    meta: { silent: true },
+    onMutate: async (input) => {
+      await qc.cancelQueries({ queryKey: key });
+      const before = qc.getQueryData<PortalPlan>(key);
+      if (before) qc.setQueryData<PortalPlan>(key, movedInPlan(before, input.cardId, input.list, input.order));
+      return { before };
+    },
+    onError: (_error, _input, context) => {
+      if (context?.before) qc.setQueryData(key, context.before);
+    },
+    onSettled: () => refreshPortal(qc, orgId),
+  });
+}
+
+/** Creates, renames, reorders or deletes a list of a client's schedule. */
+export function usePortalLists(orgId: string, client: string) {
+  const api = useApi();
+  const qc = useQueryClient();
+  const key = keys.portalPlan(orgId, client);
+  const done = { meta: { silent: true }, onSettled: () => refreshPortal(qc, orgId) } as const;
+  return {
+    create: useMutation({ mutationFn: (name: string) => portalOf(api).createList(orgId, client, name), ...done }),
+    rename: useMutation({
+      mutationFn: (input: { listId: string; name: string }) =>
+        portalOf(api).renameList(orgId, input.listId, input.name),
+      ...done,
+    }),
+    remove: useMutation({ mutationFn: (listId: string) => portalOf(api).deleteList(orgId, listId), ...done }),
+    /** The new order shows at once, and the old one comes back when the portal refuses it. */
+    order: useMutation({
+      mutationFn: (ids: string[]) => portalOf(api).orderLists(orgId, client, ids),
+      meta: { silent: true },
+      onMutate: async (ids: string[]) => {
+        await qc.cancelQueries({ queryKey: key });
+        const before = qc.getQueryData<PortalPlan>(key);
+        if (before) {
+          const byId = new Map(before.lists.map((l) => [l.id, l]));
+          const lists = ids.flatMap((id) => byId.get(id) ?? []);
+          qc.setQueryData<PortalPlan>(key, {
+            ...before,
+            lists: [...lists, ...before.lists.filter((l) => !ids.includes(l.id))],
+          });
+        }
+        return { before };
+      },
+      onError: (_error: unknown, _ids: string[], context: { before?: PortalPlan } | undefined) => {
+        if (context?.before) qc.setQueryData(key, context.before);
+      },
+      onSettled: () => refreshPortal(qc, orgId),
+    }),
+  };
+}
+
+/** Creates, changes or deletes a label: every schedule is read again, since the labels are the team's. */
+export function usePortalLabels(orgId: string) {
+  const api = useApi();
+  const qc = useQueryClient();
+  const done = { meta: { silent: true }, onSettled: () => refreshPortal(qc, orgId) } as const;
+  return {
+    create: useMutation({
+      mutationFn: (input: { name: string; color: PortalLabelColor }) => portalOf(api).createLabel(orgId, input),
+      ...done,
+    }),
+    update: useMutation({
+      mutationFn: (input: { labelId: string; name?: string; color?: PortalLabelColor }) => {
+        const { labelId, ...change } = input;
+        return portalOf(api).updateLabel(orgId, labelId, change);
+      },
+      ...done,
+    }),
+    remove: useMutation({ mutationFn: (labelId: string) => portalOf(api).deleteLabel(orgId, labelId), ...done }),
+  };
+}
+
+/** Posts a comment on a card, or deletes one. */
+export function usePortalComments(orgId: string) {
+  const api = useApi();
+  const qc = useQueryClient();
+  const done = { meta: { silent: true }, onSettled: () => refreshPortal(qc, orgId) } as const;
+  return {
+    add: useMutation({
+      mutationFn: (input: { cardId: string; text: string }) =>
+        portalOf(api).addComment(orgId, input.cardId, input.text),
+      ...done,
+    }),
+    remove: useMutation({
+      mutationFn: (input: { cardId: string; commentId: string }) =>
+        portalOf(api).deleteComment(orgId, input.cardId, input.commentId),
+      ...done,
+    }),
+  };
+}
+
+/**
+ * Moves a team card between To do and In production on a client's board. The board shows it there at once and puts
+ * it back when the portal refuses; either way it is read again after.
+ */
+export function useMovePortalCardState(orgId: string, client: string) {
+  const api = useApi();
+  const qc = useQueryClient();
+  const key = keys.portalBoard(orgId, client);
+  return useMutation({
+    mutationFn: (input: { cardId: string; state: PortalCardState }) =>
+      portalOf(api).updateCard(orgId, input.cardId, { state: input.state }),
+    meta: { silent: true },
+    onMutate: async (input) => {
+      await qc.cancelQueries({ queryKey: key });
+      const before = qc.getQueryData<PortalBoard>(key);
+      const card = before && [...before.cards.todo, ...before.cards.doing].find((c) => c.id === input.cardId);
+      if (before && card && card.state !== input.state) {
+        const without = (cards: PortalCard[]) => cards.filter((c) => c.id !== input.cardId);
+        const moved = { ...card, state: input.state };
+        qc.setQueryData<PortalBoard>(key, {
+          ...before,
+          cards: {
+            todo: input.state === "todo" ? [...without(before.cards.todo), moved] : without(before.cards.todo),
+            doing: input.state === "doing" ? [...without(before.cards.doing), moved] : without(before.cards.doing),
+          },
+        });
+      }
+      return { before };
+    },
+    onError: (_error, _input, context) => {
+      if (context?.before) qc.setQueryData(key, context.before);
+    },
+    onSettled: () => refreshPortal(qc, orgId),
+  });
+}
+
+/**
+ * Every piece of work not posted yet, across all clients (ADR 9001 §10), read again every minute while the overview
+ * is open and after any change to a board or a schedule (it sits under the portal's key).
+ */
+export const usePortalPipeline = (orgId: string, enabled = true) => {
+  const api = useApi();
+  return useQuery({
+    queryKey: keys.portalPipeline(orgId),
+    queryFn: () => portalOf(api).pipeline(orgId),
+    enabled,
+    refetchInterval: (q) => (isPortalOff(q.state.error) ? false : PORTAL_REFRESH_MS),
+    retry: false,
+    meta: { quiet: true },
+  });
+};
+
+/**
+ * Each card's task (ADR 9001): every card of the board is also a task of the workspace, and this says its number.
+ * Under the portal's key, so it is read again after any change to a board (a new card has a task at once).
+ */
+export const usePortalTasks = (orgId: string, enabled = true) => {
+  const api = useApi();
+  return useQuery({
+    queryKey: keys.portalTasks(orgId),
+    queryFn: () => portalOf(api).tasks(orgId),
+    enabled,
+    refetchInterval: (q) => (isPortalOff(q.state.error) ? false : PORTAL_REFRESH_MS),
+    retry: false,
+    meta: { quiet: true },
+  });
+};

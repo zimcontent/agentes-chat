@@ -21,13 +21,14 @@ describe("the sidebar's defaults by the workspace's mode (ADR 0159)", () => {
   test("a team's stay as they were: the default when no mode is given", () => {
     expect(sidebarSections()).toEqual(SIDEBAR_SECTIONS);
     expect(sidebarItemOrder()).toEqual(SIDEBAR_ITEMS);
-    // DougBot: Equipe in More (the agents' list links it).
-    expect(inSight(false)).toEqual(["threads", "issues", "drive"]);
+    // DougBot: Equipe in More (the agents' list links it). Portal (ADR 9001) is in sight by default, and the apps
+    // list it only where the server has an approval portal.
+    expect(inSight(false)).toEqual(["portal", "threads", "issues", "drive"]);
     expect(sidebarPlace(undefined, "issues")).toBe("always");
   });
 
-  test("personal: every tool in More, Approvals in sight while something waits", () => {
-    expect(inSight(true)).toEqual([]);
+  test("personal: every tool in More but Portal, Approvals in sight while something waits", () => {
+    expect(inSight(true)).toEqual(["portal"]);
     expect(sidebarDefaults(true).approvals).toBe("auto");
     expect(inSidebarList(sidebarPlace({}, "approvals", true), 2)).toBe(true);
     for (const id of [
@@ -69,6 +70,6 @@ describe("the sidebar's defaults by the workspace's mode (ADR 0159)", () => {
   test("a saved order keeps its tools; the ones it lacks follow in the mode's order", () => {
     expect(knownToolOrder([], true)).toEqual([...PERSONAL_SIDEBAR_ITEMS]);
     expect(knownToolOrder([])).toEqual([...SIDEBAR_ITEMS]);
-    expect(knownToolOrder(["wiki"], true).slice(0, 3)).toEqual(["wiki", "waiting", "approvals"]);
+    expect(knownToolOrder(["wiki"], true).slice(0, 4)).toEqual(["wiki", "waiting", "portal", "approvals"]);
   });
 });

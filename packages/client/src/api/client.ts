@@ -249,6 +249,20 @@ import type {
   PhoneSignIn,
   PlanServes,
   Poll,
+  PortalBoard,
+  PortalCard,
+  PortalCardInput,
+  PortalItemEdit,
+  PortalJob,
+  PortalLabel,
+  PortalLabelColor,
+  PortalList,
+  PortalMine,
+  PortalOverview,
+  PortalPipeline,
+  PortalPlan,
+  PortalSendInput,
+  PortalTaskRef,
   PostMedia,
   Proposal,
   PushDeviceInput,
@@ -1379,6 +1393,59 @@ export interface ApiClient {
   };
   /** Boards and widgets (ADR 0135). */
   dashboards: DashboardsApi;
+  /**
+   * The approval portal (ADR 9001): the team's board per client and the send for a client's approval. Optional: a
+   * client built before it has none. Every call answers 404 `portal.off` on a server without a portal
+   * (`AuthConfig.approvalPortal`), 400 `portal.refused` with the portal's own words, 502 `portal.unavailable`.
+   * Members read; whoever may give agents work (`assign_work`) changes cards, posts and sends.
+   */
+  portal?: {
+    /** Every client with its counts per column, and how fresh the portal's side is. */
+    overview(orgId: string): Promise<PortalOverview>;
+    board(orgId: string, client: string): Promise<PortalBoard>;
+    createCard(orgId: string, input: PortalCardInput & { client: string; title: string }): Promise<PortalCard>;
+    /** Changes a card, or moves it between `todo` and `doing`. */
+    updateCard(orgId: string, cardId: string, input: PortalCardInput): Promise<PortalCard>;
+    deleteCard(orgId: string, cardId: string): Promise<void>;
+    /** Sends Drive files to a client's approval: answers at once with the job, read `job` until it ends. */
+    send(orgId: string, input: PortalSendInput): Promise<PortalJob>;
+    job(orgId: string, jobId: string): Promise<PortalJob>;
+    /** Completes or changes a post at the portal. */
+    editItem(orgId: string, client: string, itemId: string, edit: PortalItemEdit): Promise<void>;
+    /**
+     * Schedules a post the client approved (`scheduledFor`: `YYYY-MM-DDTHH:MM`, in the future): the portal takes it
+     * to the publishing service by itself. It turns `scheduled` once that service has it, usually within minutes, and
+     * stays `approved` with its date until then.
+     */
+    schedule(orgId: string, client: string, itemId: string, scheduledFor: string): Promise<void>;
+    /** A client's strategic schedule: its lists with their cards, the cards in no list, the labels. */
+    plan(orgId: string, client: string): Promise<PortalPlan>;
+    /** The caller's own open work by production day. */
+    mine(orgId: string): Promise<PortalMine>;
+    /** Every piece of work not posted yet, across all clients: what the overview draws. */
+    pipeline(orgId: string): Promise<PortalPipeline>;
+    /** Each card's task, to name it by its number and open it. */
+    tasks(orgId: string): Promise<PortalTaskRef[]>;
+    /** Makes a list (the same name answers the same list). */
+    createList(orgId: string, client: string, name: string): Promise<PortalList>;
+    /** Every list of the client, once each, in the new order. */
+    orderLists(orgId: string, client: string, ids: string[]): Promise<PortalList[]>;
+    renameList(orgId: string, listId: string, name: string): Promise<PortalList>;
+    /** Its cards stay, in no list. */
+    deleteList(orgId: string, listId: string): Promise<void>;
+    labels(orgId: string): Promise<PortalLabel[]>;
+    createLabel(orgId: string, input: { name: string; color: PortalLabelColor }): Promise<PortalLabel>;
+    updateLabel(
+      orgId: string,
+      labelId: string,
+      change: { name?: string; color?: PortalLabelColor },
+    ): Promise<PortalLabel>;
+    deleteLabel(orgId: string, labelId: string): Promise<void>;
+    /** Anyone who may post comments; answers the card with it. */
+    addComment(orgId: string, cardId: string, text: string): Promise<PortalCard>;
+    /** One's own, or any for who may give agents work. */
+    deleteComment(orgId: string, cardId: string, commentId: string): Promise<PortalCard>;
+  };
   /** Missions (ADR 0029): long work by the agent's executor on a connected computer, in one thread. */
   missions: {
     /** Missions you can see (the Missões tab), most recently changed first, with the counts for the tabs. */

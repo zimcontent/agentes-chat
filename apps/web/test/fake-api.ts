@@ -127,6 +127,7 @@ import { createFakeMail, type FakeMail } from "./fakes/mail";
 import { createFakeMissions } from "./fakes/missions";
 import { createFakeNotifications } from "./fakes/notifications";
 import { createMockPlanning } from "./fakes/planning";
+import { createFakePortal, type FakePortal } from "./fakes/portal";
 import { createFakeSandbox } from "./fakes/sandbox";
 import { createFakeSkills } from "./fakes/skills";
 import { createMockStorage } from "./fakes/storage";
@@ -3884,6 +3885,8 @@ export const fakeAppsOf = new WeakMap<ApiClient, FakeApps>();
 
 /** The boards and widgets fake behind each `createFakeApi` client (tests add boards and finish widgets with it). */
 export const fakeDashboardsOf = new WeakMap<ApiClient, FakeDashboards>();
+/** The approval portal behind a fake client (ADR 9001): its cards, posts and sends. */
+export const fakePortalOf = new WeakMap<ApiClient, FakePortal>();
 
 /** Full client: fake HTTP + the real in-memory mocks (seeded like development). */
 export function createFakeApi(state: FakeState = seedState(), options: { seed?: boolean } = {}): ApiClient {
@@ -3933,6 +3936,12 @@ export function createFakeApi(state: FakeState = seedState(), options: { seed?: 
     (agentId) => state.agents.find((a) => a.id === agentId)?.name ?? "",
   );
   const browser = createFakeBrowser((method, ...args) => state.calls.push({ method, args }), ctx.now);
+  // On only where the test's server says it has a portal (`authConfig.approvalPortal`), as the real one.
+  const portal = createFakePortal(
+    (method, ...args) => state.calls.push({ method, args }),
+    () => state.authConfig?.approvalPortal === true,
+    () => state.me?.user.id ?? null,
+  );
   const apps = createFakeApps((method, ...args) => state.calls.push({ method, args }), ctx.now);
   const artifacts = createMockArtifacts(ctx, (method, ...args) => state.calls.push({ method, args }));
   state.drive = artifacts;
@@ -4129,6 +4138,7 @@ export function createFakeApi(state: FakeState = seedState(), options: { seed?: 
     mail: mail.client,
     databases: databases.client,
     dashboards: dashboards.client,
+    portal: portal.client,
     browser: browser.client,
     desktop: browser.desktop,
     // "Trabalhando agora" and the task manager only for a test that gives the task manager (`state.taskManager`).
@@ -4196,6 +4206,7 @@ export function createFakeApi(state: FakeState = seedState(), options: { seed?: 
   fakeMailOf.set(client, mail);
   fakeDatabasesOf.set(client, databases);
   fakeDashboardsOf.set(client, dashboards);
+  fakePortalOf.set(client, portal);
   fakeBrowserOf.set(client, browser);
   fakeAppsOf.set(client, apps);
   return client;

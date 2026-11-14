@@ -3,6 +3,7 @@ import type { SidebarItem, SidebarItems, SidebarPlace, SidebarSection } from "..
 /** The tools at the top of the sidebar, in their order (mirrors `SIDEBAR_ITEMS`, packages/engine/src/sidebar-items.ts). */
 export const SIDEBAR_ITEMS: readonly SidebarItem[] = [
   "waiting",
+  "portal",
   "approvals",
   "proposals",
   "threads",
@@ -19,6 +20,8 @@ export const SIDEBAR_ITEMS: readonly SidebarItem[] = [
 /** Where each tool goes for someone who never moved it. */
 export const SIDEBAR_DEFAULTS: Record<SidebarItem, SidebarPlace> = {
   waiting: "auto",
+  // Listed only where the server has an approval portal (ADR 9001): the apps leave it out elsewhere.
+  portal: "always",
   approvals: "auto",
   proposals: "more",
   threads: "always",
@@ -36,10 +39,13 @@ export const SIDEBAR_DEFAULTS: Record<SidebarItem, SidebarPlace> = {
 /**
  * The same in a personal workspace (ADR 0159): the sidebar is the person's conversations, so every tool starts in More
  * and only what waits on the person comes into sight, while something does. Only what is in sight changes: every tool is still one
- * click away, and a choice the person made still wins.
+ * click away, and a choice the person made still wins. Portal (ADR 9001) is the one tool in sight from the start, beside
+ * "Waiting on you": a server gets an approval portal because its people work in it.
  */
 export const PERSONAL_SIDEBAR_DEFAULTS: Record<SidebarItem, SidebarPlace> = {
   waiting: "auto",
+  // Listed only where the server has an approval portal (ADR 9001): the apps leave it out elsewhere.
+  portal: "always",
   approvals: "auto",
   proposals: "more",
   threads: "more",
@@ -62,6 +68,7 @@ export const sidebarDefaults = (personal = false) => (personal ? PERSONAL_SIDEBA
  */
 export const PERSONAL_SIDEBAR_ITEMS: readonly SidebarItem[] = [
   "waiting",
+  "portal",
   "approvals",
   "proposals",
   "routines",
