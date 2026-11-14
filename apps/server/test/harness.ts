@@ -1,5 +1,6 @@
 import {
   type Adapters,
+  type ApprovalPortal,
   checkGiphyKey,
   createFakeEmailSender,
   createFakeGifs,
@@ -19,6 +20,7 @@ import {
   noPlatformCredentials,
   type S3Fetch,
   type WebPushSender,
+  type WhatsAppGateway,
 } from "@agenteschat/adapters";
 import { testConfig } from "@agenteschat/config";
 import { eq, isNotNull, like, schema } from "@agenteschat/db";
@@ -101,6 +103,8 @@ export async function createTestServer(
     webPush?: WebPushSender | null;
     /** Where error lines are reported (`createFakeErrorReporter`); absent = nowhere. */
     errors?: ErrorReporter;
+    /** The approval portal (ADR 9001); absent or null = none, as without its bridge. */
+    approvalPortal?: ApprovalPortal | null;
     /** GIF search (ADR 0091); absent = the fake provider (`createFakeGifs`), null = none, as without its key. */
     gifs?: GifProvider | null;
     /**
@@ -115,6 +119,8 @@ export async function createTestServer(
     speechFetch?: typeof fetch;
     /** AI apps (ADR 0119): a fake fetch of apps' metadata documents (CIMD); absent = none answers. */
     appsFetchDocument?: FetchAppDocument;
+    /** The WhatsApp gateway (`createFakeWhatsAppGateway`); absent = none, as without `WHATSAPP_GATEWAY_URL`. */
+    whatsapp?: WhatsAppGateway;
   } = {},
 ) {
   const { db, close } = await createTestDatabase();
@@ -158,6 +164,8 @@ export async function createTestServer(
     databases: options.databases ?? null,
     humanCheck: options.humanCheck ?? null,
     gifs,
+    whatsapp: options.whatsapp ?? null,
+    approvalPortal: options.approvalPortal ?? null,
   };
   const provider = createFakeProvider(options.reply);
   const embeddings = createFakeEmbeddings();

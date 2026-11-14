@@ -16,6 +16,7 @@ import { webUrl } from "@agenteschat/client/lib/guards";
 import { NO_PROJECT } from "@agenteschat/client/lib/issue-projects";
 import { issueEventText } from "@agenteschat/client/lib/issues";
 import { can } from "@agenteschat/client/lib/permissions";
+import { portalClientName } from "@agenteschat/client/lib/portal";
 import { foldSteps } from "@agenteschat/client/lib/work";
 import {
   Alert,
@@ -123,7 +124,7 @@ export function IssuePage({ number }: { number: number }) {
   );
 }
 
-/** Where an issue came from: "a partir de uma mensagem no #eng" (a link), an agent, a webhook. */
+/** Where an issue came from: "a partir de uma mensagem no #eng" (a link), an agent, a webhook, a card of the Portal. */
 function useIssueSource(i: Issue) {
   const { t } = useTranslation();
   const { org } = useOrg();
@@ -146,6 +147,25 @@ function useIssueSource(i: Issue) {
       return t("issues.fromAgent");
     case "webhook":
       return t("issues.fromWebhook", { provider: i.source.provider });
+    case "portal": {
+      // A card of the approval portal's board (ADR 9001): the link opens that client's board, on the card.
+      const { client, cardId } = i.source;
+      return (
+        <Trans
+          i18nKey="issues.fromPortal"
+          values={{ client: portalClientName(client) }}
+          components={[
+            <Link
+              key="l"
+              to="/org/$orgId/portal"
+              params={{ orgId: org.id }}
+              search={{ client, card: cardId }}
+              className="ac-link"
+            />,
+          ]}
+        />
+      );
+    }
     default:
       return null;
   }

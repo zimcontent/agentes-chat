@@ -204,11 +204,6 @@
     gap: 4px;
     font-variant-numeric: tabular-nums;
   }
-  /* The waiting mark's box as wide as its 8px square: its 3px of air each side read as padding the number lacks. */
-  .tm-pill__mark:has(> .rq-wait),
-  .tm-pill .rq-wait {
-    width: 8px;
-  }
 }
 .tm-here.ac-chip {
   flex: none;

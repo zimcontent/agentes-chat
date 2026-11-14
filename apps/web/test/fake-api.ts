@@ -22,6 +22,7 @@ import type {
   AuthConfig,
   Availability,
   BrainMachine,
+  CarrySource,
   Channel,
   ChannelCategory,
   ChannelMember,
@@ -127,6 +128,7 @@ import { createFakeMail, type FakeMail } from "./fakes/mail";
 import { createFakeMissions } from "./fakes/missions";
 import { createFakeNotifications } from "./fakes/notifications";
 import { createMockPlanning } from "./fakes/planning";
+import { createFakePortal, type FakePortal } from "./fakes/portal";
 import { createFakeSandbox } from "./fakes/sandbox";
 import { createFakeSkills } from "./fakes/skills";
 import { createMockStorage } from "./fakes/storage";
@@ -262,6 +264,8 @@ export interface FakeState {
   githubAccess?: { orgs: string[] | null; manageUrl: string | null };
   /** The workspace's Composio calls this month (default: none counted, no cap). */
   composioUsage?: ComposioUsage;
+  /** What the person can bring from their other workspaces (none unless a test sets it). */
+  carrySources?: CarrySource[];
   /** What the organization's GitHub reaches (`githubApp.repositories`); unset = not connected. */
   githubRepos?: GitHubRepositories;
   /** The GitHub connection whose token GitHub no longer takes (its id): skills from private links say so. */
@@ -3429,6 +3433,28 @@ export function createFakeHttpApi(state: FakeState): Omit<HttpApi, FakedParts> {
           state.scopes[k] = (state.scopes[k] ?? []).filter((g) => g.connectionId !== connectionId);
       },
     },
+    carry: {
+      sources: async () => structuredClone(state.carrySources ?? []),
+      bring: async (orgId, input) => {
+        log("carry.bring", orgId, input);
+        const all = state.carrySources ?? [];
+        const connections = all.flatMap((s) => s.connections).filter((c) => input.connectionIds?.includes(c.id));
+        const agents = all.flatMap((s) => s.agents).filter((a) => input.agentIds?.includes(a.id));
+        for (const c of connections) c.here = true;
+        for (const a of agents) a.here = true;
+        return {
+          connections: connections.map((c) => ({
+            sourceId: c.id,
+            id: id("conn"),
+            label: c.label,
+            outcome: "brought" as const,
+          })),
+          agents: agents.map((a) => ({ sourceId: a.id, id: id("agent"), name: a.name, handle: a.handle })),
+          skills: 0,
+          skipped: [],
+        };
+      },
+    },
     githubApp: {
       access: async () =>
         structuredClone(
@@ -3884,6 +3910,8 @@ export const fakeAppsOf = new WeakMap<ApiClient, FakeApps>();
 
 /** The boards and widgets fake behind each `createFakeApi` client (tests add boards and finish widgets with it). */
 export const fakeDashboardsOf = new WeakMap<ApiClient, FakeDashboards>();
+/** The approval portal behind a fake client (ADR 9001): its cards, posts and sends. */
+export const fakePortalOf = new WeakMap<ApiClient, FakePortal>();
 
 /** Full client: fake HTTP + the real in-memory mocks (seeded like development). */
 export function createFakeApi(state: FakeState = seedState(), options: { seed?: boolean } = {}): ApiClient {
@@ -3933,6 +3961,12 @@ export function createFakeApi(state: FakeState = seedState(), options: { seed?: 
     (agentId) => state.agents.find((a) => a.id === agentId)?.name ?? "",
   );
   const browser = createFakeBrowser((method, ...args) => state.calls.push({ method, args }), ctx.now);
+  // On only where the test's server says it has a portal (`authConfig.approvalPortal`), as the real one.
+  const portal = createFakePortal(
+    (method, ...args) => state.calls.push({ method, args }),
+    () => state.authConfig?.approvalPortal === true,
+    () => state.me?.user.id ?? null,
+  );
   const apps = createFakeApps((method, ...args) => state.calls.push({ method, args }), ctx.now);
   const artifacts = createMockArtifacts(ctx, (method, ...args) => state.calls.push({ method, args }));
   state.drive = artifacts;
@@ -4129,6 +4163,7 @@ export function createFakeApi(state: FakeState = seedState(), options: { seed?: 
     mail: mail.client,
     databases: databases.client,
     dashboards: dashboards.client,
+    portal: portal.client,
     browser: browser.client,
     desktop: browser.desktop,
     // "Trabalhando agora" and the task manager only for a test that gives the task manager (`state.taskManager`).
@@ -4196,6 +4231,7 @@ export function createFakeApi(state: FakeState = seedState(), options: { seed?: 
   fakeMailOf.set(client, mail);
   fakeDatabasesOf.set(client, databases);
   fakeDashboardsOf.set(client, dashboards);
+  fakePortalOf.set(client, portal);
   fakeBrowserOf.set(client, browser);
   fakeAppsOf.set(client, apps);
   return client;

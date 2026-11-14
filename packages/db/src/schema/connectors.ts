@@ -21,6 +21,21 @@ import { channels } from "./chat";
 import { organizations } from "./tenancy";
 
 /**
+ * One OAuth sign-in used by connections in several workspaces (ADR 9002). It belongs to no workspace: a person who
+ * manages connectors in two of them brought it from one to the other, so it has no `org_id`. Each connection keeps
+ * its own sealed copy of the tokens; this row is the one lease their renewal takes, since a provider that rotates
+ * the refresh token takes each one once.
+ */
+export const connectorSignIns = pgTable("connector_sign_ins", {
+  id: uuid().primaryKey().defaultRandom(),
+  /** Who first brought it to another workspace. */
+  userId: text().references(() => users.id, { onDelete: "set null" }),
+  /** While in the future, one call is renewing its tokens for every connection of it. */
+  refreshingUntil: timestamp({ withTimezone: true }),
+  createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
+});
+
+/**
  * An organization's connection to an MCP server (layer 1 of ADR 0016: the org
  * connects once; agents get subsets of its scopes in `agent_scopes`).
  * `connector` is a key of the catalog in `@agenteschat/engine`
@@ -87,6 +102,18 @@ export const connectorConnections = pgTable(
     status: text().notNull().default("active"),
     /** Why it needs reconnecting. */
     lastError: text(),
+    /**
+     * A sign-in several workspaces use (ADR 9002): its tokens are renewed once, under this row's lease, and written to
+     * every live connection of it. Null: a sign-in of this connection alone.
+     */
+    signInId: uuid().references(() => connectorSignIns.id, { onDelete: "set null" }),
+    /** Brought from another workspace (ADR 9002): the connection it was, there. Bringing it again is this one. */
+    carriedFromId: uuid(),
+    /**
+     * A service through Composio brought from another workspace: the workspace whose Composio user holds the
+     * account. Null: this one's.
+     */
+    composioUserOrgId: uuid(),
     createdByUserId: text().references(() => users.id, { onDelete: "set null" }),
     createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
@@ -97,6 +124,7 @@ export const connectorConnections = pgTable(
     uniqueIndex("connector_connections_tool_prefix").on(t.orgId, t.toolPrefix).where(sql`${t.revokedAt} is null`),
     index().on(t.orgId),
     index().on(t.composioAccountId),
+    index().on(t.signInId),
   ],
 );
 

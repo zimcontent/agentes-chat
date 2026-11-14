@@ -62,6 +62,9 @@ export function loadConfig(env: Record<string, string | undefined> = process.env
       "HOST_COMPUTER_TOKEN can't be set with MACHINE_PROVISIONING=external: every workspace gets its own computer, and no other computer joins it",
     ]);
   }
+  if (Boolean(config.APPROVAL_PORTAL_URL) !== Boolean(config.APPROVAL_PORTAL_TOKEN)) {
+    throw new ConfigError(["APPROVAL_PORTAL_URL and APPROVAL_PORTAL_TOKEN go together: set both or neither"]);
+  }
   if (Boolean(config.BILLING_URL) !== Boolean(config.BILLING_LINK_SECRET)) {
     throw new ConfigError(["BILLING_URL and BILLING_LINK_SECRET go together: set both or neither"]);
   }

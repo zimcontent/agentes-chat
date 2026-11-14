@@ -166,6 +166,8 @@ export interface AuthConfig {
   errorReports?: ErrorReportsConfig | null;
   /** The same for the phone app; null or absent (a server from before it): nowhere. */
   mobileErrorReports?: ErrorReportsConfig | null;
+  /** The server has an approval portal (ADR 9001): the apps show Portal; absent or false: none. */
+  approvalPortal?: boolean;
 }
 
 export interface ErrorReportsConfig {
@@ -888,6 +890,8 @@ export interface AgentBrainLine {
   speed?: "fast";
   /** An API brain on Automático: the maker its models come from, whose logo shows beside it. */
   maker?: string;
+  /** Nobody chose its model (Automático, a CLI's own default): the one that last answered for it; absent before that. */
+  answered?: string;
 }
 
 /** `appearance` as stored: the UI only draws known values. */
@@ -2095,6 +2099,50 @@ export interface ConnectorCatalog {
 }
 
 /** The organization's connection to a connector (no secrets). */
+/** A connection of another workspace of the person's, as what they can bring (no secrets). */
+export interface CarrySourceConnection {
+  id: string;
+  connector: string;
+  label: string;
+  serverUrl: string;
+  authType: string;
+  accountLabel: string | null;
+  icon: string | null;
+  /** Why it can't be brought; null when it can. */
+  blocked: "github_app" | "needs_reconnect" | null;
+  /** The workspace asking already has it. */
+  here: boolean;
+}
+
+/** An agent of another workspace of the person's: its profile, its skills and the connections that come with it. */
+export interface CarrySourceAgent {
+  id: string;
+  name: string;
+  handle: string;
+  role: string;
+  appearance: { color: string; eyes: string; accessory: string } | null;
+  skills: string[];
+  connectionIds: string[];
+  here: boolean;
+}
+
+/** One of the person's other workspaces with something to bring. */
+export interface CarrySource {
+  id: string;
+  name: string;
+  logo: string | null;
+  connections: CarrySourceConnection[];
+  agents: CarrySourceAgent[];
+}
+
+/** What bringing did: what came, what was here already and what stayed behind, with why. */
+export interface CarryResult {
+  connections: { sourceId: string; id: string; label: string; outcome: "brought" | "here" }[];
+  agents: { sourceId: string; id: string; name: string; handle: string }[];
+  skills: number;
+  skipped: { kind: "connection" | "agent" | "skill"; id: string; label: string; reason: string }[];
+}
+
 export interface Connection {
   id: string;
   connector: string;
@@ -3629,7 +3677,9 @@ export interface Issue {
     | { type: "manual" }
     | { type: "message"; channelId: string; messageId: string }
     | { type: "agent"; agentId: string }
-    | { type: "webhook"; provider: string };
+    | { type: "webhook"; provider: string }
+    /** The task of a card of the approval portal's board (ADR 9001): kept in step with it. */
+    | { type: "portal"; client: string; cardId: string };
   /** The channel it lives in (from a message, or chosen). */
   channelId: string | null;
   /**
@@ -6734,6 +6784,7 @@ export interface NoticePrefs {
 /** A tool at the top of the sidebar (`SIDEBAR_ITEMS` in packages/engine/src/sidebar-items.ts). */
 export type SidebarItem =
   | "waiting"
+  | "portal"
   | "approvals"
   | "proposals"
   | "threads"
@@ -7884,4 +7935,321 @@ export interface ComputerDeviceInput {
 export interface PhoneDeviceInput {
   name?: string;
   audience?: DeviceAudience;
+}
+
+/** Where a post is at the approval portal (ADR 9001; `PORTAL_STATUSES` in packages/adapters/src/approval-portal.ts). */
+export type PortalStatus =
+  | "sent"
+  | "seen"
+  | "approved"
+  | "adjust_requested"
+  | "adjusting"
+  | "adjusted"
+  | "scheduled"
+  | "published";
+export type PortalType = "reel" | "carousel" | "image" | "story";
+/** A card the team still works on: the portal only knows a post once it is sent. */
+export type PortalCardState = "todo" | "doing";
+/** What a sent post still lacks. Never shown to the client. */
+export type PortalMissing = "cover" | "caption" | "editor" | "date";
+/**
+ * The board's columns: the team's cards in the first two, the portal's posts in the others (`approved` waits for the
+ * team to schedule it; `posted` is the board's second tab).
+ */
+export type PortalColumn = "todo" | "doing" | "approval" | "adjusting" | "approved" | "scheduled" | "posted";
+
+/** A post at the approval portal. Its title, caption and note are outside text: typed at the portal. */
+export interface PortalItem {
+  client: string;
+  id: string;
+  title: string;
+  type: PortalType;
+  status: PortalStatus;
+  /** ISO with an offset, or null: no date yet. On an approved post it may be only a proposed date. */
+  scheduledFor: string | null;
+  /**
+   * An approved post already released for scheduling: on its way to the publishing service, `scheduled` within
+   * minutes. It can't be released again.
+   */
+  released: boolean;
+  publishedAt: string | null;
+  createdAt: string | null;
+  updatedAt: string | null;
+  editor: string | null;
+  caption: string;
+  files: number;
+  video: boolean;
+  version: number;
+  missing: PortalMissing[];
+  /** The last thing said on it (the client's adjustment request, an approval's note). */
+  lastNote: { at: string | null; by: string | null; text: string } | null;
+  /** Where it was published, once it was. */
+  postUrl: string | null;
+  /** The post at the portal, for a signed-in person. */
+  link: string;
+}
+
+/** A Drive file that goes up with a card. */
+export interface PortalCardFile {
+  id: string;
+  name: string;
+}
+
+export interface PortalCard {
+  id: string;
+  client: string;
+  title: string;
+  type: PortalType;
+  state: PortalCardState;
+  caption: string;
+  date: string | null;
+  editor: string | null;
+  owner: string | null;
+  note: string;
+  files: PortalCardFile[];
+  /** The day whoever is on it makes it (`YYYY-MM-DD`). Not `date`, the day the post goes out. */
+  produceOn: string | null;
+  /** The schedule's list it is in; null: none. */
+  list: string | null;
+  /** Its place in its list: lower first. */
+  order: number;
+  description: string;
+  /** Label ids (`PortalLabel`). */
+  labels: string[];
+  /** Who is on it: people (user ids) and agents (agent ids). The first has it: the one responsible, its task's assignee. */
+  members: string[];
+  checklist: PortalCheck[];
+  comments: PortalComment[];
+  /** The portal's post this card became, once sent: the card stays, tied to it. */
+  item: string | null;
+  /** The workspace task that stands for it (its id); null: none yet. Its number comes with `PortalTaskRef`. */
+  task: string | null;
+  /** Finished without going through the portal: it stays in its list as history, with nothing left to make. */
+  done: boolean;
+  createdAt: number;
+  updatedAt: number;
+}
+
+export interface PortalCheck {
+  id: string;
+  text: string;
+  done: boolean;
+}
+
+/** `by`: a user id, or `agent:<id>`. `at`: milliseconds. */
+export interface PortalComment {
+  id: string;
+  by: string;
+  text: string;
+  at: number;
+}
+
+/** A list of the strategic schedule: usually a week, named by the team. */
+export interface PortalList {
+  id: string;
+  name: string;
+}
+
+export type PortalLabelColor =
+  | "green"
+  | "mint"
+  | "olive"
+  | "yellow"
+  | "wine"
+  | "red"
+  | "purple"
+  | "lilac"
+  | "blue"
+  | "gray";
+
+/** The colour the team gave a client (`PORTAL_CLIENT_COLORS`): whose a card is reads at a glance. */
+export type PortalClientColor =
+  | "green"
+  | "blue"
+  | "navy"
+  | "sky"
+  | "white"
+  | "teal"
+  | "yellow"
+  | "orange"
+  | "red"
+  | "pink"
+  | "purple"
+  | "gray";
+
+/** A label the team puts on cards by hand, one set for every client. */
+export interface PortalLabel {
+  id: string;
+  name: string;
+  color: PortalLabelColor;
+}
+
+/** A card's task (`GET …/portal/tasks`): its id and the number people call it by ("#12"). */
+export interface PortalTaskRef {
+  cardId: string;
+  id: string;
+  number: number;
+}
+
+/** A card as the schedule shows it. */
+export interface PlanCard extends PortalCard {
+  /** Where the post is: the card's own stage, or the portal's once it was sent. Never typed. */
+  stage: PortalColumn;
+  /** When it goes out: the portal's date once it is there, else the card's own. */
+  postOn: string | null;
+  /** The post at the portal, once it was sent. */
+  link: string | null;
+}
+
+/** A client's strategic schedule (`GET …/portal/clients/{client}/plan`). */
+export interface PortalPlan {
+  client: string;
+  state?: PortalState;
+  lists: (PortalList & { cards: PlanCard[] })[];
+  /** Cards in no list. */
+  unlisted: PlanCard[];
+  /** Posts at the portal no card stands for: the calendar shows them. */
+  loose: PortalItem[];
+  labels: PortalLabel[];
+}
+
+/** The caller's own open work by production day (`GET …/portal/mine`); `day` is the portal's own today. */
+export interface PortalMine {
+  day: string;
+  late: PlanCard[];
+  today: PlanCard[];
+  next: PlanCard[];
+  undated: PlanCard[];
+}
+
+export interface PortalCardInput {
+  title?: string;
+  type?: PortalType;
+  state?: PortalCardState;
+  caption?: string;
+  date?: string | null;
+  editor?: string | null;
+  owner?: string | null;
+  note?: string;
+  files?: PortalCardFile[];
+  produceOn?: string | null;
+  list?: string | null;
+  order?: number;
+  description?: string;
+  labels?: string[];
+  members?: string[];
+  checklist?: PortalCheck[];
+  done?: boolean;
+}
+
+/** One client on the overview: how many it has per column, how many are still open, and the next date scheduled. */
+export interface PortalClientSummary {
+  client: string;
+  counts: Record<PortalColumn, number>;
+  open: number;
+  next: string | null;
+  /** The colour the team gave it; null or absent (a server that doesn't say): none. */
+  color?: PortalClientColor | null;
+  /** Where its logo is read (the server's own address); null or absent: none. */
+  logo?: string | null;
+}
+
+/**
+ * How fresh the portal's side is. While the portal doesn't answer, the server shows its last good read (`stale`, read
+ * at `readAt`) and keeps what couldn't reach the portal in a queue it retries (`queued`).
+ */
+export interface PortalState {
+  stale: boolean;
+  /** When the posts shown were read from the portal (ISO), if known. */
+  readAt: string | null;
+  /** Edits and schedules still on their way to the portal. */
+  queued: number;
+}
+
+/** Every client at a glance (`GET …/portal`). */
+export interface PortalOverview {
+  clients: PortalClientSummary[];
+  /** Absent from a server that doesn't say. */
+  state?: PortalState;
+}
+
+/** One client's board (`GET …/portal/clients/{client}`). */
+export interface PortalBoard {
+  client: string;
+  /** Absent from a server that doesn't say. */
+  state?: PortalState;
+  cards: { todo: PortalCard[]; doing: PortalCard[] };
+  items: {
+    approval: PortalItem[];
+    adjusting: PortalItem[];
+    approved: PortalItem[];
+    scheduled: PortalItem[];
+    posted: PortalItem[];
+  };
+}
+
+/** A send for a client's approval (`POST …/portal/send`). */
+export interface PortalSendInput {
+  client: string;
+  type: PortalType;
+  /** Uploaded Drive files, in the carousel's order. */
+  artifactIds: string[];
+  coverArtifactId?: string;
+  title?: string;
+  caption?: string;
+  /** `YYYY-MM-DDTHH:MM`. */
+  date?: string;
+  editor?: string;
+  /** The board's card this send finishes: removed once the send is done. */
+  card?: string;
+  /** The same key never sends twice. */
+  key?: string;
+}
+
+/** How a send is going: `missing` is what the post still lacks, `error` the portal's own words. */
+export interface PortalJob {
+  id: string;
+  state: "sending" | "done" | "failed";
+  client: string;
+  item: string | null;
+  title: string | null;
+  missing: PortalMissing[];
+  link: string | null;
+  error: string | null;
+}
+
+export interface PortalItemEdit {
+  title?: string;
+  caption?: string;
+  scheduledFor?: string | null;
+  status?: PortalStatus;
+  editor?: string;
+}
+
+/** One open piece of work in the pipeline (ADR 9001 §10): a team's card, or a post at the portal no card stands for. */
+export interface PortalPipelineEntry {
+  client: string;
+  kind: "card" | "post";
+  /** The card's id, or the post's. */
+  id: string;
+  title: string;
+  type: PortalType;
+  stage: PortalColumn;
+  /** Who is on it (user ids and agent ids), the one responsible first; empty for a post with no card. */
+  members: string[];
+  produceOn: string | null;
+  postOn: string | null;
+  /** Its production day is past and the team still has it. */
+  late: boolean;
+  /** The client's last words on it, when it waits on an adjustment. Outside text. */
+  note: string | null;
+  link: string | null;
+  updatedAt: number;
+}
+
+/** Everything not posted yet, across every client (`GET …/portal/pipeline`); `day` is the portal's own today. */
+export interface PortalPipeline {
+  day: string;
+  state?: PortalState;
+  entries: PortalPipelineEntry[];
 }

@@ -6,8 +6,8 @@ const order: SidebarItem[] = [...SIDEBAR_ITEMS];
 
 describe("the tools' order", () => {
   test("a tool dropped before or after another takes that place; on itself or an unknown one, nothing moves", () => {
-    expect(placeTool(order, "drive", "threads", "before").slice(1, 4)).toEqual(["approvals", "proposals", "drive"]);
-    expect(placeTool(order, "approvals", "issues", "after").slice(1, 5)).toEqual([
+    expect(placeTool(order, "drive", "threads", "before").slice(2, 5)).toEqual(["approvals", "proposals", "drive"]);
+    expect(placeTool(order, "approvals", "issues", "after").slice(2, 6)).toEqual([
       "proposals",
       "threads",
       "issues",
@@ -38,7 +38,16 @@ describe("the tools' order", () => {
   });
 
   test("the setup dialog moves a tool one place in the whole order", () => {
-    expect(moveSection(order, "issues", -1).slice(1, 5)).toEqual(["approvals", "proposals", "issues", "threads"]);
+    expect(moveSection(order, "issues", -1).slice(2, 6)).toEqual(["approvals", "proposals", "issues", "threads"]);
     expect(moveSection(order, "taskManager", 1)).toEqual(order);
+  });
+
+  test("on a server with no approval portal the dialog lists no Portal: a tool steps over it in one move", () => {
+    // Portal sits right after Waiting on you (ADR 9001), listed only where the server has a portal.
+    expect(order.slice(0, 3)).toEqual(["waiting", "portal", "approvals"]);
+    const shown = order.filter((id) => id !== "portal");
+    const up = moveShownTool(order, shown, "approvals", -1);
+    expect(up.filter((id) => id !== "portal").slice(0, 2)).toEqual(["approvals", "waiting"]);
+    expect(moveShownTool(order, shown, "waiting", -1)).toEqual(order);
   });
 });

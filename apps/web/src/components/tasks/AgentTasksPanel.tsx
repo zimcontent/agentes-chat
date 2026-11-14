@@ -164,7 +164,12 @@ export function AgentTasksPanel({
           ))}
         </dl>
         {tasks.length === 0 ? (
-          <EmptyState size="panel" agent={lookOf(dir.agentById.get(agentId)) ?? true} mood="deal">
+          <EmptyState
+            size="panel"
+            agent={lookOf(dir.agentById.get(agentId)) ?? true}
+            who={dir.agentById.get(agentId)}
+            mood="deal"
+          >
             {hidden > 0 ? agentCardLine(t, 0, hidden) : t("taskManager.agentPanel.none", { name })}
           </EmptyState>
         ) : (

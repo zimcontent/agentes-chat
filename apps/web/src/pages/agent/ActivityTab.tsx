@@ -25,6 +25,7 @@ import {
   Meter,
   type MonthDay,
   MonthRuns,
+  type RunWho,
   RunMark,
   SearchField,
   Segmented,
@@ -39,7 +40,7 @@ import { ErrorState, LoadingList } from "@/components/Loading";
 import { useOrg } from "@/components/org-context";
 import { colorOf } from "@/components/Sky";
 import { groupByDay, isRoutineRun, type RunFilter, runMatches } from "@/lib/agent-edit";
-import { lookOf } from "@/lib/look";
+import { botWhoOf, lookOf } from "@/lib/look";
 import { usageShown } from "@/lib/plan-usage";
 import { BrainDialog } from "./brain/BrainDialog";
 import { useAgentEdit } from "./context";
@@ -62,6 +63,7 @@ const failure = (t: TFunction, run: Run) =>
  */
 function MonthStrip({
   color,
+  who,
   month,
   runs,
   failures,
@@ -70,6 +72,7 @@ function MonthStrip({
   money,
 }: {
   color: AgentColor;
+  who?: RunWho;
   month: string;
   runs: number;
   failures: number;
@@ -110,7 +113,7 @@ function MonthStrip({
           }}
           onMouseLeave={() => setTip(undefined)}
         >
-          <MonthRuns days={days} today={today} perDay={perDay} color={color} />
+          <MonthRuns days={days} today={today} perDay={perDay} color={color} who={who} />
         </div>
         <div className="agp-month__axis" aria-hidden="true">
           {ticks.map((d) => (
@@ -120,12 +123,12 @@ function MonthStrip({
       </div>
       <dl className="agp-month__legend">
         <dt>
-          <RunMark color={color} status="ok" />
+          <RunMark color={color} who={who} status="ok" />
           {t("agentPage.activity.runs")}
         </dt>
         <dd>{formatInt(locale, runs)}</dd>
         <dt>
-          <RunMark color={color} status="failed" />
+          <RunMark color={color} who={who} status="failed" />
           {t("agentPage.activity.failures")}
         </dt>
         <dd>{formatInt(locale, failures)}</dd>
@@ -222,6 +225,7 @@ export function ActivityTab() {
       {brainAt && <BrainDialog at={brainAt} onClose={() => setBrainAt(null)} />}
       <MonthStrip
         color={colorOf(agent)}
+        who={botWhoOf(agent)}
         month={month}
         runs={detail.data?.runsThisMonth ?? 0}
         failures={detail.data?.failuresThisMonth ?? 0}
@@ -292,6 +296,7 @@ export function ActivityTab() {
           <EmptyState
             size="panel"
             agent={lookOf(agent) ?? true}
+            who={agent}
             title={t("agentPage.activity.emptyTitle")}
             actions={<AskAgentButton agent={agent} variant="primary" />}
           >

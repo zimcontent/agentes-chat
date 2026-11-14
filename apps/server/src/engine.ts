@@ -64,6 +64,7 @@ import {
   createModelGateway,
   createPassToolSource,
   createPermissionToolSource,
+  createPortalToolSource,
   createReactToolSource,
   createReleaseAsksToolSource,
   createSandboxToolSource,
@@ -445,6 +446,8 @@ export function buildEngine(o: EngineOptions) {
       // Runs nobody called by name may stay quiet (reply-policy.ts): listed only for them.
       createPassToolSource(),
       createArtifactToolSource(artifacts),
+      // The approval portal's board and `send_for_approval` (ADR 9001): listed only with a portal.
+      createPortalToolSource({ portal: adapters.approvalPortal ?? null, artifacts }),
       // Live blocks and votes in the agent's own conversation (ADR 0113).
       createBlockToolSource(artifacts),
       createChatToolSource({ pubsub: adapters.pubsub, artifacts, gif: createAgentGifPoster(adapters.gifs) }),
@@ -752,6 +755,20 @@ export function buildEngine(o: EngineOptions) {
     accountEmails: adapters.email.delivers ? { publicUrl: config.PUBLIC_URL, support: config.SUPPORT_EMAIL } : null,
     appleRevoke: o.appleRevoke ?? appleTokenRevoker(config),
     voice,
+    // The agent answering a WhatsApp number, with its own brain: its API model, or its plan on its computer.
+    ...(adapters.whatsapp
+      ? {
+          whatsapp: {
+            db,
+            gateway: adapters.whatsapp,
+            keyWrappers,
+            pubsub: adapters.pubsub,
+            hookBase: (config.WHATSAPP_HOOK_URL ?? config.PUBLIC_URL).replace(/\/+$/, ""),
+            models: gateway,
+            machines: machineHub,
+          },
+        }
+      : {}),
     db,
     gateway,
     pubsub: adapters.pubsub,

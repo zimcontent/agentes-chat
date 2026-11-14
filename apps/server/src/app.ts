@@ -28,6 +28,7 @@ import { billingRoutes } from "./routes/app/billing";
 import { browserRoutes } from "./routes/app/browser";
 import { browserProfileRoutes } from "./routes/app/browser-profiles";
 import { calendarRoutes } from "./routes/app/calendar";
+import { carryRoutes } from "./routes/app/carry";
 import { channelRoutes } from "./routes/app/channels";
 import { chatRoutes } from "./routes/app/chat";
 import { connectorRoutes } from "./routes/app/connectors";
@@ -53,6 +54,7 @@ import { missionRoutes } from "./routes/app/missions";
 import { notificationRoutes } from "./routes/app/notifications";
 import { personUsageRoutes } from "./routes/app/person-usage";
 import { planUsageRoutes } from "./routes/app/plan-usage";
+import { portalRoutes } from "./routes/app/portal";
 import { pushRoutes } from "./routes/app/push";
 import { questionRoutes } from "./routes/app/questions";
 import { roleRoutes } from "./routes/app/roles";
@@ -67,6 +69,7 @@ import { threadRoutes } from "./routes/app/threads";
 import { vaultRoutes } from "./routes/app/vault";
 import { speechKeyRoutes, voiceRoutes } from "./routes/app/voice";
 import { waitingRoutes } from "./routes/app/waiting";
+import { whatsappRoutes } from "./routes/app/whatsapp";
 import { wikiRoutes } from "./routes/app/wiki";
 import {
   createDesktopReleases,
@@ -179,6 +182,7 @@ export function createApp(options: AppOptions) {
     api.route("/app", agentRoutes(deps));
     api.route("/app", chatRoutes(deps));
     api.route("/app", gifRoutes(deps));
+    api.route("/app", portalRoutes(deps));
     api.route("/app", actionRoutes(deps));
     api.route("/app", channelRoutes(deps));
     api.route("/app", approvalRoutes(deps));
@@ -186,6 +190,7 @@ export function createApp(options: AppOptions) {
     api.route("/app", auditRoutes(deps));
     api.route("/app", customConnectorRoutes(deps));
     api.route("/app", connectorRoutes(deps));
+    api.route("/app", carryRoutes(deps));
     api.route("/app", mailRoutes(deps, log));
     api.route("/app", databaseRoutes(deps));
     api.route("/app", managementRoutes(deps));
@@ -229,6 +234,7 @@ export function createApp(options: AppOptions) {
     api.route("/app", gifKeyRoutes(deps));
     api.route("/app", speechKeyRoutes(deps));
     api.route("/app", voiceRoutes(deps));
+    api.route("/app", whatsappRoutes(deps));
     api.route("/app", webhookAdminRoutes(deps));
     api.route("/app", githubAppRoutes(deps));
     registerOauthRoutes(api, deps, { version, fetchDocument: options.appsFetchDocument });

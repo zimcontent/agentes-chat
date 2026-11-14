@@ -29,6 +29,8 @@ import { Route as DesktopHandoverRouteImport } from './routes/desktop.handover'
 import { Route as DesktopSignInRouteImport } from './routes/desktop.sign-in'
 import { Route as DesktopSignedInRouteImport } from './routes/desktop.signed-in'
 import { Route as DevGalleryRouteImport } from './routes/dev.gallery'
+import { Route as DocsIndexRouteImport } from './routes/docs.index'
+import { Route as DocsSlugRouteImport } from './routes/docs.$slug'
 import { Route as InviteTokenRouteImport } from './routes/invite.$token'
 import { Route as OrgOrgIdRouteImport } from './routes/org.$orgId'
 import { Route as OrgOrgIdIndexRouteImport } from './routes/org.$orgId.index'
@@ -39,6 +41,7 @@ import { Route as OrgOrgIdHomeRouteImport } from './routes/org.$orgId.home'
 import { Route as OrgOrgIdMembersRouteImport } from './routes/org.$orgId.members'
 import { Route as OrgOrgIdNotificationsRouteImport } from './routes/org.$orgId.notifications'
 import { Route as OrgOrgIdOnboardingRouteImport } from './routes/org.$orgId.onboarding'
+import { Route as OrgOrgIdPortalRouteImport } from './routes/org.$orgId.portal'
 import { Route as OrgOrgIdProposalsRouteImport } from './routes/org.$orgId.proposals'
 import { Route as OrgOrgIdRoutinesRouteImport } from './routes/org.$orgId.routines'
 import { Route as OrgOrgIdSearchRouteImport } from './routes/org.$orgId.search'
@@ -46,6 +49,7 @@ import { Route as OrgOrgIdSettingsRouteImport } from './routes/org.$orgId.settin
 import { Route as OrgOrgIdTaskManagerRouteImport } from './routes/org.$orgId.task-manager'
 import { Route as OrgOrgIdTeamRouteImport } from './routes/org.$orgId.team'
 import { Route as OrgOrgIdWaitingRouteImport } from './routes/org.$orgId.waiting'
+import { Route as OrgOrgIdWhatsappRouteImport } from './routes/org.$orgId.whatsapp'
 import { Route as OrgOrgIdWikiRouteImport } from './routes/org.$orgId.wiki'
 import { Route as OrgOrgIdAgentsNewRouteImport } from './routes/org.$orgId.agents.new'
 import { Route as OrgOrgIdCChannelIdRouteImport } from './routes/org.$orgId.c.$channelId'
@@ -167,6 +171,16 @@ const DevGalleryRoute = DevGalleryRouteImport.update({
   path: '/dev/gallery',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DocsIndexRoute = DocsIndexRouteImport.update({
+  id: '/docs/',
+  path: '/docs/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DocsSlugRoute = DocsSlugRouteImport.update({
+  id: '/docs/$slug',
+  path: '/docs/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const InviteTokenRoute = InviteTokenRouteImport.update({
   id: '/invite/$token',
   path: '/invite/$token',
@@ -217,6 +231,11 @@ const OrgOrgIdOnboardingRoute = OrgOrgIdOnboardingRouteImport.update({
   path: '/onboarding',
   getParentRoute: () => OrgOrgIdRoute,
 } as any)
+const OrgOrgIdPortalRoute = OrgOrgIdPortalRouteImport.update({
+  id: '/portal',
+  path: '/portal',
+  getParentRoute: () => OrgOrgIdRoute,
+} as any)
 const OrgOrgIdProposalsRoute = OrgOrgIdProposalsRouteImport.update({
   id: '/proposals',
   path: '/proposals',
@@ -250,6 +269,11 @@ const OrgOrgIdTeamRoute = OrgOrgIdTeamRouteImport.update({
 const OrgOrgIdWaitingRoute = OrgOrgIdWaitingRouteImport.update({
   id: '/waiting',
   path: '/waiting',
+  getParentRoute: () => OrgOrgIdRoute,
+} as any)
+const OrgOrgIdWhatsappRoute = OrgOrgIdWhatsappRouteImport.update({
+  id: '/whatsapp',
+  path: '/whatsapp',
   getParentRoute: () => OrgOrgIdRoute,
 } as any)
 const OrgOrgIdWikiRoute = OrgOrgIdWikiRouteImport.update({
@@ -382,8 +406,10 @@ export interface FileRoutesByFullPath {
   '/desktop/sign-in': typeof DesktopSignInRoute
   '/desktop/signed-in': typeof DesktopSignedInRoute
   '/dev/gallery': typeof DevGalleryRoute
+  '/docs/$slug': typeof DocsSlugRoute
   '/invite/$token': typeof InviteTokenRoute
   '/org/$orgId': typeof OrgOrgIdRouteWithChildren
+  '/docs/': typeof DocsIndexRoute
   '/org/$orgId/approvals': typeof OrgOrgIdApprovalsRoute
   '/org/$orgId/calendar': typeof OrgOrgIdCalendarRoute
   '/org/$orgId/drive': typeof OrgOrgIdDriveRoute
@@ -391,6 +417,7 @@ export interface FileRoutesByFullPath {
   '/org/$orgId/members': typeof OrgOrgIdMembersRoute
   '/org/$orgId/notifications': typeof OrgOrgIdNotificationsRoute
   '/org/$orgId/onboarding': typeof OrgOrgIdOnboardingRoute
+  '/org/$orgId/portal': typeof OrgOrgIdPortalRoute
   '/org/$orgId/proposals': typeof OrgOrgIdProposalsRoute
   '/org/$orgId/routines': typeof OrgOrgIdRoutinesRoute
   '/org/$orgId/search': typeof OrgOrgIdSearchRoute
@@ -398,6 +425,7 @@ export interface FileRoutesByFullPath {
   '/org/$orgId/task-manager': typeof OrgOrgIdTaskManagerRoute
   '/org/$orgId/team': typeof OrgOrgIdTeamRoute
   '/org/$orgId/waiting': typeof OrgOrgIdWaitingRoute
+  '/org/$orgId/whatsapp': typeof OrgOrgIdWhatsappRoute
   '/org/$orgId/wiki': typeof OrgOrgIdWikiRoute
   '/org/$orgId/': typeof OrgOrgIdIndexRoute
   '/org/$orgId/agents/new': typeof OrgOrgIdAgentsNewRoute
@@ -441,7 +469,9 @@ export interface FileRoutesByTo {
   '/desktop/sign-in': typeof DesktopSignInRoute
   '/desktop/signed-in': typeof DesktopSignedInRoute
   '/dev/gallery': typeof DevGalleryRoute
+  '/docs/$slug': typeof DocsSlugRoute
   '/invite/$token': typeof InviteTokenRoute
+  '/docs': typeof DocsIndexRoute
   '/org/$orgId/approvals': typeof OrgOrgIdApprovalsRoute
   '/org/$orgId/calendar': typeof OrgOrgIdCalendarRoute
   '/org/$orgId/drive': typeof OrgOrgIdDriveRoute
@@ -449,6 +479,7 @@ export interface FileRoutesByTo {
   '/org/$orgId/members': typeof OrgOrgIdMembersRoute
   '/org/$orgId/notifications': typeof OrgOrgIdNotificationsRoute
   '/org/$orgId/onboarding': typeof OrgOrgIdOnboardingRoute
+  '/org/$orgId/portal': typeof OrgOrgIdPortalRoute
   '/org/$orgId/proposals': typeof OrgOrgIdProposalsRoute
   '/org/$orgId/routines': typeof OrgOrgIdRoutinesRoute
   '/org/$orgId/search': typeof OrgOrgIdSearchRoute
@@ -456,6 +487,7 @@ export interface FileRoutesByTo {
   '/org/$orgId/task-manager': typeof OrgOrgIdTaskManagerRoute
   '/org/$orgId/team': typeof OrgOrgIdTeamRoute
   '/org/$orgId/waiting': typeof OrgOrgIdWaitingRoute
+  '/org/$orgId/whatsapp': typeof OrgOrgIdWhatsappRoute
   '/org/$orgId/wiki': typeof OrgOrgIdWikiRoute
   '/org/$orgId': typeof OrgOrgIdIndexRoute
   '/org/$orgId/agents/new': typeof OrgOrgIdAgentsNewRoute
@@ -500,8 +532,10 @@ export interface FileRoutesById {
   '/desktop/sign-in': typeof DesktopSignInRoute
   '/desktop/signed-in': typeof DesktopSignedInRoute
   '/dev/gallery': typeof DevGalleryRoute
+  '/docs/$slug': typeof DocsSlugRoute
   '/invite/$token': typeof InviteTokenRoute
   '/org/$orgId': typeof OrgOrgIdRouteWithChildren
+  '/docs/': typeof DocsIndexRoute
   '/org/$orgId/approvals': typeof OrgOrgIdApprovalsRoute
   '/org/$orgId/calendar': typeof OrgOrgIdCalendarRoute
   '/org/$orgId/drive': typeof OrgOrgIdDriveRoute
@@ -509,6 +543,7 @@ export interface FileRoutesById {
   '/org/$orgId/members': typeof OrgOrgIdMembersRoute
   '/org/$orgId/notifications': typeof OrgOrgIdNotificationsRoute
   '/org/$orgId/onboarding': typeof OrgOrgIdOnboardingRoute
+  '/org/$orgId/portal': typeof OrgOrgIdPortalRoute
   '/org/$orgId/proposals': typeof OrgOrgIdProposalsRoute
   '/org/$orgId/routines': typeof OrgOrgIdRoutinesRoute
   '/org/$orgId/search': typeof OrgOrgIdSearchRoute
@@ -516,6 +551,7 @@ export interface FileRoutesById {
   '/org/$orgId/task-manager': typeof OrgOrgIdTaskManagerRoute
   '/org/$orgId/team': typeof OrgOrgIdTeamRoute
   '/org/$orgId/waiting': typeof OrgOrgIdWaitingRoute
+  '/org/$orgId/whatsapp': typeof OrgOrgIdWhatsappRoute
   '/org/$orgId/wiki': typeof OrgOrgIdWikiRoute
   '/org/$orgId/': typeof OrgOrgIdIndexRoute
   '/org/$orgId/agents/new': typeof OrgOrgIdAgentsNewRoute
@@ -561,8 +597,10 @@ export interface FileRouteTypes {
     | '/desktop/sign-in'
     | '/desktop/signed-in'
     | '/dev/gallery'
+    | '/docs/$slug'
     | '/invite/$token'
     | '/org/$orgId'
+    | '/docs/'
     | '/org/$orgId/approvals'
     | '/org/$orgId/calendar'
     | '/org/$orgId/drive'
@@ -570,6 +608,7 @@ export interface FileRouteTypes {
     | '/org/$orgId/members'
     | '/org/$orgId/notifications'
     | '/org/$orgId/onboarding'
+    | '/org/$orgId/portal'
     | '/org/$orgId/proposals'
     | '/org/$orgId/routines'
     | '/org/$orgId/search'
@@ -577,6 +616,7 @@ export interface FileRouteTypes {
     | '/org/$orgId/task-manager'
     | '/org/$orgId/team'
     | '/org/$orgId/waiting'
+    | '/org/$orgId/whatsapp'
     | '/org/$orgId/wiki'
     | '/org/$orgId/'
     | '/org/$orgId/agents/new'
@@ -620,7 +660,9 @@ export interface FileRouteTypes {
     | '/desktop/sign-in'
     | '/desktop/signed-in'
     | '/dev/gallery'
+    | '/docs/$slug'
     | '/invite/$token'
+    | '/docs'
     | '/org/$orgId/approvals'
     | '/org/$orgId/calendar'
     | '/org/$orgId/drive'
@@ -628,6 +670,7 @@ export interface FileRouteTypes {
     | '/org/$orgId/members'
     | '/org/$orgId/notifications'
     | '/org/$orgId/onboarding'
+    | '/org/$orgId/portal'
     | '/org/$orgId/proposals'
     | '/org/$orgId/routines'
     | '/org/$orgId/search'
@@ -635,6 +678,7 @@ export interface FileRouteTypes {
     | '/org/$orgId/task-manager'
     | '/org/$orgId/team'
     | '/org/$orgId/waiting'
+    | '/org/$orgId/whatsapp'
     | '/org/$orgId/wiki'
     | '/org/$orgId'
     | '/org/$orgId/agents/new'
@@ -678,8 +722,10 @@ export interface FileRouteTypes {
     | '/desktop/sign-in'
     | '/desktop/signed-in'
     | '/dev/gallery'
+    | '/docs/$slug'
     | '/invite/$token'
     | '/org/$orgId'
+    | '/docs/'
     | '/org/$orgId/approvals'
     | '/org/$orgId/calendar'
     | '/org/$orgId/drive'
@@ -687,6 +733,7 @@ export interface FileRouteTypes {
     | '/org/$orgId/members'
     | '/org/$orgId/notifications'
     | '/org/$orgId/onboarding'
+    | '/org/$orgId/portal'
     | '/org/$orgId/proposals'
     | '/org/$orgId/routines'
     | '/org/$orgId/search'
@@ -694,6 +741,7 @@ export interface FileRouteTypes {
     | '/org/$orgId/task-manager'
     | '/org/$orgId/team'
     | '/org/$orgId/waiting'
+    | '/org/$orgId/whatsapp'
     | '/org/$orgId/wiki'
     | '/org/$orgId/'
     | '/org/$orgId/agents/new'
@@ -738,8 +786,10 @@ export interface RootRouteChildren {
   DesktopSignInRoute: typeof DesktopSignInRoute
   DesktopSignedInRoute: typeof DesktopSignedInRoute
   DevGalleryRoute: typeof DevGalleryRoute
+  DocsSlugRoute: typeof DocsSlugRoute
   InviteTokenRoute: typeof InviteTokenRoute
   OrgOrgIdRoute: typeof OrgOrgIdRouteWithChildren
+  DocsIndexRoute: typeof DocsIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -884,6 +934,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DevGalleryRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/docs/': {
+      id: '/docs/'
+      path: '/docs'
+      fullPath: '/docs/'
+      preLoaderRoute: typeof DocsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/docs/$slug': {
+      id: '/docs/$slug'
+      path: '/docs/$slug'
+      fullPath: '/docs/$slug'
+      preLoaderRoute: typeof DocsSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/invite/$token': {
       id: '/invite/$token'
       path: '/invite/$token'
@@ -954,6 +1018,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof OrgOrgIdOnboardingRouteImport
       parentRoute: typeof OrgOrgIdRoute
     }
+    '/org/$orgId/portal': {
+      id: '/org/$orgId/portal'
+      path: '/portal'
+      fullPath: '/org/$orgId/portal'
+      preLoaderRoute: typeof OrgOrgIdPortalRouteImport
+      parentRoute: typeof OrgOrgIdRoute
+    }
     '/org/$orgId/proposals': {
       id: '/org/$orgId/proposals'
       path: '/proposals'
@@ -1001,6 +1072,13 @@ declare module '@tanstack/react-router' {
       path: '/waiting'
       fullPath: '/org/$orgId/waiting'
       preLoaderRoute: typeof OrgOrgIdWaitingRouteImport
+      parentRoute: typeof OrgOrgIdRoute
+    }
+    '/org/$orgId/whatsapp': {
+      id: '/org/$orgId/whatsapp'
+      path: '/whatsapp'
+      fullPath: '/org/$orgId/whatsapp'
+      preLoaderRoute: typeof OrgOrgIdWhatsappRouteImport
       parentRoute: typeof OrgOrgIdRoute
     }
     '/org/$orgId/wiki': {
@@ -1154,6 +1232,7 @@ interface OrgOrgIdRouteChildren {
   OrgOrgIdMembersRoute: typeof OrgOrgIdMembersRoute
   OrgOrgIdNotificationsRoute: typeof OrgOrgIdNotificationsRoute
   OrgOrgIdOnboardingRoute: typeof OrgOrgIdOnboardingRoute
+  OrgOrgIdPortalRoute: typeof OrgOrgIdPortalRoute
   OrgOrgIdProposalsRoute: typeof OrgOrgIdProposalsRoute
   OrgOrgIdRoutinesRoute: typeof OrgOrgIdRoutinesRoute
   OrgOrgIdSearchRoute: typeof OrgOrgIdSearchRoute
@@ -1161,6 +1240,7 @@ interface OrgOrgIdRouteChildren {
   OrgOrgIdTaskManagerRoute: typeof OrgOrgIdTaskManagerRoute
   OrgOrgIdTeamRoute: typeof OrgOrgIdTeamRoute
   OrgOrgIdWaitingRoute: typeof OrgOrgIdWaitingRoute
+  OrgOrgIdWhatsappRoute: typeof OrgOrgIdWhatsappRoute
   OrgOrgIdWikiRoute: typeof OrgOrgIdWikiRoute
   OrgOrgIdIndexRoute: typeof OrgOrgIdIndexRoute
   OrgOrgIdAgentsNewRoute: typeof OrgOrgIdAgentsNewRoute
@@ -1192,6 +1272,7 @@ const OrgOrgIdRouteChildren: OrgOrgIdRouteChildren = {
   OrgOrgIdMembersRoute: OrgOrgIdMembersRoute,
   OrgOrgIdNotificationsRoute: OrgOrgIdNotificationsRoute,
   OrgOrgIdOnboardingRoute: OrgOrgIdOnboardingRoute,
+  OrgOrgIdPortalRoute: OrgOrgIdPortalRoute,
   OrgOrgIdProposalsRoute: OrgOrgIdProposalsRoute,
   OrgOrgIdRoutinesRoute: OrgOrgIdRoutinesRoute,
   OrgOrgIdSearchRoute: OrgOrgIdSearchRoute,
@@ -1199,6 +1280,7 @@ const OrgOrgIdRouteChildren: OrgOrgIdRouteChildren = {
   OrgOrgIdTaskManagerRoute: OrgOrgIdTaskManagerRoute,
   OrgOrgIdTeamRoute: OrgOrgIdTeamRoute,
   OrgOrgIdWaitingRoute: OrgOrgIdWaitingRoute,
+  OrgOrgIdWhatsappRoute: OrgOrgIdWhatsappRoute,
   OrgOrgIdWikiRoute: OrgOrgIdWikiRoute,
   OrgOrgIdIndexRoute: OrgOrgIdIndexRoute,
   OrgOrgIdAgentsNewRoute: OrgOrgIdAgentsNewRoute,
@@ -1251,8 +1333,10 @@ const rootRouteChildren: RootRouteChildren = {
   DesktopSignInRoute: DesktopSignInRoute,
   DesktopSignedInRoute: DesktopSignedInRoute,
   DevGalleryRoute: DevGalleryRoute,
+  DocsSlugRoute: DocsSlugRoute,
   InviteTokenRoute: InviteTokenRoute,
   OrgOrgIdRoute: OrgOrgIdRouteWithChildren,
+  DocsIndexRoute: DocsIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

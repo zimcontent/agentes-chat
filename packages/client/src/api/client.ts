@@ -23,6 +23,14 @@ import type {
   VaultScope,
 } from "../vault/types";
 import type {
+  WhatsAppAccount,
+  WhatsAppAccountPatch,
+  WhatsAppChatPage,
+  WhatsAppMessagePage,
+  WhatsAppOverview,
+  WhatsAppSendInput,
+} from "../whatsapp/types";
+import type {
   AccessInput,
   AccountDeletionPlan,
   AccountLoginStart,
@@ -94,6 +102,8 @@ import type {
   CalendarEventInput,
   CalendarEventPatch,
   CalendarRange,
+  CarryResult,
+  CarrySource,
   Channel,
   ChannelCard,
   ChannelCategory,
@@ -249,6 +259,21 @@ import type {
   PhoneSignIn,
   PlanServes,
   Poll,
+  PortalBoard,
+  PortalCard,
+  PortalCardInput,
+  PortalClientColor,
+  PortalItemEdit,
+  PortalJob,
+  PortalLabel,
+  PortalLabelColor,
+  PortalList,
+  PortalMine,
+  PortalOverview,
+  PortalPipeline,
+  PortalPlan,
+  PortalSendInput,
+  PortalTaskRef,
   PostMedia,
   Proposal,
   PushDeviceInput,
@@ -1025,6 +1050,13 @@ export interface ApiClient {
     rename(orgId: string, connectionId: string, label: string): Promise<Connection>;
     disconnect(orgId: string, connectionId: string): Promise<void>;
   };
+  /** Connections and agents from the person's other workspaces. */
+  carry: {
+    /** Their other workspaces with something to bring into this one. */
+    sources(orgId: string): Promise<CarrySource[]>;
+    /** Brings them: an agent's own connections come with it. */
+    bring(orgId: string, input: { connectionIds?: string[]; agentIds?: string[] }): Promise<CarryResult>;
+  };
   githubApp: {
     /** Whether this server can install the GitHub App, the organization's installations, and the server's app. */
     info(orgId: string): Promise<GitHubAppInfo>;
@@ -1379,6 +1411,67 @@ export interface ApiClient {
   };
   /** Boards and widgets (ADR 0135). */
   dashboards: DashboardsApi;
+  /**
+   * The approval portal (ADR 9001): the team's board per client and the send for a client's approval. Optional: a
+   * client built before it has none. Every call answers 404 `portal.off` on a server without a portal
+   * (`AuthConfig.approvalPortal`), 400 `portal.refused` with the portal's own words, 502 `portal.unavailable`.
+   * Members read; whoever may give agents work (`assign_work`) changes cards, posts and sends.
+   */
+  portal?: {
+    /** Every client with its counts per column, and how fresh the portal's side is. */
+    overview(orgId: string): Promise<PortalOverview>;
+    board(orgId: string, client: string): Promise<PortalBoard>;
+    createCard(orgId: string, input: PortalCardInput & { client: string; title: string }): Promise<PortalCard>;
+    /** Changes a card, or moves it between `todo` and `doing`. */
+    updateCard(orgId: string, cardId: string, input: PortalCardInput): Promise<PortalCard>;
+    deleteCard(orgId: string, cardId: string): Promise<void>;
+    /** Sends Drive files to a client's approval: answers at once with the job, read `job` until it ends. */
+    send(orgId: string, input: PortalSendInput): Promise<PortalJob>;
+    job(orgId: string, jobId: string): Promise<PortalJob>;
+    /** Completes or changes a post at the portal. */
+    editItem(orgId: string, client: string, itemId: string, edit: PortalItemEdit): Promise<void>;
+    /**
+     * Schedules a post the client approved (`scheduledFor`: `YYYY-MM-DDTHH:MM`, in the future): the portal takes it
+     * to the publishing service by itself. It turns `scheduled` once that service has it, usually within minutes, and
+     * stays `approved` with its date until then.
+     */
+    schedule(orgId: string, client: string, itemId: string, scheduledFor: string): Promise<void>;
+    /** A client's strategic schedule: its lists with their cards, the cards in no list, the labels. */
+    plan(orgId: string, client: string): Promise<PortalPlan>;
+    /** The caller's own open work by production day. */
+    mine(orgId: string): Promise<PortalMine>;
+    /** Every piece of work not posted yet, across all clients: what the overview draws. */
+    pipeline(orgId: string): Promise<PortalPipeline>;
+    /** Each card's task, to name it by its number and open it. */
+    tasks(orgId: string): Promise<PortalTaskRef[]>;
+    /** Makes a list (the same name answers the same list). */
+    createList(orgId: string, client: string, name: string): Promise<PortalList>;
+    /** Every list of the client, once each, in the new order. */
+    orderLists(orgId: string, client: string, ids: string[]): Promise<PortalList[]>;
+    renameList(orgId: string, listId: string, name: string): Promise<PortalList>;
+    /** Its cards stay, in no list. */
+    deleteList(orgId: string, listId: string): Promise<void>;
+    labels(orgId: string): Promise<PortalLabel[]>;
+    createLabel(orgId: string, input: { name: string; color: PortalLabelColor }): Promise<PortalLabel>;
+    updateLabel(
+      orgId: string,
+      labelId: string,
+      change: { name?: string; color?: PortalLabelColor },
+    ): Promise<PortalLabel>;
+    deleteLabel(orgId: string, labelId: string): Promise<void>;
+    /** A client's colour; `null` takes it away. */
+    setClientColor(orgId: string, client: string, color: PortalClientColor | null): Promise<void>;
+    /** A client's logo, cropped square by the app; `null` takes it away. */
+    setClientLogo(
+      orgId: string,
+      client: string,
+      image: { imageBase64: string; contentType: string } | null,
+    ): Promise<void>;
+    /** Anyone who may post comments; answers the card with it. */
+    addComment(orgId: string, cardId: string, text: string): Promise<PortalCard>;
+    /** One's own, or any for who may give agents work. */
+    deleteComment(orgId: string, cardId: string, commentId: string): Promise<PortalCard>;
+  };
   /** Missions (ADR 0029): long work by the agent's executor on a connected computer, in one thread. */
   missions: {
     /** Missions you can see (the Missões tab), most recently changed first, with the counts for the tabs. */
@@ -1974,6 +2067,30 @@ export interface ApiClient {
     setDefault(orgId: string, agentId: string, profileId: string | null): Promise<void>;
     /** "Pedir mais um perfil": the people who grant profiles hear of it. */
     request(orgId: string, agentId: string): Promise<void>;
+  };
+  /**
+   * WhatsApp numbers the workspace connected and their conversations. Connecting and changing a number takes
+   * `manage_connectors`; its conversations are its listed people's. 404 while the server has no gateway and for a
+   * number the person isn't listed on; 502 `whatsapp.unavailable` when the gateway refuses. Optional so older fakes
+   * type-check (`createHttpApi` has it).
+   */
+  whatsapp?: {
+    overview(orgId: string): Promise<WhatsAppOverview>;
+    connect(orgId: string, label: string): Promise<WhatsAppAccount>;
+    reconnect(orgId: string, accountId: string): Promise<WhatsAppAccount>;
+    update(orgId: string, accountId: string, patch: WhatsAppAccountPatch): Promise<WhatsAppAccount>;
+    remove(orgId: string, accountId: string): Promise<{ removed: boolean; leftover: string | null }>;
+    /** `before`: the `next` of the page before. */
+    chats(orgId: string, accountId: string, before?: string): Promise<WhatsAppChatPage>;
+    messages(orgId: string, accountId: string, chatId: string, before?: string): Promise<WhatsAppMessagePage>;
+    send(orgId: string, accountId: string, input: WhatsAppSendInput): Promise<{ chatId: string }>;
+    read(orgId: string, accountId: string, chatId: string): Promise<{ read: number }>;
+    /** The person is writing there (or stopped): the other side sees "typing…". */
+    typing(orgId: string, accountId: string, chatId: string, typing: boolean): Promise<{ told: boolean }>;
+    /** Asks the phone for the conversation's older messages: they arrive a moment later, if the phone has them. */
+    olderHistory(orgId: string, accountId: string, chatId: string): Promise<{ asked: number }>;
+    /** The number's agent on or off in one conversation; on gives the conversation back to it. */
+    chatAgent(orgId: string, accountId: string, chatId: string, on: boolean): Promise<{ on: boolean }>;
   };
   /**
    * The Vault (ADR 0144): logins, keys and contacts agents use without seeing a password or a key. No answer carries

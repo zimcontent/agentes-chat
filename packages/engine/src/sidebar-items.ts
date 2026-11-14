@@ -15,6 +15,7 @@ const { organizationMembers } = schema;
  */
 export const SIDEBAR_ITEMS = [
   "waiting",
+  "portal",
   "approvals",
   "proposals",
   "threads",
@@ -34,6 +35,7 @@ export type SidebarItem = (typeof SIDEBAR_ITEMS)[number];
  */
 export const PERSONAL_SIDEBAR_ITEMS: readonly SidebarItem[] = [
   "waiting",
+  "portal",
   "approvals",
   "proposals",
   "routines",

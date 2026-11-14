@@ -14,6 +14,7 @@ import {
   ToolLevelSwatch,
   toolLevelTones,
 } from "../src";
+import { PIXEL_ART } from "../src/brand/doug";
 
 describe("tool review pixels", () => {
   test("level tones: the agent's own body tones, approval in ink, one step lighter on dark", () => {
@@ -46,7 +47,9 @@ describe("tool review pixels", () => {
     const imgs = within(container).getAllByRole("img");
     expect(imgs.map((i) => i.getAttribute("aria-label"))).toEqual(["1 consulta · 1 muda", "2 consultam · 1 muda"]);
     expect(container.querySelector(".ac-toolpx-swatch")?.getAttribute("data-level")).toBe("off");
-    expect(container.querySelectorAll("canvas")).toHaveLength(6);
+    // The agent in "needs your decision" and the done card is the DougBot (SVG) unless the pixel art is on.
+    expect(container.querySelectorAll("canvas")).toHaveLength(PIXEL_ART ? 6 : 4);
+    if (!PIXEL_ART) expect(container.querySelectorAll(".ac-sticker--bot .ac-bot")).toHaveLength(2);
   });
 
   test("Segmented: a fourth option with a mark before the label, hover text, the label is the name", () => {

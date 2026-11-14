@@ -1,5 +1,11 @@
 import type { SidebarItem, SidebarPlace } from "@agenteschat/client";
-import { useSetSidebarItem, useSetSidebarToolOrder, useSidebarItems, useSidebarToolOrder } from "@agenteschat/client";
+import {
+  useAuthConfig,
+  useSetSidebarItem,
+  useSetSidebarToolOrder,
+  useSidebarItems,
+  useSidebarToolOrder,
+} from "@agenteschat/client";
 import {
   moveSection,
   moveShownTool,
@@ -39,6 +45,7 @@ import { sectionName, useSectionOrder } from "./SidebarOrder";
 /** The tools at the top of the sidebar: the page each opens and its icon. */
 export const SIDEBAR_TOOLS = {
   waiting: { to: "/org/$orgId/waiting", icon: "question" },
+  portal: { to: "/org/$orgId/portal", icon: "approve" },
   approvals: { to: "/org/$orgId/approvals", icon: "waiting" },
   proposals: { to: "/org/$orgId/proposals", icon: "bulb" },
   threads: { to: "/org/$orgId/threads", icon: "thread" },
@@ -51,6 +58,16 @@ export const SIDEBAR_TOOLS = {
   dashboards: { to: "/org/$orgId/dashboards", icon: "chart" },
   taskManager: { to: "/org/$orgId/task-manager", icon: "stageProgress" },
 } as const satisfies Record<SidebarItem, { to: string; icon: IconName }>;
+
+/** Whether this server has an approval portal (ADR 9001): Portal is a tool only there. */
+export const usePortalOn = () => useAuthConfig().data?.approvalPortal === true;
+/**
+ * The tools this sidebar lists: Portal only with an approval portal, so nothing changes without one, and never
+ * Aprovações, which is a tab of "Esperando você" (ADR 0172 addendum): one entry and one count for all that waits on
+ * the person.
+ */
+export const toolsHere = <T extends SidebarItem>(ids: readonly T[], portal: boolean): T[] =>
+  ids.filter((id) => id !== "approvals" && (portal || id !== "portal"));
 
 /**
  * The person's order of the tools in this workspace (`…/me/sidebar/tools`), saved as `null` when it is the default of
@@ -81,13 +98,17 @@ function useToolOrder(orgId: string, personal = false) {
 }
 
 const TOOL_DRAG = "application/x-agentes-tool";
+/** The two tools that share a row in the list: what waits on me, and the portal where clients approve (ADR 9001). */
+export const TOOL_PAIR: readonly SidebarItem[] = ["waiting", "portal"];
 const MOVE_KEYS = "Alt+Shift+ArrowUp Alt+Shift+ArrowDown";
 
 /**
  * The tools shown in the sidebar's list, in the person's order: each dragged onto another goes before or after it,
  * and Alt+Shift+↑/↓ on a focused one moves it past its neighbour (the setup dialog's arrows do it too). The rows stay
  * the links `row` makes, so the browser's own menu on them is kept. Each shows its own grip on hover: the row is what
- * moves, so a mouse drags from anywhere on it and a click on the grip doesn't open the tool.
+ * moves, so a mouse drags from anywhere on it and a click on the grip doesn't open the tool. With an approval portal
+ * (ADR 9001), "Waiting on you" and Portal share one row while both are in the list (`TOOL_PAIR`), where the first of
+ * the two is in the person's order: two smaller buttons side by side, each still its own link that moves on its own.
  */
 export function ToolList({ items, row }: { items: SidebarItem[]; row: (id: SidebarItem) => ReactElement }) {
   const { t } = useTranslation();
@@ -100,7 +121,8 @@ export function ToolList({ items, row }: { items: SidebarItem[]; row: (id: Sideb
     dragging.current = null;
     setMark(null);
   };
-  return shown.map((id) => {
+  const paired = TOOL_PAIR.every((id) => shown.includes(id));
+  const tool = (id: SidebarItem) => {
     const link = row(id) as ReactElement<{ children?: ReactNode }>;
     return cloneElement(link as ReactElement<Record<string, unknown>>, {
       children: (
@@ -148,7 +170,20 @@ export function ToolList({ items, row }: { items: SidebarItem[]; row: (id: Sideb
       },
       onDragEnd: end,
     });
-  });
+  };
+  if (!paired) return shown.map(tool);
+  const first = shown.find((id) => TOOL_PAIR.includes(id));
+  return shown
+    .filter((id) => id === first || !TOOL_PAIR.includes(id))
+    .map((id) =>
+      id === first ? (
+        <div key="pair" className="sidebar__pair">
+          {TOOL_PAIR.map(tool)}
+        </div>
+      ) : (
+        tool(id)
+      ),
+    );
 }
 
 /**
@@ -165,6 +200,7 @@ export function SidebarSetupDialog({ open, onClose }: { open: boolean; onClose: 
   const save = useSetSidebarItem(org.id, personal);
   const sections = useSectionOrder(org.id, personal);
   const tools = useToolOrder(org.id, personal);
+  const shown = toolsHere(tools.order, usePortalOn());
   // What another device changed since this one loaded shows as the dialog opens.
   useEffect(() => {
     if (open) void refetch();
@@ -187,7 +223,7 @@ export function SidebarSetupDialog({ open, onClose }: { open: boolean; onClose: 
     >
       <DialogBody>
         <ul className="sidebar-setup">
-          {tools.order.map((id, i) => (
+          {shown.map((id, i) => (
             <li key={id} className="sidebar-setup__row">
               <span className="settings-row__icon" aria-hidden="true">
                 <Icon name={SIDEBAR_TOOLS[id].icon} size={16} />
@@ -210,7 +246,7 @@ export function SidebarSetupDialog({ open, onClose }: { open: boolean; onClose: 
                   aria-label={`${t("contextMenu.moveUp")}: ${t(`shell.${id}`)}`}
                   data-move
                   disabled={i === 0}
-                  onClick={(e) => tools.put(moveSection(tools.order, id, -1), e.currentTarget)}
+                  onClick={(e) => tools.put(moveShownTool(tools.order, shown, id, -1), e.currentTarget)}
                 />
                 <Button
                   size="sm"
@@ -219,8 +255,8 @@ export function SidebarSetupDialog({ open, onClose }: { open: boolean; onClose: 
                   icon="chevronDown"
                   aria-label={`${t("contextMenu.moveDown")}: ${t(`shell.${id}`)}`}
                   data-move
-                  disabled={i === tools.order.length - 1}
-                  onClick={(e) => tools.put(moveSection(tools.order, id, 1), e.currentTarget)}
+                  disabled={i === shown.length - 1}
+                  onClick={(e) => tools.put(moveShownTool(tools.order, shown, id, 1), e.currentTarget)}
                 />
               </span>
             </li>

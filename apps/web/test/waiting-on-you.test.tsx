@@ -56,9 +56,17 @@ function inbox(): AppNotification[] {
 
 const nav = () => document.getElementById("app-nav") as HTMLElement;
 
+/** The seed with no approval and no proposal left to decide: only the inbox says what waits. */
+const noApprovals = (notifications: AppNotification[]) => {
+  const state = seedState({ notifications });
+  for (const a of state.approvals) a.status = "approved";
+  for (const p of state.proposals) p.status = "accepted";
+  return state;
+};
+
 describe("Esperando você", () => {
   test("the sidebar's entry comes into the list with its count while something waits, and opens the list", async () => {
-    await renderApp(`/org/${ORG_ID}/c/${ENG_ID}`, { api: createFakeApi(seedState({ notifications: inbox() })) });
+    await renderApp(`/org/${ORG_ID}/c/${ENG_ID}`, { api: createFakeApi(noApprovals(inbox())) });
     await settle(8);
     const row = within(nav()).getByRole("link", { name: /Esperando você/ });
     expect(row.getAttribute("href")).toBe(`/org/${ORG_ID}/waiting`);
@@ -70,8 +78,26 @@ describe("Esperando você", () => {
     expect(count.classList.contains("sidebar__unread")).toBe(false);
   });
 
+  test("one entry for all that waits: approvals and proposals count in it, and Aprovações is a tab of its page", async () => {
+    // The seed's two approvals and two proposals, and the inbox's question and secret: each counted once.
+    await renderApp(`/org/${ORG_ID}/approvals`, { api: createFakeApi(seedState({ notifications: inbox() })) });
+    await settle(10);
+    const tools = [...nav().querySelectorAll(".sidebar__tools .sidebar__item-label")].map((l) => l.textContent);
+    expect(tools).toContain("Esperando você");
+    expect(tools).not.toContain("Aprovações");
+    const row = within(nav()).getByRole("link", { name: /Esperando você/ });
+    expect(row.querySelector(".ac-count")?.textContent).toBe("6");
+    // On Aprovações, a tab of its page, its row is the one lit.
+    expect(row.getAttribute("data-status")).toBe("active");
+    expect(
+      screen()
+        .getAllByRole("tab")
+        .map((tab) => tab.textContent?.replace(/\s*\d+$/, "")),
+    ).toEqual(["Esperando você", "Aprovações", "Propostas de melhoria"]);
+  });
+
   test("nothing waiting: the entry waits in More, and the page says so in one sentence", async () => {
-    await renderApp(`/org/${ORG_ID}/waiting`, { api: createFakeApi(seedState({ notifications: [] })) });
+    await renderApp(`/org/${ORG_ID}/waiting`, { api: createFakeApi(noApprovals([])) });
     await settle(8);
     expect(nav().querySelector(`.sidebar__tools > a[href="/org/${ORG_ID}/waiting"]`)).toBeNull();
     expect(screen().getByRole("heading", { level: 1, name: "Esperando você" })).toBeTruthy();

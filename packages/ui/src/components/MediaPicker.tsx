@@ -1,5 +1,6 @@
 import { type KeyboardEvent, type ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import type { StickerMood } from "../agent/stickers";
+import type { AgenteParaBot } from "../brand/dougbot-time";
 import { cx } from "../cx";
 import { masonryColumns, stickerMoodsFor } from "../media-grid";
 import type { AgentAppearance } from "./AgentLook";
@@ -303,6 +304,8 @@ export interface PickerAgent {
   id: string;
   name: string;
   appearance?: AgentAppearance;
+  /** Who it is, for its DougBot. */
+  who?: AgenteParaBot;
   /** Before its name: the app's own avatar of it. */
   avatar?: ReactNode;
 }
@@ -397,7 +400,13 @@ export function StickerPicker({
                   aria-label={labels.sticker(agent.name, mood)}
                   onClick={() => onPick(agent, mood)}
                 >
-                  <AgentSticker appearance={agent.appearance} mood={mood} size={size} seed={agent.id} />
+                  <AgentSticker
+                    appearance={agent.appearance}
+                    who={agent.who ?? agent}
+                    mood={mood}
+                    size={size}
+                    seed={agent.id}
+                  />
                 </button>
               ))}
             </div>

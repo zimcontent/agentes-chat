@@ -31,6 +31,7 @@ import {
   type ConnectOutcome,
   type ConnectorConnection,
   checkLabel,
+  composioAccountInUse,
   connectionHeaders,
   freeLabel,
   freeToolPrefix,
@@ -461,7 +462,9 @@ export async function storeCustomConnection(
     // New credentials: whatever stopped working before is behind it.
     status: "active",
     lastError: null,
-    ...(input.composio ? { composioAccountId: input.composio.accountId } : {}),
+    // A sign-in of its own from here on, whatever it shared before (ADR 9002).
+    signInId: null,
+    ...(input.composio ? { composioAccountId: input.composio.accountId, composioUserOrgId: null } : {}),
   };
   if (target) {
     const [row] = await deps.db
@@ -473,7 +476,12 @@ export async function storeCustomConnection(
     caches.connections.delete(`${input.orgId}:active`);
     caches.scopes.deletePrefix(`${input.orgId}:`);
     const replaced = target.composioAccountId;
-    if (replaced && deps.composio && replaced !== input.composio?.accountId) {
+    if (
+      replaced &&
+      deps.composio &&
+      replaced !== input.composio?.accountId &&
+      !(await composioAccountInUse(deps.db, replaced))
+    ) {
       await forgetComposioAccount(deps.composio.client, replaced);
     }
     await recordAudit(deps.db, {

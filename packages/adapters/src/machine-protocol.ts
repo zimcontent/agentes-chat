@@ -2078,7 +2078,15 @@ export interface BrainRouteRequest {
   prompt: string;
   /** JSON Schema of the answer. */
   schema: Record<string, unknown>;
+  /**
+   * Claude Code's model for this answer (`ROUTE_MODELS`); absent, or a runner that doesn't know the field: its
+   * smallest. Codex always answers with its smallest.
+   */
+  model?: string;
 }
+
+/** The Claude Code models a `brain.route` may ask for. */
+export const ROUTE_MODELS = ["haiku", "sonnet", "opus"] as const;
 
 /** What a route answers: the CLI's answer as a JSON object, or `busy` while that sign-in has a process open. */
 export type BrainRouteReply =

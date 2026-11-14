@@ -64,7 +64,7 @@ export async function migrateInSteps(db: unknown, folder: string, upTo?: number)
   for (const end of [...ends, all.length]) {
     await dialect.migrate(all.slice(0, end), session, { migrationsFolder: folder });
   }
-  // This instance's own columns (Zim), outside Drizzle's journal so the project's migrations keep their numbers.
+  // This instance's own columns and tables (Zim), outside Drizzle's journal so the project's migrations keep their numbers.
   if (upTo === undefined) for (const statement of EXTRA_COLUMNS) await session.execute(sql.raw(statement));
 }
 
@@ -73,6 +73,86 @@ export const EXTRA_COLUMNS = [
   `ALTER TABLE "channels" ADD COLUMN IF NOT EXISTS "display_name" text`,
   `ALTER TABLE "channels" ADD COLUMN IF NOT EXISTS "icon" text`,
   `ALTER TABLE "agents" ADD COLUMN IF NOT EXISTS "photo" text`,
+  // WhatsApp numbers and their conversations (`schema/whatsapp.ts`).
+  `CREATE TABLE IF NOT EXISTS "whatsapp_accounts" (
+    "id" uuid PRIMARY KEY,
+    "org_id" uuid NOT NULL REFERENCES "organizations"("id") ON DELETE CASCADE,
+    "label" text NOT NULL,
+    "status" text NOT NULL DEFAULT 'pending',
+    "jid" text,
+    "phone" text,
+    "push_name" text NOT NULL DEFAULT '',
+    "instance_id" text NOT NULL,
+    "token_ciphertext" text NOT NULL,
+    "wrapped_data_key" text NOT NULL,
+    "kek_id" text NOT NULL,
+    "hook_hash" text NOT NULL,
+    "qr_image" text,
+    "qr_at" timestamp with time zone,
+    "people" text[] NOT NULL DEFAULT '{}'::text[],
+    "agent_id" uuid REFERENCES "agents"("id") ON DELETE SET NULL,
+    "last_error" text,
+    "created_by" text REFERENCES "users"("id") ON DELETE SET NULL,
+    "created_at" timestamp with time zone NOT NULL DEFAULT now()
+  )`,
+  `ALTER TABLE "whatsapp_accounts" ADD COLUMN IF NOT EXISTS "instructions" text NOT NULL DEFAULT ''`,
+  `CREATE UNIQUE INDEX IF NOT EXISTS "whatsapp_accounts_hook" ON "whatsapp_accounts" ("hook_hash")`,
+  `CREATE INDEX IF NOT EXISTS "whatsapp_accounts_org" ON "whatsapp_accounts" ("org_id")`,
+  `CREATE TABLE IF NOT EXISTS "whatsapp_chats" (
+    "id" uuid PRIMARY KEY,
+    "org_id" uuid NOT NULL REFERENCES "organizations"("id") ON DELETE CASCADE,
+    "account_id" uuid NOT NULL REFERENCES "whatsapp_accounts"("id") ON DELETE CASCADE,
+    "jid" text NOT NULL,
+    "name" text NOT NULL DEFAULT '',
+    "group" boolean NOT NULL DEFAULT false,
+    "last_at" timestamp with time zone,
+    "last_text" text NOT NULL DEFAULT '',
+    "last_kind" text NOT NULL DEFAULT 'text',
+    "last_from_me" boolean NOT NULL DEFAULT false,
+    "unread" integer NOT NULL DEFAULT 0,
+    "created_at" timestamp with time zone NOT NULL DEFAULT now()
+  )`,
+  `CREATE UNIQUE INDEX IF NOT EXISTS "whatsapp_chats_jid" ON "whatsapp_chats" ("account_id", "jid")`,
+  `CREATE INDEX IF NOT EXISTS "whatsapp_chats_recent" ON "whatsapp_chats" ("account_id", "last_at")`,
+  `CREATE TABLE IF NOT EXISTS "whatsapp_messages" (
+    "id" uuid PRIMARY KEY,
+    "org_id" uuid NOT NULL REFERENCES "organizations"("id") ON DELETE CASCADE,
+    "account_id" uuid NOT NULL REFERENCES "whatsapp_accounts"("id") ON DELETE CASCADE,
+    "chat_id" uuid NOT NULL REFERENCES "whatsapp_chats"("id") ON DELETE CASCADE,
+    "wa_id" text NOT NULL,
+    "from_me" boolean NOT NULL,
+    "sender_jid" text NOT NULL,
+    "sender_name" text NOT NULL DEFAULT '',
+    "kind" text NOT NULL DEFAULT 'text',
+    "body" text NOT NULL DEFAULT '',
+    "reply_to_wa_id" text,
+    "media" jsonb,
+    "raw" jsonb,
+    "status" text NOT NULL,
+    "sent_by_user_id" text REFERENCES "users"("id") ON DELETE SET NULL,
+    "at" timestamp with time zone NOT NULL,
+    "created_at" timestamp with time zone NOT NULL DEFAULT now()
+  )`,
+  `CREATE UNIQUE INDEX IF NOT EXISTS "whatsapp_messages_wa" ON "whatsapp_messages" ("account_id", "wa_id")`,
+  `CREATE INDEX IF NOT EXISTS "whatsapp_messages_chat" ON "whatsapp_messages" ("chat_id", "at")`,
+  // Connections brought from one workspace to another (ADR 9002).
+  `CREATE TABLE IF NOT EXISTS "connector_sign_ins" (
+    "id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+    "user_id" text REFERENCES "users"("id") ON DELETE set null,
+    "refreshing_until" timestamp with time zone,
+    "created_at" timestamp with time zone DEFAULT now() NOT NULL
+  )`,
+  `ALTER TABLE "connector_connections" ADD COLUMN IF NOT EXISTS "sign_in_id" uuid REFERENCES "connector_sign_ins"("id") ON DELETE set null`,
+  `ALTER TABLE "connector_connections" ADD COLUMN IF NOT EXISTS "carried_from_id" uuid`,
+  `ALTER TABLE "connector_connections" ADD COLUMN IF NOT EXISTS "composio_user_org_id" uuid`,
+  `CREATE INDEX IF NOT EXISTS "connector_connections_sign_in_id_index" ON "connector_connections" ("sign_in_id")`,
+  // The number's agent answering (docs/adr/doug-0002-whatsapp-agent.md): added to tables that may already exist.
+  `ALTER TABLE "whatsapp_accounts" ADD COLUMN IF NOT EXISTS "agent_on" boolean NOT NULL DEFAULT false`,
+  `ALTER TABLE "whatsapp_chats" ADD COLUMN IF NOT EXISTS "agent_off" boolean NOT NULL DEFAULT false`,
+  `ALTER TABLE "whatsapp_chats" ADD COLUMN IF NOT EXISTS "person_at" timestamp with time zone`,
+  `ALTER TABLE "whatsapp_chats" ADD COLUMN IF NOT EXISTS "needs_person" boolean NOT NULL DEFAULT false`,
+  `ALTER TABLE "whatsapp_chats" ADD COLUMN IF NOT EXISTS "agent_note" text NOT NULL DEFAULT ''`,
+  `ALTER TABLE "whatsapp_messages" ADD COLUMN IF NOT EXISTS "sent_by_agent_id" uuid REFERENCES "agents"("id") ON DELETE SET NULL`,
 ];
 
 /** The advisory lock every process takes around its migrations (`DatabaseHandle.migrate`). */

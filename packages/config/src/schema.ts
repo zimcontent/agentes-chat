@@ -523,12 +523,47 @@ export const envVars = {
       "Base URL of a SearXNG instance with the JSON format turned on (`search.formats: [html, json]`), optional. Agents' `web_search` uses it when `BRAVE_SEARCH_API_KEY` isn't set. It may be on your own network: only this server calls it.",
     section: "Search",
   },
+  APPROVAL_PORTAL_URL: {
+    schema: z.url().optional(),
+    description:
+      "Address of your approval portal's bridge, optional: a small HTTP service you run next to a portal where your clients approve what the team made for them. With it and `APPROVAL_PORTAL_TOKEN`, the workspace gets the Portal page (each client's board: to do, in production, waiting for approval, adjustments, ready, posted) and agents get `send_for_approval`, which sends Drive files to the portal with no model in the way. It may be on your own network: only this server calls it. Unset (default): no portal anywhere.",
+    section: "Connectors",
+    example: "http://127.0.0.1:8978",
+  },
+  APPROVAL_PORTAL_TOKEN: {
+    schema: z.string().min(24, "must be at least 24 characters").optional(),
+    description:
+      "The bearer token your approval portal's bridge expects. Goes with `APPROVAL_PORTAL_URL`; it never leaves this server.",
+    section: "Connectors",
+    secret: true,
+  },
   GIPHY_API_KEY: {
     schema: z.string().optional(),
     description:
       "GIPHY API key (https://developers.giphy.com), optional. With it, people search and send GIFs in chat and agents may follow a light reply with one; each workspace can turn GIFs off and pick their rating in Settings › GIFs and stickers. The installation's owner can also add it there, on a server that isn't agentes.chat's own. This variable wins over that one. This server searches GIPHY and serves every GIF itself, so browsers and the phone app never talk to GIPHY and the key never leaves the server. With no key: no GIFs anywhere; the agents' own stickers still work.",
     section: "Chat",
     secret: true,
+  },
+  WHATSAPP_GATEWAY_URL: {
+    schema: z.url().optional(),
+    description:
+      "Address of an Evolution Go server (https://github.com/EvolutionAPI/evolution-go, Apache-2.0) as this server reaches it: the compose file's `whatsapp` profile, at `http://whatsapp:8080`. With it and `WHATSAPP_GATEWAY_KEY`, people who manage connectors connect WhatsApp numbers by QR code, and the people each number lists read and answer its conversations here. It speaks WhatsApp Web, which WhatsApp doesn't offer as an API: a number can be banned for it. The gateway keeps only the sessions; conversations are stored in this server's database. Without it: no WhatsApp anywhere in the app.",
+    section: "Chat",
+    example: "http://whatsapp:8080",
+  },
+  WHATSAPP_GATEWAY_KEY: {
+    schema: z.string().optional(),
+    description:
+      "The Evolution Go server's `GLOBAL_API_KEY`. It never leaves this server: browsers and the phone app talk only to this server.",
+    section: "Chat",
+    secret: true,
+  },
+  WHATSAPP_HOOK_URL: {
+    schema: z.url().optional(),
+    description:
+      "This server's address as the Evolution Go server reaches it, without a trailing slash, where it posts each number's events (`/api/webhooks/whatsapp/{secret}`): `http://agentes:3000` with the compose file, so events never leave the machine. Empty: `PUBLIC_URL`.",
+    section: "Chat",
+    example: "http://agentes:3000",
   },
   SPEECH_ENGINES: {
     schema: z.string().optional(),

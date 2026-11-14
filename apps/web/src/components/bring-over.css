@@ -1,0 +1,49 @@
+/* "Trazer de outro workspace": each workspace a group, its agents and its connections as rows to pick. */
+.bring-over__source {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+.bring-over__list > .ac-eyebrow {
+  margin: 0;
+  padding: var(--space-2) 0 var(--space-1);
+}
+.bring-over__list .scope-row {
+  align-items: center;
+}
+/* What can't be picked: the face and the words step back, the pill that says why stays readable. */
+.bring-over__list .scope-row[data-off] {
+  cursor: default;
+}
+.bring-over__list .scope-row[data-off] > :not(.scope-row__text),
+.bring-over__list .scope-row[data-off] > .scope-row__text > :not(.ac-chip) {
+  opacity: 0.55;
+}
+/* Why it can't come, under the words it is about: the words keep the row's whole width, on a phone too. */
+.bring-over__list .scope-row__text > .ac-chip {
+  align-self: flex-start;
+  margin-top: var(--space-1);
+}
+/* The card's two ways in share a line while they fit, else the second goes under the first. */
+.bring-over__acts {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  min-width: 0;
+}
+/* A connection's tile at the faces' size: names start on one edge down the whole list. */
+.bring-over__list .connector-icon {
+  width: 24px;
+  height: 24px;
+  font-size: 11px;
+}
+/* The card's action never shrinks, which two buttons on a phone need: here it may, so they wrap inside the card. */
+.ac-card__action:has(> .bring-over__acts) {
+  flex-shrink: 1;
+  min-width: 0;
+}
+/* Side by side or one under the other, both end on the card's edge, 8 apart. */
+.bring-over__acts > .ac-btn {
+  margin: 0;
+}

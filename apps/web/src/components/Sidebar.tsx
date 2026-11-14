@@ -37,6 +37,8 @@ import {
   useSkills,
   useTasksUnread,
   useUnreadThreads,
+  useWaitingOnMe,
+  useWhatsApp,
 } from "@agenteschat/client";
 import { agentSections, groupOf } from "@agenteschat/client/lib/agent-groups";
 import { audienceChip, audienceNames, audienceNotice, canTalk, hiddenAgentIds } from "@agenteschat/client/lib/audience";
@@ -157,9 +159,10 @@ import { useOrg } from "./org-context";
 import { StatusLine } from "./Presence";
 import { ChannelPhoto, MyFace, OrgMark } from "./ProfilePhoto";
 import { sectionName, useSectionOrder } from "./SidebarOrder";
-import { SIDEBAR_TOOLS, SidebarSetupDialog, ToolList } from "./SidebarSetup";
+import { SIDEBAR_TOOLS, SidebarSetupDialog, ToolList, toolsHere, usePortalOn } from "./SidebarSetup";
 import { AgentGlow, AgentTrail, colorOf, WorkspaceSky } from "./Sky";
 import { SetStatusDialog, useSaveStatus } from "./StatusDialog";
+import { WhatsAppMark } from "./whatsapp/WhatsAppMark";
 
 /** An agent's sky for its busy chip (`.sidebar__busy`): both themes, the CSS picks one. */
 const selectionSky = (color: AgentColor) =>
@@ -259,6 +262,7 @@ export function Sidebar() {
   const [customizing, setCustomizing] = useState(false);
   const navigate = useNavigate();
   const onProposals = useRouterState({ select: (r) => r.location.pathname.endsWith("/proposals") });
+  const onApprovals = useRouterState({ select: (r) => r.location.pathname.endsWith("/approvals") });
   useEffect(() => {
     const open = () => setCreatingChannel(true);
     window.addEventListener(NEW_CHANNEL_EVENT, open);
@@ -270,6 +274,7 @@ export function Sidebar() {
   const unreadNotifications = notificationCount?.unread ?? 0;
   // "Esperando você": everything that waits on me, the same live count (ADR 0172).
   const waitingOnMe = notificationCount?.waiting ?? 0;
+  const waitingItems = useWaitingOnMe(orgId).data?.items;
   const lastUnread = useRef(unreadNotifications);
   const [bumps, setBumps] = useState(0);
   useEffect(() => {
@@ -290,23 +295,28 @@ export function Sidebar() {
   // Proposals are a tab of Aprovações and count there, unless the person gave them a row of their own.
   const proposalsRow = inSidebarList(sidebarPlace(sidebarItems, "proposals", personal), proposalsWaiting);
   const pending = (overview.data?.approvalsWaitingForMe ?? 0) + (proposalsRow ? 0 : proposalsWaiting);
+  // One entry for all of it (ADR 0172 addendum): Aprovações is a tab of "Esperando você", so its count joins this
+  // one. An approval I may decide is in both lists and counts once: the approvals, plus what else waits (a question,
+  // a secret, a device). Until that list loads, the larger of the two counts.
+  const waitingTotal = waitingItems
+    ? pending + waitingItems.filter((i) => i.kind !== "approval").length
+    : Math.max(waitingOnMe, pending);
   const counts: Partial<Record<SidebarItem, number>> = {
-    waiting: waitingOnMe,
+    waiting: waitingTotal,
     approvals: pending,
     proposals: proposalsWaiting,
     threads: missionsWaiting + unreadThreads,
   };
   // The mode's defaults and order (ADR 0159): in a personal workspace, Routines and Drive in sight, the rest in More.
-  const toolOrder = sidebarItemOrder(personal);
+  // Portal is a tool only where the server has an approval portal (ADR 9001): elsewhere nothing lists it.
+  const toolOrder = toolsHere(sidebarItemOrder(personal), usePortalOn());
   const listed = toolOrder.filter((id) => inSidebarList(sidebarPlace(sidebarItems, id, personal), counts[id] ?? 0));
   const inMore = toolOrder.filter((id) => !listed.includes(id));
   const countOf = (id: SidebarItem) =>
-    id === "waiting" && waitingOnMe > 0 ? (
-      <CountBadge aria-label={t("notifications.summaryWaiting", { count: waitingOnMe })}>
-        {badgeCount(waitingOnMe)}
+    id === "waiting" && waitingTotal > 0 ? (
+      <CountBadge aria-label={t("notifications.summaryWaiting", { count: waitingTotal })}>
+        {badgeCount(waitingTotal)}
       </CountBadge>
-    ) : id === "approvals" && pending > 0 ? (
-      <CountBadge aria-label={t("shell.pendingApprovals", { count: pending })}>{pending}</CountBadge>
     ) : id === "proposals" && proposalsWaiting > 0 ? (
       <CountBadge aria-label={t("shell.pendingProposals", { count: proposalsWaiting })}>{proposalsWaiting}</CountBadge>
     ) : id === "threads" && missionsWaiting > 0 ? (
@@ -331,7 +341,10 @@ export function Sidebar() {
       className="sidebar__item"
       title={id === "threads" && unreadThreads > 0 ? t("shell.unreadThreads", { count: unreadThreads }) : railTip(id)}
       data-unread={(id === "threads" && unreadThreads > 0) || (id === "issues" && unreadTasks > 0)}
-      inactiveProps={id === "approvals" && onProposals && !proposalsRow ? { "data-status": "active" } : undefined}
+      // Aprovações and Propostas are tabs of "Esperando você": its row is the one lit on them.
+      inactiveProps={
+        id === "waiting" && (onApprovals || (onProposals && !proposalsRow)) ? { "data-status": "active" } : undefined
+      }
     >
       <Icon name={SIDEBAR_TOOLS[id].icon} />
       <span className="sidebar__item-label">{t(`shell.${id}`)}</span>
@@ -605,6 +618,8 @@ export function Sidebar() {
   );
   // The tools each person keeps in sight; the rest open beside the sidebar from More. Doug draws them as a dock: a
   // glass bar of icons (after Nordus's footer nav), each named on hover and to a screen reader, Configurações last.
+  const whatsapp = useWhatsApp(orgId).data;
+  const whatsappShown = !!whatsapp?.on && (whatsapp.manage || whatsapp.accounts.length > 0);
   const dock = (
     <div className="sidebar__group sidebar__tools sidebar__dock">
       <Link to="/org/$orgId/home" params={{ orgId }} className="sidebar__item" title={railTip("home")}>
@@ -612,6 +627,13 @@ export function Sidebar() {
         <span className="sidebar__item-label">{t("shell.home")}</span>
       </Link>
       <ToolList items={listed} row={toolRow} />
+      {/* WhatsApp, this instance's own: in sight for anyone with a number, and for who may connect the first one. */}
+      {whatsappShown && (
+        <Link to="/org/$orgId/whatsapp" params={{ orgId }} className="sidebar__item" title="WhatsApp">
+          <WhatsAppMark size={18} />
+          <span className="sidebar__item-label">WhatsApp</span>
+        </Link>
+      )}
       <MoreTools items={inMore} row={toolRow} countOf={countOf} onCustomize={() => setCustomizing(true)} />
       <Link
         to="/org/$orgId/settings"
@@ -1740,9 +1762,9 @@ function SidebarChannels({
 }
 
 /** The tools whose line in More has a personal workspace's words (ADR 0159); the others' fit both. */
-type PersonalWhat = Exclude<SidebarItem, "routines" | "drive" | "waiting">;
+type PersonalWhat = Exclude<SidebarItem, "routines" | "drive" | "waiting" | "portal">;
 const hasPersonalWhat = (id: SidebarItem): id is PersonalWhat =>
-  id !== "routines" && id !== "drive" && id !== "waiting";
+  id !== "routines" && id !== "drive" && id !== "waiting" && id !== "portal";
 
 /**
  * More: the tools the person keeps out of the list, in a panel beside the sidebar (so nothing below moves), each with a

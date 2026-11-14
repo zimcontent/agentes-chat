@@ -88,6 +88,12 @@ test("protocol 24: brain.route is known, new work, and runs as the agent's own u
   expect(OP_ROUTES["brain.route"]).toBe("agent");
 });
 
+test("a route may name its Claude model; without one it is the smallest", () => {
+  const args = (model?: string) => claudeRouteArgs({ systemFile: "/tmp/r/system.txt", schema: {}, model });
+  expect(args("sonnet")[3]).toBe("sonnet");
+  expect(args()[3]).toBe("haiku");
+});
+
 test("every CLI tool off, nothing of the folder or its owner loaded, no session kept", () => {
   expect(claudeRouteArgs({ systemFile: "/tmp/r/system.txt", schema: { type: "object" } })).toEqual([
     "-p",

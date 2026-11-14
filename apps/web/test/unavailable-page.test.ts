@@ -8,7 +8,7 @@ setupDom();
 
 /** The page Caddy serves while the app is down (docker-compose.yml carries a copy, packages/setup tests it). */
 const PAGE = readFileSync(join(import.meta.dir, "../public/unavailable.html"), "utf8");
-const TOKENS = readFileSync(join(import.meta.dir, "../../../packages/ui/src/styles/tokens.css"), "utf8");
+const TOKENS = readFileSync(join(import.meta.dir, "../../../packages/ui/src/styles/dougbot-tokens.css"), "utf8");
 
 interface Env {
   /** Path, query and hash the page stands in for. */
@@ -348,7 +348,7 @@ describe("the page Caddy serves while the app is down", () => {
     }
   });
 
-  test("its colors are the design system's, in both themes", () => {
+  test("its colors are DougBot's, dark first as the identity, light from the app's choice or the system", () => {
     const style = PAGE.match(/<style>([\s\S]*?)<\/style>/)?.[1] ?? "";
     const declarations = (block: string) =>
       Object.fromEntries(
@@ -356,17 +356,18 @@ describe("the page Caddy serves while the app is down", () => {
       );
     const rule = (css: string, selector: RegExp) =>
       declarations(selector.exec(css.replace(/\/\*[\s\S]*?\*\//g, ""))?.[1] ?? "");
-    const shared = rule(TOKENS, /:root,\s*\[data-theme\]\s*\{([^}]*)\}/);
-    const light = { ...shared, ...rule(TOKENS, /:root,\s*\[data-theme="light"\]\s*\{([^}]*)\}/) };
-    const dark = { ...shared, ...rule(TOKENS, /\[data-theme="dark"\]\s*\{([^}]*)\}/) };
+    const dark = rule(TOKENS, /:root,\s*\[data-theme="dark"\]\s*\{([^}]*)\}/);
+    const light = { ...dark, ...rule(TOKENS, /\[data-theme="light"\]\s*\{([^}]*)\}/) };
 
-    const pageLight = rule(style, /^:root\{([^}]*)\}/m);
-    const pageDark = rule(style, /^\[data-theme=dark\]\{([^}]*)\}/m);
-    const pageSystemDark = rule(style, /:root:not\(\[data-theme=light\]\)\{([^}]*)\}/);
-    expect(Object.keys(pageLight)).toEqual(expect.arrayContaining(["--bg", "--ink", "--muted", "--agent-soft"]));
-    for (const [name, value] of Object.entries(pageLight)) expect([name, value]).toEqual([name, light[name]]);
-    expect(pageSystemDark).toEqual(pageDark);
-    expect(Object.keys(pageDark).length).toBeGreaterThan(6);
+    const { "--font-sans": _font, ...pageDark } = rule(style, /^:root\{([^}]*)\}/m);
+    const pageLight = rule(style, /^\[data-theme=light\]\{([^}]*)\}/m);
+    const pageSystemLight = rule(style, /:root:not\(\[data-theme=dark\]\)\{([^}]*)\}/);
+    expect(Object.keys(pageDark)).toEqual(
+      expect.arrayContaining(["--db-palco", "--db-texto", "--db-texto-2", "--db-verde"]),
+    );
     for (const [name, value] of Object.entries(pageDark)) expect([name, value]).toEqual([name, dark[name]]);
+    expect(pageSystemLight).toEqual(pageLight);
+    expect(Object.keys(pageLight).length).toBeGreaterThan(4);
+    for (const [name, value] of Object.entries(pageLight)) expect([name, value]).toEqual([name, light[name]]);
   });
 });

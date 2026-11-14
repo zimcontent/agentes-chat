@@ -237,7 +237,7 @@ export function TopProgress({
 }
 
 /**
- * Inline spinner (buttons, long actions): the pixel orbit, neutral. Decorative:
+ * Inline spinner (buttons, long actions): the Doug's outline (PixelSpinner), neutral. Decorative:
  * the control says what's happening. Under 16 it is the 14px orbit.
  */
 export function Spinner({ size = 16, className }: { size?: number; className?: string }) {

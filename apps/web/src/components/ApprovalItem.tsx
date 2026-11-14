@@ -29,6 +29,7 @@ import { useOrg } from "./org-context";
 
 // Its title, what it wants to do, whether it only looks and its values: the phone's own rules too.
 export {
+  approvalCode,
   approvalDoing,
   approvalReadsOnly,
   approvalTitle,

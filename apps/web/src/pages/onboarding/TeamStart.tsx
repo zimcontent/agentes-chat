@@ -13,6 +13,7 @@ import {
 import { useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { AgentAvatar } from "@/components/AgentAvatar";
+import { BringOver } from "@/components/BringOver";
 import { lookOf } from "@/lib/look";
 import type { useTemplate } from "./steps";
 import type { TeamSourceState, TeamStartPick } from "./TeamSource";
@@ -30,10 +31,12 @@ const HOP_GAP_MS = 80;
  * template's team while it is picked. Enter on a card presses the step's button (the page's `data-enter`).
  */
 export function TeamStart({
+  orgId,
   state,
   template,
   lodi,
 }: {
+  orgId: string;
   state: TeamSourceState;
   template: ReturnType<typeof useTemplate>;
   /** The right hand, as the rail shows it. */
@@ -119,6 +122,8 @@ export function TeamStart({
               }
             />
           </RadioGroup>
+          {/* A third way in, for who has another workspace: its agents and connections, without connecting again. */}
+          <BringOver orgId={orgId} allowed ask variant="link" label={t("carry.fromOnboarding")} />
         </div>
       </Locked>
       <div className="onb__actions">

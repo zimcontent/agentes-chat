@@ -35,7 +35,9 @@ import {
   Input,
   Popover,
   ProviderLogo,
+  planLevel,
   planLine,
+  UsageRing,
 } from "@agenteschat/ui";
 import { useQueryClient } from "@tanstack/react-query";
 import { type CSSProperties, type ReactElement, useState } from "react";
@@ -81,7 +83,7 @@ export function ModelPickerButton({
         title={isRightHand(agent) ? undefined : t("brain.picker.readOnly")}
       >
         {mark}
-        <span className="mp-label__text">{thinks.text}</span>
+        <span className="mp-label__text">{thinks.short}</span>
       </span>
     );
   return (
@@ -94,9 +96,10 @@ export function ModelPickerButton({
           data-size={size}
           aria-label={t("brain.picker.open", { agent: agent.name })}
           aria-expanded={open}
+          title={thinks.text === thinks.short ? undefined : thinks.text}
         >
           {mark}
-          <span className="mp-label__text">{thinks.text}</span>
+          <span className="mp-label__text">{thinks.short}</span>
           <Icon name="chevronDown" size={14} className="mp-trigger__chevron" />
         </button>
       )}
@@ -265,7 +268,25 @@ function PickerBody({ agent, view, onClose }: { agent: Agent; view: AgentBrain; 
     }
   };
   const usage = account?.usage ?? null;
-  const meter = usage ? planLine(usage, planMeterText(t, i18n.language)) : null;
+  const meterText = planMeterText(t, i18n.language);
+  const meter = usage ? planLine(usage, meterText) : null;
+  // Each AI's use around its logo: the account shown for the open tile, else the one a pick would take.
+  const tileUse = (x: (typeof tiles)[number]) => {
+    const of = x.key === tile?.key ? account : x.accounts[0];
+    const line = of?.usage ? planLine(of.usage, meterText) : null;
+    if (!line) return null;
+    return {
+      used: line.top?.used ?? 100,
+      level: planLevel(line.top?.used ?? 0, line.state === "limited"),
+      line: [line.line, line.alert].filter(Boolean).join(" · "),
+      title: [line.title, line.alert].filter(Boolean).join("\n"),
+    };
+  };
+  // An account's fullest window after its name, where a tile has several to choose from.
+  const fullest = (u: typeof usage) => {
+    const line = u ? planLine(u, meterText) : null;
+    return line?.top ? ` · ${line.top.used}%` : "";
+  };
 
   return (
     <div className="mp__body" aria-busy={busy || undefined}>
@@ -284,23 +305,27 @@ function PickerBody({ agent, view, onClose }: { agent: Agent; view: AgentBrain; 
         )}
       </TeamScene>
       <div className="mp__tiles">
-        {tiles.map((x) => (
-          <button
-            key={x.key}
-            type="button"
-            className="mp__tile"
-            aria-pressed={x.key === tile?.key}
-            aria-label={x.name}
-            title={x.name}
-            onClick={() => {
-              setTileKey(x.key);
-              setAccountId(undefined);
-              setQ("");
-            }}
-          >
-            <ProviderLogo id={x.mark} size="sm" />
-          </button>
-        ))}
+        {tiles.map((x) => {
+          const use = tileUse(x);
+          return (
+            <button
+              key={x.key}
+              type="button"
+              className="mp__tile"
+              aria-pressed={x.key === tile?.key}
+              aria-label={use ? `${x.name}, ${use.line}` : x.name}
+              title={use ? `${x.name}\n${use.title}` : x.name}
+              onClick={() => {
+                setTileKey(x.key);
+                setAccountId(undefined);
+                setQ("");
+              }}
+            >
+              <ProviderLogo id={x.mark} size="sm" />
+              {use && <UsageRing used={use.used} level={use.level} />}
+            </button>
+          );
+        })}
         {connect && (
           <button
             type="button"
@@ -330,6 +355,7 @@ function PickerBody({ agent, view, onClose }: { agent: Agent; view: AgentBrain; 
                 {tile.accounts.map((a) => (
                   <option key={a.id ?? "own"} value={a.id ?? ""}>
                     {a.label}
+                    {fullest(a.usage)}
                   </option>
                 ))}
               </select>

@@ -135,6 +135,11 @@ const ELSEWHERE = new Set([
   "propose_event",
   // An email to whoever runs the server, in a person's name (ADR 0160 §11): only a run a person is behind sends it.
   "send_feedback",
+  // A post leaves for a client's eyes (ADR 9001): only a run a person is behind sends it.
+  "send_for_approval",
+  "schedule_post",
+  "portal_plan",
+  "portal_card",
 ]);
 
 /** Long work's tools (ADR 0121), on the run's own work: `self`. */
@@ -191,6 +196,8 @@ const READS = new Set([
   "list_dashboards",
   "phone_screenshot",
   "phone_logs",
+  "portal_board",
+  "portal_work",
 ]);
 
 /**
@@ -494,7 +501,7 @@ const WHY_PROPERTY: JsonSchema = {
   minLength: WHY_MIN_CHARS,
   maxLength: WHY_MAX_CHARS,
   description:
-    "Why you ask, for the people deciding (shown on the card): what you found and why this action, in their language.",
+    "Why you ask, for the people deciding (shown on the card, where code and commands stay hidden): what you found, what this action will do and why, in their language and in plain words, with no code or tool names.",
 };
 
 /** Whether a tool's own schema already has a `why` (then it is the tool's, never stripped). */

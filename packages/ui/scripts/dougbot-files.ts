@@ -21,5 +21,5 @@ writeFileSync(
   outage,
   readFileSync(outage, "utf8")
     .replace(/<link rel="icon"[^>]*>/, () => dougOutageIcon())
-    .replace(/<svg class="mark"[\s\S]*?<\/svg>/, () => dougOutageMark()),
+    .replace(/<svg class="doug"[\s\S]*?<\/svg>/, () => dougOutageMark()),
 );

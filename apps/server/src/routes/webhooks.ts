@@ -1,3 +1,4 @@
+import { timingSafeEqual } from "node:crypto";
 import { ComposioSignatureError } from "@agenteschat/adapters";
 import {
   addGitHubRepoHook,
@@ -7,13 +8,16 @@ import {
   HOOK_LIMIT_PER_IP,
   handleComposioWebhook,
   handleWebhook,
+  handleWhatsAppEvent,
   NotFoundError,
+  portalTasksNow,
   receiveRoutineHook,
   setWebhookSecret,
   ValidationError,
   WEBHOOK_PROVIDERS,
   type WebhookProvider,
   webhookSetup,
+  whatsappHookKnown,
 } from "@agenteschat/engine";
 import { createRoute, type OpenAPIHono, z } from "@hono/zod-openapi";
 import { requestLimitIp } from "../http/client-ip";
@@ -28,9 +32,17 @@ import {
   requireSession,
   routineHookDeps,
   security,
+  whatsappDeps,
 } from "./app/context";
 import { githubAccess } from "./github-app";
 import { readWebhookBytes, readWebhookText } from "./webhook-body";
+
+/**
+ * The largest event the WhatsApp gateway may post. Files never ride on events (`WEBHOOK_FILES=false` at the gateway,
+ * and the parser drops an inline copy anyway): the large ones are pieces of a number's history, thousands of
+ * messages with their small previews. Read only for an address a number listens at.
+ */
+const WHATSAPP_EVENT_MAX = 64 * 1024 * 1024;
 
 /** What a routine's address answers when it refuses a call (English: the caller is a program). */
 const HOOK_REFUSALS = {
@@ -46,6 +58,21 @@ const HOOK_REFUSALS = {
  */
 export function registerWebhookReceiver(api: OpenAPIHono, deps: AppDeps) {
   const webhookDeps = { db: deps.db, keyWrappers: [deps.adapters.keyWrapper, ...deps.adapters.legacyKeyWrappers] };
+  // The approval portal's bridge saying something changed there (ADR 9001 §12): its cards and their tasks are put in
+  // step now instead of at the worker's next tick. It carries nothing: the bearer token is the one this server calls
+  // the bridge with, and what changed is read from the bridge.
+  api.post("/webhooks/approval-portal", (c) => {
+    const portal = deps.adapters.approvalPortal;
+    const token = deps.config.APPROVAL_PORTAL_TOKEN;
+    if (!portal || !token) return c.json({ error: "not found" }, 404);
+    const given = Buffer.from(c.req.header("authorization") ?? "");
+    const wanted = Buffer.from(`Bearer ${token}`);
+    if (given.length !== wanted.length || !timingSafeEqual(given, wanted)) {
+      return c.json({ error: "unauthorized" }, 401);
+    }
+    portalTasksNow({ db: deps.db, pubsub: deps.adapters.pubsub, log: deps.log }, portal, () => deps.wakeWorkers?.());
+    return c.json({ ok: true }, 202);
+  });
   // Composio (ADR 0038): new mail for routines, expired accounts. One endpoint for the whole server,
   // signed with the subscription's secret (checked by the Composio client). Before the generic route.
   api.post("/webhooks/composio", async (c) => {
@@ -57,6 +84,24 @@ export function registerWebhookReceiver(api: OpenAPIHono, deps: AppDeps) {
       return c.json({ ok: true, type: result.type, fired: result.fired }, 202);
     } catch (error) {
       if (error instanceof ComposioSignatureError) return c.json({ error: "invalid signature" }, 401);
+      if (error instanceof NotFoundError) return c.json({ error: "not found" }, 404);
+      if (error instanceof SyntaxError) return c.json({ error: "invalid body" }, 400);
+      throw error;
+    }
+  });
+  // A WhatsApp number's events, from the gateway on this machine's network. The secret in the address is the
+  // credential (the gateway signs nothing) and says which number. Before the generic route.
+  api.post("/webhooks/whatsapp/:secret", async (c) => {
+    // Nobody who doesn't hold a number's secret makes the server read a body this large.
+    if (!(await whatsappHookKnown(whatsappDeps(deps), c.req.param("secret")))) {
+      return c.json({ error: "not found" }, 404);
+    }
+    const raw = await readWebhookText(c.req.raw, WHATSAPP_EVENT_MAX);
+    if (raw === null) return c.json({ error: "too large" }, 413);
+    try {
+      const result = await handleWhatsAppEvent(whatsappDeps(deps), c.req.param("secret"), JSON.parse(raw));
+      return c.json({ ok: true, kind: result.kind }, 200);
+    } catch (error) {
       if (error instanceof NotFoundError) return c.json({ error: "not found" }, 404);
       if (error instanceof SyntaxError) return c.json({ error: "invalid body" }, 400);
       throw error;
