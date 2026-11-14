@@ -2087,6 +2087,12 @@ export interface ApiClient {
     read(orgId: string, accountId: string, chatId: string): Promise<{ read: number }>;
     /** The person is writing there (or stopped): the other side sees "typing…". */
     typing(orgId: string, accountId: string, chatId: string, typing: boolean): Promise<{ told: boolean }>;
+    /** Sends a file, or a recording as a voice message (`voice`), into a conversation. */
+    sendFile(
+      orgId: string,
+      accountId: string,
+      input: { chatId: string; file: Blob; fileName: string; caption?: string; voice?: boolean },
+    ): Promise<{ chatId: string; kind: string }>;
     /** Asks the phone for the conversation's older messages: they arrive a moment later, if the phone has them. */
     olderHistory(orgId: string, accountId: string, chatId: string): Promise<{ asked: number }>;
     /** The number's agent on or off in one conversation; on gives the conversation back to it. */

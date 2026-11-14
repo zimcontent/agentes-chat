@@ -1,4 +1,10 @@
-import { bareJid, isGroupJid, type WhatsAppMessage, whatsappFileMessage } from "@agenteschat/adapters";
+import {
+  bareJid,
+  isGroupJid,
+  type WhatsAppMessage,
+  whatsappFileKind,
+  whatsappFileMessage,
+} from "@agenteschat/adapters";
 import { and, desc, eq, inArray, lt, schema, sql } from "@agenteschat/db";
 import { NotFoundError, ValidationError } from "../errors";
 import {
@@ -248,6 +254,70 @@ export async function sendWhatsAppText(
     .where(eq(schema.whatsappChats.id, stored.chatId));
   await publishWhatsAppChanged(deps, account, { chatId: stored.chatId });
   return { chatId: stored.chatId };
+}
+
+/** The largest file sent from the app: above what phones send each other day to day, within what a form may carry. */
+export const WHATSAPP_SEND_FILE_MAX_BYTES = 32 * 1024 * 1024;
+
+/**
+ * Sends a file into a conversation, as the person: a picture, a video, a voice message (`voice`: a recording made
+ * in the app) or a document, by its type (`whatsappFileKind`). `caption` goes with it where WhatsApp shows one.
+ */
+export async function sendWhatsAppFile(
+  deps: WhatsAppDeps,
+  userId: string,
+  orgId: string,
+  accountId: string,
+  input: { chatId: string; bytes: Uint8Array; mimeType: string; fileName: string; caption?: string; voice?: boolean },
+) {
+  const account = await requireWhatsAppUse(deps.db, userId, orgId, accountId);
+  const gateway = whatsappGateway(deps);
+  if (account.status !== "connected") throw new ValidationError("This number isn't connected");
+  if (input.bytes.byteLength === 0) throw new ValidationError("The file is empty");
+  if (input.bytes.byteLength > WHATSAPP_SEND_FILE_MAX_BYTES) throw new ValidationError("The file is too large to send");
+  const chat = await chatOf(deps, accountId, input.chatId);
+  const mimeType = input.mimeType || "application/octet-stream";
+  const kind = whatsappFileKind(mimeType, input.voice);
+  const fileName = input.fileName.replace(/[\\/\r\n]/g, "_").slice(0, 200) || "file";
+  // A voice message carries no words, and a caption is at most a message long.
+  const caption = kind === "audio" ? "" : (input.caption ?? "").trim().slice(0, WHATSAPP_TEXT_MAX);
+  const sent = await gateway.sendFile(await accountToken(deps, account), {
+    to: chat.jid,
+    kind,
+    bytes: input.bytes,
+    mimeType,
+    fileName,
+    caption,
+  });
+  const message: WhatsAppMessage = {
+    id: sent.id,
+    chat: bareJid(chat.jid),
+    sender: account.jid ?? "",
+    senderName: account.pushName,
+    fromMe: true,
+    group: isGroupJid(chat.jid),
+    groupName: "",
+    at: sent.at,
+    kind,
+    text: caption,
+    replyTo: null,
+    media: { mimeType, fileName: kind === "document" ? fileName : null, seconds: null },
+    // What the gateway sent, kept to open the file here later.
+    raw: sent.message,
+  };
+  const stored = await storeWhatsAppMessage(deps.db, account, message, { userId });
+  if (!stored.fresh) {
+    await deps.db
+      .update(schema.whatsappMessages)
+      .set({ sentByUserId: userId })
+      .where(and(eq(schema.whatsappMessages.accountId, accountId), eq(schema.whatsappMessages.waId, sent.id)));
+  }
+  await deps.db
+    .update(schema.whatsappChats)
+    .set({ personAt: new Date(), needsPerson: false, agentNote: "" })
+    .where(eq(schema.whatsappChats.id, stored.chatId));
+  await publishWhatsAppChanged(deps, account, { chatId: stored.chatId });
+  return { chatId: stored.chatId, kind };
 }
 
 /** Older messages asked of the phone at a time: what WhatsApp's own apps ask for. */

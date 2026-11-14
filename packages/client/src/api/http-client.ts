@@ -567,6 +567,17 @@ export function createHttpApi(options: TransportOptions = {}): HttpApi {
         request<{ told: boolean }>(`${org(orgId)}/whatsapp/accounts/${enc(accountId)}/chats/${enc(chatId)}/typing`, {
           json: { typing },
         }),
+      sendFile: (orgId, accountId, input) => {
+        const form = new FormData();
+        form.set("file", input.file, input.fileName);
+        form.set("chatId", input.chatId);
+        if (input.caption) form.set("caption", input.caption);
+        if (input.voice) form.set("voice", "true");
+        return files.upload<{ chatId: string; kind: string }>(
+          `${org(orgId)}/whatsapp/accounts/${enc(accountId)}/files`,
+          form,
+        );
+      },
       olderHistory: (orgId, accountId, chatId) =>
         request<{ asked: number }>(`${org(orgId)}/whatsapp/accounts/${enc(accountId)}/chats/${enc(chatId)}/history`, {
           json: {},

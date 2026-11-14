@@ -126,6 +126,18 @@ export function useReadWhatsAppChat(orgId: string, accountId: string) {
   });
 }
 
+/** Sends a file or a recording into a conversation. */
+export function useSendWhatsAppFile(orgId: string, accountId: string) {
+  const api = useApi();
+  const refresh = useWhatsAppRefresh(orgId);
+  return useMutation({
+    mutationFn: (input: { chatId: string; file: Blob; fileName: string; caption?: string; voice?: boolean }) =>
+      whatsappOf(api).sendFile(orgId, accountId, input),
+    meta: { silent: true },
+    onSuccess: () => void refresh(),
+  });
+}
+
 /** Asks the phone for a conversation's older messages; what comes arrives by itself (`whatsapp.changed`). */
 export function useWhatsAppOlderHistory(orgId: string, accountId: string) {
   const api = useApi();

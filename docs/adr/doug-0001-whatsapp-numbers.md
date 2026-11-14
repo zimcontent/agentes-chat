@@ -71,3 +71,4 @@ The three tables are made at boot by the list of this instance's own statements 
 - Routes: `apps/server/src/routes/app/whatsapp.ts` (`/api/app/organizations/{orgId}/whatsapp…`), the receiver in `routes/webhooks.ts`.
 - Schema: `packages/db/src/schema/whatsapp.ts`; statements in `packages/db/src/client.ts`.
 - Compose: services `whatsapp-db` (makes the gateway's two databases on the same Postgres) and `whatsapp`.
+- Addendum 2026-11-14: files go out too. A file sent from the app goes to the gateway as a form (`/send/media`) as a picture (JPEG, PNG, WebP), a video (MP4), a voice message (any recording, which the gateway converts to WhatsApp's own format) or a document (anything else), up to 32 MB. What the gateway sent is kept with the message, so a sent file opens here like a received one. The conversation writes with the kit's own composer: attach, drop, paste, emoji and the microphone.

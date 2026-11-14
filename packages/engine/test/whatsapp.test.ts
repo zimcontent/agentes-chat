@@ -11,6 +11,7 @@ import {
   reconnectWhatsAppAccount,
   removeWhatsAppAccount,
   requestWhatsAppHistory,
+  sendWhatsAppFile,
   sendWhatsAppText,
   typingInWhatsAppChat,
   updateWhatsAppAccount,
@@ -263,6 +264,48 @@ describe("sending and reading", () => {
     expect(gateway.last("read")).toMatchObject({ chat: ANA, ids: ["A2", "A1"] });
     expect((await listWhatsAppChats(deps, f.owner.id, f.org.id, account.id)).chats[0]?.unread).toBe(0);
     expect(await readWhatsAppChat(deps, f.owner.id, f.org.id, account.id, chatId)).toEqual({ read: 0 });
+  });
+});
+
+describe("sending a file", () => {
+  test("a picture goes as a picture with its caption, a recording as a voice message, the rest as a document", async () => {
+    f = await setup();
+    const { gateway, deps, account, post } = await connected();
+    await post(text("A1", "manda a proposta?"));
+    const { chats } = await listWhatsAppChats(deps, f.owner.id, f.org.id, account.id);
+    const chatId = chats[0]?.id as string;
+    const bytes = new TextEncoder().encode("bytes");
+    const sendIt = (input: { mimeType: string; fileName: string; caption?: string; voice?: boolean }) =>
+      sendWhatsAppFile(deps, f.owner.id, f.org.id, account.id, { chatId, bytes, ...input });
+    expect((await sendIt({ mimeType: "image/png", fileName: "foto.png", caption: " olha " })).kind).toBe("image");
+    expect((await sendIt({ mimeType: "audio/webm;codecs=opus", fileName: "voice.webm", voice: true })).kind).toBe(
+      "audio",
+    );
+    expect((await sendIt({ mimeType: "application/pdf", fileName: "proposta.pdf" })).kind).toBe("document");
+    // A GIF or a MOV isn't one WhatsApp draws from here: it goes as a file.
+    expect((await sendIt({ mimeType: "image/gif", fileName: "anim.gif" })).kind).toBe("document");
+    expect(gateway.calls.filter((c) => c.op === "file").map((c) => [c.kind, c.fileName, c.caption])).toEqual([
+      ["image", "foto.png", "olha"],
+      ["audio", "voice.webm", ""],
+      ["document", "proposta.pdf", ""],
+      ["document", "anim.gif", ""],
+    ]);
+    const page = await listWhatsAppMessages(deps, f.owner.id, f.org.id, account.id, chatId, { limit: 4 });
+    expect(page.messages.map((m) => [m.kind, m.body, m.file, m.sentByUserId === f.owner.id])).toEqual([
+      ["document", "", true, true],
+      ["document", "", true, true],
+      ["audio", "", true, true],
+      ["image", "olha", true, true],
+    ]);
+    await expect(sendIt({ mimeType: "image/png", fileName: "vazio.png" }).then(() => null)).resolves.toBeNull();
+    await expect(
+      sendWhatsAppFile(deps, f.owner.id, f.org.id, account.id, {
+        chatId,
+        bytes: new Uint8Array(0),
+        mimeType: "image/png",
+        fileName: "vazio.png",
+      }),
+    ).rejects.toThrow("empty");
   });
 });
 

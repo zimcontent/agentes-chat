@@ -194,6 +194,34 @@ describe("WhatsApp over HTTP", () => {
     ).toBe(404);
   });
 
+  test("a file dropped in the conversation is sent as a form and shows there as the person's", async () => {
+    const { api, post, secret, gateway } = await start();
+    const account = (await (await api("/accounts", { json: { label: "Comercial" } })).json()) as Account;
+    await post(secret(), event("Connected", { status: "open", jid: "5511911112222@s.whatsapp.net", pushName: "Zim" }));
+    await post(secret(), hello);
+    const { chats } = (await (await api(`/accounts/${account.id}/chats`)).json()) as { chats: Chat[] };
+    const form = new FormData();
+    form.set("file", new File(["%PDF-1.4"], "proposta.pdf", { type: "application/pdf" }));
+    form.set("chatId", chats[0]?.id as string);
+    form.set("caption", "segue a proposta");
+    const sent = await api(`/accounts/${account.id}/files`, { method: "POST", body: form });
+    expect([sent.status, await sent.json()]).toEqual([201, { chatId: chats[0]?.id, kind: "document" }]);
+    expect(gateway?.last("file")).toMatchObject({
+      kind: "document",
+      fileName: "proposta.pdf",
+      caption: "segue a proposta",
+    });
+    const page = (await (await api(`/accounts/${account.id}/chats/${chats[0]?.id}/messages`)).json()) as {
+      messages: { id: string; kind: string; body: string; file: boolean }[];
+    };
+    expect(page.messages[0]).toMatchObject({ kind: "document", body: "segue a proposta", file: true });
+    // What was sent opens here like what was received.
+    expect((await api(`/accounts/${account.id}/messages/${page.messages[0]?.id}/file`)).status).toBe(200);
+    const none = new FormData();
+    none.set("chatId", chats[0]?.id as string);
+    expect((await api(`/accounts/${account.id}/files`, { method: "POST", body: none })).status).toBe(400);
+  });
+
   test("a number's agent, turned on, answers who writes; turned off in the conversation it stops", async () => {
     const { agentId, api, post, secret, gateway } = await start(createFakeWhatsAppGateway(), () => ({
       chunks: [JSON.stringify({ action: "reply", messages: ["Bom dia! Como posso ajudar?"], note: "" })],
