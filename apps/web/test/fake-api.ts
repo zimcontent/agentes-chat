@@ -766,7 +766,8 @@ export function seedState(overrides: Partial<FakeState> = {}): FakeState {
     me: {
       user: { id: walter.userId, name: walter.name, email: walter.email, image: null },
       // On, so the chat tests read the tool blocks; off (the server's default) is tool-activity.test.tsx's.
-      organizations: [{ id: ORG_ID, name: "Acme", role: "owner", showActivity: true }],
+      // Technical, so they read what a call got and gave; simple (the default) is said by the tests that set it.
+      organizations: [{ id: ORG_ID, name: "Acme", role: "owner", showActivity: true, agentStyle: "technical" }],
     },
     members: [walter, joao],
     agents: [agent(ADA_ID, "Ada", "Dev", "u-joao", 40), agent(ATLAS_ID, "Atlas", "Ops", "u-joao", 20)],

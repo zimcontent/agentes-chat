@@ -41,6 +41,7 @@ import { fromServer, itemName } from "@agenteschat/client/lib/connected";
 import { daysBetween, formatTime, joinNames, nextLabel, relativeTime, timeLeft } from "@agenteschat/client/lib/format";
 import { agentGrammar } from "@agenteschat/client/lib/grammar";
 import { connectorName } from "@agenteschat/client/lib/scopes";
+import { simpleScreens } from "@agenteschat/client/lib/simple-mode";
 import { formatDuration, type ToolItem, toolItemsSaved, toolPhrase, workFromSteps } from "@agenteschat/client/lib/work";
 import {
   Button,
@@ -234,6 +235,15 @@ export function ApprovalsPage() {
   const shownDecided = decided.filter((a) => matches(a) && (filter === "all" || bucketOf(approvalPhase(a)) === filter));
   // The rows in the order shown; the open one (`?open=<id>`), else the first, is the request beside the list.
   const order = [...shownOpen, ...shownDecided].map((a) => a.id);
+  // A link to a request already decided (a notice, a routine's run) opens it: its filter isn't the waiting one, so the
+  // list moves to "all" once for that link. One decided while open here is not a link: it leaves the list.
+  const linked = useRef<string | null>(null);
+  useEffect(() => {
+    if (!openId || linked.current === openId || !approvals.data) return;
+    linked.current = openId;
+    const target = approvals.data.find((a) => a.id === openId);
+    if (target && filter !== "all" && bucketOf(approvalPhase(target)) !== filter) setFilter("all");
+  }, [openId, approvals.data, filter]);
   const selectedId = openId && order.includes(openId) ? openId : (order[0] ?? null);
   const selected = all.find((a) => a.id === selectedId) ?? null;
   const cardOf = new Map(approvalCards(shownOpen).flatMap((items) => items.map((a) => [a.id, items] as const)));
@@ -619,6 +629,7 @@ export function ExactAction({
   bare?: boolean;
 }) {
   const { t } = useTranslation();
+  const simple = simpleScreens(useOrg().org);
   // An email shows as the email itself (folded in lists, whole in the details).
   if (approval.email) return <EmailLetter email={approval.email} full={!max} />;
   const full = max === undefined;
@@ -626,6 +637,14 @@ export function ExactAction({
   // itself reads behind "Detalhes técnicos", with its lines kept.
   const values = approvalValues(approval, full ? { long: true, code: false } : { max, code: false });
   const code = full ? approvalCode(approval) : [];
+  // A code action on simple screens: which language it runs in says nothing to its reader, and its saved keys go by
+  // what they are.
+  const rows =
+    simple && approval.tool === "run_code"
+      ? values.flatMap(([label, value]): [string, string][] =>
+          label === "Language" ? [] : [[label === "Keys" ? t("approvals.valueKeys") : label, value]],
+        )
+      : values;
   return (
     <div className="ap-exact">
       {!bare && (
@@ -634,10 +653,10 @@ export function ExactAction({
           {approvalReadsOnly(approval) && <Chip icon="eye">{t("approvals.readsOnly")}</Chip>}
         </div>
       )}
-      {values.length > 0 &&
+      {rows.length > 0 &&
         (full ? (
           <dl className="ap-exact__rows">
-            {values.map(([label, value]) => (
+            {rows.map(([label, value]) => (
               <div key={label} data-long={value.length > LONG_VALUE || undefined}>
                 <dt>{label}</dt>
                 <dd>{inlineWords(value)}</dd>
@@ -646,14 +665,15 @@ export function ExactAction({
           </dl>
         ) : (
           <div className="ap-exact__facts">
-            {values.map(([label, value]) => (
+            {rows.map(([label, value]) => (
               <Chip key={label}>
                 {label}: {value}
               </Chip>
             ))}
           </div>
         ))}
-      {full && (
+      {/* Simple screens stop at the words: the call itself is for whoever chose the technical ones. */}
+      {full && !simple && (
         <details className="ap-exact__tech">
           <summary>{t("approvals.technical")}</summary>
           {code.map(([label, text]) => (
@@ -1138,6 +1158,7 @@ function ReviewBody({ approval: a, channel }: { approval: Approval; channel: str
   const [unfold, setUnfold] = useState(false);
   const [steps, setSteps] = useState(false);
   const [tech, setTech] = useState(false);
+  const simple = simpleScreens(org);
   const { effect } = approvalEffects(a);
   const target = approvalTarget(a);
   const text = approvalText(a);
@@ -1342,7 +1363,7 @@ function ReviewBody({ approval: a, channel }: { approval: Approval; channel: str
             <code>{`${a.tool}\n${JSON.stringify(a.params ?? {}, null, 2)}`}</code>
           </pre>
         )}
-        {(channel || text) && (
+        {(channel || (text && !simple)) && (
           <p className="ac-card__foot ap-review__foot">
             {channel && (
               <Link
@@ -1354,7 +1375,7 @@ function ReviewBody({ approval: a, channel }: { approval: Approval; channel: str
                 {t("approvals.panel.viewChannel", { channel })}
               </Link>
             )}
-            {text && (
+            {text && !simple && (
               <button type="button" className="ap-link" aria-expanded={tech} onClick={() => setTech((o) => !o)}>
                 {t("approvals.technical")}
               </button>
@@ -1478,7 +1499,16 @@ function PhaseMark({ approval }: { approval: Approval }) {
 }
 
 /** Expired: ask the agent, in the same conversation, to ask again if it still makes sense. */
-function AskAgain({ approval, agent }: { approval: Approval; agent: Agent | undefined }) {
+function AskAgain({
+  approval,
+  agent,
+  failed,
+}: {
+  approval: Approval;
+  agent: Agent | undefined;
+  /** The approved action failed: the agent is asked to see what went wrong and try again. */
+  failed?: boolean;
+}) {
   const { t } = useTranslation();
   const { org, me } = useOrg();
   const toast = useToast();
@@ -1497,12 +1527,15 @@ function AskAgain({ approval, agent }: { approval: Approval; agent: Agent | unde
       onClick={(e) => {
         e.stopPropagation();
         sendHelpers(post).send(
-          t("approvals.againBody", { handle: agent.handle, title: approvalTitle(t, approval) }),
+          t(failed ? "approvals.retryBody" : "approvals.againBody", {
+            handle: agent.handle,
+            title: approvalTitle(t, approval),
+          }),
           approval.threadId,
         );
       }}
     >
-      {t("approvals.again")}
+      {t(failed ? "approvals.retry" : "approvals.again")}
     </Button>
   );
 }
@@ -1608,6 +1641,7 @@ function Outcome({ approval: a, agent }: { approval: Approval; agent: Agent | un
   const name = agent?.name ?? t("channel.unknownAgent");
   const g = agentGrammar(name);
   const p = approvalPhase(a);
+  const simple = simpleScreens(org);
   if (p === "waiting") return null;
   const who =
     a.decidedByUserId === me.user.id
@@ -1621,7 +1655,7 @@ function Outcome({ approval: a, agent }: { approval: Approval; agent: Agent | un
       : p === "done"
         ? ["check", t("approvals.panel.done"), approvedBy]
         : p === "failed"
-          ? ["alert", t("approvals.panel.failed"), approvedBy]
+          ? ["alert", t("approvals.panel.failed"), t("approvals.panel.failedLine", { name })]
           : p === "refused"
             ? [
                 "close",
@@ -1648,6 +1682,8 @@ function Outcome({ approval: a, agent }: { approval: Approval; agent: Agent | un
       <CancelAhead id={a.id} />
     ) : p === "expired" && aheadPhase(a) !== "lapsed" ? (
       <AskAgain approval={a} agent={agent} />
+    ) : p === "failed" ? (
+      <AskAgain approval={a} agent={agent} failed />
     ) : undefined;
   return (
     <Card className={cx("ap-review__card ap-outcome", `ap-outcome--${p}`)}>
@@ -1660,7 +1696,7 @@ function Outcome({ approval: a, agent }: { approval: Approval; agent: Agent | un
           <code>{a.result.text}</code>
         </pre>
       )}
-      {a.result?.text && (
+      {a.result?.text && !simple && (
         <p className="ac-card__foot ap-review__foot">
           <button type="button" className="ap-link" aria-expanded={returned} onClick={() => setReturned((o) => !o)}>
             {t("approvals.panel.returned")}

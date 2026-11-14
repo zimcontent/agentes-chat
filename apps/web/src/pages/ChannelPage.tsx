@@ -151,6 +151,7 @@ import { localMeta, replyOf } from "@agenteschat/client/lib/reply";
 import { isReminderMessage, reminderBody, routineReplyOf } from "@agenteschat/client/lib/routines";
 import { picksForMe, replyAloneKey } from "@agenteschat/client/lib/routing";
 import { seenMessageId } from "@agenteschat/client/lib/seen";
+import { simpleScreens } from "@agenteschat/client/lib/simple-mode";
 import { hiddenCount, tasksOf, todayStart } from "@agenteschat/client/lib/task-manager";
 import { contextMarks, hiddenByThreads, rangeCandidates, threadStartOf } from "@agenteschat/client/lib/threads";
 import { buildTimeline, lastPostedId, mergeTimeline, type TimelineItem } from "@agenteschat/client/lib/timeline";
@@ -4135,6 +4136,7 @@ export const TimelineMessage = memo(function TimelineMessage({
   const { org, me } = useOrg();
   const qc = useQueryClient();
   const dismissRun = useDismissRun();
+  const simple = simpleScreens(org);
   const liveFailed = live?.status === "failed";
   const failedWhy = liveFailed ? runErrorText(t, live?.errorCode, live?.errorParams) : null;
   // Refused by the workspace's standing: its own words, not the server's English.
@@ -4565,9 +4567,10 @@ export const TimelineMessage = memo(function TimelineMessage({
                   <Icon name="alert" size={16} />
                   {/* A known code is said in words; the stored error (a computer's code) only on hover, unless the
                       words already say what it said. */}
-                  <span title={!refusal && failedWhy && !live.errorParams?.detail ? live.error : undefined}>
+                  <span title={!simple && !refusal && failedWhy && !live.errorParams?.detail ? live.error : undefined}>
                     {runFailureLine(t, name, { code: live.errorCode, params: live.errorParams }, i18n.language) ??
-                      (live.error
+                      // The stored error is the system's own words: simple screens say only that it didn't finish.
+                      (live.error && !simple
                         ? t("channel.runFailed", { agent: name, reason: live.error })
                         : t("channel.runFailedNoReason", { agent: name }))}
                   </span>
@@ -5215,9 +5218,7 @@ function ChannelDetails({
         title={
           <>
             {/* Doug: a group with a shown name is titled by it, as its header is; `#name` otherwise. */}
-            {channel.displayName?.trim()
-              ? channelTitle(channel)
-              : t("channel.detailsTitle", { channel: channel.name })}
+            {channel.displayName?.trim() ? channelTitle(channel) : t("channel.detailsTitle", { channel: channel.name })}
             {editable && <SavedNote shown={saved} label={t("common.saved")} className="channel-topic__saved" />}
           </>
         }

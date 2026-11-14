@@ -5188,6 +5188,12 @@ export const en = {
     again: "Ask again",
     againBody: "@{{handle}} the request “{{title}}” expired without a decision. If it still makes sense, ask again.",
     againSent: "Request sent in the conversation",
+    /** A failed action's button: asks the agent, in the conversation, to see what went wrong and try again. */
+    retry: "Ask to try again",
+    retryBody:
+      "@{{handle}} the action “{{title}}” that was approved failed. See what went wrong and try again, or tell me what I need to do.",
+    /** A code action's saved keys, as its value's label on simple screens. */
+    valueKeys: "Vault keys used",
     noResults: "No requests match these filters.",
     emptyTitle: "All decided",
     how: "How approvals work",
@@ -5215,6 +5221,7 @@ export const en = {
       runningLine: "{{name}} is running exactly the action below.",
       done: "Done",
       failed: "The action failed",
+      failedLine: "It didn't finish. Ask {{name}} to see what happened and try again.",
       returned: "What came back",
       approvedBy: "Approved by {{name}} {{when}}",
       refusedBy: "Refused by {{name}} {{when}}",
@@ -15303,8 +15310,9 @@ export const en = {
           newCount: "4 new",
         },
       },
-      agentStyle: "How agents talk to you",
-      agentStyleHelp: "Simple: what happened and what to do, in a few words. Technical: with paths, codes and details.",
+      agentStyle: "Mode",
+      agentStyleHelp:
+        "Simple: agents talk in a few words and screens show only what was done and what you decide. Technical: with code, commands and system details.",
       agentStyleSimple: "Simple",
       agentStyleTechnical: "Technical",
     },

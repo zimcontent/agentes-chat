@@ -12015,6 +12015,15 @@
   "approvals.againSent": {
     "value": "Request sent in the conversation"
   },
+  "approvals.retry": {
+    "value": "Ask to try again"
+  },
+  "approvals.retryBody": {
+    "value": "@{{handle}} the action “{{title}}” that was approved failed. See what went wrong and try again, or tell me what I need to do."
+  },
+  "approvals.valueKeys": {
+    "value": "Vault keys used"
+  },
   "approvals.noResults": {
     "value": "No requests match these filters."
   },
@@ -12092,6 +12101,9 @@
   },
   "approvals.panel.failed": {
     "value": "The action failed"
+  },
+  "approvals.panel.failedLine": {
+    "value": "It didn't finish. Ask {{name}} to see what happened and try again."
   },
   "approvals.panel.returned": {
     "value": "What came back"

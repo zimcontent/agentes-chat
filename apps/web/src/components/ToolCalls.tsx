@@ -9,6 +9,7 @@ import {
 } from "@agenteschat/client";
 import type { Activity, ActivityKind } from "@agenteschat/client/lib/activity";
 import { agentGrammar } from "@agenteschat/client/lib/grammar";
+import { simpleScreens } from "@agenteschat/client/lib/simple-mode";
 import {
   appKey,
   callLogo,
@@ -142,11 +143,19 @@ export function useCallLogo() {
 }
 
 /** A line of the block from the shared model: its phrase, time, open view (code, output, what it got and gave). */
-function blockLine(t: TFunction, locale: string, l: ToolLine, logo: ReactNode, personal = false) {
+function blockLine(
+  t: TFunction,
+  locale: string,
+  l: ToolLine,
+  logo: ReactNode,
+  personal = false,
+  /** Simple screens (`simpleScreens`): the call in words, with no code, no values it got or gave, no tool name. */
+  simple = false,
+) {
   const lines = l.code ? l.code.source.split("\n").length : 0;
   const output = l.output ?? [];
   const label =
-    l.code && l.state === "done"
+    l.code && l.state === "done" && !simple
       ? t("code.ranSummary", {
           count: lines,
           language: l.code.language,
@@ -159,7 +168,7 @@ function blockLine(t: TFunction, locale: string, l: ToolLine, logo: ReactNode, p
   const why = toolWhy(t, l, personal);
   // What the tool answered, its own words when it failed: only in the open view, never under the line.
   const answered = l.result ?? why ?? l.why;
-  const detail = l.code ? (
+  const detail = simple ? undefined : l.code ? (
     <CodePanel code={l.code} output={output} live={l.state === "run"} />
   ) : output.length > 0 ? (
     <OutputView output={output} live={l.state === "run"} />
@@ -184,12 +193,12 @@ function blockLine(t: TFunction, locale: string, l: ToolLine, logo: ReactNode, p
     state: l.state,
     logo,
     label,
-    hint: toolLineHint(t, l),
+    hint: simple ? undefined : toolLineHint(t, l),
     time: l.ms !== null && l.state !== "run" ? formatLineTime(locale, l.ms) : undefined,
     count: l.count > 1 ? t("chat.work.times", { count: l.count }) : undefined,
     why: l.state === "fail" ? why : null,
     detail,
-    defaultOpen: l.state === "run" && Boolean(l.code),
+    defaultOpen: !simple && l.state === "run" && Boolean(l.code),
   };
   return line;
 }
@@ -197,10 +206,12 @@ function blockLine(t: TFunction, locale: string, l: ToolLine, logo: ReactNode, p
 function useBlockItems(items: ToolItem[]): ToolBlockItem[] {
   const { t, i18n } = useTranslation();
   const logo = useCallLogo();
-  const personal = isPersonal(useOrg().org);
+  const { org } = useOrg();
+  const personal = isPersonal(org);
+  const simple = simpleScreens(org);
   return items.flatMap((item): ToolBlockItem[] =>
     item.kind === "call"
-      ? [{ kind: "line", line: blockLine(t, i18n.language, item.line, logo(item.line), personal) }]
+      ? [{ kind: "line", line: blockLine(t, i18n.language, item.line, logo(item.line), personal, simple) }]
       : item.kind === "say"
         ? [{ kind: "note", key: item.key, node: item.text }]
         : [],
@@ -268,7 +279,7 @@ export function LiveTools({
         time: total > 0 ? formatDuration(t, total) : undefined,
       }
     : {
-        text: blockLine(t, i18n.language, now, null).label,
+        text: blockLine(t, i18n.language, now, null, false, simpleScreens(org)).label,
         textKey: `${now.key}-${now.state}`,
         state: now.state,
         count: t("chat.work.steps", { count: calls }),
@@ -313,6 +324,7 @@ export function TaskStepsBlock({
   color?: AgentColor;
 }) {
   const { t, i18n } = useTranslation();
+  const { org } = useOrg();
   const logo = useCallLogo();
   const saved = toolItemsSaved(workFromSteps(steps, run));
   const last = saved.findLastIndex((i) => i.kind === "call");
@@ -329,7 +341,7 @@ export function TaskStepsBlock({
   const head =
     working && now
       ? {
-          text: blockLine(t, i18n.language, now, null).label,
+          text: blockLine(t, i18n.language, now, null, false, simpleScreens(org)).label,
           textKey: `${now.key}-${now.state}`,
           state: now.state,
           count: t("chat.work.steps", { count: calls }),
@@ -392,7 +404,7 @@ export function SavedTools({
   // unknown (saved before the server wrote it): kept, it may have failed.
   if (lone && lone.ms !== null && quietLine(lone)) return null;
   if (lone && (!work || oneCall(items) || !items.some((i) => i.kind === "call"))) {
-    const line = blockLine(t, i18n.language, lone, logo(lone), isPersonal(org));
+    const line = blockLine(t, i18n.language, lone, logo(lone), isPersonal(org), simpleScreens(org));
     const wait = run.isError ? (
       t("chat.work.failed")
     ) : !work ? (

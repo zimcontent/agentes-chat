@@ -115,6 +115,49 @@ describe("Aprovações", () => {
     expect(action.querySelector(".ap-exact__tech pre")?.textContent).toBe(code);
   });
 
+  test("simple screens: no technical details, a code action's keys in words, a failed one says what to do", async () => {
+    const state = seedState();
+    const org = state.me?.organizations[0];
+    const merge = state.approvals[0];
+    if (!merge || !org) throw new Error("no approval");
+    org.agentStyle = "simple";
+    state.approvals = [
+      {
+        ...merge,
+        id: "ap-code",
+        tool: "run_code",
+        scope: "sandbox:run",
+        title: "Run python code",
+        connector: null,
+        why: "Vou somar os pagamentos aprovados de ontem e do mês para fechar o relatório da manhã.",
+        params: { code: "print(1)", language: "python", keys: ["PAY_TOKEN"] },
+      },
+      {
+        ...merge,
+        id: "ap-failed",
+        status: "approved",
+        canDecide: false,
+        decidedAt: new Date(Date.now() - 3_600_000).toISOString(),
+        decidedByUserId: "u-joao",
+        result: { ok: false, text: "HTTP 401 unauthorized" },
+      },
+    ];
+    await go("approvals", state);
+    const open = document.querySelector(".ap-review") as HTMLElement;
+    expect(open.querySelector(".ap-exact__tech")).toBeNull();
+    expect(open.textContent).not.toContain("print(1)");
+    expect([...open.querySelectorAll(".ap-exact__rows dt")].map((d) => d.textContent)).toEqual([
+      "Chaves do Cofre usadas",
+    ]);
+    // A link to the failed one opens it though it no longer waits: what to do, and no raw return.
+    await go("approvals?open=ap-failed", state);
+    const failed = document.querySelector(".ap-outcome") as HTMLElement;
+    expect(failed.textContent).toContain("Peça para Ada ver o que houve e tentar de novo.");
+    expect(within(failed).getByRole("button", { name: "Pedir para tentar de novo" })).toBeTruthy();
+    expect(failed.textContent).not.toContain("O que voltou");
+    expect(document.body.textContent).not.toContain("HTTP 401");
+  });
+
   test("nothing waiting: All decided and one link to how approvals work; the header says no more", async () => {
     const state = seedState();
     state.approvals = [];
