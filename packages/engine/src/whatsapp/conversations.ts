@@ -8,6 +8,7 @@ import {
   type WhatsAppDeps,
   whatsappGateway,
 } from "./accounts";
+import { type WhatsAppAgentState, whatsappAgentState } from "./agent";
 import { storeWhatsAppMessage } from "./inbound";
 
 export const WHATSAPP_PAGE = 50;
@@ -32,6 +33,12 @@ export interface WhatsAppChatView {
   lastKind: string;
   lastFromMe: boolean;
   unread: number;
+  /** Where the number's agent stands here (`whatsappAgentState`); null: no agent answers this conversation. */
+  agent: WhatsAppAgentState;
+  /** While `agent` is `quiet`: when it answers again. */
+  agentQuietUntil: string | null;
+  /** While `agent` is `person`: why it left, in its own words, or `limit` / `failed`. */
+  agentNote: string;
 }
 
 export interface WhatsAppMessageView {
@@ -50,22 +57,32 @@ export interface WhatsAppMessageView {
   status: MessageRow["status"];
   /** Who wrote it in our app. */
   sentByUserId: string | null;
+  /** The agent that wrote it. */
+  sentByAgentId: string | null;
   at: string;
 }
 
 const phoneOf = (jid: string) => /^(\d{6,20})@s\.whatsapp\.net$/.exec(jid)?.[1] ?? null;
 
-const chatView = (row: ChatRow): WhatsAppChatView => ({
-  id: row.id,
-  phone: phoneOf(row.jid),
-  name: row.name,
-  group: row.group,
-  lastAt: row.lastAt?.toISOString() ?? null,
-  lastText: row.lastText,
-  lastKind: row.lastKind,
-  lastFromMe: row.lastFromMe,
-  unread: row.unread,
-});
+type AgentOf = Pick<typeof schema.whatsappAccounts.$inferSelect, "agentId" | "agentOn">;
+
+const chatView = (row: ChatRow, account: AgentOf, now = new Date()): WhatsAppChatView => {
+  const agent = whatsappAgentState(account, row, now);
+  return {
+    id: row.id,
+    phone: phoneOf(row.jid),
+    name: row.name,
+    group: row.group,
+    lastAt: row.lastAt?.toISOString() ?? null,
+    lastText: row.lastText,
+    lastKind: row.lastKind,
+    lastFromMe: row.lastFromMe,
+    unread: row.unread,
+    agent: agent.state,
+    agentQuietUntil: agent.quietUntil?.toISOString() ?? null,
+    agentNote: agent.state === "person" ? row.agentNote : "",
+  };
+};
 
 /** A number's conversations, the latest first. `before`: the `lastAt` of the page before's last one. */
 export async function listWhatsAppChats(
@@ -75,7 +92,7 @@ export async function listWhatsAppChats(
   accountId: string,
   page: { before?: string; limit?: number } = {},
 ) {
-  await requireWhatsAppUse(deps.db, userId, orgId, accountId);
+  const account = await requireWhatsAppUse(deps.db, userId, orgId, accountId);
   const limit = Math.min(page.limit ?? WHATSAPP_PAGE, WHATSAPP_PAGE_MAX);
   const chats = schema.whatsappChats;
   const rows = await deps.db
@@ -92,7 +109,7 @@ export async function listWhatsAppChats(
     .limit(limit + 1);
   const shown = rows.slice(0, limit);
   return {
-    chats: shown.map(chatView),
+    chats: shown.map((row) => chatView(row, account)),
     next: rows.length > limit ? (shown.at(-1)?.lastAt?.toISOString() ?? null) : null,
   };
 }
@@ -115,7 +132,7 @@ export async function listWhatsAppMessages(
   chatId: string,
   page: { before?: string; limit?: number } = {},
 ) {
-  await requireWhatsAppUse(deps.db, userId, orgId, accountId);
+  const account = await requireWhatsAppUse(deps.db, userId, orgId, accountId);
   const chat = await chatOf(deps, accountId, chatId);
   const limit = Math.min(page.limit ?? WHATSAPP_PAGE, WHATSAPP_PAGE_MAX);
   const messages = schema.whatsappMessages;
@@ -135,7 +152,7 @@ export async function listWhatsAppMessages(
     : [];
   const idOf = new Map(answered.map((row) => [row.waId, row.id]));
   return {
-    chat: chatView(chat),
+    chat: chatView(chat, account),
     messages: shown.map(
       (row): WhatsAppMessageView => ({
         id: row.id,
@@ -149,6 +166,7 @@ export async function listWhatsAppMessages(
         media: row.media,
         status: row.status,
         sentByUserId: row.sentByUserId,
+        sentByAgentId: row.sentByAgentId,
         at: row.at.toISOString(),
       }),
     ),
@@ -212,7 +230,7 @@ export async function sendWhatsAppText(
     media: null,
     raw: null,
   };
-  const stored = await storeWhatsAppMessage(deps.db, account, message, userId);
+  const stored = await storeWhatsAppMessage(deps.db, account, message, { userId });
   // The gateway's own event for this message may have arrived first: it is the person's all the same.
   if (!stored.fresh) {
     await deps.db
@@ -220,6 +238,11 @@ export async function sendWhatsAppText(
       .set({ sentByUserId: userId })
       .where(and(eq(schema.whatsappMessages.accountId, accountId), eq(schema.whatsappMessages.waId, sent.id)));
   }
+  // A person took the conversation: the number's agent stays quiet in it for a while (`whatsappAgentState`).
+  await deps.db
+    .update(schema.whatsappChats)
+    .set({ personAt: new Date(), needsPerson: false, agentNote: "" })
+    .where(eq(schema.whatsappChats.id, stored.chatId));
   await publishWhatsAppChanged(deps, account, { chatId: stored.chatId });
   return { chatId: stored.chatId };
 }

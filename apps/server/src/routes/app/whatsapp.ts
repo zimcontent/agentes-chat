@@ -8,6 +8,7 @@ import {
   reconnectWhatsAppAccount,
   removeWhatsAppAccount,
   sendWhatsAppText,
+  setWhatsAppChatAgent,
   typingInWhatsAppChat,
   updateWhatsAppAccount,
   WHATSAPP_INSTRUCTIONS_MAX,
@@ -71,6 +72,10 @@ const Account = z
       description:
         "How the agent carries itself on this number (Markdown), on top of its own instructions; null for someone who can't change the number.",
     }),
+    agentOn: z.boolean().openapi({
+      description:
+        "The agent answers this number's conversations now: only someone who wrote, never a group, and never a conversation where a person wrote in the last hour.",
+    }),
     mine: z.boolean().openapi({ description: "The asker is on its list." }),
     manage: z.boolean().openapi({ description: "The asker may change or remove it." }),
     createdAt: z.string(),
@@ -88,6 +93,15 @@ const Chat = z
     lastKind: z.string(),
     lastFromMe: z.boolean(),
     unread: z.number().int(),
+    agent: z.enum(["on", "quiet", "off", "person"]).nullable().openapi({
+      description:
+        "Where the number's agent stands here. `on`: it answers. `quiet`: a person wrote here less than an hour ago, it answers again at `agentQuietUntil`. `off`: someone turned it off here. `person`: it left the conversation to a person (`agentNote`). null: no agent answers this conversation (the number has none on, or it is a group).",
+    }),
+    agentQuietUntil: z.string().nullable(),
+    agentNote: z.string().openapi({
+      description:
+        "While `agent` is `person`: why, in the agent's own words (written by a model: show it as text), or `limit` (it answered as much as it may in a day) or `failed` (its AI account didn't answer).",
+    }),
   })
   .openapi("WhatsAppChat");
 
@@ -109,6 +123,10 @@ const Message = z
       .nullable(),
     status: z.enum(["received", "sent", "delivered", "read"]),
     sentByUserId: z.string().nullable().openapi({ description: "Who wrote it here; null: from the phone." }),
+    sentByAgentId: z
+      .string()
+      .nullable()
+      .openapi({ description: "The agent that wrote it, when the number's agent answered." }),
     at: z.string(),
   })
   .openapi("WhatsAppMessage");
@@ -207,6 +225,7 @@ export function whatsappRoutes(deps: AppDeps) {
             people: z.array(z.string().min(1).max(64)).max(50).optional(),
             agentId: z.uuid().nullable().optional(),
             instructions: z.string().max(WHATSAPP_INSTRUCTIONS_MAX).optional(),
+            agentOn: z.boolean().optional().openapi({ description: "400 to turn it on with no agent chosen." }),
           }),
         ),
       },
@@ -369,6 +388,25 @@ export function whatsappRoutes(deps: AppDeps) {
       }
       const { typing } = c.req.valid("json");
       return c.json(await typingInWhatsAppChat(wa, user.id, orgId, accountId, chatId, typing), 200);
+    },
+  );
+
+  app.openapi(
+    createRoute({
+      method: "post",
+      path: "/organizations/{orgId}/whatsapp/accounts/{accountId}/chats/{chatId}/agent",
+      tags,
+      security,
+      summary: "Turn the number's agent on or off in one conversation (the number's people)",
+      description:
+        "`on: false`: it says nothing more here until someone turns it back on. `on: true` gives the conversation back to it: whatever kept it quiet (a person who wrote, its own handoff) is cleared, and a message still waiting gets its answer. 400 for a group.",
+      request: { params: ChatParams, body: body(z.object({ on: z.boolean() })) },
+      responses: { 200: json(z.object({ on: z.boolean() })), ...errors },
+    }),
+    async (c) => {
+      const { orgId, accountId, chatId } = c.req.valid("param");
+      const { on } = c.req.valid("json");
+      return c.json(await setWhatsAppChatAgent(wa, c.get("user").id, orgId, accountId, chatId, on), 200);
     },
   );
 

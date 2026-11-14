@@ -45,6 +45,8 @@ export interface WhatsAppAccountView {
   agentId: string | null;
   /** How the agent carries itself on this number (Markdown); null for someone who can't change the number. */
   instructions: string | null;
+  /** The agent answers this number's conversations now. */
+  agentOn: boolean;
   /** Whether the asker may read and answer its conversations. */
   mine: boolean;
   /** Whether the asker may change or remove it. */
@@ -83,6 +85,7 @@ function view(row: WhatsAppAccountRow, userId: string, manage: boolean, now = Da
     people: row.people,
     agentId: row.agentId,
     instructions: manage ? row.instructions : null,
+    agentOn: row.agentId !== null && row.agentOn,
     mine: row.people.includes(userId),
     manage,
     createdAt: row.createdAt.toISOString(),
@@ -220,7 +223,7 @@ export async function updateWhatsAppAccount(
   userId: string,
   orgId: string,
   accountId: string,
-  input: { label?: string; people?: string[]; agentId?: string | null; instructions?: string },
+  input: { label?: string; people?: string[]; agentId?: string | null; instructions?: string; agentOn?: boolean },
 ) {
   await requirePermission(deps.db, userId, orgId, "manage_connectors");
   const current = await accountRow(deps.db, orgId, accountId);
@@ -246,6 +249,13 @@ export async function updateWhatsAppAccount(
       if (!agent) throw new ValidationError("That agent isn't in this workspace");
     }
     set.agentId = input.agentId;
+    // A number with no agent has nothing to turn on.
+    if (input.agentId === null) set.agentOn = false;
+  }
+  if (input.agentOn !== undefined) {
+    const agentId = input.agentId !== undefined ? input.agentId : current.agentId;
+    if (input.agentOn && !agentId) throw new ValidationError("Choose the agent that answers first");
+    set.agentOn = input.agentOn && agentId !== null;
   }
   if (input.instructions !== undefined) {
     const instructions = input.instructions.replace(/\r\n?/g, "\n").trim();

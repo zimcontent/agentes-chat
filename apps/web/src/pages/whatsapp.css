@@ -193,6 +193,9 @@
 .wa-chat__you {
   flex: none;
 }
+.wa-chat__turn {
+  flex: none;
+}
 .wa-chat__count {
   flex: none;
   background: var(--agent);
@@ -238,6 +241,30 @@
 .wa-conv__phone {
   color: var(--muted);
   font-size: var(--text-sm);
+}
+.wa-conv__phone[data-agent="on"] {
+  color: var(--agent);
+}
+.wa-conv__agent {
+  flex: none;
+  margin-inline-start: auto;
+}
+/* The agent left the conversation: said above the composer, with the way to give it back. */
+.wa-conv__notice {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-4);
+  padding: var(--space-2) var(--page-x);
+  border-block-start: 1px solid var(--line);
+  background: var(--warn-soft);
+  font-size: var(--text-sm);
+  overflow-wrap: anywhere;
+}
+/* The button sits beside the words while they fit on one line, else under them. */
+.wa-conv__notice > span {
+  flex: 1 1 240px;
+  min-width: 0;
 }
 .wa-conv__scroll {
   flex: 1;

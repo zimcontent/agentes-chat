@@ -126,6 +126,18 @@ export function useReadWhatsAppChat(orgId: string, accountId: string) {
   });
 }
 
+/** The number's agent on or off in one conversation. */
+export function useWhatsAppChatAgent(orgId: string, accountId: string) {
+  const api = useApi();
+  const refresh = useWhatsAppRefresh(orgId);
+  return useMutation({
+    mutationFn: (input: { chatId: string; on: boolean }) =>
+      whatsappOf(api).chatAgent(orgId, accountId, input.chatId, input.on),
+    meta: { silent: true },
+    onSuccess: () => void refresh(),
+  });
+}
+
 /** How often "typing…" is told again while the person keeps writing: WhatsApp drops it after about 10 s. */
 const TYPING_EVERY_MS = 5_000;
 

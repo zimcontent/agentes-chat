@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, test } from "bun:test";
 import { createFakeWhatsAppGateway } from "@agenteschat/adapters";
+import { eq, schema } from "@agenteschat/db";
 import { type Browser, browser, createTestServer, joinByInvitation, seedOrg, signUp, type TestServer } from "./harness";
 
 /** WhatsApp numbers over HTTP: the app's routes and the address the gateway posts events to. */
@@ -14,14 +15,18 @@ afterEach(async () => {
 type Account = { id: string; status: string; qr: string | null; mine: boolean; manage: boolean };
 type Chat = { id: string; name: string; unread: number; lastText: string };
 
-async function start(gateway: ReturnType<typeof createFakeWhatsAppGateway> | null = createFakeWhatsAppGateway()) {
+async function start(
+  gateway: ReturnType<typeof createFakeWhatsAppGateway> | null = createFakeWhatsAppGateway(),
+  reply?: NonNullable<Parameters<typeof createTestServer>[0]>["reply"],
+) {
   t = await createTestServer({
     ...(gateway ? { whatsapp: gateway } : {}),
+    ...(reply ? { reply } : {}),
     env: { WHATSAPP_HOOK_URL: "http://agentes:3000" },
   });
   const owner = browser(t);
   await signUp(owner, "owner@example.com");
-  const { orgId } = await seedOrg(owner);
+  const { orgId, agentId } = await seedOrg(owner);
   const api = (path: string, init?: Parameters<Browser>[1]) =>
     owner(`/api/app/organizations/${orgId}/whatsapp${path}`, init);
   /** The gateway posting an event: no session, no origin, only the secret in the address. */
@@ -36,7 +41,7 @@ async function start(gateway: ReturnType<typeof createFakeWhatsAppGateway> | nul
     if (!connect) throw new Error("never connected");
     return connect.webhookUrl.split("/").at(-1) as string;
   };
-  return { owner, orgId, api, post, secret, gateway };
+  return { owner, orgId, agentId, api, post, secret, gateway };
 }
 
 const event = (name: string, data: unknown) => ({ event: name, data, instanceId: "instance-1" });
@@ -143,4 +148,48 @@ describe("WhatsApp over HTTP", () => {
       403,
     );
   });
+
+  test("a number's agent, turned on, answers who writes; turned off in the conversation it stops", async () => {
+    const { agentId, api, post, secret, gateway } = await start(createFakeWhatsAppGateway(), () => ({
+      chunks: [JSON.stringify({ action: "reply", messages: ["Bom dia! Como posso ajudar?"], note: "" })],
+    }));
+    const account = (await (await api("/accounts", { json: { label: "Comercial" } })).json()) as Account;
+    await post(secret(), event("Connected", { status: "open", jid: "5511911112222@s.whatsapp.net", pushName: "Zim" }));
+    // Nobody chosen: nothing to turn on.
+    expect((await api(`/accounts/${account.id}`, { method: "PATCH", json: { agentOn: true } })).status).toBe(400);
+    const on = await api(`/accounts/${account.id}`, { method: "PATCH", json: { agentId, agentOn: true } });
+    expect(((await on.json()) as { agentOn: boolean }).agentOn).toBe(true);
+
+    const now = (id: string, words: string) =>
+      event("Message", {
+        Info: { ...(hello.data as { Info: object }).Info, ID: id, Timestamp: new Date().toISOString() },
+        Message: { conversation: words },
+      });
+    /** The agent's wait is over: its job runs now. */
+    const answer = async () => {
+      await t.db
+        .update(schema.outbox)
+        .set({ nextAttemptAt: new Date() })
+        .where(eq(schema.outbox.kind, "whatsapp.agent_reply"));
+      await t.drain();
+    };
+    await post(secret(), now("B1", "bom dia"));
+    await answer();
+    expect(gateway?.last("send")?.text).toBe("Bom dia! Como posso ajudar?");
+    type AgentChat = Chat & { agent: string | null };
+    const chats = async () =>
+      ((await (await api(`/accounts/${account.id}/chats`)).json()) as { chats: AgentChat[] }).chats;
+    const [chat] = await chats();
+    expect([chat?.agent, chat?.unread]).toEqual(["on", 0]);
+    const page = (await (await api(`/accounts/${account.id}/chats/${chat?.id}/messages`)).json()) as {
+      messages: { fromMe: boolean; sentByAgentId: string | null }[];
+    };
+    expect(page.messages[0]).toMatchObject({ fromMe: true, sentByAgentId: agentId });
+
+    expect((await api(`/accounts/${account.id}/chats/${chat?.id}/agent`, { json: { on: false } })).status).toBe(200);
+    await post(secret(), now("B2", "e o preço?"));
+    await answer();
+    expect((await chats())[0]?.agent).toBe("off");
+    expect(gateway?.calls.filter((c) => c.op === "send")).toHaveLength(1);
+  }, 30_000);
 });

@@ -18,6 +18,8 @@ export interface WhatsAppAccount {
   agentId: string | null;
   /** How the agent carries itself on this number (Markdown); null for someone who can't change the number. */
   instructions: string | null;
+  /** The agent answers this number's conversations now. */
+  agentOn: boolean;
   /** The person is on its list. */
   mine: boolean;
   /** The person may change or remove it. */
@@ -44,7 +46,18 @@ export interface WhatsAppChat {
   lastKind: string;
   lastFromMe: boolean;
   unread: number;
+  /**
+   * Where the number's agent stands here: `on` (it answers), `quiet` (a person wrote here less than an hour ago),
+   * `off` (someone turned it off here), `person` (it left the conversation to a person). null: no agent answers it.
+   */
+  agent: WhatsAppChatAgent | null;
+  /** While `quiet`: when it answers again. */
+  agentQuietUntil: string | null;
+  /** While `person`: why, in the agent's words (a model's: text only), or `limit` or `failed`. */
+  agentNote: string;
 }
+
+export type WhatsAppChatAgent = "on" | "quiet" | "off" | "person";
 
 export type WhatsAppMessageStatus = "received" | "sent" | "delivered" | "read";
 
@@ -62,6 +75,8 @@ export interface WhatsAppMessage {
   status: WhatsAppMessageStatus;
   /** Who wrote it in the app; null: from the phone. */
   sentByUserId: string | null;
+  /** The agent that wrote it. */
+  sentByAgentId: string | null;
   at: string;
 }
 
@@ -82,6 +97,7 @@ export interface WhatsAppAccountPatch {
   people?: string[];
   agentId?: string | null;
   instructions?: string;
+  agentOn?: boolean;
 }
 
 export interface WhatsAppSendInput {

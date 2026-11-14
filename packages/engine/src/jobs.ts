@@ -130,6 +130,8 @@ import { assessThread } from "./thread-assess";
 import { runVaultSync, VAULT_SYNC_JOB, type VaultDeps } from "./vault";
 import { transcribeVoiceClip, VOICE_JOB, type VoiceDeps } from "./voice";
 import { saveWaitlistContact } from "./waitlist";
+import { answerWhatsAppChat, type WhatsAppAgentDeps } from "./whatsapp/agent";
+import { WHATSAPP_AGENT_JOB } from "./whatsapp/inbound";
 import { checkInWork, followUpWork, WORK_CHECK_IN_JOB, WORK_FOLLOW_UP_JOB } from "./works";
 import {
   ACCOUNT_DELETE_JOB,
@@ -190,6 +192,8 @@ export interface JobDeps extends RunExecutorDeps {
   skills?: SkillDeps;
   /** Voice messages (job `voice.transcribe`, ADR 0100). */
   voice?: VoiceDeps;
+  /** WhatsApp numbers whose agent answers (job `whatsapp.agent_reply`); absent: no gateway, nothing to answer. */
+  whatsapp?: WhatsAppAgentDeps;
   /** The Vault's sources (job `vault.sync`, ADR 0144); absent: connections aren't read again. */
   vault?: VaultDeps;
   /** Connectors: job `org.delete` revokes a workspace's GitHub OAuth grants at GitHub before its rows go. */
@@ -919,6 +923,14 @@ export function createJobHandlers(deps: JobDeps): JobHandlers {
           ai: { gateway: deps.gateway, machines: deps.machines ?? null },
         },
         String(job.payload.routineRunId),
+      );
+    },
+    [WHATSAPP_AGENT_JOB]: async (job, ctx) => {
+      if (!deps.whatsapp) throw new PermanentJobError("no WhatsApp gateway configured");
+      await answerWhatsAppChat(
+        deps.whatsapp,
+        { chatId: String(job.payload.chatId), messageId: String(job.payload.messageId) },
+        { finalAttempt: ctx.finalAttempt },
       );
     },
     [VOICE_JOB]: async (job, ctx) => {
