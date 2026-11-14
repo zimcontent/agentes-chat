@@ -396,3 +396,46 @@ describe("a personal workspace (ADR 0159)", () => {
     );
   });
 });
+
+describe("the team step asks about another workspace", () => {
+  const source = {
+    id: "org-old",
+    name: "Agência",
+    logo: null,
+    connections: [
+      {
+        id: "c-linear",
+        connector: "custom:c-linear",
+        label: "Linear",
+        serverUrl: "https://mcp.linear.app/mcp",
+        authType: "oauth",
+        accountLabel: null,
+        icon: null,
+        blocked: null,
+        here: false,
+      },
+    ],
+    agents: [],
+  };
+
+  test("someone with another workspace is asked once, by the dialog opening on its own", async () => {
+    window.localStorage.clear();
+    const state = settingUp();
+    state.carrySources = [source];
+    await open(state);
+    const dialog = screen().getByRole("dialog", { name: "Trazer de outro workspace" });
+    expect(dialog.querySelector("label[for='bring-c-c-linear']")?.textContent).toBe("Linear");
+    cleanup();
+    // Closed or answered, it stays behind its link on the next visit.
+    await open(state);
+    expect(screen().queryByRole("dialog", { name: "Trazer de outro workspace" })).toBeNull();
+    expect(screen().getByRole("button", { name: "Trazer agentes e conexões de outro workspace" })).toBeTruthy();
+  });
+
+  test("with nothing to bring, nothing is asked and no link shows", async () => {
+    window.localStorage.clear();
+    await open(settingUp());
+    expect(screen().queryByRole("dialog", { name: "Trazer de outro workspace" })).toBeNull();
+    expect(screen().queryByRole("button", { name: "Trazer agentes e conexões de outro workspace" })).toBeNull();
+  });
+});

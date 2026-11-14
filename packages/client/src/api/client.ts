@@ -102,6 +102,8 @@ import type {
   CalendarEventInput,
   CalendarEventPatch,
   CalendarRange,
+  CarryResult,
+  CarrySource,
   Channel,
   ChannelCard,
   ChannelCategory,
@@ -1047,6 +1049,13 @@ export interface ApiClient {
     /** Renames a connection, any kind (admins); its tools keep their names. 409 `connector.label_taken`. */
     rename(orgId: string, connectionId: string, label: string): Promise<Connection>;
     disconnect(orgId: string, connectionId: string): Promise<void>;
+  };
+  /** Connections and agents from the person's other workspaces. */
+  carry: {
+    /** Their other workspaces with something to bring into this one. */
+    sources(orgId: string): Promise<CarrySource[]>;
+    /** Brings them: an agent's own connections come with it. */
+    bring(orgId: string, input: { connectionIds?: string[]; agentIds?: string[] }): Promise<CarryResult>;
   };
   githubApp: {
     /** Whether this server can install the GitHub App, the organization's installations, and the server's app. */

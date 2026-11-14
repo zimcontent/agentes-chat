@@ -775,8 +775,20 @@ async function revokeGrants(deps: PurgeDeps, orgId: string): Promise<string[]> {
       .where(and(eq(connectorConnections.orgId, orgId), isNotNull(connectorConnections.composioAccountId)));
     const forgotten = new Set<string>();
     for (const account of accounts) {
+      // An account another workspace still uses (brought there, or from there: ADR 9002) stays at Composio for it.
+      const [elsewhere] = await db
+        .select({ id: connectorConnections.id })
+        .from(connectorConnections)
+        .where(
+          and(
+            eq(connectorConnections.composioAccountId, account.accountId ?? ""),
+            ne(connectorConnections.orgId, orgId),
+            isNull(connectorConnections.revokedAt),
+          ),
+        )
+        .limit(1);
       try {
-        await composio.client.deleteConnectedAccount(account.accountId ?? "", { revoke: false });
+        if (!elsewhere) await composio.client.deleteConnectedAccount(account.accountId ?? "", { revoke: false });
       } catch {
         left.push(account.id);
         continue;

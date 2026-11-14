@@ -145,7 +145,7 @@ export function withComposio(connect: McpConnect, composio: ComposioConnectors |
       throw new ComposioOffError("Not connected through Composio");
     return composioSession(composio.client, service, {
       connectedAccountId: connection.composioAccountId,
-      userId: composioUserId(connection.orgId),
+      userId: composioUserId(connection.composioUserOrgId ?? connection.orgId),
       toolkit: service.way.toolkit,
     });
   };
@@ -302,9 +302,13 @@ export async function reconcileComposioConnectors(db: Database, client: Composio
   let healed = 0;
   for (const row of rows) {
     try {
-      const remote = await client.getConnectedAccount(row.composioAccountId ?? "", composioUserId(row.orgId), {
-        readAddress: false,
-      });
+      const remote = await client.getConnectedAccount(
+        row.composioAccountId ?? "",
+        composioUserId(row.composioUserOrgId ?? row.orgId),
+        {
+          readAddress: false,
+        },
+      );
       if (remote.status !== "active") continue;
       await db
         .update(connectorConnections)

@@ -54,6 +54,7 @@ import {
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { BringOver } from "@/components/BringOver";
 import { ConnectedRow } from "@/components/ConnectedRow";
 import { ConnectFlow, type FlowState } from "@/components/ConnectFlow";
 import { ConnectorCatalogDialog, ConnectorIcon } from "@/components/ConnectorCatalog";
@@ -240,9 +241,12 @@ export function ConnectorsSection({
             // The empty state takes over this button: one way in, in the middle of the card.
             admin &&
             !noneYet && (
-              <Button size="sm" variant="primary" icon="plus" onClick={() => setAdding(true)}>
-                {t("connectors.add")}
-              </Button>
+              <div className="bring-over__acts">
+                <BringOver orgId={org.id} allowed={admin} size="sm" />
+                <Button size="sm" variant="primary" icon="plus" onClick={() => setAdding(true)}>
+                  {t("connectors.add")}
+                </Button>
+              </div>
             )
           }
         />
@@ -257,9 +261,12 @@ export function ConnectorsSection({
             title={t(admin ? modeKey(org, "connectors.noneTitle") : "access.noConnectorsViewerTitle")}
             actions={
               admin && (
-                <Button variant="primary" icon="plus" onClick={() => setAdding(true)}>
-                  {t("connectors.add")}
-                </Button>
+                <>
+                  <Button variant="primary" icon="plus" onClick={() => setAdding(true)}>
+                    {t("connectors.add")}
+                  </Button>
+                  <BringOver orgId={org.id} allowed={admin} />
+                </>
               )
             }
           >
