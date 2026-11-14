@@ -76,6 +76,8 @@ export interface WhatsAppGateway {
   deleteInstance(instanceId: string): Promise<void>;
   sendText(token: string, input: { to: WhatsAppJid; text: string; replyTo?: string | null }): Promise<WhatsAppSent>;
   markRead(token: string, input: { chat: WhatsAppJid; ids: string[] }): Promise<void>;
+  /** "Typing…" on the other side's screen, as WhatsApp's own apps show while someone writes; `false` ends it. */
+  setTyping(token: string, input: { chat: WhatsAppJid; typing: boolean }): Promise<void>;
 }
 
 /** The gateway refused a call, or didn't answer. `status` 0: no answer. */
@@ -170,6 +172,9 @@ export function createEvolutionGoGateway(options: EvolutionGoOptions): WhatsAppG
     },
     async markRead(token, { chat, ids }) {
       if (ids.length > 0) await call("POST", "/message/markread", token, { id: ids, number: chat });
+    },
+    async setTyping(token, { chat, typing }) {
+      await call("POST", "/message/presence", token, { number: chat, state: typing ? "composing" : "paused" });
     },
   };
 }
@@ -359,7 +364,8 @@ export type FakeWhatsAppCall =
   | { op: "logout"; token: string }
   | { op: "delete"; instanceId: string }
   | { op: "send"; token: string; to: WhatsAppJid; text: string; replyTo: string | null }
-  | { op: "read"; token: string; chat: WhatsAppJid; ids: string[] };
+  | { op: "read"; token: string; chat: WhatsAppJid; ids: string[] }
+  | { op: "typing"; token: string; chat: WhatsAppJid; typing: boolean };
 
 /** A gateway that only remembers what it was asked (tests): no network, no WhatsApp. */
 export function createFakeWhatsAppGateway(): WhatsAppGateway & {
@@ -416,6 +422,10 @@ export function createFakeWhatsAppGateway(): WhatsAppGateway & {
     async markRead(token: string, { chat, ids }: { chat: WhatsAppJid; ids: string[] }) {
       guard();
       fake.calls.push({ op: "read", token, chat, ids });
+    },
+    async setTyping(token: string, { chat, typing }: { chat: WhatsAppJid; typing: boolean }) {
+      guard();
+      fake.calls.push({ op: "typing", token, chat, typing });
     },
   });
 }

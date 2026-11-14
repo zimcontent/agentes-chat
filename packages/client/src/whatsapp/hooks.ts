@@ -1,4 +1,5 @@
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useRef } from "react";
 import type { ApiClient } from "../api/client";
 import { useApi } from "../api/context";
 import { keys } from "../api/keys";
@@ -123,4 +124,30 @@ export function useReadWhatsAppChat(orgId: string, accountId: string) {
       if (done.read > 0) void refresh();
     },
   });
+}
+
+/** How often "typing…" is told again while the person keeps writing: WhatsApp drops it after about 10 s. */
+const TYPING_EVERY_MS = 5_000;
+
+/**
+ * "Typing…" for the other side while the person writes: `typing()` on every keystroke tells it at most every few
+ * seconds, `stopped()` ends it (sent, cleared, left). Nothing waits on it and a failure says nothing.
+ */
+export function useWhatsAppTyping(orgId: string, accountId: string, chatId: string) {
+  const api = useApi();
+  const last = useRef(0);
+  const tell = (on: boolean) => void api.whatsapp?.typing(orgId, accountId, chatId, on).catch(() => {});
+  return {
+    typing: () => {
+      const now = Date.now();
+      if (now - last.current < TYPING_EVERY_MS) return;
+      last.current = now;
+      tell(true);
+    },
+    stopped: () => {
+      if (last.current === 0) return;
+      last.current = 0;
+      tell(false);
+    },
+  };
 }

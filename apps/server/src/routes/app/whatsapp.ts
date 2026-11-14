@@ -8,6 +8,7 @@ import {
   reconnectWhatsAppAccount,
   removeWhatsAppAccount,
   sendWhatsAppText,
+  typingInWhatsAppChat,
   updateWhatsAppAccount,
   WHATSAPP_LABEL_MAX,
   WHATSAPP_PAGE_MAX,
@@ -32,6 +33,13 @@ const tags = ["WhatsApp"];
 
 /** Messages one person may send through the gateway: a conversation's pace, not a broadcast's. */
 export const WHATSAPP_SENDS_PER_PERSON = { limit: 30, windowMs: 60_000 };
+/**
+ * Conversations one number may start with phone numbers it never talked to, a day. Writing first to many strangers
+ * is what WhatsApp bans numbers for, whoever types: past this the number only answers and continues conversations.
+ */
+export const WHATSAPP_NEW_CHATS_PER_NUMBER = { limit: 20, windowMs: 24 * 60 * 60_000 };
+/** "Typing…" signals one person may send: the app tells it every few seconds while they write. */
+export const WHATSAPP_TYPING_PER_PERSON = { limit: 60, windowMs: 60_000 };
 /** Numbers one person may connect or reconnect: each try makes the gateway open a session with WhatsApp. */
 export const WHATSAPP_CONNECTS_PER_PERSON = { limit: 10, windowMs: 60 * 60_000 };
 
@@ -290,7 +298,7 @@ export function whatsappRoutes(deps: AppDeps) {
       tags,
       security,
       summary: "Send a text from the number (its people)",
-      description: `Into a conversation it has (\`chatId\`) or to a phone number with its country code (\`phone\`), which starts one. 400 while the number isn't connected; 429 past 30 messages a minute. ${off}`,
+      description: `Into a conversation it has (\`chatId\`) or to a phone number with its country code (\`phone\`), which starts one. 400 while the number isn't connected; 429 past 30 messages a minute, and \`whatsapp.new_chats_limit\` past 20 conversations started by phone number in a day for this number. ${off}`,
       request: {
         params: AccountParams,
         body: body(
@@ -309,6 +317,9 @@ export function whatsappRoutes(deps: AppDeps) {
       const user = c.get("user");
       if (await limited(`whatsapp-send:${user.id}`, WHATSAPP_SENDS_PER_PERSON)) {
         return apiError(c, 429, "rate_limited", "Slow down");
+      }
+      if (c.req.valid("json").phone && (await limited(`whatsapp-new:${accountId}`, WHATSAPP_NEW_CHATS_PER_NUMBER))) {
+        return apiError(c, 429, "whatsapp.new_chats_limit", "This number started too many conversations today");
       }
       const sent = await reaching(c, () => sendWhatsAppText(wa, user.id, orgId, accountId, c.req.valid("json")));
       return sent.refused ?? c.json(sent.value, 201);
@@ -329,6 +340,29 @@ export function whatsappRoutes(deps: AppDeps) {
     async (c) => {
       const { orgId, accountId, chatId } = c.req.valid("param");
       return c.json(await readWhatsAppChat(wa, c.get("user").id, orgId, accountId, chatId), 200);
+    },
+  );
+
+  app.openapi(
+    createRoute({
+      method: "post",
+      path: "/organizations/{orgId}/whatsapp/accounts/{accountId}/chats/{chatId}/typing",
+      tags,
+      security,
+      summary: "The asker is writing in the conversation, or stopped (the number's people)",
+      description:
+        "The other side sees \"typing…\", as when someone writes in WhatsApp's own apps. Tell it every few seconds while the person writes and `typing: false` when they stop. `told` false: the gateway didn't take it, which stops nothing.",
+      request: { params: ChatParams, body: body(z.object({ typing: z.boolean() })) },
+      responses: { 200: json(z.object({ told: z.boolean() })), ...tooMany, ...errors },
+    }),
+    async (c) => {
+      const { orgId, accountId, chatId } = c.req.valid("param");
+      const user = c.get("user");
+      if (await limited(`whatsapp-typing:${user.id}`, WHATSAPP_TYPING_PER_PERSON)) {
+        return apiError(c, 429, "rate_limited", "Slow down");
+      }
+      const { typing } = c.req.valid("json");
+      return c.json(await typingInWhatsAppChat(wa, user.id, orgId, accountId, chatId, typing), 200);
     },
   );
 

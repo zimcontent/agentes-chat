@@ -11,6 +11,7 @@ import {
   reconnectWhatsAppAccount,
   removeWhatsAppAccount,
   sendWhatsAppText,
+  typingInWhatsAppChat,
   updateWhatsAppAccount,
   type WhatsAppDeps,
 } from "../src";
@@ -261,6 +262,24 @@ describe("sending and reading", () => {
     expect(gateway.last("read")).toMatchObject({ chat: ANA, ids: ["A2", "A1"] });
     expect((await listWhatsAppChats(deps, f.owner.id, f.org.id, account.id)).chats[0]?.unread).toBe(0);
     expect(await readWhatsAppChat(deps, f.owner.id, f.org.id, account.id, chatId)).toEqual({ read: 0 });
+  });
+});
+
+describe("typing", () => {
+  test("the other side is told while a listed person writes; a gateway that fails or a number that is out stops nothing", async () => {
+    f = await setup();
+    const { gateway, deps, account, post } = await connected();
+    await post(text("A1", "oi"));
+    const chatId = (await listWhatsAppChats(deps, f.owner.id, f.org.id, account.id)).chats[0]?.id as string;
+    const tell = (on: boolean, who = f.owner.id) => typingInWhatsAppChat(deps, who, f.org.id, account.id, chatId, on);
+    expect(await tell(true)).toEqual({ told: true });
+    expect(gateway.last("typing")).toMatchObject({ chat: ANA, typing: true });
+    gateway.failNext = "busy";
+    expect(await tell(false)).toEqual({ told: false });
+    const outsider = await addMember(f.db, f.org.id, "admin", "outro");
+    await expect(tell(true, outsider.id)).rejects.toThrow("not found");
+    await post(event("Disconnected", {}));
+    expect(await tell(true)).toEqual({ told: false });
   });
 });
 

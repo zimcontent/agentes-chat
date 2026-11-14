@@ -38,7 +38,13 @@ export function useWhatsAppError() {
   const { t } = useTranslation();
   const w = useWords();
   return (error: unknown) =>
-    error instanceof ApiError && error.code === "whatsapp.unavailable" ? w.errors.unavailable : errorText(t, error);
+    !(error instanceof ApiError)
+      ? errorText(t, error)
+      : error.code === "whatsapp.unavailable"
+        ? w.errors.unavailable
+        : error.code === "whatsapp.new_chats_limit"
+          ? w.errors.newChatsLimit
+          : errorText(t, error);
 }
 
 /** The number's QR code and the three steps on the phone, or what stands in for the code while there is none. */

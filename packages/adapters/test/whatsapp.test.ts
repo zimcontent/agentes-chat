@@ -94,6 +94,16 @@ describe("calls to the gateway", () => {
     expect((await down.status("tok").catch((e) => e)).status).toBe(0);
   });
 
+  test("typing is told as WhatsApp's own states, and its end too", async () => {
+    const { gateway, asked } = evolution({ "/message/presence": { body: { message: "success" } } });
+    await gateway.setTyping("tok", { chat: "x@s.whatsapp.net", typing: true });
+    await gateway.setTyping("tok", { chat: "x@s.whatsapp.net", typing: false });
+    expect(asked.map((call) => call.body)).toEqual([
+      { number: "x@s.whatsapp.net", state: "composing" },
+      { number: "x@s.whatsapp.net", state: "paused" },
+    ]);
+  });
+
   test("nothing is asked to mark no message as read", async () => {
     const { gateway, asked } = evolution({});
     await gateway.markRead("tok", { chat: "x@s.whatsapp.net", ids: [] });

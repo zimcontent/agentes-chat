@@ -551,6 +551,10 @@ export function createHttpApi(options: TransportOptions = {}): HttpApi {
         request<{ read: number }>(`${org(orgId)}/whatsapp/accounts/${enc(accountId)}/chats/${enc(chatId)}/read`, {
           json: {},
         }),
+      typing: (orgId, accountId, chatId, typing) =>
+        request<{ told: boolean }>(`${org(orgId)}/whatsapp/accounts/${enc(accountId)}/chats/${enc(chatId)}/typing`, {
+          json: { typing },
+        }),
     },
     gifs: {
       search: (orgId, query) =>

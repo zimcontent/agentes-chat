@@ -112,6 +112,7 @@ const en = {
   },
   errors: {
     unavailable: "WhatsApp isn't answering right now",
+    newChatsLimit: "This number already started 20 conversations today. More than that risks a ban.",
     generic: "That didn't work. Try again.",
   },
 };
@@ -223,6 +224,7 @@ const ptBR: typeof en = {
   },
   errors: {
     unavailable: "O WhatsApp não está respondendo agora",
+    newChatsLimit: "Este número já começou 20 conversas hoje. Mais que isso arrisca banimento.",
     generic: "Não deu certo. Tente de novo.",
   },
 };

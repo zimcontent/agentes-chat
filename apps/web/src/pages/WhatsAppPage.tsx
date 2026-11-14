@@ -4,6 +4,7 @@ import {
   useWhatsApp,
   useWhatsAppChats,
   useWhatsAppMessages,
+  useWhatsAppTyping,
   type WhatsAppAccount,
   type WhatsAppChat,
   type WhatsAppMessage,
@@ -125,7 +126,7 @@ function Bubble({
             <Icon name={KIND_ICONS[message.kind as keyof typeof KIND_ICONS]} />
             <span>
               <strong>{message.media?.fileName ?? w.kind[message.kind as keyof WhatsAppWords["kind"]]}</strong>
-              <small>{w.fileSoon}</small>
+              {message.media && <small>{w.fileSoon}</small>}
             </span>
           </span>
         )}
@@ -165,6 +166,7 @@ function Conversation({
   const say = useWhatsAppError();
   const toast = useToast();
   const [text, setText] = useState("");
+  const typing = useWhatsAppTyping(org.id, account.id, chatId);
   const scroller = useRef<HTMLDivElement>(null);
   const chat = query.data?.pages[0]?.chat;
   // Pages come the latest first: the screen reads from the oldest down.
@@ -191,7 +193,16 @@ function Conversation({
   const submit = () => {
     const body = text.trim();
     if (!body || send.isPending || !connected) return;
-    send.mutate({ chatId, text: body }, { onSuccess: () => setText(""), onError: (e) => toast.show(say(e), "error") });
+    send.mutate(
+      { chatId, text: body },
+      {
+        onSuccess: () => {
+          setText("");
+          typing.stopped();
+        },
+        onError: (e) => toast.show(say(e), "error"),
+      },
+    );
   };
   const onKey = (event: KeyboardEvent<HTMLTextAreaElement>) => {
     if (event.key === "Enter" && !event.shiftKey && !event.nativeEvent.isComposing) {
@@ -263,7 +274,13 @@ function Conversation({
         <Textarea
           className="wa-conv__input"
           value={text}
-          onChange={(e) => setText(e.target.value)}
+          onChange={(e) => {
+            setText(e.target.value);
+            // The other side sees "typing…" while there are words here, as in WhatsApp's own apps.
+            if (e.target.value.trim()) typing.typing();
+            else typing.stopped();
+          }}
+          onBlur={typing.stopped}
           onKeyDown={onKey}
           placeholder={connected ? w.composer.placeholder : w.composer.offline}
           aria-label={w.composer.placeholder}

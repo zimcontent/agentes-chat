@@ -254,3 +254,25 @@ export async function readWhatsAppChat(
   await publishWhatsAppChanged(deps, account, { chatId });
   return { read: unread.length };
 }
+
+/**
+ * The person is writing in the conversation (or stopped): the other side sees "typing…", as it does when someone
+ * writes in WhatsApp's own apps. Best effort: a gateway that doesn't answer never stops anyone from writing.
+ */
+export async function typingInWhatsAppChat(
+  deps: WhatsAppDeps,
+  userId: string,
+  orgId: string,
+  accountId: string,
+  chatId: string,
+  typing: boolean,
+) {
+  const account = await requireWhatsAppUse(deps.db, userId, orgId, accountId);
+  const chat = await chatOf(deps, accountId, chatId);
+  if (!deps.gateway || account.status !== "connected") return { told: false };
+  const told = await deps.gateway
+    .setTyping(await accountToken(deps, account), { chat: chat.jid, typing })
+    .then(() => true)
+    .catch(() => false);
+  return { told };
+}

@@ -105,6 +105,27 @@ describe("WhatsApp over HTTP", () => {
     expect(await (await post(secret(), event("Presence", {}))).json()).toEqual({ ok: true, kind: "ignored" });
   });
 
+  test("a number starts at most 20 conversations by phone number a day, and goes on answering the ones it has", async () => {
+    const { api, post, secret, gateway } = await start();
+    const account = (await (await api("/accounts", { json: { label: "Comercial" } })).json()) as Account;
+    await post(secret(), event("Connected", { status: "open", jid: "5511911112222@s.whatsapp.net", pushName: "Zim" }));
+    await post(secret(), hello);
+    const { chats } = (await (await api(`/accounts/${account.id}/chats`)).json()) as { chats: Chat[] };
+    const cold = (i: number) =>
+      api(`/accounts/${account.id}/messages`, { json: { phone: `55119000000${10 + i}`, text: "olá" } });
+    for (let i = 0; i < 20; i++) expect((await cold(i)).status).toBe(201);
+    const refused = await cold(20);
+    expect(refused.status).toBe(429);
+    expect(((await refused.json()) as { error: { code: string } }).error.code).toBe("whatsapp.new_chats_limit");
+    expect(
+      (await api(`/accounts/${account.id}/messages`, { json: { chatId: chats[0]?.id, text: "claro" } })).status,
+    ).toBe(201);
+    expect((await api(`/accounts/${account.id}/chats/${chats[0]?.id}/typing`, { json: { typing: true } })).status).toBe(
+      200,
+    );
+    expect(gateway?.last("typing")).toMatchObject({ typing: true });
+  });
+
   test("a gateway that refuses is a 502 of ours, and a member who isn't listed finds no number", async () => {
     const { owner, orgId, api, post, secret, gateway } = await start();
     const account = (await (await api("/accounts", { json: { label: "Comercial" } })).json()) as Account;

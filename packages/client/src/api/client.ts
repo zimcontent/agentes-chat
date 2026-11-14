@@ -2000,6 +2000,8 @@ export interface ApiClient {
     messages(orgId: string, accountId: string, chatId: string, before?: string): Promise<WhatsAppMessagePage>;
     send(orgId: string, accountId: string, input: WhatsAppSendInput): Promise<{ chatId: string }>;
     read(orgId: string, accountId: string, chatId: string): Promise<{ read: number }>;
+    /** The person is writing there (or stopped): the other side sees "typing…". */
+    typing(orgId: string, accountId: string, chatId: string, typing: boolean): Promise<{ told: boolean }>;
   };
   /**
    * The Vault (ADR 0144): logins, keys and contacts agents use without seeing a password or a key. No answer carries

@@ -38,6 +38,15 @@ Evolution Go signs nothing. Each number's events go to `/api/webhooks/whatsapp/{
 - A per-number list, not a role key: the numbers are few and each has its own people, and a new role key would add a line to every language and every roles screen for one instance's feature.
 - Changes go to the number's people alone, as the user event `whatsapp.changed` (ids only); each app reads again what its person may see.
 
+### Behaving like WhatsApp's own apps
+
+A number is banned for what it does, mostly for writing first to many strangers. The server keeps every number inside what a person on WhatsApp Web does:
+
+- While a person writes in a conversation, the other side sees "typing…" (`…/typing`, told every few seconds, ended when they stop), and opening a conversation is what marks it read.
+- A number starts at most 20 conversations a day with phone numbers it never talked to (`whatsapp.new_chats_limit`). Conversations it already has are never limited by this.
+- A person sends at most 30 messages a minute.
+- Nothing hides what the number is: no proxy, no changed fingerprint. These rules lower the risk and don't remove it.
+
 ### Agents
 
 Each number has `agent_id`: the agent in charge, or null for people only. This decision stores and validates it; an agent answering through it (tools under the Tool Gateway, approvals, outside text wrapped as untrusted) is a later decision with its own ADR.

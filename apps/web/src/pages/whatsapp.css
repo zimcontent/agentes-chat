@@ -3,7 +3,8 @@
  * know from a messenger; under 761 one shows at a time (`data-open`).
  */
 .wa {
-  --wa-side: 340px;
+  /* A third of a narrow window, never under what a name and a time need nor over a messenger's usual list. */
+  --wa-side: clamp(264px, 34%, 340px);
   /* Our own messages: the app's accent, soft, so the two sides read apart in both themes. */
   --wa-mine: var(--agent-soft);
   display: grid;
