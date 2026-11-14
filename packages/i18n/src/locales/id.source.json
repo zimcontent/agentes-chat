@@ -45700,6 +45700,39 @@
   "portal.detail.description": {
     "value": "Description"
   },
+  "portal.detail.edit": {
+    "value": "Edit"
+  },
+  "portal.detail.editDescription": {
+    "value": "Edit description"
+  },
+  "portal.detail.noDescription": {
+    "value": "No description"
+  },
+  "portal.detail.showMore": {
+    "value": "Show more"
+  },
+  "portal.detail.showLess": {
+    "value": "Show less"
+  },
+  "portal.detail.linkText": {
+    "value": "link text"
+  },
+  "portal.detail.attachments": {
+    "value": "Attachments"
+  },
+  "portal.detail.openFile": {
+    "value": "Open {{name}}"
+  },
+  "portal.detail.done": {
+    "value": "Done"
+  },
+  "portal.detail.markDone": {
+    "value": "Mark as done"
+  },
+  "portal.detail.markOpen": {
+    "value": "Mark as not done"
+  },
   "portal.detail.checklist": {
     "value": "Checklist"
   },

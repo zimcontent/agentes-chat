@@ -488,7 +488,7 @@ describe("a card opened", () => {
     expect(members().textContent).toContain("O agente começa a trabalhar nela na hora.");
   });
 
-  test("a change is kept as it is made: a ticked item, a description on leaving its field", async () => {
+  test("a change is kept as it is made: a ticked item; the description when Salvar is pressed", async () => {
     const { state, dialog } = await open();
     await click(within(dialog).getByRole("checkbox", { name: "Gravação" }));
     expect(calls(state, "portal.updateCard")[0]?.[2]).toEqual({
@@ -497,13 +497,132 @@ describe("a card opened", () => {
         { id: "k2", text: "Gravação", done: true },
       ],
     });
-    const description = within(dialog).getByLabelText("Descrição");
+    // Read, the description is words on the page; "Editar" makes it a field with its formatting bar.
+    const part = within(dialog).getByRole("region", { name: "Descrição" });
+    expect(part.querySelector("textarea")).toBeNull();
+    expect(part.querySelector(".portal-article__text")?.textContent).toBe("Gravar na academia.");
+    await click(within(part).getByRole("button", { name: "Editar descrição" }));
+    const field = within(part).getByRole("textbox", { name: "Descrição" }) as HTMLTextAreaElement;
+    expect(field.value).toBe("Gravar na academia.");
+    expect(within(part).getByRole("toolbar", { name: "Formatação" })).toBeTruthy();
+    // Bold wraps what is selected in its marks.
+    field.setSelectionRange(0, 6);
+    await click(within(part).getByRole("button", { name: "Negrito" }));
+    expect(field.value).toBe("**Gravar** na academia.");
+    // Cancelar leaves it as it was, and nothing is saved.
+    await click(within(part).getByRole("button", { name: "Cancelar" }));
+    expect(part.querySelector("textarea")).toBeNull();
+    expect(calls(state, "portal.updateCard")).toHaveLength(1);
+
+    await click(within(part).getByRole("button", { name: "Editar descrição" }));
+    await act(async () =>
+      fireEvent.change(within(part).getByRole("textbox", { name: "Descrição" }), {
+        target: { value: "Gravar no **estúdio**." },
+      }),
+    );
+    await click(within(part).getByRole("button", { name: "Salvar" }));
+    expect(calls(state, "portal.updateCard")[1]?.[2]).toEqual({ description: "Gravar no **estúdio**." });
+    expect(part.querySelector("textarea")).toBeNull();
+    expect(part.querySelector(".portal-article__text strong")?.textContent).toBe("estúdio");
+  });
+
+  test("the description reads as an article: formatted, every address a link, a long one folded under Mostrar mais", async () => {
+    const drive = "https://drive.google.com/drive/folders/1RD4nrQcK9QeYk2X?usp=drive_link";
+    await go(`${PLAN}&card=c-000001`, withPortal(), (portal) => {
+      fill(portal);
+      const made = portal.cards.find((c) => c.id === "c-000001");
+      if (!made) return;
+      made.description = [
+        // As another board writes a link: its own title after the address.
+        `OBRA: [${drive}](${drive} "smartCard-inline")`,
+        "",
+        "ROTEIRO — **BUILT TO ENDURE**",
+        "Reels · 60s",
+        "__________________________",
+        "Veja https://exemplo.test/roteiro e o [documento](https://exemplo.test/doc).",
+        ...Array.from({ length: 14 }, (_, i) => `- Passo ${i + 1}`),
+      ].join("\n");
+    });
+    const part = within(screen().getByRole("dialog", { name: "Reel do treino" })).getByRole("region", {
+      name: "Descrição",
+    });
+    const text = part.querySelector(".portal-article__text") as HTMLElement;
+    const links = [...text.querySelectorAll("a")].map((a) => a.getAttribute("href"));
+    expect(links).toEqual([drive, "https://exemplo.test/roteiro", "https://exemplo.test/doc"]);
+    for (const a of text.querySelectorAll("a")) expect(a.getAttribute("rel")).toBe("noopener noreferrer");
+    // The other board's link title is never shown, nor its marks.
+    expect(text.textContent).not.toContain("smartCard");
+    expect(text.querySelector("strong")?.textContent).toBe("BUILT TO ENDURE");
+    expect(text.querySelector("hr")).toBeTruthy();
+    expect(text.querySelectorAll("li")).toHaveLength(14);
+    expect(within(text).getByRole("link", { name: "documento" })).toBeTruthy();
+
+    expect(text.hasAttribute("data-folded")).toBe(true);
+    const more = within(part).getByRole("button", { name: "Mostrar mais" });
+    expect(more.getAttribute("aria-expanded")).toBe("false");
+    await click(more);
+    expect(text.hasAttribute("data-folded")).toBe(false);
+    await click(within(part).getByRole("button", { name: "Mostrar menos" }));
+    expect(text.hasAttribute("data-folded")).toBe(true);
+  });
+
+  test("a short description has no Mostrar mais, and an empty one says so", async () => {
+    const { dialog } = await open();
+    expect(within(dialog).queryByRole("button", { name: "Mostrar mais" })).toBeNull();
+    cleanup();
+    await go(`${PLAN}&card=c-000003`);
+    const part = within(screen().getByRole("dialog", { name: "Story de enquete" })).getByRole("region", {
+      name: "Descrição",
+    });
+    expect(part.textContent).toContain("Sem descrição");
+  });
+
+  test("Concluído beside the title marks the card finished, and takes it back", async () => {
+    const { state, dialog } = await open();
+    const done = within(dialog).getByRole("button", { name: "Concluído" });
+    expect(done.getAttribute("aria-pressed")).toBe("false");
+    await click(done);
+    expect(calls(state, "portal.updateCard")[0]?.[2]).toEqual({ done: true });
+    expect(within(dialog).getByRole("button", { name: "Concluído" }).getAttribute("aria-pressed")).toBe("true");
+    await click(within(dialog).getByRole("button", { name: "Concluído" }));
+    expect(calls(state, "portal.updateCard")[1]?.[2]).toEqual({ done: false });
+    // The title is the head's own field, kept when it is left.
+    const title = within(dialog).getByRole("textbox", { name: "Título" });
     await act(async () => {
-      fireEvent.change(description, { target: { value: "Gravar no estúdio." } });
-      fireEvent.blur(description);
+      fireEvent.change(title, { target: { value: "Reel do treino novo" } });
+      fireEvent.blur(title);
     });
     await settle(4);
-    expect(calls(state, "portal.updateCard")[1]?.[2]).toEqual({ description: "Gravar no estúdio." });
+    expect(calls(state, "portal.updateCard")[2]?.[2]).toEqual({ title: "Reel do treino novo" });
+  });
+
+  test("attachments show each file with a way to open it; a comment from another board says who wrote it there", async () => {
+    await go(`${PLAN}&card=c-000001`, withPortal(), (portal) => {
+      fill(portal);
+      const made = portal.cards.find((c) => c.id === "c-000001");
+      if (!made) return;
+      made.files = [{ id: "11111111-1111-4111-8111-111111111111", name: "capa.png" }];
+      made.comments.push({
+        id: "m2",
+        by: "Ronny",
+        text: "EDITADO: https://drive.google.com/file/d/1ZyXwVuTsRqPoNm/view?usp=drive_link",
+        at: Date.now() - 60 * 24 * 3_600_000,
+      });
+    });
+    const dialog = screen().getByRole("dialog", { name: "Reel do treino" });
+    const files = within(dialog).getByRole("group", { name: "Anexos" });
+    expect(files.querySelector(".portal-files__row[data-preview] .portal-files__thumb")).toBeTruthy();
+    expect(within(files).getByRole("button", { name: "Abrir capa.png" })).toBeTruthy();
+    expect(within(files).getByRole("button", { name: "Remover capa.png" })).toBeTruthy();
+
+    const side = within(dialog).getByRole("region", { name: "Comentários" });
+    const old = [...side.querySelectorAll<HTMLElement>(".portal-comment")].at(-1) as HTMLElement;
+    expect(old.querySelector("b")?.textContent).toBe("Ronny");
+    // Older than a week: its date, not how long ago.
+    expect(old.querySelector("time")?.textContent).toMatch(/^\d{1,2} \S+/);
+    const pill = within(old).getByRole("link");
+    expect(pill.className).toContain("link-pill");
+    expect(pill.getAttribute("href")).toBe("https://drive.google.com/file/d/1ZyXwVuTsRqPoNm/view?usp=drive_link");
   });
 
   test("comments newest first, by who wrote them, their links as links and nothing else as markup; a new one is posted", async () => {
@@ -570,9 +689,10 @@ describe("a card opened", () => {
     expect(within(main()).queryByRole("button", { name: "Adicionar cartão" })).toBeNull();
     expect(within(main()).queryByRole("button", { name: "Gerenciar etiquetas" })).toBeNull();
     expect(within(main()).queryByRole("button", { name: /^Ações/ })).toBeNull();
-    expect((within(dialog).getByLabelText("Descrição") as HTMLTextAreaElement).closest("fieldset")?.disabled).toBe(
-      true,
-    );
+    expect(within(dialog).getByRole("region", { name: "Descrição" }).closest("fieldset")?.disabled).toBe(true);
+    expect(within(dialog).queryByRole("button", { name: "Editar descrição" })).toBeNull();
+    expect((within(dialog).getByRole("button", { name: "Concluído" }) as HTMLButtonElement).disabled).toBe(true);
+    expect((within(dialog).getByRole("textbox", { name: "Título" }) as HTMLInputElement).readOnly).toBe(true);
     expect(within(dialog).queryByRole("button", { name: "Excluir" })).toBeNull();
     expect(within(dialog).queryByRole("button", { name: "Subir para aprovação" })).toBeNull();
     const field = within(dialog).getByRole("textbox", { name: "Escreva um comentário" });
