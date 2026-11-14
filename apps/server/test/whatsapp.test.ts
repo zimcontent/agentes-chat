@@ -222,6 +222,36 @@ describe("WhatsApp over HTTP", () => {
     expect((await api(`/accounts/${account.id}/files`, { method: "POST", body: none })).status).toBe(400);
   });
 
+  test("a sticker is picked from the number's own and the gateway fetches its picture from a signed address", async () => {
+    const { api, post, secret, gateway } = await start();
+    const account = (await (await api("/accounts", { json: { label: "Comercial" } })).json()) as Account;
+    await post(secret(), event("Connected", { status: "open", jid: "5511911112222@s.whatsapp.net", pushName: "Zim" }));
+    await post(
+      secret(),
+      event("Message", {
+        Info: { ...(hello.data as { Info: object }).Info, ID: "S1" },
+        Message: { stickerMessage: { mimetype: "image/webp", fileSHA256: "aGFzaA==" } },
+      }),
+    );
+    const { stickers } = (await (await api(`/accounts/${account.id}/stickers`)).json()) as {
+      stickers: { messageId: string }[];
+    };
+    const { chats } = (await (await api(`/accounts/${account.id}/chats`)).json()) as { chats: Chat[] };
+    const sent = await api(`/accounts/${account.id}/stickers`, {
+      json: { chatId: chats[0]?.id, messageId: stickers[0]?.messageId },
+    });
+    expect(sent.status).toBe(201);
+    const url = new URL(gateway?.last("sticker")?.url as string);
+    // The gateway has no session: the address alone opens the picture, and a changed one opens nothing.
+    const picture = await t.app.request(`${url.pathname}${url.search}`);
+    expect([picture.status, picture.headers.get("content-type"), await picture.text()]).toEqual([
+      200,
+      "image/webp",
+      "file",
+    ]);
+    expect((await t.app.request(`${url.pathname}?e=${url.searchParams.get("e")}&s=bad`)).status).toBe(404);
+  });
+
   test("a number's agent, turned on, answers who writes; turned off in the conversation it stops", async () => {
     const { agentId, api, post, secret, gateway } = await start(createFakeWhatsAppGateway(), () => ({
       chunks: [JSON.stringify({ action: "reply", messages: ["Bom dia! Como posso ajudar?"], note: "" })],

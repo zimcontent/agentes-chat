@@ -31,6 +31,7 @@ const en = {
     contact: "Contact",
     poll: "Poll",
     other: "Message",
+    deleted: "Message deleted",
   },
   reply: "Reply",
   cancelReply: "Cancel reply",
@@ -100,6 +101,13 @@ const en = {
     doneText: "New messages show up here from now on.",
     banNote: "WhatsApp can ban a number used outside its own apps.",
     newCode: "New code",
+  },
+  stickers: {
+    button: "Emoji and stickers",
+    tabs: "Emoji or stickers",
+    tab: "Stickers",
+    none: "The stickers this number sends or receives show up here.",
+    send: "Send sticker",
   },
   style: {
     wait: "Wait before answering",
@@ -207,6 +215,7 @@ const ptBR: typeof en = {
     contact: "Contato",
     poll: "Enquete",
     other: "Mensagem",
+    deleted: "Mensagem apagada",
   },
   reply: "Responder",
   cancelReply: "Cancelar resposta",
@@ -281,6 +290,13 @@ const ptBR: typeof en = {
     doneText: "As mensagens novas aparecem aqui a partir de agora.",
     banNote: "O WhatsApp pode banir um número usado fora dos apps dele.",
     newCode: "Novo código",
+  },
+  stickers: {
+    button: "Emoji e figurinhas",
+    tabs: "Emoji ou figurinhas",
+    tab: "Figurinhas",
+    none: "As figurinhas que este número envia ou recebe aparecem aqui.",
+    send: "Enviar figurinha",
   },
   style: {
     wait: "Espera antes de responder",

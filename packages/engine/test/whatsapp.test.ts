@@ -7,15 +7,18 @@ import {
   listWhatsAppAccounts,
   listWhatsAppChats,
   listWhatsAppMessages,
+  listWhatsAppStickers,
   readWhatsAppChat,
   reconnectWhatsAppAccount,
   removeWhatsAppAccount,
   requestWhatsAppHistory,
   sendWhatsAppFile,
+  sendWhatsAppSticker,
   sendWhatsAppText,
   typingInWhatsAppChat,
   updateWhatsAppAccount,
   type WhatsAppDeps,
+  whatsappStickerFile,
 } from "../src";
 import { addMember, type Fixture, setup } from "./fixtures";
 
@@ -306,6 +309,80 @@ describe("sending a file", () => {
         fileName: "vazio.png",
       }),
     ).rejects.toThrow("empty");
+  });
+});
+
+describe("stickers", () => {
+  const sticker = (id: string, hash: string, over: Record<string, unknown> = {}) =>
+    event("Message", {
+      Info: { Chat: ANA, Sender: ANA, IsFromMe: false, ID: id, PushName: "Ana", Timestamp: AT, ...over },
+      Message: { stickerMessage: { mimetype: "image/webp", fileSHA256: hash, mediaKey: "a2V5" } },
+    });
+
+  test("the number's latest stickers are offered once each, and one is sent again from a signed address", async () => {
+    f = await setup();
+    const { gateway, deps, account, post } = await connected();
+    await post(sticker("S1", "aGFzaDE=", { Timestamp: "2026-11-13T12:00:00Z" }));
+    await post(sticker("S2", "aGFzaDI=", { Timestamp: "2026-11-13T12:01:00Z" }));
+    await post(sticker("S3", "aGFzaDE=", { Timestamp: "2026-11-13T12:02:00Z" }));
+    const { stickers } = await listWhatsAppStickers(deps, f.owner.id, f.org.id, account.id);
+    // The same sticker received twice is one, by its hash: the latest message of each.
+    expect(stickers).toHaveLength(2);
+    const { chats } = await listWhatsAppChats(deps, f.owner.id, f.org.id, account.id);
+    const chatId = chats[0]?.id as string;
+    const messageId = stickers[0]?.messageId as string;
+    await sendWhatsAppSticker(deps, f.owner.id, f.org.id, account.id, { chatId, messageId });
+    const url = new URL(gateway.last("sticker")?.url as string);
+    expect(url.pathname).toBe(`/api/webhooks/whatsapp-sticker/${messageId}`);
+    const expires = Number(url.searchParams.get("e"));
+    const signature = url.searchParams.get("s") as string;
+    // The gateway fetches it with that signature alone, until it expires.
+    const file = await whatsappStickerFile(deps, messageId, expires, signature);
+    expect([file.mimeType, new TextDecoder().decode(file.bytes)]).toEqual(["image/webp", "file"]);
+    await expect(whatsappStickerFile(deps, messageId, expires, "0".repeat(64))).rejects.toThrow("No sticker");
+    await expect(whatsappStickerFile(deps, messageId, expires + 1, signature)).rejects.toThrow("No sticker");
+    await expect(whatsappStickerFile(deps, messageId, expires, signature, expires + 1)).rejects.toThrow("No sticker");
+    const page = await listWhatsAppMessages(deps, f.owner.id, f.org.id, account.id, chatId, { limit: 1 });
+    expect(page.messages[0]).toMatchObject({ kind: "sticker", fromMe: true, sentByUserId: f.owner.id, file: true });
+    // A text isn't a sticker to send.
+    await post(text("T1", "oi", { Timestamp: new Date(Date.now() + 1000).toISOString() }));
+    const [words] = (await listWhatsAppMessages(deps, f.owner.id, f.org.id, account.id, chatId, { limit: 1 })).messages;
+    await expect(
+      sendWhatsAppSticker(deps, f.owner.id, f.org.id, account.id, { chatId, messageId: words?.id as string }),
+    ).rejects.toThrow("isn't a sticker");
+  });
+});
+
+describe("what the phone did elsewhere", () => {
+  test("read on the phone is read here, a message taken back loses its words and an edited one changes them", async () => {
+    f = await setup();
+    const { gateway, deps, account, post } = await connected();
+    await post(text("A1", "bom dia"));
+    await post(text("A2", "tudo bem?"));
+    const chat = async () => (await listWhatsAppChats(deps, f.owner.id, f.org.id, account.id)).chats[0];
+    expect((await chat())?.unread).toBe(2);
+    await post(event("Receipt", { Chat: ANA, MessageIDs: ["A2"] }, { state: "ReadSelf" }));
+    expect((await chat())?.unread).toBe(0);
+    // Reading it there tells WhatsApp nothing from here: the phone already did.
+    expect(gateway.calls.some((c) => c.op === "read")).toBe(false);
+
+    await post(
+      event("Message", {
+        Info: { Chat: ANA, Sender: ANA, ID: "E1", Timestamp: AT },
+        Message: { protocolMessage: { type: 14, key: { ID: "A1" }, editedMessage: { conversation: "boa tarde" } } },
+      }),
+    );
+    await post(
+      event("Message", {
+        Info: { Chat: ANA, Sender: ANA, ID: "R1", Timestamp: AT },
+        Message: { protocolMessage: { type: 0, key: { ID: "A2" } } },
+      }),
+    );
+    const page = await listWhatsAppMessages(deps, f.owner.id, f.org.id, account.id, (await chat())?.id as string);
+    expect(page.messages.map((m) => [m.kind, m.body]).sort()).toEqual([
+      ["deleted", ""],
+      ["text", "boa tarde"],
+    ]);
   });
 });
 

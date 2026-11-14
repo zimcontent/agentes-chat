@@ -2,12 +2,14 @@ import {
   useReadWhatsAppChat,
   useSendWhatsApp,
   useSendWhatsAppFile,
+  useSendWhatsAppSticker,
   useUpdateWhatsApp,
   useWhatsApp,
   useWhatsAppChatAgent,
   useWhatsAppChats,
   useWhatsAppMessages,
   useWhatsAppOlderHistory,
+  useWhatsAppStickers,
   useWhatsAppTyping,
   type WhatsAppAccount,
   type WhatsAppChat,
@@ -114,6 +116,46 @@ function ChatRow({
         </span>
       </span>
     </button>
+  );
+}
+
+/**
+ * The number's latest stickers, in the picker beside the emoji: one click sends it. Read when the tab opens.
+ */
+function StickerTab({
+  accountId,
+  onPick,
+  w,
+}: {
+  accountId: string;
+  onPick: (messageId: string) => void;
+  w: WhatsAppWords;
+}) {
+  const { org } = useOrg();
+  const stickers = useWhatsAppStickers(org.id, accountId, true);
+  if (stickers.isPending) {
+    return (
+      <span className="wa-stickers__wait" role="status">
+        <Spinner />
+      </span>
+    );
+  }
+  const list = stickers.data?.stickers ?? [];
+  if (list.length === 0) return <p className="wa-stickers__none">{w.stickers.none}</p>;
+  return (
+    <div className="wa-stickers">
+      {list.map((sticker) => (
+        <button
+          key={sticker.messageId}
+          type="button"
+          className="wa-stickers__one"
+          aria-label={w.stickers.send}
+          onClick={() => onPick(sticker.messageId)}
+        >
+          <img src={whatsappFileUrl(org.id, accountId, sticker.messageId)} alt="" loading="lazy" />
+        </button>
+      ))}
+    </div>
   );
 }
 
@@ -227,6 +269,7 @@ function Bubble({
             </span>
           </span>
         )}
+        {message.kind === "deleted" && <span className="wa-bubble__gone">{w.kind.deleted}</span>}
         {message.body && <span className="wa-bubble__text">{message.body}</span>}
         <span className="wa-bubble__meta">
           {message.fromMe && author && <span className="wa-bubble__by">{w.sentBy(author)}</span>}
@@ -266,6 +309,7 @@ function Conversation({
   const toast = useToast();
   const [text, setText] = useState("");
   const sendFile = useSendWhatsAppFile(org.id, account.id);
+  const sendSticker = useSendWhatsAppSticker(org.id, account.id);
   const emoji = useEmojiLabels();
   const [files, setFiles] = useState<Pending[]>([]);
   const [sending, setSending] = useState(false);
@@ -564,7 +608,28 @@ function Conversation({
           sendLabel={w.composer.send}
           attachLabel={w.composer.attach}
           onFiles={connected ? addFiles : undefined}
-          emoji={{ ...emoji, button: t("channel.emoji") }}
+          emoji={{ ...emoji, button: w.stickers.button }}
+          pickerLabels={{ dialog: w.stickers.button, tabs: w.stickers.tabs }}
+          pickerTabs={
+            connected
+              ? [
+                  {
+                    id: "wa-stickers",
+                    label: w.stickers.tab,
+                    render: ({ close }) => (
+                      <StickerTab
+                        accountId={account.id}
+                        w={w}
+                        onPick={(messageId) => {
+                          close();
+                          sendSticker.mutate({ chatId, messageId }, { onError: (e) => toast.show(say(e), "error") });
+                        }}
+                      />
+                    ),
+                  },
+                ]
+              : undefined
+          }
           voice={voice}
           disabled={!connected}
           canSendEmpty={files.length > 0}
