@@ -68,7 +68,8 @@ function claimGreeting(orgId: string, channelId: string) {
   return g;
 }
 
-/** The sky band at the top of a channel on the first visit of the day: a greeting and what its agents did since. */
+/** The band at the top of a channel on the first visit of the day: a greeting and what its agents did since (a glass
+ * panel in the Doug's look, `doug.css`, no pixel sky). */
 export function ChannelWelcome({
   channelId,
   messages,
@@ -84,7 +85,6 @@ export function ChannelWelcome({
   const overview = useOverview(org.id);
   const [greeting] = useState(() => claimGreeting(org.id, channelId));
   const [closed, setClosed] = useState(greeting.closed ?? false);
-  const text = useRef<HTMLDivElement>(null);
   const faces = useRef<HTMLDivElement>(null);
   const shut = useRef<HTMLButtonElement>(null);
   if (!greeting.show || greeting.channelId !== channelId || closed || !messages || greeting.last === null) return null;
@@ -103,23 +103,7 @@ export function ChannelWelcome({
   const crew = (activity.agentIds.length ? activity.agentIds : agents.map((a) => a.id)).slice(0, 3);
   return (
     <section className="sky-welcome" aria-label={t("sky.welcome.label")}>
-      <PixelSky
-        options={{
-          pixel: 4,
-          palette: SKY_TONES,
-          sprites: { area: 1100, max: 30 },
-          calm: () => [text.current],
-          clear: () => [faces.current, shut.current],
-          base: (u, v) => 0.9 - 0.38 * u - 0.5 * v,
-          blobs: (tt) => [
-            [0.2 + 0.05 * S(tt * 0.21), 0.25 + 0.05 * C(tt * 0.17), 0.12, 0.14],
-            [0.62 + 0.08 * S(tt * 0.13), 0.4 + 0.08 * C(tt * 0.19), 0.08, 0.14],
-            [0.85 + 0.05 * C(tt * 0.15), 0.95, 0.14, -0.3],
-            [0.45 + 0.1 * C(tt * 0.11), 1, 0.1, -0.16],
-          ],
-        }}
-      />
-      <div className="sky-welcome__text" ref={text}>
+      <div className="sky-welcome__text">
         <span className="sky-welcome__when">
           {t("sky.welcome.lastVisit", { when: whenAt(t, i18n.language, new Date(since).toISOString()) })}
         </span>
