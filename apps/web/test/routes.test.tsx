@@ -158,8 +158,9 @@ describe("route guards", () => {
     expect(nav.textContent).toContain("2 membros · 2 agentes");
     // Where the workspace lives, before its counts.
     expect(nav.querySelector(".sidebar__org-where")?.textContent).toBe("Cloud");
-    // Two approvals and the two proposals waiting: proposals count in Aprovações unless they have a row of their own.
-    expect(screen().getByLabelText("4 aprovações pendentes").textContent).toBe("4");
+    // Two approvals and the two proposals waiting, on the one entry for what waits on me (proposals count there
+    // unless they have a row of their own).
+    expect(screen().getByLabelText("4 coisas esperando você").textContent).toBe("4");
     for (const name of ["Grupos", "eng", "general", "Mensagens diretas", "Ada", "Atlas", "João"]) {
       expect(nav.textContent).toContain(name);
     }

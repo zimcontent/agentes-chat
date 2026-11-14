@@ -30,6 +30,8 @@ export * from "./realtime/streams";
 export * from "./realtime/typing";
 export * from "./vault/hooks";
 export * from "./vault/types";
+export * from "./whatsapp/hooks";
+export * from "./whatsapp/types";
 
 /** The client the web app uses: the real backend on the same origin (`/api/health`, `/api/app/*`). */
 export function createApiClient(options: { fetch?: FetchLike } = {}): ApiClient {

@@ -116,7 +116,6 @@ describe("a personal workspace's sidebar", () => {
     expect(names).toEqual([
       "Início",
       "Esperando você",
-      "Aprovações",
       "Propostas de melhoria",
       "Rotinas",
       "Drive",
@@ -133,13 +132,13 @@ describe("a personal workspace's sidebar", () => {
     expect(tasks.querySelector(".ac-menu__desc")?.textContent).toBe("Suas tarefas e as dos seus agentes");
   });
 
-  test("Aprovações comes into sight while something waits", async () => {
+  test("Esperando você comes into sight while something waits", async () => {
     const state = personal();
     const first = state.approvals[0];
     if (first) first.status = "pending";
     await go(state);
     const rows = [...nav().querySelectorAll(".sidebar__tools .sidebar__item-label")].map((l) => l.textContent);
-    expect(rows).toEqual(["Aprovações"]);
+    expect(rows).toEqual(["Esperando você"]);
   });
 
   test("the agents have no header; New agent sits right under them and opens the new agent's card (ADR 0164)", async () => {

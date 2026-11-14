@@ -10660,6 +10660,24 @@ html:not([data-pointer]) .ac-filter__option:focus-visible {
   height: 100%;
   image-rendering: pixelated;
 }
+/* DougBot's run marks: glass drawn at the screen's resolution, and on a lane the agent's bot where its next run is. */
+.ac-run-glass {
+  image-rendering: auto;
+}
+.ac-run-lane--glass > canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.ac-run-lane__bot {
+  position: absolute;
+  top: 50%;
+  width: 20px;
+  height: 20px;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
 .ac-crit-pixels {
   display: block;
   image-rendering: pixelated;

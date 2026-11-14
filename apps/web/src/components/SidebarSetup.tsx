@@ -61,9 +61,13 @@ export const SIDEBAR_TOOLS = {
 
 /** Whether this server has an approval portal (ADR 9001): Portal is a tool only there. */
 export const usePortalOn = () => useAuthConfig().data?.approvalPortal === true;
-/** The tools this server has a page for: Portal only with an approval portal, so nothing changes without one. */
+/**
+ * The tools this sidebar lists: Portal only with an approval portal, so nothing changes without one, and never
+ * Aprovações, which is a tab of "Esperando você" (ADR 0172 addendum): one entry and one count for all that waits on
+ * the person.
+ */
 export const toolsHere = <T extends SidebarItem>(ids: readonly T[], portal: boolean): T[] =>
-  portal ? [...ids] : ids.filter((id) => id !== "portal");
+  ids.filter((id) => id !== "approvals" && (portal || id !== "portal"));
 
 /**
  * The person's order of the tools in this workspace (`…/me/sidebar/tools`), saved as `null` when it is the default of

@@ -68,6 +68,7 @@ import { threadRoutes } from "./routes/app/threads";
 import { vaultRoutes } from "./routes/app/vault";
 import { speechKeyRoutes, voiceRoutes } from "./routes/app/voice";
 import { waitingRoutes } from "./routes/app/waiting";
+import { whatsappRoutes } from "./routes/app/whatsapp";
 import { wikiRoutes } from "./routes/app/wiki";
 import {
   createDesktopReleases,
@@ -231,6 +232,7 @@ export function createApp(options: AppOptions) {
     api.route("/app", gifKeyRoutes(deps));
     api.route("/app", speechKeyRoutes(deps));
     api.route("/app", voiceRoutes(deps));
+    api.route("/app", whatsappRoutes(deps));
     api.route("/app", webhookAdminRoutes(deps));
     api.route("/app", githubAppRoutes(deps));
     registerOauthRoutes(api, deps, { version, fetchDocument: options.appsFetchDocument });

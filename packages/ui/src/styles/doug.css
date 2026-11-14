@@ -281,6 +281,11 @@ pre,
     0 0 24px -8px color-mix(in srgb, var(--db-verde-acento) 45.1%, transparent);
   color: var(--db-texto);
 }
+/* The open page's bar is measured from its own row: a row with no wrapper (the right hand) would hand it to the
+   whole sidebar, a bar as tall as the list. */
+[data-theme] .sidebar:not([data-rail="true"]) .sidebar__item[data-status="active"] {
+  position: relative;
+}
 [data-theme] .sidebar:not([data-rail="true"]) .sidebar__item[data-status="active"]::after {
   content: "";
   position: absolute;
@@ -2100,9 +2105,14 @@ img.ac-logo__mark {
 .sidebar:not([data-rail="true"]) .sidebar__dock {
   --r-outer: var(--db-r-4);
   border-radius: var(--r-outer);
+  /* The buttons are spread by the room left over: a gap of their own would push a seventh one out of the bar. */
+  gap: 0;
 }
 [data-theme] .sidebar:not([data-rail="true"]) .sidebar__dock .sidebar__item {
   border-radius: 10px;
+  /* With more tools in sight than the bar holds at 32, each gives a little rather than the last one being cut. */
+  flex: 0 1 32px;
+  min-width: 24px;
 }
 [data-theme] .sidebar:not([data-rail="true"]) .sidebar__dock .sidebar__item > .ac-icon {
   width: 20px;

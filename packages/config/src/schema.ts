@@ -544,6 +544,27 @@ export const envVars = {
     section: "Chat",
     secret: true,
   },
+  WHATSAPP_GATEWAY_URL: {
+    schema: z.url().optional(),
+    description:
+      "Address of an Evolution Go server (https://github.com/EvolutionAPI/evolution-go, Apache-2.0) as this server reaches it: the compose file's `whatsapp` profile, at `http://whatsapp:8080`. With it and `WHATSAPP_GATEWAY_KEY`, people who manage connectors connect WhatsApp numbers by QR code, and the people each number lists read and answer its conversations here. It speaks WhatsApp Web, which WhatsApp doesn't offer as an API: a number can be banned for it. The gateway keeps only the sessions; conversations are stored in this server's database. Without it: no WhatsApp anywhere in the app.",
+    section: "Chat",
+    example: "http://whatsapp:8080",
+  },
+  WHATSAPP_GATEWAY_KEY: {
+    schema: z.string().optional(),
+    description:
+      "The Evolution Go server's `GLOBAL_API_KEY`. It never leaves this server: browsers and the phone app talk only to this server.",
+    section: "Chat",
+    secret: true,
+  },
+  WHATSAPP_HOOK_URL: {
+    schema: z.url().optional(),
+    description:
+      "This server's address as the Evolution Go server reaches it, without a trailing slash, where it posts each number's events (`/api/webhooks/whatsapp/{secret}`): `http://agentes:3000` with the compose file, so events never leave the machine. Empty: `PUBLIC_URL`.",
+    section: "Chat",
+    example: "http://agentes:3000",
+  },
   SPEECH_ENGINES: {
     schema: z.string().optional(),
     description:

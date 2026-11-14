@@ -84,6 +84,7 @@ import {
 import { useTranslation } from "react-i18next";
 import { AdminAskActions } from "@/components/AdminAsk";
 import { ApprovalAsk, ApprovalGroupAsk } from "@/components/ApprovalAsk";
+import { ApprovalsTabs } from "@/components/ApprovalsTabs";
 import { useConnectAi } from "@/components/ConnectAi";
 import { DeviceNoticeActions, deviceNoticeLine } from "@/components/devices/DeviceNotice";
 import { ErrorState, LoadingCards } from "@/components/Loading";
@@ -1757,6 +1758,8 @@ export function NotificationsPage({ waitingOnly = false }: { waitingOnly?: boole
         }
       />
 
+      {/* "Esperando você" is the first tab of the one place for what waits on me (ADR 0172 addendum). */}
+      {waitingOnly && <ApprovalsTabs value="waiting" />}
       {!waitingOnly && (
         <div className="nt-tb">
           <div className="nt-segwrap">
