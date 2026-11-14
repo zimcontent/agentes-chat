@@ -341,3 +341,24 @@ test("the strategic schedule: lists the team names, cards with labels and member
   };
   expect(last.unlisted).toEqual([expect.objectContaining({ id: card, labels: [] })]);
 });
+
+test("the pipeline: every open piece of work across clients, with who is on it and what is late", async () => {
+  const portal = createFakeApprovalPortal({
+    items: [
+      item({ id: "up-1", status: "adjust_requested", lastNote: { at: null, by: "Client", text: "Shorter" } }),
+      item({ id: "up-2", client: "zeta", status: "approved" }),
+      item({ id: "up-3", status: "published" }),
+    ],
+  });
+  const { api } = await start(portal);
+  await portal.createCard("acme", { title: "Late reel", members: ["u1"], produceOn: "2020-01-01" });
+  await portal.createCard("acme", { title: "Adjusting", members: ["u2"], item: "up-1", produceOn: "2020-01-01" });
+  type Entry = { client: string; kind: string; title: string; stage: string; late: boolean; note: string | null };
+  const { entries } = (await (await api("/portal/pipeline")).json()) as { entries: Entry[] };
+  expect(entries.map((e) => [e.client, e.kind, e.title, e.stage, e.late, e.note])).toEqual([
+    ["acme", "card", "Late reel", "todo", true, null],
+    // The card stands for its post: one entry, the portal's stage, the client's words.
+    ["acme", "card", "Adjusting", "adjusting", true, "Shorter"],
+    ["zeta", "post", "Launch reel", "approved", false, null],
+  ]);
+});

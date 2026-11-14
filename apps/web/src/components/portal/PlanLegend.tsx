@@ -1,4 +1,4 @@
-import type { PortalLabel, PortalLabelColor } from "@agenteschat/client";
+import type { PortalColumn, PortalLabel, PortalLabelColor } from "@agenteschat/client";
 import { usePortalLabels } from "@agenteschat/client";
 import { PORTAL_COLUMNS, PORTAL_LABEL_COLORS, portalErrorText } from "@agenteschat/client/lib/portal";
 import { Button, Dialog, DialogBody, EmptyState, Input, Select } from "@agenteschat/ui";
@@ -17,16 +17,7 @@ export function PlanLegend({ labels, changes }: { labels: PortalLabel[]; changes
   const [managing, setManaging] = useState(false);
   return (
     <section className="plan-legend" aria-label={t("portal.plan.legend")}>
-      <div className="plan-legend__row">
-        <h2 className="plan-legend__name">{t("portal.plan.stages")}</h2>
-        <ul className="plan-legend__list">
-          {PORTAL_COLUMNS.map((stage) => (
-            <li key={stage}>
-              <StageChip stage={stage} />
-            </li>
-          ))}
-        </ul>
-      </div>
+      <StageLegend stages={PORTAL_COLUMNS} />
       <div className="plan-legend__row">
         <h2 className="plan-legend__name">{t("portal.plan.labels")}</h2>
         <ul className="plan-legend__list">
@@ -45,6 +36,23 @@ export function PlanLegend({ labels, changes }: { labels: PortalLabel[]; changes
       </div>
       <LabelsDialog open={managing} labels={labels} onClose={() => setManaging(false)} />
     </section>
+  );
+}
+
+/** The stages' colours with their names, on one line that wraps: what a dot or a bar's segment in that colour means. */
+export function StageLegend({ stages }: { stages: readonly PortalColumn[] }) {
+  const { t } = useTranslation();
+  return (
+    <div className="plan-legend__row">
+      <h2 className="plan-legend__name">{t("portal.plan.stages")}</h2>
+      <ul className="plan-legend__list">
+        {stages.map((stage) => (
+          <li key={stage}>
+            <StageChip stage={stage} />
+          </li>
+        ))}
+      </ul>
+    </div>
   );
 }
 

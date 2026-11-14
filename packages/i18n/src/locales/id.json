@@ -18422,6 +18422,42 @@
       "produce": "Produksi {{when}}",
       "post": "Postingan {{when}}"
     },
+    "home": {
+      "now": "Sekarang",
+      "tiles": {
+        "you": "Perlu kamu",
+        "making": "Dalam produksi",
+        "client": "Di klien",
+        "schedule": "Perlu dijadwalkan"
+      },
+      "clientHint": "Menunggu jawaban klien",
+      "scheduled_other": "{{count}} dijadwalkan",
+      "lateWord": "Terlambat",
+      "late": "terlambat",
+      "clients": "Klien",
+      "status": {
+        "late_other": "{{count}} terlambat",
+        "schedule_other": "{{count}} perlu dijadwalkan",
+        "client_other": "{{count}} di klien",
+        "clear": "Semua sesuai jadwal",
+        "idle": "Tidak ada pekerjaan terbuka"
+      },
+      "nextPost": "Postingan berikutnya",
+      "morePeople": "{{count}} lagi",
+      "pipeline": "Alur produksi",
+      "viewList": "Daftar",
+      "everyone": "Semua orang",
+      "onlyMe": "Hanya aku",
+      "person": "Orang",
+      "people": "Penanggung jawab",
+      "produce": "Produksi",
+      "post": "Postingan",
+      "sortProduce": "Urutkan menurut tanggal produksi",
+      "nothingOpen": "Tidak ada yang terbuka",
+      "nothingOpenText": "Pekerjaan tampil di sini sejak kartunya dibuat sampai hari diposting.",
+      "noMatch": "Tidak ada yang cocok dengan filter ini",
+      "clear": "Hapus filter"
+    },
     "picker": {
       "title": "File dari Drive",
       "search": "Cari file",

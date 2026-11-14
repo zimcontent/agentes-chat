@@ -14,6 +14,7 @@ import {
   personPortalReader,
   portalBoard,
   portalOverview,
+  portalPipeline,
   portalPlan,
   requireChangePermission,
   requirePermission,
@@ -523,6 +524,53 @@ export function portalRoutes(deps: AppDeps) {
       return { ok: false as const, response: refused(c, error) };
     }
   };
+
+  app.openapi(
+    createRoute({
+      method: "get",
+      path: "/organizations/{orgId}/portal/pipeline",
+      tags,
+      security,
+      summary: "Everything not posted yet across every client, one entry each: the overview's pipeline (members)",
+      description:
+        "A team's card or a post at the portal no card stands for, with its stage, the members on it, its production and post dates, whether it is late, and the client's note when it waits on an adjustment.",
+      request: { params: OrgParams },
+      responses: {
+        200: json(
+          z.object({
+            day: z.string(),
+            state: State,
+            entries: z.array(
+              z.object({
+                client: z.string(),
+                kind: z.enum(["card", "post"]),
+                id: z.string(),
+                title: z.string(),
+                type: z.enum(PORTAL_TYPES),
+                stage: z.enum(PORTAL_COLUMNS),
+                members: z.array(z.string()),
+                produceOn: z.string().nullable(),
+                postOn: z.string().nullable(),
+                late: z.boolean(),
+                note: z.string().nullable(),
+                link: z.string().nullable(),
+                updatedAt: z.number(),
+              }),
+            ),
+          }),
+        ),
+        502: unavailable,
+        ...errors,
+        404: off,
+      },
+    }),
+    async (c) => {
+      const { orgId } = c.req.valid("param");
+      await requirePermission(db, c.get("user").id, orgId, "read");
+      const out = await guarded(c, (portal) => portalPipeline(portal));
+      return out.ok ? c.json(out.value, 200) : out.response;
+    },
+  );
 
   app.openapi(
     createRoute({

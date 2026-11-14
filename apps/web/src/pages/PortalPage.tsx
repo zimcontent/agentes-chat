@@ -145,7 +145,7 @@ export function PortalPage() {
                 {t("portal.empty.clientsText")}
               </EmptyState>
             ) : (
-              <PortalOverview clients={clients} totals={totals.counts} />
+              <PortalOverview clients={clients} />
             ))}
           {client &&
             board.data &&

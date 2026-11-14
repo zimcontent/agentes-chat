@@ -244,6 +244,7 @@ jobs:
             apps/server/test/portal.test.ts
             apps/web/test/portal.test.tsx
             apps/web/test/portal-plan.test.tsx
+            apps/web/test/portal-overview.test.tsx
             apps/server/test/runner/browser.test.ts
             packages/db/test/migrate-steps.test.ts
             packages/db/test/schema.test.ts

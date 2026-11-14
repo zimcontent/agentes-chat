@@ -19077,6 +19077,46 @@
       "produce": "Productie {{when}}",
       "post": "Post {{when}}"
     },
+    "home": {
+      "now": "Nu",
+      "tiles": {
+        "you": "Heeft jou nodig",
+        "making": "In productie",
+        "client": "Bij de klant",
+        "schedule": "In te plannen"
+      },
+      "clientHint": "Wacht op antwoord",
+      "scheduled_one": "{{count}} gepland",
+      "scheduled_other": "{{count}} gepland",
+      "lateWord": "Te laat",
+      "late": "te laat",
+      "clients": "Klanten",
+      "status": {
+        "late_one": "{{count}} te laat",
+        "late_other": "{{count}} te laat",
+        "schedule_one": "{{count}} in te plannen",
+        "schedule_other": "{{count}} in te plannen",
+        "client_one": "{{count}} bij de klant",
+        "client_other": "{{count}} bij de klant",
+        "clear": "Alles op schema",
+        "idle": "Geen openstaand werk"
+      },
+      "nextPost": "Volgende post",
+      "morePeople": "nog {{count}}",
+      "pipeline": "Pijplijn",
+      "viewList": "Lijst",
+      "everyone": "Iedereen",
+      "onlyMe": "Alleen ik",
+      "person": "Persoon",
+      "people": "Verantwoordelijken",
+      "produce": "Productie",
+      "post": "Post",
+      "sortProduce": "Sorteren op productiedatum",
+      "nothingOpen": "Niets openstaand",
+      "nothingOpenText": "Werk staat hier van de kaart tot de dag waarop het wordt geplaatst.",
+      "noMatch": "Niets past bij deze filters",
+      "clear": "Filters wissen"
+    },
     "picker": {
       "title": "Bestanden uit de Drive",
       "search": "Bestanden zoeken",

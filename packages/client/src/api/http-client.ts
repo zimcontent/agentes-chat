@@ -198,6 +198,7 @@ import type {
   PortalList,
   PortalMine,
   PortalOverview,
+  PortalPipeline,
   PortalPlan,
   Proposal,
   ReactionCount,
@@ -1602,6 +1603,7 @@ export function createHttpApi(options: TransportOptions = {}): HttpApi {
         }),
       plan: (orgId, client) => request<PortalPlan>(`${org(orgId)}/portal/clients/${enc(client)}/plan`),
       mine: (orgId) => request<PortalMine>(`${org(orgId)}/portal/mine`),
+      pipeline: (orgId) => request<PortalPipeline>(`${org(orgId)}/portal/pipeline`),
       createList: async (orgId, client, name) =>
         (await request<{ list: PortalList }>(`${org(orgId)}/portal/clients/${enc(client)}/lists`, { json: { name } }))
           .list,

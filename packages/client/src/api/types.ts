@@ -8146,3 +8146,31 @@ export interface PortalItemEdit {
   status?: PortalStatus;
   editor?: string;
 }
+
+/** One open piece of work in the pipeline (ADR 9001 §10): a team's card, or a post at the portal no card stands for. */
+export interface PortalPipelineEntry {
+  client: string;
+  kind: "card" | "post";
+  /** The card's id, or the post's. */
+  id: string;
+  title: string;
+  type: PortalType;
+  stage: PortalColumn;
+  /** Workspace members on it (user ids); empty for a post with no card. */
+  members: string[];
+  produceOn: string | null;
+  postOn: string | null;
+  /** Its production day is past and the team still has it. */
+  late: boolean;
+  /** The client's last words on it, when it waits on an adjustment. Outside text. */
+  note: string | null;
+  link: string | null;
+  updatedAt: number;
+}
+
+/** Everything not posted yet, across every client (`GET …/portal/pipeline`); `day` is the portal's own today. */
+export interface PortalPipeline {
+  day: string;
+  state?: PortalState;
+  entries: PortalPipelineEntry[];
+}

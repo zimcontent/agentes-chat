@@ -97,41 +97,17 @@ const cardsIn = (name: string) =>
 const calls = (state: State, method: string) => state.calls.filter((c) => c.method === method).map((c) => c.args);
 
 describe("the overview", () => {
-  test("a card per client with its counts and next date, who asked for adjustments first, the totals on top", async () => {
+  test("the header counts clients and open work; a row per client, who asked for adjustments first", async () => {
     await go();
     expect(within(main()).getByRole("heading", { level: 1 }).textContent).toBe("Portal");
     expect(main().querySelector(".ac-pagehead")?.textContent).toContain("2 clientes · 6 em aberto");
-    const clients = [...main().querySelectorAll(".portal-client")];
-    expect(clients.map((c) => c.querySelector(".portal-client__name")?.textContent)).toEqual([
+    const clients = [...main().querySelectorAll(".portal-clientcard")];
+    expect(clients.map((c) => c.querySelector(".portal-clientcard__name")?.textContent)).toEqual([
       "Acme Foods",
       "Blue Studio",
     ]);
-    const acme = clients[0] as HTMLElement;
-    expect(acme.getAttribute("href")).toBe(`/org/${ORG_ID}/portal?client=acme-foods`);
-    expect(acme.querySelector(".portal-client__open")?.textContent).toBe("5 em aberto");
-    expect(acme.querySelector(".ac-chip--waiting")?.textContent).toBe("1 ajuste pedido");
-    expect(acme.querySelector(".portal-client__next")?.textContent).toBe("Próximo: 21 de nov., 14:00");
-    const facts = (el: Element) =>
-      [...el.querySelectorAll(".ac-factline__fact")].map((f) => f.textContent?.replace(/\s+/g, " ").trim());
-    expect(facts(acme)).toEqual([
-      "A produzir 1",
-      "Em produção 1",
-      "Para aprovação 1",
-      "Em ajuste 1",
-      "Aprovado 0",
-      "Agendado 1",
-      "Postados 1",
-    ]);
-    expect(clients[1]?.querySelector(".ac-chip--waiting")).toBeNull();
-    expect(facts(main().querySelector(".portal-totals") as Element)).toEqual([
-      "A produzir 1",
-      "Em produção 1",
-      "Para aprovação 1",
-      "Em ajuste 1",
-      "Aprovado 1",
-      "Agendado 1",
-      "Postados 1",
-    ]);
+    expect(clients[0]?.getAttribute("href")).toBe(`/org/${ORG_ID}/portal?client=acme-foods`);
+    expect(clients[0]?.querySelector(".portal-clientcard__status")?.textContent).toBe("1 ajuste pedido");
     // Never the old column's name.
     expect(main().textContent).not.toContain("Pronto");
   });
@@ -144,7 +120,7 @@ describe("the overview", () => {
     expect(cardsIn("Aprovado")).toEqual(["Antes e depois"]);
     await click(within(main()).getByRole("button", { name: "Todos os clientes" }));
     expect(router.state.location.search).toEqual({});
-    expect(main().querySelectorAll(".portal-client").length).toBe(2);
+    expect(main().querySelectorAll(".portal-clientcard").length).toBe(2);
   });
 
   test("a server with no portal says so, with nothing to press", async () => {
@@ -161,7 +137,7 @@ describe("the overview", () => {
     expect(within(main()).getByText("O portal de aprovação não está respondendo agora.")).toBeTruthy();
     expect(portal.fail).toBeNull();
     await click(within(main()).getByRole("button", { name: "Tentar de novo" }));
-    expect(main().querySelectorAll(".portal-client").length).toBe(2);
+    expect(main().querySelectorAll(".portal-clientcard").length).toBe(2);
   });
 });
 
@@ -193,7 +169,7 @@ describe("how fresh the portal's side is", () => {
     // The warning is announced as one, the count is a plain notice.
     expect(within(main()).getByRole("alert").textContent).toContain("O portal não está respondendo.");
     // What was read last still shows under it, and a client's board says the same.
-    expect(main().querySelectorAll(".portal-client").length).toBe(2);
+    expect(main().querySelectorAll(".portal-clientcard").length).toBe(2);
     await click(within(main()).getByRole("link", { name: /Acme Foods/ }));
     expect(notices()).toEqual([
       "O portal não está respondendo. Mostrando os dados de 09:05.",

@@ -1,15 +1,25 @@
 import { describe, expect, test } from "bun:test";
 import type { TFunction } from "i18next";
 import { ApiError } from "../src/api/http";
-import type { PlanCard, PortalClientSummary, PortalColumn, PortalPlan } from "../src/api/types";
+import type { PlanCard, PortalClientSummary, PortalColumn, PortalPipelineEntry, PortalPlan } from "../src/api/types";
 import {
+  filterPipeline,
   movedInPlan,
   PORTAL_BOARD_COLUMNS,
   PORTAL_COLUMNS,
+  PORTAL_PIPELINE_STAGES,
+  pipelineClientStatus,
+  pipelineClients,
+  pipelineNextPost,
+  pipelinePeople,
+  pipelineSteps,
+  pipelineTiles,
   planCards,
   portalAhead,
   portalCalendar,
   portalChecks,
+  portalClientHue,
+  portalClientInitials,
   portalClientName,
   portalDayOf,
   portalErrorText,
@@ -19,10 +29,12 @@ import {
   portalScheduling,
   portalSendDate,
   portalSendProblem,
+  portalStatusWaits,
   portalTextParts,
   portalTimeOf,
   portalTotals,
   portalWhen,
+  sortPipelineByProduction,
   sortPortalClients,
 } from "../src/lib/portal";
 
@@ -246,5 +258,144 @@ describe("the strategic schedule (ADR 9001 §8)", () => {
         }),
       ),
     ).toEqual({ done: 1, total: 2 });
+  });
+});
+
+describe("the overview's pipeline (ADR 9001 §10)", () => {
+  const entry = (over: Partial<PortalPipelineEntry> = {}): PortalPipelineEntry => ({
+    client: "acme",
+    kind: "card",
+    id: "c-1",
+    title: "Post",
+    type: "reel",
+    stage: "todo",
+    members: [],
+    produceOn: null,
+    postOn: null,
+    late: false,
+    note: null,
+    link: null,
+    updatedAt: 0,
+    ...over,
+  });
+  const many = (stage: PortalPipelineEntry["stage"], n: number) => Array.from({ length: n }, () => entry({ stage }));
+
+  test("the tiles: what waits on the team counts an adjustment and late work once each", () => {
+    const entries = [
+      entry({ stage: "adjusting", late: true }),
+      entry({ stage: "todo", late: true }),
+      entry({ stage: "doing" }),
+      entry({ stage: "approval" }),
+      entry({ stage: "approved" }),
+      entry({ stage: "scheduled" }),
+      entry({ stage: "scheduled" }),
+    ];
+    expect(pipelineTiles(entries)).toMatchObject({
+      you: 2,
+      making: 2,
+      client: 1,
+      schedule: 1,
+      adjusting: 1,
+      late: 2,
+      todo: 1,
+      doing: 1,
+      scheduled: 2,
+    });
+    expect(pipelineTiles([])).toMatchObject({ you: 0, making: 0, client: 0, schedule: 0 });
+  });
+
+  test("a client's one line, by priority", () => {
+    const status = (...entries: PortalPipelineEntry[]) => pipelineClientStatus(entries);
+    expect(status()).toEqual({ kind: "idle" });
+    expect(status(entry({ stage: "scheduled" }))).toEqual({ kind: "clear" });
+    expect(status(entry({ stage: "doing" }), entry({ stage: "scheduled" }))).toEqual({ kind: "making" });
+    expect(status(entry({ stage: "approval" }), entry({ stage: "approval" }), entry())).toEqual({
+      kind: "client",
+      count: 2,
+    });
+    expect(status(entry({ stage: "approved" }), entry({ stage: "approval" }))).toEqual({ kind: "schedule", count: 1 });
+    expect(status(entry({ late: true }), entry({ stage: "approved" }))).toEqual({ kind: "late", count: 1 });
+    expect(status(entry({ stage: "adjusting" }), entry({ late: true }), entry({ late: true }))).toEqual({
+      kind: "adjusting",
+      count: 1,
+    });
+    expect(portalStatusWaits({ kind: "adjusting", count: 1 })).toBe(true);
+    expect(portalStatusWaits({ kind: "late", count: 1 })).toBe(true);
+    expect(portalStatusWaits({ kind: "schedule", count: 3 })).toBe(false);
+  });
+
+  test("a client's line: every stage in the pipeline's order, with how many sit at each", () => {
+    expect(pipelineSteps([...many("doing", 3), ...many("todo", 1), ...many("scheduled", 60)])).toEqual([
+      { stage: "todo", count: 1 },
+      { stage: "doing", count: 3 },
+      { stage: "approval", count: 0 },
+      { stage: "adjusting", count: 0 },
+      { stage: "approved", count: 0 },
+      { stage: "scheduled", count: 60 },
+    ]);
+    // Nothing open: six empty stops, never fewer.
+    expect(pipelineSteps([]).map((s) => s.count)).toEqual([0, 0, 0, 0, 0, 0]);
+    expect(pipelineSteps([]).map((s) => s.stage)).toEqual([...PORTAL_PIPELINE_STAGES]);
+  });
+
+  test("a client's mark: its initials, and a hue that is always the same for it", () => {
+    expect(portalClientInitials("acme-foods")).toBe("AF");
+    expect(portalClientInitials("zeta")).toBe("Z");
+    expect(portalClientInitials("norte-moveis-sul")).toBe("NM");
+    expect(portalClientHue("acme")).toBe(portalClientHue("acme"));
+    expect(portalClientHue("acme")).not.toBe(portalClientHue("zeta"));
+    expect(portalClientHue("acme")).toBeGreaterThanOrEqual(0);
+    expect(portalClientHue("acme")).toBeLessThan(360);
+  });
+
+  test("filters: by client, by person, by tile, together", () => {
+    const entries = [
+      entry({ id: "1", client: "acme", members: ["ana"], stage: "adjusting" }),
+      entry({ id: "2", client: "acme", members: ["bia"], stage: "approved" }),
+      entry({ id: "3", client: "zeta", members: ["ana", "bia"], stage: "doing", late: true }),
+    ];
+    const ids = (filter: Parameters<typeof filterPipeline>[1]) => filterPipeline(entries, filter).map((e) => e.id);
+    expect(ids({})).toEqual(["1", "2", "3"]);
+    expect(ids({ client: "acme" })).toEqual(["1", "2"]);
+    expect(ids({ who: "ana" })).toEqual(["1", "3"]);
+    expect(ids({ focus: "you" })).toEqual(["1", "3"]);
+    expect(ids({ focus: "making" })).toEqual(["3"]);
+    expect(ids({ focus: "schedule" })).toEqual(["2"]);
+    expect(ids({ client: "acme", who: "ana", focus: "you" })).toEqual(["1"]);
+    expect(ids({ client: "zeta", focus: "client" })).toEqual([]);
+  });
+
+  test("the clients' order, who is on a client's work, and its next post", () => {
+    const entries = [
+      entry({ client: "busy", members: ["ana", "bia"] }),
+      entry({ client: "busy", members: ["bia"], postOn: "2026-11-20T10:00:00-03:00" }),
+      entry({ client: "busy", members: ["bia", "caio"], postOn: "2026-11-18T09:00:00-03:00" }),
+      entry({ client: "asked", stage: "adjusting", postOn: "2026-11-01T09:00:00-03:00" }),
+      entry({ client: "ready", stage: "approved" }),
+    ];
+    const rows = pipelineClients(["quiet", "busy"], entries);
+    // Who waits on the team first, then the busiest, then who has nothing open.
+    expect(rows.map((r) => [r.client, r.status.kind])).toEqual([
+      ["asked", "adjusting"],
+      ["busy", "making"],
+      ["ready", "schedule"],
+      ["quiet", "idle"],
+    ]);
+    const busy = rows.find((r) => r.client === "busy")?.entries ?? [];
+    expect(pipelinePeople(busy)).toEqual(["bia", "ana", "caio"]);
+    expect(pipelineNextPost(busy, "2026-11-13")).toBe("2026-11-18T09:00:00-03:00");
+    expect(pipelineNextPost(busy, "2026-11-19")).toBe("2026-11-20T10:00:00-03:00");
+    // A day that passed is no "next".
+    expect(pipelineNextPost(rows[0]?.entries ?? [], "2026-11-13")).toBeNull();
+  });
+
+  test("the list's order: by production day, work with none last either way", () => {
+    const entries = [
+      entry({ title: "none" }),
+      entry({ title: "late", produceOn: "2026-11-10" }),
+      entry({ title: "soon", produceOn: "2026-11-14" }),
+    ];
+    expect(sortPipelineByProduction(entries).map((e) => e.title)).toEqual(["late", "soon", "none"]);
+    expect(sortPipelineByProduction(entries, true).map((e) => e.title)).toEqual(["soon", "late", "none"]);
   });
 });

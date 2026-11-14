@@ -8,6 +8,7 @@ import type {
   PortalItem,
   PortalLabelColor,
   PortalMissing,
+  PortalPipelineEntry,
   PortalPlan,
   PortalStatus,
   PortalType,
@@ -331,3 +332,159 @@ export function portalTextParts(text: string): { text: string; href?: string }[]
   if (last < text.length) parts.push({ text: text.slice(last) });
   return parts;
 }
+
+// ---------- the overview's pipeline (ADR 9001 §10) ----------
+
+/** The stages the pipeline shows: everything not posted yet. */
+export const PORTAL_PIPELINE_STAGES = PORTAL_BOARD_COLUMNS;
+
+/**
+ * The four things the overview counts on top, each a filter of the pipeline: what waits on the team (an adjustment
+ * asked, or a production day that passed), what the team is making, what is with the client, what is approved and
+ * waits for a date.
+ */
+export const PORTAL_FOCI = ["you", "making", "client", "schedule"] as const;
+export type PortalFocus = (typeof PORTAL_FOCI)[number];
+
+export const pipelineFocusHas = (focus: PortalFocus, entry: Pick<PortalPipelineEntry, "stage" | "late">) =>
+  focus === "you"
+    ? entry.stage === "adjusting" || entry.late
+    : focus === "making"
+      ? entry.stage === "todo" || entry.stage === "doing"
+      : focus === "client"
+        ? entry.stage === "approval"
+        : entry.stage === "approved";
+
+/** The tiles' numbers, with what each one's line of context says. */
+export function pipelineTiles(entries: readonly PortalPipelineEntry[]) {
+  const count = (keep: (e: PortalPipelineEntry) => boolean) => entries.filter(keep).length;
+  return {
+    you: count((e) => pipelineFocusHas("you", e)),
+    making: count((e) => pipelineFocusHas("making", e)),
+    client: count((e) => pipelineFocusHas("client", e)),
+    schedule: count((e) => pipelineFocusHas("schedule", e)),
+    adjusting: count((e) => e.stage === "adjusting"),
+    late: count((e) => e.late),
+    todo: count((e) => e.stage === "todo"),
+    doing: count((e) => e.stage === "doing"),
+    scheduled: count((e) => e.stage === "scheduled"),
+  };
+}
+
+export interface PortalPipelineFilter {
+  client?: string | null;
+  /** A member's user id: only what they are on. */
+  who?: string | null;
+  focus?: PortalFocus | null;
+}
+
+export const filterPipeline = (entries: readonly PortalPipelineEntry[], filter: PortalPipelineFilter) =>
+  entries.filter(
+    (e) =>
+      (!filter.client || e.client === filter.client) &&
+      (!filter.who || e.members.includes(filter.who)) &&
+      (!filter.focus || pipelineFocusHas(filter.focus, e)),
+  );
+
+/**
+ * The one thing that matters most about a client, by priority: adjustments asked, then late work (both wait on the
+ * team), then posts to schedule, then posts with the client, then work being made, then nothing to do but wait for
+ * what is scheduled (`clear`); `idle` for a client with nothing open.
+ */
+export type PortalClientStatus =
+  | { kind: "adjusting" | "late" | "schedule" | "client"; count: number }
+  | { kind: "making" | "clear" | "idle" };
+
+export function pipelineClientStatus(
+  entries: readonly Pick<PortalPipelineEntry, "stage" | "late">[],
+): PortalClientStatus {
+  if (entries.length === 0) return { kind: "idle" };
+  const count = (keep: (e: Pick<PortalPipelineEntry, "stage" | "late">) => boolean) => entries.filter(keep).length;
+  const adjusting = count((e) => e.stage === "adjusting");
+  if (adjusting > 0) return { kind: "adjusting", count: adjusting };
+  const late = count((e) => e.late);
+  if (late > 0) return { kind: "late", count: late };
+  const schedule = count((e) => e.stage === "approved");
+  if (schedule > 0) return { kind: "schedule", count: schedule };
+  const client = count((e) => e.stage === "approval");
+  if (client > 0) return { kind: "client", count: client };
+  return count((e) => e.stage === "todo" || e.stage === "doing") > 0 ? { kind: "making" } : { kind: "clear" };
+}
+
+/** Whether a client's status waits on the team: what the overview marks, and lists first. */
+export const portalStatusWaits = (status: PortalClientStatus) => status.kind === "adjusting" || status.kind === "late";
+
+/** One stop of a client's line: a stage of the pipeline and how many of the client's open work sit at it. */
+export interface PortalStep {
+  stage: PortalColumn;
+  count: number;
+}
+
+/**
+ * A client's line, as a conveyor: every stage of the pipeline in order, each with how many of the client's open work
+ * sit there (none: the stop is drawn empty), so where its work is along the line reads at a glance.
+ */
+export const pipelineSteps = (entries: readonly Pick<PortalPipelineEntry, "stage">[]): PortalStep[] =>
+  PORTAL_PIPELINE_STAGES.map((stage) => ({ stage, count: entries.filter((e) => e.stage === stage).length }));
+
+/** Who is on a client's open work, the ones on most of it first. */
+export function pipelinePeople(entries: readonly Pick<PortalPipelineEntry, "members">[]): string[] {
+  const seen = new Map<string, number>();
+  for (const e of entries) for (const id of e.members) seen.set(id, (seen.get(id) ?? 0) + 1);
+  return [...seen].sort((a, b) => b[1] - a[1]).map(([id]) => id);
+}
+
+/** The nearest day a client's post goes out, from the portal's today on; null: none set. */
+export function pipelineNextPost(entries: readonly Pick<PortalPipelineEntry, "postOn">[], day: string): string | null {
+  const ahead = entries
+    .map((e) => e.postOn)
+    .filter((on): on is string => Boolean(on) && (portalDayOf(on) ?? "") >= day)
+    .sort((a, b) => (portalDayOf(a) ?? "").localeCompare(portalDayOf(b) ?? "") || a.localeCompare(b));
+  return ahead[0] ?? null;
+}
+
+/**
+ * The overview's clients in order: the ones that wait on the team first (an adjustment asked, late work), then the
+ * ones with the most open, then by name; a client with nothing open last.
+ */
+export function pipelineClients(clients: readonly string[], entries: readonly PortalPipelineEntry[]) {
+  const names = [...new Set([...clients, ...entries.map((e) => e.client)])];
+  const rank = (status: PortalClientStatus) => (portalStatusWaits(status) ? 0 : status.kind === "idle" ? 2 : 1);
+  return names
+    .map((client) => {
+      const own = entries.filter((e) => e.client === client);
+      return { client, entries: own, status: pipelineClientStatus(own) };
+    })
+    .sort(
+      (a, b) =>
+        rank(a.status) - rank(b.status) ||
+        b.entries.length - a.entries.length ||
+        portalClientName(a.client).localeCompare(portalClientName(b.client)),
+    );
+}
+
+/** A client's initials, for its mark: the first letters of its first two words ("Acme Foods": AF). */
+export const portalClientInitials = (client: string) =>
+  portalClientName(client)
+    .split(" ")
+    .slice(0, 2)
+    .map((word) => word.charAt(0))
+    .join("")
+    .toUpperCase();
+
+/** A hue for a client's mark, the same every time for the same client (0 to 359). */
+export function portalClientHue(client: string): number {
+  let h = 0;
+  for (const ch of client) h = (h * 31 + ch.charCodeAt(0)) % 360;
+  return h;
+}
+
+/** The pipeline's entries by production day, the ones with none last; `desc` turns the dated ones around. */
+export const sortPipelineByProduction = <T extends Pick<PortalPipelineEntry, "produceOn" | "title">>(
+  entries: readonly T[],
+  desc = false,
+) =>
+  [...entries].sort((a, b) => {
+    if (!a.produceOn || !b.produceOn) return a.produceOn ? -1 : b.produceOn ? 1 : a.title.localeCompare(b.title);
+    return (desc ? -1 : 1) * a.produceOn.localeCompare(b.produceOn) || a.title.localeCompare(b.title);
+  });

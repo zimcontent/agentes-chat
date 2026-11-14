@@ -310,7 +310,12 @@
       "portal.labelsDialog.colors.olive",
       "portal.detail.stage",
       "portal.plan.labels",
-      "portal.plan.viewBoard"
+      "portal.plan.viewBoard",
+      "portal.home.post",
+      "portal.home.pipeline",
+      "portal.home.produce",
+      "portal.home.scheduled",
+      "portal.home.viewList"
     ],
     "es": [
       "devices.iphone.path.general",
@@ -579,7 +584,12 @@
       "portal.labelsDialog.colors.olive",
       "portal.detail.stage",
       "portal.plan.labels",
-      "portal.plan.viewBoard"
+      "portal.plan.viewBoard",
+      "portal.home.post",
+      "portal.home.pipeline",
+      "portal.home.produce",
+      "portal.home.scheduled",
+      "portal.home.viewList"
     ],
     "fr": [
       "channel.tooLong.fileName",
@@ -1017,7 +1027,13 @@
       "portal.detail.stage",
       "portal.plan.labels",
       "portal.plan.viewBoard",
-      "portal.detail.description"
+      "portal.detail.description",
+      "portal.home.post",
+      "portal.home.pipeline",
+      "portal.home.produce",
+      "portal.home.scheduled",
+      "portal.home.viewList",
+      "portal.home.clients"
     ],
     "de": [
       "devices.iphone.steps.account",
@@ -1480,7 +1496,13 @@
       "portal.labelsDialog.colors.olive",
       "portal.detail.stage",
       "portal.plan.labels",
-      "portal.plan.viewBoard"
+      "portal.plan.viewBoard",
+      "portal.home.post",
+      "portal.home.pipeline",
+      "portal.home.produce",
+      "portal.home.scheduled",
+      "portal.home.viewList",
+      "portal.home.person"
     ],
     "it": [
       "shell.email.label",
@@ -1862,7 +1884,12 @@
       "portal.labelsDialog.colors.olive",
       "portal.detail.stage",
       "portal.plan.labels",
-      "portal.plan.viewBoard"
+      "portal.plan.viewBoard",
+      "portal.home.post",
+      "portal.home.pipeline",
+      "portal.home.produce",
+      "portal.home.scheduled",
+      "portal.home.viewList"
     ],
     "nl": [
       "calendar.moreRuns",
@@ -2467,7 +2494,12 @@
       "portal.labelsDialog.colors.olive",
       "portal.detail.stage",
       "portal.plan.labels",
-      "portal.plan.viewBoard"
+      "portal.plan.viewBoard",
+      "portal.home.post",
+      "portal.home.pipeline",
+      "portal.home.produce",
+      "portal.home.scheduled",
+      "portal.home.viewList"
     ],
     "ja": [
       "channel.tooLong.fileName",
@@ -2656,7 +2688,12 @@
       "portal.labelsDialog.colors.olive",
       "portal.detail.stage",
       "portal.plan.labels",
-      "portal.plan.viewBoard"
+      "portal.plan.viewBoard",
+      "portal.home.post",
+      "portal.home.pipeline",
+      "portal.home.produce",
+      "portal.home.scheduled",
+      "portal.home.viewList"
     ],
     "ko": [
       "channel.tooLong.fileName",
@@ -2839,7 +2876,12 @@
       "portal.labelsDialog.colors.olive",
       "portal.detail.stage",
       "portal.plan.labels",
-      "portal.plan.viewBoard"
+      "portal.plan.viewBoard",
+      "portal.home.post",
+      "portal.home.pipeline",
+      "portal.home.produce",
+      "portal.home.scheduled",
+      "portal.home.viewList"
     ],
     "zh-Hans": [
       "channel.tooLong.fileName",
@@ -3013,7 +3055,12 @@
       "portal.labelsDialog.colors.olive",
       "portal.detail.stage",
       "portal.plan.labels",
-      "portal.plan.viewBoard"
+      "portal.plan.viewBoard",
+      "portal.home.post",
+      "portal.home.pipeline",
+      "portal.home.produce",
+      "portal.home.scheduled",
+      "portal.home.viewList"
     ],
     "id": [
       "shell.email.label",
@@ -3334,7 +3381,12 @@
       "portal.labelsDialog.colors.olive",
       "portal.detail.stage",
       "portal.plan.labels",
-      "portal.plan.viewBoard"
+      "portal.plan.viewBoard",
+      "portal.home.post",
+      "portal.home.pipeline",
+      "portal.home.produce",
+      "portal.home.scheduled",
+      "portal.home.viewList"
     ],
     "tr": [
       "devices.cpus",
@@ -3542,7 +3594,12 @@
       "portal.labelsDialog.colors.olive",
       "portal.detail.stage",
       "portal.plan.labels",
-      "portal.plan.viewBoard"
+      "portal.plan.viewBoard",
+      "portal.home.post",
+      "portal.home.pipeline",
+      "portal.home.produce",
+      "portal.home.scheduled",
+      "portal.home.viewList"
     ],
     "pl": [
       "devices.cpus",
@@ -3850,7 +3907,12 @@
       "portal.labelsDialog.colors.olive",
       "portal.detail.stage",
       "portal.plan.labels",
-      "portal.plan.viewBoard"
+      "portal.plan.viewBoard",
+      "portal.home.post",
+      "portal.home.pipeline",
+      "portal.home.produce",
+      "portal.home.scheduled",
+      "portal.home.viewList"
     ],
     "ru": [
       "channel.tooLong.fileName",
@@ -4024,7 +4086,12 @@
       "portal.labelsDialog.colors.olive",
       "portal.detail.stage",
       "portal.plan.labels",
-      "portal.plan.viewBoard"
+      "portal.plan.viewBoard",
+      "portal.home.post",
+      "portal.home.pipeline",
+      "portal.home.produce",
+      "portal.home.scheduled",
+      "portal.home.viewList"
     ]
   },
   "mobile-base": {

@@ -18496,6 +18496,42 @@
       "produce": "制作 {{when}}",
       "post": "发布 {{when}}"
     },
+    "home": {
+      "now": "现在",
+      "tiles": {
+        "you": "需要你处理",
+        "making": "制作中",
+        "client": "待客户确认",
+        "schedule": "待排期"
+      },
+      "clientHint": "等待客户回复",
+      "scheduled_other": "已排期 {{count}} 个",
+      "lateWord": "已逾期",
+      "late": "逾期",
+      "clients": "客户",
+      "status": {
+        "late_other": "{{count}} 个已逾期",
+        "schedule_other": "{{count}} 个待排期",
+        "client_other": "{{count}} 个待客户确认",
+        "clear": "一切按计划进行",
+        "idle": "没有进行中的工作"
+      },
+      "nextPost": "下一篇帖子",
+      "morePeople": "还有 {{count}} 人",
+      "pipeline": "流水线",
+      "viewList": "列表",
+      "everyone": "所有人",
+      "onlyMe": "只看我",
+      "person": "成员",
+      "people": "负责人",
+      "produce": "制作",
+      "post": "发布",
+      "sortProduce": "按制作日期排序",
+      "nothingOpen": "没有进行中的内容",
+      "nothingOpenText": "工作从建好卡片到发布当天都会显示在这里。",
+      "noMatch": "没有符合这些筛选条件的内容",
+      "clear": "清除筛选"
+    },
     "picker": {
       "title": "Drive 中的文件",
       "search": "搜索文件",

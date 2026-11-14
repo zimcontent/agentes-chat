@@ -259,6 +259,7 @@ import type {
   PortalList,
   PortalMine,
   PortalOverview,
+  PortalPipeline,
   PortalPlan,
   PortalSendInput,
   PostMedia,
@@ -1420,6 +1421,8 @@ export interface ApiClient {
     plan(orgId: string, client: string): Promise<PortalPlan>;
     /** The caller's own open work by production day. */
     mine(orgId: string): Promise<PortalMine>;
+    /** Every piece of work not posted yet, across all clients: what the overview draws. */
+    pipeline(orgId: string): Promise<PortalPipeline>;
     /** Makes a list (the same name answers the same list). */
     createList(orgId: string, client: string, name: string): Promise<PortalList>;
     /** Every list of the client, once each, in the new order. */

@@ -7090,3 +7090,19 @@ export function useMovePortalCardState(orgId: string, client: string) {
     onSettled: () => refreshPortal(qc, orgId),
   });
 }
+
+/**
+ * Every piece of work not posted yet, across all clients (ADR 9001 §10), read again every minute while the overview
+ * is open and after any change to a board or a schedule (it sits under the portal's key).
+ */
+export const usePortalPipeline = (orgId: string, enabled = true) => {
+  const api = useApi();
+  return useQuery({
+    queryKey: keys.portalPipeline(orgId),
+    queryFn: () => portalOf(api).pipeline(orgId),
+    enabled,
+    refetchInterval: (q) => (isPortalOff(q.state.error) ? false : PORTAL_REFRESH_MS),
+    retry: false,
+    meta: { quiet: true },
+  });
+};

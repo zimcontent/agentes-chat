@@ -322,6 +322,51 @@ export function createFakePortal(
           undated: open.filter((c) => c.produceOn === null).sort(byOrder),
         });
       },
+      pipeline: async () => {
+        guard();
+        const carded = new Set<string>();
+        const fromCards = fake.cards.map(stageOf).flatMap((card) => {
+          const item = card.item ? fake.items.find((i) => i.client === card.client && i.id === card.item) : undefined;
+          if (item) carded.add(`${item.client}/${item.id}`);
+          if (card.stage === "posted") return [];
+          const open = card.stage === "todo" || card.stage === "doing" || card.stage === "adjusting";
+          return [
+            {
+              client: card.client,
+              kind: "card" as const,
+              id: card.id,
+              title: card.title,
+              type: card.type,
+              stage: card.stage,
+              members: card.members,
+              produceOn: card.produceOn,
+              postOn: card.postOn,
+              late: Boolean(card.produceOn && card.produceOn < fake.day && open),
+              note: card.stage === "adjusting" ? (item?.lastNote?.text ?? null) : null,
+              link: card.link,
+              updatedAt: card.updatedAt,
+            },
+          ];
+        });
+        const fromItems = fake.items
+          .filter((i) => COLUMN_OF[i.status] !== "posted" && !carded.has(`${i.client}/${i.id}`))
+          .map((i) => ({
+            client: i.client,
+            kind: "post" as const,
+            id: i.id,
+            title: i.title,
+            type: i.type,
+            stage: COLUMN_OF[i.status],
+            members: [],
+            produceOn: null,
+            postOn: i.scheduledFor,
+            late: false,
+            note: COLUMN_OF[i.status] === "adjusting" ? (i.lastNote?.text ?? null) : null,
+            link: i.link,
+            updatedAt: 0,
+          }));
+        return clone({ day: fake.day, state: fake.state, entries: [...fromCards, ...fromItems] });
+      },
       createList: async (orgId, client, name) => {
         log("portal.createList", orgId, client, name);
         guard();

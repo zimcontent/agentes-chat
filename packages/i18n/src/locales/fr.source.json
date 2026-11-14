@@ -45733,6 +45733,108 @@
   "portal.mine.post": {
     "value": "Post {{when}}"
   },
+  "portal.home.now": {
+    "value": "Now"
+  },
+  "portal.home.tiles.you": {
+    "value": "Needs you"
+  },
+  "portal.home.tiles.making": {
+    "value": "In production"
+  },
+  "portal.home.tiles.client": {
+    "value": "With the client"
+  },
+  "portal.home.tiles.schedule": {
+    "value": "To schedule"
+  },
+  "portal.home.clientHint": {
+    "value": "Waiting for their answer"
+  },
+  "portal.home.scheduled": {
+    "value": {
+      "one": "{{count}} scheduled",
+      "other": "{{count}} scheduled"
+    }
+  },
+  "portal.home.lateWord": {
+    "value": "Late"
+  },
+  "portal.home.late": {
+    "value": "late"
+  },
+  "portal.home.clients": {
+    "value": "Clients"
+  },
+  "portal.home.status.late": {
+    "value": {
+      "one": "{{count}} late",
+      "other": "{{count}} late"
+    }
+  },
+  "portal.home.status.schedule": {
+    "value": {
+      "one": "{{count}} to schedule",
+      "other": "{{count}} to schedule"
+    }
+  },
+  "portal.home.status.client": {
+    "value": {
+      "one": "{{count}} with the client",
+      "other": "{{count}} with the client"
+    }
+  },
+  "portal.home.status.clear": {
+    "value": "All on track"
+  },
+  "portal.home.status.idle": {
+    "value": "No open work"
+  },
+  "portal.home.nextPost": {
+    "value": "Next post"
+  },
+  "portal.home.morePeople": {
+    "value": "{{count}} more"
+  },
+  "portal.home.pipeline": {
+    "value": "Pipeline"
+  },
+  "portal.home.viewList": {
+    "value": "List"
+  },
+  "portal.home.everyone": {
+    "value": "Everyone"
+  },
+  "portal.home.onlyMe": {
+    "value": "Only me"
+  },
+  "portal.home.person": {
+    "value": "Person"
+  },
+  "portal.home.people": {
+    "value": "People on it"
+  },
+  "portal.home.produce": {
+    "value": "Production"
+  },
+  "portal.home.post": {
+    "value": "Post"
+  },
+  "portal.home.sortProduce": {
+    "value": "Sort by production date"
+  },
+  "portal.home.nothingOpen": {
+    "value": "Nothing open"
+  },
+  "portal.home.nothingOpenText": {
+    "value": "Work shows here from its card to the day it is posted."
+  },
+  "portal.home.noMatch": {
+    "value": "Nothing matches these filters"
+  },
+  "portal.home.clear": {
+    "value": "Clear filters"
+  },
   "portal.picker.title": {
     "value": "Files from the Drive"
   },

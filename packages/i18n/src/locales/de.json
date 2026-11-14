@@ -18901,6 +18901,46 @@
       "produce": "Produktion {{when}}",
       "post": "Beitrag {{when}}"
     },
+    "home": {
+      "now": "Jetzt",
+      "tiles": {
+        "you": "Braucht dich",
+        "making": "In Produktion",
+        "client": "Beim Kunden",
+        "schedule": "Zu planen"
+      },
+      "clientHint": "Wartet auf die Antwort",
+      "scheduled_one": "{{count}} geplant",
+      "scheduled_other": "{{count}} geplant",
+      "lateWord": "Überfällig",
+      "late": "überfällig",
+      "clients": "Kunden",
+      "status": {
+        "late_one": "{{count}} überfällig",
+        "late_other": "{{count}} überfällig",
+        "schedule_one": "{{count}} zu planen",
+        "schedule_other": "{{count}} zu planen",
+        "client_one": "{{count}} beim Kunden",
+        "client_other": "{{count}} beim Kunden",
+        "clear": "Alles im Plan",
+        "idle": "Keine offene Arbeit"
+      },
+      "nextPost": "Nächster Beitrag",
+      "morePeople": "{{count}} weitere",
+      "pipeline": "Pipeline",
+      "viewList": "Liste",
+      "everyone": "Alle",
+      "onlyMe": "Nur ich",
+      "person": "Person",
+      "people": "Verantwortliche",
+      "produce": "Produktion",
+      "post": "Beitrag",
+      "sortProduce": "Nach Produktionsdatum sortieren",
+      "nothingOpen": "Nichts offen",
+      "nothingOpenText": "Arbeit erscheint hier von der Karte bis zum Tag der Veröffentlichung.",
+      "noMatch": "Nichts passt zu diesen Filtern",
+      "clear": "Filter zurücksetzen"
+    },
     "picker": {
       "title": "Dateien aus dem Drive",
       "search": "Dateien suchen",

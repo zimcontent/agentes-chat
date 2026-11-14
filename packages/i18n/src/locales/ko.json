@@ -18312,6 +18312,42 @@
       "produce": "제작 {{when}}",
       "post": "게시 {{when}}"
     },
+    "home": {
+      "now": "지금",
+      "tiles": {
+        "you": "내 확인 필요",
+        "making": "제작 중",
+        "client": "클라이언트 확인 중",
+        "schedule": "예약 대기"
+      },
+      "clientHint": "클라이언트의 답변을 기다리는 중",
+      "scheduled_other": "{{count}}개 예약됨",
+      "lateWord": "지연",
+      "late": "지연",
+      "clients": "클라이언트",
+      "status": {
+        "late_other": "{{count}}개 지연",
+        "schedule_other": "{{count}}개 예약 대기",
+        "client_other": "{{count}}개 클라이언트 확인 중",
+        "clear": "모두 순조로워요",
+        "idle": "진행 중인 작업이 없어요"
+      },
+      "nextPost": "다음 게시물",
+      "morePeople": "{{count}}명 더",
+      "pipeline": "제작 라인",
+      "viewList": "리스트",
+      "everyone": "모두",
+      "onlyMe": "나만",
+      "person": "사람",
+      "people": "담당자",
+      "produce": "제작",
+      "post": "게시",
+      "sortProduce": "제작일순으로 정렬",
+      "nothingOpen": "진행 중인 것이 없어요",
+      "nothingOpenText": "작업은 카드가 만들어진 때부터 게시되는 날까지 여기에 표시돼요.",
+      "noMatch": "이 필터에 맞는 것이 없어요",
+      "clear": "필터 지우기"
+    },
     "picker": {
       "title": "Drive 파일",
       "search": "파일 검색",

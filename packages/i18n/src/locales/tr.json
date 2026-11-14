@@ -18830,6 +18830,46 @@
       "produce": "Üretim {{when}}",
       "post": "Gönderi {{when}}"
     },
+    "home": {
+      "now": "Şimdi",
+      "tiles": {
+        "you": "Sizi bekliyor",
+        "making": "Üretimde",
+        "client": "Müşteride",
+        "schedule": "Planlanacak"
+      },
+      "clientHint": "Müşterinin yanıtı bekleniyor",
+      "scheduled_one": "{{count}} planlandı",
+      "scheduled_other": "{{count}} planlandı",
+      "lateWord": "Geciken",
+      "late": "gecikti",
+      "clients": "Müşteriler",
+      "status": {
+        "late_one": "{{count}} gecikti",
+        "late_other": "{{count}} gecikti",
+        "schedule_one": "{{count}} planlanacak",
+        "schedule_other": "{{count}} planlanacak",
+        "client_one": "{{count}} müşteride",
+        "client_other": "{{count}} müşteride",
+        "clear": "Her şey yolunda",
+        "idle": "Açık iş yok"
+      },
+      "nextPost": "Sonraki gönderi",
+      "morePeople": "{{count}} kişi daha",
+      "pipeline": "Üretim hattı",
+      "viewList": "Liste",
+      "everyone": "Herkes",
+      "onlyMe": "Yalnızca ben",
+      "person": "Kişi",
+      "people": "Sorumlular",
+      "produce": "Üretim",
+      "post": "Gönderi",
+      "sortProduce": "Üretim tarihine göre sırala",
+      "nothingOpen": "Açık bir şey yok",
+      "nothingOpenText": "İşler, kartı açıldığı andan paylaşıldığı güne kadar burada görünür.",
+      "noMatch": "Bu filtrelere uyan bir şey yok",
+      "clear": "Filtreleri temizle"
+    },
     "picker": {
       "title": "Drive'daki dosyalar",
       "search": "Dosyalarda ara",

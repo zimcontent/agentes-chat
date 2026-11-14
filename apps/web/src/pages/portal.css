@@ -22,81 +22,6 @@
   gap: var(--space-2);
 }
 
-/* ── Overview ───────────────────────────────────────────────────────────── */
-.portal-overview {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-4);
-}
-.portal-overview > .ac-grouphead {
-  margin-bottom: calc(var(--space-2) - var(--space-4));
-}
-/* The totals in a card of their own: every column's count on one line that wraps between them. */
-.portal-totals {
-  padding: var(--card-pad, var(--space-4));
-  border-radius: var(--radius-section);
-  background: var(--raised);
-  box-shadow: var(--e1), var(--top);
-}
-/* A count reads before its column's name does: the number in the ink, the name quiet. */
-.portal-overview .ac-factline__fact > b {
-  color: var(--ink);
-  font-weight: 650;
-}
-.portal-clients {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: var(--space-3);
-}
-@media (max-width: 1180px) {
-  .portal-clients {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-@media (max-width: 720px) {
-  .portal-clients {
-    grid-template-columns: minmax(0, 1fr);
-  }
-}
-.portal-client {
-  color: inherit;
-  text-decoration: none;
-  align-content: start;
-}
-.portal-client:hover {
-  transform: translateY(-1px);
-  box-shadow: var(--e2), var(--top);
-}
-html:not([data-pointer]) .portal-client:focus-visible {
-  outline: none;
-  box-shadow: var(--focus-ring);
-}
-/* The name and how many are open on one line while both fit, the count under the name when they don't. */
-.portal-client__head {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: var(--space-1) var(--space-3);
-  min-width: 0;
-}
-.portal-client__name {
-  min-width: 0;
-  font-size: 15px;
-  font-weight: 650;
-  letter-spacing: -0.01em;
-  overflow-wrap: anywhere;
-}
-.portal-client__open,
-.portal-client__next {
-  font-size: 12.5px;
-  color: var(--muted);
-  white-space: nowrap;
-}
-.portal-client > .ac-chip {
-  align-self: flex-start;
-}
-
 /* ── Board ──────────────────────────────────────────────────────────────── */
 /* A portal card is read and acted on through its own buttons: nothing drags, so it neither lifts nor shows a grab. */
 .portal-card,
@@ -318,25 +243,25 @@ html:not([data-pointer]) .portal-client:focus-visible {
 /* ── Stages and labels (ADR 9001 §8) ────────────────────────────────────── */
 /* A stage's colour is the same wherever it shows (a card's edge, a calendar chip, the legend) and in both themes, so
    the schedule reads at a glance. A label's colour is the team's pick among ten names. */
-:is(.portal-dot, .plan-cal__chip)[data-stage] {
+:is(.portal-dot, .plan-cal__chip, .portal-step)[data-stage] {
   --stage: #8a909c;
 }
-:is(.portal-dot, .plan-cal__chip)[data-stage="doing"] {
+:is(.portal-dot, .plan-cal__chip, .portal-step)[data-stage="doing"] {
   --stage: #3b82f6;
 }
-:is(.portal-dot, .plan-cal__chip)[data-stage="approval"] {
+:is(.portal-dot, .plan-cal__chip, .portal-step)[data-stage="approval"] {
   --stage: #f59e0b;
 }
-:is(.portal-dot, .plan-cal__chip)[data-stage="adjusting"] {
+:is(.portal-dot, .plan-cal__chip, .portal-step)[data-stage="adjusting"] {
   --stage: #ef4444;
 }
-:is(.portal-dot, .plan-cal__chip)[data-stage="approved"] {
+:is(.portal-dot, .plan-cal__chip, .portal-step)[data-stage="approved"] {
   --stage: #22c55e;
 }
-:is(.portal-dot, .plan-cal__chip)[data-stage="scheduled"] {
+:is(.portal-dot, .plan-cal__chip, .portal-step)[data-stage="scheduled"] {
   --stage: #8b5cf6;
 }
-:is(.portal-dot, .plan-cal__chip)[data-stage="posted"] {
+:is(.portal-dot, .plan-cal__chip, .portal-step)[data-stage="posted"] {
   --stage: #14b8a6;
 }
 [data-color="green"] {
@@ -962,4 +887,373 @@ html:not([data-pointer]) .portal-client:focus-visible {
 .portal-card:not(.is-movable) {
   -webkit-user-select: text;
   user-select: text;
+}
+
+/* ── The first screen (ADR 9001 §10) ────────────────────────────────────── */
+/* Three parts, read from top to bottom, 32 apart: what needs the team, how each client is, the whole pipeline. */
+.portal-home {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+}
+.portal-home__part {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.portal-home__part > .ac-grouphead {
+  margin-bottom: var(--space-2);
+}
+/* "Now": four numbers side by side, two by two on a phone. One idea each: the number, its name, one quiet line. */
+.portal-tiles {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--space-3);
+}
+@media (max-width: 720px) {
+  .portal-tiles {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+.portal-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-1);
+  min-width: 0;
+  margin: 0;
+  padding: var(--space-4);
+  border: 0;
+  border-radius: var(--radius-section);
+  background: var(--raised);
+  box-shadow: var(--e1), var(--top);
+  font: inherit;
+  color: var(--ink);
+  text-align: left;
+  cursor: pointer;
+  transition:
+    transform 0.2s var(--spring),
+    box-shadow 0.2s var(--out);
+}
+.portal-tile:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--e2), var(--top);
+}
+html:not([data-pointer]) .portal-tile:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+/* The one the pipeline is filtered to. */
+.portal-tile[aria-pressed="true"] {
+  background: var(--chosen-bg);
+  box-shadow: var(--chosen-shadow);
+}
+.portal-tile__num {
+  font-size: 40px;
+  font-weight: 650;
+  line-height: 44px;
+  letter-spacing: -0.02em;
+}
+.portal-tile[data-attention] .portal-tile__num {
+  color: var(--attention);
+}
+.portal-tile__name {
+  font-size: 14.5px;
+  font-weight: 650;
+  overflow-wrap: anywhere;
+}
+.portal-tile__hint {
+  font-size: 12.5px;
+  line-height: 18px;
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+
+/* "Clients": a card each, three across, two on a narrower window, one on a phone. */
+.portal-cards {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+@media (max-width: 1100px) {
+  .portal-cards {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 640px) {
+  .portal-cards {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+.portal-cards > li {
+  display: flex;
+  min-width: 0;
+}
+/* The boards' card, roomier, and a link: it lifts on hover as theirs do. */
+.portal-clientcard,
+.portal-clientcard:hover {
+  flex: 1;
+  gap: var(--space-4);
+  padding: var(--space-4);
+  cursor: pointer;
+}
+.portal-clientcard:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--e2), var(--top);
+}
+.portal-clientcard__head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-width: 0;
+}
+/* The client's mark: its initials on a tint of its own hue, or the photo of the group named after it. */
+.portal-mark {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: hsl(var(--mark-hue, 0) 55% 50% / 0.2);
+  box-shadow: inset 0 0 0 1px hsl(var(--mark-hue, 0) 55% 50% / 0.35);
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--ink);
+  object-fit: cover;
+}
+.portal-clientcard__name {
+  flex: 1;
+  min-width: 0;
+  font-size: 17px;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.portal-clientcard__open {
+  flex: none;
+  font-size: 12.5px;
+  color: var(--muted);
+  white-space: nowrap;
+}
+/* The card's main line: the one thing that matters most about the client. */
+.portal-clientcard__status {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 22px;
+  color: var(--ink);
+}
+.portal-clientcard__status > .ac-icon {
+  flex: none;
+  color: var(--ok);
+}
+.portal-clientcard__status[data-attention],
+.portal-clientcard__status[data-attention] > .ac-icon {
+  color: var(--attention);
+}
+/* The client's work along the line: a stop per stage, joined by a thin line through their middles. */
+.portal-steps {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 24px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.portal-steps::before {
+  content: "";
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  top: 50%;
+  height: 2px;
+  margin-top: -1px;
+  border-radius: 1px;
+  background: var(--line);
+}
+.portal-step {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+}
+/* A stop with work: the stage's colour, its count inside in dark words (4.5:1 on every stage's colour). */
+.portal-step__node {
+  display: grid;
+  place-items: center;
+  min-width: 24px;
+  height: 24px;
+  padding: 0 var(--space-1);
+  border-radius: 12px;
+  background: var(--stage);
+  box-shadow: 0 0 0 3px var(--raised);
+  color: #101114;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1;
+}
+/* An empty stop: a small hollow dot on the line. */
+.portal-step[data-empty] > .portal-step__node {
+  min-width: 8px;
+  width: 8px;
+  height: 8px;
+  padding: 0;
+  background: var(--raised);
+  box-shadow:
+    inset 0 0 0 2px var(--line),
+    0 0 0 2px var(--raised);
+}
+.portal-clientcard__foot {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-3);
+  min-height: 24px;
+}
+.portal-clientcard__people {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  min-width: 0;
+}
+.portal-clientcard__more {
+  font-size: 12px;
+  color: var(--muted);
+}
+.portal-clientcard__next {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  margin-left: auto;
+  font-size: 13px;
+  line-height: 18px;
+  white-space: nowrap;
+}
+.portal-clientcard__label {
+  font-size: 11.5px;
+  color: var(--muted);
+}
+/* Nothing open: the same card, quieter. */
+.portal-clientcard[data-idle] :is(.portal-clientcard__name, .portal-clientcard__status) {
+  font-weight: 400;
+  color: var(--muted);
+}
+.portal-home__legend {
+  margin-top: var(--space-3);
+}
+
+/* The pipeline's filters on one row that wraps: the two selects, then the four tiles as chips. */
+.portal-filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-4);
+}
+.portal-filters > .ac-select {
+  width: 184px;
+}
+.portal-filters__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+@media (max-width: 520px) {
+  .portal-filters > .ac-select {
+    flex: 1 1 140px;
+    width: auto;
+  }
+}
+/* The client's name leads a pipeline card: a step stronger than the chips after it. */
+.portal-clientchip {
+  font-weight: 700;
+}
+
+/* The pipeline as a table. It scrolls sideways where its six columns don't fit. */
+.portal-table__wrap {
+  overflow-x: auto;
+}
+.portal-table {
+  width: 100%;
+  min-width: 720px;
+  border-collapse: collapse;
+  font-size: 13.5px;
+}
+.portal-table th,
+.portal-table td {
+  padding: var(--row-py) var(--space-3);
+  text-align: left;
+  vertical-align: middle;
+}
+.portal-table th:first-child,
+.portal-table td:first-child {
+  padding-left: var(--space-4);
+}
+.portal-table thead th {
+  font-size: 12px;
+  font-weight: 650;
+  color: var(--muted);
+  white-space: nowrap;
+}
+.portal-table tbody tr {
+  border-top: 1px solid var(--line2);
+}
+.portal-table__group > th {
+  padding-block: var(--space-2);
+  background: var(--sunken);
+}
+.portal-table__group > th > .tabular {
+  margin-left: var(--space-2);
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--faint);
+}
+.portal-table__client {
+  font-weight: 650;
+  white-space: nowrap;
+}
+.portal-table__title {
+  max-width: 320px;
+}
+.portal-table__title > a {
+  display: block;
+  color: inherit;
+  text-decoration: none;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.portal-table__title > a:hover {
+  text-decoration: underline;
+}
+.portal-table td.tabular {
+  white-space: nowrap;
+}
+.portal-table__late {
+  font-weight: 650;
+  color: var(--attention);
+}
+.portal-table__sort {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
 }

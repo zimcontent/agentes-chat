@@ -279,3 +279,81 @@ export function planTool(portal: ApprovalPortal): ToolDefinition {
     },
   };
 }
+
+/** One open piece of work in the pipeline: a team's card, or a post at the portal no card stands for. */
+export interface PipelineEntry {
+  client: string;
+  kind: "card" | "post";
+  /** The card's id, or the post's. */
+  id: string;
+  title: string;
+  type: PortalType;
+  stage: PortalColumn;
+  /** Workspace members on it; empty for a post with no card. */
+  members: string[];
+  produceOn: string | null;
+  postOn: string | null;
+  /** Its production day is past and the team still has it. */
+  late: boolean;
+  /** The client's last words on it, when it waits on an adjustment. */
+  note: string | null;
+  link: string | null;
+  updatedAt: number;
+}
+
+/**
+ * Everything not posted yet, across every client, one entry each (ADR 9001 §10): what the overview draws as a
+ * pipeline, so a person sees at a glance what is where, whose it is and what waits on the team.
+ */
+export async function portalPipeline(
+  portal: ApprovalPortal,
+  now = new Date(),
+  timeZone = "America/Sao_Paulo",
+): Promise<{ day: string; state: PortalState; entries: PipelineEntry[] }> {
+  const [items, cards] = await Promise.all([portal.items(), portal.cards()]);
+  const day = portalDay(now, timeZone);
+  const byKey = new Map(items.map((item) => [`${item.client}/${item.id}`, item]));
+  const carded = new Set<string>();
+  const entries: PipelineEntry[] = [];
+  for (const card of cards) {
+    const item = card.item ? byKey.get(`${card.client}/${card.item}`) : undefined;
+    if (item) carded.add(`${item.client}/${item.id}`);
+    const plan = planCard(card, new Map(item ? [[item.id, item]] : []));
+    if (plan.stage === "posted") continue;
+    entries.push({
+      client: card.client,
+      kind: "card",
+      id: card.id,
+      title: card.title,
+      type: card.type,
+      stage: plan.stage,
+      members: card.members,
+      produceOn: card.produceOn,
+      postOn: plan.postOn,
+      late: Boolean(card.produceOn && card.produceOn < day && OPEN_STAGES.includes(plan.stage)),
+      note: plan.stage === "adjusting" ? (item?.lastNote?.text ?? null) : null,
+      link: plan.link,
+      updatedAt: card.updatedAt,
+    });
+  }
+  for (const item of items) {
+    const stage = portalColumnOf(item);
+    if (stage === "posted" || carded.has(`${item.client}/${item.id}`)) continue;
+    entries.push({
+      client: item.client,
+      kind: "post",
+      id: item.id,
+      title: item.title,
+      type: item.type,
+      stage,
+      members: [],
+      produceOn: null,
+      postOn: item.scheduledFor,
+      late: false,
+      note: stage === "adjusting" ? (item.lastNote?.text ?? null) : null,
+      link: item.link,
+      updatedAt: item.updatedAt ? Date.parse(item.updatedAt) || 0 : 0,
+    });
+  }
+  return { day, state: await portal.state(), entries };
+}

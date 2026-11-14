@@ -18320,6 +18320,42 @@
       "produce": "制作 {{when}}",
       "post": "投稿 {{when}}"
     },
+    "home": {
+      "now": "現在",
+      "tiles": {
+        "you": "あなたの対応待ち",
+        "making": "制作中",
+        "client": "クライアント確認中",
+        "schedule": "予約待ち"
+      },
+      "clientHint": "クライアントの返事待ち",
+      "scheduled_other": "{{count}}件予約済み",
+      "lateWord": "遅れ",
+      "late": "遅れ",
+      "clients": "クライアント",
+      "status": {
+        "late_other": "{{count}}件遅れ",
+        "schedule_other": "{{count}}件予約待ち",
+        "client_other": "{{count}}件クライアント確認中",
+        "clear": "すべて順調です",
+        "idle": "進行中の作業はありません"
+      },
+      "nextPost": "次の投稿",
+      "morePeople": "ほか{{count}}人",
+      "pipeline": "制作ライン",
+      "viewList": "リスト",
+      "everyone": "全員",
+      "onlyMe": "自分だけ",
+      "person": "メンバー",
+      "people": "担当者",
+      "produce": "制作",
+      "post": "投稿",
+      "sortProduce": "制作日で並べ替え",
+      "nothingOpen": "進行中のものはありません",
+      "nothingOpenText": "作業はカードができてから投稿される日までここに表示されます。",
+      "noMatch": "このフィルターに一致するものはありません",
+      "clear": "フィルターをクリア"
+    },
     "picker": {
       "title": "Driveのファイル",
       "search": "ファイルを検索",
