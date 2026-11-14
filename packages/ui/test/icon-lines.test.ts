@@ -299,7 +299,7 @@ describe("a picture beside lines, a bubble beside a face, a row of actions", () 
   });
 
   test("the pixel marks in a line of text centre on its capitals, never on the x-height's middle", async () => {
-    for (const mark of [".ac-pixspin", ".ac-pixdone", ".ac-pixstop"]) {
+    for (const mark of [".ac-pixspin", ".ac-dougline", ".ac-pixdone", ".ac-pixstop"]) {
       const rule = await kitRule(mark);
       expect(rule).not.toContain("middle");
       expect(rule).toContain("vertical-align: calc(var(--cap-top) - var(--cap-mid) - var(--mark-size, 14px) / 2)");

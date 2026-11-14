@@ -485,7 +485,7 @@ html:not([data-pointer]) .rq__choice:focus-visible {
 .rq-done {
   max-width: var(--msg-card-w);
 }
-/* The mark: the pill's own, a pixel square or bar on its words' first line. */
+/* The mark: the pill's own, a small mark or bar on its words' first line. */
 .rq-done__mark {
   display: inline-grid;
   place-items: center;
@@ -556,22 +556,12 @@ html:not([data-pointer]) .rq__choice:focus-visible {
   white-space: pre-wrap;
 }
 
-/* Waiting for you: a pixel square outline in the warning tone, pulsing. */
+/* Waiting for you: the Doug's head in outline (DougOutline) in the warning tone, pulsing. */
 .rq-wait {
-  flex: none;
-  display: inline-grid;
-  place-items: center;
-  width: 12px;
-  height: 12px;
-}
-.rq-wait > span {
-  width: 8px;
-  height: 8px;
-  border-radius: 2px;
-  box-shadow: inset 0 0 0 2px var(--warn);
+  color: var(--warn);
 }
 @media (prefers-reduced-motion: no-preference) {
-  .rq-wait > span {
+  .rq-wait {
     animation: rq-pulse 1.4s ease-in-out infinite;
   }
   /* "Ver" in the bar: the request lights up for a moment where it landed. */

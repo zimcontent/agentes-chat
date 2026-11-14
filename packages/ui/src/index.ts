@@ -60,11 +60,11 @@ export {
 } from "./brain/portrait.js";
 export { BRAND_MARK_URL, BRAND_NAME, PIXEL_ART } from "./brand/doug";
 export {
-  default as DougBot,
   type DougBotEstado,
   type DougBotForma,
   type DougBotNome,
   type DougBotOpcoes,
+  default as DougBot,
 } from "./brand/dougbot-avatar.js";
 export {
   type AgenteParaBot,
@@ -103,11 +103,12 @@ export { type AutonomyKind, AutonomyPixels, drawAutonomy } from "./components/Au
 export {
   type AgentState,
   Avatar,
-  botEstado,
   type AvatarKind,
   type AvatarProps,
   AvatarStack,
+  botEstado,
 } from "./components/Avatar";
+export { BotFace } from "./components/BotFace";
 export {
   BRAIN_ICONS,
   BrainIcon,
@@ -224,7 +225,6 @@ export { GroupHeading } from "./components/GroupHeading";
 export { type Hosting, HostingScene } from "./components/HostingScene";
 export { HintLine, type HintLineProps, InfoHint, type InfoHintProps } from "./components/InfoHint";
 export { isApple, Kbd, modKey, shortcut } from "./components/Kbd";
-export { BotFace } from "./components/BotFace";
 export { DougMark, Logo, LogoMark, type LogoProps } from "./components/Logo";
 export {
   GifPicker,
@@ -268,6 +268,8 @@ export { stopPlayback } from "./components/media-playback";
 export { OptionList, type OptionListItem, type OptionListProps } from "./components/OptionList";
 export { PageHeader, type PageHeaderProps } from "./components/PageHeader";
 export {
+  DougOutline,
+  type DougOutlineProps,
   PixelDone,
   type PixelDoneProps,
   PixelFail,
@@ -277,9 +279,9 @@ export {
 } from "./components/PixelMarks";
 export { glowOptions, PixelSky, SkyGlow } from "./components/PixelSky";
 export {
-  ORBIT_RING,
-  ORBIT_STEP_MS,
-  orbitShades,
+  OUTLINE_LAP_MS,
+  OUTLINE_TRAIL,
+  outlinePhase,
   PixelSpinner,
   type PixelSpinnerProps,
   type PixelSpinnerSize,
@@ -302,7 +304,6 @@ export {
   planState,
   planWindows,
 } from "./components/PlanMeter";
-export { UsageRing } from "./components/UsageRing";
 export { Popover } from "./components/Popover";
 export { type BadgePresence, PresenceBadge, type PresenceBadgeProps } from "./components/PresenceBadge";
 export {
@@ -413,6 +414,7 @@ export {
   toolLevelTones,
 } from "./components/ToolPixels";
 export { type UsageDay, type UsageDayPart, UsageDays, UsageSwatch } from "./components/UsageDays";
+export { UsageRing } from "./components/UsageRing";
 export { VideoPlayer, type VideoPlayerLabels, type VideoPlayerProps } from "./components/VideoPlayer";
 export {
   stopVoicePlayback,

@@ -29,7 +29,7 @@ export interface IconProps extends Omit<SVGProps<SVGSVGElement>, "name"> {
 /**
  * Our icon set: 20px grid, 1.6 stroke, drawn in `currentColor`. `spinner`
  * is our working indicator wherever it is used (chips, pills, session rows,
- * buttons): the pixel orbit (`PixelSpinner`) in the text's color, never a
+ * buttons): the Doug's outline (`PixelSpinner`) in the text's color, never a
  * generic ring. Pass an agent's color with `PixelSpinner` itself.
  */
 export function Icon({ name, size = 20, label, inline, className, style, ...rest }: IconProps) {
