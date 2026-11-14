@@ -165,6 +165,10 @@ the client sent back and what is ready.
     - **A person** who has the post is named in the task's conversation and told to put the new version up at the
       portal itself, with the post's address. This server has no upload of its own for people: the portal's is
       the one they already use.
+    - **One more request meanwhile.** When the client writes again on a post they already wait on a change of
+      (the time of their last note moved, kept on the task as `source.synced.card.note`), it is one more request:
+      said again and handed to whoever has the post like the first, and an agent's run on it takes it as its next
+      message.
     - **The assistant looks when it stalls.** The loop needs nobody while it runs, so the one who watches it is
       the assistant, by a rule: a post still waiting for its new version two hours after the client asked
       (`watchPortalAdjustments`, from 8h in the owner's time) is told to it once, in its owner's own conversation

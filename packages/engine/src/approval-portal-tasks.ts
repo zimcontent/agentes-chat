@@ -65,9 +65,10 @@ interface Side {
 interface Synced {
   /**
    * `kind`: the post's kind (reel, carousel…), kept for whoever reads the board from the tasks. `item`: the post at
-   * the portal the card became, which is what a new version is put on.
+   * the portal the card became, which is what a new version is put on. `note`: when the client last wrote on a post
+   * they wait on a change of, so a second request made meanwhile is told from the first.
    */
-  card: Side & { stage: PortalColumn; kind?: string; item?: string };
+  card: Side & { stage: PortalColumn; kind?: string; item?: string; note?: string };
   issue: Side & { status: IssueStatus };
 }
 
@@ -102,7 +103,7 @@ const NO_CHANNEL = "00000000-0000-0000-0000-000000000000";
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const hash = (text: string) => Bun.hash(text).toString(36);
 
-const cardSide = (card: PortalCard, stage: PortalColumn): Synced["card"] => ({
+const cardSide = (card: PortalCard, stage: PortalColumn, note?: string | null): Synced["card"] => ({
   title: card.title,
   description: hash(card.description),
   due: card.produceOn,
@@ -110,6 +111,7 @@ const cardSide = (card: PortalCard, stage: PortalColumn): Synced["card"] => ({
   stage,
   kind: card.type,
   ...(card.item ? { item: card.item } : {}),
+  ...(note && stage === "adjusting" ? { note } : {}),
 });
 const issueSide = (
   row: Pick<IssueRow, "title" | "description" | "dueDate" | "assigneeId" | "status">,
@@ -390,7 +392,10 @@ async function onePass(
         );
         const fresh = await reload(db, made.id);
         if (fresh)
-          await saveSynced(db, fresh, card.client, card.id, { card: cardSide(tied, stage), issue: issueSide(fresh) });
+          await saveSynced(db, fresh, card.client, card.id, {
+            card: cardSide(tied, stage, postOf(card)?.lastNote?.at),
+            issue: issueSide(fresh),
+          });
         result.created++;
         // Made while the client already waits on a change: said and handed on like one that came in just now.
         if (stage === "adjusting") {
@@ -412,7 +417,8 @@ async function onePass(
       }
 
       const was = (row.source as { synced?: Synced }).synced ?? null;
-      const now = { card: cardSide(card, stage), issue: issueSide(row) };
+      const noteAt = postOf(card)?.lastNote?.at ?? null;
+      const now = { card: cardSide(card, stage, noteAt), issue: issueSide(row) };
       const toTask: Parameters<typeof updateIssue>[4] = {};
       const toCard: Parameters<ApprovalPortal["updateCard"]>[1] = {};
       // Each field on its own: the card's change goes to the task; else the task's goes to the card.
@@ -474,10 +480,13 @@ async function onePass(
       if (!card.task) await portal.updateCard(card.id, { task: row.id }, "sync");
       const stageNow = cardNow.item ? stage : cardNow.state;
       await saveSynced(db, row, card.client, card.id, {
-        card: cardSide(cardNow, stageNow),
+        card: cardSide(cardNow, stageNow, noteAt),
         issue: issueSide(issueNow),
       });
-      if (was && stageMoved) {
+      // The client wrote again on a post they already wait on a change of: one more request, told like the first.
+      const again =
+        !stageMoved && stage === "adjusting" && Boolean(was?.card.note && noteAt && was.card.note !== noteAt);
+      if (was && (stageMoved || again)) {
         const assignee: WorkActor | null = issueNow.assigneeId
           ? ((await assigneeOf(db, orgId, issueNow.assigneeId, seen)) ?? null)
           : null;
@@ -595,15 +604,19 @@ const NOTICES: Record<NoticeLocale, Partial<Record<PortalColumn, (title: string)
  */
 const VERSION_NOTICES: Record<
   NoticeLocale,
-  { up: (title: string) => string; yours: string; at: (link: string) => string }
+  { up: (title: string) => string; more: (title: string) => string; yours: string; at: (link: string) => string }
 > = {
   "pt-BR": {
     up: (t) => `A nova versão de "${t}" já está no portal, pronta para o cliente aprovar.`,
+    more: (t) =>
+      `O cliente pediu mais um ajuste em "${t}", antes de a nova versão subir. O pedido está no cartão do Portal.`,
     yours: "Quando terminar, suba a nova versão direto no portal.",
     at: (link) => `Abrir no portal: ${link}`,
   },
   en: {
     up: (t) => `The new version of "${t}" is at the portal, ready for the client to approve.`,
+    more: (t) =>
+      `The client asked for one more change on "${t}", before the new version went up. The request is on the card in the Portal.`,
     yours: "When it is done, put the new version up at the portal itself.",
     at: (link) => `Open at the portal: ${link}`,
   },
@@ -716,7 +729,12 @@ export async function announcePortalStages(deps: PortalTaskDeps, orgId: string, 
       const words = VERSION_NOTICES[locale];
       // Back with the client after a change they asked for: the new version is up, whoever put it there.
       const redone = change.from === "adjusting" && change.to === "approval";
-      const line = redone ? words.up(change.title) : NOTICES[locale][change.to]?.(change.title);
+      const more = change.from === "adjusting" && change.to === "adjusting";
+      const line = redone
+        ? words.up(change.title)
+        : more
+          ? words.more(change.title)
+          : NOTICES[locale][change.to]?.(change.title);
       const at = change.link ? ` ${words.at(change.link)}` : "";
       if (line && who.rightHand) {
         // A person who has it is named, so the line reaches them wherever they are, and told where the new version
