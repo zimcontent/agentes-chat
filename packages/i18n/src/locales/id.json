@@ -4292,6 +4292,7 @@
       "other": "Setujui"
     },
     "refuse": "Tolak",
+    "once": "Kali ini saja",
     "viewDiff": "Lihat diff",
     "viewInChannel": "Lihat di kanal",
     "group": "Permintaan persetujuan",
@@ -4747,6 +4748,13 @@
     "againBody": "@{{handle}} permintaan “{{title}}” kedaluwarsa tanpa keputusan. Jika masih masuk akal, minta lagi.",
     "againSent": "Permintaan dikirim di percakapan",
     "retry": "Minta coba lagi",
+    "cause": {
+      "reconnect": "Koneksi ke aplikasi sudah kedaluwarsa. Hubungkan lagi dan minta coba lagi.",
+      "permission": "Akun yang terhubung tidak diizinkan melakukan ini. Periksa aksesnya di aplikasi dan minta coba lagi.",
+      "unavailable": "Layanan tidak menjawab. Tunggu sebentar dan minta coba lagi.",
+      "limit": "Layanan menolak: terlalu banyak permintaan. Tunggu beberapa menit dan minta coba lagi."
+    },
+    "reconnect": "Hubungkan lagi",
     "retryBody": "@{{handle}} tindakan “{{title}}” yang sudah disetujui gagal. Lihat apa yang salah dan coba lagi, atau beri tahu saya apa yang perlu saya lakukan.",
     "valueKeys": "Kunci Vault yang dipakai",
     "noResults": "Tidak ada permintaan yang cocok dengan filter ini.",

@@ -21,6 +21,7 @@ import {
   runKeys,
 } from "@agenteschat/client/lib/approval-card";
 import { aheadPhase, approveAlwaysOffered } from "@agenteschat/client/lib/approval-kind";
+import { approvalLead } from "@agenteschat/client/lib/approval-lead";
 import { approvalOriginShort, approvalWords } from "@agenteschat/client/lib/approval-origin";
 import {
   type ApprovalEffect,
@@ -38,7 +39,16 @@ import {
   requesterDecidesLine,
 } from "@agenteschat/client/lib/approval-words";
 import { fromServer, itemName } from "@agenteschat/client/lib/connected";
-import { daysBetween, formatTime, joinNames, nextLabel, relativeTime, timeLeft } from "@agenteschat/client/lib/format";
+import { failureCause } from "@agenteschat/client/lib/failure-cause";
+import {
+  daysBetween,
+  formatTime,
+  joinNames,
+  lowerFirst,
+  nextLabel,
+  relativeTime,
+  timeLeft,
+} from "@agenteschat/client/lib/format";
 import { agentGrammar } from "@agenteschat/client/lib/grammar";
 import { connectorName } from "@agenteschat/client/lib/scopes";
 import { simpleScreens } from "@agenteschat/client/lib/simple-mode";
@@ -165,6 +175,13 @@ export function sortOpen(list: Approval[]) {
     return ra - rb || a.expiresAt.localeCompare(b.expiresAt);
   });
 }
+
+/**
+ * The request's title as this person's screens say it: on simple ones, what the action will do in the agent's own
+ * words (`approvalLead`), where it said so; else the tool's title.
+ */
+const shownTitle = (t: TFunction, a: Approval, simple: boolean) =>
+  (simple ? approvalLead(a)?.title : null) ?? approvalTitle(t, a);
 
 const decidedAt = (a: Approval) => a.decidedAt ?? (a.status === "expired" ? a.expiresAt : a.createdAt);
 
@@ -487,7 +504,7 @@ export function ApprovalsPage() {
                 className="ap-review"
                 data-scroll-restoration-id="approvals-request"
                 data-burst=""
-                aria-label={approvalTitle(t, selected)}
+                aria-label={shownTitle(t, selected, simpleScreens(org))}
               >
                 <ReviewHead approval={selected} channel={channelName(selected.channelId)} />
                 <ReviewBody key={selected.id} approval={selected} channel={channelName(selected.channelId)} />
@@ -696,13 +713,25 @@ export function expiryText(t: TFunction, a: Pick<Approval, "expiresAt">) {
 }
 
 /** Approve: one click, or a hold for high risk (let go early and nothing happens). */
-export function ApproveButton({ approval, block, tip }: { approval: Approval; block?: boolean; tip?: string }) {
+export function ApproveButton({
+  approval,
+  block,
+  tip,
+  once,
+}: {
+  approval: Approval;
+  block?: boolean;
+  tip?: string;
+  /** The quiet button beside "Aprovar sempre" where that one leads: "Só desta vez". */
+  once?: boolean;
+}) {
   const { t } = useTranslation();
   const { org } = useOrg();
   const decide = useDecideApproval(org.id);
   return (
     <HoldToApprove
-      label={t(`approval.approve.${approvalAction(approval)}`)}
+      label={once ? t("approval.once") : t(`approval.approve.${approvalAction(approval)}`)}
+      quiet={once}
       high={approvalRisk(approval) === "high"}
       block={block}
       id={approval.id}
@@ -729,8 +758,11 @@ export function HoldToApprove({
   tip,
   pending,
   onGo,
+  quiet,
 }: {
   label: string;
+  /** Not the leading button of its bar. */
+  quiet?: boolean;
   high: boolean;
   block?: boolean;
   id: string;
@@ -760,10 +792,10 @@ export function HoldToApprove({
   if (!high)
     return tipped(
       <Button
-        variant="primary"
+        variant={quiet ? undefined : "primary"}
         size="sm"
         block={block}
-        icon="check"
+        icon={quiet ? undefined : "check"}
         data-approve={id}
         disabled={pending}
         loading={pending}
@@ -951,6 +983,7 @@ function ReqRow({ approval: a, selected, onOpen }: { approval: Approval; selecte
   const leftMs = new Date(a.expiresAt).getTime() - Date.now();
   const waits = approvalWaitsFor(a, dir.memberById.get(a.ownerUserId ?? agent?.ownerUserId ?? "")?.name);
   const where = approvalTarget(a) ?? via.name;
+  const lead = simpleScreens(org) ? approvalLead(a)?.title : null;
   const end =
     p === "waiting" ? (
       <span className={cx("ap-li__left", leftMs <= URGENT_MS && "is-urgent")}>
@@ -985,12 +1018,12 @@ function ReqRow({ approval: a, selected, onOpen }: { approval: Approval; selecte
           {p === "waiting" || p === "running" ? (
             <Trans
               i18nKey="notifications.wait.wants"
-              values={{ name, action: approvalDoing(t, a, i18n.language) }}
+              values={{ name, action: lead ? lowerFirst(lead, i18n.language) : approvalDoing(t, a, i18n.language) }}
               components={{ b: <b /> }}
               {...TYPED_VALUES}
             />
           ) : (
-            <b>{approvalTitle(t, a)}</b>
+            <b>{lead ?? approvalTitle(t, a)}</b>
           )}
         </span>
       </span>
@@ -1093,7 +1126,7 @@ function ReviewHead({ approval: a, channel }: { approval: Approval; channel: str
   const p = approvalPhase(a);
   const origin = approvalOriginShort(a);
   const tt = t as unknown as (key: string, options?: Record<string, unknown>) => string;
-  const title = approvalTitle(t, a);
+  const title = shownTitle(t, a, simpleScreens(org));
   const by = [
     agent?.role,
     origin ? tt(origin.key, origin.values) : "",
@@ -1162,7 +1195,9 @@ function ReviewBody({ approval: a, channel }: { approval: Approval; channel: str
   const { effect } = approvalEffects(a);
   const target = approvalTarget(a);
   const text = approvalText(a);
-  const why = approvalWords(a);
+  // On simple screens the why's opening sentence is the request's title (`shownTitle`): the rest is the reason.
+  const lead = simple ? approvalLead(a) : null;
+  const why = lead ? lead.rest : approvalWords(a);
   const pr = prLink(a);
   const leftMs = new Date(a.expiresAt).getTime() - Date.now();
   const waits = approvalWaitsFor(a, dir.memberById.get(a.ownerUserId ?? agent?.ownerUserId ?? "")?.name);
@@ -1450,6 +1485,10 @@ function DecisionBar({
         <RefuseBox approval={a} agent={agent} onCancel={onCancelRefuse} />
       </div>
     );
+  // A routine asks the same thing every time it runs: on simple screens the answer that ends the asking leads
+  // ("Sempre nesta rotina"), and approving this one time is the quiet button beside it. Never for a high-risk action.
+  const forGood =
+    simpleScreens(org) && approveAlwaysOffered(a) && Boolean(a.approveAlways?.routineId) && approvalRisk(a) !== "high";
   const note =
     approvalRisk(a) === "high"
       ? t("approvals.holdNote")
@@ -1460,12 +1499,13 @@ function DecisionBar({
     <div className={cx("ap-bar ap-bar--acts", floating && "ap-bar--float")}>
       <div className="ap-bar__acts">
         <Locked when={deciding}>
-          {approveAlwaysOffered(a) && <ApproveAlways approval={a} agent={agent} also={also} />}
+          {approveAlwaysOffered(a) && !forGood && <ApproveAlways approval={a} agent={agent} also={also} />}
           <Button size="sm" onClick={onRefuse}>
             {t("approval.refuse")}
             <Kbd>R</Kbd>
           </Button>
-          <ApproveButton approval={a} tip={note} />
+          <ApproveButton approval={a} tip={note} once={forGood} />
+          {forGood && <ApproveAlways approval={a} agent={agent} also={also} primary />}
         </Locked>
       </div>
     </div>
@@ -1642,6 +1682,8 @@ function Outcome({ approval: a, agent }: { approval: Approval; agent: Agent | un
   const g = agentGrammar(name);
   const p = approvalPhase(a);
   const simple = simpleScreens(org);
+  // What its tool said names the way out (sign in again, an account that may not, a service that is out).
+  const cause = p === "failed" ? failureCause(a.result?.text) : null;
   if (p === "waiting") return null;
   const who =
     a.decidedByUserId === me.user.id
@@ -1655,7 +1697,11 @@ function Outcome({ approval: a, agent }: { approval: Approval; agent: Agent | un
       : p === "done"
         ? ["check", t("approvals.panel.done"), approvedBy]
         : p === "failed"
-          ? ["alert", t("approvals.panel.failed"), t("approvals.panel.failedLine", { name })]
+          ? [
+              "alert",
+              t("approvals.panel.failed"),
+              cause ? t(`approvals.cause.${cause}`) : t("approvals.panel.failedLine", { name }),
+            ]
           : p === "refused"
             ? [
                 "close",
@@ -1683,7 +1729,18 @@ function Outcome({ approval: a, agent }: { approval: Approval; agent: Agent | un
     ) : p === "expired" && aheadPhase(a) !== "lapsed" ? (
       <AskAgain approval={a} agent={agent} />
     ) : p === "failed" ? (
-      <AskAgain approval={a} agent={agent} failed />
+      <span className="ap-outcome__acts">
+        {cause === "reconnect" && a.connector && (
+          <Link
+            className="ac-link"
+            to="/org/$orgId/settings/$section"
+            params={{ orgId: org.id, section: "connectors" }}
+          >
+            {t("approvals.reconnect")}
+          </Link>
+        )}
+        <AskAgain approval={a} agent={agent} failed />
+      </span>
     ) : undefined;
   return (
     <Card className={cx("ap-review__card ap-outcome", `ap-outcome--${p}`)}>

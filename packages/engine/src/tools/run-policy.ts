@@ -501,7 +501,7 @@ const WHY_PROPERTY: JsonSchema = {
   minLength: WHY_MIN_CHARS,
   maxLength: WHY_MAX_CHARS,
   description:
-    "Why you ask, for the people deciding (shown on the card, where code and commands stay hidden): what you found, what this action will do and why, in their language and in plain words, with no code or tool names.",
+    "Why you ask, for the people deciding (shown on the card, where code and commands stay hidden), in their language and in plain words, with no code or tool names. Open with one short sentence, under 80 characters, that says what this action will do (it is the card's title: \"Check yesterday's sales in Mercado Pago.\"); then what you found and why.",
 };
 
 /** Whether a tool's own schema already has a `why` (then it is the tool's, never stripped). */

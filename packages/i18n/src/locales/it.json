@@ -4548,6 +4548,7 @@
       "other": "Approva"
     },
     "refuse": "Rifiuta",
+    "once": "Solo questa volta",
     "viewDiff": "Vedi diff",
     "viewInChannel": "Vedi nel canale",
     "group": "Richiesta di approvazione",
@@ -5049,6 +5050,13 @@
     "againBody": "@{{handle}} la richiesta “{{title}}” è scaduta senza una decisione. Se ha ancora senso, chiedi di nuovo.",
     "againSent": "Richiesta inviata nella conversazione",
     "retry": "Chiedi di riprovare",
+    "cause": {
+      "reconnect": "La connessione con l’app è scaduta. Ricollegala e chiedi di riprovare.",
+      "permission": "L’account collegato non ha il permesso di farlo. Controlla l’accesso nell’app e chiedi di riprovare.",
+      "unavailable": "Il servizio non ha risposto. Aspetta un po’ e chiedi di riprovare.",
+      "limit": "Il servizio ha rifiutato: troppe richieste. Aspetta qualche minuto e chiedi di riprovare."
+    },
+    "reconnect": "Ricollega",
     "retryBody": "@{{handle}} l’azione “{{title}}” che è stata approvata non è riuscita. Guarda cosa è andato storto e riprova, oppure dimmi cosa devo fare.",
     "valueKeys": "Chiavi del Vault usate",
     "noResults": "Nessuna richiesta corrisponde a questi filtri.",

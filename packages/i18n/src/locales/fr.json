@@ -4548,6 +4548,7 @@
       "other": "Approuver"
     },
     "refuse": "Refuser",
+    "once": "Cette fois seulement",
     "viewDiff": "Voir le diff",
     "viewInChannel": "Voir dans le canal",
     "group": "Demande d'approbation",
@@ -5047,6 +5048,13 @@
     "againBody": "@{{handle}} la demande « {{title}} » a expiré sans décision. Si elle a encore du sens, redemandez.",
     "againSent": "Demande envoyée dans la conversation",
     "retry": "Demander de réessayer",
+    "cause": {
+      "reconnect": "La connexion à l’app a expiré. Reconnectez-la et demandez de réessayer.",
+      "permission": "Le compte connecté n’a pas le droit de faire cela. Vérifiez l’accès dans l’app et demandez de réessayer.",
+      "unavailable": "Le service n’a pas répondu. Attendez un peu et demandez de réessayer.",
+      "limit": "Le service a refusé : trop de demandes. Attendez quelques minutes et demandez de réessayer."
+    },
+    "reconnect": "Reconnecter",
     "retryBody": "@{{handle}} l’action « {{title}} » qui a été approuvée a échoué. Regardez ce qui n’a pas marché et réessayez, ou dites-moi ce que je dois faire.",
     "valueKeys": "Clés du Vault utilisées",
     "noResults": "Aucune demande ne correspond à ces filtres.",

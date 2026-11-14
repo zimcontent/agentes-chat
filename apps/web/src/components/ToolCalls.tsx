@@ -8,6 +8,7 @@ import {
   useRun,
 } from "@agenteschat/client";
 import type { Activity, ActivityKind } from "@agenteschat/client/lib/activity";
+import { type FailureCause, failureCause } from "@agenteschat/client/lib/failure-cause";
 import { agentGrammar } from "@agenteschat/client/lib/grammar";
 import { simpleScreens } from "@agenteschat/client/lib/simple-mode";
 import {
@@ -142,6 +143,8 @@ export function useCallLogo() {
   };
 }
 
+const causeWords = (t: TFunction, cause: FailureCause | null) => (cause ? t(`approvals.cause.${cause}`) : null);
+
 /** A line of the block from the shared model: its phrase, time, open view (code, output, what it got and gave). */
 function blockLine(
   t: TFunction,
@@ -196,7 +199,8 @@ function blockLine(
     hint: simple ? undefined : toolLineHint(t, l),
     time: l.ms !== null && l.state !== "run" ? formatLineTime(locale, l.ms) : undefined,
     count: l.count > 1 ? t("chat.work.times", { count: l.count }) : undefined,
-    why: l.state === "fail" ? why : null,
+    // Simple screens: where the tool's own words name the way out (`failureCause`), that, in the person's words.
+    why: l.state === "fail" ? (why ?? (simple ? causeWords(t, failureCause(l.result ?? l.why)) : null)) : null,
     detail,
     defaultOpen: !simple && l.state === "run" && Boolean(l.code),
   };

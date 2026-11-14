@@ -4727,6 +4727,8 @@ export const en = {
       other: "Approve",
     },
     refuse: "Refuse",
+    /** Beside "Always in this routine" where that one leads the bar: approve this one request only. */
+    once: "Only this time",
     viewDiff: "View diff",
     viewInChannel: "View in group",
     group: "Approval request",
@@ -5190,6 +5192,14 @@ export const en = {
     againSent: "Request sent in the conversation",
     /** A failed action's button: asks the agent, in the conversation, to see what went wrong and try again. */
     retry: "Ask to try again",
+    /** Why an approved action failed, read from what its tool said (`failureCause`), and what to do. */
+    cause: {
+      reconnect: "The connection to the app expired. Reconnect it and ask to try again.",
+      permission: "The connected account isn't allowed to do this. Check its access in the app and ask to try again.",
+      unavailable: "The service didn't answer. Wait a little and ask to try again.",
+      limit: "The service refused: too many requests. Wait a few minutes and ask to try again.",
+    },
+    reconnect: "Reconnect",
     retryBody:
       "@{{handle}} the action “{{title}}” that was approved failed. See what went wrong and try again, or tell me what I need to do.",
     /** A code action's saved keys, as its value's label on simple screens. */

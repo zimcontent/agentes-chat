@@ -4398,7 +4398,10 @@ export const TimelineMessage = memo(function TimelineMessage({
   const usage = m.author.type === "agent" && !mediaAfter ? messageUsage(m) : null;
   const details = [
     formatFullDate(i18n.language, m.createdAt),
-    usage ? usageLine(t, i18n.language, usage, { modelLabel: modelLabels.get(usage.model) }) : null,
+    // The model and its tokens are for whoever chose the technical screens.
+    usage && !simpleScreens(org)
+      ? usageLine(t, i18n.language, usage, { modelLabel: modelLabels.get(usage.model) })
+      : null,
   ]
     .filter(Boolean)
     .join(" · ");
