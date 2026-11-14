@@ -27,10 +27,32 @@ export interface WhatsAppDeps {
 export type WhatsAppAccountRow = typeof schema.whatsappAccounts.$inferSelect;
 
 export const WHATSAPP_LABEL_MAX = 40;
+/**
+ * How the agent may talk on a number: the wait before it reads a conversation (seconds), how fast it types, how
+ * many messages an answer may be, and how long it stays quiet after a person wrote (minutes). The wait has a floor:
+ * an answer that comes back at once is what a machine does.
+ */
+export const WHATSAPP_AGENT_STYLE_BOUNDS = {
+  waitSeconds: { min: 3, max: 300 },
+  paces: ["fast", "natural", "slow"] as const,
+  messages: { min: 1, max: 3 },
+  quietMinutes: { min: 5, max: 24 * 60 },
+};
 /** The most a number's instructions for its agent may hold: a few pages, read on every answer. */
 export const WHATSAPP_INSTRUCTIONS_MAX = 20_000;
 /** A QR code WhatsApp still accepts: it makes a new one about every 20 s, and the gateway tells each. */
 export const WHATSAPP_QR_FRESH_MS = 60_000;
+
+export interface WhatsAppAgentStyle {
+  /** Seconds it waits after a message before reading the conversation. */
+  waitSeconds: number;
+  /** How fast it types. */
+  pace: "fast" | "natural" | "slow";
+  /** The most messages one answer is split in. */
+  messages: number;
+  /** Minutes it stays quiet in a conversation after a person wrote there. */
+  quietMinutes: number;
+}
 
 export interface WhatsAppAccountView {
   id: string;
@@ -47,6 +69,8 @@ export interface WhatsAppAccountView {
   instructions: string | null;
   /** The agent answers this number's conversations now. */
   agentOn: boolean;
+  /** How the agent talks here (`WHATSAPP_AGENT_STYLE`). */
+  agentStyle: WhatsAppAgentStyle;
   /** Whether the asker may read and answer its conversations. */
   mine: boolean;
   /** Whether the asker may change or remove it. */
@@ -86,6 +110,12 @@ function view(row: WhatsAppAccountRow, userId: string, manage: boolean, now = Da
     agentId: row.agentId,
     instructions: manage ? row.instructions : null,
     agentOn: row.agentId !== null && row.agentOn,
+    agentStyle: {
+      waitSeconds: row.agentWaitSeconds,
+      pace: row.agentPace,
+      messages: row.agentMessages,
+      quietMinutes: row.agentQuietMinutes,
+    },
     mine: row.people.includes(userId),
     manage,
     createdAt: row.createdAt.toISOString(),
@@ -223,7 +253,14 @@ export async function updateWhatsAppAccount(
   userId: string,
   orgId: string,
   accountId: string,
-  input: { label?: string; people?: string[]; agentId?: string | null; instructions?: string; agentOn?: boolean },
+  input: {
+    label?: string;
+    people?: string[];
+    agentId?: string | null;
+    instructions?: string;
+    agentOn?: boolean;
+    agentStyle?: Partial<WhatsAppAgentStyle>;
+  },
 ) {
   await requirePermission(deps.db, userId, orgId, "manage_connectors");
   const current = await accountRow(deps.db, orgId, accountId);
@@ -263,6 +300,26 @@ export async function updateWhatsAppAccount(
       throw new ValidationError(`Instructions have at most ${WHATSAPP_INSTRUCTIONS_MAX} characters`);
     }
     set.instructions = instructions;
+  }
+  if (input.agentStyle) {
+    const style = input.agentStyle;
+    const within = (value: number, range: { min: number; max: number }, what: string) => {
+      if (!Number.isInteger(value) || value < range.min || value > range.max) {
+        throw new ValidationError(`${what} goes from ${range.min} to ${range.max}`);
+      }
+      return value;
+    };
+    const bounds = WHATSAPP_AGENT_STYLE_BOUNDS;
+    if (style.waitSeconds !== undefined)
+      set.agentWaitSeconds = within(style.waitSeconds, bounds.waitSeconds, "The wait");
+    if (style.messages !== undefined) set.agentMessages = within(style.messages, bounds.messages, "Messages");
+    if (style.quietMinutes !== undefined) {
+      set.agentQuietMinutes = within(style.quietMinutes, bounds.quietMinutes, "The quiet time");
+    }
+    if (style.pace !== undefined) {
+      if (!bounds.paces.includes(style.pace)) throw new ValidationError("Unknown pace");
+      set.agentPace = style.pace;
+    }
   }
   if (Object.keys(set).length === 0) return view(current, userId, true);
   const [row] = await deps.db

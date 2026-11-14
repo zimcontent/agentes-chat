@@ -20,11 +20,25 @@ export interface WhatsAppAccount {
   instructions: string | null;
   /** The agent answers this number's conversations now. */
   agentOn: boolean;
+  /** How the agent talks here. */
+  agentStyle: WhatsAppAgentStyle;
   /** The person is on its list. */
   mine: boolean;
   /** The person may change or remove it. */
   manage: boolean;
   createdAt: string;
+}
+
+export type WhatsAppPace = "fast" | "natural" | "slow";
+
+export interface WhatsAppAgentStyle {
+  /** Seconds it waits after a message before reading the conversation (3 to 300). */
+  waitSeconds: number;
+  pace: WhatsAppPace;
+  /** The most messages one answer is split in (1 to 3). */
+  messages: number;
+  /** Minutes it stays quiet in a conversation after a person wrote there (5 to 1440). */
+  quietMinutes: number;
 }
 
 export interface WhatsAppOverview {
@@ -109,6 +123,7 @@ export interface WhatsAppAccountPatch {
   agentId?: string | null;
   instructions?: string;
   agentOn?: boolean;
+  agentStyle?: Partial<WhatsAppAgentStyle>;
 }
 
 export interface WhatsAppSendInput {

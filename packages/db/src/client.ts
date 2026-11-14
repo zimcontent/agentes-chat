@@ -153,6 +153,11 @@ export const EXTRA_COLUMNS = [
   `ALTER TABLE "whatsapp_chats" ADD COLUMN IF NOT EXISTS "needs_person" boolean NOT NULL DEFAULT false`,
   `ALTER TABLE "whatsapp_chats" ADD COLUMN IF NOT EXISTS "agent_note" text NOT NULL DEFAULT ''`,
   `ALTER TABLE "whatsapp_messages" ADD COLUMN IF NOT EXISTS "sent_by_agent_id" uuid REFERENCES "agents"("id") ON DELETE SET NULL`,
+  `ALTER TABLE "whatsapp_accounts" ADD COLUMN IF NOT EXISTS "agent_wait_seconds" integer NOT NULL DEFAULT 8`,
+  `ALTER TABLE "whatsapp_accounts" ADD COLUMN IF NOT EXISTS "agent_pace" text NOT NULL DEFAULT 'natural'`,
+  `ALTER TABLE "whatsapp_accounts" ADD COLUMN IF NOT EXISTS "agent_messages" integer NOT NULL DEFAULT 3`,
+  `ALTER TABLE "whatsapp_accounts" ADD COLUMN IF NOT EXISTS "agent_quiet_minutes" integer NOT NULL DEFAULT 60`,
+  `ALTER TABLE "whatsapp_chats" ADD COLUMN IF NOT EXISTS "lid" text`,
 ];
 
 /** The advisory lock every process takes around its migrations (`DatabaseHandle.migrate`). */

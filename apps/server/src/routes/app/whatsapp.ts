@@ -8,13 +8,16 @@ import {
   reconnectWhatsAppAccount,
   removeWhatsAppAccount,
   requestWhatsAppHistory,
+  sendWhatsAppFile,
   sendWhatsAppText,
   setWhatsAppChatAgent,
   typingInWhatsAppChat,
   updateWhatsAppAccount,
+  WHATSAPP_AGENT_STYLE_BOUNDS,
   WHATSAPP_INSTRUCTIONS_MAX,
   WHATSAPP_LABEL_MAX,
   WHATSAPP_PAGE_MAX,
+  WHATSAPP_SEND_FILE_MAX_BYTES,
   WHATSAPP_TEXT_MAX,
   whatsappMessageFile,
 } from "@agenteschat/engine";
@@ -75,6 +78,22 @@ const ChatParams = AccountParams.extend({
   chatId: z.uuid().openapi({ param: { name: "chatId", in: "path" } }),
 });
 
+const STYLE = WHATSAPP_AGENT_STYLE_BOUNDS;
+const AgentStyle = z
+  .object({
+    waitSeconds: z.number().int().min(STYLE.waitSeconds.min).max(STYLE.waitSeconds.max).openapi({
+      description: "Seconds the agent waits after a message before it reads the conversation.",
+    }),
+    pace: z.enum(STYLE.paces).openapi({ description: "How fast it types: `fast`, `natural` or `slow`." }),
+    messages: z.number().int().min(STYLE.messages.min).max(STYLE.messages.max).openapi({
+      description: "The most messages one answer is split in. 1: always a single message.",
+    }),
+    quietMinutes: z.number().int().min(STYLE.quietMinutes.min).max(STYLE.quietMinutes.max).openapi({
+      description: "Minutes it stays quiet in a conversation after a person wrote there.",
+    }),
+  })
+  .openapi("WhatsAppAgentStyle");
+
 const Account = z
   .object({
     id: z.string(),
@@ -99,6 +118,7 @@ const Account = z
       description:
         "The agent answers this number's conversations now: only someone who wrote, never a group, and never a conversation where a person wrote in the last hour.",
     }),
+    agentStyle: AgentStyle,
     mine: z.boolean().openapi({ description: "The asker is on its list." }),
     manage: z.boolean().openapi({ description: "The asker may change or remove it." }),
     createdAt: z.string(),
@@ -252,6 +272,7 @@ export function whatsappRoutes(deps: AppDeps) {
             agentId: z.uuid().nullable().optional(),
             instructions: z.string().max(WHATSAPP_INSTRUCTIONS_MAX).optional(),
             agentOn: z.boolean().optional().openapi({ description: "400 to turn it on with no agent chosen." }),
+            agentStyle: AgentStyle.partial().optional(),
           }),
         ),
       },
@@ -414,6 +435,63 @@ export function whatsappRoutes(deps: AppDeps) {
       }
       const { typing } = c.req.valid("json");
       return c.json(await typingInWhatsAppChat(wa, user.id, orgId, accountId, chatId, typing), 200);
+    },
+  );
+
+  app.openapi(
+    createRoute({
+      method: "post",
+      path: "/organizations/{orgId}/whatsapp/accounts/{accountId}/files",
+      tags,
+      security,
+      summary: "Send a file or a voice message from the number (its people)",
+      description:
+        "A form with the file in `file`. It goes as a picture (JPEG, PNG, WebP), a video (MP4), a voice message (any audio, or `voice: true` for a recording made in the app) or a document (anything else), by its type. `caption` goes with a picture, a video or a document. 413 past 32 MB; 400 while the number isn't connected; 429 past 30 sends a minute.",
+      request: {
+        params: AccountParams,
+        body: {
+          required: true,
+          content: {
+            "multipart/form-data": {
+              schema: z.object({
+                file: z.any().openapi({ type: "string", format: "binary" }),
+                chatId: z.uuid(),
+                caption: z.string().max(WHATSAPP_TEXT_MAX).optional(),
+                voice: z.enum(["true", "false"]).optional(),
+              }),
+            },
+          },
+        },
+      },
+      responses: {
+        201: json(z.object({ chatId: z.string(), kind: z.enum(["image", "video", "audio", "document"]) }), "Sent"),
+        413: errorResponse("The file is too large (`too_large`)"),
+        ...tooMany,
+        ...gatewayDown,
+        ...errors,
+      },
+    }),
+    async (c) => {
+      const { orgId, accountId } = c.req.valid("param");
+      const user = c.get("user");
+      if (await limited(`whatsapp-send:${user.id}`, WHATSAPP_SENDS_PER_PERSON)) {
+        return apiError(c, 429, "rate_limited", "Slow down");
+      }
+      const form = c.req.valid("form");
+      const file: unknown = form.file;
+      if (!(file instanceof File)) return apiError(c, 400, "invalid_request", "Send the file in the field file");
+      if (file.size > WHATSAPP_SEND_FILE_MAX_BYTES) return apiError(c, 413, "too_large", "The file is too large");
+      const sent = await reaching(c, async () =>
+        sendWhatsAppFile(wa, user.id, orgId, accountId, {
+          chatId: form.chatId,
+          bytes: new Uint8Array(await file.arrayBuffer()),
+          mimeType: file.type,
+          fileName: file.name,
+          caption: form.caption,
+          voice: form.voice === "true",
+        }),
+      );
+      return sent.refused ?? c.json(sent.value, 201);
     },
   );
 

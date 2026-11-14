@@ -11,6 +11,7 @@ import {
   reconnectWhatsAppAccount,
   removeWhatsAppAccount,
   requestWhatsAppHistory,
+  sendWhatsAppFile,
   sendWhatsAppText,
   typingInWhatsAppChat,
   updateWhatsAppAccount,
@@ -263,6 +264,85 @@ describe("sending and reading", () => {
     expect(gateway.last("read")).toMatchObject({ chat: ANA, ids: ["A2", "A1"] });
     expect((await listWhatsAppChats(deps, f.owner.id, f.org.id, account.id)).chats[0]?.unread).toBe(0);
     expect(await readWhatsAppChat(deps, f.owner.id, f.org.id, account.id, chatId)).toEqual({ read: 0 });
+  });
+});
+
+describe("sending a file", () => {
+  test("a picture goes as a picture with its caption, a recording as a voice message, the rest as a document", async () => {
+    f = await setup();
+    const { gateway, deps, account, post } = await connected();
+    await post(text("A1", "manda a proposta?"));
+    const { chats } = await listWhatsAppChats(deps, f.owner.id, f.org.id, account.id);
+    const chatId = chats[0]?.id as string;
+    const bytes = new TextEncoder().encode("bytes");
+    const sendIt = (input: { mimeType: string; fileName: string; caption?: string; voice?: boolean }) =>
+      sendWhatsAppFile(deps, f.owner.id, f.org.id, account.id, { chatId, bytes, ...input });
+    expect((await sendIt({ mimeType: "image/png", fileName: "foto.png", caption: " olha " })).kind).toBe("image");
+    expect((await sendIt({ mimeType: "audio/webm;codecs=opus", fileName: "voice.webm", voice: true })).kind).toBe(
+      "audio",
+    );
+    expect((await sendIt({ mimeType: "application/pdf", fileName: "proposta.pdf" })).kind).toBe("document");
+    // A GIF or a MOV isn't one WhatsApp draws from here: it goes as a file.
+    expect((await sendIt({ mimeType: "image/gif", fileName: "anim.gif" })).kind).toBe("document");
+    expect(gateway.calls.filter((c) => c.op === "file").map((c) => [c.kind, c.fileName, c.caption])).toEqual([
+      ["image", "foto.png", "olha"],
+      ["audio", "voice.webm", ""],
+      ["document", "proposta.pdf", ""],
+      ["document", "anim.gif", ""],
+    ]);
+    const page = await listWhatsAppMessages(deps, f.owner.id, f.org.id, account.id, chatId, { limit: 4 });
+    expect(page.messages.map((m) => [m.kind, m.body, m.file, m.sentByUserId === f.owner.id])).toEqual([
+      ["document", "", true, true],
+      ["document", "", true, true],
+      ["audio", "", true, true],
+      ["image", "olha", true, true],
+    ]);
+    await expect(sendIt({ mimeType: "image/png", fileName: "vazio.png" }).then(() => null)).resolves.toBeNull();
+    await expect(
+      sendWhatsAppFile(deps, f.owner.id, f.org.id, account.id, {
+        chatId,
+        bytes: new Uint8Array(0),
+        mimeType: "image/png",
+        fileName: "vazio.png",
+      }),
+    ).rejects.toThrow("empty");
+  });
+});
+
+describe("one person, two addresses", () => {
+  const LID = "98765432101234@lid";
+
+  test("an answer written on the phone, addressed by the hidden id, stays in the same conversation", async () => {
+    f = await setup();
+    const { deps, account, post } = await connected();
+    await post(text("A1", "bom dia"));
+    await post(
+      text("P1", "respondi do celular", {
+        Chat: LID,
+        IsFromMe: true,
+        Sender: "5511911112222@s.whatsapp.net",
+        RecipientAlt: ANA,
+      }),
+    );
+    // Later the same person writes under the hidden id alone: still theirs.
+    await post(text("A2", "obrigada", { Chat: LID, Sender: LID }));
+    const { chats } = await listWhatsAppChats(deps, f.owner.id, f.org.id, account.id);
+    expect(chats.map((c) => [c.phone, c.name, c.lastText])).toEqual([["5511999990000", "Ana", "obrigada"]]);
+    const page = await listWhatsAppMessages(deps, f.owner.id, f.org.id, account.id, chats[0]?.id as string);
+    expect(page.messages.map((m) => m.body)).toEqual(["obrigada", "respondi do celular", "bom dia"]);
+  });
+
+  test("two conversations made before the pair was told become one, with every message", async () => {
+    f = await setup();
+    const { deps, account, post } = await connected();
+    await post(text("A1", "pelo número"));
+    await post(text("L1", "pelo id escondido", { Chat: LID, Sender: LID }));
+    expect((await listWhatsAppChats(deps, f.owner.id, f.org.id, account.id)).chats).toHaveLength(2);
+    await post(text("A3", "agora com os dois", { SenderAlt: LID }));
+    const { chats } = await listWhatsAppChats(deps, f.owner.id, f.org.id, account.id);
+    expect(chats.map((c) => [c.phone, c.unread, c.lastText])).toEqual([["5511999990000", 3, "agora com os dois"]]);
+    const page = await listWhatsAppMessages(deps, f.owner.id, f.org.id, account.id, chats[0]?.id as string);
+    expect(page.messages).toHaveLength(3);
   });
 });
 
