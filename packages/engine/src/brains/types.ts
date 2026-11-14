@@ -72,6 +72,8 @@ export interface BrainAccount {
   status: "active" | "signed_out";
   /** A key account's coding plan (`zai`…), which names the models it runs. */
   provider?: string;
+  /** It thinks while the agent's own account, this one, is at its plan's limit (`standInAccount`). */
+  standsInFor?: { id: string; label: string };
 }
 
 /** A tool as the engine offers it to a brain (same data the Tool Gateway lists for the run). */

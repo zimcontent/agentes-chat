@@ -64,6 +64,7 @@ import {
   claudePlan,
   claudeTier,
   cliSpawn,
+  parseAgyModels,
   GROK_BIN,
   isExecutable,
   OPENCODE_BIN,
@@ -1213,6 +1214,8 @@ export interface AccountManagerOptions {
   log?: (line: string) => void;
   /** An account was added or removed, a fresh look changed the list (`hello`, the app's status), or usage moved. */
   onChange?: () => void;
+  /** What the signed-in Gemini accounts list as their models changed (`agyModels`). */
+  onModels?: () => void;
   /** System mode: folders are lent to agents' users (`lendTo`); `chown` never follows a link (tests: a fake). */
   lending?: { chown: Chown };
   /** Tests: the platform (the Antigravity CLI signs in only on Linux here). */
@@ -2295,7 +2298,39 @@ export class AccountManager {
               : parseCodexStatus(r.status, `${r.stdout}\n${r.stderr}`);
     // Timed out, or didn't start.
     const unknown = r.status === null ? { statusUnknown: true as const } : {};
+    // The same answer is the account's own list of models: a look that couldn't tell keeps the last one.
+    if (kind === "antigravity" && r.status !== null) {
+      this.keepAgyModels(id, status.loggedIn && !refused ? parseAgyModels(stripAnsi(r.stdout)) : []);
+    }
     return { id, kind, ...status, ...unknown, ...shared };
+  }
+
+  /** What each signed-in Gemini account's `agy models` last listed, by account. */
+  private readonly agyListed = new Map<string, { id: string; label?: string }[]>();
+
+  private keepAgyModels(id: string, models: { id: string; label?: string }[]) {
+    const before = JSON.stringify(this.agyListed.get(id) ?? []);
+    if (models.length) this.agyListed.set(id, models);
+    else this.agyListed.delete(id);
+    if (before === JSON.stringify(models)) return;
+    try {
+      this.opts.onModels?.();
+    } catch {
+      // an observer never breaks the manager
+    }
+  }
+
+  /**
+   * The models this computer's signed-in Gemini accounts offer, each once, the account that lists most first: what
+   * `hello.executors.antigravity.models` carries where the CLI itself, which has no sign-in of its own here (ADR
+   * 0143 §3), lists none. An account's plan decides its list, so a model here may be another account's.
+   */
+  agyModels(): { id: string; label?: string }[] {
+    const out: { id: string; label?: string }[] = [];
+    for (const list of [...this.agyListed.values()].sort((a, b) => b.length - a.length)) {
+      for (const m of list) if (!out.some((x) => x.id === m.id)) out.push(m);
+    }
+    return out.slice(0, 60);
   }
 
   private async lookAll(): Promise<RunnerAccountInfo[]> {
@@ -2385,6 +2420,7 @@ export class AccountManager {
     if (!isAccountId(id)) throw new RunnerError("bad_request", "Invalid account id");
     const login = this.logins.get(id);
     if (login?.state === "waiting") return this.cancel(id);
+    if (kind === "antigravity") this.keepAgyModels(id, []);
     const dir = this.dirOf(kind, id);
     const markers = () =>
       Promise.all([

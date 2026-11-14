@@ -564,11 +564,84 @@ export async function brainAccountFor(
     );
   if (!row || row.kind !== kind) return undefined;
   // A sign-in still in progress or an account being removed can't think: as good as signed out.
-  return {
+  const own: BrainAccount = {
     id: row.id,
     label: row.label,
     status: row.status === "active" ? "active" : "signed_out",
     ...(row.provider ? { provider: row.provider } : {}),
+  };
+  return (await standInAccount(db, agent.orgId, kind, machineId, own)) ?? own;
+}
+
+let accountStandIns = false;
+
+/**
+ * Accounts standing in for each other (ADR doug-0003, `AI_ACCOUNT_STAND_IN`): off unless the server turns it on.
+ * A provider may forbid it for its consumer plans (Google does for Gemini's: ADR 0143), so it is the operator's call.
+ */
+export function enableAccountStandIns(on = true) {
+  accountStandIns = on;
+}
+
+/**
+ * The account that thinks while `own` is at its plan's limit (ADR doug-0003): another signed-in account of the same
+ * person, plan and audience on the same computer, the oldest that has room. None where they are off, where `own`
+ * has room or isn't signed in (that is fixed by signing in, not by spending another plan), or where each agent is its
+ * own OS user (the computer tells each agent's worker the one account it thinks with). `own` thinks again by itself
+ * once its limit resets: this is asked on every turn.
+ */
+export async function standInAccount(
+  db: Executor,
+  orgId: string,
+  kind: BrainKind,
+  machineId: string,
+  own: BrainAccount,
+  now = Date.now(),
+): Promise<BrainAccount | undefined> {
+  if (!accountStandIns || kind === "model" || own.status !== "active") return undefined;
+  const { machineAccounts, machines } = schema;
+  const rows = await db
+    .select({
+      id: machineAccounts.id,
+      label: machineAccounts.label,
+      provider: machineAccounts.provider,
+      usage: machineAccounts.usage,
+      createdBy: machineAccounts.createdBy,
+      serves: machineAccounts.serves,
+    })
+    .from(machineAccounts)
+    .where(
+      and(
+        eq(machineAccounts.orgId, orgId),
+        eq(machineAccounts.machineId, machineId),
+        eq(machineAccounts.kind, kind),
+        eq(machineAccounts.status, "active"),
+      ),
+    )
+    .orderBy(machineAccounts.createdAt, machineAccounts.id);
+  const mine = rows.find((r) => r.id === own.id);
+  if (!mine?.createdBy) return undefined;
+  if (!planLimitNow(limitKey(machineId, kind, own.id), mine.usage as PlanUsage | null, now)) return undefined;
+  const other = rows.find(
+    (r) =>
+      r.id !== own.id &&
+      r.createdBy === mine.createdBy &&
+      r.serves === mine.serves &&
+      (r.provider ?? null) === (mine.provider ?? null) &&
+      !planLimitNow(limitKey(machineId, kind, r.id), r.usage as PlanUsage | null, now),
+  );
+  if (!other) return undefined;
+  const [machine] = await db
+    .select({ mode: sql<string | null>`${machines.executors}->>'mode'` })
+    .from(machines)
+    .where(and(eq(machines.orgId, orgId), eq(machines.id, machineId)));
+  if (machine?.mode === "system") return undefined;
+  return {
+    id: other.id,
+    label: other.label,
+    status: "active",
+    ...(other.provider ? { provider: other.provider } : {}),
+    standsInFor: { id: own.id, label: own.label },
   };
 }
 

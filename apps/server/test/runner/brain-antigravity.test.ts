@@ -32,6 +32,7 @@ import {
 import {
   type AntigravityBrainContext,
   type AntigravityBrainTurnRequest,
+  agyDenied,
   antigravityChatBreach,
   antigravityChatsFile,
   antigravityProblem,
@@ -41,7 +42,7 @@ import {
   parseAgyError,
 } from "../../runner/brain-antigravity";
 import type { CodexBrainEvent } from "../../runner/brain-codex";
-import { detectExecutors, parseAgyModels } from "../../runner/executors";
+import { detectExecutors, parseAgyModels, withAccountModels } from "../../runner/executors";
 import { CODEX_MCP_SERVER } from "../../runner/mcp";
 import { antigravityUsage, resetFromWords } from "../../runner/plan-usage";
 import type { Spawn } from "../../runner/scope-gate";
@@ -390,6 +391,13 @@ test.skipIf(!posix)(
     const limited = await run(ctx, turn({ runId: RUN.replace(/1$/, "6"), prompt: "LIMIT" }));
     expect(limited.find((e) => e.type === "limit")).toMatchObject({ resetsAt: expect.any(String) });
     expect(limited.at(-1)).toMatchObject({ type: "error", code: "plan_limit" });
+    // A command the CLI denied without asking, and nothing said: an error with the way out, never an empty answer.
+    expect(await final({ runId: RUN.replace(/1$/, "7"), prompt: "DENIED" })).toMatchObject({
+      type: "error",
+      code: "antigravity_failed",
+      retryable: false,
+      message: expect.stringContaining("refused Bash"),
+    });
     expect(await final({}, { ...ctx, platform: "darwin" })).toMatchObject({ code: "unsupported" });
   },
   20_000,
@@ -599,6 +607,8 @@ test.skipIf(!posix)(
     expect(await m.lendTo("antigravity", ACCOUNT, 21001)).toBe(false);
     m.invalidate();
     expect(await m.list()).toEqual([account]);
+    // The same look is the account's list of models, which the computer reports as the CLI's.
+    expect(m.agyModels()[0]?.id).toMatch(/^gemini-/);
     // Its plan's usage, from its CLI in root's folder, which refreshes the sign-in in place meanwhile: a turn's copy is
     // read once the file is whole again, never as an empty one that would sign every agent out.
     process.env.FAKE_AGY_REFRESH_MS = "500";
@@ -732,3 +742,33 @@ test.skipIf(!posix)(
   },
   45_000,
 );
+
+test("the signed-in accounts' models stand as the CLI's where it listed none of its own", () => {
+  const models = [{ id: "gemini-4-hydrogen-xhigh", label: "Gemini 4 Hydrogen (Extra High)" }];
+  expect(withAccountModels({ antigravity: { version: "1.5.9" } }, models)).toEqual({
+    antigravity: { version: "1.5.9", models },
+  });
+  // Not installed, nothing listed by an account, or a list of the CLI's own: as it was.
+  expect(withAccountModels({}, models)).toEqual({});
+  expect(withAccountModels({ antigravity: { version: "1.5.9" } }, [])).toEqual({ antigravity: { version: "1.5.9" } });
+  const own = { antigravity: { version: "1.5.9", models: [{ id: "gemini-3.8-flash-low", label: "Flash" }] } };
+  expect(withAccountModels(own, models)).toBe(own);
+  // A slug that names its level takes no `--effort`, Extra High included.
+  expect(
+    antigravityTurnArgs({ prompt: "oi", model: "gemini-4-hydrogen-xhigh", chat: FIRST, effort: "low" }),
+  ).not.toContain("--effort");
+});
+
+test("a turn the CLI ended with nothing because it denied a command says so, with the way out", () => {
+  // CLI 1.5.9 with no terminal sandbox: `status: "SUCCESS"`, an empty response and the denied actions.
+  const said = agyDenied({
+    status: "SUCCESS",
+    response: "",
+    denied_actions: [{ action: "command", display_name: "Bash" }],
+  });
+  expect(said).toContain("refused Bash");
+  expect(said).toContain("AppArmor");
+  expect(agyDenied({ denied_actions: [{ action: "mcp", display_name: "post_message" }] })).not.toContain("AppArmor");
+  expect(agyDenied({ status: "SUCCESS", response: "oi" })).toBeNull();
+  expect(agyDenied({ denied_actions: [] })).toBeNull();
+});

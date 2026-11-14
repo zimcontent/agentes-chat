@@ -83,6 +83,7 @@ import {
   refusalScope,
   regionRefusal,
   resolveBrain,
+  standInAccount,
   storedPlanUsage,
   UNAVAILABLE_CODES,
 } from "./brains/select";
@@ -3664,6 +3665,25 @@ async function executeRunInner(
   };
 
   /**
+   * The account's own plan refused the turn and another account of its owner on that computer has room
+   * (`standInAccount`, ADR doug-0003): the run's next turns think with that one, at once. False where there is none,
+   * or for a mission's session, which stays where its work is.
+   */
+  const standIn = async (machineId: string, error: BrainFailure): Promise<boolean> => {
+    const account = plan.account;
+    if (!account || plan.kind === "model" || plan.missionId) return false;
+    notePlanLimit(machineId, plan.kind, error.resetsAt, Date.now(), account.id);
+    const { standsInFor, ...mine } = account;
+    const own = standsInFor ? { ...mine, ...standsInFor } : account;
+    const other = await standInAccount(db, run.orgId, plan.kind, machineId, own).catch(() => undefined);
+    if (!other || other.id === account.id) return false;
+    const { usage: _full, ...rest } = plan;
+    plan = { ...rest, account: other };
+    later(() => addRunStep(db, run, "context", { accountStandIn: { from: account.label, to: other.label } }));
+    return true;
+  };
+
+  /**
    * The plan's limit (`plan_limit`) or the agent's monthly budget (`budget`) stops the run: it parks in its own
    * session (no computer to wait for) and a job resumes it when the limit resets (the refusal's time, else the
    * stored window's, else the re-checks of `LIMIT_LADDER_MS`), at the next month, or when the budget goes up
@@ -4638,7 +4658,14 @@ async function executeRunInner(
               drops: prev?.drops ?? 0,
               cause: "plan_limit",
             };
-            return waitForUsage({ code: "plan_limit", message: error.message, ...(await refusalOf(machineId, error)) });
+            const refusal = await refusalOf(machineId, error);
+            // Another account of its owner has room: the cut turn goes on there now, told what it already did.
+            if (!refusal.scope && (await standIn(machineId, error))) {
+              nextPrompt = interruptedTurnPrompt(transcript.interruptedTurn);
+              await saveTranscript(db, transcript);
+              continue;
+            }
+            return waitForUsage({ code: "plan_limit", message: error.message, ...refusal });
           }
           // The right hand's CLI killed at a tool of its own (ADR 0137 §4): nothing of that turn is posted, only its
           // DM's line (`brainUnavailable`), whatever it did through the bridge before.
@@ -4691,6 +4718,8 @@ async function executeRunInner(
               continue;
             }
           }
+          // The account's own limit, and another account of its owner has room: the turn goes again there, at once.
+          if (error.code === "plan_limit" && machineId && !refusal.scope && (await standIn(machineId, error))) continue;
           const handled = await brainUnavailable({ code: error.code, message: error.message, ...refusal });
           if (handled === "fallback") continue;
           if (handled === "waited" || handled === "failed") return;

@@ -16,7 +16,7 @@
 // `--conversation`'s, or a new one when it doesn't know that one; its tools: our server's alone with `--agent`, else
 // the CLI's own and ours, or $FAKE_AGY_TOOLS), a text delta, a shell step (none with "BRIDGE_ONLY"), a call to our
 // server (a tool of the CLI's own with "OWN_TOOL"), the last delta with usage and the result. "LIMIT": an AGY_ERROR
-// quota line on stderr and exit 3. "ENV": the shell step's output is the env.
+// quota line on stderr and exit 3. "DENIED": a command it refused without asking, and an empty answer. "ENV": the shell step's output is the env.
 import { appendFileSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import path from "node:path";
 
@@ -175,6 +175,26 @@ if (args[0] === "-p") {
     );
     out({ event: "result", result: { conversation_id: conversation, status: "ERROR", response: "", error: "quota" } });
     process.exit(3);
+  }
+  // No terminal sandbox (1.5.9, seen on Ubuntu 24.04, 2026-11-14): the command is soft-denied and the turn ends
+  // "successfully" with nothing said.
+  if (prompt.includes("DENIED")) {
+    step({
+      step_index: 1,
+      state: "DONE",
+      step_type: "agent_response",
+      usage: { input_tokens: 900, output_tokens: 40 },
+    });
+    out({
+      event: "result",
+      result: {
+        conversation_id: conversation,
+        status: "SUCCESS",
+        response: "",
+        denied_actions: [{ action: "command", display_name: "Bash" }],
+      },
+    });
+    process.exit(0);
   }
   step({ step_index: 1, state: "ACTIVE", step_type: "agent_response", text_delta: "Let me check. " });
   if (!prompt.includes("BRIDGE_ONLY")) {

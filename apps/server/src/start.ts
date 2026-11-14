@@ -66,6 +66,7 @@ import {
   EMAIL_PICTURES,
   emailArtFor,
   enableAccountContacts,
+  enableAccountStandIns,
   enableCaches,
   enableOperatorEvents,
   ensureRightHands,
@@ -360,6 +361,7 @@ async function boot(
   allowPrivateOutbound(allowsPrivateEndpoints(config));
   // Per-process caches for agent/org/channel config, scopes, connections, credential rows (30 s TTL).
   enableCaches();
+  enableAccountStandIns(config.AI_ACCOUNT_STAND_IN);
   // A write in any process (the app, a worker) clears what every process cached of it.
   shareCacheInvalidations(adapters.pubsub);
   // OpenRouter's public model list (ADR 0087): read only while a workspace has an OpenRouter key.
