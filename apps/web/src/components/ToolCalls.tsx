@@ -27,7 +27,6 @@ import {
   toolCalls,
   toolItemsLive,
   toolItemsSaved,
-  toolLineHint,
   toolNow,
   toolPhrase,
   toolWhy,
@@ -50,7 +49,7 @@ import type { TFunction } from "i18next";
 import { type ReactNode, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ConnectorIcon } from "@/components/ConnectorCatalog";
-import { CodePanel, formatBytes, OutputView, type SteerNote, SteerWell } from "@/components/LiveCode";
+import { CodePanel, OutputView, type SteerNote, SteerWell } from "@/components/LiveCode";
 import { useOrg } from "@/components/org-context";
 
 /** Our own tools by what they do: their icon in the block (a connector's call shows its logo). */
@@ -152,22 +151,14 @@ function blockLine(
   l: ToolLine,
   logo: ReactNode,
   personal = false,
-  /** Simple screens (`simpleScreens`): the call in words, with no code, no values it got or gave, no tool name. */
+  /**
+   * Simple screens (`simpleScreens`): the line never opens. Every screen says the call in words, with no tool name
+   * beside it; what it ran, got and gave is behind the line, for whoever chose the technical screens.
+   */
   simple = false,
 ) {
-  const lines = l.code ? l.code.source.split("\n").length : 0;
   const output = l.output ?? [];
-  const label =
-    l.code && l.state === "done" && !simple
-      ? t("code.ranSummary", {
-          count: lines,
-          language: l.code.language,
-          size: formatBytes(
-            locale,
-            output.reduce((n, o) => n + new TextEncoder().encode(o.text).length, 0),
-          ),
-        })
-      : toolPhrase(t, l);
+  const label = toolPhrase(t, l);
   const why = toolWhy(t, l, personal);
   // What the tool answered, its own words when it failed: only in the open view, never under the line.
   const answered = l.result ?? why ?? l.why;
@@ -196,13 +187,11 @@ function blockLine(
     state: l.state,
     logo,
     label,
-    hint: simple ? undefined : toolLineHint(t, l),
     time: l.ms !== null && l.state !== "run" ? formatLineTime(locale, l.ms) : undefined,
     count: l.count > 1 ? t("chat.work.times", { count: l.count }) : undefined,
-    // Simple screens: where the tool's own words name the way out (`failureCause`), that, in the person's words.
-    why: l.state === "fail" ? (why ?? (simple ? causeWords(t, failureCause(l.result ?? l.why)) : null)) : null,
+    // Where the tool's own words name the way out (`failureCause`), that, in the person's words.
+    why: l.state === "fail" ? (why ?? causeWords(t, failureCause(l.result ?? l.why))) : null,
     detail,
-    defaultOpen: !simple && l.state === "run" && Boolean(l.code),
   };
   return line;
 }

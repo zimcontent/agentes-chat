@@ -112,7 +112,6 @@ import {
   errorText,
   filesTextOnlyOf,
   restrictionLine,
-  runErrorText,
   runFailureLine,
   sendFailureText,
   sendNeedsEdit,
@@ -4138,7 +4137,6 @@ export const TimelineMessage = memo(function TimelineMessage({
   const dismissRun = useDismissRun();
   const simple = simpleScreens(org);
   const liveFailed = live?.status === "failed";
-  const failedWhy = liveFailed ? runErrorText(t, live?.errorCode, live?.errorParams) : null;
   // Refused by the workspace's standing: its own words, not the server's English.
   const refusal = liveFailed ? restrictionLine(t, live?.errorCode, live?.errorParams) : null;
   const liveWaiting = live?.status === "waiting_approval";
@@ -4570,12 +4568,12 @@ export const TimelineMessage = memo(function TimelineMessage({
                   <Icon name="alert" size={16} />
                   {/* A known code is said in words; the stored error (a computer's code) only on hover, unless the
                       words already say what it said. */}
-                  <span title={!simple && !refusal && failedWhy && !live.errorParams?.detail ? live.error : undefined}>
+                  <span
+                    title={!simple && !refusal && !live.errorParams?.detail ? (live.error ?? undefined) : undefined}
+                  >
                     {runFailureLine(t, name, { code: live.errorCode, params: live.errorParams }, i18n.language) ??
-                      // The stored error is the system's own words: simple screens say only that it didn't finish.
-                      (live.error && !simple
-                        ? t("channel.runFailed", { agent: name, reason: live.error })
-                        : t("channel.runFailedNoReason", { agent: name }))}
+                      // The stored error is the system's own words: never in the line, on hover on technical screens.
+                      t("channel.runFailedNoReason", { agent: name })}
                   </span>
                 </p>
                 {live.agentId && <FailedRunFix code={live.errorCode} agentId={live.agentId} />}

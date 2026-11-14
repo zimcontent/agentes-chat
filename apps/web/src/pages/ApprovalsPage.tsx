@@ -177,11 +177,10 @@ export function sortOpen(list: Approval[]) {
 }
 
 /**
- * The request's title as this person's screens say it: on simple ones, what the action will do in the agent's own
- * words (`approvalLead`), where it said so; else the tool's title.
+ * The request's title: what the action will do in the agent's own words (`approvalLead`), where it said so; else
+ * the tool's title.
  */
-const shownTitle = (t: TFunction, a: Approval, simple: boolean) =>
-  (simple ? approvalLead(a)?.title : null) ?? approvalTitle(t, a);
+const shownTitle = (t: TFunction, a: Approval) => approvalLead(a)?.title ?? approvalTitle(t, a);
 
 const decidedAt = (a: Approval) => a.decidedAt ?? (a.status === "expired" ? a.expiresAt : a.createdAt);
 
@@ -504,7 +503,7 @@ export function ApprovalsPage() {
                 className="ap-review"
                 data-scroll-restoration-id="approvals-request"
                 data-burst=""
-                aria-label={shownTitle(t, selected, simpleScreens(org))}
+                aria-label={shownTitle(t, selected)}
               >
                 <ReviewHead approval={selected} channel={channelName(selected.channelId)} />
                 <ReviewBody key={selected.id} approval={selected} channel={channelName(selected.channelId)} />
@@ -654,10 +653,10 @@ export function ExactAction({
   // itself reads behind "Detalhes técnicos", with its lines kept.
   const values = approvalValues(approval, full ? { long: true, code: false } : { max, code: false });
   const code = full ? approvalCode(approval) : [];
-  // A code action on simple screens: which language it runs in says nothing to its reader, and its saved keys go by
-  // what they are.
+  // A code action: which language it runs in says nothing to its reader (it is in the technical details), and its
+  // saved keys go by what they are.
   const rows =
-    simple && approval.tool === "run_code"
+    approval.tool === "run_code"
       ? values.flatMap(([label, value]): [string, string][] =>
           label === "Language" ? [] : [[label === "Keys" ? t("approvals.valueKeys") : label, value]],
         )
@@ -983,7 +982,7 @@ function ReqRow({ approval: a, selected, onOpen }: { approval: Approval; selecte
   const leftMs = new Date(a.expiresAt).getTime() - Date.now();
   const waits = approvalWaitsFor(a, dir.memberById.get(a.ownerUserId ?? agent?.ownerUserId ?? "")?.name);
   const where = approvalTarget(a) ?? via.name;
-  const lead = simpleScreens(org) ? approvalLead(a)?.title : null;
+  const lead = approvalLead(a)?.title;
   const end =
     p === "waiting" ? (
       <span className={cx("ap-li__left", leftMs <= URGENT_MS && "is-urgent")}>
@@ -1126,7 +1125,7 @@ function ReviewHead({ approval: a, channel }: { approval: Approval; channel: str
   const p = approvalPhase(a);
   const origin = approvalOriginShort(a);
   const tt = t as unknown as (key: string, options?: Record<string, unknown>) => string;
-  const title = shownTitle(t, a, simpleScreens(org));
+  const title = shownTitle(t, a);
   const by = [
     agent?.role,
     origin ? tt(origin.key, origin.values) : "",
@@ -1195,8 +1194,8 @@ function ReviewBody({ approval: a, channel }: { approval: Approval; channel: str
   const { effect } = approvalEffects(a);
   const target = approvalTarget(a);
   const text = approvalText(a);
-  // On simple screens the why's opening sentence is the request's title (`shownTitle`): the rest is the reason.
-  const lead = simple ? approvalLead(a) : null;
+  // The why's opening sentence is the request's title (`shownTitle`): the rest is the reason.
+  const lead = approvalLead(a);
   const why = lead ? lead.rest : approvalWords(a);
   const pr = prLink(a);
   const leftMs = new Date(a.expiresAt).getTime() - Date.now();
@@ -1485,10 +1484,9 @@ function DecisionBar({
         <RefuseBox approval={a} agent={agent} onCancel={onCancelRefuse} />
       </div>
     );
-  // A routine asks the same thing every time it runs: on simple screens the answer that ends the asking leads
-  // ("Sempre nesta rotina"), and approving this one time is the quiet button beside it. Never for a high-risk action.
-  const forGood =
-    simpleScreens(org) && approveAlwaysOffered(a) && Boolean(a.approveAlways?.routineId) && approvalRisk(a) !== "high";
+  // A routine asks the same thing every time it runs: the answer that ends the asking leads ("Sempre nesta
+  // rotina"), and approving this one time is the quiet button beside it. Never for a high-risk action.
+  const forGood = approveAlwaysOffered(a) && Boolean(a.approveAlways?.routineId) && approvalRisk(a) !== "high";
   const note =
     approvalRisk(a) === "high"
       ? t("approvals.holdNote")

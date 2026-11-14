@@ -97,7 +97,7 @@ describe("Aprovações", () => {
         scope: "sandbox:run",
         title: "Run python code",
         connector: null,
-        why: "Vou somar os pagamentos aprovados de ontem e do mês para fechar o relatório da manhã.",
+        why: "Somar os pagamentos de ontem e do mês. O relatório da manhã precisa do total aprovado.",
         params: { code, language: "python" },
       },
     ];
@@ -106,11 +106,13 @@ describe("Aprovações", () => {
     const cards = [...open.querySelectorAll(".ap-review__card")] as HTMLElement[];
     const action = cards.find((c) => c.textContent?.includes("O que vai fazer")) as HTMLElement;
     // Its words lead the action's card, with no card of their own above it.
-    expect(action.querySelector(".ap-review__why")?.textContent).toContain("somar os pagamentos");
+    expect(action.querySelector(".ap-review__why")?.textContent).toBe(
+      "O relatório da manhã precisa do total aprovado.",
+    );
     expect(open.querySelectorAll(".ap-review__why")).toHaveLength(1);
     const labels = [...action.querySelectorAll(".ap-exact__rows dt")].map((d) => d.textContent);
-    expect(labels).toEqual(["Language"]);
-    expect(action.querySelector(".ap-exact__rows")?.textContent).not.toContain("import os");
+    expect(labels).toEqual([]);
+    expect(open.querySelector(".ap-review__title")?.textContent).toBe("Somar os pagamentos de ontem e do mês");
     // The code itself, with its lines, is one click away.
     expect(action.querySelector(".ap-exact__tech pre")?.textContent).toBe(code);
   });
