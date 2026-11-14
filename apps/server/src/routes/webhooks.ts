@@ -1,3 +1,4 @@
+import { timingSafeEqual } from "node:crypto";
 import { ComposioSignatureError } from "@agenteschat/adapters";
 import {
   addGitHubRepoHook,
@@ -8,6 +9,7 @@ import {
   handleComposioWebhook,
   handleWebhook,
   NotFoundError,
+  portalTasksNow,
   receiveRoutineHook,
   setWebhookSecret,
   ValidationError,
@@ -46,6 +48,21 @@ const HOOK_REFUSALS = {
  */
 export function registerWebhookReceiver(api: OpenAPIHono, deps: AppDeps) {
   const webhookDeps = { db: deps.db, keyWrappers: [deps.adapters.keyWrapper, ...deps.adapters.legacyKeyWrappers] };
+  // The approval portal's bridge saying something changed there (ADR 9001 §12): its cards and their tasks are put in
+  // step now instead of at the worker's next tick. It carries nothing: the bearer token is the one this server calls
+  // the bridge with, and what changed is read from the bridge.
+  api.post("/webhooks/approval-portal", (c) => {
+    const portal = deps.adapters.approvalPortal;
+    const token = deps.config.APPROVAL_PORTAL_TOKEN;
+    if (!portal || !token) return c.json({ error: "not found" }, 404);
+    const given = Buffer.from(c.req.header("authorization") ?? "");
+    const wanted = Buffer.from(`Bearer ${token}`);
+    if (given.length !== wanted.length || !timingSafeEqual(given, wanted)) {
+      return c.json({ error: "unauthorized" }, 401);
+    }
+    portalTasksNow({ db: deps.db, pubsub: deps.adapters.pubsub, log: deps.log }, portal, () => deps.wakeWorkers?.());
+    return c.json({ ok: true }, 202);
+  });
   // Composio (ADR 0038): new mail for routines, expired accounts. One endpoint for the whole server,
   // signed with the subscription's secret (checked by the Composio client). Before the generic route.
   api.post("/webhooks/composio", async (c) => {

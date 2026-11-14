@@ -96,6 +96,24 @@ the client sent back and what is ready.
       copied there: they stay on the card, where an agent reads them as outside text.
     - One installation has one portal, so its tasks live in one workspace: the one that already has them, else
       the installation's first.
+12. **The workspace's assistant manages the posts** (`approval-portal-watch.ts`, and the tick in
+    `approval-portal-tasks.ts`). What is a rule stays code; the assistant is asked only what a rule can't answer.
+    - The bridge calls `POST /api/webhooks/approval-portal` the moment it sees a post change at the portal, with
+      the same bearer token this server calls it with and no body: a tick runs then instead of at the worker's
+      next turn, and what changed is read from the bridge. A call that fails loses nothing: the worker's tick
+      finds the same change.
+    - A change the client asks for goes to whoever has the post, by code: an agent starts on it at once, a person
+      is named in the line the task's conversation gets. A post nobody has goes to the assistant: one message in
+      its owner's own conversation with it (the only place it may assign a task), written by code in the owner's
+      name and saying it is automatic, listing the posts with their client and kind and nothing the client wrote.
+      Who takes each is the assistant's judgment.
+    - The posts' days are watched by code: on the day a post is to be made, and the day after when it still hasn't
+      gone up, the assistant says so once in the task's conversation (from 8h in the owner's time), naming the
+      person who has it; a post nobody has goes to the assistant the same way. What was said is kept on the task
+      (`source.nudged`). Older ones are not gone over again.
+    - The assistant reads the board on every turn, from the tasks alone (no call to the portal, no model): how
+      many posts are on the way per client, the late ones, the next three days', what a client sent back and what
+      has nobody, with the rule of how it hands one on.
 
 ## Consequences
 
