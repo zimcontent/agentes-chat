@@ -294,18 +294,27 @@
 [data-color="gray"] {
   --label: #7d838f;
 }
-/* A client's colour (ADR 9001 §13): the team picks one per client, and whatever is the client's wears it. */
+/*
+ * A client's colour (ADR 9001 §13): the team picks one per client. It is drawn solid and small, as a board's labels
+ * are (the client's mark, the label with its name), and the card under it stays the board's own: no bar down its
+ * edge, no wash over it. `--client-ink` is what reads on the colour (4.5:1 at least).
+ */
+[data-client-color] {
+  --client-ink: #101114;
+}
 [data-client-color="green"] {
   --client: #35c46a;
 }
 [data-client-color="blue"] {
-  --client: #3b82f6;
+  --client: #2563eb;
+  --client-ink: #fff;
 }
 [data-client-color="navy"] {
-  --client: #2d4fc4;
+  --client: #24409e;
+  --client-ink: #fff;
 }
 [data-client-color="sky"] {
-  --client: #6ec9f7;
+  --client: #7cc8f5;
 }
 [data-client-color="white"] {
   --client: #f2f2f0;
@@ -320,23 +329,26 @@
   --client: #f08a3c;
 }
 [data-client-color="red"] {
-  --client: #e04b4b;
+  --client: #cf3535;
+  --client-ink: #fff;
 }
 [data-client-color="pink"] {
   --client: #ee6fb0;
 }
 [data-client-color="purple"] {
-  --client: #9a5cf0;
+  --client: #8448e0;
+  --client-ink: #fff;
 }
 [data-client-color="gray"] {
   --client: #8a909c;
 }
-/* The colour as a dot before the client's name; with none chosen, an empty ring. */
+/* The colour alone, as a dot: where a client is only a word (the pipeline's table, the menu that picks it). With
+   none chosen, an empty ring. */
 .portal-clientdot {
   flex: none;
   display: inline-block;
-  width: 8px;
-  height: 8px;
+  width: var(--space-2);
+  height: var(--space-2);
   border-radius: 50%;
   background: var(--client, transparent);
   box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ink) 30%, transparent);
@@ -345,21 +357,17 @@
   width: 14px;
   height: 14px;
 }
-.portal-clientchip .portal-clientdot,
 .portal-table__client > .portal-clientdot {
-  margin-right: 6px;
+  margin-right: var(--space-2);
 }
 .portal-colorbtn {
   gap: var(--space-2);
 }
-/* A card of a client with a colour: a bar of it down its start edge and a wash of it over the card. */
-.portal-card[data-client-color] {
-  background-image:
-    linear-gradient(90deg, var(--client) 0 4px, transparent 4px),
-    linear-gradient(
-      color-mix(in srgb, var(--client) 9%, transparent),
-      color-mix(in srgb, var(--client) 9%, transparent)
-    );
+/* The label that leads a pipeline card, in the client's colour: whose it is, before a word is read. */
+.portal-card .portal-clientchip[data-client-color] {
+  border-color: transparent;
+  background: var(--client);
+  color: var(--client-ink);
 }
 /* The mark a chip leads with: a dot in its stage's colour, a small bar in its label's. */
 .portal-dot {
@@ -1361,10 +1369,16 @@ html:not([data-pointer]) .portal-tile:focus-visible {
   color: var(--ink);
   object-fit: cover;
 }
-/* With a colour chosen, the mark is in it and not in the hue of the client's name. */
+/* With a colour chosen, the mark is in it, solid, and not in the hue of the client's name. A photo keeps its
+   picture and takes the colour as a ring. */
 .portal-mark[data-client-color] {
-  background: color-mix(in srgb, var(--client) 30%, transparent);
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--client) 65%, transparent);
+  background: var(--client);
+  box-shadow: none;
+  color: var(--client-ink);
+}
+[data-client-color] > .portal-mark:not([data-client-color]) {
+  outline: 2px solid var(--client);
+  outline-offset: 2px;
 }
 .portal-clientcard__name {
   flex: 1;

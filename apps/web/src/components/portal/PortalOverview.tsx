@@ -262,10 +262,9 @@ function Clients({ names, entries, day }: { names: string[]; entries: PortalPipe
                 to="/org/$orgId/portal"
                 params={{ orgId: org.id }}
                 search={{ client }}
-                data-client-color={colors.get(client)}
                 data-idle={status.kind === "idle" || undefined}
               >
-                <span className="portal-clientcard__head">
+                <span className="portal-clientcard__head" data-client-color={colors.get(client)}>
                   {photo ? (
                     <ChannelPhoto icon={photo} size={40} className="portal-mark" />
                   ) : (
@@ -487,14 +486,12 @@ function PipelineBoard({ entries, numbers }: { entries: PortalPipelineEntry[]; n
                     title={e.title}
                     label={`${portalClientName(e.client)}: ${e.title}`}
                     data-late={e.late || undefined}
-                    data-client-color={colors.get(e.client)}
                     onOpen={() =>
                       void navigate({ to: "/org/$orgId/portal", params: { orgId: org.id }, search: entrySearch(e) })
                     }
                     chips={
                       <>
-                        <Chip className="portal-clientchip">
-                          <ClientDot color={colors.get(e.client)} />
+                        <Chip className="portal-clientchip" data-client-color={colors.get(e.client)}>
                           {portalClientName(e.client)}
                         </Chip>
                         <Chip>{t(`portal.types.${e.type}`)}</Chip>
