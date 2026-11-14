@@ -146,19 +146,21 @@ describe("every email, in both languages", () => {
 describe("the look", () => {
   const verify = EMAIL_SAMPLES["verify_email.en"] as EmailTemplate;
 
-  test("dark: every email declares both schemes and carries our dark design, nothing keeps a client light", () => {
+  test("dark: every email carries our dark design and tells the Gmail apps to keep it light", () => {
     for (const [id, t] of Object.entries(EMAIL_SAMPLES)) {
       const { html } = renderEmail(t, art);
       expect(html, id).toContain(EMAIL_DARK_HEAD);
-      expect(html, id).not.toContain("light only");
-      // The Gmail apps darken fills and text but leave a gradient as drawn: none inline, only the head's.
+      // Gmail with an account that isn't Google's still darkens fills and text but leaves a gradient as drawn: none
+      // inline, only the head's.
       expect(html, id).not.toMatch(/style="[^"]*linear-gradient/);
     }
   });
 
   test("dark: our design where clients apply an email's own, the bone logo hidden from classic Outlook", () => {
     const { html } = renderEmail(verify, art);
-    expect(html).toContain('<meta name="color-scheme" content="light dark">');
+    // The meta keeps the Gmail apps light; `:root` keeps Apple Mail applying our dark design.
+    expect(html).toContain('<meta name="color-scheme" content="light only">');
+    expect(html).toContain('<meta name="supported-color-schemes" content="light dark">');
     expect(html).toContain(":root{color-scheme:light dark;");
     expect(html).toContain("@media (prefers-color-scheme:dark){.bg{background:#0a0a0a!important}");
     expect(html).toContain("[data-ogsb] .logo-ink{display:none!important}");
@@ -203,7 +205,7 @@ describe("the look", () => {
     const at = css.indexOf("[data-theme] .ac-btn--primary {");
     const primary = css.slice(at, css.indexOf("}", at));
     expect(primary).toContain("background: var(--db-verde-botao);");
-    expect(primary).toContain("color: var(--db-palco);");
+    expect(primary).toContain("color: var(--db-verde-tinta);");
     const tokens = readFileSync(`${styles}/tokens.css`, "utf8");
     for (const lg of ["--control-h-lg: 48px", "--control-r-lg: 14px", "--control-px-lg: 16px", "--control-fs-lg: 15px"])
       expect(tokens).toContain(lg);
