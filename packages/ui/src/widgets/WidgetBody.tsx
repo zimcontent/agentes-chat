@@ -1,4 +1,5 @@
-import { useEffect, useRef } from "react";
+import { type CSSProperties, useEffect, useRef } from "react";
+import { PIXEL_ART } from "../brand/doug";
 import { useDarkTheme } from "../hooks/useDarkTheme";
 import { Icon } from "../icons/Icon";
 import { prefersReducedMotion } from "../sky/engine";
@@ -220,8 +221,33 @@ function TextBody({ spec }: { spec: TextWidgetSpec }) {
 /**
  * A widget being built: the agent's dither with a wave walking across it (one frame, still, with reduced motion or
  * when nothing is being built).
+ *
+ * DougBot (`PIXEL_ART` off): thin bars of glass in the bot's color (the card's `--wg-f`), round-ended as a routine's
+ * runs are, a light walking across them. Still, they keep one even light.
  */
-export function BuildingDither({ color, still = false }: { color: string; still?: boolean }) {
+export function BuildingDither(props: { color: string; still?: boolean }) {
+  return PIXEL_ART ? <DitherWave {...props} /> : <GlassWave still={props.still} />;
+}
+
+/** Bars enough for the widest card (the box shows the whole ones that fit, `doug.css`): each one's height, a share
+ * of the box, and its turn in the light, which comes round every `GLASS_WAVE` bars. */
+const GLASS_WAVE = 24;
+const GLASS_BARS = Array.from({ length: 72 }, (_, i) =>
+  Math.round(Math.min(100, Math.max(18, 46 + 30 * Math.sin(i * 0.45) + 22 * Math.sin(i * 1.3 + 1)))),
+);
+
+function GlassWave({ still = false }: { still?: boolean }) {
+  return (
+    <span className="wk-build__dither wk-build__glass" data-still={still || undefined} aria-hidden="true">
+      {GLASS_BARS.map((h, i) => (
+        // biome-ignore lint/suspicious/noArrayIndexKey: fixed bars, in order
+        <i key={i} style={{ "--i": i % GLASS_WAVE, "--h": `${h}%` } as CSSProperties} />
+      ))}
+    </span>
+  );
+}
+
+function DitherWave({ color, still = false }: { color: string; still?: boolean }) {
   const canvas = useRef<HTMLCanvasElement>(null);
   const dark = useDarkTheme();
   useEffect(() => {

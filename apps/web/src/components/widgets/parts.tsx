@@ -21,16 +21,16 @@ import { usePlanHold } from "@/components/ai/ConnectAiSteps";
 import { useConnectAi } from "@/components/ConnectAi";
 import { useOpenComputer } from "@/components/computer/open";
 import { useOrg } from "@/components/org-context";
-import { colorOf } from "@/components/Sky";
+import { botColorOf } from "@/components/Sky";
 import { useDirectory } from "@/hooks/useDirectory";
 
-/** The widget's agent as a board shows it: its name and its color (sky when it is gone). */
+/** The widget's agent as a board shows it: its name and its bot's color (a free bot's when it is gone). */
 export function useWidgetAgent(agentId: string) {
   const { t } = useTranslation();
   const { org } = useOrg();
   const dir = useDirectory(org.id);
   const agent = dir.anyAgent(agentId);
-  return { agent, name: agent?.name ?? t("channel.unknownAgent"), color: colorOf(agent) };
+  return { agent, name: agent?.name ?? t("channel.unknownAgent"), color: botColorOf(agent) };
 }
 
 /** The face of the agent who looks after a widget, at the start of its card's title (`WidgetCard`'s `face`). */

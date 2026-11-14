@@ -56,7 +56,7 @@ import { AgentAvatar } from "@/components/AgentAvatar";
 import { AgentPickerDialog } from "@/components/agents/AgentPickerDialog";
 import { COMPACT_QUERY } from "@/components/NavDrawer";
 import { useOrg } from "@/components/org-context";
-import { colorOf } from "@/components/Sky";
+import { botColorOf } from "@/components/Sky";
 import { failureText, useWidgetAiWay } from "@/components/widgets/parts";
 import { useDirectory } from "@/hooks/useDirectory";
 import { useMatchMedia } from "@/hooks/useMatchMedia";
@@ -258,7 +258,7 @@ function NewWidgetBody({
   // Whose card it is: the agent asked, or the one who sent the chosen block.
   const owner: Agent | undefined = mode === "pin" ? (chosen ? dir.anyAgent(chosen.agentId) : undefined) : agent;
   const name = owner?.name ?? agent?.name ?? t("dashboards.newWidget.theAgent");
-  const color = colorOf(owner ?? agent);
+  const color = botColorOf(owner ?? agent);
   const title = titleEdit ?? (mode === "pin" ? (chosen?.title ?? "") : (built?.title ?? ""));
   const shownSpec: WidgetSpec | null = mode === "pin" ? ((chosen?.spec as WidgetSpec | undefined) ?? null) : null;
 
@@ -425,7 +425,7 @@ function NewWidgetBody({
   };
 
   const layout = sizeToLayout(size);
-  const tones = (who: { appearance?: unknown } | undefined) => widgetTileVars(colorOf(who), dark);
+  const tones = (who: Parameters<typeof botColorOf>[0]) => widgetTileVars(botColorOf(who), dark);
 
   const formatOptions = WIDGET_FORMATS.map((f) => ({
     value: f,

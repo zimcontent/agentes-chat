@@ -8,12 +8,14 @@ import {
   ditherTile,
   formatWidgetNumber,
   formatWithUnit,
+  glassTile,
   WidgetBody,
   WidgetCard,
   WidgetGlyph,
   widgetTileVars,
   widgetTones,
 } from "../src";
+import { PIXEL_ART } from "../src/brand/doug";
 import { chartBlockToWidgetSpec, type WidgetSpec } from "../src/widgets/spec";
 
 afterEach(() => cleanup());
@@ -301,12 +303,32 @@ describe("the agent's tones", () => {
     const vars = widgetTileVars("amber", false) as unknown as Record<string, string>;
     expect(vars["--wg-s"]).toBe(light.stroke);
     expect(vars["--wg-f"]).toBe(light.fill);
+    // The tile is pixel art: only while the brand draws it. DougBot's is the color as a flat wash of glass.
+    if (!PIXEL_ART) {
+      expect(vars["--wg-tile"]).toBe(glassTile(light.fill));
+      expect(vars["--wg-tile"]).not.toContain("svg");
+      return;
+    }
     expect(vars["--wg-tile"]).toBe(ditherTile(light.fill));
     const svg = decodeURIComponent(vars["--wg-tile"] ?? "");
     expect(svg).toContain('width="8" height="8"');
     expect(svg).toContain('width="2" height="2"');
     // Cached: the same string for the same tone.
     expect(ditherTile(light.fill)).toBe(vars["--wg-tile"] as string);
+  });
+
+  test("DougBot: a bot's own color is the fill, its line darker on a light page; nothing is drawn in cells", () => {
+    if (PIXEL_ART) return;
+    expect(widgetTones("#9CFA05", true)).toEqual({ stroke: "#9CFA05", fill: "#9CFA05" });
+    const light = widgetTones("#9CFA05", false);
+    expect(light.fill).toBe("#9CFA05");
+    expect(light.stroke).not.toBe("#9CFA05");
+    const built = card(null, { status: "building", color: "#9CFA05" });
+    expect(built.container.querySelector("canvas")).toBeNull();
+    expect(built.container.querySelectorAll(".wk-build__glass > i").length).toBeGreaterThan(0);
+    cleanup();
+    const line = card({ kind: "kpi", value: 7, spark: [1, 3, 2, 5] }, { color: "#9CFA05" });
+    expect(line.container.querySelector("canvas")).toBeNull();
   });
 
   test("each format has its glyph, decorative", () => {
