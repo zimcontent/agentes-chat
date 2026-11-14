@@ -107,7 +107,7 @@ import { DesktopManager } from "./desktop";
 import { DesktopSessions, type DesktopUser, runnerUser, systemDesktopUser } from "./desktop-session";
 import { EgressObservation, probeEgress } from "./egress";
 import { NetworkChangingError, RUNNER_VERSION, RunnerError } from "./errors";
-import { cachedExecutors, EXECUTORS_TTL_MS, type ExecutorRun } from "./executors";
+import { cachedExecutors, EXECUTORS_TTL_MS, type ExecutorRun, withAccountModels } from "./executors";
 import { systemGitCache } from "./git";
 import type { HandlerContext, RequestObserver, RequestOutcome } from "./handlers";
 import { Holds } from "./holds";
@@ -514,7 +514,8 @@ export class RunnerDaemon implements RequestObserver {
         ...(opts.executorRun ? { run: opts.executorRun } : {}),
         onChange: () => this.executorsChanged(),
       });
-    this.executors = () => exec() ?? {};
+    // The Antigravity CLI has no sign-in of its own here, so it lists no models: the signed-in accounts' lists do.
+    this.executors = () => withAccountModels(exec() ?? {}, this.accounts?.agyModels() ?? []);
     this.executorsKnown = () => !("known" in exec) || exec.known === true;
     this.executorsFresh = (exec as { fresh?: () => Promise<unknown> }).fresh ?? (async () => this.executors());
     // System mode is set at install and kept through pairings: account folders are lent to agents' users.
@@ -545,6 +546,7 @@ export class RunnerDaemon implements RequestObserver {
       orgId: () => this.config?.orgId,
       log: opts.log,
       ...(opts.accountCommands ? { commands: opts.accountCommands } : {}),
+      onModels: () => this.executorsChanged(),
       onChange: () => {
         this.queueStatus();
         // The server learns at once (a sign-in or removal from the desktop app, a status or usage that changed).

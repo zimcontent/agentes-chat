@@ -1080,6 +1080,12 @@ export const envVars = {
       "New workspaces start on a payment hold: their agents wait until the billing service lifts it. Needs `BILLING_URL`, `BILLING_LINK_SECRET` and `OPERATOR_API_TOKEN`.",
     section: "Operator",
   },
+  AI_ACCOUNT_STAND_IN: {
+    schema: z.stringbool().default(false),
+    description:
+      "Off by default. While an agent's AI account on a computer is at its plan's limit, another signed-in account of the same person and plan on that computer thinks for it, and its own takes over again when the limit resets (ADR doug-0003). Not where each agent is its own system user. A provider may forbid this for its consumer plans (Google says so for personal Gemini plans): turning it on is your call.",
+    section: "Operator",
+  },
   SESSION_SCREENING: {
     schema: z.stringbool().default(false),
     description:

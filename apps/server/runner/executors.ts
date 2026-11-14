@@ -429,6 +429,16 @@ export function parseAgyModels(output: string): CursorModelInfo[] {
   return out;
 }
 
+/**
+ * The list with the models the computer's signed-in Gemini accounts offer (`AccountManager.agyModels`) as the
+ * Antigravity CLI's, where it is installed and listed none itself: it has no sign-in of its own here (ADR 0143 §3).
+ */
+export function withAccountModels(found: Executors, models: readonly CursorModelInfo[]): Executors {
+  const agy = found.antigravity;
+  if (!agy || agy.models?.length || !models.length) return found;
+  return { ...found, antigravity: { ...agy, models: [...models] } };
+}
+
 /** The Antigravity CLI's version line has its version in it (`agy 1.4.12`, `1.4.12`); anything else is skipped. */
 const AGY_VERSION = /^(?:agy|antigravity(?: cli)?)?[\s:v]*\d+\.\d+\.\d+\b/i;
 
