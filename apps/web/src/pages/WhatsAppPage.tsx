@@ -6,6 +6,7 @@ import {
   useWhatsAppChatAgent,
   useWhatsAppChats,
   useWhatsAppMessages,
+  useWhatsAppOlderHistory,
   useWhatsAppTyping,
   type WhatsAppAccount,
   type WhatsAppChat,
@@ -216,6 +217,7 @@ function Conversation({
   const query = useWhatsAppMessages(org.id, account.id, chatId);
   const send = useSendWhatsApp(org.id, account.id);
   const setAgent = useWhatsAppChatAgent(org.id, account.id);
+  const older = useWhatsAppOlderHistory(org.id, account.id);
   const read = useReadWhatsAppChat(org.id, account.id);
   const say = useWhatsAppError();
   const toast = useToast();
@@ -310,7 +312,7 @@ function Conversation({
           </span>
         ) : (
           <div className="wa-conv__list">
-            {query.hasNextPage && (
+            {query.hasNextPage ? (
               <Button
                 className="wa-conv__older"
                 variant="ghost"
@@ -320,6 +322,25 @@ function Conversation({
               >
                 {w.loadOlder}
               </Button>
+            ) : (
+              // Everything kept here is on screen: the phone may still have what came before.
+              connected &&
+              messages.length > 0 && (
+                <Button
+                  className="wa-conv__older"
+                  variant="ghost"
+                  size="sm"
+                  loading={older.isPending}
+                  onClick={() =>
+                    older.mutate(chatId, {
+                      onSuccess: () => toast.show(w.askedPhone),
+                      onError: (e) => toast.show(say(e), "error"),
+                    })
+                  }
+                >
+                  {w.askPhone}
+                </Button>
+              )
             )}
             {messages.map((message) => {
               const label = dayLabel(t, i18n.language, message.at);
@@ -355,9 +376,11 @@ function Conversation({
               ? w.agent.limit
               : chat.agentNote === "failed"
                 ? w.agent.failed
-                : chat.agentNote && chat.agentNote !== "handoff"
-                  ? `${w.agent.handed} ${chat.agentNote}`
-                  : w.agent.handed}
+                : chat.agentNote.startsWith("failed: ")
+                  ? w.agent.failedWhy(chat.agentNote.slice(8))
+                  : chat.agentNote && chat.agentNote !== "handoff"
+                    ? `${w.agent.handed} ${chat.agentNote}`
+                    : w.agent.handed}
           </span>
           <Button
             variant="default"

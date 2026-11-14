@@ -66,7 +66,7 @@ describe("calls to the gateway", () => {
         apikey: "tok",
         body: {
           webhookUrl: "http://agentes:3000/api/webhooks/whatsapp/s3cret",
-          subscribe: ["MESSAGE", "SEND_MESSAGE", "READ_RECEIPT", "CONNECTION", "QRCODE"],
+          subscribe: ["MESSAGE", "SEND_MESSAGE", "READ_RECEIPT", "CONNECTION", "QRCODE", "HISTORY_SYNC"],
         },
       },
     ]);
@@ -291,5 +291,101 @@ describe("a message's file", () => {
     const { gateway } = evolution({ "/message/downloadmedia": { body: { message: "success", data: {} } } });
     const refused = await gateway.downloadMedia("tok", { message: {} }).catch((e) => e);
     expect(refused).toBeInstanceOf(WhatsAppGatewayError);
+  });
+});
+
+describe("history", () => {
+  const web = (id: string, seconds: number, message: unknown, over: Record<string, unknown> = {}) => ({
+    message: {
+      key: { remoteJID: "5511999990000@s.whatsapp.net", fromMe: false, ID: id },
+      message,
+      messageTimestamp: seconds,
+      ...over,
+    },
+  });
+  const piece = posted("HistorySync", {
+    Data: {
+      syncType: 2,
+      conversations: [
+        {
+          ID: "5511999990000@s.whatsapp.net",
+          messages: [
+            web("H1", 1_700_000_000, { conversation: "oi" }, { pushName: "Ana" }),
+            web("H2", 1_700_000_060, { conversation: "tudo bem" }, { key: { fromMe: true, ID: "H2" }, status: 4 }),
+            web("H3", 1_700_000_120, { imageMessage: { mimetype: "image/jpeg", caption: "olha" } }),
+            // Lines WhatsApp writes itself, reactions and broken entries are left out.
+            { message: { key: { ID: "H4" }, messageStubType: 27, messageTimestamp: 1_700_000_180 } },
+            web("H5", 1_700_000_200, { reactionMessage: { text: "👍", key: { ID: "H1" } } }),
+            web("", 1_700_000_210, { conversation: "sem id" }),
+          ],
+        },
+        {
+          ID: "120363000000000000@g.us",
+          name: "Produção",
+          messages: [
+            web(
+              "G1",
+              1_700_000_300,
+              { conversation: "bom dia" },
+              { participant: "5511888880000:3@s.whatsapp.net", pushName: "Caio" },
+            ),
+          ],
+        },
+        // Filed under the person's number when WhatsApp names it; status updates aren't conversations.
+        {
+          ID: "98765432101234@lid",
+          pnJID: "5511777770000@s.whatsapp.net",
+          messages: [web("L1", 1_700_000_400, { conversation: "olá" })],
+        },
+        { ID: "status@broadcast", messages: [web("S1", 1_700_000_500, { conversation: "story" })] },
+      ],
+      pushnames: [
+        { ID: "5511777770000@s.whatsapp.net", pushname: "Bia" },
+        { ID: "5511666660000@s.whatsapp.net", pushname: "-" },
+      ],
+    },
+  });
+
+  test("conversations come with their messages as they were: who, when, what and how far ours got", () => {
+    const event = parseEvolutionEvent(piece);
+    if (event?.kind !== "history") throw new Error("not history");
+    expect(event.chats.map((c) => [c.jid, c.name, c.messages.map((m) => m.id)])).toEqual([
+      ["5511999990000@s.whatsapp.net", "", ["H1", "H2", "H3"]],
+      ["120363000000000000@g.us", "Produção", ["G1"]],
+      ["5511777770000@s.whatsapp.net", "", ["L1"]],
+    ]);
+    const [first, mine, picture] = event.chats[0]?.messages ?? [];
+    expect([first?.senderName, first?.status, first?.at.toISOString()]).toEqual([
+      "Ana",
+      "received",
+      "2023-11-14T22:13:20.000Z",
+    ]);
+    expect([mine?.fromMe, mine?.status]).toEqual([true, "read"]);
+    expect([picture?.kind, picture?.text, picture?.media?.mimeType]).toEqual(["image", "olha", "image/jpeg"]);
+    expect(event.chats[1]?.messages[0]).toMatchObject({ sender: "5511888880000@s.whatsapp.net", group: true });
+    expect(event.names).toEqual([{ jid: "5511777770000@s.whatsapp.net", name: "Bia" }]);
+  });
+
+  test("older messages are asked of the phone by the oldest one we have", async () => {
+    const { gateway, asked } = evolution({ "/chat/history-sync": { body: { message: "success", data: {} } } });
+    await gateway.requestHistory("tok", {
+      chat: "5511999990000@s.whatsapp.net",
+      before: { id: "H1", fromMe: false, at: new Date(1_700_000_000_000) },
+      count: 50,
+    });
+    expect(asked[0]).toMatchObject({
+      path: "/chat/history-sync",
+      apikey: "tok",
+      body: {
+        count: 50,
+        messageInfo: {
+          Chat: "5511999990000@s.whatsapp.net",
+          ID: "H1",
+          IsFromMe: false,
+          IsGroup: false,
+          Timestamp: "2023-11-14T22:13:20.000Z",
+        },
+      },
+    });
   });
 });

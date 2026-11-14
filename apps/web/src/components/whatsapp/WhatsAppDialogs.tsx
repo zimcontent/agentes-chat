@@ -307,7 +307,11 @@ export function NumberDialog({ account, onClose }: { account: WhatsAppAccount; o
           <Field label={w.settings.agent} hint={{ name: w.settings.agent, text: w.settings.agentHint }}>
             <Select
               value={agentId}
-              onValueChange={setAgentId}
+              onValueChange={(next) => {
+                // Choosing an agent for a number that had none is asking it to answer: the switch starts on.
+                if (agentId === "none" && next !== "none") setAgentOn(true);
+                setAgentId(next);
+              }}
               options={[
                 { value: "none", label: w.settings.agentNone },
                 ...(agents.data ?? []).map((a) => ({ value: a.id, label: a.name })),

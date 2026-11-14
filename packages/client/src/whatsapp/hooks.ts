@@ -126,6 +126,15 @@ export function useReadWhatsAppChat(orgId: string, accountId: string) {
   });
 }
 
+/** Asks the phone for a conversation's older messages; what comes arrives by itself (`whatsapp.changed`). */
+export function useWhatsAppOlderHistory(orgId: string, accountId: string) {
+  const api = useApi();
+  return useMutation({
+    mutationFn: (chatId: string) => whatsappOf(api).olderHistory(orgId, accountId, chatId),
+    meta: { silent: true },
+  });
+}
+
 /** The number's agent on or off in one conversation. */
 export function useWhatsAppChatAgent(orgId: string, accountId: string) {
   const api = useApi();

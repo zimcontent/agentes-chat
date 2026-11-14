@@ -7,6 +7,7 @@ import {
   readWhatsAppChat,
   reconnectWhatsAppAccount,
   removeWhatsAppAccount,
+  requestWhatsAppHistory,
   sendWhatsAppText,
   setWhatsAppChatAgent,
   typingInWhatsAppChat,
@@ -41,6 +42,8 @@ export const WHATSAPP_SENDS_PER_PERSON = { limit: 30, windowMs: 60_000 };
  * is what WhatsApp bans numbers for, whoever types: past this the number only answers and continues conversations.
  */
 export const WHATSAPP_NEW_CHATS_PER_NUMBER = { limit: 20, windowMs: 24 * 60 * 60_000 };
+/** Times one person may ask the phone for older messages: each one wakes the phone. */
+export const WHATSAPP_HISTORY_PER_PERSON = { limit: 20, windowMs: 60_000 };
 /** Files one person may load: a conversation full of pictures, opened and scrolled. */
 export const WHATSAPP_FILES_PER_PERSON = { limit: 120, windowMs: 60_000 };
 /**
@@ -448,6 +451,29 @@ export function whatsappRoutes(deps: AppDeps) {
       },
     });
   });
+
+  app.openapi(
+    createRoute({
+      method: "post",
+      path: "/organizations/{orgId}/whatsapp/accounts/{accountId}/chats/{chatId}/history",
+      tags,
+      security,
+      summary: "Ask the phone for the conversation's older messages (the number's people)",
+      description:
+        "Up to 50 messages from before the oldest one kept here. They arrive a moment later (`whatsapp.changed`), only while the phone is on and still has them: an answer here says the phone was asked, not that anything came. 400 while the number isn't connected.",
+      request: { params: ChatParams },
+      responses: { 202: json(z.object({ asked: z.number().int() }), "Asked"), ...tooMany, ...gatewayDown, ...errors },
+    }),
+    async (c) => {
+      const { orgId, accountId, chatId } = c.req.valid("param");
+      const user = c.get("user");
+      if (await limited(`whatsapp-history:${user.id}`, WHATSAPP_HISTORY_PER_PERSON)) {
+        return apiError(c, 429, "rate_limited", "Slow down");
+      }
+      const asked = await reaching(c, () => requestWhatsAppHistory(wa, user.id, orgId, accountId, chatId));
+      return asked.refused ?? c.json(asked.value, 202);
+    },
+  );
 
   app.openapi(
     createRoute({

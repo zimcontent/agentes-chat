@@ -17,6 +17,7 @@ import {
   WEBHOOK_PROVIDERS,
   type WebhookProvider,
   webhookSetup,
+  whatsappHookKnown,
 } from "@agenteschat/engine";
 import { createRoute, type OpenAPIHono, z } from "@hono/zod-openapi";
 import { requestLimitIp } from "../http/client-ip";
@@ -38,9 +39,10 @@ import { readWebhookBytes, readWebhookText } from "./webhook-body";
 
 /**
  * The largest event the WhatsApp gateway may post. Files never ride on events (`WEBHOOK_FILES=false` at the gateway,
- * and the parser drops an inline copy anyway), so this is a group's member list at its largest.
+ * and the parser drops an inline copy anyway): the large ones are pieces of a number's history, thousands of
+ * messages with their small previews. Read only for an address a number listens at.
  */
-const WHATSAPP_EVENT_MAX = 2_000_000;
+const WHATSAPP_EVENT_MAX = 64 * 1024 * 1024;
 
 /** What a routine's address answers when it refuses a call (English: the caller is a program). */
 const HOOK_REFUSALS = {
@@ -90,6 +92,10 @@ export function registerWebhookReceiver(api: OpenAPIHono, deps: AppDeps) {
   // A WhatsApp number's events, from the gateway on this machine's network. The secret in the address is the
   // credential (the gateway signs nothing) and says which number. Before the generic route.
   api.post("/webhooks/whatsapp/:secret", async (c) => {
+    // Nobody who doesn't hold a number's secret makes the server read a body this large.
+    if (!(await whatsappHookKnown(whatsappDeps(deps), c.req.param("secret")))) {
+      return c.json({ error: "not found" }, 404);
+    }
     const raw = await readWebhookText(c.req.raw, WHATSAPP_EVENT_MAX);
     if (raw === null) return c.json({ error: "too large" }, 413);
     try {

@@ -267,7 +267,9 @@ describe("handing over", () => {
     await expect(answerWhatsAppChat(deps, job)).rejects.toThrow();
     expect((await chat())?.agent).toBe("on");
     expect(await answerWhatsAppChat(deps, job, { finalAttempt: true })).toBe("failed");
-    expect([(await chat())?.agent, (await chat())?.agentNote]).toEqual(["person", "failed"]);
+    expect((await chat())?.agent).toBe("person");
+    // Why it failed is kept for whoever opens the conversation.
+    expect((await chat())?.agentNote).toStartWith("failed: ");
     expect(gateway.calls.some((c) => c.op === "send")).toBe(false);
   });
 
