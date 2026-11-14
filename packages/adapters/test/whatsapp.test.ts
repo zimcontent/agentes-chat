@@ -1,5 +1,12 @@
 import { describe, expect, test } from "bun:test";
-import { bareJid, createEvolutionGoGateway, jidPhone, parseEvolutionEvent, WhatsAppGatewayError } from "../src";
+import {
+  bareJid,
+  createEvolutionGoGateway,
+  jidPhone,
+  parseEvolutionEvent,
+  WhatsAppGatewayError,
+  whatsappFileMessage,
+} from "../src";
 
 /** The WhatsApp gateway: what we ask Evolution Go, and what we read of the events it posts. */
 
@@ -253,5 +260,36 @@ describe("addresses", () => {
     expect(jidPhone("5511999990000:12@s.whatsapp.net")).toBe("5511999990000");
     expect(jidPhone("120363000000000000@g.us")).toBeNull();
     expect(jidPhone("98765432101234@lid")).toBeNull();
+  });
+});
+
+describe("a message's file", () => {
+  const picture = { URL: "https://mmg.whatsapp.net/x", mimetype: "image/jpeg", mediaKey: "a2V5", fileLength: 4 };
+
+  test("the file's own message comes out of what the event carried, without WhatsApp's wrappers", () => {
+    expect(whatsappFileMessage({ imageMessage: picture })).toEqual({
+      imageMessage: picture,
+    });
+    const wrapped = { ephemeralMessage: { message: { viewOnceMessageV2: { message: { imageMessage: picture } } } } };
+    expect(whatsappFileMessage(wrapped)).toEqual({ imageMessage: picture });
+    expect(whatsappFileMessage({ conversation: "oi" })).toBeNull();
+    expect(whatsappFileMessage(null)).toBeNull();
+  });
+
+  test("the gateway is handed that message and answers with the bytes and their type", async () => {
+    const { gateway, asked } = evolution({
+      "/message/downloadmedia": {
+        body: { message: "success", data: { base64: `data:image/jpeg;base64,${btoa("JPEG")}`, timestamp: AT } },
+      },
+    });
+    const file = await gateway.downloadMedia("tok", { message: { imageMessage: picture } });
+    expect([file.mimeType, new TextDecoder().decode(file.bytes)]).toEqual(["image/jpeg", "JPEG"]);
+    expect(asked[0]).toMatchObject({ apikey: "tok", body: { message: { imageMessage: picture } } });
+  });
+
+  test("an answer without a file is the gateway's failure", async () => {
+    const { gateway } = evolution({ "/message/downloadmedia": { body: { message: "success", data: {} } } });
+    const refused = await gateway.downloadMedia("tok", { message: {} }).catch((e) => e);
+    expect(refused).toBeInstanceOf(WhatsAppGatewayError);
   });
 });
