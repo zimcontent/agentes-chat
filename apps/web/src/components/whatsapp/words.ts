@@ -142,7 +142,10 @@ const en = {
     newAgentCreate: "Create agent",
     ai: "AI that answers",
     aiHint:
-      "The agent's own AI account, model and effort. Change it here and it changes for the agent everywhere. Works with a Claude or ChatGPT plan and with any API key.",
+      "The agent answers with what it knows: its instructions, memory and skills. Here you choose what thinks for it on this number: its own AI, or one just for this number that leaves the agent as it is. Works with a Claude or ChatGPT plan and with any API key.",
+    aiSame: "The agent's own AI",
+    aiOwn: "An AI just for this number",
+    aiSaved: (model: string) => `This number now answers with ${model}`,
     agentOn: "Agent answering",
     agentOnHint:
       "On, it answers this number's conversations. When a person answers one, it stays quiet there for an hour. You can turn it off in a single conversation.",
@@ -332,7 +335,10 @@ const ptBR: typeof en = {
     newAgentCreate: "Criar agente",
     ai: "IA que responde",
     aiHint:
-      "A conta de IA, o modelo e o esforço do próprio agente. Mudar aqui muda para o agente em todo lugar. Funciona com plano Claude ou ChatGPT e com qualquer chave de API.",
+      "O agente responde com o que sabe: instruções, memória e skills. Aqui você escolhe o que pensa por ele neste número: a IA do próprio agente, ou uma só deste número, que deixa o agente como está. Funciona com plano Claude ou ChatGPT e com qualquer chave de API.",
+    aiSame: "A IA do próprio agente",
+    aiOwn: "Uma IA só deste número",
+    aiSaved: (model: string) => `Este número agora responde com ${model}`,
     agentOn: "Agente respondendo",
     agentOnHint:
       "Ligado, ele responde as conversas deste número. Quando uma pessoa responde uma conversa, ele fica quieto nela por uma hora. Dá para desligar em uma conversa só.",

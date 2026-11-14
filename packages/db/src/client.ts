@@ -158,6 +158,8 @@ export const EXTRA_COLUMNS = [
   `ALTER TABLE "whatsapp_accounts" ADD COLUMN IF NOT EXISTS "agent_messages" integer NOT NULL DEFAULT 3`,
   `ALTER TABLE "whatsapp_accounts" ADD COLUMN IF NOT EXISTS "agent_quiet_minutes" integer NOT NULL DEFAULT 60`,
   `ALTER TABLE "whatsapp_chats" ADD COLUMN IF NOT EXISTS "lid" text`,
+  // The number's own AI and the bridge to its agent's work (docs/adr/doug-0004-whatsapp-bridge.md).
+  `ALTER TABLE "whatsapp_accounts" ADD COLUMN IF NOT EXISTS "brain" jsonb`,
 ];
 
 /** The advisory lock every process takes around its migrations (`DatabaseHandle.migrate`). */

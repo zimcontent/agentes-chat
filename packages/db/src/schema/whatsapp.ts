@@ -61,6 +61,11 @@ export const whatsappAccounts = pgTable(
     agentPace: text().$type<"fast" | "natural" | "slow">().notNull().default("natural"),
     agentMessages: integer().notNull().default(3),
     agentQuietMinutes: integer().notNull().default(60),
+    /**
+     * The AI the number answers with when it isn't its agent's own (docs/adr/doug-0004-whatsapp-bridge.md):
+     * `{ brain, model, account, effort }`, read by `whatsappBrainOf`. Null: the agent's own AI.
+     */
+    brain: jsonb().$type<Record<string, unknown> | null>(),
     lastError: text(),
     createdBy: text().references(() => users.id, { onDelete: "set null" }),
     createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),

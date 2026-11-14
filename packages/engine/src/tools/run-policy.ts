@@ -141,6 +141,8 @@ const ELSEWHERE = new Set([
   "schedule_post",
   "portal_plan",
   "portal_card",
+  // A message to someone outside, as a WhatsApp number (docs/adr/doug-0004-whatsapp-bridge.md).
+  "whatsapp_send",
 ]);
 
 /** Long work's tools (ADR 0121), on the run's own work: `self`. */
@@ -199,6 +201,9 @@ const READS = new Set([
   "phone_logs",
   "portal_board",
   "portal_work",
+  "whatsapp_conversations",
+  "whatsapp_read",
+  "whatsapp_search",
 ]);
 
 /**

@@ -1,6 +1,8 @@
 import { WhatsAppGatewayError } from "@agenteschat/adapters";
 import {
+  clearWhatsAppBrain,
   createWhatsAppAccount,
+  getWhatsAppBrain,
   listWhatsAppAccounts,
   listWhatsAppChats,
   listWhatsAppMessages,
@@ -12,6 +14,7 @@ import {
   sendWhatsAppFile,
   sendWhatsAppSticker,
   sendWhatsAppText,
+  setWhatsAppBrain,
   setWhatsAppChatAgent,
   typingInWhatsAppChat,
   updateWhatsAppAccount,
@@ -37,6 +40,7 @@ import {
   security,
   whatsappDeps,
 } from "./context";
+import { AgentBrain, BrainKind } from "./schemas";
 
 const tags = ["WhatsApp"];
 
@@ -121,6 +125,10 @@ const Account = z
         "The agent answers this number's conversations now: only someone who wrote, never a group, and never a conversation where a person wrote in the last hour.",
     }),
     agentStyle: AgentStyle,
+    ownAi: z.boolean().openapi({
+      description:
+        "The number answers with an AI of its own (`GET …/brain`), its agent's untouched; false: with its agent's own.",
+    }),
     mine: z.boolean().openapi({ description: "The asker is on its list." }),
     manage: z.boolean().openapi({ description: "The asker may change or remove it." }),
     createdAt: z.string(),
@@ -615,6 +623,85 @@ export function whatsappRoutes(deps: AppDeps) {
       const { orgId, accountId, chatId } = c.req.valid("param");
       const { on } = c.req.valid("json");
       return c.json(await setWhatsAppChatAgent(wa, c.get("user").id, orgId, accountId, chatId, on), 200);
+    },
+  );
+
+  const NumberBrain = AgentBrain.extend({
+    own: z.boolean().openapi({ description: "The number answers with an AI of its own; false: with its agent's." }),
+    apiModel: z.string().openapi({ description: "The API model the picker marks: the number's, else the agent's." }),
+    line: z
+      .object({ kind: BrainKind, model: z.string().nullable() })
+      .passthrough()
+      .nullable()
+      .openapi({ description: "What thinks here, as the agent list's `brain` (for the line beside the button)." }),
+  }).openapi("WhatsAppBrain");
+  const brainSummary =
+    "Managers of the number (`manage_connectors`) who may also choose the agent's AI (an admin or its owner). 409 `whatsapp.no_agent` while the number has no agent.";
+
+  app.openapi(
+    createRoute({
+      method: "get",
+      path: "/organizations/{orgId}/whatsapp/accounts/{accountId}/brain",
+      tags,
+      security,
+      summary: "What thinks on the number: its own AI, or its agent's (docs/adr/doug-0004-whatsapp-bridge.md)",
+      description: `The agent's brain view (\`GET …/agents/{agentId}/brain\`) with the number's choice in its place. ${brainSummary}`,
+      request: { params: AccountParams },
+      responses: { 200: json(NumberBrain), ...errors },
+    }),
+    async (c) => {
+      const { orgId, accountId } = c.req.valid("param");
+      return c.json(await getWhatsAppBrain(wa, c.get("user").id, orgId, accountId), 200);
+    },
+  );
+
+  app.openapi(
+    createRoute({
+      method: "put",
+      path: "/organizations/{orgId}/whatsapp/accounts/{accountId}/brain",
+      tags,
+      security,
+      summary: "Give the number an AI of its own: an API model, or a Claude or ChatGPT plan on the agent's computer",
+      description: `The agent stays who answers (its instructions, memory, skills, budget); only what thinks changes, on this number alone. \`brain\` carries the picker's choice for a plan (its account among the agent's, its model, its effort), \`model\` the API model. Audited as \`whatsapp.brain_changed\`. ${brainSummary}`,
+      request: {
+        params: AccountParams,
+        body: body(
+          z.object({
+            brain: z
+              .object({
+                brain: z.enum(["model", "claude_code", "codex"]).optional(),
+                model: z.string().max(80).nullable().optional(),
+                account: z.uuid().nullable().optional(),
+                effort: z.string().max(10).nullable().optional(),
+              })
+              .nullable()
+              .optional(),
+            model: z.string().max(200).optional().openapi({ description: "The API model, for the model brain." }),
+          }),
+        ),
+      },
+      responses: { 200: json(NumberBrain), ...errors },
+    }),
+    async (c) => {
+      const { orgId, accountId } = c.req.valid("param");
+      return c.json(await setWhatsAppBrain(wa, c.get("user").id, orgId, accountId, c.req.valid("json")), 200);
+    },
+  );
+
+  app.openapi(
+    createRoute({
+      method: "delete",
+      path: "/organizations/{orgId}/whatsapp/accounts/{accountId}/brain",
+      tags,
+      security,
+      summary: "The number answers with its agent's own AI again",
+      description: brainSummary,
+      request: { params: AccountParams },
+      responses: { 200: json(NumberBrain), ...errors },
+    }),
+    async (c) => {
+      const { orgId, accountId } = c.req.valid("param");
+      return c.json(await clearWhatsAppBrain(wa, c.get("user").id, orgId, accountId), 200);
     },
   );
 

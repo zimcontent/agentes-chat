@@ -25,6 +25,8 @@ import type {
 import type {
   WhatsAppAccount,
   WhatsAppAccountPatch,
+  WhatsAppBrain,
+  WhatsAppBrainInput,
   WhatsAppChatPage,
   WhatsAppMessagePage,
   WhatsAppOverview,
@@ -2105,6 +2107,12 @@ export interface ApiClient {
     olderHistory(orgId: string, accountId: string, chatId: string): Promise<{ asked: number }>;
     /** The number's agent on or off in one conversation; on gives the conversation back to it. */
     chatAgent(orgId: string, accountId: string, chatId: string, on: boolean): Promise<{ on: boolean }>;
+    /** What thinks on the number: an AI of its own, or its agent's (managers who may choose the agent's AI). */
+    brain(orgId: string, accountId: string): Promise<WhatsAppBrain>;
+    /** The number answers with this AI from now on; its agent's own is untouched. */
+    setBrain(orgId: string, accountId: string, input: WhatsAppBrainInput): Promise<WhatsAppBrain>;
+    /** The number answers with its agent's own AI again. */
+    clearBrain(orgId: string, accountId: string): Promise<WhatsAppBrain>;
   };
   /**
    * The Vault (ADR 0144): logins, keys and contacts agents use without seeing a password or a key. No answer carries

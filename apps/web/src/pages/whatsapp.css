@@ -593,9 +593,16 @@ a.wa-bubble__file {
   outline: 2px dashed var(--agent);
   outline-offset: 2px;
 }
-/* The agent's AI as the picker's own button, at the form's edge. */
+/* What thinks on the number: the agent's AI or one of its own, then the picker's button, on one row while it fits. */
 .wa-ai {
   display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+.wa-ai__which {
+  flex: 1 1 220px;
+  min-width: 0;
 }
 /* How the agent talks: four short choices, two by two while there is room. */
 .wa-style {

@@ -1,3 +1,4 @@
+import type { AgentBrain, AgentBrainLine, BrainKind } from "../api/types";
 /** WhatsApp numbers as the apps read them (`apps/server/src/routes/app/whatsapp.ts`). */
 
 export type WhatsAppStatus = "pending" | "qr" | "connected" | "disconnected" | "logged_out";
@@ -22,6 +23,8 @@ export interface WhatsAppAccount {
   agentOn: boolean;
   /** How the agent talks here. */
   agentStyle: WhatsAppAgentStyle;
+  /** The number answers with an AI of its own (`brain` calls); false: with its agent's. Absent on older servers. */
+  ownAi?: boolean;
   /** The person is on its list. */
   mine: boolean;
   /** The person may change or remove it. */
@@ -132,4 +135,23 @@ export interface WhatsAppSendInput {
   phone?: string;
   text: string;
   replyToId?: string | null;
+}
+
+/**
+ * What thinks on a number (`GET …/whatsapp/accounts/{id}/brain`, docs/adr/doug-0004-whatsapp-bridge.md): its agent's
+ * brain view with the number's own choice in its place. The agent stays who answers; only what thinks changes here.
+ */
+export interface WhatsAppBrain extends AgentBrain {
+  /** The number answers with an AI of its own; false: with its agent's. */
+  own: boolean;
+  /** The API model the picker marks: the number's, else the agent's. */
+  apiModel: string;
+  /** What thinks here, as an agent's `brain` line (`agentThinks`). */
+  line: AgentBrainLine | null;
+}
+
+/** A pick for the number: the model picker's choice for a plan (`brain`) or the API model (`model`). */
+export interface WhatsAppBrainInput {
+  brain?: { brain?: BrainKind; model?: string | null; account?: string | null; effort?: string | null } | null;
+  model?: string;
 }
