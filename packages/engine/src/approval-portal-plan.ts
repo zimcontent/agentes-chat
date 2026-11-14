@@ -49,7 +49,8 @@ export const planCard = (card: PortalCard, items: Map<string, PortalItem>): Plan
   return {
     ...card,
     // A sent card whose post the portal no longer lists still reads as sent: it waits there.
-    stage: item ? portalColumnOf(item) : card.item ? "approval" : card.state,
+    // A card finished outside the portal reads as out: history in its list, nothing left to make.
+    stage: item ? portalColumnOf(item) : card.item ? "approval" : card.done ? "posted" : card.state,
     postOn: item?.scheduledFor ?? card.date,
     link: item?.link ?? null,
   };

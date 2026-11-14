@@ -1,6 +1,6 @@
 import type { ApprovalPortal, PortalCard, PortalItem, PubSub } from "@agenteschat/adapters";
 import { and, asc, type Database, eq, isNull, schema, sql } from "@agenteschat/db";
-import type { PortalColumn } from "./approval-portal";
+import { type PortalColumn, portalColumnOf } from "./approval-portal";
 import { planCard } from "./approval-portal-plan";
 import { localDay, type PortalOpenTask, portalOpenTasks, portalZone, shiftDay } from "./approval-portal-watch";
 import { openPersonAgentDm } from "./dms";
@@ -177,6 +177,44 @@ const stageOf = (card: PortalCard, items: Map<string, PortalItem>) =>
     ),
   ).stage;
 
+/** The stages a post with no card is given one in: the ones somebody still has something to do about. */
+const ADOPTED: PortalColumn[] = ["approval", "adjusting", "approved"];
+const ADOPT_AFTER_MS = 15 * 60_000;
+
+const plain = (text: string) =>
+  text
+    .normalize("NFD")
+    .replace(/\p{M}/gu, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, "");
+
+/**
+ * The workspace's people and agents by the name the portal knows an editor by (a first name or a handle), for the
+ * ones only one of them answers to.
+ */
+async function editorsByName(db: Database, orgId: string) {
+  const [people, team] = await Promise.all([
+    db
+      .select({ id: organizationMembers.userId, name: users.name, handle: organizationMembers.handle })
+      .from(organizationMembers)
+      .innerJoin(users, eq(users.id, organizationMembers.userId))
+      .where(eq(organizationMembers.orgId, orgId)),
+    db
+      .select({ id: agents.id, name: agents.name, handle: agents.handle })
+      .from(agents)
+      .where(and(eq(agents.orgId, orgId), isNull(agents.archivedAt))),
+  ]);
+  const found = new Map<string, string | null>();
+  for (const one of [...people, ...team]) {
+    const keys = new Set([plain(one.name.split(/\s+/)[0] ?? ""), plain(one.handle ?? "")]);
+    for (const key of keys) {
+      if (!key) continue;
+      found.set(key, found.has(key) && found.get(key) !== one.id ? null : one.id);
+    }
+  }
+  return new Map([...found].flatMap(([key, id]) => (id ? [[key, id] as const] : [])));
+}
+
 /** The card's members with `lead` first, in place of the one who led before. */
 const withLead = (members: string[], lead: string | null, before: string | null) => {
   const rest = members.filter((m) => m !== lead && m !== before);
@@ -222,9 +260,41 @@ async function onePass(
   const who = await writers(db, orgId);
   if (!who) return result;
   const [allCards, allItems] = await Promise.all([portal.cards(), portal.items()]);
+  const items = new Map(allItems.map((item) => [`${item.client}/${item.id}`, item]));
+  if (!only) {
+    // A post that went up some other way and is still open gets a card, so it has a task like any other: what the
+    // client says about it reaches someone. Posts already scheduled or out are left as the portal has them.
+    const carded = new Set(allCards.flatMap((card) => (card.item ? [`${card.client}/${card.item}`] : [])));
+    const people = await editorsByName(db, orgId);
+    for (const item of allItems) {
+      if (carded.has(`${item.client}/${item.id}`) || !ADOPTED.includes(portalColumnOf(item))) continue;
+      // One that just went up may be a card's own post, a moment before the card is tied to it.
+      const made = item.createdAt ? Date.parse(item.createdAt) : Number.NaN;
+      if (Number.isFinite(made) && Date.now() - made < ADOPT_AFTER_MS) continue;
+      try {
+        const editor = item.editor ? people.get(plain(item.editor)) : undefined;
+        allCards.push(
+          await portal.createCard(
+            item.client,
+            {
+              title: item.title.slice(0, 120) || item.id,
+              type: item.type,
+              item: item.id,
+              ...(editor ? { members: [editor] } : {}),
+            },
+            "sync",
+          ),
+        );
+      } catch (error) {
+        deps.log?.warn("approval portal: a post could not be given a card", {
+          item: item.id,
+          error: error instanceof Error ? error.message : String(error),
+        });
+      }
+    }
+  }
   const cards = only ? allCards.filter((card) => card.id === only.cardId) : allCards;
   if (cards.length === 0) return result;
-  const items = new Map(allItems.map((item) => [`${item.client}/${item.id}`, item]));
   const rows = await db
     .select()
     .from(issues)
@@ -267,6 +337,20 @@ async function onePass(
         if (fresh)
           await saveSynced(db, fresh, card.client, card.id, { card: cardSide(card, stage), issue: issueSide(fresh) });
         result.created++;
+        // Made while the client already waits on a change: said and handed on like one that came in just now.
+        if (stage === "adjusting") {
+          result.changes.push({
+            issueId: made.id,
+            number: made.number,
+            client: card.client,
+            cardId: card.id,
+            title: card.title,
+            kind: card.type,
+            from: "approval",
+            to: stage,
+            assignee,
+          });
+        }
         continue;
       }
 

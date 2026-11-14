@@ -111,6 +111,13 @@ the client sent back and what is ready.
       gone up, the assistant says so once in the task's conversation (from 8h in the owner's time), naming the
       person who has it; a post nobody has goes to the assistant the same way. What was said is kept on the task
       (`source.nudged`). Older ones are not gone over again.
+    - A post that went up some other way and is still open (with the client, sent back, or approved) is given a
+      card by the pass, so it has a task like any other and what the client says about it reaches someone; the
+      editor the portal names is put on it when one person or agent answers to that name. One that went up in the
+      last 15 minutes is left alone: it may be a card's own post, a moment before the card is tied to it. One the
+      client already sent back is said and handed on as if the change had just come in.
+    - A card may be `done`: finished without going through the portal (work brought from another board). It stays
+      in its list as history, reads as out, and gets no task.
     - The assistant reads the board on every turn, from the tasks alone (no call to the portal, no model): how
       many posts are on the way per client, the late ones, the next three days', what a client sent back and what
       has nobody, with the rule of how it hands one on.

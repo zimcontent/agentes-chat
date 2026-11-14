@@ -182,6 +182,7 @@ describe("the strategic schedule (ADR 9001 §8)", () => {
     comments: [],
     item: null,
     task: null,
+    done: false,
     createdAt: 1,
     updatedAt: 1,
     stage: "todo",

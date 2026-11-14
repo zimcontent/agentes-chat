@@ -10,6 +10,7 @@ import {
   listIssueProjects,
   localDay,
   openPersonAgentDm,
+  portalBoard,
   portalDigest,
   portalTaskOf,
   portalTaskRefs,
@@ -136,7 +137,8 @@ describe("the approval portal's cards as tasks", () => {
   test("the task's status follows the post at the portal, and each move is told once", async () => {
     f = await setup();
     const deps = { db: f.db, pubsub: f.pubsub };
-    const post = item();
+    // Just sent: the card below is the one it came from, tied to it a moment later.
+    const post = item({ createdAt: new Date().toISOString() });
     const portal = createFakeApprovalPortal({ items: [post] });
     const card = await portal.createCard("acme", { title: "Reel" });
     await syncPortalTasks(deps, portal, f.org.id);
@@ -321,5 +323,47 @@ describe("the approval portal's cards as tasks", () => {
     expect(digest).toMatch(/Late, the day to make it has passed \(\d\):\n- #\d+ "Reel/);
     expect(digest).toContain("With nobody (2)");
     expect(await portalDigest(f.db, "00000000-0000-0000-0000-000000000000", "UTC")).toBe("");
+  });
+
+  test("a post that went up some other way gets a card and a task, and a finished card gets none", async () => {
+    f = await setup();
+    const deps = { db: f.db, pubsub: f.pubsub };
+    await ensureRightHand(f.db, f.org.id);
+    const rightHand = (await rightHandId(f.db, f.org.id)) ?? "";
+    const bia = await addMember(f.db, f.org.id, "member", "Bia Souza");
+    const waiting = item({ id: "old-1", title: "Reel antigo", editor: "bia" });
+    const asked = item({ id: "old-2", title: "Carrossel antigo", type: "carousel", status: "adjust_requested" });
+    const out = item({ id: "old-3", status: "published" });
+    const portal = createFakeApprovalPortal({ items: [waiting, asked, out] });
+    const finished = await portal.createCard("acme", { title: "Trazido de outro quadro", done: true });
+
+    const result = await portalTasksTick(deps, portal);
+    expect(result).toMatchObject({ created: 2 });
+    const cards = await portal.cards();
+    // The open posts have a card each, the editor's on the one the portal names; the one that is out has none.
+    expect(cards.map((c) => c.item).sort()).toEqual([null, "old-1", "old-2"]);
+    const card = (id: string) => cards.find((c) => c.item === id);
+    expect(card("old-1")).toMatchObject({ title: "Reel antigo", type: "reel", members: [bia.id] });
+    expect(await portalTaskOf(f.db, f.org.id, card("old-1")?.id ?? "")).toMatchObject({
+      status: "in_review",
+      assigneeType: "person",
+      assigneeId: bia.id,
+    });
+    // The one the client already sent back, with nobody on it, went to the assistant to hand on.
+    expect(await portalTaskOf(f.db, f.org.id, card("old-2")?.id ?? "")).toMatchObject({ status: "in_progress" });
+    const dm = await openPersonAgentDm(f.db, f.org.id, f.owner.id, rightHand);
+    const told = await f.db
+      .select({ body: schema.messages.body })
+      .from(schema.messages)
+      .where(eq(schema.messages.channelId, dm.id));
+    expect(told).toHaveLength(1);
+    expect(told[0]?.body).toContain('"Carrossel antigo" (acme, carousel): o cliente pediu ajuste');
+
+    // The finished card is history: no task, and it isn't something to make on the board.
+    expect(await portalTaskOf(f.db, f.org.id, finished.id)).toBeNull();
+    expect((await portalBoard(portal, "acme")).cards).toEqual({ todo: [], doing: [] });
+    // Nothing is made twice.
+    expect(await portalTasksTick(deps, portal)).toMatchObject({ created: 0, changes: [] });
+    expect((await portal.cards()).length).toBe(3);
   });
 });

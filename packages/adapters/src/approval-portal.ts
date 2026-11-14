@@ -133,6 +133,11 @@ export interface PortalCard {
   item: string | null;
   /** The workspace task that stands for it (its id), once it has one: where it is assigned and worked on. */
   task: string | null;
+  /**
+   * Finished without going through the portal (work brought from another board, or delivered some other way): it
+   * stays in its list as history and is no longer something to make.
+   */
+  done: boolean;
   createdAt: number;
   updatedAt: number;
 }
@@ -158,6 +163,7 @@ export interface PortalCardInput {
   item?: string | null;
   /** Ties the card to the workspace task that stands for it. */
   task?: string | null;
+  done?: boolean;
 }
 
 export interface PortalJob {
@@ -380,6 +386,7 @@ function cardOf(wire: Wire): PortalCard {
     })),
     item: text(wire.item),
     task: text(wire.tarefa),
+    done: wire.concluido === true,
     createdAt: Math.round(Number(wire.criado) * 1000) || 0,
     updatedAt: Math.round(Number(wire.atualizado) * 1000) || 0,
   };
@@ -407,6 +414,7 @@ function cardWire(input: PortalCardInput): Wire {
   }
   if (input.item !== undefined) wire.item = input.item;
   if (input.task !== undefined) wire.tarefa = input.task;
+  if (input.done !== undefined) wire.concluido = input.done;
   return wire;
 }
 
@@ -637,6 +645,7 @@ export function createFakeApprovalPortal(seed: { items?: PortalItem[]; cards?: P
         comments: [],
         item: null,
         task: null,
+        done: false,
         ...input,
         createdAt: count,
         updatedAt: count,
