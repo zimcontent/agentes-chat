@@ -19128,6 +19128,14 @@ export const ptBR = {
     openAtPortal: "Abrir no portal",
     seePost: "Ver o post",
     seeDrive: "Link do Drive",
+    clientLogo: {
+      menu: "Logo do cliente",
+      title: "Logo de {{name}}",
+      help: "Uma imagem quadrada no lugar das iniciais do cliente. JPEG, PNG ou WebP até 2 MB.",
+      remove: "Remover logo",
+      saved: "Logo salva",
+      removed: "Logo removida",
+    },
     clientColor: {
       label: "Cor do cliente",
       none: "Sem cor",

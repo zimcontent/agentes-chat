@@ -1,9 +1,19 @@
 import type { PortalClientColor } from "@agenteschat/client";
-import { usePortalOverview, useSetPortalClientColor } from "@agenteschat/client";
-import { PORTAL_CLIENT_COLORS, portalClientColors, portalErrorText } from "@agenteschat/client/lib/portal";
+import { usePortalOverview, useSetPortalClientColor, useSetPortalClientLogo } from "@agenteschat/client";
+import {
+  PORTAL_CLIENT_COLORS,
+  portalClientColors,
+  portalClientHue,
+  portalClientInitials,
+  portalClientLogos,
+  portalClientName,
+  portalErrorText,
+} from "@agenteschat/client/lib/portal";
 import { Button, Menu, MenuHeading, MenuItem, MenuSeparator } from "@agenteschat/ui";
+import { type CSSProperties, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useOrg } from "@/components/org-context";
+import { ChannelPhoto, ImageCropDialog } from "@/components/ProfilePhoto";
 import { useToast } from "@/lib/toast";
 
 /** Each client's colour (ADR 9001 §13), from the overview every portal page already reads. */
@@ -12,52 +22,112 @@ export function usePortalClientColors(): ReadonlyMap<string, PortalClientColor> 
   return portalClientColors(usePortalOverview(org.id).data?.clients);
 }
 
+/** Each client's logo (ADR 9001 §16), from the same overview. */
+export function usePortalClientLogos(): ReadonlyMap<string, string> {
+  const { org } = useOrg();
+  return portalClientLogos(usePortalOverview(org.id).data?.clients);
+}
+
 /** A client's colour as a dot: before its name wherever several clients' work shows together. */
 export function ClientDot({ color }: { color: PortalClientColor | undefined }) {
   return color ? <span className="portal-clientdot" data-client-color={color} aria-hidden="true" /> : null;
 }
 
 /**
- * "Client's colour", on the client's own page: the colours as a menu, the chosen one on the button. A choice applies
- * at once, for everyone, wherever the client shows.
+ * The client's mark: the logo the team gave it, else a picture lent to it (`photo`: the group named after it), else
+ * its initials, on its colour when it has one and on a hue of its name when it has none.
+ */
+export function ClientMark({
+  client,
+  logo,
+  photo,
+  color,
+  size = 40,
+}: {
+  client: string;
+  logo?: string;
+  photo?: string | null;
+  color?: PortalClientColor;
+  size?: number;
+}) {
+  const picture = logo ?? photo;
+  if (picture) return <ChannelPhoto icon={picture} size={size} className="portal-mark" />;
+  return (
+    <span
+      className="portal-mark"
+      data-client-color={color}
+      style={{ "--mark-hue": portalClientHue(client) } as CSSProperties}
+      aria-hidden="true"
+    >
+      {portalClientInitials(client)}
+    </span>
+  );
+}
+
+/**
+ * How a client is known, on the client's own page: its colour, picked from a menu with the chosen one on the button,
+ * and its logo, set in the square picture dialog. A choice applies at once, for everyone, wherever the client shows.
  */
 export function ClientColorMenu({ client }: { client: string }) {
   const { t, i18n } = useTranslation();
   const { org } = useOrg();
   const toast = useToast();
   const color = usePortalClientColors().get(client);
+  const logo = usePortalClientLogos().get(client);
   const set = useSetPortalClientColor(org.id);
+  const setLogo = useSetPortalClientLogo(org.id, client);
+  const [choosingLogo, setChoosingLogo] = useState(false);
   const pick = (next: PortalClientColor | null) =>
     set.mutate(
       { client, color: next },
       { onError: (error) => toast.show(portalErrorText(t, error, i18n.language), "error") },
     );
   return (
-    <Menu
-      align="end"
-      label={t("portal.clientColor.label")}
-      trigger={
-        <Button variant="ghost" className="portal-colorbtn" title={t("portal.clientColor.label")}>
-          <span className="portal-clientdot portal-clientdot--lg" data-client-color={color} aria-hidden="true" />
-          {color ? t(`portal.clientColor.colors.${color}`) : t("portal.clientColor.label")}
-        </Button>
-      }
-    >
-      <MenuHeading>{t("portal.clientColor.label")}</MenuHeading>
-      {PORTAL_CLIENT_COLORS.map((value) => (
-        <MenuItem
-          key={value}
-          leading={<span className="portal-clientdot portal-clientdot--lg" data-client-color={value} />}
-          hint={value === color ? "✓" : undefined}
-          onSelect={() => pick(value)}
-        >
-          {t(`portal.clientColor.colors.${value}`)}
+    <>
+      <Menu
+        align="end"
+        label={t("portal.clientColor.label")}
+        trigger={
+          <Button variant="ghost" className="portal-colorbtn" title={t("portal.clientColor.label")}>
+            <span className="portal-clientdot portal-clientdot--lg" data-client-color={color} aria-hidden="true" />
+            {color ? t(`portal.clientColor.colors.${color}`) : t("portal.clientColor.label")}
+          </Button>
+        }
+      >
+        <MenuHeading>{t("portal.clientColor.label")}</MenuHeading>
+        {PORTAL_CLIENT_COLORS.map((value) => (
+          <MenuItem
+            key={value}
+            leading={<span className="portal-clientdot portal-clientdot--lg" data-client-color={value} />}
+            hint={value === color ? "✓" : undefined}
+            onSelect={() => pick(value)}
+          >
+            {t(`portal.clientColor.colors.${value}`)}
+          </MenuItem>
+        ))}
+        <MenuSeparator />
+        <MenuItem disabled={!color} onSelect={() => pick(null)}>
+          {t("portal.clientColor.none")}
         </MenuItem>
-      ))}
-      <MenuSeparator />
-      <MenuItem disabled={!color} onSelect={() => pick(null)}>
-        {t("portal.clientColor.none")}
-      </MenuItem>
-    </Menu>
+        <MenuSeparator />
+        <MenuItem icon="image" onSelect={() => setChoosingLogo(true)}>
+          {t("portal.clientLogo.menu")}
+        </MenuItem>
+      </Menu>
+      <ImageCropDialog
+        open={choosingLogo}
+        onClose={() => setChoosingLogo(false)}
+        title={t("portal.clientLogo.title", { name: portalClientName(client) })}
+        help={t("portal.clientLogo.help")}
+        placeholder={<ClientMark client={client} logo={logo} color={color} size={56} />}
+        hasImage={Boolean(logo)}
+        removeLabel={t("portal.clientLogo.remove")}
+        format="image/png"
+        save={(image) => setLogo.mutateAsync(image)}
+        remove={() => setLogo.mutateAsync(null)}
+        onSaved={() => toast.show(t("portal.clientLogo.saved"))}
+        onRemoved={() => toast.show(t("portal.clientLogo.removed"))}
+      />
+    </>
   );
 }

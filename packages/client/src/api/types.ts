@@ -8106,6 +8106,8 @@ export interface PortalClientSummary {
   next: string | null;
   /** The colour the team gave it; null or absent (a server that doesn't say): none. */
   color?: PortalClientColor | null;
+  /** Where its logo is read (the server's own address); null or absent: none. */
+  logo?: string | null;
 }
 
 /**

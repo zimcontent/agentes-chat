@@ -12,8 +12,6 @@ import {
   pipelinePeople,
   pipelineSteps,
   pipelineTiles,
-  portalClientHue,
-  portalClientInitials,
   portalClientName,
   portalStatusWaits,
   portalTaskNumbers,
@@ -34,15 +32,14 @@ import {
 } from "@agenteschat/ui";
 import { Link, useNavigate } from "@tanstack/react-router";
 import type { TFunction } from "i18next";
-import { type CSSProperties, useState } from "react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { PersonAvatar } from "@/components/AgentAvatar";
 import { ErrorState, LoadingCards } from "@/components/Loading";
 import { useOrg } from "@/components/org-context";
-import { ChannelPhoto } from "@/components/ProfilePhoto";
 import { BoardColumn, BoardFrame, CardFace } from "./board-parts";
 import { CardDialog } from "./CardDialog";
-import { ClientDot, usePortalClientColors } from "./client-color";
+import { ClientDot, ClientMark, usePortalClientColors, usePortalClientLogos } from "./client-color";
 import { MemberFaces, usePortalPeople, WhoFace } from "./members";
 import { StageLegend } from "./PlanLegend";
 import { type PortalSearch, usePortalSearch } from "./search";
@@ -242,6 +239,7 @@ function Clients({ names, entries, day }: { names: string[]; entries: PortalPipe
   const channels = useChannels(org.id).data ?? [];
   const rows = pipelineClients(names, entries);
   const colors = usePortalClientColors();
+  const logos = usePortalClientLogos();
   return (
     <section className="portal-home__part" aria-label={t("portal.home.clients")}>
       <GroupHeading title={t("portal.home.clients")} count={rows.length} />
@@ -265,18 +263,7 @@ function Clients({ names, entries, day }: { names: string[]; entries: PortalPipe
                 data-idle={status.kind === "idle" || undefined}
               >
                 <span className="portal-clientcard__head" data-client-color={colors.get(client)}>
-                  {photo ? (
-                    <ChannelPhoto icon={photo} size={40} className="portal-mark" />
-                  ) : (
-                    <span
-                      className="portal-mark"
-                      data-client-color={colors.get(client)}
-                      style={{ "--mark-hue": portalClientHue(client) } as CSSProperties}
-                      aria-hidden="true"
-                    >
-                      {portalClientInitials(client)}
-                    </span>
-                  )}
+                  <ClientMark client={client} logo={logos.get(client)} photo={photo} color={colors.get(client)} />
                   <span className="portal-clientcard__name" title={name}>
                     {name}
                   </span>

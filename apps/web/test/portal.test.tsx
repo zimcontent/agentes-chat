@@ -273,7 +273,9 @@ describe("a client's board", () => {
   test("a client's colour: picked on its page, it marks the client and its work on the overview", async () => {
     const { state, portal } = await go("portal?client=acme-foods");
     const menu = await openMenu(within(main()).getByRole("button", { name: /Cor do cliente/ }));
-    expect(within(menu).getAllByRole("menuitem")).toHaveLength(13);
+    // Twelve colours, "No colour", and the way to the client's logo.
+    expect(within(menu).getAllByRole("menuitem")).toHaveLength(14);
+    expect(within(menu).getByRole("menuitem", { name: "Logo do cliente" })).toBeTruthy();
     await click(within(menu).getByRole("menuitem", { name: /Azul escuro/ }));
     expect(calls(state, "portal.setClientColor")).toEqual([[ORG_ID, "acme-foods", "navy"]]);
     expect(portal.colors).toEqual({ "acme-foods": "navy" });
@@ -288,6 +290,15 @@ describe("a client's board", () => {
     const mark = (client: string) => main().querySelector(`.portal-clientcard[href*="client=${client}"] .portal-mark`);
     expect(mark("acme-foods")?.getAttribute("data-client-color")).toBe("navy");
     expect(mark("blue-studio")?.getAttribute("data-client-color")).toBeNull();
+    // A logo takes the place of the client's initials.
+    expect(mark("blue-studio")?.textContent).toBe("BS");
+    cleanup();
+    await go("portal", withPortal(), (fake) => {
+      fill(fake);
+      fake.colors = { "acme-foods": "navy" };
+      fake.logos = { "blue-studio": "/api/app/portal-logos/o/blue-studio/0123456789abcdef.png" };
+    });
+    expect(mark("blue-studio")?.getAttribute("src")).toBe("/api/app/portal-logos/o/blue-studio/0123456789abcdef.png");
     // In the pipeline each of the client's cards is glass in its colour, the label with its name too.
     const cards = [...main().querySelectorAll(".portal-pipeline .portal-card[data-client-color]")];
     expect(cards.length).toBeGreaterThan(0);

@@ -15,19 +15,24 @@ import {
   PORTAL_WHEN,
   personPortalReader,
   portalBoard,
+  portalClientLogoFile,
+  portalLogoPath,
   portalOverview,
   portalPipeline,
   portalPlan,
   portalTaskRefs,
+  removePortalClientLogo,
   requireChangePermission,
   requirePermission,
   sendForApproval,
+  setPortalClientLogo,
   startPortalAgent,
   syncPortalTasks,
 } from "@agenteschat/engine";
 import { createRoute, z } from "@hono/zod-openapi";
 import type { Context } from "hono";
 import { apiError, errorResponse } from "../../http/errors";
+import { imageFile } from "../../http/image-file";
 import {
   type AppDeps,
   body,
@@ -185,6 +190,7 @@ export function portalRoutes(deps: AppDeps) {
   const { db, adapters } = deps;
   const app = createAppRouter(deps);
   app.use("/organizations/*", requireSession(deps.auth));
+  app.use("/portal-logos/*", requireSession(deps.auth));
 
   const portalOff = <C extends Context>(c: C) => apiError(c, 404, "portal.off", "This server has no approval portal");
   /** The portal's own refusal as an answer, instead of a 500: its words when it said no, 502 when it didn't answer. */
@@ -270,6 +276,7 @@ export function portalRoutes(deps: AppDeps) {
                 open: z.number().int(),
                 next: z.string().nullable(),
                 color: z.enum(PORTAL_CLIENT_COLORS).nullable(),
+                logo: z.string().nullable().openapi({ description: "Where the client's logo is read; null: none." }),
               }),
             ),
             state: State,
@@ -287,7 +294,16 @@ export function portalRoutes(deps: AppDeps) {
       if (!portal) return portalOff(c);
       try {
         return await (async () =>
-          c.json({ clients: await portalOverview(portal), state: await portal.state() }, 200))();
+          c.json(
+            {
+              clients: (await portalOverview(portal)).map((summary) => ({
+                ...summary,
+                logo: summary.logo ? portalLogoPath(orgId, summary.client, summary.logo) : null,
+              })),
+              state: await portal.state(),
+            },
+            200,
+          ))();
       } catch (error) {
         return refused(c, error);
       }
@@ -905,6 +921,79 @@ export function portalRoutes(deps: AppDeps) {
       const out = await guarded(c, (portal) => portal.setClientColor(client, c.req.valid("json").color));
       return out.ok ? c.body(null, 204) : out.response;
     },
+  );
+
+  app.openapi(
+    createRoute({
+      method: "put",
+      path: "/organizations/{orgId}/portal/clients/{client}/logo",
+      tags,
+      security,
+      summary: "Set a client's logo: a square JPEG, PNG or WebP up to 2 MB (assign_work)",
+      request: {
+        params: OrgParams.extend({ client: ClientId }),
+        body: body(
+          z.object({
+            imageBase64: z
+              .string()
+              .min(1)
+              .max(3_000_000)
+              .openapi({ description: "The image bytes in base64 (a data: URL prefix is accepted)." }),
+            contentType: z.enum(["image/jpeg", "image/png", "image/webp"]),
+          }),
+        ),
+      },
+      responses: {
+        200: json(z.object({ logo: z.string() })),
+        429: errorResponse("Too many logo changes"),
+        502: unavailable,
+        ...errors,
+        404: off,
+      },
+    }),
+    async (c) => {
+      const { orgId, client } = c.req.valid("param");
+      await requireChangePermission(db, c.get("user").id, orgId, "assign_work");
+      const limit = await adapters.rateLimiter.consume(`portal-logo:${orgId}`, { limit: 40, windowMs: 3600_000 });
+      if (!limit.allowed) return apiError(c, 429, "rate_limited", "Too many logo changes. Try again later.");
+      const out = await guarded(c, (portal) =>
+        setPortalClientLogo({ blobs: adapters.platformBlobs, portal }, orgId, client, c.req.valid("json")),
+      );
+      return out.ok ? c.json(out.value, 200) : out.response;
+    },
+  );
+
+  app.openapi(
+    createRoute({
+      method: "delete",
+      path: "/organizations/{orgId}/portal/clients/{client}/logo",
+      tags,
+      security,
+      summary: "Remove a client's logo: back to its initials (assign_work)",
+      request: { params: OrgParams.extend({ client: ClientId }) },
+      responses: { ...noContent, 502: unavailable, ...errors, 404: off },
+    }),
+    async (c) => {
+      const { orgId, client } = c.req.valid("param");
+      await requireChangePermission(db, c.get("user").id, orgId, "assign_work");
+      const out = await guarded(c, (portal) =>
+        removePortalClientLogo({ blobs: adapters.platformBlobs, portal }, orgId, client),
+      );
+      return out.ok ? c.body(null, 204) : out.response;
+    },
+  );
+
+  // The logo's file, for the org's members, like a channel's photo. The name is a content hash: cached for good.
+  app.get("/portal-logos/:orgId/:client/:file", async (c) =>
+    imageFile(
+      await portalClientLogoFile(
+        { db, blobs: adapters.platformBlobs },
+        c.get("user").id,
+        c.req.param("orgId"),
+        c.req.param("client"),
+        c.req.param("file"),
+      ),
+    ),
   );
 
   app.openapi(

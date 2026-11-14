@@ -95,6 +95,7 @@ test("the overview counts each client's columns and the board puts every post in
       open: number;
       next: string | null;
       color: string | null;
+      logo: string | null;
     }[];
   };
   // The client with open work first; what is posted isn't open.
@@ -105,6 +106,7 @@ test("the overview counts each client's columns and the board puts every post in
     open: 6,
     next: "2026-12-01T10:00:00-03:00",
     color: null,
+    logo: null,
   });
   expect(overview.clients[1]).toMatchObject({ open: 0, counts: { posted: 1 } });
 
@@ -456,4 +458,41 @@ test("a client's colour: who gives agents work picks one, the overview says it, 
   expect((await api("/portal/clients/acme/color", { method: "PUT", json: { color: "#123456" } })).status).toBe(400);
   expect((await api("/portal/clients/acme/color", { method: "PUT", json: { color: null } })).status).toBe(204);
   expect(await colorOf()).toBeNull();
+});
+
+test("a client's logo: stored here, named at the portal, served to members, and gone when removed", async () => {
+  const portal = createFakeApprovalPortal();
+  const { api, owner, orgId } = await start(portal);
+  expect((await api("/portal/cards", { json: { client: "acme", title: "Tour video" } })).status).toBe(200);
+  type Overview = { clients: { client: string; logo: string | null }[] };
+  const logoOf = async () =>
+    ((await (await api("/portal")).json()) as Overview).clients.find((c) => c.client === "acme")?.logo;
+  expect(await logoOf()).toBeNull();
+
+  // A 1×1 PNG.
+  const png = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==";
+  const set = await api("/portal/clients/acme/logo", {
+    method: "PUT",
+    json: { imageBase64: png, contentType: "image/png" },
+  });
+  expect(set.status).toBe(200);
+  const { logo } = (await set.json()) as { logo: string };
+  expect(logo).toMatch(new RegExp(`^/api/app/portal-logos/${orgId}/acme/[0-9a-f]{16}\\.png$`));
+  expect(await logoOf()).toBe(logo);
+  // The portal's side keeps the file's name alone.
+  expect(Object.values((await portal.clientLooks()).logos)).toEqual([logo.split("/").at(-1) as string]);
+  const file = await owner(logo);
+  expect(file.status).toBe(200);
+  expect(file.headers.get("content-type")).toBe("image/png");
+
+  // Not an image: refused before anything is kept.
+  const bad = await api("/portal/clients/acme/logo", {
+    method: "PUT",
+    json: { imageBase64: "aGVsbG8=", contentType: "image/png" },
+  });
+  expect(bad.status).toBe(400);
+
+  expect((await api("/portal/clients/acme/logo", { method: "DELETE" })).status).toBe(204);
+  expect(await logoOf()).toBeNull();
+  expect((await owner(logo)).status).toBe(404);
 });

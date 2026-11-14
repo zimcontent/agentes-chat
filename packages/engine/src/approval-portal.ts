@@ -65,6 +65,8 @@ export interface PortalClientSummary {
   next: string | null;
   /** The colour the team gave it; null: none, the apps draw its mark in a hue of its name. */
   color: PortalClientColor | null;
+  /** Its logo's stored file (`portalLogoPath` makes its address); null: none. */
+  logo: string | null;
 }
 
 export interface PortalBoard {
@@ -92,12 +94,19 @@ const emptyCounts = (): Record<PortalColumn, number> => ({
 
 /** Every client with its counts per column, the ones with the most open work first. */
 export async function portalOverview(portal: ApprovalPortal): Promise<PortalClientSummary[]> {
-  const [items, cards, colors] = await Promise.all([portal.items(), portal.cards(), portal.clientColors()]);
+  const [items, cards, looks] = await Promise.all([portal.items(), portal.cards(), portal.clientLooks()]);
   const byClient = new Map<string, PortalClientSummary>();
   const of = (client: string) => {
     let summary = byClient.get(client);
     if (!summary) {
-      summary = { client, counts: emptyCounts(), open: 0, next: null, color: colors[client] ?? null };
+      summary = {
+        client,
+        counts: emptyCounts(),
+        open: 0,
+        next: null,
+        color: looks.colors[client] ?? null,
+        logo: looks.logos[client] ?? null,
+      };
       byClient.set(client, summary);
     }
     return summary;

@@ -18168,6 +18168,14 @@
     "openAtPortal": "포털에서 열기",
     "seePost": "게시물 보기",
     "seeDrive": "Drive 링크",
+    "clientLogo": {
+      "menu": "클라이언트 로고",
+      "title": "{{name}} 로고",
+      "help": "클라이언트의 이니셜 대신 표시되는 정사각형 이미지입니다. JPEG, PNG 또는 WebP, 최대 2 MB.",
+      "remove": "로고 삭제",
+      "saved": "로고를 저장했습니다",
+      "removed": "로고를 삭제했습니다"
+    },
     "clientColor": {
       "label": "클라이언트 색상",
       "none": "색상 없음",

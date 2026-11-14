@@ -45370,6 +45370,24 @@
   "portal.seeDrive": {
     "value": "Drive link"
   },
+  "portal.clientLogo.menu": {
+    "value": "Client's logo"
+  },
+  "portal.clientLogo.title": {
+    "value": "{{name}}'s logo"
+  },
+  "portal.clientLogo.help": {
+    "value": "A square image shown in place of the client's initials. JPEG, PNG or WebP up to 2 MB."
+  },
+  "portal.clientLogo.remove": {
+    "value": "Remove logo"
+  },
+  "portal.clientLogo.saved": {
+    "value": "Logo saved"
+  },
+  "portal.clientLogo.removed": {
+    "value": "Logo removed"
+  },
   "portal.clientColor.label": {
     "value": "Client's colour"
   },

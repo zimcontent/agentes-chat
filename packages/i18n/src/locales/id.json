@@ -18278,6 +18278,14 @@
     "openAtPortal": "Buka di portal",
     "seePost": "Lihat postingan",
     "seeDrive": "Tautan Drive",
+    "clientLogo": {
+      "menu": "Logo klien",
+      "title": "Logo {{name}}",
+      "help": "Gambar persegi sebagai pengganti inisial klien. JPEG, PNG, atau WebP hingga 2 MB.",
+      "remove": "Hapus logo",
+      "saved": "Logo disimpan",
+      "removed": "Logo dihapus"
+    },
     "clientColor": {
       "label": "Warna klien",
       "none": "Tanpa warna",

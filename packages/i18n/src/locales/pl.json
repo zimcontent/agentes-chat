@@ -19925,6 +19925,14 @@
     "openAtPortal": "Otwórz w portalu",
     "seePost": "Zobacz post",
     "seeDrive": "Link do Drive",
+    "clientLogo": {
+      "menu": "Logo klienta",
+      "title": "Logo: {{name}}",
+      "help": "Kwadratowy obraz zamiast inicjałów klienta. JPEG, PNG lub WebP do 2 MB.",
+      "remove": "Usuń logo",
+      "saved": "Logo zapisane",
+      "removed": "Logo usunięte"
+    },
     "clientColor": {
       "label": "Kolor klienta",
       "none": "Bez koloru",

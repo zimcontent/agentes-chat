@@ -527,6 +527,12 @@ export const portalClientColors = (
 ): ReadonlyMap<string, PortalClientColor> =>
   new Map((clients ?? []).flatMap((c) => (c.color ? [[c.client, c.color] as const] : [])));
 
+/** Each client's logo, from the overview: only the clients the team gave one. */
+export const portalClientLogos = (
+  clients: readonly Pick<PortalClientSummary, "client" | "logo">[] | undefined,
+): ReadonlyMap<string, string> =>
+  new Map((clients ?? []).flatMap((c) => (c.logo ? [[c.client, c.logo] as const] : [])));
+
 /** A hue for a client's mark, the same every time for the same client (0 to 359). */
 export function portalClientHue(client: string): number {
   let h = 0;

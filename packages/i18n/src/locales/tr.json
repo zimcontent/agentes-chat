@@ -18685,6 +18685,14 @@
     "openAtPortal": "Portalda aç",
     "seePost": "Gönderiyi gör",
     "seeDrive": "Drive bağlantısı",
+    "clientLogo": {
+      "menu": "Müşterinin logosu",
+      "title": "{{name}} logosu",
+      "help": "Müşterinin baş harfleri yerine gösterilen kare bir görsel. JPEG, PNG veya WebP, en fazla 2 MB.",
+      "remove": "Logoyu kaldır",
+      "saved": "Logo kaydedildi",
+      "removed": "Logo kaldırıldı"
+    },
     "clientColor": {
       "label": "Müşterinin rengi",
       "none": "Renk yok",

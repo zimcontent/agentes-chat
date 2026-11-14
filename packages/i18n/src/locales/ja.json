@@ -18176,6 +18176,14 @@
     "openAtPortal": "ポータルで開く",
     "seePost": "投稿を見る",
     "seeDrive": "Driveのリンク",
+    "clientLogo": {
+      "menu": "クライアントのロゴ",
+      "title": "{{name}} のロゴ",
+      "help": "クライアントのイニシャルの代わりに表示する正方形の画像です。JPEG、PNG、WebP、2 MB まで。",
+      "remove": "ロゴを削除",
+      "saved": "ロゴを保存しました",
+      "removed": "ロゴを削除しました"
+    },
     "clientColor": {
       "label": "クライアントの色",
       "none": "色なし",

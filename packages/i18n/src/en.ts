@@ -19105,6 +19105,15 @@ export const en = {
     seePost: "See the post",
     /** Beside it on a published post: its file in the workspace's own Drive. */
     seeDrive: "Drive link",
+    /** A client's own logo, in place of its initials. */
+    clientLogo: {
+      menu: "Client's logo",
+      title: "{{name}}'s logo",
+      help: "A square image shown in place of the client's initials. JPEG, PNG or WebP up to 2 MB.",
+      remove: "Remove logo",
+      saved: "Logo saved",
+      removed: "Logo removed",
+    },
     /** The colour the team gives a client, so whose a card is reads at a glance. */
     clientColor: {
       label: "Client's colour",

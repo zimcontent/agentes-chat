@@ -19418,6 +19418,14 @@
     "openAtPortal": "Ouvrir sur le portail",
     "seePost": "Voir la publication",
     "seeDrive": "Lien Drive",
+    "clientLogo": {
+      "menu": "Logo du client",
+      "title": "Logo de {{name}}",
+      "help": "Une image carrée à la place des initiales du client. JPEG, PNG ou WebP jusqu'à 2 Mo.",
+      "remove": "Retirer le logo",
+      "saved": "Logo enregistré",
+      "removed": "Logo retiré"
+    },
     "clientColor": {
       "label": "Couleur du client",
       "none": "Aucune couleur",

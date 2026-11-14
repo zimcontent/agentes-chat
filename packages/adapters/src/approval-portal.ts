@@ -93,6 +93,15 @@ export const PORTAL_CLIENT_COLORS = [
 ] as const;
 export type PortalClientColor = (typeof PORTAL_CLIENT_COLORS)[number];
 
+/** A client's logo is kept by the server that took it; the portal's side only names its file (a content hash). */
+export const PORTAL_LOGO_FILE = /^[0-9a-f]{16}\.(jpg|png|webp)$/;
+
+export interface PortalClientLooks {
+  colors: Record<string, PortalClientColor>;
+  /** The logo's file name, by client. */
+  logos: Record<string, string>;
+}
+
 /** A list of the strategic schedule: usually a week, named by the team. */
 export interface PortalList {
   id: string;
@@ -258,10 +267,12 @@ export interface ApprovalPortal {
   createLabel(name: string, color: PortalLabelColor): Promise<PortalLabel>;
   updateLabel(id: string, change: { name?: string; color?: PortalLabelColor }): Promise<PortalLabel>;
   deleteLabel(id: string): Promise<void>;
-  /** The colour the team gave each client; a client with none is absent. */
-  clientColors(): Promise<Record<string, PortalClientColor>>;
+  /** What the team gave each client to be known by: a colour, a logo. A client with none is absent from each. */
+  clientLooks(): Promise<PortalClientLooks>;
   /** `null` takes the client's colour away. */
   setClientColor(client: string, color: PortalClientColor | null): Promise<void>;
+  /** The name of the logo's stored file (`PORTAL_LOGO_FILE`); `null` takes the logo away. */
+  setClientLogo(client: string, file: string | null): Promise<void>;
   /** One file's bytes; answers the id `send` takes. */
   upload(name: string, bytes: Uint8Array): Promise<string>;
   send(input: PortalSend): Promise<PortalJob>;
@@ -574,21 +585,28 @@ export function createBridgeApprovalPortal(options: BridgePortalOptions): Approv
     deleteLabel: async (id) => {
       await request(`/etiquetas/${encodeURIComponent(id)}/apagar`, { json: {} });
     },
-    clientColors: async () => {
+    clientLooks: async () => {
       let answer: Wire;
       try {
         answer = await request("/cores");
       } catch (error) {
         // A bridge from before the clients had colours: none has one.
-        if (error instanceof ApprovalPortalError && error.status === 404) return {};
+        if (error instanceof ApprovalPortalError && error.status === 404) return { colors: {}, logos: {} };
         throw error;
       }
-      const out: Record<string, PortalClientColor> = {};
+      const colors: Record<string, PortalClientColor> = {};
       for (const [client, wire] of Object.entries((answer.cores as Record<string, unknown> | undefined) ?? {})) {
         const color = CLIENT_COLOR_IN[String(wire)];
-        if (color) out[client] = color;
+        if (color) colors[client] = color;
       }
-      return out;
+      const logos: Record<string, string> = {};
+      for (const [client, wire] of Object.entries((answer.logos as Record<string, unknown> | undefined) ?? {})) {
+        if (typeof wire === "string" && PORTAL_LOGO_FILE.test(wire)) logos[client] = wire;
+      }
+      return { colors, logos };
+    },
+    setClientLogo: async (client, file) => {
+      await request(`/cores/${encodeURIComponent(client)}`, { json: { logo: file } });
     },
     setClientColor: async (client, color) => {
       await request(`/cores/${encodeURIComponent(client)}`, { json: { cor: color ? CLIENT_COLOR_OUT[color] : null } });
@@ -655,6 +673,7 @@ export function createFakeApprovalPortal(seed: { items?: PortalItem[]; cards?: P
   const lists = new Map<string, PortalList[]>();
   const labels: PortalLabel[] = [];
   const colors: Record<string, PortalClientColor> = {};
+  const logos: Record<string, string> = {};
   const uploads = new Map<string, { name: string; bytes: Uint8Array }>();
   const sends: (PortalSend & { names: string[] })[] = [];
   const edits: { client: string; item: string; edit: PortalItemEdit; by?: string }[] = [];
@@ -785,9 +804,14 @@ export function createFakeApprovalPortal(seed: { items?: PortalItem[]; cards?: P
       check();
       return [...labels];
     },
-    clientColors: async () => {
+    clientLooks: async () => {
       check();
-      return { ...colors };
+      return { colors: { ...colors }, logos: { ...logos } };
+    },
+    setClientLogo: async (client, file) => {
+      check();
+      if (file) logos[client] = file;
+      else delete logos[client];
     },
     setClientColor: async (client, color) => {
       check();

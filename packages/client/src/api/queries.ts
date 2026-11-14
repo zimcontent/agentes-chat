@@ -7064,6 +7064,18 @@ export function useSetPortalClientColor(orgId: string) {
   });
 }
 
+/** Sets a client's logo (`null`: none); the overview is read again, where every page takes it from. */
+export function useSetPortalClientLogo(orgId: string, client: string) {
+  const api = useApi();
+  const qc = useQueryClient();
+  return useMutation({
+    meta: { silent: true },
+    mutationFn: (image: { imageBase64: string; contentType: string } | null) =>
+      portalOf(api).setClientLogo(orgId, client, image),
+    onSuccess: () => qc.invalidateQueries({ queryKey: keys.portalOverview(orgId) }),
+  });
+}
+
 /** Posts a comment on a card, or deletes one. */
 export function usePortalComments(orgId: string) {
   const api = useApi();

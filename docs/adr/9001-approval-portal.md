@@ -137,6 +137,13 @@ the client sent back and what is ready.
 15. **One bar moves a board.** A board wider than its frame has the rail above its columns to drag it by. The track
     that sat at its foot said the same thing twice and is gone.
 
+16. **A client has a logo.** On the client's own page whoever may give agents work sets a square picture (the
+    workspace logo's checks: JPEG, PNG or WebP up to 2 MB, by its bytes, no metadata). The bytes stay in this
+    server's platform bucket, beside the workspace's logo, and are read by the workspace's members at
+    `GET /api/app/portal-logos/{orgId}/{client}/{file}`; the bridge keeps only the file's name, with the colours.
+    The apps draw it as the client's mark, before the picture of the group named after the client and before its
+    initials.
+
 ## Consequences
 
 - The clients' side doesn't change: the same portal, the same link. The team stops opening it to administer.

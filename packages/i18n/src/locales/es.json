@@ -19275,6 +19275,14 @@
     "openAtPortal": "Abrir en el portal",
     "seePost": "Ver la publicación",
     "seeDrive": "Enlace de Drive",
+    "clientLogo": {
+      "menu": "Logo del cliente",
+      "title": "Logo de {{name}}",
+      "help": "Una imagen cuadrada en lugar de las iniciales del cliente. JPEG, PNG o WebP de hasta 2 MB.",
+      "remove": "Quitar logo",
+      "saved": "Logo guardado",
+      "removed": "Logo quitado"
+    },
     "clientColor": {
       "label": "Color del cliente",
       "none": "Sin color",
