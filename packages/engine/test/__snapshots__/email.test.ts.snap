@@ -8,7 +8,7 @@ exports[`every email, in both languages verify_email.en: snapshot 1`] = `
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="x-apple-disable-message-reformatting">
 <meta name="format-detection" content="telephone=no,date=no,address=no,email=no,url=no">
-<meta name="color-scheme" content="light dark">
+<meta name="color-scheme" content="light only">
 <meta name="supported-color-schemes" content="light dark">
 <style>
 :root{color-scheme:light dark;supported-color-schemes:light dark}
@@ -94,7 +94,7 @@ exports[`every email, in both languages verify_email.pt-BR: snapshot 1`] = `
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="x-apple-disable-message-reformatting">
 <meta name="format-detection" content="telephone=no,date=no,address=no,email=no,url=no">
-<meta name="color-scheme" content="light dark">
+<meta name="color-scheme" content="light only">
 <meta name="supported-color-schemes" content="light dark">
 <style>
 :root{color-scheme:light dark;supported-color-schemes:light dark}
@@ -180,7 +180,7 @@ exports[`every email, in both languages password_reset.en: snapshot 1`] = `
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="x-apple-disable-message-reformatting">
 <meta name="format-detection" content="telephone=no,date=no,address=no,email=no,url=no">
-<meta name="color-scheme" content="light dark">
+<meta name="color-scheme" content="light only">
 <meta name="supported-color-schemes" content="light dark">
 <style>
 :root{color-scheme:light dark;supported-color-schemes:light dark}
@@ -268,7 +268,7 @@ exports[`every email, in both languages password_reset.pt-BR: snapshot 1`] = `
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="x-apple-disable-message-reformatting">
 <meta name="format-detection" content="telephone=no,date=no,address=no,email=no,url=no">
-<meta name="color-scheme" content="light dark">
+<meta name="color-scheme" content="light only">
 <meta name="supported-color-schemes" content="light dark">
 <style>
 :root{color-scheme:light dark;supported-color-schemes:light dark}
@@ -356,7 +356,7 @@ exports[`every email, in both languages invitation.en: snapshot 1`] = `
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="x-apple-disable-message-reformatting">
 <meta name="format-detection" content="telephone=no,date=no,address=no,email=no,url=no">
-<meta name="color-scheme" content="light dark">
+<meta name="color-scheme" content="light only">
 <meta name="supported-color-schemes" content="light dark">
 <style>
 :root{color-scheme:light dark;supported-color-schemes:light dark}
@@ -443,7 +443,7 @@ exports[`every email, in both languages invitation.pt-BR: snapshot 1`] = `
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="x-apple-disable-message-reformatting">
 <meta name="format-detection" content="telephone=no,date=no,address=no,email=no,url=no">
-<meta name="color-scheme" content="light dark">
+<meta name="color-scheme" content="light only">
 <meta name="supported-color-schemes" content="light dark">
 <style>
 :root{color-scheme:light dark;supported-color-schemes:light dark}
@@ -530,7 +530,7 @@ exports[`every email, in both languages invite_request.en: snapshot 1`] = `
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="x-apple-disable-message-reformatting">
 <meta name="format-detection" content="telephone=no,date=no,address=no,email=no,url=no">
-<meta name="color-scheme" content="light dark">
+<meta name="color-scheme" content="light only">
 <meta name="supported-color-schemes" content="light dark">
 <style>
 :root{color-scheme:light dark;supported-color-schemes:light dark}
@@ -615,7 +615,7 @@ exports[`every email, in both languages invite_request-link.en: snapshot 1`] = `
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="x-apple-disable-message-reformatting">
 <meta name="format-detection" content="telephone=no,date=no,address=no,email=no,url=no">
-<meta name="color-scheme" content="light dark">
+<meta name="color-scheme" content="light only">
 <meta name="supported-color-schemes" content="light dark">
 <style>
 :root{color-scheme:light dark;supported-color-schemes:light dark}
@@ -700,7 +700,7 @@ exports[`every email, in both languages calendar_invite.en: snapshot 1`] = `
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="x-apple-disable-message-reformatting">
 <meta name="format-detection" content="telephone=no,date=no,address=no,email=no,url=no">
-<meta name="color-scheme" content="light dark">
+<meta name="color-scheme" content="light only">
 <meta name="supported-color-schemes" content="light dark">
 <style>
 :root{color-scheme:light dark;supported-color-schemes:light dark}
@@ -797,7 +797,7 @@ exports[`every email, in both languages calendar_invite.pt-BR: snapshot 1`] = `
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="x-apple-disable-message-reformatting">
 <meta name="format-detection" content="telephone=no,date=no,address=no,email=no,url=no">
-<meta name="color-scheme" content="light dark">
+<meta name="color-scheme" content="light only">
 <meta name="supported-color-schemes" content="light dark">
 <style>
 :root{color-scheme:light dark;supported-color-schemes:light dark}
@@ -894,7 +894,7 @@ exports[`every email, in both languages waitlist_confirm.en: snapshot 1`] = `
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="x-apple-disable-message-reformatting">
 <meta name="format-detection" content="telephone=no,date=no,address=no,email=no,url=no">
-<meta name="color-scheme" content="light dark">
+<meta name="color-scheme" content="light only">
 <meta name="supported-color-schemes" content="light dark">
 <style>
 :root{color-scheme:light dark;supported-color-schemes:light dark}
@@ -981,7 +981,7 @@ exports[`every email, in both languages waitlist_confirm.pt-BR: snapshot 1`] = `
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="x-apple-disable-message-reformatting">
 <meta name="format-detection" content="telephone=no,date=no,address=no,email=no,url=no">
-<meta name="color-scheme" content="light dark">
+<meta name="color-scheme" content="light only">
 <meta name="supported-color-schemes" content="light dark">
 <style>
 :root{color-scheme:light dark;supported-color-schemes:light dark}
@@ -1068,7 +1068,7 @@ exports[`every email, in both languages early_access.en: snapshot 1`] = `
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="x-apple-disable-message-reformatting">
 <meta name="format-detection" content="telephone=no,date=no,address=no,email=no,url=no">
-<meta name="color-scheme" content="light dark">
+<meta name="color-scheme" content="light only">
 <meta name="supported-color-schemes" content="light dark">
 <style>
 :root{color-scheme:light dark;supported-color-schemes:light dark}
@@ -1155,7 +1155,7 @@ exports[`every email, in both languages early_access.pt-BR: snapshot 1`] = `
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="x-apple-disable-message-reformatting">
 <meta name="format-detection" content="telephone=no,date=no,address=no,email=no,url=no">
-<meta name="color-scheme" content="light dark">
+<meta name="color-scheme" content="light only">
 <meta name="supported-color-schemes" content="light dark">
 <style>
 :root{color-scheme:light dark;supported-color-schemes:light dark}
@@ -1242,7 +1242,7 @@ exports[`every email, in both languages early_access_allowed.en: snapshot 1`] = 
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="x-apple-disable-message-reformatting">
 <meta name="format-detection" content="telephone=no,date=no,address=no,email=no,url=no">
-<meta name="color-scheme" content="light dark">
+<meta name="color-scheme" content="light only">
 <meta name="supported-color-schemes" content="light dark">
 <style>
 :root{color-scheme:light dark;supported-color-schemes:light dark}
@@ -1327,7 +1327,7 @@ exports[`every email, in both languages early_access_allowed.pt-BR: snapshot 1`]
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="x-apple-disable-message-reformatting">
 <meta name="format-detection" content="telephone=no,date=no,address=no,email=no,url=no">
-<meta name="color-scheme" content="light dark">
+<meta name="color-scheme" content="light only">
 <meta name="supported-color-schemes" content="light dark">
 <style>
 :root{color-scheme:light dark;supported-color-schemes:light dark}
@@ -1412,7 +1412,7 @@ exports[`every email, in both languages budget-warning.en: snapshot 1`] = `
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="x-apple-disable-message-reformatting">
 <meta name="format-detection" content="telephone=no,date=no,address=no,email=no,url=no">
-<meta name="color-scheme" content="light dark">
+<meta name="color-scheme" content="light only">
 <meta name="supported-color-schemes" content="light dark">
 <style>
 :root{color-scheme:light dark;supported-color-schemes:light dark}
@@ -1501,7 +1501,7 @@ exports[`every email, in both languages budget-exhausted.pt-BR: snapshot 1`] = `
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="x-apple-disable-message-reformatting">
 <meta name="format-detection" content="telephone=no,date=no,address=no,email=no,url=no">
-<meta name="color-scheme" content="light dark">
+<meta name="color-scheme" content="light only">
 <meta name="supported-color-schemes" content="light dark">
 <style>
 :root{color-scheme:light dark;supported-color-schemes:light dark}
@@ -1591,7 +1591,7 @@ exports[`every email, in both languages approval_digest-one.en: snapshot 1`] = `
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="x-apple-disable-message-reformatting">
 <meta name="format-detection" content="telephone=no,date=no,address=no,email=no,url=no">
-<meta name="color-scheme" content="light dark">
+<meta name="color-scheme" content="light only">
 <meta name="supported-color-schemes" content="light dark">
 <style>
 :root{color-scheme:light dark;supported-color-schemes:light dark}
@@ -1680,7 +1680,7 @@ exports[`every email, in both languages approval_digest-many.en: snapshot 1`] = 
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="x-apple-disable-message-reformatting">
 <meta name="format-detection" content="telephone=no,date=no,address=no,email=no,url=no">
-<meta name="color-scheme" content="light dark">
+<meta name="color-scheme" content="light only">
 <meta name="supported-color-schemes" content="light dark">
 <style>
 :root{color-scheme:light dark;supported-color-schemes:light dark}
@@ -1781,7 +1781,7 @@ exports[`every email, in both languages approval_digest-many.pt-BR: snapshot 1`]
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="x-apple-disable-message-reformatting">
 <meta name="format-detection" content="telephone=no,date=no,address=no,email=no,url=no">
-<meta name="color-scheme" content="light dark">
+<meta name="color-scheme" content="light only">
 <meta name="supported-color-schemes" content="light dark">
 <style>
 :root{color-scheme:light dark;supported-color-schemes:light dark}
@@ -1874,7 +1874,7 @@ exports[`every email, in both languages computer_ready-ai.en: snapshot 1`] = `
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="x-apple-disable-message-reformatting">
 <meta name="format-detection" content="telephone=no,date=no,address=no,email=no,url=no">
-<meta name="color-scheme" content="light dark">
+<meta name="color-scheme" content="light only">
 <meta name="supported-color-schemes" content="light dark">
 <style>
 :root{color-scheme:light dark;supported-color-schemes:light dark}
@@ -1980,7 +1980,7 @@ exports[`every email, in both languages computer_ready-ai.pt-BR: snapshot 1`] = 
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="x-apple-disable-message-reformatting">
 <meta name="format-detection" content="telephone=no,date=no,address=no,email=no,url=no">
-<meta name="color-scheme" content="light dark">
+<meta name="color-scheme" content="light only">
 <meta name="supported-color-schemes" content="light dark">
 <style>
 :root{color-scheme:light dark;supported-color-schemes:light dark}
@@ -2086,7 +2086,7 @@ exports[`every email, in both languages computer_ready-task.en: snapshot 1`] = `
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="x-apple-disable-message-reformatting">
 <meta name="format-detection" content="telephone=no,date=no,address=no,email=no,url=no">
-<meta name="color-scheme" content="light dark">
+<meta name="color-scheme" content="light only">
 <meta name="supported-color-schemes" content="light dark">
 <style>
 :root{color-scheme:light dark;supported-color-schemes:light dark}
@@ -2189,7 +2189,7 @@ exports[`every email, in both languages computer_ready-create.en: snapshot 1`] =
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="x-apple-disable-message-reformatting">
 <meta name="format-detection" content="telephone=no,date=no,address=no,email=no,url=no">
-<meta name="color-scheme" content="light dark">
+<meta name="color-scheme" content="light only">
 <meta name="supported-color-schemes" content="light dark">
 <style>
 :root{color-scheme:light dark;supported-color-schemes:light dark}
@@ -2281,7 +2281,7 @@ exports[`every email, in both languages join_request.en: snapshot 1`] = `
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="x-apple-disable-message-reformatting">
 <meta name="format-detection" content="telephone=no,date=no,address=no,email=no,url=no">
-<meta name="color-scheme" content="light dark">
+<meta name="color-scheme" content="light only">
 <meta name="supported-color-schemes" content="light dark">
 <style>
 :root{color-scheme:light dark;supported-color-schemes:light dark}
@@ -2373,7 +2373,7 @@ exports[`every email, in both languages join_request.pt-BR: snapshot 1`] = `
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="x-apple-disable-message-reformatting">
 <meta name="format-detection" content="telephone=no,date=no,address=no,email=no,url=no">
-<meta name="color-scheme" content="light dark">
+<meta name="color-scheme" content="light only">
 <meta name="supported-color-schemes" content="light dark">
 <style>
 :root{color-scheme:light dark;supported-color-schemes:light dark}
@@ -2465,7 +2465,7 @@ exports[`every email, in both languages join_answer-joined.en: snapshot 1`] = `
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="x-apple-disable-message-reformatting">
 <meta name="format-detection" content="telephone=no,date=no,address=no,email=no,url=no">
-<meta name="color-scheme" content="light dark">
+<meta name="color-scheme" content="light only">
 <meta name="supported-color-schemes" content="light dark">
 <style>
 :root{color-scheme:light dark;supported-color-schemes:light dark}
@@ -2549,7 +2549,7 @@ exports[`every email, in both languages join_answer-invited.en: snapshot 1`] = `
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="x-apple-disable-message-reformatting">
 <meta name="format-detection" content="telephone=no,date=no,address=no,email=no,url=no">
-<meta name="color-scheme" content="light dark">
+<meta name="color-scheme" content="light only">
 <meta name="supported-color-schemes" content="light dark">
 <style>
 :root{color-scheme:light dark;supported-color-schemes:light dark}
@@ -2635,7 +2635,7 @@ exports[`every email, in both languages join_answer-denied.pt-BR: snapshot 1`] =
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="x-apple-disable-message-reformatting">
 <meta name="format-detection" content="telephone=no,date=no,address=no,email=no,url=no">
-<meta name="color-scheme" content="light dark">
+<meta name="color-scheme" content="light only">
 <meta name="supported-color-schemes" content="light dark">
 <style>
 :root{color-scheme:light dark;supported-color-schemes:light dark}
@@ -2721,7 +2721,7 @@ exports[`every email, in both languages join_code.en: snapshot 1`] = `
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="x-apple-disable-message-reformatting">
 <meta name="format-detection" content="telephone=no,date=no,address=no,email=no,url=no">
-<meta name="color-scheme" content="light dark">
+<meta name="color-scheme" content="light only">
 <meta name="supported-color-schemes" content="light dark">
 <style>
 :root{color-scheme:light dark;supported-color-schemes:light dark}
@@ -2807,7 +2807,7 @@ exports[`every email, in both languages deletion_code-workspace.en: snapshot 1`]
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="x-apple-disable-message-reformatting">
 <meta name="format-detection" content="telephone=no,date=no,address=no,email=no,url=no">
-<meta name="color-scheme" content="light dark">
+<meta name="color-scheme" content="light only">
 <meta name="supported-color-schemes" content="light dark">
 <style>
 :root{color-scheme:light dark;supported-color-schemes:light dark}
@@ -2893,7 +2893,7 @@ exports[`every email, in both languages deletion_code-account.pt-BR: snapshot 1`
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="x-apple-disable-message-reformatting">
 <meta name="format-detection" content="telephone=no,date=no,address=no,email=no,url=no">
-<meta name="color-scheme" content="light dark">
+<meta name="color-scheme" content="light only">
 <meta name="supported-color-schemes" content="light dark">
 <style>
 :root{color-scheme:light dark;supported-color-schemes:light dark}
@@ -2979,7 +2979,7 @@ exports[`every email, in both languages workspace_deleting-owner.en: snapshot 1`
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="x-apple-disable-message-reformatting">
 <meta name="format-detection" content="telephone=no,date=no,address=no,email=no,url=no">
-<meta name="color-scheme" content="light dark">
+<meta name="color-scheme" content="light only">
 <meta name="supported-color-schemes" content="light dark">
 <style>
 :root{color-scheme:light dark;supported-color-schemes:light dark}
@@ -3064,7 +3064,7 @@ exports[`every email, in both languages workspace_deleting-member.pt-BR: snapsho
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="x-apple-disable-message-reformatting">
 <meta name="format-detection" content="telephone=no,date=no,address=no,email=no,url=no">
-<meta name="color-scheme" content="light dark">
+<meta name="color-scheme" content="light only">
 <meta name="supported-color-schemes" content="light dark">
 <style>
 :root{color-scheme:light dark;supported-color-schemes:light dark}
@@ -3148,7 +3148,7 @@ exports[`every email, in both languages workspace_restored.en: snapshot 1`] = `
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="x-apple-disable-message-reformatting">
 <meta name="format-detection" content="telephone=no,date=no,address=no,email=no,url=no">
-<meta name="color-scheme" content="light dark">
+<meta name="color-scheme" content="light only">
 <meta name="supported-color-schemes" content="light dark">
 <style>
 :root{color-scheme:light dark;supported-color-schemes:light dark}
@@ -3232,7 +3232,7 @@ exports[`every email, in both languages app_connected.en: snapshot 1`] = `
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="x-apple-disable-message-reformatting">
 <meta name="format-detection" content="telephone=no,date=no,address=no,email=no,url=no">
-<meta name="color-scheme" content="light dark">
+<meta name="color-scheme" content="light only">
 <meta name="supported-color-schemes" content="light dark">
 <style>
 :root{color-scheme:light dark;supported-color-schemes:light dark}
@@ -3318,7 +3318,7 @@ exports[`every email, in both languages plan_opened.en: snapshot 1`] = `
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="x-apple-disable-message-reformatting">
 <meta name="format-detection" content="telephone=no,date=no,address=no,email=no,url=no">
-<meta name="color-scheme" content="light dark">
+<meta name="color-scheme" content="light only">
 <meta name="supported-color-schemes" content="light dark">
 <style>
 :root{color-scheme:light dark;supported-color-schemes:light dark}
@@ -3417,7 +3417,7 @@ exports[`every email, in both languages plan_lent.pt-BR: snapshot 1`] = `
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="x-apple-disable-message-reformatting">
 <meta name="format-detection" content="telephone=no,date=no,address=no,email=no,url=no">
-<meta name="color-scheme" content="light dark">
+<meta name="color-scheme" content="light only">
 <meta name="supported-color-schemes" content="light dark">
 <style>
 :root{color-scheme:light dark;supported-color-schemes:light dark}
@@ -3513,7 +3513,7 @@ exports[`every email, in both languages plan_waiting.pt-BR: snapshot 1`] = `
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="x-apple-disable-message-reformatting">
 <meta name="format-detection" content="telephone=no,date=no,address=no,email=no,url=no">
-<meta name="color-scheme" content="light dark">
+<meta name="color-scheme" content="light only">
 <meta name="supported-color-schemes" content="light dark">
 <style>
 :root{color-scheme:light dark;supported-color-schemes:light dark}
@@ -3597,7 +3597,7 @@ exports[`every email, in both languages account_deleting.en: snapshot 1`] = `
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="x-apple-disable-message-reformatting">
 <meta name="format-detection" content="telephone=no,date=no,address=no,email=no,url=no">
-<meta name="color-scheme" content="light dark">
+<meta name="color-scheme" content="light only">
 <meta name="supported-color-schemes" content="light dark">
 <style>
 :root{color-scheme:light dark;supported-color-schemes:light dark}
@@ -3684,7 +3684,7 @@ exports[`every email, in both languages account_deleting.pt-BR: snapshot 1`] = `
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="x-apple-disable-message-reformatting">
 <meta name="format-detection" content="telephone=no,date=no,address=no,email=no,url=no">
-<meta name="color-scheme" content="light dark">
+<meta name="color-scheme" content="light only">
 <meta name="supported-color-schemes" content="light dark">
 <style>
 :root{color-scheme:light dark;supported-color-schemes:light dark}
@@ -3770,7 +3770,7 @@ exports[`every email, in both languages account_deleted.en: snapshot 1`] = `
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="x-apple-disable-message-reformatting">
 <meta name="format-detection" content="telephone=no,date=no,address=no,email=no,url=no">
-<meta name="color-scheme" content="light dark">
+<meta name="color-scheme" content="light only">
 <meta name="supported-color-schemes" content="light dark">
 <style>
 :root{color-scheme:light dark;supported-color-schemes:light dark}
@@ -3855,7 +3855,7 @@ exports[`every email, in both languages account_deleted-one.pt-BR: snapshot 1`] 
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="x-apple-disable-message-reformatting">
 <meta name="format-detection" content="telephone=no,date=no,address=no,email=no,url=no">
-<meta name="color-scheme" content="light dark">
+<meta name="color-scheme" content="light only">
 <meta name="supported-color-schemes" content="light dark">
 <style>
 :root{color-scheme:light dark;supported-color-schemes:light dark}
@@ -3940,7 +3940,7 @@ exports[`every email, in both languages account_deleted-none.en: snapshot 1`] = 
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="x-apple-disable-message-reformatting">
 <meta name="format-detection" content="telephone=no,date=no,address=no,email=no,url=no">
-<meta name="color-scheme" content="light dark">
+<meta name="color-scheme" content="light only">
 <meta name="supported-color-schemes" content="light dark">
 <style>
 :root{color-scheme:light dark;supported-color-schemes:light dark}
@@ -4024,7 +4024,7 @@ exports[`every email, in both languages autonomy_report.en: snapshot 1`] = `
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="x-apple-disable-message-reformatting">
 <meta name="format-detection" content="telephone=no,date=no,address=no,email=no,url=no">
-<meta name="color-scheme" content="light dark">
+<meta name="color-scheme" content="light only">
 <meta name="supported-color-schemes" content="light dark">
 <style>
 :root{color-scheme:light dark;supported-color-schemes:light dark}
@@ -4171,7 +4171,7 @@ exports[`every email, in both languages autonomy_report-quiet.pt-BR: snapshot 1`
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="x-apple-disable-message-reformatting">
 <meta name="format-detection" content="telephone=no,date=no,address=no,email=no,url=no">
-<meta name="color-scheme" content="light dark">
+<meta name="color-scheme" content="light only">
 <meta name="supported-color-schemes" content="light dark">
 <style>
 :root{color-scheme:light dark;supported-color-schemes:light dark}
