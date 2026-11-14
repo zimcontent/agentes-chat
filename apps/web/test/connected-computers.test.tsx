@@ -254,7 +254,7 @@ describe("uploaded files in the Drive", () => {
     expect(screen().getByRole("dialog", { name: "vendas.png" })).toBeTruthy();
   });
 
-  test("over 50 MB: a translated message and nothing is sent", async () => {
+  test("over the size a file may have: a translated message and nothing is sent", async () => {
     const state = seedState();
     const api = createFakeApi(state);
     await renderApp(`/org/${ORG_ID}/drive`, { api });
@@ -263,7 +263,7 @@ describe("uploaded files in the Drive", () => {
     Object.defineProperty(big, "size", { value: MAX_UPLOAD_BYTES + 1 });
     await choose(document.querySelector("input[data-upload-input]") as HTMLInputElement, [big]);
     await settle(4);
-    expect(screen().getByRole("alert").textContent).toContain("“video.png” passa de 50 MB, o limite por arquivo.");
+    expect(screen().getByRole("alert").textContent).toContain("“video.png” passa de 2048 MB, o limite por arquivo.");
     expect(state.calls.some((c) => c.method === "artifacts.upload")).toBe(false);
   });
 
@@ -1054,7 +1054,7 @@ describe("agent page: which computer", () => {
     const i18n = createI18n("pt-BR");
     const t = i18n.t.bind(i18n);
     expect(errorText(t, new ApiError(413, "artifact.file_too_large", "too large"))).toBe(
-      "O arquivo passa de 50 MB, o limite por arquivo.",
+      "O arquivo passa de 2048 MB, o limite por arquivo.",
     );
     expect(errorText(t, new ApiError(500, "boom", "Server exploded"))).toBe(
       "Algo deu errado do nosso lado. Tente de novo daqui a pouco.",

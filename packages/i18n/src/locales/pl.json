@@ -14356,6 +14356,8 @@
       "gone": "To konto nie jest już połączone.",
       "unfinished": "Logowanie w Composio nie zostało dokończone. Spróbuj ponownie.",
       "unavailable": "Tej usługi nie można tu połączyć.",
+      "busy": "To połączenie odnawia logowanie. Spróbuj ponownie za chwilę.",
+      "whatsappNoAgent": "Najpierw wybierz agenta tego numeru.",
       "misconfigured": "Połączenie z {{provider}} jest źle skonfigurowane na serwerze, więc nie może się zakończyć. Osoba zarządzająca serwerem musi zmienić klucz w ustawieniach aplikacji."
     },
     "wiki": {
@@ -14598,6 +14600,7 @@
       "ownerOrAdmin": "Może to zrobić tylko właściciel agenta albo administrator.",
       "detailsHidden": "Tylko osoby rozmawiające z {{agentName}} widzą, jak to działa.",
       "extraOwnerOnly": "Tylko właściciel agenta włącza lub wyłącza płatne dodatkowe użycie planu.",
+      "brainNotAllowed": "Tylko administrator lub właściciel agenta wybiera jego AI.",
       "undoForbidden": "Cofnąć to może tylko osoba, dla której agent pracował, jego właściciel albo administrator.",
       "undoSkillsAdmins": "Cofnąć lub ponowić zmianę umiejętności agenta może tylko administrator."
     },

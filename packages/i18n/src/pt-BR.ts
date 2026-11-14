@@ -13476,6 +13476,10 @@ export const ptBR = {
       gone: "Essa conta não está mais conectada.",
       unfinished: "O login na Composio não terminou. Tente de novo.",
       unavailable: "Este serviço não conecta aqui.",
+      /** A conexão está renovando o login neste instante (`connector.busy`): tentar de novo resolve. */
+      busy: "Esta conexão está renovando o login. Tente de novo em instantes.",
+      /** Pediram a IA do agente de um número do WhatsApp que ainda não tem agente (`whatsapp.no_agent`). */
+      whatsappNoAgent: "Escolha primeiro o agente deste número.",
       /**
        * O {{provider}} recusou o app de OAuth deste servidor para ele, com a chave secreta (ou o ID) errada
        * (`connector_error=misconfigured`): tentar de novo não resolve, só quem cuida do servidor conserta.
@@ -13738,6 +13742,8 @@ export const ptBR = {
       ownerOrAdmin: "Só o dono do agente ou um admin pode fazer isso.",
       detailsHidden: "Só quem conversa com {{agentName}} vê como funciona.",
       extraOwnerOnly: "Só o dono do agente liga ou desliga o uso extra pago do plano.",
+      /** Alguém que não é admin nem dono do agente tentou escolher a IA dele (`brain.not_allowed`). */
+      brainNotAllowed: "Só um admin ou o dono do agente escolhe a IA dele.",
       undoForbidden: "Só a pessoa para quem o agente trabalhou, o dono dele ou um admin pode desfazer isso.",
       undoSkillsAdmins: "Só um admin desfaz ou refaz uma mudança nas skills de um agente.",
     },

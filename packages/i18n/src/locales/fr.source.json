@@ -32542,6 +32542,12 @@
   "errors.connector.unavailable": {
     "value": "This service can't be connected here."
   },
+  "errors.connector.busy": {
+    "value": "This connection is renewing its sign-in. Try again in a moment."
+  },
+  "errors.connector.whatsappNoAgent": {
+    "value": "Choose this number's agent first."
+  },
   "errors.connector.misconfigured": {
     "value": "The connection to {{provider}} is set up wrong on the server, so it can't finish. Whoever runs the server needs to replace the key in the app's settings."
   },
@@ -33117,6 +33123,9 @@
   },
   "errors.agent.extraOwnerOnly": {
     "value": "Only the agent's owner turns its plan's paid extra usage on or off."
+  },
+  "errors.agent.brainNotAllowed": {
+    "value": "Only an admin or the agent's owner chooses its AI."
   },
   "errors.agent.undoForbidden": {
     "value": "Only the person the agent worked for, its owner or an admin can undo this."

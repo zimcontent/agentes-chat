@@ -13883,6 +13883,8 @@
       "gone": "Ce compte n'est plus connecté.",
       "unfinished": "La connexion sur Composio n'a pas abouti. Réessayez.",
       "unavailable": "Ce service ne peut pas être connecté ici.",
+      "busy": "Cette connexion renouvelle sa session. Réessayez dans un instant.",
+      "whatsappNoAgent": "Choisissez d'abord l'agent de ce numéro.",
       "misconfigured": "La connexion à {{provider}} est mal configurée sur le serveur, donc elle ne peut pas aboutir. La personne qui gère le serveur doit remplacer la clé dans les paramètres de l'app."
     },
     "wiki": {
@@ -14124,6 +14126,7 @@
       "ownerOrAdmin": "Seuls le responsable de l'agent ou un admin peuvent faire cela.",
       "detailsHidden": "Seules les personnes qui parlent à {{agentName}} voient comment cela fonctionne.",
       "extraOwnerOnly": "Seul le responsable de l'agent active ou désactive l'usage supplémentaire payant de l'abonnement.",
+      "brainNotAllowed": "Seul un administrateur ou le responsable de l'agent choisit son IA.",
       "undoForbidden": "Seuls la personne pour qui l'agent a travaillé, son responsable ou un admin peuvent annuler cela.",
       "undoSkillsAdmins": "Seul un admin peut annuler ou rétablir une modification des compétences d’un agent."
     },

@@ -13477,6 +13477,8 @@
       "gone": "Dat account is niet meer gekoppeld.",
       "unfinished": "Het inloggen bij Composio is niet afgerond. Probeer het opnieuw.",
       "unavailable": "Deze dienst kan hier niet gekoppeld worden.",
+      "busy": "Deze verbinding vernieuwt de aanmelding. Probeer het zo opnieuw.",
+      "whatsappNoAgent": "Kies eerst de agent van dit nummer.",
       "misconfigured": "De koppeling met {{provider}} is verkeerd ingesteld op de server, dus die kan niet worden afgerond. Wie de server beheert, moet de sleutel vervangen in de instellingen van de app."
     },
     "wiki": {
@@ -13717,6 +13719,7 @@
       "ownerOrAdmin": "Alleen de eigenaar van de agent of een beheerder kan dit doen.",
       "detailsHidden": "Alleen wie met {{agentName}} praat, ziet hoe het werkt.",
       "extraOwnerOnly": "Alleen de eigenaar van de agent zet het betaalde extra gebruik van het abonnement aan of uit.",
+      "brainNotAllowed": "Alleen een beheerder of de eigenaar van de agent kiest zijn AI.",
       "undoForbidden": "Alleen de persoon voor wie de agent werkte, zijn eigenaar of een beheerder kan dit ongedaan maken.",
       "undoSkillsAdmins": "Alleen een beheerder kan een wijziging in de skills van een agent ongedaan maken of opnieuw doen."
     },
