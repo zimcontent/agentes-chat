@@ -198,6 +198,24 @@ export function antigravityProblem(
   return [{ type: "error", code: "antigravity_failed", message: problem, retryable: true }];
 }
 
+/**
+ * A turn that "succeeded" with nothing to say because the CLI denied its tools without asking (`result.denied_actions`,
+ * CLI 1.5.9): headless, a tool that needs a confirmation is soft-denied and the turn ends there. It asks before every
+ * command when it has no terminal sandbox, which Ubuntu 24.04 takes away from it until an AppArmor profile gives it
+ * user namespaces (SELF_HOSTING.md). Null when nothing was denied.
+ */
+export function agyDenied(result: Record<string, unknown>): string | null {
+  const denied = Array.isArray(result.denied_actions) ? result.denied_actions.filter(isRecord) : [];
+  if (denied.length === 0) return null;
+  const names = [...new Set(denied.map((d) => String(d.display_name ?? d.action ?? "a tool").slice(0, 40)))];
+  const command = denied.some((d) => d.action === "command");
+  return `The Antigravity CLI refused ${names.slice(0, 4).join(", ")} without asking and ended the turn with no answer.${
+    command
+      ? " It asks before every command when it has no terminal sandbox on this computer: on Ubuntu 24.04 or newer, give it an AppArmor profile that allows user namespaces (SELF_HOSTING.md, Antigravity CLI)."
+      : ""
+  }`;
+}
+
 const tokens = (v: unknown) => (typeof v === "number" && Number.isFinite(v) && v > 0 ? Math.round(v) : 0);
 
 /** One usage record as ours: every input token (the CLI's input may already leave the cache out), output with thinking. */
@@ -440,6 +458,12 @@ export async function runAntigravityTurn(input: AntigravityTurnInput, opts: Anti
     const response = typeof r.response === "string" ? r.response : "";
     if (r.status === "SUCCESS" && exit.code === 0) {
       const text = clean(response.trimEnd());
+      // Nothing said because the CLI refused what the turn needed: never an empty answer, which reads as "Done.".
+      const denied = text || streamed ? null : agyDenied(r);
+      if (denied) {
+        opts.emit({ type: "error", code: "antigravity_failed", message: denied, retryable: false });
+        return;
+      }
       if (text && !streamed) opts.emit({ type: "text_delta", text });
       opts.emit({ type: "done", text, session: { id: input.sessionId } });
       return;
