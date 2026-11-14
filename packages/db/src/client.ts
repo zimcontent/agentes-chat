@@ -95,6 +95,7 @@ export const EXTRA_COLUMNS = [
     "created_by" text REFERENCES "users"("id") ON DELETE SET NULL,
     "created_at" timestamp with time zone NOT NULL DEFAULT now()
   )`,
+  `ALTER TABLE "whatsapp_accounts" ADD COLUMN IF NOT EXISTS "instructions" text NOT NULL DEFAULT ''`,
   `CREATE UNIQUE INDEX IF NOT EXISTS "whatsapp_accounts_hook" ON "whatsapp_accounts" ("hook_hash")`,
   `CREATE INDEX IF NOT EXISTS "whatsapp_accounts_org" ON "whatsapp_accounts" ("org_id")`,
   `CREATE TABLE IF NOT EXISTS "whatsapp_chats" (

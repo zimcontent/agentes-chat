@@ -27,6 +27,8 @@ export interface WhatsAppDeps {
 export type WhatsAppAccountRow = typeof schema.whatsappAccounts.$inferSelect;
 
 export const WHATSAPP_LABEL_MAX = 40;
+/** The most a number's instructions for its agent may hold: a few pages, read on every answer. */
+export const WHATSAPP_INSTRUCTIONS_MAX = 20_000;
 /** A QR code WhatsApp still accepts: it makes a new one about every 20 s, and the gateway tells each. */
 export const WHATSAPP_QR_FRESH_MS = 60_000;
 
@@ -41,6 +43,8 @@ export interface WhatsAppAccountView {
   qr: string | null;
   people: string[];
   agentId: string | null;
+  /** How the agent carries itself on this number (Markdown); null for someone who can't change the number. */
+  instructions: string | null;
   /** Whether the asker may read and answer its conversations. */
   mine: boolean;
   /** Whether the asker may change or remove it. */
@@ -78,6 +82,7 @@ function view(row: WhatsAppAccountRow, userId: string, manage: boolean, now = Da
     qr: manage && fresh ? row.qrImage : null,
     people: row.people,
     agentId: row.agentId,
+    instructions: manage ? row.instructions : null,
     mine: row.people.includes(userId),
     manage,
     createdAt: row.createdAt.toISOString(),
@@ -215,7 +220,7 @@ export async function updateWhatsAppAccount(
   userId: string,
   orgId: string,
   accountId: string,
-  input: { label?: string; people?: string[]; agentId?: string | null },
+  input: { label?: string; people?: string[]; agentId?: string | null; instructions?: string },
 ) {
   await requirePermission(deps.db, userId, orgId, "manage_connectors");
   const current = await accountRow(deps.db, orgId, accountId);
@@ -241,6 +246,13 @@ export async function updateWhatsAppAccount(
       if (!agent) throw new ValidationError("That agent isn't in this workspace");
     }
     set.agentId = input.agentId;
+  }
+  if (input.instructions !== undefined) {
+    const instructions = input.instructions.replace(/\r\n?/g, "\n").trim();
+    if (instructions.length > WHATSAPP_INSTRUCTIONS_MAX) {
+      throw new ValidationError(`Instructions have at most ${WHATSAPP_INSTRUCTIONS_MAX} characters`);
+    }
+    set.instructions = instructions;
   }
   if (Object.keys(set).length === 0) return view(current, userId, true);
   const [row] = await deps.db

@@ -49,7 +49,7 @@ A number is banned for what it does, mostly for writing first to many strangers.
 
 ### Agents
 
-Each number has `agent_id`: the agent in charge, or null for people only. This decision stores and validates it; an agent answering through it (tools under the Tool Gateway, approvals, outside text wrapped as untrusted) is a later decision with its own ADR.
+Each number has `agent_id`: the agent in charge, or null for people only, and `instructions`: how that agent carries itself on this number (Markdown, up to 20,000 characters, typed or read from a .md file), on top of the agent's own instructions. The same agent can then speak one way in the workspace and another on each number. Only who may change the number reads them. This decision stores and validates it; an agent answering through it (tools under the Tool Gateway, approvals, outside text wrapped as untrusted) is a later decision with its own ADR.
 
 ### Tables outside the numbered migrations
 

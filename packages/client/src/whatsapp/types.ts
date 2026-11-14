@@ -16,6 +16,8 @@ export interface WhatsAppAccount {
   people: string[];
   /** The agent that answers it; null: only people. */
   agentId: string | null;
+  /** How the agent carries itself on this number (Markdown); null for someone who can't change the number. */
+  instructions: string | null;
   /** The person is on its list. */
   mine: boolean;
   /** The person may change or remove it. */
@@ -79,6 +81,7 @@ export interface WhatsAppAccountPatch {
   label?: string;
   people?: string[];
   agentId?: string | null;
+  instructions?: string;
 }
 
 export interface WhatsAppSendInput {

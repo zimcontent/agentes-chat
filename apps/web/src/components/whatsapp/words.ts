@@ -83,6 +83,14 @@ const en = {
     agent: "Agent in charge",
     agentHint: "An agent answering this number is coming. Until then only people do.",
     agentNone: "Nobody, only people",
+    instructions: "How the agent behaves on this number",
+    instructionsHint:
+      "Its tone, what it may promise, when to hand over to a person. Applies to this number alone, on top of the agent's own instructions.",
+    instructionsFile: "Load a .md file",
+    instructionsDrop: "You can also drop a .md file here",
+    instructionsPlaceholder:
+      "e.g. Speak informally and briefly. Never promise a deadline or a price. If someone asks for a person, say Gabriel will answer soon.",
+    fileRefused: "Use a text file (.md or .txt) of up to 200 KB",
     save: "Save",
     saved: "Saved",
     remove: "Remove number",
@@ -195,6 +203,14 @@ const ptBR: typeof en = {
     agent: "Agente responsável",
     agentHint: "O agente respondendo por este número ainda vai chegar. Até lá, só pessoas respondem.",
     agentNone: "Ninguém, só pessoas",
+    instructions: "Como o agente se porta neste número",
+    instructionsHint:
+      "O tom, o que pode prometer, quando passar para uma pessoa. Vale só para este número, por cima das instruções do próprio agente.",
+    instructionsFile: "Carregar arquivo .md",
+    instructionsDrop: "Também dá para soltar um arquivo .md aqui",
+    instructionsPlaceholder:
+      "ex.: Fale de forma informal e curta. Nunca prometa prazo nem preço. Se pedirem uma pessoa, diga que o Gabriel responde em breve.",
+    fileRefused: "Use um arquivo de texto (.md ou .txt) de até 200 KB",
     save: "Salvar",
     saved: "Salvo",
     remove: "Remover número",

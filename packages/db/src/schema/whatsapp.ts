@@ -45,6 +45,11 @@ export const whatsappAccounts = pgTable(
     people: text().array().notNull().default(sql`'{}'::text[]`),
     /** The agent that answers this number; null: only people do. */
     agentId: uuid().references(() => agents.id, { onDelete: "set null" }),
+    /**
+     * How the agent carries itself on this number, in the workspace's own words (Markdown): its tone, what it may
+     * promise, when it hands over to a person. On top of the agent's own instructions, for this number alone.
+     */
+    instructions: text().notNull().default(""),
     lastError: text(),
     createdBy: text().references(() => users.id, { onDelete: "set null" }),
     createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),

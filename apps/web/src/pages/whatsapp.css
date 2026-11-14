@@ -413,6 +413,18 @@
   color: var(--ok);
   font-size: var(--text-h3);
 }
+/* A number's instructions for its agent: room to write, and a ring while a file hovers over it. */
+.wa-instructions {
+  min-height: 160px;
+  resize: vertical;
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: var(--text-sm);
+  line-height: 1.5;
+}
+.wa-instructions[data-dropping="true"] {
+  outline: 2px dashed var(--agent);
+  outline-offset: 2px;
+}
 .wa-people {
   margin: 0;
   overflow-wrap: anywhere;

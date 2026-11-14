@@ -319,6 +319,21 @@ describe("who sees a number", () => {
     expect((await change({ agentId: null, label: "Suporte" })).label).toBe("Suporte");
   });
 
+  test("how its agent carries itself is kept for the number, shown only to who may change it", async () => {
+    f = await setup();
+    const { deps, account } = await connected();
+    const leticia = await addMember(f.db, f.org.id, "member", "leticia");
+    const saved = await updateWhatsAppAccount(deps, f.owner.id, f.org.id, account.id, {
+      instructions: "  # Tom\r\nSempre por você, nunca prometa prazo.  ",
+      people: [f.owner.id, leticia.id],
+    });
+    expect(saved.instructions).toBe("# Tom\nSempre por você, nunca prometa prazo.");
+    expect((await listWhatsAppAccounts(deps, leticia.id, f.org.id)).accounts[0]?.instructions).toBeNull();
+    await expect(
+      updateWhatsAppAccount(deps, f.owner.id, f.org.id, account.id, { instructions: "x".repeat(20_001) }),
+    ).rejects.toThrow("at most");
+  });
+
   test("removing a number ends its session, deletes it at the gateway and takes its conversations", async () => {
     f = await setup();
     const { gateway, deps, account, post } = await connected();

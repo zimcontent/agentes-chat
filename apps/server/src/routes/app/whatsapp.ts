@@ -10,6 +10,7 @@ import {
   sendWhatsAppText,
   typingInWhatsAppChat,
   updateWhatsAppAccount,
+  WHATSAPP_INSTRUCTIONS_MAX,
   WHATSAPP_LABEL_MAX,
   WHATSAPP_PAGE_MAX,
   WHATSAPP_TEXT_MAX,
@@ -66,6 +67,10 @@ const Account = z
     }),
     people: z.array(z.string()).openapi({ description: "User ids who read and answer its conversations." }),
     agentId: z.string().nullable().openapi({ description: "The agent that answers it; null: only people." }),
+    instructions: z.string().nullable().openapi({
+      description:
+        "How the agent carries itself on this number (Markdown), on top of its own instructions; null for someone who can't change the number.",
+    }),
     mine: z.boolean().openapi({ description: "The asker is on its list." }),
     manage: z.boolean().openapi({ description: "The asker may change or remove it." }),
     createdAt: z.string(),
@@ -201,6 +206,7 @@ export function whatsappRoutes(deps: AppDeps) {
             label: z.string().trim().min(1).max(WHATSAPP_LABEL_MAX).optional(),
             people: z.array(z.string().min(1).max(64)).max(50).optional(),
             agentId: z.uuid().nullable().optional(),
+            instructions: z.string().max(WHATSAPP_INSTRUCTIONS_MAX).optional(),
           }),
         ),
       },

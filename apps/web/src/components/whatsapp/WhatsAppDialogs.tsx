@@ -26,12 +26,16 @@ import {
   Spinner,
   Textarea,
 } from "@agenteschat/ui";
-import { type FormEvent, useState } from "react";
+import { type FormEvent, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useOrg } from "@/components/org-context";
 import { useDirectory } from "@/hooks/useDirectory";
 import { useToast } from "@/lib/toast";
 import { useWords, type WhatsAppWords } from "./words";
+
+/** As the server takes them (`WHATSAPP_INSTRUCTIONS_MAX`), and the largest file read into them. */
+const INSTRUCTIONS_MAX = 20_000;
+const INSTRUCTIONS_FILE_MAX = 200_000;
 
 /** What to say of a failed call: our own words when the gateway is what refused, the app's for anything else. */
 export function useWhatsAppError() {
@@ -169,12 +173,25 @@ export function NumberDialog({ account, onClose }: { account: WhatsAppAccount; o
   const [label, setLabel] = useState(account.label);
   const [people, setPeople] = useState(account.people);
   const [agentId, setAgentId] = useState(account.agentId ?? "none");
+  const [instructions, setInstructions] = useState(account.instructions ?? "");
+  const [dropping, setDropping] = useState(false);
+  const filePicker = useRef<HTMLInputElement>(null);
+  /** A text file's words become the instructions: a .md written elsewhere, dropped here or picked. */
+  const readFile = async (file: File | undefined) => {
+    if (!file) return;
+    const text = /\.(md|markdown|txt)$/i.test(file.name) || file.type.startsWith("text/");
+    if (!text || file.size > INSTRUCTIONS_FILE_MAX) {
+      toast.show(w.settings.fileRefused, "error");
+      return;
+    }
+    setInstructions((await file.text()).slice(0, INSTRUCTIONS_MAX));
+  };
   const [step, setStep] = useState<"form" | "people" | "remove">("form");
   const names = people.map((id) => dir.memberById.get(id)?.name).filter((name): name is string => Boolean(name));
 
   const save = () =>
     update.mutate(
-      { accountId: account.id, label, people, agentId: agentId === "none" ? null : agentId },
+      { accountId: account.id, label, people, agentId: agentId === "none" ? null : agentId, instructions },
       {
         onSuccess: () => {
           toast.show(w.settings.saved);
@@ -260,7 +277,7 @@ export function NumberDialog({ account, onClose }: { account: WhatsAppAccount; o
       onOpenChange={(open) => !open && onClose()}
       title={w.settings.title}
       closeLabel={w.connectDialog.close}
-      width={440}
+      width={600}
     >
       <DialogBody>
         <FormStack>
@@ -287,6 +304,46 @@ export function NumberDialog({ account, onClose }: { account: WhatsAppAccount; o
               ]}
             />
           </Field>
+          <Field
+            label={w.settings.instructions}
+            hint={{ name: w.settings.instructions, text: w.settings.instructionsHint }}
+            labelAside={
+              <Button variant="link" onClick={() => filePicker.current?.click()}>
+                {w.settings.instructionsFile}
+              </Button>
+            }
+            example={w.settings.instructionsDrop}
+          >
+            <Textarea
+              className="wa-instructions"
+              data-dropping={dropping}
+              value={instructions}
+              onChange={(e) => setInstructions(e.target.value)}
+              onDragOver={(e) => {
+                e.preventDefault();
+                setDropping(true);
+              }}
+              onDragLeave={() => setDropping(false)}
+              onDrop={(e) => {
+                e.preventDefault();
+                setDropping(false);
+                void readFile(e.dataTransfer.files[0]);
+              }}
+              placeholder={w.settings.instructionsPlaceholder}
+              maxLength={INSTRUCTIONS_MAX}
+              rows={8}
+            />
+          </Field>
+          <input
+            ref={filePicker}
+            type="file"
+            accept=".md,.markdown,.txt,text/markdown,text/plain"
+            hidden
+            onChange={(e) => {
+              void readFile(e.target.files?.[0]);
+              e.target.value = "";
+            }}
+          />
         </FormStack>
       </DialogBody>
       <DialogFooter
