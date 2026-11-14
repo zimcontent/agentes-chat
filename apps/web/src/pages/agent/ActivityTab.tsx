@@ -13,6 +13,7 @@ import {
   formatUsd,
 } from "@agenteschat/client/lib/format";
 import { covers } from "@agenteschat/client/lib/repos";
+import { simpleScreens } from "@agenteschat/client/lib/simple-mode";
 import { excerpt } from "@agenteschat/client/lib/text";
 import {
   type AgentColor,
@@ -25,8 +26,8 @@ import {
   Meter,
   type MonthDay,
   MonthRuns,
-  type RunWho,
   RunMark,
+  type RunWho,
   SearchField,
   Segmented,
   Toolbar,
@@ -50,10 +51,10 @@ import { RunChip, runWhere } from "./pieces";
 export const RUNS_PAGE = 20;
 
 /** Why a run failed, in the person's language (the server's code), else its own words. */
-const failure = (t: TFunction, run: Run) =>
+const failure = (t: TFunction, run: Run, simple: boolean) =>
   runErrorText(t, run.errorCode, run.errorParams) ??
-  run.errorParams?.detail ??
-  run.error ??
+  // The stored error is the system's own words: simple screens say only that something went wrong.
+  (simple ? null : (run.errorParams?.detail ?? run.error)) ??
   t("agentPage.activity.errors.unknown");
 
 /**
@@ -172,6 +173,7 @@ export function ActivityTab() {
   const { t, i18n } = useTranslation();
   const locale = i18n.language;
   const { org } = useOrg();
+  const simple = simpleScreens(org);
   const { agent, g, viewer, ownerFirst, saved, can, pickRepos } = useAgentEdit();
   const allowed = viewer !== "member";
   const runs = useRuns(org.id, agent.id, allowed);
@@ -351,7 +353,7 @@ export function ActivityTab() {
                             <span className="agp-run__fail ac-iconline">
                               <Icon name="alert" size={14} />
                               {/* A computer's own code, worded generically, only on hover (as in the chat). */}
-                              <span title={r.errorParams?.code}>{failure(t, r)}</span>
+                              <span title={simple ? undefined : r.errorParams?.code}>{failure(t, r, simple)}</span>
                             </span>
                           )}
                           {fix && r.id === fixRun?.id && (

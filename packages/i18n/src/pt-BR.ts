@@ -4626,6 +4626,8 @@ export const ptBR = {
       other: "Aprovar",
     },
     refuse: "Recusar",
+    /** Beside "Sempre nesta rotina" where that one leads the bar: approve this one request only. */
+    once: "Só desta vez",
     viewDiff: "Ver diff",
     viewInChannel: "Ver no grupo",
     group: "Pedido de aprovação",
@@ -5096,6 +5098,20 @@ export const ptBR = {
     again: "Pedir de novo",
     againBody: "@{{handle}} o pedido “{{title}}” expirou sem decisão. Se ainda fizer sentido, pede de novo.",
     againSent: "Pedido enviado na conversa",
+    /** A failed action's button: asks the agent, in the conversation, to see what went wrong and try again. */
+    retry: "Pedir para tentar de novo",
+    /** Why an approved action failed, read from what its tool said (`failureCause`), and what to do. */
+    cause: {
+      reconnect: "A conexão com o app expirou. Reconecte e peça para tentar de novo.",
+      permission: "A conta conectada não tem permissão para isso. Confira o acesso no app e peça para tentar de novo.",
+      unavailable: "O serviço não respondeu. Espere um pouco e peça para tentar de novo.",
+      limit: "O serviço recusou por excesso de pedidos. Espere alguns minutos e peça para tentar de novo.",
+    },
+    reconnect: "Reconectar",
+    retryBody:
+      "@{{handle}} a ação “{{title}}” que foi aprovada falhou. Veja o que deu errado e tente de novo, ou me diga o que eu preciso fazer.",
+    /** A code action's saved keys, as its value's label on simple screens. */
+    valueKeys: "Chaves do Cofre usadas",
     noResults: "Nenhum pedido com esses filtros.",
     emptyTitle: "Tudo decidido",
     how: "Como as aprovações funcionam",
@@ -5125,6 +5141,7 @@ export const ptBR = {
       runningLine_female: "A {{name}} está rodando exatamente a ação abaixo.",
       done: "Feito",
       failed: "A ação falhou",
+      failedLine: "Não foi concluída. Peça para {{name}} ver o que houve e tentar de novo.",
       returned: "O que voltou",
       approvedBy: "Aprovado por {{name}} {{when}}",
       refusedBy: "Recusado por {{name}} {{when}}",
@@ -15303,9 +15320,9 @@ export const ptBR = {
           newCount: "4 novas",
         },
       },
-      agentStyle: "Como os agentes falam com você",
+      agentStyle: "Modo de uso",
       agentStyleHelp:
-        "Simples: o que aconteceu e o que fazer, em poucas palavras. Técnico: com caminhos, códigos e detalhes.",
+        "Simples: os agentes falam em poucas palavras e as telas mostram só o que foi feito e o que você decide. Técnico: com códigos, comandos e detalhes de sistema.",
       agentStyleSimple: "Simples",
       agentStyleTechnical: "Técnico",
     },

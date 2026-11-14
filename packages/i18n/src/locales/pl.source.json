@@ -10839,6 +10839,9 @@
   "approval.refuse": {
     "value": "Refuse"
   },
+  "approval.once": {
+    "value": "Only this time"
+  },
   "approval.viewDiff": {
     "value": "View diff"
   },
@@ -12015,6 +12018,30 @@
   "approvals.againSent": {
     "value": "Request sent in the conversation"
   },
+  "approvals.retry": {
+    "value": "Ask to try again"
+  },
+  "approvals.cause.reconnect": {
+    "value": "The connection to the app expired. Reconnect it and ask to try again."
+  },
+  "approvals.cause.permission": {
+    "value": "The connected account isn't allowed to do this. Check its access in the app and ask to try again."
+  },
+  "approvals.cause.unavailable": {
+    "value": "The service didn't answer. Wait a little and ask to try again."
+  },
+  "approvals.cause.limit": {
+    "value": "The service refused: too many requests. Wait a few minutes and ask to try again."
+  },
+  "approvals.reconnect": {
+    "value": "Reconnect"
+  },
+  "approvals.retryBody": {
+    "value": "@{{handle}} the action “{{title}}” that was approved failed. See what went wrong and try again, or tell me what I need to do."
+  },
+  "approvals.valueKeys": {
+    "value": "Vault keys used"
+  },
   "approvals.noResults": {
     "value": "No requests match these filters."
   },
@@ -12092,6 +12119,9 @@
   },
   "approvals.panel.failed": {
     "value": "The action failed"
+  },
+  "approvals.panel.failedLine": {
+    "value": "It didn't finish. Ask {{name}} to see what happened and try again."
   },
   "approvals.panel.returned": {
     "value": "What came back"

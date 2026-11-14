@@ -8,7 +8,9 @@ import {
   useRun,
 } from "@agenteschat/client";
 import type { Activity, ActivityKind } from "@agenteschat/client/lib/activity";
+import { type FailureCause, failureCause } from "@agenteschat/client/lib/failure-cause";
 import { agentGrammar } from "@agenteschat/client/lib/grammar";
+import { simpleScreens } from "@agenteschat/client/lib/simple-mode";
 import {
   appKey,
   callLogo,
@@ -25,7 +27,6 @@ import {
   toolCalls,
   toolItemsLive,
   toolItemsSaved,
-  toolLineHint,
   toolNow,
   toolPhrase,
   toolWhy,
@@ -48,7 +49,7 @@ import type { TFunction } from "i18next";
 import { type ReactNode, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ConnectorIcon } from "@/components/ConnectorCatalog";
-import { CodePanel, formatBytes, OutputView, type SteerNote, SteerWell } from "@/components/LiveCode";
+import { CodePanel, OutputView, type SteerNote, SteerWell } from "@/components/LiveCode";
 import { useOrg } from "@/components/org-context";
 
 /** Our own tools by what they do: their icon in the block (a connector's call shows its logo). */
@@ -141,25 +142,27 @@ export function useCallLogo() {
   };
 }
 
+const causeWords = (t: TFunction, cause: FailureCause | null) => (cause ? t(`approvals.cause.${cause}`) : null);
+
 /** A line of the block from the shared model: its phrase, time, open view (code, output, what it got and gave). */
-function blockLine(t: TFunction, locale: string, l: ToolLine, logo: ReactNode, personal = false) {
-  const lines = l.code ? l.code.source.split("\n").length : 0;
+function blockLine(
+  t: TFunction,
+  locale: string,
+  l: ToolLine,
+  logo: ReactNode,
+  personal = false,
+  /**
+   * Simple screens (`simpleScreens`): the line never opens. Every screen says the call in words, with no tool name
+   * beside it; what it ran, got and gave is behind the line, for whoever chose the technical screens.
+   */
+  simple = false,
+) {
   const output = l.output ?? [];
-  const label =
-    l.code && l.state === "done"
-      ? t("code.ranSummary", {
-          count: lines,
-          language: l.code.language,
-          size: formatBytes(
-            locale,
-            output.reduce((n, o) => n + new TextEncoder().encode(o.text).length, 0),
-          ),
-        })
-      : toolPhrase(t, l);
+  const label = toolPhrase(t, l);
   const why = toolWhy(t, l, personal);
   // What the tool answered, its own words when it failed: only in the open view, never under the line.
   const answered = l.result ?? why ?? l.why;
-  const detail = l.code ? (
+  const detail = simple ? undefined : l.code ? (
     <CodePanel code={l.code} output={output} live={l.state === "run"} />
   ) : output.length > 0 ? (
     <OutputView output={output} live={l.state === "run"} />
@@ -184,12 +187,11 @@ function blockLine(t: TFunction, locale: string, l: ToolLine, logo: ReactNode, p
     state: l.state,
     logo,
     label,
-    hint: toolLineHint(t, l),
     time: l.ms !== null && l.state !== "run" ? formatLineTime(locale, l.ms) : undefined,
     count: l.count > 1 ? t("chat.work.times", { count: l.count }) : undefined,
-    why: l.state === "fail" ? why : null,
+    // Where the tool's own words name the way out (`failureCause`), that, in the person's words.
+    why: l.state === "fail" ? (why ?? causeWords(t, failureCause(l.result ?? l.why))) : null,
     detail,
-    defaultOpen: l.state === "run" && Boolean(l.code),
   };
   return line;
 }
@@ -197,10 +199,12 @@ function blockLine(t: TFunction, locale: string, l: ToolLine, logo: ReactNode, p
 function useBlockItems(items: ToolItem[]): ToolBlockItem[] {
   const { t, i18n } = useTranslation();
   const logo = useCallLogo();
-  const personal = isPersonal(useOrg().org);
+  const { org } = useOrg();
+  const personal = isPersonal(org);
+  const simple = simpleScreens(org);
   return items.flatMap((item): ToolBlockItem[] =>
     item.kind === "call"
-      ? [{ kind: "line", line: blockLine(t, i18n.language, item.line, logo(item.line), personal) }]
+      ? [{ kind: "line", line: blockLine(t, i18n.language, item.line, logo(item.line), personal, simple) }]
       : item.kind === "say"
         ? [{ kind: "note", key: item.key, node: item.text }]
         : [],
@@ -268,7 +272,7 @@ export function LiveTools({
         time: total > 0 ? formatDuration(t, total) : undefined,
       }
     : {
-        text: blockLine(t, i18n.language, now, null).label,
+        text: blockLine(t, i18n.language, now, null, false, simpleScreens(org)).label,
         textKey: `${now.key}-${now.state}`,
         state: now.state,
         count: t("chat.work.steps", { count: calls }),
@@ -313,6 +317,7 @@ export function TaskStepsBlock({
   color?: AgentColor;
 }) {
   const { t, i18n } = useTranslation();
+  const { org } = useOrg();
   const logo = useCallLogo();
   const saved = toolItemsSaved(workFromSteps(steps, run));
   const last = saved.findLastIndex((i) => i.kind === "call");
@@ -329,7 +334,7 @@ export function TaskStepsBlock({
   const head =
     working && now
       ? {
-          text: blockLine(t, i18n.language, now, null).label,
+          text: blockLine(t, i18n.language, now, null, false, simpleScreens(org)).label,
           textKey: `${now.key}-${now.state}`,
           state: now.state,
           count: t("chat.work.steps", { count: calls }),
@@ -392,7 +397,7 @@ export function SavedTools({
   // unknown (saved before the server wrote it): kept, it may have failed.
   if (lone && lone.ms !== null && quietLine(lone)) return null;
   if (lone && (!work || oneCall(items) || !items.some((i) => i.kind === "call"))) {
-    const line = blockLine(t, i18n.language, lone, logo(lone), isPersonal(org));
+    const line = blockLine(t, i18n.language, lone, logo(lone), isPersonal(org), simpleScreens(org));
     const wait = run.isError ? (
       t("chat.work.failed")
     ) : !work ? (

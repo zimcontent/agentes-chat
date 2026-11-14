@@ -97,7 +97,7 @@ describe("Aprovações", () => {
         scope: "sandbox:run",
         title: "Run python code",
         connector: null,
-        why: "Vou somar os pagamentos aprovados de ontem e do mês para fechar o relatório da manhã.",
+        why: "Somar os pagamentos de ontem e do mês. O relatório da manhã precisa do total aprovado.",
         params: { code, language: "python" },
       },
     ];
@@ -106,13 +106,76 @@ describe("Aprovações", () => {
     const cards = [...open.querySelectorAll(".ap-review__card")] as HTMLElement[];
     const action = cards.find((c) => c.textContent?.includes("O que vai fazer")) as HTMLElement;
     // Its words lead the action's card, with no card of their own above it.
-    expect(action.querySelector(".ap-review__why")?.textContent).toContain("somar os pagamentos");
+    expect(action.querySelector(".ap-review__why")?.textContent).toBe(
+      "O relatório da manhã precisa do total aprovado.",
+    );
     expect(open.querySelectorAll(".ap-review__why")).toHaveLength(1);
     const labels = [...action.querySelectorAll(".ap-exact__rows dt")].map((d) => d.textContent);
-    expect(labels).toEqual(["Language"]);
-    expect(action.querySelector(".ap-exact__rows")?.textContent).not.toContain("import os");
+    expect(labels).toEqual([]);
+    expect(open.querySelector(".ap-review__title")?.textContent).toBe("Somar os pagamentos de ontem e do mês");
     // The code itself, with its lines, is one click away.
     expect(action.querySelector(".ap-exact__tech pre")?.textContent).toBe(code);
+  });
+
+  test("simple screens: no technical details, a code action's keys in words, a failed one says what to do", async () => {
+    const state = seedState();
+    const org = state.me?.organizations[0];
+    const merge = state.approvals[0];
+    if (!merge || !org) throw new Error("no approval");
+    org.agentStyle = "simple";
+    state.approvals = [
+      {
+        ...merge,
+        id: "ap-code",
+        tool: "run_code",
+        scope: "sandbox:run",
+        title: "Run python code",
+        connector: null,
+        why: "Somar os pagamentos de ontem no Mercado Pago. O relatório da manhã precisa do total aprovado.",
+        params: { code: "print(1)", language: "python", keys: ["PAY_TOKEN"] },
+        origin: { kind: "routine", routineId: "r-manha", routineName: "Ciclo da manhã" },
+        approveAlways: { tool: "run_code", actions: ["vault:PAY_TOKEN"], routineId: "r-manha" },
+      },
+      {
+        ...merge,
+        id: "ap-failed",
+        connector: "github",
+        status: "approved",
+        canDecide: false,
+        decidedAt: new Date(Date.now() - 3_600_000).toISOString(),
+        decidedByUserId: "u-joao",
+        result: { ok: false, text: "HTTP 401 unauthorized" },
+      },
+    ];
+    await go("approvals", state);
+    const open = document.querySelector(".ap-review") as HTMLElement;
+    expect(open.querySelector(".ap-exact__tech")).toBeNull();
+    expect(open.textContent).not.toContain("print(1)");
+    // What it will do, in the agent's own opening sentence, is the title and the row; the rest is the reason.
+    expect(open.querySelector(".ap-review__title")?.textContent).toBe("Somar os pagamentos de ontem no Mercado Pago");
+    expect(row("ap-code").querySelector(".ap-li__line")?.textContent).toBe(
+      "Ada quer somar os pagamentos de ontem no Mercado Pago",
+    );
+    expect(open.querySelector(".ap-review__why")?.textContent).toBe("O relatório da manhã precisa do total aprovado.");
+    // A routine asks every time it runs: the answer that ends the asking leads, this one time is beside it.
+    const bar = [...open.querySelectorAll(".ap-bar__acts button")].map((b) => b.textContent);
+    expect(bar.at(-1)).toBe("Sempre nesta rotina");
+    expect(bar).toContain("Só desta vez");
+    expect(open.querySelector(".ap-bar__acts .ac-btn--primary")?.textContent).toBe("Sempre nesta rotina");
+    expect([...open.querySelectorAll(".ap-exact__rows dt")].map((d) => d.textContent)).toEqual([
+      "Chaves do Cofre usadas",
+    ]);
+    // A link to the failed one opens it though it no longer waits: what to do, and no raw return.
+    await go("approvals?open=ap-failed", state);
+    const failed = document.querySelector(".ap-outcome") as HTMLElement;
+    // What the tool said (a 401) names the way out: sign in again, then ask to try again.
+    expect(failed.textContent).toContain("A conexão com o app expirou. Reconecte e peça para tentar de novo.");
+    expect(within(failed).getByRole("link", { name: "Reconectar" }).getAttribute("href")).toContain(
+      "/settings/connectors",
+    );
+    expect(within(failed).getByRole("button", { name: "Pedir para tentar de novo" })).toBeTruthy();
+    expect(failed.textContent).not.toContain("O que voltou");
+    expect(document.body.textContent).not.toContain("HTTP 401");
   });
 
   test("nothing waiting: All decided and one link to how approvals work; the header says no more", async () => {

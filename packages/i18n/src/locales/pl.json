@@ -4698,6 +4698,7 @@
       "other": "Zatwierdź"
     },
     "refuse": "Odrzuć",
+    "once": "Tylko tym razem",
     "viewDiff": "Zobacz diff",
     "viewInChannel": "Zobacz na kanale",
     "group": "Prośba o zatwierdzenie",
@@ -5216,6 +5217,16 @@
     "again": "Poproś ponownie",
     "againBody": "@{{handle}} prośba „{{title}}” wygasła bez decyzji. Jeśli nadal ma sens, poproś ponownie.",
     "againSent": "Prośba wysłana w rozmowie",
+    "retry": "Poproś o ponowną próbę",
+    "cause": {
+      "reconnect": "Połączenie z aplikacją wygasło. Połącz ponownie i poproś o ponowną próbę.",
+      "permission": "Połączone konto nie ma do tego uprawnień. Sprawdź dostęp w aplikacji i poproś o ponowną próbę.",
+      "unavailable": "Usługa nie odpowiedziała. Poczekaj chwilę i poproś o ponowną próbę.",
+      "limit": "Usługa odmówiła: zbyt wiele żądań. Poczekaj kilka minut i poproś o ponowną próbę."
+    },
+    "reconnect": "Połącz ponownie",
+    "retryBody": "@{{handle}} zatwierdzone działanie „{{title}}” nie powiodło się. Sprawdź, co poszło nie tak, i spróbuj ponownie albo powiedz mi, co mam zrobić.",
+    "valueKeys": "Użyte klucze z Vault",
     "noResults": "Żadne prośby nie pasują do tych filtrów.",
     "emptyTitle": "Wszystko zdecydowane",
     "how": "Jak działają zatwierdzenia",
@@ -5245,6 +5256,7 @@
       "runningLine_female": "{{name}} wykonuje dokładnie poniższą akcję.",
       "done": "Gotowe",
       "failed": "Akcja się nie powiodła",
+      "failedLine": "Nie zostało ukończone. Poproś {{name}} o sprawdzenie, co się stało, i ponowną próbę.",
       "returned": "Co wróciło",
       "approvedBy": "Zatwierdził(a) {{name}} {{when}}",
       "refusedBy": "Odrzucił(a) {{name}} {{when}}",

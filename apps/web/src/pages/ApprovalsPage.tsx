@@ -21,6 +21,7 @@ import {
   runKeys,
 } from "@agenteschat/client/lib/approval-card";
 import { aheadPhase, approveAlwaysOffered } from "@agenteschat/client/lib/approval-kind";
+import { approvalLead } from "@agenteschat/client/lib/approval-lead";
 import { approvalOriginShort, approvalWords } from "@agenteschat/client/lib/approval-origin";
 import {
   type ApprovalEffect,
@@ -38,9 +39,19 @@ import {
   requesterDecidesLine,
 } from "@agenteschat/client/lib/approval-words";
 import { fromServer, itemName } from "@agenteschat/client/lib/connected";
-import { daysBetween, formatTime, joinNames, nextLabel, relativeTime, timeLeft } from "@agenteschat/client/lib/format";
+import { failureCause } from "@agenteschat/client/lib/failure-cause";
+import {
+  daysBetween,
+  formatTime,
+  joinNames,
+  lowerFirst,
+  nextLabel,
+  relativeTime,
+  timeLeft,
+} from "@agenteschat/client/lib/format";
 import { agentGrammar } from "@agenteschat/client/lib/grammar";
 import { connectorName } from "@agenteschat/client/lib/scopes";
+import { simpleScreens } from "@agenteschat/client/lib/simple-mode";
 import { formatDuration, type ToolItem, toolItemsSaved, toolPhrase, workFromSteps } from "@agenteschat/client/lib/work";
 import {
   Button,
@@ -165,6 +176,12 @@ export function sortOpen(list: Approval[]) {
   });
 }
 
+/**
+ * The request's title: what the action will do in the agent's own words (`approvalLead`), where it said so; else
+ * the tool's title.
+ */
+const shownTitle = (t: TFunction, a: Approval) => approvalLead(a)?.title ?? approvalTitle(t, a);
+
 const decidedAt = (a: Approval) => a.decidedAt ?? (a.status === "expired" ? a.expiresAt : a.createdAt);
 
 /** The top-level scalar values of the action (what the card shows; the details show them all). */
@@ -234,6 +251,15 @@ export function ApprovalsPage() {
   const shownDecided = decided.filter((a) => matches(a) && (filter === "all" || bucketOf(approvalPhase(a)) === filter));
   // The rows in the order shown; the open one (`?open=<id>`), else the first, is the request beside the list.
   const order = [...shownOpen, ...shownDecided].map((a) => a.id);
+  // A link to a request already decided (a notice, a routine's run) opens it: its filter isn't the waiting one, so the
+  // list moves to "all" once for that link. One decided while open here is not a link: it leaves the list.
+  const linked = useRef<string | null>(null);
+  useEffect(() => {
+    if (!openId || linked.current === openId || !approvals.data) return;
+    linked.current = openId;
+    const target = approvals.data.find((a) => a.id === openId);
+    if (target && filter !== "all" && bucketOf(approvalPhase(target)) !== filter) setFilter("all");
+  }, [openId, approvals.data, filter]);
   const selectedId = openId && order.includes(openId) ? openId : (order[0] ?? null);
   const selected = all.find((a) => a.id === selectedId) ?? null;
   const cardOf = new Map(approvalCards(shownOpen).flatMap((items) => items.map((a) => [a.id, items] as const)));
@@ -477,7 +503,7 @@ export function ApprovalsPage() {
                 className="ap-review"
                 data-scroll-restoration-id="approvals-request"
                 data-burst=""
-                aria-label={approvalTitle(t, selected)}
+                aria-label={shownTitle(t, selected)}
               >
                 <ReviewHead approval={selected} channel={channelName(selected.channelId)} />
                 <ReviewBody key={selected.id} approval={selected} channel={channelName(selected.channelId)} />
@@ -619,6 +645,7 @@ export function ExactAction({
   bare?: boolean;
 }) {
   const { t } = useTranslation();
+  const simple = simpleScreens(useOrg().org);
   // An email shows as the email itself (folded in lists, whole in the details).
   if (approval.email) return <EmailLetter email={approval.email} full={!max} />;
   const full = max === undefined;
@@ -626,6 +653,14 @@ export function ExactAction({
   // itself reads behind "Detalhes técnicos", with its lines kept.
   const values = approvalValues(approval, full ? { long: true, code: false } : { max, code: false });
   const code = full ? approvalCode(approval) : [];
+  // A code action: which language it runs in says nothing to its reader (it is in the technical details), and its
+  // saved keys go by what they are.
+  const rows =
+    approval.tool === "run_code"
+      ? values.flatMap(([label, value]): [string, string][] =>
+          label === "Language" ? [] : [[label === "Keys" ? t("approvals.valueKeys") : label, value]],
+        )
+      : values;
   return (
     <div className="ap-exact">
       {!bare && (
@@ -634,10 +669,10 @@ export function ExactAction({
           {approvalReadsOnly(approval) && <Chip icon="eye">{t("approvals.readsOnly")}</Chip>}
         </div>
       )}
-      {values.length > 0 &&
+      {rows.length > 0 &&
         (full ? (
           <dl className="ap-exact__rows">
-            {values.map(([label, value]) => (
+            {rows.map(([label, value]) => (
               <div key={label} data-long={value.length > LONG_VALUE || undefined}>
                 <dt>{label}</dt>
                 <dd>{inlineWords(value)}</dd>
@@ -646,14 +681,15 @@ export function ExactAction({
           </dl>
         ) : (
           <div className="ap-exact__facts">
-            {values.map(([label, value]) => (
+            {rows.map(([label, value]) => (
               <Chip key={label}>
                 {label}: {value}
               </Chip>
             ))}
           </div>
         ))}
-      {full && (
+      {/* Simple screens stop at the words: the call itself is for whoever chose the technical ones. */}
+      {full && !simple && (
         <details className="ap-exact__tech">
           <summary>{t("approvals.technical")}</summary>
           {code.map(([label, text]) => (
@@ -676,13 +712,25 @@ export function expiryText(t: TFunction, a: Pick<Approval, "expiresAt">) {
 }
 
 /** Approve: one click, or a hold for high risk (let go early and nothing happens). */
-export function ApproveButton({ approval, block, tip }: { approval: Approval; block?: boolean; tip?: string }) {
+export function ApproveButton({
+  approval,
+  block,
+  tip,
+  once,
+}: {
+  approval: Approval;
+  block?: boolean;
+  tip?: string;
+  /** The quiet button beside "Aprovar sempre" where that one leads: "Só desta vez". */
+  once?: boolean;
+}) {
   const { t } = useTranslation();
   const { org } = useOrg();
   const decide = useDecideApproval(org.id);
   return (
     <HoldToApprove
-      label={t(`approval.approve.${approvalAction(approval)}`)}
+      label={once ? t("approval.once") : t(`approval.approve.${approvalAction(approval)}`)}
+      quiet={once}
       high={approvalRisk(approval) === "high"}
       block={block}
       id={approval.id}
@@ -709,8 +757,11 @@ export function HoldToApprove({
   tip,
   pending,
   onGo,
+  quiet,
 }: {
   label: string;
+  /** Not the leading button of its bar. */
+  quiet?: boolean;
   high: boolean;
   block?: boolean;
   id: string;
@@ -740,10 +791,10 @@ export function HoldToApprove({
   if (!high)
     return tipped(
       <Button
-        variant="primary"
+        variant={quiet ? undefined : "primary"}
         size="sm"
         block={block}
-        icon="check"
+        icon={quiet ? undefined : "check"}
         data-approve={id}
         disabled={pending}
         loading={pending}
@@ -931,6 +982,7 @@ function ReqRow({ approval: a, selected, onOpen }: { approval: Approval; selecte
   const leftMs = new Date(a.expiresAt).getTime() - Date.now();
   const waits = approvalWaitsFor(a, dir.memberById.get(a.ownerUserId ?? agent?.ownerUserId ?? "")?.name);
   const where = approvalTarget(a) ?? via.name;
+  const lead = approvalLead(a)?.title;
   const end =
     p === "waiting" ? (
       <span className={cx("ap-li__left", leftMs <= URGENT_MS && "is-urgent")}>
@@ -965,12 +1017,12 @@ function ReqRow({ approval: a, selected, onOpen }: { approval: Approval; selecte
           {p === "waiting" || p === "running" ? (
             <Trans
               i18nKey="notifications.wait.wants"
-              values={{ name, action: approvalDoing(t, a, i18n.language) }}
+              values={{ name, action: lead ? lowerFirst(lead, i18n.language) : approvalDoing(t, a, i18n.language) }}
               components={{ b: <b /> }}
               {...TYPED_VALUES}
             />
           ) : (
-            <b>{approvalTitle(t, a)}</b>
+            <b>{lead ?? approvalTitle(t, a)}</b>
           )}
         </span>
       </span>
@@ -1073,7 +1125,7 @@ function ReviewHead({ approval: a, channel }: { approval: Approval; channel: str
   const p = approvalPhase(a);
   const origin = approvalOriginShort(a);
   const tt = t as unknown as (key: string, options?: Record<string, unknown>) => string;
-  const title = approvalTitle(t, a);
+  const title = shownTitle(t, a);
   const by = [
     agent?.role,
     origin ? tt(origin.key, origin.values) : "",
@@ -1138,10 +1190,13 @@ function ReviewBody({ approval: a, channel }: { approval: Approval; channel: str
   const [unfold, setUnfold] = useState(false);
   const [steps, setSteps] = useState(false);
   const [tech, setTech] = useState(false);
+  const simple = simpleScreens(org);
   const { effect } = approvalEffects(a);
   const target = approvalTarget(a);
   const text = approvalText(a);
-  const why = approvalWords(a);
+  // The why's opening sentence is the request's title (`shownTitle`): the rest is the reason.
+  const lead = approvalLead(a);
+  const why = lead ? lead.rest : approvalWords(a);
   const pr = prLink(a);
   const leftMs = new Date(a.expiresAt).getTime() - Date.now();
   const waits = approvalWaitsFor(a, dir.memberById.get(a.ownerUserId ?? agent?.ownerUserId ?? "")?.name);
@@ -1342,7 +1397,7 @@ function ReviewBody({ approval: a, channel }: { approval: Approval; channel: str
             <code>{`${a.tool}\n${JSON.stringify(a.params ?? {}, null, 2)}`}</code>
           </pre>
         )}
-        {(channel || text) && (
+        {(channel || (text && !simple)) && (
           <p className="ac-card__foot ap-review__foot">
             {channel && (
               <Link
@@ -1354,7 +1409,7 @@ function ReviewBody({ approval: a, channel }: { approval: Approval; channel: str
                 {t("approvals.panel.viewChannel", { channel })}
               </Link>
             )}
-            {text && (
+            {text && !simple && (
               <button type="button" className="ap-link" aria-expanded={tech} onClick={() => setTech((o) => !o)}>
                 {t("approvals.technical")}
               </button>
@@ -1429,6 +1484,9 @@ function DecisionBar({
         <RefuseBox approval={a} agent={agent} onCancel={onCancelRefuse} />
       </div>
     );
+  // A routine asks the same thing every time it runs: the answer that ends the asking leads ("Sempre nesta
+  // rotina"), and approving this one time is the quiet button beside it. Never for a high-risk action.
+  const forGood = approveAlwaysOffered(a) && Boolean(a.approveAlways?.routineId) && approvalRisk(a) !== "high";
   const note =
     approvalRisk(a) === "high"
       ? t("approvals.holdNote")
@@ -1439,12 +1497,13 @@ function DecisionBar({
     <div className={cx("ap-bar ap-bar--acts", floating && "ap-bar--float")}>
       <div className="ap-bar__acts">
         <Locked when={deciding}>
-          {approveAlwaysOffered(a) && <ApproveAlways approval={a} agent={agent} also={also} />}
+          {approveAlwaysOffered(a) && !forGood && <ApproveAlways approval={a} agent={agent} also={also} />}
           <Button size="sm" onClick={onRefuse}>
             {t("approval.refuse")}
             <Kbd>R</Kbd>
           </Button>
-          <ApproveButton approval={a} tip={note} />
+          <ApproveButton approval={a} tip={note} once={forGood} />
+          {forGood && <ApproveAlways approval={a} agent={agent} also={also} primary />}
         </Locked>
       </div>
     </div>
@@ -1478,7 +1537,16 @@ function PhaseMark({ approval }: { approval: Approval }) {
 }
 
 /** Expired: ask the agent, in the same conversation, to ask again if it still makes sense. */
-function AskAgain({ approval, agent }: { approval: Approval; agent: Agent | undefined }) {
+function AskAgain({
+  approval,
+  agent,
+  failed,
+}: {
+  approval: Approval;
+  agent: Agent | undefined;
+  /** The approved action failed: the agent is asked to see what went wrong and try again. */
+  failed?: boolean;
+}) {
   const { t } = useTranslation();
   const { org, me } = useOrg();
   const toast = useToast();
@@ -1497,12 +1565,15 @@ function AskAgain({ approval, agent }: { approval: Approval; agent: Agent | unde
       onClick={(e) => {
         e.stopPropagation();
         sendHelpers(post).send(
-          t("approvals.againBody", { handle: agent.handle, title: approvalTitle(t, approval) }),
+          t(failed ? "approvals.retryBody" : "approvals.againBody", {
+            handle: agent.handle,
+            title: approvalTitle(t, approval),
+          }),
           approval.threadId,
         );
       }}
     >
-      {t("approvals.again")}
+      {t(failed ? "approvals.retry" : "approvals.again")}
     </Button>
   );
 }
@@ -1608,6 +1679,9 @@ function Outcome({ approval: a, agent }: { approval: Approval; agent: Agent | un
   const name = agent?.name ?? t("channel.unknownAgent");
   const g = agentGrammar(name);
   const p = approvalPhase(a);
+  const simple = simpleScreens(org);
+  // What its tool said names the way out (sign in again, an account that may not, a service that is out).
+  const cause = p === "failed" ? failureCause(a.result?.text) : null;
   if (p === "waiting") return null;
   const who =
     a.decidedByUserId === me.user.id
@@ -1621,7 +1695,11 @@ function Outcome({ approval: a, agent }: { approval: Approval; agent: Agent | un
       : p === "done"
         ? ["check", t("approvals.panel.done"), approvedBy]
         : p === "failed"
-          ? ["alert", t("approvals.panel.failed"), approvedBy]
+          ? [
+              "alert",
+              t("approvals.panel.failed"),
+              cause ? t(`approvals.cause.${cause}`) : t("approvals.panel.failedLine", { name }),
+            ]
           : p === "refused"
             ? [
                 "close",
@@ -1648,6 +1726,19 @@ function Outcome({ approval: a, agent }: { approval: Approval; agent: Agent | un
       <CancelAhead id={a.id} />
     ) : p === "expired" && aheadPhase(a) !== "lapsed" ? (
       <AskAgain approval={a} agent={agent} />
+    ) : p === "failed" ? (
+      <span className="ap-outcome__acts">
+        {cause === "reconnect" && a.connector && (
+          <Link
+            className="ac-link"
+            to="/org/$orgId/settings/$section"
+            params={{ orgId: org.id, section: "connectors" }}
+          >
+            {t("approvals.reconnect")}
+          </Link>
+        )}
+        <AskAgain approval={a} agent={agent} failed />
+      </span>
     ) : undefined;
   return (
     <Card className={cx("ap-review__card ap-outcome", `ap-outcome--${p}`)}>
@@ -1660,7 +1751,7 @@ function Outcome({ approval: a, agent }: { approval: Approval; agent: Agent | un
           <code>{a.result.text}</code>
         </pre>
       )}
-      {a.result?.text && (
+      {a.result?.text && !simple && (
         <p className="ac-card__foot ap-review__foot">
           <button type="button" className="ap-link" aria-expanded={returned} onClick={() => setReturned((o) => !o)}>
             {t("approvals.panel.returned")}
