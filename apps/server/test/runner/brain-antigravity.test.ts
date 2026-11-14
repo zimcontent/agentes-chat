@@ -204,6 +204,23 @@ test("the CLI's words: its models, its sign-in status, its sign-in link and its 
     { kind: "other", label: "Claude and GPT models · 7d", usedPercent: 0 },
   ]);
   expect(resetFromWords("Resets at 2026-11-05T10:00:00Z")).toBe("2026-11-05T10:00:00.000Z");
+  // What 1.5.9 really prints: tab-separated rows, every number what is left, a model's own row left out (an unused
+  // account's "Gemini 4 Argon Weekly Limit 100%" once read as a full plan and sent the agent to its API key).
+  const real = antigravityUsage(
+    [
+      "Gemini Models\tWeekly Limit Remaining\t75%\t2026-11-21T20:35:02Z",
+      "Gemini Models\tFive Hour Limit Remaining\t100%\t2026-11-15T01:35:02Z",
+      "Claude and GPT models\tWeekly Limit Remaining\t100%\t2026-11-21T20:35:02Z",
+      "Gemini 4 Argon\tGemini 4 Argon Weekly Limit\t0%\t2026-11-21T20:35:02Z",
+    ].join("\n"),
+    "probe",
+    NOW,
+  );
+  expect(real?.windows).toEqual([
+    { kind: "seven_day", usedPercent: 25, resetsAt: "2026-11-21T20:35:02.000Z" },
+    { kind: "five_hour", usedPercent: 0, resetsAt: "2026-11-15T01:35:02.000Z" },
+    { kind: "other", label: "Claude and GPT models · 7d", usedPercent: 0, resetsAt: "2026-11-21T20:35:02.000Z" },
+  ]);
 });
 
 test("an account's folder is the CLI's whole home: no keyring, no Gemini key or ADC from the runner, no updates", () => {
