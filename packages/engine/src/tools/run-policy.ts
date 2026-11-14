@@ -137,6 +137,7 @@ const ELSEWHERE = new Set([
   "send_feedback",
   // A post leaves for a client's eyes (ADR 9001): only a run a person is behind sends it.
   "send_for_approval",
+  "send_new_version",
   "schedule_post",
   "portal_plan",
   "portal_card",
