@@ -505,6 +505,26 @@ export function antigravityUsage(text: string, source: PlanUsage["source"], now 
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i] ?? "";
     const which = /five[- ]hour/i.test(line) ? "five_hour" : /weekly|seven[- ]day/i.test(line) ? "seven_day" : null;
+    const cols = line.split("\t").map((c) => c.trim());
+    if (cols.length >= 3) {
+      // What `agy -p /usage` prints (1.5.9, read 2026-11-14): a row per window, `group⇥words⇥NN%⇥reset (ISO)`. Every
+      // number is what is left: a group's words say "Remaining", a model's own row ("Gemini 4 Argon⇥Gemini 4 Argon
+      // Weekly Limit⇥100%") doesn't, and an unused account read 100% on both. A model's own row is left out: that
+      // model's turns are refused in its words, and its full limit must not stop the plan's other models.
+      const [rowGroup = "", , value = "", reset = ""] = cols;
+      const left = /^(\d{1,3}(?:\.\d+)?)\s*%$/.exec(value);
+      if (!which || !left?.[1] || !/\bmodels?\b/i.test(rowGroup)) continue;
+      first ??= rowGroup;
+      const resetsAt = Number.isNaN(Date.parse(reset)) ? undefined : new Date(Date.parse(reset)).toISOString();
+      windows.push({
+        ...(rowGroup !== first
+          ? { kind: "other" as const, label: label(`${rowGroup} · ${which === "five_hour" ? "5h" : "7d"}`) }
+          : { kind: which }),
+        usedPercent: percent(100 - Number(left[1])),
+        ...(resetsAt ? { resetsAt } : {}),
+      });
+      continue;
+    }
     if (!which) {
       if (/\bmodels?\b/i.test(line) && !/%/.test(line) && line.length <= 60) {
         group = line.replace(/[:]+$/, "");
