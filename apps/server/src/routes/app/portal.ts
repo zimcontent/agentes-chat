@@ -108,6 +108,7 @@ const Card = z
     comments: z.array(z.object({ id: z.string(), by: z.string(), text: z.string(), at: z.number() })),
     item: z.string().nullable().openapi({ description: "The portal's post this card became, once sent." }),
     task: z.string().nullable().openapi({ description: "The workspace task that stands for it (its id)." }),
+    done: z.boolean().openapi({ description: "Finished without going through the portal: history, nothing to make." }),
     createdAt: z.number(),
     updatedAt: z.number(),
   })
@@ -160,6 +161,7 @@ const CardFields = {
     .max(30)
     .openapi({ description: "People and agents on it; the first has its task, and an agent put first starts on it." }),
   checklist: z.array(z.object({ id: z.string().min(1).max(40), text: z.string().max(300), done: z.boolean() })).max(60),
+  done: z.boolean(),
 };
 const State = z
   .object({

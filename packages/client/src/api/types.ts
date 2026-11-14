@@ -7980,6 +7980,8 @@ export interface PortalCard {
   item: string | null;
   /** The workspace task that stands for it (its id); null: none yet. Its number comes with `PortalTaskRef`. */
   task: string | null;
+  /** Finished without going through the portal: it stays in its list as history, with nothing left to make. */
+  done: boolean;
   createdAt: number;
   updatedAt: number;
 }
@@ -8078,6 +8080,7 @@ export interface PortalCardInput {
   labels?: string[];
   members?: string[];
   checklist?: PortalCheck[];
+  done?: boolean;
 }
 
 /** One client on the overview: how many it has per column, how many are still open, and the next date scheduled. */
