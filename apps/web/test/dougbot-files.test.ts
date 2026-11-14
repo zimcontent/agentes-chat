@@ -18,12 +18,12 @@ describe("DougBot's files", () => {
     expect(html).not.toMatch(/<img[^>]+doug/);
     expect(html).toContain("<title>DougBot</title>");
   });
-  test("the page shown while the server is away carries the Doug in its tab and in its corner", () => {
+  test("the page shown while the server is away carries the Doug in its tab and asleep in its middle", () => {
     const html = read("public/unavailable.html");
     expect(html).toContain(dougOutageIcon());
     expect(html).toContain(dougOutageMark());
     // The mark is decoration there (the title says the product), and the page stays free of what Compose reads.
-    expect(dougOutageMark()).toStartWith('<svg class="mark" ');
+    expect(dougOutageMark()).toStartWith('<svg class="doug" ');
     expect(dougOutageMark()).toContain('aria-hidden="true"');
     expect(dougOutageIcon() + dougOutageMark()).not.toContain("$");
   });
