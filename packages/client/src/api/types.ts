@@ -888,6 +888,8 @@ export interface AgentBrainLine {
   speed?: "fast";
   /** An API brain on Automático: the maker its models come from, whose logo shows beside it. */
   maker?: string;
+  /** Nobody chose its model (Automático, a CLI's own default): the one that last answered for it; absent before that. */
+  answered?: string;
 }
 
 /** `appearance` as stored: the UI only draws known values. */

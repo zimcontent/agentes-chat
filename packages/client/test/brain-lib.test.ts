@@ -67,6 +67,7 @@ describe("what thinks, in one sentence", () => {
   test("an agent's line names the computer only beside another; the maker's mark stays, the API is its model's label", () => {
     expect(brainLine(t, { kind: "claude_code", model: "Sonnet", computer: "MacBook" }, "", { owner: "João" })).toEqual({
       text: "Sonnet pelo plano do Claude",
+      short: "Claude · Sonnet",
       kind: "claude_code",
       mark: "claude_code",
     });
@@ -79,7 +80,12 @@ describe("what thinks, in one sentence", () => {
         { kind: "claude_code", model: "DeepSeek V4.1 Flash", provider: "opencode", computer: "MacBook" },
         "",
       ),
-    ).toEqual({ text: "DeepSeek V4.1 Flash pelo OpenCode Go", kind: "claude_code", mark: "opencode" });
+    ).toEqual({
+      text: "DeepSeek V4.1 Flash pelo OpenCode Go",
+      short: "OpenCode Go · DeepSeek V4.1 Flash",
+      kind: "claude_code",
+      mark: "opencode",
+    });
     expect(brainLine(t, { kind: "codex", model: "auto" }, "").text).toBe("Plano do ChatGPT");
     const two = [{ brain: { computer: "MacBook" } }, { brain: { computer: "Servidor" } }];
     expect(brainLine(t, { kind: "claude_code", model: "Sonnet", computer: "MacBook" }, "", { agents: two }).text).toBe(
@@ -87,11 +93,28 @@ describe("what thinks, in one sentence", () => {
     );
     expect(brainLine(t, { kind: "model", model: null }, "Claude Sonnet 5.5")).toEqual({
       text: "Claude Sonnet 5.5",
+      short: "Claude Sonnet 5.5",
       kind: "agent",
       mark: null,
     });
     // Automático on the API: the maker its models come from, never a generic mark.
     expect(brainLine(t, { kind: "model", model: null, maker: "openai" }, "Automático").mark).toBe("openai");
+  });
+
+  test("beside the logo: the AI and the model that runs, on Automático the one that last answered", () => {
+    // Nobody chose a model and nothing answered yet: the AI alone, never "Plano do…".
+    expect(brainLine(t, { kind: "codex", model: "auto" }, "").short).toBe("ChatGPT");
+    expect(brainLine(t, { kind: "codex", model: null, answered: "GPT-6.1 Sol" }, "").short).toBe(
+      "ChatGPT · GPT-6.1 Sol",
+    );
+    // A chosen model is what runs, whatever answered before it.
+    expect(brainLine(t, { kind: "claude_code", model: "Opus", answered: "Sonnet" }, "").short).toBe("Claude · Opus");
+    expect(brainLine(t, { kind: "claude_code", model: "Sonnet" }, "", { owner: "João" }).short).toBe("Claude · Sonnet");
+    // The API on Automático: the maker of its key, then the model its last run picked.
+    expect(
+      brainLine(t, { kind: "model", model: null, maker: "anthropic", answered: "Claude Sonnet 5.5" }, "Claude").short,
+    ).toBe("Claude · Claude Sonnet 5.5");
+    expect(brainLine(t, { kind: "model", model: null, maker: "anthropic" }, "Claude").short).toBe("Claude");
   });
 });
 

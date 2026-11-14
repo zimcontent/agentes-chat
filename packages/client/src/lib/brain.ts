@@ -73,7 +73,8 @@ export function thinksWith(t: TFunction, plan: PlanChoice, model: string | null,
 /**
  * Who thinks for an agent, web and phone alike: on a plan, the model by the plan that pays for it ("Sonnet pelo plano
  * do Claude"), else the API model, or on Automático the maker of the key it runs on ("Claude"). `mark` falls back to
- * the API's maker.
+ * the API's maker. `short` is the same beside the maker's logo (a header's button): the AI and the model that runs now
+ * ("Grok · Grok 4.1 Fast"), on Automático or a CLI's own default the one that last answered (`answered`).
  */
 export function agentThinks(
   t: TFunction,
@@ -104,20 +105,25 @@ export function brainLine(
     owner,
     agents = [],
   }: { owner?: string | null; agents?: readonly { brain?: Pick<AgentBrainLine, "computer"> | null }[] } = {},
-): { text: string; kind: EngineKind; mark: string | null } {
-  if (!brain || brain.kind === "model") return { text: apiModelLabel, kind: "agent", mark: brain?.maker ?? null };
+): { text: string; short: string; kind: EngineKind; mark: string | null } {
+  // Beside its maker's logo: the AI and the model that runs, the one that last answered where nobody chose one.
+  const beside = (ai: string, model: string | null | undefined) => (model && model !== ai ? `${ai} · ${model}` : ai);
+  if (!brain || brain.kind === "model")
+    return {
+      text: apiModelLabel,
+      short: brain?.maker ? beside(apiModelLabel, brain.answered) : apiModelLabel,
+      kind: "agent",
+      mark: brain?.maker ?? null,
+    };
   const plan = planOfAccount({ kind: brain.kind, provider: brain.provider ?? null });
-  const named = thinksWith(
-    t,
-    plan,
-    brain.model && !isAuto(brain.model) ? brain.model : null,
-    brain.computer ? null : owner,
-  );
+  const chosen = brain.model && !isAuto(brain.model) ? brain.model : null;
+  const named = thinksWith(t, plan, chosen, brain.computer ? null : owner);
   const computers = new Set(agents.flatMap((a) => (a.brain?.computer ? [a.brain.computer] : [])));
   const text =
     brain.computer && computers.size > 1 ? t("brain.line.on", { line: named, computer: brain.computer }) : named;
   return {
     text,
+    short: beside(planLabel(t, plan), chosen ?? brain.answered),
     kind: engineOfBrain(brain.kind),
     mark: brain.provider ?? brain.kind,
   };

@@ -1723,6 +1723,8 @@ export interface AgentBrainSummary {
   speed?: "fast";
   /** An API brain on Automático: the maker its models come from (`agentBrainLines`), whose logo the app shows. */
   maker?: string;
+  /** Nobody chose its model (Automático, a CLI's own default): the one that last answered for it (`agentBrainLines`). */
+  answered?: string;
 }
 
 /**

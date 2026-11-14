@@ -302,6 +302,7 @@ export {
   planState,
   planWindows,
 } from "./components/PlanMeter";
+export { UsageRing } from "./components/UsageRing";
 export { Popover } from "./components/Popover";
 export { type BadgePresence, PresenceBadge, type PresenceBadgeProps } from "./components/PresenceBadge";
 export {
