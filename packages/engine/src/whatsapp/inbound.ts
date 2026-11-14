@@ -1,4 +1,10 @@
-import { jidPhone, parseEvolutionEvent, type WhatsAppEvent, type WhatsAppMessage } from "@agenteschat/adapters";
+import {
+  jidPhone,
+  parseEvolutionEvent,
+  type WhatsAppEvent,
+  type WhatsAppHistoryChat,
+  type WhatsAppMessage,
+} from "@agenteschat/adapters";
 import { and, type Database, eq, inArray, schema, sql } from "@agenteschat/db";
 import { NotFoundError } from "../errors";
 import { enqueue } from "../outbox";
@@ -93,6 +99,101 @@ export async function storeWhatsAppMessage(
   return { chatId: chat.id, fresh, messageId: inserted[0]?.id ?? null };
 }
 
+/** Messages written in one statement: a piece of history carries thousands. */
+const HISTORY_BATCH = 500;
+
+/**
+ * A piece of the number's history into its conversations: what the phone had before it was linked here, or older
+ * messages someone asked for. Nothing in it is new to anyone, so it counts as read, starts no answer from the
+ * agent and moves a conversation in the list only when it is later than what the list shows. A message already
+ * here stays as it is. Returns how many messages were new.
+ */
+export async function storeWhatsAppHistory(
+  db: Database,
+  account: Pick<WhatsAppAccountRow, "id" | "orgId" | "jid" | "pushName">,
+  chats: WhatsAppHistoryChat[],
+  names: { jid: string; name: string }[] = [],
+) {
+  const nameOf = new Map(names.map((entry) => [entry.jid, entry.name]));
+  let added = 0;
+  for (const history of chats) {
+    const group = history.jid.endsWith("@g.us");
+    const name = history.name || nameOf.get(history.jid) || "";
+    const [chat] = await db
+      .insert(schema.whatsappChats)
+      .values({ orgId: account.orgId, accountId: account.id, jid: history.jid, name, group })
+      .onConflictDoUpdate({
+        target: [schema.whatsappChats.accountId, schema.whatsappChats.jid],
+        // A name the conversation already has (told live, by the person's own phone) is the fresher one.
+        set: name
+          ? {
+              name: sql`case when ${schema.whatsappChats.name} = '' then ${name} else ${schema.whatsappChats.name} end`,
+            }
+          : { jid: history.jid },
+      })
+      .returning({ id: schema.whatsappChats.id });
+    if (!chat) continue;
+    for (let from = 0; from < history.messages.length; from += HISTORY_BATCH) {
+      const rows = await db
+        .insert(schema.whatsappMessages)
+        .values(
+          history.messages.slice(from, from + HISTORY_BATCH).map((message) => ({
+            orgId: account.orgId,
+            accountId: account.id,
+            chatId: chat.id,
+            waId: message.id,
+            fromMe: message.fromMe,
+            senderJid: message.fromMe ? (account.jid ?? "") : message.sender,
+            senderName: message.fromMe ? account.pushName : message.senderName,
+            kind: message.kind,
+            body: message.text,
+            replyToWaId: message.replyTo,
+            media: message.media,
+            raw: message.raw,
+            status: message.status,
+            at: message.at,
+          })),
+        )
+        .onConflictDoNothing({ target: [schema.whatsappMessages.accountId, schema.whatsappMessages.waId] })
+        .returning({ id: schema.whatsappMessages.id });
+      added += rows.length;
+    }
+    const latest = history.messages.reduce<(typeof history.messages)[number] | null>(
+      (best, message) => (!best || message.at > best.at ? message : best),
+      null,
+    );
+    if (!latest) continue;
+    await db
+      .update(schema.whatsappChats)
+      .set({
+        lastAt: latest.at,
+        lastText: whatsappPreview(latest),
+        lastKind: latest.kind,
+        lastFromMe: latest.fromMe,
+      })
+      .where(
+        and(
+          eq(schema.whatsappChats.id, chat.id),
+          sql`(${schema.whatsappChats.lastAt} is null or ${schema.whatsappChats.lastAt} < ${latest.at.toISOString()}::timestamptz)`,
+        ),
+      );
+  }
+  // People's own names, for the conversations that have none yet.
+  for (const [jid, name] of nameOf) {
+    await db
+      .update(schema.whatsappChats)
+      .set({ name })
+      .where(
+        and(
+          eq(schema.whatsappChats.accountId, account.id),
+          eq(schema.whatsappChats.jid, jid),
+          eq(schema.whatsappChats.name, ""),
+        ),
+      );
+  }
+  return added;
+}
+
 async function apply(deps: InboundDeps, account: WhatsAppAccountRow, event: WhatsAppEvent) {
   const { db } = deps;
   const accounts = schema.whatsappAccounts;
@@ -161,6 +262,10 @@ async function apply(deps: InboundDeps, account: WhatsAppAccountRow, event: What
       }
       return { chatId: stored.chatId };
     }
+    case "history": {
+      const added = await storeWhatsAppHistory(db, account, event.chats, event.names);
+      return added > 0 || event.names.length > 0 ? {} : null;
+    }
     case "receipt": {
       // Delivered never takes back a read.
       const from = event.state === "read" ? ["sent", "delivered"] : ["sent"];
@@ -179,6 +284,15 @@ async function apply(deps: InboundDeps, account: WhatsAppAccountRow, event: What
       return changed[0] ? { chatId: changed[0].chatId } : null;
     }
   }
+}
+
+/** Whether a number listens at this address: asked before an event's body is read. */
+export async function whatsappHookKnown(deps: Pick<InboundDeps, "db">, secret: string) {
+  const [account] = await deps.db
+    .select({ id: schema.whatsappAccounts.id })
+    .from(schema.whatsappAccounts)
+    .where(eq(schema.whatsappAccounts.hookHash, hookHash(secret)));
+  return account !== undefined;
 }
 
 /**

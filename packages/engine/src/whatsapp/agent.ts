@@ -348,7 +348,9 @@ export async function answerWhatsAppChat(
     answer = await ask(deps, agent, prompt);
   } catch (error) {
     if (!options.finalAttempt && !(error instanceof PermanentJobError)) throw error;
-    await handOver(deps, account, chat.id, "failed");
+    // Why, in the error's own words, for whoever opens the conversation: nothing of it goes to WhatsApp.
+    const why = error instanceof Error ? error.message.replace(/\s+/g, " ").trim() : "";
+    await handOver(deps, account, chat.id, why ? `failed: ${why}` : "failed");
     return "failed";
   }
   if (answer.action === "wait") return "wait";

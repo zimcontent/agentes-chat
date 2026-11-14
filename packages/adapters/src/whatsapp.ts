@@ -57,7 +57,20 @@ export type WhatsAppEvent =
   /** `logged_out`: the phone removed this device, so only a new QR code brings it back. */
   | { kind: "disconnected"; instanceId: string; reason: "logged_out" | "dropped" | "qr_timeout" }
   | { kind: "message"; instanceId: string; message: WhatsAppMessage }
-  | { kind: "receipt"; instanceId: string; chat: WhatsAppJid; ids: string[]; state: "delivered" | "read" };
+  | { kind: "receipt"; instanceId: string; chat: WhatsAppJid; ids: string[]; state: "delivered" | "read" }
+  /**
+   * Conversations as the phone had them: WhatsApp sends them in pieces right after a number is linked, and again
+   * when older messages of one conversation are asked for (`requestHistory`).
+   */
+  | { kind: "history"; instanceId: string; chats: WhatsAppHistoryChat[]; names: { jid: WhatsAppJid; name: string }[] };
+
+/** One conversation of a piece of history, with the messages that piece carries. */
+export interface WhatsAppHistoryChat {
+  jid: WhatsAppJid;
+  /** A group's subject, or the contact's name; empty when the phone told none. */
+  name: string;
+  messages: (WhatsAppMessage & { status: "received" | "sent" | "delivered" | "read" })[];
+}
 
 export interface WhatsAppSent {
   id: string;
@@ -83,6 +96,14 @@ export interface WhatsAppGateway {
    * arrived (`whatsappFileMessage`). WhatsApp keeps a file for a few weeks: later the gateway refuses.
    */
   downloadMedia(token: string, input: { message: Record<string, unknown> }): Promise<WhatsAppFile>;
+  /**
+   * Asks the phone for up to `count` messages of one conversation from before `before`, the oldest one we have.
+   * They arrive later as a `history` event, only while the phone is on.
+   */
+  requestHistory(
+    token: string,
+    input: { chat: WhatsAppJid; before: { id: string; fromMe: boolean; at: Date }; count: number },
+  ): Promise<void>;
 }
 
 export interface WhatsAppFile {
@@ -111,7 +132,7 @@ export interface EvolutionGoOptions {
 }
 
 /** What every event of a number's is asked for: messages both ways, receipts, the connection and its QR code. */
-const SUBSCRIBE = ["MESSAGE", "SEND_MESSAGE", "READ_RECEIPT", "CONNECTION", "QRCODE"];
+const SUBSCRIBE = ["MESSAGE", "SEND_MESSAGE", "READ_RECEIPT", "CONNECTION", "QRCODE", "HISTORY_SYNC"];
 const TIMEOUT_MS = 30_000;
 
 /**
@@ -185,6 +206,18 @@ export function createEvolutionGoGateway(options: EvolutionGoOptions): WhatsAppG
     },
     async setTyping(token, { chat, typing }) {
       await call("POST", "/message/presence", token, { number: chat, state: typing ? "composing" : "paused" });
+    },
+    async requestHistory(token, { chat, before, count }) {
+      await call("POST", "/chat/history-sync", token, {
+        messageInfo: {
+          Chat: chat,
+          IsFromMe: before.fromMe,
+          IsGroup: isGroupJid(chat),
+          ID: before.id,
+          Timestamp: before.at.toISOString(),
+        },
+        count,
+      });
     },
     async downloadMedia(token, { message }) {
       // The answer is a `data:` address: `data:<type>;base64,<bytes>`.
@@ -266,7 +299,7 @@ export function whatsappFileMessage(raw: unknown): Record<string, unknown> | nul
 }
 
 /** What kind of message it is, its words and the id of the one it answers. */
-function content(message: Record<string, unknown>): Pick<WhatsAppMessage, "kind" | "text" | "replyTo" | "media"> {
+function contentOf(message: Record<string, unknown>): Pick<WhatsAppMessage, "kind" | "text" | "replyTo" | "media"> {
   const body = unwrap(message);
   const reply = (part: unknown) => str(rec(rec(part).contextInfo).stanzaID) || null;
 
@@ -316,7 +349,7 @@ function message(data: Record<string, unknown>): WhatsAppMessage | null {
   const chat = bareJid(str(info.Chat));
   if (!id || !chat) return null;
   const body = rec(data.Message);
-  const parsed = content(body);
+  const parsed = contentOf(body);
   // Edits, deletions and key exchanges ride on messages too: nothing a person reads.
   if (parsed.kind === "other" && body.protocolMessage !== undefined) return null;
   const group = isGroupJid(chat);
@@ -339,6 +372,61 @@ function message(data: Record<string, unknown>): WhatsAppMessage | null {
 function withoutInline(body: Record<string, unknown>) {
   const { base64: _base64, mediaUrl: _mediaUrl, ...rest } = body;
   return rest;
+}
+
+/** WhatsApp's own mark of how far a sent message got (`WebMessageInfo.status`): 3 delivered, 4 read, 5 played. */
+function historyStatus(fromMe: boolean, status: unknown): WhatsAppHistoryChat["messages"][number]["status"] {
+  if (!fromMe) return "received";
+  const n = num(status) ?? 0;
+  return n >= 4 ? "read" : n === 3 ? "delivered" : "sent";
+}
+
+/**
+ * A piece of history (`events.HistorySync`): `Data.conversations`, each with its messages as WhatsApp keeps them
+ * (`WebMessageInfo`: `key`, `message`, `messageTimestamp` in seconds), and `Data.pushnames`, people's own names.
+ * A conversation WhatsApp addresses by a hidden id (`@lid`) is filed under the person's number when it names one.
+ * Status updates, channels, reactions and the lines WhatsApp writes itself ("you were added") are left out.
+ */
+function history(data: Record<string, unknown>): Pick<Extract<WhatsAppEvent, { kind: "history" }>, "chats" | "names"> {
+  const body = rec(data.Data);
+  const chats: WhatsAppHistoryChat[] = [];
+  for (const entry of Array.isArray(body.conversations) ? body.conversations : []) {
+    const conversation = rec(entry);
+    const id = bareJid(str(conversation.ID));
+    const jid = id.endsWith("@lid") && str(conversation.pnJID) ? bareJid(str(conversation.pnJID)) : id;
+    if (!jid || jid.endsWith("@broadcast") || jid.endsWith("@newsletter")) continue;
+    const group = isGroupJid(jid);
+    const messages: WhatsAppHistoryChat["messages"] = [];
+    for (const item of Array.isArray(conversation.messages) ? conversation.messages : []) {
+      const info = rec(rec(item).message);
+      const key = rec(info.key);
+      const waId = str(key.ID);
+      const seconds = num(info.messageTimestamp) ?? Number(info.messageTimestamp);
+      if (!waId || !Number.isFinite(seconds) || seconds <= 0) continue;
+      const content = rec(info.message);
+      const parsed = contentOf(content);
+      if (parsed.kind === "reaction" || (parsed.kind === "other" && !parsed.text)) continue;
+      const fromMe = key.fromMe === true;
+      messages.push({
+        id: waId,
+        chat: jid,
+        sender: fromMe ? "" : bareJid(str(info.participant) || str(key.participant)) || jid,
+        senderName: fromMe ? "" : str(info.pushName),
+        fromMe,
+        group,
+        groupName: "",
+        at: new Date(seconds * 1000),
+        ...parsed,
+        raw: parsed.media ? withoutInline(content) : null,
+        status: historyStatus(fromMe, info.status),
+      });
+    }
+    chats.push({ jid, name: str(conversation.name) || str(conversation.displayName), messages });
+  }
+  const names = (Array.isArray(body.pushnames) ? body.pushnames : [])
+    .map((entry) => ({ jid: bareJid(str(rec(entry).ID)), name: str(rec(entry).pushname) }))
+    .filter((entry) => entry.jid && entry.name && entry.name !== "-");
+  return { chats, names };
 }
 
 /**
@@ -375,6 +463,8 @@ export function parseEvolutionEvent(payload: unknown): WhatsAppEvent | null {
       const parsed = message(data);
       return parsed ? { kind: "message", instanceId, message: { ...parsed, fromMe: true } } : null;
     }
+    case "HistorySync":
+      return { kind: "history", instanceId, ...history(data) };
     case "Receipt": {
       const state = str(root.state);
       const ids = Array.isArray(data.MessageIDs) ? data.MessageIDs.filter((id) => typeof id === "string") : [];
@@ -396,7 +486,8 @@ export type FakeWhatsAppCall =
   | { op: "send"; token: string; to: WhatsAppJid; text: string; replyTo: string | null }
   | { op: "read"; token: string; chat: WhatsAppJid; ids: string[] }
   | { op: "typing"; token: string; chat: WhatsAppJid; typing: boolean }
-  | { op: "download"; token: string; message: Record<string, unknown> };
+  | { op: "download"; token: string; message: Record<string, unknown> }
+  | { op: "history"; token: string; chat: WhatsAppJid; before: string; count: number };
 
 /** A gateway that only remembers what it was asked (tests): no network, no WhatsApp. */
 export function createFakeWhatsAppGateway(): WhatsAppGateway & {
@@ -457,6 +548,13 @@ export function createFakeWhatsAppGateway(): WhatsAppGateway & {
     async setTyping(token: string, { chat, typing }: { chat: WhatsAppJid; typing: boolean }) {
       guard();
       fake.calls.push({ op: "typing", token, chat, typing });
+    },
+    async requestHistory(
+      token: string,
+      input: { chat: WhatsAppJid; before: { id: string; fromMe: boolean; at: Date }; count: number },
+    ) {
+      guard();
+      fake.calls.push({ op: "history", token, chat: input.chat, before: input.before.id, count: input.count });
     },
     async downloadMedia(token: string, { message }: { message: Record<string, unknown> }) {
       guard();

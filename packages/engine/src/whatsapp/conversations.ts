@@ -250,6 +250,40 @@ export async function sendWhatsAppText(
   return { chatId: stored.chatId };
 }
 
+/** Older messages asked of the phone at a time: what WhatsApp's own apps ask for. */
+export const WHATSAPP_HISTORY_COUNT = 50;
+
+/**
+ * Asks the phone for the messages before the oldest one we have of a conversation. They arrive as a piece of
+ * history a moment later (told by `whatsapp.changed`), only while the phone is on and has them.
+ */
+export async function requestWhatsAppHistory(
+  deps: WhatsAppDeps,
+  userId: string,
+  orgId: string,
+  accountId: string,
+  chatId: string,
+) {
+  const account = await requireWhatsAppUse(deps.db, userId, orgId, accountId);
+  const gateway = whatsappGateway(deps);
+  const chat = await chatOf(deps, accountId, chatId);
+  if (account.status !== "connected") throw new ValidationError("This number isn't connected");
+  const messages = schema.whatsappMessages;
+  const [oldest] = await deps.db
+    .select({ waId: messages.waId, fromMe: messages.fromMe, at: messages.at })
+    .from(messages)
+    .where(eq(messages.chatId, chatId))
+    .orderBy(messages.at, messages.id)
+    .limit(1);
+  if (!oldest) throw new ValidationError("This conversation has no message to look before");
+  await gateway.requestHistory(await accountToken(deps, account), {
+    chat: chat.jid,
+    before: { id: oldest.waId, fromMe: oldest.fromMe, at: oldest.at },
+    count: WHATSAPP_HISTORY_COUNT,
+  });
+  return { asked: WHATSAPP_HISTORY_COUNT };
+}
+
 /** The largest file served: WhatsApp's own limit for a document is far above what a browser tab should hold. */
 export const WHATSAPP_FILE_MAX_BYTES = 64 * 1024 * 1024;
 

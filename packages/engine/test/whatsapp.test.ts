@@ -10,6 +10,7 @@ import {
   readWhatsAppChat,
   reconnectWhatsAppAccount,
   removeWhatsAppAccount,
+  requestWhatsAppHistory,
   sendWhatsAppText,
   typingInWhatsAppChat,
   updateWhatsAppAccount,
@@ -262,6 +263,66 @@ describe("sending and reading", () => {
     expect(gateway.last("read")).toMatchObject({ chat: ANA, ids: ["A2", "A1"] });
     expect((await listWhatsAppChats(deps, f.owner.id, f.org.id, account.id)).chats[0]?.unread).toBe(0);
     expect(await readWhatsAppChat(deps, f.owner.id, f.org.id, account.id, chatId)).toEqual({ read: 0 });
+  });
+});
+
+describe("history", () => {
+  const old = (id: string, seconds: number, body: string, fromMe = false) => ({
+    message: {
+      key: { remoteJID: ANA, fromMe, ID: id },
+      message: { conversation: body },
+      messageTimestamp: seconds,
+      status: 4,
+      pushName: "Ana",
+    },
+  });
+  const piece = (messages: unknown[], extra: Record<string, unknown> = {}) =>
+    event("HistorySync", { Data: { syncType: 2, conversations: [{ ID: ANA, messages }], ...extra } });
+
+  test("what the phone had before comes in as read, in order, and told twice changes nothing", async () => {
+    f = await setup();
+    const { deps, account, post } = await connected();
+    await post(text("A1", "mensagem de agora"));
+    const many = Array.from({ length: 1200 }, (_, i) => old(`H${i}`, 1_700_000_000 + i, `antiga ${i}`, i % 2 === 1));
+    expect((await post(piece(many, { pushnames: [{ ID: ANA, pushname: "Ana Souza" }] }))).kind).toBe("history");
+    await post(piece(many));
+    const { chats } = await listWhatsAppChats(deps, f.owner.id, f.org.id, account.id);
+    // The list still shows the live message, unread as it was: history is older and nobody's news.
+    expect(chats.map((c) => [c.lastText, c.unread, c.name])).toEqual([["mensagem de agora", 1, "Ana"]]);
+    const stored = await f.db.select({ id: schema.whatsappMessages.id }).from(schema.whatsappMessages);
+    expect(stored).toHaveLength(1201);
+    const page = await listWhatsAppMessages(deps, f.owner.id, f.org.id, account.id, chats[0]?.id as string, {
+      limit: 3,
+    });
+    expect(page.messages.map((m) => [m.body, m.fromMe, m.status])).toEqual([
+      ["mensagem de agora", false, "received"],
+      ["antiga 1199", true, "read"],
+      ["antiga 1198", false, "received"],
+    ]);
+  });
+
+  test("a conversation known only from history shows by its latest message, with the name the phone told", async () => {
+    f = await setup();
+    const { deps, account, post } = await connected();
+    await post(
+      piece([old("H1", 1_700_000_000, "primeira"), old("H2", 1_700_000_100, "última", true)], {
+        pushnames: [{ ID: ANA, pushname: "Ana Souza" }],
+      }),
+    );
+    const { chats } = await listWhatsAppChats(deps, f.owner.id, f.org.id, account.id);
+    expect(chats.map((c) => [c.name, c.lastText, c.lastFromMe, c.unread])).toEqual([["Ana Souza", "última", true, 0]]);
+  });
+
+  test("older messages are asked of the phone from the oldest one kept", async () => {
+    f = await setup();
+    const { gateway, deps, account, post } = await connected();
+    await post(piece([old("H7", 1_700_000_700, "sete"), old("H3", 1_700_000_300, "três", true)]));
+    const { chats } = await listWhatsAppChats(deps, f.owner.id, f.org.id, account.id);
+    const chatId = chats[0]?.id as string;
+    expect(await requestWhatsAppHistory(deps, f.owner.id, f.org.id, account.id, chatId)).toEqual({ asked: 50 });
+    expect(gateway.last("history")).toMatchObject({ chat: ANA, before: "H3", count: 50 });
+    const leticia = await addMember(f.db, f.org.id, "member", "leticia");
+    await expect(requestWhatsAppHistory(deps, leticia.id, f.org.id, account.id, chatId)).rejects.toThrow("not found");
   });
 });
 
