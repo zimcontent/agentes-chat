@@ -1,5 +1,6 @@
 import {
   type Adapters,
+  type ApprovalPortal,
   checkGiphyKey,
   createFakeEmailSender,
   createFakeGifs,
@@ -13,13 +14,13 @@ import {
   createPostgresSearchResolver,
   type DatabaseDriver,
   type ErrorReporter,
-  type ApprovalPortal,
   type GifProvider,
   type HumanCheck,
   type MailAdapters,
   noPlatformCredentials,
   type S3Fetch,
   type WebPushSender,
+  type WhatsAppGateway,
 } from "@agenteschat/adapters";
 import { testConfig } from "@agenteschat/config";
 import { eq, isNotNull, like, schema } from "@agenteschat/db";
@@ -118,6 +119,8 @@ export async function createTestServer(
     speechFetch?: typeof fetch;
     /** AI apps (ADR 0119): a fake fetch of apps' metadata documents (CIMD); absent = none answers. */
     appsFetchDocument?: FetchAppDocument;
+    /** The WhatsApp gateway (`createFakeWhatsAppGateway`); absent = none, as without `WHATSAPP_GATEWAY_URL`. */
+    whatsapp?: WhatsAppGateway;
   } = {},
 ) {
   const { db, close } = await createTestDatabase();
@@ -161,6 +164,7 @@ export async function createTestServer(
     databases: options.databases ?? null,
     humanCheck: options.humanCheck ?? null,
     gifs,
+    whatsapp: options.whatsapp ?? null,
     approvalPortal: options.approvalPortal ?? null,
   };
   const provider = createFakeProvider(options.reply);

@@ -4,13 +4,14 @@ import { join, resolve } from "node:path";
 import {
   type Adapters,
   createBitwardenSource,
+  createBridgeApprovalPortal,
   createComposioClient,
   createComposioMailConnector,
   createDiskBlobStore,
   createErrorReporter,
+  createEvolutionGoGateway,
   createExpoPushSender,
   createFcmPushSender,
-  createBridgeApprovalPortal,
   createGiphyGifs,
   createImapConnectionTester,
   createImapMailConnector,
@@ -275,6 +276,11 @@ async function boot(
         : null,
     // GIFs in chat (ADR 0091), only with a key: without one nothing reaches GIPHY and the app shows no GIFs.
     gifs: gifProvider(config, () => gifKey?.key() ?? null),
+    // WhatsApp numbers, only with a gateway and its key: without them nothing in the app says WhatsApp.
+    whatsapp:
+      config.WHATSAPP_GATEWAY_URL && config.WHATSAPP_GATEWAY_KEY
+        ? createEvolutionGoGateway({ url: config.WHATSAPP_GATEWAY_URL, apiKey: config.WHATSAPP_GATEWAY_KEY })
+        : null,
     // The approval portal (ADR 9001), only with its bridge's address and token.
     approvalPortal:
       config.APPROVAL_PORTAL_URL && config.APPROVAL_PORTAL_TOKEN
@@ -335,6 +341,7 @@ async function boot(
     });
     await gifKey.ready();
   }
+  log.info("WhatsApp numbers", { gateway: adapters.whatsapp?.name ?? "off" });
   log.info("GIFs in chat", { provider: adapters.gifs?.name ?? "off", available: adapters.gifs?.available() ?? false });
   try {
     await checkHumanCheckAtBoot(adapters.humanCheck, log);

@@ -532,6 +532,8 @@ export function RealtimeProvider({
         void qc.invalidateQueries({ queryKey: keys.channels(orgId) });
         void qc.invalidateQueries({ queryKey: keys.channelPermissions(orgId, event.channelId) });
       }
+      // A WhatsApp number of mine or one of its conversations changed (a user event): everything of it refetches.
+      if (event.type === "whatsapp.changed") void qc.invalidateQueries({ queryKey: keys.whatsapp(orgId) });
       // The Vault changed (ADR 0144, org broadcast): what this person may see of it refetches. Never a value.
       if (event.type === "vault.changed") void qc.invalidateQueries({ queryKey: keys.vault(orgId) });
       // The board's columns changed (org broadcast): set them; a deleted column moved its tasks.

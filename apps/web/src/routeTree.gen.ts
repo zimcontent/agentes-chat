@@ -47,6 +47,7 @@ import { Route as OrgOrgIdSettingsRouteImport } from './routes/org.$orgId.settin
 import { Route as OrgOrgIdTaskManagerRouteImport } from './routes/org.$orgId.task-manager'
 import { Route as OrgOrgIdTeamRouteImport } from './routes/org.$orgId.team'
 import { Route as OrgOrgIdWaitingRouteImport } from './routes/org.$orgId.waiting'
+import { Route as OrgOrgIdWhatsappRouteImport } from './routes/org.$orgId.whatsapp'
 import { Route as OrgOrgIdWikiRouteImport } from './routes/org.$orgId.wiki'
 import { Route as OrgOrgIdAgentsNewRouteImport } from './routes/org.$orgId.agents.new'
 import { Route as OrgOrgIdCChannelIdRouteImport } from './routes/org.$orgId.c.$channelId'
@@ -258,6 +259,11 @@ const OrgOrgIdWaitingRoute = OrgOrgIdWaitingRouteImport.update({
   path: '/waiting',
   getParentRoute: () => OrgOrgIdRoute,
 } as any)
+const OrgOrgIdWhatsappRoute = OrgOrgIdWhatsappRouteImport.update({
+  id: '/whatsapp',
+  path: '/whatsapp',
+  getParentRoute: () => OrgOrgIdRoute,
+} as any)
 const OrgOrgIdWikiRoute = OrgOrgIdWikiRouteImport.update({
   id: '/wiki',
   path: '/wiki',
@@ -405,6 +411,7 @@ export interface FileRoutesByFullPath {
   '/org/$orgId/task-manager': typeof OrgOrgIdTaskManagerRoute
   '/org/$orgId/team': typeof OrgOrgIdTeamRoute
   '/org/$orgId/waiting': typeof OrgOrgIdWaitingRoute
+  '/org/$orgId/whatsapp': typeof OrgOrgIdWhatsappRoute
   '/org/$orgId/wiki': typeof OrgOrgIdWikiRoute
   '/org/$orgId/': typeof OrgOrgIdIndexRoute
   '/org/$orgId/agents/new': typeof OrgOrgIdAgentsNewRoute
@@ -464,6 +471,7 @@ export interface FileRoutesByTo {
   '/org/$orgId/task-manager': typeof OrgOrgIdTaskManagerRoute
   '/org/$orgId/team': typeof OrgOrgIdTeamRoute
   '/org/$orgId/waiting': typeof OrgOrgIdWaitingRoute
+  '/org/$orgId/whatsapp': typeof OrgOrgIdWhatsappRoute
   '/org/$orgId/wiki': typeof OrgOrgIdWikiRoute
   '/org/$orgId': typeof OrgOrgIdIndexRoute
   '/org/$orgId/agents/new': typeof OrgOrgIdAgentsNewRoute
@@ -525,6 +533,7 @@ export interface FileRoutesById {
   '/org/$orgId/task-manager': typeof OrgOrgIdTaskManagerRoute
   '/org/$orgId/team': typeof OrgOrgIdTeamRoute
   '/org/$orgId/waiting': typeof OrgOrgIdWaitingRoute
+  '/org/$orgId/whatsapp': typeof OrgOrgIdWhatsappRoute
   '/org/$orgId/wiki': typeof OrgOrgIdWikiRoute
   '/org/$orgId/': typeof OrgOrgIdIndexRoute
   '/org/$orgId/agents/new': typeof OrgOrgIdAgentsNewRoute
@@ -587,6 +596,7 @@ export interface FileRouteTypes {
     | '/org/$orgId/task-manager'
     | '/org/$orgId/team'
     | '/org/$orgId/waiting'
+    | '/org/$orgId/whatsapp'
     | '/org/$orgId/wiki'
     | '/org/$orgId/'
     | '/org/$orgId/agents/new'
@@ -646,6 +656,7 @@ export interface FileRouteTypes {
     | '/org/$orgId/task-manager'
     | '/org/$orgId/team'
     | '/org/$orgId/waiting'
+    | '/org/$orgId/whatsapp'
     | '/org/$orgId/wiki'
     | '/org/$orgId'
     | '/org/$orgId/agents/new'
@@ -706,6 +717,7 @@ export interface FileRouteTypes {
     | '/org/$orgId/task-manager'
     | '/org/$orgId/team'
     | '/org/$orgId/waiting'
+    | '/org/$orgId/whatsapp'
     | '/org/$orgId/wiki'
     | '/org/$orgId/'
     | '/org/$orgId/agents/new'
@@ -1022,6 +1034,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof OrgOrgIdWaitingRouteImport
       parentRoute: typeof OrgOrgIdRoute
     }
+    '/org/$orgId/whatsapp': {
+      id: '/org/$orgId/whatsapp'
+      path: '/whatsapp'
+      fullPath: '/org/$orgId/whatsapp'
+      preLoaderRoute: typeof OrgOrgIdWhatsappRouteImport
+      parentRoute: typeof OrgOrgIdRoute
+    }
     '/org/$orgId/wiki': {
       id: '/org/$orgId/wiki'
       path: '/wiki'
@@ -1181,6 +1200,7 @@ interface OrgOrgIdRouteChildren {
   OrgOrgIdTaskManagerRoute: typeof OrgOrgIdTaskManagerRoute
   OrgOrgIdTeamRoute: typeof OrgOrgIdTeamRoute
   OrgOrgIdWaitingRoute: typeof OrgOrgIdWaitingRoute
+  OrgOrgIdWhatsappRoute: typeof OrgOrgIdWhatsappRoute
   OrgOrgIdWikiRoute: typeof OrgOrgIdWikiRoute
   OrgOrgIdIndexRoute: typeof OrgOrgIdIndexRoute
   OrgOrgIdAgentsNewRoute: typeof OrgOrgIdAgentsNewRoute
@@ -1220,6 +1240,7 @@ const OrgOrgIdRouteChildren: OrgOrgIdRouteChildren = {
   OrgOrgIdTaskManagerRoute: OrgOrgIdTaskManagerRoute,
   OrgOrgIdTeamRoute: OrgOrgIdTeamRoute,
   OrgOrgIdWaitingRoute: OrgOrgIdWaitingRoute,
+  OrgOrgIdWhatsappRoute: OrgOrgIdWhatsappRoute,
   OrgOrgIdWikiRoute: OrgOrgIdWikiRoute,
   OrgOrgIdIndexRoute: OrgOrgIdIndexRoute,
   OrgOrgIdAgentsNewRoute: OrgOrgIdAgentsNewRoute,
