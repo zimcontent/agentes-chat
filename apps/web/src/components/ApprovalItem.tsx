@@ -75,10 +75,13 @@ export function ApproveAlways({
   approval,
   agent,
   also = [],
+  primary,
 }: {
   approval: Approval;
   agent: Agent | undefined;
   also?: string[];
+  /** The bar's leading button (a routine's request on simple screens). */
+  primary?: boolean;
 }) {
   const { t } = useTranslation();
   const { org } = useOrg();
@@ -139,6 +142,7 @@ export function ApproveAlways({
     <Tip tip={approveAlwaysHint(t, approval, g.name)} look="ac-hint__bubble ac-glass" align="center" button>
       <Button
         size="sm"
+        variant={primary ? "primary" : undefined}
         icon="check"
         disabled={decide.isPending || others.isPending}
         loading={decide.isPending}

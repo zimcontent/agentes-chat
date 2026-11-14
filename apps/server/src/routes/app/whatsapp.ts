@@ -4,11 +4,13 @@ import {
   listWhatsAppAccounts,
   listWhatsAppChats,
   listWhatsAppMessages,
+  listWhatsAppStickers,
   readWhatsAppChat,
   reconnectWhatsAppAccount,
   removeWhatsAppAccount,
   requestWhatsAppHistory,
   sendWhatsAppFile,
+  sendWhatsAppSticker,
   sendWhatsAppText,
   setWhatsAppChatAgent,
   typingInWhatsAppChat,
@@ -157,7 +159,7 @@ const Message = z
     senderPhone: z.string().nullable(),
     kind: z.string().openapi({
       description:
-        "`text`, `image`, `video`, `audio`, `document`, `sticker`, `location`, `contact`, `poll` or `other`.",
+        "`text`, `image`, `video`, `audio`, `document`, `sticker`, `location`, `contact`, `poll`, `other`, or `deleted` (taken back for everyone: no words, no file).",
     }),
     body: z.string().openapi({ description: "A text, or a file's caption (outside text)." }),
     replyToId: z.string().nullable(),
@@ -491,6 +493,50 @@ export function whatsappRoutes(deps: AppDeps) {
           voice: form.voice === "true",
         }),
       );
+      return sent.refused ?? c.json(sent.value, 201);
+    },
+  );
+
+  app.openapi(
+    createRoute({
+      method: "get",
+      path: "/organizations/{orgId}/whatsapp/accounts/{accountId}/stickers",
+      tags,
+      security,
+      summary: "The stickers the number sent or received lately (its people)",
+      description:
+        "The latest first, each once, up to 60. Each is a message's id: its picture loads with `GET …/messages/{messageId}/file`, and `POST …/stickers` sends it again.",
+      request: { params: AccountParams },
+      responses: {
+        200: json(z.object({ stickers: z.array(z.object({ messageId: z.string(), at: z.string() })) })),
+        ...errors,
+      },
+    }),
+    async (c) => {
+      const { orgId, accountId } = c.req.valid("param");
+      return c.json(await listWhatsAppStickers(wa, c.get("user").id, orgId, accountId), 200);
+    },
+  );
+
+  app.openapi(
+    createRoute({
+      method: "post",
+      path: "/organizations/{orgId}/whatsapp/accounts/{accountId}/stickers",
+      tags,
+      security,
+      summary: "Send a sticker the number already has (its people)",
+      description:
+        "`messageId`: a message of this number that carried the sticker. It goes as a still sticker: one that moved arrives without its motion. 400 while the number isn't connected, or when the message isn't a sticker of this number; 429 past 30 sends a minute.",
+      request: { params: AccountParams, body: body(z.object({ chatId: z.uuid(), messageId: z.uuid() })) },
+      responses: { 201: json(z.object({ chatId: z.string() }), "Sent"), ...tooMany, ...gatewayDown, ...errors },
+    }),
+    async (c) => {
+      const { orgId, accountId } = c.req.valid("param");
+      const user = c.get("user");
+      if (await limited(`whatsapp-send:${user.id}`, WHATSAPP_SENDS_PER_PERSON)) {
+        return apiError(c, 429, "rate_limited", "Slow down");
+      }
+      const sent = await reaching(c, () => sendWhatsAppSticker(wa, user.id, orgId, accountId, c.req.valid("json")));
       return sent.refused ?? c.json(sent.value, 201);
     },
   );

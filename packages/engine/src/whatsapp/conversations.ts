@@ -1,3 +1,4 @@
+import { createHmac, timingSafeEqual } from "node:crypto";
 import {
   bareJid,
   isGroupJid,
@@ -318,6 +319,129 @@ export async function sendWhatsAppFile(
     .where(eq(schema.whatsappChats.id, stored.chatId));
   await publishWhatsAppChanged(deps, account, { chatId: stored.chatId });
   return { chatId: stored.chatId, kind };
+}
+
+/** Stickers offered to send again: the number's latest ones, each once. */
+export const WHATSAPP_STICKERS = 60;
+/** How long the gateway has to fetch a sticker it was asked to send. */
+const STICKER_LINK_MS = 2 * 60_000;
+
+type AccountRow = typeof schema.whatsappAccounts.$inferSelect;
+
+/**
+ * The signature on a sticker's one-use address: the gateway fetches the picture itself, with no session, so the
+ * address carries the proof. Keyed by the number's own `hook_hash`, which only this server holds.
+ */
+const stickerSignature = (account: Pick<AccountRow, "hookHash">, messageId: string, expires: number) =>
+  createHmac("sha256", account.hookHash).update(`${messageId}:${expires}`).digest("hex");
+
+/**
+ * The stickers this number sent or received lately, the latest first and each once: what its people pick from to
+ * send one again. Each is a message's id, loaded like any message's file.
+ */
+export async function listWhatsAppStickers(deps: WhatsAppDeps, userId: string, orgId: string, accountId: string) {
+  await requireWhatsAppUse(deps.db, userId, orgId, accountId);
+  const messages = schema.whatsappMessages;
+  const rows = await deps.db
+    .select({ id: messages.id, raw: messages.raw, at: messages.at })
+    .from(messages)
+    .where(and(eq(messages.accountId, accountId), eq(messages.kind, "sticker"), sql`${messages.raw} is not null`))
+    .orderBy(desc(messages.at))
+    .limit(WHATSAPP_STICKERS * 5);
+  const seen = new Set<string>();
+  const stickers: { messageId: string; at: string }[] = [];
+  for (const row of rows) {
+    const part = (whatsappFileMessage(row.raw)?.stickerMessage ?? {}) as Record<string, unknown>;
+    // The same sticker sent twice is one file: WhatsApp names it by its hash.
+    const key = typeof part.fileSHA256 === "string" && part.fileSHA256 ? part.fileSHA256 : row.id;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    stickers.push({ messageId: row.id, at: row.at.toISOString() });
+    if (stickers.length >= WHATSAPP_STICKERS) break;
+  }
+  return { stickers };
+}
+
+/**
+ * Sends a sticker this number already has (`messageId`: a message that carried it) into a conversation. The
+ * gateway fetches the picture from this server, at an address signed for two minutes (`whatsappStickerFile`).
+ */
+export async function sendWhatsAppSticker(
+  deps: WhatsAppDeps,
+  userId: string,
+  orgId: string,
+  accountId: string,
+  input: { chatId: string; messageId: string },
+) {
+  const account = await requireWhatsAppUse(deps.db, userId, orgId, accountId);
+  const gateway = whatsappGateway(deps);
+  if (account.status !== "connected") throw new ValidationError("This number isn't connected");
+  const chat = await chatOf(deps, accountId, input.chatId);
+  const [source] = await deps.db
+    .select({ id: schema.whatsappMessages.id, raw: schema.whatsappMessages.raw, kind: schema.whatsappMessages.kind })
+    .from(schema.whatsappMessages)
+    .where(and(eq(schema.whatsappMessages.accountId, accountId), eq(schema.whatsappMessages.id, input.messageId)));
+  if (!source || source.kind !== "sticker" || !whatsappFileMessage(source.raw)) {
+    throw new ValidationError("That message isn't a sticker of this number");
+  }
+  const expires = Date.now() + STICKER_LINK_MS;
+  const url = `${deps.hookBase}/api/webhooks/whatsapp-sticker/${source.id}?e=${expires}&s=${stickerSignature(account, source.id, expires)}`;
+  const sent = await gateway.sendSticker(await accountToken(deps, account), { to: chat.jid, url });
+  const message: WhatsAppMessage = {
+    id: sent.id,
+    chat: bareJid(chat.jid),
+    sender: account.jid ?? "",
+    senderName: account.pushName,
+    fromMe: true,
+    group: isGroupJid(chat.jid),
+    groupName: "",
+    at: sent.at,
+    kind: "sticker",
+    text: "",
+    replyTo: null,
+    media: { mimeType: "image/webp", fileName: null, seconds: null },
+    raw: sent.message,
+  };
+  const stored = await storeWhatsAppMessage(deps.db, account, message, { userId });
+  if (!stored.fresh) {
+    await deps.db
+      .update(schema.whatsappMessages)
+      .set({ sentByUserId: userId })
+      .where(and(eq(schema.whatsappMessages.accountId, accountId), eq(schema.whatsappMessages.waId, sent.id)));
+  }
+  await deps.db
+    .update(schema.whatsappChats)
+    .set({ personAt: new Date(), needsPerson: false, agentNote: "" })
+    .where(eq(schema.whatsappChats.id, stored.chatId));
+  await publishWhatsAppChanged(deps, account, { chatId: stored.chatId });
+  return { chatId: stored.chatId };
+}
+
+/**
+ * A sticker's picture for the gateway, at the address `sendWhatsAppSticker` signed: no session, only the
+ * signature, and only until it expires. `NotFoundError` for anything else.
+ */
+export async function whatsappStickerFile(
+  deps: WhatsAppDeps,
+  messageId: string,
+  expires: number,
+  signature: string,
+  now = Date.now(),
+) {
+  const gone = new NotFoundError("No sticker at this address");
+  if (!Number.isFinite(expires) || expires < now) throw gone;
+  const [row] = await deps.db.select().from(schema.whatsappMessages).where(eq(schema.whatsappMessages.id, messageId));
+  const message = row?.kind === "sticker" ? whatsappFileMessage(row.raw) : null;
+  if (!row || !message) throw gone;
+  const [account] = await deps.db
+    .select()
+    .from(schema.whatsappAccounts)
+    .where(eq(schema.whatsappAccounts.id, row.accountId));
+  if (!account) throw gone;
+  const expected = Buffer.from(stickerSignature(account, messageId, expires));
+  const given = Buffer.from(signature);
+  if (expected.length !== given.length || !timingSafeEqual(expected, given)) throw gone;
+  return whatsappGateway(deps).downloadMedia(await accountToken(deps, account), { message });
 }
 
 /** Older messages asked of the phone at a time: what WhatsApp's own apps ask for. */

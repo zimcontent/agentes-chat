@@ -578,6 +578,12 @@ export function createHttpApi(options: TransportOptions = {}): HttpApi {
           form,
         );
       },
+      stickers: (orgId, accountId) =>
+        request<{ stickers: { messageId: string; at: string }[] }>(
+          `${org(orgId)}/whatsapp/accounts/${enc(accountId)}/stickers`,
+        ),
+      sendSticker: (orgId, accountId, input) =>
+        request<{ chatId: string }>(`${org(orgId)}/whatsapp/accounts/${enc(accountId)}/stickers`, { json: input }),
       olderHistory: (orgId, accountId, chatId) =>
         request<{ asked: number }>(`${org(orgId)}/whatsapp/accounts/${enc(accountId)}/chats/${enc(chatId)}/history`, {
           json: {},

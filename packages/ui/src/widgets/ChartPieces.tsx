@@ -3,12 +3,14 @@
  * shared by the chat's chart card (`apps/web/src/components/ChartBlock.tsx`) and the widgets (ADR 0135). The cells
  * themselves come from `../sky/chart`, DOM-free, as the phone draws them.
  */
-import { type RefObject, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { type RefObject, useId, useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { AgentColorName } from "../agent/engine.js";
+import { PIXEL_ART } from "../brand/doug";
 import { cx } from "../cx";
 import { useDarkTheme } from "../hooks/useDarkTheme";
 import { areaCells, CHART_CELL, chartAreaTones, chartInk, linePoints, lineTops, smoothPath } from "../sky/chart";
 import { parseColor } from "../sky/math";
+import { widgetTones } from "./tiles";
 
 /** Paints cells (one canvas pixel each, drawn at `CHART_CELL` points) in the color `tone(value)` gives. */
 export function paintCells(
@@ -93,6 +95,9 @@ export function paintLineArea(
 /**
  * A line over its dither area, in an agent's tones, as wide as its box: no axes, no tips. `bleed` runs it edge to
  * edge (a sparkline), `dot` marks the last point with a square, as a widget's line ends.
+ *
+ * DougBot (`PIXEL_ART` off): the same line in the bot's color over glass, a wash of that color fading down from the
+ * curve, and its last point a round dot. No canvas, nothing blown up from cells.
  */
 export function DitherLine({
   values,
@@ -121,21 +126,48 @@ export function DitherLine({
     if (!bleed) return flat;
     return flat.map(([, y], i): [number, number] => [(i * width) / Math.max(1, values.length - 1), y]);
   }, [values, width, height, bleed]);
-  const ink = chartInk(tone, dark);
+  const ink = PIXEL_ART ? chartInk(tone, dark) : widgetTones(color, dark).stroke;
+  // The wash's gradient, named for `url(#…)`: letters and digits only.
+  const wash = `dline${useId().replace(/[^a-zA-Z0-9]/g, "")}`;
 
   useLayoutEffect(() => {
-    if (points.length < 2) return;
+    if (!PIXEL_ART || points.length < 2) return;
     paintLineArea(area.current, points, width, height, tone, dark, bleed);
   }, [points, width, height, tone, dark, bleed]);
 
+  const first = points[0];
   const last = points[points.length - 1];
   return (
     <div className={cx("ac-dline", className)} ref={box} style={{ height }} aria-hidden="true">
-      <canvas ref={area} className="ac-dline__area" />
+      {PIXEL_ART && <canvas ref={area} className="ac-dline__area" />}
       {width > 10 && points.length > 1 && (
         <svg viewBox={`0 0 ${width} ${height}`} width={width} height={height} aria-hidden="true">
+          {!PIXEL_ART && first && last && (
+            <>
+              <defs>
+                <linearGradient id={wash} x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0" stopColor={ink} stopOpacity={0.3} />
+                  <stop offset="1" stopColor={ink} stopOpacity={bleed ? 0.04 : 0} />
+                </linearGradient>
+              </defs>
+              <path
+                className="ac-dline__wash"
+                d={`${smoothPath(points)} L${last[0]},${height} L${first[0]},${height} Z`}
+                fill={`url(#${wash})`}
+              />
+            </>
+          )}
           <path d={smoothPath(points)} fill="none" stroke={ink} strokeWidth={2} strokeLinecap="round" />
-          {dot && last && (
+          {dot && last && !PIXEL_ART && (
+            // Kept whole inside the box: edge to edge, the last point sits on the right edge.
+            <circle
+              cx={Math.max(3.5, Math.min(width - 3.5, last[0]))}
+              cy={Math.max(3.5, Math.min(height - 3.5, last[1]))}
+              r={3.5}
+              fill={ink}
+            />
+          )}
+          {dot && last && PIXEL_ART && (
             // Kept whole inside the box: edge to edge, the last point sits on the right edge.
             <rect
               x={Math.max(0, Math.min(width - 6, Math.round(last[0]) - 3))}

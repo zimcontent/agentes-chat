@@ -4412,6 +4412,7 @@
       "other": "Onayla"
     },
     "refuse": "Reddet",
+    "once": "Yalnızca bu sefer",
     "viewDiff": "Farkları gör",
     "viewInChannel": "Kanalda gör",
     "group": "Onay isteği",
@@ -4884,6 +4885,16 @@
     "again": "Yeniden sor",
     "againBody": "@{{handle}} “{{title}}” isteğinin süresi karar verilmeden doldu. Hâlâ anlamlıysa yeniden sor.",
     "againSent": "İstek sohbette gönderildi",
+    "retry": "Yeniden denemesini iste",
+    "cause": {
+      "reconnect": "Uygulama bağlantısının süresi doldu. Yeniden bağlayın ve yeniden denemesini isteyin.",
+      "permission": "Bağlı hesabın buna izni yok. Uygulamadaki erişimi kontrol edin ve yeniden denemesini isteyin.",
+      "unavailable": "Hizmet yanıt vermedi. Biraz bekleyin ve yeniden denemesini isteyin.",
+      "limit": "Hizmet reddetti: çok fazla istek. Birkaç dakika bekleyin ve yeniden denemesini isteyin."
+    },
+    "reconnect": "Yeniden bağla",
+    "retryBody": "@{{handle}} onaylanan “{{title}}” işlemi başarısız oldu. Neyin ters gittiğine bak ve yeniden dene ya da ne yapmam gerektiğini söyle.",
+    "valueKeys": "Kullanılan Vault anahtarları",
     "noResults": "Bu filtrelerle eşleşen istek yok.",
     "emptyTitle": "Hepsine karar verildi",
     "how": "Onaylar nasıl çalışır",
@@ -4911,6 +4922,7 @@
       "runningLine": "{{name}} tam olarak aşağıdaki işlemi çalıştırıyor.",
       "done": "Bitti",
       "failed": "İşlem başarısız oldu",
+      "failedLine": "Tamamlanmadı. {{name}} adlı ajandan ne olduğuna bakıp yeniden denemesini isteyin.",
       "returned": "Dönen sonuç",
       "approvedBy": "{{name}} onayladı · {{when}}",
       "refusedBy": "{{name}} reddetti · {{when}}",

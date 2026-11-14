@@ -4428,6 +4428,7 @@
       "other": "Goedkeuren"
     },
     "refuse": "Weigeren",
+    "once": "Alleen deze keer",
     "viewDiff": "Diff bekijken",
     "viewInChannel": "Bekijken in kanaal",
     "group": "Goedkeuringsverzoek",
@@ -4906,6 +4907,16 @@
     "again": "Opnieuw vragen",
     "againBody": "@{{handle}} het verzoek “{{title}}” is verlopen zonder besluit. Als het nog zin heeft, vraag het opnieuw.",
     "againSent": "Verzoek verstuurd in het gesprek",
+    "retry": "Vragen om het opnieuw te proberen",
+    "cause": {
+      "reconnect": "De verbinding met de app is verlopen. Verbind opnieuw en vraag om het opnieuw te proberen.",
+      "permission": "Het verbonden account mag dit niet doen. Controleer de toegang in de app en vraag om het opnieuw te proberen.",
+      "unavailable": "De dienst gaf geen antwoord. Wacht even en vraag om het opnieuw te proberen.",
+      "limit": "De dienst weigerde: te veel verzoeken. Wacht een paar minuten en vraag om het opnieuw te proberen."
+    },
+    "reconnect": "Opnieuw verbinden",
+    "retryBody": "@{{handle}} de goedgekeurde actie “{{title}}” is mislukt. Kijk wat er misging en probeer het opnieuw, of zeg me wat ik moet doen.",
+    "valueKeys": "Gebruikte Vault-sleutels",
     "noResults": "Geen verzoeken die bij deze filters passen.",
     "emptyTitle": "Alles besloten",
     "how": "Hoe goedkeuringen werken",
@@ -4935,6 +4946,7 @@
       "runningLine_female": "{{name}} voert precies de actie hieronder uit.",
       "done": "Klaar",
       "failed": "De actie is mislukt",
+      "failedLine": "Ze is niet afgerond. Vraag {{name}} te kijken wat er gebeurde en het opnieuw te proberen.",
       "returned": "Wat er terugkwam",
       "approvedBy": "Goedgekeurd door {{name}} {{when}}",
       "refusedBy": "Geweigerd door {{name}} {{when}}",

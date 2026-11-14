@@ -700,6 +700,7 @@ const LABELS: Record<string, readonly [en: string, ptBR: string]> = {
   portal_work: ["See a person's tasks", "Ver as tarefas de uma pessoa"],
   portal_card: ["Update the approval board", "Atualizar o quadro de aprovação"],
   send_for_approval: ["Send for approval", "Subir para aprovação"],
+  send_new_version: ["Send the new version", "Subir a nova versão"],
   schedule_post: ["Schedule post", "Agendar post"],
   get_my_usage: ["See my usage", "Ver meu uso"],
   send_feedback: ["Send feedback", "Enviar feedback"],

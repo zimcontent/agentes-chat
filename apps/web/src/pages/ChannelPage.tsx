@@ -112,7 +112,6 @@ import {
   errorText,
   filesTextOnlyOf,
   restrictionLine,
-  runErrorText,
   runFailureLine,
   sendFailureText,
   sendNeedsEdit,
@@ -158,6 +157,7 @@ import { localMeta, replyOf } from "@agenteschat/client/lib/reply";
 import { isReminderMessage, reminderBody, routineReplyOf } from "@agenteschat/client/lib/routines";
 import { picksForMe, replyAloneKey } from "@agenteschat/client/lib/routing";
 import { seenMessageId } from "@agenteschat/client/lib/seen";
+import { simpleScreens } from "@agenteschat/client/lib/simple-mode";
 import { hiddenCount, tasksOf, todayStart } from "@agenteschat/client/lib/task-manager";
 import { contextMarks, hiddenByThreads, rangeCandidates, threadStartOf } from "@agenteschat/client/lib/threads";
 import { buildTimeline, lastPostedId, mergeTimeline, type TimelineItem } from "@agenteschat/client/lib/timeline";
@@ -4178,8 +4178,8 @@ export const TimelineMessage = memo(function TimelineMessage({
   const { org, me } = useOrg();
   const qc = useQueryClient();
   const dismissRun = useDismissRun();
+  const simple = simpleScreens(org);
   const liveFailed = live?.status === "failed";
-  const failedWhy = liveFailed ? runErrorText(t, live?.errorCode, live?.errorParams) : null;
   // Refused by the workspace's standing: its own words, not the server's English.
   const refusal = liveFailed ? restrictionLine(t, live?.errorCode, live?.errorParams) : null;
   const liveWaiting = live?.status === "waiting_approval";
@@ -4439,7 +4439,10 @@ export const TimelineMessage = memo(function TimelineMessage({
   const usage = m.author.type === "agent" && !mediaAfter ? messageUsage(m) : null;
   const details = [
     formatFullDate(i18n.language, m.createdAt),
-    usage ? usageLine(t, i18n.language, usage, { modelLabel: modelLabels.get(usage.model) }) : null,
+    // The model and its tokens are for whoever chose the technical screens.
+    usage && !simpleScreens(org)
+      ? usageLine(t, i18n.language, usage, { modelLabel: modelLabels.get(usage.model) })
+      : null,
   ]
     .filter(Boolean)
     .join(" · ");
@@ -4608,11 +4611,12 @@ export const TimelineMessage = memo(function TimelineMessage({
                   <Icon name="alert" size={16} />
                   {/* A known code is said in words; the stored error (a computer's code) only on hover, unless the
                       words already say what it said. */}
-                  <span title={!refusal && failedWhy && !live.errorParams?.detail ? live.error : undefined}>
+                  <span
+                    title={!simple && !refusal && !live.errorParams?.detail ? (live.error ?? undefined) : undefined}
+                  >
                     {runFailureLine(t, name, { code: live.errorCode, params: live.errorParams }, i18n.language) ??
-                      (live.error
-                        ? t("channel.runFailed", { agent: name, reason: live.error })
-                        : t("channel.runFailedNoReason", { agent: name }))}
+                      // The stored error is the system's own words: never in the line, on hover on technical screens.
+                      t("channel.runFailedNoReason", { agent: name })}
                   </span>
                 </p>
                 {live.agentId && <FailedRunFix code={live.errorCode} agentId={live.agentId} />}

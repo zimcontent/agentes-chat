@@ -2093,6 +2093,14 @@ export interface ApiClient {
       accountId: string,
       input: { chatId: string; file: Blob; fileName: string; caption?: string; voice?: boolean },
     ): Promise<{ chatId: string; kind: string }>;
+    /** The stickers the number sent or received lately, each a message's id (its picture: `whatsappFileUrl`). */
+    stickers(orgId: string, accountId: string): Promise<{ stickers: { messageId: string; at: string }[] }>;
+    /** Sends a sticker the number already has into a conversation. */
+    sendSticker(
+      orgId: string,
+      accountId: string,
+      input: { chatId: string; messageId: string },
+    ): Promise<{ chatId: string }>;
     /** Asks the phone for the conversation's older messages: they arrive a moment later, if the phone has them. */
     olderHistory(orgId: string, accountId: string, chatId: string): Promise<{ asked: number }>;
     /** The number's agent on or off in one conversation; on gives the conversation back to it. */

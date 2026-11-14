@@ -4427,6 +4427,7 @@
       "other": "Freigeben"
     },
     "refuse": "Ablehnen",
+    "once": "Nur dieses Mal",
     "viewDiff": "Diff ansehen",
     "viewInChannel": "Im Kanal ansehen",
     "group": "Freigabeanfrage",
@@ -4901,6 +4902,16 @@
     "again": "Erneut fragen",
     "againBody": "@{{handle}} die Anfrage „{{title}}“ ist ohne Entscheidung abgelaufen. Wenn sie noch sinnvoll ist, frag erneut.",
     "againSent": "Anfrage in der Unterhaltung gesendet",
+    "retry": "Um neuen Versuch bitten",
+    "cause": {
+      "reconnect": "Die Verbindung zur App ist abgelaufen. Verbinde sie neu und bitte um einen neuen Versuch.",
+      "permission": "Das verbundene Konto darf das nicht. Prüfe den Zugriff in der App und bitte um einen neuen Versuch.",
+      "unavailable": "Der Dienst hat nicht geantwortet. Warte kurz und bitte um einen neuen Versuch.",
+      "limit": "Der Dienst hat abgelehnt: zu viele Anfragen. Warte ein paar Minuten und bitte um einen neuen Versuch."
+    },
+    "reconnect": "Neu verbinden",
+    "retryBody": "@{{handle}} die genehmigte Aktion „{{title}}“ ist fehlgeschlagen. Sieh nach, was schiefgelaufen ist, und versuch es noch einmal, oder sag mir, was ich tun muss.",
+    "valueKeys": "Verwendete Vault-Schlüssel",
     "noResults": "Keine Anfragen passen zu diesen Filtern.",
     "emptyTitle": "Alles entschieden",
     "how": "So funktionieren Freigaben",
@@ -4928,6 +4939,7 @@
       "runningLine": "{{name}} führt genau die Aktion unten aus.",
       "done": "Fertig",
       "failed": "Die Aktion ist fehlgeschlagen",
+      "failedLine": "Sie wurde nicht abgeschlossen. Bitte {{name}}, nachzusehen, was passiert ist, und es noch einmal zu versuchen.",
       "returned": "Was zurückkam",
       "approvedBy": "Freigegeben von {{name}} {{when}}",
       "refusedBy": "Abgelehnt von {{name}} {{when}}",

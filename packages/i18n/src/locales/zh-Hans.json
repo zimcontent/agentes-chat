@@ -4282,6 +4282,7 @@
       "other": "批准"
     },
     "refuse": "拒绝",
+    "once": "仅此一次",
     "viewDiff": "查看差异",
     "viewInChannel": "在频道中查看",
     "group": "审批请求",
@@ -4736,6 +4737,16 @@
     "again": "再次请求",
     "againBody": "@{{handle}} 请求“{{title}}”已过期且无人决定。如果仍然需要，请再次请求。",
     "againSent": "已在对话中发送请求",
+    "retry": "请它再试一次",
+    "cause": {
+      "reconnect": "与应用的连接已过期。请重新连接，然后请它再试一次。",
+      "permission": "已连接的账号无权执行此操作。请在应用中检查访问权限，然后请它再试一次。",
+      "unavailable": "服务没有响应。请稍等片刻，然后请它再试一次。",
+      "limit": "请求过多，服务已拒绝。请等待几分钟，然后请它再试一次。"
+    },
+    "reconnect": "重新连接",
+    "retryBody": "@{{handle}} 已批准的操作“{{title}}”失败了。看看哪里出了问题并再试一次，或者告诉我需要做什么。",
+    "valueKeys": "使用的 Vault 密钥",
     "noResults": "没有符合这些筛选条件的请求。",
     "emptyTitle": "全部处理完毕",
     "how": "审批是如何运作的",
@@ -4765,6 +4776,7 @@
       "runningLine_female": "{{name}} 正在执行下面这项操作。",
       "done": "完成",
       "failed": "操作失败",
+      "failedLine": "操作没有完成。请让 {{name}} 看看发生了什么并再试一次。",
       "returned": "返回结果",
       "approvedBy": "由 {{name}} 于{{when}}批准",
       "refusedBy": "由 {{name}} 于{{when}}拒绝",

@@ -980,3 +980,10 @@ html:not([data-pointer]) .ap-li:focus-visible {
   font-size: 13.5px;
   color: var(--muted);
 }
+
+/* A failed action's ways out, side by side at the end of its outcome's head. */
+.ap-outcome__acts {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+}

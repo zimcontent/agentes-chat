@@ -212,6 +212,68 @@ export async function sendForApproval(
   });
 }
 
+export interface SendNewVersion {
+  client: string;
+  /** The post's id at the portal. */
+  item: string;
+  /** Drive files (artifact ids): the whole post again, in the carousel's order. */
+  artifactIds: string[];
+  /** What changed. */
+  note?: string;
+  key?: string;
+  by?: string;
+}
+
+/**
+ * Puts the new version of a post the client sent back at the portal (ADR 9001 §17). Code from end to end, like the
+ * first send: the files pass the caller's own reader, all are read before the first goes up, and the version is the
+ * client's to approve the moment the bridge has it. Nobody of the team is asked in between.
+ */
+export async function sendNewVersion(
+  portal: ApprovalPortal,
+  read: (artifactId: string) => Promise<{ name: string; bytes: Uint8Array }>,
+  input: SendNewVersion,
+): Promise<PortalJob> {
+  if (!input.artifactIds.length) throw new ValidationError("Nothing to send: pick at least one file");
+  if (input.artifactIds.length > PORTAL_SEND_FILES) {
+    throw new ValidationError(`A version takes at most ${PORTAL_SEND_FILES} files`);
+  }
+  const post = (await portal.items()).find((item) => item.client === input.client && item.id === input.item);
+  if (!post) throw new ValidationError(`No post ${input.item} of ${input.client} at the portal`);
+  if (post.status === "adjusted") {
+    throw new ValidationError("This post's new version is already with the client: nothing to send again");
+  }
+  if (portalColumnOf(post) !== "adjusting") {
+    throw new ValidationError(
+      `A new version only goes up on a post the client asked a change on; this one is ${post.status}`,
+    );
+  }
+  if (post.type === "reel" && input.artifactIds.length !== 1) {
+    throw new ValidationError("A reel's new version is one video");
+  }
+  const files: { name: string; bytes: Uint8Array }[] = [];
+  for (const id of input.artifactIds) files.push(await read(id));
+  for (const file of files) {
+    if (file.bytes.byteLength > PORTAL_FILE_BYTES) throw new ValidationError(`"${file.name}" is too large to send`);
+  }
+  const uploaded = [];
+  for (const file of files) uploaded.push(await portal.upload(file.name, file.bytes));
+  const job = await portal.newVersion(input.client, input.item, {
+    files: uploaded,
+    note: input.note?.trim() || undefined,
+    key: input.key,
+    by: input.by,
+  });
+  // The card keeps the post's files: the new ones take the old ones' place.
+  const card = (await portal.cards(input.client).catch(() => [])).find((c) => c.item === input.item);
+  if (card && job.state !== "failed") {
+    await portal
+      .updateCard(card.id, { files: input.artifactIds.map((id, i) => ({ id, name: files[i]?.name ?? "" })) }, input.by)
+      .catch(() => {});
+  }
+  return job;
+}
+
 /** A person's reader: the file as they may download it. */
 export const personPortalReader = (deps: ArtifactDeps, userId: string, orgId: string) => async (artifactId: string) => {
   const file = await artifactFile(deps, userId, orgId, artifactId);
@@ -232,6 +294,7 @@ export const PORTAL_BOARD_TOOL = "portal_board";
 export const PORTAL_CARD_TOOL = "portal_card";
 export const SEND_FOR_APPROVAL_TOOL = "send_for_approval";
 export const SCHEDULE_POST_TOOL = "schedule_post";
+export const SEND_NEW_VERSION_TOOL = "send_new_version";
 
 export interface PortalToolDeps {
   /** null: this server has no approval portal, and the tools aren't listed. */
@@ -259,6 +322,8 @@ const itemLine = (item: PortalItem) =>
   (item.scheduledFor ? `, date ${item.scheduledFor}` : "") +
   (item.missing.length ? `, missing: ${item.missing.join(", ")}` : "") +
   (item.released ? ", already released for scheduling" : "") +
+  // The post's address is read here, so no agent builds one or asks another for it.
+  (item.link ? `, at the portal: ${item.link}` : "") +
   (item.lastNote?.text && portalColumnOf(item) === "adjusting" ? `\n  client's note: ${item.lastNote.text}` : "");
 const cardLine = (card: PortalCard) =>
   `- ${card.type} "${card.title}" (card ${card.id})` +
@@ -271,7 +336,7 @@ function boardTool(portal: ApprovalPortal): ToolDefinition {
   return {
     name: PORTAL_BOARD_TOOL,
     description:
-      "The approval portal's board: what the team makes for each client and where each post is (to do, in production, waiting for the client's approval, adjustment asked by the client, approved, scheduled, posted). With no `client`: every client and its counts. With a `client`: that client's cards and posts, with ids, dates, what is missing and the client's adjustment notes.",
+      "The approval portal's board: what the team makes for each client and where each post is (to do, in production, waiting for the client's approval, adjustment asked by the client, approved, scheduled, posted). With no `client`: every client and its counts. With a `client`: that client's cards and posts, with ids, dates, what is missing, each post's address at the portal and the client's adjustment notes.",
     scope: "",
     inputSchema: {
       type: "object",
@@ -484,6 +549,64 @@ function sendTool(deps: PortalToolDeps, portal: ApprovalPortal): ToolDefinition 
   };
 }
 
+function versionTool(deps: PortalToolDeps, portal: ApprovalPortal): ToolDefinition {
+  return {
+    name: SEND_NEW_VERSION_TOOL,
+    description:
+      "Put the new version of a post at the approval portal, once you made the change its client asked for. It goes to the client at once: nobody of the team approves it first, so don't ask anyone and don't wait for an OK. `item` is the post's id, as `portal_board` lists it under the adjustment the client asked. `artifact_ids` are the whole post again, in order (every slide of a carousel, changed or not; a reel's one video): uploaded files of this conversation or the Drive (a file on your computer goes to the Drive first, with `upload_file`). `note` says what changed, in one or two lines, in the client's language. Only a post the client asked a change on takes a new version. The answer carries the post's link: say it is up, with that link.",
+    scope: "",
+    external: true,
+    inputSchema: {
+      type: "object",
+      properties: {
+        client: { type: "string", maxLength: 64, description: "The client's id, as `portal_board` lists it." },
+        item: { type: "string", maxLength: 80, description: "The post's id at the portal." },
+        artifact_ids: {
+          type: "array",
+          items: { type: "string", minLength: 36, maxLength: 36 },
+          minItems: 1,
+          maxItems: PORTAL_SEND_FILES,
+        },
+        note: { type: "string", maxLength: 2000, description: "What changed in this version." },
+      },
+      required: ["client", "item", "artifact_ids"],
+      additionalProperties: false,
+    },
+    describe: (input) => ({
+      title: `Put a new version of ${str(input.client)}'s post ${str(input.item)} at the portal`,
+    }),
+    async execute(input, ctx) {
+      try {
+        const by = (await personBehindCall(ctx)) ?? `agent:${ctx.agentId}`;
+        const job = await sendNewVersion(portal, agentPortalReader(deps.artifacts, actorOf(ctx), ctx.orgId), {
+          client: str(input.client),
+          item: str(input.item),
+          artifactIds: (input.artifact_ids as string[]) ?? [],
+          note: str(input.note) || undefined,
+          key: ctx.toolUseId ? `run:${ctx.runId}:${ctx.toolUseId}` : undefined,
+          by,
+        });
+        const done = await settled(portal, job);
+        if (done.state === "failed") {
+          return {
+            content: `The new version didn't go up: ${done.error ?? "the portal gave no reason"}`,
+            isError: true,
+          };
+        }
+        return {
+          content:
+            (done.state === "done"
+              ? `The new version of "${done.title ?? ""}" is at the portal, with the client to approve.`
+              : "The new version is going up; a video takes a few minutes to finish at the portal.") +
+            (done.link ? ` Link: ${done.link}` : ""),
+        };
+      } catch (error) {
+        return failed(error);
+      }
+    },
+  };
+}
+
 /** `YYYY-MM-DDTHH:MM`, with or without seconds and an offset: what a schedule's time looks like. */
 export const PORTAL_WHEN = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2})?(Z|[+-]\d{2}:\d{2})?$/;
 
@@ -611,7 +734,14 @@ export function createPortalToolSource(deps: PortalToolDeps): ToolSource {
       // A routine reads (it tells each person their day) and changes nothing here.
       const reads = [boardTool(portal), workTool(portal)];
       if (ctx.background) return reads;
-      return [...reads, cardTool(portal), planTool(portal), sendTool(deps, portal), scheduleTool(portal)];
+      return [
+        ...reads,
+        cardTool(portal),
+        planTool(portal),
+        sendTool(deps, portal),
+        versionTool(deps, portal),
+        scheduleTool(portal),
+      ];
     },
   };
 }

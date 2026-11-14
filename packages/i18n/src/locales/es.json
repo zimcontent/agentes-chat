@@ -4542,6 +4542,7 @@
       "other": "Aprobar"
     },
     "refuse": "Rechazar",
+    "once": "Solo esta vez",
     "viewDiff": "Ver diff",
     "viewInChannel": "Ver en el grupo",
     "group": "Solicitud de aprobación",
@@ -5038,6 +5039,16 @@
     "again": "Volver a pedir",
     "againBody": "@{{handle}} la solicitud “{{title}}” venció sin una decisión. Si todavía tiene sentido, vuelve a pedirla.",
     "againSent": "Solicitud enviada en la conversación",
+    "retry": "Pedir que lo intente de nuevo",
+    "cause": {
+      "reconnect": "La conexión con la app venció. Vuelve a conectarla y pide que lo intente de nuevo.",
+      "permission": "La cuenta conectada no tiene permiso para esto. Revisa el acceso en la app y pide que lo intente de nuevo.",
+      "unavailable": "El servicio no respondió. Espera un poco y pide que lo intente de nuevo.",
+      "limit": "El servicio lo rechazó por demasiadas solicitudes. Espera unos minutos y pide que lo intente de nuevo."
+    },
+    "reconnect": "Reconectar",
+    "retryBody": "@{{handle}} la acción “{{title}}” que se aprobó falló. Mira qué salió mal e inténtalo de nuevo, o dime qué tengo que hacer.",
+    "valueKeys": "Claves del Vault usadas",
     "noResults": "Ninguna solicitud coincide con estos filtros.",
     "emptyTitle": "Todo decidido",
     "how": "Cómo funcionan las aprobaciones",
@@ -5065,6 +5076,7 @@
       "runningLine": "{{name}} está ejecutando exactamente la acción de abajo.",
       "done": "Listo",
       "failed": "La acción falló",
+      "failedLine": "No se completó. Pide a {{name}} que vea qué pasó y lo intente de nuevo.",
       "returned": "Lo que devolvió",
       "approvedBy": "Aprobado por {{name}} {{when}}",
       "refusedBy": "Rechazado por {{name}} {{when}}",

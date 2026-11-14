@@ -138,6 +138,27 @@ export function useSendWhatsAppFile(orgId: string, accountId: string) {
   });
 }
 
+/** The number's latest stickers, read when the picker's tab opens (`enabled`). */
+export function useWhatsAppStickers(orgId: string, accountId: string, enabled: boolean) {
+  const api = useApi();
+  return useQuery({
+    queryKey: keys.whatsappStickers(orgId, accountId),
+    queryFn: () => whatsappOf(api).stickers(orgId, accountId),
+    enabled,
+  });
+}
+
+/** Sends a sticker the number already has. */
+export function useSendWhatsAppSticker(orgId: string, accountId: string) {
+  const api = useApi();
+  const refresh = useWhatsAppRefresh(orgId);
+  return useMutation({
+    mutationFn: (input: { chatId: string; messageId: string }) => whatsappOf(api).sendSticker(orgId, accountId, input),
+    meta: { silent: true },
+    onSuccess: () => void refresh(),
+  });
+}
+
 /** Asks the phone for a conversation's older messages; what comes arrives by itself (`whatsapp.changed`). */
 export function useWhatsAppOlderHistory(orgId: string, accountId: string) {
   const api = useApi();
