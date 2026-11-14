@@ -1,4 +1,4 @@
-/** Types for dougbot-avatar.js, the DougBot identity's avatar drawer (a verbatim copy, SVG by code, no images). */
+/** Types for dougbot-avatar.js, the DougBot identity's avatar drawer (SVG by code, no images). */
 
 export type DougBotNome = "doug" | "rosa" | "sony" | "mark" | "chess" | "kiara" | "junin";
 export type DougBotEstado = "ok" | "trabalhando" | "pedindo" | "terminou" | "dormindo";
@@ -9,11 +9,20 @@ export type DougBotAcessorio = "fone" | "gravata" | "chaves";
 export interface DougBotOpcoes {
   bot?: DougBotNome;
   estado?: DougBotEstado;
-  /** Size in px: below 60 the Doug closes on his face (unless `perto` says). */
+  /** Size in px: below 60 the Doug's head fills his piece of glass (unless `perto` says). */
   tamanho?: number;
   perto?: boolean;
   /** The light on the floor (off below 44 px and on light grounds). */
   brilho?: boolean;
+  /** The Doug only: `false` draws his head alone, without the piece of green glass around it. */
+  peca?: boolean;
+  /**
+   * The Doug's head alone: green glass with ink eyes ("vidro", the default), black with white eyes ("preto"), or one
+   * flat colour (`cor`) with the eyes cut out of it ("chapado": a glyph a system tints, a stamp). In his piece,
+   * "chapado" draws the piece, the head and the eyes in flat colours, with no light and no filter: a few hundred
+   * bytes, for a page that has to stay small.
+   */
+  material?: "vidro" | "preto" | "chapado";
   forma?: DougBotForma;
   cor?: string;
   olhos?: DougBotOlhos;
@@ -29,7 +38,7 @@ export interface DougBotFicha {
   nome: string;
   papel: string;
   cor: string;
-  forma: DougBotForma | "retrato";
+  forma: DougBotForma | "cabeca";
   olhos?: DougBotOlhos;
   acessorio?: DougBotAcessorio;
   y?: number;
@@ -45,7 +54,9 @@ export interface DougBotApi {
   ORDEM: DougBotNome[];
   CORPOS: Record<DougBotForma, string>;
   VISORES: Record<DougBotForma, string>;
+  /** The Doug's piece of glass and, inside it, his head: both in the 120 × 120 frame. */
   QUADRO: string;
+  CABECA: string;
   versao: string;
 }
 

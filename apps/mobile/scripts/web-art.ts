@@ -7,8 +7,8 @@
  * writes into `apps/web/public/`: the share card a link to the app shows (`og.png`, 1200×630, named in index.html): the
  * Doug whole on the stage with his light on the floor, beside the name in Manrope (IDENTIDADE.md §3), and no other
  * words, so it reads in every language; and the glyph a browser notification shows in Android's status bar
- * (`push-badge.png`, one colour on transparent, the system tints it): the Doug's glass frame with his eyes, the phone
- * app's own (`brand-assets.ts`). It lives here because the app already has resvg and Manrope's files.
+ * (`push-badge.png`, one colour on transparent, the system tints it): the Doug's head with the eyes cut out of it,
+ * the phone app's own (`brand-assets.ts`). It lives here because the app already has resvg and Manrope's files.
  */
 import { writeFileSync } from "node:fs";
 import { join } from "node:path";
@@ -52,11 +52,10 @@ function shareCard() {
 }
 writeFileSync(join(out, "og.png"), png(shareCard(), 1200));
 
-const frame = "M38 10H82C101 10 110 19 110 38V82C110 101 101 110 82 110H38C19 110 10 101 10 82V38C10 19 19 10 38 10Z";
 writeFileSync(
   join(out, "push-badge.png"),
   png(
-    `<svg xmlns="http://www.w3.org/2000/svg" width="96" height="96" viewBox="0 0 120 120"><path fill="#fff" fill-rule="evenodd" d="${frame}M48.9 50a6 6 0 1 0 0.01 0ZM71.1 50a6 6 0 1 0 0.01 0Z"/></svg>`,
+    DougBot.avatar({ bot: "doug", tamanho: 96, peca: false, material: "chapado", cor: "#fff", brilho: false, id: "p" }),
     96,
   ),
 );
