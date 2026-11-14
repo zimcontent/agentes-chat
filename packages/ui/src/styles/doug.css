@@ -540,10 +540,12 @@ html:not([data-pointer]) .sidebar__hero-link:focus-visible {
     0 0 0 2px var(--bg, var(--db-palco)),
     0 0 0 3px color-mix(in srgb, var(--agent) 60%, transparent);
 }
+/* The count sits on the face's top left: the top right is the working bubble's (a bot at work), the lower right
+   the status dot's. */
 .sidebar__hero-face > :is(.ac-count, .sidebar__unread) {
   position: absolute;
   top: -3px;
-  right: -5px;
+  left: -5px;
 }
 /* The whole name, on two lines when it needs them (no ellipsis). */
 .sidebar__hero-name {
