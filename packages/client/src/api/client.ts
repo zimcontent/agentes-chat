@@ -2069,6 +2069,8 @@ export interface ApiClient {
     read(orgId: string, accountId: string, chatId: string): Promise<{ read: number }>;
     /** The person is writing there (or stopped): the other side sees "typing…". */
     typing(orgId: string, accountId: string, chatId: string, typing: boolean): Promise<{ told: boolean }>;
+    /** The number's agent on or off in one conversation; on gives the conversation back to it. */
+    chatAgent(orgId: string, accountId: string, chatId: string, on: boolean): Promise<{ on: boolean }>;
   };
   /**
    * The Vault (ADR 0144): logins, keys and contacts agents use without seeing a password or a key. No answer carries

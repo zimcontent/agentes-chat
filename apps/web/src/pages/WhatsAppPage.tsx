@@ -1,7 +1,9 @@
 import {
   useReadWhatsAppChat,
   useSendWhatsApp,
+  useUpdateWhatsApp,
   useWhatsApp,
+  useWhatsAppChatAgent,
   useWhatsAppChats,
   useWhatsAppMessages,
   useWhatsAppTyping,
@@ -13,6 +15,7 @@ import { clockAt, dayLabel, formatTime } from "@agenteschat/client/lib/format";
 import {
   Avatar,
   Button,
+  Chip,
   CountBadge,
   DayDivider,
   EmptyState,
@@ -22,6 +25,7 @@ import {
   SearchInput,
   Select,
   Spinner,
+  Switch,
   Textarea,
 } from "@agenteschat/ui";
 import { type KeyboardEvent, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
@@ -88,6 +92,11 @@ function ChatRow({
             {kindIcon && <Icon name={kindIcon} size={14} />}
             <span className="wa-chat__words">{preview(chat.lastKind, chat.lastText, w)}</span>
           </span>
+          {chat.agent === "person" && (
+            <Chip className="wa-chat__turn" tone="waiting">
+              {w.agent.yourTurn}
+            </Chip>
+          )}
           {chat.unread > 0 && (
             <CountBadge className="wa-chat__count">{chat.unread > 99 ? "99+" : chat.unread}</CountBadge>
           )}
@@ -162,6 +171,7 @@ function Conversation({
   const dir = useDirectory(org.id);
   const query = useWhatsAppMessages(org.id, account.id, chatId);
   const send = useSendWhatsApp(org.id, account.id);
+  const setAgent = useWhatsAppChatAgent(org.id, account.id);
   const read = useReadWhatsAppChat(org.id, account.id);
   const say = useWhatsAppError();
   const toast = useToast();
@@ -229,8 +239,25 @@ function Conversation({
         {chat && <Avatar name={title} size="md" />}
         <span className="wa-conv__who">
           <strong className="wa-conv__name">{title}</strong>
-          {chat?.name && chat.phone && <span className="wa-conv__phone">{showPhone(chat.phone)}</span>}
+          {chat?.agent ? (
+            <span className="wa-conv__phone" data-agent={chat.agent}>
+              {chat.agent === "quiet" && chat.agentQuietUntil
+                ? w.agent.quiet(formatTime(i18n.language, chat.agentQuietUntil))
+                : w.agent[chat.agent === "quiet" ? "on" : chat.agent]}
+            </span>
+          ) : (
+            chat?.name && chat.phone && <span className="wa-conv__phone">{showPhone(chat.phone)}</span>
+          )}
         </span>
+        {chat?.agent && (
+          <Switch
+            className="wa-conv__agent"
+            aria-label={w.agent.label}
+            checked={chat.agent === "on"}
+            disabled={setAgent.isPending}
+            onCheckedChange={(on) => setAgent.mutate({ chatId, on }, { onError: (e) => toast.show(say(e), "error") })}
+          />
+        )}
       </header>
       <div className="wa-conv__scroll" ref={scroller}>
         {query.isPending ? (
@@ -261,7 +288,13 @@ function Conversation({
                     message={message}
                     group={chat?.group ?? false}
                     answered={message.replyToId ? byId.get(message.replyToId) : undefined}
-                    author={message.sentByUserId ? dir.memberById.get(message.sentByUserId)?.name : undefined}
+                    author={
+                      message.sentByAgentId
+                        ? dir.agentById.get(message.sentByAgentId)?.name
+                        : message.sentByUserId
+                          ? dir.memberById.get(message.sentByUserId)?.name
+                          : undefined
+                    }
                     w={w}
                   />
                 </div>
@@ -270,6 +303,27 @@ function Conversation({
           </div>
         )}
       </div>
+      {chat?.agent === "person" && (
+        <div className="wa-conv__notice" role="status">
+          <span>
+            {chat.agentNote === "limit"
+              ? w.agent.limit
+              : chat.agentNote === "failed"
+                ? w.agent.failed
+                : chat.agentNote && chat.agentNote !== "handoff"
+                  ? `${w.agent.handed} ${chat.agentNote}`
+                  : w.agent.handed}
+          </span>
+          <Button
+            variant="default"
+            size="sm"
+            loading={setAgent.isPending}
+            onClick={() => setAgent.mutate({ chatId, on: true }, { onError: (e) => toast.show(say(e), "error") })}
+          >
+            {w.agent.giveBack}
+          </Button>
+        </div>
+      )}
       <footer className="wa-conv__foot">
         <Textarea
           className="wa-conv__input"
@@ -322,6 +376,9 @@ export function WhatsAppPage({
   const accounts = overview.data?.accounts ?? [];
   const account = accounts.find((a) => a.id === accountId) ?? accounts.find((a) => a.mine) ?? accounts[0];
   const chats = useWhatsAppChats(org.id, account?.mine ? account.id : null);
+  const update = useUpdateWhatsApp(org.id);
+  const toast = useToast();
+  const say = useWhatsAppError();
   const [filter, setFilter] = useState("");
   const [dialog, setDialog] = useState<"connect" | "settings" | "newChat" | "qr" | null>(null);
 
@@ -392,6 +449,22 @@ export function WhatsAppPage({
             {account.mine && account.status === "connected" && (
               <MenuItem icon="edit" onSelect={() => setDialog("newChat")}>
                 {w.newChat}
+              </MenuItem>
+            )}
+            {account.manage && account.agentId && (
+              <MenuItem
+                icon="agent"
+                onSelect={() =>
+                  update.mutate(
+                    { accountId: account.id, agentOn: !account.agentOn },
+                    {
+                      onSuccess: (saved) => toast.show(saved.agentOn ? w.agent.turnedOn : w.agent.turnedOff),
+                      onError: (e) => toast.show(say(e), "error"),
+                    },
+                  )
+                }
+              >
+                {account.agentOn ? w.agent.turnOff : w.agent.turnOn}
               </MenuItem>
             )}
             {account.manage && (

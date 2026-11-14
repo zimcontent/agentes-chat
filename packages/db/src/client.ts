@@ -135,6 +135,13 @@ export const EXTRA_COLUMNS = [
   )`,
   `CREATE UNIQUE INDEX IF NOT EXISTS "whatsapp_messages_wa" ON "whatsapp_messages" ("account_id", "wa_id")`,
   `CREATE INDEX IF NOT EXISTS "whatsapp_messages_chat" ON "whatsapp_messages" ("chat_id", "at")`,
+  // The number's agent answering (docs/adr/doug-0002-whatsapp-agent.md): added to tables that may already exist.
+  `ALTER TABLE "whatsapp_accounts" ADD COLUMN IF NOT EXISTS "agent_on" boolean NOT NULL DEFAULT false`,
+  `ALTER TABLE "whatsapp_chats" ADD COLUMN IF NOT EXISTS "agent_off" boolean NOT NULL DEFAULT false`,
+  `ALTER TABLE "whatsapp_chats" ADD COLUMN IF NOT EXISTS "person_at" timestamp with time zone`,
+  `ALTER TABLE "whatsapp_chats" ADD COLUMN IF NOT EXISTS "needs_person" boolean NOT NULL DEFAULT false`,
+  `ALTER TABLE "whatsapp_chats" ADD COLUMN IF NOT EXISTS "agent_note" text NOT NULL DEFAULT ''`,
+  `ALTER TABLE "whatsapp_messages" ADD COLUMN IF NOT EXISTS "sent_by_agent_id" uuid REFERENCES "agents"("id") ON DELETE SET NULL`,
 ];
 
 /** The advisory lock every process takes around its migrations (`DatabaseHandle.migrate`). */
