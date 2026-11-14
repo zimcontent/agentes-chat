@@ -1,6 +1,7 @@
 import {
   ApprovalPortalError,
   PORTAL_CARD_STATES,
+  PORTAL_CLIENT_COLORS,
   PORTAL_LABEL_COLORS,
   PORTAL_STATUSES,
   PORTAL_TYPES,
@@ -263,7 +264,13 @@ export function portalRoutes(deps: AppDeps) {
         200: json(
           z.object({
             clients: z.array(
-              z.object({ client: z.string(), counts: Counts, open: z.number().int(), next: z.string().nullable() }),
+              z.object({
+                client: z.string(),
+                counts: Counts,
+                open: z.number().int(),
+                next: z.string().nullable(),
+                color: z.enum(PORTAL_CLIENT_COLORS).nullable(),
+              }),
             ),
             state: State,
           }),
@@ -875,6 +882,27 @@ export function portalRoutes(deps: AppDeps) {
       const { orgId, labelId } = c.req.valid("param");
       await requireChangePermission(db, c.get("user").id, orgId, "assign_work");
       const out = await guarded(c, (portal) => portal.deleteLabel(labelId));
+      return out.ok ? c.body(null, 204) : out.response;
+    },
+  );
+
+  app.openapi(
+    createRoute({
+      method: "put",
+      path: "/organizations/{orgId}/portal/clients/{client}/color",
+      tags,
+      security,
+      summary: "Give a client its colour, or take it away with null (assign_work)",
+      request: {
+        params: OrgParams.extend({ client: ClientId }),
+        body: body(z.object({ color: z.enum(PORTAL_CLIENT_COLORS).nullable() })),
+      },
+      responses: { ...noContent, 502: unavailable, ...errors, 404: off },
+    }),
+    async (c) => {
+      const { orgId, client } = c.req.valid("param");
+      await requireChangePermission(db, c.get("user").id, orgId, "assign_work");
+      const out = await guarded(c, (portal) => portal.setClientColor(client, c.req.valid("json").color));
       return out.ok ? c.body(null, 204) : out.response;
     },
   );

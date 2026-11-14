@@ -153,9 +153,11 @@ import type {
   PortalCard,
   PortalCardInput,
   PortalCardState,
+  PortalClientColor,
   PortalItemEdit,
   PortalJob,
   PortalLabelColor,
+  PortalOverview,
   PortalPlan,
   PortalSendInput,
   Proposal,
@@ -7034,6 +7036,32 @@ export function usePortalLabels(orgId: string) {
     }),
     remove: useMutation({ mutationFn: (labelId: string) => portalOf(api).deleteLabel(orgId, labelId), ...done }),
   };
+}
+
+/**
+ * Gives a client its colour (`null`: none). It shows at once wherever the overview is read, and goes back if the
+ * server refuses.
+ */
+export function useSetPortalClientColor(orgId: string) {
+  const api = useApi();
+  const qc = useQueryClient();
+  return useMutation({
+    meta: { silent: true },
+    mutationFn: ({ client, color }: { client: string; color: PortalClientColor | null }) =>
+      portalOf(api).setClientColor(orgId, client, color),
+    onMutate: async ({ client, color }) => {
+      await qc.cancelQueries({ queryKey: keys.portalOverview(orgId) });
+      const before = qc.getQueryData<PortalOverview>(keys.portalOverview(orgId));
+      qc.setQueryData<PortalOverview>(keys.portalOverview(orgId), (now) =>
+        now ? { ...now, clients: now.clients.map((c) => (c.client === client ? { ...c, color } : c)) } : now,
+      );
+      return { before };
+    },
+    onError: (_error, _input, context) => {
+      if (context?.before) qc.setQueryData(keys.portalOverview(orgId), context.before);
+    },
+    onSettled: () => qc.invalidateQueries({ queryKey: keys.portalOverview(orgId) }),
+  });
 }
 
 /** Posts a comment on a card, or deletes one. */

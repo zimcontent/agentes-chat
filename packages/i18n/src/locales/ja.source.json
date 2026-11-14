@@ -45367,6 +45367,51 @@
   "portal.seePost": {
     "value": "See the post"
   },
+  "portal.seeDrive": {
+    "value": "Drive link"
+  },
+  "portal.clientColor.label": {
+    "value": "Client's colour"
+  },
+  "portal.clientColor.none": {
+    "value": "No colour"
+  },
+  "portal.clientColor.colors.green": {
+    "value": "Green"
+  },
+  "portal.clientColor.colors.blue": {
+    "value": "Blue"
+  },
+  "portal.clientColor.colors.navy": {
+    "value": "Dark blue"
+  },
+  "portal.clientColor.colors.sky": {
+    "value": "Light blue"
+  },
+  "portal.clientColor.colors.white": {
+    "value": "White"
+  },
+  "portal.clientColor.colors.teal": {
+    "value": "Teal"
+  },
+  "portal.clientColor.colors.yellow": {
+    "value": "Yellow"
+  },
+  "portal.clientColor.colors.orange": {
+    "value": "Orange"
+  },
+  "portal.clientColor.colors.red": {
+    "value": "Red"
+  },
+  "portal.clientColor.colors.pink": {
+    "value": "Pink"
+  },
+  "portal.clientColor.colors.purple": {
+    "value": "Purple"
+  },
+  "portal.clientColor.colors.gray": {
+    "value": "Gray"
+  },
   "portal.edit": {
     "value": "Edit"
   },

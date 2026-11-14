@@ -1667,6 +1667,8 @@ export function createHttpApi(options: TransportOptions = {}): HttpApi {
         ).label,
       deleteLabel: (orgId, labelId) =>
         request<void>(`${org(orgId)}/portal/labels/${enc(labelId)}`, { method: "DELETE" }),
+      setClientColor: (orgId, client, color) =>
+        request<void>(`${org(orgId)}/portal/clients/${enc(client)}/color`, { method: "PUT", json: { color } }),
       addComment: async (orgId, cardId, text) =>
         (
           await request<{ card: PortalCard }>(`${org(orgId)}/portal/cards/${enc(cardId)}/comments`, {

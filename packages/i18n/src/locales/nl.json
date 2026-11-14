@@ -18931,6 +18931,25 @@
     "send": "Ter goedkeuring versturen",
     "openAtPortal": "Openen in het portaal",
     "seePost": "De post bekijken",
+    "seeDrive": "Drive-link",
+    "clientColor": {
+      "label": "Kleur van de klant",
+      "none": "Geen kleur",
+      "colors": {
+        "green": "Groen",
+        "blue": "Blauw",
+        "navy": "Donkerblauw",
+        "sky": "Lichtblauw",
+        "white": "Wit",
+        "teal": "Turquoise",
+        "yellow": "Geel",
+        "orange": "Oranje",
+        "red": "Rood",
+        "pink": "Roze",
+        "purple": "Paars",
+        "gray": "Grijs"
+      }
+    },
     "edit": "Bewerken",
     "delete": "Verwijderen",
     "actionsOf": "Acties: {{title}}",

@@ -19421,6 +19421,25 @@
     "send": "Invia in approvazione",
     "openAtPortal": "Apri nel portale",
     "seePost": "Vedi il post",
+    "seeDrive": "Link di Drive",
+    "clientColor": {
+      "label": "Colore del cliente",
+      "none": "Nessun colore",
+      "colors": {
+        "green": "Verde",
+        "blue": "Blu",
+        "navy": "Blu scuro",
+        "sky": "Azzurro",
+        "white": "Bianco",
+        "teal": "Turchese",
+        "yellow": "Giallo",
+        "orange": "Arancione",
+        "red": "Rosso",
+        "pink": "Rosa",
+        "purple": "Viola",
+        "gray": "Grigio"
+      }
+    },
     "edit": "Modifica",
     "delete": "Elimina",
     "actionsOf": "Azioni: {{title}}",

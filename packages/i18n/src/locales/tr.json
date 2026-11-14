@@ -18684,6 +18684,25 @@
     "send": "Onaya gönder",
     "openAtPortal": "Portalda aç",
     "seePost": "Gönderiyi gör",
+    "seeDrive": "Drive bağlantısı",
+    "clientColor": {
+      "label": "Müşterinin rengi",
+      "none": "Renk yok",
+      "colors": {
+        "green": "Yeşil",
+        "blue": "Mavi",
+        "navy": "Lacivert",
+        "sky": "Açık mavi",
+        "white": "Beyaz",
+        "teal": "Turkuaz",
+        "yellow": "Sarı",
+        "orange": "Turuncu",
+        "red": "Kırmızı",
+        "pink": "Pembe",
+        "purple": "Mor",
+        "gray": "Gri"
+      }
+    },
     "edit": "Düzenle",
     "delete": "Sil",
     "actionsOf": "İşlemler: {{title}}",

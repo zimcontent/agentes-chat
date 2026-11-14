@@ -18175,6 +18175,25 @@
     "send": "承認に送る",
     "openAtPortal": "ポータルで開く",
     "seePost": "投稿を見る",
+    "seeDrive": "Driveのリンク",
+    "clientColor": {
+      "label": "クライアントの色",
+      "none": "色なし",
+      "colors": {
+        "green": "緑",
+        "blue": "青",
+        "navy": "紺",
+        "sky": "水色",
+        "white": "白",
+        "teal": "ターコイズ",
+        "yellow": "黄",
+        "orange": "オレンジ",
+        "red": "赤",
+        "pink": "ピンク",
+        "purple": "紫",
+        "gray": "グレー"
+      }
+    },
     "edit": "編集",
     "delete": "削除",
     "actionsOf": "操作：{{title}}",

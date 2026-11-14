@@ -89,7 +89,13 @@ test("the overview counts each client's columns and the board puts every post in
   expect(made.status).toBe(200);
 
   const overview = (await (await api("/portal")).json()) as {
-    clients: { client: string; counts: Record<string, number>; open: number; next: string | null }[];
+    clients: {
+      client: string;
+      counts: Record<string, number>;
+      open: number;
+      next: string | null;
+      color: string | null;
+    }[];
   };
   // The client with open work first; what is posted isn't open.
   expect(overview.clients.map((c) => c.client)).toEqual(["acme", "zeta"]);
@@ -98,6 +104,7 @@ test("the overview counts each client's columns and the board puts every post in
     counts: { todo: 1, doing: 0, approval: 2, adjusting: 1, approved: 1, scheduled: 1, posted: 1 },
     open: 6,
     next: "2026-12-01T10:00:00-03:00",
+    color: null,
   });
   expect(overview.clients[1]).toMatchObject({ open: 0, counts: { posted: 1 } });
 
@@ -433,4 +440,20 @@ test("without a portal the bridge's address isn't there", async () => {
     headers: { authorization: "Bearer anything" },
   });
   expect(res.status).toBe(404);
+});
+
+test("a client's colour: who gives agents work picks one, the overview says it, null takes it away", async () => {
+  const portal = createFakeApprovalPortal();
+  const { api } = await start(portal);
+  expect((await api("/portal/cards", { json: { client: "acme", title: "Tour video" } })).status).toBe(200);
+  type Overview = { clients: { client: string; color: string | null }[] };
+  const colorOf = async () =>
+    ((await (await api("/portal")).json()) as Overview).clients.find((c) => c.client === "acme")?.color;
+  expect(await colorOf()).toBeNull();
+  expect((await api("/portal/clients/acme/color", { method: "PUT", json: { color: "navy" } })).status).toBe(204);
+  expect(await colorOf()).toBe("navy");
+  // Only the colours the apps draw.
+  expect((await api("/portal/clients/acme/color", { method: "PUT", json: { color: "#123456" } })).status).toBe(400);
+  expect((await api("/portal/clients/acme/color", { method: "PUT", json: { color: null } })).status).toBe(204);
+  expect(await colorOf()).toBeNull();
 });

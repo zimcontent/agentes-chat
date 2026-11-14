@@ -18277,6 +18277,25 @@
     "send": "Kirim untuk persetujuan",
     "openAtPortal": "Buka di portal",
     "seePost": "Lihat postingan",
+    "seeDrive": "Tautan Drive",
+    "clientColor": {
+      "label": "Warna klien",
+      "none": "Tanpa warna",
+      "colors": {
+        "green": "Hijau",
+        "blue": "Biru",
+        "navy": "Biru tua",
+        "sky": "Biru muda",
+        "white": "Putih",
+        "teal": "Toska",
+        "yellow": "Kuning",
+        "orange": "Oranye",
+        "red": "Merah",
+        "pink": "Merah muda",
+        "purple": "Ungu",
+        "gray": "Abu-abu"
+      }
+    },
     "edit": "Ubah",
     "delete": "Hapus",
     "actionsOf": "Tindakan: {{title}}",

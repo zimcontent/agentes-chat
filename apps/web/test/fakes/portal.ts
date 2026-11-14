@@ -14,6 +14,7 @@ import type {
   ApiClient,
   PlanCard,
   PortalCard,
+  PortalClientColor,
   PortalClientSummary,
   PortalColumn,
   PortalItem,
@@ -39,6 +40,8 @@ export interface FakePortal {
   lists: (PortalList & { client: string })[];
   /** The team's labels, one set for every client. */
   labels: PortalLabel[];
+  /** The colour the team gave each client. */
+  colors: Record<string, PortalClientColor>;
   /** The portal's own today (`YYYY-MM-DD`), which `mine` reads production dates against (default: this machine's). */
   day: string;
   jobs: Map<string, PortalJob>;
@@ -195,6 +198,7 @@ export function createFakePortal(
     tasks: [],
     lists: [],
     labels: [],
+    colors: {},
     day: `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`,
     jobs: new Map(),
     state: { stale: false, readAt: null, queued: 0 },
@@ -221,6 +225,7 @@ export function createFakePortal(
             counts,
             open: counts.todo + counts.doing + counts.approval + counts.adjusting + counts.approved + counts.scheduled,
             next: dates[0] ?? null,
+            color: fake.colors[client] ?? null,
           };
         });
         return clone({ clients, state: fake.state });
@@ -441,6 +446,12 @@ export function createFakePortal(
         guard();
         fake.labels = fake.labels.filter((l) => l.id !== labelId);
         for (const card of fake.cards) card.labels = card.labels.filter((id) => id !== labelId);
+      },
+      setClientColor: async (orgId, client, color) => {
+        log("portal.setClientColor", orgId, client, color);
+        guard();
+        if (color) fake.colors[client] = color;
+        else delete fake.colors[client];
       },
       addComment: async (orgId, cardId, text) => {
         log("portal.addComment", orgId, cardId, text);

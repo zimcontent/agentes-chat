@@ -8018,6 +8018,21 @@ export type PortalLabelColor =
   | "blue"
   | "gray";
 
+/** The colour the team gave a client (`PORTAL_CLIENT_COLORS`): whose a card is reads at a glance. */
+export type PortalClientColor =
+  | "green"
+  | "blue"
+  | "navy"
+  | "sky"
+  | "white"
+  | "teal"
+  | "yellow"
+  | "orange"
+  | "red"
+  | "pink"
+  | "purple"
+  | "gray";
+
 /** A label the team puts on cards by hand, one set for every client. */
 export interface PortalLabel {
   id: string;
@@ -8089,6 +8104,8 @@ export interface PortalClientSummary {
   counts: Record<PortalColumn, number>;
   open: number;
   next: string | null;
+  /** The colour the team gave it; null or absent (a server that doesn't say): none. */
+  color?: PortalClientColor | null;
 }
 
 /**

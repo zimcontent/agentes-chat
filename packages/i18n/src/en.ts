@@ -19103,6 +19103,27 @@ export const en = {
     send: "Send for approval",
     openAtPortal: "Open at the portal",
     seePost: "See the post",
+    /** Beside it on a published post: its file in the workspace's own Drive. */
+    seeDrive: "Drive link",
+    /** The colour the team gives a client, so whose a card is reads at a glance. */
+    clientColor: {
+      label: "Client's colour",
+      none: "No colour",
+      colors: {
+        green: "Green",
+        blue: "Blue",
+        navy: "Dark blue",
+        sky: "Light blue",
+        white: "White",
+        teal: "Teal",
+        yellow: "Yellow",
+        orange: "Orange",
+        red: "Red",
+        pink: "Pink",
+        purple: "Purple",
+        gray: "Gray",
+      },
+    },
     edit: "Edit",
     delete: "Delete",
     actionsOf: "Actions: {{title}}",

@@ -294,6 +294,73 @@
 [data-color="gray"] {
   --label: #7d838f;
 }
+/* A client's colour (ADR 9001 §13): the team picks one per client, and whatever is the client's wears it. */
+[data-client-color="green"] {
+  --client: #35c46a;
+}
+[data-client-color="blue"] {
+  --client: #3b82f6;
+}
+[data-client-color="navy"] {
+  --client: #2d4fc4;
+}
+[data-client-color="sky"] {
+  --client: #6ec9f7;
+}
+[data-client-color="white"] {
+  --client: #f2f2f0;
+}
+[data-client-color="teal"] {
+  --client: #1fb5a6;
+}
+[data-client-color="yellow"] {
+  --client: #e8c21a;
+}
+[data-client-color="orange"] {
+  --client: #f08a3c;
+}
+[data-client-color="red"] {
+  --client: #e04b4b;
+}
+[data-client-color="pink"] {
+  --client: #ee6fb0;
+}
+[data-client-color="purple"] {
+  --client: #9a5cf0;
+}
+[data-client-color="gray"] {
+  --client: #8a909c;
+}
+/* The colour as a dot before the client's name; with none chosen, an empty ring. */
+.portal-clientdot {
+  flex: none;
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--client, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ink) 30%, transparent);
+}
+.portal-clientdot--lg {
+  width: 14px;
+  height: 14px;
+}
+.portal-clientchip .portal-clientdot,
+.portal-table__client > .portal-clientdot {
+  margin-right: 6px;
+}
+.portal-colorbtn {
+  gap: var(--space-2);
+}
+/* A card of a client with a colour: a bar of it down its start edge and a wash of it over the card. */
+.portal-card[data-client-color] {
+  background-image:
+    linear-gradient(90deg, var(--client) 0 4px, transparent 4px),
+    linear-gradient(
+      color-mix(in srgb, var(--client) 9%, transparent),
+      color-mix(in srgb, var(--client) 9%, transparent)
+    );
+}
 /* The mark a chip leads with: a dot in its stage's colour, a small bar in its label's. */
 .portal-dot {
   flex: none;
@@ -446,7 +513,7 @@
    stand out of it as they do on Trello. Its scroller ends at the canvas, not at the page's edges. */
 .portal-canvas {
   --canvas: color-mix(in srgb, var(--ink) 78%, var(--pane));
-  /* What is drawn on the canvas itself (the rail, the track): the columns' tone, see-through. */
+  /* What is drawn on the canvas itself (the rail): the columns' tone, see-through. */
   --on-canvas: var(--pane);
   container-type: inline-size;
   border-radius: var(--radius-section);
@@ -461,7 +528,7 @@
   margin: 0;
   padding: var(--space-3);
   scroll-padding-inline: var(--space-3);
-  /* The track under it says where the board is: the scroller's own bar would say it twice. */
+  /* The rail above the columns moves the board: the scroller's own bar would be a second one at its foot. */
   scrollbar-width: none;
 }
 .portal-canvas > .issues-boardwrap::-webkit-scrollbar {
@@ -494,41 +561,11 @@
   background: color-mix(in srgb, var(--on-canvas) 12%, transparent);
   transition: background 0.15s;
 }
-.portal-rail[hidden],
-.portal-track[hidden] {
+.portal-rail[hidden] {
   display: none;
 }
 .portal-rail:hover {
   background: color-mix(in srgb, var(--on-canvas) 22%, transparent);
-}
-/* The track: which part of the board is in view. It holds to the foot of the window while the page scrolls. */
-.portal-track {
-  position: sticky;
-  bottom: var(--space-2);
-  z-index: 1;
-  height: var(--space-3);
-  margin: 0 var(--space-3) var(--space-3);
-  border-radius: var(--space-3);
-  background: color-mix(in srgb, var(--on-canvas) 22%, var(--canvas));
-  cursor: pointer;
-  touch-action: none;
-}
-.portal-track__thumb {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  min-width: var(--space-6);
-  border-radius: inherit;
-  background: color-mix(in srgb, var(--on-canvas) 72%, var(--canvas));
-  cursor: grab;
-  transition: background 0.15s;
-}
-.portal-track:hover > .portal-track__thumb,
-.portal-track[data-held] > .portal-track__thumb {
-  background: var(--on-canvas);
-}
-.portal-track[data-held] > .portal-track__thumb {
-  cursor: grabbing;
 }
 .portal-rail > .ac-icon {
   pointer-events: none;
@@ -1323,6 +1360,11 @@ html:not([data-pointer]) .portal-tile:focus-visible {
   letter-spacing: 0.02em;
   color: var(--ink);
   object-fit: cover;
+}
+/* With a colour chosen, the mark is in it and not in the hue of the client's name. */
+.portal-mark[data-client-color] {
+  background: color-mix(in srgb, var(--client) 30%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--client) 65%, transparent);
 }
 .portal-clientcard__name {
   flex: 1;

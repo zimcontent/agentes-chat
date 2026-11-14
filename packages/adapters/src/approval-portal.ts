@@ -73,6 +73,26 @@ export const PORTAL_LABEL_COLORS = [
 ] as const;
 export type PortalLabelColor = (typeof PORTAL_LABEL_COLORS)[number];
 
+/**
+ * The colours a client takes: one the team picks per client, so whose a card is reads at a glance wherever several
+ * clients' work shows together. Names, drawn by the apps in their own palette.
+ */
+export const PORTAL_CLIENT_COLORS = [
+  "green",
+  "blue",
+  "navy",
+  "sky",
+  "white",
+  "teal",
+  "yellow",
+  "orange",
+  "red",
+  "pink",
+  "purple",
+  "gray",
+] as const;
+export type PortalClientColor = (typeof PORTAL_CLIENT_COLORS)[number];
+
 /** A list of the strategic schedule: usually a week, named by the team. */
 export interface PortalList {
   id: string;
@@ -238,6 +258,10 @@ export interface ApprovalPortal {
   createLabel(name: string, color: PortalLabelColor): Promise<PortalLabel>;
   updateLabel(id: string, change: { name?: string; color?: PortalLabelColor }): Promise<PortalLabel>;
   deleteLabel(id: string): Promise<void>;
+  /** The colour the team gave each client; a client with none is absent. */
+  clientColors(): Promise<Record<string, PortalClientColor>>;
+  /** `null` takes the client's colour away. */
+  setClientColor(client: string, color: PortalClientColor | null): Promise<void>;
   /** One file's bytes; answers the id `send` takes. */
   upload(name: string, bytes: Uint8Array): Promise<string>;
   send(input: PortalSend): Promise<PortalJob>;
@@ -344,6 +368,23 @@ const COLOR_OUT = Object.fromEntries(Object.entries(COLOR_IN).map(([wire, ours])
   PortalLabelColor,
   string
 >;
+const CLIENT_COLOR_IN: Record<string, PortalClientColor> = {
+  verde: "green",
+  azul: "blue",
+  "azul-escuro": "navy",
+  "azul-claro": "sky",
+  branco: "white",
+  turquesa: "teal",
+  amarelo: "yellow",
+  laranja: "orange",
+  vermelho: "red",
+  rosa: "pink",
+  roxo: "purple",
+  cinza: "gray",
+};
+const CLIENT_COLOR_OUT = Object.fromEntries(
+  Object.entries(CLIENT_COLOR_IN).map(([wire, ours]) => [ours, wire]),
+) as Record<PortalClientColor, string>;
 const rows = (value: unknown) => (Array.isArray(value) ? (value as Wire[]) : []);
 const strings = (value: unknown) => (Array.isArray(value) ? value.map(String) : []);
 const listOf = (wire: Wire): PortalList => ({ id: String(wire.id), name: text(wire.nome) ?? "" });
@@ -533,6 +574,25 @@ export function createBridgeApprovalPortal(options: BridgePortalOptions): Approv
     deleteLabel: async (id) => {
       await request(`/etiquetas/${encodeURIComponent(id)}/apagar`, { json: {} });
     },
+    clientColors: async () => {
+      let answer: Wire;
+      try {
+        answer = await request("/cores");
+      } catch (error) {
+        // A bridge from before the clients had colours: none has one.
+        if (error instanceof ApprovalPortalError && error.status === 404) return {};
+        throw error;
+      }
+      const out: Record<string, PortalClientColor> = {};
+      for (const [client, wire] of Object.entries((answer.cores as Record<string, unknown> | undefined) ?? {})) {
+        const color = CLIENT_COLOR_IN[String(wire)];
+        if (color) out[client] = color;
+      }
+      return out;
+    },
+    setClientColor: async (client, color) => {
+      await request(`/cores/${encodeURIComponent(client)}`, { json: { cor: color ? CLIENT_COLOR_OUT[color] : null } });
+    },
     upload: async (name, bytes) => {
       if (bytes.byteLength > PORTAL_FILE_BYTES) throw new ApprovalPortalError(413, "That file is too large to send");
       const answer = await request(`/arquivos?nome=${encodeURIComponent(name)}`, { bytes, timeoutMs: 600_000 });
@@ -594,6 +654,7 @@ export function createFakeApprovalPortal(seed: { items?: PortalItem[]; cards?: P
   const jobs = new Map<string, PortalJob>();
   const lists = new Map<string, PortalList[]>();
   const labels: PortalLabel[] = [];
+  const colors: Record<string, PortalClientColor> = {};
   const uploads = new Map<string, { name: string; bytes: Uint8Array }>();
   const sends: (PortalSend & { names: string[] })[] = [];
   const edits: { client: string; item: string; edit: PortalItemEdit; by?: string }[] = [];
@@ -723,6 +784,15 @@ export function createFakeApprovalPortal(seed: { items?: PortalItem[]; cards?: P
     labels: async () => {
       check();
       return [...labels];
+    },
+    clientColors: async () => {
+      check();
+      return { ...colors };
+    },
+    setClientColor: async (client, color) => {
+      check();
+      if (color) colors[client] = color;
+      else delete colors[client];
     },
     createLabel: async (name, color) => {
       check();

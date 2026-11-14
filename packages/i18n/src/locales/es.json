@@ -19274,6 +19274,25 @@
     "send": "Enviar a aprobación",
     "openAtPortal": "Abrir en el portal",
     "seePost": "Ver la publicación",
+    "seeDrive": "Enlace de Drive",
+    "clientColor": {
+      "label": "Color del cliente",
+      "none": "Sin color",
+      "colors": {
+        "green": "Verde",
+        "blue": "Azul",
+        "navy": "Azul oscuro",
+        "sky": "Azul claro",
+        "white": "Blanco",
+        "teal": "Turquesa",
+        "yellow": "Amarillo",
+        "orange": "Naranja",
+        "red": "Rojo",
+        "pink": "Rosa",
+        "purple": "Morado",
+        "gray": "Gris"
+      }
+    },
     "edit": "Editar",
     "delete": "Eliminar",
     "actionsOf": "Acciones: {{title}}",

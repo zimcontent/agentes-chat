@@ -19417,6 +19417,25 @@
     "send": "Envoyer pour approbation",
     "openAtPortal": "Ouvrir sur le portail",
     "seePost": "Voir la publication",
+    "seeDrive": "Lien Drive",
+    "clientColor": {
+      "label": "Couleur du client",
+      "none": "Aucune couleur",
+      "colors": {
+        "green": "Vert",
+        "blue": "Bleu",
+        "navy": "Bleu foncé",
+        "sky": "Bleu clair",
+        "white": "Blanc",
+        "teal": "Turquoise",
+        "yellow": "Jaune",
+        "orange": "Orangé",
+        "red": "Rouge",
+        "pink": "Rose",
+        "purple": "Violet",
+        "gray": "Gris"
+      }
+    },
     "edit": "Modifier",
     "delete": "Supprimer",
     "actionsOf": "Actions : {{title}}",

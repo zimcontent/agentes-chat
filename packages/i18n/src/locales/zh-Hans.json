@@ -18351,6 +18351,25 @@
     "send": "送去审批",
     "openAtPortal": "在门户中打开",
     "seePost": "查看帖子",
+    "seeDrive": "Drive 链接",
+    "clientColor": {
+      "label": "客户颜色",
+      "none": "无颜色",
+      "colors": {
+        "green": "绿色",
+        "blue": "蓝色",
+        "navy": "深蓝色",
+        "sky": "浅蓝色",
+        "white": "白色",
+        "teal": "青绿色",
+        "yellow": "黄色",
+        "orange": "橙色",
+        "red": "红色",
+        "pink": "粉色",
+        "purple": "紫色",
+        "gray": "灰色"
+      }
+    },
     "edit": "编辑",
     "delete": "删除",
     "actionsOf": "操作：{{title}}",

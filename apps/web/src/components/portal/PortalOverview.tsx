@@ -42,6 +42,7 @@ import { useOrg } from "@/components/org-context";
 import { ChannelPhoto } from "@/components/ProfilePhoto";
 import { BoardColumn, BoardFrame, CardFace } from "./board-parts";
 import { CardDialog } from "./CardDialog";
+import { ClientDot, usePortalClientColors } from "./client-color";
 import { MemberFaces, usePortalPeople, WhoFace } from "./members";
 import { StageLegend } from "./PlanLegend";
 import { type PortalSearch, usePortalSearch } from "./search";
@@ -240,6 +241,7 @@ function Clients({ names, entries, day }: { names: string[]; entries: PortalPipe
   const who = usePortalPeople();
   const channels = useChannels(org.id).data ?? [];
   const rows = pipelineClients(names, entries);
+  const colors = usePortalClientColors();
   return (
     <section className="portal-home__part" aria-label={t("portal.home.clients")}>
       <GroupHeading title={t("portal.home.clients")} count={rows.length} />
@@ -260,6 +262,7 @@ function Clients({ names, entries, day }: { names: string[]; entries: PortalPipe
                 to="/org/$orgId/portal"
                 params={{ orgId: org.id }}
                 search={{ client }}
+                data-client-color={colors.get(client)}
                 data-idle={status.kind === "idle" || undefined}
               >
                 <span className="portal-clientcard__head">
@@ -268,6 +271,7 @@ function Clients({ names, entries, day }: { names: string[]; entries: PortalPipe
                   ) : (
                     <span
                       className="portal-mark"
+                      data-client-color={colors.get(client)}
                       style={{ "--mark-hue": portalClientHue(client) } as CSSProperties}
                       aria-hidden="true"
                     >
@@ -431,6 +435,7 @@ function PipelineBoard({ entries, numbers }: { entries: PortalPipelineEntry[]; n
   const { t, i18n } = useTranslation();
   const { org } = useOrg();
   const navigate = useNavigate();
+  const colors = usePortalClientColors();
   return (
     <BoardFrame className="portal-pipeline">
       {PORTAL_PIPELINE_STAGES.map((stage) => {
@@ -482,12 +487,16 @@ function PipelineBoard({ entries, numbers }: { entries: PortalPipelineEntry[]; n
                     title={e.title}
                     label={`${portalClientName(e.client)}: ${e.title}`}
                     data-late={e.late || undefined}
+                    data-client-color={colors.get(e.client)}
                     onOpen={() =>
                       void navigate({ to: "/org/$orgId/portal", params: { orgId: org.id }, search: entrySearch(e) })
                     }
                     chips={
                       <>
-                        <Chip className="portal-clientchip">{portalClientName(e.client)}</Chip>
+                        <Chip className="portal-clientchip">
+                          <ClientDot color={colors.get(e.client)} />
+                          {portalClientName(e.client)}
+                        </Chip>
                         <Chip>{t(`portal.types.${e.type}`)}</Chip>
                         {e.late && (
                           <Chip icon="alert" tone="waiting">
@@ -526,6 +535,7 @@ function PipelineList({ entries, numbers }: { entries: PortalPipelineEntry[]; nu
   const { t, i18n } = useTranslation();
   const { org } = useOrg();
   const [desc, setDesc] = useState(false);
+  const colors = usePortalClientColors();
   return (
     <div className="list-card portal-table__wrap">
       <table className="portal-table">
@@ -567,7 +577,10 @@ function PipelineList({ entries, numbers }: { entries: PortalPipelineEntry[]; nu
                 const task = taskOf(numbers, e);
                 return (
                   <tr key={`${e.client}/${e.kind}/${e.id}`} data-late={e.late || undefined}>
-                    <td className="portal-table__client">{portalClientName(e.client)}</td>
+                    <td className="portal-table__client">
+                      <ClientDot color={colors.get(e.client)} />
+                      {portalClientName(e.client)}
+                    </td>
                     <td className="portal-table__title">
                       <Link to="/org/$orgId/portal" params={{ orgId: org.id }} search={entrySearch(e)} title={e.title}>
                         {e.title}
