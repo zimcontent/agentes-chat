@@ -7503,6 +7503,7 @@
     "subIssues_one": "Unteraufgaben · {{count}}",
     "subIssues_other": "Unteraufgaben · {{count}}",
     "fromWebhook": "aus einem {{provider}}-Event",
+    "fromPortal": "<0>Beitrag von {{client}} im Portal</0>",
     "description": "Beschreibung",
     "noDescription": "Keine Beschreibung.",
     "criteria": "Akzeptanzkriterien",
@@ -18750,6 +18751,7 @@
       "noDate": "Kein Datum"
     },
     "newCard": "Neue Karte",
+    "task": "Aufgabe #{{number}}",
     "send": "Zur Freigabe senden",
     "openAtPortal": "Im Portal öffnen",
     "seePost": "Beitrag ansehen",
@@ -18880,6 +18882,10 @@
       "stage": "Phase",
       "stageHint": "Automatisch: Sie folgt dem Beitrag im Portal.",
       "members": "Mitglieder",
+      "responsible": "Zuständig",
+      "makeResponsible": "Zuständig machen",
+      "makeResponsibleName": "{{name}} zuständig machen",
+      "agentStarts": "Der Agent fängt sofort damit an.",
       "description": "Beschreibung",
       "checklist": "Checkliste",
       "addCheck": "Eintrag hinzufügen",
@@ -18939,7 +18945,9 @@
       "nothingOpen": "Nichts offen",
       "nothingOpenText": "Arbeit erscheint hier von der Karte bis zum Tag der Veröffentlichung.",
       "noMatch": "Nichts passt zu diesen Filtern",
-      "clear": "Filter zurücksetzen"
+      "clear": "Filter zurücksetzen",
+      "newTask": "Neue Aufgabe",
+      "allTasks": "Alle Aufgaben ansehen"
     },
     "picker": {
       "title": "Dateien aus dem Drive",

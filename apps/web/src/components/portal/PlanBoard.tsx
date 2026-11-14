@@ -9,7 +9,6 @@ import {
   portalWhen,
 } from "@agenteschat/client/lib/portal";
 import {
-  AvatarStack,
   Button,
   Chip,
   Dialog,
@@ -23,9 +22,7 @@ import {
 } from "@agenteschat/ui";
 import { useId, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { PersonAvatar } from "@/components/AgentAvatar";
 import { useOrg } from "@/components/org-context";
-import { useDirectory } from "@/hooks/useDirectory";
 import { useToast } from "@/lib/toast";
 import { useIssueDrag } from "@/pages/issue-drag";
 import {
@@ -38,6 +35,7 @@ import {
   type DropResult,
   useListDrag,
 } from "./board-parts";
+import { MemberFaces } from "./members";
 import { LabelChip, StageChip, stageName } from "./stage";
 
 type Column = { id: string; name: string; cards: PlanCard[]; list: boolean };
@@ -404,8 +402,6 @@ export function PlanCardFace({
   onOpen: () => void;
 }) {
   const { t, i18n } = useTranslation();
-  const { org } = useOrg();
-  const dir = useDirectory(org.id);
   const mine = card.labels.flatMap((id) => labels.find((l) => l.id === id) ?? []);
   const checks = portalChecks(card);
   const post = portalWhen(i18n.language, card.postOn);
@@ -460,7 +456,6 @@ export function PlanCardFace({
       ? [{ key: "desc", icon: "document" as const, text: "", title: t("portal.plan.hasDescription") }]
       : []),
   ];
-  const people = card.members.flatMap((id) => dir.memberById.get(id) ?? []);
   return (
     <CardFace
       id={card.id}
@@ -504,15 +499,7 @@ export function PlanCardFace({
         </>
       }
       facts={facts}
-      people={
-        people.length > 0 && (
-          <AvatarStack className="portal-card__who">
-            {people.map((m) => (
-              <PersonAvatar key={m.userId} id={m.userId} name={m.name} size="xs" title={m.name} labelled />
-            ))}
-          </AvatarStack>
-        )
-      }
+      people={<MemberFaces ids={card.members} className="portal-card__who" />}
     >
       {link && (
         <a className="ac-link small portal-card__link" href={link} target="_blank" rel="noopener noreferrer">

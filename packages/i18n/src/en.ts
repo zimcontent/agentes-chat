@@ -7800,6 +7800,8 @@ export const en = {
     subIssues_one: "Subtasks · {{count}}",
     subIssues_other: "Subtasks · {{count}}",
     fromWebhook: "from a {{provider}} event",
+    /** A task that is a card of the approval portal's board: {{client}} is the client's name, the link its board. */
+    fromPortal: "<0>{{client}}'s post in the Portal</0>",
     description: "Description",
     noDescription: "No description.",
     criteria: "Acceptance criteria",
@@ -19096,6 +19098,8 @@ export const en = {
       noDate: "No date",
     },
     newCard: "New card",
+    /** A card's task of the workspace, by its number: a link to it. */
+    task: "Task #{{number}}",
     send: "Send for approval",
     openAtPortal: "Open at the portal",
     seePost: "See the post",
@@ -19233,6 +19237,13 @@ export const en = {
       stage: "Stage",
       stageHint: "Automatic: it follows the post at the portal.",
       members: "Members",
+      /** Beside the first member of a card: the one who has its task. */
+      responsible: "Responsible",
+      /** On another member of the card: puts them first. */
+      makeResponsible: "Make responsible",
+      makeResponsibleName: "Make {{name}} responsible",
+      /** Under the members while the one responsible is an agent. */
+      agentStarts: "The agent starts on it right away.",
       description: "Description",
       checklist: "Checklist",
       addCheck: "Add an item",
@@ -19294,6 +19305,10 @@ export const en = {
       nothingOpenText: "Work shows here from its card to the day it is posted.",
       noMatch: "Nothing matches these filters",
       clear: "Clear filters",
+      /** Makes a card, which is also a task of the workspace, for any client. */
+      newTask: "New task",
+      /** A link to the workspace's tasks page. */
+      allTasks: "See all tasks",
     },
     picker: {
       title: "Files from the Drive",

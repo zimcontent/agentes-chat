@@ -30,10 +30,12 @@ import {
   portalSendDate,
   portalSendProblem,
   portalStatusWaits,
+  portalTaskNumbers,
   portalTextParts,
   portalTimeOf,
   portalTotals,
   portalWhen,
+  portalWithResponsible,
   sortPipelineByProduction,
   sortPortalClients,
 } from "../src/lib/portal";
@@ -179,6 +181,7 @@ describe("the strategic schedule (ADR 9001 §8)", () => {
     checklist: [],
     comments: [],
     item: null,
+    task: null,
     createdAt: 1,
     updatedAt: 1,
     stage: "todo",
@@ -397,5 +400,27 @@ describe("the overview's pipeline (ADR 9001 §10)", () => {
     ];
     expect(sortPipelineByProduction(entries).map((e) => e.title)).toEqual(["late", "soon", "none"]);
     expect(sortPipelineByProduction(entries, true).map((e) => e.title)).toEqual(["soon", "late", "none"]);
+  });
+});
+
+describe("a card is also a task (ADR 9001)", () => {
+  test("the one responsible is the first member: whoever was first stays on the card, right after", () => {
+    // An agent put first has the task (the server starts it on it); the person who had it stays on the card.
+    expect(portalWithResponsible(["ana", "bia"], "agent-1")).toEqual(["agent-1", "ana", "bia"]);
+    expect(portalWithResponsible(["ana", "agent-1", "bia"], "agent-1")).toEqual(["agent-1", "ana", "bia"]);
+    expect(portalWithResponsible(["ana"], "ana")).toEqual(["ana"]);
+    expect(portalWithResponsible([], "ana")).toEqual(["ana"]);
+  });
+
+  test("each card's task number, by the card", () => {
+    const numbers = portalTaskNumbers([
+      { cardId: "c-000001", number: 12 },
+      { cardId: "c-000002", number: 31 },
+    ]);
+    expect(numbers.get("c-000001")).toBe(12);
+    expect(numbers.get("c-000002")).toBe(31);
+    expect(numbers.get("c-000003")).toBeUndefined();
+    // Not read yet: no number to say.
+    expect(portalTaskNumbers(undefined).size).toBe(0);
   });
 });

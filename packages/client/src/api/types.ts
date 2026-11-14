@@ -3631,7 +3631,9 @@ export interface Issue {
     | { type: "manual" }
     | { type: "message"; channelId: string; messageId: string }
     | { type: "agent"; agentId: string }
-    | { type: "webhook"; provider: string };
+    | { type: "webhook"; provider: string }
+    /** The task of a card of the approval portal's board (ADR 9001): kept in step with it. */
+    | { type: "portal"; client: string; cardId: string };
   /** The channel it lives in (from a message, or chosen). */
   channelId: string | null;
   /**
@@ -7968,12 +7970,14 @@ export interface PortalCard {
   description: string;
   /** Label ids (`PortalLabel`). */
   labels: string[];
-  /** Workspace members on it (user ids). */
+  /** Who is on it: people (user ids) and agents (agent ids). The first has it: the one responsible, its task's assignee. */
   members: string[];
   checklist: PortalCheck[];
   comments: PortalComment[];
   /** The portal's post this card became, once sent: the card stays, tied to it. */
   item: string | null;
+  /** The workspace task that stands for it (its id); null: none yet. Its number comes with `PortalTaskRef`. */
+  task: string | null;
   createdAt: number;
   updatedAt: number;
 }
@@ -8015,6 +8019,13 @@ export interface PortalLabel {
   id: string;
   name: string;
   color: PortalLabelColor;
+}
+
+/** A card's task (`GET …/portal/tasks`): its id and the number people call it by ("#12"). */
+export interface PortalTaskRef {
+  cardId: string;
+  id: string;
+  number: number;
 }
 
 /** A card as the schedule shows it. */
@@ -8156,7 +8167,7 @@ export interface PortalPipelineEntry {
   title: string;
   type: PortalType;
   stage: PortalColumn;
-  /** Workspace members on it (user ids); empty for a post with no card. */
+  /** Who is on it (user ids and agent ids), the one responsible first; empty for a post with no card. */
   members: string[];
   produceOn: string | null;
   postOn: string | null;

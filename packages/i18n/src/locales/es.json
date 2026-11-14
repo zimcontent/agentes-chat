@@ -7701,6 +7701,7 @@
     "subIssues_many": "Subtareas · {{count}}",
     "subIssues_other": "Subtareas · {{count}}",
     "fromWebhook": "desde un evento de {{provider}}",
+    "fromPortal": "<0>Publicación de {{client}} en el Portal</0>",
     "description": "Descripción",
     "noDescription": "Sin descripción.",
     "criteria": "Criterios de aceptación",
@@ -19269,6 +19270,7 @@
       "noDate": "Sin fecha"
     },
     "newCard": "Nueva tarjeta",
+    "task": "Tarea #{{number}}",
     "send": "Enviar a aprobación",
     "openAtPortal": "Abrir en el portal",
     "seePost": "Ver la publicación",
@@ -19400,6 +19402,10 @@
       "stage": "Etapa",
       "stageHint": "Automática: sigue a la publicación en el portal.",
       "members": "Miembros",
+      "responsible": "Responsable",
+      "makeResponsible": "Hacer responsable",
+      "makeResponsibleName": "Hacer responsable a {{name}}",
+      "agentStarts": "El agente empieza a trabajar en ella enseguida.",
       "description": "Descripción",
       "checklist": "Lista de tareas",
       "addCheck": "Agregar elemento",
@@ -19463,7 +19469,9 @@
       "nothingOpen": "Nada abierto",
       "nothingOpenText": "El trabajo aparece aquí desde su tarjeta hasta el día en que se publica.",
       "noMatch": "Nada coincide con estos filtros",
-      "clear": "Limpiar filtros"
+      "clear": "Limpiar filtros",
+      "newTask": "Nueva tarea",
+      "allTasks": "Ver todas las tareas"
     },
     "picker": {
       "title": "Archivos del Drive",

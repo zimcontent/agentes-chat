@@ -262,6 +262,7 @@ import type {
   PortalPipeline,
   PortalPlan,
   PortalSendInput,
+  PortalTaskRef,
   PostMedia,
   Proposal,
   PushDeviceInput,
@@ -1423,6 +1424,8 @@ export interface ApiClient {
     mine(orgId: string): Promise<PortalMine>;
     /** Every piece of work not posted yet, across all clients: what the overview draws. */
     pipeline(orgId: string): Promise<PortalPipeline>;
+    /** Each card's task, to name it by its number and open it. */
+    tasks(orgId: string): Promise<PortalTaskRef[]>;
     /** Makes a list (the same name answers the same list). */
     createList(orgId: string, client: string, name: string): Promise<PortalList>;
     /** Every list of the client, once each, in the new order. */

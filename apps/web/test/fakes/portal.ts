@@ -6,7 +6,9 @@
  * and its card stays, tied to it: off the board, still on the schedule), or stays `sending` while `fake.holdSends` until `fake.finish`. `fake.fail` makes the next
  * call throw (a refusal in the portal's words, or 502). Scheduling an approved post gives it its date and leaves it
  * `approved`, as the real one does until the publishing service has it; a test sets `status: "scheduled"` itself for
- * what comes after. Changes are logged; reads are not.
+ * what comes after. Every card is also a task of the workspace: a new card gets one, numbered after the last
+ * (`fake.tasks`), and a test that wants a card already there to have one sets its `task` and adds the task's number.
+ * Changes are logged; reads are not.
  */
 import type {
   ApiClient,
@@ -20,6 +22,7 @@ import type {
   PortalList,
   PortalState,
   PortalStatus,
+  PortalTaskRef,
 } from "@agenteschat/client";
 import { ApiError } from "@agenteschat/client";
 import { clone } from "./context";
@@ -30,6 +33,8 @@ export interface FakePortal {
   clients: string[];
   cards: PortalCard[];
   items: PortalItem[];
+  /** Each card's task: its id and number. */
+  tasks: PortalTaskRef[];
   /** The schedule's lists, each a client's, in the team's order. */
   lists: (PortalList & { client: string })[];
   /** The team's labels, one set for every client. */
@@ -78,6 +83,7 @@ export function portalCard(over: Partial<PortalCard> & Pick<PortalCard, "id" | "
     checklist: [],
     comments: [],
     item: null,
+    task: null,
     createdAt: 1,
     updatedAt: 1,
     ...over,
@@ -185,6 +191,7 @@ export function createFakePortal(
     clients: [],
     cards: [],
     items: [],
+    tasks: [],
     lists: [],
     labels: [],
     day: `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`,
@@ -239,8 +246,11 @@ export function createFakePortal(
         log("portal.createCard", orgId, input);
         guard();
         const last = Math.max(0, ...fake.cards.filter((c) => c.client === input.client).map((c) => c.order));
-        const card = portalCard({ id: `c-${hex()}`, order: last + 1, ...input });
+        const card = portalCard({ id: `c-${hex()}`, order: last + 1, ...input, task: `i-${hex()}` });
         fake.cards.push(card);
+        // The card's task, numbered after the workspace's last.
+        const number = Math.max(0, ...fake.tasks.map((ref) => ref.number)) + 1;
+        fake.tasks.push({ cardId: card.id, id: card.task as string, number });
         return clone(card);
       },
       updateCard: async (orgId, cardId, input) => {
@@ -366,6 +376,11 @@ export function createFakePortal(
             updatedAt: 0,
           }));
         return clone({ day: fake.day, state: fake.state, entries: [...fromCards, ...fromItems] });
+      },
+      tasks: async () => {
+        guard();
+        const cards = new Set(fake.cards.map((c) => c.id));
+        return clone(fake.tasks.filter((ref) => cards.has(ref.cardId)));
       },
       createList: async (orgId, client, name) => {
         log("portal.createList", orgId, client, name);

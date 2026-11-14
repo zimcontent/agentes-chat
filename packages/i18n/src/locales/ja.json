@@ -7249,6 +7249,7 @@
     "fromAgent": "エージェントへの依頼から",
     "subIssues_other": "サブタスク · {{count}}",
     "fromWebhook": "{{provider}}のイベントから",
+    "fromPortal": "<0>ポータルの {{client}} の投稿</0>",
     "description": "説明",
     "noDescription": "説明はありません。",
     "criteria": "受け入れ条件",
@@ -18170,6 +18171,7 @@
       "noDate": "日付なし"
     },
     "newCard": "新しいカード",
+    "task": "タスク #{{number}}",
     "send": "承認に送る",
     "openAtPortal": "ポータルで開く",
     "seePost": "投稿を見る",
@@ -18299,6 +18301,10 @@
       "stage": "段階",
       "stageHint": "自動：ポータルでの投稿の状況に合わせて変わります。",
       "members": "メンバー",
+      "responsible": "担当者",
+      "makeResponsible": "担当者にする",
+      "makeResponsibleName": "{{name}} を担当者にする",
+      "agentStarts": "エージェントはすぐに作業を始めます。",
       "description": "説明",
       "checklist": "チェックリスト",
       "addCheck": "項目を追加",
@@ -18354,7 +18360,9 @@
       "nothingOpen": "進行中のものはありません",
       "nothingOpenText": "作業はカードができてから投稿される日までここに表示されます。",
       "noMatch": "このフィルターに一致するものはありません",
-      "clear": "フィルターをクリア"
+      "clear": "フィルターをクリア",
+      "newTask": "新しいタスク",
+      "allTasks": "すべてのタスクを見る"
     },
     "picker": {
       "title": "Driveのファイル",

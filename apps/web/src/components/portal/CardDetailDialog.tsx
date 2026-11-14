@@ -1,5 +1,11 @@
 import type { PlanCard, PortalCardInput, PortalComment, PortalPlan, PortalType } from "@agenteschat/client";
-import { useDeletePortalCard, usePortalComments, usePortalPlan, useSavePortalCard } from "@agenteschat/client";
+import {
+  useDeletePortalCard,
+  usePortalComments,
+  usePortalPlan,
+  usePortalTasks,
+  useSavePortalCard,
+} from "@agenteschat/client";
 import { relativeTime } from "@agenteschat/client/lib/format";
 import { can } from "@agenteschat/client/lib/permissions";
 import {
@@ -13,8 +19,10 @@ import {
   portalLink,
   portalOrderAt,
   portalSendDate,
+  portalTaskNumbers,
   portalTextParts,
   portalTimeOf,
+  portalWithResponsible,
 } from "@agenteschat/client/lib/portal";
 import { rightHandOf } from "@agenteschat/client/lib/right-hand";
 import {
@@ -34,6 +42,7 @@ import {
   Textarea,
   TimeSelect,
 } from "@agenteschat/ui";
+import { Link } from "@tanstack/react-router";
 import { type ReactNode, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { AgentAvatar, PersonAvatar } from "@/components/AgentAvatar";
@@ -42,6 +51,7 @@ import { useOrg } from "@/components/org-context";
 import { useDirectory } from "@/hooks/useDirectory";
 import { useNow } from "@/hooks/useNow";
 import { useToast } from "@/lib/toast";
+import { usePortalPeople, WhoFace } from "./members";
 import { PortalFiles } from "./PortalFiles";
 import { LabelChip, StageChip } from "./stage";
 
@@ -54,6 +64,10 @@ const DEFAULT_TIME = "09:00";
  * on the right what was said about it, newest first. Every change is kept as it is made (a text when its field is
  * left), so there is no Save. Whoever may give agents work changes it; anyone who may post can still comment. Its
  * stage is automatic. Once it was sent, "Send for approval" gives way to "Open at the portal".
+ *
+ * The card is also a task of the workspace (ADR 9001): beside its stage, "Task #12" opens it. Its members are people
+ * and agents alike, and the first is the one responsible, who has the task: the mark says who, any other member can
+ * be made the one, and an agent put there starts on it at once.
  */
 export function CardDetailDialog({
   client,
@@ -124,7 +138,9 @@ function Detail({
     clear: t("portal.empty.noDate"),
   };
   const toggle = (list: string[], id: string, on: boolean) => (on ? [...list, id] : list.filter((x) => x !== id));
-  const people = [...dir.memberById.values()];
+  const people = usePortalPeople();
+  const responsible = card.members[0];
+  const taskNumber = portalTaskNumbers(usePortalTasks(org.id, card.task !== null).data).get(card.id);
   return (
     <>
       <DialogBody className="portal-detail__body">
@@ -169,7 +185,18 @@ function Detail({
                 </Field>
               </div>
               <Group label={t("portal.detail.stage")} hint={t("portal.detail.stageHint")}>
-                <StageChip stage={card.stage} />
+                <span className="portal-detail__chips">
+                  <StageChip stage={card.stage} />
+                  {taskNumber !== undefined && (
+                    <Link
+                      className="ac-link small tabular"
+                      to="/org/$orgId/issues/$number"
+                      params={{ orgId: org.id, number: String(taskNumber) }}
+                    >
+                      {t("portal.task", { number: taskNumber })}
+                    </Link>
+                  )}
+                </span>
               </Group>
               <Group label={t("portal.plan.labels")}>
                 <span className="portal-detail__chips">
@@ -213,19 +240,20 @@ function Detail({
                   )}
                 </span>
               </Group>
-              <Group label={t("portal.detail.members")}>
+              <Group
+                label={t("portal.detail.members")}
+                hint={responsible && dir.agentById.has(responsible) ? t("portal.detail.agentStarts") : undefined}
+              >
                 <span className="portal-detail__chips">
-                  {card.members.flatMap((id) => {
-                    const m = dir.memberById.get(id);
-                    return m ? (
-                      <span key={id} className="portal-detail__person">
-                        <PersonAvatar id={id} name={m.name} size="xs" />
-                        {m.name}
-                      </span>
-                    ) : (
-                      []
-                    );
-                  })}
+                  {people.known(card.members).map((w) => (
+                    <span key={w.id} className="portal-detail__person">
+                      <WhoFace who={w} size="xs" />
+                      {w.name}
+                      {w.id === responsible && (
+                        <span className="portal-detail__lead">{t("portal.detail.responsible")}</span>
+                      )}
+                    </span>
+                  ))}
                   {changes && (
                     <Popover
                       side="bottom"
@@ -242,19 +270,35 @@ function Detail({
                       }
                     >
                       <ul className="portal-detail__options">
-                        {people.map((m) => {
-                          const boxId = `member-${card.id}-${m.userId}`;
+                        {people.choices(card.members).map((w) => {
+                          const boxId = `member-${card.id}-${w.id}`;
+                          const on = card.members.includes(w.id);
                           return (
-                            <li key={m.userId}>
+                            <li key={w.id}>
                               <Checkbox
                                 id={boxId}
-                                checked={card.members.includes(m.userId)}
-                                onCheckedChange={(on) => patch({ members: toggle(card.members, m.userId, on) })}
+                                checked={on}
+                                onCheckedChange={(next) => patch({ members: toggle(card.members, w.id, next) })}
                               />
                               <label htmlFor={boxId} className="portal-detail__person">
-                                <PersonAvatar id={m.userId} name={m.name} size="xs" />
-                                {m.name}
+                                <WhoFace who={w} size="xs" />
+                                {w.name}
                               </label>
+                              {/* The first member has the card's task: the mark on who it is, the way there on the others. */}
+                              {w.id === responsible ? (
+                                <span className="portal-detail__lead">{t("portal.detail.responsible")}</span>
+                              ) : (
+                                on && (
+                                  <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    aria-label={t("portal.detail.makeResponsibleName", { name: w.name })}
+                                    onClick={() => patch({ members: portalWithResponsible(card.members, w.id) })}
+                                  >
+                                    {t("portal.detail.makeResponsible")}
+                                  </Button>
+                                )
+                              )}
                             </li>
                           );
                         })}

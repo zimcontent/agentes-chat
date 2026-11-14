@@ -200,6 +200,7 @@ import type {
   PortalOverview,
   PortalPipeline,
   PortalPlan,
+  PortalTaskRef,
   Proposal,
   ReactionCount,
   Reminder,
@@ -1604,6 +1605,7 @@ export function createHttpApi(options: TransportOptions = {}): HttpApi {
       plan: (orgId, client) => request<PortalPlan>(`${org(orgId)}/portal/clients/${enc(client)}/plan`),
       mine: (orgId) => request<PortalMine>(`${org(orgId)}/portal/mine`),
       pipeline: (orgId) => request<PortalPipeline>(`${org(orgId)}/portal/pipeline`),
+      tasks: async (orgId) => (await request<{ tasks: PortalTaskRef[] }>(`${org(orgId)}/portal/tasks`)).tasks,
       createList: async (orgId, client, name) =>
         (await request<{ list: PortalList }>(`${org(orgId)}/portal/clients/${enc(client)}/lists`, { json: { name } }))
           .list,

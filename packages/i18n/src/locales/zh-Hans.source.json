@@ -18172,6 +18172,9 @@
   "issues.fromWebhook": {
     "value": "from a {{provider}} event"
   },
+  "issues.fromPortal": {
+    "value": "<0>{{client}}'s post in the Portal</0>"
+  },
   "issues.description": {
     "value": "Description"
   },
@@ -45352,6 +45355,9 @@
   "portal.newCard": {
     "value": "New card"
   },
+  "portal.task": {
+    "value": "Task #{{number}}"
+  },
   "portal.send": {
     "value": "Send for approval"
   },
@@ -45679,6 +45685,18 @@
   "portal.detail.members": {
     "value": "Members"
   },
+  "portal.detail.responsible": {
+    "value": "Responsible"
+  },
+  "portal.detail.makeResponsible": {
+    "value": "Make responsible"
+  },
+  "portal.detail.makeResponsibleName": {
+    "value": "Make {{name}} responsible"
+  },
+  "portal.detail.agentStarts": {
+    "value": "The agent starts on it right away."
+  },
   "portal.detail.description": {
     "value": "Description"
   },
@@ -45834,6 +45852,12 @@
   },
   "portal.home.clear": {
     "value": "Clear filters"
+  },
+  "portal.home.newTask": {
+    "value": "New task"
+  },
+  "portal.home.allTasks": {
+    "value": "See all tasks"
   },
   "portal.picker.title": {
     "value": "Files from the Drive"

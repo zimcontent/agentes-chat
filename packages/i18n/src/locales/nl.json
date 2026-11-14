@@ -7549,6 +7549,7 @@
     "subIssues_one": "Subtaken · {{count}}",
     "subIssues_other": "Subtaken · {{count}}",
     "fromWebhook": "uit een event van {{provider}}",
+    "fromPortal": "<0>Post van {{client}} in het Portaal</0>",
     "description": "Beschrijving",
     "noDescription": "Geen beschrijving.",
     "criteria": "Acceptatiecriteria",
@@ -18926,6 +18927,7 @@
       "noDate": "Geen datum"
     },
     "newCard": "Nieuwe kaart",
+    "task": "Taak #{{number}}",
     "send": "Ter goedkeuring versturen",
     "openAtPortal": "Openen in het portaal",
     "seePost": "De post bekijken",
@@ -19056,6 +19058,10 @@
       "stage": "Fase",
       "stageHint": "Automatisch: volgt de post in het portaal.",
       "members": "Leden",
+      "responsible": "Verantwoordelijk",
+      "makeResponsible": "Verantwoordelijk maken",
+      "makeResponsibleName": "{{name}} verantwoordelijk maken",
+      "agentStarts": "De agent begint er meteen aan.",
       "description": "Beschrijving",
       "checklist": "Checklist",
       "addCheck": "Item toevoegen",
@@ -19115,7 +19121,9 @@
       "nothingOpen": "Niets openstaand",
       "nothingOpenText": "Werk staat hier van de kaart tot de dag waarop het wordt geplaatst.",
       "noMatch": "Niets past bij deze filters",
-      "clear": "Filters wissen"
+      "clear": "Filters wissen",
+      "newTask": "Nieuwe taak",
+      "allTasks": "Alle taken bekijken"
     },
     "picker": {
       "title": "Bestanden uit de Drive",

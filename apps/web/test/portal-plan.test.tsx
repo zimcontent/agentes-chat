@@ -7,7 +7,7 @@ import { ApiError } from "@agenteschat/client";
 import { peekDraft } from "@agenteschat/client/lib/drafts";
 import { act, cleanup, fireEvent, within } from "@testing-library/react";
 import { orderAfterDrop, pansBoard } from "@/components/portal/board-parts";
-import { createFakeApi, fakePortalOf, meWithRole, ORG_ID, seedState } from "./fake-api";
+import { ADA_ID, createFakeApi, fakePortalOf, meWithRole, ORG_ID, seedState } from "./fake-api";
 import { type FakePortal, portalCard, portalItem } from "./fakes/portal";
 import { renderApp, screen, settle } from "./render";
 
@@ -438,6 +438,54 @@ describe("a card opened", () => {
       within(dialog).getByRole("group", { name: "Etiquetas" }).querySelector(".portal-labelchip")?.textContent,
     ).toBe("em edição");
     expect(within(dialog).getByRole("group", { name: "Checklist" }).textContent).toContain("1/2");
+  });
+
+  test("the card is a task too: Tarefa #N beside its stage opens the task", async () => {
+    const { dialog } = await open();
+    // No task known for it: nothing to open.
+    expect(within(dialog).queryByRole("link", { name: /^Tarefa #/ })).toBeNull();
+    cleanup();
+    await go(`${PLAN}&card=c-000001`, withPortal(), (portal) => {
+      fill(portal);
+      const made = portal.cards.find((c) => c.id === "c-000001");
+      if (made) made.task = "i-000012";
+      portal.tasks = [{ cardId: "c-000001", id: "i-000012", number: 12 }];
+    });
+    const stage = within(screen().getByRole("dialog", { name: "Reel do treino" })).getByRole("group", {
+      name: "Etapa",
+    });
+    expect(within(stage).getByRole("link", { name: "Tarefa #12" }).getAttribute("href")).toBe(
+      `/org/${ORG_ID}/issues/12`,
+    );
+  });
+
+  test("members are people and agents; the first is the one responsible, and an agent made the one goes first", async () => {
+    const { state, dialog } = await open();
+    const members = () => within(dialog).getByRole("group", { name: "Membros" });
+    const lead = () => members().querySelector(".portal-detail__chips .portal-detail__lead")?.parentElement;
+    expect(lead()?.textContent).toContain("Walter");
+    expect(lead()?.textContent).toContain("Responsável");
+    expect(members().textContent).not.toContain("O agente começa a trabalhar nela na hora.");
+
+    await click(within(members()).getByRole("button", { name: "Membros" }));
+    // The workspace's people first, then its agents, each with the product's own agent face.
+    const options = [...document.querySelectorAll(".portal-detail__options > li")];
+    expect(options.slice(-2).map((o) => o.querySelector("label")?.textContent)).toEqual(["Ada", "Atlas"]);
+    expect(options.at(-2)?.querySelector(".ac-avatar--agent")).not.toBeNull();
+    // Only who is on the card can be made the one responsible.
+    expect(screen().queryByRole("button", { name: "Tornar Ada responsável" })).toBeNull();
+
+    await click(screen().getByRole("checkbox", { name: /Ada/ }));
+    expect(calls(state, "portal.updateCard")[0]?.[2]).toEqual({ members: [ME, ADA_ID] });
+    expect(members().textContent).not.toContain("O agente começa a trabalhar nela na hora.");
+
+    await click(screen().getByRole("button", { name: "Tornar Ada responsável" }));
+    expect(calls(state, "portal.updateCard")[1]?.[2]).toEqual({ members: [ADA_ID, ME] });
+    expect(lead()?.textContent).toContain("Ada");
+    expect(lead()?.querySelector(".ac-avatar--agent")).not.toBeNull();
+    // Whoever had it stays on the card.
+    expect(members().querySelectorAll(".portal-detail__chips .portal-detail__person").length).toBe(2);
+    expect(members().textContent).toContain("O agente começa a trabalhar nela na hora.");
   });
 
   test("a change is kept as it is made: a ticked item, a description on leaving its field", async () => {

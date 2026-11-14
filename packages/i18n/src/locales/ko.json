@@ -7246,6 +7246,7 @@
     "fromAgent": "에이전트에게 보낸 요청에서",
     "subIssues_other": "하위 작업 · {{count}}",
     "fromWebhook": "{{provider}} 이벤트에서",
+    "fromPortal": "<0>포털의 {{client}} 게시물</0>",
     "description": "설명",
     "noDescription": "설명이 없어요.",
     "criteria": "완료 조건",
@@ -18162,6 +18163,7 @@
       "noDate": "날짜 없음"
     },
     "newCard": "새 카드",
+    "task": "작업 #{{number}}",
     "send": "승인 요청 보내기",
     "openAtPortal": "포털에서 열기",
     "seePost": "게시물 보기",
@@ -18291,6 +18293,10 @@
       "stage": "단계",
       "stageHint": "자동: 포털에서 게시물이 있는 단계를 따라가요.",
       "members": "멤버",
+      "responsible": "담당자",
+      "makeResponsible": "담당자로 지정",
+      "makeResponsibleName": "{{name}} 님을 담당자로 지정",
+      "agentStarts": "에이전트가 바로 작업을 시작합니다.",
       "description": "설명",
       "checklist": "체크리스트",
       "addCheck": "항목 추가",
@@ -18346,7 +18352,9 @@
       "nothingOpen": "진행 중인 것이 없어요",
       "nothingOpenText": "작업은 카드가 만들어진 때부터 게시되는 날까지 여기에 표시돼요.",
       "noMatch": "이 필터에 맞는 것이 없어요",
-      "clear": "필터 지우기"
+      "clear": "필터 지우기",
+      "newTask": "새 작업",
+      "allTasks": "모든 작업 보기"
     },
     "picker": {
       "title": "Drive 파일",

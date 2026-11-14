@@ -697,6 +697,17 @@
   gap: var(--space-1);
   font-size: 13.5px;
 }
+/* The one responsible for the card (its first member): a quiet word after the name, never a plate. */
+.portal-detail__lead {
+  margin-left: var(--space-1);
+  font-size: 12.5px;
+  color: var(--muted);
+}
+.portal-detail__options .portal-detail__lead {
+  margin-left: 0;
+  padding: 0 var(--space-2);
+  white-space: nowrap;
+}
 .portal-detail__pick {
   padding: var(--space-2);
 }
@@ -903,6 +914,17 @@
 }
 .portal-home__part > .ac-grouphead {
   margin-bottom: var(--space-2);
+}
+/* The pipeline's own actions at its heading's end: the way to every task, "New task", then its two views. */
+.portal-home__acts {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-2) var(--space-4);
+}
+.portal-home__acts > .portal-views {
+  margin: 0;
 }
 /* "Now": four numbers side by side, two by two on a phone. One idea each: the number, its name, one quiet line. */
 .portal-tiles {
@@ -1237,6 +1259,12 @@ html:not([data-pointer]) .portal-tile:focus-visible {
 }
 .portal-table__title > a:hover {
   text-decoration: underline;
+}
+/* A row's task number, quiet under its title's line: the title keeps the cell's width. */
+.portal-table__task {
+  display: block;
+  font-size: 12.5px;
+  color: var(--muted);
 }
 .portal-table td.tabular {
   white-space: nowrap;

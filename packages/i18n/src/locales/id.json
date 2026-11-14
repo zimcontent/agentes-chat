@@ -7283,6 +7283,7 @@
     "fromAgent": "dari permintaan ke agen",
     "subIssues_other": "Subtugas · {{count}}",
     "fromWebhook": "dari event {{provider}}",
+    "fromPortal": "<0>Postingan {{client}} di Portal</0>",
     "description": "Deskripsi",
     "noDescription": "Tanpa deskripsi.",
     "criteria": "Kriteria penerimaan",
@@ -18272,6 +18273,7 @@
       "noDate": "Tanpa tanggal"
     },
     "newCard": "Kartu baru",
+    "task": "Tugas #{{number}}",
     "send": "Kirim untuk persetujuan",
     "openAtPortal": "Buka di portal",
     "seePost": "Lihat postingan",
@@ -18401,6 +18403,10 @@
       "stage": "Tahap",
       "stageHint": "Otomatis: mengikuti postingan di portal.",
       "members": "Anggota",
+      "responsible": "Penanggung jawab",
+      "makeResponsible": "Jadikan penanggung jawab",
+      "makeResponsibleName": "Jadikan {{name}} penanggung jawab",
+      "agentStarts": "Agen langsung mulai mengerjakannya.",
       "description": "Deskripsi",
       "checklist": "Daftar periksa",
       "addCheck": "Tambah item",
@@ -18456,7 +18462,9 @@
       "nothingOpen": "Tidak ada yang terbuka",
       "nothingOpenText": "Pekerjaan tampil di sini sejak kartunya dibuat sampai hari diposting.",
       "noMatch": "Tidak ada yang cocok dengan filter ini",
-      "clear": "Hapus filter"
+      "clear": "Hapus filter",
+      "newTask": "Tugas baru",
+      "allTasks": "Lihat semua tugas"
     },
     "picker": {
       "title": "File dari Drive",

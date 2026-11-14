@@ -5,9 +5,9 @@ setupDom();
 
 import { act, cleanup, fireEvent, within } from "@testing-library/react";
 import { pansBoard } from "@/components/portal/board-parts";
-import { createFakeApi, fakePortalOf, ORG_ID, seedState } from "./fake-api";
+import { ADA_ID, createFakeApi, fakePortalOf, ORG_ID, seedState } from "./fake-api";
 import type { FakePortal } from "./fakes/portal";
-import { agencyMembers, fillAgency, ME } from "./fakes/portal-agency";
+import { agencyMembers, fillAgency, JOAO, ME } from "./fakes/portal-agency";
 import { renderApp, screen, settle } from "./render";
 
 afterEach(() => {
@@ -38,6 +38,25 @@ const column = (name: string) =>
 const cards = (name: string) => [...column(name).querySelectorAll(".issue-card__title")].map((c) => c.textContent);
 const allCards = () => [...main().querySelectorAll(".portal-pipeline .issue-card__title")].map((c) => c.textContent);
 const row = (client: string) => within(part("Clientes")).getByRole("link", { name: new RegExp(`^${client}`) });
+const pick = async (field: HTMLElement, option: string | RegExp) => {
+  field.focus();
+  await act(async () => fireEvent.keyDown(field, { key: "Enter" }));
+  await click(screen().getByRole("option", { name: option }));
+};
+/** The agency's portal with two cards' tasks known, the first of them an agent's. */
+const withTasks = (portal: FakePortal) => {
+  fillAgency(portal);
+  for (const [cardId, number] of [
+    ["c-00a001", 41],
+    ["c-00b001", 42],
+  ] as const) {
+    const made = portal.cards.find((c) => c.id === cardId);
+    if (made) made.task = `i-0000${number}`;
+    portal.tasks.push({ cardId, id: `i-0000${number}`, number });
+  }
+  const first = portal.cards.find((c) => c.id === "c-00a001");
+  if (first) first.members = [ADA_ID, JOAO];
+};
 
 describe("the portal's first screen", () => {
   test("Agora: four numbers with their line of context; only Precisa de você takes the attention tone", async () => {
@@ -150,6 +169,65 @@ describe("the portal's first screen", () => {
 
     await click(asked);
     expect(router.state.location.search).toEqual({ client: "acme", tab: "plan", card: "c-00a001" });
+  });
+
+  test("every card is a task: its number on the pipeline's cards and rows, an agent among who is on it", async () => {
+    await go("portal", withTasks);
+    const asked = within(column("Em ajuste")).getByRole("article", { name: "Acme: Depoimento da aluna Júlia" });
+    const number = asked.querySelector(".ac-factline__fact");
+    expect(number?.textContent).toBe("#41");
+    expect(number?.getAttribute("title")).toBe("Tarefa #41");
+    // The agent that has it first, with its own face, then the person.
+    const faces = [...asked.querySelectorAll(".portal-card__who .ac-avatar")];
+    expect(faces.length).toBe(2);
+    expect(faces[0]?.classList.contains("ac-avatar--agent")).toBe(true);
+    // A card whose task isn't known says no number, and neither does a post with no card.
+    const plain = within(column("A produzir")).getByRole("article", { name: "Acme: Story de enquete: qual treino?" });
+    expect(plain.textContent).not.toContain("#");
+    expect(within(part("Esteira")).getByRole("link", { name: "Ver todas as tarefas" }).getAttribute("href")).toBe(
+      `/org/${ORG_ID}/issues`,
+    );
+
+    await click(within(part("Esteira")).getByRole("button", { name: "Lista" }));
+    const table = within(part("Esteira")).getByRole("table");
+    const titled = within(table).getByRole("link", { name: "Tour pelo novo showroom" }).closest("td");
+    expect(titled?.querySelector(".portal-table__task")?.textContent).toBe("#42");
+  });
+
+  test("Nova tarefa: a client, a title and an agent as the one responsible make a card, which is a task", async () => {
+    const { state } = await go("portal", withTasks);
+    await click(within(part("Esteira")).getByRole("button", { name: "Nova tarefa" }));
+    const dialog = screen().getByRole("dialog", { name: "Nova tarefa" });
+    const save = within(dialog).getByRole("button", { name: "Salvar" }) as HTMLButtonElement;
+    expect(save.disabled).toBe(true);
+    await act(async () =>
+      fireEvent.change(within(dialog).getByLabelText("Título"), { target: { value: "Reel dos bastidores" } }),
+    );
+    await pick(within(dialog).getByRole("combobox", { name: "Cliente" }), "Zeta");
+    expect(dialog.textContent).not.toContain("O agente começa a trabalhar nela na hora.");
+    await pick(within(dialog).getByRole("combobox", { name: "Responsável" }), /^Ada/);
+    expect(dialog.textContent).toContain("O agente começa a trabalhar nela na hora.");
+    await click(save);
+    expect(state.calls.filter((c) => c.method === "portal.createCard").map((c) => c.args[1])).toEqual([
+      expect.objectContaining({ client: "zeta", title: "Reel dos bastidores", members: [ADA_ID] }),
+    ]);
+    expect(screen().queryByRole("dialog", { name: "Nova tarefa" })).toBeNull();
+    // On the pipeline at once, with its task's number (the one after the workspace's last).
+    const made = within(column("A produzir")).getByRole("article", { name: "Zeta: Reel dos bastidores" });
+    expect(made.querySelector(".ac-factline__fact")?.textContent).toBe("#43");
+    expect(made.querySelector(".portal-card__who .ac-avatar--agent")).not.toBeNull();
+  });
+
+  test("without the permission to give agents work there is no Nova tarefa, and the way to the tasks stays", async () => {
+    const state = seedState({ authConfig: { approvalPortal: true } });
+    const org = state.me?.organizations[0];
+    if (org) org.permissions = ["read", "post"];
+    const api = createFakeApi(state);
+    fillAgency(fakePortalOf.get(api) as FakePortal);
+    await renderApp(`/org/${ORG_ID}/portal`, { api });
+    await settle(8);
+    expect(within(part("Esteira")).queryByRole("button", { name: "Nova tarefa" })).toBeNull();
+    expect(within(part("Esteira")).getByRole("link", { name: "Ver todas as tarefas" })).toBeTruthy();
   });
 
   test("a post with no card opens its client's board", async () => {

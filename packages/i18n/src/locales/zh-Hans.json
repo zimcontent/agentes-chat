@@ -7294,6 +7294,7 @@
     "fromAgent": "来自对智能体的一个请求",
     "subIssues_other": "子任务 · {{count}}",
     "fromWebhook": "来自一个 {{provider}} 事件",
+    "fromPortal": "<0>门户中 {{client}} 的帖子</0>",
     "description": "描述",
     "noDescription": "没有描述。",
     "criteria": "验收标准",
@@ -18346,6 +18347,7 @@
       "noDate": "无日期"
     },
     "newCard": "新建卡片",
+    "task": "任务 #{{number}}",
     "send": "送去审批",
     "openAtPortal": "在门户中打开",
     "seePost": "查看帖子",
@@ -18475,6 +18477,10 @@
       "stage": "阶段",
       "stageHint": "自动：跟随帖子在门户中的进度。",
       "members": "成员",
+      "responsible": "负责人",
+      "makeResponsible": "设为负责人",
+      "makeResponsibleName": "将 {{name}} 设为负责人",
+      "agentStarts": "智能体会立即开始处理。",
       "description": "描述",
       "checklist": "清单",
       "addCheck": "添加一项",
@@ -18530,7 +18536,9 @@
       "nothingOpen": "没有进行中的内容",
       "nothingOpenText": "工作从建好卡片到发布当天都会显示在这里。",
       "noMatch": "没有符合这些筛选条件的内容",
-      "clear": "清除筛选"
+      "clear": "清除筛选",
+      "newTask": "新建任务",
+      "allTasks": "查看所有任务"
     },
     "picker": {
       "title": "Drive 中的文件",

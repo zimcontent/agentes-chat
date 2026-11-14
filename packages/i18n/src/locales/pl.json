@@ -7976,6 +7976,7 @@
     "subIssues_many": "Podzadania · {{count}}",
     "subIssues_other": "Podzadania · {{count}}",
     "fromWebhook": "ze zdarzenia {{provider}}",
+    "fromPortal": "<0>Post klienta {{client}} w Portalu</0>",
     "description": "Opis",
     "noDescription": "Brak opisu.",
     "criteria": "Kryteria akceptacji",
@@ -19919,6 +19920,7 @@
       "noDate": "Brak daty"
     },
     "newCard": "Nowa karta",
+    "task": "Zadanie #{{number}}",
     "send": "Wyślij do zatwierdzenia",
     "openAtPortal": "Otwórz w portalu",
     "seePost": "Zobacz post",
@@ -20051,6 +20053,10 @@
       "stage": "Etap",
       "stageHint": "Automatyczny: podąża za postem w portalu.",
       "members": "Członkowie",
+      "responsible": "Osoba odpowiedzialna",
+      "makeResponsible": "Ustaw jako odpowiedzialną",
+      "makeResponsibleName": "Ustaw {{name}} jako osobę odpowiedzialną",
+      "agentStarts": "Agent od razu zaczyna nad nim pracować.",
       "description": "Opis",
       "checklist": "Lista kontrolna",
       "addCheck": "Dodaj pozycję",
@@ -20118,7 +20124,9 @@
       "nothingOpen": "Nic otwartego",
       "nothingOpenText": "Praca jest tu widoczna od karty do dnia publikacji.",
       "noMatch": "Nic nie pasuje do tych filtrów",
-      "clear": "Wyczyść filtry"
+      "clear": "Wyczyść filtry",
+      "newTask": "Nowe zadanie",
+      "allTasks": "Zobacz wszystkie zadania"
     },
     "picker": {
       "title": "Pliki z Drive",

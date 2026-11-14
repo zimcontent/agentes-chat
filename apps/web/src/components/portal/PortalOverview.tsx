@@ -1,5 +1,6 @@
 import type { PortalClientSummary, PortalColumn, PortalPipelineEntry } from "@agenteschat/client";
-import { useChannels, usePortalPipeline } from "@agenteschat/client";
+import { useChannels, usePortalPipeline, usePortalTasks } from "@agenteschat/client";
+import { can } from "@agenteschat/client/lib/permissions";
 import {
   filterPipeline,
   PORTAL_FOCI,
@@ -15,6 +16,7 @@ import {
   portalClientInitials,
   portalClientName,
   portalStatusWaits,
+  portalTaskNumbers,
   portalWhen,
   sortPipelineByProduction,
 } from "@agenteschat/client/lib/portal";
@@ -38,8 +40,9 @@ import { PersonAvatar } from "@/components/AgentAvatar";
 import { ErrorState, LoadingCards } from "@/components/Loading";
 import { useOrg } from "@/components/org-context";
 import { ChannelPhoto } from "@/components/ProfilePhoto";
-import { useDirectory } from "@/hooks/useDirectory";
 import { BoardColumn, BoardFrame, CardFace } from "./board-parts";
+import { CardDialog } from "./CardDialog";
+import { MemberFaces, usePortalPeople, WhoFace } from "./members";
 import { StageLegend } from "./PlanLegend";
 import { type PortalSearch, usePortalSearch } from "./search";
 import { StageChip, stageName } from "./stage";
@@ -77,12 +80,18 @@ const statusText = (t: TFunction, status: PortalClientStatus) =>
  * boards' own columns and cards or as a list. Nothing here changes anything: a client's card opens the client, a
  * piece of work its schedule. What
  * is filtered and how it is shown lives in the URL (`of`, `who`, `stage`, `view=list`).
+ *
+ * Every card is also a task of the workspace (ADR 9001): the pipeline says each one's number, "New task" makes a
+ * card for any client from here (whoever may give agents work), and "See all tasks" goes to the tasks' own page.
  */
 export function PortalOverview({ clients }: { clients: PortalClientSummary[] }) {
   const { t } = useTranslation();
   const { org, me } = useOrg();
   const pipeline = usePortalPipeline(org.id);
+  const numbers = portalTaskNumbers(usePortalTasks(org.id).data);
   const { search, go } = usePortalSearch();
+  const [creating, setCreating] = useState(false);
+  const names = clients.map((c) => c.client);
   if (pipeline.isLoading) return <LoadingCards count={3} />;
   if (!pipeline.data) return <ErrorState error={pipeline.error} onRetry={() => void pipeline.refetch()} />;
   const { entries, day } = pipeline.data;
@@ -98,34 +107,44 @@ export function PortalOverview({ clients }: { clients: PortalClientSummary[] }) 
   return (
     <div className="portal-home">
       <Tiles entries={entries} focus={focus} onFocus={(next) => set({ stage: next ?? undefined })} />
-      <Clients names={clients.map((c) => c.client)} entries={entries} day={day} />
+      <Clients names={names} entries={entries} day={day} />
       <section className="portal-home__part" aria-label={t("portal.home.pipeline")}>
         <GroupHeading
           title={t("portal.home.pipeline")}
           count={shown.length}
           aside={
-            <fieldset className="portal-views" aria-label={t("portal.plan.view")}>
-              <Button
-                size="sm"
-                variant="ghost"
-                iconOnly
-                icon="grid"
-                aria-label={t("portal.home.pipeline")}
-                title={t("portal.home.pipeline")}
-                aria-pressed={search.view !== "list"}
-                onClick={() => set({ view: undefined })}
-              />
-              <Button
-                size="sm"
-                variant="ghost"
-                iconOnly
-                icon="list"
-                aria-label={t("portal.home.viewList")}
-                title={t("portal.home.viewList")}
-                aria-pressed={search.view === "list"}
-                onClick={() => set({ view: "list" })}
-              />
-            </fieldset>
+            <span className="portal-home__acts">
+              <Link className="ac-link small" to="/org/$orgId/issues" params={{ orgId: org.id }}>
+                {t("portal.home.allTasks")}
+              </Link>
+              {can(org, "assign_work") && (
+                <Button size="sm" icon="plus" onClick={() => setCreating(true)}>
+                  {t("portal.home.newTask")}
+                </Button>
+              )}
+              <fieldset className="portal-views" aria-label={t("portal.plan.view")}>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  iconOnly
+                  icon="grid"
+                  aria-label={t("portal.home.pipeline")}
+                  title={t("portal.home.pipeline")}
+                  aria-pressed={search.view !== "list"}
+                  onClick={() => set({ view: undefined })}
+                />
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  iconOnly
+                  icon="list"
+                  aria-label={t("portal.home.viewList")}
+                  title={t("portal.home.viewList")}
+                  aria-pressed={search.view === "list"}
+                  onClick={() => set({ view: "list" })}
+                />
+              </fieldset>
+            </span>
           }
         />
         <Filters entries={entries} search={search} onChange={set} />
@@ -145,11 +164,19 @@ export function PortalOverview({ clients }: { clients: PortalClientSummary[] }) 
             }
           />
         ) : search.view === "list" ? (
-          <PipelineList entries={shown} />
+          <PipelineList entries={shown} numbers={numbers} />
         ) : (
-          <PipelineBoard entries={shown} />
+          <PipelineBoard entries={shown} numbers={numbers} />
         )}
       </section>
+      <CardDialog
+        open={creating}
+        client={null}
+        clients={names}
+        card={null}
+        title={t("portal.home.newTask")}
+        onClose={() => setCreating(false)}
+      />
     </div>
   );
 }
@@ -210,7 +237,7 @@ function Tiles({
 function Clients({ names, entries, day }: { names: string[]; entries: PortalPipelineEntry[]; day: string }) {
   const { t, i18n } = useTranslation();
   const { org } = useOrg();
-  const dir = useDirectory(org.id);
+  const who = usePortalPeople();
   const channels = useChannels(org.id).data ?? [];
   const rows = pipelineClients(names, entries);
   return (
@@ -219,7 +246,7 @@ function Clients({ names, entries, day }: { names: string[]; entries: PortalPipe
       <ul className="portal-cards">
         {rows.map(({ client, entries: own, status }) => {
           const name = portalClientName(client);
-          const people = pipelinePeople(own).flatMap((id) => dir.memberById.get(id) ?? []);
+          const people = who.known(pipelinePeople(own));
           const next = portalWhen(i18n.language, pipelineNextPost(own, day));
           const waits = portalStatusWaits(status);
           // A group named after the client lends it its photo.
@@ -283,15 +310,8 @@ function Clients({ names, entries, day }: { names: string[]; entries: PortalPipe
                     <span className="portal-clientcard__people">
                       {people.length > 0 && (
                         <AvatarStack>
-                          {people.slice(0, FACES).map((m) => (
-                            <PersonAvatar
-                              key={m.userId}
-                              id={m.userId}
-                              name={m.name}
-                              size="xs"
-                              title={m.name}
-                              labelled
-                            />
+                          {people.slice(0, FACES).map((w) => (
+                            <WhoFace key={w.id} who={w} size="xs" title={w.name} labelled />
                           ))}
                         </AvatarStack>
                       )}
@@ -330,7 +350,10 @@ function Clients({ names, entries, day }: { names: string[]; entries: PortalPipe
   );
 }
 
-/** The pipeline's filters: one client's work, one person's ("Only me" among them), and the four tiles'. */
+/**
+ * The pipeline's filters: one client's work, one person's ("Only me" among them) or one agent's (after the people),
+ * and the four tiles'.
+ */
 function Filters({
   entries,
   search,
@@ -341,10 +364,11 @@ function Filters({
   onChange: (change: Partial<PortalSearch>) => void;
 }) {
   const { t } = useTranslation();
-  const { org, me } = useOrg();
-  const dir = useDirectory(org.id);
+  const { me } = useOrg();
   const clients = [...new Set(entries.map((e) => e.client))].sort();
-  const people = [...dir.memberById.values()].filter((m) => m.userId !== me.user.id);
+  const people = usePortalPeople()
+    .choices(search.who ? [search.who] : [])
+    .filter((w) => w.id !== me.user.id);
   const n = pipelineTiles(entries);
   return (
     <div className="portal-filters">
@@ -370,11 +394,7 @@ function Filters({
             label: t("portal.home.onlyMe"),
             leading: <PersonAvatar id={me.user.id} name={me.user.name} size="xs" />,
           },
-          ...people.map((m) => ({
-            value: m.userId,
-            label: m.name,
-            leading: <PersonAvatar id={m.userId} name={m.name} size="xs" />,
-          })),
+          ...people.map((w) => ({ value: w.id, label: w.name, leading: <WhoFace who={w} size="xs" /> })),
         ]}
       />
       <span className="portal-filters__chips">
@@ -397,28 +417,17 @@ function Filters({
 const entrySearch = (e: PortalPipelineEntry): PortalSearch =>
   e.kind === "card" ? { client: e.client, tab: "plan", card: e.id } : { client: e.client };
 
-/** Who is on a piece of work, as small faces. */
-function Faces({ ids }: { ids: string[] }) {
-  const { org } = useOrg();
-  const dir = useDirectory(org.id);
-  const people = ids.flatMap((id) => dir.memberById.get(id) ?? []);
-  if (people.length === 0) return null;
-  return (
-    <AvatarStack className="portal-card__who">
-      {people.slice(0, FACES).map((m) => (
-        <PersonAvatar key={m.userId} id={m.userId} name={m.name} size="xs" title={m.name} labelled />
-      ))}
-    </AvatarStack>
-  );
-}
+/** A card's task number as the pipeline says it ("#12"); a post with no card has none. */
+const taskOf = (numbers: ReadonlyMap<string, number>, e: PortalPipelineEntry) =>
+  e.kind === "card" ? numbers.get(e.id) : undefined;
 
 /**
  * The pipeline as the boards' own columns and cards, read only: each card says its client first, then its type, and
- * that it is late when its production day passed; then the day it is made and the day it goes out, who is on it,
- * and what the client asked when it waits on an adjustment (outside text: plain words). A press opens it at its
- * client. The board's empty space drags it sideways; no card moves here.
+ * that it is late when its production day passed; then its task's number, the day it is made and the day it goes
+ * out, who is on it, and what the client asked when it waits on an adjustment (outside text: plain words). A press
+ * opens it at its client. The board's empty space drags it sideways; no card moves here.
  */
-function PipelineBoard({ entries }: { entries: PortalPipelineEntry[] }) {
+function PipelineBoard({ entries, numbers }: { entries: PortalPipelineEntry[]; numbers: ReadonlyMap<string, number> }) {
   const { t, i18n } = useTranslation();
   const { org } = useOrg();
   const navigate = useNavigate();
@@ -439,7 +448,11 @@ function PipelineBoard({ entries }: { entries: PortalPipelineEntry[] }) {
               {cards.map((e) => {
                 const produce = portalWhen(i18n.language, e.produceOn);
                 const post = portalWhen(i18n.language, e.postOn);
+                const task = taskOf(numbers, e);
                 const facts: LineFact[] = [
+                  ...(task !== undefined
+                    ? [{ key: "task", text: `#${task}`, title: t("portal.task", { number: task }) }]
+                    : []),
                   ...(produce
                     ? [
                         {
@@ -484,7 +497,7 @@ function PipelineBoard({ entries }: { entries: PortalPipelineEntry[] }) {
                       </>
                     }
                     facts={facts}
-                    people={<Faces ids={e.members} />}
+                    people={<MemberFaces ids={e.members} max={FACES} className="portal-card__who" />}
                   >
                     {e.note && (
                       <p className="portal-card__note portal-card__note--asked">
@@ -506,9 +519,10 @@ function PipelineBoard({ entries }: { entries: PortalPipelineEntry[] }) {
 /**
  * The pipeline as a table, for who reads lists: a group per stage, a row per piece of work with its client, title,
  * type, who is on it, the day it is made and the day it goes out. The production column's head turns its order
- * around (soonest first by default; work with no day last either way). A title opens the work at its client.
+ * around (soonest first by default; work with no day last either way). A title opens the work at its client, with
+ * its task's number quietly after it.
  */
-function PipelineList({ entries }: { entries: PortalPipelineEntry[] }) {
+function PipelineList({ entries, numbers }: { entries: PortalPipelineEntry[]; numbers: ReadonlyMap<string, number> }) {
   const { t, i18n } = useTranslation();
   const { org } = useOrg();
   const [desc, setDesc] = useState(false);
@@ -549,25 +563,33 @@ function PipelineList({ entries }: { entries: PortalPipelineEntry[] }) {
                   <span className="tabular">{rows.length}</span>
                 </th>
               </tr>
-              {rows.map((e) => (
-                <tr key={`${e.client}/${e.kind}/${e.id}`} data-late={e.late || undefined}>
-                  <td className="portal-table__client">{portalClientName(e.client)}</td>
-                  <td className="portal-table__title">
-                    <Link to="/org/$orgId/portal" params={{ orgId: org.id }} search={entrySearch(e)} title={e.title}>
-                      {e.title}
-                    </Link>
-                  </td>
-                  <td>{t(`portal.types.${e.type}`)}</td>
-                  <td>
-                    <Faces ids={e.members} />
-                  </td>
-                  <td className="tabular">
-                    {portalWhen(i18n.language, e.produceOn)}
-                    {e.late && <span className="portal-table__late"> · {t("portal.home.late")}</span>}
-                  </td>
-                  <td className="tabular">{portalWhen(i18n.language, e.postOn)}</td>
-                </tr>
-              ))}
+              {rows.map((e) => {
+                const task = taskOf(numbers, e);
+                return (
+                  <tr key={`${e.client}/${e.kind}/${e.id}`} data-late={e.late || undefined}>
+                    <td className="portal-table__client">{portalClientName(e.client)}</td>
+                    <td className="portal-table__title">
+                      <Link to="/org/$orgId/portal" params={{ orgId: org.id }} search={entrySearch(e)} title={e.title}>
+                        {e.title}
+                      </Link>
+                      {task !== undefined && (
+                        <span className="portal-table__task tabular" title={t("portal.task", { number: task })}>
+                          #{task}
+                        </span>
+                      )}
+                    </td>
+                    <td>{t(`portal.types.${e.type}`)}</td>
+                    <td>
+                      <MemberFaces ids={e.members} max={FACES} className="portal-card__who" />
+                    </td>
+                    <td className="tabular">
+                      {portalWhen(i18n.language, e.produceOn)}
+                      {e.late && <span className="portal-table__late"> · {t("portal.home.late")}</span>}
+                    </td>
+                    <td className="tabular">{portalWhen(i18n.language, e.postOn)}</td>
+                  </tr>
+                );
+              })}
             </tbody>
           );
         })}

@@ -11,6 +11,7 @@ import type {
   PortalPipelineEntry,
   PortalPlan,
   PortalStatus,
+  PortalTaskRef,
   PortalType,
 } from "../api/types";
 import { errorText } from "./errors";
@@ -488,3 +489,17 @@ export const sortPipelineByProduction = <T extends Pick<PortalPipelineEntry, "pr
     if (!a.produceOn || !b.produceOn) return a.produceOn ? -1 : b.produceOn ? 1 : a.title.localeCompare(b.title);
     return (desc ? -1 : 1) * a.produceOn.localeCompare(b.produceOn) || a.title.localeCompare(b.title);
   });
+
+/**
+ * A card's members with `id` first (ADR 9001): the first member is the one responsible, who has the card's task.
+ * Whoever was first stays on the card, right after; an id that wasn't on it joins it.
+ */
+export const portalWithResponsible = (members: readonly string[], id: string): string[] => [
+  id,
+  ...members.filter((m) => m !== id),
+];
+
+/** Each card's task number by the card's id, to say "#12" beside it. */
+export const portalTaskNumbers = (
+  tasks: readonly Pick<PortalTaskRef, "cardId" | "number">[] | undefined,
+): Map<string, number> => new Map((tasks ?? []).map((ref) => [ref.cardId, ref.number]));

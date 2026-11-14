@@ -7463,6 +7463,7 @@
     "subIssues_one": "Alt görevler · {{count}}",
     "subIssues_other": "Alt görevler · {{count}}",
     "fromWebhook": "bir {{provider}} olayından",
+    "fromPortal": "<0>Portal'da {{client}} gönderisi</0>",
     "description": "Açıklama",
     "noDescription": "Açıklama yok.",
     "criteria": "Kabul kriterleri",
@@ -18679,6 +18680,7 @@
       "noDate": "Tarih yok"
     },
     "newCard": "Yeni kart",
+    "task": "Görev #{{number}}",
     "send": "Onaya gönder",
     "openAtPortal": "Portalda aç",
     "seePost": "Gönderiyi gör",
@@ -18809,6 +18811,10 @@
       "stage": "Aşama",
       "stageHint": "Otomatik: portaldaki gönderiyi izler.",
       "members": "Üyeler",
+      "responsible": "Sorumlu",
+      "makeResponsible": "Sorumlu yap",
+      "makeResponsibleName": "{{name}} sorumlu olsun",
+      "agentStarts": "Ajan hemen üzerinde çalışmaya başlar.",
       "description": "Açıklama",
       "checklist": "Kontrol listesi",
       "addCheck": "Madde ekle",
@@ -18868,7 +18874,9 @@
       "nothingOpen": "Açık bir şey yok",
       "nothingOpenText": "İşler, kartı açıldığı andan paylaşıldığı güne kadar burada görünür.",
       "noMatch": "Bu filtrelere uyan bir şey yok",
-      "clear": "Filtreleri temizle"
+      "clear": "Filtreleri temizle",
+      "newTask": "Yeni görev",
+      "allTasks": "Tüm görevleri gör"
     },
     "picker": {
       "title": "Drive'daki dosyalar",

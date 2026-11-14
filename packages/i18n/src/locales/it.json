@@ -7760,6 +7760,7 @@
     "subIssues_many": "Sottoattività · {{count}}",
     "subIssues_other": "Sottoattività · {{count}}",
     "fromWebhook": "da un evento di {{provider}}",
+    "fromPortal": "<0>Post di {{client}} nel Portale</0>",
     "description": "Descrizione",
     "noDescription": "Nessuna descrizione.",
     "criteria": "Criteri di accettazione",
@@ -19416,6 +19417,7 @@
       "noDate": "Senza data"
     },
     "newCard": "Nuova scheda",
+    "task": "Attività #{{number}}",
     "send": "Invia in approvazione",
     "openAtPortal": "Apri nel portale",
     "seePost": "Vedi il post",
@@ -19547,6 +19549,10 @@
       "stage": "Fase",
       "stageHint": "Automatica: segue il post nel portale.",
       "members": "Membri",
+      "responsible": "Responsabile",
+      "makeResponsible": "Rendi responsabile",
+      "makeResponsibleName": "Rendi {{name}} responsabile",
+      "agentStarts": "L'agente inizia subito a lavorarci.",
       "description": "Descrizione",
       "checklist": "Checklist",
       "addCheck": "Aggiungi una voce",
@@ -19610,7 +19616,9 @@
       "nothingOpen": "Niente di aperto",
       "nothingOpenText": "Il lavoro compare qui dalla scheda fino al giorno in cui viene pubblicato.",
       "noMatch": "Nessun risultato con questi filtri",
-      "clear": "Cancella filtri"
+      "clear": "Cancella filtri",
+      "newTask": "Nuova attività",
+      "allTasks": "Vedi tutte le attività"
     },
     "picker": {
       "title": "File dal Drive",

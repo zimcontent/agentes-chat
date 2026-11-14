@@ -551,3 +551,23 @@ describe("Portal in the sidebar", () => {
     ).toBe(`/org/${ORG_ID}/portal`);
   });
 });
+
+describe("a card's task on Tarefas", () => {
+  test("the task says it is a client's post in the Portal, and the link opens that client's board on the card", async () => {
+    const api = createFakeApi(withPortal());
+    fill(fakePortalOf.get(api) as FakePortal);
+    // The task as the server sends a card's: its source names the client and the card.
+    const read = api.issues.get;
+    api.issues.get = async (orgId, number) => ({
+      ...(await read(orgId, number)),
+      source: { type: "portal", client: "acme-foods", cardId: "c-000001" },
+    });
+    const { router } = await renderApp(`/org/${ORG_ID}/issues/131`, { api });
+    await settle(8);
+    const link = screen().getByRole("link", { name: "Post de Acme Foods no Portal" });
+    expect(link.getAttribute("href")).toBe(`/org/${ORG_ID}/portal?client=acme-foods&card=c-000001`);
+    await click(link);
+    expect(router.state.location.search).toEqual({ client: "acme-foods", card: "c-000001" });
+    expect(screen().getByRole("dialog", { name: "Lançamento do cardápio" })).toBeTruthy();
+  });
+});

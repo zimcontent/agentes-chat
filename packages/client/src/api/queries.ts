@@ -7106,3 +7106,19 @@ export const usePortalPipeline = (orgId: string, enabled = true) => {
     meta: { quiet: true },
   });
 };
+
+/**
+ * Each card's task (ADR 9001): every card of the board is also a task of the workspace, and this says its number.
+ * Under the portal's key, so it is read again after any change to a board (a new card has a task at once).
+ */
+export const usePortalTasks = (orgId: string, enabled = true) => {
+  const api = useApi();
+  return useQuery({
+    queryKey: keys.portalTasks(orgId),
+    queryFn: () => portalOf(api).tasks(orgId),
+    enabled,
+    refetchInterval: (q) => (isPortalOff(q.state.error) ? false : PORTAL_REFRESH_MS),
+    retry: false,
+    meta: { quiet: true },
+  });
+};
