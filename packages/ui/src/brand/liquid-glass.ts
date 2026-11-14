@@ -132,7 +132,14 @@ export function installLiquidGlass(doc: Document = document): () => void {
       sizes.observe(el);
     }
   };
-  const tree = new win.MutationObserver(scan);
+  // Only a new element can bring a piece: text arriving (a reply as it is written) searches nothing.
+  const tree = new win.MutationObserver((records) => {
+    for (const record of records) {
+      for (const node of record.addedNodes) {
+        if (node.nodeType === 1) return scan();
+      }
+    }
+  });
   tree.observe(doc.body, { childList: true, subtree: true });
   scan();
   root.dataset.glassLens = "";

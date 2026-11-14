@@ -4,6 +4,7 @@ import { tanstackRouter } from "@tanstack/router-plugin/vite";
 import react, { reactCompilerPreset } from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
 import { preloadLocale } from "./vite-locale-preload";
+import { precompress } from "./vite-precompress";
 
 // In development the web app runs on Vite (port 5173) and proxies /api,
 // including the WebSocket at /api/ws, to the server (port 3000). In
@@ -17,6 +18,7 @@ export default defineConfig({
     react(),
     babel({ presets: [reactCompilerPreset()] }),
     preloadLocale(),
+    precompress(),
   ],
   resolve: { alias: { "@": fileURLToPath(new URL("./src", import.meta.url)) } },
   server: { port: 5173, proxy: { "/api": { target: "http://localhost:3000", ws: true } } },

@@ -377,9 +377,11 @@ export function createApp(options: AppOptions) {
   );
 
   if (options.webDir) {
-    const assets = serveStatic({ root: options.webDir });
+    // The build leaves a `.br` and a `.gz` beside each text file (apps/web/vite-precompress.ts): sent as they are to
+    // a browser that takes them, so nothing is compressed per request. A file with no copy goes as it is.
+    const assets = serveStatic({ root: options.webDir, precompressed: true });
     // Client-side routing: unknown non-API paths render the web app.
-    const spa = serveStatic({ root: options.webDir, path: "index.html" });
+    const spa = serveStatic({ root: options.webDir, path: "index.html", precompressed: true });
     const isApi = (path: string) => path.startsWith("/api/");
     // The runner bundle (ADR 0025): always revalidated, JavaScript, and never the SPA when missing.
     app.get("/runner/*", async (c) => {
