@@ -501,7 +501,7 @@ const WHY_PROPERTY: JsonSchema = {
   minLength: WHY_MIN_CHARS,
   maxLength: WHY_MAX_CHARS,
   description:
-    "Why you ask, for the people deciding (shown on the card): what you found and why this action, in their language.",
+    "Why you ask, for the people deciding (shown on the card, where code and commands stay hidden): what you found, what this action will do and why, in their language and in plain words, with no code or tool names.",
 };
 
 /** Whether a tool's own schema already has a `why` (then it is the tool's, never stripped). */

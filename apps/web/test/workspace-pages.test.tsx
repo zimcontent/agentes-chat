@@ -67,9 +67,52 @@ describe("Aprovações", () => {
     await refuse(open);
     expect(state.calls.find((c) => c.method === "approvals.refuse")?.args).toEqual([ORG_ID, "ap-merge", "Falta teste"]);
     expect(pills()).toEqual(["Esperando você1", "Aprovados1", "Recusados1", "Expirados", "Todos3"]);
-    // Under Recent now, refused.
-    expect(row("ap-merge").closest(".ap-list__section")?.querySelector("h2")?.textContent).toBe("Decididos há pouco");
+    // Decided, it leaves the waiting list: it reads under its own filter.
+    expect(row("ap-merge")).toBeNull();
+    await click(screen().getByRole("radio", { name: /^Recusados/ }));
+    await settle(2);
     expect(row("ap-merge").textContent).toContain("Recusado");
+  });
+
+  test("an approved request leaves the waiting list at once, still running or done", async () => {
+    await go("approvals?open=ap-merge");
+    await click(within(pane("Fazer um merge")).getByRole("button", { name: "Aprovar merge" }));
+    await settle(4);
+    expect(row("ap-merge")).toBeNull();
+    expect(document.querySelector(".ap-list__section")).toBeNull();
+    // The next one waiting opens in its place.
+    expect(pane("Fazer um deploy")).toBeTruthy();
+  });
+
+  test("an action that runs code reads by the agent's words; the code stays behind Technical details", async () => {
+    const state = seedState();
+    const merge = state.approvals[0];
+    if (!merge) throw new Error("no approval");
+    const code = ["import os,requests", "T=os.environ['API_TOKEN']", "print(requests.get(URL).status_code)"].join("\n");
+    state.approvals = [
+      {
+        ...merge,
+        id: "ap-code",
+        tool: "run_code",
+        scope: "sandbox:run",
+        title: "Run python code",
+        connector: null,
+        why: "Vou somar os pagamentos aprovados de ontem e do mês para fechar o relatório da manhã.",
+        params: { code, language: "python" },
+      },
+    ];
+    await go("approvals", state);
+    const open = document.querySelector(".ap-review") as HTMLElement;
+    const cards = [...open.querySelectorAll(".ap-review__card")] as HTMLElement[];
+    const action = cards.find((c) => c.textContent?.includes("O que vai fazer")) as HTMLElement;
+    // Its words lead the action's card, with no card of their own above it.
+    expect(action.querySelector(".ap-review__why")?.textContent).toContain("somar os pagamentos");
+    expect(open.querySelectorAll(".ap-review__why")).toHaveLength(1);
+    const labels = [...action.querySelectorAll(".ap-exact__rows dt")].map((d) => d.textContent);
+    expect(labels).toEqual(["Language"]);
+    expect(action.querySelector(".ap-exact__rows")?.textContent).not.toContain("import os");
+    // The code itself, with its lines, is one click away.
+    expect(action.querySelector(".ap-exact__tech pre")?.textContent).toBe(code);
   });
 
   test("nothing waiting: All decided and one link to how approvals work; the header says no more", async () => {
