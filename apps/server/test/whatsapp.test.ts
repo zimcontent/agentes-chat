@@ -149,6 +149,51 @@ describe("WhatsApp over HTTP", () => {
     );
   });
 
+  test("a message's file loads for the number's people: a picture is drawn, anything else is only downloaded", async () => {
+    const { owner, orgId, api, post, secret, gateway } = await start();
+    const account = (await (await api("/accounts", { json: { label: "Comercial" } })).json()) as Account;
+    await post(secret(), event("Connected", { status: "open", jid: "5511911112222@s.whatsapp.net", pushName: "Zim" }));
+    const file = (id: string, message: Record<string, unknown>) =>
+      post(
+        secret(),
+        event("Message", { Info: { ...(hello.data as { Info: object }).Info, ID: id }, Message: message }),
+      );
+    await file("F1", { imageMessage: { mimetype: "image/jpeg", caption: "olha", mediaKey: "a2V5" } });
+    await file("F2", { documentMessage: { mimetype: "text/html", fileName: 'nota "fiscal".html' } });
+    await post(secret(), hello);
+    const { chats } = (await (await api(`/accounts/${account.id}/chats`)).json()) as { chats: Chat[] };
+    const page = (await (await api(`/accounts/${account.id}/chats/${chats[0]?.id}/messages`)).json()) as {
+      messages: { id: string; kind: string; file: boolean }[];
+    };
+    const of = (kind: string) => page.messages.find((m) => m.kind === kind);
+    expect([of("image")?.file, of("document")?.file, of("text")?.file]).toEqual([true, true, false]);
+
+    const picture = await api(`/accounts/${account.id}/messages/${of("image")?.id}/file`);
+    expect([picture.status, picture.headers.get("content-type"), await picture.text()]).toEqual([
+      200,
+      "image/jpeg",
+      "file",
+    ]);
+    expect(picture.headers.get("content-disposition")).toStartWith("inline");
+    expect(picture.headers.get("x-content-type-options")).toBe("nosniff");
+    expect(gateway?.last("download")?.message).toEqual({
+      imageMessage: { mimetype: "image/jpeg", caption: "olha", mediaKey: "a2V5" },
+    });
+    // A page someone sent never opens as ours: it is bytes to save.
+    const page2 = await api(`/accounts/${account.id}/messages/${of("document")?.id}/file`);
+    expect([page2.status, page2.headers.get("content-type")]).toEqual([200, "application/octet-stream"]);
+    expect(page2.headers.get("content-disposition")).toBe("attachment; filename*=UTF-8''nota%20_fiscal_.html");
+
+    expect((await api(`/accounts/${account.id}/messages/${of("text")?.id}/file`)).status).toBe(404);
+    if (gateway) gateway.failNext = "media no longer available";
+    expect((await api(`/accounts/${account.id}/messages/${of("image")?.id}/file`)).status).toBe(502);
+    const member = await joinByInvitation(t, owner, orgId, "leticia@example.com");
+    expect(
+      (await member(`/api/app/organizations/${orgId}/whatsapp/accounts/${account.id}/messages/${of("image")?.id}/file`))
+        .status,
+    ).toBe(404);
+  });
+
   test("a number's agent, turned on, answers who writes; turned off in the conversation it stops", async () => {
     const { agentId, api, post, secret, gateway } = await start(createFakeWhatsAppGateway(), () => ({
       chunks: [JSON.stringify({ action: "reply", messages: ["Bom dia! Como posso ajudar?"], note: "" })],

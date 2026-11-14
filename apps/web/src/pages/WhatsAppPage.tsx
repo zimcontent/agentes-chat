@@ -10,6 +10,7 @@ import {
   type WhatsAppAccount,
   type WhatsAppChat,
   type WhatsAppMessage,
+  whatsappFileUrl,
 } from "@agenteschat/client";
 import { clockAt, dayLabel, formatTime } from "@agenteschat/client/lib/format";
 import {
@@ -106,15 +107,58 @@ function ChatRow({
   );
 }
 
+/**
+ * A message's file: a picture or a sticker drawn, sound and video with their player, anything else a link that
+ * downloads it. One we kept nothing to fetch with, or that WhatsApp no longer has, says so.
+ */
+function FileView({ message, url, w }: { message: WhatsAppMessage; url: string; w: WhatsAppWords }) {
+  const [gone, setGone] = useState(false);
+  const kind = message.kind as keyof typeof KIND_ICONS;
+  const name = message.media?.fileName ?? w.kind[kind as keyof WhatsAppWords["kind"]];
+  if (message.file && !gone && (kind === "image" || kind === "sticker")) {
+    return (
+      <a className="wa-bubble__pic" data-kind={kind} href={url} target="_blank" rel="noreferrer">
+        <img src={url} alt={name} loading="lazy" onError={() => setGone(true)} />
+      </a>
+    );
+  }
+  if (message.file && !gone && kind === "audio") {
+    // biome-ignore lint/a11y/useMediaCaption: a voice message someone sent has no captions to offer
+    return <audio className="wa-bubble__audio" src={url} controls preload="none" onError={() => setGone(true)} />;
+  }
+  if (message.file && !gone && kind === "video") {
+    // biome-ignore lint/a11y/useMediaCaption: a video someone sent has no captions to offer
+    return <video className="wa-bubble__video" src={url} controls preload="none" onError={() => setGone(true)} />;
+  }
+  const words = (
+    <>
+      <Icon name={KIND_ICONS[kind]} />
+      <span>
+        <strong>{name}</strong>
+        <small>{gone ? w.fileGone : message.file ? w.fileDownload : w.fileSoon}</small>
+      </span>
+    </>
+  );
+  return message.file && !gone ? (
+    <a className="wa-bubble__file" href={url} download>
+      {words}
+    </a>
+  ) : (
+    <span className="wa-bubble__file">{words}</span>
+  );
+}
+
 /** One message as a bubble: ours on the right with its ticks, theirs on the left. */
 function Bubble({
   message,
+  fileUrl,
   group,
   answered,
   author,
   w,
 }: {
   message: WhatsAppMessage;
+  fileUrl: string;
   group: boolean;
   answered: WhatsAppMessage | undefined;
   author: string | undefined;
@@ -130,12 +174,12 @@ function Bubble({
           <span className="wa-bubble__who">{message.senderName || showPhone(message.senderPhone) || w.unknown}</span>
         )}
         {answered && <span className="wa-bubble__reply">{preview(answered.kind, answered.body, w)}</span>}
-        {file && (
+        {file && message.media && <FileView message={message} url={fileUrl} w={w} />}
+        {file && !message.media && (
           <span className="wa-bubble__file">
             <Icon name={KIND_ICONS[message.kind as keyof typeof KIND_ICONS]} />
             <span>
-              <strong>{message.media?.fileName ?? w.kind[message.kind as keyof WhatsAppWords["kind"]]}</strong>
-              {message.media && <small>{w.fileSoon}</small>}
+              <strong>{w.kind[message.kind as keyof WhatsAppWords["kind"]]}</strong>
             </span>
           </span>
         )}
@@ -286,6 +330,7 @@ function Conversation({
                   {divider && <DayDivider day={message.at}>{label}</DayDivider>}
                   <Bubble
                     message={message}
+                    fileUrl={whatsappFileUrl(org.id, account.id, message.id)}
                     group={chat?.group ?? false}
                     answered={message.replyToId ? byId.get(message.replyToId) : undefined}
                     author={

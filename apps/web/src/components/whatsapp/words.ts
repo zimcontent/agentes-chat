@@ -30,7 +30,9 @@ const en = {
     poll: "Poll",
     other: "Message",
   },
-  fileSoon: "Open it on the phone for now",
+  fileSoon: "Open it on the phone",
+  fileDownload: "Download",
+  fileGone: "WhatsApp no longer has this file",
   status: {
     pending: "Waiting for the QR code",
     qr: "Waiting to be read",
@@ -170,7 +172,9 @@ const ptBR: typeof en = {
     poll: "Enquete",
     other: "Mensagem",
   },
-  fileSoon: "Por enquanto, abra no celular",
+  fileSoon: "Abra no celular",
+  fileDownload: "Baixar",
+  fileGone: "O WhatsApp não tem mais este arquivo",
   status: {
     pending: "Esperando o QR code",
     qr: "Esperando a leitura",

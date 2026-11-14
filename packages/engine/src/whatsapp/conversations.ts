@@ -1,4 +1,4 @@
-import { bareJid, isGroupJid, type WhatsAppMessage } from "@agenteschat/adapters";
+import { bareJid, isGroupJid, type WhatsAppMessage, whatsappFileMessage } from "@agenteschat/adapters";
 import { and, desc, eq, inArray, lt, schema, sql } from "@agenteschat/db";
 import { NotFoundError, ValidationError } from "../errors";
 import {
@@ -54,6 +54,8 @@ export interface WhatsAppMessageView {
   /** The message this one answers, by this API's id; null when it isn't here. */
   replyToId: string | null;
   media: MessageRow["media"];
+  /** Its file can be asked for (`whatsappMessageFile`): it arrived with one and we kept what fetches it. */
+  file: boolean;
   status: MessageRow["status"];
   /** Who wrote it in our app. */
   sentByUserId: string | null;
@@ -164,6 +166,7 @@ export async function listWhatsAppMessages(
         body: row.body,
         replyToId: row.replyToWaId ? (idOf.get(row.replyToWaId) ?? null) : null,
         media: row.media,
+        file: row.media !== null && whatsappFileMessage(row.raw) !== null,
         status: row.status,
         sentByUserId: row.sentByUserId,
         sentByAgentId: row.sentByAgentId,
@@ -245,6 +248,40 @@ export async function sendWhatsAppText(
     .where(eq(schema.whatsappChats.id, stored.chatId));
   await publishWhatsAppChanged(deps, account, { chatId: stored.chatId });
   return { chatId: stored.chatId };
+}
+
+/** The largest file served: WhatsApp's own limit for a document is far above what a browser tab should hold. */
+export const WHATSAPP_FILE_MAX_BYTES = 64 * 1024 * 1024;
+
+/**
+ * A message's file, for the number's people: fetched from WhatsApp by the gateway each time (nothing of it is
+ * kept here). `NotFoundError` for a message without one; the gateway refuses a file WhatsApp no longer has.
+ */
+export async function whatsappMessageFile(
+  deps: WhatsAppDeps,
+  userId: string,
+  orgId: string,
+  accountId: string,
+  messageId: string,
+) {
+  const account = await requireWhatsAppUse(deps.db, userId, orgId, accountId);
+  const gateway = whatsappGateway(deps);
+  const [row] = await deps.db
+    .select()
+    .from(schema.whatsappMessages)
+    .where(and(eq(schema.whatsappMessages.accountId, accountId), eq(schema.whatsappMessages.id, messageId)));
+  const message = row ? whatsappFileMessage(row.raw) : null;
+  if (!row || !message) throw new NotFoundError("This message has no file");
+  if (account.status !== "connected") throw new ValidationError("This number isn't connected");
+  const file = await gateway.downloadMedia(await accountToken(deps, account), { message });
+  if (file.bytes.byteLength > WHATSAPP_FILE_MAX_BYTES) throw new ValidationError("This file is too large to open here");
+  return {
+    bytes: file.bytes,
+    // What the message itself said it is: the gateway's answer names the same type, less reliably.
+    mimeType: row.media?.mimeType || file.mimeType,
+    fileName: row.media?.fileName ?? null,
+    kind: row.kind,
+  };
 }
 
 /**

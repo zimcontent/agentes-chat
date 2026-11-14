@@ -369,6 +369,44 @@
   color: var(--muted);
   font-size: var(--text-xs);
 }
+a.wa-bubble__file {
+  color: inherit;
+  text-decoration: none;
+}
+/* A picture keeps one box whatever its size, so the list doesn't move as pictures load. */
+.wa-bubble__pic {
+  display: block;
+  width: min(280px, 100%);
+  aspect-ratio: 1;
+  overflow: hidden;
+  border-radius: var(--radius-md);
+  background: var(--plate);
+}
+.wa-bubble__pic[data-kind="sticker"] {
+  width: 128px;
+  background: none;
+}
+.wa-bubble__pic > img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.wa-bubble__pic[data-kind="sticker"] > img {
+  object-fit: contain;
+}
+.wa-bubble__audio {
+  display: block;
+  width: min(280px, 100%);
+  height: var(--control-h-md);
+}
+.wa-bubble__video {
+  display: block;
+  width: min(320px, 100%);
+  aspect-ratio: 16 / 9;
+  border-radius: var(--radius-md);
+  background: var(--plate);
+}
 .wa-bubble__text {
   white-space: pre-wrap;
   overflow-wrap: anywhere;

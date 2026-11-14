@@ -15,6 +15,7 @@ import {
   WHATSAPP_LABEL_MAX,
   WHATSAPP_PAGE_MAX,
   WHATSAPP_TEXT_MAX,
+  whatsappMessageFile,
 } from "@agenteschat/engine";
 import { createRoute, z } from "@hono/zod-openapi";
 import type { Context } from "hono";
@@ -40,6 +41,25 @@ export const WHATSAPP_SENDS_PER_PERSON = { limit: 30, windowMs: 60_000 };
  * is what WhatsApp bans numbers for, whoever types: past this the number only answers and continues conversations.
  */
 export const WHATSAPP_NEW_CHATS_PER_NUMBER = { limit: 20, windowMs: 24 * 60 * 60_000 };
+/** Files one person may load: a conversation full of pictures, opened and scrolled. */
+export const WHATSAPP_FILES_PER_PERSON = { limit: 120, windowMs: 60_000 };
+/**
+ * The types a browser may draw from our address: pictures, sound and video it can't run. Anything else (a PDF, an
+ * HTML page, an SVG someone sent) is only ever downloaded: opened here it would run as our own page.
+ */
+const INLINE_TYPES = /^(image\/(jpeg|png|webp|gif)|audio\/[a-z0-9.+-]+|video\/(mp4|webm|3gpp|quicktime))$/;
+const EXTENSIONS: Record<string, string> = {
+  "image/jpeg": "jpg",
+  "image/png": "png",
+  "image/webp": "webp",
+  "image/gif": "gif",
+  "audio/ogg": "ogg",
+  "audio/mpeg": "mp3",
+  "audio/mp4": "m4a",
+  "video/mp4": "mp4",
+  "application/pdf": "pdf",
+};
+
 /** "Typing…" signals one person may send: the app tells it every few seconds while they write. */
 export const WHATSAPP_TYPING_PER_PERSON = { limit: 60, windowMs: 60_000 };
 /** Numbers one person may connect or reconnect: each try makes the gateway open a session with WhatsApp. */
@@ -121,6 +141,9 @@ const Message = z
     media: z
       .object({ mimeType: z.string(), fileName: z.string().nullable(), seconds: z.number().nullable() })
       .nullable(),
+    file: z.boolean().openapi({
+      description: "Its file can be loaded with `GET …/accounts/{accountId}/messages/{messageId}/file`.",
+    }),
     status: z.enum(["received", "sent", "delivered", "read"]),
     sentByUserId: z.string().nullable().openapi({ description: "Who wrote it here; null: from the phone." }),
     sentByAgentId: z
@@ -390,6 +413,41 @@ export function whatsappRoutes(deps: AppDeps) {
       return c.json(await typingInWhatsAppChat(wa, user.id, orgId, accountId, chatId, typing), 200);
     },
   );
+
+  // A message's file, for the number's people: what an `<img>`, an `<audio>` or a download link loads. Fetched from
+  // WhatsApp by the gateway on each ask and cached by the browser for a day. Never drawn as a page (`INLINE_TYPES`).
+  app.get("/organizations/:orgId/whatsapp/accounts/:accountId/messages/:messageId/file", async (c) => {
+    const params = z.object({ orgId: z.uuid(), accountId: z.uuid(), messageId: z.uuid() }).safeParse({
+      orgId: c.req.param("orgId"),
+      accountId: c.req.param("accountId"),
+      messageId: c.req.param("messageId"),
+    });
+    if (!params.success) return apiError(c, 400, "invalid_request", "Not a message");
+    const user = c.get("user");
+    if (await limited(`whatsapp-file:${user.id}`, WHATSAPP_FILES_PER_PERSON)) {
+      return apiError(c, 429, "rate_limited", "Slow down");
+    }
+    const { orgId, accountId, messageId } = params.data;
+    const got = await reaching(c, () => whatsappMessageFile(wa, user.id, orgId, accountId, messageId));
+    if (got.refused) return got.refused;
+    const file = got.value;
+    const type = file.mimeType.split(";")[0]?.trim().toLowerCase() ?? "";
+    const inline = INLINE_TYPES.test(type);
+    const name = (file.fileName ?? `whatsapp-${messageId.slice(0, 8)}.${EXTENSIONS[type] ?? "bin"}`).replace(
+      /[\r\n"\\/]/g,
+      "_",
+    );
+    return new Response(file.bytes, {
+      headers: {
+        "Content-Type": inline ? type : "application/octet-stream",
+        "Content-Length": String(file.bytes.byteLength),
+        "Content-Disposition": `${inline ? "inline" : "attachment"}; filename*=UTF-8''${encodeURIComponent(name)}`,
+        "X-Content-Type-Options": "nosniff",
+        "Content-Security-Policy": "default-src 'none'; sandbox",
+        "Cache-Control": "private, max-age=86400, immutable",
+      },
+    });
+  });
 
   app.openapi(
     createRoute({

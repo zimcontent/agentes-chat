@@ -72,12 +72,23 @@ export interface WhatsAppMessage {
   body: string;
   replyToId: string | null;
   media: { mimeType: string; fileName: string | null; seconds: number | null } | null;
+  /** Its file can be loaded (`whatsappFileUrl`). */
+  file: boolean;
   status: WhatsAppMessageStatus;
   /** Who wrote it in the app; null: from the phone. */
   sentByUserId: string | null;
   /** The agent that wrote it. */
   sentByAgentId: string | null;
   at: string;
+}
+
+/**
+ * Where a message's file loads from: our server, which fetches it from WhatsApp. `base` is the server for the
+ * phone app (`""` on the web: the same origin).
+ */
+export function whatsappFileUrl(orgId: string, accountId: string, messageId: string, base = "") {
+  const path = `/api/app/organizations/${encodeURIComponent(orgId)}/whatsapp/accounts/${encodeURIComponent(accountId)}/messages/${encodeURIComponent(messageId)}/file`;
+  return `${base.replace(/\/+$/, "")}${path}`;
 }
 
 export interface WhatsAppChatPage {

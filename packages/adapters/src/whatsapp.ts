@@ -78,6 +78,16 @@ export interface WhatsAppGateway {
   markRead(token: string, input: { chat: WhatsAppJid; ids: string[] }): Promise<void>;
   /** "Typing…" on the other side's screen, as WhatsApp's own apps show while someone writes; `false` ends it. */
   setTyping(token: string, input: { chat: WhatsAppJid; typing: boolean }): Promise<void>;
+  /**
+   * A message's file, fetched from WhatsApp and decrypted by the gateway. `message` is the file's message as it
+   * arrived (`whatsappFileMessage`). WhatsApp keeps a file for a few weeks: later the gateway refuses.
+   */
+  downloadMedia(token: string, input: { message: Record<string, unknown> }): Promise<WhatsAppFile>;
+}
+
+export interface WhatsAppFile {
+  mimeType: string;
+  bytes: Uint8Array;
 }
 
 /** The gateway refused a call, or didn't answer. `status` 0: no answer. */
@@ -176,6 +186,16 @@ export function createEvolutionGoGateway(options: EvolutionGoOptions): WhatsAppG
     async setTyping(token, { chat, typing }) {
       await call("POST", "/message/presence", token, { number: chat, state: typing ? "composing" : "paused" });
     },
+    async downloadMedia(token, { message }) {
+      // The answer is a `data:` address: `data:<type>;base64,<bytes>`.
+      const address = str(rec(await call("POST", "/message/downloadmedia", token, { message })).base64);
+      const comma = address.indexOf(",");
+      if (!address.startsWith("data:") || comma < 0) {
+        throw new WhatsAppGatewayError(502, "The WhatsApp gateway answered without a file");
+      }
+      const mimeType = address.slice(5, comma).split(";")[0] || "application/octet-stream";
+      return { mimeType, bytes: new Uint8Array(Buffer.from(address.slice(comma + 1), "base64")) };
+    },
   };
 }
 
@@ -233,6 +253,16 @@ function unwrap(message: Record<string, unknown>): Record<string, unknown> {
     current = inner;
   }
   return current;
+}
+
+/**
+ * The file's own message out of the one an event carried (`WhatsAppMessage.raw`), without the wrappers WhatsApp puts
+ * around it: what the gateway takes back to fetch the file. Null: it carries no file.
+ */
+export function whatsappFileMessage(raw: unknown): Record<string, unknown> | null {
+  const body = unwrap(rec(raw));
+  const field = MEDIA_FIELDS.find(([name]) => body[name] !== undefined)?.[0];
+  return field ? { [field]: body[field] } : null;
 }
 
 /** What kind of message it is, its words and the id of the one it answers. */
@@ -365,7 +395,8 @@ export type FakeWhatsAppCall =
   | { op: "delete"; instanceId: string }
   | { op: "send"; token: string; to: WhatsAppJid; text: string; replyTo: string | null }
   | { op: "read"; token: string; chat: WhatsAppJid; ids: string[] }
-  | { op: "typing"; token: string; chat: WhatsAppJid; typing: boolean };
+  | { op: "typing"; token: string; chat: WhatsAppJid; typing: boolean }
+  | { op: "download"; token: string; message: Record<string, unknown> };
 
 /** A gateway that only remembers what it was asked (tests): no network, no WhatsApp. */
 export function createFakeWhatsAppGateway(): WhatsAppGateway & {
@@ -426,6 +457,12 @@ export function createFakeWhatsAppGateway(): WhatsAppGateway & {
     async setTyping(token: string, { chat, typing }: { chat: WhatsAppJid; typing: boolean }) {
       guard();
       fake.calls.push({ op: "typing", token, chat, typing });
+    },
+    async downloadMedia(token: string, { message }: { message: Record<string, unknown> }) {
+      guard();
+      fake.calls.push({ op: "download", token, message });
+      const part = Object.values(message)[0] as { mimetype?: string } | undefined;
+      return { mimeType: part?.mimetype ?? "application/octet-stream", bytes: new TextEncoder().encode("file") };
     },
   });
 }
