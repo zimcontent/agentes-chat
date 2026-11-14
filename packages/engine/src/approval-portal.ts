@@ -322,6 +322,8 @@ const itemLine = (item: PortalItem) =>
   (item.scheduledFor ? `, date ${item.scheduledFor}` : "") +
   (item.missing.length ? `, missing: ${item.missing.join(", ")}` : "") +
   (item.released ? ", already released for scheduling" : "") +
+  // The post's address is read here, so no agent builds one or asks another for it.
+  (item.link ? `, at the portal: ${item.link}` : "") +
   (item.lastNote?.text && portalColumnOf(item) === "adjusting" ? `\n  client's note: ${item.lastNote.text}` : "");
 const cardLine = (card: PortalCard) =>
   `- ${card.type} "${card.title}" (card ${card.id})` +
@@ -334,7 +336,7 @@ function boardTool(portal: ApprovalPortal): ToolDefinition {
   return {
     name: PORTAL_BOARD_TOOL,
     description:
-      "The approval portal's board: what the team makes for each client and where each post is (to do, in production, waiting for the client's approval, adjustment asked by the client, approved, scheduled, posted). With no `client`: every client and its counts. With a `client`: that client's cards and posts, with ids, dates, what is missing and the client's adjustment notes.",
+      "The approval portal's board: what the team makes for each client and where each post is (to do, in production, waiting for the client's approval, adjustment asked by the client, approved, scheduled, posted). With no `client`: every client and its counts. With a `client`: that client's cards and posts, with ids, dates, what is missing, each post's address at the portal and the client's adjustment notes.",
     scope: "",
     inputSchema: {
       type: "object",

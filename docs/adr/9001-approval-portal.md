@@ -48,7 +48,8 @@ the client sent back and what is ready.
    `portal_board` (read), `portal_card`, `send_for_approval` and `schedule_post` (and `send_new_version`, §17). The last three speak beyond the run's conversation
    (`elsewhere` in the run policy), so a routine never sends, and an agent asks first unless its approvals say
    otherwise. What the board returns (titles, captions, a client's note) is outside text and reaches a model only
-   through `untrustedBlock`.
+   through `untrustedBlock`. The board lists each post with its address at the portal, so the tools answer every
+   question about a post by themselves: no agent stands between another agent and the portal.
 
 7. **Who may.** Members read the board. Whoever may give agents work (`assign_work`) changes cards, completes a post,
    sends and schedules. The portal's refusal comes back in its own words as 400 `portal.refused`; a bridge that doesn't answer,
