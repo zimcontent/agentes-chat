@@ -225,6 +225,18 @@ export interface PortalSend {
   by?: string;
 }
 
+/** A new version of a post the client sent back (ADR 9001 §17). */
+export interface PortalVersion {
+  /** Ids `upload` answered, in the carousel's order: the whole post again, not only what changed. */
+  files: string[];
+  /** What changed, for the client and the team. */
+  note?: string;
+  /** The same key never sends twice. */
+  key?: string;
+  /** Who asked, for the bridge's log. */
+  by?: string;
+}
+
 export interface PortalItemEdit {
   title?: string;
   caption?: string;
@@ -277,6 +289,11 @@ export interface ApprovalPortal {
   upload(name: string, bytes: Uint8Array): Promise<string>;
   send(input: PortalSend): Promise<PortalJob>;
   job(id: string): Promise<PortalJob | null>;
+  /**
+   * Puts a new version on a post the client asked a change on. It goes to the client at once: a portal that holds
+   * a team's version back for an OK of its own is given that OK by the bridge. The job says how it ended.
+   */
+  newVersion(client: string, item: string, input: PortalVersion): Promise<PortalJob>;
   editItem(client: string, item: string, edit: PortalItemEdit, by?: string): Promise<void>;
   /**
    * Releases an approved post for publication at `when` (ISO with an offset): from there the portal's own scheduler
@@ -644,6 +661,14 @@ export function createBridgeApprovalPortal(options: BridgePortalOptions): Approv
         throw error;
       }
     },
+    newVersion: async (client, item, input) =>
+      jobOf(
+        (
+          await request(`/itens/${encodeURIComponent(client)}/${encodeURIComponent(item)}/versao`, {
+            json: { arquivos: input.files, nota: input.note, chave: input.key, por: input.by },
+          })
+        ).trabalho as Wire,
+      ),
     editItem: async (client, item, edit, by) => {
       const json: Wire = { por: by };
       if (edit.title !== undefined) json.titulo = edit.title;
@@ -678,6 +703,7 @@ export function createFakeApprovalPortal(seed: { items?: PortalItem[]; cards?: P
   const sends: (PortalSend & { names: string[] })[] = [];
   const edits: { client: string; item: string; edit: PortalItemEdit; by?: string }[] = [];
   const scheduled: { client: string; item: string; when: string; by?: string }[] = [];
+  const versions: (PortalVersion & { client: string; item: string; names: string[] })[] = [];
   let failure: ApprovalPortalError | null = null;
   let count = 0;
   const next = (prefix: string) => `${prefix}${(++count).toString(16).padStart(12, "0")}`;
@@ -895,6 +921,35 @@ export function createFakeApprovalPortal(seed: { items?: PortalItem[]; cards?: P
       check();
       return jobs.get(id) ?? null;
     },
+    newVersion: async (client, item, input) => {
+      check();
+      const again = input.key ? [...jobs.values()].find((job) => keys.get(job.id) === input.key) : undefined;
+      if (again) return again;
+      const found = items.find((i) => i.client === client && i.id === item);
+      if (!found) throw new ApprovalPortalError(404, "item not found");
+      if (found.status !== "adjust_requested" && found.status !== "adjusting") {
+        throw new ApprovalPortalError(409, "a new version only goes up on a post the client asked a change on");
+      }
+      versions.push({ ...input, client, item, names: input.files.map((id) => uploads.get(id)?.name ?? "?") });
+      // As at a real portal: the version is the client's to approve again.
+      found.version += 1;
+      found.files = input.files.length;
+      found.status = "adjusted";
+      const id = next("");
+      const job: PortalJob = {
+        id,
+        state: "done",
+        client,
+        item,
+        title: found.title,
+        missing: [],
+        link: found.link,
+        error: null,
+      };
+      jobs.set(id, job);
+      if (input.key) keys.set(id, input.key);
+      return job;
+    },
     editItem: async (client, item, edit, by) => {
       check();
       const found = items.find((i) => i.client === client && i.id === item);
@@ -923,6 +978,7 @@ export function createFakeApprovalPortal(seed: { items?: PortalItem[]; cards?: P
     sends,
     edits,
     scheduled,
+    versions,
     /** What `state()` answers from now on. */
     setState: (next: Partial<PortalState>) => {
       state = { ...state, ...next };

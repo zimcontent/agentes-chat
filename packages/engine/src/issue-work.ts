@@ -42,19 +42,24 @@ export function issueWorkOf(
  * move it. The client's own words are never here: the card's tool brings them as outside text.
  */
 function portalPost(source: unknown) {
-  const s = source as { type?: string; client?: string; cardId?: string; synced?: { card?: { stage?: string } } };
+  const s = source as {
+    type?: string;
+    client?: string;
+    cardId?: string;
+    synced?: { card?: { stage?: string; item?: string } };
+  };
   if (s?.type !== "portal" || !s.client || !s.cardId) return "";
   const stage = s.synced?.card?.stage;
+  const post = s.synced?.card?.item;
   return [
     "## The post this task is",
     `This task is a post for the client "${s.client}" on the approval portal's board (card ${s.cardId}${stage ? `, stage: ${stage}` : ""}).`,
     "- Read the card first with `portal_board` for that client: its type, caption, files, production and post dates, and what the client last asked.",
     "- Write what you make on the card with `portal_card` (caption, files, description).",
-    "- When the post is ready, say so here. It goes to the client with `send_for_approval` naming this card, and only when a person of the team tells you to send it.",
-    "- The stage and the task's status follow the portal on their own: never set them yourself.",
     stage === "adjusting"
-      ? "- The client asked for a change. Read the request on the card, make the change, and say here that it is ready to go up again."
-      : "",
+      ? `- The client asked for a change on this post${post ? ` (item ${post} at the portal)` : ""}. Read what they asked with \`portal_board\` (the client's note under the post), make the change, and put the new version up yourself with \`send_new_version\`: every file of the post again, in order. It goes straight to the client. Nobody of the team approves it first: don't ask and don't wait for an OK. Then say here, in one line, that it is up, with the link the tool answered.`
+      : "- When the post is ready, say so here. It goes to the client with `send_for_approval` naming this card, and only when a person of the team tells you to send it.",
+    "- The stage and the task's status follow the portal on their own: never set them yourself.",
   ]
     .filter(Boolean)
     .join("\n");

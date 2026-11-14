@@ -45,7 +45,7 @@ the client sent back and what is ready.
    service and holds no key of one.
 
 6. **Agents get four tools**, built in and listed only with a portal and only in a run a person is behind:
-   `portal_board` (read), `portal_card`, `send_for_approval` and `schedule_post`. The last three speak beyond the run's conversation
+   `portal_board` (read), `portal_card`, `send_for_approval` and `schedule_post` (and `send_new_version`, §17). The last three speak beyond the run's conversation
    (`elsewhere` in the run policy), so a routine never sends, and an agent asks first unless its approvals say
    otherwise. What the board returns (titles, captions, a client's note) is outside text and reaches a model only
    through `untrustedBlock`.
@@ -143,6 +143,40 @@ the client sent back and what is ready.
     `GET /api/app/portal-logos/{orgId}/{client}/{file}`; the bridge keeps only the file's name, with the colours.
     The apps draw it as the client's mark, before the picture of the group named after the client and before its
     initials.
+
+17. **A change the client asks for comes back without anyone's click.** From the client's request to the new
+    version in front of them, every step is a rule in code; a model is asked only to make the change itself.
+    - **Who takes it.** Whoever has the post's task. A post nobody has here goes to whoever the portal says holds
+      it (its designer, the video's editor: `PortalItem.editor`), when one person or agent of the workspace answers
+      to that name: the pass assigns the task and puts them first on the card. Only a post with neither goes to the
+      assistant to hand on (§12), with the name the portal gives for whoever holds it when that is someone outside
+      the workspace (letters and digits of it only).
+    - **An agent** starts on it at once, in the task's conversation, like every task it is asked to implement; a
+      run it already has there takes the request as its next message. Its brief names the post and tells it to put
+      the new version up itself.
+    - **The new version is a send in code.** `send_new_version` (an agent's tool, `sendNewVersion`) takes the post
+      and the whole post's files again, in order, read through the caller's own reader like the first send, and
+      asks the bridge for a new version (`ApprovalPortal.newVersion`, a job like a send's). Only a post the client
+      sent back takes one. It speaks beyond the conversation (`elsewhere`), so a routine never calls it; in a run
+      a person is behind it asks nobody, unless the agent itself is set to always ask.
+    - **No OK of the team in between.** The first send waits for a person's word (§6); a change the client asked
+      for doesn't. A portal that holds a team's version back for a review of its own is given that OK by the
+      bridge, for a version this server sent and for one that reached the portal any other way.
+    - **A person** who has the post is named in the task's conversation and told to put the new version up at the
+      portal itself, with the post's address. This server has no upload of its own for people: the portal's is
+      the one they already use.
+    - **One more request meanwhile.** When the client writes again on a post they already wait on a change of
+      (the time of their last note moved, kept on the task as `source.synced.card.note`), it is one more request:
+      said again and handed to whoever has the post like the first, and an agent's run on it takes it as its next
+      message.
+    - **The assistant looks when it stalls.** The loop needs nobody while it runs, so the one who watches it is
+      the assistant, by a rule: a post still waiting for its new version two hours after the client asked
+      (`watchPortalAdjustments`, from 8h in the owner's time) is told to it once, in its owner's own conversation
+      with it, with who has the post. What to do about it is its judgment. When the change was asked is kept on
+      the task (`source.asked`) while the post is still the team's to give back.
+    - **Said where the team reads.** When the post is back with the client, whoever put the version there, the
+      assistant says so in words written in code, in the task's conversation and in the client's group, with the
+      post's address at the portal. The same address closes the line about the change being asked.
 
 ## Consequences
 

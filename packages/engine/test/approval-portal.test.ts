@@ -13,7 +13,9 @@ import {
   portalColumnOf,
   SCHEDULE_POST_TOOL,
   SEND_FOR_APPROVAL_TOOL,
+  SEND_NEW_VERSION_TOOL,
   sendForApproval,
+  sendNewVersion,
   type ToolContext,
   ValidationError,
 } from "../src";
@@ -62,6 +64,7 @@ describe("the portal's tools", () => {
       PORTAL_CARD_TOOL,
       PORTAL_PLAN_TOOL,
       SEND_FOR_APPROVAL_TOOL,
+      SEND_NEW_VERSION_TOOL,
       SCHEDULE_POST_TOOL,
     ]);
     // A routine's run only reads (it tells each person their day); a call with no run gets none.
@@ -74,6 +77,7 @@ describe("the portal's tools", () => {
     expect(toolKind(builtIn(SEND_FOR_APPROVAL_TOOL)).kind).toBe("elsewhere");
     expect(toolKind(builtIn(PORTAL_CARD_TOOL)).kind).toBe("elsewhere");
     expect(toolKind(builtIn(SCHEDULE_POST_TOOL)).kind).toBe("elsewhere");
+    expect(toolKind(builtIn(SEND_NEW_VERSION_TOOL)).kind).toBe("elsewhere");
     expect(toolKind(builtIn(PORTAL_BOARD_TOOL)).kind).toBe("read");
     expect(toolKind(builtIn(PORTAL_WORK_TOOL)).kind).toBe("read");
     expect(toolKind(builtIn(PORTAL_PLAN_TOOL)).kind).toBe("elsewhere");
@@ -162,6 +166,84 @@ describe("sendForApproval", () => {
       "Nothing to send",
     );
     expect(portal.sends).toHaveLength(0);
+  });
+});
+
+describe("sendNewVersion", () => {
+  const files: Record<string, { name: string; bytes: Uint8Array }> = {
+    a: { name: "slide-1.png", bytes: new Uint8Array([1]) },
+    b: { name: "slide-2.png", bytes: new Uint8Array([2]) },
+    v: { name: "reel-v2.mp4", bytes: new Uint8Array([3]) },
+  };
+  const read = async (id: string) => {
+    const file = files[id];
+    if (!file) throw new ValidationError(`no access to ${id}`);
+    return file;
+  };
+
+  test("the whole post goes up again in order, straight to the client, and the card keeps the new files", async () => {
+    const post = item({ id: "up-9", type: "carousel", status: "adjust_requested", video: false, files: 2 });
+    const portal = createFakeApprovalPortal({ items: [post] });
+    const card = await portal.createCard("acme", { title: "Carousel", type: "carousel", item: post.id });
+    const job = await sendNewVersion(portal, read, {
+      client: "acme",
+      item: "up-9",
+      artifactIds: ["a", "b"],
+      note: "  Slide 2 says partners  ",
+      key: "run:1:call-1",
+      by: "user-1",
+    });
+    expect(job).toMatchObject({ state: "done", client: "acme", item: "up-9", link: post.link });
+    expect(portal.versions).toHaveLength(1);
+    expect(portal.versions[0]).toMatchObject({
+      item: "up-9",
+      names: ["slide-1.png", "slide-2.png"],
+      note: "Slide 2 says partners",
+      by: "user-1",
+    });
+    // With the client again, one version up: nobody of the team stood in between.
+    expect(post).toMatchObject({ status: "adjusted", version: 2 });
+    expect(portalColumnOf(post)).toBe("approval");
+    expect((await portal.cards()).find((c) => c.id === card.id)?.files).toEqual([
+      { id: "a", name: "slide-1.png" },
+      { id: "b", name: "slide-2.png" },
+    ]);
+  });
+
+  test("only a post the client sent back takes one; a reel is one video; an unreadable file sends nothing", async () => {
+    const waiting = item({ id: "up-1", status: "seen" });
+    const reel = item({ id: "up-2", status: "adjusting" });
+    const portal = createFakeApprovalPortal({ items: [waiting, reel] });
+    await expect(sendNewVersion(portal, read, { client: "acme", item: "up-1", artifactIds: ["v"] })).rejects.toThrow(
+      "only goes up on a post the client asked a change on",
+    );
+    await expect(sendNewVersion(portal, read, { client: "acme", item: "nope", artifactIds: ["v"] })).rejects.toThrow(
+      "No post nope",
+    );
+    await expect(
+      sendNewVersion(portal, read, { client: "acme", item: "up-2", artifactIds: ["a", "b"] }),
+    ).rejects.toThrow("one video");
+    await expect(sendNewVersion(portal, read, { client: "acme", item: "up-2", artifactIds: ["gone"] })).rejects.toThrow(
+      "no access to gone",
+    );
+    await expect(sendNewVersion(portal, read, { client: "acme", item: "up-2", artifactIds: [] })).rejects.toThrow(
+      "Nothing to send",
+    );
+    expect(portal.uploads.size).toBe(0);
+    expect(portal.versions).toHaveLength(0);
+  });
+
+  test("the tool tells the agent the version goes up with nobody's OK, and the same call sends once", async () => {
+    const post = item({ id: "up-3", type: "image", status: "adjust_requested", video: false });
+    const portal = createFakeApprovalPortal({ items: [post] });
+    const tools = await createPortalToolSource({ portal, artifacts }).tools(ctx());
+    expect(tools.find((t) => t.name === SEND_NEW_VERSION_TOOL)?.description).toContain("don't ask anyone");
+    const send = () => sendNewVersion(portal, read, { client: "acme", item: "up-3", artifactIds: ["a"], key: "k" });
+    const first = await send();
+    // Retried after the post is already with the client again: the refusal says where it stands, nothing goes up.
+    await expect(send()).rejects.toThrow("already with the client");
+    expect(portal.versions).toHaveLength(1);
+    expect(first.state).toBe("done");
   });
 });
 
