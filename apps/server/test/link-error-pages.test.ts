@@ -78,11 +78,12 @@ describe("a link opened in a browser that the API refuses: our page, same status
       text: "Ele pode ter sido apagado ou estar só numa conversa em que você não está. Peça a quem enviou para compartilhar com você pelo botão Compartilhar do arquivo.",
       action: ["http://localhost:3000/", "Abrir o DougBot"],
     });
-    // The product's look: its signature (the Doug, drawn in the page, and the name) and the sky of the sign-in pages.
+    // The product's look: its signature (the Doug, drawn in the page, and the name) on DougBot's dark ground.
     expect(html).toContain('<span class="logo" role="img" aria-label="DougBot"><svg ');
     expect(html).toContain('<span aria-hidden="true"><b>Doug</b>Bot</span>');
-    expect(html).toContain('class="sky"');
-    expect(html).toContain("prefers-color-scheme:dark");
+    expect(html).not.toContain('class="sky"');
+    expect(html).toContain("--db-palco:#0a0a0a");
+    expect(html).toContain("prefers-color-scheme:light");
   });
 
   test("a deleted file and an out-of-reach one give the same page", async () => {

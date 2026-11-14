@@ -1,7 +1,6 @@
 import { requestLocale } from "@agenteschat/engine";
 import { serverText } from "@agenteschat/i18n";
 import { type AppLocale, appLocale } from "@agenteschat/i18n/locale";
-import { dark, light, type ThemeColors } from "@agenteschat/tokens";
 import { filePath } from "@agenteschat/tokens/message-links";
 import { dougMark } from "@agenteschat/ui/brand/dougbot-files";
 import type { Context, MiddlewareHandler } from "hono";
@@ -53,43 +52,31 @@ const escapeHtml = (s: string) =>
  */
 const LOGO = `<span class="logo" role="img" aria-label="DougBot">${dougMark("dbe")}<span aria-hidden="true"><b>Doug</b>Bot</span></span>`;
 
-const vars = (t: ThemeColors) =>
-  `--bg:${t.bg};--raised:${t.raised};--ink:${t.ink};--muted:${t.muted};--faint:${t.faint};--line:${t.line};--agent:${t.agent};--agent2:${t.agent2};--agent-soft:${t.agentSoft}`;
+/** DougBot's colors (packages/ui/src/styles/dougbot-tokens.css): dark is the identity's own, light from the system. */
+const DARK =
+  "--db-palco:#0a0a0a;--db-palco-2:#121212;--db-linha:#262626;--db-texto:#ededed;--db-texto-2:#999999;--db-texto-3:#6b6b6b;--db-verde-acento:#9cfa05";
+const LIGHT =
+  "--db-palco:#f4f6f2;--db-palco-2:#ffffff;--db-linha:#dde0d8;--db-texto:#0a0a0a;--db-texto-2:#565a52;--db-texto-3:#8a8e85;--db-verde-acento:#3f6600";
 
-/** The sky at the foot of the sign-in pages, drawn with masks as apps/web/public/unavailable.html draws it. */
-const SKY_MASKS = [
-  "M0 0h4v13H0zM0 13h2v1h-2zM3 13h1v1h-1zM0 14h4v1H0zM1 15h1v1h-1zM3 15h1v1h-1zM0 16h1v1h-1zM2 16h1v1h-1zM1 17h1v1h-1zM0 18h1v1h-1zM2 18h1v1h-1zM0 20h1v1h-1z",
-  "M0 0h4v7H0zM1 7h1v1h-1zM3 7h1v1h-1zM0 8h3v1h-3zM1 9h1v1h-1zM3 9h1v1h-1zM0 10h1v1h-1zM2 10h1v1h-1zM0 12h1v1h-1z",
-  "M0 0h4v1H0zM0 1h2v1h-2zM3 1h1v1h-1zM0 2h1v1h-1zM2 2h2v1h-2zM1 3h1v1h-1zM3 3h1v1h-1zM0 4h1v1h-1zM2 4h1v1h-1z",
-].map(
-  (d) =>
-    `url("data:image/svg+xml,${encodeURIComponent(`<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 4 22' shape-rendering='crispEdges'><path d='${d}'/></svg>`)}")`,
-);
-
-const CSS = `:root{color-scheme:light dark;${vars(light)};--font-sans:Onest,"Segoe UI",system-ui,sans-serif}
-@media (prefers-color-scheme:dark){:root{${vars(dark)}}}
+const CSS = `:root{color-scheme:dark;${DARK};--db-verde:#9cfa05;--db-verde-tinta:#0a0a0a;--db-verde-botao:linear-gradient(180deg,#c5ff52,#9cfa05 55%,#84e407);--font-sans:Onest,"Segoe UI",system-ui,sans-serif}
+@media (prefers-color-scheme:light){:root{color-scheme:light;${LIGHT}}}
 *{box-sizing:border-box}
-body{margin:0;min-height:100vh;min-height:100dvh;display:flex;justify-content:center;padding:96px 16px 34vh;background:var(--bg);color:var(--ink);font:15px/1.5 var(--font-sans);-webkit-font-smoothing:antialiased}
+body{margin:0;min-height:100vh;min-height:100dvh;display:flex;justify-content:center;padding:96px 16px 34vh;background:radial-gradient(60% 45% at 50% 42%,color-mix(in srgb,var(--db-verde-acento) 8%,transparent),transparent 70%),var(--db-palco);color:var(--db-texto);font:15px/1.5 var(--font-sans);-webkit-font-smoothing:antialiased}
 .logo{position:absolute;top:24px;left:28px;display:inline-flex;align-items:center;gap:.36em;font:500 22px/1 Manrope,var(--font-sans);letter-spacing:-.035em}
 .logo svg{width:1.42em;height:1.42em;flex:none}
 .logo b{font-weight:800}
 main{display:flex;flex-direction:column;align-items:flex-start;gap:12px;width:min(100%,460px);margin:auto 0}
 h1{margin:0;font-size:24px;line-height:30px;font-weight:700;letter-spacing:-.03em;text-wrap:balance}
-p{margin:0;color:var(--muted)}
+p{margin:0;color:var(--db-texto-2)}
 .actions{display:flex;flex-wrap:wrap;gap:8px;align-self:stretch;margin-top:8px}
-.btn{display:inline-flex;align-items:center;justify-content:center;height:40px;padding:0 14px;border-radius:12px;border:1px solid var(--line);background:var(--raised);color:var(--ink);font-size:14px;font-weight:600;line-height:normal;text-decoration:none}
-.btn--primary{border-color:transparent;background:var(--ink);color:var(--bg)}
-.btn:hover{opacity:.88}
-.btn:focus-visible{outline:none;box-shadow:0 0 0 2px var(--raised),0 0 0 4px var(--ink)}
-.id{font-size:13px;color:var(--faint);font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
-.sky{position:fixed;left:0;right:0;bottom:0;z-index:-1;height:132px;transform:scaleY(-1);pointer-events:none}
-.sky i{position:absolute;inset:0;-webkit-mask:var(--mask) repeat-x 0 0/24px 132px;mask:var(--mask) repeat-x 0 0/24px 132px}
-.sky i:nth-child(1){background:var(--agent-soft);--mask:${SKY_MASKS[0]}}
-.sky i:nth-child(2){background:color-mix(in srgb,var(--agent2) 22%,var(--agent-soft));--mask:${SKY_MASKS[1]}}
-.sky i:nth-child(3){background:color-mix(in srgb,var(--agent2) 44%,var(--agent-soft));--mask:${SKY_MASKS[2]}}
+.btn{display:inline-flex;align-items:center;justify-content:center;height:40px;padding:0 14px;border-radius:12px;border:1px solid var(--db-linha);background:var(--db-palco-2);color:var(--db-texto);font-size:14px;font-weight:600;line-height:normal;text-decoration:none}
+.btn--primary{border-color:transparent;background:var(--db-verde-botao);color:var(--db-verde-tinta);box-shadow:0 6px 22px color-mix(in srgb,var(--db-verde) 22%,transparent)}
+.btn:hover{filter:brightness(1.06)}
+.btn:focus-visible{outline:none;box-shadow:0 0 0 2px var(--db-palco),0 0 0 4px var(--db-verde-acento)}
+.id{font-size:13px;color:var(--db-texto-3);font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
 @media (max-width:639px){body{padding-top:72px}.logo{top:20px;left:16px}.btn{flex:1 1 100%}}`;
 
-/** Only its own styles and the sky's masks inside them: nothing else loads, nothing runs. */
+/** Only its own styles: nothing else loads, nothing runs. */
 export const PAGE_CSP =
   "default-src 'none'; style-src 'unsafe-inline'; img-src data:; base-uri 'none'; form-action 'none'; frame-ancestors 'none'";
 
@@ -134,7 +121,6 @@ ${LOGO}
 <p>${say(`${cause}.text`)}</p>
 ${id}<div class="actions"><a class="btn btn--primary" href="${escapeHtml(action)}">${say(`action.${ACTION_KEY[cause]}`)}</a></div>
 </main>
-<i class="sky" aria-hidden="true"><i></i><i></i><i></i></i>
 </body>
 </html>`;
 }

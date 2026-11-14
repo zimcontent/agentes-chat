@@ -22,10 +22,11 @@ export const dougMark = (id: string) => quiet(DougBot.avatar({ bot: "doug", pert
 
 /**
  * The page a proxy serves while the server is away (apps/web/public/unavailable.html) loads nothing and travels
- * whole inside docker-compose.yml, under 16 KB: its tab's icon and the Doug in its corner are his flat drawing,
- * the same shapes without the glass's light.
+ * whole inside docker-compose.yml, under 16 KB: its tab's icon is the Doug's flat drawing (the same shapes without
+ * the glass's light), and in its middle the Doug in glass, asleep while the server is.
  */
 const FLAT = { bot: "doug", perto: true, material: "chapado", brilho: false } as const;
 export const dougOutageIcon = () =>
   `<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,${encodeURIComponent(DougBot.avatar({ ...FLAT, id: "dbo", titulo: "DougBot" }))}">`;
-export const dougOutageMark = () => quiet(DougBot.avatar({ ...FLAT, id: "dbu" }), "mark");
+export const dougOutageMark = () =>
+  quiet(DougBot.avatar({ bot: "doug", estado: "dormindo", brilho: true, id: "dbu" }), "doug");
