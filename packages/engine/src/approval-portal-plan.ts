@@ -44,7 +44,7 @@ export interface PortalPlan {
   labels: PortalLabel[];
 }
 
-const planCard = (card: PortalCard, items: Map<string, PortalItem>): PlanCard => {
+export const planCard = (card: PortalCard, items: Map<string, PortalItem>): PlanCard => {
   const item = card.item ? items.get(card.item) : undefined;
   return {
     ...card,

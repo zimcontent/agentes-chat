@@ -131,6 +131,8 @@ export interface PortalCard {
   comments: PortalComment[];
   /** The portal's post this card became, once sent: from then on its stage is the post's. */
   item: string | null;
+  /** The workspace task that stands for it (its id), once it has one: where it is assigned and worked on. */
+  task: string | null;
   createdAt: number;
   updatedAt: number;
 }
@@ -154,6 +156,8 @@ export interface PortalCardInput {
   checklist?: PortalCheck[];
   /** Ties the card to a post already at the portal. */
   item?: string | null;
+  /** Ties the card to the workspace task that stands for it. */
+  task?: string | null;
 }
 
 export interface PortalJob {
@@ -375,6 +379,7 @@ function cardOf(wire: Wire): PortalCard {
       at: Math.round(Number(m.ts) * 1000) || 0,
     })),
     item: text(wire.item),
+    task: text(wire.tarefa),
     createdAt: Math.round(Number(wire.criado) * 1000) || 0,
     updatedAt: Math.round(Number(wire.atualizado) * 1000) || 0,
   };
@@ -401,6 +406,7 @@ function cardWire(input: PortalCardInput): Wire {
     wire.checklist = input.checklist.map((c) => ({ id: c.id, texto: c.text, feito: c.done }));
   }
   if (input.item !== undefined) wire.item = input.item;
+  if (input.task !== undefined) wire.tarefa = input.task;
   return wire;
 }
 
@@ -630,6 +636,7 @@ export function createFakeApprovalPortal(seed: { items?: PortalItem[]; cards?: P
         checklist: [],
         comments: [],
         item: null,
+        task: null,
         ...input,
         createdAt: count,
         updatedAt: count,

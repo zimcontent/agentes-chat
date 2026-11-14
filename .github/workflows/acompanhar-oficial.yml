@@ -236,6 +236,7 @@ jobs:
             packages/engine/test/browser-handoff.test.ts
             packages/engine/test/channel-refs.test.ts
             packages/engine/test/approval-portal.test.ts
+            packages/engine/test/approval-portal-tasks.test.ts
             apps/server/test/oauth.test.ts
             apps/server/test/connectors.test.ts
             apps/server/test/sidebar-items.test.ts

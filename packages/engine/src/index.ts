@@ -187,6 +187,7 @@ export * from "./management";
 export * from "./media";
 export * from "./approval-portal";
 export * from "./approval-portal-plan";
+export * from "./approval-portal-tasks";
 export * from "./media-tools";
 export * from "./member-status";
 export * from "./message-links";

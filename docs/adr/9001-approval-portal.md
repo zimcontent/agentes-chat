@@ -69,6 +69,34 @@ the client sent back and what is ready.
    `portal_work` reads a member's work or a client's whole schedule. The two tools that only read are also listed
    for a routine's run, so a routine can tell each person their day; nothing that changes or sends is.
 
+10. **The pipeline.** The overview draws everything not posted yet across every client as one pipeline
+    (`portalPipeline`): one entry per card, or per post no card stands for, with its stage, who is on it, its two
+    dates, whether its production day is past and the client's note while it waits on an adjustment.
+
+11. **A card is a task.** A card and a workspace task are one piece of work seen from two places, so there is one
+    list of what the team has to do, and a card is assigned and worked on the way every task is. Each card gets a
+    task in the project named after its client (`source` `portal`, with the client and the card's id), and one
+    pass in code (`syncPortalTasks`, every 20 s and right after a person changes a card) carries what changed on
+    either side to the other: the title, the description, the production day (the task's due date), who has it
+    (the card's first member, a person or an agent) and the stage. No model is asked.
+    - The card owns the post: type, caption, files, post date, labels, list. The task owns the work: its
+      conversation, its history, the agent's runs.
+    - What each side had at the last pass is kept on the task (`source.synced`), so a change is a difference from
+      it: the side that moved wins, the card when both did.
+    - The task's status is the stage's: `todo`, `doing` → in progress, `approval` and `approved` → in review,
+      `adjusting` → in progress, `scheduled` and `posted` → done. Before the post goes up, moving the task on its
+      board moves the card; after, the stage is the portal's alone.
+    - The pass never deletes. A card whose task a person deleted keeps none; a deleted card cancels its task.
+    - An agent a person puts first on a card starts on its task at once, as "ask an agent" does. Its brief says
+      the task is a post, where it stands and which tools move it; it sends to the client only when a person says
+      so. When the client asks for a change, the agent that has the task is started again.
+    - A stage that changed at the portal is said by the right hand, in words written in code: in the task's
+      conversation (whoever follows the task is notified) and, for a change the client made or a post going out,
+      in the client's group, the open channel whose name carries the client's id. The client's own words are never
+      copied there: they stay on the card, where an agent reads them as outside text.
+    - One installation has one portal, so its tasks live in one workspace: the one that already has them, else
+      the installation's first.
+
 ## Consequences
 
 - The clients' side doesn't change: the same portal, the same link. The team stops opening it to administer.

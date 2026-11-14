@@ -1,4 +1,4 @@
-import type { PubSub } from "@agenteschat/adapters";
+import type { ApprovalPortal, PubSub } from "@agenteschat/adapters";
 import { type Database, ensureMessagePartitions, schema } from "@agenteschat/db";
 import {
   type ArtifactDeps,
@@ -10,6 +10,7 @@ import {
   enqueue,
   enqueueAccountContacts,
   enqueueAutonomyReport,
+  portalTasksTick,
   enqueueIdleReflections,
   enqueueOverdueAccountDeletions,
   enqueueOverdueDeletions,
@@ -125,6 +126,8 @@ export interface WorkerDeps {
   approvalDigest?: { publicUrl: string; afterHours: number };
   /** People's mailboxes (ADR 0038): IMAP polling for routines, and Composio account checks. */
   mail?: { deps: MailDeps; pollSeconds: number };
+  /** The approval portal (ADR 9001): its cards and their tasks are kept in step; absent: no portal. */
+  approvalPortal?: ApprovalPortal;
   /** The agent browser's live view (ADR 0040): expired handoffs are told to its viewers. */
   browserLive?: BrowserLive;
   /** Connected computers: plans stuck at their limit are read again there (`recheckStuckPlans`). */
@@ -176,6 +179,8 @@ export const WORKER_INTERVALS_MS = {
   voiceExpiry: 24 * 3600_000,
   /** How often watched IMAP folders are looked at (each is checked every `MAIL_POLL_SECONDS`). */
   mailPoll: 30_000,
+  /** The approval portal's cards and their tasks (ADR 9001 §11): a change on either side is on the other by then. */
+  portalTasks: 20_000,
   /** Composio accounts' state: mailboxes (expired → "Reconnect") and connectors marked to reconnect (working again → active). */
   mailReconcile: 15 * 60_000,
   /** Workspaces past their deletion's date that nothing keeps any more (a hold lifted, a job lost): also at boot. */
@@ -439,6 +444,22 @@ export function startWorkers(deps: WorkerDeps) {
       const connectors = await reconcileComposioConnectors(db, composio.client);
       if (connectors.healed > 0) log.info("connectors working again at Composio", { healed: connectors.healed });
       for (const failure of connectors.failed) log.warn("connector account check failed", failure);
+    });
+  }
+
+  const portal = deps.approvalPortal;
+  if (portal) {
+    every("portalTasks", WORKER_INTERVALS_MS.portalTasks, async () => {
+      const r = await portalTasksTick({ db, pubsub: deps.pubsub, log }, portal);
+      if (r && r.created + r.toTasks + r.toCards + r.changes.length > 0) {
+        log.info("approval portal: cards and tasks put in step", {
+          created: r.created,
+          toTasks: r.toTasks,
+          toCards: r.toCards,
+          stages: r.changes.length,
+        });
+        void ticks.get("outbox")?.();
+      }
     });
   }
 

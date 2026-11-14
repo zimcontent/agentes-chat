@@ -1,5 +1,6 @@
 import { afterEach, expect, test } from "bun:test";
 import { createFakeApprovalPortal, type PortalItem } from "@agenteschat/adapters";
+import { eq, schema } from "@agenteschat/db";
 import { type Browser, browser, createTestServer, ORIGIN, seedOrg, signUp, type TestServer } from "./harness";
 
 // The approval portal's routes (ADR 9001): the board per client, the team's cards, and a send that reads each Drive
@@ -39,7 +40,7 @@ async function start(portal: ReturnType<typeof createFakeApprovalPortal> | null)
   t = await createTestServer({ approvalPortal: portal, env: { ALLOW_SIGNUP: "true" } });
   const owner = browser(t);
   await signUp(owner, "owner@example.com");
-  const { orgId } = await seedOrg(owner);
+  const { orgId, agentId } = await seedOrg(owner);
   const base = `/api/app/organizations/${orgId}`;
   const api = (path: string, init?: Parameters<Browser>[1]) => owner(`${base}${path}`, init);
   const upload = async (name: string, type: string, bytes: Uint8Array) => {
@@ -53,7 +54,7 @@ async function start(portal: ReturnType<typeof createFakeApprovalPortal> | null)
     expect(res.status).toBe(201);
     return ((await res.json()) as { id: string }).id;
   };
-  return { owner, orgId, base, api, upload };
+  return { owner, orgId, base, api, upload, agentId };
 }
 
 const code = async (res: Response) => ((await res.json()) as { error: { code: string } }).error.code;
@@ -361,4 +362,37 @@ test("the pipeline: every open piece of work across clients, with who is on it a
     ["acme", "card", "Adjusting", "adjusting", true, "Shorter"],
     ["zeta", "post", "Launch reel", "approved", false, null],
   ]);
+});
+
+test("a card is a task too: made with it, started by the agent put on it, canceled when it is deleted", async () => {
+  const portal = createFakeApprovalPortal();
+  const { api, agentId } = await start(portal);
+  type Task = {
+    id: string;
+    number: number;
+    title: string;
+    status: string;
+    assignee: { type: string; id: string } | null;
+  };
+  const made = await api("/portal/cards", { json: { client: "acme", title: "Launch reel", produceOn: "2026-11-20" } });
+  expect(made.status).toBe(200);
+  const { card } = (await made.json()) as { card: { id: string } };
+
+  const { tasks } = (await (await api("/portal/tasks")).json()) as {
+    tasks: { cardId: string; id: string; number: number }[];
+  };
+  expect(tasks).toMatchObject([{ cardId: card.id, number: 1 }]);
+  const task = async () => (await (await api(`/issues/${tasks[0]?.id}`)).json()) as Task & { dueDate: string | null };
+  expect(await task()).toMatchObject({ title: "Launch reel", status: "todo", dueDate: "2026-11-20", assignee: null });
+  expect((await portal.cards())[0]?.task).toBe(tasks[0]?.id ?? "");
+
+  // The agent first on the card has the task and starts on it: the work moves both to "in production".
+  const put = await api(`/portal/cards/${card.id}`, { method: "PATCH", json: { members: [agentId] } });
+  expect(put.status).toBe(200);
+  expect(await task()).toMatchObject({ status: "in_progress", assignee: { type: "agent", id: agentId } });
+  const runs = await t.db.select().from(schema.agentRuns).where(eq(schema.agentRuns.agentId, agentId));
+  expect(runs).toHaveLength(1);
+
+  expect((await api(`/portal/cards/${card.id}`, { method: "DELETE" })).status).toBe(204);
+  expect((await task()).status).toBe("canceled");
 });

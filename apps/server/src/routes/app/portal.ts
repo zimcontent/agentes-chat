@@ -7,6 +7,7 @@ import {
 } from "@agenteschat/adapters";
 import {
   can,
+  cancelPortalTask,
   myPortalWork,
   PORTAL_COLUMNS,
   PORTAL_SEND_FILES,
@@ -16,9 +17,12 @@ import {
   portalOverview,
   portalPipeline,
   portalPlan,
+  portalTaskRefs,
   requireChangePermission,
   requirePermission,
   sendForApproval,
+  startPortalAgent,
+  syncPortalTasks,
 } from "@agenteschat/engine";
 import { createRoute, z } from "@hono/zod-openapi";
 import type { Context } from "hono";
@@ -103,6 +107,7 @@ const Card = z
     checklist: z.array(z.object({ id: z.string(), text: z.string(), done: z.boolean() })),
     comments: z.array(z.object({ id: z.string(), by: z.string(), text: z.string(), at: z.number() })),
     item: z.string().nullable().openapi({ description: "The portal's post this card became, once sent." }),
+    task: z.string().nullable().openapi({ description: "The workspace task that stands for it (its id)." }),
     createdAt: z.number(),
     updatedAt: z.number(),
   })
@@ -150,7 +155,10 @@ const CardFields = {
   order: z.number().finite(),
   description: z.string().max(20000),
   labels: z.array(LabelId).max(30),
-  members: z.array(z.string().min(1).max(64)).max(30),
+  members: z
+    .array(z.string().min(1).max(64))
+    .max(30)
+    .openapi({ description: "People and agents on it; the first has its task, and an agent put first starts on it." }),
   checklist: z.array(z.object({ id: z.string().min(1).max(40), text: z.string().max(300), done: z.boolean() })).max(60),
 };
 const State = z
@@ -184,6 +192,62 @@ export function portalRoutes(deps: AppDeps) {
       ? apiError(c, 400, "portal.refused", error.message)
       : apiError(c, 502, "portal.unavailable", "The approval portal isn't available right now");
   };
+
+  /**
+   * After a person changed a card: its task follows at once instead of at the worker's next pass, and an agent the
+   * person just put first on it starts on the task (ADR 9001 §11). Never fails the change: the worker's pass repairs.
+   */
+  const inStep = async (
+    orgId: string,
+    userId: string,
+    cardId: string,
+    leadBefore: string | null,
+    lead: string | null,
+  ) => {
+    const portal = adapters.approvalPortal;
+    if (!portal) return;
+    const taskDeps = { db, pubsub: adapters.pubsub, log: deps.log };
+    try {
+      await syncPortalTasks(taskDeps, portal, orgId, { cardId });
+      if (lead && lead !== leadBefore) {
+        const ref = (await portalTaskRefs(db, orgId)).get(cardId);
+        if (ref?.assignee?.type === "agent" && ref.assignee.id === lead) {
+          await startPortalAgent(taskDeps, userId, orgId, cardId, lead);
+          deps.wakeWorkers?.();
+        }
+      }
+    } catch (error) {
+      deps.log?.warn("approval portal: a card's task could not follow it", {
+        card: cardId,
+        error: error instanceof Error ? error.message : String(error),
+      });
+    }
+  };
+
+  app.openapi(
+    createRoute({
+      method: "get",
+      path: "/organizations/{orgId}/portal/tasks",
+      tags,
+      security,
+      summary: "Each card's task: its id and number, to open it from the board (members)",
+      request: { params: OrgParams },
+      responses: {
+        200: json(
+          z.object({ tasks: z.array(z.object({ cardId: z.string(), id: z.string(), number: z.number().int() })) }),
+        ),
+        ...errors,
+        404: off,
+      },
+    }),
+    async (c) => {
+      const { orgId } = c.req.valid("param");
+      await requirePermission(db, c.get("user").id, orgId, "read");
+      if (!adapters.approvalPortal) return portalOff(c);
+      const refs = await portalTaskRefs(db, orgId);
+      return c.json({ tasks: [...refs].map(([cardId, ref]) => ({ cardId, id: ref.id, number: ref.number })) }, 200);
+    },
+  );
 
   app.openapi(
     createRoute({
@@ -288,7 +352,11 @@ export function portalRoutes(deps: AppDeps) {
       const portal = adapters.approvalPortal;
       if (!portal) return portalOff(c);
       try {
-        return await (async () => c.json({ card: await portal.createCard(client, input, user.id) }, 200))();
+        return await (async () => {
+          const card = await portal.createCard(client, input, user.id);
+          await inStep(orgId, user.id, card.id, null, card.members[0] ?? null);
+          return c.json({ card }, 200);
+        })();
       } catch (error) {
         return refused(c, error);
       }
@@ -312,8 +380,13 @@ export function portalRoutes(deps: AppDeps) {
       const portal = adapters.approvalPortal;
       if (!portal) return portalOff(c);
       try {
-        return await (async () =>
-          c.json({ card: await portal.updateCard(cardId, c.req.valid("json"), user.id) }, 200))();
+        return await (async () => {
+          const patch = c.req.valid("json");
+          const before = patch.members ? (await portal.cards()).find((card) => card.id === cardId) : undefined;
+          const card = await portal.updateCard(cardId, patch, user.id);
+          await inStep(orgId, user.id, card.id, before?.members[0] ?? null, card.members[0] ?? null);
+          return c.json({ card }, 200);
+        })();
       } catch (error) {
         return refused(c, error);
       }
@@ -339,6 +412,12 @@ export function portalRoutes(deps: AppDeps) {
       try {
         return await (async () => {
           await portal.deleteCard(cardId, user.id);
+          await cancelPortalTask(
+            { db, pubsub: adapters.pubsub, log: deps.log },
+            { type: "person", userId: user.id },
+            orgId,
+            cardId,
+          ).catch(() => {});
           return c.body(null, 204);
         })();
       } catch (error) {

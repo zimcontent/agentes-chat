@@ -481,6 +481,7 @@ async function boot(
     voice: engine.voice,
     approvalDigest: { publicUrl: config.PUBLIC_URL, afterHours: config.APPROVAL_REMINDER_HOURS },
     mail: { deps: engine.mail, pollSeconds: config.MAIL_POLL_SECONDS },
+    approvalPortal: adapters.approvalPortal ?? undefined,
     browserLive: engine.browserLive,
     desktops: engine.desktops,
     machines: engine.machineHub,
