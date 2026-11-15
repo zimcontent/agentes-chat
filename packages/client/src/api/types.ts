@@ -2794,7 +2794,8 @@ export type ConnectOutcome = "connected" | "reconnected" | "same_account";
 export type CustomConnectStart =
   /** `outcome`: absent from an older server. */
   | { status: "connected"; server: CustomServer; outcome?: ConnectOutcome }
-  | { status: "oauth"; authorizeUrl: string }
+  /** `pasteBack`: the sign-in ends on the person's computer; they paste that address to finish (Frame.io). */
+  | { status: "oauth"; authorizeUrl: string; pasteBack?: true }
   /**
    * `not_approved`: it has OAuth but only lets in apps it approved, and agentes.chat isn't one yet. `detail`: how it
    * refused our registration, in its own words (`error: error_description`, short).

@@ -3,6 +3,7 @@ import {
   keys,
   useAgents,
   useCatalog,
+  useCompleteOAuth,
   useConnections,
   useConnectWithKey,
   useCustomServerAction,
@@ -35,8 +36,10 @@ import {
   outcomeText,
 } from "@agenteschat/client/lib/connected";
 import { humanize, isHttpsUrl, sameServer } from "@agenteschat/client/lib/custom-tools";
-import { errorText } from "@agenteschat/client/lib/errors";
+import { errorText, oauthReturnText } from "@agenteschat/client/lib/errors";
+import { safeRedirect } from "@agenteschat/client/lib/guards";
 import { useHeldWhile } from "@agenteschat/client/lib/hold";
+import { pastedOAuthReturn } from "@agenteschat/client/lib/oauth-paste";
 import { connectorBrand, connectorDescription, connectorName } from "@agenteschat/client/lib/scopes";
 import {
   partsOf,
@@ -62,6 +65,7 @@ import {
   Skeleton,
 } from "@agenteschat/ui";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useNavigate } from "@tanstack/react-router";
 import type { TFunction } from "i18next";
 import { type ReactNode, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -260,6 +264,12 @@ function ConnectStep({
   const [keyOpen, setKeyOpen] = useState(false);
   const [needsKey, setNeedsKey] = useState<Extract<CustomConnectStart, { status: "needs_key" }> | null>(null);
   const [touched, setTouched] = useState<"oauth" | "key" | null>(null);
+  // A sign-in that ends on the person's computer (Frame.io): its address to open, then the one it ends on, pasted.
+  const [pasteFrom, setPasteFrom] = useState<string | null>(null);
+  const [pasted, setPasted] = useState("");
+  const [pasteError, setPasteError] = useState<string | null>(null);
+  const complete = useCompleteOAuth(org.id);
+  const navigate = useNavigate();
 
   // An account of a server by address: its own address, whatever the catalog says.
   const fixed = item?.server?.serverUrl ?? null;
@@ -310,8 +320,10 @@ function ConnectStep({
     onClose();
   };
   const byAddressResult = (result: Awaited<ReturnType<typeof connect.mutateAsync>>) => {
-    if (result.status === "oauth") navigateAway(result.authorizeUrl);
-    else if (result.status === "needs_key") {
+    if (result.status === "oauth") {
+      if (result.pasteBack) setPasteFrom(result.authorizeUrl);
+      else navigateAway(result.authorizeUrl);
+    } else if (result.status === "needs_key") {
       setNeedsKey(result);
       setKeyOpen(true);
       setTouched(null);
@@ -353,6 +365,78 @@ function ConnectStep({
       );
     }
   };
+
+  const finishPasted = () => {
+    const read = pastedOAuthReturn(pasted);
+    if (!read) return setPasteError(t("connectFlow.paste.invalid"));
+    if ("error" in read) return setPasteError(oauthReturnText(t, "cancelled"));
+    setPasteError(null);
+    complete.mutate(read, {
+      onSuccess: (finished) => {
+        const to = safeRedirect(finished.returnTo) ?? back;
+        const landing = `connected=${encodeURIComponent(finished.connector)}&outcome=${finished.outcome ?? "connected"}`;
+        onClose();
+        void navigate({ href: `${to}${to.includes("?") ? "&" : "?"}${landing}` });
+      },
+      onError: (failed) => setPasteError(errorText(t, failed)),
+    });
+  };
+
+  if (pasteFrom) {
+    const brand = def ? connectorBrand(def) : (name ?? "");
+    return (
+      <>
+        <Locked when={complete.isPending}>
+          <DialogBody className="cflow__body">
+            <ol className="cflow__paste">
+              <li>
+                <p className="small">{t("connectFlow.paste.open", { name: brand })}</p>
+                <Button asChild size="sm" icon="external">
+                  <a href={pasteFrom} target="_blank" rel="noopener noreferrer">
+                    {t("connectFlow.paste.openLink", { name: brand })}
+                  </a>
+                </Button>
+              </li>
+              <li>
+                <p className="small">{t("connectFlow.paste.after")}</p>
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    finishPasted();
+                  }}
+                >
+                  <Field label={t("connectFlow.paste.label")} id="cflow-paste" error={pasteError ?? undefined}>
+                    <Input
+                      value={pasted}
+                      autoComplete="off"
+                      spellCheck={false}
+                      inputMode="url"
+                      placeholder="http://127.0.0.1:33418/…"
+                      onChange={(e) => {
+                        setPasted(e.target.value);
+                        setPasteError(null);
+                      }}
+                    />
+                  </Field>
+                </form>
+              </li>
+            </ol>
+          </DialogBody>
+        </Locked>
+        <DialogFooter bar note={t("connectFlow.paste.note")}>
+          <Button onClick={onClose}>{t("common.cancel")}</Button>
+          <Button
+            variant="primary"
+            disabled={!pasted.trim() || complete.isPending}
+            loading={complete.isPending}
+            onClick={finishPasted}
+          >
+            {t("connectFlow.paste.finish")}
+          </Button>
+        </DialogFooter>
+      </>
+    );
+  }
 
   const keyForm = (
     <form

@@ -16,7 +16,7 @@ import { beginMcpOAuth, isCustom, storeCustomConnection } from "./custom";
 import { offersCatalog } from "./listing";
 import type { McpConnect } from "./mcp";
 import { clientAuth, getOAuthClient, type McpOAuthDeps, probeMcpServer } from "./oauth-mcp";
-import { oauthReturnTo } from "./oauth-return";
+import { LOOPBACK_OAUTH_REDIRECT, oauthReturnTo } from "./oauth-return";
 import { presetForServer } from "./presets";
 
 const {
@@ -1159,7 +1159,10 @@ async function completeMcpOAuth(
     {
       grant_type: "authorization_code",
       code,
-      redirect_uri: oauthRedirectUri(deps.publicUrl),
+      // The redirect the authorization was asked with: the person's computer for a pasted return.
+      redirect_uri: presetForServer(row.serverUrl)?.pasteBack
+        ? LOOPBACK_OAUTH_REDIRECT
+        : oauthRedirectUri(deps.publicUrl),
       code_verifier: verifier,
       ...(row.resource ? { resource: row.resource } : {}),
       ...auth.form,

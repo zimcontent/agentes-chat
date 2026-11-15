@@ -13183,6 +13183,15 @@
     "agentSub": "Per connettore e argomento. Di norma le azioni sensibili chiedono l'approvazione."
   },
   "connectFlow": {
+    "paste": {
+      "open": "Accedi con l’account Adobe che usi per {{name}}. L’accesso si apre in una nuova scheda.",
+      "openLink": "Apri l’accesso a {{name}}",
+      "after": "Alla fine, quella scheda va su una pagina che non si apre (127.0.0.1). È normale: copia il suo indirizzo dalla barra degli indirizzi e incollalo qui.",
+      "label": "Indirizzo di quella pagina",
+      "invalid": "Questo non è l’indirizzo in cui è finito l’accesso. Copialo dalla barra degli indirizzi della scheda aperta.",
+      "note": "Il codice in quell’indirizzo vale una sola volta e solo per il tuo account.",
+      "finish": "Completa la connessione"
+    },
     "steps": "Passaggi",
     "step": {
       "0": "Collega",

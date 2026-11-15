@@ -12657,6 +12657,15 @@
     "agentSub": "Bağlayıcıya ve konuya göre. Varsayılan olarak hassas eylemler onay ister."
   },
   "connectFlow": {
+    "paste": {
+      "open": "{{name}} için kullandığın Adobe hesabıyla giriş yap. Giriş yeni bir sekmede açılır.",
+      "openLink": "{{name}} girişini aç",
+      "after": "Sonunda o sekme açılmayan bir sayfaya gider (127.0.0.1). Bu normal: adres çubuğundan adresini kopyala ve buraya yapıştır.",
+      "label": "O sayfanın adresi",
+      "invalid": "Bu, girişin bittiği adres değil. Açılan sekmenin adres çubuğundan kopyala.",
+      "note": "Bu adresteki kod yalnızca bir kez ve yalnızca senin hesabın için geçerli.",
+      "finish": "Bağlantıyı tamamla"
+    },
     "steps": "Adımlar",
     "step": {
       "0": "Bağla",

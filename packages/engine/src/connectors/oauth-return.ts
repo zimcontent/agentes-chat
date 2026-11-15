@@ -38,6 +38,31 @@ export function oauthReturnTo(input: string | undefined): string {
   return sitePath(input) ? input : "/";
 }
 
+/**
+ * Where a vendor that accepts no web address of ours sends its sign-in back (ADR 0130, addendum 2026-11-15): the
+ * person's own computer, where nothing listens. Frame.io registers only `localhost` and the addresses of the clients
+ * Adobe approved; its page then fails to open, and the person pastes its address into the connect dialog, which
+ * finishes with their session (`POST …/connectors/oauth/complete`). The state stays bound to that person, and PKCE to
+ * this server, so an address seen by anyone else can't be used.
+ */
+export const LOOPBACK_OAUTH_REDIRECT = "http://127.0.0.1:33418/dougbot/connectors/oauth";
+
+/** The start of the state's `returnTo` when the person pastes the return address back: the path to land on follows. */
+export const PASTE_OAUTH_RETURN = "paste:";
+
+/** The authorization comes back by a pasted address. */
+export const isPasteReturn = (returnTo: string) => returnTo.startsWith(PASTE_OAUTH_RETURN);
+
+/** The path on our site a pasted authorization lands on once finished. */
+export const pasteReturnPath = (returnTo: string) => returnTo.slice(PASTE_OAUTH_RETURN.length) || "/";
+
+/** A `returnTo` for a pasted return: the path the dialog was opened from (an app's marker lands at the root). */
+export function pasteReturnTo(input: string | undefined): string {
+  const returnTo = oauthReturnTo(input);
+  const path = isDesktopReturn(returnTo) ? desktopReturnPath(returnTo) : isAppReturn(returnTo) ? "/" : returnTo;
+  return PASTE_OAUTH_RETURN + path;
+}
+
 /** The authorization was started by the phone app. */
 export const isAppReturn = (returnTo: string) => returnTo === APP_OAUTH_RETURN;
 

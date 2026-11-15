@@ -211,7 +211,8 @@ export function connectorListing(server: ServerCatalog): ConnectorListingEntry[]
       kind: "remote_mcp",
       category: p.category,
       // A service through Composio signs in there; a vendor's own server takes a key too.
-      auth: way.via === "composio" || (p.cloudOAuthOnly && server.cloud) ? ["oauth"] : ["oauth", "api_key"],
+      auth:
+        way.via === "composio" || p.pasteBack || (p.cloudOAuthOnly && server.cloud) ? ["oauth"] : ["oauth", "api_key"],
       oauthConfigured: true,
       ...way,
       ...brand(p.icon),

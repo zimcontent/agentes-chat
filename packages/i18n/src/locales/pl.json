@@ -13629,6 +13629,15 @@
     "agentSub": "Według konektora i tematu. Domyślnie akcje wrażliwe proszą o zatwierdzenie."
   },
   "connectFlow": {
+    "paste": {
+      "open": "Zaloguj się kontem Adobe, którego używasz w {{name}}. Logowanie otworzy się w nowej karcie.",
+      "openLink": "Otwórz logowanie do {{name}}",
+      "after": "Na końcu ta karta przejdzie na stronę, która się nie otworzy (127.0.0.1). Tak ma być: skopiuj jej adres z paska adresu i wklej tutaj.",
+      "label": "Adres tej strony",
+      "invalid": "To nie jest adres, na którym zakończyło się logowanie. Skopiuj go z paska adresu otwartej karty.",
+      "note": "Kod w tym adresie działa raz i tylko dla Twojego konta.",
+      "finish": "Zakończ łączenie"
+    },
     "steps": "Kroki",
     "step": {
       "0": "Połącz",

@@ -12722,6 +12722,15 @@
     "agentSub": "Nach Konnektor und Thema. Standardmäßig fragen sensible Aktionen nach Freigabe."
   },
   "connectFlow": {
+    "paste": {
+      "open": "Melde dich mit dem Adobe-Konto an, das du für {{name}} nutzt. Die Anmeldung öffnet sich in einem neuen Tab.",
+      "openLink": "Anmeldung bei {{name}} öffnen",
+      "after": "Am Ende landet der Tab auf einer Seite, die nicht lädt (127.0.0.1). Das ist so gewollt: Kopiere ihre Adresse aus der Adressleiste und füge sie hier ein.",
+      "label": "Adresse dieser Seite",
+      "invalid": "Das ist nicht die Adresse, auf der die Anmeldung endete. Kopiere sie aus der Adressleiste des geöffneten Tabs.",
+      "note": "Der Code in dieser Adresse gilt nur einmal und nur für dein Konto.",
+      "finish": "Verbindung abschließen"
+    },
     "steps": "Schritte",
     "step": {
       "0": "Verbinden",

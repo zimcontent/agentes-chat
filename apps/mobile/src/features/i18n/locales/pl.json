@@ -2243,6 +2243,7 @@
     "addressHelp": "Adres serwera MCP usługi (zaczyna się od https://).",
     "addressLabel": "Adres",
     "addressInvalid": "Użyj adresu https://.",
+    "computerOnly": "Połącz {{name}} z komputera: logowanie nie może wrócić do aplikacji.",
     "needsKey": "Ten serwer wymaga klucza.",
     "working": "Łączenie…",
     "failed": "Nie udało się połączyć. Spróbuj ponownie.",

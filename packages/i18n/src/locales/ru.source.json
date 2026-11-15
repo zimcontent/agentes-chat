@@ -30882,6 +30882,27 @@
   "toolReview.agentSub": {
     "value": "By connector and subject. By default, sensitive actions ask for approval."
   },
+  "connectFlow.paste.open": {
+    "value": "Sign in with the Adobe account you use for {{name}}. It opens in a new tab."
+  },
+  "connectFlow.paste.openLink": {
+    "value": "Open the {{name}} sign-in"
+  },
+  "connectFlow.paste.after": {
+    "value": "At the end, that tab goes to a page that doesn't open (127.0.0.1). That's expected: copy its address from the address bar and paste it here."
+  },
+  "connectFlow.paste.label": {
+    "value": "That page's address"
+  },
+  "connectFlow.paste.invalid": {
+    "value": "That isn't the address the sign-in ended on. Copy it from the address bar of the tab that opened."
+  },
+  "connectFlow.paste.note": {
+    "value": "The code in that address works once, and only for your account."
+  },
+  "connectFlow.paste.finish": {
+    "value": "Finish connecting"
+  },
   "connectFlow.steps": {
     "value": "Steps"
   },

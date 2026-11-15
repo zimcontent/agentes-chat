@@ -12290,6 +12290,15 @@
     "agentSub": "Per konektor dan topik. Secara default, tindakan sensitif minta persetujuan."
   },
   "connectFlow": {
+    "paste": {
+      "open": "Masuk dengan akun Adobe yang kamu pakai di {{name}}. Halaman masuk terbuka di tab baru.",
+      "openLink": "Buka halaman masuk {{name}}",
+      "after": "Di akhir, tab itu menuju halaman yang tidak terbuka (127.0.0.1). Itu memang begitu: salin alamatnya dari bilah alamat dan tempel di sini.",
+      "label": "Alamat halaman itu",
+      "invalid": "Itu bukan alamat tempat proses masuk berakhir. Salin dari bilah alamat tab yang terbuka.",
+      "note": "Kode di alamat itu hanya berlaku sekali dan hanya untuk akunmu.",
+      "finish": "Selesaikan koneksi"
+    },
     "steps": "Langkah",
     "step": {
       "0": "Hubungkan",

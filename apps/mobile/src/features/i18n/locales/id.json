@@ -1943,6 +1943,7 @@
     "addressHelp": "Alamat server MCP layanan itu (diawali https://).",
     "addressLabel": "Alamat",
     "addressInvalid": "Pakai alamat https://.",
+    "computerOnly": "Hubungkan {{name}} dari komputer: proses masuknya tidak bisa kembali ke aplikasi.",
     "needsKey": "Server ini meminta kunci.",
     "working": "Menghubungkan…",
     "failed": "Tidak bisa menghubungkan. Coba lagi.",

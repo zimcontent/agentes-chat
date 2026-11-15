@@ -21,10 +21,12 @@ import {
   isAppReturn,
   isCustom,
   isDesktopReturn,
+  isPasteReturn,
   listAgentScopes,
   listConnections,
   listGitHubAppInstallations,
   NotFoundError,
+  pasteReturnPath,
   peekOAuthState,
   presetForServer,
   renameConnection,
@@ -418,7 +420,7 @@ export function connectorRoutes(deps: AppDeps) {
       path: "/organizations/{orgId}/connectors/oauth/complete",
       tags,
       security,
-      summary: "Finish an OAuth connection the phone app or the desktop app started (admins)",
+      summary: "Finish an OAuth connection the phone app, the desktop app or a pasted address started (admins)",
       description:
         "The phone app opened the authorize URL in the system browser (`returnTo: \"app:connectors\"`), or the desktop app's window did (`returnTo: \"desktop:\"` + a path); the callback handed `state` and `code` back to the app, which sends them here with its own session. The state must be this person's and this organization's, unused and not expired. `returnTo`: the path a desktop authorization lands on. `connector.misconfigured` (500, with `provider`): the provider refused this server's own OAuth app, reported as an error.",
       request: {
@@ -446,13 +448,17 @@ export function connectorRoutes(deps: AppDeps) {
       if (
         !started ||
         started.orgId !== orgId ||
-        !(isAppReturn(started.returnTo) || isDesktopReturn(started.returnTo))
+        !(isAppReturn(started.returnTo) || isDesktopReturn(started.returnTo) || isPasteReturn(started.returnTo))
       ) {
         throw new NotFoundError("This authorization link is invalid or expired");
       }
       const { connection, returnTo, outcome } = await completeOAuth(connectorDeps, user, input);
       await afterConnected(connection, user.id);
-      const landing = isDesktopReturn(returnTo) ? { returnTo: desktopReturnPath(returnTo) } : {};
+      const landing = isDesktopReturn(returnTo)
+        ? { returnTo: desktopReturnPath(returnTo) }
+        : isPasteReturn(returnTo)
+          ? { returnTo: pasteReturnPath(returnTo) }
+          : {};
       return c.json({ connectionId: connection.id, connector: connection.connector, outcome, ...landing }, 200);
     },
   );

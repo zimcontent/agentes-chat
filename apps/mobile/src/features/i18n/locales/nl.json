@@ -2043,6 +2043,7 @@
     "addressHelp": "Het adres van de MCP-server van de dienst (begint met https://).",
     "addressLabel": "Adres",
     "addressInvalid": "Gebruik een https://-adres.",
+    "computerOnly": "Verbind {{name}} vanaf een computer: het inloggen kan niet terug naar de app.",
     "needsKey": "Deze server vraagt om een sleutel.",
     "working": "Verbinden…",
     "failed": "Verbinden lukte niet. Probeer het opnieuw.",

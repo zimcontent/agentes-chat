@@ -12832,6 +12832,17 @@ export const ptBR = {
     agentSub: "Por conector e assunto. Por padrão, ações sensíveis pedem aprovação.",
   },
   connectFlow: {
+    /** A sign-in that ends on the person's computer (Frame.io): `name` is the service. */
+    paste: {
+      open: "Entre com a conta Adobe que você usa no {{name}}. O login abre numa aba nova.",
+      openLink: "Abrir o login do {{name}}",
+      after:
+        "No fim, essa aba vai para uma página que não abre (127.0.0.1). É assim mesmo: copie o endereço dela na barra de endereço e cole aqui.",
+      label: "Endereço dessa página",
+      invalid: "Esse não é o endereço em que o login terminou. Copie da barra de endereço da aba que abriu.",
+      note: "O código desse endereço vale uma vez e só para a sua conta.",
+      finish: "Concluir conexão",
+    },
     steps: "Passos",
     step: { "0": "Conectar", "1": "O que faz", "2": "Quem pode usar" },
     connectTitle: "Conectar {{name}}",
