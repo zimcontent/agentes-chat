@@ -1,4 +1,5 @@
 import {
+  bareJid,
   jidPhone,
   parseEvolutionEvent,
   type WhatsAppEvent,
@@ -23,6 +24,50 @@ export const WHATSAPP_AGENT_JITTER_MS = 5_000;
 /** A message older than this when it arrives (kept by WhatsApp while the number was out) starts no answer. */
 export const WHATSAPP_AGENT_FRESH_MS = 10 * 60_000;
 export const WHATSAPP_AGENT_ATTEMPTS = 4;
+/**
+ * In a group the agent speaks only once called (an @ to the number, its name, a reply to one of its messages), and
+ * stays in the conversation, without being called again, until the group goes this long without a message
+ * (docs/adr/doug-0007-whatsapp-groups.md).
+ */
+export const WHATSAPP_GROUP_SESSION_MINUTES = 30;
+
+const plain = (text: string) => text.toLowerCase().normalize("NFD").replace(/\p{M}/gu, "");
+
+/** Whether `text` says `name` as a word of its own ("Doug, me ajuda", "valeu doug"), whatever its accents and case. */
+export function namesAgent(text: string, name: string) {
+  const wanted = plain(name).trim();
+  if (wanted.length < 2) return false;
+  const escaped = wanted.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  return new RegExp(`(^|[^\\p{L}\\p{N}])@?${escaped}($|[^\\p{L}\\p{N}])`, "u").test(plain(text));
+}
+
+/**
+ * Whether a group message calls the number's agent: an @ to the number (by either of its addresses), the agent's
+ * name in the words, or a reply to a message this number sent.
+ */
+async function callsAgent(
+  db: Database,
+  account: Pick<WhatsAppAccountRow, "id" | "jid" | "lid" | "agentId">,
+  message: WhatsAppMessage,
+) {
+  const ours = [account.jid, account.lid].filter((jid): jid is string => !!jid).map(bareJid);
+  if (message.mentions?.some((jid) => ours.includes(bareJid(jid)))) return true;
+  if (account.agentId) {
+    const [agent] = await db
+      .select({ name: schema.agents.name, handle: schema.agents.handle })
+      .from(schema.agents)
+      .where(eq(schema.agents.id, account.agentId));
+    if (agent && (namesAgent(message.text, agent.name) || namesAgent(message.text, agent.handle))) return true;
+  }
+  if (message.replyTo) {
+    const [quoted] = await db
+      .select({ fromMe: schema.whatsappMessages.fromMe })
+      .from(schema.whatsappMessages)
+      .where(and(eq(schema.whatsappMessages.accountId, account.id), eq(schema.whatsappMessages.waId, message.replyTo)));
+    if (quoted?.fromMe) return true;
+  }
+  return false;
+}
 
 /** What the list shows for a message without words. */
 export function whatsappPreview(message: Pick<WhatsAppMessage, "kind" | "text">) {
@@ -298,8 +343,37 @@ async function apply(deps: InboundDeps, account: WhatsAppAccountRow, event: What
       if (event.message.kind === "reaction") return null;
       // Status updates ("stories") and channels aren't conversations.
       if (event.message.chat.endsWith("@broadcast") || event.message.chat.endsWith("@newsletter")) return null;
+      // What this number sends in a group tells its hidden id there (also the agent's own messages, stored before
+      // their event comes back): mentions may name it by that.
+      const sender = bareJid(event.message.sender);
+      if (event.message.group && event.message.fromMe && sender.endsWith("@lid") && sender !== account.lid) {
+        await db.update(accounts).set({ lid: sender }).where(eq(accounts.id, account.id));
+      }
       const stored = await storeWhatsAppMessage(db, account, event.message);
       if (!stored.fresh) return null;
+      const fresh = Date.now() - event.message.at.getTime() < WHATSAPP_AGENT_FRESH_MS;
+      let answers = !event.message.group;
+      if (event.message.group) {
+        // Any message keeps an open conversation going; a call opens one. Past it, the agent waits to be called.
+        const [chat] = await db
+          .select({ until: schema.whatsappChats.agentSessionUntil })
+          .from(schema.whatsappChats)
+          .where(eq(schema.whatsappChats.id, stored.chatId));
+        const open = !!chat?.until && chat.until.getTime() > event.message.at.getTime();
+        const called =
+          !event.message.fromMe && fresh && account.agentId && account.agentOn
+            ? await callsAgent(db, account, event.message)
+            : false;
+        if (open || called) {
+          await db
+            .update(schema.whatsappChats)
+            .set({
+              agentSessionUntil: new Date(event.message.at.getTime() + WHATSAPP_GROUP_SESSION_MINUTES * 60_000),
+            })
+            .where(eq(schema.whatsappChats.id, stored.chatId));
+        }
+        answers = open || called;
+      }
       if (event.message.fromMe) {
         // Written on the phone itself (what the app or the agent sends is stored before its event arrives, or
         // put right after): a person took the conversation, so the agent stays quiet there for a while.
@@ -307,13 +381,7 @@ async function apply(deps: InboundDeps, account: WhatsAppAccountRow, event: What
           .update(schema.whatsappChats)
           .set({ personAt: event.message.at, needsPerson: false, agentNote: "" })
           .where(eq(schema.whatsappChats.id, stored.chatId));
-      } else if (
-        stored.messageId &&
-        account.agentId &&
-        account.agentOn &&
-        !event.message.group &&
-        Date.now() - event.message.at.getTime() < WHATSAPP_AGENT_FRESH_MS
-      ) {
+      } else if (stored.messageId && account.agentId && account.agentOn && answers && fresh) {
         await enqueue(db, {
           orgId: account.orgId,
           kind: WHATSAPP_AGENT_JOB,

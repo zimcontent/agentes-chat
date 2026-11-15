@@ -147,6 +147,30 @@ describe("GIPHY", () => {
     expect(await gifs.media("zzz999", "full", "g")).toBeNull();
   });
 
+  test("video: a GIF's MP4 for WhatsApp, only as video/mp4 from GIPHY's hosts; none without one", async () => {
+    const mp4 = "https://media0.giphy.com/media/aaa111/giphy-downsized-small.mp4";
+    const withVideo = {
+      ...DANCE,
+      images: { ...DANCE.images, downsized_small: { mp4, width: "480", height: "270" } },
+    };
+    const page = (data: unknown[]) =>
+      Response.json({ data, pagination: { total_count: 1, count: 1, offset: 0 }, meta: { status: 200 } });
+    const fetch = (async (input: string | URL | Request) => {
+      const url = new URL(input instanceof Request ? input.url : input.toString());
+      if (url.hostname === "api.giphy.com") return page([withVideo, PARTY]);
+      if (url.href === mp4) return new Response(new Uint8Array([7, 7]), { headers: { "content-type": "video/mp4" } });
+      return new Response(tinyGif(), { headers: { "content-type": "image/gif" } });
+    }) as typeof globalThis.fetch;
+    const gifs = createGiphyGifs({ apiKey: "k", fetch });
+    await gifs.search({ query: "dance", rating: "pg", limit: 4, offset: 0 });
+    const video = await gifs.video?.("aaa111", "g");
+    expect([...(video?.bytes ?? [])]).toEqual([7, 7]);
+    expect(video?.contentType).toBe("video/mp4");
+    // No MP4 listed, or above the rating: none.
+    expect(await gifs.video?.("bbb222", "pg")).toBeNull();
+    expect(await gifs.video?.("bbb222", "g")).toBeNull();
+  });
+
   test("files: a GIF above the workspace's rating is none, and nothing of it is fetched", async () => {
     const giphy = fakeGiphy();
     const gifs = createGiphyGifs({ apiKey: "k", fetch: giphy.fetch });

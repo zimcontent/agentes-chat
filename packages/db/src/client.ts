@@ -171,6 +171,9 @@ export const EXTRA_COLUMNS = [
   `ALTER TABLE "whatsapp_accounts" ADD COLUMN IF NOT EXISTS "agent_voice_notes" boolean NOT NULL DEFAULT true`,
   `ALTER TABLE "whatsapp_accounts" ADD COLUMN IF NOT EXISTS "agent_voice" text`,
   `ALTER TABLE "whatsapp_chats" ADD COLUMN IF NOT EXISTS "portal_client" text`,
+  // The number's agent in groups, when called (docs/adr/doug-0007-whatsapp-groups.md).
+  `ALTER TABLE "whatsapp_accounts" ADD COLUMN IF NOT EXISTS "lid" text`,
+  `ALTER TABLE "whatsapp_chats" ADD COLUMN IF NOT EXISTS "agent_session_until" timestamp with time zone`,
   // Live voice: calls with agents and messages told by voice (ADR doug-0006).
   `ALTER TABLE "agents" ADD COLUMN IF NOT EXISTS "voice" text`,
   `CREATE TABLE IF NOT EXISTS "live_voice_keys" (

@@ -47,6 +47,8 @@ export interface WhatsAppMessage {
   text: string;
   /** The message this one answers, by WhatsApp's id. */
   replyTo: string | null;
+  /** Who the message mentions with an @, by address (number or hidden id). Absent: none. */
+  mentions?: WhatsAppJid[];
   /** A file's type and name, when it is one. */
   media: { mimeType: string; fileName: string | null; seconds: number | null } | null;
   /**
@@ -117,6 +119,11 @@ export interface WhatsAppGateway {
       fileName: string;
       caption?: string;
       replyTo?: string | null;
+      /**
+       * A video WhatsApp should play as a GIF (silent, looping, no play button): asked as `gifPlayback`. A gateway
+       * that doesn't know the field sends an ordinary short video.
+       */
+      gif?: boolean;
     },
   ): Promise<WhatsAppSent & { message: Record<string, unknown> | null }>;
   /**
@@ -261,7 +268,7 @@ export function createEvolutionGoGateway(options: EvolutionGoOptions): WhatsAppG
       if (!id) throw new WhatsAppGatewayError(502, "The WhatsApp gateway sent a message without an id");
       return { id, at: date(info.Timestamp) };
     },
-    async sendFile(token, { to, kind, bytes, mimeType, fileName, caption, replyTo }) {
+    async sendFile(token, { to, kind, bytes, mimeType, fileName, caption, replyTo, gif }) {
       // The file goes as a form (`multipart/form-data`): as JSON it would be a third larger.
       const form = new FormData();
       form.set("number", to);
@@ -269,6 +276,7 @@ export function createEvolutionGoGateway(options: EvolutionGoOptions): WhatsAppG
       form.set("filename", fileName);
       if (caption) form.set("caption", caption);
       if (replyTo) form.set("quoted.messageId", replyTo);
+      if (gif && kind === "video") form.set("gifPlayback", "true");
       form.set("file", new Blob([bytes], { type: mimeType }), fileName);
       let res: Response;
       try {
@@ -407,16 +415,24 @@ export function whatsappFileMessage(raw: unknown): Record<string, unknown> | nul
 }
 
 /** What kind of message it is, its words and the id of the one it answers. */
-function contentOf(message: Record<string, unknown>): Pick<WhatsAppMessage, "kind" | "text" | "replyTo" | "media"> {
+function contentOf(
+  message: Record<string, unknown>,
+): Pick<WhatsAppMessage, "kind" | "text" | "replyTo" | "media" | "mentions"> {
   const body = unwrap(message);
   const reply = (part: unknown) => str(rec(rec(part).contextInfo).stanzaID) || null;
+  // The people an @ names, as WhatsApp lists them beside the words (`contextInfo.mentionedJID`).
+  const mentioned = (part: unknown) => {
+    const list = rec(rec(part).contextInfo).mentionedJID;
+    const jids = (Array.isArray(list) ? list : []).map((jid) => bareJid(str(jid))).filter(Boolean);
+    return jids.length > 0 ? { mentions: jids } : {};
+  };
 
   if (typeof body.conversation === "string" && body.conversation) {
     return { kind: "text", text: body.conversation, replyTo: null, media: null };
   }
   if (body.extendedTextMessage !== undefined) {
     const part = rec(body.extendedTextMessage);
-    return { kind: "text", text: str(part.text), replyTo: reply(part), media: null };
+    return { kind: "text", text: str(part.text), replyTo: reply(part), media: null, ...mentioned(part) };
   }
   for (const [field, kind] of MEDIA_FIELDS) {
     if (body[field] === undefined) continue;
@@ -425,6 +441,7 @@ function contentOf(message: Record<string, unknown>): Pick<WhatsAppMessage, "kin
       kind,
       text: str(part.caption),
       replyTo: reply(part),
+      ...mentioned(part),
       media: {
         mimeType: str(part.mimetype) || "application/octet-stream",
         fileName: str(part.fileName) || null,
@@ -618,6 +635,7 @@ export type FakeWhatsAppCall =
       fileName: string;
       caption: string;
       size: number;
+      gif?: boolean;
     }
   | { op: "sticker"; token: string; to: WhatsAppJid; url: string }
   | { op: "read"; token: string; chat: WhatsAppJid; ids: string[] }
@@ -690,6 +708,7 @@ export function createFakeWhatsAppGateway(): WhatsAppGateway & {
         mimeType: string;
         fileName: string;
         caption?: string;
+        gif?: boolean;
       },
     ) {
       guard();
@@ -701,6 +720,7 @@ export function createFakeWhatsAppGateway(): WhatsAppGateway & {
         fileName: input.fileName,
         caption: input.caption ?? "",
         size: input.bytes.byteLength,
+        ...(input.gif ? { gif: true } : {}),
       });
       return {
         id: `SENT${++sent}`,

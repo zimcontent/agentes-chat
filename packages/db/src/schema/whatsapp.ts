@@ -28,6 +28,11 @@ export const whatsappAccounts = pgTable(
     /** The number's own address once connected, and its digits. */
     jid: text(),
     phone: text(),
+    /**
+     * The number's hidden id (`…@lid`), learned from what it sends in a group: groups name their members by it, so a
+     * mention of this number may carry it instead of `jid` (docs/adr/doug-0007-whatsapp-groups.md). Null: not yet.
+     */
+    lid: text(),
     /** The name the phone shows for itself. */
     pushName: text().notNull().default(""),
     /** The gateway's id for this number. */
@@ -120,6 +125,12 @@ export const whatsappChats = pgTable(
      */
     memberUserId: text(),
     portalClient: text(),
+    /**
+     * A group only: the agent is in the conversation until then. Called (a mention, its name, a reply to it) opens it;
+     * every message in the group moves it to that message plus `WHATSAPP_GROUP_SESSION_MINUTES`; past it the agent
+     * waits to be called again (docs/adr/doug-0007-whatsapp-groups.md).
+     */
+    agentSessionUntil: timestamp({ withTimezone: true }),
     /**
      * Where its profile photo is on WhatsApp's servers, as the gateway last told (null: none, or hidden from this
      * number), and when it was asked: asked again a day later, or when the address stops answering.

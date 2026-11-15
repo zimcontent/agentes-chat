@@ -16,7 +16,7 @@ or gives the conversation back to it.
 
 **It only answers.** A message from outside queues job `whatsapp.agent_reply` 8 to 13 seconds later. The job
 answers only if that message is still the conversation's latest, so several messages in a row get one answer, and
-nothing is ever sent to someone who didn't write. Never a group, never a message WhatsApp kept from more than ten
+nothing is ever sent to someone who didn't write. Never a group (until doug-0007: only when called), never a message WhatsApp kept from more than ten
 minutes ago.
 
 **A person comes first.** When a person writes in a conversation, in the app or on the phone itself

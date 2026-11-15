@@ -70,7 +70,8 @@ export function sayable(text: string) {
 export async function sendVoiceNote(
   deps: WhatsAppDeps,
   account: WhatsAppAccountRow,
-  chat: Pick<typeof schema.whatsappChats.$inferSelect, "id" | "jid" | "personAt">,
+  chat: Pick<typeof schema.whatsappChats.$inferSelect, "id" | "jid" | "personAt"> &
+    Partial<Pick<typeof schema.whatsappChats.$inferSelect, "group" | "name">>,
   agentId: string,
   text: string,
 ) {
@@ -93,8 +94,8 @@ export async function sendVoiceNote(
     sender: account.jid ?? "",
     senderName: account.pushName,
     fromMe: true,
-    group: false,
-    groupName: "",
+    group: chat.group ?? false,
+    groupName: chat.group ? (chat.name ?? "") : "",
     at: sent.at,
     kind: "audio",
     text: words,

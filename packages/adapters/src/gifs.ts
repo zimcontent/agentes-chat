@@ -49,6 +49,11 @@ export interface GifProvider {
   get(id: string, rating: GifRating): Promise<Gif | null>;
   /** One file of a GIF, for the server's media route; null when it doesn't exist or is rated above `rating`. */
   media(id: string, size: GifSize, rating: GifRating): Promise<GifMediaFile | null>;
+  /**
+   * The GIF as a short MP4 with no sound, what WhatsApp plays as a GIF (docs/adr/doug-0008-whatsapp-gif.md):
+   * the bytes, or null when there is none or it is rated above `rating`. Absent: the provider has no video.
+   */
+  video?(id: string, rating: GifRating): Promise<{ bytes: Uint8Array; contentType: string } | null>;
 }
 
 /** The provider didn't answer as it should (no answer in time, a refused key, a limit, an outage). */
@@ -73,6 +78,10 @@ const TRENDING_OFFSET_MAX = 499;
 export const GIF_FILE_MAX_BYTES = 8 * 1024 * 1024;
 /** The only files served: never a page or a script on our origin. */
 const IMAGE_TYPES = new Set(["image/gif", "image/webp", "image/png", "image/jpeg"]);
+/** A GIF's MP4, fetched only for WhatsApp (`video`), never served on our origin. */
+const VIDEO_TYPES = new Set(["video/mp4"]);
+/** GIPHY's renditions with an MP4 small enough for a message, the first one found wins. */
+const VIDEO_RENDITIONS = ["downsized_small", "fixed_height", "fixed_width", "original"];
 const TIMEOUT_MS = 8_000;
 const MAX_REDIRECTS = 3;
 /** Ids whose files were looked up: most images are served without an API call. */
@@ -105,6 +114,7 @@ const RENDITIONS: Record<GifSize, string[]> = {
 
 interface GiphyRendition {
   url?: unknown;
+  mp4?: unknown;
   width?: unknown;
   height?: unknown;
 }
@@ -127,6 +137,8 @@ interface GifEntry {
   gif: Gif;
   rating: string;
   urls: Partial<Record<GifSize, string>>;
+  /** Its MP4 (`video`), when GIPHY has one. */
+  mp4?: string;
 }
 
 /** An address the server fetches files from: GIPHY's own hosts over https, nothing else. */
@@ -174,7 +186,11 @@ function entryOf(raw: GiphyGif | null | undefined): GifEntry | null {
     }
   }
   if (!urls.full) return null;
+  const mp4 = VIDEO_RENDITIONS.map((name) => images[name]?.mp4)
+    .map((href) => (typeof href === "string" ? giphyUrl(href) : null))
+    .find((url) => url !== null);
   return {
+    ...(mp4 ? { mp4: mp4.href } : {}),
     gif: {
       id: raw.id,
       title: cleanTitle(raw.title),
@@ -328,8 +344,8 @@ export function createGiphyGifs(options: GiphyOptions & { apiKey: string }): Gif
     return entry;
   }
 
-  /** A file from GIPHY's hosts (redirects too), an image at most `GIF_FILE_MAX_BYTES`; null otherwise. */
-  async function file(raw: string): Promise<GifMediaFile | null> {
+  /** A file from GIPHY's hosts (redirects too), an image (or with `types`, a video) at most `GIF_FILE_MAX_BYTES`. */
+  async function file(raw: string, types = IMAGE_TYPES): Promise<GifMediaFile | null> {
     let target = giphyUrl(raw);
     const signal = AbortSignal.timeout(timeoutMs);
     try {
@@ -343,7 +359,7 @@ export function createGiphyGifs(options: GiphyOptions & { apiKey: string }): Gif
         }
         const type = (res.headers.get("content-type") ?? "").split(";")[0]?.trim().toLowerCase() ?? "";
         const declared = Number(res.headers.get("content-length") ?? "0");
-        if (!res.ok || !IMAGE_TYPES.has(type) || declared > GIF_FILE_MAX_BYTES) {
+        if (!res.ok || !types.has(type) || declared > GIF_FILE_MAX_BYTES) {
           await res.body?.cancel().catch(() => undefined);
           return null;
         }
@@ -388,6 +404,13 @@ export function createGiphyGifs(options: GiphyOptions & { apiKey: string }): Gif
       if (!found) known.delete(id);
       return found;
     },
+    async video(id, rating) {
+      const entry = await lookup(id).catch(() => null);
+      if (!entry?.mp4 || !gifRatingAllowed(entry.rating, rating)) return null;
+      const found = await file(entry.mp4, VIDEO_TYPES);
+      if (!found || !(found.body instanceof ArrayBuffer)) return null;
+      return { bytes: new Uint8Array(found.body), contentType: found.contentType };
+    },
   };
 }
 
@@ -425,6 +448,7 @@ export function createKeyedGifs(options: GiphyOptions & { key: () => string | nu
     trending: async (input) => keyed().trending(input),
     get: async (id, rating) => keyed().get(id, rating),
     media: async (id, size, rating) => (await current()?.media(id, size, rating)) ?? null,
+    video: async (id, rating) => (await current()?.video?.(id, rating)) ?? null,
   };
 }
 
@@ -517,6 +541,11 @@ export function createFakeGifs(options: { gifs?: FakeGif[] } = {}) {
       const found = all.find((g) => g.id === id);
       if (!found || !gifRatingAllowed(found.rating, rating)) return null;
       return { body: tinyGif(), contentType: "image/gif" };
+    },
+    async video(id, rating) {
+      const found = all.find((g) => g.id === id);
+      if (!found || !gifRatingAllowed(found.rating, rating)) return null;
+      return { bytes: new Uint8Array([0, 0, 0, 24, 0x66, 0x74, 0x79, 0x70]), contentType: "video/mp4" };
     },
   };
   return provider;
