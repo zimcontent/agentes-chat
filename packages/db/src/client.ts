@@ -73,6 +73,8 @@ export const EXTRA_COLUMNS = [
   `ALTER TABLE "channels" ADD COLUMN IF NOT EXISTS "display_name" text`,
   `ALTER TABLE "channels" ADD COLUMN IF NOT EXISTS "icon" text`,
   `ALTER TABLE "agents" ADD COLUMN IF NOT EXISTS "photo" text`,
+  // An AI account's place in its owner's stand-in order (ADR doug-0003, addendum 2026-11-14).
+  `ALTER TABLE "machine_accounts" ADD COLUMN IF NOT EXISTS "stand_in_rank" integer`,
   // WhatsApp numbers and their conversations (`schema/whatsapp.ts`).
   `CREATE TABLE IF NOT EXISTS "whatsapp_accounts" (
     "id" uuid PRIMARY KEY,

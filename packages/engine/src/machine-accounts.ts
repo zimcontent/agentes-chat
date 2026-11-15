@@ -157,6 +157,11 @@ export interface MachineAccountView {
   providerOrgId: string | null;
   /** Who it thinks for (ADR 0059 §3): everyone in the workspace, or only its owner. */
   serves: PlanServes;
+  /**
+   * Its place in its owner's stand-in order (ADR doug-0003, addendum 2026-11-14), 1 first; null: not in it. Its
+   * owner's eyes only.
+   */
+  standInRank: number | null;
 }
 
 /** Who a plan thinks for (`machine_accounts.serves`, ADR 0059 §3). */
@@ -255,6 +260,7 @@ function accountView(
     shared: row.shared,
     providerOrgId: mine ? row.providerOrgId : null,
     serves: servesOf(row.serves),
+    standInRank: mine ? (row.standInRank ?? null) : null,
   };
 }
 

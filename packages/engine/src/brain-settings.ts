@@ -1573,6 +1573,64 @@ export async function setAccountServes(
   return { serves, agentIds: changed.agentIds };
 }
 
+/** The most accounts a stand-in order holds. */
+export const STAND_IN_ORDER_MAX = 12;
+
+/**
+ * `PUT …/ai-accounts/stand-in-order` (ADR doug-0003, addendum 2026-11-14): the caller's own accounts, in the order
+ * that thinks for an agent whose account reaches 90% of a window (`chainStandIn`), first first. The caller's accounts
+ * not listed leave the order. Only accounts the caller connected, signed in or not. Audited (`account.stand_in_order`).
+ */
+export async function setStandInOrder(
+  deps: { db: Database; pubsub?: PubSub },
+  userId: string,
+  orgId: string,
+  accountIds: unknown,
+): Promise<{ accountIds: string[] }> {
+  if (
+    !Array.isArray(accountIds) ||
+    accountIds.length > STAND_IN_ORDER_MAX ||
+    accountIds.some((id) => typeof id !== "string") ||
+    new Set(accountIds).size !== accountIds.length
+  ) {
+    throw new ValidationError("Choose up to 12 different accounts", "account.invalid");
+  }
+  const ids = accountIds as string[];
+  await requirePermission(deps.db, userId, orgId, "read");
+  const { machineAccounts } = schema;
+  const mine = await deps.db
+    .select({ id: machineAccounts.id, machineId: machineAccounts.machineId, status: machineAccounts.status })
+    .from(machineAccounts)
+    .where(and(eq(machineAccounts.orgId, orgId), eq(machineAccounts.createdBy, userId)));
+  const listed = mine.filter((r) => LISTED_ACCOUNT_STATUSES.includes(r.status));
+  if (ids.some((id) => !listed.some((r) => r.id === id))) {
+    throw new ForbiddenError("Only the accounts you connected go in your order", "account.not_owner");
+  }
+  await deps.db.transaction(async (tx) => {
+    await tx
+      .update(machineAccounts)
+      .set({ standInRank: null })
+      .where(and(eq(machineAccounts.orgId, orgId), eq(machineAccounts.createdBy, userId)));
+    for (const [i, id] of ids.entries()) {
+      await tx
+        .update(machineAccounts)
+        .set({ standInRank: i + 1, updatedAt: new Date() })
+        .where(and(eq(machineAccounts.orgId, orgId), eq(machineAccounts.id, id)));
+    }
+  });
+  await recordAudit(deps.db, {
+    orgId,
+    actor: { type: "person", id: userId },
+    action: "account.stand_in_order",
+    target: { type: "machine_account", id: ids[0] ?? userId },
+    details: { accounts: ids },
+  });
+  for (const machineId of new Set(mine.map((r) => r.machineId))) {
+    await publishAccountsChanged(deps.pubsub, orgId, machineId);
+  }
+  return { accountIds: ids };
+}
+
 // ── Missions ────────────────────────────────────────────────────────────────
 
 /** The brain a mission's executor means (`claude` → Claude Code, `codex` → Codex, `agent` → the model). */

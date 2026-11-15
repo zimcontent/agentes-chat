@@ -21,7 +21,7 @@ import {
   planOf,
   speedFits,
 } from "@agenteschat/providers/plans";
-import { planState, planWindows } from "@agenteschat/ui/plan-state";
+import { PLAN_CRITICAL, planState, planWindows } from "@agenteschat/ui/plan-state";
 import type { Agent } from "../agents";
 import type { MachineStatus } from "../machine-hub";
 import { pausedMessage } from "../machines";
@@ -584,11 +584,24 @@ export function enableAccountStandIns(on = true) {
 }
 
 /**
- * The account that thinks while `own` is at its plan's limit (ADR doug-0003): another signed-in account of the same
- * person, plan and audience on the same computer, the oldest that has room. None where they are off, where `own`
- * has room or isn't signed in (that is fixed by signing in, not by spending another plan), or where each agent is its
- * own OS user (the computer tells each agent's worker the one account it thinks with). `own` thinks again by itself
- * once its limit resets: this is asked on every turn.
+ * From this share of a window (90%, where its bar turns red) an account hands over to the next one (ADR doug-0003,
+ * addendum 2026-11-14): before long work pauses at 95% (`PLAN_PAUSE`) and before the plan refuses a turn.
+ */
+export const STAND_IN_AT = PLAN_CRITICAL;
+
+/** Whether this sign-in hands over: at its plan's limit, or a window at `STAND_IN_AT` or more. */
+function handsOver(key: string, usage: PlanUsage | null | undefined, now: number) {
+  if (planLimitNow(key, usage, now)) return true;
+  return usage ? planState(usage, now).used >= STAND_IN_AT : false;
+}
+
+/**
+ * The account that thinks while `own` is near its plan's limit (`handsOver`, ADR doug-0003): another signed-in account
+ * of the same person, plan and audience on the same computer, the oldest under `STAND_IN_AT`; with none and `own` at its
+ * very limit, the oldest that still has room. None where they are off, where `own` is under the line or isn't signed in
+ * (that is fixed by signing in, not by spending another plan), or where each agent is its own OS user (the computer
+ * tells each agent's worker the one account it thinks with). `own` thinks again by itself once its window resets: this
+ * is asked on every turn.
  */
 export async function standInAccount(
   db: Executor,
@@ -621,15 +634,22 @@ export async function standInAccount(
     .orderBy(machineAccounts.createdAt, machineAccounts.id);
   const mine = rows.find((r) => r.id === own.id);
   if (!mine?.createdBy) return undefined;
-  if (!planLimitNow(limitKey(machineId, kind, own.id), mine.usage as PlanUsage | null, now)) return undefined;
-  const other = rows.find(
+  const key = (id: string) => limitKey(machineId, kind, id);
+  const usage = (r: (typeof rows)[number]) => r.usage as PlanUsage | null;
+  if (!handsOver(key(own.id), usage(mine), now)) return undefined;
+  const others = rows.filter(
     (r) =>
       r.id !== own.id &&
       r.createdBy === mine.createdBy &&
       r.serves === mine.serves &&
-      (r.provider ?? null) === (mine.provider ?? null) &&
-      !planLimitNow(limitKey(machineId, kind, r.id), r.usage as PlanUsage | null, now),
+      (r.provider ?? null) === (mine.provider ?? null),
   );
+  // One under the line first; with none, and `own` at its very limit, one that still has any room.
+  const other =
+    others.find((r) => !handsOver(key(r.id), usage(r), now)) ??
+    (planLimitNow(key(own.id), usage(mine), now)
+      ? others.find((r) => !planLimitNow(key(r.id), usage(r), now))
+      : undefined);
   if (!other) return undefined;
   const [machine] = await db
     .select({ mode: sql<string | null>`${machines.executors}->>'mode'` })
@@ -642,6 +662,85 @@ export async function standInAccount(
     status: "active",
     ...(other.provider ? { provider: other.provider } : {}),
     standsInFor: { id: own.id, label: own.label },
+  };
+}
+
+/**
+ * The model each brain runs when it thinks in another brain's place (ADR doug-0003, addendum 2026-11-14): ChatGPT's
+ * GPT-6.1 Sol and Gemini 4 Hydrogen; any other, its default. In its own brain's place, the agent's own model.
+ */
+export const STAND_IN_MODELS: Partial<Record<BrainKind, string>> = {
+  codex: "gpt-6.1-sol",
+  antigravity: "gemini-4-hydrogen-medium",
+};
+
+/**
+ * The account that thinks while the one the agent would think with (`account`, past `standInAccount`) is at 90% of a
+ * window or at its limit (`handsOver`), from its owner's stand-in order (`machine_accounts.stand_in_rank`, ADR
+ * doug-0003, addendum 2026-11-14): the first there, lowest rank first, signed in on the same computer and under the
+ * line, of any brain (another brain runs `STAND_IN_MODELS`). The order is its owner's own choice, so it needs no
+ * server switch. None without an order, with every account in it past the line (then the agent's own goes on to its
+ * limit, and the API key after it where the agent has one), for a signed-out account (signing in fixes that), or where
+ * each agent is its own OS user.
+ */
+export async function chainStandIn(
+  db: Executor,
+  orgId: string,
+  kind: BrainKind,
+  machineId: string,
+  account: BrainAccount | undefined,
+  now = Date.now(),
+): Promise<{ kind: BrainKind; model?: string; account: BrainAccount } | undefined> {
+  if (kind === "model" || !account || account.status !== "active") return undefined;
+  const own = account.standsInFor ?? account;
+  const { machineAccounts, machines } = schema;
+  const rows = await db
+    .select({
+      id: machineAccounts.id,
+      label: machineAccounts.label,
+      kind: machineAccounts.kind,
+      provider: machineAccounts.provider,
+      usage: machineAccounts.usage,
+      createdBy: machineAccounts.createdBy,
+      rank: machineAccounts.standInRank,
+    })
+    .from(machineAccounts)
+    .where(
+      and(
+        eq(machineAccounts.orgId, orgId),
+        eq(machineAccounts.machineId, machineId),
+        eq(machineAccounts.status, "active"),
+      ),
+    )
+    .orderBy(machineAccounts.standInRank, machineAccounts.createdAt, machineAccounts.id);
+  const mine = rows.find((r) => r.id === own.id);
+  if (!mine?.createdBy) return undefined;
+  const order = rows.filter((r) => r.rank !== null && r.createdBy === mine.createdBy);
+  if (order.length === 0) return undefined;
+  const past = (r: (typeof rows)[number]) =>
+    handsOver(limitKey(machineId, r.kind as BrainKind, r.id), r.usage as PlanUsage | null, now);
+  // The account thinking now (its own, or one `standInAccount` chose) still has room: it goes on.
+  const thinking = rows.find((r) => r.id === account.id);
+  if (thinking && !past(thinking)) return undefined;
+  const next = order.find((r) => r.id !== own.id && r.id !== account.id && !past(r));
+  if (!next) return undefined;
+  const [machine] = await db
+    .select({ mode: sql<string | null>`${machines.executors}->>'mode'` })
+    .from(machines)
+    .where(and(eq(machines.orgId, orgId), eq(machines.id, machineId)));
+  if (machine?.mode === "system") return undefined;
+  const nextKind = next.kind as BrainKind;
+  const model = nextKind === kind ? undefined : STAND_IN_MODELS[nextKind];
+  return {
+    kind: nextKind,
+    ...(model ? { model } : {}),
+    account: {
+      id: next.id,
+      label: next.label,
+      status: "active",
+      ...(next.provider ? { provider: next.provider } : {}),
+      standsInFor: { id: own.id, label: own.label },
+    },
   };
 }
 
@@ -840,15 +939,24 @@ export async function resolveBrain(
   const mission: MissionTurn | null = await missionTurnFor(deps.db, run).catch(() => null);
   // The right hand: the AI of the person whose DM this is, else the workspace's; on a plan, its computer and owner.
   const agent = await thinkingAgent(deps.db, given, await rightHandPerson(deps.db, given, run));
-  const kind = brainFor(agent, run, mission);
+  let kind = brainFor(agent, run, mission);
   const base = mission ? { missionId: mission.missionId } : {};
   if (kind === "model") return { kind, ...base };
-  const model = brainModelFor(kind, agent, mission);
+  let model = brainModelFor(kind, agent, mission);
   const machineId = mission?.session?.machineId ?? agent.machineId ?? null;
-  const [status, account] = await Promise.all([
-    machineId && deps.machines ? deps.machines.status(machineId).catch(() => null) : null,
-    brainAccountFor(deps.db, agent, kind, machineId),
-  ]);
+  const status = machineId && deps.machines ? await deps.machines.status(machineId).catch(() => null) : null;
+  let account = await brainAccountFor(deps.db, agent, kind, machineId);
+  // Its account at 90%: the next one in its owner's stand-in order thinks instead, of any brain (ADR doug-0003,
+  // addendum 2026-11-14). Never a mission's session (it stays where its work is) nor the right hand (its person's AI).
+  const instead =
+    !mission && machineId && !isRightHand(agent)
+      ? await chainStandIn(deps.db, agent.orgId, kind, machineId, account).catch(() => undefined)
+      : undefined;
+  if (instead) {
+    if (instead.kind !== kind) model = instead.model ?? brainModelFor(instead.kind, agent, null);
+    kind = instead.kind;
+    account = instead.account;
+  }
   const usage =
     machineId && deps.machines
       ? await storedPlanUsage(deps.db, agent.orgId, machineId, kind, account?.id).catch(() => null)

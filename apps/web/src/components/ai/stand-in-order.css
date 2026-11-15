@@ -1,0 +1,41 @@
+/* Configurações › IA e uso › Contas reserva (StandInOrder.tsx): a numbered list on hairlines, like the plan rows. */
+.stand-in {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.stand-in__row {
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) 0;
+}
+.stand-in__row + .stand-in__row {
+  border-top: 1px solid var(--line);
+}
+.stand-in__rank {
+  font-size: 13px;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+  color: var(--muted);
+  text-align: center;
+}
+.stand-in__text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.stand-in__name {
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 22px;
+}
+.stand-in__acts {
+  display: flex;
+  gap: var(--space-1);
+}
+.stand-in__last {
+  margin: var(--space-3) 0 0;
+}

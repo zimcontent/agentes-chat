@@ -15127,6 +15127,17 @@
       "savedEveryone": "现在整个 workspace 都使用这个套餐。",
       "savedOwner": "现在只有你使用这个套餐。"
     },
+    "standIn": {
+      "title": "备用账户",
+      "about": "当代理使用的账户达到其限额的 90% 时，代理会在同一台电脑上改用此列表中第一个低于 90% 的账户。ChatGPT 使用 GPT-6.1 Sol 回答，Gemini 使用 Gemini 4 Hydrogen 回答。账户续期后，代理会回到自己的账户。",
+      "empty": "没有备用账户。添加一个，让代理在某个账户用满时继续工作。",
+      "last": "全部超过 90% 时：先用代理自己的账户直到达到限额，然后使用它的 API 密钥（如有）。",
+      "add": "添加账户",
+      "up": "上移 {{label}}",
+      "down": "下移 {{label}}",
+      "remove": "移除 {{label}}",
+      "saved": "已保存备用账户的顺序。"
+    },
     "logins_other": "{{count}} 个登录",
     "noWindows": "再次使用此账号后会显示限额。",
     "unused": "没有智能体使用此账号。",

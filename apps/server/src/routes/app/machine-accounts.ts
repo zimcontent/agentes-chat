@@ -11,6 +11,7 @@ import {
   renameMachineAccount,
   sendAccountLoginCode,
   setAccountServes,
+  setStandInOrder,
   takeBackPlan,
   ValidationError,
 } from "@agenteschat/engine";
@@ -432,6 +433,32 @@ export function machineAccountRoutes(deps: AppDeps) {
         c.req.valid("json").serves,
       );
       if (result.agentIds.length) await publishMachineAgentsChanged(pubsub, orgId);
+      return c.json(result, 200);
+    },
+  );
+
+  app.openapi(
+    createRoute({
+      method: "put",
+      path: "/organizations/{orgId}/ai-accounts/stand-in-order",
+      tags,
+      security,
+      summary: "Choose the order of your accounts that think when an agent's account reaches 90% of its plan",
+      description:
+        "ADR doug-0003, addendum 2026-11-14: from 90% of a window (or at its limit) the account an agent thinks with gives way to the first of these, on the same computer and under that line, of any brain (ChatGPT runs GPT-6.1 Sol and Gemini runs Gemini 4 Hydrogen). `accountIds`: the caller's own accounts, first first; the rest leave the order; empty clears it. Audited as `account.stand_in_order`.",
+      request: {
+        params: OrgParams,
+        body: body(z.object({ accountIds: z.array(z.uuid()).max(12) })),
+      },
+      responses: { 200: json(z.object({ accountIds: z.array(z.uuid()) })), ...errors },
+    }),
+    async (c) => {
+      const result = await setStandInOrder(
+        { db, pubsub },
+        c.get("user").id,
+        c.req.valid("param").orgId,
+        c.req.valid("json").accountIds,
+      );
       return c.json(result, 200);
     },
   );

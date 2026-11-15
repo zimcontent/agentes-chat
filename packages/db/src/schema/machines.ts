@@ -357,6 +357,12 @@ export const machineAccounts = pgTable(
      */
     serves: text().notNull().default("everyone"),
     /**
+     * Its place in its owner's stand-in order (ADR doug-0003, addendum 2026-11-14): from 90% of a window the account
+     * an agent thinks with gives way to the first of these, lowest first, still under that line. Null: not in it.
+     * Only the person who connected it sets it.
+     */
+    standInRank: integer(),
+    /**
      * How it signs in (protocol 50): `cli_login`, `setup_token` or `api_key`. Set when its sign-in starts and from
      * what the runner reports, never cleared by a report that doesn't say; null: unknown.
      */

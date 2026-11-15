@@ -70,6 +70,7 @@ import {
   type BrainUnavailability,
   bindingReset,
   brainSpeedFor,
+  chainStandIn,
   forgetModelLimit,
   forgetPlanLimit,
   type ModelScope,
@@ -3714,7 +3715,28 @@ async function executeRunInner(
       : usageWaitKey({ code: "plan_limit", machineId, kind: plan.kind, accountId: plan.account?.id });
     // Its place in line: by when its conversation first paused, so parking again never moves it back.
     const line = await usageWaitPlace(db, run, key, wait.since, budget ? null : (plan.model ?? ""));
-    let at = budget ? (u.soon ? Number.NaN : nextMonthStart(now)) : u.resetsAt ? Date.parse(u.resetsAt) : Number.NaN;
+    // Its owner's stand-in order has an account with room (ADR doug-0003, addendum 2026-11-14): it goes on there at
+    // once, quietly, instead of waiting for this plan's reset (the resume picks it).
+    const handOver =
+      !budget && !scope && machineId && !plan.missionId
+        ? await chainStandIn(db, run.orgId, plan.kind, machineId, plan.account).catch(() => undefined)
+        : undefined;
+    if (handOver) {
+      later(() =>
+        addRunStep(db, run, "context", {
+          accountStandIn: { from: plan.account?.label ?? "", to: handOver.account.label },
+        }),
+      );
+    }
+    let at = handOver
+      ? now + 1
+      : budget
+        ? u.soon
+          ? Number.NaN
+          : nextMonthStart(now)
+        : u.resetsAt
+          ? Date.parse(u.resetsAt)
+          : Number.NaN;
     // The account's windows say nothing about when a model's own limit resets.
     if (!budget && !scope && !(at > now) && machineId) {
       const stored = await storedPlanUsage(db, run.orgId, machineId, plan.kind, plan.account?.id).catch(() => null);
@@ -3760,7 +3782,7 @@ async function executeRunInner(
     const name = planName(plan.kind, plan.account?.provider);
     // A routine's run waits quietly (Rotinas says so); any other says it once per wait.
     const firstPark = t.brainNotice !== u.code;
-    const say = !(run.background || viaRoutine !== null || u.soon) && firstPark;
+    const say = !(run.background || viaRoutine !== null || u.soon || handOver) && firstPark;
     const waitId = Bun.randomUUIDv7();
     let joined = null as Message | null;
     const note = say

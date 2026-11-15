@@ -16090,6 +16090,17 @@
       "savedEveryone": "Tout le workspace utilise désormais ce forfait.",
       "savedOwner": "Vous êtes désormais seul à utiliser ce forfait."
     },
+    "standIn": {
+      "title": "Comptes de secours",
+      "about": "Quand le compte qu’utilise un agent atteint 90 % de sa limite, l’agent continue avec le premier compte de cette liste sous les 90 %, sur le même ordinateur. ChatGPT répond avec GPT-6.1 Sol et Gemini avec Gemini 4 Hydrogen. L’agent revient à son propre compte quand il se renouvelle.",
+      "empty": "Aucun compte de secours. Ajoutez-en un pour que vos agents continuent quand un compte est plein.",
+      "last": "Si tous dépassent 90 % : le propre compte de l’agent jusqu’à sa limite, puis sa clé d’API, s’il en a une.",
+      "add": "Ajouter un compte",
+      "up": "Monter {{label}}",
+      "down": "Descendre {{label}}",
+      "remove": "Retirer {{label}}",
+      "saved": "Ordre des comptes de secours enregistré."
+    },
     "logins_one": "{{count}} connexion",
     "logins_many": "{{count}} connexions",
     "logins_other": "{{count}} connexions",

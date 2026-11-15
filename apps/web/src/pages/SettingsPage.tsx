@@ -74,6 +74,7 @@ import { AutoModelsRow } from "@/components/AutoModels";
 import { usePlanHold } from "@/components/ai/ConnectAiSteps";
 import { EndpointForm } from "@/components/ai/EndpointForm";
 import { WhoPicksSection } from "@/components/ai/Jev";
+import { StandInOrderCard } from "@/components/ai/StandInOrder";
 import { BillingLinkButton } from "@/components/BillingLinkButton";
 import { ConnectorsSection } from "@/components/Connectors";
 import { DeleteWorkspaceDialog } from "@/components/DeleteWorkspace";
@@ -1132,6 +1133,7 @@ function UsageSection() {
   return (
     <>
       <PlanUsageCards />
+      <StandInOrderCard />
       {composio.data && showsComposioUsage(composio.data) && (
         <Card>
           <span className="small">{composioUsageText(t, i18n.language, composio.data)}</span>

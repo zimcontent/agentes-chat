@@ -15595,6 +15595,17 @@
       "savedEveryone": "Jetzt nutzt der ganze Workspace dieses Abo.",
       "savedOwner": "Jetzt nutzt nur du dieses Abo."
     },
+    "standIn": {
+      "title": "Ersatzkonten",
+      "about": "Wenn das Konto, das ein Agent nutzt, 90 % seines Limits erreicht, arbeitet der Agent mit dem ersten Konto dieser Liste weiter, das unter 90 % liegt, auf demselben Computer. ChatGPT antwortet mit GPT-6.1 Sol und Gemini mit Gemini 4 Hydrogen. Der Agent kehrt zu seinem eigenen Konto zurück, sobald es sich erneuert.",
+      "empty": "Keine Ersatzkonten. Füge eines hinzu, damit deine Agenten weiterarbeiten, wenn ein Konto voll ist.",
+      "last": "Wenn alle Konten über 90 % liegen: das eigene Konto des Agenten bis zum Limit, danach sein API-Schlüssel, falls vorhanden.",
+      "add": "Konto hinzufügen",
+      "up": "{{label}} nach oben",
+      "down": "{{label}} nach unten",
+      "remove": "{{label}} entfernen",
+      "saved": "Reihenfolge der Ersatzkonten gespeichert."
+    },
     "logins_one": "{{count}} Anmeldung",
     "logins_other": "{{count}} Anmeldungen",
     "noWindows": "Das Limit erscheint, sobald dieses Konto wieder genutzt wird.",

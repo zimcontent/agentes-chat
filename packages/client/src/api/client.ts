@@ -1204,6 +1204,8 @@ export interface ApiClient {
       accountId: string,
       serves: PlanServes,
     ): Promise<{ serves: PlanServes; agentIds: string[] }>;
+    /** The viewer's accounts that think, in this order, when an agent's account reaches 90% (ADR doug-0003). */
+    setStandInOrder(orgId: string, accountIds: string[]): Promise<{ accountIds: string[] }>;
     /** Its owner names it (1 to 40 characters). */
     renameAccount(orgId: string, machineId: string, accountId: string, label: string): Promise<MachineAccount>;
     /** Its owner (or whoever connected the computer) disconnects it; the computer signs it out and deletes it. */

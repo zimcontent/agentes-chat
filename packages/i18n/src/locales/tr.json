@@ -15530,6 +15530,17 @@
       "savedEveryone": "Artık tüm workspace bu planı kullanıyor.",
       "savedOwner": "Artık bu planı yalnızca sen kullanıyorsun."
     },
+    "standIn": {
+      "title": "Yedek hesaplar",
+      "about": "Bir ajanın kullandığı hesap sınırının %90’ına ulaştığında ajan, aynı bilgisayarda bu listedeki %90’ın altındaki ilk hesapla devam eder. ChatGPT GPT-6.1 Sol ile, Gemini ise Gemini 4 Hydrogen ile yanıt verir. Hesap yenilendiğinde ajan kendi hesabına döner.",
+      "empty": "Yedek hesap yok. Bir hesap dolduğunda ajanların durmaması için bir tane ekleyin.",
+      "last": "Hepsi %90’ın üzerindeyse: ajanın kendi hesabı sınırına kadar, sonra varsa API anahtarı.",
+      "add": "Hesap ekle",
+      "up": "{{label}} yukarı taşı",
+      "down": "{{label}} aşağı taşı",
+      "remove": "{{label}} kaldır",
+      "saved": "Yedek hesapların sırası kaydedildi."
+    },
     "logins_one": "{{count}} oturum",
     "logins_other": "{{count}} oturum",
     "noWindows": "Sınır, bu hesap yeniden kullanıldıktan sonra görünür.",

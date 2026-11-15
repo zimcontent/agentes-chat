@@ -475,6 +475,7 @@ test("signing in: the person who connected the computer; the code is sealed to i
       shared: false,
       providerOrgId: null,
       serves: "everyone",
+      standInRank: null,
     },
   });
   // Polled again: the same account, added once.

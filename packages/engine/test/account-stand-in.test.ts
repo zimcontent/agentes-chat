@@ -6,6 +6,7 @@ import {
   type BrainEvent,
   type BrainTurn,
   brainAccountFor,
+  chainStandIn,
   clearPlanLimits,
   createJobHandlers,
   drainOutbox,
@@ -14,6 +15,7 @@ import {
   type MachineStatus,
   notePlanLimit,
   postPersonMessage,
+  setStandInOrder,
 } from "../src";
 import { addMember, type Fixture, setup } from "./fixtures";
 import { pairMachine } from "./machine-fixtures";
@@ -207,4 +209,165 @@ test("off: the same refusal waits for the plan, as before", async () => {
   const { run } = await drive(f, brain);
   expect(seen.map((t) => t.account?.id)).toEqual([a]);
   expect(run?.status).toBe("waiting_input");
+});
+
+/** A stored reading of `used` percent on the week's window, read now. */
+/** A stored reading of `used` percent on the week's window, read now. */
+const reading = (used: number) => ({
+  windows: [
+    { kind: "seven_day" as const, usedPercent: used, resetsAt: new Date(Date.now() + 86_400_000).toISOString() },
+  ],
+  source: "probe" as const,
+  at: new Date().toISOString(),
+});
+
+test("on: at 90% of a window the other account thinks, before any limit or pause", async () => {
+  f = await setup();
+  enableAccountStandIns();
+  const { machineId, a, b, agent } = await twoAccounts(f);
+  const set = (id: string, used: number) =>
+    f.db
+      .update(schema.machineAccounts)
+      .set({ usage: reading(used) })
+      .where(eq(schema.machineAccounts.id, id));
+  const thinks = async () => (await brainAccountFor(f.db, agent, "antigravity", machineId))?.id;
+
+  await set(a, 89);
+  expect(await thinks()).toBe(a);
+  await set(a, 90);
+  await set(b, 20);
+  expect(await thinks()).toBe(b);
+
+  // Both past the line, neither at its limit: its own goes on.
+  await set(b, 93);
+  expect(await thinks()).toBe(a);
+
+  // Its own at its very limit: the other one still has room, so it thinks.
+  notePlanLimit(machineId, "antigravity", undefined, Date.now(), a);
+  expect(await thinks()).toBe(b);
+});
+
+/**
+ * Dev on Claude Code with the owner's second Claude account, beside their first one, a ChatGPT and a Gemini account on
+ * the same computer.
+ */
+async function chain(fx: Fixture) {
+  const deps = { db: fx.db, pubsub: fx.pubsub, publicUrl: "https://agentes.chat" };
+  const { machineId } = await pairMachine(deps, fx.owner.id, fx.org.id, { name: "Box", ...RUNNER, exec: true });
+  const ids = {
+    claude: crypto.randomUUID(),
+    claude2: crypto.randomUUID(),
+    gpt: crypto.randomUUID(),
+    gemini: crypto.randomUUID(),
+  };
+  const row = { orgId: fx.org.id, machineId, createdBy: fx.owner.id, serves: "everyone" as const };
+  await fx.db.insert(schema.machineAccounts).values([
+    { ...row, id: ids.claude, kind: "claude_code", label: "Claude", createdAt: new Date(1000) },
+    { ...row, id: ids.claude2, kind: "claude_code", label: "Claude 2", createdAt: new Date(2000) },
+    { ...row, id: ids.gpt, kind: "codex", label: "ChatGPT", createdAt: new Date(3000) },
+    { ...row, id: ids.gemini, kind: "antigravity", label: "Gemini", createdAt: new Date(4000) },
+  ]);
+  await fx.db
+    .update(schema.agents)
+    .set({ machineId, brain: "claude_code", brainModel: "opus", brainAccountId: ids.claude2 })
+    .where(eq(schema.agents.id, fx.agent.id));
+  const [agent] = await fx.db.select().from(schema.agents).where(eq(schema.agents.id, fx.agent.id));
+  if (!agent) throw new Error("no agent");
+  const set = (id: string, used: number) =>
+    fx.db
+      .update(schema.machineAccounts)
+      .set({ usage: reading(used) })
+      .where(eq(schema.machineAccounts.id, id));
+  return { machineId, ids, agent, set };
+}
+
+test("the owner's order: Claude, Claude 2, Gemini, past 90% each, with no server switch", async () => {
+  f = await setup();
+  const { machineId, ids, agent, set } = await chain(f);
+  const next = async () => {
+    const account = await brainAccountFor(f.db, agent, "claude_code", machineId);
+    const other = await chainStandIn(f.db, f.org.id, "claude_code", machineId, account);
+    return other ? `${other.kind}:${other.model ?? ""}:${other.account.id}` : `own:${account?.id}`;
+  };
+
+  // No order: its own, even at 99%.
+  await set(ids.claude2, 99);
+  expect(await next()).toBe(`own:${ids.claude2}`);
+
+  await setStandInOrder(f, f.owner.id, f.org.id, [ids.claude, ids.claude2, ids.gemini]);
+  expect(await next()).toBe(`claude_code::${ids.claude}`);
+  const first = await chainStandIn(
+    f.db,
+    f.org.id,
+    "claude_code",
+    machineId,
+    await brainAccountFor(f.db, agent, "claude_code", machineId),
+  );
+  expect(first?.account.standsInFor).toEqual({ id: ids.claude2, label: "Claude 2" });
+
+  // ChatGPT isn't in the order: Gemini's Hydrogen after both Claudes.
+  await set(ids.claude, 95);
+  expect(await next()).toBe(`antigravity:gemini-4-hydrogen-medium:${ids.gemini}`);
+
+  // All past the line: its own goes on (and the API key after its limit).
+  await set(ids.gemini, 90);
+  expect(await next()).toBe(`own:${ids.claude2}`);
+
+  // A window reset: Claude 2 under the line thinks again by itself.
+  await set(ids.claude2, 10);
+  expect(await next()).toBe(`own:${ids.claude2}`);
+});
+
+test("an order holds only the caller's own accounts", async () => {
+  f = await setup();
+  const { ids } = await chain(f);
+  const bruna = await addMember(f.db, f.org.id, "member", "Bruna");
+  await expect(setStandInOrder(f, bruna.id, f.org.id, [ids.claude])).rejects.toThrow();
+  await expect(setStandInOrder(f, f.owner.id, f.org.id, [ids.claude, ids.claude])).rejects.toThrow();
+  expect(await setStandInOrder(f, f.owner.id, f.org.id, [ids.gpt])).toEqual({ accountIds: [ids.gpt] });
+  await setStandInOrder(f, f.owner.id, f.org.id, []);
+  const ranks = await f.db.select({ rank: schema.machineAccounts.standInRank }).from(schema.machineAccounts);
+  expect(ranks.every((r) => r.rank === null)).toBe(true);
+});
+
+test("a run whose Claude accounts are past 90% thinks on ChatGPT's GPT-6.1, its brain recorded", async () => {
+  f = await setup({ reply: () => ({ chunks: ["pela API"] }) });
+  const { ids, set } = await chain(f);
+  await setStandInOrder(f, f.owner.id, f.org.id, [ids.claude, ids.gpt, ids.gemini]);
+  await set(ids.claude, 96);
+  await set(ids.claude2, 99);
+  const seen: BrainTurn[] = [];
+  const codex: Brain = {
+    kind: "codex",
+    async *run(turn) {
+      seen.push({ ...turn, system: "", messages: [] });
+      yield { type: "done", text: "Pronto pelo GPT." };
+    },
+  };
+  const claude: Brain = {
+    kind: "claude_code",
+    // biome-ignore lint/correctness/useYield: it must never be asked
+    async *run() {
+      throw new Error("Claude must not think");
+    },
+  };
+  const handlers = createJobHandlers({
+    ...f.jobDeps,
+    brains: { codex: () => codex, claude_code: () => claude },
+    machines: {
+      status: async (id) => ({
+        ...statusOf(id),
+        executors: { codex: { version: "9.9.9" }, detectedAt: new Date().toISOString() },
+      }),
+    },
+  });
+  await postPersonMessage({ db: f.db, pubsub: f.pubsub }, f.owner.id, f.org.id, f.general.id, {
+    body: "@dev publica o post",
+  });
+  await drainOutbox(f.db, handlers);
+  const [run] = await f.db.select().from(schema.agentRuns);
+  expect(seen.map((t) => [t.account?.id, t.model])).toEqual([[ids.gpt, "gpt-6.1-sol"]]);
+  expect(run?.brain).toBe("codex");
+  expect(run?.status).toBe("done");
+  expect(f.provider.calls).toHaveLength(0);
 });
