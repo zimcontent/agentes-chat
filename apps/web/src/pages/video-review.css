@@ -110,18 +110,21 @@
   color: var(--ink);
   cursor: default;
 }
-.vr-pop[data-side="end"] {
-  inset-inline-end: var(--space-2);
+.vr-pop {
+  inset-inline-start: 50%;
+  translate: -50% 0;
 }
-.vr-pop[data-side="start"] {
-  inset-inline-start: var(--space-2);
+.vr-pop[data-edge="bottom"] {
+  bottom: var(--space-2);
+}
+.vr-pop[data-edge="top"] {
+  top: var(--space-2);
 }
 @media (max-width: 639px) {
   .vr-pop {
-    top: auto !important;
-    bottom: var(--space-2);
     inset-inline: var(--space-2);
     width: auto;
+    translate: none;
   }
 }
 .vr-pop__head {

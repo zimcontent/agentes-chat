@@ -711,8 +711,8 @@ function ReviewBody({ review, w }: { review: VideoReview; w: ReviewWords }) {
               // biome-ignore lint/a11y/useKeyWithClickEvents: only keeps the click inside the box.
               <div
                 className="vr-pop"
-                data-side={draft.px > 0.5 ? "start" : "end"}
-                style={{ top: `${Math.min(70, Math.max(4, draft.py * 100 - 10))}%` }}
+                // The box takes the half of the picture away from the click, so the ring stays in sight.
+                data-edge={draft.py < 0.5 ? "bottom" : "top"}
                 onClick={(e) => e.stopPropagation()}
               >
                 <div className="vr-pop__head">
