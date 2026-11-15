@@ -10,6 +10,7 @@ import {
   moveSection,
   moveShownTool,
   placeTool,
+  portalHere,
   SIDEBAR_COUNTED,
   sameOrder,
   sidebarItemOrder,
@@ -39,7 +40,7 @@ import {
   useState,
 } from "react";
 import { useTranslation } from "react-i18next";
-import { useOrg } from "./org-context";
+import { useOrg, useOrgIfAny } from "./org-context";
 import { sectionName, useSectionOrder } from "./SidebarOrder";
 
 /** The tools at the top of the sidebar: the page each opens and its icon. */
@@ -59,15 +60,20 @@ export const SIDEBAR_TOOLS = {
   taskManager: { to: "/org/$orgId/task-manager", icon: "stageProgress" },
 } as const satisfies Record<SidebarItem, { to: string; icon: IconName }>;
 
-/** Whether this server has an approval portal (ADR 9001): Portal is a tool only there. */
-export const usePortalOn = () => useAuthConfig().data?.approvalPortal === true;
+/** Whether the server's approval portal is this workspace's (ADR 9001 §19): Portal is a tool only there. */
+export const usePortalOn = () => portalHere(useOrgIfAny()?.org, useAuthConfig().data?.approvalPortal);
+/** The workspace's tools an admin took out of the sidebar for everyone (Settings › General). */
+export const useHiddenTools = (): readonly string[] => useOrgIfAny()?.org.hiddenTools ?? [];
 /**
- * The tools this sidebar lists: Portal only with an approval portal, so nothing changes without one, and never
- * Aprovações, which is a tab of "Esperando você" (ADR 0172 addendum): one entry and one count for all that waits on
- * the person.
+ * The tools this sidebar lists: Portal only where the approval portal is the workspace's, so nothing changes without
+ * one, none an admin took out of the workspace (`hidden`), and never Aprovações, which is a tab of "Esperando você"
+ * (ADR 0172 addendum): one entry and one count for all that waits on the person.
  */
-export const toolsHere = <T extends SidebarItem>(ids: readonly T[], portal: boolean): T[] =>
-  ids.filter((id) => id !== "approvals" && (portal || id !== "portal"));
+export const toolsHere = <T extends SidebarItem>(
+  ids: readonly T[],
+  portal: boolean,
+  hidden: readonly string[] = [],
+): T[] => ids.filter((id) => id !== "approvals" && (portal || id !== "portal") && !hidden.includes(id));
 
 /**
  * The person's order of the tools in this workspace (`…/me/sidebar/tools`), saved as `null` when it is the default of
@@ -200,7 +206,7 @@ export function SidebarSetupDialog({ open, onClose }: { open: boolean; onClose: 
   const save = useSetSidebarItem(org.id, personal);
   const sections = useSectionOrder(org.id, personal);
   const tools = useToolOrder(org.id, personal);
-  const shown = toolsHere(tools.order, usePortalOn());
+  const shown = toolsHere(tools.order, usePortalOn(), useHiddenTools());
   // What another device changed since this one loaded shows as the dialog opens.
   useEffect(() => {
     if (open) void refetch();

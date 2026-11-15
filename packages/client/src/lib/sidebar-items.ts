@@ -82,6 +82,25 @@ export const PERSONAL_SIDEBAR_ITEMS: readonly SidebarItem[] = [
   "taskManager",
 ];
 
+/**
+ * What an admin may take out of a workspace's sidebar for everyone (Settings › General, `hiddenTools`): the tools, plus
+ * WhatsApp and video review, which the dock shows on its own. Mirrors `WORKSPACE_TOOLS` in
+ * packages/engine/src/sidebar-items.ts. Aprovações is a tab of "Esperando você", so it has no switch of its own.
+ */
+export const WORKSPACE_TOOLS = [...SIDEBAR_ITEMS.filter((id) => id !== "approvals"), "whatsapp", "review"] as const;
+export type WorkspaceTool = SidebarItem | "whatsapp" | "review";
+
+type ToolsOf = { hiddenTools?: string[]; portal?: boolean };
+/** Whether an admin took `tool` out of this workspace's sidebar for everyone. */
+export const toolHidden = (org: ToolsOf | null | undefined, tool: WorkspaceTool) =>
+  (org?.hiddenTools ?? []).includes(tool);
+/**
+ * Whether the approval portal is this workspace's (ADR 9001 §19): the server has one (`AuthConfig.approvalPortal`)
+ * and it belongs here. An older server, which says nothing per workspace, shows it wherever it has one.
+ */
+export const portalHere = (org: ToolsOf | null | undefined, serverHasOne: boolean | undefined) =>
+  serverHasOne === true && org?.portal !== false;
+
 /** The tools' default order in a workspace of this mode: the list's and More's. */
 export const sidebarItemOrder = (personal = false) => (personal ? PERSONAL_SIDEBAR_ITEMS : SIDEBAR_ITEMS);
 

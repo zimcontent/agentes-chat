@@ -6,6 +6,7 @@ import { channelTitle } from "@agenteschat/client/lib/channel-name";
 import { setDraftFor } from "@agenteschat/client/lib/drafts";
 import { can, makesAgents } from "@agenteschat/client/lib/permissions";
 import { settingsSectionNameKey } from "@agenteschat/client/lib/personal-view";
+import { portalHere } from "@agenteschat/client/lib/sidebar-items";
 import { isPersonal, modeKey } from "@agenteschat/client/lib/workspace-mode";
 import { Avatar, CommandPalette, Icon, type PaletteItem } from "@agenteschat/ui";
 import { useNavigate } from "@tanstack/react-router";
@@ -110,8 +111,8 @@ export function CommandMenu() {
       { key: "home", to: "/org/$orgId/home", icon: "home", label: t("shell.home") },
       { key: "dashboards", to: "/org/$orgId/dashboards", icon: "chart", label: t("dashboards.title") },
       { key: "waiting", to: "/org/$orgId/waiting", icon: "question", label: t("shell.waiting") },
-      // Only where the server has an approval portal (ADR 9001).
-      ...(server?.approvalPortal
+      // Only in the workspace the server's approval portal is (ADR 9001 §19).
+      ...(portalHere(org, server?.approvalPortal)
         ? [{ key: "portal", to: "/org/$orgId/portal", icon: "approve", label: t("shell.portal") } as const]
         : []),
       { key: "approvals", to: "/org/$orgId/approvals", icon: "waiting", label: t("shell.approvals") },

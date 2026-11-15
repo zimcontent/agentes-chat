@@ -110,6 +110,7 @@ import { OpenPrefsButton, useLocalServerHere } from "@/components/ThisMac";
 import { VoiceSettingsSection } from "@/components/VoiceSettings";
 import { VaultSection } from "@/components/vault/VaultSection";
 import { WorkspaceModeDialog } from "@/components/WorkspaceModeDialog";
+import { WorkspaceToolsCard } from "@/components/WorkspaceTools";
 import { ZoneSelect } from "@/components/ZoneSelect";
 import { useCentreCurrent } from "@/hooks/useCentreCurrent";
 import { usePersonalView } from "@/hooks/usePersonalView";
@@ -670,6 +671,7 @@ function GeneralSection() {
 
       {personal ? contextCard : workspaceCard}
       {personal ? workspaceCard : contextCard}
+      <WorkspaceToolsCard />
 
       <TeamMemoryCard />
 

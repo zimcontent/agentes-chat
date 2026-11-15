@@ -1,10 +1,11 @@
 import type { PlanCard } from "@agenteschat/client";
-import { useAuthConfig, usePortalMine } from "@agenteschat/client";
+import { usePortalMine } from "@agenteschat/client";
 import { portalClientName, portalWhen } from "@agenteschat/client/lib/portal";
 import { Chip, GroupHeading } from "@agenteschat/ui";
 import { Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { useOrg } from "@/components/org-context";
+import { usePortalOn } from "@/components/SidebarSetup";
 import { StageChip } from "./stage";
 import "@/pages/portal.css";
 
@@ -21,7 +22,8 @@ const NEXT_SHOWN = 5;
 export function HomeTasks() {
   const { t } = useTranslation();
   const { org } = useOrg();
-  const on = useAuthConfig().data?.approvalPortal === true;
+  // Only in the workspace the portal is (ADR 9001 §19).
+  const on = usePortalOn();
   const mine = usePortalMine(org.id, on).data;
   if (!on || !mine) return null;
   const groups = [

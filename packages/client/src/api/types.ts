@@ -333,6 +333,13 @@ export interface OrgSummary {
    * from an older server, which is a team's.
    */
   mode?: WorkspaceMode;
+  /** From `GET /me`: the sidebar's tools an admin took out of this workspace for everyone. Absent: none. */
+  hiddenTools?: string[];
+  /**
+   * From `GET /me`: the server's approval portal is this workspace's (ADR 9001 §19). Absent from an older server, which
+   * shows the portal wherever the server has one (`AuthConfig.approvalPortal`).
+   */
+  portal?: boolean;
 }
 
 /** Who a workspace is for (ADR 0159): the server's `WORKSPACE_MODES`. */
@@ -2571,6 +2578,8 @@ export interface OrgSettings {
   teamWatch?: boolean;
   /** The right hand greets each person who joins, once. Absent from an older server: on. */
   welcomePeople?: boolean;
+  /** The sidebar's tools an admin took out of this workspace for everyone. Absent from an older server: none. */
+  hiddenTools?: string[];
   /** Read only: this server has a speech engine. */
   voiceAvailable: boolean;
   /** Read only: this server can search GIFs (it has a GIF provider). */

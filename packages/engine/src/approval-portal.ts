@@ -21,6 +21,7 @@ import {
   planTool,
   portalPlan,
 } from "./approval-portal-plan";
+import { portalHere } from "./approval-portal-tasks";
 import { type ArtifactActor, type ArtifactDeps, artifactFile, storedFileOfArtifact } from "./artifacts";
 import { ValidationError } from "./errors";
 import { personBehindCall } from "./requester";
@@ -300,6 +301,8 @@ export interface PortalToolDeps {
   /** null: this server has no approval portal, and the tools aren't listed. */
   portal: ApprovalPortal | null;
   artifacts: ArtifactDeps;
+  /** Whether the portal is the run's workspace's (ADR 9001 §19); `portalHere` unless a test says otherwise. */
+  here?: (ctx: ToolContext) => Promise<boolean>;
 }
 
 const str = (value: unknown) => (typeof value === "string" ? value : "");
@@ -731,6 +734,8 @@ export function createPortalToolSource(deps: PortalToolDeps): ToolSource {
     async tools(ctx) {
       const portal = deps.portal;
       if (!portal || !ctx.runId) return [];
+      // Another workspace on this server is another operation: the portal's clients aren't its (ADR 9001 §19).
+      if (!(await (deps.here ?? ((c) => portalHere(c.db as Database, c.orgId)))(ctx))) return [];
       // A routine reads (it tells each person their day) and changes nothing here.
       const reads = [boardTool(portal), workTool(portal)];
       if (ctx.background) return reads;

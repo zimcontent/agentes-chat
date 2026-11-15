@@ -138,6 +138,27 @@ export async function portalWorkspace(db: Database): Promise<string | null> {
   return first?.id ?? null;
 }
 
+/**
+ * Whether the installation's portal is this workspace's (ADR 9001 §19): its clients, cards and posts are one
+ * operation's, so a second workspace on the same server (another business) never sees them, nor do its agents get
+ * the portal's tools. Once a workspace holds the portal's tasks the answer can't change, so it is kept per database.
+ */
+export async function portalHere(db: Database, orgId: string): Promise<boolean> {
+  const known = settled.get(db);
+  if (known) return known === orgId;
+  const owner = await portalWorkspace(db);
+  if (owner) {
+    const [has] = await db
+      .select({ id: issues.id })
+      .from(issues)
+      .where(and(eq(issues.orgId, owner), sql`${issues.source}->>'type' = 'portal'`))
+      .limit(1);
+    if (has) settled.set(db, owner);
+  }
+  return owner === orgId;
+}
+const settled = new WeakMap<Database, string>();
+
 async function ownerOf(db: Database, orgId: string) {
   const [row] = await db
     .select({ userId: organizationMembers.userId, locale: users.locale })

@@ -179,7 +179,7 @@ import { useOrg } from "./org-context";
 import { StatusLine } from "./Presence";
 import { ChannelPhoto, MyFace, OrgMark } from "./ProfilePhoto";
 import { sectionName, useSectionOrder } from "./SidebarOrder";
-import { SIDEBAR_TOOLS, SidebarSetupDialog, ToolList, toolsHere, usePortalOn } from "./SidebarSetup";
+import { SIDEBAR_TOOLS, SidebarSetupDialog, ToolList, toolsHere, useHiddenTools, usePortalOn } from "./SidebarSetup";
 import { AgentGlow, AgentTrail, colorOf, WorkspaceSky } from "./Sky";
 import { SetStatusDialog, useSaveStatus } from "./StatusDialog";
 import { useReviewWords } from "./video-review/words";
@@ -345,7 +345,9 @@ export function Sidebar() {
   };
   // The mode's defaults and order (ADR 0159): in a personal workspace, Routines and Drive in sight, the rest in More.
   // Portal is a tool only where the server has an approval portal (ADR 9001): elsewhere nothing lists it.
-  const toolOrder = toolsHere(sidebarItemOrder(personal), usePortalOn());
+  // What an admin took out of the workspace (Settings › General) is gone for everyone, list and More alike.
+  const hiddenTools = useHiddenTools();
+  const toolOrder = toolsHere(sidebarItemOrder(personal), usePortalOn(), hiddenTools);
   const listed = toolOrder.filter((id) => inSidebarList(sidebarPlace(sidebarItems, id, personal), counts[id] ?? 0));
   const inMore = toolOrder.filter((id) => !listed.includes(id));
   const countOf = (id: SidebarItem) =>
@@ -703,7 +705,8 @@ export function Sidebar() {
   // The tools each person keeps in sight; the rest open beside the sidebar from More. Doug draws them as a dock: a
   // glass bar of icons (after Nordus's footer nav), each named on hover and to a screen reader, Configurações last.
   const whatsapp = useWhatsApp(orgId).data;
-  const whatsappShown = !!whatsapp?.on && (whatsapp.manage || whatsapp.accounts.length > 0);
+  const whatsappShown =
+    !!whatsapp?.on && !hiddenTools.includes("whatsapp") && (whatsapp.manage || whatsapp.accounts.length > 0);
   // Video review (docs/adr/doug-0007-video-review.md): in sight once a video was sent, with how many wait.
   const reviews = useVideoReviews(orgId).data ?? [];
   const reviewsWaiting = reviews.filter((r) => r.status === "in_review").length;
@@ -722,7 +725,7 @@ export function Sidebar() {
           <span className="sidebar__item-label">WhatsApp</span>
         </Link>
       )}
-      {reviews.length > 0 && (
+      {reviews.length > 0 && !hiddenTools.includes("review") && (
         <Link to="/org/$orgId/review" params={{ orgId }} className="sidebar__item" title={reviewWords.title}>
           <Icon name="video" />
           <span className="sidebar__item-label">{reviewWords.title}</span>

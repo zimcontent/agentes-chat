@@ -419,6 +419,11 @@ export const organizationSettings = pgTable("organization_settings", {
   teamWatch: boolean().notNull().default(true),
   /** "Dar boas-vindas a quem entra": the right hand greets each person who joins, once. On without a row too. */
   welcomePeople: boolean().notNull().default(true),
+  /**
+   * The sidebar's tools an admin took out of this workspace for everyone (`SIDEBAR_ITEMS` ids,
+   * packages/engine/src/sidebar-items.ts): one workspace's operation needs tools another doesn't. Empty: every tool.
+   */
+  hiddenTools: text().array().notNull().default(sql`'{}'::text[]`),
   updatedAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
 });
 

@@ -39,6 +39,7 @@ import {
   ONBOARDING_STEPS,
   orgLogoFile,
   pinnedOwner,
+  portalHere,
   previewInvitation,
   queueInvitationEmail,
   removalPreview,
@@ -231,6 +232,12 @@ export function accountRoutes(deps: AppDeps) {
       memberships.flatMap((m) => (m.standing?.deletionDueAt ? [m.orgId] : [])),
     );
     const now = Date.now();
+    // The approval portal is one workspace's (ADR 9001 §19): only there do the apps show it.
+    const portalOrg = deps.adapters.approvalPortal
+      ? (await Promise.all(memberships.map(async (m) => ((await portalHere(db, m.orgId)) ? m.orgId : null)))).find(
+          Boolean,
+        )
+      : undefined;
     return {
       user: {
         id: user.id,
@@ -269,6 +276,8 @@ export function accountRoutes(deps: AppDeps) {
           agentStyle: m.agentStyle ?? null,
           chatPrefs: m.chatPrefs ?? {},
           mode: m.mode ?? "team",
+          hiddenTools: m.hiddenTools ?? [],
+          portal: m.orgId === portalOrg,
           ...(m.standing
             ? { standing: { state: m.standing.state, reason: toldReason(m.standing), ...cloudNotice() } }
             : {}),
