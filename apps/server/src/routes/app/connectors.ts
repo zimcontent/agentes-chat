@@ -425,7 +425,7 @@ export function connectorRoutes(deps: AppDeps) {
         "The phone app opened the authorize URL in the system browser (`returnTo: \"app:connectors\"`), or the desktop app's window did (`returnTo: \"desktop:\"` + a path); the callback handed `state` and `code` back to the app, which sends them here with its own session. The state must be this person's and this organization's, unused and not expired. `returnTo`: the path a desktop authorization lands on. `connector.misconfigured` (500, with `provider`): the provider refused this server's own OAuth app, reported as an error.",
       request: {
         params: OrgParams,
-        body: body(z.object({ state: z.string().min(1).max(200), code: z.string().min(1).max(2000) })),
+        body: body(z.object({ state: z.string().min(1).max(200), code: z.string().min(1).max(8192) })),
       },
       responses: {
         200: json(

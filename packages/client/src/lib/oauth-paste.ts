@@ -21,6 +21,7 @@ export function pastedOAuthReturn(text: string): { state: string; code: string }
   if (error) return { error };
   const state = params.get("state")?.trim();
   const code = params.get("code")?.trim();
-  if (!state || !code || state.length > 200 || code.length > 2000) return null;
+  // Frame.io's codes are sealed tokens of a few thousand characters; the route takes up to 8192.
+  if (!state || !code || state.length > 200 || code.length > 8192) return null;
   return { state, code };
 }
