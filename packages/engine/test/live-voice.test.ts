@@ -160,7 +160,10 @@ describe("voice rooms", () => {
         posted.push({ userId, body });
         return { id: crypto.randomUUID() };
       },
-      pickWithSmallModel: async () => `{"speaker":"${f.agent.handle}"}`,
+      pickWithSmallModel: async (_org, system) =>
+        system.includes("talking right now")
+          ? `{"speaker":"${f.agent.handle}","when":"now"}`
+          : `{"speaker":"${f.agent.handle}"}`,
     });
     await saveLiveVoiceKey(d, f.owner.id, f.org.id, KEY);
     const bia = await addMember(f.db, f.org.id, "member", "Bia");
@@ -195,9 +198,26 @@ describe("voice rooms", () => {
     const [stored] = await f.db.select().from(schema.liveVoiceRooms);
     expect(stored?.lines.map((l) => l.text)).toEqual(["Qual o prazo do projeto?", "Três semanas, se aprovarmos hoje."]);
 
-    expect(await pickLiveSpeaker(d, f.owner.id, f.org.id, room.id)).toEqual({ agentId: f.agent.id });
+    expect(await pickLiveSpeaker(d, f.owner.id, f.org.id, room.id)).toEqual({ agentId: f.agent.id, when: "after" });
+    // While another agent talks, a colleague may cut in; never the one talking, nor one the limits keep out.
+    const other = crypto.randomUUID();
+    const during = { moment: "during" as const, speaking: { agentId: other, text: "Acho que lançamos em março" } };
+    expect(await pickLiveSpeaker(d, f.owner.id, f.org.id, room.id, during)).toEqual({
+      agentId: f.agent.id,
+      when: "now",
+    });
+    expect(
+      await pickLiveSpeaker(d, f.owner.id, f.org.id, room.id, {
+        ...during,
+        speaking: { agentId: f.agent.id, text: "x" },
+      }),
+    ).toEqual({ agentId: null, when: null });
+    expect(await pickLiveSpeaker(d, f.owner.id, f.org.id, room.id, { ...during, skip: [f.agent.id] })).toEqual({
+      agentId: null,
+      when: null,
+    });
     // Not the host: nobody is picked.
-    expect(await pickLiveSpeaker(d, bia.id, f.org.id, room.id)).toEqual({ agentId: null });
+    expect(await pickLiveSpeaker(d, bia.id, f.org.id, room.id)).toEqual({ agentId: null, when: null });
     await setLiveFloor(d, bia.id, f.org.id, room.id, f.agent.id, "manual");
     expect(heard.some((e) => e.type === "live.floor")).toBe(true);
     await expect(setLiveFloor(d, bia.id, f.org.id, room.id, crypto.randomUUID(), "manual")).rejects.toThrow();
@@ -244,7 +264,7 @@ describe("what a call's agent is told", () => {
       language: "pt-BR",
     });
     expect(text).toContain("Gabriel, Bia");
-    expect(text).toContain("Never hand the word back and forth");
+    expect(text).toContain("Colleagues may cut in while you talk");
     expect(text).toContain("<external_data");
   });
 });

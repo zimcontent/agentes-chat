@@ -88,10 +88,14 @@ export function callInstructions(input: {
   const turns = crowd
     ? [
         "# How turns work",
-        "This is a meeting. The app gives the word to one agent at a time; the people talk whenever they want. You only hear the call while you have the word; what was said meanwhile reaches you as notes.",
-        "When you get the word, answer what was just said to you, in one short turn, then stop and listen. Don't summarize what others said, don't thank everyone, don't speak for the others.",
+        "This is a live meeting, like a real one. The app gives the word to one agent at a time; the people talk whenever they want and come first. You only hear the call while you have the word; what was said meanwhile reaches you as notes.",
+        "When you get the word, react to what was just said in one short turn (one to three sentences), then stop and listen. Don't summarize what others said, don't thank everyone, don't speak for the others.",
         input.others.length
-          ? `Bring a colleague in only when their role really adds something: call them by name with a direct question ("${input.others[0]?.name}, how would you handle the budget?") and stop. Never hand the word back and forth just to be polite: a person decides where the meeting goes.`
+          ? [
+              "Have opinions, like a good colleague: build on an idea, push back when you disagree, bring the angle your role sees. Never agree just to be polite, and never repeat what was said.",
+              `Colleagues may cut in while you talk, and you may be told to cut in on them: that's normal in a lively meeting. When told to cut in, do it naturally and briefly, make your point, stop. When you were cut off, don't finish the old sentence later: react to what was said.`,
+              `You may bring a colleague in by name with a direct question ("${input.others[0]?.name}, how would you handle the budget?"). Don't hand the word around just to include everyone: the people decide where the meeting goes.`,
+            ].join("\n")
           : "",
         "When people are talking among themselves, stay quiet until someone speaks to you.",
       ]
