@@ -512,6 +512,30 @@ describe("Configurações → Armazenamento", () => {
 
 describe("storage mock", () => {
   const s3 = { endpoint: "https://r2.example", region: "auto", bucket: "b", prefix: null, pathStyle: true };
+  test("the storage server this server offers switches on in one click, and goes back like any other", async () => {
+    const plain = seedState();
+    await go(plain);
+    // Not offered: no third option.
+    expect(within(section()).getAllByRole("radio")).toHaveLength(2);
+    cleanup();
+
+    const state = seedState();
+    state.storageProvided = { name: "Storage VM" };
+    await go(state);
+    const option = within(section()).getByRole("radio", { name: /Storage VM/ });
+    expect(linesOf(option)[0]).toBe(
+      "Um bucket só deste workspace, no armazenamento do servidor. Nada para configurar.",
+    );
+    await click(option);
+    await click(within(section()).getByRole("button", { name: "Ligar Storage VM" }));
+    await settle(4);
+    expect(screen().getByText("Os arquivos novos agora vão para Storage VM.")).toBeTruthy();
+    // In use: no connection to edit, the copy and the way back as for a bucket of its own.
+    expect(within(section()).queryByRole("button", { name: "Editar conexão" })).toBeNull();
+    expect(within(section()).getByRole("button", { name: "Copiar arquivos existentes" })).toBeTruthy();
+    expect(within(section()).getByRole("button", { name: /^Voltar para/ })).toBeTruthy();
+  });
+
   test("activating needs a passing test of the same settings", async () => {
     const m = createMockStorage();
     await expect(m.save("o", { kind: "s3", s3 })).rejects.toThrow();

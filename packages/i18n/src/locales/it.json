@@ -12787,6 +12787,12 @@
     },
     "s3": "La tua archiviazione",
     "s3Text": "Cloudflare R2, Amazon S3, Backblaze B2 o un altro compatibile con S3.",
+    "provided": {
+      "title": "Server di archiviazione",
+      "text": "Un bucket solo di questo workspace, nello spazio del server. Niente da configurare.",
+      "on": "Attiva {{name}}",
+      "done": "I nuovi file ora vanno su {{name}}."
+    },
     "current": "In uso",
     "usage": {
       "files": "{{size}} di file",
@@ -15369,6 +15375,8 @@
       "neverHappens": "Questa pianificazione non si verifica mai.",
       "soleOwner": "Sei l'unico proprietario di uno spazio di lavoro con altri membri. Prima nomina un altro proprietario o elimina lo spazio di lavoro.",
       "testFirst": "Prova la connessione con queste impostazioni prima di attivarla.",
+      "providedOff": "Questo server non offre più un server di archiviazione.",
+      "storageServer": "Il server di archiviazione non ha risposto. Riprova tra poco.",
       "voiceLength": "La registrazione è troppo lunga o troppo corta.",
       "sendAgain": "Il file non è arrivato intero. Invialo di nuovo.",
       "serverKey": "Questa chiave è nelle impostazioni del server.",

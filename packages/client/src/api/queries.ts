@@ -200,6 +200,7 @@ import type {
   StartChoice,
   StatusInput,
   StorageMigration,
+  StorageSave,
   TaskManagerView,
   TeamProposalCard,
   ThreadAction,
@@ -4087,7 +4088,7 @@ export function useSaveStorage(orgId: string) {
   const api = useApi();
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (input: { kind: "agentes" } | { kind: "s3"; s3: S3Input }) => api.storage.save(orgId, input),
+    mutationFn: (input: StorageSave) => api.storage.save(orgId, input),
     onSuccess: (config) => {
       qc.setQueryData(keys.storage(orgId), config);
       qc.removeQueries({ queryKey: keys.storageMigration(orgId) });

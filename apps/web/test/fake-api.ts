@@ -413,6 +413,8 @@ export interface FakeState {
   storagePlatform?: StoragePlatform;
   /** What the workspace's files take (`storage.get`'s `usage`); unset = none yet, no disk told. */
   storageUsage?: StorageUsage;
+  /** The storage server this server hands out (`storage.get`'s `provided`); unset = none offered. */
+  storageProvided?: { name: string };
   /** `push.webKey`: the server's Web Push key; unset = Web Push off on this server (null). */
   webPushKey?: string;
   /** `push.stale`: the notification ids the server calls stale (read, done, snoozed, gone); unset = none. */
@@ -4395,6 +4397,7 @@ export function createFakeApi(state: FakeState = seedState(), options: { seed?: 
     storage: createMockStorage(
       () => state.storagePlatform,
       () => state.storageUsage,
+      () => state.storageProvided,
     ),
     artifacts,
     ...createMockPlanning(ctx, (method, ...args) => state.calls.push({ method, args })),

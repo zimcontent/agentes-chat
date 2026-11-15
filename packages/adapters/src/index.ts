@@ -53,6 +53,7 @@ export * from "./secret-box";
 export * from "./speech";
 export * from "./standard-webhooks";
 export * from "./stopwords";
+export * from "./storage-host";
 export { createBitwardenSource } from "./vault/bitwarden";
 export { createOnePasswordSource } from "./vault/onepassword";
 export * from "./vault/site";

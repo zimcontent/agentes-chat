@@ -13244,6 +13244,12 @@
     },
     "s3": "Własne miejsce na dane",
     "s3Text": "Cloudflare R2, Amazon S3, Backblaze B2 lub inny zgodny z S3.",
+    "provided": {
+      "title": "Serwer przechowywania",
+      "text": "Bucket tylko dla tego workspace'u, w magazynie serwera. Nic do ustawiania.",
+      "on": "Włącz {{name}}",
+      "done": "Nowe pliki trafiają teraz do {{name}}."
+    },
     "current": "W użyciu",
     "usage": {
       "files": "{{size}} plików",
@@ -15870,6 +15876,8 @@
       "neverHappens": "Ten harmonogram nigdy się nie wydarzy.",
       "soleOwner": "Jesteś jedynym właścicielem przestrzeni roboczej z innymi członkami. Najpierw ustaw kogoś innego jako właściciela albo usuń przestrzeń roboczą.",
       "testFirst": "Przetestuj połączenie z tymi ustawieniami, zanim je włączysz.",
+      "providedOff": "Ten serwer nie oferuje już serwera przechowywania.",
+      "storageServer": "Serwer przechowywania nie odpowiedział. Spróbuj ponownie za chwilę.",
       "voiceLength": "Nagranie jest za długie lub za krótkie.",
       "sendAgain": "Plik nie dotarł w całości. Wyślij go ponownie.",
       "serverKey": "Ten klucz jest w ustawieniach serwera.",

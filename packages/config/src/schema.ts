@@ -1041,6 +1041,37 @@ export const envVars = {
       "Path-style bucket URLs (`https://endpoint/bucket/key`), for MinIO, Garage and similar stores. Off: virtual-hosted URLs (`https://bucket.endpoint/key`), as R2 and AWS expect.",
     section: "Storage",
   },
+  STORAGE_HOST_ENDPOINT: {
+    schema: z.url().optional(),
+    description:
+      "A storage server this server hands out to workspaces (docs/adr/doug-0010-storage-server.md): its S3 API, reached path-style over HTTPS. With `STORAGE_HOST_ADMIN_URL` and `STORAGE_HOST_ADMIN_TOKEN`, Settings › Storage offers it, and a workspace that switches it on gets a bucket of its own there with a key allowed on that bucket alone. Garage only for now. Unset: not offered.",
+    section: "Storage",
+    example: "https://storage.example.com",
+  },
+  STORAGE_HOST_REGION: {
+    schema: z.string().min(1).default("garage"),
+    description: "The region the storage server signs with (Garage's `s3_region`).",
+    section: "Storage",
+  },
+  STORAGE_HOST_ADMIN_URL: {
+    schema: z.url().optional(),
+    description:
+      "The storage server's admin API (Garage's `[admin] api_bind_addr`, behind HTTPS), where each workspace's bucket and key are made. Keep it reachable from this server alone.",
+    section: "Storage",
+    example: "https://storage.example.com:3904",
+  },
+  STORAGE_HOST_ADMIN_TOKEN: {
+    schema: z.string().min(16).optional(),
+    description: "The storage server's admin token (Garage's `admin_token`).",
+    section: "Storage",
+    secret: true,
+  },
+  STORAGE_HOST_NAME: {
+    schema: z.string().min(1).max(60).default("Storage server"),
+    description: "What people read for the storage server in Settings › Storage.",
+    section: "Storage",
+    example: "Storage VM",
+  },
   HOST_COMPUTER_TOKEN: {
     schema: z
       .string()

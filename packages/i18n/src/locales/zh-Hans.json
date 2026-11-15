@@ -11880,6 +11880,12 @@
     },
     "s3": "你自己的存储",
     "s3Text": "Cloudflare R2、Amazon S3、Backblaze B2 或其他兼容 S3 的存储。",
+    "provided": {
+      "title": "存储服务器",
+      "text": "在服务器的存储上为此工作区单独建一个存储桶。无需任何设置。",
+      "on": "开启 {{name}}",
+      "done": "新文件现在会存到 {{name}}。"
+    },
     "current": "使用中",
     "usage": {
       "files": "{{size}} 文件",
@@ -14374,6 +14380,8 @@
       "neverHappens": "这个日程永远不会触发。",
       "soleOwner": "你是这个有其他成员的工作区的唯一所有者。请先将其他人设为所有者，或删除工作区。",
       "testFirst": "开启之前，请先用这些设置测试连接。",
+      "providedOff": "此服务器已不再提供存储服务器。",
+      "storageServer": "存储服务器没有响应。请稍后再试。",
       "voiceLength": "录音太长或太短。",
       "sendAgain": "文件没有完整送达。请重新发送。",
       "serverKey": "这个密钥在服务器的设置中。",

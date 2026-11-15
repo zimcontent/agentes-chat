@@ -2,10 +2,12 @@ import {
   type Adapters,
   type BrainTurnRequest,
   createFfmpegLightCopy,
+  createGarageStorageHost,
   type ErrorReporter,
   type S3Fetch,
   type SpeechFetch,
   STREAM_CLOSE,
+  type StorageHost,
 } from "@agenteschat/adapters";
 import { type Config, connectorOAuthApps, githubAppConfig, mcpCallerIdentity } from "@agenteschat/config";
 import type { Database } from "@agenteschat/db";
@@ -177,6 +179,8 @@ export interface EngineOptions {
   schedules?: ScheduleReader;
   /** Tests: fake S3 server and DNS for org buckets. */
   s3Fetch?: S3Fetch;
+  /** Tests: a fake storage server (`STORAGE_HOST_*`). */
+  storageHost?: StorageHost;
   /** Tests: fake speech providers. */
   speechFetch?: SpeechFetch;
   resolveHost?: ResolveHost;
@@ -314,6 +318,7 @@ export function buildEngine(o: EngineOptions) {
     db,
     keyWrappers,
     platform: adapters.platformBlobs,
+    provided: providedStorage(config, o.storageHost),
     fetch: o.s3Fetch,
     resolveHost: o.resolveHost,
   };
@@ -978,3 +983,15 @@ export function buildEngine(o: EngineOptions) {
 }
 
 export type Engine = ReturnType<typeof buildEngine>;
+
+/** The storage server this server hands out to workspaces, when `STORAGE_HOST_*` says one (docs/adr/doug-0010-storage-server.md). */
+function providedStorage(config: Config, host?: StorageHost): StorageDeps["provided"] {
+  const { STORAGE_HOST_ENDPOINT: endpoint, STORAGE_HOST_ADMIN_URL: adminUrl, STORAGE_HOST_ADMIN_TOKEN: token } = config;
+  if (!endpoint || !(host || (adminUrl && token))) return undefined;
+  return {
+    name: config.STORAGE_HOST_NAME,
+    endpoint: endpoint.replace(/\/+$/, ""),
+    region: config.STORAGE_HOST_REGION,
+    host: host ?? createGarageStorageHost({ adminUrl: adminUrl as string, token: token as string }),
+  };
+}

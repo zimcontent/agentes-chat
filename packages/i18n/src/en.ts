@@ -12693,6 +12693,13 @@ export const en = {
     },
     s3: "Your own storage",
     s3Text: "Cloudflare R2, Amazon S3, Backblaze B2 or another compatible with S3.",
+    /** The storage server this server hands out; its name ("Storage VM") is the server's, `title` only when it has none. */
+    provided: {
+      title: "Storage server",
+      text: "A bucket only this workspace uses, on the server's storage. Nothing to set up.",
+      on: "Switch on {{name}}",
+      done: "New files now go to {{name}}.",
+    },
     current: "In use",
     usage: {
       files: "{{size}}\u00a0of\u00a0files",
@@ -15076,6 +15083,8 @@ export const en = {
       soleOwner:
         "You're the only owner of a workspace with other members. Make someone else an owner, or delete the workspace, first.",
       testFirst: "Test the connection with these settings before turning it on.",
+      providedOff: "This server doesn't offer a storage server anymore.",
+      storageServer: "The storage server didn't answer. Try again in a moment.",
       voiceLength: "The recording is too long or too short.",
       sendAgain: "The file didn't arrive whole. Send it again.",
       serverKey: "This key is set in the server's settings.",

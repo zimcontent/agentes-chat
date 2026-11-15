@@ -360,6 +360,7 @@ import type {
   StatusInput,
   StorageConfig,
   StorageMigration,
+  StorageSave,
   StorageTestResult,
   SuggestedAi,
   TaskManagerView,
@@ -2000,7 +2001,7 @@ export interface ApiClient {
     /** Checks a bucket: write, read, list and delete a test object. */
     test(orgId: string, input: S3Input): Promise<StorageTestResult>;
     /** Switches storage. `s3` requires a passing test of the same settings. */
-    save(orgId: string, input: { kind: "agentes" } | { kind: "s3"; s3: S3Input }): Promise<StorageConfig>;
+    save(orgId: string, input: StorageSave): Promise<StorageConfig>;
     /** Starts (or resumes) copying existing files to the bucket. */
     migrate(orgId: string): Promise<StorageMigration>;
     migration(orgId: string): Promise<StorageMigration | null>;
