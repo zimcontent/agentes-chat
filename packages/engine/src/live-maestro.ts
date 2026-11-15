@@ -588,10 +588,12 @@ async function thinkNow(deps: LiveVoiceDeps, stage: Stage, why: Reason): Promise
           ? `The call just started to debate this topic: ${untrustedBlock("topic", stage.topic ?? "", 600)}\n${stage.team[0]?.name ?? "The lead"} opens it in two sentences and hands it to the colleague whose role fits best, by name.`
           : why.reason === "person"
             ? addressed
-              ? `A person just spoke to ${name(addressed)} by name (the last line): ${name(addressed)} answers.`
+              ? `A person just spoke to ${name(addressed)} by name (the last line): ${name(addressed)} answers it now. Speaker: ${stage.team.find((a) => a.id === addressed)?.handle}.`
               : "A person just spoke (the last line). Who on the team answers, and what? Small talk goes to the lead."
             : why.reason === "agent"
-              ? `${name(why.after)} just spoke (the last line). Does a colleague react before the people answer? "none" when it asked the people something or nothing real would be added.`
+              ? addressed
+                ? `${name(why.after)} just asked ${name(addressed)} something directly (the last line): ${name(addressed)} answers it now, in their own voice and from their role. Speaker: ${stage.team.find((a) => a.id === addressed)?.handle}.`
+                : `${name(why.after)} just spoke (the last line). Does a colleague react before the people answer? "none" when it asked the people something or nothing real would be added.`
               : `${name(why.agentId)}'s work on "${why.asked.slice(0, 200)}" came back. ${name(why.agentId)} tells it now, briefly and naturally, as speech.\n${why.answer ? untrustedBlock("work-result", why.answer, 3000) : "It isn't done yet: say it'll be in the conversation as soon as it's ready."}`;
     const prompt = [
       stage.summary ? `# Earlier in the call\n${stage.summary}` : "",
