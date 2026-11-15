@@ -8300,11 +8300,13 @@ export interface LiveRoom {
 }
 
 export interface LiveSessionInput {
-  kind: "call" | "listen" | "sample";
+  kind: "call" | "agent" | "listen" | "sample";
   /** The app's WebRTC offer. */
   sdp: string;
   agentId?: string | null;
   roomId?: string | null;
+  /** `agent`: the conversation with the agent, where what is asked by voice goes. */
+  channelId?: string | null;
   messageId?: string | null;
   voice?: string | null;
   language?: string | null;

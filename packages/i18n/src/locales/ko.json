@@ -9708,7 +9708,18 @@
       "title": "음성 통화",
       "lead": "통화에 참여할 에이전트를 골라요. 대화에 있는 사람은 누구나 참여할 수 있어요.",
       "startWith_other": "에이전트 {{count}}명과 통화",
-      "peopleOnly": "에이전트 없이 통화"
+      "peopleOnly": "에이전트 없이 통화",
+      "callAgent": "{{name}}에게 전화",
+      "keyWhere": "에이전트에게 전화하려면 이 워크스페이스에 GPT-Live 키가 필요해요. 추가하는 곳은 설정 › 음성에서.",
+      "keyOpen": "키 추가",
+      "keyAsk": "워크스페이스 관리자에게 추가를 요청하세요.",
+      "needsKeyTitle": "{{name}}에게 전화하려면 GPT-Live 키가 필요해요"
+    },
+    "agentCall": {
+      "title": "{{name}}와 통화",
+      "connecting": "{{name}}에게 전화 거는 중…",
+      "listening": "듣는 중",
+      "hangUp": "끊기"
     },
     "room": {
       "title": "음성 통화",

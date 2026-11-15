@@ -10391,6 +10391,18 @@ export const ptBR = {
       startWith_one: "Chamar com {{count}} agente",
       startWith_other: "Chamar com {{count}} agentes",
       peopleOnly: "Chamar sem agentes",
+      callAgent: "Ligar para {{name}}",
+      keyWhere:
+        "Para chamar agentes, este workspace precisa de uma chave do GPT-Live, colocada em Configurações › Voz.",
+      keyOpen: "Colocar a chave",
+      keyAsk: "Peça a quem administra o workspace para colocar.",
+      needsKeyTitle: "Ligar para {{name}} precisa de uma chave do GPT-Live",
+    },
+    agentCall: {
+      title: "Chamada com {{name}}",
+      connecting: "Ligando para {{name}}…",
+      listening: "Ouvindo",
+      hangUp: "Desligar",
     },
     room: {
       title: "Chamada de voz",

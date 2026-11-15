@@ -10474,7 +10474,18 @@
       "startWith_one": "Appeler avec {{count}} agent",
       "startWith_many": "Appeler avec {{count}} agents",
       "startWith_other": "Appeler avec {{count}} agents",
-      "peopleOnly": "Appeler sans agents"
+      "peopleOnly": "Appeler sans agents",
+      "callAgent": "Appeler {{name}}",
+      "keyWhere": "Pour appeler des agents, cet espace de travail a besoin d'une clé GPT-Live dans Paramètres › Voix.",
+      "keyOpen": "Ajouter la clé",
+      "keyAsk": "Demandez à la personne qui gère l'espace de travail de l'ajouter.",
+      "needsKeyTitle": "Appeler {{name}} demande une clé GPT-Live"
+    },
+    "agentCall": {
+      "title": "Appel avec {{name}}",
+      "connecting": "Appel de {{name}}…",
+      "listening": "À l'écoute",
+      "hangUp": "Raccrocher"
     },
     "room": {
       "title": "Appel vocal",

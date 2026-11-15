@@ -9714,7 +9714,18 @@
       "title": "音声通話",
       "lead": "通話に参加するエージェントを選んでください。会話のメンバーは誰でも参加できます。",
       "startWith_other": "エージェント{{count}}人と通話",
-      "peopleOnly": "エージェントなしで通話"
+      "peopleOnly": "エージェントなしで通話",
+      "callAgent": "{{name}}に発信",
+      "keyWhere": "エージェントに発信するには、のキーがありません。設定 › 音声でこのワークスペースにGPT-Liveのキーを追加してください。",
+      "keyOpen": "キーを追加",
+      "keyAsk": "ワークスペースの管理者に追加を依頼してください。",
+      "needsKeyTitle": "{{name}}への発信にはGPT-Liveのキーが必要です"
+    },
+    "agentCall": {
+      "title": "{{name}}との通話",
+      "connecting": "{{name}}に発信中…",
+      "listening": "聞いています",
+      "hangUp": "通話を終了"
     },
     "room": {
       "title": "音声通話",

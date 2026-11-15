@@ -24523,6 +24523,33 @@
   "liveVoice.call.peopleOnly": {
     "value": "Call without agents"
   },
+  "liveVoice.call.callAgent": {
+    "value": "Call {{name}}"
+  },
+  "liveVoice.call.keyWhere": {
+    "value": "To call agents, this workspace needs a GPT-Live key, added in Settings › Voice."
+  },
+  "liveVoice.call.keyOpen": {
+    "value": "Add the key"
+  },
+  "liveVoice.call.keyAsk": {
+    "value": "Ask whoever runs the workspace to add it."
+  },
+  "liveVoice.call.needsKeyTitle": {
+    "value": "Calling {{name}} needs a GPT-Live key"
+  },
+  "liveVoice.agentCall.title": {
+    "value": "Call with {{name}}"
+  },
+  "liveVoice.agentCall.connecting": {
+    "value": "Calling {{name}}…"
+  },
+  "liveVoice.agentCall.listening": {
+    "value": "Listening"
+  },
+  "liveVoice.agentCall.hangUp": {
+    "value": "Hang up"
+  },
   "liveVoice.room.title": {
     "value": "Voice call"
   },

@@ -157,6 +157,38 @@ export function listenInstructions(input: {
     .join("\n\n");
 }
 
+/**
+ * A call with one agent, as the Nordus Live call did it: the voice is the agent, and its real work (its tools, files,
+ * memory, the team's systems) runs as an ordinary turn in its conversation, which the voice hands off and then tells.
+ * OpenAI trained GPT-Live on these headings, so they stay as they are.
+ */
+export function agentCallInstructions(input: {
+  agent: VoiceAgent;
+  person: string;
+  orgName: string;
+  orgContext: string;
+  recent: ChatLine[];
+  language: string | null;
+}) {
+  return [
+    whoYouAre(input.agent, input.orgName, input.orgContext),
+    `# This is a live voice call with ${input.person}\nYou are ${input.agent.name} speaking, in the first person. Never mention a backend, a delegation, another model or a voice layer: it is all you.`,
+    SPEECH_RULES(languageName(input.language)),
+    [
+      "# Delegate to the backend when",
+      "- the person asks for something to be done, looked up, checked, written, sent, scheduled or changed",
+      "- the answer needs files, messages, memory, connected apps, the web or anything not in this conversation",
+      "- you are not sure of a fact",
+      'Don\'t ask permission to look something up: say one short natural line ("deixa eu ver isso") and delegate. While it works, stay quiet or keep the conversation light. When the result arrives, tell it naturally and briefly, the way a colleague would, never read lists, links or code.',
+      "Answer small talk and simple follow-ups about what was already said yourself.",
+    ].join("\n"),
+    "When the call connects, greet the person by name in one short sentence.",
+    input.recent.length ? `# Your conversation with them so far\n${chatBlock(input.recent, "chat")}` : "",
+  ]
+    .filter(Boolean)
+    .join("\n\n");
+}
+
 export function sampleInstructions(input: { agent: VoiceAgent | null; language: string | null; orgName: string }) {
   const who = input.agent ? `You are ${input.agent.name}${input.agent.role ? `, ${input.agent.role}` : ""}` : "You";
   return [
