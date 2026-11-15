@@ -95,23 +95,26 @@ async function room(options: { heard?: string; plans?: (system: string, prompt: 
 }
 
 describe("the maestro", () => {
-  test("the call opens with the lead's greeting, spoken in its voice, with live-call.md in what it reads", async () => {
+  test("the call opens with the lead's greeting at once (no model), then the team reads live-call.md", async () => {
     const { d, call, voiceOut, thoughts, events } = await room();
     expect(call.mode).toBe("maestro");
     await maestroJoined(d, f.owner.id, f.org.id, call.id, "pt-BR");
     await wait(() => events.some((e) => e.type === "live.say"));
-    expect(voiceOut.spoken[0]?.text).toBe("Oi, pessoal.");
-    expect(thoughts[0]?.system).toContain("ONE AGENT AT A TIME");
-    expect(thoughts[0]?.system).toContain("## Rosa (handle: rosa)");
+    expect(voiceOut.spoken[0]?.text).toContain("Sobre o que a gente vai falar?");
     const say = events.find((e) => e.type === "live.say") as { utteranceId: string; agentId: string };
     expect(say.agentId).toBe(f.agent.id);
     // Every app reads the same audio, from the start.
     const stream = await maestroSpeech(d, f.owner.id, f.org.id, call.id, say.utteranceId);
     const bytes = new Uint8Array(await new Response(stream).arrayBuffer());
-    expect(new TextDecoder().decode(bytes)).toBe("mp3:Oi, pessoal.");
+    expect(new TextDecoder().decode(bytes)).toContain("mp3:Oi");
+    // What comes after the greeting is the model's, with the base every agent follows on a call.
+    await wait(() => thoughts.length > 0);
+    expect(thoughts[0]?.system).toContain("ONE AGENT AT A TIME");
+    expect(thoughts[0]?.system).toContain("## Rosa (handle: rosa)");
     // Joining again doesn't open it twice.
     await maestroJoined(d, f.owner.id, f.org.id, call.id, "pt-BR");
-    expect(thoughts.filter((t) => t.prompt.includes("The call just started")).length).toBe(1);
+    await new Promise((r) => setTimeout(r, 200));
+    expect(voiceOut.spoken.filter((v) => v.text.includes("Sobre o que")).length).toBe(1);
   });
 
   test("who is called by name answers, whatever the model would pick; the person's words are kept as their line", async () => {
@@ -150,27 +153,21 @@ describe("the maestro", () => {
     for (let i = 1; i < said.length; i++) expect(said[i]?.agentId).not.toBe(said[i - 1]?.agentId);
   });
 
-  test("a person talking stops everything: what was being prepared is dropped", async () => {
-    let release: () => void = () => {};
+  test("a person talking cuts a voice that plays; a cough with nobody speaking throws nothing away", async () => {
     const { d, call, events } = await room({ heard: "Me fala do prazo" });
-    const slow = d.think;
-    d.think = async (input) => {
-      await new Promise<void>((r) => {
-        release = r;
-      });
-      return slow?.(input) ?? null;
-    };
+    // Nobody speaking: nothing is cut (what is being prepared waits for the person).
+    await maestroHush(d, f.owner.id, f.org.id, call.id);
+    expect(events.some((e) => e.type === "live.hush")).toBe(false);
     await maestroHeard(d, f.owner.id, f.org.id, call.id, {
       audio: new Uint8Array([1]),
       contentType: "audio/wav",
       durationMs: 1000,
       language: "pt-BR",
     });
+    await wait(() => events.some((e) => e.type === "live.say"));
+    // A line is playing now: the person talking cuts it, for everyone.
     await maestroHush(d, f.owner.id, f.org.id, call.id);
-    release();
-    await new Promise((r) => setTimeout(r, 300));
-    expect(events.some((e) => e.type === "live.hush")).toBe(true);
-    expect(events.some((e) => e.type === "live.say")).toBe(false);
+    expect(events.find((e) => e.type === "live.hush")).toMatchObject({ roomId: call.id });
   });
 
   test("work asked on the call runs for real in the conversation and comes back spoken", async () => {

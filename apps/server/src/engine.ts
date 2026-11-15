@@ -844,6 +844,7 @@ export function buildEngine(o: EngineOptions) {
     },
     voiceOut: whatsappVoiceOut(config.ELEVENLABS_API_KEY),
     speech: () => speech.chain(),
+    log: o.log,
   };
   const jobDeps: JobDeps = {
     feedbackBlobs: adapters.platformBlobs,
