@@ -220,8 +220,8 @@ export async function refuseRightHand(db: Executor, orgId: string, agentId: stri
 }
 
 /**
- * The right hand is in no channel: an @mention in any channel reaches it all the same (ADR 0137), never a DM between
- * people. Read wherever a run needs the agent in the conversation (the mention lookups, `eligibleChannelAgents`).
+ * In a channel the right hand isn't a member of, an @mention reaches it all the same (ADR 0137), never in a DM between
+ * people. Where it is a member it answers like any agent (addendum 2026-11-15). Read wherever a run needs the agent in the conversation (the mention lookups, `eligibleChannelAgents`).
  */
 export const rightHandReaches = (agent: SQL, channelId: SQL) =>
   sql`(${agent}.builtin = ${RIGHT_HAND} and exists (select 1 from ${schema.channels} rhc

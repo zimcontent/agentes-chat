@@ -10,6 +10,7 @@ import {
   createAgent,
   createChannel,
   createOrganization,
+  DEFAULT_ROUTER_POLICY,
   deleteAgent,
   drainOutbox,
   ensureRightHand,
@@ -25,8 +26,10 @@ import {
   postPersonMessage,
   RIGHT_HAND,
   RIGHT_HAND_GRANTS,
+  type RouterStrategy,
   reflectThread,
   rightHandPrompt,
+  routeMessage,
   setAgentAudience,
   setAgentChannels,
   setAgentComputerTarget,
@@ -160,15 +163,13 @@ test("it holds every built-in scope an agent can be given, a computer's as rows 
   expect(toolAccess(keys, { name: "run_code", scope: "sandbox:run" })).toBe("granted");
 });
 
-test("it is in no channel and on no computer, whoever asks", async () => {
+test("it joins a channel like any agent, but goes on no computer, whoever asks", async () => {
   f = await setup({ rightHand: true });
   const [lodi] = await rightHandOf(f.org.id);
   if (!lodi) throw new Error("no right hand");
   const permanent = { code: "agent.right_hand_permanent" };
-  await expect(addChannelMember(f.db, f.owner.id, f.org.id, f.general.id, { agentId: lodi.id })).rejects.toMatchObject(
-    permanent,
-  );
-  // Its owner, alone in the workspace, still adds any other agent.
+  await addChannelMember(f.db, f.owner.id, f.org.id, f.general.id, { agentId: lodi.id });
+  // Its owner, alone in the workspace, adds any other agent too.
   const ada = await createAgent(
     f.db,
     f.owner.id,
@@ -182,10 +183,15 @@ test("it is in no channel and on no computer, whoever asks", async () => {
     .from(schema.channelMembers)
     .where(eq(schema.channelMembers.channelId, f.general.id));
   expect(inGeneral.map((m) => m.agentId)).toContain(ada.id);
-  expect(inGeneral.map((m) => m.agentId)).not.toContain(lodi.id);
-  await expect(
-    setAgentChannels(f.db, f.owner.id, f.org.id, lodi.id, [{ channelId: f.general.id }]),
-  ).rejects.toMatchObject(permanent);
+  expect(inGeneral.map((m) => m.agentId)).toContain(lodi.id);
+  // From its own page as well: out of #general, then back in.
+  await setAgentChannels(f.db, f.owner.id, f.org.id, lodi.id, []);
+  await setAgentChannels(f.db, f.owner.id, f.org.id, lodi.id, [{ channelId: f.general.id }]);
+  const again = await f.db
+    .select({ agentId: schema.channelMembers.agentId })
+    .from(schema.channelMembers)
+    .where(eq(schema.channelMembers.channelId, f.general.id));
+  expect(again.map((m) => m.agentId)).toContain(lodi.id);
   const { machineId } = await pairMachine({ db: f.db, pubsub: f.pubsub }, f.owner.id, f.org.id, { name: "MacBook" });
   await expect(
     setAgentComputerTarget({ db: f.db, pubsub: f.pubsub }, f.owner.id, f.org.id, lodi.id, machineId),
@@ -448,6 +454,37 @@ test("in no channel, an @mention in any channel still reaches it, and only that"
     .from(schema.channelMembers)
     .where(eq(schema.channelMembers.channelId, f.general.id));
   expect(members.map((m) => m.agentId)).not.toContain(lodi.id);
+});
+
+test("a member of a channel, it is routed there like any agent, and @everyone reaches it", async () => {
+  f = await setup({ rightHand: true });
+  const [lodi] = await rightHandOf(f.org.id);
+  if (!lodi) throw new Error("no right hand");
+  await addChannelMember(f.db, f.owner.id, f.org.id, f.general.id, { agentId: lodi.id });
+  const strategy: RouterStrategy = {
+    name: "fixed",
+    async decide(input) {
+      return {
+        agents: input.candidates.map((c) => ({ agentId: c.agentId, score: c.handle === lodi.handle ? 0.9 : 0.1 })),
+        needsAgent: 0.9,
+        reason: "setup question",
+      };
+    },
+  };
+  const asked = await postPersonMessage({ db: f.db, pubsub: f.pubsub }, f.owner.id, f.org.id, f.general.id, {
+    body: "como eu conecto o Gmail aqui?",
+  });
+  expect(asked.mentionedAgentIds).toEqual([]);
+  const routed = await routeMessage(
+    { db: f.db, strategy, policy: { ...DEFAULT_ROUTER_POLICY, maxHops: 3 } },
+    { orgId: f.org.id, messageId: asked.id },
+  );
+  expect(routed.selected).toEqual([lodi.id]);
+  const everyone = await postPersonMessage({ db: f.db, pubsub: f.pubsub }, f.owner.id, f.org.id, f.general.id, {
+    body: "@everyone bom dia, alguém revisa isso?",
+  });
+  expect(everyone.mentionedAgentIds).toContain(lodi.id);
+  expect(everyone.mentionedAgentIds).toContain(f.agent.id);
 });
 
 test("a sign-in or a key in its reply is taken out before it is posted, in the person's language, and audited", async () => {

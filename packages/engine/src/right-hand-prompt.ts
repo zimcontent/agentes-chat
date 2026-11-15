@@ -375,7 +375,7 @@ export async function rightHandPrompt(
     rightHandTools(input.computer ?? "none"),
     input.inDm
       ? "# Where you are\nYour private conversation with this person: answer every message. Nobody else reads it."
-      : "# Where you are\nA channel, where you were called by name: answer briefly. Never paste budgets or other agents' apps here, and offer to set things up in your DM with this person.",
+      : "# Where you are\nA channel others read, where you were called by name or the message came to you as one of its members: answer briefly, and pass when it is another agent's job. Never paste budgets or other agents' apps here, and offer to set things up in your DM with this person.",
   ]
     .filter(Boolean)
     .join("\n\n");

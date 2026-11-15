@@ -18,9 +18,6 @@ import { answerAfter } from "./team-plan";
 /** The workspace's right hand (ADR 0137): every surface that treats it apart asks here. */
 export const isRightHand = (agent: Pick<Agent, "builtin"> | null | undefined) => agent?.builtin === "right_hand";
 
-/** Whether a channel's member pickers offer the agent: never the right hand, in no channel (an @mention reaches it). */
-export const joinsChannels = (agent: Pick<Agent, "builtin">) => !isRightHand(agent);
-
 /**
  * Whether an @mention in a conversation of `kind` reaches the agent though it isn't a member there: the right hand, in
  * any channel, never a DM (the server's `rightHandReaches`). The "@" pickers count it as in, with nothing to add.

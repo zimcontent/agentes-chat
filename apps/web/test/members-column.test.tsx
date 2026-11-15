@@ -382,7 +382,7 @@ describe("Adicionar pessoa ou agente at the bottom", () => {
     expect(screen().queryByRole("dialog", { name: /^#eng/ })).toBeNull();
   });
 
-  test("never offers the right hand: it is in no channel", async () => {
+  test("offers the right hand like any agent", async () => {
     widthIs(DESKTOP_QUERY);
     const state = withRightHand(seedState());
     state.agents.push({
@@ -397,7 +397,7 @@ describe("Adicionar pessoa ou agente at the bottom", () => {
     );
     await settle(4);
     const add = screen().getByRole("dialog", { name: "Adicionar a #eng" });
-    expect(within(add).queryByText("Doug")).toBeNull();
+    expect(within(add).getByText("Doug")).toBeTruthy();
     expect(within(add).getByText("Theo")).toBeTruthy();
   });
 
