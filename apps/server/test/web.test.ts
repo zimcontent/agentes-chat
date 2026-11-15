@@ -18,6 +18,7 @@ beforeAll(() => {
   mkdirSync(join(dir, "assets"));
   writeFileSync(join(dir, "index.html"), '<!doctype html><div id="root"></div>');
   writeFileSync(join(dir, "assets", "app.js"), "console.log(1)");
+  writeFileSync(join(dir, "favicon.svg"), '<svg xmlns="http://www.w3.org/2000/svg"/>');
   mkdirSync(join(dir, "runner"));
   writeFileSync(join(dir, "runner", "agentes-runner.mjs"), "#!/usr/bin/env node\nconsole.log('runner')");
   writeFileSync(join(dir, "sw.js"), "self.addEventListener('push', () => {})");
@@ -46,6 +47,12 @@ describe("web app serving", () => {
       const res = await app.request(path);
       expect(res.headers.get("cache-control")).toBe("no-cache");
     }
+  });
+
+  test("the tab's icon is revalidated, so a new one shows on the next open in every tab", async () => {
+    const res = await app.request("/favicon.svg");
+    expect(res.status).toBe(200);
+    expect(res.headers.get("cache-control")).toBe("no-cache");
   });
 
   test("a file the build compressed goes compressed to a browser that takes it, else as it is", async () => {

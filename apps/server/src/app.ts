@@ -417,7 +417,8 @@ export function createApp(options: AppOptions) {
       return res;
     });
     // Hashed build files never change: the browser (and the Mac app's window) opens them from disk.
-    // index.html is always revalidated, so a new deploy shows on the next open.
+    // index.html is always revalidated, so a new deploy shows on the next open. So is the tab's icon: it keeps its
+    // name, and with no header the browser keeps an old one for days, then swaps it mid-session on a later navigation.
     // No page of the app belongs in a search engine's index, whatever its status: sign-in pages and made-up
     // addresses all answer with the same page. A header, never a robots.txt: a crawler kept out can't read it.
     app.use("/*", async (c, next) => {
@@ -426,7 +427,7 @@ export function createApp(options: AppOptions) {
       const html = c.res.headers.get("content-type")?.startsWith("text/html");
       if (html) c.res.headers.set("x-robots-tag", "noindex");
       if (!c.res.ok || c.res.headers.has("cache-control")) return;
-      if (html) c.res.headers.set("cache-control", "no-cache");
+      if (html || c.req.path === "/favicon.svg") c.res.headers.set("cache-control", "no-cache");
       else if (c.req.path.startsWith("/assets/"))
         c.res.headers.set("cache-control", "public, max-age=31536000, immutable");
     });
