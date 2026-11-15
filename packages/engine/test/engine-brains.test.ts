@@ -63,6 +63,7 @@ import {
   openDm,
   postPersonMessage,
   queueOnRun,
+  ROOM_ASK_BURST,
   RUNNER_RESTART_RETRY_MS,
   RUNNER_RESTARTING,
   receiptsFor,
@@ -3618,20 +3619,23 @@ async function roomSince(fx: Fixture, runId: string, since: number) {
 }
 
 /** Another agent's turn went to this computer a moment ago (still running). */
+/** A full burst of agents' turns asked this computer just now (`ROOM_ASK_BURST`): the next agent's waits. */
 async function askedJustNow(fx: Fixture, machineId: string) {
-  const id = Bun.randomUUIDv7();
-  await fx.db.insert(schema.agentRuns).values({
-    orgId: fx.org.id,
-    agentId: fx.agent.id,
-    channelId: fx.general.id,
-    threadRootId: id,
-    triggerMessageId: id,
-    trigger: "mention",
-    hop: 2,
-    status: "running",
-    heartbeatAt: new Date(),
-    transcript: { roomAsk: { machineId, at: Date.now() } },
-  });
+  for (let i = 0; i < ROOM_ASK_BURST; i++) {
+    const id = Bun.randomUUIDv7();
+    await fx.db.insert(schema.agentRuns).values({
+      orgId: fx.org.id,
+      agentId: fx.agent.id,
+      channelId: fx.general.id,
+      threadRootId: id,
+      triggerMessageId: id,
+      trigger: "mention",
+      hop: 2,
+      status: "running",
+      heartbeatAt: new Date(),
+      transcript: { roomAsk: { machineId, at: Date.now() } },
+    });
+  }
 }
 
 const personMessage = (fx: Fixture, body: string, threadId?: string) =>
