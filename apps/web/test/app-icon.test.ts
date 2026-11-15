@@ -18,15 +18,15 @@ import {
 import { STORAGE_KEYS } from "../src/lib/storage";
 
 describe("the app icon in a browser (ADR 0179)", () => {
-  test("the shipped icon is the favicon browsers ask for; the others have their own", () => {
-    expect(faviconOf("night")).toBe("/favicon.ico");
+  test("the shipped icon is the Doug; the others have their own", () => {
+    expect(faviconOf("night")).toBe("/favicon.svg");
     expect(faviconOf("peekSky")).toBe("/app-icons/peekSky.ico");
     expect(APP_ICONS.map(appIconPicture)).toContain("/app-icons/moon.png");
     expect(picksAppIcon()).toBe(true);
   });
 
   test("a pick changes the tab's icon and stays in this browser", async () => {
-    document.head.innerHTML = '<link rel="icon" href="/favicon.ico" sizes="16x16 32x32 48x48" />';
+    document.head.innerHTML = '<link rel="icon" href="/favicon.svg" />';
     const changes: string[] = [];
     const listen = () => changes.push(String(appIcon()));
     window.addEventListener("agentes:app-icon", listen);
@@ -35,13 +35,13 @@ describe("the app icon in a browser (ADR 0179)", () => {
     expect(localStorage.getItem(STORAGE_KEYS.appIcon)).toBe("moon");
     expect(appIcon()).toBe("moon");
     await setAppIcon("night");
-    expect(document.querySelector('link[rel="icon"]')?.getAttribute("href")).toBe("/favicon.ico");
+    expect(document.querySelector('link[rel="icon"]')?.getAttribute("href")).toBe("/favicon.svg");
     expect(changes).toEqual(["moon", "night"]);
     window.removeEventListener("agentes:app-icon", listen);
   });
 
   test("an agent picked is kept with who it is and its look, and read back only when well formed", async () => {
-    document.head.innerHTML = '<link rel="icon" href="/favicon.ico" sizes="16x16 32x32 48x48" />';
+    document.head.innerHTML = '<link rel="icon" href="/favicon.svg" />';
     const agent = { orgId: "o-1", id: "a_1", name: "Dev", look: { color: "violet" as const, eyes: "wide" as const } };
     await setAppIcon({ agent });
     expect(pickedAgent(appIcon())).toEqual(agent);

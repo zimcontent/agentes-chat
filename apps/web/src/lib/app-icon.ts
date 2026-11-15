@@ -48,8 +48,8 @@ let current: AppIconPick = inDesktopApp() ? DEFAULT_APP_ICON : parsePick(storage
 
 /** The icon's picture in the picker (packages/ui/scripts/app-icons.mjs writes them). */
 export const appIconPicture = (id: AppIconId) => `/app-icons/${id}.png`;
-/** The tab's icon: the shipped one at the address browsers ask for on their own. */
-export const faviconOf = (id: AppIconId) => (id === DEFAULT_APP_ICON ? "/favicon.ico" : `/app-icons/${id}.ico`);
+/** The tab's icon: the shipped one is the Doug (DougBot's mark, the same as index.html's), the others their own. */
+export const faviconOf = (id: AppIconId) => (id === DEFAULT_APP_ICON ? "/favicon.svg" : `/app-icons/${id}.ico`);
 
 /** Whether this device can change its icon here (a browser, or a desktop app that keeps one). */
 export const picksAppIcon = () => !inDesktopApp() || desktopPicksAppIcon();

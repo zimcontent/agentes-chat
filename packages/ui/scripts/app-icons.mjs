@@ -77,9 +77,8 @@ for (const id of APP_ICON_IDS) {
     // The Night's sky without its agent: the web draws a workspace's agent on it (apps/web/src/lib/agent-app-icon.ts).
     const sky = scene.light().filter((l) => l.part !== "agent" && l.part !== "eyes");
     write("apps/web/public/app-icons/night-sky.png", png(render(512, sky, { k: 2 }), { opaque: true }));
-    write("apps/web/public/favicon.ico", favicon);
-    write("apps/web/public/apple-touch-icon.png", png(resize(light, 180), { opaque: true }));
-    write("apps/web/public/icon-512.png", png(resize(light, 512), { opaque: true }));
+    // DougBot: favicon.ico, apple-touch-icon.png and icon-512.png are the Doug, not this scene (SYNC-DOUG.md), so a
+    // run of this script leaves them as they are.
   }
 }
 
