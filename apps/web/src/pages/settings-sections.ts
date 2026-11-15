@@ -1,5 +1,5 @@
 import type { AuthConfig, OrgSummary } from "@agenteschat/client";
-import { selfHosted, showsAbout } from "@agenteschat/client/lib/about";
+import { showsAbout } from "@agenteschat/client/lib/about";
 import { can } from "@agenteschat/client/lib/permissions";
 import { personalSettingsShort } from "@agenteschat/client/lib/personal-view";
 import { settingsEntry, teamSettings } from "@agenteschat/client/lib/settings-nav";
@@ -55,7 +55,8 @@ export const SETTINGS_SECTIONS: {
   { id: "media", icon: "sticker", allowed: (o) => can(o, "configure") },
   // Voice messages (ADR 0100): who configures the workspace, on a self-hosted server only. agentes.chat Cloud runs its
   // own speech engine, so the section has nothing to offer there (product decision).
-  { id: "voice", icon: "mic", allowed: (o, server) => selfHosted(server) && can(o, "configure") },
+  // Live voice with GPT-Live (ADR doug-0006) is the workspace's own key, on any server, so the section shows everywhere.
+  { id: "voice", icon: "mic", allowed: (o) => can(o, "configure") },
   { id: "members", icon: "members", allowed: () => true },
   { id: "roles", icon: "audiencePeople", allowed: (o) => can(o, "manage_roles") },
   // "IA e uso", for everyone (ADR 0063): the workspace's AI accounts with their meters, what each person does with

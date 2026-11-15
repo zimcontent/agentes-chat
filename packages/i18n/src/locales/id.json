@@ -9757,6 +9757,88 @@
       "invalid": "Kunci yang tersimpan tidak bisa dibuka di server ini. Tempel lagi."
     }
   },
+  "liveVoice": {
+    "you": "Kamu",
+    "call": {
+      "start": "Mulai panggilan suara",
+      "join_other": "Gabung panggilan ({{count}})",
+      "title": "Panggilan suara",
+      "lead": "Pilih agen untuk panggilan. Semua orang di percakapan bisa bergabung.",
+      "startWith_other": "Panggil dengan {{count}} agen",
+      "peopleOnly": "Panggil tanpa agen"
+    },
+    "room": {
+      "title": "Panggilan suara",
+      "joining": "Menghubungkan…",
+      "inCall": "Dalam panggilan",
+      "minimize": "Lanjut bekerja",
+      "open": "Buka panggilan",
+      "micOff": "Matikan mikrofon",
+      "micOn": "Nyalakan mikrofon",
+      "muted": "Mikrofon mati",
+      "captions": "Teks",
+      "quiet": "Agen hanya mendengarkan",
+      "leave": "Keluar dari panggilan",
+      "endAll": "Akhiri untuk semua",
+      "endTitle": "Akhiri panggilan untuk semua?",
+      "endText": "Catatan panggilan masuk ke percakapan. Doug BOSS mengirim laporan berisi keputusan dan langkah berikutnya.",
+      "hasWord": "{{name}} sedang bicara",
+      "agentsListen": "Para agen sedang mendengarkan",
+      "word": "Bicara",
+      "giveWord": "Beri giliran bicara",
+      "takeWord": "Ambil kembali giliran",
+      "connecting": "Menghubungkan suara",
+      "voiceFailed": "Suara gagal",
+      "ended": "Panggilan berakhir",
+      "failed": "Panggilan tidak bisa dimulai",
+      "report": "Catatan ada di percakapan. Doug BOSS mengirim laporannya di sana.",
+      "noNotes": "Terlalu sedikit yang dibicarakan untuk dicatat."
+    },
+    "listen": {
+      "menu": "Dengarkan",
+      "connecting": "Menyiapkan suara…",
+      "telling": "{{name}} sedang bercerita untukmu",
+      "narrator": "Narator",
+      "asking": "Ajukan pertanyaanmu",
+      "done": "Selesai",
+      "ask": "Tanya",
+      "stop": "Berhenti"
+    },
+    "settings": {
+      "title": "Suara langsung (GPT-Live)",
+      "lead": "Panggilan suara dengan agenmu dan Dengarkan di pesan mana pun, tiap agen dengan suaranya sendiri.",
+      "on": "Aktif",
+      "off": "Nonaktif",
+      "without": "Tambahkan kunci OpenAI yang punya akses ke GPT-Live untuk memanggil agenmu dan mendengarkan pesan.",
+      "setUp": "Tambahkan kunci",
+      "openSite": "Buka OpenAI",
+      "stepKey": "Buat kunci API",
+      "stepKeyHint": "Di proyek OpenAI yang punya GPT-Live. Biaya pemakaian ditagihkan ke proyek itu.",
+      "paste": "Tempel kunci di sini",
+      "sealed": "Kunci diperiksa ke OpenAI dan disimpan tersegel. Tak ada yang bisa melihatnya lagi.",
+      "price": "GPT-Live sekitar US$ 0,05 per menit per agen dalam panggilan. Biaya ini masuk ke anggaran tiap agen.",
+      "removeTitle": "Hapus kunci GPT-Live?",
+      "removeText": "Panggilan dengan agen dan Dengarkan berhenti di ruang kerja ini. Panggilan antarorang tetap berjalan.",
+      "voicesTitle": "Suara tiap agen",
+      "voiceOf": "Suara {{name}}",
+      "sample": "Dengarkan suara {{name}}",
+      "hear": "Dengarkan"
+    },
+    "errors": {
+      "off": "Ruang kerja ini belum punya kunci GPT-Live. Tambahkan di Pengaturan › Suara.",
+      "keyInvalid": "OpenAI menolak kunci ini.",
+      "noAccess": "Proyek OpenAI untuk kunci ini tidak punya akses ke GPT-Live.",
+      "unchecked": "Kunci tidak bisa diperiksa ke OpenAI. Coba lagi.",
+      "unavailable": "OpenAI tidak menjawab. Coba lagi.",
+      "busy": "OpenAI sedang sibuk, atau kuota kunci sudah habis.",
+      "refused": "OpenAI menolak sesi suara.",
+      "tooMany": "Terlalu banyak sesi suara terbuka. Tutup satu lalu coba lagi.",
+      "noWords": "Pesan ini tidak punya kata untuk diceritakan.",
+      "notHost": "Hanya orang yang memandu panggilan yang bisa membuka suara agen.",
+      "ended": "Panggilan ini sudah berakhir.",
+      "notIn": "Kamu sudah tidak ada di panggilan ini."
+    }
+  },
   "media": {
     "word": {
       "gif": "GIF",

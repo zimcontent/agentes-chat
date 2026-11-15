@@ -71,6 +71,7 @@ import {
   setAgentAudience,
   setAgentBrain,
   setAgentPhoto,
+  setAgentVoice,
   setReportsTo,
   speakerOf,
   summaryModelReady,
@@ -206,6 +207,10 @@ const AgentFields = z.object({
   mediaReplies: z.boolean().optional().openapi({
     description:
       "It may send a sticker or a GIF (ADR 0091): when someone asks for one, and after a light reply as often as the workspace's `agentMedia` allows; off: never. Like the other fields, editing it needs `manage_agents`. Default on.",
+  }),
+  voice: z.string().max(40).nullable().optional().openapi({
+    description:
+      "Its voice on calls and when it tells a message (ADR doug-0006), one of the GPT-Live voices; null: the one its id gives. Its owner or an admin can change it.",
   }),
   brakes: AgentBrakes.partial().optional().openapi({
     description: "Its autonomy brakes (ADR 0131); the fields given change, the rest stay. Needs `manage_agents`.",
@@ -1509,13 +1514,14 @@ export function agentRoutes(deps: AppDeps) {
         acceptPlanTerms: _,
         mailLossSeen,
         brakes,
+        voice,
         ...rest
       } = c.req.valid("json");
       const input = { ...rest, ...(brakes ? { autonomyBrakes: brakes } : {}) };
       const actor = c.get("user").id;
-      // The audience and the look can be changed by the agent's owner too; everything else needs an admin.
+      // The audience, the look and the voice can be changed by the agent's owner too; everything else needs an admin.
       const other =
-        (!audience && appearance === undefined) ||
+        (!audience && appearance === undefined && voice === undefined) ||
         Object.values(input).some((v) => v !== undefined) ||
         monthlyBudgetUsd !== undefined;
       let agent = other
@@ -1534,6 +1540,8 @@ export function agentRoutes(deps: AppDeps) {
       }
       if (appearance !== undefined)
         agent = await setAgentAppearance(db, actor, orgId, agentId, appearance, { pubsub: adapters.pubsub });
+      if (voice !== undefined)
+        agent = await setAgentVoice(db, actor, orgId, agentId, voice, { pubsub: adapters.pubsub });
       if (!agent) {
         agent = await getAgent(db, orgId, agentId);
         if (!agent) throw new NotFoundError("Agent not found");

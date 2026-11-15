@@ -14,6 +14,7 @@ import {
   sql,
 } from "@agenteschat/db";
 import { AUTO_MODEL, customModelId, isAutoModel, MODEL_CATALOG, parseCustomModel } from "@agenteschat/providers";
+import { isLiveVoice, LIVE_VOICES, liveVoiceFor } from "@agenteschat/providers/live-voice";
 import { isIdHandle } from "@agenteschat/ui/names";
 import type { AgentAppearance } from "./appearance";
 import { dropAgentRules } from "./approval-rules";
@@ -94,6 +95,8 @@ export interface AgentInput {
   monthlyBudgetNanoUsd?: number | null;
   /** It may follow a light reply with a sticker or a GIF (ADR 0091), as often as the workspace allows. */
   mediaReplies?: boolean;
+  /** Its voice on calls and when it tells a message (ADR doug-0006): one of `LIVE_VOICES`; null: picked from its id. */
+  voice?: string | null;
   /** Its autonomy brakes (ADR 0131), stored as `autonomySettings` reads them. */
   autonomyBrakes?: Partial<AutonomySettings>;
   /** How much it asks before acting (ADR 0173). */
@@ -128,6 +131,9 @@ export async function validateAgentFields(db: Database, orgId: string, input: Pa
   }
   if (input.monthlyBudgetNanoUsd != null && input.monthlyBudgetNanoUsd < 0) {
     throw new ValidationError("budget can't be negative");
+  }
+  if (input.voice != null && !isLiveVoice(input.voice)) {
+    throw new ValidationError(`voice must be one of: ${LIVE_VOICES.join(", ")}`);
   }
   if (input.approvalsLevel !== undefined && !APPROVALS_LEVELS.includes(input.approvalsLevel)) {
     throw new ValidationError(`approvalsLevel must be one of: ${APPROVALS_LEVELS.join(", ")}`);
@@ -696,6 +702,10 @@ export const agentView = (a: Agent) => ({
   photo: a.photo ?? null,
   /** It may follow a light reply with a sticker or a GIF (ADR 0091). */
   mediaReplies: a.mediaReplies,
+  /** Its voice on calls (ADR doug-0006): the one picked, or the one its id gives. */
+  voice: liveVoiceFor(a.id, a.voice),
+  /** Whether a person picked it (else it follows `liveVoiceFor`). */
+  voiceChosen: a.voice != null,
   /** A built-in agent the product ships (ADR 0137): `right_hand`, the team's right hand. Null for the others. */
   builtin: a.builtin ?? null,
   /** "Responde a" (ADR 0148 addendum): the agent it reports to; null = its owner, else its setor's lead. */

@@ -719,6 +719,10 @@ export interface Agent {
    * workspace allows. Absent: on (the default).
    */
   mediaReplies?: boolean;
+  /** Its voice on calls and when it tells a message (ADR doug-0006); absent from a server without live voice. */
+  voice?: string;
+  /** A person picked its voice (else it is the one its id gives). */
+  voiceChosen?: boolean;
   /** Its autonomy brakes (ADR 0131); absent from an older server (the defaults). */
   brakes?: AgentBrakes;
   /** How much it asks before acting (ADR 0173); absent from an older server (`risky`). */
@@ -918,6 +922,8 @@ export interface AgentInput {
   proposal?: string;
   /** Its stickers and GIFs after a light reply (ADR 0091); same permission as editing the agent. */
   mediaReplies?: boolean;
+  /** Its voice (ADR doug-0006); null: the one its id gives. Its owner or an admin. */
+  voice?: string | null;
   /** The Autonomia it starts with (the last setup's, ADR 0094): only an admin or its own owner sends it. */
   autonomy?: CommandApproval;
   /** Editing only: its autonomy brakes (ADR 0131); the fields given change. */
@@ -8261,4 +8267,54 @@ export interface PortalPipeline {
   day: string;
   state?: PortalState;
   entries: PortalPipelineEntry[];
+}
+
+/** Live voice with GPT-Live in this workspace (ADR doug-0006). */
+export interface LiveVoice {
+  /** `ok`: calls with agents and "Ouvir" work. */
+  state: "off" | "ok";
+  /** The key's last 4 characters, for who configures the workspace. */
+  hint: string | null;
+  editable: boolean;
+}
+
+export interface LiveRoomLine {
+  at: string;
+  who: { type: "person" | "agent"; id: string };
+  text: string;
+}
+
+/** A conversation's voice room: people and agents on one call (ADR doug-0006). */
+export interface LiveRoom {
+  id: string;
+  channelId: string;
+  /** Whose app runs the agents' voices. */
+  hostUserId: string | null;
+  agentIds: string[];
+  people: { userId: string; joinedAt: string }[];
+  status: "live" | "ended";
+  startedAt: string;
+  endedAt: string | null;
+  lines: LiveRoomLine[];
+  reportMessageId: string | null;
+}
+
+export interface LiveSessionInput {
+  kind: "call" | "listen" | "sample";
+  /** The app's WebRTC offer. */
+  sdp: string;
+  agentId?: string | null;
+  roomId?: string | null;
+  messageId?: string | null;
+  voice?: string | null;
+  language?: string | null;
+}
+
+export interface LiveSession {
+  id: string;
+  /** OpenAI's WebRTC answer. */
+  sdp: string;
+  voice: string;
+  maxSeconds: number;
+  minSeconds: number;
 }

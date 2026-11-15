@@ -26,6 +26,10 @@ export const keys = {
   limits: (orgId: string) => ["org", orgId, "members", "limits"] as const,
   invitations: (orgId: string) => ["org", orgId, "invitations"] as const,
   agents: (orgId: string) => ["org", orgId, "agents"] as const,
+  /** Live voice with GPT-Live (ADR doug-0006): whether it works here. */
+  liveVoice: (orgId: string) => ["org", orgId, "live-voice"] as const,
+  /** A conversation's live voice room (its Join banner). */
+  liveRoom: (orgId: string, channelId: string) => ["org", orgId, "live-room", channelId] as const,
   /** Set whole by every change; read again on the `agent.groups` org event. */
   agentGroups: (orgId: string) => ["org", orgId, "agent-groups"] as const,
   /** Under `agents`: archiving or deleting one refreshes both. */

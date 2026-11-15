@@ -104,6 +104,7 @@ import { usePersonalView } from "@/hooks/usePersonalView";
 import { useRightHandLook } from "@/hooks/useRightHandLook";
 import { useOpenParam } from "@/lib/open-param";
 import { useToast } from "@/lib/toast";
+import { LiveVoiceCard } from "@/live-voice/LiveVoiceSettings";
 import { MembersPage } from "./MembersPage";
 import {
   isSettingsSection,
@@ -167,10 +168,7 @@ function Settings({
   // agentes.chat Cloud, isn't about their role.
   const wanted = section ?? "general";
   const current = visible.some((s) => s.id === wanted) ? wanted : (visible[0]?.id ?? "account");
-  const serverLacks =
-    (section === "billing" && !server?.billingUrl) ||
-    (section === "about" && !showsAbout(server)) ||
-    (section === "voice" && !selfHosted(server));
+  const serverLacks = (section === "billing" && !server?.billingUrl) || (section === "about" && !showsAbout(server));
   const refused = section && current !== section && !serverLacks ? section : null;
   const setup = useComputerSetup(org.id);
   const edition = computerEdition(setup.data);
@@ -248,7 +246,12 @@ function Settings({
       {current === "vault" && <VaultSection />}
       {current === "audit" && <AuditSection agent={agent} />}
       {current === "media" && <MediaSettingsSection />}
-      {current === "voice" && <VoiceSettingsSection />}
+      {current === "voice" && (
+        <div className="ac-groups">
+          <LiveVoiceCard />
+          {selfHosted(server) && <VoiceSettingsSection />}
+        </div>
+      )}
       {current === "access" && <AccessMatrixSection />}
       {current === "connectors" && (
         <ConnectorsSection connected={connected} outcome={outcome} review={review} mail={mail} account={account} />

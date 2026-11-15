@@ -37,6 +37,7 @@ import { inDesktopApp } from "@/lib/desktop";
 import { notePlace } from "@/lib/return-to";
 import { rememberPlace, showWorkspace } from "@/lib/start";
 import { STORAGE_KEYS, storage } from "@/lib/storage";
+import { LiveVoiceProvider } from "@/live-voice/LiveVoice";
 import { RealtimeProvider } from "@/realtime/context";
 
 /** The workspace shell of an organization: sidebar + page, and its WebSocket. */
@@ -170,16 +171,19 @@ function OrgLayout() {
                             </>
                           )}
                           <div className="shell__pages">
-                            <ComputerDialogProvider>
-                              <DetailsHost>
-                                <PushOpens />
-                                {/* What reaches me while I'm here, at the top of the work area (ADR 0071 §9). */}
-                                {!focused && <NoticeIsland />}
-                                <Arrival />
-                                <FeedbackHost />
-                                <Outlet />
-                              </DetailsHost>
-                            </ComputerDialogProvider>
+                            {/* Voice rooms and Ouvir (ADR doug-0006): a call goes on while the person moves around. */}
+                            <LiveVoiceProvider>
+                              <ComputerDialogProvider>
+                                <DetailsHost>
+                                  <PushOpens />
+                                  {/* What reaches me while I'm here, at the top of the work area (ADR 0071 §9). */}
+                                  {!focused && <NoticeIsland />}
+                                  <Arrival />
+                                  <FeedbackHost />
+                                  <Outlet />
+                                </DetailsHost>
+                              </ComputerDialogProvider>
+                            </LiveVoiceProvider>
                           </div>
                         </div>
                       </div>

@@ -447,6 +447,11 @@ export const Agent = z
       description:
         "It may send a sticker or a GIF (ADR 0091): when someone asks for one, and after a light reply as often as the workspace's `agentMedia` allows.",
     }),
+    voice: z
+      .string()
+      .optional()
+      .openapi({ description: "Its voice on calls (ADR doug-0006): the one picked or its id's." }),
+    voiceChosen: z.boolean().optional().openapi({ description: "A person picked its voice." }),
     approvalsLevel: ApprovalsLevel,
     builtin: z.enum(["right_hand"]).nullable().openapi({
       description:

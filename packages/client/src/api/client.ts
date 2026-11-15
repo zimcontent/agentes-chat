@@ -193,6 +193,10 @@ import type {
   JoinClaim,
   JoinRequest,
   LearnedSkill,
+  LiveRoom,
+  LiveSession,
+  LiveSessionInput,
+  LiveVoice,
   Machine,
   MachineAccess,
   MachineAccessReduce,
@@ -442,6 +446,28 @@ export interface ApiClient {
         language?: string | null;
       },
     ): Promise<{ clipId: string }>;
+  };
+  /** Live voice with GPT-Live (ADR doug-0006): the workspace's key, sessions, and voice rooms with people and agents. */
+  liveVoice: {
+    get(orgId: string): Promise<LiveVoice>;
+    saveKey(orgId: string, apiKey: string): Promise<LiveVoice>;
+    removeKey(orgId: string): Promise<LiveVoice>;
+    /** Opens a session from this app's WebRTC offer: OpenAI's answer comes back. */
+    startSession(orgId: string, input: LiveSessionInput): Promise<LiveSession>;
+    endSession(orgId: string, sessionId: string): Promise<void>;
+    channelRoom(orgId: string, channelId: string): Promise<{ room: LiveRoom | null }>;
+    joinRoom(orgId: string, channelId: string, agentIds: string[]): Promise<LiveRoom>;
+    ping(orgId: string, roomId: string): Promise<LiveRoom>;
+    leave(orgId: string, roomId: string): Promise<void>;
+    end(orgId: string, roomId: string): Promise<{ room: LiveRoom | null }>;
+    signal(orgId: string, roomId: string, to: string, data: Record<string, unknown>): Promise<void>;
+    lines(
+      orgId: string,
+      roomId: string,
+      lines: { who: { type: "person" | "agent"; id: string }; text: string }[],
+    ): Promise<void>;
+    floor(orgId: string, roomId: string, holder: string | null, reason: string): Promise<void>;
+    next(orgId: string, roomId: string): Promise<{ agentId: string | null }>;
   };
   account: {
     authConfig(): Promise<AuthConfig>;

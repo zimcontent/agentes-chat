@@ -20,6 +20,19 @@ export const REAUTH_PASSWORD = "reauth.password";
  * takes `untranslatedText`; a guard test (`error-words.test.ts`) fails on a new code that isn't here or on its list.
  */
 const KNOWN = {
+  // Live voice with GPT-Live (ADR doug-0006).
+  "live_voice.off": "liveVoice.errors.off",
+  "live_voice.key_invalid": "liveVoice.errors.keyInvalid",
+  "live_voice.no_access": "liveVoice.errors.noAccess",
+  "live_voice.unchecked": "liveVoice.errors.unchecked",
+  "live_voice.unavailable": "liveVoice.errors.unavailable",
+  "live_voice.busy": "liveVoice.errors.busy",
+  "live_voice.refused": "liveVoice.errors.refused",
+  "live_voice.too_many": "liveVoice.errors.tooMany",
+  "live_voice.no_words": "liveVoice.errors.noWords",
+  "live_voice.not_host": "liveVoice.errors.notHost",
+  "live_room.ended": "liveVoice.errors.ended",
+  "live_room.not_in": "liveVoice.errors.notIn",
   // A new-password link an owner can't make (ADR 0158).
   "password_link.email": "errors.passwordLink.email",
   "password_link.server_owner": "errors.passwordLink.serverOwner",

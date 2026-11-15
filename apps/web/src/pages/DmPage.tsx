@@ -26,6 +26,7 @@ import { HeaderSearch } from "@/components/search/HeaderSearch";
 import { AgentTasksPill } from "@/components/tasks/AgentTasksPanel";
 import { useDirectory } from "@/hooks/useDirectory";
 import { rightHandSeen } from "@/lib/storage";
+import { CallButton } from "@/live-voice/LiveVoice";
 import { ChannelPage, ChannelSkeleton, type DmSideControl } from "./ChannelPage";
 
 /** A direct message with an agent or a person: the channel layout with its own header and empty state. */
@@ -128,6 +129,8 @@ export function DmPage({ target, focusMessageId }: { target: DmTarget; focusMess
               beside the chat, or one tap away on a phone), so the line of glyphs keeps to one row. */}
             {agent && !rightHand && !sideSays && <ModelPickerButton agent={agent} className="channel__brain" />}
             {agent && !rightHand && <ComputerButton agent={agent} queueOnly={side?.docked && seesDetails(agent)} />}
+            {/* A voice call with this agent or person (ADR doug-0006). */}
+            <CallButton channelId={dm.data.channelId} title={name} agents={agent ? [agent] : []} dmAgent={agent} />
             {/* The same field as a channel's, held to this DM. */}
             <HeaderSearch channelId={dm.data.channelId} onOpen={onSearch} dm />
             {side && (

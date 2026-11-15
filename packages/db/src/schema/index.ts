@@ -12,6 +12,7 @@ export * from "./feedback";
 export * from "./forum";
 export * from "./imports";
 export * from "./instance-secrets";
+export * from "./live-voice";
 export * from "./machines";
 export * from "./mail";
 export * from "./missions";

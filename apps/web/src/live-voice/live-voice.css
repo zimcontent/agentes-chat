@@ -1,0 +1,381 @@
+/*
+ * Live voice (ADR doug-0006). The room is laid out like a video meeting: a dark stage, a tile per person and agent, the one
+ * speaking lit by its own voice (`--lv-level`, written each frame), captions above a round control bar.
+ */
+
+.lv-stage {
+  --lv-bg: #202124;
+  --lv-tile: #3c4043;
+  --lv-ink: #e8eaed;
+  --lv-muted: #9aa0a6;
+  --lv-glow: #8ab4f8;
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-dialog);
+  display: grid;
+  grid-template-rows: auto 1fr auto auto;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  background: var(--lv-bg);
+  color: var(--lv-ink);
+  font-family: var(--font-sans);
+}
+
+.lv-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  min-height: 40px;
+}
+.lv-top__title {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-3);
+  font-size: var(--text-lg);
+  font-weight: 600;
+  min-width: 0;
+}
+.lv-top__time,
+.lv-top__note {
+  font-size: var(--text-sm);
+  font-weight: 400;
+  color: var(--lv-muted);
+  font-variant-numeric: tabular-nums;
+}
+.lv-top__acts {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+.lv-stage .ac-btn--ghost {
+  color: var(--lv-ink);
+}
+
+.lv-grid {
+  display: grid;
+  grid-template-columns: repeat(var(--lv-cols, 2), minmax(0, 1fr));
+  grid-auto-rows: minmax(0, 1fr);
+  gap: var(--space-3);
+  min-height: 0;
+}
+
+.lv-tile {
+  --lv-level: 0;
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-height: 120px;
+  border-radius: var(--radius-xl);
+  background: var(--lv-tile);
+  overflow: hidden;
+  outline: 3px solid transparent;
+  outline-offset: -3px;
+  transition: outline-color 160ms ease;
+}
+/* The one speaking: a ring that breathes with its voice, as a meeting app lights who talks. */
+.lv-tile[data-speaking] {
+  outline-color: var(--lv-glow);
+  box-shadow:
+    0 0 0 calc(var(--lv-level) * 6px) color-mix(in srgb, var(--lv-glow) 45%, transparent),
+    0 0 calc(12px + var(--lv-level) * 36px) color-mix(in srgb, var(--lv-glow) 55%, transparent);
+}
+.lv-tile__face {
+  border-radius: var(--radius-full);
+  transition: transform 120ms ease;
+  transform: scale(calc(1 + var(--lv-level) * 0.06));
+}
+.lv-tile[data-speaking] .lv-tile__face {
+  box-shadow: 0 0 0 calc(4px + var(--lv-level) * 10px) color-mix(in srgb, var(--lv-glow) 35%, transparent);
+}
+.lv-tile__name {
+  position: absolute;
+  left: var(--space-3);
+  bottom: var(--space-3);
+  right: var(--space-3);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  text-shadow: 0 1px 2px rgb(0 0 0 / 60%);
+  min-width: 0;
+}
+.lv-tile__role {
+  font-weight: 400;
+  color: var(--lv-muted);
+  overflow-wrap: anywhere;
+}
+.lv-tile__muted {
+  color: #f28b82;
+  flex: none;
+}
+.lv-tile__chip {
+  position: absolute;
+  top: var(--space-3);
+  left: var(--space-3);
+  padding: 2px var(--space-2);
+  border-radius: var(--radius-full);
+  background: var(--lv-glow);
+  color: #202124;
+  font-size: var(--text-xs);
+  font-weight: 600;
+}
+.lv-tile__chip--muted {
+  background: rgb(255 255 255 / 14%);
+  color: var(--lv-ink);
+}
+.lv-tile__chip--bad {
+  background: #f28b82;
+}
+.lv-tile__give {
+  position: absolute;
+  top: var(--space-3);
+  right: var(--space-3);
+  height: 32px;
+  padding: 0 var(--space-3);
+  border: 0;
+  border-radius: 10px;
+  background: rgb(0 0 0 / 45%);
+  color: var(--lv-ink);
+  font: inherit;
+  font-size: var(--text-sm);
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 120ms ease;
+}
+.lv-tile:hover .lv-tile__give,
+.lv-tile__give:focus-visible {
+  opacity: 1;
+}
+@media (hover: none) {
+  .lv-tile__give {
+    opacity: 1;
+  }
+}
+
+.lv-captions {
+  display: grid;
+  justify-items: center;
+  gap: var(--space-1);
+  min-height: 48px;
+}
+.lv-captions__line {
+  max-width: min(900px, 100%);
+  margin: 0;
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-md);
+  background: rgb(0 0 0 / 55%);
+  font-size: var(--text-md);
+  line-height: 1.4;
+}
+.lv-captions__line--live {
+  color: var(--lv-muted);
+}
+
+.lv-bar {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: var(--space-4);
+}
+.lv-bar__side {
+  font-size: var(--text-sm);
+  color: var(--lv-muted);
+  min-width: 0;
+}
+.lv-bar__side--end {
+  justify-self: end;
+}
+.lv-bar__main {
+  display: flex;
+  gap: var(--space-3);
+}
+.lv-round {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border: 0;
+  border-radius: var(--radius-full);
+  background: var(--lv-tile);
+  color: var(--lv-ink);
+  cursor: pointer;
+}
+.lv-round:hover:not(:disabled) {
+  background: #4a4e52;
+}
+.lv-round:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+.lv-round[data-off] {
+  background: #ea4335;
+}
+.lv-round[data-on] {
+  background: #8ab4f8;
+  color: #202124;
+}
+.lv-round--leave {
+  width: 64px;
+  background: #ea4335;
+}
+.lv-round--leave:hover:not(:disabled) {
+  background: #d93025;
+}
+.lv-stage--done {
+  display: grid;
+  place-items: center;
+}
+.lv-done {
+  display: grid;
+  justify-items: center;
+  gap: var(--space-3);
+  max-width: 420px;
+  text-align: center;
+}
+.lv-done h2 {
+  margin: 0;
+  font-size: var(--text-h3);
+}
+.lv-done p {
+  margin: 0;
+  color: var(--lv-muted);
+}
+
+@media (max-width: 640px) {
+  .lv-stage {
+    padding: var(--space-3);
+  }
+  .lv-grid {
+    grid-template-columns: repeat(min(var(--lv-cols, 2), 2), minmax(0, 1fr));
+  }
+  .lv-bar {
+    grid-template-columns: 1fr;
+    justify-items: center;
+  }
+  .lv-bar__side {
+    display: none;
+  }
+  .lv-bar__side--end {
+    display: block;
+    justify-self: center;
+  }
+}
+
+/* The call while the person works elsewhere in the app. */
+.lv-pill,
+.lv-listen {
+  position: fixed;
+  right: var(--space-4);
+  bottom: var(--space-4);
+  z-index: var(--z-floating);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: 48px;
+  padding: var(--space-2) var(--space-2) var(--space-2) var(--space-3);
+  border-radius: var(--radius-xl);
+  background: var(--glass-solid, var(--surface-raised));
+  color: var(--ink);
+  box-shadow: var(--raised-2);
+  max-width: calc(100vw - 2 * var(--space-4));
+}
+.lv-pill__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: var(--radius-full);
+  background: var(--ok);
+  animation: lv-pulse 1.6s ease-in-out infinite;
+}
+.lv-pill__text,
+.lv-listen__text {
+  font-size: var(--text-sm);
+  min-width: 0;
+  font-variant-numeric: tabular-nums;
+}
+.lv-listen__face {
+  --lv-level: 0;
+  display: grid;
+  place-items: center;
+  border-radius: var(--radius-full);
+  box-shadow: 0 0 0 calc(var(--lv-level) * 8px) color-mix(in srgb, #8ab4f8 50%, transparent);
+  transition: box-shadow 80ms linear;
+}
+@keyframes lv-pulse {
+  50% {
+    opacity: 0.35;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .lv-pill__dot {
+    animation: none;
+  }
+  .lv-tile__face {
+    transform: none;
+  }
+}
+
+.lv-pick {
+  display: grid;
+  gap: var(--space-1);
+}
+.lv-pick__row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-height: 40px;
+  padding: var(--row-py) var(--space-2);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+}
+.lv-pick__row:hover {
+  background: var(--surface-sunken);
+}
+.lv-pick__label {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex: 1;
+  min-width: 0;
+  cursor: pointer;
+}
+.lv-pick__name {
+  font-weight: 600;
+}
+.lv-pick__role {
+  color: var(--ink-muted);
+  font-size: var(--text-sm);
+  overflow-wrap: anywhere;
+}
+
+/* Every agent's voice select one width, so the rows' play buttons line up. */
+.lv-voice-select {
+  width: 128px;
+}
+
+.lv-stage--done {
+  grid-template-rows: 1fr;
+}
+.lv-round--sm {
+  width: 32px;
+  height: 32px;
+}
+.lv-round--sm.lv-round--leave {
+  width: 40px;
+}
+.lv-pill .lv-round:not(.lv-round--leave):not([data-off]) {
+  background: transparent;
+  color: var(--ink);
+}
+.lv-tile__muted {
+  display: inline-grid;
+  place-items: center;
+}
+.lv-tile__muted svg {
+  width: 16px;
+  height: 16px;
+}
+.lv-join svg {
+  flex: none;
+}

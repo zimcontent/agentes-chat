@@ -243,6 +243,11 @@ export const agents = pgTable(
      */
     mediaReplies: boolean().notNull().default(true),
     /**
+     * Its voice on calls and when it tells a message (ADR doug-0006): one of `LIVE_VOICES`. Null: one picked from its id
+     * (`liveVoiceFor`). Created by `EXTRA_COLUMNS`.
+     */
+    voice: text(),
+    /**
      * The most context its model reads, in tokens (`200000`, `400000`, `1000000`; validated in code): the API
      * brain compacts past it, Claude Code and Codex compact there too. Null = the model's own window.
      */

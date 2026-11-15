@@ -46,6 +46,7 @@ import { inviteRoutes } from "./routes/app/invites";
 import { issueRoutes } from "./routes/app/issues";
 import { jevRoutes } from "./routes/app/jev";
 import { knowledgeRoutes } from "./routes/app/knowledge";
+import { liveVoiceRoutes } from "./routes/app/live-voice";
 import { machineAccountRoutes } from "./routes/app/machine-accounts";
 import { mailRoutes } from "./routes/app/mail";
 import { managementRoutes } from "./routes/app/management";
@@ -238,6 +239,7 @@ export function createApp(options: AppOptions) {
     api.route("/app", speechKeyRoutes(deps));
     api.route("/app", voiceRoutes(deps));
     api.route("/app", whatsappRoutes(deps));
+    api.route("/app", liveVoiceRoutes(deps));
     api.route("/app", webhookAdminRoutes(deps));
     api.route("/app", githubAppRoutes(deps));
     registerOauthRoutes(api, deps, { version, fetchDocument: options.appsFetchDocument });
