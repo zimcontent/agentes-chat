@@ -9700,6 +9700,88 @@
       "invalid": "저장된 키를 이 서버에서 열 수 없어요. 다시 붙여넣어 주세요."
     }
   },
+  "liveVoice": {
+    "you": "나",
+    "call": {
+      "start": "음성 통화 시작",
+      "join_other": "통화 참여 ({{count}})",
+      "title": "음성 통화",
+      "lead": "통화에 참여할 에이전트를 골라요. 대화에 있는 사람은 누구나 참여할 수 있어요.",
+      "startWith_other": "에이전트 {{count}}명과 통화",
+      "peopleOnly": "에이전트 없이 통화"
+    },
+    "room": {
+      "title": "음성 통화",
+      "joining": "연결 중…",
+      "inCall": "통화 중",
+      "minimize": "계속 작업하기",
+      "open": "통화 열기",
+      "micOff": "마이크 끄기",
+      "micOn": "마이크 켜기",
+      "muted": "마이크 꺼짐",
+      "captions": "자막",
+      "quiet": "에이전트는 듣기만 해요",
+      "leave": "통화 나가기",
+      "endAll": "모두에게 종료",
+      "endTitle": "모두에게 통화를 종료할까요?",
+      "endText": "통화 메모는 대화로 가요. Doug BOSS가 결정된 내용과 다음 단계를 담은 보고서를 보내요.",
+      "hasWord": "{{name}} 님이 말하고 있어요",
+      "agentsListen": "에이전트가 듣고 있어요",
+      "word": "말하는 중",
+      "giveWord": "발언권 주기",
+      "takeWord": "발언권 되찾기",
+      "connecting": "음성 연결 중",
+      "voiceFailed": "음성 연결에 실패했어요",
+      "ended": "통화가 끝났어요",
+      "failed": "통화를 시작하지 못했어요",
+      "report": "메모는 대화에 있어요. Doug BOSS가 보고서를 거기로 보내요.",
+      "noNotes": "나눈 말이 너무 적어서 메모가 없어요."
+    },
+    "listen": {
+      "menu": "듣기",
+      "connecting": "음성 준비 중…",
+      "telling": "{{name}} 님이 들려주고 있어요",
+      "narrator": "내레이터",
+      "asking": "질문하세요",
+      "done": "완료",
+      "ask": "질문하기",
+      "stop": "중지"
+    },
+    "settings": {
+      "title": "실시간 음성 (GPT-Live)",
+      "lead": "에이전트와 음성 통화를 하고, 어떤 메시지에서든 듣기를 쓸 수 있어요. 에이전트마다 자기 목소리로 말해요.",
+      "on": "켜짐",
+      "off": "꺼짐",
+      "without": "에이전트에게 전화하고 메시지를 들으려면 GPT-Live에 접근할 수 있는 OpenAI 키를 추가하세요.",
+      "setUp": "키 추가",
+      "openSite": "OpenAI 열기",
+      "stepKey": "API 키 만들기",
+      "stepKeyHint": "GPT-Live가 있는 OpenAI 프로젝트에서 만들어요. 사용료는 그 프로젝트로 청구돼요.",
+      "paste": "여기에 키를 붙여 넣으세요",
+      "sealed": "OpenAI로 확인한 뒤 봉인해서 보관해요. 아무도 다시 볼 수 없어요.",
+      "price": "GPT-Live는 통화 중인 에이전트 1명당 분당 약 US$ 0.05예요. 각 에이전트의 예산에 포함돼요.",
+      "removeTitle": "GPT-Live 키를 삭제할까요?",
+      "removeText": "이 워크스페이스에서 에이전트와의 통화와 듣기가 멈춰요. 사람끼리의 통화는 계속돼요.",
+      "voicesTitle": "에이전트별 목소리",
+      "voiceOf": "{{name}}의 목소리",
+      "sample": "{{name}}의 목소리 듣기",
+      "hear": "듣기"
+    },
+    "errors": {
+      "off": "이 워크스페이스에는 GPT-Live 키가 없어요. 설정 › 음성에서 추가하세요.",
+      "keyInvalid": "OpenAI가 이 키를 거부했어요.",
+      "noAccess": "이 키의 OpenAI 프로젝트는 GPT-Live에 접근할 수 없어요.",
+      "unchecked": "OpenAI로 키를 확인하지 못했어요. 다시 시도하세요.",
+      "unavailable": "OpenAI가 응답하지 않았어요. 다시 시도하세요.",
+      "busy": "OpenAI가 바쁘거나 키의 할당량이 다 떨어졌어요.",
+      "refused": "OpenAI가 음성 세션을 거부했어요.",
+      "tooMany": "열린 음성 세션이 너무 많아요. 하나를 닫고 다시 시도하세요.",
+      "noWords": "이 메시지에는 들려줄 내용이 없어요.",
+      "notHost": "통화를 진행하는 사람만 에이전트의 목소리를 열 수 있어요.",
+      "ended": "이 통화는 끝났어요.",
+      "notIn": "이제 이 통화에 있지 않아요."
+    }
+  },
   "media": {
     "word": {
       "gif": "GIF",

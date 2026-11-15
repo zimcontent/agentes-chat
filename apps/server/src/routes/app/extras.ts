@@ -7,6 +7,7 @@ import type {
   GitHubAppSettings,
   GitProxyDeps,
   JevKey,
+  LiveVoiceDeps,
   McpConnect,
   ModelGateway,
   ResolveHost,
@@ -69,4 +70,6 @@ export interface AppExtras {
   /** Speech engines and what voice messages need (ADR 0100); absent: no voice messages. */
   speech?: SpeechSettings;
   voice?: VoiceDeps;
+  /** Live voice with GPT-Live (ADR doug-0006): keys, sessions and voice rooms; absent: those routes answer 404. */
+  liveVoice?: LiveVoiceDeps;
 }

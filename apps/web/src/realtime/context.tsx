@@ -620,6 +620,9 @@ function useRealtime() {
   return value;
 }
 
+/** The workspace's socket, for what listens to its person's own events (a voice room's signals, ADR doug-0006). */
+export const useRealtimeConnection = () => useContext(RealtimeContext)?.connection ?? null;
+
 /**
  * Brings the live rows of a channel in line with the server: the active-runs
  * list when the server has it, else each live run's detail. Rows of runs that

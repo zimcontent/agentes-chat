@@ -54,6 +54,7 @@ import {
   FIELD_PLACE,
 } from "@/lib/agent-edit";
 import { cleanHandle } from "@/lib/new-agent";
+import { AgentVoiceField } from "@/live-voice/LiveVoiceSettings";
 import { BrakesCard } from "./BrakesCard";
 import { CardHead, useAgentEdit, WasLine } from "./context";
 import { ReadOnlyNote, useVisibleChannels } from "./pieces";
@@ -319,6 +320,8 @@ export function SettingsTab({
                   {/* Responde a (ADR 0148 addendum): applied at once with Desfazer, never part of the save bar. In a
                     personal workspace it is in Advanced, with its owner. */}
                   {part === "all" && <ReportsTo />}
+                  {/* Its voice on calls and in Ouvir (ADR doug-0006): saved at once, like Responde a. */}
+                  <AgentVoiceField agent={agent} />
                 </div>
               </div>
               {/* DougBot: the bot comes from the agent's trade (IDENTIDADE.md §6) until a person picks its form, color,

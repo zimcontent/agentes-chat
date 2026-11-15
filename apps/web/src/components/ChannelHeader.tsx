@@ -10,6 +10,7 @@ import { ChannelPhoto } from "@/components/ProfilePhoto";
 import { HeaderSearch } from "@/components/search/HeaderSearch";
 import { ChannelThreadsButton } from "@/components/threads/ThreadLines";
 import { entityMenu } from "@/lib/entity-menu";
+import { CallButton } from "@/live-voice/LiveVoice";
 import "./channel-header.css";
 
 /**
@@ -68,6 +69,8 @@ export function ChannelHeader({
           <QueueButton machineId={queueMachine} />
           {isMember && <ChannelThreadsButton channelId={channel.id} channelName={channel.name} />}
           {isMember && <ChannelPinsButton channelId={channel.id} channelName={channel.name} />}
+          {/* A voice room with the people and agents here (ADR doug-0006). */}
+          {isMember && <CallButton channelId={channel.id} title={`#${channelTitle(channel)}`} agents={agents} />}
           <button
             type="button"
             className="ac-btn ac-btn--ghost ac-btn--icon channel__icon channel__cog"

@@ -132,6 +132,7 @@ import type {
   IssueStatus,
   IssuesView,
   JevKey,
+  LiveVoice,
   Machine,
   MachineAccessReduce,
   MachineTool,
@@ -359,6 +360,38 @@ function useSpeechKeyChange<T>(change: (api: ApiClient, input: T) => Promise<Spe
 export const useSaveSpeechKey = () =>
   useSpeechKeyChange((api, input: SpeechKeyInput) => api.system.saveSpeechKey(input), true);
 export const useRemoveSpeechKey = () => useSpeechKeyChange<void>((api) => api.system.removeSpeechKey());
+
+/** Whether calls with agents and "Ouvir" work in this workspace (ADR doug-0006). */
+export const useLiveVoice = (orgId: string) => {
+  const api = useApi();
+  return useQuery({ queryKey: keys.liveVoice(orgId), queryFn: () => api.liveVoice.get(orgId), staleTime: 60_000 });
+};
+
+function useLiveVoiceChange<T>(orgId: string, change: (api: ApiClient, input: T) => Promise<LiveVoice>) {
+  const api = useApi();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (input: T) => change(api, input),
+    onSuccess: (view) => qc.setQueryData(keys.liveVoice(orgId), view),
+    // A refused key is said under its field.
+    meta: { silent: true },
+  });
+}
+export const useSaveLiveVoiceKey = (orgId: string) =>
+  useLiveVoiceChange(orgId, (api, apiKey: string) => api.liveVoice.saveKey(orgId, apiKey));
+export const useRemoveLiveVoiceKey = (orgId: string) =>
+  useLiveVoiceChange<void>(orgId, (api) => api.liveVoice.removeKey(orgId));
+
+/** A conversation's live voice room, for its Join banner: kept fresh by `live.room` events and a slow poll. */
+export const useChannelLiveRoom = (orgId: string, channelId: string, enabled = true) => {
+  const api = useApi();
+  return useQuery({
+    queryKey: keys.liveRoom(orgId, channelId),
+    queryFn: async () => (await api.liveVoice.channelRoom(orgId, channelId)).room,
+    enabled,
+    refetchInterval: 30_000,
+  });
+};
 
 /**
  * The server's Web Push key (ADR 0071): `null` when this server has Web Push off. Asked only where this

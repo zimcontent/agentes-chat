@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto";
 import type { BlobStore, PubSub } from "@agenteschat/adapters";
 import { and, type Database, eq, schema } from "@agenteschat/db";
+import { isLiveVoice, LIVE_VOICES } from "@agenteschat/providers/live-voice";
 import { type Agent, getAgent } from "./agents";
 import { recordAudit } from "./audit";
 import { sniffImage, stripImageMetadata } from "./avatars";
@@ -239,4 +240,43 @@ export async function agentPhotoFile(
   const object = await deps.blobs.get(agentPhotoKey(orgId, agentId, file));
   if (!object) throw new NotFoundError("Not found");
   return object;
+}
+
+/**
+ * Its voice on calls and when it tells a message (ADR doug-0006): like its look, its owner or an admin picks it. Null
+ * goes back to the one its id gives.
+ */
+export async function setAgentVoice(
+  db: Database,
+  actorId: string,
+  orgId: string,
+  agentId: string,
+  voice: string | null,
+  options: { pubsub?: PubSub } = {},
+): Promise<Agent> {
+  const membership = await requirePermission(db, actorId, orgId, "read");
+  const agent = await getAgent(db, orgId, agentId);
+  if (!agent || agent.archivedAt) throw new NotFoundError("Agent not found");
+  if (!can(membership, "manage_agents") && !(agent.ownerUserId && agent.ownerUserId === actorId)) {
+    throw new ForbiddenError("Only the agent's owner or an admin can change its voice");
+  }
+  if (voice !== null && !isLiveVoice(voice))
+    throw new ValidationError(`voice must be one of: ${LIVE_VOICES.join(", ")}`);
+  const [updated] = await db
+    .update(agents)
+    .set({ voice, updatedAt: new Date() })
+    .where(and(eq(agents.id, agentId), eq(agents.orgId, orgId)))
+    .returning();
+  if (!updated) throw new NotFoundError("Agent not found");
+  caches.agents.delete(`${orgId}:${agentId}`);
+  caches.agents.delete(`${orgId}:team`);
+  await recordAudit(db, {
+    orgId,
+    actor: { type: "person", id: actorId },
+    action: "agent.voice_changed",
+    target: { type: "agent", id: agentId },
+    details: { from: agent.voice, to: voice },
+  });
+  await publishAgentsChanged(options.pubsub, orgId);
+  return updated;
 }

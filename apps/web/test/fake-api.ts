@@ -1440,6 +1440,28 @@ export function createFakeHttpApi(state: FakeState): Omit<HttpApi, FakedParts> {
         return state.speechKey;
       },
     },
+    liveVoice: {
+      get: async () => ({ state: "off", hint: null, editable: true }),
+      saveKey: async () => ({ state: "ok", hint: "abcd", editable: true }),
+      removeKey: async () => ({ state: "off", hint: null, editable: true }),
+      startSession: async () => {
+        throw new ApiError(404, "not_found", "Not found");
+      },
+      endSession: async () => {},
+      channelRoom: async () => ({ room: null }),
+      joinRoom: async () => {
+        throw new ApiError(404, "not_found", "Not found");
+      },
+      ping: async () => {
+        throw new ApiError(404, "not_found", "Not found");
+      },
+      leave: async () => {},
+      end: async () => ({ room: null }),
+      signal: async () => {},
+      lines: async () => {},
+      floor: async () => {},
+      next: async () => ({ agentId: null }),
+    },
     voice: {
       allowed: async () => ({ allowed: state.voiceAllowed ?? true }),
       send: async (_orgId, channelId, input) => {

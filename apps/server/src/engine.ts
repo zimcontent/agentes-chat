@@ -18,6 +18,7 @@ import {
   authorizeStream,
   type BrainTurn,
   blockSpecAt,
+  bunSideband,
   CodexBrain,
   type ContextDeps,
   CursorBrain,
@@ -100,6 +101,7 @@ import {
   isRightHand,
   type JobDeps,
   type Judge,
+  type LiveVoiceDeps,
   type MailDeps,
   type McpConnect,
   messageRouter,
@@ -107,6 +109,7 @@ import {
   notifyOwnerOnBudget,
   OpencodeBrain,
   platformCapJudge,
+  postPersonMessage,
   prepareAgentCode,
   queueBudgetEmail,
   type ResolveHost,
@@ -133,7 +136,7 @@ import {
   withComposio,
   withJudgeFallback,
 } from "@agenteschat/engine";
-import { createOpenAIEmbeddings, createVoyageEmbeddings, type ModelProvider } from "@agenteschat/providers";
+import { createOpenAIEmbeddings, createVoyageEmbeddings, type ModelProvider, modelInfo } from "@agenteschat/providers";
 import { type AppleTokenRevoker, appleTokenRevoker } from "./auth";
 import { hookConfig } from "./routes/app/context";
 import { version } from "./version";
@@ -763,6 +766,31 @@ export function buildEngine(o: EngineOptions) {
         }
       : null,
   };
+  // Live voice (ADR 9003): sessions opened with each workspace's own key; turns judged by its small model.
+  const liveVoice: LiveVoiceDeps = {
+    db,
+    pubsub: adapters.pubsub,
+    keyWrapper: adapters.keyWrapper,
+    keyWrappers,
+    openSideband: bunSideband,
+    pickWithSmallModel: async (orgId, system, prompt) => {
+      const model = await smallModelFor({ db, gateway }, orgId, smallModels);
+      if (!model) return null;
+      const result = await gateway.complete({
+        orgId,
+        kind: "router",
+        model,
+        system,
+        messages: [{ role: "user", content: prompt }],
+        maxTokens: modelInfo(model)?.leastThinking === "off" ? 256 : 2048,
+        effort: "none",
+        signal: AbortSignal.timeout(8000),
+      });
+      return result.text;
+    },
+    postMessage: (userId, orgId, channelId, body, meta) =>
+      postPersonMessage({ db, pubsub: adapters.pubsub }, userId, orgId, channelId, { body, meta }),
+  };
   const jobDeps: JobDeps = {
     feedbackBlobs: adapters.platformBlobs,
     feedbackFetch: o.http,
@@ -898,6 +926,7 @@ export function buildEngine(o: EngineOptions) {
     /** Likewise: the speech engines, read before the first voice message. */
     speech,
     voice,
+    liveVoice,
   };
 }
 

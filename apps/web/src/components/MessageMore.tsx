@@ -19,6 +19,7 @@ import {
   tidy,
 } from "@/lib/context-menu";
 import { useToast } from "@/lib/toast";
+import { useLiveVoiceActions } from "@/live-voice/LiveVoice";
 import { CorrectionDialog } from "./MessageFeedback";
 import { DOWN, ReactButton, reactionOf, useEmojiLabels, useMessageReactions } from "./Reactions";
 import { SaveToWikiDialog } from "./SaveToWiki";
@@ -101,6 +102,7 @@ export function useMessageMenu(
   const { org } = useOrg();
   const toast = useToast();
   const actions = useChannelActions();
+  const live = useLiveVoiceActions();
   const reactions = useMessageReactions(message.id, message.reactions, { feedback: options.feedback });
   // What Salvar na wiki saves: the selection when it was asked, else the whole message.
   const [saving, setSaving] = useState<string | null>(null);
@@ -193,6 +195,18 @@ export function useMessageMenu(
               run: () => reactions.toggle(DOWN),
             },
             { kind: "item", id: "correct", label: t("channel.correct"), icon: "edit", run: () => setCorrecting(true) },
+          ] satisfies MenuEntry[])
+        : []),
+      // Ouvir (ADR doug-0006): told by voice, as its agent would tell it, reactions included.
+      ...(words && live?.available
+        ? ([
+            {
+              kind: "item",
+              id: "listen",
+              label: t("liveVoice.listen.menu"),
+              icon: "play",
+              run: () => live.listen(message),
+            },
           ] satisfies MenuEntry[])
         : []),
       { kind: "separator" },

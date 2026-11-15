@@ -148,6 +148,9 @@ import type {
   JoinClaim,
   JoinRequest,
   LearnedSkill,
+  LiveRoom,
+  LiveSession,
+  LiveVoice,
   Machine,
   MachineAccess,
   MachineAccount,
@@ -1056,6 +1059,30 @@ export function createHttpApi(options: TransportOptions = {}): HttpApi {
         return files.upload<ImportedFile>(`${org(orgId)}/imports/files`, form);
       },
       exportUrl: (orgId) => `${base}${org(orgId)}/export`,
+    },
+    liveVoice: {
+      get: (orgId) => request<LiveVoice>(`${org(orgId)}/live-voice`),
+      saveKey: (orgId, apiKey) => request<LiveVoice>(`${org(orgId)}/live-voice`, { method: "PUT", json: { apiKey } }),
+      removeKey: (orgId) => request<LiveVoice>(`${org(orgId)}/live-voice`, { method: "DELETE" }),
+      startSession: (orgId, input) => request<LiveSession>(`${org(orgId)}/live-voice/sessions`, { json: input }),
+      endSession: (orgId, sessionId) =>
+        request<void>(`${org(orgId)}/live-voice/sessions/${enc(sessionId)}/end`, { json: {} }),
+      channelRoom: (orgId, channelId) =>
+        request<{ room: LiveRoom | null }>(`${org(orgId)}/channels/${enc(channelId)}/live-room`),
+      joinRoom: (orgId, channelId, agentIds) =>
+        request<LiveRoom>(`${org(orgId)}/channels/${enc(channelId)}/live-room`, { json: { agentIds } }),
+      ping: (orgId, roomId) => request<LiveRoom>(`${org(orgId)}/live-rooms/${enc(roomId)}/ping`, { json: {} }),
+      leave: (orgId, roomId) => request<void>(`${org(orgId)}/live-rooms/${enc(roomId)}/leave`, { json: {} }),
+      end: (orgId, roomId) =>
+        request<{ room: LiveRoom | null }>(`${org(orgId)}/live-rooms/${enc(roomId)}/end`, { json: {} }),
+      signal: (orgId, roomId, to, data) =>
+        request<void>(`${org(orgId)}/live-rooms/${enc(roomId)}/signal`, { json: { to, data } }),
+      lines: (orgId, roomId, lines) =>
+        request<void>(`${org(orgId)}/live-rooms/${enc(roomId)}/lines`, { json: { lines } }),
+      floor: (orgId, roomId, holder, reason) =>
+        request<void>(`${org(orgId)}/live-rooms/${enc(roomId)}/floor`, { json: { holder, reason } }),
+      next: (orgId, roomId) =>
+        request<{ agentId: string | null }>(`${org(orgId)}/live-rooms/${enc(roomId)}/next`, { json: {} }),
     },
     voice: {
       allowed: (orgId) => request<{ allowed: boolean }>(`${org(orgId)}/voice/allowed`),

@@ -165,6 +165,52 @@ export const EXTRA_COLUMNS = [
   // Conversations' profile photos (whatsappChatPhoto).
   `ALTER TABLE "whatsapp_chats" ADD COLUMN IF NOT EXISTS "photo_url" text`,
   `ALTER TABLE "whatsapp_chats" ADD COLUMN IF NOT EXISTS "photo_at" timestamp with time zone`,
+  // Live voice: calls with agents and messages told by voice (ADR doug-0006).
+  `ALTER TABLE "agents" ADD COLUMN IF NOT EXISTS "voice" text`,
+  `CREATE TABLE IF NOT EXISTS "live_voice_keys" (
+    "org_id" uuid PRIMARY KEY NOT NULL REFERENCES "organizations"("id") ON DELETE cascade,
+    "ciphertext" text NOT NULL,
+    "wrapped_data_key" text NOT NULL,
+    "kek_id" text NOT NULL,
+    "key_hint" text NOT NULL,
+    "updated_by" text REFERENCES "users"("id") ON DELETE set null,
+    "updated_at" timestamp with time zone DEFAULT now() NOT NULL
+  )`,
+  `CREATE TABLE IF NOT EXISTS "live_voice_sessions" (
+    "id" uuid PRIMARY KEY NOT NULL,
+    "org_id" uuid NOT NULL REFERENCES "organizations"("id") ON DELETE cascade,
+    "user_id" text REFERENCES "users"("id") ON DELETE set null,
+    "kind" text NOT NULL,
+    "agent_id" uuid,
+    "channel_id" uuid,
+    "message_id" uuid,
+    "call_id" uuid,
+    "provider_session_id" text,
+    "voice" text NOT NULL,
+    "started_at" timestamp with time zone DEFAULT now() NOT NULL,
+    "ended_at" timestamp with time zone,
+    "end_reason" text,
+    "seconds" integer DEFAULT 0 NOT NULL,
+    "cost_nano_usd" bigint DEFAULT 0 NOT NULL
+  )`,
+  `CREATE INDEX IF NOT EXISTS "live_voice_sessions_org_id_started_at_index" ON "live_voice_sessions" ("org_id", "started_at")`,
+  `CREATE INDEX IF NOT EXISTS "live_voice_sessions_user_id_started_at_index" ON "live_voice_sessions" ("user_id", "started_at")`,
+  `CREATE TABLE IF NOT EXISTS "live_voice_rooms" (
+    "id" uuid PRIMARY KEY NOT NULL,
+    "org_id" uuid NOT NULL REFERENCES "organizations"("id") ON DELETE cascade,
+    "channel_id" uuid NOT NULL,
+    "host_user_id" text,
+    "agent_ids" jsonb DEFAULT '[]'::jsonb NOT NULL,
+    "people" jsonb DEFAULT '[]'::jsonb NOT NULL,
+    "lines" jsonb DEFAULT '[]'::jsonb NOT NULL,
+    "status" text DEFAULT 'live' NOT NULL,
+    "report_message_id" uuid,
+    "started_at" timestamp with time zone DEFAULT now() NOT NULL,
+    "ended_at" timestamp with time zone
+  )`,
+  `CREATE INDEX IF NOT EXISTS "live_voice_rooms_org_id_channel_id_status_index" ON "live_voice_rooms" ("org_id", "channel_id", "status")`,
+  // One live room per conversation: a second start joins the first.
+  `CREATE UNIQUE INDEX IF NOT EXISTS "live_voice_rooms_live_channel" ON "live_voice_rooms" ("channel_id") WHERE "status" = 'live'`,
 ];
 
 /** The advisory lock every process takes around its migrations (`DatabaseHandle.migrate`). */

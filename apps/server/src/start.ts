@@ -553,6 +553,7 @@ async function boot(
         githubApp: engine.githubApp,
         speech: engine.speech,
         voice: engine.voice,
+        liveVoice: engine.liveVoice,
         gitProxy: engine.gitProxy,
         pushRelaySender: fcm,
       },

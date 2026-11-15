@@ -1090,3 +1090,49 @@ export async function adminIds(db: Database, orgId: string, permission: RolePerm
     );
   return rows.map((r) => r.userId);
 }
+
+/**
+ * Live voice (ADR doug-0006) is billed here like every model call: before a session starts, the agent's budget and the
+ * person's monthly limit must have room (the workspace may work, the agent isn't held); when it ends, its seconds are
+ * one usage row (`openai`, `gpt-live-1`, no tokens), added to the agent's month and the person's. The audio itself
+ * goes between the browser and OpenAI; only the session is opened from here, with the workspace's key.
+ */
+export async function assertLiveVoiceAllowed(db: Database, orgId: string, agent: Agent | null, personId: string) {
+  await assertCanWork(db, orgId, agent?.id ?? null);
+  await assertPersonUnderLimit(db, orgId, personId);
+  if (!agent) return;
+  const { monthlyBudgetNanoUsd: budget } = await withEffectiveBudget(db, agent);
+  const { spentNanoUsd, reservedNanoUsd } = await agentBudgetState(db, orgId, agent.id);
+  if (budget >= 0 && spentNanoUsd + reservedNanoUsd >= budget)
+    throw new BudgetExceededError(agent.id, spentNanoUsd, budget);
+}
+
+export async function recordLiveVoiceUsage(
+  db: Database,
+  input: { orgId: string; agentId: string | null; personId: string | null; model: string; costNanoUsd: number },
+  at = new Date(),
+) {
+  await db.insert(usageRecords).values({
+    orgId: input.orgId,
+    agentId: input.agentId,
+    kind: "agent",
+    credentialId: null,
+    provider: "openai",
+    model: input.model,
+    requestedModel: input.model,
+    inputTokens: 0,
+    outputTokens: 0,
+    costNanoUsd: input.costNanoUsd,
+    personId: input.personId,
+    createdAt: at,
+  });
+  if (input.agentId && input.costNanoUsd > 0) {
+    await db.execute(sql`insert into ${agentBudgetPeriods} (org_id, agent_id, period_start, spent_nano_usd, reserved_nano_usd, updated_at)
+      values (${input.orgId}::uuid, ${input.agentId}::uuid, ${periodOf(at)}::date, ${input.costNanoUsd}, 0, now())
+      on conflict (agent_id, period_start) do update set
+        spent_nano_usd = ${agentBudgetPeriods}.spent_nano_usd + excluded.spent_nano_usd, updated_at = now()`);
+  }
+  if (input.personId) {
+    await addPersonSpend(db, { orgId: input.orgId, personId: input.personId, amountNanoUsd: input.costNanoUsd, at });
+  }
+}

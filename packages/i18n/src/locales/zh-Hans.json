@@ -9772,6 +9772,88 @@
       "invalid": "保存的密钥无法在这台服务器上打开。请重新粘贴。"
     }
   },
+  "liveVoice": {
+    "you": "你",
+    "call": {
+      "start": "发起语音通话",
+      "join_other": "加入通话（{{count}}）",
+      "title": "语音通话",
+      "lead": "选择参加通话的智能体。对话中的每个人都可以加入。",
+      "startWith_other": "与 {{count}} 个智能体通话",
+      "peopleOnly": "不带智能体通话"
+    },
+    "room": {
+      "title": "语音通话",
+      "joining": "正在连接…",
+      "inCall": "通话中",
+      "minimize": "继续工作",
+      "open": "打开通话",
+      "micOff": "关闭麦克风",
+      "micOn": "打开麦克风",
+      "muted": "麦克风已关闭",
+      "captions": "字幕",
+      "quiet": "智能体只听不说",
+      "leave": "退出通话",
+      "endAll": "为所有人结束",
+      "endTitle": "为所有人结束通话？",
+      "endText": "通话记录会发到对话中。Doug BOSS 会发送报告，写明已做的决定和下一步。",
+      "hasWord": "{{name}} 正在发言",
+      "agentsListen": "智能体正在聆听",
+      "word": "正在发言",
+      "giveWord": "让其发言",
+      "takeWord": "收回发言权",
+      "connecting": "正在连接语音",
+      "voiceFailed": "语音出错了",
+      "ended": "通话已结束",
+      "failed": "无法开始通话",
+      "report": "记录已在对话中。Doug BOSS 会把报告发到那里。",
+      "noNotes": "说的内容太少，无法生成记录。"
+    },
+    "listen": {
+      "menu": "收听",
+      "connecting": "正在准备语音…",
+      "telling": "{{name}} 正在为你讲解",
+      "narrator": "旁白",
+      "asking": "请提出你的问题",
+      "done": "完成",
+      "ask": "提问",
+      "stop": "停止"
+    },
+    "settings": {
+      "title": "实时语音（GPT-Live）",
+      "lead": "与智能体语音通话，并可在任何消息上使用“收听”，每个智能体都有自己的声音。",
+      "on": "已开启",
+      "off": "已关闭",
+      "without": "添加一个可使用 GPT-Live 的 OpenAI 密钥，即可呼叫你的智能体并收听消息。",
+      "setUp": "添加密钥",
+      "openSite": "打开 OpenAI",
+      "stepKey": "创建 API 密钥",
+      "stepKeyHint": "在拥有 GPT-Live 的 OpenAI 项目中创建。用量计入该项目的账单。",
+      "paste": "在此粘贴密钥",
+      "sealed": "密钥会经 OpenAI 验证并密封保存。之后没有人能再看到它。",
+      "price": "GPT-Live 每个通话中的智能体每分钟约 0.05 美元。费用计入每个智能体的预算。",
+      "removeTitle": "移除 GPT-Live 密钥？",
+      "removeText": "此工作区中与智能体的通话和“收听”将停止。人与人之间的通话不受影响。",
+      "voicesTitle": "每个智能体的声音",
+      "voiceOf": "{{name}} 的声音",
+      "sample": "试听 {{name}} 的声音",
+      "hear": "试听"
+    },
+    "errors": {
+      "off": "此工作区没有 GPT-Live 密钥。请在“设置 › 语音”中添加。",
+      "keyInvalid": "OpenAI 拒绝了此密钥。",
+      "noAccess": "此密钥所属的 OpenAI 项目无权使用 GPT-Live。",
+      "unchecked": "无法通过 OpenAI 验证密钥。请重试。",
+      "unavailable": "OpenAI 没有响应。请重试。",
+      "busy": "OpenAI 繁忙，或密钥的配额已用完。",
+      "refused": "OpenAI 拒绝了语音会话。",
+      "tooMany": "打开的语音会话太多。请关闭一个后重试。",
+      "noWords": "这条消息没有可讲述的文字。",
+      "notHost": "只有主持通话的人才能开启智能体的声音。",
+      "ended": "此通话已结束。",
+      "notIn": "你已不在此通话中。"
+    }
+  },
   "media": {
     "word": {
       "gif": "动图",

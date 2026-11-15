@@ -24496,6 +24496,222 @@
   "voice.settings.invalid": {
     "value": "The saved key doesn't open on this server. Paste it again."
   },
+  "liveVoice.you": {
+    "value": "You"
+  },
+  "liveVoice.call.start": {
+    "value": "Start a voice call"
+  },
+  "liveVoice.call.join": {
+    "value": {
+      "one": "Join call ({{count}})",
+      "other": "Join call ({{count}})"
+    }
+  },
+  "liveVoice.call.title": {
+    "value": "Voice call"
+  },
+  "liveVoice.call.lead": {
+    "value": "Pick the agents for the call. Everyone in the conversation can join."
+  },
+  "liveVoice.call.startWith": {
+    "value": {
+      "one": "Call with {{count}} agent",
+      "other": "Call with {{count}} agents"
+    }
+  },
+  "liveVoice.call.peopleOnly": {
+    "value": "Call without agents"
+  },
+  "liveVoice.room.title": {
+    "value": "Voice call"
+  },
+  "liveVoice.room.joining": {
+    "value": "Connecting…"
+  },
+  "liveVoice.room.inCall": {
+    "value": "In a call"
+  },
+  "liveVoice.room.minimize": {
+    "value": "Keep working"
+  },
+  "liveVoice.room.open": {
+    "value": "Open the call"
+  },
+  "liveVoice.room.micOff": {
+    "value": "Turn the microphone off"
+  },
+  "liveVoice.room.micOn": {
+    "value": "Turn the microphone on"
+  },
+  "liveVoice.room.muted": {
+    "value": "Microphone off"
+  },
+  "liveVoice.room.captions": {
+    "value": "Captions"
+  },
+  "liveVoice.room.quiet": {
+    "value": "Agents only listen"
+  },
+  "liveVoice.room.leave": {
+    "value": "Leave the call"
+  },
+  "liveVoice.room.endAll": {
+    "value": "End for everyone"
+  },
+  "liveVoice.room.endTitle": {
+    "value": "End the call for everyone?"
+  },
+  "liveVoice.room.endText": {
+    "value": "The call's notes go to the conversation and Doug BOSS sends the report with what was decided and the next steps."
+  },
+  "liveVoice.room.hasWord": {
+    "value": "{{name}} has the word"
+  },
+  "liveVoice.room.agentsListen": {
+    "value": "The agents are listening"
+  },
+  "liveVoice.room.word": {
+    "value": "Speaking"
+  },
+  "liveVoice.room.giveWord": {
+    "value": "Give the word"
+  },
+  "liveVoice.room.takeWord": {
+    "value": "Take the word back"
+  },
+  "liveVoice.room.connecting": {
+    "value": "Connecting voice"
+  },
+  "liveVoice.room.voiceFailed": {
+    "value": "Voice failed"
+  },
+  "liveVoice.room.ended": {
+    "value": "The call ended"
+  },
+  "liveVoice.room.failed": {
+    "value": "The call couldn't start"
+  },
+  "liveVoice.room.report": {
+    "value": "The notes are in the conversation. Doug BOSS sends the report there."
+  },
+  "liveVoice.room.noNotes": {
+    "value": "Too little was said for notes."
+  },
+  "liveVoice.listen.menu": {
+    "value": "Listen"
+  },
+  "liveVoice.listen.connecting": {
+    "value": "Getting the voice ready…"
+  },
+  "liveVoice.listen.telling": {
+    "value": "{{name}} is telling you"
+  },
+  "liveVoice.listen.narrator": {
+    "value": "The narrator"
+  },
+  "liveVoice.listen.asking": {
+    "value": "Ask your question"
+  },
+  "liveVoice.listen.done": {
+    "value": "Done"
+  },
+  "liveVoice.listen.ask": {
+    "value": "Ask"
+  },
+  "liveVoice.listen.stop": {
+    "value": "Stop"
+  },
+  "liveVoice.settings.title": {
+    "value": "Live voice (GPT-Live)"
+  },
+  "liveVoice.settings.lead": {
+    "value": "Voice calls with your agents and Listen on any message, each agent in its own voice."
+  },
+  "liveVoice.settings.on": {
+    "value": "On"
+  },
+  "liveVoice.settings.off": {
+    "value": "Off"
+  },
+  "liveVoice.settings.without": {
+    "value": "Add an OpenAI key with access to GPT-Live to call your agents and hear messages."
+  },
+  "liveVoice.settings.setUp": {
+    "value": "Add the key"
+  },
+  "liveVoice.settings.openSite": {
+    "value": "Open OpenAI"
+  },
+  "liveVoice.settings.stepKey": {
+    "value": "Create an API key"
+  },
+  "liveVoice.settings.stepKeyHint": {
+    "value": "In the OpenAI project that has GPT-Live. Usage is billed to that project."
+  },
+  "liveVoice.settings.paste": {
+    "value": "Paste the key here"
+  },
+  "liveVoice.settings.sealed": {
+    "value": "It's checked with OpenAI and kept sealed. Nobody sees it again."
+  },
+  "liveVoice.settings.price": {
+    "value": "GPT-Live costs about US$ 0.05 a minute per agent on a call. It counts toward each agent's budget."
+  },
+  "liveVoice.settings.removeTitle": {
+    "value": "Remove the GPT-Live key?"
+  },
+  "liveVoice.settings.removeText": {
+    "value": "Calls with agents and Listen stop in this workspace. Calls between people go on."
+  },
+  "liveVoice.settings.voicesTitle": {
+    "value": "Each agent's voice"
+  },
+  "liveVoice.settings.voiceOf": {
+    "value": "{{name}}'s voice"
+  },
+  "liveVoice.settings.sample": {
+    "value": "Hear {{name}}'s voice"
+  },
+  "liveVoice.settings.hear": {
+    "value": "Hear it"
+  },
+  "liveVoice.errors.off": {
+    "value": "This workspace has no GPT-Live key. Add one in Settings › Voice."
+  },
+  "liveVoice.errors.keyInvalid": {
+    "value": "OpenAI refused this key."
+  },
+  "liveVoice.errors.noAccess": {
+    "value": "This key's OpenAI project has no access to GPT-Live."
+  },
+  "liveVoice.errors.unchecked": {
+    "value": "Couldn't check the key with OpenAI. Try again."
+  },
+  "liveVoice.errors.unavailable": {
+    "value": "OpenAI didn't answer. Try again."
+  },
+  "liveVoice.errors.busy": {
+    "value": "OpenAI is busy, or the key's quota ran out."
+  },
+  "liveVoice.errors.refused": {
+    "value": "OpenAI refused the voice session."
+  },
+  "liveVoice.errors.tooMany": {
+    "value": "Too many voice sessions open. Close one and try again."
+  },
+  "liveVoice.errors.noWords": {
+    "value": "This message has no words to tell."
+  },
+  "liveVoice.errors.notHost": {
+    "value": "Only the person running the call opens the agents' voices."
+  },
+  "liveVoice.errors.ended": {
+    "value": "This call has ended."
+  },
+  "liveVoice.errors.notIn": {
+    "value": "You're not in this call anymore."
+  },
   "media.word.gif": {
     "value": "GIF"
   },
