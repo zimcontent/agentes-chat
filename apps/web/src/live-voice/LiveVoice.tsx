@@ -3,7 +3,7 @@ import { useApi, useChannelLiveRoom, useLiveVoice } from "@agenteschat/client";
 import { errorText } from "@agenteschat/client/lib/errors";
 import type { FloorAgent } from "@agenteschat/client/lib/live-floor";
 import { can } from "@agenteschat/client/lib/permissions";
-import { Avatar, Button, Checkbox, Dialog, DialogBody, DialogFooter, Icon } from "@agenteschat/ui";
+import { Avatar, Button, Checkbox, Dialog, DialogBody, DialogFooter, Icon, Segmented, Textarea } from "@agenteschat/ui";
 import { Link } from "@tanstack/react-router";
 import {
   createContext,
@@ -46,7 +46,14 @@ interface LiveVoiceApi {
   available: boolean;
   room: RoomCall | null;
   roomChannel: string | null;
-  startRoom(channelId: string, agentIds: string[], title: string): void;
+  startRoom(
+    channelId: string,
+    agentIds: string[],
+    title: string,
+    options?: { mode?: "live" | "maestro"; topic?: string | null },
+  ): void;
+  /** Maestro calls work on this server (docs/adr/doug-0006-live-voice.md §11). */
+  maestro: boolean;
   /** A call with one agent from its conversation (as the Nordus call): the agent works behind its voice. */
   callAgent(agentId: string, channelId: string): void;
   agentCall: AgentCall | null;
@@ -84,7 +91,12 @@ export function LiveVoiceProvider({ children }: { children: ReactNode }) {
   names.current = dir.memberById;
 
   const startRoom = useCallback(
-    (channelId: string, agentIds: string[], title: string) => {
+    (
+      channelId: string,
+      agentIds: string[],
+      title: string,
+      options?: { mode?: "live" | "maestro"; topic?: string | null },
+    ) => {
       setMinimized(false);
       if (room && room.channelId === channelId && room.call.getState().phase === "live") return;
       void room?.call.leave();
@@ -99,7 +111,7 @@ export function LiveVoiceProvider({ children }: { children: ReactNode }) {
       });
       call.personName = (id) => names.current.get(id)?.name;
       setRoom((was) => ({ call, channelId, title, n: (was?.n ?? 0) + 1 }));
-      void call.start(agentIds);
+      void call.start(agentIds, options);
     },
     [room, api, org.id, me.user.id, floorAgents, connection, language],
   );
@@ -135,6 +147,7 @@ export function LiveVoiceProvider({ children }: { children: ReactNode }) {
       room: room?.call ?? null,
       roomChannel: room?.channelId ?? null,
       startRoom,
+      maestro: Boolean(status.data?.maestro),
       callAgent,
       agentCall: agentCall?.call ?? null,
       listen: (message) => {
@@ -151,6 +164,7 @@ export function LiveVoiceProvider({ children }: { children: ReactNode }) {
       status.data?.state,
       room,
       startRoom,
+      status.data?.maestro,
       callAgent,
       agentCall,
       startListen,
@@ -376,9 +390,9 @@ function RoomStage({
             role={agent.role}
             holder={state.holder === agent.id}
             working={state.working[agent.id]}
-            voice={host ? state.agentVoices[agent.id] : undefined}
+            voice={host && !call.isMaestro ? state.agentVoices[agent.id] : undefined}
             face={<AgentAvatar agentId={agent.id} name={agent.name} size="xl" />}
-            onGive={() => call.give(state.holder === agent.id ? null : agent.id)}
+            onGive={call.isMaestro ? undefined : () => call.give(state.holder === agent.id ? null : agent.id)}
           />
         ))}
       </div>
@@ -399,6 +413,11 @@ function RoomStage({
             : agents.length
               ? t("liveVoice.room.agentsListen")
               : ""}
+          {state.maestroCost !== null && (
+            <span className="lv-bar__cost">
+              {t("liveVoice.room.cost", { cost: `US$ ${(state.maestroCost / 1e9).toFixed(3)}` })}
+            </span>
+          )}
         </span>
         <span className="lv-bar__main">
           <button
@@ -645,10 +664,11 @@ export function CallButton({
         <StartCallDialog
           agents={agents}
           available={live.available}
+          maestro={live.maestro}
           onClose={() => setPicking(false)}
-          onStart={(ids) => {
+          onStart={(ids, options) => {
             setPicking(false);
-            live.startRoom(channelId, ids, title);
+            live.startRoom(channelId, ids, title, options);
           }}
         />
       )}
@@ -659,16 +679,24 @@ export function CallButton({
 function StartCallDialog({
   agents,
   available,
+  maestro,
   onClose,
   onStart,
 }: {
   agents: Agent[];
   available: boolean;
+  /** The server runs maestro calls (§11): offered first, and it needs no GPT-Live key. */
+  maestro: boolean;
   onClose: () => void;
-  onStart: (agentIds: string[]) => void;
+  onStart: (agentIds: string[], options: { mode: "live" | "maestro"; topic: string | null }) => void;
 }) {
   const { t } = useTranslation();
-  const [picked, setPicked] = useState<string[]>(() => (available ? agents.slice(0, 3).map((a) => a.id) : []));
+  const [mode, setMode] = useState<"live" | "maestro">(maestro ? "maestro" : "live");
+  const [topic, setTopic] = useState("");
+  const canPick = mode === "maestro" || available;
+  const [picked, setPicked] = useState<string[]>(() =>
+    available || maestro ? agents.slice(0, 3).map((a) => a.id) : [],
+  );
   const max = 5;
   return (
     <Dialog
@@ -680,6 +708,19 @@ function StartCallDialog({
       width={440}
     >
       <DialogBody>
+        {maestro && (
+          <Segmented
+            size="sm"
+            block
+            label={t("liveVoice.call.mode")}
+            value={mode}
+            onValueChange={setMode}
+            options={[
+              { value: "maestro", label: t("liveVoice.call.modeMaestro") },
+              { value: "live", label: t("liveVoice.call.modeLive") },
+            ]}
+          />
+        )}
         <div className="lv-pick">
           {agents.map((agent) => {
             const on = picked.includes(agent.id);
@@ -688,7 +729,7 @@ function StartCallDialog({
                 <Checkbox
                   id={`lv-pick-${agent.id}`}
                   checked={on}
-                  disabled={!available || (!on && picked.length >= max)}
+                  disabled={!canPick || (!on && picked.length >= max)}
                   onCheckedChange={(next) =>
                     setPicked((p) => (next ? [...p, agent.id] : p.filter((id) => id !== agent.id)))
                   }
@@ -702,11 +743,26 @@ function StartCallDialog({
             );
           })}
         </div>
-        {!available && <KeyWhere />}
+        {mode === "maestro" && picked.length > 0 && (
+          <div className="lv-topic">
+            <label className="lv-topic__label" htmlFor="lv-topic">
+              {t("liveVoice.call.topic")}
+            </label>
+            <Textarea
+              id="lv-topic"
+              value={topic}
+              rows={2}
+              maxLength={500}
+              placeholder={t("liveVoice.call.topicHint")}
+              onChange={(e) => setTopic(e.target.value)}
+            />
+          </div>
+        )}
+        {!canPick && <KeyWhere />}
       </DialogBody>
       <DialogFooter>
         <Button onClick={onClose}>{t("common.cancel")}</Button>
-        <Button variant="primary" onClick={() => onStart(picked)}>
+        <Button variant="primary" onClick={() => onStart(canPick ? picked : [], { mode, topic: topic.trim() || null })}>
           {picked.length ? t("liveVoice.call.startWith", { count: picked.length }) : t("liveVoice.call.peopleOnly")}
         </Button>
       </DialogFooter>

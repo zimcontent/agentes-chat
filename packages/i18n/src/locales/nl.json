@@ -1928,6 +1928,7 @@
     }
   },
   "shell": {
+    "you": "Jij",
     "otherChannels": "Andere kanalen",
     "otherChannelsPersonal": "Andere groepsgesprekken",
     "titleBar": {
@@ -2056,6 +2057,7 @@
     "summary_one": "{{people}} lid · {{agents}} agents",
     "summary_other": "{{people}} leden · {{agents}} agents",
     "waiting": "Wacht op jou",
+    "portal": "Portaal",
     "approvals": "Goedkeuringen",
     "proposals": "Verbeteringsvoorstellen",
     "issues": "Taken",
@@ -2110,9 +2112,7 @@
     "unreadThreads_one": "Threads: {{count}} met ongelezen antwoorden",
     "unreadThreads_other": "Threads: {{count}} met ongelezen antwoorden",
     "unreadNotifications_one": "{{count}} ongelezen melding",
-    "unreadNotifications_other": "{{count}} ongelezen meldingen",
-    "you": "Jij",
-    "portal": "Portaal"
+    "unreadNotifications_other": "{{count}} ongelezen meldingen"
   },
   "agentGroups": {
     "group": "Afdeling",
@@ -2491,6 +2491,18 @@
     "nameHelp": "Verandert voor iedereen. Oude links blijven werken.",
     "nameTaken": "Er is al een #{{name}}.",
     "generalName": "#general houdt zijn naam.",
+    "displayNameLabel": "Weergavenaam",
+    "displayNameHelp": "Hoe de groep er voor iedereen uitziet. De technische naam (#{{name}}) werkt nog steeds voor vermeldingen.",
+    "photo": {
+      "label": "Groepsfoto",
+      "title": "Groepsfoto",
+      "help": "Een vierkante afbeelding die iedereen naast de naam van de groep ziet. JPEG, PNG of WebP tot 2 MB.",
+      "upload": "Foto uploaden",
+      "change": "Foto wijzigen",
+      "remove": "Foto verwijderen",
+      "saved": "Groepsfoto opgeslagen",
+      "removed": "Groepsfoto verwijderd"
+    },
     "archive": "Kanaal archiveren",
     "archived": "#{{channel}} gearchiveerd. Het gesprek blijft bewaard.",
     "archivedTitle": "Gearchiveerde kanalen",
@@ -2564,19 +2576,7 @@
     "backOnline": "Weer verbonden",
     "sendingOffline": "gaat weg zodra de verbinding terug is",
     "endOfReply": "Einde van het antwoord",
-    "mentionSuggestions": "Suggesties voor vermeldingen",
-    "displayNameLabel": "Weergavenaam",
-    "displayNameHelp": "Hoe de groep er voor iedereen uitziet. De technische naam (#{{name}}) werkt nog steeds voor vermeldingen.",
-    "photo": {
-      "label": "Groepsfoto",
-      "title": "Groepsfoto",
-      "help": "Een vierkante afbeelding die iedereen naast de naam van de groep ziet. JPEG, PNG of WebP tot 2 MB.",
-      "upload": "Foto uploaden",
-      "change": "Foto wijzigen",
-      "remove": "Foto verwijderen",
-      "saved": "Groepsfoto opgeslagen",
-      "removed": "Groepsfoto verwijderd"
-    }
+    "mentionSuggestions": "Suggesties voor vermeldingen"
   },
   "receipts": {
     "picked_one": "{{names}} gaat antwoorden",
@@ -4797,6 +4797,7 @@
       "other": "Goedkeuren"
     },
     "refuse": "Weigeren",
+    "once": "Alleen deze keer",
     "viewDiff": "Diff bekijken",
     "viewInChannel": "Bekijken in kanaal",
     "group": "Goedkeuringsverzoek",
@@ -4864,8 +4865,7 @@
         "actions_run_trigger": "{{method}} in {{repo}} uitvoeren",
         "delete_repository": "Repository {{repo}} verwijderen"
       }
-    },
-    "once": "Alleen deze keer"
+    }
   },
   "home": {
     "greeting": {
@@ -5309,6 +5309,16 @@
     "again": "Opnieuw vragen",
     "againBody": "@{{handle}} het verzoek “{{title}}” is verlopen zonder besluit. Als het nog zin heeft, vraag het opnieuw.",
     "againSent": "Verzoek verstuurd in het gesprek",
+    "retry": "Vragen om het opnieuw te proberen",
+    "cause": {
+      "reconnect": "De verbinding met de app is verlopen. Verbind opnieuw en vraag om het opnieuw te proberen.",
+      "permission": "Het verbonden account mag dit niet doen. Controleer de toegang in de app en vraag om het opnieuw te proberen.",
+      "unavailable": "De dienst gaf geen antwoord. Wacht even en vraag om het opnieuw te proberen.",
+      "limit": "De dienst weigerde: te veel verzoeken. Wacht een paar minuten en vraag om het opnieuw te proberen."
+    },
+    "reconnect": "Opnieuw verbinden",
+    "retryBody": "@{{handle}} de goedgekeurde actie “{{title}}” is mislukt. Kijk wat er misging en probeer het opnieuw, of zeg me wat ik moet doen.",
+    "valueKeys": "Gebruikte Vault-sleutels",
     "noResults": "Geen verzoeken die bij deze filters passen.",
     "emptyTitle": "Alles besloten",
     "how": "Hoe goedkeuringen werken",
@@ -5380,17 +5390,7 @@
       "hideSteps": "Stappen verbergen",
       "asked": "Vroeg om goedkeuring",
       "grants": "{{name}} gaat {{doing}}, alleen deze keer en met deze waarden."
-    },
-    "retry": "Vragen om het opnieuw te proberen",
-    "cause": {
-      "reconnect": "De verbinding met de app is verlopen. Verbind opnieuw en vraag om het opnieuw te proberen.",
-      "permission": "Het verbonden account mag dit niet doen. Controleer de toegang in de app en vraag om het opnieuw te proberen.",
-      "unavailable": "De dienst gaf geen antwoord. Wacht even en vraag om het opnieuw te proberen.",
-      "limit": "De dienst weigerde: te veel verzoeken. Wacht een paar minuten en vraag om het opnieuw te proberen."
-    },
-    "reconnect": "Opnieuw verbinden",
-    "retryBody": "@{{handle}} de goedgekeurde actie “{{title}}” is mislukt. Kijk wat er misging en probeer het opnieuw, of zeg me wat ik moet doen.",
-    "valueKeys": "Gebruikte Vault-sleutels"
+    }
   },
   "agent": {
     "editIdentity": "Naam en rol bewerken",
@@ -8043,6 +8043,7 @@
     "subIssues_one": "Subtaken · {{count}}",
     "subIssues_other": "Subtaken · {{count}}",
     "fromWebhook": "uit een event van {{provider}}",
+    "fromPortal": "<0>Post van {{client}} in het Portaal</0>",
     "description": "Beschrijving",
     "noDescription": "Geen beschrijving.",
     "criteria": "Acceptatiecriteria",
@@ -8149,8 +8150,7 @@
       "criterion_checked": "heeft het criterium \"{{text}}\" aangevinkt",
       "criterion_unchecked": "heeft het criterium \"{{text}}\" uitgevinkt",
       "agent_asked": "heeft {{name}} gevraagd het te doen"
-    },
-    "fromPortal": "<0>Post van {{client}} in het Portaal</0>"
+    }
   },
   "routines": {
     "filters": "Routines filteren",
@@ -10662,6 +10662,11 @@
   "liveVoice": {
     "you": "Jij",
     "call": {
+      "mode": "Soort gesprek",
+      "modeMaestro": "Vergadering (nieuw)",
+      "modeLive": "Klassiek (GPT-Live)",
+      "topic": "Onderwerp (optioneel)",
+      "topicHint": "De agenten beginnen met een debat hierover. Doe mee wanneer je wilt.",
       "start": "Spraakoproep starten",
       "join_one": "Deelnemen aan oproep ({{count}})",
       "join_other": "Deelnemen aan oproep ({{count}})",
@@ -10683,6 +10688,7 @@
       "hangUp": "Ophangen"
     },
     "room": {
+      "cost": "Stem en transcriptie tot nu toe: {{cost}}",
       "title": "Spraakoproep",
       "joining": "Verbinden…",
       "inCall": "In gesprek",
@@ -10721,6 +10727,11 @@
       "stop": "Stoppen"
     },
     "settings": {
+      "notesTitle": "Hoe de agenten zich gedragen in gesprekken",
+      "notesLead": "Bovenop de basis die elke agent in een gesprek volgt. Geldt voor de hele werkruimte.",
+      "notesExample": "Bijv.: Sluit altijd af met wie wat doet en wanneer. Noem de klant bij naam.",
+      "agentNotes": "{{name}} in gesprekken",
+      "agentNotesExample": "Bijv.: Brengt cijfers vóór meningen. Spreekt tegen als het budget niet klopt.",
       "title": "Live stem (GPT-Live)",
       "lead": "Spraakoproepen met je agents en Beluisteren bij elk bericht, elke agent met een eigen stem.",
       "on": "Aan",
@@ -10761,6 +10772,8 @@
       }
     },
     "errors": {
+      "noMaestro": "Vergaderingen met maestro zijn op deze server niet ingesteld.",
+      "badAudio": "Die audio kon niet worden gelezen. Probeer het opnieuw.",
       "off": "Deze werkruimte heeft geen GPT-Live-sleutel. Voeg er een toe in Instellingen › Spraak.",
       "keyInvalid": "OpenAI heeft deze sleutel geweigerd.",
       "noAccess": "Het OpenAI-project van deze sleutel heeft geen toegang tot GPT-Live.",
@@ -12679,6 +12692,26 @@
     "allow": "{{repo}} toestaan",
     "deniedRun": "{{repo}} is geen repository van {{name}}.",
     "added": "{{repo}} komt in de lijst als je opslaat."
+  },
+  "carry": {
+    "open": "Meenemen uit een andere werkruimte",
+    "text": "Wat je in een andere werkruimte hebt gekoppeld, komt kant-en-klaar mee, zonder opnieuw in te loggen.",
+    "none": "Nog niets om mee te nemen. Wat je in de ene werkruimte koppelt, verschijnt hier in de andere.",
+    "connections": "Koppelingen",
+    "with": "Komt met {{names}}",
+    "here": "Staat er al",
+    "needsReconnect": "Moet opnieuw gekoppeld worden",
+    "githubApp": "Installeer de GitHub App hier",
+    "bring": "Meenemen",
+    "bringCount_one": "{{count}} item meenemen",
+    "bringCount_other": "{{count}} items meenemen",
+    "done_one": "{{count}} item meegenomen naar deze werkruimte",
+    "done_other": "{{count}} items meegenomen naar deze werkruimte",
+    "skipped_one": "{{count}} item kon niet mee",
+    "skipped_other": "{{count}} items konden niet mee",
+    "nothingNew": "Alles wat je koos, staat hier al",
+    "failed": "Meenemen is niet gelukt. Probeer het opnieuw.",
+    "fromOnboarding": "Agents en koppelingen meenemen uit een andere werkruimte"
   },
   "connectors": {
     "title": "Connectors",
@@ -17140,6 +17173,17 @@
       "savedEveryone": "Nu gebruikt de hele workspace dit abonnement.",
       "savedOwner": "Nu gebruik alleen jij dit abonnement."
     },
+    "standIn": {
+      "title": "Reserveaccounts",
+      "about": "Als het account dat een agent gebruikt 90% van zijn limiet bereikt, gaat de agent verder met het eerste account op deze lijst dat onder 90% zit, op dezelfde computer. ChatGPT antwoordt met GPT-6.1 Sol en Gemini met Gemini 4 Hydrogen. De agent gaat terug naar zijn eigen account zodra dat wordt vernieuwd.",
+      "empty": "Geen reserveaccounts. Voeg er een toe zodat je agents blijven werken als een account vol is.",
+      "last": "Met alle accounts boven 90%: het eigen account van de agent tot zijn limiet, daarna zijn API-sleutel, als hij die heeft.",
+      "add": "Account toevoegen",
+      "up": "{{label}} omhoog",
+      "down": "{{label}} omlaag",
+      "remove": "{{label}} verwijderen",
+      "saved": "Volgorde van de reserveaccounts opgeslagen."
+    },
     "logins_one": "{{count}} aanmelding",
     "logins_other": "{{count}} aanmeldingen",
     "noWindows": "De limiet verschijnt zodra dit account weer wordt gebruikt.",
@@ -17198,17 +17242,6 @@
       "oldSub": "Gebruik van voordat het account werd vastgelegd",
       "ofMonth": "{{percent}} van de maand",
       "shareLabel": "{{source}}: {{percent}} van de maand"
-    },
-    "standIn": {
-      "title": "Reserveaccounts",
-      "about": "Als het account dat een agent gebruikt 90% van zijn limiet bereikt, gaat de agent verder met het eerste account op deze lijst dat onder 90% zit, op dezelfde computer. ChatGPT antwoordt met GPT-6.1 Sol en Gemini met Gemini 4 Hydrogen. De agent gaat terug naar zijn eigen account zodra dat wordt vernieuwd.",
-      "empty": "Geen reserveaccounts. Voeg er een toe zodat je agents blijven werken als een account vol is.",
-      "last": "Met alle accounts boven 90%: het eigen account van de agent tot zijn limiet, daarna zijn API-sleutel, als hij die heeft.",
-      "add": "Account toevoegen",
-      "up": "{{label}} omhoog",
-      "down": "{{label}} omlaag",
-      "remove": "{{label}} verwijderen",
-      "saved": "Volgorde van de reserveaccounts opgeslagen."
     }
   },
   "budget": {
@@ -17587,6 +17620,9 @@
         "askingChoices": "Met opties gevraagd",
         "usingVault": "In de Vault gewerkt",
         "makingPassword": "Een wachtwoord gemaakt",
+        "usingPortal": "Aan het goedkeuringsbord gewerkt",
+        "sendingForApproval": "Ter goedkeuring verstuurd",
+        "schedulingPost": "Een post ingepland",
         "startingWork": "Een lang werk begonnen",
         "updatingWork": "Een lang werk bijgewerkt",
         "withdrawingRequest": "Een verzoek ingetrokken",
@@ -17617,10 +17653,7 @@
         "thinking": "Nagedacht",
         "typing": "Geschreven",
         "recordingVoice": "Audio opgenomen",
-        "writing": "Geschreven",
-        "usingPortal": "Aan het goedkeuringsbord gewerkt",
-        "sendingForApproval": "Ter goedkeuring verstuurd",
-        "schedulingPost": "Een post ingepland"
+        "writing": "Geschreven"
       }
     },
     "activity": {
@@ -17710,6 +17743,9 @@
       "askingChoices": "met opties aan het vragen",
       "usingVault": "in de Vault aan het werken",
       "makingPassword": "een wachtwoord aan het maken",
+      "usingPortal": "aan het goedkeuringsbord aan het werken",
+      "sendingForApproval": "ter goedkeuring aan het versturen",
+      "schedulingPost": "een post aan het inplannen",
       "startingWork": "een lang werk aan het beginnen",
       "updatingWork": "een lang werk aan het bijwerken",
       "withdrawingRequest": "een verzoek aan het intrekken",
@@ -17736,10 +17772,7 @@
       "updatingThread": "een thread aan het bijwerken",
       "addingAgent": "een agent aan een kanaal aan het toevoegen",
       "readingConversation": "het gesprek aan het lezen",
-      "usingTool": "een tool aan het gebruiken",
-      "usingPortal": "aan het goedkeuringsbord aan het werken",
-      "sendingForApproval": "ter goedkeuring aan het versturen",
-      "schedulingPost": "een post aan het inplannen"
+      "usingTool": "een tool aan het gebruiken"
     },
     "tokens": "{{value}} tokens",
     "sayHiAgent": "Zeg hoi tegen {{name}}",
@@ -20453,121 +20486,6 @@
       "alwaysOn": "Vanaf nu gaan zulke meldingen weg zonder te vragen.",
       "askFirst": "Vragen voor het versturen"
     }
-  },
-  "liveVoice": {
-    "you": "Jij",
-    "call": {
-      "start": "Spraakoproep starten",
-      "join_one": "Deelnemen aan oproep ({{count}})",
-      "join_other": "Deelnemen aan oproep ({{count}})",
-      "title": "Spraakoproep",
-      "lead": "Kies de agents voor de oproep. Iedereen in het gesprek kan deelnemen.",
-      "startWith_one": "Bellen met {{count}} agent",
-      "startWith_other": "Bellen met {{count}} agents",
-      "peopleOnly": "Bellen zonder agents",
-      "callAgent": "{{name}} bellen",
-      "keyWhere": "Om agenten te bellen heeft deze werkruimte een GPT-Live-sleutel nodig in Instellingen › Spraak.",
-      "keyOpen": "Sleutel toevoegen",
-      "keyAsk": "Vraag wie de werkruimte beheert om hem toe te voegen.",
-      "needsKeyTitle": "Om {{name}} te bellen is een GPT-Live-sleutel nodig"
-    },
-    "agentCall": {
-      "title": "Gesprek met {{name}}",
-      "connecting": "{{name}} bellen…",
-      "listening": "Luistert",
-      "hangUp": "Ophangen"
-    },
-    "room": {
-      "title": "Spraakoproep",
-      "joining": "Verbinden…",
-      "inCall": "In gesprek",
-      "minimize": "Verder werken",
-      "open": "Oproep openen",
-      "micOff": "Microfoon uitzetten",
-      "micOn": "Microfoon aanzetten",
-      "muted": "Microfoon uit",
-      "captions": "Ondertiteling",
-      "quiet": "Agents luisteren alleen",
-      "leave": "Oproep verlaten",
-      "endAll": "Voor iedereen beëindigen",
-      "endTitle": "Oproep voor iedereen beëindigen?",
-      "endText": "De notities van de oproep gaan naar het gesprek en Doug BOSS stuurt het verslag met wat is besloten en de volgende stappen.",
-      "hasWord": "{{name}} heeft het woord",
-      "agentsListen": "De agents luisteren",
-      "word": "Spreekt",
-      "giveWord": "Het woord geven",
-      "takeWord": "Het woord terugnemen",
-      "connecting": "Stem verbinden",
-      "voiceFailed": "Stem mislukt",
-      "ended": "De oproep is beëindigd",
-      "failed": "De oproep kon niet starten",
-      "report": "De notities staan in het gesprek. Doug BOSS stuurt het verslag daarheen.",
-      "noNotes": "Er is te weinig gezegd voor notities."
-    },
-    "listen": {
-      "menu": "Beluisteren",
-      "connecting": "Stem wordt voorbereid…",
-      "telling": "{{name}} vertelt het je",
-      "narrator": "De verteller",
-      "asking": "Stel je vraag",
-      "done": "Klaar",
-      "ask": "Vragen",
-      "stop": "Stoppen"
-    },
-    "settings": {
-      "title": "Live stem (GPT-Live)",
-      "lead": "Spraakoproepen met je agents en Beluisteren bij elk bericht, elke agent met een eigen stem.",
-      "on": "Aan",
-      "off": "Uit",
-      "without": "Voeg een OpenAI-sleutel met toegang tot GPT-Live toe om je agents te bellen en berichten te beluisteren.",
-      "setUp": "Sleutel toevoegen",
-      "openSite": "OpenAI openen",
-      "stepKey": "Maak een API-sleutel",
-      "stepKeyHint": "In het OpenAI-project met GPT-Live. Het gebruik wordt aan dat project gefactureerd.",
-      "paste": "Plak de sleutel hier",
-      "sealed": "Hij wordt bij OpenAI gecontroleerd en verzegeld bewaard. Niemand ziet hem nog.",
-      "price": "GPT-Live kost ongeveer US$ 0,05 per minuut per agent in een oproep. Het telt mee voor het budget van elke agent.",
-      "removeTitle": "GPT-Live-sleutel verwijderen?",
-      "removeText": "Oproepen met agents en Beluisteren stoppen in deze werkruimte. Oproepen tussen mensen gaan door.",
-      "voicesTitle": "De stem van elke agent",
-      "voiceOf": "Stem van {{name}}",
-      "sample": "Stem van {{name}} beluisteren",
-      "hear": "Beluisteren"
-    },
-    "errors": {
-      "off": "Deze werkruimte heeft geen GPT-Live-sleutel. Voeg er een toe in Instellingen › Spraak.",
-      "keyInvalid": "OpenAI heeft deze sleutel geweigerd.",
-      "noAccess": "Het OpenAI-project van deze sleutel heeft geen toegang tot GPT-Live.",
-      "unchecked": "Kan de sleutel niet controleren bij OpenAI. Probeer het opnieuw.",
-      "unavailable": "OpenAI gaf geen antwoord. Probeer het opnieuw.",
-      "busy": "OpenAI is druk, of het quotum van de sleutel is op.",
-      "refused": "OpenAI heeft de spraaksessie geweigerd.",
-      "tooMany": "Te veel spraaksessies open. Sluit er een en probeer het opnieuw.",
-      "noWords": "Dit bericht heeft geen woorden om voor te lezen.",
-      "notHost": "Alleen wie de oproep leidt, opent de stemmen van de agents.",
-      "ended": "Deze oproep is beëindigd.",
-      "notIn": "Je zit niet meer in deze oproep."
-    }
-  },
-  "carry": {
-    "open": "Meenemen uit een andere werkruimte",
-    "text": "Wat je in een andere werkruimte hebt gekoppeld, komt kant-en-klaar mee, zonder opnieuw in te loggen.",
-    "none": "Nog niets om mee te nemen. Wat je in de ene werkruimte koppelt, verschijnt hier in de andere.",
-    "connections": "Koppelingen",
-    "with": "Komt met {{names}}",
-    "here": "Staat er al",
-    "needsReconnect": "Moet opnieuw gekoppeld worden",
-    "githubApp": "Installeer de GitHub App hier",
-    "bring": "Meenemen",
-    "bringCount_one": "{{count}} item meenemen",
-    "bringCount_other": "{{count}} items meenemen",
-    "done_one": "{{count}} item meegenomen naar deze werkruimte",
-    "done_other": "{{count}} items meegenomen naar deze werkruimte",
-    "skipped_one": "{{count}} item kon niet mee",
-    "skipped_other": "{{count}} items konden niet mee",
-    "nothingNew": "Alles wat je koos, staat hier al",
-    "failed": "Meenemen is niet gelukt. Probeer het opnieuw.",
-    "fromOnboarding": "Agents en koppelingen meenemen uit een andere werkruimte"
   },
   "portal": {
     "title": "Portaal",

@@ -3,6 +3,7 @@ import {
   useAgents,
   useLiveVoice,
   useRemoveLiveVoiceKey,
+  useSaveCallNotes,
   useSaveLiveVoiceKey,
   useUpdateAgent,
 } from "@agenteschat/client";
@@ -27,6 +28,7 @@ import {
   List,
   Locked,
   Segmented,
+  Textarea,
 } from "@agenteschat/ui";
 import { useCallback, useEffect, useId, useMemo, useState, useSyncExternalStore } from "react";
 import { useTranslation } from "react-i18next";
@@ -190,6 +192,7 @@ export function LiveVoiceCard() {
           </DialogFooter>
         </Dialog>
       </Card>
+      {(on || view.maestro) && <CallNotesCard notes={view.callNotes} editable={view.editable} />}
       {on && team.length > 0 && (
         <Card aria-labelledby={`${id}-voices`}>
           <CardHeader id={`${id}-voices`} icon="sound" title={t("liveVoice.settings.voicesTitle")} />
@@ -221,15 +224,106 @@ export function AgentVoiceRow({ agent }: { agent: Agent }) {
 export function AgentVoiceField({ agent }: { agent: Agent }) {
   const { t } = useTranslation();
   const live = useLiveVoiceActions();
-  if (!live?.available) return null;
+  if (!live?.available && !live?.maestro) return null;
+  return (
+    <>
+      {live.available && (
+        <div className="agp-field">
+          <span className="newag__label" id={`voice-${agent.id}`}>
+            {t("liveVoice.settings.voiceOf", { name: agent.name })}
+          </span>
+          <span className="ac-acts">
+            <VoiceChoice agent={agent} />
+          </span>
+        </div>
+      )}
+      <AgentCallNotes agent={agent} />
+    </>
+  );
+}
+
+/**
+ * How the workspace's agents behave on voice calls, on top of the base every agent reads there (`live-call.md`,
+ * docs/adr/doug-0006-live-voice.md §11): who configures writes it, everyone reads it.
+ */
+function CallNotesCard({ notes, editable }: { notes: string; editable: boolean }) {
+  const { t } = useTranslation();
+  const { org } = useOrg();
+  const save = useSaveCallNotes(org.id);
+  const [draft, setDraft] = useState(notes);
+  const id = useId();
+  const changed = draft.trim() !== notes.trim();
+  return (
+    <Card aria-labelledby={`${id}-notes`}>
+      <CardHeader
+        id={`${id}-notes`}
+        icon="bulb"
+        title={t("liveVoice.settings.notesTitle")}
+        subtitle={t("liveVoice.settings.notesLead")}
+      />
+      <div className="lv-notes">
+        <Textarea
+          aria-labelledby={`${id}-notes`}
+          value={draft}
+          rows={4}
+          maxLength={3000}
+          disabled={!editable}
+          placeholder={t("liveVoice.settings.notesExample")}
+          onChange={(e) => setDraft(e.target.value)}
+        />
+        {editable && (
+          <span className="ac-acts">
+            <Button
+              size="sm"
+              variant="primary"
+              disabled={!changed}
+              loading={save.isPending}
+              onClick={() => save.mutate(draft)}
+            >
+              {t("common.save")}
+            </Button>
+          </span>
+        )}
+      </div>
+    </Card>
+  );
+}
+
+/** The agent's own notes for calls (on its page), on top of the workspace's. */
+function AgentCallNotes({ agent }: { agent: Agent }) {
+  const { t } = useTranslation();
+  const { org, me } = useOrg();
+  const update = useUpdateAgent(org.id, agent.id);
+  const saved = agent.liveCallNotes ?? "";
+  const [draft, setDraft] = useState(saved);
+  const mayEdit = can(org, "manage_agents") || agent.ownerUserId === me.user.id;
+  const id = useId();
   return (
     <div className="agp-field">
-      <span className="newag__label" id={`voice-${agent.id}`}>
-        {t("liveVoice.settings.voiceOf", { name: agent.name })}
-      </span>
-      <span className="ac-acts">
-        <VoiceChoice agent={agent} />
-      </span>
+      <label className="newag__label" htmlFor={`${id}-call`}>
+        {t("liveVoice.settings.agentNotes", { name: agent.name })}
+      </label>
+      <Textarea
+        id={`${id}-call`}
+        value={draft}
+        rows={3}
+        maxLength={1500}
+        disabled={!mayEdit}
+        placeholder={t("liveVoice.settings.agentNotesExample")}
+        onChange={(e) => setDraft(e.target.value)}
+      />
+      {mayEdit && draft.trim() !== saved.trim() && (
+        <span className="ac-acts">
+          <Button
+            size="sm"
+            variant="primary"
+            loading={update.isPending}
+            onClick={() => update.mutate({ liveCallNotes: draft.trim() || null })}
+          >
+            {t("common.save")}
+          </Button>
+        </span>
+      )}
     </div>
   );
 }

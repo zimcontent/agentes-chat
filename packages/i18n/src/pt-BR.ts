@@ -11001,6 +11001,11 @@ export const ptBR = {
   liveVoice: {
     you: "Você",
     call: {
+      mode: "Tipo de chamada",
+      modeMaestro: "Reunião (nova)",
+      modeLive: "Clássica (GPT-Live)",
+      topic: "Tema (opcional)",
+      topicHint: "Os agentes começam debatendo isso. Entre quando quiser.",
       start: "Começar chamada de voz",
       join_one: "Entrar na chamada ({{count}})",
       join_other: "Entrar na chamada ({{count}})",
@@ -11023,6 +11028,7 @@ export const ptBR = {
       hangUp: "Desligar",
     },
     room: {
+      cost: "Voz e transcrição até agora: {{cost}}",
       title: "Chamada de voz",
       joining: "Conectando…",
       inCall: "Em chamada",
@@ -11062,6 +11068,11 @@ export const ptBR = {
       stop: "Parar",
     },
     settings: {
+      notesTitle: "Como os agentes se portam nas chamadas",
+      notesLead: "Além da base que todo agente segue na chamada. Vale para o workspace inteiro.",
+      notesExample: "Ex.: Sempre fechem com quem faz o quê e até quando. Chamem o cliente pelo nome.",
+      agentNotes: "{{name}} nas chamadas",
+      agentNotesExample: "Ex.: Traz números antes de opinião. Discorda quando o orçamento não fecha.",
       title: "Voz ao vivo (GPT-Live)",
       lead: "Chamadas de voz com seus agentes e Ouvir em qualquer mensagem, cada agente com sua voz.",
       on: "Ligada",
@@ -11103,6 +11114,8 @@ export const ptBR = {
       },
     },
     errors: {
+      noMaestro: "Reuniões com maestro não estão configuradas neste servidor.",
+      badAudio: "Não deu para ler esse áudio. Tente de novo.",
       off: "Este workspace não tem chave do GPT-Live. Coloque uma em Configurações › Voz.",
       keyInvalid: "A OpenAI recusou esta chave.",
       noAccess: "O projeto desta chave na OpenAI não tem acesso ao GPT-Live.",

@@ -9,14 +9,20 @@ import {
   type LiveVoiceDeps,
   leaveLiveRoom,
   liveVoiceView,
+  maestroHeard,
+  maestroHush,
+  maestroJoined,
+  maestroSpeech,
   NotFoundError,
   pickLiveSpeaker,
   pingLiveRoom,
   relayLiveSignal,
   removeLiveVoiceKey,
+  saveLiveCallNotes,
   saveLiveVoiceKey,
   setLiveFloor,
   startLiveSession,
+  ValidationError,
 } from "@agenteschat/engine";
 import { createRoute, z } from "@hono/zod-openapi";
 import { apiError, errorResponse } from "../../http/errors";
@@ -41,6 +47,11 @@ const View = z
       .nullable()
       .openapi({ description: "The key's last 4 characters, for who configures. Never the key." }),
     editable: z.boolean(),
+    maestro: z.boolean().openapi({
+      description:
+        "Maestro calls work on this server (docs/adr/doug-0006-live-voice.md §11): the agents' voice, the people's words and a model.",
+    }),
+    callNotes: z.string().openapi({ description: "How the agents behave on calls here, on top of `live-call.md`." }),
   })
   .openapi("LiveVoice");
 
@@ -56,6 +67,10 @@ const Room = z
     channelId: z.uuid(),
     hostUserId: z.string().nullable().openapi({ description: "Whose app runs the agents' voices." }),
     agentIds: z.array(z.uuid()),
+    mode: z.enum(["live", "maestro"]).openapi({
+      description: "`live`: GPT-Live sessions in the host's app. `maestro`: the server runs the agents (§11).",
+    }),
+    topic: z.string().nullable(),
     people: z.array(z.object({ userId: z.string(), joinedAt: z.string() })),
     status: z.enum(["live", "ended"]),
     startedAt: z.string(),
@@ -219,13 +234,25 @@ export function liveVoiceRoutes(deps: AppDeps) {
       description: `Agents only when starting it, up to ${LIVE_ROOM_MAX_AGENTS}, and only those this person may talk to here; joining keeps the room's.`,
       request: {
         params: ChannelParams,
-        body: body(z.object({ agentIds: z.array(z.uuid()).max(LIVE_ROOM_MAX_AGENTS).default([]) })),
+        body: body(
+          z.object({
+            agentIds: z.array(z.uuid()).max(LIVE_ROOM_MAX_AGENTS).default([]),
+            mode: z.enum(["live", "maestro"]).optional(),
+            topic: z.string().max(500).nullable().optional(),
+            language: z.string().max(12).optional().openapi({ description: "The app's language (`pt-BR`)." }),
+          }),
+        ),
       },
       responses: { 200: json(Room), ...errors },
     }),
     async (c) => {
       const { orgId, channelId } = c.req.valid("param");
-      return c.json(await joinLiveRoom(live(), c.get("user").id, orgId, channelId, c.req.valid("json")), 200);
+      const user = c.get("user");
+      const input = c.req.valid("json");
+      const room = await joinLiveRoom(live(), user.id, orgId, channelId, input);
+      // A maestro call opens once, on the server (its lead greets, or opens the topic).
+      if (room.mode === "maestro") await maestroJoined(live(), user.id, orgId, room.id, input.language ?? "pt-BR");
+      return c.json(room, 200);
     },
   );
 
@@ -440,6 +467,112 @@ export function liveVoiceRoutes(deps: AppDeps) {
         return apiError(c, 429, "rate_limited", "Too many asks.");
       const { orgId, roomId } = c.req.valid("param");
       return c.json(await askFromLiveRoom(live(), user.id, orgId, roomId, c.req.valid("json")), 200);
+    },
+  );
+
+  app.openapi(
+    createRoute({
+      method: "put",
+      path: "/organizations/{orgId}/live-voice/notes",
+      tags,
+      security,
+      summary: "How the agents behave on calls in this workspace, on top of the base (`live-call.md`)",
+      description: "Needs `configure`. Up to 3,000 characters; empty clears them.",
+      request: { params: OrgParams, body: body(z.object({ notes: z.string().max(3000) })) },
+      responses: { 200: json(View), ...errors },
+    }),
+    async (c) => {
+      const { orgId } = c.req.valid("param");
+      return c.json(await saveLiveCallNotes(live(), c.get("user").id, orgId, c.req.valid("json").notes), 200);
+    },
+  );
+
+  app.openapi(
+    createRoute({
+      method: "post",
+      path: "/organizations/{orgId}/live-rooms/{roomId}/heard",
+      tags,
+      security,
+      summary: "What a person said on a maestro call: one utterance their app cut from their microphone",
+      description:
+        "Only speech: the app sends what its voice detection heard, never the silence. Written down by the workspace's speech engine and kept as their line; the team answers over the socket (`live.say`).",
+      request: {
+        params: RoomParams,
+        body: {
+          required: true,
+          content: {
+            "multipart/form-data": {
+              schema: z.object({
+                file: z.any().openapi({ type: "string", format: "binary", description: "The utterance (WAV)." }),
+                durationMs: z.coerce.number().int().positive().max(60_000),
+                language: z.string().max(12).optional(),
+              }),
+            },
+          },
+        },
+      },
+      responses: { 200: json(z.object({ text: z.string() })), ...errors, ...tooMany },
+    }),
+    async (c) => {
+      const user = c.get("user");
+      if (!(await allowed(`live-heard:${user.id}`, { limit: 120, windowMs: 60_000 })))
+        return apiError(c, 429, "rate_limited", "Too many.");
+      const { orgId, roomId } = c.req.valid("param");
+      const form = c.req.valid("form");
+      const file: unknown = form.file;
+      if (!(file instanceof File))
+        throw new ValidationError("send the utterance in the field file", "live_room.bad_audio");
+      const out = await maestroHeard(live(), user.id, orgId, roomId, {
+        audio: new Uint8Array(await file.arrayBuffer()),
+        contentType: file.type || "audio/wav",
+        durationMs: form.durationMs,
+        language: form.language ?? "pt-BR",
+      });
+      return c.json(out, 200);
+    },
+  );
+
+  app.openapi(
+    createRoute({
+      method: "post",
+      path: "/organizations/{orgId}/live-rooms/{roomId}/hush",
+      tags,
+      security,
+      summary: "A person started talking on a maestro call: every voice stops (`live.hush`)",
+      request: { params: RoomParams },
+      responses: { 204: { description: "Hushed" }, ...errors, ...tooMany },
+    }),
+    async (c) => {
+      const user = c.get("user");
+      if (!(await allowed(`live-hush:${user.id}`, { limit: 120, windowMs: 60_000 })))
+        return apiError(c, 429, "rate_limited", "Too many.");
+      const { orgId, roomId } = c.req.valid("param");
+      await maestroHush(live(), user.id, orgId, roomId);
+      return c.body(null, 204);
+    },
+  );
+
+  app.openapi(
+    createRoute({
+      method: "get",
+      path: "/organizations/{orgId}/live-rooms/{roomId}/speech/{utteranceId}",
+      tags,
+      security,
+      summary: "An agent's line on a maestro call, as MP3 while it is made",
+      request: { params: RoomParams.extend({ utteranceId: z.uuid() }) },
+      responses: {
+        200: { description: "MP3, streamed", content: { "audio/mpeg": { schema: z.any() } } },
+        ...errors,
+      },
+    }),
+    async (c) => {
+      const { orgId, roomId, utteranceId } = c.req.valid("param");
+      const stream = await maestroSpeech(live(), c.get("user").id, orgId, roomId, utteranceId);
+      if (!stream) throw new NotFoundError("That line is gone");
+      return new Response(stream, {
+        status: 200,
+        headers: { "Content-Type": "audio/mpeg", "Cache-Control": "no-store" },
+      }) as never;
     },
   );
 

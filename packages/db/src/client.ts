@@ -235,6 +235,13 @@ export const EXTRA_COLUMNS = [
   `CREATE INDEX IF NOT EXISTS "live_voice_rooms_org_id_channel_id_status_index" ON "live_voice_rooms" ("org_id", "channel_id", "status")`,
   // One live room per conversation: a second start joins the first.
   `CREATE UNIQUE INDEX IF NOT EXISTS "live_voice_rooms_live_channel" ON "live_voice_rooms" ("channel_id") WHERE "status" = 'live'`,
+  // A room run by the maestro (docs/adr/doug-0006-live-voice.md §11): its mode, the topic it opens on, how the team's
+  // agents behave on calls (the workspace's and each agent's notes on top of the base) and each agent's call voice.
+  `ALTER TABLE "live_voice_rooms" ADD COLUMN IF NOT EXISTS "mode" text NOT NULL DEFAULT 'live'`,
+  `ALTER TABLE "live_voice_rooms" ADD COLUMN IF NOT EXISTS "topic" text`,
+  `ALTER TABLE "organization_settings" ADD COLUMN IF NOT EXISTS "live_call_notes" text`,
+  `ALTER TABLE "agents" ADD COLUMN IF NOT EXISTS "live_call_notes" text`,
+  `ALTER TABLE "agents" ADD COLUMN IF NOT EXISTS "call_voice" text`,
   // Videos agents send for the team's review, their versions and the notes on them (docs/adr/doug-0007-video-review.md).
   `CREATE TABLE IF NOT EXISTS "video_reviews" (
     "id" uuid PRIMARY KEY,

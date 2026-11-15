@@ -71,6 +71,7 @@ import {
   setAgentAppearance,
   setAgentAudience,
   setAgentBrain,
+  setAgentCallNotes,
   setAgentPhoto,
   setAgentVoice,
   setReportsTo,
@@ -1554,6 +1555,10 @@ export function agentRoutes(deps: AppDeps) {
               deprecated: true,
               description: "Ignored. Older apps send it when an agent on a plan replies to everyone.",
             }),
+            liveCallNotes: z.string().max(1500).nullable().optional().openapi({
+              description:
+                "How it behaves on voice calls, on top of the base and the workspace's notes (docs/adr/doug-0006-live-voice.md §11). Its owner or an admin can change it.",
+            }),
             mailLossSeen: z.array(z.uuid()).max(500).optional().openapi({
               description:
                 "With `audience`: the mailboxes the person agreed it loses (`audience/mail-loss`). If it would lose another (given since), 409 `agent.mail_loss_changed` and nothing is saved: ask again.",
@@ -1574,13 +1579,14 @@ export function agentRoutes(deps: AppDeps) {
         mailLossSeen,
         brakes,
         voice,
+        liveCallNotes,
         ...rest
       } = c.req.valid("json");
       const input = { ...rest, ...(brakes ? { autonomyBrakes: brakes } : {}) };
       const actor = c.get("user").id;
       // The audience, the look and the voice can be changed by the agent's owner too; everything else needs an admin.
       const other =
-        (!audience && appearance === undefined && voice === undefined) ||
+        (!audience && appearance === undefined && voice === undefined && liveCallNotes === undefined) ||
         Object.values(input).some((v) => v !== undefined) ||
         monthlyBudgetUsd !== undefined;
       let agent = other
@@ -1601,6 +1607,8 @@ export function agentRoutes(deps: AppDeps) {
         agent = await setAgentAppearance(db, actor, orgId, agentId, appearance, { pubsub: adapters.pubsub });
       if (voice !== undefined)
         agent = await setAgentVoice(db, actor, orgId, agentId, voice, { pubsub: adapters.pubsub });
+      if (liveCallNotes !== undefined)
+        agent = await setAgentCallNotes(db, actor, orgId, agentId, liveCallNotes, { pubsub: adapters.pubsub });
       if (!agent) {
         agent = await getAgent(db, orgId, agentId);
         if (!agent) throw new NotFoundError("Agent not found");

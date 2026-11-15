@@ -13,6 +13,7 @@ import {
   namedAgent,
 } from "@agenteschat/client/lib/live-floor";
 import { LiveLeg } from "./leg";
+import { MaestroVoice, type Say } from "./maestro";
 
 /**
  * A voice room in this browser (ADR doug-0006). People reach each other directly (a WebRTC connection between each pair,
@@ -53,6 +54,8 @@ export interface RoomCallState {
   agentVoices: Record<string, "connecting" | "live" | "failed">;
   /** Agents working on something asked during the call (everyone on the call sees it). */
   working: Record<string, boolean>;
+  /** A maestro call (§11): what its voice and transcription cost so far, in nano-USD. */
+  maestroCost: number | null;
   captions: Caption[];
 }
 
@@ -109,6 +112,7 @@ export class RoomCall {
     holder: null,
     agentVoices: {},
     working: {},
+    maestroCost: null,
     captions: [],
   };
   private listeners = new Set<() => void>();
@@ -171,7 +175,7 @@ export class RoomCall {
   }
 
   // ── Start, join, leave ──
-  async start(agentIds: string[]) {
+  async start(agentIds: string[], options: { mode?: "live" | "maestro"; topic?: string | null } = {}) {
     try {
       this.mic = await navigator.mediaDevices.getUserMedia({
         audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true },
@@ -181,7 +185,10 @@ export class RoomCall {
       this.watch(`person:${this.o.me}`, this.micSource);
       this.off =
         this.o.connection?.onUserEvent((e) => this.onEvent(e as { type: string; [key: string]: unknown })) ?? null;
-      const room = await this.o.api.liveVoice.joinRoom(this.o.orgId, this.o.channelId, agentIds);
+      const room = await this.o.api.liveVoice.joinRoom(this.o.orgId, this.o.channelId, agentIds, {
+        ...options,
+        language: this.o.language,
+      });
       this.lines = [...room.lines];
       this.set({
         phase: "live",
@@ -220,12 +227,51 @@ export class RoomCall {
     const on = !this.state.micOn;
     for (const t of this.mic?.getAudioTracks() ?? []) t.enabled = on;
     this.set({ micOn: on });
+    this.maestro?.setMic(on);
+  }
+
+  /** Whether the server runs this call's agents (§11): no GPT-Live here, and no word to give by hand. */
+  get isMaestro() {
+    return this.state.room?.mode === "maestro";
+  }
+  private maestro: MaestroVoice | null = null;
+  private buses = new Map<string, GainNode>();
+
+  /** A maestro call: this app cuts its person's speech and plays the agents' lines (whoever hosts). */
+  private startMaestro(room: LiveRoom) {
+    if (this.maestro || !this.ctx || !this.micSource) return;
+    const ctx = this.ctx;
+    this.maestro = new MaestroVoice({
+      api: this.o.api,
+      orgId: this.o.orgId,
+      roomId: room.id,
+      language: this.o.language,
+      ctx,
+      mic: this.micSource,
+      bus: (agentId) => {
+        let bus = this.buses.get(agentId);
+        if (!bus) {
+          bus = ctx.createGain();
+          bus.connect(ctx.destination);
+          this.watch(`agent:${agentId}`, bus);
+          this.buses.set(agentId, bus);
+        }
+        return bus;
+      },
+      speaking: (agentId) => this.set({ holder: agentId }),
+    });
+    this.maestro.start();
   }
 
   /** "Dar a palavra": to an agent, or back to the people (null). The host applies it. */
   give(holder: string | null) {
     const room = this.state.room;
     if (!room) return;
+    // On a maestro call the server has the word: "quiet" stops every voice.
+    if (this.isMaestro) {
+      if (holder === null) void this.o.api.liveVoice.hush(this.o.orgId, room.id).catch(() => {});
+      return;
+    }
     if (this.isHost) this.apply(giveFloor(this.floor, holder, "manual"));
     else void this.o.api.liveVoice.floor(this.o.orgId, room.id, holder, "manual").catch(() => {});
   }
@@ -257,6 +303,9 @@ export class RoomCall {
     if (e.type === "live.signal") void this.onSignal(String(e.from), e.data as Signal);
     if (e.type === "live.lines") for (const line of e.lines as LiveRoomLine[]) this.heard(line);
     if (e.type === "live.working") this.set({ working: { ...this.state.working, [String(e.agentId)]: Boolean(e.on) } });
+    if (e.type === "live.say") this.maestro?.say(e as unknown as Say);
+    if (e.type === "live.hush") this.maestro?.hushed(Number(e.gen) || 0);
+    if (e.type === "live.cost") this.set({ maestroCost: Number((e.cost as { nanoUsd?: number })?.nanoUsd) || 0 });
     if (e.type === "live.answer" && this.isHost) {
       this.answers.push({
         agentId: String(e.agentId),
@@ -284,6 +333,10 @@ export class RoomCall {
     const others = new Set(room.people.map((p) => p.userId).filter((u) => u !== this.o.me));
     for (const userId of others) if (!this.peers.has(userId)) this.openPeer(userId);
     for (const [userId] of this.peers) if (!others.has(userId)) this.closePeer(userId);
+    if (room.mode === "maestro") {
+      this.startMaestro(room);
+      return;
+    }
     // This app runs the agents' voices while its person hosts the room, and stops when the room passes to another.
     if (this.isHost && !this.hosting) {
       this.hosting = true;
@@ -982,6 +1035,8 @@ export class RoomCall {
     cancelAnimationFrame(this.frame);
     for (const t of this.timers) clearInterval(t);
     this.off?.();
+    this.maestro?.stop();
+    this.maestro = null;
     void this.closeVoices();
     for (const userId of [...this.peers.keys()]) this.closePeer(userId);
     for (const who of [...this.audioEls.keys()]) this.drop(who as Who);

@@ -25808,6 +25808,21 @@
   "liveVoice.you": {
     "value": "You"
   },
+  "liveVoice.call.mode": {
+    "value": "Kind of call"
+  },
+  "liveVoice.call.modeMaestro": {
+    "value": "Meeting (new)"
+  },
+  "liveVoice.call.modeLive": {
+    "value": "Classic (GPT-Live)"
+  },
+  "liveVoice.call.topic": {
+    "value": "Topic (optional)"
+  },
+  "liveVoice.call.topicHint": {
+    "value": "The agents open by debating this. Jump in whenever you want."
+  },
   "liveVoice.call.start": {
     "value": "Start a voice call"
   },
@@ -25858,6 +25873,9 @@
   },
   "liveVoice.agentCall.hangUp": {
     "value": "Hang up"
+  },
+  "liveVoice.room.cost": {
+    "value": "Voice and transcription so far: {{cost}}"
   },
   "liveVoice.room.title": {
     "value": "Voice call"
@@ -25961,6 +25979,21 @@
   "liveVoice.listen.stop": {
     "value": "Stop"
   },
+  "liveVoice.settings.notesTitle": {
+    "value": "How the agents behave on calls"
+  },
+  "liveVoice.settings.notesLead": {
+    "value": "On top of the base every agent follows on a call. Applies to the whole workspace."
+  },
+  "liveVoice.settings.notesExample": {
+    "value": "E.g.: Always close with who does what and by when. Call the client by name."
+  },
+  "liveVoice.settings.agentNotes": {
+    "value": "{{name}} on calls"
+  },
+  "liveVoice.settings.agentNotesExample": {
+    "value": "E.g.: Brings numbers before opinions. Pushes back when the budget doesn't fit."
+  },
   "liveVoice.settings.title": {
     "value": "Live voice (GPT-Live)"
   },
@@ -26062,6 +26095,12 @@
   },
   "liveVoice.voices.accent.southernUs": {
     "value": "Southern US"
+  },
+  "liveVoice.errors.noMaestro": {
+    "value": "Meetings with the maestro aren't set up on this server."
+  },
+  "liveVoice.errors.badAudio": {
+    "value": "That audio couldn't be read. Try again."
   },
   "liveVoice.errors.off": {
     "value": "This workspace has no GPT-Live key. Add one in Settings › Voice."

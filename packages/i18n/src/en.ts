@@ -10973,6 +10973,11 @@ export const en = {
   liveVoice: {
     you: "You",
     call: {
+      mode: "Kind of call",
+      modeMaestro: "Meeting (new)",
+      modeLive: "Classic (GPT-Live)",
+      topic: "Topic (optional)",
+      topicHint: "The agents open by debating this. Jump in whenever you want.",
       start: "Start a voice call",
       join_one: "Join call ({{count}})",
       join_other: "Join call ({{count}})",
@@ -10994,6 +10999,7 @@ export const en = {
       hangUp: "Hang up",
     },
     room: {
+      cost: "Voice and transcription so far: {{cost}}",
       title: "Voice call",
       joining: "Connecting…",
       inCall: "In a call",
@@ -11033,6 +11039,11 @@ export const en = {
       stop: "Stop",
     },
     settings: {
+      notesTitle: "How the agents behave on calls",
+      notesLead: "On top of the base every agent follows on a call. Applies to the whole workspace.",
+      notesExample: "E.g.: Always close with who does what and by when. Call the client by name.",
+      agentNotes: "{{name}} on calls",
+      agentNotesExample: "E.g.: Brings numbers before opinions. Pushes back when the budget doesn't fit.",
       title: "Live voice (GPT-Live)",
       lead: "Voice calls with your agents and Listen on any message, each agent in its own voice.",
       on: "On",
@@ -11074,6 +11085,8 @@ export const en = {
       },
     },
     errors: {
+      noMaestro: "Meetings with the maestro aren't set up on this server.",
+      badAudio: "That audio couldn't be read. Try again.",
       off: "This workspace has no GPT-Live key. Add one in Settings › Voice.",
       keyInvalid: "OpenAI refused this key.",
       noAccess: "This key's OpenAI project has no access to GPT-Live.",

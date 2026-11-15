@@ -1980,6 +1980,7 @@
     }
   },
   "shell": {
+    "you": "Vous",
     "otherChannels": "Autres canaux",
     "otherChannelsPersonal": "Autres conversations de groupe",
     "titleBar": {
@@ -2109,6 +2110,7 @@
     "summary_many": "{{people}} membres · {{agents}} agents",
     "summary_other": "{{people}} membres · {{agents}} agents",
     "waiting": "Vous attend",
+    "portal": "Portail",
     "approvals": "Approbations",
     "proposals": "Propositions d'amélioration",
     "issues": "Tâches",
@@ -2170,9 +2172,7 @@
     "unreadThreads_other": "Fils : {{count}} avec des réponses non lues",
     "unreadNotifications_one": "{{count}} notification non lue",
     "unreadNotifications_many": "{{count}} notifications non lues",
-    "unreadNotifications_other": "{{count}} notifications non lues",
-    "you": "Vous",
-    "portal": "Portail"
+    "unreadNotifications_other": "{{count}} notifications non lues"
   },
   "agentGroups": {
     "group": "Service",
@@ -2570,6 +2570,18 @@
     "nameHelp": "Change pour tout le monde. Les anciens liens continuent de fonctionner.",
     "nameTaken": "#{{name}} existe déjà.",
     "generalName": "#general garde son nom.",
+    "displayNameLabel": "Nom affiché",
+    "displayNameHelp": "Le nom du groupe que tout le monde voit. Son nom technique (#{{name}}) fonctionne toujours pour les mentions.",
+    "photo": {
+      "label": "Photo du groupe",
+      "title": "Photo du groupe",
+      "help": "Une image carrée que tout le monde voit à côté du nom du groupe. JPEG, PNG ou WebP jusqu'à 2 Mo.",
+      "upload": "Importer une photo",
+      "change": "Changer la photo",
+      "remove": "Supprimer la photo",
+      "saved": "Photo du groupe enregistrée",
+      "removed": "Photo du groupe supprimée"
+    },
     "archive": "Archiver le canal",
     "archived": "#{{channel}} archivé. La conversation est conservée.",
     "archivedTitle": "Canaux archivés",
@@ -2646,19 +2658,7 @@
     "backOnline": "De nouveau connecté",
     "sendingOffline": "partira au retour de la connexion",
     "endOfReply": "Fin de la réponse",
-    "mentionSuggestions": "Suggestions de mention",
-    "displayNameLabel": "Nom affiché",
-    "displayNameHelp": "Le nom du groupe que tout le monde voit. Son nom technique (#{{name}}) fonctionne toujours pour les mentions.",
-    "photo": {
-      "label": "Photo du groupe",
-      "title": "Photo du groupe",
-      "help": "Une image carrée que tout le monde voit à côté du nom du groupe. JPEG, PNG ou WebP jusqu'à 2 Mo.",
-      "upload": "Importer une photo",
-      "change": "Changer la photo",
-      "remove": "Supprimer la photo",
-      "saved": "Photo du groupe enregistrée",
-      "removed": "Photo du groupe supprimée"
-    }
+    "mentionSuggestions": "Suggestions de mention"
   },
   "receipts": {
     "picked_one": "{{names}} va répondre",
@@ -4935,6 +4935,7 @@
       "other": "Approuver"
     },
     "refuse": "Refuser",
+    "once": "Cette fois seulement",
     "viewDiff": "Voir le diff",
     "viewInChannel": "Voir dans le canal",
     "group": "Demande d'approbation",
@@ -5003,8 +5004,7 @@
         "actions_run_trigger": "Lancer {{method}} dans {{repo}}",
         "delete_repository": "Supprimer le dépôt {{repo}}"
       }
-    },
-    "once": "Cette fois seulement"
+    }
   },
   "home": {
     "greeting": {
@@ -5475,6 +5475,16 @@
     "again": "Redemander",
     "againBody": "@{{handle}} la demande « {{title}} » a expiré sans décision. Si elle a encore du sens, redemandez.",
     "againSent": "Demande envoyée dans la conversation",
+    "retry": "Demander de réessayer",
+    "cause": {
+      "reconnect": "La connexion à l’app a expiré. Reconnectez-la et demandez de réessayer.",
+      "permission": "Le compte connecté n’a pas le droit de faire cela. Vérifiez l’accès dans l’app et demandez de réessayer.",
+      "unavailable": "Le service n’a pas répondu. Attendez un peu et demandez de réessayer.",
+      "limit": "Le service a refusé : trop de demandes. Attendez quelques minutes et demandez de réessayer."
+    },
+    "reconnect": "Reconnecter",
+    "retryBody": "@{{handle}} l’action « {{title}} » qui a été approuvée a échoué. Regardez ce qui n’a pas marché et réessayez, ou dites-moi ce que je dois faire.",
+    "valueKeys": "Clés du Vault utilisées",
     "noResults": "Aucune demande ne correspond à ces filtres.",
     "emptyTitle": "Tout est décidé",
     "how": "Comment fonctionnent les approbations",
@@ -5546,17 +5556,7 @@
       "hideSteps": "Masquer les étapes",
       "asked": "A demandé une approbation",
       "grants": "{{name}} va {{doing}}, cette fois seulement, avec ces valeurs."
-    },
-    "retry": "Demander de réessayer",
-    "cause": {
-      "reconnect": "La connexion à l’app a expiré. Reconnectez-la et demandez de réessayer.",
-      "permission": "Le compte connecté n’a pas le droit de faire cela. Vérifiez l’accès dans l’app et demandez de réessayer.",
-      "unavailable": "Le service n’a pas répondu. Attendez un peu et demandez de réessayer.",
-      "limit": "Le service a refusé : trop de demandes. Attendez quelques minutes et demandez de réessayer."
-    },
-    "reconnect": "Reconnecter",
-    "retryBody": "@{{handle}} l’action « {{title}} » qui a été approuvée a échoué. Regardez ce qui n’a pas marché et réessayez, ou dites-moi ce que je dois faire.",
-    "valueKeys": "Clés du Vault utilisées"
+    }
   },
   "agent": {
     "editIdentity": "Modifier le nom et le rôle",
@@ -8283,6 +8283,7 @@
     "subIssues_many": "Sous-tâches · {{count}}",
     "subIssues_other": "Sous-tâches · {{count}}",
     "fromWebhook": "depuis un événement {{provider}}",
+    "fromPortal": "<0>Publication de {{client}} dans le Portail</0>",
     "description": "Description",
     "noDescription": "Aucune description.",
     "criteria": "Critères d'acceptation",
@@ -8391,8 +8392,7 @@
       "criterion_checked": "a coché le critère « {{text}} »",
       "criterion_unchecked": "a décoché le critère « {{text}} »",
       "agent_asked": "a demandé à {{name}} de la faire"
-    },
-    "fromPortal": "<0>Publication de {{client}} dans le Portail</0>"
+    }
   },
   "routines": {
     "filters": "Filtrer les routines",
@@ -11006,6 +11006,11 @@
   "liveVoice": {
     "you": "Vous",
     "call": {
+      "mode": "Type d'appel",
+      "modeMaestro": "Réunion (nouvelle)",
+      "modeLive": "Classique (GPT-Live)",
+      "topic": "Sujet (facultatif)",
+      "topicHint": "Les agents commencent par débattre de ce sujet. Intervenez quand vous voulez.",
       "start": "Lancer un appel vocal",
       "join_one": "Rejoindre l'appel ({{count}})",
       "join_many": "Rejoindre l'appel ({{count}})",
@@ -11029,6 +11034,7 @@
       "hangUp": "Raccrocher"
     },
     "room": {
+      "cost": "Voix et transcription jusqu'ici : {{cost}}",
       "title": "Appel vocal",
       "joining": "Connexion…",
       "inCall": "En appel",
@@ -11067,6 +11073,11 @@
       "stop": "Arrêter"
     },
     "settings": {
+      "notesTitle": "Comment les agents se comportent en appel",
+      "notesLead": "En plus de la base que chaque agent suit en appel. S'applique à tout l'espace de travail.",
+      "notesExample": "Ex. : Terminez toujours par qui fait quoi et pour quand. Appelez le client par son nom.",
+      "agentNotes": "{{name}} en appel",
+      "agentNotesExample": "Ex. : Apporte des chiffres avant les opinions. Conteste quand le budget ne colle pas.",
       "title": "Voix en direct (GPT-Live)",
       "lead": "Des appels vocaux avec vos agents et Écouter sur chaque message, chaque agent avec sa propre voix.",
       "on": "Activée",
@@ -11107,6 +11118,8 @@
       }
     },
     "errors": {
+      "noMaestro": "Les réunions avec maestro ne sont pas configurées sur ce serveur.",
+      "badAudio": "Impossible de lire cet audio. Réessayez.",
       "off": "Cet espace de travail n'a pas de clé GPT-Live. Ajoutez-en une dans Paramètres › Voix.",
       "keyInvalid": "OpenAI a refusé cette clé.",
       "noAccess": "Le projet OpenAI de cette clé n'a pas accès à GPT-Live.",
@@ -13081,6 +13094,29 @@
     "deniedRun": "{{repo}} ne fait pas partie des dépôts de {{name}}.",
     "deniedRun_female": "{{repo}} ne fait pas partie des dépôts de {{name}}.",
     "added": "{{repo}} rejoindra la liste à l'enregistrement."
+  },
+  "carry": {
+    "open": "Récupérer depuis un autre espace de travail",
+    "text": "Ce que vous avez connecté dans un autre espace de travail arrive prêt, sans vous reconnecter.",
+    "none": "Rien à récupérer pour l'instant. Ce que vous connectez dans un espace de travail s'affiche ici dans les autres.",
+    "connections": "Connexions",
+    "with": "Vient avec {{names}}",
+    "here": "Déjà ici",
+    "needsReconnect": "À reconnecter",
+    "githubApp": "Installez la GitHub App ici",
+    "bring": "Récupérer",
+    "bringCount_one": "Récupérer {{count}} élément",
+    "bringCount_many": "Récupérer {{count}} éléments",
+    "bringCount_other": "Récupérer {{count}} éléments",
+    "done_one": "{{count}} élément récupéré dans cet espace de travail",
+    "done_many": "{{count}} éléments récupérés dans cet espace de travail",
+    "done_other": "{{count}} éléments récupérés dans cet espace de travail",
+    "skipped_one": "{{count}} élément n'a pas pu venir",
+    "skipped_many": "{{count}} éléments n'ont pas pu venir",
+    "skipped_other": "{{count}} éléments n'ont pas pu venir",
+    "nothingNew": "Tout ce que vous avez choisi est déjà ici",
+    "failed": "Impossible de récupérer. Réessayez.",
+    "fromOnboarding": "Récupérer des agents et des connexions depuis un autre espace de travail"
   },
   "connectors": {
     "title": "Connecteurs",
@@ -17608,6 +17644,17 @@
       "savedEveryone": "Tout le workspace utilise désormais ce forfait.",
       "savedOwner": "Vous êtes désormais seul à utiliser ce forfait."
     },
+    "standIn": {
+      "title": "Comptes de secours",
+      "about": "Quand le compte qu’utilise un agent atteint 90 % de sa limite, l’agent continue avec le premier compte de cette liste sous les 90 %, sur le même ordinateur. ChatGPT répond avec GPT-6.1 Sol et Gemini avec Gemini 4 Hydrogen. L’agent revient à son propre compte quand il se renouvelle.",
+      "empty": "Aucun compte de secours. Ajoutez-en un pour que vos agents continuent quand un compte est plein.",
+      "last": "Si tous dépassent 90 % : le propre compte de l’agent jusqu’à sa limite, puis sa clé d’API, s’il en a une.",
+      "add": "Ajouter un compte",
+      "up": "Monter {{label}}",
+      "down": "Descendre {{label}}",
+      "remove": "Retirer {{label}}",
+      "saved": "Ordre des comptes de secours enregistré."
+    },
     "logins_one": "{{count}} connexion",
     "logins_many": "{{count}} connexions",
     "logins_other": "{{count}} connexions",
@@ -17674,17 +17721,6 @@
       "oldSub": "Utilisation d'avant l'enregistrement du compte",
       "ofMonth": "{{percent}} du mois",
       "shareLabel": "{{source}} : {{percent}} du mois"
-    },
-    "standIn": {
-      "title": "Comptes de secours",
-      "about": "Quand le compte qu’utilise un agent atteint 90 % de sa limite, l’agent continue avec le premier compte de cette liste sous les 90 %, sur le même ordinateur. ChatGPT répond avec GPT-6.1 Sol et Gemini avec Gemini 4 Hydrogen. L’agent revient à son propre compte quand il se renouvelle.",
-      "empty": "Aucun compte de secours. Ajoutez-en un pour que vos agents continuent quand un compte est plein.",
-      "last": "Si tous dépassent 90 % : le propre compte de l’agent jusqu’à sa limite, puis sa clé d’API, s’il en a une.",
-      "add": "Ajouter un compte",
-      "up": "Monter {{label}}",
-      "down": "Descendre {{label}}",
-      "remove": "Retirer {{label}}",
-      "saved": "Ordre des comptes de secours enregistré."
     }
   },
   "budget": {
@@ -18071,6 +18107,9 @@
         "askingChoices": "A posé une question avec des options",
         "usingVault": "A travaillé dans le Vault",
         "makingPassword": "A créé un mot de passe",
+        "usingPortal": "A travaillé sur le tableau d'approbation",
+        "sendingForApproval": "A envoyé pour approbation",
+        "schedulingPost": "A programmé une publication",
         "startingWork": "A commencé un long travail",
         "updatingWork": "A mis à jour un long travail",
         "withdrawingRequest": "A retiré une demande",
@@ -18101,10 +18140,7 @@
         "thinking": "A réfléchi",
         "typing": "A écrit",
         "recordingVoice": "A enregistré un audio",
-        "writing": "A écrit",
-        "usingPortal": "A travaillé sur le tableau d'approbation",
-        "sendingForApproval": "A envoyé pour approbation",
-        "schedulingPost": "A programmé une publication"
+        "writing": "A écrit"
       }
     },
     "activity": {
@@ -18194,6 +18230,9 @@
       "askingChoices": "question avec des options",
       "usingVault": "travail dans le Vault",
       "makingPassword": "création d'un mot de passe",
+      "usingPortal": "travaille sur le tableau d'approbation",
+      "sendingForApproval": "envoie pour approbation",
+      "schedulingPost": "programme une publication",
       "startingWork": "début d'un long travail",
       "updatingWork": "mise à jour d'un long travail",
       "withdrawingRequest": "retrait d'une demande",
@@ -18220,10 +18259,7 @@
       "updatingThread": "mise à jour d'un fil",
       "addingAgent": "ajout d'un agent à un canal",
       "readingConversation": "lecture de la conversation",
-      "usingTool": "utilisation d'un outil",
-      "usingPortal": "travaille sur le tableau d'approbation",
-      "sendingForApproval": "envoie pour approbation",
-      "schedulingPost": "programme une publication"
+      "usingTool": "utilisation d'un outil"
     },
     "tokens": "{{value}} jetons",
     "sayHiAgent": "Dites bonjour à {{name}}",
@@ -20976,126 +21012,6 @@
       "alwaysOn": "Désormais, les rapports de ce type partent sans demander.",
       "askFirst": "Demander avant d'envoyer"
     }
-  },
-  "liveVoice": {
-    "you": "Vous",
-    "call": {
-      "start": "Lancer un appel vocal",
-      "join_one": "Rejoindre l'appel ({{count}})",
-      "join_many": "Rejoindre l'appel ({{count}})",
-      "join_other": "Rejoindre l'appel ({{count}})",
-      "title": "Appel vocal",
-      "lead": "Choisissez les agents de l'appel. Tout le monde dans la conversation peut le rejoindre.",
-      "startWith_one": "Appeler avec {{count}} agent",
-      "startWith_many": "Appeler avec {{count}} agents",
-      "startWith_other": "Appeler avec {{count}} agents",
-      "peopleOnly": "Appeler sans agents",
-      "callAgent": "Appeler {{name}}",
-      "keyWhere": "Pour appeler des agents, cet espace de travail a besoin d'une clé GPT-Live dans Paramètres › Voix.",
-      "keyOpen": "Ajouter la clé",
-      "keyAsk": "Demandez à la personne qui gère l'espace de travail de l'ajouter.",
-      "needsKeyTitle": "Appeler {{name}} demande une clé GPT-Live"
-    },
-    "agentCall": {
-      "title": "Appel avec {{name}}",
-      "connecting": "Appel de {{name}}…",
-      "listening": "À l'écoute",
-      "hangUp": "Raccrocher"
-    },
-    "room": {
-      "title": "Appel vocal",
-      "joining": "Connexion…",
-      "inCall": "En appel",
-      "minimize": "Continuer à travailler",
-      "open": "Ouvrir l'appel",
-      "micOff": "Couper le micro",
-      "micOn": "Activer le micro",
-      "muted": "Micro coupé",
-      "captions": "Sous-titres",
-      "quiet": "Les agents écoutent seulement",
-      "leave": "Quitter l'appel",
-      "endAll": "Terminer pour tous",
-      "endTitle": "Terminer l'appel pour tous ?",
-      "endText": "Les notes de l'appel vont dans la conversation et Doug BOSS envoie le compte rendu avec les décisions et les prochaines étapes.",
-      "hasWord": "{{name}} a la parole",
-      "agentsListen": "Les agents écoutent",
-      "word": "Parle",
-      "giveWord": "Donner la parole",
-      "takeWord": "Reprendre la parole",
-      "connecting": "Connexion de la voix",
-      "voiceFailed": "La voix a échoué",
-      "ended": "L'appel est terminé",
-      "failed": "L'appel n'a pas pu démarrer",
-      "report": "Les notes sont dans la conversation. Doug BOSS y envoie le compte rendu.",
-      "noNotes": "Trop peu a été dit pour prendre des notes."
-    },
-    "listen": {
-      "menu": "Écouter",
-      "connecting": "Préparation de la voix…",
-      "telling": "{{name}} vous raconte",
-      "narrator": "Le narrateur",
-      "asking": "Posez votre question",
-      "done": "Terminé",
-      "ask": "Demander",
-      "stop": "Arrêter"
-    },
-    "settings": {
-      "title": "Voix en direct (GPT-Live)",
-      "lead": "Des appels vocaux avec vos agents et Écouter sur chaque message, chaque agent avec sa propre voix.",
-      "on": "Activée",
-      "off": "Désactivée",
-      "without": "Ajoutez une clé OpenAI avec accès à GPT-Live pour appeler vos agents et écouter les messages.",
-      "setUp": "Ajouter la clé",
-      "openSite": "Ouvrir OpenAI",
-      "stepKey": "Créez une clé API",
-      "stepKeyHint": "Dans le projet OpenAI qui a GPT-Live. L'utilisation est facturée à ce projet.",
-      "paste": "Collez la clé ici",
-      "sealed": "Elle est vérifiée auprès d'OpenAI et gardée scellée. Personne ne la revoit.",
-      "price": "GPT-Live coûte environ 0,05 $ US par minute et par agent en appel. Cela compte dans le budget de chaque agent.",
-      "removeTitle": "Retirer la clé GPT-Live ?",
-      "removeText": "Les appels avec des agents et Écouter s'arrêtent dans cet espace de travail. Les appels entre personnes continuent.",
-      "voicesTitle": "La voix de chaque agent",
-      "voiceOf": "Voix de {{name}}",
-      "sample": "Écouter la voix de {{name}}",
-      "hear": "Écouter"
-    },
-    "errors": {
-      "off": "Cet espace de travail n'a pas de clé GPT-Live. Ajoutez-en une dans Paramètres › Voix.",
-      "keyInvalid": "OpenAI a refusé cette clé.",
-      "noAccess": "Le projet OpenAI de cette clé n'a pas accès à GPT-Live.",
-      "unchecked": "Impossible de vérifier la clé auprès d'OpenAI. Réessayez.",
-      "unavailable": "OpenAI n'a pas répondu. Réessayez.",
-      "busy": "OpenAI est surchargé, ou le quota de la clé est épuisé.",
-      "refused": "OpenAI a refusé la session vocale.",
-      "tooMany": "Trop de sessions vocales ouvertes. Fermez-en une et réessayez.",
-      "noWords": "Ce message n'a pas de mots à raconter.",
-      "notHost": "Seule la personne qui anime l'appel ouvre les voix des agents.",
-      "ended": "Cet appel est terminé.",
-      "notIn": "Vous n'êtes plus dans cet appel."
-    }
-  },
-  "carry": {
-    "open": "Récupérer depuis un autre espace de travail",
-    "text": "Ce que vous avez connecté dans un autre espace de travail arrive prêt, sans vous reconnecter.",
-    "none": "Rien à récupérer pour l'instant. Ce que vous connectez dans un espace de travail s'affiche ici dans les autres.",
-    "connections": "Connexions",
-    "with": "Vient avec {{names}}",
-    "here": "Déjà ici",
-    "needsReconnect": "À reconnecter",
-    "githubApp": "Installez la GitHub App ici",
-    "bring": "Récupérer",
-    "bringCount_one": "Récupérer {{count}} élément",
-    "bringCount_many": "Récupérer {{count}} éléments",
-    "bringCount_other": "Récupérer {{count}} éléments",
-    "done_one": "{{count}} élément récupéré dans cet espace de travail",
-    "done_many": "{{count}} éléments récupérés dans cet espace de travail",
-    "done_other": "{{count}} éléments récupérés dans cet espace de travail",
-    "skipped_one": "{{count}} élément n'a pas pu venir",
-    "skipped_many": "{{count}} éléments n'ont pas pu venir",
-    "skipped_other": "{{count}} éléments n'ont pas pu venir",
-    "nothingNew": "Tout ce que vous avez choisi est déjà ici",
-    "failed": "Impossible de récupérer. Réessayez.",
-    "fromOnboarding": "Récupérer des agents et des connexions depuis un autre espace de travail"
   },
   "portal": {
     "title": "Portail",

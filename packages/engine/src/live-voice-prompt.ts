@@ -42,7 +42,7 @@ export interface ChatLine {
   text: string;
 }
 
-function chatBlock(lines: ChatLine[], source: string) {
+export function chatBlock(lines: ChatLine[], source: string) {
   if (!lines.length) return "";
   const text = lines.map((l) => `${l.author}: ${cut(l.text.replace(/\s+/g, " ").trim(), 500)}`).join("\n");
   return untrustedBlock(source, text, 6000);

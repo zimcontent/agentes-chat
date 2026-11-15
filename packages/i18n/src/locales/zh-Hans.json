@@ -1878,6 +1878,7 @@
     }
   },
   "shell": {
+    "you": "你",
     "otherChannels": "其他频道",
     "otherChannelsPersonal": "其他群组对话",
     "titleBar": {
@@ -2005,6 +2006,7 @@
     "searchWorkspace": "搜索工作区",
     "summary_other": "{{people}} 位成员 · {{agents}} 个智能体",
     "waiting": "等你处理",
+    "portal": "门户",
     "approvals": "审批",
     "proposals": "改进建议",
     "issues": "任务",
@@ -2052,9 +2054,7 @@
     "unreadMark": "未读",
     "unreadMentions_other": "{{count}} 条提及你的消息",
     "unreadThreads_other": "话题：{{count}} 个有未读回复",
-    "unreadNotifications_other": "{{count}} 条未读通知",
-    "you": "你",
-    "portal": "门户"
+    "unreadNotifications_other": "{{count}} 条未读通知"
   },
   "agentGroups": {
     "group": "部门",
@@ -2415,6 +2415,18 @@
     "nameHelp": "对所有人生效。旧链接仍然有效。",
     "nameTaken": "已存在 #{{name}}。",
     "generalName": "#general 的名称不能更改。",
+    "displayNameLabel": "显示名称",
+    "displayNameHelp": "群组向所有人显示的名称。技术名称（#{{name}}）仍可用于提及。",
+    "photo": {
+      "label": "群组照片",
+      "title": "群组照片",
+      "help": "显示在群组名称旁、所有人都能看到的方形图片。支持 JPEG、PNG 或 WebP，最大 2 MB。",
+      "upload": "上传照片",
+      "change": "更换照片",
+      "remove": "移除照片",
+      "saved": "群组照片已保存",
+      "removed": "群组照片已移除"
+    },
     "archive": "归档频道",
     "archived": "#{{channel}} 已归档。对话会保留。",
     "archivedTitle": "已归档的频道",
@@ -2485,19 +2497,7 @@
     "backOnline": "已重新连接",
     "sendingOffline": "恢复连接后发出",
     "endOfReply": "回复结束",
-    "mentionSuggestions": "提及建议",
-    "displayNameLabel": "显示名称",
-    "displayNameHelp": "群组向所有人显示的名称。技术名称（#{{name}}）仍可用于提及。",
-    "photo": {
-      "label": "群组照片",
-      "title": "群组照片",
-      "help": "显示在群组名称旁、所有人都能看到的方形图片。支持 JPEG、PNG 或 WebP，最大 2 MB。",
-      "upload": "上传照片",
-      "change": "更换照片",
-      "remove": "移除照片",
-      "saved": "群组照片已保存",
-      "removed": "群组照片已移除"
-    }
+    "mentionSuggestions": "提及建议"
   },
   "receipts": {
     "picked_other": "{{names}} 将会回答",
@@ -4633,6 +4633,7 @@
       "other": "批准"
     },
     "refuse": "拒绝",
+    "once": "仅此一次",
     "viewDiff": "查看差异",
     "viewInChannel": "在频道中查看",
     "group": "审批请求",
@@ -4699,8 +4700,7 @@
         "actions_run_trigger": "在 {{repo}} 中运行 {{method}}",
         "delete_repository": "删除仓库 {{repo}}"
       }
-    },
-    "once": "仅此一次"
+    }
   },
   "home": {
     "greeting": {
@@ -5113,6 +5113,16 @@
     "again": "再次请求",
     "againBody": "@{{handle}} 请求“{{title}}”已过期且无人决定。如果仍然需要，请再次请求。",
     "againSent": "已在对话中发送请求",
+    "retry": "请它再试一次",
+    "cause": {
+      "reconnect": "与应用的连接已过期。请重新连接，然后请它再试一次。",
+      "permission": "已连接的账号无权执行此操作。请在应用中检查访问权限，然后请它再试一次。",
+      "unavailable": "服务没有响应。请稍等片刻，然后请它再试一次。",
+      "limit": "请求过多，服务已拒绝。请等待几分钟，然后请它再试一次。"
+    },
+    "reconnect": "重新连接",
+    "retryBody": "@{{handle}} 已批准的操作“{{title}}”失败了。看看哪里出了问题并再试一次，或者告诉我需要做什么。",
+    "valueKeys": "使用的 Vault 密钥",
     "noResults": "没有符合这些筛选条件的请求。",
     "emptyTitle": "全部处理完毕",
     "how": "审批是如何运作的",
@@ -5184,17 +5194,7 @@
       "hideSteps": "隐藏步骤",
       "asked": "请求了批准",
       "grants": "{{name}}将仅此一次、按这些值{{doing}}。"
-    },
-    "retry": "请它再试一次",
-    "cause": {
-      "reconnect": "与应用的连接已过期。请重新连接，然后请它再试一次。",
-      "permission": "已连接的账号无权执行此操作。请在应用中检查访问权限，然后请它再试一次。",
-      "unavailable": "服务没有响应。请稍等片刻，然后请它再试一次。",
-      "limit": "请求过多，服务已拒绝。请等待几分钟，然后请它再试一次。"
-    },
-    "reconnect": "重新连接",
-    "retryBody": "@{{handle}} 已批准的操作“{{title}}”失败了。看看哪里出了问题并再试一次，或者告诉我需要做什么。",
-    "valueKeys": "使用的 Vault 密钥"
+    }
   },
   "agent": {
     "editIdentity": "编辑名称和角色",
@@ -7752,6 +7752,7 @@
     "fromAgent": "来自对智能体的一个请求",
     "subIssues_other": "子任务 · {{count}}",
     "fromWebhook": "来自一个 {{provider}} 事件",
+    "fromPortal": "<0>门户中 {{client}} 的帖子</0>",
     "description": "描述",
     "noDescription": "没有描述。",
     "criteria": "验收标准",
@@ -7856,8 +7857,7 @@
       "criterion_checked": "勾选了标准“{{text}}”",
       "criterion_unchecked": "取消勾选了标准“{{text}}”",
       "agent_asked": "请 {{name}} 来完成"
-    },
-    "fromPortal": "<0>门户中 {{client}} 的帖子</0>"
+    }
   },
   "routines": {
     "filters": "筛选例行工作",
@@ -10244,6 +10244,11 @@
   "liveVoice": {
     "you": "你",
     "call": {
+      "mode": "通话类型",
+      "modeMaestro": "会议（新）",
+      "modeLive": "经典（GPT-Live）",
+      "topic": "主题（可选）",
+      "topicHint": "智能体会先围绕这个主题展开讨论。你可以随时加入。",
       "start": "发起语音通话",
       "join_other": "加入通话（{{count}}）",
       "title": "语音通话",
@@ -10263,6 +10268,7 @@
       "hangUp": "挂断"
     },
     "room": {
+      "cost": "目前的语音和转写费用：{{cost}}",
       "title": "语音通话",
       "joining": "正在连接…",
       "inCall": "通话中",
@@ -10301,6 +10307,11 @@
       "stop": "停止"
     },
     "settings": {
+      "notesTitle": "智能体在通话中的表现方式",
+      "notesLead": "在每个智能体通话时遵循的基础规则之上补充。适用于整个工作区。",
+      "notesExample": "例如：每次都以谁在何时之前做什么来收尾。称呼客户的名字。",
+      "agentNotes": "{{name}} 在通话中",
+      "agentNotesExample": "例如：先给数字再给观点。预算不合适时提出反对。",
       "title": "实时语音（GPT-Live）",
       "lead": "与智能体语音通话，并可在任何消息上使用“收听”，每个智能体都有自己的声音。",
       "on": "已开启",
@@ -10341,6 +10352,8 @@
       }
     },
     "errors": {
+      "noMaestro": "此服务器未设置带主持人的会议。",
+      "badAudio": "无法读取该音频。请重试。",
       "off": "此工作区没有 GPT-Live 密钥。请在“设置 › 语音”中添加。",
       "keyInvalid": "OpenAI 拒绝了此密钥。",
       "noAccess": "此密钥所属的 OpenAI 项目无权使用 GPT-Live。",
@@ -12178,6 +12191,23 @@
     "allow": "允许 {{repo}}",
     "deniedRun": "{{repo}} 不在 {{name}} 的仓库中。",
     "added": "保存后，{{repo}} 会加入列表。"
+  },
+  "carry": {
+    "open": "从其他工作区带过来",
+    "text": "你在其他工作区连接的内容会直接带过来，无需重新登录。",
+    "none": "暂时没有可带过来的内容。你在一个工作区连接的内容会显示在其他工作区的这里。",
+    "connections": "连接",
+    "with": "附带 {{names}}",
+    "here": "已在这里",
+    "needsReconnect": "需要重新连接",
+    "githubApp": "在这里安装 GitHub App",
+    "bring": "带过来",
+    "bringCount_other": "带过来 {{count}} 项",
+    "done_other": "已将 {{count}} 项带到此工作区",
+    "skipped_other": "{{count}} 项无法带过来",
+    "nothingNew": "你选择的内容都已在这里",
+    "failed": "无法带过来，请重试。",
+    "fromOnboarding": "从其他工作区带来智能体和连接"
   },
   "connectors": {
     "title": "连接器",
@@ -16573,6 +16603,17 @@
       "savedEveryone": "现在整个 workspace 都使用这个套餐。",
       "savedOwner": "现在只有你使用这个套餐。"
     },
+    "standIn": {
+      "title": "备用账户",
+      "about": "当代理使用的账户达到其限额的 90% 时，代理会在同一台电脑上改用此列表中第一个低于 90% 的账户。ChatGPT 使用 GPT-6.1 Sol 回答，Gemini 使用 Gemini 4 Hydrogen 回答。账户续期后，代理会回到自己的账户。",
+      "empty": "没有备用账户。添加一个，让代理在某个账户用满时继续工作。",
+      "last": "全部超过 90% 时：先用代理自己的账户直到达到限额，然后使用它的 API 密钥（如有）。",
+      "add": "添加账户",
+      "up": "上移 {{label}}",
+      "down": "下移 {{label}}",
+      "remove": "移除 {{label}}",
+      "saved": "已保存备用账户的顺序。"
+    },
     "logins_other": "{{count}} 个登录",
     "noWindows": "再次使用此账号后会显示限额。",
     "unused": "没有智能体使用此账号。",
@@ -16629,17 +16670,6 @@
       "oldSub": "记录账号之前的用量",
       "ofMonth": "本月的 {{percent}}",
       "shareLabel": "{{source}}：本月的 {{percent}}"
-    },
-    "standIn": {
-      "title": "备用账户",
-      "about": "当代理使用的账户达到其限额的 90% 时，代理会在同一台电脑上改用此列表中第一个低于 90% 的账户。ChatGPT 使用 GPT-6.1 Sol 回答，Gemini 使用 Gemini 4 Hydrogen 回答。账户续期后，代理会回到自己的账户。",
-      "empty": "没有备用账户。添加一个，让代理在某个账户用满时继续工作。",
-      "last": "全部超过 90% 时：先用代理自己的账户直到达到限额，然后使用它的 API 密钥（如有）。",
-      "add": "添加账户",
-      "up": "上移 {{label}}",
-      "down": "下移 {{label}}",
-      "remove": "移除 {{label}}",
-      "saved": "已保存备用账户的顺序。"
     }
   },
   "budget": {
@@ -17010,6 +17040,9 @@
         "askingChoices": "用选项提问了",
         "usingVault": "在 Vault 中操作了",
         "makingPassword": "创建了密码",
+        "usingPortal": "在审批看板上做了操作",
+        "sendingForApproval": "已送去审批",
+        "schedulingPost": "已排期帖子",
         "startingWork": "开始了一项长时间工作",
         "updatingWork": "更新了一项长时间工作",
         "withdrawingRequest": "撤回了一项请求",
@@ -17040,10 +17073,7 @@
         "thinking": "思考了",
         "typing": "撰写了",
         "recordingVoice": "录制了语音",
-        "writing": "撰写了",
-        "usingPortal": "在审批看板上做了操作",
-        "sendingForApproval": "已送去审批",
-        "schedulingPost": "已排期帖子"
+        "writing": "撰写了"
       }
     },
     "activity": {
@@ -17133,6 +17163,9 @@
       "askingChoices": "用选项提问",
       "usingVault": "在 Vault 中操作",
       "makingPassword": "创建密码",
+      "usingPortal": "正在审批看板上操作",
+      "sendingForApproval": "正在送去审批",
+      "schedulingPost": "正在排期帖子",
       "startingWork": "开始长时间工作",
       "updatingWork": "更新长时间工作",
       "withdrawingRequest": "撤回请求",
@@ -17159,10 +17192,7 @@
       "updatingThread": "更新话题",
       "addingAgent": "把智能体添加到频道",
       "readingConversation": "阅读对话",
-      "usingTool": "使用工具",
-      "usingPortal": "正在审批看板上操作",
-      "sendingForApproval": "正在送去审批",
-      "schedulingPost": "正在排期帖子"
+      "usingTool": "使用工具"
     },
     "tokens": "{{value}} 个 token",
     "sayHiAgent": "跟 {{name}} 打个招呼",
@@ -19834,116 +19864,6 @@
       "alwaysOn": "从现在起，这类报告会直接发送，不再询问。",
       "askFirst": "发送前先询问"
     }
-  },
-  "liveVoice": {
-    "you": "你",
-    "call": {
-      "start": "发起语音通话",
-      "join_other": "加入通话（{{count}}）",
-      "title": "语音通话",
-      "lead": "选择参加通话的智能体。对话中的每个人都可以加入。",
-      "startWith_other": "与 {{count}} 个智能体通话",
-      "peopleOnly": "不带智能体通话",
-      "callAgent": "呼叫{{name}}",
-      "keyWhere": "要呼叫智能体，此工作区需要 GPT-Live 密钥，请在密钥。请在“设置 › 语音”中添加中添加。",
-      "keyOpen": "添加密钥",
-      "keyAsk": "请让工作区的管理员添加。",
-      "needsKeyTitle": "呼叫{{name}}需要 GPT-Live 密钥"
-    },
-    "agentCall": {
-      "title": "与{{name}}通话",
-      "connecting": "正在呼叫{{name}}…",
-      "listening": "正在听",
-      "hangUp": "挂断"
-    },
-    "room": {
-      "title": "语音通话",
-      "joining": "正在连接…",
-      "inCall": "通话中",
-      "minimize": "继续工作",
-      "open": "打开通话",
-      "micOff": "关闭麦克风",
-      "micOn": "打开麦克风",
-      "muted": "麦克风已关闭",
-      "captions": "字幕",
-      "quiet": "智能体只听不说",
-      "leave": "退出通话",
-      "endAll": "为所有人结束",
-      "endTitle": "为所有人结束通话？",
-      "endText": "通话记录会发到对话中。Doug BOSS 会发送报告，写明已做的决定和下一步。",
-      "hasWord": "{{name}} 正在发言",
-      "agentsListen": "智能体正在聆听",
-      "word": "正在发言",
-      "giveWord": "让其发言",
-      "takeWord": "收回发言权",
-      "connecting": "正在连接语音",
-      "voiceFailed": "语音出错了",
-      "ended": "通话已结束",
-      "failed": "无法开始通话",
-      "report": "记录已在对话中。Doug BOSS 会把报告发到那里。",
-      "noNotes": "说的内容太少，无法生成记录。"
-    },
-    "listen": {
-      "menu": "收听",
-      "connecting": "正在准备语音…",
-      "telling": "{{name}} 正在为你讲解",
-      "narrator": "旁白",
-      "asking": "请提出你的问题",
-      "done": "完成",
-      "ask": "提问",
-      "stop": "停止"
-    },
-    "settings": {
-      "title": "实时语音（GPT-Live）",
-      "lead": "与智能体语音通话，并可在任何消息上使用“收听”，每个智能体都有自己的声音。",
-      "on": "已开启",
-      "off": "已关闭",
-      "without": "添加一个可使用 GPT-Live 的 OpenAI 密钥，即可呼叫你的智能体并收听消息。",
-      "setUp": "添加密钥",
-      "openSite": "打开 OpenAI",
-      "stepKey": "创建 API 密钥",
-      "stepKeyHint": "在拥有 GPT-Live 的 OpenAI 项目中创建。用量计入该项目的账单。",
-      "paste": "在此粘贴密钥",
-      "sealed": "密钥会经 OpenAI 验证并密封保存。之后没有人能再看到它。",
-      "price": "GPT-Live 每个通话中的智能体每分钟约 0.05 美元。费用计入每个智能体的预算。",
-      "removeTitle": "移除 GPT-Live 密钥？",
-      "removeText": "此工作区中与智能体的通话和“收听”将停止。人与人之间的通话不受影响。",
-      "voicesTitle": "每个智能体的声音",
-      "voiceOf": "{{name}} 的声音",
-      "sample": "试听 {{name}} 的声音",
-      "hear": "试听"
-    },
-    "errors": {
-      "off": "此工作区没有 GPT-Live 密钥。请在“设置 › 语音”中添加。",
-      "keyInvalid": "OpenAI 拒绝了此密钥。",
-      "noAccess": "此密钥所属的 OpenAI 项目无权使用 GPT-Live。",
-      "unchecked": "无法通过 OpenAI 验证密钥。请重试。",
-      "unavailable": "OpenAI 没有响应。请重试。",
-      "busy": "OpenAI 繁忙，或密钥的配额已用完。",
-      "refused": "OpenAI 拒绝了语音会话。",
-      "tooMany": "打开的语音会话太多。请关闭一个后重试。",
-      "noWords": "这条消息没有可讲述的文字。",
-      "notHost": "只有主持通话的人才能开启智能体的声音。",
-      "ended": "此通话已结束。",
-      "notIn": "你已不在此通话中。"
-    }
-  },
-  "carry": {
-    "open": "从其他工作区带过来",
-    "text": "你在其他工作区连接的内容会直接带过来，无需重新登录。",
-    "none": "暂时没有可带过来的内容。你在一个工作区连接的内容会显示在其他工作区的这里。",
-    "connections": "连接",
-    "with": "附带 {{names}}",
-    "here": "已在这里",
-    "needsReconnect": "需要重新连接",
-    "githubApp": "在这里安装 GitHub App",
-    "bring": "带过来",
-    "bringCount_other": "带过来 {{count}} 项",
-    "done_other": "已将 {{count}} 项带到此工作区",
-    "skipped_other": "{{count}} 项无法带过来",
-    "nothingNew": "你选择的内容都已在这里",
-    "failed": "无法带过来，请重试。",
-    "fromOnboarding": "从其他工作区带来智能体和连接"
   },
   "portal": {
     "title": "门户",

@@ -1878,6 +1878,7 @@
     }
   },
   "shell": {
+    "you": "あなた",
     "otherChannels": "その他のチャンネル",
     "otherChannelsPersonal": "その他のグループ会話",
     "titleBar": {
@@ -2005,6 +2006,7 @@
     "searchWorkspace": "ワークスペースを検索",
     "summary_other": "メンバー{{people}}人 · エージェント{{agents}}体",
     "waiting": "あなたの対応待ち",
+    "portal": "ポータル",
     "approvals": "承認",
     "proposals": "改善提案",
     "issues": "タスク",
@@ -2052,9 +2054,7 @@
     "unreadMark": "未読",
     "unreadMentions_other": "あなたへのメンション {{count}} 件",
     "unreadThreads_other": "スレッド: 未読の返信あり {{count}} 件",
-    "unreadNotifications_other": "{{count}}件の未読の通知",
-    "you": "あなた",
-    "portal": "ポータル"
+    "unreadNotifications_other": "{{count}}件の未読の通知"
   },
   "agentGroups": {
     "group": "部署",
@@ -2415,6 +2415,18 @@
     "nameHelp": "全員に対して変更されます。古いリンクも引き続き使えます。",
     "nameTaken": "#{{name}}はすでにあります。",
     "generalName": "#generalの名前は変更できません。",
+    "displayNameLabel": "表示名",
+    "displayNameHelp": "グループが全員に表示される名前です。技術名（#{{name}}）は引き続きメンションに使えます。",
+    "photo": {
+      "label": "グループの写真",
+      "title": "グループの写真",
+      "help": "グループ名の横に全員に表示される正方形の画像です。JPEG、PNG、WebP、2 MBまで。",
+      "upload": "写真をアップロード",
+      "change": "写真を変更",
+      "remove": "写真を削除",
+      "saved": "グループの写真を保存しました",
+      "removed": "グループの写真を削除しました"
+    },
     "archive": "チャンネルをアーカイブ",
     "archived": "#{{channel}}をアーカイブしました。会話は残ります。",
     "archivedTitle": "アーカイブしたチャンネル",
@@ -2482,19 +2494,7 @@
     "backOnline": "再接続しました",
     "sendingOffline": "接続が戻ると送信されます",
     "endOfReply": "返信の終わり",
-    "mentionSuggestions": "メンションの候補",
-    "displayNameLabel": "表示名",
-    "displayNameHelp": "グループが全員に表示される名前です。技術名（#{{name}}）は引き続きメンションに使えます。",
-    "photo": {
-      "label": "グループの写真",
-      "title": "グループの写真",
-      "help": "グループ名の横に全員に表示される正方形の画像です。JPEG、PNG、WebP、2 MBまで。",
-      "upload": "写真をアップロード",
-      "change": "写真を変更",
-      "remove": "写真を削除",
-      "saved": "グループの写真を保存しました",
-      "removed": "グループの写真を削除しました"
-    }
+    "mentionSuggestions": "メンションの候補"
   },
   "receipts": {
     "picked_other": "{{names}}が回答します",
@@ -4632,6 +4632,7 @@
       "other": "承認"
     },
     "refuse": "却下",
+    "once": "今回だけ",
     "viewDiff": "差分を見る",
     "viewInChannel": "チャンネルで見る",
     "group": "承認リクエスト",
@@ -4698,8 +4699,7 @@
         "actions_run_trigger": "{{repo}}で{{method}}を実行",
         "delete_repository": "リポジトリ{{repo}}を削除"
       }
-    },
-    "once": "今回だけ"
+    }
   },
   "home": {
     "greeting": {
@@ -5108,6 +5108,16 @@
     "again": "もう一度依頼",
     "againBody": "@{{handle}} リクエスト「{{title}}」は判断されないまま期限切れになりました。まだ必要なら、もう一度依頼してください。",
     "againSent": "会話でリクエストを送信しました",
+    "retry": "もう一度試すよう頼む",
+    "cause": {
+      "reconnect": "アプリとの接続の有効期限が切れました。接続し直して、もう一度試すよう頼んでください。",
+      "permission": "接続中のアカウントにはこの操作の権限がありません。アプリでアクセス権を確認して、もう一度試すよう頼んでください。",
+      "unavailable": "サービスから応答がありませんでした。少し待ってから、もう一度試すよう頼んでください。",
+      "limit": "リクエストが多すぎるためサービスに拒否されました。数分待ってから、もう一度試すよう頼んでください。"
+    },
+    "reconnect": "再接続",
+    "retryBody": "@{{handle}} 承認された操作「{{title}}」が失敗しました。何が起きたか確認してもう一度試すか、私がすべきことを教えてください。",
+    "valueKeys": "使用した Vault のキー",
     "noResults": "この絞り込みに一致するリクエストはありません。",
     "emptyTitle": "すべて判断済み",
     "how": "承認のしくみ",
@@ -5177,17 +5187,7 @@
       "hideSteps": "ステップを隠す",
       "asked": "承認を求めました",
       "grants": "{{name}}は今回だけ、この値で{{doing}}。"
-    },
-    "retry": "もう一度試すよう頼む",
-    "cause": {
-      "reconnect": "アプリとの接続の有効期限が切れました。接続し直して、もう一度試すよう頼んでください。",
-      "permission": "接続中のアカウントにはこの操作の権限がありません。アプリでアクセス権を確認して、もう一度試すよう頼んでください。",
-      "unavailable": "サービスから応答がありませんでした。少し待ってから、もう一度試すよう頼んでください。",
-      "limit": "リクエストが多すぎるためサービスに拒否されました。数分待ってから、もう一度試すよう頼んでください。"
-    },
-    "reconnect": "再接続",
-    "retryBody": "@{{handle}} 承認された操作「{{title}}」が失敗しました。何が起きたか確認してもう一度試すか、私がすべきことを教えてください。",
-    "valueKeys": "使用した Vault のキー"
+    }
   },
   "agent": {
     "editIdentity": "名前と役割を編集",
@@ -7707,6 +7707,7 @@
     "fromAgent": "エージェントへの依頼から",
     "subIssues_other": "サブタスク · {{count}}",
     "fromWebhook": "{{provider}}のイベントから",
+    "fromPortal": "<0>ポータルの {{client}} の投稿</0>",
     "description": "説明",
     "noDescription": "説明はありません。",
     "criteria": "受け入れ条件",
@@ -7808,8 +7809,7 @@
       "criterion_checked": "条件「{{text}}」にチェックを入れました",
       "criterion_unchecked": "条件「{{text}}」のチェックを外しました",
       "agent_asked": "{{name}}に作業を頼みました"
-    },
-    "fromPortal": "<0>ポータルの {{client}} の投稿</0>"
+    }
   },
   "routines": {
     "filters": "ルーティンを絞り込む",
@@ -10178,6 +10178,11 @@
   "liveVoice": {
     "you": "あなた",
     "call": {
+      "mode": "通話の種類",
+      "modeMaestro": "ミーティング（新）",
+      "modeLive": "クラシック（GPT-Live）",
+      "topic": "テーマ（任意）",
+      "topicHint": "エージェントはこのテーマの議論から始めます。いつでも参加できます。",
       "start": "音声通話を開始",
       "join_other": "通話に参加（{{count}}）",
       "title": "音声通話",
@@ -10197,6 +10202,7 @@
       "hangUp": "通話を終了"
     },
     "room": {
+      "cost": "これまでの音声と文字起こし: {{cost}}",
       "title": "音声通話",
       "joining": "接続中…",
       "inCall": "通話中",
@@ -10235,6 +10241,11 @@
       "stop": "停止"
     },
     "settings": {
+      "notesTitle": "通話でのエージェントのふるまい",
+      "notesLead": "通話で全エージェントが従う基本ルールに追加されます。ワークスペース全体に適用されます。",
+      "notesExample": "例: 最後は必ず誰が何をいつまでにやるかで締める。お客様は名前で呼ぶ。",
+      "agentNotes": "通話での{{name}}",
+      "agentNotesExample": "例: 意見より先に数字を出す。予算が合わないときは反対する。",
       "title": "ライブ音声（GPT-Live）",
       "lead": "エージェントとの音声通話と、どのメッセージでも使える「聞く」機能です。エージェントはそれぞれ自分の声で話します。",
       "on": "オン",
@@ -10275,6 +10286,8 @@
       }
     },
     "errors": {
+      "noMaestro": "このサーバーではマエストロ付きミーティングが設定されていません。",
+      "badAudio": "その音声を読み取れませんでした。もう一度お試しください。",
       "off": "このワークスペースには GPT-Live のキーがありません。設定 › 音声 で追加してください。",
       "keyInvalid": "OpenAI がこのキーを拒否しました。",
       "noAccess": "このキーの OpenAI プロジェクトは GPT-Live にアクセスできません。",
@@ -12114,6 +12127,23 @@
     "deniedRun": "{{repo}}は{{name}}のリポジトリに含まれていません。",
     "deniedRun_female": "{{repo}}は{{name}}のリポジトリに含まれていません。",
     "added": "保存すると{{repo}}がリストに追加されます。"
+  },
+  "carry": {
+    "open": "別のワークスペースから持ってくる",
+    "text": "別のワークスペースで接続したものが、再ログインなしでそのまま使えます。",
+    "none": "持ってこられるものはまだありません。ワークスペースで接続したものは、ほかのワークスペースのここに表示されます。",
+    "connections": "接続",
+    "with": "{{names}}付き",
+    "here": "すでにあります",
+    "needsReconnect": "再接続が必要です",
+    "githubApp": "ここにGitHub Appをインストールしてください",
+    "bring": "持ってくる",
+    "bringCount_other": "{{count}}件を持ってくる",
+    "done_other": "{{count}}件をこのワークスペースに持ってきました",
+    "skipped_other": "{{count}}件は持ってこられませんでした",
+    "nothingNew": "選んだものはすべて、すでにここにあります",
+    "failed": "持ってこられませんでした。もう一度お試しください。",
+    "fromOnboarding": "別のワークスペースからエージェントと接続を持ってくる"
   },
   "connectors": {
     "title": "コネクタ",
@@ -16509,6 +16539,17 @@
       "savedEveryone": "このプランは今 workspace 全員が使えます。",
       "savedOwner": "このプランは今あなただけが使います。"
     },
+    "standIn": {
+      "title": "予備のアカウント",
+      "about": "エージェントが使うアカウントが上限の90%に達すると、同じコンピューター上で、このリストのうち90%未満の最初のアカウントで作業を続けます。ChatGPTはGPT-6.1 Sol、GeminiはGemini 4 Hydrogenで答えます。アカウントが更新されると、エージェントは自分のアカウントに戻ります。",
+      "empty": "予備のアカウントはありません。アカウントが上限に達してもエージェントが止まらないよう、追加してください。",
+      "last": "すべて90%を超えた場合：エージェント自身のアカウントを上限まで使い、その後はAPIキーがあればそれを使います。",
+      "add": "アカウントを追加",
+      "up": "{{label}}を上へ",
+      "down": "{{label}}を下へ",
+      "remove": "{{label}}を外す",
+      "saved": "予備のアカウントの順番を保存しました。"
+    },
     "logins_other": "{{count}}件のログイン",
     "noWindows": "このアカウントが再び使われると、上限が表示されます。",
     "unused": "このアカウントを使っているエージェントはいません。",
@@ -16571,17 +16612,6 @@
       "oldSub": "アカウントが記録される前の使用量",
       "ofMonth": "月の{{percent}}",
       "shareLabel": "{{source}}: 月の{{percent}}"
-    },
-    "standIn": {
-      "title": "予備のアカウント",
-      "about": "エージェントが使うアカウントが上限の90%に達すると、同じコンピューター上で、このリストのうち90%未満の最初のアカウントで作業を続けます。ChatGPTはGPT-6.1 Sol、GeminiはGemini 4 Hydrogenで答えます。アカウントが更新されると、エージェントは自分のアカウントに戻ります。",
-      "empty": "予備のアカウントはありません。アカウントが上限に達してもエージェントが止まらないよう、追加してください。",
-      "last": "すべて90%を超えた場合：エージェント自身のアカウントを上限まで使い、その後はAPIキーがあればそれを使います。",
-      "add": "アカウントを追加",
-      "up": "{{label}}を上へ",
-      "down": "{{label}}を下へ",
-      "remove": "{{label}}を外す",
-      "saved": "予備のアカウントの順番を保存しました。"
     }
   },
   "budget": {
@@ -16941,6 +16971,9 @@
         "askingChoices": "選択肢付きで質問しました",
         "usingVault": "Vaultで作業しました",
         "makingPassword": "パスワードを作成しました",
+        "usingPortal": "承認ボードで作業しました",
+        "sendingForApproval": "承認に送りました",
+        "schedulingPost": "投稿を予約しました",
         "startingWork": "長い作業を開始しました",
         "updatingWork": "長い作業を更新しました",
         "withdrawingRequest": "リクエストを取り下げました",
@@ -16971,10 +17004,7 @@
         "thinking": "考えました",
         "typing": "書きました",
         "recordingVoice": "音声を録音しました",
-        "writing": "書きました",
-        "usingPortal": "承認ボードで作業しました",
-        "sendingForApproval": "承認に送りました",
-        "schedulingPost": "投稿を予約しました"
+        "writing": "書きました"
       }
     },
     "activity": {
@@ -17064,6 +17094,9 @@
       "askingChoices": "選択肢付きで質問中",
       "usingVault": "Vaultで作業中",
       "makingPassword": "パスワードを作成中",
+      "usingPortal": "承認ボードで作業中",
+      "sendingForApproval": "承認に送っています",
+      "schedulingPost": "投稿を予約しています",
       "startingWork": "長い作業を開始中",
       "updatingWork": "長い作業を更新中",
       "withdrawingRequest": "リクエストを取り下げ中",
@@ -17090,10 +17123,7 @@
       "updatingThread": "スレッドを更新中",
       "addingAgent": "エージェントをチャンネルに追加中",
       "readingConversation": "会話を読み中",
-      "usingTool": "ツールを使用中",
-      "usingPortal": "承認ボードで作業中",
-      "sendingForApproval": "承認に送っています",
-      "schedulingPost": "投稿を予約しています"
+      "usingTool": "ツールを使用中"
     },
     "tokens": "{{value}}トークン",
     "sayHiAgent": "{{name}}にあいさつしましょう",
@@ -19655,116 +19685,6 @@
       "alwaysOn": "今後、このような報告は確認なしで送信されます。",
       "askFirst": "送信前に確認する"
     }
-  },
-  "liveVoice": {
-    "you": "あなた",
-    "call": {
-      "start": "音声通話を開始",
-      "join_other": "通話に参加（{{count}}）",
-      "title": "音声通話",
-      "lead": "通話に参加するエージェントを選んでください。会話のメンバーは誰でも参加できます。",
-      "startWith_other": "エージェント{{count}}人と通話",
-      "peopleOnly": "エージェントなしで通話",
-      "callAgent": "{{name}}に発信",
-      "keyWhere": "エージェントに発信するには、のキーがありません。設定 › 音声でこのワークスペースにGPT-Liveのキーを追加してください。",
-      "keyOpen": "キーを追加",
-      "keyAsk": "ワークスペースの管理者に追加を依頼してください。",
-      "needsKeyTitle": "{{name}}への発信にはGPT-Liveのキーが必要です"
-    },
-    "agentCall": {
-      "title": "{{name}}との通話",
-      "connecting": "{{name}}に発信中…",
-      "listening": "聞いています",
-      "hangUp": "通話を終了"
-    },
-    "room": {
-      "title": "音声通話",
-      "joining": "接続中…",
-      "inCall": "通話中",
-      "minimize": "作業を続ける",
-      "open": "通話を開く",
-      "micOff": "マイクをオフにする",
-      "micOn": "マイクをオンにする",
-      "muted": "マイクオフ",
-      "captions": "字幕",
-      "quiet": "エージェントは聞くだけ",
-      "leave": "通話から退出",
-      "endAll": "全員の通話を終了",
-      "endTitle": "全員の通話を終了しますか？",
-      "endText": "通話のメモは会話に送られます。Doug BOSS が決まったことと次のステップをまとめたレポートを送ります。",
-      "hasWord": "{{name}} が発言中です",
-      "agentsListen": "エージェントが聞いています",
-      "word": "発言中",
-      "giveWord": "発言権を渡す",
-      "takeWord": "発言権を戻す",
-      "connecting": "音声を接続中",
-      "voiceFailed": "音声の接続に失敗しました",
-      "ended": "通話は終了しました",
-      "failed": "通話を開始できませんでした",
-      "report": "メモは会話にあります。Doug BOSS がそこにレポートを送ります。",
-      "noNotes": "発言が少なすぎてメモを作れませんでした。"
-    },
-    "listen": {
-      "menu": "聞く",
-      "connecting": "音声を準備中…",
-      "telling": "{{name}} が説明しています",
-      "narrator": "ナレーター",
-      "asking": "質問をどうぞ",
-      "done": "完了",
-      "ask": "質問する",
-      "stop": "停止"
-    },
-    "settings": {
-      "title": "ライブ音声（GPT-Live）",
-      "lead": "エージェントとの音声通話と、どのメッセージでも使える「聞く」機能です。エージェントはそれぞれ自分の声で話します。",
-      "on": "オン",
-      "off": "オフ",
-      "without": "エージェントと通話したりメッセージを聞いたりするには、GPT-Live にアクセスできる OpenAI のキーを追加してください。",
-      "setUp": "キーを追加",
-      "openSite": "OpenAI を開く",
-      "stepKey": "APIキーを作成します",
-      "stepKeyHint": "GPT-Live が使える OpenAI のプロジェクトで作成します。利用料はそのプロジェクトに請求されます。",
-      "paste": "ここにキーを貼り付けてください",
-      "sealed": "キーは OpenAI で確認され、封印して保管されます。もう誰にも見えません。",
-      "price": "GPT-Live の料金は、通話中のエージェント1人につき1分あたり約 0.05 米ドルです。各エージェントの予算に含まれます。",
-      "removeTitle": "GPT-Live のキーを削除しますか？",
-      "removeText": "このワークスペースでエージェントとの通話と「聞く」が止まります。人同士の通話は続きます。",
-      "voicesTitle": "エージェントごとの声",
-      "voiceOf": "{{name}} の声",
-      "sample": "{{name}} の声を聞く",
-      "hear": "聞く"
-    },
-    "errors": {
-      "off": "このワークスペースには GPT-Live のキーがありません。設定 › 音声 で追加してください。",
-      "keyInvalid": "OpenAI がこのキーを拒否しました。",
-      "noAccess": "このキーの OpenAI プロジェクトは GPT-Live にアクセスできません。",
-      "unchecked": "OpenAI でキーを確認できませんでした。もう一度お試しください。",
-      "unavailable": "OpenAI から応答がありませんでした。もう一度お試しください。",
-      "busy": "OpenAI が混み合っているか、キーの利用枠を使い切りました。",
-      "refused": "OpenAI が音声セッションを拒否しました。",
-      "tooMany": "開いている音声セッションが多すぎます。1つ閉じてからもう一度お試しください。",
-      "noWords": "このメッセージには読み上げる言葉がありません。",
-      "notHost": "エージェントの声を開けるのは通話の進行役だけです。",
-      "ended": "この通話は終了しました。",
-      "notIn": "この通話にはもう参加していません。"
-    }
-  },
-  "carry": {
-    "open": "別のワークスペースから持ってくる",
-    "text": "別のワークスペースで接続したものが、再ログインなしでそのまま使えます。",
-    "none": "持ってこられるものはまだありません。ワークスペースで接続したものは、ほかのワークスペースのここに表示されます。",
-    "connections": "接続",
-    "with": "{{names}}付き",
-    "here": "すでにあります",
-    "needsReconnect": "再接続が必要です",
-    "githubApp": "ここにGitHub Appをインストールしてください",
-    "bring": "持ってくる",
-    "bringCount_other": "{{count}}件を持ってくる",
-    "done_other": "{{count}}件をこのワークスペースに持ってきました",
-    "skipped_other": "{{count}}件は持ってこられませんでした",
-    "nothingNew": "選んだものはすべて、すでにここにあります",
-    "failed": "持ってこられませんでした。もう一度お試しください。",
-    "fromOnboarding": "別のワークスペースからエージェントと接続を持ってくる"
   },
   "portal": {
     "title": "ポータル",

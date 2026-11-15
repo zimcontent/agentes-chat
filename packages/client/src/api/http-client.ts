@@ -1154,8 +1154,22 @@ export function createHttpApi(options: TransportOptions = {}): HttpApi {
         request<void>(`${org(orgId)}/live-voice/sessions/${enc(sessionId)}/end`, { json: {} }),
       channelRoom: (orgId, channelId) =>
         request<{ room: LiveRoom | null }>(`${org(orgId)}/channels/${enc(channelId)}/live-room`),
-      joinRoom: (orgId, channelId, agentIds) =>
-        request<LiveRoom>(`${org(orgId)}/channels/${enc(channelId)}/live-room`, { json: { agentIds } }),
+      joinRoom: (orgId, channelId, agentIds, options) =>
+        request<LiveRoom>(`${org(orgId)}/channels/${enc(channelId)}/live-room`, {
+          json: { agentIds, ...options },
+        }),
+      saveCallNotes: (orgId, notes) =>
+        request<LiveVoice>(`${org(orgId)}/live-voice/notes`, { method: "PUT", json: { notes } }),
+      heard: (orgId, roomId, input) => {
+        const form = new FormData();
+        form.set("file", input.blob, "heard.wav");
+        form.set("durationMs", String(Math.max(1, Math.round(input.durationMs))));
+        form.set("language", input.language);
+        return files.upload<{ text: string }>(`${org(orgId)}/live-rooms/${enc(roomId)}/heard`, form);
+      },
+      hush: (orgId, roomId) => request<void>(`${org(orgId)}/live-rooms/${enc(roomId)}/hush`, { json: {} }),
+      speechUrl: (orgId, roomId, utteranceId) =>
+        `${base}${org(orgId)}/live-rooms/${enc(roomId)}/speech/${enc(utteranceId)}`,
       ping: (orgId, roomId) => request<LiveRoom>(`${org(orgId)}/live-rooms/${enc(roomId)}/ping`, { json: {} }),
       leave: (orgId, roomId) => request<void>(`${org(orgId)}/live-rooms/${enc(roomId)}/leave`, { json: {} }),
       end: (orgId, roomId) =>
