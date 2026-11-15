@@ -5796,6 +5796,8 @@ export interface MachineAccount {
   providerOrgId?: string | null;
   /** Who it thinks for (ADR 0059 §3): everyone in the workspace, or only its owner (absent: an older server). */
   serves?: PlanServes;
+  /** Its place in the viewer's stand-in order, 1 first (ADR doug-0003); null or absent: not in it. */
+  standInRank?: number | null;
 }
 
 /** Who a plan thinks for (ADR 0059 §3): everyone in the workspace, or only the person who connected it. */

@@ -981,6 +981,10 @@ export const MachineAccount = z
       description:
         "Who it thinks for (ADR 0059 §3): everyone in the workspace (the default), or only its owner. Only its owner changes it.",
     }),
+    standInRank: z.number().int().nullable().openapi({
+      description:
+        "Its place in its owner's stand-in order (1 first): from 90% of a window an agent's account gives way to the first account there under that line, of any brain (ADR doug-0003, addendum 2026-11-14). Null: not in it, or not the caller's.",
+    }),
   })
   .openapi("MachineAccount", {
     description:

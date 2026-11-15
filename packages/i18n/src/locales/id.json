@@ -15119,6 +15119,17 @@
       "savedEveryone": "Sekarang seluruh workspace memakai paket ini.",
       "savedOwner": "Sekarang hanya kamu yang memakai paket ini."
     },
+    "standIn": {
+      "title": "Akun cadangan",
+      "about": "Saat akun yang dipakai agen mencapai 90% dari batasnya, agen lanjut dengan akun pertama di daftar ini yang masih di bawah 90%, di komputer yang sama. ChatGPT menjawab dengan GPT-6.1 Sol dan Gemini dengan Gemini 4 Hydrogen. Agen kembali ke akunnya sendiri saat akun itu diperbarui.",
+      "empty": "Belum ada akun cadangan. Tambahkan satu agar agen tetap bekerja saat sebuah akun penuh.",
+      "last": "Jika semua di atas 90%: akun agen sendiri sampai batasnya, lalu kunci API-nya, jika ada.",
+      "add": "Tambah akun",
+      "up": "Naikkan {{label}}",
+      "down": "Turunkan {{label}}",
+      "remove": "Hapus {{label}}",
+      "saved": "Urutan akun cadangan disimpan."
+    },
     "logins_other": "{{count}} login",
     "noWindows": "Batasnya muncul setelah akun ini dipakai lagi.",
     "unused": "Tidak ada agen yang memakai akun ini.",

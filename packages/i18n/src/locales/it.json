@@ -16100,6 +16100,17 @@
       "savedEveryone": "Ora tutto il workspace usa questo piano.",
       "savedOwner": "Ora solo tu usi questo piano."
     },
+    "standIn": {
+      "title": "Account di riserva",
+      "about": "Quando l’account usato da un agente arriva al 90% del limite, l’agente continua con il primo account di questo elenco sotto il 90%, sullo stesso computer. ChatGPT risponde con GPT-6.1 Sol e Gemini con Gemini 4 Hydrogen. L’agente torna al proprio account quando si rinnova.",
+      "empty": "Nessun account di riserva. Aggiungine uno perché i tuoi agenti continuino a lavorare quando un account si riempie.",
+      "last": "Con tutti oltre il 90%: l’account dell’agente fino al limite, poi la sua chiave API, se ne ha una.",
+      "add": "Aggiungi account",
+      "up": "Sposta su {{label}}",
+      "down": "Sposta giù {{label}}",
+      "remove": "Rimuovi {{label}}",
+      "saved": "Ordine degli account di riserva salvato."
+    },
     "logins_one": "{{count}} accesso",
     "logins_many": "{{count}} accessi",
     "logins_other": "{{count}} accessi",

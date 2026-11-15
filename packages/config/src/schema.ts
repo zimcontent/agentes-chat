@@ -1083,7 +1083,7 @@ export const envVars = {
   AI_ACCOUNT_STAND_IN: {
     schema: z.stringbool().default(false),
     description:
-      "Off by default. While an agent's AI account on a computer is at its plan's limit, another signed-in account of the same person and plan on that computer thinks for it, and its own takes over again when the limit resets (ADR doug-0003). Not where each agent is its own system user. A provider may forbid this for its consumer plans (Google says so for personal Gemini plans): turning it on is your call.",
+      "Off by default. While an agent's AI account on a computer is at 90% of a window or at its plan's limit, another signed-in account of the same person and plan on that computer thinks for it, and its own takes over again when it resets (ADR doug-0003). A person's own backup order (Configurações › IA e uso) works without it. Not where each agent is its own system user. A provider may forbid this for its consumer plans (Google says so for personal Gemini plans): turning it on is your call.",
     section: "Operator",
   },
   SESSION_SCREENING: {

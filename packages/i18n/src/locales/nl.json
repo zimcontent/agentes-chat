@@ -15657,6 +15657,17 @@
       "savedEveryone": "Nu gebruikt de hele workspace dit abonnement.",
       "savedOwner": "Nu gebruik alleen jij dit abonnement."
     },
+    "standIn": {
+      "title": "Reserveaccounts",
+      "about": "Als het account dat een agent gebruikt 90% van zijn limiet bereikt, gaat de agent verder met het eerste account op deze lijst dat onder 90% zit, op dezelfde computer. ChatGPT antwoordt met GPT-6.1 Sol en Gemini met Gemini 4 Hydrogen. De agent gaat terug naar zijn eigen account zodra dat wordt vernieuwd.",
+      "empty": "Geen reserveaccounts. Voeg er een toe zodat je agents blijven werken als een account vol is.",
+      "last": "Met alle accounts boven 90%: het eigen account van de agent tot zijn limiet, daarna zijn API-sleutel, als hij die heeft.",
+      "add": "Account toevoegen",
+      "up": "{{label}} omhoog",
+      "down": "{{label}} omlaag",
+      "remove": "{{label}} verwijderen",
+      "saved": "Volgorde van de reserveaccounts opgeslagen."
+    },
     "logins_one": "{{count}} aanmelding",
     "logins_other": "{{count}} aanmeldingen",
     "noWindows": "De limiet verschijnt zodra dit account weer wordt gebruikt.",

@@ -37977,6 +37977,33 @@
   "usageViews.serves.savedOwner": {
     "value": "Only you use this plan now."
   },
+  "usageViews.standIn.title": {
+    "value": "Backup accounts"
+  },
+  "usageViews.standIn.about": {
+    "value": "When the account an agent uses reaches 90% of its limit, the agent goes on with the first account on this list that is under 90%, on the same computer. ChatGPT answers with GPT-6.1 Sol and Gemini with Gemini 4 Hydrogen. The agent goes back to its own account when it renews."
+  },
+  "usageViews.standIn.empty": {
+    "value": "No backup accounts. Add one so your agents keep working when an account fills up."
+  },
+  "usageViews.standIn.last": {
+    "value": "With every account past 90%: the agent's own account until its limit, then its API key, if it has one."
+  },
+  "usageViews.standIn.add": {
+    "value": "Add account"
+  },
+  "usageViews.standIn.up": {
+    "value": "Move {{label}} up"
+  },
+  "usageViews.standIn.down": {
+    "value": "Move {{label}} down"
+  },
+  "usageViews.standIn.remove": {
+    "value": "Remove {{label}}"
+  },
+  "usageViews.standIn.saved": {
+    "value": "Backup order saved."
+  },
   "usageViews.logins": {
     "value": {
       "one": "{{count}} login",

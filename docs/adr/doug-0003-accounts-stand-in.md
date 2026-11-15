@@ -59,3 +59,28 @@ Two things about Gemini made its plans hard to use here:
 - Waking runs already parked on the first account when a second one is added later: they go on at the reset, and
   new runs use the stand-in.
 - Per-account model lists in the picker.
+
+## Addendum 2026-11-14: backup accounts at 90%, in an order each person sets, of any brain
+
+Agents stopped with a full account while the owner's other accounts had room: a stand-in came only at the plan's very
+limit, only from the same CLI, and only with the server's switch, which stayed off. Long work had already paused at 95%
+(ADR 0118) by then, so the second account was never reached.
+
+1. **90%.** An account hands over from 90% of any window (`STAND_IN_AT`, the red of its bar, `PLAN_CRITICAL`) as well as
+   at its limit (`handsOver`). `standInAccount` (same CLI, the server's switch) takes the first other account under 90%;
+   with none and its own at its very limit, the first that still has any room, as before.
+2. **The person's order** (`machine_accounts.stand_in_rank`, set by `PUT …/ai-accounts/stand-in-order`,
+   `setStandInOrder`; only the accounts the caller connected; audited as `account.stand_in_order`). After the step
+   above, `chainStandIn` (in `resolveBrain`) gives the turn to the first account of the order of the agent's own
+   account's owner that is signed in on the same computer and under 90%, **of any brain**: the run's brain becomes that
+   one's (`recordRunBrain`) and starts a session there with the conversation, as on a spill. In another brain's place
+   ChatGPT runs GPT-6.1 Sol and Gemini runs Gemini 4 Hydrogen (`STAND_IN_MODELS`); in its own, the agent's model. The
+   order is its owner's explicit choice, so it needs no server switch. Never for a mission's session, the right hand, a
+   signed-out account, or where each agent is its own OS user.
+3. **A run that parks** on a plan limit or the long-work pause while the order has an account with room goes on there in
+   30 s, quietly (no note), instead of waiting for the reset; the runs behind it in its line follow.
+4. With every account in the order past 90%, the agent's own account goes on to its limit, and then its API key where
+   it has one and its fallback is on (ADR 0032), as before. The person sees and edits the order in Configurações › IA e
+   uso › Contas reserva (`StandInOrderCard`).
+
+The Google caution above stands for personal Gemini plans: an order is a person's choice for their own accounts.

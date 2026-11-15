@@ -15718,6 +15718,19 @@ export const en = {
       savedEveryone: "Everyone in the workspace uses this plan now.",
       savedOwner: "Only you use this plan now.",
     },
+    /** The card where a person orders their accounts that take over when an agent's account reaches 90%. */
+    standIn: {
+      title: "Backup accounts",
+      about:
+        "When the account an agent uses reaches 90% of its limit, the agent goes on with the first account on this list that is under 90%, on the same computer. ChatGPT answers with GPT-6.1 Sol and Gemini with Gemini 4 Hydrogen. The agent goes back to its own account when it renews.",
+      empty: "No backup accounts. Add one so your agents keep working when an account fills up.",
+      last: "With every account past 90%: the agent's own account until its limit, then its API key, if it has one.",
+      add: "Add account",
+      up: "Move {{label}} up",
+      down: "Move {{label}} down",
+      remove: "Remove {{label}}",
+      saved: "Backup order saved.",
+    },
     logins_one: "{{count}} login",
     logins_other: "{{count}} logins",
     noWindows: "The limit shows up after this account is used again.",

@@ -1416,6 +1416,11 @@ export function createHttpApi(options: TransportOptions = {}): HttpApi {
           method: "PUT",
           json: { serves },
         }),
+      setStandInOrder: (orgId, accountIds) =>
+        request<{ accountIds: string[] }>(`${org(orgId)}/ai-accounts/stand-in-order`, {
+          method: "PUT",
+          json: { accountIds },
+        }),
       renameAccount: (orgId, machineId, accountId, label) =>
         request<MachineAccount>(`${org(orgId)}/machines/${enc(machineId)}/accounts/${enc(accountId)}`, {
           method: "PATCH",

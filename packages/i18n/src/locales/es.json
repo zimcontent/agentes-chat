@@ -16019,6 +16019,17 @@
       "savedEveryone": "Ahora todo el workspace usa este plan.",
       "savedOwner": "Ahora solo tú usas este plan."
     },
+    "standIn": {
+      "title": "Cuentas de respaldo",
+      "about": "Cuando la cuenta que usa un agente llega al 90 % de su límite, el agente sigue con la primera cuenta de esta lista que esté por debajo del 90 %, en el mismo ordenador. ChatGPT responde con GPT-6.1 Sol y Gemini con Gemini 4 Hydrogen. El agente vuelve a su propia cuenta cuando se renueva.",
+      "empty": "No hay cuentas de respaldo. Añade una para que tus agentes sigan trabajando cuando una cuenta se llene.",
+      "last": "Con todas por encima del 90 %: la propia cuenta del agente hasta su límite y, después, su clave de API, si tiene una.",
+      "add": "Añadir cuenta",
+      "up": "Subir {{label}}",
+      "down": "Bajar {{label}}",
+      "remove": "Quitar {{label}}",
+      "saved": "Orden de las cuentas de respaldo guardado."
+    },
     "logins_one": "{{count}} inicio de sesión",
     "logins_many": "{{count}} inicios de sesión",
     "logins_other": "{{count}} inicios de sesión",

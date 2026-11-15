@@ -16591,6 +16591,17 @@
       "savedEveryone": "Teraz cały workspace używa tego planu.",
       "savedOwner": "Teraz tylko Ty używasz tego planu."
     },
+    "standIn": {
+      "title": "Konta zapasowe",
+      "about": "Gdy konto, którego używa agent, dojdzie do 90% limitu, agent pracuje dalej na pierwszym koncie z tej listy, które ma mniej niż 90%, na tym samym komputerze. ChatGPT odpowiada przez GPT-6.1 Sol, a Gemini przez Gemini 4 Hydrogen. Agent wraca na swoje konto, gdy ono się odnowi.",
+      "empty": "Brak kont zapasowych. Dodaj jedno, żeby agenci nie stawali, gdy konto się zapełni.",
+      "last": "Gdy wszystkie przekroczą 90%: własne konto agenta aż do limitu, a potem jego klucz API, jeśli go ma.",
+      "add": "Dodaj konto",
+      "up": "Przesuń {{label}} w górę",
+      "down": "Przesuń {{label}} w dół",
+      "remove": "Usuń {{label}}",
+      "saved": "Zapisano kolejność kont zapasowych."
+    },
     "logins_one": "{{count}} logowanie",
     "logins_few": "{{count}} logowania",
     "logins_many": "{{count}} logowań",

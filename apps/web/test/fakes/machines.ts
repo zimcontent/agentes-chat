@@ -314,6 +314,10 @@ export function createFakeMachines(ctx: MockContext, log: (method: string, ...ar
         log("machines.setAccountServes", orgId, accountId, serves);
         return { serves, agentIds: [] };
       },
+      setStandInOrder: async (orgId, accountIds) => {
+        log("machines.setStandInOrder", orgId, accountIds);
+        return { accountIds };
+      },
       renameAccount: async (orgId, machineId, accountId, label) => {
         log("machines.renameAccount", orgId, machineId, accountId, label);
         // One listed, or one a sign-in here just finished.

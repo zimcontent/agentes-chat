@@ -15689,6 +15689,18 @@ export const ptBR = {
       savedEveryone: "Agora todos do workspace usam este plano.",
       savedOwner: "Agora só você usa este plano.",
     },
+    standIn: {
+      title: "Contas reserva",
+      about:
+        "Quando a conta que um agente usa chega a 90% do limite, ele continua com a primeira conta desta lista que esteja abaixo de 90%, no mesmo computador. O ChatGPT responde com o GPT-6.1 Sol e o Gemini com o Gemini 4 Hydrogen. O agente volta para a própria conta quando ela renova.",
+      empty: "Nenhuma conta reserva. Adicione uma para os agentes não pararem quando uma conta encher.",
+      last: "Com todas acima de 90%: a própria conta do agente até o limite e, depois, a chave de API dele, se tiver.",
+      add: "Adicionar conta",
+      up: "Subir {{label}}",
+      down: "Descer {{label}}",
+      remove: "Tirar {{label}}",
+      saved: "Ordem das contas reserva salva.",
+    },
     /** One row for several logins of one account. */
     logins_one: "{{count}} login",
     logins_other: "{{count}} logins",
