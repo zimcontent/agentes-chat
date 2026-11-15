@@ -1,4 +1,4 @@
-import type { Agent, AgentBrain, AgentBrainInput } from "@agenteschat/client";
+import type { Agent, AgentBrain, AgentBrainInput, RondaSchedule } from "@agenteschat/client";
 import {
   keys,
   useAgentBrain,
@@ -44,6 +44,7 @@ import {
   Icon,
   Input,
   ProviderLogo,
+  Select,
   Switch,
 } from "@agenteschat/ui";
 import { useQueryClient } from "@tanstack/react-query";
@@ -69,6 +70,7 @@ import { useDirectory } from "@/hooks/useDirectory";
 import { usePersonalView } from "@/hooks/usePersonalView";
 import { fullLook, lookOf } from "@/lib/look";
 import { useToast } from "@/lib/toast";
+import { useRondaControl } from "@/pages/agent/RondaCard";
 
 /**
  * The right hand's page (ADR 0137): what it is (its computer when it has one, what only it does), then its settings in
@@ -97,7 +99,7 @@ export function RightHandSettingsSection({ agent }: { agent: Agent }) {
         </Card>
         <RightHandApprovalsCard />
       </section>
-      <RightHandOwn name={agent.name} />
+      <RightHandOwn name={agent.name} agent={agent} />
       {can(org, "manage_agents") && (
         <section className="rh-group" aria-labelledby="rh-group-workspace">
           <GroupHeading
@@ -685,7 +687,7 @@ function RightHandForm({ agent }: { agent: Agent }) {
  * then the switches of whatever else this server has built. The person's own come first. The workspace's, for who
  * configures it, say before their switch that they are for everyone.
  */
-function RightHandOwn({ name }: { name: string }) {
+function RightHandOwn({ name, agent }: { name: string; agent: Agent }) {
   const { t } = useTranslation();
   const { org } = useOrg();
   const prefs = useTeamWeekPrefs(org.id).data;
@@ -693,12 +695,53 @@ function RightHandOwn({ name }: { name: string }) {
     <section className="rh-group" aria-labelledby="rh-group-own">
       <GroupHeading id="rh-group-own" title={t("rightHand.settings.own.title", agentGrammar(name))} />
       {/* The group keeps its place while the person's choice loads: nothing below it jumps. */}
-      <Card>{prefs ? <OwnRows name={name} prefs={prefs} /> : <LoadingLine width={320} />}</Card>
+      <Card>
+        {prefs ? <OwnRows name={name} prefs={prefs} ronda={<RondaRow agent={agent} />} /> : <LoadingLine width={320} />}
+      </Card>
     </section>
   );
 }
 
-function OwnRows({ name, prefs }: { name: string; prefs: LodiPrefs }) {
+/**
+ * The ronda (ADR 9004) on the right hand's own page, which is not any agent's Configurações: when it passes, beside
+ * its name; under it the next pass and how the last one ended; "Run a ronda now" once it is on.
+ */
+function RondaRow({ agent }: { agent: Agent }) {
+  const { t } = useTranslation();
+  const r = useRondaControl(agent);
+  const select = (
+    <Select
+      size="sm"
+      aria-label={t("ronda.schedule")}
+      value={r.schedule}
+      disabled={!r.editable || r.loading}
+      onValueChange={(v) => r.save(v as RondaSchedule)}
+      options={r.options}
+    />
+  );
+  return (
+    <PrefRow
+      id="rh-own-ronda"
+      icon="repeat"
+      label={t("ronda.title")}
+      hint={`${t("ronda.subtitle")} ${t("ronda.scheduleHelp")}`}
+      status={r.note || undefined}
+      control={r.canRun ? undefined : select}
+      actions={
+        r.canRun ? (
+          <>
+            {select}
+            <Button size="sm" disabled={r.running} onClick={r.runNow}>
+              {t("ronda.runNow")}
+            </Button>
+          </>
+        ) : undefined
+      }
+    />
+  );
+}
+
+function OwnRows({ name, prefs, ronda }: { name: string; prefs: LodiPrefs; ronda: ReactNode }) {
   const { t, i18n } = useTranslation();
   const { org } = useOrg();
   const admin = can(org, "administrator");
@@ -791,6 +834,7 @@ function OwnRows({ name, prefs }: { name: string; prefs: LodiPrefs }) {
       {admin && card("week", "rh-team-week", "calendar", t("teamWeek.settings.label"), t("teamWeek.settings.help", g))}
       {mine("digest", "shield", "digestOff")}
       {mine("reminders", "bell", "remindOff")}
+      {ronda}
       {everyones("teamWatch", "eye", "teamWatch")}
       {everyones("welcomePeople", "personAdd", "welcome")}
     </div>

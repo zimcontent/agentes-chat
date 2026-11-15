@@ -11,14 +11,13 @@ import { CardHead, useAgentEdit } from "./context";
 const SCHEDULES: RondaSchedule[] = ["off", "daily", "three_daily", "hourly"];
 
 /**
- * Configurações → Ronda (ADR 9004): when the agent looks at the operation on its own, with its next pass and how the
- * last one ended. Saved at once, outside the page's save bar, by who manages agents or the agent's owner; everyone
- * else reads it. Turning it on makes you its person: it tells you in your DM.
+ * The ronda's state and actions for one agent (ADR 9004), shared by any agent's card and the right hand's row. Saved at
+ * once, outside the page's save bar, by who manages agents or the agent's owner; everyone else reads it. Turning it on
+ * makes you its person: it tells you in your DM.
  */
-export function RondaCard() {
+export function useRondaControl(agent: { id: string; ownerUserId?: string | null }) {
   const { t, i18n } = useTranslation();
   const { org, me } = useOrg();
-  const { agent } = useAgentEdit();
   const ronda = useRonda(org.id, agent.id);
   const set = useSetRonda(org.id, agent.id);
   const act = useRoutineAction(org.id);
@@ -48,6 +47,36 @@ export function RondaCard() {
               return tt(w.key, { ...w.values, ...(w.fallback ? { defaultValue: tt(w.fallback) } : {}) });
             })();
   const on = schedule !== "off";
+  const note =
+    on && data
+      ? [
+          data.nextRunAt ? t("ronda.next", { when: nextLabel(i18n.language, data.nextRunAt) }) : "",
+          lastWords ? t("ronda.last", { what: lastWords }) : "",
+        ]
+          .filter(Boolean)
+          .join(" · ")
+      : "";
+  const routineId = data?.routineId ?? null;
+  return {
+    schedule,
+    save,
+    editable,
+    loading: ronda.isLoading,
+    note,
+    canRun: on && editable && !!routineId,
+    running: act.isPending,
+    runNow: () => {
+      if (routineId) act.mutate({ type: "run", id: routineId });
+    },
+    options: SCHEDULES.map((s) => ({ value: s, label: t(`ronda.${s}`) })),
+  };
+}
+
+/** Configurações → Ronda (ADR 9004): when the agent looks at the operation on its own, its next pass and last one. */
+export function RondaCard() {
+  const { t } = useTranslation();
+  const { agent } = useAgentEdit();
+  const r = useRondaControl(agent);
   return (
     <Card as="section" className="agp-card" aria-labelledby="agp-ronda">
       <CardHead id="agp-ronda" icon="eye" title={t("ronda.title")} subtitle={t("ronda.subtitle")} />
@@ -59,30 +88,20 @@ export function RondaCard() {
         <Select
           id="agp-ronda-schedule"
           size="sm"
-          value={schedule}
-          disabled={!editable || ronda.isLoading}
-          onValueChange={(v) => save(v as RondaSchedule)}
-          options={SCHEDULES.map((s) => ({ value: s, label: t(`ronda.${s}`) }))}
+          value={r.schedule}
+          disabled={!r.editable || r.loading}
+          onValueChange={(v) => r.save(v as RondaSchedule)}
+          options={r.options}
         />
       </SettingRow>
-      {on && data && (data.nextRunAt || lastWords) && (
+      {r.note && (
         <SettingNote icon="repeat" quiet>
-          {[
-            data.nextRunAt ? t("ronda.next", { when: nextLabel(i18n.language, data.nextRunAt) }) : "",
-            lastWords ? t("ronda.last", { what: lastWords }) : "",
-          ]
-            .filter(Boolean)
-            .join(" · ")}
+          {r.note}
         </SettingNote>
       )}
-      {on && editable && data?.routineId && (
+      {r.canRun && (
         <div className="ac-acts">
-          <Button
-            variant="default"
-            size="sm"
-            disabled={act.isPending}
-            onClick={() => data.routineId && act.mutate({ type: "run", id: data.routineId })}
-          >
+          <Button variant="default" size="sm" disabled={r.running} onClick={r.runNow}>
             {t("ronda.runNow")}
           </Button>
         </div>
