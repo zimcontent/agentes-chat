@@ -200,10 +200,17 @@ export type HereView =
   | { kind: "stopped" };
 
 /**
+ * The app runs it, but no account is left there (its owner deleted theirs, and nobody else had one): setting it up
+ * again over its data, with a name and email, makes the new owner.
+ */
+export const ownerless = (status: LocalServerStatus) => status.installed === "app" && status.run && !status.owner;
+
+/**
  * `answering`: an agentes.chat server that answered on this computer's loopback (Connect's discovery), when the
  * app doesn't run one itself.
  */
 export function hereView(status: LocalServerStatus, answering: string | null): HereView {
+  if (ownerless(status)) return { kind: "form", ask: true };
   if (status.run) return { kind: "running", server: status.publicUrl ?? status.url ?? "" };
   if (status.installed === "terminal")
     return status.serving && status.url

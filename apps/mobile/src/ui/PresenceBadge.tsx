@@ -34,6 +34,9 @@ function look(presence: BadgePresence, colors: AppColors): { fill?: string; stro
       return { fill: AVAILABLE };
     case "busy":
       return { fill: colors.danger };
+    case "working":
+      return { fill: colors.agent };
+    case "waiting":
     case "away":
       return { fill: colors.amber };
     case "out":

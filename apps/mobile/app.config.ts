@@ -65,6 +65,7 @@ export const APP_LINK_PATTERNS = [
   "/org/*/settings/apps",
   "/org/*/settings/general",
   "/org/*/settings/members",
+  "/org/*/settings/invites",
   "/org/*/settings/audit",
   "/org/*/settings/access",
   "/org/*/settings/connectors",
@@ -84,6 +85,8 @@ export const APP_LINK_PATTERNS = [
   "/org/*/settings/computers/*",
   "/org/*/settings/devices/*",
 ];
+/** Optional alternate app icons (ADR 0179). */
+const ICONS = "./assets/app-icons";
 // DougBot's EAS project on expo.dev (not a secret: it only names the project). Empty until the owner runs `eas init`
 // (TESTFLIGHT.md), which fills it in; `EAS_PROJECT_ID` in the environment wins.
 const DOUGBOT_EAS_PROJECT_ID = "da14fac0-0136-48a5-a4ab-f59280bf25d6";
@@ -117,6 +120,8 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   version: "0.1.0",
   // Upright everywhere (the plugin below); only the agent's screen, in control, lies down (`useSideways`).
   orientation: "default",
+  // The icon the app ships with (ADR 0179); the others a person may pick are added by ./plugins/with-app-icons.
+  // All of them come from packages/ui/scripts/app-icons.mjs.
   icon: "./assets/images/icon.png",
   userInterfaceStyle: "automatic",
   ios: {
@@ -224,6 +229,10 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       },
     ],
     [
+      // Pushes come straight from Firebase and from Apple with the system's own token (ADR 0152, ADR 0178). The
+      // plugin's `aps-environment` entitlement stays as it is: the profile that signs an iPhone build decides which
+      // of Apple's push environments its tokens belong to (a store build's is production), and the app reads that
+      // from the profile when it registers (src/lib/push.ts).
       "expo-notifications",
       {
         icon: "./assets/images/notification-icon.png",
@@ -232,6 +241,8 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     ],
     // Android release builds signed with the upload key from the environment (the Android build workflow).
     "./plugins/with-android-release-signing",
+    // The app icons a person may pick (ADR 0179): iOS's alternate icons and Android's launcher aliases.
+    "./plugins/with-app-icons",
     [
       "expo-image-picker",
       {

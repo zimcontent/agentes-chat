@@ -73,7 +73,8 @@ export function createTauriHost(): Host {
     askToPair: (server, org) => invoke<boolean>("pair_ask", { server, org }),
     siteFetch: (server, method, path, body) =>
       invoke<SiteAnswer>("site_fetch", { server, method, path, body: body ?? null }),
-    welcomeMode: () => invoke<string | null>("welcome_mode_take").then((m) => (m === "add" ? "add" : null)),
+    welcomeMode: () =>
+      invoke<string | null>("welcome_mode_take").then((m) => (m === "add" || m === "owner" ? m : null)),
     addWorkspace: () => invoke<void>("welcome_add"),
     discover: () => invoke<Candidate[]>("discover"),
     // From the web view itself: every server answers `/api/instance` to any origin (it is public).
@@ -104,7 +105,6 @@ export function createTauriHost(): Host {
     setAppMenu: (labels) => invoke<void>("app_menu_set", { labels }),
     onMenuAction: (cb) => subscribe<MenuAction>("menu://action", cb),
     thisMacListening: () => invoke<void>("this_mac_listening"),
-    setDock: (show) => invoke<void>("dock_set", { show }),
     setSiteNotify: (on) => invoke<void>("notify_site_set", { on }),
     onBadge: (cb) => subscribe<BadgeCounts>("badge://counts", cb),
     localServer: () => invoke<LocalServerStatus>("local_server_status"),

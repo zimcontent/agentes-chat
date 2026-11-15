@@ -15,6 +15,7 @@ import { Route as BaixarRouteImport } from './routes/baixar'
 import { Route as ConectandoRouteImport } from './routes/conectando'
 import { Route as ConectarRouteImport } from './routes/conectar'
 import { Route as DownloadRouteImport } from './routes/download'
+import { Route as EmailUndoRouteImport } from './routes/email-undo'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as OwnerRouteImport } from './routes/owner'
@@ -71,6 +72,7 @@ import { Route as OrgOrgIdSettingsComputersMachineIdRouteImport } from './routes
 import { Route as OrgOrgIdSettingsDevicesDeviceIdRouteImport } from './routes/org.$orgId.settings_.devices.$deviceId'
 import { Route as OrgOrgIdSettingsDevicesAndroidSetupRouteImport } from './routes/org.$orgId.settings_.devices.android-setup'
 import { Route as OrgOrgIdSettingsDevicesIphoneSetupRouteImport } from './routes/org.$orgId.settings_.devices.iphone-setup'
+import { Route as OrgOrgIdSettingsRolesRoleIdRouteImport } from './routes/org.$orgId.settings_.roles.$roleId'
 import { Route as OrgOrgIdSettingsDevicesPhonesPhoneIdRouteImport } from './routes/org.$orgId.settings_.devices.phones.$phoneId'
 
 const IndexRoute = IndexRouteImport.update({
@@ -101,6 +103,11 @@ const ConectarRoute = ConectarRouteImport.update({
 const DownloadRoute = DownloadRouteImport.update({
   id: '/download',
   path: '/download',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EmailUndoRoute = EmailUndoRouteImport.update({
+  id: '/email-undo',
+  path: '/email-undo',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -390,6 +397,12 @@ const OrgOrgIdSettingsDevicesIphoneSetupRoute =
     path: '/settings/devices/iphone-setup',
     getParentRoute: () => OrgOrgIdRoute,
   } as any)
+const OrgOrgIdSettingsRolesRoleIdRoute =
+  OrgOrgIdSettingsRolesRoleIdRouteImport.update({
+    id: '/settings_/roles/$roleId',
+    path: '/settings/roles/$roleId',
+    getParentRoute: () => OrgOrgIdRoute,
+  } as any)
 const OrgOrgIdSettingsDevicesPhonesPhoneIdRoute =
   OrgOrgIdSettingsDevicesPhonesPhoneIdRouteImport.update({
     id: '/settings_/devices/phones/$phoneId',
@@ -404,6 +417,7 @@ export interface FileRoutesByFullPath {
   '/conectando': typeof ConectandoRoute
   '/conectar': typeof ConectarRoute
   '/download': typeof DownloadRoute
+  '/email-undo': typeof EmailUndoRoute
   '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
   '/owner': typeof OwnerRoute
@@ -459,6 +473,7 @@ export interface FileRoutesByFullPath {
   '/org/$orgId/settings/devices/$deviceId': typeof OrgOrgIdSettingsDevicesDeviceIdRoute
   '/org/$orgId/settings/devices/android-setup': typeof OrgOrgIdSettingsDevicesAndroidSetupRoute
   '/org/$orgId/settings/devices/iphone-setup': typeof OrgOrgIdSettingsDevicesIphoneSetupRoute
+  '/org/$orgId/settings/roles/$roleId': typeof OrgOrgIdSettingsRolesRoleIdRoute
   '/org/$orgId/agents/$agentId/': typeof OrgOrgIdAgentsAgentIdIndexRoute
   '/org/$orgId/settings/devices/phones/$phoneId': typeof OrgOrgIdSettingsDevicesPhonesPhoneIdRoute
 }
@@ -469,6 +484,7 @@ export interface FileRoutesByTo {
   '/conectando': typeof ConectandoRoute
   '/conectar': typeof ConectarRoute
   '/download': typeof DownloadRoute
+  '/email-undo': typeof EmailUndoRoute
   '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
   '/owner': typeof OwnerRoute
@@ -523,6 +539,7 @@ export interface FileRoutesByTo {
   '/org/$orgId/settings/devices/$deviceId': typeof OrgOrgIdSettingsDevicesDeviceIdRoute
   '/org/$orgId/settings/devices/android-setup': typeof OrgOrgIdSettingsDevicesAndroidSetupRoute
   '/org/$orgId/settings/devices/iphone-setup': typeof OrgOrgIdSettingsDevicesIphoneSetupRoute
+  '/org/$orgId/settings/roles/$roleId': typeof OrgOrgIdSettingsRolesRoleIdRoute
   '/org/$orgId/agents/$agentId': typeof OrgOrgIdAgentsAgentIdIndexRoute
   '/org/$orgId/settings/devices/phones/$phoneId': typeof OrgOrgIdSettingsDevicesPhonesPhoneIdRoute
 }
@@ -534,6 +551,7 @@ export interface FileRoutesById {
   '/conectando': typeof ConectandoRoute
   '/conectar': typeof ConectarRoute
   '/download': typeof DownloadRoute
+  '/email-undo': typeof EmailUndoRoute
   '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
   '/owner': typeof OwnerRoute
@@ -589,6 +607,7 @@ export interface FileRoutesById {
   '/org/$orgId/settings_/devices/$deviceId': typeof OrgOrgIdSettingsDevicesDeviceIdRoute
   '/org/$orgId/settings_/devices/android-setup': typeof OrgOrgIdSettingsDevicesAndroidSetupRoute
   '/org/$orgId/settings_/devices/iphone-setup': typeof OrgOrgIdSettingsDevicesIphoneSetupRoute
+  '/org/$orgId/settings_/roles/$roleId': typeof OrgOrgIdSettingsRolesRoleIdRoute
   '/org/$orgId/agents/$agentId/': typeof OrgOrgIdAgentsAgentIdIndexRoute
   '/org/$orgId/settings_/devices/phones/$phoneId': typeof OrgOrgIdSettingsDevicesPhonesPhoneIdRoute
 }
@@ -601,6 +620,7 @@ export interface FileRouteTypes {
     | '/conectando'
     | '/conectar'
     | '/download'
+    | '/email-undo'
     | '/login'
     | '/onboarding'
     | '/owner'
@@ -656,6 +676,7 @@ export interface FileRouteTypes {
     | '/org/$orgId/settings/devices/$deviceId'
     | '/org/$orgId/settings/devices/android-setup'
     | '/org/$orgId/settings/devices/iphone-setup'
+    | '/org/$orgId/settings/roles/$roleId'
     | '/org/$orgId/agents/$agentId/'
     | '/org/$orgId/settings/devices/phones/$phoneId'
   fileRoutesByTo: FileRoutesByTo
@@ -666,6 +687,7 @@ export interface FileRouteTypes {
     | '/conectando'
     | '/conectar'
     | '/download'
+    | '/email-undo'
     | '/login'
     | '/onboarding'
     | '/owner'
@@ -720,6 +742,7 @@ export interface FileRouteTypes {
     | '/org/$orgId/settings/devices/$deviceId'
     | '/org/$orgId/settings/devices/android-setup'
     | '/org/$orgId/settings/devices/iphone-setup'
+    | '/org/$orgId/settings/roles/$roleId'
     | '/org/$orgId/agents/$agentId'
     | '/org/$orgId/settings/devices/phones/$phoneId'
   id:
@@ -730,6 +753,7 @@ export interface FileRouteTypes {
     | '/conectando'
     | '/conectar'
     | '/download'
+    | '/email-undo'
     | '/login'
     | '/onboarding'
     | '/owner'
@@ -785,6 +809,7 @@ export interface FileRouteTypes {
     | '/org/$orgId/settings_/devices/$deviceId'
     | '/org/$orgId/settings_/devices/android-setup'
     | '/org/$orgId/settings_/devices/iphone-setup'
+    | '/org/$orgId/settings_/roles/$roleId'
     | '/org/$orgId/agents/$agentId/'
     | '/org/$orgId/settings_/devices/phones/$phoneId'
   fileRoutesById: FileRoutesById
@@ -796,6 +821,7 @@ export interface RootRouteChildren {
   ConectandoRoute: typeof ConectandoRoute
   ConectarRoute: typeof ConectarRoute
   DownloadRoute: typeof DownloadRoute
+  EmailUndoRoute: typeof EmailUndoRoute
   LoginRoute: typeof LoginRoute
   OnboardingRoute: typeof OnboardingRoute
   OwnerRoute: typeof OwnerRoute
@@ -858,6 +884,13 @@ declare module '@tanstack/react-router' {
       path: '/download'
       fullPath: '/download'
       preLoaderRoute: typeof DownloadRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/email-undo': {
+      id: '/email-undo'
+      path: '/email-undo'
+      fullPath: '/email-undo'
+      preLoaderRoute: typeof EmailUndoRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -1252,6 +1285,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof OrgOrgIdSettingsDevicesIphoneSetupRouteImport
       parentRoute: typeof OrgOrgIdRoute
     }
+    '/org/$orgId/settings_/roles/$roleId': {
+      id: '/org/$orgId/settings_/roles/$roleId'
+      path: '/settings/roles/$roleId'
+      fullPath: '/org/$orgId/settings/roles/$roleId'
+      preLoaderRoute: typeof OrgOrgIdSettingsRolesRoleIdRouteImport
+      parentRoute: typeof OrgOrgIdRoute
+    }
     '/org/$orgId/settings_/devices/phones/$phoneId': {
       id: '/org/$orgId/settings_/devices/phones/$phoneId'
       path: '/settings/devices/phones/$phoneId'
@@ -1300,6 +1340,7 @@ interface OrgOrgIdRouteChildren {
   OrgOrgIdSettingsDevicesDeviceIdRoute: typeof OrgOrgIdSettingsDevicesDeviceIdRoute
   OrgOrgIdSettingsDevicesAndroidSetupRoute: typeof OrgOrgIdSettingsDevicesAndroidSetupRoute
   OrgOrgIdSettingsDevicesIphoneSetupRoute: typeof OrgOrgIdSettingsDevicesIphoneSetupRoute
+  OrgOrgIdSettingsRolesRoleIdRoute: typeof OrgOrgIdSettingsRolesRoleIdRoute
   OrgOrgIdAgentsAgentIdIndexRoute: typeof OrgOrgIdAgentsAgentIdIndexRoute
   OrgOrgIdSettingsDevicesPhonesPhoneIdRoute: typeof OrgOrgIdSettingsDevicesPhonesPhoneIdRoute
 }
@@ -1345,6 +1386,7 @@ const OrgOrgIdRouteChildren: OrgOrgIdRouteChildren = {
     OrgOrgIdSettingsDevicesAndroidSetupRoute,
   OrgOrgIdSettingsDevicesIphoneSetupRoute:
     OrgOrgIdSettingsDevicesIphoneSetupRoute,
+  OrgOrgIdSettingsRolesRoleIdRoute: OrgOrgIdSettingsRolesRoleIdRoute,
   OrgOrgIdAgentsAgentIdIndexRoute: OrgOrgIdAgentsAgentIdIndexRoute,
   OrgOrgIdSettingsDevicesPhonesPhoneIdRoute:
     OrgOrgIdSettingsDevicesPhonesPhoneIdRoute,
@@ -1361,6 +1403,7 @@ const rootRouteChildren: RootRouteChildren = {
   ConectandoRoute: ConectandoRoute,
   ConectarRoute: ConectarRoute,
   DownloadRoute: DownloadRoute,
+  EmailUndoRoute: EmailUndoRoute,
   LoginRoute: LoginRoute,
   OnboardingRoute: OnboardingRoute,
   OwnerRoute: OwnerRoute,

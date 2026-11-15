@@ -145,28 +145,41 @@
     "quitConfirm": "Quitter"
   },
   "first": {
-    "title": "Connectez ce poste à DougBot",
-    "lead": "Connectez-vous avec votre compte et vos agents apparaissent ici.",
-    "connect": "Se connecter à DougBot",
     "addTitle": "Ajouter un espace de travail",
     "addLead": "Ceux que vous avez déjà restent ici, chacun avec sa propre connexion.",
     "addCloud": "Créer un espace de travail sur DougBot",
     "addNew": "Vous voulez un nouveau workspace ?",
-    "addNewLink": "En créer un",
-    "addOwn": "Utiliser le serveur de votre équipe"
+    "addNewLink": "En créer un"
   },
-  "own": {
-    "title": "Votre propre serveur",
-    "lead": "DougBot tourne sur vos ordinateurs, et vos données y restent.",
-    "back": "DougBot",
-    "connect": "Se connecter à mon serveur",
-    "connectText": "Il tourne sur un autre ordinateur : un Mac mini, un portable inutilisé ou un serveur en ligne.",
-    "here": "Faire tourner DougBot sur ce {{device}}",
-    "hereText": "Ce {{device}} devient le serveur, tant qu'il est allumé.",
-    "which": "Lequel choisir ?"
+  "place": {
+    "title": "Où votre workspace va-t-il vivre ?",
+    "lead": "Vos agents travaillent là où il est. Vous pourrez changer plus tard.",
+    "recommended": "Recommandé",
+    "cloud": "Dans le cloud DougBot",
+    "cloudText": "Toujours allumé. On s'occupe de tout, vous n'avez qu'à l'utiliser.",
+    "here": "Sur ce {{device}}",
+    "hereText": "Vos agents travaillent tant que l'app est ouverte.",
+    "box": "Sur un ordinateur toujours allumé",
+    "boxText": "Un Mac mini ou un ordinateur du bureau, installé une fois.",
+    "goCloud": "Continuer dans le cloud",
+    "goHere": "Préparer ce {{device}}",
+    "goBox": "Voir comment l'installer",
+    "haveOne": "Vous en avez déjà un ?",
+    "haveOneLink": "Se connecter par son adresse"
+  },
+  "install": {
+    "title": "Installer sur un ordinateur toujours allumé",
+    "lead": "Ça se fait une fois. Ensuite il tourne tout seul, même avec cette app fermée.",
+    "step1": "Sur l'ordinateur qui reste allumé, ouvrez le Terminal et collez ceci",
+    "step2": "À la fin, un lien s'affiche. Ouvrez-le ici, c'est tout.",
+    "noLink": "Pas de lien ?",
+    "someoneElse": "Quelqu'un d'autre l'installe ?",
+    "copy": "Copier les instructions",
+    "copied": "Instructions copiées",
+    "text": "Pour installer DougBot sur un ordinateur qui reste allumé (un Mac mini, un ordinateur du bureau ou un serveur) :\n\n1. Sur cet ordinateur, ouvrez le Terminal et collez ceci :\n{{command}}\n\n2. À la fin, un lien s'affiche. Envoyez-le-moi : il ouvre le workspace dans l'app."
   },
   "connect": {
-    "title": "Se connecter à mon serveur",
+    "title": "Se connecter à un workspace qui existe déjà",
     "lead": "Son adresse, la même que celle que vous ouvrez dans le navigateur.",
     "label": "Adresse du serveur",
     "placeholder": "agentes.votreequipe.ts.net",
@@ -174,7 +187,7 @@
     "checking": "Vérification…",
     "found": "Trouvé",
     "looking": "Recherche de votre serveur…",
-    "foundTailnet": "Sur votre réseau Tailscale",
+    "foundTailnet": "Sur le réseau de votre équipe",
     "foundHere": "DougBot tourne ici",
     "foundNoOwner": "En attente de son compte propriétaire",
     "use": "Utiliser",
@@ -184,8 +197,7 @@
     "tailnetOff": "Tailscale est désactivé sur ce {{device}}, donc les serveurs de votre réseau Tailscale n'apparaissent pas ici.",
     "addressHint": "Une adresse en https, ou son adresse Tailscale, qui se termine par .ts.net.",
     "checkUpdates": "Rechercher des mises à jour",
-    "none": "Vous n'en avez pas encore ? Lancez ceci dessus",
-    "noneText": "Dans le terminal d'un serveur ou d'un Mac mini. À la fin, un lien s'affiche pour y connecter cette app.",
+    "noneYet": "Vous n'en avez pas encore ?",
     "invalid": "Vérifiez l'adresse, du type agentes.votreequipe.ts.net.",
     "httpRefused": "{{host}} n'utilise pas de connexion sécurisée (https), et seuls les serveurs sur ce {{device}} peuvent s'en passer. Utilisez son adresse https ou son adresse Tailscale.",
     "noOwner": "{{host}} n'a pas encore de propriétaire. La personne qui a installé le serveur a reçu un lien pour créer le compte propriétaire : ouvrez ce lien sur ce {{device}} ou sur votre téléphone.",
@@ -198,9 +210,10 @@
     "appTooOld": "Mettez l'app à jour pour utiliser {{host}}."
   },
   "here": {
-    "title": "Faire tourner DougBot sur ce {{device}}",
-    "how": "Il tourne dans cette app, avec sa propre base de données intégrée, et garde tout dans un seul dossier sur ce {{device}}.",
+    "title": "Préparons ce {{device}}",
+    "how": "Ça prend une minute. Tout reste ici, rien qu'avec vous.",
     "again": "Il a déjà tourné ici, et ses données sont toujours dans {{path}}.",
+    "ownerNone": "Il n’y reste plus aucun compte. Avec votre nom et votre e-mail, vous en devenez le nouveau propriétaire.",
     "name": "Votre nom",
     "nameNeeded": "Écrivez votre nom.",
     "email": "Votre e-mail",
@@ -224,15 +237,16 @@
     "getTailscale": "Obtenir Tailscale",
     "usage": "Envoyer des statistiques d'utilisation anonymes à DougBot",
     "usageText": "Des comptages comme le nombre de personnes, d'agents, la taille des machines, les jetons d'IA utilisés et le volume de données envoyées et reçues par les navigateurs des agents. Jamais de messages, fichiers, noms ou sites.",
-    "start": "Démarrer DougBot",
-    "setting": "Installation d'DougBot sur ce {{device}}",
+    "start": "Commencer",
+    "setting": "Tout se prépare",
+    "rest": "Quand vous fermez l'app, vos agents se reposent. Ils reviennent dès que vous la rouvrez.",
     "step": {
-      "database": "Préparation de la base de données",
+      "database": "On fait de la place pour vos données",
       "databaseNote": "la première fois seulement",
-      "start": "Démarrage",
+      "start": "On allume DougBot",
       "account": "Création de votre compte",
-      "computer": "Préparation de ce {{device}} pour vos agents",
-      "reach": "Activation de l'accès depuis vos appareils"
+      "computer": "On appelle vos agents",
+      "reach": "On active l'accès depuis le téléphone"
     },
     "stepState": {
       "active": "en cours",
@@ -244,7 +258,7 @@
       "start": "DougBot n'a pas démarré sur ce {{device}}.",
       "database": "La base de données n'a pas été préparée.",
       "account": "Votre compte n'a pas été créé.",
-      "retry": "Réessayez dans Préférences › Serveurs."
+      "retry": "Réessayer dans Préférences"
     },
     "reason": {
       "https": "HTTPS est désactivé sur votre réseau Tailscale",
@@ -274,11 +288,13 @@
     "openIt": "L'ouvrir"
   },
   "link": {
-    "question": "Connecter l'app à ce serveur ?",
+    "question": "Ouvrir ce workspace dans l'app ?",
     "questionSignIn": "Se connecter à ce serveur avec votre compte de l'autre appareil ?",
-    "questionClaim": "Configurez ce serveur : créez son compte propriétaire.",
+    "questionClaim": "Ouvrir le workspace que vous avez installé ?",
+    "claimLead": "Vous créez son compte propriétaire maintenant.",
     "leave": "Vous quittez {{current}} dans cette app. Votre compte là-bas est conservé.",
     "connect": "Connecter",
+    "open": "Ouvrir",
     "continue": "Continuer",
     "checking": "Vérification du serveur…",
     "notALink": "Ce lien ne vient pas d'un serveur DougBot.",
@@ -314,6 +330,7 @@
     "offline": "Hors ligne depuis {{time}}",
     "signIn": "Se connecter",
     "signOut": "Se déconnecter de ce serveur",
+    "addAccount": "Ajouter un compte",
     "signedOutDone": "Vous vous êtes déconnecté de {{host}}",
     "removeFromApp": "Retirer de cette app",
     "newsOne": "1 nouvelle notification",
@@ -338,7 +355,6 @@
     "usageRestart": "Le modifier redémarre DougBot un instant.",
     "jev": "Jev",
     "jevText": "Un modèle rapide de TypeSafe qui choisit qui répond, garde la mémoire en ordre et permet aux agents de voir l'écran. Facultatif, avec votre propre clé.",
-    "jevWhere": "Dans DougBot › Paramètres › IA et utilisation.",
     "reachFailed": "L'accès depuis vos appareils ne s'est pas activé : {{reason}}.",
     "backup": "Sauvegarder maintenant",
     "backedUp": "Sauvegardé : {{file}}",
@@ -435,7 +451,9 @@
     "linkBody": "Si vous n'avez rien demandé, choisissez Plus tard.",
     "waiting": "En attente que {{by}} le laisse entrer…",
     "done": "Connecté à {{org}}",
-    "expired": "Ce lien a expiré. Créez-en un nouveau dans Paramètres › Appareils.",
+    "addFolders": "Ajouter des dossiers",
+    "expired": "Ce lien a expiré. Créez-en un nouveau dans Appareils.",
+    "openDevices": "Ouvrir Appareils",
     "denied": "{{by}} ne l'a pas laissé entrer. Rien n'a changé.",
     "letOrg": "Laisser les agents de {{org}} utiliser ce {{device}}",
     "canUse": "Les agents peuvent l'utiliser",
@@ -493,6 +511,15 @@
     "lookPath": "DougBot cherche dans le PATH de votre shell de connexion.",
     "lookPathWindows": "DougBot cherche dans le PATH.",
     "stillMissing": "{{tool}} est toujours introuvable. Lancez la commande ci-dessus, puis vérifiez à nouveau.",
+    "install": "Installer pour moi",
+    "installing": "Installation de {{tool}}. Cela prend environ une minute.",
+    "installFailed": "Impossible d'installer : {{message}}",
+    "gitMissing": "{{tool}} a besoin de Git for Windows sur cet ordinateur.",
+    "getGit": "Télécharger Git for Windows",
+    "cantStart": "Il est là, mais ne démarre pas : {{message}}",
+    "cantStartChip": "Ne démarre pas",
+    "installedNotFound": "L'installateur a terminé, mais {{tool}} est toujours introuvable.",
+    "notFoundYet": "{{tool}} est toujours introuvable.",
     "browserName": "Navigateur",
     "browserDesc": "Ouvre des sites pour les agents dans leur propre navigateur, sans vos identifiants.",
     "browserLogins": "Les connexions faites par un agent restent sur ce {{device}}, dans son dossier. N'utilisez que des comptes de test ou ceux de l'agent."
@@ -549,8 +576,6 @@
       "notifyTitle": "Me prévenir quand un agent demande un dossier",
       "notifyBrowserTitle": "Me prévenir quand un agent a besoin de moi dans son navigateur",
       "notifyBrowserDesc": "La demande arrive déjà sur votre téléphone et sur le site. Ceci vous prévient aussi ici.",
-      "dockTitle": "Afficher dans le Dock",
-      "dockDesc": "Avec le nombre de ce qui vous attend. Désactivé, l'app ne reste dans la barre des menus que quand aucune fenêtre n'est ouverte.",
       "menuBarTitle": "Afficher dans la barre des menus",
       "notchTitle": "Afficher les agents dans l'encoche",
       "notchDesc": "Sur les MacBook avec encoche : qui travaille s'affiche autour de la caméra."
@@ -677,7 +702,8 @@
       "step3": "Ouvrez le fichier téléchargé et faites glisser le nouvel DougBot dans Applications.",
       "installerNote": "Ouvrez le fichier téléchargé : il installe la nouvelle version par-dessus l'ancienne.",
       "keepNote": "Vos serveurs et réglages sont conservés.",
-      "whatsNew": "Nouveautés de la {{version}}"
+      "whatsNew": "Nouveautés de la {{version}}",
+      "systemDetails": "Détails du système"
     },
     "activity": {
       "title": "Activité",

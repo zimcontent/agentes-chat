@@ -3,6 +3,7 @@ import {
   type CSSProperties,
   type HTMLAttributes,
   type ReactNode,
+  type Ref,
   useEffect,
   useState,
 } from "react";
@@ -306,7 +307,8 @@ export function OptionCard({
   disabled,
   children,
   className,
-}: {
+  ...rest
+}: Omit<ButtonHTMLAttributes<HTMLButtonElement>, "onClick"> & {
   pressed: boolean;
   onClick: () => void;
   /** Cut corner: the option creates an agent. */
@@ -316,9 +318,12 @@ export function OptionCard({
   disabled?: boolean;
   children: ReactNode;
   className?: string;
+  /** A `Tip` in button mode hands its handlers and ref through here. */
+  ref?: Ref<HTMLButtonElement>;
 }) {
   return (
     <button
+      {...rest}
       type="button"
       aria-pressed={pressed}
       onClick={onClick}

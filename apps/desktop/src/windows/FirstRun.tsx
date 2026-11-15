@@ -1,9 +1,6 @@
 /**
- * The welcome window: how the app finds its server. DougBot's own server first: one button signs in there. A
- * connect link (`agenteschat://connect`) opens here too: the server in large type, nothing changes before Connect.
- * Choosing a server opens the main window there and closes this one. A pair link (`agenteschat://pair`) asks to
- * connect this computer instead (`PairLinkSheet`). The own-server screens (`own`, `connect`, `here`) stay in the code
- * as the project has them, with no way in from the first screen.
+ * DougBot's welcome window: the cloud, this computer, or an always-on computer. Existing servers and connect/pair
+ * links stay available; choosing one opens the main window there and closes this window.
  */
 import {
   CLOUD_SERVER,
@@ -15,15 +12,17 @@ import {
 } from "@agenteschat/client/lib/server";
 import { isEmail } from "@agenteschat/client/lib/text";
 import {
+  Avatar,
   Button,
   Chip,
   ComputerPortrait,
   Field,
-  HostingScene,
   Icon,
-  InfoHint,
   Input,
+  OptionList,
   PixelSpinner,
+  type Place,
+  PlaceScene,
   Switch,
   useNow,
 } from "@agenteschat/ui";
@@ -39,7 +38,6 @@ import {
   type FirstScreen,
   foundServers,
   INSTALL_COMMAND,
-  INSTALL_COMMAND_LIVE,
   type LinkView,
   LOOK_MS,
   linkView,
@@ -53,6 +51,7 @@ import {
   failedStep,
   hereView,
   type LocalServerStatus,
+  ownerless,
   type ReachStage,
   type SetupStep,
   type StepChange,
@@ -64,7 +63,7 @@ import {
 import { parsePairLink } from "../control/pair";
 import { serverKind, serverName } from "../control/server";
 import { useOnShown, useTailnet, writePref } from "../hooks";
-import { BrandFace, CommandCopy, HelpLink } from "../ui/bits";
+import { BrandFace, CommandCopy } from "../ui/bits";
 import { CopyDetails, ReachProblem, ReachProgress, ReachRow, ServerTile } from "../ui/here";
 import { hintFor, PrefRow } from "../ui/settings";
 import { elapsedClock, shortPath } from "../ui/time";
@@ -72,7 +71,7 @@ import { PairLinkSheet } from "./Pair";
 
 const PROBLEM_HOSTLESS: ReadonlySet<ConnectProblem> = new Set(["invalid"]);
 
-// DougBot: `start` opens on another screen (with the first one behind it) for tests, since the first screen no longer leads there.
+// Tests may open a specific screen with the place choices behind it.
 export function FirstRun({ start }: { start?: FirstScreen } = {}) {
   const host = useHost();
   const [screen, setScreen] = useState<FirstScreen>(start ?? "choose");
@@ -85,6 +84,8 @@ export function FirstRun({ start }: { start?: FirstScreen } = {}) {
   const [link, setLink] = useState<{ raw: string; parsed: ConnectLink | null; view: LinkView; typed?: boolean } | null>(
     null,
   );
+  // This build carries the server: "On this computer" is offered.
+  const [canRunHere, setCanRunHere] = useState(false);
   // The agentes.chat this computer runs (the app's, or one from the terminal): named as such, never by its address,
   // and its owner page opened directly while it waits for one.
   const [local, setLocal] = useState<LocalServerStatus | null>(null);
@@ -177,7 +178,14 @@ export function FirstRun({ start }: { start?: FirstScreen } = {}) {
   const takeMode = useCallback(() => {
     void host
       .welcomeMode()
-      .then((mode) => setAdding(mode === "add"))
+      .then((mode) => {
+        setAdding(mode === "add");
+        // No account left on the server the app runs: straight to Run here's form, which makes the new owner.
+        const at = screenRef.current;
+        if (mode !== "owner" || at === "link" || at === "pair" || settingUp.current) return;
+        setTrail(["choose"]);
+        setScreen("here");
+      })
       .catch(() => setAdding(false));
     void host
       .workspaces()
@@ -190,6 +198,7 @@ export function FirstRun({ start }: { start?: FirstScreen } = {}) {
     void host
       .localServer()
       .then((s) => {
+        setCanRunHere(s.bundled);
         setLocal(s);
       })
       .catch(() => {});
@@ -237,15 +246,21 @@ export function FirstRun({ start }: { start?: FirstScreen } = {}) {
     <div className="dk-fr" data-screen={screen}>
       <div className="dk-fr__body" key={screen}>
         {screen === "choose" && (
-          <Choose adding={adding} cloudSignedIn={cloudSignedIn} onCloud={(page) => void finish(CLOUD_SERVER, page)} />
+          <Choose
+            adding={adding}
+            cloudSignedIn={cloudSignedIn}
+            canRunHere={canRunHere}
+            onCloud={(page) => void finish(CLOUD_SERVER, page)}
+            onHere={() => go("here")}
+            onBox={() => go("install")}
+            onConnect={() => go("connect")}
+          />
         )}
-        {screen === "own" && (
-          <Own adding={adding} onBack={back} onConnect={() => go("connect")} onHere={() => go("here")} />
-        )}
+        {screen === "install" && <Install onBack={back} onConnect={() => go("connect")} />}
         {screen === "connect" && (
           <Connect
             onBack={back}
-            backLabel={trail[trail.length - 1] === "own" ? "own" : "choose"}
+            onInstall={() => go("install")}
             local={local}
             own={own}
             address={address}
@@ -297,42 +312,79 @@ export function FirstRun({ start }: { start?: FirstScreen } = {}) {
 }
 
 /**
- * DougBot: the first screen asks straight to connect this computer to DougBot's server, with no hosting choice and
- * no way to run a server here (those screens stay for links that arrive from outside). The brand panel on the
- * left, title, one sentence and one button on the right. `adding` (the site's "Add a workspace", ADR 0154): its own
- * title, the button signs in to the workspaces an account has (a new workspace the line under it); with DougBot
- * already signed in here, making one is the button.
+ * "Onde seu workspace vai ficar?" (ADR 0066 §1, amended 2026-11-14): the drawing on the left follows the place picked on
+ * the right: the Cloud (recommended, the DougBot agent on a cloud), this computer (where the build carries the
+ * server: the agents work while the app is open) or a computer that's always on (the one-command install). Each says
+ * what happens to the agents, never "server". One button goes on with the pick, and a line under it signs in to one
+ * that exists already. `adding` (the site's "Add a workspace", ADR 0154): its own title, the Cloud's button signs in to
+ * the workspaces an account has (a new workspace the line under it); with DougBot already signed in here, making
+ * one is the button.
  */
 function Choose({
   adding,
   cloudSignedIn,
+  canRunHere,
   onCloud,
+  onHere,
+  onBox,
+  onConnect,
 }: {
   adding: boolean;
   cloudSignedIn: boolean;
+  /** This build carries the server: "On this computer" is offered. */
+  canRunHere: boolean;
   onCloud: (page: string) => void;
+  onHere: () => void;
+  onBox: () => void;
+  onConnect: () => void;
 }) {
   const { t } = useTranslation();
+  const host = useHost();
+  const [pick, setPick] = useState<Place>("cloud");
   const makeFirst = adding && cloudSignedIn;
+  const places: Place[] = canRunHere ? ["cloud", "here", "box"] : ["cloud", "box"];
+  const go = () => {
+    if (pick === "here") return onHere();
+    if (pick === "box") return onBox();
+    onCloud(makeFirst ? "/onboarding" : "/login");
+  };
   return (
     <div className="dk-choose">
       <div className="dk-choose__sky">
-        <HostingScene hosting="cloud" shape="tall" />
+        <PlaceScene place={pick} computer={host.platform} shape="tall" />
         <span className="dk-choose__brand" aria-hidden="true">
           <BrandFace size="sm" />
           DougBot
         </span>
       </div>
       <div className="dk-choose__main">
-        <h1>{t(adding ? "desktop.first.addTitle" : "desktop.first.title")}</h1>
-        <p className="dk-lead">{t(adding ? "desktop.first.addLead" : "desktop.first.lead")}</p>
-        <Button
-          variant="primary"
-          className="dk-btn-lg dk-choose__go"
-          autoFocus
-          onClick={() => onCloud(makeFirst ? "/onboarding" : "/login")}
-        >
-          {t(makeFirst ? "desktop.first.addCloud" : "desktop.first.connect")}
+        <h1>{t(adding ? "desktop.first.addTitle" : "desktop.place.title")}</h1>
+        <p className="dk-lead">{t(adding ? "desktop.first.addLead" : "desktop.place.lead")}</p>
+        <OptionList<Place>
+          className="dk-choose__list"
+          aria-label={t("desktop.place.title")}
+          value={pick}
+          onValueChange={setPick}
+          options={places.map((p) => ({
+            value: p,
+            title:
+              p === "cloud" ? (
+                <>
+                  {t("desktop.place.cloud")}
+                  <span className="dk-choose__rec">{t("desktop.place.recommended")}</span>
+                </>
+              ) : (
+                t(`desktop.place.${p}`)
+              ),
+            description: t(`desktop.place.${p}Text`),
+          }))}
+        />
+        <Button variant="primary" className="dk-btn-lg dk-choose__go" autoFocus onClick={go}>
+          {pick === "here"
+            ? t("desktop.place.goHere")
+            : pick === "box"
+              ? t("desktop.place.goBox")
+              : t(makeFirst ? "desktop.first.addCloud" : "desktop.place.goCloud")}
           <Icon name="arrowRight" size={16} />
         </Button>
         {/* Adding, not signed in to DougBot here: a new workspace there is the line under it. */}
@@ -344,6 +396,12 @@ function Choose({
             </button>
           </span>
         )}
+        <span className="dk-help dk-choose__more">
+          {t("desktop.place.haveOne")}{" "}
+          <button type="button" className="ac-link dk-link" onClick={onConnect}>
+            {t("desktop.place.haveOneLink")}
+          </button>
+        </span>
       </div>
     </div>
   );
@@ -358,50 +416,55 @@ function BackLink({ label, onClick }: { label: string; onClick: () => void }) {
   );
 }
 
-/** The two ways to use your own server; adding a workspace, it reads as the line that led here. */
-function Own({
-  adding,
-  onBack,
-  onConnect,
-  onHere,
-}: {
-  adding: boolean;
-  onBack: () => void;
-  onConnect: () => void;
-  onHere: () => void;
-}) {
+/**
+ * "Num computador sempre ligado": the one-command install (ADR 0060 §1) in two steps, run on the computer that stays
+ * on, whose last line is the link that opens it here; and the same as words to send to whoever installs it.
+ */
+function Install({ onBack, onConnect }: { onBack: () => void; onConnect: () => void }) {
   const { t } = useTranslation();
-  const host = useHost();
+  const [copied, setCopied] = useState(false);
+  useEffect(() => {
+    if (!copied) return;
+    const timer = setTimeout(() => setCopied(false), 2000);
+    return () => clearTimeout(timer);
+  }, [copied]);
+  const copy = () =>
+    void navigator.clipboard
+      .writeText(t("desktop.install.text", { command: INSTALL_COMMAND }))
+      .then(() => setCopied(true))
+      .catch(() => {});
   return (
     <>
-      <BackLink label={t("desktop.own.back")} onClick={onBack} />
-      <h1>{t(adding ? "desktop.first.addOwn" : "desktop.own.title")}</h1>
-      <p className="dk-lead">{t("desktop.own.lead")}</p>
-      <div className="dk-fr__cards">
-        <button type="button" className="dk-fr__card" onClick={onConnect}>
-          <span className="dk-fr__card-art" aria-hidden="true">
-            <Icon name="computer" size={18} />
-            <Icon name="arrowRight" size={14} />
-            <Icon name="computerLinux" size={18} />
-          </span>
-          <b>{t("desktop.own.connect")}</b>
-          <small>{t("desktop.own.connectText")}</small>
-          <Icon name="chevronRight" size={16} className="dk-fr__card-go" />
-        </button>
-        <button type="button" className="dk-fr__card" onClick={onHere}>
-          <span className="dk-fr__card-art" aria-hidden="true">
-            <Icon name={host.platform === "windows" ? "computerWindows" : "computer"} size={18} />
-          </span>
-          <b>{t("desktop.own.here")}</b>
-          <small>{t("desktop.own.hereText")}</small>
-          <Icon name="chevronRight" size={16} className="dk-fr__card-go" />
-        </button>
+      <BackLink label={t("desktop.place.title")} onClick={onBack} />
+      <h1 className="dk-fr__h1sm">{t("desktop.install.title")}</h1>
+      <p className="dk-lead">{t("desktop.install.lead")}</p>
+      <ol className="dk-fr__ways">
+        <li>
+          <span className="dk-fr__num">1</span>
+          <div>
+            <b>{t("desktop.install.step1")}</b>
+            <CommandCopy command={INSTALL_COMMAND} />
+          </div>
+        </li>
+        <li>
+          <span className="dk-fr__num">2</span>
+          <div>
+            <b>{t("desktop.install.step2")}</b>
+            <span className="dk-help">
+              {t("desktop.install.noLink")}{" "}
+              <button type="button" className="ac-link dk-link" onClick={onConnect}>
+                {t("desktop.place.haveOneLink")}
+              </button>
+            </span>
+          </div>
+        </li>
+      </ol>
+      <div className="dk-fr__share">
+        <span className="dk-help">{t("desktop.install.someoneElse")}</span>
+        <Button icon={copied ? "check" : "copy"} onClick={copy}>
+          {t(copied ? "desktop.install.copied" : "desktop.install.copy")}
+        </Button>
       </div>
-      <p className="dk-help dk-fr__which">
-        <HelpLink slug="run-on-your-computer" section="who">
-          {t("desktop.own.which")}
-        </HelpLink>
-      </p>
     </>
   );
 }
@@ -454,7 +517,7 @@ const wait = (ms: number) => new Promise<"late">((r) => setTimeout(() => r("late
  */
 function Connect({
   onBack,
-  backLabel,
+  onInstall,
   local,
   own,
   address,
@@ -464,7 +527,8 @@ function Connect({
   onLink,
 }: {
   onBack: () => void;
-  backLabel: "own" | "choose";
+  /** "Don't have one yet?": the always-on install. */
+  onInstall: () => void;
   /** The agentes.chat this computer runs or has from the terminal (its owner claim, while it waits for one). */
   local: LocalServerStatus | null;
   /** Its addresses (`ownAddresses`). */
@@ -542,12 +606,11 @@ function Connect({
     e.preventDefault();
     if (address.trim()) void submit(address);
   };
-  const none = hintFor(t, t("desktop.connect.none"), t("desktop.connect.noneText"));
   const hereCount = found.filter((o) => o.where === "here").length;
 
   return (
     <>
-      <BackLink label={backLabel === "own" ? t("desktop.own.title") : t("desktop.own.back")} onClick={onBack} />
+      <BackLink label={t("desktop.place.title")} onClick={onBack} />
       <h1>{t("desktop.connect.title")}</h1>
       <p className="dk-lead">{t("desktop.connect.lead")}</p>
       <form className="dk-fr__form" onSubmit={onSubmit}>
@@ -657,15 +720,12 @@ function Connect({
           </span>
         </p>
       )}
-      {INSTALL_COMMAND_LIVE && (
-        <section className="dk-fr__none" aria-label={t("desktop.connect.none")}>
-          <span className="ac-hintline">
-            <h2>{t("desktop.connect.none")}</h2>
-            <InfoHint name={none.name}>{none.text}</InfoHint>
-          </span>
-          <CommandCopy command={INSTALL_COMMAND} />
-        </section>
-      )}
+      <p className="dk-help dk-fr__noneyet">
+        {t("desktop.connect.noneYet")}{" "}
+        <button type="button" className="ac-link dk-link" onClick={onInstall}>
+          {t("desktop.place.goBox")}
+        </button>
+      </p>
     </>
   );
 }
@@ -747,7 +807,7 @@ function RunHere({
   if (!status || answering === undefined) {
     return (
       <>
-        <BackLink label={t("desktop.own.title")} onClick={onBack} />
+        <BackLink label={t("desktop.place.title")} onClick={onBack} />
         <h1>{t("desktop.here.title")}</h1>
         <p className="dk-fr__looking" aria-live="polite">
           <PixelSpinner size={14} color="sky" />
@@ -760,7 +820,7 @@ function RunHere({
   if (view.kind === "running") {
     return (
       <>
-        <BackLink label={t("desktop.own.title")} onClick={onBack} />
+        <BackLink label={t("desktop.place.title")} onClick={onBack} />
         <h1>{t("desktop.here.running")}</h1>
         <p className="dk-lead">{t("desktop.here.runningText")}</p>
         <div className="dk-fr__end" data-near>
@@ -775,7 +835,7 @@ function RunHere({
   if (view.kind === "stopped") {
     return (
       <>
-        <BackLink label={t("desktop.own.title")} onClick={onBack} />
+        <BackLink label={t("desktop.place.title")} onClick={onBack} />
         <h1>{t("desktop.here.notRunning")}</h1>
         <p className="dk-lead">{t("desktop.here.notRunningText", { path: shortPath(status.dir) })}</p>
         <CommandCopy command={terminalStartCommand(status.dir)} />
@@ -800,7 +860,7 @@ function RunHere({
     };
     return (
       <>
-        <BackLink label={t("desktop.own.title")} onClick={onBack} />
+        <BackLink label={t("desktop.place.title")} onClick={onBack} />
         <h1>{t("desktop.here.already")}</h1>
         {/* From the terminal, or the Docker install answering on this computer: how it runs, never its address. */}
         <p className="dk-lead">
@@ -865,10 +925,14 @@ function RunHere({
   };
   return (
     <>
-      <BackLink label={t("desktop.own.title")} onClick={onBack} />
+      <BackLink label={t("desktop.place.title")} onClick={onBack} />
       <h1 className="dk-fr__h1sm">{t("desktop.here.title")}</h1>
       <p className="dk-lead dk-fr__wide">
-        {view.ask ? t("desktop.here.how") : t("desktop.here.again", { path: shortPath(status.dir) })}
+        {!view.ask
+          ? t("desktop.here.again", { path: shortPath(status.dir) })
+          : ownerless(status)
+            ? t("desktop.here.ownerNone")
+            : t("desktop.here.how")}
       </p>
       <form className="dk-fr__here" onSubmit={submit} noValidate>
         {view.ask && (
@@ -909,6 +973,17 @@ function RunHere({
             }
           />
         </div>
+        <p className="dk-fr__rest">
+          <Avatar
+            kind="agent"
+            name="agentes.chat"
+            appearance={{ color: "sky" }}
+            size="md"
+            framed={false}
+            state="sleeping"
+          />
+          <span>{t("desktop.here.rest")}</span>
+        </p>
         <div className="dk-fr__end">
           <Button type="submit" variant="primary" autoFocus={!view.ask}>
             {t("desktop.here.start")}
@@ -994,7 +1069,13 @@ function HereSetup({
   }, [end, onCancel, onContinue]);
   return (
     <div className="dk-fr__setup" ref={column}>
-      <ComputerPortrait kind={host.platform} state={failed ? "paused" : "online"} size={96} />
+      <div className="dk-fr__setupart">
+        {failed ? (
+          <ComputerPortrait kind={host.platform} state="paused" size={96} />
+        ) : (
+          <PlaceScene place="here" computer={host.platform} shape="band" />
+        )}
+      </div>
       <h1 ref={title} className="dk-fr__h1sm" tabIndex={-1}>
         {t("desktop.here.setting")}
       </h1>
@@ -1148,6 +1229,7 @@ function LinkSheet({
     body = (
       <>
         <p className="dk-fr__question">{t(`desktop.link.${view.question}`)}</p>
+        {view.question === "questionClaim" && <p className="dk-help">{t("desktop.link.claimLead")}</p>}
         {view.leave && (
           <p className="dk-help">
             {t("desktop.link.leave", {
@@ -1163,13 +1245,16 @@ function LinkSheet({
           {t("desktop.common.cancel")}
         </Button>
         <Button variant="primary" autoFocus onClick={() => onAccept(view.server, view.page)}>
-          {t(`desktop.link.${view.button}`)}
+          {view.button === "connect" ? t("desktop.link.open") : t(`desktop.link.${view.button}`)}
         </Button>
       </>
     );
   }
   return (
     <div className="dk-fr__sheet">
+      {view.kind === "ask" && view.question === "questionClaim" && (
+        <ComputerPortrait kind="linux" state="online" size={96} className="dk-fr__sheetart" />
+      )}
       {server && (
         <div className="dk-fr__server">
           <span className="dk-fr__host">{name}</span>

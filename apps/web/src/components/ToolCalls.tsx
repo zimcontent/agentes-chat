@@ -1,3 +1,4 @@
+import { formatBytes } from "@agenteschat/client/lib/files";
 import {
   isScreenTool,
   type LiveWork,
@@ -157,8 +158,19 @@ function blockLine(
    */
   simple = false,
 ) {
+  const lines = l.code ? l.code.source.split("\n").length : 0;
   const output = l.output ?? [];
-  const label = toolPhrase(t, l);
+  const label =
+    l.code && l.state === "done"
+      ? t("code.ranSummary", {
+          count: lines,
+          language: l.code.language,
+          size: formatBytes(
+            locale,
+            output.reduce((n, o) => n + new TextEncoder().encode(o.text).length, 0),
+          ),
+        })
+      : toolPhrase(t, l, locale);
   const why = toolWhy(t, l, personal);
   // What the tool answered, its own words when it failed: only in the open view, never under the line.
   const answered = l.result ?? why ?? l.why;

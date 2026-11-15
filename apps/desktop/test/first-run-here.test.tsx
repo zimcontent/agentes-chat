@@ -7,7 +7,6 @@ import { act } from "react";
 import { createRoot } from "react-dom/client";
 import { I18nextProvider } from "react-i18next";
 import { AppProvider } from "../src/app";
-import { ownServerScreen } from "../src/control/first-run";
 import type { Tailnet } from "../src/control/local-server";
 import { DesktopStore } from "../src/control/store";
 import { createFakeHost, type FakeHost, type HereOptions, type Scenario } from "../src/host/fake";
@@ -27,7 +26,7 @@ const USAGE_TEXT =
 async function firstRun(
   scenario: Scenario,
   check: (screen: ReturnType<typeof screenOf>) => Promise<void>,
-  options: { here?: HereOptions; lang?: AppLocale; host?: (host: FakeHost) => void; first?: boolean } = {},
+  options: { here?: HereOptions; lang?: AppLocale; host?: (host: FakeHost) => void } = {},
 ) {
   const host = createFakeHost("welcome", scenario, { here: options.here });
   options.host?.(host);
@@ -41,8 +40,6 @@ async function firstRun(
   };
   // Nothing else answers on this computer, and at once (the fake host waits like a network would).
   host.checkServer = async (server) => ({ ok: false, server, problem: "unreachable" });
-  // The first screen no longer leads to the own-server screens: they open directly, unless `first` is asked for.
-  const start = options.first ? undefined : ownServerScreen((await host.localServer()).bundled);
   const store = new DesktopStore(host, {});
   const stop = store.start();
   const el = document.body.appendChild(document.createElement("div"));
@@ -53,13 +50,13 @@ async function firstRun(
         <I18nextProvider i18n={createDesktopI18n(options.lang ?? "en", host.platform)}>
           <AppProvider host={host} store={store}>
             <ToastProvider>
-              <FirstRun start={start} />
+              <FirstRun />
             </ToastProvider>
           </AppProvider>
         </I18nextProvider>,
       ),
     );
-    // Whether this build runs agentes.chat here arrives from the host first.
+    // Whether this build runs DougBot here arrives from the host first.
     await act(() => new Promise((resolve) => setTimeout(resolve, 0)));
     await check(screenOf(el, opened, tailscale, host));
   } finally {
@@ -106,18 +103,26 @@ function switchRows(el: HTMLElement) {
 describe("Run DougBot on this Mac", () => {
   test("the title, one sentence, the two fields alone, two one-line switches with their ⓘ, and Start", () =>
     firstRun("first", async ({ el, press, until, button }) => {
-      await press("Run DougBot on this Mac");
+      await press("On this Mac");
+      await press("Get this Mac ready");
       // Tailscale connected: the reach row has nothing under its label.
       await until(() => el.querySelector("form.dk-fr__here") && switchRows(el)[0]?.line === null);
       const form = el.querySelector("form.dk-fr__here") as HTMLElement;
-      expect(el.querySelector("h1")?.textContent).toBe("Run DougBot on this Mac");
+      expect(el.querySelector("h1")?.textContent).toBe("Let's get this Mac ready");
       const lead = el.querySelector(".dk-lead")?.textContent ?? "";
-      expect(lead).toBe(
-        "It runs inside this app, with its own database built in, and keeps everything in one folder on this Mac.",
-      );
+      expect(lead).toBe("It takes a minute. Everything stays here, with you alone.");
       expect(lead).not.toContain("Docker");
-      // The two fields, the card of switches and Start: no notes under the card.
-      expect([...form.children].map((c) => c.className)).toEqual(["dk-fr__who", "dk-card", "dk-fr__end"]);
+      // The two fields, the card of switches, the sleeping agent's line and Start.
+      expect([...form.children].map((c) => c.className)).toEqual([
+        "dk-fr__who",
+        "dk-card",
+        "dk-fr__rest",
+        "dk-fr__end",
+      ]);
+      expect(form.querySelector(".dk-fr__rest")?.textContent).toBe(
+        "When you close the app, your agents rest. They're back as soon as you open it again.",
+      );
+      expect(form.querySelector(".dk-fr__rest .ac-avatar")).not.toBeNull();
       expect([...form.querySelectorAll(".ac-field label")].map((l) => l.textContent)).toEqual([
         "Your name",
         "Your email",
@@ -142,14 +147,15 @@ describe("Run DougBot on this Mac", () => {
       ]);
       expect(el.textContent).not.toContain("Your agents work here too");
       expect(el.textContent).not.toContain("Made for you or a small team");
-      expect(button("Start DougBot")?.getAttribute("type")).toBe("submit");
+      expect(button("Start")?.getAttribute("type")).toBe("submit");
     }));
 
   test("having run here before: where its data is, as the one sentence, and no fields", () =>
     firstRun(
       "here",
       async ({ el, press, until }) => {
-        await press("Run DougBot on this Mac");
+        await press("On this Mac");
+        await press("Get this Mac ready");
         await until(() => el.querySelector("form.dk-fr__here"));
         expect(el.querySelector(".dk-lead")?.textContent).toBe(
           "It ran here before, and its data is still in ~/.agentes.",
@@ -159,9 +165,83 @@ describe("Run DougBot on this Mac", () => {
       { here: { run: false } },
     ));
 
+  test("running with no account left: the window opens on the form, says so, and Start makes the new owner", () => {
+    const sent: unknown[] = [];
+    return firstRun(
+      "here",
+      async ({ el, press, until }) => {
+        await until(() => el.querySelector("form.dk-fr__here"));
+        expect(el.querySelector(".dk-lead")?.textContent).toBe(
+          "No account is left on it. Your name and email make you its new owner.",
+        );
+        const [name, email] = [...el.querySelectorAll(".dk-fr__who input")];
+        await act(async () => typeInto(name ?? null, "Carla Dias"));
+        await act(async () => typeInto(email ?? null, "carla@example.com"));
+        await press("Start");
+        await until(() => sent.length > 0);
+        expect(sent[0]).toMatchObject({ name: "Carla Dias", email: "carla@example.com" });
+      },
+      {
+        here: { owner: false, pace: 10 },
+        host: (host) => {
+          const install = host.installLocalServer;
+          host.installLocalServer = async (choice) => {
+            sent.push(choice);
+            return install(choice);
+          };
+        },
+      },
+    );
+  });
+
+  test("open already when the app finds no account left: shown again, it goes to the form", () => {
+    let gone = false;
+    let mode: "owner" | null = null;
+    return firstRun(
+      "here",
+      async ({ el, host, until }) => {
+        await until(() => el.querySelector(".dk-fr")?.getAttribute("data-screen") === "choose");
+        gone = true;
+        mode = "owner";
+        await act(async () => host.showWindow("welcome"));
+        await until(() => el.querySelector("form.dk-fr__here .dk-fr__who"));
+        expect(el.querySelector(".dk-lead")?.textContent).toStartWith("No account is left on it.");
+      },
+      {
+        host: (host) => {
+          const read = host.localServer;
+          host.localServer = async () => ({ ...(await read()), ...(gone ? { owner: false } : {}) });
+          host.welcomeMode = async () => {
+            const taken = mode;
+            mode = null;
+            return taken;
+          };
+        },
+      },
+    );
+  });
+
+  test("no account left, but opened for something else: the window starts where it always does", () =>
+    firstRun(
+      "here",
+      async ({ el, host, until }) => {
+        await until(() => el.querySelector(".dk-fr")?.getAttribute("data-screen") === "choose");
+        await act(async () => host.addWorkspace());
+        await act(() => new Promise((resolve) => setTimeout(resolve, 20)));
+        expect(el.querySelector(".dk-fr")?.getAttribute("data-screen")).toBe("choose");
+      },
+      {
+        host: (host) => {
+          const read = host.localServer;
+          host.localServer = async () => ({ ...(await read()), owner: false });
+        },
+      },
+    ));
+
   test("running here already: one sentence, never its address", () =>
     firstRun("here", async ({ el, press, until }) => {
-      await press("Run DougBot on this Mac");
+      await press("On this Mac");
+      await press("Get this Mac ready");
       await until(() => el.querySelector("h1")?.textContent === "DougBot already runs on this Mac");
       expect(el.querySelector(".dk-lead")?.textContent).toBe("This app runs it. Open it to sign in.");
     }));
@@ -170,7 +250,8 @@ describe("Run DougBot on this Mac", () => {
     await firstRun(
       "first",
       async ({ el, press, until, tailscale }) => {
-        await press("Run DougBot on this Mac");
+        await press("On this Mac");
+        await press("Get this Mac ready");
         await until(() => switchRows(el)[0]?.line?.startsWith("Needs"));
         const [reach] = switchRows(el);
         expect(reach?.line).toBe("Needs Tailscale, which is free. Get Tailscale");
@@ -184,7 +265,8 @@ describe("Run DougBot on this Mac", () => {
     await firstRun(
       "first",
       async ({ el, press, until, tailscale }) => {
-        await press("Run DougBot on this Mac");
+        await press("On this Mac");
+        await press("Get this Mac ready");
         await until(() => switchRows(el)[0]?.line?.startsWith("Tailscale"));
         expect(switchRows(el)[0]?.line).toBe("Tailscale isn't connected. Open Tailscale");
         await press("Open Tailscale");
@@ -195,7 +277,8 @@ describe("Run DougBot on this Mac", () => {
     await firstRun(
       "linux",
       async ({ el, press, until }) => {
-        await press("Run DougBot on this computer");
+        await press("On this computer");
+        await press("Get this computer ready");
         await until(() => switchRows(el)[0]?.line?.startsWith("Tailscale"));
         const row = el.querySelector(".dk-card > .dk-crow");
         expect(row?.querySelector("small")?.textContent?.trim()).toBe(
@@ -210,7 +293,8 @@ describe("Run DougBot on this Mac", () => {
     await firstRun(
       "first",
       async ({ el, press, until }) => {
-        await press("Run DougBot on this Mac");
+        await press("On this Mac");
+        await press("Get this Mac ready");
         await until(() => switchRows(el)[0]?.line?.startsWith("Tailscale"));
         const row = el.querySelector(".dk-card > .dk-crow");
         expect(row?.querySelector("small")?.textContent?.trim()).toBe(
@@ -229,7 +313,8 @@ describe("Run DougBot on this Mac", () => {
     await firstRun(
       "windows",
       async ({ el, press, until }) => {
-        await press("Run DougBot on this PC");
+        await press("On this PC");
+        await press("Get this PC ready");
         await until(() => switchRows(el)[0]?.line?.startsWith("Tailscale"));
         const line = el.querySelector(".dk-card > .dk-crow small");
         expect(line?.textContent).toBe("Tailscale isn't connected. Connect it from its icon by the clock.");
@@ -247,7 +332,8 @@ describe("Run here, while Tailscale is read", () => {
     await firstRun(
       "first",
       async ({ el, press, until }) => {
-        await press("Run DougBot on this Mac");
+        await press("On this Mac");
+        await press("Get this Mac ready");
         await until(() => el.querySelector("form.dk-fr__here"));
         expect(switchRows(el)[0]?.line).toBe("Checking whether Tailscale is connected…");
         expect(el.textContent).not.toContain("Needs Tailscale");
@@ -267,33 +353,37 @@ describe("Run here, while Tailscale is read", () => {
   });
 });
 
-describe("Connect this computer to DougBot", () => {
-  test("one title, one sentence, one button to DougBot's sign-in, and nothing about other servers or agentes.chat", () => {
+describe("Where will your workspace live?", () => {
+  test("the cloud chosen and recommended, this Mac and an always-on computer beside it; the drawing and the button follow the choice", () => {
     const chosen: (string | undefined)[] = [];
-    const servers: string[] = [];
     return firstRun(
       "first",
       async ({ el, press, button }) => {
-        expect(el.querySelector("h1")?.textContent).toBe("Connect this computer to DougBot");
-        expect(el.querySelector(".dk-lead")?.textContent).toBe(
-          "Sign in with your account and your agents show up here.",
-        );
-        expect(el.querySelector('[role="radio"]')).toBeNull();
-        expect(el.textContent).not.toContain("agentes.chat");
-        // No way to another server, nor to run one on this computer.
-        const labels = [...el.querySelectorAll("button")].map((b) => b.textContent);
-        expect(labels).toEqual(["Connect to DougBot"]);
-        expect(button("server")).toBeUndefined();
-        expect(button("this Mac")).toBeUndefined();
-        await press("Connect to DougBot");
-        expect(servers).toEqual(["https://dougbot.app"]);
+        expect(el.querySelector("h1")?.textContent).toBe("Where will your workspace live?");
+        const options = [...el.querySelectorAll<HTMLElement>('[role="radio"]')];
+        expect(options.map((c) => c.getAttribute("aria-checked"))).toEqual(["true", "false", "false"]);
+        // Recommended in words after the cloud's name, never a pill; nothing says "free" or "server".
+        expect(options[0]?.querySelector(".dk-choose__rec")?.textContent).toBe("Recommended");
+        expect(el.querySelector(".ac-chip")).toBeNull();
+        expect(el.textContent).not.toContain("Free");
+        expect(el.textContent).not.toContain("server");
+        const place = () => el.querySelector(".ac-place")?.getAttribute("data-place");
+        expect(place()).toBe("cloud");
+        await press("On this Mac");
+        expect(place()).toBe("here");
+        expect(el.querySelector(".ac-place canvas.ac-computer")?.getAttribute("data-kind")).toBe("mac");
+        expect(button("Get this Mac ready")).toBeDefined();
+        await press("On a computer that's always on");
+        expect(place()).toBe("box");
+        expect(el.querySelector(".ac-place canvas.ac-computer")?.getAttribute("data-kind")).toBe("linux");
+        expect(button("See how to install")).toBeDefined();
+        await press("In the DougBot cloud");
+        await press("Continue in the cloud");
         expect(chosen).toEqual(["/login"]);
       },
       {
-        first: true,
         host: (host) => {
-          host.chooseServer = async (server, page) => {
-            servers.push(server);
+          host.chooseServer = async (_server, page) => {
             chosen.push(page);
           };
           host.hideWindow = async () => {};
@@ -301,31 +391,64 @@ describe("Connect this computer to DougBot", () => {
       },
     );
   });
+
+  test("on Windows, this PC by its own words and drawing", () =>
+    firstRun("windows", async ({ el, press, button }) => {
+      await press("On this PC");
+      expect(el.querySelector(".ac-place canvas.ac-computer")?.getAttribute("data-kind")).toBe("windows");
+      expect(button("Get this PC ready")).toBeDefined();
+    }));
+
+  test("Have one already? signs in by its address, and back comes to the choice", () =>
+    firstRun("first", async ({ el, press }) => {
+      await press("Sign in by its address");
+      expect(el.querySelector("h1")?.textContent).toBe("Sign in to a workspace that already exists");
+      await press("Where will your workspace live?");
+      expect(el.querySelector("h1")?.textContent).toBe("Where will your workspace live?");
+    }));
 });
 
-describe("Your own server", () => {
-  test("Which one to choose? opens the page's answer in the browser, in the app's language", async () => {
-    await firstRun("first", async ({ el, press, button, opened }) => {
-      expect(el.querySelector("h1")?.textContent).toBe("Your own server");
-      expect(el.textContent).toContain("This Mac becomes the server, while it's on.");
-      expect(button("Which one to choose?")?.className).toBe("ac-link ac-link--muted dk-link");
-      await press("Which one to choose?");
-      expect(opened).toEqual(["https://agentes.chat/docs/run-on-your-computer#who"]);
-    });
-    await firstRun(
-      "first",
-      async ({ press, opened }) => {
-        await press("Qual escolher?");
-        expect(opened).toEqual(["https://agentes.chat/pt/docs/run-on-your-computer#who"]);
+describe("Install on a computer that's always on", () => {
+  test("two steps with the command, and the words to send to whoever installs it", async () => {
+    const copied: string[] = [];
+    const clipboard = Object.getOwnPropertyDescriptor(window.navigator, "clipboard");
+    Object.defineProperty(window.navigator, "clipboard", {
+      configurable: true,
+      value: {
+        writeText: async (text: string) => {
+          copied.push(text);
+        },
       },
-      { lang: "pt-BR" },
-    );
+    });
+    try {
+      await firstRun("first", async ({ el, press, until, button }) => {
+        await press("On a computer that's always on");
+        await press("See how to install");
+        expect(el.querySelector("h1")?.textContent).toBe("Install on a computer that's always on");
+        expect([...el.querySelectorAll(".dk-fr__ways > li b")].map((b) => b.textContent)).toEqual([
+          "On the computer that stays on, open the Terminal and paste this",
+          "At the end a link shows up. Open it here and that's it.",
+        ]);
+        expect(el.querySelector(".dk-fr__ways code")?.textContent).toBe("curl -fsSL https://agentes.chat/install | sh");
+        await press("Copy the instructions");
+        await until(() => button("Instructions copied"));
+        expect(copied).toHaveLength(1);
+        expect(copied[0]).toContain("curl -fsSL https://agentes.chat/install | sh");
+        expect(copied[0]).toContain("At the end a link shows up.");
+        await press("Sign in by its address");
+        expect(el.querySelector("h1")?.textContent).toBe("Sign in to a workspace that already exists");
+      });
+    } finally {
+      if (clipboard) Object.defineProperty(window.navigator, "clipboard", clipboard);
+      else delete (window.navigator as { clipboard?: unknown }).clipboard;
+    }
   });
 
-  test("on Windows it runs here too: the same card and its help", () =>
-    firstRun("windows", async ({ el, button }) => {
-      expect(el.textContent).toContain("This PC becomes the server, while it's on.");
-      expect(button("Which one to choose?")).toBeDefined();
+  test("Connect sends one who has none yet to the install", () =>
+    firstRun("first", async ({ el, press }) => {
+      await press("Sign in by its address");
+      await press("See how to install");
+      expect(el.querySelector("h1")?.textContent).toBe("Install on a computer that's always on");
     }));
 });
 
@@ -342,12 +465,10 @@ const pressEscape = () =>
 /** Run here's form with an email typed in, then Start (in the window's language). */
 async function startSetup(
   { el, press, until }: ReturnType<typeof screenOf>,
-  words = {
-    here: "Run DougBot on this Mac",
-    start: "Start DougBot",
-  },
+  words = { place: "On this Mac", go: "Get this Mac ready", start: "Start" },
 ) {
-  await press(words.here);
+  await press(words.place);
+  await press(words.go);
   await until(() => el.querySelector("form.dk-fr__here"));
   await act(async () => typeInto(el.querySelector('input[type="email"]'), "ana@example.com"));
   await press(words.start);
@@ -368,17 +489,22 @@ describe("Setting it up here", () => {
         await until(() => stepOf(el, "Creating your account")?.dataset.state === "active");
         const setup = el.querySelector(".dk-fr__setup") as HTMLElement;
         expect([...setup.children].map((c) => `${c.tagName.toLowerCase()}.${c.className}`)).toEqual([
-          "canvas.ac-computer",
+          "div.dk-fr__setupart",
           "h1.dk-fr__h1sm",
           "div.dk-fr__run",
         ]);
-        expect(setup.querySelector("canvas")?.dataset).toMatchObject({ kind: "mac", state: "online" });
+        // This computer on the sky, the team beside it.
+        expect(setup.querySelector(".ac-place")?.getAttribute("data-place")).toBe("here");
+        expect(setup.querySelector<HTMLCanvasElement>("canvas.ac-computer")?.dataset).toMatchObject({
+          kind: "mac",
+          state: "online",
+        });
         expect([...(setup.querySelector(".dk-fr__run") as HTMLElement).children].map((c) => c.className)).toEqual([
           "dk-fr__steps",
           "dk-bar",
           "dk-fr__runacts",
         ]);
-        expect(setup.querySelector("h1")?.textContent).toBe("Setting up DougBot on this Mac");
+        expect(setup.querySelector("h1")?.textContent).toBe("Getting everything ready");
         // Screen readers start where they are.
         expect(document.activeElement).toBe(setup.querySelector("h1"));
         expect(runButtons(el)).toEqual(["Cancel"]);
@@ -396,11 +522,11 @@ describe("Setting it up here", () => {
       async (screen) => {
         const { el, until } = screen;
         await startSetup(screen);
-        await until(() => stepOf(el, "Starting")?.dataset.state === "active");
+        await until(() => stepOf(el, "Turning DougBot on")?.dataset.state === "active");
         setSystemTime(new Date(Date.now() + 31_000));
         try {
-          await until(() => stepOf(el, "Starting")?.querySelector(".dk-fr__steptime"));
-          const step = stepOf(el, "Starting") as HTMLElement;
+          await until(() => stepOf(el, "Turning DougBot on")?.querySelector(".dk-fr__steptime"));
+          const step = stepOf(el, "Turning DougBot on") as HTMLElement;
           expect(step.querySelector(".dk-fr__steptime")?.textContent).toBe("0:31");
           expect(step.querySelector(".dk-fr__steptime")?.getAttribute("aria-hidden")).toBe("true");
           expect(step.querySelector(".dk-fr__stepline")?.textContent).toBe(
@@ -419,13 +545,13 @@ describe("Setting it up here", () => {
     expect(css.split("\n.dk-fr__setup > :first-child {")[1]?.split("}")[0]).toContain(
       "margin-top: var(--dk-setup-lead, auto);",
     );
-    // The room above the computer as the browser lays it out: the auto margin while the block is centred, or the
+    // The room above the drawing as the browser lays it out: the auto margin while the block is centred, or the
     // room pinned on the block.
     let room = 94;
     const g = globalThis as { getComputedStyle: typeof getComputedStyle };
     const real = g.getComputedStyle;
     g.getComputedStyle = (el: Element, pseudo?: string | null) =>
-      el instanceof HTMLElement && el.classList.contains("ac-computer")
+      el instanceof HTMLElement && el.classList.contains("dk-fr__setupart")
         ? ({
             marginTop: el.parentElement?.style.getPropertyValue("--dk-setup-lead") || `${room}px`,
           } as CSSStyleDeclaration)
@@ -436,7 +562,7 @@ describe("Setting it up here", () => {
         async (screen) => {
           const { el, until } = screen;
           await startSetup(screen);
-          await until(() => stepOf(el, "Starting")?.dataset.state === "active");
+          await until(() => stepOf(el, "Turning DougBot on")?.dataset.state === "active");
           const lead = () =>
             (el.querySelector(".dk-fr__setup") as HTMLElement).style.getPropertyValue("--dk-setup-lead");
           expect(lead()).toBe("94px");
@@ -444,7 +570,7 @@ describe("Setting it up here", () => {
           room = 82.6;
           setSystemTime(new Date(Date.now() + 31_000));
           try {
-            await until(() => stepOf(el, "Starting")?.querySelector(".dk-fr__stepline"));
+            await until(() => stepOf(el, "Turning DougBot on")?.querySelector(".dk-fr__stepline"));
             expect(lead()).toBe("94px");
           } finally {
             setSystemTime();
@@ -461,7 +587,7 @@ describe("Setting it up here", () => {
     const g = globalThis as { getComputedStyle: typeof getComputedStyle; ResizeObserver: unknown };
     const real = { style: g.getComputedStyle, observer: g.ResizeObserver };
     g.getComputedStyle = (el: Element, pseudo?: string | null) =>
-      el instanceof HTMLElement && el.classList.contains("ac-computer")
+      el instanceof HTMLElement && el.classList.contains("dk-fr__setupart")
         ? ({ marginTop: "94px" } as CSSStyleDeclaration)
         : real.style(el, pseudo);
     // What the browser reports as the steps, the bar and the buttons grow or shrink.
@@ -482,11 +608,12 @@ describe("Setting it up here", () => {
         "first",
         async (screen) => {
           const { el, until, button, press } = screen;
-          await press("Run DougBot on this Mac");
+          await press("On this Mac");
+          await press("Get this Mac ready");
           await until(() => el.querySelector("#here-reach:not([disabled])"));
           await act(async () => typeInto(el.querySelector('input[type="email"]'), "ana@example.com"));
           await act(async () => (el.querySelector("#here-reach") as HTMLElement).click());
-          await press("Start DougBot");
+          await press("Start");
           await until(() => el.querySelector(".dk-fr__setup"));
           const setup = el.querySelector(".dk-fr__setup") as HTMLElement;
           const lead = () => Number.parseFloat(setup.style.getPropertyValue("--dk-setup-lead"));
@@ -505,7 +632,7 @@ describe("Setting it up here", () => {
           expect(words).toContain("Give that permission once, in the terminal:");
           // The step first, then where to try again: under the command, last.
           expect(words.indexOf("sudo tailscale set --operator=$USER")).toBeGreaterThan(words.indexOf("terminal:"));
-          expect(words.endsWith("Copy Try again in Preferences\u00a0›\u00a0Servers.")).toBe(true);
+          expect(words.endsWith("Copy Try again in Preferences")).toBe(true);
           expect(setup.querySelector(".dk-fr__cmd + .dk-fr__retry")).not.toBeNull();
           // Tailscale's words and their command, 60 px more than the window shows: the room above gives those 60.
           rest = 512;
@@ -536,19 +663,24 @@ describe("Setting it up here", () => {
       await firstRun(
         "first",
         async ({ el, until, button, press }) => {
-          await press("Run DougBot on this Mac");
+          await press("On this Mac");
+          await press("Get this Mac ready");
           await until(() => el.querySelector("#here-reach:not([disabled])"));
           await act(async () => typeInto(el.querySelector('input[type="email"]'), "ana@example.com"));
           await act(async () => (el.querySelector("#here-reach") as HTMLElement).click());
-          await press("Start DougBot");
+          await press("Start");
           await until(() => button("Continue"));
           const problem = el.querySelector(".dk-fr__problem") as HTMLElement;
           expect({ reason, words: problem.textContent }).toEqual({
             reason,
-            words: expect.stringContaining(`${fix} Try again in Preferences › Servers.`),
+            words: expect.stringContaining(`${fix} Try again in Preferences`),
           });
           // Last: nothing follows it in the problem's words.
-          expect(problem.querySelector(".dk-fr__retry")?.nextSibling).toBeNull();
+          const retry = problem.querySelector(".dk-fr__retry") as HTMLButtonElement;
+          expect(retry.nextSibling).toBeNull();
+          // It opens Preferences on Servers, where reach is turned on again.
+          await act(async () => retry.click());
+          expect(localStorage.getItem("agentes.desktop.prefsTab")).toBe('"servers"');
         },
         { here: { fail: "reach", reason, pace: 10 } },
       );
@@ -562,12 +694,13 @@ describe("Setting it up here", () => {
       async (screen) => {
         const { el, until, button, press } = screen;
         const switchOn = (id: string) => el.querySelector(`#${id}`)?.getAttribute("aria-checked");
-        await press("Run DougBot on this Mac");
+        await press("On this Mac");
+        await press("Get this Mac ready");
         await until(() => el.querySelector("#here-reach:not([disabled])"));
         await act(async () => typeInto(el.querySelector('input[type="email"]'), "ana@example.com"));
         await act(async () => (el.querySelector("#here-reach") as HTMLElement).click());
         await act(async () => (el.querySelector("#here-usage") as HTMLElement).click());
-        await press("Start DougBot");
+        await press("Start");
         await until(() => stepOf(el, "Creating your account")?.dataset.state === "active");
         await press("Cancel");
         expect(cancels).toBe(1);
@@ -626,7 +759,7 @@ describe("Setting it up here", () => {
         const { el, until, button, press } = screen;
         await startSetup(screen);
         await until(() => button("Try again"));
-        const step = stepOf(el, "Starting") as HTMLElement;
+        const step = stepOf(el, "Turning DougBot on") as HTMLElement;
         expect(step.dataset.state).toBe("failed");
         expect(step.querySelector(".dk-honest")?.textContent).toBe("DougBot didn't start on this Mac. Copy details");
         expect(runButtons(el)).toEqual(["Cancel", "Try again"]);
@@ -699,14 +832,11 @@ describe("Setting it up here", () => {
       "windows",
       async (screen) => {
         const { el, until } = screen;
-        await startSetup(screen, {
-          here: "Run DougBot on this PC",
-          start: "Start DougBot",
-        });
+        await startSetup(screen, { place: "On this PC", go: "Get this PC ready", start: "Start" });
         await until(() => stepOf(el, "Creating your account")?.dataset.state === "active");
-        expect(el.querySelector(".dk-fr__setup canvas")?.getAttribute("data-kind")).toBe("windows");
-        expect(el.querySelector(".dk-fr__setup h1")?.textContent).toBe("Setting up DougBot on this PC");
-        expect(stepOf(el, "Getting this PC ready for your agents")?.dataset.state).toBe("todo");
+        expect(el.querySelector(".dk-fr__setup canvas.ac-computer")?.getAttribute("data-kind")).toBe("windows");
+        expect(el.querySelector(".dk-fr__setup h1")?.textContent).toBe("Getting everything ready");
+        expect(stepOf(el, "Calling your agents")?.dataset.state).toBe("todo");
       },
       { here: { hold: "account", pace: 10 } },
     );
@@ -714,12 +844,9 @@ describe("Setting it up here", () => {
       "first",
       async (screen) => {
         const { el, until } = screen;
-        await startSetup(screen, {
-          here: "Rodar o DougBot neste Mac",
-          start: "Iniciar o DougBot",
-        });
+        await startSetup(screen, { place: "Neste Mac", go: "Preparar este Mac", start: "Começar" });
         await until(() => stepOf(el, "Criando a sua conta")?.dataset.state === "active");
-        expect(el.querySelector(".dk-fr__setup h1")?.textContent).toBe("Preparando o DougBot neste Mac");
+        expect(el.querySelector(".dk-fr__setup h1")?.textContent).toBe("Preparando tudo");
         expect(runButtons(el)).toEqual(["Cancelar"]);
       },
       { here: { hold: "account", pace: 10 }, lang: "pt-BR" },
@@ -744,12 +871,12 @@ describe("Add a workspace", () => {
       "first",
       async ({ press, until, button }) => {
         await until(() => button("Want a new workspace?") || button("Create one"));
-        await press("Connect to DougBot");
+        await press("Continue in the cloud");
         await press("Create one");
         expect(chosen).toEqual(["/login", "/onboarding"]);
         expect(button("Create an account")).toBeUndefined();
       },
-      { host: adding(false, chosen), first: true },
+      { host: adding(false, chosen) },
     );
   });
 
@@ -763,7 +890,7 @@ describe("Add a workspace", () => {
         await press("Create a workspace on DougBot");
         expect(chosen).toEqual(["/onboarding"]);
       },
-      { host: adding(true, chosen), first: true },
+      { host: adding(true, chosen) },
     );
   });
 });

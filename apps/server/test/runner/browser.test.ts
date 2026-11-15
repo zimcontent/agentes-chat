@@ -7,6 +7,7 @@ import {
   readFileSync,
   renameSync,
   statSync,
+  symlinkSync,
   writeFileSync,
 } from "node:fs";
 import { createServer } from "node:net";
@@ -1430,7 +1431,15 @@ function fakeDevtools(down: number[], answer: (reply: () => void) => void = (rep
   });
   const crash = (n: number) =>
     sockets[n]?.send(JSON.stringify({ method: "Inspector.targetCrashed", params: {}, sessionId: `page-${n}` }));
-  return { port: server.port as number, asked, navigated, crash, closing, stop: () => server.stop(true) };
+  /** Connection `n` hears of one more tab (`openerId`: another page opened it). */
+  const attach = (n: number, targetInfo: { targetId: string; openerId?: string; canAccessOpener?: boolean }) =>
+    sockets[n]?.send(
+      JSON.stringify({
+        method: "Target.attachedToTarget",
+        params: { sessionId: `s-${targetInfo.targetId}`, targetInfo: { type: "page", ...targetInfo } },
+      }),
+    );
+  return { port: server.port as number, asked, navigated, crash, attach, closing, stop: () => server.stop(true) };
 }
 
 /** Fake Chromes whose endpoint is `devtools`, one connection each: `Browser.close` on it closes that Chrome. */
@@ -1543,7 +1552,7 @@ test.if(posix)(
     const devtools = fakeDevtools([]);
     try {
       const logs: string[] = [];
-      const t = setup({ startChrome: chromesAt(devtools).start, log: (l) => logs.push(l) });
+      const t = setup({ startChrome: chromesAt(devtools).start, log: (l) => logs.push(l), locale: () => "de" });
       await t.act("open", ["https://heavy.example/"]);
       await waitFor(() => devtools.asked.includes("Network.enable page-0"));
       devtools.crash(0);
@@ -1568,7 +1577,8 @@ test.if(posix)(
       await waitFor(() => devtools.navigated.length === 2);
       devtools.crash(0);
       await waitFor(() => devtools.navigated.length === 3);
-      expect(devtools.navigated[2]).toBe(crashPage(false));
+      // Our notice is in the language of the agent's person.
+      expect(devtools.navigated[2]).toBe(crashPage(false, "de"));
       expect(devtools.asked.filter((a) => a === "Page.getNavigationHistory page-0")).toHaveLength(2);
       // Our notice died too (a page that can't start there at all): Chrome's own page stays, nothing opens again.
       devtools.crash(0);
@@ -1582,12 +1592,20 @@ test.if(posix)(
       expect(await t.act("click", ["@e1"])).toMatchObject({ success: true });
       expect(devtools.navigated).toHaveLength(3);
       expect(devtools.asked.filter((a) => a === "Page.getNavigationHistory page-0")).toHaveLength(2);
-      // Our notice, in both languages, in the app's look.
-      const notice = decodeURIComponent(crashPage(true).slice("data:text/html;charset=utf-8,".length));
-      expect(notice).toContain("<title>A página ficou sem memória</title>");
-      expect(notice).toContain("The page ran out of memory");
-      expect(notice).toContain("background:#fbfbfa");
-      expect(decodeURIComponent(crashPage(false))).toContain("The page stopped working");
+      // Our notice, in the app's look and in one language only: the person's, English when it isn't one of the app's.
+      const notice = (memory: boolean, tag?: string) =>
+        decodeURIComponent(crashPage(memory, tag).slice("data:text/html;charset=utf-8,".length));
+      expect(notice(true, "pt-BR")).toContain('<html lang="pt-BR">');
+      expect(notice(true, "pt-BR")).toContain("<title>A página ficou sem memória</title>");
+      expect(notice(true, "pt-BR")).not.toContain("The page");
+      expect(notice(false, "de")).toContain(
+        "<h1>Die Seite funktioniert nicht mehr</h1><p>Der Agent wird benachrichtigt.</p>",
+      );
+      expect(notice(false, "de")).not.toContain("The page");
+      expect(notice(true, "xx")).toContain('<html lang="en">');
+      expect(notice(true)).toContain("<title>The page ran out of memory</title>");
+      expect(notice(true)).not.toContain("página");
+      expect(notice(true)).toContain("background:#fbfbfa");
     } finally {
       devtools.stop();
     }
@@ -3732,6 +3750,254 @@ test.if(posix)(
       expect(recorded.map((c) => c.pid)).not.toContain(leftover.pid);
     } finally {
       leftover.kill("SIGKILL");
+    }
+  },
+);
+
+test.if(posix)(
+  "a leftover recorded with its start time is stopped only while that pid still started then (Windows reuses pids)",
+  async () => {
+    const ours = Bun.spawn(["sleep", "60"]);
+    const reused = Bun.spawn(["sleep", "60"]);
+    const gone = (p: typeof ours) => p.exitCode !== null || p.signalCode !== null;
+    try {
+      const started = new Map([
+        [ours.pid, 1_700_000_000_000],
+        [reused.pid, 1_700_000_999_000],
+      ]);
+      const t = setup({ isOurChrome: undefined, startedAt: async (pid) => started.get(pid) ?? 1_700_000_500_000 });
+      mkdirSync(path.join(t.home, "browser"), { recursive: true });
+      writeFileSync(
+        path.join(t.home, "browser", "chromes.json"),
+        JSON.stringify([
+          { pid: ours.pid, profile: "/x/.agentes/browser", started: 1_700_000_000_000 },
+          // A person's own Chrome took this pid after ours closed.
+          { pid: reused.pid, profile: "/y/.agentes/browser", started: 1_700_000_000_000 },
+        ]),
+      );
+      await t.manager.closeAll();
+      await ours.exited;
+      expect(gone(ours)).toBe(true);
+      expect(gone(reused)).toBe(false);
+      expect(JSON.parse(readFileSync(path.join(t.home, "browser", "chromes.json"), "utf8"))).toEqual([]);
+
+      // A Chrome it starts is recorded with its start time.
+      await t.act("open", ["https://shop.example.com"]);
+      expect(JSON.parse(readFileSync(path.join(t.home, "browser", "chromes.json"), "utf8"))).toEqual([
+        { pid: 40_001, profile: path.join(await t.folder(), ".agentes", "browser"), started: 1_700_000_500_000 },
+      ]);
+    } finally {
+      ours.kill("SIGKILL");
+      reused.kill("SIGKILL");
+    }
+  },
+);
+
+test.if(posix)(
+  "a start stops a Chrome the profile's lock names even when chromes.json never listed it, and starts again after a handoff",
+  async () => {
+    const leftover = Bun.spawn(["sleep", "60"]);
+    const gone = () => leftover.exitCode !== null || leftover.signalCode !== null;
+    try {
+      const chromes = fakeChromes();
+      const leftoverAtStart: boolean[] = [];
+      const t = setup({
+        isOurChrome: async (pid) => pid === leftover.pid && !gone(),
+        startChrome: (exe, args, profile) => {
+          leftoverAtStart.push(!gone());
+          return chromes.start(exe, args, profile);
+        },
+      });
+      const profile = path.join(await t.folder(), ".agentes", "browser");
+      mkdirSync(profile, { recursive: true });
+      // As Chrome links it: `<host>-<pid>`. Nothing in chromes.json.
+      symlinkSync(`computer-${leftover.pid}`, path.join(profile, "SingletonLock"));
+
+      expect(await t.act("open", ["https://shop.example.com"])).toMatchObject({ success: true });
+      expect(leftoverAtStart).toEqual([false]);
+      expect(chromes.started.map((c) => c.tabs)).toEqual([[expect.stringMatching(/\/agentes-start\.html$/)]]);
+    } finally {
+      leftover.kill("SIGKILL");
+    }
+
+    // A Chrome takes the profile between the lock's removal and the start: the new process hands it its start page
+    // and exits. That Chrome stops and the start runs once more.
+    const late = Bun.spawn(["sleep", "60"]);
+    const lateGone = () => late.exitCode !== null || late.signalCode !== null;
+    try {
+      const chromes = fakeChromes();
+      const logs: string[] = [];
+      let tries = 0;
+      const t = setup({
+        log: (l) => logs.push(l),
+        isOurChrome: async (pid) => pid === late.pid && !lateGone(),
+        startChrome: async (exe, args, profile) => {
+          if (tries++ === 0) {
+            symlinkSync(`computer-${late.pid}`, path.join(profile, "SingletonLock"));
+            throw new ChromeStartError("Chrome closed while starting", "");
+          }
+          return chromes.start(exe, args, profile);
+        },
+      });
+      expect(await t.act("open", ["https://shop.example.com"])).toMatchObject({ success: true });
+      expect(tries).toBe(2);
+      await waitFor(lateGone);
+      expect(logs.some((l) => l.includes("another Chrome on its profile took its start"))).toBe(true);
+    } finally {
+      late.kill("SIGKILL");
+    }
+  },
+);
+
+/** Chrome's `/json` endpoint for `targets` (most recently active first): `close/<id>` closes one. */
+function jsonTargets(targets: { id: string; url: string; title?: string }[]) {
+  const closed: string[] = [];
+  const fetch = (async (url: string) => {
+    if (url.endsWith("/json/list")) {
+      return new Response(
+        JSON.stringify(targets.filter((t) => !closed.includes(t.id)).map((t) => ({ type: "page", ...t }))),
+      );
+    }
+    const id = /\/json\/close\/(.+)$/.exec(url)?.[1];
+    if (id) closed.push(decodeURIComponent(id));
+    return new Response("Target is closing");
+  }) as unknown as typeof globalThis.fetch;
+  return { targets, closed, fetch };
+}
+
+test.if(posix)(
+  "the agent's tabs: empty ones close, past 8 the oldest closes, the agent is told; its own tab and popups stay",
+  async () => {
+    const devtools = fakeDevtools([]);
+    try {
+      const old = Array.from({ length: 8 }, (_, i) => ({
+        id: `T${i}`,
+        url: `https://site${i}.example/`,
+        title: `Site ${i}`,
+      }));
+      const json = jsonTargets([{ id: "CUR", url: "https://shop.example.com/", title: "Shop" }]);
+      const t = setup({ startChrome: chromesAt(devtools).start, fetch: json.fetch });
+      const first = await t.act("open", ["https://shop.example.com/"]);
+      expect(first.tabs).toEqual({ count: 1, open: [{ title: "Shop", host: "shop.example.com", current: true }] });
+      // A sign-in window another page opened: never closed, oldest as it is.
+      devtools.attach(0, { targetId: "POPUP", openerId: "CUR", canAccessOpener: true });
+      // A link's new tab names its opener but can't reach it: not a popup.
+      devtools.attach(0, { targetId: "LINK", openerId: "CUR", canAccessOpener: false });
+      await Bun.sleep(50);
+      json.targets.push(
+        { id: "BLANK", url: "about:blank" },
+        { id: "NEW", url: "chrome://newtab/", title: "New Tab" },
+        ...old,
+        { id: "LINK", url: "https://link.example/", title: "Link" },
+        { id: "POPUP", url: "https://accounts.example.com/signin", title: "Sign in" },
+      );
+      // A tab command acts on the numbers the agent was given: nothing closes, its tabs are only listed.
+      expect((await t.act("tab", [])).tabs).toMatchObject({ count: 13 });
+      expect(json.closed).toEqual([]);
+      const answer = await t.act("snapshot");
+      expect(json.closed).toEqual(["BLANK", "NEW", "T6", "T7", "LINK"]);
+      expect(answer.tabs).toMatchObject({
+        count: 8,
+        closed: ["blank", "blank", "site6.example", "site7.example", "link.example"],
+      });
+      expect(answer.tabs?.open[0]).toEqual({ title: "Shop", host: "shop.example.com", current: true });
+      expect(answer.tabs?.open.at(-1)).toEqual({ title: "Sign in", host: "accounts.example.com" });
+      // Tidy now: nothing more closes, and nothing more is told.
+      const next = await t.act("snapshot");
+      expect(next.tabs).toMatchObject({ count: 8 });
+      expect(next.tabs).not.toHaveProperty("closed");
+    } finally {
+      devtools.stop();
+    }
+  },
+);
+
+test.if(posix)(
+  "a Chrome the profile's lock names is judged by its recorded start time: a reused pid is not stopped",
+  async () => {
+    let reusedPid = 0;
+    const t = setup({
+      isOurChrome: undefined,
+      startedAt: async (pid) => (pid === reusedPid ? 1_700_000_999_000 : 1_700_000_500_000),
+    });
+    const profile = path.join(await t.folder(), ".agentes", "browser");
+    // Its command line names the profile, so only the recorded start time tells it is not ours.
+    const reused = Bun.spawn([process.execPath, "-e", "setTimeout(() => {}, 60_000)", `--user-data-dir=${profile}`]);
+    reusedPid = reused.pid;
+    const gone = () => reused.exitCode !== null || reused.signalCode !== null;
+    try {
+      mkdirSync(profile, { recursive: true });
+      symlinkSync(`computer-${reused.pid}`, path.join(profile, "SingletonLock"));
+      mkdirSync(path.join(t.home, "browser"), { recursive: true });
+      writeFileSync(
+        path.join(t.home, "browser", "chromes.json"),
+        JSON.stringify([{ pid: reused.pid, profile, started: 1_700_000_000_000 }]),
+      );
+      expect(await t.act("open", ["https://shop.example.com"])).toMatchObject({ success: true });
+      await Bun.sleep(600);
+      expect(gone()).toBe(false);
+    } finally {
+      reused.kill("SIGKILL");
+    }
+  },
+);
+
+test.if(posix)(
+  "a live view on a browser that didn't answer says so, not that the browser is closed",
+  async () => {
+    const t = setup();
+    await t.act("open", ["https://shop.example.com"]);
+    t.page({ delayMs: 20_000 });
+    expect(await t.manager.streamStart(dev, "watch").catch((e: unknown) => e)).toMatchObject({
+      code: "browser_unavailable",
+      message: expect.stringMatching(/^The browser didn't answer/),
+    });
+  },
+  30_000,
+);
+
+test.if(posix)(
+  "no tab closes during a person's turn, theirs never do after, and a kept browser left idle loses only copies and empty tabs",
+  async () => {
+    const devtools = fakeDevtools([]);
+    let clock = Date.now();
+    try {
+      const json = jsonTargets([
+        { id: "CUR", url: "https://shop.example.com/" },
+        { id: "MINE", url: "about:blank" },
+        { id: "DUP", url: "https://site.example/" },
+        { id: "DUP2", url: "https://site.example/" },
+        { id: "OTHER", url: "https://other.example/" },
+      ]);
+      const t = setup({
+        startChrome: chromesAt(devtools).start,
+        fetch: json.fetch,
+        kept: () => true,
+        now: () => clock,
+      });
+      t.manager.setHandoff(dev.id, { status: "active" });
+      expect(await t.act("open", ["https://shop.example.com/"])).toMatchObject({ success: true });
+      devtools.attach(0, { targetId: "MINE" });
+      await Bun.sleep(50);
+      expect((await t.act("snapshot")).tabs).toMatchObject({ count: 5 });
+      expect(json.closed).toEqual([]);
+      t.manager.setHandoff(dev.id, null);
+      // Under 8 and nothing empty but the person's own tab: nothing closes.
+      await t.act("snapshot");
+      expect(json.closed).toEqual([]);
+
+      clock += 11 * 60_000;
+      await t.manager.sweep();
+      await waitFor(() => json.closed.length > 0);
+      await Bun.sleep(50);
+      expect(json.closed).toEqual(["DUP2"]);
+      // Once per idle spell.
+      await t.manager.sweep();
+      await Bun.sleep(50);
+      expect(json.closed).toEqual(["DUP2"]);
+      expect((await t.act("snapshot")).tabs).toMatchObject({ count: 4, closed: ["site.example"] });
+    } finally {
+      devtools.stop();
     }
   },
 );
