@@ -155,3 +155,7 @@ A notice for a run whose work ended and had its own thread (`deliverNoticeToRun`
 - **An unnamed work** (the cheap model couldn't name it) still waits for a name: its check-ins and the 15-minute `card` check name it and make the card, so a failed naming isn't asked again at the move.
 - **`card`** no longer decides anything: the tool keeps it in its schema so a call that still sends it isn't refused, and its description says every work goes on the board.
 - Tests: `works.test.ts` ("every named work is a task from its move").
+
+## Addendum 2026-11-15: the safety net doesn't give up on a wait
+
+A computer brain's turn can hold a person's wait inside it (a secret pasted, an approval): the attempt stays claimed, so `activeMs` keeps counting, and the safety net came due while the run was `waiting_input`. It then cleared its timer and never looked again in that attempt, so a person's ask stayed out of the background (and off the Tasks board) for as long as the wait lasted, 21 minutes in one case. Now a wait leaves the timer running: the net moves the run as soon as it runs again. A run that is no longer eligible or has ended still stops the timer. Tests: `works.test.ts` ("the safety net that comes due while the run waits on a person").

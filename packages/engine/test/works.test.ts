@@ -424,6 +424,43 @@ test("the safety net: a slow tool past the time moves the run by itself, and the
   expect(report?.threadId).toBeNull();
 });
 
+test("the safety net that comes due while the run waits on a person moves it once it runs again", async () => {
+  const waits: ToolSource = {
+    name: "waits",
+    tools: async () => [
+      {
+        name: "ask_key",
+        description: "Waits for a key a person pastes, inside the turn",
+        scope: "context:read",
+        inputSchema: { type: "object", properties: {} },
+        execute: async (_input, ctx) => {
+          const set = (status: "waiting_input" | "running") =>
+            f.db
+              .update(schema.agentRuns)
+              .set({ status })
+              .where(eq(schema.agentRuns.id, ctx.runId as string));
+          await set("waiting_input");
+          await Bun.sleep(300);
+          await set("running");
+          await Bun.sleep(200);
+          return { content: "key saved" };
+        },
+      },
+    ],
+  };
+  f = await setup({
+    workTools: true,
+    toolSources: [waits],
+    workAuto: { afterMs: 100, tickMs: 20 },
+    reply: (_req, call) =>
+      call === 1 ? { chunks: [], toolUses: [{ name: "ask_key", input: {} }] } : { chunks: ["Configurado."] },
+  });
+  await ask("@dev configura a chave");
+  await drainOutbox(f.db, f.handlers);
+  const [work] = await works();
+  expect(work).toMatchObject({ how: "auto", status: "done" });
+});
+
 test("the safety net counts calls too", async () => {
   const quick: ToolSource = {
     name: "quick",
