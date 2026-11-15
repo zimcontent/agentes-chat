@@ -29,6 +29,16 @@
         "buildType": "apk"
       }
     },
+    "apk": {
+      "extends": "base",
+      "autoIncrement": true,
+      "env": {
+        "APP_VARIANT": "production"
+      },
+      "android": {
+        "buildType": "apk"
+      }
+    },
     "production": {
       "extends": "base",
       "autoIncrement": true,
