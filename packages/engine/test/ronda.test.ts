@@ -107,6 +107,26 @@ test("worth a run: the agent works in the background on what changed, read as da
   expect(seen).toContain("o checkout do site caiu de novo");
 });
 
+test("the ronda's own model: its run thinks with it on the workspace's key, the agent's other runs keep theirs", async () => {
+  const requests: ModelRequest[] = [];
+  f = await setup({
+    reply: (req) => {
+      requests.push(req);
+      return { chunks: ["Conferi."] };
+    },
+  });
+  await expect(setRonda(deps(), f.owner.id, f.org.id, f.agent.id, "daily", "UTC", "no-such-model")).rejects.toThrow();
+  const on = await setRonda(deps(), f.owner.id, f.org.id, f.agent.id, "daily", "UTC", "claude-haiku-5-5");
+  expect(on.model).toBe("claude-haiku-5-5");
+  // Changing when it passes keeps the model; null goes back to the agent's own AI.
+  expect((await setRonda(deps(), f.owner.id, f.org.id, f.agent.id, "hourly", "UTC")).model).toBe("claude-haiku-5-5");
+  await fire(f, on.routineId ?? "", new Date(), "manual");
+  await drainOutbox(f.db, f.handlers);
+  expect(requests.map((r) => r.model)).toContain("claude-haiku-5-5");
+  expect(requests.map((r) => r.model)).not.toContain("claude-sonnet-5-5");
+  expect((await setRonda(deps(), f.owner.id, f.org.id, f.agent.id, "hourly", "UTC", null)).model).toBeNull();
+});
+
 test("a person's Run now runs even with nothing new, without asking the judge", async () => {
   f = await setup();
   const { routineId } = await setRonda(deps(), f.owner.id, f.org.id, f.agent.id, "daily", "UTC");

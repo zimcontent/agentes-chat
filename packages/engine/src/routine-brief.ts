@@ -56,6 +56,11 @@ export interface RoutineBrief {
    * the work up (`rightHandWorkAi`); null: the workspace's, for nobody. Absent: nothing picked.
    */
   aiUserId?: string | null;
+  /**
+   * A ronda's own model (ADR 9004 §5): its run thinks with this API model, on the workspace's key of its provider,
+   * in place of the agent's brain. Absent: the agent's own.
+   */
+  model?: string;
 }
 
 /** The brief of a message's meta (`meta.routineBrief`), when well formed; null for any other message. */
@@ -78,6 +83,7 @@ export function routineBriefOf(meta: Record<string, unknown> | null | undefined)
     dueAt: typeof b.dueAt === "string" ? b.dueAt : "",
     ...widgetOf(b.widget),
     ...(typeof b.aiUserId === "string" || b.aiUserId === null ? { aiUserId: b.aiUserId } : {}),
+    ...(typeof b.model === "string" && b.model ? { model: b.model } : {}),
   };
 }
 

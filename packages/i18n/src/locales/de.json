@@ -3451,7 +3451,10 @@
     "silent": "hat geschaut, nichts zu sagen",
     "running": "läuft gerade",
     "runNow": "Jetzt einen Rundgang machen",
-    "failed": "Der Rundgang ließ sich nicht ändern"
+    "failed": "Der Rundgang ließ sich nicht ändern",
+    "model": "Wer beim Rundgang denkt",
+    "modelHelp": "Der Rundgang kann mit einem günstigeren Modell als dem des Agenten arbeiten, über den Schlüssel des Workspace. Sehen, was sich geändert hat, und entscheiden, ob sich Handeln lohnt, nutzen keins von beiden: Das hier gewählte kommt nur dazu, wenn der Rundgang arbeitet.",
+    "modelAgent": "Die eigene KI des Agenten"
   },
   "brakes": {
     "title": "Arbeit, um die niemand gebeten hat",

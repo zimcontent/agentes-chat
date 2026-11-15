@@ -3687,7 +3687,10 @@
     "silent": "sprawdził, nie miał nic do przekazania",
     "running": "trwa",
     "runNow": "Zrób obchód teraz",
-    "failed": "Nie udało się zmienić obchodu"
+    "failed": "Nie udało się zmienić obchodu",
+    "model": "Kto myśli podczas obchodu",
+    "modelHelp": "Obchód może pracować na tańszym modelu niż model agenta, korzystając z klucza przestrzeni roboczej. Sprawdzanie zmian i decyzja, czy warto działać, nie używają żadnego z nich: wybrany tu model wchodzi do gry tylko wtedy, gdy obchód pracuje.",
+    "modelAgent": "Własna AI agenta"
   },
   "brakes": {
     "title": "Praca, o którą nikt nie prosił",

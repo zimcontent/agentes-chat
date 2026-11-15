@@ -3734,6 +3734,10 @@ export const en = {
     running: "running now",
     runNow: "Do a ronda now",
     failed: "Couldn't change the ronda",
+    model: "Who thinks on the ronda",
+    modelHelp:
+      "The ronda can work with a cheaper model than the agent's, on the workspace's key. Seeing what changed and deciding whether to act use neither: the one chosen here only comes in when the ronda works.",
+    modelAgent: "The agent's own AI",
   },
   brakes: {
     title: "Work nobody asked for",

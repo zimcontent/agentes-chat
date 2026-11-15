@@ -3335,7 +3335,10 @@
     "silent": "sudah memeriksa, tidak ada yang perlu disampaikan",
     "running": "sedang berjalan",
     "runNow": "Patroli sekarang",
-    "failed": "Patroli tidak bisa diubah"
+    "failed": "Patroli tidak bisa diubah",
+    "model": "Siapa yang berpikir saat patroli",
+    "modelHelp": "Patroli bisa bekerja dengan model yang lebih murah dari model agen, memakai kunci workspace. Melihat apa yang berubah dan memutuskan perlu bertindak atau tidak tidak memakai keduanya: model yang dipilih di sini hanya dipakai saat patroli bekerja.",
+    "modelAgent": "AI milik agen sendiri"
   },
   "brakes": {
     "title": "Pekerjaan yang tidak diminta siapa pun",

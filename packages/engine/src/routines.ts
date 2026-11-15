@@ -62,7 +62,7 @@ import { can, getMembership, requirePermission } from "./organizations";
 import { PermanentJobError } from "./outbox";
 import { maySql } from "./permissions";
 import { isRightHand } from "./right-hand";
-import { rondaGate } from "./ronda";
+import { rondaGate, rondaModelOf } from "./ronda";
 import { isRondaTarget } from "./ronda-changes";
 import {
   type RoutineAccess,
@@ -2360,6 +2360,7 @@ async function fireClaimedRun(deps: RoutineDeps, run: RunRow) {
     dueAt: run.at.toISOString(),
     ...(widget ? { widget } : {}),
     ...(aiUserId !== undefined ? { aiUserId } : {}),
+    ...rondaModelOf(routine.target),
   };
   // The widget shows it is being redone (its last data stays on screen).
   if (widget) await widgetRunStarting(deps, routine.orgId, widget.widgetId);

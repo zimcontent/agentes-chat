@@ -152,6 +152,8 @@ const Ronda = z
     routineId: z.uuid().nullable(),
     personId: z.string().nullable(),
     nextRunAt: z.string().nullable(),
+    /** The API model its runs think with (§5); null: the agent's own brain. */
+    model: z.string().nullable(),
     recent: z.array(z.object({ at: z.string(), status: z.string(), code: z.string().nullable(), summary: z.string() })),
   })
   .openapi("Ronda");
@@ -1583,16 +1585,23 @@ export function agentRoutes(deps: AppDeps) {
         "ADR 9004. Who manages agents, or the agent's owner. Turning it on makes you its person: it reports in your DM with the agent and reads only what you see. In your time zone (or the one given).",
       request: {
         params: AgentParams,
-        body: body(z.object({ schedule: z.enum(RONDA_SCHEDULES), timezone: z.string().max(64).optional() })),
+        body: body(
+          z.object({
+            schedule: z.enum(RONDA_SCHEDULES),
+            timezone: z.string().max(64).optional(),
+            // ADR 9004 §5: an API model its runs think with; null for the agent's own brain; absent keeps it.
+            model: z.string().max(200).nullable().optional(),
+          }),
+        ),
       },
       responses: { 200: json(Ronda), ...errors },
     }),
     async (c) => {
       const { orgId, agentId } = c.req.valid("param");
       const actor = c.get("user").id;
-      const { schedule, timezone } = c.req.valid("json");
+      const { schedule, timezone, model } = c.req.valid("json");
       const zone = await routineTimezone(db, actor, orgId, timezone);
-      const out = await setRonda({ db, pubsub: adapters.pubsub }, actor, orgId, agentId, schedule, zone);
+      const out = await setRonda({ db, pubsub: adapters.pubsub }, actor, orgId, agentId, schedule, zone, model);
       deps.wakeWorkers?.();
       return c.json(out, 200);
     },

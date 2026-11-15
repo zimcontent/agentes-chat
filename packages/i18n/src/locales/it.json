@@ -3573,7 +3573,10 @@
     "silent": "ha controllato, niente da dire",
     "running": "in corso",
     "runNow": "Fai una ronda adesso",
-    "failed": "Impossibile cambiare la ronda"
+    "failed": "Impossibile cambiare la ronda",
+    "model": "Chi pensa durante la ronda",
+    "modelHelp": "La ronda può lavorare con un modello più economico di quello dell'agente, usando la chiave del workspace. Vedere cosa è cambiato e decidere se vale la pena agire non usano nessuno dei due: quello scelto qui entra solo quando la ronda lavora.",
+    "modelAgent": "L'IA dell'agente stesso"
   },
   "brakes": {
     "title": "Lavoro che nessuno ha chiesto",

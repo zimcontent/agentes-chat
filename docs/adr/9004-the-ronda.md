@@ -59,6 +59,17 @@ The agent reads what changed with its role in mind, checks the real sources, doe
 (and the brakes of ADR 0131), hands other agents' work to them, and tells the person in one message only what is worth
 their attention. Silence is a good ronda.
 
+### 5. Its own model (addendum 2026-11-15)
+
+A ronda runs often and mostly reads, so the agent's own brain (a large model, or a plan's limits) is costly for it.
+Its target may carry `model`, an API model from the catalog (or a workspace endpoint's), chosen in the card as "Quem
+pensa na ronda"; null is the agent's own AI. Its firing copies it into the brief (`RoutineBrief.model`), and
+`withRondaModel` gives the run the agent with that model on the API brain, on the workspace's key of the model's
+provider (`credentialId` null: the gateway's default for that provider), applied after the right hand's person's AI
+so the ronda's choice wins. It is applied where a run's brain is decided: the executor, `resolveBrain` and
+`agentAiState`. Only the ronda's own run; a run its report wakes thinks as the agent. Budget and usage stay the agent's.
+A model whose provider has no key fails the run as any agent without a key would.
+
 ## Consequences
 
 - An agent with a ronda acts on the operation without a person in the loop, within what a routine may already do.

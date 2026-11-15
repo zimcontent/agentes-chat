@@ -283,6 +283,7 @@ import {
   withPersonalBrain,
 } from "./right-hand";
 import { seatState } from "./right-hand-seats";
+import { withRondaModel } from "./ronda";
 import { routineBriefOf } from "./routine-brief";
 import { missStaleRoutineRun, routineRunWaitingForComputer, routineRunWaitingForPlan } from "./routine-firing";
 import { closeRoutineRun, type RoutineRunEnd, recordRoutineReportMessage, routineFailureEnd } from "./routine-ledger";
@@ -1757,10 +1758,12 @@ async function executeRunInner(
   const heldBack: string[] = [];
   const stored = await getAgentCached(db, run.orgId, run.agentId);
   // The right hand thinks with the AI of the person whose DM this is, when they chose their own (ADR 0137 §11).
-  const agent =
+  const asStored =
     stored && isRightHand(stored)
       ? (await withPersonalBrain(db, stored, await rightHandPerson(db, stored, run))).agent
       : stored;
+  // A ronda's own model thinks for its run, in place of the agent's brain (ADR 9004 §5).
+  const agent = asStored ? await withRondaModel(db, asStored, run) : asStored;
   // Claude Code defers our tools itself (its ToolSearch): a new run lists every tool the agent has, the same in every
   // run, instead of the groups a judge picks, so its cached prefix holds across runs and sessions (ADR 0043).
   if (needsContext && deps.toolsOnDemand && agent && brainOf(agent.brain) === "claude_code") {

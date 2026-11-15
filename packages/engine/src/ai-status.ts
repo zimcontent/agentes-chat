@@ -10,6 +10,7 @@ import type { MachineStatus } from "./machine-hub";
 import { TASK_OFFLINE_GRACE_MS } from "./machine-tasks";
 import { missionTurnFor } from "./missions-engine";
 import { isRightHand, membersAmong, rightHandNoAiReason, rightHandPerson, thinkingAgent } from "./right-hand";
+import { withRondaModel } from "./ronda";
 import { orgKeyProviders, orgModelProvider, type RoutingSetup } from "./router";
 import { planSignInsOf } from "./router-plan";
 import type { AgentRun } from "./runs";
@@ -120,7 +121,9 @@ export async function agentAiState(
   background = false,
 ): Promise<AgentAi> {
   const person = run ? await rightHandPerson(deps.db, given, run) : (viewer ?? null);
-  const agent = await thinkingAgent(deps.db, given, person);
+  const thinker = await thinkingAgent(deps.db, given, person);
+  // A ronda's own model thinks for its run, in place of the agent's brain (ADR 9004 §5).
+  const agent = run ? await withRondaModel(deps.db, thinker, run) : thinker;
   // The workspace's plan while it serves only its owner: it thinks for nobody else, so for no work nobody is behind
   // either (its run refuses that as `plan_unattended`). A person it doesn't serve had no plan that does
   // (`servingPlanFor`): the line names whose the plans are.

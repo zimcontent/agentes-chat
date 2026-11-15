@@ -42,6 +42,7 @@ test("Ronda: a slot that passed with nothing new says so", async () => {
       routineId: "ronda-1",
       personId: "me",
       nextRunAt: "2026-11-16T11:00:00.000Z",
+      model: null,
       recent: [{ at: "2026-11-15T11:00:00.000Z", status: "skipped", code: "ronda_nothing", summary: "" }],
     },
   };

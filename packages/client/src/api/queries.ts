@@ -2992,8 +2992,9 @@ export function useSetRonda(orgId: string, agentId: string) {
   const api = useApi();
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (schedule: RondaSchedule) =>
-      api.agents.setRonda(orgId, agentId, schedule, Intl.DateTimeFormat().resolvedOptions().timeZone),
+    /** `model`: the API model its runs think with, null for the agent's own brain, absent to keep it (ADR 9004 §5). */
+    mutationFn: ({ schedule, model }: { schedule: RondaSchedule; model?: string | null }) =>
+      api.agents.setRonda(orgId, agentId, schedule, Intl.DateTimeFormat().resolvedOptions().timeZone, model),
     onSuccess: (ronda) => qc.setQueryData(keys.ronda(orgId, agentId), ronda),
     onSettled: () => qc.invalidateQueries({ queryKey: keys.routines(orgId) }),
   });
