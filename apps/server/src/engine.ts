@@ -98,7 +98,6 @@ import {
   type GatewayEmbeddings,
   type GitProxyDeps,
   GrokBrain,
-  getAgent,
   getAgentCached,
   hubBrainLink,
   isAgentesCloud,
@@ -821,41 +820,6 @@ export function buildEngine(o: EngineOptions) {
     },
     postMessage: (userId, orgId, channelId, body, meta) =>
       postPersonMessage({ db, pubsub: adapters.pubsub }, userId, orgId, channelId, { body, meta }),
-    // The maestro (doug-0006 §11): the meeting lead's own model, billed to it; the workspace's small model otherwise.
-    think: async ({ orgId, agentId, system, prompt, maxTokens }) => {
-      const lead = agentId ? await getAgent(db, orgId, agentId).catch(() => null) : null;
-      const call = async (model: string, billTo: string | null) =>
-        (
-          await gateway.complete({
-            orgId,
-            agentId: billTo,
-            kind: "router",
-            model,
-            system,
-            messages: [{ role: "user", content: prompt }],
-            maxTokens: modelInfo(model)?.leastThinking === "off" ? maxTokens : Math.max(maxTokens, 2048),
-            effort: "none",
-            signal: AbortSignal.timeout(12_000),
-          })
-        ).text;
-      if (lead?.model && lead.model !== "auto") {
-        const said = await call(lead.model, lead.id).catch((error) => {
-          o.log?.warn("maestro model failed", { model: lead.model, error: String(error).slice(0, 300) });
-          return null;
-        });
-        if (said) return said;
-      }
-      const small = await smallModelFor({ db, gateway }, orgId, smallModels);
-      if (!small) o.log?.warn("maestro has no model", { orgId });
-      return small
-        ? call(small, null).catch((error) => {
-            o.log?.warn("maestro model failed", { model: small, error: String(error).slice(0, 300) });
-            return null;
-          })
-        : null;
-    },
-    voiceOut: whatsappVoiceOut(config.ELEVENLABS_API_KEY),
-    speech: () => speech.chain(),
     log: o.log,
   };
   const jobDeps: JobDeps = {

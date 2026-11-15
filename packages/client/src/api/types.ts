@@ -8651,8 +8651,6 @@ export interface LiveVoice {
   /** The key's last 4 characters, for who configures the workspace. */
   hint: string | null;
   editable: boolean;
-  /** Maestro calls work on this server (docs/adr/doug-0006-live-voice.md §11). */
-  maestro: boolean;
   /** How the agents behave on calls here, on top of the base. */
   callNotes: string;
 }
@@ -8683,9 +8681,7 @@ export interface LiveRoom {
   /** Whose app runs the agents' voices. */
   hostUserId: string | null;
   agentIds: string[];
-  /** `live`: GPT-Live in the host's app. `maestro`: the server runs the agents (§11). */
-  mode: "live" | "maestro";
-  /** What a maestro call opens on. */
+  /** What the call opens on: the host agent brings it up first. */
   topic: string | null;
   people: { userId: string; joinedAt: string }[];
   status: "live" | "ended";

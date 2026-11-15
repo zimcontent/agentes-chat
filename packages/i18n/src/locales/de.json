@@ -10596,9 +10596,6 @@
   "liveVoice": {
     "you": "Du",
     "call": {
-      "mode": "Art des Anrufs",
-      "modeMaestro": "Besprechung (neu)",
-      "modeLive": "Klassisch (GPT-Live)",
       "topic": "Thema (optional)",
       "topicHint": "Die Agenten beginnen mit einer Debatte darüber. Steig ein, wann du willst.",
       "start": "Sprachanruf starten",
@@ -10622,7 +10619,6 @@
       "hangUp": "Auflegen"
     },
     "room": {
-      "cost": "Stimme und Transkription bisher: {{cost}}",
       "title": "Sprachanruf",
       "joining": "Verbindung wird hergestellt…",
       "inCall": "Im Anruf",
@@ -10706,7 +10702,6 @@
       }
     },
     "errors": {
-      "noMaestro": "Besprechungen mit Maestro sind auf diesem Server nicht eingerichtet.",
       "badAudio": "Das Audio konnte nicht gelesen werden. Versuch es noch einmal.",
       "off": "Dieser Workspace hat keinen GPT-Live-Schlüssel. Füge einen unter Einstellungen › Sprachnachrichten hinzu.",
       "keyInvalid": "OpenAI hat diesen Schlüssel abgelehnt.",

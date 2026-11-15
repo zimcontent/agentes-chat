@@ -25808,15 +25808,6 @@
   "liveVoice.you": {
     "value": "You"
   },
-  "liveVoice.call.mode": {
-    "value": "Kind of call"
-  },
-  "liveVoice.call.modeMaestro": {
-    "value": "Meeting (new)"
-  },
-  "liveVoice.call.modeLive": {
-    "value": "Classic (GPT-Live)"
-  },
   "liveVoice.call.topic": {
     "value": "Topic (optional)"
   },
@@ -25873,9 +25864,6 @@
   },
   "liveVoice.agentCall.hangUp": {
     "value": "Hang up"
-  },
-  "liveVoice.room.cost": {
-    "value": "Voice and transcription so far: {{cost}}"
   },
   "liveVoice.room.title": {
     "value": "Voice call"
@@ -26095,9 +26083,6 @@
   },
   "liveVoice.voices.accent.southernUs": {
     "value": "Southern US"
-  },
-  "liveVoice.errors.noMaestro": {
-    "value": "Meetings with the maestro aren't set up on this server."
   },
   "liveVoice.errors.badAudio": {
     "value": "That audio couldn't be read. Try again."

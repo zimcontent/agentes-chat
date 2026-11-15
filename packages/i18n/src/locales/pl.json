@@ -11375,9 +11375,6 @@
   "liveVoice": {
     "you": "Ty",
     "call": {
-      "mode": "Rodzaj rozmowy",
-      "modeMaestro": "Spotkanie (nowe)",
-      "modeLive": "Klasyczna (GPT-Live)",
       "topic": "Temat (opcjonalnie)",
       "topicHint": "Agenci zaczynają od dyskusji na ten temat. Dołącz, kiedy chcesz.",
       "start": "Rozpocznij rozmowę głosową",
@@ -11405,7 +11402,6 @@
       "hangUp": "Rozłącz"
     },
     "room": {
-      "cost": "Głos i transkrypcja do tej pory: {{cost}}",
       "title": "Rozmowa głosowa",
       "joining": "Łączenie…",
       "inCall": "W rozmowie",
@@ -11489,7 +11485,6 @@
       }
     },
     "errors": {
-      "noMaestro": "Spotkania z maestro nie są skonfigurowane na tym serwerze.",
       "badAudio": "Nie udało się odczytać tego nagrania. Spróbuj ponownie.",
       "off": "Ta przestrzeń robocza nie ma klucza GPT-Live. Dodaj go w Ustawienia › Głos.",
       "keyInvalid": "OpenAI odrzuciło ten klucz.",

@@ -1526,19 +1526,17 @@ export function createFakeHttpApi(state: FakeState): Omit<HttpApi, FakedParts> {
       },
     },
     liveVoice: {
-      get: async () => ({ state: "off", hint: null, editable: true, maestro: false, callNotes: "" }),
-      saveKey: async () => ({ state: "ok", hint: "abcd", editable: true, maestro: false, callNotes: "" }),
-      removeKey: async () => ({ state: "off", hint: null, editable: true, maestro: false, callNotes: "" }),
+      get: async () => ({ state: "off", hint: null, editable: true, callNotes: "" }),
+      saveKey: async () => ({ state: "ok", hint: "abcd", editable: true, callNotes: "" }),
+      removeKey: async () => ({ state: "off", hint: null, editable: true, callNotes: "" }),
       saveCallNotes: async (_orgId, notes) => ({
         state: "off",
         hint: null,
         editable: true,
-        maestro: false,
+
         callNotes: notes,
       }),
-      heard: async () => ({ text: "" }),
-      hush: async () => {},
-      speechUrl: () => "",
+      invite: async () => ({ invited: [], refused: [] }),
       startSession: async () => {
         throw new ApiError(404, "not_found", "Not found");
       },

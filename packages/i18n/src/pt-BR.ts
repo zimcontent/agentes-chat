@@ -11000,12 +11000,23 @@ export const ptBR = {
   /** Voz ao vivo com GPT-Live (ADR doug-0006): salas de voz com pessoas e agentes, e Ouvir numa mensagem. */
   liveVoice: {
     you: "Você",
+    invite: {
+      title: "Chamar para a chamada",
+      lead: "A pessoa recebe uma notificação no celular e no computador, com um jeito de entrar.",
+      send: "Chamar",
+      refused: "Não deu para chamar {{names}}: só quem cuida desta conversa pode adicionar pessoas a ela.",
+      none: "Todo mundo do workspace já está na chamada.",
+    },
+    ring: {
+      title: "{{name}} está te chamando",
+      where: "Chamada de voz em {{channel}}",
+      join: "Entrar",
+      decline: "Agora não",
+    },
     call: {
-      mode: "Tipo de chamada",
-      modeMaestro: "Reunião (nova)",
-      modeLive: "Clássica (GPT-Live)",
       topic: "Tema (opcional)",
       topicHint: "Os agentes começam debatendo isso. Entre quando quiser.",
+      people: "Chamar pessoas também",
       start: "Começar chamada de voz",
       join_one: "Entrar na chamada ({{count}})",
       join_other: "Entrar na chamada ({{count}})",
@@ -11028,7 +11039,6 @@ export const ptBR = {
       hangUp: "Desligar",
     },
     room: {
-      cost: "Voz e transcrição até agora: {{cost}}",
       title: "Chamada de voz",
       joining: "Conectando…",
       inCall: "Em chamada",
@@ -11041,6 +11051,7 @@ export const ptBR = {
       quiet: "Agentes só ouvem",
       leave: "Sair da chamada",
       endAll: "Encerrar para todos",
+      invite: "Chamar pessoa",
       endTitle: "Encerrar a chamada para todos?",
       endText:
         "As notas da chamada vão para a conversa e o Doug BOSS manda o relatório com o que foi decidido e os próximos passos.",
@@ -11114,7 +11125,6 @@ export const ptBR = {
       },
     },
     errors: {
-      noMaestro: "Reuniões com maestro não estão configuradas neste servidor.",
       badAudio: "Não deu para ler esse áudio. Tente de novo.",
       off: "Este workspace não tem chave do GPT-Live. Coloque uma em Configurações › Voz.",
       keyInvalid: "A OpenAI recusou esta chave.",

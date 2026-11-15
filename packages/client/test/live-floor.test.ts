@@ -28,6 +28,14 @@ describe("names", () => {
     expect(namedAgent("a banana está madura", agents)).toBeNull();
     expect(namedAgent("Ana, concordo", agents, "ana")).toBeNull();
   });
+  test("a first name speech to text got one letter wrong still calls the agent, when nobody is named exactly", () => {
+    const napoleao = { id: "nap", name: "Napoleão", handle: "napoleao" };
+    expect(namedAgent("e aí, napoleon, o que acha?", [...agents, napoleao])).toBe("nap");
+    expect(namedAgent("brunno, quanto tempo leva?", agents)).toBe("bruno");
+    // Short names only exactly: "anna" is no one.
+    expect(namedAgent("anna, fala", agents)).toBeNull();
+    expect(namedAgent("brunno e a Ana", agents)).toBe("ana");
+  });
 });
 
 describe("a person speaks", () => {

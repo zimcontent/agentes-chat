@@ -10972,12 +10972,23 @@ export const en = {
   /** Live voice with GPT-Live (ADR doug-0006): voice rooms with people and agents, and Listen on a message. */
   liveVoice: {
     you: "You",
+    invite: {
+      title: "Call someone in",
+      lead: "They get a notification on their phone and computer, and a way to join.",
+      send: "Call",
+      refused: "Couldn't call {{names}}: only whoever manages this conversation can add people to it.",
+      none: "Everyone in the workspace is already on the call.",
+    },
+    ring: {
+      title: "{{name}} is calling you",
+      where: "Voice call in {{channel}}",
+      join: "Join",
+      decline: "Not now",
+    },
     call: {
-      mode: "Kind of call",
-      modeMaestro: "Meeting (new)",
-      modeLive: "Classic (GPT-Live)",
       topic: "Topic (optional)",
       topicHint: "The agents open by debating this. Jump in whenever you want.",
+      people: "Call people too",
       start: "Start a voice call",
       join_one: "Join call ({{count}})",
       join_other: "Join call ({{count}})",
@@ -10999,7 +11010,6 @@ export const en = {
       hangUp: "Hang up",
     },
     room: {
-      cost: "Voice and transcription so far: {{cost}}",
       title: "Voice call",
       joining: "Connecting…",
       inCall: "In a call",
@@ -11012,6 +11022,7 @@ export const en = {
       quiet: "Agents only listen",
       leave: "Leave the call",
       endAll: "End for everyone",
+      invite: "Call someone",
       endTitle: "End the call for everyone?",
       endText:
         "The call's notes go to the conversation and Doug BOSS sends the report with what was decided and the next steps.",
@@ -11085,7 +11096,6 @@ export const en = {
       },
     },
     errors: {
-      noMaestro: "Meetings with the maestro aren't set up on this server.",
       badAudio: "That audio couldn't be read. Try again.",
       off: "This workspace has no GPT-Live key. Add one in Settings › Voice.",
       keyInvalid: "OpenAI refused this key.",

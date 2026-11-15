@@ -10229,9 +10229,6 @@
   "liveVoice": {
     "you": "Kamu",
     "call": {
-      "mode": "Jenis panggilan",
-      "modeMaestro": "Rapat (baru)",
-      "modeLive": "Klasik (GPT-Live)",
       "topic": "Topik (opsional)",
       "topicHint": "Para agen mulai dengan membahas topik ini. Bergabunglah kapan saja.",
       "start": "Mulai panggilan suara",
@@ -10253,7 +10250,6 @@
       "hangUp": "Tutup telepon"
     },
     "room": {
-      "cost": "Suara dan transkripsi sejauh ini: {{cost}}",
       "title": "Panggilan suara",
       "joining": "Menghubungkan…",
       "inCall": "Dalam panggilan",
@@ -10337,7 +10333,6 @@
       }
     },
     "errors": {
-      "noMaestro": "Rapat dengan maestro belum diatur di server ini.",
       "badAudio": "Audio itu tidak bisa dibaca. Coba lagi.",
       "off": "Ruang kerja ini belum punya kunci GPT-Live. Tambahkan di Pengaturan › Suara.",
       "keyInvalid": "OpenAI menolak kunci ini.",
