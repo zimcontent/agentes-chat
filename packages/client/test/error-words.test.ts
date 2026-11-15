@@ -401,6 +401,8 @@ const PLAIN_LINE = new Set([
   "video_review.empty_note",
   "video_review.empty_page",
   "video_review.no_agent",
+  "video_review.no_channel",
+  "video_review.nobody_here",
   "video_review.no_page",
   "video_review.no_pages",
   "video_review.no_speech",
