@@ -25,6 +25,7 @@ import { useRealtimeConnection } from "@/realtime/context";
 import { AgentCall } from "./agent-call";
 import { CaptionsIcon, HandsetIcon, MicOffIcon } from "./icons";
 import { ListenCall } from "./listen";
+import { VoicePreview } from "./preview";
 import { type Caption, RoomCall, type Who } from "./room";
 import "./live-voice.css";
 
@@ -50,7 +51,8 @@ interface LiveVoiceApi {
   callAgent(agentId: string, channelId: string): void;
   agentCall: AgentCall | null;
   listen(message: Message): void;
-  sample(agentId: string, voice: string): void;
+  /** The voice picker's previews: an agent saying hello in a voice. */
+  preview: VoicePreview;
 }
 
 const LiveVoiceContext = createContext<LiveVoiceApi | null>(null);
@@ -124,6 +126,9 @@ export function LiveVoiceProvider({ children }: { children: ReactNode }) {
     [listen],
   );
 
+  const preview = useMemo(() => new VoicePreview({ api, orgId: org.id, language }), [api, org.id, language]);
+  useEffect(() => () => preview.stop(), [preview]);
+
   const value = useMemo<LiveVoiceApi>(
     () => ({
       available: status.data?.state === "ok",
@@ -140,13 +145,7 @@ export function LiveVoiceProvider({ children }: { children: ReactNode }) {
           { api, orgId: org.id, kind: "listen", messageId: message.id, language },
         );
       },
-      sample: (agentId, voice) => {
-        const agent = dir.agentById.get(agentId);
-        startListen(
-          { agentId, name: agent?.name ?? "" },
-          { api, orgId: org.id, kind: "sample", agentId, voice, language },
-        );
-      },
+      preview,
     }),
     [
       status.data?.state,
@@ -155,6 +154,7 @@ export function LiveVoiceProvider({ children }: { children: ReactNode }) {
       callAgent,
       agentCall,
       startListen,
+      preview,
       dir.agentById,
       dir.memberById,
       api,

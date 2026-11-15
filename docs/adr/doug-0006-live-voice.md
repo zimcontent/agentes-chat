@@ -43,21 +43,26 @@ second (about US$ 0.05 a minute), 15 seconds at least for a WebRTC session.
    row without a person speaking, each agent once: past that the word goes back to the people and every agent only
    listens until a person speaks. This is what keeps agents from answering each other forever. The agent with the word
    hears the call; the others are muted and get what they missed as quiet notes when the word comes to them, with a cue
-   to answer. Only when a person speaks to nobody by name in a meeting does the workspace's small model, through the
-   gateway (`kind: router`), say whether an agent should answer and which; it answers "none" unless the people clearly
-   wait for one. Anyone can give the word by hand, or set the agents to only listen.
+   to answer. With one person on the call everything said is for the agents: the agent with the word keeps it (the one
+   that opens a new call greets, asked to if GPT-Live waits for a sound), and when nobody has it the workspace's small
+   model, through the gateway (`kind: router`), picks who answers, never "none"; if it can't say, the agent that spoke
+   last, else the first. With several people an agent keeps the word 20 s after it got it or spoke; past that the small
+   model says whether an agent should answer and which, "none" unless the people clearly wait for one. Anyone can give
+   the word by hand, or set the agents to only listen. (Addendum 2026-11-15: before, the first agent lost the word to
+   the person's first words, since it hadn't spoken yet, and the judge's "none" left a one-person call silent.)
 7. **Captions and notes.** Each person's browser writes down its own person's words (the Web Speech API), the host
    writes down the agents' (GPT-Live's transcripts); lines go to the room and to everyone's captions. When the call
    ends for everyone (or the last person leaves) the notes are posted to the conversation as the person who ended it,
-   mentioning the workspace's right hand (ADR 0137, Doug BOSS here), whose reply is the report: what was decided, the
-   next steps with owners and dates, and what was left open. Nothing runs during a call: GPT-Live's delegations are
+   mentioning the workspace's right hand (ADR 0137, Doug BOSS here; the call's first agent where there is none), whose
+   reply is the summary: what was talked about, what was decided, the next steps with owners and dates, and what was
+   left open. Nothing runs during a call: GPT-Live's delegations are
    answered with "it goes in the notes".
 8. **Ouvir.** "Ouvir" in a message's menu opens one session in the voice of the agent that wrote it (in the first
    person), or the narrator's for a person's message, told to explain it humanly, reactions included, never read word
    for word. It starts on silence; "Perguntar" swaps in the microphone, so the person can interrupt and ask. It closes
    a few seconds after the voice goes quiet.
 
-9. **A call with one agent, as the Nordus Live call.** The phone in an agent's DM is always there; without the workspace's key it says where the key goes. The call is a small bar under the header, the conversation in sight. The voice is the agent (first person, never a backend or a voice layer); when it needs work done, looked up or checked it delegates, and the server, on its sideband, posts what the person said since the last ask as their message in the DM (`meta.via: "call"`). The agent works on it as on any message, with its tools, and its answer goes back to the voice (`session.commentary.append`, made speakable: no markdown, links or code read out); while it works the voice is told to hold on, and past 4 minutes that the answer will be in the chat. The call hangs up after 5 minutes without speech. The channel's call keeps its picker, with agents locked and the same line when there is no key.
+9. **A call with one agent, as the Nordus Live call.** The phone in an agent's DM is always there; without the workspace's key it says where the key goes. The call is a small bar under the header, the conversation in sight. The voice is the agent (first person, never a backend or a voice layer); when it needs work done, looked up or checked it delegates, and the server, on its sideband, posts what the person said since the last ask as their message in the DM (`meta.via: "call"`). The agent works on it as on any message, with its tools, and its answer goes back to the voice (`session.commentary.append`, made speakable: no markdown, links or code read out); while it works the voice is told to hold on, and past 4 minutes that the answer will be in the chat. The call hangs up after 5 minutes without speech. When it ends, always, what was said (GPT-Live's transcripts, on the sideband) is posted in the DM as the person's message asking the agent for the summary (`meta.callSummary`): what was talked about, what was decided and the next steps; the agent writes it with what it knows and the work it did during the call. The channel's call keeps its picker, with agents locked and the same line when there is no key.
 
 ## Consequences
 
@@ -67,4 +72,7 @@ second (about US$ 0.05 a minute), 15 seconds at least for a WebRTC session.
 - Captions of people depend on the browser (Chrome and Edge have the Web Speech API); where it is missing, the agent
   with the word hears people anyway and its transcript drives the turns.
 - The phone app has no calls yet.
-- The voice list follows OpenAI's names as of 2026-11; a name they drop costs a voice, never a call.
+- The voice list follows OpenAI's voice table for GPT-Live as of 2026-11-15 (`LIVE_VOICE_CATALOG`: language, accent,
+  feminine or masculine); a name they drop costs a voice, never a call. The voice picker plays each voice as the agent
+  saying hello (a `sample` session, at least 15 s billed), records it in the page so hearing it again is free, and
+  says when the key doesn't have the voice (OpenAI's answer names the one that spoke).

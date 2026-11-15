@@ -7,7 +7,12 @@ import {
   useUpdateAgent,
 } from "@agenteschat/client";
 import { errorText } from "@agenteschat/client/lib/errors";
-import { LIVE_VOICES, liveVoiceLabel } from "@agenteschat/client/lib/live-voices";
+import {
+  LIVE_VOICE_CATALOG,
+  type LiveVoiceInfo,
+  liveVoiceInfo,
+  liveVoiceLabel,
+} from "@agenteschat/client/lib/live-voices";
 import { can } from "@agenteschat/client/lib/permissions";
 import {
   Button,
@@ -16,19 +21,21 @@ import {
   CardHeader,
   Chip,
   Dialog,
+  DialogBody,
   DialogFooter,
   Input,
   List,
   Locked,
-  Select,
+  Segmented,
 } from "@agenteschat/ui";
-import { useId, useState } from "react";
+import { useCallback, useEffect, useId, useMemo, useState, useSyncExternalStore } from "react";
 import { useTranslation } from "react-i18next";
 import { AgentAvatar } from "@/components/AgentAvatar";
 import { OpenPage, Step, StepTitle } from "@/components/ai/AddAccountFlow";
 import { PrefRow } from "@/components/NoticePrefs";
 import { useOrg } from "@/components/org-context";
 import { useLiveVoiceActions } from "./LiveVoice";
+import { type VoicePreview, voiceRefused } from "./preview";
 
 /*
  * Configurações › Voz (ADR doug-0006): the workspace's OpenAI key for GPT-Live (calls with agents, Ouvir), the same rows as
@@ -197,74 +204,224 @@ export function LiveVoiceCard() {
   );
 }
 
-/** One agent's voice: its owner or an admin picks it; "Ouvir" plays a hello in it. */
+/** One agent's voice: its owner or an admin picks it in the picker, hearing each voice first. */
 export function AgentVoiceRow({ agent }: { agent: Agent }) {
-  const { t } = useTranslation();
-  const { org, me } = useOrg();
-  const update = useUpdateAgent(org.id, agent.id);
-  const live = useLiveVoiceActions();
-  const chosen = (update.isPending ? update.variables?.voice : undefined) ?? agent.voice ?? "marin";
-  const mayEdit = can(org, "manage_agents") || agent.ownerUserId === me.user.id;
   return (
     <PrefRow
       id={`voice-agent-${agent.id}`}
       lead={<AgentAvatar agentId={agent.id} name={agent.name} size="sm" />}
       label={agent.name}
       status={agent.role || undefined}
-      control={
-        <span className="ac-acts">
-          <Button
-            size="sm"
-            variant="ghost"
-            iconOnly
-            icon="play"
-            aria-label={t("liveVoice.settings.sample", { name: agent.name })}
-            title={t("liveVoice.settings.sample", { name: agent.name })}
-            disabled={!live?.available}
-            onClick={() => live?.sample(agent.id, chosen)}
-          />
-          <Select
-            size="sm"
-            align="end"
-            className="lv-voice-select"
-            value={chosen}
-            disabled={!mayEdit}
-            aria-label={t("liveVoice.settings.voiceOf", { name: agent.name })}
-            options={LIVE_VOICES.map((v) => ({ value: v, label: liveVoiceLabel(v) }))}
-            onValueChange={(voice) => update.mutate({ voice })}
-          />
-        </span>
-      }
+      control={<VoiceChoice agent={agent} size="sm" />}
     />
   );
 }
 
-/** The agent's page: its voice, with a sample, while the workspace has live voice. */
+/** The agent's page: its voice, while the workspace has live voice. */
 export function AgentVoiceField({ agent }: { agent: Agent }) {
   const { t } = useTranslation();
-  const { org, me } = useOrg();
   const live = useLiveVoiceActions();
-  const update = useUpdateAgent(org.id, agent.id);
   if (!live?.available) return null;
-  const chosen = (update.isPending ? update.variables?.voice : undefined) ?? agent.voice ?? "marin";
-  const mayEdit = can(org, "manage_agents") || agent.ownerUserId === me.user.id;
   return (
     <div className="agp-field">
       <span className="newag__label" id={`voice-${agent.id}`}>
         {t("liveVoice.settings.voiceOf", { name: agent.name })}
       </span>
       <span className="ac-acts">
-        <Select
-          value={chosen}
-          disabled={!mayEdit}
-          aria-label={t("liveVoice.settings.voiceOf", { name: agent.name })}
-          options={LIVE_VOICES.map((v) => ({ value: v, label: liveVoiceLabel(v) }))}
-          onValueChange={(voice) => update.mutate({ voice })}
-        />
-        <Button variant="ghost" icon="play" onClick={() => live.sample(agent.id, chosen)}>
-          {t("liveVoice.settings.hear")}
-        </Button>
+        <VoiceChoice agent={agent} />
       </span>
     </div>
+  );
+}
+
+/** The agent's voice by name, opening the picker. */
+function VoiceChoice({ agent, size }: { agent: Agent; size?: "sm" }) {
+  const { t } = useTranslation();
+  const { org, me } = useOrg();
+  const update = useUpdateAgent(org.id, agent.id);
+  const live = useLiveVoiceActions();
+  const describe = useVoiceWords();
+  const [open, setOpen] = useState(false);
+  const chosen = (update.isPending ? update.variables?.voice : undefined) ?? agent.voice ?? "marin";
+  const mayEdit = can(org, "manage_agents") || agent.ownerUserId === me.user.id;
+  return (
+    <>
+      <Button
+        size={size}
+        icon="sound"
+        disabled={!live?.available}
+        loading={update.isPending}
+        aria-label={`${t("liveVoice.settings.voiceOf", { name: agent.name })}: ${liveVoiceLabel(chosen)}`}
+        title={describe(chosen)}
+        onClick={() => setOpen(true)}
+      >
+        {liveVoiceLabel(chosen)}
+      </Button>
+      {open && live && (
+        <VoicePicker
+          agent={agent}
+          current={chosen}
+          preview={live.preview}
+          mayEdit={mayEdit}
+          onClose={() => setOpen(false)}
+          onPick={(voice) => {
+            setOpen(false);
+            if (voice !== chosen) update.mutate({ voice });
+          }}
+        />
+      )}
+    </>
+  );
+}
+
+/** "Português · Brasileiro · Feminina": a voice's language (in the app's language), accent and how it sounds. */
+function useVoiceWords() {
+  const { t, i18n } = useTranslation();
+  const names = useMemo(() => {
+    try {
+      return new Intl.DisplayNames([i18n.language], { type: "language" });
+    } catch {
+      return null;
+    }
+  }, [i18n.language]);
+  return useCallback(
+    (voice: string) => {
+      const info = liveVoiceInfo(voice);
+      if (!info) return "";
+      const lang = names?.of(info.lang) ?? info.lang;
+      return [
+        lang.charAt(0).toLocaleUpperCase(i18n.language) + lang.slice(1),
+        info.accent ? t(ACCENT[info.accent]) : null,
+        t(info.presentation === "feminine" ? "liveVoice.voices.feminine" : "liveVoice.voices.masculine"),
+      ]
+        .filter(Boolean)
+        .join(" · ");
+    },
+    [names, t, i18n.language],
+  );
+}
+
+type VoiceFilter = "all" | "feminine" | "masculine";
+
+const ACCENT = {
+  australian: "liveVoice.voices.accent.australian",
+  british: "liveVoice.voices.accent.british",
+  irish: "liveVoice.voices.accent.irish",
+  northAmerican: "liveVoice.voices.accent.northAmerican",
+  brazilian: "liveVoice.voices.accent.brazilian",
+  filipino: "liveVoice.voices.accent.filipino",
+  southernUs: "liveVoice.voices.accent.southernUs",
+} as const satisfies Record<NonNullable<LiveVoiceInfo["accent"]>, string>;
+
+/**
+ * Every GPT-Live voice, each heard as the agent saying hello (`VoicePreview`): the app's language first, then Marin and
+ * Cedar, then the rest of OpenAI's table. A voice the key doesn't have says so once heard.
+ */
+function VoicePicker({
+  agent,
+  current,
+  preview,
+  mayEdit,
+  onClose,
+  onPick,
+}: {
+  agent: Agent;
+  current: string;
+  preview: VoicePreview;
+  mayEdit: boolean;
+  onClose: () => void;
+  onPick: (voice: string) => void;
+}) {
+  const { t, i18n } = useTranslation();
+  const describe = useVoiceWords();
+  const state = useSyncExternalStore(preview.subscribe, preview.getState);
+  const [picked, setPicked] = useState(current);
+  const [filter, setFilter] = useState<VoiceFilter>("all");
+  useEffect(() => () => preview.stop(), [preview]);
+  // Opens on the agent's voice (once the dialog has laid the list out).
+  const list = useCallback((node: HTMLDivElement | null) => {
+    if (node) requestAnimationFrame(() => node.querySelector("[data-picked]")?.scrollIntoView({ block: "center" }));
+  }, []);
+  const lang = i18n.language.slice(0, 2);
+  const voices = useMemo(
+    () =>
+      [...LIVE_VOICE_CATALOG]
+        .sort((a, b) => Number(b.lang === lang) - Number(a.lang === lang))
+        .filter((v) => filter === "all" || v.presentation === filter),
+    [lang, filter],
+  );
+  return (
+    <Dialog
+      open
+      onOpenChange={(open) => !open && onClose()}
+      title={t("liveVoice.settings.voiceOf", { name: agent.name })}
+      description={t("liveVoice.settings.pickerLead", { name: agent.name })}
+      closeLabel={t("common.close")}
+      width={560}
+    >
+      <DialogBody>
+        <Segmented
+          size="sm"
+          label={t("liveVoice.settings.filter")}
+          value={filter}
+          onValueChange={setFilter}
+          options={[
+            { value: "all", label: t("liveVoice.settings.filterAll") },
+            { value: "feminine", label: t("liveVoice.settings.filterFeminine") },
+            { value: "masculine", label: t("liveVoice.settings.filterMasculine") },
+          ]}
+        />
+        <div className="lv-voices" ref={list}>
+          {voices.map((v) => {
+            const name = liveVoiceLabel(v.id);
+            const phase = preview.isOn(agent.id, v.id) ? state.phase : "idle";
+            const playing = phase === "connecting" || phase === "playing";
+            const instead = preview.fellBack(agent.id, v.id) ?? (voiceRefused(v.id) ? "marin" : null);
+            return (
+              <div key={v.id} className="lv-voice" data-picked={picked === v.id || undefined}>
+                <button
+                  type="button"
+                  aria-pressed={picked === v.id}
+                  className="lv-voice__pick"
+                  disabled={!mayEdit}
+                  onClick={() => setPicked(v.id)}
+                >
+                  <span className="lv-voice__name">
+                    {name}
+                    {v.id === current && <span className="lv-voice__tag">{t("liveVoice.settings.current")}</span>}
+                  </span>
+                  <span className="lv-voice__desc" data-refused={instead ? true : undefined}>
+                    {instead ? t("liveVoice.settings.refused", { voice: liveVoiceLabel(instead) }) : describe(v.id)}
+                  </span>
+                </button>
+                <Button
+                  size="sm"
+                  variant={playing ? "default" : "ghost"}
+                  iconOnly
+                  icon={playing ? "stop" : "play"}
+                  loading={phase === "connecting"}
+                  aria-label={playing ? t("liveVoice.listen.stop") : t("liveVoice.settings.previewOf", { voice: name })}
+                  title={playing ? t("liveVoice.listen.stop") : t("liveVoice.settings.previewOf", { voice: name })}
+                  onClick={() => preview.toggle(agent.id, v.id)}
+                />
+              </div>
+            );
+          })}
+        </div>
+        {state.phase === "failed" && (
+          <p className="ac-field__error" role="alert">
+            {errorText(t, state.error)}
+          </p>
+        )}
+      </DialogBody>
+      <DialogFooter>
+        <Button onClick={onClose}>{t("common.cancel")}</Button>
+        {mayEdit && (
+          <Button variant="primary" disabled={picked === current} onClick={() => onPick(picked)}>
+            {t("liveVoice.settings.use", { voice: liveVoiceLabel(picked) })}
+          </Button>
+        )}
+      </DialogFooter>
+    </Dialog>
   );
 }

@@ -9847,8 +9847,28 @@
       "removeText": "此工作区中与智能体的通话和“收听”将停止。人与人之间的通话不受影响。",
       "voicesTitle": "每个智能体的声音",
       "voiceOf": "{{name}} 的声音",
-      "sample": "试听 {{name}} 的声音",
-      "hear": "试听"
+      "pickerLead": "以{{name}}的身份试听每个声音并选择一个。每个声音的首次试听是一段简短的 GPT-Live 会话。再次收听免费。",
+      "filter": "显示",
+      "filterAll": "全部",
+      "filterFeminine": "女声",
+      "filterMasculine": "男声",
+      "current": "当前",
+      "previewOf": "试听{{voice}}",
+      "use": "使用{{voice}}",
+      "refused": "此密钥没有这个声音：改由{{voice}}发声。"
+    },
+    "voices": {
+      "feminine": "女声",
+      "masculine": "男声",
+      "accent": {
+        "australian": "澳大利亚",
+        "british": "英国",
+        "irish": "爱尔兰",
+        "northAmerican": "北美",
+        "brazilian": "巴西",
+        "filipino": "菲律宾",
+        "southernUs": "美国南部"
+      }
     },
     "errors": {
       "off": "此工作区没有 GPT-Live 密钥。请在“设置 › 语音”中添加。",

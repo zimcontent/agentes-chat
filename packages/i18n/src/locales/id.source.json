@@ -24697,11 +24697,59 @@
   "liveVoice.settings.voiceOf": {
     "value": "{{name}}'s voice"
   },
-  "liveVoice.settings.sample": {
-    "value": "Hear {{name}}'s voice"
+  "liveVoice.settings.pickerLead": {
+    "value": "Hear each voice as {{name}} and pick one. A voice's first preview is a short GPT-Live session. Hearing it again is free."
   },
-  "liveVoice.settings.hear": {
-    "value": "Hear it"
+  "liveVoice.settings.filter": {
+    "value": "Show"
+  },
+  "liveVoice.settings.filterAll": {
+    "value": "All"
+  },
+  "liveVoice.settings.filterFeminine": {
+    "value": "Feminine"
+  },
+  "liveVoice.settings.filterMasculine": {
+    "value": "Masculine"
+  },
+  "liveVoice.settings.current": {
+    "value": "Current"
+  },
+  "liveVoice.settings.previewOf": {
+    "value": "Hear {{voice}}"
+  },
+  "liveVoice.settings.use": {
+    "value": "Use {{voice}}"
+  },
+  "liveVoice.settings.refused": {
+    "value": "This key doesn't have this voice: {{voice}} spoke instead."
+  },
+  "liveVoice.voices.feminine": {
+    "value": "Feminine"
+  },
+  "liveVoice.voices.masculine": {
+    "value": "Masculine"
+  },
+  "liveVoice.voices.accent.australian": {
+    "value": "Australian"
+  },
+  "liveVoice.voices.accent.british": {
+    "value": "British"
+  },
+  "liveVoice.voices.accent.irish": {
+    "value": "Irish"
+  },
+  "liveVoice.voices.accent.northAmerican": {
+    "value": "North American"
+  },
+  "liveVoice.voices.accent.brazilian": {
+    "value": "Brazilian"
+  },
+  "liveVoice.voices.accent.filipino": {
+    "value": "Filipino"
+  },
+  "liveVoice.voices.accent.southernUs": {
+    "value": "Southern US"
   },
   "liveVoice.errors.off": {
     "value": "This workspace has no GPT-Live key. Add one in Settings › Voice."

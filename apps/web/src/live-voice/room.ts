@@ -48,6 +48,10 @@ const ICE = [{ urls: "stun:stun.l.google.com:19302" }];
 const PING_MS = 20_000;
 const AGENT_LINE_IDLE_MS = 1300;
 const JUDGE_WAIT_MS = 900;
+/** With one person the judge only picks who answers: no wait for more words. */
+const JUDGE_WAIT_SOLO_MS = 150;
+/** A new call's first agent that hasn't greeted by then is asked to. */
+const GREET_NUDGE_MS = 2500;
 const MAX_CAPTIONS = 60;
 
 interface Peer {
@@ -410,7 +414,7 @@ export class RoomCall {
     if (!room || !this.ctx || !this.micSource) return;
     const ids = room.agentIds;
     // The first agent greets a new call; a call taken over goes on with the people.
-    this.floor = initialFloor(room.lines.length === 0 ? (ids[0] ?? null) : null);
+    this.floor = initialFloor(room.lines.length === 0 ? (ids[0] ?? null) : null, Date.now());
     this.set({ holder: this.floor.holder });
     for (const agentId of ids) {
       const input = this.ctx.createMediaStreamDestination();
@@ -460,6 +464,12 @@ export class RoomCall {
       voice.leg = leg;
       leg.hear(this.floor.holder === agentId);
       this.setVoice(agentId, "live");
+      // GPT-Live may wait for a sound before its first words: the agent that opens a new call is asked to greet.
+      if (this.floor.holder === agentId && this.lines.length === 0)
+        setTimeout(() => {
+          if (this.torn || voice.said || this.lines.length || this.floor.holder !== agentId) return;
+          voice.leg?.instruct("The call is on. Greet everyone now in one short sentence and ask what we'll work on.");
+        }, GREET_NUDGE_MS);
     } catch {
       this.setVoice(agentId, "failed");
     }
@@ -559,23 +569,41 @@ export class RoomCall {
     if (d.ask) this.askJudge();
   }
 
-  /** A person spoke to nobody by name in a meeting: the workspace's small model says whether an agent should answer. */
+  /**
+   * A person spoke to nobody by name: the workspace's small model says which agent answers. With one person on the call
+   * someone always does (the server's pick, else the agent that spoke last, else the first); with several, it may say
+   * nobody, and they go on among themselves.
+   */
   private askJudge() {
     const room = this.state.room;
     if (!room || this.judging || !this.isHost) return;
     this.judging = true;
+    const solo = room.people.length <= 1;
     const asked = this.lines.length;
-    setTimeout(async () => {
-      try {
-        const { agentId } = await this.o.api.liveVoice.next(this.o.orgId, room.id);
-        // Only if nothing was said since and nobody took the word meanwhile.
-        if (agentId && this.lines.length === asked && this.floor.holder === null)
-          this.apply(giveFloor(this.floor, agentId, "judge"));
-      } catch {
-      } finally {
+    setTimeout(
+      async () => {
+        let agentId: string | null = null;
+        try {
+          agentId = (await this.o.api.liveVoice.next(this.o.orgId, room.id)).agentId;
+        } catch {}
         this.judging = false;
-      }
-    }, JUDGE_WAIT_MS);
+        if (this.torn || this.floor.holder !== null) return;
+        const live = (id: string) => this.state.agentVoices[id] === "live";
+        if (solo && (!agentId || !live(agentId))) agentId = this.fallbackSpeaker(live);
+        // With several people, only if nothing was said since.
+        if (agentId && (solo || this.lines.length === asked)) this.apply(giveFloor(this.floor, agentId, "judge"));
+      },
+      solo ? JUDGE_WAIT_SOLO_MS : JUDGE_WAIT_MS,
+    );
+  }
+
+  /** Who answers when the judge can't say: the agent that spoke last, else the first one whose voice is on. */
+  private fallbackSpeaker(live: (id: string) => boolean): string | null {
+    for (let i = this.lines.length - 1; i >= 0; i--) {
+      const line = this.lines[i];
+      if (line?.who.type === "agent" && live(line.who.id)) return line.who.id;
+    }
+    return this.roomAgents.find((a) => live(a.id))?.id ?? null;
   }
 
   private async closeVoices() {
