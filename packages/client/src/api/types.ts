@@ -5156,6 +5156,8 @@ export interface Ronda {
   /** Who turned it on: it reports in their DM with the agent. */
   personId: string | null;
   nextRunAt: string | null;
+  /** The API model its runs think with (ADR 9004 §5); null: the agent's own brain. */
+  model: string | null;
   /** Its latest slots, newest first; a passed slot's `code` says why (`ronda_nothing`, `ronda_quiet`). */
   recent: { at: string; status: string; code: string | null; summary: string }[];
 }

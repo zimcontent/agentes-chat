@@ -3638,6 +3638,10 @@ export const ptBR = {
     running: "rodando agora",
     runNow: "Fazer uma ronda agora",
     failed: "Não deu para mudar a ronda",
+    model: "Quem pensa na ronda",
+    modelHelp:
+      "A ronda pode trabalhar com um modelo mais barato que o do agente, usando a chave do workspace. Ver o que mudou e decidir se vale agir não usam modelo nenhum dos dois: o escolhido aqui só entra quando a ronda trabalha.",
+    modelAgent: "A IA do próprio agente",
   },
   brakes: {
     title: "Trabalho que ninguém pediu",

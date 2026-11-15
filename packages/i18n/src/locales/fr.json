@@ -3571,7 +3571,10 @@
     "silent": "a regardé, rien à signaler",
     "running": "en cours",
     "runNow": "Faire une ronde maintenant",
-    "failed": "Impossible de modifier la ronde"
+    "failed": "Impossible de modifier la ronde",
+    "model": "Qui réfléchit pendant la ronde",
+    "modelHelp": "La ronde peut travailler avec un modèle moins cher que celui de l'agent, avec la clé de l'espace de travail. Voir ce qui a changé et décider s'il faut agir n'utilisent ni l'un ni l'autre : celui choisi ici n'intervient que quand la ronde travaille.",
+    "modelAgent": "L'IA de l'agent lui-même"
   },
   "brakes": {
     "title": "Travail que personne n'a demandé",

@@ -1,14 +1,26 @@
-import { type RondaSchedule, useRonda, useRoutineAction, useSetRonda } from "@agenteschat/client";
+import {
+  type RondaSchedule,
+  useCredentials,
+  useModels,
+  usePlatformKey,
+  useRonda,
+  useRoutineAction,
+  useSetRonda,
+} from "@agenteschat/client";
 import { nextLabel } from "@agenteschat/client/lib/format";
 import { can } from "@agenteschat/client/lib/permissions";
+import { modelChoices } from "@agenteschat/client/lib/providers";
 import { runOutcome } from "@agenteschat/client/lib/routine-view";
 import { Button, Card, Select, SettingNote, SettingRow } from "@agenteschat/ui";
 import { useTranslation } from "react-i18next";
+import { ModelSelect, modelOptions } from "@/components/AgentFields";
 import { useOrg } from "@/components/org-context";
 import { useToast } from "@/lib/toast";
 import { CardHead, useAgentEdit } from "./context";
 
 const SCHEDULES: RondaSchedule[] = ["off", "daily", "three_daily", "hourly"];
+/** The model select's value for "the agent's own AI" (the API's null). */
+const AGENT_AI = "agent";
 
 /**
  * The ronda's state and actions for one agent (ADR 9004), shared by any agent's card and the right hand's row. Saved at
@@ -23,10 +35,31 @@ export function useRondaControl(agent: { id: string; ownerUserId?: string | null
   const act = useRoutineAction(org.id);
   const toast = useToast();
   const editable = can(org, "manage_agents") || agent.ownerUserId === me.user.id;
-  const schedule = set.isPending ? (set.variables ?? "off") : (ronda.data?.schedule ?? "off");
+  const schedule = set.isPending ? (set.variables?.schedule ?? "off") : (ronda.data?.schedule ?? "off");
   const save = (next: RondaSchedule) => {
     if (!editable || next === schedule) return;
-    set.mutate(next, { onError: () => toast.show(t("ronda.failed"), "error") });
+    set.mutate({ schedule: next }, { onError: () => toast.show(t("ronda.failed"), "error") });
+  };
+  // Who thinks on it (§5): the agent's own AI, or an API model on one of the workspace's keys.
+  const models = useModels();
+  const credentials = useCredentials(org.id, can(org, "manage_credentials"));
+  const platform = usePlatformKey(org.id);
+  const pending = set.isPending && set.variables?.model !== undefined ? set.variables.model : undefined;
+  const model = pending !== undefined ? (pending ?? AGENT_AI) : (ronda.data?.model ?? AGENT_AI);
+  const modelList = [
+    { value: AGENT_AI, label: t("ronda.modelAgent") },
+    ...modelOptions(
+      t,
+      i18n.language,
+      modelChoices(models.data?.models ?? [], credentials.data ?? [], platform.data ?? false),
+    ),
+  ];
+  const saveModel = (next: string) => {
+    if (!editable || next === model) return;
+    set.mutate(
+      { schedule, model: next === AGENT_AI ? null : next },
+      { onError: () => toast.show(t("ronda.failed"), "error") },
+    );
   };
   const data = ronda.data;
   const last = data?.recent[0];
@@ -62,6 +95,7 @@ export function useRondaControl(agent: { id: string; ownerUserId?: string | null
     save,
     editable,
     loading: ronda.isLoading,
+    on,
     note,
     canRun: on && editable && !!routineId,
     running: act.isPending,
@@ -69,7 +103,24 @@ export function useRondaControl(agent: { id: string; ownerUserId?: string | null
       if (routineId) act.mutate({ type: "run", id: routineId });
     },
     options: SCHEDULES.map((s) => ({ value: s, label: t(`ronda.${s}`) })),
+    model,
+    modelList,
+    saveModel,
   };
+}
+
+/** "Quem pensa na ronda" (§5): the agent's own AI or an API model, searched like any agent's model. */
+export function RondaModelSelect({ r }: { r: ReturnType<typeof useRondaControl> }) {
+  const { t } = useTranslation();
+  return (
+    <ModelSelect
+      aria-label={t("ronda.model")}
+      value={r.model}
+      onChange={r.saveModel}
+      options={r.modelList}
+      disabled={!r.editable || r.loading}
+    />
+  );
 }
 
 /** Configurações → Ronda (ADR 9004): when the agent looks at the operation on its own, its next pass and last one. */
@@ -94,6 +145,14 @@ export function RondaCard() {
           options={r.options}
         />
       </SettingRow>
+      {r.on && (
+        <SettingRow
+          title={t("ronda.model")}
+          hint={{ name: t("common.about", { label: t("ronda.model") }), text: t("ronda.modelHelp") }}
+        >
+          <RondaModelSelect r={r} />
+        </SettingRow>
+      )}
       {r.note && (
         <SettingNote icon="repeat" quiet>
           {r.note}

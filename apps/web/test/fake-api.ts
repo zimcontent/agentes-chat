@@ -2806,14 +2806,22 @@ export function createFakeHttpApi(state: FakeState): Omit<HttpApi, FakedParts> {
       ronda: async (orgId, agentId) => {
         log("agents.ronda", orgId, agentId);
         return (
-          state.rondas?.[agentId] ?? { schedule: "off", routineId: null, personId: null, nextRunAt: null, recent: [] }
+          state.rondas?.[agentId] ?? {
+            schedule: "off",
+            routineId: null,
+            personId: null,
+            nextRunAt: null,
+            model: null,
+            recent: [],
+          }
         );
       },
-      setRonda: async (orgId, agentId, schedule, timezone) => {
-        log("agents.setRonda", orgId, agentId, schedule, timezone);
+      setRonda: async (orgId, agentId, schedule, timezone, model) => {
+        log("agents.setRonda", orgId, agentId, schedule, timezone, model);
         const was = state.rondas?.[agentId];
         const next = {
           schedule,
+          model: model === undefined ? (was?.model ?? null) : model,
           routineId: schedule === "off" ? (was?.routineId ?? null) : (was?.routineId ?? `ronda-${agentId}`),
           personId: "me",
           nextRunAt: schedule === "off" ? null : "2026-11-16T11:00:00.000Z",

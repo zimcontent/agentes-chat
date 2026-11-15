@@ -28,6 +28,7 @@ import type { MachineStatus } from "../machine-hub";
 import { pausedMessage } from "../machines";
 import { missionTurnFor } from "../missions-engine";
 import { isRightHand, rightHandPerson, rightHandPlanRefusal, thinkingAgent } from "../right-hand";
+import { withRondaModel } from "../ronda";
 import { runnerUpdateWay } from "../runner-update";
 import type { AgentRun } from "../runs";
 import { accountUnavailable, brainSessionId, claudeCodeAvailability, cliMissingMessage, toolOff } from "./claude-code";
@@ -1025,7 +1026,9 @@ export async function resolveBrain(
   const mission: MissionTurn | null = await missionTurnFor(deps.db, run).catch(() => null);
   // The right hand: the AI of the person whose DM this is, else the workspace's; on a plan, its computer and owner.
   const person = await rightHandPerson(deps.db, given, run);
-  const agent = await thinkingAgent(deps.db, given, person);
+  const thinker = await thinkingAgent(deps.db, given, person);
+  // A ronda's own model thinks for its run, in place of the agent's brain (ADR 9004 §5).
+  const agent = await withRondaModel(deps.db, thinker, run);
   let kind = brainFor(agent, run, mission);
   const base = mission ? { missionId: mission.missionId } : {};
   if (kind === "model") {

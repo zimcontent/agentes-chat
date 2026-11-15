@@ -3440,7 +3440,10 @@
     "silent": "baktı, söylenecek bir şey yoktu",
     "running": "çalışıyor",
     "runNow": "Şimdi devriye at",
-    "failed": "Devriye değiştirilemedi"
+    "failed": "Devriye değiştirilemedi",
+    "model": "Devriyede kim düşünür",
+    "modelHelp": "Devriye, çalışma alanının anahtarıyla ajanınkinden daha ucuz bir modelle çalışabilir. Neyin değiştiğine bakmak ve harekete geçmeye değip değmediğine karar vermek ikisini de kullanmaz: burada seçilen model yalnızca devriye iş yaparken devreye girer.",
+    "modelAgent": "Ajanın kendi yapay zekâsı"
   },
   "brakes": {
     "title": "Kimsenin istemediği iş",

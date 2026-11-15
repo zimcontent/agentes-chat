@@ -1070,10 +1070,10 @@ export function createHttpApi(options: TransportOptions = {}): HttpApi {
           method: "POST",
         }),
       ronda: (orgId, agentId) => request<Ronda>(`${org(orgId)}/agents/${enc(agentId)}/ronda`),
-      setRonda: (orgId, agentId, schedule, timezone) =>
+      setRonda: (orgId, agentId, schedule, timezone, model) =>
         request<Ronda>(`${org(orgId)}/agents/${enc(agentId)}/ronda`, {
           method: "PUT",
-          json: { schedule, ...(timezone ? { timezone } : {}) },
+          json: { schedule, ...(timezone ? { timezone } : {}), ...(model !== undefined ? { model } : {}) },
         }),
       importFromGithub: (orgId, url) =>
         request<{ files: { path: string; text: string }[]; skipped?: string[] }>(`${org(orgId)}/agent-imports/github`, {

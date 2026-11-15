@@ -3454,7 +3454,10 @@
     "silent": "keek en had niets te melden",
     "running": "bezig",
     "runNow": "Nu een ronde doen",
-    "failed": "Kon de ronde niet wijzigen"
+    "failed": "Kon de ronde niet wijzigen",
+    "model": "Wie denkt er tijdens de ronde",
+    "modelHelp": "De ronde kan werken met een goedkoper model dan dat van de agent, via de sleutel van de werkruimte. Zien wat er veranderd is en beslissen of iets doen de moeite waard is, gebruiken geen van beide: het hier gekozen model komt pas in actie als de ronde werkt.",
+    "modelAgent": "De eigen AI van de agent"
   },
   "brakes": {
     "title": "Werk waar niemand om vroeg",

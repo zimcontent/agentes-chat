@@ -1,5 +1,6 @@
 import type { PubSub } from "@agenteschat/adapters";
-import { and, type Database, desc, eq, inArray, isNull, schema, sql } from "@agenteschat/db";
+import { and, type Database, desc, type Executor, eq, inArray, isNull, schema, sql } from "@agenteschat/db";
+import { isCustomModel, isKnownModel } from "@agenteschat/providers";
 import { recordAudit } from "./audit";
 import { nextCronTime } from "./cron";
 import { ForbiddenError, NotFoundError, ValidationError } from "./errors";
@@ -60,6 +61,8 @@ export interface RondaView {
   /** Who turned it on: it reports in their DM with the agent. */
   personId: string | null;
   nextRunAt: string | null;
+  /** The API model its runs think with (§5); null: the agent's own brain. */
+  model: string | null;
   /** Its latest slots, newest first: how each ended and why (`code`). */
   recent: { at: string; status: string; code: string | null; summary: string }[];
 }
@@ -112,6 +115,7 @@ export async function getRonda(db: Database, actorId: string, orgId: string, age
     routineId: row?.id ?? null,
     personId: row?.createdByUserId ?? null,
     nextRunAt: row?.active && row.nextRunAt ? row.nextRunAt.toISOString() : null,
+    model: rondaModelOf(row?.target).model ?? null,
     recent: recent.map((r) => ({
       at: r.at.toISOString(),
       status: r.status,
@@ -133,9 +137,12 @@ export async function setRonda(
   agentId: string,
   schedule: RondaSchedule,
   timezone: string,
+  /** The API model its runs think with (§5): a catalog model, null for the agent's own brain, absent to keep it. */
+  model?: string | null,
 ): Promise<RondaView> {
   const { db } = deps;
   if (!RONDA_SCHEDULES.includes(schedule)) throw new ValidationError("unknown ronda schedule");
+  if (model && !isKnownModel(model) && !isCustomModel(model)) throw new ValidationError("unknown model");
   const membership = await requireActiveMembership(db, actorId, orgId);
   const [agent] = await db
     .select()
@@ -145,11 +152,13 @@ export async function setRonda(
   if (!can(membership, "manage_agents") && agent.ownerUserId !== actorId) throw new ForbiddenError();
   const now = deps.now?.() ?? new Date();
   const existing = await rondaRoutine(db, orgId, agentId);
+  const keptModel = model === undefined ? rondaModelOf(existing?.target).model : model;
+  const target: Record<string, unknown> = { type: "dm", ronda: true, ...(keptModel ? { model: keptModel } : {}) };
   if (schedule === "off") {
-    if (existing?.active) {
+    if (existing && (existing.active || model !== undefined)) {
       await db
         .update(routines)
-        .set({ active: false, nextRunAt: null, pausedReason: null, updatedAt: now })
+        .set({ active: false, nextRunAt: null, pausedReason: null, target, updatedAt: now })
         .where(eq(routines.id, existing.id));
       await recordAudit(db, {
         orgId,
@@ -169,7 +178,7 @@ export async function setRonda(
     name: "Ronda",
     // Instructions a person added in Rotinas stay ("look at the ads first"); the default otherwise.
     prompt: existing?.prompt.trim() ? existing.prompt : RONDA_PROMPT,
-    target: { type: "dm", ronda: true } as Record<string, unknown>,
+    target,
     triggerType: "schedule",
     phrase: null,
     cron,
@@ -332,3 +341,26 @@ async function worthARun(
 export const isRonda = (row: { target: unknown }) => isRondaTarget(row.target);
 
 export { isRondaTarget, RONDA_EVENT, rondaChanges };
+
+/** A ronda target's own model (§5), as a brief's field: `{ model }`, or nothing for the agent's own brain. */
+export function rondaModelOf(target: unknown): { model?: string } {
+  if (!isRondaTarget(target)) return {};
+  const model = (target as { model?: unknown }).model;
+  return typeof model === "string" && model ? { model } : {};
+}
+
+/**
+ * The agent as a ronda's own run thinks (§5): with the ronda's model, through the API on the workspace's key of that
+ * model's provider, in place of whatever brain the agent has (a plan on a computer, the right hand's person's AI).
+ * Every other run, and a ronda with no model of its own, gets the agent as given. Callers apply it after the right
+ * hand's own AI, so the ronda's choice wins.
+ */
+export async function withRondaModel<
+  T extends { orgId: string; brain: string; model: string; credentialId: string | null },
+>(db: Executor, agent: T, run: { orgId: string; id: string }): Promise<T> {
+  const { runAuthorityById } = await import("./authority");
+  const authority = await runAuthorityById(db, run.orgId, run.id).catch(() => null);
+  const model = authority?.kind === "routine" ? authority.brief?.model : undefined;
+  if (!model) return agent;
+  return { ...agent, brain: "model", model, credentialId: null };
+}

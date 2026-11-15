@@ -946,7 +946,14 @@ export interface ApiClient {
     /** The agent's ronda (ADR 9004). */
     ronda(orgId: string, agentId: string): Promise<Ronda>;
     /** Turns the agent's ronda on, changes when it passes, or switches it off (who manages agents, or its owner). */
-    setRonda(orgId: string, agentId: string, schedule: RondaSchedule, timezone?: string): Promise<Ronda>;
+    setRonda(
+      orgId: string,
+      agentId: string,
+      schedule: RondaSchedule,
+      timezone?: string,
+      /** The API model its runs think with; null for the agent's own brain; absent keeps it (ADR 9004 §5). */
+      model?: string | null,
+    ): Promise<Ronda>;
     /** The team file / agent definitions behind a GitHub link, read by the backend (onboarding import; nothing saved). */
     importFromGithub(
       orgId: string,

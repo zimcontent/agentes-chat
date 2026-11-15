@@ -70,7 +70,7 @@ import { useDirectory } from "@/hooks/useDirectory";
 import { usePersonalView } from "@/hooks/usePersonalView";
 import { fullLook, lookOf } from "@/lib/look";
 import { useToast } from "@/lib/toast";
-import { useRondaControl } from "@/pages/agent/RondaCard";
+import { RondaModelSelect, useRondaControl } from "@/pages/agent/RondaCard";
 
 /**
  * The right hand's page (ADR 0137): what it is (its computer when it has one, what only it does), then its settings in
@@ -724,16 +724,19 @@ function RondaRow({ agent }: { agent: Agent }) {
       id="rh-own-ronda"
       icon="repeat"
       label={t("ronda.title")}
-      hint={`${t("ronda.subtitle")} ${t("ronda.scheduleHelp")}`}
+      hint={`${t("ronda.subtitle")} ${t("ronda.scheduleHelp")} ${t("ronda.modelHelp")}`}
       status={r.note || undefined}
-      control={r.canRun ? undefined : select}
+      control={r.on ? undefined : select}
       actions={
-        r.canRun ? (
+        r.on ? (
           <>
             {select}
-            <Button size="sm" disabled={r.running} onClick={r.runNow}>
-              {t("ronda.runNow")}
-            </Button>
+            <RondaModelSelect r={r} />
+            {r.canRun && (
+              <Button size="sm" disabled={r.running} onClick={r.runNow}>
+                {t("ronda.runNow")}
+              </Button>
+            )}
           </>
         ) : undefined
       }
