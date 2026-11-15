@@ -760,7 +760,7 @@ async function routeRequest(ctx: HandlerContext, req: MachineRequest, scope: Req
       return doBrainTurn(ctx, req, scope, secrets);
     case "brain.route":
       // Never the agent's secrets: the route reads other people's messages.
-      requireTool(ctx, req.kind === "codex" ? "codex" : "claude");
+      requireTool(ctx, req.kind === "codex" ? "codex" : req.kind === "antigravity" ? "antigravity" : "claude");
       if (!req.agent) throw new RunnerError("bad_request", "A route runs for an agent");
       return routeWithPlan(req, {
         accounts: ctx.accounts ?? ctx.codex?.accounts,

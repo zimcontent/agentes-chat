@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { createFakeWhatsAppGateway } from "@agenteschat/adapters";
+import { createFakeWhatsAppGateway, GEMINI_ROUTE_PROTOCOL } from "@agenteschat/adapters";
 import { eq, schema } from "@agenteschat/db";
 import {
   answerWhatsAppChat,
@@ -369,5 +369,92 @@ describe("an agent that thinks with a plan", () => {
     expect(f.provider.calls).toHaveLength(0);
     const usage = await f.db.select().from(schema.usageRecords).where(eq(schema.usageRecords.agentId, f.agent.id));
     expect(usage.map((u) => [u.provider, u.inputTokens])).toEqual([["claude_code", 900]]);
+  });
+});
+
+describe("an agent that thinks with a Gemini plan", () => {
+  const GEMINI = "0193aaaa-bbbb-7ccc-8ddd-eeeeffff0002";
+
+  async function onGemini(protocol: number, account: string | null = GEMINI) {
+    f = await setup();
+    const paired = await pairMachine({ db: f.db, pubsub: f.pubsub }, f.owner.id, f.org.id, {
+      name: "Servidor",
+      ...RUNNER,
+      exec: true,
+    });
+    if (account) {
+      await f.db.insert(schema.machineAccounts).values({
+        id: account,
+        orgId: f.org.id,
+        machineId: paired.machineId,
+        kind: "antigravity",
+        label: "Gemini",
+        createdBy: f.owner.id,
+      });
+    }
+    await f.db
+      .update(schema.agents)
+      .set({
+        brain: "antigravity",
+        machineId: paired.machineId,
+        brainModel: "gemini-4-hydrogen-medium",
+        brainAccountId: account,
+        brainFallback: false,
+      })
+      .where(eq(schema.agents.id, f.agent.id));
+    const asked: Record<string, unknown>[] = [];
+    const machines = {
+      status: async () => ({
+        online: true,
+        paused: false,
+        execAllowed: true,
+        protocol,
+        access: { tools: { antigravity: true } },
+      }),
+      call: async (_id: string, request: Record<string, unknown>) => {
+        asked.push(request);
+        return {
+          json: { action: "reply", messages: ["Oi! Fazemos sim."], note: "" },
+          model: "gemini-4-hydrogen-medium",
+          usage: { input: 700, output: 15, cacheRead: 0, cacheWrite: 0 },
+          durationMs: 3000,
+        };
+      },
+    } as unknown as NonNullable<WhatsAppAgentDeps["machines"]>;
+    return { ...(await answering({ machines })), asked };
+  }
+
+  test("its computer answers with the account and the model the plan lists, counted as the plan's", async () => {
+    const { gateway, deps, hears, asked } = await onGemini(GEMINI_ROUTE_PROTOCOL);
+    const job = await hears("oi");
+    if (!job) throw new Error("no job queued");
+    expect(await answerWhatsAppChat(deps, job)).toBe("reply");
+    expect(gateway.last("send")?.text).toBe("Oi! Fazemos sim.");
+    expect([asked[0]?.op, asked[0]?.kind, asked[0]?.account, asked[0]?.model]).toEqual([
+      "brain.route",
+      "antigravity",
+      GEMINI,
+      "gemini-4-hydrogen-medium",
+    ]);
+    const usage = await f.db.select().from(schema.usageRecords).where(eq(schema.usageRecords.agentId, f.agent.id));
+    expect(usage.map((u) => [u.provider, u.inputTokens])).toEqual([["antigravity", 700]]);
+  });
+
+  const noteOf = async () => (await f.db.select().from(schema.whatsappChats))[0]?.agentNote ?? "";
+
+  test("an older runner, or no Gemini account, hands the conversation over saying why, without asking the computer", async () => {
+    const old = await onGemini(GEMINI_ROUTE_PROTOCOL - 1);
+    const job = await old.hears("oi");
+    if (!job) throw new Error("no job queued");
+    expect(await answerWhatsAppChat(old.deps, job)).toBe("failed");
+    expect(await noteOf()).toContain("older runner");
+    expect(old.asked).toHaveLength(0);
+    f.close();
+    const none = await onGemini(GEMINI_ROUTE_PROTOCOL, null);
+    const again = await none.hears("oi");
+    if (!again) throw new Error("no job queued");
+    expect(await answerWhatsAppChat(none.deps, again)).toBe("failed");
+    expect(await noteOf()).toContain("Gemini account");
+    expect(none.asked).toHaveLength(0);
   });
 });

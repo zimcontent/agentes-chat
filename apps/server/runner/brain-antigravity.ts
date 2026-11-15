@@ -219,7 +219,7 @@ export function agyDenied(result: Record<string, unknown>): string | null {
 const tokens = (v: unknown) => (typeof v === "number" && Number.isFinite(v) && v > 0 ? Math.round(v) : 0);
 
 /** One usage record as ours: every input token (the CLI's input may already leave the cache out), output with thinking. */
-function usageOf(u: Record<string, unknown>) {
+export function usageOf(u: Record<string, unknown>) {
   const input = tokens(u.input_tokens);
   const cacheRead = tokens(u.cache_read_tokens);
   return { input: input >= cacheRead ? input : input + cacheRead, output: tokens(u.output_tokens), cacheRead };

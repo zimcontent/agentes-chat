@@ -20,10 +20,10 @@ import { publishWhatsAppChanged, type WhatsAppAccountRow, type WhatsAppDeps } fr
 /**
  * The AI a WhatsApp number answers with, when it isn't its agent's own (docs/adr/doug-0004-whatsapp-bridge.md). The
  * agent stays who answers (its name, instructions, memory and skills, its budget and usage); only what thinks
- * changes, for this number alone. The kinds `ask` can reach: an API model through the Model Gateway, or a Claude or
- * ChatGPT plan on the agent's computer through `brain.route`.
+ * changes, for this number alone. The kinds `ask` can reach: an API model through the Model Gateway, or a Claude,
+ * ChatGPT or Gemini plan (a Gemini account, from `GEMINI_ROUTE_PROTOCOL`) on the agent's computer through `brain.route`.
  */
-export const WHATSAPP_BRAIN_KINDS = ["model", "claude_code", "codex"] as const;
+export const WHATSAPP_BRAIN_KINDS = ["model", "claude_code", "codex", "antigravity"] as const;
 export type WhatsAppBrainKind = (typeof WHATSAPP_BRAIN_KINDS)[number];
 
 export type WhatsAppBrainSetting = {
@@ -169,7 +169,10 @@ export async function setWhatsAppBrain(
   const asked = input.brain ?? {};
   const kind = asked.brain === undefined ? (input.model !== undefined ? "model" : current.brain) : asked.brain;
   if (!isKind(kind)) {
-    throw new ValidationError("WhatsApp answers with an API model, a Claude plan or a ChatGPT plan", "brain.invalid");
+    throw new ValidationError(
+      "WhatsApp answers with an API model, or a Claude, ChatGPT or Gemini plan",
+      "brain.invalid",
+    );
   }
   let next: WhatsAppBrainSetting;
   if (kind === "model") {
@@ -181,7 +184,7 @@ export async function setWhatsAppBrain(
     if (!option?.available) {
       throw new ConflictError(
         base.computer
-          ? `${kind === "codex" ? "Codex" : "Claude Code"} isn't available on ${base.computer.name}`
+          ? `${kind === "codex" ? "Codex" : kind === "antigravity" ? "Gemini" : "Claude Code"} isn't available on ${base.computer.name}`
           : "The agent needs a connected computer first",
         base.computer ? "brain.unavailable" : "brain.no_computer",
         { brain: kind },

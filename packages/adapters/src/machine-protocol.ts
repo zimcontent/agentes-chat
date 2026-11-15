@@ -7,7 +7,7 @@ import type { MergeDone } from "./command-policy";
  */
 
 /** Bumped on breaking changes; the server refuses runners older than `MIN_RUNNER_PROTOCOL`. */
-export const MACHINE_PROTOCOL_VERSION = 62;
+export const MACHINE_PROTOCOL_VERSION = 63;
 export const MIN_RUNNER_PROTOCOL = 1;
 /** From this protocol on, requests carry `agent` and each agent works in its own folder. */
 export const AGENT_FOLDERS_PROTOCOL = 2;
@@ -657,6 +657,12 @@ export const XCODE_FIX_PROTOCOL = 62;
  * Older runners answer `bad_request`: the server asks none of them.
  */
 export const ACCESS_ALLOW_PROTOCOL = 62;
+/**
+ * `brain.route` with `kind: "antigravity"`: one answer from a Gemini plan, `agy` in a home made for it alone with no
+ * tool and no MCP server (docs/adr/doug-0004-whatsapp-bridge.md, a WhatsApp number answering with Gemini). `model` is
+ * the slug `agy models` lists. Older runners answer `bad_request`: the server asks none of them.
+ */
+export const GEMINI_ROUTE_PROTOCOL = 63;
 
 export type PhonePlatform = "android" | "ios";
 export type PhoneKind = "device" | "emulator" | "simulator";
@@ -2080,7 +2086,8 @@ export interface BrainRouteRequest {
   schema: Record<string, unknown>;
   /**
    * Claude Code's model for this answer (`ROUTE_MODELS`); absent, or a runner that doesn't know the field: its
-   * smallest. Codex always answers with its smallest.
+   * smallest. Codex always answers with its smallest. Gemini (`GEMINI_ROUTE_PROTOCOL`): the slug `agy models` lists;
+   * absent: the account's default.
    */
   model?: string;
   /** How hard it thinks (`ROUTE_EFFORTS`); absent, or a runner that doesn't know the field: low. */
