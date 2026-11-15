@@ -456,9 +456,16 @@ html:not([data-pointer]) .onb__logo:focus-visible {
   border-radius: var(--radius-section);
   box-shadow: var(--e2);
 }
-.onb-preview__side.sidebar {
+/* The frame is the sidebar's box: the Doug theme's floating panel (`[data-theme] .sidebar` in doug.css: 272 wide with
+   a 12px margin and its own radius) would hang past the frame's right edge, so here it fills the frame exactly. */
+.onb-preview__side.sidebar,
+[data-theme] .onb-preview__side.sidebar {
+  flex-basis: auto;
   width: 100%;
+  min-width: 0;
   height: 100%;
+  margin: 0;
+  border-radius: inherit;
 }
 .onb-preview__side .sidebar__item {
   cursor: default;
