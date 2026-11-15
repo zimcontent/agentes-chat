@@ -1,5 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import {
+  addressed,
   afterAgent,
   afterPerson,
   bringIn,
@@ -56,6 +57,24 @@ describe("a call that just started", () => {
     expect(afterPerson(initialFloor(), "oi, tudo bem?", { agents, people: 1, now: 0 })).toMatchObject({
       state: { holder: null },
       ask: true,
+    });
+  });
+  test("one person and nobody with the word: the meeting's lead answers, and listens after the limit", () => {
+    const room = { agents, people: 1, now: 0, moderator: "doug" };
+    expect(afterPerson(initialFloor(), "oi, tudo bem?", room)).toMatchObject({ state: { holder: "doug" }, ask: false });
+    const tired = { ...initialFloor("ana"), spoke: ["ana", "bruno", "ana", "bruno", "doug"] };
+    expect(afterAgent(tired, "ana", "Pronto.", { agents, now: 1, moderator: "doug" })).toMatchObject({
+      reason: "limit",
+      changed: true,
+      state: { holder: "doug" },
+    });
+  });
+  test("a name said mid-sentence gives that agent the word at once; the same name again is no new cue", () => {
+    const d = addressed(initialFloor("ana"), "bruno", 3);
+    expect(d).toMatchObject({ reason: "named", changed: true, state: { holder: "bruno", chain: 0 } });
+    expect(afterPerson(d.state, "Bruno, o que acha?", { agents, people: 1, now: 4 })).toMatchObject({
+      reason: "named",
+      changed: false,
     });
   });
   test("several people: the agent just given the word keeps it a while even before it spoke", () => {

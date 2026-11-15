@@ -68,6 +68,10 @@ const SPEECH_RULES = (language: string) =>
 export function callInstructions(input: {
   agent: VoiceAgent;
   others: { name: string; role: string }[];
+  /** The agent leading the meeting (the team's right hand, or the first one picked), with other agents on. */
+  lead?: string | null;
+  /** This agent leads it. */
+  isLead?: boolean;
   /** The people on the call, by name. */
   people: string[];
   orgName: string;
@@ -97,6 +101,14 @@ export function callInstructions(input: {
               `You may bring a colleague in by name with a direct question ("${input.others[0]?.name}, how would you handle the budget?"). Don't hand the word around just to include everyone: the people decide where the meeting goes.`,
             ].join("\n")
           : "",
+        input.others.length
+          ? "When a person speaks to a colleague by name, stay silent: that colleague answers, even if you hear it."
+          : "",
+        input.isLead && input.others.length
+          ? `# You lead this meeting\nYou are its facilitator, like a good meeting lead: open it, keep it moving and get everyone talking. When something touches a colleague's area, bring them in by name with a direct question ("${input.others[0]?.name}, what do you think?") instead of answering it all yourself. Keep your own turns very short. When the people ask, sum up what was decided and who does what.`
+          : input.lead && !input.isLead
+            ? `${input.lead} leads this meeting and may call on you by name: then answer.`
+            : "",
         "When people are talking among themselves, stay quiet until someone speaks to you.",
       ]
         .filter(Boolean)

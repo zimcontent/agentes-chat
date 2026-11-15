@@ -56,8 +56,16 @@ second (about US$ 0.05 a minute), 15 seconds at least for a WebRTC session.
    model says whether an agent should answer and which, "none" unless the people clearly wait for one. Anyone can give
    the word by hand, or set the agents to only listen. (Addendum 2026-11-15: before, the first agent lost the word to
    the person's first words, since it hadn't spoken yet, and the judge's "none" left a one-person call silent.)
-7. **Captions and notes.** Each person's browser writes down its own person's words (the Web Speech API), the host
-   writes down the agents' (GPT-Live's transcripts); lines go to the room and to everyone's captions. When the call
+   Addendum 2026-11-15 (the meeting's lead): a call with agents is led by the team's right hand, put first on it by
+   the server even when not picked; it has the word whenever nobody else does (the start, past the limits, several
+   people talking), so somebody always hears the people, and it is told to bring colleagues in by name rather than
+   answer everything. What the people say no longer comes from the browser's speech recognition, which failed quietly
+   (a person named an agent and the one with the word kept answering): it is the transcript of the GPT-Live session
+   with the word, which hears them; a name said mid-sentence passes the word at once (once a sentence), the new holder
+   told what came before its name; the line goes to whoever's microphone was loudest meanwhile. After an agent
+   finishes, the small model now usually brings in a colleague who hasn't spoken on it.
+7. **Captions and notes.** The host writes down everyone's words from GPT-Live's transcripts (the people's as the
+   agent with the word hears them); lines go to the room and to everyone's captions. When the call
    ends for everyone (or the last person leaves) the notes are posted to the conversation as the person who ended it,
    mentioning the workspace's right hand (ADR 0137, Doug BOSS here; the call's first agent where there is none), whose
    reply is the summary: what was talked about, what was decided, the next steps with owners and dates, and what was
@@ -75,8 +83,8 @@ second (about US$ 0.05 a minute), 15 seconds at least for a WebRTC session.
 - Live voice is optional and costs nothing until a workspace adds a key; calls between people alone need no key.
 - People reach each other peer to peer with a public STUN server and no TURN: a strict network can keep two people
   from hearing each other. A TURN server, or an SFU, is the next step if that happens.
-- Captions of people depend on the browser (Chrome and Edge have the Web Speech API); where it is missing, the agent
-  with the word hears people anyway and its transcript drives the turns.
+- People's captions and turns come from the agent with the word, so a call needs at least one agent voice on;
+  calls between people alone have no captions.
 - The phone app has no calls yet.
 - The voice list follows OpenAI's voice table for GPT-Live as of 2026-11-15 (`LIVE_VOICE_CATALOG`: language, accent,
   feminine or masculine); a name they drop costs a voice, never a call. The voice picker plays each voice as the agent

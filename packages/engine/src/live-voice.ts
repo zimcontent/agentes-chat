@@ -511,9 +511,12 @@ export async function startLiveSession(deps: LiveVoiceDeps, userId: string, orgI
       presentPeople(room, now(deps)).map((p) => p.userId),
     );
     const channel = await channelName(deps, room.channelId);
+    const leader = all.find((a) => a.id === room.agentIds[0]);
     instructions = callInstructions({
       agent: voiceAgent(agent),
       others: all.filter((a) => a.id !== agent?.id).map((a) => ({ name: a.name, role: a.role })),
+      lead: room.agentIds.length > 1 && leader ? leader.name : null,
+      isLead: room.agentIds.length > 1 && room.agentIds[0] === agent.id,
       people: people.length ? people : [person],
       host: room.agentIds[0] === agent.id && room.lines.length === 0,
       orgName: org.name,
@@ -777,8 +780,12 @@ export async function joinLiveRoom(
   const existing = await channelLiveRoom(deps, userId, orgId, channelId);
   let room: Room | undefined;
   if (!existing) {
-    const wanted = [...new Set(input.agentIds)].slice(0, LIVE_ROOM_MAX_AGENTS);
-    const talkable = await talkableAgents(deps, userId, orgId, channelId, wanted);
+    // A call with agents is led by the team's right hand (ADR 0137): always on it, first (it opens and moderates).
+    const lead = input.agentIds.length ? await rightHandId(deps.db, orgId).catch(() => null) : null;
+    const wanted = [...new Set(lead ? [lead, ...input.agentIds] : input.agentIds)].slice(0, LIVE_ROOM_MAX_AGENTS);
+    const talkable = (await talkableAgents(deps, userId, orgId, channelId, wanted)).sort(
+      (a, b) => wanted.indexOf(a.id) - wanted.indexOf(b.id),
+    );
     if (talkable.length) await openKey(deps, orgId);
     [room] = await deps.db
       .insert(liveVoiceRooms)
@@ -950,7 +957,10 @@ export async function pickLiveSpeaker(
     : [];
   const now = moment === "during" && ask.speaking?.text?.trim() ? ask.speaking.text.trim().slice(-1200) : "";
   if (!recent.length && !now) return none;
-  const roles = `Agents who may speak:\n${roster.map((a) => `- ${a.handle}: ${a.name}${a.role ? `, ${a.role}` : ""}`).join("\n")}`;
+  const lead = room.agentIds.length > 1 ? room.agentIds[0] : null;
+  const roles = `Agents who may speak:\n${roster
+    .map((a) => `- ${a.handle}: ${a.name}${a.role ? `, ${a.role}` : ""}${a.id === lead ? " (leads the meeting)" : ""}`)
+    .join("\n")}`;
   const meeting =
     "It is a lively meeting, like a real one: colleagues build on each other's ideas, push back when they disagree and bring their own role's angle. Pick an agent only when they would add something real: never to agree, thank, repeat or summarize. Spread the word: prefer an agent who has said little.";
   const system = (
@@ -967,7 +977,8 @@ export async function pickLiveSpeaker(
             `You moderate a live voice call between people and AI agents. ${speakerRow?.name ?? "An agent"} just finished talking. Decide whether another agent should speak next, before the people answer.`,
             'Answer only JSON: {"speaker": "<handle>"} or {"speaker": "none"}.',
             meeting,
-            'Answer "none" when the agent asked the people something or handed the decision to them: they answer first. When in doubt, "none".',
+            "Everyone on the team takes part: usually one colleague who hasn't spoken on this yet should add their angle, push back or build on it. Prefer a colleague over the one who leads the meeting.",
+            'Answer "none" only when the agent asked the people a direct question or handed the decision to them (they answer first), or when every colleague already spoke on it.',
             roles,
           ]
         : room.people.length <= 1
