@@ -721,6 +721,13 @@ export function decisionMessage(input: {
     );
   }
   if (input.message.trim()) lines.push("", input.message.trim());
+  // Every review teaches: the agent writes down what holds beyond this video before it moves on.
+  lines.push(
+    "",
+    input.decision === "approve"
+      ? "Antes de entregar: grave na sua skill e na sua memória o que funcionou neste vídeo."
+      : "Antes da próxima versão: grave na sua skill e na sua memória o que destas notas vale para os próximos vídeos.",
+  );
   if (input.notes.length > 0) {
     lines.push("", "Notas:");
     for (const note of input.notes) {
