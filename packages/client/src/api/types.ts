@@ -336,7 +336,7 @@ export interface OrgSummary {
   /** From `GET /me`: the sidebar's tools an admin took out of this workspace for everyone. Absent: none. */
   hiddenTools?: string[];
   /**
-   * From `GET /me`: the server's approval portal is this workspace's (ADR 9001 §19). Absent from an older server, which
+   * From `GET /me`: the server's approval portal is this workspace's (ADR 9001 §18). Absent from an older server, which
    * shows the portal wherever the server has one (`AuthConfig.approvalPortal`).
    */
   portal?: boolean;

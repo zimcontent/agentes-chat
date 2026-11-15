@@ -22,7 +22,7 @@ const NEXT_SHOWN = 5;
 export function HomeTasks() {
   const { t } = useTranslation();
   const { org } = useOrg();
-  // Only in the workspace the portal is (ADR 9001 §19).
+  // Only in the workspace the portal is (ADR 9001 §18).
   const on = usePortalOn();
   const mine = usePortalMine(org.id, on).data;
   if (!on || !mine) return null;

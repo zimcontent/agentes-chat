@@ -72,7 +72,7 @@ describe("the portal's tools", () => {
     // A routine's run only reads (it tells each person their day); a call with no run gets none.
     expect(await names(source, ctx({ background: true }))).toEqual([PORTAL_BOARD_TOOL, PORTAL_WORK_TOOL]);
     expect(await names(source, ctx({ runId: null as unknown as string }))).toEqual([]);
-    // Another workspace on the same server is another operation: none of the portal's tools (ADR 9001 §19).
+    // Another workspace on the same server is another operation: none of the portal's tools (ADR 9001 §18).
     expect(await names(createPortalToolSource({ portal, artifacts, here: async () => false }), ctx())).toEqual([]);
   });
 

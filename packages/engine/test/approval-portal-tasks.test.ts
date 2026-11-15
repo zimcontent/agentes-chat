@@ -89,7 +89,7 @@ describe("the approval portal's cards as tasks", () => {
     expect((await listIssueProjects(f.db, f.owner.id, f.org.id)).projects.length).toBe(1);
     expect((await portalTaskRefs(f.db, f.org.id)).size).toBe(2);
     expect(await portalWorkspace(f.db)).toBe(f.org.id);
-    // The portal is this workspace's alone: another one made later on the server doesn't get it (ADR 9001 §19).
+    // The portal is this workspace's alone: another one made later on the server doesn't get it (ADR 9001 §18).
     const other = await createOrganization(f.db, f.owner.id, { name: "Consig" });
     expect(await portalHere(f.db, f.org.id)).toBe(true);
     expect(await portalHere(f.db, other.organization.id)).toBe(false);

@@ -111,7 +111,7 @@ export function CommandMenu() {
       { key: "home", to: "/org/$orgId/home", icon: "home", label: t("shell.home") },
       { key: "dashboards", to: "/org/$orgId/dashboards", icon: "chart", label: t("dashboards.title") },
       { key: "waiting", to: "/org/$orgId/waiting", icon: "question", label: t("shell.waiting") },
-      // Only in the workspace the server's approval portal is (ADR 9001 §19).
+      // Only in the workspace the server's approval portal is (ADR 9001 §18).
       ...(portalHere(org, server?.approvalPortal)
         ? [{ key: "portal", to: "/org/$orgId/portal", icon: "approve", label: t("shell.portal") } as const]
         : []),

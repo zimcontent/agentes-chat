@@ -194,7 +194,7 @@ export function portalRoutes(deps: AppDeps) {
   app.use("/portal-logos/*", requireSession(deps.auth));
 
   const portalOff = <C extends Context>(c: C) => apiError(c, 404, "portal.off", "This server has no approval portal");
-  // The portal is one workspace's operation (ADR 9001 §19): every other workspace on this server answers as if there
+  // The portal is one workspace's operation (ADR 9001 §18): every other workspace on this server answers as if there
   // were none, so a second business never sees the first one's clients and posts.
   const onlyItsWorkspace = async (c: Context, next: () => Promise<void>) => {
     const orgId = /\/organizations\/([^/]+)\/portal(?:\/|$)/.exec(c.req.path)?.[1];

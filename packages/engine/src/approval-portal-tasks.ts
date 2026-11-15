@@ -139,7 +139,7 @@ export async function portalWorkspace(db: Database): Promise<string | null> {
 }
 
 /**
- * Whether the installation's portal is this workspace's (ADR 9001 §19): its clients, cards and posts are one
+ * Whether the installation's portal is this workspace's (ADR 9001 §18): its clients, cards and posts are one
  * operation's, so a second workspace on the same server (another business) never sees them, nor do its agents get
  * the portal's tools. Once a workspace holds the portal's tasks the answer can't change, so it is kept per database.
  */

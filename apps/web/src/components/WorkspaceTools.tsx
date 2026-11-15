@@ -27,7 +27,7 @@ const WORDS = {
 
 /**
  * Settings › General: which tools this workspace has in its sidebar, for everyone (`hiddenTools`). Portal shows only
- * in the workspace the approval portal is (ADR 9001 §19), WhatsApp only on a server that has it.
+ * in the workspace the approval portal is (ADR 9001 §18), WhatsApp only on a server that has it.
  */
 export function WorkspaceToolsCard() {
   const { t, i18n } = useTranslation();

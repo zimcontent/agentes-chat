@@ -95,7 +95,7 @@ type ToolsOf = { hiddenTools?: string[]; portal?: boolean };
 export const toolHidden = (org: ToolsOf | null | undefined, tool: WorkspaceTool) =>
   (org?.hiddenTools ?? []).includes(tool);
 /**
- * Whether the approval portal is this workspace's (ADR 9001 §19): the server has one (`AuthConfig.approvalPortal`)
+ * Whether the approval portal is this workspace's (ADR 9001 §18): the server has one (`AuthConfig.approvalPortal`)
  * and it belongs here. An older server, which says nothing per workspace, shows it wherever it has one.
  */
 export const portalHere = (org: ToolsOf | null | undefined, serverHasOne: boolean | undefined) =>

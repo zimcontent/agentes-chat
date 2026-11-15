@@ -60,7 +60,7 @@ export const SIDEBAR_TOOLS = {
   taskManager: { to: "/org/$orgId/task-manager", icon: "stageProgress" },
 } as const satisfies Record<SidebarItem, { to: string; icon: IconName }>;
 
-/** Whether the server's approval portal is this workspace's (ADR 9001 §19): Portal is a tool only there. */
+/** Whether the server's approval portal is this workspace's (ADR 9001 §18): Portal is a tool only there. */
 export const usePortalOn = () => portalHere(useOrgIfAny()?.org, useAuthConfig().data?.approvalPortal);
 /** The workspace's tools an admin took out of the sidebar for everyone (Settings › General). */
 export const useHiddenTools = (): readonly string[] => useOrgIfAny()?.org.hiddenTools ?? [];

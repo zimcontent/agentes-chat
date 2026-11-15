@@ -156,7 +156,7 @@ export const Organization = z
     }),
     portal: z.boolean().optional().openapi({
       description:
-        "In `GET /me`: the server's approval portal is this workspace's (ADR 9001 §19). Elsewhere every `…/portal` route answers 404 `portal.off`.",
+        "In `GET /me`: the server's approval portal is this workspace's (ADR 9001 §18). Elsewhere every `…/portal` route answers 404 `portal.off`.",
     }),
     standing: z
       .object({
