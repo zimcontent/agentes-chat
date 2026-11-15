@@ -2,6 +2,7 @@ import { createHmac, timingSafeEqual } from "node:crypto";
 import {
   bareJid,
   isGroupJid,
+  WhatsAppGatewayError,
   type WhatsAppMessage,
   whatsappFileKind,
   whatsappFileMessage,
@@ -138,7 +139,14 @@ export async function whatsappChatPhoto(
   const ask = async () => {
     if (account.status !== "connected") return null;
     const gateway = whatsappGateway(deps);
-    const url = await gateway.profilePhoto(await accountToken(deps, account), { jid: chat.jid });
+    // A photo WhatsApp never answers for (its own `0@s.whatsapp.net`, which the gateway waits 75 s on) counts as
+    // none for the day, so the list doesn't ask for it again each time it opens.
+    const url = await gateway
+      .profilePhoto(await accountToken(deps, account), { jid: chat.jid })
+      .catch((error: unknown) => {
+        if (error instanceof WhatsAppGatewayError && /timed? ?out/i.test(error.message)) return null;
+        throw error;
+      });
     const photoUrl = url && whatsappPhotoAddress(url) ? url : null;
     await deps.db
       .update(schema.whatsappChats)

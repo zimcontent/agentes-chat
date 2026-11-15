@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { createFakeWhatsAppGateway, userTopic } from "@agenteschat/adapters";
+import { createFakeWhatsAppGateway, userTopic, WhatsAppGatewayError } from "@agenteschat/adapters";
 import { eq, schema } from "@agenteschat/db";
 import {
   createWhatsAppAccount,
@@ -638,5 +638,27 @@ describe("profile photos", () => {
     const chatId = (await listWhatsAppChats(deps, f.owner.id, f.org.id, account.id)).chats[0]?.id as string;
     const stranger = await addMember(f.db, f.org.id, "member", "estranho");
     await expect(whatsappChatPhoto(deps, stranger.id, f.org.id, account.id, chatId)).rejects.toThrow();
+  });
+});
+
+describe("a photo WhatsApp never answers for", () => {
+  test("a timeout counts as none for the day; a gateway that's down doesn't", async () => {
+    f = await setup();
+    const { gateway, deps, account, post } = await connected();
+    await post(text("A1", "oi"));
+    const chatId = (await listWhatsAppChats(deps, f.owner.id, f.org.id, account.id)).chats[0]?.id as string;
+    const original = gateway.profilePhoto.bind(gateway);
+    let failure = "The WhatsApp gateway didn't answer: TimeoutError: The operation timed out.";
+    gateway.profilePhoto = async () => {
+      throw new WhatsAppGatewayError(0, failure);
+    };
+    const ask = () => whatsappChatPhoto(deps, f.owner.id, f.org.id, account.id, chatId);
+    await expect(ask()).rejects.toThrow("no photo");
+    expect((await listWhatsAppChats(deps, f.owner.id, f.org.id, account.id)).chats[0]?.photo).toBe(false);
+    await f.db.update(schema.whatsappChats).set({ photoAt: null }).where(eq(schema.whatsappChats.id, chatId));
+    failure = "The WhatsApp gateway didn't answer: connect ECONNREFUSED";
+    await expect(ask()).rejects.toBeInstanceOf(WhatsAppGatewayError);
+    expect((await listWhatsAppChats(deps, f.owner.id, f.org.id, account.id)).chats[0]?.photo).toBe(true);
+    gateway.profilePhoto = original;
   });
 });
