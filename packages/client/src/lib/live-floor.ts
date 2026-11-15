@@ -102,12 +102,7 @@ const give = (
   now?: number,
 ): FloorDecision => ({
   state: { ...state, holder, givenAt: holder && holder !== state.holder && now !== undefined ? now : state.givenAt },
-  changed:
-    holder !== state.holder ||
-    reason === "named" ||
-    reason === "judge" ||
-    reason === "manual" ||
-    reason === "interrupt",
+  changed: holder !== state.holder || reason === "judge" || reason === "manual" || reason === "interrupt",
   reason,
   ask,
 });
@@ -116,7 +111,7 @@ const give = (
 export function afterPerson(
   state: FloorState,
   text: string,
-  room: { agents: FloorAgent[]; people: number; now: number },
+  room: { agents: FloorAgent[]; people: number; now: number; moderator?: string | null },
 ): FloorDecision {
   const fresh: FloorState = { ...state, chain: 0, spoke: [] };
   if (!room.agents.length) return give(fresh, null, "people");
@@ -124,12 +119,21 @@ export function afterPerson(
   if (named) return give(fresh, named, "named", false, room.now);
   if (room.agents.length === 1 && room.people <= 1)
     return give(fresh, room.agents[0]?.id ?? null, "solo", false, room.now);
-  // One person talks to the agents: whoever has the word goes on answering.
-  if (state.holder && room.people <= 1) return give(fresh, state.holder, "continue");
-  if (state.holder && room.now - Math.max(state.lastAgentAt, state.givenAt) < CONTINUE_MS)
+  const lead = room.moderator ?? null;
+  // One person talks to the agents: whoever has the word goes on answering; with nobody, the meeting's lead.
+  if (room.people <= 1) {
+    const to = state.holder ?? lead;
+    return give(fresh, to, "continue", !to, room.now);
+  }
+  if (state.holder && state.holder !== lead && room.now - Math.max(state.lastAgentAt, state.givenAt) < CONTINUE_MS)
     return give(fresh, state.holder, "continue");
-  return give(fresh, null, "people", true);
+  // Several people: the lead listens while the small model says whether an agent should answer.
+  return give(fresh, lead, "people", true, room.now);
 }
+
+/** A person names an agent while still talking: it takes the word at once and hears the rest. */
+export const addressed = (state: FloorState, agentId: string, now: number): FloorDecision =>
+  give({ ...state, chain: 0, spoke: [] }, agentId, "named", false, now);
 
 const turnsOf = (state: FloorState, agentId: string) => state.spoke.filter((id) => id === agentId).length;
 
@@ -151,21 +155,23 @@ export function afterAgent(
   state: FloorState,
   agentId: string,
   text: string,
-  room: { agents: FloorAgent[]; now: number },
+  room: { agents: FloorAgent[]; now: number; moderator?: string | null },
   next?: string | null,
 ): FloorDecision {
   const after: FloorState = { ...state, spoke: [...state.spoke, agentId], lastAgentAt: room.now };
-  if (after.spoke.length >= MAX_AGENT_TURNS) return give(after, null, "limit");
+  // Past the limits the people have the word, the meeting's lead listening for them.
+  const rest = () => give(after, room.moderator ?? null, "limit", false, room.now);
+  if (after.spoke.length >= MAX_AGENT_TURNS) return rest();
   const named = namedAgent(text, room.agents, agentId);
   const to = [named, next].find((id) => id && room.agents.some((a) => a.id === id) && mayBringIn(after, id));
   if (to) return give({ ...after, chain: after.chain + 1 }, to, "handoff", false, room.now);
-  if (named) return give(after, null, "limit");
+  if (named) return rest();
   return give(after, agentId, "continue");
 }
 
 /** A colleague follows the agent that just finished (the small model's pick): null when the limits say no. */
 export function bringIn(state: FloorState, to: string, now: number): FloorDecision | null {
-  if (!state.holder || !mayBringIn(state, to)) return null;
+  if (!mayBringIn(state, to)) return null;
   return give({ ...state, chain: state.chain + 1 }, to, "handoff", false, now);
 }
 

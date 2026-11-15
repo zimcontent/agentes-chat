@@ -1,5 +1,6 @@
 import type { ApiClient, LiveRoom, LiveRoomLine, RealtimeConnection } from "@agenteschat/client";
 import {
+  addressed,
   afterAgent,
   afterPerson,
   bringIn,
@@ -10,6 +11,7 @@ import {
   initialFloor,
   interrupt,
   mayBringIn,
+  namedAgent,
 } from "@agenteschat/client/lib/live-floor";
 import { LiveLeg } from "./leg";
 
@@ -20,7 +22,11 @@ import { LiveLeg } from "./leg";
  * light the tile of whoever speaks. Who has the word is code (`live-floor`), applied by the host: the agent with it
  * hears the call, the others are muted and get what they missed as notes when it comes to them. Agents talk like a
  * meeting: while one talks the small model is asked, a sentence at a time, whether a colleague cuts in or follows; one
- * cut off is faded out (each voice goes through a gain of its own) and told it was interrupted.
+ * cut off is faded out (each voice goes through a gain of its own) and told it was interrupted. The first agent leads
+ * the meeting (the team's right hand, put first by the server): it has the word whenever nobody else does, so somebody
+ * always hears the people. What the people say comes from the GPT-Live session with the word (its transcript of what it
+ * hears), not from the browser's speech recognition, which fails quietly in some browsers and the desktop app: a name
+ * said mid-sentence passes the word at once.
  */
 
 export type Who = `person:${string}` | `agent:${string}`;
@@ -45,8 +51,6 @@ export interface RoomCallState {
   /** Each agent's voice, on the host's side: connecting, live or failed. */
   agentVoices: Record<string, "connecting" | "live" | "failed">;
   captions: Caption[];
-  /** This browser writes down what its person says. */
-  hearsMe: boolean;
 }
 
 const ICE = [{ urls: "stun:stun.l.google.com:19302" }];
@@ -95,25 +99,6 @@ interface AgentVoice {
   seen: number;
 }
 
-type SpeechRecognitionLike = {
-  lang: string;
-  continuous: boolean;
-  interimResults: boolean;
-  start(): void;
-  stop(): void;
-  abort(): void;
-  onresult:
-    | ((e: { resultIndex: number; results: ArrayLike<{ isFinal: boolean; 0: { transcript: string } }> }) => void)
-    | null;
-  onend: (() => void) | null;
-  onerror: ((e: { error: string }) => void) | null;
-};
-
-function speechRecognition(): (new () => SpeechRecognitionLike) | null {
-  const w = window as unknown as Record<string, unknown>;
-  return (w.SpeechRecognition ?? w.webkitSpeechRecognition ?? null) as (new () => SpeechRecognitionLike) | null;
-}
-
 export class RoomCall {
   private state: RoomCallState = {
     phase: "joining",
@@ -123,7 +108,6 @@ export class RoomCall {
     holder: null,
     agentVoices: {},
     captions: [],
-    hearsMe: false,
   };
   private listeners = new Set<() => void>();
   private ctx: AudioContext | null = null;
@@ -139,7 +123,6 @@ export class RoomCall {
   private lines: LiveRoomLine[] = [];
   private floor: FloorState = initialFloor();
   private judging = false;
-  private speech: SpeechRecognitionLike | null = null;
   private timers: ReturnType<typeof setInterval>[] = [];
   private off: (() => void) | null = null;
   private frame = 0;
@@ -176,6 +159,10 @@ export class RoomCall {
   get isHost() {
     return this.state.room?.hostUserId === this.o.me;
   }
+  /** The agent leading the meeting: first in the room (the server puts the team's right hand there). */
+  private get moderator(): string | null {
+    return this.state.room?.agentIds[0] ?? null;
+  }
   private get roomAgents(): FloorAgent[] {
     const ids = this.state.room?.agentIds ?? [];
     return ids.flatMap((id) => this.o.agents.filter((a) => a.id === id));
@@ -200,7 +187,6 @@ export class RoomCall {
         captions: room.lines.map((l) => ({ who: whoOf(l), text: l.text, at: Date.parse(l.at), n: ++this.said })),
       });
       this.timers.push(setInterval(() => void this.ping(), PING_MS));
-      this.startHearingMe();
       this.loop();
       await this.applyRoom(room);
     } catch (error) {
@@ -231,8 +217,6 @@ export class RoomCall {
     const on = !this.state.micOn;
     for (const t of this.mic?.getAudioTracks() ?? []) t.enabled = on;
     this.set({ micOn: on });
-    if (on) this.startHearingMe();
-    else this.speech?.abort();
   }
 
   /** "Dar a palavra": to an agent, or back to the people (null). The host applies it. */
@@ -268,7 +252,7 @@ export class RoomCall {
     }
     if (e.roomId !== room.id) return;
     if (e.type === "live.signal") void this.onSignal(String(e.from), e.data as Signal);
-    if (e.type === "live.lines") for (const line of e.lines as LiveRoomLine[]) this.heard(line, false);
+    if (e.type === "live.lines") for (const line of e.lines as LiveRoomLine[]) this.heard(line);
     if (e.type === "live.floor") {
       const holder = (e.holder as string | null) ?? null;
       if (this.isHost && e.by !== this.o.me) this.apply(giveFloor(this.floor, holder, "manual"));
@@ -433,7 +417,8 @@ export class RoomCall {
     if (!room || !this.ctx || !this.micSource) return;
     const ids = room.agentIds;
     // The first agent greets a new call; a call taken over goes on with the people.
-    this.floor = initialFloor(room.lines.length === 0 ? (ids[0] ?? null) : null, Date.now());
+    // The lead has the word from the start (it greets a new call), so somebody always hears the people.
+    this.floor = initialFloor(ids[0] ?? null, Date.now());
     this.set({ holder: this.floor.holder });
     for (const agentId of ids) {
       const input = this.ctx.createMediaStreamDestination();
@@ -502,8 +487,10 @@ export class RoomCall {
     if (this.state.agentVoices[agentId] === s) return;
     this.set({ agentVoices: { ...this.state.agentVoices, [agentId]: s } });
     // A voice that failed can't keep the word: it goes back to the people.
-    if (s === "failed" && this.floor.holder === agentId && !this.torn)
-      this.apply(giveFloor(this.floor, null, "manual"));
+    if (s === "failed" && this.floor.holder === agentId && !this.torn) {
+      const lead = this.moderator !== agentId && this.state.agentVoices[this.moderator ?? ""] === "live";
+      this.apply(giveFloor(this.floor, lead ? this.moderator : null, "manual"), false);
+    }
   }
 
   private voiceOut(agentId: string, stream: MediaStream) {
@@ -542,7 +529,7 @@ export class RoomCall {
     voice.said = "";
     if (!text) return;
     const line: LiveRoomLine = { at: new Date().toISOString(), who: { type: "agent", id: agentId }, text: `${text}…` };
-    this.heard(line, true);
+    this.heard(line);
     void this.o.api.liveVoice.lines(this.o.orgId, room.id, [{ who: line.who, text: line.text }]).catch(() => {});
     voice.seen = this.lines.length;
     voice.leg?.note(
@@ -647,24 +634,79 @@ export class RoomCall {
       voice.idle = setTimeout(() => this.agentPaused(agentId), AGENT_LINE_IDLE_MS);
       if (SENTENCE_END.test(voice.said)) this.askDuring(agentId);
     }
-    // Where no browser writes the people down, the agent with the word hears them: its words count for the turns.
-    if (
-      e.type === "session.input_transcript.delta" &&
-      e.delta &&
-      !this.state.hearsMe &&
-      this.floor.holder === agentId
-    ) {
-      this.unheard += e.delta;
-      if (this.unheardIdle) clearTimeout(this.unheardIdle);
-      this.unheardIdle = setTimeout(() => {
-        const text = this.unheard.trim();
-        this.unheard = "";
-        if (text) this.apply(afterPerson(this.floor, text, this.floorRoom()));
-      }, AGENT_LINE_IDLE_MS);
-    }
+    if (e.type === "session.input_transcript.delta" && e.delta && this.floor.holder === agentId)
+      this.peopleSaid(e.delta);
   }
-  private unheard = "";
-  private unheardIdle: ReturnType<typeof setTimeout> | null = null;
+
+  /**
+   * What the people say, as the agent with the word hears it: a caption as it comes, the word passed at once when an agent
+   * is named, and a line once they pause (who said it: the loudest microphone meanwhile).
+   */
+  private peopleSaid(delta: string) {
+    this.personText += delta;
+    const who = this.loudestPerson();
+    this.liveCaption(`person:${who}`, this.personText.trim());
+    // Once per sentence: passing the word back and forth on every name said would be worse than none.
+    const named = this.switchedTo ? null : namedAgent(this.personText, this.roomAgents, this.floor.holder);
+    if (named && this.state.agentVoices[named] === "live") {
+      this.apply(addressed(this.floor, named, Date.now()), false);
+      this.switchedTo = named;
+      // It hears the rest; what came before its name reaches it as a note.
+      this.voices
+        .get(named)
+        ?.leg?.note(
+          `${this.nameOf(`person:${who}`)} is talking to you and said so far: "${this.personText.trim().slice(-600)}"`,
+        );
+    }
+    if (this.personIdle) clearTimeout(this.personIdle);
+    this.personIdle = setTimeout(() => this.personPaused(), AGENT_LINE_IDLE_MS);
+  }
+  private personText = "";
+  private personIdle: ReturnType<typeof setTimeout> | null = null;
+  /** The agent the word went to mid-sentence: it heard the rest, so it gets a cue only if it stays quiet. */
+  private switchedTo: string | null = null;
+  /** How long each person was loud while the current words came (for whose they are). */
+  private talk = new Map<string, number>();
+
+  private loudestPerson() {
+    let best = this.o.me;
+    let most = -1;
+    for (const [userId, t] of this.talk)
+      if (t > most) {
+        best = userId;
+        most = t;
+      }
+    return best;
+  }
+
+  private personPaused() {
+    const room = this.state.room;
+    const text = this.personText.trim();
+    const who = this.loudestPerson();
+    this.personText = "";
+    this.personIdle = null;
+    this.talk.clear();
+    const switched = this.switchedTo;
+    this.switchedTo = null;
+    // Its live caption may have shown under another person while the words came.
+    this.set({ captions: this.state.captions.filter((c) => !(c.live && c.who.startsWith("person:"))) });
+    if (!room || !text) return;
+    const line: LiveRoomLine = { at: new Date().toISOString(), who: { type: "person", id: who }, text };
+    this.heard(line);
+    void this.o.api.liveVoice.lines(this.o.orgId, room.id, [{ who: line.who, text }]).catch(() => {});
+    const d = afterPerson(this.floor, text, this.floorRoom());
+    if (switched && d.state.holder === switched) {
+      this.floor = d.state;
+      // It took the word mid-sentence and heard the rest; if the name came last it may still be waiting.
+      const voice = this.voices.get(switched);
+      if (voice && !voice.said.trim())
+        voice.leg?.instruct(
+          `${this.nameOf(`person:${who}`)} just said to you: "${text.slice(-600)}". Answer now, briefly, then stop.`,
+        );
+      return;
+    }
+    this.apply(d);
+  }
 
   private agentPaused(agentId: string) {
     const voice = this.voices.get(agentId);
@@ -675,21 +717,35 @@ export class RoomCall {
     voice.idle = null;
     if (!text || voice.cut) return;
     const line: LiveRoomLine = { at: new Date().toISOString(), who: { type: "agent", id: agentId }, text };
-    this.heard(line, true);
+    this.heard(line);
     void this.o.api.liveVoice.lines(this.o.orgId, room.id, [{ who: line.who, text }]).catch(() => {});
     const next = this.pendingNext;
     this.pendingNext = null;
-    const d = afterAgent(this.floor, agentId, text, { agents: this.roomAgents, now: Date.now() }, next);
+    const d = afterAgent(
+      this.floor,
+      agentId,
+      text,
+      { agents: this.roomAgents, now: Date.now(), moderator: this.moderator },
+      next,
+    );
     this.apply(d);
     if (d.reason === "continue") this.askAfter(agentId);
   }
 
   private floorRoom() {
-    return { agents: this.roomAgents, people: this.state.room?.people.length ?? 1, now: Date.now() };
+    return {
+      agents: this.roomAgents,
+      people: this.state.room?.people.length ?? 1,
+      now: Date.now(),
+      moderator: this.moderator,
+    };
   }
 
-  /** Puts a turn decision into effect: who hears, what the new speaker missed, and a cue to answer. */
-  private apply(d: FloorDecision) {
+  /**
+   * Puts a turn decision into effect: who hears, what the new speaker missed, and a cue to answer (`cue: false` when it
+   * hears what comes next anyway). The lead taking the word back to listen (`limit`, `people`) gets no cue.
+   */
+  private apply(d: FloorDecision, cue = true) {
     const before = this.floor.holder;
     // The word leaves an agent mid-sentence (a person named another one): it is cut off.
     if (before && before !== d.state.holder && this.voices.get(before)?.said.trim())
@@ -706,7 +762,8 @@ export class RoomCall {
         voice.seen = this.lines.length;
         if (missed.length) voice.leg.note(`What was said on the call while you listened:\n${this.format(missed)}`);
         const last = this.lines.at(-1);
-        if (last && last.who.id !== holder && d.reason !== "continue" && d.reason !== "solo") {
+        const quiet = ["continue", "solo", "limit", "people"].includes(d.reason);
+        if (cue && last && last.who.id !== holder && !quiet) {
           const who = this.nameOf(whoOf(last));
           const said = last.text.slice(-600);
           voice.leg.instruct(
@@ -745,7 +802,7 @@ export class RoomCall {
           agentId = (await this.o.api.liveVoice.next(this.o.orgId, room.id)).agentId;
         } catch {}
         this.judging = false;
-        if (this.torn || this.floor.holder !== null) return;
+        if (this.torn || (this.floor.holder !== null && this.floor.holder !== this.moderator)) return;
         const live = (id: string) => this.state.agentVoices[id] === "live";
         if (solo && (!agentId || !live(agentId))) agentId = this.fallbackSpeaker(live);
         // With several people, only if nothing was said since.
@@ -788,63 +845,14 @@ export class RoomCall {
   }
 
   // ── What was said ──
-  private startHearingMe() {
-    const Recognition = speechRecognition();
-    if (!Recognition || this.torn || !this.state.micOn) return;
-    if (!this.speech) {
-      const rec = new Recognition();
-      rec.lang = this.o.language;
-      rec.continuous = true;
-      rec.interimResults = true;
-      rec.onresult = (e) => {
-        let interim = "";
-        for (let i = e.resultIndex; i < e.results.length; i++) {
-          const r = e.results[i];
-          if (!r) continue;
-          const text = r[0].transcript.trim();
-          if (r.isFinal && text) this.iSaid(text);
-          else interim += ` ${text}`;
-        }
-        if (interim.trim()) this.liveCaption(`person:${this.o.me}`, interim.trim());
-      };
-      // Chrome ends it now and then: on again while the microphone is.
-      rec.onend = () => {
-        if (!this.torn && this.state.micOn) setTimeout(() => this.speechStart(), 300);
-      };
-      rec.onerror = (e) => {
-        if (e.error === "not-allowed" || e.error === "service-not-allowed") this.set({ hearsMe: false });
-      };
-      this.speech = rec;
-    }
-    this.speechStart();
-    this.set({ hearsMe: true });
-  }
-  private speechStart() {
-    try {
-      this.speech?.start();
-    } catch {
-      // Already on.
-    }
-  }
-
-  private iSaid(text: string) {
-    const room = this.state.room;
-    if (!room) return;
-    const line: LiveRoomLine = { at: new Date().toISOString(), who: { type: "person", id: this.o.me }, text };
-    this.heard(line, true);
-    void this.o.api.liveVoice.lines(this.o.orgId, room.id, [{ who: line.who, text }]).catch(() => {});
-  }
-
-  /** A whole line said on the call: kept for the turns and the captions; the host decides who speaks next. */
-  private heard(line: LiveRoomLine, mine: boolean) {
+  /** A whole line said on the call: kept for the notes and the captions. */
+  private heard(line: LiveRoomLine) {
     this.lines.push(line);
     const who = whoOf(line);
     const captions = this.state.captions.filter((c) => !(c.live && c.who === who));
     this.set({
       captions: [...captions, { who, text: line.text, at: Date.now(), n: ++this.said }].slice(-MAX_CAPTIONS),
     });
-    if (this.isHost && line.who.type === "person") this.apply(afterPerson(this.floor, line.text, this.floorRoom()));
-    void mine;
   }
 
   private liveCaption(who: Who, text: string) {
@@ -912,6 +920,10 @@ export class RoomCall {
         const rms = Math.sqrt(sum / buf.length);
         const level = Math.min(1, rms * 9);
         const was = this.levels.get(who) ?? 0;
+        if (this.personText && level > 0.12 && who.startsWith("person:")) {
+          const userId = who.slice("person:".length);
+          this.talk.set(userId, (this.talk.get(userId) ?? 0) + level);
+        }
         // Up at once, down slowly: the glow doesn't flicker between words.
         this.levels.set(who, level > was ? level : was * 0.88);
       }
@@ -926,7 +938,6 @@ export class RoomCall {
     cancelAnimationFrame(this.frame);
     for (const t of this.timers) clearInterval(t);
     this.off?.();
-    this.speech?.abort();
     void this.closeVoices();
     for (const userId of [...this.peers.keys()]) this.closePeer(userId);
     for (const who of [...this.audioEls.keys()]) this.drop(who as Who);

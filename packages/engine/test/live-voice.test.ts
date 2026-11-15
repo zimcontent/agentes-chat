@@ -247,6 +247,18 @@ describe("voice rooms", () => {
     const room = await joinLiveRoom(d, bia.id, f.org.id, f.general.id, { agentIds: [f.agent.id] });
     expect(room.agentIds).toEqual([]);
   });
+
+  test("the team's right hand leads every call with agents: always on it, first", async () => {
+    f = await setup();
+    const d = deps(openai().fetch);
+    await saveLiveVoiceKey(d, f.owner.id, f.org.id, KEY);
+    const doug = Bun.randomUUIDv7();
+    const [base] = await f.db.select().from(schema.agents).where(eq(schema.agents.id, f.agent.id));
+    if (!base) throw new Error("no agent");
+    await f.db.insert(schema.agents).values({ ...base, id: doug, handle: "doug", name: "Doug", builtin: "right_hand" });
+    const room = await joinLiveRoom(d, f.owner.id, f.org.id, f.general.id, { agentIds: [f.agent.id] });
+    expect(room.agentIds).toEqual([doug, f.agent.id]);
+  });
 });
 
 describe("what a call's agent is told", () => {
@@ -265,6 +277,23 @@ describe("what a call's agent is told", () => {
     });
     expect(text).toContain("Gabriel, Bia");
     expect(text).toContain("Colleagues may cut in while you talk");
+    expect(text).toContain("When a person speaks to a colleague by name, stay silent");
+    const lead = callInstructions({
+      agent: { id: "d", name: "Doug", role: "CEO", instructions: "" },
+      others: [{ name: "Ana", role: "Designer" }],
+      lead: "Doug",
+      isLead: true,
+      people: ["Gabriel"],
+      orgName: "Zim",
+      orgContext: "",
+      channel: null,
+      recent: [],
+      callSoFar: [],
+      host: true,
+      language: "pt-BR",
+    });
+    expect(lead).toContain("# You lead this meeting");
+    expect(lead).toContain("Ana, what do you think?");
     expect(text).toContain("<external_data");
   });
 });
