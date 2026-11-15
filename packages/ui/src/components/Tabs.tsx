@@ -1,5 +1,6 @@
 import { Tabs as RTabs } from "radix-ui";
 import { type CSSProperties, type ReactNode, useLayoutEffect, useRef, useState } from "react";
+import { useStripScroll } from "../hooks/useStripScroll";
 
 export interface TabItem<V extends string> {
   value: V;
@@ -32,6 +33,8 @@ export function Tabs<V extends string>({
 }) {
   const seg = variant === "segmented";
   const refs = useRef<(HTMLButtonElement | null)[]>([]);
+  const listRef = useRef<HTMLDivElement>(null);
+  useStripScroll(listRef);
   const [pill, setPill] = useState<{ x: number; w: number } | null>(null);
   const index = Math.max(
     0,
@@ -65,7 +68,7 @@ export function Tabs<V extends string>({
   }, [index]);
   return (
     <RTabs.Root value={value} onValueChange={(v) => onValueChange(v as V)} style={{ display: "contents" }}>
-      <RTabs.List className={seg ? "ac-seg ac-tabs--seg" : "ac-tabs"} aria-label={label}>
+      <RTabs.List ref={listRef} className={seg ? "ac-seg ac-tabs--seg" : "ac-tabs"} aria-label={label}>
         {seg && pill && (
           <span
             className="ac-seg__pill"
