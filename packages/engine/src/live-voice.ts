@@ -906,46 +906,97 @@ export async function setLiveFloor(
 }
 
 /**
- * Whether an agent should answer what a person just said to nobody by name, and which: a judgment, so the workspace's
- * small model makes it. With several people it answers "none" unless they clearly wait for the AI side, which keeps
- * agents from talking over a conversation between people; with one person everything said is for the agents, so it
- * only picks who fits best (the host's app falls back to an agent when it can't say).
+ * When the small model is asked who speaks: after a person spoke to nobody by name (`person`), after an agent finished
+ * (`after`: does a colleague build on it?), or while an agent talks (`during`: does a colleague jump in now?).
+ */
+export interface LiveSpeakerAsk {
+  moment?: "person" | "after" | "during";
+  /** The agent talking now and its words so far (`during`), or the one that just finished (`after`). */
+  speaking?: { agentId: string; text?: string } | null;
+  /** Agents that may not take the word now (the room's limits, kept by the host's app). */
+  skip?: string[];
+}
+
+/**
+ * Who speaks next, and when: a judgment, so the workspace's small model makes it. After a person: with several people
+ * it answers "none" unless they clearly wait for the AI side, which keeps agents from talking over a conversation
+ * between people; with one person everything said is for the agents, so it only picks who fits best (the host's app
+ * falls back to an agent when it can't say). Among agents it is a lively meeting: a colleague builds on what was said,
+ * pushes back or adds their role's angle, now and then cutting in (`when: "now"`); "none" when nothing real would be
+ * added. The host's app keeps the limits, so this never runs away.
  */
 export async function pickLiveSpeaker(
   deps: LiveVoiceDeps,
   userId: string,
   orgId: string,
   roomId: string,
-): Promise<{ agentId: string | null }> {
+  ask: LiveSpeakerAsk = {},
+): Promise<{ agentId: string | null; when: "now" | "after" | null }> {
+  const none = { agentId: null, when: null } as const;
   const room = await requireInRoom(deps, userId, orgId, roomId);
-  if (room.hostUserId !== userId || !deps.pickWithSmallModel || !room.agentIds.length) return { agentId: null };
-  const roster = await deps.db
-    .select({ id: agents.id, name: agents.name, handle: agents.handle, role: agents.role })
-    .from(agents)
-    .where(inArray(agents.id, room.agentIds));
+  if (room.hostUserId !== userId || !deps.pickWithSmallModel || !room.agentIds.length) return none;
+  const moment = ask.moment ?? "person";
+  const speaker = ask.speaking?.agentId ?? null;
+  const roster = (
+    await deps.db
+      .select({ id: agents.id, name: agents.name, handle: agents.handle, role: agents.role })
+      .from(agents)
+      .where(inArray(agents.id, room.agentIds))
+  ).filter((a) => moment === "person" || (a.id !== speaker && !ask.skip?.includes(a.id)));
+  if (!roster.length) return none;
   const recent = await linesAsChat(deps, room.lines.slice(-14));
-  if (!recent.length) return { agentId: null };
-  const roles = `Agents:\n${roster.map((a) => `- ${a.handle}: ${a.name}${a.role ? `, ${a.role}` : ""}`).join("\n")}`;
+  const [speakerRow] = speaker
+    ? await deps.db.select({ name: agents.name }).from(agents).where(eq(agents.id, speaker))
+    : [];
+  const now = moment === "during" && ask.speaking?.text?.trim() ? ask.speaking.text.trim().slice(-1200) : "";
+  if (!recent.length && !now) return none;
+  const roles = `Agents who may speak:\n${roster.map((a) => `- ${a.handle}: ${a.name}${a.role ? `, ${a.role}` : ""}`).join("\n")}`;
+  const meeting =
+    "It is a lively meeting, like a real one: colleagues build on each other's ideas, push back when they disagree and bring their own role's angle. Pick an agent only when they would add something real: never to agree, thank, repeat or summarize. Spread the word: prefer an agent who has said little.";
   const system = (
-    room.people.length <= 1
+    moment === "during"
       ? [
-          "You moderate a live voice call between one person and AI agents. Everything the person says is for the agents: pick the one agent that should answer now.",
-          'Answer only JSON: {"speaker": "<handle>"}.',
-          "Pick the agent whose role fits what was just said best; for a greeting, small talk or a general question, the agent that spoke last, or the one leading the team.",
+          `You moderate a live voice call between people and AI agents. ${speakerRow?.name ?? "An agent"} is talking right now. Decide whether another agent should jump in.`,
+          'Answer only JSON: {"speaker": "<handle>", "when": "now"} to cut in right away, {"speaker": "<handle>", "when": "after"} to speak as soon as they finish, or {"speaker": "none"}.',
+          meeting,
+          '"now" only for something that can\'t wait: a clear disagreement, a wrong fact, or an idea sparked by the very sentence just said. Cutting in is occasional; "after" is the usual way. When in doubt, "none".',
           roles,
         ]
-      : [
-          "You moderate a live voice call between people and AI agents. Decide whether one agent should speak next, and which.",
-          'Answer only JSON: {"speaker": "<handle>"} or {"speaker": "none"}.',
-          "Pick an agent only when the last thing said is clearly waiting for an answer from the AI side: a question or request to the group that fits an agent's role, or a direct follow-up to what an agent just said.",
-          'Answer "none" when people are talking to each other, thinking aloud, or when an agent just spoke and nobody asked it anything. When in doubt, "none".',
-          roles,
-        ]
+      : moment === "after"
+        ? [
+            `You moderate a live voice call between people and AI agents. ${speakerRow?.name ?? "An agent"} just finished talking. Decide whether another agent should speak next, before the people answer.`,
+            'Answer only JSON: {"speaker": "<handle>"} or {"speaker": "none"}.',
+            meeting,
+            'Answer "none" when the agent asked the people something or handed the decision to them: they answer first. When in doubt, "none".',
+            roles,
+          ]
+        : room.people.length <= 1
+          ? [
+              "You moderate a live voice call between one person and AI agents. Everything the person says is for the agents: pick the one agent that should answer now.",
+              'Answer only JSON: {"speaker": "<handle>"}.',
+              "Pick the agent whose role fits what was just said best; for a greeting, small talk or a general question, the agent that spoke last, or the one leading the team.",
+              roles,
+            ]
+          : [
+              "You moderate a live voice call between people and AI agents. Decide whether one agent should speak next, and which.",
+              'Answer only JSON: {"speaker": "<handle>"} or {"speaker": "none"}.',
+              "Pick an agent only when the last thing said is clearly waiting for an answer from the AI side: a question or request to the group that fits an agent's role, or a direct follow-up to what an agent just said.",
+              'Answer "none" when people are talking to each other, thinking aloud, or when an agent just spoke and nobody asked it anything. When in doubt, "none".',
+              roles,
+            ]
   ).join("\n");
-  const prompt = `The call, latest last:\n${recent.map((l) => `${l.author}: ${l.text}`).join("\n")}`;
+  const prompt = [
+    recent.length ? `The call, latest last:\n${recent.map((l) => `${l.author}: ${l.text}`).join("\n")}` : "",
+    now ? `${speakerRow?.name ?? "The agent"}, saying now: ${now}` : "",
+  ]
+    .filter(Boolean)
+    .join("\n\n");
   const text = await deps.pickWithSmallModel(orgId, system, prompt).catch(() => null);
   const handle = text ? /"speaker"\s*:\s*"([^"]+)"/.exec(text)?.[1]?.replace(/^@/, "").toLowerCase() : null;
-  return { agentId: roster.find((a) => a.handle === handle)?.id ?? null };
+  const agentId = roster.find((a) => a.handle === handle)?.id ?? null;
+  if (!agentId) return none;
+  const when = moment === "during" && text && /"when"\s*:\s*"now"/.test(text) ? "now" : "after";
+  return { agentId, when };
 }
 
 /** Ends the call for everyone and leaves its notes in the conversation, for the team's right hand to report on. */

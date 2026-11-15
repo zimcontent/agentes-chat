@@ -205,6 +205,8 @@ import type {
   LiveRoom,
   LiveSession,
   LiveSessionInput,
+  LiveSpeakerAsk,
+  LiveSpeakerPick,
   LiveVoice,
   Machine,
   MachineAccess,
@@ -476,7 +478,8 @@ export interface ApiClient {
       lines: { who: { type: "person" | "agent"; id: string }; text: string }[],
     ): Promise<void>;
     floor(orgId: string, roomId: string, holder: string | null, reason: string): Promise<void>;
-    next(orgId: string, roomId: string): Promise<{ agentId: string | null }>;
+    /** Which agent speaks next, and when (ADR doug-0006): after a person, after an agent, or while one talks. */
+    next(orgId: string, roomId: string, ask?: LiveSpeakerAsk): Promise<LiveSpeakerPick>;
   };
   account: {
     authConfig(): Promise<AuthConfig>;

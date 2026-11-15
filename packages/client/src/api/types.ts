@@ -8278,6 +8278,19 @@ export interface LiveVoice {
   editable: boolean;
 }
 
+/** What the host asks the small model about who speaks next (ADR doug-0006). */
+export interface LiveSpeakerAsk {
+  moment?: "person" | "after" | "during";
+  speaking?: { agentId: string; text?: string } | null;
+  skip?: string[];
+}
+
+/** Its answer: an agent and whether it cuts in now or speaks after, or nobody. */
+export interface LiveSpeakerPick {
+  agentId: string | null;
+  when: "now" | "after" | null;
+}
+
 export interface LiveRoomLine {
   at: string;
   who: { type: "person" | "agent"; id: string };

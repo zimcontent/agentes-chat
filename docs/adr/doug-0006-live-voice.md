@@ -39,9 +39,15 @@ second (about US$ 0.05 a minute), 15 seconds at least for a WebRTC session.
    the host leaves, the next person in takes the room and opens the voices again with what was said so far.
 6. **Who speaks is code, with one judgment.** The rule is `live-floor` (`@agenteschat/client/lib/live-floor`), applied
    by the host: an agent speaks when someone calls it by name, in a call of one person and one agent, or right after it
-   spoke when the person answers. Agents may bring a colleague in by name, at most 2 handoffs and 3 agent turns in a
-   row without a person speaking, each agent once: past that the word goes back to the people and every agent only
-   listens until a person speaks. This is what keeps agents from answering each other forever. The agent with the word
+   spoke when the person answers. Among agents it is a lively meeting (addendum 2026-11-15): one may bring a colleague
+   in by name; when it finishes, the small model may pick a colleague to build on it, push back or add their role's
+   angle (`next`, `moment: after`) before the people answer; and while it talks, after a sentence and at most every
+   4 s, the small model may say a colleague cuts in now (`during`, `when: now`), when the one talking is faded out
+   through its own gain node, its words so far kept as a line ending in "…", and told it was cut off, or follows as
+   soon as it finishes (`when: after`). Nobody cuts in while a person is talking. The limits: 5 passes from agent to
+   agent and 6 agent turns in a row without a person speaking, 2 for any one agent (back and forth once, never a
+   duet); past that the word goes back to the people and every agent only listens until a person speaks. This is what
+   keeps agents from answering each other forever. The agent with the word
    hears the call; the others are muted and get what they missed as quiet notes when the word comes to them, with a cue
    to answer. With one person on the call everything said is for the agents: the agent with the word keeps it (the one
    that opens a new call greets, asked to if GPT-Live waits for a sound), and when nobody has it the workspace's small

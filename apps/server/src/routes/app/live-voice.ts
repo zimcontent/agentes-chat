@@ -373,16 +373,41 @@ export function liveVoiceRoutes(deps: AppDeps) {
       path: "/organizations/{orgId}/live-rooms/{roomId}/next",
       tags,
       security,
-      summary: "The host asks whether an agent should answer what a person said to nobody by name, and which",
-      request: { params: RoomParams },
-      responses: { 200: json(z.object({ agentId: z.uuid().nullable() })), ...errors, ...tooMany },
+      summary: "The host asks which agent speaks next, and when (the workspace's small model decides)",
+      description:
+        "`person` (default): after a person spoke to nobody by name. `after`: an agent just finished; does a colleague build on it? `during`: an agent is talking (`speaking.text`, its words so far); does a colleague cut in now (`when: now`) or speak right after? `skip`: agents the room's limits keep out.",
+      request: {
+        params: RoomParams,
+        body: {
+          required: false,
+          content: {
+            "application/json": {
+              schema: z.object({
+                moment: z.enum(["person", "after", "during"]).optional(),
+                speaking: z
+                  .object({ agentId: z.uuid(), text: z.string().max(4000).optional() })
+                  .nullable()
+                  .optional(),
+                skip: z.array(z.uuid()).max(20).optional(),
+              }),
+            },
+          },
+        },
+      },
+      responses: {
+        200: json(z.object({ agentId: z.uuid().nullable(), when: z.enum(["now", "after"]).nullable() })),
+        ...errors,
+        ...tooMany,
+      },
     }),
     async (c) => {
       const user = c.get("user");
-      if (!(await allowed(`live-next:${user.id}`, { limit: 30, windowMs: 60_000 })))
-        return c.json({ agentId: null }, 200);
+      // An agent's every sentence may ask while it talks: about one ask in four seconds, with room for the rest.
+      if (!(await allowed(`live-next:${user.id}`, { limit: 40, windowMs: 60_000 })))
+        return c.json({ agentId: null, when: null }, 200);
       const { orgId, roomId } = c.req.valid("param");
-      return c.json(await pickLiveSpeaker(live(), user.id, orgId, roomId), 200);
+      const ask = c.req.valid("json") ?? {};
+      return c.json(await pickLiveSpeaker(live(), user.id, orgId, roomId, ask), 200);
     },
   );
 
