@@ -40,6 +40,10 @@ export const BLOCK_LIMITS = {
   dataBytes: 60_000,
   chartPoints: 24,
   sendChars: 2000,
+  tags: 8,
+  slides: 20,
+  scenes: 40,
+  fields: 20,
 } as const;
 
 /** A value's name: what a formula can read (the server's rule for a block's state, without the hyphen). */
@@ -118,7 +122,30 @@ export type BlockPart = PartBase &
         parts?: BlockPart[];
       }
     | { type: "actions"; align?: "end" | "center" | "start"; buttons: BlockButton[] }
+    // Pieces of copy (a post, a carousel, a script): words to read and reuse, drawn the way the work looks.
+    | { type: "tags"; items: string[] }
+    | { type: "hook"; label?: string; text: string; mark?: string }
+    | { type: "slides"; label?: string; items: SlidePart[] }
+    | { type: "poster"; eyebrow?: string; title: string; mark?: string; sub?: string; button?: string }
+    | { type: "fields"; items: { label: string; value: string }[] }
+    | { type: "copy"; label?: string; text: string }
+    | { type: "timeline"; label?: string; items: SceneItem[] }
   );
+
+/** One slide of a carousel: a short tag ("Capa", "CTA") marks the ones that matter. */
+export interface SlidePart {
+  tag?: string;
+  title: string;
+  text?: string;
+}
+
+/** One beat of a script: when, what is said or seen, a note on the shot, and the words on screen. */
+export interface SceneItem {
+  time: string;
+  text: string;
+  note?: string;
+  screen?: string;
+}
 
 type PartOf<T extends BlockPart["type"]> = Extract<BlockPart, { type: T }>;
 
@@ -136,6 +163,8 @@ export interface StatPart extends PartBase {
 
 export interface BlockButton {
   label: string;
+  /** A message the person sends to the agent with one press ("Aprovar", "Outra versão"), `{name}` filled in. */
+  say?: string;
   /** Values it sets, each a formula read when it is pressed. */
   set?: Record<string, Formula>;
   /** A random pick the server makes for everyone among `options` (a list, or a formula giving one). */
@@ -183,6 +212,13 @@ const PART_TYPES = new Set([
   "row",
   "card",
   "actions",
+  "tags",
+  "hook",
+  "slides",
+  "poster",
+  "fields",
+  "copy",
+  "timeline",
 ]);
 
 export class BlockSpecError extends Error {
@@ -552,6 +588,92 @@ class Checker {
           buttons: raw.buttons.map((b, i) => this.button(b, `${at}.buttons[${i}]`)),
         };
       }
+      case "tags":
+        return { ...base, type, items: this.lines(raw.items, `${at}.items`, L.tags, 40) };
+      case "hook": {
+        const text = this.filled(raw.text, `${at}.text`, 400);
+        const label = this.text(raw.label, `${at}.label`, L.label, false);
+        const mark = this.mark(raw.mark, text, `${at}.mark`);
+        return { ...base, type, text, ...(label ? { label } : {}), ...(mark ? { mark } : {}) };
+      }
+      case "slides": {
+        if (!Array.isArray(raw.items) || raw.items.length === 0 || raw.items.length > L.slides)
+          throw new BlockSpecError(`${at}.items must list 1 to ${L.slides} slides`);
+        const label = this.text(raw.label, `${at}.label`, L.label, false);
+        return {
+          ...base,
+          type,
+          ...(label ? { label } : {}),
+          items: raw.items.map((x, i) => {
+            const where = `${at}.items[${i}]`;
+            if (!isObject(x)) throw new BlockSpecError(`${where} must be {title, text, tag}`);
+            const tag = this.text(x.tag, `${where}.tag`, 24, false);
+            const text = this.filled(x.text, `${where}.text`, 400, false);
+            return {
+              ...(tag ? { tag } : {}),
+              title: this.filled(x.title, `${where}.title`, 200),
+              ...(text ? { text } : {}),
+            };
+          }),
+        };
+      }
+      case "poster": {
+        const title = this.filled(raw.title, `${at}.title`, 200);
+        const eyebrow = this.text(raw.eyebrow, `${at}.eyebrow`, 60, false);
+        const sub = this.filled(raw.sub, `${at}.sub`, 200, false);
+        const button = this.text(raw.button, `${at}.button`, 40, false);
+        const mark = this.mark(raw.mark, title, `${at}.mark`);
+        return {
+          ...base,
+          type,
+          title,
+          ...(eyebrow ? { eyebrow } : {}),
+          ...(mark ? { mark } : {}),
+          ...(sub ? { sub } : {}),
+          ...(button ? { button } : {}),
+        };
+      }
+      case "fields": {
+        if (!Array.isArray(raw.items) || raw.items.length === 0 || raw.items.length > L.fields)
+          throw new BlockSpecError(`${at}.items must list 1 to ${L.fields} {label, value}`);
+        return {
+          ...base,
+          type,
+          items: raw.items.map((x, i) => {
+            if (!isObject(x)) throw new BlockSpecError(`${at}.items[${i}] must be {label, value}`);
+            return {
+              label: this.text(x.label, `${at}.items[${i}].label`, 60),
+              value: this.filled(x.value, `${at}.items[${i}].value`, L.text),
+            };
+          }),
+        };
+      }
+      case "copy": {
+        const label = this.text(raw.label, `${at}.label`, L.label, false);
+        return { ...base, type, ...(label ? { label } : {}), text: this.filled(raw.text, `${at}.text`, 2200) };
+      }
+      case "timeline": {
+        if (!Array.isArray(raw.items) || raw.items.length === 0 || raw.items.length > L.scenes)
+          throw new BlockSpecError(`${at}.items must list 1 to ${L.scenes} beats`);
+        const label = this.text(raw.label, `${at}.label`, L.label, false);
+        return {
+          ...base,
+          type,
+          ...(label ? { label } : {}),
+          items: raw.items.map((x, i) => {
+            const where = `${at}.items[${i}]`;
+            if (!isObject(x)) throw new BlockSpecError(`${where} must be {time, text, note, screen}`);
+            const note = this.filled(x.note, `${where}.note`, 200, false);
+            const screen = this.filled(x.screen, `${where}.screen`, 120, false);
+            return {
+              time: this.text(x.time, `${where}.time`, 16),
+              text: this.filled(x.text, `${where}.text`, 600),
+              ...(note ? { note } : {}),
+              ...(screen ? { screen } : {}),
+            };
+          }),
+        };
+      }
     }
     throw new BlockSpecError(`${at}: unknown part`);
   }
@@ -583,6 +705,20 @@ class Checker {
     return { ...(format ? { format } : {}), ...(unit ? { unit } : {}) };
   }
 
+  /** Short lines, each required: tags and the like. */
+  private lines(v: unknown, at: string, most: number, max: number): string[] {
+    if (!Array.isArray(v) || v.length === 0 || v.length > most)
+      throw new BlockSpecError(`${at} must list 1 to ${most} items`);
+    return v.map((x, i) => this.text(x, `${at}[${i}]`, max));
+  }
+
+  /** The words of a text to mark: they must be in it, as written. */
+  private mark(v: unknown, text: string, at: string): string {
+    const mark = this.text(v, at, 200, false);
+    if (mark && !text.includes(mark)) throw new BlockSpecError(`${at} must be words of the text, as written`);
+    return mark;
+  }
+
   private options(v: unknown, at: string): string[] {
     const list = typeof v === "string" ? v.split("|") : v;
     if (!Array.isArray(list)) throw new BlockSpecError(`${at} must be a list of options`);
@@ -594,7 +730,7 @@ class Checker {
   }
 
   private button(raw: unknown, at: string): BlockButton {
-    if (!isObject(raw)) throw new BlockSpecError(`${at} must be {label, set or draw}`);
+    if (!isObject(raw)) throw new BlockSpecError(`${at} must be {label, set, draw or say}`);
     const out: BlockButton = { label: this.text(raw.label, `${at}.label`, 40) };
     if (raw.set !== undefined) {
       if (!isObject(raw.set) || Object.keys(raw.set).length === 0)
@@ -617,7 +753,13 @@ class Checker {
           : this.drawOptions(raw.draw.options, `${at}.draw.options`);
       out.draw = { name, options };
     }
-    if (!out.set && !out.draw) throw new BlockSpecError(`${at} needs set or draw: what it does when pressed`);
+    if (raw.say !== undefined) {
+      const say = this.filled(raw.say, `${at}.say`, BLOCK_LIMITS.sendChars);
+      if (!say.trim()) throw new BlockSpecError(`${at}.say is empty`);
+      out.say = say;
+    }
+    if (!out.set && !out.draw && !out.say)
+      throw new BlockSpecError(`${at} needs set, draw or say: what it does when pressed`);
     if (raw.when !== undefined) {
       if (typeof raw.when !== "string") throw new BlockSpecError(`${at}.when must be a formula`);
       this.formula(raw.when, `${at}.when`);
@@ -734,7 +876,28 @@ export type BlockViewPart = { key: string } & (
       parts: BlockViewPart[];
     }
   | { kind: "actions"; align: "end" | "center" | "start"; buttons: BlockViewButton[] }
+  | { kind: "tags"; items: string[] }
+  | { kind: "hook"; label: string; text: MarkedText }
+  | { kind: "slides"; label: string; items: { tag: string; title: string; text: string }[] }
+  | { kind: "poster"; eyebrow: string; title: MarkedText; sub: string; button: string }
+  | { kind: "fields"; items: { label: string; value: string }[] }
+  | { kind: "copy"; label: string; text: string }
+  | { kind: "timeline"; label: string; items: { time: string; text: string; note: string; screen: string }[] }
 );
+
+/** A text with the words to mark split out: drawn before, marked, after. */
+export interface MarkedText {
+  before: string;
+  mark: string;
+  after: string;
+}
+
+/** Splits a text at the first place its marked words appear (none, or not in it: all of it before). */
+export function markText(text: string, mark: string | undefined): MarkedText {
+  const at = mark ? text.indexOf(mark) : -1;
+  if (!mark || at < 0) return { before: text, mark: "", after: "" };
+  return { before: text.slice(0, at), mark, after: text.slice(at + mark.length) };
+}
 
 export interface BlockViewStat {
   key: string;
@@ -750,6 +913,8 @@ export interface BlockViewButton {
   /** The values it sets, read now. */
   set: Record<string, Value> | null;
   draw: { name: string; options: string[] } | null;
+  /** The message it sends to the agent, filled in now. */
+  say: string | null;
   /** The block's only button: drawn as the main action. */
   lead: boolean;
 }
@@ -1017,10 +1182,47 @@ export function viewBlock(compiled: CompiledBlock, state: Record<string, unknown
             const list = Array.isArray(opts) ? opts.map(toText).filter(Boolean).slice(0, 100) : [];
             if (list.length >= 2) draw = { name: b.draw.name, options: list };
           }
-          buttons.push({ key: k, label: b.label, set, draw, lead: false });
+          const say = b.say ? fill(b.say).replace(/\s+/g, " ").trim().slice(0, BLOCK_LIMITS.sendChars) : "";
+          buttons.push({ key: k, label: b.label, set, draw, say: say || null, lead: false });
         });
         return buttons.length ? { key, kind: "actions", align: p.align ?? "end", buttons } : null;
       }
+      case "tags":
+        return { key, kind: "tags", items: p.items };
+      case "hook":
+        return { key, kind: "hook", label: p.label ?? "", text: markText(fill(p.text), p.mark && fill(p.mark)) };
+      case "slides":
+        return {
+          key,
+          kind: "slides",
+          label: p.label ?? "",
+          items: p.items.map((x) => ({ tag: x.tag ?? "", title: fill(x.title), text: x.text ? fill(x.text) : "" })),
+        };
+      case "poster":
+        return {
+          key,
+          kind: "poster",
+          eyebrow: p.eyebrow ?? "",
+          title: markText(fill(p.title), p.mark && fill(p.mark)),
+          sub: p.sub ? fill(p.sub) : "",
+          button: p.button ?? "",
+        };
+      case "fields":
+        return { key, kind: "fields", items: p.items.map((x) => ({ label: x.label, value: fill(x.value) })) };
+      case "copy":
+        return { key, kind: "copy", label: p.label ?? "", text: fill(p.text) };
+      case "timeline":
+        return {
+          key,
+          kind: "timeline",
+          label: p.label ?? "",
+          items: p.items.map((x) => ({
+            time: x.time,
+            text: fill(x.text),
+            note: x.note ? fill(x.note) : "",
+            screen: x.screen ? fill(x.screen) : "",
+          })),
+        };
     }
     return null;
   };
@@ -1094,6 +1296,12 @@ export function blockSpecText(spec: BlockSpec): string {
       if (p.type === "stats") out.push(...p.items.map((s) => s.label));
       if (p.type === "table") out.push(...p.columns.map((c) => c.label));
       if (p.type === "actions") out.push(...p.buttons.map((b) => b.label));
+      if (p.type === "tags") out.push(...p.items);
+      if (p.type === "slides") for (const x of p.items) out.push(x.title, ...(x.text ? [x.text] : []));
+      if (p.type === "poster") out.push(p.title, ...[p.eyebrow, p.sub, p.button].filter((x): x is string => !!x));
+      if (p.type === "fields") for (const x of p.items) out.push(x.label, x.value);
+      if (p.type === "timeline")
+        for (const x of p.items) out.push(x.text, ...[x.note, x.screen].filter((y): y is string => !!y));
       if ("parts" in p && p.parts) walk(p.parts);
     }
   };

@@ -29730,6 +29730,15 @@
   "blocks.sendFailed": {
     "value": "That didn't send. Try again."
   },
+  "blocks.copy": {
+    "value": "Copy"
+  },
+  "blocks.copied": {
+    "value": "Copied"
+  },
+  "blocks.said": {
+    "value": "Sent"
+  },
   "blocks.brokenTitle": {
     "value": "This part didn't open"
   },
