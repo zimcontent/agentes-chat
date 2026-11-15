@@ -1,3 +1,4 @@
+import { reviewLinksIn } from "@agenteschat/client";
 import { splitChannelRefs } from "@agenteschat/client/lib/channel-refs";
 import { loneIdRef, splitIdRefs } from "@agenteschat/client/lib/id-refs";
 import { linkPill } from "@agenteschat/client/lib/link-pills";
@@ -11,6 +12,7 @@ import {
   SAFE_URL,
 } from "@agenteschat/client/lib/markdown";
 import { parseFileLink, parseMessageLink } from "@agenteschat/client/lib/message-links";
+import { Link } from "@tanstack/react-router";
 import { type ReactNode, useMemo } from "react";
 import { FileRef } from "@/chat/FileRef";
 import { LinkPill } from "@/chat/LinkPill";
@@ -116,6 +118,14 @@ function link(href: string, key: string, children: ReactNode, bare = false) {
   if (message) return <MessageRef key={key} link={message} />;
   const file = parseFileLink(href, [window.location.origin]);
   if (file) return <FileRef key={key} link={file} />;
+  // A video in review on this server opens the Revisor here, not in another tab (docs/adr/doug-0007-video-review.md).
+  const review = href.startsWith(`${window.location.origin}/`) ? reviewLinksIn(href)[0] : undefined;
+  if (review)
+    return (
+      <Link key={key} to="/org/$orgId/review/$reviewId" params={review} className="ac-link">
+        {children}
+      </Link>
+    );
   const pill = bare ? linkPill(href) : null;
   if (pill) return <LinkPill key={key} href={href} pill={pill} />;
   return (

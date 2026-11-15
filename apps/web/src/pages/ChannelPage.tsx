@@ -408,6 +408,7 @@ import {
   useChannelThreadsView,
 } from "@/components/threads/ThreadLines";
 import { UsageWaitCancel, UsageWaitClosed } from "@/components/UsagePauseCard";
+import { ReviewCards } from "@/components/video-review/ReviewCards";
 import { PushAskContext, PushAskInline, usePushAsk } from "@/components/WebPush";
 import { useWikiLinkRenderer } from "@/components/WikiLinks";
 import { BarAlsoTyping, BarPhrase, BarStep, ConsultClock, TypingMark, WorkingStack } from "@/components/WorkingLine";
@@ -4867,6 +4868,7 @@ export const TimelineMessage = memo(function TimelineMessage({
             )}
             {m.author.type === "agent" && !m.local && <AgentActionReceipts message={m} />}
             {m.author.type === "agent" && !m.local && <HandedTaskChips message={m} />}
+            {!m.local && <ReviewCards message={m} />}
             {m.author.type === "agent" && !m.local && <TeamChecks message={m} />}
             {m.author.type === "agent" && !m.local && <ReachLines message={m} />}
             {m.author.type === "agent" && !m.local && <FeedbackOfferRow message={m} />}

@@ -22,6 +22,8 @@ export const APP_LINK_PATHS = [
   "/org/*/home",
   "/org/*/dashboards",
   "/org/*/dashboards/*",
+  "/org/*/review",
+  "/org/*/review/*",
   "/org/*/c/*",
   "/org/*/dm/*",
   "/org/*/threads",

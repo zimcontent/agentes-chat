@@ -32,6 +32,7 @@ export * from "./vault/hooks";
 export * from "./vault/types";
 export * from "./video-reviews/hooks";
 export * from "./video-reviews/types";
+export * from "./video-reviews/words";
 export * from "./whatsapp/hooks";
 export * from "./whatsapp/types";
 

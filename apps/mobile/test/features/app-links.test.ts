@@ -46,6 +46,14 @@ describe("web addresses → the app's screens", () => {
     expect(to("/drive?artifact=..%2Fsettings")).toBe("/drive");
   });
 
+  test("a video in review opens the app's Revisor, and the list its list", () => {
+    const to = (path: string) => (linkOf(`${W}/org/${O}${path}`) as { to?: string }).to;
+    expect(to("/review")).toBe("/review");
+    expect(to("/review/r1")).toBe("/review/r1");
+    expect(appLinkFromUrl(`${W}/org/${O}/review/..%2Fsettings`)).toEqual({ web: `/org/${O}/review/..%2Fsettings` });
+    expect(ownLinkHref(`${W}/org/${O}/review/r1`, W)).toContain(encodeURIComponent("/review/r1"));
+  });
+
   test("a conversation with a thread in its panel opens that thread's screen, at its message", () => {
     expect(linkOf(`${W}/org/${O}/c/c1?thread=t1&reply=true`)).toEqual({ org: O, thread: "t1" });
     expect(linkOf(`${W}/org/${O}/c/c1?thread=t1&tm=m1`)).toEqual({ org: O, thread: "t1", m: "m1" });

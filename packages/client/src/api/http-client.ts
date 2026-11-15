@@ -577,18 +577,19 @@ export function createHttpApi(options: TransportOptions = {}): HttpApi {
       addNote: (orgId, reviewId, input) =>
         request<VideoReviewNote>(`${org(orgId)}/video-reviews/${enc(reviewId)}/notes`, { json: input }),
       addVoiceNote: (orgId, reviewId, input) => {
+        // `append`, never `set`: React Native's FormData has only `append`, and the phone records notes too.
         const form = new FormData();
-        form.set("file", input.file, input.fileName);
-        form.set("version", String(input.version));
-        form.set("atMs", input.atMs === null ? "" : String(Math.round(input.atMs)));
-        if (input.endMs != null) form.set("endMs", String(Math.round(input.endMs)));
-        if (input.kind) form.set("kind", input.kind);
+        form.append("file", input.file, input.fileName);
+        form.append("version", String(input.version));
+        form.append("atMs", input.atMs === null ? "" : String(Math.round(input.atMs)));
+        if (input.endMs != null) form.append("endMs", String(Math.round(input.endMs)));
+        if (input.kind) form.append("kind", input.kind);
         if (input.x != null && input.y != null) {
-          form.set("x", String(input.x));
-          form.set("y", String(input.y));
+          form.append("x", String(input.x));
+          form.append("y", String(input.y));
         }
-        if (input.attachments?.length) form.set("attachments", JSON.stringify(input.attachments));
-        if (input.language) form.set("language", input.language);
+        if (input.attachments?.length) form.append("attachments", JSON.stringify(input.attachments));
+        if (input.language) form.append("language", input.language);
         return files.upload<VideoReviewNote>(`${org(orgId)}/video-reviews/${enc(reviewId)}/notes/voice`, form);
       },
       deleteNote: (orgId, reviewId, noteId) =>
