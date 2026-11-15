@@ -150,8 +150,12 @@ export class MaestroVoice {
   private drop(gen: number) {
     this.queue = this.queue.filter((s) => s.gen >= gen);
     if (this.playing && this.playing.say.gen < gen) {
-      this.playing.audio.pause();
-      this.playing.audio.src = "";
+      const audio = this.playing.audio;
+      audio.onerror = null;
+      audio.onended = null;
+      audio.pause();
+      audio.removeAttribute("src");
+      audio.load();
       this.playing = null;
       this.o.speaking(null);
     }

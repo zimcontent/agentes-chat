@@ -836,11 +836,20 @@ export function buildEngine(o: EngineOptions) {
           })
         ).text;
       if (lead?.model && lead.model !== "auto") {
-        const said = await call(lead.model, lead.id).catch(() => null);
+        const said = await call(lead.model, lead.id).catch((error) => {
+          o.log?.warn("maestro model failed", { model: lead.model, error: String(error).slice(0, 300) });
+          return null;
+        });
         if (said) return said;
       }
       const small = await smallModelFor({ db, gateway }, orgId, smallModels);
-      return small ? call(small, null) : null;
+      if (!small) o.log?.warn("maestro has no model", { orgId });
+      return small
+        ? call(small, null).catch((error) => {
+            o.log?.warn("maestro model failed", { model: small, error: String(error).slice(0, 300) });
+            return null;
+          })
+        : null;
     },
     voiceOut: whatsappVoiceOut(config.ELEVENLABS_API_KEY),
     speech: () => speech.chain(),
