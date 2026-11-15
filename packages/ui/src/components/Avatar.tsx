@@ -284,8 +284,9 @@ export function Avatar({
         />
       ) : portrait ? (
         <PersonPortrait recipe={portrait} />
-      ) : imageUrl ? (
-        <img src={imageUrl} alt="" />
+      ) : imageUrl && !photoFailed ? (
+        // A photo that doesn't load (gone, or none behind the address) leaves the initials, never a broken image.
+        <img src={imageUrl} alt="" loading="lazy" onError={() => setPhotoFailed(true)} />
       ) : (
         <span className="ac-avatar__initials">{initials ?? initialsOf(name)}</span>
       )}

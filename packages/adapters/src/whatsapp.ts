@@ -143,6 +143,11 @@ export interface WhatsAppGateway {
     token: string,
     input: { chat: WhatsAppJid; before: { id: string; fromMe: boolean; at: Date }; count: number },
   ): Promise<void>;
+  /**
+   * Where a person's or a group's profile photo is now: a small one (96 px) on WhatsApp's own servers, at an
+   * address that lasts some weeks. Null: they have none, or hide it from this number.
+   */
+  profilePhoto(token: string, input: { jid: WhatsAppJid }): Promise<string | null>;
 }
 
 export type WhatsAppFileKind = "image" | "video" | "audio" | "document";
@@ -310,6 +315,17 @@ export function createEvolutionGoGateway(options: EvolutionGoOptions): WhatsAppG
         },
         count,
       });
+    },
+    async profilePhoto(token, { jid }) {
+      try {
+        const url = str(rec(await call("POST", "/user/avatar", token, { number: jid, preview: true })).url);
+        return url || null;
+      } catch (error) {
+        // The gateway answers an error for "no photo" and "hidden from you" alike; only its silence and a refused
+        // token are failures.
+        if (error instanceof WhatsAppGatewayError && error.status !== 0 && error.status !== 401) return null;
+        throw error;
+      }
     },
     async downloadMedia(token, { message }) {
       // The answer is a `data:` address: `data:<type>;base64,<bytes>`.
@@ -607,12 +623,15 @@ export type FakeWhatsAppCall =
   | { op: "read"; token: string; chat: WhatsAppJid; ids: string[] }
   | { op: "typing"; token: string; chat: WhatsAppJid; typing: boolean }
   | { op: "download"; token: string; message: Record<string, unknown> }
-  | { op: "history"; token: string; chat: WhatsAppJid; before: string; count: number };
+  | { op: "history"; token: string; chat: WhatsAppJid; before: string; count: number }
+  | { op: "photo"; token: string; jid: WhatsAppJid };
 
 /** A gateway that only remembers what it was asked (tests): no network, no WhatsApp. */
 export function createFakeWhatsAppGateway(): WhatsAppGateway & {
   calls: FakeWhatsAppCall[];
   failNext: string | null;
+  /** What `profilePhoto` answers for each address; one not here has none. */
+  photos: Map<WhatsAppJid, string>;
   /** The latest call of one kind. */
   last<Op extends FakeWhatsAppCall["op"]>(op: Op): Extract<FakeWhatsAppCall, { op: Op }> | undefined;
 } {
@@ -623,6 +642,7 @@ export function createFakeWhatsAppGateway(): WhatsAppGateway & {
     calls: [] as FakeWhatsAppCall[],
     /** The next call throws this, once. */
     failNext: null as string | null,
+    photos: new Map<WhatsAppJid, string>(),
   };
   const guard = () => {
     if (!fake.failNext) return;
@@ -713,6 +733,11 @@ export function createFakeWhatsAppGateway(): WhatsAppGateway & {
       fake.calls.push({ op: "download", token, message });
       const part = Object.values(message)[0] as { mimetype?: string } | undefined;
       return { mimeType: part?.mimetype ?? "application/octet-stream", bytes: new TextEncoder().encode("file") };
+    },
+    async profilePhoto(token: string, { jid }: { jid: WhatsAppJid }) {
+      guard();
+      fake.calls.push({ op: "photo", token, jid });
+      return fake.photos.get(jid) ?? null;
     },
   });
 }

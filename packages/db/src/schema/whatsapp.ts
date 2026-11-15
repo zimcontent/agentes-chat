@@ -107,6 +107,12 @@ export const whatsappChats = pgTable(
     /** The agent left this conversation to a person, and why in its own words (written by a model: shown as text). */
     needsPerson: boolean().notNull().default(false),
     agentNote: text().notNull().default(""),
+    /**
+     * Where its profile photo is on WhatsApp's servers, as the gateway last told (null: none, or hidden from this
+     * number), and when it was asked: asked again a day later, or when the address stops answering.
+     */
+    photoUrl: text(),
+    photoAt: timestamp({ withTimezone: true }),
     createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [

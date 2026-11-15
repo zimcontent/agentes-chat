@@ -18,6 +18,7 @@ import {
   typingInWhatsAppChat,
   updateWhatsAppAccount,
   type WhatsAppDeps,
+  whatsappChatPhoto,
   whatsappStickerFile,
 } from "../src";
 import { addMember, type Fixture, setup } from "./fixtures";
@@ -565,5 +566,77 @@ describe("who sees a number", () => {
     expect(
       await f.db.select().from(schema.whatsappMessages).where(eq(schema.whatsappMessages.orgId, f.org.id)),
     ).toEqual([]);
+  });
+});
+
+describe("profile photos", () => {
+  const JPEG = new Uint8Array([0xff, 0xd8, 0xff, 0xe0, 1, 2, 3, 4]);
+  const PHOTO = "https://pps.whatsapp.net/v/t61/ana.jpg?oe=1";
+
+  /** A fetch that answers WhatsApp's photo addresses from `served` and counts what it was asked. */
+  function photoFetch(served: Map<string, Uint8Array>) {
+    const asked: string[] = [];
+    const fetch = (async (input: string | URL | Request) => {
+      const url = String(input instanceof Request ? input.url : input);
+      asked.push(url);
+      const bytes = served.get(url);
+      return bytes ? new Response(bytes) : new Response("gone", { status: 403 });
+    }) as typeof globalThis.fetch;
+    return { fetch, asked };
+  }
+
+  test("asked of the gateway once a day, served from WhatsApp's own, and a moved one asked again", async () => {
+    f = await setup();
+    const { gateway, deps, account, post } = await connected();
+    await post(text("A1", "oi"));
+    const chatId = (await listWhatsAppChats(deps, f.owner.id, f.org.id, account.id)).chats[0]?.id as string;
+    expect((await listWhatsAppChats(deps, f.owner.id, f.org.id, account.id)).chats[0]?.photo).toBe(true);
+    gateway.photos.set(ANA, PHOTO);
+    const net = photoFetch(new Map([[PHOTO, JPEG]]));
+    const photo = await whatsappChatPhoto({ ...deps, fetch: net.fetch }, f.owner.id, f.org.id, account.id, chatId);
+    expect(photo.mimeType).toBe("image/jpeg");
+    expect([...photo.bytes]).toEqual([...JPEG]);
+    // Again within the day: the address kept, the gateway not asked.
+    await whatsappChatPhoto({ ...deps, fetch: net.fetch }, f.owner.id, f.org.id, account.id, chatId);
+    expect(gateway.calls.filter((c) => c.op === "photo")).toHaveLength(1);
+    // WhatsApp moved it: the old address refuses, so the gateway is asked where it is now.
+    const moved = "https://pps.whatsapp.net/v/t61/ana-2.jpg";
+    gateway.photos.set(ANA, moved);
+    const later = photoFetch(new Map([[moved, JPEG]]));
+    await whatsappChatPhoto({ ...deps, fetch: later.fetch }, f.owner.id, f.org.id, account.id, chatId);
+    expect(later.asked).toEqual([PHOTO, moved]);
+    expect(gateway.calls.filter((c) => c.op === "photo")).toHaveLength(2);
+  });
+
+  test("none, or hidden: initials for a day; an address off WhatsApp or a page that isn't a picture is none", async () => {
+    f = await setup();
+    const { gateway, deps, account, post } = await connected();
+    await post(text("A1", "oi"));
+    const chatId = (await listWhatsAppChats(deps, f.owner.id, f.org.id, account.id)).chats[0]?.id as string;
+    const net = photoFetch(new Map([["https://pps.whatsapp.net/page", new TextEncoder().encode("<html>")]]));
+    const ask = () => whatsappChatPhoto({ ...deps, fetch: net.fetch }, f.owner.id, f.org.id, account.id, chatId);
+    await expect(ask()).rejects.toThrow("no photo");
+    expect((await listWhatsAppChats(deps, f.owner.id, f.org.id, account.id)).chats[0]?.photo).toBe(false);
+    await expect(ask()).rejects.toThrow("no photo");
+    expect(gateway.calls.filter((c) => c.op === "photo")).toHaveLength(1);
+    // A day later it is asked again; an address elsewhere is never fetched.
+    const dayAgo = new Date(Date.now() - 25 * 60 * 60_000);
+    await f.db.update(schema.whatsappChats).set({ photoAt: dayAgo }).where(eq(schema.whatsappChats.id, chatId));
+    gateway.photos.set(ANA, "https://evil.example/ana.jpg");
+    await expect(ask()).rejects.toThrow("no photo");
+    expect(net.asked).toEqual([]);
+    await f.db.update(schema.whatsappChats).set({ photoAt: dayAgo }).where(eq(schema.whatsappChats.id, chatId));
+    gateway.photos.set(ANA, "https://pps.whatsapp.net/page");
+    await expect(ask()).rejects.toThrow("no photo");
+    expect(net.asked).toEqual(["https://pps.whatsapp.net/page"]);
+  });
+
+  test("only the number's people see it", async () => {
+    f = await setup();
+    const { deps, account, post } = await connected();
+    await post(text("A1", "oi"));
+    const chatId = (await listWhatsAppChats(deps, f.owner.id, f.org.id, account.id)).chats[0]?.id as string;
+    const stranger = await addMember(f.db, f.org.id, "member", "estranho");
+    await expect(whatsappChatPhoto(deps, stranger.id, f.org.id, account.id, chatId)).rejects.toThrow();
   });
 });

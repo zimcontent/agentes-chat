@@ -7,6 +7,7 @@ import {
   whatsappFileMessage,
 } from "@agenteschat/adapters";
 import { and, desc, eq, inArray, lt, schema, sql } from "@agenteschat/db";
+import { sniffImage } from "../avatars";
 import { NotFoundError, ValidationError } from "../errors";
 import {
   accountToken,
@@ -46,6 +47,8 @@ export interface WhatsAppChatView {
   agentQuietUntil: string | null;
   /** While `agent` is `person`: why it left, in its own words, or `limit` / `failed`. */
   agentNote: string;
+  /** Its profile photo may be loaded (`whatsappChatPhoto`); false: it has none we know of, so draw its initials. */
+  photo: boolean;
 }
 
 export interface WhatsAppMessageView {
@@ -90,8 +93,83 @@ const chatView = (row: ChatRow, account: AgentOf, now = new Date()): WhatsAppCha
     agent: agent.state,
     agentQuietUntil: agent.quietUntil?.toISOString() ?? null,
     agentNote: agent.state === "person" ? row.agentNote : "",
+    photo: !(row.photoUrl === null && photoFresh(row, now)),
   };
 };
+
+/** How long what the gateway told of a conversation's photo holds before it is asked again. */
+export const WHATSAPP_PHOTO_FRESH_MS = 24 * 60 * 60_000;
+/** A profile photo's preview is about 5 KB; anything near this isn't one. */
+const PHOTO_MAX_BYTES = 512 * 1024;
+const PHOTO_TIMEOUT_MS = 15_000;
+
+const photoFresh = (row: Pick<ChatRow, "photoAt">, now = new Date()) =>
+  row.photoAt !== null && now.getTime() - row.photoAt.getTime() < WHATSAPP_PHOTO_FRESH_MS;
+
+/** Only WhatsApp's own servers, over HTTPS: the address comes from the gateway, never from a person. */
+function whatsappPhotoAddress(url: string): URL | null {
+  try {
+    const address = new URL(url);
+    const host = address.hostname.toLowerCase();
+    return address.protocol === "https:" && (host === "whatsapp.net" || host.endsWith(".whatsapp.net"))
+      ? address
+      : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * A conversation's profile photo, for the number's people: the small one WhatsApp shows in its list, fetched by
+ * this server from WhatsApp's own (never by the browser: its address tells WhatsApp nothing of who looks). Where it
+ * is gets asked of the gateway once a day, or again when the address stops answering. `NotFoundError`: none, or
+ * hidden from this number.
+ */
+export async function whatsappChatPhoto(
+  deps: WhatsAppDeps & { fetch?: typeof fetch },
+  userId: string,
+  orgId: string,
+  accountId: string,
+  chatId: string,
+) {
+  const account = await requireWhatsAppUse(deps.db, userId, orgId, accountId);
+  const chat = await chatOf(deps, accountId, chatId);
+  const http = deps.fetch ?? fetch;
+  const ask = async () => {
+    if (account.status !== "connected") return null;
+    const gateway = whatsappGateway(deps);
+    const url = await gateway.profilePhoto(await accountToken(deps, account), { jid: chat.jid });
+    const photoUrl = url && whatsappPhotoAddress(url) ? url : null;
+    await deps.db
+      .update(schema.whatsappChats)
+      .set({ photoUrl, photoAt: new Date() })
+      .where(eq(schema.whatsappChats.id, chat.id));
+    return photoUrl;
+  };
+  const load = async (url: string) => {
+    const address = whatsappPhotoAddress(url);
+    if (!address) return null;
+    try {
+      const res = await http(address, { redirect: "error", signal: AbortSignal.timeout(PHOTO_TIMEOUT_MS) });
+      if (!res.ok) return null;
+      const bytes = new Uint8Array(await res.arrayBuffer());
+      const mimeType = bytes.byteLength <= PHOTO_MAX_BYTES ? sniffImage(bytes) : null;
+      return mimeType ? { bytes, mimeType } : null;
+    } catch {
+      return null;
+    }
+  };
+  const fresh = photoFresh(chat);
+  let url = fresh ? chat.photoUrl : await ask();
+  let photo = url ? await load(url) : null;
+  // A known address that stopped answering: WhatsApp moved the photo, so ask where it is now (once).
+  if (!photo && fresh && url) {
+    url = await ask();
+    photo = url ? await load(url) : null;
+  }
+  if (!photo) throw new NotFoundError("This conversation has no photo");
+  return photo;
+}
 
 /** A number's conversations, the latest first. `before`: the `lastAt` of the page before's last one. */
 export async function listWhatsAppChats(

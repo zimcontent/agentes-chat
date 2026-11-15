@@ -72,6 +72,8 @@ export interface WhatsAppChat {
   agentQuietUntil: string | null;
   /** While `person`: why, in the agent's words (a model's: text only), or `limit` or `failed`. */
   agentNote: string;
+  /** Its profile photo may be loaded (`whatsappPhotoUrl`); false: draw its initials. Absent on older servers. */
+  photo?: boolean;
 }
 
 export type WhatsAppChatAgent = "on" | "quiet" | "off" | "person";
@@ -105,6 +107,18 @@ export interface WhatsAppMessage {
  */
 export function whatsappFileUrl(orgId: string, accountId: string, messageId: string, base = "") {
   const path = `/api/app/organizations/${encodeURIComponent(orgId)}/whatsapp/accounts/${encodeURIComponent(accountId)}/messages/${encodeURIComponent(messageId)}/file`;
+  return `${base.replace(/\/+$/, "")}${path}`;
+}
+
+/** Where a conversation's profile photo loads from (our server fetches it from WhatsApp); null when it has none. */
+export function whatsappPhotoUrl(
+  orgId: string,
+  accountId: string,
+  chat: Pick<WhatsAppChat, "id" | "photo">,
+  base = "",
+) {
+  if (!chat.photo) return null;
+  const path = `/api/app/organizations/${encodeURIComponent(orgId)}/whatsapp/accounts/${encodeURIComponent(accountId)}/chats/${encodeURIComponent(chat.id)}/photo`;
   return `${base.replace(/\/+$/, "")}${path}`;
 }
 

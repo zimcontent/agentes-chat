@@ -15,6 +15,7 @@ import {
   type WhatsAppChat,
   type WhatsAppMessage,
   whatsappFileUrl,
+  whatsappPhotoUrl,
 } from "@agenteschat/client";
 import { formatBytes } from "@agenteschat/client/lib/files";
 import { clockAt, dayLabel, formatTime } from "@agenteschat/client/lib/format";
@@ -79,11 +80,13 @@ function StatusDot({ status }: { status: WhatsAppAccount["status"] }) {
 /** One conversation in the list. */
 function ChatRow({
   chat,
+  photo,
   active,
   onOpen,
   w,
 }: {
   chat: WhatsAppChat;
+  photo: string | null;
   active: boolean;
   onOpen: () => void;
   w: WhatsAppWords;
@@ -93,7 +96,7 @@ function ChatRow({
   const kindIcon = chat.lastKind in KIND_ICONS ? KIND_ICONS[chat.lastKind as keyof typeof KIND_ICONS] : null;
   return (
     <button type="button" className="wa-chat" data-active={active} data-unread={chat.unread > 0} onClick={onOpen}>
-      <Avatar name={title} size="md" />
+      <Avatar name={title} size="md" imageUrl={photo ?? undefined} />
       <span className="wa-chat__text">
         <span className="wa-chat__top">
           <span className="wa-chat__name">{title}</span>
@@ -476,7 +479,7 @@ function Conversation({
           aria-label={w.back}
           onClick={onBack}
         />
-        {chat && <Avatar name={title} size="md" />}
+        {chat && <Avatar name={title} size="md" imageUrl={whatsappPhotoUrl(org.id, account.id, chat) ?? undefined} />}
         <span className="wa-conv__who">
           <strong className="wa-conv__name">{title}</strong>
           {chat?.agent ? (
@@ -881,6 +884,7 @@ export function WhatsAppPage({
                 <ChatRow
                   key={chat.id}
                   chat={chat}
+                  photo={whatsappPhotoUrl(org.id, account.id, chat)}
                   active={chat.id === chatId}
                   onOpen={() => onPick({ account: account.id, chat: chat.id })}
                   w={w}

@@ -24,6 +24,7 @@ import {
   WHATSAPP_PAGE_MAX,
   WHATSAPP_SEND_FILE_MAX_BYTES,
   WHATSAPP_TEXT_MAX,
+  whatsappChatPhoto,
   whatsappMessageFile,
 } from "@agenteschat/engine";
 import { createRoute, z } from "@hono/zod-openapi";
@@ -55,6 +56,8 @@ export const WHATSAPP_NEW_CHATS_PER_NUMBER = { limit: 20, windowMs: 24 * 60 * 60
 export const WHATSAPP_HISTORY_PER_PERSON = { limit: 20, windowMs: 60_000 };
 /** Files one person may load: a conversation full of pictures, opened and scrolled. */
 export const WHATSAPP_FILES_PER_PERSON = { limit: 120, windowMs: 60_000 };
+/** A list of conversations loads a photo each; the browser keeps them, so this is a first look at a few pages. */
+export const WHATSAPP_PHOTOS_PER_PERSON = { limit: 300, windowMs: 60_000 };
 /**
  * The types a browser may draw from our address: pictures, sound and video it can't run. Anything else (a PDF, an
  * HTML page, an SVG someone sent) is only ever downloaded: opened here it would run as our own page.
@@ -154,6 +157,10 @@ const Chat = z
     agentNote: z.string().openapi({
       description:
         "While `agent` is `person`: why, in the agent's own words (written by a model: show it as text), or `limit` (it answered as much as it may in a day) or `failed` (its AI account didn't answer).",
+    }),
+    photo: z.boolean().openapi({
+      description:
+        "Its profile photo may be loaded (`…/chats/{chatId}/photo`); false: it has none we know of, so draw its initials.",
     }),
   })
   .openapi("WhatsAppChat");
@@ -548,6 +555,34 @@ export function whatsappRoutes(deps: AppDeps) {
       return sent.refused ?? c.json(sent.value, 201);
     },
   );
+
+  // A conversation's profile photo, for the number's people: what the list's and the header's `<img>` load. This
+  // server fetches it from WhatsApp's own (`whatsappChatPhoto`); the browser keeps it for six hours. 404: none.
+  app.get("/organizations/:orgId/whatsapp/accounts/:accountId/chats/:chatId/photo", async (c) => {
+    const params = z.object({ orgId: z.uuid(), accountId: z.uuid(), chatId: z.uuid() }).safeParse({
+      orgId: c.req.param("orgId"),
+      accountId: c.req.param("accountId"),
+      chatId: c.req.param("chatId"),
+    });
+    if (!params.success) return apiError(c, 400, "invalid_request", "Not a conversation");
+    const user = c.get("user");
+    if (await limited(`whatsapp-photo:${user.id}`, WHATSAPP_PHOTOS_PER_PERSON)) {
+      return apiError(c, 429, "rate_limited", "Slow down");
+    }
+    const { orgId, accountId, chatId } = params.data;
+    const got = await reaching(c, () => whatsappChatPhoto(wa, user.id, orgId, accountId, chatId));
+    if (got.refused) return got.refused;
+    const photo = got.value;
+    return new Response(photo.bytes, {
+      headers: {
+        "Content-Type": photo.mimeType,
+        "Content-Length": String(photo.bytes.byteLength),
+        "X-Content-Type-Options": "nosniff",
+        "Content-Security-Policy": "default-src 'none'; sandbox",
+        "Cache-Control": "private, max-age=21600",
+      },
+    });
+  });
 
   // A message's file, for the number's people: what an `<img>`, an `<audio>` or a download link loads. Fetched from
   // WhatsApp by the gateway on each ask and cached by the browser for a day. Never drawn as a page (`INLINE_TYPES`).

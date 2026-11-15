@@ -78,8 +78,11 @@ export function ModelPickerButton({
   const thinks = target?.thinks ?? own;
   if (!thinks?.text) return null;
   const mark = thinks.mark ? <ProviderLogo id={thinks.mark} size="xs" /> : <BrainIcon kind={thinks.kind} size={14} />;
-  // The team's right hand thinks with each person's own AI ("Sua IA"), set where that is: never picked here.
-  if (!mayPickModel(agent, me.user.id, can(org, "manage_agents")))
+  // The team's right hand thinks with each person's own AI ("Sua IA"), set where that is: never picked here. A
+  // target is another place's AI (a WhatsApp number's, doug-0004), which the right hand may have too: whoever the
+  // server lets change it (`canEdit`) picks it.
+  const mayPick = target ? target.view.canEdit : mayPickModel(agent, me.user.id, can(org, "manage_agents"));
+  if (!mayPick)
     return (
       <span
         className={cx("mp-label", className)}
