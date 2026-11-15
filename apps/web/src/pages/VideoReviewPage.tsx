@@ -394,7 +394,7 @@ function ReviewBody({ review, w }: { review: VideoReview; w: ReviewWords }) {
       if (!v) return;
       v.pause();
       // Aim at a frame's middle, so the browser shows that frame and not the one before it.
-      const frame = Math.round(v.currentTime * fps) + frames;
+      const frame = Math.floor(v.currentTime * fps + 1e-3) + frames;
       seek(((Math.max(0, frame) + 0.5) / fps) * 1000);
     },
     [fps, seek],
@@ -490,7 +490,7 @@ function ReviewBody({ review, w }: { review: VideoReview; w: ReviewWords }) {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.metaKey || e.ctrlKey || e.altKey) return;
-      const el = e.target as HTMLElement | null;
+      const el = e.target instanceof Element ? e.target : null;
       if (el?.closest("input, textarea, select, [contenteditable='true']")) {
         if (e.key === "Escape") keys.current.closeDraft();
         return;
@@ -654,7 +654,8 @@ function ReviewBody({ review, w }: { review: VideoReview; w: ReviewWords }) {
                   <Button size="sm" icon="flag" onClick={startMarking}>
                     {draft.endMs !== null ? w.remark : w.markEnd}
                   </Button>
-                  <span className="vr-pop__gap" />
+                </div>
+                <div className="vr-pop__acts vr-pop__acts--end">
                   <Button size="sm" variant="ghost" onClick={closeDraft}>
                     {w.cancel}
                   </Button>
