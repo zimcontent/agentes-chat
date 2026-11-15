@@ -85,3 +85,11 @@ The number's agent is one person who knows the whole operation; what it says dep
 - **Anyone else.** As before: no tools, nothing internal.
 
 Audited as `whatsapp.contact_set`. A plan's answer for a client still fits `ROUTE_LIMITS.prompt` (`fitWhatsAppPrompt`).
+
+## Addendum 2026-11-15: voice messages heard
+
+Before the number's agent reads a conversation, the contact's voice messages since the number last wrote (five at most,
+ten minutes each at most) are fetched through the gateway and put into words by the server's speech engines, the same
+that hear the app's (ADR 0100). The words become the message's body (`whatsapp/transcribe.ts`): the agent reads
+"[audio] …", a member's conversation gets "(áudio) …", and the app shows them under the recording. With no engine, or
+one that fails, a recording stays "[audio]", a file the agent asks to have in writing.

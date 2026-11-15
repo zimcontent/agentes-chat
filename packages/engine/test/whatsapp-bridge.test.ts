@@ -89,7 +89,7 @@ async function number() {
     if (!job) throw new Error("no job queued");
     return { chatId: String(job.payload.chatId), messageId: String(job.payload.messageId) };
   };
-  return { gateway, deps, account, hears };
+  return { gateway, deps, account, hears, post };
 }
 
 const lastRequest = () => f.provider.calls.at(-1)?.request;
@@ -438,5 +438,64 @@ describe("who the contact is", () => {
     expect(prompt).toContain('This contact is the client "lexeer"');
     expect(prompt).toContain("Reel casa nova");
     expect(prompt).not.toContain("Carrossel do parque");
+  });
+});
+
+describe("voice messages", () => {
+  const engine = (text: string) => ({
+    id: "local" as const,
+    model: "fake",
+    nanoUsdPerHour: 0,
+    minBilledSeconds: 0,
+    file: async () => ({ text }),
+  });
+  const voice = (id: string) => ({
+    event: "Message",
+    data: {
+      Info: { Chat: ANA, Sender: ANA, IsFromMe: false, ID: id, PushName: "Ana", Timestamp: new Date().toISOString() },
+      Message: { audioMessage: { mimetype: "audio/ogg; codecs=opus", seconds: 4, PTT: true, mediaKey: "a2V5" } },
+    },
+    instanceId: "instance-1",
+  });
+
+  test("heard before the agent reads them: a member's goes to their conversation as words, kept on the message", async () => {
+    f = await setup({ reply });
+    const { gateway, deps, account, hears, post } = await number();
+    const first = await hears("oi");
+    await setWhatsAppContact(deps, f.owner.id, f.org.id, account.id, first.chatId, { member: f.owner.id });
+    await post(voice("V1"));
+    const [stored] = await f.db.select().from(schema.whatsappMessages).where(eq(schema.whatsappMessages.waId, "V1"));
+    const heard = {
+      ...deps,
+      speech: () => [engine("  o que a Rosa está   fazendo agora? ")],
+      relay: (
+        userId: string,
+        orgId: string,
+        channelId: string,
+        input: { body: string; meta: Record<string, unknown> },
+      ) => postPersonMessage({ db: f.db, pubsub: f.pubsub }, userId, orgId, channelId, input),
+    };
+    expect(await answerWhatsAppChat(heard, { chatId: first.chatId, messageId: stored?.id as string })).toBe("relayed");
+    expect(gateway.last("download")).toBeDefined();
+    const [after] = await f.db.select().from(schema.whatsappMessages).where(eq(schema.whatsappMessages.waId, "V1"));
+    expect(after?.body).toBe("o que a Rosa está fazendo agora?");
+    const dm = await openPersonAgentDm(f.db, f.org.id, f.owner.id, f.agent.id);
+    const [asked] = await f.db.select().from(schema.messages).where(eq(schema.messages.channelId, dm.id));
+    expect(asked?.body).toBe("oi\n(áudio) o que a Rosa está fazendo agora?");
+  });
+
+  test("anyone else's are read by the agent as what was said; with no engine they stay a file it can't open", async () => {
+    f = await setup({ reply });
+    const { deps, post } = await number();
+    await post(voice("V2"));
+    const [stored] = await f.db.select().from(schema.whatsappMessages).where(eq(schema.whatsappMessages.waId, "V2"));
+    const job = { chatId: stored?.chatId as string, messageId: stored?.id as string };
+    await answerWhatsAppChat({ ...deps, speech: () => [engine("vocês fazem reels?")] }, job);
+    expect(String(lastRequest()?.messages[0]?.content)).toContain("Them: [audio] vocês fazem reels?");
+    // Another recording, no engine on the server: a file the agent can't open, as before.
+    await post(voice("V3"));
+    const [next] = await f.db.select().from(schema.whatsappMessages).where(eq(schema.whatsappMessages.waId, "V3"));
+    await answerWhatsAppChat(deps, { chatId: job.chatId, messageId: next?.id as string });
+    expect(String(lastRequest()?.messages[0]?.content)).toMatch(/Them: \[audio\]\n/);
   });
 });

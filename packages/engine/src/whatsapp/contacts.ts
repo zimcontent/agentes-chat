@@ -163,10 +163,19 @@ async function unanswered(deps: Pick<WhatsAppDeps, "db">, chat: ChatRow) {
     )
     .orderBy(desc(messages.at))
     .limit(10);
-  return rows
-    .reverse()
-    .map((m) => (m.kind === "text" ? m.body.trim() : `[${m.kind}]${m.body.trim() ? ` ${m.body.trim()}` : ""}`))
-    .filter(Boolean);
+  return (
+    rows
+      .reverse()
+      // A voice message heard (`whatsapp/transcribe.ts`) reads as what was said; any other file as its kind.
+      .map((m) =>
+        m.kind === "text"
+          ? m.body.trim()
+          : m.kind === "audio" && m.body.trim()
+            ? `(áudio) ${m.body.trim()}`
+            : `[${m.kind}]${m.body.trim() ? ` ${m.body.trim()}` : ""}`,
+      )
+      .filter(Boolean)
+  );
 }
 
 /**

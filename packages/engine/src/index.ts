@@ -333,6 +333,7 @@ export * from "./whatsapp/contacts";
 export * from "./whatsapp/conversations";
 export * from "./whatsapp/inbound";
 export * from "./whatsapp/tools";
+export * from "./whatsapp/transcribe";
 export * from "./wiki";
 export * from "./wiki-dm";
 export * from "./wiki-github";

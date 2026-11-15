@@ -823,6 +823,8 @@ export function buildEngine(o: EngineOptions) {
             // What the agent knows from its work comes into its WhatsApp answers (docs/adr/doug-0004-whatsapp-bridge.md).
             context,
             // A member's messages go to their conversation with the agent, as theirs (addendum 2026-11-15).
+            // Voice messages heard by the same engines as the app's (ADR 0100) before the agent reads them.
+            speech: speech.chain,
             relay: (userId, orgId, channelId, input) =>
               postPersonMessage({ db, pubsub: adapters.pubsub }, userId, orgId, channelId, input),
           },

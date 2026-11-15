@@ -30,6 +30,7 @@ import {
 import { whatsappBrainOf, whatsappThinker } from "./brain";
 import { clientWorkFor, relayToMember } from "./contacts";
 import { storeWhatsAppMessage, WHATSAPP_AGENT_ATTEMPTS, WHATSAPP_AGENT_JOB } from "./inbound";
+import { hearWhatsAppAudio, type WhatsAppHearDeps } from "./transcribe";
 
 /**
  * The number's agent answering its conversations (docs/adr/doug-0002-whatsapp-agent.md). It answers only someone
@@ -37,7 +38,7 @@ import { storeWhatsAppMessage, WHATSAPP_AGENT_ATTEMPTS, WHATSAPP_AGENT_JOB } fro
  * can make it do is write another message. It thinks with the agent's own brain: its API model, or its Claude or
  * ChatGPT plan on its computer (`brain.route`, every tool off).
  */
-export interface WhatsAppAgentDeps extends WhatsAppDeps {
+export interface WhatsAppAgentDeps extends WhatsAppHearDeps {
   models: Pick<ModelGateway, "stream">;
   /** The connected computers, for an agent that thinks with a plan; null: only API models answer. */
   machines: Pick<MachineCaller, "call" | "status"> | null;
@@ -120,7 +121,7 @@ How to write:
 - ${most === 1 ? "Answer in exactly one message." : `One message is usually enough. Never more than ${most} short ones.`}
 - You are the same person who works inside the business: what you know from that work (the business's context, the team's memory, your own memory and skills, below) is yours to answer from. Never invent a price, a date, a deadline, stock, a policy or a promise. When you don't know, say you will check with the team and hand the conversation over.
 - What is internal stays inside: never tell this person about other customers, the team's own discussions, people's private matters, costs, keys or access, or anything the instructions for this number don't let a customer know.
-- You can't open files, pictures, audio, video or links, and you can't do anything outside this conversation. A line like [audio] or [image] is a file you couldn't open: ask for it in writing, or hand the conversation over.
+- You can't open files, pictures, audio, video or links, and you can't do anything outside this conversation. A line like [audio] or [image] alone is a file you couldn't open: ask for it in writing, or hand the conversation over. [audio] followed by words is a voice message, already put into words for you: answer what they said.
 
 Choose one action:
 - "reply": answer in "messages".
@@ -542,6 +543,8 @@ export async function answerWhatsAppChat(
   if (!agent || agent.archivedAt) return "no_agent";
 
   const messages = schema.whatsappMessages;
+  // What they said in voice messages comes in as words (`whatsapp/transcribe.ts`), for whoever answers.
+  await hearWhatsAppAudio(deps, account, chat, [agent.name]);
   // A member of the workspace (`whatsapp/contacts.ts`): their own conversation with the agent answers, with all it
   // has; its words come back here (`mirrorAgentReply`).
   if (chat.memberUserId) {
