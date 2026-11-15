@@ -1,0 +1,210 @@
+/*
+ * Video review (docs/adr/doug-0007-video-review.md): the list of videos, and one video with its notes. Two columns from
+ * 1024 (the player beside the notes), one under it, the player first: it is reviewed on a phone as much as here.
+ */
+.vr-page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+.vr-muted {
+  margin: 0;
+  color: var(--muted);
+  font-size: var(--text-sm);
+}
+
+/* The list. */
+.vr-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+.vr-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  color: var(--ink);
+  text-decoration: none;
+}
+.vr-row:hover {
+  background: var(--side-hover);
+}
+.vr-row__words {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-width: 0;
+}
+.vr-row__title {
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+.vr-row__meta {
+  color: var(--muted);
+  font-size: var(--text-sm);
+}
+
+/* One video. */
+.vr-detail {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-4);
+  align-items: start;
+}
+@media (min-width: 1024px) {
+  .vr-detail {
+    grid-template-columns: minmax(0, 1fr) minmax(320px, 400px);
+  }
+  .vr-video {
+    max-height: min(78vh, 900px);
+  }
+}
+.vr-stage {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+.vr-video {
+  display: block;
+  width: 100%;
+  /* On a phone the note box stays in sight under a vertical short; beside the notes it may take the screen's height. */
+  max-height: 56svh;
+  border-radius: var(--radius-md);
+  background: #000;
+}
+/* Where the notes are, under the player: each a tick that jumps to its second. */
+.vr-marks {
+  position: relative;
+  height: var(--space-3);
+  border-radius: var(--radius-full);
+  background: var(--sunken);
+}
+.vr-mark {
+  position: absolute;
+  top: 0;
+  width: var(--space-1);
+  height: 100%;
+  margin-inline-start: calc(var(--space-1) / -2);
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-full);
+  background: var(--agent);
+  cursor: pointer;
+}
+.vr-mark[data-sent] {
+  background: var(--muted);
+}
+
+.vr-side {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  min-width: 0;
+}
+.vr-head {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+.vr-head__line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+.vr-compose,
+.vr-decide {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-4);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+}
+.vr-compose__acts,
+.vr-decide__acts {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--space-2);
+}
+@media (max-width: 639px) {
+  /* On a phone the decision's two buttons share the card's width. */
+  .vr-decide__acts > * {
+    flex: 1;
+  }
+}
+
+.vr-notes {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+.vr-notes__title {
+  margin: 0;
+  font-size: var(--text-md);
+  font-weight: 600;
+}
+.vr-notes__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+.vr-note {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding-block: var(--space-2);
+  border-bottom: 1px solid var(--line);
+}
+.vr-note[data-sent] .vr-note__body {
+  color: var(--muted);
+}
+.vr-note__time {
+  flex: none;
+  min-width: 48px;
+  padding: 0 var(--space-2);
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: var(--agent-soft);
+  color: var(--ink);
+  font-family: "JetBrains Mono", monospace;
+  font-size: var(--text-sm);
+  line-height: 24px;
+  text-align: center;
+  cursor: pointer;
+}
+.vr-note__time--whole {
+  background: var(--sunken);
+  font-family: inherit;
+  cursor: default;
+}
+.vr-note__words {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-width: 0;
+  line-height: 24px;
+}
+.vr-note__body {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.vr-note__meta {
+  color: var(--muted);
+  font-size: var(--text-xs);
+  line-height: 16px;
+}
