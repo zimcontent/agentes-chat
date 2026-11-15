@@ -101,6 +101,27 @@ describe("calls to the gateway", () => {
     expect((await down.status("tok").catch((e) => e)).status).toBe(0);
   });
 
+  test("a profile photo is its small one's address; none, or hidden, is null; a silent gateway still fails", async () => {
+    const url = "https://pps.whatsapp.net/v/t61/ana.jpg?stp=dst-jpg_s96x96";
+    const { gateway, asked } = evolution({ "/user/avatar": { body: { data: { url, type: "image" } } } });
+    expect(await gateway.profilePhoto("tok", { jid: "x@s.whatsapp.net" })).toBe(url);
+    expect(asked[0]).toMatchObject({
+      path: "/user/avatar",
+      apikey: "tok",
+      body: { number: "x@s.whatsapp.net", preview: true },
+    });
+    const none = evolution({ "/user/avatar": { status: 500, body: { error: "no profile picture found" } } });
+    expect(await none.gateway.profilePhoto("tok", { jid: "x@s.whatsapp.net" })).toBeNull();
+    const down = createEvolutionGoGateway({
+      url: "http://whatsapp:8080",
+      apiKey: "k",
+      fetch: (async () => {
+        throw new Error("connect ECONNREFUSED");
+      }) as unknown as typeof fetch,
+    });
+    expect((await down.profilePhoto("tok", { jid: "x@s.whatsapp.net" }).catch((e) => e)).status).toBe(0);
+  });
+
   test("typing is told as WhatsApp's own states, and its end too", async () => {
     const { gateway, asked } = evolution({ "/message/presence": { body: { message: "success" } } });
     await gateway.setTyping("tok", { chat: "x@s.whatsapp.net", typing: true });

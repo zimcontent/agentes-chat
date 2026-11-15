@@ -194,6 +194,21 @@ describe("WhatsApp over HTTP", () => {
     ).toBe(404);
   });
 
+  test("a conversation without a photo answers 404 and is listed with its initials after", async () => {
+    const { api, post, secret, gateway } = await start();
+    const account = (await (await api("/accounts", { json: { label: "Comercial" } })).json()) as Account;
+    await post(secret(), event("Connected", { status: "open", jid: "5511911112222@s.whatsapp.net", pushName: "Zim" }));
+    await post(secret(), hello);
+    const list = async () =>
+      ((await (await api(`/accounts/${account.id}/chats`)).json()) as { chats: (Chat & { photo: boolean })[] }).chats;
+    const chat = (await list())[0];
+    expect(chat?.photo).toBe(true);
+    expect((await api(`/accounts/${account.id}/chats/${chat?.id}/photo`)).status).toBe(404);
+    expect(gateway?.last("photo")?.jid).toBe("5511999990000@s.whatsapp.net");
+    expect((await list())[0]?.photo).toBe(false);
+    expect((await api(`/accounts/${account.id}/chats/not-a-chat/photo`)).status).toBe(400);
+  });
+
   test("a file dropped in the conversation is sent as a form and shows there as the person's", async () => {
     const { api, post, secret, gateway } = await start();
     const account = (await (await api("/accounts", { json: { label: "Comercial" } })).json()) as Account;
