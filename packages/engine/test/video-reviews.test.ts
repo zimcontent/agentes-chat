@@ -205,6 +205,8 @@ describe("video review", () => {
         "",
         "no geral, tá ótimo",
         "",
+        "Antes da próxima versão: grave na sua skill e na sua memória o que destas notas vale para os próximos vídeos.",
+        "",
         "Notas:",
         "- [geral] cor mais quente (Gabriel)",
         "- [1:05.0] corte comeu a palavra (Lê)",
