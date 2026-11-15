@@ -10,6 +10,9 @@ import {
   deleteReviewNote,
   getVideoReview,
   listVideoReviews,
+  makeLightCopy,
+  REVIEW_LIGHT_JOB,
+  reviewVideo,
   sendForReview,
   setReviewBrief,
   timecode,
@@ -339,5 +342,79 @@ describe("video review", () => {
     expect(asked?.body).toContain("- [0:04.2] Cards/B-roll: (sem texto: veja o anexo)");
     expect(asked?.body).toContain(`Anexo (imagem): familia.jpg — traga com import_file artifact_id ${photo.id}`);
     expect(asked?.body).toContain("Link: www.pexels.com — https://www.pexels.com/video/123/");
+  });
+
+  test("every version gets a light copy for phones; the player gets it, or the original with HD or until it's made", async () => {
+    f = await setup();
+    const made: number[] = [];
+    const light = (fn: (bytes: Uint8Array) => Uint8Array): VideoReviewDeps => ({
+      ...deps(),
+      lightCopy: async (bytes) => {
+        made.push(bytes.byteLength);
+        return fn(bytes);
+      },
+    });
+    const small = light(() => new Uint8Array([1, 2, 3]));
+    const v1 = await video("short-05.mp4");
+    const sent = await sendForReview(small, ctx(), { artifactId: v1.id, title: "Short 05" });
+    const id = sent.review.id;
+
+    // Asked once, in the background.
+    const jobs = await f.db.select().from(schema.outbox).where(eq(schema.outbox.kind, REVIEW_LIGHT_JOB));
+    expect(jobs).toHaveLength(1);
+    const versionId = String((jobs[0]?.payload as { versionId?: string } | undefined)?.versionId);
+
+    // Until it's made, the player gets the original.
+    const before = await reviewVideo(small, f.owner.id, f.org.id, id, 1);
+    expect([before.light, before.body.byteLength]).toEqual([false, 8]);
+    expect((await getVideoReview(small, f.owner.id, f.org.id, id)).versions[0]?.light).toBe(false);
+
+    await makeLightCopy(small, versionId, { finalAttempt: false });
+    expect(made).toEqual([8]);
+    expect((await getVideoReview(small, f.owner.id, f.org.id, id)).versions[0]?.light).toBe(true);
+    const after = await reviewVideo(small, f.owner.id, f.org.id, id, 1);
+    expect([after.light, after.body.byteLength, after.contentType]).toEqual([true, 3, "video/mp4"]);
+    const hd = await reviewVideo(small, f.owner.id, f.org.id, id, 1, { original: true });
+    expect([hd.light, hd.body.byteLength]).toEqual([false, 8]);
+    // Made once: running the job again does nothing.
+    await makeLightCopy(small, versionId, { finalAttempt: false });
+    expect(made).toEqual([8]);
+
+    // Someone who doesn't read the conversation gets neither.
+    const outsider = await addMember(f.db, f.org.id, "member", "outsider");
+    await f.db.update(schema.channels).set({ visibility: "private" }).where(eq(schema.channels.id, f.general.id));
+    await expect(reviewVideo(small, outsider.id, f.org.id, id, 1)).rejects.toThrow();
+
+    // A copy no smaller than the original isn't kept: the original plays.
+    const big = light((bytes) => new Uint8Array(bytes.byteLength + 10));
+    const v2 = await video("short-05-v2.mp4");
+    await sendForReview(big, ctx(), { artifactId: v2.id, reviewId: id, note: "V2" });
+    const [second] = await f.db
+      .select()
+      .from(schema.videoReviewVersions)
+      .where(and(eq(schema.videoReviewVersions.reviewId, id), eq(schema.videoReviewVersions.version, 2)));
+    await makeLightCopy(big, String(second?.id), { finalAttempt: false });
+    expect(
+      second &&
+        (await f.db.select().from(schema.videoReviewVersions).where(eq(schema.videoReviewVersions.id, second.id)))[0]
+          ?.lightState,
+    ).toBe("none");
+    expect((await reviewVideo(big, f.owner.id, f.org.id, id, 2)).light).toBe(false);
+
+    // Without ffmpeg nothing is asked, and the originals play.
+    const v3 = await video("short-06.mp4");
+    const plain = await sendForReview(deps(), ctx(), { artifactId: v3.id, title: "Short 06" });
+    const [third] = await f.db
+      .select()
+      .from(schema.videoReviewVersions)
+      .where(eq(schema.videoReviewVersions.reviewId, plain.review.id));
+    expect(third?.lightState).toBe("");
+    // A server that can make them makes one for an old version the first time it's opened.
+    await getVideoReview(small, f.owner.id, f.org.id, plain.review.id);
+    const asked = await f.db
+      .select()
+      .from(schema.videoReviewVersions)
+      .where(eq(schema.videoReviewVersions.id, String(third?.id)));
+    expect(asked[0]?.lightState).toBe("pending");
   });
 });

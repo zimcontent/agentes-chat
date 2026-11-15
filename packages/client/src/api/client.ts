@@ -2254,6 +2254,8 @@ export interface ApiClient {
   videoReviews?: {
     list(orgId: string): Promise<{ reviews: VideoReviewSummary[] }>;
     get(orgId: string, reviewId: string): Promise<VideoReview>;
+    /** A version's video for the player: the light copy for phones, or the original with `original` (HD). */
+    videoUrl(orgId: string, reviewId: string, version: number, options?: { original?: boolean }): string;
     addNote(orgId: string, reviewId: string, input: VideoReviewNoteInput): Promise<VideoReviewNote>;
     addVoiceNote(orgId: string, reviewId: string, input: VideoReviewVoiceInput): Promise<VideoReviewNote>;
     deleteNote(orgId: string, reviewId: string, noteId: string): Promise<void>;

@@ -43,8 +43,11 @@ export function ReviewStage({
   controls,
   onPoint,
   onTime,
+  startMs = 0,
 }: {
   uri: string;
+  /** Where to start: the place kept when the light copy and the original (HD) swap. */
+  startMs?: number;
   notes: VideoReviewNote[];
   /** The note being written, when it has a point. */
   draft: { x: number; y: number } | null;
@@ -79,6 +82,10 @@ export function ReviewStage({
   });
   useEventListener(player, "sourceLoad", ({ duration: d, availableVideoTracks }) => {
     setDuration(d * 1000);
+    if (startMs > 0) {
+      player.currentTime = startMs / 1000;
+      setMs(startMs);
+    }
     const size = availableVideoTracks[0]?.size;
     if (size && size.width > 0 && size.height > 0) setAspect(size.width / size.height);
   });

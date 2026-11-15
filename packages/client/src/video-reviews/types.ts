@@ -46,7 +46,8 @@ export interface VideoReview extends VideoReviewSummary {
   brief: string;
   /** The task, the footage, the delivery. */
   links: { label: string; url: string }[];
-  versions: { version: number; artifactId: string; note: string; createdAt: string }[];
+  /** `light`: its light copy for phones is ready (`videoUrl` plays it unless `original`). */
+  versions: { version: number; artifactId: string; note: string; light: boolean; createdAt: string }[];
   notes: VideoReviewNote[];
   decidedBy: { id: string; name: string } | null;
   decidedAt: string | null;

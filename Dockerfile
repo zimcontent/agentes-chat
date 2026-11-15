@@ -2,6 +2,9 @@
 # Self-hosting runs it with docker-compose.yml; agentes.chat Cloud runs the same image.
 FROM oven/bun:1.4.4
 WORKDIR /app
+# ffmpeg makes the light copy of a video in review for phones (docs/adr/doug-0007-video-review.md); without it the
+# apps play the original.
+RUN apt-get update  && apt-get install -y --no-install-recommends ffmpeg  && rm -rf /var/lib/apt/lists/*
 # A named volume mounted on an empty image directory takes its owner: FILES_DIR in docker-compose.yml.
 RUN install -d -o bun -g bun /data/files
 COPY . .

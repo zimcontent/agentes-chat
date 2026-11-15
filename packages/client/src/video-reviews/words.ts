@@ -99,6 +99,9 @@ const en = {
   versions: "Versions",
   loading: "Loading the video…",
   notFound: "This review doesn't exist or isn't yours to see.",
+  hd: "HD",
+  hdOn: "Watching the original (heavier). Tap to go back to the light copy.",
+  hdOff: "Watching a light copy, for mobile data. Tap for the original.",
 };
 
 export type ReviewWords = typeof en;
@@ -200,6 +203,9 @@ const ptBR: ReviewWords = {
   versions: "Versões",
   loading: "Carregando o vídeo…",
   notFound: "Esta revisão não existe ou não é sua para ver.",
+  hd: "HD",
+  hdOn: "Vendo o original (mais pesado). Toque para voltar à cópia leve.",
+  hdOff: "Vendo uma cópia leve, para o 4G. Toque para o original.",
 };
 
 /** The words for a language tag (`pt-BR`, `en`…): Portuguese for any `pt`, English otherwise. */

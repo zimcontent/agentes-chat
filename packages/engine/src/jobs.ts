@@ -130,6 +130,7 @@ import { postTeamWeek, TEAM_DAY_JOB, TEAM_WEEK_JOB } from "./team-week";
 import { isAgentesCloud } from "./telemetry";
 import { assessThread } from "./thread-assess";
 import { runVaultSync, VAULT_SYNC_JOB, type VaultDeps } from "./vault";
+import { makeLightCopy, REVIEW_LIGHT_JOB, type VideoReviewDeps } from "./video-reviews";
 import { transcribeVoiceClip, VOICE_JOB, type VoiceDeps } from "./voice";
 import { saveWaitlistContact } from "./waitlist";
 import { answerWhatsAppChat, type WhatsAppAgentDeps } from "./whatsapp/agent";
@@ -195,6 +196,8 @@ export interface JobDeps extends RunExecutorDeps {
   skills?: SkillDeps;
   /** Voice messages (job `voice.transcribe`, ADR 0100). */
   voice?: VoiceDeps;
+  /** Video review's light copies for phones (job `video_review.light`, docs/adr/doug-0007-video-review.md). */
+  videoReviews?: VideoReviewDeps;
   /** WhatsApp numbers whose agent answers (job `whatsapp.agent_reply`); absent: no gateway, nothing to answer. */
   whatsapp?: WhatsAppAgentDeps;
   /** The Vault's sources (job `vault.sync`, ADR 0144); absent: connections aren't read again. */
@@ -942,6 +945,10 @@ export function createJobHandlers(deps: JobDeps): JobHandlers {
         { chatId: String(job.payload.chatId), messageId: String(job.payload.messageId) },
         { finalAttempt: ctx.finalAttempt },
       );
+    },
+    [REVIEW_LIGHT_JOB]: async (job, ctx) => {
+      if (!deps.videoReviews) throw new PermanentJobError("no video review configured");
+      await makeLightCopy(deps.videoReviews, String(job.payload.versionId), { finalAttempt: ctx.finalAttempt });
     },
     [VOICE_JOB]: async (job, ctx) => {
       if (!deps.voice) throw new PermanentJobError("no voice engine configured");

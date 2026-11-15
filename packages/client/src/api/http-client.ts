@@ -574,6 +574,8 @@ export function createHttpApi(options: TransportOptions = {}): HttpApi {
     videoReviews: {
       list: (orgId) => request<{ reviews: VideoReviewSummary[] }>(`${org(orgId)}/video-reviews`),
       get: (orgId, reviewId) => request<VideoReview>(`${org(orgId)}/video-reviews/${enc(reviewId)}`),
+      videoUrl: (orgId, reviewId, version, options = {}) =>
+        `${base}${org(orgId)}/video-reviews/${enc(reviewId)}/versions/${version}/video${options.original ? "?quality=original" : ""}`,
       addNote: (orgId, reviewId, input) =>
         request<VideoReviewNote>(`${org(orgId)}/video-reviews/${enc(reviewId)}/notes`, { json: input }),
       addVoiceNote: (orgId, reviewId, input) => {

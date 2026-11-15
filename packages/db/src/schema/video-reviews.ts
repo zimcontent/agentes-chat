@@ -68,6 +68,11 @@ export const videoReviewVersions = pgTable(
     artifactId: uuid().notNull(),
     /** What the agent says changed, or what it is (V1). */
     note: text().notNull().default(""),
+    /**
+     * The light copy for phones, kept beside the file's bytes (`lightKey`): "" not asked yet, `pending` being made,
+     * `ready`, `none` (no smaller than the original) or `failed`.
+     */
+    lightState: text().notNull().default(""),
     createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [uniqueIndex().on(t.reviewId, t.version)],

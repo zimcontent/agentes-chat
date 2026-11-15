@@ -27,7 +27,7 @@ import {
 import { recordAudit } from "./audit";
 import { openSecret, randomToken, sealSecret, sha256 } from "./crypto";
 import { NotFoundError, ValidationError } from "./errors";
-import { transcriptKey } from "./file-reader";
+import { lightKey, transcriptKey } from "./file-reader";
 import { assertStorageRoom } from "./limits";
 import { assertPublicHttpsUrl, outboundFetch, type ResolveHost } from "./net-guard";
 import { requirePermission } from "./organizations";
@@ -674,6 +674,8 @@ export async function runMigration(deps: StorageDeps, migrationId: string, optio
         if (v.storageConfigId === null && v.blobKey !== key) {
           await source.delete(v.blobKey).catch(() => undefined);
           await source.delete(transcriptKey(v.blobKey)).catch(() => undefined);
+          // A light copy is made again from the moved bytes the next time it's watched.
+          await source.delete(lightKey(v.blobKey)).catch(() => undefined);
         }
       } catch (error) {
         await db
