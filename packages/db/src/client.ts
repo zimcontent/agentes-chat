@@ -292,6 +292,13 @@ export const EXTRA_COLUMNS = [
   `ALTER TABLE "video_reviews" ADD COLUMN IF NOT EXISTS "links" jsonb NOT NULL DEFAULT '[]'::jsonb`,
   `ALTER TABLE "video_review_notes" ADD COLUMN IF NOT EXISTS "attachments" jsonb NOT NULL DEFAULT '[]'::jsonb`,
   `ALTER TABLE "video_review_versions" ADD COLUMN IF NOT EXISTS "light_state" text NOT NULL DEFAULT ''`,
+  // Design pieces in the same review (docs/adr/doug-0010-design-review.md): the medium, each version's slides and
+  // editable page, who edited it by hand, and the slide a note is on.
+  `ALTER TABLE "video_reviews" ADD COLUMN IF NOT EXISTS "medium" text NOT NULL DEFAULT 'video'`,
+  `ALTER TABLE "video_review_versions" ADD COLUMN IF NOT EXISTS "pages" jsonb NOT NULL DEFAULT '[]'::jsonb`,
+  `ALTER TABLE "video_review_versions" ADD COLUMN IF NOT EXISTS "source_artifact_id" uuid`,
+  `ALTER TABLE "video_review_versions" ADD COLUMN IF NOT EXISTS "edited_by" text`,
+  `ALTER TABLE "video_review_notes" ADD COLUMN IF NOT EXISTS "page" integer`,
 ];
 
 /** The advisory lock every process takes around its migrations (`DatabaseHandle.migrate`). */

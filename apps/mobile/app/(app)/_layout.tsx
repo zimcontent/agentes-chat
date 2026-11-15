@@ -151,6 +151,8 @@ function AppStack() {
       {/* Video review (docs/adr/doug-0007-video-review.md): the list from the home, a video from it or a chat's card. */}
       <Stack.Screen name="review/index" options={{ ...pushed, ...scrollUnder }} />
       <Stack.Screen name="review/[id]" options={{ ...pushed, ...scrollUnder }} />
+      {/* The piece in the editor: its own gestures, so no swipe back over it (docs/adr/doug-0010-design-review.md). */}
+      <Stack.Screen name="review/edit/[id]" options={{ ...pushed, gestureEnabled: false }} />
       <Stack.Screen name="widget-new" options={{ ...pushed, ...scrollUnder }} />
       <Stack.Screen name="agent-pick" options={{ ...pushed, ...scrollUnder }} />
       <Stack.Screen name="widget-pin" options={{ ...pushed, ...scrollUnder }} />

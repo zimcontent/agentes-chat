@@ -389,6 +389,36 @@ test("a provider refused this server's own OAuth app: what's wrong and who fixes
  * hit goes in `KNOWN` instead.
  */
 const PLAIN_LINE = new Set([
+  // The Revisor (docs/adr/doug-0007-video-review.md, doug-0010-design-review.md) words its own failures in its screens
+  // (`reviewWords`), and the rest refuse an agent's tool call, whose message the agent reads.
+  "video_review.bad_attachment",
+  "video_review.bad_kind",
+  "video_review.bad_page",
+  "video_review.bad_range",
+  "video_review.bad_type",
+  "video_review.bad_version",
+  "video_review.decided",
+  "video_review.empty_note",
+  "video_review.empty_page",
+  "video_review.no_agent",
+  "video_review.no_page",
+  "video_review.no_pages",
+  "video_review.no_speech",
+  "video_review.no_words",
+  "video_review.not_author",
+  "video_review.not_open",
+  "video_review.not_page",
+  "video_review.not_picture",
+  "video_review.not_video",
+  "video_review.not_yours",
+  "video_review.nothing_to_change",
+  "video_review.page_not_inlined",
+  "video_review.page_too_large",
+  "video_review.sent",
+  "video_review.stale_version",
+  "video_review.too_large",
+  "video_review.too_many_pages",
+  "video_review.wrong_medium",
   // Only an agent names a project by a name that isn't one, and the pickers offer only projects that exist.
   "issue_project.unknown",
   "issue_project.not_found",

@@ -24,15 +24,21 @@ export function ReviewNotes({
   reviewId,
   notes,
   onSeek,
+  pins,
+  onSlide,
 }: {
   reviewId: string;
   notes: VideoReviewNote[];
   onSeek: (ms: number) => void;
+  /** A design piece (docs/adr/doug-0010-design-review.md): each pinned note's number, as the slide shows it. */
+  pins?: Map<string, number>;
+  /** A design piece: a tap takes the screen to the note's slide. */
+  onSlide?: (page: number) => void;
 }) {
   return (
     <View style={styles.list}>
       {notes.map((n) => (
-        <NoteRow key={n.id} reviewId={reviewId} note={n} onSeek={onSeek} />
+        <NoteRow key={n.id} reviewId={reviewId} note={n} onSeek={onSeek} pin={pins?.get(n.id)} onSlide={onSlide} />
       ))}
     </View>
   );
@@ -42,10 +48,14 @@ function NoteRow({
   reviewId,
   note: n,
   onSeek,
+  pin,
+  onSlide,
 }: {
   reviewId: string;
   note: VideoReviewNote;
   onSeek: (ms: number) => void;
+  pin?: number;
+  onSlide?: (page: number) => void;
 }) {
   const w = useReviewWords();
   const { t } = useTranslation();
@@ -55,8 +65,17 @@ function NoteRow({
   const orgId = useOrgId();
   const meId = useMeId();
   const remove = useDeleteReviewNote(orgId, reviewId);
-  const where =
-    n.atMs === null ? w.whole : n.endMs !== null ? `${timecode(n.atMs)}–${timecode(n.endMs)}` : timecode(n.atMs);
+  const design = onSlide !== undefined;
+  const where = design
+    ? n.page === null
+      ? w.design.whole
+      : `${pin ?? ""} · ${w.design.slideShort(n.page)}`
+    : n.atMs === null
+      ? w.whole
+      : n.endMs !== null
+        ? `${timecode(n.atMs)}–${timecode(n.endMs)}`
+        : timecode(n.atMs);
+  const goes = design ? n.page !== null : n.atMs !== null;
   const facts = [n.kind ? w.kinds[n.kind] : "", n.author?.name ?? "", n.voice ? w.voice : "", n.sent ? w.sent : ""]
     .filter(Boolean)
     .join(" · ");
@@ -64,12 +83,13 @@ function NoteRow({
   return (
     <Pressable
       onPress={() => {
-        if (n.atMs === null) return;
+        if (!goes) return;
         tapHaptic();
-        onSeek(n.atMs);
+        if (design && n.page !== null) onSlide?.(n.page);
+        else if (n.atMs !== null) onSeek(n.atMs);
       }}
-      accessibilityRole={n.atMs === null ? undefined : "button"}
-      style={({ pressed }) => [styles.note, surface, pressed && n.atMs !== null && styles.pressed]}
+      accessibilityRole={goes ? "button" : undefined}
+      style={({ pressed }) => [styles.note, surface, pressed && goes && styles.pressed]}
     >
       <View style={styles.head}>
         <View style={[styles.time, { backgroundColor: c.chip }]}>

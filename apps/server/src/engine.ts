@@ -46,6 +46,7 @@ import {
   createContextToolSource,
   createDashboardToolSource,
   createDatabaseToolSource,
+  createDesignReviewToolSource,
   createDesktopControl,
   createDesktopToolSource,
   createDeviceToolSource,
@@ -477,6 +478,7 @@ export function buildEngine(o: EngineOptions) {
       createPortalToolSource({ portal: adapters.approvalPortal ?? null, artifacts }),
       // A video an agent edited, sent for the team's review (docs/adr/doug-0007-video-review.md).
       createVideoReviewToolSource(videoReviews),
+      createDesignReviewToolSource(videoReviews),
       // The workspace's WhatsApp numbers, read and written by their agent and the people on them, as the same person
       // who answers there (docs/adr/doug-0004-whatsapp-bridge.md): listed only for an agent that may see one.
       createWhatsAppToolSource(

@@ -24,6 +24,11 @@ export const videoReviews = pgTable(
     channelId: uuid().notNull(),
     threadId: uuid(),
     title: text().notNull(),
+    /**
+     * What is reviewed: a `video`, or a `design` piece (slides as pictures, and the page they were drawn from, which
+     * people can edit; docs/adr/doug-0010-design-review.md).
+     */
+    medium: text().$type<ReviewMedium>().notNull().default("video"),
     /** The client it is for ("Alliance"), as the agent says it; a filter in the list. */
     client: text().notNull().default(""),
     /** What was asked of the editor, in the asker's words, and whether there was any direction; "" when not told. */
@@ -42,6 +47,11 @@ export const videoReviews = pgTable(
 );
 
 export type VideoReviewStatus = "in_review" | "changes" | "approved";
+export type ReviewMedium = "video" | "design";
+/** One slide of a design version: a picture file (an artifact), in order. */
+export interface DesignPage {
+  artifactId: string;
+}
 export interface VideoReviewLink {
   label: string;
   url: string;
@@ -73,6 +83,12 @@ export const videoReviewVersions = pgTable(
      * `ready`, `none` (no smaller than the original) or `failed`.
      */
     lightState: text().notNull().default(""),
+    /** A design version's slides, as pictures, in order; [] for a video, or for a page a person edited by hand. */
+    pages: jsonb().$type<DesignPage[]>().notNull().default([]),
+    /** A design version's editable page (one HTML file, everything in it inlined); null: pictures only. */
+    sourceArtifactId: uuid(),
+    /** A person who made this version in the editor; null: the agent sent it. */
+    editedBy: text(),
     createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [uniqueIndex().on(t.reviewId, t.version)],
@@ -94,6 +110,8 @@ export const videoReviewNotes = pgTable(
     version: integer().notNull(),
     /** Where in the video, in milliseconds; null: about the whole video. */
     atMs: integer(),
+    /** The slide of a design piece the note is on, from 1; null: a video, or the whole piece. */
+    page: integer(),
     /** Where a stretch ends, in milliseconds; null: one point. */
     endMs: integer(),
     /** Where on the picture the reviewer pointed, as fractions of its width and height; null: nowhere in particular. */

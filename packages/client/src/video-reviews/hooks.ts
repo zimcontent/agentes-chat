@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { ApiClient } from "../api/client";
 import { useApi } from "../api/context";
-import type { VideoReviewDecision, VideoReviewNoteInput, VideoReviewVoiceInput } from "./types";
+import type { DesignEditInput, VideoReviewDecision, VideoReviewNoteInput, VideoReviewVoiceInput } from "./types";
 
 /*
  * Video review in the apps (docs/adr/doug-0007-video-review.md). A review has no realtime event of its own: an open one
@@ -69,3 +69,26 @@ export const useDecideVideoReview = (orgId: string, reviewId: string) =>
   useReviewChange(orgId, reviewId, (api, input: { decision: VideoReviewDecision; message?: string }) =>
     reviewsOf(api).decide(orgId, reviewId, input),
   );
+
+/** A design version's editable page (a version never changes: read once). */
+export function useDesignSource(orgId: string, reviewId: string, version: number, enabled: boolean) {
+  const api = useApi();
+  return useQuery({
+    queryKey: [...reviewKeys.one(orgId, reviewId), "source", version] as const,
+    queryFn: async () => {
+      const source = reviewsOf(api).source;
+      if (!source) throw new Error("This server has no design review");
+      return source(orgId, reviewId, version);
+    },
+    enabled: enabled && Boolean(orgId) && Boolean(reviewId) && Boolean(api.videoReviews?.source),
+    staleTime: Number.POSITIVE_INFINITY,
+    gcTime: 5 * 60_000,
+  });
+}
+
+export const useSaveDesign = (orgId: string, reviewId: string) =>
+  useReviewChange(orgId, reviewId, (api, input: DesignEditInput) => {
+    const save = reviewsOf(api).saveDesign;
+    if (!save) throw new Error("This server has no design review");
+    return save(orgId, reviewId, input);
+  });

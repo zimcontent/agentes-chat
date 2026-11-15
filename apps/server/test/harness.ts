@@ -250,6 +250,7 @@ export async function createTestServer(
         githubApp: engine.githubApp,
         speech: engine.speech,
         voice: engine.voice,
+        videoReviews: engine.videoReviews,
       },
     },
     log,
