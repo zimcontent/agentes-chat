@@ -2,6 +2,7 @@ import { afterEach, describe, expect, test } from "bun:test";
 import { and, desc, eq, schema } from "@agenteschat/db";
 import {
   addReviewNote,
+  createAgent,
   createDesignReviewToolSource,
   createFileArtifact,
   decideVideoReview,
@@ -9,6 +10,7 @@ import {
   designSource,
   getVideoReview,
   listVideoReviews,
+  openAgentDm,
   outsideReferences,
   saveDesignEdit,
   sendDesignForReview,
@@ -205,6 +207,32 @@ describe("design review", () => {
     );
     const notPicture = await page(PAGE, "slide.html");
     await expect(sendDesignForReview(deps(), ctx(), { pages: [notPicture.id] })).rejects.toThrow("not a picture");
+  });
+
+  test("from a conversation between agents, the review goes to the group named, never where nobody sees it", async () => {
+    f = await setup();
+    const other = await createAgent(
+      f.db,
+      f.owner.id,
+      f.org.id,
+      { name: "Chess", handle: "chess", role: "Strategy", instructions: "." },
+      { model: "claude-sonnet-5-5" },
+    );
+    const dm = await openAgentDm(f.db, f.org.id, f.agent.id, other.id);
+    const dmId = typeof dm === "string" ? dm : (dm as { id: string }).id;
+    const s1 = await picture("01.png");
+    const inDm = { ...ctx(), channelId: dmId };
+    await expect(sendDesignForReview(deps(), inDm, { pages: [s1.id], title: "Post" })).rejects.toThrow(
+      "No person is in this conversation",
+    );
+    const sent = await sendDesignForReview(deps(), inDm, { pages: [s1.id], title: "Post", channel: "#General" });
+    const [row] = await f.db.select().from(schema.videoReviews).where(eq(schema.videoReviews.id, sent.review.id));
+    expect(row?.channelId).toBe(f.general.id);
+    // The team sees it.
+    expect((await listVideoReviews(deps(), f.owner.id, f.org.id)).map((r) => r.id)).toContain(sent.review.id);
+    await expect(
+      sendDesignForReview(deps(), inDm, { pages: [s1.id], title: "Post", channel: "nao-existe" }),
+    ).rejects.toThrow("No group #nao-existe");
   });
 
   test("the tool is offered in a run, never to a background routine", async () => {

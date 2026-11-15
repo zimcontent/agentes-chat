@@ -9,7 +9,17 @@ import { enqueue } from "./outbox";
 import { replyThreadOf } from "./runs";
 import type { ToolContext, ToolDefinition, ToolOutput, ToolSource } from "./tools/types";
 
-const { agents, artifacts, artifactVersions, users, videoReviewNotes, videoReviews, videoReviewVersions } = schema;
+const {
+  agents,
+  artifacts,
+  artifactVersions,
+  channelMembers,
+  channels,
+  users,
+  videoReviewNotes,
+  videoReviews,
+  videoReviewVersions,
+} = schema;
 type VideoReviewStatus = schema.VideoReviewStatus;
 
 /**
@@ -263,6 +273,8 @@ export interface SendForReviewInput {
   /** What was asked, and whether there was direction; kept when a next version leaves it out. */
   brief?: string;
   links?: unknown;
+  /** The group the review lives in, by name; absent: this conversation (`reviewPlace`). */
+  channel?: string;
 }
 
 /**
@@ -324,13 +336,13 @@ export async function sendForReview(
       return review.id;
     }
     const title = input.title?.trim().slice(0, 200) || file.name;
+    const place = await reviewPlace(tx as unknown as Database, ctx, input.channel);
     const [row] = await tx
       .insert(videoReviews)
       .values({
         orgId: ctx.orgId,
         agentId: ctx.agentId,
-        channelId: ctx.channelId,
-        threadId: replyThreadOf(ctx),
+        ...place,
         title,
         client: input.client?.trim().slice(0, 80) ?? "",
         brief: cleanBrief(input.brief ?? ""),
@@ -353,6 +365,68 @@ export async function sendForReview(
 
 const toolText = (value: unknown) => (typeof value === "string" ? value : "");
 
+/**
+ * Where a new review lives: who reads that conversation reviews it (§2). The run's own conversation by default; a
+ * group the agent names (`channel`, e.g. the client's), at its top level. A conversation no person is in (two agents
+ * talking) would hide the review from everyone: refused, saying to name the group.
+ */
+export async function reviewPlace(
+  db: Database,
+  ctx: Pick<ToolContext, "orgId" | "agentId" | "channelId" | "threadRootId" | "triggerMessageId">,
+  channelName: string | undefined,
+): Promise<{ channelId: string; threadId: string | null }> {
+  const name = channelName?.trim().replace(/^#/, "").toLowerCase();
+  if (name) {
+    const [found] = await db
+      .select({ id: channels.id, visibility: channels.visibility })
+      .from(channels)
+      .where(
+        and(
+          eq(channels.orgId, ctx.orgId),
+          eq(channels.name, name),
+          eq(channels.kind, "channel"),
+          isNull(channels.archivedAt),
+        ),
+      );
+    const member = found
+      ? await db
+          .select({ id: channelMembers.channelId })
+          .from(channelMembers)
+          .where(and(eq(channelMembers.channelId, found.id), eq(channelMembers.agentId, ctx.agentId)))
+      : [];
+    // Never reveal a private group the agent isn't in.
+    if (!found || (found.visibility !== "public" && member.length === 0)) {
+      throw new ValidationError(`No group #${name} you are in`, "video_review.no_channel");
+    }
+    return { channelId: found.id, threadId: found.id === ctx.channelId ? replyThreadOf(ctx) : null };
+  }
+  const [here] = await db
+    .select({ kind: channels.kind, visibility: channels.visibility })
+    .from(channels)
+    .where(and(eq(channels.orgId, ctx.orgId), eq(channels.id, ctx.channelId)));
+  const people = await db
+    .select({ userId: channelMembers.userId })
+    .from(channelMembers)
+    .where(and(eq(channelMembers.channelId, ctx.channelId), sql`${channelMembers.userId} is not null`))
+    .limit(1);
+  const seen = (here?.kind === "channel" && here.visibility === "public") || people.length > 0;
+  if (!seen) {
+    throw new ValidationError(
+      "No person is in this conversation, so nobody would see the review: pass `channel`, the group where the team reviews it (the client's group, e.g. lexeer-hq)",
+      "video_review.nobody_here",
+    );
+  }
+  return { channelId: ctx.channelId, threadId: replyThreadOf(ctx) };
+}
+
+/** The `channel` field both review tools take. */
+export const REVIEW_CHANNEL_SCHEMA = {
+  type: "string",
+  maxLength: 100,
+  description:
+    "The group where the team reviews it, by name (e.g. `lexeer-hq`, the client's group): the review, its card and the decision live there. Leave it out to keep it in this conversation. Required when you work in a conversation with no person in it (with another agent).",
+} as const;
+
 function sendTool(deps: VideoReviewDeps): ToolDefinition {
   return {
     name: SEND_FOR_REVIEW_TOOL,
@@ -369,6 +443,7 @@ function sendTool(deps: VideoReviewDeps): ToolDefinition {
         review_id: { type: "string", minLength: 36, maxLength: 36 },
         brief: BRIEF_SCHEMA,
         links: LINKS_SCHEMA,
+        channel: REVIEW_CHANNEL_SCHEMA,
       },
       required: ["artifact_id"],
       additionalProperties: false,
@@ -384,6 +459,7 @@ function sendTool(deps: VideoReviewDeps): ToolDefinition {
           reviewId: toolText(input.review_id) || undefined,
           brief: toolText(input.brief) || undefined,
           links: input.links,
+          channel: toolText(input.channel) || undefined,
         });
         return {
           content:

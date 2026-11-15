@@ -1,4 +1,4 @@
-import { and, eq, isNull, schema } from "@agenteschat/db";
+import { and, type Database, eq, isNull, schema } from "@agenteschat/db";
 import { type ArtifactActor, createFileArtifact, storedFileOfArtifact } from "./artifacts";
 import { ConflictError, NotFoundError, ValidationError } from "./errors";
 import { replyThreadOf } from "./runs";
@@ -10,9 +10,11 @@ import {
   DESIGN_PAGES,
   DESIGN_TOOL_NAME,
   REVIEW_BRIEF_SCHEMA,
+  REVIEW_CHANNEL_SCHEMA,
   REVIEW_LINKS_SCHEMA,
   requireVideoReview,
   reviewPath,
+  reviewPlace,
   reviewSummaries,
   reviewVersionFile,
   type VideoReviewDeps,
@@ -74,6 +76,8 @@ export interface SendDesignInput {
   reviewId?: string;
   brief?: string;
   links?: unknown;
+  /** The group the review lives in, by name; absent: this conversation (`reviewPlace`). */
+  channel?: string;
 }
 
 /** The agent sends a design piece for review, or its next version. */
@@ -144,13 +148,13 @@ export async function sendDesignForReview(
         .where(eq(videoReviews.id, review.id));
       return review.id;
     }
+    const place = await reviewPlace(tx as unknown as Database, ctx, input.channel);
     const [row] = await tx
       .insert(videoReviews)
       .values({
         orgId: ctx.orgId,
         agentId: ctx.agentId,
-        channelId: ctx.channelId,
-        threadId: replyThreadOf(ctx),
+        ...place,
         medium: "design",
         title: input.title?.trim().slice(0, 200) || "Peça",
         client: input.client?.trim().slice(0, 80) ?? "",
@@ -213,6 +217,7 @@ function sendDesignTool(deps: VideoReviewDeps): ToolDefinition {
         review_id: { type: "string", minLength: 36, maxLength: 36 },
         brief: REVIEW_BRIEF_SCHEMA,
         links: REVIEW_LINKS_SCHEMA,
+        channel: REVIEW_CHANNEL_SCHEMA,
       },
       required: ["pages"],
       additionalProperties: false,
@@ -229,6 +234,7 @@ function sendDesignTool(deps: VideoReviewDeps): ToolDefinition {
           reviewId: toolText(input.review_id) || undefined,
           brief: toolText(input.brief) || undefined,
           links: input.links,
+          channel: toolText(input.channel) || undefined,
         });
         return {
           content:
