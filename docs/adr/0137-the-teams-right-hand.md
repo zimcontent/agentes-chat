@@ -558,3 +558,30 @@ seat (a stored id the computer takes for an agent's), with its own Linux user, h
   `doug-ui/doug-braco-direito.sql`) keeps what it was told: its own `instructions` now follow the product's right-hand
   block in its prompt (`context.ts`) instead of being dropped. Its tools stay the right hand's (`RIGHT_HAND_TOOLS`,
   fixed grants); its memories, skills and connections are its row's and stay with it.
+
+## Addendum 2026-11-15 (DougBot fork): the right hand joins channels (§1, §5)
+
+### Context
+
+People asked why the Doug was missing from "Adicionar pessoa ou agente" in a group. It was by design (§1: "It is in no
+channel"; §5: "It can't be put in a channel"): an @mention reached it anywhere, and the router never picked it. Teams
+that use it as their main agent wanted it in a group as a member, answering there without being named each time.
+
+### Decision
+
+- The right hand joins a channel like any agent: `addChannelMember` and `setAgentChannels` no longer refuse it, and the
+  member pickers (the channel's add dialog, a new channel's people, the phone's sheet) offer it. Nobody is made to add
+  it: a workspace where nobody does keeps the behavior above.
+- Where it is a member, it is a candidate of the router (`routeMessage` reads `channel_members` with `auto_reply`), so a
+  message for it reaches it unnamed, in a run it may pass on, and an @todos there counts it like the other agents.
+- Where it isn't, nothing changes: an @mention still reaches it (`rightHandReaches`), never in a DM between people.
+- What it may do in a channel is the same as when called by name there (§13: it reads as itself, `create_issue` and
+  the Vault stay in the person's DM). Its prompt's "Where you are" says it may have been routed there as a member, and to
+  pass when the message is another agent's job.
+- §5's "it never puts an agent in a channel by itself" stands: `add_agent_to_channel` stays denied to it. The computer
+  rule stands too: it is still never given a computer.
+
+### Consequences
+
+- A team that puts it in a busy channel pays for the router's picks of it like for any member; `auto_reply` off keeps it
+  answering only when named.

@@ -32,7 +32,6 @@ import {
   mediaSettingsFrom,
 } from "./media";
 import { can, lockOrgMembers, requireActiveMembership, requirePermission } from "./organizations";
-import { isRightHand, rightHandPermanent } from "./right-hand";
 import { hiddenToolsOf, WORKSPACE_TOOLS, type WorkspaceTool } from "./sidebar-items";
 import {
   agentBudgetsThisMonth,
@@ -448,7 +447,6 @@ export async function setAgentChannels(
   if (!admin && agent.ownerUserId !== actorId) {
     throw new ForbiddenError("Only an admin or the agent's owner can change where it works");
   }
-  if (input.length > 0 && isRightHand(agent)) throw rightHandPermanent("added to a channel");
   const wanted = new Map(input.map((c) => [c.channelId, c.autoReply]));
   const ids = [...wanted.keys()];
   const columns = {

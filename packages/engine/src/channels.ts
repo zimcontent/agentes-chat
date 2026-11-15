@@ -44,7 +44,6 @@ import {
   parseOverrides,
   resolvePermissions,
 } from "./permissions";
-import { refuseRightHand } from "./right-hand";
 import { isRoutineRoomKey } from "./routine-brief";
 import { accountInUse, readRefusal, STANDING_COLUMNS } from "./standing";
 import { adminChannelSql, channelReaderSql, channelReadersSql, taskReaderSql } from "./task-access";
@@ -827,8 +826,8 @@ export async function addChannelMember(
     await publishChannelsChanged(options.pubsub, orgId);
     return;
   }
-  // In no channel: an @mention reaches it anywhere (ADR 0137).
-  await refuseRightHand(db, orgId, member.agentId, "added to a channel");
+  // The right hand joins a channel like any agent; out of one, an @mention still reaches it (ADR 0137, addendum
+  // 2026-11-15).
   await requirePlacesAgent(db, membership, actorId, channel, member.agentId);
   const autoReply = member.autoReply ?? true;
   await db

@@ -811,12 +811,13 @@ export async function insertMessageWithRuns(
               and cm.channel_id = ${input.channelId}::uuid)
             or ${rightHandReaches(sql`a`, sql`${input.channelId}::uuid`)})
       ), everyone_agents as (
-        -- The agents that answer this person here (the others aren't "blocked": nobody named them), never Lodi, nor
-        -- one held (standing.ts: its run would only fail, as the router leaves it out).
+        -- The agents that answer this person here (the others aren't "blocked": nobody named them), the right hand
+        -- only where it is a member (ADR 0137, addendum 2026-11-15), never one held (standing.ts: its run would only
+        -- fail, as the router leaves it out).
         select a.id from ${agents} a
         join ${channelMembers} cm on cm.agent_id = a.id and cm.channel_id = ${input.channelId}::uuid
         where exists (select 1 from everyone) and a.org_id = ${input.orgId}::uuid and a.archived_at is null
-          and a.operator_hold_at is null and a.builtin is null and a.id not in (select id from named)
+          and a.operator_hold_at is null and a.id not in (select id from named)
           and ${audienceSql("a", sql`${userId}::text`, inChannel)}
       ), mentioned as (
         select id from named union all select id from everyone_agents
@@ -1563,7 +1564,7 @@ export async function classifyEveryone(
     await db.execute(sql`select a.id, a.handle, a.name, a.role from ${agents} a
       join ${channelMembers} cm on cm.agent_id = a.id and cm.channel_id = ${input.channelId}::uuid
       where a.org_id = ${input.orgId}::uuid and a.archived_at is null and a.operator_hold_at is null
-        and a.builtin is null and a.handle <> all(${handles}::text[])
+        and a.handle <> all(${handles}::text[])
         and exists (select 1 from ${channels} ec where ec.id = ${input.channelId}::uuid and ec.kind <> 'dm')
         and ${maySql(sql`${input.orgId}::uuid`, sql`${input.userId}::text`, "mention_everyone")}
         and ${audienceSql("a", sql`${input.userId}::text`, inChannel)}

@@ -32,8 +32,8 @@ afterEach(async () => {
 const deps = () => ({ db: f.db, pubsub: f.pubsub });
 
 /**
- * #general: Ana (owner), Bia and Caio (members), `@dev` (answers anyone), `@ops` (answers only Caio, its owner) and
- * Doug; `@fora` is outside it.
+ * #general: Ana (owner), Bia and Caio (members), `@dev` (answers anyone) and `@ops` (answers only Caio, its owner);
+ * `@fora` and Doug are outside it (a Doug who is a member hears @todos: right-hand.test.ts).
  */
 async function world() {
   f = await setup({ rightHand: true, reply: () => ({ chunks: ["ok"] }) });
@@ -57,10 +57,6 @@ async function world() {
     .from(schema.agents)
     .where(and(eq(schema.agents.orgId, f.org.id), eq(schema.agents.builtin, "right_hand")));
   if (!lodi) throw new Error("no right hand");
-  await f.db
-    .insert(schema.channelMembers)
-    .values({ orgId: f.org.id, channelId: f.general.id, agentId: lodi.id })
-    .onConflictDoNothing();
   return { bia, caio, ops, fora, lodi };
 }
 

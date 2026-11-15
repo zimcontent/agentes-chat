@@ -5711,7 +5711,7 @@ function AddMembersDialog({
     },
   });
   // Who was in before Adicionar, also while it closes: the ones being added keep their rows.
-  const rows = useMemberRows(q, useHeldWhile(exclude, add.isPending || !open), undefined, { channel: true });
+  const rows = useMemberRows(q, useHeldWhile(exclude, add.isPending || !open));
   // An address nobody here has: invite them to the workspace and this channel (ADR 0090).
   const invite = useInviteOffer(q);
   const inviteDialog = useInviteDialog();

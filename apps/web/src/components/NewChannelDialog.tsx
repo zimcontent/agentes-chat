@@ -364,7 +364,6 @@ export function NewChannelDialog({
               emptyText={(q) => t("newChannel.membersEmpty", { q })}
               selected={selected}
               onChange={setSelected}
-              channel
             />
           </DialogBody>
         </Locked>

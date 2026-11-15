@@ -18,7 +18,6 @@ import { useHeldWhile } from "@agenteschat/client/lib/hold";
 import { isConnected, sheetGroups } from "@agenteschat/client/lib/member-groups";
 import { can, leavesChannel, makesAgents, managesChannel, setsAutoReply } from "@agenteschat/client/lib/permissions";
 import { agentMemberLine, agentStatusShort, agentWhyKey, isAgentOff, liveLine } from "@agenteschat/client/lib/presence";
-import { joinsChannels } from "@agenteschat/client/lib/right-hand";
 import { picksForMe, replyAloneKey } from "@agenteschat/client/lib/routing";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import type { TFunction } from "i18next";
@@ -453,7 +452,7 @@ function AddChannelMembers({ channelId, channelName }: { channelId: string; chan
   );
   const candidates = [
     ...dir.agents
-      .filter((a) => listsAgent(org, a) && joinsChannels(a))
+      .filter((a) => listsAgent(org, a))
       .map((a) => ({ kind: "agent" as const, id: a.id, name: a.name, line: `@${a.handle}` })),
     ...[...dir.memberById.values()].map((m) => ({
       kind: "person" as const,

@@ -252,7 +252,7 @@ export function createChatToolSource(deps: {
           if (moving && !movable) {
             return { content: "This work stays where it is: post without `move_here`.", isError: true };
           }
-          // The right hand is in no channel and answers in any (`rightHandReaches`): it posts where the person may.
+          // The right hand answers in channels it isn't in (`rightHandReaches`): it posts where the person may.
           if (
             channel.visibility !== "public" &&
             !members.some((m) => m.agentId === ctx.agentId) &&
