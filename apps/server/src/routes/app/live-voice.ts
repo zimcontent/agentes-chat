@@ -148,15 +148,16 @@ export function liveVoiceRoutes(deps: AppDeps) {
       security,
       summary: "Open a GPT-Live session from the app's WebRTC offer",
       description:
-        "`call`: an agent's voice in a voice room, opened by the room's host. `listen`: a message told, in its agent's voice, as a colleague would tell it. `sample`: a voice saying hello. The agent's budget and the person's limit are checked first; the session is billed by the second when it ends.",
+        "`call`: an agent's voice in a voice room, opened by the room's host. `agent`: a call with one agent from its conversation (`channelId`), the agent working behind its voice. `listen`: a message told, in its agent's voice, as a colleague would tell it. `sample`: a voice saying hello. The agent's budget and the person's limit are checked first; the session is billed by the second when it ends.",
       request: {
         params: OrgParams,
         body: body(
           z.object({
-            kind: z.enum(["call", "listen", "sample"]),
+            kind: z.enum(["call", "agent", "listen", "sample"]),
             sdp: Sdp,
             agentId: z.uuid().nullish(),
             roomId: z.uuid().nullish(),
+            channelId: z.uuid().nullish(),
             messageId: z.uuid().nullish(),
             voice: z.string().max(40).nullish(),
             language: z.string().max(16).nullish(),

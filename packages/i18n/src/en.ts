@@ -10341,6 +10341,17 @@ export const en = {
       startWith_one: "Call with {{count}} agent",
       startWith_other: "Call with {{count}} agents",
       peopleOnly: "Call without agents",
+      callAgent: "Call {{name}}",
+      keyWhere: "To call agents, this workspace needs a GPT-Live key, added in Settings › Voice.",
+      keyOpen: "Add the key",
+      keyAsk: "Ask whoever runs the workspace to add it.",
+      needsKeyTitle: "Calling {{name}} needs a GPT-Live key",
+    },
+    agentCall: {
+      title: "Call with {{name}}",
+      connecting: "Calling {{name}}…",
+      listening: "Listening",
+      hangUp: "Hang up",
     },
     room: {
       title: "Voice call",

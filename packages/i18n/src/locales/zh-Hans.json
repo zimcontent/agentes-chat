@@ -9780,7 +9780,18 @@
       "title": "语音通话",
       "lead": "选择参加通话的智能体。对话中的每个人都可以加入。",
       "startWith_other": "与 {{count}} 个智能体通话",
-      "peopleOnly": "不带智能体通话"
+      "peopleOnly": "不带智能体通话",
+      "callAgent": "呼叫{{name}}",
+      "keyWhere": "要呼叫智能体，此工作区需要 GPT-Live 密钥，请在密钥。请在“设置 › 语音”中添加中添加。",
+      "keyOpen": "添加密钥",
+      "keyAsk": "请让工作区的管理员添加。",
+      "needsKeyTitle": "呼叫{{name}}需要 GPT-Live 密钥"
+    },
+    "agentCall": {
+      "title": "与{{name}}通话",
+      "connecting": "正在呼叫{{name}}…",
+      "listening": "正在听",
+      "hangUp": "挂断"
     },
     "room": {
       "title": "语音通话",

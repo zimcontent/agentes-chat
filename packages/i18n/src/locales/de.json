@@ -10098,7 +10098,18 @@
       "lead": "Wähle die Agenten für den Anruf. Alle aus der Unterhaltung können beitreten.",
       "startWith_one": "Anruf mit {{count}} Agent",
       "startWith_other": "Anruf mit {{count}} Agenten",
-      "peopleOnly": "Anruf ohne Agenten"
+      "peopleOnly": "Anruf ohne Agenten",
+      "callAgent": "{{name}} anrufen",
+      "keyWhere": "Um Agenten anzurufen, braucht dieser Workspace einen GPT-Live-Schlüssel unter Einstellungen › Sprachnachrichten.",
+      "keyOpen": "Schlüssel hinzufügen",
+      "keyAsk": "Bitte die Person, die den Workspace verwaltet, ihn hinzuzufügen.",
+      "needsKeyTitle": "Für einen Anruf bei {{name}} braucht es einen GPT-Live-Schlüssel"
+    },
+    "agentCall": {
+      "title": "Anruf mit {{name}}",
+      "connecting": "{{name}} wird angerufen…",
+      "listening": "Hört zu",
+      "hangUp": "Auflegen"
     },
     "room": {
       "title": "Sprachanruf",

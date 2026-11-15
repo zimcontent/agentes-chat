@@ -2,7 +2,9 @@ import type { Agent, Message } from "@agenteschat/client";
 import { useApi, useChannelLiveRoom, useLiveVoice } from "@agenteschat/client";
 import { errorText } from "@agenteschat/client/lib/errors";
 import type { FloorAgent } from "@agenteschat/client/lib/live-floor";
+import { can } from "@agenteschat/client/lib/permissions";
 import { Avatar, Button, Checkbox, Dialog, DialogBody, DialogFooter, Icon } from "@agenteschat/ui";
+import { Link } from "@tanstack/react-router";
 import {
   createContext,
   type ReactNode,
@@ -20,6 +22,7 @@ import { AgentAvatar } from "@/components/AgentAvatar";
 import { useOrg } from "@/components/org-context";
 import { useDirectory } from "@/hooks/useDirectory";
 import { useRealtimeConnection } from "@/realtime/context";
+import { AgentCall } from "./agent-call";
 import { CaptionsIcon, HandsetIcon, MicOffIcon } from "./icons";
 import { ListenCall } from "./listen";
 import { type Caption, RoomCall, type Who } from "./room";
@@ -43,6 +46,9 @@ interface LiveVoiceApi {
   room: RoomCall | null;
   roomChannel: string | null;
   startRoom(channelId: string, agentIds: string[], title: string): void;
+  /** A call with one agent from its conversation (as the Nordus call): the agent works behind its voice. */
+  callAgent(agentId: string, channelId: string): void;
+  agentCall: AgentCall | null;
   listen(message: Message): void;
   sample(agentId: string, voice: string): void;
 }
@@ -66,6 +72,7 @@ export function LiveVoiceProvider({ children }: { children: ReactNode }) {
   const [room, setRoom] = useState<{ call: RoomCall; channelId: string; title: string; n: number } | null>(null);
   const [minimized, setMinimized] = useState(false);
   const [listen, setListen] = useState<ListenSession | null>(null);
+  const [agentCall, setAgentCall] = useState<{ call: AgentCall; agentId: string; n: number } | null>(null);
   const language = speechLanguage(i18n.language);
   const floorAgents = useMemo<FloorAgent[]>(
     () => [...dir.agentById.values()].map((a) => ({ id: a.id, name: a.name, handle: a.handle })),
@@ -95,6 +102,18 @@ export function LiveVoiceProvider({ children }: { children: ReactNode }) {
     [room, api, org.id, me.user.id, floorAgents, connection, language],
   );
 
+  const callAgent = useCallback(
+    (agentId: string, channelId: string) => {
+      if (agentCall && agentCall.agentId === agentId && agentCall.call.getState().phase !== "ended") return;
+      void agentCall?.call.stop();
+      void listen?.call.stop();
+      const call = new AgentCall({ api, orgId: org.id, agentId, channelId, language });
+      setAgentCall((was) => ({ call, agentId, n: (was?.n ?? 0) + 1 }));
+      void call.start();
+    },
+    [agentCall, listen, api, org.id, language],
+  );
+
   const startListen = useCallback(
     (session: Omit<ListenSession, "call">, options: ConstructorParameters<typeof ListenCall>[0]) => {
       void listen?.call.stop();
@@ -111,6 +130,8 @@ export function LiveVoiceProvider({ children }: { children: ReactNode }) {
       room: room?.call ?? null,
       roomChannel: room?.channelId ?? null,
       startRoom,
+      callAgent,
+      agentCall: agentCall?.call ?? null,
       listen: (message) => {
         const agent = message.author.type === "agent" ? dir.agentById.get(message.author.id ?? "") : undefined;
         const person = message.author.type === "person" ? dir.memberById.get(message.author.id ?? "") : undefined;
@@ -127,7 +148,19 @@ export function LiveVoiceProvider({ children }: { children: ReactNode }) {
         );
       },
     }),
-    [status.data?.state, room, startRoom, startListen, dir.agentById, dir.memberById, api, org.id, language],
+    [
+      status.data?.state,
+      room,
+      startRoom,
+      callAgent,
+      agentCall,
+      startListen,
+      dir.agentById,
+      dir.memberById,
+      api,
+      org.id,
+      language,
+    ],
   );
 
   return (
@@ -144,6 +177,14 @@ export function LiveVoiceProvider({ children }: { children: ReactNode }) {
         />
       )}
       {listen && <ListenBar session={listen} onClose={() => setListen(null)} />}
+      {agentCall && (
+        <AgentCallBar
+          key={agentCall.n}
+          call={agentCall.call}
+          agentId={agentCall.agentId}
+          onClose={() => setAgentCall(null)}
+        />
+      )}
     </LiveVoiceContext.Provider>
   );
 }
@@ -173,7 +214,7 @@ function useNow(ms = 1000) {
 }
 
 /** Writes how loud `who` is into the tile's `--lv-level` each frame: the glow follows the voice without re-renders. */
-function useGlow(call: RoomCall | ListenCall, who: Who | null) {
+function useGlow(call: RoomCall | ListenCall | AgentCall, who: Who | null) {
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
     let frame = 0;
@@ -563,11 +604,10 @@ export function CallButton({
   const live = useLiveVoiceActions();
   const room = useChannelLiveRoom(org.id, channelId, Boolean(live));
   const [picking, setPicking] = useState(false);
+  const [needsKey, setNeedsKey] = useState(false);
   if (!live) return null;
   const inThisCall = live.roomChannel === channelId && live.room?.getState().phase === "live";
   const current = room.data;
-  // An agent's DM calls that agent: without the workspace's GPT-Live key there is nobody to call.
-  if (dmAgent && !live.available && !current) return null;
   if (current && !inThisCall) {
     return (
       <Button size="sm" variant="primary" className="lv-join" onClick={() => live.startRoom(channelId, [], title)}>
@@ -577,8 +617,10 @@ export function CallButton({
     );
   }
   const start = () => {
-    if (dmAgent) live.startRoom(channelId, live.available ? [dmAgent.id] : [], title);
-    else if (agents.length && live.available) setPicking(true);
+    // An agent's DM calls that agent, as the Nordus call did; without the workspace's key, where it goes.
+    if (dmAgent && !live.available) setNeedsKey(true);
+    else if (dmAgent) live.callAgent(dmAgent.id, channelId);
+    else if (agents.length) setPicking(true);
     else live.startRoom(channelId, [], title);
   };
   return (
@@ -586,16 +628,18 @@ export function CallButton({
       <button
         type="button"
         className="ac-btn ac-btn--ghost ac-btn--icon channel__icon"
-        aria-label={t("liveVoice.call.start")}
-        title={t("liveVoice.call.start")}
-        disabled={inThisCall}
+        aria-label={dmAgent ? t("liveVoice.call.callAgent", { name: dmAgent.name }) : t("liveVoice.call.start")}
+        title={dmAgent ? t("liveVoice.call.callAgent", { name: dmAgent.name }) : t("liveVoice.call.start")}
+        disabled={inThisCall || Boolean(dmAgent && live.agentCall && live.agentCall.getState().phase !== "ended")}
         onClick={start}
       >
         <HandsetIcon />
       </button>
+      {needsKey && <NeedsKeyDialog name={dmAgent?.name ?? ""} onClose={() => setNeedsKey(false)} />}
       {picking && (
         <StartCallDialog
           agents={agents}
+          available={live.available}
           onClose={() => setPicking(false)}
           onStart={(ids) => {
             setPicking(false);
@@ -609,15 +653,17 @@ export function CallButton({
 
 function StartCallDialog({
   agents,
+  available,
   onClose,
   onStart,
 }: {
   agents: Agent[];
+  available: boolean;
   onClose: () => void;
   onStart: (agentIds: string[]) => void;
 }) {
   const { t } = useTranslation();
-  const [picked, setPicked] = useState<string[]>(() => agents.slice(0, 3).map((a) => a.id));
+  const [picked, setPicked] = useState<string[]>(() => (available ? agents.slice(0, 3).map((a) => a.id) : []));
   const max = 5;
   return (
     <Dialog
@@ -637,7 +683,7 @@ function StartCallDialog({
                 <Checkbox
                   id={`lv-pick-${agent.id}`}
                   checked={on}
-                  disabled={!on && picked.length >= max}
+                  disabled={!available || (!on && picked.length >= max)}
                   onCheckedChange={(next) =>
                     setPicked((p) => (next ? [...p, agent.id] : p.filter((id) => id !== agent.id)))
                   }
@@ -651,12 +697,135 @@ function StartCallDialog({
             );
           })}
         </div>
+        {!available && <KeyWhere />}
       </DialogBody>
       <DialogFooter>
         <Button onClick={onClose}>{t("common.cancel")}</Button>
         <Button variant="primary" onClick={() => onStart(picked)}>
           {picked.length ? t("liveVoice.call.startWith", { count: picked.length }) : t("liveVoice.call.peopleOnly")}
         </Button>
+      </DialogFooter>
+    </Dialog>
+  );
+}
+
+// ── A call with one agent ─────────────────────────────────────────────────────
+
+/**
+ * The call bar of a call with one agent (as the Nordus call bar): small, at the top, so the conversation stays in sight
+ * and shows the agent's work while the person talks. The agent's face lights with its voice; the latest words show
+ * under its name.
+ */
+function AgentCallBar({ call, agentId, onClose }: { call: AgentCall; agentId: string; onClose: () => void }) {
+  const { t } = useTranslation();
+  const { org } = useOrg();
+  const dir = useDirectory(org.id);
+  const state = useSyncExternalStore(call.subscribe, call.getState);
+  const ref = useGlow(call, "agent:call");
+  const now = useNow();
+  const agent = dir.agentById.get(agentId);
+  const name = agent?.name ?? "";
+  useEffect(() => {
+    if (state.phase !== "ended") return;
+    const timer = setTimeout(onClose, 1200);
+    return () => clearTimeout(timer);
+  }, [state.phase, onClose]);
+  const line =
+    state.phase === "failed"
+      ? errorText(t, state.error)
+      : state.phase === "connecting"
+        ? t("liveVoice.agentCall.connecting", { name })
+        : state.phase === "ended"
+          ? t("liveVoice.room.ended")
+          : state.caption
+            ? state.caption.text
+            : state.micOn
+              ? t("liveVoice.agentCall.listening")
+              : t("liveVoice.room.muted");
+  const done = state.phase === "failed" || state.phase === "ended";
+  return createPortal(
+    <section className="lv-callbar" aria-label={t("liveVoice.agentCall.title", { name })}>
+      <div ref={ref} className="lv-callbar__face">
+        <AgentAvatar agentId={agentId} name={name} size="sm" />
+      </div>
+      <div className="lv-callbar__text">
+        <span className="lv-callbar__name">
+          {name}
+          {state.phase === "live" && (
+            <span className="lv-callbar__time">{elapsed(new Date(state.startedAt).toISOString(), now)}</span>
+          )}
+        </span>
+        <span
+          className="lv-callbar__line"
+          data-who={state.caption?.who}
+          aria-live={state.phase === "failed" ? "assertive" : "off"}
+        >
+          {line}
+        </span>
+      </div>
+      {!done && (
+        <button
+          type="button"
+          className="lv-round lv-round--sm"
+          data-off={!state.micOn || undefined}
+          aria-pressed={!state.micOn}
+          aria-label={state.micOn ? t("liveVoice.room.micOff") : t("liveVoice.room.micOn")}
+          title={state.micOn ? t("liveVoice.room.micOff") : t("liveVoice.room.micOn")}
+          onClick={() => call.toggleMic()}
+        >
+          {state.micOn ? <Icon name="mic" /> : <MicOffIcon />}
+        </button>
+      )}
+      <button
+        type="button"
+        className={done ? "lv-round lv-round--sm" : "lv-round lv-round--sm lv-round--leave"}
+        aria-label={done ? t("common.close") : t("liveVoice.agentCall.hangUp")}
+        title={done ? t("common.close") : t("liveVoice.agentCall.hangUp")}
+        onClick={() => {
+          void call.stop();
+          onClose();
+        }}
+      >
+        {done ? <Icon name="close" /> : <HandsetIcon hangUp />}
+      </button>
+    </section>,
+    document.body,
+  );
+}
+
+/** Where the workspace's GPT-Live key goes, with the way there for who may put it. */
+function KeyWhere() {
+  const { t } = useTranslation();
+  const { org } = useOrg();
+  return (
+    <p className="lv-keywhere">
+      {t("liveVoice.call.keyWhere")}{" "}
+      {can(org, "configure") ? (
+        <Link className="ac-link" to="/org/$orgId/settings/$section" params={{ orgId: org.id, section: "voice" }}>
+          {t("liveVoice.call.keyOpen")}
+        </Link>
+      ) : (
+        t("liveVoice.call.keyAsk")
+      )}
+    </p>
+  );
+}
+
+function NeedsKeyDialog({ name, onClose }: { name: string; onClose: () => void }) {
+  const { t } = useTranslation();
+  return (
+    <Dialog
+      open
+      onOpenChange={(open) => !open && onClose()}
+      title={t("liveVoice.call.needsKeyTitle", { name })}
+      closeLabel={t("common.close")}
+      width={440}
+    >
+      <DialogBody>
+        <KeyWhere />
+      </DialogBody>
+      <DialogFooter>
+        <Button onClick={onClose}>{t("common.close")}</Button>
       </DialogFooter>
     </Dialog>
   );

@@ -57,6 +57,8 @@ second (about US$ 0.05 a minute), 15 seconds at least for a WebRTC session.
    for word. It starts on silence; "Perguntar" swaps in the microphone, so the person can interrupt and ask. It closes
    a few seconds after the voice goes quiet.
 
+9. **A call with one agent, as the Nordus Live call.** The phone in an agent's DM is always there; without the workspace's key it says where the key goes. The call is a small bar under the header, the conversation in sight. The voice is the agent (first person, never a backend or a voice layer); when it needs work done, looked up or checked it delegates, and the server, on its sideband, posts what the person said since the last ask as their message in the DM (`meta.via: "call"`). The agent works on it as on any message, with its tools, and its answer goes back to the voice (`session.commentary.append`, made speakable: no markdown, links or code read out); while it works the voice is told to hold on, and past 4 minutes that the answer will be in the chat. The call hangs up after 5 minutes without speech. The channel's call keeps its picker, with agents locked and the same line when there is no key.
+
 ## Consequences
 
 - Live voice is optional and costs nothing until a workspace adds a key; calls between people alone need no key.

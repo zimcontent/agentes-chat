@@ -15,6 +15,7 @@ import {
   removeLiveVoiceKey,
   saveLiveVoiceKey,
   setLiveFloor,
+  speakable,
   startLiveSession,
   updateAgent,
 } from "../src";
@@ -245,5 +246,80 @@ describe("what a call's agent is told", () => {
     expect(text).toContain("Gabriel, Bia");
     expect(text).toContain("Never hand the word back and forth");
     expect(text).toContain("<external_data");
+  });
+});
+
+describe("a call with one agent (as the Nordus call)", () => {
+  test("what is asked by voice goes to the agent's conversation, and its answer goes back to the voice", async () => {
+    f = await setup();
+    const fake = openai();
+    // OpenAI's sideband, faked: what the server sends, and a way to play OpenAI's events.
+    const sent: { type: string; content?: string; delegation_id?: string }[] = [];
+    let emit: (event: object) => void = () => {};
+    const posted: { body: string; meta: Record<string, unknown> }[] = [];
+    const d = deps(fake.fetch, {
+      openSideband: (_url, _key, on) => {
+        emit = (event) => on.message(JSON.stringify(event));
+        return { send: (data) => sent.push(JSON.parse(data)), close: () => {} };
+      },
+      postMessage: async (_userId, _orgId, channelId, body, meta) => {
+        posted.push({ body, meta });
+        const id = Bun.randomUUIDv7();
+        await f.db.insert(schema.messages).values({
+          id,
+          orgId: f.org.id,
+          channelId,
+          authorType: "person",
+          authorUserId: f.owner.id,
+          body,
+          meta,
+        });
+        // The agent answers a moment later, as its run would.
+        setTimeout(async () => {
+          await f.db.insert(schema.messages).values({
+            id: Bun.randomUUIDv7(),
+            orgId: f.org.id,
+            channelId,
+            authorType: "agent",
+            authorAgentId: f.agent.id,
+            body: "**Feito.** O relatório está em [Drive](https://x.test/r). São 3 páginas.",
+          });
+        }, 300);
+        return { id };
+      },
+    });
+    await saveLiveVoiceKey(d, f.owner.id, f.org.id, KEY);
+    await expect(
+      startLiveSession(d, f.owner.id, f.org.id, { kind: "agent", sdp: "v=0", agentId: f.agent.id }),
+    ).rejects.toThrow();
+    const session = await startLiveSession(d, f.owner.id, f.org.id, {
+      kind: "agent",
+      sdp: "v=0",
+      agentId: f.agent.id,
+      channelId: f.general.id,
+      language: "pt-BR",
+    });
+    expect(session.maxSeconds).toBe(3600);
+    expect(fake.sessions[0]?.instructions).toContain("Delegate to the backend when");
+
+    emit({ type: "session.input_transcript.delta", delta: "Faz o relatório " });
+    emit({ type: "session.input_transcript.delta", delta: "de vendas da semana" });
+    emit({ type: "session.delegation.created", delegation: { id: "item_1", type: "delegation", target: "client" } });
+    const deadline = Date.now() + 15_000;
+    while (!sent.some((e) => e.type === "session.commentary.append") && Date.now() < deadline)
+      await new Promise((r) => setTimeout(r, 200));
+
+    expect(posted).toEqual([
+      { body: "Faz o relatório de vendas da semana", meta: { via: "call", liveSessionId: session.id } },
+    ]);
+    const told = sent.find((e) => e.type === "session.commentary.append");
+    expect(told?.delegation_id).toBe("item_1");
+    expect(told?.content).toBe("Feito. O relatório está em Drive. São 3 páginas.");
+  }, 30_000);
+
+  test("an answer for a screen becomes something to say", () => {
+    expect(speakable("## Pronto\n- um `item`\n```ts\ncode()\n```\nveja https://a.b/c")).toBe(
+      "Pronto\num item\n (the code is in the chat) \nveja (the link is in the chat)",
+    );
   });
 });

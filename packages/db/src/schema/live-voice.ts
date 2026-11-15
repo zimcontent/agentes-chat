@@ -34,7 +34,7 @@ export const liveVoiceSessions = pgTable(
       .notNull()
       .references(() => organizations.id, { onDelete: "cascade" }),
     userId: text().references(() => users.id, { onDelete: "set null" }),
-    kind: text().$type<"call" | "listen" | "sample">().notNull(),
+    kind: text().$type<"call" | "agent" | "listen" | "sample">().notNull(),
     /** The agent speaking; null for a message a person wrote, told by the narrator's voice. No foreign key: history. */
     agentId: uuid(),
     channelId: uuid(),

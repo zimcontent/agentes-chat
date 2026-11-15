@@ -10809,7 +10809,18 @@
       "startWith_few": "Zadzwoń z {{count}} agentami",
       "startWith_many": "Zadzwoń z {{count}} agentami",
       "startWith_other": "Zadzwoń z {{count}} agentami",
-      "peopleOnly": "Zadzwoń bez agentów"
+      "peopleOnly": "Zadzwoń bez agentów",
+      "callAgent": "Zadzwoń do: {{name}}",
+      "keyWhere": "Aby dzwonić do agentów, ten obszar roboczy potrzebuje klucza GPT-Live w Ustawienia › Głos.",
+      "keyOpen": "Dodaj klucz",
+      "keyAsk": "Poproś osobę, która zarządza obszarem roboczym, o dodanie go.",
+      "needsKeyTitle": "Rozmowa z: {{name}} wymaga klucza GPT-Live"
+    },
+    "agentCall": {
+      "title": "Rozmowa z: {{name}}",
+      "connecting": "Dzwonienie do: {{name}}…",
+      "listening": "Słucha",
+      "hangUp": "Rozłącz"
     },
     "room": {
       "title": "Rozmowa głosowa",

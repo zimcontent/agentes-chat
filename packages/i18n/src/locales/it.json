@@ -10491,7 +10491,18 @@
       "startWith_one": "Chiama con {{count}} agente",
       "startWith_many": "Chiama con {{count}} agenti",
       "startWith_other": "Chiama con {{count}} agenti",
-      "peopleOnly": "Chiama senza agenti"
+      "peopleOnly": "Chiama senza agenti",
+      "callAgent": "Chiama {{name}}",
+      "keyWhere": "Per chiamare gli agenti, questo spazio di lavoro ha bisogno di una chiave GPT-Live in Impostazioni › Voce.",
+      "keyOpen": "Aggiungi la chiave",
+      "keyAsk": "Chiedi a chi gestisce lo spazio di lavoro di aggiungerla.",
+      "needsKeyTitle": "Per chiamare {{name}} serve una chiave GPT-Live"
+    },
+    "agentCall": {
+      "title": "Chiamata con {{name}}",
+      "connecting": "Chiamata a {{name}}…",
+      "listening": "In ascolto",
+      "hangUp": "Riaggancia"
     },
     "room": {
       "title": "Chiamata vocale",

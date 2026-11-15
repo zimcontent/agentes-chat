@@ -10042,7 +10042,18 @@
       "lead": "Arama için ajanları seçin. Sohbetteki herkes katılabilir.",
       "startWith_one": "{{count}} ajanla ara",
       "startWith_other": "{{count}} ajanla ara",
-      "peopleOnly": "Ajanlar olmadan ara"
+      "peopleOnly": "Ajanlar olmadan ara",
+      "callAgent": "{{name}} ile görüş",
+      "keyWhere": "Ajanları aramak için bu çalışma alanının bir GPT-Live anahtarına ihtiyacı var, eklenecek yer Ayarlar › Ses.",
+      "keyOpen": "Anahtarı ekle",
+      "keyAsk": "Çalışma alanını yöneten kişiden eklemesini iste.",
+      "needsKeyTitle": "{{name}} ile görüşmek için GPT-Live anahtarı gerekiyor"
+    },
+    "agentCall": {
+      "title": "{{name}} ile görüşme",
+      "connecting": "{{name}} aranıyor…",
+      "listening": "Dinliyor",
+      "hangUp": "Kapat"
     },
     "room": {
       "title": "Sesli arama",

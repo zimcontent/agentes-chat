@@ -10164,7 +10164,18 @@
       "lead": "Kies de agents voor de oproep. Iedereen in het gesprek kan deelnemen.",
       "startWith_one": "Bellen met {{count}} agent",
       "startWith_other": "Bellen met {{count}} agents",
-      "peopleOnly": "Bellen zonder agents"
+      "peopleOnly": "Bellen zonder agents",
+      "callAgent": "{{name}} bellen",
+      "keyWhere": "Om agenten te bellen heeft deze werkruimte een GPT-Live-sleutel nodig in Instellingen › Spraak.",
+      "keyOpen": "Sleutel toevoegen",
+      "keyAsk": "Vraag wie de werkruimte beheert om hem toe te voegen.",
+      "needsKeyTitle": "Om {{name}} te bellen is een GPT-Live-sleutel nodig"
+    },
+    "agentCall": {
+      "title": "Gesprek met {{name}}",
+      "connecting": "{{name}} bellen…",
+      "listening": "Luistert",
+      "hangUp": "Ophangen"
     },
     "room": {
       "title": "Spraakoproep",

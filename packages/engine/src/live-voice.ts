@@ -18,6 +18,7 @@ import { ConflictError, ForbiddenError, NotFoundError, TooManyError, ValidationE
 import { publishUserEvent } from "./events";
 import { assertLiveVoiceAllowed, recordLiveVoiceUsage } from "./gateway";
 import {
+  agentCallInstructions,
   type ChatLine,
   callInstructions,
   listenInstructions,
@@ -85,7 +86,11 @@ const now = (deps: LiveVoiceDeps) => deps.now?.() ?? new Date();
 const AAD = (orgId: string) => `live-voice-key|${orgId}`;
 
 /** How long each kind of session may run before the server closes it. */
-export const LIVE_VOICE_MAX_SECONDS = { call: 60 * 60, listen: 6 * 60, sample: 30 } as const;
+export const LIVE_VOICE_MAX_SECONDS = { call: 60 * 60, agent: 60 * 60, listen: 6 * 60, sample: 30 } as const;
+/** A call with one agent hangs up by itself after this long without anyone speaking (as the Nordus call did). */
+export const AGENT_CALL_IDLE_MS = 5 * 60_000;
+/** How long the voice waits for the agent's answer before it says it will be in the chat. */
+const AGENT_ANSWER_WAIT_MS = 4 * 60_000;
 /** Sessions one person may have open at once: a room's agents. */
 const MAX_OPEN_SESSIONS = 8;
 /** Agents on one call. */
@@ -195,7 +200,10 @@ async function settle(deps: LiveVoiceDeps, id: string, reason: string, reported?
   const watch = watching.get(id);
   watching.delete(id);
   if (watch) {
-    for (const t of watch.timers) clearTimeout(t);
+    for (const t of watch.timers) {
+      clearTimeout(t);
+      clearInterval(t as unknown as ReturnType<typeof setInterval>);
+    }
     try {
       watch.socket?.close();
     } catch {}
@@ -238,9 +246,23 @@ export async function sweepLiveVoiceSessions(deps: LiveVoiceDeps, orgId?: string
   for (const r of rows) await settle(deps, r.id, "swept");
 }
 
-function watchSession(deps: LiveVoiceDeps, id: string, providerSessionId: string, apiKey: string, maxSeconds: number) {
+function watchSession(
+  deps: LiveVoiceDeps,
+  id: string,
+  providerSessionId: string,
+  apiKey: string,
+  maxSeconds: number,
+  brain: AgentBrain | null = null,
+) {
   const watch: Watch = { socket: null, seconds: null, timers: [] };
   watching.set(id, watch);
+  const call = brain ? agentCall(deps, id, brain, (event) => watch.socket?.send(JSON.stringify(event))) : null;
+  if (call) {
+    const idle = setInterval(() => {
+      if (call.idleFor() > AGENT_CALL_IDLE_MS) watch.socket?.send(JSON.stringify({ type: "session.close" }));
+    }, 30_000);
+    watch.timers.push(unref(idle as unknown as ReturnType<typeof setTimeout>));
+  }
   const closeNow = () => watch.socket?.send(JSON.stringify({ type: "session.close" }));
   // At its limit OpenAI is asked to close it; if nothing answers, the clock settles it.
   watch.timers.push(unref(setTimeout(closeNow, maxSeconds * 1000)));
@@ -259,6 +281,7 @@ function watchSession(deps: LiveVoiceDeps, id: string, providerSessionId: string
             return;
           }
           if (typeof event.usage?.seconds === "number") watch.seconds = event.usage.seconds;
+          call?.event(event as LiveServerEvent);
           if (event.type === "session.closed")
             void settle(deps, id, event.reason ?? "closed", watch.seconds).catch(() => {});
         },
@@ -422,10 +445,12 @@ async function recentLines(
 }
 
 export interface StartLiveSession {
-  kind: "call" | "listen" | "sample";
+  kind: "call" | "agent" | "listen" | "sample";
   sdp: string;
   agentId?: string | null;
   roomId?: string | null;
+  /** `agent`: the conversation with the agent (its DM), where what is asked by voice goes. */
+  channelId?: string | null;
   messageId?: string | null;
   voice?: string | null;
   /** The app's language. */
@@ -449,8 +474,25 @@ export async function startLiveSession(deps: LiveVoiceDeps, userId: string, orgI
   let channelId: string | null = null;
   let messageId: string | null = null;
   let voice: string;
+  let brain: AgentBrain | null = null;
 
-  if (input.kind === "call") {
+  if (input.kind === "agent") {
+    if (!input.channelId || !input.agentId) throw new ValidationError("A call needs its agent and conversation");
+    await requireChannelAccess(deps.db, userId, orgId, input.channelId);
+    [agent = null] = await talkableAgents(deps, userId, orgId, input.channelId, [input.agentId]);
+    if (!agent) throw new NotFoundError("Agent not found");
+    channelId = input.channelId;
+    instructions = agentCallInstructions({
+      agent: voiceAgent(agent),
+      person,
+      orgName: org.name,
+      orgContext: org.context,
+      recent: await recentLines(deps, orgId, input.channelId, { limit: 15 }),
+      language: input.language ?? null,
+    });
+    voice = liveVoiceFor(agent.id, agent.voice);
+    brain = { orgId, userId, channelId: input.channelId, agentId: agent.id };
+  } else if (input.kind === "call") {
     const room = await liveRoom(deps, orgId, input.roomId ?? "");
     if (room.hostUserId !== userId)
       throw new ForbiddenError("Only the room's host runs its agents", "live_voice.not_host");
@@ -548,7 +590,7 @@ export async function startLiveSession(deps: LiveVoiceDeps, userId: string, orgI
     .set({ providerSessionId: made.sessionId, voice: made.voice })
     .where(eq(liveVoiceSessions.id, row.id));
   const maxSeconds = LIVE_VOICE_MAX_SECONDS[input.kind];
-  watchSession(deps, row.id, made.sessionId, apiKey, maxSeconds);
+  watchSession(deps, row.id, made.sessionId, apiKey, maxSeconds, brain);
   return { id: row.id, sdp: made.sdp, voice: made.voice, maxSeconds, minSeconds: LIVE_VOICE_MIN_SECONDS };
 }
 
@@ -958,4 +1000,152 @@ async function notesBody(deps: LiveVoiceDeps, room: Room, at: Date) {
   return [ask, "", `**Reunião de voz** · ${minutes} min · ${[...people, ...bots].join(", ")}`, "", transcript].join(
     "\n",
   );
+}
+
+// ─── A call with one agent ───────────────────────────────────────────────────
+
+/** Whose call it is and where its asks go: the agent's conversation with the person. */
+interface AgentBrain {
+  orgId: string;
+  userId: string;
+  channelId: string;
+  agentId: string;
+}
+
+type LiveServerEvent = {
+  type?: string;
+  delta?: string;
+  delegation?: { id?: string; target?: string };
+};
+
+/**
+ * The agent behind its voice (ADR doug-0006, as the Nordus Live call): when GPT-Live delegates, what the person said
+ * since the last ask becomes their message in the agent's conversation, marked as said on a call (`meta.via`), so the
+ * agent works on it like any other, with its tools, and the chat shows it. Its answer goes back to the voice to be
+ * told. All of it on the server's sideband: the app only carries the audio.
+ */
+function agentCall(deps: LiveVoiceDeps, sessionId: string, brain: AgentBrain, send: (event: object) => void) {
+  let heard = "";
+  let lastActivity = Date.now();
+  const pending = new Set<string>();
+
+  const askAgent = async (delegationId: string) => {
+    // The last words of the ask arrive just after the delegation: wait for them.
+    await new Promise((done) => setTimeout(done, 700));
+    const ask = heard.trim();
+    heard = "";
+    if (!ask) {
+      send({
+        type: "session.instructions.append",
+        delegation_id: delegationId,
+        content: "You didn't catch what to do. Ask the person to say it again.",
+      });
+      return;
+    }
+    if (!deps.postMessage) return;
+    const since = new Date(Date.now() - 1000);
+    const posted = await deps.postMessage(brain.userId, brain.orgId, brain.channelId, ask, {
+      via: "call",
+      liveSessionId: sessionId,
+    });
+    const answer = await agentAnswer(deps, brain, posted.id, since, () =>
+      send({ type: "session.thinking.append", delegation_id: delegationId, content: "Still working on it." }),
+    );
+    send({
+      type: "session.commentary.append",
+      delegation_id: delegationId,
+      content: answer
+        ? speakable(answer).slice(0, 1800)
+        : "This is taking longer. It will be in our chat as soon as it's done.",
+    });
+  };
+
+  return {
+    idleFor: () => Date.now() - lastActivity,
+    event(e: LiveServerEvent) {
+      if (e.type === "session.input_transcript.delta" && e.delta) {
+        heard += e.delta;
+        lastActivity = Date.now();
+      }
+      if (e.type === "session.output_transcript.delta") lastActivity = Date.now();
+      const id = e.delegation?.id;
+      if (e.type !== "session.delegation.created" || !id || e.delegation?.target === "responses" || pending.has(id))
+        return;
+      pending.add(id);
+      void askAgent(id)
+        .catch(() =>
+          send({
+            type: "session.commentary.append",
+            delegation_id: id,
+            content: "Something went wrong on my side. Say it again, please.",
+          }),
+        )
+        .finally(() => pending.delete(id));
+    },
+  };
+}
+
+/**
+ * The agent's answer to a message: its messages in the conversation after it, once they stop coming for a moment. Null
+ * when none came in time. `waiting` runs now and then while it works.
+ */
+async function agentAnswer(
+  deps: LiveVoiceDeps,
+  brain: AgentBrain,
+  messageId: string,
+  since: Date,
+  waiting: () => void,
+): Promise<string | null> {
+  const started = Date.now();
+  let lastCount = 0;
+  let quietSince = Date.now();
+  let nudged = Date.now();
+  while (Date.now() - started < AGENT_ANSWER_WAIT_MS) {
+    await new Promise((done) => setTimeout(done, 1500));
+    const rows = await deps.db
+      .select({ body: messages.body, meta: messages.meta })
+      .from(messages)
+      .where(
+        and(
+          eq(messages.orgId, brain.orgId),
+          eq(messages.channelId, brain.channelId),
+          eq(messages.authorAgentId, brain.agentId),
+          isNull(messages.deletedAt),
+          isNull(messages.threadId),
+          sql`${messages.createdAt} >= ${since.toISOString()}::timestamptz`,
+          sql`${messages.id} <> ${messageId}::uuid`,
+        ),
+      )
+      .orderBy(asc(messages.createdAt))
+      .limit(10);
+    const said = rows.map((r) => readableBody(r.body, r.meta)).filter((t) => t.trim());
+    if (said.length && said.length === lastCount) {
+      if (Date.now() - quietSince > 3000) return said.join("\n\n");
+    } else {
+      lastCount = said.length;
+      quietSince = Date.now();
+    }
+    if (!said.length && Date.now() - nudged > 20_000) {
+      nudged = Date.now();
+      waiting();
+    }
+  }
+  return null;
+}
+
+/** An answer written for a screen, as something to say: no markdown, links or code read out. */
+export function speakable(text: string) {
+  return text
+    .replace(/```[\s\S]*?```/g, " (the code is in the chat) ")
+    .replace(/`([^`]+)`/g, "$1")
+    .replace(/!\[[^\]]*\]\([^)]*\)/g, " ")
+    .replace(/\[([^\]]+)\]\([^)]*\)/g, "$1")
+    .replace(/https?:\/\/\S+/g, " (the link is in the chat) ")
+    .replace(/^#{1,6}\s+/gm, "")
+    .replace(/^\s*[-*•]\s+/gm, "")
+    .replace(/\*\*|__|~~/g, "")
+    .replace(/\|/g, " ")
+    .replace(/[ \t]+/g, " ")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
 }

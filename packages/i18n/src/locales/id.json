@@ -9765,7 +9765,18 @@
       "title": "Panggilan suara",
       "lead": "Pilih agen untuk panggilan. Semua orang di percakapan bisa bergabung.",
       "startWith_other": "Panggil dengan {{count}} agen",
-      "peopleOnly": "Panggil tanpa agen"
+      "peopleOnly": "Panggil tanpa agen",
+      "callAgent": "Telepon {{name}}",
+      "keyWhere": "Untuk menelepon agen, ruang kerja ini perlu kunci GPT-Live di Pengaturan › Suara.",
+      "keyOpen": "Tambahkan kunci",
+      "keyAsk": "Minta pengelola ruang kerja untuk menambahkannya.",
+      "needsKeyTitle": "Menelepon {{name}} perlu kunci GPT-Live"
+    },
+    "agentCall": {
+      "title": "Panggilan dengan {{name}}",
+      "connecting": "Menelepon {{name}}…",
+      "listening": "Mendengarkan",
+      "hangUp": "Tutup telepon"
     },
     "room": {
       "title": "Panggilan suara",
