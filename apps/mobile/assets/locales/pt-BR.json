@@ -3,6 +3,6 @@
     "NSPhotoLibraryUsageDescription": "Para enviar imagens nas conversas e escolher a foto dos agentes e a sua.",
     "NSCameraUsageDescription": "Para tirar fotos para as conversas, para a foto dos agentes e a sua, e para ler QR codes.",
     "NSPhotoLibraryAddUsageDescription": "Para salvar imagens das conversas no app Fotos.",
-    "NSMicrophoneUsageDescription": "Para gravar mensagens de voz nas conversas."
+    "NSMicrophoneUsageDescription": "Para gravar mensagens de voz e falar nas chamadas de voz."
   }
 }

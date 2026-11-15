@@ -10246,6 +10246,17 @@
       "keyAsk": "Minta pengelola ruang kerja untuk menambahkannya.",
       "needsKeyTitle": "Menelepon {{name}} perlu kunci GPT-Live"
     },
+    "phone": {
+      "agents": "Agen",
+      "earpiece": "Telepon",
+      "speaker": "Pengeras suara",
+      "toEarpiece": "Dengar lewat earpiece",
+      "toSpeaker": "Nyalakan pengeras suara",
+      "mic": "Mikrofon",
+      "callIn": "Panggil",
+      "leave": "Keluar",
+      "hostNote": "Hanya ponselmu yang mendengar agen. Agar semua orang mendengarnya, seseorang perlu bergabung dari komputer."
+    },
     "agentCall": {
       "title": "Panggilan dengan {{name}}",
       "connecting": "Menelepon {{name}}…",

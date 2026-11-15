@@ -11027,6 +11027,17 @@
       "keyAsk": "Demandez à la personne qui gère l'espace de travail de l'ajouter.",
       "needsKeyTitle": "Appeler {{name}} demande une clé GPT-Live"
     },
+    "phone": {
+      "agents": "Les agents",
+      "earpiece": "Téléphone",
+      "speaker": "Haut-parleur",
+      "toEarpiece": "Écouter par l'écouteur",
+      "toSpeaker": "Activer le haut-parleur",
+      "mic": "Micro",
+      "callIn": "Appeler",
+      "leave": "Quitter",
+      "hostNote": "Seul votre téléphone entend les agents. Pour que tout le monde les entende, quelqu'un doit rejoindre depuis un ordinateur."
+    },
     "agentCall": {
       "title": "Appel avec {{name}}",
       "connecting": "Appel de {{name}}…",

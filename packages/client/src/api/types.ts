@@ -8699,7 +8699,8 @@ export interface LiveRoom {
   agentIds: string[];
   /** What the call opens on: the host agent brings it up first. */
   topic: string | null;
-  people: { userId: string; joinedAt: string }[];
+  /** `phone`: in from the phone app. */
+  people: { userId: string; joinedAt: string; phone?: boolean }[];
   status: "live" | "ended";
   startedAt: string;
   endedAt: string | null;

@@ -3,6 +3,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { createContext, type ReactNode, useContext, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Alert, AppState } from "react-native";
+import { useCallActive } from "@/features/call/active";
 import { lastCookie, readCookie } from "@/lib/auth";
 import { serverUrl } from "@/lib/server";
 import { createSocketFactory } from "@/lib/socket";
@@ -26,7 +27,10 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
   const orgId = org?.orgId ?? null;
   const queryClient = useQueryClient();
   const { i18n } = useTranslation();
-  const [active, setActive] = useState(AppState.currentState === "active");
+  const [foreground, setActive] = useState(AppState.currentState === "active");
+  // A voice call keeps the socket in the background: its signals and pings go on it (the phone app's calls).
+  const inCall = useCallActive();
+  const active = foreground || inCall;
   const [state, setState] = useState<RealtimeState>({ connection: null, status: "idle" });
   // The organization whose socket opened before: one opened again for it, back from the background, is a reconnect.
   const opened = useRef<string | null>(null);

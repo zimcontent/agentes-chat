@@ -10559,6 +10559,17 @@
       "keyAsk": "Çalışma alanını yöneten kişiden eklemesini iste.",
       "needsKeyTitle": "{{name}} ile görüşmek için GPT-Live anahtarı gerekiyor"
     },
+    "phone": {
+      "agents": "Ajanlar",
+      "earpiece": "Telefon",
+      "speaker": "Hoparlör",
+      "toEarpiece": "Ahizeden dinle",
+      "toSpeaker": "Hoparlörü aç",
+      "mic": "Mikrofon",
+      "callIn": "Çağır",
+      "leave": "Ayrıl",
+      "hostNote": "Ajanları yalnızca telefonun duyuyor. Herkesin duyması için birinin bilgisayardan katılması gerekir."
+    },
     "agentCall": {
       "title": "{{name}} ile görüşme",
       "connecting": "{{name}} aranıyor…",

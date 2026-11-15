@@ -10189,6 +10189,17 @@
       "keyAsk": "워크스페이스 관리자에게 추가를 요청하세요.",
       "needsKeyTitle": "{{name}}에게 전화하려면 GPT-Live 키가 필요해요"
     },
+    "phone": {
+      "agents": "에이전트",
+      "earpiece": "전화",
+      "speaker": "스피커",
+      "toEarpiece": "수화기로 듣기",
+      "toSpeaker": "스피커 켜기",
+      "mic": "마이크",
+      "callIn": "부르기",
+      "leave": "나가기",
+      "hostNote": "에이전트의 목소리는 내 휴대폰에서만 들립니다. 모두가 들으려면 누군가 컴퓨터로 참여해야 합니다."
+    },
     "agentCall": {
       "title": "{{name}}와 통화",
       "connecting": "{{name}}에게 전화 거는 중…",

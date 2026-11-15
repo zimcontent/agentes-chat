@@ -487,7 +487,7 @@ export interface ApiClient {
       orgId: string,
       channelId: string,
       agentIds: string[],
-      options?: { topic?: string | null; language?: string },
+      options?: { topic?: string | null; language?: string; phone?: boolean },
     ): Promise<LiveRoom>;
     /** The workspace's notes on how its agents behave on calls (§11). */
     saveCallNotes(orgId: string, notes: string): Promise<LiveVoice>;

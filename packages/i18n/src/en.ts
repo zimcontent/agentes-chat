@@ -11006,6 +11006,17 @@ export const en = {
       keyAsk: "Ask whoever runs the workspace to add it.",
       needsKeyTitle: "Calling {{name}} needs a GPT-Live key",
     },
+    phone: {
+      agents: "Agents",
+      earpiece: "Phone",
+      speaker: "Speaker",
+      toEarpiece: "Use the phone's earpiece",
+      toSpeaker: "Use the speaker",
+      mic: "Mic",
+      callIn: "Call in",
+      leave: "Leave",
+      hostNote: "Only your phone hears the agents. For everyone to hear them, someone joins from a computer.",
+    },
     agentCall: {
       title: "Call with {{name}}",
       connecting: "Calling {{name}}…",

@@ -3,6 +3,7 @@ import { errorText } from "@agenteschat/client/lib/errors";
 import { type ErrorBoundaryProps, Stack } from "expo-router";
 import { useTranslation } from "react-i18next";
 import { View } from "react-native";
+import { CallProvider } from "@/features/call/CallProvider";
 import { NoticeIsland } from "@/features/island/NoticeIsland";
 import { ShareInbox } from "@/features/share/ShareInbox";
 import { useConnection, useRememberAgentLooks } from "@/features/shared/hooks";
@@ -44,13 +45,14 @@ export default function AppLayout() {
   // the screens need one, so they mount once it's chosen, at the URL the app opened with.
   if (!org.state) return <View style={{ flex: 1, backgroundColor: colors.bg }} />;
   return (
-    <>
+    // Voice calls (docs/adr/doug-0006-live-voice.md, the phone app): the call on now, its bar and the ring.
+    <CallProvider>
       <AppStack />
       {/* What reaches me while the app is open, out of the camera's island (ADR 0071 §9). */}
       <NoticeIsland />
       {/* What other apps share through the system's share sheet opens "Compartilhar com…". */}
       <ShareInbox />
-    </>
+    </CallProvider>
   );
 }
 
@@ -87,6 +89,7 @@ function AppStack() {
   // "New" over the tabs as the system's new message: two thirds at rest, the whole screen once the keyboard is up.
   const newSheet = useFormSheetOptions([0.66, 1]);
   const shareSheet = useFormSheetOptions([0.72, 1]);
+  const callSheet = useFormSheetOptions([0.8, 1]);
   return (
     <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.bg }, gestureEnabled: true }}>
       <Stack.Screen name="(tabs)" />
@@ -289,6 +292,17 @@ function AppStack() {
         name="computer/[agentId]"
         options={{ presentation: "fullScreenModal", contentStyle: { backgroundColor: colors.bg } }}
       />
+      {/* A voice call, its start and calling someone in (docs/adr/doug-0006-live-voice.md, the phone app). */}
+      <Stack.Screen
+        name="call"
+        options={{
+          presentation: "fullScreenModal",
+          gestureEnabled: false,
+          contentStyle: { backgroundColor: colors.bg },
+        }}
+      />
+      <Stack.Screen name="call-start" options={callSheet} />
+      <Stack.Screen name="call-invite" options={callSheet} />
       <Stack.Screen
         name="browser-profile/[profileId]"
         options={{ presentation: "fullScreenModal", contentStyle: { backgroundColor: colors.bg } }}

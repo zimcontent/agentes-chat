@@ -731,8 +731,8 @@ export interface LiveRoomView {
   agentIds: string[];
   /** What the call opens on: the host agent brings it up first. */
   topic: string | null;
-  /** Who is in now. */
-  people: { userId: string; joinedAt: string }[];
+  /** Who is in now (`phone`: from the phone app). */
+  people: { userId: string; joinedAt: string; phone?: boolean }[];
   status: "live" | "ended";
   startedAt: string;
   endedAt: string | null;
@@ -751,7 +751,13 @@ const roomView = (room: Room, at: Date): LiveRoomView => ({
   agentIds: room.agentIds,
   topic: room.topic,
   people:
-    room.status === "live" ? presentPeople(room, at).map((p) => ({ userId: p.userId, joinedAt: p.joinedAt })) : [],
+    room.status === "live"
+      ? presentPeople(room, at).map((p) => ({
+          userId: p.userId,
+          joinedAt: p.joinedAt,
+          ...(p.phone ? { phone: true } : {}),
+        }))
+      : [],
   status: room.status,
   startedAt: room.startedAt.toISOString(),
   endedAt: room.endedAt?.toISOString() ?? null,
@@ -785,6 +791,18 @@ async function announce(deps: LiveVoiceDeps, room: Room, alsoChannel = false) {
   );
 }
 
+/**
+ * Who runs the agents' voices: the host while they are in, unless they are on the phone and someone on the web or the
+ * desktop app is in (a phone can't pass the agents' voices on to the others); else the first one in on a computer,
+ * else the first one in.
+ */
+export function pickLiveHost(present: Pick<LiveRoomPerson, "userId" | "phone">[], host: string | null) {
+  const current = present.find((p) => p.userId === host);
+  const computer = present.find((p) => !p.phone);
+  if (current && (!current.phone || !computer)) return current.userId;
+  return (computer ?? present[0])?.userId ?? null;
+}
+
 /** Hands the room to the next person in when its host is gone; ends it when nobody is left. */
 async function tidyRoom(deps: LiveVoiceDeps, room: Room): Promise<{ room: Room; changed: boolean }> {
   const at = now(deps);
@@ -793,10 +811,11 @@ async function tidyRoom(deps: LiveVoiceDeps, room: Room): Promise<{ room: Room; 
     const ended = await endRoom(deps, null, room.orgId, room.id, "empty");
     return { room: ended ?? room, changed: true };
   }
-  if (room.hostUserId && present.some((p) => p.userId === room.hostUserId)) return { room, changed: false };
+  const host = pickLiveHost(present, room.hostUserId);
+  if (host === room.hostUserId) return { room, changed: false };
   const [next] = await deps.db
     .update(liveVoiceRooms)
-    .set({ hostUserId: present[0]?.userId ?? null })
+    .set({ hostUserId: host })
     .where(eq(liveVoiceRooms.id, room.id))
     .returning();
   return { room: next ?? room, changed: true };
@@ -847,7 +866,7 @@ export async function joinLiveRoom(
   userId: string,
   orgId: string,
   channelId: string,
-  input: { agentIds: string[]; topic?: string | null },
+  input: { agentIds: string[]; topic?: string | null; phone?: boolean },
 ) {
   const { membership } = await requireChannelAccess(deps.db, userId, orgId, channelId);
   if (!can(membership, "post")) throw new ForbiddenError();
@@ -876,7 +895,7 @@ export async function joinLiveRoom(
         hostUserId: userId,
         agentIds: talkable.map((a) => a.id),
         topic: input.topic?.trim().slice(0, 500) || null,
-        people: [{ userId, joinedAt: iso, seenAt: iso, leftAt: null }],
+        people: [{ userId, joinedAt: iso, seenAt: iso, leftAt: null, ...(input.phone ? { phone: true } : {}) }],
         startedAt: at,
       })
       .onConflictDoNothing()
@@ -885,23 +904,32 @@ export async function joinLiveRoom(
   if (!room) {
     const current = existing ?? (await channelLiveRoom(deps, userId, orgId, channelId));
     if (!current) throw new ConflictError("The call ended. Start it again.", "live_room.ended");
-    room = await touchPerson(deps, current.id, userId, iso, true);
+    room = (await tidyRoom(deps, await touchPerson(deps, current.id, userId, iso, true, input.phone))).room;
   }
   await announce(deps, room, true);
   return roomView(room, at);
 }
 
 /** Marks a person in (`join`) or alive; returns the room as it is after. */
-async function touchPerson(deps: LiveVoiceDeps, roomId: string, userId: string, iso: string, join: boolean) {
+async function touchPerson(
+  deps: LiveVoiceDeps,
+  roomId: string,
+  userId: string,
+  iso: string,
+  join: boolean,
+  phone?: boolean,
+) {
   const [room] = await deps.db.select().from(liveVoiceRooms).where(eq(liveVoiceRooms.id, roomId));
   if (room?.status !== "live") throw new NotFoundError("This call has ended", "live_room.ended");
   const mine = room.people.find((p) => p.userId === userId);
   if (!join && (!mine || mine.leftAt)) throw new NotFoundError("You're not in this call", "live_room.not_in");
+  // Joining says where from again (the same person may come back on another device); a ping keeps it.
+  const device = join ? (phone ? { phone: true } : { phone: undefined }) : {};
   const people: LiveRoomPerson[] = mine
     ? room.people.map((p) =>
-        p.userId === userId ? { ...p, seenAt: iso, leftAt: null, joinedAt: p.leftAt ? iso : p.joinedAt } : p,
+        p.userId === userId ? { ...p, ...device, seenAt: iso, leftAt: null, joinedAt: p.leftAt ? iso : p.joinedAt } : p,
       )
-    : [...room.people, { userId, joinedAt: iso, seenAt: iso, leftAt: null }];
+    : [...room.people, { userId, joinedAt: iso, seenAt: iso, leftAt: null, ...(phone ? { phone: true } : {}) }];
   const [next] = await deps.db.update(liveVoiceRooms).set({ people }).where(eq(liveVoiceRooms.id, roomId)).returning();
   return next ?? room;
 }

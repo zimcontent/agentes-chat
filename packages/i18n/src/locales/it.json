@@ -11044,6 +11044,17 @@
       "keyAsk": "Chiedi a chi gestisce lo spazio di lavoro di aggiungerla.",
       "needsKeyTitle": "Per chiamare {{name}} serve una chiave GPT-Live"
     },
+    "phone": {
+      "agents": "Agenti",
+      "earpiece": "Telefono",
+      "speaker": "Vivavoce",
+      "toEarpiece": "Ascolta dall'auricolare",
+      "toSpeaker": "Attiva il vivavoce",
+      "mic": "Microfono",
+      "callIn": "Chiama",
+      "leave": "Esci",
+      "hostNote": "Solo il tuo telefono sente gli agenti. Perché tutti li sentano, qualcuno deve entrare da un computer."
+    },
     "agentCall": {
       "title": "Chiamata con {{name}}",
       "connecting": "Chiamata a {{name}}…",

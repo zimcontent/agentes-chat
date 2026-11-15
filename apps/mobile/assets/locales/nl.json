@@ -3,6 +3,6 @@
     "NSPhotoLibraryUsageDescription": "Om afbeeldingen in je gesprekken te sturen en de foto van je agents en jezelf te kiezen.",
     "NSCameraUsageDescription": "Om foto's te maken voor je gesprekken, voor de foto van je agents en jezelf, en om QR-codes te scannen.",
     "NSPhotoLibraryAddUsageDescription": "Om afbeeldingen uit je gesprekken in Foto's te bewaren.",
-    "NSMicrophoneUsageDescription": "Om spraakberichten in je gesprekken op te nemen."
+    "NSMicrophoneUsageDescription": "Om spraakberichten op te nemen en te praten in spraakoproepen."
   }
 }

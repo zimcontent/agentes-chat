@@ -11398,6 +11398,17 @@
       "keyAsk": "Poproś osobę, która zarządza obszarem roboczym, o dodanie go.",
       "needsKeyTitle": "Rozmowa z: {{name}} wymaga klucza GPT-Live"
     },
+    "phone": {
+      "agents": "Agenci",
+      "earpiece": "Telefon",
+      "speaker": "Głośnik",
+      "toEarpiece": "Słuchaj przez słuchawkę",
+      "toSpeaker": "Włącz głośnik",
+      "mic": "Mikrofon",
+      "callIn": "Zaproś",
+      "leave": "Wyjdź",
+      "hostNote": "Tylko twój telefon słyszy agentów. Żeby słyszeli ich wszyscy, ktoś musi dołączyć z komputera."
+    },
     "agentCall": {
       "title": "Rozmowa z: {{name}}",
       "connecting": "Dzwonienie do: {{name}}…",

@@ -11035,6 +11035,17 @@ export const ptBR = {
       keyAsk: "Peça a quem administra o workspace para colocar.",
       needsKeyTitle: "Ligar para {{name}} precisa de uma chave do GPT-Live",
     },
+    phone: {
+      agents: "Agentes",
+      earpiece: "Telefone",
+      speaker: "Viva voz",
+      toEarpiece: "Ouvir pelo telefone",
+      toSpeaker: "Ligar o viva voz",
+      mic: "Microfone",
+      callIn: "Chamar",
+      leave: "Sair",
+      hostNote: "Só o seu celular ouve os agentes. Para todos ouvirem, alguém precisa entrar pelo computador.",
+    },
     agentCall: {
       title: "Chamada com {{name}}",
       connecting: "Ligando para {{name}}…",
