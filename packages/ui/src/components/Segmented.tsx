@@ -1,5 +1,6 @@
 import { type CSSProperties, type ReactNode, useLayoutEffect, useRef, useState } from "react";
 import { cx } from "../cx";
+import { useStripScroll } from "../hooks/useStripScroll";
 import { Button, type ButtonProps } from "./Button";
 import { CountChip } from "./Chip";
 import { useFieldControl } from "./Field";
@@ -46,6 +47,8 @@ export function Segmented<V extends string>({
 }) {
   const field = useFieldControl({});
   const refs = useRef<(HTMLButtonElement | null)[]>([]);
+  const track = useRef<HTMLDivElement>(null);
+  useStripScroll(track);
   const [pill, setPill] = useState<{ x: number; w: number } | null>(null);
   const chosen = options.findIndex((o) => o.value === value);
   const index = Math.max(0, chosen);
@@ -64,6 +67,17 @@ export function Segmented<V extends string>({
     ro.observe(el);
     return () => ro.disconnect();
   });
+  // A track too narrow for its options scrolls sideways: the chosen one is brought into it, by the track's own
+  // scroll, so the page never moves (as in Tabs).
+  useLayoutEffect(() => {
+    const el = refs.current[index];
+    const list = track.current;
+    if (!el || !list) return;
+    const item = el.getBoundingClientRect();
+    const strip = list.getBoundingClientRect();
+    if (item.left < strip.left) list.scrollLeft -= strip.left - item.left;
+    else if (item.right > strip.right) list.scrollLeft += item.right - strip.right;
+  }, [index]);
   const move = (step: number) => {
     if (disabled) return;
     const next = options[(index + step + options.length) % options.length];
@@ -73,6 +87,7 @@ export function Segmented<V extends string>({
   };
   return (
     <div
+      ref={track}
       role="radiogroup"
       {...(field.labelledBy ? { "aria-labelledby": field.labelledBy } : { "aria-label": label })}
       aria-describedby={field["aria-describedby"]}

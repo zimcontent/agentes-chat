@@ -497,6 +497,7 @@ export {
 export { HOVERLESS, matchesNow, TOUCH, useMatchMedia } from "./hooks/useMatchMedia";
 export { useNow } from "./hooks/useNow";
 export { type ScrollSides, useScrollSides } from "./hooks/useScrollSides";
+export { useStripScroll } from "./hooks/useStripScroll";
 export { Icon, type IconName, type IconProps, iconNames, icons } from "./icons/Icon";
 export { driveFolder, initialsOf, isIdHandle } from "./names";
 export {
