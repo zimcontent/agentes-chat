@@ -101,6 +101,38 @@ describe("Command Code", () => {
   });
 });
 
+describe("OpenDesign", () => {
+  // Joined at run time: a literal key shape reads as a real key to the secret scan.
+  const key = ["od", "x".repeat(24)].join("_");
+  test("it publishes no key format: any key without spaces goes, and no pasted key is guessed to be its", () => {
+    expect(providerOf("opendesign")).toMatchObject({ label: "OpenDesign", site: "open-design.ai/cloud/dashboard" });
+    expect(keyLooksValid("opendesign", ` ${key} `)).toBe(true);
+    expect(keyLooksValid("opendesign", "has a space")).toBe(false);
+    expect(keyLooksValid("opendesign", "short")).toBe(false);
+    expect(ids(key)).not.toContain("opendesign");
+    expect(ids(AQ)).toEqual(["gemini"]);
+    const p = providerOf("opendesign");
+    expect(p && keyStepHint(p)).toBe("connectAi.key.privacy");
+  });
+
+  test("its models show only to a workspace with its key, all 12 and choosable", () => {
+    const models = Object.entries(MODEL_CATALOG).map(([id, m]) => ({
+      id,
+      label: m.label,
+      provider: m.provider,
+      inputUsdPerMTok: 0,
+      outputUsdPerMTok: 0,
+      ...(m.pick !== undefined ? { pick: m.pick } : {}),
+    }));
+    const group = (credentials: { id: string; provider: string }[]) =>
+      modelChoices(models, credentials, true).find(([g]) => g === "opendesign")?.[1];
+    expect(group([])).toBeUndefined();
+    const withKey = group([{ id: "k1", provider: "opendesign" }]);
+    expect(withKey).toHaveLength(12);
+    expect(withKey?.every((c) => c.available)).toBe(true);
+  });
+});
+
 describe("a saved key's line", () => {
   const t = ((key: string, o?: Record<string, unknown>) => `${key} ${JSON.stringify(o)}`) as unknown as TFunction;
   test("a key named after its provider says only how it ends, any other name says the provider too", () => {

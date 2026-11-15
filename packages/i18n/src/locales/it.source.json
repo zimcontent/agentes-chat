@@ -3635,6 +3635,9 @@
   "onboarding.keyInvalid.commandcode": {
     "value": "Paste the whole Command Code key, with no spaces. Check it and paste it again."
   },
+  "onboarding.keyInvalid.opendesign": {
+    "value": "Paste the whole OpenDesign key, with no spaces. Check it and paste it again."
+  },
   "onboarding.keyFromOther": {
     "value": "Is it from another provider?"
   },

@@ -130,6 +130,7 @@ describe("pricing", () => {
       // OpenRouter's come from its list.
       [],
       ["commandcode:zai-org/GLM-5.3"],
+      ["opendesign:deepseek-v4.1-flash"],
     ]);
   });
 
@@ -160,6 +161,7 @@ describe("pricing", () => {
       "MiniMax-M3.1-Flash",
       null,
       "commandcode:deepseek/deepseek-v4.1-flash",
+      "opendesign:deepseek-v4.1-flash",
       null,
     ]);
     const line = (provider: string) => MODEL_TIERS.map((tier) => modelForTier(provider, tier));
@@ -172,6 +174,11 @@ describe("pricing", () => {
       "commandcode:deepseek/deepseek-v4.1-flash",
       "commandcode:zai-org/GLM-5.3",
       "commandcode:claude-sonnet-5-5",
+    ]);
+    expect(line("opendesign")).toEqual([
+      "opendesign:deepseek-v4.1-flash",
+      "opendesign:mimo-v2.6-pro",
+      "opendesign:deepseek-v4-pro",
     ]);
   });
 
@@ -186,6 +193,7 @@ describe("pricing", () => {
       "MiniMax-M3",
       null,
       "commandcode:claude-haiku-5-5",
+      "opendesign:deepseek-v4.1-flash",
       null,
     ]);
     for (const provider of PROVIDER_IDS) {
@@ -196,6 +204,8 @@ describe("pricing", () => {
     expect(MODEL_CATALOG["glm-5.3-flash"]?.leastThinking).toBeUndefined();
     expect(MODEL_CATALOG["gemini-3.5-flash-lite"]?.leastThinking).toBe("minimal");
     expect(MODEL_CATALOG["MiniMax-M3"]?.leastThinking).toBe("off");
+    // OpenDesign's Chat Completions path sends no reasoning field, so its pick can't turn thinking off.
+    expect(MODEL_CATALOG["opendesign:deepseek-v4.1-flash"]?.leastThinking).toBe("minimal");
   });
 
   test("Gemini at Google's prices, Argon and 3.8 Flash at half until their day (UTC); the list price shown after", () => {

@@ -20,7 +20,7 @@ export interface TokenPrices {
 export interface ProviderInfo {
   label: string;
   /** The API it speaks, which picks its adapter (`createModelProviders`). */
-  protocol: "anthropic" | "openai" | "gemini" | "openrouter" | "commandcode" | "custom";
+  protocol: "anthropic" | "openai" | "gemini" | "openrouter" | "commandcode" | "opendesign" | "custom";
   /** Replaces the SDK's default host. */
   baseURL?: string;
   /**
@@ -69,6 +69,8 @@ export const PROVIDERS = {
   openrouter: { label: "OpenRouter", protocol: "openrouter" },
   // Claude over Anthropic Messages, the rest over Chat Completions (`commandcode.ts`).
   commandcode: { label: "Command Code", protocol: "commandcode" },
+  // GLM-5.3 Flash over Anthropic Messages, the rest over Chat Completions (`opendesign.ts`, ADR 0186).
+  opendesign: { label: "OpenDesign", protocol: "opendesign" },
   // A workspace's own endpoint (ADR 0146): its address, API style and models live on its credential (`custom.ts`).
   custom: { label: "Other provider", protocol: "custom" },
 } as const satisfies Record<string, ProviderInfo>;
@@ -149,6 +151,9 @@ const DEEPSEEK_PEAK = [
   [1, 4],
   [6, 10],
 ] as const;
+
+// The efforts OpenDesign Go lists for its models, highest first.
+const OPENDESIGN_EFFORTS = ["max", "high", "low"] as const;
 
 export const MODEL_CATALOG: Record<string, ModelInfo> = {
   // Its 1M-token window from platform.claude.com/docs/en/about-claude/models/overview, all of it at these prices
@@ -608,6 +613,149 @@ export const MODEL_CATALOG: Record<string, ModelInfo> = {
     prices: { input: 100, output: 500, cacheRead: 4, cacheWrite: 100 },
     contextWindow: 1_048_576,
     serverSideFallback: false,
+  },
+  // OpenDesign Go (ADR 0186). A model that is a row above keeps that row's prices; the others are at the dollar prices
+  // of go.open-design.ai/models (2026-11-15). Where it lists no cache write, the input's rate counts; a price below a
+  // thousandth of a dollar per million tokens rounds up. Context windows, output caps and efforts are its own.
+  // Claude Haiku 5.5's row, its long-context prices too.
+  "opendesign:claude-haiku-5.5": {
+    provider: "opendesign",
+    pick: false,
+    label: "Claude Haiku 5.5",
+    prices: { input: 100, output: 500, cacheRead: 10, cacheWrite: 125 },
+    longContext: { aboveInputTokens: 100_000, prices: { input: 500, output: 2500, cacheRead: 50, cacheWrite: 625 } },
+    contextWindow: 1_000_000,
+    maxOutputTokens: 132_000,
+    efforts: OPENDESIGN_EFFORTS,
+    serverSideFallback: false,
+  },
+  "opendesign:deepseek-v4-flash": {
+    provider: "opendesign",
+    pick: false,
+    label: "DeepSeek V4 Flash",
+    prices: { input: 440, output: 1320, cacheRead: 14, cacheWrite: 440 },
+    contextWindow: 1_048_000,
+    maxOutputTokens: 232_000,
+    efforts: OPENDESIGN_EFFORTS,
+    serverSideFallback: false,
+  },
+  // DeepSeek V4 Pro's row.
+  "opendesign:deepseek-v4-pro": {
+    provider: "opendesign",
+    pick: false,
+    label: "DeepSeek V4 Pro",
+    prices: { input: 1320, output: 3960, cacheRead: 44, cacheWrite: 1320 },
+    contextWindow: 1_048_000,
+    maxOutputTokens: 232_000,
+    efforts: OPENDESIGN_EFFORTS,
+    serverSideFallback: false,
+    tier: "large",
+  },
+  // `deepseek-flash`'s row, which is V4.1 Flash. Chat Completions sends it no reasoning field, so its thinking can't
+  // be turned off: `minimal` is the least.
+  "opendesign:deepseek-v4.1-flash": {
+    provider: "opendesign",
+    pick: false,
+    label: "DeepSeek V4.1 Flash",
+    prices: { input: 300, output: 1200, cacheRead: 6, cacheWrite: 300 },
+    contextWindow: 1_048_000,
+    maxOutputTokens: 232_000,
+    efforts: OPENDESIGN_EFFORTS,
+    serverSideFallback: false,
+    cheap: true,
+    router: true,
+    leastThinking: "minimal",
+    recommended: true,
+    tier: "small",
+  },
+  // `deepseek-flash`'s row: the same V4.1 Flash, for batch work.
+  "opendesign:deepseek-v4.1-flash-eco": {
+    provider: "opendesign",
+    pick: false,
+    label: "DeepSeek V4.1 Flash Eco",
+    prices: { input: 300, output: 1200, cacheRead: 6, cacheWrite: 300 },
+    contextWindow: 1_048_000,
+    maxOutputTokens: 232_000,
+    efforts: OPENDESIGN_EFFORTS,
+    serverSideFallback: false,
+  },
+  // Z.ai's `glm-5.3-flash` row. The only model sent to Anthropic Messages (`opendesign.ts`).
+  "opendesign:glm-5.3-flash": {
+    provider: "opendesign",
+    pick: false,
+    label: "GLM-5.3 Flash",
+    prices: { input: 150, output: 500, cacheRead: 30, cacheWrite: 150 },
+    contextWindow: 1_048_000,
+    maxOutputTokens: 232_000,
+    efforts: OPENDESIGN_EFFORTS,
+    serverSideFallback: false,
+  },
+  "opendesign:glm-5.3-flashx": {
+    provider: "opendesign",
+    pick: false,
+    label: "GLM-5.3 FlashX",
+    prices: { input: 370, output: 1250, cacheRead: 75, cacheWrite: 370 },
+    contextWindow: 1_000_000,
+    maxOutputTokens: 232_000,
+    efforts: OPENDESIGN_EFFORTS,
+    serverSideFallback: false,
+    structuredOutput: false,
+  },
+  // GPT-6 Luna's row, its long-context prices too. OpenDesign lists no efforts for it.
+  "opendesign:gpt-6-luna": {
+    provider: "opendesign",
+    pick: false,
+    label: "GPT-6 Luna",
+    prices: { input: 100, output: 500, cacheRead: 10, cacheWrite: 125 },
+    longContext: { aboveInputTokens: 272_000, prices: { input: 200, output: 750, cacheRead: 20, cacheWrite: 250 } },
+    contextWindow: 1_050_000,
+    maxOutputTokens: 304_000,
+    serverSideFallback: false,
+  },
+  "opendesign:kimi-k2.7-code": {
+    provider: "opendesign",
+    pick: false,
+    label: "Kimi K2.7 Code",
+    prices: { input: 950, output: 4000, cacheRead: 190, cacheWrite: 950 },
+    contextWindow: 262_000,
+    maxOutputTokens: 262_000,
+    efforts: OPENDESIGN_EFFORTS,
+    serverSideFallback: false,
+  },
+  "opendesign:mimo-v2.6-flash": {
+    provider: "opendesign",
+    pick: false,
+    label: "MiMo V2.6 Flash",
+    prices: { input: 140, output: 280, cacheRead: 3, cacheWrite: 140 },
+    contextWindow: 1_048_000,
+    maxOutputTokens: 232_000,
+    efforts: OPENDESIGN_EFFORTS,
+    serverSideFallback: false,
+    structuredOutput: false,
+  },
+  "opendesign:mimo-v2.6-pro": {
+    provider: "opendesign",
+    pick: false,
+    label: "MiMo V2.6 Pro",
+    prices: { input: 435, output: 870, cacheRead: 4, cacheWrite: 435 },
+    contextWindow: 1_048_000,
+    maxOutputTokens: 232_000,
+    efforts: OPENDESIGN_EFFORTS,
+    serverSideFallback: false,
+    structuredOutput: false,
+    tier: "medium",
+  },
+  // MiniMax's `MiniMax-M3.1-Flash` row: OpenDesign's price page doesn't list it.
+  "opendesign:minimax-m3.1-flash": {
+    provider: "opendesign",
+    pick: false,
+    label: "MiniMax M3.1 Flash",
+    prices: { input: 150, output: 600, cacheRead: 15, cacheWrite: 150 },
+    contextWindow: 1_048_000,
+    maxOutputTokens: 232_000,
+    efforts: OPENDESIGN_EFFORTS,
+    serverSideFallback: false,
+    structuredOutput: false,
   },
 };
 

@@ -4,6 +4,7 @@ import { createCommandCodeProvider } from "./commandcode";
 import { createCustomProvider } from "./custom";
 import { createGeminiProvider } from "./gemini";
 import { createOpenAIProvider } from "./openai";
+import { createOpenDesignProvider } from "./opendesign";
 import { createOpenRouterProvider } from "./openrouter";
 import type { ModelProvider } from "./types";
 
@@ -16,6 +17,7 @@ export * from "./embeddings";
 export * from "./gemini";
 export * from "./key-check";
 export * from "./openai";
+export * from "./opendesign";
 export * from "./openrouter";
 export * from "./types";
 
@@ -40,7 +42,9 @@ export function createModelProviders(
               ? createOpenRouterProvider()
               : p.protocol === "commandcode"
                 ? createCommandCodeProvider()
-                : createAnthropicProvider({ id, baseURL: p.baseURL, compat: p.compat }),
+                : p.protocol === "opendesign"
+                  ? createOpenDesignProvider()
+                  : createAnthropicProvider({ id, baseURL: p.baseURL, compat: p.compat }),
     ]),
   );
 }

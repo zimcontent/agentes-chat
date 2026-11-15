@@ -9,8 +9,11 @@ interface ProviderEntry {
   label: string;
   /** How its keys start, as the key field's example; none where the provider publishes no prefix. */
   placeholder?: string;
-  /** What its keys look like: only to catch paste mistakes (loose where the provider publishes no format). */
-  pattern: RegExp;
+  /**
+   * What its keys look like: only to catch paste mistakes (loose where the provider publishes no format). Absent where
+   * the provider publishes nothing of its keys: any key without spaces goes, and no pasted key is guessed to be its.
+   */
+  pattern?: RegExp;
   /** Where the provider hands out keys. */
   site: string;
   /** Where credit is added at the provider, where it has a page of its own for that. */
@@ -105,6 +108,12 @@ export const PROVIDERS = [
     site: "commandcode.ai/settings/keys",
     privacy: true,
   },
+  {
+    id: "opendesign",
+    label: "OpenDesign",
+    site: "open-design.ai/cloud/dashboard",
+    privacy: true,
+  },
 ] as const satisfies readonly ProviderEntry[];
 
 export type ProviderId = (typeof PROVIDERS)[number]["id"];
@@ -179,13 +188,13 @@ export const keyNamedAfterProvider = (key: Pick<Credential, "label" | "provider"
   key.label.trim().toLocaleLowerCase() === providerLabel(key.provider).toLocaleLowerCase();
 export const isProviderId = (id: string): id is ProviderId => PROVIDERS.some((p) => p.id === id);
 export const keyLooksValid = (provider: ProviderId, key: string) =>
-  (providerOf(provider)?.pattern ?? /.{8,}/).test(key.trim());
+  (providerOf(provider)?.pattern ?? /^\S{8,}$/).test(key.trim());
 
 /**
  * The providers whose keys look like this one. Often several (any `sk-` key could be OpenAI's, DeepSeek's,
  * Kimi's or MiniMax's), so the person says which instead of the app guessing.
  */
-export const providersForKey = (key: string) => PROVIDERS.filter((p) => p.pattern.test(key.trim()));
+export const providersForKey = (key: string) => PROVIDERS.filter((p: ProviderEntry) => p.pattern?.test(key.trim()));
 
 /** Whose a pasted key is: the one provider whose keys look like it, else the one asked for, else the first that fits. */
 export function providerGuess(key: string | undefined, asked?: string): ProviderId {
