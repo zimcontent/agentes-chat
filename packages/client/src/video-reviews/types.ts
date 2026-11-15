@@ -24,6 +24,9 @@ export interface VideoReviewNote {
   version: number;
   /** Milliseconds into the video; null: about the whole video. */
   atMs: number | null;
+  /** Where a stretch ends; null: one point. */
+  endMs: number | null;
+  kind: VideoReviewNoteKind | null;
   body: string;
   /** Said aloud and transcribed. */
   voice: boolean;
@@ -42,10 +45,24 @@ export interface VideoReview extends VideoReviewSummary {
 
 export type VideoReviewDecision = "approve" | "changes";
 
+/** What a note is about, as the reviewer tagged it (the engine's `REVIEW_NOTE_KINDS`). */
+export const VIDEO_REVIEW_NOTE_KINDS = ["cut", "text", "motion", "sound", "color", "broll", "other"] as const;
+export type VideoReviewNoteKind = (typeof VIDEO_REVIEW_NOTE_KINDS)[number];
+
+export interface VideoReviewNoteInput {
+  version: number;
+  atMs: number | null;
+  endMs?: number | null;
+  kind?: VideoReviewNoteKind | null;
+  body: string;
+}
+
 export interface VideoReviewVoiceInput {
   file: Blob;
   fileName: string;
   version: number;
   atMs: number | null;
+  endMs?: number | null;
+  kind?: VideoReviewNoteKind | null;
   language?: string;
 }

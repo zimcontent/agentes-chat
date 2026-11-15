@@ -7,6 +7,7 @@ import {
   listVideoReviews,
   NotFoundError,
   REVIEW_NOTE_CHARS,
+  REVIEW_NOTE_KINDS,
   ValidationError,
   type VideoReviewDeps,
 } from "@agenteschat/engine";
@@ -56,6 +57,8 @@ const Note = z
     id: z.uuid(),
     version: z.number().int(),
     atMs: z.number().int().nullable(),
+    endMs: z.number().int().nullable(),
+    kind: z.enum(REVIEW_NOTE_KINDS).nullable(),
     body: z.string(),
     voice: z.boolean(),
     author: Who.nullable(),
@@ -133,6 +136,8 @@ export function videoReviewRoutes(deps: AppDeps) {
           z.object({
             version: z.number().int().min(1),
             atMs: z.number().int().min(0).nullable(),
+            endMs: z.number().int().min(1).nullable().optional(),
+            kind: z.enum(REVIEW_NOTE_KINDS).nullable().optional(),
             body: z.string().min(1).max(REVIEW_NOTE_CHARS),
           }),
         ),
@@ -168,6 +173,12 @@ export function videoReviewRoutes(deps: AppDeps) {
                 file: z.any().openapi({ type: "string", format: "binary", description: "The recording." }),
                 version: z.coerce.number().int().min(1),
                 atMs: z.string().max(12).optional().openapi({ description: "Milliseconds; empty: the whole video." }),
+                endMs: z
+                  .string()
+                  .max(12)
+                  .optional()
+                  .openapi({ description: "Where a stretch ends; empty: one point." }),
+                kind: z.enum(REVIEW_NOTE_KINDS).optional(),
                 language: z.string().max(8).optional(),
               }),
             },
@@ -192,10 +203,13 @@ export function videoReviewRoutes(deps: AppDeps) {
       if (!(file instanceof File))
         throw new ValidationError("send the recording in the field file", "video_review.bad_type");
       const at = form.atMs?.trim() ? Number(form.atMs) : null;
+      const end = form.endMs?.trim() ? Number(form.endMs) : null;
       try {
         const note = await addVoiceReviewNote(reviews(), user.id, orgId, reviewId, {
           version: form.version,
           atMs: at !== null && Number.isFinite(at) ? at : null,
+          endMs: end !== null && Number.isFinite(end) ? end : null,
+          kind: form.kind ?? null,
           audio: new Uint8Array(await file.arrayBuffer()),
           contentType: file.type,
           language: form.language ?? null,

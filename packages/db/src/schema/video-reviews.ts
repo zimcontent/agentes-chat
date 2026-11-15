@@ -77,6 +77,10 @@ export const videoReviewNotes = pgTable(
     version: integer().notNull(),
     /** Where in the video, in milliseconds; null: about the whole video. */
     atMs: integer(),
+    /** Where a stretch ends, in milliseconds; null: one point. */
+    endMs: integer(),
+    /** What the note is about (`REVIEW_NOTE_KINDS` in the engine); null: not said. */
+    kind: text(),
     body: text().notNull(),
     voice: boolean().notNull().default(false),
     authorUserId: text().references(() => users.id, { onDelete: "set null" }),

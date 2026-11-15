@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { ApiClient } from "../api/client";
 import { useApi } from "../api/context";
-import type { VideoReviewDecision, VideoReviewVoiceInput } from "./types";
+import type { VideoReviewDecision, VideoReviewNoteInput, VideoReviewVoiceInput } from "./types";
 
 /*
  * Video review in the apps (docs/adr/doug-0007-video-review.md). A review has no realtime event of its own: an open one
@@ -53,7 +53,7 @@ function useReviewChange<I, O>(orgId: string, reviewId: string, run: (api: ApiCl
 }
 
 export const useAddReviewNote = (orgId: string, reviewId: string) =>
-  useReviewChange(orgId, reviewId, (api, input: { version: number; atMs: number | null; body: string }) =>
+  useReviewChange(orgId, reviewId, (api, input: VideoReviewNoteInput) =>
     reviewsOf(api).addNote(orgId, reviewId, input),
   );
 

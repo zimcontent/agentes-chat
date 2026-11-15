@@ -41,6 +41,38 @@ const en = {
   micBlocked: "The microphone is blocked in this browser.",
   failed: "That didn't work. Try again.",
   agentGone: "The agent that made this video was removed.",
+  noNotesClosed: "No notes on this version.",
+  wholeTitle: "About the whole video",
+  wholePlaceholder: "Something that isn't at one point: color, music, pace…",
+  talk: "Say it",
+  point: "one point",
+  stretch: (span: string) => `stretch ${span}`,
+  markEnd: "Mark the end",
+  remark: "Mark the end again",
+  marking: (from: string) => `Marking from ${from}: click the picture or press Enter where it ends`,
+  cancel: "Cancel",
+  save: "Save",
+  kindLabel: "What it's about",
+  kinds: {
+    cut: "Cut/pace",
+    text: "Text/captions",
+    motion: "Motion",
+    sound: "Sound/music",
+    color: "Color",
+    broll: "Cards/B-roll",
+    other: "Other",
+  },
+  scrub: "Where in the video",
+  play: "Play",
+  pause: "Pause",
+  back1s: "Back a second",
+  back1f: "Back a frame",
+  fwd1f: "Forward a frame",
+  fwd1s: "Forward a second",
+  speed: "Speed",
+  download: "Download",
+  keys: "Click the picture to note that point · Space play · J/L slower/faster · ←/→ frame · Shift ±1 s · Enter note",
+  keysClosed: "Space play · J/L slower/faster · ←/→ frame · Shift ±1 s",
 };
 
 export type ReviewWords = typeof en;
@@ -82,6 +114,38 @@ const ptBR: ReviewWords = {
   micBlocked: "O microfone está bloqueado neste navegador.",
   failed: "Não deu certo. Tente de novo.",
   agentGone: "O agente que fez este vídeo foi removido.",
+  noNotesClosed: "Nenhuma nota nesta versão.",
+  wholeTitle: "Sobre o vídeo todo",
+  wholePlaceholder: "Algo que não está num ponto só: cor, trilha, ritmo…",
+  talk: "Falar",
+  point: "ponto único",
+  stretch: (span) => `trecho ${span}`,
+  markEnd: "Marcar fim",
+  remark: "Marcar fim de novo",
+  marking: (from) => `Marcando a partir de ${from}: clique no vídeo ou aperte Enter onde termina`,
+  cancel: "Cancelar",
+  save: "Salvar",
+  kindLabel: "Sobre o quê",
+  kinds: {
+    cut: "Corte/ritmo",
+    text: "Texto/legenda",
+    motion: "Movimento",
+    sound: "Som/trilha",
+    color: "Cor",
+    broll: "Cards/B-roll",
+    other: "Outro",
+  },
+  scrub: "Onde no vídeo",
+  play: "Tocar",
+  pause: "Pausar",
+  back1s: "Voltar um segundo",
+  back1f: "Voltar um quadro",
+  fwd1f: "Avançar um quadro",
+  fwd1s: "Avançar um segundo",
+  speed: "Velocidade",
+  download: "Baixar",
+  keys: "Clique no vídeo para comentar aquele ponto · Espaço toca · J/L mais lento/rápido · ←/→ quadro · Shift ±1 s · Enter nota",
+  keysClosed: "Espaço toca · J/L mais lento/rápido · ←/→ quadro · Shift ±1 s",
 };
 
 export function useReviewWords(): ReviewWords {
@@ -89,11 +153,21 @@ export function useReviewWords(): ReviewWords {
   return i18n.language?.toLowerCase().startsWith("pt") ? ptBR : en;
 }
 
-/** `83400` → `1:23`, as a player shows it. */
+const two = (n: number) => String(n).padStart(2, "0");
+
+/** `83400` → `1:23.4`: a note's place, to a tenth of a second (what the agent reads too). */
 export function timecode(ms: number): string {
   const s = Math.max(0, Math.floor(ms / 1000));
   const m = Math.floor(s / 60);
   const h = Math.floor(m / 60);
-  const two = (n: number) => String(n).padStart(2, "0");
-  return h > 0 ? `${h}:${two(m % 60)}:${two(s % 60)}` : `${m}:${two(s % 60)}`;
+  const tenth = Math.floor((Math.max(0, ms) % 1000) / 100);
+  return h > 0 ? `${h}:${two(m % 60)}:${two(s % 60)}.${tenth}` : `${m}:${two(s % 60)}.${tenth}`;
+}
+
+/** `6400` at 25 fps → `00:06:10`: minutes, seconds and frames, as an editor's clock reads. */
+export function frameCode(ms: number, fps: number): string {
+  const frames = Math.max(0, Math.floor((ms / 1000) * fps + 1e-6));
+  const f = frames % fps;
+  const s = Math.floor(frames / fps);
+  return `${two(Math.floor(s / 60))}:${two(s % 60)}:${two(f)}`;
 }

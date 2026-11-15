@@ -44,10 +44,25 @@ export interface VideoReviewVersionView {
   createdAt: string;
 }
 
+/** What a note is about, as the reviewer tagged it. */
+export const REVIEW_NOTE_KINDS = ["cut", "text", "motion", "sound", "color", "broll", "other"] as const;
+export type ReviewNoteKind = (typeof REVIEW_NOTE_KINDS)[number];
+const KIND_WORDS: Record<ReviewNoteKind, string> = {
+  cut: "Corte/ritmo",
+  text: "Texto/legenda",
+  motion: "Movimento",
+  sound: "Som/trilha",
+  color: "Cor",
+  broll: "Cards/B-roll",
+  other: "Outro",
+};
+
 export interface VideoReviewNoteView {
   id: string;
   version: number;
   atMs: number | null;
+  endMs: number | null;
+  kind: ReviewNoteKind | null;
   body: string;
   voice: boolean;
   author: { id: string; name: string } | null;
@@ -86,7 +101,14 @@ export function timecode(ms: number | null): string {
   const m = Math.floor(s / 60);
   const h = Math.floor(m / 60);
   const two = (n: number) => String(n).padStart(2, "0");
-  return h > 0 ? `${h}:${two(m % 60)}:${two(s % 60)}` : `${m}:${two(s % 60)}`;
+  // Tenths too: an editor lands a fix within a frame or two of where the reviewer paused.
+  const tenth = Math.floor((Math.max(0, ms) % 1000) / 100);
+  return h > 0 ? `${h}:${two(m % 60)}:${two(s % 60)}.${tenth}` : `${m}:${two(s % 60)}.${tenth}`;
+}
+
+/** `0:06.4` or `0:06.4–0:09.1`, as the agent reads where a note is. */
+function where(atMs: number | null, endMs: number | null): string {
+  return endMs !== null && atMs !== null ? `${timecode(atMs)}–${timecode(endMs)}` : timecode(atMs);
 }
 
 const cleanText = (text: string) => text.replace(/\r\n?/g, "\n").trim().slice(0, REVIEW_NOTE_CHARS);
@@ -360,6 +382,8 @@ export async function getVideoReview(
       id: note.id,
       version: note.version,
       atMs: note.atMs,
+      endMs: note.endMs,
+      kind: (note.kind as ReviewNoteKind | null) ?? null,
       body: note.body,
       voice: note.voice,
       author: note.authorUserId ? { id: note.authorUserId, name: authorName ?? "" } : null,
@@ -376,6 +400,9 @@ export async function getVideoReview(
 export interface ReviewNoteInput {
   version: number;
   atMs: number | null;
+  /** Where the stretch ends; only with `atMs`, and after it. */
+  endMs?: number | null;
+  kind?: ReviewNoteKind | null;
   body: string;
 }
 
@@ -393,6 +420,14 @@ async function writeNote(
     throw new ValidationError("No such version", "video_review.bad_version");
   }
   const atMs = input.atMs === null ? null : Math.max(0, Math.round(input.atMs));
+  const end = input.endMs === null || input.endMs === undefined ? null : Math.round(input.endMs);
+  if (end !== null && (atMs === null || end <= atMs)) {
+    throw new ValidationError("A stretch ends after it starts", "video_review.bad_range");
+  }
+  const kind = input.kind ?? null;
+  if (kind !== null && !REVIEW_NOTE_KINDS.includes(kind)) {
+    throw new ValidationError("No such kind of note", "video_review.bad_kind");
+  }
   const [row] = await deps.db
     .insert(videoReviewNotes)
     .values({
@@ -400,6 +435,8 @@ async function writeNote(
       reviewId: review.id,
       version: input.version,
       atMs,
+      endMs: end,
+      kind,
       body,
       voice: input.voice,
       authorUserId: userId,
@@ -412,6 +449,8 @@ async function writeNote(
     id: row.id,
     version: row.version,
     atMs: row.atMs,
+    endMs: row.endMs,
+    kind: (row.kind as ReviewNoteKind | null) ?? null,
     body: row.body,
     voice: row.voice,
     author: author ?? null,
@@ -434,7 +473,15 @@ export async function addVoiceReviewNote(
   userId: string,
   orgId: string,
   reviewId: string,
-  input: { version: number; atMs: number | null; audio: Uint8Array; contentType: string; language: string | null },
+  input: {
+    version: number;
+    atMs: number | null;
+    endMs?: number | null;
+    kind?: ReviewNoteKind | null;
+    audio: Uint8Array;
+    contentType: string;
+    language: string | null;
+  },
 ): Promise<VideoReviewNoteView> {
   await requireReview(deps.db, userId, orgId, reviewId);
   const engines = deps.engines();
@@ -461,6 +508,8 @@ export async function addVoiceReviewNote(
   return writeNote(deps, userId, orgId, reviewId, {
     version: input.version,
     atMs: input.atMs,
+    endMs: input.endMs ?? null,
+    kind: input.kind ?? null,
     body: text,
     voice: true,
   });
@@ -497,7 +546,7 @@ export function decisionMessage(input: {
   version: number;
   reviewId: string;
   decision: ReviewDecision;
-  notes: { atMs: number | null; body: string; author: string }[];
+  notes: { atMs: number | null; endMs?: number | null; kind?: string | null; body: string; author: string }[];
   message: string;
 }): string {
   const lines: string[] = [];
@@ -514,7 +563,9 @@ export function decisionMessage(input: {
     lines.push("", "Notas:");
     for (const note of input.notes) {
       lines.push(
-        `- [${timecode(note.atMs)}] ${note.body.replace(/\n+/g, " ")}${note.author ? ` (${note.author})` : ""}`,
+        `- [${where(note.atMs, note.endMs ?? null)}]${
+          note.kind && note.kind in KIND_WORDS ? ` ${KIND_WORDS[note.kind as ReviewNoteKind]}:` : ""
+        } ${note.body.replace(/\n+/g, " ")}${note.author ? ` (${note.author})` : ""}`,
       );
     }
   }
@@ -545,7 +596,14 @@ export async function decideVideoReview(
     throw new ValidationError("The agent that made this video was removed", "video_review.no_agent");
   }
   const notes = await deps.db
-    .select({ id: videoReviewNotes.id, atMs: videoReviewNotes.atMs, body: videoReviewNotes.body, author: users.name })
+    .select({
+      id: videoReviewNotes.id,
+      atMs: videoReviewNotes.atMs,
+      endMs: videoReviewNotes.endMs,
+      kind: videoReviewNotes.kind,
+      body: videoReviewNotes.body,
+      author: users.name,
+    })
     .from(videoReviewNotes)
     .leftJoin(users, eq(users.id, videoReviewNotes.authorUserId))
     .where(
@@ -588,7 +646,7 @@ export async function decideVideoReview(
       version: review.version,
       reviewId: review.id,
       decision: input.decision,
-      notes: notes.map((n) => ({ atMs: n.atMs, body: n.body, author: n.author ?? "" })),
+      notes: notes.map((n) => ({ atMs: n.atMs, endMs: n.endMs, kind: n.kind, body: n.body, author: n.author ?? "" })),
       message,
     }),
     threadId: review.threadId,

@@ -76,9 +76,9 @@ const lastMessage = async () => {
 describe("video review", () => {
   test("timecodes read like a player's", () => {
     expect(timecode(null)).toBe("geral");
-    expect(timecode(0)).toBe("0:00");
-    expect(timecode(83_400)).toBe("1:23");
-    expect(timecode(3_725_000)).toBe("1:02:05");
+    expect(timecode(0)).toBe("0:00.0");
+    expect(timecode(83_400)).toBe("1:23.4");
+    expect(timecode(3_725_000)).toBe("1:02:05.0");
   });
 
   test("an agent sends a video, people pin notes, changes go back to it, V2 comes, then approval", async () => {
@@ -125,8 +125,10 @@ describe("video review", () => {
     expect(asked?.authorUserId).toBe(f.owner.id);
     expect(asked?.body).toContain(`@${f.agent.handle} Ajustes em «Short 01 Keith» V1`);
     // A note about the whole video first, then by time: the said note before the typed one.
-    expect(asked?.body.indexOf("[geral] cor mais quente")).toBeLessThan(asked?.body.indexOf("[0:04]") ?? 0);
-    expect(asked?.body.indexOf("[0:04] tira esse corte")).toBeLessThan(asked?.body.indexOf("[0:12] logo maior") ?? 0);
+    expect(asked?.body.indexOf("[geral] cor mais quente")).toBeLessThan(asked?.body.indexOf("[0:04.0]") ?? 0);
+    expect(asked?.body.indexOf("[0:04.0] tira esse corte")).toBeLessThan(
+      asked?.body.indexOf("[0:12.4] logo maior") ?? 0,
+    );
 
     // Sent notes stay, read only.
     await expect(deleteReviewNote(deps(), f.owner.id, f.org.id, sent.review.id, typed.id)).rejects.toThrow();
@@ -193,6 +195,7 @@ describe("video review", () => {
       notes: [
         { atMs: null, body: "cor mais quente", author: "Gabriel" },
         { atMs: 65_000, body: "corte\ncomeu a palavra", author: "Lê" },
+        { atMs: 70_200, endMs: 73_900, kind: "text", body: "legenda some cedo", author: "Ronny" },
       ],
     });
     expect(text).toBe(
@@ -203,8 +206,32 @@ describe("video review", () => {
         "",
         "Notas:",
         "- [geral] cor mais quente (Gabriel)",
-        "- [1:05] corte comeu a palavra (Lê)",
+        "- [1:05.0] corte comeu a palavra (Lê)",
+        "- [1:10.2–1:13.9] Texto/legenda: legenda some cedo (Ronny)",
       ].join("\n"),
     );
+  });
+
+  test("a note may cover a stretch and say what it is about", async () => {
+    f = await setup();
+    const v1 = await video("short-02.mp4");
+    const sent = await sendForReview(deps(), ctx(), { artifactId: v1.id, title: "Short 02", client: "Alliance" });
+    const id = sent.review.id;
+    const note = await addReviewNote(deps(), f.owner.id, f.org.id, id, {
+      version: 1,
+      atMs: 6_400,
+      endMs: 9_100,
+      kind: "cut",
+      body: "trecho arrastado",
+    });
+    expect(note).toMatchObject({ atMs: 6_400, endMs: 9_100, kind: "cut" });
+    await expect(
+      addReviewNote(deps(), f.owner.id, f.org.id, id, { version: 1, atMs: 9_000, endMs: 8_000, body: "x" }),
+    ).rejects.toThrow();
+    await expect(
+      addReviewNote(deps(), f.owner.id, f.org.id, id, { version: 1, atMs: null, endMs: 8_000, body: "x" }),
+    ).rejects.toThrow();
+    const full = await getVideoReview(deps(), f.owner.id, f.org.id, id);
+    expect(full.notes[0]).toMatchObject({ endMs: 9_100, kind: "cut" });
   });
 });
