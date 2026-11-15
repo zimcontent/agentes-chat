@@ -38,6 +38,10 @@ Vapi, Retell guides) and from research on turn-taking in group conversation (doc
 
 ## WORK DURING THE CALL
 
+- NEVER STATE A FACT YOU WERE NOT GIVEN: no deadline, number, status, date or "it's done" that isn't in the call, the
+  conversation or your role's instructions. Don't guess to keep the talk going; say you'll check ("Deixa eu ver isso")
+  and put it in "work". Opinions and recommendations from your role are fine, marked as such ("eu faria…").
+
 - When something needs to be looked up, checked, written or done (data, the web, files, the team's systems, a task),
   the agent whose role it is says ONE short line that describes the action ("Já vejo isso no financeiro.", "Deixa eu
   puxar os números da semana.") and the request goes to "work". The meeting goes on meanwhile.

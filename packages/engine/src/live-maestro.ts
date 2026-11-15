@@ -58,7 +58,28 @@ const STT_NANO_PER_SECOND = 100_000;
 
 const fold = (text: string) => text.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase();
 
-/** The agent a line calls by name (first name of 3 letters or more, full name or handle), first in the line. */
+/** How many letters apart two words are (added, dropped or changed), counting no further than `max`. */
+function distance(a: string, b: string, max: number) {
+  if (Math.abs(a.length - b.length) > max) return max + 1;
+  let prev = Array.from({ length: b.length + 1 }, (_, j) => j);
+  for (let i = 1; i <= a.length; i++) {
+    const row = [i];
+    for (let j = 1; j <= b.length; j++)
+      row[j] = Math.min(
+        (prev[j] ?? 0) + 1,
+        (row[j - 1] ?? 0) + 1,
+        (prev[j - 1] ?? 0) + (a[i - 1] === b[j - 1] ? 0 : 1),
+      );
+    prev = row;
+  }
+  return prev[b.length] ?? max + 1;
+}
+
+/**
+ * The agent a line calls by name (first name of 3 letters or more, full name or handle), first in the line. Speech to
+ * text gets names wrong now and then ("Napoleon" for Napoleão): a word close to a first name of 5 letters or more (one
+ * letter off, two from 8 letters) counts too, when no exact name was said.
+ */
 export function addressedIn(text: string, team: { id: string; name: string; handle: string }[]): string | null {
   const folded = fold(text);
   let best: { id: string; at: number } | null = null;
@@ -70,6 +91,16 @@ export function addressedIn(text: string, team: { id: string; name: string; hand
       const escaped = n.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
       const m = new RegExp(`(^|[^\\p{L}\\p{N}])${escaped}(?=$|[^\\p{L}\\p{N}])`, "u").exec(folded);
       if (m && (!best || m.index < best.at)) best = { id: a.id, at: m.index };
+    }
+  }
+  if (best) return best.id;
+  // Nobody named exactly: a word close to a first name.
+  for (const word of folded.matchAll(/[\p{L}\p{N}]{5,}/gu)) {
+    for (const a of team) {
+      const first = fold(a.name).trim().split(/\s+/)[0] ?? "";
+      const max = first.length >= 8 ? 2 : 1;
+      if (first.length >= 5 && distance(word[0], first, max) <= max && (!best || (word.index ?? 0) < best.at))
+        best = { id: a.id, at: word.index ?? 0 };
     }
   }
   return best?.id ?? null;

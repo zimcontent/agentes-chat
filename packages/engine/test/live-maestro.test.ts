@@ -211,5 +211,9 @@ describe("the maestro", () => {
     expect(addressedIn("Rosa mkt, e você?", team)).toBe("r");
     expect(addressedIn("a cor de rosa ficou boa", team)).toBe("r");
     expect(addressedIn("nada a ver", team)).toBeNull();
+    // What speech to text gets wrong: one letter off a first name of 5 letters or more.
+    expect(addressedIn("e aí, napoleon?", team)).toBe("n");
+    expect(addressedIn("rossa, fala aí", team)).toBeNull();
+    expect(addressedIn("napoleao e bonaparte", team)).toBe("n");
   });
 });
