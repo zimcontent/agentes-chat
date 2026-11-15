@@ -131,6 +131,7 @@ import { runVaultSync, VAULT_SYNC_JOB, type VaultDeps } from "./vault";
 import { transcribeVoiceClip, VOICE_JOB, type VoiceDeps } from "./voice";
 import { saveWaitlistContact } from "./waitlist";
 import { answerWhatsAppChat, type WhatsAppAgentDeps } from "./whatsapp/agent";
+import { mirrorAgentReply } from "./whatsapp/contacts";
 import { WHATSAPP_AGENT_JOB } from "./whatsapp/inbound";
 import { checkInWork, followUpWork, WORK_CHECK_IN_JOB, WORK_FOLLOW_UP_JOB } from "./works";
 import {
@@ -637,6 +638,13 @@ export function createJobHandlers(deps: JobDeps): JobHandlers {
           message.meta.movedOn
         )
           return;
+        // A member asked from WhatsApp (`whatsapp/contacts.ts`): the agent's words in their conversation go back there.
+        // A gateway that fails leaves the answer in the app, never the routing undone.
+        if (deps.whatsapp && where?.kind === "dm") {
+          await mirrorAgentReply(deps.whatsapp, message).catch((error: unknown) =>
+            deps.log?.warn("WhatsApp mirror failed", { messageId: message.id, error: String(error) }),
+          );
+        }
         // A routine's own message (hand_off, no run behind it, ADR 0053 addendum 2026-11-01): its mentions wake
         // the agents it names for its creator, like any agent's (the router stays out). With no creator left it
         // has nobody's reach and wakes nobody. Never silently: the agents it named and its run's tell_agent

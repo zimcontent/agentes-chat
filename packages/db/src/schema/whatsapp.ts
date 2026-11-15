@@ -108,6 +108,13 @@ export const whatsappChats = pgTable(
     needsPerson: boolean().notNull().default(false),
     agentNote: text().notNull().default(""),
     /**
+     * Who the contact is (docs/adr/doug-0004-whatsapp-bridge.md, addendum 2026-11-15): a member of the workspace (their
+     * messages go to their conversation with the number's agent, which answers with all it has), or a client of the
+     * approval portal (the answers read that client's own work). Null: someone else.
+     */
+    memberUserId: text(),
+    portalClient: text(),
+    /**
      * Where its profile photo is on WhatsApp's servers, as the gateway last told (null: none, or hidden from this
      * number), and when it was asked: asked again a day later, or when the address stops answering.
      */

@@ -810,6 +810,9 @@ export function buildEngine(o: EngineOptions) {
             machines: machineHub,
             // What the agent knows from its work comes into its WhatsApp answers (docs/adr/doug-0004-whatsapp-bridge.md).
             context,
+            // A member's messages go to their conversation with the agent, as theirs (addendum 2026-11-15).
+            relay: (userId, orgId, channelId, input) =>
+              postPersonMessage({ db, pubsub: adapters.pubsub }, userId, orgId, channelId, input),
           },
         }
       : {}),

@@ -68,3 +68,20 @@ the answer's text; `model` is the slug the plan lists (`gemini-4-hydrogen-medium
 new refresh token, so the copy signs nothing out and runs beside the agent's own turns on that account (no `busy`).
 Runners from `GEMINI_ROUTE_PROTOCOL` (63) on; an older one, or no Gemini account, hands the conversation to a person
 saying why. Linux computers only, as Gemini turns are (ADR 0143).
+
+## Addendum 2026-11-15: who the contact is
+
+The number's agent is one person who knows the whole operation; what it says depends on who asks
+(`whatsapp/contacts.ts`, `whatsapp_chats.member_user_id` and `portal_client`, set in the conversation's header):
+
+- **A member of the workspace.** Their WhatsApp messages go to their own conversation with the number's agent, posted as
+  theirs (`relayToMember`, `meta.whatsapp`), and the agent answers there with everything it has: its tools, under that
+  person's rights, the same as if they had written in the app. What the agent says in that conversation goes back to
+  WhatsApp while the person's latest message there came from WhatsApp in the last two hours (`mirrorAgentReply`, from the
+  `message.posted` job); written in the app, the answers stay in the app. Only that member, or someone who manages
+  members, links a contact to them: it lets that phone speak as them.
+- **A client of the approval portal.** Each answer reads that client's own work (title, kind, stage, production day),
+  read by code from the workspace's tasks (`clientWorkFor`), never anyone else's, and never who works on it.
+- **Anyone else.** As before: no tools, nothing internal.
+
+Audited as `whatsapp.contact_set`. A plan's answer for a client still fits `ROUTE_LIMITS.prompt` (`fitWhatsAppPrompt`).

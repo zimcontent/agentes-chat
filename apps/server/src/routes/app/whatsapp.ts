@@ -11,11 +11,13 @@ import {
   reconnectWhatsAppAccount,
   removeWhatsAppAccount,
   requestWhatsAppHistory,
+  requireActiveMembership,
   sendWhatsAppFile,
   sendWhatsAppSticker,
   sendWhatsAppText,
   setWhatsAppBrain,
   setWhatsAppChatAgent,
+  setWhatsAppContact,
   typingInWhatsAppChat,
   updateWhatsAppAccount,
   WHATSAPP_AGENT_STYLE_BOUNDS,
@@ -27,6 +29,7 @@ import {
   WHATSAPP_TEXT_MAX,
   whatsappChatPhoto,
   whatsappMessageFile,
+  whatsappPortalClients,
 } from "@agenteschat/engine";
 import { createRoute, z } from "@hono/zod-openapi";
 import type { Context } from "hono";
@@ -162,6 +165,13 @@ const Chat = z
     photo: z.boolean().openapi({
       description:
         "Its profile photo may be loaded (`…/chats/{chatId}/photo`); false: it has none we know of, so draw its initials.",
+    }),
+    member: z.string().nullable().openapi({
+      description:
+        "The contact is this member of the workspace: their messages go to their conversation with the number's agent, and its answers come back here.",
+    }),
+    client: z.string().nullable().openapi({
+      description: "The contact is this client of the approval portal: the agent's answers read their own work.",
     }),
   })
   .openapi("WhatsAppChat");
@@ -659,6 +669,49 @@ export function whatsappRoutes(deps: AppDeps) {
       const { orgId, accountId, chatId } = c.req.valid("param");
       const { on } = c.req.valid("json");
       return c.json(await setWhatsAppChatAgent(wa, c.get("user").id, orgId, accountId, chatId, on), 200);
+    },
+  );
+
+  app.openapi(
+    createRoute({
+      method: "get",
+      path: "/organizations/{orgId}/whatsapp/clients",
+      tags,
+      security,
+      summary: "The approval portal's clients a contact may be (members of the workspace)",
+      request: { params: OrgParams },
+      responses: { 200: json(z.object({ clients: z.array(z.string()) })), ...errors },
+    }),
+    async (c) => {
+      const { orgId } = c.req.valid("param");
+      await requireActiveMembership(wa.db, c.get("user").id, orgId);
+      return c.json({ clients: await whatsappPortalClients(wa, orgId) }, 200);
+    },
+  );
+
+  app.openapi(
+    createRoute({
+      method: "put",
+      path: "/organizations/{orgId}/whatsapp/accounts/{accountId}/chats/{chatId}/contact",
+      tags,
+      security,
+      summary: "Say who the contact is: a member of the workspace, a portal client, or neither (the number's people)",
+      description:
+        "`member`: a member's messages go to their own conversation with the number's agent, which answers with all it has, and its answers come back to WhatsApp. Only that member, or someone who manages members, sets it (403). `client`: the agent's answers read that client's own work on the portal's board. One or the other; both null: neither. Audited as `whatsapp.contact_set`. 400 for a group, a non-member or an unknown client.",
+      request: {
+        params: ChatParams,
+        body: body(
+          z.object({
+            member: z.string().max(100).nullable().optional(),
+            client: z.string().max(60).nullable().optional(),
+          }),
+        ),
+      },
+      responses: { 200: json(z.object({ member: z.string().nullable(), client: z.string().nullable() })), ...errors },
+    }),
+    async (c) => {
+      const { orgId, accountId, chatId } = c.req.valid("param");
+      return c.json(await setWhatsAppContact(wa, c.get("user").id, orgId, accountId, chatId, c.req.valid("json")), 200);
     },
   );
 

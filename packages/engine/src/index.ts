@@ -328,6 +328,7 @@ export * from "./webhooks";
 export * from "./whatsapp/accounts";
 export * from "./whatsapp/agent";
 export * from "./whatsapp/brain";
+export * from "./whatsapp/contacts";
 export * from "./whatsapp/conversations";
 export * from "./whatsapp/inbound";
 export * from "./whatsapp/tools";

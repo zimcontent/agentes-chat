@@ -601,6 +601,12 @@ export function createHttpApi(options: TransportOptions = {}): HttpApi {
         request<{ on: boolean }>(`${org(orgId)}/whatsapp/accounts/${enc(accountId)}/chats/${enc(chatId)}/agent`, {
           json: { on },
         }),
+      chatContact: (orgId, accountId, chatId, input) =>
+        request<{ member: string | null; client: string | null }>(
+          `${org(orgId)}/whatsapp/accounts/${enc(accountId)}/chats/${enc(chatId)}/contact`,
+          { method: "PUT", json: input },
+        ),
+      clients: (orgId) => request<{ clients: string[] }>(`${org(orgId)}/whatsapp/clients`),
       brain: (orgId, accountId) => request<WhatsAppBrain>(`${org(orgId)}/whatsapp/accounts/${enc(accountId)}/brain`),
       setBrain: (orgId, accountId, input) =>
         request<WhatsAppBrain>(`${org(orgId)}/whatsapp/accounts/${enc(accountId)}/brain`, {

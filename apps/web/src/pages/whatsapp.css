@@ -249,6 +249,15 @@
   flex: none;
   margin-inline-start: auto;
 }
+/* Who the contact is: beside the agent's switch, and it gives way first on a narrow screen. */
+.wa-conv__who-is {
+  flex: 0 1 200px;
+  min-width: 0;
+  margin-inline-start: auto;
+}
+.wa-conv__who-is + .wa-conv__agent {
+  margin-inline-start: var(--space-2);
+}
 /* The agent left the conversation: said above the composer, with the way to give it back. */
 .wa-conv__notice {
   display: flex;

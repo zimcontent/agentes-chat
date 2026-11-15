@@ -74,6 +74,10 @@ export interface WhatsAppChat {
   agentNote: string;
   /** Its profile photo may be loaded (`whatsappPhotoUrl`); false: draw its initials. Absent on older servers. */
   photo?: boolean;
+  /** The contact is this member of the workspace (user id): their messages go to their conversation with the agent. */
+  member?: string | null;
+  /** The contact is this client of the approval portal: the agent's answers read their own work. */
+  client?: string | null;
 }
 
 export type WhatsAppChatAgent = "on" | "quiet" | "off" | "person";

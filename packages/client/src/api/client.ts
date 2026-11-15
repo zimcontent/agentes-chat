@@ -2135,6 +2135,15 @@ export interface ApiClient {
     olderHistory(orgId: string, accountId: string, chatId: string): Promise<{ asked: number }>;
     /** The number's agent on or off in one conversation; on gives the conversation back to it. */
     chatAgent(orgId: string, accountId: string, chatId: string, on: boolean): Promise<{ on: boolean }>;
+    /** Who the contact is: a member (their messages go to their conversation with the agent), a portal client, or neither. */
+    chatContact(
+      orgId: string,
+      accountId: string,
+      chatId: string,
+      input: { member: string | null; client: string | null },
+    ): Promise<{ member: string | null; client: string | null }>;
+    /** The approval portal's clients a contact may be. */
+    clients(orgId: string): Promise<{ clients: string[] }>;
     /** What thinks on the number: an AI of its own, or its agent's (managers who may choose the agent's AI). */
     brain(orgId: string, accountId: string): Promise<WhatsAppBrain>;
     /** The number answers with this AI from now on; its agent's own is untouched. */

@@ -1,15 +1,20 @@
 import { afterEach, describe, expect, test } from "bun:test";
 import { createFakeWhatsAppGateway } from "@agenteschat/adapters";
-import { eq, schema } from "@agenteschat/db";
+import { and, eq, schema } from "@agenteschat/db";
 import {
   answerWhatsAppChat,
   clearWhatsAppBrain,
+  clientWorkFor,
   createWhatsAppAccount,
   createWhatsAppToolSource,
   fitWhatsAppPrompt,
   getWhatsAppBrain,
   handleWhatsAppEvent,
+  mirrorAgentReply,
+  openPersonAgentDm,
+  postPersonMessage,
   setWhatsAppBrain,
+  setWhatsAppContact,
   skillsForChat,
   type ToolContext,
   updateWhatsAppAccount,
@@ -334,5 +339,104 @@ describe("a prompt within a plan's route", () => {
     expect(tight).toContain("# The business");
     expect(tight).toContain("vocês editam vídeo");
     expect(tight).toContain("Nunca prometa prazo.");
+  });
+});
+
+describe("who the contact is", () => {
+  test("a member's WhatsApp goes to their conversation with the agent, and the agent's words there come back", async () => {
+    f = await setup({ reply });
+    const { gateway, deps, account, hears } = await number();
+    const relayDeps = {
+      ...deps,
+      relay: (
+        userId: string,
+        orgId: string,
+        channelId: string,
+        input: { body: string; meta: Record<string, unknown> },
+      ) => postPersonMessage({ db: f.db, pubsub: f.pubsub }, userId, orgId, channelId, input),
+    };
+    const first = await hears("oi");
+    await setWhatsAppContact(deps, f.owner.id, f.org.id, account.id, first.chatId, { member: f.owner.id });
+    const job = await hears("o que a Rosa está fazendo agora?");
+    expect(await answerWhatsAppChat(relayDeps, job)).toBe("relayed");
+    // No answer from WhatsApp's own: the agent in the workspace answers.
+    expect(f.provider.calls).toHaveLength(0);
+    const dm = await openPersonAgentDm(f.db, f.org.id, f.owner.id, f.agent.id);
+    const [asked] = await f.db
+      .select()
+      .from(schema.messages)
+      .where(and(eq(schema.messages.channelId, dm.id), eq(schema.messages.authorType, "person")));
+    expect(asked?.body).toBe("oi\no que a Rosa está fazendo agora?");
+    expect(asked?.meta.whatsapp).toEqual({ accountId: account.id, chatId: first.chatId });
+
+    const agentSays = async (body: string) => {
+      const [m] = await f.db
+        .insert(schema.messages)
+        .values({
+          orgId: f.org.id,
+          channelId: dm.id,
+          authorType: "agent",
+          authorAgentId: f.agent.id,
+          body,
+          createdAt: new Date(Date.now() + 1000),
+        })
+        .returning();
+      if (!m) throw new Error("no message");
+      return mirrorAgentReply(deps, m);
+    };
+    expect(await agentSays("Deixa eu ver com a Rosa. **Ela está no reel da Lexeer.**")).toBe(1);
+    expect(gateway.last("send")?.text).toBe("Deixa eu ver com a Rosa. *Ela está no reel da Lexeer.*");
+    // Written in the app afterwards: the answers stay in the app.
+    await postPersonMessage({ db: f.db, pubsub: f.pubsub }, f.owner.id, f.org.id, dm.id, { body: "valeu" });
+    await new Promise((r) => setTimeout(r, 5));
+    expect(await agentSays("De nada!")).toBe(0);
+  });
+
+  test("only that member or whoever manages members says a contact is someone; a client must be the portal's", async () => {
+    f = await setup({ reply });
+    const { deps, account, hears } = await number();
+    const { chatId } = await hears("oi");
+    const leticia = await addMember(f.db, f.org.id, "member", "leticia");
+    await updateWhatsAppAccount(deps, f.owner.id, f.org.id, account.id, { people: [f.owner.id, leticia.id] });
+    await expect(
+      setWhatsAppContact(deps, leticia.id, f.org.id, account.id, chatId, { member: f.owner.id }),
+    ).rejects.toThrow("manages members");
+    expect(await setWhatsAppContact(deps, leticia.id, f.org.id, account.id, chatId, { member: leticia.id })).toEqual({
+      member: leticia.id,
+      client: null,
+    });
+    await expect(
+      setWhatsAppContact(deps, f.owner.id, f.org.id, account.id, chatId, { client: "lexeer" }),
+    ).rejects.toThrow("portal's clients");
+  });
+
+  test("a client's answers read their own work, and nobody else's", async () => {
+    f = await setup({ reply });
+    const { deps, account, hears } = await number();
+    const card = (n: number, client: string, title: string, stage: string, kind: string) => ({
+      orgId: f.org.id,
+      number: n,
+      title,
+      createdByType: "person",
+      createdById: f.owner.id,
+      dueDate: "2026-11-20",
+      source: { type: "portal", client, cardId: `c-${n}`, synced: { card: { stage, kind } } },
+    });
+    await f.db
+      .insert(schema.issues)
+      .values([
+        card(1, "lexeer", "Reel casa nova", "doing", "reel"),
+        card(2, "fontes", "Carrossel do parque", "approval", "carousel"),
+      ]);
+    const { chatId } = await hears("oi");
+    await setWhatsAppContact(deps, f.owner.id, f.org.id, account.id, chatId, { client: "lexeer" });
+    expect(await clientWorkFor(deps, f.org.id, "lexeer")).toBe(
+      "- Reel casa nova (reel): em produção, produção prevista para 2026-11-20",
+    );
+    await answerWhatsAppChat(deps, await hears("como está minha demanda? vai demorar?"));
+    const prompt = String(lastRequest()?.messages[0]?.content);
+    expect(prompt).toContain('This contact is the client "lexeer"');
+    expect(prompt).toContain("Reel casa nova");
+    expect(prompt).not.toContain("Carrossel do parque");
   });
 });

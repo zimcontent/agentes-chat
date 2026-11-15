@@ -52,6 +52,12 @@ const en = {
   tick: { sent: "Sent", delivered: "Delivered", read: "Read", received: "" },
   composer: { placeholder: "Message", send: "Send", attach: "Attach a file", offline: "This number isn't connected" },
   sentBy: (name: string) => `Sent by ${name}`,
+  who: {
+    label: "Who this contact is",
+    none: "Someone outside",
+    member: (name: string) => `Team: ${name}`,
+    client: (client: string) => `Client: ${client}`,
+  },
   agent: {
     label: "Agent answering this conversation",
     on: "Agent answering",
@@ -244,6 +250,12 @@ const ptBR: typeof en = {
     offline: "Este número não está conectado",
   },
   sentBy: (name: string) => `Enviada por ${name}`,
+  who: {
+    label: "Quem é este contato",
+    none: "Contato de fora",
+    member: (name: string) => `Do time: ${name}`,
+    client: (client: string) => `Cliente: ${client}`,
+  },
   agent: {
     label: "Agente respondendo esta conversa",
     on: "Agente respondendo",

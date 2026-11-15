@@ -6,7 +6,9 @@ import {
   useUpdateWhatsApp,
   useWhatsApp,
   useWhatsAppChatAgent,
+  useWhatsAppChatContact,
   useWhatsAppChats,
+  useWhatsAppClients,
   useWhatsAppMessages,
   useWhatsAppOlderHistory,
   useWhatsAppStickers,
@@ -75,6 +77,63 @@ const KIND_ICONS = {
 
 function StatusDot({ status }: { status: WhatsAppAccount["status"] }) {
   return <span className="wa-dot" data-status={status} aria-hidden="true" />;
+}
+
+/**
+ * Who the contact is (docs/adr/doug-0004-whatsapp-bridge.md, addendum 2026-11-15): a member of the team (their messages
+ * go to their conversation with the number's agent, which answers with all it has), a client of the approval portal
+ * (the answers read their own work), or someone outside.
+ */
+function ContactWho({
+  account,
+  chatId,
+  member,
+  client,
+  w,
+}: {
+  account: WhatsAppAccount;
+  chatId: string;
+  member: string | null;
+  client: string | null;
+  w: WhatsAppWords;
+}) {
+  const { org } = useOrg();
+  const dir = useDirectory(org.id);
+  const clients = useWhatsAppClients(org.id);
+  const set = useWhatsAppChatContact(org.id, account.id);
+  const say = useWhatsAppError();
+  const toast = useToast();
+  const value = member ? `m:${member}` : client ? `c:${client}` : "none";
+  const people = [...dir.memberById.values()];
+  const options = [
+    { value: "none", label: w.who.none },
+    ...people.map((m) => ({ value: `m:${m.userId}`, label: w.who.member(m.name) })),
+    ...(clients.data?.clients ?? []).map((c) => ({ value: `c:${c}`, label: w.who.client(c) })),
+  ];
+  // One set before the lists load still shows as itself.
+  if (!options.some((o) => o.value === value)) {
+    options.push({ value, label: member ? w.who.member(member) : w.who.client(client ?? "") });
+  }
+  return (
+    <Select
+      className="wa-conv__who-is"
+      size="sm"
+      aria-label={w.who.label}
+      value={value}
+      disabled={set.isPending}
+      options={options}
+      onValueChange={(next) =>
+        set.mutate(
+          {
+            chatId,
+            member: next.startsWith("m:") ? next.slice(2) : null,
+            client: next.startsWith("c:") ? next.slice(2) : null,
+          },
+          { onError: (e) => toast.show(say(e), "error") },
+        )
+      }
+    />
+  );
 }
 
 /** One conversation in the list. */
@@ -492,6 +551,15 @@ function Conversation({
             chat?.name && chat.phone && <span className="wa-conv__phone">{showPhone(chat.phone)}</span>
           )}
         </span>
+        {chat && !chat.group && (
+          <ContactWho
+            account={account}
+            chatId={chatId}
+            member={chat.member ?? null}
+            client={chat.client ?? null}
+            w={w}
+          />
+        )}
         {chat?.agent && (
           <Switch
             className="wa-conv__agent"
