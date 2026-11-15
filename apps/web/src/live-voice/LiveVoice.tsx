@@ -3,8 +3,9 @@ import { useApi, useChannelLiveRoom, useLiveVoice } from "@agenteschat/client";
 import { errorText } from "@agenteschat/client/lib/errors";
 import type { FloorAgent } from "@agenteschat/client/lib/live-floor";
 import { can } from "@agenteschat/client/lib/permissions";
+import { playSound } from "@agenteschat/client/lib/sounds";
 import { Avatar, Button, Checkbox, Dialog, DialogBody, DialogFooter, Icon, Segmented, Textarea } from "@agenteschat/ui";
-import { Link } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import {
   createContext,
   type ReactNode,
@@ -50,7 +51,7 @@ interface LiveVoiceApi {
     channelId: string,
     agentIds: string[],
     title: string,
-    options?: { mode?: "live" | "maestro"; topic?: string | null },
+    options?: { mode?: "live" | "maestro"; topic?: string | null; invite?: string[] },
   ): void;
   /** Maestro calls work on this server (docs/adr/doug-0006-live-voice.md §11). */
   maestro: boolean;
@@ -95,7 +96,7 @@ export function LiveVoiceProvider({ children }: { children: ReactNode }) {
       channelId: string,
       agentIds: string[],
       title: string,
-      options?: { mode?: "live" | "maestro"; topic?: string | null },
+      options?: { mode?: "live" | "maestro"; topic?: string | null; invite?: string[] },
     ) => {
       setMinimized(false);
       if (room && room.channelId === channelId && room.call.getState().phase === "live") return;
@@ -136,6 +137,24 @@ export function LiveVoiceProvider({ children }: { children: ReactNode }) {
       void call.start();
     },
     [listen],
+  );
+
+  // Someone called this person into a call: their app rings until they join, say no, or it gives up.
+  const [ring, setRing] = useState<Ring | null>(null);
+  useEffect(
+    () =>
+      connection?.onUserEvent((e) => {
+        const event = e as { type: string; [key: string]: unknown };
+        if (event.type !== "live.ring" || typeof event.channelId !== "string") return;
+        setRing({
+          roomId: String(event.roomId),
+          channelId: event.channelId,
+          channelName: typeof event.channelName === "string" ? event.channelName : null,
+          byName: typeof event.byName === "string" ? event.byName : "",
+          byUserId: typeof event.byUserId === "string" ? event.byUserId : "",
+        });
+      }),
+    [connection],
   );
 
   const preview = useMemo(() => new VoicePreview({ api, orgId: org.id, language }), [api, org.id, language]);
@@ -188,6 +207,17 @@ export function LiveVoiceProvider({ children }: { children: ReactNode }) {
           minimized={minimized}
           onMinimize={setMinimized}
           onClose={() => setRoom(null)}
+        />
+      )}
+      {ring && (
+        <IncomingCall
+          ring={ring}
+          inCall={room?.channelId === ring.channelId && room.call.getState().phase === "live"}
+          onJoin={() => {
+            setRing(null);
+            startRoom(ring.channelId, [], ring.channelName ? `#${ring.channelName}` : "");
+          }}
+          onClose={() => setRing(null)}
         />
       )}
       {listen && <ListenBar session={listen} onClose={() => setListen(null)} />}
@@ -268,6 +298,7 @@ function RoomStage({
   const now = useNow();
   const [captionsOn, setCaptionsOn] = useState(true);
   const [confirmEnd, setConfirmEnd] = useState(false);
+  const [inviting, setInviting] = useState(false);
   const room = state.room;
   const people = room?.people.map((p) => p.userId) ?? [me.user.id];
   const ordered = [me.user.id, ...people.filter((u) => u !== me.user.id)];
@@ -356,6 +387,18 @@ function RoomStage({
         </span>
         <span className="lv-top__acts">
           {state.phase === "joining" && <span className="lv-top__note">{t("liveVoice.room.joining")}</span>}
+          {room && (
+            <Button
+              size="sm"
+              variant="ghost"
+              icon="personAdd"
+              aria-label={t("liveVoice.room.invite")}
+              title={t("liveVoice.room.invite")}
+              onClick={() => setInviting(true)}
+            >
+              {t("liveVoice.room.invite")}
+            </Button>
+          )}
           <Button
             size="sm"
             variant="ghost"
@@ -472,6 +515,7 @@ function RoomStage({
           )}
         </span>
       </footer>
+      {inviting && <InviteDialog call={call} onClose={() => setInviting(false)} />}
       <Dialog
         open={confirmEnd}
         onOpenChange={setConfirmEnd}
@@ -676,6 +720,171 @@ export function CallButton({
   );
 }
 
+interface Ring {
+  roomId: string;
+  channelId: string;
+  channelName: string | null;
+  byName: string;
+  byUserId: string;
+}
+
+/** Rings for this long, then goes (the mention stays in the conversation and the inbox). */
+const RING_MS = 45_000;
+
+function IncomingCall({
+  ring,
+  inCall,
+  onJoin,
+  onClose,
+}: {
+  ring: Ring;
+  /** Already in that call: nothing to answer. */
+  inCall: boolean;
+  onJoin: () => void;
+  onClose: () => void;
+}) {
+  const { t } = useTranslation();
+  const { org } = useOrg();
+  const dir = useDirectory(org.id);
+  const navigate = useNavigate();
+  const by = dir.memberById.get(ring.byUserId);
+  useEffect(() => {
+    if (inCall) return onClose();
+    playSound("attention");
+    const again = setInterval(() => playSound("attention"), 4000);
+    const stop = setTimeout(onClose, RING_MS);
+    return () => {
+      clearInterval(again);
+      clearTimeout(stop);
+    };
+  }, [inCall, onClose]);
+  if (inCall) return null;
+  const name = by?.name ?? ring.byName;
+  return createPortal(
+    <section className="lv-ring" role="alertdialog" aria-label={t("liveVoice.ring.title", { name })}>
+      <Avatar name={name} imageUrl={by?.image ?? undefined} size="md" />
+      <span className="lv-ring__text">
+        <b>{t("liveVoice.ring.title", { name })}</b>
+        <span>{t("liveVoice.ring.where", { channel: ring.channelName ? `#${ring.channelName}` : "" })}</span>
+      </span>
+      <Button size="sm" onClick={onClose}>
+        {t("liveVoice.ring.decline")}
+      </Button>
+      <Button
+        size="sm"
+        variant="primary"
+        onClick={() => {
+          void navigate({ to: "/org/$orgId/c/$channelId", params: { orgId: org.id, channelId: ring.channelId } });
+          onJoin();
+        }}
+      >
+        <HandsetIcon />
+        {t("liveVoice.ring.join")}
+      </Button>
+    </section>,
+    document.body,
+  );
+}
+
+/** The workspace's people to call, but those left out (oneself, who's already on the call). */
+function PeoplePicker({
+  except,
+  picked,
+  onChange,
+}: {
+  except: string[];
+  picked: string[];
+  onChange: (ids: string[]) => void;
+}) {
+  const { t } = useTranslation();
+  const { org } = useOrg();
+  const dir = useDirectory(org.id);
+  const people = dir.members.filter((m) => !except.includes(m.userId));
+  if (!people.length) return <p className="lv-pick__none">{t("liveVoice.invite.none")}</p>;
+  return (
+    <div className="lv-pick">
+      {people.map((person) => {
+        const on = picked.includes(person.userId);
+        return (
+          <div key={person.userId} className="lv-pick__row">
+            <Checkbox
+              id={`lv-person-${person.userId}`}
+              checked={on}
+              disabled={!on && picked.length >= 10}
+              onCheckedChange={(next) =>
+                onChange(next ? [...picked, person.userId] : picked.filter((id) => id !== person.userId))
+              }
+            />
+            <label htmlFor={`lv-person-${person.userId}`} className="lv-pick__label">
+              <Avatar name={person.name ?? ""} imageUrl={person.image ?? undefined} size="sm" />
+              <span className="lv-pick__name">{person.name}</span>
+            </label>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function InviteDialog({ call, onClose }: { call: RoomCall; onClose: () => void }) {
+  const { t } = useTranslation();
+  const { org, me } = useOrg();
+  const dir = useDirectory(org.id);
+  const state = useCall(call);
+  const [picked, setPicked] = useState<string[]>([]);
+  const [sending, setSending] = useState(false);
+  const [refused, setRefused] = useState<string[]>([]);
+  const [error, setError] = useState<unknown>(null);
+  const here = [me.user.id, ...(state.room?.people.map((p) => p.userId) ?? [])];
+  const send = async () => {
+    setSending(true);
+    setError(null);
+    try {
+      const out = await call.invite(picked);
+      if (out.refused.length) {
+        setRefused(out.refused);
+        setPicked([]);
+      } else onClose();
+    } catch (e) {
+      setError(e);
+    } finally {
+      setSending(false);
+    }
+  };
+  return (
+    <Dialog
+      open
+      onOpenChange={(open) => !open && onClose()}
+      title={t("liveVoice.invite.title")}
+      description={t("liveVoice.invite.lead")}
+      closeLabel={t("common.close")}
+      width={400}
+    >
+      <DialogBody>
+        <PeoplePicker except={here} picked={picked} onChange={setPicked} />
+        {refused.length > 0 && (
+          <p className="lv-pick__none" role="alert">
+            {t("liveVoice.invite.refused", {
+              names: refused.map((id) => dir.memberById.get(id)?.name ?? "").join(", "),
+            })}
+          </p>
+        )}
+        {error ? (
+          <p className="lv-pick__none" role="alert">
+            {errorText(t, error)}
+          </p>
+        ) : null}
+      </DialogBody>
+      <DialogFooter>
+        <Button onClick={onClose}>{t("common.cancel")}</Button>
+        <Button variant="primary" disabled={!picked.length || sending} onClick={() => void send()}>
+          {t("liveVoice.invite.send")}
+        </Button>
+      </DialogFooter>
+    </Dialog>
+  );
+}
+
 function StartCallDialog({
   agents,
   available,
@@ -685,13 +894,15 @@ function StartCallDialog({
 }: {
   agents: Agent[];
   available: boolean;
-  /** The server runs maestro calls (§11): offered first, and it needs no GPT-Live key. */
+  /** The server runs maestro calls (§11): offered after the GPT-Live room, and the only kind without its key. */
   maestro: boolean;
   onClose: () => void;
-  onStart: (agentIds: string[], options: { mode: "live" | "maestro"; topic: string | null }) => void;
+  onStart: (agentIds: string[], options: { mode: "live" | "maestro"; topic: string | null; invite: string[] }) => void;
 }) {
   const { t } = useTranslation();
-  const [mode, setMode] = useState<"live" | "maestro">(maestro ? "maestro" : "live");
+  const { me } = useOrg();
+  const [people, setPeople] = useState<string[]>([]);
+  const [mode, setMode] = useState<"live" | "maestro">(available || !maestro ? "live" : "maestro");
   const [topic, setTopic] = useState("");
   const canPick = mode === "maestro" || available;
   const [picked, setPicked] = useState<string[]>(() =>
@@ -716,8 +927,8 @@ function StartCallDialog({
             value={mode}
             onValueChange={setMode}
             options={[
-              { value: "maestro", label: t("liveVoice.call.modeMaestro") },
               { value: "live", label: t("liveVoice.call.modeLive") },
+              { value: "maestro", label: t("liveVoice.call.modeMaestro") },
             ]}
           />
         )}
@@ -743,7 +954,7 @@ function StartCallDialog({
             );
           })}
         </div>
-        {mode === "maestro" && picked.length > 0 && (
+        {canPick && picked.length > 0 && (
           <div className="lv-topic">
             <label className="lv-topic__label" htmlFor="lv-topic">
               {t("liveVoice.call.topic")}
@@ -759,10 +970,17 @@ function StartCallDialog({
           </div>
         )}
         {!canPick && <KeyWhere />}
+        <div className="lv-topic">
+          <span className="lv-topic__label">{t("liveVoice.call.people")}</span>
+          <PeoplePicker except={[me.user.id]} picked={people} onChange={setPeople} />
+        </div>
       </DialogBody>
       <DialogFooter>
         <Button onClick={onClose}>{t("common.cancel")}</Button>
-        <Button variant="primary" onClick={() => onStart(canPick ? picked : [], { mode, topic: topic.trim() || null })}>
+        <Button
+          variant="primary"
+          onClick={() => onStart(canPick ? picked : [], { mode, topic: topic.trim() || null, invite: people })}
+        >
           {picked.length ? t("liveVoice.call.startWith", { count: picked.length }) : t("liveVoice.call.peopleOnly")}
         </Button>
       </DialogFooter>

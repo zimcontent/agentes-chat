@@ -254,6 +254,16 @@ async function loadStage(deps: LiveVoiceDeps, room: Room, language: string): Pro
     new Map(rows.map((r) => [r.id, r.voice ?? ""])),
     voices,
   );
+  // A voice picked here is kept: the agent sounds the same on its next call, whoever else is on it.
+  for (const a of team) {
+    const own = rows.find((r) => r.id === a.id)?.callVoice;
+    if (a.voice && a.voice !== own)
+      await deps.db
+        .update(agents)
+        .set({ callVoice: a.voice })
+        .where(eq(agents.id, a.id))
+        .catch(() => {});
+  }
   const stage: Stage = {
     roomId: room.id,
     orgId: room.orgId,

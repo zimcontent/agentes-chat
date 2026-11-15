@@ -119,6 +119,19 @@ second (about US$ 0.05 a minute), 15 seconds at least for a WebRTC session.
     - **Work during the call** as in §10: the line says "já vejo", the request goes to the conversation mentioning the
       agent, and the answer is told at the next pause. The running cost of voice and transcription shows on the call.
 
+### Addendum 2026-11-15: the GPT-Live room stays the default
+
+After trying both, the GPT-Live room (§10) sounded better than the maestro (§11): one speech model per agent keeps
+its own voice, timing and interruptions, where the maestro's transcription, text model and synthesis add a beat to
+every turn. So the call dialog offers the GPT-Live room first (the maestro stays as an option, and is the only one
+without the workspace's key), and the room takes what worked in the maestro:
+
+- Every voice gets the maestro's speech rules (`CALL_STYLE` in `live-voice-prompt.ts`, cut from `live-call.md`: short
+  lines, react by name, numbers in words, never a fact it wasn't given), the meeting's topic, and the workspace's and
+  its own call notes.
+- A name speech to text got slightly wrong still passes the word (`namedAgent` in `live-floor.ts`, the same rule as
+  `addressedIn`).
+
 ## Consequences
 
 - Live voice is optional and costs nothing until a workspace adds a key; calls between people alone need no key.

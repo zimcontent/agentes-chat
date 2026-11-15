@@ -175,7 +175,10 @@ export class RoomCall {
   }
 
   // ── Start, join, leave ──
-  async start(agentIds: string[], options: { mode?: "live" | "maestro"; topic?: string | null } = {}) {
+  async start(
+    agentIds: string[],
+    options: { mode?: "live" | "maestro"; topic?: string | null; invite?: string[] } = {},
+  ) {
     try {
       this.mic = await navigator.mediaDevices.getUserMedia({
         audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true },
@@ -185,10 +188,13 @@ export class RoomCall {
       this.watch(`person:${this.o.me}`, this.micSource);
       this.off =
         this.o.connection?.onUserEvent((e) => this.onEvent(e as { type: string; [key: string]: unknown })) ?? null;
+      const { invite, ...join } = options;
       const room = await this.o.api.liveVoice.joinRoom(this.o.orgId, this.o.channelId, agentIds, {
-        ...options,
+        ...join,
         language: this.o.language,
       });
+      if (invite?.length)
+        void this.o.api.liveVoice.invite(this.o.orgId, room.id, invite, this.o.language).catch(() => {});
       this.lines = [...room.lines];
       this.set({
         phase: "live",
@@ -203,6 +209,13 @@ export class RoomCall {
       this.set({ phase: "failed", error });
       this.teardown();
     }
+  }
+
+  /** Calls people in: they are mentioned in the conversation (a notification on their devices) and their apps ring. */
+  async invite(userIds: string[]) {
+    const room = this.state.room;
+    if (!room || !userIds.length) return { invited: [], refused: [] };
+    return this.o.api.liveVoice.invite(this.o.orgId, room.id, userIds, this.o.language);
   }
 
   /** Leaves; the others go on (the host's place passes to the next person). */

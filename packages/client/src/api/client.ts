@@ -496,6 +496,13 @@ export interface ApiClient {
     ): Promise<{ text: string }>;
     /** A person started talking on a maestro call: every voice stops. */
     hush(orgId: string, roomId: string): Promise<void>;
+    /** Calls people into the call (added to the conversation when needed, mentioned there, rung). */
+    invite(
+      orgId: string,
+      roomId: string,
+      userIds: string[],
+      language?: string | null,
+    ): Promise<{ invited: string[]; refused: string[] }>;
     /** Where an agent's line on a maestro call streams from (an `<audio>` source, same origin). */
     speechUrl(orgId: string, roomId: string, utteranceId: string): string;
     ping(orgId: string, roomId: string): Promise<LiveRoom>;

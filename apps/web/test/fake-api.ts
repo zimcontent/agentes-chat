@@ -1538,6 +1538,7 @@ export function createFakeHttpApi(state: FakeState): Omit<HttpApi, FakedParts> {
       }),
       heard: async () => ({ text: "" }),
       hush: async () => {},
+      invite: async () => ({ invited: [], refused: [] }),
       speechUrl: () => "",
       startSession: async () => {
         throw new ApiError(404, "not_found", "Not found");

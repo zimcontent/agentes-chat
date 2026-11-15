@@ -1172,6 +1172,10 @@ export function createHttpApi(options: TransportOptions = {}): HttpApi {
         return files.upload<{ text: string }>(`${org(orgId)}/live-rooms/${enc(roomId)}/heard`, form);
       },
       hush: (orgId, roomId) => request<void>(`${org(orgId)}/live-rooms/${enc(roomId)}/hush`, { json: {} }),
+      invite: (orgId, roomId, userIds, language) =>
+        request<{ invited: string[]; refused: string[] }>(`${org(orgId)}/live-rooms/${enc(roomId)}/invite`, {
+          json: { userIds, language },
+        }),
       speechUrl: (orgId, roomId, utteranceId) =>
         `${base}${org(orgId)}/live-rooms/${enc(roomId)}/speech/${enc(utteranceId)}`,
       ping: (orgId, roomId) => request<LiveRoom>(`${org(orgId)}/live-rooms/${enc(roomId)}/ping`, { json: {} }),

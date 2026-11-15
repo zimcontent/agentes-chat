@@ -63,7 +63,23 @@ const SPEECH_RULES = (language: string) =>
     `Speak ${language}, unless the person speaks another language to you.`,
     "Talk the way a colleague talks on a call: warm, natural, short turns. No lists, headings or markdown.",
     "Never read out links, ids, code or long numbers: say what they are.",
+    "Keep one voice the whole time: the same accent, pitch and way of speaking from the first word to the last. Never imitate anyone else's voice.",
   ].join("\n");
+
+/**
+ * How a line sounds on a call, the same rules `live-call.md` gives the maestro (§11), cut to what a speaking model
+ * needs: short, spoken, honest about what it knows.
+ */
+const CALL_STYLE = [
+  "# How you talk on this call",
+  "- Short: one or two sentences, about five to eight seconds. Longer only when someone asks for detail, and then a summary first.",
+  "- Speak only to add something: a fact, a decision, a risk, your role's angle, a disagreement. Agreeing, thanking or restating what was just said is not a reason to speak.",
+  '- React by name before adding, like colleagues do ("Boa, Rosa, e tem mais um ponto…", "Discordo um pouco…"). Never start two turns with the same word, never "Ótima pergunta".',
+  "- One question per turn at most. Give your recommendation and why instead of a menu of options.",
+  "- Numbers as they are spoken: money, dates and percentages in words.",
+  "- NEVER STATE A FACT YOU WERE NOT GIVEN: no deadline, number, status, date or \"it's done\" that isn't in the call, the conversation or your instructions. Don't guess to keep the talk going: say you'll check and delegate. Opinions from your role are fine, said as opinions (\"eu faria…\").",
+  "- If you were cut off, don't finish the old sentence later: react to what was said since.",
+].join("\n");
 
 export function callInstructions(input: {
   agent: VoiceAgent;
@@ -82,6 +98,12 @@ export function callInstructions(input: {
   callSoFar: ChatLine[];
   host: boolean;
   language: string | null;
+  /** What the meeting is for, when whoever started it said. */
+  topic?: string | null;
+  /** The workspace's notes on how its agents behave on calls. */
+  workspaceNotes?: string | null;
+  /** This agent's own notes for calls. */
+  agentNotes?: string | null;
 }) {
   const crowd = input.others.length > 0 || input.people.length > 1;
   const everyone = input.people.join(", ");
@@ -113,13 +135,25 @@ export function callInstructions(input: {
         .filter(Boolean)
         .join("\n")
     : "";
+  const topic = input.topic?.trim();
   const start = input.host
-    ? `When the call connects, greet ${everyone} in one short sentence and ask what they want to work on.`
+    ? topic
+      ? `When the call connects, greet ${everyone} in one short sentence and open the topic.`
+      : `When the call connects, greet ${everyone} in one short sentence and ask what they want to work on.`
     : "Don't speak until you are given the word or someone speaks to you.";
+  const notes = [
+    input.workspaceNotes?.trim() && `# This workspace's notes for calls\n${cut(input.workspaceNotes.trim(), 1500)}`,
+    input.agentNotes?.trim() && `# Your own notes for calls\n${cut(input.agentNotes.trim(), 1500)}`,
+  ]
+    .filter(Boolean)
+    .join("\n\n");
   return [
     whoYouAre(input.agent, input.orgName, input.orgContext),
     `# This is a live voice call${input.channel ? ` from #${input.channel}` : ""}\nOn the call:\n${onCall}`,
     SPEECH_RULES(languageName(input.language)),
+    CALL_STYLE,
+    topic ? `# What this meeting is for\n${untrustedBlock("topic", cut(topic, 500), 600)}` : "",
+    notes,
     turns,
     [
       "# Working during the call",

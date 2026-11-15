@@ -100,6 +100,15 @@ export function liveVoiceFor(agentId: string, chosen?: string | null): string {
   return AUTO_VOICES[hash % AUTO_VOICES.length] ?? DEFAULT_LIVE_VOICE;
 }
 
+/**
+ * The voices an agent with none picked may get, its own first (`liveVoiceFor`): the next ones when a colleague already
+ * has it, so every agent of a workspace sounds like itself.
+ */
+export function liveVoiceChoices(agentId: string): string[] {
+  const own = AUTO_VOICES.indexOf(liveVoiceFor(agentId) as (typeof AUTO_VOICES)[number]);
+  return [...AUTO_VOICES.slice(own), ...AUTO_VOICES.slice(0, own)];
+}
+
 /** What `seconds` of live voice cost, in nano-USD (the minimum billed included). */
 export const liveVoiceCost = (seconds: number) =>
   Math.max(LIVE_VOICE_MIN_SECONDS, Math.ceil(seconds)) * LIVE_VOICE_NANO_USD_PER_SECOND;

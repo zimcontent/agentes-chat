@@ -69,7 +69,28 @@ export function namesOf(agent: FloorAgent): string[] {
 
 const escapeRegExp = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
-/** The agent a line speaks to: the first one named in it (whole words), or null. */
+/** Letters to add, drop or change to turn one word into the other; past `max` by length alone, `max + 1`. */
+export function distance(a: string, b: string, max: number) {
+  if (Math.abs(a.length - b.length) > max) return max + 1;
+  let prev = Array.from({ length: b.length + 1 }, (_, j) => j);
+  for (let i = 1; i <= a.length; i++) {
+    const row = [i];
+    for (let j = 1; j <= b.length; j++)
+      row[j] = Math.min(
+        (prev[j] ?? 0) + 1,
+        (row[j - 1] ?? 0) + 1,
+        (prev[j - 1] ?? 0) + (a[i - 1] === b[j - 1] ? 0 : 1),
+      );
+    prev = row;
+  }
+  return prev[b.length] ?? max + 1;
+}
+
+/**
+ * The agent a line speaks to: the first one named in it (whole words), or null. Speech to text gets names wrong now and
+ * then ("Napoleon" for Napoleão): when nobody is named exactly, a word close to a first name of 5 letters or more (one
+ * letter off, two from 8 letters) counts, as on a maestro call (`addressedIn`).
+ */
 export function namedAgent(text: string, agents: FloorAgent[], except?: string | null): string | null {
   const folded = fold(text);
   let best: { id: string; at: number } | null = null;
@@ -78,6 +99,16 @@ export function namedAgent(text: string, agents: FloorAgent[], except?: string |
     for (const name of namesOf(agent)) {
       const match = new RegExp(`(^|[^\\p{L}\\p{N}])${escapeRegExp(name)}(?=$|[^\\p{L}\\p{N}])`, "u").exec(folded);
       if (match && (!best || match.index < best.at)) best = { id: agent.id, at: match.index };
+    }
+  }
+  if (best) return best.id;
+  for (const word of folded.matchAll(/[\p{L}\p{N}]{5,}/gu)) {
+    for (const agent of agents) {
+      if (agent.id === except) continue;
+      const first = fold(agent.name).trim().split(/\s+/)[0] ?? "";
+      const max = first.length >= 8 ? 2 : 1;
+      if (first.length >= 5 && distance(word[0], first, max) <= max && (!best || (word.index ?? 0) < best.at))
+        best = { id: agent.id, at: word.index ?? 0 };
     }
   }
   return best?.id ?? null;

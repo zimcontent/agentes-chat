@@ -4,8 +4,10 @@ import {
   channelLiveRoom,
   endLiveRoom,
   endLiveSession,
+  inviteToLiveRoom,
   joinLiveRoom,
   LIVE_ROOM_MAX_AGENTS,
+  LIVE_ROOM_MAX_INVITES,
   type LiveVoiceDeps,
   leaveLiveRoom,
   liveVoiceView,
@@ -529,6 +531,37 @@ export function liveVoiceRoutes(deps: AppDeps) {
         language: form.language ?? "pt-BR",
       });
       return c.json(out, 200);
+    },
+  );
+
+  app.openapi(
+    createRoute({
+      method: "post",
+      path: "/organizations/{orgId}/live-rooms/{roomId}/invite",
+      tags,
+      security,
+      summary: "Calls people into the call: added to the conversation when needed, mentioned there, and rung",
+      request: {
+        params: RoomParams,
+        body: body(
+          z.object({
+            userIds: z.array(z.string().min(1).max(64)).min(1).max(LIVE_ROOM_MAX_INVITES),
+            language: z.string().max(20).nullish(),
+          }),
+        ),
+      },
+      responses: {
+        200: json(z.object({ invited: z.array(z.string()), refused: z.array(z.string()) }), "Who was called"),
+        ...errors,
+        ...tooMany,
+      },
+    }),
+    async (c) => {
+      const user = c.get("user");
+      if (!(await allowed(`live-invite:${user.id}`, { limit: 30, windowMs: 60_000 })))
+        return apiError(c, 429, "rate_limited", "Too many.");
+      const { orgId, roomId } = c.req.valid("param");
+      return c.json(await inviteToLiveRoom(live(), user.id, orgId, roomId, c.req.valid("json")), 200);
     },
   );
 
