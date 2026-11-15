@@ -1,4 +1,5 @@
 import {
+  DESIGN_REVIEW_NOTE_KINDS,
   timecode,
   useAddReviewNote,
   useAddVoiceReviewNote,
@@ -29,6 +30,11 @@ export interface Draft {
   endMs: number | null;
   x: number | null;
   y: number | null;
+  /**
+   * A design piece's slide (docs/adr/doug-0010-design-review.md): `null` the whole piece, absent a video. A piece
+   * has no time: no stretch to mark, and its own kinds (text, type, color, image, layout).
+   */
+  page?: number | null;
 }
 
 type Item =
@@ -96,7 +102,8 @@ export function NoteDraft({
     [],
   );
 
-  const whole = draft.atMs === null;
+  const design = draft.page !== undefined;
+  const whole = design ? draft.page === null : draft.atMs === null;
   const busy = items.some((i) => i.type === "file" && i.state === "up");
   const attachments: VideoReviewAttachmentInput[] = items.flatMap((i): VideoReviewAttachmentInput[] =>
     i.type === "link"
@@ -108,8 +115,9 @@ export function NoteDraft({
   const ready = (body.trim().length > 0 || attachments.length > 0) && !busy && !add.isPending;
   const where = {
     version,
-    atMs: draft.atMs,
-    endMs: draft.endMs,
+    atMs: design ? null : draft.atMs,
+    endMs: design ? null : draft.endMs,
+    ...(design ? { page: draft.page ?? null } : {}),
     kind,
     x: draft.x,
     y: draft.y,
@@ -205,8 +213,11 @@ export function NoteDraft({
     }
   };
 
-  const at =
-    draft.atMs === null
+  const at = design
+    ? draft.page === null || draft.page === undefined
+      ? w.design.wholeTitle
+      : w.design.slideShort(draft.page)
+    : draft.atMs === null
       ? w.wholeTitle
       : draft.endMs !== null
         ? w.stretch(`${timecode(draft.atMs)}–${timecode(draft.endMs)}`)
@@ -218,7 +229,7 @@ export function NoteDraft({
         <Text variant="subhead" style={styles.bold}>
           {at}
         </Text>
-        {whole ? null : (
+        {whole || design ? null : (
           <Pressable
             onPress={() => {
               tapHaptic();
@@ -236,7 +247,7 @@ export function NoteDraft({
       </View>
 
       <View style={styles.kinds} accessibilityLabel={w.kindLabel}>
-        {VIDEO_REVIEW_NOTE_KINDS.map((k) => {
+        {(design ? DESIGN_REVIEW_NOTE_KINDS : VIDEO_REVIEW_NOTE_KINDS).map((k) => {
           const on = kind === k;
           return (
             <Pressable
@@ -271,7 +282,15 @@ export function NoteDraft({
           }
           setBody(text);
         }}
-        placeholder={kind === "broll" ? w.brollPlaceholder : whole ? w.wholePlaceholder : w.placeholder}
+        placeholder={
+          kind === "broll"
+            ? w.brollPlaceholder
+            : whole
+              ? design
+                ? w.design.wholePlaceholder
+                : w.wholePlaceholder
+              : w.placeholder
+        }
         placeholderTextColor={c.faint}
         accessibilityLabel={w.placeholder}
         multiline

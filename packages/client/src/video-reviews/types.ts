@@ -1,15 +1,20 @@
 /** Video review (docs/adr/doug-0007-video-review.md): what the server answers. */
 
 export type VideoReviewStatus = "in_review" | "changes" | "approved";
+/** A video, or a design piece: slides as pictures and the page they were drawn from (docs/adr/doug-0010-design-review.md). */
+export type ReviewMedium = "video" | "design";
 
 export interface VideoReviewSummary {
   id: string;
+  medium: ReviewMedium;
   title: string;
   client: string;
   status: VideoReviewStatus;
   version: number;
   /** The newest version's video file. */
   artifactId: string | null;
+  /** A design piece's first slide (a picture file), from its newest version with pictures. */
+  cover: string | null;
   agent: { id: string; name: string; handle: string } | null;
   channelId: string;
   threadId: string | null;
@@ -26,6 +31,8 @@ export interface VideoReviewNote {
   atMs: number | null;
   /** Where a stretch ends; null: one point. */
   endMs: number | null;
+  /** A design piece's slide, from 1; null: a video, or the whole piece. */
+  page: number | null;
   kind: VideoReviewNoteKind | null;
   /** Where on the picture the reviewer pointed (fractions of width and height); null: nowhere in particular. */
   x: number | null;
@@ -47,10 +54,24 @@ export interface VideoReview extends VideoReviewSummary {
   /** The task, the footage, the delivery. */
   links: { label: string; url: string }[];
   /** `light`: its light copy for phones is ready (`videoUrl` plays it unless `original`). */
-  versions: { version: number; artifactId: string; note: string; light: boolean; createdAt: string }[];
+  versions: VideoReviewVersion[];
   notes: VideoReviewNote[];
   decidedBy: { id: string; name: string } | null;
   decidedAt: string | null;
+}
+
+export interface VideoReviewVersion {
+  version: number;
+  artifactId: string;
+  note: string;
+  light: boolean;
+  /** A design version's slides (picture files), in order; [] for a video or a page edited by hand. */
+  pages: string[];
+  /** A design version has an editable page. */
+  source: boolean;
+  /** Who made this version in the editor; null: the agent. */
+  editedBy: { id: string; name: string } | null;
+  createdAt: string;
 }
 
 export type VideoReviewDecision = "approve" | "changes";
@@ -64,12 +85,15 @@ export type VideoReviewAttachmentInput = { artifactId: string; name?: string } |
 
 /** What a note is about, as the reviewer tagged it (the engine's `REVIEW_NOTE_KINDS`). */
 export const VIDEO_REVIEW_NOTE_KINDS = ["cut", "text", "motion", "sound", "color", "broll", "other"] as const;
-export type VideoReviewNoteKind = (typeof VIDEO_REVIEW_NOTE_KINDS)[number];
+/** A design piece's kinds, in the order the note box shows them. */
+export const DESIGN_REVIEW_NOTE_KINDS = ["text", "type", "color", "image", "layout", "other"] as const;
+export type VideoReviewNoteKind = (typeof VIDEO_REVIEW_NOTE_KINDS)[number] | (typeof DESIGN_REVIEW_NOTE_KINDS)[number];
 
 export interface VideoReviewNoteInput {
   version: number;
   atMs: number | null;
   endMs?: number | null;
+  page?: number | null;
   kind?: VideoReviewNoteKind | null;
   x?: number | null;
   y?: number | null;
@@ -83,9 +107,18 @@ export interface VideoReviewVoiceInput {
   version: number;
   atMs: number | null;
   endMs?: number | null;
+  page?: number | null;
   kind?: VideoReviewNoteKind | null;
   x?: number | null;
   y?: number | null;
   attachments?: VideoReviewAttachmentInput[];
   language?: string;
+}
+
+/** A design piece edited by hand, saved as its next version. */
+export interface DesignEditInput {
+  /** The version the editor opened: a newer one arriving meanwhile refuses the save. */
+  baseVersion: number;
+  html: string;
+  note?: string;
 }

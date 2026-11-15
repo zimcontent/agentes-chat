@@ -25,6 +25,7 @@ import type {
   VaultScope,
 } from "../vault/types";
 import type {
+  DesignEditInput,
   VideoReview,
   VideoReviewDecision,
   VideoReviewNote,
@@ -2264,6 +2265,12 @@ export interface ApiClient {
       reviewId: string,
       input: { decision: VideoReviewDecision; message?: string },
     ): Promise<VideoReviewSummary>;
+    /** A design version's slide, as a picture (`page` from 1). */
+    pageUrl?(orgId: string, reviewId: string, version: number, page: number): string;
+    /** A design version's editable page, as text (run only in an isolated frame). */
+    source?(orgId: string, reviewId: string, version: number): Promise<string>;
+    /** Saves a design piece edited by hand as its next version. */
+    saveDesign?(orgId: string, reviewId: string, input: DesignEditInput): Promise<VideoReviewSummary>;
   };
   whatsapp?: {
     overview(orgId: string): Promise<WhatsAppOverview>;

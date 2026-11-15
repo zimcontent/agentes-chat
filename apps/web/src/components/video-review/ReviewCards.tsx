@@ -52,15 +52,21 @@ function ReviewCard({ review, w }: { review: VideoReviewSummary; w: ReviewWords 
   const meta = [review.client, w.version(review.version), review.openNotes > 0 ? w.notesOpen(review.openNotes) : ""]
     .filter(Boolean)
     .join(" · ");
+  const design = review.medium === "design";
   return (
     <Link
       to="/org/$orgId/review/$reviewId"
       params={{ orgId: org.id, reviewId: review.id }}
       className="vr-card"
-      aria-label={`${w.openVideo}: ${review.title}`}
+      aria-label={`${design ? w.design.open : w.openVideo}: ${review.title}`}
+      data-medium={review.medium}
     >
       <span className="vr-card__poster" aria-hidden="true">
-        {review.artifactId ? (
+        {design ? (
+          review.cover ? (
+            <img src={api.artifacts.fileUrl(org.id, review.cover)} alt="" loading="lazy" draggable={false} />
+          ) : null
+        ) : review.artifactId ? (
           <video
             src={`${api.artifacts.fileUrl(org.id, review.artifactId)}#t=0.5`}
             preload="metadata"
@@ -69,11 +75,11 @@ function ReviewCard({ review, w }: { review: VideoReviewSummary; w: ReviewWords 
           />
         ) : null}
         <span className="vr-card__play">
-          <Icon name="play" size={16} />
+          <Icon name={design ? "edit" : "play"} size={16} />
         </span>
       </span>
       <span className="vr-card__words">
-        <span className="vr-card__kicker">{w.card}</span>
+        <span className="vr-card__kicker">{design ? w.design.card : w.card}</span>
         <span className="vr-card__title">{review.title}</span>
         {meta && <span className="vr-card__meta">{meta}</span>}
         <span className="vr-card__foot">
@@ -81,7 +87,7 @@ function ReviewCard({ review, w }: { review: VideoReviewSummary; w: ReviewWords 
             {w.status[review.status]}
           </Chip>
           <span className="vr-card__open">
-            {w.open}
+            {design ? w.design.open : w.open}
             <Icon name="chevronRight" size={16} />
           </span>
         </span>

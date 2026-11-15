@@ -1,14 +1,15 @@
-import { useVideoReviews, type VideoReviewSummary } from "@agenteschat/client";
+import { useApi, useVideoReviews, type VideoReviewSummary } from "@agenteschat/client";
+import { Image } from "expo-image";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { RefreshControl, StyleSheet, View } from "react-native";
 import { Button, Chip, EmptyState, GroupedList, GroupedRow, Segmented, SkeletonList, Text } from "@/ui";
 import { router } from "@/ui/navigation";
 import { AgentFace } from "../shared/Face";
-import { useOrgId, usePullRefresh, useWhen } from "../shared/hooks";
+import { useColors, useOrgId, usePullRefresh, useWhen } from "../shared/hooks";
 import { PushedLargeTitle } from "../shared/PushedLargeTitle";
 import { statusIcon, statusTone } from "./logic";
-import { useReviewWords } from "./media";
+import { ownSource, useReviewWords } from "./media";
 
 /** Opens one video's Revisor. */
 export const openReview = (id: string) => router.push(`/review/${id}`);
@@ -74,6 +75,18 @@ export function ReviewsScreen() {
 function ReviewRow({ review: r }: { review: VideoReviewSummary }) {
   const w = useReviewWords();
   const when = useWhen();
+  const api = useApi();
+  const orgId = useOrgId();
+  const c = useColors();
+  // A design piece stands for itself with its first slide (docs/adr/doug-0010-design-review.md).
+  const cover =
+    r.medium === "design" && r.cover ? (
+      <Image
+        source={ownSource(api.artifacts.fileUrl(orgId, r.cover))}
+        style={[styles.cover, { backgroundColor: c.sunken }]}
+        contentFit="cover"
+      />
+    ) : null;
   const facts = [
     r.client,
     w.version(r.version),
@@ -88,8 +101,8 @@ function ReviewRow({ review: r }: { review: VideoReviewSummary }) {
       sub={facts.join(" · ")}
       subLines={2}
       media
-      leading={r.agent ? <AgentFace agentId={r.agent.id} size={36} live={false} /> : undefined}
-      icon={r.agent ? undefined : "play"}
+      leading={cover ?? (r.agent ? <AgentFace agentId={r.agent.id} size={36} live={false} /> : undefined)}
+      icon={cover || r.agent ? undefined : r.medium === "design" ? "image" : "play"}
       below={
         <View style={styles.chip}>
           <Chip tone={statusTone(r.status)} icon={statusIcon(r.status)} label={w.status[r.status]} />
@@ -106,4 +119,5 @@ const styles = StyleSheet.create({
   center: { alignItems: "center", gap: 12, paddingVertical: 32 },
   centerText: { textAlign: "center" },
   chip: { marginTop: 6 },
+  cover: { width: 36, height: 45, borderRadius: 6 },
 });

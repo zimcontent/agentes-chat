@@ -585,6 +585,7 @@ export function createHttpApi(options: TransportOptions = {}): HttpApi {
         form.append("version", String(input.version));
         form.append("atMs", input.atMs === null ? "" : String(Math.round(input.atMs)));
         if (input.endMs != null) form.append("endMs", String(Math.round(input.endMs)));
+        if (input.page != null) form.append("page", String(input.page));
         if (input.kind) form.append("kind", input.kind);
         if (input.x != null && input.y != null) {
           form.append("x", String(input.x));
@@ -598,6 +599,12 @@ export function createHttpApi(options: TransportOptions = {}): HttpApi {
         request<void>(`${org(orgId)}/video-reviews/${enc(reviewId)}/notes/${enc(noteId)}`, { method: "DELETE" }),
       decide: (orgId, reviewId, input) =>
         request<VideoReviewSummary>(`${org(orgId)}/video-reviews/${enc(reviewId)}/decision`, { json: input }),
+      pageUrl: (orgId, reviewId, version, page) =>
+        `${base}${org(orgId)}/video-reviews/${enc(reviewId)}/versions/${version}/pages/${page}`,
+      source: async (orgId, reviewId, version) =>
+        (await files.blob(`${org(orgId)}/video-reviews/${enc(reviewId)}/versions/${version}/source`)).text(),
+      saveDesign: (orgId, reviewId, input) =>
+        request<VideoReviewSummary>(`${org(orgId)}/video-reviews/${enc(reviewId)}/design`, { json: input }),
     },
     whatsapp: {
       overview: (orgId) => request<WhatsAppOverview>(`${org(orgId)}/whatsapp`),
