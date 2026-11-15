@@ -388,7 +388,7 @@ import {
 } from "@/components/RequestCard";
 import { ReturnLine } from "@/components/ReturnLine";
 import { SidePanel } from "@/components/SidePanel";
-import { ActivitySky, ChannelWelcome, colorOf } from "@/components/Sky";
+import { ActivitySky, ChannelWelcome, chartColorOf, colorOf } from "@/components/Sky";
 import { isStoppable, StopButton, useContinueRun, useStopRun, useWasContinued } from "@/components/StopRun";
 import { SearchResultsPanel } from "@/components/search/SearchResultsPanel";
 import { TeamChecks } from "@/components/TeamChecks";
@@ -4812,7 +4812,7 @@ export const TimelineMessage = memo(function TimelineMessage({
                       renderMention={renderMention}
                       wikiLink={wikiLink}
                       channelRefs={channelRefsOf(m.meta)}
-                      accent={colorOf(agent)}
+                      accent={chartColorOf(agent)}
                       pinFrom={
                         m.author.type === "agent" && m.author.id && !m.local && !readOnly
                           ? { messageId: m.id, agentId: m.author.id }

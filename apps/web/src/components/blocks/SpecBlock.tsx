@@ -14,7 +14,7 @@ import { type CSSProperties, useEffect, useId, useLayoutEffect, useMemo, useRef,
 import { useTranslation } from "react-i18next";
 import { ChartAccent, ChartView } from "@/components/ChartBlock";
 import { useOrg } from "@/components/org-context";
-import { colorOf } from "@/components/Sky";
+import { chartColorOf } from "@/components/Sky";
 import { useDirectory } from "@/hooks/useDirectory";
 import { useReveal } from "@/hooks/useReveal";
 import { useToast } from "@/lib/toast";
@@ -127,7 +127,7 @@ export function SpecBlock({
   const same = sent !== null && sent.text === view.send?.text;
 
   return (
-    <ChartAccent.Provider value={colorOf(agent)}>
+    <ChartAccent.Provider value={chartColorOf(agent)}>
       <div
         ref={shown}
         className="live-block__view"
