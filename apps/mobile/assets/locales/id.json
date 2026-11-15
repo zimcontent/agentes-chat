@@ -3,6 +3,6 @@
     "NSPhotoLibraryUsageDescription": "Untuk mengirim gambar di percakapan Anda dan memilih foto agen Anda dan foto Anda sendiri.",
     "NSCameraUsageDescription": "Untuk mengambil foto untuk percakapan Anda, untuk foto agen Anda dan foto Anda sendiri, dan memindai kode QR.",
     "NSPhotoLibraryAddUsageDescription": "Untuk menyimpan gambar dari percakapan Anda ke Foto.",
-    "NSMicrophoneUsageDescription": "Untuk merekam pesan suara di percakapan Anda."
+    "NSMicrophoneUsageDescription": "Untuk merekam pesan suara dan berbicara dalam panggilan suara."
   }
 }

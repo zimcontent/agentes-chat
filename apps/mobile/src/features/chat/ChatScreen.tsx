@@ -142,6 +142,7 @@ import { AgentSetupIntro, useSetupSteps } from "../agents/setup/SetupCard";
 import { usePlanHold } from "../ai/parts";
 import { BrowserCard, BrowserRunCard } from "../browser/BrowserCard";
 import { OpenHandoffProvider } from "../browser/open";
+import { CallButton } from "../call/CallButton";
 import { threadTitle } from "../chats/logic";
 import { ImageMaking } from "../files/ImageMaking";
 import { chatHref, consultationHref, notificationHref } from "../links/logic";
@@ -1756,6 +1757,14 @@ function Chat({
           )
         ) : dmComputer ? (
           <DmComputerButton agentId={dmComputer.agentId} onOpen={leavePlace} />
+        ) : null}
+        {/* A voice call here (an agent's DM calls the agent), as the web's header (docs/adr/doug-0006-live-voice.md). */}
+        {!isThread && (dm || channel?.isMember) ? (
+          <CallButton
+            channelId={channelId}
+            title={dm ? dm.with.name : channel ? `#${groupTitle(channel)}` : title}
+            dmAgentId={dmAgentId}
+          />
         ) : null}
         {/* A DM searches from its "…" (its name and the agent's own buttons keep the room). */}
         {searchPlace && !dm ? (

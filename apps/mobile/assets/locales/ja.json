@@ -3,6 +3,6 @@
     "NSPhotoLibraryUsageDescription": "会話で画像を送信し、エージェントとあなた自身の写真を選ぶため。",
     "NSCameraUsageDescription": "会話用の写真、エージェントとあなた自身の写真を撮影し、QRコードを読み取るため。",
     "NSPhotoLibraryAddUsageDescription": "会話の画像を写真に保存するために使用します。",
-    "NSMicrophoneUsageDescription": "会話でボイスメッセージを録音するために使用します。"
+    "NSMicrophoneUsageDescription": "ボイスメッセージの録音と音声通話での会話に使用します。"
   }
 }

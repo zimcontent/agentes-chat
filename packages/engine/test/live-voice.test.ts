@@ -15,6 +15,7 @@ import {
   type LiveVoiceDeps,
   leaveLiveRoom,
   liveVoiceView,
+  pickLiveHost,
   pickLiveSpeaker,
   removeLiveVoiceKey,
   saveLiveVoiceKey,
@@ -336,6 +337,40 @@ describe("voice rooms", () => {
     await f.db.insert(schema.agents).values({ ...base, id: doug, handle: "doug", name: "Doug", builtin: "right_hand" });
     const room = await joinLiveRoom(d, f.owner.id, f.org.id, f.general.id, { agentIds: [f.agent.id] });
     expect(room.agentIds).toEqual([doug, f.agent.id]);
+  });
+});
+
+describe("a call from the phone app", () => {
+  test("whoever is on a computer runs the agents' voices; the phone only when nobody else can", async () => {
+    expect(pickLiveHost([{ userId: "a", phone: true }], "a")).toBe("a");
+    expect(pickLiveHost([{ userId: "a", phone: true }, { userId: "b" }], "a")).toBe("b");
+    expect(pickLiveHost([{ userId: "a" }, { userId: "b", phone: true }], "a")).toBe("a");
+    expect(
+      pickLiveHost(
+        [
+          { userId: "b", phone: true },
+          { userId: "c", phone: true },
+        ],
+        "a",
+      ),
+    ).toBe("b");
+
+    f = await setup();
+    const d = deps(openai().fetch);
+    await saveLiveVoiceKey(d, f.owner.id, f.org.id, KEY);
+    const bia = await addMember(f.db, f.org.id, "member", "Bia");
+    await f.db.insert(schema.channelMembers).values({ orgId: f.org.id, channelId: f.general.id, userId: bia.id });
+    // Started on the phone: its app runs the agents while it is alone.
+    const room = await joinLiveRoom(d, f.owner.id, f.org.id, f.general.id, { agentIds: [f.agent.id], phone: true });
+    expect(room.hostUserId).toBe(f.owner.id);
+    expect(room.people).toEqual([expect.objectContaining({ userId: f.owner.id, phone: true })]);
+    // Bia comes in on her computer: the agents' voices pass to her app, so everyone hears them.
+    const joined = await joinLiveRoom(d, bia.id, f.org.id, f.general.id, { agentIds: [] });
+    expect(joined.hostUserId).toBe(bia.id);
+    // She leaves: back to the phone.
+    await leaveLiveRoom(d, bia.id, f.org.id, room.id);
+    const [after] = await f.db.select().from(schema.liveVoiceRooms);
+    expect(after?.hostUserId).toBe(f.owner.id);
   });
 });
 

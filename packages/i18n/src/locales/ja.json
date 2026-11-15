@@ -10214,6 +10214,17 @@
       "keyAsk": "ワークスペースの管理者に追加を依頼してください。",
       "needsKeyTitle": "{{name}}への発信にはGPT-Liveのキーが必要です"
     },
+    "phone": {
+      "agents": "エージェント",
+      "earpiece": "電話",
+      "speaker": "スピーカー",
+      "toEarpiece": "受話口で聞く",
+      "toSpeaker": "スピーカーにする",
+      "mic": "マイク",
+      "callIn": "呼ぶ",
+      "leave": "退出",
+      "hostNote": "エージェントの声はあなたの電話にだけ聞こえます。全員が聞けるように、誰かがパソコンから参加してください。"
+    },
     "agentCall": {
       "title": "{{name}}との通話",
       "connecting": "{{name}}に発信中…",

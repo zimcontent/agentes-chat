@@ -10634,6 +10634,17 @@
       "keyAsk": "Bitte die Person, die den Workspace verwaltet, ihn hinzuzufügen.",
       "needsKeyTitle": "Für einen Anruf bei {{name}} braucht es einen GPT-Live-Schlüssel"
     },
+    "phone": {
+      "agents": "Agenten",
+      "earpiece": "Telefon",
+      "speaker": "Lautsprecher",
+      "toEarpiece": "Über die Hörmuschel hören",
+      "toSpeaker": "Lautsprecher einschalten",
+      "mic": "Mikrofon",
+      "callIn": "Anrufen",
+      "leave": "Verlassen",
+      "hostNote": "Nur dein Telefon hört die Agenten. Damit alle sie hören, muss jemand am Computer beitreten."
+    },
     "agentCall": {
       "title": "Anruf mit {{name}}",
       "connecting": "{{name}} wird angerufen…",

@@ -3,6 +3,6 @@
     "NSPhotoLibraryUsageDescription": "Pour envoyer des images dans vos conversations et choisir la photo de vos agents et la vôtre.",
     "NSCameraUsageDescription": "Pour prendre des photos pour vos conversations, pour la photo de vos agents et la vôtre, et scanner des QR codes.",
     "NSPhotoLibraryAddUsageDescription": "Pour enregistrer des images de vos conversations dans Photos.",
-    "NSMicrophoneUsageDescription": "Pour enregistrer des messages vocaux dans vos conversations."
+    "NSMicrophoneUsageDescription": "Pour enregistrer des messages vocaux et parler pendant les appels vocaux."
   }
 }

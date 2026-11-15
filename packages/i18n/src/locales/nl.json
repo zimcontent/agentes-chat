@@ -10700,6 +10700,17 @@
       "keyAsk": "Vraag wie de werkruimte beheert om hem toe te voegen.",
       "needsKeyTitle": "Om {{name}} te bellen is een GPT-Live-sleutel nodig"
     },
+    "phone": {
+      "agents": "De agents",
+      "earpiece": "Telefoon",
+      "speaker": "Luidspreker",
+      "toEarpiece": "Via de oorspeaker luisteren",
+      "toSpeaker": "Luidspreker aan",
+      "mic": "Microfoon",
+      "callIn": "Bellen",
+      "leave": "Verlaten",
+      "hostNote": "Alleen je telefoon hoort de agents. Zodat iedereen ze hoort, moet iemand meedoen vanaf een computer."
+    },
     "agentCall": {
       "title": "Gesprek met {{name}}",
       "connecting": "{{name}} bellen…",

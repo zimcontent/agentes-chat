@@ -3,6 +3,6 @@
     "NSPhotoLibraryUsageDescription": "Sohbetlerinde görsel göndermek ve ajanlarının ve kendi fotoğrafını seçmek için.",
     "NSCameraUsageDescription": "Sohbetlerin için, ajanlarının ve kendi fotoğrafın için fotoğraf çekmek ve QR kodlarını taramak için.",
     "NSPhotoLibraryAddUsageDescription": "Sohbetlerinizdeki resimleri Fotoğraflar'a kaydetmek için.",
-    "NSMicrophoneUsageDescription": "Sohbetlerinizde sesli mesaj kaydetmek için."
+    "NSMicrophoneUsageDescription": "Sesli mesaj kaydetmek ve sesli aramalarda konuşmak için."
   }
 }

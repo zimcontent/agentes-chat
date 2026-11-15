@@ -61,7 +61,13 @@ const Room = z
     hostUserId: z.string().nullable().openapi({ description: "Whose app runs the agents' voices." }),
     agentIds: z.array(z.uuid()),
     topic: z.string().nullable(),
-    people: z.array(z.object({ userId: z.string(), joinedAt: z.string() })),
+    people: z.array(
+      z.object({
+        userId: z.string(),
+        joinedAt: z.string(),
+        phone: z.boolean().optional().openapi({ description: "In from the phone app." }),
+      }),
+    ),
     status: z.enum(["live", "ended"]),
     startedAt: z.string(),
     endedAt: z.string().nullable(),
@@ -229,6 +235,10 @@ export function liveVoiceRoutes(deps: AppDeps) {
             agentIds: z.array(z.uuid()).max(LIVE_ROOM_MAX_AGENTS).default([]),
             topic: z.string().max(500).nullable().optional(),
             language: z.string().max(12).optional().openapi({ description: "The app's language (`pt-BR`)." }),
+            phone: z.boolean().optional().openapi({
+              description:
+                "From the phone app: a person on the web or the desktop app runs the agents' voices when one is in.",
+            }),
           }),
         ),
       },

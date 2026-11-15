@@ -120,6 +120,13 @@ export const ICONS = {
   ],
   laptop: [r(5, 5, 14, 10, 1.8), p("M3 18.5h18")],
   phone: [r(7, 3, 10, 18, 2.4), p("M10.5 17.5h3")],
+  // A call's handset and a microphone struck through (the web's call glyphs, docs/adr/doug-0006-live-voice.md).
+  handset: [p("M5 4h3l2 5-2.5 1.5a11 11 0 0 0 6 6L15 14l5 2v3a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2")],
+  micOff: [
+    p("M3 3l18 18"),
+    p("M9 9v3a3 3 0 0 0 5.12 2.12M15 9.34V5a3 3 0 0 0-5.94-.6"),
+    p("M17 16.95A7 7 0 0 1 5 12v-2m14 0v2a7 7 0 0 1-.11 1.23M12 19v3"),
+  ],
   // Each computer's line icon (the small form of its portrait, `ComputerIcon`).
   computerMac: [
     r(4, 4.5, 16, 11, 2),

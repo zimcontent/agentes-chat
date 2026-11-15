@@ -139,6 +139,37 @@ worked in the maestro:
   dialog): one who can't see the conversation is added when the caller may add people there, a message mentions them
   (the mention's notification, push included), and their open apps ring (`live.ring`) with a way in.
 
+### Addendum 2026-11-16: calls in the phone app, and on the desktop app
+
+The same rooms, and the call with one agent from its DM, on iPhone and Android (`apps/mobile/src/features/call/*`):
+
+- **WebRTC on the phone** is `react-native-webrtc` (MIT, with its Expo config plugin), the same browser API the web
+  uses: a connection to each other person on the call (perfect negotiation through the server's `live.signal`), and
+  one GPT-Live session per agent when the phone runs them (`PhoneLeg`, the web's `LiveLeg`).
+- **Where the sound goes** is `react-native-incall-manager` (ISC): the call's audio session (the system's voice
+  processing and echo cancelling), the earpiece by default ("modo telefone", the proximity sensor darkening the screen
+  at the ear), the loudspeaker on a tap ("viva voz"), a headset when one is on.
+- **Who runs the agents.** A phone can't pass audio it receives on to the others (libwebrtc doesn't send a remote
+  track again), so the web's mix of every voice into every agent can't run there. People say where they join from
+  (`phone` on the room's people); the server's `pickLiveHost` keeps the agents with a person on the web or the desktop
+  app whenever one is in, and hands them back to a phone only when nobody on a computer is left. A phone that runs the
+  agents gives them its own microphone; the one with the word is heard (its track enabled) and hears (the session's
+  input unmuted), the others are muted. With other people on phones only, they hear each other but not the agents,
+  and the call says so ("só o seu celular ouve os agentes").
+- **One set of turn rules.** Who has the word, the cues each voice gets, the small model's picks and the answers to
+  work asked on the call are `LiveHost` (`packages/client/src/lib/live-host.ts`), with no audio in it: the phone runs
+  it, tested with fake voices; the web's `RoomCall` still has its own copy of the same rules and moves to it next.
+- **The background.** iOS keeps the call with the screen locked (`UIBackgroundModes` audio), and the workspace's socket
+  stays open while a call is on (`callActive`), for its signals and pings. Android keeps it while the app is open; a
+  foreground service for the microphone in the background, and the system's call screens (CallKit, Android's
+  ConnectionService) for a call that rings with the app closed, are next. Today a call that reaches a closed app is
+  the mention's push, and the app rings (`live.ring`) once it is open.
+
+The desktop app needs no code of its own: its window is the site, and the web view lets it in (on macOS WKWebView's
+microphone requests are granted under the app's own system permission, `NSMicrophoneUsageDescription` and the
+`audio-input` entitlement; on Windows WebView2 asks once per site), and plays the call's audio without a click. The
+microphone's words on both now say they are for calls too.
+
 ## Consequences
 
 - Live voice is optional and costs nothing until a workspace adds a key; calls between people alone need no key.

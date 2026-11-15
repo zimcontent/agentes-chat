@@ -25913,6 +25913,33 @@
   "liveVoice.call.needsKeyTitle": {
     "value": "Calling {{name}} needs a GPT-Live key"
   },
+  "liveVoice.phone.agents": {
+    "value": "Agents"
+  },
+  "liveVoice.phone.earpiece": {
+    "value": "Phone"
+  },
+  "liveVoice.phone.speaker": {
+    "value": "Speaker"
+  },
+  "liveVoice.phone.toEarpiece": {
+    "value": "Use the phone's earpiece"
+  },
+  "liveVoice.phone.toSpeaker": {
+    "value": "Use the speaker"
+  },
+  "liveVoice.phone.mic": {
+    "value": "Mic"
+  },
+  "liveVoice.phone.callIn": {
+    "value": "Call in"
+  },
+  "liveVoice.phone.leave": {
+    "value": "Leave"
+  },
+  "liveVoice.phone.hostNote": {
+    "value": "Only your phone hears the agents. For everyone to hear them, someone joins from a computer."
+  },
   "liveVoice.agentCall.title": {
     "value": "Call with {{name}}"
   },

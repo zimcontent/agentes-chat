@@ -60,6 +60,11 @@ export interface LiveRoomPerson {
   /** Its last sign of life (the app pings while it is in): past a minute, it left. */
   seenAt: string;
   leftAt: string | null;
+  /**
+   * In from the phone app: it can't pass the agents' voices on to the others, so a person on the web or the desktop
+   * app runs them when one is in (docs/adr/doug-0006-live-voice.md, the phone app).
+   */
+  phone?: boolean;
 }
 
 export interface LiveRoomLine {

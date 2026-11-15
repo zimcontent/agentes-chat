@@ -100,6 +100,8 @@ const BUNDLE_ID = `app.dougbot${suffix}`;
 // expo-image-picker and expo-camera both set iOS's camera text: one text for both uses (pt-BR and the other languages
 // in assets/locales/*.json win on phones in those languages).
 const CAMERA_USE = "To take pictures for your conversations and your agents' photos, and to scan QR codes.";
+// Voice messages and voice calls share the microphone's text (expo-audio and react-native-webrtc both set it).
+const MICROPHONE_USE = "To record voice messages and to talk on voice calls.";
 
 /**
  * Paths the app no longer has (the old Início and Conversas routes), sent to Conversas (`/`) so a stale link,
@@ -143,7 +145,8 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     associatedDomains: [`applinks:${linkHost}`],
     // App Store Connect asks about encryption on every build: only the system's HTTPS, so exempt (no export papers).
     config: { usesNonExemptEncryption: false },
-    infoPlist: { ITSAppUsesNonExemptEncryption: false },
+    // A voice call goes on with the screen locked or another app open (docs/adr/doug-0006-live-voice.md, the phone app).
+    infoPlist: { ITSAppUsesNonExemptEncryption: false, UIBackgroundModes: ["audio"] },
   },
   android: {
     package: BUNDLE_ID,
@@ -170,6 +173,8 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       "android.permission.READ_MEDIA_VIDEO",
       "android.permission.READ_MEDIA_VISUAL_USER_SELECTED",
       "android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK",
+      // react-native-webrtc's plugin asks to draw over other apps (picture in picture for video), which calls don't use.
+      "android.permission.SYSTEM_ALERT_WINDOW",
     ],
     intentFilters: [
       {
@@ -262,10 +267,16 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       "expo-audio",
       // No background playback (the plugin's default is on): it would add a media-playback foreground service.
       {
-        microphonePermission: "To record voice messages in your conversations.",
+        microphonePermission: MICROPHONE_USE,
         recordAudioAndroid: true,
         enableBackgroundPlayback: false,
       },
+    ],
+    [
+      // Voice calls (docs/adr/doug-0006-live-voice.md, the phone app): WebRTC to the people on the call and to the
+      // agents' GPT-Live voices. Audio only; the camera's text stays the QR code's.
+      "@config-plugins/react-native-webrtc",
+      { cameraPermission: CAMERA_USE, microphonePermission: MICROPHONE_USE },
     ],
     [
       // "Compartilhar com…": the app in the system's share sheet (an iOS share extension and Android's send intents),

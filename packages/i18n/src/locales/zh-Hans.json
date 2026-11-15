@@ -10280,6 +10280,17 @@
       "keyAsk": "请让工作区的管理员添加。",
       "needsKeyTitle": "呼叫{{name}}需要 GPT-Live 密钥"
     },
+    "phone": {
+      "agents": "智能体",
+      "earpiece": "听筒",
+      "speaker": "扬声器",
+      "toEarpiece": "用听筒收听",
+      "toSpeaker": "打开扬声器",
+      "mic": "麦克风",
+      "callIn": "呼叫",
+      "leave": "离开",
+      "hostNote": "只有你的手机能听到智能体。要让所有人都听到，需要有人从电脑加入。"
+    },
     "agentCall": {
       "title": "与{{name}}通话",
       "connecting": "正在呼叫{{name}}…",
