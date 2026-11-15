@@ -42,7 +42,10 @@ const PAGE_NAME = /\.html?$/i;
  */
 export function outsideReferences(html: string): string[] {
   const found = new Set<string>();
-  const local = (ref: string) => /^(data:|blob:|#|about:)/i.test(ref.trim()) || ref.trim() === "";
+  // `%23` is `#` written inside a data: URL (an SVG's own filter or gradient); an extension's leftover tag loads nothing
+  // in the editor's frame and harms nothing.
+  const local = (ref: string) =>
+    /^(data:|blob:|#|%23|about:|chrome-extension:|moz-extension:)/i.test(ref.trim()) || ref.trim() === "";
   const patterns = [
     /<(?:img|script|source|video|audio|iframe|embed|input)\b[^>]*?\ssrc\s*=\s*["']([^"']*)["']/gi,
     /<link\b[^>]*?\shref\s*=\s*["']([^"']*)["']/gi,

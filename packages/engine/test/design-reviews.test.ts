@@ -79,6 +79,13 @@ describe("design review", () => {
           `<div style="background:url('fundo.png')"></div><a href="https://site.com">ok</a><use href="#s"/>`,
       ),
     ).toEqual(["assets/foto.jpg", "https://fonts.googleapis.com/x", "fundo.png"]);
+    // An SVG's own reference inside a data: URL, and a browser extension's leftover tag, are not outside files.
+    expect(
+      outsideReferences(
+        `<div style="background:url('data:image/svg+xml;utf8,<svg><rect filter=&quot;url(%23n)&quot;/></svg>')"></div>` +
+          `<script src="chrome-extension://abc/executor.js"></script>`,
+      ),
+    ).toEqual([]);
   });
 
   test("an agent sends slides and the page, notes sit on a slide, changes go back with the page", async () => {
