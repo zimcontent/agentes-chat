@@ -85,7 +85,22 @@ export function DmPage({ target, focusMessageId }: { target: DmTarget; focusMess
   const role = agent ? agent.role || `@${agent.handle}` : "";
   // The right hand (ADR 0137) says what it is and whose permissions it acts with, never an owner, nor a model: each
   // person's DM with it thinks with their own AI, shown with its maker's logo in the side panel's Como pensa.
-  const header = ({ onSearch, side }: { onSearch: () => void; side: DmSideControl | null }) => {
+  const agentLine = agent
+    ? rightHand
+      ? `${t("rightHand.label")} · ${t("rightHand.actsAsYou")}`
+      : owner
+        ? t("dm.subtitle", { role, owner: owner.name })
+        : t("dm.subtitleNoOwner", { role })
+    : undefined;
+  const header = ({
+    onSearch,
+    side,
+    searching,
+  }: {
+    onSearch: () => void;
+    side: DmSideControl | null;
+    searching: boolean;
+  }) => {
     // The agent's panel open beside the conversation already shows its owner and how it thinks: the header keeps its role.
     // On a phone the line keeps the role alone too: the rest is one tap away, on the agent's page.
     const sideSays = Boolean(side?.open && side.docked) || compact;
@@ -94,7 +109,7 @@ export function DmPage({ target, focusMessageId }: { target: DmTarget; focusMess
         <NavToggle />
         {/* Who it is with and the header's glyphs: the glyphs go under a name that can't keep its line beside them. */}
         <div className="ac-actline channel__line">
-          <DmWho agentId={agent?.id} userId={person?.userId} label={t("profile.of", { name })}>
+          <DmWho agentId={agent?.id} userId={person?.userId} label={t("profile.of", { name })} tip={agentLine}>
             <div className="dm-who__text">
               {agent ? (
                 <AgentAvatar agentId={agent.id} name={agent.name} />
@@ -132,7 +147,7 @@ export function DmPage({ target, focusMessageId }: { target: DmTarget; focusMess
             {/* A voice call with this agent or person (ADR doug-0006). */}
             <CallButton channelId={dm.data.channelId} title={name} agents={agent ? [agent] : []} dmAgent={agent} />
             {/* The same field as a channel's, held to this DM. */}
-            <HeaderSearch channelId={dm.data.channelId} onOpen={onSearch} dm />
+            <HeaderSearch channelId={dm.data.channelId} onOpen={onSearch} searching={searching} dm />
             {side && (
               <Button
                 size="sm"
@@ -197,11 +212,14 @@ function DmWho({
   agentId,
   userId,
   label,
+  tip,
   children,
 }: {
   agentId?: string;
   userId?: string;
   label: string;
+  /** The agent's line whole: under the name it keeps one line and may end in "…". */
+  tip?: string;
   children: ReactNode;
 }) {
   const openPanel = useOpenAgentPanel();
@@ -215,6 +233,7 @@ function DmWho({
           className="profile-trigger dm-who__hit"
           aria-label={label}
           aria-expanded={shown === agentId}
+          title={tip}
           onClick={() => openPanel?.(agentId)}
         />
       ) : userId ? (

@@ -11,7 +11,7 @@ import {
   readFileSync,
   statSync,
 } from "node:fs";
-import { chmod, mkdir, readFile, rename, rm, writeFile } from "node:fs/promises";
+import { chmod, mkdir, readFile, readlink, rename, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
@@ -22,19 +22,24 @@ import {
   AGENT_BROWSER_SHA256,
   AGENT_BROWSER_VERSION,
   type AgentBrowserTarget,
+  type AgentPointerAct,
   type AgentScope,
   agentBrowserUrl,
   BROWSER_LIMITS,
+  BROWSER_TABS_KEPT,
+  BROWSER_TABS_LISTED,
   BROWSER_VIEW,
   BROWSER_VIEWPORT_SIDE,
   type BrowserHandoffInfo,
   type BrowserInputEvent,
   type BrowserSetup,
   type BrowserStreamMode,
+  type BrowserTabs,
   type BrowserViewport,
   browserViewportOf,
   CHROME_FAILURES,
   CHROMIUM_LINUX,
+  DESKTOP_SIZE,
   type MachineReplies,
   type MachineRequest,
   parseBrowserInputEvent,
@@ -52,6 +57,7 @@ import { type CrashedPage, countChromeTraffic, emulationCommands, type TrafficCo
 import { BROWSER_WM_CLASS } from "./desktop-look";
 import type { DesktopSessions } from "./desktop-session";
 import { RunnerError } from "./errors";
+import { processStartedAt } from "./exec";
 import {
   type Box,
   HUMAN,
@@ -66,6 +72,7 @@ import {
 } from "./human-input";
 import { GOOGLE_CHROME_LINUX, SYSTEM_BROWSER_DIR } from "./install-script";
 import { readJson, writeJson } from "./json-file";
+import { CRASH_WORDS, pageLocale } from "./page-words";
 import { agentFolderName, isInside, ownedSafely } from "./paths";
 import type { Spawn } from "./scope-gate";
 import { prepareStartPage, type StartPageData } from "./start-page";
@@ -175,6 +182,8 @@ import {
 
 /** A session with no command for this long is closed (its Chrome stops; the profile stays). */
 export const BROWSER_IDLE_MS = 15 * 60_000;
+/** A browser its agent keeps that had no command for this long gets its duplicate and blank tabs closed. */
+const TIDY_IDLE_MS = 10 * 60_000;
 /** How often idle browsers are looked for. */
 const SWEEP_MS = 60_000;
 /**
@@ -191,6 +200,8 @@ const WINDOW_MS = 20_000;
  * after it, so the note the launcher shows meanwhile closes under Chrome's window rather than before it.
  */
 const WINDOW_DRAW_MS = 500;
+/** A Chrome whose process exits this soon after it answered was most likely a start handed to another Chrome. */
+const CHROME_HANDOFF_MS = 3000;
 /** A Chrome asked to quit that is still there after this is killed. */
 const CHROME_KILL_MS = 3000;
 /** How long a Chrome gets to close itself (`Browser.close`; it takes a tenth of a second) before it is signaled. */
@@ -445,15 +456,14 @@ const CRASH_STYLE = [
   "h1{margin:0;font-size:17px;font-weight:600}p{margin:4px 0 0;color:#5c5c58}p+h1{margin-top:16px}",
 ].join("");
 
-/** The page a tab that died again shows to the people watching: both languages, since the runner can't tell whose. */
-export function crashPage(memory: boolean): string {
-  const [pt, en] = memory
-    ? ["A página ficou sem memória", "The page ran out of memory"]
-    : ["A página parou de funcionar", "The page stopped working"];
+/** The page a tab that died again shows to the people watching, in the language of the agent's person. */
+export function crashPage(memory: boolean, tag?: string | null): string {
+  const locale = pageLocale(tag);
+  const words = CRASH_WORDS[locale];
+  const title = memory ? words.memory : words.stopped;
   const html =
-    `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>${pt}</title><style>${CRASH_STYLE}</style>` +
-    `</head><body><main><h1>${pt}</h1><p>O agente será avisado.</p>` +
-    `<h1 lang="en">${en}</h1><p lang="en">The agent will be told.</p></main></body></html>`;
+    `<!doctype html><html lang="${locale}"><head><meta charset="utf-8"><title>${title}</title>` +
+    `<style>${CRASH_STYLE}</style></head><body><main><h1>${title}</h1><p>${words.told}</p></main></body></html>`;
   return `data:text/html;charset=utf-8,${encodeURIComponent(html)}`;
 }
 
@@ -806,6 +816,24 @@ export function forgetTabs(profile: string) {
   return rm(path.join(profile, "Default", "Sessions"), { recursive: true, force: true }).catch(() => undefined);
 }
 
+/** A process asked to stop, then killed when it is still there half a second later. */
+async function stopPid(pid: number) {
+  try {
+    process.kill(pid, "SIGTERM");
+  } catch {
+    return;
+  }
+  // On Windows SIGTERM already ends it outright, and 500 ms later its pid may be someone else's.
+  if (process.platform === "win32") return;
+  await new Promise((r) => setTimeout(r, 500));
+  try {
+    process.kill(pid, 0);
+    process.kill(pid, "SIGKILL");
+  } catch {
+    // gone
+  }
+}
+
 /** A Chrome the runner started for one agent. */
 export interface OwnChrome {
   pid: number;
@@ -1045,8 +1073,17 @@ export interface InputState {
 const HUMAN_COMMANDS = new Set(["click", "dblclick", "hover", "fill", "type"]);
 /** Agent commands that may leave a mouse button down when a person's taking control cuts them off. */
 const POINTER_COMMANDS = new Set([...HUMAN_COMMANDS, "mouse", "drag"]);
+/** What the pointer does where each of them takes it, for whoever watches (`browser.pointer`). */
+const POINTER_ACTS: Record<string, AgentPointerAct> = {
+  click: "click",
+  dblclick: "double",
+  fill: "type",
+  type: "type",
+};
 /** What `agent-browser` answers to each when the runner did it itself. */
 const HUMAN_DONE: Record<string, string> = { click: "clicked", hover: "hovered", fill: "filled" };
+/** A command that timed out. The apps match these words (`browserNoAnswerMessage`): keep them. */
+const NO_ANSWER = "The browser didn't answer";
 /** The answer to a command a person's taking control cut short (`stopInput`). */
 const TOOK_OVER: BrowserAnswer = {
   success: false,
@@ -1079,6 +1116,15 @@ const SHOWN_RETRY_MS = 30_000;
 /** Commands that need no page showing: they change which tab it is, or only wait. */
 const NO_PAGE = new Set(["tab", "wait", "dialog", "agentes:viewport"]);
 const VIEWPORT = "[window.innerWidth, window.innerHeight]";
+/**
+ * The same, then where the page's top left corner is on the screen: a window on the agent's desktop has its bars
+ * above the page and a frame as thick on each side as the widths differ. For `desktop.pointer` only.
+ */
+const VIEWPORT_ON_SCREEN =
+  "[innerWidth, innerHeight, screenX + (outerWidth - innerWidth) / 2, screenY + outerHeight - innerHeight - (outerWidth - innerWidth) / 2]";
+/** The page's corner on the screen out of `VIEWPORT_ON_SCREEN`'s answer, when it is there. */
+const screenCorner = (seen: unknown[]): Point | undefined =>
+  typeof seen[2] === "number" && typeof seen[3] === "number" ? { x: seen[2], y: seen[3] } : undefined;
 
 /** A page's size in its own pixels, or null when what was read isn't one. */
 function pageSize(width: unknown, height: unknown): { width: number; height: number } | null {
@@ -1560,6 +1606,8 @@ export interface BrowserManagerOptions {
   /** Root-owned extension in system mode; absent uses the single-user runner home. */
   startPageDirectory?: string;
   startPageData?: (agent: AgentScope) => StartPageData;
+  /** The language of the agent's person (`MachineAgent.locale`), for the pages people see in its browser. */
+  locale?: (agent: AgentScope) => string | undefined;
   /** Restrict WebRTC to the configured network path, without Chrome managed policies. */
   privateNetwork?: () => boolean;
   /** Tests: how to start `agent-browser` (default: the sidecar or the downloaded binary). */
@@ -1619,6 +1667,8 @@ export interface BrowserManagerOptions {
   desktops?: Pick<DesktopSessions, "ensure" | "status"> & { session(agentId: string): ChromeDisplay | null };
   /** Tests: whether a pid left in `chromes.json` is still that Chrome (default: asks the system). */
   isOurChrome?: (pid: number, profile: string) => Promise<boolean>;
+  /** Tests: when a process started (default: `processStartedAt`, Windows only). */
+  startedAt?: (pid: number) => Promise<number | null>;
   /** What `states()` returns may have changed (the desktop app's tray shows it). */
   onChange?: () => void;
 }
@@ -1720,6 +1770,10 @@ interface Session {
   shownUntil?: number;
   /** Its tab was brought to the front and hasn't been seen showing since. */
   broughtUp?: boolean;
+  /** The viewport `pointer` was last said in (`pointerGoes`): a press on a point is said in it too. */
+  pointerView?: { width: number; height: number };
+  /** Where the page's corner was on the agent's desktop then, while its window is there. */
+  pointerCorner?: Point;
   /** Where its `hover` left it. While that is still `pointer` (the same object), a menu it opened is taken to be open. */
   hovered?: Point;
   /**
@@ -1755,6 +1809,12 @@ interface Session {
   heldAt?: number;
   /** The GET guard stopped a request carrying a typed password since the agent last heard (ADR 0144). */
   guardBlocked?: boolean;
+  /** Its tabs a tidy never closes, by target id: popups (sign-in windows) and the ones opened in a person's turn. */
+  keptTabs?: Set<string>;
+  /** What a tidy closed that the agent hasn't heard of yet (`tabLabel`). */
+  tabsClosed?: string[];
+  /** When a sweep last tidied its tabs while it was kept and idle. */
+  tidiedAt?: number;
 }
 
 /** One Chrome in `chromes.json`. */
@@ -1763,6 +1823,8 @@ interface ChromeEntry {
   profile: string;
   /** Headed: the display of the agent's desktop it is on. */
   display?: number;
+  /** When it started (`processStartedAt`, Windows only): with the pid, which process it is. */
+  started?: number;
 }
 
 /** What a command is, as the desktop app words it ("lendo a página", "preenchendo"). */
@@ -1790,6 +1852,18 @@ const DOING: Record<string, ControlBrowserDoing> = {
   pdf: "capturing",
   tab: "tabs",
 };
+
+/** How a tidy closes tabs (`tidyTabs`). */
+type TabsClosing = "all" | "idle" | "none";
+
+/** A tab with nothing in it: the agent's start page, Chrome's new tab, a blank page. */
+const isEmptyTab = (url: string) => url === "about:blank" || isStartPage(url);
+
+/** A tab as the agent is told of it: its host, `blank` when empty, else its kind of address (`chrome:`). */
+export function tabLabel(url: string): string {
+  if (isEmptyTab(url)) return "blank";
+  return pageHost(url) ?? url.split(":")[0]?.slice(0, 20) ?? "";
+}
 
 /** `https://app.acme.example/trips` → `app.acme.example`; null for anything that isn't a web page. */
 export function pageHost(url: string): string | null {
@@ -2116,7 +2190,7 @@ export class BrowserManager {
     req: ActRequest,
     signal?: AbortSignal,
     actor: AgentScope = agent,
-  ): Promise<BrowserAnswer & { setup?: BrowserSetup }> {
+  ): Promise<BrowserAnswer & { setup?: BrowserSetup; tabs?: BrowserTabs }> {
     const allowed = allowedDomainsOf(req.allowedDomains);
     const prepared = this.checkCommand(req.command, req.args, req.timeoutSeconds, folder, allowed);
     // A person drives the browser: only their own commands reach it (`whileDriving`), before and after the queue.
@@ -2151,7 +2225,9 @@ export class BrowserManager {
           { actor, opening },
           call.signal,
         );
-        return (acts ? (this.takeCrash(session, true) ?? this.takeBlocked(session)) : null) ?? done;
+        const told = (acts ? (this.takeCrash(session, true) ?? this.takeBlocked(session)) : null) ?? done;
+        // Preserve tab numbers while reporting the current tabs after the command.
+        return { ...told, ...(await this.tabsNow(session, prepared.command === "tab" ? "none" : "all")) };
       } finally {
         if (!person) session.agentRunning = Math.max(0, (session.agentRunning ?? 1) - 1);
         opening.close();
@@ -2284,11 +2360,16 @@ export class BrowserManager {
         // Each Vault value this batch opened goes with it (ADR 0144).
         opening.close();
       }
-      return { answers, ...withSetup(setup), ...(session.viewport ? { emulated: session.viewport } : {}) };
+      return {
+        answers,
+        ...withSetup(setup),
+        ...(session.viewport ? { emulated: session.viewport } : {}),
+        ...(await this.tabsNow(session)),
+      };
     }).finally(() => session.calls.delete(call));
   }
 
-  /** An agent's `act` or `batch` as it is queued: a person taking control ends it (`stopInput`). */
+  /** An agent's queued input ends when a person takes control. */
   private agentCall(session: Session): AbortController {
     const call = new AbortController();
     session.calls.add(call);
@@ -2604,6 +2685,25 @@ export class BrowserManager {
   }
 
   /**
+   * Says where the agent's pointer goes, as the gesture starts: whoever watches sees it arrive (ADR 0040 §7.2).
+   * With its window on the agent's desktop (`corner`: the page's corner there), the same point on that screen too.
+   */
+  private pointerGoes(
+    session: Session,
+    to: Point,
+    view: { width: number; height: number },
+    act: AgentPointerAct,
+    corner?: Point,
+  ) {
+    session.pointerView = { width: view.width, height: view.height };
+    session.pointerCorner = corner;
+    const { agentId } = session;
+    this.opts.send({ type: "browser.pointer", agentId, x: to.x, y: to.y, ...session.pointerView, act });
+    if (!corner) return;
+    this.opts.send({ type: "desktop.pointer", agentId, x: corner.x + to.x, y: corner.y + to.y, ...DESKTOP_SIZE, act });
+  }
+
+  /**
    * A `click`, `dblclick`, `hover`, `fill` or `type` on one element as a person does it (`humanSteps`), in two
    * batches: the element's box and the viewport, then the pointer path and the press or the keys. Only an element
    * not all in view is scrolled first, and looked at again: `scrollintoview` centers it even when it is in view, and
@@ -2625,15 +2725,21 @@ export class BrowserManager {
       const seen = batchResults(
         await this.run(session, ["batch", "--bail"], {
           ...opts,
-          stdin: JSON.stringify([...first, ["get", "box", selector], ["eval", VIEWPORT]]),
+          stdin: JSON.stringify([
+            ...first,
+            ["get", "box", selector],
+            ["eval", session.headed ? VIEWPORT_ON_SCREEN : VIEWPORT],
+          ]),
         }),
       );
       const boxOf = (r: unknown) => (isRecord(r) && isRecord(r.result) ? r.result : null);
       const { x, y, width, height } = boxOf(seen?.[first.length]) ?? {};
-      const [vw, vh] = (boxOf(seen?.[first.length + 1])?.result ?? []) as unknown[];
+      const viewed = (boxOf(seen?.[first.length + 1])?.result ?? []) as unknown[];
+      const [vw, vh] = viewed;
       const sizes = [width, height, vw, vh] as number[];
       if (typeof x !== "number" || typeof y !== "number" || !sizes.every((n) => n >= 1)) return null;
-      return { box: { x, y, width, height } as Box, view: { width: vw, height: vh } as Box };
+      const view = { width: vw, height: vh } as Box;
+      return { box: { x, y, width, height } as Box, view, corner: screenCorner(viewed) };
     };
     let seen = await look([]);
     if (!seen) return null;
@@ -2649,6 +2755,7 @@ export class BrowserManager {
         ? [...steps.moves, [command, ...args]]
         : [...steps.moves, ...(steps.check ? [steps.check] : []), ...steps.act];
     session.pointer = steps.to;
+    this.pointerGoes(session, steps.to, seen.view, POINTER_ACTS[command] ?? "move", seen.corner);
     if (command === "hover") session.hovered = steps.to;
     let out = await this.run(session, ["batch", "--bail"], {
       ...opts,
@@ -2699,7 +2806,12 @@ export class BrowserManager {
   ): Promise<BrowserAnswer | null> {
     const opts = { timeoutMs, ...(signal ? { signal } : {}) };
     const [what, a = "", b = ""] = args;
-    if (command === "mouse" && what === "down") session.pressedAt = this.now();
+    if (command === "mouse" && what === "down") {
+      session.pressedAt = this.now();
+      if (session.pointer && session.pointerView) {
+        this.pointerGoes(session, session.pointer, session.pointerView, "click", session.pointerCorner);
+      }
+    }
     if (command === "mouse" && what === "up" && session.pressedAt !== undefined) {
       const left = session.pressedAt + holdMs(randomSource()) - this.now();
       session.pressedAt = undefined;
@@ -2707,14 +2819,16 @@ export class BrowserManager {
     }
     if (command === "mouse" && what === "move" && args.length === 3) {
       const to = { x: Number(a), y: Number(b) };
-      const seen = await this.run(session, ["eval", VIEWPORT], opts);
-      const [width = 0, height = 0] = (isRecord(seen.data) && seen.data.result) as number[];
+      const seen = await this.run(session, ["eval", session.headed ? VIEWPORT_ON_SCREEN : VIEWPORT], opts);
+      const viewed = ((isRecord(seen.data) && seen.data.result) || []) as number[];
+      const [width = 0, height = 0] = viewed;
       if (!Number.isFinite(to.x) || !Number.isFinite(to.y) || width < 1 || height < 1) return null;
       const view = { width, height };
       const rng = randomSource();
       const from = session.pointer ?? startPoint(to, view, rng);
       const path = moveCommands(pointerPath(from, to, rng, { bounds: view, straight: stayed(session) }));
       session.pointer = to;
+      this.pointerGoes(session, to, view, "move", screenCorner(viewed));
       const out = await this.run(session, ["batch", "--bail"], { ...opts, stdin: JSON.stringify(path) });
       const results = batchResults(out);
       return results && !results.some(failedStep) ? { success: true, data: { moved: true, ...to } } : out;
@@ -2939,7 +3053,17 @@ export class BrowserManager {
         );
         try {
           const display = on && confinedChrome(exe) ? readableDisplay(on, session.folder) : on;
-          const started = await start(exe, args, profile, display ? chromeEnv(display) : undefined);
+          const env = display ? chromeEnv(display) : undefined;
+          const started = await start(exe, args, profile, env).catch(async (err: unknown) => {
+            // It exited at once, its start handed to a Chrome that took the profile meanwhile: that one stops, and
+            // this starts once more.
+            if (!(err instanceof ChromeStartError) || err.missing.length > 0 || !(await this.clearStaleLock(profile))) {
+              throw err;
+            }
+            this.opts.log(`the browser of ${agent.handle} started again: another Chrome on its profile took its start`);
+            await forgetTabs(profile);
+            return start(exe, args, profile, env);
+          });
           if (on) started.display = on.display;
           return started;
         } catch (err) {
@@ -2988,9 +3112,15 @@ export class BrowserManager {
       session.broughtUp = false;
       session.memory = this.memoryCounters();
       await this.rememberChrome(chrome.pid, profile, chrome.display);
+      const launchedAt = this.now();
       void chrome.exited.then(() => {
         void this.forgetChrome(chrome.pid);
         if (session.chrome !== chrome) return;
+        // With a fixed debugging port, a start handed to a Chrome already on the profile answers on that Chrome's
+        // port and its own process exits: the next start stops that Chrome first (`clearStaleLock`).
+        if (this.now() - launchedAt < CHROME_HANDOFF_MS) {
+          this.opts.log(`the browser of ${agent.handle} closed as it started: another Chrome may hold its profile`);
+        }
         // It closed under us (a crash, the person quit it): the next command starts it again.
         session.chrome = undefined;
         session.aliveAt = null;
@@ -3015,6 +3145,11 @@ export class BrowserManager {
       `ws://127.0.0.1:${chrome.port}${chrome.wsPath}`,
       this.opts.connectDevtools,
       (page) => this.pageCrashed(session, chrome, page),
+      (targetId, popup) => {
+        if (!popup && !this.personsTurn(session.agentId)) return;
+        session.keptTabs ??= new Set();
+        session.keptTabs.add(targetId);
+      },
     );
     this.counters.set(chrome, counter);
     if (session.viewport) counter.emulate(emulationCommands(session.viewport, session.version ?? null));
@@ -3062,7 +3197,7 @@ export class BrowserManager {
       session.updatedTo = disk;
       void this.enqueue(session, () => this.restartOnUpdate(session, disk, true)).catch(() => undefined);
     } else if (times === 1) page.reopen();
-    else if (times === 2) page.show(crashPage(memory));
+    else if (times === 2) page.show(crashPage(memory, this.opts.locale?.(session.agent)));
     session.crash = { memory, again: times > 1 };
     const left = updated
       ? "restarting on the new Chrome"
@@ -3204,6 +3339,12 @@ export class BrowserManager {
       if (s.stream || s.streamOpening || this.held(agentId)) {
         // Someone on the page holds an update off for a while after; its agent's own hold only as `updateDue` says.
         if (this.watched(s)) s.heldAt = this.now();
+        // Kept for good (ADR 0176), its tabs would pile up from run to run: once each idle spell, its duplicates and
+        // blank tabs close.
+        else if (s.chrome && (s.tidiedAt ?? 0) <= s.lastUsed && this.now() - s.lastUsed >= TIDY_IDLE_MS) {
+          s.tidiedAt = this.now();
+          void this.enqueue(s, () => this.tidyTabs(s, "idle")).catch(() => undefined);
+        }
         // `agent-browser` stops on its own idle timeout: a command keeps it up for whoever is still on the page.
         // Not a use: once nobody holds it, its idle time counts from the last real one.
         if (s.chrome && this.now() - (s.commandAt ?? 0) >= this.idleMs - 2 * SWEEP_MS) {
@@ -3311,10 +3452,11 @@ export class BrowserManager {
     return write.catch(() => undefined);
   }
 
-  private rememberChrome(pid: number, profile: string, display?: number) {
+  private async rememberChrome(pid: number, profile: string, display?: number) {
+    const started = await (this.opts.startedAt ?? processStartedAt)(pid);
     return this.writePids((list) => [
       ...list.filter((e) => e.pid !== pid),
-      { pid, profile, ...(display !== undefined ? { display } : {}) },
+      { pid, profile, ...(display !== undefined ? { display } : {}), ...(started !== null ? { started } : {}) },
     ]);
   }
 
@@ -3323,19 +3465,17 @@ export class BrowserManager {
   }
 
   /** Whether a pid from `chromes.json` is still a Chrome on that profile (a pid can be reused). */
-  private async isOurChrome(pid: number, profile: string): Promise<boolean> {
+  private async isOurChrome({ pid, profile, started }: ChromeEntry): Promise<boolean> {
     if (this.opts.isOurChrome) return this.opts.isOurChrome(pid, profile);
     try {
       process.kill(pid, 0);
     } catch {
       return false;
     }
-    if (process.platform === "win32") {
-      const out = await this.spawn(["tasklist"], ["/FI", `PID eq ${pid}`, "/FO", "CSV", "/NH"], {
-        timeoutMs: QUICK_TIMEOUT_MS,
-        cwd: this.opts.home,
-      });
-      return /chrome\.exe/i.test(out.stdout);
+    // Windows reuses pids at once and shows no command line cheaply: only the start time recorded with the pid tells
+    // our Chrome from the person's own. A pid recorded without one is left alone.
+    if (process.platform === "win32" || started !== undefined) {
+      return started !== undefined && (await (this.opts.startedAt ?? processStartedAt)(pid)) === started;
     }
     const out = await this.spawn(["ps"], ["-p", String(pid), "-o", "command="], {
       timeoutMs: QUICK_TIMEOUT_MS,
@@ -3345,17 +3485,37 @@ export class BrowserManager {
   }
 
   /**
-   * Before a launch, nothing holds the profile. A Chrome this runner recorded on it that still runs is held by no
-   * session (an overlapping runner's, a stop still under way): a Chrome started beside it hands it the start page as
-   * one more tab and exits, so a few restarts left a pile of start pages there. It is stopped first. Chrome's
-   * `Singleton*` files name the host and pid that holds a profile; restored onto another computer they make Chrome
-   * exit with 21 (in use elsewhere), so they go too.
+   * Before a launch, nothing holds the profile. A Chrome still running on it is held by no session (an overlapping
+   * runner's, a stop still under way, one started outside the runner): a Chrome started beside it hands it the start
+   * page as one more tab and exits, so a few restarts left a pile of start pages there. It is stopped first, whether
+   * `chromes.json` lists it or only the profile's lock names it. Chrome's `Singleton*` files name the host and pid that
+   * holds a profile; restored onto another computer they make Chrome exit with 21 (in use elsewhere), so they go too.
+   * True when a Chrome was stopped.
    */
-  private async clearStaleLock(profile: string) {
-    await this.killLeftovers(profile);
+  private async clearStaleLock(profile: string): Promise<boolean> {
+    const locked = await this.killLockHolder(profile);
+    const listed = await this.killLeftovers(profile);
     await Promise.all(
       ["SingletonLock", "SingletonCookie", "SingletonSocket"].map((f) => rm(path.join(profile, f), { force: true })),
     );
+    return listed || locked;
+  }
+
+  /** The Chrome the profile's `SingletonLock` (a link to `<host>-<pid>`) names, stopped when it still runs on it. */
+  private async killLockHolder(profile: string): Promise<boolean> {
+    const target = await readlink(path.join(profile, "SingletonLock")).catch(() => "");
+    const pid = Number(/-(\d+)$/.exec(target)?.[1]);
+    if (!Number.isInteger(pid) || pid <= 0 || this.livePids().has(pid)) return false;
+    // A pid chromes.json lists is judged by its record (its start time, on Windows); one it doesn't list has no start
+    // time, so on Windows it is left alone.
+    const entry = (await this.readPids()).find((e) => e.pid === pid) ?? { pid, profile };
+    if (!(await this.isOurChrome(entry).catch(() => false))) return false;
+    await stopPid(pid);
+    return true;
+  }
+
+  private livePids() {
+    return new Set([...this.sessions.values()].map((s) => s.chrome?.pid).filter((p) => p !== undefined));
   }
 
   /** A browser profile's folder: under the runner's home, outside every agent's folder. */
@@ -3371,26 +3531,19 @@ export class BrowserManager {
   }
 
   /** Chromes a previous run of this runner home left (it crashed or was killed), or only `on` that profile: stopped. */
-  private async killLeftovers(on?: string) {
-    const live = new Set([...this.sessions.values()].map((s) => s.chrome?.pid).filter((p) => p !== undefined));
-    for (const { pid, profile } of await this.readPids()) {
+  private async killLeftovers(on?: string): Promise<boolean> {
+    const live = this.livePids();
+    let stopped = false;
+    for (const entry of await this.readPids()) {
+      const { pid, profile } = entry;
       if (live.has(pid) || (on !== undefined && profile !== on)) continue;
-      if (await this.isOurChrome(pid, profile).catch(() => false)) {
-        try {
-          process.kill(pid, "SIGTERM");
-        } catch {
-          // gone
-        }
-        await new Promise((r) => setTimeout(r, 500));
-        try {
-          process.kill(pid, 0);
-          process.kill(pid, "SIGKILL");
-        } catch {
-          // gone
-        }
+      if (await this.isOurChrome(entry).catch(() => false)) {
+        await stopPid(pid);
+        stopped = true;
       }
       await this.forgetChrome(pid);
     }
+    return stopped;
   }
 
   private enqueue<T>(session: Session, fn: () => Promise<T>): Promise<T> {
@@ -3455,7 +3608,7 @@ export class BrowserManager {
       return {
         success: false,
         data: null,
-        error: `The browser didn't answer within ${Math.round(opts.timeoutMs / 1000)} s`,
+        error: `${NO_ANSWER} within ${Math.round(opts.timeoutMs / 1000)} s`,
       };
     }
     return parseAnswer(out.stdout, out.stderr, out.exitCode);
@@ -3476,6 +3629,80 @@ export class BrowserManager {
     const open = status.success && isRecord(status.data) && status.data.connected === true;
     session.aliveAt = open ? this.now() : null;
     return open;
+  }
+
+  /** The agent's tabs for its answer, tidied first (`tidyTabs`), with what was closed since it last heard. */
+  private async tabsNow(session: Session, close: TabsClosing = "all"): Promise<{ tabs?: BrowserTabs }> {
+    const tabs = await this.tidyTabs(session, close).catch(() => undefined);
+    if (!tabs) return {};
+    const closed = session.tabsClosed ?? [];
+    session.tabsClosed = undefined;
+    return { tabs: { ...tabs, ...(closed.length > 0 ? { closed } : {}) } };
+  }
+
+  /**
+   * The agent's tabs, most recently used first, after closing its empty tabs (start pages, blank ones) and, past
+   * `BROWSER_TABS_KEPT`, its least recently used ones; `idle` (a kept browser nobody used for a while): its empty tabs
+   * and the older copies of a page open twice, never more; `none`: only listed. Never closed: the tab its commands act on (every tab on that
+   * page, as which of them is its own isn't known), popups and the tabs a person opened (`keptTabs`), the tab shown to
+   * someone watching, and nothing at all while a person's turn is open (a sign-in may be under way). What closed goes
+   * in `tabsClosed`. Undefined when Chrome can't be asked, or without its DevTools connection (popups unknown).
+   */
+  private async tidyTabs(session: Session, close: TabsClosing): Promise<Omit<BrowserTabs, "closed"> | undefined> {
+    const chrome = session.chrome;
+    if (!chrome || !this.counters.has(chrome)) return undefined;
+    const call = (p: string) =>
+      (this.opts.fetch ?? fetch)(`http://127.0.0.1:${chrome.port}/json/${p}`, {
+        redirect: "error",
+        signal: AbortSignal.timeout(QUICK_TIMEOUT_MS),
+      });
+    const listed = (await (await call("list")).json()) as unknown;
+    if (!Array.isArray(listed)) return undefined;
+    // Chrome lists its targets most recently active first.
+    const pages = listed.filter(
+      (t): t is { id: string; url: string; title?: unknown } =>
+        isRecord(t) && t.type === "page" && typeof t.id === "string" && typeof t.url === "string",
+    );
+    const current = pages.length > 1 ? await this.pageUrl(session, undefined, true) : (pages[0]?.url ?? null);
+    const shown = this.watched(session) ? pages[0]?.id : undefined;
+    const closable = (p: (typeof pages)[number]) =>
+      close !== "none" &&
+      current !== null &&
+      !this.personsTurn(session.agentId) &&
+      p.url !== current &&
+      p.id !== shown &&
+      p.url !== session.stream?.url &&
+      !session.keptTabs?.has(p.id);
+    const closing = new Set(pages.filter((p) => isEmptyTab(p.url) && closable(p)).map((p) => p.id));
+    if (close === "idle") {
+      const seen = new Set<string>();
+      for (const p of pages) {
+        if (seen.has(p.url) && closable(p)) closing.add(p.id);
+        seen.add(p.url);
+      }
+    } else if (close === "all") {
+      for (const p of [...pages].reverse()) {
+        if (pages.length - closing.size <= BROWSER_TABS_KEPT) break;
+        if (closable(p)) closing.add(p.id);
+      }
+    }
+    const closed = new Set<string>();
+    for (const p of pages) {
+      if (!closing.has(p.id)) continue;
+      if (!(await call(`close/${encodeURIComponent(p.id)}`).catch(() => null))?.ok) continue;
+      closed.add(p.id);
+      session.tabsClosed = [...(session.tabsClosed ?? []), tabLabel(p.url)];
+    }
+    const open = pages.filter((p) => !closed.has(p.id));
+    const own = open.findIndex((p) => p.url === current);
+    return {
+      count: open.length,
+      open: open.slice(0, BROWSER_TABS_LISTED).map((p, i) => ({
+        title: typeof p.title === "string" ? p.title.slice(0, BROWSER_LIMITS.title) : "",
+        host: tabLabel(p.url),
+        ...(i === own ? { current: true } : {}),
+      })),
+    };
   }
 
   /** The active tab's address, or null when the browser can't say. */
@@ -4133,20 +4360,26 @@ export class BrowserManager {
       }
       if (!session.chrome) return null;
       const disconnected = (a: BrowserAnswer) => isRecord(a.data) && a.data.connected !== true;
-      // Behind an agent command taking control cut off, which the daemon still finishes (`DAEMON_HOLD_MS`).
+      // Wait for an agent command interrupted by a person taking control.
       const behind = Math.max(0, (session.daemonBusyUntil ?? 0) - this.now());
-      let status = await this.run(session, ["stream", "status"], { timeoutMs: QUICK_TIMEOUT_MS + behind });
+      // A browser that didn't answer isn't closed: the viewers are told so, in its words.
+      const streamStatus = async () => {
+        const a = await this.run(session, ["stream", "status"], { timeoutMs: QUICK_TIMEOUT_MS + behind });
+        if (a.error?.startsWith(NO_ANSWER)) throw new RunnerError("browser_unavailable", a.error);
+        return a;
+      };
+      let status = await streamStatus();
       if (disconnected(status)) {
         if (!held || reopened) return null;
         await reopen();
-        status = await this.run(session, ["stream", "status"], { timeoutMs: QUICK_TIMEOUT_MS });
+        status = await streamStatus();
         if (disconnected(status)) return null;
       }
       // A tab in the background sends no picture: the person would watch a still page.
       await this.foreground(session);
       if (!isRecord(status.data) || status.data.enabled !== true) {
         await this.run(session, ["stream", "enable"], { timeoutMs: QUICK_TIMEOUT_MS });
-        status = await this.run(session, ["stream", "status"], { timeoutMs: QUICK_TIMEOUT_MS });
+        status = await streamStatus();
       }
       const reported = isRecord(status.data) && typeof status.data.port === "number" ? status.data.port : null;
       if (this.opts.fixedPorts && reported !== this.opts.fixedPorts.stream) {

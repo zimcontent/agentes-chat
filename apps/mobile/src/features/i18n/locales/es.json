@@ -56,7 +56,8 @@
     "closed": "{{title}} · cerrado",
     "reopen": "Mostrar de nuevo",
     "answeredBy": "{{name}} eligió",
-    "failed": "Tu elección no se envió. Inténtalo de nuevo."
+    "failed": "Tu elección no se envió. Inténtalo de nuevo.",
+    "tooLongFix": "Acorta la respuesta."
   },
   "chart": {
     "table": "Tabla",
@@ -311,7 +312,7 @@
   },
   "along": {
     "agent": "Un agente",
-    "waits": "{{name}} espera tu ok",
+    "waits": "{{name}} · esperándote",
     "on": "{{name}} · {{what}}",
     "working": "{{name}} está trabajando",
     "more": "+{{count}}"
@@ -816,7 +817,7 @@
     "teamSectionPersonal": "Tus agentes",
     "managerQuiet": "Nada en curso",
     "state": {
-      "waitsYou": "espera tu ok",
+      "waitsYou": "esperándote",
       "noAi": "Sin IA conectada",
       "connect": "Conectar",
       "archived": "Archivado",
@@ -906,6 +907,9 @@
     },
     "doneToast": "Listo",
     "undo": "Deshacer",
+    "doneAllToast_one": "{{count}} movida a Completadas",
+    "doneAllToast_many": "{{count}} movidas a Completadas",
+    "doneAllToast_other": "{{count}} movidas a Completadas",
     "day": {
       "today": "Hoy",
       "yesterday": "Ayer",
@@ -1182,7 +1186,7 @@
     "notificationsOnHint": "También llegan al navegador y a la app de escritorio, si están activadas ahí.",
     "notificationsOffHint": "Actívalas para recibir notificaciones aquí. Los tipos de abajo se aplican a todos tus dispositivos.",
     "notificationsKindsHint": "Actividad lo guarda todo. Esto se aplica a este espacio de trabajo, en todos tus dispositivos.",
-    "version": "agentes.chat · versión {{version}}",
+    "version": "DougBot · versión {{version}}",
     "edit": "Editar",
     "status": "Estado",
     "workspace": "Espacio de trabajo",
@@ -1202,17 +1206,20 @@
     "workspacesUnreachable": "Sin respuesta ahora",
     "addWorkspace": "Añadir workspace",
     "addWorkspaceCreate": "Crear un workspace nuevo",
-    "addWorkspaceCreateSub": "En agentes.chat",
+    "addWorkspaceCreateSub": "En DougBot",
     "addWorkspaceTeam": "Entrar en el servidor de tu equipo",
     "addWorkspaceTeamSub": "Por su dirección o el código QR que aparece en el ordenador",
     "teamServer": "Servidor del equipo",
-    "teamServerLead": "La dirección de agentes.chat de tu equipo, la misma que aparece en el navegador.",
+    "teamServerLead": "La dirección de DougBot de tu equipo, la misma que aparece en el navegador.",
     "teamServerFoot": "No sales de ningún workspace: el servidor de tu equipo entra en tu lista, con tu cuenta de allí.",
     "workspacesHoldHint": "Mantén presionado para cambiar de espacio de trabajo",
     "workspacesSheetFoot": "Sigues conectado en todos. Los avisos de cada uno te llegan aquí.",
     "addWorkspaceTeamShort": "Entrar en el servidor de tu equipo",
     "addWorkspaceTeamSubShort": "Dirección o código QR de la computadora",
     "addWorkspaceFoot": "No sales de ningún espacio de trabajo.",
+    "addAccount": "Iniciar sesión con otra cuenta",
+    "addAccountSub": "En {{host}}, sin salir de esta",
+    "accountNoWorkspace": "Aún sin espacio de trabajo",
     "teamServerLeadShort": "Lo que tu equipo abre en el navegador.",
     "teamServerQuestion": "¿Cuál es la dirección de tu equipo?",
     "account": {
@@ -1230,6 +1237,8 @@
       "name": "Nombre",
       "namePlaceholder": "Tu nombre",
       "email": "Correo",
+      "emailWebLead": "Vuelve a iniciar sesión en el sitio y cámbialo allí, sin el código.",
+      "emailWeb": "Volver a iniciar sesión en el sitio",
       "inWorkspace": "En este espacio de trabajo · {{org}}",
       "handle": "Tu @",
       "timezone": "Zona horaria",
@@ -1262,6 +1271,7 @@
     "blocked": "Eres el único propietario de {{names}}. En el sitio web, en Personas, haz propietario a alguien más y después vuelve.",
     "addPasswordFirst": "Primero agrega una contraseña a tu cuenta en el sitio web y después escríbela aquí.",
     "addPasswordWeb": "Agregar una contraseña en el sitio web",
+    "onThisComputer": "Bórralo en la app de DougBot en la computadora donde corre este servidor.",
     "otherAccount": "Iniciaste sesión en otra cuenta. No se eliminó nada.",
     "hold": "Mantén presionado para eliminar"
   },
@@ -1521,7 +1531,7 @@
       "plain": "terminó una tarea"
     },
     "rowWait": {
-      "approval": "espera tu aprobación",
+      "approval": "esperándote",
       "question": "espera tu respuesta",
       "mission": "espera tu revisión"
     },
@@ -1559,14 +1569,14 @@
   },
   "intentAgents": {
     "waitingSection": "Esperándote",
-    "waitingLine": "{{title}} · necesita tu aprobación",
+    "waitingLine": "{{title}} · esperándote",
     "waitingMore_one": "{{title}} · y {{count}} más esperándote",
     "waitingMore_many": "{{title}} · y {{count}} más esperándote",
     "waitingMore_other": "{{title}} · y {{count}} más esperándote",
-    "waitingLabel": "{{name}}, necesita tu aprobación",
+    "waitingLabel": "{{name}}, esperándote",
     "owner": "Responsable: {{name}}",
     "ownerYou": "Responsable: tú",
-    "nowWaiting": "Necesita tu aprobación: {{title}}",
+    "nowWaiting": "Esperándote: {{title}}",
     "did": {
       "title": "Lo que hizo por ti",
       "title_female": "Lo que hizo por ti",
@@ -1586,7 +1596,7 @@
         "image": "Imagen",
         "file": "Archivo"
       },
-      "waitingOnYou": "Necesita tu aprobación",
+      "waitingOnYou": "Esperándote",
       "youApproved": "Aprobaste",
       "youRefused": "Rechazaste",
       "action": {
@@ -1830,6 +1840,8 @@
         "offlineCloudM": "La computadora de {{name}} no responde ahora.",
         "stuckF": "No se pudo abrir el navegador de {{name}}.",
         "stuckM": "No se pudo abrir el navegador de {{name}}.",
+        "noAnswerF": "El navegador de {{name}} no respondió.",
+        "noAnswerM": "El navegador de {{name}} no respondió.",
         "tooManyF": "Hay demasiados navegadores abiertos a la vez. Este aparece cuando se cierre otro.",
         "tooManyM": "Hay demasiados navegadores abiertos a la vez. Este aparece cuando se cierre otro."
       }
@@ -1976,8 +1988,8 @@
       "serverText": "Una línea para pegar en su terminal",
       "computer": "Otra computadora",
       "computerText": "Instala la app en ella",
-      "appNote": "En una Mac o PC que uses, la app de escritorio de agentes.chat también la conecta.",
-      "appStep1": "Instala la app de agentes.chat en ella",
+      "appNote": "En una Mac o PC que uses, la app de escritorio de DougBot también la conecta.",
+      "appStep1": "Instala la app de DougBot en ella",
       "appStep2": "Ábrela e inicia sesión con tu cuenta",
       "appStep3": "Haz clic en Permitir cuando pregunte si los agentes de {{org}} pueden usarla",
       "appShows": "Aparece aquí sola, solo para ti hasta que la compartas.",
@@ -2000,7 +2012,7 @@
       "connecting": "Conectando con {{host}}",
       "computer": "Computadora",
       "noHost": "Este teléfono funciona a través de una computadora tuya. Conecta una primero.",
-      "hostOffline": "{{host}} está sin conexión. Enciéndela y abre agentes.chat ahí.",
+      "hostOffline": "{{host}} está sin conexión. Enciéndela y abre DougBot ahí.",
       "step1": "Activa las Opciones para desarrolladores",
       "step1Text": "Toca 7 veces Número de compilación y luego escribe tu PIN. En Samsung: Información de software › Número de compilación.",
       "openAbout": "Abrir Información del teléfono",
@@ -2025,9 +2037,9 @@
       "wifi1Text": "Marca Permitir siempre en esta red y toca Permitir.",
       "wifi2": "Escanea el código en una computadora",
       "wifi2Text": "Desde Depuración inalámbrica › Vincular dispositivo con código QR. No uses la cámara: lee el código como una red Wi-Fi y saca el teléfono de tu Wi-Fi.",
-      "wifi2Hint": "En agentes.chat en una computadora, abre Conectar un dispositivo › Teléfono Android › Por Wi-Fi y elige {{host}}.",
+      "wifi2Hint": "En DougBot en una computadora, abre Conectar un dispositivo › Teléfono Android › Por Wi-Fi y elige {{host}}.",
       "codeHead": "Vincular con un código de vinculación",
-      "codeNote": "Desde Depuración inalámbrica › Vincular dispositivo con código de sincronización. Abre Configuración y agentes.chat en pantalla dividida para que el código siga a la vista.",
+      "codeNote": "Desde Depuración inalámbrica › Vincular dispositivo con código de sincronización. Abre Configuración y DougBot en pantalla dividida para que el código siga a la vista.",
       "wifiNote": "El Wi-Fi puede cortarse tras un reinicio. Un cable es más confiable.",
       "done": "{{name}} está conectado",
       "openFailed": "Este teléfono no abrió esa pantalla. Búscala en Configuración."
@@ -2071,8 +2083,20 @@
         "stopped": "{{name}} ya no se usa por Wi-Fi"
       },
       "stall": {
-        "plug": "{{host}} aún no ve este iPhone. Usa un cable que transmita datos, no solo carga, mantén este iPhone desbloqueado y toca Confiar si lo pide.",
-        "devmode": "El Modo de desarrollador solo se activa después de reiniciar este iPhone. Toca Reiniciar y luego Activar cuando vuelva. ¿No ves el interruptor? Desconecta este iPhone y vuelve a conectarlo."
+        "plug": "{{host}} aún no ve este iPhone. Usa un cable que transmita datos, no solo carga, mantén este iPhone desbloqueado y toca Confiar si lo pide."
+      },
+      "devMode": {
+        "restarting": "{{host}} todavía no ve este iPhone después del reinicio. Déjalo conectado.",
+        "back": "Toca Activar en el aviso de este iPhone y escribe tu código.",
+        "check": "Ya lo activé, comprobar de nuevo",
+        "stillOff": "{{host}} todavía ve el modo de desarrollador desactivado.",
+        "missing": "¿No aparece la opción?",
+        "hidden": "Este iPhone oculta la opción hasta que Xcode pide mostrarla.",
+        "hiddenOpen": "Este iPhone oculta la opción hasta que Xcode pide mostrarla. Abre Xcode en {{host}} con este iPhone conectado.",
+        "openXcode": "Abrir Xcode",
+        "opened": "Xcode se abrió en {{host}}. Vuelve a mirar en Ajustes y cierra Xcode allí después.",
+        "unlock": "¿Lo activaste y se reinició? El aviso con Activar aparece cuando este iPhone está desbloqueado.",
+        "outdated": "La app DougBot en {{host}} está desactualizada. Actualízala en ese Mac."
       }
     },
     "notice": {
@@ -2085,6 +2109,7 @@
       "waiting": "{{names}} está esperando {{device}}",
       "waitingFor": "{{names}} está esperando {{device}} para {{person}}",
       "tool_request": "{{names}} te pide activar {{tool}} en tu {{device}}",
+      "cli_request": "{{names}} te pide instalar {{tool}} en tu {{device}}",
       "allowOnce": "Permitir una vez",
       "always": "Permitir siempre a {{name}}",
       "no": "No",
@@ -2136,7 +2161,6 @@
     "addressHelp": "La dirección del servidor MCP del servicio (empieza con https://).",
     "addressLabel": "Dirección",
     "addressInvalid": "Usa una dirección https://.",
-    "computerOnly": "Conecta {{name}} desde una computadora: su inicio de sesión no puede volver a la app.",
     "needsKey": "Este servidor pide una clave.",
     "working": "Conectando…",
     "failed": "No se pudo conectar. Inténtalo de nuevo.",
@@ -2147,7 +2171,8 @@
     "everyoneFailed": "No se pudo cambiar el acceso de todos. Inténtalo de nuevo.",
     "disconnectFailed": "No se pudo desconectar {{name}}. Inténtalo de nuevo.",
     "needsReconnect": "La cuenta de {{name}} dejó de funcionar. Los agentes no pueden usarla hasta que alguien la reconecte.",
-    "noTools": "No se pudieron leer las herramientas de {{name}}. Los agentes no las tienen hasta que se lean de nuevo, en Herramientas.",
+    "noTools": "No se pudieron leer las herramientas de {{name}}. Los agentes no las tienen hasta que se lean de nuevo.",
+    "readAgain": "Leer de nuevo",
     "accountTitle": "Cuenta",
     "renameFailed": "No se pudo cambiar el nombre. Inténtalo de nuevo.",
     "whoTitle": "Quién lo usa",
@@ -2167,7 +2192,7 @@
     "usedBy_other": "{{names}} lo usan",
     "fromAgent": "Conectar un servicio",
     "githubApp": {
-      "useApp": "Usar la app agentes.chat",
+      "useApp": "Usar la app DougBot",
       "useAccount": "Usar una cuenta de GitHub",
       "createInBrowser": "Crear en el navegador"
     },
@@ -2178,7 +2203,8 @@
       "refreshing": "Buscando…",
       "refreshFailed": "No se pudieron volver a buscar las herramientas. Inténtalo de nuevo.",
       "waiting": "Un admin tiene que revisar las herramientas de este servidor antes de que los agentes las usen."
-    }
+    },
+    "computerOnly": "Conecta {{name}} desde una computadora: su inicio de sesión no puede volver a la app."
   },
   "invite": {
     "invitedBy": "{{name}} te invitó a {{org}}",
@@ -2215,29 +2241,27 @@
     }
   },
   "joinRequests": {
-    "share": "Compartir el enlace",
-    "roles": "Roles",
-    "rolesHint": "Entran con los roles activados. Sin ninguno, pueden hacer lo que puede Todos."
+    "share": "Compartir el enlace"
   },
   "humanCheck": {
     "title": "Verificación rápida",
     "blocked": "La verificación no cargó. Prueba con otra red."
   },
   "invitePeople": {
+    "optional": "Opcional",
+    "ok": "OK",
+    "noteHelp": "Aparece en el correo con tu nombre. Hasta {{max}} caracteres.",
+    "sendAgain": "Enviar de nuevo",
+    "cancelTitle": "¿Cancelar la invitación a {{email}}?",
+    "cancelText": "Su enlace deja de abrir.",
+    "send": "Enviar",
     "emailsHelp": "Pega una lista o escribe. Cada persona recibe un correo y entra de inmediato.",
     "here": "Ya está aquí",
     "invited": "Ya invitado",
     "fix": "Revisa esto",
     "channels": "Grupos",
-    "optional": "Opcional",
-    "ok": "OK",
-    "noteHelp": "Aparece en el correo con tu nombre. Hasta {{max}} caracteres.",
     "roleHelp": "Cambia lo que la persona recibe al entrar.",
-    "remove": "Quitar de la lista",
-    "sendAgain": "Enviar de nuevo",
-    "cancelTitle": "¿Cancelar la invitación a {{email}}?",
-    "cancelText": "Su enlace deja de abrir.",
-    "send": "Enviar"
+    "remove": "Quitar de la lista"
   },
   "members": {
     "waiting_one": "{{count}} esperando",
@@ -2271,11 +2295,11 @@
     "zoneTitle": "Zona horaria",
     "anotherTitle": "¿Cómo se llama el nuevo espacio de trabajo?",
     "anotherPurpose": "¿Para qué es el nuevo espacio de trabajo?",
-    "anotherLead": "En agentes.chat. Sigues en {{org}} y puedes cambiar cuando quieras.",
+    "anotherLead": "En DougBot. Sigues en {{org}} y puedes cambiar cuando quieras.",
     "suggested": "Por tu correo de {{domain}}, sugerí {{org}}.",
     "create": "Crear",
     "enter": "Entrar al espacio de trabajo",
-    "shareMessage": "Únete a {{org}} en agentes.chat: {{url}}",
+    "shareMessage": "Únete a {{org}} en DougBot: {{url}}",
     "failed": "No se pudo guardar. Inténtalo de nuevo."
   },
   "ai": {
@@ -2355,14 +2379,170 @@
       "toolsHow": "Toca una herramienta activada para desactivarla. Para volver a activarla: en el propio ordenador, o aquí quien lo conectó.",
       "toolsHowOwner": "Toca una herramienta para activarla o desactivarla."
     },
-    "roles": {
-      "onComputer": "El orden de los roles y el ícono de cada uno se cambian en la computadora.",
-      "items": "Uno por uno",
-      "create": "Crear"
-    },
     "import": {
       "preparing": "Preparando el archivo…",
       "failed": "No se pudo descargar el archivo. Inténtalo de nuevo."
+    }
+  },
+  "roles": {
+    "create": "Crear",
+    "search": "Buscar rol",
+    "baseHint": "Vale para cada persona del espacio de trabajo. Los roles se suman a esto.",
+    "orderHint": "Quien está más arriba gestiona los roles y las personas de abajo. El color del nombre de cada persona viene de su rol más alto.",
+    "order": "Ordenar",
+    "orderDone": "Listo",
+    "up": "Subir {{name}}",
+    "down": "Bajar {{name}}",
+    "orderChanged": "La lista de roles cambió mientras la movías. Recarga e inténtalo de nuevo.",
+    "none": "Todavía no hay roles. Crea uno para darles más a algunas personas.",
+    "noMatch": "Ningún rol coincide con “{{q}}”.",
+    "tooMany": "Este espacio de trabajo ya tiene 100 roles. Elimina uno para crear otro.",
+    "loadFailed": "No pude cargar los roles. {{cause}}",
+    "backToList": "Volver a los roles",
+    "nobody": "Nadie",
+    "reach": {
+      "permissions_one": "{{count}} permiso",
+      "permissions_many": "{{count}} permisos",
+      "permissions_other": "{{count}} permisos",
+      "channels_one": "{{count}} canal",
+      "channels_many": "{{count}} canales",
+      "channels_other": "{{count}} canales",
+      "agents_one": "{{count}} agente",
+      "agents_many": "{{count}} agentes",
+      "agents_other": "{{count}} agentes",
+      "more": "+{{what}}",
+      "all": "Puede todo",
+      "owner": "Puede todo, siempre",
+      "none": "Solo lo que Todos pueden",
+      "baseNone": "Solo leer"
+    },
+    "tabs": {
+      "permissions": "Permisos",
+      "channels": "Canales",
+      "agents": "Agentes"
+    },
+    "addOwners": "Agregar propietarios",
+    "icons": {
+      "shield": "Escudo",
+      "code": "Código",
+      "wallet": "Billetera",
+      "mail": "Correo",
+      "bolt": "Rayo",
+      "flag": "Bandera",
+      "book": "Libro",
+      "chart": "Gráfico",
+      "bulb": "Foco",
+      "globe": "Globo",
+      "pullRequest": "Solicitud de cambios",
+      "calendar": "Calendario",
+      "message": "Mensaje",
+      "eye": "Ojo",
+      "plug": "Enchufe",
+      "person": "Persona"
+    },
+    "inviteWith": "Invitar con este rol",
+    "searchPermission": "Buscar permiso",
+    "everyoneCan": "Todos pueden",
+    "only": "Solo {{names}}",
+    "notHeld": "No tienes este permiso.",
+    "noPermissionMatch": "Ningún permiso coincide con “{{q}}”.",
+    "advanced": "Avanzado",
+    "peopleOnly": "Los roles son para personas. Cada agente tiene sus propios permisos, en su página.",
+    "nowAbove": "Este rol ahora está por encima del tuyo. Solo alguien más arriba lo cambia.",
+    "admin": {
+      "title": "¿Activar Administrador en {{name}}?",
+      "text": "Quien tiene {{name}} pasa a poder todo, menos lo que es solo del propietario.",
+      "count_one": "Es {{count}} persona.",
+      "count_many": "Son {{count}} personas.",
+      "count_other": "Son {{count}} personas.",
+      "on": "Activar Administrador",
+      "note": "Con Administrador, {{name}} puede todo, menos lo que es solo del propietario."
+    },
+    "computers": {
+      "title": "Computadoras de los agentes",
+      "hint": "Navegador: el navegador y las solicitudes de inicio de sesión. Computadora: también la pantalla completa y la terminal. Agentes propios: los que la persona tiene a su cargo y las computadoras que conectó.",
+      "steps": {
+        "0": "No usa",
+        "1": "Navegador de los agentes propios",
+        "2": "Computadora de los agentes propios",
+        "3": "Navegador de cualquier agente",
+        "4": "Computadora de cualquier agente"
+      },
+      "stepsIn": {
+        "1": "el navegador de los agentes propios",
+        "2": "la computadora de los agentes propios",
+        "3": "el navegador de cualquier agente",
+        "4": "la computadora de cualquier agente"
+      },
+      "everyoneTo": "Todos pasan a tener {{step}}.",
+      "everyoneNone": "Todos dejan de usar las computadoras de los agentes."
+    },
+    "whoCan": "Quién puede",
+    "everyoneSub": "Cada persona del espacio de trabajo",
+    "someRoles": "Solo algunos roles",
+    "losing": "Dejan de poder: {{names}}.",
+    "nobodyLoses": "Nadie pierde nada.",
+    "everyoneGets": "Todo el mundo pasa a poder.",
+    "ownersAlways": "Los propietarios siempre pueden.",
+    "noOtherRoles": "Todavía no hay otros roles.",
+    "channels": {
+      "header": "Quien tiene {{name}} ve",
+      "headerBase": "Todo el mundo ve",
+      "hint": "Esto es sobre personas. Un agente entra a un canal cuando alguien lo agrega.",
+      "search": "Buscar canal",
+      "everyone": "Todos lo ven",
+      "private": "Privado",
+      "general": "Todo el mundo se queda en #general.",
+      "locked": "Solo quien creó #{{channel}} u organiza los canales cambia quién lo ve.",
+      "leaveTitle": "¿Quitar #{{channel}} de {{name}}?",
+      "leave_one": "{{names}} sale del canal.",
+      "leave_many": "{{names}} salen del canal.",
+      "leave_other": "{{names}} salen del canal.",
+      "leaveAction": "Quitar",
+      "openTitle": "¿Abrir #{{channel}} para {{name}}?",
+      "openText": "Quien tiene {{name}} ve el canal y todo su historial, y puede entrar.",
+      "openAction": "Abrir",
+      "openAllTitle": "¿Abrir #{{channel}} para todos?",
+      "openAllText": "Todo el historial queda abierto para el espacio de trabajo.",
+      "admin": "Con Administrador, quien tiene {{name}} ve todos los canales.",
+      "onlyGeneral": "Por ahora solo existe #general.",
+      "noMatch": "Ningún canal coincide con “{{q}}”.",
+      "ungrouped": "Canales",
+      "whoSees": "Quién ve",
+      "allSub": "Cualquier persona del espacio de trabajo lo ve y puede entrar.",
+      "invited": "Solo quien sea agregado",
+      "invitedSub": "Nadie nuevo lo ve. Quien está, sigue.",
+      "unsee": "Quien ya está sigue. Dejan de verlo: {{names}}."
+    },
+    "agents": {
+      "header": "Quien tiene {{name}} habla con",
+      "headerBase": "Todo el mundo habla con",
+      "hint": "Esto es sobre personas. Lo que hace cada agente está en su página.",
+      "everyone": "Todos hablan con él",
+      "gate": "Quien solo tiene {{name}} no habla con agentes.",
+      "gateOn": "Activar Hablar con agentes",
+      "locked": "Solo {{owner}}, responsable de {{name}}, o quien edita cualquier agente lo cambia.",
+      "locked_female": "Solo {{owner}}, responsable de {{name}}, o quien edita cualquier agente lo cambia.",
+      "lockedNoOwner": "Solo quien edita cualquier agente lo cambia.",
+      "none": "Todavía no hay agentes.",
+      "some": "Solo algunos roles y personas",
+      "addPerson": "Agregar persona",
+      "losing": "Dejan de hablar con {{agent}}: {{names}}."
+    },
+    "people": {
+      "removed": "{{person}} ya no tiene {{name}}",
+      "selfTitle": "¿Quitarte de {{name}}?",
+      "selfText": "Dejas de poder lo que solo {{name}} da. Solo alguien por encima de ti lo devuelve."
+    },
+    "mail": {
+      "title_one": "Un agente pierde un buzón",
+      "title_many": "Los agentes pierden {{count}} buzones",
+      "title_other": "Los agentes pierden {{count}} buzones",
+      "loses": "{{agent}} pierde {{address}}, el buzón de {{owner}}.",
+      "losesAddress": "{{agent}} pierde el buzón {{address}}.",
+      "only": "Solo quien dio un buzón lo vuelve a dar.",
+      "addAnyway": "Agregar de todos modos",
+      "giveAnyway": "Dar de todos modos"
     }
   },
   "vault": {
@@ -2401,7 +2581,7 @@
     },
     "import": {
       "title": "Importar desde una computadora",
-      "text": "Para traer contraseñas de un navegador o de un gestor de contraseñas, abre Configuración, Vault en la web y elige Importar."
+      "text": "Para traer contraseñas de un navegador o de un gestor de contraseñas, impórtalas en la web."
     },
     "connections": {
       "text": "Conecta un gestor de contraseñas y tus agentes usan los inicios de sesión guardados allí. No se copia nada: una contraseña solo se lee cuando se usa.",
@@ -2828,7 +3008,7 @@
     "meHint": "Tu foto la ven las personas de tus espacios de trabajo."
   },
   "brand": {
-    "basedOn": "Basado en agentes.chat de Codari Global, LLC · AGPL-3.0",
+    "basedOn": "Basado en DougBot de Codari Global, LLC · AGPL-3.0",
     "source": "Código fuente de DougBot"
   }
 }

@@ -107,6 +107,7 @@ function parseWorkerState(f: Record<string, unknown>): WorkerState | null {
   const accounts = Array.isArray(f.accounts) ? { accounts: f.accounts.filter(isAccountId) } : {};
   const host = typeof f.commitHost === "string" && /^[a-z0-9.-]{1,253}$/i.test(f.commitHost) ? f.commitHost : null;
   const commitHost = host ? { commitHost: host } : {};
+  const locale = typeof f.locale === "string" && f.locale.length <= 32 ? { locale: f.locale } : {};
   return access && paused
     ? {
         access,
@@ -118,6 +119,7 @@ function parseWorkerState(f: Record<string, unknown>): WorkerState | null {
         ...account,
         ...accounts,
         ...commitHost,
+        ...locale,
       }
     : null;
 }
@@ -610,7 +612,7 @@ export async function runWorker(o: WorkerOptions): Promise<number> {
   // Claude Code's own tools for a CLI root runs on a shared sign-in: nothing here until root opens a bridge.
   const delegatedRuns = new Map<string, McpTaskInfo>();
   const delegated = new DelegatedTools({
-    secrets: () => agentSecrets(secretsDir, { id: o.agentId, handle: "agent" }),
+    secrets: (agent) => agentSecrets(secretsDir, agent ?? { id: o.agentId, handle: "agent" }),
     onNotice: (notice) => link.toolNotice(notice),
     onDenied: (session, tool, input) => tasks.hostedDenial(session, tool, input),
     ...(cli ? { spawn: cli } : {}),
@@ -701,6 +703,7 @@ export async function runWorker(o: WorkerOptions): Promise<number> {
     },
     onChange: () => queueMicrotask(lease),
     kept: () => state.browserKept === true,
+    locale: () => state.locale,
     ...(chrome ? { startChrome: (exe, args, profile, env) => launchChrome(exe, args, profile, env, chrome) } : {}),
     // The agents share their memory (`agentLimits`): the limit a page dies at is all of theirs.
     memoryEvents: {
@@ -756,6 +759,7 @@ export async function runWorker(o: WorkerOptions): Promise<number> {
     uids: () => (own === null ? null : { runner: 0, agents: new Map([[o.agentId, own]]) }),
     secrets: (agent) => agentSecrets(secretsDir, agent),
     browserPid: (agentId) => browser.chromePid(agentId),
+    pointer: (agentId, to) => void live?.send({ type: "desktop.pointer", agentId, ...to }),
     log,
     ...o.desktop,
   });

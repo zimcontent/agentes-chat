@@ -1,6 +1,7 @@
 import { mkdirSync, realpathSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { GROK_ACCOUNT_HOMES } from "@agenteschat/adapters/command-policy";
 import {
   cgroupCounters,
   diskFigures,
@@ -61,7 +62,7 @@ import {
 } from "./access";
 import { AccountBrains } from "./account-brains";
 import { accountSelfCheck, SELF_CHECK_EVERY_MS, SELF_CHECK_RETRY_MS } from "./account-check";
-import { AccountManager, lchownTree, SYSTEM_ACCOUNTS_ROOT } from "./accounts";
+import { AccountManager, grokSandboxFails, lchownTree, SYSTEM_ACCOUNTS_ROOT } from "./accounts";
 import { ActivityLog } from "./activity";
 import {
   AccountUsers,
@@ -85,6 +86,7 @@ import { CodexAppServers } from "./brain-codex-app";
 import { BrowserManager } from "./browser";
 import { ensureBrowserBindPolicy, prepareAgents } from "./browser-bind-policy";
 import { BrowserViews } from "./browser-views";
+import { CliInstaller, type CliInstallerOptions, gitBashPath } from "./cli-install";
 import {
   accessToStore,
   configPath,
@@ -114,6 +116,7 @@ import { Holds } from "./holds";
 import { IphoneSetup, type IphoneSetupOptions } from "./iphone-setup";
 import { currentProcess, isCompiled, selfCommand } from "./launch";
 import { tailLines } from "./logfile";
+import { adoptLoginPath } from "./login-path";
 import { LoopbackGuard, loopbackEndpoints, runnerEndpoints } from "./loopback-guard";
 import { McpBridge, type McpTaskInfo, mcpSocketPath } from "./mcp";
 import {
@@ -253,6 +256,7 @@ export function configFromGrant(
     ...(prev?.networkRevision !== undefined ? { networkRevision: prev.networkRevision } : {}),
     ...(prev?.networkAuthRoute ? { networkAuthRoute: prev.networkAuthRoute } : {}),
     ...(prev?.claudeSharedLogin ? { claudeSharedLogin: prev.claudeSharedLogin } : {}),
+    ...(prev?.agentTmpOnDisk ? { agentTmpOnDisk: prev.agentTmpOnDisk } : {}),
     ...(prev?.maxConcurrentTasks ? { maxConcurrentTasks: prev.maxConcurrentTasks } : {}),
     ...(prev?.taskMaxSeconds ? { taskMaxSeconds: prev.taskMaxSeconds } : {}),
     ...(prev?.brainIdleMinutes ? { brainIdleMinutes: prev.brainIdleMinutes } : {}),
@@ -378,11 +382,12 @@ export interface DaemonOptions {
   /** Tests (system mode): how agents' users are found and their workers started. */
   workers?: Pick<SupervisorOptions, "user" | "start">;
   /**
-   * Tests (system mode): where the account folders are, how one is handed to an agent's user, and what goes before
-   * root's Claude CLIs (none when left out).
+   * Tests (system mode): where the account folders are (Grok Build's under `root` too unless `grokRoot`), how one is
+   * handed to an agent's user, and what goes before root's Claude CLIs (none when left out).
    */
   systemAccounts?: {
     root: string;
+    grokRoot?: string;
     chown: (file: string, uid: number, gid: number) => Promise<void>;
     authEgress?: () => string[] | null;
   };
@@ -402,6 +407,8 @@ export interface DaemonOptions {
   iphone?: Partial<IphoneSetupOptions>;
   /** Tests: the Xcode fix's tools and timings. */
   xcodeFix?: Partial<XcodeFixOptions>;
+  /** Tests: how `cli.install` installs. */
+  cliInstall?: Partial<CliInstallerOptions>;
 }
 
 /** What a task is in its activity words: a shell task's command, or the CLI that works it (the app names it). */
@@ -507,6 +514,13 @@ export class RunnerDaemon implements RequestObserver {
   private standbyAsk: string | null = null;
   /** A fix of the Mac's own Xcode (`xcode.fix`, the desktop app's iPhone window), made on its first request. */
   private fixer: XcodeFixer | null = null;
+  /** An install of a coding CLI (`cli.install`), made on its first request. */
+  private installer: CliInstaller | null = null;
+  /**
+   * The PATH read again (app mode's `refreshPath`). On Windows before every look too: an app keeps the PATH it started
+   * with, so a CLI installed since is found only through the registry.
+   */
+  private readonly refreshPath: (() => void) | undefined;
 
   constructor(private readonly opts: DaemonOptions) {
     this.uidNetworks = new AgentNetworks({}, readNetworkPins(opts.home));
@@ -516,15 +530,23 @@ export class RunnerDaemon implements RequestObserver {
     this.requests = new AccessRequests(opts.home, this.now);
     const proc = currentProcess();
     this.self = opts.self ?? { command: selfCommand(proc), compiled: isCompiled(proc) };
+    this.refreshPath = opts.refreshPath ?? (process.platform === "win32" ? () => adoptLoginPath() : undefined);
     const exec =
       opts.executors ??
       cachedExecutors({
         file: path.join(opts.home, "executors.json"),
         ...(opts.executorRun ? { run: opts.executorRun } : {}),
         onChange: () => this.executorsChanged(),
+        ...(process.platform === "win32"
+          ? { before: () => this.refreshPath?.(), gitMissing: () => gitBashPath() === null }
+          : {}),
       });
-    // The Antigravity CLI has no sign-in of its own here, so it lists no models: the signed-in accounts' lists do.
-    this.executors = () => withAccountModels(exec() ?? {}, this.accounts?.agyModels() ?? []);
+    // Grok Build's models as an account signed in here lists them: the computer's own `grok models` is signed out.
+    this.executors = () => {
+      const found = withAccountModels(exec() ?? {}, this.accounts?.agyModels() ?? []);
+      const models = this.accounts?.grokModels();
+      return found.grok && models ? { ...found, grok: { ...found.grok, models } } : found;
+    };
     this.executorsKnown = () => !("known" in exec) || exec.known === true;
     this.executorsFresh = (exec as { fresh?: () => Promise<unknown> }).fresh ?? (async () => this.executors());
     // System mode is set at install and kept through pairings: account folders are lent to agents' users.
@@ -535,13 +557,22 @@ export class RunnerDaemon implements RequestObserver {
       // an unreadable config starts unpaired
     }
     const lent = system
-      ? (opts.systemAccounts ?? { root: SYSTEM_ACCOUNTS_ROOT, chown: lchownTree, authEgress: () => authEgressPrefix() })
+      ? (opts.systemAccounts ?? {
+          root: SYSTEM_ACCOUNTS_ROOT,
+          grokRoot: GROK_ACCOUNT_HOMES,
+          chown: lchownTree,
+          authEgress: () => authEgressPrefix(),
+        })
       : null;
     const accountUsers = system ? (opts.accountUsers ?? new AccountUsers({ home: opts.home, log: opts.log })) : null;
     this.accountUsers = accountUsers;
     this.accounts = new AccountManager({
       root: lent?.root ?? path.join(opts.home, "accounts"),
       ...(lent ? { lending: { chown: lent.chown } } : {}),
+      ...(lent?.grokRoot ? { grokRoot: lent.grokRoot } : {}),
+      ...(lent && !opts.systemAccounts && process.platform === "linux"
+        ? { grokSandbox: (dir: string) => grokSandboxFails(dir) }
+        : {}),
       ...(lent?.authEgress ? { authEgress: lent.authEgress } : {}),
       ...(accountUsers
         ? {
@@ -561,6 +592,8 @@ export class RunnerDaemon implements RequestObserver {
         // The server learns at once (a sign-in or removal from the desktop app, a status or usage that changed).
         const accounts = this.accounts.snapshot();
         if (accounts) this.send({ type: "accounts.changed", accounts, ...this.ownUsage() });
+        // Grok Build's models come from its accounts' looks.
+        this.executorsChanged();
         // One removed: its agents' workers close what still runs with it.
         this.session?.supervisor?.stateChanged();
       },
@@ -846,6 +879,7 @@ export class RunnerDaemon implements RequestObserver {
     await this.phones?.stop();
     this.iphone?.stop();
     this.fixer?.stop();
+    this.installer?.stop();
     this.toolchains?.stop();
     await this.accounts.close().catch(() => undefined);
     await this.chain.catch(() => undefined);
@@ -1267,6 +1301,7 @@ export class RunnerDaemon implements RequestObserver {
         locale: this.agents.find((a) => a.id === agent.id)?.locale,
         egress: this.egress.current,
       }),
+      locale: (agent) => this.agents.find((a) => a.id === agent.id)?.locale,
     });
     // Browsers a previous run of this runner left open (a crash, a kill) close now.
     void browser.closeAll();
@@ -1417,6 +1452,7 @@ export class RunnerDaemon implements RequestObserver {
         browserKept: (agentId) => this.holds?.kept(agentId) ?? false,
         account: (agentId) => this.agentAccount(agentId),
         accounts: (agentId) => this.agentAccounts(agentId),
+        locale: (agentId) => this.agents.find((a) => a.id === agentId)?.locale,
         ...(this.opts.workers ? { start: this.opts.workers.start } : { gitCache: rootGitCache() }),
         ...(guard ? { guard } : {}),
         token: config.token,
@@ -1539,6 +1575,12 @@ export class RunnerDaemon implements RequestObserver {
       ...(this.phones ? { phones: this.phones } : {}),
       ...(this.holds && agentUser ? { keep: this.keepOps(this.holds, agentUser) } : {}),
       xcodeFix: (req) => this.xcodeFixer().handle(req),
+      clisCheck: async () => {
+        await this.clisLook();
+        return { executors: this.executors() };
+      },
+      cliInstall: (req) => this.cliInstaller().handle(req),
+      xcodeOpen: () => this.iphoneSetup().open("xcode"),
     };
     // `hello` lists the accounts it already knows; a fresh look (each runs its CLI) never delays connecting:
     // it lands in `hello` if it finishes first, else comes after as `accounts.changed`. Nothing reaches the
@@ -2158,9 +2200,27 @@ export class RunnerDaemon implements RequestObserver {
 
   /** The app's "Check again": the PATH and the coding CLIs looked up now, then the status with what was found. */
   async executorsCheck(): Promise<ControlStatus> {
-    this.opts.refreshPath?.();
-    await this.executorsFresh();
+    await this.clisLook();
     return this.status();
+  }
+
+  /** The PATH read again and the coding CLIs looked up now; a change reaches the server (`executors.changed`). */
+  private async clisLook() {
+    this.refreshPath?.();
+    await this.executorsFresh();
+  }
+
+  /** Installing a coding CLI from the apps; once installed, looked up again at once, so the apps move on by themselves. */
+  cliInstaller(): CliInstaller {
+    this.installer ??= new CliInstaller({
+      log: this.opts.log,
+      onDone: async (tool) => {
+        await this.clisLook();
+        return Boolean(this.executors()[tool]);
+      },
+      ...this.opts.cliInstall,
+    });
+    return this.installer;
   }
 
   status(): ControlStatus {
@@ -2240,6 +2300,11 @@ export class RunnerDaemon implements RequestObserver {
     const out = await s.browser.stop({ id: agentId, handle: agent?.handle ?? "agent" });
     this.browsersChanged();
     return out;
+  }
+
+  /** The desktop app's iPhone setup asking to look at the iPhone again now (`phone.look`). */
+  async iphoneLook(): Promise<{ looking: boolean }> {
+    return { looking: (await this.phones?.look()) ?? false };
   }
 
   /** The desktop app's iPhone setup: what the Mac has, a download of the iOS platform, Xcode opened. */

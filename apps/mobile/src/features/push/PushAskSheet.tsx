@@ -1,12 +1,15 @@
+import { DEFAULT_APP_ICON } from "@agenteschat/client/lib/app-icons";
 import { exampleSenders } from "@agenteschat/client/lib/push-offer";
 import { SvgXml } from "react-native-svg";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { StyleSheet, View } from "react-native";
+import { Image, StyleSheet, View } from "react-native";
 import { svgDoBot } from "@/brand/bots";
 import { pushPermission } from "@/lib/push";
 import { usePush } from "@/providers/push";
 import { Button, SheetScreen, Text, useToast } from "@/ui";
+import { AppIconPicture } from "../me/AppIconPage";
+import { APP_ICON_PICTURES, useAppIcon } from "../me/app-icon";
 import { useDirectory } from "../shared/hooks";
 import { useSurface } from "../shared/parts";
 
@@ -80,14 +83,21 @@ export function PushAskSheet({ onClose }: { onClose: () => void }) {
   );
 }
 
-/** One notification as the phone shows it: the app's icon, who and what, when. */
+/** One notification as the phone shows it: the app's icon (the one picked, ADR 0179), who and what, when. */
 function Example({ title, body, time, opacity }: { title: string; body: string; time: string; opacity: number }) {
   const surface = useSurface();
+  const icon = useAppIcon().icon ?? DEFAULT_APP_ICON;
   return (
     <View style={[styles.example, surface, { opacity }]}>
-      <View style={styles.icon}>
-        <SvgXml xml={APP_ICON} width={34} height={34} />
-      </View>
+      {icon === "night" ? (
+        <View style={styles.icon}>
+          <SvgXml xml={APP_ICON} width={34} height={34} />
+        </View>
+      ) : typeof icon === "string" ? (
+        <Image source={APP_ICON_PICTURES[icon].light} style={styles.icon} />
+      ) : (
+        <AppIconPicture icon={icon} size={34} />
+      )}
       <View style={styles.exampleText}>
         <View style={styles.exampleTop}>
           <Text variant="label" tone="ink" numberOfLines={1} style={styles.grow}>

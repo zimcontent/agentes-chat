@@ -322,6 +322,8 @@ describe("the account menu", () => {
     await settle(4);
     expect(authCalls.map((c) => c.method)).toEqual(["signOut"]);
     expect(router.state.location.pathname).toBe("/login");
+    expect(localStorage.getItem("agentes.signedOut")).toBe("1");
+    localStorage.removeItem("agentes.signedOut");
   });
 
   test("on a phone, the person on top opens the full-screen menu: Você (status, profile, account, Sair), then the workspace", async () => {

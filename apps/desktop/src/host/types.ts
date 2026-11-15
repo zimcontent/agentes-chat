@@ -50,6 +50,8 @@ export interface AppInfo {
   arch: string;
   /** The system's own version where the app reads it (macOS: `15.1`). */
   system?: string | null;
+  /** Linux: how it draws the app, one line to copy ("Ubuntu 26.04 LTS · wayland (GNOME) · WebKitGTK 2.50.4 · …"). */
+  graphics?: string | null;
 }
 
 /** A server's answer to `siteFetch`: its status and body as text. */
@@ -113,8 +115,11 @@ export interface Host {
    * code (`site_fetch` in workspaces.rs allows only those).
    */
   siteFetch(server: string, method: string, path: string, body?: string): Promise<SiteAnswer>;
-  /** How the welcome window opens, taken once: `add` from the site's "Add a workspace", else null. */
-  welcomeMode(): Promise<"add" | null>;
+  /**
+   * How the welcome window opens, taken once: `add` from the site's "Add a workspace", `owner` when the app opened it
+   * because no account is left on the server it runs (Run here's form makes the new owner), else null.
+   */
+  welcomeMode(): Promise<"add" | "owner" | null>;
   /** The welcome window in its adding mode ("Add a workspace", from Preferences). */
   addWorkspace(): Promise<void>;
   /** Takes `server` out of the list (the server and the account there stay as they are). */
@@ -171,8 +176,6 @@ export interface Host {
   onMenuAction(cb: (action: MenuAction) => void): () => void;
   /** The popover listens for the site's requests now (requests sent before that wait, main_window.rs). */
   thisMacListening(): Promise<void>;
-  /** Preferences → "Show in the Dock" (dock.rs): off, the app lives in the menu bar while no window shows. */
-  setDock(show: boolean): Promise<void>;
   /** Preferences › "Let me know about messages and requests": whether the site's notifications show. */
   setSiteNotify(on: boolean): Promise<void>;
   /** The Dock's counts whenever the site changes them. */

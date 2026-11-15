@@ -110,13 +110,6 @@ describe("Preferences: a setting's explanation behind its ⓘ", () => {
             switch: "The request already reaches your phone and the site. This tells you here too.",
             line: null,
           },
-          {
-            title: "Show in the Dock",
-            hint: "With the count of what waits for you. Off, the app stays in the menu bar only while no window is open.",
-            switch:
-              "With the count of what waits for you. Off, the app stays in the menu bar only while no window is open.",
-            line: null,
-          },
           { title: "Show in the menu bar", hint: null, switch: null, line: null },
           {
             title: "Show the agents in the notch",
@@ -430,6 +423,50 @@ describe("Preferences: a setting's explanation behind its ⓘ", () => {
         expect(el.querySelector(".dk-ver__acts .dk-help")?.textContent).toBe("Your servers and settings stay.");
       },
     );
+  });
+
+  test("Updates: on Linux, the system details to copy; elsewhere no such row", async () => {
+    const update: UpdateCheck = {
+      state: { latest: null, available: false, required: false },
+      checkedAt: null,
+      checking: false,
+      failed: false,
+      check: async () => null,
+      version: "0.6.0",
+    };
+    const copied: string[] = [];
+    const clipboard = navigator.clipboard;
+    Object.defineProperty(navigator, "clipboard", {
+      configurable: true,
+      value: { writeText: async (text: string) => void copied.push(text) },
+    });
+    try {
+      await pane(
+        "linux",
+        <Updates update={update} />,
+        (el) => rows(el).some((r) => r.title === "System details"),
+        async (el) => {
+          const row = [...el.querySelectorAll(".dk-crow")].find(
+            (r) => r.querySelector(".dk-crow__title")?.textContent === "System details",
+          ) as HTMLElement;
+          const line = "Ubuntu 26.04 LTS · wayland (GNOME) · WebKitGTK 2.50.4 · Intel (i915) · CPU · AppImage";
+          expect(row.querySelector("small")?.textContent).toBe(line);
+          await act(async () => (row.querySelector("button") as HTMLButtonElement).click());
+          await until(() => copied.length > 0);
+          expect(copied).toEqual([line]);
+        },
+      );
+      await pane(
+        "selfhost",
+        <Updates update={update} />,
+        (el) => rows(el).some((r) => r.title === "Install updates by itself, at night"),
+        (el) => {
+          expect(rows(el).map((r) => r.title)).not.toContain("System details");
+        },
+      );
+    } finally {
+      Object.defineProperty(navigator, "clipboard", { configurable: true, value: clipboard });
+    }
   });
 
   test("Updates: the download with its bar and Cancel, which drops it; once whole, Installing… with no Cancel", async () => {

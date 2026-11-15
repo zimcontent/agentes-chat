@@ -777,7 +777,14 @@ export async function markToReconnect(
   await db
     .update(connectorConnections)
     .set({ status: "needs_reconnect", lastError: reason.slice(0, 300), updatedAt: new Date() })
-    .where(and(eq(connectorConnections.id, connection.id), isNull(connectorConnections.revokedAt)));
+    // A mark repeated on a connection that already waits moves nothing: its row's last change is when it broke.
+    .where(
+      and(
+        eq(connectorConnections.id, connection.id),
+        isNull(connectorConnections.revokedAt),
+        ne(connectorConnections.status, "needs_reconnect"),
+      ),
+    );
   caches.connections.delete(`${connection.orgId}:active`);
 }
 

@@ -526,20 +526,38 @@ pub fn healthy(port: u16) -> bool {
     matches!(http(port, "GET", "/api/health", None), Some((200, _)))
 }
 
+/// The owner key refused: the server's status (0 when it didn't answer) and, when it said why, `owner_none` or
+/// `owner_gone` (`owner_refusal`).
+pub type Refused = (u16, Option<&'static str>);
+const NO_ANSWER: Refused = (0, None);
+
+/// Why the server refused the owner key, from its answer: `owner_none` (no account is left: a name and email make
+/// the new owner), `owner_gone` (the owner deleted their account while others still have one), else None.
+pub fn owner_refusal(status: u16, body: &str) -> Option<&'static str> {
+    if status != 409 {
+        return None;
+    }
+    match serde_json::from_str::<Value>(body).ok()?["code"].as_str()? {
+        "OWNER_NONE" => Some("owner_none"),
+        "OWNER_GONE" => Some("owner_gone"),
+        _ => None,
+    }
+}
+
 /// A one-time sign-in for the owner, and the owner's account id when the server says it (newer servers do).
-pub fn owner_sign_in_as(folder: &Folder, port: u16) -> Result<(String, Option<String>), u16> {
-    let key = fs::read_to_string(folder.owner_key()).map_err(|_| 0u16)?;
+pub fn owner_sign_in_as(folder: &Folder, port: u16) -> Result<(String, Option<String>), Refused> {
+    let key = fs::read_to_string(folder.owner_key()).map_err(|_| NO_ANSWER)?;
     match http(port, "POST", "/api/auth/owner-key", Some(&json!({ "key": key.trim() }))) {
         Some((200, text)) => {
-            let body = serde_json::from_str::<Value>(&text).map_err(|_| 0u16)?;
+            let body = serde_json::from_str::<Value>(&text).map_err(|_| NO_ANSWER)?;
             let token = body["token"]
                 .as_str()
                 .filter(|t| crate::servers::page_path(&format!("/desktop/handover#token={t}")))
-                .ok_or(0u16)?;
+                .ok_or(NO_ANSWER)?;
             Ok((token.to_string(), body["userId"].as_str().map(str::to_string)))
         }
-        Some((status, _)) => Err(status),
-        None => Err(0),
+        Some((status, text)) => Err((status, owner_refusal(status, &text))),
+        None => Err(NO_ANSWER),
     }
 }
 
@@ -569,9 +587,9 @@ fn follow_window(app: &AppHandle, folder: &Folder, port: u16, url: &str, was: Op
 }
 
 /// A one-time sign-in for the owner (`POST /api/auth/owner-key`, ADR 0060 §6); with `who`, the owner is made
-/// first when there is none. Err: the server's status, or 0 when it didn't answer.
-pub fn owner_sign_in(folder: &Folder, port: u16, who: Option<(&str, &str)>) -> Result<String, u16> {
-    let key = fs::read_to_string(folder.owner_key()).map_err(|_| 0u16)?;
+/// first when there is none.
+pub fn owner_sign_in(folder: &Folder, port: u16, who: Option<(&str, &str)>) -> Result<String, Refused> {
+    let key = fs::read_to_string(folder.owner_key()).map_err(|_| NO_ANSWER)?;
     let mut body = json!({ "key": key.trim() });
     if let Some((name, email)) = who {
         body["name"] = json!(name.trim());
@@ -582,9 +600,9 @@ pub fn owner_sign_in(folder: &Folder, port: u16, who: Option<(&str, &str)>) -> R
             .ok()
             .and_then(|v| v["token"].as_str().map(str::to_string))
             .filter(|t| crate::servers::page_path(&format!("/desktop/handover#token={t}")))
-            .ok_or(0),
-        Some((status, _)) => Err(status),
-        None => Err(0),
+            .ok_or(NO_ANSWER),
+        Some((status, text)) => Err((status, owner_refusal(status, &text))),
+        None => Err(NO_ANSWER),
     }
 }
 
@@ -1852,15 +1870,46 @@ fn open_signed_in(app: &AppHandle, origin: &str, token: &str) -> Result<(), Stri
     crate::main_window::show_url(app, url)
 }
 
-/// The site's sign-in asked to sign the owner in ("Continue on this Mac", `this_mac` `signIn`).
+/// The site's sign-in asked to sign the owner in ("Continue on this Mac", `this_mac` `signIn`). Refused with
+/// `owner_gone` or `owner_none`, which the page explains; with no account left, the welcome window opens on the
+/// account step to make the new owner (setting up again over the same folder only adds the owner).
 pub fn sign_in_window(app: &AppHandle, origin: &str) -> Result<(), String> {
     if !answers_within(app, origin, Duration::ZERO) {
         return Err("not running".into());
     }
     let folder = folder(app).ok_or("no folder")?;
     let port = port_of(&folder).ok_or("no port")?;
-    let token = owner_sign_in(&folder, port, None).map_err(|s| format!("sign-in refused ({s})"))?;
+    let token = match owner_sign_in(&folder, port, None) {
+        Ok(token) => token,
+        Err((_, Some(code))) => {
+            // A setup on screen makes the owner itself: its account step may be under way.
+            if code == "owner_none" && !setting_up(app) {
+                save_owner(app, false);
+                *app.state::<crate::workspaces::WelcomeMode>().0.lock().unwrap_or_else(|e| e.into_inner()) =
+                    Some("owner");
+                let _ = crate::present(app, "welcome");
+            }
+            return Err(code.into());
+        }
+        Err((status, None)) => return Err(format!("sign-in refused ({status})")),
+    };
+    // The key signs in, so there is an owner, whatever was saved (a setup that made one, then stopped).
+    save_owner(app, true);
     open_signed_in(app, origin, &token)
+}
+
+/// Whether the server here has an owner, saved and told to the windows when it changed.
+fn save_owner(app: &AppHandle, owner: bool) {
+    let here = {
+        let mut inner = state(app);
+        if inner.here.owner == owner {
+            return;
+        }
+        inner.here.owner = owner;
+        inner.here.clone()
+    };
+    save_here(app, &here);
+    emit_status(app);
 }
 
 fn notify(app: &AppHandle, title: &str, body: &str, version: Option<&str>) {
@@ -2008,7 +2057,7 @@ fn install(app: &AppHandle, choice: &Choice) -> Result<(), String> {
     // owner in: never a setup that ends in an error with every step done.
     if let Some(origin) = public_url(app) {
         let signed_in = owner_sign_in(&folder, port, None)
-            .map_err(|status| format!("the owner's sign-in: the server answered {status}"))
+            .map_err(|(status, _)| format!("the owner's sign-in: the server answered {status}"))
             .and_then(|token| open_signed_in(app, &origin, &token));
         if let Err(why) = signed_in {
             note(app, why);
@@ -2044,7 +2093,7 @@ fn start_with_owner(
     let port = port_of(folder).ok_or_else(|| fail("account", "no PORT in .env".into()))?;
     let who = choice.name.as_deref().zip(choice.email.as_deref());
     owner_sign_in(folder, port, who)
-        .map_err(|status| fail("account", format!("the owner's account: the server answered {status}")))?;
+        .map_err(|(status, _)| fail("account", format!("the owner's account: the server answered {status}")))?;
     state(app).here.owner = true;
     Ok(port)
 }
@@ -2769,6 +2818,17 @@ mod tests {
     }
 
     #[test]
+    fn the_owner_keys_refusal_says_whether_an_account_is_left() {
+        let says = |code: &str| format!("{{\"code\":\"{code}\",\"message\":\"x\"}}");
+        assert_eq!(owner_refusal(409, &says("OWNER_NONE")), Some("owner_none"));
+        assert_eq!(owner_refusal(409, &says("OWNER_GONE")), Some("owner_gone"));
+        assert_eq!(owner_refusal(409, &says("SOMETHING_ELSE")), None);
+        assert_eq!(owner_refusal(401, &says("OWNER_GONE")), None, "only the server's conflict carries it");
+        assert_eq!(owner_refusal(400, "{\"message\":\"The owner's name and email are needed\"}"), None, "an older server");
+        assert_eq!(owner_refusal(409, "not json"), None);
+    }
+
+    #[test]
     fn the_nightly_backup_once_a_night_after_three() {
         let due = |now, last, tried| nightly_due(now, last, tried);
         assert!(!due("2026-11-11-025900", None, None));
@@ -3162,6 +3222,8 @@ mod tests {
         let second = launch.run(&[], ANSWER_WITHIN, &|| false).unwrap();
         assert_eq!(second.code, Some(exit::LOCKED), "{}", second.err);
 
+        // No account yet, and no name and email: the server says so.
+        assert_eq!(owner_sign_in(&folder, port, None), Err((409, Some("owner_none"))));
         // The owner: made once with no password, then a one-time sign-in on every call.
         let first = owner_sign_in(&folder, port, Some(("Ana Souza", "ana@example.com"))).unwrap();
         let again = owner_sign_in(&folder, port, None).unwrap();
