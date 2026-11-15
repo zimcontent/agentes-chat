@@ -11003,12 +11003,23 @@ export const ptBR = {
   /** Voz ao vivo com GPT-Live (ADR doug-0006): salas de voz com pessoas e agentes, e Ouvir numa mensagem. */
   liveVoice: {
     you: "Você",
+    invite: {
+      title: "Chamar para a chamada",
+      lead: "A pessoa recebe uma notificação no celular e no computador, com um jeito de entrar.",
+      send: "Chamar",
+      refused: "Não deu para chamar {{names}}: só quem cuida desta conversa pode adicionar pessoas a ela.",
+      none: "Todo mundo do workspace já está na chamada.",
+    },
+    ring: {
+      title: "{{name}} está te chamando",
+      where: "Chamada de voz em {{channel}}",
+      join: "Entrar",
+      decline: "Agora não",
+    },
     call: {
-      mode: "Tipo de chamada",
-      modeMaestro: "Reunião (nova)",
-      modeLive: "Clássica (GPT-Live)",
       topic: "Tema (opcional)",
       topicHint: "Os agentes começam debatendo isso. Entre quando quiser.",
+      people: "Chamar pessoas também",
       start: "Começar chamada de voz",
       join_one: "Entrar na chamada ({{count}})",
       join_other: "Entrar na chamada ({{count}})",
@@ -11031,7 +11042,6 @@ export const ptBR = {
       hangUp: "Desligar",
     },
     room: {
-      cost: "Voz e transcrição até agora: {{cost}}",
       title: "Chamada de voz",
       joining: "Conectando…",
       inCall: "Em chamada",
@@ -11044,6 +11054,7 @@ export const ptBR = {
       quiet: "Agentes só ouvem",
       leave: "Sair da chamada",
       endAll: "Encerrar para todos",
+      invite: "Chamar pessoa",
       endTitle: "Encerrar a chamada para todos?",
       endText:
         "As notas da chamada vão para a conversa e o Doug BOSS manda o relatório com o que foi decidido e os próximos passos.",
@@ -11117,7 +11128,6 @@ export const ptBR = {
       },
     },
     errors: {
-      noMaestro: "Reuniões com maestro não estão configuradas neste servidor.",
       badAudio: "Não deu para ler esse áudio. Tente de novo.",
       off: "Este workspace não tem chave do GPT-Live. Coloque uma em Configurações › Voz.",
       keyInvalid: "A OpenAI recusou esta chave.",
@@ -12706,6 +12716,12 @@ export const ptBR = {
     },
     s3: "Seu próprio armazenamento",
     s3Text: "Cloudflare R2, Amazon S3, Backblaze B2 ou outro compatível com S3.",
+    provided: {
+      title: "Servidor de armazenamento",
+      text: "Um bucket só deste workspace, no armazenamento do servidor. Nada para configurar.",
+      on: "Ligar {{name}}",
+      done: "Os arquivos novos agora vão para {{name}}.",
+    },
     current: "Em uso",
     // What the option in use holds, no-break spaces inside each part: a narrow card breaks the line after its "·".
     usage: {
@@ -15060,6 +15076,8 @@ export const ptBR = {
       soleOwner:
         "Você é a única pessoa dona de um workspace com outros membros. Passe a posse a alguém, ou apague o workspace, antes.",
       testFirst: "Teste a conexão com estes dados antes de ligar.",
+      providedOff: "Este servidor não oferece mais um servidor de armazenamento.",
+      storageServer: "O servidor de armazenamento não respondeu. Tente de novo daqui a pouco.",
       voiceLength: "A gravação está longa ou curta demais.",
       sendAgain: "O arquivo não chegou inteiro. Envie de novo.",
       serverKey: "Esta chave está definida nas configurações do servidor.",

@@ -4,10 +4,10 @@ import { groupOf, NO_GROUP } from "@agenteschat/client/lib/agent-groups";
 import { errorText } from "@agenteschat/client/lib/errors";
 import {
   Button,
+  colorFace,
   Dialog,
   DialogBody,
   DialogFooter,
-  ditherUrl,
   Field,
   Icon,
   type IconName,
@@ -96,7 +96,7 @@ export function GroupNameDialog({ purpose, onClose }: { purpose: GroupDialogFor;
                       aria-checked={color === c}
                       aria-label={t("rolesPage.colorOf", { color: c })}
                       className="roles-color"
-                      style={{ backgroundImage: `url("${ditherUrl(c as "graphite", 8)}")` }}
+                      style={{ backgroundImage: colorFace(c) }}
                       onClick={() => setColor(c)}
                     />
                   ))}

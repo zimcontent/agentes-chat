@@ -19,7 +19,7 @@ import type { ToolContext, ToolDefinition, ToolOutput, ToolSource } from "./tool
 import { monthStartUtc } from "./usage";
 
 /**
- * Images and videos generated from the workspace's credit wallet (ADR doug-0010).
+ * Images and videos generated from the workspace's credit wallet (ADR doug-0011).
  *
  * The Zim Mídia service holds the provider keys, the price list and the wallet; this file keeps who asked, saves the
  * finished file in the Drive and gives agents `generate_image` and `generate_video`. A generation is created once

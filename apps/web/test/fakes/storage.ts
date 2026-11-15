@@ -2,7 +2,8 @@
  * Test fake — file storage ("Configurações → Armazenamento").
  * Mirrors these endpoints:
  * - `GET  /api/app/organizations/{orgId}/storage` → StorageConfig
- * - `PUT  …/storage` `{ kind: "agentes" } | { kind: "s3", s3: S3Input }` (s3 needs a passing test of the same settings)
+ * - `PUT  …/storage` `{ kind: "agentes" } | { kind: "s3", s3: S3Input } | { kind: "provided" }` (s3 needs a passing
+ *   test of the same settings; provided needs a storage server offered, `provided`)
  * - `POST …/storage/test` S3Input → `{ ok, steps: [{ step: "write" | "read" | "list" | "delete", ok, error?, code? }] }`
  * - `POST …/storage/migrate` (start or resume) and `GET …/storage/migrate` (status) → StorageMigration
  * The mock never reaches a bucket. A bucket named with "negado" fails the
@@ -33,6 +34,7 @@ const hint = (v: string | undefined, prev?: string) => (v ? v.slice(-4) : (prev 
 export function createMockStorage(
   platform: () => StoragePlatform | undefined = () => undefined,
   usage: () => StorageUsage | undefined = () => undefined,
+  provided: () => { name: string } | undefined = () => undefined,
 ): ApiClient["storage"] {
   const configs = new Map<string, StorageConfig>();
   const passed = new Map<string, string>();
@@ -46,6 +48,7 @@ export function createMockStorage(
         migration: null,
         platform: platform() ?? { kind: "disk", folder: null },
         usage: usage() ?? { platformBytes: 0, ownBucketBytes: 0, disk: null },
+        provided: provided() ?? null,
       };
       configs.set(orgId, c);
     }
@@ -79,6 +82,11 @@ export function createMockStorage(
       const c = get(orgId);
       if (input.kind === "agentes") {
         Object.assign(c, { kind: "agentes", s3: null, migration: null });
+        return clone(c);
+      }
+      if (input.kind === "provided") {
+        if (!c.provided) throw new Error("Este servidor não oferece mais um servidor de armazenamento.");
+        Object.assign(c, { kind: "provided", s3: null, migration: null });
         return clone(c);
       }
       if (passed.get(orgId) !== sig(input.s3))

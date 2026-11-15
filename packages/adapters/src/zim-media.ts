@@ -1,7 +1,7 @@
 import { createHash, createHmac } from "node:crypto";
 
 /**
- * The Zim Mídia service (ADR doug-0010): image and video generation through the Zim's provider accounts, paid from
+ * The Zim Mídia service (ADR doug-0011): image and video generation through the Zim's provider accounts, paid from
  * a credit wallet per workspace. The provider keys and the wallet live in that service; this server only signs its
  * calls (`ZIM_MEDIA_URL`, `ZIM_MEDIA_SECRET`) and never hands an address of the service to a browser.
  */

@@ -4,7 +4,7 @@ import { useApi } from "../api/context";
 import { ApiError } from "../api/http";
 import type { MediaGenerateInput, MediaGenerationView } from "./types";
 
-/** Media generation (ADR doug-0010): the wallet, the models and the generations, through the server only. */
+/** Media generation (ADR doug-0011): the wallet, the models and the generations, through the server only. */
 
 export const mediaKeys = {
   all: (orgId: string) => ["org", orgId, "media"] as const,

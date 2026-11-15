@@ -22,6 +22,8 @@ type VideoReviewStatus = schema.VideoReviewStatus;
 
 export const SEND_FOR_REVIEW_TOOL = "send_for_review";
 export const SET_REVIEW_BRIEF_TOOL = "set_review_brief";
+/** The design piece's tool (`design-reviews.ts`), named here for the decision's words. */
+export const DESIGN_TOOL_NAME = "send_design_for_review";
 /** The most a brief says. */
 export const REVIEW_BRIEF_CHARS = 6000;
 /** The most links a review shows. */
@@ -35,6 +37,8 @@ export const REVIEW_NOTE_CHARS = 4000;
 export const REVIEW_VOICE_BYTES = 25 * 1024 * 1024;
 /** The most files and links one note carries. */
 export const REVIEW_NOTE_ATTACHMENTS = 8;
+/** The most slides a design piece has (a carousel holds 20). */
+export const DESIGN_PAGES = 20;
 
 export interface VideoReviewDeps {
   db: Database;
@@ -59,11 +63,28 @@ export interface VideoReviewVersionView {
   note: string;
   /** Its light copy is ready: the apps play it unless the person asks for the original (HD). */
   light: boolean;
+  /** A design version's slides (picture files), in order; [] for a video or a page edited by hand. */
+  pages: string[];
+  /** A design version has an editable page (`…/versions/{version}/source`). */
+  source: boolean;
+  /** Who made this version in the editor; null: the agent sent it. */
+  editedBy: { id: string; name: string } | null;
   createdAt: string;
 }
 
-/** What a note is about, as the reviewer tagged it. */
-export const REVIEW_NOTE_KINDS = ["cut", "text", "motion", "sound", "color", "broll", "other"] as const;
+/** What a note is about, as the reviewer tagged it: a video's kinds, then a design piece's (`layout`, `image`, `type`). */
+export const REVIEW_NOTE_KINDS = [
+  "cut",
+  "text",
+  "motion",
+  "sound",
+  "color",
+  "broll",
+  "other",
+  "layout",
+  "image",
+  "type",
+] as const;
 export type ReviewNoteKind = (typeof REVIEW_NOTE_KINDS)[number];
 const KIND_WORDS: Record<ReviewNoteKind, string> = {
   cut: "Corte/ritmo",
@@ -73,6 +94,9 @@ const KIND_WORDS: Record<ReviewNoteKind, string> = {
   color: "Cor",
   broll: "Cards/B-roll",
   other: "Outro",
+  layout: "Layout",
+  image: "Imagem",
+  type: "Tipografia",
 };
 
 export interface VideoReviewNoteView {
@@ -80,6 +104,8 @@ export interface VideoReviewNoteView {
   version: number;
   atMs: number | null;
   endMs: number | null;
+  /** The slide of a design piece, from 1; null: a video, or the whole piece. */
+  page: number | null;
   kind: ReviewNoteKind | null;
   x: number | null;
   y: number | null;
@@ -93,11 +119,15 @@ export interface VideoReviewNoteView {
 
 export interface VideoReviewSummary {
   id: string;
+  /** A `video`, or a `design` piece (docs/adr/doug-0010-design-review.md). */
+  medium: schema.ReviewMedium;
   title: string;
   client: string;
   status: VideoReviewStatus;
   version: number;
   artifactId: string | null;
+  /** A design piece's first slide, from its newest version that has pictures: what lists and cards show. */
+  cover: string | null;
   agent: { id: string; name: string; handle: string } | null;
   channelId: string;
   threadId: string | null;
@@ -130,13 +160,14 @@ export function timecode(ms: number | null): string {
 }
 
 /** Where on the picture, as the agent reads it: ` [na tela: 62% da largura, 30% da altura]`. */
-function spot(x: number | null, y: number | null): string {
+function spot(x: number | null, y: number | null, on = "na tela"): string {
   if (x === null || y === null) return "";
-  return ` [na tela: ${Math.round(x * 100)}% da largura, ${Math.round(y * 100)}% da altura]`;
+  return ` [${on}: ${Math.round(x * 100)}% da largura, ${Math.round(y * 100)}% da altura]`;
 }
 
-/** `0:06.4` or `0:06.4–0:09.1`, as the agent reads where a note is. */
-function where(atMs: number | null, endMs: number | null): string {
+/** `0:06.4` or `0:06.4–0:09.1`, as the agent reads where a note is; on a design piece `lâmina 2`. */
+function where(atMs: number | null, endMs: number | null, page: number | null = null): string {
+  if (page !== null) return `lâmina ${page}`;
   return endMs !== null && atMs !== null ? `${timecode(atMs)}–${timecode(endMs)}` : timecode(atMs);
 }
 
@@ -485,20 +516,27 @@ async function summaries(db: Database, orgId: string, ids?: string[]): Promise<V
       reviewId: videoReviewVersions.reviewId,
       version: videoReviewVersions.version,
       artifactId: videoReviewVersions.artifactId,
+      pages: videoReviewVersions.pages,
     })
     .from(videoReviewVersions)
     .where(inArray(videoReviewVersions.reviewId, reviewIds));
+  const coverOf = (reviewId: string) =>
+    versions
+      .filter((v) => v.reviewId === reviewId && (v.pages ?? []).length > 0)
+      .sort((a, b) => b.version - a.version)[0]?.pages?.[0]?.artifactId ?? null;
   const open = await db
     .select({ reviewId: videoReviewNotes.reviewId, version: videoReviewNotes.version })
     .from(videoReviewNotes)
     .where(and(inArray(videoReviewNotes.reviewId, reviewIds), isNull(videoReviewNotes.sentAt)));
   return rows.map(({ review, agentName, agentHandle }) => ({
     id: review.id,
+    medium: review.medium === "design" ? "design" : "video",
     title: review.title,
     client: review.client,
     status: review.status,
     version: review.version,
     artifactId: versions.find((v) => v.reviewId === review.id && v.version === review.version)?.artifactId ?? null,
+    cover: review.medium === "design" ? coverOf(review.id) : null,
     agent: review.agentId && agentName ? { id: review.agentId, name: agentName, handle: agentHandle ?? "" } : null,
     channelId: review.channelId,
     threadId: review.threadId,
@@ -563,7 +601,13 @@ export async function getVideoReview(
     .where(eq(videoReviewVersions.reviewId, review.id))
     .orderBy(asc(videoReviewVersions.version));
   // A version sent before light copies existed gets one the first time it's opened.
-  for (const v of versions) if (v.lightState === "") await queueLight(deps, orgId, v.id);
+  if (review.medium !== "design") {
+    for (const v of versions) if (v.lightState === "") await queueLight(deps, orgId, v.id);
+  }
+  const editorIds = [...new Set(versions.flatMap((v) => (v.editedBy ? [v.editedBy] : [])))];
+  const editors = editorIds.length
+    ? await deps.db.select({ id: users.id, name: users.name }).from(users).where(inArray(users.id, editorIds))
+    : [];
   const notes = await deps.db
     .select({ note: videoReviewNotes, authorName: users.name })
     .from(videoReviewNotes)
@@ -571,6 +615,7 @@ export async function getVideoReview(
     .where(eq(videoReviewNotes.reviewId, review.id))
     .orderBy(
       asc(videoReviewNotes.version),
+      sql`${videoReviewNotes.page} asc nulls first`,
       sql`${videoReviewNotes.atMs} asc nulls first`,
       asc(videoReviewNotes.createdAt),
     );
@@ -586,6 +631,9 @@ export async function getVideoReview(
       artifactId: v.artifactId,
       note: v.note,
       light: v.lightState === "ready",
+      pages: (v.pages ?? []).map((p) => p.artifactId),
+      source: v.sourceArtifactId !== null,
+      editedBy: v.editedBy ? (editors.find((e) => e.id === v.editedBy) ?? { id: v.editedBy, name: "" }) : null,
       createdAt: v.createdAt.toISOString(),
     })),
     notes: notes.map(({ note, authorName }) => ({
@@ -593,6 +641,7 @@ export async function getVideoReview(
       version: note.version,
       atMs: note.atMs,
       endMs: note.endMs,
+      page: note.page,
       kind: (note.kind as ReviewNoteKind | null) ?? null,
       x: note.x,
       y: note.y,
@@ -615,6 +664,8 @@ export interface ReviewNoteInput {
   atMs: number | null;
   /** Where the stretch ends; only with `atMs`, and after it. */
   endMs?: number | null;
+  /** A design piece's slide, from 1; null or absent: the whole piece. Only on a design piece. */
+  page?: number | null;
   kind?: ReviewNoteKind | null;
   /** Where on the picture, as fractions (0–1) of its width and height. */
   x?: number | null;
@@ -639,7 +690,21 @@ async function writeNote(
   if (!Number.isInteger(input.version) || input.version < 1 || input.version > review.version) {
     throw new ValidationError("No such version", "video_review.bad_version");
   }
-  const atMs = input.atMs === null ? null : Math.max(0, Math.round(input.atMs));
+  const design = review.medium === "design";
+  const page = design && typeof input.page === "number" ? input.page : null;
+  if (page !== null) {
+    const [v] = await deps.db
+      .select({ pages: videoReviewVersions.pages })
+      .from(videoReviewVersions)
+      .where(and(eq(videoReviewVersions.reviewId, review.id), eq(videoReviewVersions.version, input.version)));
+    // A page edited by hand has no pictures: the apps count its slides, up to the most a piece has.
+    const most = (v?.pages ?? []).length || DESIGN_PAGES;
+    if (!Number.isInteger(page) || page < 1 || page > most) {
+      throw new ValidationError("No such slide", "video_review.bad_page");
+    }
+  }
+  // A design piece has no time: a note is on a slide, or about the whole piece.
+  const atMs = design || input.atMs === null ? null : Math.max(0, Math.round(input.atMs));
   const end = input.endMs === null || input.endMs === undefined ? null : Math.round(input.endMs);
   if (end !== null && (atMs === null || end <= atMs)) {
     throw new ValidationError("A stretch ends after it starts", "video_review.bad_range");
@@ -659,7 +724,8 @@ async function writeNote(
       reviewId: review.id,
       version: input.version,
       atMs,
-      endMs: end,
+      endMs: design ? null : end,
+      page,
       kind,
       x: y === null ? null : x,
       y,
@@ -677,6 +743,7 @@ async function writeNote(
     version: row.version,
     atMs: row.atMs,
     endMs: row.endMs,
+    page: row.page,
     kind: (row.kind as ReviewNoteKind | null) ?? null,
     x: row.x,
     y: row.y,
@@ -707,6 +774,7 @@ export async function addVoiceReviewNote(
     version: number;
     atMs: number | null;
     endMs?: number | null;
+    page?: number | null;
     kind?: ReviewNoteKind | null;
     x?: number | null;
     y?: number | null;
@@ -742,6 +810,7 @@ export async function addVoiceReviewNote(
     version: input.version,
     atMs: input.atMs,
     endMs: input.endMs ?? null,
+    page: input.page ?? null,
     kind: input.kind ?? null,
     x: input.x ?? null,
     y: input.y ?? null,
@@ -777,16 +846,27 @@ export type ReviewDecision = "approve" | "changes";
 
 const MEDIA_WORDS = { image: "imagem", video: "vídeo", audio: "áudio", other: "arquivo" } as const;
 
-/** What the agent reads: the decision and every note of the version, by time. */
+/** A design version as the agent reads it in a decision: its editable page, and who edited it by hand. */
+export interface DesignDecisionFacts {
+  /** The version's editable page (an HTML file of the conversation); null: pictures only. */
+  sourceArtifactId: string | null;
+  /** A person made this version in the editor: the agent renders its slides from the page before delivering. */
+  editedBy: string | null;
+}
+
+/** What the agent reads: the decision and every note of the version, by time (on a design piece, by slide). */
 export function decisionMessage(input: {
   handle: string;
   title: string;
   version: number;
   reviewId: string;
   decision: ReviewDecision;
+  /** A design piece's facts; absent: a video. */
+  design?: DesignDecisionFacts;
   notes: {
     atMs: number | null;
     endMs?: number | null;
+    page?: number | null;
     kind?: string | null;
     x?: number | null;
     y?: number | null;
@@ -798,29 +878,46 @@ export function decisionMessage(input: {
 }): string {
   const lines: string[] = [];
   const head = `@${input.handle}`;
+  const design = input.design;
+  const tool = design ? DESIGN_TOOL_NAME : SEND_FOR_REVIEW_TOOL;
   if (input.decision === "approve") {
     lines.push(`${head} Aprovado: «${input.title}» V${input.version} (review_id ${input.reviewId}).`);
   } else {
     lines.push(
-      `${head} Ajustes em «${input.title}» V${input.version} (review_id ${input.reviewId}). Faça a V${input.version + 1} e mande com send_for_review e esse review_id.`,
+      `${head} Ajustes em «${input.title}» V${input.version} (review_id ${input.reviewId}). Faça a V${input.version + 1} e mande com ${tool} e esse review_id.`,
     );
   }
+  if (design?.editedBy) {
+    // A person moved, rewrote or swapped things by hand: that page is now the piece, not the agent's last one.
+    lines.push(
+      "",
+      `${design.editedBy} editou a V${input.version} à mão no editor. Ela é a base daqui em diante: traga o HTML com import_file artifact_id ${design.sourceArtifactId}, ${
+        input.decision === "approve"
+          ? "exporte as lâminas dele e entregue a partir delas."
+          : "faça os ajustes em cima dele, sem desfazer o que foi mexido."
+      }`,
+    );
+  } else if (design?.sourceArtifactId) {
+    lines.push("", `HTML desta versão: artifact_id ${design.sourceArtifactId}.`);
+  }
   if (input.message.trim()) lines.push("", input.message.trim());
-  // Every review teaches: the agent writes down what holds beyond this video before it moves on.
+  // Every review teaches: the agent writes down what holds beyond this piece before it moves on.
+  const piece = design ? "nesta peça" : "neste vídeo";
+  const next = design ? "para as próximas peças" : "para os próximos vídeos";
   lines.push(
     "",
     input.decision === "approve"
-      ? "Antes de entregar: rode a skill self-improve-skill (se você tiver) e grave na sua skill e na sua memória o que funcionou neste vídeo."
-      : "Antes da próxima versão: rode a skill self-improve-skill (se você tiver) e grave na sua skill e na sua memória o que destas notas vale para os próximos vídeos.",
+      ? `Antes de entregar: rode a skill self-improve-skill (se você tiver) e grave na sua skill e na sua memória o que funcionou ${piece}.`
+      : `Antes da próxima versão: rode a skill self-improve-skill (se você tiver) e grave na sua skill e na sua memória o que destas notas vale ${next}.`,
   );
   if (input.notes.length > 0) {
     lines.push("", "Notas:");
     for (const note of input.notes) {
       const body = note.body.replace(/\n+/g, " ").trim() || "(sem texto: veja o anexo)";
       lines.push(
-        `- [${where(note.atMs, note.endMs ?? null)}]${
+        `- [${where(note.atMs, note.endMs ?? null, design ? (note.page ?? null) : null)}]${
           note.kind && note.kind in KIND_WORDS ? ` ${KIND_WORDS[note.kind as ReviewNoteKind]}:` : ""
-        } ${body}${spot(note.x ?? null, note.y ?? null)}${note.author ? ` (${note.author})` : ""}`,
+        } ${body}${spot(note.x ?? null, note.y ?? null, design ? "na lâmina" : "na tela")}${note.author ? ` (${note.author})` : ""}`,
       );
       for (const a of note.attachments ?? []) {
         lines.push(
@@ -862,6 +959,7 @@ export async function decideVideoReview(
       id: videoReviewNotes.id,
       atMs: videoReviewNotes.atMs,
       endMs: videoReviewNotes.endMs,
+      page: videoReviewNotes.page,
       kind: videoReviewNotes.kind,
       x: videoReviewNotes.x,
       y: videoReviewNotes.y,
@@ -878,8 +976,21 @@ export async function decideVideoReview(
         isNull(videoReviewNotes.sentAt),
       ),
     )
-    .orderBy(sql`${videoReviewNotes.atMs} asc nulls first`, asc(videoReviewNotes.createdAt));
+    .orderBy(
+      sql`${videoReviewNotes.page} asc nulls first`,
+      sql`${videoReviewNotes.atMs} asc nulls first`,
+      asc(videoReviewNotes.createdAt),
+    );
   const message = cleanText(input.message ?? "");
+  let design: DesignDecisionFacts | undefined;
+  if (review.medium === "design") {
+    const [v] = await deps.db
+      .select({ source: videoReviewVersions.sourceArtifactId, editedBy: users.name })
+      .from(videoReviewVersions)
+      .leftJoin(users, eq(users.id, videoReviewVersions.editedBy))
+      .where(and(eq(videoReviewVersions.reviewId, review.id), eq(videoReviewVersions.version, review.version)));
+    design = { sourceArtifactId: v?.source ?? null, editedBy: v?.source ? (v.editedBy ?? null) : null };
+  }
   if (input.decision === "changes" && notes.length === 0 && !message) {
     throw new ValidationError("Say what to change: add a note first", "video_review.nothing_to_change");
   }
@@ -911,9 +1022,11 @@ export async function decideVideoReview(
       version: review.version,
       reviewId: review.id,
       decision: input.decision,
+      design,
       notes: notes.map((n) => ({
         atMs: n.atMs,
         endMs: n.endMs,
+        page: n.page,
         kind: n.kind,
         x: n.x,
         y: n.y,
@@ -1031,3 +1144,15 @@ export async function reviewVideo(
   if (!object) throw new NotFoundError("The stored file is missing");
   return { body: object.body, contentType: object.contentType || "video/mp4", light: false };
 }
+
+// ---------- shared with the design piece (`design-reviews.ts`) ----------
+
+export {
+  BRIEF_SCHEMA as REVIEW_BRIEF_SCHEMA,
+  cleanBrief as cleanReviewBrief,
+  cleanText as cleanReviewText,
+  LINKS_SCHEMA as REVIEW_LINKS_SCHEMA,
+  requireReview as requireVideoReview,
+  summaries as reviewSummaries,
+  versionFile as reviewVersionFile,
+};

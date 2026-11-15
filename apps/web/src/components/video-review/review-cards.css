@@ -100,3 +100,23 @@
   font-size: var(--text-sm);
   font-weight: 600;
 }
+
+/* A design piece (docs/adr/doug-0010-design-review.md): its first slide, larger, as the piece itself. */
+.vr-card[data-medium="design"] .vr-card__poster {
+  width: 96px;
+  aspect-ratio: 4 / 5;
+}
+.vr-card__poster img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  pointer-events: none;
+}
+.vr-card[data-medium="design"] .vr-card__play {
+  inset: auto var(--space-1) var(--space-1) auto;
+  width: 24px;
+  height: 24px;
+  border-radius: var(--radius-full);
+  background: rgb(0 0 0 / 0.55);
+  filter: none;
+}

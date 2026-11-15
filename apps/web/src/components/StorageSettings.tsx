@@ -7,6 +7,7 @@ import {
   useTestStorage,
   useWorkspaceLimits,
 } from "@agenteschat/client";
+import { errorText } from "@agenteschat/client/lib/errors";
 import { can } from "@agenteschat/client/lib/permissions";
 import {
   AWS_REGIONS,
@@ -56,7 +57,7 @@ import { softBreaks } from "@/lib/soft-breaks";
 import { useToast } from "@/lib/toast";
 import "./storage.css";
 
-type Choice = "agentes" | "s3";
+type Choice = "agentes" | "s3" | "provided";
 type BrandedProvider = Exclude<StorageProvider, "other">;
 
 /** Each service's mark and color (`public/connectors`, see its README); "Other" has none. */
@@ -161,6 +162,10 @@ export function StorageSection() {
   const config = edition ? storage.data : undefined;
   const cloud = edition === "cloud";
   const place = t(cloud ? "storage.place.agentes" : "storage.place.server");
+  // The storage server this server hands out, between its own storage and the workspace's (doug-0010); kept in the
+  // list while in use, even if the server stops offering it.
+  const provided = config?.provided ?? null;
+  const kinds: Choice[] = provided || config?.kind === "provided" ? ["agentes", "provided", "s3"] : ["agentes", "s3"];
   return (
     // The page's title names the card: a title of its own would say it twice.
     <Card aria-label={t("storage.title")}>
@@ -175,15 +180,21 @@ export function StorageSection() {
             className="stack-4"
             style={{ gap: 8 }}
           >
-            {(["agentes", "s3"] as const).map((k) => (
+            {kinds.map((k) => (
               <RadioCard
                 key={k}
                 value={k}
                 id={`storage-${k}`}
                 checked={choice === k}
-                title={t(k === "s3" ? "storage.s3" : cloud ? "storage.agentes" : "storage.server")}
+                title={
+                  k === "provided"
+                    ? (provided?.name ?? t("storage.provided.title"))
+                    : t(k === "s3" ? "storage.s3" : cloud ? "storage.agentes" : "storage.server")
+                }
                 description={
-                  k === "s3" ? (
+                  k === "provided" ? (
+                    t("storage.provided.text")
+                  ) : k === "s3" ? (
                     config.kind === "s3" ? (
                       <InUseLine config={config} />
                     ) : (
@@ -217,6 +228,10 @@ export function StorageSection() {
           )}
           {config.kind === "s3" ? (
             <InUse config={config} place={place} onEdit={() => setConnect("edit")} />
+          ) : config.kind === "provided" ? (
+            <InUse config={config} place={place} />
+          ) : choice === "provided" && provided ? (
+            <SwitchOnProvided name={provided.name} />
           ) : (
             choice === "s3" && (
               // `ac-acts` straight in the card: on a phone its lone button takes the card's width.
@@ -241,8 +256,37 @@ export function StorageSection() {
   );
 }
 
-/** On the workspace's own storage: copying the files kept before, editing the connection, and the way back. */
-function InUse({ config, place, onEdit }: { config: StorageConfig; place: string; onEdit: () => void }) {
+/** The storage server's one step: switching it on makes and checks the workspace's own bucket there. */
+function SwitchOnProvided({ name }: { name: string }) {
+  const { t } = useTranslation();
+  const { org } = useOrg();
+  const toast = useToast();
+  const save = useSaveStorage(org.id);
+  return (
+    <div className="stack-4" style={{ gap: 12 }}>
+      {save.isError && <Alert>{errorText(t, save.error)}</Alert>}
+      {/* `ac-acts` straight in the card: on a phone its lone button takes the card's width. */}
+      <div className="ac-acts">
+        <Button
+          variant="primary"
+          disabled={save.isPending}
+          loading={save.isPending}
+          onClick={() =>
+            save.mutate({ kind: "provided" }, { onSuccess: () => toast.show(t("storage.provided.done", { name })) })
+          }
+        >
+          {t("storage.provided.on", { name })}
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * On the workspace's own storage: copying the files kept before, editing the connection (not on the storage server,
+ * whose bucket the server made), and the way back.
+ */
+function InUse({ config, place, onEdit }: { config: StorageConfig; place: string; onEdit?: () => void }) {
   const { t } = useTranslation();
   const { org } = useOrg();
   const toast = useToast();
@@ -252,7 +296,7 @@ function InUse({ config, place, onEdit }: { config: StorageConfig; place: string
     <div className="stack-4" style={{ gap: 12 }}>
       <CopyFiles config={config} place={place} />
       <div className="row" style={{ gap: 8 }}>
-        <Button onClick={onEdit}>{t("storage.connect.edit")}</Button>
+        {onEdit && <Button onClick={onEdit}>{t("storage.connect.edit")}</Button>}
         <Button variant="ghost" onClick={() => setConfirm(true)}>
           {t("storage.back", { place })}
         </Button>

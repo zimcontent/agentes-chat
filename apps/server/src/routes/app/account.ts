@@ -382,7 +382,7 @@ export function accountRoutes(deps: AppDeps) {
             }),
             zimMedia: z.boolean().openapi({
               description:
-                "This server generates images and videos from a credit wallet (ZIM_MEDIA_URL, ADR doug-0010): the apps show the Mídia page.",
+                "This server generates images and videos from a credit wallet (ZIM_MEDIA_URL, ADR doug-0011): the apps show the Mídia page.",
             }),
             billingUrl: z.string().nullable().openapi({
               description:

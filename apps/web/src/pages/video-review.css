@@ -36,6 +36,15 @@
 .vr-row:hover {
   background: var(--side-hover);
 }
+/* A design piece's first slide stands for it in the list. */
+.vr-row__cover {
+  flex: none;
+  width: 32px;
+  height: 40px;
+  border-radius: var(--radius-xs);
+  object-fit: cover;
+  box-shadow: 0 0 0 1px var(--line);
+}
 .vr-row__words {
   display: flex;
   flex: 1;

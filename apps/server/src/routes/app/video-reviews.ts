@@ -1,8 +1,12 @@
 import {
   addReviewNote,
   addVoiceReviewNote,
+  DESIGN_PAGES,
+  DESIGN_SOURCE_BYTES,
   decideVideoReview,
   deleteReviewNote,
+  designPage,
+  designSource,
   getVideoReview,
   listVideoReviews,
   NotFoundError,
@@ -10,6 +14,7 @@ import {
   REVIEW_NOTE_CHARS,
   REVIEW_NOTE_KINDS,
   reviewVideo,
+  saveDesignEdit,
   ValidationError,
   type VideoReviewDeps,
 } from "@agenteschat/engine";
@@ -32,6 +37,7 @@ const tags = ["Video review"];
 
 const NOTES = { limit: 120, windowMs: 60_000 };
 const VOICE = { limit: 30, windowMs: 60_000 };
+const EDITS = { limit: 20, windowMs: 60_000 };
 
 const ReviewParams = OrgParams.extend({ reviewId: z.uuid() });
 const NoteParams = ReviewParams.extend({ noteId: z.uuid() });
@@ -65,11 +71,15 @@ const AttachmentInput = z
 const Summary = z
   .object({
     id: z.uuid(),
+    medium: z.enum(["video", "design"]).openapi({ description: "A video, or a design piece (slides and its page)." }),
     title: z.string(),
     client: z.string(),
     status: z.enum(["in_review", "changes", "approved"]),
     version: z.number().int(),
     artifactId: z.uuid().nullable().openapi({ description: "The newest version's video file." }),
+    cover: z.uuid().nullable().openapi({
+      description: "A design piece's first slide (a picture file), from its newest version with pictures.",
+    }),
     agent: z.object({ id: z.uuid(), name: z.string(), handle: z.string() }).nullable(),
     channelId: z.uuid(),
     threadId: z.uuid().nullable(),
@@ -85,6 +95,11 @@ const Note = z
     version: z.number().int(),
     atMs: z.number().int().nullable(),
     endMs: z.number().int().nullable(),
+    page: z
+      .number()
+      .int()
+      .nullable()
+      .openapi({ description: "A design piece's slide, from 1; null: the whole piece." }),
     kind: z.enum(REVIEW_NOTE_KINDS).nullable(),
     x: z.number().nullable(),
     y: z.number().nullable(),
@@ -106,6 +121,9 @@ const Review = Summary.extend({
       artifactId: z.uuid(),
       note: z.string(),
       light: z.boolean().openapi({ description: "Its light copy for phones is ready (`…/versions/{version}/video`)." }),
+      pages: z.array(z.uuid()).openapi({ description: "A design version's slides, as picture files, in order." }),
+      source: z.boolean().openapi({ description: "A design version's editable page (`…/versions/{version}/source`)." }),
+      editedBy: Who.nullable().openapi({ description: "Who made this version in the editor; null: the agent." }),
       createdAt: z.string(),
     }),
   ),
@@ -185,6 +203,75 @@ export function videoReviewRoutes(deps: AppDeps) {
     });
   });
 
+  // A design version's slide, as a picture (docs/adr/doug-0010-design-review.md).
+  app.get("/organizations/:orgId/video-reviews/:reviewId/versions/:version/pages/:page", async (c) => {
+    const version = Number(c.req.param("version"));
+    const page = Number(c.req.param("page"));
+    if (!Number.isInteger(version) || version < 1) throw new ValidationError("Bad version", "video_review.bad_version");
+    if (!Number.isInteger(page) || page < 1) throw new ValidationError("Bad slide", "video_review.bad_page");
+    const picture = await designPage(
+      reviews(),
+      c.get("user").id,
+      c.req.param("orgId"),
+      c.req.param("reviewId"),
+      version,
+      page,
+    );
+    return c.body(picture.body as Uint8Array<ArrayBuffer>, 200, {
+      "content-type": picture.contentType,
+      "x-content-type-options": "nosniff",
+      "content-security-policy": "sandbox",
+      // A version never changes: the same address is the same picture.
+      "cache-control": "private, max-age=86400, immutable",
+    });
+  });
+  // A design version's editable page, as text: the apps run it in a sandboxed frame with no network (ADR 0019), never
+  // as a page of this site.
+  app.get("/organizations/:orgId/video-reviews/:reviewId/versions/:version/source", async (c) => {
+    const version = Number(c.req.param("version"));
+    if (!Number.isInteger(version) || version < 1) throw new ValidationError("Bad version", "video_review.bad_version");
+    const html = await designSource(
+      reviews(),
+      c.get("user").id,
+      c.req.param("orgId"),
+      c.req.param("reviewId"),
+      version,
+    );
+    return c.body(html, 200, {
+      "content-type": "text/plain; charset=utf-8",
+      "x-content-type-options": "nosniff",
+      "content-security-policy": "sandbox",
+      "cache-control": "private, max-age=86400, immutable",
+    });
+  });
+  app.openapi(
+    createRoute({
+      method: "post",
+      path: "/organizations/{orgId}/video-reviews/{reviewId}/design",
+      tags,
+      security,
+      summary: "Save a design piece edited by hand as its next version (the open notes move along with it)",
+      description:
+        "Only on the newest version while it is in review: 409 `video_review.stale_version` when another version arrived, `video_review.not_open` once decided.",
+      request: {
+        params: ReviewParams,
+        body: body(
+          z.object({
+            baseVersion: z.number().int().min(1).openapi({ description: "The version the editor opened." }),
+            html: z.string().max(DESIGN_SOURCE_BYTES).openapi({ description: "The whole edited page." }),
+            note: z.string().max(REVIEW_NOTE_CHARS).optional(),
+          }),
+        ),
+      },
+      responses: { 200: json(Summary), ...errors, 429: errorResponse("Too many (`rate_limited`)") },
+    }),
+    async (c) => {
+      const user = c.get("user");
+      if (!(await allowed(`design-edit:${user.id}`, EDITS))) return apiError(c, 429, "rate_limited", "Slow down");
+      const { orgId, reviewId } = c.req.valid("param");
+      return c.json(await saveDesignEdit(reviews(), user.id, orgId, reviewId, c.req.valid("json")), 200);
+    },
+  );
   app.openapi(
     createRoute({
       method: "post",
@@ -199,6 +286,7 @@ export function videoReviewRoutes(deps: AppDeps) {
             version: z.number().int().min(1),
             atMs: z.number().int().min(0).nullable(),
             endMs: z.number().int().min(1).nullable().optional(),
+            page: z.number().int().min(1).max(DESIGN_PAGES).nullable().optional(),
             kind: z.enum(REVIEW_NOTE_KINDS).nullable().optional(),
             x: z.number().min(0).max(1).nullable().optional(),
             y: z.number().min(0).max(1).nullable().optional(),
@@ -243,6 +331,7 @@ export function videoReviewRoutes(deps: AppDeps) {
                   .max(12)
                   .optional()
                   .openapi({ description: "Where a stretch ends; empty: one point." }),
+                page: z.string().max(4).optional().openapi({ description: "A design piece's slide; empty: whole." }),
                 kind: z.enum(REVIEW_NOTE_KINDS).optional(),
                 x: z.string().max(12).optional(),
                 y: z.string().max(12).optional(),
@@ -291,6 +380,7 @@ export function videoReviewRoutes(deps: AppDeps) {
           version: form.version,
           atMs: at !== null && Number.isFinite(at) ? at : null,
           endMs: end !== null && Number.isFinite(end) ? end : null,
+          page: form.page?.trim() && Number.isInteger(Number(form.page)) ? Number(form.page) : null,
           kind: form.kind ?? null,
           x: fraction(form.x),
           y: fraction(form.y),

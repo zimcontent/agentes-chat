@@ -10997,9 +10997,6 @@
   "liveVoice": {
     "you": "Tú",
     "call": {
-      "mode": "Tipo de llamada",
-      "modeMaestro": "Reunión (nueva)",
-      "modeLive": "Clásica (GPT-Live)",
       "topic": "Tema (opcional)",
       "topicHint": "Los agentes empiezan debatiendo esto. Entra cuando quieras.",
       "start": "Iniciar llamada de voz",
@@ -11025,7 +11022,6 @@
       "hangUp": "Colgar"
     },
     "room": {
-      "cost": "Voz y transcripción hasta ahora: {{cost}}",
       "title": "Llamada de voz",
       "joining": "Conectando…",
       "inCall": "En llamada",
@@ -11109,7 +11105,6 @@
       }
     },
     "errors": {
-      "noMaestro": "Las reuniones con maestro no están configuradas en este servidor.",
       "badAudio": "No se pudo leer ese audio. Inténtalo de nuevo.",
       "off": "Este espacio de trabajo no tiene clave de GPT-Live. Agrega una en Configuración › Voz.",
       "keyInvalid": "OpenAI rechazó esta clave.",
@@ -12765,6 +12760,12 @@
     },
     "s3": "Tu propio almacenamiento",
     "s3Text": "Cloudflare R2, Amazon S3, Backblaze B2 u otro compatible con S3.",
+    "provided": {
+      "title": "Servidor de almacenamiento",
+      "text": "Un bucket solo de este workspace, en el almacenamiento del servidor. Nada que configurar.",
+      "on": "Activar {{name}}",
+      "done": "Los archivos nuevos ahora van a {{name}}."
+    },
     "current": "En uso",
     "usage": {
       "files": "{{size}} de archivos",
@@ -15352,6 +15353,8 @@
       "neverHappens": "Esta programación nunca ocurre.",
       "soleOwner": "Eres la única persona dueña de un espacio de trabajo con otros miembros. Haz dueña a otra persona, o borra el espacio de trabajo, antes.",
       "testFirst": "Prueba la conexión con estos datos antes de activarla.",
+      "providedOff": "Este servidor ya no ofrece un servidor de almacenamiento.",
+      "storageServer": "El servidor de almacenamiento no respondió. Inténtalo de nuevo en un momento.",
       "voiceLength": "La grabación es demasiado larga o demasiado corta.",
       "sendAgain": "El archivo no llegó completo. Envíalo de nuevo.",
       "serverKey": "Esta clave está en la configuración del servidor.",

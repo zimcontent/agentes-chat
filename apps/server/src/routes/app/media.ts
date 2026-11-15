@@ -17,7 +17,7 @@ import { apiError, errorResponse } from "../../http/errors";
 import { type AppDeps, body, createAppRouter, errors, json, OrgParams, requireSession, security } from "./context";
 
 /**
- * The Mídia page (ADR doug-0010): the workspace's credit wallet, its top-ups through Mercado Pago and the images and
+ * The Mídia page (ADR doug-0011): the workspace's credit wallet, its top-ups through Mercado Pago and the images and
  * videos people generate. Everything goes through the Zim Mídia service; no address of it reaches a browser.
  */
 const tags = ["Media"];

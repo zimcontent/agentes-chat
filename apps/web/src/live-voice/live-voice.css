@@ -503,13 +503,6 @@
   font-size: var(--text-sm);
 }
 
-/* A maestro call's running cost (voice and transcription), beside who speaks. */
-.lv-bar__cost {
-  display: block;
-  font-size: var(--text-xs);
-  color: var(--lv-muted);
-  font-variant-numeric: tabular-nums;
-}
 .lv-topic {
   display: grid;
   gap: var(--space-1);
@@ -527,4 +520,42 @@
 }
 .lv-notes .ac-acts {
   justify-content: flex-end;
+}
+
+/* Someone calls this person into a call: a card at the bottom right (clear of the notices up top) until they answer. */
+.lv-ring {
+  position: fixed;
+  bottom: var(--space-4);
+  right: var(--space-4);
+  z-index: var(--z-floating);
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-height: 56px;
+  padding: var(--space-2) var(--space-2) var(--space-2) var(--space-3);
+  border-radius: var(--radius-xl);
+  background: var(--surface);
+  border: 1px solid var(--line-strong);
+  color: var(--ink);
+  box-shadow: var(--raised-2);
+  max-width: calc(100vw - 2 * var(--space-4));
+}
+.lv-ring__text {
+  display: grid;
+  min-width: 0;
+  font-size: var(--text-sm);
+}
+.lv-ring__text b,
+.lv-ring__text span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.lv-ring__text span {
+  color: var(--ink-muted);
+}
+.lv-pick__none {
+  margin: 0;
+  color: var(--ink-muted);
+  font-size: var(--text-sm);
 }

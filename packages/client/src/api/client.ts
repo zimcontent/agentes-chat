@@ -26,6 +26,7 @@ import type {
   VaultScope,
 } from "../vault/types";
 import type {
+  DesignEditInput,
   VideoReview,
   VideoReviewDecision,
   VideoReviewNote,
@@ -361,6 +362,7 @@ import type {
   StatusInput,
   StorageConfig,
   StorageMigration,
+  StorageSave,
   StorageTestResult,
   SuggestedAi,
   TaskManagerView,
@@ -485,20 +487,17 @@ export interface ApiClient {
       orgId: string,
       channelId: string,
       agentIds: string[],
-      options?: { mode?: "live" | "maestro"; topic?: string | null; language?: string },
+      options?: { topic?: string | null; language?: string },
     ): Promise<LiveRoom>;
     /** The workspace's notes on how its agents behave on calls (§11). */
     saveCallNotes(orgId: string, notes: string): Promise<LiveVoice>;
-    /** One utterance a person said on a maestro call (only speech, cut by their app). */
-    heard(
+    /** Calls people into the call (added to the conversation when needed, mentioned there, rung). */
+    invite(
       orgId: string,
       roomId: string,
-      input: { blob: Blob; durationMs: number; language: string },
-    ): Promise<{ text: string }>;
-    /** A person started talking on a maestro call: every voice stops. */
-    hush(orgId: string, roomId: string): Promise<void>;
-    /** Where an agent's line on a maestro call streams from (an `<audio>` source, same origin). */
-    speechUrl(orgId: string, roomId: string, utteranceId: string): string;
+      userIds: string[],
+      language?: string | null,
+    ): Promise<{ invited: string[]; refused: string[] }>;
     ping(orgId: string, roomId: string): Promise<LiveRoom>;
     leave(orgId: string, roomId: string): Promise<void>;
     end(orgId: string, roomId: string): Promise<{ room: LiveRoom | null }>;
@@ -1577,7 +1576,7 @@ export interface ApiClient {
    * Members read; whoever may give agents work (`assign_work`) changes cards, posts and sends.
    */
   /**
-   * Images and videos paid from the workspace's credit wallet (ADR doug-0010). 404 `media.off` on a server without
+   * Images and videos paid from the workspace's credit wallet (ADR doug-0011). 404 `media.off` on a server without
    * it (`AuthConfig.zimMedia`), 402 `media.no_credits`, 400 `media.refused` with the service's words.
    */
   media?: MediaApi;
@@ -2009,7 +2008,7 @@ export interface ApiClient {
     /** Checks a bucket: write, read, list and delete a test object. */
     test(orgId: string, input: S3Input): Promise<StorageTestResult>;
     /** Switches storage. `s3` requires a passing test of the same settings. */
-    save(orgId: string, input: { kind: "agentes" } | { kind: "s3"; s3: S3Input }): Promise<StorageConfig>;
+    save(orgId: string, input: StorageSave): Promise<StorageConfig>;
     /** Starts (or resumes) copying existing files to the bucket. */
     migrate(orgId: string): Promise<StorageMigration>;
     migration(orgId: string): Promise<StorageMigration | null>;
@@ -2270,6 +2269,12 @@ export interface ApiClient {
       reviewId: string,
       input: { decision: VideoReviewDecision; message?: string },
     ): Promise<VideoReviewSummary>;
+    /** A design version's slide, as a picture (`page` from 1). */
+    pageUrl?(orgId: string, reviewId: string, version: number, page: number): string;
+    /** A design version's editable page, as text (run only in an isolated frame). */
+    source?(orgId: string, reviewId: string, version: number): Promise<string>;
+    /** Saves a design piece edited by hand as its next version. */
+    saveDesign?(orgId: string, reviewId: string, input: DesignEditInput): Promise<VideoReviewSummary>;
   };
   whatsapp?: {
     overview(orgId: string): Promise<WhatsAppOverview>;

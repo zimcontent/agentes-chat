@@ -285,7 +285,7 @@ async function boot(
       config.WHATSAPP_GATEWAY_URL && config.WHATSAPP_GATEWAY_KEY
         ? createEvolutionGoGateway({ url: config.WHATSAPP_GATEWAY_URL, apiKey: config.WHATSAPP_GATEWAY_KEY })
         : null,
-    // Media generation paid in credits (ADR doug-0010), only with the Zim Mídia service's address and secret.
+    // Media generation paid in credits (ADR doug-0011), only with the Zim Mídia service's address and secret.
     zimMedia:
       config.ZIM_MEDIA_URL && config.ZIM_MEDIA_SECRET
         ? createZimMedia({ url: config.ZIM_MEDIA_URL, secret: config.ZIM_MEDIA_SECRET })

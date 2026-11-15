@@ -20,6 +20,7 @@ import {
   type MailAdapters,
   noPlatformCredentials,
   type S3Fetch,
+  type StorageHost,
   TURNSTILE_SCRIPT_URL,
   type WebPushSender,
   type WhatsAppGateway,
@@ -80,6 +81,8 @@ export async function createTestServer(
     embeddings?: boolean;
     /** Fake S3 server and DNS for org buckets. */
     s3Fetch?: S3Fetch;
+    /** A fake storage server to hand out (with `STORAGE_HOST_ENDPOINT` in `env`). */
+    storageHost?: StorageHost;
     resolveHost?: ResolveHost;
     /** Fake GitHub (git smart HTTP and REST) for the git proxy. */
     github?: { gitUrl: string; apiUrl: string; fetch: typeof fetch };
@@ -109,7 +112,7 @@ export async function createTestServer(
     errors?: ErrorReporter;
     /** The approval portal (ADR 9001); absent or null = none, as without its bridge. */
     approvalPortal?: ApprovalPortal | null;
-    /** The Zim Mídia service (ADR doug-0010); absent = no media generation. */
+    /** The Zim Mídia service (ADR doug-0011); absent = no media generation. */
     zimMedia?: ZimMedia | null;
     /** GIF search (ADR 0091); absent = the fake provider (`createFakeGifs`), null = none, as without its key. */
     gifs?: GifProvider | null;
@@ -192,6 +195,7 @@ export async function createTestServer(
     http: options.http,
     embeddings: options.embeddings ? { provider: embeddings, apiKey: "test" } : undefined,
     s3Fetch: options.s3Fetch,
+    storageHost: options.storageHost,
     speechFetch: options.speechFetch,
     resolveHost: options.resolveHost,
     github: options.github,
@@ -250,6 +254,7 @@ export async function createTestServer(
         githubApp: engine.githubApp,
         speech: engine.speech,
         voice: engine.voice,
+        videoReviews: engine.videoReviews,
       },
     },
     log,

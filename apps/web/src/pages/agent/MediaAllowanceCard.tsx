@@ -11,7 +11,7 @@ const MONTHLY = [0, 1000, 2000, 5000, 10_000, 20_000, 50_000];
 const ASK_ABOVE = ["never", "100", "300", "500", "1000", "2000", "5000"];
 
 /**
- * Configurações → Imagens e vídeos (ADR doug-0010): how many credits the agent's `generate_image` and
+ * Configurações → Imagens e vídeos (ADR doug-0011): how many credits the agent's `generate_image` and
  * `generate_video` may spend a month, and from which price a generation waits for a person's approval. Saved at once
  * by who manages agents; everyone else reads it. Only on a server with media generation.
  */

@@ -11009,9 +11009,6 @@
   "liveVoice": {
     "you": "Vous",
     "call": {
-      "mode": "Type d'appel",
-      "modeMaestro": "Réunion (nouvelle)",
-      "modeLive": "Classique (GPT-Live)",
       "topic": "Sujet (facultatif)",
       "topicHint": "Les agents commencent par débattre de ce sujet. Intervenez quand vous voulez.",
       "start": "Lancer un appel vocal",
@@ -11037,7 +11034,6 @@
       "hangUp": "Raccrocher"
     },
     "room": {
-      "cost": "Voix et transcription jusqu'ici : {{cost}}",
       "title": "Appel vocal",
       "joining": "Connexion…",
       "inCall": "En appel",
@@ -11121,7 +11117,6 @@
       }
     },
     "errors": {
-      "noMaestro": "Les réunions avec maestro ne sont pas configurées sur ce serveur.",
       "badAudio": "Impossible de lire cet audio. Réessayez.",
       "off": "Cet espace de travail n'a pas de clé GPT-Live. Ajoutez-en une dans Paramètres › Voix.",
       "keyInvalid": "OpenAI a refusé cette clé.",
@@ -12779,6 +12774,12 @@
     },
     "s3": "Votre propre stockage",
     "s3Text": "Cloudflare R2, Amazon S3, Backblaze B2 ou un autre service compatible S3.",
+    "provided": {
+      "title": "Serveur de stockage",
+      "text": "Un bucket rien qu'à ce workspace, sur le stockage du serveur. Rien à configurer.",
+      "on": "Activer {{name}}",
+      "done": "Les nouveaux fichiers vont maintenant dans {{name}}."
+    },
     "current": "Utilisé",
     "usage": {
       "files": "{{size}} de fichiers",
@@ -15365,6 +15366,8 @@
       "neverHappens": "Cette planification n'arrive jamais.",
       "soleOwner": "Vous êtes le seul propriétaire d'un espace de travail avec d'autres membres. Nommez un autre propriétaire ou supprimez l'espace de travail d'abord.",
       "testFirst": "Testez la connexion avec ces réglages avant de l'activer.",
+      "providedOff": "Ce serveur ne propose plus de serveur de stockage.",
+      "storageServer": "Le serveur de stockage n'a pas répondu. Réessaie dans un instant.",
       "voiceLength": "L'enregistrement est trop long ou trop court.",
       "sendAgain": "Le fichier n'est pas arrivé entier. Renvoyez-le.",
       "serverKey": "Cette clé est définie dans les réglages du serveur.",

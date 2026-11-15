@@ -23,10 +23,10 @@ import {
   Alert,
   agentGradient,
   Button,
+  colorFace,
   Dialog,
   DialogBody,
   DialogFooter,
-  ditherUrl,
   Field,
   Icon,
   type IconName,
@@ -185,7 +185,7 @@ export function LookDialog({
                   aria-checked={draft.color === c}
                   aria-label={t("rolesPage.colorOf", { color: c })}
                   className="roles-color"
-                  style={{ backgroundImage: `url("${ditherUrl(c as AgentColor, 8)}")` }}
+                  style={{ backgroundImage: colorFace(c) }}
                   onClick={() => setDraft((d) => ({ ...d, color: c }))}
                 />
               ))}

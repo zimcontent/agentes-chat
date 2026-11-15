@@ -213,11 +213,11 @@ const AgentFields = z.object({
   }),
   mediaMonthlyCredits: z.number().int().min(0).max(10_000_000).optional().openapi({
     description:
-      "Credits its `generate_image` and `generate_video` may spend in a UTC month (ADR doug-0010); 0: it can't generate. Needs `manage_agents`. Default 5,000.",
+      "Credits its `generate_image` and `generate_video` may spend in a UTC month (ADR doug-0011); 0: it can't generate. Needs `manage_agents`. Default 5,000.",
   }),
   mediaAskAbove: z.number().int().min(0).max(10_000_000).nullable().optional().openapi({
     description:
-      "A generation priced above this many credits becomes an approval request first (ADR doug-0010); null: it never asks. Needs `manage_agents`. Default 500.",
+      "A generation priced above this many credits becomes an approval request first (ADR doug-0011); null: it never asks. Needs `manage_agents`. Default 500.",
   }),
   voice: z.string().max(40).nullable().optional().openapi({
     description:

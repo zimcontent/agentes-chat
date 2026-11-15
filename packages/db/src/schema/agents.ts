@@ -243,7 +243,7 @@ export const agents = pgTable(
      */
     mediaReplies: boolean().notNull().default(true),
     /**
-     * Media generation paid from the workspace's wallet (ADR doug-0010): the most credits its own `generate_image` and
+     * Media generation paid from the workspace's wallet (ADR doug-0011): the most credits its own `generate_image` and
      * `generate_video` may spend in a UTC calendar month (0: it can't generate), and the price of one generation from
      * which a person approves it first (null: never asks). Created by `EXTRA_COLUMNS`.
      */

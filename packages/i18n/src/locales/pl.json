@@ -11378,9 +11378,6 @@
   "liveVoice": {
     "you": "Ty",
     "call": {
-      "mode": "Rodzaj rozmowy",
-      "modeMaestro": "Spotkanie (nowe)",
-      "modeLive": "Klasyczna (GPT-Live)",
       "topic": "Temat (opcjonalnie)",
       "topicHint": "Agenci zaczynają od dyskusji na ten temat. Dołącz, kiedy chcesz.",
       "start": "Rozpocznij rozmowę głosową",
@@ -11408,7 +11405,6 @@
       "hangUp": "Rozłącz"
     },
     "room": {
-      "cost": "Głos i transkrypcja do tej pory: {{cost}}",
       "title": "Rozmowa głosowa",
       "joining": "Łączenie…",
       "inCall": "W rozmowie",
@@ -11492,7 +11488,6 @@
       }
     },
     "errors": {
-      "noMaestro": "Spotkania z maestro nie są skonfigurowane na tym serwerze.",
       "badAudio": "Nie udało się odczytać tego nagrania. Spróbuj ponownie.",
       "off": "Ta przestrzeń robocza nie ma klucza GPT-Live. Dodaj go w Ustawienia › Głos.",
       "keyInvalid": "OpenAI odrzuciło ten klucz.",
@@ -13252,6 +13247,12 @@
     },
     "s3": "Własne miejsce na dane",
     "s3Text": "Cloudflare R2, Amazon S3, Backblaze B2 lub inny zgodny z S3.",
+    "provided": {
+      "title": "Serwer przechowywania",
+      "text": "Bucket tylko dla tego workspace'u, w magazynie serwera. Nic do ustawiania.",
+      "on": "Włącz {{name}}",
+      "done": "Nowe pliki trafiają teraz do {{name}}."
+    },
     "current": "W użyciu",
     "usage": {
       "files": "{{size}} plików",
@@ -15878,6 +15879,8 @@
       "neverHappens": "Ten harmonogram nigdy się nie wydarzy.",
       "soleOwner": "Jesteś jedynym właścicielem przestrzeni roboczej z innymi członkami. Najpierw ustaw kogoś innego jako właściciela albo usuń przestrzeń roboczą.",
       "testFirst": "Przetestuj połączenie z tymi ustawieniami, zanim je włączysz.",
+      "providedOff": "Ten serwer nie oferuje już serwera przechowywania.",
+      "storageServer": "Serwer przechowywania nie odpowiedział. Spróbuj ponownie za chwilę.",
       "voiceLength": "Nagranie jest za długie lub za krótkie.",
       "sendAgain": "Plik nie dotarł w całości. Wyślij go ponownie.",
       "serverKey": "Ten klucz jest w ustawieniach serwera.",

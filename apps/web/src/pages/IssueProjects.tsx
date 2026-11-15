@@ -10,10 +10,10 @@ import {
 import {
   Button,
   ColorDot,
+  colorFace,
   Dialog,
   DialogBody,
   DialogFooter,
-  ditherUrl,
   Field,
   FilterChip,
   type FilterOption,
@@ -101,7 +101,7 @@ export function ProjectDialog({
                   aria-checked={color === c}
                   aria-label={t("rolesPage.colorOf", { color: c })}
                   className="roles-color"
-                  style={{ backgroundImage: `url("${ditherUrl(c, 8)}")` }}
+                  style={{ backgroundImage: colorFace(c) }}
                   onClick={() => setPicked(c)}
                 />
               ))}

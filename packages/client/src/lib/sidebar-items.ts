@@ -23,7 +23,7 @@ export const SIDEBAR_DEFAULTS: Record<SidebarItem, SidebarPlace> = {
   waiting: "auto",
   // Listed only where the server has an approval portal (ADR 9001): the apps leave it out elsewhere.
   portal: "always",
-  // Listed only where the server generates media (ADR doug-0010).
+  // Listed only where the server generates media (ADR doug-0011).
   media: "always",
   approvals: "auto",
   proposals: "more",
@@ -49,7 +49,7 @@ export const PERSONAL_SIDEBAR_DEFAULTS: Record<SidebarItem, SidebarPlace> = {
   waiting: "auto",
   // Listed only where the server has an approval portal (ADR 9001): the apps leave it out elsewhere.
   portal: "always",
-  // Listed only where the server generates media (ADR doug-0010).
+  // Listed only where the server generates media (ADR doug-0011).
   media: "always",
   approvals: "auto",
   proposals: "more",

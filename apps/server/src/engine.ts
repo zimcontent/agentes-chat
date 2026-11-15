@@ -2,10 +2,12 @@ import {
   type Adapters,
   type BrainTurnRequest,
   createFfmpegLightCopy,
+  createGarageStorageHost,
   type ErrorReporter,
   type S3Fetch,
   type SpeechFetch,
   STREAM_CLOSE,
+  type StorageHost,
 } from "@agenteschat/adapters";
 import { type Config, connectorOAuthApps, githubAppConfig, mcpCallerIdentity } from "@agenteschat/config";
 import type { Database } from "@agenteschat/db";
@@ -44,6 +46,7 @@ import {
   createContextToolSource,
   createDashboardToolSource,
   createDatabaseToolSource,
+  createDesignReviewToolSource,
   createDesktopControl,
   createDesktopToolSource,
   createDeviceToolSource,
@@ -99,7 +102,6 @@ import {
   type GatewayEmbeddings,
   type GitProxyDeps,
   GrokBrain,
-  getAgent,
   getAgentCached,
   hubBrainLink,
   isAgentesCloud,
@@ -182,6 +184,8 @@ export interface EngineOptions {
   schedules?: ScheduleReader;
   /** Tests: fake S3 server and DNS for org buckets. */
   s3Fetch?: S3Fetch;
+  /** Tests: a fake storage server (`STORAGE_HOST_*`). */
+  storageHost?: StorageHost;
   /** Tests: fake speech providers. */
   speechFetch?: SpeechFetch;
   resolveHost?: ResolveHost;
@@ -319,6 +323,7 @@ export function buildEngine(o: EngineOptions) {
     db,
     keyWrappers,
     platform: adapters.platformBlobs,
+    provided: providedStorage(config, o.storageHost),
     fetch: o.s3Fetch,
     resolveHost: o.resolveHost,
   };
@@ -476,10 +481,11 @@ export function buildEngine(o: EngineOptions) {
       createArtifactToolSource(artifacts),
       // The approval portal's board and `send_for_approval` (ADR 9001): listed only with a portal.
       createPortalToolSource({ portal: adapters.approvalPortal ?? null, artifacts }),
-      // Images and videos paid from the workspace's wallet (ADR doug-0010): listed only with the Zim Mídia service.
+      // Images and videos paid from the workspace's wallet (ADR doug-0011): listed only with the Zim Mídia service.
       createMediaGenerationToolSource(media),
       // A video an agent edited, sent for the team's review (docs/adr/doug-0007-video-review.md).
       createVideoReviewToolSource(videoReviews),
+      createDesignReviewToolSource(videoReviews),
       // The workspace's WhatsApp numbers, read and written by their agent and the people on them, as the same person
       // who answers there (docs/adr/doug-0004-whatsapp-bridge.md): listed only for an agent that may see one.
       createWhatsAppToolSource(
@@ -828,41 +834,6 @@ export function buildEngine(o: EngineOptions) {
     },
     postMessage: (userId, orgId, channelId, body, meta) =>
       postPersonMessage({ db, pubsub: adapters.pubsub }, userId, orgId, channelId, { body, meta }),
-    // The maestro (doug-0006 §11): the meeting lead's own model, billed to it; the workspace's small model otherwise.
-    think: async ({ orgId, agentId, system, prompt, maxTokens }) => {
-      const lead = agentId ? await getAgent(db, orgId, agentId).catch(() => null) : null;
-      const call = async (model: string, billTo: string | null) =>
-        (
-          await gateway.complete({
-            orgId,
-            agentId: billTo,
-            kind: "router",
-            model,
-            system,
-            messages: [{ role: "user", content: prompt }],
-            maxTokens: modelInfo(model)?.leastThinking === "off" ? maxTokens : Math.max(maxTokens, 2048),
-            effort: "none",
-            signal: AbortSignal.timeout(12_000),
-          })
-        ).text;
-      if (lead?.model && lead.model !== "auto") {
-        const said = await call(lead.model, lead.id).catch((error) => {
-          o.log?.warn("maestro model failed", { model: lead.model, error: String(error).slice(0, 300) });
-          return null;
-        });
-        if (said) return said;
-      }
-      const small = await smallModelFor({ db, gateway }, orgId, smallModels);
-      if (!small) o.log?.warn("maestro has no model", { orgId });
-      return small
-        ? call(small, null).catch((error) => {
-            o.log?.warn("maestro model failed", { model: small, error: String(error).slice(0, 300) });
-            return null;
-          })
-        : null;
-    },
-    voiceOut: whatsappVoiceOut(config.ELEVENLABS_API_KEY),
-    speech: () => speech.chain(),
     log: o.log,
   };
   const jobDeps: JobDeps = {
@@ -997,7 +968,7 @@ export function buildEngine(o: EngineOptions) {
     connectorDeps,
     storage,
     artifacts,
-    /** Media generation from the workspace's wallet (ADR doug-0010), for its routes. */
+    /** Media generation from the workspace's wallet (ADR doug-0011), for its routes. */
     media,
     sandbox,
     /** The Vault (ADR 0144), for its routes. */
@@ -1024,3 +995,15 @@ export function buildEngine(o: EngineOptions) {
 }
 
 export type Engine = ReturnType<typeof buildEngine>;
+
+/** The storage server this server hands out to workspaces, when `STORAGE_HOST_*` says one (docs/adr/doug-0010-storage-server.md). */
+function providedStorage(config: Config, host?: StorageHost): StorageDeps["provided"] {
+  const { STORAGE_HOST_ENDPOINT: endpoint, STORAGE_HOST_ADMIN_URL: adminUrl, STORAGE_HOST_ADMIN_TOKEN: token } = config;
+  if (!endpoint || !(host || (adminUrl && token))) return undefined;
+  return {
+    name: config.STORAGE_HOST_NAME,
+    endpoint: endpoint.replace(/\/+$/, ""),
+    region: config.STORAGE_HOST_REGION,
+    host: host ?? createGarageStorageHost({ adminUrl: adminUrl as string, token: token as string }),
+  };
+}

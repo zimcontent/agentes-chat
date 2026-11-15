@@ -54,6 +54,7 @@ export * from "./secret-box";
 export * from "./speech";
 export * from "./standard-webhooks";
 export * from "./stopwords";
+export * from "./storage-host";
 export { createBitwardenSource } from "./vault/bitwarden";
 export { createOnePasswordSource } from "./vault/onepassword";
 export * from "./vault/site";
@@ -117,7 +118,7 @@ export interface Adapters {
    */
   whatsapp?: WhatsAppGateway | null;
   /**
-   * Image and video generation paid in credits (ADR doug-0010), through the Zim Mídia service (`ZIM_MEDIA_URL`,
+   * Image and video generation paid in credits (ADR doug-0011), through the Zim Mídia service (`ZIM_MEDIA_URL`,
    * `ZIM_MEDIA_SECRET`); null/absent = no media page, no wallet, no `generate_image`/`generate_video`.
    */
   zimMedia?: ZimMedia | null;

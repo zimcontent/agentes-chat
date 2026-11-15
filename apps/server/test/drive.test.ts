@@ -3,7 +3,7 @@ import { statfsSync } from "node:fs";
 import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { createFakeS3 } from "@agenteschat/adapters";
+import { createFakeS3, createMemoryStorageHost } from "@agenteschat/adapters";
 import { schema } from "@agenteschat/db";
 import { storagePlatform } from "../src/routes/app/storage";
 import { browser, createTestServer, seedOrg, signUp, type TestServer } from "./harness";
@@ -33,6 +33,42 @@ const settings = {
   secretAccessKey: SECRET,
 };
 
+test("storage API: the storage server this server offers, switched on in one call, its key never shown", async () => {
+  await t.close();
+  const host = createMemoryStorageHost();
+  t = await createTestServer({
+    env: {
+      STORAGE_HOST_ENDPOINT: "https://s3.example.com",
+      STORAGE_HOST_REGION: "auto",
+      STORAGE_HOST_NAME: "Storage VM",
+    },
+    s3Fetch: s3.fetch,
+    resolveHost: async () => ["93.184.216.34"],
+    storageHost: {
+      ensureBucket: async (name) => {
+        s3.buckets.set(name, new Map());
+        return host.ensureBucket(name);
+      },
+      // The fake S3 knows one key.
+      createKey: async () => ({ accessKeyId: "AKIATEST", secretAccessKey: SECRET }),
+      allow: async () => {},
+    },
+  });
+  const owner = browser(t);
+  await signUp(owner, "owner@example.com");
+  const { orgId } = await seedOrg(owner);
+  const api = (path: string, init?: Parameters<typeof owner>[1]) =>
+    owner(`/api/app/organizations/${orgId}${path}`, init);
+  expect(await (await api("/storage")).json()).toMatchObject({ kind: "agentes", provided: { name: "Storage VM" } });
+  const on = await api("/storage", { method: "PUT", json: { kind: "provided" } });
+  expect(on.status).toBe(200);
+  const body = await on.text();
+  expect(body).not.toContain(SECRET);
+  expect(body).not.toContain("AKIATEST");
+  expect(JSON.parse(body)).toMatchObject({ kind: "provided", s3: null, provided: { name: "Storage VM" } });
+  expect(s3.buckets.has(`ws-${orgId}`)).toBe(true);
+});
+
 test("storage API: masked settings, test before switching, migrate", async () => {
   const owner = browser(t);
   await signUp(owner, "owner@example.com");
@@ -48,6 +84,7 @@ test("storage API: masked settings, test before switching, migrate", async () =>
     migration: null,
     platform: disk,
     usage,
+    provided: null,
   });
   const refused = await api("/storage", { method: "PUT", json: { kind: "s3", s3: settings } });
   expect(refused.status).toBe(400);

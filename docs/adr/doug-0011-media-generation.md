@@ -1,4 +1,4 @@
-# doug-0010: images and videos generated from a credit wallet, through the Zim Mídia service
+# doug-0011: images and videos generated from a credit wallet, through the Zim Mídia service
 
 Status: accepted. This instance's own. 2026-11-15.
 

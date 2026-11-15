@@ -1,14 +1,17 @@
 import { afterEach, describe, expect, test } from "bun:test";
 import { userTopic } from "@agenteschat/adapters";
 import { and, eq, schema } from "@agenteschat/db";
-import { LIVE_VOICE_NANO_USD_PER_SECOND } from "@agenteschat/providers/live-voice";
+import { LIVE_VOICE_NANO_USD_PER_SECOND, liveVoiceFor } from "@agenteschat/providers/live-voice";
 import {
   addLiveLines,
   askFromLiveRoom,
   callInstructions,
+  createChannel,
   endLiveRoom,
   endLiveSession,
+  inviteToLiveRoom,
   joinLiveRoom,
+  keepLiveVoices,
   type LiveVoiceDeps,
   leaveLiveRoom,
   liveVoiceView,
@@ -68,11 +71,10 @@ describe("the workspace's GPT-Live key", () => {
       state: "off",
       hint: null,
       editable: true,
-      maestro: false,
       callNotes: "",
     });
     const view = await saveLiveVoiceKey(d, f.owner.id, f.org.id, `  ${KEY}  `);
-    expect(view).toEqual({ state: "ok", hint: "9f3c", editable: true, maestro: false, callNotes: "" });
+    expect(view).toEqual({ state: "ok", hint: "9f3c", editable: true, callNotes: "" });
     const [row] = await f.db.select().from(schema.liveVoiceKeys);
     expect(JSON.stringify(row)).not.toContain("live-voice-test");
     const member = await addMember(f.db, f.org.id, "member", "Bia");
@@ -80,7 +82,6 @@ describe("the workspace's GPT-Live key", () => {
       state: "ok",
       hint: null,
       editable: false,
-      maestro: false,
       callNotes: "",
     });
     await expect(saveLiveVoiceKey(d, member.id, f.org.id, KEY)).rejects.toThrow();
@@ -338,6 +339,73 @@ describe("voice rooms", () => {
   });
 });
 
+describe("calling people into a call", () => {
+  test("one who can't see a private conversation is added, mentioned there and rung; a stranger is refused", async () => {
+    f = await setup();
+    const posted: { channelId: string; body: string; meta: Record<string, unknown> }[] = [];
+    const d = deps(openai().fetch, {
+      postMessage: async (_userId, _orgId, channelId, body, meta) => {
+        posted.push({ channelId, body, meta });
+        return { id: crypto.randomUUID() };
+      },
+    });
+    const leticia = await addMember(f.db, f.org.id, "member", "Letícia");
+    await f.db
+      .update(schema.organizationMembers)
+      .set({ handle: "leticia" })
+      .where(eq(schema.organizationMembers.userId, leticia.id));
+    const sala = await createChannel(f.db, f.owner.id, f.org.id, { name: "sala", visibility: "private" });
+    const rung: Record<string, unknown>[] = [];
+    f.pubsub.subscribe(userTopic(f.org.id, leticia.id), (e) => rung.push(e as Record<string, unknown>));
+    const room = await joinLiveRoom(d, f.owner.id, f.org.id, sala.id, { agentIds: [] });
+
+    const out = await inviteToLiveRoom(d, f.owner.id, f.org.id, room.id, {
+      userIds: [leticia.id, crypto.randomUUID()],
+      language: "pt-BR",
+    });
+    expect(out.invited).toEqual([leticia.id]);
+    expect(out.refused).toHaveLength(1);
+    // She sees the conversation now, and can join its call.
+    const [member] = await f.db
+      .select()
+      .from(schema.channelMembers)
+      .where(and(eq(schema.channelMembers.channelId, sala.id), eq(schema.channelMembers.userId, leticia.id)));
+    expect(member).toBeTruthy();
+    expect(posted).toEqual([
+      expect.objectContaining({ channelId: sala.id, body: expect.stringContaining("@leticia") }),
+    ]);
+    expect(rung.some((e) => e.type === "live.ring" && e.roomId === room.id && e.channelId === sala.id)).toBe(true);
+    const joined = await joinLiveRoom(d, leticia.id, f.org.id, sala.id, { agentIds: [] });
+    expect(joined.id).toBe(room.id);
+  });
+});
+
+describe("each agent keeps a voice of its own", () => {
+  test("agents with none picked get different voices, kept from one call to the next", async () => {
+    f = await setup();
+    const d = deps(openai().fetch);
+    const [b] = await f.db
+      .insert(schema.agents)
+      .values({ orgId: f.org.id, handle: "bruno", name: "Bruno", model: "fake-model" })
+      .returning({ id: schema.agents.id });
+    const bruno = b?.id ?? "";
+    // Someone already picked for the first agent the voice the second would get on its own.
+    await f.db
+      .update(schema.agents)
+      .set({ voice: liveVoiceFor(bruno) })
+      .where(eq(schema.agents.id, f.agent.id));
+    await keepLiveVoices(d, f.org.id, [f.agent.id, bruno]);
+    const voiceOf = async (id: string) =>
+      (await f.db.select({ voice: schema.agents.voice }).from(schema.agents).where(eq(schema.agents.id, id)))[0]?.voice;
+    const his = await voiceOf(bruno);
+    expect(await voiceOf(f.agent.id)).toBe(liveVoiceFor(bruno));
+    expect(his).toBeTruthy();
+    expect(his).not.toBe(liveVoiceFor(bruno));
+    await keepLiveVoices(d, f.org.id, [bruno]);
+    expect(await voiceOf(bruno)).toBe(his);
+  });
+});
+
 describe("what a call's agent is told", () => {
   test("a meeting with people and colleagues: turns, and no politeness loops", () => {
     const text = callInstructions({
@@ -374,6 +442,28 @@ describe("what a call's agent is told", () => {
     expect(lead).toContain("# You lead this meeting");
     expect(lead).toContain("Ana, what do you think?");
     expect(text).toContain("<external_data");
+  });
+  test("the meeting's topic, the call notes and the speech rules reach every voice", () => {
+    const text = callInstructions({
+      agent: { id: "a", name: "Ana", role: "Designer", instructions: "" },
+      others: [{ name: "Bruno", role: "Dev" }],
+      people: ["Gabriel"],
+      orgName: "Zim",
+      orgContext: "",
+      channel: null,
+      recent: [],
+      callSoFar: [],
+      host: true,
+      language: "pt-BR",
+      topic: "Lançar o site em março",
+      workspaceNotes: "Sempre em português.",
+      agentNotes: "Fale de cores.",
+    });
+    expect(text).toContain("Lançar o site em março");
+    expect(text).toContain("open the topic");
+    expect(text).toContain("Sempre em português.");
+    expect(text).toContain("Fale de cores.");
+    expect(text).toContain("NEVER STATE A FACT YOU WERE NOT GIVEN");
   });
 });
 

@@ -170,7 +170,7 @@ export interface AuthConfig {
   mobileErrorReports?: ErrorReportsConfig | null;
   /** The server has an approval portal (ADR 9001): the apps show Portal; absent or false: none. */
   approvalPortal?: boolean;
-  /** The server generates images and videos from a credit wallet (ADR doug-0010): the apps show Mídia. */
+  /** The server generates images and videos from a credit wallet (ADR doug-0011): the apps show Mídia. */
   zimMedia?: boolean;
 }
 
@@ -851,7 +851,7 @@ export interface Agent {
    * workspace allows. Absent: on (the default).
    */
   mediaReplies?: boolean;
-  /** Credits its media generation may spend a month (ADR doug-0010); absent from a server without it. */
+  /** Credits its media generation may spend a month (ADR doug-0011); absent from a server without it. */
   mediaMonthlyCredits?: number;
   /** A generation above this many credits waits for approval; null: never asks. */
   mediaAskAbove?: number | null;
@@ -1060,7 +1060,7 @@ export interface AgentInput {
   proposal?: string;
   /** Its stickers and GIFs after a light reply (ADR 0091); same permission as editing the agent. */
   mediaReplies?: boolean;
-  /** Media generation's monthly credits and approval threshold (ADR doug-0010); who manages agents. */
+  /** Media generation's monthly credits and approval threshold (ADR doug-0011); who manages agents. */
   mediaMonthlyCredits?: number;
   mediaAskAbove?: number | null;
   /** Its voice (ADR doug-0006); null: the one its id gives. Its owner or an admin. */
@@ -3613,7 +3613,11 @@ export interface SecretBox {
 
 // ── File storage (expected: `GET/PUT …/storage`, `POST …/storage/test`, `…/storage/migrate`) ──
 
-export type StorageKind = "agentes" | "s3";
+/** `provided`: the workspace's own bucket on the storage server this server hands out. */
+export type StorageKind = "agentes" | "s3" | "provided";
+
+/** What `PUT …/storage` takes: back to this server's storage, a bucket that passed the test, or the storage server. */
+export type StorageSave = { kind: "agentes" } | { kind: "s3"; s3: S3Input } | { kind: "provided" };
 
 /** The service an admin picked when connecting their own storage: which steps the app shows. */
 export type StorageProvider = "r2" | "s3" | "b2" | "other";
@@ -3661,6 +3665,8 @@ export interface StorageConfig {
   platform: StoragePlatform;
   /** Absent from an older server. */
   usage?: StorageUsage;
+  /** The storage server this server hands out, by the name people read; null or absent: none offered. */
+  provided?: { name: string } | null;
 }
 
 export type StorageStep = "write" | "read" | "list" | "delete";
@@ -8661,8 +8667,6 @@ export interface LiveVoice {
   /** The key's last 4 characters, for who configures the workspace. */
   hint: string | null;
   editable: boolean;
-  /** Maestro calls work on this server (docs/adr/doug-0006-live-voice.md §11). */
-  maestro: boolean;
   /** How the agents behave on calls here, on top of the base. */
   callNotes: string;
 }
@@ -8693,9 +8697,7 @@ export interface LiveRoom {
   /** Whose app runs the agents' voices. */
   hostUserId: string | null;
   agentIds: string[];
-  /** `live`: GPT-Live in the host's app. `maestro`: the server runs the agents (§11). */
-  mode: "live" | "maestro";
-  /** What a maestro call opens on. */
+  /** What the call opens on: the host agent brings it up first. */
   topic: string | null;
   people: { userId: string; joinedAt: string }[];
   status: "live" | "ended";

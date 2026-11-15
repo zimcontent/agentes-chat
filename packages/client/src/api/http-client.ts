@@ -586,6 +586,7 @@ export function createHttpApi(options: TransportOptions = {}): HttpApi {
         form.append("version", String(input.version));
         form.append("atMs", input.atMs === null ? "" : String(Math.round(input.atMs)));
         if (input.endMs != null) form.append("endMs", String(Math.round(input.endMs)));
+        if (input.page != null) form.append("page", String(input.page));
         if (input.kind) form.append("kind", input.kind);
         if (input.x != null && input.y != null) {
           form.append("x", String(input.x));
@@ -599,6 +600,12 @@ export function createHttpApi(options: TransportOptions = {}): HttpApi {
         request<void>(`${org(orgId)}/video-reviews/${enc(reviewId)}/notes/${enc(noteId)}`, { method: "DELETE" }),
       decide: (orgId, reviewId, input) =>
         request<VideoReviewSummary>(`${org(orgId)}/video-reviews/${enc(reviewId)}/decision`, { json: input }),
+      pageUrl: (orgId, reviewId, version, page) =>
+        `${base}${org(orgId)}/video-reviews/${enc(reviewId)}/versions/${version}/pages/${page}`,
+      source: async (orgId, reviewId, version) =>
+        (await files.blob(`${org(orgId)}/video-reviews/${enc(reviewId)}/versions/${version}/source`)).text(),
+      saveDesign: (orgId, reviewId, input) =>
+        request<VideoReviewSummary>(`${org(orgId)}/video-reviews/${enc(reviewId)}/design`, { json: input }),
     },
     whatsapp: {
       overview: (orgId) => request<WhatsAppOverview>(`${org(orgId)}/whatsapp`),
@@ -1165,16 +1172,10 @@ export function createHttpApi(options: TransportOptions = {}): HttpApi {
         }),
       saveCallNotes: (orgId, notes) =>
         request<LiveVoice>(`${org(orgId)}/live-voice/notes`, { method: "PUT", json: { notes } }),
-      heard: (orgId, roomId, input) => {
-        const form = new FormData();
-        form.set("file", input.blob, "heard.wav");
-        form.set("durationMs", String(Math.max(1, Math.round(input.durationMs))));
-        form.set("language", input.language);
-        return files.upload<{ text: string }>(`${org(orgId)}/live-rooms/${enc(roomId)}/heard`, form);
-      },
-      hush: (orgId, roomId) => request<void>(`${org(orgId)}/live-rooms/${enc(roomId)}/hush`, { json: {} }),
-      speechUrl: (orgId, roomId, utteranceId) =>
-        `${base}${org(orgId)}/live-rooms/${enc(roomId)}/speech/${enc(utteranceId)}`,
+      invite: (orgId, roomId, userIds, language) =>
+        request<{ invited: string[]; refused: string[] }>(`${org(orgId)}/live-rooms/${enc(roomId)}/invite`, {
+          json: { userIds, language },
+        }),
       ping: (orgId, roomId) => request<LiveRoom>(`${org(orgId)}/live-rooms/${enc(roomId)}/ping`, { json: {} }),
       leave: (orgId, roomId) => request<void>(`${org(orgId)}/live-rooms/${enc(roomId)}/leave`, { json: {} }),
       end: (orgId, roomId) =>

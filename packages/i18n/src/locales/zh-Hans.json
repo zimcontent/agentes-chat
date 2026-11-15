@@ -10247,9 +10247,6 @@
   "liveVoice": {
     "you": "你",
     "call": {
-      "mode": "通话类型",
-      "modeMaestro": "会议（新）",
-      "modeLive": "经典（GPT-Live）",
       "topic": "主题（可选）",
       "topicHint": "智能体会先围绕这个主题展开讨论。你可以随时加入。",
       "start": "发起语音通话",
@@ -10271,7 +10268,6 @@
       "hangUp": "挂断"
     },
     "room": {
-      "cost": "目前的语音和转写费用：{{cost}}",
       "title": "语音通话",
       "joining": "正在连接…",
       "inCall": "通话中",
@@ -10355,7 +10351,6 @@
       }
     },
     "errors": {
-      "noMaestro": "此服务器未设置带主持人的会议。",
       "badAudio": "无法读取该音频。请重试。",
       "off": "此工作区没有 GPT-Live 密钥。请在“设置 › 语音”中添加。",
       "keyInvalid": "OpenAI 拒绝了此密钥。",
@@ -11888,6 +11883,12 @@
     },
     "s3": "你自己的存储",
     "s3Text": "Cloudflare R2、Amazon S3、Backblaze B2 或其他兼容 S3 的存储。",
+    "provided": {
+      "title": "存储服务器",
+      "text": "在服务器的存储上为此工作区单独建一个存储桶。无需任何设置。",
+      "on": "开启 {{name}}",
+      "done": "新文件现在会存到 {{name}}。"
+    },
     "current": "使用中",
     "usage": {
       "files": "{{size}} 文件",
@@ -14382,6 +14383,8 @@
       "neverHappens": "这个日程永远不会触发。",
       "soleOwner": "你是这个有其他成员的工作区的唯一所有者。请先将其他人设为所有者，或删除工作区。",
       "testFirst": "开启之前，请先用这些设置测试连接。",
+      "providedOff": "此服务器已不再提供存储服务器。",
+      "storageServer": "存储服务器没有响应。请稍后再试。",
       "voiceLength": "录音太长或太短。",
       "sendAgain": "文件没有完整送达。请重新发送。",
       "serverKey": "这个密钥在服务器的设置中。",

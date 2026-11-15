@@ -32,7 +32,6 @@ const KNOWN = {
   "live_voice.no_words": "liveVoice.errors.noWords",
   "live_voice.not_host": "liveVoice.errors.notHost",
   "live_room.ended": "liveVoice.errors.ended",
-  "live_room.no_maestro": "liveVoice.errors.noMaestro",
   "live_room.bad_audio": "liveVoice.errors.badAudio",
   "live_room.not_in": "liveVoice.errors.notIn",
   // A new-password link an owner can't make (ADR 0158).
@@ -569,6 +568,8 @@ const KNOWN = {
   "schedule.never": "errors.said.neverHappens",
   sole_owner: "errors.said.soleOwner",
   "storage.test_first": "errors.said.testFirst",
+  "storage.provided_off": "errors.said.providedOff",
+  "storage.provided_failed": "errors.said.storageServer",
   "voice.bad_duration": "errors.said.voiceLength",
   "voice.too_large": "errors.said.voiceLength",
   "upload.expired": "errors.said.sendAgain",

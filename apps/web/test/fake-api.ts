@@ -413,6 +413,8 @@ export interface FakeState {
   storagePlatform?: StoragePlatform;
   /** What the workspace's files take (`storage.get`'s `usage`); unset = none yet, no disk told. */
   storageUsage?: StorageUsage;
+  /** The storage server this server hands out (`storage.get`'s `provided`); unset = none offered. */
+  storageProvided?: { name: string };
   /** `push.webKey`: the server's Web Push key; unset = Web Push off on this server (null). */
   webPushKey?: string;
   /** `push.stale`: the notification ids the server calls stale (read, done, snoozed, gone); unset = none. */
@@ -1526,19 +1528,17 @@ export function createFakeHttpApi(state: FakeState): Omit<HttpApi, FakedParts> {
       },
     },
     liveVoice: {
-      get: async () => ({ state: "off", hint: null, editable: true, maestro: false, callNotes: "" }),
-      saveKey: async () => ({ state: "ok", hint: "abcd", editable: true, maestro: false, callNotes: "" }),
-      removeKey: async () => ({ state: "off", hint: null, editable: true, maestro: false, callNotes: "" }),
+      get: async () => ({ state: "off", hint: null, editable: true, callNotes: "" }),
+      saveKey: async () => ({ state: "ok", hint: "abcd", editable: true, callNotes: "" }),
+      removeKey: async () => ({ state: "off", hint: null, editable: true, callNotes: "" }),
       saveCallNotes: async (_orgId, notes) => ({
         state: "off",
         hint: null,
         editable: true,
-        maestro: false,
+
         callNotes: notes,
       }),
-      heard: async () => ({ text: "" }),
-      hush: async () => {},
-      speechUrl: () => "",
+      invite: async () => ({ invited: [], refused: [] }),
       startSession: async () => {
         throw new ApiError(404, "not_found", "Not found");
       },
@@ -4397,6 +4397,7 @@ export function createFakeApi(state: FakeState = seedState(), options: { seed?: 
     storage: createMockStorage(
       () => state.storagePlatform,
       () => state.storageUsage,
+      () => state.storageProvided,
     ),
     artifacts,
     ...createMockPlanning(ctx, (method, ...args) => state.calls.push({ method, args })),

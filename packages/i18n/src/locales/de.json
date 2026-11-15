@@ -10599,9 +10599,6 @@
   "liveVoice": {
     "you": "Du",
     "call": {
-      "mode": "Art des Anrufs",
-      "modeMaestro": "Besprechung (neu)",
-      "modeLive": "Klassisch (GPT-Live)",
       "topic": "Thema (optional)",
       "topicHint": "Die Agenten beginnen mit einer Debatte darüber. Steig ein, wann du willst.",
       "start": "Sprachanruf starten",
@@ -10625,7 +10622,6 @@
       "hangUp": "Auflegen"
     },
     "room": {
-      "cost": "Stimme und Transkription bisher: {{cost}}",
       "title": "Sprachanruf",
       "joining": "Verbindung wird hergestellt…",
       "inCall": "Im Anruf",
@@ -10709,7 +10705,6 @@
       }
     },
     "errors": {
-      "noMaestro": "Besprechungen mit Maestro sind auf diesem Server nicht eingerichtet.",
       "badAudio": "Das Audio konnte nicht gelesen werden. Versuch es noch einmal.",
       "off": "Dieser Workspace hat keinen GPT-Live-Schlüssel. Füge einen unter Einstellungen › Sprachnachrichten hinzu.",
       "keyInvalid": "OpenAI hat diesen Schlüssel abgelehnt.",
@@ -12317,6 +12312,12 @@
     },
     "s3": "Dein eigener Speicher",
     "s3Text": "Cloudflare R2, Amazon S3, Backblaze B2 oder ein anderer S3-kompatibler Dienst.",
+    "provided": {
+      "title": "Speicherserver",
+      "text": "Ein Bucket nur für diesen Workspace, im Speicher des Servers. Nichts einzurichten.",
+      "on": "{{name}} einschalten",
+      "done": "Neue Dateien gehen jetzt an {{name}}."
+    },
     "current": "In Verwendung",
     "usage": {
       "files": "{{size}} an Dateien",
@@ -14859,6 +14860,8 @@
       "neverHappens": "Dieser Zeitplan tritt nie ein.",
       "soleOwner": "Du bist die einzige Person mit Inhaberrechten in einem Workspace mit weiteren Mitgliedern. Mach zuerst jemand anderen zum Inhaber oder lösch den Workspace.",
       "testFirst": "Teste die Verbindung mit diesen Einstellungen, bevor du sie einschaltest.",
+      "providedOff": "Dieser Server bietet keinen Speicherserver mehr an.",
+      "storageServer": "Der Speicherserver hat nicht geantwortet. Versuch es gleich noch einmal.",
       "voiceLength": "Die Aufnahme ist zu lang oder zu kurz.",
       "sendAgain": "Die Datei kam nicht vollständig an. Schick sie noch einmal.",
       "serverKey": "Dieser Schlüssel steht in den Einstellungen des Servers.",

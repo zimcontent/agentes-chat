@@ -28,6 +28,7 @@ import { type PointerEvent as ReactPointerEvent, useCallback, useEffect, useMemo
 import { useTranslation } from "react-i18next";
 import { useApi } from "@/api/context";
 import { AgentAvatar } from "@/components/AgentAvatar";
+import { DesignReviewBody } from "@/components/design-review/DesignReview";
 import { ErrorState } from "@/components/Loading";
 import { useOrg } from "@/components/org-context";
 import {
@@ -38,6 +39,7 @@ import {
   NoteAttachments,
   useAttachments,
 } from "@/components/video-review/Attachments";
+import { useNoteRecorder } from "@/components/video-review/recorder";
 import { frameCode, type ReviewWords, timecode, useReviewWords } from "@/components/video-review/words";
 import { useToast } from "@/lib/toast";
 import "./video-review.css";
@@ -72,17 +74,37 @@ export function VideoReviewsPage() {
   const { org } = useOrg();
   const w = useReviewWords();
   const { t, i18n } = useTranslation();
+  const api = useApi();
   const reviews = useVideoReviews(org.id);
   const [filter, setFilter] = useState<"open" | "all">("open");
+  const [medium, setMedium] = useState<"all" | "video" | "design">("all");
+  // The medium filter shows only once both kinds are in review here.
+  const mixed = new Set((reviews.data ?? []).map((r) => r.medium)).size > 1;
   const list = useMemo(
-    () => (reviews.data ?? []).filter((r) => filter === "all" || r.status === "in_review"),
-    [reviews.data, filter],
+    () =>
+      (reviews.data ?? []).filter(
+        (r) => (filter === "all" || r.status === "in_review") && (!mixed || medium === "all" || r.medium === medium),
+      ),
+    [reviews.data, filter, medium, mixed],
   );
   const open = (reviews.data ?? []).filter((r) => r.status === "in_review").length;
 
   return (
     <div className="page page--full vr-page">
       <PageHeader title={w.title} meta={w.meta}>
+        {mixed && (
+          <Segmented
+            label={w.title}
+            size="sm"
+            value={medium}
+            onValueChange={setMedium}
+            options={[
+              { value: "all", label: w.filters.all },
+              { value: "video", label: w.design.filter.video },
+              { value: "design", label: w.design.filter.design },
+            ]}
+          />
+        )}
         <Segmented
           label={w.title}
           size="sm"
@@ -106,7 +128,13 @@ export function VideoReviewsPage() {
           {list.map((r) => (
             <li key={r.id}>
               <Link to="/org/$orgId/review/$reviewId" params={{ orgId: org.id, reviewId: r.id }} className="vr-row">
-                {r.agent ? <AgentAvatar agentId={r.agent.id} size="sm" name={r.agent.name} /> : <Icon name="video" />}
+                {r.medium === "design" && r.cover ? (
+                  <img className="vr-row__cover" src={api.artifacts.fileUrl(org.id, r.cover)} alt="" loading="lazy" />
+                ) : r.agent ? (
+                  <AgentAvatar agentId={r.agent.id} size="sm" name={r.agent.name} />
+                ) : (
+                  <Icon name={r.medium === "design" ? "image" : "video"} />
+                )}
                 <span className="vr-row__words">
                   <span className="vr-row__title">{r.title}</span>
                   <span className="vr-row__meta">
@@ -129,49 +157,6 @@ export function VideoReviewsPage() {
       )}
     </div>
   );
-}
-
-/** The microphone for one note: tap to start, tap again to stop and send it to be transcribed. */
-function useNoteRecorder(onTake: (blob: Blob, fileName: string) => void, onBlocked: () => void) {
-  const [state, setState] = useState<"idle" | "rec">("idle");
-  const rec = useRef<{ recorder: MediaRecorder; chunks: Blob[]; stream: MediaStream } | null>(null);
-  useEffect(
-    () => () => {
-      for (const track of rec.current?.stream.getTracks() ?? []) track.stop();
-    },
-    [],
-  );
-  const start = async () => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      // An iPhone plays and sends mp4; the others record webm.
-      const type = ["audio/mp4", "audio/webm;codecs=opus", "audio/webm"].find((t) => MediaRecorder.isTypeSupported(t));
-      const recorder = new MediaRecorder(stream, type ? { mimeType: type } : undefined);
-      const chunks: Blob[] = [];
-      recorder.ondataavailable = (e) => {
-        if (e.data.size > 0) chunks.push(e.data);
-      };
-      recorder.start();
-      rec.current = { recorder, chunks, stream };
-      setState("rec");
-    } catch {
-      onBlocked();
-    }
-  };
-  const stop = () => {
-    const current = rec.current;
-    if (!current) return;
-    rec.current = null;
-    current.recorder.onstop = () => {
-      for (const track of current.stream.getTracks()) track.stop();
-      const type = (current.recorder.mimeType || "audio/webm").split(";")[0] ?? "audio/webm";
-      const blob = new Blob(current.chunks, { type });
-      setState("idle");
-      if (blob.size > 0) onTake(blob, type.includes("mp4") ? "nota.m4a" : "nota.webm");
-    };
-    current.recorder.stop();
-  };
-  return { recording: state === "rec", start, stop };
 }
 
 /**
@@ -1181,7 +1166,11 @@ export function VideoReviewDetailPage({ reviewId }: { reviewId: string }) {
               .filter(Boolean)
               .join(" · ")}
           />
-          <ReviewBody review={review.data} w={w} />
+          {review.data.medium === "design" ? (
+            <DesignReviewBody review={review.data} w={w} />
+          ) : (
+            <ReviewBody review={review.data} w={w} />
+          )}
         </>
       )}
     </div>

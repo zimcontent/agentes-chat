@@ -3,6 +3,7 @@ import type { Config } from "@agenteschat/config";
 import {
   getMigration,
   getStorage,
+  provideStorage,
   STORAGE_PROVIDERS,
   type StorageDeps,
   saveStorage,
@@ -60,7 +61,9 @@ const StorageUsage = z
 
 const StorageConfig = z
   .object({
-    kind: z.enum(["agentes", "s3"]),
+    kind: z.enum(["agentes", "s3", "provided"]).openapi({
+      description: "`provided`: the workspace's own bucket on the storage server this server hands out (`provided`).",
+    }),
     s3: z
       .object({
         provider: Provider.nullable(),
@@ -81,6 +84,10 @@ const StorageConfig = z
           "Where this server keeps the files of organizations without a bucket of their own. `folder`: the disk's folder, only where the server isn't in a container.",
       }),
     usage: StorageUsage,
+    provided: z.object({ name: z.string() }).nullable().openapi({
+      description:
+        'The storage server this server hands out (`STORAGE_HOST_*`): switched on with `PUT` `{ kind: "provided" }`, it gives the workspace a bucket and key of its own there. Null: none offered.',
+    }),
   })
   .openapi("StorageConfig");
 
@@ -133,6 +140,7 @@ export function storageRoutes(deps: AppDeps) {
   // Cloud's disk is every workspace's at once, so no workspace is told its room.
   const filesDir =
     platform.kind === "disk" && deps.config.MACHINE_PROVISIONING !== "external" ? deps.config.FILES_DIR : undefined;
+  const provided = deps.extras?.storage?.provided ? { name: deps.extras.storage.provided.name } : null;
   const usage = async (orgId: string) => {
     const [bytes, disk] = await Promise.all([storedBytes(db, orgId), filesDir ? diskSpace(filesDir) : null]);
     return { ...bytes, disk };
@@ -151,7 +159,7 @@ export function storageRoutes(deps: AppDeps) {
     async (c) => {
       const { orgId } = c.req.valid("param");
       const view = await getStorage(db, c.get("user").id, orgId);
-      return c.json({ ...view, platform, usage: await usage(orgId) }, 200);
+      return c.json({ ...view, platform, usage: await usage(orgId), provided }, 200);
     },
   );
 
@@ -177,13 +185,15 @@ export function storageRoutes(deps: AppDeps) {
       path: "/organizations/{orgId}/storage",
       tags,
       security,
-      summary: "Switch storage: back to agentes, or to a bucket that passed the test",
+      summary:
+        "Switch storage: back to agentes, to a bucket that passed the test, or to the workspace's bucket on the storage server",
       request: {
         params: OrgParams,
         body: body(
           z.union([
             z.object({ kind: z.enum(["agentes", "platform"]) }),
             z.object({ kind: z.literal("s3"), s3: S3Input }),
+            z.object({ kind: z.literal("provided") }),
           ]),
         ),
       },
@@ -191,8 +201,12 @@ export function storageRoutes(deps: AppDeps) {
     }),
     async (c) => {
       const { orgId } = c.req.valid("param");
-      const saved = await saveStorage(storage(), c.get("user").id, orgId, c.req.valid("json"));
-      return c.json({ ...saved, platform, usage: await usage(orgId) }, 200);
+      const input = c.req.valid("json");
+      const saved =
+        input.kind === "provided"
+          ? await provideStorage(storage(), c.get("user").id, orgId)
+          : await saveStorage(storage(), c.get("user").id, orgId, input);
+      return c.json({ ...saved, platform, usage: await usage(orgId), provided }, 200);
     },
   );
 

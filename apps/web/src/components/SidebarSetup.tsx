@@ -63,7 +63,7 @@ export const SIDEBAR_TOOLS = {
 
 /** Whether the server's approval portal is this workspace's (ADR 9001 §18): Portal is a tool only there. */
 export const usePortalOn = () => portalHere(useOrgIfAny()?.org, useAuthConfig().data?.approvalPortal);
-/** Whether the server generates images and videos from a credit wallet (ADR doug-0010): Mídia is a tool only there. */
+/** Whether the server generates images and videos from a credit wallet (ADR doug-0011): Mídia is a tool only there. */
 export const useMediaOn = () => useAuthConfig().data?.zimMedia === true;
 /** The workspace's tools an admin took out of the sidebar for everyone (Settings › General). */
 export const useHiddenTools = (): readonly string[] => useOrgIfAny()?.org.hiddenTools ?? [];

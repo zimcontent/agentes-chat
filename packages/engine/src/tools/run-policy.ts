@@ -185,6 +185,8 @@ const HERE = new Set([
   // A video for the team's review, answered in this conversation (docs/adr/doug-0007-video-review.md).
   "send_for_review",
   "set_review_brief",
+  // A design piece for the same review, with its slides and editable page (docs/adr/doug-0010-design-review.md).
+  "send_design_for_review",
   "follow_up",
   "cancel_follow_up",
   // Lets another agent's wait here go, with a note here (`parked-asks.ts`).
@@ -282,7 +284,7 @@ const INTERNAL_BY_NAME: Readonly<Record<string, InternalArea>> = {
   create_dashboard: "dashboards",
   create_widget: "dashboards",
   share_dashboard: "dashboards",
-  // Images and videos paid from the workspace's wallet (ADR doug-0010): the agent's monthly cap and its approval
+  // Images and videos paid from the workspace's wallet (ADR doug-0011): the agent's monthly cap and its approval
   // threshold are the brakes, so a routine may make them like any Drive file.
   generate_image: "media",
   generate_video: "media",

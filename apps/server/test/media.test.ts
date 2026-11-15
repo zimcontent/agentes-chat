@@ -3,7 +3,7 @@ import { type MediaGeneration, type ZimMedia, ZimMediaError } from "@agenteschat
 import { forgetMediaCatalog } from "@agenteschat/engine";
 import { browser, createTestServer, seedOrg, signUp, type TestServer } from "./harness";
 
-// The Mídia page's routes (ADR doug-0010): the wallet and catalog through the server only, a person's generation that
+// The Mídia page's routes (ADR doug-0011): the wallet and catalog through the server only, a person's generation that
 // lands in the Drive, and the top-up's checkout for who manages billing.
 
 let t: TestServer;

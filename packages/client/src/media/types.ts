@@ -1,4 +1,4 @@
-/** Media generation from the workspace's credit wallet (ADR doug-0010): what the Mídia page reads. */
+/** Media generation from the workspace's credit wallet (ADR doug-0011): what the Mídia page reads. */
 
 export type MediaGenKind = "image" | "video";
 

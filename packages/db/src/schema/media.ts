@@ -4,7 +4,7 @@ import { users } from "./auth";
 import { organizations } from "./tenancy";
 
 /**
- * An image or video a person or an agent generated through the Zim Mídia service (ADR doug-0010). The id is the
+ * An image or video a person or an agent generated through the Zim Mídia service (ADR doug-0011). The id is the
  * service's own; the wallet and the provider live there, this row keeps who asked, where the result goes and the
  * Drive file it became. Created by `EXTRA_COLUMNS`, outside the numbered migrations.
  */

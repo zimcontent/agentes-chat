@@ -36,7 +36,7 @@ import { useToast } from "@/lib/toast";
 import "./media.css";
 
 /**
- * Mídia (ADR doug-0010): generate an image or a video with the workspace's credits, see what people and agents made,
+ * Mídia (ADR doug-0011): generate an image or a video with the workspace's credits, see what people and agents made,
  * and top the wallet up through Mercado Pago. The models and prices are the Zim Mídia service's; the server is the only
  * one that talks to it.
  */

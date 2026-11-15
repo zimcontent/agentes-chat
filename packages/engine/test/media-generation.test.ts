@@ -20,7 +20,7 @@ import {
 import { toolKind } from "../src/tools/run-policy";
 import { type Fixture, setup } from "./fixtures";
 
-// Media generation from the workspace's wallet (ADR doug-0010): the agents' tools, their allowance and approval
+// Media generation from the workspace's wallet (ADR doug-0011): the agents' tools, their allowance and approval
 // threshold, and a finished file that lands in the Drive once.
 
 const MODELS: MediaModel[] = [
