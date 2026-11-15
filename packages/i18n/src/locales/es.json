@@ -13102,6 +13102,15 @@
     "agentSub": "Por conector y tema. Por defecto, las acciones sensibles piden aprobación."
   },
   "connectFlow": {
+    "paste": {
+      "open": "Inicia sesión con la cuenta de Adobe que usas en {{name}}. Se abre en una pestaña nueva.",
+      "openLink": "Abrir el inicio de sesión de {{name}}",
+      "after": "Al final, esa pestaña va a una página que no carga (127.0.0.1). Es normal: copia su dirección de la barra de direcciones y pégala aquí.",
+      "label": "Dirección de esa página",
+      "invalid": "Esa no es la dirección donde terminó el inicio de sesión. Cópiala de la barra de direcciones de la pestaña que se abrió.",
+      "note": "El código de esa dirección sirve una sola vez y solo para tu cuenta.",
+      "finish": "Terminar conexión"
+    },
     "steps": "Pasos",
     "step": {
       "0": "Conectar",

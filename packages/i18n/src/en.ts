@@ -12795,6 +12795,17 @@ export const en = {
     agentSub: "By connector and subject. By default, sensitive actions ask for approval.",
   },
   connectFlow: {
+    /** A sign-in that ends on the person's computer (Frame.io): `name` is the service. */
+    paste: {
+      open: "Sign in with the Adobe account you use for {{name}}. It opens in a new tab.",
+      openLink: "Open the {{name}} sign-in",
+      after:
+        "At the end, that tab goes to a page that doesn't open (127.0.0.1). That's expected: copy its address from the address bar and paste it here.",
+      label: "That page's address",
+      invalid: "That isn't the address the sign-in ended on. Copy it from the address bar of the tab that opened.",
+      note: "The code in that address works once, and only for your account.",
+      finish: "Finish connecting",
+    },
     steps: "Steps",
     step: { "0": "Connect", "1": "What it does", "2": "Who can use it" },
     connectTitle: "Connect {{name}}",

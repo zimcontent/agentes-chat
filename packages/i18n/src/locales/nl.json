@@ -12784,6 +12784,15 @@
     "agentSub": "Per connector en onderwerp. Standaard vragen gevoelige acties om goedkeuring."
   },
   "connectFlow": {
+    "paste": {
+      "open": "Log in met het Adobe-account dat je voor {{name}} gebruikt. Het inloggen opent in een nieuw tabblad.",
+      "openLink": "Inloggen bij {{name}} openen",
+      "after": "Aan het eind gaat dat tabblad naar een pagina die niet opent (127.0.0.1). Dat hoort zo: kopieer het adres uit de adresbalk en plak het hier.",
+      "label": "Adres van die pagina",
+      "invalid": "Dat is niet het adres waar het inloggen eindigde. Kopieer het uit de adresbalk van het geopende tabblad.",
+      "note": "De code in dat adres werkt één keer en alleen voor jouw account.",
+      "finish": "Verbinding afronden"
+    },
     "steps": "Stappen",
     "step": {
       "0": "Koppelen",

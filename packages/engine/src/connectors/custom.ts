@@ -52,7 +52,7 @@ import {
   probeMcpServer,
   serverKey,
 } from "./oauth-mcp";
-import { oauthReturnTo } from "./oauth-return";
+import { LOOPBACK_OAUTH_REDIRECT, oauthReturnTo, pasteReturnTo } from "./oauth-return";
 import { seedToolPins } from "./pins";
 import { composioToolkitOf, composioToolName, type McpPreset, presetForServer, serverUrlShown } from "./presets";
 import { type McpServerInfo, refreshServerIcon } from "./server-icon";
@@ -190,7 +190,8 @@ export interface CustomServerView {
 
 export type CustomConnectStart =
   | { status: "connected"; server: CustomServerView; outcome: ConnectOutcome }
-  | { status: "oauth"; authorizeUrl: string }
+  /** `pasteBack`: the sign-in comes back to the person's computer; they paste its address (`LOOPBACK_OAUTH_REDIRECT`). */
+  | { status: "oauth"; authorizeUrl: string; pasteBack?: true }
   /**
    * `not_approved`: it has OAuth but only lets in apps it approved, and agentes.chat isn't one yet. `detail`: how it
    * refused our registration, in its own words (`error: error_description`, short).
@@ -787,7 +788,8 @@ export async function connectCustomServer(
   if (apiKey) {
     if (apiKey.length < 8) throw new ValidationError("The key looks too short", "connector.key_too_short");
     // The vendor's terms forbid asking for a token: on the Cloud it signs in only (ADR 0107).
-    if (presetForServer(serverUrl)?.cloudOAuthOnly && isAgentesCloud(deps.publicUrl)) {
+    const preset = presetForServer(serverUrl);
+    if (preset?.pasteBack || (preset?.cloudOAuthOnly && isAgentesCloud(deps.publicUrl))) {
       throw new ValidationError("This service connects by signing in", "connector.oauth_only");
     }
     return stored("api_key", { apiKey });
@@ -831,7 +833,8 @@ export async function beginMcpOAuth(
 ): Promise<Exclude<CustomConnectStart, { status: "connected" }>> {
   const meta = await authServerMetadata(deps, input.issuer);
   if (!meta) return { status: "needs_key" };
-  const redirectUri = oauthRedirectUri(deps.publicUrl);
+  const pasteBack = presetForServer(input.serverUrl)?.pasteBack === true;
+  const redirectUri = pasteBack ? LOOPBACK_OAUTH_REDIRECT : oauthRedirectUri(deps.publicUrl);
   // Worked out again each time: a client still in use keeps the scope it was registered with, maybe without
   // offline_access.
   const scope = oauthScope(meta, input.scopes);
@@ -847,7 +850,7 @@ export async function beginMcpOAuth(
   if (!wrapper) throw new Error("no key wrapper");
   const id = crypto.randomUUID();
   const sealed = await sealSecret(wrapper, verifier, stateAad(orgId, id));
-  const returnTo = oauthReturnTo(input.returnTo);
+  const returnTo = pasteBack ? pasteReturnTo(input.returnTo) : oauthReturnTo(input.returnTo);
   await deps.db.insert(oauthStates).values({
     id,
     orgId,
@@ -874,7 +877,7 @@ export async function beginMcpOAuth(
   url.searchParams.set("code_challenge_method", "S256");
   url.searchParams.set("resource", input.resource);
   if (scope) url.searchParams.set("scope", scope);
-  return { status: "oauth", authorizeUrl: url.toString() };
+  return { status: "oauth", authorizeUrl: url.toString(), ...(pasteBack ? { pasteBack: true as const } : {}) };
 }
 
 /** Lists the tools again (admins). */

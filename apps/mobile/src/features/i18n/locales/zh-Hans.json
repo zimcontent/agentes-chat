@@ -1943,6 +1943,7 @@
     "addressHelp": "该服务的 MCP 服务器地址（以 https:// 开头）。",
     "addressLabel": "地址",
     "addressInvalid": "请使用 https:// 地址。",
+    "computerOnly": "请在电脑上连接 {{name}}：它的登录无法回到应用。",
     "needsKey": "此服务器需要密钥。",
     "working": "正在连接…",
     "failed": "无法连接，请重试。",

@@ -5213,6 +5213,50 @@ html:not([data-pointer]) .catalog-tile:focus-visible {
 }
 
 /* The connect flow: one dialog, three steps (conectar → o que faz → quem usa). */
+/* A sign-in that ends on the person's computer (Frame.io): open it, then paste the address it ends on. Numbered as a
+   routine's webhook steps are. */
+.cflow__paste {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+  list-style: none;
+  counter-reset: paste-step;
+}
+.cflow__paste > li {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  min-width: 0;
+  padding-left: 28px;
+  counter-increment: paste-step;
+}
+.cflow__paste > li > form {
+  align-self: stretch;
+}
+.cflow__paste p {
+  margin: 0;
+}
+.cflow__paste > li::before {
+  content: counter(paste-step);
+  position: absolute;
+  left: 0;
+  top: calc(-1 * var(--cap-mid));
+  display: grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--raised);
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1;
+}
 .cflow__title {
   display: flex;
   align-items: center;

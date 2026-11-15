@@ -2146,6 +2146,8 @@ export const featureKeysEn = {
     addressHelp: "The service's MCP server address (starts with https://).",
     addressLabel: "Address",
     addressInvalid: "Use an https:// address.",
+    /** A service whose sign-in ends on the person's computer (Frame.io): it can't come back to the app. */
+    computerOnly: "Connect {{name}} from a computer: its sign-in can't come back to the app.",
     needsKey: "This server asks for a key.",
     working: "Connecting…",
     failed: "Couldn't connect. Try again.",

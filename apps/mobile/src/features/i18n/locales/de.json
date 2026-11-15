@@ -2043,6 +2043,7 @@
     "addressHelp": "Die Adresse des MCP-Servers des Dienstes (beginnt mit https://).",
     "addressLabel": "Adresse",
     "addressInvalid": "Nutze eine https://-Adresse.",
+    "computerOnly": "Verbinde {{name}} am Computer: Die Anmeldung kann nicht zur App zurückkehren.",
     "needsKey": "Dieser Server verlangt einen Schlüssel.",
     "working": "Wird verbunden…",
     "failed": "Verbinden hat nicht geklappt. Versuch es noch einmal.",

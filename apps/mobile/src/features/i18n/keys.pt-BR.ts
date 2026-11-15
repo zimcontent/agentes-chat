@@ -2076,6 +2076,8 @@ export const featureKeysPtBR = {
     addressHelp: "O endereço do servidor MCP do serviço (começa com https://).",
     addressLabel: "Endereço",
     addressInvalid: "Use um endereço https://.",
+    /** A service whose sign-in ends on the person's computer (Frame.io): it can't come back to the app. */
+    computerOnly: "Conecte o {{name}} pelo computador: o login dele não volta para o app.",
     needsKey: "Esse servidor pede uma chave.",
     working: "Conectando…",
     failed: "Não deu para conectar. Tente de novo.",

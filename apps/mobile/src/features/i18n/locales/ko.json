@@ -1943,6 +1943,7 @@
     "addressHelp": "서비스의 MCP 서버 주소예요(https://로 시작).",
     "addressLabel": "주소",
     "addressInvalid": "https:// 주소를 사용하세요.",
+    "computerOnly": "{{name}}은 컴퓨터에서 연결하세요. 로그인이 앱으로 돌아올 수 없습니다.",
     "needsKey": "이 서버는 키가 필요해요.",
     "working": "연결하는 중…",
     "failed": "연결하지 못했어요. 다시 시도해 주세요.",

@@ -2136,6 +2136,7 @@
     "addressHelp": "L'indirizzo del server MCP del servizio (inizia con https://).",
     "addressLabel": "Indirizzo",
     "addressInvalid": "Usa un indirizzo https://.",
+    "computerOnly": "Collega {{name}} da un computer: il suo accesso non può tornare all’app.",
     "needsKey": "Questo server chiede una chiave.",
     "working": "Connessione…",
     "failed": "Collegamento non riuscito. Riprova.",

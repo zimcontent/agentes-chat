@@ -2043,6 +2043,7 @@
     "addressHelp": "Hizmetin MCP sunucu adresi (https:// ile başlar).",
     "addressLabel": "Adres",
     "addressInvalid": "https:// ile başlayan bir adres kullanın.",
+    "computerOnly": "{{name}} bağlantısını bir bilgisayardan yap: girişi uygulamaya geri dönemiyor.",
     "needsKey": "Bu sunucu bir anahtar istiyor.",
     "working": "Bağlanıyor…",
     "failed": "Bağlanılamadı. Tekrar deneyin.",

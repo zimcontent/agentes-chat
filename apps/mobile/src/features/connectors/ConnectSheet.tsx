@@ -607,7 +607,10 @@ function ConnectStep({
           ...(label ? { label } : {}),
           ...(connectionId ? { connectionId } : {}),
         });
-        if (res.status === "oauth") return void (await signInWith(res.authorizeUrl));
+        if (res.status === "oauth") {
+          if (res.pasteBack) return oops(t("mobile.connectors.computerOnly", { name: shownName }));
+          return void (await signInWith(res.authorizeUrl));
+        }
         if (res.status === "needs_key") {
           setMode("key");
           return oops(needsKeyText(t, res, shownName));

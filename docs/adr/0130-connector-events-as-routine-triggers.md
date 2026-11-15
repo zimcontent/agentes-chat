@@ -3,7 +3,7 @@
 - Status: Accepted
 - Date: 2026-11-02
 - Builds on: 0016 (connectors in two layers), 0038 (mailboxes and the email trigger), 0053 (routines), 0106 (routines started by a webhook), 0117 (outside content)
-- Code: `packages/engine/src/frameio.ts` (addendum), `packages/engine/src/connector-triggers.ts` (`CONNECTOR_EVENTS`, `checkConnectorTrigger`, `syncConnectorTrigger`, `connectorCallPasses`, `connectorEventsOf`), `packages/engine/src/routines.ts` (the `connector` trigger), `packages/engine/src/routine-hooks.ts` (the filter, Standard Webhooks' `webhook-id`), `packages/engine/src/connectors/custom.ts` (`events`), `packages/db/src/schema/work.ts` (`routine_hooks.source`), migration `0185_routine_hook_source`, `apps/server/src/routes/app/routines.ts`, `apps/server/src/routes/app/context.ts` (`routineConnectorDeps`), web `ConnectorTrigger.tsx` and `RoutinesPage.tsx`, phone `routines/RoutineForm.tsx`, `logic.ts`, `hooks.tsx`
+- Code: `packages/engine/src/frameio.ts` and `connectors/oauth-return.ts` (`LOOPBACK_OAUTH_REDIRECT`, addenda), `packages/engine/src/connector-triggers.ts` (`CONNECTOR_EVENTS`, `checkConnectorTrigger`, `syncConnectorTrigger`, `connectorCallPasses`, `connectorEventsOf`), `packages/engine/src/routines.ts` (the `connector` trigger), `packages/engine/src/routine-hooks.ts` (the filter, Standard Webhooks' `webhook-id`), `packages/engine/src/connectors/custom.ts` (`events`), `packages/db/src/schema/work.ts` (`routine_hooks.source`), migration `0185_routine_hook_source`, `apps/server/src/routes/app/routines.ts`, `apps/server/src/routes/app/context.ts` (`routineConnectorDeps`), web `ConnectorTrigger.tsx` and `RoutinesPage.tsx`, phone `routines/RoutineForm.tsx`, `logic.ts`, `hooks.tsx`
 
 ## Context
 
@@ -62,3 +62,12 @@ Production teams receive raw footage and review notes in Frame.io, and deliver n
 3. **Consent as in §4.** Only a routine whose agent may read that connection gets what was read; any other gets the ids.
 4. **Signature.** Frame.io signs with `X-Frameio-Signature: v0=<hex>`, the HMAC-SHA256 of `v0:<timestamp>:<body>` with the webhook's own signing secret, its timestamp within five minutes. Frame.io's settings page may not show that secret (only its API returns it, once), so until a secret is pasted the address alone is the credential, as for MillionSend (§6); once one is pasted, every call must be signed with it.
 5. **Templates.** "Comentários do Frame.io" and "Arquivos novos no Frame.io" start from these events.
+
+## Addendum (2026-11-15): Frame.io's sign-in comes back by a pasted address
+
+Frame.io's authorization server registers clients for only a few redirects: `localhost` and `127.0.0.1` (programs on the person's computer), claude.ai's and chatgpt.com's; it refused `https://dougbot.app/api/app/connectors/oauth/callback` (`invalid_redirect_uri`). Its server takes no key either, so the "connect with a key" way out offered to vendors that don't approve us would never work.
+
+1. **A loopback redirect.** A preset marked `pasteBack` registers and signs in with `LOOPBACK_OAUTH_REDIRECT` (`http://127.0.0.1:33418/dougbot/connectors/oauth`, `oauth-return.ts`), and exchanges the code with the same address. Nothing listens there: the person's browser ends on a page that doesn't open.
+2. **The person pastes that page's address.** The connect dialog opens the sign-in in a new tab and asks for the address it ended on; the app reads its `state` and `code` (`packages/client/src/lib/oauth-paste.ts`) and finishes with the person's session through `POST …/connectors/oauth/complete`, which takes a state whose `returnTo` starts with `paste:` as it takes the phone's and the desktop window's. The state stays bound to that person and organization, and PKCE to this server, so an address seen by anyone else can't be used.
+3. **Sign-in only.** A `pasteBack` preset is listed with `oauth` alone and a key sent for it is refused (`connector.oauth_only`). The phone app, whose browser session can't hand that address back, says to connect it from a computer.
+4. If Adobe approves this server's address later, removing `pasteBack` from the preset brings the usual one-click return back; connections already made keep working (refresh tokens don't name a redirect).

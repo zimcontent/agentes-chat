@@ -53,6 +53,12 @@ export interface McpPreset {
    * workspace connects its own data, which is what those tokens are for, so the key stays.
    */
   cloudOAuthOnly?: true;
+  /**
+   * Its authorization server takes no web address of ours as a redirect, only `localhost` (Frame.io): the sign-in
+   * comes back to the person's computer and they paste its address in the dialog (`LOOPBACK_OAUTH_REDIRECT`). It
+   * signs in only: its server takes no key either.
+   */
+  pasteBack?: true;
   /** How its server takes an API key in `Authorization` (Semrush: `Apikey <key>`); default `Bearer`. */
   keyScheme?: string;
   /**
@@ -957,6 +963,8 @@ export const MCP_PRESETS: readonly McpPreset[] = [
     description: "Frame.io files, versions, comments and review links.",
     icon: "frameio",
     serverUrl: "https://mcp.frame.io/v1/mcp",
+    // Its registration refuses any redirect but `localhost`, claude.ai's and chatgpt.com's (checked 2026-11-15).
+    pasteBack: true,
   },
   {
     id: "millionsend",

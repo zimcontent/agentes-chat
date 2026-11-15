@@ -5042,6 +5042,9 @@
   "connectors.addressInvalid": {
     "value": "Use an https:// address."
   },
+  "connectors.computerOnly": {
+    "value": "Connect {{name}} from a computer: its sign-in can't come back to the app."
+  },
   "connectors.needsKey": {
     "value": "This server asks for a key."
   },

@@ -104,7 +104,14 @@ const ServerParams = OrgParams.extend({ serverId: z.uuid() });
 
 const ConnectStart = z.union([
   z.object({ status: z.literal("connected"), server: CustomServer, outcome: Outcome }),
-  z.object({ status: z.literal("oauth"), authorizeUrl: z.string() }),
+  z.object({
+    status: z.literal("oauth"),
+    authorizeUrl: z.string(),
+    pasteBack: z.literal(true).optional().openapi({
+      description:
+        "The sign-in comes back to the person's computer, where nothing listens (Frame.io takes no other redirect): open `authorizeUrl` in a new tab, then send the `state` and `code` of the address that tab ends on to `oauth/complete`.",
+    }),
+  }),
   z.object({
     status: z.literal("needs_key"),
     reason: z.literal("not_approved").optional().openapi({

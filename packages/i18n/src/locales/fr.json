@@ -13173,6 +13173,15 @@
     "agentSub": "Par connecteur et par sujet. Par défaut, les actions sensibles demandent une approbation."
   },
   "connectFlow": {
+    "paste": {
+      "open": "Connecte-toi avec le compte Adobe que tu utilises pour {{name}}. La connexion s’ouvre dans un nouvel onglet.",
+      "openLink": "Ouvrir la connexion à {{name}}",
+      "after": "À la fin, cet onglet arrive sur une page qui ne s’ouvre pas (127.0.0.1). C’est normal : copie son adresse dans la barre d’adresse et colle-la ici.",
+      "label": "Adresse de cette page",
+      "invalid": "Ce n’est pas l’adresse où la connexion s’est terminée. Copie-la depuis la barre d’adresse de l’onglet ouvert.",
+      "note": "Le code de cette adresse ne sert qu’une fois, et seulement pour ton compte.",
+      "finish": "Terminer la connexion"
+    },
     "steps": "Étapes",
     "step": {
       "0": "Connexion",
