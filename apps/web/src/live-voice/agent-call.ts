@@ -90,6 +90,8 @@ export class AgentCall {
             this.loop();
           },
           closed: () => void this.stop(),
+          // The server takes what it delegates, on its sideband (`agentCall`).
+          delegation: () => {},
         },
       );
       if (this.done) void this.leg.close((id) => this.o.api.liveVoice.endSession(this.o.orgId, id));

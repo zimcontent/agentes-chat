@@ -9744,6 +9744,7 @@
       "endText": "通話のメモは会話に送られます。Doug BOSS が決まったことと次のステップをまとめたレポートを送ります。",
       "hasWord": "{{name}} が発言中です",
       "agentsListen": "エージェントが聞いています",
+      "working": "調べています…",
       "word": "発言中",
       "giveWord": "発言権を渡す",
       "takeWord": "発言権を戻す",

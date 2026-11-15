@@ -10521,6 +10521,7 @@
       "endText": "Le note della chiamata vanno nella conversazione e Doug BOSS invia il resoconto con le decisioni e i prossimi passi.",
       "hasWord": "{{name}} ha la parola",
       "agentsListen": "Gli agenti stanno ascoltando",
+      "working": "Sto cercando…",
       "word": "Sta parlando",
       "giveWord": "Dai la parola",
       "takeWord": "Riprendi la parola",

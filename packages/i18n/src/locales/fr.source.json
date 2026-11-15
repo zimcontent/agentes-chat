@@ -24598,6 +24598,9 @@
   "liveVoice.room.agentsListen": {
     "value": "The agents are listening"
   },
+  "liveVoice.room.working": {
+    "value": "Looking into it…"
+  },
   "liveVoice.room.word": {
     "value": "Speaking"
   },

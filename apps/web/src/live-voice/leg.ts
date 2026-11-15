@@ -14,6 +14,11 @@ export interface LegHandlers {
   voice?(stream: MediaStream): void;
   /** The session closed or the connection dropped. */
   closed?(reason: string): void;
+  /**
+   * It delegated (it said "já vejo" and wants work done): whoever runs the call takes it. Without this, it is told that
+   * nothing runs now. A call with one agent leaves it to the server, which answers on its sideband.
+   */
+  delegation?(delegationId: string): void;
 }
 
 const ICE_WAIT_MS = 2500;
@@ -89,10 +94,11 @@ export class LiveLeg {
       this.started = true;
       for (const q of this.queue.splice(0)) this.channel.send(q);
     }
-    // Nothing runs on a call: work it asks for goes in the meeting's notes.
     if (event.type === "session.delegation.created") {
-      const id = (event.delegation as { id?: string } | undefined)?.id;
-      if (id)
+      const delegation = event.delegation as { id?: string; target?: string } | undefined;
+      const id = delegation?.id;
+      if (id && delegation?.target !== "responses" && this.handlers.delegation) this.handlers.delegation(id);
+      else if (id && !this.handlers.delegation)
         this.send({
           type: "session.thinking.append",
           delegation_id: id,
@@ -121,6 +127,10 @@ export class LiveLeg {
   /** Quiet context: what it missed, said by no one. */
   note(content: string) {
     this.send({ type: "session.thinking.append", delegation_id: null, content: content.slice(-1800) });
+  }
+  /** The result of work it delegated, for it to tell in its own words. */
+  answer(delegationId: string, content: string) {
+    this.send({ type: "session.commentary.append", delegation_id: delegationId, content: content.slice(0, 1800) });
   }
   /** Something for it to say now, in its own words. */
   say(content: string) {

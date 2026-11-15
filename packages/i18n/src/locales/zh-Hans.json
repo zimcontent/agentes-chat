@@ -9810,6 +9810,7 @@
       "endText": "通话记录会发到对话中。Doug BOSS 会发送报告，写明已做的决定和下一步。",
       "hasWord": "{{name}} 正在发言",
       "agentsListen": "智能体正在聆听",
+      "working": "正在查找…",
       "word": "正在发言",
       "giveWord": "让其发言",
       "takeWord": "收回发言权",

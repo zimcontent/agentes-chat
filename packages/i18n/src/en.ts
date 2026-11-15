@@ -10371,6 +10371,7 @@ export const en = {
         "The call's notes go to the conversation and Doug BOSS sends the report with what was decided and the next steps.",
       hasWord: "{{name}} has the word",
       agentsListen: "The agents are listening",
+      working: "Looking into it…",
       word: "Speaking",
       giveWord: "Give the word",
       takeWord: "Take the word back",

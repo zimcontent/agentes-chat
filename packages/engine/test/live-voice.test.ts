@@ -4,6 +4,7 @@ import { and, eq, schema } from "@agenteschat/db";
 import { LIVE_VOICE_NANO_USD_PER_SECOND } from "@agenteschat/providers/live-voice";
 import {
   addLiveLines,
+  askFromLiveRoom,
   callInstructions,
   endLiveRoom,
   endLiveSession,
@@ -248,6 +249,70 @@ describe("voice rooms", () => {
     expect(room.agentIds).toEqual([]);
   });
 
+  test("work asked on the call: the agent works on it in the conversation, and its answer comes back to the host", async () => {
+    f = await setup();
+    const posted: { body: string; meta: Record<string, unknown> }[] = [];
+    const d = deps(openai().fetch, {
+      postMessage: async (_userId, _orgId, channelId, body, meta) => {
+        posted.push({ body, meta });
+        const id = Bun.randomUUIDv7();
+        await f.db.insert(schema.messages).values({
+          id,
+          orgId: f.org.id,
+          channelId,
+          authorType: "person",
+          authorUserId: f.owner.id,
+          body,
+          meta,
+        });
+        // The agent answers in the message's thread, as its run would.
+        setTimeout(async () => {
+          await f.db.insert(schema.messages).values({
+            id: Bun.randomUUIDv7(),
+            orgId: f.org.id,
+            channelId,
+            threadId: id,
+            authorType: "agent",
+            authorAgentId: f.agent.id,
+            body: "As vendas da semana foram **R$ 12 mil**. Detalhes em https://x.test/v",
+          });
+        }, 300);
+        return { id };
+      },
+    });
+    await saveLiveVoiceKey(d, f.owner.id, f.org.id, KEY);
+    const events: Record<string, unknown>[] = [];
+    f.pubsub.subscribe(userTopic(f.org.id, f.owner.id), (e) => events.push(e as Record<string, unknown>));
+    const room = await joinLiveRoom(d, f.owner.id, f.org.id, f.general.id, { agentIds: [f.agent.id] });
+    const { askId } = await askFromLiveRoom(d, f.owner.id, f.org.id, room.id, {
+      agentId: f.agent.id,
+      ask: "Quanto vendemos essa semana?",
+      delegationId: "item_7",
+    });
+    expect(askId).toBeTruthy();
+    expect(posted[0]).toEqual({
+      body: `@${f.agent.handle} Quanto vendemos essa semana?`,
+      meta: { via: "call", liveRoomId: room.id },
+    });
+    const until = Date.now() + 15_000;
+    while (!events.some((e) => e.type === "live.answer") && Date.now() < until)
+      await new Promise((r) => setTimeout(r, 200));
+    expect(events.find((e) => e.type === "live.working")).toMatchObject({ agentId: f.agent.id, on: true });
+    expect(events.find((e) => e.type === "live.answer")).toMatchObject({
+      roomId: room.id,
+      agentId: f.agent.id,
+      delegationId: "item_7",
+      text: "As vendas da semana foram R$ 12 mil. Detalhes em (the link is in the chat)",
+    });
+    // Only the host runs the agents.
+    const bia = await addMember(f.db, f.org.id, "member", "Bia");
+    await f.db.insert(schema.channelMembers).values({ orgId: f.org.id, channelId: f.general.id, userId: bia.id });
+    await joinLiveRoom(d, bia.id, f.org.id, f.general.id, { agentIds: [] });
+    await expect(
+      askFromLiveRoom(d, bia.id, f.org.id, room.id, { agentId: f.agent.id, ask: "x", delegationId: "y" }),
+    ).rejects.toThrow();
+  }, 30_000);
+
   test("the team's right hand leads every call with agents: always on it, first", async () => {
     f = await setup();
     const d = deps(openai().fetch);
@@ -276,7 +341,9 @@ describe("what a call's agent is told", () => {
       language: "pt-BR",
     });
     expect(text).toContain("Gabriel, Bia");
-    expect(text).toContain("Colleagues may cut in while you talk");
+    expect(text).toContain("Speak only when you have the word");
+    expect(text).toContain("Take on only what is in your own role");
+    expect(text).toContain("já vejo");
     expect(text).toContain("When a person speaks to a colleague by name, stay silent");
     const lead = callInstructions({
       agent: { id: "d", name: "Doug", role: "CEO", instructions: "" },

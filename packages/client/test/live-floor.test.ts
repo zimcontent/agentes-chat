@@ -7,7 +7,6 @@ import {
   CONTINUE_MS,
   giveFloor,
   initialFloor,
-  interrupt,
   namedAgent,
 } from "../src/lib/live-floor";
 
@@ -62,7 +61,7 @@ describe("a call that just started", () => {
   test("one person and nobody with the word: the meeting's lead answers, and listens after the limit", () => {
     const room = { agents, people: 1, now: 0, moderator: "doug" };
     expect(afterPerson(initialFloor(), "oi, tudo bem?", room)).toMatchObject({ state: { holder: "doug" }, ask: false });
-    const tired = { ...initialFloor("ana"), spoke: ["ana", "bruno", "ana", "bruno", "doug"] };
+    const tired = { ...initialFloor("ana"), spoke: ["bruno", "doug"] };
     expect(afterAgent(tired, "ana", "Pronto.", { agents, now: 1, moderator: "doug" })).toMatchObject({
       reason: "limit",
       changed: true,
@@ -85,30 +84,23 @@ describe("a call that just started", () => {
 });
 
 describe("agents among themselves: lively, never a loop", () => {
-  test("a colleague named gets the word; past the turns in a row, the people have it", () => {
+  test("a colleague named gets the word; past three agent turns in a row, the people have it", () => {
     let s = afterPerson(initialFloor(), "Ana, comece", { agents, people: 2, now: 0 }).state;
-    const turn = (who: string, text: string, next?: string) => {
-      const d = afterAgent(s, who, text, { agents, now: 1 }, next);
+    const turn = (who: string, text: string) => {
+      const d = afterAgent(s, who, text, { agents, now: 1, moderator: "doug" });
       s = d.state;
       return d;
     };
     expect(turn("ana", "Bruno, como você faria?")).toMatchObject({ reason: "handoff", state: { holder: "bruno" } });
     expect(turn("bruno", "Doug, você aprova?")).toMatchObject({ reason: "handoff", state: { holder: "doug" } });
-    expect(turn("doug", "Ana, refaça os números")).toMatchObject({ reason: "handoff", state: { holder: "ana" } });
-    expect(turn("ana", "Feito.", "bruno")).toMatchObject({ reason: "handoff", state: { holder: "bruno" } });
-    expect(turn("bruno", "Doug?")).toMatchObject({ reason: "handoff", state: { holder: "doug" } });
-    // The sixth agent turn in a row: back to the people, whoever it names.
-    expect(turn("doug", "Ana, de novo")).toMatchObject({ reason: "limit", state: { holder: null } });
+    // The third agent turn in a row: back to the people (the lead listening), whoever it names.
+    expect(turn("doug", "Ana, refaça os números")).toMatchObject({ reason: "limit", state: { holder: "doug" } });
   });
-  test("one agent takes at most two turns in a stretch: back and forth once, never a duet", () => {
+  test("one turn per agent in a stretch: never back and forth", () => {
     let s = initialFloor("ana");
     s = afterAgent(s, "ana", "Bruno?", { agents, now: 1 }).state;
-    s = afterAgent(s, "bruno", "Ana, e você?", { agents, now: 2 }).state;
-    expect(s.holder).toBe("ana");
-    s = afterAgent(s, "ana", "Bruno, concorda?", { agents, now: 3 }).state;
     expect(s.holder).toBe("bruno");
-    // Ana spoke twice: Bruno can't hand it back to her.
-    const d = afterAgent(s, "bruno", "Ana, mais uma?", { agents, now: 4 });
+    const d = afterAgent(s, "bruno", "Ana, e você?", { agents, now: 2 });
     expect(d).toMatchObject({ reason: "limit", state: { holder: null } });
   });
   test("the small model's pick follows an agent that named nobody", () => {
@@ -119,19 +111,7 @@ describe("agents among themselves: lively, never a loop", () => {
     const s = afterAgent(initialFloor("ana"), "ana", "Proponho março.", { agents, now: 1 }).state;
     expect(bringIn(s, "bruno", 2)).toMatchObject({ reason: "handoff", state: { holder: "bruno", chain: 1 } });
     expect(bringIn(s, "ana", 2)).toBeNull();
-    expect(bringIn({ ...s, chain: 5 }, "bruno", 2)).toBeNull();
-  });
-  test("jumping in: the one talking is cut off and its turn counts; the limits hold", () => {
-    const d = interrupt(initialFloor("ana"), "bruno", 5);
-    expect(d).toMatchObject({
-      reason: "interrupt",
-      changed: true,
-      state: { holder: "bruno", chain: 1, spoke: ["ana"] },
-    });
-    expect(interrupt(initialFloor("ana"), "ana", 5)).toBeNull();
-    expect(interrupt(initialFloor(null), "ana", 5)).toBeNull();
-    const tired = { ...initialFloor("ana"), spoke: ["bruno", "ana", "bruno"] };
-    expect(interrupt(tired, "bruno", 5)).toBeNull();
+    expect(bringIn({ ...s, chain: 2 }, "bruno", 2)).toBeNull();
   });
   test("a person speaking starts the count again", () => {
     const s = afterAgent(initialFloor("ana"), "ana", "Bruno?", { agents, now: 1 }).state;

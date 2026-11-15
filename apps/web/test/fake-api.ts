@@ -1461,6 +1461,7 @@ export function createFakeHttpApi(state: FakeState): Omit<HttpApi, FakedParts> {
       lines: async () => {},
       floor: async () => {},
       next: async () => ({ agentId: null, when: null }),
+      ask: async () => ({ askId: crypto.randomUUID() }),
     },
     voice: {
       allowed: async () => ({ allowed: state.voiceAllowed ?? true }),

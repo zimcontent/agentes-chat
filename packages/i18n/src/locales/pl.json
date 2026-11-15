@@ -10839,6 +10839,7 @@
       "endText": "Notatki z rozmowy trafią do konwersacji. Doug BOSS wyśle raport z ustaleniami i kolejnymi krokami.",
       "hasWord": "{{name}} ma głos",
       "agentsListen": "Agenci słuchają",
+      "working": "Sprawdza…",
       "word": "Mówi",
       "giveWord": "Udziel głosu",
       "takeWord": "Odbierz głos",

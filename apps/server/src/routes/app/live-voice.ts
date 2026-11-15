@@ -1,5 +1,6 @@
 import {
   addLiveLines,
+  askFromLiveRoom,
   channelLiveRoom,
   endLiveRoom,
   endLiveSession,
@@ -408,6 +409,37 @@ export function liveVoiceRoutes(deps: AppDeps) {
       const { orgId, roomId } = c.req.valid("param");
       const ask = c.req.valid("json") ?? {};
       return c.json(await pickLiveSpeaker(live(), user.id, orgId, roomId, ask), 200);
+    },
+  );
+
+  app.openapi(
+    createRoute({
+      method: "post",
+      path: "/organizations/{orgId}/live-rooms/{roomId}/ask",
+      tags,
+      security,
+      summary:
+        "An agent on the call took on work: it goes to the conversation and the agent works on it during the call",
+      description:
+        "From the host's app when an agent delegates (GPT-Live's `session.delegation.created`). Posts what was asked as the host's message mentioning the agent (`meta.via: call`); everyone on the call gets `live.working`, and the host gets `live.answer` with the agent's answer, made speakable, once it comes (null after 4 minutes).",
+      request: {
+        params: RoomParams,
+        body: body(
+          z.object({
+            agentId: z.uuid(),
+            ask: z.string().trim().min(1).max(4000),
+            delegationId: z.string().min(1).max(200),
+          }),
+        ),
+      },
+      responses: { 200: json(z.object({ askId: z.uuid() })), ...errors, ...tooMany },
+    }),
+    async (c) => {
+      const user = c.get("user");
+      if (!(await allowed(`live-ask:${user.id}`, { limit: 20, windowMs: 60_000 })))
+        return apiError(c, 429, "rate_limited", "Too many asks.");
+      const { orgId, roomId } = c.req.valid("param");
+      return c.json(await askFromLiveRoom(live(), user.id, orgId, roomId, c.req.valid("json")), 200);
     },
   );
 

@@ -10504,6 +10504,7 @@
       "endText": "Les notes de l'appel vont dans la conversation et Doug BOSS envoie le compte rendu avec les décisions et les prochaines étapes.",
       "hasWord": "{{name}} a la parole",
       "agentsListen": "Les agents écoutent",
+      "working": "Recherche en cours…",
       "word": "Parle",
       "giveWord": "Donner la parole",
       "takeWord": "Reprendre la parole",
