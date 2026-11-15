@@ -16,6 +16,8 @@ import {
   PERSON_ASKED_MS,
   personAskedLately,
   postPersonMessage,
+  ROOM_ASK_BURST,
+  ROOM_ASK_SPACING_MS,
   ROOM_BEHIND_RETRY_MS,
   ROOM_RANK_AGE_MS,
   reportMentionReplies,
@@ -114,6 +116,30 @@ const runsOf = async (agentId: string) =>
 const done = (id: string) => f.db.update(agentRuns).set({ status: "done" }).where(eq(agentRuns.id, id));
 
 describe("the computer's line", () => {
+  test("agents called together start a few at once, not one every few seconds", async () => {
+    f = await setup();
+    const rio = await agentOf("Rio", "rio");
+    const machineId = await computerFor(rio.id);
+    // Claimed runs asking for room, the way the executor holds them while it asks.
+    const asking = [];
+    for (let i = 0; i <= ROOM_ASK_BURST; i++) {
+      const run = await inLine(rio.id, machineId);
+      await f.db.update(agentRuns).set({ status: "running" }).where(eq(agentRuns.id, run.id));
+      asking.push(run);
+    }
+    const startedAt = Date.now();
+    for (const run of asking.slice(0, ROOM_ASK_BURST)) {
+      expect(await roomGate(f.db, run, machineId, { rank: 2, since: Date.now() })).toBeNull();
+    }
+    // One past the burst waits until the first of it leaves the window.
+    const last = asking[ROOM_ASK_BURST] as (typeof asking)[number];
+    const behind = await roomGate(f.db, last, machineId, { rank: 2, since: Date.now() });
+    expect(behind?.retryAt).toBeGreaterThanOrEqual(startedAt + ROOM_ASK_SPACING_MS);
+    expect(behind?.retryAt).toBeLessThanOrEqual(Date.now() + ROOM_ASK_SPACING_MS);
+    // A person's turn never waits for the burst.
+    expect(await roomGate(f.db, last, machineId, { rank: 0, since: Date.now() })).toBeNull();
+  });
+
   test("people first, then work a person asked for lately, then agents' own, each by its wait", async () => {
     f = await setup();
     const rio = await agentOf("Rio", "rio");

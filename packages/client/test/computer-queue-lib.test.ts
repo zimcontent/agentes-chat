@@ -113,8 +113,8 @@ test("the view: the viewer's own request is marked, the computer full, the next 
   // Only the pacing between agents' asks holds the line: not full, no minutes, no "computer full" cause.
   const paced = queueView({ ...queue, full: false }, "me");
   expect(paced.full).toBe(false);
-  expect(queueStatusText(pt, paced, NOW)).toBe("Começando · os agentes entram um de cada vez");
-  expect(queueStatusText(en, paced, NOW)).toBe("Starting · agents go in one at a time");
+  expect(queueStatusText(pt, paced, NOW)).toBe("Começando · os agentes entram poucos de cada vez");
+  expect(queueStatusText(en, paced, NOW)).toBe("Starting · agents go in a few at a time");
   expect(queueCauseText(en, { ...queue, full: false })).toBeNull();
   expect(queueStatusText(en, queueView({ ...queue, full: true }, "me"), NOW)).toBe("Full · next starts in about 1 min");
   // One in line: its row already says when it starts.

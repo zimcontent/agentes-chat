@@ -26,10 +26,22 @@ const { agentRuns, agents, channelMembers, channels, messages } = schema;
  * The line for a shared computer's room (ADR 0032, "Calm waits" and "Calm wakes"). The runner admits a turn only
  * while its memory floor holds and keeps no order, so the engine keeps it, in three ranks: runs a person is waiting
  * on, then agents' work a person asked for lately (`transcript.roomAsked`), then the rest; by when each started
- * waiting within a rank. Only the head of the line asks the runner again, and agents' turns start
- * `ROOM_ASK_SPACING_MS` apart, so a burst of mentions reaches the computer one by one instead of all refused at once.
+ * waiting within a rank. Only the head of the line asks the runner again, and agents' turns start at most
+ * `ROOM_ASK_BURST` per `ROOM_ASK_SPACING_MS`, so a burst of mentions reaches the computer a few at a time instead of
+ * all refused at once.
  */
 export const ROOM_ASK_SPACING_MS = 3_000;
+
+/**
+ * Agents' turns that may ask one computer within `ROOM_ASK_SPACING_MS`. More than one: the runner counts each turn
+ * it admitted in the last `TURN_SETTLE_MS` against its memory floor before the reading shows it, so a few asking at
+ * once can't overfill a small computer, and on a big one a group of agents called together starts together instead
+ * of seconds apart (ADR 0032 addendum 2026-11-15).
+ */
+export const ROOM_ASK_BURST = 4;
+
+/** How soon the next in line is asked after an agent's ask that left room in the burst. */
+export const ROOM_BURST_KICK_MS = 300;
 
 /**
  * When a run behind another in line looks again. The line moves by kicks (a turn ended, the spacing is over), so this
@@ -109,15 +121,18 @@ export async function frontOfLine(db: Executor, run: { id: string; orgId: string
   });
 }
 
-/** Asks the head of the line to look again: now (a turn there ended), or `at` (the spacing is over). One job of each per wait. */
-export async function kickRoomQueue(db: Database, machineId: string, at?: Date) {
+/**
+ * Asks the head of the line to look again: now (a turn there ended), or `at` (the spacing is over, or `burst`: the
+ * last ask left room for another). One job of each per wait.
+ */
+export async function kickRoomQueue(db: Database, machineId: string, at?: Date, why: "spaced" | "burst" = "spaced") {
   const head = await roomHead(db, machineId);
   if (!head?.waitId) return;
   await enqueue(db, {
     orgId: head.orgId,
     kind: "agent_run.execute",
     payload: { runId: head.id, wait: head.waitId },
-    dedupeKey: `agent_run.execute:${head.id}:room-kick:${head.waitId}:${at ? "spaced" : "freed"}`,
+    dedupeKey: `agent_run.execute:${head.id}:room-kick:${head.waitId}:${at ? why : "freed"}`,
     maxAttempts: 4,
     ...(at ? { runAt: at } : {}),
   });
@@ -126,8 +141,8 @@ export async function kickRoomQueue(db: Database, machineId: string, at?: Date) 
 /**
  * Whether this run may send its computer turn now. Null: go (its ask is recorded, and the next in line is asked
  * once the spacing is over). Otherwise it is behind: `retryAt` is when it may look again. Behind when a run waiting
- * for room ranks ahead of it (by rank, then the longest wait), or, for agents' work, when another run asked
- * this computer less than `ROOM_ASK_SPACING_MS` ago. A person's turn never waits for the spacing; the runner's
+ * for room ranks ahead of it (by rank, then the longest wait), or, for agents' work, when `ROOM_ASK_BURST` runs
+ * asked this computer in the last `ROOM_ASK_SPACING_MS`. A person's turn never waits for the spacing; the runner's
  * memory floor still decides whether it fits.
  */
 export async function roomGate(
@@ -138,7 +153,7 @@ export async function roomGate(
 ): Promise<{ retryAt: number } | null> {
   const now = Date.now();
   const rank = place.rank === 2 && place.since < now - ROOM_RANK_AGE_MS ? 1 : place.rank;
-  const behind = await db.transaction(async (tx) => {
+  const behind = await db.transaction(async (tx): Promise<{ retryAt: number } | { asked: number }> => {
     await tx.execute(sql`select pg_advisory_xact_lock(hashtext(${`room:${machineId}`}))`);
     const [ahead] = await tx
       .select({ id: agentRuns.id })
@@ -152,9 +167,11 @@ export async function roomGate(
       )
       .limit(1);
     if (ahead) return { retryAt: now + ROOM_BEHIND_RETRY_MS };
+    let asked = 0;
     if (rank > 0) {
-      const [last] = await tx
-        .select({ at: sql<string>`max((${agentRuns.transcript}->'roomAsk'->>'at')::bigint)` })
+      const askAt = sql`(${agentRuns.transcript}->'roomAsk'->>'at')::bigint`;
+      const recent = await tx
+        .select({ at: sql<string>`${askAt}` })
         .from(agentRuns)
         .where(
           and(
@@ -162,10 +179,16 @@ export async function roomGate(
             eq(agentRuns.status, "running"),
             sql`${agentRuns.id} <> ${run.id}`,
             sql`${agentRuns.transcript}->'roomAsk'->>'machineId' = ${machineId}`,
+            sql`${askAt} > ${now - ROOM_ASK_SPACING_MS}::bigint`,
           ),
-        );
-      const at = Number(last?.at ?? 0);
-      if (now - at < ROOM_ASK_SPACING_MS) return { retryAt: at + ROOM_ASK_SPACING_MS };
+        )
+        .orderBy(sql`${askAt} desc`)
+        .limit(ROOM_ASK_BURST);
+      // The window frees when the oldest of the burst leaves it.
+      if (recent.length >= ROOM_ASK_BURST) {
+        return { retryAt: Number((recent[ROOM_ASK_BURST - 1] as { at: string }).at) + ROOM_ASK_SPACING_MS };
+      }
+      asked = recent.length + 1;
     }
     await tx
       .update(agentRuns)
@@ -173,10 +196,15 @@ export async function roomGate(
         transcript: sql`jsonb_set(coalesce(${agentRuns.transcript}, '{}'::jsonb), '{roomAsk}', ${JSON.stringify({ machineId, at: now })}::jsonb)`,
       })
       .where(eq(agentRuns.id, run.id));
-    return null;
+    return { asked };
   });
-  if (!behind) await kickRoomQueue(db, machineId, new Date(now + ROOM_ASK_SPACING_MS));
-  return behind;
+  if ("retryAt" in behind) return behind;
+  // Room left in the burst: the next in line asks right after this one; otherwise once the spacing is over.
+  if (behind.asked > 0 && behind.asked < ROOM_ASK_BURST) {
+    await kickRoomQueue(db, machineId, new Date(now + ROOM_BURST_KICK_MS), "burst");
+  }
+  await kickRoomQueue(db, machineId, new Date(now + ROOM_ASK_SPACING_MS));
+  return null;
 }
 
 /** The computer whose line shows this run: the one it is working on, or the one it waits in line for. */

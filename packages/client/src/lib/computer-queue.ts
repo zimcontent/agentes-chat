@@ -38,7 +38,7 @@ export interface QueueView {
   waiting: QueueRow<QueueWaiting>[];
   /** Turns wait for memory: the computer turned one away (an older server: anyone in line). */
   full: boolean;
-  /** Turns wait only for the seconds between agents' asks: they start one at a time, now. */
+  /** Turns wait only for the seconds between agents' asks: they start a few at a time, now. */
   starting: boolean;
   /** When the next in line should start (null: no basis). */
   nextStartAt: string | null;
@@ -98,7 +98,7 @@ export const queueStopText = (t: TFunction, row: Pick<StoppableWork, "purpose">,
 export const queueButtonText = (t: TFunction, queue: ComputerQueue | null | undefined) =>
   queue?.waiting.length ? t("queue.button", { count: queue.waiting.length }) : t("queue.buttonIdle");
 
-/** "Full · next starts in about 1 min", "Full", "Starting · agents go in one at a time", "Nobody in line". */
+/** "Full · next starts in about 1 min", "Full", "Starting · agents go in a few at a time", "Nobody in line". */
 export function queueStatusText(t: TFunction, view: QueueView, now: number) {
   if (view.starting) return t("queue.starting");
   if (!view.full) return t("queue.free");
@@ -293,7 +293,7 @@ const FAN_ORDER: FanState[] = ["answered", "working", "inLine", "failed"];
 
 /**
  * Each agent a message called and where it stands, from the message's receipts and its computer's line: null under
- * two agents (the strip is for a fan-out). Agents not started yet count as in line: they start one at a time.
+ * two agents (the strip is for a fan-out). Agents not started yet count as in line: they start a few at a time.
  */
 export function fanOutOf(receipt: MessageReceipt | undefined, queue?: ComputerQueue | null): FanOut | null {
   if (!receipt) return null;
