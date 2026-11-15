@@ -826,6 +826,8 @@ export function buildEngine(o: EngineOptions) {
             speech: speech.chain,
             // And spoken, now and then, in the number's voice (ElevenLabs, the same key).
             voiceOut: whatsappVoiceOut(config.ELEVENLABS_API_KEY),
+            // A GIF now and then, from the same search as the app's (docs/adr/doug-0008-whatsapp-gif.md).
+            gifs: adapters.gifs ?? null,
             // A member's messages go to their conversation with the agent, as theirs (addendum 2026-11-15).
             relay: (userId, orgId, channelId, input) =>
               postPersonMessage({ db, pubsub: adapters.pubsub }, userId, orgId, channelId, input),

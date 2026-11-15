@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, test } from "bun:test";
 import {
+  createFakeGifs,
   createFakeVoiceOut,
   createFakeWhatsAppGateway,
   DEFAULT_VOICE_OUT,
@@ -35,7 +36,9 @@ const answerOf = (answer: Partial<WhatsAppAgentAnswer>) => () => ({
 });
 
 /** A connected number of the owner's with the workspace's agent answering it. */
-async function answering(options: { machines?: WhatsAppAgentDeps["machines"]; instructions?: string } = {}) {
+async function answering(
+  options: { machines?: WhatsAppAgentDeps["machines"]; instructions?: string; gifs?: WhatsAppAgentDeps["gifs"] } = {},
+) {
   const gateway = createFakeWhatsAppGateway();
   const slept: number[] = [];
   const deps: WhatsAppAgentDeps = {
@@ -47,6 +50,7 @@ async function answering(options: { machines?: WhatsAppAgentDeps["machines"]; in
     models: f.gateway,
     machines: options.machines ?? null,
     sleep: async (ms) => void slept.push(ms),
+    ...(options.gifs ? { gifs: options.gifs } : {}),
   };
   const account = await createWhatsAppAccount(deps, f.owner.id, f.org.id, { label: "Comercial" });
   const secret = gateway.last("connect")?.webhookUrl.split("/").at(-1) as string;
@@ -366,6 +370,36 @@ describe("in a group", () => {
     await f.db.update(schema.agents).set({ name: "Doug" }).where(eq(schema.agents.id, f.agent.id));
     expect(await hears("comprei um doughnut", inGroup())).toBeNull();
     expect(await hears("DÓUG tá aí?", inGroup())).not.toBeNull();
+  });
+});
+
+describe("GIFs", () => {
+  test("a GIF after the text when the moment calls for it, played as one, and not another for half an hour", async () => {
+    f = await setup({ reply: answerOf({ messages: ["kkkk boa demais"], gif: "celebration" }) });
+    const { gateway, deps, hears } = await answering({ gifs: createFakeGifs() });
+    const job = await hears("aprovaram o vídeo!!");
+    if (!job) throw new Error("no job queued");
+    expect(await answerWhatsAppChat(deps, job)).toBe("reply");
+    expect(String(f.provider.calls.at(-1)?.request.system)).toContain('"gif"');
+    const sent = gateway.calls.filter((c) => c.op === "send" || c.op === "file");
+    expect(sent.map((c) => c.op)).toEqual(["send", "file"]);
+    expect(gateway.last("file")).toMatchObject({ kind: "video", gif: true });
+
+    const again = await hears("kkkkk");
+    if (!again) throw new Error("no job queued");
+    expect(await answerWhatsAppChat(deps, again)).toBe("reply");
+    expect(String(f.provider.calls.at(-1)?.request.system)).not.toContain("GIFs:");
+    expect(gateway.calls.filter((c) => c.op === "file")).toHaveLength(1);
+  });
+
+  test("without GIF search the agent hears nothing of GIFs, and one it asks for anyway isn't sent", async () => {
+    f = await setup({ reply: answerOf({ messages: ["show"], gif: "party" }) });
+    const { gateway, deps, hears } = await answering();
+    const job = await hears("fechado então");
+    if (!job) throw new Error("no job queued");
+    expect(await answerWhatsAppChat(deps, job)).toBe("reply");
+    expect(String(f.provider.calls.at(-1)?.request.system)).not.toContain("GIFs:");
+    expect(gateway.calls.filter((c) => c.op === "file")).toHaveLength(0);
   });
 });
 
