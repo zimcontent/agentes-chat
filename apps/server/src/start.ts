@@ -54,6 +54,7 @@ import {
 } from "@agenteschat/db";
 import {
   APP_JOB_KINDS,
+  activeRunCount,
   adoptRestoredOperatorEvents,
   allowPrivateOutbound,
   allowsPrivateEndpoints,
@@ -71,6 +72,7 @@ import {
   enableOperatorEvents,
   ensureRightHands,
   type GifKey,
+  holdRunsForRestart,
   isAgentesCloud,
   isBlockedAddress,
   laneLimits,
@@ -106,6 +108,7 @@ import { OPERATOR_API_PREFIX, serveOperatorApi } from "./operator/app";
 import { createMachineSockets } from "./realtime/machines";
 import { createStreamSockets } from "./realtime/streams";
 import { createRealtime, type SocketData } from "./realtime/ws";
+import { createRestartHold } from "./restart-hold";
 import { workerHealth } from "./routes/health";
 import { startTelemetry } from "./telemetry";
 import { releaseOf, version } from "./version";
@@ -499,7 +502,15 @@ async function boot(
       ? { opsReport: { to: config.OPS_REPORT_EMAIL, publicUrl: config.PUBLIC_URL } }
       : {}),
     outbox,
+    holdLong: () => restartHold.held(),
     builtInDatabase: !database.client,
+    log,
+  });
+  // A restart announced ahead (ADR doug-0005): no long job starts here, runs stop at their next step.
+  const restartHold = createRestartHold({
+    longInFlight: () => workers.longInFlight(),
+    runsHere: activeRunCount,
+    holdRuns: holdRunsForRestart,
     log,
   });
   const telemetry = worker ? null : startTelemetry({ db: database.db, config, log });
@@ -519,6 +530,7 @@ async function boot(
     version,
     modules,
     draining: () => stopping,
+    restart: () => restartHold.state(),
     moduleContext: ctx,
     services: {
       db: database.db,
@@ -588,6 +600,7 @@ async function boot(
           modules: modules.map((m) => m.name),
           pingDatabase: database.ping,
           draining: () => stopping,
+          restart: () => restartHold.state(),
         }),
       })
     : Bun.serve<SocketData>({
@@ -687,6 +700,8 @@ async function boot(
     });
   process.on("SIGTERM", () => stop("SIGTERM"));
   process.on("SIGINT", () => stop("SIGINT"));
+  // The deploy announces its restart ahead (ADR doug-0005); Windows has no SIGUSR2 (the desktop app's server).
+  if (process.platform !== "win32") process.on("SIGUSR2", () => restartHold.hold());
   // Once it serves, a stray rejection or exception (a database blip under a callback nobody awaits) is logged
   // instead of ending the process with every run in progress. Not before: a failed boot must still exit, and a
   // rejected top-level `await startServer()` would come here and leave the process hanging.

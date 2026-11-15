@@ -8,6 +8,10 @@ const HealthResponse = z
     edition: z.enum(["selfhost", "cloud"]),
     database: z.enum(["ok", "unreachable"]),
     modules: z.array(z.string()).openapi({ description: "Extra modules loaded by this edition." }),
+    restart: z.enum(["waiting", "ready"]).optional().openapi({
+      description:
+        "Only after a restart was announced (SIGUSR2, ADR doug-0005): `waiting` while agents' work still runs here (each run stops at its next step), `ready` once nothing does.",
+    }),
   })
   .openapi("Health");
 
@@ -34,6 +38,8 @@ export interface HealthDeps {
   pingDatabase: () => Promise<void>;
   /** True once the server is shutting down (`SHUTDOWN_DELAY_MS`): a proxy's health check stops sending requests here. */
   draining?: () => boolean;
+  /** A restart announced ahead (ADR doug-0005): null when none was. */
+  restart?: () => "waiting" | "ready" | null;
 }
 
 async function healthOf(deps: HealthDeps) {
@@ -42,12 +48,14 @@ async function healthOf(deps: HealthDeps) {
     .then(() => "ok" as const)
     .catch(() => "unreachable" as const);
   const draining = deps.draining?.() === true;
+  const restart = deps.restart?.() ?? null;
   return {
     status: draining ? ("draining" as const) : database === "ok" ? ("ok" as const) : ("degraded" as const),
     version: deps.version,
     edition: deps.edition,
     database,
     modules: deps.modules,
+    ...(restart ? { restart } : {}),
   };
 }
 

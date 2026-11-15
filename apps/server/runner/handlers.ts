@@ -284,6 +284,11 @@ export interface HandlerContext {
   };
   /** Protocol 9: whether the owner paused this computer (new work is refused with `paused`). */
   paused?: () => boolean;
+  /**
+   * Whether this runner waits to restart into its new version (ADR doug-0005): new turns are refused with
+   * `restarting` (the server asks again in a few seconds) while the ones running finish.
+   */
+  restarting?: () => boolean;
   /** `REMOTE_PAUSE_PROTOCOL`: pause (`until` null: until resumed) or resume as asked from the apps; absent: refused. */
   setPause?: (paused: boolean, until: string | null, by: string) => RunnerPause;
   /** System mode: this process is root and answers only the `machine` ops of `OP_ROUTES` itself. */
@@ -586,6 +591,7 @@ async function doList(
 }
 
 export const PAUSED = "The owner paused this computer. Nothing new starts here until it's resumed.";
+export const RESTARTING = "This computer's runner restarts into its new version once the turns running there end.";
 
 /** Protocol 18: a stream that is new work (control of a desktop, a terminal); watching one that runs isn't. */
 const workStream = (req: MachineRequest) =>
@@ -621,6 +627,9 @@ async function scrubbed(ctx: HandlerContext, req: MachineRequest, err: unknown):
 async function routeRequest(ctx: HandlerContext, req: MachineRequest, scope: RequestScope): Promise<unknown> {
   // Protocol 9: paused by the owner. What already runs finishes; status, output and cancel still answer.
   if ((NEW_WORK_OPS.has(req.op) || workStream(req)) && ctx.paused?.()) throw new RunnerError("paused", PAUSED);
+  // About to restart into its new version (ADR doug-0005): a new turn starts on the new runner, seconds from now. The
+  // agents' commands and file work go on: they are the steps of turns that run elsewhere, and are waited for too.
+  if (req.op === "brain.turn" && ctx.restarting?.()) throw new RunnerError("restarting", RESTARTING);
   if (req.op === "pause.set") {
     if (!ctx.setPause) throw new RunnerError("unsupported", "This runner can't be paused from the apps.");
     const by = requireString(req.by, "by");
@@ -1737,8 +1746,8 @@ export class RequestRunner {
     const controller = new AbortController();
     const locked = req.op === "brain.turn" && req.permissions?.mode === "chat";
     const person = req.op === "brain.turn" && req.personWaiting === true;
-    // A paused computer says so (the handler refuses new work), never that it is full.
-    if (req.op === "brain.turn" && !this.ctx.paused?.() && !this.admit(locked, person)) {
+    // A paused or restarting computer says so (the handler refuses new work), never that it is full.
+    if (req.op === "brain.turn" && !this.ctx.paused?.() && !this.ctx.restarting?.() && !this.admit(locked, person)) {
       const close = this.ctx.reclaimBrains;
       if (!close || this.memAvailable() === null) {
         if (this.reserve(id, person)) return this.run(id, req, controller);

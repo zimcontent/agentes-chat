@@ -62,7 +62,7 @@ import {
 import type { BlockSpecReader } from "./block-state";
 import { ASK_CHOICES_TOOL, SHOW_BLOCK_TOOL, someoneAnswers } from "./blocks";
 import { brainOf } from "./brain-settings";
-import { brainSessionId, missingTurnFolder, recordPlanUsage } from "./brains/claude-code";
+import { brainSessionId, missingTurnFolder, RUNNER_RESTARTING, recordPlanUsage } from "./brains/claude-code";
 import { ModelBrain } from "./brains/model";
 import type { ComputerTurn } from "./brains/prompt";
 import {
@@ -113,6 +113,7 @@ import {
   registerTurnAbort,
   unregisterRunAbort,
   unregisterTurnAbort,
+  yieldForRestart,
 } from "./cancel";
 import { COMPUTER_SECTIONS_LINE, describeCapabilities, forComputerBrain } from "./capabilities";
 import { CATCH_UP_AFTER_MS, catchUpText, isCatchUp } from "./catch-up";
@@ -845,6 +846,8 @@ export const MAX_COMPUTER_DROPS = 3;
  * until it runs: long work (ADR 0121) wakes through agent turns, and a dropped turn could end it halfway.
  */
 export const COMPUTER_BUSY_RETRY_MS = 15_000;
+/** How soon a turn refused by a runner about to restart asks again (it is back a few seconds after, ADR doug-0005). */
+export const RUNNER_RESTART_RETRY_MS = 5_000;
 /**
  * Waiting for room is a live state on the person's message, not a chat line: only a run still in line after this long
  * says so, once per agent and conversation.
@@ -4201,6 +4204,9 @@ async function executeRunInner(
         await Promise.race([warming, Bun.sleep(PREWARM_WAIT_MS)]);
     }
     for (;;) {
+      // A restart announced ahead (ADR doug-0005): between two turns is where the run stops, checkpointed, for the
+      // next instance; `isCanceled` throws the handback.
+      yieldForRestart(run.id);
       if (await isCanceled()) return stopCanceled("");
       closing = false;
       // At the cap the inbox stays as it is: a message never gets marked read and then lost (the run's end
@@ -4604,7 +4610,7 @@ async function executeRunInner(
           }
         }
         // Anything but "no room" means the computer took the turn: that wait for room is over.
-        refused = error instanceof BrainFailure && error.code === "busy";
+        refused = error instanceof BrainFailure && (error.code === "busy" || error.code === RUNNER_RESTARTING);
         // Dropped before the computer said or did anything (a deploy as the turn went out): still in line.
         const unsent =
           error instanceof BrainFailure &&
@@ -4742,7 +4748,13 @@ async function executeRunInner(
           }
           // The account's own limit, and another account of its owner has room: the turn goes again there, at once.
           if (error.code === "plan_limit" && machineId && !refusal.scope && (await standIn(machineId, error))) continue;
-          const handled = await brainUnavailable({ code: error.code, message: error.message, ...refusal });
+          // Its runner restarts into its new version once the turns there end (ADR doug-0005): the run waits its turn,
+          // quietly, as for room, and never stands in on the model brain for a few seconds' wait.
+          const handled = await brainUnavailable(
+            error.code === RUNNER_RESTARTING
+              ? { code: "busy", message: error.message, queued: true, retryAt: Date.now() + RUNNER_RESTART_RETRY_MS }
+              : { code: error.code, message: error.message, ...refusal },
+          );
           if (handled === "fallback") continue;
           if (handled === "waited" || handled === "failed") return;
         }

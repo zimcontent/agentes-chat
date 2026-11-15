@@ -61,6 +61,8 @@ import {
   openDm,
   postPersonMessage,
   queueOnRun,
+  RUNNER_RESTART_RETRY_MS,
+  RUNNER_RESTARTING,
   receiptsFor,
   recoverStaleRuns,
   resetAccountFailures,
@@ -3321,6 +3323,39 @@ test("no room for over 30 minutes: the run never fails, it keeps its place and a
     (j) => j.kind === "agent_run.execute" && j.status === "pending",
   );
   expect(pending.length).toBe(1);
+});
+
+test("its runner restarting into a new version: the run waits quietly a few seconds, never on the model key, and goes on there (ADR doug-0005)", async () => {
+  f = await setup({ reply: () => ({ chunks: ["Respondi pela API."] }) });
+  await computerAgent(f);
+  const restarting: BrainEvent = {
+    type: "error",
+    code: RUNNER_RESTARTING,
+    message: "This computer's runner restarts into its new version once the turns running there end.",
+    retryable: true,
+  };
+  const { brain, seen } = scriptedComputerBrain((n) => (n < 1 ? [restarting] : [{ type: "done", text: "Pronto." }]));
+  const handlers = createJobHandlers({
+    ...f.jobDeps,
+    brains: { claude_code: () => brain },
+    machines: { status: async (id) => statusOf(id) },
+  });
+  await post(f, "@dev oi");
+  await drainOutbox(f.db, handlers);
+  let [run] = await f.db.select().from(schema.agentRuns);
+  // A model key is there, and still the run waits for its computer: the restart takes seconds.
+  expect(run?.status).toBe("waiting_input");
+  expect((await timeline(f)).filter((m) => m.meta.bodyCode === "brain_unavailable" || m.meta.brainFallback)).toEqual(
+    [],
+  );
+  const retry = (await f.db.select().from(schema.outbox)).find((j) => j.dedupeKey?.includes(":room:"));
+  expect((retry?.nextAttemptAt.getTime() ?? 0) - Date.now()).toBeLessThanOrEqual(RUNNER_RESTART_RETRY_MS);
+
+  await drainOutbox(f.db, handlers, { now: new Date(Date.now() + RUNNER_RESTART_RETRY_MS + 1_000) });
+  [run] = await f.db.select().from(schema.agentRuns);
+  expect(run?.status).toBe("done");
+  expect(seen.length).toBe(2);
+  expect((await timeline(f)).at(-1)?.body).toBe("Pronto.");
 });
 
 test("no room on the computer and a model key: the model brain answers, as for any computer that can't", async () => {

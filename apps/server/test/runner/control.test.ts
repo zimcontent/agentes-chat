@@ -402,6 +402,49 @@ test("an operator's standby: the link drops and stays down with the rest running
   await daemon.stop();
 });
 
+test("a restart asked (ADR doug-0005): new turns are refused as restarting, it waits for the work running, then stops to restart", async () => {
+  const { home } = pairedHome();
+  const sockets: FakeSocket[] = [];
+  const lines: string[] = [];
+  const daemon = new RunnerDaemon({
+    home,
+    mode: "start",
+    log: (line) => lines.push(line),
+    print: () => {},
+    watch: false,
+    self: SELF,
+    caffeinate: false,
+    dial: (_url, handlers) => {
+      const s = new FakeSocket(handlers);
+      sockets.push(s);
+      return s;
+    },
+    fetch: async () => new Response(null, { status: 404 }),
+  });
+  const started = daemon.runStart();
+  await waitFor(() => sockets.length === 1);
+  const s = sockets[0] as FakeSocket;
+  s.handlers.onOpen();
+  s.frame({ type: "welcome", machineId: "m1", name: "box", heartbeatMs: 25_000 });
+  // A turn already running here.
+  const running = { op: "brain.turn", kind: "claude", agent: AGENT } as unknown as Parameters<typeof daemon.started>[1];
+  daemon.started("t1", running);
+  const restart = daemon.restartWhenIdle(60_000);
+  await waitFor(() => lines.some((l) => l.startsWith("restart asked")));
+  // A new turn waits for the new runner: refused, with the code the server waits on.
+  s.frame({ type: "request", id: "t2", op: "brain.turn", kind: "claude", agent: AGENT } as unknown as ServerFrame);
+  await waitFor(() => s.sent.some((f) => f.id === "t2"));
+  expect(s.sent.find((f) => f.id === "t2")).toMatchObject({ ok: false, error: { code: "restarting" } });
+  await Bun.sleep(600);
+  expect(daemon.restartDue).toBe(false);
+  // The running turn ends: it stops, to start again as the new version.
+  daemon.finished("t1", running, { ok: true, data: { final: { type: "done" } } });
+  await restart;
+  expect(daemon.restartDue).toBe(true);
+  expect((await started).reason).toBe("stopped");
+  expect(lines.some((l) => l.startsWith("nothing runs here: restarting"))).toBe(true);
+});
+
 test("reconnect from the app: the socket is dropped and dialed again at once, with a fresh hello", async () => {
   const unpaired = tempDir("home-");
   dirs.push(unpaired);

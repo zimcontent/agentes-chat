@@ -75,6 +75,32 @@ export const activeRunCount = () => active.size;
 /** Whether this process is executing the run. */
 export const executesHere = (runId: string) => active.has(runId);
 
+/**
+ * A restart announced ahead (ADR doug-0005): runs executing here stop at their next step, between two turns, and are
+ * handed back for the next instance, instead of being cut mid-turn when the server stops.
+ */
+let restartHold = false;
+
+/** Holds (or lets go of) this process's runs for a restart. */
+export function holdRunsForRestart(on: boolean) {
+  restartHold = on;
+}
+
+/** Whether a restart was announced for this process. */
+export const restartHeld = () => restartHold;
+
+/**
+ * Called by a run between two turns: with a restart announced, its own abort goes with the shutdown reason, so the
+ * run is checkpointed and handed back right there (`RunInterruptedError`). False when nothing is held.
+ */
+export function yieldForRestart(runId: string) {
+  if (!restartHold) return false;
+  const controller = active.get(runId);
+  if (!controller || controller.signal.aborted) return false;
+  controller.abort(SHUTDOWN_REASON);
+  return true;
+}
+
 /** Graceful shutdown: waits up to `ms` for runs to finish, then interrupts the rest (they resume elsewhere). */
 export async function drainLocalRuns(ms: number, options: { graceMs?: number } = {}) {
   const deadline = Date.now() + ms;

@@ -252,6 +252,7 @@ SYSTEM=0
 DESKTOP=0
 NO_PAIR=0
 NO_START=0
+WHEN_IDLE=''
 UID_RANGE=""
 RUNNER_SHA256=""
 HOST_TOKEN_FILE=""
@@ -284,6 +285,7 @@ usage() {
     "  --desktop          with --system: also the packages for the agents' screens" \\
     "  --no-pair          with --system: don't connect it to the server now" \\
     "  --no-start         with --system: install or update without starting or restarting the service" \\
+    "  --when-idle        an update: a runner already running restarts into it once nothing runs there" \\
     "  --agent-uid-range  with --system: the uids agent users get (default ${uids})" \\
     "  --runner-sha256    install the runner only if its download has this SHA-256 (64 hex digits)" \\
     "  --server           where this computer reaches the server, if not at $SERVER" \\
@@ -855,10 +857,11 @@ install_system() {
     set -- service install --host --server "$SERVER" --token-file "$HOST_TOKEN_FILE"
     if [ "$NO_START" -eq 1 ]; then set -- "$@" --no-start; fi
     if [ "$NO_EXEC" -eq 1 ]; then set -- "$@" --no-exec; fi
+    if [ -n "$WHEN_IDLE" ]; then set -- "$@" --when-idle; fi
     "$LAUNCHER" "$@" || die "installing this server's computer failed"
   else
     connect
-    if [ "$NO_START" -eq 0 ]; then "$LAUNCHER" service install --system || die "starting the service failed"; fi
+    if [ "$NO_START" -eq 0 ]; then "$LAUNCHER" service install --system $WHEN_IDLE || die "starting the service failed"; fi
   fi
   if [ "$NO_START" -eq 0 ]; then forget_testing_chrome; fi
   finish agentes-runner
@@ -922,6 +925,7 @@ install_user() {
     chmod 600 "$HOST_TOKEN_FILE"
     set -- service install --host --server "$SERVER" --token-file "$HOST_TOKEN_FILE"
     if [ "$NO_EXEC" -eq 1 ]; then set -- "$@" --no-exec; fi
+    if [ -n "$WHEN_IDLE" ]; then set -- "$@" --when-idle; fi
     "$LAUNCHER" "$@" || die "installing this server's computer failed"
     finish "$LAUNCHER"
     return 0
@@ -938,7 +942,7 @@ install_user() {
   fi
 
   if [ "$SERVICE" -eq 1 ]; then
-    if ! "$LAUNCHER" service install; then
+    if ! "$LAUNCHER" service install $WHEN_IDLE; then
       t_warn "Couldn't install the service. Start the runner yourself:"
       t_cmd "$LAUNCHER start"
     fi
@@ -973,6 +977,7 @@ main() {
       --desktop) DESKTOP=1; shift ;;
       --no-pair) NO_PAIR=1; shift ;;
       --no-start) NO_START=1; shift ;;
+      --when-idle) WHEN_IDLE=--when-idle; shift ;;
       --agent-uid-range) need_value "$1" $#; UID_RANGE="$2"; shift 2 ;;
       --agent-uid-range=*) UID_RANGE="\${1#--agent-uid-range=}"; shift ;;
       --runner-sha256) need_value "$1" $#; RUNNER_SHA256="$2"; shift 2 ;;

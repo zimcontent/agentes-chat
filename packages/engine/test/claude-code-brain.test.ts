@@ -399,6 +399,7 @@ test("a failed request becomes the turn's error (offline and old runners may fal
     [new MachineRequestError("internal", "busy"), "busy", true],
     [new MachineRequestError("no_slot", "This computer is short of memory for more work right now"), "busy", true],
     [new MachineRequestError("canceled", "canceled"), "canceled", false],
+    [new MachineRequestError("restarting", "restarts once the turns end"), "runner_restarting", true],
   ];
   for (const [fail, code, retryable] of cases) {
     const pubsub = createMemoryPubSub();

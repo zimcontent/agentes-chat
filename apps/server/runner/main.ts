@@ -58,7 +58,14 @@ import {
 } from "./config";
 import { TOKEN_REFUSED_EXIT } from "./connection";
 import { runControl } from "./control";
-import { configFromGrant, deviceInfo, prepareWorkspace, previousMachineFor, RunnerDaemon } from "./daemon";
+import {
+  configFromGrant,
+  deviceInfo,
+  prepareWorkspace,
+  previousMachineFor,
+  RESTART_EXIT,
+  RunnerDaemon,
+} from "./daemon";
 import { DesktopManager } from "./desktop";
 import { runDesktopBrowser } from "./desktop-browser";
 import { DesktopSessions, type DesktopSessionsOptions, runnerUser, systemDesktopUser } from "./desktop-session";
@@ -437,10 +444,13 @@ async function start(): Promise<number> {
   const stop = () => void daemon.stop();
   process.once("SIGINT", stop);
   process.once("SIGTERM", stop);
+  // Restart into the new version once nothing runs here (ADR doug-0005): the deploy's, or the host's for its children.
+  if (process.platform !== "win32") process.on("SIGUSR2", () => void daemon.restartWhenIdle());
   try {
     const outcome = await daemon.runStart();
     switch (outcome.reason) {
       case "stopped":
+        if (daemon.restartDue) return RESTART_EXIT;
         log("stopped");
         return 0;
       case "replaced":
@@ -652,6 +662,8 @@ async function host(p: Parsed): Promise<number> {
   const stop = () => void computer.stop();
   process.once("SIGINT", stop);
   process.once("SIGTERM", stop);
+  // Restart into the new version once every organization's runner has nothing running (ADR doug-0005).
+  if (process.platform !== "win32") process.on("SIGUSR2", () => computer.restartWhenIdle());
   log(`agentes-runner ${RUNNER_VERSION}: this server's computer for ${flags.server} (${flags.state})`);
   try {
     guard?.start();
@@ -664,6 +676,10 @@ async function host(p: Parsed): Promise<number> {
       prepareAgents(computer.agentUsers(), prepare, policy, log);
     }
     await computer.run();
+    if (computer.restartDue) {
+      log("restarting into the new version");
+      return RESTART_EXIT;
+    }
     log("stopped");
     return 0;
   } finally {
@@ -701,7 +717,7 @@ function installHost(p: Parsed, print: (line: string) => void): number {
   const flags = hostFlags(p);
   if (!flags?.tokenFile) {
     print(
-      "Usage: agentes-runner service install --host --server <url> --token-file <path> [--state <dir>] [--no-exec] [--no-start]",
+      "Usage: agentes-runner service install --host --server <url> --token-file <path> [--state <dir>] [--no-exec] [--no-start] [--when-idle]",
     );
     return 1;
   }
@@ -721,8 +737,9 @@ function installHost(p: Parsed, print: (line: string) => void): number {
     ...(flags.name ? ["--name", flags.name] : []),
     ...(flags.exec ? [] : ["--no-exec"]),
   ];
-  if (hostSystemMode()) return installSystemService({ print, args, start: !p.flags.has("no-start") });
-  return installService({ print, args });
+  const whenIdle = p.flags.has("when-idle");
+  if (hostSystemMode()) return installSystemService({ print, args, start: !p.flags.has("no-start"), whenIdle });
+  return installService({ print, args, whenIdle });
 }
 
 /**
@@ -1453,7 +1470,7 @@ async function main(argv: string[]): Promise<number> {
             return 1;
           }
           if (hostService) return installHost(p, print);
-          if (!system) return installService({ print });
+          if (!system) return installService({ print, whenIdle: p.flags.has("when-idle") });
           const range = flagString(p, "agent-uid-range");
           const agentUidRange = range === undefined ? undefined : parseUidRange(range);
           if (agentUidRange === null) {
@@ -1465,6 +1482,7 @@ async function main(argv: string[]): Promise<number> {
           return installSystemService({
             print,
             start: !p.flags.has("no-start"),
+            whenIdle: p.flags.has("when-idle"),
             ...(agentUidRange ? { agentUidRange } : {}),
           });
         });

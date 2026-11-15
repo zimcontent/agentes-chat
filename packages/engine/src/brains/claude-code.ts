@@ -281,12 +281,17 @@ export function toolOff(
 export const missingTurnFolder = (message: string): string | null =>
   /^The folder (.+) doesn't exist$/.exec(message)?.[1] ?? null;
 
+/** A computer brain's error: its runner restarts once the turns running there end, and this turn starts after. */
+export const RUNNER_RESTARTING = "runner_restarting";
+
 /**
  * The runner refused the turn before starting it, for lack of room (`no_slot`) or at its request ceiling
  * (`internal` "busy", every runner version): `busy`, and the engine waits for room.
  */
 export function busyRefusal(error: unknown): BrainEvent | null {
   if (!(error instanceof MachineRequestError)) return null;
+  // Restarting into its new version once the turns already running end (ADR doug-0005): waited for, never stood in for.
+  if (error.code === "restarting") return err(RUNNER_RESTARTING, error.message, true);
   if (error.code === "no_slot") return err("busy", error.message, true);
   if (error.code === "internal" && error.message === "busy") {
     return err("busy", "The computer is busy with other requests.", true);
