@@ -11317,6 +11317,7 @@
     "label": "Warteschlange für {{name}}",
     "full": "Voll",
     "fullNext": "Voll · der Nächste startet in etwa {{n}} Min.",
+    "starting": "Startet · die Agenten kommen nacheinander dran",
     "free": "Niemand wartet",
     "workingNow": "Arbeitet gerade · {{n}}",
     "inLine": "In der Warteschlange · {{n}}",

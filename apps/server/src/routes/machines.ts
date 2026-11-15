@@ -417,6 +417,10 @@ const ComputerQueue = z
         ...QueueAccess,
       }),
     ),
+    full: z.boolean().openapi({
+      description:
+        "The computer turned a waiting turn away for memory. False with a line that only waits for the few seconds between agents' asks: its rows then have no start estimates.",
+    }),
   })
   .openapi("ComputerQueue");
 

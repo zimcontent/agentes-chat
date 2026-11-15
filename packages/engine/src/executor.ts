@@ -697,6 +697,11 @@ export interface Transcript {
    * A blip (a deploy dropping the computer for seconds, within the outage grace) keeps its place; a real outage doesn't.
    */
   roomWaitSince?: number;
+  /**
+   * The computer itself turned this wait's turn away for memory (a `busy` refusal from the runner), not only the
+   * line's pacing (`roomGate`, `queued`): the line reads the computer as full only then (`ComputerQueue.full`).
+   */
+  roomRefused?: boolean;
   /** A wake that waited outside any run first (`StartRunOptions.park`): its place in the line counts from then. */
   roomOrderSince?: number;
   /** A person waits on this run: it goes first in the computer's line (`computer-queue.ts`). */
@@ -3266,6 +3271,7 @@ async function executeRunInner(
     const stillBusy = busy && t.roomWaitSince !== undefined;
     if (busy) {
       t.roomWaitSince ??= Date.now();
+      if (!u.queued) t.roomRefused = true;
       if (!run.background && run.hop <= 1 && viaRoutine === null && !run.workId) {
         t.roomPeople = true;
         // Only the head asks again, and a person's slot can leave too little for the right hand's first ask: behind
@@ -3286,6 +3292,7 @@ async function executeRunInner(
     if (!busy && quietUntil === null) {
       delete t.roomWaitSince;
       delete t.roomOrderSince;
+      delete t.roomRefused;
     }
     // Nothing can stand in (no model credential, or background work): the run waits for the computer.
     await deferred;
@@ -3864,6 +3871,7 @@ async function executeRunInner(
     if (!u.soon) t.brainNotice = u.code;
     delete t.roomWaitSince;
     delete t.roomOrderSince;
+    delete t.roomRefused;
     if (paused) {
       // An override that let it go on has run out (it parked again): this pause is a new one.
       const { override: _, ...kept } = t.usagePause ?? {};
@@ -4570,6 +4578,7 @@ async function executeRunInner(
           delete transcript.interruptedTurn;
           delete transcript.roomWaitSince;
           delete transcript.roomOrderSince;
+          delete transcript.roomRefused;
           // The plan had room for this turn: the runs parked on its limit go on now, not at their own timers.
           const planMachine = turnPlan.session?.machineId;
           if (planMachine && !turnLimited) {
@@ -4620,6 +4629,7 @@ async function executeRunInner(
         if (!refused && !unsent) {
           delete transcript.roomWaitSince;
           delete transcript.roomOrderSince;
+          delete transcript.roomRefused;
         }
         if (turnAbort?.signal.aborted) {
           await interruptedTurn(turn, deltas.text());

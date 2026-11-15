@@ -248,6 +248,12 @@ export interface ComputerQueue {
   name: string;
   working: QueueWorking[];
   waiting: QueueWaiting[];
+  /**
+   * The computer turned a waiting turn away for memory (`roomRefused`). False with a line that only waits for the
+   * pacing between agents' asks (`ROOM_ASK_SPACING_MS`): it starts in seconds, so it gets no start estimates either,
+   * which assume each turn waits for one on the computer to end.
+   */
+  full: boolean;
 }
 
 /**
@@ -451,12 +457,16 @@ export async function computerQueue(
         ),
       )
       .orderBy(askAt),
-    lineRows({ people: sql<boolean>`${peopleSql}` })
+    lineRows({
+      people: sql<boolean>`${peopleSql}`,
+      refused: sql<boolean>`coalesce((${agentRuns.transcript}->>'roomRefused')::boolean, false)`,
+    })
       .where(and(eq(agentRuns.orgId, orgId), shownInLine(machineId)))
       .orderBy(rankSql(now), sinceSql, agentRuns.id),
     typicalTurns(db, orgId),
   ]);
   const working = workingRows.map((r) => ({ ...r, startedAt: Number(r.askAt) }));
+  const full = waitingRows.some((r) => r.refused);
   const est = estimateQueue(now, working, waitingRows, typical);
   const iso = (ms: number | null | undefined) => (ms == null ? null : new Date(ms).toISOString());
   const where = (r: {
@@ -494,10 +504,11 @@ export async function computerQueue(
       where: where(r),
       people: Boolean(r.people),
       position: i + 1,
-      estimatedStartAt: iso(est.starts[i]),
-      after: est.after[i] ?? [],
+      estimatedStartAt: full ? iso(est.starts[i]) : null,
+      after: full ? (est.after[i] ?? []) : [],
       ...access(r),
     })),
+    full,
   };
 }
 

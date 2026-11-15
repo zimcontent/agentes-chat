@@ -11735,6 +11735,7 @@
     "label": "Coda di {{name}}",
     "full": "Pieno",
     "fullNext": "Pieno · il prossimo inizia tra circa {{n}} min",
+    "starting": "In avvio · gli agenti entrano uno alla volta",
     "free": "Nessuno in coda",
     "workingNow": "Al lavoro ora · {{n}}",
     "inLine": "In coda · {{n}}",

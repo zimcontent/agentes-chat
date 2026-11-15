@@ -4890,6 +4890,8 @@ export interface ComputerQueue {
   name: string;
   working: QueueWorking[];
   waiting: QueueWaiting[];
+  /** The computer turned a waiting turn away for memory; false while the line only waits for agents' pacing. */
+  full?: boolean;
 }
 
 /** `GET …/machines/outages`. */

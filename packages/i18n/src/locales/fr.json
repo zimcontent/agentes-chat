@@ -11721,6 +11721,7 @@
     "label": "File de {{name}}",
     "full": "Plein",
     "fullNext": "Plein · le prochain démarre dans environ {{n}} min",
+    "starting": "Démarrage · les agents passent un par un",
     "free": "Personne dans la file",
     "workingNow": "Au travail · {{n}}",
     "inLine": "Dans la file · {{n}}",

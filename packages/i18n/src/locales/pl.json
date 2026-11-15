@@ -12124,6 +12124,7 @@
     "label": "Kolejka: {{name}}",
     "full": "Pełny",
     "fullNext": "Pełny · następny zacznie za około {{n}} min",
+    "starting": "Uruchamianie · agenci wchodzą po kolei",
     "free": "Nikt nie czeka",
     "workingNow": "Pracuje teraz · {{n}}",
     "inLine": "W kolejce · {{n}}",
