@@ -64,7 +64,7 @@
     grid-template-columns: minmax(0, 1fr) minmax(320px, 400px);
   }
   .vr-video {
-    max-height: min(78vh, 900px);
+    max-height: min(72vh, 860px);
   }
 }
 .vr-stage {
@@ -72,36 +72,192 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
+  min-width: 0;
+}
+/* The picture: a click on it is where a note goes (the cursor says so). */
+.vr-picture {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  border-radius: var(--radius-md);
+  background: #000;
+  overflow: hidden;
+}
+.vr-picture[data-noting] {
+  cursor: crosshair;
 }
 .vr-video {
   display: block;
   width: 100%;
-  /* On a phone the note box stays in sight under a vertical short; beside the notes it may take the screen's height. */
-  max-height: 56svh;
-  border-radius: var(--radius-md);
-  background: #000;
+  /* On a phone the bar and buttons stay in sight under a vertical short; beside the notes it may take the height. */
+  max-height: 52svh;
+  object-fit: contain;
 }
-/* Where the notes are, under the player: each a tick that jumps to its second. */
-.vr-marks {
-  position: relative;
-  height: var(--space-3);
-  border-radius: var(--radius-full);
-  background: var(--sunken);
-}
-.vr-mark {
+
+/* The note box over the picture, beside the click; on a phone, across the picture's foot. */
+.vr-pop {
   position: absolute;
-  top: 0;
-  width: var(--space-1);
-  height: 100%;
-  margin-inline-start: calc(var(--space-1) / -2);
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  width: min(360px, calc(100% - 2 * var(--space-2)));
+  padding: var(--space-3);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  box-shadow: var(--e3);
+  color: var(--ink);
+  cursor: default;
+}
+.vr-pop[data-side="end"] {
+  inset-inline-end: var(--space-2);
+}
+.vr-pop[data-side="start"] {
+  inset-inline-start: var(--space-2);
+}
+@media (max-width: 639px) {
+  .vr-pop {
+    top: auto !important;
+    bottom: var(--space-2);
+    inset-inline: var(--space-2);
+    width: auto;
+  }
+}
+.vr-pop__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+.vr-pop__time {
+  font-family: "JetBrains Mono", monospace;
+  font-weight: 600;
+}
+.vr-pop__acts {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+.vr-pop__gap {
+  flex: 1;
+}
+.vr-kinds {
+  display: flex;
+  min-width: 0;
+  margin: 0;
   padding: 0;
   border: 0;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+}
+.vr-kind {
+  height: 28px;
+  padding: 0 var(--space-3);
+  border: 1px solid var(--line);
   border-radius: var(--radius-full);
-  background: var(--agent);
+  background: var(--sunken);
+  color: var(--ink);
+  font: inherit;
+  font-size: var(--text-sm);
   cursor: pointer;
 }
-.vr-mark[data-sent] {
+.vr-kind[aria-pressed="true"] {
+  border-color: var(--agent);
+  background: var(--agent);
+  color: var(--on-agent);
+}
+.vr-marking {
+  position: absolute;
+  inset-inline: var(--space-2);
+  bottom: var(--space-2);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-md);
+  background: rgb(0 0 0 / 0.72);
+  color: #fff;
+  font-size: var(--text-sm);
+  pointer-events: none;
+}
+
+/* The bar: what played, the notes (ticks and bands), the playhead. Tall enough to grab with a thumb. */
+.vr-scrub {
+  position: relative;
+  height: 28px;
+  cursor: pointer;
+  touch-action: none;
+}
+.vr-scrub__track {
+  position: absolute;
+  inset-inline: 0;
+  top: 9px;
+  height: 10px;
+  border-radius: var(--radius-full);
+  background: var(--sunken);
+  overflow: hidden;
+}
+.vr-scrub__done {
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: 0;
+  background: color-mix(in srgb, var(--ink) 22%, transparent);
+}
+.vr-scrub__tick {
+  position: absolute;
+  inset-block: 0;
+  width: 4px;
+  margin-inline-start: -2px;
+  background: var(--agent);
+}
+.vr-scrub__band {
+  position: absolute;
+  inset-block: 0;
+  min-width: 4px;
+  background: color-mix(in srgb, var(--agent) 60%, transparent);
+}
+.vr-scrub__tick[data-sent],
+.vr-scrub__band[data-sent] {
   background: var(--muted);
+}
+.vr-scrub__band--draft {
+  background: color-mix(in srgb, var(--warn) 70%, transparent);
+}
+.vr-scrub__head {
+  position: absolute;
+  top: 3px;
+  width: 3px;
+  height: 22px;
+  margin-inline-start: -1px;
+  border-radius: var(--radius-full);
+  background: var(--ink);
+  pointer-events: none;
+}
+
+.vr-transport {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+.vr-transport__group {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+.vr-transport__clock {
+  font-family: "JetBrains Mono", monospace;
+  font-size: var(--text-sm);
+  font-variant-numeric: tabular-nums;
+}
+@media (max-width: 639px) {
+  /* A phone has no keys: the hint is for a keyboard. */
+  .vr-keys {
+    display: none;
+  }
 }
 
 .vr-side {
@@ -171,6 +327,20 @@
 }
 .vr-note[data-sent] .vr-note__body {
   color: var(--muted);
+}
+/* The note where the playhead is. */
+.vr-note[data-active] .vr-note__time {
+  background: var(--agent);
+  color: var(--on-agent);
+}
+.vr-note__kind {
+  color: var(--muted);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  line-height: 16px;
+}
+.vr-compose__label {
+  font-weight: 600;
 }
 .vr-note__time {
   flex: none;

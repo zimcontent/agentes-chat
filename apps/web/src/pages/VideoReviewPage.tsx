@@ -5,8 +5,10 @@ import {
   useDeleteReviewNote,
   useVideoReview,
   useVideoReviews,
+  VIDEO_REVIEW_NOTE_KINDS,
   type VideoReview,
   type VideoReviewNote,
+  type VideoReviewNoteKind,
   type VideoReviewSummary,
 } from "@agenteschat/client";
 import { relativeTime } from "@agenteschat/client/lib/format";
@@ -22,20 +24,21 @@ import {
   Textarea,
 } from "@agenteschat/ui";
 import { Link } from "@tanstack/react-router";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { type PointerEvent as ReactPointerEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useApi } from "@/api/context";
 import { AgentAvatar } from "@/components/AgentAvatar";
 import { ErrorState } from "@/components/Loading";
 import { useOrg } from "@/components/org-context";
-import { type ReviewWords, timecode, useReviewWords } from "@/components/video-review/words";
+import { frameCode, type ReviewWords, timecode, useReviewWords } from "@/components/video-review/words";
 import { useToast } from "@/lib/toast";
 import "./video-review.css";
 
 /*
  * Video review (docs/adr/doug-0007-video-review.md): the videos agents sent for review, and one video's player with
- * notes pinned to its seconds, typed or said, then "Aprovar" or "Pedir ajustes". Made for a phone first: the player on
- * top, the note box under it, the notes and the decision below.
+ * notes pinned to a point or a stretch, typed or said, then "Aprovar" or "Pedir ajustes". The player works like an
+ * editor's: space plays, J/K/L change the speed, the arrows step a frame (with Shift a second), a click on the picture
+ * opens a note right there. On a phone the same tap opens the note; the buttons under the picture do the rest.
  */
 
 const TONE: Record<VideoReviewSummary["status"], ChipTone> = {
@@ -44,6 +47,9 @@ const TONE: Record<VideoReviewSummary["status"], ChipTone> = {
   approved: "done",
 };
 const ICON = { in_review: "eye", changes: "edit", approved: "check" } as const;
+const RATES = [0.5, 1, 1.5, 2] as const;
+/** Until the video says otherwise (`useFrameRate`): what the agents render shorts at. */
+const DEFAULT_FPS = 25;
 
 function StatusChip({ status, w }: { status: VideoReviewSummary["status"]; w: ReviewWords }) {
   return (
@@ -159,29 +165,80 @@ function useNoteRecorder(onTake: (blob: Blob, fileName: string) => void, onBlock
   return { recording: state === "rec", start, stop };
 }
 
+/**
+ * The video's frame rate, read off the frames it shows while playing (`requestVideoFrameCallback`): the smallest step
+ * between two frames' media times. Until then, and where the browser can't tell, `DEFAULT_FPS`.
+ */
+function useFrameRate(video: HTMLVideoElement | null) {
+  const [fps, setFps] = useState(DEFAULT_FPS);
+  useEffect(() => {
+    if (!video || !("requestVideoFrameCallback" in video)) return;
+    let last = -1;
+    let best = Number.POSITIVE_INFINITY;
+    let seen = 0;
+    let handle = 0;
+    const tick = (_now: number, meta: { mediaTime: number }) => {
+      if (last >= 0) {
+        const step = meta.mediaTime - last;
+        if (step > 0.005 && step < best) best = step;
+        seen += 1;
+        if (seen >= 12 && Number.isFinite(best)) {
+          setFps(Math.min(120, Math.max(12, Math.round(1 / best))));
+          return;
+        }
+      }
+      last = meta.mediaTime;
+      handle = video.requestVideoFrameCallback(tick);
+    };
+    handle = video.requestVideoFrameCallback(tick);
+    return () => video.cancelVideoFrameCallback(handle);
+  }, [video]);
+  return fps;
+}
+
+/** A note being written: where it is, what it's about, and where its box shows over the picture. */
+interface Draft {
+  atMs: number;
+  endMs: number | null;
+  kind: VideoReviewNoteKind | null;
+  /** Where the click was, as fractions of the picture; the box opens beside it. */
+  x: number;
+  y: number;
+  /** Playing on to the stretch's end: the box steps aside until it is marked. */
+  marking: boolean;
+}
+
+function where(atMs: number | null, endMs: number | null, w: ReviewWords) {
+  if (atMs === null) return w.whole;
+  return endMs !== null ? `${timecode(atMs)}–${timecode(endMs)}` : timecode(atMs);
+}
+
 function NoteRow({
   note,
   w,
   mine,
+  active,
   onSeek,
   onRemove,
 }: {
   note: VideoReviewNote;
   w: ReviewWords;
   mine: boolean;
+  active: boolean;
   onSeek: (ms: number) => void;
   onRemove: () => void;
 }) {
   return (
-    <li className="vr-note" data-sent={note.sent || undefined}>
+    <li className="vr-note" data-sent={note.sent || undefined} data-active={active || undefined}>
       {note.atMs === null ? (
         <span className="vr-note__time vr-note__time--whole">{w.whole}</span>
       ) : (
         <button type="button" className="vr-note__time" onClick={() => onSeek(note.atMs ?? 0)}>
-          {timecode(note.atMs)}
+          {where(note.atMs, note.endMs, w)}
         </button>
       )}
       <span className="vr-note__words">
+        {note.kind && <span className="vr-note__kind">{w.kinds[note.kind]}</span>}
         <span className="vr-note__body">{note.body}</span>
         <span className="vr-note__meta">
           {[note.author?.name, note.voice ? w.voice : "", note.sent ? w.sent : ""].filter(Boolean).join(" · ")}
@@ -194,18 +251,105 @@ function NoteRow({
   );
 }
 
+/** Under the picture: a bar to scrub, with each note as a tick (a point) or a band (a stretch). */
+function Scrubber({
+  nowMs,
+  duration,
+  notes,
+  draft,
+  onSeek,
+  w,
+}: {
+  nowMs: number;
+  duration: number;
+  notes: VideoReviewNote[];
+  draft: Draft | null;
+  onSeek: (ms: number) => void;
+  w: ReviewWords;
+}) {
+  const bar = useRef<HTMLDivElement>(null);
+  const pct = (ms: number) => `${duration > 0 ? Math.min(100, Math.max(0, (ms / duration) * 100)) : 0}%`;
+  const msAt = (clientX: number) => {
+    const box = bar.current?.getBoundingClientRect();
+    if (!box || box.width === 0) return 0;
+    return Math.round(Math.min(1, Math.max(0, (clientX - box.left) / box.width)) * duration);
+  };
+  const down = (e: ReactPointerEvent<HTMLDivElement>) => {
+    e.currentTarget.setPointerCapture(e.pointerId);
+    onSeek(msAt(e.clientX));
+  };
+  const move = (e: ReactPointerEvent<HTMLDivElement>) => {
+    if (e.currentTarget.hasPointerCapture(e.pointerId)) onSeek(msAt(e.clientX));
+  };
+  return (
+    <div
+      ref={bar}
+      className="vr-scrub"
+      role="slider"
+      tabIndex={-1}
+      aria-label={w.scrub}
+      aria-valuemin={0}
+      aria-valuemax={Math.round(duration)}
+      aria-valuenow={Math.round(nowMs)}
+      onPointerDown={down}
+      onPointerMove={move}
+    >
+      <div className="vr-scrub__track">
+        <div className="vr-scrub__done" style={{ width: pct(nowMs) }} />
+        {notes
+          .filter((n) => n.atMs !== null)
+          .map((n) =>
+            n.endMs !== null ? (
+              <span
+                key={n.id}
+                className="vr-scrub__band"
+                data-sent={n.sent || undefined}
+                style={{ insetInlineStart: pct(n.atMs ?? 0), width: `calc(${pct(n.endMs)} - ${pct(n.atMs ?? 0)})` }}
+              />
+            ) : (
+              <span
+                key={n.id}
+                className="vr-scrub__tick"
+                data-sent={n.sent || undefined}
+                style={{ insetInlineStart: pct(n.atMs ?? 0) }}
+              />
+            ),
+          )}
+        {draft && (
+          <span
+            className="vr-scrub__band vr-scrub__band--draft"
+            style={{
+              insetInlineStart: pct(draft.atMs),
+              width: `calc(${pct(draft.endMs ?? (draft.marking ? Math.max(draft.atMs, nowMs) : draft.atMs))} - ${pct(draft.atMs)})`,
+            }}
+          />
+        )}
+      </div>
+      <div className="vr-scrub__head" style={{ insetInlineStart: pct(nowMs) }} />
+    </div>
+  );
+}
+
 function ReviewBody({ review, w }: { review: VideoReview; w: ReviewWords }) {
   const { org, me } = useOrg();
   const api = useApi();
   const toast = useToast();
   const { t, i18n } = useTranslation();
-  const video = useRef<HTMLVideoElement>(null);
+  const [videoEl, setVideoEl] = useState<HTMLVideoElement | null>(null);
+  const video = useRef<HTMLVideoElement | null>(null);
+  const bindVideo = useCallback((el: HTMLVideoElement | null) => {
+    video.current = el;
+    setVideoEl(el);
+  }, []);
   const [version, setVersion] = useState(review.version);
-  const [atMs, setAtMs] = useState<number | null>(0);
-  const [whole, setWhole] = useState(false);
-  const [text, setText] = useState("");
-  const [message, setMessage] = useState("");
+  const [nowMs, setNowMs] = useState(0);
   const [duration, setDuration] = useState(0);
+  const [playing, setPlaying] = useState(false);
+  const [rate, setRate] = useState<number>(1);
+  const [draft, setDraft] = useState<Draft | null>(null);
+  const [draftText, setDraftText] = useState("");
+  const [wholeText, setWholeText] = useState("");
+  const [message, setMessage] = useState("");
   const addNote = useAddReviewNote(org.id, review.id);
   const addVoice = useAddVoiceReviewNote(org.id, review.id);
   const removeNote = useDeleteReviewNote(org.id, review.id);
@@ -216,32 +360,194 @@ function ReviewBody({ review, w }: { review: VideoReview; w: ReviewWords }) {
   useEffect(() => setVersion(latest), [latest]);
 
   const shown = review.versions.find((v) => v.version === version) ?? review.versions.at(-1);
+  const fps = useFrameRate(videoEl);
   const notes = review.notes.filter((n) => n.version === version);
   const isLatest = version === review.version;
+  const open = isLatest && review.status === "in_review";
   const failed = () => toast.show(w.failed, "error");
-  const at = () => (whole ? null : Math.round((video.current?.currentTime ?? 0) * 1000));
 
-  const recorder = useNoteRecorder(
-    (blob, fileName) =>
-      addVoice.mutate(
-        { file: blob, fileName, version, atMs: at(), language: i18n.language?.slice(0, 2) },
-        { onError: failed },
-      ),
-    () => toast.show(w.micBlocked, "error"),
+  // Playing, a fast clock: `timeupdate` comes only four times a second, too coarse for a frame counter.
+  useEffect(() => {
+    if (!playing || !videoEl) return;
+    let frame = 0;
+    const tick = () => {
+      setNowMs(Math.round(videoEl.currentTime * 1000));
+      frame = requestAnimationFrame(tick);
+    };
+    frame = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(frame);
+  }, [playing, videoEl]);
+
+  const seek = useCallback(
+    (ms: number) => {
+      const v = video.current;
+      if (!v) return;
+      const to = Math.min(Math.max(0, ms), duration || ms);
+      v.currentTime = to / 1000;
+      setNowMs(Math.round(to));
+    },
+    [duration],
   );
-
-  const seek = (ms: number) => {
+  const step = useCallback(
+    (frames: number) => {
+      const v = video.current;
+      if (!v) return;
+      v.pause();
+      // Aim at a frame's middle, so the browser shows that frame and not the one before it.
+      const frame = Math.round(v.currentTime * fps) + frames;
+      seek(((Math.max(0, frame) + 0.5) / fps) * 1000);
+    },
+    [fps, seek],
+  );
+  const toggle = useCallback(() => {
     const v = video.current;
     if (!v) return;
-    v.currentTime = ms / 1000;
+    if (v.paused) void v.play();
+    else v.pause();
+  }, []);
+  const setSpeed = useCallback((next: number) => {
+    const v = video.current;
+    if (v) v.playbackRate = next;
+    setRate(next);
+  }, []);
+  const faster = (dir: 1 | -1) => {
+    const v = video.current;
+    if (!v) return;
+    const at = RATES.indexOf(rate as (typeof RATES)[number]);
+    const next = RATES[Math.min(RATES.length - 1, Math.max(0, (at < 0 ? 1 : at) + dir))] ?? 1;
+    setSpeed(next);
+    if (v.paused) void v.play();
+  };
+
+  const openDraft = (x = 0.5, y = 0.5) => {
+    const v = video.current;
+    if (!v || !open) return;
     v.pause();
-    setAtMs(ms);
+    setDraft({ atMs: Math.round(v.currentTime * 1000), endMs: null, kind: null, x, y, marking: false });
   };
-  const submit = () => {
-    const body = text.trim();
+  const closeDraft = () => {
+    setDraft(null);
+    setDraftText("");
+  };
+  const markEnd = () => {
+    const v = video.current;
+    if (!v || !draft) return;
+    const end = Math.round(v.currentTime * 1000);
+    v.pause();
+    setDraft({ ...draft, marking: false, endMs: end > draft.atMs + 40 ? end : null });
+  };
+  const startMarking = () => {
+    if (!draft) return;
+    setDraft({ ...draft, marking: true, endMs: null });
+    void video.current?.play();
+  };
+  const saveDraft = () => {
+    const body = draftText.trim();
+    if (!draft || !body) return;
+    addNote.mutate(
+      { version, atMs: draft.atMs, endMs: draft.endMs, kind: draft.kind, body },
+      { onSuccess: closeDraft, onError: failed },
+    );
+  };
+  const saveWhole = () => {
+    const body = wholeText.trim();
     if (!body) return;
-    addNote.mutate({ version, atMs: at(), body }, { onSuccess: () => setText(""), onError: failed });
+    addNote.mutate({ version, atMs: null, body }, { onSuccess: () => setWholeText(""), onError: failed });
   };
+
+  // Which note the voice goes to: the open box's point, or the whole video from the side card.
+  const voiceFor = useRef<"draft" | "whole">("draft");
+  const recorder = useNoteRecorder(
+    (blob, fileName) => {
+      const d = voiceFor.current === "draft" ? draft : null;
+      addVoice.mutate(
+        {
+          file: blob,
+          fileName,
+          version,
+          atMs: d ? d.atMs : null,
+          endMs: d?.endMs ?? null,
+          kind: d?.kind ?? null,
+          language: i18n.language?.slice(0, 2),
+        },
+        { onSuccess: () => d && closeDraft(), onError: failed },
+      );
+    },
+    () => toast.show(w.micBlocked, "error"),
+  );
+  const talk = (target: "draft" | "whole") => {
+    if (recorder.recording) recorder.stop();
+    else {
+      voiceFor.current = target;
+      video.current?.pause();
+      void recorder.start();
+    }
+  };
+
+  // The editor's keys, anywhere on the page but in a field.
+  const keys = useRef({ toggle, step, faster, openDraft, closeDraft, markEnd, draft });
+  keys.current = { toggle, step, faster, openDraft, closeDraft, markEnd, draft };
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      const el = e.target as HTMLElement | null;
+      if (el?.closest("input, textarea, select, [contenteditable='true']")) {
+        if (e.key === "Escape") keys.current.closeDraft();
+        return;
+      }
+      const k = keys.current;
+      const key = e.key.length === 1 ? e.key.toLowerCase() : e.key;
+      const handled = (() => {
+        switch (key) {
+          case " ":
+          case "k":
+            if (k.draft?.marking) k.markEnd();
+            else k.toggle();
+            return true;
+          case "j":
+            k.faster(-1);
+            return true;
+          case "l":
+            k.faster(1);
+            return true;
+          case "ArrowLeft":
+            k.step(e.shiftKey ? -fps : -1);
+            return true;
+          case "ArrowRight":
+            k.step(e.shiftKey ? fps : 1);
+            return true;
+          case "Enter":
+          case "n":
+            if (k.draft?.marking) k.markEnd();
+            else if (!k.draft) k.openDraft();
+            return true;
+          case "Escape":
+            k.closeDraft();
+            return true;
+          default:
+            return false;
+        }
+      })();
+      if (handled) e.preventDefault();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [fps]);
+
+  const onPicture = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (draft?.marking) {
+      markEnd();
+      return;
+    }
+    if (draft) return;
+    if (!open) {
+      toggle();
+      return;
+    }
+    const box = e.currentTarget.getBoundingClientRect();
+    openDraft((e.clientX - box.left) / box.width, (e.clientY - box.top) / box.height);
+  };
+
   const decideAs = (decision: "approve" | "changes") =>
     decide.mutate(
       { decision, message: message.trim() || undefined },
@@ -255,40 +561,154 @@ function ReviewBody({ review, w }: { review: VideoReview; w: ReviewWords }) {
         }`
       : null;
 
+  const nearNote = (n: VideoReviewNote) =>
+    n.atMs !== null && (n.endMs !== null ? nowMs >= n.atMs && nowMs <= n.endMs : Math.abs(nowMs - n.atMs) < 700);
+
   return (
     <div className="vr-detail">
       <div className="vr-stage">
         {shown && (
-          // biome-ignore lint/a11y/useMediaCaption: an edit in review has no captions yet; the notes say what is in it.
-          <video
-            key={shown.artifactId}
-            ref={video}
-            className="vr-video"
-            src={api.artifacts.fileUrl(org.id, shown.artifactId)}
-            controls
-            playsInline
-            preload="metadata"
-            onLoadedMetadata={(e) => setDuration(e.currentTarget.duration * 1000)}
-            onTimeUpdate={(e) => setAtMs(Math.round(e.currentTarget.currentTime * 1000))}
-          />
-        )}
-        {duration > 0 && notes.some((n) => n.atMs !== null) && (
-          <div className="vr-marks" aria-hidden="true">
-            {notes
-              .filter((n) => n.atMs !== null)
-              .map((n) => (
-                <button
-                  key={n.id}
-                  type="button"
-                  tabIndex={-1}
-                  className="vr-mark"
-                  data-sent={n.sent || undefined}
-                  style={{ insetInlineStart: `${Math.min(100, ((n.atMs ?? 0) / duration) * 100)}%` }}
-                  onClick={() => seek(n.atMs ?? 0)}
+          // biome-ignore lint/a11y/useKeyWithClickEvents: the page's own keys (Enter, N) open the same note box.
+          // biome-ignore lint/a11y/noStaticElementInteractions: a click on the picture is where a note goes.
+          <div className="vr-picture" data-noting={open || undefined} onClick={onPicture}>
+            {/* biome-ignore lint/a11y/useMediaCaption: an edit in review has no captions yet; the notes say what is in it. */}
+            <video
+              key={shown.artifactId}
+              ref={bindVideo}
+              className="vr-video"
+              src={api.artifacts.fileUrl(org.id, shown.artifactId)}
+              playsInline
+              preload="auto"
+              onLoadedMetadata={(e) => {
+                setDuration(e.currentTarget.duration * 1000);
+                e.currentTarget.playbackRate = rate;
+              }}
+              onPlay={() => setPlaying(true)}
+              onPause={(e) => {
+                setPlaying(false);
+                setNowMs(Math.round(e.currentTarget.currentTime * 1000));
+              }}
+              onEnded={() => setPlaying(false)}
+              onSeeked={(e) => setNowMs(Math.round(e.currentTarget.currentTime * 1000))}
+              onTimeUpdate={(e) => {
+                if (!playing) setNowMs(Math.round(e.currentTarget.currentTime * 1000));
+              }}
+            />
+            {draft?.marking && (
+              <div className="vr-marking" role="status">
+                <Icon name="flag" />
+                {w.marking(timecode(draft.atMs))}
+              </div>
+            )}
+            {draft && !draft.marking && (
+              // biome-ignore lint/a11y/noStaticElementInteractions: stops the picture's click under the box.
+              // biome-ignore lint/a11y/useKeyWithClickEvents: only keeps the click inside the box.
+              <div
+                className="vr-pop"
+                data-side={draft.x > 0.5 ? "start" : "end"}
+                style={{ top: `${Math.min(70, Math.max(4, draft.y * 100 - 10))}%` }}
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className="vr-pop__head">
+                  <span className="vr-pop__time">{frameCode(draft.atMs, fps)}</span>
+                  <span className="vr-muted">
+                    {draft.endMs !== null ? w.stretch(where(draft.atMs, draft.endMs, w)) : w.point}
+                  </span>
+                </div>
+                <fieldset className="vr-kinds" aria-label={w.kindLabel}>
+                  {VIDEO_REVIEW_NOTE_KINDS.map((kind) => (
+                    <button
+                      key={kind}
+                      type="button"
+                      className="vr-kind"
+                      aria-pressed={draft.kind === kind}
+                      onClick={() => setDraft({ ...draft, kind: draft.kind === kind ? null : kind })}
+                    >
+                      {w.kinds[kind]}
+                    </button>
+                  ))}
+                </fieldset>
+                <Textarea
+                  autoFocus
+                  value={draftText}
+                  rows={3}
+                  placeholder={w.placeholder}
+                  onChange={(e) => setDraftText(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
+                      e.preventDefault();
+                      saveDraft();
+                    }
+                  }}
                 />
-              ))}
+                <div className="vr-pop__acts">
+                  <Button
+                    size="sm"
+                    variant={recorder.recording ? "danger" : "default"}
+                    icon={recorder.recording ? "stop" : "mic"}
+                    loading={addVoice.isPending}
+                    onClick={() => talk("draft")}
+                  >
+                    {addVoice.isPending ? w.transcribing : recorder.recording ? w.stop : w.talk}
+                  </Button>
+                  <Button size="sm" icon="flag" onClick={startMarking}>
+                    {draft.endMs !== null ? w.remark : w.markEnd}
+                  </Button>
+                  <span className="vr-pop__gap" />
+                  <Button size="sm" variant="ghost" onClick={closeDraft}>
+                    {w.cancel}
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="primary"
+                    disabled={!draftText.trim()}
+                    loading={addNote.isPending}
+                    onClick={saveDraft}
+                  >
+                    {w.save}
+                  </Button>
+                </div>
+              </div>
+            )}
           </div>
         )}
+
+        <Scrubber nowMs={nowMs} duration={duration} notes={notes} draft={draft} onSeek={seek} w={w} />
+
+        <div className="vr-transport">
+          <div className="vr-transport__group">
+            <Button
+              size="sm"
+              icon={playing ? "pause" : "play"}
+              iconOnly
+              aria-label={playing ? w.pause : w.play}
+              onClick={toggle}
+            />
+            <Button size="sm" variant="ghost" onClick={() => step(-fps)} aria-label={w.back1s}>
+              −1s
+            </Button>
+            <Button size="sm" variant="ghost" onClick={() => step(-1)} aria-label={w.back1f}>
+              −1f
+            </Button>
+            <Button size="sm" variant="ghost" onClick={() => step(1)} aria-label={w.fwd1f}>
+              +1f
+            </Button>
+            <Button size="sm" variant="ghost" onClick={() => step(fps)} aria-label={w.fwd1s}>
+              +1s
+            </Button>
+          </div>
+          <span className="vr-transport__clock">
+            {frameCode(nowMs, fps)} <span className="vr-muted">/ {frameCode(duration, fps)}</span>
+          </span>
+          <Segmented
+            label={w.speed}
+            size="sm"
+            value={String(rate)}
+            onValueChange={(v) => setSpeed(Number(v))}
+            options={RATES.map((r) => ({ value: String(r), label: `${r}×` }))}
+          />
+        </div>
+        <p className="vr-muted vr-keys">{open ? w.keys : w.keysClosed}</p>
       </div>
 
       <div className="vr-side">
@@ -300,11 +720,21 @@ function ReviewBody({ review, w }: { review: VideoReview; w: ReviewWords }) {
                 label={w.versionsLabel}
                 size="sm"
                 value={String(version)}
-                onValueChange={(v) => setVersion(Number(v))}
+                onValueChange={(v) => {
+                  closeDraft();
+                  setVersion(Number(v));
+                }}
                 options={review.versions.map((v) => ({ value: String(v.version), label: w.version(v.version) }))}
               />
             ) : (
               <span className="vr-muted">{w.version(review.version)}</span>
+            )}
+            {shown && (
+              <Button size="sm" variant="ghost" icon="download" asChild>
+                <a href={api.artifacts.fileUrl(org.id, shown.artifactId)} download>
+                  {w.download}
+                </a>
+              </Button>
             )}
           </div>
           {shown?.note && (
@@ -316,59 +746,12 @@ function ReviewBody({ review, w }: { review: VideoReview; w: ReviewWords }) {
           {review.status === "changes" && <p className="vr-muted">{w.waitingNext(review.version + 1)}</p>}
         </div>
 
-        {isLatest && review.status === "in_review" && (
-          <div className="vr-compose">
-            <div className="vr-compose__where">
-              <Segmented
-                label={w.whereLabel}
-                size="sm"
-                value={whole ? "whole" : "time"}
-                onValueChange={(v) => setWhole(v === "whole")}
-                options={[
-                  { value: "time", label: w.atTime(timecode(atMs ?? 0)) },
-                  { value: "whole", label: w.whole },
-                ]}
-              />
-            </div>
-            <Textarea
-              value={text}
-              rows={2}
-              placeholder={w.placeholder}
-              onFocus={() => video.current?.pause()}
-              onChange={(e) => setText(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) submit();
-              }}
-            />
-            <div className="vr-compose__acts">
-              <Button
-                variant={recorder.recording ? "danger" : "default"}
-                size="sm"
-                icon={recorder.recording ? "stop" : "mic"}
-                loading={addVoice.isPending}
-                onClick={() => {
-                  if (recorder.recording) recorder.stop();
-                  else {
-                    video.current?.pause();
-                    void recorder.start();
-                  }
-                }}
-              >
-                {addVoice.isPending ? w.transcribing : recorder.recording ? w.stop : w.record}
-              </Button>
-              <Button size="sm" icon="send" disabled={!text.trim()} loading={addNote.isPending} onClick={submit}>
-                {w.add}
-              </Button>
-            </div>
-          </div>
-        )}
-
         <section className="vr-notes" aria-label={w.notesTitle}>
           <h2 className="vr-notes__title">
             {w.notesTitle} {notes.length > 0 && <span className="vr-muted">{notes.length}</span>}
           </h2>
           {notes.length === 0 ? (
-            <p className="vr-muted">{w.noNotes}</p>
+            <p className="vr-muted">{open ? w.noNotes : w.noNotesClosed}</p>
           ) : (
             <ul className="vr-notes__list">
               {notes.map((note) => (
@@ -377,7 +760,11 @@ function ReviewBody({ review, w }: { review: VideoReview; w: ReviewWords }) {
                   note={note}
                   w={w}
                   mine={note.author?.id === me.user.id}
-                  onSeek={seek}
+                  active={nearNote(note)}
+                  onSeek={(ms) => {
+                    video.current?.pause();
+                    seek(ms);
+                  }}
                   onRemove={() => removeNote.mutate(note.id, { onError: failed })}
                 />
               ))}
@@ -385,7 +772,42 @@ function ReviewBody({ review, w }: { review: VideoReview; w: ReviewWords }) {
           )}
         </section>
 
-        {isLatest && review.status === "in_review" && (
+        {open && (
+          <div className="vr-compose">
+            <span className="vr-compose__label">{w.wholeTitle}</span>
+            <Textarea
+              value={wholeText}
+              rows={2}
+              placeholder={w.wholePlaceholder}
+              onChange={(e) => setWholeText(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) saveWhole();
+              }}
+            />
+            <div className="vr-compose__acts">
+              <Button
+                variant={recorder.recording && voiceFor.current === "whole" ? "danger" : "default"}
+                size="sm"
+                icon={recorder.recording && voiceFor.current === "whole" ? "stop" : "mic"}
+                disabled={!!draft}
+                onClick={() => talk("whole")}
+              >
+                {recorder.recording && voiceFor.current === "whole" ? w.stop : w.talk}
+              </Button>
+              <Button
+                size="sm"
+                icon="send"
+                disabled={!wholeText.trim()}
+                loading={addNote.isPending && !draft}
+                onClick={saveWhole}
+              >
+                {w.add}
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {open && (
           <div className="vr-decide">
             {!review.agent && <p className="vr-muted">{w.agentGone}</p>}
             <Textarea value={message} rows={1} placeholder={w.message} onChange={(e) => setMessage(e.target.value)} />

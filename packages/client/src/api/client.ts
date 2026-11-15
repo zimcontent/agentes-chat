@@ -26,6 +26,7 @@ import type {
   VideoReview,
   VideoReviewDecision,
   VideoReviewNote,
+  VideoReviewNoteInput,
   VideoReviewSummary,
   VideoReviewVoiceInput,
 } from "../video-reviews/types";
@@ -2119,11 +2120,7 @@ export interface ApiClient {
   videoReviews?: {
     list(orgId: string): Promise<{ reviews: VideoReviewSummary[] }>;
     get(orgId: string, reviewId: string): Promise<VideoReview>;
-    addNote(
-      orgId: string,
-      reviewId: string,
-      input: { version: number; atMs: number | null; body: string },
-    ): Promise<VideoReviewNote>;
+    addNote(orgId: string, reviewId: string, input: VideoReviewNoteInput): Promise<VideoReviewNote>;
     addVoiceNote(orgId: string, reviewId: string, input: VideoReviewVoiceInput): Promise<VideoReviewNote>;
     deleteNote(orgId: string, reviewId: string, noteId: string): Promise<void>;
     decide(
