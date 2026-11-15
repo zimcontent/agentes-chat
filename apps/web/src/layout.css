@@ -5749,6 +5749,25 @@ html:not([data-pointer]) .tr-ok:focus-visible {
 .tr-decide .tr-row__nm {
   white-space: normal;
 }
+/* The rows waiting on a decision measure their own box (a dialog, the agent's page): under 720px the level control's
+   ~400px left the name and the suggestion a column a few words wide, so there they go on top, across the whole row,
+   and the control with OK under them. */
+.tr-decide > .tr-subj__b {
+  container: tr-decide / inline-size;
+}
+@container tr-decide (max-width: 720px) {
+  .tr-decide .tr-row {
+    flex-wrap: wrap;
+    row-gap: 8px;
+    padding: 8px 10px;
+  }
+  .tr-decide .tr-row__t {
+    flex-basis: 100%;
+  }
+  .tr-decide .tr-row__ctl {
+    width: 100%;
+  }
+}
 .tr-row {
   display: flex;
   align-items: center;
