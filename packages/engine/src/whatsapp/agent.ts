@@ -2,6 +2,7 @@ import {
   bareJid,
   GEMINI_ROUTE_PROTOCOL,
   ROUTE_EFFORTS,
+  ROUTE_LIMITS,
   ROUTE_MODELS,
   ROUTE_TIMEOUT_MAX_MS,
   type WhatsAppMessage,
@@ -178,6 +179,44 @@ export function whatsappAgentPrompt(input: {
     "Answer their latest messages.",
   ];
   return parts.filter(Boolean).join("\n\n");
+}
+
+/**
+ * The prompt within `limit` characters: a plan answers through `brain.route`, which takes at most
+ * `ROUTE_LIMITS.prompt`. What gives way first is what bears least on the answer: the skills listed by name alone (the
+ * last first: a workspace may have hundreds), then those with their text (the largest first), then the memory, the
+ * team's memory and the business's context. The agent's and the number's instructions and the conversation never
+ * do; past all that, the prompt keeps its end (the conversation).
+ */
+export function fitWhatsAppPrompt(input: Parameters<typeof whatsappAgentPrompt>[0], limit: number): string {
+  let shaped = { ...input, skills: [...(input.skills ?? [])] };
+  let prompt = whatsappAgentPrompt(shaped);
+  if (prompt.length <= limit) return prompt;
+  // Names alone, from the end: each one's line is what it costs, so no rebuild per name.
+  let over = prompt.length - limit;
+  for (let i = shaped.skills.length - 1; i >= 0 && over > 0; i--) {
+    const s = shaped.skills[i];
+    if (!s || s.body) continue;
+    over -= `- ${s.name}: ${s.description}`.length + 2;
+    shaped.skills[i] = { ...s, name: "" };
+  }
+  shaped.skills = shaped.skills.filter((s) => s.name !== "");
+  prompt = whatsappAgentPrompt(shaped);
+  const bodies = shaped.skills
+    .map((s) => ({ s, size: s.body?.length ?? 0 }))
+    .filter((x) => x.size > 0)
+    .sort((a, b) => b.size - a.size);
+  for (const { s } of bodies) {
+    if (prompt.length <= limit) return prompt;
+    shaped.skills = shaped.skills.filter((x) => x !== s);
+    prompt = whatsappAgentPrompt(shaped);
+  }
+  for (const part of ["memory", "teamMemory", "orgContext"] as const) {
+    if (prompt.length <= limit) return prompt;
+    shaped = { ...shaped, [part]: "" };
+    prompt = whatsappAgentPrompt(shaped);
+  }
+  return prompt.length <= limit ? prompt : prompt.slice(prompt.length - limit);
 }
 
 /** How much of the skills' own text one answer reads, and of one skill. */
@@ -507,20 +546,15 @@ export async function answerWhatsAppChat(
   const lines = history.reverse().map(lineOf);
   // What the agent knows from its work, found for what this conversation is about (docs/adr/doug-0004-whatsapp-bridge.md).
   const knowledge = await knowledgeFor(deps, agent, lines.join("\n"));
-  const prompt = whatsappAgentPrompt({
-    workspace: org?.name ?? "",
-    agent,
-    account,
-    chat,
-    lines,
-    now: now(),
-    ...knowledge,
-  });
+  // The agent answers; the number's own AI thinks for it when it has one (`whatsapp/brain.ts`).
+  const thinker = whatsappThinker(agent, whatsappBrainOf(account.brain));
+  const asked = { workspace: org?.name ?? "", agent, account, chat, lines, now: now(), ...knowledge };
+  // A plan's route takes a bounded prompt; an API model reads it all.
+  const prompt = thinker.brain === "model" ? whatsappAgentPrompt(asked) : fitWhatsAppPrompt(asked, ROUTE_LIMITS.prompt);
 
   let answer: WhatsAppAgentAnswer;
   try {
-    // The agent answers; the number's own AI thinks for it when it has one (`whatsapp/brain.ts`).
-    answer = await ask(deps, whatsappThinker(agent, whatsappBrainOf(account.brain)), prompt, account.agentMessages);
+    answer = await ask(deps, thinker, prompt, account.agentMessages);
   } catch (error) {
     if (!options.finalAttempt && !(error instanceof PermanentJobError)) throw error;
     // Why, in the error's own words, for whoever opens the conversation: nothing of it goes to WhatsApp.
