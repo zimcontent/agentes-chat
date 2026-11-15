@@ -27,7 +27,13 @@ export const AGENT_ACCESSORIES = [
   "flower",
   "scarf",
 ] as const;
-export type AgentAccessory = (typeof AGENT_ACCESSORIES)[number];
+/** What only the DougBot draws (the web's `AGENT_BOT_ACCESSORIES`): allowed beside the pixel ones. */
+export const AGENT_BOT_ACCESSORIES = ["tie", "keys"] as const;
+export type AgentAccessory = (typeof AGENT_ACCESSORIES)[number] | (typeof AGENT_BOT_ACCESSORIES)[number];
+export const ALL_ACCESSORIES: readonly AgentAccessory[] = [...AGENT_ACCESSORIES, ...AGENT_BOT_ACCESSORIES];
+/** The DougBot's forms (the web's `AGENT_SHAPES`): a look with one draws as picked. */
+export const AGENT_SHAPES = ["squircle", "quadrado", "petala", "monitor", "torre", "moeda", "hexagono"] as const;
+export type AgentShape = (typeof AGENT_SHAPES)[number];
 
 export interface AgentLook {
   color: AgentColor;
@@ -39,6 +45,7 @@ export interface AgentLook {
   handle?: string;
   role?: string;
   photo?: string | null;
+  shape?: AgentShape;
 }
 
 const pick = <T extends string>(list: readonly T[], v: unknown): T | undefined =>
@@ -64,7 +71,8 @@ export function agentLook(
 ): AgentLook {
   const raw = agent?.appearance;
   const o = (raw && typeof raw === "object" ? raw : {}) as Record<string, unknown>;
-  const accessory = pick(AGENT_ACCESSORIES, o.accessory);
+  const accessory = pick(ALL_ACCESSORIES, o.accessory);
+  const shape = pick(AGENT_SHAPES, o.shape);
   const text = (v: unknown) => (typeof v === "string" && v ? v : undefined);
   const id = text(agent?.id);
   const name = text(agent?.name);
@@ -80,6 +88,7 @@ export function agentLook(
     ...(handle ? { handle } : {}),
     ...(role ? { role } : {}),
     ...(photo ? { photo } : {}),
+    ...(shape ? { shape } : {}),
   };
 }
 

@@ -50,10 +50,13 @@ export function AgentSticker(props: AgentStickerProps) {
   return PIXEL_ART ? <PixelSticker {...props} /> : <BotSticker {...props} />;
 }
 
-function BotSticker({ mood, playFor, size = 120, label, className, who }: AgentStickerProps) {
-  const key = `${who?.name ?? ""}|${who?.handle ?? ""}|${who?.role ?? ""}|${who?.builtin ?? ""}`;
-  // biome-ignore lint/correctness/useExhaustiveDependencies: the key is who it is
-  const bot = useMemo(() => botDoAgente(who ?? DOUG), [key]);
+function BotSticker({ appearance, mood, playFor, size = 120, label, className, who }: AgentStickerProps) {
+  const picked = appearance?.shape ? appearance : null;
+  const key = `${who?.name ?? ""}|${who?.handle ?? ""}|${who?.role ?? ""}|${who?.builtin ?? ""}|${
+    picked ? `${picked.shape}/${picked.color ?? ""}/${picked.eyes ?? ""}/${picked.accessory ?? ""}` : ""
+  }`;
+  // biome-ignore lint/correctness/useExhaustiveDependencies: the key is who it is and how it looks
+  const bot = useMemo(() => botDoAgente({ ...(who ?? DOUG), look: picked }), [key]);
   return (
     <span
       className={cx("ac-sticker", "ac-sticker--bot", className)}

@@ -14,6 +14,8 @@ export interface AgentLookInput {
   role?: string;
   /** Its real photo (a backend path), shown instead of the drawing when it loads. */
   photo?: string | null;
+  /** The DougBot form picked for it: with one, the bot is drawn as picked (form, color, eyes, accessory). */
+  shape?: string;
 }
 
 /**
@@ -33,6 +35,7 @@ export function rememberAgentLooks(list: Iterable<{ id: string } & AgentLookInpu
       ...(a.handle ? { handle: a.handle } : {}),
       ...(a.role ? { role: a.role } : {}),
       ...(a.photo ? { photo: a.photo } : {}),
+      ...(a.shape ? { shape: a.shape } : {}),
     });
 }
 

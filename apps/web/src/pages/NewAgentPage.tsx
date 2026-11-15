@@ -53,8 +53,8 @@ import { scopeText } from "@agenteschat/client/lib/scopes";
 import { isPersonal, modeKey } from "@agenteschat/client/lib/workspace-mode";
 import {
   AffixInput,
-  type AgentAppearance,
   type AgentColor,
+  type AgentFullLook,
   Button,
   Card,
   CheckboxPill,
@@ -189,7 +189,7 @@ function useDraftMood() {
 
 interface Created {
   agent: Agent;
-  look: Required<AgentAppearance>;
+  look: AgentFullLook;
   channels: { id: string; name: string }[];
 }
 
@@ -203,7 +203,7 @@ interface SavedDraft {
   name: string;
   handle: string;
   handleTouched: boolean;
-  look: Required<AgentAppearance>;
+  look: AgentFullLook;
   instructions: string;
   levels: Record<string, Level>;
   mailLevels: Record<string, Level>;
@@ -381,8 +381,8 @@ function NewAgentFlow({
   const [name, setName] = useState(was?.name ?? draft?.name ?? "");
   const [handle, setHandle] = useState(was?.handle ?? draft?.handle ?? "");
   const [handleTouched, setHandleTouched] = useState(was?.handleTouched ?? Boolean(draft));
-  const [look, setLook] = useState<Required<AgentAppearance>>(
-    was?.look ?? (draft?.appearance as Required<AgentAppearance> | null) ?? BLANK_LOOK,
+  const [look, setLook] = useState<AgentFullLook>(
+    was?.look ?? (draft?.appearance as AgentFullLook | null) ?? BLANK_LOOK,
   );
   const [instructions, setInstructions] = useState(was?.instructions ?? draft?.instructions ?? "");
   const [levels, setLevels] = useState<Record<string, Level>>(
@@ -1261,7 +1261,7 @@ function NewAgentFlow({
             size="sm"
             icon="shuffle"
             onClick={() => {
-              setLook((l) => ({ ...BLANK_LOOK, ...randomAppearance(l) }) as Required<AgentAppearance>);
+              setLook((l) => ({ ...BLANK_LOOK, ...randomAppearance(l) }) as AgentFullLook);
               mood.react("dizzy", 1000);
             }}
           >
@@ -1271,11 +1271,13 @@ function NewAgentFlow({
         <Card as="div" className="newag__card newag__look">
           <LookPicker
             look={look}
-            onPick={(patch) => {
-              setLook((l) => ({ ...l, ...patch }));
-              if (patch.color) mood.react("happy", 1100);
-              else if (patch.eyes) mood.react("wink", 700);
-              else if (patch.accessory && patch.accessory !== "none") mood.react("happy", 900);
+            who={{ name, handle, role: roleName }}
+            onPick={(next) => {
+              // The picker sends the whole look: the reaction follows what changed.
+              setLook((l) => ({ ...l, ...next }));
+              if (next.color !== look.color || next.shape !== look.shape) mood.react("happy", 1100);
+              else if (next.eyes !== look.eyes) mood.react("wink", 700);
+              else if (next.accessory && next.accessory !== "none") mood.react("happy", 900);
             }}
           />
         </Card>
@@ -1718,6 +1720,7 @@ function NewAgentFlow({
                 </span>
                 <span className="small muted">
                   {[
+                    ...(look.shape ? [t(`look.shapes.${look.shape}`)] : []),
                     t(`look.colors.${colorKey(look.color)}`),
                     t(`look.eyesNames.${look.eyes}`),
                     ...(look.accessory !== "none" ? [t(`look.accessories.${look.accessory}`)] : []),

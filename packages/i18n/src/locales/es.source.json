@@ -25351,6 +25351,30 @@
   "look.useColor": {
     "value": "Use this color"
   },
+  "look.shape": {
+    "value": "Shape"
+  },
+  "look.shapes.squircle": {
+    "value": "Rounded"
+  },
+  "look.shapes.quadrado": {
+    "value": "Square"
+  },
+  "look.shapes.petala": {
+    "value": "Petal"
+  },
+  "look.shapes.monitor": {
+    "value": "Monitor"
+  },
+  "look.shapes.torre": {
+    "value": "Tower"
+  },
+  "look.shapes.moeda": {
+    "value": "Coin"
+  },
+  "look.shapes.hexagono": {
+    "value": "Hexagon"
+  },
   "look.eyesNames.round": {
     "value": "Round"
   },
@@ -25401,6 +25425,12 @@
   },
   "look.accessories.scarf": {
     "value": "Scarf"
+  },
+  "look.accessories.tie": {
+    "value": "Tie"
+  },
+  "look.accessories.keys": {
+    "value": "Keys"
   },
   "wiki.title": {
     "value": "Wiki"

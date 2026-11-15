@@ -10502,6 +10502,16 @@
     "hue": "Tint",
     "hex": "Hexcode",
     "useColor": "Deze kleur gebruiken",
+    "shape": "Vorm",
+    "shapes": {
+      "squircle": "Afgerond",
+      "quadrado": "Vierkant",
+      "petala": "Bloemblad",
+      "monitor": "Monitor",
+      "torre": "Toren",
+      "moeda": "Munt",
+      "hexagono": "Zeshoek"
+    },
     "eyesNames": {
       "round": "Rond",
       "dots": "Stippen",
@@ -10521,7 +10531,9 @@
       "beanie": "Muts",
       "party": "Feesthoedje",
       "flower": "Bloem",
-      "scarf": "Sjaal"
+      "scarf": "Sjaal",
+      "tie": "Stropdas",
+      "keys": "Sleutels"
     }
   },
   "wiki": {

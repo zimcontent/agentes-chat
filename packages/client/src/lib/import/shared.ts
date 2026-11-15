@@ -4,6 +4,7 @@ import {
   AGENT_EYES,
   type AgentAppearance,
   type AgentColor,
+  type AgentFullLook,
 } from "@agenteschat/tokens/look";
 import { isSecretPath, setsCredential } from "@agenteschat/tokens/names";
 import { parse as parseYaml, stringify as stringifyYaml } from "yaml";
@@ -392,7 +393,7 @@ export function uniqueHandle(base: string, used: Set<string>): string {
 }
 
 /** A stable look from a seed: the source's color when it has one; eyes and accessory from the seed. */
-export function lookFor(seed: string, color?: AgentColor): Required<AgentAppearance> {
+export function lookFor(seed: string, color?: AgentColor): AgentFullLook {
   let h = 2166136261;
   for (const ch of seed) h = Math.imul(h ^ (ch.codePointAt(0) ?? 0), 16777619) >>> 0;
   const at = <T>(items: readonly T[], shift: number) => items[(h >>> shift) % items.length] as T;

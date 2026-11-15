@@ -11146,6 +11146,16 @@
     "hue": "Odcień",
     "hex": "Kod hex",
     "useColor": "Użyj tego koloru",
+    "shape": "Kształt",
+    "shapes": {
+      "squircle": "Zaokrąglony",
+      "quadrado": "Kwadrat",
+      "petala": "Płatek",
+      "monitor": "Monitor",
+      "torre": "Wieża",
+      "moeda": "Moneta",
+      "hexagono": "Sześciokąt"
+    },
     "eyesNames": {
       "round": "Okrągłe",
       "dots": "Kropki",
@@ -11165,7 +11175,9 @@
       "beanie": "Czapka zimowa",
       "party": "Czapeczka imprezowa",
       "flower": "Kwiatek",
-      "scarf": "Szalik"
+      "scarf": "Szalik",
+      "tie": "Krawat",
+      "keys": "Klucze"
     }
   },
   "wiki": {

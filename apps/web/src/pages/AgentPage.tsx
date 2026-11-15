@@ -284,6 +284,7 @@ function AgentProfile({
   const ownerFirst = agent.ownerUserId ? (dir.memberById.get(agent.ownerUserId)?.name.split(/\s+/)[0] ?? null) : null;
   const lookText = (l: Look) =>
     [
+      ...(l.shape ? [t(`look.shapes.${l.shape}`)] : []),
       t(`look.colors.${colorKey(l.color)}`),
       t(`look.eyesNames.${l.eyes}`),
       ...(l.accessory !== "none" ? [t(`look.accessories.${l.accessory}`)] : []),

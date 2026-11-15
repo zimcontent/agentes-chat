@@ -3,13 +3,15 @@ import { apiPickOptions, type BrainPickOption, brainPickText } from "@agentescha
 import { keyLine, type ModelChoice, providerLabel } from "@agenteschat/client/lib/providers";
 import { isPersonal } from "@agenteschat/client/lib/workspace-mode";
 import {
+  ACESSORIOS_DO_PICKER,
   AffixInput,
-  AGENT_ACCESSORIES,
   AGENT_COLORS,
-  AGENT_EYES,
-  type AgentAppearance,
+  AGENT_SHAPES,
+  type AgenteParaBot,
+  type AgentFullLook,
   Avatar,
   agentGradient,
+  Button,
   Carousel,
   ChosenValue,
   ColorPicker,
@@ -19,7 +21,9 @@ import {
   Icon,
   type IconName,
   isHexColor,
+  lookDoBot,
   matchesWords,
+  OLHOS_DO_PICKER,
   Popover,
   ProviderLogo,
   SearchSelect,
@@ -214,10 +218,10 @@ export function keyOptions(
   ];
 }
 
-type LookPatch = Partial<Required<AgentAppearance>>;
+type LookPatch = Partial<AgentFullLook>;
 
 type LookPickProps = {
-  look: Required<AgentAppearance>;
+  look: AgentFullLook;
   onPick: (patch: LookPatch) => void;
   /** Pointing at an option tries it on the agent; null takes it off again (a new agent's card, ADR 0164). */
   onPreview?: (patch: LookPatch | null) => void;
@@ -228,6 +232,28 @@ const tryOn = (onPreview: LookPickProps["onPreview"], patch: LookPatch) =>
   onPreview
     ? { onPointerEnter: () => onPreview(patch), onPointerLeave: () => onPreview(null) }
     : ({} as Record<string, never>);
+
+/** "Foto": a real photo in place of the drawn bot, or back to the bot. */
+export type LookPhoto = {
+  /** The photo shown now (an address or a data URL), null: the bot. */
+  url: string | null;
+  onSend: () => void;
+  onRemove: () => void;
+};
+
+/**
+ * Where the picker starts: a look picked for the bot as it is; otherwise the bot the agent already is (from its trade
+ * and name, IDENTIDADE.md §6), so the first pick changes only what was picked. Every pick then sends the whole look,
+ * with its form: a look with a form draws as picked.
+ */
+function botPicks({ look, onPick, onPreview }: LookPickProps, who: AgenteParaBot | undefined): LookPickProps {
+  const base: AgentFullLook = look.shape ? look : lookDoBot(who ?? { name: "" });
+  return {
+    look: base,
+    onPick: (patch) => onPick({ ...base, ...patch }),
+    onPreview: onPreview && ((patch) => onPreview(patch ? { ...base, ...patch } : null)),
+  };
+}
 
 /** The choices of a look row: wrapping ("Criar agente") or one sliding row (the agent's settings). */
 function ChoiceRow({
@@ -256,28 +282,82 @@ function ChoiceRow({
   );
 }
 
-/** Color swatches, eyes and an accessory, each a live symbol. `onPick` gets what changed. */
-export function LookPicker({ look, onPick, onPreview }: LookPickProps) {
+/**
+ * The bot's form, color, eyes and accessory, each a live bot, and a photo in its place. `onPick` gets the whole look.
+ * `who` is the agent the bot is drawn for (its name and trade): where a look not yet picked starts.
+ */
+export function LookPicker({ who, photo, ...props }: LookPickProps & { who?: AgenteParaBot; photo?: LookPhoto }) {
   const { t } = useTranslation();
+  const p = botPicks(props, who);
   return (
     <>
+      {photo && <PhotoRow photo={photo} />}
+      <div className="newag__look-row">
+        <span className="newag__label">{t("look.shape")}</span>
+        <ShapeChoices {...p} />
+      </div>
       <div className="newag__look-row">
         <span className="newag__label">
-          {t("look.color")} <span className="newag__opt-label">{t(`look.colors.${colorKey(look.color)}`)}</span>
+          {t("look.color")} <span className="newag__opt-label">{t(`look.colors.${colorKey(p.look.color)}`)}</span>
         </span>
-        <ColorChoices look={look} onPick={onPick} onPreview={onPreview} />
+        <ColorChoices {...p} />
       </div>
       <div className="newag__look-row">
         <span className="newag__label">{t("look.eyes")}</span>
-        <EyesChoices look={look} onPick={onPick} onPreview={onPreview} />
+        <EyesChoices {...p} />
       </div>
       <div className="newag__look-row">
         <span className="newag__label">
           {t("look.accessory")} <span className="newag__opt-label">{t("newAgent.optional")}</span>
         </span>
-        <AccessoryChoices look={look} onPick={onPick} onPreview={onPreview} />
+        <AccessoryChoices {...p} />
       </div>
     </>
+  );
+}
+
+/** "Foto": send one in place of the bot, or go back to the bot. */
+function PhotoRow({ photo }: { photo: LookPhoto }) {
+  const { t } = useTranslation();
+  return (
+    <div className="newag__look-row">
+      <span className="newag__label">
+        {t("photo.agent.title")} <span className="newag__opt-label">{t("newAgent.optional")}</span>
+      </span>
+      <div className="newag__photo">
+        <Button size="sm" icon="image" onClick={photo.onSend}>
+          {photo.url ? t("photo.change") : t("photo.agent.send")}
+        </Button>
+        {photo.url && (
+          <Button size="sm" variant="ghost" onClick={photo.onRemove}>
+            {t("photo.agent.useBot")}
+          </Button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function ShapeChoices({ look, onPick, onPreview, carousel }: LookPickProps & { carousel?: boolean }) {
+  const { t } = useTranslation();
+  return (
+    <ChoiceRow label={t("look.shape")} carousel={carousel}>
+      {AGENT_SHAPES.map((s) => (
+        <button
+          key={s}
+          type="button"
+          className="newag__opt"
+          aria-pressed={look.shape === s}
+          onClick={() => onPick({ shape: s })}
+          {...tryOn(onPreview, { shape: s })}
+        >
+          <span className="newag__stage">
+            <AgentAvatar framed={false} name={t(`look.shapes.${s}`)} appearance={{ ...look, shape: s }} />
+          </span>
+          {t(`look.shapes.${s}`)}
+        </button>
+      ))}
+    </ChoiceRow>
   );
 }
 
@@ -344,12 +424,12 @@ function EyesChoices({ look, onPick, onPreview, carousel }: LookPickProps & { ca
   const { t } = useTranslation();
   return (
     <ChoiceRow label={t("look.eyes")} carousel={carousel}>
-      {AGENT_EYES.map((e) => (
+      {OLHOS_DO_PICKER.map((e) => (
         <button
           key={e}
           type="button"
           className="newag__opt"
-          aria-pressed={look.eyes === e}
+          aria-pressed={look.eyes === e || (e === "round" && look.eyes === "happy")}
           onClick={() => onPick({ eyes: e })}
           {...tryOn(onPreview, { eyes: e })}
         >
@@ -369,14 +449,17 @@ function EyesChoices({ look, onPick, onPreview, carousel }: LookPickProps & { ca
 
 function AccessoryChoices({ look, onPick, onPreview, carousel }: LookPickProps & { carousel?: boolean }) {
   const { t } = useTranslation();
+  // The bot draws the headphones for a headset too; what it doesn't draw reads as none.
+  const worn = look.accessory === "headset" ? "headphones" : look.accessory;
+  const shown = ACESSORIOS_DO_PICKER.includes(worn) ? worn : "none";
   return (
     <ChoiceRow label={t("look.accessory")} carousel={carousel} acc>
-      {AGENT_ACCESSORIES.map((a) => (
+      {ACESSORIOS_DO_PICKER.map((a) => (
         <button
           key={a}
           type="button"
           className="newag__opt"
-          aria-pressed={look.accessory === a}
+          aria-pressed={shown === a}
           onClick={() => onPick({ accessory: a })}
           {...tryOn(onPreview, { accessory: a })}
         >
@@ -400,31 +483,37 @@ function AccessoryChoices({ look, onPick, onPreview, carousel }: LookPickProps &
 }
 
 /**
- * The look right on the agent's settings: the colors, then the eyes and what it
- * wears as one sliding row each, so the section stays short. Each pick shows at once.
+ * The look right on the agent's settings: the form and the colors, then the eyes and what it wears as one sliding row
+ * each, so the section stays short. Each pick shows at once. `who`: the agent, where a look not yet picked starts.
  */
 export function LookRows({
   look,
   onChange,
+  who,
 }: {
-  look: Required<AgentAppearance>;
-  onChange: (look: Required<AgentAppearance>) => void;
+  look: AgentFullLook;
+  onChange: (look: AgentFullLook) => void;
+  who?: AgenteParaBot;
 }) {
   const { t } = useTranslation();
-  const pick = (patch: LookPatch) => onChange({ ...look, ...patch });
+  const p = botPicks({ look, onPick: (patch) => onChange({ ...look, ...patch }) }, who);
   return (
     <div className="agp-look">
       <div className="agp-look__row">
+        <span className="newag__label">{t("look.shape")}</span>
+        <ShapeChoices {...p} carousel />
+      </div>
+      <div className="agp-look__row">
         <span className="newag__label">{t("look.color")}</span>
-        <ColorChoices look={look} onPick={pick} />
+        <ColorChoices {...p} />
       </div>
       <div className="agp-look__row">
         <span className="newag__label">{t("look.eyes")}</span>
-        <EyesChoices look={look} onPick={pick} carousel />
+        <EyesChoices {...p} carousel />
       </div>
       <div className="agp-look__row">
         <span className="newag__label">{t("look.onHead")}</span>
-        <AccessoryChoices look={look} onPick={pick} carousel />
+        <AccessoryChoices {...p} carousel />
       </div>
     </div>
   );

@@ -3,9 +3,12 @@ import {
   AGENT_ACCESSORIES,
   AGENT_COLORS,
   AGENT_EYES,
+  AGENT_SHAPES,
   type AgentAccessory,
   type AgentColor,
   type AgentEyes,
+  type AgentShape,
+  ALL_ACCESSORIES,
   colorOf,
 } from "../shared/logic";
 
@@ -18,6 +21,8 @@ export interface FullLook {
   color: AgentColor;
   eyes: AgentEyes;
   accessory: AgentAccessory;
+  /** The DougBot form picked on the web: kept, so a save here doesn't undo it. */
+  shape?: AgentShape;
 }
 
 const pick = <T extends string>(list: readonly T[], v: unknown, fallback: T): T =>
@@ -29,12 +34,15 @@ export function fullLook(appearance: unknown): FullLook {
   return {
     color: colorOf(o.color) ?? "sky",
     eyes: pick(AGENT_EYES, o.eyes, "round"),
-    accessory: pick(AGENT_ACCESSORIES, o.accessory, "none"),
+    accessory: pick(ALL_ACCESSORIES, o.accessory, "none"),
+    ...(typeof o.shape === "string" && (AGENT_SHAPES as readonly string[]).includes(o.shape)
+      ? { shape: o.shape as AgentShape }
+      : {}),
   };
 }
 
 export const sameLook = (a: FullLook, b: FullLook) =>
-  a.color === b.color && a.eyes === b.eyes && a.accessory === b.accessory;
+  a.color === b.color && a.eyes === b.eyes && a.accessory === b.accessory && a.shape === b.shape;
 
 /** "Sortear": a random look, different from `current`. */
 export function shuffleLook(current: FullLook, rand: () => number = Math.random): FullLook {

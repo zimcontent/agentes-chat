@@ -225,9 +225,13 @@ export function Avatar({
   const tile = !bot && (framed ?? (size !== "xs" && size !== "xl"));
   const a11y = labelled ? ({ role: "img", "aria-label": name } as const) : ({ "aria-hidden": true } as const);
   const mood: AgentState = state ?? (running ? "thinking" : "idle");
-  const key = `${who?.name ?? name}|${who?.handle ?? ""}|${who?.role ?? ""}|${who?.builtin ?? ""}`;
-  // biome-ignore lint/correctness/useExhaustiveDependencies: the key is who it is
-  const spec = useMemo(() => botDoAgente(who ?? { name }), [key]);
+  // Who it is and the look picked for it (a look with a shape draws as picked).
+  const picked = appearance?.shape ? appearance : null;
+  const key = `${who?.name ?? name}|${who?.handle ?? ""}|${who?.role ?? ""}|${who?.builtin ?? ""}|${
+    picked ? `${picked.shape}/${picked.color ?? ""}/${picked.eyes ?? ""}/${picked.accessory ?? ""}` : ""
+  }`;
+  // biome-ignore lint/correctness/useExhaustiveDependencies: the key is who it is and how it looks
+  const spec = useMemo(() => botDoAgente({ ...(who ?? { name }), look: picked }), [key]);
   const look = estado ?? botEstado(mood, presence);
   const [photoFailed, setPhotoFailed] = useState(false);
   // biome-ignore lint/correctness/useExhaustiveDependencies: a new address gets a new try

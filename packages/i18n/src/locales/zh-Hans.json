@@ -10117,6 +10117,16 @@
     "hue": "色相",
     "hex": "十六进制代码",
     "useColor": "使用这个颜色",
+    "shape": "形状",
+    "shapes": {
+      "squircle": "圆角",
+      "quadrado": "方形",
+      "petala": "花瓣",
+      "monitor": "显示器",
+      "torre": "塔",
+      "moeda": "硬币",
+      "hexagono": "六边形"
+    },
     "eyesNames": {
       "round": "圆眼",
       "dots": "豆豆眼",
@@ -10136,7 +10146,9 @@
       "beanie": "毛线帽",
       "party": "派对帽",
       "flower": "花朵",
-      "scarf": "围巾"
+      "scarf": "围巾",
+      "tie": "领带",
+      "keys": "钥匙"
     }
   },
   "wiki": {

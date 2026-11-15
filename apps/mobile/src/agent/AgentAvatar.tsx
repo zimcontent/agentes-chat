@@ -56,8 +56,16 @@ function AgentAvatarView({ agent, size, mode = "idle", name, expression, bodyles
   const id = `b${useId().replace(/[^a-zA-Z0-9]/g, "")}`;
   const bot = useMemo(
     () =>
-      botDoAgente({ name: agent.name ?? name, handle: agent.handle, role: agent.role, id: agent.id ?? agent.color }),
-    [agent.name, name, agent.handle, agent.role, agent.id, agent.color],
+      botDoAgente({
+        name: agent.name ?? name,
+        handle: agent.handle,
+        role: agent.role,
+        id: agent.id ?? agent.color,
+        look: agent.shape
+          ? { shape: agent.shape, color: agent.color, eyes: agent.eyes, accessory: agent.accessory }
+          : null,
+      }),
+    [agent.name, name, agent.handle, agent.role, agent.id, agent.color, agent.shape, agent.eyes, agent.accessory],
   );
   const estado = bodyless ? "dormindo" : estadoDoModo(mode, expression);
   const xml = useMemo(

@@ -323,7 +323,13 @@ export const AgentAppearance = z
       "party",
       "flower",
       "scarf",
+      "tie",
+      "keys",
     ]),
+    shape: z
+      .enum(["squircle", "quadrado", "petala", "monitor", "torre", "moeda", "hexagono"])
+      .optional()
+      .openapi({ description: "The DougBot's form; set, the bot draws as picked (color, eyes, accessory)." }),
   })
   .openapi("AgentAppearance");
 

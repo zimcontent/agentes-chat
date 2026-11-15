@@ -59,11 +59,16 @@ export const colorOf = (agent: { appearance?: unknown } | undefined | null): Age
  * §4, a bot's color shows where it is), the Doug's green for the Doug. A hex, as `widgetTileVars` takes it.
  */
 export const botColorOf = (
-  agent: { name: string; handle?: string | null; role?: string | null; builtin?: string | null } | undefined | null,
+  agent:
+    | { name: string; handle?: string | null; role?: string | null; builtin?: string | null; appearance?: unknown }
+    | undefined
+    | null,
 ): AgentColor =>
   corDoBot(
     botDoAgente(
-      agent ? { name: agent.name, handle: agent.handle, role: agent.role, builtin: agent.builtin } : { name: "" },
+      agent
+        ? { name: agent.name, handle: agent.handle, role: agent.role, builtin: agent.builtin, look: lookOf(agent) }
+        : { name: "" },
     ),
   ) as AgentColor;
 

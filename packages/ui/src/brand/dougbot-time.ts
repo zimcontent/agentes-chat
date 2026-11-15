@@ -7,7 +7,15 @@
  *    role, handle and name, first match wins), its color from `CORES_LIVRES` and its eyes from its handle's hash.
  *    Never green, never a mouth.
  */
-import DougBot, { type DougBotForma, type DougBotNome, type DougBotOlhos, type DougBotOpcoes } from "./dougbot-avatar.js";
+import type { AgentAccessory, AgentAppearance, AgentEyes } from "@agenteschat/tokens/look";
+import { gradientOf } from "../agent/engine.js";
+import DougBot, {
+  type DougBotAcessorio,
+  type DougBotForma,
+  type DougBotNome,
+  type DougBotOlhos,
+  type DougBotOpcoes,
+} from "./dougbot-avatar.js";
 
 /** Names and handles (lowercase, no accents) that are a bot of the identity. */
 export const BOTS_DO_TIME: Record<string, DougBotNome> = {
@@ -31,7 +39,10 @@ export const OFICIOS: { forma: DougBotForma; palavras: RegExp }[] = [
   { forma: "moeda", palavras: /financ|cont[aá]b|fiscal|pagament|cobran|fatura|or[cç]ament|dinheiro/ },
   { forma: "hexagono", palavras: /c[oó]dig|dev|program|engenh|automa|suporte|t[eé]cnic|tecnolog|api\b|sistema/ },
   { forma: "torre", palavras: /estrat[eé]g|pesquis|an[aá]lis|planej|growth|resultado|intelig|napole/ },
-  { forma: "quadrado", palavras: /marketing|social|tr[aá]fego|m[ií]dia|copy|conte[uú]do|instagram|an[uú]nc|campanh|redes/ },
+  {
+    forma: "quadrado",
+    palavras: /marketing|social|tr[aá]fego|m[ií]dia|copy|conte[uú]do|instagram|an[uú]nc|campanh|redes/,
+  },
 ];
 
 /** The free colors (turquoise and fuchsia) and two of their own lighter tones: none of them green. */
@@ -72,6 +83,52 @@ export interface AgenteParaBot {
   role?: string | null;
   /** `right_hand`: the team's right hand (ADR 0137), the Doug whatever its name. */
   builtin?: string | null;
+  /** The look picked for it: with a `shape`, the bot is drawn as picked (the Doug stays the Doug). */
+  look?: AgentAppearance | null;
+}
+
+/** The look's eyes → the bot's (the bot has four; "happy" reads as the pill). */
+const OLHOS_DO_LOOK: Record<AgentEyes, DougBotOlhos> = {
+  round: "pilula",
+  dots: "ponto",
+  wide: "largo",
+  sleepy: "meia",
+  happy: "pilula",
+};
+/** The look's accessories the bot draws (the others are the pixel engine's alone). */
+const ACESSORIO_DO_LOOK: Partial<Record<AgentAccessory, DougBotAcessorio>> = {
+  headphones: "fone",
+  headset: "fone",
+  tie: "gravata",
+  keys: "chaves",
+};
+/** What the look picker offers for the bot: each one draws differently. */
+export const OLHOS_DO_PICKER: readonly AgentEyes[] = ["round", "dots", "wide", "sleepy"];
+export const ACESSORIOS_DO_PICKER: readonly AgentAccessory[] = ["none", "headphones", "tie", "keys"];
+
+/** A look color as the bot's one color: a custom "#rrggbb" as is, a preset the middle of its gradient. */
+export function corDoLook(color: AgentAppearance["color"]): string {
+  if (color && /^#[0-9a-f]{6}$/i.test(color)) return color.toLowerCase();
+  const [top, bottom] = gradientOf(color ?? "sky");
+  return DougBot.mix(top, bottom, 0.5);
+}
+
+/**
+ * The look a free bot already has, in the picker's words: where the picker starts, so the first pick changes only
+ * what was picked. The Doug and the team's bots start from their own form and color too.
+ */
+export function lookDoBot(a: AgenteParaBot): Required<AgentAppearance> {
+  const b = botDoAgente({ ...a, look: null });
+  const f = b.bot ? DougBot.TIME[b.bot] : null;
+  const forma = (f ? f.forma : b.forma) ?? "squircle";
+  const olhos = (f ? f.olhos : b.olhos) ?? "pilula";
+  const acessorio = f ? f.acessorio : b.acessorio;
+  return {
+    shape: forma === "cabeca" ? "squircle" : forma,
+    color: corDoBot(b).toLowerCase() as `#${string}`,
+    eyes: (Object.entries(OLHOS_DO_LOOK).find(([, o]) => o === olhos)?.[0] ?? "round") as AgentEyes,
+    accessory: (Object.entries(ACESSORIO_DO_LOOK).find(([, o]) => o === acessorio)?.[0] ?? "none") as AgentAccessory,
+  };
 }
 
 /** The identity's bot for an agent, or its free bot. Same answer for the same agent, everywhere. */
@@ -79,6 +136,18 @@ export function botDoAgente(a: AgenteParaBot): DougBotOpcoes {
   const nome = plain(a.name);
   const handle = plain(a.handle ?? "");
   const time = a.builtin === "right_hand" ? "doug" : (BOTS_DO_TIME[handle] ?? BOTS_DO_TIME[nome]);
+  if (time === "doug") return { bot: time };
+  const look = a.look;
+  if (look?.shape) {
+    const acessorio = look.accessory ? ACESSORIO_DO_LOOK[look.accessory] : undefined;
+    return {
+      forma: look.shape,
+      cor: corDoLook(look.color),
+      olhos: OLHOS_DO_LOOK[look.eyes ?? "round"],
+      ...(acessorio ? { acessorio } : {}),
+      sorriso: false,
+    };
+  }
   if (time) return { bot: time };
   const texto = plain(`${a.role ?? ""} ${handle.replace(/[-_]/g, " ")} ${nome}`);
   const forma = OFICIOS.find((o) => o.palavras.test(texto))?.forma ?? "squircle";
