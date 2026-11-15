@@ -94,6 +94,11 @@ export interface LiveVoiceDeps {
   voiceOut?: VoiceOut | null;
   /** Who turns the people's words into text on a maestro call (the voice messages' engines, ADR 0100). */
   speech?: () => SpeechEngine[];
+  /** The server's log: what the maestro decides and why it stays quiet (§11). */
+  log?: {
+    info(message: string, data?: Record<string, unknown>): void;
+    warn(message: string, data?: Record<string, unknown>): void;
+  };
   now?: () => Date;
 }
 

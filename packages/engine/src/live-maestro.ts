@@ -269,6 +269,12 @@ export async function maestroJoined(
   const stage = await loadStage(deps, room, language);
   if (stage.opened) return;
   stage.opened = true;
+  deps.log?.info("maestro opened", {
+    roomId: room.id,
+    agents: stage.team.length,
+    voices: stage.team.filter((a) => a.voice).length,
+    topic: Boolean(stage.topic),
+  });
   void think(deps, stage, { reason: stage.topic ? "open-topic" : "open" });
 }
 
@@ -277,10 +283,14 @@ export async function maestroHush(deps: LiveVoiceDeps, userId: string, orgId: st
   const room = await requireInRoom(deps, userId, orgId, roomId);
   const stage = stages.get(room.id);
   if (!stage) return;
+  // Nothing starts while they talk; what is being prepared waits for them (their words may need it, or replace it).
+  stage.quietUntil = Date.now() + 6000;
+  // Only a voice actually playing is cut: a cough must not throw the next line away.
+  if (Date.now() >= stage.queueEndsAt) return;
   stage.gen++;
   stage.again = null;
   stage.queueEndsAt = 0;
-  stage.quietUntil = Date.now() + 8000;
+  deps.log?.info("maestro hush", { roomId: room.id });
   await tell(deps, room, { type: "live.hush", gen: stage.gen, by: userId });
 }
 
@@ -316,6 +326,12 @@ export async function maestroHeard(
   ).catch(() => null);
   stage.quietUntil = 0;
   const text = heard?.text.trim() ?? "";
+  deps.log?.info("maestro heard", {
+    roomId: room.id,
+    ms: input.durationMs,
+    chars: text.length,
+    engine: heard?.engine.id,
+  });
   if (!text) return { text: "" };
   const line: LiveRoomLine = {
     at: new Date().toISOString(),
@@ -405,8 +421,9 @@ async function speak(deps: LiveVoiceDeps, stage: Stage, room: Room, agent: Stage
           break;
         }
       }
-    } catch {
+    } catch (error) {
       // The line is shown anyway: the captions carry it.
+      deps.log?.warn("maestro voice failed", { roomId: stage.roomId, error: String(error).slice(0, 300) });
     } finally {
       speech.done = true;
       wakeAll();
@@ -484,6 +501,19 @@ async function namesOfPeople(deps: LiveVoiceDeps, room: Room) {
   return rows.map((r) => r.name || "someone");
 }
 
+/** What the lead says when a call opens with no topic: no model needed, so it comes at once. */
+function openingLine(stage: Stage, people: string[]) {
+  const lead = stage.team[0];
+  if (!lead) return null;
+  const names = people.map((p) => p.split(/\s+/)[0]).filter(Boolean);
+  const who = names.length === 1 ? names[0] : names.length ? "pessoal" : "";
+  const pt = stage.language.toLowerCase().startsWith("pt");
+  const say = pt
+    ? `Oi${who ? `, ${who}` : ""}! Tá todo mundo aqui. Sobre o que a gente vai falar?`
+    : `Hi${who ? `, ${who}` : ""}! Everyone's here. What shall we talk about?`;
+  return JSON.stringify({ speaker: lead.handle, say });
+}
+
 /** Older lines folded into a short running summary, so each call reads a few lines word for word and not the meeting. */
 async function summarize(deps: LiveVoiceDeps, stage: Stage, room: Room) {
   const old = room.lines.length - RECENT_LINES;
@@ -511,7 +541,18 @@ type Reason =
   | { reason: "answer"; agentId: string; answer: string | null; asked: string };
 
 /** One decision: who speaks next and what. Then the line is spoken, and the next one is prepared while it plays. */
-async function think(deps: LiveVoiceDeps, stage: Stage, why: Reason): Promise<void> {
+function think(deps: LiveVoiceDeps, stage: Stage, why: Reason): Promise<void> {
+  return thinkNow(deps, stage, why).catch((error) => {
+    stage.thinking = false;
+    deps.log?.warn("maestro think failed", {
+      roomId: stage.roomId,
+      reason: why.reason,
+      error: String(error).slice(0, 300),
+    });
+  });
+}
+
+async function thinkNow(deps: LiveVoiceDeps, stage: Stage, why: Reason): Promise<void> {
   if (!deps.think) return;
   if (stage.thinking) {
     // An answer waits for its turn; anything else is replaced by the newer reason.
@@ -560,18 +601,31 @@ async function think(deps: LiveVoiceDeps, stage: Stage, why: Reason): Promise<vo
       .filter(Boolean)
       .join("\n\n");
     stage.cost.thinks++;
-    const text = await deps
-      .think({
-        orgId: stage.orgId,
-        agentId: stage.team[0]?.id ?? null,
-        system: stageSystem(stage, people, Math.max(1, turnsLeft)),
-        prompt,
-        maxTokens: THINK_TOKENS,
-      })
-      .catch(() => null);
+    const started = Date.now();
+    // The opening greeting needs no model: it is said at once.
+    const greeting = why.reason === "open" ? openingLine(stage, people) : null;
+    const text =
+      greeting ??
+      (await deps
+        .think({
+          orgId: stage.orgId,
+          agentId: stage.team[0]?.id ?? null,
+          system: stageSystem(stage, people, Math.max(1, turnsLeft)),
+          prompt,
+          maxTokens: THINK_TOKENS,
+        })
+        .catch(() => null));
     // A person spoke (or hushed) meanwhile: this answer is for a moment that's gone.
     if (stage.gen !== gen && why.reason !== "answer") return;
     const plan = parsePlan(text, stage.team);
+    deps.log?.info("maestro think", {
+      roomId: stage.roomId,
+      reason: why.reason,
+      ms: Date.now() - started,
+      speaker: plan?.speaker ? stage.team.find((a) => a.id === plan.speaker)?.handle : null,
+      ...(plan ? {} : { answer: (text ?? "").slice(0, 160) }),
+      stale: stage.gen !== gen,
+    });
     const forced =
       why.reason === "answer"
         ? stage.team.find((a) => a.id === why.agentId)

@@ -17,12 +17,12 @@ export interface Say {
 
 const BLOCK = 2048;
 /** Speech starts after this much sound over the threshold (blocks of ~43 ms). */
-const START_BLOCKS = 2;
+const START_BLOCKS = 3;
 /** And ends after this much quiet: a breath inside a sentence isn't the end. */
 const END_MS = 750;
 const PREROLL_MS = 350;
 /** Shorter is a cough or a click. */
-const MIN_MS = 450;
+const MIN_MS = 500;
 const MAX_MS = 30_000;
 const RATE = 16_000;
 /** The pause between two agents' lines: a human gap, not a robot's. */
@@ -86,8 +86,9 @@ export class MaestroVoice {
     const blockMs = (data.length / this.o.ctx.sampleRate) * 1000;
     // While an agent plays, its voice may come back through the speakers: it takes more to count as the person.
     const echo = this.playing ? 2.2 : 1;
-    const start = Math.max(0.012, this.noise * 3.2) * echo;
-    const keep = Math.max(0.008, this.noise * 2) * echo;
+    // Above the room's own noise, and never below a voice's level: a fan or a keyboard isn't the person.
+    const start = Math.max(0.02, this.noise * 4) * echo;
+    const keep = Math.max(0.012, this.noise * 2.5) * echo;
     if (!this.micOn) return;
     if (!this.talking) {
       this.pre.push(data);
@@ -115,6 +116,7 @@ export class MaestroVoice {
   /** Its person started talking: every voice stops, here at once and for everyone through the server. */
   private hush() {
     this.drop(Number.POSITIVE_INFINITY);
+    // The server holds what it prepares while the person talks; it cuts only a voice playing.
     void this.o.api.liveVoice.hush(this.o.orgId, this.o.roomId).catch(() => {});
   }
 
