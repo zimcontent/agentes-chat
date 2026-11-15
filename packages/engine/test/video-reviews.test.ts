@@ -11,6 +11,7 @@ import {
   getVideoReview,
   listVideoReviews,
   sendForReview,
+  setReviewBrief,
   timecode,
   type VideoReviewDeps,
 } from "../src";
@@ -233,5 +234,49 @@ describe("video review", () => {
     ).rejects.toThrow();
     const full = await getVideoReview(deps(), f.owner.id, f.org.id, id);
     expect(full.notes[0]).toMatchObject({ endMs: 9_100, kind: "cut" });
+  });
+
+  test("a review carries what was asked and its links; a note may point at a spot of the picture", async () => {
+    f = await setup();
+    const v1 = await video("short-03.mp4");
+    const sent = await sendForReview(deps(), ctx(), {
+      artifactId: v1.id,
+      title: "Short 03",
+      client: "Alliance",
+      brief: "Travis: 1 reel per question.",
+      links: [
+        { label: "Asana task", url: "https://app.asana.com/0/1/2" },
+        { label: "bad", url: "javascript:alert(1)" },
+      ],
+    });
+    const id = sent.review.id;
+    let full = await getVideoReview(deps(), f.owner.id, f.org.id, id);
+    expect(full.brief).toBe("Travis: 1 reel per question.");
+    expect(full.links).toEqual([{ label: "Asana task", url: "https://app.asana.com/0/1/2" }]);
+
+    await setReviewBrief(deps(), ctx(), { reviewId: id, links: [{ label: "Footage", url: "https://f.io/abc" }] });
+    full = await getVideoReview(deps(), f.owner.id, f.org.id, id);
+    expect(full.brief).toBe("Travis: 1 reel per question.");
+    expect(full.links).toEqual([{ label: "Footage", url: "https://f.io/abc" }]);
+
+    const note = await addReviewNote(deps(), f.owner.id, f.org.id, id, {
+      version: 1,
+      atMs: 2_000,
+      x: 0.62,
+      y: 1.4,
+      body: "logo aqui",
+    });
+    expect(note).toMatchObject({ x: 0.62, y: 1 });
+    await decideVideoReview(deps(), f.owner.id, f.org.id, id, { decision: "changes" });
+    const text = decisionMessage({
+      handle: "a",
+      title: "t",
+      version: 1,
+      reviewId: "r",
+      decision: "changes",
+      message: "",
+      notes: [{ atMs: 2_000, x: 0.62, y: 0.3, body: "logo aqui", author: "" }],
+    });
+    expect(text).toContain("- [0:02.0] logo aqui [na tela: 62% da largura, 30% da altura]");
   });
 });

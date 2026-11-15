@@ -71,8 +71,13 @@ const en = {
   fwd1s: "Forward a second",
   speed: "Speed",
   download: "Download",
-  keys: "Click the picture to note that point · Space play · J/L slower/faster · ←/→ frame · Shift ±1 s · Enter note",
-  keysClosed: "Space play · J/L slower/faster · ←/→ frame · Shift ±1 s",
+  keys: "Click the picture to note that point · Space play · J/L slower/faster · ←/→ frame · Shift ±1 s · ↑/↓ volume · M mute · Enter note",
+  keysClosed: "Space play · J/L slower/faster · ←/→ frame · Shift ±1 s · M mute",
+  volume: "Volume",
+  mute: "Mute",
+  unmute: "Unmute",
+  briefTitle: "Brief",
+  noBrief: "The agent didn't record what was asked for this video.",
 };
 
 export type ReviewWords = typeof en;
@@ -144,8 +149,13 @@ const ptBR: ReviewWords = {
   fwd1s: "Avançar um segundo",
   speed: "Velocidade",
   download: "Baixar",
-  keys: "Clique no vídeo para comentar aquele ponto · Espaço toca · J/L mais lento/rápido · ←/→ quadro · Shift ±1 s · Enter nota",
-  keysClosed: "Espaço toca · J/L mais lento/rápido · ←/→ quadro · Shift ±1 s",
+  keys: "Clique no vídeo para comentar aquele ponto · Espaço toca · J/L mais lento/rápido · ←/→ quadro · Shift ±1 s · ↑/↓ volume · M sem som · Enter nota",
+  keysClosed: "Espaço toca · J/L mais lento/rápido · ←/→ quadro · Shift ±1 s · M sem som",
+  volume: "Volume",
+  mute: "Tirar o som",
+  unmute: "Voltar o som",
+  briefTitle: "Briefing",
+  noBrief: "O agente não registrou o que foi pedido para este vídeo.",
 };
 
 export function useReviewWords(): ReviewWords {

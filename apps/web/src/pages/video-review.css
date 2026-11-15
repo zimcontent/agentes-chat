@@ -378,3 +378,48 @@
   font-size: var(--text-xs);
   line-height: 16px;
 }
+
+/* The spot a note points at: a ring on the frame (orange while it is being written). */
+.vr-ring {
+  position: absolute;
+  z-index: 1;
+  width: 48px;
+  height: 48px;
+  margin: -24px 0 0 -24px;
+  border: 3px solid var(--agent);
+  border-radius: var(--radius-full);
+  box-shadow:
+    0 0 0 2px rgb(0 0 0 / 0.55),
+    inset 0 0 0 2px rgb(0 0 0 / 0.35);
+  pointer-events: none;
+}
+.vr-ring[data-draft] {
+  border-color: var(--warn);
+}
+
+.vr-volume {
+  width: 88px;
+  accent-color: var(--agent);
+}
+
+/* What was asked of the editor, under the player. */
+.vr-brief {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-4);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+}
+.vr-brief__text {
+  margin: 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  line-height: 1.5;
+}
+.vr-brief__links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}

@@ -27,6 +27,9 @@ export interface VideoReviewNote {
   /** Where a stretch ends; null: one point. */
   endMs: number | null;
   kind: VideoReviewNoteKind | null;
+  /** Where on the picture the reviewer pointed (fractions of width and height); null: nowhere in particular. */
+  x: number | null;
+  y: number | null;
   body: string;
   /** Said aloud and transcribed. */
   voice: boolean;
@@ -37,6 +40,10 @@ export interface VideoReviewNote {
 }
 
 export interface VideoReview extends VideoReviewSummary {
+  /** What was asked of the editor and whether there was direction; "" when the agent didn't say. */
+  brief: string;
+  /** The task, the footage, the delivery. */
+  links: { label: string; url: string }[];
   versions: { version: number; artifactId: string; note: string; createdAt: string }[];
   notes: VideoReviewNote[];
   decidedBy: { id: string; name: string } | null;
@@ -54,6 +61,8 @@ export interface VideoReviewNoteInput {
   atMs: number | null;
   endMs?: number | null;
   kind?: VideoReviewNoteKind | null;
+  x?: number | null;
+  y?: number | null;
   body: string;
 }
 
@@ -64,5 +73,7 @@ export interface VideoReviewVoiceInput {
   atMs: number | null;
   endMs?: number | null;
   kind?: VideoReviewNoteKind | null;
+  x?: number | null;
+  y?: number | null;
   language?: string;
 }

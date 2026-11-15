@@ -178,6 +178,7 @@ const HERE = new Set([
   "offer_answers",
   // A video for the team's review, answered in this conversation (docs/adr/doug-0007-video-review.md).
   "send_for_review",
+  "set_review_brief",
   "follow_up",
   "cancel_follow_up",
   // Lets another agent's wait here go, with a note here (`parked-asks.ts`).

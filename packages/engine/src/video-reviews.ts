@@ -19,6 +19,11 @@ type VideoReviewStatus = schema.VideoReviewStatus;
  */
 
 export const SEND_FOR_REVIEW_TOOL = "send_for_review";
+export const SET_REVIEW_BRIEF_TOOL = "set_review_brief";
+/** The most a brief says. */
+export const REVIEW_BRIEF_CHARS = 6000;
+/** The most links a review shows. */
+export const REVIEW_LINKS = 8;
 
 /** A video file, by the name it was stored with: what a phone's browser plays. */
 const VIDEO_NAME = /\.(mp4|m4v|mov|webm)$/i;
@@ -63,6 +68,8 @@ export interface VideoReviewNoteView {
   atMs: number | null;
   endMs: number | null;
   kind: ReviewNoteKind | null;
+  x: number | null;
+  y: number | null;
   body: string;
   voice: boolean;
   author: { id: string; name: string } | null;
@@ -86,6 +93,8 @@ export interface VideoReviewSummary {
 }
 
 export interface VideoReviewView extends VideoReviewSummary {
+  brief: string;
+  links: schema.VideoReviewLink[];
   versions: VideoReviewVersionView[];
   notes: VideoReviewNoteView[];
   decidedBy: { id: string; name: string } | null;
@@ -106,12 +115,42 @@ export function timecode(ms: number | null): string {
   return h > 0 ? `${h}:${two(m % 60)}:${two(s % 60)}.${tenth}` : `${m}:${two(s % 60)}.${tenth}`;
 }
 
+/** Where on the picture, as the agent reads it: ` [na tela: 62% da largura, 30% da altura]`. */
+function spot(x: number | null, y: number | null): string {
+  if (x === null || y === null) return "";
+  return ` [na tela: ${Math.round(x * 100)}% da largura, ${Math.round(y * 100)}% da altura]`;
+}
+
 /** `0:06.4` or `0:06.4–0:09.1`, as the agent reads where a note is. */
 function where(atMs: number | null, endMs: number | null): string {
   return endMs !== null && atMs !== null ? `${timecode(atMs)}–${timecode(endMs)}` : timecode(atMs);
 }
 
 const cleanText = (text: string) => text.replace(/\r\n?/g, "\n").trim().slice(0, REVIEW_NOTE_CHARS);
+
+/** Links a reviewer can open: http(s) only, a short label each, at most `REVIEW_LINKS`. */
+export function cleanLinks(links: unknown): schema.VideoReviewLink[] {
+  if (!Array.isArray(links)) return [];
+  const out: schema.VideoReviewLink[] = [];
+  for (const link of links) {
+    if (!link || typeof link !== "object") continue;
+    const { label, url } = link as Record<string, unknown>;
+    if (typeof url !== "string") continue;
+    let parsed: URL;
+    try {
+      parsed = new URL(url.trim());
+    } catch {
+      continue;
+    }
+    if (parsed.protocol !== "https:" && parsed.protocol !== "http:") continue;
+    const name = typeof label === "string" && label.trim() ? label.trim().slice(0, 60) : parsed.hostname;
+    out.push({ label: name, url: parsed.toString() });
+    if (out.length >= REVIEW_LINKS) break;
+  }
+  return out;
+}
+
+const cleanBrief = (text: string) => text.replace(/\r\n?/g, "\n").trim().slice(0, REVIEW_BRIEF_CHARS);
 
 // ---------- the agent's side ----------
 
@@ -122,6 +161,9 @@ export interface SendForReviewInput {
   note?: string;
   /** A review it sent before: this is its next version. */
   reviewId?: string;
+  /** What was asked, and whether there was direction; kept when a next version leaves it out. */
+  brief?: string;
+  links?: unknown;
 }
 
 /**
@@ -175,6 +217,10 @@ export async function sendForReview(
           decidedAt: null,
           updatedAt: now,
           ...(input.title?.trim() ? { title: input.title.trim().slice(0, 200) } : {}),
+          ...(input.brief?.trim() ? { brief: cleanBrief(input.brief) } : {}),
+          ...(input.links !== undefined && cleanLinks(input.links).length > 0
+            ? { links: cleanLinks(input.links) }
+            : {}),
         })
         .where(eq(videoReviews.id, review.id));
       return review.id;
@@ -189,6 +235,8 @@ export async function sendForReview(
         threadId: replyThreadOf(ctx),
         title,
         client: input.client?.trim().slice(0, 80) ?? "",
+        brief: cleanBrief(input.brief ?? ""),
+        links: cleanLinks(input.links),
       })
       .returning({ id: videoReviews.id });
     if (!row) throw new Error("video review not inserted");
@@ -218,6 +266,8 @@ function sendTool(deps: VideoReviewDeps): ToolDefinition {
         client: { type: "string", maxLength: 80, description: "The client it is for (e.g. Alliance)." },
         note: { type: "string", maxLength: 2000 },
         review_id: { type: "string", minLength: 36, maxLength: 36 },
+        brief: BRIEF_SCHEMA,
+        links: LINKS_SCHEMA,
       },
       required: ["artifact_id"],
       additionalProperties: false,
@@ -231,6 +281,8 @@ function sendTool(deps: VideoReviewDeps): ToolDefinition {
           client: toolText(input.client) || undefined,
           note: toolText(input.note) || undefined,
           reviewId: toolText(input.review_id) || undefined,
+          brief: toolText(input.brief) || undefined,
+          links: input.links,
         });
         return {
           content:
@@ -248,13 +300,96 @@ function sendTool(deps: VideoReviewDeps): ToolDefinition {
   };
 }
 
-/** `send_for_review`, for agents in a run (a routine's background run sends nothing for review). */
+/** The agent sets or corrects the brief and links of a video it sent, without a new version. */
+export async function setReviewBrief(
+  deps: Pick<VideoReviewDeps, "db">,
+  ctx: Pick<ToolContext, "orgId" | "agentId">,
+  input: { reviewId: string; brief?: string; links?: unknown },
+): Promise<VideoReviewSummary> {
+  const [review] = await deps.db
+    .select()
+    .from(videoReviews)
+    .where(and(eq(videoReviews.orgId, ctx.orgId), eq(videoReviews.id, input.reviewId)));
+  if (!review) throw new NotFoundError("No such review");
+  if (review.agentId !== ctx.agentId) {
+    throw new ValidationError("This review is another agent's video", "video_review.not_yours");
+  }
+  await deps.db
+    .update(videoReviews)
+    .set({
+      ...(input.brief !== undefined ? { brief: cleanBrief(input.brief) } : {}),
+      ...(input.links !== undefined ? { links: cleanLinks(input.links) } : {}),
+    })
+    .where(eq(videoReviews.id, review.id));
+  const [summary] = await summaries(deps.db, ctx.orgId, [review.id]);
+  if (!summary) throw new NotFoundError("No such review");
+  return summary;
+}
+
+const BRIEF_SCHEMA = {
+  type: "string",
+  maxLength: REVIEW_BRIEF_CHARS,
+  description:
+    "What was asked of you, shown to the reviewer under the video: the request in the asker's words (who asked, where), the direction given (style, length, format, references) or, when there was none, say so and what you decided from (e.g. 'No direction: same look as the approved reel 1').",
+} as const;
+const LINKS_SCHEMA = {
+  type: "array",
+  maxItems: REVIEW_LINKS,
+  description:
+    "Where the work comes from and goes, as buttons under the video: the task (Asana), the footage (Frame.io), the delivery folder once it exists.",
+  items: {
+    type: "object",
+    properties: {
+      label: { type: "string", maxLength: 60, description: "e.g. 'Asana task', 'Footage (Frame.io)'." },
+      url: { type: "string", maxLength: 2000 },
+    },
+    required: ["url"],
+    additionalProperties: false,
+  },
+} as const;
+
+function briefTool(deps: VideoReviewDeps): ToolDefinition {
+  return {
+    name: SET_REVIEW_BRIEF_TOOL,
+    description:
+      "Set or correct what the reviewer reads under a video you sent for review: the brief (what was asked and whether there was direction) and the links (task, footage, delivery). Each field you pass replaces the old one; leave one out to keep it.",
+    scope: "",
+    inputSchema: {
+      type: "object",
+      properties: {
+        review_id: { type: "string", minLength: 36, maxLength: 36 },
+        brief: BRIEF_SCHEMA,
+        links: LINKS_SCHEMA,
+      },
+      required: ["review_id"],
+      additionalProperties: false,
+    },
+    describe: () => ({ title: "Update a review's brief" }),
+    async execute(input, ctx): Promise<ToolOutput> {
+      try {
+        const review = await setReviewBrief(deps, ctx, {
+          reviewId: toolText(input.review_id),
+          brief: typeof input.brief === "string" ? input.brief : undefined,
+          links: input.links,
+        });
+        return { content: `Brief updated on "${review.title}" (review_id ${review.id}).` };
+      } catch (error) {
+        if (error instanceof ValidationError || error instanceof NotFoundError) {
+          return { content: `Not updated: ${error.message}`, isError: true };
+        }
+        throw error;
+      }
+    },
+  };
+}
+
+/** `send_for_review` and `set_review_brief`, for agents in a run (a routine's background run sends nothing). */
 export function createVideoReviewToolSource(deps: VideoReviewDeps | null): ToolSource {
   return {
     name: "video-review",
     async tools(ctx) {
       if (!deps || !ctx.runId || ctx.background) return [];
-      return [sendTool(deps)];
+      return [sendTool(deps), briefTool(deps)];
     },
   };
 }
@@ -372,6 +507,8 @@ export async function getVideoReview(
     : [];
   return {
     ...summary,
+    brief: review.brief,
+    links: review.links ?? [],
     versions: versions.map((v) => ({
       version: v.version,
       artifactId: v.artifactId,
@@ -384,6 +521,8 @@ export async function getVideoReview(
       atMs: note.atMs,
       endMs: note.endMs,
       kind: (note.kind as ReviewNoteKind | null) ?? null,
+      x: note.x,
+      y: note.y,
       body: note.body,
       voice: note.voice,
       author: note.authorUserId ? { id: note.authorUserId, name: authorName ?? "" } : null,
@@ -403,6 +542,9 @@ export interface ReviewNoteInput {
   /** Where the stretch ends; only with `atMs`, and after it. */
   endMs?: number | null;
   kind?: ReviewNoteKind | null;
+  /** Where on the picture, as fractions (0–1) of its width and height. */
+  x?: number | null;
+  y?: number | null;
   body: string;
 }
 
@@ -425,6 +567,10 @@ async function writeNote(
     throw new ValidationError("A stretch ends after it starts", "video_review.bad_range");
   }
   const kind = input.kind ?? null;
+  const frac = (v: number | null | undefined) =>
+    typeof v === "number" && Number.isFinite(v) ? Math.min(1, Math.max(0, v)) : null;
+  const x = frac(input.x);
+  const y = x === null ? null : frac(input.y);
   if (kind !== null && !REVIEW_NOTE_KINDS.includes(kind)) {
     throw new ValidationError("No such kind of note", "video_review.bad_kind");
   }
@@ -437,6 +583,8 @@ async function writeNote(
       atMs,
       endMs: end,
       kind,
+      x: y === null ? null : x,
+      y,
       body,
       voice: input.voice,
       authorUserId: userId,
@@ -451,6 +599,8 @@ async function writeNote(
     atMs: row.atMs,
     endMs: row.endMs,
     kind: (row.kind as ReviewNoteKind | null) ?? null,
+    x: row.x,
+    y: row.y,
     body: row.body,
     voice: row.voice,
     author: author ?? null,
@@ -478,6 +628,8 @@ export async function addVoiceReviewNote(
     atMs: number | null;
     endMs?: number | null;
     kind?: ReviewNoteKind | null;
+    x?: number | null;
+    y?: number | null;
     audio: Uint8Array;
     contentType: string;
     language: string | null;
@@ -510,6 +662,8 @@ export async function addVoiceReviewNote(
     atMs: input.atMs,
     endMs: input.endMs ?? null,
     kind: input.kind ?? null,
+    x: input.x ?? null,
+    y: input.y ?? null,
     body: text,
     voice: true,
   });
@@ -546,7 +700,15 @@ export function decisionMessage(input: {
   version: number;
   reviewId: string;
   decision: ReviewDecision;
-  notes: { atMs: number | null; endMs?: number | null; kind?: string | null; body: string; author: string }[];
+  notes: {
+    atMs: number | null;
+    endMs?: number | null;
+    kind?: string | null;
+    x?: number | null;
+    y?: number | null;
+    body: string;
+    author: string;
+  }[];
   message: string;
 }): string {
   const lines: string[] = [];
@@ -565,7 +727,7 @@ export function decisionMessage(input: {
       lines.push(
         `- [${where(note.atMs, note.endMs ?? null)}]${
           note.kind && note.kind in KIND_WORDS ? ` ${KIND_WORDS[note.kind as ReviewNoteKind]}:` : ""
-        } ${note.body.replace(/\n+/g, " ")}${note.author ? ` (${note.author})` : ""}`,
+        } ${note.body.replace(/\n+/g, " ")}${spot(note.x ?? null, note.y ?? null)}${note.author ? ` (${note.author})` : ""}`,
       );
     }
   }
@@ -601,6 +763,8 @@ export async function decideVideoReview(
       atMs: videoReviewNotes.atMs,
       endMs: videoReviewNotes.endMs,
       kind: videoReviewNotes.kind,
+      x: videoReviewNotes.x,
+      y: videoReviewNotes.y,
       body: videoReviewNotes.body,
       author: users.name,
     })
@@ -646,7 +810,15 @@ export async function decideVideoReview(
       version: review.version,
       reviewId: review.id,
       decision: input.decision,
-      notes: notes.map((n) => ({ atMs: n.atMs, endMs: n.endMs, kind: n.kind, body: n.body, author: n.author ?? "" })),
+      notes: notes.map((n) => ({
+        atMs: n.atMs,
+        endMs: n.endMs,
+        kind: n.kind,
+        x: n.x,
+        y: n.y,
+        body: n.body,
+        author: n.author ?? "",
+      })),
       message,
     }),
     threadId: review.threadId,
