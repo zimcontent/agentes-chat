@@ -71,13 +71,20 @@ const en = {
   fwd1s: "Forward a second",
   speed: "Speed",
   download: "Download",
-  keys: "Click the picture to note that point · Space play · J/L slower/faster · ←/→ frame · Shift ±1 s · ↑/↓ volume · M mute · Enter note",
+  keys: "Click the picture to note that point · Space play · J/L slower/faster · ←/→ frame · Shift ±1 s · ↑/↓ volume · M mute · Enter note · drag a photo, clip or link onto the video",
   keysClosed: "Space play · J/L slower/faster · ←/→ frame · Shift ±1 s · M mute",
   volume: "Volume",
   mute: "Mute",
   unmute: "Unmute",
   briefTitle: "Brief",
   noBrief: "The agent didn't record what was asked for this video.",
+  attachFile: "Photo or video",
+  linkPlaceholder: "B-roll link (YouTube, Pexels, Drive…)",
+  removeAttachment: "Remove attachment",
+  uploadFailed: "Didn't upload",
+  attachments: "Attachments",
+  dropHere: "Drop it here: a note at this point, for the editor to put it in",
+  brollPlaceholder: "How should it go in? e.g. full screen for 2 s, over her shoulder, with a slow zoom…",
 };
 
 export type ReviewWords = typeof en;
@@ -149,13 +156,20 @@ const ptBR: ReviewWords = {
   fwd1s: "Avançar um segundo",
   speed: "Velocidade",
   download: "Baixar",
-  keys: "Clique no vídeo para comentar aquele ponto · Espaço toca · J/L mais lento/rápido · ←/→ quadro · Shift ±1 s · ↑/↓ volume · M sem som · Enter nota",
+  keys: "Clique no vídeo para comentar aquele ponto · Espaço toca · J/L mais lento/rápido · ←/→ quadro · Shift ±1 s · ↑/↓ volume · M sem som · Enter nota · arraste foto, vídeo ou link para o player",
   keysClosed: "Espaço toca · J/L mais lento/rápido · ←/→ quadro · Shift ±1 s · M sem som",
   volume: "Volume",
   mute: "Tirar o som",
   unmute: "Voltar o som",
   briefTitle: "Briefing",
   noBrief: "O agente não registrou o que foi pedido para este vídeo.",
+  attachFile: "Foto ou vídeo",
+  linkPlaceholder: "Link de B-roll (YouTube, Pexels, Drive…)",
+  removeAttachment: "Tirar anexo",
+  uploadFailed: "Não subiu",
+  attachments: "Anexos",
+  dropHere: "Solte aqui: vira uma nota neste ponto para o editor colocar",
+  brollPlaceholder: "Como entra? Ex.: tela cheia por 2 s, no canto, com zoom lento…",
 };
 
 export function useReviewWords(): ReviewWords {

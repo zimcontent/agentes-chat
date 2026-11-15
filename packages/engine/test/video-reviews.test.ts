@@ -281,4 +281,63 @@ describe("video review", () => {
     });
     expect(text).toContain("- [0:02.0] logo aqui [na tela: 62% da largura, 30% da altura]");
   });
+
+  test("a note hands the editor a photo of the conversation and a B-roll link; the agent is told how to fetch them", async () => {
+    f = await setup();
+    const v1 = await video("short-04.mp4");
+    const sent = await sendForReview(deps(), ctx(), { artifactId: v1.id, title: "Short 04", client: "Alliance" });
+    const id = sent.review.id;
+    const photo = await createFileArtifact(f.artifactDeps, { type: "person", userId: f.owner.id }, f.org.id, {
+      title: "familia.jpg",
+      name: "familia.jpg",
+      bytes: new Uint8Array([255, 216, 255]),
+      contentType: "image/jpeg",
+      channelId: f.general.id,
+    });
+    const elsewhere = await createFileArtifact(f.artifactDeps, { type: "person", userId: f.owner.id }, f.org.id, {
+      title: "drive.jpg",
+      name: "drive.jpg",
+      bytes: new Uint8Array([255, 216, 255]),
+      contentType: "image/jpeg",
+    });
+
+    // A file that is not in the video's conversation is refused: the agent couldn't reach it.
+    await expect(
+      addReviewNote(deps(), f.owner.id, f.org.id, id, {
+        version: 1,
+        atMs: 1_000,
+        attachments: [{ artifactId: elsewhere.id }],
+        body: "x",
+      }),
+    ).rejects.toThrow();
+    await expect(
+      addReviewNote(deps(), f.owner.id, f.org.id, id, {
+        version: 1,
+        atMs: 1_000,
+        attachments: [{ url: "javascript:alert(1)" }],
+        body: "x",
+      }),
+    ).rejects.toThrow();
+
+    // No words needed: the photo says it.
+    const note = await addReviewNote(deps(), f.owner.id, f.org.id, id, {
+      version: 1,
+      atMs: 4_200,
+      kind: "broll",
+      attachments: [{ artifactId: photo.id, name: "familia.jpg" }, { url: "https://www.pexels.com/video/123/" }],
+      body: "",
+    });
+    expect(note.attachments).toEqual([
+      { type: "file", artifactId: photo.id, name: "familia.jpg", media: "image" },
+      { type: "link", url: "https://www.pexels.com/video/123/", label: "www.pexels.com" },
+    ]);
+    const full = await getVideoReview(deps(), f.owner.id, f.org.id, id);
+    expect(full.notes[0]?.attachments).toHaveLength(2);
+
+    await decideVideoReview(deps(), f.owner.id, f.org.id, id, { decision: "changes" });
+    const asked = await lastMessage();
+    expect(asked?.body).toContain("- [0:04.2] Cards/B-roll: (sem texto: veja o anexo)");
+    expect(asked?.body).toContain(`Anexo (imagem): familia.jpg — traga com import_file artifact_id ${photo.id}`);
+    expect(asked?.body).toContain("Link: www.pexels.com — https://www.pexels.com/video/123/");
+  });
 });

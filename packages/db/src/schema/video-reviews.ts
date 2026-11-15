@@ -46,6 +46,10 @@ export interface VideoReviewLink {
   label: string;
   url: string;
 }
+/** A file a reviewer dropped on a note (stored as a file of the review's conversation), or a link they pasted. */
+export type VideoReviewAttachment =
+  | { type: "file"; artifactId: string; name: string; media: "image" | "video" | "audio" | "other" }
+  | { type: "link"; url: string; label: string };
 
 /** One version of a reviewed video: a file of the Drive or a conversation (an artifact). */
 export const videoReviewVersions = pgTable(
@@ -93,6 +97,8 @@ export const videoReviewNotes = pgTable(
     /** What the note is about (`REVIEW_NOTE_KINDS` in the engine); null: not said. */
     kind: text(),
     body: text().notNull(),
+    /** What the reviewer handed over with the note: files of the conversation (a photo, a clip) and links (B-roll). */
+    attachments: jsonb().$type<VideoReviewAttachment[]>().notNull().default([]),
     voice: boolean().notNull().default(false),
     authorUserId: text().references(() => users.id, { onDelete: "set null" }),
     /** Sent to the agent with a decision: kept, read only. */

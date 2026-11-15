@@ -290,6 +290,7 @@ export const EXTRA_COLUMNS = [
   `ALTER TABLE "video_review_notes" ADD COLUMN IF NOT EXISTS "y" real`,
   `ALTER TABLE "video_reviews" ADD COLUMN IF NOT EXISTS "brief" text NOT NULL DEFAULT ''`,
   `ALTER TABLE "video_reviews" ADD COLUMN IF NOT EXISTS "links" jsonb NOT NULL DEFAULT '[]'::jsonb`,
+  `ALTER TABLE "video_review_notes" ADD COLUMN IF NOT EXISTS "attachments" jsonb NOT NULL DEFAULT '[]'::jsonb`,
 ];
 
 /** The advisory lock every process takes around its migrations (`DatabaseHandle.migrate`). */

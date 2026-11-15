@@ -31,6 +31,8 @@ export interface VideoReviewNote {
   x: number | null;
   y: number | null;
   body: string;
+  /** Files of the review's conversation and links the reviewer handed over with the note. */
+  attachments: VideoReviewAttachment[];
   /** Said aloud and transcribed. */
   voice: boolean;
   author: { id: string; name: string } | null;
@@ -52,6 +54,13 @@ export interface VideoReview extends VideoReviewSummary {
 
 export type VideoReviewDecision = "approve" | "changes";
 
+export type VideoReviewAttachment =
+  | { type: "file"; artifactId: string; name: string; media: "image" | "video" | "audio" | "other" }
+  | { type: "link"; url: string; label: string };
+
+/** What a note hands over: a file uploaded to the review's conversation, or a link. */
+export type VideoReviewAttachmentInput = { artifactId: string; name?: string } | { url: string; label?: string };
+
 /** What a note is about, as the reviewer tagged it (the engine's `REVIEW_NOTE_KINDS`). */
 export const VIDEO_REVIEW_NOTE_KINDS = ["cut", "text", "motion", "sound", "color", "broll", "other"] as const;
 export type VideoReviewNoteKind = (typeof VIDEO_REVIEW_NOTE_KINDS)[number];
@@ -63,6 +72,7 @@ export interface VideoReviewNoteInput {
   kind?: VideoReviewNoteKind | null;
   x?: number | null;
   y?: number | null;
+  attachments?: VideoReviewAttachmentInput[];
   body: string;
 }
 
@@ -75,5 +85,6 @@ export interface VideoReviewVoiceInput {
   kind?: VideoReviewNoteKind | null;
   x?: number | null;
   y?: number | null;
+  attachments?: VideoReviewAttachmentInput[];
   language?: string;
 }

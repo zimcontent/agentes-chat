@@ -30,6 +30,14 @@ import { useApi } from "@/api/context";
 import { AgentAvatar } from "@/components/AgentAvatar";
 import { ErrorState } from "@/components/Loading";
 import { useOrg } from "@/components/org-context";
+import {
+  AttachEditor,
+  carries,
+  dropped,
+  linksIn,
+  NoteAttachments,
+  useAttachments,
+} from "@/components/video-review/Attachments";
 import { frameCode, type ReviewWords, timecode, useReviewWords } from "@/components/video-review/words";
 import { useToast } from "@/lib/toast";
 import "./video-review.css";
@@ -38,7 +46,8 @@ import "./video-review.css";
  * Video review (docs/adr/doug-0007-video-review.md): the videos agents sent for review, and one video's player with
  * notes pinned to a point or a stretch, typed or said, then "Aprovar" or "Pedir ajustes". The player works like an
  * editor's: space plays, J/K/L change the speed, the arrows step a frame (with Shift a second), a click on the picture
- * opens a note right there. On a phone the same tap opens the note; the buttons under the picture do the rest.
+ * opens a note right there. On a phone the same tap opens the note; the buttons under the picture do the rest. A photo,
+ * a clip or a link dropped on the picture opens a note at that point carrying it, for the editor to put in.
  */
 
 const TONE: Record<VideoReviewSummary["status"], ChipTone> = {
@@ -274,7 +283,8 @@ function NoteRow({
       )}
       <span className="vr-note__words">
         {note.kind && <span className="vr-note__kind">{w.kinds[note.kind]}</span>}
-        <span className="vr-note__body">{note.body}</span>
+        {note.body && <span className="vr-note__body">{note.body}</span>}
+        <NoteAttachments items={note.attachments} w={w} />
         <span className="vr-note__meta">
           {[note.author?.name, note.voice ? w.voice : "", note.sent ? w.sent : ""].filter(Boolean).join(" · ")}
         </span>
@@ -388,6 +398,9 @@ function ReviewBody({ review, w }: { review: VideoReview; w: ReviewWords }) {
   const [draftText, setDraftText] = useState("");
   const [wholeText, setWholeText] = useState("");
   const [message, setMessage] = useState("");
+  const [dropping, setDropping] = useState(false);
+  const draftFiles = useAttachments(review);
+  const wholeFiles = useAttachments(review);
   const addNote = useAddReviewNote(org.id, review.id);
   const addVoice = useAddVoiceReviewNote(org.id, review.id);
   const removeNote = useDeleteReviewNote(org.id, review.id);
@@ -488,15 +501,22 @@ function ReviewBody({ review, w }: { review: VideoReview; w: ReviewWords }) {
     if (v.paused) void v.play();
   };
 
-  const openDraft = (px = 0.5, py = 0.5, x: number | null = null, y: number | null = null) => {
+  const openDraft = (
+    px = 0.5,
+    py = 0.5,
+    x: number | null = null,
+    y: number | null = null,
+    kind: VideoReviewNoteKind | null = null,
+  ) => {
     const v = video.current;
     if (!v || !open) return;
     v.pause();
-    setDraft({ atMs: Math.round(v.currentTime * 1000), endMs: null, kind: null, px, py, x, y, marking: false });
+    setDraft({ atMs: Math.round(v.currentTime * 1000), endMs: null, kind, px, py, x, y, marking: false });
   };
   const closeDraft = () => {
     setDraft(null);
     setDraftText("");
+    draftFiles.clear();
   };
   const markEnd = () => {
     const v = video.current;
@@ -510,18 +530,38 @@ function ReviewBody({ review, w }: { review: VideoReview; w: ReviewWords }) {
     setDraft({ ...draft, marking: true, endMs: null });
     void video.current?.play();
   };
+  const draftReady = !draftFiles.busy && (draftText.trim() !== "" || draftFiles.count > 0);
   const saveDraft = () => {
     const body = draftText.trim();
-    if (!draft || !body) return;
+    if (!draft || !draftReady) return;
     addNote.mutate(
-      { version, atMs: draft.atMs, endMs: draft.endMs, kind: draft.kind, x: draft.x, y: draft.y, body },
+      {
+        version,
+        atMs: draft.atMs,
+        endMs: draft.endMs,
+        kind: draft.kind,
+        x: draft.x,
+        y: draft.y,
+        attachments: draftFiles.inputs,
+        body,
+      },
       { onSuccess: closeDraft, onError: failed },
     );
   };
+  const wholeReady = !wholeFiles.busy && (wholeText.trim() !== "" || wholeFiles.count > 0);
   const saveWhole = () => {
     const body = wholeText.trim();
-    if (!body) return;
-    addNote.mutate({ version, atMs: null, body }, { onSuccess: () => setWholeText(""), onError: failed });
+    if (!wholeReady) return;
+    addNote.mutate(
+      { version, atMs: null, attachments: wholeFiles.inputs, body },
+      {
+        onSuccess: () => {
+          setWholeText("");
+          wholeFiles.clear();
+        },
+        onError: failed,
+      },
+    );
   };
 
   // Which note the voice goes to: the open box's point, or the whole video from the side card.
@@ -539,9 +579,16 @@ function ReviewBody({ review, w }: { review: VideoReview; w: ReviewWords }) {
           kind: d?.kind ?? null,
           x: d?.x ?? null,
           y: d?.y ?? null,
+          attachments: d ? draftFiles.inputs : wholeFiles.inputs,
           language: i18n.language?.slice(0, 2),
         },
-        { onSuccess: () => d && closeDraft(), onError: failed },
+        {
+          onSuccess: () => {
+            if (d) closeDraft();
+            else wholeFiles.clear();
+          },
+          onError: failed,
+        },
       );
     },
     () => toast.show(w.micBlocked, "error"),
@@ -637,6 +684,54 @@ function ReviewBody({ review, w }: { review: VideoReview; w: ReviewWords }) {
     );
   };
 
+  // A photo, a clip or a link dropped on the picture: a note at that point and frame, about B-roll unless said otherwise.
+  const onDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    setDropping(false);
+    if (!open) return;
+    e.preventDefault();
+    const { files, links } = dropped(e.dataTransfer);
+    if (files.length === 0 && links.length === 0) return;
+    if (!draft) {
+      const box = e.currentTarget.getBoundingClientRect();
+      const px = e.clientX - box.left;
+      const py = e.clientY - box.top;
+      const f = frameBoxOf(video.current);
+      const inside = f && px >= f.left && px <= f.left + f.width && py >= f.top && py <= f.top + f.height;
+      openDraft(
+        px / box.width,
+        py / box.height,
+        inside && f ? (px - f.left) / f.width : null,
+        inside && f ? (py - f.top) / f.height : null,
+        "broll",
+      );
+    } else if (draft.marking) {
+      markEnd();
+    }
+    if (files.length > 0) draftFiles.addFiles(files);
+    if (links.length > 0) draftFiles.addLinks(links);
+  };
+  const dragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    if (!open || !carries(e.dataTransfer)) return;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "copy";
+    if (!dropping) setDropping(true);
+  };
+  // A pasted screenshot or link in a note's field goes in as an attachment; text pastes as text.
+  const pasteInto = (at: typeof draftFiles) => (e: React.ClipboardEvent<HTMLTextAreaElement>) => {
+    const files = [...e.clipboardData.files];
+    if (files.length > 0) {
+      e.preventDefault();
+      at.addFiles(files);
+      return;
+    }
+    const text = e.clipboardData.getData("text/plain").trim();
+    const urls = linksIn(text);
+    if (urls.length === 1 && urls[0] === text) {
+      e.preventDefault();
+      at.addLinks(urls);
+    }
+  };
+
   const decideAs = (decision: "approve" | "changes") =>
     decide.mutate(
       { decision, message: message.trim() || undefined },
@@ -659,7 +754,17 @@ function ReviewBody({ review, w }: { review: VideoReview; w: ReviewWords }) {
         {shown && (
           // biome-ignore lint/a11y/useKeyWithClickEvents: the page's own keys (Enter, N) open the same note box.
           // biome-ignore lint/a11y/noStaticElementInteractions: a click on the picture is where a note goes.
-          <div className="vr-picture" data-noting={open || undefined} onClick={onPicture}>
+          <div
+            className="vr-picture"
+            data-noting={open || undefined}
+            data-dropping={dropping || undefined}
+            onClick={onPicture}
+            onDragOver={dragOver}
+            onDragLeave={(e) => {
+              if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setDropping(false);
+            }}
+            onDrop={onDrop}
+          >
             {/* biome-ignore lint/a11y/useMediaCaption: an edit in review has no captions yet; the notes say what is in it. */}
             <video
               key={shown.artifactId}
@@ -700,6 +805,12 @@ function ReviewBody({ review, w }: { review: VideoReview; w: ReviewWords }) {
                   style={{ left: frame.left + ring.x * frame.width, top: frame.top + ring.y * frame.height }}
                 />
               ))}
+            {dropping && (
+              <div className="vr-dropzone" aria-hidden="true">
+                <Icon name="attach" />
+                {w.dropHere}
+              </div>
+            )}
             {draft?.marking && (
               <div className="vr-marking" role="status">
                 <Icon name="flag" />
@@ -738,8 +849,9 @@ function ReviewBody({ review, w }: { review: VideoReview; w: ReviewWords }) {
                   autoFocus
                   value={draftText}
                   rows={3}
-                  placeholder={w.placeholder}
+                  placeholder={draft.kind === "broll" ? w.brollPlaceholder : w.placeholder}
                   onChange={(e) => setDraftText(e.target.value)}
+                  onPaste={pasteInto(draftFiles)}
                   onKeyDown={(e) => {
                     if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
                       e.preventDefault();
@@ -747,6 +859,7 @@ function ReviewBody({ review, w }: { review: VideoReview; w: ReviewWords }) {
                     }
                   }}
                 />
+                <AttachEditor at={draftFiles} w={w} />
                 <div className="vr-pop__acts">
                   <Button
                     size="sm"
@@ -768,8 +881,8 @@ function ReviewBody({ review, w }: { review: VideoReview; w: ReviewWords }) {
                   <Button
                     size="sm"
                     variant="primary"
-                    disabled={!draftText.trim()}
-                    loading={addNote.isPending}
+                    disabled={!draftReady}
+                    loading={addNote.isPending || draftFiles.busy}
                     onClick={saveDraft}
                   >
                     {w.save}
@@ -919,17 +1032,33 @@ function ReviewBody({ review, w }: { review: VideoReview; w: ReviewWords }) {
         </section>
 
         {open && (
-          <div className="vr-compose">
+          // biome-ignore lint/a11y/noStaticElementInteractions: a drop zone for files; the Attach button does the same.
+          <div
+            className="vr-compose"
+            onDragOver={(e) => {
+              if (!carries(e.dataTransfer)) return;
+              e.preventDefault();
+              e.dataTransfer.dropEffect = "copy";
+            }}
+            onDrop={(e) => {
+              e.preventDefault();
+              const { files, links } = dropped(e.dataTransfer);
+              wholeFiles.addFiles(files);
+              wholeFiles.addLinks(links);
+            }}
+          >
             <span className="vr-compose__label">{w.wholeTitle}</span>
             <Textarea
               value={wholeText}
               rows={2}
               placeholder={w.wholePlaceholder}
+              onPaste={pasteInto(wholeFiles)}
               onChange={(e) => setWholeText(e.target.value)}
               onKeyDown={(e) => {
                 if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) saveWhole();
               }}
             />
+            <AttachEditor at={wholeFiles} w={w} />
             <div className="vr-compose__acts">
               <Button
                 variant={recorder.recording && voiceFor.current === "whole" ? "danger" : "default"}
@@ -943,8 +1072,8 @@ function ReviewBody({ review, w }: { review: VideoReview; w: ReviewWords }) {
               <Button
                 size="sm"
                 icon="send"
-                disabled={!wholeText.trim()}
-                loading={addNote.isPending && !draft}
+                disabled={!wholeReady}
+                loading={(addNote.isPending && !draft) || wholeFiles.busy}
                 onClick={saveWhole}
               >
                 {w.add}
