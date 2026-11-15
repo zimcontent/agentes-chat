@@ -9,22 +9,16 @@ import {
   type VideoReviewNoteKind,
 } from "@agenteschat/client";
 import { errorText } from "@agenteschat/client/lib/errors";
-import {
-  getRecordingPermissionsAsync,
-  RecordingPresets,
-  requestRecordingPermissionsAsync,
-  setAudioModeAsync,
-  useAudioRecorder,
-} from "expo-audio";
 import { Image } from "expo-image";
 import * as ImagePicker from "expo-image-picker";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { ActivityIndicator, Alert, Linking, Pressable, StyleSheet, TextInput, View } from "react-native";
+import { ActivityIndicator, Pressable, StyleSheet, TextInput, View } from "react-native";
 import { Button, Icon, Text, useFieldText, useToast } from "@/ui";
 import { useColors, useOrgId } from "../shared/hooks";
 import { successHaptic, tapHaptic, useSurface } from "../shared/parts";
 import { filePart, useReviewWords } from "./media";
+import { useTapRecorder } from "./recorder";
 
 /** The most files and links one note carries (the engine's `REVIEW_NOTE_ATTACHMENTS`). */
 const MOST_ATTACHMENTS = 8;
@@ -67,7 +61,10 @@ export function NoteDraft({
   now,
   onEnd,
   onClose,
+  bare = false,
 }: {
+  /** Inside a sheet, which is the surface already: no card of its own. */
+  bare?: boolean;
   review: VideoReview;
   version: number;
   draft: Draft;
@@ -86,20 +83,17 @@ export function NoteDraft({
   const field = useFieldText("body");
   const add = useAddReviewNote(orgId, review.id);
   const addVoice = useAddVoiceReviewNote(orgId, review.id);
-  const recorder = useAudioRecorder(RecordingPresets.HIGH_QUALITY);
   const [kind, setKind] = useState<VideoReviewNoteKind | null>(null);
   const [body, setBody] = useState("");
   const [link, setLink] = useState("");
   const [items, setItems] = useState<Item[]>([]);
-  const [recording, setRecording] = useState(false);
+  const { recording, toggle } = useTapRecorder();
   const live = useRef(true);
   useEffect(
     () => () => {
       live.current = false;
-      if (recorder.isRecording) void recorder.stop().catch(() => undefined);
-      void setAudioModeAsync({ allowsRecording: false, playsInSilentMode: true });
     },
-    [recorder],
+    [],
   );
 
   const whole = draft.atMs === null;
@@ -190,14 +184,8 @@ export function NoteDraft({
   /** Tap to start, tap again to stop: the recording goes to be transcribed and becomes the note. */
   const talk = async () => {
     tapHaptic();
-    if (recording) {
-      setRecording(false);
-      try {
-        await recorder.stop();
-      } catch {}
-      await setAudioModeAsync({ allowsRecording: false, playsInSilentMode: true });
-      const uri = recorder.uri;
-      if (!uri) return;
+    const uri = await toggle();
+    if (uri) {
       addVoice.mutate(
         {
           ...where,
@@ -215,19 +203,6 @@ export function NoteDraft({
       );
       return;
     }
-    const known = await getRecordingPermissionsAsync();
-    const asked = known.granted ? known : known.canAskAgain ? await requestRecordingPermissionsAsync() : known;
-    if (!asked.granted) {
-      Alert.alert(w.micBlockedPhone, undefined, [
-        { text: w.cancel, style: "cancel" },
-        { text: t("mobile.common.openSettings"), onPress: () => void Linking.openSettings() },
-      ]);
-      return;
-    }
-    await setAudioModeAsync({ allowsRecording: true, playsInSilentMode: true, interruptionMode: "doNotMix" });
-    await recorder.prepareToRecordAsync();
-    recorder.record();
-    setRecording(true);
   };
 
   const at =
@@ -238,7 +213,7 @@ export function NoteDraft({
         : w.atTime(timecode(draft.atMs));
 
   return (
-    <View style={[styles.box, surface]}>
+    <View style={[styles.box, bare ? styles.bare : surface]}>
       <View style={styles.head}>
         <Text variant="subhead" style={styles.bold}>
           {at}
@@ -393,6 +368,7 @@ export function NoteDraft({
 
 const styles = StyleSheet.create({
   box: { borderRadius: 20, padding: 12, gap: 10 },
+  bare: { paddingHorizontal: 16, paddingTop: 4, paddingBottom: 12 },
   head: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 8 },
   bold: { fontWeight: "600" },
   link: { textDecorationLine: "underline" },

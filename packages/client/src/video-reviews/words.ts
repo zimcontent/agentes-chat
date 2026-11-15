@@ -102,6 +102,10 @@ const en = {
   hd: "HD",
   hdOn: "Watching the original (heavier). Tap to go back to the light copy.",
   hdOff: "Watching a light copy, for mobile data. Tap for the original.",
+  sayChanges: "Say what changes",
+  sayingChanges: "Recording… tap to send",
+  sendingChanges: "Transcribing and sending…",
+  sayChangesHint: "What you say goes to the editor with the notes, and it starts the next version at once.",
 };
 
 export type ReviewWords = typeof en;
@@ -206,6 +210,10 @@ const ptBR: ReviewWords = {
   hd: "HD",
   hdOn: "Vendo o original (mais pesado). Toque para voltar à cópia leve.",
   hdOff: "Vendo uma cópia leve, para o 4G. Toque para o original.",
+  sayChanges: "Falar o que muda",
+  sayingChanges: "Gravando… toque para enviar",
+  sendingChanges: "Transcrevendo e enviando…",
+  sayChangesHint: "O que você falar vai para o editor com as notas, e ele já começa a próxima versão.",
 };
 
 /** The words for a language tag (`pt-BR`, `en`…): Portuguese for any `pt`, English otherwise. */
