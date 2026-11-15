@@ -1,7 +1,7 @@
+import type { ApprovalPortal } from "./approval-portal";
 import type { BlobStore } from "./blob";
 import type { DatabaseDriver } from "./database";
 import type { EmailSender } from "./email";
-import type { ApprovalPortal } from "./approval-portal";
 import type { GifProvider } from "./gifs";
 import type { HumanCheck } from "./human-check";
 import type { KeyWrapper, PlatformCredentials } from "./keys";
@@ -15,6 +15,7 @@ import type { VaultSources } from "./vault/source";
 import type { WebPushSender } from "./web-push";
 import type { WhatsAppGateway } from "./whatsapp";
 
+export * from "./approval-portal";
 export * from "./blob";
 export * from "./blob-disk";
 export * from "./blob-postgres";
@@ -25,7 +26,6 @@ export * from "./database";
 export * from "./email";
 export * from "./error-reports";
 export * from "./error-scrub";
-export * from "./approval-portal";
 export * from "./gifs";
 export { cleanOutside, decodeEntities, hasInvisible, htmlToText, replaceDisguised } from "./html-text";
 export * from "./human-check";
@@ -56,6 +56,7 @@ export { createBitwardenSource } from "./vault/bitwarden";
 export { createOnePasswordSource } from "./vault/onepassword";
 export * from "./vault/site";
 export * from "./vault/source";
+export * from "./voice-out";
 export * from "./web-push";
 export * from "./whatsapp";
 

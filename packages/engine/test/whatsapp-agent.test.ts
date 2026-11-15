@@ -1,5 +1,11 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { createFakeWhatsAppGateway, GEMINI_ROUTE_PROTOCOL, ROUTE_LIMITS } from "@agenteschat/adapters";
+import {
+  createFakeVoiceOut,
+  createFakeWhatsAppGateway,
+  DEFAULT_VOICE_OUT,
+  GEMINI_ROUTE_PROTOCOL,
+  ROUTE_LIMITS,
+} from "@agenteschat/adapters";
 import { eq, schema } from "@agenteschat/db";
 import {
   answerWhatsAppChat,
@@ -181,7 +187,14 @@ describe("how it talks on a number", () => {
     const saved = await updateWhatsAppAccount(deps, f.owner.id, f.org.id, account.id, {
       agentStyle: { waitSeconds: 60, pace: "slow", messages: 1, quietMinutes: 15 },
     });
-    expect(saved.agentStyle).toEqual({ waitSeconds: 60, pace: "slow", messages: 1, quietMinutes: 15 });
+    expect(saved.agentStyle).toEqual({
+      waitSeconds: 60,
+      pace: "slow",
+      messages: 1,
+      quietMinutes: 15,
+      voiceNotes: true,
+      voice: null,
+    });
     const job = await hears("oi");
     if (!job) throw new Error("no job queued");
     expect(job.runAt.getTime()).toBeGreaterThan(Date.now() + 55_000);
@@ -462,5 +475,58 @@ describe("an agent that thinks with a Gemini plan", () => {
     expect(await answerWhatsAppChat(none.deps, again)).toBe("failed");
     expect(await noteOf()).toContain("Gemini account");
     expect(none.asked).toHaveLength(0);
+  });
+});
+
+describe("voice notes", () => {
+  let next: Partial<WhatsAppAgentAnswer> = {};
+  const voiceDeps = (deps: WhatsAppAgentDeps, voiceOut = createFakeVoiceOut()) => ({
+    deps: { ...deps, voiceOut },
+    voiceOut,
+  });
+  const voiceMessage = {
+    audioMessage: { mimetype: "audio/ogg; codecs=opus", seconds: 3, PTT: true, mediaKey: "a2V5" },
+  };
+
+  test("a voice message gets one back, in the number's voice, its words kept under it", async () => {
+    f = await setup({ reply: () => answerOf(next)() });
+    const { gateway, deps, hears } = await answering();
+    const { deps: withVoice, voiceOut } = voiceDeps(deps);
+    next = { messages: ["Oi! Fazemos sim."] };
+    const job = await hears("", {}, voiceMessage);
+    if (!job) throw new Error("no job queued");
+    expect(await answerWhatsAppChat(withVoice, job)).toBe("reply");
+    expect(gateway.last("file")).toMatchObject({ kind: "audio", fileName: "audio.mp3" });
+    expect(gateway.last("send")).toBeUndefined();
+    expect(voiceOut.spoken).toEqual([{ voice: DEFAULT_VOICE_OUT, text: "Oi! Fazemos sim." }]);
+    const [mine] = await f.db.select().from(schema.whatsappMessages).where(eq(schema.whatsappMessages.fromMe, true));
+    expect([mine?.kind, mine?.body, mine?.sentByAgentId]).toEqual(["audio", "Oi! Fazemos sim.", f.agent.id]);
+  });
+
+  test("its own choice now and then, never twice in a row; a link, or voice notes off, is written", async () => {
+    f = await setup({ reply: () => answerOf(next)() });
+    const { gateway, deps, account, hears } = await answering();
+    const { deps: withVoice, voiceOut } = voiceDeps(deps);
+    const answer = async (said: string, message?: Record<string, unknown>) => {
+      const job = await hears(said, {}, message);
+      if (!job) throw new Error("no job queued");
+      return answerWhatsAppChat(withVoice, job);
+    };
+    next = { messages: ["Bom dia! Já te ajudo."], voice: true };
+    await answer("bom dia");
+    expect(voiceOut.spoken).toHaveLength(1);
+    next = { messages: ["Claro, é rapidinho."], voice: true };
+    await answer("pode me ajudar?");
+    // It spoke a moment ago: this one is written.
+    expect(voiceOut.spoken).toHaveLength(1);
+    expect(gateway.last("send")?.text).toBe("Claro, é rapidinho.");
+    next = { messages: ["Veja aqui: https://zim.com/portfolio"], voice: true };
+    await answer("tem portfólio?");
+    expect(voiceOut.spoken).toHaveLength(1);
+    await updateWhatsAppAccount(deps, f.owner.id, f.org.id, account.id, { agentStyle: { voiceNotes: false } });
+    next = { messages: ["Tudo certo!"] };
+    await answer("", voiceMessage);
+    expect(voiceOut.spoken).toHaveLength(1);
+    expect(gateway.last("send")?.text).toBe("Tudo certo!");
   });
 });

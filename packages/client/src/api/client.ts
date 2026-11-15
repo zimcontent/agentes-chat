@@ -38,6 +38,7 @@ import type {
   WhatsAppMessagePage,
   WhatsAppOverview,
   WhatsAppSendInput,
+  WhatsAppVoices,
 } from "../whatsapp/types";
 import type {
   AccessInput,
@@ -2171,6 +2172,8 @@ export interface ApiClient {
     ): Promise<{ member: string | null; client: string | null }>;
     /** The approval portal's clients a contact may be. */
     clients(orgId: string): Promise<{ clients: string[] }>;
+    /** The voices a number's agent may speak in. */
+    voices(orgId: string): Promise<WhatsAppVoices>;
     /** What thinks on the number: an AI of its own, or its agent's (managers who may choose the agent's AI). */
     brain(orgId: string, accountId: string): Promise<WhatsAppBrain>;
     /** The number answers with this AI from now on; its agent's own is untouched. */

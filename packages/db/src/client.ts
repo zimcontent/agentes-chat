@@ -167,6 +167,9 @@ export const EXTRA_COLUMNS = [
   `ALTER TABLE "whatsapp_chats" ADD COLUMN IF NOT EXISTS "photo_at" timestamp with time zone`,
   // Who a contact is: a member, or a portal client (docs/adr/doug-0004-whatsapp-bridge.md, addendum 2026-11-15).
   `ALTER TABLE "whatsapp_chats" ADD COLUMN IF NOT EXISTS "member_user_id" text`,
+  // The agent's voice notes (docs/adr/doug-0004-whatsapp-bridge.md, addendum 2026-11-15).
+  `ALTER TABLE "whatsapp_accounts" ADD COLUMN IF NOT EXISTS "agent_voice_notes" boolean NOT NULL DEFAULT true`,
+  `ALTER TABLE "whatsapp_accounts" ADD COLUMN IF NOT EXISTS "agent_voice" text`,
   `ALTER TABLE "whatsapp_chats" ADD COLUMN IF NOT EXISTS "portal_client" text`,
   // Live voice: calls with agents and messages told by voice (ADR doug-0006).
   `ALTER TABLE "agents" ADD COLUMN IF NOT EXISTS "voice" text`,

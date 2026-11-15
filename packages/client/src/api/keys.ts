@@ -269,6 +269,7 @@ export const keys = {
   whatsappOverview: (orgId: string) => ["org", orgId, "whatsapp", "overview"] as const,
   whatsappChats: (orgId: string, accountId: string) => ["org", orgId, "whatsapp", accountId, "chats"] as const,
   whatsappStickers: (orgId: string, accountId: string) => ["org", orgId, "whatsapp", accountId, "stickers"] as const,
+  whatsappVoices: (orgId: string) => ["org", orgId, "whatsapp", "voices"] as const,
   whatsappClients: (orgId: string) => ["org", orgId, "whatsapp", "clients"] as const,
   whatsappBrain: (orgId: string, accountId: string) => ["org", orgId, "whatsapp", accountId, "brain"] as const,
   whatsappMessages: (orgId: string, accountId: string, chatId: string) =>

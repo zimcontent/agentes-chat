@@ -21,6 +21,7 @@ import type {
   WhatsAppChatPage,
   WhatsAppMessagePage,
   WhatsAppOverview,
+  WhatsAppVoices,
 } from "../whatsapp/types";
 import type { HttpApi, OpenedWorkspace } from "./client";
 import { ApiError, createFileRequester, createRequester, enc, type TransportOptions } from "./http";
@@ -626,6 +627,7 @@ export function createHttpApi(options: TransportOptions = {}): HttpApi {
           { method: "PUT", json: input },
         ),
       clients: (orgId) => request<{ clients: string[] }>(`${org(orgId)}/whatsapp/clients`),
+      voices: (orgId) => request<WhatsAppVoices>(`${org(orgId)}/whatsapp/voices`),
       brain: (orgId, accountId) => request<WhatsAppBrain>(`${org(orgId)}/whatsapp/accounts/${enc(accountId)}/brain`),
       setBrain: (orgId, accountId, input) =>
         request<WhatsAppBrain>(`${org(orgId)}/whatsapp/accounts/${enc(accountId)}/brain`, {

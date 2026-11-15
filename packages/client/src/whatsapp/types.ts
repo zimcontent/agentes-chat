@@ -42,6 +42,10 @@ export interface WhatsAppAgentStyle {
   messages: number;
   /** Minutes it stays quiet in a conversation after a person wrote there (5 to 1440). */
   quietMinutes: number;
+  /** It sends voice notes: always to a voice message, now and then on its own. Absent on older servers. */
+  voiceNotes?: boolean;
+  /** The voice it speaks in (`voices`); null: the default one. */
+  voice?: string | null;
 }
 
 export interface WhatsAppOverview {
@@ -123,6 +127,19 @@ export function whatsappPhotoUrl(
 ) {
   if (!chat.photo) return null;
   const path = `/api/app/organizations/${encodeURIComponent(orgId)}/whatsapp/accounts/${encodeURIComponent(accountId)}/chats/${encodeURIComponent(chat.id)}/photo`;
+  return `${base.replace(/\/+$/, "")}${path}`;
+}
+
+/** The voices a number's agent may speak in: `on` false when the server has no voice. */
+export interface WhatsAppVoices {
+  on: boolean;
+  default: string;
+  voices: { id: string; name: string; labels: string[] }[];
+}
+
+/** Where a voice's sample loads from (our server fetches it from the provider). */
+export function whatsappVoicePreviewUrl(orgId: string, voiceId: string, base = "") {
+  const path = `/api/app/organizations/${encodeURIComponent(orgId)}/whatsapp/voices/${encodeURIComponent(voiceId)}/preview`;
   return `${base.replace(/\/+$/, "")}${path}`;
 }
 

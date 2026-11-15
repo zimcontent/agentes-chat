@@ -140,7 +140,7 @@ import {
 } from "@agenteschat/engine";
 import { createOpenAIEmbeddings, createVoyageEmbeddings, type ModelProvider, modelInfo } from "@agenteschat/providers";
 import { type AppleTokenRevoker, appleTokenRevoker } from "./auth";
-import { hookConfig } from "./routes/app/context";
+import { hookConfig, whatsappVoiceOut } from "./routes/app/context";
 import { version } from "./version";
 
 /** Why `/api/terminal` closes (with 4404) where sessions are screened (ADR 0076 §7). */
@@ -822,9 +822,11 @@ export function buildEngine(o: EngineOptions) {
             machines: machineHub,
             // What the agent knows from its work comes into its WhatsApp answers (docs/adr/doug-0004-whatsapp-bridge.md).
             context,
-            // A member's messages go to their conversation with the agent, as theirs (addendum 2026-11-15).
             // Voice messages heard by the same engines as the app's (ADR 0100) before the agent reads them.
             speech: speech.chain,
+            // And spoken, now and then, in the number's voice (ElevenLabs, the same key).
+            voiceOut: whatsappVoiceOut(config.ELEVENLABS_API_KEY),
+            // A member's messages go to their conversation with the agent, as theirs (addendum 2026-11-15).
             relay: (userId, orgId, channelId, input) =>
               postPersonMessage({ db, pubsub: adapters.pubsub }, userId, orgId, channelId, input),
           },

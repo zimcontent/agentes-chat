@@ -1,4 +1,4 @@
-import type { Adapters } from "@agenteschat/adapters";
+import { type Adapters, createElevenLabsVoiceOut, type VoiceOut } from "@agenteschat/adapters";
 import { type Config, connectorOAuthApps } from "@agenteschat/config";
 import type { Database } from "@agenteschat/db";
 import {
@@ -61,7 +61,19 @@ export const whatsappDeps = (deps: AppDeps): WhatsAppDeps => ({
   keyWrappers: [deps.adapters.keyWrapper, ...deps.adapters.legacyKeyWrappers],
   pubsub: deps.adapters.pubsub,
   hookBase: (deps.config.WHATSAPP_HOOK_URL ?? deps.config.PUBLIC_URL).replace(/\/+$/, ""),
+  voiceOut: whatsappVoiceOut(deps.config.ELEVENLABS_API_KEY),
 });
+
+let voiceOut: { key: string; out: VoiceOut } | null = null;
+/**
+ * The agents' voice notes on WhatsApp (docs/adr/doug-0004-whatsapp-bridge.md, addendum 2026-11-15): ElevenLabs with the
+ * key that already hears voice messages; one per process, so its list of voices is kept between requests.
+ */
+export function whatsappVoiceOut(key: string | undefined): VoiceOut | null {
+  if (!key) return null;
+  if (voiceOut?.key !== key) voiceOut = { key, out: createElevenLabsVoiceOut(key) };
+  return voiceOut.out;
+}
 
 /** How routines reach a connection's service to register their connector events (ADR 0130), as connectors do. */
 export const routineConnectorDeps = (deps: AppDeps): ConnectorTriggerDeps => {

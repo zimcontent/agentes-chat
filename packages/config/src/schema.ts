@@ -580,7 +580,8 @@ export const envVars = {
   },
   ELEVENLABS_API_KEY: {
     schema: z.string().optional(),
-    description: "ElevenLabs key for voice messages, optional (ADR 0100). The audio goes to ElevenLabs to become text.",
+    description:
+      "ElevenLabs key for voice messages, optional (ADR 0100). The audio goes to ElevenLabs to become text; agents on WhatsApp also speak with it (docs/adr/doug-0004-whatsapp-bridge.md).",
     section: "Chat",
     secret: true,
   },

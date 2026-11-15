@@ -1,4 +1,4 @@
-import { WhatsAppGatewayError } from "@agenteschat/adapters";
+import { DEFAULT_VOICE_OUT, isVoiceOutId, WhatsAppGatewayError } from "@agenteschat/adapters";
 import {
   clearWhatsAppBrain,
   createWhatsAppAccount,
@@ -12,6 +12,7 @@ import {
   removeWhatsAppAccount,
   requestWhatsAppHistory,
   requireActiveMembership,
+  requirePermission,
   sendWhatsAppFile,
   sendWhatsAppSticker,
   sendWhatsAppText,
@@ -103,6 +104,13 @@ const AgentStyle = z
     }),
     quietMinutes: z.number().int().min(STYLE.quietMinutes.min).max(STYLE.quietMinutes.max).openapi({
       description: "Minutes it stays quiet in a conversation after a person wrote there.",
+    }),
+    voiceNotes: z.boolean().openapi({
+      description:
+        "It sends voice notes: always to a voice message, now and then on its own (needs a voice on the server).",
+    }),
+    voice: z.string().max(40).nullable().openapi({
+      description: "The voice it speaks in (`…/whatsapp/voices`); null: the default one.",
     }),
   })
   .openapi("WhatsAppAgentStyle");
@@ -688,6 +696,62 @@ export function whatsappRoutes(deps: AppDeps) {
       return c.json({ clients: await whatsappPortalClients(wa, orgId) }, 200);
     },
   );
+
+  app.openapi(
+    createRoute({
+      method: "get",
+      path: "/organizations/{orgId}/whatsapp/voices",
+      tags,
+      security,
+      summary: "The voices a number's agent may speak in (whoever manages connectors)",
+      description:
+        "`on`: the server has a voice (ElevenLabs). `default`: the one used until a number picks another. 502 when the provider doesn't answer.",
+      request: { params: OrgParams },
+      responses: {
+        200: json(
+          z.object({
+            on: z.boolean(),
+            default: z.string(),
+            voices: z.array(z.object({ id: z.string(), name: z.string(), labels: z.array(z.string()) })),
+          }),
+        ),
+        ...gatewayDown,
+        ...errors,
+      },
+    }),
+    async (c) => {
+      const { orgId } = c.req.valid("param");
+      await requirePermission(wa.db, c.get("user").id, orgId, "manage_connectors");
+      if (!wa.voiceOut) return c.json({ on: false, default: DEFAULT_VOICE_OUT, voices: [] }, 200);
+      try {
+        return c.json({ on: true, default: DEFAULT_VOICE_OUT, voices: await wa.voiceOut.voices() }, 200);
+      } catch (error) {
+        deps.log?.warn("Voice list failed", { error: String(error) });
+        return apiError(c, 502, "whatsapp.voice_unavailable", "The voice provider isn't answering right now");
+      }
+    },
+  );
+
+  // A voice's sample, for the number's settings: fetched by this server from the provider's own storage.
+  app.get("/organizations/:orgId/whatsapp/voices/:voiceId/preview", async (c) => {
+    const orgId = c.req.param("orgId");
+    const voiceId = c.req.param("voiceId");
+    if (!z.uuid().safeParse(orgId).success || !isVoiceOutId(voiceId)) {
+      return apiError(c, 400, "invalid_request", "Not a voice");
+    }
+    await requirePermission(wa.db, c.get("user").id, orgId, "manage_connectors");
+    const sample = await wa.voiceOut?.preview(voiceId).catch(() => null);
+    if (!sample) return apiError(c, 404, "not_found", "This voice has no sample");
+    return new Response(sample.bytes, {
+      headers: {
+        "Content-Type": sample.mimeType,
+        "Content-Length": String(sample.bytes.byteLength),
+        "X-Content-Type-Options": "nosniff",
+        "Content-Security-Policy": "default-src 'none'; sandbox",
+        "Cache-Control": "private, max-age=86400",
+      },
+    });
+  });
 
   app.openapi(
     createRoute({

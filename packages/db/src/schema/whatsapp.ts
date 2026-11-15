@@ -62,6 +62,12 @@ export const whatsappAccounts = pgTable(
     agentMessages: integer().notNull().default(3),
     agentQuietMinutes: integer().notNull().default(60),
     /**
+     * The agent sends voice notes now and then (docs/adr/doug-0004-whatsapp-bridge.md, addendum 2026-11-15): always to a
+     * voice message, sometimes on its own. `agentVoice`: the voice (a provider's id); null: the default one.
+     */
+    agentVoiceNotes: boolean().notNull().default(true),
+    agentVoice: text(),
+    /**
      * The AI the number answers with when it isn't its agent's own (docs/adr/doug-0004-whatsapp-bridge.md):
      * `{ brain, model, account, effort }`, read by `whatsappBrainOf`. Null: the agent's own AI.
      */
