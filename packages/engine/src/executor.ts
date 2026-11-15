@@ -3827,8 +3827,9 @@ async function executeRunInner(
 
   /**
    * The account's own plan refused the turn and another account of its owner on that computer has room
-   * (`standInAccount`, ADR doug-0003): the run's next turns think with that one, at once. False where there is none,
-   * or for a mission's session, which stays where its work is.
+   * (`standInAccount`, ADR doug-0003), or the next one of the same brain in its owner's stand-in order
+   * (`chainStandIn`, addendum 2026-11-15): the run's next turns think with that one, at once. False where there is
+   * none, or for a mission's session, which stays where its work is.
    */
   const useStandInAccount = async (machineId: string, error: BrainFailure): Promise<boolean> => {
     const account = plan.account;
@@ -3836,7 +3837,19 @@ async function executeRunInner(
     notePlanLimit(machineId, plan.kind, error.resetsAt, Date.now(), account.id);
     const { standsInFor, ...mine } = account;
     const own = standsInFor ? { ...mine, ...standsInFor } : account;
-    const other = await standInAccount(db, run.orgId, plan.kind, machineId, own).catch(() => undefined);
+    const other =
+      (await standInAccount(db, run.orgId, plan.kind, machineId, own).catch(() => undefined)) ??
+      (await chainStandIn(
+        db,
+        run.orgId,
+        plan.kind,
+        machineId,
+        account,
+        Date.now(),
+        isRightHand(agent) ? { person: await rightHandPerson(db, agent, run).catch(() => null) } : undefined,
+      )
+        .then((next) => (next?.kind === plan.kind ? next.account : undefined))
+        .catch(() => undefined));
     if (!other || other.id === account.id) return false;
     const { usage: _full, ...rest } = plan;
     plan = { ...rest, account: other };
@@ -3879,7 +3892,15 @@ async function executeRunInner(
     // once, quietly, instead of waiting for this plan's reset (the resume picks it).
     const handOver =
       !budget && !scope && machineId && !plan.missionId
-        ? await chainStandIn(db, run.orgId, plan.kind, machineId, plan.account).catch(() => undefined)
+        ? await chainStandIn(
+            db,
+            run.orgId,
+            plan.kind,
+            machineId,
+            plan.account,
+            now,
+            isRightHand(agent) ? { person: await rightHandPerson(db, agent, run).catch(() => null) } : undefined,
+          ).catch(() => undefined)
         : undefined;
     if (handOver) {
       later(() =>

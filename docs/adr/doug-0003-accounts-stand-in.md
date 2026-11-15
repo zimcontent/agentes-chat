@@ -84,3 +84,12 @@ limit, only from the same CLI, and only with the server's switch, which stayed o
    uso › Contas reserva (`StandInOrderCard`).
 
 The Google caution above stands for personal Gemini plans: an order is a person's choice for their own accounts.
+
+## Addendum 2026-11-15: the right hand follows the order too
+
+The right hand answers in groups, which it joins as any agent, and there thinks with the workspace's
+account, not a person's. Left out of the order, it stopped at that account's limit with "o plano chegou ao limite" while
+its owner's next account had room. Now the order covers it as any agent (`resolveBrain`, the status `agentAiState`, the
+parked run's hand-over and the turn cut mid-work, which takes the next account of the same brain at once, `useStandInAccount`),
+with one rule more: only an account that serves everyone, or the person it thinks for, stands in (`chainStandIn`'s
+`answers`), so a plan kept to its owner never answers someone else through it.

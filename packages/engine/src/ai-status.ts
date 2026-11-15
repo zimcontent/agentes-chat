@@ -3,7 +3,7 @@ import { ensureOpenRouterModels, isAutoModel, routerModelOf } from "@agenteschat
 import type { Agent } from "./agents";
 import { type AutoLine, autoLine, autoModelFor, autoProvider } from "./auto-model";
 import { brainOf } from "./brain-settings";
-import { brainAccountFor, computerBrainUnavailable, mayFallBack, NO_AI_CODES } from "./brains/select";
+import { brainAccountFor, chainStandIn, computerBrainUnavailable, mayFallBack, NO_AI_CODES } from "./brains/select";
 import { BRAIN_PLAN_NAMES, type BrainKind, type ComputerBrainKind, isComputerBrain } from "./brains/types";
 import type { ModelGateway } from "./gateway";
 import type { MachineStatus } from "./machine-hub";
@@ -141,12 +141,29 @@ export async function agentAiState(
     return provider ? { state: "ready", provider } : READY;
   }
   const machineId = mission?.session?.machineId ?? agent.machineId ?? null;
-  const [status, account] = await Promise.all([
+  const [status, own] = await Promise.all([
     machineId && deps.machines ? deps.machines.status(machineId).catch(() => null) : null,
     brainAccountFor(deps.db, agent, kind, machineId),
   ]);
+  // Its account at 90% or at its limit: the next one in its owner's stand-in order thinks, as the run would
+  // (`resolveBrain`, ADR doug-0003).
+  const instead =
+    !mission && machineId
+      ? await chainStandIn(
+          deps.db,
+          agent.orgId,
+          kind,
+          machineId,
+          own,
+          Date.now(),
+          isRightHand(agent) ? { person } : undefined,
+        ).catch(() => undefined)
+      : undefined;
+  const account = instead?.account ?? own;
   const unavailable =
-    machineId && !deps.machines ? null : computerBrainUnavailable(kind, machineId, status, Date.now(), account);
+    machineId && !deps.machines
+      ? null
+      : computerBrainUnavailable(instead?.kind ?? kind, machineId, status, Date.now(), account);
   if (!unavailable) return READY;
   if (mayFallBack(agent, { background: background || (run?.background ?? false) }) && (await modelReady(deps, agent)))
     return READY;

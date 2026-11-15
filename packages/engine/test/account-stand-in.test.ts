@@ -371,3 +371,58 @@ test("a run whose Claude accounts are past 90% thinks on ChatGPT's GPT-6.1, its 
   expect(run?.status).toBe("done");
   expect(f.provider.calls).toHaveLength(0);
 });
+
+/**
+ * Addendum 2026-11-15: the right hand in a group thinks with the workspace's account, and at its limit the next one of
+ * its owner's order thinks, as for any agent, but only an account that may answer the person who asked.
+ */
+async function rightHandAtLimit(serves: "everyone" | "owner") {
+  f = await setup({ reply: () => ({ chunks: ["pela API"] }) });
+  const { ids, set } = await chain(f);
+  await f.db.update(schema.agents).set({ builtin: "right_hand" }).where(eq(schema.agents.id, f.agent.id));
+  await f.db.update(schema.machineAccounts).set({ serves }).where(eq(schema.machineAccounts.id, ids.claude));
+  await setStandInOrder(f, f.owner.id, f.org.id, [ids.claude2, ids.claude]);
+  await set(ids.claude2, 100);
+  await set(ids.claude, 40);
+  const seen: BrainTurn[] = [];
+  const claude: Brain = {
+    kind: "claude_code",
+    async *run(turn) {
+      seen.push({ ...turn, system: "", messages: [] });
+      yield { type: "done", text: "Pronto." };
+    },
+  };
+  const handlers = createJobHandlers({
+    ...f.jobDeps,
+    brains: { claude_code: () => claude },
+    machines: {
+      status: async (id) => ({
+        ...statusOf(id),
+        executors: { claude: { version: "9.9.9", loggedIn: true }, detectedAt: new Date().toISOString() },
+      }),
+    },
+  });
+  const bruna = await addMember(f.db, f.org.id, "member", "Bruna");
+  await f.db
+    .insert(schema.channelMembers)
+    .values({ orgId: f.org.id, channelId: f.general.id, userId: bruna.id })
+    .onConflictDoNothing();
+  await postPersonMessage({ db: f.db, pubsub: f.pubsub }, bruna.id, f.org.id, f.general.id, {
+    body: `@${f.agent.handle} vê o Trello`,
+  });
+  await drainOutbox(f.db, handlers);
+  const [run] = await f.db.select().from(schema.agentRuns);
+  return { ids, seen, run };
+}
+
+test("the right hand in a group goes on the owner's next account when its own is at its limit", async () => {
+  const { ids, seen, run } = await rightHandAtLimit("everyone");
+  expect(seen.map((t) => t.account?.id)).toEqual([ids.claude]);
+  expect(run?.status).toBe("done");
+});
+
+test("the right hand never stands in on an account kept to its owner for someone else", async () => {
+  const { seen, run } = await rightHandAtLimit("owner");
+  expect(seen).toHaveLength(0);
+  expect(run?.status).not.toBe("done");
+});
