@@ -140,8 +140,8 @@
   align-items: center;
   gap: var(--space-2);
 }
-.vr-pop__gap {
-  flex: 1;
+.vr-pop__acts--end {
+  justify-content: flex-end;
 }
 .vr-kinds {
   display: flex;
