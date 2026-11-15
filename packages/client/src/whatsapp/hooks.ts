@@ -180,6 +180,27 @@ export function useWhatsAppChatAgent(orgId: string, accountId: string) {
   });
 }
 
+/** Who a contact is: a member of the workspace, a portal client, or neither. */
+export function useWhatsAppChatContact(orgId: string, accountId: string) {
+  const api = useApi();
+  const refresh = useWhatsAppRefresh(orgId);
+  return useMutation({
+    mutationFn: (input: { chatId: string; member: string | null; client: string | null }) =>
+      whatsappOf(api).chatContact(orgId, accountId, input.chatId, { member: input.member, client: input.client }),
+    onSuccess: () => void refresh(),
+  });
+}
+
+/** The approval portal's clients a contact may be. */
+export function useWhatsAppClients(orgId: string, enabled = true) {
+  const api = useApi();
+  return useQuery({
+    queryKey: keys.whatsappClients(orgId),
+    queryFn: () => whatsappOf(api).clients(orgId),
+    enabled,
+  });
+}
+
 /** How often "typing…" is told again while the person keeps writing: WhatsApp drops it after about 10 s. */
 const TYPING_EVERY_MS = 5_000;
 

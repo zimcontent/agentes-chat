@@ -50,6 +50,9 @@ export interface WhatsAppChatView {
   agentNote: string;
   /** Its profile photo may be loaded (`whatsappChatPhoto`); false: it has none we know of, so draw its initials. */
   photo: boolean;
+  /** Who the contact is (`whatsapp/contacts.ts`): a member of the workspace (their user id), or a portal client. */
+  member: string | null;
+  client: string | null;
 }
 
 export interface WhatsAppMessageView {
@@ -95,6 +98,8 @@ const chatView = (row: ChatRow, account: AgentOf, now = new Date()): WhatsAppCha
     agentQuietUntil: agent.quietUntil?.toISOString() ?? null,
     agentNote: agent.state === "person" ? row.agentNote : "",
     photo: !(row.photoUrl === null && photoFresh(row, now)),
+    member: row.memberUserId,
+    client: row.portalClient,
   };
 };
 
