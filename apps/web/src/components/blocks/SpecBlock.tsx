@@ -1,31 +1,51 @@
 import { type BlockChange, useBlockReply, useBlockValues } from "@agenteschat/client";
 import type { ChartSpec } from "@agenteschat/client/lib/chart";
 import { formatTime } from "@agenteschat/client/lib/format";
-import { Button, Field, Input, Segmented, Switch, Textarea } from "@agenteschat/ui";
+import { Button, Field, Input, Segmented, Switch, Textarea, widgetTones } from "@agenteschat/ui";
 import {
   type BlockViewPart,
   type BlockWords,
   compileBlock,
   inputValue,
+  type MarkedText,
   parseBlockSpec,
   viewBlock,
 } from "@agenteschat/ui/blocks/spec";
-import { type CSSProperties, useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from "react";
+import {
+  type CSSProperties,
+  createContext,
+  useContext,
+  useEffect,
+  useId,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { useTranslation } from "react-i18next";
 import { ChartAccent, ChartView } from "@/components/ChartBlock";
 import { useOrg } from "@/components/org-context";
 import { chartColorOf } from "@/components/Sky";
 import { useDirectory } from "@/hooks/useDirectory";
 import { useReveal } from "@/hooks/useReveal";
+import { copyText } from "@/lib/context-menu";
+import { useDarkTheme } from "@/lib/grow";
 import { useToast } from "@/lib/toast";
 import "./spec-block.css";
+
+/** A button's message to the agent (`say`), sent at once, and which of the block's buttons already sent theirs. */
+const Say = createContext<{ say: (key: string, text: string) => void; said: ReadonlySet<string>; busy: boolean }>({
+  say: () => {},
+  said: new Set(),
+  busy: false,
+});
 
 /** In the conversation a block is at most this tall; a taller one is cut with a fade until "Show all". */
 const INLINE_HEIGHT = 420;
 
 type Sent = { text: string; at: string };
 /** What this person sent from a block and whether they opened it whole, kept while the conversation is open. */
-const kept = new Map<string, { sent?: Sent; open?: boolean }>();
+const kept = new Map<string, { sent?: Sent; open?: boolean; said?: Set<string> }>();
 const keptOf = (key: string) => {
   let k = kept.get(key);
   if (!k) {
@@ -76,6 +96,9 @@ export function SpecBlock({
   );
   const [sent, setSent] = useState<Sent | null>(keptOf(blockKey).sent ?? null);
   const [open, setOpen] = useState(keptOf(blockKey).open ?? false);
+  const [said, setSaid] = useState<ReadonlySet<string>>(() => new Set(keptOf(blockKey).said));
+  const dark = useDarkTheme();
+  const tones = widgetTones(chartColorOf(agent), dark);
   const shown = useRef<HTMLDivElement>(null);
   const reveal = useReveal(shown, open);
   const body = useRef<HTMLDivElement>(null);
@@ -125,6 +148,20 @@ export function SpecBlock({
     );
   };
   const same = sent !== null && sent.text === view.send?.text;
+  const say = (key: string, text: string) => {
+    if (reply.isPending) return;
+    reply.mutate(
+      { text, clientId: crypto.randomUUID() },
+      {
+        onSuccess: () => {
+          const next = new Set(said).add(key);
+          keptOf(blockKey).said = next;
+          setSaid(next);
+        },
+        onError: () => toast.show(t("blocks.sendFailed"), "error"),
+      },
+    );
+  };
 
   return (
     <ChartAccent.Provider value={chartColorOf(agent)}>
@@ -134,8 +171,14 @@ export function SpecBlock({
         data-cut={(tall && !open) || undefined}
         style={big || !tall ? undefined : { height: open ? height : INLINE_HEIGHT }}
       >
-        <div ref={body} className="spec-block">
-          <Parts parts={view.parts} values={values} />
+        <div
+          ref={body}
+          className="spec-block"
+          style={{ "--block-accent": tones.fill, "--block-accent-ink": tones.stroke } as CSSProperties}
+        >
+          <Say.Provider value={{ say, said, busy: reply.isPending }}>
+            <Parts parts={view.parts} values={values} />
+          </Say.Provider>
         </div>
       </div>
       {tall && !open && (
@@ -187,6 +230,7 @@ function Parts({ parts, values }: { parts: BlockViewPart[]; values: Values }) {
 
 function Part({ part: p, values }: { part: BlockViewPart; values: Values }) {
   const id = useId();
+  const speak = useContext(Say);
   const set = (raw: unknown) => {
     const name = "name" in p ? p.name : undefined;
     if (typeof name !== "string") return;
@@ -377,21 +421,160 @@ function Part({ part: p, values }: { part: BlockViewPart; values: Values }) {
     case "actions":
       return (
         <div className="spec-block__actions" data-align={p.align}>
-          {p.buttons.map((b) => (
-            <Button
-              key={b.key}
-              variant={b.lead ? "primary" : "default"}
-              onClick={() => {
-                if (b.set) values.set(b.set);
-                if (b.draw) void values.draw(b.draw.name, b.draw.options);
-              }}
-            >
-              {b.label}
-            </Button>
+          {p.buttons.map((b, i) => {
+            const said = speak.said.has(b.key);
+            // A row of buttons that speak for the person: the last one is the main answer ("Aprovar").
+            const lead = b.lead || (b.say !== null && i === p.buttons.length - 1);
+            return (
+              <Button
+                key={b.key}
+                variant={lead ? "primary" : "default"}
+                icon={said ? "check" : undefined}
+                disabled={said || (b.say !== null && speak.busy)}
+                onClick={() => {
+                  if (b.set) values.set(b.set);
+                  if (b.draw) void values.draw(b.draw.name, b.draw.options);
+                  if (b.say) speak.say(b.key, b.say);
+                }}
+              >
+                {said ? <SaidLabel /> : b.label}
+              </Button>
+            );
+          })}
+        </div>
+      );
+    case "tags":
+      return (
+        <div className="spec-block__tags">
+          {p.items.map((tag, i) => (
+            // biome-ignore lint/suspicious/noArrayIndexKey: tags have no id but their place
+            <span key={i} data-lead={i === 0 || undefined}>
+              {tag}
+            </span>
           ))}
         </div>
       );
+    case "hook":
+      return (
+        <div className="spec-block__hook">
+          {p.label && <div className="spec-block__eyebrow">{p.label}</div>}
+          <p>
+            <Marked text={p.text} />
+          </p>
+        </div>
+      );
+    case "slides":
+      return <Slides part={p} />;
+    case "poster":
+      return (
+        <div className="spec-block__poster">
+          {p.eyebrow && <span className="spec-block__poster-eyebrow">{p.eyebrow}</span>}
+          <b className="spec-block__poster-title">
+            <Marked text={p.title} />
+          </b>
+          {p.sub && <span className="spec-block__poster-sub">{p.sub}</span>}
+          {p.button && <span className="spec-block__poster-button">{p.button}</span>}
+        </div>
+      );
+    case "fields":
+      return (
+        <dl className="spec-block__fields">
+          {p.items.map((f, i) => (
+            // biome-ignore lint/suspicious/noArrayIndexKey: the lines of one list, in order
+            <div key={i}>
+              <dt>{f.label}</dt>
+              <dd>{f.value}</dd>
+            </div>
+          ))}
+        </dl>
+      );
+    case "copy":
+      return <CopyText label={p.label} text={p.text} />;
+    case "timeline":
+      return (
+        <div className="spec-block__timeline">
+          {p.label && <div className="spec-block__eyebrow">{p.label}</div>}
+          <ol>
+            {p.items.map((x, i) => (
+              // biome-ignore lint/suspicious/noArrayIndexKey: the beats of one script, in order
+              <li key={i} data-lead={i === 0 || undefined}>
+                <span className="spec-block__time">{x.time}</span>
+                <span className="spec-block__beat">
+                  {x.text}
+                  {x.note && <small>{x.note}</small>}
+                </span>
+                {x.screen && <span className="spec-block__screen">{x.screen}</span>}
+              </li>
+            ))}
+          </ol>
+        </div>
+      );
   }
+}
+
+/** A text with its marked words highlighted in the agent's color. */
+function Marked({ text }: { text: MarkedText }) {
+  return (
+    <>
+      {text.before}
+      {text.mark && <mark>{text.mark}</mark>}
+      {text.after}
+    </>
+  );
+}
+
+/** A carousel's slides side by side, scrolled sideways; the tagged ones (cover, call to action) stand out. */
+function Slides({ part }: { part: Extract<BlockViewPart, { kind: "slides" }> }) {
+  return (
+    <div className="spec-block__slides-wrap">
+      {part.label && <div className="spec-block__eyebrow">{part.label}</div>}
+      <ol className="spec-block__slides">
+        {part.items.map((x, i) => (
+          // biome-ignore lint/suspicious/noArrayIndexKey: the slides of one carousel, in order
+          <li key={i} data-tagged={x.tag ? "" : undefined} data-first={i === 0 || undefined}>
+            <span className="spec-block__slide-n">
+              {String(i + 1).padStart(2, "0")}
+              {x.tag && ` · ${x.tag}`}
+            </span>
+            <b>{x.title}</b>
+            {x.text && <small>{x.text}</small>}
+          </li>
+        ))}
+      </ol>
+    </div>
+  );
+}
+
+/** Text to paste as is (a caption), with its Copy button on the label's line. */
+function CopyText({ label, text }: { label: string; text: string }) {
+  const { t } = useTranslation();
+  const [copied, setCopied] = useState(false);
+  useEffect(() => {
+    if (!copied) return;
+    const timer = setTimeout(() => setCopied(false), 1600);
+    return () => clearTimeout(timer);
+  }, [copied]);
+  return (
+    <div className="spec-block__copy">
+      <div className="spec-block__copy-head">
+        <span className="spec-block__eyebrow">{label}</span>
+        <Button
+          variant="ghost"
+          size="sm"
+          icon={copied ? "check" : "copy"}
+          onClick={() => void copyText(text, () => setCopied(true))}
+        >
+          {copied ? t("blocks.copied") : t("blocks.copy")}
+        </Button>
+      </div>
+      <p>{text}</p>
+    </div>
+  );
+}
+
+function SaidLabel() {
+  const { t } = useTranslation();
+  return <>{t("blocks.said")}</>;
 }
 
 function MoreLabel() {

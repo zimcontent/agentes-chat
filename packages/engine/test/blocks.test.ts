@@ -110,7 +110,16 @@ test("a block goes to the trash only once it is in the Drive", async () => {
 
 describe("the prompt", () => {
   test("the manual describes blocks as parts and formulas the app draws, and a page only as the way out", () => {
-    for (const part of ['"type":"slider"', '"type":"card"', '"type":"result"', '"type":"actions"', "draw", "send"])
+    for (const part of [
+      '"type":"slider"',
+      '"type":"card"',
+      '"type":"result"',
+      '"type":"actions"',
+      '"type":"slides"',
+      '"say"',
+      "draw",
+      "send",
+    ])
       expect(BLOCK_MANUAL).toContain(part);
     expect(BLOCK_MANUAL).toContain("you write no HTML, CSS or colors");
     expect(BLOCK_MANUAL).toContain("runs only when a person presses it");

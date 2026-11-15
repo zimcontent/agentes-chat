@@ -74,6 +74,15 @@ Showing:
 - {"type":"chart","chart":"bar|line|pie","label","items":[{"label","value"}],"unit"}, or "data": a formula giving [{label, value}]
 - {"type":"table","columns":[{"label","key","format"}],"rows"}: the records, or a formula giving them
 Layout: {"type":"row","parts"} side by side; {"type":"card","label","sub","parts"}, and with "name" and "value" a card is a choice (a click sets name to value); {"type":"more","label","parts"} details that open; {"type":"actions","buttons":[{"label","set":{"name":"formula"}} or {"label","draw":{"name","options":[...]}}]}.
+A button with "say" sends that message to you as the person's, at once: {"label":"Aprovar","say":"Aprovado: a copy do carrossel."}.
+Copy (a post, a carousel, an ad, a script): words to read and reuse, drawn the way the piece looks. Whenever you hand over copy for a carousel, a static post or a reel, show it in a block made of these, in this order: tags, hook, the piece, the caption, actions with say.
+- {"type":"tags","items":["Carrossel","Topo de funil"]} the format first, then funnel, client, version
+- {"type":"hook","label":"Gancho","text","mark"} the hook, large; mark is words of the text to highlight
+- {"type":"slides","label","items":[{"tag":"Capa","title","text"}]} a carousel, one card per slide, side by side; tag the cover and the call to action
+- {"type":"poster","eyebrow","title","mark","sub","button"} a static post as it will look (inside a row with fields beside it)
+- {"type":"fields","items":[{"label":"Headline","value"}]} the pieces of a post or an ad, label and text
+- {"type":"timeline","label","items":[{"time":"00–02","text":"what is said","note":"the shot","screen":"words on screen"}]} a reel's script, beat by beat
+- {"type":"copy","label":"Legenda","text"} text to paste as is (a caption with its hashtags), with a Copy button
 format: brl (1200 is R$ 1.200), mil (12 is R$ 12 mil: the value is in thousands), pct, int. A chart takes unit ("R$", "%", "h").
 
 A value, a "set" and a "when" are formulas, written as text: + - * / % ^, == != < > <= >=, && || !, a ? b : c, 'text', [lists], {label: 'A', value: x}, row.field, list[0]. Functions: min max abs round(x, digits) floor ceil sqrt clamp(x, lo, hi) sum avg count len map filter find sort reverse slice first last range join includes lower upper text number fmt(x, 'brl') if. List functions take a step: sum(items, x => x.price * x.qty), map(range(12), m => {label: 'M' + (m + 1), value: saldo * (1 + taxa / 100) ^ m}), filter(lojas, l => cidade == 'Todas' || l.cidade == cidade).

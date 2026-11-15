@@ -119,7 +119,7 @@ describe("a block's spec", () => {
       'compute.b: there is no value "a"',
     );
     wrong({ parts: [{ type: "slider", name: "a", label: "A", min: 5, max: 1 }] }, "max must be more than min");
-    wrong({ parts: [{ type: "actions", buttons: [{ label: "Nada" }] }] }, "needs set or draw");
+    wrong({ parts: [{ type: "actions", buttons: [{ label: "Nada" }] }] }, "needs set, draw or say");
     expect(() => parseBlockSpec({ parts: [{ type: "stat", label: "X", value: "a +" }] })).toThrow(BlockSpecError);
   });
 
@@ -220,5 +220,85 @@ describe("a block's spec", () => {
   test("its words are what search finds", () => {
     expect(blockSpecText(SIMULATOR)).toContain("Preço");
     expect(blockSpecText(SIMULATOR)).toContain("Usar este preço");
+  });
+});
+
+describe("copy parts: a carousel, a static post, a reel", () => {
+  const CAROUSEL = {
+    state: { versao: 1 },
+    parts: [
+      { type: "tags", items: ["Carrossel", "Topo de funil"] },
+      { type: "hook", label: "Gancho", text: "Cobrar por hora faz ganhar menos.", mark: "ganhar menos" },
+      {
+        type: "slides",
+        items: [
+          { tag: "Capa", title: "Você cobra por hora?" },
+          { title: "O cliente não compra horas.", text: "Compra o vídeo pronto." },
+          { tag: "CTA", title: "Comenta PREÇO" },
+        ],
+      },
+      {
+        type: "row",
+        parts: [
+          { type: "poster", eyebrow: "Black Friday", title: "Editado em 48h.", mark: "48h", button: "Garantir" },
+          { type: "fields", items: [{ label: "Headline", value: "Editado em 48h." }] },
+        ],
+      },
+      {
+        type: "timeline",
+        items: [{ time: "00–02", text: "Se o vídeo perde gente…", note: "close", screen: "O CORTE" }],
+      },
+      { type: "copy", label: "Legenda", text: "Salva pra lembrar.\n#edicao" },
+      {
+        type: "actions",
+        buttons: [
+          { label: "Outra versão", say: "Faz outra versão ({versao})." },
+          { label: "Aprovar", say: "Aprovado." },
+        ],
+      },
+    ],
+  };
+
+  test("they check and draw: marks split out, slides and beats in order, buttons that speak", () => {
+    const view = viewBlock(compileBlock(parseBlockSpec(CAROUSEL)), {}, words);
+    expect(view.errors).toEqual([]);
+    const [tags, hook, slides, row, timeline, copy, actions] = view.parts;
+    expect(tags).toMatchObject({ kind: "tags", items: ["Carrossel", "Topo de funil"] });
+    expect(hook).toMatchObject({
+      kind: "hook",
+      text: { before: "Cobrar por hora faz ", mark: "ganhar menos", after: "." },
+    });
+    expect(slides).toMatchObject({
+      kind: "slides",
+      items: [{ tag: "Capa" }, { tag: "", text: "Compra o vídeo pronto." }, { tag: "CTA" }],
+    });
+    expect(row?.kind === "row" && row.parts[0]).toMatchObject({
+      kind: "poster",
+      title: { before: "Editado em ", mark: "48h", after: "." },
+      button: "Garantir",
+    });
+    expect(timeline).toMatchObject({ kind: "timeline", items: [{ time: "00–02", screen: "O CORTE", note: "close" }] });
+    expect(copy).toMatchObject({ kind: "copy", label: "Legenda", text: "Salva pra lembrar.\n#edicao" });
+    expect(actions?.kind === "actions" && actions.buttons.map((b) => b.say)).toEqual([
+      "Faz outra versão (1).",
+      "Aprovado.",
+    ]);
+  });
+
+  test("a mark must be words of its text, and a button must do something", () => {
+    expect(() => parseBlockSpec({ parts: [{ type: "hook", text: "Um gancho", mark: "outro" }] })).toThrow(
+      BlockSpecError,
+    );
+    expect(() => parseBlockSpec({ parts: [{ type: "actions", buttons: [{ label: "Nada" }] }] })).toThrow(
+      /set, draw or say/,
+    );
+    expect(() => parseBlockSpec({ parts: [{ type: "slides", items: [] }] })).toThrow(/1 to 20 slides/);
+    expect(() => parseBlockSpec({ parts: [{ type: "copy", text: "{nada}" }] })).toThrow(/no value "nada"/);
+  });
+
+  test("their words are what search finds", () => {
+    const text = blockSpecText(parseBlockSpec(CAROUSEL));
+    for (const w of ["Carrossel", "Comenta PREÇO", "Editado em 48h.", "O CORTE", "#edicao", "Aprovar"])
+      expect(text).toContain(w);
   });
 });

@@ -380,3 +380,280 @@ html:not([data-pointer]) .spec-block__card:focus-visible {
     transition: none;
   }
 }
+
+/*
+ * Copy (a post, a carousel, a script): words to read and reuse, drawn the way the piece looks. The agent's color
+ * (`--block-accent`, its bot's color; `--block-accent-ink` for lines and words on the page) marks what matters.
+ */
+.spec-block__eyebrow {
+  margin-bottom: 4px;
+  font-size: 11.5px;
+  line-height: 16px;
+  font-weight: 650;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.spec-block__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.spec-block__tags span {
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  line-height: 18px;
+  font-weight: 550;
+  color: var(--ink2);
+  background: var(--sunken);
+  box-shadow: inset 0 0 0 1px var(--line2);
+}
+.spec-block__tags span[data-lead] {
+  font-weight: 650;
+  color: var(--ink);
+  background: color-mix(in srgb, var(--block-accent) 26%, var(--raised));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--block-accent) 70%, transparent);
+}
+.spec-block mark {
+  color: inherit;
+  background: linear-gradient(transparent 58%, color-mix(in srgb, var(--block-accent) 50%, transparent) 58%);
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+}
+.spec-block__hook p {
+  margin: 0;
+  font-size: 19px;
+  line-height: 25px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  text-wrap: balance;
+}
+
+.spec-block__slides {
+  display: flex;
+  gap: 8px;
+  margin: 0 -16px;
+  padding: 2px 16px 6px;
+  list-style: none;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scroll-padding: 0 16px;
+  scrollbar-width: thin;
+}
+.spec-block__slides li {
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  gap: 6px;
+  width: 152px;
+  aspect-ratio: 4 / 5;
+  padding: 10px 12px 12px;
+  border-radius: 12px 12px 12px 4px;
+  background: var(--sunken);
+  box-shadow: inset 0 0 0 1px var(--line2);
+  scroll-snap-align: start;
+}
+.spec-block__slides li[data-tagged] {
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--block-accent) 70%, transparent);
+}
+.spec-block__slides li[data-tagged][data-first] {
+  background:
+    radial-gradient(120% 90% at 15% 0%, color-mix(in srgb, var(--block-accent) 30%, transparent), transparent 70%),
+    var(--sunken);
+}
+.spec-block__slide-n {
+  font-size: 11px;
+  line-height: 16px;
+  font-weight: 650;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--faint);
+  font-variant-numeric: tabular-nums;
+}
+.spec-block__slides b {
+  margin-top: auto;
+  font-size: 13.5px;
+  line-height: 18px;
+  font-weight: 650;
+  text-wrap: balance;
+}
+.spec-block__slides small {
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--muted);
+  text-wrap: pretty;
+}
+
+.spec-block__poster {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+  max-width: 260px;
+  aspect-ratio: 4 / 5;
+  padding: 16px;
+  border-radius: 14px 14px 14px 4px;
+  background:
+    radial-gradient(110% 80% at 85% 5%, color-mix(in srgb, var(--block-accent) 38%, transparent), transparent 65%),
+    var(--sunken);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--block-accent) 60%, transparent);
+}
+.spec-block__poster-eyebrow {
+  font-size: 11px;
+  line-height: 16px;
+  font-weight: 650;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink2);
+}
+.spec-block__poster-title {
+  margin-top: auto;
+  font-size: 22px;
+  line-height: 26px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+}
+.spec-block__poster-title mark {
+  background: none;
+  color: var(--block-accent-ink);
+}
+.spec-block__poster-sub {
+  font-size: 12.5px;
+  line-height: 17px;
+  color: var(--ink2);
+}
+.spec-block__poster-button {
+  align-self: flex-start;
+  margin-top: auto;
+  padding: 5px 10px;
+  border-radius: 8px;
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 700;
+  color: #0b0b0b;
+  background: var(--block-accent);
+}
+
+/* A poster with its fields beside it, the fields going under it where the block is narrow. */
+.spec-block__row:has(> .spec-block__poster) {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+}
+.spec-block__row:has(> .spec-block__poster) > * {
+  flex: 1 1 240px;
+}
+.spec-block__row > .spec-block__poster {
+  flex: 1 1 220px;
+}
+
+/* Label and text side by side, the text under its label where there is no room. */
+.spec-block__fields {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+}
+.spec-block__fields div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 12px;
+}
+.spec-block__fields dt {
+  flex: 0 0 112px;
+  color: var(--muted);
+}
+.spec-block__fields dd {
+  flex: 1 1 180px;
+  margin: 0;
+  color: var(--ink);
+  white-space: pre-line;
+}
+
+.spec-block__copy-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+.spec-block__copy-head .spec-block__eyebrow {
+  margin: 0;
+}
+.spec-block__copy p {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 12px 12px 12px 4px;
+  background: var(--sunken);
+  box-shadow: inset 0 0 0 1px var(--line2);
+  color: var(--ink2);
+  white-space: pre-line;
+}
+
+.spec-block__timeline ol {
+  margin: 0 0 0 5px;
+  padding: 0;
+  list-style: none;
+  border-left: 2px solid var(--line2);
+}
+/* Time, words and screen text on one line, the screen text going under the words where there is no room. */
+.spec-block__timeline li {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  padding: 8px 0 8px 74px;
+}
+.spec-block__timeline li + li {
+  border-top: 1px solid var(--line);
+}
+.spec-block__timeline li::before {
+  content: "";
+  position: absolute;
+  top: 13px;
+  left: -6px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--faint);
+}
+.spec-block__timeline li[data-lead]::before {
+  background: var(--block-accent);
+}
+.spec-block__time {
+  position: absolute;
+  top: 8px;
+  left: 14px;
+  padding-top: 1px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 20px;
+  color: var(--block-accent-ink);
+  font-variant-numeric: tabular-nums;
+}
+.spec-block__beat {
+  flex: 1 1 200px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  color: var(--ink);
+}
+.spec-block__beat small {
+  font-size: 12.5px;
+  line-height: 18px;
+  color: var(--muted);
+}
+.spec-block__screen {
+  align-self: flex-start;
+  max-width: 220px;
+  padding: 3px 8px;
+  border-radius: 8px;
+  font-size: 12px;
+  line-height: 18px;
+  font-weight: 650;
+  color: var(--ink2);
+  background: var(--sunken);
+  box-shadow: inset 0 0 0 1px var(--line2);
+}

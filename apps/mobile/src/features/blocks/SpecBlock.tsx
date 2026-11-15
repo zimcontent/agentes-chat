@@ -7,14 +7,16 @@ import {
   type BlockWords,
   compileBlock,
   inputValue,
+  type MarkedText,
   parseBlockSpec,
   viewBlock,
 } from "@agenteschat/ui/blocks/spec";
+import * as Clipboard from "expo-clipboard";
 import { randomUUID } from "expo-crypto";
 import { LinearGradient } from "expo-linear-gradient";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { createContext, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { type LayoutChangeEvent, Pressable, StyleSheet, TextInput, View } from "react-native";
+import { type LayoutChangeEvent, Pressable, ScrollView, StyleSheet, TextInput, View } from "react-native";
 import { GestureDetector, useExclusiveGestures, usePanGesture, useTapGesture } from "react-native-gesture-handler";
 import Animated, {
   Easing,
@@ -25,7 +27,10 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 import { scheduleOnRN } from "react-native-worklets";
+import { botDoAgente, corDoBot } from "@/brand/bots";
 import { Button, fieldText, haptics, Segmented, Text, ToggleSwitch, useReducedMotion, useToast } from "@/ui";
+import { useTheme } from "@/ui/theme";
+
 import { ChartView } from "../chat/ChartCard";
 import { Table } from "../chat/MessageSpans";
 import { useColors, useDirectory, useOrgId } from "../shared/hooks";
@@ -33,9 +38,28 @@ import { agentLook } from "../shared/logic";
 import { tapHaptic } from "../shared/parts";
 import { INLINE_HEIGHT } from "./logic";
 
+/**
+ * What the copy parts need from the block: the agent's bot color (its marks), a button's message to the agent
+ * (`say`, sent at once) and which buttons already sent theirs.
+ */
+const Copy = createContext<{
+  accent: string;
+  say: (key: string, text: string) => void;
+  said: ReadonlySet<string>;
+  busy: boolean;
+}>({ accent: "#9be22d", say: () => {}, said: new Set(), busy: false });
+
+/** A "#rrggbb" with an opacity, as "#rrggbbaa". */
+const alpha = (hex: string, a: number) =>
+  /^#[0-9a-f]{6}$/i.test(hex)
+    ? `${hex}${Math.round(a * 255)
+        .toString(16)
+        .padStart(2, "0")}`
+    : hex;
+
 type Sent = { text: string; at: string };
 /** What this person sent from a block and whether they opened it whole, kept while the app runs. */
-const kept = new Map<string, { sent?: Sent; open?: boolean }>();
+const kept = new Map<string, { sent?: Sent; open?: boolean; said?: Set<string> }>();
 const keptOf = (key: string) => {
   let k = kept.get(key);
   if (!k) {
@@ -72,7 +96,17 @@ export function SpecBlock({
   const dir = useDirectory();
   const toast = useToast();
   const agent = dir.agentById.get(agentId);
-  const accent = agentLook(agent).color;
+  const look = agentLook(agent);
+  const accent = look.color;
+  const botColor = corDoBot(
+    botDoAgente({
+      name: agent?.name ?? "",
+      handle: agent?.handle,
+      role: agent?.role,
+      id: agent?.id ?? look.color,
+      look: look.shape ? { shape: look.shape, color: look.color, eyes: look.eyes, accessory: look.accessory } : null,
+    }),
+  );
   const blockKey = `${id}@${version}`;
   const compiled = useMemo(() => {
     try {
@@ -92,6 +126,7 @@ export function SpecBlock({
   const [sent, setSent] = useState<Sent | null>(keptOf(blockKey).sent ?? null);
   const [open, setOpen] = useState(keptOf(blockKey).open ?? false);
   const [height, setHeight] = useState(0);
+  const [said, setSaid] = useState<ReadonlySet<string>>(() => new Set(keptOf(blockKey).said));
 
   if (!compiled || !view) {
     return (
@@ -130,6 +165,22 @@ export function SpecBlock({
     );
   };
   const same = sent !== null && sent.text === view.send?.text;
+  const say = (key: string, text: string) => {
+    if (reply.isPending) return;
+    tapHaptic();
+    reply.mutate(
+      { text, clientId: randomUUID() },
+      {
+        onSuccess: () => {
+          const next = new Set(said).add(key);
+          keptOf(blockKey).said = next;
+          setSaid(next);
+          haptics.success();
+        },
+        onError: () => toast({ title: t("mobile.blocks.sendFailed"), icon: "x" }),
+      },
+    );
+  };
   const time = sent
     ? new Intl.DateTimeFormat(i18n.language, { hour: clockHour(i18n.language), minute: "2-digit" }).format(
         new Date(sent.at),
@@ -143,7 +194,9 @@ export function SpecBlock({
           style={styles.body}
           onLayout={(e: LayoutChangeEvent) => setHeight(Math.ceil(e.nativeEvent.layout.height))}
         >
-          <Parts parts={view.parts} values={values} accent={accent} />
+          <Copy.Provider value={{ accent: botColor, say, said, busy: reply.isPending }}>
+            <Parts parts={view.parts} values={values} accent={accent} />
+          </Copy.Provider>
         </View>
         {tall && !open ? (
           <LinearGradient pointerEvents="none" colors={[`${c.raised}00`, c.raised]} style={styles.fade} />
@@ -198,6 +251,9 @@ function Parts({ parts, values, accent }: { parts: BlockViewPart[]; values: Valu
 
 function Part({ part: p, values, accent }: { part: BlockViewPart; values: Values; accent: AgentColorName }) {
   const c = useColors();
+  const copy = useContext(Copy);
+  const { t } = useTranslation();
+  const { fonts } = useTheme();
   const set = (raw: unknown) => {
     const name = "name" in p ? p.name : undefined;
     if (typeof name !== "string") return;
@@ -370,6 +426,44 @@ function Part({ part: p, values, accent }: { part: BlockViewPart; values: Values
       );
     }
     case "actions":
+      // Buttons that speak for the person ("Pedir ajuste", "Aprovar"): the last is the main answer, full width.
+      if (p.buttons.some((b) => b.say !== null)) {
+        const rest = p.buttons.slice(0, -1);
+        const main = p.buttons[p.buttons.length - 1];
+        const button = (b: (typeof p.buttons)[number], lead: boolean) => {
+          const done = copy.said.has(b.key);
+          return (
+            <Button
+              key={b.key}
+              variant={lead ? "primary" : "secondary"}
+              wide
+              label={done ? t("blocks.said") : b.label}
+              icon={done ? "check" : undefined}
+              disabled={done || (b.say !== null && copy.busy)}
+              onPress={() => {
+                if (b.set) values.set(b.set);
+                if (b.draw) void values.draw(b.draw.name, b.draw.options);
+                if (b.say) copy.say(b.key, b.say);
+                else tapHaptic();
+              }}
+            />
+          );
+        };
+        return (
+          <View style={styles.sayActions}>
+            {rest.length ? (
+              <View style={styles.sayRow}>
+                {rest.map((b) => (
+                  <View key={b.key} style={styles.sayCell}>
+                    {button(b, false)}
+                  </View>
+                ))}
+              </View>
+            ) : null}
+            {main ? button(main, true) : null}
+          </View>
+        );
+      }
       return (
         <View
           style={[
@@ -392,7 +486,254 @@ function Part({ part: p, values, accent }: { part: BlockViewPart; values: Values
           ))}
         </View>
       );
+    case "tags":
+      return (
+        <View style={styles.tags}>
+          {p.items.map((tag, i) => (
+            <View
+              // biome-ignore lint/suspicious/noArrayIndexKey: tags have no id but their place
+              key={i}
+              style={[
+                styles.tag,
+                i === 0
+                  ? { backgroundColor: alpha(copy.accent, 0.24), borderColor: alpha(copy.accent, 0.7) }
+                  : { backgroundColor: c.sunken, borderColor: c.line2 },
+              ]}
+            >
+              <Text variant="caption" tone={i === 0 ? "ink" : "ink2"} style={i === 0 ? styles.bold : styles.semi}>
+                {tag}
+              </Text>
+            </View>
+          ))}
+        </View>
+      );
+    case "hook":
+      return (
+        <View>
+          {p.label ? <Eyebrow text={p.label} /> : null}
+          <Text variant="title" style={styles.hook}>
+            <Marked text={p.text} color={copy.accent} />
+          </Text>
+        </View>
+      );
+    case "slides":
+      return <Slides part={p} />;
+    case "poster":
+      return (
+        <View
+          style={[styles.poster, { backgroundColor: c.sunken, borderColor: alpha(copy.accent, 0.6) }]}
+          accessible
+          accessibilityLabel={[p.eyebrow, `${p.title.before}${p.title.mark}${p.title.after}`, p.sub, p.button]
+            .filter(Boolean)
+            .join(". ")}
+        >
+          <LinearGradient
+            pointerEvents="none"
+            colors={[alpha(copy.accent, 0.38), alpha(copy.accent, 0)]}
+            start={{ x: 1, y: 0 }}
+            end={{ x: 0.2, y: 0.75 }}
+            style={StyleSheet.absoluteFill}
+          />
+          {p.eyebrow ? (
+            <Text variant="caption" tone="ink2" style={styles.posterEyebrow}>
+              {p.eyebrow}
+            </Text>
+          ) : null}
+          <Text variant="title2" style={styles.posterTitle}>
+            {p.title.before}
+            {p.title.mark ? <Text style={{ color: copy.accent }}>{p.title.mark}</Text> : null}
+            {p.title.after}
+          </Text>
+          {p.sub ? (
+            <Text variant="footnote" tone="ink2">
+              {p.sub}
+            </Text>
+          ) : null}
+          {p.button ? (
+            <View style={[styles.posterButton, { backgroundColor: copy.accent }]}>
+              <Text variant="footnote" style={[styles.bold, { color: "#0b0b0b" }]}>
+                {p.button}
+              </Text>
+            </View>
+          ) : null}
+        </View>
+      );
+    case "fields":
+      return (
+        <View style={styles.fields}>
+          {p.items.map((f, i) => (
+            // biome-ignore lint/suspicious/noArrayIndexKey: the lines of one list, in order
+            <View key={i}>
+              <Text variant="footnote" tone="muted">
+                {f.label}
+              </Text>
+              <Text variant="subhead">{f.value}</Text>
+            </View>
+          ))}
+        </View>
+      );
+    case "copy":
+      return <CopyText label={p.label} text={p.text} />;
+    case "timeline":
+      return (
+        <View>
+          {p.label ? <Eyebrow text={p.label} /> : null}
+          <View style={[styles.timeline, { borderLeftColor: c.line2 }]}>
+            {p.items.map((x, i) => (
+              <View
+                // biome-ignore lint/suspicious/noArrayIndexKey: the beats of one script, in order
+                key={i}
+                style={[
+                  styles.beat,
+                  i > 0 ? { borderTopColor: c.line, borderTopWidth: StyleSheet.hairlineWidth } : null,
+                ]}
+              >
+                <View style={[styles.dot, { backgroundColor: i === 0 ? copy.accent : c.faint }]} />
+                <Text variant="caption" style={[styles.time, { color: copy.accent, fontFamily: fonts.mono }]}>
+                  {x.time}
+                </Text>
+                <Text variant="subhead">{x.text}</Text>
+                {x.note ? (
+                  <Text variant="footnote" tone="muted">
+                    {x.note}
+                  </Text>
+                ) : null}
+                {x.screen ? (
+                  <View style={[styles.screen, { backgroundColor: c.sunken, borderColor: c.line2 }]}>
+                    <Text variant="caption" tone="ink2" style={styles.bold}>
+                      {x.screen}
+                    </Text>
+                  </View>
+                ) : null}
+              </View>
+            ))}
+          </View>
+        </View>
+      );
   }
+}
+
+function Eyebrow({ text }: { text: string }) {
+  return (
+    <Text variant="caption" tone="muted" style={styles.eyebrow}>
+      {text.toUpperCase()}
+    </Text>
+  );
+}
+
+/** A text with its marked words on a band of the agent's color. */
+function Marked({ text, color }: { text: MarkedText; color: string }) {
+  return (
+    <>
+      {text.before}
+      {text.mark ? <Text style={{ backgroundColor: alpha(color, 0.42) }}>{text.mark}</Text> : null}
+      {text.after}
+    </>
+  );
+}
+
+const SLIDE = 132;
+
+/** A carousel's slides side by side, swiped sideways and snapping per slide, with a dot for each. */
+function Slides({ part }: { part: Extract<BlockViewPart, { kind: "slides" }> }) {
+  const c = useColors();
+  const copy = useContext(Copy);
+  const [at, setAt] = useState(0);
+  return (
+    <View style={styles.slidesWrap}>
+      {part.label ? <Eyebrow text={part.label} /> : null}
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        snapToInterval={SLIDE + 8}
+        decelerationRate="fast"
+        style={styles.slidesScroll}
+        contentContainerStyle={styles.slides}
+        scrollEventThrottle={32}
+        onScroll={(e) => setAt(Math.round(e.nativeEvent.contentOffset.x / (SLIDE + 8)))}
+      >
+        {part.items.map((x, i) => (
+          <View
+            // biome-ignore lint/suspicious/noArrayIndexKey: the slides of one carousel, in order
+            key={i}
+            style={[
+              styles.slide,
+              { backgroundColor: c.sunken, borderColor: x.tag ? alpha(copy.accent, 0.7) : c.line2 },
+            ]}
+          >
+            {x.tag && i === 0 ? (
+              <LinearGradient
+                pointerEvents="none"
+                colors={[alpha(copy.accent, 0.32), alpha(copy.accent, 0)]}
+                start={{ x: 0.1, y: 0 }}
+                end={{ x: 0.6, y: 0.8 }}
+                style={StyleSheet.absoluteFill}
+              />
+            ) : null}
+            <Text variant="caption" tone="faint" style={styles.bold}>
+              {String(i + 1).padStart(2, "0")}
+              {x.tag ? ` · ${x.tag.toUpperCase()}` : ""}
+            </Text>
+            <Text variant="footnote" style={[styles.bold, styles.slideTitle]}>
+              {x.title}
+            </Text>
+            {x.text ? (
+              <Text variant="caption" tone="muted">
+                {x.text}
+              </Text>
+            ) : null}
+          </View>
+        ))}
+      </ScrollView>
+      {part.items.length > 2 ? (
+        <View style={styles.dots}>
+          {part.items.map((_, i) => (
+            <View
+              // biome-ignore lint/suspicious/noArrayIndexKey: one dot per slide
+              key={i}
+              style={[styles.dotSmall, { backgroundColor: i === at ? copy.accent : c.line2 }]}
+            />
+          ))}
+        </View>
+      ) : null}
+    </View>
+  );
+}
+
+/** Text to paste as is (a caption), with its Copy button on the label's line. */
+function CopyText({ label, text }: { label: string; text: string }) {
+  const { t } = useTranslation();
+  const c = useColors();
+  const [copied, setCopied] = useState(false);
+  useEffect(() => {
+    if (!copied) return;
+    const timer = setTimeout(() => setCopied(false), 1600);
+    return () => clearTimeout(timer);
+  }, [copied]);
+  return (
+    <View>
+      <View style={styles.copyHead}>
+        <View style={styles.flex}>{label ? <Eyebrow text={label} /> : null}</View>
+        <Button
+          variant="ghost"
+          size="sm"
+          icon={copied ? "check" : "copy"}
+          label={copied ? t("blocks.copied") : t("blocks.copy")}
+          onPress={() => {
+            void Clipboard.setStringAsync(text).then(() => {
+              haptics.success();
+              setCopied(true);
+            });
+          }}
+        />
+      </View>
+      <View style={[styles.copyBox, { backgroundColor: c.sunken, borderColor: c.line2 }]}>
+        <Text variant="subhead" tone="ink2" selectable>
+          {text}
+        </Text>
+      </View>
+    </View>
+  );
 }
 
 function Label({ text, value }: { text: string; value?: string }) {
@@ -723,4 +1064,68 @@ const styles = StyleSheet.create({
   fieldBig: { minHeight: 88, textAlignVertical: "top" },
   moreHead: { alignSelf: "flex-start", minHeight: 28, justifyContent: "center" },
   moreBody: { gap: 10, marginTop: 6 },
+  sayActions: { gap: 8 },
+  sayRow: { flexDirection: "row", gap: 8 },
+  sayCell: { flex: 1 },
+  eyebrow: { fontWeight: "600", letterSpacing: 0.6, marginBottom: 4 },
+  tags: { flexDirection: "row", flexWrap: "wrap", gap: 6 },
+  tag: { paddingHorizontal: 10, paddingVertical: 2, borderRadius: 999, borderWidth: StyleSheet.hairlineWidth },
+  hook: { fontWeight: "700", letterSpacing: -0.2 },
+  slidesWrap: { gap: 6 },
+  slidesScroll: { marginHorizontal: -14 },
+  slides: { gap: 8, paddingHorizontal: 14 },
+  slide: {
+    width: SLIDE,
+    aspectRatio: 4 / 5,
+    gap: 4,
+    padding: 10,
+    borderRadius: 12,
+    borderBottomLeftRadius: 4,
+    borderWidth: 1,
+    overflow: "hidden",
+  },
+  slideTitle: { marginTop: "auto" },
+  dots: { flexDirection: "row", justifyContent: "center", gap: 5 },
+  dotSmall: { width: 5, height: 5, borderRadius: 3 },
+  poster: {
+    width: "100%",
+    maxWidth: 300,
+    aspectRatio: 4 / 5,
+    gap: 10,
+    padding: 16,
+    borderRadius: 14,
+    borderBottomLeftRadius: 4,
+    borderWidth: 1,
+    overflow: "hidden",
+  },
+  posterEyebrow: { fontWeight: "600", letterSpacing: 0.6 },
+  posterTitle: { marginTop: "auto", fontWeight: "800", letterSpacing: -0.4 },
+  posterButton: {
+    alignSelf: "flex-start",
+    marginTop: "auto",
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 8,
+  },
+  fields: { gap: 8 },
+  copyHead: { flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 2 },
+  copyBox: {
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderRadius: 12,
+    borderBottomLeftRadius: 4,
+    borderWidth: StyleSheet.hairlineWidth,
+  },
+  timeline: { marginLeft: 5, borderLeftWidth: 2 },
+  beat: { gap: 2, paddingLeft: 14, paddingVertical: 8 },
+  dot: { position: "absolute", left: -6, top: 13, width: 10, height: 10, borderRadius: 5 },
+  time: { fontVariant: ["tabular-nums"] },
+  screen: {
+    alignSelf: "flex-start",
+    marginTop: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 8,
+    borderWidth: StyleSheet.hairlineWidth,
+  },
 });
