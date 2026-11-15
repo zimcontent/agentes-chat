@@ -1,6 +1,6 @@
 import { type ChildProcess, spawn } from "node:child_process";
 import type { EventEmitter } from "node:events";
-import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import {
@@ -28,9 +28,11 @@ import {
   TOKEN_STDIO,
   withoutContainers,
 } from "./accounts";
+import { agySignInOf, placeAgySignIn } from "./agy-home";
+import { usageOf } from "./brain-antigravity";
 import { RunnerError } from "./errors";
 import { killTree } from "./exec";
-import { resolveCommand } from "./executors";
+import { AGY_BIN, resolveCommand } from "./executors";
 
 /**
  * `brain.route` (protocol 24, ADR 0074): a person's own Claude or ChatGPT plan picks who answers their
@@ -223,6 +225,8 @@ export interface RouteDeps {
   /** Tests: the CLIs, the time limit and where temporary folders go. */
   claudeCommand?: string[];
   codexCommand?: string[];
+  agyCommand?: string[];
+  platform?: NodeJS.Platform;
   timeoutMs?: number;
   tmpDir?: string;
 }
@@ -239,8 +243,8 @@ const OUTPUT_MAX = 1 << 20;
  */
 export async function routeWithPlan(req: BrainRouteRequest, deps: RouteDeps): Promise<BrainRouteReply> {
   if (process.platform === "win32") throw new RunnerError("not_allowed", "Plans don't pick who answers on Windows yet");
-  if (!isAccountKind(req.kind) || req.kind === "cursor" || req.kind === "opencode") {
-    throw new RunnerError("bad_request", "kind must be claude_code or codex");
+  if (!isAccountKind(req.kind) || !ROUTE_KINDS.some((k) => k === req.kind)) {
+    throw new RunnerError("bad_request", "kind must be claude_code, codex or antigravity");
   }
   if (typeof req.system !== "string" || req.system.length > ROUTE_LIMITS.system) {
     throw new RunnerError("bad_request", "system must be a string of at most 8000 characters");
@@ -254,6 +258,7 @@ export async function routeWithPlan(req: BrainRouteRequest, deps: RouteDeps): Pr
   }
   const account = req.account ?? null;
   if (account !== null && !isAccountId(account)) throw new RunnerError("bad_request", "Invalid account id");
+  if (req.kind === "antigravity") return agyRoute(req, deps, account);
   const signIn = deps.shared
     ? { home: deps.shared.home, release: undefined }
     : account
@@ -356,6 +361,140 @@ async function codexRoute(req: BrainRouteRequest, o: RouteDeps & { dir: string; 
   }
   if (!isRecord(json)) throw new RunnerError("internal", `Codex didn't answer${run.why(started)}`);
   return { json, model, usage: codexRouteUsage(run.stdout), durationMs: Date.now() - started };
+}
+
+/** The CLIs a route runs (`GEMINI_ROUTE_PROTOCOL` added Antigravity's). */
+const ROUTE_KINDS = ["claude_code", "codex", "antigravity"] as const;
+
+/** The agent a Gemini route runs as: none of the CLI's tools, no commands, never a subagent, and no MCP server at all. */
+export const AGY_ROUTE_AGENT = "agenteschat-route";
+const agyRouteAgent = () =>
+  [
+    "---",
+    `name: ${AGY_ROUTE_AGENT}`,
+    "description: Answers in words only.",
+    "tools: []",
+    "mainAgent: true",
+    "subagent: false",
+    "commandExecutionPolicy: off",
+    "---",
+    "Answer in words only. Never read or write files, run commands, browse or start other agents.",
+    "",
+  ].join("\n");
+
+/** A Gemini model as `agy models` names it (`gemini-4-hydrogen-medium`); anything else answers with the account's default. */
+const AGY_MODEL = /^[a-z0-9][a-z0-9.-]{1,79}$/;
+
+/** `agy`'s argv for a route: the prompt is an argument (`-p` reads no standard input). */
+export function agyRouteArgs(o: { prompt: string; model?: string; effort?: string }): string[] {
+  return [
+    "-p",
+    o.prompt,
+    "--output-format",
+    "stream-json",
+    "--sandbox",
+    "--disable-slash-commands",
+    "--agent",
+    AGY_ROUTE_AGENT,
+    ...(o.model ? ["--model", o.model] : []),
+    // A model whose slug names its level (`…-low`) takes no effort of its own.
+    ...(o.effort && !(o.model && /-(?:low|medium|high|xhigh)$/.test(o.model)) ? ["--effort", o.effort] : []),
+  ];
+}
+
+/** The JSON object an answer in words holds: the whole text, inside a code fence, or from its first `{` to its last `}`. */
+export function jsonInText(text: string): Record<string, unknown> | null {
+  const fenced = /```(?:json)?\s*([\s\S]*?)```/.exec(text)?.[1];
+  for (const candidate of [text.trim(), fenced?.trim(), text.slice(text.indexOf("{"), text.lastIndexOf("}") + 1)]) {
+    if (!candidate) continue;
+    try {
+      const value = JSON.parse(candidate);
+      if (isRecord(value)) return value;
+    } catch {
+      // the next way
+    }
+  }
+  return null;
+}
+
+/** What `agy -p --output-format stream-json` printed: its answer's JSON, the model and the usage. Null: none. */
+export function agyRouteAnswer(stdout: string, asked?: string): Exclude<BrainRouteReply, { busy: true }> | null {
+  let text = "";
+  let model = asked;
+  const usage = { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 };
+  for (const line of stdout.split("\n")) {
+    let ev: unknown;
+    try {
+      ev = JSON.parse(line);
+    } catch {
+      continue;
+    }
+    if (!isRecord(ev)) continue;
+    if (ev.event === "init" && isRecord(ev.init) && typeof ev.init.model === "string") model = ev.init.model;
+    const step = isRecord(ev.step_update) ? ev.step_update : null;
+    if (ev.event !== "step_update" || !step || step.step_type !== "agent_response") continue;
+    if (typeof step.text_delta === "string") text += step.text_delta;
+    if (step.state === "DONE" && isRecord(step.usage)) {
+      const u = usageOf(step.usage);
+      usage.input += u.input;
+      usage.output += u.output;
+      usage.cacheRead += u.cacheRead;
+    }
+  }
+  const json = jsonInText(text);
+  return json ? { json, model: (model ?? "gemini").slice(0, 100), usage, durationMs: 0 } : null;
+}
+
+/**
+ * A route on a Gemini plan (`GEMINI_ROUTE_PROTOCOL`): `agy` in a home of its own made for this answer alone (a copy of
+ * the account's sign-in and settings, no MCP server, an agent with no tool), in an empty folder, both removed after.
+ * Google's refresh answers carry no new refresh token, so the copy signs nothing out, and a turn on the same account
+ * runs beside it (no `busy`). Linux only, like the turns (ADR 0143).
+ */
+async function agyRoute(req: BrainRouteRequest, deps: RouteDeps, account: string | null) {
+  if ((deps.platform ?? process.platform) !== "linux") {
+    throw new RunnerError("not_allowed", "Gemini plans answer on Linux computers only");
+  }
+  if (!account) throw new RunnerError("bad_request", "A Gemini answer needs a Gemini account");
+  const signIn = await accountSignIn(deps.accounts, "antigravity", account, deps.grant);
+  if (signIn === "signed_out") throw new RunnerError("not_found", "That account is signed out here");
+  if (signIn === "missing") throw new RunnerError("not_found", "That account isn't on this computer anymore");
+  const dir = mkdtempSync(path.join(deps.tmpDir ?? os.tmpdir(), "agentes-route-"));
+  try {
+    const held = agySignInOf(signIn.home);
+    if (!held) throw new RunnerError("not_found", "That account is signed out here");
+    const home = path.join(dir, "home");
+    const cwd = path.join(dir, "work");
+    placeAgySignIn(home, held);
+    const agent = path.join(home, ".gemini", "config", "agents", AGY_ROUTE_AGENT, "agent.md");
+    mkdirSync(path.dirname(agent), { recursive: true, mode: 0o700 });
+    writeFileSync(agent, agyRouteAgent(), { mode: 0o600 });
+    mkdirSync(cwd, { mode: 0o700 });
+    const model = typeof req.model === "string" && AGY_MODEL.test(req.model) ? req.model : undefined;
+    const started = Date.now();
+    const run = await runCli(
+      deps.agyCommand ?? [AGY_BIN],
+      agyRouteArgs({
+        // No system prompt of its own: it leads, and the shape is asked for in words (no schema flag).
+        prompt: `${req.system}\n\n${req.prompt}\n\nAnswer with one JSON object only, no other text, matching this JSON Schema: ${JSON.stringify(req.schema)}`,
+        ...(model ? { model } : {}),
+        ...(effortOf(req) ? { effort: effortOf(req) } : {}),
+      }),
+      {
+        cwd,
+        env: accountEnv("antigravity", home, withoutContainers(process.env)),
+        input: "",
+        timeoutMs: deps.timeoutMs ?? timeoutOf(req),
+        signal: deps.signal,
+      },
+    );
+    const answer = agyRouteAnswer(run.stdout, model);
+    if (!answer) throw new RunnerError("internal", `Gemini didn't answer${run.why(started)}`);
+    return { ...answer, durationMs: Date.now() - started };
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+    signIn.release?.();
+  }
 }
 
 /** The account's newest Luna (`codex debug models`), cached for an hour per sign-in. */

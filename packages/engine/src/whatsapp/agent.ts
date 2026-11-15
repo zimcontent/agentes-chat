@@ -1,5 +1,6 @@
 import {
   bareJid,
+  GEMINI_ROUTE_PROTOCOL,
   ROUTE_EFFORTS,
   ROUTE_MODELS,
   ROUTE_TIMEOUT_MAX_MS,
@@ -317,10 +318,20 @@ const tokens = (n: unknown) => (typeof n === "number" && Number.isFinite(n) ? Ma
 /** One answer from the agent's own brain: its plan on its computer when it thinks with one, else its API model. */
 async function ask(deps: WhatsAppAgentDeps, agent: Agent, prompt: string, most: number): Promise<WhatsAppAgentAnswer> {
   const system = systemFor(most);
-  const plan = agent.brain === "claude_code" || agent.brain === "codex" ? agent.brain : null;
+  const plan =
+    agent.brain === "claude_code" || agent.brain === "codex" || agent.brain === "antigravity" ? agent.brain : null;
   if (plan && agent.machineId && deps.machines) {
     const status = await deps.machines.status(agent.machineId).catch(() => null);
-    const ready = status?.online && !status.paused && !toolOff(status, plan === "codex" ? "codex" : "claude");
+    const tool = plan === "codex" ? "codex" : plan === "antigravity" ? "antigravity" : "claude";
+    // A Gemini plan answers only on a runner that knows how (`GEMINI_ROUTE_PROTOCOL`), and always with an account.
+    if (plan === "antigravity" && status && (status.protocol < GEMINI_ROUTE_PROTOCOL || !agent.brainAccountId)) {
+      throw new PermanentJobError(
+        agent.brainAccountId
+          ? "the agent's computer runs an older runner that can't answer WhatsApp with Gemini: update it"
+          : "Gemini answers WhatsApp only with a Gemini account connected for the agent",
+      );
+    }
+    const ready = status?.online && !status.paused && !toolOff(status, tool);
     if (ready) {
       const reply = await deps.machines.call(
         agent.machineId,
@@ -333,6 +344,10 @@ async function ask(deps: WhatsAppAgentDeps, agent: Agent, prompt: string, most: 
           // model of another kind) answers with its smallest, thinking little.
           ...(plan === "claude_code" && ROUTE_MODELS.some((m) => m === agent.brainModel)
             ? { model: agent.brainModel as string }
+            : {}),
+          // Gemini: the slug the plan lists (`gemini-4-hydrogen-medium`); none, the account's default.
+          ...(plan === "antigravity" && agent.brainModel && !isAutoModel(agent.brainModel)
+            ? { model: agent.brainModel }
             : {}),
           ...(ROUTE_EFFORTS.some((e) => e === agent.brainEffort) ? { effort: agent.brainEffort as string } : {}),
           timeoutMs: ROUTE_TIMEOUT_MAX_MS,
@@ -362,7 +377,7 @@ async function ask(deps: WhatsAppAgentDeps, agent: Agent, prompt: string, most: 
     if (!agent.brainFallback) throw new Error("the agent's computer isn't answering");
   } else if (agent.brain !== "model" && !agent.brainFallback) {
     throw new PermanentJobError(
-      "this agent's AI account can't answer WhatsApp (it needs a Claude or ChatGPT plan, or an API model)",
+      "this agent's AI account can't answer WhatsApp (it needs a Claude, ChatGPT or Gemini plan, or an API model)",
     );
   }
   // On Automático there is no run to choose a model for: the middle one of its key's line answers.

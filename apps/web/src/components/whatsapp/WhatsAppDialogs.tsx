@@ -573,7 +573,7 @@ export function NewChatDialog({ accountId, onClose }: { accountId: string; onClo
 }
 
 /** The kinds a number can answer with (`whatsapp/brain.ts` on the server). */
-const NUMBER_KINDS = ["model", "claude_code", "codex"] as const;
+const NUMBER_KINDS = ["model", "claude_code", "codex", "antigravity"] as const;
 
 /**
  * What thinks on the number (docs/adr/doug-0004-whatsapp-bridge.md): the agent's own AI, changed for the agent

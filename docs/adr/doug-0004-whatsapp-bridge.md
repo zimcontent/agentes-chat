@@ -57,3 +57,14 @@ agent's message, so the number's agent reads it as its own and the day's caps co
   itself: outside text that became memory would become instructions.
 - Each WhatsApp answer reads more (up to about 30,000 characters of knowledge): a cheap model on the number pays for it.
 - The column is added at boot (`EXTRA_COLUMNS`), outside the numbered migrations, as the tables were.
+
+## Addendum 2026-11-15: Gemini plans answer too
+
+A number (or its agent) may answer with a Gemini account (`antigravity`), through `brain.route` like the other plans.
+On the computer it is `agy -p` in a home made for that one answer and removed after (a copy of the account's sign-in
+and settings, no MCP server, an agent with `tools: []`) in an empty folder, under `--sandbox`: outside text reaches no
+tool, as with Claude and Codex. `agy` has no schema flag, so the shape is asked for in words and the JSON is read from
+the answer's text; `model` is the slug the plan lists (`gemini-4-hydrogen-medium`). Google's refresh answers carry no
+new refresh token, so the copy signs nothing out and runs beside the agent's own turns on that account (no `busy`).
+Runners from `GEMINI_ROUTE_PROTOCOL` (63) on; an older one, or no Gemini account, hands the conversation to a person
+saying why. Linux computers only, as Gemini turns are (ADR 0143).

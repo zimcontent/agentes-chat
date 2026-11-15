@@ -3,16 +3,21 @@ import { existsSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import {
   type BrainRouteRequest,
+  GEMINI_ROUTE_PROTOCOL,
   MACHINE_OPS,
   MACHINE_PROTOCOL_VERSION,
   ROUTE_PROTOCOL,
 } from "@agenteschat/adapters/machine-protocol";
 import { BrainManager } from "../../runner/brain";
 import {
+  AGY_ROUTE_AGENT,
+  agyRouteAnswer,
+  agyRouteArgs,
   CODEX_ROUTE_OFF,
   claudeRouteAnswer,
   claudeRouteArgs,
   codexRouteArgs,
+  jsonInText,
   newestLuna,
   routeWithPlan,
 } from "../../runner/brain-route";
@@ -359,4 +364,52 @@ test("the handler: the machine's Claude Code switch decides, and a route needs i
   expect(await errorCode(() => handleRequest(off, req, scope))).toBe("not_allowed");
   const on = { workspaceReal: ws, exec: true, token: "t" };
   expect(await errorCode(() => handleRequest(on, { ...req, agent: undefined }, scope))).toBe("bad_request");
+});
+
+test("Gemini routes (protocol 63): agy with no tool of its own, the plan's model, the answer's JSON read from its words", () => {
+  expect(MACHINE_PROTOCOL_VERSION).toBeGreaterThanOrEqual(GEMINI_ROUTE_PROTOCOL);
+  expect(agyRouteArgs({ prompt: "oi", model: "gemini-4-hydrogen-medium", effort: "high" })).toEqual([
+    "-p",
+    "oi",
+    "--output-format",
+    "stream-json",
+    "--sandbox",
+    "--disable-slash-commands",
+    "--agent",
+    AGY_ROUTE_AGENT,
+    "--model",
+    "gemini-4-hydrogen-medium",
+  ]);
+  expect(agyRouteArgs({ prompt: "oi", effort: "low" }).slice(-2)).toEqual(["--effort", "low"]);
+  const step = (text: string, done = false) =>
+    JSON.stringify({
+      event: "step_update",
+      step_update: {
+        step_type: "agent_response",
+        state: done ? "DONE" : "ACTIVE",
+        text_delta: text,
+        ...(done ? { usage: { input_tokens: 800, output_tokens: 30, cache_read_tokens: 100 } } : {}),
+      },
+    });
+  const out = [
+    JSON.stringify({ event: "init", init: { model: "gemini-4-hydrogen-medium", tools: [] } }),
+    step('```json\n{"action":"reply",'),
+    step('"messages":["Oi!"]}\n```', true),
+    JSON.stringify({ event: "result", result: {} }),
+  ].join("\n");
+  expect(agyRouteAnswer(out)).toEqual({
+    json: { action: "reply", messages: ["Oi!"] },
+    model: "gemini-4-hydrogen-medium",
+    usage: { input: 800, output: 30, cacheRead: 100, cacheWrite: 0 },
+    durationMs: 0,
+  });
+  expect(agyRouteAnswer(step("Não sei responder isso."))).toBeNull();
+  expect(jsonInText('Claro! {"a":1} é isso')).toEqual({ a: 1 });
+});
+
+test.if(posix)("a Gemini route needs an account, and refuses the CLIs that have none", async () => {
+  const req = { kind: "antigravity", system: "s", prompt: "p", schema: { type: "object" } } as BrainRouteRequest;
+  expect(await errorCode(() => routeWithPlan(req, { platform: "linux" }))).toBe("bad_request");
+  expect(await errorCode(() => routeWithPlan({ ...req, account: ACCOUNT }, { platform: "win32" }))).toBe("not_allowed");
+  expect(await errorCode(() => routeWithPlan({ ...req, kind: "grok" } as BrainRouteRequest, {}))).toBe("bad_request");
 });
