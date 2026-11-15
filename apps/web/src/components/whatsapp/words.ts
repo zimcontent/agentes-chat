@@ -128,6 +128,13 @@ const en = {
     upTo: (n: number) => (n === 1 ? "Always one" : `Up to ${n} short ones`),
     quiet: "Pause when a person answers",
     quietHint: "After you or someone on the team answers a conversation, the agent stays quiet in it this long.",
+    voiceNotes: "Agent voice notes",
+    voiceNotesHint:
+      "It answers a voice message with one, and now and then sends a short one on its own. Never with a link, a number or a list: those it writes.",
+    voice: "Voice",
+    voiceDefault: "Default",
+    listen: "Listen",
+    voiceOff: "There is no voice on this server: it needs an ElevenLabs key.",
     minutes: (n: number) => (n < 60 ? `${n} minutes` : n === 60 ? "1 hour" : `${n / 60} hours`),
   },
   settings: {
@@ -327,6 +334,13 @@ const ptBR: typeof en = {
     upTo: (n: number) => (n === 1 ? "Sempre uma" : `Até ${n} curtas`),
     quiet: "Pausa quando uma pessoa responde",
     quietHint: "Depois que você ou alguém do time responde uma conversa, o agente fica quieto nela por este tempo.",
+    voiceNotes: "Áudios do agente",
+    voiceNotesHint:
+      "Responde áudio com áudio e, de vez em quando, manda um áudio curto por conta própria. Nunca com link, número ou lista: isso ele escreve.",
+    voice: "Voz",
+    voiceDefault: "Padrão",
+    listen: "Ouvir",
+    voiceOff: "Este servidor não tem voz: falta uma chave do ElevenLabs.",
     minutes: (n: number) => (n < 60 ? `${n} minutos` : n === 60 ? "1 hora" : `${n / 60} horas`),
   },
   settings: {

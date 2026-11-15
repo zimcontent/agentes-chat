@@ -1,5 +1,5 @@
 import { createHash, randomBytes } from "node:crypto";
-import type { KeyWrapper, PubSub, WhatsAppGateway } from "@agenteschat/adapters";
+import { isVoiceOutId, type KeyWrapper, type PubSub, type VoiceOut, type WhatsAppGateway } from "@agenteschat/adapters";
 import { and, asc, type Database, eq, inArray, schema } from "@agenteschat/db";
 import { openSecret, sealSecret } from "../crypto";
 import { NotFoundError, ValidationError } from "../errors";
@@ -22,6 +22,8 @@ export interface WhatsAppDeps {
   pubsub?: PubSub;
   /** This server's address as the gateway reaches it (`WHATSAPP_HOOK_URL`), without a trailing slash. */
   hookBase: string;
+  /** Text to speech, for the agent's voice notes (`whatsapp/voice-notes.ts`); absent: it writes. */
+  voiceOut?: VoiceOut | null;
 }
 
 export type WhatsAppAccountRow = typeof schema.whatsappAccounts.$inferSelect;
@@ -52,6 +54,10 @@ export interface WhatsAppAgentStyle {
   messages: number;
   /** Minutes it stays quiet in a conversation after a person wrote there. */
   quietMinutes: number;
+  /** It sends voice notes: always to a voice message, now and then on its own (`whatsapp/voice-notes.ts`). */
+  voiceNotes: boolean;
+  /** The voice it speaks in (the provider's id); null: the default one. */
+  voice: string | null;
 }
 
 export interface WhatsAppAccountView {
@@ -117,6 +123,8 @@ function view(row: WhatsAppAccountRow, userId: string, manage: boolean, now = Da
       pace: row.agentPace,
       messages: row.agentMessages,
       quietMinutes: row.agentQuietMinutes,
+      voiceNotes: row.agentVoiceNotes,
+      voice: row.agentVoice,
     },
     ownAi: row.agentId !== null && row.brain !== null,
     mine: row.people.includes(userId),
@@ -320,6 +328,14 @@ export async function updateWhatsAppAccount(
     if (style.messages !== undefined) set.agentMessages = within(style.messages, bounds.messages, "Messages");
     if (style.quietMinutes !== undefined) {
       set.agentQuietMinutes = within(style.quietMinutes, bounds.quietMinutes, "The quiet time");
+    }
+    if (style.voiceNotes !== undefined) {
+      if (typeof style.voiceNotes !== "boolean") throw new ValidationError("Voice notes are on or off");
+      set.agentVoiceNotes = style.voiceNotes;
+    }
+    if (style.voice !== undefined) {
+      if (style.voice !== null && !isVoiceOutId(style.voice)) throw new ValidationError("Not a voice");
+      set.agentVoice = style.voice;
     }
     if (style.pace !== undefined) {
       if (!bounds.paces.includes(style.pace)) throw new ValidationError("Unknown pace");

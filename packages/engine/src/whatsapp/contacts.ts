@@ -13,6 +13,7 @@ import {
   whatsappGateway,
 } from "./accounts";
 import { storeWhatsAppMessage } from "./inbound";
+import { sendVoiceNote, speaksNow } from "./voice-notes";
 
 /**
  * Who a WhatsApp contact is (docs/adr/doug-0004-whatsapp-bridge.md, addendum 2026-11-15). The number's agent is one
@@ -197,10 +198,12 @@ export async function relayToMember(
   if (!chat.memberUserId || !account.agentId) return null;
   const said = await unanswered(deps, chat);
   if (said.length === 0) return null;
+  // They spoke: the agent's answer goes back as a voice note when it is short and sayable (`whatsapp/voice-notes.ts`).
+  const spoke = said.some((line) => line.startsWith("(áudio) ") || line.startsWith("[audio]"));
   const dm = await openPersonAgentDm(deps.db, account.orgId, chat.memberUserId, account.agentId);
   await post(chat.memberUserId, account.orgId, dm.id, {
     body: said.join("\n"),
-    meta: { whatsapp: { accountId: account.id, chatId: chat.id } },
+    meta: { whatsapp: { accountId: account.id, chatId: chat.id, ...(spoke ? { voice: true } : {}) } },
   });
   return dm.id;
 }
@@ -260,7 +263,8 @@ export async function mirrorAgentReply(
     )
     .orderBy(desc(messages.createdAt))
     .limit(1);
-  const from = (asked?.meta as { whatsapp?: { accountId?: unknown; chatId?: unknown } } | undefined)?.whatsapp;
+  const from = (asked?.meta as { whatsapp?: { accountId?: unknown; chatId?: unknown; voice?: unknown } } | undefined)
+    ?.whatsapp;
   if (!asked || typeof from?.accountId !== "string" || typeof from.chatId !== "string") return 0;
   const [account] = await deps.db
     .select()
@@ -280,6 +284,19 @@ export async function mirrorAgentReply(
     chat.memberUserId !== asked.userId
   ) {
     return 0;
+  }
+  // They asked by voice: a short, sayable answer goes back as a voice note; a voice that fails is written.
+  const said = whatsappText(message.body);
+  if (
+    from.voice === true &&
+    (await speaksNow(deps, account, chat.id, { text: said, wanted: false })) &&
+    (await sendVoiceNote(deps, account, chat, message.authorAgentId, said).then(
+      () => true,
+      () => false,
+    ))
+  ) {
+    await publishWhatsAppChanged(deps, account, { chatId: chat.id });
+    return 1;
   }
   const gateway = whatsappGateway(deps);
   const token = await accountToken(deps, account);

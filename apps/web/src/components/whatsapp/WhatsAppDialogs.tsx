@@ -12,8 +12,10 @@ import {
   useUpdateWhatsApp,
   useWhatsApp,
   useWhatsAppBrain,
+  useWhatsAppVoices,
   type WhatsAppAccount,
   type WhatsAppPace,
+  whatsappVoicePreviewUrl,
 } from "@agenteschat/client";
 import { agentThinks } from "@agenteschat/client/lib/brain";
 import { errorText } from "@agenteschat/client/lib/errors";
@@ -459,6 +461,13 @@ export function NumberDialog({ account, onClose }: { account: WhatsAppAccount; o
               </Field>
             </div>
           )}
+          {agentId !== "none" && (
+            <VoiceNotes
+              on={style.voiceNotes ?? true}
+              voice={style.voice ?? null}
+              onChange={(next) => setStyle((s) => ({ ...s, ...next }))}
+            />
+          )}
           <Field
             label={w.settings.instructions}
             hint={{ name: w.settings.instructions, text: w.settings.instructionsHint }}
@@ -579,6 +588,65 @@ const NUMBER_KINDS = ["model", "claude_code", "codex", "antigravity"] as const;
  * What thinks on the number (docs/adr/doug-0004-whatsapp-bridge.md): the agent's own AI, changed for the agent
  * everywhere, or one for this number alone, the agent untouched. Either way the agent answers with what it knows.
  */
+/**
+ * The agent's voice notes (docs/adr/doug-0004-whatsapp-bridge.md, addendum 2026-11-15): on or off, and the voice, with
+ * its sample to hear. Saved with the rest of the number's settings. Nothing here when the server has no voice.
+ */
+function VoiceNotes({
+  on,
+  voice,
+  onChange,
+}: {
+  on: boolean;
+  voice: string | null;
+  onChange: (next: { voiceNotes?: boolean; voice?: string | null }) => void;
+}) {
+  const w = useWords();
+  const { org } = useOrg();
+  const voices = useWhatsAppVoices(org.id);
+  const sample = useRef<HTMLAudioElement | null>(null);
+  if (!voices.data?.on) return null;
+  const list = voices.data.voices;
+  const chosen = voice ?? "default";
+  const options = [
+    { value: "default", label: w.style.voiceDefault },
+    ...list.map((v) => ({ value: v.id, label: v.labels.length ? `${v.name} · ${v.labels.join(", ")}` : v.name })),
+  ];
+  if (voice && !list.some((v) => v.id === voice)) options.push({ value: voice, label: voice });
+  const listen = () => {
+    sample.current?.pause();
+    const audio = new Audio(whatsappVoicePreviewUrl(org.id, voice ?? voices.data?.default ?? ""));
+    sample.current = audio;
+    void audio.play().catch(() => {});
+  };
+  return (
+    <>
+      <SettingRow
+        title={w.style.voiceNotes}
+        hint={{ name: w.style.voiceNotes, text: w.style.voiceNotesHint }}
+        htmlFor="wa-voice-notes"
+      >
+        <Switch id="wa-voice-notes" checked={on} onCheckedChange={(next) => onChange({ voiceNotes: next })} />
+      </SettingRow>
+      {on && (
+        <Field label={w.style.voice}>
+          <div className="wa-voice">
+            <Select
+              className="wa-voice__pick"
+              value={chosen}
+              onValueChange={(next) => onChange({ voice: next === "default" ? null : next })}
+              options={options}
+            />
+            <Button icon="play" onClick={listen}>
+              {w.style.listen}
+            </Button>
+          </div>
+        </Field>
+      )}
+    </>
+  );
+}
+
 function NumberAi({ account, agent }: { account: WhatsAppAccount; agent: Agent }) {
   const w = useWords();
   const { t } = useTranslation();

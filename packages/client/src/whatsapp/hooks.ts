@@ -192,6 +192,17 @@ export function useWhatsAppChatContact(orgId: string, accountId: string) {
 }
 
 /** The approval portal's clients a contact may be. */
+export function useWhatsAppVoices(orgId: string, enabled = true) {
+  const api = useApi();
+  return useQuery({
+    queryKey: keys.whatsappVoices(orgId),
+    queryFn: () => whatsappOf(api).voices(orgId),
+    enabled,
+    staleTime: 10 * 60_000,
+  });
+}
+
+/** The approval portal's clients a contact may be. */
 export function useWhatsAppClients(orgId: string, enabled = true) {
   const api = useApi();
   return useQuery({

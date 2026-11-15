@@ -643,3 +643,13 @@ a.wa-bubble__file {
     max-width: 86%;
   }
 }
+/* The agent's voice: its list and the sample beside it, the list giving way first. */
+.wa-voice {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+.wa-voice__pick {
+  flex: 1 1 auto;
+  min-width: 0;
+}

@@ -93,3 +93,13 @@ ten minutes each at most) are fetched through the gateway and put into words by 
 that hear the app's (ADR 0100). The words become the message's body (`whatsapp/transcribe.ts`): the agent reads
 "[audio] …", a member's conversation gets "(áudio) …", and the app shows them under the recording. With no engine, or
 one that fails, a recording stays "[audio]", a file the agent asks to have in writing.
+
+## Addendum 2026-11-15: the agent's voice notes
+
+The number's agent speaks now and then, in a voice the number picks among the server's (`whatsapp_accounts.agent_voice`,
+ElevenLabs with the key that already hears voice messages; `agent_voice_notes` turns it off). When is code
+(`whatsapp/voice-notes.ts`): a voice message gets a voice note back, and the agent may ask for one on its own
+(`"voice": true` in its answer) at most once in its last four messages here. Never long (600 characters), never anything
+to copy or click (a link, an e-mail, a long number, a list, code): that is written. The recording goes as WhatsApp's
+own voice note (the gateway's waveform), stored as the agent's audio message with its words as the body. A member who
+asked by voice gets a short, sayable answer from their conversation back the same way. A voice that fails is written.
