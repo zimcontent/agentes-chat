@@ -810,8 +810,11 @@ html:not([data-pointer]) .arrival-have__link:focus-visible {
 }
 
 /* A plan's or a key's panel is the dialog's own content here, not a card inside it: no face, no edge; its words start
-   on the title's edge, with no icon leading a line of them. */
-.arrival-chat .ai-panel {
+   on the title's edge, with no icon leading a line of them. Also over the Doug theme's glass card (`[data-theme]
+   .ac-card` in doug.css, as specific as this and loaded after): its face and edge round a panel with no padding cut
+   through the first line. */
+.arrival-chat .ai-panel,
+[data-theme] .arrival-chat .ai-panel {
   --card-pad: 0px;
   padding: 0;
   background: none;
