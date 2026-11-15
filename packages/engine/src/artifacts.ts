@@ -31,7 +31,14 @@ import { isAgentOnlyDm, openDm } from "./dms";
 import { markdownToDocx } from "./docx";
 import { ConflictError, ForbiddenError, NotFoundError, ValidationError } from "./errors";
 import { publishChannelEvent, publishListChanged } from "./events";
-import { MODEL_FILE_READ_BYTES, type ModelFile, readForModel, tooBigToReadNote, transcriptKey } from "./file-reader";
+import {
+  lightKey,
+  MODEL_FILE_READ_BYTES,
+  type ModelFile,
+  readForModel,
+  tooBigToReadNote,
+  transcriptKey,
+} from "./file-reader";
 import { formatBytes, tableToCsv } from "./format";
 import { imageSize } from "./image-size";
 
@@ -2560,6 +2567,7 @@ async function dropVersions(deps: ArtifactDeps, list: { version: VersionRow; org
     const store = await deps.blobs.forConfig(orgId, v.storageConfigId).catch(() => null);
     await store?.delete(v.blobKey).catch(() => undefined);
     await store?.delete(transcriptKey(v.blobKey)).catch(() => undefined);
+    await store?.delete(lightKey(v.blobKey)).catch(() => undefined);
     await deps.db.delete(artifactVersions).where(eq(artifactVersions.id, v.id));
   }
   return list.length;

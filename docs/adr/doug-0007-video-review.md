@@ -42,3 +42,16 @@ hand, and nothing kept the versions of one video together.
   video's page with the player, its notes and the decision. It is laid out for a phone first.
 - Delivering an approved video to the client (Frame.io, the client's task) is the agent's next step after the approval
   message. It is not part of this decision.
+
+## Addendum 2026-11-15: a light copy for phones
+
+The review copies agents upload are 1080 wide at about 8 Mb/s (30 to 40 MB a short): over 4G, on the street, they
+took long to start. Every version now gets a light copy made by the server in the background (job
+`video_review.light`, ffmpeg in the image, `createFfmpegLightCopy`): H.264 with the long side at 960, about 1 Mb/s,
+AAC, its index at the front, kept beside the file's bytes (`lightKey`) and gone with them. `video_review_versions.light_state`
+says where it is (`pending`, `ready`, `none` when it came out no smaller, `failed`). The player reads
+`GET …/video-reviews/{id}/versions/{version}/video` (in parts): the light copy once it's ready, the original before
+that or with `?quality=original` ("HD" in the apps). A version sent before this gets its copy the first time it's
+opened. The original stays as it is, for downloading and for the delivery after the approval. A server without ffmpeg
+asks for nothing and plays the originals.
+

@@ -81,12 +81,19 @@ const REVIEW: VideoReview = {
     { label: "Brutos no Frame.io", url: "https://next.frame.io/project/x" },
   ],
   versions: [
-    { version: 1, artifactId: "v1", note: "Primeiro corte com letreiros.", createdAt: at(600) },
-    { version: 2, artifactId: "v2", note: "Trilha mais baixa e cards de abertura novos.", createdAt: at(300) },
+    { version: 1, artifactId: "v1", note: "Primeiro corte com letreiros.", light: true, createdAt: at(600) },
+    {
+      version: 2,
+      artifactId: "v2",
+      note: "Trilha mais baixa e cards de abertura novos.",
+      light: true,
+      createdAt: at(300),
+    },
     {
       version: 3,
       artifactId: "v3",
       note: "No rocky a câmera inclina para um lado; o riser entra só no fim, 6 dB mais baixo; a cabeça aparece inteira dos 5 aos 10 s.",
+      light: true,
       createdAt: at(12),
     },
   ],
@@ -140,6 +147,7 @@ function fakeApi(): ApiClient {
     ),
     videoReviews: {
       list: async () => ({ reviews: REVIEWS }),
+      videoUrl: () => `${origin()}/amostra/revisao.mp4`,
       get: async (_o: string, id: string) => (id === R1 ? REVIEW : { ...REVIEW, ...REVIEWS.find((r) => r.id === id) }),
       addNote: async () => REVIEW.notes[0],
       addVoiceNote: async () => REVIEW.notes[2],

@@ -337,3 +337,6 @@ export function xlsxText(part: (path: string) => string | null): string {
 
 /** Where a file version's transcript is kept, beside its bytes: made once, gone with them. */
 export const transcriptKey = (blobKey: string) => `${blobKey}.transcript.txt`;
+
+/** Where a video's light copy for phones is kept, beside its bytes (docs/adr/doug-0007-video-review.md). */
+export const lightKey = (blobKey: string) => `${blobKey}.light.mp4`;

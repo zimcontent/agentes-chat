@@ -9,10 +9,12 @@ import {
   REVIEW_NOTE_ATTACHMENTS,
   REVIEW_NOTE_CHARS,
   REVIEW_NOTE_KINDS,
+  reviewVideo,
   ValidationError,
   type VideoReviewDeps,
 } from "@agenteschat/engine";
 import { createRoute, z } from "@hono/zod-openapi";
+import { rangedResponse } from "../../http/byte-range";
 import { apiError, errorResponse } from "../../http/errors";
 import {
   type AppDeps,
@@ -99,7 +101,13 @@ const Review = Summary.extend({
   brief: z.string(),
   links: z.array(z.object({ label: z.string(), url: z.string() })),
   versions: z.array(
-    z.object({ version: z.number().int(), artifactId: z.uuid(), note: z.string(), createdAt: z.string() }),
+    z.object({
+      version: z.number().int(),
+      artifactId: z.uuid(),
+      note: z.string(),
+      light: z.boolean().openapi({ description: "Its light copy for phones is ready (`…/versions/{version}/video`)." }),
+      createdAt: z.string(),
+    }),
   ),
   notes: z.array(Note),
   decidedBy: Who.nullable(),
@@ -152,6 +160,30 @@ export function videoReviewRoutes(deps: AppDeps) {
       return c.json(await getVideoReview(reviews(), c.get("user").id, orgId, reviewId), 200);
     },
   );
+
+  // A version's video for the player: its light copy for phones (about 1 Mb/s, long side 960) while there is one, the
+  // original with `?quality=original` (HD) or until the copy is made. In parts, so it starts at once over 4G.
+  app.get("/organizations/:orgId/video-reviews/:reviewId/versions/:version/video", async (c) => {
+    const version = Number(c.req.param("version"));
+    if (!Number.isInteger(version) || version < 1) throw new ValidationError("Bad version", "video_review.bad_version");
+    const video = await reviewVideo(
+      reviews(),
+      c.get("user").id,
+      c.req.param("orgId"),
+      c.req.param("reviewId"),
+      version,
+      {
+        original: c.req.query("quality") === "original",
+      },
+    );
+    return rangedResponse(video.body, c.req.header("range"), {
+      "content-type": video.contentType,
+      "x-content-type-options": "nosniff",
+      "content-security-policy": "sandbox",
+      "x-video-quality": video.light ? "light" : "original",
+      "cache-control": "private, no-store, no-transform",
+    });
+  });
 
   app.openapi(
     createRoute({

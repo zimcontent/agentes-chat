@@ -1,13 +1,15 @@
-import { firstWords, type PubSub, type SpeechEngine } from "@agenteschat/adapters";
+import { firstWords, type LightCopy, type PubSub, type SpeechEngine } from "@agenteschat/adapters";
 import { and, asc, type Database, desc, eq, inArray, isNull, schema, sql } from "@agenteschat/db";
 import { type ArtifactActor, type ArtifactDeps, storedFileOfArtifact } from "./artifacts";
 import { requireChannelAccess } from "./channels";
 import { ConflictError, NotFoundError, ValidationError } from "./errors";
+import { lightKey } from "./file-reader";
 import { postPersonMessage } from "./messages";
+import { enqueue } from "./outbox";
 import { replyThreadOf } from "./runs";
 import type { ToolContext, ToolDefinition, ToolOutput, ToolSource } from "./tools/types";
 
-const { agents, artifacts, users, videoReviewNotes, videoReviews, videoReviewVersions } = schema;
+const { agents, artifacts, artifactVersions, users, videoReviewNotes, videoReviews, videoReviewVersions } = schema;
 type VideoReviewStatus = schema.VideoReviewStatus;
 
 /**
@@ -42,12 +44,21 @@ export interface VideoReviewDeps {
   engines: () => SpeechEngine[];
   /** The app's address, for the review's link the agent posts. */
   publicUrl: string;
+  /** Makes a version's light copy for phones (ffmpeg on the server); absent: the apps play the original. */
+  lightCopy?: LightCopy | null;
 }
+
+/** The job that makes a version's light copy, in the background after it arrives. */
+export const REVIEW_LIGHT_JOB = "video_review.light";
+/** The largest original a light copy is made from (read whole into memory). */
+const LIGHT_SOURCE_BYTES = 600 * 1024 * 1024;
 
 export interface VideoReviewVersionView {
   version: number;
   artifactId: string;
   note: string;
+  /** Its light copy is ready: the apps play it unless the person asks for the original (HD). */
+  light: boolean;
   createdAt: string;
 }
 
@@ -246,6 +257,7 @@ export async function sendForReview(
   const note = cleanText(input.note ?? "");
   const now = new Date();
   const created = !input.reviewId;
+  let versionId: string | null = null;
   const reviewId = await deps.db.transaction(async (tx) => {
     if (input.reviewId) {
       const [review] = await tx
@@ -258,13 +270,11 @@ export async function sendForReview(
         throw new ValidationError("This review is another agent's video", "video_review.not_yours");
       }
       const version = review.version + 1;
-      await tx.insert(videoReviewVersions).values({
-        orgId: ctx.orgId,
-        reviewId: review.id,
-        version,
-        artifactId: input.artifactId,
-        note,
-      });
+      const [added] = await tx
+        .insert(videoReviewVersions)
+        .values({ orgId: ctx.orgId, reviewId: review.id, version, artifactId: input.artifactId, note })
+        .returning({ id: videoReviewVersions.id });
+      versionId = added?.id ?? null;
       await tx
         .update(videoReviews)
         .set({
@@ -297,11 +307,14 @@ export async function sendForReview(
       })
       .returning({ id: videoReviews.id });
     if (!row) throw new Error("video review not inserted");
-    await tx
+    const [added] = await tx
       .insert(videoReviewVersions)
-      .values({ orgId: ctx.orgId, reviewId: row.id, version: 1, artifactId: input.artifactId, note });
+      .values({ orgId: ctx.orgId, reviewId: row.id, version: 1, artifactId: input.artifactId, note })
+      .returning({ id: videoReviewVersions.id });
+    versionId = added?.id ?? null;
     return row.id;
   });
+  if (versionId) await queueLight(deps, ctx.orgId, versionId);
   const [review] = await summaries(deps.db, ctx.orgId, [reviewId]);
   if (!review) throw new Error("video review not found after send");
   return { review, link: deps.publicUrl.replace(/\/+$/, "") + reviewPath(ctx.orgId, review.id), created };
@@ -536,7 +549,7 @@ async function requireReview(db: Database, userId: string, orgId: string, review
 }
 
 export async function getVideoReview(
-  deps: Pick<VideoReviewDeps, "db">,
+  deps: Pick<VideoReviewDeps, "db" | "lightCopy">,
   userId: string,
   orgId: string,
   reviewId: string,
@@ -549,6 +562,8 @@ export async function getVideoReview(
     .from(videoReviewVersions)
     .where(eq(videoReviewVersions.reviewId, review.id))
     .orderBy(asc(videoReviewVersions.version));
+  // A version sent before light copies existed gets one the first time it's opened.
+  for (const v of versions) if (v.lightState === "") await queueLight(deps, orgId, v.id);
   const notes = await deps.db
     .select({ note: videoReviewNotes, authorName: users.name })
     .from(videoReviewNotes)
@@ -570,6 +585,7 @@ export async function getVideoReview(
       version: v.version,
       artifactId: v.artifactId,
       note: v.note,
+      light: v.lightState === "ready",
       createdAt: v.createdAt.toISOString(),
     })),
     notes: notes.map(({ note, authorName }) => ({
@@ -913,4 +929,105 @@ export async function decideVideoReview(
   const [summary] = await summaries(deps.db, orgId, [review.id]);
   if (!summary) throw new NotFoundError("No such review");
   return summary;
+}
+
+// ---------- the light copy for phones ----------
+
+/** Asks for a version's light copy, once: only where this server can make one. */
+async function queueLight(deps: Pick<VideoReviewDeps, "db" | "lightCopy">, orgId: string, versionId: string) {
+  if (!deps.lightCopy) return;
+  const [asked] = await deps.db
+    .update(videoReviewVersions)
+    .set({ lightState: "pending" })
+    .where(and(eq(videoReviewVersions.id, versionId), eq(videoReviewVersions.lightState, "")))
+    .returning({ id: videoReviewVersions.id });
+  if (asked) await enqueue(deps.db, { orgId, kind: REVIEW_LIGHT_JOB, payload: { versionId }, maxAttempts: 3 });
+}
+
+/** The stored bytes of a version's video file (its newest file version). */
+async function versionFile(deps: Pick<VideoReviewDeps, "db" | "artifacts">, orgId: string, artifactId: string) {
+  const [row] = await deps.db
+    .select({
+      blobKey: artifactVersions.blobKey,
+      storageConfigId: artifactVersions.storageConfigId,
+      size: artifactVersions.size,
+    })
+    .from(artifacts)
+    .innerJoin(
+      artifactVersions,
+      and(eq(artifactVersions.artifactId, artifacts.id), eq(artifactVersions.version, artifacts.currentVersion)),
+    )
+    .where(and(eq(artifacts.orgId, orgId), eq(artifacts.id, artifactId), isNull(artifacts.deletedAt)));
+  if (!row) return null;
+  const store = await deps.artifacts.blobs.forConfig(orgId, row.storageConfigId);
+  return { ...row, store };
+}
+
+/**
+ * Job `video_review.light`: the version's light copy, kept beside its bytes. One that comes out no smaller than the
+ * original isn't kept (`none`): the apps play the original.
+ */
+export async function makeLightCopy(
+  deps: Pick<VideoReviewDeps, "db" | "artifacts" | "lightCopy">,
+  versionId: string,
+  options: { finalAttempt: boolean },
+): Promise<void> {
+  const [v] = await deps.db.select().from(videoReviewVersions).where(eq(videoReviewVersions.id, versionId));
+  if (!v || v.lightState === "ready" || v.lightState === "none") return;
+  const settle = (lightState: string) =>
+    deps.db.update(videoReviewVersions).set({ lightState }).where(eq(videoReviewVersions.id, versionId));
+  const file = await versionFile(deps, v.orgId, v.artifactId);
+  if (!file || !deps.lightCopy || file.size > LIGHT_SOURCE_BYTES) {
+    await settle("none");
+    return;
+  }
+  try {
+    const object = await file.store.get(file.blobKey);
+    if (!object) {
+      await settle("none");
+      return;
+    }
+    const light = await deps.lightCopy(object.body);
+    if (light.byteLength === 0 || light.byteLength >= object.body.byteLength * 0.9) {
+      await settle("none");
+      return;
+    }
+    await file.store.put(lightKey(file.blobKey), light, { contentType: "video/mp4" });
+    await settle("ready");
+  } catch (error) {
+    // Asked again by the job's next attempt; the last one leaves the original to be played.
+    if (options.finalAttempt) await settle("failed");
+    throw error;
+  }
+}
+
+/**
+ * A version's video for the player, after the same check as the review itself: its light copy when there is one
+ * (unless `original`), else the file. A light copy that went missing (the files moved) is made again.
+ */
+export async function reviewVideo(
+  deps: Pick<VideoReviewDeps, "db" | "artifacts" | "lightCopy">,
+  userId: string,
+  orgId: string,
+  reviewId: string,
+  version: number,
+  options: { original?: boolean } = {},
+): Promise<{ body: Uint8Array; contentType: string; light: boolean }> {
+  const review = await requireReview(deps.db, userId, orgId, reviewId);
+  const [v] = await deps.db
+    .select()
+    .from(videoReviewVersions)
+    .where(and(eq(videoReviewVersions.reviewId, review.id), eq(videoReviewVersions.version, version)));
+  if (!v) throw new NotFoundError("No such version");
+  const file = await versionFile(deps, orgId, v.artifactId);
+  if (!file) throw new NotFoundError("The video of this version was removed");
+  if (!options.original && v.lightState === "ready") {
+    const light = await file.store.get(lightKey(file.blobKey)).catch(() => null);
+    if (light) return { body: light.body, contentType: "video/mp4", light: true };
+    await deps.db.update(videoReviewVersions).set({ lightState: "" }).where(eq(videoReviewVersions.id, v.id));
+    await queueLight(deps, orgId, v.id);
+  }
+  const object = await file.store.get(file.blobKey);
+  if (!object) throw new NotFoundError("The stored file is missing");
+  return { body: object.body, contentType: object.contentType || "video/mp4", light: false };
 }

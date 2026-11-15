@@ -411,6 +411,16 @@ function ReviewBody({ review, w }: { review: VideoReview; w: ReviewWords }) {
   useEffect(() => setVersion(latest), [latest]);
 
   const shown = review.versions.find((v) => v.version === version) ?? review.versions.at(-1);
+  // The light copy plays unless the person asks for the original (HD); switching keeps the place.
+  const [hd, setHd] = useState(false);
+  const resumeAt = useRef<number | null>(null);
+  const videoSrc = (v: { version: number; artifactId: string }) =>
+    api.videoReviews?.videoUrl(org.id, review.id, v.version, { original: hd }) ??
+    api.artifacts.fileUrl(org.id, v.artifactId);
+  const toggleHd = () => {
+    resumeAt.current = video.current?.currentTime ?? null;
+    setHd((on) => !on);
+  };
   const fps = useFrameRate(videoEl);
   const notes = review.notes.filter((n) => n.version === version);
   const isLatest = version === review.version;
@@ -767,15 +777,19 @@ function ReviewBody({ review, w }: { review: VideoReview; w: ReviewWords }) {
           >
             {/* biome-ignore lint/a11y/useMediaCaption: an edit in review has no captions yet; the notes say what is in it. */}
             <video
-              key={shown.artifactId}
+              key={`${shown.artifactId}:${hd}`}
               ref={bindVideo}
               className="vr-video"
-              src={api.artifacts.fileUrl(org.id, shown.artifactId)}
+              src={videoSrc(shown)}
               playsInline
               preload="auto"
               onLoadedMetadata={(e) => {
                 setDuration(e.currentTarget.duration * 1000);
                 e.currentTarget.playbackRate = rate;
+                if (resumeAt.current !== null) {
+                  e.currentTarget.currentTime = resumeAt.current;
+                  resumeAt.current = null;
+                }
               }}
               onPlay={() => setPlaying(true)}
               onPause={(e) => {
@@ -987,6 +1001,17 @@ function ReviewBody({ review, w }: { review: VideoReview; w: ReviewWords }) {
               />
             ) : (
               <span className="vr-muted">{w.version(review.version)}</span>
+            )}
+            {shown?.light && (
+              <Button
+                size="sm"
+                variant={hd ? "default" : "ghost"}
+                aria-pressed={hd}
+                title={hd ? w.hdOn : w.hdOff}
+                onClick={toggleHd}
+              >
+                {w.hd}
+              </Button>
             )}
             {shown && (
               <Button size="sm" variant="ghost" icon="download" asChild>

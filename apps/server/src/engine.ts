@@ -1,6 +1,7 @@
 import {
   type Adapters,
   type BrainTurnRequest,
+  createFfmpegLightCopy,
   type ErrorReporter,
   type S3Fetch,
   type SpeechFetch,
@@ -325,6 +326,8 @@ export function buildEngine(o: EngineOptions) {
     artifacts,
     engines: () => speech.chain(),
     publicUrl: config.PUBLIC_URL,
+    // A light copy of every version for phones, where ffmpeg is installed (the image has it).
+    lightCopy: createFfmpegLightCopy(),
   };
   // Agents' computers (ADR 0025): connected machines, through the hub that holds their sockets.
   const machineHub = createMachineHub({
@@ -861,6 +864,7 @@ export function buildEngine(o: EngineOptions) {
     accountEmails: adapters.email.delivers ? { publicUrl: config.PUBLIC_URL, support: config.SUPPORT_EMAIL } : null,
     appleRevoke: o.appleRevoke ?? appleTokenRevoker(config),
     voice,
+    videoReviews,
     // The agent answering a WhatsApp number, with its own brain: its API model, or its plan on its computer.
     ...(adapters.whatsapp
       ? {

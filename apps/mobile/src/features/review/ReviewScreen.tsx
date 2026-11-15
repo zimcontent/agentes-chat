@@ -64,6 +64,9 @@ function Detail({ review }: { review: VideoReview }) {
   const surface = useSurface();
   const [version, setVersion] = useState(review.version);
   const [draft, setDraft] = useState<Draft | null>(null);
+  // The light copy plays (4G); HD swaps to the original at the same place.
+  const [hd, setHd] = useState(false);
+  const startAt = useRef(0);
   const controls = useRef<StageControls | null>(null);
   const scroll = useRef<{ scrollTo: (o: { y: number; animated?: boolean }) => void } | null>(null);
   // A new version (the agent sent the next one) is the one shown.
@@ -104,18 +107,35 @@ function Detail({ review }: { review: VideoReview }) {
             onChange={(v) => {
               setVersion(Number(v));
               setDraft(null);
+              startAt.current = 0;
             }}
             items={review.versions.map((v) => ({ key: String(v.version), label: w.version(v.version) }))}
           />
         ) : null}
         {file ? (
           <ReviewStage
-            key={file}
-            uri={api.artifacts.fileUrl(orgId, file)}
+            key={`${file}:${hd}`}
+            uri={
+              api.videoReviews?.videoUrl(orgId, review.id, version, { original: hd }) ??
+              api.artifacts.fileUrl(orgId, file)
+            }
+            startMs={startAt.current}
             notes={notes}
             draft={draft && draft.x !== null && draft.y !== null ? { x: draft.x, y: draft.y } : null}
             controls={controls}
             onPoint={(p) => (open ? setDraft({ atMs: p.atMs, endMs: null, x: p.x, y: p.y }) : undefined)}
+          />
+        ) : null}
+        {shownVersion?.light ? (
+          <Button
+            variant={hd ? "primary" : "secondary"}
+            size="sm"
+            label={w.hd}
+            hint={hd ? w.hdOn : w.hdOff}
+            onPress={() => {
+              startAt.current = controls.current?.now() ?? 0;
+              setHd((on) => !on);
+            }}
           />
         ) : null}
         {shownVersion?.note ? (
