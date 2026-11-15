@@ -47,6 +47,7 @@ Montar a imagem no servidor a partir do `main` (ou de uma tag `doug-*`) e subir 
 - Grupos/canais com nome de exibição e foto (colunas `display_name`/`icon`).
 - Navegador: assumir o controle para os comandos do agente e do servidor; um cartão ao vivo por agente.
 - WhatsApp: números conectados por um gateway (Evolution Go) no mesmo servidor, com as conversas no nosso banco (`docs/adr/doug-0001-whatsapp-numbers.md`). As três tabelas `whatsapp_*` são criadas no boot por `EXTRA_COLUMNS`, fora do journal.
+- Ícone da aba e do app na web: o Doug. `index.html` aponta para `/favicon.svg` (de `packages/ui/scripts/dougbot-files.ts`) e `faviconOf` do ícone padrão também (`apps/web/src/lib/app-icon.ts`); `favicon.ico`, `apple-touch-icon.png` e `icon-512.png` em `apps/web/public` são o mesmo Doug, e `packages/ui/scripts/app-icons.mjs` do oficial não os regrava. Ao misturar o oficial, conferir que nada voltou a apontar para o ícone de pixel do agentes.chat.
 - Conectores: `MCP_PRIVATE_SERVERS` (MCP interno exato, ex. Segundo Cérebro: aceito ao cadastrar e a cada requisição do `outboundFetch`; nunca use o `allowPrivateOutbound` global) e `MCP_CIMD_ISSUERS` (OAuth por documento de metadados em `/oauth/client-metadata.json`, ex. HeyGen).
 
 ## Automações herdadas do oficial

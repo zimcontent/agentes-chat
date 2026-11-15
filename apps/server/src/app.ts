@@ -427,7 +427,8 @@ export function createApp(options: AppOptions) {
       const html = c.res.headers.get("content-type")?.startsWith("text/html");
       if (html) c.res.headers.set("x-robots-tag", "noindex");
       if (!c.res.ok || c.res.headers.has("cache-control")) return;
-      if (html || c.req.path === "/favicon.svg") c.res.headers.set("cache-control", "no-cache");
+      if (html || c.req.path === "/favicon.svg" || c.req.path === "/favicon.ico")
+        c.res.headers.set("cache-control", "no-cache");
       else if (c.req.path.startsWith("/assets/"))
         c.res.headers.set("cache-control", "public, max-age=31536000, immutable");
     });
