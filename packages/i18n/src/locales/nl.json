@@ -10231,8 +10231,28 @@
       "removeText": "Oproepen met agents en Beluisteren stoppen in deze werkruimte. Oproepen tussen mensen gaan door.",
       "voicesTitle": "De stem van elke agent",
       "voiceOf": "Stem van {{name}}",
-      "sample": "Stem van {{name}} beluisteren",
-      "hear": "Beluisteren"
+      "pickerLead": "Luister naar elke stem als {{name}} en kies er een. De eerste voorbeeldweergave van een stem is een korte GPT-Live-sessie. Opnieuw luisteren is gratis.",
+      "filter": "Tonen",
+      "filterAll": "Alle",
+      "filterFeminine": "Vrouwelijk",
+      "filterMasculine": "Mannelijk",
+      "current": "Huidig",
+      "previewOf": "{{voice}} beluisteren",
+      "use": "{{voice}} gebruiken",
+      "refused": "Deze sleutel heeft deze stem niet: {{voice}} sprak in plaats daarvan."
+    },
+    "voices": {
+      "feminine": "Vrouwelijk",
+      "masculine": "Mannelijk",
+      "accent": {
+        "australian": "Australisch",
+        "british": "Brits",
+        "irish": "Iers",
+        "northAmerican": "Noord-Amerikaans",
+        "brazilian": "Braziliaans",
+        "filipino": "Filipijns",
+        "southernUs": "Zuidelijke VS"
+      }
     },
     "errors": {
       "off": "Deze werkruimte heeft geen GPT-Live-sleutel. Voeg er een toe in Instellingen › Spraak.",

@@ -9832,8 +9832,28 @@
       "removeText": "Panggilan dengan agen dan Dengarkan berhenti di ruang kerja ini. Panggilan antarorang tetap berjalan.",
       "voicesTitle": "Suara tiap agen",
       "voiceOf": "Suara {{name}}",
-      "sample": "Dengarkan suara {{name}}",
-      "hear": "Dengarkan"
+      "pickerLead": "Dengarkan setiap suara sebagai {{name}} lalu pilih satu. Pratinjau pertama tiap suara adalah sesi GPT-Live singkat. Mendengarkan lagi gratis.",
+      "filter": "Tampilkan",
+      "filterAll": "Semua",
+      "filterFeminine": "Feminin",
+      "filterMasculine": "Maskulin",
+      "current": "Saat ini",
+      "previewOf": "Dengarkan {{voice}}",
+      "use": "Gunakan {{voice}}",
+      "refused": "Kunci ini tidak punya suara ini: {{voice}} yang berbicara."
+    },
+    "voices": {
+      "feminine": "Feminin",
+      "masculine": "Maskulin",
+      "accent": {
+        "australian": "Australia",
+        "british": "Inggris",
+        "irish": "Irlandia",
+        "northAmerican": "Amerika Utara",
+        "brazilian": "Brasil",
+        "filipino": "Filipina",
+        "southernUs": "AS Selatan"
+      }
     },
     "errors": {
       "off": "Ruang kerja ini belum punya kunci GPT-Live. Tambahkan di Pengaturan › Suara.",

@@ -38,6 +38,24 @@ describe("a person speaks", () => {
   });
 });
 
+describe("a call that just started", () => {
+  test("one person: the agent that greets keeps the word for their first words", () => {
+    const d = afterPerson(initialFloor("ana", 0), "oi", { agents, people: 1, now: 60_000 });
+    expect(d).toMatchObject({ state: { holder: "ana" }, ask: false });
+  });
+  test("one person and nobody with the word: the small model is asked who answers", () => {
+    expect(afterPerson(initialFloor(), "oi, tudo bem?", { agents, people: 1, now: 0 })).toMatchObject({
+      state: { holder: null },
+      ask: true,
+    });
+  });
+  test("several people: the agent just given the word keeps it a while even before it spoke", () => {
+    const given = giveFloor(initialFloor(), "bruno", "judge", 1000).state;
+    expect(afterPerson(given, "e aí?", { agents, people: 2, now: 5000 }).state.holder).toBe("bruno");
+    expect(afterPerson(given, "e aí?", { agents, people: 2, now: 1000 + CONTINUE_MS + 1 }).state.holder).toBeNull();
+  });
+});
+
 describe("agents among themselves never loop", () => {
   test("a colleague named gets the word, up to the limit; then the people have it", () => {
     let s = afterPerson(initialFloor(), "Ana, comece", { agents, people: 2, now: 0 }).state;

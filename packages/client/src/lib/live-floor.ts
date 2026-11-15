@@ -3,8 +3,10 @@
  * it is a call with one person and one agent, or right after it spoke and the person answers. Agents may bring a
  * colleague in by name, but only a few times in a row: past `MAX_AGENT_CHAIN` handoffs (each agent once) or
  * `MAX_AGENT_TURNS` agent turns without a person speaking, the word goes back to the people and every agent listens
- * until a person speaks again. When a person speaks to nobody by name in a meeting, `ask` says to ask the server's
- * small model (`next`), which answers "none" unless the people clearly wait for an agent.
+ * until a person speaks again. With one person on the call, everything they say is for the agents: the agent with the
+ * word keeps it, and when nobody has it the server's small model (`next`) picks who answers (it never answers "none"
+ * then). With several people, an agent keeps the word for a while after it got it or spoke, and past that `ask` says to
+ * ask the small model, which answers "none" unless the people clearly wait for an agent.
  */
 
 export interface FloorAgent {
@@ -22,6 +24,8 @@ export interface FloorState {
   spoke: string[];
   /** When an agent last finished a turn (ms). */
   lastAgentAt: number;
+  /** When the agent with the word got it (ms): one that hasn't spoken yet keeps it as long as one that just did. */
+  givenAt: number;
 }
 
 export type FloorReason = "named" | "solo" | "continue" | "handoff" | "limit" | "people" | "manual" | "judge";
@@ -40,11 +44,12 @@ export const MAX_AGENT_TURNS = 3;
 /** An agent that just spoke keeps the word this long for the person's answer. */
 export const CONTINUE_MS = 20_000;
 
-export const initialFloor = (holder: string | null = null): FloorState => ({
+export const initialFloor = (holder: string | null = null, now = 0): FloorState => ({
   holder,
   chain: 0,
   spoke: [],
   lastAgentAt: 0,
+  givenAt: holder ? now : 0,
 });
 
 /** Lower case without accents: "Ágata" and "agata" are one name. */
@@ -74,8 +79,14 @@ export function namedAgent(text: string, agents: FloorAgent[], except?: string |
   return best?.id ?? null;
 }
 
-const give = (state: FloorState, holder: string | null, reason: FloorReason, ask = false): FloorDecision => ({
-  state: { ...state, holder },
+const give = (
+  state: FloorState,
+  holder: string | null,
+  reason: FloorReason,
+  ask = false,
+  now?: number,
+): FloorDecision => ({
+  state: { ...state, holder, givenAt: holder && holder !== state.holder && now !== undefined ? now : state.givenAt },
   changed: holder !== state.holder || reason === "named" || reason === "judge" || reason === "manual",
   reason,
   ask,
@@ -90,9 +101,13 @@ export function afterPerson(
   const fresh: FloorState = { ...state, chain: 0, spoke: [] };
   if (!room.agents.length) return give(fresh, null, "people");
   const named = namedAgent(text, room.agents);
-  if (named) return give(fresh, named, "named");
-  if (room.agents.length === 1 && room.people <= 1) return give(fresh, room.agents[0]?.id ?? null, "solo");
-  if (state.holder && room.now - state.lastAgentAt < CONTINUE_MS) return give(fresh, state.holder, "continue");
+  if (named) return give(fresh, named, "named", false, room.now);
+  if (room.agents.length === 1 && room.people <= 1)
+    return give(fresh, room.agents[0]?.id ?? null, "solo", false, room.now);
+  // One person talks to the agents: whoever has the word goes on answering.
+  if (state.holder && room.people <= 1) return give(fresh, state.holder, "continue");
+  if (state.holder && room.now - Math.max(state.lastAgentAt, state.givenAt) < CONTINUE_MS)
+    return give(fresh, state.holder, "continue");
   return give(fresh, null, "people", true);
 }
 
@@ -108,11 +123,15 @@ export function afterAgent(
   const next: FloorState = { ...state, spoke, lastAgentAt: room.now };
   const named = namedAgent(text, room.agents, agentId);
   if (named && state.chain < MAX_AGENT_CHAIN && !spoke.includes(named) && turns < MAX_AGENT_TURNS)
-    return give({ ...next, chain: state.chain + 1 }, named, "handoff");
+    return give({ ...next, chain: state.chain + 1 }, named, "handoff", false, room.now);
   if (turns >= MAX_AGENT_TURNS || (named && state.chain >= MAX_AGENT_CHAIN)) return give(next, null, "limit");
   return give(next, agentId, "continue");
 }
 
 /** Someone gave the word by hand (a tile's "Dar a palavra"), or the small model picked an agent. */
-export const giveFloor = (state: FloorState, holder: string | null, reason: "manual" | "judge"): FloorDecision =>
-  give(reason === "manual" ? { ...state, chain: 0, spoke: [] } : state, holder, reason);
+export const giveFloor = (
+  state: FloorState,
+  holder: string | null,
+  reason: "manual" | "judge",
+  now = Date.now(),
+): FloorDecision => give(reason === "manual" ? { ...state, chain: 0, spoke: [] } : state, holder, reason, false, now);

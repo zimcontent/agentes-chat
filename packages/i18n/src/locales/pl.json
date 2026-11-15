@@ -10876,8 +10876,28 @@
       "removeText": "Rozmowy z agentami i Posłuchaj przestaną działać w tej przestrzeni roboczej. Rozmowy między ludźmi działają dalej.",
       "voicesTitle": "Głos każdego agenta",
       "voiceOf": "Głos: {{name}}",
-      "sample": "Posłuchaj głosu: {{name}}",
-      "hear": "Posłuchaj"
+      "pickerLead": "Posłuchaj każdego głosu jako {{name}} i wybierz jeden. Pierwszy odsłuch każdego głosu to krótka sesja GPT-Live. Ponowne odsłuchanie jest darmowe.",
+      "filter": "Pokaż",
+      "filterAll": "Wszystkie",
+      "filterFeminine": "Żeńskie",
+      "filterMasculine": "Męskie",
+      "current": "Obecny",
+      "previewOf": "Posłuchaj: {{voice}}",
+      "use": "Użyj: {{voice}}",
+      "refused": "Ten klucz nie ma tego głosu: zamiast niego mówił {{voice}}."
+    },
+    "voices": {
+      "feminine": "Żeński",
+      "masculine": "Męski",
+      "accent": {
+        "australian": "Australijski",
+        "british": "Brytyjski",
+        "irish": "Irlandzki",
+        "northAmerican": "Północnoamerykański",
+        "brazilian": "Brazylijski",
+        "filipino": "Filipiński",
+        "southernUs": "Południe USA"
+      }
     },
     "errors": {
       "off": "Ta przestrzeń robocza nie ma klucza GPT-Live. Dodaj go w Ustawienia › Głos.",

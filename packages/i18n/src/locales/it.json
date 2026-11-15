@@ -10558,8 +10558,28 @@
       "removeText": "Le chiamate con gli agenti e Ascolta si fermano in questo spazio di lavoro. Le chiamate tra persone continuano.",
       "voicesTitle": "La voce di ogni agente",
       "voiceOf": "Voce di {{name}}",
-      "sample": "Ascolta la voce di {{name}}",
-      "hear": "Ascolta"
+      "pickerLead": "Ascolta ogni voce come {{name}} e scegline una. La prima anteprima di ogni voce è una breve sessione GPT-Live. Riascoltarla è gratis.",
+      "filter": "Mostra",
+      "filterAll": "Tutte",
+      "filterFeminine": "Femminili",
+      "filterMasculine": "Maschili",
+      "current": "Attuale",
+      "previewOf": "Ascolta {{voice}}",
+      "use": "Usa {{voice}}",
+      "refused": "Questa chiave non ha questa voce: al suo posto ha parlato {{voice}}."
+    },
+    "voices": {
+      "feminine": "Femminile",
+      "masculine": "Maschile",
+      "accent": {
+        "australian": "Australiano",
+        "british": "Britannico",
+        "irish": "Irlandese",
+        "northAmerican": "Nordamericano",
+        "brazilian": "Brasiliano",
+        "filipino": "Filippino",
+        "southernUs": "Sud degli USA"
+      }
     },
     "errors": {
       "off": "Questo spazio di lavoro non ha una chiave GPT-Live. Aggiungine una in Impostazioni › Voce.",

@@ -9775,8 +9775,28 @@
       "removeText": "이 워크스페이스에서 에이전트와의 통화와 듣기가 멈춰요. 사람끼리의 통화는 계속돼요.",
       "voicesTitle": "에이전트별 목소리",
       "voiceOf": "{{name}}의 목소리",
-      "sample": "{{name}}의 목소리 듣기",
-      "hear": "듣기"
+      "pickerLead": "{{name}}의 목소리로 각 음성을 들어 보고 하나를 고르세요. 음성마다 첫 미리 듣기는 짧은 GPT-Live 세션이고, 다시 듣기는 무료예요.",
+      "filter": "표시",
+      "filterAll": "전체",
+      "filterFeminine": "여성",
+      "filterMasculine": "남성",
+      "current": "현재",
+      "previewOf": "{{voice}} 듣기",
+      "use": "{{voice}} 사용",
+      "refused": "이 키에는 이 음성이 없어요. 대신 {{voice}}가 말했어요."
+    },
+    "voices": {
+      "feminine": "여성",
+      "masculine": "남성",
+      "accent": {
+        "australian": "호주",
+        "british": "영국",
+        "irish": "아일랜드",
+        "northAmerican": "북미",
+        "brazilian": "브라질",
+        "filipino": "필리핀",
+        "southernUs": "미국 남부"
+      }
     },
     "errors": {
       "off": "이 워크스페이스에는 GPT-Live 키가 없어요. 설정 › 음성에서 추가하세요.",

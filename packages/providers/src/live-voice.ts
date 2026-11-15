@@ -19,8 +19,50 @@ export const LIVE_VOICE_MIN_SECONDS = 15;
 
 export const DEFAULT_LIVE_VOICE = "marin";
 
-/** The voices offered, by their API names; each is shown by its own name, never translated. */
-export const LIVE_VOICES = [
+/** A voice's language, the accent it speaks with, and how it sounds (OpenAI's own voice table for GPT-Live). */
+export interface LiveVoiceInfo {
+  id: string;
+  lang: "en" | "pt" | "de" | "fr" | "hi" | "ja" | "ko";
+  /** The regional influence OpenAI lists; null for the voices it lists none for. */
+  accent: "australian" | "british" | "irish" | "northAmerican" | "brazilian" | "filipino" | "southernUs" | null;
+  presentation: "feminine" | "masculine";
+}
+
+/**
+ * OpenAI's GPT-Live voices (its voice table, checked 2026-11-15), by their API names; each is shown by its own name, never
+ * translated. Marin and Cedar first: every key takes them.
+ */
+export const LIVE_VOICE_CATALOG = [
+  { id: "marin", lang: "en", accent: null, presentation: "feminine" },
+  { id: "cedar", lang: "en", accent: null, presentation: "masculine" },
+  { id: "bossa", lang: "pt", accent: "brazilian", presentation: "feminine" },
+  { id: "tempo", lang: "pt", accent: "brazilian", presentation: "masculine" },
+  { id: "gleam", lang: "en", accent: "northAmerican", presentation: "feminine" },
+  { id: "meridian", lang: "en", accent: "northAmerican", presentation: "masculine" },
+  { id: "delta", lang: "en", accent: "southernUs", presentation: "feminine" },
+  { id: "cinder", lang: "en", accent: "southernUs", presentation: "masculine" },
+  { id: "vesper", lang: "en", accent: "british", presentation: "masculine" },
+  { id: "willow", lang: "en", accent: "irish", presentation: "feminine" },
+  { id: "stone", lang: "en", accent: "irish", presentation: "masculine" },
+  { id: "quartz", lang: "en", accent: "australian", presentation: "feminine" },
+  { id: "ripple", lang: "en", accent: "australian", presentation: "masculine" },
+  { id: "beacon", lang: "en", accent: "filipino", presentation: "masculine" },
+  { id: "nuri", lang: "de", accent: null, presentation: "feminine" },
+  { id: "juni", lang: "de", accent: null, presentation: "feminine" },
+  { id: "flitz", lang: "de", accent: null, presentation: "masculine" },
+  { id: "brise", lang: "fr", accent: null, presentation: "feminine" },
+  { id: "sillage", lang: "fr", accent: null, presentation: "masculine" },
+  { id: "nira", lang: "hi", accent: null, presentation: "feminine" },
+  { id: "harema", lang: "ja", accent: null, presentation: "feminine" },
+  { id: "shida", lang: "ja", accent: null, presentation: "masculine" },
+  { id: "noeul", lang: "ko", accent: null, presentation: "feminine" },
+] as const satisfies readonly LiveVoiceInfo[];
+
+/** The voices offered, by their API names. */
+export const LIVE_VOICES = LIVE_VOICE_CATALOG.map((v) => v.id);
+
+/** The voices an agent with none picked gets one of (kept as they were, so no agent's voice changes on its own). */
+const AUTO_VOICES = [
   "marin",
   "cedar",
   "bossa",
@@ -37,10 +79,12 @@ export const LIVE_VOICES = [
   "cinder",
 ] as const;
 
-export type LiveVoice = (typeof LIVE_VOICES)[number];
+export type LiveVoice = (typeof LIVE_VOICE_CATALOG)[number]["id"];
 
 export const isLiveVoice = (v: unknown): v is LiveVoice =>
   typeof v === "string" && (LIVE_VOICES as readonly string[]).includes(v);
+
+export const liveVoiceInfo = (v: string): LiveVoiceInfo | undefined => LIVE_VOICE_CATALOG.find((x) => x.id === v);
 
 /** "meridian" → "Meridian". */
 export const liveVoiceLabel = (v: string) => v.charAt(0).toUpperCase() + v.slice(1);
@@ -53,7 +97,7 @@ export function liveVoiceFor(agentId: string, chosen?: string | null): string {
   if (chosen && isLiveVoice(chosen)) return chosen;
   let hash = 0;
   for (const ch of agentId) hash = (hash * 31 + ch.charCodeAt(0)) >>> 0;
-  return LIVE_VOICES[hash % LIVE_VOICES.length] ?? DEFAULT_LIVE_VOICE;
+  return AUTO_VOICES[hash % AUTO_VOICES.length] ?? DEFAULT_LIVE_VOICE;
 }
 
 /** What `seconds` of live voice cost, in nano-USD (the minimum billed included). */

@@ -9781,8 +9781,28 @@
       "removeText": "このワークスペースでエージェントとの通話と「聞く」が止まります。人同士の通話は続きます。",
       "voicesTitle": "エージェントごとの声",
       "voiceOf": "{{name}} の声",
-      "sample": "{{name}} の声を聞く",
-      "hear": "聞く"
+      "pickerLead": "{{name}}として各ボイスを聞いて選んでください。各ボイスの最初の試聴は短いGPT-Liveセッションです。もう一度聞くのは無料です。",
+      "filter": "表示",
+      "filterAll": "すべて",
+      "filterFeminine": "女性",
+      "filterMasculine": "男性",
+      "current": "現在",
+      "previewOf": "{{voice}}を聞く",
+      "use": "{{voice}}を使う",
+      "refused": "このキーではこのボイスを使えません。代わりに{{voice}}が話しました。"
+    },
+    "voices": {
+      "feminine": "女性",
+      "masculine": "男性",
+      "accent": {
+        "australian": "オーストラリア",
+        "british": "イギリス",
+        "irish": "アイルランド",
+        "northAmerican": "北米",
+        "brazilian": "ブラジル",
+        "filipino": "フィリピン",
+        "southernUs": "アメリカ南部"
+      }
     },
     "errors": {
       "off": "このワークスペースには GPT-Live のキーがありません。設定 › 音声 で追加してください。",

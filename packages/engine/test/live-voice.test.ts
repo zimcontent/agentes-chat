@@ -315,6 +315,17 @@ describe("a call with one agent (as the Nordus call)", () => {
     const told = sent.find((e) => e.type === "session.commentary.append");
     expect(told?.delegation_id).toBe("item_1");
     expect(told?.content).toBe("Feito. O relatório está em Drive. São 3 páginas.");
+
+    // The call ends: the conversation gets what was said, asking the agent for the summary.
+    emit({ type: "session.output_transcript.delta", delta: "Pronto, mandei no chat." });
+    emit({ type: "session.closed", reason: "user" });
+    const until = Date.now() + 5000;
+    while (posted.length < 2 && Date.now() < until) await new Promise((r) => setTimeout(r, 50));
+    const summary = posted[1];
+    expect(summary?.meta).toEqual({ via: "call", liveSessionId: session.id, callSummary: true });
+    expect(summary?.body).toContain(`@${f.agent.handle} a ligação terminou. Mande o resumo`);
+    expect(summary?.body).toContain("Faz o relatório de vendas da semana");
+    expect(summary?.body).toContain("Pronto, mandei no chat.");
   }, 30_000);
 
   test("an answer for a screen becomes something to say", () => {

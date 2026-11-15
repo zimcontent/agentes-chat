@@ -182,6 +182,8 @@ interface Watch {
   socket: SidebandSocket | null;
   seconds: number | null;
   timers: ReturnType<typeof setTimeout>[];
+  /** Runs once when the session ends (a call with one agent: its summary). */
+  onEnd?: () => Promise<void>;
 }
 /** This process's sessions in progress: their sideband and timers. */
 const watching = new Map<string, Watch>();
@@ -207,6 +209,7 @@ async function settle(deps: LiveVoiceDeps, id: string, reason: string, reported?
     try {
       watch.socket?.close();
     } catch {}
+    void watch.onEnd?.().catch(() => {});
   }
   const [row] = await deps.db.select().from(liveVoiceSessions).where(eq(liveVoiceSessions.id, id));
   if (!row || row.endedAt) return;
@@ -257,7 +260,9 @@ function watchSession(
   const watch: Watch = { socket: null, seconds: null, timers: [] };
   watching.set(id, watch);
   const call = brain ? agentCall(deps, id, brain, (event) => watch.socket?.send(JSON.stringify(event))) : null;
-  if (call) {
+  if (call && brain) {
+    const startedAt = Date.now();
+    watch.onEnd = () => postCallSummary(deps, brain, id, call.lines(), startedAt);
     const idle = setInterval(() => {
       if (call.idleFor() > AGENT_CALL_IDLE_MS) watch.socket?.send(JSON.stringify({ type: "session.close" }));
     }, 30_000);
@@ -902,8 +907,9 @@ export async function setLiveFloor(
 
 /**
  * Whether an agent should answer what a person just said to nobody by name, and which: a judgment, so the workspace's
- * small model makes it. It answers "none" unless the people clearly wait for the AI side, which keeps agents from
- * talking over a conversation between people.
+ * small model makes it. With several people it answers "none" unless they clearly wait for the AI side, which keeps
+ * agents from talking over a conversation between people; with one person everything said is for the agents, so it
+ * only picks who fits best (the host's app falls back to an agent when it can't say).
  */
 export async function pickLiveSpeaker(
   deps: LiveVoiceDeps,
@@ -919,13 +925,23 @@ export async function pickLiveSpeaker(
     .where(inArray(agents.id, room.agentIds));
   const recent = await linesAsChat(deps, room.lines.slice(-14));
   if (!recent.length) return { agentId: null };
-  const system = [
-    "You moderate a live voice call between people and AI agents. Decide whether one agent should speak next, and which.",
-    'Answer only JSON: {"speaker": "<handle>"} or {"speaker": "none"}.',
-    "Pick an agent only when the last thing said is clearly waiting for an answer from the AI side: a question or request to the group that fits an agent's role, or a direct follow-up to what an agent just said.",
-    'Answer "none" when people are talking to each other, thinking aloud, or when an agent just spoke and nobody asked it anything. When in doubt, "none".',
-    `Agents:\n${roster.map((a) => `- ${a.handle}: ${a.name}${a.role ? `, ${a.role}` : ""}`).join("\n")}`,
-  ].join("\n");
+  const roles = `Agents:\n${roster.map((a) => `- ${a.handle}: ${a.name}${a.role ? `, ${a.role}` : ""}`).join("\n")}`;
+  const system = (
+    room.people.length <= 1
+      ? [
+          "You moderate a live voice call between one person and AI agents. Everything the person says is for the agents: pick the one agent that should answer now.",
+          'Answer only JSON: {"speaker": "<handle>"}.',
+          "Pick the agent whose role fits what was just said best; for a greeting, small talk or a general question, the agent that spoke last, or the one leading the team.",
+          roles,
+        ]
+      : [
+          "You moderate a live voice call between people and AI agents. Decide whether one agent should speak next, and which.",
+          'Answer only JSON: {"speaker": "<handle>"} or {"speaker": "none"}.',
+          "Pick an agent only when the last thing said is clearly waiting for an answer from the AI side: a question or request to the group that fits an agent's role, or a direct follow-up to what an agent just said.",
+          'Answer "none" when people are talking to each other, thinking aloud, or when an agent just spoke and nobody asked it anything. When in doubt, "none".',
+          roles,
+        ]
+  ).join("\n");
   const prompt = `The call, latest last:\n${recent.map((l) => `${l.author}: ${l.text}`).join("\n")}`;
   const text = await deps.pickWithSmallModel(orgId, system, prompt).catch(() => null);
   const handle = text ? /"speaker"\s*:\s*"([^"]+)"/.exec(text)?.[1]?.replace(/^@/, "").toLowerCase() : null;
@@ -982,7 +998,8 @@ async function notesBody(deps: LiveVoiceDeps, room: Room, at: Date) {
   const minutes = Math.max(1, Math.round((at.getTime() - room.startedAt.getTime()) / 60_000));
   const people = [...new Set(room.people.map((p) => names.get(p.userId) ?? "someone"))];
   const bots = room.agentIds.map((id) => names.get(id) ?? "agent");
-  const lead = await rightHandId(deps.db, room.orgId).catch(() => null);
+  // The right hand writes the report; a workspace without one gets it from the call's first agent.
+  const lead = (await rightHandId(deps.db, room.orgId).catch(() => null)) ?? room.agentIds[0] ?? null;
   const [boss] = lead ? await deps.db.select({ handle: agents.handle }).from(agents).where(eq(agents.id, lead)) : [];
   // Each line once, merged when the same voice goes on; the latest part when it is too long for one message.
   const merged: { who: string; text: string }[] = [];
@@ -995,7 +1012,7 @@ async function notesBody(deps: LiveVoiceDeps, room: Room, at: Date) {
   let transcript = merged.map((l) => `**${l.who}:** ${l.text}`).join("\n");
   if (transcript.length > 24_000) transcript = `…\n${transcript.slice(-24_000)}`;
   const ask = boss
-    ? `@${boss.handle} a reunião de voz terminou. Mande o relatório: o que foi decidido, os próximos passos com responsável e prazo, e o que ficou em aberto.`
+    ? `@${boss.handle} a reunião de voz terminou. Mande o resumo: o que falamos, o que foi decidido, os próximos passos daqui pra frente com responsável e prazo, e o que ficou em aberto.`
     : "Notas da reunião de voz.";
   return [ask, "", `**Reunião de voz** · ${minutes} min · ${[...people, ...bots].join(", ")}`, "", transcript].join(
     "\n",
@@ -1026,6 +1043,13 @@ type LiveServerEvent = {
  */
 function agentCall(deps: LiveVoiceDeps, sessionId: string, brain: AgentBrain, send: (event: object) => void) {
   let heard = "";
+  // The whole call, turn by turn, for its summary.
+  const said: CallLine[] = [];
+  const add = (who: CallLine["who"], delta: string) => {
+    const last = said.at(-1);
+    if (last && last.who === who) last.text += delta;
+    else said.push({ who, text: delta });
+  };
   let lastActivity = Date.now();
   const pending = new Set<string>();
 
@@ -1062,12 +1086,17 @@ function agentCall(deps: LiveVoiceDeps, sessionId: string, brain: AgentBrain, se
 
   return {
     idleFor: () => Date.now() - lastActivity,
+    lines: () => said.map((l) => ({ ...l, text: l.text.trim() })).filter((l) => l.text),
     event(e: LiveServerEvent) {
       if (e.type === "session.input_transcript.delta" && e.delta) {
         heard += e.delta;
+        add("person", e.delta);
         lastActivity = Date.now();
       }
-      if (e.type === "session.output_transcript.delta") lastActivity = Date.now();
+      if (e.type === "session.output_transcript.delta") {
+        if (e.delta) add("agent", e.delta);
+        lastActivity = Date.now();
+      }
       const id = e.delegation?.id;
       if (e.type !== "session.delegation.created" || !id || e.delegation?.target === "responses" || pending.has(id))
         return;
@@ -1083,6 +1112,47 @@ function agentCall(deps: LiveVoiceDeps, sessionId: string, brain: AgentBrain, se
         .finally(() => pending.delete(id));
     },
   };
+}
+
+interface CallLine {
+  who: "person" | "agent";
+  text: string;
+}
+
+/**
+ * After a call with one agent, always: what was said goes to the conversation as the person's message, asking the agent
+ * for the summary (what was talked about, what was decided, the next steps), so the agent writes it with what it knows
+ * and the work it did during the call. Nothing when the call had no conversation.
+ */
+export async function postCallSummary(
+  deps: LiveVoiceDeps,
+  brain: AgentBrain,
+  sessionId: string,
+  lines: CallLine[],
+  startedAt: number,
+) {
+  if (!deps.postMessage || !lines.some((l) => l.who === "person") || !lines.some((l) => l.who === "agent")) return;
+  const [agent] = await deps.db
+    .select({ name: agents.name, handle: agents.handle })
+    .from(agents)
+    .where(eq(agents.id, brain.agentId));
+  if (!agent) return;
+  const person = await personName(deps, brain.userId);
+  const minutes = Math.max(1, Math.round((Date.now() - startedAt) / 60_000));
+  let transcript = lines.map((l) => `**${l.who === "agent" ? agent.name : person}:** ${l.text}`).join("\n");
+  if (transcript.length > 24_000) transcript = `…\n${transcript.slice(-24_000)}`;
+  const body = [
+    `@${agent.handle} a ligação terminou. Mande o resumo: o que falamos, o que decidimos e os próximos passos daqui pra frente (com responsável e prazo quando houver).`,
+    "",
+    `**Ligação** · ${minutes} min · ${person}, ${agent.name}`,
+    "",
+    transcript,
+  ].join("\n");
+  await deps.postMessage(brain.userId, brain.orgId, brain.channelId, body, {
+    via: "call",
+    liveSessionId: sessionId,
+    callSummary: true,
+  });
 }
 
 /**

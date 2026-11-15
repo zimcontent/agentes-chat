@@ -2,8 +2,11 @@
 export {
   DEFAULT_LIVE_VOICE,
   isLiveVoice,
+  LIVE_VOICE_CATALOG,
   LIVE_VOICES,
   type LiveVoice,
+  type LiveVoiceInfo,
   liveVoiceFor,
+  liveVoiceInfo,
   liveVoiceLabel,
 } from "@agenteschat/providers/live-voice";

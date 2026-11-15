@@ -10109,8 +10109,28 @@
       "removeText": "Bu çalışma alanında ajanlarla aramalar ve Dinle durur. Kişiler arasındaki aramalar devam eder.",
       "voicesTitle": "Her ajanın sesi",
       "voiceOf": "Ses: {{name}}",
-      "sample": "Sesi dinle: {{name}}",
-      "hear": "Dinle"
+      "pickerLead": "Her sesi {{name}} olarak dinle ve birini seç. Her sesin ilk ön dinlemesi kısa bir GPT-Live oturumudur. Tekrar dinlemek ücretsizdir.",
+      "filter": "Göster",
+      "filterAll": "Tümü",
+      "filterFeminine": "Kadın",
+      "filterMasculine": "Erkek",
+      "current": "Geçerli",
+      "previewOf": "{{voice}} dinle",
+      "use": "{{voice}} kullan",
+      "refused": "Bu anahtarda bu ses yok: yerine {{voice}} konuştu."
+    },
+    "voices": {
+      "feminine": "Kadın",
+      "masculine": "Erkek",
+      "accent": {
+        "australian": "Avustralya",
+        "british": "İngiliz",
+        "irish": "İrlanda",
+        "northAmerican": "Kuzey Amerika",
+        "brazilian": "Brezilya",
+        "filipino": "Filipinler",
+        "southernUs": "ABD Güneyi"
+      }
     },
     "errors": {
       "off": "Bu çalışma alanında GPT-Live anahtarı yok. Ayarlar › Ses bölümünden ekleyin.",

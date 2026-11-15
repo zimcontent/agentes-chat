@@ -10165,8 +10165,28 @@
       "removeText": "Anrufe mit Agenten und Anhören enden in diesem Workspace. Anrufe zwischen Personen laufen weiter.",
       "voicesTitle": "Die Stimme jedes Agenten",
       "voiceOf": "Stimme von {{name}}",
-      "sample": "Stimme von {{name}} anhören",
-      "hear": "Anhören"
+      "pickerLead": "Hör dir jede Stimme als {{name}} an und wähle eine. Die erste Hörprobe jeder Stimme ist eine kurze GPT-Live-Sitzung. Erneutes Anhören ist kostenlos.",
+      "filter": "Anzeigen",
+      "filterAll": "Alle",
+      "filterFeminine": "Weiblich",
+      "filterMasculine": "Männlich",
+      "current": "Aktuell",
+      "previewOf": "{{voice}} anhören",
+      "use": "{{voice}} verwenden",
+      "refused": "Dieser Schlüssel hat diese Stimme nicht: Stattdessen sprach {{voice}}."
+    },
+    "voices": {
+      "feminine": "Weiblich",
+      "masculine": "Männlich",
+      "accent": {
+        "australian": "Australisch",
+        "british": "Britisch",
+        "irish": "Irisch",
+        "northAmerican": "Nordamerikanisch",
+        "brazilian": "Brasilianisch",
+        "filipino": "Philippinisch",
+        "southernUs": "Südstaaten (USA)"
+      }
     },
     "errors": {
       "off": "Dieser Workspace hat keinen GPT-Live-Schlüssel. Füge einen unter Einstellungen › Sprachnachrichten hinzu.",
