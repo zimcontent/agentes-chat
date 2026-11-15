@@ -587,6 +587,7 @@ export function createHttpApi(options: TransportOptions = {}): HttpApi {
           form.set("x", String(input.x));
           form.set("y", String(input.y));
         }
+        if (input.attachments?.length) form.set("attachments", JSON.stringify(input.attachments));
         if (input.language) form.set("language", input.language);
         return files.upload<VideoReviewNote>(`${org(orgId)}/video-reviews/${enc(reviewId)}/notes/voice`, form);
       },

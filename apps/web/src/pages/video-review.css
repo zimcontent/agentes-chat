@@ -426,3 +426,106 @@
   flex-wrap: wrap;
   gap: var(--space-2);
 }
+
+/* A photo, a clip or a link on its way into a note: dragged over the picture. */
+.vr-picture[data-dropping] {
+  outline: 3px dashed var(--agent);
+  outline-offset: -3px;
+}
+.vr-dropzone {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: var(--space-4);
+  background: rgb(0 0 0 / 0.55);
+  color: #fff;
+  font-weight: 600;
+  text-align: center;
+  pointer-events: none;
+}
+
+/* What a note hands over: thumbnails and chips, then a way to add more. */
+.vr-attach {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+.vr-attach__list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.vr-attach__item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  max-width: 100%;
+  min-width: 0;
+  padding: var(--space-1);
+  padding-inline-end: var(--space-2);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  color: var(--ink);
+}
+.vr-attach__list:not(.vr-attach__list--note) .vr-attach__item {
+  padding-inline-end: 0;
+}
+.vr-attach__item--link {
+  text-decoration: none;
+}
+.vr-attach__item--link:hover {
+  border-color: var(--agent);
+}
+.vr-attach__item[data-failed] {
+  border-color: var(--danger);
+}
+.vr-attach__thumb {
+  flex: none;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-sm);
+  object-fit: cover;
+  background: #000;
+}
+.vr-attach__icon {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-sm);
+  background: var(--sunken);
+}
+.vr-attach__name {
+  min-width: 0;
+  max-width: 220px;
+  overflow: hidden;
+  font-size: 0.8125rem;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.vr-attach__bad {
+  color: var(--warn);
+  font-size: 0.75rem;
+}
+.vr-attach__add {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+.vr-attach__link {
+  flex: 1;
+  min-width: 0;
+}
+.vr-note__words .vr-attach__list {
+  margin-top: var(--space-1);
+}

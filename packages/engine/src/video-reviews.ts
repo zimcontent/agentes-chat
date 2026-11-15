@@ -7,7 +7,7 @@ import { postPersonMessage } from "./messages";
 import { replyThreadOf } from "./runs";
 import type { ToolContext, ToolDefinition, ToolOutput, ToolSource } from "./tools/types";
 
-const { agents, users, videoReviewNotes, videoReviews, videoReviewVersions } = schema;
+const { agents, artifacts, users, videoReviewNotes, videoReviews, videoReviewVersions } = schema;
 type VideoReviewStatus = schema.VideoReviewStatus;
 
 /**
@@ -31,6 +31,8 @@ const VIDEO_NAME = /\.(mp4|m4v|mov|webm)$/i;
 export const REVIEW_NOTE_CHARS = 4000;
 /** The longest voice note: a few sentences about one moment. */
 export const REVIEW_VOICE_BYTES = 25 * 1024 * 1024;
+/** The most files and links one note carries. */
+export const REVIEW_NOTE_ATTACHMENTS = 8;
 
 export interface VideoReviewDeps {
   db: Database;
@@ -71,6 +73,7 @@ export interface VideoReviewNoteView {
   x: number | null;
   y: number | null;
   body: string;
+  attachments: schema.VideoReviewAttachment[];
   voice: boolean;
   author: { id: string; name: string } | null;
   sent: boolean;
@@ -146,6 +149,60 @@ export function cleanLinks(links: unknown): schema.VideoReviewLink[] {
     const name = typeof label === "string" && label.trim() ? label.trim().slice(0, 60) : parsed.hostname;
     out.push({ label: name, url: parsed.toString() });
     if (out.length >= REVIEW_LINKS) break;
+  }
+  return out;
+}
+
+/** What a file is, by its name: the agent reads "imagem" or "vídeo", the page draws a thumbnail. */
+function mediaOf(name: string): "image" | "video" | "audio" | "other" {
+  if (/\.(jpe?g|png|webp|gif|heic|heif|avif|bmp|tiff?)$/i.test(name)) return "image";
+  if (/\.(mp4|m4v|mov|webm|mkv|avi)$/i.test(name)) return "video";
+  if (/\.(mp3|wav|m4a|aac|ogg|flac)$/i.test(name)) return "audio";
+  return "other";
+}
+
+/**
+ * A note's attachments as stored: files must be files of the review's conversation (the page uploads them there, so
+ * the agent reaches them with `import_file`), links http(s) only.
+ */
+async function cleanAttachments(
+  db: Database,
+  orgId: string,
+  channelId: string,
+  raw: unknown,
+): Promise<schema.VideoReviewAttachment[]> {
+  if (raw === undefined || raw === null) return [];
+  if (!Array.isArray(raw)) throw new ValidationError("attachments must be a list", "video_review.bad_attachment");
+  if (raw.length > REVIEW_NOTE_ATTACHMENTS) {
+    throw new ValidationError(`At most ${REVIEW_NOTE_ATTACHMENTS} attachments a note`, "video_review.bad_attachment");
+  }
+  const ids = raw
+    .map((a) => (a && typeof a === "object" ? (a as Record<string, unknown>).artifactId : undefined))
+    .filter((id): id is string => typeof id === "string");
+  const found = ids.length
+    ? await db
+        .select({ id: artifacts.id, title: artifacts.title, channelId: artifacts.channelId, kind: artifacts.kind })
+        .from(artifacts)
+        .where(and(eq(artifacts.orgId, orgId), inArray(artifacts.id, ids), isNull(artifacts.deletedAt)))
+    : [];
+  const out: schema.VideoReviewAttachment[] = [];
+  for (const item of raw) {
+    if (!item || typeof item !== "object") continue;
+    const a = item as Record<string, unknown>;
+    if (typeof a.artifactId === "string") {
+      const file = found.find((f) => f.id === a.artifactId);
+      if (!file || file.channelId !== channelId || file.kind !== "file") {
+        throw new ValidationError("That file is not in this video's conversation", "video_review.bad_attachment");
+      }
+      if (out.some((o) => o.type === "file" && o.artifactId === file.id)) continue;
+      const name = (typeof a.name === "string" && a.name.trim() ? a.name.trim() : file.title).slice(0, 200);
+      out.push({ type: "file", artifactId: file.id, name, media: mediaOf(name) });
+    } else if (typeof a.url === "string") {
+      const [link] = cleanLinks([{ url: a.url, label: typeof a.label === "string" ? a.label : "" }]);
+      if (!link) throw new ValidationError("A link must start with http:// or https://", "video_review.bad_attachment");
+      if (out.some((o) => o.type === "link" && o.url === link.url)) continue;
+      out.push({ type: "link", url: link.url, label: link.label.slice(0, 120) });
+    }
   }
   return out;
 }
@@ -524,6 +581,7 @@ export async function getVideoReview(
       x: note.x,
       y: note.y,
       body: note.body,
+      attachments: note.attachments ?? [],
       voice: note.voice,
       author: note.authorUserId ? { id: note.authorUserId, name: authorName ?? "" } : null,
       sent: note.sentAt !== null,
@@ -545,6 +603,8 @@ export interface ReviewNoteInput {
   /** Where on the picture, as fractions (0–1) of its width and height. */
   x?: number | null;
   y?: number | null;
+  /** Files of the review's conversation (`{ artifactId, name }`) and links (`{ url, label }`). */
+  attachments?: unknown;
   body: string;
 }
 
@@ -556,8 +616,10 @@ async function writeNote(
   input: ReviewNoteInput & { voice: boolean },
 ): Promise<VideoReviewNoteView> {
   const review = await requireReview(deps.db, userId, orgId, reviewId);
+  const attachments = await cleanAttachments(deps.db, orgId, review.channelId, input.attachments);
   const body = cleanText(input.body);
-  if (!body) throw new ValidationError("The note is empty", "video_review.empty_note");
+  // A dropped photo or a B-roll link says enough on its own.
+  if (!body && attachments.length === 0) throw new ValidationError("The note is empty", "video_review.empty_note");
   if (!Number.isInteger(input.version) || input.version < 1 || input.version > review.version) {
     throw new ValidationError("No such version", "video_review.bad_version");
   }
@@ -586,6 +648,7 @@ async function writeNote(
       x: y === null ? null : x,
       y,
       body,
+      attachments,
       voice: input.voice,
       authorUserId: userId,
     })
@@ -602,6 +665,7 @@ async function writeNote(
     x: row.x,
     y: row.y,
     body: row.body,
+    attachments: row.attachments ?? [],
     voice: row.voice,
     author: author ?? null,
     sent: false,
@@ -630,6 +694,7 @@ export async function addVoiceReviewNote(
     kind?: ReviewNoteKind | null;
     x?: number | null;
     y?: number | null;
+    attachments?: unknown;
     audio: Uint8Array;
     contentType: string;
     language: string | null;
@@ -664,6 +729,7 @@ export async function addVoiceReviewNote(
     kind: input.kind ?? null,
     x: input.x ?? null,
     y: input.y ?? null,
+    attachments: input.attachments,
     body: text,
     voice: true,
   });
@@ -693,6 +759,8 @@ export async function deleteReviewNote(
 
 export type ReviewDecision = "approve" | "changes";
 
+const MEDIA_WORDS = { image: "imagem", video: "vídeo", audio: "áudio", other: "arquivo" } as const;
+
 /** What the agent reads: the decision and every note of the version, by time. */
 export function decisionMessage(input: {
   handle: string;
@@ -707,6 +775,7 @@ export function decisionMessage(input: {
     x?: number | null;
     y?: number | null;
     body: string;
+    attachments?: schema.VideoReviewAttachment[];
     author: string;
   }[];
   message: string;
@@ -731,11 +800,19 @@ export function decisionMessage(input: {
   if (input.notes.length > 0) {
     lines.push("", "Notas:");
     for (const note of input.notes) {
+      const body = note.body.replace(/\n+/g, " ").trim() || "(sem texto: veja o anexo)";
       lines.push(
         `- [${where(note.atMs, note.endMs ?? null)}]${
           note.kind && note.kind in KIND_WORDS ? ` ${KIND_WORDS[note.kind as ReviewNoteKind]}:` : ""
-        } ${note.body.replace(/\n+/g, " ")}${spot(note.x ?? null, note.y ?? null)}${note.author ? ` (${note.author})` : ""}`,
+        } ${body}${spot(note.x ?? null, note.y ?? null)}${note.author ? ` (${note.author})` : ""}`,
       );
+      for (const a of note.attachments ?? []) {
+        lines.push(
+          a.type === "file"
+            ? `  - Anexo (${MEDIA_WORDS[a.media]}): ${a.name} — traga com import_file artifact_id ${a.artifactId} e use neste ponto como a nota pede`
+            : `  - Link: ${a.label && a.label !== a.url ? `${a.label} — ` : ""}${a.url} — baixe e use neste ponto como a nota pede`,
+        );
+      }
     }
   }
   return lines.join("\n");
@@ -773,6 +850,7 @@ export async function decideVideoReview(
       x: videoReviewNotes.x,
       y: videoReviewNotes.y,
       body: videoReviewNotes.body,
+      attachments: videoReviewNotes.attachments,
       author: users.name,
     })
     .from(videoReviewNotes)
@@ -824,6 +902,7 @@ export async function decideVideoReview(
         x: n.x,
         y: n.y,
         body: n.body,
+        attachments: n.attachments ?? [],
         author: n.author ?? "",
       })),
       message,

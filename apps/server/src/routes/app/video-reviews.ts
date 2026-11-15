@@ -6,6 +6,7 @@ import {
   getVideoReview,
   listVideoReviews,
   NotFoundError,
+  REVIEW_NOTE_ATTACHMENTS,
   REVIEW_NOTE_CHARS,
   REVIEW_NOTE_KINDS,
   ValidationError,
@@ -35,6 +36,30 @@ const NoteParams = ReviewParams.extend({ noteId: z.uuid() });
 
 const Who = z.object({ id: z.string(), name: z.string() });
 
+const Attachment = z
+  .union([
+    z.object({
+      type: z.literal("file"),
+      artifactId: z.uuid(),
+      name: z.string(),
+      media: z.enum(["image", "video", "audio", "other"]),
+    }),
+    z.object({ type: z.literal("link"), url: z.string(), label: z.string() }),
+  ])
+  .openapi("VideoReviewAttachment");
+const AttachmentInput = z
+  .array(
+    z.union([
+      z.object({ artifactId: z.uuid(), name: z.string().max(200).optional() }),
+      z.object({ url: z.string().max(2000), label: z.string().max(120).optional() }),
+    ]),
+  )
+  .max(REVIEW_NOTE_ATTACHMENTS)
+  .openapi({
+    description:
+      "Files uploaded to the review's conversation first (`POST …/artifacts/files` with its `channelId`/`threadId`), and links.",
+  });
+
 const Summary = z
   .object({
     id: z.uuid(),
@@ -62,6 +87,7 @@ const Note = z
     x: z.number().nullable(),
     y: z.number().nullable(),
     body: z.string(),
+    attachments: z.array(Attachment),
     voice: z.boolean(),
     author: Who.nullable(),
     sent: z.boolean(),
@@ -144,7 +170,8 @@ export function videoReviewRoutes(deps: AppDeps) {
             kind: z.enum(REVIEW_NOTE_KINDS).nullable().optional(),
             x: z.number().min(0).max(1).nullable().optional(),
             y: z.number().min(0).max(1).nullable().optional(),
-            body: z.string().min(1).max(REVIEW_NOTE_CHARS),
+            attachments: AttachmentInput.optional(),
+            body: z.string().max(REVIEW_NOTE_CHARS).openapi({ description: "May be empty when it has attachments." }),
           }),
         ),
       },
@@ -187,6 +214,11 @@ export function videoReviewRoutes(deps: AppDeps) {
                 kind: z.enum(REVIEW_NOTE_KINDS).optional(),
                 x: z.string().max(12).optional(),
                 y: z.string().max(12).optional(),
+                attachments: z
+                  .string()
+                  .max(20_000)
+                  .optional()
+                  .openapi({ description: "The same list as a typed note's `attachments`, as JSON." }),
                 language: z.string().max(8).optional(),
               }),
             },
@@ -216,6 +248,12 @@ export function videoReviewRoutes(deps: AppDeps) {
         const n = v?.trim() ? Number(v) : Number.NaN;
         return Number.isFinite(n) ? n : null;
       };
+      let attachments: unknown;
+      try {
+        attachments = form.attachments?.trim() ? JSON.parse(form.attachments) : undefined;
+      } catch {
+        throw new ValidationError("attachments is not JSON", "video_review.bad_attachment");
+      }
       try {
         const note = await addVoiceReviewNote(reviews(), user.id, orgId, reviewId, {
           version: form.version,
@@ -224,6 +262,7 @@ export function videoReviewRoutes(deps: AppDeps) {
           kind: form.kind ?? null,
           x: fraction(form.x),
           y: fraction(form.y),
+          attachments,
           audio: new Uint8Array(await file.arrayBuffer()),
           contentType: file.type,
           language: form.language ?? null,
