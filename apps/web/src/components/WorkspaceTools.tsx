@@ -72,7 +72,7 @@ export function WorkspaceToolsCard() {
         {tools.map((id) => (
           <div key={id} className="settings-row ac-actrow">
             <div className="settings-row__text ac-actrow__text">
-              <span className="ac-hintline">
+              <span className="settings-tool">
                 {mark(id)}
                 <label className="settings-row__label" htmlFor={`set-tool-${id}`}>
                   {label(id)}
