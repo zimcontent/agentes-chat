@@ -131,6 +131,12 @@ without the workspace's key), and the room takes what worked in the maestro:
   its own call notes.
 - A name speech to text got slightly wrong still passes the word (`namedAgent` in `live-floor.ts`, the same rule as
   `addressedIn`).
+- Each agent keeps a voice of its own (`keepLiveVoices`): one no colleague in the workspace has, saved on the agent
+  the first time it joins a call, so it never changes with who else is on; the maestro saves its pick too
+  (`agents.call_voice`).
+- People are called in by name (`inviteToLiveRoom`, `POST …/live-rooms/{roomId}/invite`, from the call or the start
+  dialog): one who can't see the conversation is added when the caller may add people there, a message mentions them
+  (the mention's notification, push included), and their open apps ring (`live.ring`) with a way in.
 
 ## Consequences
 
