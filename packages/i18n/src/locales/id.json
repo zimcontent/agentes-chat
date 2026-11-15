@@ -1878,6 +1878,7 @@
     }
   },
   "shell": {
+    "you": "Kamu",
     "otherChannels": "Kanal lain",
     "otherChannelsPersonal": "Percakapan grup lain",
     "titleBar": {
@@ -2005,6 +2006,7 @@
     "searchWorkspace": "Cari di ruang kerja",
     "summary_other": "{{people}} anggota · {{agents}} agen",
     "waiting": "Menunggumu",
+    "portal": "Portal",
     "approvals": "Persetujuan",
     "proposals": "Usulan perbaikan",
     "issues": "Tugas",
@@ -2052,9 +2054,7 @@
     "unreadMark": "Belum dibaca",
     "unreadMentions_other": "{{count}} sebutan untuk Anda",
     "unreadThreads_other": "Thread: {{count}} dengan balasan belum dibaca",
-    "unreadNotifications_other": "{{count}} notifikasi belum dibaca",
-    "you": "Kamu",
-    "portal": "Portal"
+    "unreadNotifications_other": "{{count}} notifikasi belum dibaca"
   },
   "agentGroups": {
     "group": "Departemen",
@@ -2415,6 +2415,18 @@
     "nameHelp": "Berubah untuk semua orang. Tautan lama tetap berfungsi.",
     "nameTaken": "Sudah ada #{{name}}.",
     "generalName": "#general tetap dengan namanya.",
+    "displayNameLabel": "Nama tampilan",
+    "displayNameHelp": "Cara grup ini terlihat oleh semua orang. Nama teknisnya (#{{name}}) tetap bisa dipakai untuk menyebut.",
+    "photo": {
+      "label": "Foto grup",
+      "title": "Foto grup",
+      "help": "Gambar persegi yang dilihat semua orang di samping nama grup. JPEG, PNG, atau WebP hingga 2 MB.",
+      "upload": "Unggah foto",
+      "change": "Ganti foto",
+      "remove": "Hapus foto",
+      "saved": "Foto grup disimpan",
+      "removed": "Foto grup dihapus"
+    },
     "archive": "Arsipkan kanal",
     "archived": "#{{channel}} diarsipkan. Percakapannya tetap disimpan.",
     "archivedTitle": "Kanal yang diarsipkan",
@@ -2482,19 +2494,7 @@
     "backOnline": "Terhubung lagi",
     "sendingOffline": "terkirim saat koneksi kembali",
     "endOfReply": "Akhir balasan",
-    "mentionSuggestions": "Saran sebutan",
-    "displayNameLabel": "Nama tampilan",
-    "displayNameHelp": "Cara grup ini terlihat oleh semua orang. Nama teknisnya (#{{name}}) tetap bisa dipakai untuk menyebut.",
-    "photo": {
-      "label": "Foto grup",
-      "title": "Foto grup",
-      "help": "Gambar persegi yang dilihat semua orang di samping nama grup. JPEG, PNG, atau WebP hingga 2 MB.",
-      "upload": "Unggah foto",
-      "change": "Ganti foto",
-      "remove": "Hapus foto",
-      "saved": "Foto grup disimpan",
-      "removed": "Foto grup dihapus"
-    }
+    "mentionSuggestions": "Saran sebutan"
   },
   "receipts": {
     "picked_other": "{{names}} akan menjawab",
@@ -4643,6 +4643,7 @@
       "other": "Setujui"
     },
     "refuse": "Tolak",
+    "once": "Kali ini saja",
     "viewDiff": "Lihat diff",
     "viewInChannel": "Lihat di kanal",
     "group": "Permintaan persetujuan",
@@ -4709,8 +4710,7 @@
         "actions_run_trigger": "Jalankan {{method}} di {{repo}}",
         "delete_repository": "Hapus repositori {{repo}}"
       }
-    },
-    "once": "Kali ini saja"
+    }
   },
   "home": {
     "greeting": {
@@ -5123,6 +5123,16 @@
     "again": "Minta lagi",
     "againBody": "@{{handle}} permintaan “{{title}}” kedaluwarsa tanpa keputusan. Jika masih masuk akal, minta lagi.",
     "againSent": "Permintaan dikirim di percakapan",
+    "retry": "Minta coba lagi",
+    "cause": {
+      "reconnect": "Koneksi ke aplikasi sudah kedaluwarsa. Hubungkan lagi dan minta coba lagi.",
+      "permission": "Akun yang terhubung tidak diizinkan melakukan ini. Periksa aksesnya di aplikasi dan minta coba lagi.",
+      "unavailable": "Layanan tidak menjawab. Tunggu sebentar dan minta coba lagi.",
+      "limit": "Layanan menolak: terlalu banyak permintaan. Tunggu beberapa menit dan minta coba lagi."
+    },
+    "reconnect": "Hubungkan lagi",
+    "retryBody": "@{{handle}} tindakan “{{title}}” yang sudah disetujui gagal. Lihat apa yang salah dan coba lagi, atau beri tahu saya apa yang perlu saya lakukan.",
+    "valueKeys": "Kunci Vault yang dipakai",
     "noResults": "Tidak ada permintaan yang cocok dengan filter ini.",
     "emptyTitle": "Semua sudah diputuskan",
     "how": "Cara kerja persetujuan",
@@ -5192,17 +5202,7 @@
       "hideSteps": "Sembunyikan langkah",
       "asked": "Meminta persetujuan",
       "grants": "{{name}} akan {{doing}}, kali ini saja, dengan nilai-nilai ini."
-    },
-    "retry": "Minta coba lagi",
-    "cause": {
-      "reconnect": "Koneksi ke aplikasi sudah kedaluwarsa. Hubungkan lagi dan minta coba lagi.",
-      "permission": "Akun yang terhubung tidak diizinkan melakukan ini. Periksa aksesnya di aplikasi dan minta coba lagi.",
-      "unavailable": "Layanan tidak menjawab. Tunggu sebentar dan minta coba lagi.",
-      "limit": "Layanan menolak: terlalu banyak permintaan. Tunggu beberapa menit dan minta coba lagi."
-    },
-    "reconnect": "Hubungkan lagi",
-    "retryBody": "@{{handle}} tindakan “{{title}}” yang sudah disetujui gagal. Lihat apa yang salah dan coba lagi, atau beri tahu saya apa yang perlu saya lakukan.",
-    "valueKeys": "Kunci Vault yang dipakai"
+    }
   },
   "agent": {
     "editIdentity": "Ubah nama dan peran",
@@ -7741,6 +7741,7 @@
     "fromAgent": "dari permintaan ke agen",
     "subIssues_other": "Subtugas · {{count}}",
     "fromWebhook": "dari event {{provider}}",
+    "fromPortal": "<0>Postingan {{client}} di Portal</0>",
     "description": "Deskripsi",
     "noDescription": "Tanpa deskripsi.",
     "criteria": "Kriteria penerimaan",
@@ -7845,8 +7846,7 @@
       "criterion_checked": "mencentang kriteria \"{{text}}\"",
       "criterion_unchecked": "menghapus centang kriteria \"{{text}}\"",
       "agent_asked": "meminta {{name}} mengerjakannya"
-    },
-    "fromPortal": "<0>Postingan {{client}} di Portal</0>"
+    }
   },
   "routines": {
     "filters": "Saring rutinitas",
@@ -10229,6 +10229,11 @@
   "liveVoice": {
     "you": "Kamu",
     "call": {
+      "mode": "Jenis panggilan",
+      "modeMaestro": "Rapat (baru)",
+      "modeLive": "Klasik (GPT-Live)",
+      "topic": "Topik (opsional)",
+      "topicHint": "Para agen mulai dengan membahas topik ini. Bergabunglah kapan saja.",
       "start": "Mulai panggilan suara",
       "join_other": "Gabung panggilan ({{count}})",
       "title": "Panggilan suara",
@@ -10248,6 +10253,7 @@
       "hangUp": "Tutup telepon"
     },
     "room": {
+      "cost": "Suara dan transkripsi sejauh ini: {{cost}}",
       "title": "Panggilan suara",
       "joining": "Menghubungkan…",
       "inCall": "Dalam panggilan",
@@ -10286,6 +10292,11 @@
       "stop": "Berhenti"
     },
     "settings": {
+      "notesTitle": "Cara agen bersikap dalam panggilan",
+      "notesLead": "Tambahan di atas dasar yang diikuti setiap agen dalam panggilan. Berlaku untuk seluruh ruang kerja.",
+      "notesExample": "Mis.: Selalu tutup dengan siapa melakukan apa dan kapan. Panggil klien dengan namanya.",
+      "agentNotes": "{{name}} dalam panggilan",
+      "agentNotesExample": "Mis.: Membawa angka sebelum opini. Membantah saat anggaran tidak cocok.",
       "title": "Suara langsung (GPT-Live)",
       "lead": "Panggilan suara dengan agenmu dan Dengarkan di pesan mana pun, tiap agen dengan suaranya sendiri.",
       "on": "Aktif",
@@ -10326,6 +10337,8 @@
       }
     },
     "errors": {
+      "noMaestro": "Rapat dengan maestro belum diatur di server ini.",
+      "badAudio": "Audio itu tidak bisa dibaca. Coba lagi.",
       "off": "Ruang kerja ini belum punya kunci GPT-Live. Tambahkan di Pengaturan › Suara.",
       "keyInvalid": "OpenAI menolak kunci ini.",
       "noAccess": "Proyek OpenAI untuk kunci ini tidak punya akses ke GPT-Live.",
@@ -12168,6 +12181,23 @@
     "deniedRun": "{{repo}} bukan salah satu repositori {{name}}.",
     "deniedRun_female": "{{repo}} bukan salah satu repositori {{name}}.",
     "added": "{{repo}} masuk ke daftar saat kamu menyimpan."
+  },
+  "carry": {
+    "open": "Bawa dari ruang kerja lain",
+    "text": "Yang kamu hubungkan di ruang kerja lain datang siap pakai, tanpa perlu masuk lagi.",
+    "none": "Belum ada yang bisa dibawa. Yang kamu hubungkan di satu ruang kerja muncul di sini di ruang kerja lainnya.",
+    "connections": "Koneksi",
+    "with": "Datang dengan {{names}}",
+    "here": "Sudah ada di sini",
+    "needsReconnect": "Perlu dihubungkan ulang",
+    "githubApp": "Pasang GitHub App di sini",
+    "bring": "Bawa",
+    "bringCount_other": "Bawa {{count}} item",
+    "done_other": "{{count}} item dibawa ke ruang kerja ini",
+    "skipped_other": "{{count}} item tidak bisa dibawa",
+    "nothingNew": "Semua yang kamu pilih sudah ada di sini",
+    "failed": "Tidak bisa membawanya. Coba lagi.",
+    "fromOnboarding": "Bawa agen dan koneksi dari ruang kerja lain"
   },
   "connectors": {
     "title": "Konektor",
@@ -16563,6 +16593,17 @@
       "savedEveryone": "Sekarang seluruh workspace memakai paket ini.",
       "savedOwner": "Sekarang hanya kamu yang memakai paket ini."
     },
+    "standIn": {
+      "title": "Akun cadangan",
+      "about": "Saat akun yang dipakai agen mencapai 90% dari batasnya, agen lanjut dengan akun pertama di daftar ini yang masih di bawah 90%, di komputer yang sama. ChatGPT menjawab dengan GPT-6.1 Sol dan Gemini dengan Gemini 4 Hydrogen. Agen kembali ke akunnya sendiri saat akun itu diperbarui.",
+      "empty": "Belum ada akun cadangan. Tambahkan satu agar agen tetap bekerja saat sebuah akun penuh.",
+      "last": "Jika semua di atas 90%: akun agen sendiri sampai batasnya, lalu kunci API-nya, jika ada.",
+      "add": "Tambah akun",
+      "up": "Naikkan {{label}}",
+      "down": "Turunkan {{label}}",
+      "remove": "Hapus {{label}}",
+      "saved": "Urutan akun cadangan disimpan."
+    },
     "logins_other": "{{count}} login",
     "noWindows": "Batasnya muncul setelah akun ini dipakai lagi.",
     "unused": "Tidak ada agen yang memakai akun ini.",
@@ -16625,17 +16666,6 @@
       "oldSub": "Pemakaian dari sebelum akun dicatat",
       "ofMonth": "{{percent}} dari bulan ini",
       "shareLabel": "{{source}}: {{percent}} dari bulan ini"
-    },
-    "standIn": {
-      "title": "Akun cadangan",
-      "about": "Saat akun yang dipakai agen mencapai 90% dari batasnya, agen lanjut dengan akun pertama di daftar ini yang masih di bawah 90%, di komputer yang sama. ChatGPT menjawab dengan GPT-6.1 Sol dan Gemini dengan Gemini 4 Hydrogen. Agen kembali ke akunnya sendiri saat akun itu diperbarui.",
-      "empty": "Belum ada akun cadangan. Tambahkan satu agar agen tetap bekerja saat sebuah akun penuh.",
-      "last": "Jika semua di atas 90%: akun agen sendiri sampai batasnya, lalu kunci API-nya, jika ada.",
-      "add": "Tambah akun",
-      "up": "Naikkan {{label}}",
-      "down": "Turunkan {{label}}",
-      "remove": "Hapus {{label}}",
-      "saved": "Urutan akun cadangan disimpan."
     }
   },
   "budget": {
@@ -16995,6 +17025,9 @@
         "askingChoices": "Bertanya dengan pilihan",
         "usingVault": "Bekerja di Vault",
         "makingPassword": "Membuat kata sandi",
+        "usingPortal": "Mengerjakan papan persetujuan",
+        "sendingForApproval": "Mengirim untuk persetujuan",
+        "schedulingPost": "Menjadwalkan postingan",
         "startingWork": "Memulai pekerjaan panjang",
         "updatingWork": "Memperbarui pekerjaan panjang",
         "withdrawingRequest": "Menarik permintaan",
@@ -17025,10 +17058,7 @@
         "thinking": "Berpikir",
         "typing": "Menulis",
         "recordingVoice": "Merekam audio",
-        "writing": "Menulis",
-        "usingPortal": "Mengerjakan papan persetujuan",
-        "sendingForApproval": "Mengirim untuk persetujuan",
-        "schedulingPost": "Menjadwalkan postingan"
+        "writing": "Menulis"
       }
     },
     "activity": {
@@ -17118,6 +17148,9 @@
       "askingChoices": "bertanya dengan pilihan",
       "usingVault": "bekerja di Vault",
       "makingPassword": "membuat kata sandi",
+      "usingPortal": "mengerjakan papan persetujuan",
+      "sendingForApproval": "mengirim untuk persetujuan",
+      "schedulingPost": "menjadwalkan postingan",
       "startingWork": "memulai pekerjaan panjang",
       "updatingWork": "memperbarui pekerjaan panjang",
       "withdrawingRequest": "menarik permintaan",
@@ -17144,10 +17177,7 @@
       "updatingThread": "memperbarui utas",
       "addingAgent": "menambahkan agen ke kanal",
       "readingConversation": "membaca percakapan",
-      "usingTool": "memakai alat",
-      "usingPortal": "mengerjakan papan persetujuan",
-      "sendingForApproval": "mengirim untuk persetujuan",
-      "schedulingPost": "menjadwalkan postingan"
+      "usingTool": "memakai alat"
     },
     "tokens": "{{value}} token",
     "sayHiAgent": "Sapa {{name}}",
@@ -19757,116 +19787,6 @@
       "alwaysOn": "Mulai sekarang, laporan seperti ini dikirim tanpa bertanya.",
       "askFirst": "Tanya dulu sebelum mengirim"
     }
-  },
-  "liveVoice": {
-    "you": "Kamu",
-    "call": {
-      "start": "Mulai panggilan suara",
-      "join_other": "Gabung panggilan ({{count}})",
-      "title": "Panggilan suara",
-      "lead": "Pilih agen untuk panggilan. Semua orang di percakapan bisa bergabung.",
-      "startWith_other": "Panggil dengan {{count}} agen",
-      "peopleOnly": "Panggil tanpa agen",
-      "callAgent": "Telepon {{name}}",
-      "keyWhere": "Untuk menelepon agen, ruang kerja ini perlu kunci GPT-Live di Pengaturan › Suara.",
-      "keyOpen": "Tambahkan kunci",
-      "keyAsk": "Minta pengelola ruang kerja untuk menambahkannya.",
-      "needsKeyTitle": "Menelepon {{name}} perlu kunci GPT-Live"
-    },
-    "agentCall": {
-      "title": "Panggilan dengan {{name}}",
-      "connecting": "Menelepon {{name}}…",
-      "listening": "Mendengarkan",
-      "hangUp": "Tutup telepon"
-    },
-    "room": {
-      "title": "Panggilan suara",
-      "joining": "Menghubungkan…",
-      "inCall": "Dalam panggilan",
-      "minimize": "Lanjut bekerja",
-      "open": "Buka panggilan",
-      "micOff": "Matikan mikrofon",
-      "micOn": "Nyalakan mikrofon",
-      "muted": "Mikrofon mati",
-      "captions": "Teks",
-      "quiet": "Agen hanya mendengarkan",
-      "leave": "Keluar dari panggilan",
-      "endAll": "Akhiri untuk semua",
-      "endTitle": "Akhiri panggilan untuk semua?",
-      "endText": "Catatan panggilan masuk ke percakapan. Doug BOSS mengirim laporan berisi keputusan dan langkah berikutnya.",
-      "hasWord": "{{name}} sedang bicara",
-      "agentsListen": "Para agen sedang mendengarkan",
-      "word": "Bicara",
-      "giveWord": "Beri giliran bicara",
-      "takeWord": "Ambil kembali giliran",
-      "connecting": "Menghubungkan suara",
-      "voiceFailed": "Suara gagal",
-      "ended": "Panggilan berakhir",
-      "failed": "Panggilan tidak bisa dimulai",
-      "report": "Catatan ada di percakapan. Doug BOSS mengirim laporannya di sana.",
-      "noNotes": "Terlalu sedikit yang dibicarakan untuk dicatat."
-    },
-    "listen": {
-      "menu": "Dengarkan",
-      "connecting": "Menyiapkan suara…",
-      "telling": "{{name}} sedang bercerita untukmu",
-      "narrator": "Narator",
-      "asking": "Ajukan pertanyaanmu",
-      "done": "Selesai",
-      "ask": "Tanya",
-      "stop": "Berhenti"
-    },
-    "settings": {
-      "title": "Suara langsung (GPT-Live)",
-      "lead": "Panggilan suara dengan agenmu dan Dengarkan di pesan mana pun, tiap agen dengan suaranya sendiri.",
-      "on": "Aktif",
-      "off": "Nonaktif",
-      "without": "Tambahkan kunci OpenAI yang punya akses ke GPT-Live untuk memanggil agenmu dan mendengarkan pesan.",
-      "setUp": "Tambahkan kunci",
-      "openSite": "Buka OpenAI",
-      "stepKey": "Buat kunci API",
-      "stepKeyHint": "Di proyek OpenAI yang punya GPT-Live. Biaya pemakaian ditagihkan ke proyek itu.",
-      "paste": "Tempel kunci di sini",
-      "sealed": "Kunci diperiksa ke OpenAI dan disimpan tersegel. Tak ada yang bisa melihatnya lagi.",
-      "price": "GPT-Live sekitar US$ 0,05 per menit per agen dalam panggilan. Biaya ini masuk ke anggaran tiap agen.",
-      "removeTitle": "Hapus kunci GPT-Live?",
-      "removeText": "Panggilan dengan agen dan Dengarkan berhenti di ruang kerja ini. Panggilan antarorang tetap berjalan.",
-      "voicesTitle": "Suara tiap agen",
-      "voiceOf": "Suara {{name}}",
-      "sample": "Dengarkan suara {{name}}",
-      "hear": "Dengarkan"
-    },
-    "errors": {
-      "off": "Ruang kerja ini belum punya kunci GPT-Live. Tambahkan di Pengaturan › Suara.",
-      "keyInvalid": "OpenAI menolak kunci ini.",
-      "noAccess": "Proyek OpenAI untuk kunci ini tidak punya akses ke GPT-Live.",
-      "unchecked": "Kunci tidak bisa diperiksa ke OpenAI. Coba lagi.",
-      "unavailable": "OpenAI tidak menjawab. Coba lagi.",
-      "busy": "OpenAI sedang sibuk, atau kuota kunci sudah habis.",
-      "refused": "OpenAI menolak sesi suara.",
-      "tooMany": "Terlalu banyak sesi suara terbuka. Tutup satu lalu coba lagi.",
-      "noWords": "Pesan ini tidak punya kata untuk diceritakan.",
-      "notHost": "Hanya orang yang memandu panggilan yang bisa membuka suara agen.",
-      "ended": "Panggilan ini sudah berakhir.",
-      "notIn": "Kamu sudah tidak ada di panggilan ini."
-    }
-  },
-  "carry": {
-    "open": "Bawa dari ruang kerja lain",
-    "text": "Yang kamu hubungkan di ruang kerja lain datang siap pakai, tanpa perlu masuk lagi.",
-    "none": "Belum ada yang bisa dibawa. Yang kamu hubungkan di satu ruang kerja muncul di sini di ruang kerja lainnya.",
-    "connections": "Koneksi",
-    "with": "Datang dengan {{names}}",
-    "here": "Sudah ada di sini",
-    "needsReconnect": "Perlu dihubungkan ulang",
-    "githubApp": "Pasang GitHub App di sini",
-    "bring": "Bawa",
-    "bringCount_other": "Bawa {{count}} item",
-    "done_other": "{{count}} item dibawa ke ruang kerja ini",
-    "skipped_other": "{{count}} item tidak bisa dibawa",
-    "nothingNew": "Semua yang kamu pilih sudah ada di sini",
-    "failed": "Tidak bisa membawanya. Coba lagi.",
-    "fromOnboarding": "Bawa agen dan koneksi dari ruang kerja lain"
   },
   "portal": {
     "title": "Portal",

@@ -1928,6 +1928,7 @@
     }
   },
   "shell": {
+    "you": "Siz",
     "otherChannels": "Diğer kanallar",
     "otherChannelsPersonal": "Diğer grup sohbetleri",
     "titleBar": {
@@ -2056,6 +2057,7 @@
     "summary_one": "{{people}} üye · {{agents}} ajan",
     "summary_other": "{{people}} üye · {{agents}} ajan",
     "waiting": "Sizi bekliyor",
+    "portal": "Portal",
     "approvals": "Onaylar",
     "proposals": "İyileştirme önerileri",
     "issues": "Görevler",
@@ -2110,9 +2112,7 @@
     "unreadThreads_one": "Konular: okunmamış yanıtı olan {{count}} konu",
     "unreadThreads_other": "Konular: okunmamış yanıtı olan {{count}} konu",
     "unreadNotifications_one": "{{count}} okunmamış bildirim",
-    "unreadNotifications_other": "{{count}} okunmamış bildirim",
-    "you": "Siz",
-    "portal": "Portal"
+    "unreadNotifications_other": "{{count}} okunmamış bildirim"
   },
   "agentGroups": {
     "group": "Departman",
@@ -2491,6 +2491,18 @@
     "nameHelp": "Herkes için değişir. Eski bağlantılar çalışmaya devam eder.",
     "nameTaken": "#{{name}} zaten var.",
     "generalName": "#general adını korur.",
+    "displayNameLabel": "Görünen ad",
+    "displayNameHelp": "Grubun herkese nasıl göründüğü. Teknik adı (#{{name}}) bahsetmelerde çalışmaya devam eder.",
+    "photo": {
+      "label": "Grup fotoğrafı",
+      "title": "Grup fotoğrafı",
+      "help": "Herkesin grup adının yanında gördüğü kare bir görsel. En fazla 2 MB boyutunda JPEG, PNG veya WebP.",
+      "upload": "Fotoğraf yükle",
+      "change": "Fotoğrafı değiştir",
+      "remove": "Fotoğrafı kaldır",
+      "saved": "Grup fotoğrafı kaydedildi",
+      "removed": "Grup fotoğrafı kaldırıldı"
+    },
     "archive": "Kanalı arşivle",
     "archived": "#{{channel}} arşivlendi. Sohbet korunur.",
     "archivedTitle": "Arşivlenen kanallar",
@@ -2561,19 +2573,7 @@
     "backOnline": "Yeniden bağlandı",
     "sendingOffline": "bağlantı gelince gönderilir",
     "endOfReply": "Yanıtın sonu",
-    "mentionSuggestions": "Bahsetme önerileri",
-    "displayNameLabel": "Görünen ad",
-    "displayNameHelp": "Grubun herkese nasıl göründüğü. Teknik adı (#{{name}}) bahsetmelerde çalışmaya devam eder.",
-    "photo": {
-      "label": "Grup fotoğrafı",
-      "title": "Grup fotoğrafı",
-      "help": "Herkesin grup adının yanında gördüğü kare bir görsel. En fazla 2 MB boyutunda JPEG, PNG veya WebP.",
-      "upload": "Fotoğraf yükle",
-      "change": "Fotoğrafı değiştir",
-      "remove": "Fotoğrafı kaldır",
-      "saved": "Grup fotoğrafı kaydedildi",
-      "removed": "Grup fotoğrafı kaldırıldı"
-    }
+    "mentionSuggestions": "Bahsetme önerileri"
   },
   "receipts": {
     "picked_one": "{{names}} yanıtlayacak",
@@ -4781,6 +4781,7 @@
       "other": "Onayla"
     },
     "refuse": "Reddet",
+    "once": "Yalnızca bu sefer",
     "viewDiff": "Farkları gör",
     "viewInChannel": "Kanalda gör",
     "group": "Onay isteği",
@@ -4848,8 +4849,7 @@
         "actions_run_trigger": "{{repo}} içinde {{method}} çalıştır",
         "delete_repository": "{{repo}} deposunu sil"
       }
-    },
-    "once": "Yalnızca bu sefer"
+    }
   },
   "home": {
     "greeting": {
@@ -5287,6 +5287,16 @@
     "again": "Yeniden sor",
     "againBody": "@{{handle}} “{{title}}” isteğinin süresi karar verilmeden doldu. Hâlâ anlamlıysa yeniden sor.",
     "againSent": "İstek sohbette gönderildi",
+    "retry": "Yeniden denemesini iste",
+    "cause": {
+      "reconnect": "Uygulama bağlantısının süresi doldu. Yeniden bağlayın ve yeniden denemesini isteyin.",
+      "permission": "Bağlı hesabın buna izni yok. Uygulamadaki erişimi kontrol edin ve yeniden denemesini isteyin.",
+      "unavailable": "Hizmet yanıt vermedi. Biraz bekleyin ve yeniden denemesini isteyin.",
+      "limit": "Hizmet reddetti: çok fazla istek. Birkaç dakika bekleyin ve yeniden denemesini isteyin."
+    },
+    "reconnect": "Yeniden bağla",
+    "retryBody": "@{{handle}} onaylanan “{{title}}” işlemi başarısız oldu. Neyin ters gittiğine bak ve yeniden dene ya da ne yapmam gerektiğini söyle.",
+    "valueKeys": "Kullanılan Vault anahtarları",
     "noResults": "Bu filtrelerle eşleşen istek yok.",
     "emptyTitle": "Hepsine karar verildi",
     "how": "Onaylar nasıl çalışır",
@@ -5356,17 +5366,7 @@
       "hideSteps": "Adımları gizle",
       "asked": "Onay istedi",
       "grants": "{{name}} yalnızca bu seferlik ve bu değerlerle şunu yapacak: {{doing}}."
-    },
-    "retry": "Yeniden denemesini iste",
-    "cause": {
-      "reconnect": "Uygulama bağlantısının süresi doldu. Yeniden bağlayın ve yeniden denemesini isteyin.",
-      "permission": "Bağlı hesabın buna izni yok. Uygulamadaki erişimi kontrol edin ve yeniden denemesini isteyin.",
-      "unavailable": "Hizmet yanıt vermedi. Biraz bekleyin ve yeniden denemesini isteyin.",
-      "limit": "Hizmet reddetti: çok fazla istek. Birkaç dakika bekleyin ve yeniden denemesini isteyin."
-    },
-    "reconnect": "Yeniden bağla",
-    "retryBody": "@{{handle}} onaylanan “{{title}}” işlemi başarısız oldu. Neyin ters gittiğine bak ve yeniden dene ya da ne yapmam gerektiğini söyle.",
-    "valueKeys": "Kullanılan Vault anahtarları"
+    }
   },
   "agent": {
     "editIdentity": "Adı ve rolü düzenle",
@@ -7957,6 +7957,7 @@
     "subIssues_one": "Alt görevler · {{count}}",
     "subIssues_other": "Alt görevler · {{count}}",
     "fromWebhook": "bir {{provider}} olayından",
+    "fromPortal": "<0>Portal'da {{client}} gönderisi</0>",
     "description": "Açıklama",
     "noDescription": "Açıklama yok.",
     "criteria": "Kabul kriterleri",
@@ -8060,8 +8061,7 @@
       "criterion_checked": "\"{{text}}\" kriterini işaretledi",
       "criterion_unchecked": "\"{{text}}\" kriterinin işaretini kaldırdı",
       "agent_asked": "{{name}} ajanından yapmasını istedi"
-    },
-    "fromPortal": "<0>Portal'da {{client}} gönderisi</0>"
+    }
   },
   "routines": {
     "filters": "Rutinleri filtrele",
@@ -10540,6 +10540,11 @@
   "liveVoice": {
     "you": "Siz",
     "call": {
+      "mode": "Arama türü",
+      "modeMaestro": "Toplantı (yeni)",
+      "modeLive": "Klasik (GPT-Live)",
+      "topic": "Konu (isteğe bağlı)",
+      "topicHint": "Ajanlar bu konuyu tartışarak başlar. İstediğin zaman katıl.",
       "start": "Sesli arama başlat",
       "join_one": "Aramaya katıl ({{count}})",
       "join_other": "Aramaya katıl ({{count}})",
@@ -10561,6 +10566,7 @@
       "hangUp": "Kapat"
     },
     "room": {
+      "cost": "Şimdiye kadar ses ve döküm: {{cost}}",
       "title": "Sesli arama",
       "joining": "Bağlanıyor…",
       "inCall": "Aramada",
@@ -10599,6 +10605,11 @@
       "stop": "Durdur"
     },
     "settings": {
+      "notesTitle": "Ajanların aramalarda nasıl davrandığı",
+      "notesLead": "Her ajanın aramada uyduğu temel kuralların üzerine eklenir. Tüm çalışma alanı için geçerlidir.",
+      "notesExample": "Örn.: Her zaman kimin neyi ne zamana kadar yapacağıyla bitirin. Müşteriye adıyla hitap edin.",
+      "agentNotes": "Aramalarda {{name}}",
+      "agentNotesExample": "Örn.: Görüşten önce rakam getirir. Bütçe tutmadığında itiraz eder.",
       "title": "Canlı ses (GPT-Live)",
       "lead": "Ajanlarınızla sesli aramalar ve her mesajda Dinle, her ajan kendi sesiyle.",
       "on": "Açık",
@@ -10639,6 +10650,8 @@
       }
     },
     "errors": {
+      "noMaestro": "Bu sunucuda maestro'lu toplantılar ayarlanmamış.",
+      "badAudio": "Bu ses okunamadı. Tekrar dene.",
       "off": "Bu çalışma alanında GPT-Live anahtarı yok. Ayarlar › Ses bölümünden ekleyin.",
       "keyInvalid": "OpenAI bu anahtarı reddetti.",
       "noAccess": "Bu anahtarın OpenAI projesinin GPT-Live erişimi yok.",
@@ -12552,6 +12565,26 @@
     "allow": "{{repo}} için izin ver",
     "deniedRun": "{{repo}}, {{name}} ajanının depolarından biri değil.",
     "added": "{{repo}} kaydettiğinizde listeye eklenir."
+  },
+  "carry": {
+    "open": "Başka bir çalışma alanından getir",
+    "text": "Başka bir çalışma alanında bağladıklarınız, yeniden giriş yapmadan hazır gelir.",
+    "none": "Henüz getirilecek bir şey yok. Bir çalışma alanında bağladıklarınız diğerlerinde burada görünür.",
+    "connections": "Bağlantılar",
+    "with": "{{names}} ile gelir",
+    "here": "Zaten burada",
+    "needsReconnect": "Yeniden bağlanması gerekiyor",
+    "githubApp": "GitHub App'i buraya yükleyin",
+    "bring": "Getir",
+    "bringCount_one": "{{count}} öğeyi getir",
+    "bringCount_other": "{{count}} öğeyi getir",
+    "done_one": "{{count}} öğe bu çalışma alanına getirildi",
+    "done_other": "{{count}} öğe bu çalışma alanına getirildi",
+    "skipped_one": "{{count}} öğe getirilemedi",
+    "skipped_other": "{{count}} öğe getirilemedi",
+    "nothingNew": "Seçtiğiniz her şey zaten burada",
+    "failed": "Getirilemedi. Tekrar deneyin.",
+    "fromOnboarding": "Ajanları ve bağlantıları başka bir çalışma alanından getir"
   },
   "connectors": {
     "title": "Bağlayıcılar",
@@ -17013,6 +17046,17 @@
       "savedEveryone": "Artık tüm workspace bu planı kullanıyor.",
       "savedOwner": "Artık bu planı yalnızca sen kullanıyorsun."
     },
+    "standIn": {
+      "title": "Yedek hesaplar",
+      "about": "Bir ajanın kullandığı hesap sınırının %90’ına ulaştığında ajan, aynı bilgisayarda bu listedeki %90’ın altındaki ilk hesapla devam eder. ChatGPT GPT-6.1 Sol ile, Gemini ise Gemini 4 Hydrogen ile yanıt verir. Hesap yenilendiğinde ajan kendi hesabına döner.",
+      "empty": "Yedek hesap yok. Bir hesap dolduğunda ajanların durmaması için bir tane ekleyin.",
+      "last": "Hepsi %90’ın üzerindeyse: ajanın kendi hesabı sınırına kadar, sonra varsa API anahtarı.",
+      "add": "Hesap ekle",
+      "up": "{{label}} yukarı taşı",
+      "down": "{{label}} aşağı taşı",
+      "remove": "{{label}} kaldır",
+      "saved": "Yedek hesapların sırası kaydedildi."
+    },
     "logins_one": "{{count}} oturum",
     "logins_other": "{{count}} oturum",
     "noWindows": "Sınır, bu hesap yeniden kullanıldıktan sonra görünür.",
@@ -17071,17 +17115,6 @@
       "oldSub": "Hesap kaydedilmeden önceki kullanım",
       "ofMonth": "Ayın {{percent}} kadarı",
       "shareLabel": "{{source}}: ayın {{percent}} kadarı"
-    },
-    "standIn": {
-      "title": "Yedek hesaplar",
-      "about": "Bir ajanın kullandığı hesap sınırının %90’ına ulaştığında ajan, aynı bilgisayarda bu listedeki %90’ın altındaki ilk hesapla devam eder. ChatGPT GPT-6.1 Sol ile, Gemini ise Gemini 4 Hydrogen ile yanıt verir. Hesap yenilendiğinde ajan kendi hesabına döner.",
-      "empty": "Yedek hesap yok. Bir hesap dolduğunda ajanların durmaması için bir tane ekleyin.",
-      "last": "Hepsi %90’ın üzerindeyse: ajanın kendi hesabı sınırına kadar, sonra varsa API anahtarı.",
-      "add": "Hesap ekle",
-      "up": "{{label}} yukarı taşı",
-      "down": "{{label}} aşağı taşı",
-      "remove": "{{label}} kaldır",
-      "saved": "Yedek hesapların sırası kaydedildi."
     }
   },
   "budget": {
@@ -17449,6 +17482,9 @@
         "askingChoices": "Seçeneklerle sordu",
         "usingVault": "Vault içinde çalıştı",
         "makingPassword": "Bir parola oluşturdu",
+        "usingPortal": "Onay panosunda çalıştı",
+        "sendingForApproval": "Onaya gönderdi",
+        "schedulingPost": "Bir gönderi planladı",
         "startingWork": "Uzun bir işe başladı",
         "updatingWork": "Uzun bir işi güncelledi",
         "withdrawingRequest": "Bir isteği geri çekti",
@@ -17479,10 +17515,7 @@
         "thinking": "Düşündü",
         "typing": "Yazdı",
         "recordingVoice": "Ses kaydetti",
-        "writing": "Yazdı",
-        "usingPortal": "Onay panosunda çalıştı",
-        "sendingForApproval": "Onaya gönderdi",
-        "schedulingPost": "Bir gönderi planladı"
+        "writing": "Yazdı"
       }
     },
     "activity": {
@@ -17572,6 +17605,9 @@
       "askingChoices": "seçeneklerle soruyor",
       "usingVault": "Vault içinde çalışıyor",
       "makingPassword": "bir parola oluşturuyor",
+      "usingPortal": "onay panosunda çalışıyor",
+      "sendingForApproval": "onaya gönderiyor",
+      "schedulingPost": "bir gönderi planlıyor",
       "startingWork": "uzun bir işe başlıyor",
       "updatingWork": "uzun bir işi güncelliyor",
       "withdrawingRequest": "bir isteği geri çekiyor",
@@ -17598,10 +17634,7 @@
       "updatingThread": "bir ileti dizisini güncelliyor",
       "addingAgent": "bir kanala ajan ekliyor",
       "readingConversation": "sohbeti okuyor",
-      "usingTool": "bir araç kullanıyor",
-      "usingPortal": "onay panosunda çalışıyor",
-      "sendingForApproval": "onaya gönderiyor",
-      "schedulingPost": "bir gönderi planlıyor"
+      "usingTool": "bir araç kullanıyor"
     },
     "tokens": "{{value}} token",
     "sayHiAgent": "{{name}} ajanına merhaba deyin",
@@ -20205,121 +20238,6 @@
       "alwaysOn": "Bundan sonra bu tür bildirimler sormadan gider.",
       "askFirst": "Göndermeden önce sor"
     }
-  },
-  "liveVoice": {
-    "you": "Siz",
-    "call": {
-      "start": "Sesli arama başlat",
-      "join_one": "Aramaya katıl ({{count}})",
-      "join_other": "Aramaya katıl ({{count}})",
-      "title": "Sesli arama",
-      "lead": "Arama için ajanları seçin. Sohbetteki herkes katılabilir.",
-      "startWith_one": "{{count}} ajanla ara",
-      "startWith_other": "{{count}} ajanla ara",
-      "peopleOnly": "Ajanlar olmadan ara",
-      "callAgent": "{{name}} ile görüş",
-      "keyWhere": "Ajanları aramak için bu çalışma alanının bir GPT-Live anahtarına ihtiyacı var, eklenecek yer Ayarlar › Ses.",
-      "keyOpen": "Anahtarı ekle",
-      "keyAsk": "Çalışma alanını yöneten kişiden eklemesini iste.",
-      "needsKeyTitle": "{{name}} ile görüşmek için GPT-Live anahtarı gerekiyor"
-    },
-    "agentCall": {
-      "title": "{{name}} ile görüşme",
-      "connecting": "{{name}} aranıyor…",
-      "listening": "Dinliyor",
-      "hangUp": "Kapat"
-    },
-    "room": {
-      "title": "Sesli arama",
-      "joining": "Bağlanıyor…",
-      "inCall": "Aramada",
-      "minimize": "Çalışmaya devam et",
-      "open": "Aramayı aç",
-      "micOff": "Mikrofonu kapat",
-      "micOn": "Mikrofonu aç",
-      "muted": "Mikrofon kapalı",
-      "captions": "Altyazılar",
-      "quiet": "Ajanlar yalnızca dinliyor",
-      "leave": "Aramadan ayrıl",
-      "endAll": "Herkes için bitir",
-      "endTitle": "Arama herkes için bitirilsin mi?",
-      "endText": "Aramanın notları sohbete gider. Doug BOSS alınan kararları ve sonraki adımları içeren raporu gönderir.",
-      "hasWord": "Söz sırası: {{name}}",
-      "agentsListen": "Ajanlar dinliyor",
-      "word": "Konuşuyor",
-      "giveWord": "Söz ver",
-      "takeWord": "Sözü geri al",
-      "connecting": "Ses bağlanıyor",
-      "voiceFailed": "Ses başarısız oldu",
-      "ended": "Arama sona erdi",
-      "failed": "Arama başlatılamadı",
-      "report": "Notlar sohbette. Doug BOSS raporu oraya gönderir.",
-      "noNotes": "Not almak için çok az şey konuşuldu."
-    },
-    "listen": {
-      "menu": "Dinle",
-      "connecting": "Ses hazırlanıyor…",
-      "telling": "{{name}} size anlatıyor",
-      "narrator": "Anlatıcı",
-      "asking": "Sorunuzu sorun",
-      "done": "Bitti",
-      "ask": "Sor",
-      "stop": "Durdur"
-    },
-    "settings": {
-      "title": "Canlı ses (GPT-Live)",
-      "lead": "Ajanlarınızla sesli aramalar ve her mesajda Dinle, her ajan kendi sesiyle.",
-      "on": "Açık",
-      "off": "Kapalı",
-      "without": "Ajanlarınızı aramak ve mesajları dinlemek için GPT-Live erişimi olan bir OpenAI anahtarı ekleyin.",
-      "setUp": "Anahtarı ekle",
-      "openSite": "OpenAI'ı aç",
-      "stepKey": "Bir API anahtarı oluşturun",
-      "stepKeyHint": "GPT-Live erişimi olan OpenAI projesinde. Kullanım o projeye faturalanır.",
-      "paste": "Anahtarı buraya yapıştırın",
-      "sealed": "OpenAI ile doğrulanır ve mühürlü saklanır. Kimse onu bir daha göremez.",
-      "price": "GPT-Live, aramadaki ajan başına dakikada yaklaşık 0,05 ABD dolarıdır. Her ajanın bütçesinden düşer.",
-      "removeTitle": "GPT-Live anahtarı kaldırılsın mı?",
-      "removeText": "Bu çalışma alanında ajanlarla aramalar ve Dinle durur. Kişiler arasındaki aramalar devam eder.",
-      "voicesTitle": "Her ajanın sesi",
-      "voiceOf": "Ses: {{name}}",
-      "sample": "Sesi dinle: {{name}}",
-      "hear": "Dinle"
-    },
-    "errors": {
-      "off": "Bu çalışma alanında GPT-Live anahtarı yok. Ayarlar › Ses bölümünden ekleyin.",
-      "keyInvalid": "OpenAI bu anahtarı reddetti.",
-      "noAccess": "Bu anahtarın OpenAI projesinin GPT-Live erişimi yok.",
-      "unchecked": "Anahtar OpenAI ile doğrulanamadı. Tekrar deneyin.",
-      "unavailable": "OpenAI yanıt vermedi. Tekrar deneyin.",
-      "busy": "OpenAI meşgul ya da anahtarın kotası doldu.",
-      "refused": "OpenAI ses oturumunu reddetti.",
-      "tooMany": "Çok fazla ses oturumu açık. Birini kapatıp tekrar deneyin.",
-      "noWords": "Bu mesajda anlatılacak söz yok.",
-      "notHost": "Ajanların seslerini yalnızca aramayı yöneten kişi açar.",
-      "ended": "Bu arama sona erdi.",
-      "notIn": "Artık bu aramada değilsiniz."
-    }
-  },
-  "carry": {
-    "open": "Başka bir çalışma alanından getir",
-    "text": "Başka bir çalışma alanında bağladıklarınız, yeniden giriş yapmadan hazır gelir.",
-    "none": "Henüz getirilecek bir şey yok. Bir çalışma alanında bağladıklarınız diğerlerinde burada görünür.",
-    "connections": "Bağlantılar",
-    "with": "{{names}} ile gelir",
-    "here": "Zaten burada",
-    "needsReconnect": "Yeniden bağlanması gerekiyor",
-    "githubApp": "GitHub App'i buraya yükleyin",
-    "bring": "Getir",
-    "bringCount_one": "{{count}} öğeyi getir",
-    "bringCount_other": "{{count}} öğeyi getir",
-    "done_one": "{{count}} öğe bu çalışma alanına getirildi",
-    "done_other": "{{count}} öğe bu çalışma alanına getirildi",
-    "skipped_one": "{{count}} öğe getirilemedi",
-    "skipped_other": "{{count}} öğe getirilemedi",
-    "nothingNew": "Seçtiğiniz her şey zaten burada",
-    "failed": "Getirilemedi. Tekrar deneyin.",
-    "fromOnboarding": "Ajanları ve bağlantıları başka bir çalışma alanından getir"
   },
   "portal": {
     "title": "Portal",

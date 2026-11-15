@@ -441,6 +441,9 @@ export const useSaveLiveVoiceKey = (orgId: string) =>
   useLiveVoiceChange(orgId, (api, apiKey: string) => api.liveVoice.saveKey(orgId, apiKey));
 export const useRemoveLiveVoiceKey = (orgId: string) =>
   useLiveVoiceChange<void>(orgId, (api) => api.liveVoice.removeKey(orgId));
+/** The workspace's notes on how its agents behave on calls (docs/adr/doug-0006-live-voice.md §11). */
+export const useSaveCallNotes = (orgId: string) =>
+  useLiveVoiceChange(orgId, (api, notes: string) => api.liveVoice.saveCallNotes(orgId, notes));
 
 /** A conversation's live voice room, for its Join banner: kept fresh by `live.room` events and a slow poll. */
 export const useChannelLiveRoom = (orgId: string, channelId: string, enabled = true) => {

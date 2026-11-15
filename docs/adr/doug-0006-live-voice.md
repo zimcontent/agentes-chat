@@ -92,6 +92,33 @@ second (about US$ 0.05 a minute), 15 seconds at least for a WebRTC session.
     the colleague whose it is otherwise. The leg used to answer every delegation with "it goes in the notes", the one-agent
     call included, over the server's own answer on its sideband: now only the one who runs the call answers it.
 
+11. **The maestro** (addendum 2026-11-15, after real calls felt slow, overlapping and costly: a GPT-Live session per agent
+    open all call long, every minute billed, silence included, and realtime voice models near random at knowing when
+    to stay quiet in a group, per MP-Bench). A second kind of room, `mode: maestro`, offered first when the server has
+    it, where the server decides who speaks and what, and the voice only speaks:
+    - **Ears on the device.** Each person's app runs voice detection itself (free, instant): only what it hears as
+      speech becomes a 16 kHz WAV sent to `POST …/live-rooms/{id}/heard`, written down by the workspace's speech engines
+      (the voice messages' chain, ADR 0100). Silence costs nothing. The moment its person starts talking it stops every
+      voice, here and for everyone (`hush`, `live.hush`).
+    - **One brain, rules first.** Who was named or asked answers (adjacency pairs, decided in code, `addressedIn`);
+      for the rest one short call on the meeting lead's own model (billed to it, the workspace's small model otherwise)
+      picks which agent speaks and writes the line, in JSON. Never the same agent twice in a row; at most 3 agent lines
+      without a person, 6 when the call opens on a topic. It reads `packages/engine/src/live-call.md` (the base every
+      agent follows on a call: one at a time, short lines, react by name, numbers in words, "já vejo" before work, only
+      your own role's work; compiled from OpenAI, ElevenLabs, LiveKit, Vapi and Retell's voice guides and turn-taking
+      research), then the workspace's notes (`organization_settings.live_call_notes`, Configurações › Voz) and each
+      agent's (`agents.live_call_notes`, its page).
+    - **Few tokens.** The stable part (the .md, the team, the workspace) comes first for the provider's prompt cache;
+      the call is the latest 14 lines word for word and a running summary of the rest, redone every 16 lines; the
+      answer is capped at 350 tokens; nothing runs while nobody talks.
+    - **Voices.** ElevenLabs Flash v2.5 (Portuguese, the first sound in a fraction of a second, US$ 0.04 per 1,000
+      characters), with the server's key (`ELEVENLABS_API_KEY`); each agent gets a voice of the account that sounds like
+      its GPT-Live one (feminine or masculine), or its own (`agents.call_voice`). A line streams into memory once and
+      every app reads it at `GET …/speech/{utteranceId}` (`live.say`), playing lines in order with a human gap. The
+      next line is prepared while the one before plays, so agents answer each other without silence.
+    - **Work during the call** as in §10: the line says "já vejo", the request goes to the conversation mentioning the
+      agent, and the answer is told at the next pause. The running cost of voice and transcription shows on the call.
+
 ## Consequences
 
 - Live voice is optional and costs nothing until a workspace adds a key; calls between people alone need no key.

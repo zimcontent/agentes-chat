@@ -17,6 +17,11 @@ export interface VoiceOut {
   voices(): Promise<VoiceOutOption[]>;
   /** `text` in `voice`, as an MP3. */
   speak(input: { voice: string; text: string }): Promise<{ bytes: Uint8Array; mimeType: string }>;
+  /**
+   * `text` in `voice` as an MP3 that arrives while it is made (a voice call, docs/adr/doug-0006-live-voice.md §11): the
+   * fast model, so the first sound comes in a fraction of a second. `signal` stops it (and what is still to be made).
+   */
+  stream(input: { voice: string; text: string; signal?: AbortSignal }): Promise<ReadableStream<Uint8Array>>;
   /** A short sample of the voice, as the provider keeps it; null when it keeps none. */
   preview(voice: string): Promise<{ bytes: Uint8Array; mimeType: string } | null>;
 }
@@ -39,6 +44,8 @@ export const isVoiceOutId = (v: unknown): v is string => typeof v === "string" &
 export const VOICE_OUT_MAX_CHARS = 1200;
 
 const BASE = "https://api.elevenlabs.io";
+/** ElevenLabs' low-latency model (Portuguese among its languages): what a call speaks with. */
+export const VOICE_OUT_FAST_MODEL = "eleven_flash_v2_5";
 const TIMEOUT_MS = 60_000;
 
 export function createElevenLabsVoiceOut(apiKey: string, options: { fetch?: typeof fetch } = {}): VoiceOut {
@@ -90,6 +97,25 @@ export function createElevenLabsVoiceOut(apiKey: string, options: { fetch?: type
       });
       return { bytes: new Uint8Array(await res.arrayBuffer()), mimeType: "audio/mpeg" };
     },
+    async stream({ voice, text, signal }) {
+      if (!isVoiceOutId(voice)) throw new VoiceOutError(400, "Not a voice");
+      let res: Response;
+      try {
+        res = await http(`${BASE}/v1/text-to-speech/${voice}/stream?output_format=mp3_44100_64`, {
+          method: "POST",
+          headers: { "xi-api-key": apiKey, "Content-Type": "application/json", Accept: "audio/mpeg" },
+          body: JSON.stringify({ text: text.slice(0, VOICE_OUT_MAX_CHARS), model_id: VOICE_OUT_FAST_MODEL }),
+          signal: signal ? AbortSignal.any([signal, AbortSignal.timeout(TIMEOUT_MS)]) : AbortSignal.timeout(TIMEOUT_MS),
+        });
+      } catch (error) {
+        throw new VoiceOutError(0, `ElevenLabs didn't answer: ${String(error)}`);
+      }
+      if (!res.ok || !res.body) {
+        const detail = (await res.text().catch(() => "")).slice(0, 300);
+        throw new VoiceOutError(res.status, `ElevenLabs refused (${res.status})${detail ? `: ${detail}` : ""}`);
+      }
+      return res.body;
+    },
     async preview(voice) {
       const found = (await list()).find((v) => v.voice_id === voice);
       const url = typeof found?.preview_url === "string" ? found.preview_url : "";
@@ -124,6 +150,16 @@ export function createFakeVoiceOut(): VoiceOut & { spoken: { voice: string; text
     async speak(input) {
       spoken.push(input);
       return { bytes: new TextEncoder().encode(`mp3:${input.text}`), mimeType: "audio/mpeg" };
+    },
+    async stream(input) {
+      spoken.push({ voice: input.voice, text: input.text });
+      const bytes = new TextEncoder().encode(`mp3:${input.text}`);
+      return new ReadableStream<Uint8Array>({
+        start(controller) {
+          controller.enqueue(bytes);
+          controller.close();
+        },
+      });
     },
     async preview() {
       return { bytes: new Uint8Array([1, 2, 3]), mimeType: "audio/mpeg" };

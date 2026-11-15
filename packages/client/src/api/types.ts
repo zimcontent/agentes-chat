@@ -846,6 +846,8 @@ export interface Agent {
   voice?: string;
   /** A person picked its voice (else it is the one its id gives). */
   voiceChosen?: boolean;
+  /** How it behaves on voice calls, on top of the base and the workspace's notes. */
+  liveCallNotes?: string | null;
   /** Its autonomy brakes (ADR 0131); absent from an older server (the defaults). */
   brakes?: AgentBrakes;
   /** How much it asks before acting (ADR 0173); absent from an older server (`risky`). */
@@ -1047,6 +1049,8 @@ export interface AgentInput {
   mediaReplies?: boolean;
   /** Its voice (ADR doug-0006); null: the one its id gives. Its owner or an admin. */
   voice?: string | null;
+  /** How it behaves on voice calls (doug-0006 §11); null clears. Its owner or an admin. */
+  liveCallNotes?: string | null;
   /** The Autonomia it starts with (the last setup's, ADR 0094): only an admin or its own owner sends it. */
   autonomy?: CommandApproval;
   /** Editing only: its autonomy brakes (ADR 0131); the fields given change. */
@@ -8638,6 +8642,10 @@ export interface LiveVoice {
   /** The key's last 4 characters, for who configures the workspace. */
   hint: string | null;
   editable: boolean;
+  /** Maestro calls work on this server (docs/adr/doug-0006-live-voice.md §11). */
+  maestro: boolean;
+  /** How the agents behave on calls here, on top of the base. */
+  callNotes: string;
 }
 
 /** What the host asks the small model about who speaks next (ADR doug-0006). */
@@ -8666,6 +8674,10 @@ export interface LiveRoom {
   /** Whose app runs the agents' voices. */
   hostUserId: string | null;
   agentIds: string[];
+  /** `live`: GPT-Live in the host's app. `maestro`: the server runs the agents (§11). */
+  mode: "live" | "maestro";
+  /** What a maestro call opens on. */
+  topic: string | null;
   people: { userId: string; joinedAt: string }[];
   status: "live" | "ended";
   startedAt: string;

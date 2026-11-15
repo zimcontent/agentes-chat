@@ -247,6 +247,10 @@ export const agents = pgTable(
      * (`liveVoiceFor`). Created by `EXTRA_COLUMNS`.
      */
     voice: text(),
+    /** How it behaves on voice calls, on top of the base and the workspace's notes (doug-0006 §11). */
+    liveCallNotes: text(),
+    /** Its ElevenLabs voice on maestro calls (doug-0006 §11); null: one picked from its id among the account's. */
+    callVoice: text(),
     /**
      * The most context its model reads, in tokens (`200000`, `400000`, `1000000`; validated in code): the API
      * brain compacts past it, Claude Code and Codex compact there too. Null = the model's own window.
@@ -354,6 +358,8 @@ export const organizationSettings = pgTable("organization_settings", {
   defaultCredentialIds: jsonb().$type<Partial<Record<string, string>>>().notNull().default({}),
   /** Router model for this organization (catalog id). Null = `ROUTER_MODEL` of the deployment. */
   routerModel: text(),
+  /** How the agents behave on voice calls here, on top of the base (docs/adr/doug-0006-live-voice.md §11). */
+  liveCallNotes: text(),
   /** Model that writes thread/period summaries. Null = `SUMMARY_MODEL` of the deployment. */
   summaryModel: text(),
   /** IANA time zone used as the default for routines, e.g. `America/Sao_Paulo`. */

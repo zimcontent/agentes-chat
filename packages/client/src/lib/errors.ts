@@ -32,6 +32,8 @@ const KNOWN = {
   "live_voice.no_words": "liveVoice.errors.noWords",
   "live_voice.not_host": "liveVoice.errors.notHost",
   "live_room.ended": "liveVoice.errors.ended",
+  "live_room.no_maestro": "liveVoice.errors.noMaestro",
+  "live_room.bad_audio": "liveVoice.errors.badAudio",
   "live_room.not_in": "liveVoice.errors.notIn",
   // A new-password link an owner can't make (ADR 0158).
   "password_link.email": "errors.passwordLink.email",

@@ -24,7 +24,6 @@ import type {
   VaultOverview,
   VaultScope,
 } from "../vault/types";
-import type { UploadOptions } from "./http";
 import type {
   VideoReview,
   VideoReviewDecision,
@@ -44,6 +43,7 @@ import type {
   WhatsAppSendInput,
   WhatsAppVoices,
 } from "../whatsapp/types";
+import type { UploadOptions } from "./http";
 import type {
   AccessInput,
   AccountDeletionPlan,
@@ -480,7 +480,24 @@ export interface ApiClient {
     startSession(orgId: string, input: LiveSessionInput): Promise<LiveSession>;
     endSession(orgId: string, sessionId: string): Promise<void>;
     channelRoom(orgId: string, channelId: string): Promise<{ room: LiveRoom | null }>;
-    joinRoom(orgId: string, channelId: string, agentIds: string[]): Promise<LiveRoom>;
+    joinRoom(
+      orgId: string,
+      channelId: string,
+      agentIds: string[],
+      options?: { mode?: "live" | "maestro"; topic?: string | null; language?: string },
+    ): Promise<LiveRoom>;
+    /** The workspace's notes on how its agents behave on calls (§11). */
+    saveCallNotes(orgId: string, notes: string): Promise<LiveVoice>;
+    /** One utterance a person said on a maestro call (only speech, cut by their app). */
+    heard(
+      orgId: string,
+      roomId: string,
+      input: { blob: Blob; durationMs: number; language: string },
+    ): Promise<{ text: string }>;
+    /** A person started talking on a maestro call: every voice stops. */
+    hush(orgId: string, roomId: string): Promise<void>;
+    /** Where an agent's line on a maestro call streams from (an `<audio>` source, same origin). */
+    speechUrl(orgId: string, roomId: string, utteranceId: string): string;
     ping(orgId: string, roomId: string): Promise<LiveRoom>;
     leave(orgId: string, roomId: string): Promise<void>;
     end(orgId: string, roomId: string): Promise<{ room: LiveRoom | null }>;

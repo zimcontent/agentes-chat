@@ -88,6 +88,14 @@ export const liveVoiceRooms = pgTable(
     people: jsonb().$type<LiveRoomPerson[]>().notNull().default([]),
     lines: jsonb().$type<LiveRoomLine[]>().notNull().default([]),
     status: text().$type<"live" | "ended">().notNull().default("live"),
+    /**
+     * `live`: one GPT-Live session per agent, run by the host's app. `maestro`: the server decides who speaks and what,
+     * each person's words come transcribed and the agents speak by text to speech (docs/adr/doug-0006-live-voice.md
+     * §11). Created by `EXTRA_COLUMNS`.
+     */
+    mode: text().$type<"live" | "maestro">().notNull().default("live"),
+    /** What the call opens on (a maestro room started to debate something). */
+    topic: text(),
     reportMessageId: uuid(),
     startedAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
     endedAt: timestamp({ withTimezone: true }),

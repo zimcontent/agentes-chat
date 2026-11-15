@@ -727,6 +727,7 @@ export const agentView = (a: Agent) => ({
   voice: liveVoiceFor(a.id, a.voice),
   /** Whether a person picked it (else it follows `liveVoiceFor`). */
   voiceChosen: a.voice != null,
+  liveCallNotes: a.liveCallNotes ?? null,
   /** A built-in agent the product ships (ADR 0137): `right_hand`, the team's right hand. Null for the others. */
   builtin: a.builtin ?? null,
   /** "Responde a" (ADR 0148 addendum): the agent it reports to; null = its owner, else its setor's lead. */

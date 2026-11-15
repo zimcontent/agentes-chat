@@ -513,6 +513,11 @@ export const Agent = z
       .optional()
       .openapi({ description: "Its voice on calls (ADR doug-0006): the one picked or its id's." }),
     voiceChosen: z.boolean().optional().openapi({ description: "A person picked its voice." }),
+    liveCallNotes: z
+      .string()
+      .nullable()
+      .optional()
+      .openapi({ description: "How it behaves on voice calls, on top of the base (docs/adr/doug-0006 §11)." }),
     approvalsLevel: ApprovalsLevel,
     builtin: z.enum(["right_hand"]).nullable().openapi({
       description:

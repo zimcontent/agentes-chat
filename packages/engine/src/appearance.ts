@@ -280,3 +280,40 @@ export async function setAgentVoice(
   await publishAgentsChanged(options.pubsub, orgId);
   return updated;
 }
+
+/**
+ * How the agent behaves on voice calls, on top of the base and the workspace's notes (docs/adr/doug-0006-live-voice.md
+ * §11): its owner or an admin sets them, like its voice.
+ */
+export async function setAgentCallNotes(
+  db: Database,
+  actorId: string,
+  orgId: string,
+  agentId: string,
+  notes: string | null,
+  options: { pubsub?: PubSub } = {},
+): Promise<Agent> {
+  const membership = await requirePermission(db, actorId, orgId, "read");
+  const agent = await getAgent(db, orgId, agentId);
+  if (!agent || agent.archivedAt) throw new NotFoundError("Agent not found");
+  if (!can(membership, "manage_agents") && !(agent.ownerUserId && agent.ownerUserId === actorId)) {
+    throw new ForbiddenError("Only the agent's owner or an admin can change how it behaves on calls");
+  }
+  const text = notes?.trim().slice(0, 1500) || null;
+  const [updated] = await db
+    .update(agents)
+    .set({ liveCallNotes: text, updatedAt: new Date() })
+    .where(and(eq(agents.id, agentId), eq(agents.orgId, orgId)))
+    .returning();
+  if (!updated) throw new NotFoundError("Agent not found");
+  caches.agents.delete(`${orgId}:${agentId}`);
+  caches.agents.delete(`${orgId}:team`);
+  await recordAudit(db, {
+    orgId,
+    actor: { type: "person", id: actorId },
+    action: "agent.call_notes_changed",
+    target: { type: "agent", id: agentId },
+  });
+  await publishAgentsChanged(options.pubsub, orgId);
+  return updated;
+}

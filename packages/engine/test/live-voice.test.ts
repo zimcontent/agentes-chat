@@ -64,13 +64,25 @@ describe("the workspace's GPT-Live key", () => {
     f = await setup();
     const fake = openai();
     const d = deps(fake.fetch);
-    expect(await liveVoiceView(d, f.owner.id, f.org.id)).toEqual({ state: "off", hint: null, editable: true });
+    expect(await liveVoiceView(d, f.owner.id, f.org.id)).toEqual({
+      state: "off",
+      hint: null,
+      editable: true,
+      maestro: false,
+      callNotes: "",
+    });
     const view = await saveLiveVoiceKey(d, f.owner.id, f.org.id, `  ${KEY}  `);
-    expect(view).toEqual({ state: "ok", hint: "9f3c", editable: true });
+    expect(view).toEqual({ state: "ok", hint: "9f3c", editable: true, maestro: false, callNotes: "" });
     const [row] = await f.db.select().from(schema.liveVoiceKeys);
     expect(JSON.stringify(row)).not.toContain("live-voice-test");
     const member = await addMember(f.db, f.org.id, "member", "Bia");
-    expect(await liveVoiceView(d, member.id, f.org.id)).toEqual({ state: "ok", hint: null, editable: false });
+    expect(await liveVoiceView(d, member.id, f.org.id)).toEqual({
+      state: "ok",
+      hint: null,
+      editable: false,
+      maestro: false,
+      callNotes: "",
+    });
     await expect(saveLiveVoiceKey(d, member.id, f.org.id, KEY)).rejects.toThrow();
     expect(await removeLiveVoiceKey(d, f.owner.id, f.org.id)).toMatchObject({ state: "off" });
   });

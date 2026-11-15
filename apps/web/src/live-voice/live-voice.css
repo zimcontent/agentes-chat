@@ -502,3 +502,29 @@
   color: var(--ink-muted);
   font-size: var(--text-sm);
 }
+
+/* A maestro call's running cost (voice and transcription), beside who speaks. */
+.lv-bar__cost {
+  display: block;
+  font-size: var(--text-xs);
+  color: var(--lv-muted);
+  font-variant-numeric: tabular-nums;
+}
+.lv-topic {
+  display: grid;
+  gap: var(--space-1);
+  margin-top: var(--space-3);
+}
+.lv-topic__label {
+  font-size: var(--text-sm);
+  font-weight: 600;
+}
+/* The workspace's notes for calls: the field inside the card's padding, its button at the end. */
+.lv-notes {
+  display: grid;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4) var(--space-4);
+}
+.lv-notes .ac-acts {
+  justify-content: flex-end;
+}

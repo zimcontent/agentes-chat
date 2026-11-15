@@ -1928,6 +1928,7 @@
     }
   },
   "shell": {
+    "you": "Du",
     "otherChannels": "Weitere Kanäle",
     "otherChannelsPersonal": "Weitere Gruppenunterhaltungen",
     "titleBar": {
@@ -2056,6 +2057,7 @@
     "summary_one": "{{people}} Mitglied · {{agents}} Agenten",
     "summary_other": "{{people}} Mitglieder · {{agents}} Agenten",
     "waiting": "Wartet auf dich",
+    "portal": "Portal",
     "approvals": "Freigaben",
     "proposals": "Verbesserungsvorschläge",
     "issues": "Aufgaben",
@@ -2110,9 +2112,7 @@
     "unreadThreads_one": "Threads: {{count}} mit ungelesenen Antworten",
     "unreadThreads_other": "Threads: {{count}} mit ungelesenen Antworten",
     "unreadNotifications_one": "{{count}} ungelesene Benachrichtigung",
-    "unreadNotifications_other": "{{count}} ungelesene Benachrichtigungen",
-    "you": "Du",
-    "portal": "Portal"
+    "unreadNotifications_other": "{{count}} ungelesene Benachrichtigungen"
   },
   "agentGroups": {
     "group": "Abteilung",
@@ -2491,6 +2491,18 @@
     "nameHelp": "Ändert sich für alle. Alte Links funktionieren weiter.",
     "nameTaken": "#{{name}} gibt es schon.",
     "generalName": "#general behält seinen Namen.",
+    "displayNameLabel": "Anzeigename",
+    "displayNameHelp": "So sehen alle die Gruppe. Ihr technischer Name (#{{name}}) funktioniert weiter für Erwähnungen.",
+    "photo": {
+      "label": "Gruppenfoto",
+      "title": "Gruppenfoto",
+      "help": "Ein quadratisches Bild, das alle neben dem Gruppennamen sehen. JPEG, PNG oder WebP bis 2 MB.",
+      "upload": "Foto hochladen",
+      "change": "Foto ändern",
+      "remove": "Foto entfernen",
+      "saved": "Gruppenfoto gespeichert",
+      "removed": "Gruppenfoto entfernt"
+    },
     "archive": "Kanal archivieren",
     "archived": "#{{channel}} archiviert. Die Unterhaltung bleibt erhalten.",
     "archivedTitle": "Archivierte Kanäle",
@@ -2561,19 +2573,7 @@
     "backOnline": "Wieder verbunden",
     "sendingOffline": "geht raus, sobald die Verbindung wieder da ist",
     "endOfReply": "Ende der Antwort",
-    "mentionSuggestions": "Vorschläge für Erwähnungen",
-    "displayNameLabel": "Anzeigename",
-    "displayNameHelp": "So sehen alle die Gruppe. Ihr technischer Name (#{{name}}) funktioniert weiter für Erwähnungen.",
-    "photo": {
-      "label": "Gruppenfoto",
-      "title": "Gruppenfoto",
-      "help": "Ein quadratisches Bild, das alle neben dem Gruppennamen sehen. JPEG, PNG oder WebP bis 2 MB.",
-      "upload": "Foto hochladen",
-      "change": "Foto ändern",
-      "remove": "Foto entfernen",
-      "saved": "Gruppenfoto gespeichert",
-      "removed": "Gruppenfoto entfernt"
-    }
+    "mentionSuggestions": "Vorschläge für Erwähnungen"
   },
   "receipts": {
     "picked_one": "{{names}} wird antworten",
@@ -4796,6 +4796,7 @@
       "other": "Freigeben"
     },
     "refuse": "Ablehnen",
+    "once": "Nur dieses Mal",
     "viewDiff": "Diff ansehen",
     "viewInChannel": "Im Kanal ansehen",
     "group": "Freigabeanfrage",
@@ -4863,8 +4864,7 @@
         "actions_run_trigger": "{{method}} in {{repo}} ausführen",
         "delete_repository": "Repository {{repo}} löschen"
       }
-    },
-    "once": "Nur dieses Mal"
+    }
   },
   "home": {
     "greeting": {
@@ -5304,6 +5304,16 @@
     "again": "Erneut fragen",
     "againBody": "@{{handle}} die Anfrage „{{title}}“ ist ohne Entscheidung abgelaufen. Wenn sie noch sinnvoll ist, frag erneut.",
     "againSent": "Anfrage in der Unterhaltung gesendet",
+    "retry": "Um neuen Versuch bitten",
+    "cause": {
+      "reconnect": "Die Verbindung zur App ist abgelaufen. Verbinde sie neu und bitte um einen neuen Versuch.",
+      "permission": "Das verbundene Konto darf das nicht. Prüfe den Zugriff in der App und bitte um einen neuen Versuch.",
+      "unavailable": "Der Dienst hat nicht geantwortet. Warte kurz und bitte um einen neuen Versuch.",
+      "limit": "Der Dienst hat abgelehnt: zu viele Anfragen. Warte ein paar Minuten und bitte um einen neuen Versuch."
+    },
+    "reconnect": "Neu verbinden",
+    "retryBody": "@{{handle}} die genehmigte Aktion „{{title}}“ ist fehlgeschlagen. Sieh nach, was schiefgelaufen ist, und versuch es noch einmal, oder sag mir, was ich tun muss.",
+    "valueKeys": "Verwendete Vault-Schlüssel",
     "noResults": "Keine Anfragen passen zu diesen Filtern.",
     "emptyTitle": "Alles entschieden",
     "how": "So funktionieren Freigaben",
@@ -5373,17 +5383,7 @@
       "hideSteps": "Schritte ausblenden",
       "asked": "Hat um Freigabe gebeten",
       "grants": "{{name}} macht das nur dieses Mal und mit diesen Werten: {{doing}}."
-    },
-    "retry": "Um neuen Versuch bitten",
-    "cause": {
-      "reconnect": "Die Verbindung zur App ist abgelaufen. Verbinde sie neu und bitte um einen neuen Versuch.",
-      "permission": "Das verbundene Konto darf das nicht. Prüfe den Zugriff in der App und bitte um einen neuen Versuch.",
-      "unavailable": "Der Dienst hat nicht geantwortet. Warte kurz und bitte um einen neuen Versuch.",
-      "limit": "Der Dienst hat abgelehnt: zu viele Anfragen. Warte ein paar Minuten und bitte um einen neuen Versuch."
-    },
-    "reconnect": "Neu verbinden",
-    "retryBody": "@{{handle}} die genehmigte Aktion „{{title}}“ ist fehlgeschlagen. Sieh nach, was schiefgelaufen ist, und versuch es noch einmal, oder sag mir, was ich tun muss.",
-    "valueKeys": "Verwendete Vault-Schlüssel"
+    }
   },
   "agent": {
     "editIdentity": "Name und Rolle bearbeiten",
@@ -7997,6 +7997,7 @@
     "subIssues_one": "Unteraufgaben · {{count}}",
     "subIssues_other": "Unteraufgaben · {{count}}",
     "fromWebhook": "aus einem {{provider}}-Event",
+    "fromPortal": "<0>Beitrag von {{client}} im Portal</0>",
     "description": "Beschreibung",
     "noDescription": "Keine Beschreibung.",
     "criteria": "Akzeptanzkriterien",
@@ -8100,8 +8101,7 @@
       "criterion_checked": "hat das Kriterium „{{text}}“ abgehakt",
       "criterion_unchecked": "hat das Kriterium „{{text}}“ wieder geöffnet",
       "agent_asked": "hat {{name}} gebeten, sie zu erledigen"
-    },
-    "fromPortal": "<0>Beitrag von {{client}} im Portal</0>"
+    }
   },
   "routines": {
     "filters": "Routinen filtern",
@@ -10596,6 +10596,11 @@
   "liveVoice": {
     "you": "Du",
     "call": {
+      "mode": "Art des Anrufs",
+      "modeMaestro": "Besprechung (neu)",
+      "modeLive": "Klassisch (GPT-Live)",
+      "topic": "Thema (optional)",
+      "topicHint": "Die Agenten beginnen mit einer Debatte darüber. Steig ein, wann du willst.",
       "start": "Sprachanruf starten",
       "join_one": "Anruf beitreten ({{count}})",
       "join_other": "Anruf beitreten ({{count}})",
@@ -10617,6 +10622,7 @@
       "hangUp": "Auflegen"
     },
     "room": {
+      "cost": "Stimme und Transkription bisher: {{cost}}",
       "title": "Sprachanruf",
       "joining": "Verbindung wird hergestellt…",
       "inCall": "Im Anruf",
@@ -10655,6 +10661,11 @@
       "stop": "Stopp"
     },
     "settings": {
+      "notesTitle": "Wie sich die Agenten in Anrufen verhalten",
+      "notesLead": "Zusätzlich zur Basis, der jeder Agent im Anruf folgt. Gilt für den ganzen Workspace.",
+      "notesExample": "Z. B.: Schließt immer mit wer was bis wann macht. Nennt den Kunden beim Namen.",
+      "agentNotes": "{{name}} in Anrufen",
+      "agentNotesExample": "Z. B.: Bringt Zahlen vor Meinungen. Widerspricht, wenn das Budget nicht passt.",
       "title": "Live-Stimme (GPT-Live)",
       "lead": "Sprachanrufe mit deinen Agenten und Anhören bei jeder Nachricht, jeder Agent mit eigener Stimme.",
       "on": "An",
@@ -10695,6 +10706,8 @@
       }
     },
     "errors": {
+      "noMaestro": "Besprechungen mit Maestro sind auf diesem Server nicht eingerichtet.",
+      "badAudio": "Das Audio konnte nicht gelesen werden. Versuch es noch einmal.",
       "off": "Dieser Workspace hat keinen GPT-Live-Schlüssel. Füge einen unter Einstellungen › Sprachnachrichten hinzu.",
       "keyInvalid": "OpenAI hat diesen Schlüssel abgelehnt.",
       "noAccess": "Das OpenAI-Projekt dieses Schlüssels hat keinen Zugriff auf GPT-Live.",
@@ -12615,6 +12628,26 @@
     "deniedRun": "{{repo}} gehört nicht zu den Repositorys von {{name}}.",
     "deniedRun_female": "{{repo}} gehört nicht zu den Repositorys von {{name}}.",
     "added": "{{repo}} kommt beim Speichern auf die Liste."
+  },
+  "carry": {
+    "open": "Aus einem anderen Workspace holen",
+    "text": "Was du in einem anderen Workspace verbunden hast, kommt fertig mit, ohne erneute Anmeldung.",
+    "none": "Noch nichts zum Holen. Was du in einem Workspace verbindest, erscheint hier in den anderen.",
+    "connections": "Verbindungen",
+    "with": "Kommt mit {{names}}",
+    "here": "Schon hier",
+    "needsReconnect": "Muss neu verbunden werden",
+    "githubApp": "Installiere die GitHub App hier",
+    "bring": "Holen",
+    "bringCount_one": "{{count}} Element holen",
+    "bringCount_other": "{{count}} Elemente holen",
+    "done_one": "{{count}} Element in diesen Workspace geholt",
+    "done_other": "{{count}} Elemente in diesen Workspace geholt",
+    "skipped_one": "{{count}} Element konnte nicht mitkommen",
+    "skipped_other": "{{count}} Elemente konnten nicht mitkommen",
+    "nothingNew": "Alles, was du ausgewählt hast, ist schon hier",
+    "failed": "Das Holen hat nicht geklappt. Versuch es noch einmal.",
+    "fromOnboarding": "Agenten und Verbindungen aus einem anderen Workspace holen"
   },
   "connectors": {
     "title": "Konnektoren",
@@ -17076,6 +17109,17 @@
       "savedEveryone": "Jetzt nutzt der ganze Workspace dieses Abo.",
       "savedOwner": "Jetzt nutzt nur du dieses Abo."
     },
+    "standIn": {
+      "title": "Ersatzkonten",
+      "about": "Wenn das Konto, das ein Agent nutzt, 90 % seines Limits erreicht, arbeitet der Agent mit dem ersten Konto dieser Liste weiter, das unter 90 % liegt, auf demselben Computer. ChatGPT antwortet mit GPT-6.1 Sol und Gemini mit Gemini 4 Hydrogen. Der Agent kehrt zu seinem eigenen Konto zurück, sobald es sich erneuert.",
+      "empty": "Keine Ersatzkonten. Füge eines hinzu, damit deine Agenten weiterarbeiten, wenn ein Konto voll ist.",
+      "last": "Wenn alle Konten über 90 % liegen: das eigene Konto des Agenten bis zum Limit, danach sein API-Schlüssel, falls vorhanden.",
+      "add": "Konto hinzufügen",
+      "up": "{{label}} nach oben",
+      "down": "{{label}} nach unten",
+      "remove": "{{label}} entfernen",
+      "saved": "Reihenfolge der Ersatzkonten gespeichert."
+    },
     "logins_one": "{{count}} Anmeldung",
     "logins_other": "{{count}} Anmeldungen",
     "noWindows": "Das Limit erscheint, sobald dieses Konto wieder genutzt wird.",
@@ -17140,17 +17184,6 @@
       "oldSub": "Verbrauch von vor der Erfassung des Kontos",
       "ofMonth": "{{percent}} des Monats",
       "shareLabel": "{{source}}: {{percent}} des Monats"
-    },
-    "standIn": {
-      "title": "Ersatzkonten",
-      "about": "Wenn das Konto, das ein Agent nutzt, 90 % seines Limits erreicht, arbeitet der Agent mit dem ersten Konto dieser Liste weiter, das unter 90 % liegt, auf demselben Computer. ChatGPT antwortet mit GPT-6.1 Sol und Gemini mit Gemini 4 Hydrogen. Der Agent kehrt zu seinem eigenen Konto zurück, sobald es sich erneuert.",
-      "empty": "Keine Ersatzkonten. Füge eines hinzu, damit deine Agenten weiterarbeiten, wenn ein Konto voll ist.",
-      "last": "Wenn alle Konten über 90 % liegen: das eigene Konto des Agenten bis zum Limit, danach sein API-Schlüssel, falls vorhanden.",
-      "add": "Konto hinzufügen",
-      "up": "{{label}} nach oben",
-      "down": "{{label}} nach unten",
-      "remove": "{{label}} entfernen",
-      "saved": "Reihenfolge der Ersatzkonten gespeichert."
     }
   },
   "budget": {
@@ -17518,6 +17551,9 @@
         "askingChoices": "Mit Optionen gefragt",
         "usingVault": "Im Vault gearbeitet",
         "makingPassword": "Ein Passwort erstellt",
+        "usingPortal": "Hat am Freigabe-Board gearbeitet",
+        "sendingForApproval": "Hat zur Freigabe gesendet",
+        "schedulingPost": "Hat einen Beitrag geplant",
         "startingWork": "Eine lange Arbeit begonnen",
         "updatingWork": "Eine lange Arbeit aktualisiert",
         "withdrawingRequest": "Eine Anfrage zurückgezogen",
@@ -17548,10 +17584,7 @@
         "thinking": "Nachgedacht",
         "typing": "Geschrieben",
         "recordingVoice": "Audio aufgenommen",
-        "writing": "Geschrieben",
-        "usingPortal": "Hat am Freigabe-Board gearbeitet",
-        "sendingForApproval": "Hat zur Freigabe gesendet",
-        "schedulingPost": "Hat einen Beitrag geplant"
+        "writing": "Geschrieben"
       }
     },
     "activity": {
@@ -17641,6 +17674,9 @@
       "askingChoices": "Fragen mit Optionen",
       "usingVault": "Arbeiten im Vault",
       "makingPassword": "Erstellen eines Passworts",
+      "usingPortal": "arbeitet am Freigabe-Board",
+      "sendingForApproval": "sendet zur Freigabe",
+      "schedulingPost": "plant einen Beitrag",
       "startingWork": "Beginnen einer langen Arbeit",
       "updatingWork": "Aktualisieren einer langen Arbeit",
       "withdrawingRequest": "Zurückziehen einer Anfrage",
@@ -17667,10 +17703,7 @@
       "updatingThread": "Aktualisieren eines Threads",
       "addingAgent": "Hinzufügen eines Agenten zu einem Kanal",
       "readingConversation": "Lesen der Unterhaltung",
-      "usingTool": "Nutzen eines Tools",
-      "usingPortal": "arbeitet am Freigabe-Board",
-      "sendingForApproval": "sendet zur Freigabe",
-      "schedulingPost": "plant einen Beitrag"
+      "usingTool": "Nutzen eines Tools"
     },
     "tokens": "{{value}} Token",
     "sayHiAgent": "Sag {{name}} Hallo",
@@ -20274,121 +20307,6 @@
       "alwaysOn": "Ab jetzt gehen solche Berichte ohne Nachfrage raus.",
       "askFirst": "Vor dem Senden fragen"
     }
-  },
-  "liveVoice": {
-    "you": "Du",
-    "call": {
-      "start": "Sprachanruf starten",
-      "join_one": "Anruf beitreten ({{count}})",
-      "join_other": "Anruf beitreten ({{count}})",
-      "title": "Sprachanruf",
-      "lead": "Wähle die Agenten für den Anruf. Alle aus der Unterhaltung können beitreten.",
-      "startWith_one": "Anruf mit {{count}} Agent",
-      "startWith_other": "Anruf mit {{count}} Agenten",
-      "peopleOnly": "Anruf ohne Agenten",
-      "callAgent": "{{name}} anrufen",
-      "keyWhere": "Um Agenten anzurufen, braucht dieser Workspace einen GPT-Live-Schlüssel unter Einstellungen › Sprachnachrichten.",
-      "keyOpen": "Schlüssel hinzufügen",
-      "keyAsk": "Bitte die Person, die den Workspace verwaltet, ihn hinzuzufügen.",
-      "needsKeyTitle": "Für einen Anruf bei {{name}} braucht es einen GPT-Live-Schlüssel"
-    },
-    "agentCall": {
-      "title": "Anruf mit {{name}}",
-      "connecting": "{{name}} wird angerufen…",
-      "listening": "Hört zu",
-      "hangUp": "Auflegen"
-    },
-    "room": {
-      "title": "Sprachanruf",
-      "joining": "Verbindung wird hergestellt…",
-      "inCall": "Im Anruf",
-      "minimize": "Weiterarbeiten",
-      "open": "Anruf öffnen",
-      "micOff": "Mikrofon ausschalten",
-      "micOn": "Mikrofon einschalten",
-      "muted": "Mikrofon aus",
-      "captions": "Untertitel",
-      "quiet": "Agenten hören nur zu",
-      "leave": "Anruf verlassen",
-      "endAll": "Für alle beenden",
-      "endTitle": "Anruf für alle beenden?",
-      "endText": "Die Notizen des Anrufs kommen in die Unterhaltung. Doug BOSS schickt den Bericht mit den Entscheidungen und den nächsten Schritten.",
-      "hasWord": "{{name}} hat das Wort",
-      "agentsListen": "Die Agenten hören zu",
-      "word": "Spricht",
-      "giveWord": "Das Wort geben",
-      "takeWord": "Das Wort zurücknehmen",
-      "connecting": "Stimme wird verbunden",
-      "voiceFailed": "Stimme ausgefallen",
-      "ended": "Der Anruf ist beendet",
-      "failed": "Der Anruf konnte nicht starten",
-      "report": "Die Notizen sind in der Unterhaltung. Doug BOSS schickt den Bericht dorthin.",
-      "noNotes": "Es wurde zu wenig für Notizen gesagt."
-    },
-    "listen": {
-      "menu": "Anhören",
-      "connecting": "Stimme wird vorbereitet…",
-      "telling": "{{name}} erzählt es dir",
-      "narrator": "Der Erzähler",
-      "asking": "Stell deine Frage",
-      "done": "Fertig",
-      "ask": "Fragen",
-      "stop": "Stopp"
-    },
-    "settings": {
-      "title": "Live-Stimme (GPT-Live)",
-      "lead": "Sprachanrufe mit deinen Agenten und Anhören bei jeder Nachricht, jeder Agent mit eigener Stimme.",
-      "on": "An",
-      "off": "Aus",
-      "without": "Füge einen OpenAI-Schlüssel mit Zugriff auf GPT-Live hinzu, um deine Agenten anzurufen und Nachrichten anzuhören.",
-      "setUp": "Schlüssel hinzufügen",
-      "openSite": "OpenAI öffnen",
-      "stepKey": "Erstelle einen API-Schlüssel",
-      "stepKeyHint": "Im OpenAI-Projekt mit GPT-Live. Die Nutzung wird diesem Projekt berechnet.",
-      "paste": "Füge den Schlüssel hier ein",
-      "sealed": "Er wird bei OpenAI geprüft und versiegelt gespeichert. Niemand sieht ihn wieder.",
-      "price": "GPT-Live kostet etwa 0,05 US$ pro Minute und Agent im Anruf. Das zählt zum Budget jedes Agenten.",
-      "removeTitle": "GPT-Live-Schlüssel entfernen?",
-      "removeText": "Anrufe mit Agenten und Anhören enden in diesem Workspace. Anrufe zwischen Personen laufen weiter.",
-      "voicesTitle": "Die Stimme jedes Agenten",
-      "voiceOf": "Stimme von {{name}}",
-      "sample": "Stimme von {{name}} anhören",
-      "hear": "Anhören"
-    },
-    "errors": {
-      "off": "Dieser Workspace hat keinen GPT-Live-Schlüssel. Füge einen unter Einstellungen › Sprachnachrichten hinzu.",
-      "keyInvalid": "OpenAI hat diesen Schlüssel abgelehnt.",
-      "noAccess": "Das OpenAI-Projekt dieses Schlüssels hat keinen Zugriff auf GPT-Live.",
-      "unchecked": "Der Schlüssel konnte nicht bei OpenAI geprüft werden. Versuch es noch einmal.",
-      "unavailable": "OpenAI hat nicht geantwortet. Versuch es noch einmal.",
-      "busy": "OpenAI ist ausgelastet, oder das Kontingent des Schlüssels ist aufgebraucht.",
-      "refused": "OpenAI hat die Sprachsitzung abgelehnt.",
-      "tooMany": "Zu viele Sprachsitzungen offen. Schließ eine und versuch es noch einmal.",
-      "noWords": "Diese Nachricht hat keine Worte zum Vorlesen.",
-      "notHost": "Nur wer den Anruf leitet, öffnet die Stimmen der Agenten.",
-      "ended": "Dieser Anruf ist beendet.",
-      "notIn": "Du bist nicht mehr in diesem Anruf."
-    }
-  },
-  "carry": {
-    "open": "Aus einem anderen Workspace holen",
-    "text": "Was du in einem anderen Workspace verbunden hast, kommt fertig mit, ohne erneute Anmeldung.",
-    "none": "Noch nichts zum Holen. Was du in einem Workspace verbindest, erscheint hier in den anderen.",
-    "connections": "Verbindungen",
-    "with": "Kommt mit {{names}}",
-    "here": "Schon hier",
-    "needsReconnect": "Muss neu verbunden werden",
-    "githubApp": "Installiere die GitHub App hier",
-    "bring": "Holen",
-    "bringCount_one": "{{count}} Element holen",
-    "bringCount_other": "{{count}} Elemente holen",
-    "done_one": "{{count}} Element in diesen Workspace geholt",
-    "done_other": "{{count}} Elemente in diesen Workspace geholt",
-    "skipped_one": "{{count}} Element konnte nicht mitkommen",
-    "skipped_other": "{{count}} Elemente konnten nicht mitkommen",
-    "nothingNew": "Alles, was du ausgewählt hast, ist schon hier",
-    "failed": "Das Holen hat nicht geklappt. Versuch es noch einmal.",
-    "fromOnboarding": "Agenten und Verbindungen aus einem anderen Workspace holen"
   },
   "portal": {
     "title": "Portal",

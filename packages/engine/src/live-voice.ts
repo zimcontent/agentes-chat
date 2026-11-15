@@ -1,4 +1,4 @@
-import type { KeyWrapper, PubSub } from "@agenteschat/adapters";
+import type { KeyWrapper, PubSub, SpeechEngine, VoiceOut } from "@agenteschat/adapters";
 import { and, asc, type Database, desc, eq, inArray, isNull, lt, or, schema, sql } from "@agenteschat/db";
 import {
   DEFAULT_LIVE_VOICE,
@@ -79,6 +79,21 @@ export interface LiveVoiceDeps {
     body: string,
     meta: Record<string, unknown>,
   ) => Promise<{ id: string }>;
+  /**
+   * The maestro's call (§11): one short completion through the Model Gateway on the model of the agent named (the
+   * meeting's lead), billed to it; null when there is no model to call.
+   */
+  think?: (input: {
+    orgId: string;
+    agentId: string | null;
+    system: string;
+    prompt: string;
+    maxTokens: number;
+  }) => Promise<string | null>;
+  /** The agents' voices on a maestro call (ElevenLabs); absent: no maestro calls. */
+  voiceOut?: VoiceOut | null;
+  /** Who turns the people's words into text on a maestro call (the voice messages' engines, ADR 0100). */
+  speech?: () => SpeechEngine[];
   now?: () => Date;
 }
 
@@ -107,6 +122,10 @@ export interface LiveVoiceView {
   /** Its last 4 characters, for who configures the workspace. */
   hint: string | null;
   editable: boolean;
+  /** Maestro calls work on this server: a voice for the agents, words for the people, a model (§11). */
+  maestro: boolean;
+  /** How the agents behave on calls here, on top of the base (`live-call.md`). */
+  callNotes: string;
 }
 
 export async function liveVoiceView(deps: LiveVoiceDeps, userId: string, orgId: string): Promise<LiveVoiceView> {
@@ -117,7 +136,34 @@ export async function liveVoiceView(deps: LiveVoiceDeps, userId: string, orgId: 
     .select({ hint: liveVoiceKeys.keyHint })
     .from(liveVoiceKeys)
     .where(eq(liveVoiceKeys.orgId, orgId));
-  return { state: row ? "ok" : "off", hint: row && editable ? row.hint : null, editable };
+  const [settings] = await deps.db
+    .select({ notes: schema.organizationSettings.liveCallNotes })
+    .from(schema.organizationSettings)
+    .where(eq(schema.organizationSettings.orgId, orgId));
+  return {
+    state: row ? "ok" : "off",
+    hint: row && editable ? row.hint : null,
+    editable,
+    maestro: Boolean(deps.voiceOut && deps.think && (deps.speech?.() ?? []).length),
+    callNotes: settings?.notes ?? "",
+  };
+}
+
+/** The workspace's notes on how its agents behave on calls (on top of `live-call.md`); who configures sets them. */
+export async function saveLiveCallNotes(deps: LiveVoiceDeps, userId: string, orgId: string, notes: string) {
+  await requirePermission(deps.db, userId, orgId, "configure");
+  const text = notes.trim().slice(0, 3000) || null;
+  await deps.db
+    .insert(schema.organizationSettings)
+    .values({ orgId, liveCallNotes: text })
+    .onConflictDoUpdate({ target: schema.organizationSettings.orgId, set: { liveCallNotes: text } });
+  await recordAudit(deps.db, {
+    orgId,
+    actor: { type: "person", id: userId },
+    action: "live_voice.call_notes_changed",
+    target: { type: "live_voice", id: orgId },
+  });
+  return liveVoiceView(deps, userId, orgId);
 }
 
 /** What OpenAI says of a key: it opens GPT-Live, it is refused, or it has no access to the model. */
@@ -379,7 +425,7 @@ async function createAtOpenAI(
 
 const voiceAgent = (a: Agent): VoiceAgent => ({ id: a.id, name: a.name, role: a.role, instructions: a.instructions });
 
-async function orgOf(deps: LiveVoiceDeps, orgId: string) {
+export async function orgOf(deps: LiveVoiceDeps, orgId: string) {
   const [org] = await deps.db
     .select({ name: organizations.name, context: organizations.context })
     .from(organizations)
@@ -388,13 +434,19 @@ async function orgOf(deps: LiveVoiceDeps, orgId: string) {
   return org;
 }
 
-async function personName(deps: LiveVoiceDeps, userId: string) {
+export async function personName(deps: LiveVoiceDeps, userId: string) {
   const [u] = await deps.db.select({ name: users.name }).from(users).where(eq(users.id, userId));
   return u?.name || "the person";
 }
 
 /** Agents of the workspace this person may talk to, here: the others are left out. */
-async function talkableAgents(deps: LiveVoiceDeps, userId: string, orgId: string, channelId: string, ids: string[]) {
+export async function talkableAgents(
+  deps: LiveVoiceDeps,
+  userId: string,
+  orgId: string,
+  channelId: string,
+  ids: string[],
+) {
   if (!ids.length) return [];
   const rows = await deps.db
     .select()
@@ -649,7 +701,7 @@ async function namesOf(deps: LiveVoiceDeps, userIds: string[]) {
   return userIds.flatMap((id) => rows.filter((r) => r.id === id).map((r) => r.name || "someone"));
 }
 
-async function linesAsChat(deps: LiveVoiceDeps, lines: LiveRoomLine[]): Promise<ChatLine[]> {
+export async function linesAsChat(deps: LiveVoiceDeps, lines: LiveRoomLine[]): Promise<ChatLine[]> {
   const names = await whoNames(deps, lines);
   return lines.map((l) => ({ author: names.get(l.who.id) ?? "someone", text: l.text }));
 }
@@ -673,13 +725,17 @@ async function whoNames(deps: LiveVoiceDeps, lines: Pick<LiveRoomLine, "who">[])
 
 // ─── Rooms ───────────────────────────────────────────────────────────────────
 
-type Room = typeof liveVoiceRooms.$inferSelect;
+export type Room = typeof liveVoiceRooms.$inferSelect;
 
 export interface LiveRoomView {
   id: string;
   channelId: string;
   hostUserId: string | null;
   agentIds: string[];
+  /** `live`: GPT-Live sessions in the host's app; `maestro`: the server runs the agents (§11). */
+  mode: "live" | "maestro";
+  /** What a maestro call opens on. */
+  topic: string | null;
   /** Who is in now. */
   people: { userId: string; joinedAt: string }[];
   status: "live" | "ended";
@@ -690,7 +746,7 @@ export interface LiveRoomView {
   reportMessageId: string | null;
 }
 
-const presentPeople = (room: Room, at: Date) =>
+export const presentPeople = (room: Room, at: Date) =>
   room.people.filter((p) => !p.leftAt && at.getTime() - new Date(p.seenAt).getTime() < PERSON_GONE_MS);
 
 const roomView = (room: Room, at: Date): LiveRoomView => ({
@@ -698,6 +754,8 @@ const roomView = (room: Room, at: Date): LiveRoomView => ({
   channelId: room.channelId,
   hostUserId: room.hostUserId,
   agentIds: room.agentIds,
+  mode: room.mode,
+  topic: room.topic,
   people:
     room.status === "live" ? presentPeople(room, at).map((p) => ({ userId: p.userId, joinedAt: p.joinedAt })) : [],
   status: room.status,
@@ -771,7 +829,7 @@ export async function joinLiveRoom(
   userId: string,
   orgId: string,
   channelId: string,
-  input: { agentIds: string[] },
+  input: { agentIds: string[]; mode?: "live" | "maestro"; topic?: string | null },
 ) {
   const { membership } = await requireChannelAccess(deps.db, userId, orgId, channelId);
   if (!can(membership, "post")) throw new ForbiddenError();
@@ -786,7 +844,8 @@ export async function joinLiveRoom(
     const talkable = (await talkableAgents(deps, userId, orgId, channelId, wanted)).sort(
       (a, b) => wanted.indexOf(a.id) - wanted.indexOf(b.id),
     );
-    if (talkable.length) await openKey(deps, orgId);
+    // A maestro call speaks with the server's voice (§11), not the workspace's GPT-Live key.
+    if (talkable.length && input.mode !== "maestro") await openKey(deps, orgId);
     [room] = await deps.db
       .insert(liveVoiceRooms)
       .values({
@@ -794,6 +853,8 @@ export async function joinLiveRoom(
         channelId,
         hostUserId: userId,
         agentIds: talkable.map((a) => a.id),
+        mode: input.mode ?? "live",
+        topic: input.topic?.trim().slice(0, 500) || null,
         people: [{ userId, joinedAt: iso, seenAt: iso, leftAt: null }],
         startedAt: at,
       })
@@ -844,7 +905,7 @@ export async function leaveLiveRoom(deps: LiveVoiceDeps, userId: string, orgId: 
   if (tidy.room.status === "live") await announce(deps, tidy.room, true);
 }
 
-async function requireInRoom(deps: LiveVoiceDeps, userId: string, orgId: string, roomId: string) {
+export async function requireInRoom(deps: LiveVoiceDeps, userId: string, orgId: string, roomId: string) {
   const room = await liveRoom(deps, orgId, roomId);
   if (!presentPeople(room, now(deps)).some((p) => p.userId === userId))
     throw new ForbiddenError("You're not in this call", "live_room.not_in");
@@ -1275,7 +1336,7 @@ export async function postCallSummary(
  * The agent's answer to a message: its messages in the conversation after it, once they stop coming for a moment. Null
  * when none came in time. `waiting` runs now and then while it works.
  */
-async function agentAnswer(
+export async function agentAnswer(
   deps: LiveVoiceDeps,
   brain: AgentBrain,
   messageId: string,
