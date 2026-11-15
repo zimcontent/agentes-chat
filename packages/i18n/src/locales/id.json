@@ -9795,6 +9795,7 @@
       "endText": "Catatan panggilan masuk ke percakapan. Doug BOSS mengirim laporan berisi keputusan dan langkah berikutnya.",
       "hasWord": "{{name}} sedang bicara",
       "agentsListen": "Para agen sedang mendengarkan",
+      "working": "Mencari…",
       "word": "Bicara",
       "giveWord": "Beri giliran bicara",
       "takeWord": "Ambil kembali giliran",

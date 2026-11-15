@@ -9738,6 +9738,7 @@
       "endText": "통화 메모는 대화로 가요. Doug BOSS가 결정된 내용과 다음 단계를 담은 보고서를 보내요.",
       "hasWord": "{{name}} 님이 말하고 있어요",
       "agentsListen": "에이전트가 듣고 있어요",
+      "working": "찾는 중…",
       "word": "말하는 중",
       "giveWord": "발언권 주기",
       "takeWord": "발언권 되찾기",

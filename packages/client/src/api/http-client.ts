@@ -1115,6 +1115,8 @@ export function createHttpApi(options: TransportOptions = {}): HttpApi {
         request<void>(`${org(orgId)}/live-rooms/${enc(roomId)}/lines`, { json: { lines } }),
       floor: (orgId, roomId, holder, reason) =>
         request<void>(`${org(orgId)}/live-rooms/${enc(roomId)}/floor`, { json: { holder, reason } }),
+      ask: (orgId, roomId, input) =>
+        request<{ askId: string }>(`${org(orgId)}/live-rooms/${enc(roomId)}/ask`, { json: input }),
       next: (orgId, roomId, ask) =>
         request<LiveSpeakerPick>(`${org(orgId)}/live-rooms/${enc(roomId)}/next`, { json: ask ?? {} }),
     },

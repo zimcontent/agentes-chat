@@ -93,11 +93,10 @@ export function callInstructions(input: {
     ? [
         "# How turns work",
         "This is a live meeting, like a real one. The app gives the word to one agent at a time; the people talk whenever they want and come first. You only hear the call while you have the word; what was said meanwhile reaches you as notes.",
-        "When you get the word, react to what was just said in one short turn (one to three sentences), then stop and listen. Don't summarize what others said, don't thank everyone, don't speak for the others.",
+        "When you get the word, react to what was just said in one short turn (one to three sentences), then stop and listen. Speak only when you have the word. Don't summarize what others said, don't thank everyone, don't speak for the others.",
         input.others.length
           ? [
               "Have opinions, like a good colleague: build on an idea, push back when you disagree, bring the angle your role sees. Never agree just to be polite, and never repeat what was said.",
-              `Colleagues may cut in while you talk, and you may be told to cut in on them: that's normal in a lively meeting. When told to cut in, do it naturally and briefly, make your point, stop. When you were cut off, don't finish the old sentence later: react to what was said.`,
               `You may bring a colleague in by name with a direct question ("${input.others[0]?.name}, how would you handle the budget?"). Don't hand the word around just to include everyone: the people decide where the meeting goes.`,
             ].join("\n")
           : "",
@@ -122,7 +121,16 @@ export function callInstructions(input: {
     `# This is a live voice call${input.channel ? ` from #${input.channel}` : ""}\nOn the call:\n${onCall}`,
     SPEECH_RULES(languageName(input.language)),
     turns,
-    "You can't use tools or start tasks during the call. When someone asks for work, say it goes in the meeting's notes: when the call ends, the notes are posted to the conversation and the team's lead writes the report with the next steps.",
+    [
+      "# Working during the call",
+      'You can do real work while the call goes on. Delegate to the backend when something asked of you needs to be looked up, checked, done, written or sent: data, the web, files, the team\'s systems, a task. Don\'t ask permission: say one short natural line ("já vejo", "deixa eu ver") and delegate. The meeting goes on while you work; when the result comes back you get the word to tell it, naturally and briefly, never reading lists, links or code.',
+      input.others.length
+        ? "Take on only what is in your own role. When it belongs to a colleague's area, don't delegate it: say whose it is, by name, so they take it."
+        : "",
+      "Never mention a backend, a delegation or another model: it is all you.",
+    ]
+      .filter(Boolean)
+      .join("\n"),
     start,
     input.recent.length
       ? `# The conversation before the call (the latest messages, oldest first)\n${chatBlock(input.recent, input.channel ? `#${input.channel}` : "chat")}`

@@ -9,7 +9,6 @@ import {
   type FloorState,
   giveFloor,
   initialFloor,
-  interrupt,
   mayBringIn,
   namedAgent,
 } from "@agenteschat/client/lib/live-floor";
@@ -20,9 +19,11 @@ import { LiveLeg } from "./leg";
  * signalled through the server). The host's browser also runs one GPT-Live session per agent: each hears the people's
  * microphones and the other agents, and its voice is sent on to every person as a track of its own, so every app can
  * light the tile of whoever speaks. Who has the word is code (`live-floor`), applied by the host: the agent with it
- * hears the call, the others are muted and get what they missed as notes when it comes to them. Agents talk like a
- * meeting: while one talks the small model is asked, a sentence at a time, whether a colleague cuts in or follows; one
- * cut off is faded out (each voice goes through a gain of its own) and told it was interrupted. The first agent leads
+ * hears the call, the others get what they missed as notes when it comes to them. One voice at a time, kept by the
+ * audio itself: every agent hears through a gain of its own and is heard through another, open only while it has the
+ * word, so an agent without it hears nothing and is heard by nobody, whatever GPT-Live does. After an agent speaks the
+ * small model may bring in one colleague, within tight limits. Work asked for during the call runs for real: an agent
+ * that delegates ("já vejo") gets it done in the conversation (`ask`), and tells the answer at the next pause. The first agent leads
  * the meeting (the team's right hand, put first by the server): it has the word whenever nobody else does, so somebody
  * always hears the people. What the people say comes from the GPT-Live session with the word (its transcript of what it
  * hears), not from the browser's speech recognition, which fails quietly in some browsers and the desktop app: a name
@@ -50,6 +51,8 @@ export interface RoomCallState {
   holder: string | null;
   /** Each agent's voice, on the host's side: connecting, live or failed. */
   agentVoices: Record<string, "connecting" | "live" | "failed">;
+  /** Agents working on something asked during the call (everyone on the call sees it). */
+  working: Record<string, boolean>;
   captions: Caption[];
 }
 
@@ -57,12 +60,10 @@ const ICE = [{ urls: "stun:stun.l.google.com:19302" }];
 const PING_MS = 20_000;
 const AGENT_LINE_IDLE_MS = 1300;
 const JUDGE_WAIT_MS = 900;
-/** While an agent talks, the small model is asked at most this often whether a colleague cuts in or follows. */
-const DURING_ASK_MS = 4000;
-/** An agent talks at least this long before anyone cuts in. */
-const CUT_IN_AFTER_MS = 2500;
-/** A sentence just ended (the moment a colleague may come in). */
-const SENTENCE_END = /[.!?…]["”')]?\s*$/;
+/** An answer to work asked on the call waits for a pause this long before it is told. */
+const ANSWER_PAUSE_MS = 1500;
+/** Past this an answer is told at the next breath, pause or not. */
+const ANSWER_WAIT_MS = 30_000;
 /** With one person the judge only picks who answers: no wait for more words. */
 const JUDGE_WAIT_SOLO_MS = 150;
 /** A new call's first agent that hasn't greeted by then is asked to. */
@@ -82,16 +83,16 @@ interface Peer {
 interface AgentVoice {
   leg: LiveLeg | null;
   input: MediaStreamAudioDestinationNode;
+  /** What it hears goes through here: open only while it has the word. */
+  inGain: GainNode;
   /** Its voice as everyone hears it: after its gain, so it can be cut off. */
   out: MediaStream | null;
   outSource: AudioNode | null;
   gain: GainNode | null;
   /** Keeps OpenAI's track flowing into Web Audio (Chrome plays a remote track only while an element holds it). */
   sink: HTMLAudioElement | null;
-  /** Cut off by a colleague: what it goes on saying is dropped until the word comes back to it. */
+  /** Cut off (the word left it mid-sentence): what it goes on saying is dropped until the word comes back to it. */
   cut: boolean;
-  /** When it got the word (ms). */
-  turnAt: number;
   /** What it is saying now, until it pauses. */
   said: string;
   idle: ReturnType<typeof setTimeout> | null;
@@ -107,6 +108,7 @@ export class RoomCall {
     micOn: true,
     holder: null,
     agentVoices: {},
+    working: {},
     captions: [],
   };
   private listeners = new Set<() => void>();
@@ -187,6 +189,7 @@ export class RoomCall {
         captions: room.lines.map((l) => ({ who: whoOf(l), text: l.text, at: Date.parse(l.at), n: ++this.said })),
       });
       this.timers.push(setInterval(() => void this.ping(), PING_MS));
+      this.timers.push(setInterval(() => this.deliverAnswers(), 700));
       this.loop();
       await this.applyRoom(room);
     } catch (error) {
@@ -253,6 +256,16 @@ export class RoomCall {
     if (e.roomId !== room.id) return;
     if (e.type === "live.signal") void this.onSignal(String(e.from), e.data as Signal);
     if (e.type === "live.lines") for (const line of e.lines as LiveRoomLine[]) this.heard(line);
+    if (e.type === "live.working") this.set({ working: { ...this.state.working, [String(e.agentId)]: Boolean(e.on) } });
+    if (e.type === "live.answer" && this.isHost) {
+      this.answers.push({
+        agentId: String(e.agentId),
+        delegationId: String(e.delegationId),
+        text: typeof e.text === "string" ? e.text : null,
+        at: Date.now(),
+      });
+      this.deliverAnswers();
+    }
     if (e.type === "live.floor") {
       const holder = (e.holder as string | null) ?? null;
       if (this.isHost && e.by !== this.o.me) this.apply(giveFloor(this.floor, holder, "manual"));
@@ -387,7 +400,7 @@ export class RoomCall {
     this.personSources.set(userId, source);
     this.watch(`person:${userId}`, source);
     // The agents hear every person on the call.
-    for (const voice of this.voices.values()) source.connect(voice.input);
+    for (const voice of this.voices.values()) source.connect(voice.inGain);
   }
 
   private agentVoiceArrived(agentId: string, stream: MediaStream) {
@@ -422,18 +435,21 @@ export class RoomCall {
     this.set({ holder: this.floor.holder });
     for (const agentId of ids) {
       const input = this.ctx.createMediaStreamDestination();
-      this.micSource.connect(input);
-      for (const source of this.personSources.values()) source.connect(input);
-      for (const other of this.voices.values()) other.outSource?.connect(input);
+      const inGain = this.ctx.createGain();
+      inGain.gain.value = this.floor.holder === agentId ? 1 : 0;
+      inGain.connect(input);
+      this.micSource.connect(inGain);
+      for (const source of this.personSources.values()) source.connect(inGain);
+      for (const other of this.voices.values()) other.outSource?.connect(inGain);
       this.voices.set(agentId, {
         leg: null,
         input,
+        inGain,
         out: null,
         outSource: null,
         gain: null,
         sink: null,
         cut: false,
-        turnAt: 0,
         said: "",
         idle: null,
         seen: this.lines.length,
@@ -463,6 +479,7 @@ export class RoomCall {
           event: (e) => this.voiceEvent(agentId, e),
           voice: (stream) => this.voiceOut(agentId, stream),
           closed: () => this.setVoice(agentId, "failed"),
+          delegation: (id) => this.delegated(agentId, id),
         },
       );
       if (this.torn || !this.voices.has(agentId)) {
@@ -500,8 +517,9 @@ export class RoomCall {
     voice.sink.muted = true;
     voice.sink.srcObject = stream;
     void voice.sink.play().catch(() => {});
-    // Through a gain of its own: a colleague cutting in fades it out for everyone at once.
+    // Through a gain of its own, open only while it has the word: one voice at a time, for everyone.
     const gain = this.ctx.createGain();
+    gain.gain.value = this.floor.holder === agentId ? 1 : 0;
     const out = this.ctx.createMediaStreamDestination();
     this.ctx.createMediaStreamSource(stream).connect(gain);
     gain.connect(out);
@@ -511,7 +529,7 @@ export class RoomCall {
     this.play(`agent:${agentId}`, out.stream);
     this.watch(`agent:${agentId}`, gain);
     // The other agents hear it; every person gets it as a track of its own.
-    for (const [id, other] of this.voices) if (id !== agentId) gain.connect(other.input);
+    for (const [id, other] of this.voices) if (id !== agentId) gain.connect(other.inGain);
     for (const peer of this.peers.values()) this.sendVoice(peer, agentId, out.stream);
     this.sendTrackMap();
   }
@@ -522,7 +540,6 @@ export class RoomCall {
     const room = this.state.room;
     if (!voice || !room) return;
     voice.cut = true;
-    if (voice.gain && this.ctx) voice.gain.gain.setTargetAtTime(0, this.ctx.currentTime, 0.08);
     if (voice.idle) clearTimeout(voice.idle);
     voice.idle = null;
     const text = voice.said.trim();
@@ -533,18 +550,27 @@ export class RoomCall {
     void this.o.api.liveVoice.lines(this.o.orgId, room.id, [{ who: line.who, text: line.text }]).catch(() => {});
     voice.seen = this.lines.length;
     voice.leg?.note(
-      `${by ? this.nameOf(`agent:${by}`) : "Someone"} cut in while you were saying: "${text.slice(-300)}". Stop there. When the word comes back to you, don't finish that sentence: react to what was said.`,
+      `${by ? `The word went to ${this.nameOf(`agent:${by}`)}` : "The word went to the people"} while you were saying: "${text.slice(-300)}". Stop there. When the word comes back to you, don't finish that sentence: react to what was said.`,
     );
   }
 
-  /** The word comes (back) to an agent: heard again at full volume. */
+  /** The word comes (back) to an agent: what it says from now on counts. */
   private unmute(agentId: string) {
     const voice = this.voices.get(agentId);
     if (!voice) return;
     voice.cut = false;
-    voice.turnAt = Date.now();
     voice.said = "";
-    if (voice.gain && this.ctx) voice.gain.gain.setTargetAtTime(1, this.ctx.currentTime, 0.03);
+  }
+
+  /** Opens the agent with the word (hears, is heard) and closes every other one, fading so nothing clicks. */
+  private gate() {
+    if (!this.ctx) return;
+    const at = this.ctx.currentTime;
+    for (const [id, voice] of this.voices) {
+      const on = id === this.floor.holder ? 1 : 0;
+      voice.inGain.gain.setTargetAtTime(on, at, 0.02);
+      voice.gain?.gain.setTargetAtTime(on, at, on ? 0.03 : 0.06);
+    }
   }
 
   /** A person is talking now (their microphone, as the tiles' glow reads it). */
@@ -560,44 +586,8 @@ export class RoomCall {
       .filter((id) => this.state.agentVoices[id] !== "live" || !mayBringIn(this.floor, id, extraTurn));
   }
 
-  /**
-   * An agent ended a sentence: now and then the small model is asked whether a colleague cuts in (done at once, if it is
-   * still talking) or speaks as soon as it finishes.
-   */
-  private askDuring(agentId: string) {
-    const room = this.state.room;
-    const voice = this.voices.get(agentId);
-    const now = Date.now();
-    if (!room || !voice || !this.isHost || this.agentAsking || this.pendingNext) return;
-    if (this.roomAgents.length < 2 || this.floor.holder !== agentId || voice.cut) return;
-    if (now - voice.turnAt < CUT_IN_AFTER_MS || now - this.lastDuringAsk < DURING_ASK_MS || voice.said.length < 40)
-      return;
-    const skip = this.skipped(1);
-    if (this.roomAgents.every((a) => a.id === agentId || skip.includes(a.id))) return;
-    this.lastDuringAsk = now;
-    this.agentAsking = true;
-    void this.o.api.liveVoice
-      .next(this.o.orgId, room.id, { moment: "during", speaking: { agentId, text: voice.said }, skip })
-      .then((pick) => {
-        if (!pick.agentId || this.torn || this.floor.holder !== agentId || voice.cut) return;
-        // Still talking: a colleague cuts in. Otherwise (or "after") it follows once this turn ends.
-        if (pick.when === "now" && voice.said.trim() && !this.peopleTalking()) {
-          const d = interrupt(this.floor, pick.agentId, Date.now());
-          if (!d) return;
-          this.cutOff(agentId, pick.agentId);
-          this.apply(d);
-        } else this.pendingNext = pick.agentId;
-      })
-      .catch(() => {})
-      .finally(() => {
-        this.agentAsking = false;
-      });
-  }
-  private lastDuringAsk = 0;
-  /** An ask about agents (`during`, `after`) is out: one at a time, apart from the people's (`judging`). */
+  /** An ask about agents (`after`) is out: one at a time, apart from the people's (`judging`). */
   private agentAsking = false;
-  /** The colleague the small model picked to speak once the agent talking finishes. */
-  private pendingNext: string | null = null;
 
   /** An agent finished and nobody was picked yet: does a colleague build on it before the people answer? */
   private askAfter(agentId: string) {
@@ -626,13 +616,13 @@ export class RoomCall {
     const voice = this.voices.get(agentId);
     if (!voice) return;
     if (e.type === "session.output_transcript.delta" && e.delta) {
-      // Cut off: the rest of what it was saying is heard by nobody.
-      if (voice.cut) return;
+      // Without the word (or cut off) nobody hears it: what it says doesn't count.
+      if (voice.cut || this.floor.holder !== agentId) return;
       voice.said += e.delta;
+      this.lastSoundAt = Date.now();
       this.liveCaption(`agent:${agentId}`, voice.said);
       if (voice.idle) clearTimeout(voice.idle);
       voice.idle = setTimeout(() => this.agentPaused(agentId), AGENT_LINE_IDLE_MS);
-      if (SENTENCE_END.test(voice.said)) this.askDuring(agentId);
     }
     if (e.type === "session.input_transcript.delta" && e.delta && this.floor.holder === agentId)
       this.peopleSaid(e.delta);
@@ -644,6 +634,7 @@ export class RoomCall {
    */
   private peopleSaid(delta: string) {
     this.personText += delta;
+    this.lastSoundAt = Date.now();
     const who = this.loudestPerson();
     this.liveCaption(`person:${who}`, this.personText.trim());
     // Once per sentence: passing the word back and forth on every name said would be worse than none.
@@ -719,17 +710,72 @@ export class RoomCall {
     const line: LiveRoomLine = { at: new Date().toISOString(), who: { type: "agent", id: agentId }, text };
     this.heard(line);
     void this.o.api.liveVoice.lines(this.o.orgId, room.id, [{ who: line.who, text }]).catch(() => {});
-    const next = this.pendingNext;
-    this.pendingNext = null;
-    const d = afterAgent(
-      this.floor,
-      agentId,
-      text,
-      { agents: this.roomAgents, now: Date.now(), moderator: this.moderator },
-      next,
-    );
+    const d = afterAgent(this.floor, agentId, text, {
+      agents: this.roomAgents,
+      now: Date.now(),
+      moderator: this.moderator,
+    });
     this.apply(d);
     if (d.reason === "continue") this.askAfter(agentId);
+  }
+
+  /**
+   * The agent delegated ("já vejo"): what was being asked goes to the conversation for it to work on with its tools
+   * while the call goes on. The ask is the call's latest lines, the person's last words first.
+   */
+  private delegated(agentId: string, delegationId: string) {
+    const room = this.state.room;
+    if (!room) return;
+    // Its last words and the person's arrive just after the delegation: wait for them.
+    setTimeout(() => {
+      const recent = this.lines.slice(-6);
+      const lastPerson = [...recent].reverse().find((l) => l.who.type === "person")?.text ?? "";
+      const now = this.personText.trim();
+      const ask = [
+        now || lastPerson,
+        `(Pedido feito na chamada de voz. O que se disse por último:\n${this.format(recent)}${now ? `\n${this.nameOf(`person:${this.loudestPerson()}`)}: ${now}` : ""})`,
+      ]
+        .filter(Boolean)
+        .join("\n\n");
+      this.o.api.liveVoice.ask(this.o.orgId, room.id, { agentId, ask, delegationId }).catch(() => {
+        this.voices
+          .get(agentId)
+          ?.leg?.answer(
+            delegationId,
+            "That couldn't be started right now. Say so briefly, and that it can be asked in the chat.",
+          );
+      });
+    }, 700);
+  }
+
+  /** Answers to work asked on the call, waiting for a pause to be told. */
+  private answers: { agentId: string; delegationId: string; text: string | null; at: number }[] = [];
+  /** The last time anyone said something (an agent's words or a person's). */
+  private lastSoundAt = 0;
+
+  /**
+   * Tells an answer when the call has a pause (nobody talking, no words for a moment), or after a while at the next
+   * breath: the agent gets the word, no cue, and says it in its own words.
+   */
+  private deliverAnswers() {
+    const next = this.answers[0];
+    if (!next || !this.isHost) return;
+    const voice = this.voices.get(next.agentId);
+    if (!voice?.leg || this.state.agentVoices[next.agentId] !== "live") {
+      this.answers.shift();
+      return;
+    }
+    const holder = this.floor.holder ? this.voices.get(this.floor.holder) : null;
+    const busy = Boolean(holder?.said.trim()) || Boolean(this.personText) || this.peopleTalking();
+    const waited = Date.now() - next.at;
+    if (busy || (Date.now() - this.lastSoundAt < ANSWER_PAUSE_MS && waited < ANSWER_WAIT_MS)) return;
+    this.answers.shift();
+    if (this.floor.holder !== next.agentId) this.apply(giveFloor(this.floor, next.agentId, "judge"), false);
+    voice.leg.answer(
+      next.delegationId,
+      next.text ??
+        "It's taking longer than the call: say briefly that the answer will be in the conversation as soon as it's done.",
+    );
   }
 
   private floorRoom() {
@@ -752,9 +798,9 @@ export class RoomCall {
       this.cutOff(before, d.state.holder);
     this.floor = d.state;
     const holder = d.state.holder;
-    if (holder !== before) this.pendingNext = null;
     for (const [id, voice] of this.voices) voice.leg?.hear(id === holder);
     if (holder && holder !== before) this.unmute(holder);
+    this.gate();
     if (holder && d.changed) {
       const voice = this.voices.get(holder);
       if (voice?.leg) {
@@ -767,11 +813,9 @@ export class RoomCall {
           const who = this.nameOf(whoOf(last));
           const said = last.text.slice(-600);
           voice.leg.instruct(
-            d.reason === "interrupt"
-              ? `${who} is talking and just said: "${said}". Cut in now, the way a colleague does in a lively meeting (a short "let me jump in here" in the call's language), make your point in one or two sentences, then stop.`
-              : last.who.type === "agent" && (d.reason === "handoff" || d.reason === "judge")
-                ? `It is your turn now. ${who} just said: "${said}". Build on it, push back, or add what your role sees, in one or two sentences, then stop. Don't just agree.`
-                : `It is your turn now. ${who} just said: "${said}". Answer now, briefly, then stop.`,
+            last.who.type === "agent" && (d.reason === "handoff" || d.reason === "judge")
+              ? `It is your turn now. ${who} just said: "${said}". Build on it, push back, or add what your role sees, in one or two sentences, then stop. Don't just agree.`
+              : `It is your turn now. ${who} just said: "${said}". Answer now, briefly, then stop.`,
           );
         }
       }

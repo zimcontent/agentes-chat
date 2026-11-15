@@ -1,5 +1,5 @@
 import type { KeyWrapper, PubSub } from "@agenteschat/adapters";
-import { and, asc, type Database, desc, eq, inArray, isNull, lt, schema, sql } from "@agenteschat/db";
+import { and, asc, type Database, desc, eq, inArray, isNull, lt, or, schema, sql } from "@agenteschat/db";
 import {
   DEFAULT_LIVE_VOICE,
   isLiveVoice,
@@ -865,6 +865,60 @@ export async function relayLiveSignal(
   await publishUserEvent(deps.pubsub, orgId, to, { type: "live.signal", roomId, from: userId, data });
 }
 
+/**
+ * Work asked for on a call (ADR doug-0006 §10): an agent on the room delegated ("já vejo"), and what was asked goes to
+ * the conversation as the host's message mentioning it, marked as said on the call (`meta.via`), so the agent works on
+ * it with its tools like on any message while the call goes on. Its answer, once it comes, goes to the host's app
+ * (`live.answer`), which gives it the word at the next pause to tell it; everyone on the call sees it working
+ * (`live.working`).
+ */
+export async function askFromLiveRoom(
+  deps: LiveVoiceDeps,
+  userId: string,
+  orgId: string,
+  roomId: string,
+  input: { agentId: string; ask: string; delegationId: string },
+): Promise<{ askId: string }> {
+  const room = await requireInRoom(deps, userId, orgId, roomId);
+  if (room.hostUserId !== userId)
+    throw new ForbiddenError("Only the room's host runs its agents", "live_voice.not_host");
+  if (!room.agentIds.includes(input.agentId)) throw new NotFoundError("Agent not in this room");
+  const [agent] = await talkableAgents(deps, userId, orgId, room.channelId, [input.agentId]);
+  if (!agent) throw new NotFoundError("Agent not found");
+  // Wired by the server (`postPersonMessage`); missing only in a misconfigured build.
+  if (!deps.postMessage) throw new Error("live voice: postMessage is not wired");
+  const since = new Date(Date.now() - 1000);
+  const posted = await deps.postMessage(userId, orgId, room.channelId, `@${agent.handle} ${input.ask.trim()}`, {
+    via: "call",
+    liveRoomId: room.id,
+  });
+  const tell = (event: { type: string; [key: string]: unknown }) =>
+    Promise.all(
+      presentPeople(room, now(deps)).map((p) =>
+        publishUserEvent(deps.pubsub, orgId, p.userId, { roomId: room.id, agentId: agent.id, ...event }),
+      ),
+    ).catch(() => {});
+  void tell({ type: "live.working", on: true });
+  void (async () => {
+    const answer = await agentAnswer(
+      deps,
+      { orgId, userId, channelId: room.channelId, agentId: agent.id },
+      posted.id,
+      since,
+      () => {},
+    ).catch(() => null);
+    await tell({ type: "live.working", on: false });
+    await publishUserEvent(deps.pubsub, orgId, room.hostUserId ?? userId, {
+      type: "live.answer",
+      roomId: room.id,
+      agentId: agent.id,
+      delegationId: input.delegationId,
+      text: answer ? speakable(answer).slice(0, 1800) : null,
+    });
+  })();
+  return { askId: posted.id };
+}
+
 /** What was said: a person's own words, or (from the host) the agents'. Kept for the notes and shown to the others. */
 export async function addLiveLines(
   deps: LiveVoiceDeps,
@@ -1243,7 +1297,7 @@ async function agentAnswer(
           eq(messages.channelId, brain.channelId),
           eq(messages.authorAgentId, brain.agentId),
           isNull(messages.deletedAt),
-          isNull(messages.threadId),
+          or(isNull(messages.threadId), eq(messages.threadId, messageId)),
           sql`${messages.createdAt} >= ${since.toISOString()}::timestamptz`,
           sql`${messages.id} <> ${messageId}::uuid`,
         ),

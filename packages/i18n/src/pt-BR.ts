@@ -10422,6 +10422,7 @@ export const ptBR = {
         "As notas da chamada vão para a conversa e o Doug BOSS manda o relatório com o que foi decidido e os próximos passos.",
       hasWord: "{{name}} está com a palavra",
       agentsListen: "Os agentes estão ouvindo",
+      working: "Buscando…",
       word: "Falando",
       giveWord: "Dar a palavra",
       takeWord: "Tirar a palavra",

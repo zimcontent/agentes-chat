@@ -480,6 +480,12 @@ export interface ApiClient {
     floor(orgId: string, roomId: string, holder: string | null, reason: string): Promise<void>;
     /** Which agent speaks next, and when (ADR doug-0006): after a person, after an agent, or while one talks. */
     next(orgId: string, roomId: string, ask?: LiveSpeakerAsk): Promise<LiveSpeakerPick>;
+    /** An agent on the call took on work (it delegated): the agent works on it in the conversation during the call. */
+    ask(
+      orgId: string,
+      roomId: string,
+      input: { agentId: string; ask: string; delegationId: string },
+    ): Promise<{ askId: string }>;
   };
   account: {
     authConfig(): Promise<AuthConfig>;

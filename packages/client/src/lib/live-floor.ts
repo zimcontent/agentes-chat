@@ -1,14 +1,12 @@
 /**
  * Who has the word in a voice room (ADR doug-0006). Code, not a model, decides when; the server's small model (`next`)
  * only says who would add something. An agent speaks when someone calls it by name, when it is a call with one person
- * and one agent, or right after it spoke and the person answers. Agents talk among themselves like a meeting: one may
- * bring a colleague in by name, the small model may pick one to build on what was said (`after`), or to jump in while an
- * agent talks (`interrupt`: the one talking is cut off). That never runs away: past `MAX_AGENT_TURNS` agent turns without
- * a person speaking, or `MAX_TURNS_EACH` for one agent, the word goes back to the people and every agent listens until a
- * person speaks again. With one person on the call, everything they say is for the agents: the agent with the word keeps
- * it, and when nobody has it the small model picks who answers (never "none" then). With several people, an agent keeps
- * the word for a while after it got it or spoke, and past that `ask` says to ask the small model, which answers "none"
- * unless the people clearly wait for an agent.
+ * and one agent, or right after it spoke and the person answers. Among agents: one may bring a colleague in by name, or
+ * the small model may pick one to add to what was said (`after`). That never runs away: past `MAX_AGENT_TURNS` agent
+ * turns without a person speaking (each agent once), the word goes back to the people, the meeting's lead listening for
+ * them. With one person on the call, everything they say is for the agents: the agent with the word keeps it, and
+ * with nobody, the lead. With several people, an agent keeps the word for a while after it got it or spoke, and past
+ * that `ask` says to ask the small model, which answers "none" unless the people clearly wait for an agent.
  */
 
 export interface FloorAgent {
@@ -30,16 +28,7 @@ export interface FloorState {
   givenAt: number;
 }
 
-export type FloorReason =
-  | "named"
-  | "solo"
-  | "continue"
-  | "handoff"
-  | "interrupt"
-  | "limit"
-  | "people"
-  | "manual"
-  | "judge";
+export type FloorReason = "named" | "solo" | "continue" | "handoff" | "limit" | "people" | "manual" | "judge";
 
 export interface FloorDecision {
   state: FloorState;
@@ -50,12 +39,12 @@ export interface FloorDecision {
   ask: boolean;
 }
 
-/** Agent-to-agent passes (by name, picked, or jumping in) before a person must speak again. */
-export const MAX_AGENT_CHAIN = 5;
-/** Agent turns in a row without a person. */
-export const MAX_AGENT_TURNS = 6;
-/** Turns one agent may take in that stretch: back and forth once, never a duet. */
-export const MAX_TURNS_EACH = 2;
+/** Agent-to-agent passes (by name or picked) before a person must speak again. */
+export const MAX_AGENT_CHAIN = 2;
+/** Agent turns in a row without a person: an answer and two colleagues on it, then the people. */
+export const MAX_AGENT_TURNS = 3;
+/** Turns one agent may take in that stretch: never back and forth. */
+export const MAX_TURNS_EACH = 1;
 /** An agent that just spoke keeps the word this long for the person's answer. */
 export const CONTINUE_MS = 20_000;
 
@@ -102,7 +91,7 @@ const give = (
   now?: number,
 ): FloorDecision => ({
   state: { ...state, holder, givenAt: holder && holder !== state.holder && now !== undefined ? now : state.givenAt },
-  changed: holder !== state.holder || reason === "judge" || reason === "manual" || reason === "interrupt",
+  changed: holder !== state.holder || reason === "judge" || reason === "manual",
   reason,
   ask,
 });
@@ -173,16 +162,6 @@ export function afterAgent(
 export function bringIn(state: FloorState, to: string, now: number): FloorDecision | null {
   if (!mayBringIn(state, to)) return null;
   return give({ ...state, chain: state.chain + 1 }, to, "handoff", false, now);
-}
-
-/**
- * An agent jumps in while another talks: the one talking is cut off (its turn counts) and the word goes to the one
- * jumping in. Null when the limits say no.
- */
-export function interrupt(state: FloorState, by: string, now: number): FloorDecision | null {
-  if (!state.holder || !mayBringIn(state, by, 1)) return null;
-  const cut: FloorState = { ...state, spoke: [...state.spoke, state.holder], chain: state.chain + 1, lastAgentAt: now };
-  return give(cut, by, "interrupt", false, now);
 }
 
 /** Someone gave the word by hand (a tile's "Dar a palavra"), or the small model picked an agent. */

@@ -375,6 +375,7 @@ function RoomStage({
             name={agent.name}
             role={agent.role}
             holder={state.holder === agent.id}
+            working={state.working[agent.id]}
             voice={host ? state.agentVoices[agent.id] : undefined}
             face={<AgentAvatar agentId={agent.id} name={agent.name} size="xl" />}
             onGive={() => call.give(state.holder === agent.id ? null : agent.id)}
@@ -486,6 +487,7 @@ function Tile({
   face,
   muted,
   holder,
+  working,
   voice,
   onGive,
 }: {
@@ -496,6 +498,8 @@ function Tile({
   face: ReactNode;
   muted?: boolean;
   holder?: boolean;
+  /** Working on something asked during the call. */
+  working?: boolean;
   voice?: "connecting" | "live" | "failed";
   onGive?: () => void;
 }) {
@@ -514,6 +518,7 @@ function Tile({
         {role && <span className="lv-tile__role">{role}</span>}
       </div>
       {holder && <span className="lv-tile__chip">{t("liveVoice.room.word")}</span>}
+      {working && !holder && <span className="lv-tile__chip lv-tile__chip--muted">{t("liveVoice.room.working")}</span>}
       {voice === "connecting" && (
         <span className="lv-tile__chip lv-tile__chip--muted">{t("liveVoice.room.connecting")}</span>
       )}

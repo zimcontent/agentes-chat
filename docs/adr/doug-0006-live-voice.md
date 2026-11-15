@@ -69,14 +69,28 @@ second (about US$ 0.05 a minute), 15 seconds at least for a WebRTC session.
    ends for everyone (or the last person leaves) the notes are posted to the conversation as the person who ended it,
    mentioning the workspace's right hand (ADR 0137, Doug BOSS here; the call's first agent where there is none), whose
    reply is the summary: what was talked about, what was decided, the next steps with owners and dates, and what was
-   left open. Nothing runs during a call: GPT-Live's delegations are
-   answered with "it goes in the notes".
+   left open. Work asked for during the call runs during it (§10).
 8. **Ouvir.** "Ouvir" in a message's menu opens one session in the voice of the agent that wrote it (in the first
    person), or the narrator's for a person's message, told to explain it humanly, reactions included, never read word
    for word. It starts on silence; "Perguntar" swaps in the microphone, so the person can interrupt and ask. It closes
    a few seconds after the voice goes quiet.
 
 9. **A call with one agent, as the Nordus Live call.** The phone in an agent's DM is always there; without the workspace's key it says where the key goes. The call is a small bar under the header, the conversation in sight. The voice is the agent (first person, never a backend or a voice layer); when it needs work done, looked up or checked it delegates, and the server, on its sideband, posts what the person said since the last ask as their message in the DM (`meta.via: "call"`). The agent works on it as on any message, with its tools, and its answer goes back to the voice (`session.commentary.append`, made speakable: no markdown, links or code read out); while it works the voice is told to hold on, and past 4 minutes that the answer will be in the chat. The call hangs up after 5 minutes without speech. When it ends, always, what was said (GPT-Live's transcripts, on the sideband) is posted in the DM as the person's message asking the agent for the summary (`meta.callSummary`): what was talked about, what was decided and the next steps; the agent writes it with what it knows and the work it did during the call. The channel's call keeps its picker, with agents locked and the same line when there is no key.
+
+10. **One voice at a time, and work during the call** (addendum 2026-11-15, after a real call where agents talked over
+    each other and went round in a loop, and nothing could be looked up until the call ended). The host's app no longer
+    trusts GPT-Live to stop listening when told (`session.input_audio.mute`): every agent hears through a gain node of
+    its own and is heard through another, both open only while it has the word, so an agent without it hears silence
+    and nobody hears it, and what it says then doesn't count for the turns. Cutting in is gone; after an agent speaks
+    the small model may still bring in a colleague, within tighter limits (3 agent turns in a row without a person, one
+    each). Work asked for on the call runs during it: an agent that delegates ("já vejo") hands the host's app
+    `session.delegation.created`, the app sends the call's latest lines to `POST …/live-rooms/{id}/ask`, and the server
+    posts them as the host's message mentioning the agent (`meta.via: call`); the agent works on it with its tools like
+    on any message, everyone on the call sees it working (`live.working`), and its answer, made speakable, comes back to
+    the host (`live.answer`), who gives it the word at the next pause (or after 30 s at the next breath) to tell it
+    (`session.commentary.append` on its delegation). Agents are told to take only what is in their own role and to name
+    the colleague whose it is otherwise. The leg used to answer every delegation with "it goes in the notes", the one-agent
+    call included, over the server's own answer on its sideband: now only the one who runs the call answers it.
 
 ## Consequences
 
