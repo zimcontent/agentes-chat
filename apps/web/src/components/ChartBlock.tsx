@@ -4,9 +4,12 @@ import {
   Button,
   Dialog,
   DialogBody,
+  glassSlices,
+  PIXEL_ART,
   paintCells,
   paintLineArea,
   useElementWidth,
+  widgetTones,
 } from "@agenteschat/ui";
 import {
   barCells,
@@ -20,10 +23,12 @@ import {
 } from "@agenteschat/ui/sky/chart";
 import { chartBlockToWidgetSpec } from "@agenteschat/ui/widgets/spec";
 import {
+  type CSSProperties,
   createContext,
   type ReactNode,
   useContext,
   useEffect,
+  useId,
   useLayoutEffect,
   useMemo,
   useRef,
@@ -36,7 +41,10 @@ import { TableBox } from "@/components/TableBox";
 import { PinToDashboard } from "@/components/widgets/PinToDashboard";
 import { useDarkTheme, useGrowFrom } from "@/lib/grow";
 
-/** The color of the agent who wrote the message (its charts take its tones); sky elsewhere. */
+/**
+ * The color of the agent who wrote the message (its charts take its tones); sky elsewhere. In DougBot (`PIXEL_ART`
+ * off) its bot's own color, a hex (`botColorOf`).
+ */
 export const ChartAccent = createContext<AgentColor>("sky");
 
 /**
@@ -58,9 +66,15 @@ export function ChartOrCode({ text }: { text: string }) {
   return <CodeBlock lang="json" text={text} />;
 }
 
+/** The line's ink and the extra series' tones: the agent's tones, or in DougBot its bot's color (`glassSlices`). */
+function chartTones(color: AgentColor, dark: boolean) {
+  if (PIXEL_ART) return { ink: chartInk(color, dark), slices: chartSlices(color, dark) };
+  return { ink: widgetTones(color, dark).stroke, slices: glassSlices(color, dark) };
+}
+
 /**
  * A chart in a message: clean shapes filled with a fine dither
- * in the agent's tones. Hover shows a value; "Tabela" flips the card to the same data as a table; full screen
+ * in the agent's tones (in DougBot, glass in its bot's color, no dither: `doug.css`). Hover shows a value; "Tabela" flips the card to the same data as a table; full screen
  * grows out of the card with the chart big and its table under it.
  */
 export function ChartBlock({
@@ -244,6 +258,7 @@ function TipLayer({ tip }: { tip: Tip }) {
 function BarChart({ spec, big }: { spec: ChartSpec; big: boolean }) {
   const { i18n } = useTranslation();
   const color = useContext(ChartAccent);
+  const dark = useDarkTheme();
   const values = spec.series[0]?.values ?? [];
   const max = Math.max(0, ...values) || 1;
   const shown = useShown();
@@ -257,6 +272,7 @@ function BarChart({ spec, big }: { spec: ChartSpec; big: boolean }) {
       className="chart-bars"
       data-big={big}
       ref={box}
+      style={PIXEL_ART ? undefined : ({ "--chart-c": widgetTones(color, dark).fill } as CSSProperties)}
       onPointerLeave={() => {
         setTip(null);
         setHot(null);
@@ -288,7 +304,7 @@ function BarChart({ spec, big }: { spec: ChartSpec; big: boolean }) {
             <span className="chart-bar__label">{label}</span>
             <span className="chart-bar__rail" ref={i === 0 ? rail : undefined} style={{ height }}>
               <span className="chart-bar__fill" style={{ width: shown ? `${share * 100}%` : 0 }}>
-                <BarFill width={railWidth * share} height={height} color={color} lead={value === max} />
+                {PIXEL_ART && <BarFill width={railWidth * share} height={height} color={color} lead={value === max} />}
               </span>
             </span>
             <span className="chart-bar__value">{formatChartValue(value, spec.unit, i18n.language)}</span>
@@ -349,8 +365,7 @@ function LineChart({
       });
     });
   }, [width, h, spec.series, all, bleed]);
-  const ink = chartInk(color, dark);
-  const slices = chartSlices(color, dark);
+  const { ink, slices } = chartTones(color, dark);
   const path = useRef<SVGPathElement>(null);
   const area = useRef<HTMLCanvasElement>(null);
   const [length, setLength] = useState(0);
@@ -359,13 +374,17 @@ function LineChart({
   const first = points[0] ?? [];
   const at = cursor === null ? undefined : first[cursor];
   const peak = main.indexOf(Math.max(...main));
+  // DougBot's wash under the line, named for `url(#...)`: letters and digits only.
+  const wash = `cwash${useId().replace(/[^a-zA-Z0-9]/g, "")}`;
+  const start = first[0];
+  const end = first[first.length - 1];
 
   // The area under the main line: a fine dither following the same curve; the stroke draws itself in.
   useLayoutEffect(() => {
     const el = path.current;
     if (!el || width < 10) return;
     setLength(el.getTotalLength());
-    paintLineArea(area.current, first, width, h, color, dark, bleed);
+    if (PIXEL_ART) paintLineArea(area.current, first, width, h, color, dark, bleed);
   }, [width, h, color, dark, first, bleed]);
 
   return (
@@ -401,9 +420,25 @@ function LineChart({
           setCursor(null);
         }}
       >
-        <canvas ref={area} className="chart-cells chart-line__area" data-shown={shown} />
+        {PIXEL_ART && <canvas ref={area} className="chart-cells chart-line__area" data-shown={shown} />}
         {width > 10 && (
           <svg viewBox={`0 0 ${width} ${h}`} width={width} height={h} aria-hidden="true">
+            {!PIXEL_ART && start && end && (
+              <>
+                <defs>
+                  <linearGradient id={wash} x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0" stopColor={ink} stopOpacity={0.32} />
+                    <stop offset="1" stopColor={ink} stopOpacity={bleed ? 0.04 : 0} />
+                  </linearGradient>
+                </defs>
+                <path
+                  d={`${smoothPath(first)} L${end[0]},${h} L${start[0]},${h} Z`}
+                  fill={`url(#${wash})`}
+                  className="chart-line__wash"
+                  data-shown={shown}
+                />
+              </>
+            )}
             {!spark &&
               [0.25, 0.5, 0.75].map((k) => (
                 <line key={k} x1={0} x2={width} y1={h * k} y2={h * k} className="chart-line__grid" />
@@ -510,7 +545,7 @@ function PieChart({ spec, big }: { spec: ChartSpec; big: boolean }) {
   const dark = useDarkTheme();
   const size = big ? 220 : 132;
   const shares = useMemo(() => chartShares(spec), [spec]);
-  const slices = useMemo(() => chartSlices(color, dark), [color, dark]);
+  const slices = useMemo(() => chartTones(color, dark).slices, [color, dark]);
   const values = spec.series[0]?.values ?? [];
   const total = values.reduce((a, b) => a + b, 0);
   const canvas = useRef<HTMLCanvasElement>(null);
@@ -519,6 +554,7 @@ function PieChart({ spec, big }: { spec: ChartSpec; big: boolean }) {
 
   // The ring sweeps in clockwise once; then it stays drawn.
   useEffect(() => {
+    if (!PIXEL_ART) return;
     const cells = Math.round(size / CHART_CELL);
     const draw = (sweep: number) =>
       paintCells(canvas.current, cells, cells, ringCells(cells, shares, sweep), (v) =>
@@ -539,7 +575,11 @@ function PieChart({ spec, big }: { spec: ChartSpec; big: boolean }) {
   return (
     <div className="chart-pie">
       <div className="chart-pie__ring" style={{ width: size, height: size }}>
-        <canvas ref={canvas} className="chart-cells" />
+        {PIXEL_ART ? (
+          <canvas ref={canvas} className="chart-cells" />
+        ) : (
+          <GlassRing size={size} shares={shares} slices={slices} />
+        )}
         <span className="chart-pie__total">
           {formatChartValue(total, spec.unit, i18n.language)}
           <small>{spec.series[0]?.name}</small>
@@ -566,6 +606,56 @@ function PieChart({ spec, big }: { spec: ChartSpec; big: boolean }) {
       </ul>
       <TipLayer tip={tip} />
     </div>
+  );
+}
+
+/**
+ * DougBot's ring: each slice an arc of glass in a tone of the bot's color, a hairline apart, sweeping in once
+ * (`doug.css`). Drawn as vectors at the screen's resolution, never cells.
+ */
+function GlassRing({ size, shares, slices }: { size: number; shares: number[]; slices: string[] }) {
+  const shown = useShown();
+  const width = size * 0.21;
+  const r = size / 2 - width / 2;
+  const round = 2 * Math.PI * r;
+  const gap = shares.filter((v) => v > 0).length > 1 ? 2 : 0;
+  const c = size / 2;
+  // The glass's light, as a routine's runs and a widget's bars have it: bright on top, deeper at the foot.
+  const light = `cring${useId().replace(/[^a-zA-Z0-9]/g, "")}`;
+  let at = 0;
+  return (
+    <svg viewBox={`0 0 ${size} ${size}`} width={size} height={size} className="chart-pie__glass" aria-hidden="true">
+      <circle cx={c} cy={c} r={r} className="chart-pie__well" strokeWidth={width} fill="none" />
+      {shares.map((share, i) => {
+        const from = at;
+        at += share;
+        if (share <= 0) return null;
+        const length = Math.max(0.5, share * round - gap);
+        return (
+          <circle
+            // biome-ignore lint/suspicious/noArrayIndexKey: the slices, in order
+            key={i}
+            cx={c}
+            cy={c}
+            r={r}
+            fill="none"
+            stroke={slices[i % slices.length]}
+            strokeWidth={width}
+            strokeDasharray={`${shown ? length : 0} ${round}`}
+            transform={`rotate(${from * 360 - 90} ${c} ${c})`}
+            className="chart-pie__slice"
+          />
+        );
+      })}
+      <defs>
+        <linearGradient id={light} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor="#ffffff" stopOpacity={0.3} />
+          <stop offset="0.45" stopColor="#ffffff" stopOpacity={0} />
+          <stop offset="1" stopColor="#000000" stopOpacity={0.22} />
+        </linearGradient>
+      </defs>
+      <circle cx={c} cy={c} r={r} stroke={`url(#${light})`} strokeWidth={width} fill="none" />
+    </svg>
   );
 }
 

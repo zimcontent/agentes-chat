@@ -3017,7 +3017,7 @@ img.ac-logo__mark {
   padding: var(--dg-s6);
 }
 [data-theme] .sky-welcome__when {
-  font: 600 11px/14px var(--db-f-texto);
+  font: 600 11px / 14px var(--db-f-texto);
   letter-spacing: 0.12em;
   color: var(--db-texto-leve);
 }
@@ -3144,6 +3144,55 @@ html[data-theme]:not([data-pointer]) .sky-welcome__close:focus-visible {
   border-radius: 999px;
   background: var(--wg-glass-up), var(--wg-f);
   image-rendering: auto;
+}
+/* A chart in a message (apps/web ChartBlock): the card is the panel's glass card, and what it draws is glass in the
+   writing bot's color (`--chart-c`, its bars; the line and the ring take it from the code), never a dither. */
+[data-theme] .chart-card {
+  border-radius: 24px;
+  background: var(--dg-glass-card);
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, var(--dg-luz) 3.9%, transparent),
+    inset 0 0 0 1px color-mix(in srgb, var(--dg-luz) 7.1%, transparent);
+}
+[data-theme] .chart-card__titles b {
+  font-family: var(--font-display);
+  font-weight: 700;
+}
+[data-theme] .chart-bar__rail,
+[data-theme] .chart-bar__fill {
+  border-radius: 999px;
+}
+[data-theme] .chart-bar__rail {
+  background: var(--dg-pill);
+  box-shadow: inset 0 0 0 1px var(--dg-rim);
+}
+[data-theme] .chart-bar__fill {
+  background: var(--wg-glass-up), var(--chart-c, var(--db-texto-3));
+}
+[data-theme] .chart-bar__value {
+  font-family: var(--font-mono);
+  font-weight: 500;
+}
+[data-theme] .chart-line__wash {
+  opacity: 0;
+  transition: opacity 0.5s 0.2s;
+}
+[data-theme] .chart-line__wash[data-shown="true"] {
+  opacity: 1;
+}
+[data-theme] .chart-pie__well {
+  stroke: var(--dg-pill);
+}
+[data-theme] .chart-pie__slice {
+  transition: stroke-dasharray 0.7s var(--out);
+}
+[data-theme] :is(.chart-legend i, .chart-pie__legend i) {
+  border-radius: 999px;
+}
+@media (prefers-reduced-motion: reduce) {
+  [data-theme] :is(.chart-line__wash, .chart-pie__slice) {
+    transition: none;
+  }
 }
 /* A board's thumbnail: each widget a small pane of its bot's glass. */
 [data-theme] .db-thumb__tile:not(.db-thumb__tile--empty) {

@@ -26,6 +26,24 @@ export function widgetTones(color: string, dark: boolean): { stroke: string; fil
   return { stroke: chartInk(c, dark), fill: chartAreaTones(c, dark)[0] };
 }
 
+/**
+ * DougBot's slices of a pie (or a chart's extra lines) in one bot's color: the color itself, then lighter and deeper
+ * tones of it, never another hue (IDENTIDADE.md §4, a bot's color shows where it is).
+ */
+export function glassSlices(color: string, dark: boolean): string[] {
+  const cor = isHexColor(color) ? color : gradientOf(color as AgentColorName)[0];
+  const base = dark ? cor : mix(cor, "#000000", 0.2);
+  // Deeper and lighter in turn, so slices side by side (and a chart's second line, the third) stand apart.
+  return [
+    base,
+    mix(base, "#000000", 0.4),
+    mix(base, "#ffffff", 0.45),
+    mix(base, "#000000", 0.62),
+    mix(base, "#ffffff", 0.7),
+    mix(base, dark ? "#ffffff" : "#000000", 0.82),
+  ];
+}
+
 const tiles = new Map<string, string>();
 
 /**

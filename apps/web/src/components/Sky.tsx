@@ -73,6 +73,10 @@ export const botColorOf = (
     ),
   ) as AgentColor;
 
+/** A chart's color (`ChartAccent`): the agent's tones with the pixel art, its bot's own color in DougBot. */
+export const chartColorOf = (agent: Parameters<typeof botColorOf>[0]): AgentColor =>
+  PIXEL_ART ? colorOf(agent) : botColorOf(agent);
+
 /* ---------- Channel: the greeting of a new day ---------- */
 
 /** One greeting per workspace per page load: the first channel opened claims it. */
