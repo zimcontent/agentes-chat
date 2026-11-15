@@ -1,8 +1,14 @@
-import { useApi, useDecideVideoReview, useVideoReview, type VideoReview } from "@agenteschat/client";
+import {
+  useAddVoiceReviewNote,
+  useApi,
+  useDecideVideoReview,
+  useVideoReview,
+  type VideoReview,
+} from "@agenteschat/client";
 import { errorText } from "@agenteschat/client/lib/errors";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { ActivityIndicator, Alert, Linking, StyleSheet, TextInput, View } from "react-native";
+import { ActivityIndicator, Alert, Linking, Pressable, StyleSheet, TextInput, View } from "react-native";
 import { KeyboardAwareScrollView, KeyboardStickyView } from "react-native-keyboard-controller";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
@@ -11,19 +17,22 @@ import {
   GroupedHeader,
   GroupedList,
   GroupedRow,
+  Icon,
   Segmented,
+  Sheet,
   Text,
   useFieldText,
   useTheme,
   useToast,
 } from "@/ui";
 import { useOrgId } from "../shared/hooks";
-import { PushedHeader, successHaptic, useSurface } from "../shared/parts";
+import { PushedHeader, successHaptic, tapHaptic, useSurface } from "../shared/parts";
 import { notesOf, reviewOpen, statusIcon, statusTone, unsentOf, versionFile } from "./logic";
-import { useReviewWords } from "./media";
+import { filePart, useReviewWords } from "./media";
 import { type Draft, NoteDraft } from "./NoteDraft";
 import { ReviewNotes } from "./ReviewNotes";
 import { ReviewStage, type StageControls } from "./ReviewStage";
+import { useTapRecorder } from "./recorder";
 
 /**
  * One video's Revisor on the phone (docs/adr/doug-0007-video-review.md), the same review as the web's: the player
@@ -145,49 +154,29 @@ function Detail({ review }: { review: VideoReview }) {
         ) : null}
 
         {open ? (
-          draft ? (
-            // A new note's box opens under the picture, below the fold on a phone: the screen goes down to it,
-            // leaving the bottom of the picture in sight.
-            <View
-              key={`${draft.atMs}:${draft.x}:${draft.y}`}
-              onLayout={(e) =>
-                scroll.current?.scrollTo({ y: Math.max(0, e.nativeEvent.layout.y - 140), animated: true })
-              }
-            >
-              <NoteDraft
-                review={review}
-                version={version}
-                draft={draft}
-                now={() => controls.current?.now() ?? 0}
-                onEnd={(endMs) => setDraft((d) => (d ? { ...d, endMs } : d))}
-                onClose={() => setDraft(null)}
+          <View style={styles.row}>
+            <View style={styles.grow}>
+              <Button
+                variant="secondary"
+                size="sm"
+                wide
+                label={w.noteHere}
+                onPress={() => {
+                  controls.current?.pause();
+                  setDraft({ atMs: Math.round(controls.current?.now() ?? 0), endMs: null, x: null, y: null });
+                }}
               />
             </View>
-          ) : (
-            <View style={styles.row}>
-              <View style={styles.grow}>
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  wide
-                  label={w.noteHere}
-                  onPress={() => {
-                    controls.current?.pause();
-                    setDraft({ atMs: Math.round(controls.current?.now() ?? 0), endMs: null, x: null, y: null });
-                  }}
-                />
-              </View>
-              <View style={styles.grow}>
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  wide
-                  label={w.wholeNote}
-                  onPress={() => setDraft({ atMs: null, endMs: null, x: null, y: null })}
-                />
-              </View>
+            <View style={styles.grow}>
+              <Button
+                variant="secondary"
+                size="sm"
+                wide
+                label={w.wholeNote}
+                onPress={() => setDraft({ atMs: null, endMs: null, x: null, y: null })}
+              />
             </View>
-          )
+          </View>
         ) : null}
         {open && !draft ? (
           <Text variant="footnote" tone="faint" style={styles.hint}>
@@ -232,6 +221,21 @@ function Detail({ review }: { review: VideoReview }) {
           </Text>
         ) : null}
       </KeyboardAwareScrollView>
+      {/* A note opens over the video, where the finger is, not at the foot of the screen; the picture's ring stays. */}
+      <Sheet open={open && draft !== null} onClose={() => setDraft(null)} solid>
+        {draft ? (
+          <NoteDraft
+            key={`${draft.atMs}:${draft.x}:${draft.y}`}
+            bare
+            review={review}
+            version={version}
+            draft={draft}
+            now={() => controls.current?.now() ?? 0}
+            onEnd={(endMs) => setDraft((d) => (d ? { ...d, endMs } : d))}
+            onClose={() => setDraft(null)}
+          />
+        ) : null}
+      </Sheet>
       {open ? <Decision review={review} /> : <Decided review={review} version={version} />}
     </View>
   );
@@ -270,6 +274,9 @@ function Decision({ review }: { review: VideoReview }) {
   const toast = useToast();
   const field = useFieldText("body");
   const decide = useDecideVideoReview(orgId, review.id);
+  const addVoice = useAddVoiceReviewNote(orgId, review.id);
+  const { i18n } = useTranslation();
+  const { recording, toggle } = useTapRecorder();
   const [asking, setAsking] = useState(false);
   const [message, setMessage] = useState("");
   const unsent = unsentOf(review);
@@ -285,6 +292,28 @@ function Decision({ review }: { review: VideoReview }) {
         onError: (e: unknown) => toast({ title: errorText(t, e), icon: "x" }),
       },
     );
+  /**
+   * "Pedir ajustes" said aloud: tap, speak, tap again. The recording becomes a note about the whole video (transcribed
+   * like any voice note) and the changes go at once: the agent starts the next version with it and every other note.
+   */
+  const sayChanges = async () => {
+    tapHaptic();
+    const uri = await toggle();
+    if (!uri) return;
+    addVoice.mutate(
+      {
+        version: review.version,
+        atMs: null,
+        file: filePart(uri, "ajustes.m4a", "audio/mp4"),
+        fileName: "ajustes.m4a",
+        language: i18n.language,
+      },
+      {
+        onSuccess: () => send("changes"),
+        onError: (e: unknown) => toast({ title: errorText(t, e), icon: "x" }),
+      },
+    );
+  };
   const approve = () =>
     Alert.alert(w.decideTitle, w.approveConfirm, [
       { text: w.cancel, style: "cancel" },
@@ -303,6 +332,23 @@ function Decision({ review }: { review: VideoReview }) {
             <Text variant="footnote" tone="muted">
               {w.changesHint}
             </Text>
+            <Pressable
+              onPress={() => void sayChanges()}
+              disabled={addVoice.isPending || decide.isPending}
+              accessibilityRole="button"
+              accessibilityLabel={recording ? w.sayingChanges : w.sayChanges}
+              accessibilityHint={w.sayChangesHint}
+              style={[styles.say, { backgroundColor: recording ? c.danger : c.raised }]}
+            >
+              {addVoice.isPending || decide.isPending ? (
+                <ActivityIndicator color={c.ink} />
+              ) : (
+                <Icon name={recording ? "stop" : "mic"} size={20} color={recording ? "#fff" : c.ink} />
+              )}
+              <Text variant="callout" style={{ color: recording ? "#fff" : c.ink, fontWeight: "600" }}>
+                {addVoice.isPending || decide.isPending ? w.sendingChanges : recording ? w.sayingChanges : w.sayChanges}
+              </Text>
+            </Pressable>
             <TextInput
               value={message}
               onChangeText={setMessage}
@@ -311,12 +357,18 @@ function Decision({ review }: { review: VideoReview }) {
               accessibilityLabel={w.message}
               multiline
               maxLength={2000}
-              autoFocus
+              editable={!recording}
               style={[styles.message, field, { color: c.ink, backgroundColor: c.raised }]}
             />
             <View style={styles.row}>
               <View style={styles.grow}>
-                <Button variant="secondary" wide label={w.cancel} onPress={() => setAsking(false)} />
+                <Button
+                  variant="secondary"
+                  wide
+                  label={w.cancel}
+                  onPress={() => setAsking(false)}
+                  disabled={recording || addVoice.isPending}
+                />
               </View>
               <View style={styles.grow}>
                 <Button
@@ -324,7 +376,7 @@ function Decision({ review }: { review: VideoReview }) {
                   wide
                   label={w.sendChanges}
                   onPress={() => send("changes")}
-                  disabled={unsent === 0 && !message.trim()}
+                  disabled={(unsent === 0 && !message.trim()) || recording || addVoice.isPending}
                   loading={decide.isPending}
                 />
               </View>
@@ -364,4 +416,13 @@ const styles = StyleSheet.create({
   dockIn: { paddingHorizontal: 16, paddingTop: 12, gap: 10 },
   decided: { paddingHorizontal: 16, paddingTop: 12, alignItems: "center" },
   message: { minHeight: 64, maxHeight: 140, borderRadius: 12, paddingHorizontal: 12, paddingVertical: 10 },
+  say: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 10,
+    minHeight: 52,
+    borderRadius: 14,
+    paddingHorizontal: 16,
+  },
 });

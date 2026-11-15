@@ -574,10 +574,18 @@ function ReviewBody({ review, w }: { review: VideoReview; w: ReviewWords }) {
     );
   };
 
-  // Which note the voice goes to: the open box's point, or the whole video from the side card.
-  const voiceFor = useRef<"draft" | "whole">("draft");
+  // Which note the voice goes to: the open box's point, the whole video from the side card, or "Pedir ajustes" said
+  // aloud (a note about the whole video, then the changes go at once).
+  const voiceFor = useRef<"draft" | "whole" | "changes">("draft");
   const recorder = useNoteRecorder(
     (blob, fileName) => {
+      if (voiceFor.current === "changes") {
+        addVoice.mutate(
+          { file: blob, fileName, version: review.version, atMs: null, language: i18n.language?.slice(0, 2) },
+          { onSuccess: () => decideAs("changes"), onError: failed },
+        );
+        return;
+      }
       const d = voiceFor.current === "draft" ? draft : null;
       addVoice.mutate(
         {
@@ -603,7 +611,7 @@ function ReviewBody({ review, w }: { review: VideoReview; w: ReviewWords }) {
     },
     () => toast.show(w.micBlocked, "error"),
   );
-  const talk = (target: "draft" | "whole") => {
+  const talk = (target: "draft" | "whole" | "changes") => {
     if (recorder.recording) recorder.stop();
     else {
       voiceFor.current = target;
@@ -1110,6 +1118,20 @@ function ReviewBody({ review, w }: { review: VideoReview; w: ReviewWords }) {
         {open && (
           <div className="vr-decide">
             {!review.agent && <p className="vr-muted">{w.agentGone}</p>}
+            <Button
+              variant={recorder.recording && voiceFor.current === "changes" ? "danger" : "default"}
+              icon={recorder.recording && voiceFor.current === "changes" ? "stop" : "mic"}
+              disabled={!review.agent || (recorder.recording && voiceFor.current !== "changes")}
+              loading={addVoice.isPending && voiceFor.current === "changes"}
+              title={w.sayChangesHint}
+              onClick={() => talk("changes")}
+            >
+              {addVoice.isPending && voiceFor.current === "changes"
+                ? w.sendingChanges
+                : recorder.recording && voiceFor.current === "changes"
+                  ? w.sayingChanges
+                  : w.sayChanges}
+            </Button>
             <Textarea value={message} rows={1} placeholder={w.message} onChange={(e) => setMessage(e.target.value)} />
             <p className="vr-muted">{w.changesHint}</p>
             <div className="vr-decide__acts">
