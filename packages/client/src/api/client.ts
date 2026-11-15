@@ -23,6 +23,13 @@ import type {
   VaultScope,
 } from "../vault/types";
 import type {
+  VideoReview,
+  VideoReviewDecision,
+  VideoReviewNote,
+  VideoReviewSummary,
+  VideoReviewVoiceInput,
+} from "../video-reviews/types";
+import type {
   WhatsAppAccount,
   WhatsAppAccountPatch,
   WhatsAppBrain,
@@ -2104,6 +2111,26 @@ export interface ApiClient {
    * number the person isn't listed on; 502 `whatsapp.unavailable` when the gateway refuses. Optional so older fakes
    * type-check (`createHttpApi` has it).
    */
+  /**
+   * Videos agents sent for the team's review, notes on their seconds and the decision back to the agent
+   * (docs/adr/doug-0007-video-review.md). Optional so older fakes type-check (`createHttpApi` has it).
+   */
+  videoReviews?: {
+    list(orgId: string): Promise<{ reviews: VideoReviewSummary[] }>;
+    get(orgId: string, reviewId: string): Promise<VideoReview>;
+    addNote(
+      orgId: string,
+      reviewId: string,
+      input: { version: number; atMs: number | null; body: string },
+    ): Promise<VideoReviewNote>;
+    addVoiceNote(orgId: string, reviewId: string, input: VideoReviewVoiceInput): Promise<VideoReviewNote>;
+    deleteNote(orgId: string, reviewId: string, noteId: string): Promise<void>;
+    decide(
+      orgId: string,
+      reviewId: string,
+      input: { decision: VideoReviewDecision; message?: string },
+    ): Promise<VideoReviewSummary>;
+  };
   whatsapp?: {
     overview(orgId: string): Promise<WhatsAppOverview>;
     connect(orgId: string, label: string): Promise<WhatsAppAccount>;

@@ -214,6 +214,46 @@ export const EXTRA_COLUMNS = [
   `CREATE INDEX IF NOT EXISTS "live_voice_rooms_org_id_channel_id_status_index" ON "live_voice_rooms" ("org_id", "channel_id", "status")`,
   // One live room per conversation: a second start joins the first.
   `CREATE UNIQUE INDEX IF NOT EXISTS "live_voice_rooms_live_channel" ON "live_voice_rooms" ("channel_id") WHERE "status" = 'live'`,
+  // Videos agents send for the team's review, their versions and the notes on them (docs/adr/doug-0007-video-review.md).
+  `CREATE TABLE IF NOT EXISTS "video_reviews" (
+    "id" uuid PRIMARY KEY,
+    "org_id" uuid NOT NULL REFERENCES "organizations"("id") ON DELETE CASCADE,
+    "agent_id" uuid REFERENCES "agents"("id") ON DELETE SET NULL,
+    "channel_id" uuid NOT NULL,
+    "thread_id" uuid,
+    "title" text NOT NULL,
+    "client" text NOT NULL DEFAULT '',
+    "status" text NOT NULL DEFAULT 'in_review',
+    "version" integer NOT NULL DEFAULT 1,
+    "decided_by" text REFERENCES "users"("id") ON DELETE SET NULL,
+    "decided_at" timestamp with time zone,
+    "created_at" timestamp with time zone NOT NULL DEFAULT now(),
+    "updated_at" timestamp with time zone NOT NULL DEFAULT now()
+  )`,
+  `CREATE INDEX IF NOT EXISTS "video_reviews_org_id_status_updated_at_index" ON "video_reviews" ("org_id", "status", "updated_at")`,
+  `CREATE TABLE IF NOT EXISTS "video_review_versions" (
+    "id" uuid PRIMARY KEY,
+    "org_id" uuid NOT NULL REFERENCES "organizations"("id") ON DELETE CASCADE,
+    "review_id" uuid NOT NULL REFERENCES "video_reviews"("id") ON DELETE CASCADE,
+    "version" integer NOT NULL,
+    "artifact_id" uuid NOT NULL,
+    "note" text NOT NULL DEFAULT '',
+    "created_at" timestamp with time zone NOT NULL DEFAULT now()
+  )`,
+  `CREATE UNIQUE INDEX IF NOT EXISTS "video_review_versions_review_id_version_index" ON "video_review_versions" ("review_id", "version")`,
+  `CREATE TABLE IF NOT EXISTS "video_review_notes" (
+    "id" uuid PRIMARY KEY,
+    "org_id" uuid NOT NULL REFERENCES "organizations"("id") ON DELETE CASCADE,
+    "review_id" uuid NOT NULL REFERENCES "video_reviews"("id") ON DELETE CASCADE,
+    "version" integer NOT NULL,
+    "at_ms" integer,
+    "body" text NOT NULL,
+    "voice" boolean NOT NULL DEFAULT false,
+    "author_user_id" text REFERENCES "users"("id") ON DELETE SET NULL,
+    "sent_at" timestamp with time zone,
+    "created_at" timestamp with time zone NOT NULL DEFAULT now()
+  )`,
+  `CREATE INDEX IF NOT EXISTS "video_review_notes_review_id_version_index" ON "video_review_notes" ("review_id", "version")`,
 ];
 
 /** The advisory lock every process takes around its migrations (`DatabaseHandle.migrate`). */

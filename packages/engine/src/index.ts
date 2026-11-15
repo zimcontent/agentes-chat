@@ -319,6 +319,7 @@ export * from "./usage-queue";
 export * from "./usage-tools";
 export * from "./vault";
 export * from "./vault/tools";
+export * from "./video-reviews";
 export * from "./voice";
 export * from "./waiting";
 export * from "./waitlist";

@@ -554,6 +554,7 @@ async function boot(
         speech: engine.speech,
         voice: engine.voice,
         liveVoice: engine.liveVoice,
+        videoReviews: engine.videoReviews,
         gitProxy: engine.gitProxy,
         pushRelaySender: fcm,
       },

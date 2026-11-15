@@ -14,6 +14,7 @@ import type {
   VaultKeysImportResult,
   VaultOverview,
 } from "../vault/types";
+import type { VideoReview, VideoReviewNote, VideoReviewSummary } from "../video-reviews/types";
 import type {
   WhatsAppAccount,
   WhatsAppBrain,
@@ -546,6 +547,24 @@ export function createHttpApi(options: TransportOptions = {}): HttpApi {
         request<VaultConnection>(`${org(orgId)}/vault/connections/${enc(connectionId)}/sync`, { json: {} }),
       removeConnection: (orgId, connectionId) =>
         request<void>(`${org(orgId)}/vault/connections/${enc(connectionId)}`, { method: "DELETE" }),
+    },
+    videoReviews: {
+      list: (orgId) => request<{ reviews: VideoReviewSummary[] }>(`${org(orgId)}/video-reviews`),
+      get: (orgId, reviewId) => request<VideoReview>(`${org(orgId)}/video-reviews/${enc(reviewId)}`),
+      addNote: (orgId, reviewId, input) =>
+        request<VideoReviewNote>(`${org(orgId)}/video-reviews/${enc(reviewId)}/notes`, { json: input }),
+      addVoiceNote: (orgId, reviewId, input) => {
+        const form = new FormData();
+        form.set("file", input.file, input.fileName);
+        form.set("version", String(input.version));
+        form.set("atMs", input.atMs === null ? "" : String(Math.round(input.atMs)));
+        if (input.language) form.set("language", input.language);
+        return files.upload<VideoReviewNote>(`${org(orgId)}/video-reviews/${enc(reviewId)}/notes/voice`, form);
+      },
+      deleteNote: (orgId, reviewId, noteId) =>
+        request<void>(`${org(orgId)}/video-reviews/${enc(reviewId)}/notes/${enc(noteId)}`, { method: "DELETE" }),
+      decide: (orgId, reviewId, input) =>
+        request<VideoReviewSummary>(`${org(orgId)}/video-reviews/${enc(reviewId)}/decision`, { json: input }),
     },
     whatsapp: {
       overview: (orgId) => request<WhatsAppOverview>(`${org(orgId)}/whatsapp`),

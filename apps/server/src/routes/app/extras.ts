@@ -17,6 +17,7 @@ import type {
   StorageDeps,
   StreamBroker,
   Talker,
+  VideoReviewDeps,
   VoiceDeps,
 } from "@agenteschat/engine";
 
@@ -72,4 +73,6 @@ export interface AppExtras {
   voice?: VoiceDeps;
   /** Live voice with GPT-Live (ADR doug-0006): keys, sessions and voice rooms; absent: those routes answer 404. */
   liveVoice?: LiveVoiceDeps;
+  /** Videos sent for the team's review (docs/adr/doug-0007-video-review.md); absent: those routes answer 404. */
+  videoReviews?: VideoReviewDeps;
 }

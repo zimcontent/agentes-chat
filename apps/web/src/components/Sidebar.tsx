@@ -37,6 +37,7 @@ import {
   useSkills,
   useTasksUnread,
   useUnreadThreads,
+  useVideoReviews,
   useWaitingOnMe,
   useWhatsApp,
 } from "@agenteschat/client";
@@ -162,6 +163,7 @@ import { sectionName, useSectionOrder } from "./SidebarOrder";
 import { SIDEBAR_TOOLS, SidebarSetupDialog, ToolList, toolsHere, usePortalOn } from "./SidebarSetup";
 import { AgentGlow, AgentTrail, colorOf, WorkspaceSky } from "./Sky";
 import { SetStatusDialog, useSaveStatus } from "./StatusDialog";
+import { useReviewWords } from "./video-review/words";
 import { WhatsAppMark } from "./whatsapp/WhatsAppMark";
 
 /** An agent's sky for its busy chip (`.sidebar__busy`): both themes, the CSS picks one. */
@@ -620,6 +622,10 @@ export function Sidebar() {
   // glass bar of icons (after Nordus's footer nav), each named on hover and to a screen reader, Configurações last.
   const whatsapp = useWhatsApp(orgId).data;
   const whatsappShown = !!whatsapp?.on && (whatsapp.manage || whatsapp.accounts.length > 0);
+  // Video review (docs/adr/doug-0007-video-review.md): in sight once a video was sent, with how many wait.
+  const reviews = useVideoReviews(orgId).data ?? [];
+  const reviewsWaiting = reviews.filter((r) => r.status === "in_review").length;
+  const reviewWords = useReviewWords();
   const dock = (
     <div className="sidebar__group sidebar__tools sidebar__dock">
       <Link to="/org/$orgId/home" params={{ orgId }} className="sidebar__item" title={railTip("home")}>
@@ -632,6 +638,13 @@ export function Sidebar() {
         <Link to="/org/$orgId/whatsapp" params={{ orgId }} className="sidebar__item" title="WhatsApp">
           <WhatsAppMark size={18} />
           <span className="sidebar__item-label">WhatsApp</span>
+        </Link>
+      )}
+      {reviews.length > 0 && (
+        <Link to="/org/$orgId/review" params={{ orgId }} className="sidebar__item" title={reviewWords.title}>
+          <Icon name="video" />
+          <span className="sidebar__item-label">{reviewWords.title}</span>
+          {reviewsWaiting > 0 && <CountBadge>{reviewsWaiting}</CountBadge>}
         </Link>
       )}
       <MoreTools items={inMore} row={toolRow} countOf={countOf} onCustomize={() => setCustomizing(true)} />

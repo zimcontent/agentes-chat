@@ -68,6 +68,7 @@ import { teamWeekRoutes } from "./routes/app/team-week";
 import { telemetryRoutes } from "./routes/app/telemetry";
 import { threadRoutes } from "./routes/app/threads";
 import { vaultRoutes } from "./routes/app/vault";
+import { videoReviewRoutes } from "./routes/app/video-reviews";
 import { speechKeyRoutes, voiceRoutes } from "./routes/app/voice";
 import { waitingRoutes } from "./routes/app/waiting";
 import { whatsappRoutes } from "./routes/app/whatsapp";
@@ -240,6 +241,7 @@ export function createApp(options: AppOptions) {
     api.route("/app", voiceRoutes(deps));
     api.route("/app", whatsappRoutes(deps));
     api.route("/app", liveVoiceRoutes(deps));
+    api.route("/app", videoReviewRoutes(deps));
     api.route("/app", webhookAdminRoutes(deps));
     api.route("/app", githubAppRoutes(deps));
     registerOauthRoutes(api, deps, { version, fetchDocument: options.appsFetchDocument });

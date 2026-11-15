@@ -1,4 +1,4 @@
-import { ARTIFACT_LIMITS, FEEDBACK_INBOX_BYTES, SKILL_LIMITS } from "@agenteschat/engine";
+import { ARTIFACT_LIMITS, FEEDBACK_INBOX_BYTES, REVIEW_VOICE_BYTES, SKILL_LIMITS } from "@agenteschat/engine";
 import type { Context } from "hono";
 import { bodyLimit } from "hono/body-limit";
 import { createMiddleware } from "hono/factory";
@@ -54,6 +54,8 @@ const LIMITS: [RegExp, number][] = [
   [/\/organizations\/[^/]+\/wiki\/import$/, 32 * MIB],
   // Another server's feedback with its pictures as base64 (ADR 0160 §13).
   [/^\/api\/feedback\/inbox$/, FEEDBACK_INBOX_BYTES],
+  // A note said aloud on a video in review: the recording and its form (docs/adr/doug-0007-video-review.md).
+  [/\/organizations\/[^/]+\/video-reviews\/[^/]+\/notes\/voice$/, REVIEW_VOICE_BYTES + MULTIPART_SLACK_BYTES],
 ];
 
 /** The most a request to `path` may send, or null where the route caps it itself. */

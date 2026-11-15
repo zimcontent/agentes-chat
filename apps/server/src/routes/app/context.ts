@@ -121,6 +121,8 @@ export const MULTIPART_PATHS = [
   /\/organizations\/[^/]+\/artifacts(\/[^/]+)?\/files$/,
   /\/organizations\/[^/]+\/imports\/files$/,
   /\/organizations\/[^/]+\/channels\/[^/]+\/voice$/,
+  // A note said aloud on a video in review (docs/adr/doug-0007-video-review.md).
+  /\/organizations\/[^/]+\/video-reviews\/[^/]+\/notes\/voice$/,
   // A file or a recording sent from a WhatsApp number.
   /\/organizations\/[^/]+\/whatsapp\/accounts\/[^/]+\/files$/,
   /\/feedback\/files$/,

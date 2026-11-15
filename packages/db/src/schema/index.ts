@@ -27,6 +27,7 @@ export * from "./team-actions";
 export * from "./telemetry";
 export * from "./tenancy";
 export * from "./vault";
+export * from "./video-reviews";
 export * from "./voice";
 export * from "./waitlist";
 export * from "./whatsapp";
