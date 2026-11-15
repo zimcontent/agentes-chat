@@ -3551,6 +3551,23 @@
       "text": "No pregunta nada, tampoco en merge, deploy, pagos y rutinas."
     }
   },
+  "ronda": {
+    "title": "Ronda",
+    "subtitle": "Revisa la operación por su cuenta, sin que nadie se lo pida, y solo te avisa cuando vale la pena.",
+    "schedule": "Cuándo pasa",
+    "scheduleHelp": "En cada ronda ve lo que cambió desde la última: conversaciones, tareas paradas o atrasadas, fallos y aprobaciones olvidadas. Si nada cambió, no gasta nada. Si algo cambió, decide si vale la pena actuar y te lo cuenta por mensaje directo.",
+    "off": "Desactivada",
+    "daily": "Todos los días a las 8:00",
+    "three_daily": "8:00, 13:00 y 18:00",
+    "hourly": "Cada hora (de 8:00 a 20:00)",
+    "next": "Próxima: {{when}}",
+    "last": "Última: {{what}}",
+    "reported": "trajo novedades",
+    "silent": "revisó y no tuvo nada que decir",
+    "running": "en curso",
+    "runNow": "Hacer una ronda ahora",
+    "failed": "No se pudo cambiar la ronda"
+  },
   "brakes": {
     "title": "Trabajo que nadie pidió",
     "subtitle": "Lo que empieza por su cuenta, a partir de una rutina, una alerta u otro agente. Lo que pide una persona nunca se detiene.",
@@ -9016,6 +9033,8 @@
     },
     "code": {
       "previous_running": "Omitida: la anterior seguía ejecutándose",
+      "ronda_nothing": "Omitida: nada cambió desde la última ronda",
+      "ronda_quiet": "Omitida: nada que valiera la pena",
       "previous_waiting": "Omitida: la anterior seguía esperando a alguien",
       "waiting_computer": "Omitida: esperando la computadora del agente",
       "waiting_plan": "Omitida: esperando el plan",

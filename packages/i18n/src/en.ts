@@ -3717,6 +3717,24 @@ export const en = {
     },
   },
   /** Agent settings: what it may start that nobody asked for directly, and which agents it may call (ADR 0131). */
+  ronda: {
+    title: "Ronda",
+    subtitle: "It looks at the operation on its own, with nobody asking, and calls you only when it's worth it.",
+    schedule: "When it passes",
+    scheduleHelp:
+      "Each ronda sees what changed since the last one: conversations, stuck or late tasks, failures and forgotten approvals. When nothing changed it costs nothing. When something did, it decides whether to act and tells you in your DM.",
+    off: "Off",
+    daily: "Every day at 8:00",
+    three_daily: "8:00, 13:00 and 18:00",
+    hourly: "Every hour (8:00 to 20:00)",
+    next: "Next: {{when}}",
+    last: "Last: {{what}}",
+    reported: "brought news",
+    silent: "looked and had nothing to say",
+    running: "running now",
+    runNow: "Do a ronda now",
+    failed: "Couldn't change the ronda",
+  },
   brakes: {
     title: "Work nobody asked for",
     subtitle: "What it starts on its own, from a routine, an alert or another agent. What a person asks is never held.",
@@ -9135,6 +9153,8 @@ export const en = {
     },
     code: {
       previous_running: "Skipped: the previous one was still running",
+      ronda_nothing: "Skipped: nothing changed since the last ronda",
+      ronda_quiet: "Skipped: nothing worth acting on",
       previous_waiting: "Skipped: the previous one was still waiting for someone",
       waiting_computer: "Skipped: waiting for the agent's computer",
       waiting_plan: "Skipped: waiting on the plan",

@@ -317,6 +317,8 @@ import type {
   Role,
   RoleInput,
   RoleMailLoss,
+  Ronda,
+  RondaSchedule,
   RosterMember,
   Routine,
   RoutineHook,
@@ -941,6 +943,10 @@ export interface ApiClient {
     usageQueue(orgId: string, agentId: string): Promise<UsageQueue>;
     /** "Don't run any": nothing waiting on its plan or budget runs (the agent's owner and admins). */
     cancelUsageQueue(orgId: string, agentId: string): Promise<{ canceled: number; skipped: number }>;
+    /** The agent's ronda (ADR 9004). */
+    ronda(orgId: string, agentId: string): Promise<Ronda>;
+    /** Turns the agent's ronda on, changes when it passes, or switches it off (who manages agents, or its owner). */
+    setRonda(orgId: string, agentId: string, schedule: RondaSchedule, timezone?: string): Promise<Ronda>;
     /** The team file / agent definitions behind a GitHub link, read by the backend (onboarding import; nothing saved). */
     importFromGithub(
       orgId: string,

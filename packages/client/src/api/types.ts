@@ -5146,6 +5146,20 @@ export interface UsageQueueRow {
   mayStop: boolean;
 }
 
+/** When an agent's ronda passes (ADR 9004): `off`, every morning, three times a day, or every hour of the day. */
+export type RondaSchedule = "off" | "daily" | "three_daily" | "hourly";
+
+/** An agent's ronda (`GET …/agents/{agentId}/ronda`, ADR 9004). */
+export interface Ronda {
+  schedule: RondaSchedule;
+  routineId: string | null;
+  /** Who turned it on: it reports in their DM with the agent. */
+  personId: string | null;
+  nextRunAt: string | null;
+  /** Its latest slots, newest first; a passed slot's `code` says why (`ronda_nothing`, `ronda_quiet`). */
+  recent: { at: string; status: string; code: string | null; summary: string }[];
+}
+
 /** What an agent picks up when its plan or budget is back, in order (`GET …/agents/{agentId}/usage-queue`). */
 export interface UsageQueue {
   agentId: string;

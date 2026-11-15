@@ -3439,6 +3439,23 @@
       "text": "Vraagt nooit, ook niet bij merge, deploy, betalingen en routines."
     }
   },
+  "ronda": {
+    "title": "Ronde",
+    "subtitle": "Hij bekijkt uit zichzelf hoe het werk loopt, zonder dat iemand het vraagt, en meldt zich alleen als het de moeite waard is.",
+    "schedule": "Wanneer hij loopt",
+    "scheduleHelp": "Bij elke ronde ziet hij wat er sinds de vorige veranderd is: gesprekken, vastgelopen of te late taken, fouten en vergeten goedkeuringen. Is er niets veranderd, dan kost het niets. Anders beslist hij of hij iets doet en laat hij het je weten in een privébericht.",
+    "off": "Uit",
+    "daily": "Elke dag om 8:00",
+    "three_daily": "8:00, 13:00 en 18:00",
+    "hourly": "Elk uur (8:00 tot 20:00)",
+    "next": "Volgende: {{when}}",
+    "last": "Laatste: {{what}}",
+    "reported": "had nieuws",
+    "silent": "keek en had niets te melden",
+    "running": "bezig",
+    "runNow": "Nu een ronde doen",
+    "failed": "Kon de ronde niet wijzigen"
+  },
   "brakes": {
     "title": "Werk waar niemand om vroeg",
     "subtitle": "Wat hij zelf begint, na een routine, een melding of een andere agent. Waar een persoon om vraagt, wordt nooit tegengehouden.",
@@ -8756,6 +8773,8 @@
     },
     "code": {
       "previous_running": "Overgeslagen: de vorige draaide nog",
+      "ronda_nothing": "Overgeslagen: niets veranderd sinds de vorige ronde",
+      "ronda_quiet": "Overgeslagen: niets dat actie waard was",
       "previous_waiting": "Overgeslagen: de vorige wachtte nog op iemand",
       "waiting_computer": "Overgeslagen: wacht op de computer van de agent",
       "waiting_plan": "Overgeslagen: wacht op het abonnement",

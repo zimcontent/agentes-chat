@@ -41,6 +41,7 @@ import {
   getAgentProposal,
   getMembership,
   getNewAgentSetup,
+  getRonda,
   getTeam,
   listAgentGroups,
   listAgents,
@@ -61,11 +62,13 @@ import {
   proposeChannelMove,
   publishAgentsChanged,
   publishMachineAgentsChanged,
+  RONDA_SCHEDULES,
   removeAgentPhoto,
   removeCredentialCopies,
   requirePermission,
   revokeCredential,
   rightHandWidgetsReady,
+  routineTimezone,
   SETUP_AGENTS_MAX,
   seesAgentDetails,
   setAgentAppearance,
@@ -75,6 +78,7 @@ import {
   setAgentPhoto,
   setAgentVoice,
   setReportsTo,
+  setRonda,
   speakerOf,
   summaryModelReady,
   TEAM_TEMPLATES,
@@ -140,6 +144,17 @@ import {
 } from "./schemas";
 
 const tags = ["Agents"];
+
+/** An agent's ronda (ADR 9004): when it passes and how its latest slots ended. */
+const Ronda = z
+  .object({
+    schedule: z.enum(RONDA_SCHEDULES),
+    routineId: z.uuid().nullable(),
+    personId: z.string().nullable(),
+    nextRunAt: z.string().nullable(),
+    recent: z.array(z.object({ at: z.string(), status: z.string(), code: z.string().nullable(), summary: z.string() })),
+  })
+  .openapi("Ronda");
 
 /** How this server reaches endpoints people type (ADR 0146). */
 const endpointNet = (deps: AppDeps): EndpointNet => ({
@@ -1538,6 +1553,48 @@ export function agentRoutes(deps: AppDeps) {
     async (c) => {
       const { orgId, agentId } = c.req.valid("param");
       return c.json(await cancelUsageQueue({ db, pubsub: adapters.pubsub }, c.get("user").id, orgId, agentId), 200);
+    },
+  );
+  app.openapi(
+    createRoute({
+      method: "get",
+      path: "/organizations/{orgId}/agents/{agentId}/ronda",
+      tags,
+      security,
+      summary: "The agent's ronda: when it looks at the operation on its own, and how its last ones ended",
+      description:
+        "ADR 9004. `schedule` `off` when it has none or it is switched off; `recent` are its latest slots, newest first, with the code a passed slot ended with (`ronda_nothing`: nothing changed; `ronda_quiet`: nothing worth a run).",
+      request: { params: AgentParams },
+      responses: { 200: json(Ronda), ...errors },
+    }),
+    async (c) => {
+      const { orgId, agentId } = c.req.valid("param");
+      return c.json(await getRonda(db, c.get("user").id, orgId, agentId), 200);
+    },
+  );
+  app.openapi(
+    createRoute({
+      method: "put",
+      path: "/organizations/{orgId}/agents/{agentId}/ronda",
+      tags,
+      security,
+      summary: "Turn the agent's ronda on, change when it passes, or switch it off",
+      description:
+        "ADR 9004. Who manages agents, or the agent's owner. Turning it on makes you its person: it reports in your DM with the agent and reads only what you see. In your time zone (or the one given).",
+      request: {
+        params: AgentParams,
+        body: body(z.object({ schedule: z.enum(RONDA_SCHEDULES), timezone: z.string().max(64).optional() })),
+      },
+      responses: { 200: json(Ronda), ...errors },
+    }),
+    async (c) => {
+      const { orgId, agentId } = c.req.valid("param");
+      const actor = c.get("user").id;
+      const { schedule, timezone } = c.req.valid("json");
+      const zone = await routineTimezone(db, actor, orgId, timezone);
+      const out = await setRonda({ db, pubsub: adapters.pubsub }, actor, orgId, agentId, schedule, zone);
+      deps.wakeWorkers?.();
+      return c.json(out, 200);
     },
   );
   app.openapi(

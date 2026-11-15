@@ -329,7 +329,8 @@
       "portal.home.pipeline",
       "portal.home.produce",
       "portal.home.scheduled",
-      "portal.home.viewList"
+      "portal.home.viewList",
+      "ronda.title"
     ],
     "es": [
       "mediaGen.video",
@@ -613,7 +614,8 @@
       "portal.home.produce",
       "portal.home.scheduled",
       "portal.home.viewList",
-      "look.shapes.monitor"
+      "look.shapes.monitor",
+      "ronda.title"
     ],
     "fr": [
       "mediaGen.image",
@@ -1979,7 +1981,8 @@
       "portal.home.produce",
       "portal.home.scheduled",
       "portal.home.viewList",
-      "look.shapes.monitor"
+      "look.shapes.monitor",
+      "ronda.title"
     ],
     "nl": [
       "mediaGen.title",

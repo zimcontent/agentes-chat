@@ -3558,6 +3558,23 @@
       "text": "Non chiede mai, nemmeno per merge, deploy, pagamenti e routine."
     }
   },
+  "ronda": {
+    "title": "Ronda",
+    "subtitle": "Controlla l'attività da solo, senza che nessuno lo chieda, e ti chiama solo quando ne vale la pena.",
+    "schedule": "Quando passa",
+    "scheduleHelp": "A ogni ronda vede cosa è cambiato dall'ultima: conversazioni, attività ferme o in ritardo, errori e approvazioni dimenticate. Se non è cambiato nulla, non costa niente. Altrimenti decide se vale la pena agire e te lo dice in privato.",
+    "off": "Disattivata",
+    "daily": "Ogni giorno alle 8:00",
+    "three_daily": "8:00, 13:00 e 18:00",
+    "hourly": "Ogni ora (dalle 8:00 alle 20:00)",
+    "next": "Prossima: {{when}}",
+    "last": "Ultima: {{what}}",
+    "reported": "ha portato novità",
+    "silent": "ha controllato, niente da dire",
+    "running": "in corso",
+    "runNow": "Fai una ronda adesso",
+    "failed": "Impossibile cambiare la ronda"
+  },
   "brakes": {
     "title": "Lavoro che nessuno ha chiesto",
     "subtitle": "Ciò che inizia da solo, da una routine, un avviso o un altro agente. Ciò che chiede una persona non viene mai fermato.",
@@ -9016,6 +9033,8 @@
     },
     "code": {
       "previous_running": "Saltata: la precedente era ancora in esecuzione",
+      "ronda_nothing": "Saltata: nulla è cambiato dall'ultima ronda",
+      "ronda_quiet": "Saltata: niente per cui valesse agire",
       "previous_waiting": "Saltata: la precedente aspettava ancora qualcuno",
       "waiting_computer": "Saltata: in attesa del computer dell'agente",
       "waiting_plan": "Saltata: in attesa del piano",

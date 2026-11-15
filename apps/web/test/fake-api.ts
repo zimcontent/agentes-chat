@@ -83,6 +83,7 @@ import type {
   RightHandApprovals,
   Role,
   RoleMailLoss,
+  Ronda,
   Run,
   RunConsultation,
   RunStep,
@@ -303,6 +304,8 @@ export interface FakeState {
   agentStatuses?: AgentStatus[];
   /** Per agent: what it picks up when its plan or budget is back (`agents.usageQueue`). */
   usageQueues?: Record<string, UsageQueue>;
+  /** Per agent: its ronda (`agents.ronda`, ADR 9004). Absent: off. */
+  rondas?: Record<string, Ronda>;
   /** Uso › Pessoas (ADR 0141); unset: nobody used agents yet. */
   peopleUsage?: PeopleUsage;
   /** A person's month by id; unset: an empty month. */
@@ -2799,6 +2802,25 @@ export function createFakeHttpApi(state: FakeState): Omit<HttpApi, FakedParts> {
         const canceled = q?.rows.filter((r) => r.state === "queued").length ?? 0;
         if (q) q.rows = q.rows.filter((r) => r.state !== "queued");
         return { canceled, skipped: 0 };
+      },
+      ronda: async (orgId, agentId) => {
+        log("agents.ronda", orgId, agentId);
+        return (
+          state.rondas?.[agentId] ?? { schedule: "off", routineId: null, personId: null, nextRunAt: null, recent: [] }
+        );
+      },
+      setRonda: async (orgId, agentId, schedule, timezone) => {
+        log("agents.setRonda", orgId, agentId, schedule, timezone);
+        const was = state.rondas?.[agentId];
+        const next = {
+          schedule,
+          routineId: schedule === "off" ? (was?.routineId ?? null) : (was?.routineId ?? `ronda-${agentId}`),
+          personId: "me",
+          nextRunAt: schedule === "off" ? null : "2026-11-16T11:00:00.000Z",
+          recent: was?.recent ?? [],
+        };
+        state.rondas = { ...state.rondas, [agentId]: next };
+        return next;
       },
       importFromGithub: async (orgId, url) => {
         log("agents.importFromGithub", orgId, url);

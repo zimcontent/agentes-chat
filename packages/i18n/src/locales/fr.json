@@ -3556,6 +3556,23 @@
       "text": "Ne demande rien, même pour un merge, un deploy, un paiement ou dans une routine."
     }
   },
+  "ronda": {
+    "title": "Ronde",
+    "subtitle": "Il surveille l'activité de lui-même, sans qu'on le lui demande, et ne vous appelle que quand ça vaut le coup.",
+    "schedule": "Quand elle passe",
+    "scheduleHelp": "À chaque ronde, il voit ce qui a changé depuis la précédente : conversations, tâches bloquées ou en retard, échecs et validations oubliées. Si rien n'a changé, cela ne coûte rien. Sinon, il décide s'il faut agir et vous le dit en message privé.",
+    "off": "Désactivée",
+    "daily": "Tous les jours à 8 h",
+    "three_daily": "8 h, 13 h et 18 h",
+    "hourly": "Toutes les heures (de 8 h à 20 h)",
+    "next": "Prochaine : {{when}}",
+    "last": "Dernière : {{what}}",
+    "reported": "a apporté du nouveau",
+    "silent": "a regardé, rien à signaler",
+    "running": "en cours",
+    "runNow": "Faire une ronde maintenant",
+    "failed": "Impossible de modifier la ronde"
+  },
   "brakes": {
     "title": "Travail que personne n'a demandé",
     "subtitle": "Ce qu'il commence seul, à partir d'une routine, d'une alerte ou d'un autre agent. Ce qu'une personne demande n'est jamais retenu.",
@@ -9012,6 +9029,8 @@
     },
     "code": {
       "previous_running": "Sautée : la précédente était encore en cours",
+      "ronda_nothing": "Ignorée : rien n'a changé depuis la dernière ronde",
+      "ronda_quiet": "Ignorée : rien qui vaille d'agir",
       "previous_waiting": "Sautée : la précédente attendait encore quelqu'un",
       "waiting_computer": "Sautée : en attente de l'ordinateur de l'agent",
       "waiting_plan": "Sautée : en attente de l'abonnement",

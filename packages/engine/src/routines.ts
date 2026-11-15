@@ -37,7 +37,7 @@ import {
   normalizeConnectorFilter,
   syncConnectorTrigger,
 } from "./connector-triggers";
-import { type ContextDeps, schedulesOf } from "./context/summaries";
+import { type ContextDeps, judgeOf, schedulesOf } from "./context/summaries";
 import { nextCronTime, zonedTimeForward } from "./cron";
 import { dashboardRights, viewerOf } from "./dashboards/access";
 import { isWidgetChangeRun, widgetFiring, widgetRunStarting } from "./dashboards/refresh-fire";
@@ -62,6 +62,8 @@ import { can, getMembership, requirePermission } from "./organizations";
 import { PermanentJobError } from "./outbox";
 import { maySql } from "./permissions";
 import { isRightHand } from "./right-hand";
+import { rondaGate } from "./ronda";
+import { isRondaTarget } from "./ronda-changes";
 import {
   type RoutineAccess,
   type RoutineBrief,
@@ -2336,6 +2338,14 @@ async function fireClaimedRun(deps: RoutineDeps, run: RunRow) {
     await skip(gate);
     if (once) await ran();
     return;
+  }
+  // A ronda (ADR 9004): what changed, in code, then the judge; nothing worth it passes the slot without a model run.
+  if (isRondaTarget(routine.target)) {
+    const ronda = await rondaGate(
+      { db, judge: deps.context ? judgeOf(deps.context) : null },
+      { routine, run, agent, personId: creator },
+    );
+    if ("skip" in ronda) return skip(ronda.skip);
   }
   const brief: RoutineBrief = {
     routineId: routine.id,

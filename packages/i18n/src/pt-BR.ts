@@ -3621,6 +3621,24 @@ export const ptBR = {
     },
   },
   /** Configurações do agente: o que ele pode começar sem ninguém pedir diretamente, e quais agentes pode chamar (ADR 0131). */
+  ronda: {
+    title: "Ronda",
+    subtitle: "Ele olha a operação sozinho, sem ninguém pedir, e só te chama quando vale.",
+    schedule: "Quando passa",
+    scheduleHelp:
+      "Em cada ronda ele vê o que mudou desde a última: conversas, tarefas paradas ou atrasadas, falhas e aprovações esquecidas. Se nada mudou, não gasta nada. Se mudou, decide se vale agir e te conta na DM.",
+    off: "Desligada",
+    daily: "Todo dia às 8h",
+    three_daily: "8h, 13h e 18h",
+    hourly: "De hora em hora (8h às 20h)",
+    next: "Próxima: {{when}}",
+    last: "Última: {{what}}",
+    reported: "trouxe novidade",
+    silent: "olhou e não precisou falar",
+    running: "rodando agora",
+    runNow: "Fazer uma ronda agora",
+    failed: "Não deu para mudar a ronda",
+  },
   brakes: {
     title: "Trabalho que ninguém pediu",
     subtitle:
@@ -9128,6 +9146,8 @@ export const ptBR = {
     },
     code: {
       previous_running: "Pulada: a anterior ainda estava rodando",
+      ronda_nothing: "Pulada: nada mudou desde a última ronda",
+      ronda_quiet: "Pulada: nada que valesse agir",
       previous_waiting: "Pulada: a anterior ainda esperava alguém",
       waiting_computer: "Pulada: esperando o computador do agente",
       waiting_plan: "Pulada: esperando o plano",

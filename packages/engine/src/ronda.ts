@@ -1,0 +1,334 @@
+import type { PubSub } from "@agenteschat/adapters";
+import { and, type Database, desc, eq, inArray, isNull, schema, sql } from "@agenteschat/db";
+import { recordAudit } from "./audit";
+import { nextCronTime } from "./cron";
+import { ForbiddenError, NotFoundError, ValidationError } from "./errors";
+import { publishListChanged, publishRoutineRuns } from "./events";
+import { cutText } from "./format";
+import type { Judge } from "./judge";
+import { can, requireActiveMembership } from "./organizations";
+import { isRondaTarget, RONDA_EVENT, type RondaChanges, rondaChanges, rondaEvent } from "./ronda-changes";
+
+const { agents, routines, routineRuns } = schema;
+
+/**
+ * The ronda (ADR 9004): an agent looks at the operation on its own, as its owner would, with nobody asking. It is a
+ * routine of the agent's (ADR 0053: a background run in its own room that speaks only through `hand_off`, in the DM of
+ * the person who turned it on), marked `ronda` on its target, with a gate in code before any model runs (§2–§3).
+ */
+export const RONDA_SCHEDULES = ["off", "daily", "three_daily", "hourly"] as const;
+export type RondaSchedule = (typeof RONDA_SCHEDULES)[number];
+
+/** When each schedule passes, in the person's time zone: mornings, three times a day, or every hour of the day. */
+export const RONDA_CRON: Record<Exclude<RondaSchedule, "off">, string> = {
+  daily: "0 8 * * *",
+  three_daily: "0 8,13,18 * * *",
+  hourly: "0 8-20 * * *",
+};
+
+const SCHEDULE_WORDS: Record<Exclude<RondaSchedule, "off">, string> = {
+  daily: "Every day at 08:00",
+  three_daily: "Every day at 08:00, 13:00 and 18:00",
+  hourly: "Every hour from 08:00 to 20:00",
+};
+
+/** Codes a ronda's slot passes with (the app words them, `routines.code.<code>`). */
+export const RONDA_NOTHING = "ronda_nothing";
+export const RONDA_QUIET = "ronda_quiet";
+
+/** The judge's bar for spending a run on what changed (§3): below it, the slot passes quietly. */
+export const RONDA_WORTH_THRESHOLD = 0.5;
+
+/** How far back the first ronda looks. */
+const FIRST_WINDOW_MS = 24 * 3_600_000;
+
+/**
+ * The ronda's instructions: its brief in the routine room (fixed by the server, like a widget's: people change only
+ * its schedule). What changed comes with it as the run's event.
+ */
+export const RONDA_PROMPT = [
+  "This is your ronda: you look at the operation on your own, as its owner would, and nobody asked for anything.",
+  "The server gathered what changed since your last ronda (below, as data). Read it with your role in mind, then check the real sources with your tools before you conclude anything.",
+  "Do what you can do yourself now, inside your permissions: move a stuck task forward, look into what failed and fix it or open a task for it, prepare what is coming, research what the work needs (sites, references, numbers). Hand work to the agent it belongs to with tell_agent instead of doing another agent's job.",
+  "Bring the person only what is worth their attention: what you did and its result, a finding with its link, a draft ready to approve, or a decision only they can make. One short message through hand_off, in their language, most important first.",
+  "Never repeat what your last ronda already reported unless it changed. When nothing deserves anything, just finish: silence is a good ronda.",
+].join("\n\n");
+
+export interface RondaView {
+  schedule: RondaSchedule;
+  routineId: string | null;
+  /** Who turned it on: it reports in their DM with the agent. */
+  personId: string | null;
+  nextRunAt: string | null;
+  /** Its latest slots, newest first: how each ended and why (`code`). */
+  recent: { at: string; status: string; code: string | null; summary: string }[];
+}
+
+type RoutineRow = typeof routines.$inferSelect;
+
+/** The agent's ronda routine (one at most, the newest when two raced), live or switched off. */
+async function rondaRoutine(db: Database, orgId: string, agentId: string): Promise<RoutineRow | null> {
+  const [row] = await db
+    .select()
+    .from(routines)
+    .where(
+      and(
+        eq(routines.orgId, orgId),
+        eq(routines.agentId, agentId),
+        isNull(routines.deletedAt),
+        sql`(${routines.target} ->> 'ronda') = 'true'`,
+      ),
+    )
+    .orderBy(desc(routines.createdAt))
+    .limit(1);
+  return row ?? null;
+}
+
+const scheduleOf = (row: RoutineRow | null): RondaSchedule => {
+  if (!row?.active || !row.cron) return "off";
+  const found = (Object.keys(RONDA_CRON) as Exclude<RondaSchedule, "off">[]).find((k) => RONDA_CRON[k] === row.cron);
+  return found ?? "daily";
+};
+
+/** The agent's ronda as its settings show it (any member who reads the agent). */
+export async function getRonda(db: Database, actorId: string, orgId: string, agentId: string): Promise<RondaView> {
+  await requireActiveMembership(db, actorId, orgId);
+  const row = await rondaRoutine(db, orgId, agentId);
+  const recent = row
+    ? await db
+        .select({
+          at: routineRuns.at,
+          status: routineRuns.status,
+          code: routineRuns.code,
+          summary: routineRuns.summary,
+        })
+        .from(routineRuns)
+        .where(and(eq(routineRuns.orgId, orgId), eq(routineRuns.routineId, row.id)))
+        .orderBy(desc(routineRuns.createdAt))
+        .limit(5)
+    : [];
+  return {
+    schedule: scheduleOf(row),
+    routineId: row?.id ?? null,
+    personId: row?.createdByUserId ?? null,
+    nextRunAt: row?.active && row.nextRunAt ? row.nextRunAt.toISOString() : null,
+    recent: recent.map((r) => ({
+      at: r.at.toISOString(),
+      status: r.status,
+      code: r.code,
+      summary: cutText(r.summary, 400),
+    })),
+  };
+}
+
+/**
+ * Turns the agent's ronda on, changes when it passes, or switches it off (§1). Admins who manage agents, or the
+ * agent's owner. Turning it on makes the person who does it its person: it reports in their DM with the agent, and
+ * what it reads is what they see. Off keeps the routine (its history stays) inactive.
+ */
+export async function setRonda(
+  deps: { db: Database; pubsub: PubSub; now?: () => Date },
+  actorId: string,
+  orgId: string,
+  agentId: string,
+  schedule: RondaSchedule,
+  timezone: string,
+): Promise<RondaView> {
+  const { db } = deps;
+  if (!RONDA_SCHEDULES.includes(schedule)) throw new ValidationError("unknown ronda schedule");
+  const membership = await requireActiveMembership(db, actorId, orgId);
+  const [agent] = await db
+    .select()
+    .from(agents)
+    .where(and(eq(agents.id, agentId), eq(agents.orgId, orgId), isNull(agents.deletedAt)));
+  if (!agent || agent.archivedAt) throw new NotFoundError("agent not found");
+  if (!can(membership, "manage_agents") && agent.ownerUserId !== actorId) throw new ForbiddenError();
+  const now = deps.now?.() ?? new Date();
+  const existing = await rondaRoutine(db, orgId, agentId);
+  if (schedule === "off") {
+    if (existing?.active) {
+      await db
+        .update(routines)
+        .set({ active: false, nextRunAt: null, pausedReason: null, updatedAt: now })
+        .where(eq(routines.id, existing.id));
+      await recordAudit(db, {
+        orgId,
+        actor: { type: "person", id: actorId },
+        action: "routine.updated",
+        target: { type: "routine", id: existing.id },
+        details: { agentId, ronda: "off" },
+      });
+      await publishListChanged(deps.pubsub, orgId, "routines");
+      await publishRoutineRuns(deps.pubsub, orgId, existing.id).catch(() => {});
+    }
+    return getRonda(db, actorId, orgId, agentId);
+  }
+  const cron = RONDA_CRON[schedule];
+  const fields = {
+    agentId,
+    name: "Ronda",
+    // Instructions a person added in Rotinas stay ("look at the ads first"); the default otherwise.
+    prompt: existing?.prompt.trim() ? existing.prompt : RONDA_PROMPT,
+    target: { type: "dm", ronda: true } as Record<string, unknown>,
+    triggerType: "schedule",
+    phrase: null,
+    cron,
+    rule: null,
+    timezone,
+    description: SCHEDULE_WORDS[schedule],
+    event: null,
+    access: "act",
+    report: "when_new",
+    ownActions: [] as string[],
+    createdByUserId: actorId,
+    active: true,
+    pausedReason: null,
+    failuresInRow: 0,
+    nextRunAt: nextCronTime(cron, timezone, now),
+    updatedAt: now,
+  };
+  let routineId: string;
+  if (existing) {
+    await db.update(routines).set(fields).where(eq(routines.id, existing.id));
+    routineId = existing.id;
+  } else {
+    const [made] = await db
+      .insert(routines)
+      .values({ orgId, ...fields })
+      .returning({ id: routines.id });
+    if (!made) throw new Error("ronda routine insert returned nothing");
+    routineId = made.id;
+  }
+  await recordAudit(db, {
+    orgId,
+    actor: { type: "person", id: actorId },
+    action: existing ? "routine.updated" : "routine.created",
+    target: { type: "routine", id: routineId },
+    details: { agentId, ronda: schedule },
+  });
+  await publishListChanged(deps.pubsub, orgId, "routines");
+  await publishRoutineRuns(deps.pubsub, orgId, routineId).catch(() => {});
+  return getRonda(db, actorId, orgId, agentId);
+}
+
+/**
+ * Where this ronda's window starts (§2): when its last gate looked (`until` on that slot's event, written whether the
+ * slot ran or passed). Slots skipped before the gate (paused, the previous still running) looked at nothing.
+ */
+async function windowStart(db: Database, routineId: string, now: Date, currentRunId: string): Promise<Date> {
+  const [last] = await db
+    .select({ until: sql<string | null>`${routineRuns.event} ->> 'until'`, at: routineRuns.at })
+    .from(routineRuns)
+    .where(
+      and(
+        eq(routineRuns.routineId, routineId),
+        sql`${routineRuns.id} <> ${currentRunId}::uuid`,
+        sql`${routineRuns.event} ->> 'type' = ${RONDA_EVENT}`,
+      ),
+    )
+    .orderBy(desc(sql`${routineRuns.event} ->> 'until'`))
+    .limit(1);
+  const until = last?.until ? new Date(last.until) : null;
+  return until && !Number.isNaN(until.getTime()) ? until : new Date(now.getTime() - FIRST_WINDOW_MS);
+}
+
+/** The last thing a ronda told people (its record), for the judge not to spend a run on news already given. */
+async function lastRecord(db: Database, routineId: string): Promise<string> {
+  const [last] = await db
+    .select({ summary: routineRuns.summary })
+    .from(routineRuns)
+    .where(and(eq(routineRuns.routineId, routineId), inArray(routineRuns.status, ["reported", "silent"])))
+    .orderBy(desc(routineRuns.at))
+    .limit(1);
+  return last?.summary ?? "";
+}
+
+export type RondaGate = { skip: typeof RONDA_NOTHING | typeof RONDA_QUIET } | { event: Record<string, unknown> };
+
+/**
+ * The gate before a ronda's run (§2–§3), called as its slot fires: what changed, from stored data (no model); nothing
+ * → the slot passes (`ronda_nothing`). Something → the judge reads it with the agent's role and its last record and
+ * says whether it is worth a run; below `RONDA_WORTH_THRESHOLD` the slot passes (`ronda_quiet`). A person's "Run
+ * now" skips the judge, and runs even with nothing new: they asked. The judge failing or absent lets the run start:
+ * a ronda that saw changes should not go silent because a cheap call failed.
+ */
+export async function rondaGate(
+  deps: { db: Database; judge?: Judge | null; now?: Date },
+  input: {
+    routine: Pick<RoutineRow, "id" | "orgId" | "target">;
+    run: { id: string; trigger: string };
+    agent: { id: string; name: string; handle: string; role: string; instructions: string };
+    personId: string;
+  },
+): Promise<RondaGate> {
+  const now = deps.now ?? new Date();
+  const since = await windowStart(deps.db, input.routine.id, now, input.run.id);
+  const changes = await rondaChanges(deps.db, {
+    orgId: input.routine.orgId,
+    agentId: input.agent.id,
+    personId: input.personId,
+    since,
+    now,
+  });
+  const asked = input.run.trigger === "manual";
+  const quiet =
+    !asked &&
+    (changes.count === 0
+      ? RONDA_NOTHING
+      : deps.judge && !(await worthARun(deps.judge, input, changes, await lastRecord(deps.db, input.routine.id)))
+        ? RONDA_QUIET
+        : null);
+  // Kept on the slot either way: the run reads it, and the next ronda's window starts at `until`.
+  const event = rondaEvent(changes, since, now);
+  await deps.db.update(routineRuns).set({ event }).where(eq(routineRuns.id, input.run.id));
+  return quiet ? { skip: quiet } : { event };
+}
+
+/** The judge's read (§3): is there something here this agent should act on or bring to the person? */
+async function worthARun(
+  judge: Judge,
+  input: {
+    routine: Pick<RoutineRow, "orgId">;
+    agent: { id: string; name: string; handle: string; role: string; instructions: string };
+  },
+  changes: RondaChanges,
+  record: string,
+): Promise<boolean> {
+  try {
+    const answers = await judge.ask({
+      orgId: input.routine.orgId,
+      agentId: input.agent.id,
+      kind: "ronda_worth",
+      state: {
+        agent: {
+          name: input.agent.name,
+          handle: `@${input.agent.handle}`,
+          role: input.agent.role,
+          instructions: cutText(input.agent.instructions, 1500),
+        },
+        changes: cutText(changes.text, 6000),
+        last_ronda_record: cutText(record, 1500),
+      },
+      questions: {
+        worth: {
+          type: "noul",
+          instructions:
+            "`agent` makes rounds of its workspace on its own, as an owner would, with nobody asking. `changes` is what happened since its last round. Is there something in `changes` that this agent, given its role and instructions, should act on now or bring to the person's attention (something broke or failed, work is stuck or late, a decision waits too long, a request or an opportunity in the conversations that fits its role)? `last_ronda_record` is what it already found or reported last time: the same thing again is not new.",
+          criteria: {
+            true: "Something fits this agent's role and deserves action or the person's attention now: a failure to look into, stuck or late work it can move, a decision waiting too long, a request, a problem or an opportunity in the conversations that is its business.",
+            false:
+              "Routine noise or someone else's business: chatter, thanks, work moving normally, things done, matters outside its role, or only what its last round already handled.",
+          },
+        },
+      },
+    });
+    return (answers.worth?.noul ?? 1) >= RONDA_WORTH_THRESHOLD;
+  } catch {
+    return true;
+  }
+}
+
+/** Whether a routine row is a ronda (its target marked, ADR 9004 §1). */
+export const isRonda = (row: { target: unknown }) => isRondaTarget(row.target);
+
+export { isRondaTarget, RONDA_EVENT, rondaChanges };
