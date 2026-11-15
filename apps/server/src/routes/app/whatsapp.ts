@@ -19,6 +19,7 @@ import {
   typingInWhatsAppChat,
   updateWhatsAppAccount,
   WHATSAPP_AGENT_STYLE_BOUNDS,
+  WHATSAPP_BRAIN_KINDS,
   WHATSAPP_INSTRUCTIONS_MAX,
   WHATSAPP_LABEL_MAX,
   WHATSAPP_PAGE_MAX,
@@ -704,7 +705,7 @@ export function whatsappRoutes(deps: AppDeps) {
           z.object({
             brain: z
               .object({
-                brain: z.enum(["model", "claude_code", "codex"]).optional(),
+                brain: z.enum(WHATSAPP_BRAIN_KINDS).optional(),
                 model: z.string().max(80).nullable().optional(),
                 account: z.uuid().nullable().optional(),
                 effort: z.string().max(10).nullable().optional(),

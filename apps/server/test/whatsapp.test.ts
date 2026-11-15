@@ -267,6 +267,21 @@ describe("WhatsApp over HTTP", () => {
     expect((await t.app.request(`${url.pathname}?e=${url.searchParams.get("e")}&s=bad`)).status).toBe(404);
   });
 
+  test("the number's own AI takes every kind WhatsApp answers with, Gemini too, and no other", async () => {
+    const { agentId, api } = await start();
+    const account = (await (await api("/accounts", { json: { label: "Comercial" } })).json()) as Account;
+    await api(`/accounts/${account.id}`, { method: "PATCH", json: { agentId } });
+    const put = (brain: string) =>
+      api(`/accounts/${account.id}/brain`, { method: "PUT", json: { brain: { brain, model: null } } });
+    // Past the request's shape to the rules: this agent has no computer for a plan.
+    const gemini = await put("antigravity");
+    expect([gemini.status, ((await gemini.json()) as { error: { code: string } }).error.code]).toEqual([
+      409,
+      "brain.no_computer",
+    ]);
+    expect((await put("grok")).status).toBe(400);
+  });
+
   test("a number's agent, turned on, answers who writes; turned off in the conversation it stops", async () => {
     const { agentId, api, post, secret, gateway } = await start(createFakeWhatsAppGateway(), () => ({
       chunks: [JSON.stringify({ action: "reply", messages: ["Bom dia! Como posso ajudar?"], note: "" })],

@@ -197,7 +197,17 @@ export async function setWhatsAppBrain(
         : changed
           ? null
           : current.model;
-    const account = asked.account !== undefined ? asked.account : changed ? null : current.account;
+    let account = asked.account !== undefined ? asked.account : changed ? null : current.account;
+    // Gemini thinks only with an account (never the computer's own sign-in): none chosen, the agent's first one.
+    if (kind === "antigravity" && account === null) {
+      const gemini =
+        base.accounts.find((a) => a.kind === "antigravity" && a.status === "active") ??
+        base.accounts.find((a) => a.kind === "antigravity");
+      if (!gemini) {
+        throw new ValidationError("Connect a Gemini account for the agent first", "account.invalid");
+      }
+      account = gemini.id;
+    }
     if (account !== null) {
       const listed = base.accounts.find((a) => a.id === account);
       if (typeof account !== "string" || !listed || listed.kind !== kind) {
