@@ -47,6 +47,8 @@ export interface WhatsAppMessage {
   text: string;
   /** The message this one answers, by WhatsApp's id. */
   replyTo: string | null;
+  /** Who the message mentions with an @, by address (number or hidden id). Absent: none. */
+  mentions?: WhatsAppJid[];
   /** A file's type and name, when it is one. */
   media: { mimeType: string; fileName: string | null; seconds: number | null } | null;
   /**
@@ -407,16 +409,24 @@ export function whatsappFileMessage(raw: unknown): Record<string, unknown> | nul
 }
 
 /** What kind of message it is, its words and the id of the one it answers. */
-function contentOf(message: Record<string, unknown>): Pick<WhatsAppMessage, "kind" | "text" | "replyTo" | "media"> {
+function contentOf(
+  message: Record<string, unknown>,
+): Pick<WhatsAppMessage, "kind" | "text" | "replyTo" | "media" | "mentions"> {
   const body = unwrap(message);
   const reply = (part: unknown) => str(rec(rec(part).contextInfo).stanzaID) || null;
+  // The people an @ names, as WhatsApp lists them beside the words (`contextInfo.mentionedJID`).
+  const mentioned = (part: unknown) => {
+    const list = rec(rec(part).contextInfo).mentionedJID;
+    const jids = (Array.isArray(list) ? list : []).map((jid) => bareJid(str(jid))).filter(Boolean);
+    return jids.length > 0 ? { mentions: jids } : {};
+  };
 
   if (typeof body.conversation === "string" && body.conversation) {
     return { kind: "text", text: body.conversation, replyTo: null, media: null };
   }
   if (body.extendedTextMessage !== undefined) {
     const part = rec(body.extendedTextMessage);
-    return { kind: "text", text: str(part.text), replyTo: reply(part), media: null };
+    return { kind: "text", text: str(part.text), replyTo: reply(part), media: null, ...mentioned(part) };
   }
   for (const [field, kind] of MEDIA_FIELDS) {
     if (body[field] === undefined) continue;
@@ -425,6 +435,7 @@ function contentOf(message: Record<string, unknown>): Pick<WhatsAppMessage, "kin
       kind,
       text: str(part.caption),
       replyTo: reply(part),
+      ...mentioned(part),
       media: {
         mimeType: str(part.mimetype) || "application/octet-stream",
         fileName: str(part.fileName) || null,

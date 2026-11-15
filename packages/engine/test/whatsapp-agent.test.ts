@@ -225,7 +225,7 @@ describe("how it talks on a number", () => {
 });
 
 describe("staying quiet", () => {
-  test("no job for a group, for a number whose agent is off, or for a message WhatsApp kept from long ago", async () => {
+  test("no job for a group nobody called, for a number whose agent is off, or for a message kept from long ago", async () => {
     f = await setup();
     const { deps, account, hears } = await answering();
     expect(await hears("alguém?", { Chat: "120363041234567890@g.us" })).toBeNull();
@@ -287,6 +287,85 @@ describe("staying quiet", () => {
     const job = await hears("e aí?");
     if (!job) throw new Error("no job queued");
     expect(await answerWhatsAppChat(deps, job)).toBe("not_on");
+  });
+});
+
+describe("in a group", () => {
+  const GROUP = "120363041234567890@g.us";
+  const BRUNO = "5511988887777@s.whatsapp.net";
+  const inGroup = (over: Record<string, unknown> = {}) => ({ Chat: GROUP, Sender: ANA, ...over });
+  const session = async (chatId: string) => {
+    const [row] = await f.db
+      .select({ until: schema.whatsappChats.agentSessionUntil })
+      .from(schema.whatsappChats)
+      .where(eq(schema.whatsappChats.id, chatId));
+    return row?.until ?? null;
+  };
+
+  test("called by name it joins, stays in the talk without another call, and leaves after 30 quiet minutes", async () => {
+    f = await setup({ reply: answerOf({ messages: ["fechou, já vejo"] }) });
+    const { gateway, deps, hears } = await answering();
+    expect(await hears("bom dia, pessoal", inGroup())).toBeNull();
+
+    const called = await hears(`${f.agent.name}, o vídeo sai hoje?`, inGroup());
+    if (!called) throw new Error("no job queued");
+    const until = (await session(called.chatId))?.getTime() ?? 0;
+    expect(until).toBeGreaterThan(Date.now() + 29 * 60_000);
+    expect(await answerWhatsAppChat(deps, called)).toBe("reply");
+    expect(gateway.calls.filter((c) => c.op === "send").map((c) => [c.to, c.text])).toEqual([
+      [GROUP, "fechou, já vejo"],
+    ]);
+    const request = f.provider.calls.at(-1)?.request;
+    expect(String(request?.system)).toContain("WhatsApp group");
+    const prompt = String(request?.messages[0]?.content);
+    expect(prompt).toContain("Ana: bom dia, pessoal");
+    expect(prompt).toContain("Answer what was said to you");
+
+    // Still in the conversation: the next message needs no call.
+    const next = await hears("e a legenda em inglês?", inGroup({ Sender: BRUNO, PushName: "Bruno" }));
+    expect(next).not.toBeNull();
+
+    // Thirty quiet minutes later it waits to be called again.
+    await f.db
+      .update(schema.whatsappChats)
+      .set({ agentSessionUntil: new Date(Date.now() - 60_000) })
+      .where(eq(schema.whatsappChats.id, called.chatId));
+    if (next) expect(await answerWhatsAppChat(deps, next)).toBe("not_on");
+    expect(await hears("alguém viu o arquivo?", inGroup())).toBeNull();
+  });
+
+  test("an @ to the number, or a reply to its message, also calls it", async () => {
+    f = await setup({ reply: answerOf({ messages: ["peguei"] }) });
+    const { deps, hears } = await answering();
+    const mention = await hears("", inGroup(), {
+      extendedTextMessage: {
+        text: "@5511911112222 consegue ver?",
+        contextInfo: { mentionedJID: ["5511911112222@s.whatsapp.net"] },
+      },
+    });
+    if (!mention) throw new Error("no job for the mention");
+    expect(await answerWhatsAppChat(deps, mention)).toBe("reply");
+    const [ours] = await f.db
+      .select({ waId: schema.whatsappMessages.waId })
+      .from(schema.whatsappMessages)
+      .where(eq(schema.whatsappMessages.fromMe, true));
+    await f.db
+      .update(schema.whatsappChats)
+      .set({ agentSessionUntil: null })
+      .where(eq(schema.whatsappChats.id, mention.chatId));
+    expect(await hears("nada a ver", inGroup())).toBeNull();
+    const reply = await hears("", inGroup(), {
+      extendedTextMessage: { text: "valeu, e o outro?", contextInfo: { stanzaID: ours?.waId } },
+    });
+    expect(reply).not.toBeNull();
+  });
+
+  test("a word that only contains the name doesn't call it", async () => {
+    f = await setup();
+    const { hears } = await answering();
+    await f.db.update(schema.agents).set({ name: "Doug" }).where(eq(schema.agents.id, f.agent.id));
+    expect(await hears("comprei um doughnut", inGroup())).toBeNull();
+    expect(await hears("DÓUG tá aí?", inGroup())).not.toBeNull();
   });
 });
 
