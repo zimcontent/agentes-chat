@@ -372,7 +372,7 @@ export interface MoveInput {
   say?: string;
   nextUpdateMin?: number;
   plan?: WorkPlanItem[] | null;
-  /** `true`: a card on the board; a number: that issue. */
+  /** A number: link that issue as the card. Any other value is ignored: every named work gets a card (§4). */
   card?: boolean | number;
   description?: string;
 }
@@ -480,14 +480,14 @@ export async function moveToBackground(
   if (!moved) return null;
   localMoves.add(runId);
   const { work, anchor, run, home } = moved;
-  // A card for substantial work, or the issue the run already works on (§4).
-  if (input.card !== undefined && input.card !== false) {
+  // Every work is a task from its first minute (ADR 0121 addendum 2026-11-15): the issue it names or the run already
+  // works on, else a new card. An unnamed work (its model failed at the move) waits for a name at its check-ins, so a
+  // failed naming isn't asked again here.
+  if (work.title || typeof input.card === "number" || run.issueId) {
     await ensureWorkCard(deps, work.id, {
       number: typeof input.card === "number" ? input.card : undefined,
       description: input.description,
     }).catch(() => null);
-  } else if (run.issueId) {
-    await ensureWorkCard(deps, work.id, {}).catch(() => null);
   }
   if (deps.pubsub) {
     // The conversation drops the run's live bubble ("background" marks the run) and draws the anchor with its line.

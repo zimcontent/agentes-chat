@@ -75,7 +75,7 @@ export async function workMayStart(ctx: ToolContext) {
 export function createWorkToolSource(deps: { pubsub?: PubSub }): ToolSource {
   const move: ToolDefinition = {
     name: WORK_IN_BACKGROUND_TOOL,
-    description: `Move what you are doing to the background, so this conversation is free again and the people can ask you other things meanwhile. Use it first for anything that takes more than ~2 minutes or several rounds of tools; never for a quick answer. \`say\`: one short line in their language that you're on it, without a time: the line under it shows when the next update comes, and when it finished. \`title\`: a few words naming the work. \`card\`: true when it is substantial (likely over ~15 min, a plan of 3 or more steps, or a deliverable someone will look at: a pull request, a document, a report, a migration, a data import): it goes on the Tasks board; \`card_issue\` links an issue you already have instead. Then keep working: post progress with ${POST_UPDATE_TOOL}, and your final message is your report.`,
+    description: `Move what you are doing to the background, so this conversation is free again and the people can ask you other things meanwhile. Use it first for anything that takes more than ~2 minutes or several rounds of tools; never for a quick answer. \`say\`: one short line in their language that you're on it, without a time: the line under it shows when the next update comes, and when it finished. \`title\`: a few words naming the work. It goes on the Tasks board as a card under that title, in progress while you work and done when you finish; \`card_issue\` links an issue you already have instead of a new card, and \`description\` is what the card says. Then keep working: post progress with ${POST_UPDATE_TOOL}, and your final message is your report.`,
     scope: "",
     inputSchema: {
       type: "object",
@@ -84,9 +84,10 @@ export function createWorkToolSource(deps: { pubsub?: PubSub }): ToolSource {
         say: { type: "string", minLength: 1, maxLength: WORK_LIMITS.sayMax },
         next_update_minutes: { type: "integer", minimum: WORK_LIMITS.nextMin, maximum: WORK_LIMITS.nextMax },
         plan: planSchema,
+        // Every work gets a card now; kept so a call that still sends it isn't refused.
         card: { type: "boolean" },
         card_issue: { type: "integer", minimum: 1 },
-        description: { type: "string", maxLength: 4000, description: "What the card says, when there is a card." },
+        description: { type: "string", maxLength: 4000, description: "What the card says." },
       },
       required: ["title", "say"],
       additionalProperties: false,
@@ -109,7 +110,7 @@ export function createWorkToolSource(deps: { pubsub?: PubSub }): ToolSource {
         say: str(input.say),
         nextUpdateMin: next,
         plan: cleanPlan(input.plan),
-        ...(cardIssue !== undefined ? { card: cardIssue } : input.card === true ? { card: true } : {}),
+        ...(cardIssue !== undefined ? { card: cardIssue } : {}),
         ...(typeof input.description === "string" ? { description: input.description } : {}),
       });
       if (!moved) return refused("This run already moved or ended.");

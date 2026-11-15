@@ -146,3 +146,12 @@ A reply turn passed a person's next step on to a work ("then post the summary in
 A work that asked other agents something and ended its turn reported home with the answers still out. Each answer then woke the agent where the ended run pointed: the anchor's thread. The result the person was waiting for (the files, the summary) landed under the anchor, after the report, where nobody looks once the work says it ended; in the conversation the agent later spoke of things the person had never seen.
 
 A notice for a run whose work ended and had its own thread (`deliverNoticeToRun`, `workHome` in `run-resume.ts`) is now written where the work reported: its channel and `home_thread_id`. The run it wakes is triggered there, so it answers in the conversation. While the work is on, a notice still lands in its thread; a work asked inside a thread keeps that thread, as before.
+
+## Addendum 2026-11-15: every work is a task from its first minute
+
+§4's card waited for the agent's `card: true`, an issue the run already worked on, or 15 minutes of work. People who asked for something in a conversation expected it on the Tasks board at once, in Em andamento while it runs and in Feito when it ends, and found nothing there for the first quarter of an hour of most works.
+
+- **A card at the move** for every named work (`moveToBackground` → `ensureWorkCard`), whoever moved it: the agent or the safety net. `card_issue` still links an issue instead, and the issue the run already works on is still reused.
+- **An unnamed work** (the cheap model couldn't name it) still waits for a name: its check-ins and the 15-minute `card` check name it and make the card, so a failed naming isn't asked again at the move.
+- **`card`** no longer decides anything: the tool keeps it in its schema so a call that still sends it isn't refused, and its description says every work goes on the board.
+- Tests: `works.test.ts` ("every named work is a task from its move").

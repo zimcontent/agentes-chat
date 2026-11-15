@@ -694,6 +694,24 @@ test("cards: none for a quick run nor a short auto work; card: true makes one; a
   });
 });
 
+test("every named work is a task from its move, in progress, without the agent asking for a card", async () => {
+  f = await setup();
+  const run = await working("@dev ajusta a trilha do vídeo");
+  const { work } = await moved(run, { title: "Ajustes da V5" });
+  const [w] = await f.db.select().from(schema.agentWorks).where(eq(schema.agentWorks.id, work.id));
+  const [card] = await f.db
+    .select()
+    .from(schema.issues)
+    .where(eq(schema.issues.id, w?.issueId ?? ""));
+  expect(card).toMatchObject({ title: "Ajustes da V5", status: "in_progress", channelId: f.general.id });
+  // An automatic move named by the conversation gets one too.
+  const auto = await working("@dev confere o build");
+  const out = await moveToBackground(deps(), auto.id, { how: "auto", title: "Conferir o build" });
+  expect(out?.work.title).toBe("Conferir o build");
+  const titles = (await listIssues(f.db, { type: "person", userId: f.owner.id }, f.org.id)).map((i) => i.title);
+  expect(titles.sort()).toEqual(["Ajustes da V5", "Conferir o build"]);
+});
+
 test("a work 15 minutes old gets its card at its check-in", async () => {
   f = await setup();
   const run = await working("@dev roda a migração");
