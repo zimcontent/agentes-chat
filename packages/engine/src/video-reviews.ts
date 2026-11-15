@@ -725,8 +725,8 @@ export function decisionMessage(input: {
   lines.push(
     "",
     input.decision === "approve"
-      ? "Antes de entregar: grave na sua skill e na sua memória o que funcionou neste vídeo."
-      : "Antes da próxima versão: grave na sua skill e na sua memória o que destas notas vale para os próximos vídeos.",
+      ? "Antes de entregar: rode a skill self-improve-skill (se você tiver) e grave na sua skill e na sua memória o que funcionou neste vídeo."
+      : "Antes da próxima versão: rode a skill self-improve-skill (se você tiver) e grave na sua skill e na sua memória o que destas notas vale para os próximos vídeos.",
   );
   if (input.notes.length > 0) {
     lines.push("", "Notas:");
