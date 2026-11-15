@@ -1,6 +1,7 @@
 {
   "app": {
     "pt-BR": [
+      "mediaGen.secondsValue",
       "usageViews.logins",
       "chat.wait.said",
       "access.area.skills",
@@ -331,6 +332,7 @@
       "portal.home.viewList"
     ],
     "es": [
+      "mediaGen.video",
       "devices.iphone.path.general",
       "devices.cpus",
       "devices.memory",
@@ -614,6 +616,7 @@
       "look.shapes.monitor"
     ],
     "fr": [
+      "mediaGen.image",
       "channel.tooLong.fileName",
       "calendar.moreRuns",
       "devices.cpus",
@@ -1079,6 +1082,7 @@
       "portal.home.clients"
     ],
     "de": [
+      "mediaGen.video",
       "devices.iphone.steps.account",
       "devices.workspace",
       "devices.cpus",
@@ -1571,6 +1575,9 @@
       "look.shapes.monitor"
     ],
     "it": [
+      "mediaGen.title",
+      "mediaGen.video",
+      "shell.media",
       "shell.email.label",
       "calendar.moreRuns",
       "devices.iphone.steps.account",
@@ -1975,6 +1982,11 @@
       "look.shapes.monitor"
     ],
     "nl": [
+      "mediaGen.title",
+      "mediaGen.video",
+      "mediaGen.model",
+      "shell.media",
+      "mediaGen.credits",
       "calendar.moreRuns",
       "devices.iphone.steps.account",
       "devices.filter.computers",
@@ -3191,6 +3203,10 @@
       "portal.home.viewList"
     ],
     "id": [
+      "mediaGen.title",
+      "mediaGen.video",
+      "mediaGen.model",
+      "shell.media",
       "shell.email.label",
       "devices.cpus",
       "devices.memory",
@@ -3529,6 +3545,8 @@
       "look.shapes.monitor"
     ],
     "tr": [
+      "mediaGen.video",
+      "mediaGen.model",
       "devices.cpus",
       "devices.memory",
       "devices.system.android",
@@ -3748,6 +3766,9 @@
       "portal.home.viewList"
     ],
     "pl": [
+      "mediaGen.title",
+      "mediaGen.model",
+      "shell.media",
       "devices.cpus",
       "devices.memory",
       "devices.system.android",

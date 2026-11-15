@@ -50,6 +50,7 @@ import { liveVoiceRoutes } from "./routes/app/live-voice";
 import { machineAccountRoutes } from "./routes/app/machine-accounts";
 import { mailRoutes } from "./routes/app/mail";
 import { managementRoutes } from "./routes/app/management";
+import { mediaRoutes } from "./routes/app/media";
 import { memoryRoutes } from "./routes/app/memory";
 import { missionRoutes } from "./routes/app/missions";
 import { notificationRoutes } from "./routes/app/notifications";
@@ -189,6 +190,7 @@ export function createApp(options: AppOptions) {
     api.route("/app", chatRoutes(deps));
     api.route("/app", gifRoutes(deps));
     api.route("/app", portalRoutes(deps));
+    api.route("/app", mediaRoutes(deps));
     api.route("/app", actionRoutes(deps));
     api.route("/app", channelRoutes(deps));
     api.route("/app", approvalRoutes(deps));

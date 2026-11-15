@@ -4,7 +4,7 @@ import { WORKSPACE_TOOLS, type WorkspaceTool } from "@agenteschat/client/lib/sid
 import { Card, CardHeader, Icon, Switch } from "@agenteschat/ui";
 import { useTranslation } from "react-i18next";
 import { useOrg } from "./org-context";
-import { SIDEBAR_TOOLS, usePortalOn } from "./SidebarSetup";
+import { SIDEBAR_TOOLS, useMediaOn, usePortalOn } from "./SidebarSetup";
 import { useReviewWords } from "./video-review/words";
 import { WhatsAppMark } from "./whatsapp/WhatsAppMark";
 
@@ -37,6 +37,7 @@ export function WorkspaceToolsCard() {
   const update = useUpdateSettings(org.id);
   const editable = can(org, "configure");
   const portal = usePortalOn();
+  const media = useMediaOn();
   const whatsapp = useWhatsApp(org.id).data?.on === true;
   const review = useReviewWords();
   const hidden =
@@ -45,7 +46,7 @@ export function WorkspaceToolsCard() {
     org.hiddenTools ??
     [];
   const tools = WORKSPACE_TOOLS.filter(
-    (id) => (id !== "portal" || portal) && (id !== "whatsapp" || whatsapp),
+    (id) => (id !== "portal" || portal) && (id !== "media" || media) && (id !== "whatsapp" || whatsapp),
   ) as WorkspaceTool[];
   const label = (id: WorkspaceTool) =>
     id === "whatsapp" ? "WhatsApp" : id === "review" ? review.title : t(`shell.${id}`);

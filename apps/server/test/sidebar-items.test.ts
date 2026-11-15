@@ -238,6 +238,7 @@ test("the tools' order: each person's own, per workspace, every tool once, besid
     "drive",
     "waiting",
     "portal",
+    "media",
     "approvals",
     "proposals",
     "threads",

@@ -170,6 +170,8 @@ export interface AuthConfig {
   mobileErrorReports?: ErrorReportsConfig | null;
   /** The server has an approval portal (ADR 9001): the apps show Portal; absent or false: none. */
   approvalPortal?: boolean;
+  /** The server generates images and videos from a credit wallet (ADR doug-0011): the apps show Mídia. */
+  zimMedia?: boolean;
 }
 
 export interface ErrorReportsConfig {
@@ -849,6 +851,10 @@ export interface Agent {
    * workspace allows. Absent: on (the default).
    */
   mediaReplies?: boolean;
+  /** Credits its media generation may spend a month (ADR doug-0011); absent from a server without it. */
+  mediaMonthlyCredits?: number;
+  /** A generation above this many credits waits for approval; null: never asks. */
+  mediaAskAbove?: number | null;
   /** Its voice on calls and when it tells a message (ADR doug-0006); absent from a server without live voice. */
   voice?: string;
   /** A person picked its voice (else it is the one its id gives). */
@@ -1054,6 +1060,9 @@ export interface AgentInput {
   proposal?: string;
   /** Its stickers and GIFs after a light reply (ADR 0091); same permission as editing the agent. */
   mediaReplies?: boolean;
+  /** Media generation's monthly credits and approval threshold (ADR doug-0011); who manages agents. */
+  mediaMonthlyCredits?: number;
+  mediaAskAbove?: number | null;
   /** Its voice (ADR doug-0006); null: the one its id gives. Its owner or an admin. */
   voice?: string | null;
   /** How it behaves on voice calls (doug-0006 §11); null clears. Its owner or an admin. */
@@ -7124,6 +7133,7 @@ export interface NoticePrefs {
 export type SidebarItem =
   | "waiting"
   | "portal"
+  | "media"
   | "approvals"
   | "proposals"
   | "threads"

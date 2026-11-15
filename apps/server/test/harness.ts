@@ -24,6 +24,7 @@ import {
   TURNSTILE_SCRIPT_URL,
   type WebPushSender,
   type WhatsAppGateway,
+  type ZimMedia,
 } from "@agenteschat/adapters";
 import { testConfig } from "@agenteschat/config";
 import { eq, isNotNull, like, rowsOf, schema, sql, tracingLogger } from "@agenteschat/db";
@@ -111,6 +112,8 @@ export async function createTestServer(
     errors?: ErrorReporter;
     /** The approval portal (ADR 9001); absent or null = none, as without its bridge. */
     approvalPortal?: ApprovalPortal | null;
+    /** The Zim Mídia service (ADR doug-0011); absent = no media generation. */
+    zimMedia?: ZimMedia | null;
     /** GIF search (ADR 0091); absent = the fake provider (`createFakeGifs`), null = none, as without its key. */
     gifs?: GifProvider | null;
     /**
@@ -177,6 +180,7 @@ export async function createTestServer(
     gifs,
     whatsapp: options.whatsapp ?? null,
     approvalPortal: options.approvalPortal ?? null,
+    zimMedia: options.zimMedia ?? null,
   };
   const provider = createFakeProvider(options.reply);
   const embeddings = createFakeEmbeddings();

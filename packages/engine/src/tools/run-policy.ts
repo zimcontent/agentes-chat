@@ -91,7 +91,8 @@ export type InternalArea =
   | "desktop"
   | "dashboards"
   | "vault"
-  | "skills";
+  | "skills"
+  | "media";
 
 /** How much an agent asks before acting (`agents.approvals_level`, ADR 0173). */
 export const APPROVALS_LEVELS = ["always", "risky", "never"] as const;
@@ -283,6 +284,10 @@ const INTERNAL_BY_NAME: Readonly<Record<string, InternalArea>> = {
   create_dashboard: "dashboards",
   create_widget: "dashboards",
   share_dashboard: "dashboards",
+  // Images and videos paid from the workspace's wallet (ADR doug-0011): the agent's monthly cap and its approval
+  // threshold are the brakes, so a routine may make them like any Drive file.
+  generate_image: "media",
+  generate_video: "media",
 };
 
 /** Built-in scopes of internal changes (`issues:write` → issues…). */

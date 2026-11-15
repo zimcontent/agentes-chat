@@ -380,6 +380,10 @@ export function accountRoutes(deps: AppDeps) {
               description:
                 "This server has an approval portal (APPROVAL_PORTAL_URL, ADR 9001): the apps show the Portal page.",
             }),
+            zimMedia: z.boolean().openapi({
+              description:
+                "This server generates images and videos from a credit wallet (ZIM_MEDIA_URL, ADR doug-0011): the apps show the Mídia page.",
+            }),
             billingUrl: z.string().nullable().openapi({
               description:
                 "The billing service (BILLING_URL, ADR 0079): owners and admins open a workspace's plan and billing there through `POST …/billing-link`. Null: no billing.",
@@ -426,6 +430,7 @@ export function accountRoutes(deps: AppDeps) {
           workspaceComputer: config.MACHINE_PROVISIONING === "external",
           billingUrl: config.BILLING_URL ?? null,
           approvalPortal: Boolean(deps.adapters.approvalPortal),
+          zimMedia: Boolean(deps.adapters.zimMedia),
           cloud: isAgentesCloud(config.PUBLIC_URL),
           turnstileSiteKey: deps.adapters.humanCheck?.siteKey ?? null,
           errorReports: reportsTo(config.SENTRY_WEB_DSN),

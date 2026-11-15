@@ -299,6 +299,30 @@ export const EXTRA_COLUMNS = [
   `ALTER TABLE "video_review_versions" ADD COLUMN IF NOT EXISTS "source_artifact_id" uuid`,
   `ALTER TABLE "video_review_versions" ADD COLUMN IF NOT EXISTS "edited_by" text`,
   `ALTER TABLE "video_review_notes" ADD COLUMN IF NOT EXISTS "page" integer`,
+  // Media generation paid in credits (ADR doug-0011, `schema/media.ts`).
+  `ALTER TABLE "agents" ADD COLUMN IF NOT EXISTS "media_monthly_credits" integer NOT NULL DEFAULT 5000`,
+  `ALTER TABLE "agents" ADD COLUMN IF NOT EXISTS "media_ask_above" integer DEFAULT 500`,
+  `CREATE TABLE IF NOT EXISTS "media_generations" (
+    "id" uuid PRIMARY KEY,
+    "org_id" uuid NOT NULL REFERENCES "organizations"("id") ON DELETE CASCADE,
+    "kind" text NOT NULL,
+    "model" text NOT NULL,
+    "prompt" text NOT NULL,
+    "options" jsonb NOT NULL DEFAULT '{}'::jsonb,
+    "credits" integer NOT NULL,
+    "status" text NOT NULL DEFAULT 'running',
+    "error" text,
+    "user_id" text REFERENCES "users"("id") ON DELETE SET NULL,
+    "agent_id" uuid REFERENCES "agents"("id") ON DELETE SET NULL,
+    "run_id" uuid,
+    "channel_id" uuid,
+    "thread_id" uuid,
+    "artifact_id" uuid,
+    "created_at" timestamp with time zone NOT NULL DEFAULT now(),
+    "finished_at" timestamp with time zone
+  )`,
+  `CREATE INDEX IF NOT EXISTS "media_generations_org" ON "media_generations" ("org_id", "created_at")`,
+  `CREATE INDEX IF NOT EXISTS "media_generations_agent" ON "media_generations" ("agent_id", "created_at")`,
 ];
 
 /** The advisory lock every process takes around its migrations (`DatabaseHandle.migrate`). */

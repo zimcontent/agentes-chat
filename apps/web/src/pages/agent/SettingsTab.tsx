@@ -57,6 +57,7 @@ import { cleanHandle } from "@/lib/new-agent";
 import { AgentVoiceField } from "@/live-voice/LiveVoiceSettings";
 import { BrakesCard } from "./BrakesCard";
 import { CardHead, useAgentEdit, WasLine } from "./context";
+import { MediaAllowanceCard } from "./MediaAllowanceCard";
 import { ReadOnlyNote, useVisibleChannels } from "./pieces";
 
 const SECTION_ICON: Record<AgentSection, IconName> = {
@@ -357,6 +358,7 @@ export function SettingsTab({
           )}
 
           {part !== "basic" && <BrakesCard />}
+          {part !== "basic" && <MediaAllowanceCard />}
 
           {has("channels") && (
             <Section

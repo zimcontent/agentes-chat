@@ -63,6 +63,7 @@ import {
   createLlmJudge,
   createMachineHub,
   createMailToolSource,
+  createMediaGenerationToolSource,
   createMediaToolSource,
   createMissionHooks,
   createMissionRunToolSource,
@@ -110,6 +111,9 @@ import {
   type LiveVoiceDeps,
   type MailDeps,
   type McpConnect,
+  MEDIA_POLL_JOB,
+  type MediaDeps,
+  mediaPollHandler,
   messageRouter,
   missionTurnPermissions,
   notifyOwnerOnBudget,
@@ -324,6 +328,7 @@ export function buildEngine(o: EngineOptions) {
     resolveHost: o.resolveHost,
   };
   const artifacts: ArtifactDeps = { db, blobs: createBlobStoreResolver(storage), pubsub: adapters.pubsub };
+  const media: MediaDeps = { db, zimMedia: adapters.zimMedia ?? null, artifacts };
   // Videos agents send for the team's review (docs/adr/doug-0007-video-review.md); voice notes use the speech chain.
   const videoReviews: VideoReviewDeps = {
     db,
@@ -476,6 +481,8 @@ export function buildEngine(o: EngineOptions) {
       createArtifactToolSource(artifacts),
       // The approval portal's board and `send_for_approval` (ADR 9001): listed only with a portal.
       createPortalToolSource({ portal: adapters.approvalPortal ?? null, artifacts }),
+      // Images and videos paid from the workspace's wallet (ADR doug-0011): listed only with the Zim Mídia service.
+      createMediaGenerationToolSource(media),
       // A video an agent edited, sent for the team's review (docs/adr/doug-0007-video-review.md).
       createVideoReviewToolSource(videoReviews),
       createDesignReviewToolSource(videoReviews),
@@ -935,6 +942,7 @@ export function buildEngine(o: EngineOptions) {
     },
   };
   const handlers = createJobHandlers(jobDeps);
+  handlers[MEDIA_POLL_JOB] = mediaPollHandler(media);
   // A failing block of one of the right hand's lanes is left out of its prompt: it shows here.
   reportLodiLaneErrors((lane, error) => {
     o.log?.warn("right hand lane failed", { lane, error: String(error) });
@@ -960,6 +968,8 @@ export function buildEngine(o: EngineOptions) {
     connectorDeps,
     storage,
     artifacts,
+    /** Media generation from the workspace's wallet (ADR doug-0011), for its routes. */
+    media,
     sandbox,
     /** The Vault (ADR 0144), for its routes. */
     vault,

@@ -73,6 +73,9 @@ export function loadConfig(env: Record<string, string | undefined> = process.env
   if (Boolean(config.APPROVAL_PORTAL_URL) !== Boolean(config.APPROVAL_PORTAL_TOKEN)) {
     throw new ConfigError(["APPROVAL_PORTAL_URL and APPROVAL_PORTAL_TOKEN go together: set both or neither"]);
   }
+  if (Boolean(config.ZIM_MEDIA_URL) !== Boolean(config.ZIM_MEDIA_SECRET)) {
+    throw new ConfigError(["ZIM_MEDIA_URL and ZIM_MEDIA_SECRET go together: set both or neither"]);
+  }
   if (Boolean(config.BILLING_URL) !== Boolean(config.BILLING_LINK_SECRET)) {
     throw new ConfigError(["BILLING_URL and BILLING_LINK_SECRET go together: set both or neither"]);
   }

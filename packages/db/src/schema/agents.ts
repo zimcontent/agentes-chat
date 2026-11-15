@@ -243,6 +243,13 @@ export const agents = pgTable(
      */
     mediaReplies: boolean().notNull().default(true),
     /**
+     * Media generation paid from the workspace's wallet (ADR doug-0011): the most credits its own `generate_image` and
+     * `generate_video` may spend in a UTC calendar month (0: it can't generate), and the price of one generation from
+     * which a person approves it first (null: never asks). Created by `EXTRA_COLUMNS`.
+     */
+    mediaMonthlyCredits: integer().notNull().default(5000),
+    mediaAskAbove: integer().default(500),
+    /**
      * Its voice on calls and when it tells a message (ADR doug-0006): one of `LIVE_VOICES`. Null: one picked from its id
      * (`liveVoiceFor`). Created by `EXTRA_COLUMNS`.
      */

@@ -47,6 +47,7 @@ import { sectionName, useSectionOrder } from "./SidebarOrder";
 export const SIDEBAR_TOOLS = {
   waiting: { to: "/org/$orgId/waiting", icon: "question" },
   portal: { to: "/org/$orgId/portal", icon: "approve" },
+  media: { to: "/org/$orgId/media", icon: "image" },
   approvals: { to: "/org/$orgId/approvals", icon: "waiting" },
   proposals: { to: "/org/$orgId/proposals", icon: "bulb" },
   threads: { to: "/org/$orgId/threads", icon: "thread" },
@@ -62,6 +63,8 @@ export const SIDEBAR_TOOLS = {
 
 /** Whether the server's approval portal is this workspace's (ADR 9001 §18): Portal is a tool only there. */
 export const usePortalOn = () => portalHere(useOrgIfAny()?.org, useAuthConfig().data?.approvalPortal);
+/** Whether the server generates images and videos from a credit wallet (ADR doug-0011): Mídia is a tool only there. */
+export const useMediaOn = () => useAuthConfig().data?.zimMedia === true;
 /** The workspace's tools an admin took out of the sidebar for everyone (Settings › General). */
 export const useHiddenTools = (): readonly string[] => useOrgIfAny()?.org.hiddenTools ?? [];
 /**
@@ -73,7 +76,11 @@ export const toolsHere = <T extends SidebarItem>(
   ids: readonly T[],
   portal: boolean,
   hidden: readonly string[] = [],
-): T[] => ids.filter((id) => id !== "approvals" && (portal || id !== "portal") && !hidden.includes(id));
+  media = false,
+): T[] =>
+  ids.filter(
+    (id) => id !== "approvals" && (portal || id !== "portal") && (media || id !== "media") && !hidden.includes(id),
+  );
 
 /**
  * The person's order of the tools in this workspace (`…/me/sidebar/tools`), saved as `null` when it is the default of
@@ -206,7 +213,7 @@ export function SidebarSetupDialog({ open, onClose }: { open: boolean; onClose: 
   const save = useSetSidebarItem(org.id, personal);
   const sections = useSectionOrder(org.id, personal);
   const tools = useToolOrder(org.id, personal);
-  const shown = toolsHere(tools.order, usePortalOn(), useHiddenTools());
+  const shown = toolsHere(tools.order, usePortalOn(), useHiddenTools(), useMediaOn());
   // What another device changed since this one loaded shows as the dialog opens.
   useEffect(() => {
     if (open) void refetch();
