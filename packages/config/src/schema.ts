@@ -542,6 +542,20 @@ export const envVars = {
     section: "Connectors",
     secret: true,
   },
+  ZIM_MEDIA_URL: {
+    schema: z.url({ protocol: /^https?$/ }).optional(),
+    description:
+      "Address of the Zim Mídia service, optional: image and video generation (Seedance, Kling, Veo, Nano Banana, GPT Image, Muse and others) paid from a credit wallet per workspace, topped up with Mercado Pago. With it and `ZIM_MEDIA_SECRET`, the workspace gets the Mídia page and agents get `generate_image` and `generate_video`. The provider keys and the wallet stay in that service; only this server calls it. Unset (default): no media generation anywhere.",
+    section: "Connectors",
+    example: "https://mydoug.io/midia",
+  },
+  ZIM_MEDIA_SECRET: {
+    schema: z.string().min(32, "must be at least 32 characters").optional(),
+    description:
+      "The secret this server signs its Zim Mídia calls with (HMAC, client `dougbot`). Goes with `ZIM_MEDIA_URL`; it never leaves this server.",
+    section: "Connectors",
+    secret: true,
+  },
   GIPHY_API_KEY: {
     schema: z.string().optional(),
     description:

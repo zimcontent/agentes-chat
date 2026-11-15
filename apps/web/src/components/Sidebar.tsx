@@ -179,7 +179,15 @@ import { useOrg } from "./org-context";
 import { StatusLine } from "./Presence";
 import { ChannelPhoto, MyFace, OrgMark } from "./ProfilePhoto";
 import { sectionName, useSectionOrder } from "./SidebarOrder";
-import { SIDEBAR_TOOLS, SidebarSetupDialog, ToolList, toolsHere, useHiddenTools, usePortalOn } from "./SidebarSetup";
+import {
+  SIDEBAR_TOOLS,
+  SidebarSetupDialog,
+  ToolList,
+  toolsHere,
+  useHiddenTools,
+  useMediaOn,
+  usePortalOn,
+} from "./SidebarSetup";
 import { AgentGlow, AgentTrail, colorOf, WorkspaceSky } from "./Sky";
 import { SetStatusDialog, useSaveStatus } from "./StatusDialog";
 import { useReviewWords } from "./video-review/words";
@@ -347,7 +355,7 @@ export function Sidebar() {
   // Portal is a tool only where the server has an approval portal (ADR 9001): elsewhere nothing lists it.
   // What an admin took out of the workspace (Settings › General) is gone for everyone, list and More alike.
   const hiddenTools = useHiddenTools();
-  const toolOrder = toolsHere(sidebarItemOrder(personal), usePortalOn(), hiddenTools);
+  const toolOrder = toolsHere(sidebarItemOrder(personal), usePortalOn(), hiddenTools, useMediaOn());
   const listed = toolOrder.filter((id) => inSidebarList(sidebarPlace(sidebarItems, id, personal), counts[id] ?? 0));
   const inMore = toolOrder.filter((id) => !listed.includes(id));
   const countOf = (id: SidebarItem) =>

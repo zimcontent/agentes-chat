@@ -211,6 +211,14 @@ const AgentFields = z.object({
     description:
       "It may send a sticker or a GIF (ADR 0091): when someone asks for one, and after a light reply as often as the workspace's `agentMedia` allows; off: never. Like the other fields, editing it needs `manage_agents`. Default on.",
   }),
+  mediaMonthlyCredits: z.number().int().min(0).max(10_000_000).optional().openapi({
+    description:
+      "Credits its `generate_image` and `generate_video` may spend in a UTC month (ADR doug-0010); 0: it can't generate. Needs `manage_agents`. Default 5,000.",
+  }),
+  mediaAskAbove: z.number().int().min(0).max(10_000_000).nullable().optional().openapi({
+    description:
+      "A generation priced above this many credits becomes an approval request first (ADR doug-0010); null: it never asks. Needs `manage_agents`. Default 500.",
+  }),
   voice: z.string().max(40).nullable().optional().openapi({
     description:
       "Its voice on calls and when it tells a message (ADR doug-0006), one of the GPT-Live voices; null: the one its id gives. Its owner or an admin can change it.",

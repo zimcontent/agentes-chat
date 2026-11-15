@@ -4,6 +4,7 @@ import type { SidebarItem, SidebarItems, SidebarPlace, SidebarSection } from "..
 export const SIDEBAR_ITEMS: readonly SidebarItem[] = [
   "waiting",
   "portal",
+  "media",
   "approvals",
   "proposals",
   "threads",
@@ -22,6 +23,8 @@ export const SIDEBAR_DEFAULTS: Record<SidebarItem, SidebarPlace> = {
   waiting: "auto",
   // Listed only where the server has an approval portal (ADR 9001): the apps leave it out elsewhere.
   portal: "always",
+  // Listed only where the server generates media (ADR doug-0010).
+  media: "always",
   approvals: "auto",
   proposals: "more",
   threads: "always",
@@ -46,6 +49,8 @@ export const PERSONAL_SIDEBAR_DEFAULTS: Record<SidebarItem, SidebarPlace> = {
   waiting: "auto",
   // Listed only where the server has an approval portal (ADR 9001): the apps leave it out elsewhere.
   portal: "always",
+  // Listed only where the server generates media (ADR doug-0010).
+  media: "always",
   approvals: "auto",
   proposals: "more",
   threads: "more",
@@ -69,6 +74,7 @@ export const sidebarDefaults = (personal = false) => (personal ? PERSONAL_SIDEBA
 export const PERSONAL_SIDEBAR_ITEMS: readonly SidebarItem[] = [
   "waiting",
   "portal",
+  "media",
   "approvals",
   "proposals",
   "routines",

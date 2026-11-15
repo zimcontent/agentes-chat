@@ -14,6 +14,7 @@ import type { SearchIndexResolver } from "./search";
 import type { VaultSources } from "./vault/source";
 import type { WebPushSender } from "./web-push";
 import type { WhatsAppGateway } from "./whatsapp";
+import type { ZimMedia } from "./zim-media";
 
 export * from "./approval-portal";
 export * from "./blob";
@@ -61,6 +62,7 @@ export * from "./video-light";
 export * from "./voice-out";
 export * from "./web-push";
 export * from "./whatsapp";
+export * from "./zim-media";
 
 /**
  * Infrastructure the core talks to through interfaces, so each edition can
@@ -114,4 +116,9 @@ export interface Adapters {
    * anywhere in the app.
    */
   whatsapp?: WhatsAppGateway | null;
+  /**
+   * Image and video generation paid in credits (ADR doug-0010), through the Zim Mídia service (`ZIM_MEDIA_URL`,
+   * `ZIM_MEDIA_SECRET`); null/absent = no media page, no wallet, no `generate_image`/`generate_video`.
+   */
+  zimMedia?: ZimMedia | null;
 }

@@ -102,6 +102,10 @@ export interface AgentInput {
   monthlyBudgetNanoUsd?: number | null;
   /** It may follow a light reply with a sticker or a GIF (ADR 0091), as often as the workspace allows. */
   mediaReplies?: boolean;
+  /** Credits its `generate_image`/`generate_video` may spend a month (ADR doug-0010); 0: it can't generate. */
+  mediaMonthlyCredits?: number;
+  /** A generation priced above this many credits waits for a person's approval (ADR doug-0010); null: never asks. */
+  mediaAskAbove?: number | null;
   /** Its voice on calls and when it tells a message (ADR doug-0006): one of `LIVE_VOICES`; null: picked from its id. */
   voice?: string | null;
   /** Its autonomy brakes (ADR 0131), stored as `autonomySettings` reads them. */
@@ -144,6 +148,22 @@ export async function validateAgentFields(db: Database, orgId: string, input: Pa
   }
   if (input.approvalsLevel !== undefined && !APPROVALS_LEVELS.includes(input.approvalsLevel)) {
     throw new ValidationError(`approvalsLevel must be one of: ${APPROVALS_LEVELS.join(", ")}`);
+  }
+  if (
+    input.mediaMonthlyCredits !== undefined &&
+    !(
+      Number.isInteger(input.mediaMonthlyCredits) &&
+      input.mediaMonthlyCredits >= 0 &&
+      input.mediaMonthlyCredits <= 10_000_000
+    )
+  ) {
+    throw new ValidationError("mediaMonthlyCredits must be a whole number from 0");
+  }
+  if (
+    input.mediaAskAbove != null &&
+    !(Number.isInteger(input.mediaAskAbove) && input.mediaAskAbove >= 0 && input.mediaAskAbove <= 10_000_000)
+  ) {
+    throw new ValidationError("mediaAskAbove must be a whole number from 0, or null");
   }
   if (input.credentialId) {
     const [cred] = await db
@@ -723,6 +743,9 @@ export const agentView = (a: Agent) => ({
   photo: a.photo ?? null,
   /** It may follow a light reply with a sticker or a GIF (ADR 0091). */
   mediaReplies: a.mediaReplies,
+  /** What its media generation may spend (ADR doug-0010). */
+  mediaMonthlyCredits: a.mediaMonthlyCredits,
+  mediaAskAbove: a.mediaAskAbove ?? null,
   /** Its voice on calls (ADR doug-0006): the one picked, or the one its id gives. */
   voice: liveVoiceFor(a.id, a.voice),
   /** Whether a person picked it (else it follows `liveVoiceFor`). */

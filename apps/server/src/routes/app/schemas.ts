@@ -516,6 +516,13 @@ export const Agent = z
       description:
         "It may send a sticker or a GIF (ADR 0091): when someone asks for one, and after a light reply as often as the workspace's `agentMedia` allows.",
     }),
+    mediaMonthlyCredits: z.number().int().openapi({
+      description: "Credits its media generation may spend a month (ADR doug-0010); 0: it can't generate.",
+    }),
+    mediaAskAbove: z.number().int().nullable().openapi({
+      description:
+        "A generation above this many credits waits for a person's approval (ADR doug-0010); null: never asks.",
+    }),
     voice: z
       .string()
       .optional()

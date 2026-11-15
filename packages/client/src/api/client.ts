@@ -9,6 +9,7 @@ import type { TeamWeekAct } from "../lib/team-week";
 import type { AudienceChoice } from "../lib/who-sees";
 import type { WikiAccess } from "../lib/wiki";
 import type { WorkAreaAnswer } from "../lib/work-area";
+import type { MediaApi } from "../media/types";
 import type {
   SecretToVaultInput,
   VaultConnectInput,
@@ -1575,6 +1576,11 @@ export interface ApiClient {
    * (`AuthConfig.approvalPortal`), 400 `portal.refused` with the portal's own words, 502 `portal.unavailable`.
    * Members read; whoever may give agents work (`assign_work`) changes cards, posts and sends.
    */
+  /**
+   * Images and videos paid from the workspace's credit wallet (ADR doug-0010). 404 `media.off` on a server without
+   * it (`AuthConfig.zimMedia`), 402 `media.no_credits`, 400 `media.refused` with the service's words.
+   */
+  media?: MediaApi;
   portal?: {
     /** Every client with its counts per column, and how fresh the portal's side is. */
     overview(orgId: string): Promise<PortalOverview>;

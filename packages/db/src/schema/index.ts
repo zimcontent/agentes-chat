@@ -15,6 +15,7 @@ export * from "./instance-secrets";
 export * from "./live-voice";
 export * from "./machines";
 export * from "./mail";
+export * from "./media";
 export * from "./missions";
 export * from "./notifications";
 export * from "./operator";

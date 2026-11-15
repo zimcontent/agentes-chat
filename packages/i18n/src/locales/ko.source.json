@@ -4754,6 +4754,12 @@
   "shell.moreWhat.portal": {
     "value": "What your clients approve, and what they sent back"
   },
+  "shell.moreWhat.media": {
+    "value": "AI images and videos, paid in credits"
+  },
+  "shell.moreWhat.mediaPersonal": {
+    "value": "AI images and videos, paid in credits"
+  },
   "shell.moreWhat.approvals": {
     "value": "What agents ask you to allow"
   },
@@ -5086,6 +5092,9 @@
   },
   "shell.portal": {
     "value": "Portal"
+  },
+  "shell.media": {
+    "value": "Media"
   },
   "shell.approvals": {
     "value": "Approvals"
@@ -49621,6 +49630,141 @@
   },
   "feedback.offer.askFirst": {
     "value": "Ask before sending"
+  },
+  "mediaGen.title": {
+    "value": "Media"
+  },
+  "mediaGen.subtitle": {
+    "value": "Generate images and videos with AI, paid with the workspace's credits"
+  },
+  "mediaGen.form": {
+    "value": "Generate"
+  },
+  "mediaGen.kind": {
+    "value": "Kind"
+  },
+  "mediaGen.image": {
+    "value": "Image"
+  },
+  "mediaGen.video": {
+    "value": "Video"
+  },
+  "mediaGen.model": {
+    "value": "Model"
+  },
+  "mediaGen.prompt": {
+    "value": "What to generate"
+  },
+  "mediaGen.promptExample": {
+    "value": "E.g. a red paper boat on a calm lake at sunrise, soft light"
+  },
+  "mediaGen.quality": {
+    "value": "Quality"
+  },
+  "mediaGen.aspect": {
+    "value": "Aspect ratio"
+  },
+  "mediaGen.seconds": {
+    "value": "Length"
+  },
+  "mediaGen.audio": {
+    "value": "With sound"
+  },
+  "mediaGen.firstFrame": {
+    "value": "Opening image"
+  },
+  "mediaGen.addRef": {
+    "value": "Add image"
+  },
+  "mediaGen.uploading": {
+    "value": "Uploading…"
+  },
+  "mediaGen.removeRef": {
+    "value": "Remove {{name}}"
+  },
+  "mediaGen.price": {
+    "value": "Costs {{price}} credits"
+  },
+  "mediaGen.short": {
+    "value": "Costs {{price}}, the wallet has {{balance}}"
+  },
+  "mediaGen.generate": {
+    "value": "Generate"
+  },
+  "mediaGen.generating": {
+    "value": "Sending…"
+  },
+  "mediaGen.startedImage": {
+    "value": "Generating the image. It shows here and in the Drive."
+  },
+  "mediaGen.startedVideo": {
+    "value": "Generating the video. It takes 1 to 5 minutes and shows here and in the Drive."
+  },
+  "mediaGen.runningImage": {
+    "value": "Generating the image…"
+  },
+  "mediaGen.runningVideo": {
+    "value": "Generating the video, 1 to 5 minutes…"
+  },
+  "mediaGen.failed": {
+    "value": "The generation failed. The credits went back."
+  },
+  "mediaGen.gallery": {
+    "value": "Generations"
+  },
+  "mediaGen.mine": {
+    "value": "Mine"
+  },
+  "mediaGen.all": {
+    "value": "Workspace"
+  },
+  "mediaGen.empty.title": {
+    "value": "Nothing generated yet"
+  },
+  "mediaGen.empty.text": {
+    "value": "What you and the agents generate shows here and is saved in the Drive."
+  },
+  "mediaGen.topup.button": {
+    "value": "Top up"
+  },
+  "mediaGen.topup.title": {
+    "value": "Top up credits"
+  },
+  "mediaGen.topup.text": {
+    "value": "1,000 credits make about 60 images or one 5 s video at 720p. Payment opens at Mercado Pago."
+  },
+  "mediaGen.topup.pay": {
+    "value": "Pay with Mercado Pago"
+  },
+  "mediaGen.topup.pending": {
+    "value": "Waiting for Mercado Pago to confirm the payment…"
+  },
+  "mediaGen.topup.approved": {
+    "value": "Payment approved: {{credits}} credits in the wallet."
+  },
+  "mediaGen.topup.rejected": {
+    "value": "The payment wasn't approved. Nothing was charged."
+  },
+  "mediaGen.agent.title": {
+    "value": "Images and videos"
+  },
+  "mediaGen.agent.monthly": {
+    "value": "Credits per month"
+  },
+  "mediaGen.agent.monthlyHint": {
+    "value": "How much this agent may spend generating media in a month. 0 turns it off."
+  },
+  "mediaGen.agent.askAbove": {
+    "value": "Ask for approval above"
+  },
+  "mediaGen.agent.askAboveHint": {
+    "value": "A generation that costs more becomes an approval request in the chat. Empty: it never asks."
+  },
+  "mediaGen.agent.never": {
+    "value": "Never asks"
+  },
+  "mediaGen.agent.spent": {
+    "value": "{{spent}} of {{monthly}} credits used this month"
   },
   "portal.title": {
     "value": "Portal"

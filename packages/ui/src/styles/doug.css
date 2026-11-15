@@ -832,6 +832,12 @@ html:not([data-pointer]) .sidebar__hero-link:focus-visible {
   background: var(--db-verde-botao);
   opacity: 1;
 }
+/* Disabled, the green goes quiet: lit and glowing it read as ready to press. A loading button keeps its look. */
+[data-theme] .ac-btn--primary:disabled:not(.ac-btn--loading),
+[data-theme] .ac-btn--primary[aria-disabled="true"]:not(.ac-btn--loading) {
+  opacity: 0.45;
+  box-shadow: inset 0 1px color-mix(in srgb, #fff 60%, transparent);
+}
 [data-theme] .ac-btn--secondary {
   background: var(--db-palco-3);
   border-color: var(--db-linha-2);
