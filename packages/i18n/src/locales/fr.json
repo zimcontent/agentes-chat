@@ -12776,6 +12776,12 @@
     },
     "s3": "Votre propre stockage",
     "s3Text": "Cloudflare R2, Amazon S3, Backblaze B2 ou un autre service compatible S3.",
+    "provided": {
+      "title": "Serveur de stockage",
+      "text": "Un bucket rien qu'à ce workspace, sur le stockage du serveur. Rien à configurer.",
+      "on": "Activer {{name}}",
+      "done": "Les nouveaux fichiers vont maintenant dans {{name}}."
+    },
     "current": "Utilisé",
     "usage": {
       "files": "{{size}} de fichiers",
@@ -15362,6 +15368,8 @@
       "neverHappens": "Cette planification n'arrive jamais.",
       "soleOwner": "Vous êtes le seul propriétaire d'un espace de travail avec d'autres membres. Nommez un autre propriétaire ou supprimez l'espace de travail d'abord.",
       "testFirst": "Testez la connexion avec ces réglages avant de l'activer.",
+      "providedOff": "Ce serveur ne propose plus de serveur de stockage.",
+      "storageServer": "Le serveur de stockage n'a pas répondu. Réessaie dans un instant.",
       "voiceLength": "L'enregistrement est trop long ou trop court.",
       "sendAgain": "Le fichier n'est pas arrivé entier. Renvoyez-le.",
       "serverKey": "Cette clé est définie dans les réglages du serveur.",

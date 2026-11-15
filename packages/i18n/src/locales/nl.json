@@ -12382,6 +12382,12 @@
     },
     "s3": "Je eigen opslag",
     "s3Text": "Cloudflare R2, Amazon S3, Backblaze B2 of een andere S3-compatibele dienst.",
+    "provided": {
+      "title": "Opslagserver",
+      "text": "Een bucket alleen voor deze workspace, op de opslag van de server. Niets in te stellen.",
+      "on": "{{name}} aanzetten",
+      "done": "Nieuwe bestanden gaan nu naar {{name}}."
+    },
     "current": "In gebruik",
     "usage": {
       "files": "{{size}} aan bestanden",
@@ -14920,6 +14926,8 @@
       "neverHappens": "Deze planning komt nooit voor.",
       "soleOwner": "Je bent de enige eigenaar van een werkruimte met andere leden. Maak eerst iemand anders eigenaar of verwijder de werkruimte.",
       "testFirst": "Test de verbinding met deze gegevens voordat je hem aanzet.",
+      "providedOff": "Deze server biedt geen opslagserver meer aan.",
+      "storageServer": "De opslagserver gaf geen antwoord. Probeer het zo opnieuw.",
       "voiceLength": "De opname is te lang of te kort.",
       "sendAgain": "Het bestand is niet heel aangekomen. Stuur het opnieuw.",
       "serverKey": "Deze sleutel staat in de instellingen van de server.",

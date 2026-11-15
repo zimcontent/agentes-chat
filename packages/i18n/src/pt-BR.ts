@@ -12703,6 +12703,12 @@ export const ptBR = {
     },
     s3: "Seu próprio armazenamento",
     s3Text: "Cloudflare R2, Amazon S3, Backblaze B2 ou outro compatível com S3.",
+    provided: {
+      title: "Servidor de armazenamento",
+      text: "Um bucket só deste workspace, no armazenamento do servidor. Nada para configurar.",
+      on: "Ligar {{name}}",
+      done: "Os arquivos novos agora vão para {{name}}.",
+    },
     current: "Em uso",
     // What the option in use holds, no-break spaces inside each part: a narrow card breaks the line after its "·".
     usage: {
@@ -15057,6 +15063,8 @@ export const ptBR = {
       soleOwner:
         "Você é a única pessoa dona de um workspace com outros membros. Passe a posse a alguém, ou apague o workspace, antes.",
       testFirst: "Teste a conexão com estes dados antes de ligar.",
+      providedOff: "Este servidor não oferece mais um servidor de armazenamento.",
+      storageServer: "O servidor de armazenamento não respondeu. Tente de novo daqui a pouco.",
       voiceLength: "A gravação está longa ou curta demais.",
       sendAgain: "O arquivo não chegou inteiro. Envie de novo.",
       serverKey: "Esta chave está definida nas configurações do servidor.",

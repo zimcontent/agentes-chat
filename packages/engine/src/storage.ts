@@ -7,6 +7,8 @@ import {
   type S3Fetch,
   type S3Settings,
   StorageError,
+  type StorageHost,
+  StorageHostError,
 } from "@agenteschat/adapters";
 import {
   and,
@@ -67,9 +69,12 @@ export interface StorageMigrationView {
   code?: string | null;
 }
 
-/** The org's storage as the app shows it (`agentes` = platform storage). Keys only as hints. */
+/**
+ * The org's storage as the app shows it (`agentes` = platform storage, `provided` = its bucket on the storage server
+ * this server hands out). Keys only as hints, and none at all for `provided`: the workspace never holds them.
+ */
 export interface StorageView {
-  kind: "agentes" | "s3";
+  kind: "agentes" | "s3" | "provided";
   s3: {
     /** Null for settings saved before the app said it. */
     provider: StorageProvider | null;
@@ -95,9 +100,24 @@ export interface StorageDeps {
   keyWrappers: KeyWrapper[];
   /** Platform storage (our bucket, or Postgres). */
   platform: BlobStore;
+  /** The storage server this server hands out, a bucket and key per workspace (`STORAGE_HOST_*`). */
+  provided?: ProvidedStorage;
   /** Tests: fake S3 transport and DNS. */
   fetch?: S3Fetch;
   resolveHost?: ResolveHost;
+}
+
+/**
+ * A storage server this server's operator runs (docs/adr/doug-0010-storage-server.md): an admin switches it on in
+ * Settings › Storage and their workspace gets a bucket of its own there, with a key allowed on that bucket only.
+ */
+export interface ProvidedStorage {
+  /** What people read for it ("Storage VM"). */
+  name: string;
+  /** Its S3 API (path-style). Read at every use, so the operator can move it without touching a workspace. */
+  endpoint: string;
+  region: string;
+  host: StorageHost;
 }
 
 /** A passing test is valid for switching on for this long. */
@@ -110,6 +130,8 @@ const keyPrefix = (prefix: string | null | undefined) => {
 };
 
 interface StoredOptions {
+  /** A bucket on the storage server this server hands out (`provideStorage`). */
+  provided: boolean;
   provider: StorageProvider | null;
   endpoint: string;
   region: string;
@@ -122,6 +144,7 @@ interface StoredOptions {
 function optionsOf(row: StorageConfigRow): StoredOptions {
   const o = row.options as Partial<StoredOptions>;
   return {
+    provided: o.provided === true,
     provider: STORAGE_PROVIDERS.find((p) => p === o.provider) ?? null,
     endpoint: String(o.endpoint ?? ""),
     region: String(o.region ?? "auto"),
@@ -144,9 +167,11 @@ function s3Store(deps: StorageDeps, settings: S3Settings) {
 }
 
 async function storeOf(deps: StorageDeps, row: StorageConfigRow): Promise<BlobStore> {
-  const { provider: _, ...o } = optionsOf(row);
+  const { provider: _, provided, ...o } = optionsOf(row);
   const secretAccessKey = await secretOf(deps, row);
-  return s3Store(deps, { ...o, secretAccessKey });
+  // The storage server's address is the operator's to change: its rows follow it (the one saved, if it's switched off).
+  const at = provided && deps.provided ? { endpoint: deps.provided.endpoint, region: deps.provided.region } : {};
+  return s3Store(deps, { ...o, ...at, secretAccessKey });
 }
 
 async function activeConfig(db: Database, orgId: string) {
@@ -228,7 +253,9 @@ async function resolveInput(deps: StorageDeps, orgId: string, input: S3Input) {
   let secretAccessKey = input.secretAccessKey?.trim() ?? "";
   if (!accessKeyId || !secretAccessKey) {
     const active = await activeConfig(deps.db, orgId);
-    if (!active) throw new ValidationError("Give the access key and secret", "storage.credentials_required");
+    // The storage server's key is never lent to an address someone typed.
+    if (!active || optionsOf(active).provided)
+      throw new ValidationError("Give the access key and secret", "storage.credentials_required");
     accessKeyId ||= optionsOf(active).accessKeyId;
     secretAccessKey ||= await secretOf(deps, active);
   }
@@ -408,6 +435,138 @@ export async function saveStorage(
   return getStorage(deps.db, actorId, orgId);
 }
 
+/** The workspace's bucket on the storage server: one per workspace, named after it. */
+export const providedBucketName = (orgId: string) => `ws-${orgId.toLowerCase()}`;
+
+/** A switch-on in flight per workspace, so a second click waits for the first instead of making a second key. */
+const providing = new Map<string, Promise<void>>();
+
+/**
+ * `PUT …/storage` with `provided` (admins): new files go to the workspace's own bucket on the storage server this server
+ * hands out. The first time, the bucket and a key allowed on it alone are made there; after that the same ones come
+ * back. The bucket is checked (write, read, list, delete) before it's switched on. Files already stored stay where they
+ * are until "Copy files" moves them.
+ */
+export async function provideStorage(deps: StorageDeps, actorId: string, orgId: string): Promise<StorageView> {
+  await requirePermission(deps.db, actorId, orgId, "configure");
+  const provided = deps.provided;
+  if (!provided) throw new ValidationError("This server has no storage server to offer", "storage.provided_off");
+  let run = providing.get(orgId);
+  if (!run) {
+    run = switchOnProvided(deps, provided, actorId, orgId).finally(() => providing.delete(orgId));
+    providing.set(orgId, run);
+  }
+  await run;
+  return getStorage(deps.db, actorId, orgId);
+}
+
+/** The bucket and key the workspace was given before, when it switched the storage server off and comes back. */
+async function keptProvided(db: Database, orgId: string) {
+  const [kept] = await db
+    .select()
+    .from(storageConfigs)
+    .where(
+      and(
+        eq(storageConfigs.orgId, orgId),
+        sql`${storageConfigs.options}->>'provided' = 'true'`,
+        ne(storageConfigs.status, "failed"),
+      ),
+    )
+    .orderBy(desc(storageConfigs.createdAt))
+    .limit(1);
+  return kept ?? null;
+}
+
+/** The bucket and a key allowed on it alone, made on the storage server; its failures said as one code. */
+async function makeProvided(provided: ProvidedStorage, orgId: string, bucket: string) {
+  try {
+    const bucketId = await provided.host.ensureBucket(bucket);
+    const key = await provided.host.createKey(`workspace ${orgId}`);
+    await provided.host.allow(bucketId, key.accessKeyId);
+    return key;
+  } catch (error) {
+    // A refusal, or no answer at all (`fetch` failing or timing out).
+    if (!(error instanceof StorageHostError || error instanceof TypeError || error instanceof DOMException))
+      throw error;
+    throw new ValidationError(
+      `The storage server didn't answer (${error.message.slice(0, 200)})`,
+      "storage.provided_failed",
+    );
+  }
+}
+
+async function switchOnProvided(deps: StorageDeps, provided: ProvidedStorage, actorId: string, orgId: string) {
+  const current = await activeConfig(deps.db, orgId);
+  if (current && optionsOf(current).provided) return;
+  const kept = await keptProvided(deps.db, orgId);
+  const bucket = kept ? optionsOf(kept).bucket : providedBucketName(orgId);
+  const key = kept
+    ? { accessKeyId: optionsOf(kept).accessKeyId, secretAccessKey: await secretOf(deps, kept) }
+    : await makeProvided(provided, orgId, bucket);
+  const settings: S3Settings = {
+    endpoint: provided.endpoint,
+    region: provided.region,
+    bucket,
+    pathStyle: true,
+    ...key,
+  };
+  const result = await probe(s3Store(deps, settings), "").catch((error: unknown) =>
+    failedAtFirstStep(storageErrorText(error), storageErrorCode(error)),
+  );
+  if (!result.ok) {
+    const failed = result.steps.find((s) => s.error);
+    throw new ValidationError(failed?.error ?? "The storage check failed", failed?.code ?? "storage.unexpected");
+  }
+  const id = kept?.id ?? Bun.randomUUIDv7();
+  const sealed = kept
+    ? null
+    : await sealSecret(deps.keyWrappers[0] as KeyWrapper, key.secretAccessKey, aadFor(orgId, id));
+  await deps.db.transaction(async (tx) => {
+    await tx
+      .update(storageConfigs)
+      .set({ status: "inactive", updatedAt: new Date() })
+      .where(and(eq(storageConfigs.orgId, orgId), eq(storageConfigs.status, "active")));
+    if (!sealed) {
+      await tx
+        .update(storageConfigs)
+        .set({ status: "active", verifiedAt: new Date(), lastError: null, updatedAt: new Date() })
+        .where(eq(storageConfigs.id, id));
+    } else {
+      await tx.insert(storageConfigs).values({
+        id,
+        orgId,
+        kind: "s3",
+        options: {
+          provided: true,
+          provider: null,
+          endpoint: provided.endpoint,
+          region: provided.region,
+          bucket,
+          prefix: null,
+          pathStyle: true,
+          accessKeyId: key.accessKeyId,
+        },
+        secretCiphertext: sealed.ciphertext,
+        wrappedDataKey: sealed.wrappedDataKey,
+        kekId: sealed.kekId,
+        accessKeyHint: hint(key.accessKeyId),
+        secretHint: hint(key.secretAccessKey),
+        fingerprint: sha256(JSON.stringify({ provided: true, bucket, accessKeyId: key.accessKeyId })),
+        status: "active",
+        verifiedAt: new Date(),
+        createdByUserId: actorId,
+      });
+    }
+    await recordAudit(tx, {
+      orgId,
+      actor: { type: "person", id: actorId },
+      action: "storage.provided",
+      target: { type: "storage_config", id },
+      details: { name: provided.name, bucket },
+    });
+  });
+}
+
 function migrationView(m: MigrationRow | undefined | null): StorageMigrationView | null {
   if (!m) return null;
   return { status: m.status, copied: m.copied, total: m.total, error: m.error };
@@ -429,6 +588,7 @@ export async function getStorage(db: Database, actorId: string, orgId: string): 
   const [active, migration] = await Promise.all([activeConfig(db, orgId), latestMigration(db, orgId)]);
   if (!active) return { kind: "agentes", s3: null, migration: migrationView(migration) };
   const o = optionsOf(active);
+  if (o.provided) return { kind: "provided", s3: null, migration: migrationView(migration) };
   return {
     kind: "s3",
     s3: {

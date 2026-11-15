@@ -33,7 +33,7 @@ import { successHaptic } from "../shared/parts";
 import { platformText, type S3Form, s3FormOf, s3Missing, storageKey, toS3Input } from "./logic";
 import { confirmAction, Gap, Meter, SettingsPage } from "./parts";
 
-type Choice = "agentes" | "s3";
+type Choice = "agentes" | "s3" | "provided";
 
 const STEP_ICON: Record<"ok" | "failed" | "skipped", IconName> = { ok: "check", failed: "x", skipped: "info" };
 
@@ -88,6 +88,16 @@ export function StorageScreen() {
               checked={choice === "agentes"}
               onPress={() => setChoice("agentes")}
             />
+            {config.provided || config.kind === "provided" ? (
+              <GroupedRow
+                label={config.provided?.name ?? t("storage.provided.title")}
+                sub={t("storage.provided.text")}
+                subLines={2}
+                {...(config.kind === "provided" ? inUse : {})}
+                checked={choice === "provided"}
+                onPress={() => setChoice("provided")}
+              />
+            ) : null}
             <GroupedRow
               label={t("storage.s3")}
               sub={t("storage.s3Text")}
@@ -97,11 +107,47 @@ export function StorageScreen() {
               onPress={() => setChoice("s3")}
             />
           </GroupedList>
-          {config.kind === "s3" ? <InUse config={config} place={place} /> : null}
+          {config.kind !== "agentes" ? <InUse config={config} place={place} /> : null}
+          {choice === "provided" && config.kind !== "provided" && config.provided ? (
+            <SwitchOnProvided name={config.provided.name} />
+          ) : null}
           {choice === "s3" ? <BucketForm config={config} /> : null}
         </>
       ) : null}
     </SettingsPage>
+  );
+}
+
+/** The storage server's one step: switching it on makes and checks the workspace's bucket there. */
+function SwitchOnProvided({ name }: { name: string }) {
+  const { t } = useTranslation();
+  const toast = useToast();
+  const { orgId } = useOrg();
+  const save = useSaveStorage(orgId);
+  return (
+    <>
+      <Gap />
+      <GroupedList>
+        <GroupedRow
+          icon="check"
+          label={t("storage.provided.on", { name })}
+          labelLines={2}
+          disabled={save.isPending}
+          onPress={() =>
+            save.mutate(
+              { kind: "provided" },
+              {
+                onSuccess: () => {
+                  successHaptic();
+                  toast({ title: t("storage.provided.done", { name }), icon: "check" });
+                },
+                onError: (err) => toast({ title: errorText(t, err), icon: "x" }),
+              },
+            )
+          }
+        />
+      </GroupedList>
+    </>
   );
 }
 

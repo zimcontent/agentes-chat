@@ -30150,6 +30150,18 @@
   "storage.s3Text": {
     "value": "Cloudflare R2, Amazon S3, Backblaze B2 or another compatible with S3."
   },
+  "storage.provided.title": {
+    "value": "Storage server"
+  },
+  "storage.provided.text": {
+    "value": "A bucket only this workspace uses, on the server's storage. Nothing to set up."
+  },
+  "storage.provided.on": {
+    "value": "Switch on {{name}}"
+  },
+  "storage.provided.done": {
+    "value": "New files now go to {{name}}."
+  },
   "storage.current": {
     "value": "In use"
   },
@@ -36526,6 +36538,12 @@
   },
   "errors.said.testFirst": {
     "value": "Test the connection with these settings before turning it on."
+  },
+  "errors.said.providedOff": {
+    "value": "This server doesn't offer a storage server anymore."
+  },
+  "errors.said.storageServer": {
+    "value": "The storage server didn't answer. Try again in a moment."
   },
   "errors.said.voiceLength": {
     "value": "The recording is too long or too short."

@@ -11871,6 +11871,12 @@
     },
     "s3": "Penyimpanan milikmu sendiri",
     "s3Text": "Cloudflare R2, Amazon S3, Backblaze B2, atau lainnya yang kompatibel dengan S3.",
+    "provided": {
+      "title": "Server penyimpanan",
+      "text": "Bucket khusus workspace ini, di penyimpanan server. Tidak ada yang perlu diatur.",
+      "on": "Aktifkan {{name}}",
+      "done": "File baru sekarang masuk ke {{name}}."
+    },
     "current": "Sedang dipakai",
     "usage": {
       "files": "{{size}} file",
@@ -14369,6 +14375,8 @@
       "neverHappens": "Jadwal ini tidak pernah terjadi.",
       "soleOwner": "Kamu satu-satunya pemilik ruang kerja yang punya anggota lain. Jadikan orang lain pemilik, atau hapus ruang kerjanya, lebih dulu.",
       "testFirst": "Uji koneksi dengan pengaturan ini sebelum menyalakannya.",
+      "providedOff": "Server ini tidak lagi menawarkan server penyimpanan.",
+      "storageServer": "Server penyimpanan tidak menjawab. Coba lagi sebentar lagi.",
       "voiceLength": "Rekamannya terlalu panjang atau terlalu pendek.",
       "sendAgain": "File tidak sampai utuh. Kirim lagi.",
       "serverKey": "Kunci ini ada di pengaturan server.",

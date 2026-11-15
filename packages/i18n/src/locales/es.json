@@ -12762,6 +12762,12 @@
     },
     "s3": "Tu propio almacenamiento",
     "s3Text": "Cloudflare R2, Amazon S3, Backblaze B2 u otro compatible con S3.",
+    "provided": {
+      "title": "Servidor de almacenamiento",
+      "text": "Un bucket solo de este workspace, en el almacenamiento del servidor. Nada que configurar.",
+      "on": "Activar {{name}}",
+      "done": "Los archivos nuevos ahora van a {{name}}."
+    },
     "current": "En uso",
     "usage": {
       "files": "{{size}} de archivos",
@@ -15349,6 +15355,8 @@
       "neverHappens": "Esta programación nunca ocurre.",
       "soleOwner": "Eres la única persona dueña de un espacio de trabajo con otros miembros. Haz dueña a otra persona, o borra el espacio de trabajo, antes.",
       "testFirst": "Prueba la conexión con estos datos antes de activarla.",
+      "providedOff": "Este servidor ya no ofrece un servidor de almacenamiento.",
+      "storageServer": "El servidor de almacenamiento no respondió. Inténtalo de nuevo en un momento.",
       "voiceLength": "La grabación es demasiado larga o demasiado corta.",
       "sendAgain": "El archivo no llegó completo. Envíalo de nuevo.",
       "serverKey": "Esta clave está en la configuración del servidor.",

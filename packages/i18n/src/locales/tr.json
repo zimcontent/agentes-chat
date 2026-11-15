@@ -12255,6 +12255,12 @@
     },
     "s3": "Kendi depolama alanınız",
     "s3Text": "Cloudflare R2, Amazon S3, Backblaze B2 veya S3 uyumlu başka bir hizmet.",
+    "provided": {
+      "title": "Depolama sunucusu",
+      "text": "Sunucunun depolamasında yalnızca bu çalışma alanına ait bir bucket. Ayarlanacak bir şey yok.",
+      "on": "{{name}} özelliğini aç",
+      "done": "Yeni dosyalar artık {{name}} konumuna gidiyor."
+    },
     "current": "Kullanımda",
     "usage": {
       "files": "{{size}} dosya",
@@ -14793,6 +14799,8 @@
       "neverHappens": "Bu zamanlama hiç gerçekleşmiyor.",
       "soleOwner": "Başka üyeleri olan bir çalışma alanının tek sahibi sizsiniz. Önce başka birini sahip yapın veya çalışma alanını silin.",
       "testFirst": "Açmadan önce bağlantıyı bu ayarlarla test edin.",
+      "providedOff": "Bu sunucu artık bir depolama sunucusu sunmuyor.",
+      "storageServer": "Depolama sunucusu yanıt vermedi. Biraz sonra tekrar dene.",
       "voiceLength": "Kayıt çok uzun veya çok kısa.",
       "sendAgain": "Dosya tam olarak ulaşmadı. Yeniden gönderin.",
       "serverKey": "Bu anahtar sunucunun ayarlarında tanımlı.",

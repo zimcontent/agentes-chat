@@ -178,7 +178,7 @@ export interface TileFacts {
   connectors?: string[] | undefined;
   skills?: number | undefined;
   computers?: { count: number; online: number } | undefined;
-  storage?: { kind: "agentes" | "s3"; edition: "cloud" | "selfhost" } | undefined;
+  storage?: { kind: "agentes" | "s3" | "provided"; edition: "cloud" | "selfhost" } | undefined;
 }
 
 /**
@@ -425,9 +425,18 @@ export const DESKTOP_TURN_ON = "agentes-runner tools enable desktop && agentes-r
 
 // ── Armazenamento ───────────────────────────────────────────────────────────
 
-/** The option's name: the workspace's own bucket, our storage on the Cloud, or this server where people run it. */
-export const storageKey = (kind: "agentes" | "s3", edition: "cloud" | "selfhost") =>
-  kind === "s3" ? "storage.s3" : edition === "cloud" ? "storage.agentes" : "storage.server";
+/**
+ * The option's name: the workspace's own bucket, its bucket on the storage server this server hands out, our storage
+ * on the Cloud, or this server where people run it.
+ */
+export const storageKey = (kind: "agentes" | "s3" | "provided", edition: "cloud" | "selfhost") =>
+  kind === "s3"
+    ? "storage.s3"
+    : kind === "provided"
+      ? "storage.provided.title"
+      : edition === "cloud"
+        ? "storage.agentes"
+        : "storage.server";
 
 /** Where this server keeps files, in words: the folder by its path when the server says it. */
 export function platformText(t: TFunction, platform: StoragePlatform): string {

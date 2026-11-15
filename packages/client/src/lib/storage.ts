@@ -13,7 +13,7 @@ export function storageUsageLine(t: TFunction, locale: string, config: StorageCo
   if (!usage) return null;
   // Whole sizes, so a narrow card breaks the line only after its "·".
   const size = (bytes: number) => keepWhole(formatBytes(locale, bytes));
-  const bytes = config.kind === "s3" ? usage.ownBucketBytes : usage.platformBytes;
+  const bytes = config.kind === "agentes" ? usage.platformBytes : usage.ownBucketBytes;
   const files = bytes > 0 ? t("storage.usage.files", { size: size(bytes) }) : t("storage.usage.none");
   const disk = config.kind === "agentes" ? usage.disk : null;
   return disk ? t("storage.usage.free", { files, size: size(disk.freeBytes) }) : files;

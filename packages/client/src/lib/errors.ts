@@ -569,6 +569,8 @@ const KNOWN = {
   "schedule.never": "errors.said.neverHappens",
   sole_owner: "errors.said.soleOwner",
   "storage.test_first": "errors.said.testFirst",
+  "storage.provided_off": "errors.said.providedOff",
+  "storage.provided_failed": "errors.said.storageServer",
   "voice.bad_duration": "errors.said.voiceLength",
   "voice.too_large": "errors.said.voiceLength",
   "upload.expired": "errors.said.sendAgain",
