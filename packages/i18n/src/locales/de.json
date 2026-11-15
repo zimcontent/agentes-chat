@@ -3436,6 +3436,23 @@
       "text": "Fragt nie, auch nicht bei Merge, Deploy, Zahlungen und Routinen."
     }
   },
+  "ronda": {
+    "title": "Rundgang",
+    "subtitle": "Er schaut sich den Betrieb von selbst an, ohne dass jemand fragt, und meldet sich nur, wenn es sich lohnt.",
+    "schedule": "Wann er läuft",
+    "scheduleHelp": "Bei jedem Rundgang sieht er, was sich seit dem letzten geändert hat: Unterhaltungen, hängende oder überfällige Aufgaben, Fehler und vergessene Freigaben. Hat sich nichts geändert, kostet es nichts. Sonst entscheidet er, ob sich Handeln lohnt, und sagt es dir per Direktnachricht.",
+    "off": "Aus",
+    "daily": "Täglich um 8:00",
+    "three_daily": "8:00, 13:00 und 18:00",
+    "hourly": "Stündlich (8:00 bis 20:00)",
+    "next": "Nächster: {{when}}",
+    "last": "Letzter: {{what}}",
+    "reported": "hatte Neuigkeiten",
+    "silent": "hat geschaut, nichts zu sagen",
+    "running": "läuft gerade",
+    "runNow": "Jetzt einen Rundgang machen",
+    "failed": "Der Rundgang ließ sich nicht ändern"
+  },
   "brakes": {
     "title": "Arbeit, um die niemand gebeten hat",
     "subtitle": "Was der Agent selbst beginnt, nach einer Routine, einem Alarm oder einem anderen Agenten. Was eine Person verlangt, wird nie aufgehalten.",
@@ -8710,6 +8727,8 @@
     },
     "code": {
       "previous_running": "Übersprungen: Die vorherige lief noch",
+      "ronda_nothing": "Übersprungen: seit dem letzten Rundgang hat sich nichts geändert",
+      "ronda_quiet": "Übersprungen: nichts, was sich zu tun lohnte",
       "previous_waiting": "Übersprungen: Die vorherige wartete noch auf jemanden",
       "waiting_computer": "Übersprungen: wartet auf den Computer des Agenten",
       "waiting_plan": "Übersprungen: wartet auf das Abo",

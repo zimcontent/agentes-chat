@@ -176,6 +176,7 @@ import type {
   RightHandApprovalsInput,
   Role,
   RoleInput,
+  RondaSchedule,
   Routine,
   RoutineHook,
   RoutineInput,
@@ -2973,6 +2974,28 @@ export function useCancelUsageQueue(orgId: string, agentId: string) {
   return useMutation({
     mutationFn: () => api.agents.cancelUsageQueue(orgId, agentId),
     onSettled: () => qc.invalidateQueries({ queryKey: keys.agentStatus(orgId) }),
+  });
+}
+
+/** An agent's ronda (ADR 9004). Under the routines' key: a slot that ends or passes refetches it with Rotinas. */
+export const useRonda = (orgId: string, agentId: string) => {
+  const api = useApi();
+  return useQuery({
+    queryKey: keys.ronda(orgId, agentId),
+    queryFn: () => api.agents.ronda(orgId, agentId),
+    enabled: orgId.length > 0 && agentId.length > 0,
+  });
+};
+
+/** Turns an agent's ronda on or off, in the browser's time zone; the ronda and Rotinas follow. */
+export function useSetRonda(orgId: string, agentId: string) {
+  const api = useApi();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (schedule: RondaSchedule) =>
+      api.agents.setRonda(orgId, agentId, schedule, Intl.DateTimeFormat().resolvedOptions().timeZone),
+    onSuccess: (ronda) => qc.setQueryData(keys.ronda(orgId, agentId), ronda),
+    onSettled: () => qc.invalidateQueries({ queryKey: keys.routines(orgId) }),
   });
 }
 

@@ -283,6 +283,7 @@ export * from "./right-hand-seats";
 export * from "./right-hand-swap";
 export * from "./right-hand-welcome";
 export * from "./roles";
+export * from "./ronda";
 export * from "./router";
 export * from "./router-jev";
 export * from "./router-plan";

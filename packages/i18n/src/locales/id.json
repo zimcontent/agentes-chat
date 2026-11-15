@@ -3320,6 +3320,23 @@
       "text": "Tidak pernah bertanya, termasuk untuk merge, deploy, pembayaran, dan rutinitas."
     }
   },
+  "ronda": {
+    "title": "Patroli",
+    "subtitle": "Ia memeriksa operasional sendiri, tanpa diminta siapa pun, dan hanya memanggilmu saat memang perlu.",
+    "schedule": "Kapan berjalan",
+    "scheduleHelp": "Setiap patroli, ia melihat apa yang berubah sejak patroli terakhir: percakapan, tugas yang macet atau terlambat, kegagalan, dan persetujuan yang terlupa. Jika tidak ada yang berubah, tidak ada biaya. Jika ada, ia memutuskan apakah perlu bertindak dan memberitahumu lewat DM.",
+    "off": "Mati",
+    "daily": "Setiap hari pukul 08.00",
+    "three_daily": "08.00, 13.00, dan 18.00",
+    "hourly": "Setiap jam (08.00 sampai 20.00)",
+    "next": "Berikutnya: {{when}}",
+    "last": "Terakhir: {{what}}",
+    "reported": "membawa kabar baru",
+    "silent": "sudah memeriksa, tidak ada yang perlu disampaikan",
+    "running": "sedang berjalan",
+    "runNow": "Patroli sekarang",
+    "failed": "Patroli tidak bisa diubah"
+  },
   "brakes": {
     "title": "Pekerjaan yang tidak diminta siapa pun",
     "subtitle": "Apa yang dimulainya sendiri, dari rutinitas, peringatan, atau agen lain. Yang diminta seseorang tidak pernah ditahan.",
@@ -8444,6 +8461,8 @@
     },
     "code": {
       "previous_running": "Dilewati: yang sebelumnya masih berjalan",
+      "ronda_nothing": "Dilewati: tidak ada perubahan sejak patroli terakhir",
+      "ronda_quiet": "Dilewati: tidak ada yang perlu ditindak",
       "previous_waiting": "Dilewati: yang sebelumnya masih menunggu seseorang",
       "waiting_computer": "Dilewati: menunggu komputer agen",
       "waiting_plan": "Dilewati: menunggu paket",

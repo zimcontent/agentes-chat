@@ -229,6 +229,7 @@ import type {
   RemovalPreview,
   RightHandApprovals,
   RoleMailLoss,
+  Ronda,
   RosterMember,
   Routine,
   RoutineHook,
@@ -1067,6 +1068,12 @@ export function createHttpApi(options: TransportOptions = {}): HttpApi {
       cancelUsageQueue: (orgId, agentId) =>
         request<{ canceled: number; skipped: number }>(`${org(orgId)}/agents/${enc(agentId)}/usage-queue/cancel`, {
           method: "POST",
+        }),
+      ronda: (orgId, agentId) => request<Ronda>(`${org(orgId)}/agents/${enc(agentId)}/ronda`),
+      setRonda: (orgId, agentId, schedule, timezone) =>
+        request<Ronda>(`${org(orgId)}/agents/${enc(agentId)}/ronda`, {
+          method: "PUT",
+          json: { schedule, ...(timezone ? { timezone } : {}) },
         }),
       importFromGithub: (orgId, url) =>
         request<{ files: { path: string; text: string }[]; skipped?: string[] }>(`${org(orgId)}/agent-imports/github`, {

@@ -3672,6 +3672,23 @@
       "text": "Nigdy nie pyta, także przy merge, deploy, płatnościach i rutynach."
     }
   },
+  "ronda": {
+    "title": "Obchód",
+    "subtitle": "Sam przegląda, jak idzie praca, bez niczyjej prośby, i daje znać tylko wtedy, gdy warto.",
+    "schedule": "Kiedy działa",
+    "scheduleHelp": "Przy każdym obchodzie sprawdza, co zmieniło się od poprzedniego: rozmowy, zablokowane lub spóźnione zadania, błędy i zapomniane akceptacje. Jeśli nic się nie zmieniło, nic nie kosztuje. Jeśli coś się zmieniło, decyduje, czy warto działać, i pisze do ciebie w wiadomości prywatnej.",
+    "off": "Wyłączony",
+    "daily": "Codziennie o 8:00",
+    "three_daily": "8:00, 13:00 i 18:00",
+    "hourly": "Co godzinę (od 8:00 do 20:00)",
+    "next": "Następny: {{when}}",
+    "last": "Ostatni: {{what}}",
+    "reported": "przyniósł nowości",
+    "silent": "sprawdził, nie miał nic do przekazania",
+    "running": "trwa",
+    "runNow": "Zrób obchód teraz",
+    "failed": "Nie udało się zmienić obchodu"
+  },
   "brakes": {
     "title": "Praca, o którą nikt nie prosił",
     "subtitle": "To, co zaczyna sam, po rutynie, alercie lub innym agencie. To, o co prosi osoba, nigdy nie jest wstrzymywane.",
@@ -9279,6 +9296,8 @@
     },
     "code": {
       "previous_running": "Pominięto: poprzednie uruchomienie wciąż trwało",
+      "ronda_nothing": "Pominięty: nic się nie zmieniło od ostatniego obchodu",
+      "ronda_quiet": "Pominięty: nic wartego działania",
       "previous_waiting": "Pominięto: poprzednie uruchomienie wciąż czekało na kogoś",
       "waiting_computer": "Pominięto: czeka na komputer agenta",
       "waiting_plan": "Pominięto: czeka na plan",

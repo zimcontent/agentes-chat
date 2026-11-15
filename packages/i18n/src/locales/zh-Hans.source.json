@@ -8419,6 +8419,51 @@
   "approvalsLevel.never.text": {
     "value": "Never asks, merge, deploy, payments and routines included."
   },
+  "ronda.title": {
+    "value": "Ronda"
+  },
+  "ronda.subtitle": {
+    "value": "It looks at the operation on its own, with nobody asking, and calls you only when it's worth it."
+  },
+  "ronda.schedule": {
+    "value": "When it passes"
+  },
+  "ronda.scheduleHelp": {
+    "value": "Each ronda sees what changed since the last one: conversations, stuck or late tasks, failures and forgotten approvals. When nothing changed it costs nothing. When something did, it decides whether to act and tells you in your DM."
+  },
+  "ronda.off": {
+    "value": "Off"
+  },
+  "ronda.daily": {
+    "value": "Every day at 8:00"
+  },
+  "ronda.three_daily": {
+    "value": "8:00, 13:00 and 18:00"
+  },
+  "ronda.hourly": {
+    "value": "Every hour (8:00 to 20:00)"
+  },
+  "ronda.next": {
+    "value": "Next: {{when}}"
+  },
+  "ronda.last": {
+    "value": "Last: {{what}}"
+  },
+  "ronda.reported": {
+    "value": "brought news"
+  },
+  "ronda.silent": {
+    "value": "looked and had nothing to say"
+  },
+  "ronda.running": {
+    "value": "running now"
+  },
+  "ronda.runNow": {
+    "value": "Do a ronda now"
+  },
+  "ronda.failed": {
+    "value": "Couldn't change the ronda"
+  },
   "brakes.title": {
     "value": "Work nobody asked for"
   },
@@ -21108,6 +21153,12 @@
   },
   "routines.code.previous_running": {
     "value": "Skipped: the previous one was still running"
+  },
+  "routines.code.ronda_nothing": {
+    "value": "Skipped: nothing changed since the last ronda"
+  },
+  "routines.code.ronda_quiet": {
+    "value": "Skipped: nothing worth acting on"
   },
   "routines.code.previous_waiting": {
     "value": "Skipped: the previous one was still waiting for someone"

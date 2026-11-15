@@ -3425,6 +3425,23 @@
       "text": "Hiç sormaz, merge, deploy, ödemeler ve rutinler dahil."
     }
   },
+  "ronda": {
+    "title": "Devriye",
+    "subtitle": "Kimse istemeden işleri kendi kendine gözden geçirir ve yalnızca gerektiğinde sana haber verir.",
+    "schedule": "Ne zaman çalışır",
+    "scheduleHelp": "Her devriyede bir öncekinden bu yana neyin değiştiğine bakar: konuşmalar, takılan ya da geciken görevler, hatalar ve unutulan onaylar. Hiçbir şey değişmediyse hiçbir maliyeti olmaz. Değiştiyse harekete geçmeye değip değmediğine karar verir ve sana DM ile söyler.",
+    "off": "Kapalı",
+    "daily": "Her gün 08:00'de",
+    "three_daily": "08:00, 13:00 ve 18:00",
+    "hourly": "Saatte bir (08:00 - 20:00)",
+    "next": "Sonraki: {{when}}",
+    "last": "Son: {{what}}",
+    "reported": "yenilik getirdi",
+    "silent": "baktı, söylenecek bir şey yoktu",
+    "running": "çalışıyor",
+    "runNow": "Şimdi devriye at",
+    "failed": "Devriye değiştirilemedi"
+  },
   "brakes": {
     "title": "Kimsenin istemediği iş",
     "subtitle": "Bir rutin, bir uyarı veya başka bir ajan üzerine kendi başına başlattığı şeyler. Bir kişinin istediği hiçbir zaman bekletilmez.",
@@ -8667,6 +8684,8 @@
     },
     "code": {
       "previous_running": "Atlandı: önceki hâlâ çalışıyordu",
+      "ronda_nothing": "Atlandı: son devriyeden bu yana değişiklik yok",
+      "ronda_quiet": "Atlandı: harekete geçmeye değer bir şey yok",
       "previous_waiting": "Atlandı: önceki hâlâ birini bekliyordu",
       "waiting_computer": "Atlandı: ajanın bilgisayarı bekleniyor",
       "waiting_plan": "Atlandı: plan bekleniyor",

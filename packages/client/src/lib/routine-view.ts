@@ -79,6 +79,8 @@ export function runPixels(runs: readonly RoutineRun[]): { status: RunStatus; wei
  */
 export const RUN_CODES = [
   "previous_running",
+  "ronda_nothing",
+  "ronda_quiet",
   "previous_waiting",
   "waiting_computer",
   "waiting_plan",

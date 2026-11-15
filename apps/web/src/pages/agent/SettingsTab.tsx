@@ -59,6 +59,7 @@ import { BrakesCard } from "./BrakesCard";
 import { CardHead, useAgentEdit, WasLine } from "./context";
 import { MediaAllowanceCard } from "./MediaAllowanceCard";
 import { ReadOnlyNote, useVisibleChannels } from "./pieces";
+import { RondaCard } from "./RondaCard";
 
 const SECTION_ICON: Record<AgentSection, IconName> = {
   identity: "person",
@@ -357,6 +358,7 @@ export function SettingsTab({
             </Section>
           )}
 
+          {part !== "basic" && <RondaCard />}
           {part !== "basic" && <BrakesCard />}
           {part !== "basic" && <MediaAllowanceCard />}
 
