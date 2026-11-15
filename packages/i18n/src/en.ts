@@ -11542,6 +11542,7 @@ export const en = {
     label: "Line for {{name}}",
     full: "Full",
     fullNext: "Full · next starts in about {{n}} min",
+    starting: "Starting · agents go in one at a time",
     free: "Nobody in line",
     workingNow: "Working now · {{n}}",
     inLine: "In line · {{n}}",

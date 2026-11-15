@@ -13,6 +13,7 @@ import {
   nthText,
   queueAllStartedText,
   queueButtonText,
+  queueCauseText,
   queuedNextText,
   queueFillText,
   queueLeftText,
@@ -109,6 +110,13 @@ test("the view: the viewer's own request is marked, the computer full, the next 
   expect(queueStatusText(en, queueView({ ...queue, waiting: [] }, "me"), NOW)).toBe("Nobody in line");
   const known = queueView({ ...queue, waiting: queue.waiting.slice(0, 2) }, "me");
   expect(queueAllStartedText(pt, known, NOW)).toBe("todos começam em ~3 min");
+  // Only the pacing between agents' asks holds the line: not full, no minutes, no "computer full" cause.
+  const paced = queueView({ ...queue, full: false }, "me");
+  expect(paced.full).toBe(false);
+  expect(queueStatusText(pt, paced, NOW)).toBe("Começando · os agentes entram um de cada vez");
+  expect(queueStatusText(en, paced, NOW)).toBe("Starting · agents go in one at a time");
+  expect(queueCauseText(en, { ...queue, full: false })).toBeNull();
+  expect(queueStatusText(en, queueView({ ...queue, full: true }, "me"), NOW)).toBe("Full · next starts in about 1 min");
   // One in line: its row already says when it starts.
   expect(queueAllStartedText(en, queueView({ ...queue, waiting: queue.waiting.slice(0, 1) }, "me"), NOW)).toBeNull();
 });

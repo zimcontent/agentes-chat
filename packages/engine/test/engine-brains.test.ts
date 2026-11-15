@@ -3262,6 +3262,8 @@ test("no room on the computer: nothing in the chat, the person's message says it
   [run] = await f.db.select().from(schema.agentRuns);
   expect(run?.status).toBe("waiting_input");
   expect(seen.length).toBe(2);
+  // The computer itself said no room: its line reads full (`ComputerQueue.full`), not only paced.
+  expect(run?.transcript).toHaveProperty("roomRefused", true);
   expect(await notes()).toEqual([]);
   expect(events.filter((e) => e.type === "agent.thinking" || e.status === "running")).toEqual([]);
   const steps = await f.db
@@ -3277,6 +3279,7 @@ test("no room on the computer: nothing in the chat, the person's message says it
   expect(seen.length).toBe(3);
   expect((await timeline(f)).at(-1)?.body).toBe("Pronto.");
   expect(run?.transcript).not.toHaveProperty("roomWaitSince");
+  expect(run?.transcript).not.toHaveProperty("roomRefused");
   // The wait ended when the computer took the turn: a step the operator's analytics end it at.
   const after = await f.db
     .select()
@@ -3787,6 +3790,8 @@ test("agents' turns on one computer start apart, parked in line (never handed to
   const parked = await runById(f, fromAgents.id);
   expect(parked?.status).toBe("waiting_input");
   expect(parked?.transcript).toMatchObject({ waitingForBrain: { code: "busy" } });
+  // Parked by the pacing alone, never refused by the computer: its line isn't full.
+  expect(parked?.transcript).not.toHaveProperty("roomRefused");
   expect(parked?.transcript).not.toHaveProperty("fallback");
   expect(seen).toHaveLength(0);
   expect((await timeline(f)).filter((m) => m.meta.bodyCode === "brain_unavailable")).toEqual([]);

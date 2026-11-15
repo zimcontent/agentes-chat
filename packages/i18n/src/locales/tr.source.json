@@ -27589,6 +27589,9 @@
   "queue.fullNext": {
     "value": "Full · next starts in about {{n}} min"
   },
+  "queue.starting": {
+    "value": "Starting · agents go in one at a time"
+  },
   "queue.free": {
     "value": "Nobody in line"
   },

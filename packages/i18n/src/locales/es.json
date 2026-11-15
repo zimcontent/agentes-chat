@@ -11650,6 +11650,7 @@
     "label": "Cola de {{name}}",
     "full": "Llena",
     "fullNext": "Llena · el siguiente empieza en unos {{n}} min",
+    "starting": "Empezando · los agentes entran de uno en uno",
     "free": "Nadie en la cola",
     "workingNow": "Trabajando ahora · {{n}}",
     "inLine": "En la cola · {{n}}",

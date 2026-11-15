@@ -1,6 +1,6 @@
 import { afterEach, expect, test } from "bun:test";
 import { MACHINE_PROTOCOL_VERSION } from "@agenteschat/adapters";
-import { schema } from "@agenteschat/db";
+import { eq, schema } from "@agenteschat/db";
 import {
   computerQueue,
   createAgent,
@@ -188,9 +188,11 @@ test("a computer's queue: working turns and the line in roomHead's order, purpos
       .returning();
     return r as typeof schema.agentRuns.$inferSelect;
   };
-  const busy = (since: number, people = false) => ({
+  // The computer turned each of these away for memory (`roomRefused`); a wait for the pacing alone has no mark.
+  const busy = (since: number, people = false, refused = true) => ({
     waitingForBrain: { code: "busy", machineId, waitId: crypto.randomUUID() },
     roomWaitSince: since,
+    ...(refused ? { roomRefused: true } : {}),
     ...(people ? { roomPeople: true } : {}),
   });
 
@@ -225,6 +227,7 @@ test("a computer's queue: working turns and the line in roomHead's order, purpos
 
   const q = await computerQueue(f.db, f.owner.id, f.org.id, machineId, now);
   expect(q.name).toBe("Studio");
+  expect(q.full).toBe(true);
   expect(q.working).toHaveLength(1);
   expect(q.working[0]).toMatchObject({
     runId: working.id,
@@ -271,4 +274,14 @@ test("a computer's queue: working turns and the line in roomHead's order, purpos
   });
   const line = await computerQueue(f.db, f.owner.id, f.org.id, machineId, now);
   expect(line.waiting.map((w) => w.runId)).toEqual([person.id, asked.id, routine.id, byAgent.id]);
+
+  // A line that only waits for the seconds between agents' asks: the computer has memory, so it isn't full, and no
+  // row gets an estimate that assumes it waits for a turn on the computer to end.
+  for (const r of [person, asked, routine, byAgent])
+    await f.db.delete(schema.agentRuns).where(eq(schema.agentRuns.id, r.id));
+  const paced = await run(rio.id, await msg({ agentId: nova.id }), "waiting_input", busy(now - 2_000, false, false));
+  const pacing = await computerQueue(f.db, f.owner.id, f.org.id, machineId, now);
+  expect(pacing.full).toBe(false);
+  expect(pacing.waiting).toHaveLength(1);
+  expect(pacing.waiting[0]).toMatchObject({ runId: paced.id, position: 1, estimatedStartAt: null, after: [] });
 });

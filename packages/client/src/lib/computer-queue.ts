@@ -36,8 +36,10 @@ export type QueueRow<T> = T & {
 export interface QueueView {
   working: QueueRow<QueueWorking>[];
   waiting: QueueRow<QueueWaiting>[];
-  /** Turns wait for room: the computer is full. */
+  /** Turns wait for memory: the computer turned one away (an older server: anyone in line). */
   full: boolean;
+  /** Turns wait only for the seconds between agents' asks: they start one at a time, now. */
+  starting: boolean;
   /** When the next in line should start (null: no basis). */
   nextStartAt: string | null;
   /** When the last in line should start, once every estimate is known. */
@@ -52,7 +54,8 @@ export function queueView(queue: ComputerQueue, viewerId: string): QueueView {
   return {
     working: queue.working.map((w) => ({ ...w, mine: mineOf(w.purpose, viewerId) })),
     waiting,
-    full: waiting.length > 0,
+    full: waiting.length > 0 && (queue.full ?? true),
+    starting: waiting.length > 0 && queue.full === false,
     nextStartAt: waiting[0]?.estimatedStartAt ?? null,
     allStartedAt: waiting.every((w) => w.estimatedStartAt) ? (last?.estimatedStartAt ?? null) : null,
   };
@@ -67,9 +70,12 @@ export function queueFillText(t: TFunction, working: readonly Pick<QueueWorking,
   return parts.length ? joinNames(parts, t) : null;
 }
 
-/** Why a turn waits: "Computer full: 4 jobs use its memory now (2 for people, 1 routine…)", null with nothing on it. */
-export function queueCauseText(t: TFunction, queue: Pick<ComputerQueue, "working"> | null | undefined) {
-  const fill = queue ? queueFillText(t, queue.working) : null;
+/**
+ * Why a turn waits: "Computer full: 4 jobs use its memory now (2 for people, 1 routine…)", null with nothing on it, or
+ * when the line only waits for the pacing between agents' asks (the computer has memory free).
+ */
+export function queueCauseText(t: TFunction, queue: Pick<ComputerQueue, "working" | "full"> | null | undefined) {
+  const fill = queue && queue.full !== false ? queueFillText(t, queue.working) : null;
   return fill ? t("queue.cause", { count: queue?.working.length ?? 0, fill }) : null;
 }
 
@@ -92,8 +98,9 @@ export const queueStopText = (t: TFunction, row: Pick<StoppableWork, "purpose">,
 export const queueButtonText = (t: TFunction, queue: ComputerQueue | null | undefined) =>
   queue?.waiting.length ? t("queue.button", { count: queue.waiting.length }) : t("queue.buttonIdle");
 
-/** "Full · next starts in about 1 min", "Full", "Nobody in line". */
+/** "Full · next starts in about 1 min", "Full", "Starting · agents go in one at a time", "Nobody in line". */
 export function queueStatusText(t: TFunction, view: QueueView, now: number) {
+  if (view.starting) return t("queue.starting");
   if (!view.full) return t("queue.free");
   return view.nextStartAt ? t("queue.fullNext", { n: etaMinutes(view.nextStartAt, now) }) : t("queue.full");
 }

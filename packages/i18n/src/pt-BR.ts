@@ -11600,6 +11600,7 @@ export const ptBR = {
     label: "Fila de {{name}}",
     full: "Cheio",
     fullNext: "Cheio · o próximo começa em cerca de {{n}} min",
+    starting: "Começando · os agentes entram um de cada vez",
     free: "Ninguém na fila",
     workingNow: "Trabalhando agora · {{n}}",
     inLine: "Na fila · {{n}}",

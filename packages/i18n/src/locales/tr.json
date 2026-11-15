@@ -11256,6 +11256,7 @@
     "label": "{{name}} sırası",
     "full": "Dolu",
     "fullNext": "Dolu · sıradaki yaklaşık {{n}} dk sonra başlar",
+    "starting": "Başlıyor · ajanlar sırayla giriyor",
     "free": "Sırada kimse yok",
     "workingNow": "Şu an çalışıyor · {{n}}",
     "inLine": "Sırada · {{n}}",
