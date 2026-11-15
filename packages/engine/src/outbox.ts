@@ -445,6 +445,8 @@ export interface OutboxPump {
   pump(): Promise<number>;
   /** Jobs running now. */
   inFlight(): number;
+  /** Long jobs (`LONG_JOB_KINDS`) running now, background ones included. */
+  longInFlight(): number;
   /** Resolves when every running job has finished. */
   idle(): Promise<void>;
   /**
@@ -654,6 +656,11 @@ export function createOutboxPump(
     /** The process's memory (`laneLimits`' `memoryBytes`): `tune` brakes and sheds by it. Absent: no memory brake. */
     memoryBytes?: number;
     onSlotFree?: () => void;
+    /**
+     * While true, no long job is claimed (`LONG_JOB_KINDS`): a server about to restart leaves agents' work to the
+     * next instance and only finishes what it holds (ADR doug-0005). Quick jobs go on.
+     */
+    holdLong?: () => boolean;
   },
 ): OutboxPump {
   const max = options.maxInFlight ?? 20;
@@ -677,13 +684,14 @@ export function createOutboxPump(
       // Runs the long lane shed while they ran (`MEMORY_SHED_AT`) hold none of the quick lane's slots.
       const free = slots.quick + slots.long - quickRunning - Math.min(longRunning, slots.long);
       if (free <= 0) return 0;
+      const held = options.holdLong?.() === true;
       const jobs = await claimJobs(db, {
         ...options,
         onTiming,
         batchSize: free,
         maxQuick: Math.max(0, limits.lanes.quick - quickRunning),
-        maxLong: Math.max(0, slots.long - longRunning),
-        maxBackground: Math.max(0, backgroundSlotsOf(slots.long) - backgroundRunning),
+        maxLong: held ? 0 : Math.max(0, slots.long - longRunning),
+        maxBackground: held ? 0 : Math.max(0, backgroundSlotsOf(slots.long) - backgroundRunning),
       });
       for (const job of jobs) {
         if (job.long) longRunning++;
@@ -701,6 +709,7 @@ export function createOutboxPump(
       return jobs.length;
     },
     inFlight: () => running.size,
+    longInFlight: () => longRunning,
     async idle() {
       while (running.size > 0) await Promise.all(running);
     },

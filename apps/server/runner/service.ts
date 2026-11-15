@@ -314,7 +314,21 @@ export interface ServiceIo {
   sleep?: (ms: number) => void;
   /** The runner's command the service runs (default `start`; `host …`: the server's own computer). */
   args?: readonly string[];
+  /**
+   * `--when-idle` (systemd): a service already running isn't restarted now but asked to restart once nothing runs
+   * there (SIGUSR2, ADR doug-0005), so the agents' turns aren't cut by an update. One not running starts as before.
+   */
+  whenIdle?: boolean;
 }
+
+/** systemd's command that asks a running runner to restart into its new version at a stopping point (ADR doug-0005). */
+const askRestart = (unit: string, user: boolean) => [
+  ...(user ? ["--user"] : []),
+  "kill",
+  "--signal=SIGUSR2",
+  "--kill-who=main",
+  unit,
+];
 
 const sleepSync = (ms: number) => Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, ms);
 
@@ -322,15 +336,20 @@ const sleepSync = (ms: number) => Atomics.wait(new Int32Array(new SharedArrayBuf
  * Writes the user unit (`systemdUnitPath`) and enables and (re)starts it. Says what failed and returns
  * false when a step fails; the caller checks first that systemd's user manager answers.
  */
-export function startUserUnit(unit: string, text: string, io: { print: (line: string) => void; run?: RunCommand }) {
+export function startUserUnit(
+  unit: string,
+  text: string,
+  io: { print: (line: string) => void; run?: RunCommand; whenIdle?: boolean },
+): "started" | "asked" | false {
   const run = io.run ?? runSync;
   const file = systemdUnitPath(os.homedir(), unit);
   mkdirSync(path.dirname(file), { recursive: true });
   writeFileSync(file, text);
+  const asks = io.whenIdle === true && run("systemctl", ["--user", "is-active", "--quiet", unit]).code === 0;
   for (const args of [
     ["--user", "daemon-reload"],
-    ["--user", "enable", "--now", unit],
-    ["--user", "restart", unit],
+    ["--user", "enable", ...(asks ? [] : ["--now"]), unit],
+    asks ? askRestart(unit, true) : ["--user", "restart", unit],
   ]) {
     const r = run("systemctl", args);
     if (r.code !== 0) {
@@ -338,8 +357,14 @@ export function startUserUnit(unit: string, text: string, io: { print: (line: st
       return false;
     }
   }
-  return true;
+  return asks ? "asked" : "started";
 }
+
+/** What an install says once its service started, or was asked to restart when idle. */
+const startedLine = (file: string, how: "started" | "asked") =>
+  how === "asked"
+    ? `Installed ${file}. The runner restarts into it once nothing runs there.`
+    : `Installed ${file} and started it.`;
 
 /** Writes the launchd agent (`launchdPlistPath`) and loads it again. Says what failed and returns false. */
 export function startLaunchAgent(
@@ -442,8 +467,13 @@ export function installService(io: ServiceIo): number {
       print(`  ${plainCommand(launch)} start`);
       return 1;
     }
-    if (!startUserUnit(SERVICE_NAME, systemdUnit(launch, io.args), { print, run })) return 1;
-    print(`Installed ${systemdUnitPath()} and started it.`);
+    const how = startUserUnit(SERVICE_NAME, systemdUnit(launch, io.args), {
+      print,
+      run,
+      ...(io.whenIdle ? { whenIdle: true } : {}),
+    });
+    if (!how) return 1;
+    print(startedLine(systemdUnitPath(), how));
     print(`Logs: journalctl --user -u ${SERVICE_NAME} -f`);
     print(`To keep it running after you log out: loginctl enable-linger ${os.userInfo().username}`);
     return 0;
@@ -550,7 +580,10 @@ export function installSystemService(io: SystemServiceIo): number {
   // starts and sets its bind policy (`prepareAgents`). Nothing of the agents' restarts (`KillMode=process` keeps it
   // through the runner's restart too).
   const steps = [["daemon-reload"]];
-  if (start && paired) steps.push(["enable", SERVICE_NAME], ["restart", SERVICE_NAME]);
+  const asks =
+    start && paired && io.whenIdle === true && run("systemctl", ["is-active", "--quiet", SERVICE_NAME]).code === 0;
+  if (start && paired)
+    steps.push(["enable", SERVICE_NAME], asks ? askRestart(SERVICE_NAME, false) : ["restart", SERVICE_NAME]);
   for (const args of steps) {
     const r = run("systemctl", args);
     if (r.code !== 0) {
@@ -563,7 +596,7 @@ export function installSystemService(io: SystemServiceIo): number {
     print(`Installed ${file}. Connect this computer first (agentes-runner pair --server <url>), then start it:`);
     print(`  systemctl enable --now ${SERVICE_NAME}`);
   } else {
-    print(`Installed ${file} and started it.`);
+    print(startedLine(file, asks ? "asked" : "started"));
     print(`Logs: journalctl -u ${SERVICE_NAME} -f`);
   }
   return 0;

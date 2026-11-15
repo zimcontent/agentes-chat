@@ -9,6 +9,7 @@ import {
   drainLocalRuns,
   drainOutbox,
   enqueue,
+  holdRunsForRestart,
   INTERRUPTED_BY_RESTART,
   insertMessage,
   type JobHandler,
@@ -25,6 +26,7 @@ import { type Fixture, setup } from "./fixtures";
 
 let f: Fixture;
 afterEach(async () => {
+  holdRunsForRestart(false);
   const current = f;
   f = undefined as unknown as Fixture;
   await current?.close();
@@ -141,6 +143,65 @@ const recoveries = async (runId: string) =>
   (await f.db.select().from(schema.agentRunSteps).where(eq(schema.agentRunSteps.runId, runId))).filter(
     (s) => s.kind === "error" && s.data.reason === "recovered",
   ).length;
+
+describe("a restart announced ahead (ADR doug-0005)", () => {
+  test("the step running ends on its own, the run stops before its next turn, and no long job starts meanwhile", async () => {
+    const ran = { long_task: 0 };
+    f = await setup({
+      toolSources: [
+        {
+          name: "deploy-sim",
+          tools: async () => [
+            {
+              name: "long_task",
+              description: "A long task",
+              scope: "",
+              inputSchema: { type: "object", properties: {}, additionalProperties: false },
+              async execute() {
+                ran.long_task++;
+                // The deploy announces its restart while the step runs: nothing cuts it.
+                holdRunsForRestart(true);
+                await Bun.sleep(20);
+                return { content: "task ok" };
+              },
+            },
+          ],
+        },
+      ],
+      reply: (_req, call) =>
+        call === 1
+          ? { chunks: ["Trabalhando nisso."], toolUses: [{ name: "long_task", input: {} }] }
+          : { chunks: ["Pronto."] },
+    });
+    await postPersonMessage({ db: f.db, pubsub: f.pubsub }, f.owner.id, f.org.id, f.general.id, {
+      body: "@dev faz a tarefa longa",
+    });
+    await drainOutbox(f.db, f.handlers, { maxBatches: 1 });
+    const [run] = await f.db.select().from(schema.agentRuns);
+    if (!run) throw new Error("no run");
+    // The tool finished; no next model call: the run waits, handed back, without spending an attempt.
+    expect(ran.long_task).toBe(1);
+    expect(f.provider.calls).toHaveLength(1);
+    expect(run.status).toBe("running");
+    expect(await jobOf(run.id)).toMatchObject({ status: "pending", attempts: 0, lockedBy: null });
+    const saved = run.transcript as { messages: { role: string; content: unknown }[] };
+    expect(saved.messages.at(-1)).toMatchObject({
+      role: "user",
+      content: [{ type: "tool_result", content: "task ok" }],
+    });
+
+    // Still held: a pump leaves the run's job (a long one) to the next instance.
+    const pump = createOutboxPump(f.db, f.handlers, { workerId: "held", holdLong: () => true });
+    expect(await pump.pump()).toBe(0);
+
+    // The next instance, nothing held: it goes on from the saved step.
+    holdRunsForRestart(false);
+    await drainOutbox(f.db, f.handlers);
+    expect((await runRow(run.id))?.status).toBe("done");
+    expect(resultsSent(2)).toEqual([expect.objectContaining({ content: "task ok" })]);
+    expect(ran.long_task).toBe(1);
+  });
+});
 
 describe("server restarts", () => {
   test("SIGTERM mid-tool: the step is saved and the run handed back at once, without spending an attempt", async () => {

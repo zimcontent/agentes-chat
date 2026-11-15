@@ -46,6 +46,25 @@ test("health answers 503 once the server is shutting down, so a proxy stops send
   expect(await res.json()).toMatchObject({ status: "draining", database: "ok" });
 });
 
+test("health says whether a restart announced ahead may go now, staying 200 (ADR doug-0005)", async () => {
+  let restart: "waiting" | "ready" | null = null;
+  const app = createApp({
+    edition: "selfhost",
+    version: "1",
+    modules: [],
+    pingDatabase: async () => {},
+    restart: () => restart,
+  });
+  expect(await (await app.request("/api/health")).json()).not.toHaveProperty("restart");
+  restart = "waiting";
+  let res = await app.request("/api/health");
+  expect(res.status).toBe(200);
+  expect(await res.json()).toMatchObject({ status: "ok", restart: "waiting" });
+  restart = "ready";
+  res = await app.request("/api/health");
+  expect(await res.json()).toMatchObject({ status: "ok", restart: "ready" });
+});
+
 test("a worker process answers its health check alone, as the app does, so its container turns healthy", async () => {
   let up = true;
   let draining = false;

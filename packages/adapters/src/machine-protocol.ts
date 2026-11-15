@@ -2837,6 +2837,11 @@ export type MachineErrorCode =
   /** Protocol 9: the owner paused this computer; nothing new starts until it resumes. */
   | "paused"
   /**
+   * `brain.turn` while the runner waits to restart into its new version (ADR doug-0005): the turns already running
+   * finish first, and this one starts on the new runner, a few seconds later. Try again soon.
+   */
+  | "restarting"
+  /**
    * Protocol 10: the path is outside every folder this agent may use, or the tool is off on the machine. Also
    * `exec` and a `shell` task's `task.start` that the command policy never runs here, approved or not (a push our
    * git proxy refuses): the message says where to go instead (`policyRefusal`).

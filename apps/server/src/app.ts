@@ -96,6 +96,8 @@ export interface AppOptions {
   pingDatabase: () => Promise<void>;
   /** True once the server is shutting down: `/api/health` answers 503. */
   draining?: () => boolean;
+  /** A restart announced ahead (ADR doug-0005): `/api/health` says whether anything long still runs here. */
+  restart?: () => "waiting" | "ready" | null;
   /** Needed when modules register routes. */
   moduleContext?: ModuleContext;
   /** Database, auth and adapters. Without them only system routes are mounted (some tests). */
@@ -156,6 +158,7 @@ export function createApp(options: AppOptions) {
     modules: options.modules.map((m) => m.name),
     pingDatabase: options.pingDatabase,
     draining: options.draining,
+    ...(options.restart ? { restart: options.restart } : {}),
   });
 
   if (options.services) {

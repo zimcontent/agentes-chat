@@ -14,7 +14,7 @@ import {
   writeConfig,
 } from "./config";
 import { backoffDelay, TOKEN_REFUSED_EXIT } from "./connection";
-import { machineOs } from "./daemon";
+import { machineOs, RESTART_IDLE_MAX_MS } from "./daemon";
 import { RUNNER_VERSION } from "./errors";
 import { readLines } from "./lines";
 import { uniqueWorkspace } from "./pairing";
@@ -164,6 +164,37 @@ export class HostComputer {
       const interval = this.opts.intervalMs ?? HOST_SYNC_MS;
       await this.sleep(this.status === "unreachable" ? Math.min(interval, backoffDelay(this.failures - 1)) : interval);
     }
+  }
+
+  /** True once every child stopped to restart (`restartWhenIdle`): `host` exits for its service to start it again. */
+  restartDue = false;
+  private restarting = false;
+
+  /**
+   * Restart into the new version at a stopping point (ADR doug-0005): each organization's runner is asked to restart
+   * once nothing runs there (SIGUSR2) and none is started again; once every one stopped, the loop ends with
+   * `restartDue`. A child that doesn't stop by `RESTART_IDLE_MAX_MS` and a minute is stopped as `stop` does.
+   */
+  restartWhenIdle() {
+    if (this.restarting || this.stopped) return;
+    this.restarting = true;
+    const running = [...this.children.values()].filter((c) => c.proc);
+    this.opts.log(`restart asked: ${running.length} organization runner(s) restart once nothing runs there`);
+    for (const c of running) c.proc?.kill("SIGUSR2");
+    const late = setTimeout(() => {
+      this.restartDue = true;
+      void this.stop();
+    }, RESTART_IDLE_MAX_MS + 60_000);
+    late.unref?.();
+    this.restartIfIdle();
+  }
+
+  /** While restarting: once no child runs, the loop ends. */
+  private restartIfIdle() {
+    if (!this.restarting || [...this.children.values()].some((c) => c.proc)) return;
+    this.restartDue = true;
+    this.stopped = true;
+    this.wake?.();
   }
 
   /** Stops the loop and the children (killed if they take longer than a few seconds). */
@@ -384,7 +415,7 @@ export class HostComputer {
 
   /** Starts the child now, or once its backoff ends; nothing when it runs or a start is set. */
   private launch(c: Child) {
-    if (this.stopped || c.proc || c.timer) return;
+    if (this.stopped || this.restarting || c.proc || c.timer) return;
     const wait = c.notBefore - Date.now();
     if (wait > 0) {
       c.timer = setTimeout(() => {
@@ -410,6 +441,11 @@ export class HostComputer {
   private exited(c: Child, proc: HostChild | null, code: number | null) {
     if (proc && c.proc !== proc) return;
     c.proc = null;
+    if (this.restarting) {
+      this.opts.log(`[${c.label}] runner stopped to restart${code === null ? "" : ` (exit ${code})`}`);
+      this.restartIfIdle();
+      return;
+    }
     if (this.stopped || this.children.get(c.orgId) !== c) return;
     c.attempt = Date.now() - c.startedAt >= CHILD_STABLE_MS ? 0 : c.attempt + 1;
     c.notBefore = c.attempt > 0 ? Date.now() + backoffDelay(c.attempt - 1) : 0;

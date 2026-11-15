@@ -204,6 +204,11 @@ const REFUSED = new Set(["paused", "not_allowed", "exec_disabled", "outside_work
 
 /** How often the agents' browsers are looked at again for the app (one left idle stops counting as open). */
 const BROWSER_STATE_POLL_MS = 5000;
+/** How long a runner asked to restart waits for the work running here to end before it restarts anyway (ADR doug-0005). */
+export const RESTART_IDLE_MAX_MS = 30 * 60_000;
+const RESTART_POLL_MS = 500;
+/** `start`'s and `host`'s exit code after `restartWhenIdle`: not a clean exit (0), so the service starts it again. */
+export const RESTART_EXIT = 75;
 
 export function machineOs(): MachineOs {
   switch (process.platform) {
@@ -450,6 +455,10 @@ export class RunnerDaemon implements RequestObserver {
   private booted = false;
   private firstSession = true;
   private startWaiter: ((o: ConnectionOutcome) => void) | null = null;
+  /** Since when this runner waits to restart into its new version (ADR doug-0005); null: it doesn't. */
+  private restartAskedAt: number | null = null;
+  /** True once it stopped to restart: `start` exits with `RESTART_EXIT` and its service starts the new version. */
+  restartDue = false;
   /** Job and activity events, in order (redaction is async). */
   private chain: Promise<void> = Promise.resolve();
   private statusQueued = false;
@@ -842,6 +851,34 @@ export class RunnerDaemon implements RequestObserver {
     await this.chain.catch(() => undefined);
     this.startWaiter?.({ exitCode: 0, reason: "stopped", message: "stopped" });
     this.startWaiter = null;
+  }
+
+  /**
+   * Restart into the new version at a stopping point (ADR doug-0005): new turns are refused with `restarting` (the
+   * server asks again a few seconds later, quietly), and once nothing runs here (no turn, command or file work; the
+   * background tasks go on through a restart) it stops with `restartDue`, for its service to start the new version.
+   * After `maxMs` it restarts anyway: a turn still running then resumes on the new runner from its session.
+   */
+  async restartWhenIdle(maxMs = RESTART_IDLE_MAX_MS) {
+    if (this.restartAskedAt !== null || this.stopped) return;
+    const since = this.now();
+    this.restartAskedAt = since;
+    const running = () => [...this.jobs.values()].filter((j) => !j.background).length;
+    // A request that started just before is in the jobs once the event chain got to it.
+    await this.chain.catch(() => undefined);
+    this.opts.log(`restart asked: new turns wait, ${running()} running here finish first`);
+    while (running() > 0 && this.now() - since < maxMs && !this.stopped) {
+      await new Promise((r) => setTimeout(r, RESTART_POLL_MS));
+    }
+    if (this.stopped) return;
+    const left = running();
+    this.opts.log(
+      left === 0
+        ? `nothing runs here: restarting (waited ${Math.round((this.now() - since) / 1000)} s)`
+        : `${left} still running after ${Math.round(maxMs / 60_000)} min: restarting anyway, they resume on the new runner`,
+    );
+    this.restartDue = true;
+    await this.stop();
   }
 
   /** The app quits: no new work, what runs gets up to `graceMs` to finish, then everything stops. */
@@ -1474,6 +1511,7 @@ export class RunnerDaemon implements RequestObserver {
         : async (spare) => brains.warm(spare),
       codex: { runnerHome: home, mcp: mcpCommand, runs: codexRuns, app: codexApp },
       paused: () => this.stopping || this.pauseState().paused,
+      restarting: () => this.restartAskedAt !== null,
       setPause: (paused, until, by) => (paused ? this.pause(until, by) : this.resume()),
       // A config written later without the mode never turns a system session back into one that does agents' work.
       systemMode: () => config.mode === "system" || this.stored?.mode === "system",

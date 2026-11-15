@@ -161,6 +161,45 @@ test("an organization no longer served stops its runner; a runner that stops sta
   expect(children.started[2]?.home).toBe(home(A));
 });
 
+test("a restart asked (ADR doug-0005): each runner is asked to restart when idle, none starts again, and the loop ends once all stopped", async () => {
+  // Runners that take the request and stop later, when the test says their work ended.
+  const started: { label: string; signals: string[]; exit(code: number | null): void }[] = [];
+  const { host, server, lines } = makeHost({
+    intervalMs: 60_000,
+    start: (_home, label) => {
+      let resolve: (code: number | null) => void = () => {};
+      const exited = new Promise<number | null>((r) => {
+        resolve = r;
+      });
+      const child = { label, signals: [] as string[], exit: (code: number | null) => resolve(code) };
+      started.push(child);
+      return {
+        exited,
+        kill: (signal = "SIGTERM") => {
+          child.signals.push(signal);
+          if (signal !== "SIGUSR2") resolve(null);
+        },
+      };
+    },
+  });
+  server.answer([org(A, MA, "agm_a"), org(B, MB, "agm_b")]);
+  const loop = host.run();
+  await waitFor(() => started.length === 2, 3000);
+  host.restartWhenIdle();
+  expect(started.map((c) => c.signals)).toEqual([["SIGUSR2"], ["SIGUSR2"]]);
+  const [a, b] = started;
+  a?.exit(75);
+  await Bun.sleep(20);
+  // One still works: the host waits, and the one that stopped isn't started again.
+  expect(host.restartDue).toBe(false);
+  expect(started).toHaveLength(2);
+  b?.exit(75);
+  await loop;
+  expect(host.restartDue).toBe(true);
+  expect(started).toHaveLength(2);
+  expect(lines.some((l) => l.includes("runner stopped to restart"))).toBe(true);
+});
+
 test("a refused token: the next sync comes at once, asks for a new one, and the runner starts with it", async () => {
   const { host, server, children, home } = makeHost({ intervalMs: 60_000 });
   server.answer([org(A, MA, "agm_old")]);
@@ -285,6 +324,45 @@ test("its service: the root unit runs `host` (the token from a file), starts wit
     "systemctl restart agentes-runner",
   ]);
   expect(readStoredConfig(state)).toBeNull();
+});
+
+test("its service updated with --when-idle (ADR doug-0005): a running unit is asked to restart when idle, one stopped starts", () => {
+  const state = tempDir("host-svc-");
+  dirs.push(state);
+  const launch = { runtime: "/opt/bun", script: "/opt/agentes-runner.mjs", home: "/var/lib/agentes-runner" };
+  const args = ["host", "--server", "http://127.0.0.1:3000", "--token-file", "/etc/agentes/host-token"];
+  const install = (active: boolean) => {
+    const calls: string[] = [];
+    const code = installSystemService({
+      print: () => {},
+      run: (file, a) => {
+        calls.push(`${file} ${a.join(" ")}`);
+        return { code: a[0] === "is-active" && !active ? 3 : 0, output: "" };
+      },
+      launch,
+      args,
+      uid: 0,
+      platform: "linux",
+      unitPath: path.join(state, "agentes-runner.service"),
+      booted: true,
+      whenIdle: true,
+    });
+    return { code, calls };
+  };
+  expect(install(true)).toEqual({
+    code: 0,
+    calls: [
+      "systemctl is-active --quiet agentes-runner",
+      "systemctl daemon-reload",
+      "systemctl enable agentes-runner",
+      "systemctl kill --signal=SIGUSR2 --kill-who=main agentes-runner",
+    ],
+  });
+  expect(install(false).calls.slice(1)).toEqual([
+    "systemctl daemon-reload",
+    "systemctl enable agentes-runner",
+    "systemctl restart agentes-runner",
+  ]);
 });
 
 test("once: the homes written, every tool off, nothing started; what is new and what is gone", async () => {

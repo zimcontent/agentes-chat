@@ -10,7 +10,6 @@ import {
   enqueue,
   enqueueAccountContacts,
   enqueueAutonomyReport,
-  portalTasksTick,
   enqueueIdleReflections,
   enqueueOverdueAccountDeletions,
   enqueueOverdueDeletions,
@@ -38,6 +37,7 @@ import {
   type MailDeps,
   type OutboxJob,
   pollMailWatches,
+  portalTasksTick,
   postAutonomyDigests,
   pruneDeletionCodes,
   pruneJoinRequests,
@@ -141,6 +141,8 @@ export interface WorkerDeps {
    * the app (a worker process: `APP_JOB_KINDS`); absent: the pump's own.
    */
   outbox?: { maxInFlight: number; quickSlots: number; limits?: LaneLimits; memoryBytes?: number; skipKinds?: string[] };
+  /** While true, no long job is claimed here: a restart was announced (ADR doug-0005). */
+  holdLong?: () => boolean;
   /** The database is the built-in one (one process): the alarms advise what fits it. */
   builtInDatabase?: boolean;
   log: Logger;
@@ -250,6 +252,7 @@ export function startWorkers(deps: WorkerDeps) {
   // keep slots of their own.
   const outboxPump = createOutboxPump(db, deps.handlers, {
     ...deps.outbox,
+    ...(deps.holdLong ? { holdLong: deps.holdLong } : {}),
     workerId,
     onSlotFree: () => void ticks.get("outbox")?.(),
     onError: (job, error, outcome) => logJobFailure(log, job, error, outcome),
@@ -523,6 +526,8 @@ export function startWorkers(deps: WorkerDeps) {
       offCancel();
       for (const timer of timers) clearInterval(timer);
     },
+    /** Long jobs (agents' runs, routines…) running here now. */
+    longInFlight: () => outboxPump.longInFlight(),
     /**
      * After `stop`: waits for the jobs running here to finish, until `until` settles, then hands the rest back to
      * the queue, due at once for the next instance. Returns how many went back.
