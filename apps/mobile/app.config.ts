@@ -42,6 +42,8 @@ export const APP_LINK_PATTERNS = [
   "/org/*/home",
   "/org/*/dashboards",
   "/org/*/dashboards/*",
+  "/org/*/review",
+  "/org/*/review/*",
   "/org/*/c/*",
   "/org/*/dm/*",
   "/org/*/threads",

@@ -20,6 +20,7 @@ import { useOpenStart } from "../me/useStart";
 import { useOpenDm } from "../new/useOpenDm";
 import { OutageNotices } from "../outages/OutageNotice";
 import { useMachineOutages } from "../outages/queries";
+import { HomeReviews } from "../review/HomeReviews";
 import { RightHandAsk } from "../right-hand/Pin";
 import { useColors, useDirectory, useMeId, useOrgId, usePullRefresh } from "../shared/hooks";
 import { useActiveWork, useConversations, useHiddenAgents, useWorkingNow } from "../shared/queries";
@@ -224,6 +225,8 @@ function Home() {
       {failed || empty || list.loading ? null : (
         <>
           {/* Início's widgets, and the way to Dashboards ("See all"), not a tab (ADR 0135 §15). */}
+          {/* Videos agents sent for review, with how many wait (docs/adr/doug-0007-video-review.md). */}
+          <HomeReviews />
           <HomeWidgets collapsed={collapsed.includes("widgets")} onToggle={() => toggle("widgets")} />
           <FirstRunLine />
         </>

@@ -148,6 +148,9 @@ function AppStack() {
       <Stack.Screen name="board-edit/[id]" options={{ ...pushed, ...scrollUnder }} />
       <Stack.Screen name="board-edit-roles" options={{ ...pushed, ...scrollUnder }} />
       <Stack.Screen name="widget/[id]" options={{ ...pushed, ...scrollUnder }} />
+      {/* Video review (docs/adr/doug-0007-video-review.md): the list from the home, a video from it or a chat's card. */}
+      <Stack.Screen name="review/index" options={{ ...pushed, ...scrollUnder }} />
+      <Stack.Screen name="review/[id]" options={{ ...pushed, ...scrollUnder }} />
       <Stack.Screen name="widget-new" options={{ ...pushed, ...scrollUnder }} />
       <Stack.Screen name="agent-pick" options={{ ...pushed, ...scrollUnder }} />
       <Stack.Screen name="widget-pin" options={{ ...pushed, ...scrollUnder }} />

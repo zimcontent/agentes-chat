@@ -97,6 +97,7 @@ import { MessageFiles } from "../files/MessageFiles";
 import { consultationHref, routineHref } from "../links/logic";
 import { DecisionCard, MissionCard, PlanCard, ReviewCard, SetupFailedCard } from "../missions/cards";
 import { AwayPill, BrainWait } from "../outages/WaitCard";
+import { ReviewChatCards } from "../review/ReviewChatCard";
 import { SettingsProposals } from "../right-hand/SettingsCard";
 import { ReplyChips, TeamCard } from "../right-hand/TeamCard";
 import { TeamWeek } from "../right-hand/TeamWeekCard";
@@ -449,6 +450,7 @@ export const MessageRow = memo(function MessageRow({
       {link ? <MissionCard missionId={link.missionId} /> : null}
       {plan ? <PlanCard missionId={plan.missionId} goal={plan.goal} /> : null}
       {review ? <ReviewCard missionId={review.missionId} reviewId={review.id} /> : null}
+      <ReviewChatCards body={body} meta={meta} />
       {setup ? (
         <SetupFailedCard
           {...(setup.missionId ? { missionId: setup.missionId } : {})}
