@@ -59,6 +59,8 @@ const Note = z
     atMs: z.number().int().nullable(),
     endMs: z.number().int().nullable(),
     kind: z.enum(REVIEW_NOTE_KINDS).nullable(),
+    x: z.number().nullable(),
+    y: z.number().nullable(),
     body: z.string(),
     voice: z.boolean(),
     author: Who.nullable(),
@@ -68,6 +70,8 @@ const Note = z
   .openapi("VideoReviewNote");
 
 const Review = Summary.extend({
+  brief: z.string(),
+  links: z.array(z.object({ label: z.string(), url: z.string() })),
   versions: z.array(
     z.object({ version: z.number().int(), artifactId: z.uuid(), note: z.string(), createdAt: z.string() }),
   ),
@@ -138,6 +142,8 @@ export function videoReviewRoutes(deps: AppDeps) {
             atMs: z.number().int().min(0).nullable(),
             endMs: z.number().int().min(1).nullable().optional(),
             kind: z.enum(REVIEW_NOTE_KINDS).nullable().optional(),
+            x: z.number().min(0).max(1).nullable().optional(),
+            y: z.number().min(0).max(1).nullable().optional(),
             body: z.string().min(1).max(REVIEW_NOTE_CHARS),
           }),
         ),
@@ -179,6 +185,8 @@ export function videoReviewRoutes(deps: AppDeps) {
                   .optional()
                   .openapi({ description: "Where a stretch ends; empty: one point." }),
                 kind: z.enum(REVIEW_NOTE_KINDS).optional(),
+                x: z.string().max(12).optional(),
+                y: z.string().max(12).optional(),
                 language: z.string().max(8).optional(),
               }),
             },
@@ -204,12 +212,18 @@ export function videoReviewRoutes(deps: AppDeps) {
         throw new ValidationError("send the recording in the field file", "video_review.bad_type");
       const at = form.atMs?.trim() ? Number(form.atMs) : null;
       const end = form.endMs?.trim() ? Number(form.endMs) : null;
+      const fraction = (v?: string) => {
+        const n = v?.trim() ? Number(v) : Number.NaN;
+        return Number.isFinite(n) ? n : null;
+      };
       try {
         const note = await addVoiceReviewNote(reviews(), user.id, orgId, reviewId, {
           version: form.version,
           atMs: at !== null && Number.isFinite(at) ? at : null,
           endMs: end !== null && Number.isFinite(end) ? end : null,
           kind: form.kind ?? null,
+          x: fraction(form.x),
+          y: fraction(form.y),
           audio: new Uint8Array(await file.arrayBuffer()),
           contentType: file.type,
           language: form.language ?? null,

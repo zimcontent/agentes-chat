@@ -201,11 +201,46 @@ interface Draft {
   atMs: number;
   endMs: number | null;
   kind: VideoReviewNoteKind | null;
-  /** Where the click was, as fractions of the picture; the box opens beside it. */
-  x: number;
-  y: number;
+  /** Where the click was, as fractions of the player's box; the note box opens beside it. */
+  px: number;
+  py: number;
+  /** The spot on the video itself (fractions of the frame), marked with a ring; null: a click on the bars or a key. */
+  x: number | null;
+  y: number | null;
   /** Playing on to the stretch's end: the box steps aside until it is marked. */
   marking: boolean;
+}
+
+/** Where the frame sits inside the player's box (`object-fit: contain` leaves bars), in the box's pixels. */
+interface FrameBox {
+  left: number;
+  top: number;
+  width: number;
+  height: number;
+}
+function frameBoxOf(video: HTMLVideoElement | null): FrameBox | null {
+  const box = video?.parentElement?.getBoundingClientRect();
+  const own = video?.getBoundingClientRect();
+  if (!video || !box || !own || !video.videoWidth || !video.videoHeight) return null;
+  const scale = Math.min(own.width / video.videoWidth, own.height / video.videoHeight);
+  const width = video.videoWidth * scale;
+  const height = video.videoHeight * scale;
+  return {
+    left: own.left - box.left + (own.width - width) / 2,
+    top: own.top - box.top + (own.height - height) / 2,
+    width,
+    height,
+  };
+}
+
+const VOLUME_KEY = "vr-volume";
+function savedVolume(): number {
+  try {
+    const v = Number(localStorage.getItem(VOLUME_KEY));
+    return Number.isFinite(v) && v >= 0 && v <= 1 && localStorage.getItem(VOLUME_KEY) !== null ? v : 1;
+  } catch {
+    return 1;
+  }
 }
 
 function where(atMs: number | null, endMs: number | null, w: ReviewWords) {
@@ -347,6 +382,9 @@ function ReviewBody({ review, w }: { review: VideoReview; w: ReviewWords }) {
   const [playing, setPlaying] = useState(false);
   const [rate, setRate] = useState<number>(1);
   const [draft, setDraft] = useState<Draft | null>(null);
+  const [frame, setFrame] = useState<FrameBox | null>(null);
+  const [volume, setVolumeState] = useState(savedVolume);
+  const [muted, setMuted] = useState(false);
   const [draftText, setDraftText] = useState("");
   const [wholeText, setWholeText] = useState("");
   const [message, setMessage] = useState("");
@@ -377,6 +415,37 @@ function ReviewBody({ review, w }: { review: VideoReview; w: ReviewWords }) {
     frame = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(frame);
   }, [playing, videoEl]);
+
+  // Where the frame sits in the player, kept as the page resizes: the rings are drawn on it.
+  useEffect(() => {
+    const box = videoEl?.parentElement;
+    if (!videoEl || !box) return;
+    const measure = () => setFrame(frameBoxOf(videoEl));
+    const watch = new ResizeObserver(measure);
+    watch.observe(box);
+    videoEl.addEventListener("loadedmetadata", measure);
+    measure();
+    return () => {
+      watch.disconnect();
+      videoEl.removeEventListener("loadedmetadata", measure);
+    };
+  }, [videoEl]);
+
+  useEffect(() => {
+    if (!videoEl) return;
+    videoEl.volume = volume;
+    videoEl.muted = muted;
+  }, [videoEl, volume, muted]);
+  const setVolume = useCallback((next: number) => {
+    const v = Math.min(1, Math.max(0, Math.round(next * 100) / 100));
+    setVolumeState(v);
+    setMuted(v === 0);
+    try {
+      localStorage.setItem(VOLUME_KEY, String(v));
+    } catch {
+      // A browser that keeps nothing: the volume lasts this page.
+    }
+  }, []);
 
   const seek = useCallback(
     (ms: number) => {
@@ -419,11 +488,11 @@ function ReviewBody({ review, w }: { review: VideoReview; w: ReviewWords }) {
     if (v.paused) void v.play();
   };
 
-  const openDraft = (x = 0.5, y = 0.5) => {
+  const openDraft = (px = 0.5, py = 0.5, x: number | null = null, y: number | null = null) => {
     const v = video.current;
     if (!v || !open) return;
     v.pause();
-    setDraft({ atMs: Math.round(v.currentTime * 1000), endMs: null, kind: null, x, y, marking: false });
+    setDraft({ atMs: Math.round(v.currentTime * 1000), endMs: null, kind: null, px, py, x, y, marking: false });
   };
   const closeDraft = () => {
     setDraft(null);
@@ -445,7 +514,7 @@ function ReviewBody({ review, w }: { review: VideoReview; w: ReviewWords }) {
     const body = draftText.trim();
     if (!draft || !body) return;
     addNote.mutate(
-      { version, atMs: draft.atMs, endMs: draft.endMs, kind: draft.kind, body },
+      { version, atMs: draft.atMs, endMs: draft.endMs, kind: draft.kind, x: draft.x, y: draft.y, body },
       { onSuccess: closeDraft, onError: failed },
     );
   };
@@ -468,6 +537,8 @@ function ReviewBody({ review, w }: { review: VideoReview; w: ReviewWords }) {
           atMs: d ? d.atMs : null,
           endMs: d?.endMs ?? null,
           kind: d?.kind ?? null,
+          x: d?.x ?? null,
+          y: d?.y ?? null,
           language: i18n.language?.slice(0, 2),
         },
         { onSuccess: () => d && closeDraft(), onError: failed },
@@ -485,8 +556,8 @@ function ReviewBody({ review, w }: { review: VideoReview; w: ReviewWords }) {
   };
 
   // The editor's keys, anywhere on the page but in a field.
-  const keys = useRef({ toggle, step, faster, openDraft, closeDraft, markEnd, draft });
-  keys.current = { toggle, step, faster, openDraft, closeDraft, markEnd, draft };
+  const keys = useRef({ toggle, step, faster, openDraft, closeDraft, markEnd, draft, volume, setVolume, setMuted });
+  keys.current = { toggle, step, faster, openDraft, closeDraft, markEnd, draft, volume, setVolume, setMuted };
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.metaKey || e.ctrlKey || e.altKey) return;
@@ -524,6 +595,15 @@ function ReviewBody({ review, w }: { review: VideoReview; w: ReviewWords }) {
           case "Escape":
             k.closeDraft();
             return true;
+          case "m":
+            k.setMuted((m) => !m);
+            return true;
+          case "ArrowUp":
+            k.setVolume(k.volume + 0.1);
+            return true;
+          case "ArrowDown":
+            k.setVolume(k.volume - 0.1);
+            return true;
           default:
             return false;
         }
@@ -545,7 +625,16 @@ function ReviewBody({ review, w }: { review: VideoReview; w: ReviewWords }) {
       return;
     }
     const box = e.currentTarget.getBoundingClientRect();
-    openDraft((e.clientX - box.left) / box.width, (e.clientY - box.top) / box.height);
+    const px = e.clientX - box.left;
+    const py = e.clientY - box.top;
+    const f = frameBoxOf(video.current);
+    const inside = f && px >= f.left && px <= f.left + f.width && py >= f.top && py <= f.top + f.height;
+    openDraft(
+      px / box.width,
+      py / box.height,
+      inside && f ? (px - f.left) / f.width : null,
+      inside && f ? (py - f.top) / f.height : null,
+    );
   };
 
   const decideAs = (decision: "approve" | "changes") =>
@@ -594,6 +683,23 @@ function ReviewBody({ review, w }: { review: VideoReview; w: ReviewWords }) {
                 if (!playing) setNowMs(Math.round(e.currentTarget.currentTime * 1000));
               }}
             />
+            {frame &&
+              [
+                ...(draft && draft.x !== null && draft.y !== null
+                  ? [{ id: "draft", x: draft.x, y: draft.y, draft: true }]
+                  : []),
+                ...notes
+                  .filter((n) => n.x !== null && n.y !== null && nearNote(n))
+                  .map((n) => ({ id: n.id, x: n.x ?? 0, y: n.y ?? 0, draft: false })),
+              ].map((ring) => (
+                <span
+                  key={ring.id}
+                  className="vr-ring"
+                  data-draft={ring.draft || undefined}
+                  aria-hidden="true"
+                  style={{ left: frame.left + ring.x * frame.width, top: frame.top + ring.y * frame.height }}
+                />
+              ))}
             {draft?.marking && (
               <div className="vr-marking" role="status">
                 <Icon name="flag" />
@@ -605,8 +711,8 @@ function ReviewBody({ review, w }: { review: VideoReview; w: ReviewWords }) {
               // biome-ignore lint/a11y/useKeyWithClickEvents: only keeps the click inside the box.
               <div
                 className="vr-pop"
-                data-side={draft.x > 0.5 ? "start" : "end"}
-                style={{ top: `${Math.min(70, Math.max(4, draft.y * 100 - 10))}%` }}
+                data-side={draft.px > 0.5 ? "start" : "end"}
+                style={{ top: `${Math.min(70, Math.max(4, draft.py * 100 - 10))}%` }}
                 onClick={(e) => e.stopPropagation()}
               >
                 <div className="vr-pop__head">
@@ -698,6 +804,29 @@ function ReviewBody({ review, w }: { review: VideoReview; w: ReviewWords }) {
               +1s
             </Button>
           </div>
+          <div className="vr-transport__group">
+            <Button
+              size="sm"
+              variant="ghost"
+              icon={muted || volume === 0 ? "mute" : "volume"}
+              iconOnly
+              aria-label={muted ? w.unmute : w.mute}
+              onClick={() => (muted && volume === 0 ? setVolume(0.8) : setMuted(!muted))}
+            />
+            <input
+              type="range"
+              className="vr-volume"
+              min={0}
+              max={1}
+              step={0.05}
+              value={muted ? 0 : volume}
+              aria-label={w.volume}
+              onChange={(e) => {
+                setVolume(Number(e.target.value));
+                if (Number(e.target.value) > 0) setMuted(false);
+              }}
+            />
+          </div>
           <span className="vr-transport__clock">
             {frameCode(nowMs, fps)} <span className="vr-muted">/ {frameCode(duration, fps)}</span>
           </span>
@@ -710,6 +839,22 @@ function ReviewBody({ review, w }: { review: VideoReview; w: ReviewWords }) {
           />
         </div>
         <p className="vr-muted vr-keys">{open ? w.keys : w.keysClosed}</p>
+
+        <section className="vr-brief" aria-label={w.briefTitle}>
+          <h2 className="vr-notes__title">{w.briefTitle}</h2>
+          <p className={review.brief ? "vr-brief__text" : "vr-muted"}>{review.brief || w.noBrief}</p>
+          {review.links.length > 0 && (
+            <div className="vr-brief__links">
+              {review.links.map((link) => (
+                <Button key={link.url} size="sm" icon="external" asChild>
+                  <a href={link.url} target="_blank" rel="noreferrer noopener">
+                    {link.label}
+                  </a>
+                </Button>
+              ))}
+            </div>
+          )}
+        </section>
       </div>
 
       <div className="vr-side">

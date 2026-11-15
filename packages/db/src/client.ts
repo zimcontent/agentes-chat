@@ -262,6 +262,10 @@ export const EXTRA_COLUMNS = [
   `CREATE INDEX IF NOT EXISTS "video_review_notes_review_id_version_index" ON "video_review_notes" ("review_id", "version")`,
   `ALTER TABLE "video_review_notes" ADD COLUMN IF NOT EXISTS "end_ms" integer`,
   `ALTER TABLE "video_review_notes" ADD COLUMN IF NOT EXISTS "kind" text`,
+  `ALTER TABLE "video_review_notes" ADD COLUMN IF NOT EXISTS "x" real`,
+  `ALTER TABLE "video_review_notes" ADD COLUMN IF NOT EXISTS "y" real`,
+  `ALTER TABLE "video_reviews" ADD COLUMN IF NOT EXISTS "brief" text NOT NULL DEFAULT ''`,
+  `ALTER TABLE "video_reviews" ADD COLUMN IF NOT EXISTS "links" jsonb NOT NULL DEFAULT '[]'::jsonb`,
 ];
 
 /** The advisory lock every process takes around its migrations (`DatabaseHandle.migrate`). */

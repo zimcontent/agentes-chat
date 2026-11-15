@@ -561,6 +561,10 @@ export function createHttpApi(options: TransportOptions = {}): HttpApi {
         form.set("atMs", input.atMs === null ? "" : String(Math.round(input.atMs)));
         if (input.endMs != null) form.set("endMs", String(Math.round(input.endMs)));
         if (input.kind) form.set("kind", input.kind);
+        if (input.x != null && input.y != null) {
+          form.set("x", String(input.x));
+          form.set("y", String(input.y));
+        }
         if (input.language) form.set("language", input.language);
         return files.upload<VideoReviewNote>(`${org(orgId)}/video-reviews/${enc(reviewId)}/notes/voice`, form);
       },

@@ -1,4 +1,4 @@
-import { boolean, index, integer, pgTable, text, timestamp, uniqueIndex, uuid } from "drizzle-orm/pg-core";
+import { boolean, index, integer, jsonb, pgTable, real, text, timestamp, uniqueIndex, uuid } from "drizzle-orm/pg-core";
 import { agents } from "./agents";
 import { users } from "./auth";
 import { organizations } from "./tenancy";
@@ -26,6 +26,10 @@ export const videoReviews = pgTable(
     title: text().notNull(),
     /** The client it is for ("Alliance"), as the agent says it; a filter in the list. */
     client: text().notNull().default(""),
+    /** What was asked of the editor, in the asker's words, and whether there was any direction; "" when not told. */
+    brief: text().notNull().default(""),
+    /** Where the work comes from and goes: the task, the footage, the delivery. */
+    links: jsonb().$type<VideoReviewLink[]>().notNull().default([]),
     status: text().$type<VideoReviewStatus>().notNull().default("in_review"),
     /** The newest version's number. */
     version: integer().notNull().default(1),
@@ -38,6 +42,10 @@ export const videoReviews = pgTable(
 );
 
 export type VideoReviewStatus = "in_review" | "changes" | "approved";
+export interface VideoReviewLink {
+  label: string;
+  url: string;
+}
 
 /** One version of a reviewed video: a file of the Drive or a conversation (an artifact). */
 export const videoReviewVersions = pgTable(
@@ -79,6 +87,9 @@ export const videoReviewNotes = pgTable(
     atMs: integer(),
     /** Where a stretch ends, in milliseconds; null: one point. */
     endMs: integer(),
+    /** Where on the picture the reviewer pointed, as fractions of its width and height; null: nowhere in particular. */
+    x: real(),
+    y: real(),
     /** What the note is about (`REVIEW_NOTE_KINDS` in the engine); null: not said. */
     kind: text(),
     body: text().notNull(),
