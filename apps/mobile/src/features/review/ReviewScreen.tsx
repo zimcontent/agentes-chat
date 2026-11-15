@@ -126,15 +126,23 @@ function Detail({ review }: { review: VideoReview }) {
 
         {open ? (
           draft ? (
-            <NoteDraft
+            // A new note's box opens under the picture, below the fold on a phone: the screen goes down to it,
+            // leaving the bottom of the picture in sight.
+            <View
               key={`${draft.atMs}:${draft.x}:${draft.y}`}
-              review={review}
-              version={version}
-              draft={draft}
-              now={() => controls.current?.now() ?? 0}
-              onEnd={(endMs) => setDraft((d) => (d ? { ...d, endMs } : d))}
-              onClose={() => setDraft(null)}
-            />
+              onLayout={(e) =>
+                scroll.current?.scrollTo({ y: Math.max(0, e.nativeEvent.layout.y - 140), animated: true })
+              }
+            >
+              <NoteDraft
+                review={review}
+                version={version}
+                draft={draft}
+                now={() => controls.current?.now() ?? 0}
+                onEnd={(endMs) => setDraft((d) => (d ? { ...d, endMs } : d))}
+                onClose={() => setDraft(null)}
+              />
+            </View>
           ) : (
             <View style={styles.row}>
               <View style={styles.grow}>
