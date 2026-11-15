@@ -132,7 +132,8 @@ export function ReviewStage({
           nativeControls={false}
           contentFit="contain"
           allowsPictureInPicture={false}
-          style={StyleSheet.absoluteFill}
+          // The size too, not only the edges: on the web a <video> keeps its own size between edges.
+          style={[StyleSheet.absoluteFill, { width: box.width, height: box.height }]}
         />
         <Pressable
           style={StyleSheet.absoluteFill}

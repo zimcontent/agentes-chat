@@ -31,6 +31,7 @@ import {
   WithPresence,
 } from "@/ui";
 import { useTheme } from "@/ui/theme";
+import { RevisaoConversa, RevisaoLista, RevisaoVideo } from "./revisao";
 
 /** Sample photos served beside the board (`doug-mobile/fotos`): a person's and the groups' (JPG, as people send). */
 const foto = (name: string) => (Platform.OS === "web" ? `${window.location.origin}/fotos/${name}.jpg` : null);
@@ -861,6 +862,9 @@ export const TELAS: Record<string, () => ReactNode> = {
   sobre: Sobre,
   agente: Agente,
   time: Time,
+  revisao: RevisaoLista,
+  "revisao-video": RevisaoVideo,
+  "revisao-conversa": RevisaoConversa,
 };
 
 const styles = StyleSheet.create({
