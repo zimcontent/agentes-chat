@@ -6,6 +6,7 @@ import {
   clearWhatsAppBrain,
   createWhatsAppAccount,
   createWhatsAppToolSource,
+  fitWhatsAppPrompt,
   getWhatsAppBrain,
   handleWhatsAppEvent,
   setWhatsAppBrain,
@@ -14,6 +15,7 @@ import {
   updateWhatsAppAccount,
   WHATSAPP_AGENT_JOB,
   type WhatsAppAgentDeps,
+  whatsappAgentPrompt,
   whatsappBrainOf,
   whatsappThinker,
 } from "../src";
@@ -285,5 +287,52 @@ describe("the bridge: the agent in the workspace reads and writes WhatsApp", () 
     expect(mine.find((m) => m.fromMe)?.sentByAgentId).toBe(f.agent.id);
     const elsewhere = await send?.execute({ conversation: Bun.randomUUIDv7(), text: "oi" }, ctx);
     expect(elsewhere?.isError).toBe(true);
+  });
+});
+
+describe("a prompt within a plan's route", () => {
+  const base = {
+    workspace: "Zim",
+    agent: { name: "Doug", role: "Atendente", instructions: "Seja breve." },
+    account: { label: "DOUG", instructions: "Nunca prometa prazo." },
+    chat: { name: "Ana" },
+    lines: ["Ana: oi, vocês editam vídeo?"],
+    now: new Date("2026-11-15T12:00:00Z"),
+  };
+
+  test("names alone give way first, then skills' text (largest first), memory, team memory and context; never the conversation", () => {
+    const big = (c: string) => c.repeat(9000);
+    const names = Array.from({ length: 300 }, (_, i) => ({
+      name: `Habilidade ${i}`,
+      description: "faz algo",
+      body: null,
+    }));
+    const input = {
+      ...base,
+      orgContext: big("o"),
+      teamMemory: big("t"),
+      memory: big("m"),
+      skills: [
+        { name: "Orçamento", description: "como orçar", body: big("a") },
+        { name: "Edição", description: "como editar", body: "passos curtos" },
+        ...names,
+      ],
+    };
+    const full = whatsappAgentPrompt(input);
+    expect(fitWhatsAppPrompt(input, full.length)).toBe(full);
+    const fit = fitWhatsAppPrompt(input, full.length - 100);
+    expect(fit.length).toBeLessThanOrEqual(full.length - 100);
+    expect(fit).toContain("Habilidade 0:");
+    expect(fit).not.toContain("Habilidade 299:");
+    expect(fit).toContain("aaaa");
+    const route = fitWhatsAppPrompt(input, 32_000);
+    expect(route.length).toBeLessThanOrEqual(32_000);
+    expect(route).toContain("passos curtos");
+    const tight = fitWhatsAppPrompt(input, 4000);
+    expect(tight.length).toBeLessThanOrEqual(4000);
+    for (const gone of ["aaaa", "mmmm", "tttt", "oooo"]) expect(tight).not.toContain(gone);
+    expect(tight).toContain("# The business");
+    expect(tight).toContain("vocês editam vídeo");
+    expect(tight).toContain("Nunca prometa prazo.");
   });
 });

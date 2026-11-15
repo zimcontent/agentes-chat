@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { createFakeWhatsAppGateway, GEMINI_ROUTE_PROTOCOL } from "@agenteschat/adapters";
+import { createFakeWhatsAppGateway, GEMINI_ROUTE_PROTOCOL, ROUTE_LIMITS } from "@agenteschat/adapters";
 import { eq, schema } from "@agenteschat/db";
 import {
   answerWhatsAppChat,
@@ -426,10 +426,16 @@ describe("an agent that thinks with a Gemini plan", () => {
 
   test("its computer answers with the account and the model the plan lists, counted as the plan's", async () => {
     const { gateway, deps, hears, asked } = await onGemini(GEMINI_ROUTE_PROTOCOL);
+    // A business with a lot to say: the route still takes the prompt (it refuses one past its limit).
+    await f.db
+      .update(schema.organizations)
+      .set({ context: "Sobre nós. ".repeat(4000) })
+      .where(eq(schema.organizations.id, f.org.id));
     const job = await hears("oi");
     if (!job) throw new Error("no job queued");
     expect(await answerWhatsAppChat(deps, job)).toBe("reply");
     expect(gateway.last("send")?.text).toBe("Oi! Fazemos sim.");
+    expect(String(asked[0]?.prompt).length).toBeLessThanOrEqual(ROUTE_LIMITS.prompt);
     expect([asked[0]?.op, asked[0]?.kind, asked[0]?.account, asked[0]?.model]).toEqual([
       "brain.route",
       "antigravity",
