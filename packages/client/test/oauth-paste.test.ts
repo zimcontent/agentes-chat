@@ -18,3 +18,9 @@ test("a refusal says so; anything without both the code and the state is nothing
   expect(pastedOAuthReturn("")).toBeNull();
   expect(pastedOAuthReturn("not an address")).toBeNull();
 });
+
+test("Frame.io's codes are sealed tokens thousands of characters long: taken whole", () => {
+  const code = `gAAAAB${"x".repeat(3000)}`;
+  const url = `http://127.0.0.1:33418/dougbot/connectors/oauth?code=${code}&state=st4te`;
+  expect(pastedOAuthReturn(url)).toEqual({ state: "st4te", code });
+});
