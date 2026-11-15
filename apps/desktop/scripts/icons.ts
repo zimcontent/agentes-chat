@@ -7,7 +7,8 @@
  *
  * Outputs (all ignored by git):
  *   src-tauri/icons/tray/{idle,working,paused,offline,update,browsing,needs}.png  36×36 template images (18 pt @2x)
- *   app-icon.png                                                   1024×1024 app icon master
+ *   app-icon.png                                                   1024×1024 app icon master (ADR 0179)
+ *   src-tauri/icons/app/<id>.png, <id>-tile.png                    the icons a person may pick, Dock and window
  *
  * Dependencies: a tiny PNG encoder over node:zlib for the tray; resvg for the app icon.
  */
@@ -17,6 +18,9 @@ import { fileURLToPath } from "node:url";
 import { deflateSync } from "node:zlib";
 import { Resvg } from "@resvg/resvg-js";
 import { DougBot, svgDoBot } from "../../mobile/src/brand/bots";
+import { png, render, resize } from "../../../packages/ui/scripts/app-icons/raster.mjs";
+import { APP_ICON_IDS, macLayers, SCENES, tiled } from "../../../packages/ui/scripts/app-icons/scenes.mjs";
+import { eyeShapes } from "../../../packages/ui/src/agent/engine.js";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 
@@ -245,14 +249,37 @@ function trayPng(state: TrayState): Uint8Array {
  * DougBot: the piece is its own tile (macOS icon grid), about 80% of the side with a transparent margin around.
  * The Doug's drawing spans 10..110 of its 120 viewBox, so it is scaled by `0.8 * side / 100`.
  */
-function appIconPng(): Uint8Array {
-  const S = 1024;
+function appIconPng(S = 1024): Uint8Array {
   const k = (S * 0.8) / 100;
   const inner = svgDoBot({ bot: "doug", tamanho: 120, perto: false, brilho: false, id: "d" })
     .replace(/^<svg[^>]*>/, "")
     .replace(/<\/svg>$/, "");
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${S}" height="${S}" viewBox="0 0 ${S} ${S}"><g transform="translate(${S / 2 - 60 * k} ${S / 2 - 60 * k}) scale(${k})">${inner}</g></svg>`;
   return new Resvg(svg, { fitTo: { mode: "width", value: S }, font: { loadSystemFonts: false } }).render().asPng();
+}
+
+/* ---------- App icon (ADR 0179): from the app icons' generator (packages/ui/scripts/app-icons) ---------- */
+
+/**
+ * The bundle's master (1024, macOS's shape and shadow: `tauri icon` makes the .icns, .ico and PNGs from it) is the
+ * shipped icon; every icon's Dock picture (512) and window picture (256, a rounded square) are what the person may pick
+ * while the app runs (src/app_icon.rs embeds them).
+ */
+function appIcons(): { master: Uint8Array; dock: Map<string, Uint8Array>; window: Map<string, Uint8Array> } {
+  const dock = new Map<string, Uint8Array>();
+  const window = new Map<string, Uint8Array>();
+  let master: Uint8Array | null = null;
+  for (const id of APP_ICON_IDS) {
+    const scene = SCENES[id];
+    const mac = render(1024, macLayers(scene.light()));
+    if (id === APP_ICON_IDS[0]) master = png(mac);
+    dock.set(id, png(resize(mac, 512)));
+    window.set(id, png(resize(render(1024, tiled(scene.light())), 256)));
+  }
+  if (!master) throw new Error("icons: no app icons");
+  dock.set(APP_ICON_IDS[0], appIconPng(512));
+  window.set(APP_ICON_IDS[0], appIconPng(256));
+  return { master: appIconPng(), dock, window };
 }
 
 /* ---------- Write ---------- */
@@ -262,5 +289,10 @@ mkdirSync(trayDir, { recursive: true });
 for (const state of ["idle", "working", "paused", "offline", "update", "browsing", "needs"] as const) {
   writeFileSync(join(trayDir, `${state}.png`), trayPng(state));
 }
-writeFileSync(join(root, "app-icon.png"), appIconPng());
-console.log("icons: tray (7 states) and app-icon.png written");
+const icons = appIcons();
+writeFileSync(join(root, "app-icon.png"), icons.master);
+const appDir = join(root, "src-tauri", "icons", "app");
+mkdirSync(appDir, { recursive: true });
+for (const [id, bytes] of icons.dock) writeFileSync(join(appDir, `${id}.png`), bytes);
+for (const [id, bytes] of icons.window) writeFileSync(join(appDir, `${id}-tile.png`), bytes);
+console.log(`icons: tray (7 states), app-icon.png and ${icons.dock.size} app icons written`);

@@ -1,5 +1,6 @@
 import { randomBytes } from "node:crypto";
 import {
+  type AgentPointer,
   type AgentScope,
   BROWSER_LIMITS,
   BROWSER_VIEW,
@@ -16,6 +17,7 @@ import { getAgentCached } from "../agents";
 import { ForbiddenError, NotFoundError, ValidationError } from "../errors";
 import { type MachineHub, MachineRequestError } from "../machine-hub";
 import { getMachineById, machineOnline } from "../machines";
+import { isRightHand } from "../right-hand";
 import type { ClaimedStream, StreamSocket } from "../streams";
 import {
   agentBrowserLink,
@@ -180,6 +182,8 @@ export function createMemoryStreamRelay(): StreamRelay {
 /** What a viewer's socket receives (`/api/ws`, wrapped by the realtime layer). */
 export type BrowserLiveMessage =
   | BrowserFrameMessage
+  /** Where the agent's pointer goes on the page, as its gesture starts (ADR 0040 §7.2): the apps draw its cursor. */
+  | ({ type: "browser.pointer"; agentId: string } & AgentPointer)
   /**
    * Who is in control and the open handoff, on watch and whenever it changes.
    * `hidden`: someone else is in control, so this viewer gets no frames until
@@ -934,10 +938,13 @@ export function createBrowserLive(deps: BrowserLiveDeps) {
           machineId = row.machineId;
         }
       } else {
-        [agent] = await deps.db
-          .select({ handle: agents.handle })
+        const [row] = await deps.db
+          .select({ handle: agents.handle, builtin: agents.builtin })
           .from(agents)
           .where(and(eq(agents.id, agentId), eq(agents.orgId, orgId)));
+        // One view per agent goes to everyone watching it, and the right hand's browser is a different one for each
+        // person (ADR 0175): it has no live view. Its desktop shows each person their own.
+        agent = isRightHand(row) ? undefined : row;
         // The computer the browser runs on now (an open handoff's, a mission's, else the agent's).
         machineId = agent ? await browserMachineOf(deps.db, orgId, agentId) : null;
       }
@@ -1290,6 +1297,18 @@ export function createBrowserLive(deps: BrowserLiveDeps) {
           retryView(frame.agentId, state);
         }
         received(state, { agentId: frame.agentId, seq: frame.seq, data: frame.data, metadata: frame.metadata });
+      },
+      pointer(machineId: string, frame: Extract<RunnerFrame, { type: "browser.pointer" }>) {
+        const state = live.get(frame.agentId);
+        // Only from the agent's own computer, while its page shows.
+        if (!state || state.machineId !== machineId || state.mode === null) return;
+        for (const v of state.viewers) {
+          // A page hidden from a viewer says nothing of what happens on it.
+          if (hiddenFrom(state, v.userId)) continue;
+          try {
+            v.send(frame);
+          } catch {}
+        }
       },
       streamEnded(machineId: string, frame: Extract<RunnerFrame, { type: "browser.stream.ended" }>) {
         const state = live.get(frame.agentId);

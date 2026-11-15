@@ -1,4 +1,5 @@
 import { ARTIFACT_LIMITS, FEEDBACK_INBOX_BYTES, REVIEW_VOICE_BYTES, SKILL_LIMITS } from "@agenteschat/engine";
+import { SKILL_ZIP_BASE64_CHARS } from "@agenteschat/tokens/skills";
 import type { Context } from "hono";
 import { bodyLimit } from "hono/body-limit";
 import { createMiddleware } from "hono/factory";
@@ -40,7 +41,7 @@ export const SERVER_BODY_BYTES = ARTIFACT_LIMITS.fileBytes + MULTIPART_SLACK_BYT
 export const FILE_UPLOAD_PATH = /^\/api\/app\/organizations\/[^/]+\/artifacts(\/[^/]+)?\/files$/;
 
 /** A skill's folder as a base64 zip: what the import's own schema accepts, and the fields around it. */
-const SKILL_ZIP_BYTES = Math.ceil(((SKILL_LIMITS.maxBytes + SKILL_LIMITS.assetBytes) * 4) / 3) + 2 * MIB;
+const SKILL_ZIP_BYTES = SKILL_ZIP_BASE64_CHARS + MIB;
 
 /**
  * Paths with a limit of their own, first match wins, and before the routes that cap themselves: nothing under

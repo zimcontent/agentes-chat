@@ -1,11 +1,17 @@
-/** Same limit as the server (`ARTIFACT_LIMITS.fileBytes`): 2 GB per file version, any type (ADR 0025). */
+import { SKILL_ASSET_BYTES, SKILL_TEXT_BYTES, SKILL_ZIP_BYTES } from "@agenteschat/tokens/skills";
+
+/** Same limit as the server (`ARTIFACT_LIMITS.fileBytes`): 2 GB per file version, any type. */
 export const MAX_UPLOAD_BYTES = 2 * 1024 * 1024 * 1024;
 export const MAX_UPLOAD_MB = MAX_UPLOAD_BYTES / 1024 / 1024;
-/** Same limit as the server (`ARTIFACT_LIMITS.heldFileBytes`): an imported agent's file, read whole in memory. */
+/** The text and scripts, and the images and other files, a skill keeps, in MB. */
+export const SKILL_TEXT_MB = SKILL_TEXT_BYTES / 1024 / 1024;
+export const SKILL_ASSET_MB = SKILL_ASSET_BYTES / 1024 / 1024;
+export { SKILL_ZIP_BYTES };
+/** The largest skill .zip the server takes, in whole MB: what the apps say, a little under what they let through. */
+export const SKILL_ZIP_MB = Math.floor(SKILL_ZIP_BYTES / 1024 / 1024);
+/** Imported agent files are held in memory, unlike streamed uploads. */
 export const MAX_IMPORT_FILE_BYTES = 50 * 1024 * 1024;
 export const MAX_IMPORT_FILE_MB = MAX_IMPORT_FILE_BYTES / 1024 / 1024;
-/** Same limit as the server (`SKILL_LIMITS.assetBytes`): the images and other files a skill keeps, in MB. */
-export const SKILL_ASSET_MB = 40;
 
 /** Previews bigger than this are download-only (the bytes load into memory). Videos stream instead: any size plays. */
 export const MAX_PREVIEW_BYTES = 25 * 1024 * 1024;

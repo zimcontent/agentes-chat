@@ -1,7 +1,7 @@
 import type { Run } from "@agenteschat/client";
 import { useAgentDetail, useChannels, useRoutines, useRuns, useUsage } from "@agenteschat/client";
 import type { BrainScreen } from "@agenteschat/client/lib/agent-edit";
-import { FIX_BRAIN_SCREEN, failedRunFix, runErrorText } from "@agenteschat/client/lib/errors";
+import { FIX_BRAIN_SCREEN, failedRunFix, runErrorText, runErrorWords } from "@agenteschat/client/lib/errors";
 import {
   capitalize,
   dayLabel,
@@ -53,8 +53,7 @@ export const RUNS_PAGE = 20;
 /** Why a run failed, in the person's language (the server's code), else its own words. */
 const failure = (t: TFunction, run: Run, simple: boolean) =>
   runErrorText(t, run.errorCode, run.errorParams) ??
-  // The stored error is the system's own words: simple screens say only that something went wrong.
-  (simple ? null : (run.errorParams?.detail ?? run.error)) ??
+  (simple ? null : (runErrorWords(run.errorParams?.detail) ?? runErrorWords(run.error))) ??
   t("agentPage.activity.errors.unknown");
 
 /**

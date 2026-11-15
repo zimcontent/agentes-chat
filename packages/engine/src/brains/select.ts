@@ -6,6 +6,7 @@ import {
   CURSOR_PROTOCOL,
   GROK_PROTOCOL,
   isBrainEffort,
+  OPENCODE_ACP_PROTOCOL,
   OPENCODE_PROTOCOL,
   type PlanUsage,
 } from "@agenteschat/adapters";
@@ -29,7 +30,7 @@ import { missionTurnFor } from "../missions-engine";
 import { isRightHand, rightHandPerson, rightHandPlanRefusal, thinkingAgent } from "../right-hand";
 import { runnerUpdateWay } from "../runner-update";
 import type { AgentRun } from "../runs";
-import { accountUnavailable, brainSessionId, claudeCodeAvailability, toolOff } from "./claude-code";
+import { accountUnavailable, brainSessionId, claudeCodeAvailability, cliMissingMessage, toolOff } from "./claude-code";
 import { codexVersionOk } from "./codex";
 import { BRAIN_NAMES, BRAIN_PLAN_NAMES, type BrainAccount, type BrainKind, type BrainSession } from "./types";
 
@@ -426,8 +427,15 @@ export function computerBrainUnavailable(
         message: `The runner on ${status.name} is too old for ${name} agents. ${runnerUpdateWay(status)}`,
       };
     }
+    // On Windows a runner before `OPENCODE_ACP_PROTOCOL` refuses every OpenCode turn.
+    if (kind === "opencode" && status.os === "windows" && status.protocol < OPENCODE_ACP_PROTOCOL) {
+      return {
+        code: "runner_outdated",
+        message: `The runner on ${status.name} is too old for ${name} agents on Windows. ${runnerUpdateWay(status)}`,
+      };
+    }
     if (status.executors?.detectedAt && !status.executors[kind]) {
-      return { code: `${kind}_missing`, message: `${name}'s CLI is not installed on ${status.name}.` };
+      return { code: `${kind}_missing`, message: cliMissingMessage(`${name}'s CLI`, status, kind) };
     }
     return accountUnavailable(status, account, kind);
   }
@@ -443,7 +451,7 @@ export function computerBrainUnavailable(
   }
   const codex = status.executors?.codex;
   if (status.executors?.detectedAt && !codex) {
-    return { code: "codex_missing", message: `Codex is not installed on ${status.name}.` };
+    return { code: "codex_missing", message: cliMissingMessage("Codex", status, "codex") };
   }
   if (codex && !codexVersionOk(codex.version)) {
     return { code: "codex_too_old", message: `Codex on ${status.name} is too old. Update it there.` };
@@ -781,9 +789,13 @@ export async function planIsOwners(
   return rows.length > 0;
 }
 
-/** The agent's effort when it thinks with its own brain (a mission's other brain: the CLI's default). */
+/**
+ * The agent's effort when it thinks with its own brain (a mission's other brain: the CLI's default). On an API key it
+ * holds for a fixed model; "Automático" picks its own (`autoApplied`), and a computer brain's fallback to the API sends
+ * none.
+ */
 export function brainEffortFor(agent: Pick<Agent, "brain" | "brainEffort">, kind: BrainKind): BrainEffort | undefined {
-  if (kind === "model" || kindOf(agent.brain) !== kind) return undefined;
+  if (kindOf(agent.brain) !== kind) return undefined;
   return isBrainEffort(agent.brainEffort) ? agent.brainEffort : undefined;
 }
 
@@ -941,7 +953,10 @@ export async function resolveBrain(
   const agent = await thinkingAgent(deps.db, given, await rightHandPerson(deps.db, given, run));
   let kind = brainFor(agent, run, mission);
   const base = mission ? { missionId: mission.missionId } : {};
-  if (kind === "model") return { kind, ...base };
+  if (kind === "model") {
+    const effort = brainEffortFor(agent, kind);
+    return { kind, ...base, ...(effort ? { effort } : {}) };
+  }
   let model = brainModelFor(kind, agent, mission);
   const machineId = mission?.session?.machineId ?? agent.machineId ?? null;
   const status = machineId && deps.machines ? await deps.machines.status(machineId).catch(() => null) : null;

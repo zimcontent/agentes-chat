@@ -1,4 +1,12 @@
-import type { Expression } from "@agenteschat/ui/agent/engine";
+import {
+  bodyTones,
+  drawAccessory,
+  drawAgent,
+  drawSleep,
+  type Expression,
+  EYE_COLOR,
+} from "@agenteschat/ui/agent/engine";
+import { avatarSkyCell, avatarSkyCells, avatarSkyTones } from "@agenteschat/ui/sky/avatar";
 import { memo, useEffect, useId, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Image, StyleSheet, View } from "react-native";
@@ -9,7 +17,12 @@ import { photoSource } from "@/lib/photo";
 import { serverUrl } from "@/lib/server";
 import { useTheme } from "@/ui/theme";
 import type { AgentLookInput } from "./looks";
-import type { AgentMode } from "./poses";
+import { type AgentMode, agentLayout, framedLayout, poseFor, STILL_T } from "./poses";
+import { asCtx, compile, RecordingContext } from "./recorder";
+const GAZE: Record<Gaze, { look: [number, number]; turn: [number, number] }> = {
+  up: { look: [0, -0.14], turn: [0, -0.35] },
+  down: { look: [0, 0.14], turn: [0, 0.35] },
+};
 
 export interface AgentAvatarProps {
   agent: AgentLookInput;
@@ -28,6 +41,8 @@ export interface AgentAvatarProps {
   gaze?: Gaze;
   /** Away on a routine: the piece dims until it comes back. */
   bodyless?: boolean;
+  /** The tile's corner (framed only). Default 30% of the side; `size / 2` inside a fully round pill. */
+  radius?: number;
 }
 
 /** Up or down the screen. */
@@ -40,6 +55,59 @@ export type Gaze = "up" | "down";
 export const PHOTO_INSET = 10 / 120;
 export const PHOTO_RADIUS = 28 / 120;
 
+/** One frame of an agent as drawing commands (the engine draws, the recorder keeps the commands). */
+export function agentFrame(
+  agent: AgentLookInput,
+  size: number,
+  mode: AgentMode,
+  t: number,
+  seed: number,
+  reduced: boolean,
+  frame?: { dark: boolean },
+  expression?: Expression,
+  dark = frame?.dark ?? false,
+  extra?: { gaze?: Gaze | undefined; bodyless?: boolean | undefined },
+) {
+  const accessory = agent.accessory && agent.accessory !== "none" ? agent.accessory : undefined;
+  const box = frame ? framedLayout(size, Boolean(accessory)) : agentLayout(size, Boolean(accessory));
+  const rec = new RecordingContext();
+  if (frame) {
+    // The tile's sky (`@agenteschat/ui/sky/avatar`): a Bayer dither from the top tone to the bottom one.
+    const [top, bottom] = avatarSkyTones(agent.color, frame.dark);
+    const n = avatarSkyCells(size * 2);
+    const cell = size / n;
+    for (let y = 0; y < n; y++)
+      for (let x = 0; x < n; x++) {
+        rec.fillStyle = avatarSkyCell(x, y, n) ? bottom : top;
+        rec.fillRect(x * cell, y * cell, cell, cell);
+      }
+  }
+  // Away on a routine: the frame keeps its sky and waits for it.
+  if (frame && extra?.bodyless) return compile(rec.commands);
+  const base = poseFor(mode, t, seed, reduced);
+  const looked = extra?.gaze ? { ...base, ...GAZE[extra.gaze] } : base;
+  drawAgent(asCtx(rec), box.x, box.y, box.inner, {
+    color: agent.color,
+    eyes: agent.eyes,
+    cells: box.cells,
+    pose: expression ? { ...looked, expression, blink: false } : looked,
+    after: (ctx, side, body) => {
+      if (box.withAccessory && accessory) drawAccessory(ctx, side, accessory, body, t, mode === "run");
+      // A sleeping agent's zz: the body's darkest tone on a light page, white on a dark one.
+      if (mode === "sleep")
+        drawSleep(
+          ctx,
+          side,
+          body,
+          dark ? EYE_COLOR : (bodyTones(agent.color)[0] ?? EYE_COLOR),
+          // A still frame shows both z's.
+          reduced || t === STILL_T ? undefined : t,
+        );
+    },
+  });
+  return compile(rec.commands);
+}
+
 /**
  * An agent: its real photo when the person gave it one (`agent.photo`, ADR-less fork feature: the same contract as the
  * web), else its DougBot drawn by code (`dougbot-avatar.js`, IDENTIDADE.md §8) as SVG, never an image file. The form
@@ -48,7 +116,7 @@ export const PHOTO_RADIUS = 28 / 120;
  * only on the dark stage, the bot lights the floor under it (§7 "Tamanhos"). A photo that fails falls back to the
  * drawing.
  */
-function AgentAvatarView({ agent, size, mode = "idle", name, expression, bodyless = false }: AgentAvatarProps) {
+function AgentAvatarView({ agent, size, mode = "idle", name, expression, bodyless = false, radius }: AgentAvatarProps) {
   const { scheme } = useTheme();
   const { t: tr } = useTranslation();
   const dark = scheme === "dark";
@@ -96,7 +164,7 @@ function AgentAvatarView({ agent, size, mode = "idle", name, expression, bodyles
               left: inset,
               width: size - inset * 2,
               height: size - inset * 2,
-              borderRadius: size * PHOTO_RADIUS,
+              borderRadius: radius ?? size * PHOTO_RADIUS,
               opacity: bodyless ? 0.4 : 1,
             },
           ]}
@@ -119,6 +187,7 @@ export const AgentAvatar = memo(
     a.name === b.name &&
     a.expression === b.expression &&
     a.bodyless === b.bodyless &&
+    a.radius === b.radius &&
     a.agent.color === b.agent.color &&
     a.agent.id === b.agent.id &&
     a.agent.name === b.agent.name &&

@@ -13,7 +13,14 @@ import {
   schema,
   sql,
 } from "@agenteschat/db";
-import { AUTO_MODEL, customModelId, isAutoModel, MODEL_CATALOG, parseCustomModel } from "@agenteschat/providers";
+import {
+  AUTO_MODEL,
+  customModelId,
+  endpointModelId,
+  isAutoModel,
+  MODEL_CATALOG,
+  parseCustomModel,
+} from "@agenteschat/providers";
 import { isLiveVoice, LIVE_VOICES, liveVoiceFor } from "@agenteschat/providers/live-voice";
 import { isIdHandle } from "@agenteschat/ui/names";
 import type { AgentAppearance } from "./appearance";
@@ -39,7 +46,7 @@ import {
   grantScopes,
   PERSONAL_AGENT_SCOPES,
 } from "./tools/scopes";
-import { resyncBudgetCounter } from "./usage";
+import { orgDefaultAgentBudget, resyncBudgetCounter } from "./usage";
 import { resumeBudgetWaits } from "./usage-pause";
 import { isPersonalWorkspace } from "./workspace-mode";
 
@@ -108,9 +115,9 @@ async function endpointModel<T extends Partial<AgentInput>>(db: Database, orgId:
   if (!isAutoModel(input.model) || !input.credentialId) return input;
   const credential = await usableCredentialRow(db, orgId, input.credentialId);
   if (credential?.provider !== "custom") return input;
-  const model = credential.options?.endpoint?.models[0];
+  const model = endpointModelId(credential.id, credential.options?.endpoint?.models ?? []);
   if (!model) throw new ValidationError("An endpoint needs at least one model");
-  return { ...input, model: customModelId(credential.id, model.id) };
+  return { ...input, model };
 }
 
 /** An agent's fields as the API takes them: its handle, model, key (of the model's provider), budget and owner. */
@@ -187,6 +194,24 @@ export function setupOfAgent(a: Agent): schema.AgentSetup {
   };
 }
 
+/** The workspace's own computer (managed, else the server's own) once it has connected (ADR 0056 §10), else null. */
+export async function workspaceHomeId(db: Executor, orgId: string): Promise<string | null> {
+  const [home] = await db
+    .select({ id: machines.id })
+    .from(machines)
+    .where(
+      and(
+        eq(machines.orgId, orgId),
+        inArray(machines.kind, ["managed", "host"]),
+        isNotNull(machines.tokenHash),
+        isNull(machines.deletedAt),
+      ),
+    )
+    .orderBy(sql`${machines.kind} = 'managed' desc`, asc(machines.createdAt))
+    .limit(1);
+  return home?.id ?? null;
+}
+
 /**
  * What the workspace's new agents start with from now on: the "Quem pensa" someone just saved or used on others.
  * Only whoever creates agents sets it (they start from it), and one on the API only an admin: only admins change an
@@ -231,6 +256,15 @@ export async function createAgent(
   if (input.approvalsLevel !== undefined && !can(membership, "manage_agents")) {
     throw new ForbiddenError("Only who manages agents can set how much an agent asks");
   }
+  // What one agent may spend beyond the workspace's default is for who edits any agent: a member's new agent takes
+  // at most the default.
+  if (
+    input.monthlyBudgetNanoUsd != null &&
+    !can(membership, "manage_agents") &&
+    input.monthlyBudgetNanoUsd > (await orgDefaultAgentBudget(db, orgId))
+  ) {
+    throw new ForbiddenError("Only an admin can give an agent more than the workspace's default budget");
+  }
   const values = await endpointModel(db, orgId, {
     ...fields,
     handle: fields.handle.toLowerCase(),
@@ -253,28 +287,15 @@ export async function createAgent(
   // An agent born on "Automático" is automatic on every brain: switched to Claude Code or Codex later, it
   // starts with the model and effort picked per run (written here, so agents made before Automático keep theirs).
   const brainAuto = isAutoModel(values.model) ? { brainModel: AUTO_MODEL, brainEffort: AUTO_MODEL } : {};
-  // The workspace's own computer (managed, else the server's own) once it has connected (ADR 0056 §10); one
-  // still being prepared gives itself to the agents with none when it is ready.
-  const [home] = await db
-    .select({ id: machines.id })
-    .from(machines)
-    .where(
-      and(
-        eq(machines.orgId, orgId),
-        inArray(machines.kind, ["managed", "host"]),
-        isNotNull(machines.tokenHash),
-        isNull(machines.deletedAt),
-      ),
-    )
-    .orderBy(sql`${machines.kind} = 'managed' desc`, asc(machines.createdAt))
-    .limit(1);
+  // One still being prepared gives itself to the agents with none when it is ready.
+  const home = await workspaceHomeId(db, orgId);
   try {
     const [agent] = await db
       .insert(agents)
       .values({
         ...values,
         ...brainAuto,
-        machineId: home?.id ?? null,
+        machineId: home,
         orgId,
         ownerUserId,
         // Every new agent starts with its setup checklist, whichever way it was made (ADR 0155 §2).
