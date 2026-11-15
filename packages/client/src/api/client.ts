@@ -484,18 +484,10 @@ export interface ApiClient {
       orgId: string,
       channelId: string,
       agentIds: string[],
-      options?: { mode?: "live" | "maestro"; topic?: string | null; language?: string },
+      options?: { topic?: string | null; language?: string },
     ): Promise<LiveRoom>;
     /** The workspace's notes on how its agents behave on calls (§11). */
     saveCallNotes(orgId: string, notes: string): Promise<LiveVoice>;
-    /** One utterance a person said on a maestro call (only speech, cut by their app). */
-    heard(
-      orgId: string,
-      roomId: string,
-      input: { blob: Blob; durationMs: number; language: string },
-    ): Promise<{ text: string }>;
-    /** A person started talking on a maestro call: every voice stops. */
-    hush(orgId: string, roomId: string): Promise<void>;
     /** Calls people into the call (added to the conversation when needed, mentioned there, rung). */
     invite(
       orgId: string,
@@ -503,8 +495,6 @@ export interface ApiClient {
       userIds: string[],
       language?: string | null,
     ): Promise<{ invited: string[]; refused: string[] }>;
-    /** Where an agent's line on a maestro call streams from (an `<audio>` source, same origin). */
-    speechUrl(orgId: string, roomId: string, utteranceId: string): string;
     ping(orgId: string, roomId: string): Promise<LiveRoom>;
     leave(orgId: string, roomId: string): Promise<void>;
     end(orgId: string, roomId: string): Promise<{ room: LiveRoom | null }>;

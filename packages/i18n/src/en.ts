@@ -10986,9 +10986,6 @@ export const en = {
       decline: "Not now",
     },
     call: {
-      mode: "Kind of call",
-      modeMaestro: "Meeting (new)",
-      modeLive: "Classic (GPT-Live)",
       topic: "Topic (optional)",
       topicHint: "The agents open by debating this. Jump in whenever you want.",
       people: "Call people too",
@@ -11013,7 +11010,6 @@ export const en = {
       hangUp: "Hang up",
     },
     room: {
-      cost: "Voice and transcription so far: {{cost}}",
       title: "Voice call",
       joining: "Connecting…",
       inCall: "In a call",
@@ -11100,7 +11096,6 @@ export const en = {
       },
     },
     errors: {
-      noMaestro: "Meetings with the maestro aren't set up on this server.",
       badAudio: "That audio couldn't be read. Try again.",
       off: "This workspace has no GPT-Live key. Add one in Settings › Voice.",
       keyInvalid: "OpenAI refused this key.",

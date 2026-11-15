@@ -11023,9 +11023,6 @@
   "liveVoice": {
     "you": "Tu",
     "call": {
-      "mode": "Tipo di chiamata",
-      "modeMaestro": "Riunione (nuova)",
-      "modeLive": "Classica (GPT-Live)",
       "topic": "Argomento (facoltativo)",
       "topicHint": "Gli agenti iniziano discutendo di questo. Intervieni quando vuoi.",
       "start": "Avvia una chiamata vocale",
@@ -11051,7 +11048,6 @@
       "hangUp": "Riaggancia"
     },
     "room": {
-      "cost": "Voce e trascrizione finora: {{cost}}",
       "title": "Chiamata vocale",
       "joining": "Connessione…",
       "inCall": "In chiamata",
@@ -11135,7 +11131,6 @@
       }
     },
     "errors": {
-      "noMaestro": "Le riunioni con maestro non sono configurate su questo server.",
       "badAudio": "Impossibile leggere questo audio. Riprova.",
       "off": "Questo spazio di lavoro non ha una chiave GPT-Live. Aggiungine una in Impostazioni › Voce.",
       "keyInvalid": "OpenAI ha rifiutato questa chiave.",

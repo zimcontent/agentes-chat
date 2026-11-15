@@ -503,13 +503,6 @@
   font-size: var(--text-sm);
 }
 
-/* A maestro call's running cost (voice and transcription), beside who speaks. */
-.lv-bar__cost {
-  display: block;
-  font-size: var(--text-xs);
-  color: var(--lv-muted);
-  font-variant-numeric: tabular-nums;
-}
 .lv-topic {
   display: grid;
   gap: var(--space-1);

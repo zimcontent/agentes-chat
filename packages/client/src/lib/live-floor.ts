@@ -89,7 +89,7 @@ export function distance(a: string, b: string, max: number) {
 /**
  * The agent a line speaks to: the first one named in it (whole words), or null. Speech to text gets names wrong now and
  * then ("Napoleon" for Napoleão): when nobody is named exactly, a word close to a first name of 5 letters or more (one
- * letter off, two from 8 letters) counts, as on a maestro call (`addressedIn`).
+ * letter off, two from 8 letters) counts.
  */
 export function namedAgent(text: string, agents: FloorAgent[], except?: string | null): string | null {
   const folded = fold(text);

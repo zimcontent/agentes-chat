@@ -192,7 +192,7 @@ export function LiveVoiceCard() {
           </DialogFooter>
         </Dialog>
       </Card>
-      {(on || view.maestro) && <CallNotesCard notes={view.callNotes} editable={view.editable} />}
+      {on && <CallNotesCard notes={view.callNotes} editable={view.editable} />}
       {on && team.length > 0 && (
         <Card aria-labelledby={`${id}-voices`}>
           <CardHeader id={`${id}-voices`} icon="sound" title={t("liveVoice.settings.voicesTitle")} />
@@ -224,7 +224,7 @@ export function AgentVoiceRow({ agent }: { agent: Agent }) {
 export function AgentVoiceField({ agent }: { agent: Agent }) {
   const { t } = useTranslation();
   const live = useLiveVoiceActions();
-  if (!live?.available && !live?.maestro) return null;
+  if (!live?.available) return null;
   return (
     <>
       {live.available && (

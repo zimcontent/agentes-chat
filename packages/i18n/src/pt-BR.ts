@@ -11014,9 +11014,6 @@ export const ptBR = {
       decline: "Agora não",
     },
     call: {
-      mode: "Tipo de chamada",
-      modeMaestro: "Reunião (nova)",
-      modeLive: "Clássica (GPT-Live)",
       topic: "Tema (opcional)",
       topicHint: "Os agentes começam debatendo isso. Entre quando quiser.",
       people: "Chamar pessoas também",
@@ -11042,7 +11039,6 @@ export const ptBR = {
       hangUp: "Desligar",
     },
     room: {
-      cost: "Voz e transcrição até agora: {{cost}}",
       title: "Chamada de voz",
       joining: "Conectando…",
       inCall: "Em chamada",
@@ -11129,7 +11125,6 @@ export const ptBR = {
       },
     },
     errors: {
-      noMaestro: "Reuniões com maestro não estão configuradas neste servidor.",
       badAudio: "Não deu para ler esse áudio. Tente de novo.",
       off: "Este workspace não tem chave do GPT-Live. Coloque uma em Configurações › Voz.",
       keyInvalid: "A OpenAI recusou esta chave.",

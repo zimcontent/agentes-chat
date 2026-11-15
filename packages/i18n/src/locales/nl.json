@@ -10662,9 +10662,6 @@
   "liveVoice": {
     "you": "Jij",
     "call": {
-      "mode": "Soort gesprek",
-      "modeMaestro": "Vergadering (nieuw)",
-      "modeLive": "Klassiek (GPT-Live)",
       "topic": "Onderwerp (optioneel)",
       "topicHint": "De agenten beginnen met een debat hierover. Doe mee wanneer je wilt.",
       "start": "Spraakoproep starten",
@@ -10688,7 +10685,6 @@
       "hangUp": "Ophangen"
     },
     "room": {
-      "cost": "Stem en transcriptie tot nu toe: {{cost}}",
       "title": "Spraakoproep",
       "joining": "Verbinden…",
       "inCall": "In gesprek",
@@ -10772,7 +10768,6 @@
       }
     },
     "errors": {
-      "noMaestro": "Vergaderingen met maestro zijn op deze server niet ingesteld.",
       "badAudio": "Die audio kon niet worden gelezen. Probeer het opnieuw.",
       "off": "Deze werkruimte heeft geen GPT-Live-sleutel. Voeg er een toe in Instellingen › Spraak.",
       "keyInvalid": "OpenAI heeft deze sleutel geweigerd.",

@@ -1,4 +1,4 @@
-import type { KeyWrapper, PubSub, SpeechEngine, VoiceOut } from "@agenteschat/adapters";
+import type { KeyWrapper, PubSub } from "@agenteschat/adapters";
 import { and, asc, type Database, desc, eq, inArray, isNull, lt, or, schema, sql } from "@agenteschat/db";
 import {
   DEFAULT_LIVE_VOICE,
@@ -80,22 +80,7 @@ export interface LiveVoiceDeps {
     body: string,
     meta: Record<string, unknown>,
   ) => Promise<{ id: string }>;
-  /**
-   * The maestro's call (§11): one short completion through the Model Gateway on the model of the agent named (the
-   * meeting's lead), billed to it; null when there is no model to call.
-   */
-  think?: (input: {
-    orgId: string;
-    agentId: string | null;
-    system: string;
-    prompt: string;
-    maxTokens: number;
-  }) => Promise<string | null>;
-  /** The agents' voices on a maestro call (ElevenLabs); absent: no maestro calls. */
-  voiceOut?: VoiceOut | null;
-  /** Who turns the people's words into text on a maestro call (the voice messages' engines, ADR 0100). */
-  speech?: () => SpeechEngine[];
-  /** The server's log: what the maestro decides and why it stays quiet (§11). */
+  /** The server's log. */
   log?: {
     info(message: string, data?: Record<string, unknown>): void;
     warn(message: string, data?: Record<string, unknown>): void;
@@ -128,9 +113,7 @@ export interface LiveVoiceView {
   /** Its last 4 characters, for who configures the workspace. */
   hint: string | null;
   editable: boolean;
-  /** Maestro calls work on this server: a voice for the agents, words for the people, a model (§11). */
-  maestro: boolean;
-  /** How the agents behave on calls here, on top of the base (`live-call.md`). */
+  /** How the agents behave on calls here, on top of the base rules (`CALL_STYLE`). */
   callNotes: string;
 }
 
@@ -150,12 +133,11 @@ export async function liveVoiceView(deps: LiveVoiceDeps, userId: string, orgId: 
     state: row ? "ok" : "off",
     hint: row && editable ? row.hint : null,
     editable,
-    maestro: Boolean(deps.voiceOut && deps.think && (deps.speech?.() ?? []).length),
     callNotes: settings?.notes ?? "",
   };
 }
 
-/** The workspace's notes on how its agents behave on calls (on top of `live-call.md`); who configures sets them. */
+/** The workspace's notes on how its agents behave on calls (on top of the base rules); who configures sets them. */
 export async function saveLiveCallNotes(deps: LiveVoiceDeps, userId: string, orgId: string, notes: string) {
   await requirePermission(deps.db, userId, orgId, "configure");
   const text = notes.trim().slice(0, 3000) || null;
@@ -747,9 +729,7 @@ export interface LiveRoomView {
   channelId: string;
   hostUserId: string | null;
   agentIds: string[];
-  /** `live`: GPT-Live sessions in the host's app; `maestro`: the server runs the agents (§11). */
-  mode: "live" | "maestro";
-  /** What a maestro call opens on. */
+  /** What the call opens on: the host agent brings it up first. */
   topic: string | null;
   /** Who is in now. */
   people: { userId: string; joinedAt: string }[];
@@ -769,7 +749,6 @@ const roomView = (room: Room, at: Date): LiveRoomView => ({
   channelId: room.channelId,
   hostUserId: room.hostUserId,
   agentIds: room.agentIds,
-  mode: room.mode,
   topic: room.topic,
   people:
     room.status === "live" ? presentPeople(room, at).map((p) => ({ userId: p.userId, joinedAt: p.joinedAt })) : [],
@@ -868,7 +847,7 @@ export async function joinLiveRoom(
   userId: string,
   orgId: string,
   channelId: string,
-  input: { agentIds: string[]; mode?: "live" | "maestro"; topic?: string | null },
+  input: { agentIds: string[]; topic?: string | null },
 ) {
   const { membership } = await requireChannelAccess(deps.db, userId, orgId, channelId);
   if (!can(membership, "post")) throw new ForbiddenError();
@@ -883,8 +862,7 @@ export async function joinLiveRoom(
     const talkable = (await talkableAgents(deps, userId, orgId, channelId, wanted)).sort(
       (a, b) => wanted.indexOf(a.id) - wanted.indexOf(b.id),
     );
-    // A maestro call speaks with the server's voice (§11), not the workspace's GPT-Live key.
-    if (talkable.length && input.mode !== "maestro") await openKey(deps, orgId);
+    if (talkable.length) await openKey(deps, orgId);
     await keepLiveVoices(
       deps,
       orgId,
@@ -897,7 +875,6 @@ export async function joinLiveRoom(
         channelId,
         hostUserId: userId,
         agentIds: talkable.map((a) => a.id),
-        mode: input.mode ?? "live",
         topic: input.topic?.trim().slice(0, 500) || null,
         people: [{ userId, joinedAt: iso, seenAt: iso, leftAt: null }],
         startedAt: at,

@@ -10540,9 +10540,6 @@
   "liveVoice": {
     "you": "Siz",
     "call": {
-      "mode": "Arama türü",
-      "modeMaestro": "Toplantı (yeni)",
-      "modeLive": "Klasik (GPT-Live)",
       "topic": "Konu (isteğe bağlı)",
       "topicHint": "Ajanlar bu konuyu tartışarak başlar. İstediğin zaman katıl.",
       "start": "Sesli arama başlat",
@@ -10566,7 +10563,6 @@
       "hangUp": "Kapat"
     },
     "room": {
-      "cost": "Şimdiye kadar ses ve döküm: {{cost}}",
       "title": "Sesli arama",
       "joining": "Bağlanıyor…",
       "inCall": "Aramada",
@@ -10650,7 +10646,6 @@
       }
     },
     "errors": {
-      "noMaestro": "Bu sunucuda maestro'lu toplantılar ayarlanmamış.",
       "badAudio": "Bu ses okunamadı. Tekrar dene.",
       "off": "Bu çalışma alanında GPT-Live anahtarı yok. Ayarlar › Ses bölümünden ekleyin.",
       "keyInvalid": "OpenAI bu anahtarı reddetti.",

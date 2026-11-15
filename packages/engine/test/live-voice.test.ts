@@ -71,11 +71,10 @@ describe("the workspace's GPT-Live key", () => {
       state: "off",
       hint: null,
       editable: true,
-      maestro: false,
       callNotes: "",
     });
     const view = await saveLiveVoiceKey(d, f.owner.id, f.org.id, `  ${KEY}  `);
-    expect(view).toEqual({ state: "ok", hint: "9f3c", editable: true, maestro: false, callNotes: "" });
+    expect(view).toEqual({ state: "ok", hint: "9f3c", editable: true, callNotes: "" });
     const [row] = await f.db.select().from(schema.liveVoiceKeys);
     expect(JSON.stringify(row)).not.toContain("live-voice-test");
     const member = await addMember(f.db, f.org.id, "member", "Bia");
@@ -83,7 +82,6 @@ describe("the workspace's GPT-Live key", () => {
       state: "ok",
       hint: null,
       editable: false,
-      maestro: false,
       callNotes: "",
     });
     await expect(saveLiveVoiceKey(d, member.id, f.org.id, KEY)).rejects.toThrow();
@@ -445,7 +443,7 @@ describe("what a call's agent is told", () => {
     expect(lead).toContain("Ana, what do you think?");
     expect(text).toContain("<external_data");
   });
-  test("the meeting's topic, the call notes and the maestro's speech rules reach every voice", () => {
+  test("the meeting's topic, the call notes and the speech rules reach every voice", () => {
     const text = callInstructions({
       agent: { id: "a", name: "Ana", role: "Designer", instructions: "" },
       others: [{ name: "Bruno", role: "Dev" }],

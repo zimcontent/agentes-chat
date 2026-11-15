@@ -174,7 +174,6 @@ export * from "./jobs";
 export * from "./judge";
 export * from "./key-line";
 export * from "./limits";
-export * from "./live-maestro";
 export * from "./live-voice";
 export * from "./live-voice-prompt";
 export * from "./machine-access";

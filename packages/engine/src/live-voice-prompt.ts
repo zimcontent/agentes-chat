@@ -67,8 +67,7 @@ const SPEECH_RULES = (language: string) =>
   ].join("\n");
 
 /**
- * How a line sounds on a call, the same rules `live-call.md` gives the maestro (§11), cut to what a speaking model
- * needs: short, spoken, honest about what it knows.
+ * How a line sounds on a call (docs/adr/doug-0006-live-voice.md): short, spoken, honest about what it knows.
  */
 const CALL_STYLE = [
   "# How you talk on this call",

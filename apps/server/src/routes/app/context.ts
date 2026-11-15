@@ -140,8 +140,6 @@ export const MULTIPART_PATHS = [
   /\/feedback\/files$/,
   // An agent's photo (`PUT`, the one upload that replaces rather than adds).
   /\/organizations\/[^/]+\/agents\/[^/]+\/photo$/,
-  // What a person said on a maestro call, cut by their app (docs/adr/doug-0006-live-voice.md §11).
-  /\/organizations\/[^/]+\/live-rooms\/[^/]+\/heard$/,
 ];
 /** Multipart overhead allowed on top of an uploaded file itself. */
 export const MULTIPART_SLACK_BYTES = 64 * 1024;

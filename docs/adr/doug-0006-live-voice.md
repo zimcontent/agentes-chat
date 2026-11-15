@@ -92,7 +92,7 @@ second (about US$ 0.05 a minute), 15 seconds at least for a WebRTC session.
     the colleague whose it is otherwise. The leg used to answer every delegation with "it goes in the notes", the one-agent
     call included, over the server's own answer on its sideband: now only the one who runs the call answers it.
 
-11. **The maestro** (addendum 2026-11-15, after real calls felt slow, overlapping and costly: a GPT-Live session per agent
+11. **The maestro** (removed the same day, see the addendum below; kept here for the record. Addendum 2026-11-15, after real calls felt slow, overlapping and costly: a GPT-Live session per agent
     open all call long, every minute billed, silence included, and realtime voice models near random at knowing when
     to stay quiet in a group, per MP-Bench). A second kind of room, `mode: maestro`, offered first when the server has
     it, where the server decides who speaks and what, and the voice only speaks:
@@ -123,17 +123,18 @@ second (about US$ 0.05 a minute), 15 seconds at least for a WebRTC session.
 
 After trying both, the GPT-Live room (§10) sounded better than the maestro (§11): one speech model per agent keeps
 its own voice, timing and interruptions, where the maestro's transcription, text model and synthesis add a beat to
-every turn. So the call dialog offers the GPT-Live room first (the maestro stays as an option, and is the only one
-without the workspace's key), and the room takes what worked in the maestro:
+every turn. So the GPT-Live room is the only kind of call, and the maestro (§11) is gone: its code, its routes
+(`…/heard`, `…/hush`, `…/speech/{id}`) and its choice in the call dialog. The tables keep `live_voice_rooms.mode`
+(always `live` now) and `agents.call_voice` (unused) rather than drop columns in a migration. The room takes what
+worked in the maestro:
 
-- Every voice gets the maestro's speech rules (`CALL_STYLE` in `live-voice-prompt.ts`, cut from `live-call.md`: short
+- Every voice gets the maestro's speech rules (`CALL_STYLE` in `live-voice-prompt.ts`, cut from its `live-call.md`: short
   lines, react by name, numbers in words, never a fact it wasn't given), the meeting's topic, and the workspace's and
   its own call notes.
 - A name speech to text got slightly wrong still passes the word (`namedAgent` in `live-floor.ts`, the same rule as
   `addressedIn`).
 - Each agent keeps a voice of its own (`keepLiveVoices`): one no colleague in the workspace has, saved on the agent
-  the first time it joins a call, so it never changes with who else is on; the maestro saves its pick too
-  (`agents.call_voice`).
+  the first time it joins a call, so it never changes with who else is on.
 - People are called in by name (`inviteToLiveRoom`, `POST …/live-rooms/{roomId}/invite`, from the call or the start
   dialog): one who can't see the conversation is added when the caller may add people there, a message mentions them
   (the mention's notification, push included), and their open apps ring (`live.ring`) with a way in.
