@@ -1,4 +1,14 @@
-import type { WebhookSetup } from "../api/types";
+import type { WebhookProvider, WebhookSetup } from "../api/types";
+
+/** The services whose webhook brings routine events, as people name them. */
+export const WEBHOOK_PROVIDER_NAMES: Record<WebhookProvider, string> = {
+  github: "GitHub",
+  sentry: "Sentry",
+  frameio: "Frame.io",
+};
+
+/** Where a Frame.io account owner or content admin makes a webhook (Frame.io's settings, Webhooks). */
+export const FRAMEIO_WEBHOOKS_PAGE = "https://next.frame.io/settings/webhooks";
 
 /** Where a Sentry organization makes an internal integration (Sentry sends any signed-in person to their own). */
 export const SENTRY_NEW_INTEGRATION =

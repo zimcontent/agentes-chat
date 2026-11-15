@@ -6,7 +6,13 @@ import {
   type WebhookProvider,
 } from "@agenteschat/client";
 import { errorText } from "@agenteschat/client/lib/errors";
-import { githubHookLink, SENTRY_NEW_INTEGRATION, webhookTestState } from "@agenteschat/client/lib/routine-webhooks";
+import {
+  FRAMEIO_WEBHOOKS_PAGE,
+  githubHookLink,
+  SENTRY_NEW_INTEGRATION,
+  WEBHOOK_PROVIDER_NAMES,
+  webhookTestState,
+} from "@agenteschat/client/lib/routine-webhooks";
 import { Button, Field, Icon, Input, SearchSelect, Spinner } from "@agenteschat/ui";
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -17,7 +23,7 @@ import { useOrg } from "@/components/org-context";
 import { useToast } from "@/lib/toast";
 
 /**
- * What a GitHub or Sentry event routine needs to run, in place: whether the service's webhook already sends its
+ * What a GitHub, Sentry or Frame.io event routine needs to run, in place: whether the service's webhook already sends its
  * events, and for who sets webhooks up, the webhook made on the spot, the address and secret to paste and where,
  * GitHub's in one click when the workspace's GitHub may add it, and Testar, which waits for the first call.
  */
@@ -31,7 +37,7 @@ export function EventWebhookSetup({ provider }: { provider: WebhookProvider }) {
   const query = useWebhookSetup(org.id, provider, polling);
   const action = useWebhookSetupAction(org.id, provider);
   const setup = query.data;
-  const name = provider === "github" ? "GitHub" : "Sentry";
+  const name = WEBHOOK_PROVIDER_NAMES[provider];
   const def = useCatalog().data?.connectors.find((d) => d.id === provider) ?? null;
   // The form makes the webhook as soon as the event is picked: the address is ready to paste.
   const make = setup?.canManage && setup.id === null && !action.isPending && !action.isError;
@@ -99,7 +105,7 @@ export function EventWebhookSetup({ provider }: { provider: WebhookProvider }) {
     state === "working" && !more ? null : provider === "github" ? (
       <GitHubSteps url={setup.url} secret={setup.secret} oneClick={setup.oneClick} onAdded={test} />
     ) : (
-      <SentrySteps url={setup.url} secretSet={setup.secretSet} />
+      <PastedSecretSteps provider={provider} url={setup.url} secretSet={setup.secretSet} />
     );
   return (
     <div className="routine-setup">
@@ -225,12 +231,24 @@ function GitHubSteps(props: { url: string | null; secret: string | null; oneClic
   );
 }
 
-/** Sentry: an internal integration with this address, then its Client Secret pasted back here. */
-function SentrySteps({ url, secretSet }: { url: string | null; secretSet: boolean }) {
+/**
+ * Sentry and Frame.io sign with a secret of their own: the webhook is made there with this address, then its secret is
+ * pasted back here (Sentry: an internal integration's Client Secret; Frame.io: the webhook's signing secret, when its
+ * page shows one).
+ */
+function PastedSecretSteps({
+  provider,
+  url,
+  secretSet,
+}: {
+  provider: Exclude<WebhookProvider, "github">;
+  url: string | null;
+  secretSet: boolean;
+}) {
   const { t } = useTranslation();
   const { org } = useOrg();
   const toast = useToast();
-  const action = useWebhookSetupAction(org.id, "sentry");
+  const action = useWebhookSetupAction(org.id, provider);
   const [secret, setSecret] = useState("");
   const save = () =>
     action.mutate(
@@ -238,7 +256,7 @@ function SentrySteps({ url, secretSet }: { url: string | null; secretSet: boolea
       {
         onSuccess: () => {
           setSecret("");
-          toast.show(t("routines.setup.sentry.saved"));
+          toast.show(t(`routines.setup.${provider}.saved`));
         },
       },
     );
@@ -246,23 +264,28 @@ function SentrySteps({ url, secretSet }: { url: string | null; secretSet: boolea
     <ol className="routine-setup__steps">
       <li>
         <p className="small">
-          {t("routines.setup.sentry.open")}{" "}
-          <a className="ac-link" href={SENTRY_NEW_INTEGRATION} target="_blank" rel="noreferrer">
-            {t("routines.setup.sentry.openLink")}
+          {t(`routines.setup.${provider}.open`)}{" "}
+          <a
+            className="ac-link"
+            href={provider === "sentry" ? SENTRY_NEW_INTEGRATION : FRAMEIO_WEBHOOKS_PAGE}
+            target="_blank"
+            rel="noreferrer"
+          >
+            {t(`routines.setup.${provider}.openLink`)}
           </a>
         </p>
       </li>
       <li>
-        <span className="small">{t("routines.setup.sentry.url")}</span>
+        <span className="small">{t(`routines.setup.${provider}.url`)}</span>
         {url && <CommandBlock command={url} copied={t("routines.setup.copied")} />}
       </li>
       <li>
-        <span className="small">{t("routines.setup.sentry.events")}</span>
+        <span className="small">{t(`routines.setup.${provider}.events`)}</span>
       </li>
       <li>
         <Field
-          label={t("routines.setup.sentry.secret")}
-          id="routine-setup-sentry-secret"
+          label={t(`routines.setup.${provider}.secret`)}
+          id={`routine-setup-${provider}-secret`}
           error={action.isError ? errorText(t, action.error) : undefined}
         >
           <Input
@@ -271,12 +294,14 @@ function SentrySteps({ url, secretSet }: { url: string | null; secretSet: boolea
             disabled={action.isPending}
             autoComplete="off"
             onChange={(e) => setSecret(e.target.value)}
-            placeholder={t(secretSet ? "routines.setup.sentry.secretSaved" : "routines.setup.sentry.secretPlaceholder")}
+            placeholder={t(
+              secretSet ? `routines.setup.${provider}.secretSaved` : `routines.setup.${provider}.secretPlaceholder`,
+            )}
           />
         </Field>
         <div className="routine-hook__actions">
           <Button type="button" size="sm" disabled={!secret.trim()} loading={action.isPending} onClick={save}>
-            {t("routines.setup.sentry.save")}
+            {t(`routines.setup.${provider}.save`)}
           </Button>
         </div>
       </li>

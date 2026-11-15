@@ -25,7 +25,7 @@ const DECIDES: Record<AdminAsk["what"], RolePermission> = {
   webhook: "manage_connectors",
 };
 
-const SERVICE_NAMES: Record<string, string> = { github: "GitHub", sentry: "Sentry" };
+const SERVICE_NAMES: Record<string, string> = { github: "GitHub", sentry: "Sentry", frameio: "Frame.io" };
 
 export const adminAskKey = (orgId: string, ask: AdminAsk, askerId: string) =>
   ask.what === "channel_agent"

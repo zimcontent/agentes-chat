@@ -7473,11 +7473,13 @@
       "working": "Berjalan. {{provider}} sudah mengirim event-nya ke sini.",
       "waiting": {
         "github": "Menunggu GitHub. GitHub mengirim ping begitu webhook disimpan.",
-        "sentry": "Menunggu Sentry. Sentry memanggil saat ada error baru."
+        "sentry": "Menunggu Sentry. Sentry memanggil saat ada error baru.",
+        "frameio": "Menunggu Frame.io. Frame.io akan memanggil saat ada yang berkomentar atau file selesai diunggah."
       },
       "refused": {
         "github": "GitHub memanggil dengan secret lain. Salin lagi Secret di bawah ke webhook.",
-        "sentry": "Sentry memanggil dengan secret lain. Tempel lagi Client Secret integrasinya."
+        "sentry": "Sentry memanggil dengan secret lain. Tempel lagi Client Secret integrasinya.",
+        "frameio": "Frame.io memanggil dengan secret yang berbeda. Tempel lagi signing secret webhook."
       },
       "timeout": "Tidak ada yang masuk dalam 3 menit. Periksa URL dan secret, lalu uji lagi.",
       "adminOnly": "Orang yang mengelola konektor menyalakan webhook {{provider}}. Minta admin membuka rutinitas ini.",
@@ -7508,6 +7510,17 @@
         "secretSaved": "Tersimpan. Tempel yang baru untuk menggantinya",
         "save": "Simpan",
         "saved": "Client Secret disimpan."
+      },
+      "frameio": {
+        "open": "Di Frame.io, buka Settings › Webhooks lalu klik Create Webhook (pemilik akun atau admin konten).",
+        "openLink": "Buka di Frame.io",
+        "url": "URL webhook",
+        "events": "Beri nama DougBot, pilih workspace tempat klien mengunggah, centang comment.created dan file.upload.completed, lalu klik Save.",
+        "secret": "Signing secret webhook (jika Frame.io menampilkannya)",
+        "secretPlaceholder": "Tempel signing secret",
+        "secretSaved": "Tersimpan. Tempel yang baru untuk menggantinya",
+        "save": "Simpan",
+        "saved": "Signing secret tersimpan. Panggilan dari Frame.io kini diverifikasi dengannya."
       }
     },
     "once": "Sekali · {{weekday}}, {{date}} pukul {{time}}{{zone}}",
@@ -7799,6 +7812,16 @@
         "text": "Saat tugas dibuat, agen memeriksanya.",
         "prompt": "Baca tugas baru itu. Katakan apa yang kurang untuk mulai, dan sarankan penanggung jawab serta tenggatnya."
       },
+      "frameioComment": {
+        "name": "Komentar Frame.io",
+        "text": "Saat seseorang mengomentari file, agen membacanya dan menyelesaikan perubahannya.",
+        "prompt": "Baca komentar Frame.io yang baru (siapa, file mana, timecode). Sebutkan klien dan pekerjaan terkait, perubahan yang diminta, dan apakah perlu versi baru. Gabungkan dengan komentar terbuka lain pada file yang sama."
+      },
+      "frameioUpload": {
+        "name": "File baru di Frame.io",
+        "text": "Saat file selesai diunggah, agen memberi tahu apa yang masuk.",
+        "prompt": "Periksa file Frame.io yang baru: nama, proyek, folder, dan versinya. Sebutkan siapa pengirimnya, apakah itu footage mentah, versi baru, atau versi final, dan langkah berikutnya."
+      },
       "pulse": {
         "name": "Pertanyaan minggu ini",
         "text": "Kamis pukul 4 sore, satu pertanyaan untuk tim.",
@@ -7843,6 +7866,10 @@
       },
       "deploy": {
         "succeeded": "Deploy selesai"
+      },
+      "frameio": {
+        "comment_created": "Komentar baru di Frame.io",
+        "file_uploaded": "File baru di Frame.io"
       }
     },
     "when": {
@@ -11768,6 +11795,11 @@
         "1": "Melihat kampanye dan daftar",
         "2": "Membuat kampanye dan mengelola kontak"
       },
+      "frameio": {
+        "1": "Membaca file, versi, dan komentar",
+        "2": "Mengunggah file dan versi, membalas komentar",
+        "ask": "Menghapus dan membagikan selalu meminta persetujuanmu"
+      },
       "semrush": {
         "1": "Meriset kata kunci, domain, dan backlink"
       },
@@ -11976,6 +12008,7 @@
       "meta_ads": "Kampanye iklan Facebook dan Instagram beserta hasilnya.",
       "klaviyo": "Kampanye, flow, daftar, dan profil.",
       "millionsend": "Kampanye email, daftar, dan kontak.",
+      "frameio": "File, versi, komentar, dan tautan review.",
       "semrush": "Data kata kunci, domain, dan backlink.",
       "ahrefs": "Data kata kunci, backlink, dan situs.",
       "wix": "Situs, CMS, toko, dan pemesanan.",

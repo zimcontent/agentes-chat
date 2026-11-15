@@ -5,6 +5,7 @@ import { recordAudit } from "./audit";
 import { activeConnections, type ConnectorDeps } from "./connectors/connections";
 import { openSecret, randomToken, sealSecret } from "./crypto";
 import { NotFoundError, ValidationError } from "./errors";
+import { type FrameioDeps, frameioEvent, frameioPayloads, frameioSignatureValid } from "./frameio";
 import { connectionToken } from "./git/branches";
 import { appTokenForRepo, boundInstallations, type GitHubAppConfig, type GitHubHttp } from "./git/github-app";
 import { parseRepo } from "./git/repos";
@@ -13,14 +14,16 @@ import { fireRoutineEvent, type RoutineEvent } from "./routines";
 
 const { webhookEndpoints } = schema;
 
-export type WebhookProvider = "github" | "sentry";
-export const WEBHOOK_PROVIDERS: readonly WebhookProvider[] = ["github", "sentry"];
+export type WebhookProvider = "github" | "sentry" | "frameio";
+export const WEBHOOK_PROVIDERS: readonly WebhookProvider[] = ["github", "sentry", "frameio"];
 
 export interface WebhookDeps {
   db: Database;
   keyWrappers: KeyWrapper[];
   /** Adding the webhook to a GitHub repository from the app: our GitHub App's token, else the GitHub connection's. */
   github?: { app: GitHubAppConfig | null; http: GitHubHttp; connectors: ConnectorDeps };
+  /** Reading a Frame.io event's comment or file through the workspace's Frame.io connection (`frameio.ts`). */
+  connectors?: FrameioDeps;
 }
 
 /** The GitHub events routines listen to (`webhookEvent`): what a repository's webhook must send. */
@@ -38,7 +41,7 @@ export class ForbiddenSignatureError extends Error {
 
 /**
  * A new incoming webhook for the org (admins). The secret is shown once, to
- * paste into GitHub or Sentry; we keep it sealed to check signatures.
+ * paste into GitHub; Sentry and Frame.io sign with their own, pasted here.
  */
 export async function createWebhookEndpoint(
   deps: WebhookDeps,
@@ -89,7 +92,7 @@ export interface WebhookSetup {
   receivedAt: string | null;
   /** The last call whose signature didn't match (a different secret where it was set up). */
   refusedAt: string | null;
-  /** Sentry: its integration's Client Secret was pasted here. */
+  /** Sentry: its integration's Client Secret was pasted here; Frame.io: its webhook's signing secret. */
   secretSet: boolean;
   canManage: boolean;
   /** GitHub: a token of the workspace (our app, or its GitHub connection) may add the webhook to a repository. */
@@ -172,8 +175,9 @@ export async function ensureWebhookEndpoint(
 }
 
 /**
- * The secret the service signs with, pasted from it: Sentry signs with its integration's Client Secret, never one we
- * choose. Its last refusal is forgotten: the next call says whether it matches.
+ * The secret the service signs with, pasted from it: Sentry signs with its integration's Client Secret, Frame.io with
+ * the secret it gives when its webhook is made, never one we choose. Its last refusal is forgotten: the next call says
+ * whether it matches.
  */
 export async function setWebhookSecret(
   deps: WebhookDeps,
@@ -368,8 +372,11 @@ export function webhookEvent(
 
 /**
  * An incoming webhook: the signature must match the endpoint's secret
- * (GitHub `X-Hub-Signature-256: sha256=…`, Sentry `Sentry-Hook-Signature`);
- * then routines listening to the event run.
+ * (GitHub `X-Hub-Signature-256: sha256=…`, Sentry `Sentry-Hook-Signature`,
+ * Frame.io `X-Frameio-Signature: v0=…`); then routines listening to the event run.
+ * Frame.io's settings page may not show its webhook's secret: until one is
+ * pasted, its calls are taken on the address alone (a random id, as an unsigned
+ * routine address, ADR 0130 §6); once pasted, every call must be signed with it.
  */
 export async function handleWebhook(
   deps: WebhookDeps,
@@ -397,7 +404,9 @@ export async function handleWebhook(
   const ok =
     provider === "github"
       ? validSignature(secret, rawBody, headers.get("x-hub-signature-256"), "sha256=")
-      : validSignature(secret, rawBody, headers.get("sentry-hook-signature"), "");
+      : provider === "frameio"
+        ? !endpoint.secretSetAt || frameioSignatureValid(secret, rawBody, headers)
+        : validSignature(secret, rawBody, headers.get("sentry-hook-signature"), "");
   await deps.db
     .update(webhookEndpoints)
     .set(ok ? { lastDeliveryAt: new Date() } : { lastRefusedAt: new Date() })
@@ -408,6 +417,22 @@ export async function handleWebhook(
     payload = JSON.parse(jsonOf(rawBody, headers)) as Record<string, unknown>;
   } catch {
     throw new ValidationError("The body is not JSON");
+  }
+  if (provider === "frameio") {
+    const frame = frameioEvent(payload);
+    if (!frame) return { fired: 0, event: null };
+    const { payloadFor } = await frameioPayloads(deps.connectors, deps.db, endpoint.orgId, frame);
+    const fired = await fireRoutineEvent(
+      deps,
+      endpoint.orgId,
+      frame.event,
+      { summary: frame.summary, ...frame.data },
+      {
+        dedupeKey: frame.dedupeKey,
+        payloadFor,
+      },
+    );
+    return { fired, event: frame.event };
   }
   const what = webhookEvent(provider, headers, payload);
   if (!what) return { fired: 0, event: null };

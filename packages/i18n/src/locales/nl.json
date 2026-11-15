@@ -7741,11 +7741,13 @@
       "working": "Werkt. {{provider}} stuurt zijn events al hierheen.",
       "waiting": {
         "github": "Wachten op GitHub. Het stuurt een ping zodra de webhook is opgeslagen.",
-        "sentry": "Wachten op Sentry. Het belt zodra er een nieuwe fout is."
+        "sentry": "Wachten op Sentry. Het belt zodra er een nieuwe fout is.",
+        "frameio": "Wachten op Frame.io. Het belt als iemand reageert of een bestand klaar is met uploaden."
       },
       "refused": {
         "github": "GitHub belde met een ander geheim. Kopieer het Secret hieronder opnieuw in de webhook.",
-        "sentry": "Sentry belde met een ander geheim. Plak het Client Secret van de integratie opnieuw."
+        "sentry": "Sentry belde met een ander geheim. Plak het Client Secret van de integratie opnieuw.",
+        "frameio": "Frame.io belde met een ander secret. Plak het signing secret van de webhook opnieuw."
       },
       "timeout": "Er kwam niets binnen in 3 minuten. Controleer de URL en het geheim en test opnieuw.",
       "adminOnly": "Wie connectors beheert, zet de {{provider}}-webhook aan. Vraag een admin om deze routine te openen.",
@@ -7776,6 +7778,17 @@
         "secretSaved": "Opgeslagen. Plak een nieuw om het te vervangen",
         "save": "Opslaan",
         "saved": "Client Secret opgeslagen."
+      },
+      "frameio": {
+        "open": "Open in Frame.io Settings › Webhooks en klik op Create Webhook (accounteigenaar of content-beheerder).",
+        "openLink": "Openen in Frame.io",
+        "url": "Webhook URL",
+        "events": "Geef hem de naam DougBot, kies de workspace waar je klanten naartoe uploaden, vink comment.created en file.upload.completed aan en klik op Save.",
+        "secret": "Het signing secret van de webhook (als Frame.io er een toont)",
+        "secretPlaceholder": "Plak het signing secret",
+        "secretSaved": "Opgeslagen. Plak een nieuw om het te vervangen",
+        "save": "Opslaan",
+        "saved": "Signing secret opgeslagen. Aanroepen van Frame.io worden nu hiermee gecontroleerd."
       }
     },
     "once": "Eenmalig · {{weekday}} {{date}} om {{time}}{{zone}}",
@@ -8069,6 +8082,16 @@
         "text": "Als er een taak wordt gemaakt, bekijkt de agent die.",
         "prompt": "Lees de nieuwe taak. Zeg wat er nodig is om te beginnen en stel iemand verantwoordelijk en een deadline voor."
       },
+      "frameioComment": {
+        "name": "Frame.io-reacties",
+        "text": "Als iemand op een bestand reageert, leest de agent dat en zoekt de wijziging uit.",
+        "prompt": "Lees de nieuwe Frame.io-reactie (wie, welk bestand, de timecode). Geef aan bij welke klant en welke opdracht hij hoort, welke wijziging hij vraagt en of er een nieuwe versie nodig is. Groepeer hem met de andere openstaande reacties op hetzelfde bestand."
+      },
+      "frameioUpload": {
+        "name": "Nieuwe bestanden op Frame.io",
+        "text": "Als een bestand klaar is met uploaden, meldt de agent wat er is binnengekomen.",
+        "prompt": "Bekijk het nieuwe Frame.io-bestand: naam, project, map en versie. Geef aan wie het stuurde, of het ruw materiaal, een nieuwe versie of een eindversie is en wat er hierna komt."
+      },
       "pulse": {
         "name": "Vraag van de week",
         "text": "Donderdag om 16:00, één vraag aan het team.",
@@ -8113,6 +8136,10 @@
       },
       "deploy": {
         "succeeded": "Deploy voltooid"
+      },
+      "frameio": {
+        "comment_created": "Nieuwe reactie op Frame.io",
+        "file_uploaded": "Nieuw bestand op Frame.io"
       }
     },
     "when": {
@@ -12242,6 +12269,11 @@
         "1": "Campagnes en lijsten bekijken",
         "2": "Campagnes maken en contacten beheren"
       },
+      "frameio": {
+        "1": "Bestanden, versies en reacties lezen",
+        "2": "Bestanden en versies uploaden, op reacties antwoorden",
+        "ask": "Verwijderen en delen vragen altijd om jouw goedkeuring"
+      },
       "semrush": {
         "1": "Zoekwoorden, domeinen en backlinks onderzoeken"
       },
@@ -12455,6 +12487,7 @@
       "meta_ads": "Advertentiecampagnes en resultaten op Facebook en Instagram.",
       "klaviyo": "Campagnes, flows, lijsten en profielen.",
       "millionsend": "E-mailcampagnes, lijsten en contacten.",
+      "frameio": "Bestanden, versies, reacties en reviewlinks.",
       "semrush": "Data over zoekwoorden, domeinen en backlinks.",
       "ahrefs": "Data over zoekwoorden, backlinks en sites.",
       "wix": "Sites, CMS, winkels en boekingen.",

@@ -437,4 +437,6 @@ export const eventWebhook = (event: RoutineEvent): WebhookProvider | null =>
     ? "sentry"
     : event === "github.pr_opened" || event === "deploy.succeeded"
       ? "github"
-      : null;
+      : event === "frameio.comment_created" || event === "frameio.file_uploaded"
+        ? "frameio"
+        : null;

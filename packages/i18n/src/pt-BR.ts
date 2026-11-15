@@ -8008,10 +8008,12 @@ export const ptBR = {
       waiting: {
         github: "Esperando o GitHub. Ele manda um ping assim que o webhook é salvo.",
         sentry: "Esperando o Sentry. Ele chama quando surge um erro novo.",
+        frameio: "Esperando o Frame.io. Ele chama quando alguém comenta ou termina de subir um arquivo.",
       },
       refused: {
         github: "O GitHub chamou com outro segredo. Copie o Secret abaixo de novo no webhook.",
         sentry: "O Sentry chamou com outro segredo. Cole de novo o Client Secret da integração.",
+        frameio: "O Frame.io chamou com outro segredo. Cole de novo o signing secret do webhook.",
       },
       timeout: "Nada chegou em 3 minutos. Confira a URL e o segredo e teste de novo.",
       adminOnly: "Quem cuida dos conectores liga o webhook do {{provider}}. Peça a um admin para abrir esta rotina.",
@@ -8044,6 +8046,18 @@ export const ptBR = {
         secretSaved: "Salvo. Cole outro para trocar",
         save: "Salvar",
         saved: "Client Secret salvo.",
+      },
+      frameio: {
+        open: "No Frame.io, abra Settings › Webhooks e clique em Create Webhook (dono da conta ou content admin).",
+        openLink: "Abrir no Frame.io",
+        url: "Webhook URL",
+        events:
+          "Dê o nome DougBot, escolha o workspace onde os clientes sobem os arquivos, marque comment.created e file.upload.completed e salve.",
+        secret: "Signing secret do webhook (se o Frame.io mostrar)",
+        secretPlaceholder: "Cole o signing secret",
+        secretSaved: "Salvo. Cole outro para trocar",
+        save: "Salvar",
+        saved: "Signing secret salvo. As chamadas do Frame.io agora são conferidas com ele.",
       },
     },
     once: "Uma vez · {{weekday}}, {{date}} às {{time}}{{zone}}",
@@ -8340,6 +8354,18 @@ export const ptBR = {
         text: "Quando criarem uma tarefa, o agente confere.",
         prompt: "Leia a tarefa nova. Diga o que falta para começar e sugira um responsável e um prazo.",
       },
+      frameioComment: {
+        name: "Comentários do Frame.io",
+        text: "Quando alguém comenta num arquivo, o agente lê e organiza o ajuste.",
+        prompt:
+          "Leia o comentário novo do Frame.io (quem, qual arquivo, o timecode). Diga de que cliente e de que trabalho ele é, que ajuste pede e se pede uma versão nova. Junte com os outros comentários abertos do mesmo arquivo.",
+      },
+      frameioUpload: {
+        name: "Arquivos novos no Frame.io",
+        text: "Quando um arquivo termina de subir, o agente diz o que chegou.",
+        prompt:
+          "Veja o arquivo novo do Frame.io: nome, projeto, pasta e versão. Diga quem mandou, se é bruto, versão nova ou final, e qual é o próximo passo.",
+      },
       pulse: {
         name: "Pergunta da semana",
         text: "Quinta às 16h, uma pergunta para a equipe.",
@@ -8380,6 +8406,8 @@ export const ptBR = {
       "github.pr_opened": "PR aberto no GitHub",
       "issue.created": "Tarefa criada no DougBot",
       "deploy.succeeded": "Deploy concluído",
+      "frameio.comment_created": "Comentário novo no Frame.io",
+      "frameio.file_uploaded": "Arquivo novo no Frame.io",
     },
     when: { event: "Quando: {{event}}" },
     form: {
@@ -12339,6 +12367,11 @@ export const ptBR = {
       salesforce: { "1": "Ver contas, contatos, leads e oportunidades", "2": "Criar e atualizar registros" },
       klaviyo: { "1": "Ver campanhas, fluxos e métricas", "2": "Criar campanhas e gerenciar perfis" },
       millionsend: { "1": "Ver campanhas e listas", "2": "Criar campanhas e gerenciar contatos" },
+      frameio: {
+        "1": "Ver arquivos, versões e comentários",
+        "2": "Subir arquivos e versões, responder comentários",
+        ask: "Apagar e compartilhar sempre pedem a sua aprovação",
+      },
       semrush: { "1": "Pesquisar palavras-chave, domínios e backlinks" },
       ahrefs: { "1": "Pesquisar palavras-chave, backlinks e sites" },
       wix: { "1": "Ver sites, produtos e agendamentos", "2": "Editar o CMS e a loja" },
@@ -12517,6 +12550,7 @@ export const ptBR = {
       meta_ads: "Campanhas e resultados de anúncios no Facebook e Instagram.",
       klaviyo: "Campanhas, fluxos, listas e perfis.",
       millionsend: "Campanhas de email, listas e contatos.",
+      frameio: "Arquivos, versões, comentários e links de revisão.",
       semrush: "Dados de palavras-chave, domínios e backlinks.",
       ahrefs: "Dados de palavras-chave, backlinks e sites.",
       wix: "Sites, CMS, lojas e agendamentos.",

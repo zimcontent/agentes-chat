@@ -3,7 +3,7 @@
 - Status: Accepted
 - Date: 2026-11-02
 - Builds on: 0016 (connectors in two layers), 0038 (mailboxes and the email trigger), 0053 (routines), 0106 (routines started by a webhook), 0117 (outside content)
-- Code: `packages/engine/src/connector-triggers.ts` (`CONNECTOR_EVENTS`, `checkConnectorTrigger`, `syncConnectorTrigger`, `connectorCallPasses`, `connectorEventsOf`), `packages/engine/src/routines.ts` (the `connector` trigger), `packages/engine/src/routine-hooks.ts` (the filter, Standard Webhooks' `webhook-id`), `packages/engine/src/connectors/custom.ts` (`events`), `packages/db/src/schema/work.ts` (`routine_hooks.source`), migration `0185_routine_hook_source`, `apps/server/src/routes/app/routines.ts`, `apps/server/src/routes/app/context.ts` (`routineConnectorDeps`), web `ConnectorTrigger.tsx` and `RoutinesPage.tsx`, phone `routines/RoutineForm.tsx`, `logic.ts`, `hooks.tsx`
+- Code: `packages/engine/src/frameio.ts` (addendum), `packages/engine/src/connector-triggers.ts` (`CONNECTOR_EVENTS`, `checkConnectorTrigger`, `syncConnectorTrigger`, `connectorCallPasses`, `connectorEventsOf`), `packages/engine/src/routines.ts` (the `connector` trigger), `packages/engine/src/routine-hooks.ts` (the filter, Standard Webhooks' `webhook-id`), `packages/engine/src/connectors/custom.ts` (`events`), `packages/db/src/schema/work.ts` (`routine_hooks.source`), migration `0185_routine_hook_source`, `apps/server/src/routes/app/routines.ts`, `apps/server/src/routes/app/context.ts` (`routineConnectorDeps`), web `ConnectorTrigger.tsx` and `RoutinesPage.tsx`, phone `routines/RoutineForm.tsx`, `logic.ts`, `hooks.tsx`
 
 ## Context
 
@@ -52,3 +52,13 @@ Each new one is one entry in `CONNECTOR_EVENTS` (how to register, take back and 
 - **Polling the service through its MCP tools:** its tools answer text for a model, a poll per routine costs calls when nothing happens, and new mail would wait for the next poll.
 - **A mailbox per MillionSend inbox (ADR 0102):** withdrawn; it needed a key of its own beside the connector.
 - **A table per connector event:** one JSON column on the routine's address holds what each event needs, and the address is already the routine's way in.
+
+## Addendum (2026-11-14): Frame.io's comments and uploads
+
+Production teams receive raw footage and review notes in Frame.io, and deliver new versions there. Frame.io's official MCP server (`https://mcp.frame.io/v1/mcp`, a preset now: OAuth with Dynamic Client Registration, clients with a secret only) reads and writes files, versions and comments, but its tools make no webhooks, so the generic path of §2 can't register one. Its events come the way Sentry's do instead: through the workspace's own webhook for the service (`webhooks.ts`, provider `frameio`, `/api/webhooks/frameio/{id}`), which an account owner or content admin makes once at next.frame.io › Settings › Webhooks, following the steps the routine form shows.
+
+1. **Two events.** `frameio.comment_created` (Frame.io's `comment.created`, replies included) and `frameio.file_uploaded` (`file.upload.completed`: a new version is an upload too, so `file.versioned` is left out rather than fire twice). Each delivery's identity is the comment's or the file's id, so Frame.io's retries fire nothing twice.
+2. **Read in code before the run.** Frame.io sends ids only. Before a routine runs, the server reads the comment (its text, author, timecode, file) or the file (its name, version, link) through the workspace's Frame.io connection, with no model involved, within three seconds (Frame.io waits five, then retries); the run starts with the ids alone when nothing could be read. The answers are kept as the service gave them besides the fields picked from them, and reach the model inside the outside-content envelope like any event.
+3. **Consent as in §4.** Only a routine whose agent may read that connection gets what was read; any other gets the ids.
+4. **Signature.** Frame.io signs with `X-Frameio-Signature: v0=<hex>`, the HMAC-SHA256 of `v0:<timestamp>:<body>` with the webhook's own signing secret, its timestamp within five minutes. Frame.io's settings page may not show that secret (only its API returns it, once), so until a secret is pasted the address alone is the credential, as for MillionSend (§6); once one is pasted, every call must be signed with it.
+5. **Templates.** "Comentários do Frame.io" and "Arquivos novos no Frame.io" start from these events.

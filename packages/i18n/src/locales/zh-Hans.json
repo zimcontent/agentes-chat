@@ -7484,11 +7484,13 @@
       "working": "运行正常。{{provider}} 已在把事件发到这里。",
       "waiting": {
         "github": "正在等待 GitHub。保存 Webhook 后它会立刻发送一次 ping。",
-        "sentry": "正在等待 Sentry。出现新错误时它会调用。"
+        "sentry": "正在等待 Sentry。出现新错误时它会调用。",
+        "frameio": "正在等待 Frame.io。有人评论或文件上传完成时,它会来调用。"
       },
       "refused": {
         "github": "GitHub 用了另一个密钥调用。请把下面的 Secret 重新复制到 Webhook 中。",
-        "sentry": "Sentry 用了另一个密钥调用。请重新粘贴该集成的 Client Secret。"
+        "sentry": "Sentry 用了另一个密钥调用。请重新粘贴该集成的 Client Secret。",
+        "frameio": "Frame.io 使用了另一个密钥来调用。请重新粘贴该 webhook 的 signing secret。"
       },
       "timeout": "3 分钟内没有收到任何内容。请检查 URL 和密钥，然后再测试一次。",
       "adminOnly": "{{provider}} Webhook 由管理连接器的人开启。请让管理员打开这个例行任务。",
@@ -7519,6 +7521,17 @@
         "secretSaved": "已保存。粘贴新的即可替换",
         "save": "保存",
         "saved": "Client Secret 已保存。"
+      },
+      "frameio": {
+        "open": "在 Frame.io 中打开 Settings › Webhooks,然后点击 Create Webhook(需要账户所有者或内容管理员)。",
+        "openLink": "在 Frame.io 中打开",
+        "url": "Webhook URL",
+        "events": "将其命名为 DougBot,选择客户上传文件的工作区,勾选 comment.created 和 file.upload.completed,然后点击 Save。",
+        "secret": "Webhook 的 signing secret(如果 Frame.io 显示了的话)",
+        "secretPlaceholder": "粘贴 signing secret",
+        "secretSaved": "已保存。粘贴新的即可替换",
+        "save": "保存",
+        "saved": "Signing secret 已保存。现在会用它校验 Frame.io 的调用。"
       }
     },
     "once": "一次 · {{date}}（{{weekday}}）{{time}}{{zone}}",
@@ -7807,6 +7820,16 @@
         "text": "创建任务时，智能体进行检查。",
         "prompt": "阅读新任务。说明开始前还缺什么，并建议负责人和期限。"
       },
+      "frameioComment": {
+        "name": "Frame.io 评论",
+        "text": "有人评论文件时,智能体会阅读评论并理清修改内容。",
+        "prompt": "阅读 Frame.io 上的新评论(谁评论、哪个文件、时间码)。说明它属于哪个客户和哪项工作、要求什么修改、是否需要新版本。把它与同一文件上其他未处理的评论归为一组。"
+      },
+      "frameioUpload": {
+        "name": "Frame.io 上的新文件",
+        "text": "文件上传完成时,智能体会说明收到了什么。",
+        "prompt": "查看 Frame.io 上的新文件:名称、项目、文件夹和版本。说明是谁发来的,是原始素材、新版本还是终版,以及下一步是什么。"
+      },
       "pulse": {
         "name": "每周一问",
         "text": "周四 16 点，向团队提一个问题。",
@@ -7851,6 +7874,10 @@
       },
       "deploy": {
         "succeeded": "部署完成"
+      },
+      "frameio": {
+        "comment_created": "Frame.io 上有新评论",
+        "file_uploaded": "Frame.io 上有新文件"
       }
     },
     "when": {
@@ -11776,6 +11803,11 @@
         "1": "查看营销活动和列表",
         "2": "创建营销活动并管理联系人"
       },
+      "frameio": {
+        "1": "读取文件、版本和评论",
+        "2": "上传文件和版本,回复评论",
+        "ask": "删除和分享始终需要你的批准"
+      },
       "semrush": {
         "1": "研究关键词、域名和外链"
       },
@@ -11984,6 +12016,7 @@
       "meta_ads": "Facebook 和 Instagram 广告系列及效果。",
       "klaviyo": "营销活动、流程、列表和用户档案。",
       "millionsend": "邮件营销活动、列表和联系人。",
+      "frameio": "文件、版本、评论和审阅链接。",
       "semrush": "关键词、域名和外链数据。",
       "ahrefs": "关键词、外链和网站数据。",
       "wix": "网站、CMS、商店和预订。",

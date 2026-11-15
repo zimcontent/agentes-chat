@@ -7433,11 +7433,13 @@
       "working": "작동 중이에요. {{provider}}이(가) 이미 이벤트를 여기로 보내고 있어요.",
       "waiting": {
         "github": "GitHub을 기다리는 중이에요. 웹훅을 저장하면 바로 ping을 보내요.",
-        "sentry": "Sentry를 기다리는 중이에요. 새 오류가 생기면 호출해요."
+        "sentry": "Sentry를 기다리는 중이에요. 새 오류가 생기면 호출해요.",
+        "frameio": "Frame.io를 기다리는 중입니다. 누군가 댓글을 달거나 파일 업로드가 끝나면 호출됩니다."
       },
       "refused": {
         "github": "GitHub이 다른 시크릿으로 호출했어요. 아래 Secret을 웹훅에 다시 복사해 주세요.",
-        "sentry": "Sentry가 다른 시크릿으로 호출했어요. 통합의 Client Secret을 다시 붙여넣어 주세요."
+        "sentry": "Sentry가 다른 시크릿으로 호출했어요. 통합의 Client Secret을 다시 붙여넣어 주세요.",
+        "frameio": "Frame.io가 다른 시크릿으로 호출했습니다. 웹훅의 signing secret을 다시 붙여넣으세요."
       },
       "timeout": "3분 동안 아무것도 오지 않았어요. URL과 시크릿을 확인하고 다시 테스트해 주세요.",
       "adminOnly": "{{provider}} 웹훅은 커넥터를 관리하는 사람이 켜요. 관리자에게 이 루틴을 열어 달라고 부탁하세요.",
@@ -7468,6 +7470,17 @@
         "secretSaved": "저장했어요. 바꾸려면 새 값을 붙여넣으세요",
         "save": "저장",
         "saved": "Client Secret을 저장했어요."
+      },
+      "frameio": {
+        "open": "Frame.io에서 Settings › Webhooks를 열고 Create Webhook을 클릭하세요(계정 소유자 또는 콘텐츠 관리자).",
+        "openLink": "Frame.io에서 열기",
+        "url": "Webhook URL",
+        "events": "이름을 DougBot으로 짓고, 클라이언트가 업로드하는 워크스페이스를 고른 뒤 comment.created와 file.upload.completed를 체크하고 Save를 클릭하세요.",
+        "secret": "웹훅의 signing secret(Frame.io에 표시되는 경우)",
+        "secretPlaceholder": "signing secret 붙여넣기",
+        "secretSaved": "저장했어요. 바꾸려면 새 값을 붙여넣으세요",
+        "save": "저장",
+        "saved": "signing secret을 저장했습니다. 이제 Frame.io의 호출을 이 값으로 검증합니다."
       }
     },
     "once": "한 번 · {{date}}({{weekday}}) {{time}}{{zone}}",
@@ -7759,6 +7772,16 @@
         "text": "작업이 만들어지면 에이전트가 살펴봐요.",
         "prompt": "새 작업을 읽으세요. 시작하려면 무엇이 부족한지 말하고 담당자와 기한을 제안하세요."
       },
+      "frameioComment": {
+        "name": "Frame.io 댓글",
+        "text": "누군가 파일에 댓글을 달면 에이전트가 읽고 수정 사항을 정리합니다.",
+        "prompt": "Frame.io의 새 댓글(누가, 어떤 파일, 타임코드)을 읽으세요. 어느 클라이언트의 어떤 작업인지, 어떤 수정을 요청하는지, 새 버전이 필요한지 알려 주세요. 같은 파일의 다른 미처리 댓글과 묶으세요."
+      },
+      "frameioUpload": {
+        "name": "Frame.io의 새 파일",
+        "text": "파일 업로드가 끝나면 에이전트가 무엇이 도착했는지 알려 줍니다.",
+        "prompt": "Frame.io의 새 파일을 확인하세요: 이름, 프로젝트, 폴더, 버전. 누가 보냈는지, 원본 영상인지 새 버전인지 최종본인지, 다음 단계가 무엇인지 알려 주세요."
+      },
       "pulse": {
         "name": "이번 주의 질문",
         "text": "목요일 오후 4시, 팀에 던지는 질문 하나.",
@@ -7803,6 +7826,10 @@
       },
       "deploy": {
         "succeeded": "배포 완료"
+      },
+      "frameio": {
+        "comment_created": "Frame.io에 새 댓글",
+        "file_uploaded": "Frame.io에 새 파일"
       }
     },
     "when": {
@@ -11708,6 +11735,11 @@
         "1": "캠페인과 목록 보기",
         "2": "캠페인 만들기와 연락처 관리"
       },
+      "frameio": {
+        "1": "파일, 버전, 댓글 읽기",
+        "2": "파일과 버전 업로드, 댓글에 답글",
+        "ask": "삭제와 공유는 항상 승인을 요청합니다"
+      },
       "semrush": {
         "1": "키워드, 도메인, 백링크 조사"
       },
@@ -11916,6 +11948,7 @@
       "meta_ads": "Facebook과 Instagram 광고 캠페인과 성과.",
       "klaviyo": "캠페인, 플로, 목록, 프로필.",
       "millionsend": "이메일 캠페인, 목록, 연락처.",
+      "frameio": "파일, 버전, 댓글, 검토 링크.",
       "semrush": "키워드, 도메인, 백링크 데이터.",
       "ahrefs": "키워드, 백링크, 사이트 데이터.",
       "wix": "사이트, CMS, 스토어, 예약.",
