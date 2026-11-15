@@ -80,6 +80,7 @@ import {
   updateOrgSettings,
   usageReport,
   WORKSPACE_MODES,
+  WORKSPACE_TOOLS,
 } from "@agenteschat/engine";
 import { contextWindowOf, nanoUsdToUsd, PROVIDERS, pricesAt, usdToNanoUsd } from "@agenteschat/providers";
 import { createRoute, z } from "@hono/zod-openapi";
@@ -205,6 +206,9 @@ const Settings = z
     }),
     welcomePeople: z.boolean().openapi({
       description: "The right hand greets each person who joins the workspace, once. On by default.",
+    }),
+    hiddenTools: z.array(z.string()).openapi({
+      description: "The sidebar's tools an admin took out of this workspace for everyone; empty: all of them.",
     }),
     voiceAvailable: z.boolean().openapi({
       description: "Read only: this server has a speech engine now, from its environment or from its owner's Settings.",
@@ -643,6 +647,11 @@ export function managementRoutes(deps: AppDeps) {
             mode: z.enum(WORKSPACE_MODES).optional().openapi({ description: "`team` or `personal` (ADR 0159)." }),
             teamWatch: z.boolean().optional(),
             welcomePeople: z.boolean().optional(),
+            hiddenTools: z
+              .array(z.enum(WORKSPACE_TOOLS))
+              .max(WORKSPACE_TOOLS.length)
+              .optional()
+              .openapi({ description: "The sidebar's tools to take out of the workspace for everyone." }),
           }),
         ),
       },
@@ -659,7 +668,9 @@ export function managementRoutes(deps: AppDeps) {
           : {}),
       });
       // Every member's apps reshape at once (ADR 0159): the mode is in `GET /me`, which they read again.
-      if (input.mode !== undefined) await publishWorkspaceMode(adapters.pubsub, orgId, settings.mode);
+      // Taking tools out of the sidebar reshapes it the same way: `hiddenTools` is in `GET /me` too.
+      if (input.mode !== undefined || input.hiddenTools !== undefined)
+        await publishWorkspaceMode(adapters.pubsub, orgId, settings.mode);
       const seesCost = await canViewCost(db, actor, orgId);
       // Only who configures the workspace gets here (`updateOrgSettings`).
       return c.json({ ...settingsFor(settings, seesCost, true), ...(await mediaAvailable()) }, 200);

@@ -150,6 +150,14 @@ export const Organization = z
       .string()
       .optional()
       .openapi({ description: "In `GET /me`: when it was made, which tells apart two workspaces with the same name." }),
+    hiddenTools: z.array(z.string()).optional().openapi({
+      description:
+        "In `GET /me`: the sidebar's tools an admin took out of this workspace for everyone (`PATCH …/settings` `hiddenTools`).",
+    }),
+    portal: z.boolean().optional().openapi({
+      description:
+        "In `GET /me`: the server's approval portal is this workspace's (ADR 9001 §18). Elsewhere every `…/portal` route answers 404 `portal.off`.",
+    }),
     standing: z
       .object({
         state: z.enum(STANDING_STATES),

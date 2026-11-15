@@ -59,6 +59,22 @@ const isItem = (value: string): value is SidebarItem => (SIDEBAR_ITEMS as readon
 const isPlace = (value: unknown): value is SidebarPlace =>
   typeof value === "string" && (SIDEBAR_PLACES as readonly string[]).includes(value);
 
+/**
+ * What an admin may take out of a workspace's sidebar for everyone: its tools, plus WhatsApp and video review, which
+ * the dock shows on its own. Mirrors `WORKSPACE_TOOLS` in packages/client/src/lib/sidebar-items.ts.
+ */
+export const WORKSPACE_TOOLS = [...SIDEBAR_ITEMS, "whatsapp", "review"] as const;
+export type WorkspaceTool = (typeof WORKSPACE_TOOLS)[number];
+
+/**
+ * The tools an admin took out of a workspace for everyone (`organization_settings.hidden_tools`): known ids only, each
+ * once, in the app's order. What a row holds is never trusted as is.
+ */
+export const hiddenToolsOf = (raw: unknown): WorkspaceTool[] => {
+  const list = Array.isArray(raw) ? raw : [];
+  return WORKSPACE_TOOLS.filter((id) => list.includes(id));
+};
+
 /** Whether `item` may sit at `place` (`auto` only for an item with a count). */
 export const sidebarPlaceAllowed = (item: SidebarItem, place: SidebarPlace) =>
   place !== "auto" || SIDEBAR_COUNTED.includes(item);

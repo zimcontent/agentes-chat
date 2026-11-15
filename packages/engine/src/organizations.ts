@@ -53,6 +53,7 @@ import { memberKeysSql, memberRankSql, type Permission, resolvePermissions } fro
 import { ensureRightHand, followOwner } from "./right-hand";
 import { queueWelcome } from "./right-hand-welcome";
 import { addMemberRolesInTx, createDefaultRoles, givableRoleIds, rolesStillThere, stillGivableRoleIds } from "./roles";
+import { hiddenToolsOf, type WorkspaceTool } from "./sidebar-items";
 import {
   accountClosed,
   accountInUse,
@@ -123,6 +124,8 @@ export interface Membership {
   chatPrefs?: ChatPrefs;
   /** Who the workspace is for (listMemberships, ADR 0159): `team` or `personal`. */
   mode?: WorkspaceMode;
+  /** The sidebar's tools an admin took out of the workspace for everyone (listMemberships). */
+  hiddenTools?: WorkspaceTool[];
 }
 
 /** What opens when the app starts in a workspace (ADR 0108), the person's own. */
@@ -180,6 +183,7 @@ export async function listMemberships(db: Database, userId: string): Promise<Mem
       agentStyle: organizationMembers.agentStyle,
       chatPrefs: organizationMembers.chatPrefs,
       mode: schema.organizationSettings.mode,
+      hiddenTools: schema.organizationSettings.hiddenTools,
       ...ROLE_COLUMNS,
     })
     .from(organizationMembers)
@@ -188,8 +192,9 @@ export async function listMemberships(db: Database, userId: string): Promise<Mem
     .leftJoin(schema.organizationSettings, eq(schema.organizationSettings.orgId, organizations.id))
     .where(and(eq(organizationMembers.userId, userId), accountInUse))
     .orderBy(asc(organizations.createdAt));
-  return rows.map(({ startPage, startChannelId, chatPrefs, mode, ...row }) => ({
+  return rows.map(({ startPage, startChannelId, chatPrefs, mode, hiddenTools, ...row }) => ({
     ...withPermissions(row),
+    hiddenTools: hiddenToolsOf(hiddenTools),
     chatPrefs: chatPrefsOf(chatPrefs),
     mode: isWorkspaceMode(mode) ? mode : "team",
     start: { page: startPage, channelId: startPage === "channel" ? startChannelId : null },

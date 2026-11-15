@@ -496,3 +496,44 @@ test("a client's logo: stored here, named at the portal, served to members, and 
   expect(await logoOf()).toBeNull();
   expect((await owner(logo)).status).toBe(404);
 });
+
+test("the portal is one workspace's: another on the same server doesn't see it, nor its clients", async () => {
+  const portal = createFakeApprovalPortal({ items: [item({ id: "up-1" })] });
+  const { api, owner, orgId } = await start(portal);
+  // A card makes its task here, which settles whose the portal is.
+  expect((await api("/portal/cards", { json: { client: "acme", title: "Story" } })).status).toBe(200);
+  // Another business on the same server, with its own workspace.
+  const other = browser(t);
+  await signUp(other, "consig@example.com");
+  const { orgId: otherId } = await seedOrg(other);
+  expect(otherId).not.toBe(orgId);
+  const res = await other(`/api/app/organizations/${otherId}/portal`);
+  expect(res.status).toBe(404);
+  expect(await code(res)).toBe("portal.off");
+  expect((await other(`/api/app/organizations/${otherId}/portal/clients/acme`)).status).toBe(404);
+  expect((await other(`/api/app/organizations/${otherId}/portal/tasks`)).status).toBe(404);
+  expect((await api("/portal")).status).toBe(200);
+  const portalOf = async (b: Browser, id: string) =>
+    (
+      (await (await b("/api/app/me")).json()) as { organizations: { id: string; portal?: boolean }[] }
+    ).organizations.find((o) => o.id === id)?.portal;
+  expect(await portalOf(owner, orgId)).toBe(true);
+  expect(await portalOf(other, otherId)).toBe(false);
+});
+
+test("an admin takes tools out of the workspace's sidebar: settings and /me say which", async () => {
+  const { owner, orgId, base } = await start(null);
+  const patched = await owner(`${base}/settings`, {
+    method: "PATCH",
+    json: { hiddenTools: ["portal", "whatsapp", "wiki"] },
+  });
+  expect(patched.status).toBe(200);
+  expect(((await patched.json()) as { hiddenTools: string[] }).hiddenTools).toEqual(["portal", "wiki", "whatsapp"]);
+  const me = (await (await owner("/api/app/me")).json()) as {
+    organizations: { id: string; hiddenTools?: string[] }[];
+  };
+  expect(me.organizations.find((o) => o.id === orgId)?.hiddenTools).toEqual(["portal", "wiki", "whatsapp"]);
+  expect((await owner(`${base}/settings`, { method: "PATCH", json: { hiddenTools: ["nope"] } })).status).toBe(400);
+  const back = await owner(`${base}/settings`, { method: "PATCH", json: { hiddenTools: [] } });
+  expect(((await back.json()) as { hiddenTools: string[] }).hiddenTools).toEqual([]);
+});

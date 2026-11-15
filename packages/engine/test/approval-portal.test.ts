@@ -5,12 +5,12 @@ import {
   createPortalToolSource,
   labelIdsByName,
   myPortalWork,
-  portalPlan,
   PORTAL_BOARD_TOOL,
   PORTAL_CARD_TOOL,
   PORTAL_PLAN_TOOL,
   PORTAL_WORK_TOOL,
   portalColumnOf,
+  portalPlan,
   SCHEDULE_POST_TOOL,
   SEND_FOR_APPROVAL_TOOL,
   SEND_NEW_VERSION_TOOL,
@@ -48,6 +48,8 @@ const item = (over: Partial<PortalItem>): PortalItem => ({
 });
 
 const artifacts = {} as ArtifactDeps;
+/** The portal is the run's workspace's: the other case has a test of its own. */
+const here = async () => true;
 const ctx = (over: Partial<ToolContext> = {}) =>
   ({ orgId: "org", agentId: "agent", runId: "run", channelId: "channel", ...over }) as ToolContext;
 
@@ -56,8 +58,8 @@ describe("the portal's tools", () => {
     const portal = createFakeApprovalPortal();
     const names = async (source: ReturnType<typeof createPortalToolSource>, c: ToolContext) =>
       (await source.tools(c)).map((tool) => tool.name);
-    expect(await names(createPortalToolSource({ portal: null, artifacts }), ctx())).toEqual([]);
-    const source = createPortalToolSource({ portal, artifacts });
+    expect(await names(createPortalToolSource({ portal: null, artifacts, here }), ctx())).toEqual([]);
+    const source = createPortalToolSource({ portal, artifacts, here });
     expect(await names(source, ctx())).toEqual([
       PORTAL_BOARD_TOOL,
       PORTAL_WORK_TOOL,
@@ -70,6 +72,8 @@ describe("the portal's tools", () => {
     // A routine's run only reads (it tells each person their day); a call with no run gets none.
     expect(await names(source, ctx({ background: true }))).toEqual([PORTAL_BOARD_TOOL, PORTAL_WORK_TOOL]);
     expect(await names(source, ctx({ runId: null as unknown as string }))).toEqual([]);
+    // Another workspace on the same server is another operation: none of the portal's tools (ADR 9001 §18).
+    expect(await names(createPortalToolSource({ portal, artifacts, here: async () => false }), ctx())).toEqual([]);
   });
 
   test("a send and a card change speak beyond the conversation; the board only reads", () => {
@@ -98,7 +102,7 @@ describe("the portal's tools", () => {
       ],
     });
     await portal.createCard("acme", { title: "Story for Friday", state: "doing" });
-    const [board] = await createPortalToolSource({ portal, artifacts }).tools(ctx());
+    const [board] = await createPortalToolSource({ portal, artifacts, here }).tools(ctx());
     const overview = await board?.execute({}, ctx());
     expect(overview?.content).toBe(
       "- acme: to do 0, in production 1, waiting for approval 1, adjustment asked 1, approved 0, scheduled 0, posted 1",
@@ -117,7 +121,7 @@ describe("the portal's tools", () => {
 
   test("a portal that says no is a tool error in its own words, never a crash", async () => {
     const portal = createFakeApprovalPortal();
-    const [board] = await createPortalToolSource({ portal, artifacts }).tools(ctx());
+    const [board] = await createPortalToolSource({ portal, artifacts, here }).tools(ctx());
     portal.fail(502, "The approval portal didn't answer");
     expect(await board?.execute({}, ctx())).toEqual({
       content: "The approval portal refused: The approval portal didn't answer",
@@ -238,7 +242,7 @@ describe("sendNewVersion", () => {
   test("the tool tells the agent the version goes up with nobody's OK, and the same call sends once", async () => {
     const post = item({ id: "up-3", type: "image", status: "adjust_requested", video: false });
     const portal = createFakeApprovalPortal({ items: [post] });
-    const tools = await createPortalToolSource({ portal, artifacts }).tools(ctx());
+    const tools = await createPortalToolSource({ portal, artifacts, here }).tools(ctx());
     expect(tools.find((t) => t.name === SEND_NEW_VERSION_TOOL)?.description).toContain("don't ask anyone");
     const send = () => sendNewVersion(portal, read, { client: "acme", item: "up-3", artifactIds: ["a"], key: "k" });
     const first = await send();

@@ -178,10 +178,20 @@ the client sent back and what is ready.
     - **Said where the team reads.** When the post is back with the client, whoever put the version there, the
       assistant says so in words written in code, in the task's conversation and in the client's group, with the
       post's address at the portal. The same address closes the line about the change being asked.
+18. **The portal is one workspace's.** A server can hold more than one business, and each is its own operation:
+    one agency's clients, cards and posts are never another's. The portal belongs to the workspace that holds its
+    tasks (§11), or the server's first one until a card makes a task (`portalHere`, `portalWorkspace`). Anywhere
+    else every `…/portal` route answers 404 `portal.off` as if the server had none, its agents get none of the
+    portal's tools, and `GET /me` says `portal: false` for that workspace, so the apps show no Portal there (the
+    sidebar, the Go to menu, "Your tasks" on Home).
+    - **An admin picks the sidebar's tools.** Settings › General has "Ferramentas na barra": a switch per tool
+      (the sidebar's, plus WhatsApp and video review) that takes it out of the sidebar and More for everyone in
+      that workspace (`organization_settings.hidden_tools`, `PATCH …/settings` `hiddenTools`, also in `GET /me`).
+      It hides an entry, never a permission: each person still orders what stays, as before.
 
 ## Consequences
 
 - The clients' side doesn't change: the same portal, the same link. The team stops opening it to administer.
 - The cards are outside this server's backup: whoever runs a bridge keeps its state.
 - A file is held in memory on its way to the bridge, so one file is capped at 512 MiB.
-- The apps show the page only when `GET /api/app/auth-config` says `approvalPortal`.
+- The apps show the page only when `GET /api/app/auth-config` says `approvalPortal` and the workspace is the portal's (`portal` in `GET /me`, §18).

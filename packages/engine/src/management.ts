@@ -33,6 +33,7 @@ import {
 } from "./media";
 import { can, lockOrgMembers, requireActiveMembership, requirePermission } from "./organizations";
 import { isRightHand, rightHandPermanent } from "./right-hand";
+import { hiddenToolsOf, WORKSPACE_TOOLS, type WorkspaceTool } from "./sidebar-items";
 import {
   agentBudgetsThisMonth,
   budgetPercent,
@@ -91,6 +92,8 @@ export interface OrgSettings extends MediaSettings {
   teamWatch: boolean;
   /** The right hand greets each person who joins, once. On by default. */
   welcomePeople: boolean;
+  /** The sidebar's tools an admin took out of this workspace for everyone; empty: all of them. */
+  hiddenTools: WorkspaceTool[];
 }
 
 export const TEAM_SIZES = ["solo", "small", "medium", "large"] as const;
@@ -117,6 +120,7 @@ export async function getOrgSettings(db: Database, actorId: string, orgId: strin
     mode: isWorkspaceMode(s?.mode) ? s.mode : "team",
     teamWatch: s?.teamWatch ?? true,
     welcomePeople: s?.welcomePeople ?? true,
+    hiddenTools: hiddenToolsOf(s?.hiddenTools),
     ...mediaSettingsFrom(s),
   };
 }
@@ -159,6 +163,8 @@ export async function updateOrgSettings(
     }
   }
   if (input.teamSize && !TEAM_SIZES.includes(input.teamSize)) throw new ValidationError("invalid teamSize");
+  if (input.hiddenTools?.some((id) => !(WORKSPACE_TOOLS as readonly string[]).includes(id)))
+    throw new ValidationError(`hiddenTools lists only ${WORKSPACE_TOOLS.join(", ")}`);
   if (input.mode !== undefined && !isWorkspaceMode(input.mode))
     throw new ValidationError(`mode must be one of ${WORKSPACE_MODES.join(", ")}`);
   if (input.defaultAgentBudgetNanoUsd !== undefined && !(input.defaultAgentBudgetNanoUsd > 0)) {
@@ -251,6 +257,7 @@ export async function updateOrgSettings(
       ...(input.mode !== undefined ? { mode: input.mode } : {}),
       ...(input.teamWatch !== undefined ? { teamWatch: input.teamWatch } : {}),
       ...(input.welcomePeople !== undefined ? { welcomePeople: input.welcomePeople } : {}),
+      ...(input.hiddenTools !== undefined ? { hiddenTools: hiddenToolsOf(input.hiddenTools) } : {}),
       ...(input.autoModels !== undefined
         ? { autoModels: mergeAutoModels(await storedAutoModels(), input.autoModels) }
         : {}),
