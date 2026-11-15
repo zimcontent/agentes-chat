@@ -755,7 +755,8 @@ export const STAND_IN_MODELS: Partial<Record<BrainKind, string>> = {
  * line, of any brain (another brain runs `STAND_IN_MODELS`). The order is its owner's own choice, so it needs no
  * server switch. None without an order, with every account in it past the line (then the agent's own goes on to its
  * limit, and the API key after it where the agent has one), for a signed-out account (signing in fixes that), or where
- * each agent is its own OS user.
+ * each agent is its own OS user. `answers`: the right hand, which thinks for whoever asked (ADR 0137 §11): only an
+ * account that serves everyone, or that person's own, stands in, so a plan kept to its owner never answers others.
  */
 export async function chainStandIn(
   db: Executor,
@@ -764,6 +765,7 @@ export async function chainStandIn(
   machineId: string,
   account: BrainAccount | undefined,
   now = Date.now(),
+  answers?: { person: string | null },
 ): Promise<{ kind: BrainKind; model?: string; account: BrainAccount } | undefined> {
   if (kind === "model" || !account || account.status !== "active") return undefined;
   const own = account.standsInFor ?? account;
@@ -777,6 +779,7 @@ export async function chainStandIn(
       usage: machineAccounts.usage,
       createdBy: machineAccounts.createdBy,
       rank: machineAccounts.standInRank,
+      serves: machineAccounts.serves,
     })
     .from(machineAccounts)
     .where(
@@ -789,7 +792,12 @@ export async function chainStandIn(
     .orderBy(machineAccounts.standInRank, machineAccounts.createdAt, machineAccounts.id);
   const mine = rows.find((r) => r.id === own.id);
   if (!mine?.createdBy) return undefined;
-  const order = rows.filter((r) => r.rank !== null && r.createdBy === mine.createdBy);
+  const order = rows.filter(
+    (r) =>
+      r.rank !== null &&
+      r.createdBy === mine.createdBy &&
+      (!answers || r.serves === "everyone" || r.createdBy === answers.person),
+  );
   if (order.length === 0) return undefined;
   const past = (r: (typeof rows)[number]) =>
     handsOver(limitKey(machineId, r.kind as BrainKind, r.id), r.usage as PlanUsage | null, now);
@@ -1016,7 +1024,8 @@ export async function resolveBrain(
 ): Promise<BrainPlan> {
   const mission: MissionTurn | null = await missionTurnFor(deps.db, run).catch(() => null);
   // The right hand: the AI of the person whose DM this is, else the workspace's; on a plan, its computer and owner.
-  const agent = await thinkingAgent(deps.db, given, await rightHandPerson(deps.db, given, run));
+  const person = await rightHandPerson(deps.db, given, run);
+  const agent = await thinkingAgent(deps.db, given, person);
   let kind = brainFor(agent, run, mission);
   const base = mission ? { missionId: mission.missionId } : {};
   if (kind === "model") {
@@ -1028,10 +1037,19 @@ export async function resolveBrain(
   const status = machineId && deps.machines ? await deps.machines.status(machineId).catch(() => null) : null;
   let account = await brainAccountFor(deps.db, agent, kind, machineId);
   // Its account at 90%: the next one in its owner's stand-in order thinks instead, of any brain (ADR doug-0003,
-  // addendum 2026-11-14). Never a mission's session (it stays where its work is) nor the right hand (its person's AI).
+  // addenda 2026-11-14 and 2026-11-15). Never a mission's session (it stays where its work is). The right hand takes
+  // one that may answer the person it thinks for (`answers`).
   const instead =
-    !mission && machineId && !isRightHand(agent)
-      ? await chainStandIn(deps.db, agent.orgId, kind, machineId, account).catch(() => undefined)
+    !mission && machineId
+      ? await chainStandIn(
+          deps.db,
+          agent.orgId,
+          kind,
+          machineId,
+          account,
+          Date.now(),
+          isRightHand(agent) ? { person } : undefined,
+        ).catch(() => undefined)
       : undefined;
   if (instead) {
     if (instead.kind !== kind) model = instead.model ?? brainModelFor(instead.kind, agent, null);
