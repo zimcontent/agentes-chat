@@ -7652,11 +7652,13 @@
       "working": "Çalışıyor. {{provider}} olaylarını zaten buraya gönderiyor.",
       "waiting": {
         "github": "GitHub bekleniyor. Webhook kaydedilir kaydedilmez bir ping gönderir.",
-        "sentry": "Sentry bekleniyor. Yeni bir hata çıktığında çağırır."
+        "sentry": "Sentry bekleniyor. Yeni bir hata çıktığında çağırır.",
+        "frameio": "Frame.io bekleniyor. Biri yorum yaptığında veya bir dosyanın yüklemesi bittiğinde çağrı gelir."
       },
       "refused": {
         "github": "GitHub başka bir gizli anahtarla çağırdı. Aşağıdaki Secret'ı webhook'a yeniden kopyala.",
-        "sentry": "Sentry başka bir gizli anahtarla çağırdı. Entegrasyonun Client Secret'ını yeniden yapıştır."
+        "sentry": "Sentry başka bir gizli anahtarla çağırdı. Entegrasyonun Client Secret'ını yeniden yapıştır.",
+        "frameio": "Frame.io başka bir secret ile çağırdı. Webhook'un signing secret değerini yeniden yapıştırın."
       },
       "timeout": "3 dakikada hiçbir şey gelmedi. URL'yi ve gizli anahtarı kontrol edip yeniden test et.",
       "adminOnly": "{{provider}} webhook'unu bağlayıcıları yöneten kişi açar. Bir yöneticiden bu rutini açmasını iste.",
@@ -7687,6 +7689,17 @@
         "secretSaved": "Kaydedildi. Değiştirmek için yenisini yapıştır",
         "save": "Kaydet",
         "saved": "Client Secret kaydedildi."
+      },
+      "frameio": {
+        "open": "Frame.io'da Settings › Webhooks sayfasını açın ve Create Webhook'a tıklayın (hesap sahibi veya içerik yöneticisi).",
+        "openLink": "Frame.io'da aç",
+        "url": "Webhook URL",
+        "events": "Adını DougBot yapın, müşterilerinizin yüklediği workspace'i seçin, comment.created ve file.upload.completed seçeneklerini işaretleyin, sonra Save'e tıklayın.",
+        "secret": "Webhook'un signing secret değeri (Frame.io gösteriyorsa)",
+        "secretPlaceholder": "Signing secret'i yapıştırın",
+        "secretSaved": "Kaydedildi. Değiştirmek için yenisini yapıştır",
+        "save": "Kaydet",
+        "saved": "Signing secret kaydedildi. Frame.io çağrıları artık bununla doğrulanıyor."
       }
     },
     "once": "Bir kez · {{weekday}}, {{date}} saat {{time}}{{zone}}",
@@ -7980,6 +7993,16 @@
         "text": "Bir görev oluşturulunca ajan kontrol eder.",
         "prompt": "Yeni görevi okuyun. Başlamak için neyin eksik olduğunu söyleyin. Bir sorumlu ve bir tarih önerin."
       },
+      "frameioComment": {
+        "name": "Frame.io yorumları",
+        "text": "Biri bir dosyaya yorum yaptığında ajan onu okur ve değişikliği çözer.",
+        "prompt": "Frame.io'daki yeni yorumu oku (kim, hangi dosya, timecode). Hangi müşteriye ve işe ait olduğunu, ne değişiklik istediğini ve yeni sürüm gerekip gerekmediğini söyle. Aynı dosyadaki diğer açık yorumlarla grupla."
+      },
+      "frameioUpload": {
+        "name": "Frame.io'da yeni dosyalar",
+        "text": "Bir dosyanın yüklemesi bittiğinde ajan neyin geldiğini söyler.",
+        "prompt": "Frame.io'daki yeni dosyaya bak: adı, projesi, klasörü ve sürümü. Kimin gönderdiğini, ham görüntü mü, yeni sürüm mü yoksa final mi olduğunu ve sırada ne olduğunu söyle."
+      },
       "pulse": {
         "name": "Haftanın sorusu",
         "text": "Perşembe saat 16'da, ekibe bir soru.",
@@ -8024,6 +8047,10 @@
       },
       "deploy": {
         "succeeded": "Dağıtım tamamlandı"
+      },
+      "frameio": {
+        "comment_created": "Frame.io'da yeni yorum",
+        "file_uploaded": "Frame.io'da yeni dosya"
       }
     },
     "when": {
@@ -12115,6 +12142,11 @@
         "1": "Kampanyaları ve listeleri görür",
         "2": "Kampanya oluşturur ve kişileri yönetir"
       },
+      "frameio": {
+        "1": "Dosyaları, sürümleri ve yorumları okuma",
+        "2": "Dosya ve sürüm yükleme, yorumlara yanıt verme",
+        "ask": "Silme ve paylaşma her zaman onayını ister"
+      },
       "semrush": {
         "1": "Anahtar kelime, alan adı ve geri bağlantı araştırır"
       },
@@ -12328,6 +12360,7 @@
       "meta_ads": "Facebook ve Instagram reklam kampanyaları ve sonuçları.",
       "klaviyo": "Kampanyalar, akışlar, listeler ve profiller.",
       "millionsend": "E-posta kampanyaları, listeler ve kişiler.",
+      "frameio": "Dosyalar, sürümler, yorumlar ve inceleme bağlantıları.",
       "semrush": "Anahtar kelime, alan adı ve geri bağlantı verileri.",
       "ahrefs": "Anahtar kelime, geri bağlantı ve site verileri.",
       "wix": "Siteler, CMS, mağazalar ve rezervasyonlar.",

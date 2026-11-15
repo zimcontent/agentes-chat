@@ -31,6 +31,7 @@ import {
   json,
   OrgParams,
   requireSession,
+  routineConnectorDeps,
   routineHookDeps,
   security,
   whatsappDeps,
@@ -58,7 +59,12 @@ const HOOK_REFUSALS = {
  * signature-checked; no session), and the admin endpoint that creates one.
  */
 export function registerWebhookReceiver(api: OpenAPIHono, deps: AppDeps) {
-  const webhookDeps = { db: deps.db, keyWrappers: [deps.adapters.keyWrapper, ...deps.adapters.legacyKeyWrappers] };
+  const webhookDeps = {
+    db: deps.db,
+    keyWrappers: [deps.adapters.keyWrapper, ...deps.adapters.legacyKeyWrappers],
+    // A Frame.io event's comment or file is read through the workspace's Frame.io connection before routines run.
+    connectors: routineConnectorDeps(deps),
+  };
   // The approval portal's bridge saying something changed there (ADR 9001 §12): its cards and their tasks are put in
   // step now instead of at the worker's next tick. It carries nothing: the bearer token is the one this server calls
   // the bridge with, and what changed is read from the bridge.
@@ -183,7 +189,7 @@ export function registerRoutineHooks(api: OpenAPIHono, deps: AppDeps) {
   });
 }
 
-const Provider = z.enum(["github", "sentry"]);
+const Provider = z.enum(["github", "sentry", "frameio"]);
 
 const Setup = z
   .object({
@@ -285,8 +291,8 @@ export function webhookAdminRoutes(deps: AppDeps) {
       path: "/organizations/{orgId}/webhooks",
       tags: ["Routines"],
       security,
-      summary: "Create an incoming webhook (GitHub, Sentry); the secret is shown once",
-      request: { params: OrgParams, body: body(z.object({ provider: z.enum(["github", "sentry"]) })) },
+      summary: "Create an incoming webhook (GitHub, Sentry, Frame.io); the secret is shown once",
+      request: { params: OrgParams, body: body(z.object({ provider: z.enum(["github", "sentry", "frameio"]) })) },
       responses: {
         201: json(z.object({ id: z.uuid(), provider: z.string(), url: z.string(), secret: z.string() }), "Created"),
         ...errors,

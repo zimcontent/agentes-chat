@@ -3799,7 +3799,13 @@ export interface IssueColumn {
   position: number;
 }
 
-export type RoutineEvent = "sentry.issue_created" | "github.pr_opened" | "issue.created" | "deploy.succeeded";
+export type RoutineEvent =
+  | "sentry.issue_created"
+  | "github.pr_opened"
+  | "issue.created"
+  | "deploy.succeeded"
+  | "frameio.comment_created"
+  | "frameio.file_uploaded";
 
 /**
  * The rule as the API sends it: monthly/yearly positions are in `byWeekday`
@@ -3896,7 +3902,7 @@ export interface RoutineHook {
 }
 
 /** A service whose webhook brings routine events (`EVENT_WEBHOOK`). */
-export type WebhookProvider = "github" | "sentry";
+export type WebhookProvider = "github" | "sentry" | "frameio";
 
 /** `GET …/webhooks/{provider}`: whether the service's webhook works here, and where and with what to set it up. */
 export interface WebhookSetup {
@@ -4681,7 +4687,7 @@ export interface MachineAccessReduce {
 export type AdminAsk =
   | { what: "channel_agent"; channelId: string; agentId: string }
   | { what: "create_agents" }
-  | { what: "webhook"; provider: "github" | "sentry" };
+  | { what: "webhook"; provider: WebhookProvider };
 
 /** A switch on a computer (`RunnerTools`' keys): `POST …/access/allow` turns one on, `…/access/reduce` off. */
 export type MachineTool = MachineToolName | "browser" | "desktop" | "terminal";

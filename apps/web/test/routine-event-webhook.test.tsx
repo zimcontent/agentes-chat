@@ -8,7 +8,7 @@ import { act, cleanup, fireEvent, within } from "@testing-library/react";
 import { createFakeApi, ORG_ID, seedState } from "./fake-api";
 import { renderApp, screen, settle } from "./render";
 
-/** A GitHub or Sentry event routine: the form sets up that service's webhook in place, Testar turns it green. */
+/** A GitHub, Sentry or Frame.io event routine: the form sets up that service's webhook in place, Testar turns it green. */
 
 afterEach(() => cleanup());
 
@@ -35,7 +35,7 @@ async function newRoutineForm(api: ApiClient) {
   return { form, qc: services.queryClient };
 }
 
-describe("Rotinas: a GitHub or Sentry event's webhook", () => {
+describe("Rotinas: a GitHub, Sentry or Frame.io event's webhook", () => {
   test("picking the event makes the webhook and shows where it goes; the Client Secret is pasted in place", async () => {
     const state = seedState();
     const { form } = await newRoutineForm(createFakeApi(state));
@@ -56,6 +56,25 @@ describe("Rotinas: a GitHub or Sentry event's webhook", () => {
     expect(state.calls.find((c) => c.method === "routines.setWebhookSecret")?.args).toEqual([
       "sentry",
       "sentry-client-secret-1234",
+    ]);
+  });
+
+  test("a Frame.io event: the steps at next.frame.io, both events named, and its signing secret pasted in place", async () => {
+    const state = seedState();
+    const { form } = await newRoutineForm(createFakeApi(state));
+    await pick(within(form).getByRole("combobox", { name: "Evento" }), /Comentário novo no Frame\.io/);
+    expect(state.calls.some((c) => c.method === "routines.ensureWebhook" && c.args[0] === "frameio")).toBe(true);
+    expect(form.textContent).toContain("Webhook do Frame.io");
+    expect(form.textContent).toMatch(/https:\/\/app\.agentes\.test\/api\/webhooks\/frameio\/\S+/);
+    expect(form.textContent).toContain("marque comment.created e file.upload.completed");
+    const link = within(form).getByRole("link", { name: "Abrir no Frame.io" });
+    expect(link.getAttribute("href")).toBe("https://next.frame.io/settings/webhooks");
+    await type(within(form).getByLabelText("Signing secret do webhook (se o Frame.io mostrar)"), "frameio-secret-1234");
+    await click(within(form).getByRole("button", { name: "Salvar" }));
+    await settle(4);
+    expect(state.calls.find((c) => c.method === "routines.setWebhookSecret")?.args).toEqual([
+      "frameio",
+      "frameio-secret-1234",
     ]);
   });
 

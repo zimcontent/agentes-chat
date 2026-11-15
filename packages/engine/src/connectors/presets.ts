@@ -948,6 +948,17 @@ export const MCP_PRESETS: readonly McpPreset[] = [
     serverUrl: "https://mcp.klaviyo.com/mcp",
   },
   {
+    // Adobe's official server (checked 2026-11-14: 401 with OAuth, `registration_endpoint`, PKCE S256, clients with a
+    // secret only). It reaches only Frame.io accounts signed in with an Adobe ID. Its events come through the
+    // workspace's Frame.io webhook (`frameio.ts`), made at next.frame.io: its tools make none.
+    id: "frameio",
+    category: "docs",
+    label: "Frame.io",
+    description: "Frame.io files, versions, comments and review links.",
+    icon: "frameio",
+    serverUrl: "https://mcp.frame.io/v1/mcp",
+  },
+  {
     id: "millionsend",
     category: "marketing",
     label: "MillionSend",

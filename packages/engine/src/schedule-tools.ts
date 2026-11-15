@@ -178,6 +178,8 @@ const EVENT_WORDS: Record<RoutineEvent, string> = {
   "github.pr_opened": "a pull request is opened on GitHub",
   "issue.created": "a task is created here",
   "deploy.succeeded": "a deploy succeeds",
+  "frameio.comment_created": "someone comments on a file in Frame.io",
+  "frameio.file_uploaded": "a file (or a new version of one) finishes uploading to Frame.io",
   "email.received": "new mail arrives",
   "webhook.received": "its webhook address is called",
 };
@@ -252,9 +254,12 @@ function stateText(r: RoutineView) {
   }
 }
 
-/** The service whose webhook a routine waits for (`EVENT_WEBHOOK`), as people name it. */
+/** The services whose webhook a routine may wait for (`EVENT_WEBHOOK`), as people name them. */
+const HOOK_NAMES = { github: "GitHub", sentry: "Sentry", frameio: "Frame.io" } as const;
+
+/** The service whose webhook a routine waits for, as people name it. */
 const hookName = (r: RoutineView) =>
-  r.trigger.type === "event" && EVENT_WEBHOOK[r.trigger.event] === "sentry" ? "Sentry" : "GitHub";
+  HOOK_NAMES[(r.trigger.type === "event" && EVENT_WEBHOOK[r.trigger.event]) || "github"];
 
 /**
  * An agent's routine on an event nothing in this workspace can send is refused, with the setup step (I7): a routine
@@ -263,7 +268,7 @@ const hookName = (r: RoutineView) =>
 async function neverFires(ctx: ToolContext, trigger: RoutineTriggerInput, what: string): Promise<ToolOutput | null> {
   const missing = trigger.type === "event" ? await missingEventSource(ctx.db, ctx.orgId, trigger.event) : null;
   if (!missing) return null;
-  const name = missing === "sentry" ? "Sentry" : "GitHub";
+  const name = HOOK_NAMES[missing];
   return {
     content: `${what}: nothing would ever start it. No ${name} webhook sends this workspace its events yet. Tell the person what it needs: someone who manages connectors picks the ${name} event in Rotinas › Nova rotina and follows the steps shown there. If they'd rather not wait, offer a schedule that checks instead.`,
     isError: true,

@@ -342,7 +342,7 @@ export function notificationRoutes(deps: AppDeps) {
           z.discriminatedUnion("what", [
             z.object({ what: z.literal("channel_agent"), channelId: z.uuid(), agentId: z.uuid() }),
             z.object({ what: z.literal("create_agents") }),
-            z.object({ what: z.literal("webhook"), provider: z.enum(["github", "sentry"]) }),
+            z.object({ what: z.literal("webhook"), provider: z.enum(["github", "sentry", "frameio"]) }),
           ]),
         ),
       },

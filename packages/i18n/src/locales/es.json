@@ -7895,11 +7895,13 @@
       "working": "Funciona. {{provider}} ya envía sus eventos aquí.",
       "waiting": {
         "github": "Esperando a GitHub. Envía un ping en cuanto se guarda el webhook.",
-        "sentry": "Esperando a Sentry. Llama cuando aparece un error nuevo."
+        "sentry": "Esperando a Sentry. Llama cuando aparece un error nuevo.",
+        "frameio": "Esperando a Frame.io. Avisa cuando alguien comenta o termina de subirse un archivo."
       },
       "refused": {
         "github": "GitHub llamó con otro secreto. Copia de nuevo el Secret de abajo en el webhook.",
-        "sentry": "Sentry llamó con otro secreto. Pega de nuevo el Client Secret de la integración."
+        "sentry": "Sentry llamó con otro secreto. Pega de nuevo el Client Secret de la integración.",
+        "frameio": "Frame.io llamó con otro secreto. Vuelve a pegar el signing secret del webhook."
       },
       "timeout": "No llegó nada en 3 minutos. Revisa la URL y el secreto y prueba de nuevo.",
       "adminOnly": "Quien gestiona los conectores activa el webhook de {{provider}}. Pide a un admin que abra esta rutina.",
@@ -7930,6 +7932,17 @@
         "secretSaved": "Guardado. Pega otro para cambiarlo",
         "save": "Guardar",
         "saved": "Client Secret guardado."
+      },
+      "frameio": {
+        "open": "En Frame.io, abre Settings › Webhooks y haz clic en Create Webhook (propietario de la cuenta o administrador de contenido).",
+        "openLink": "Abrir en Frame.io",
+        "url": "URL del webhook",
+        "events": "Llámalo DougBot, elige el workspace al que suben tus clientes, marca comment.created y file.upload.completed, y pulsa Save.",
+        "secret": "El signing secret del webhook (si Frame.io muestra uno)",
+        "secretPlaceholder": "Pega el signing secret",
+        "secretSaved": "Guardado. Pega otro para cambiarlo",
+        "save": "Guardar",
+        "saved": "Signing secret guardado. Ahora las llamadas de Frame.io se verifican con él."
       }
     },
     "once": "Una vez · {{weekday}}, {{date}} a las {{time}}{{zone}}",
@@ -8231,6 +8244,16 @@
         "text": "Cuando se cree una tarea, el agente la revisa.",
         "prompt": "Lee la tarea nueva. Di qué falta para empezar y sugiere un responsable y una fecha."
       },
+      "frameioComment": {
+        "name": "Comentarios de Frame.io",
+        "text": "Cuando alguien comenta un archivo, el agente lo lee y resuelve el cambio.",
+        "prompt": "Lee el nuevo comentario de Frame.io (quién, qué archivo, el timecode). Indica a qué cliente y trabajo pertenece, qué cambio pide y si hace falta una versión nueva. Agrúpalo con los demás comentarios abiertos del mismo archivo."
+      },
+      "frameioUpload": {
+        "name": "Archivos nuevos en Frame.io",
+        "text": "Cuando termina de subirse un archivo, el agente dice qué llegó.",
+        "prompt": "Mira el nuevo archivo de Frame.io: nombre, proyecto, carpeta y versión. Indica quién lo envió, si es material en bruto, una versión nueva o un final, y qué sigue."
+      },
       "pulse": {
         "name": "Pregunta de la semana",
         "text": "Jueves a las 16, una pregunta para el equipo.",
@@ -8275,6 +8298,10 @@
       },
       "deploy": {
         "succeeded": "Deploy terminado"
+      },
+      "frameio": {
+        "comment_created": "Nuevo comentario en Frame.io",
+        "file_uploaded": "Nuevo archivo en Frame.io"
       }
     },
     "when": {
@@ -12540,6 +12567,11 @@
         "1": "Ver campañas y listas",
         "2": "Crear campañas y gestionar contactos"
       },
+      "frameio": {
+        "1": "Leer archivos, versiones y comentarios",
+        "2": "Subir archivos y versiones, responder a comentarios",
+        "ask": "Eliminar y compartir siempre piden tu aprobación"
+      },
       "semrush": {
         "1": "Investigar palabras clave, dominios y backlinks"
       },
@@ -12758,6 +12790,7 @@
       "meta_ads": "Campañas de anuncios de Facebook e Instagram y sus resultados.",
       "klaviyo": "Campañas, flujos, listas y perfiles.",
       "millionsend": "Campañas de correo, listas y contactos.",
+      "frameio": "Archivos, versiones, comentarios y enlaces de revisión.",
       "semrush": "Datos de palabras clave, dominios y backlinks.",
       "ahrefs": "Datos de palabras clave, backlinks y sitios.",
       "wix": "Sitios, CMS, tiendas y reservas.",

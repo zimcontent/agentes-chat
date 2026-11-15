@@ -7947,11 +7947,13 @@
       "working": "Ça marche. {{provider}} envoie déjà ses événements ici.",
       "waiting": {
         "github": "En attente de GitHub. Il envoie un ping dès que le webhook est enregistré.",
-        "sentry": "En attente de Sentry. Il appelle quand une nouvelle erreur arrive."
+        "sentry": "En attente de Sentry. Il appelle quand une nouvelle erreur arrive.",
+        "frameio": "En attente de Frame.io. Il appelle quand quelqu'un commente ou qu'un fichier finit d'être importé."
       },
       "refused": {
         "github": "GitHub a appelé avec un autre secret. Recopie le Secret ci-dessous dans le webhook.",
-        "sentry": "Sentry a appelé avec un autre secret. Colle de nouveau le Client Secret de l’intégration."
+        "sentry": "Sentry a appelé avec un autre secret. Colle de nouveau le Client Secret de l’intégration.",
+        "frameio": "Frame.io a appelé avec un autre secret. Collez à nouveau le signing secret du webhook."
       },
       "timeout": "Rien n’est arrivé en 3 minutes. Vérifie l’URL et le secret, puis teste de nouveau.",
       "adminOnly": "Les personnes qui gèrent les connecteurs activent le webhook {{provider}}. Demande à un admin d’ouvrir cette routine.",
@@ -7982,6 +7984,17 @@
         "secretSaved": "Enregistré. Colles-en un autre pour le remplacer",
         "save": "Enregistrer",
         "saved": "Client Secret enregistré."
+      },
+      "frameio": {
+        "open": "Dans Frame.io, ouvrez Settings › Webhooks et cliquez sur Create Webhook (propriétaire du compte ou admin de contenu).",
+        "openLink": "Ouvrir dans Frame.io",
+        "url": "URL du webhook",
+        "events": "Nommez-le DougBot, choisissez le workspace où vos clients importent leurs fichiers, cochez comment.created et file.upload.completed, puis cliquez sur Save.",
+        "secret": "Le signing secret du webhook (si Frame.io en affiche un)",
+        "secretPlaceholder": "Collez le signing secret",
+        "secretSaved": "Enregistré. Colles-en un autre pour le remplacer",
+        "save": "Enregistrer",
+        "saved": "Signing secret enregistré. Les appels de Frame.io sont désormais vérifiés avec lui."
       }
     },
     "once": "Une fois · {{weekday}} {{date}} à {{time}}{{zone}}",
@@ -8283,6 +8296,16 @@
         "text": "À la création d'une tâche, l'agent la vérifie.",
         "prompt": "Lisez la nouvelle tâche. Dites ce qu'il manque pour la commencer et proposez un responsable et une échéance."
       },
+      "frameioComment": {
+        "name": "Commentaires Frame.io",
+        "text": "Quand quelqu'un commente un fichier, l'agent le lit et traite la modification.",
+        "prompt": "Lis le nouveau commentaire Frame.io (qui, quel fichier, le timecode). Indique à quel client et à quel projet il se rapporte, quelle modification il demande et s'il faut une nouvelle version. Regroupe-le avec les autres commentaires ouverts sur le même fichier."
+      },
+      "frameioUpload": {
+        "name": "Nouveaux fichiers sur Frame.io",
+        "text": "Quand un fichier finit d'être importé, l'agent dit ce qui est arrivé.",
+        "prompt": "Regarde le nouveau fichier Frame.io : son nom, son projet, son dossier et sa version. Indique qui l'a envoyé, s'il s'agit de rushes, d'une nouvelle version ou d'une version finale, et la suite."
+      },
       "pulse": {
         "name": "Question de la semaine",
         "text": "Le jeudi à 16 h, une question pour l'équipe.",
@@ -8327,6 +8350,10 @@
       },
       "deploy": {
         "succeeded": "Déploiement terminé"
+      },
+      "frameio": {
+        "comment_created": "Nouveau commentaire sur Frame.io",
+        "file_uploaded": "Nouveau fichier sur Frame.io"
       }
     },
     "when": {
@@ -12611,6 +12638,11 @@
         "1": "Voir les campagnes et les listes",
         "2": "Créer des campagnes et gérer les contacts"
       },
+      "frameio": {
+        "1": "Lire les fichiers, les versions et les commentaires",
+        "2": "Importer des fichiers et des versions, répondre aux commentaires",
+        "ask": "Supprimer et partager demandent toujours votre approbation"
+      },
       "semrush": {
         "1": "Rechercher des mots-clés, domaines et backlinks"
       },
@@ -12829,6 +12861,7 @@
       "meta_ads": "Campagnes publicitaires Facebook et Instagram et leurs résultats.",
       "klaviyo": "Campagnes, flows, listes et profils.",
       "millionsend": "Campagnes e-mail, listes et contacts.",
+      "frameio": "Fichiers, versions, commentaires et liens de relecture.",
       "semrush": "Données sur les mots-clés, domaines et backlinks.",
       "ahrefs": "Données sur les mots-clés, backlinks et sites.",
       "wix": "Sites, CMS, boutiques et réservations.",

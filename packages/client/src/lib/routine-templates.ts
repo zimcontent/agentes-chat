@@ -65,7 +65,7 @@ export type RoutineTemplate = {
 /**
  * Starting points for "Nova rotina", each area's together (the select's sections are runs of one area). Their words
  * are `routines.presets.{key}` in i18n; a schedule is a rule, not a phrase, so it means the same in every language.
- * One on a GitHub or Sentry event shows that service's webhook setup in the form (`EventWebhookSetup`).
+ * One on a GitHub, Sentry or Frame.io event shows that service's webhook setup in the form (`EventWebhookSetup`).
  */
 export const ROUTINE_TEMPLATES = [
   { key: "digest", area: "team", kind: "schedule", rule: weekdays("09:00") },
@@ -103,6 +103,22 @@ export const ROUTINE_TEMPLATES = [
   { key: "sheet", area: "ops", kind: "schedule", rule: weekdays("11:00"), apps: SHEETS, blank: true },
   { key: "page", area: "ops", kind: "schedule", rule: everyDay("09:00"), blank: true },
   { key: "newTask", area: "ops", kind: "event", event: "issue.created", report: "always" },
+  {
+    key: "frameioComment",
+    area: "ops",
+    kind: "event",
+    event: "frameio.comment_created",
+    report: "always",
+    apps: ["frameio"],
+  },
+  {
+    key: "frameioUpload",
+    area: "ops",
+    kind: "event",
+    event: "frameio.file_uploaded",
+    report: "always",
+    apps: ["frameio"],
+  },
   { key: "pulse", area: "people", kind: "schedule", rule: weekly("TH", "16:00"), report: "always" },
   { key: "away", area: "people", kind: "schedule", rule: weekly("MO", "08:30"), apps: ["google-calendar"] },
   {

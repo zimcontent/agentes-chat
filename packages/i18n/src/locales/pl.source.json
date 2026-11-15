@@ -18668,11 +18668,17 @@
   "routines.setup.waiting.sentry": {
     "value": "Waiting for Sentry. It calls when a new error comes in."
   },
+  "routines.setup.waiting.frameio": {
+    "value": "Waiting for Frame.io. It calls when someone comments or a file finishes uploading."
+  },
   "routines.setup.refused.github": {
     "value": "GitHub called with another secret. Copy the secret below into the webhook again."
   },
   "routines.setup.refused.sentry": {
     "value": "Sentry called with another secret. Paste the integration's Client Secret again."
+  },
+  "routines.setup.refused.frameio": {
+    "value": "Frame.io called with another secret. Paste the webhook's signing secret again."
   },
   "routines.setup.timeout": {
     "value": "Nothing came in 3 minutes. Check the URL and the secret, then test again."
@@ -18751,6 +18757,33 @@
   },
   "routines.setup.sentry.saved": {
     "value": "Client Secret saved."
+  },
+  "routines.setup.frameio.open": {
+    "value": "In Frame.io, open Settings › Webhooks and click Create Webhook (an account owner or content admin)."
+  },
+  "routines.setup.frameio.openLink": {
+    "value": "Open in Frame.io"
+  },
+  "routines.setup.frameio.url": {
+    "value": "Webhook URL"
+  },
+  "routines.setup.frameio.events": {
+    "value": "Name it DougBot, pick the workspace your clients upload to, tick comment.created and file.upload.completed, then Save."
+  },
+  "routines.setup.frameio.secret": {
+    "value": "The webhook's signing secret (if Frame.io shows one)"
+  },
+  "routines.setup.frameio.secretPlaceholder": {
+    "value": "Paste the signing secret"
+  },
+  "routines.setup.frameio.secretSaved": {
+    "value": "Saved. Paste a new one to replace it"
+  },
+  "routines.setup.frameio.save": {
+    "value": "Save"
+  },
+  "routines.setup.frameio.saved": {
+    "value": "Signing secret saved. Frame.io's calls are checked with it now."
   },
   "routines.once": {
     "value": "Once · {{weekday}}, {{date}} at {{time}}{{zone}}"
@@ -19418,6 +19451,24 @@
   "routines.presets.newTask.prompt": {
     "value": "Read the new task. Say what's missing to start it, and suggest who should own it and a due date."
   },
+  "routines.presets.frameioComment.name": {
+    "value": "Frame.io comments"
+  },
+  "routines.presets.frameioComment.text": {
+    "value": "When someone comments on a file, the agent reads it and sorts out the change."
+  },
+  "routines.presets.frameioComment.prompt": {
+    "value": "Read the new Frame.io comment (who, which file, the timecode). Say which client and job it belongs to, what change it asks for, and whether it needs a new version. Group it with the other open comments on the same file."
+  },
+  "routines.presets.frameioUpload.name": {
+    "value": "New files on Frame.io"
+  },
+  "routines.presets.frameioUpload.text": {
+    "value": "When a file finishes uploading, the agent says what arrived."
+  },
+  "routines.presets.frameioUpload.prompt": {
+    "value": "Look at the new Frame.io file: its name, project, folder and version. Say who sent it, whether it is raw footage, a new version or a final, and what comes next."
+  },
   "routines.presets.pulse.name": {
     "value": "Question of the week"
   },
@@ -19486,6 +19537,12 @@
   },
   "routines.event.deploy.succeeded": {
     "value": "Deploy finished"
+  },
+  "routines.event.frameio.comment_created": {
+    "value": "New comment on Frame.io"
+  },
+  "routines.event.frameio.file_uploaded": {
+    "value": "New file on Frame.io"
   },
   "routines.when.event": {
     "value": "When: {{event}}"
@@ -29511,6 +29568,15 @@
   "connectors.can.millionsend.2": {
     "value": "Create campaigns and manage contacts"
   },
+  "connectors.can.frameio.1": {
+    "value": "Read files, versions and comments"
+  },
+  "connectors.can.frameio.2": {
+    "value": "Upload files and versions, reply to comments"
+  },
+  "connectors.can.frameio.ask": {
+    "value": "Deleting and sharing always ask for your approval"
+  },
   "connectors.can.semrush.1": {
     "value": "Research keywords, domains and backlinks"
   },
@@ -29999,6 +30065,9 @@
   },
   "connectors.descriptions.millionsend": {
     "value": "Email campaigns, lists and contacts."
+  },
+  "connectors.descriptions.frameio": {
+    "value": "Files, versions, comments and review links."
   },
   "connectors.descriptions.semrush": {
     "value": "Keyword, domain and backlink data."

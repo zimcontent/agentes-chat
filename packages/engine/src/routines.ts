@@ -144,6 +144,10 @@ export const ROUTINE_EVENTS = [
   "github.pr_opened",
   "issue.created",
   "deploy.succeeded",
+  /** A comment or reply on a file in Frame.io (its webhook, `webhooks.ts`). */
+  "frameio.comment_created",
+  /** A file finished uploading to Frame.io, a new version of one included. */
+  "frameio.file_uploaded",
   /** New mail in a watched mailbox folder (only through an `email` trigger: it needs a watch). */
   "email.received",
   /** A call to the routine's own address (only through a `webhook` trigger: ADR 0106). */
@@ -154,10 +158,12 @@ export type RoutineEvent = (typeof ROUTINE_EVENTS)[number];
  * The webhook an event comes through (`webhooks.ts`): a routine on it never runs while the workspace has none. The
  * GitHub App's own webhook (`github-app-installs.ts`) keeps installations in step and fires no routine.
  */
-export const EVENT_WEBHOOK: Partial<Record<RoutineEvent, "github" | "sentry">> = {
+export const EVENT_WEBHOOK: Partial<Record<RoutineEvent, "github" | "sentry" | "frameio">> = {
   "github.pr_opened": "github",
   "deploy.succeeded": "github",
   "sentry.issue_created": "sentry",
+  "frameio.comment_created": "frameio",
+  "frameio.file_uploaded": "frameio",
 };
 
 /**
@@ -169,7 +175,7 @@ export async function missingEventSource(
   db: Executor,
   orgId: string,
   event: RoutineEvent,
-): Promise<"github" | "sentry" | null> {
+): Promise<"github" | "sentry" | "frameio" | null> {
   const provider = EVENT_WEBHOOK[event];
   if (!provider) return null;
   const [hook] = await db
@@ -2044,7 +2050,12 @@ export async function fireRoutineEvent(
   orgId: string,
   event: RoutineEvent,
   payload: { summary: string; [key: string]: unknown },
-  options: { dedupeKey?: string | null; visibleTo?: (userId: string) => Promise<boolean> } = {},
+  options: {
+    dedupeKey?: string | null;
+    visibleTo?: (userId: string) => Promise<boolean>;
+    /** What this routine's run gets, when it differs per routine (what its agent may read of the service). */
+    payloadFor?: (routine: { agentId: string | null }) => Promise<{ summary: string; [key: string]: unknown }>;
+  } = {},
 ) {
   const rows = await deps.db
     .select()
@@ -2061,8 +2072,9 @@ export async function fireRoutineEvent(
   let fired = 0;
   for (const r of rows) {
     if (options.visibleTo && !(r.createdByUserId && (await options.visibleTo(r.createdByUserId)))) continue;
+    const own = options.payloadFor ? await options.payloadFor(r) : payload;
     const { outcome } = await queueEventRun(deps, r, {
-      event: { ...payload, type: event },
+      event: { ...own, type: event },
       dedupeKey: options.dedupeKey ?? null,
     });
     if (outcome !== "duplicate") fired++;

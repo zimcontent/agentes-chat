@@ -7,7 +7,13 @@ import {
   type WebhookSetup,
 } from "@agenteschat/client";
 import { errorText } from "@agenteschat/client/lib/errors";
-import { githubHookLink, SENTRY_NEW_INTEGRATION, webhookTestState } from "@agenteschat/client/lib/routine-webhooks";
+import {
+  FRAMEIO_WEBHOOKS_PAGE,
+  githubHookLink,
+  SENTRY_NEW_INTEGRATION,
+  WEBHOOK_PROVIDER_NAMES,
+  webhookTestState,
+} from "@agenteschat/client/lib/routine-webhooks";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ActivityIndicator, StyleSheet, TextInput, View } from "react-native";
@@ -22,7 +28,7 @@ import { useColors, useOrgId } from "../shared/hooks";
 const QUICK_REPOS = 5;
 
 /**
- * The web's webhook setup of a GitHub or Sentry event routine, for the phone: whether the service already sends its
+ * The web's webhook setup of a GitHub, Sentry or Frame.io event routine, for the phone: whether the service already sends its
  * events, and for who sets webhooks up, the webhook made on the spot, what to paste where, GitHub's in one tap when
  * the workspace's GitHub may add it, and Testar, which waits for the first call.
  */
@@ -36,7 +42,7 @@ export function EventWebhookSetup({ provider }: { provider: WebhookProvider }) {
   const query = useWebhookSetup(orgId, provider, polling);
   const action = useWebhookSetupAction(orgId, provider);
   const setup = query.data;
-  const name = provider === "github" ? "GitHub" : "Sentry";
+  const name = WEBHOOK_PROVIDER_NAMES[provider];
   const def = useCatalog().data?.connectors.find((d) => d.id === provider) ?? null;
   const make = setup?.canManage && setup.id === null && !action.isPending && !action.isError;
   // biome-ignore lint/correctness/useExhaustiveDependencies: once per provider without a webhook
@@ -96,7 +102,7 @@ export function EventWebhookSetup({ provider }: { provider: WebhookProvider }) {
         provider === "github" ? (
           <GitHubSteps setup={setup} onAdded={test} />
         ) : (
-          <SentrySteps setup={setup} />
+          <PastedSecretSteps provider={provider} setup={setup} />
         )
       ) : null}
       {setup && !setup.canManage && state !== "working" && state !== "waiting" ? (
@@ -210,12 +216,13 @@ function GitHubSteps({ setup, onAdded }: { setup: WebhookSetup; onAdded: () => v
   );
 }
 
-function SentrySteps({ setup }: { setup: WebhookSetup }) {
+/** Sentry and Frame.io sign with a secret of their own: the webhook is made there, its secret pasted back here. */
+function PastedSecretSteps({ provider, setup }: { provider: Exclude<WebhookProvider, "github">; setup: WebhookSetup }) {
   const { t } = useTranslation();
   const c = useColors();
   const orgId = useOrgId();
   const toast = useToast();
-  const action = useWebhookSetupAction(orgId, "sentry");
+  const action = useWebhookSetupAction(orgId, provider);
   const [secret, setSecret] = useState("");
   const save = () =>
     action.mutate(
@@ -223,7 +230,7 @@ function SentrySteps({ setup }: { setup: WebhookSetup }) {
       {
         onSuccess: () => {
           setSecret("");
-          toast({ title: t("routines.setup.sentry.saved"), icon: "check" });
+          toast({ title: t(`routines.setup.${provider}.saved`), icon: "check" });
         },
       },
     );
@@ -233,15 +240,15 @@ function SentrySteps({ setup }: { setup: WebhookSetup }) {
       <GroupedList>
         <GroupedRow
           icon="link"
-          label={t("routines.setup.sentry.openLink")}
-          onPress={() => openPage(SENTRY_NEW_INTEGRATION)}
+          label={t(`routines.setup.${provider}.openLink`)}
+          onPress={() => openPage(provider === "sentry" ? SENTRY_NEW_INTEGRATION : FRAMEIO_WEBHOOKS_PAGE)}
         />
       </GroupedList>
-      <GroupedFooter>{t("routines.setup.sentry.open")}</GroupedFooter>
-      <GroupedHeader>{t("routines.setup.sentry.url")}</GroupedHeader>
+      <GroupedFooter>{t(`routines.setup.${provider}.open`)}</GroupedFooter>
+      <GroupedHeader>{t(`routines.setup.${provider}.url`)}</GroupedHeader>
       {setup.url ? <CommandBlock command={setup.url} copiedTitle={t("routines.setup.copied")} /> : null}
-      <GroupedFooter>{t("routines.setup.sentry.events")}</GroupedFooter>
-      <GroupedHeader>{t("routines.setup.sentry.secret")}</GroupedHeader>
+      <GroupedFooter>{t(`routines.setup.${provider}.events`)}</GroupedFooter>
+      <GroupedHeader>{t(`routines.setup.${provider}.secret`)}</GroupedHeader>
       <GroupedList>
         <View style={styles.input}>
           <TextInput
@@ -252,16 +259,18 @@ function SentrySteps({ setup }: { setup: WebhookSetup }) {
             autoCapitalize="none"
             autoCorrect={false}
             placeholder={t(
-              setup.secretSet ? "routines.setup.sentry.secretSaved" : "routines.setup.sentry.secretPlaceholder",
+              setup.secretSet
+                ? `routines.setup.${provider}.secretSaved`
+                : `routines.setup.${provider}.secretPlaceholder`,
             )}
             placeholderTextColor={c.faint}
-            accessibilityLabel={t("routines.setup.sentry.secret")}
+            accessibilityLabel={t(`routines.setup.${provider}.secret`)}
             style={[fieldText("callout"), { color: c.ink }]}
           />
         </View>
         <GroupedRow
           icon="check"
-          label={t("routines.setup.sentry.save")}
+          label={t(`routines.setup.${provider}.save`)}
           disabled={!secret.trim() || action.isPending}
           onPress={save}
         />

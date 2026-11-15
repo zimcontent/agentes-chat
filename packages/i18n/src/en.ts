@@ -8004,10 +8004,12 @@ export const en = {
       waiting: {
         github: "Waiting for GitHub. It sends a ping the moment the webhook is saved.",
         sentry: "Waiting for Sentry. It calls when a new error comes in.",
+        frameio: "Waiting for Frame.io. It calls when someone comments or a file finishes uploading.",
       },
       refused: {
         github: "GitHub called with another secret. Copy the secret below into the webhook again.",
         sentry: "Sentry called with another secret. Paste the integration's Client Secret again.",
+        frameio: "Frame.io called with another secret. Paste the webhook's signing secret again.",
       },
       timeout: "Nothing came in 3 minutes. Check the URL and the secret, then test again.",
       adminOnly: "Someone who manages connectors turns on the {{provider}} webhook. Ask an admin to open this routine.",
@@ -8040,6 +8042,18 @@ export const en = {
         secretSaved: "Saved. Paste a new one to replace it",
         save: "Save",
         saved: "Client Secret saved.",
+      },
+      frameio: {
+        open: "In Frame.io, open Settings › Webhooks and click Create Webhook (an account owner or content admin).",
+        openLink: "Open in Frame.io",
+        url: "Webhook URL",
+        events:
+          "Name it DougBot, pick the workspace your clients upload to, tick comment.created and file.upload.completed, then Save.",
+        secret: "The webhook's signing secret (if Frame.io shows one)",
+        secretPlaceholder: "Paste the signing secret",
+        secretSaved: "Saved. Paste a new one to replace it",
+        save: "Save",
+        saved: "Signing secret saved. Frame.io's calls are checked with it now.",
       },
     },
     once: "Once · {{weekday}}, {{date}} at {{time}}{{zone}}",
@@ -8334,6 +8348,18 @@ export const en = {
         text: "When a task is created, the agent reviews it.",
         prompt: "Read the new task. Say what's missing to start it, and suggest who should own it and a due date.",
       },
+      frameioComment: {
+        name: "Frame.io comments",
+        text: "When someone comments on a file, the agent reads it and sorts out the change.",
+        prompt:
+          "Read the new Frame.io comment (who, which file, the timecode). Say which client and job it belongs to, what change it asks for, and whether it needs a new version. Group it with the other open comments on the same file.",
+      },
+      frameioUpload: {
+        name: "New files on Frame.io",
+        text: "When a file finishes uploading, the agent says what arrived.",
+        prompt:
+          "Look at the new Frame.io file: its name, project, folder and version. Say who sent it, whether it is raw footage, a new version or a final, and what comes next.",
+      },
       pulse: {
         name: "Question of the week",
         text: "Thursdays at 4pm, one question for the team.",
@@ -8374,6 +8400,8 @@ export const en = {
       "github.pr_opened": "PR opened on GitHub",
       "issue.created": "Task created in DougBot",
       "deploy.succeeded": "Deploy finished",
+      "frameio.comment_created": "New comment on Frame.io",
+      "frameio.file_uploaded": "New file on Frame.io",
     },
     when: { event: "When: {{event}}" },
     form: {
@@ -12291,6 +12319,11 @@ export const en = {
       salesforce: { "1": "See accounts, contacts, leads and opportunities", "2": "Create and update records" },
       klaviyo: { "1": "See campaigns, flows and metrics", "2": "Create campaigns and manage profiles" },
       millionsend: { "1": "See campaigns and lists", "2": "Create campaigns and manage contacts" },
+      frameio: {
+        "1": "Read files, versions and comments",
+        "2": "Upload files and versions, reply to comments",
+        ask: "Deleting and sharing always ask for your approval",
+      },
       semrush: { "1": "Research keywords, domains and backlinks" },
       ahrefs: { "1": "Research keywords, backlinks and sites" },
       wix: { "1": "See sites, products and bookings", "2": "Edit the CMS and the store" },
@@ -12472,6 +12505,7 @@ export const en = {
       meta_ads: "Facebook and Instagram ad campaigns and results.",
       klaviyo: "Campaigns, flows, lists and profiles.",
       millionsend: "Email campaigns, lists and contacts.",
+      frameio: "Files, versions, comments and review links.",
       semrush: "Keyword, domain and backlink data.",
       ahrefs: "Keyword, backlink and site data.",
       wix: "Sites, CMS, stores and bookings.",

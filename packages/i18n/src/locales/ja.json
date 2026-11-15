@@ -7436,11 +7436,13 @@
       "working": "動いています。{{provider}}はすでにここへイベントを送っています。",
       "waiting": {
         "github": "GitHubを待っています。Webhookを保存するとすぐにpingが届きます。",
-        "sentry": "Sentryを待っています。新しいエラーが出ると呼び出されます。"
+        "sentry": "Sentryを待っています。新しいエラーが出ると呼び出されます。",
+        "frameio": "Frame.ioを待っています。コメントが付いたときやファイルのアップロードが完了したときに呼び出されます。"
       },
       "refused": {
         "github": "GitHubが別のシークレットで呼び出しました。下のSecretをもう一度Webhookにコピーしてください。",
-        "sentry": "Sentryが別のシークレットで呼び出しました。インテグレーションのClient Secretをもう一度貼り付けてください。"
+        "sentry": "Sentryが別のシークレットで呼び出しました。インテグレーションのClient Secretをもう一度貼り付けてください。",
+        "frameio": "Frame.ioが別のシークレットで呼び出しました。Webhookのsigning secretをもう一度貼り付けてください。"
       },
       "timeout": "3分間なにも届きませんでした。URLとシークレットを確認して、もう一度テストしてください。",
       "adminOnly": "{{provider}}のWebhookはコネクタを管理する人がオンにします。このルーティンを開くよう管理者に頼んでください。",
@@ -7471,6 +7473,17 @@
         "secretSaved": "保存済み。置き換えるには新しいものを貼り付け",
         "save": "保存",
         "saved": "Client Secretを保存しました。"
+      },
+      "frameio": {
+        "open": "Frame.ioで Settings › Webhooks を開き、Create Webhook をクリックします(アカウントオーナーまたはコンテンツ管理者)。",
+        "openLink": "Frame.ioで開く",
+        "url": "Webhook URL",
+        "events": "名前を DougBot にし、クライアントがアップロードするワークスペースを選び、comment.created と file.upload.completed にチェックを入れて Save をクリックします。",
+        "secret": "Webhookのsigning secret(Frame.ioに表示される場合)",
+        "secretPlaceholder": "signing secretを貼り付け",
+        "secretSaved": "保存済み。置き換えるには新しいものを貼り付け",
+        "save": "保存",
+        "saved": "signing secretを保存しました。Frame.ioからの呼び出しはこれで検証されます。"
       }
     },
     "once": "1回のみ · {{date}}（{{weekday}}）{{time}}{{zone}}",
@@ -7762,6 +7775,16 @@
         "text": "タスクが作られると、エージェントが確認します。",
         "prompt": "新しいタスクを読んでください。始めるのに足りないものを挙げ、担当者と期限を提案してください。"
       },
+      "frameioComment": {
+        "name": "Frame.ioのコメント",
+        "text": "ファイルにコメントが付くと、エージェントが読んで変更内容を整理します。",
+        "prompt": "Frame.ioの新しいコメント(誰が、どのファイルか、タイムコード)を読んでください。どのクライアントのどの案件か、どんな変更を求めているか、新しいバージョンが必要かを伝えてください。同じファイルの未対応のコメントとまとめてください。"
+      },
+      "frameioUpload": {
+        "name": "Frame.ioの新規ファイル",
+        "text": "ファイルのアップロードが完了すると、エージェントが届いた内容を知らせます。",
+        "prompt": "Frame.ioの新しいファイルの名前、プロジェクト、フォルダ、バージョンを確認してください。誰が送ったか、素材か新バージョンか最終版か、次に何をするかを伝えてください。"
+      },
       "pulse": {
         "name": "今週の質問",
         "text": "木曜16時に、チームに質問を1つ投げかけます。",
@@ -7806,6 +7829,10 @@
       },
       "deploy": {
         "succeeded": "デプロイが完了したとき"
+      },
+      "frameio": {
+        "comment_created": "Frame.ioに新しいコメント",
+        "file_uploaded": "Frame.ioに新しいファイル"
       }
     },
     "when": {
@@ -11714,6 +11741,11 @@
         "1": "キャンペーンとリストを見る",
         "2": "キャンペーンを作成し、連絡先を管理する"
       },
+      "frameio": {
+        "1": "ファイル、バージョン、コメントを読む",
+        "2": "ファイルやバージョンをアップロード、コメントに返信",
+        "ask": "削除と共有は常にあなたの承認が必要です"
+      },
       "semrush": {
         "1": "キーワード、ドメイン、被リンクを調べる"
       },
@@ -11922,6 +11954,7 @@
       "meta_ads": "FacebookとInstagramの広告キャンペーンと成果。",
       "klaviyo": "キャンペーン、フロー、リスト、プロフィール。",
       "millionsend": "メールキャンペーン、リスト、連絡先。",
+      "frameio": "ファイル、バージョン、コメント、レビューリンク。",
       "semrush": "キーワード、ドメイン、被リンクのデータ。",
       "ahrefs": "キーワード、被リンク、サイトのデータ。",
       "wix": "サイト、CMS、ストア、予約。",
