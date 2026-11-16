@@ -247,6 +247,36 @@ export function buildRows(messages: Message[], hidden: (m: Message) => boolean =
   return rows;
 }
 
+/** The same fields holding the same values (each by reference). */
+function shallowSame(a: object, b: object): boolean {
+  const keys = Object.keys(a);
+  if (keys.length !== Object.keys(b).length) return false;
+  return keys.every((k) => (a as Record<string, unknown>)[k] === (b as Record<string, unknown>)[k]);
+}
+
+/**
+ * `next` with each row that holds the same as the row under its key in `prev` swapped for that very row, and `prev`
+ * itself when every row is: a list that compares its items by reference (Legend List) redraws only the rows that
+ * changed, not every row each time the conversation's rows are rebuilt (a message arriving, an agent's run event).
+ */
+export function keepSameRows<T extends { key: string }>(prev: readonly T[], next: readonly T[]): readonly T[] {
+  if (prev.length === 0) return next;
+  const byKey = new Map(prev.map((r) => [r.key, r]));
+  let changed = prev.length !== next.length;
+  const out = next.map((r, i) => {
+    const was = byKey.get(r.key);
+    const kept = was !== undefined && shallowSame(was, r) ? was : r;
+    if (kept !== prev[i]) changed = true;
+    return kept;
+  });
+  return changed ? out : prev;
+}
+
+/** `prev` when `next` holds the same items in the same order (each by reference), else `next`: memos over it keep. */
+export function sameItems<T>(prev: readonly T[], next: readonly T[]): readonly T[] {
+  return prev.length === next.length && next.every((x, i) => x === prev[i]) ? prev : next;
+}
+
 // ── Automatic lines ──────────────────────────────────────────────────────────
 
 /**
