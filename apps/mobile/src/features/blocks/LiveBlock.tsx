@@ -14,7 +14,7 @@ import { router } from "@/ui/navigation";
 import { useColors, useDirectory, useOrgId } from "../shared/hooks";
 import { agentLook } from "../shared/logic";
 import { PushedHeader, tapHaptic } from "../shared/parts";
-import { blockMayLoad, hostScript, INLINE_HEIGHT, themeScript, withLiveBlock } from "./logic";
+import { hostScript, INLINE_HEIGHT, ISOLATED_WEB_VIEW, themeScript, withLiveBlock } from "./logic";
 import { SpecBlock } from "./SpecBlock";
 
 const SYSTEM_FONT = '-apple-system,BlinkMacSystemFont,"SF Pro Text",Roboto,system-ui,sans-serif';
@@ -136,23 +136,7 @@ function BlockWebView({
         key={life}
         ref={web}
         source={{ html: page }}
-        // Every address passes this list and is refused below: one that failed here would go to the system to open.
-        originWhitelist={["*"]}
-        onShouldStartLoadWithRequest={(request) => blockMayLoad(request.url)}
-        javaScriptEnabled
-        javaScriptCanOpenWindowsAutomatically={false}
-        setSupportMultipleWindows={false}
-        domStorageEnabled={false}
-        incognito
-        cacheEnabled={false}
-        sharedCookiesEnabled={false}
-        thirdPartyCookiesEnabled={false}
-        allowFileAccess={false}
-        allowFileAccessFromFileURLs={false}
-        allowUniversalAccessFromFileURLs={false}
-        geolocationEnabled={false}
-        mediaCapturePermissionGrantType="deny"
-        mediaPlaybackRequiresUserAction
+        {...ISOLATED_WEB_VIEW}
         scrollEnabled={scrolls}
         nestedScrollEnabled={false}
         bounces={false}

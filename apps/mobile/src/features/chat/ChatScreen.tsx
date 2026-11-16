@@ -101,6 +101,7 @@ import {
   Platform,
   ScrollView,
   StyleSheet,
+  useWindowDimensions,
   View,
 } from "react-native";
 import {
@@ -275,7 +276,7 @@ type Row =
   | { kind: "browser"; key: string; run: null; handoff: BrowserHandoff }
   /** Where the picture an agent is making will show (`makingImage`), until its reply takes its place. */
   | { kind: "image"; key: string; run: LiveRun }
-  | { kind: "unseen"; key: string; fading: boolean };
+  | { kind: "unseen"; key: string };
 
 const rowKey = (r: Row) => r.key;
 const isQuietLine = (r: Row | undefined) =>
@@ -298,11 +299,6 @@ const rowType = (r: Row) => {
 /** A sticker's row counts as in view from here: one barely in at the edge doesn't take a place among those playing. */
 const STICKER_VIEW = { id: "stickers", itemVisiblePercentThreshold: 30 };
 const DIVIDER_KEY = "unseen-divider";
-/**
- * The "New" line stays this long after the person reached it, then fades (~0.6 s) and keeps its height, invisible,
- * until they leave the end or the screen: taking the row out under their eyes made the messages below it jump.
- */
-const DIVIDER_FADE_MS = 3500;
 /** A dropped connection shows only past this long (a quick reconnect says nothing). */
 const OFFLINE_AFTER_MS = 1200;
 /** "Conectado de novo" stays this long. */
@@ -321,6 +317,8 @@ const FRESH_MS = 800;
 const READ_RELEASE_PX = 24;
 /** The row above the oldest loaded message while older ones exist: one height whether it waits, loads or is empty. */
 const OLDER_ROW = 44;
+/** How far from its end a list that follows it may rest (rounding) before it is taken there. */
+const END_SLACK = 2;
 /** The composer's safe-area padding hides behind the open keyboard; this much stays between them. */
 const KEYBOARD_GAP = 8;
 const COMPOSER_INPUT_ID = "chat-composer";
@@ -825,39 +823,24 @@ function Chat({
         : { ...unseenBelow(scrollRows, seenKey, seenPostedId), working: writingKey ? writingKey.split(" ") : [] },
     [atEnd, scrollRows, seenKey, seenPostedId, writingKey],
   );
-  // "Novas": before the first new row while the person reads above; it fades a while after they reach it.
-  const [divider, setDivider] = useState<{ beforeKey: string; fading: boolean } | null>(null);
+  // "Novas": before the first new row while the person reads above, in the same frame as that row (put a render later,
+  // it pushed the row down under the person's eyes). It stays where it was put for as long as the conversation is on
+  // screen, as a chat's own line does, and goes once the screen is left (out of sight): a line taken out while the
+  // person scrolls moved every message under it.
+  const [placedDivider, setPlacedDivider] = useState<string | null>(null);
+  const dividerKey = placedDivider ?? unseen.firstKey;
   useEffect(() => {
-    if (unseen.firstKey && (!divider || divider.fading)) setDivider({ beforeKey: unseen.firstKey, fading: false });
-  }, [unseen.firstKey, divider]);
-  const [reached, setReached] = useState(false);
-  useEffect(() => {
-    if (atEnd) setReached(true);
-  }, [atEnd]);
-  // The wait runs while the person is at the end: back up reading before it is over, the line stays as it is.
-  useEffect(() => {
-    if (!divider || divider.fading || !reached || !atEnd) return;
-    const fade = setTimeout(() => setDivider((d) => (d ? { ...d, fading: true } : d)), DIVIDER_FADE_MS);
-    return () => clearTimeout(fade);
-  }, [divider, reached, atEnd]);
-  // Faded, the line keeps its row (its height, invisible) while the person stays at the end on this screen: the row
-  // goes once they scroll away from the end or leave, never under their eyes.
+    if (unseen.firstKey && !placedDivider) setPlacedDivider(unseen.firstKey);
+  }, [unseen.firstKey, placedDivider]);
   const focused = useIsFocused();
   useEffect(() => {
-    // As an update of the line it finds: one placed again for new messages in the same moment stays.
-    if (divider?.fading && (!atEnd || !focused)) setDivider((d) => (d?.fading ? null : d));
-  }, [divider, atEnd, focused]);
-  useEffect(() => {
-    if (!atEnd && unseen.firstKey) setReached(false);
-  }, [atEnd, unseen.firstKey]);
+    if (!focused) setPlacedDivider(null);
+  }, [focused]);
   // Each row object as it was when nothing in it changed (`keepSameRows`): the list redraws the rows that did.
   const shownRef = useRef<readonly Row[]>([]);
   const shownRows = useMemo(() => {
-    const at = divider ? rows.findIndex((r) => r.key === divider.beforeKey) : -1;
-    const all: Row[] =
-      divider && at >= 0
-        ? [...rows.slice(0, at), { kind: "unseen", key: DIVIDER_KEY, fading: divider.fading }, ...rows.slice(at)]
-        : rows;
+    const at = dividerKey ? rows.findIndex((r) => r.key === dividerKey) : -1;
+    const all: Row[] = at >= 0 ? [...rows.slice(0, at), { kind: "unseen", key: DIVIDER_KEY }, ...rows.slice(at)] : rows;
     const next = all.map((r, i): Row => {
       if (r.kind !== "message") return r;
       const above = all[i - 1];
@@ -866,7 +849,7 @@ function Chat({
     });
     shownRef.current = keepSameRows(shownRef.current, next);
     return shownRef.current;
-  }, [rows, divider]);
+  }, [rows, dividerKey]);
   const toEnd = useCallback(() => {
     letGo();
     setReadHold(false);
@@ -2044,7 +2027,7 @@ function Chat({
         case "wait":
           return <QueueWaitRow channelId={channelId} wait={item.wait} />;
         case "unseen":
-          return <UnseenLine fading={item.fading} />;
+          return <UnseenLine />;
         case "browser": {
           const agentId = item.run ? item.run.agentId : item.handoff.agentId;
           return (
@@ -2265,12 +2248,19 @@ function Chat({
     boxHeight.current = height;
     endInset.value = height + pillsRoom;
     setComposerHeight(height);
-    // The dock grew under the conversation (who is working, the reply bar, a taller field): at the end, the
-    // conversation keeps ending above it, as a chat's own does. The list's shift for a grown inset only runs when
-    // the list already rests at its end, so a line that appears while a sent message still scrolls down (an agent
-    // starts thinking as it lands) was left covering that message.
+    // The dock grew under the conversation (who is working, the reply bar, a taller field) while it follows its end.
+    // The list shifts by the grown inset itself when it rests at its end (`keyboardLiftBehavior="whenAtEnd"`); one
+    // still scrolling down (a sent message landing as an agent starts thinking) is left short, the dock over its last
+    // lines. Two frames on, once the inset is in, only a list left short goes on to the end: the one place that does,
+    // since a second scroll over the list's own shift jumped.
     if (grew && followingEnd.current)
-      requestAnimationFrame(() => void listRef.current?.scrollToEnd({ animated: true }));
+      requestAnimationFrame(() =>
+        requestAnimationFrame(() => {
+          const state = listRef.current?.getState();
+          if (followingEnd.current && state && state.distanceFromEnd > END_SLACK)
+            void listRef.current?.scrollToEnd({ animated: true });
+        }),
+      );
   };
   const bottomPad = Math.max(insets.bottom, 10);
   // The header floats over the conversation (glass on iOS 26, a blur before; round plates on Android), which
@@ -2278,6 +2268,9 @@ function Chat({
   // Peeked at from the list (iOS's long press): no bar over it and no composer, so no room for either.
   const barHeight = useHeaderHeight();
   const headerHeight = peeking ? 0 : barHeight;
+  // The list draws a screen's height of rows past each edge of what shows (half again more ahead of the scroll): a row
+  // mounts and measures itself out of sight, never under the person's eyes as they fling.
+  const { height: windowHeight } = useWindowDimensions();
   // How far down the fade under the header stays solid: the status bar's share of it.
   const topFadeSolid = headerHeight > 0 ? Math.min(1, insets.top / (headerHeight + 28)) : 0;
   const lift = Math.max(0, bottomPad - KEYBOARD_GAP);
@@ -2365,8 +2358,7 @@ function Chat({
     // A page kept from an earlier visit has none of them: wait for the fresh one.
     atReadDone.current = Boolean(key) || !top.isFetching;
     if (!key) return;
-    setDivider({ beforeKey: key, fading: false });
-    setReached(false);
+    setPlacedDivider(key);
     holdAt(id ?? undefined, 0, false);
   }, [showList, top.data, top.isFetching, rows, list, meId, holdAt]);
 
@@ -2445,17 +2437,6 @@ function Chat({
       void listRef.current?.scrollToIndex({ index, animated: true, viewPosition: 0, viewOffset: readRoom });
     });
   }, [readRoom, composerHeight]);
-  // The box growing while the person is at the end (the working line coming in, a banner, an attachment), or the pills'
-  // room opening, keeps the last message above it: the list's end inset moves with them, but the list follows only its
-  // content, so the line would sit over the message's last lines.
-  const endRoom = composerHeight + pillsRoom;
-  const boxHeightRef = useRef(0);
-  useEffect(() => {
-    const before = boxHeightRef.current;
-    boxHeightRef.current = endRoom;
-    if (before === 0 || endRoom <= before || !atEndRef.current || readHold) return;
-    requestAnimationFrame(() => void listRef.current?.scrollToEnd({ animated: true }));
-  }, [endRoom, readHold]);
   useEffect(() => {
     if (!showList) return;
     const state = listRef.current?.getState();
@@ -2536,6 +2517,7 @@ function Chat({
                                   // dependencies.
                                   extraData={renderItem}
                                   estimatedItemSize={72}
+                                  drawDistance={Math.round(windowHeight)}
                                   // Opens at the latest message, short conversations sit at the bottom like any chat.
                                   initialScrollAtEnd
                                   alignItemsAtEnd
@@ -2576,6 +2558,11 @@ function Chat({
                                   keyboardDismissMode="interactive"
                                   keyboardShouldPersistTaps="handled"
                                   keyboardOffset={lift}
+                                  // The dock's height (who is working, someone typing, the connection, a request out of
+                                  // view) and the keyboard move the conversation only at its end. Above it nothing moves:
+                                  // with the library's default the words being read shifted each time an agent started
+                                  // or finished, under the person's finger.
+                                  keyboardLiftBehavior="whenAtEnd"
                                   contentInsetEndAdjustment={endInset}
                                   contentContainerStyle={listPad}
                                   // Before the conversation's start: the older pages' row (a spinner while one loads, the
@@ -2601,7 +2588,11 @@ function Chat({
                                           <AgentSetupIntro agent={dmAgent} channelId={channelId} />
                                         ) : null}
                                       </>
-                                    ) : undefined
+                                    ) : (
+                                      // The older pages' row keeps its room once the start is reached: taking it out
+                                      // moved every message up as the last page came in.
+                                      <View style={styles.older} />
+                                    )
                                   }
                                 />
                               </OpenedMessagesContext.Provider>
@@ -2941,23 +2932,18 @@ function OlderRow({ loading, failed, onRetry }: { loading: boolean; failed: bool
   );
 }
 
-/** "Novas": before the first message that arrived while the person read above; it fades once read. */
-function UnseenLine({ fading }: { fading: boolean }) {
+/** "Novas": before the first message that arrived while the person read above, until they leave the conversation. */
+function UnseenLine() {
   const { t } = useTranslation();
   const rhythm = useRhythm();
   const c = useColors();
-  const opacity = useSharedValue(1);
-  useEffect(() => {
-    opacity.value = withTiming(fading ? 0 : 1, { duration: 600 });
-  }, [fading, opacity]);
-  const style = useAnimatedStyle(() => ({ opacity: opacity.value }));
   return (
-    <Animated.View style={[styles.unseen, { marginTop: rhythm.turn }, style]} accessibilityRole="text">
+    <View style={[styles.unseen, { marginTop: rhythm.turn }]} accessibilityRole="text">
       <Text variant="caption" style={[styles.unseenText, { color: c.agent }]}>
         {t("mobile.chat.unseen.divider")}
       </Text>
       <View style={[styles.unseenRule, { backgroundColor: c.agent }]} />
-    </Animated.View>
+    </View>
   );
 }
 

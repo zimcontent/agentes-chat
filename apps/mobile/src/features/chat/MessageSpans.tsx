@@ -5,7 +5,7 @@ import { linkPill } from "@agenteschat/client/lib/link-pills";
 import { memberRoleColor } from "@agenteschat/client/lib/member-groups";
 import { parseFileLink, parseMessageLink } from "@agenteschat/client/lib/message-links";
 import { LinearGradient } from "expo-linear-gradient";
-import { type ComponentRef, useEffect, useRef, useState } from "react";
+import { type ComponentRef, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Text as RNText, ScrollView, StyleSheet, useWindowDimensions, View } from "react-native";
 import { ScrollView as GestureScrollView } from "react-native-gesture-handler";
@@ -22,6 +22,7 @@ import { MONO } from "../shared/parts";
 import { ChannelRefText } from "./ChannelRefText";
 import { FileRefText } from "./FileRefText";
 import { IdRefText } from "./IdRefText";
+import { keepColumns, keptColumns } from "./kept-sizes";
 import { LinkPillText } from "./LinkPillText";
 import {
   type Block,
@@ -33,8 +34,9 @@ import {
   personMentionTint,
   tableColumnWidths,
   tableHidden,
+  tableKey,
 } from "./logic";
-import { useRowLook } from "./look";
+import { useLayoutKey, useRowLook } from "./look";
 import { MessageRefText } from "./MessageRefText";
 
 /**
@@ -209,7 +211,15 @@ export function Table({
 }: Pick<TableBlock, "header" | "rows" | "align"> & { surface?: string }) {
   const c = useColors();
   const { fontScale } = useWindowDimensions();
-  const [drawn, setDrawn] = useState<Record<number, number>>({});
+  // Each column's width as drawn, kept across the list's unmounts (`kept-sizes.ts`): a table coming back lays out at
+  // its widths from its first frame. At the letters' guess its cells wrapped otherwise (another height) until they
+  // were measured again, and every row under it moved.
+  const content = useMemo(() => tableKey(header, rows), [header, rows]);
+  const columnsKey = `table:${content}:${useLayoutKey()}`;
+  const [drawn, setDrawn] = useState<Record<number, number>>(() => ({ ...keptColumns(columnsKey) }));
+  useEffect(() => {
+    if (Object.keys(drawn).length > 0) keepColumns(columnsKey, drawn);
+  }, [columnsKey, drawn]);
   const [frame, setFrame] = useState(0);
   const [x, setX] = useState(0);
   const scroller = useRef<ComponentRef<typeof GestureScrollView>>(null);

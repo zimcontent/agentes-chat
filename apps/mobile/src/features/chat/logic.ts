@@ -759,6 +759,27 @@ export function tableColumnWidths(
   });
 }
 
+/**
+ * A table's key for its measured columns (`kept-sizes.ts`): what its cells say and how (FNV-1a over each span's kind
+ * and words, a mark between cells), so the same table finds its columns again when its row comes back.
+ */
+export function tableKey(header: Inline[][], rows: Inline[][][]): string {
+  let hash = 0x811c9dc5;
+  const mix = (code: number) => {
+    hash = Math.imul(hash ^ code, 0x01000193);
+  };
+  const cell = (spans: Inline[]) => {
+    for (const span of spans) {
+      for (const ch of `${span.kind}:${span.text}`) mix(ch.codePointAt(0) ?? 0);
+      mix(0x1e);
+    }
+    mix(0x1f);
+  };
+  for (const h of header) cell(h);
+  for (const r of rows) for (const c of r) cell(c);
+  return `${header.length}x${rows.length}:${(hash >>> 0).toString(36)}`;
+}
+
 /** Which sides of a table scrolled sideways hide columns (`x`: the scroll, `frame`: the box, `total`: the table). */
 export function tableHidden(x: number, frame: number, total: number): { left: boolean; right: boolean } {
   return { left: x > 1, right: frame > 0 && x + frame < total - 1 };
