@@ -284,7 +284,7 @@ const TOOLS: { key: string; label: string; icon: string; count?: number; green?:
 
 function Ferramentas() {
   const { colors, shadows } = useTheme();
-  const front = [...TOOLS.slice(0, 4), { key: "mais", label: "Mais", icon: "more", count: 2, green: false }];
+  const front = [...TOOLS.slice(0, 5), { key: "mais", label: "Mais", icon: "more", count: 0, green: false }];
   return (
     <View style={styles.tools}>
       {front.map((t) => (
@@ -296,9 +296,9 @@ function Ferramentas() {
             ]}
           >
             {t.green ? (
-              <SvgXml xml={WHATSAPP_SVG} width={20} height={20} />
+              <SvgXml xml={WHATSAPP_SVG} width={18} height={18} />
             ) : (
-              <Icon name={t.icon as never} size={20} color={colors.ink} />
+              <Icon name={t.icon as never} size={18} color={colors.ink} />
             )}
             {t.count ? (
               <View style={styles.toolBadge}>
@@ -1038,11 +1038,11 @@ const styles = StyleSheet.create({
   widgetHead: { flexDirection: "row", alignItems: "center", gap: 4 },
   widgetTitle: { flexShrink: 1, fontWeight: "500" },
   widgetBig: { fontWeight: "700" },
-  tools: { flexDirection: "row", paddingHorizontal: 8, paddingTop: 12, paddingBottom: 4 },
+  tools: { flexDirection: "row", paddingHorizontal: 6, paddingTop: 12, paddingBottom: 4 },
   tool: { flex: 1, alignItems: "center", gap: 5 },
-  toolPlate: { width: 44, height: 44, borderRadius: 14, alignItems: "center", justifyContent: "center" },
+  toolPlate: { width: 40, height: 40, borderRadius: 12, alignItems: "center", justifyContent: "center" },
   toolBadge: { position: "absolute", top: -5, right: -7 },
-  toolLabel: { fontFamily: DB_FONTES.texto500, fontSize: 11, lineHeight: 13, textAlign: "center" },
+  toolLabel: { fontFamily: DB_FONTES.texto500, fontSize: 10, lineHeight: 12, textAlign: "center" },
   grid: { flexDirection: "row", flexWrap: "wrap", paddingHorizontal: 8, gap: 0 },
   cell: { width: "33.33%", alignItems: "center", gap: 6, paddingVertical: 10 },
   cellSmall: { width: "20%", alignItems: "center", gap: 6, paddingVertical: 6 },

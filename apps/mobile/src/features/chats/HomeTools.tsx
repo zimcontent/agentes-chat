@@ -37,14 +37,14 @@ function WhatsAppMark({ size }: { size: number }) {
   );
 }
 
-/** Five to the row (four tools and "Mais"), each a small plate with its name under it. */
-const ROW = 5;
-const PLATE = 44;
-const GLYPH = 20;
+/** Six to the row (five tools and "Mais"), each a small plate with its name under it. */
+const ROW = 6;
+const PLATE = 40;
+const GLYPH = 18;
 
 /**
  * Início's tools, in place of the widgets: everything the web keeps beside its five sidebar rows, summed up as one
- * row of small plates under the greeting: the first four, and "Mais" with the rest in a list. WhatsApp and Mídia only where the server has them
+ * row of small plates under the greeting: the first five, and "Mais" with the rest in a list. WhatsApp and Mídia only where the server has them
  * (as the web's sidebar); Threads only in a team's workspace (a personal one keeps it in Configurações).
  */
 export function HomeTools() {
@@ -87,7 +87,7 @@ export function HomeTools() {
   // The tools an admin took out of the workspace for everyone (Settings › General) leave here too, as on the web.
   const hidden = org?.hiddenTools ?? [];
   const shown = tools.filter((tool) => !hidden.includes(tool.key));
-  // One row: the first four in sight, the rest behind "Mais" (with how many wait in them), so the home stays short.
+  // One row: the first five in sight, the rest behind "Mais" (with how many wait in them), so the home stays short.
   const front = shown.length > ROW ? shown.slice(0, ROW - 1) : shown;
   const rest = shown.slice(front.length);
   const restCount = rest.reduce((n, tool) => n + (tool.count ?? 0), 0);
@@ -147,10 +147,10 @@ function ToolTile({ tool, onPress }: { tool: Tool; onPress: () => void }) {
 
 const styles = StyleSheet.create({
   // Room above and below: the plates' hairline and shadow are never cut.
-  row: { flexDirection: "row", paddingHorizontal: 8, paddingTop: 12, paddingBottom: 4 },
+  row: { flexDirection: "row", paddingHorizontal: 6, paddingTop: 12, paddingBottom: 4 },
   tile: { flex: 1, alignItems: "center", gap: 5 },
   pressed: { opacity: 0.7 },
-  plate: { width: PLATE, height: PLATE, borderRadius: 14, alignItems: "center", justifyContent: "center" },
+  plate: { width: PLATE, height: PLATE, borderRadius: 12, alignItems: "center", justifyContent: "center" },
   badge: { position: "absolute", top: -5, right: -7 },
-  label: { fontSize: 11, lineHeight: 13, fontWeight: "500", textAlign: "center" },
+  label: { fontSize: 10, lineHeight: 12, fontWeight: "500", textAlign: "center" },
 });
