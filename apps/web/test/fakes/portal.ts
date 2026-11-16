@@ -37,7 +37,8 @@ export interface FakePortal {
   /** Each card's task: its id and number. */
   tasks: PortalTaskRef[];
   /** The schedule's lists, each a client's, in the team's order. */
-  lists: (PortalList & { client: string })[];
+  /** With no `kind`, a list of the schedule. */
+  lists: (Omit<PortalList, "kind"> & { kind?: PortalList["kind"]; client: string })[];
   /** The team's labels, one set for every client. */
   labels: PortalLabel[];
   /** The colour the team gave each client. */
@@ -90,6 +91,7 @@ export function portalCard(over: Partial<PortalCard> & Pick<PortalCard, "id" | "
     item: null,
     task: null,
     done: false,
+    material: false,
     createdAt: 1,
     updatedAt: 1,
     ...over,
@@ -236,7 +238,8 @@ export function createFakePortal(
       },
       board: async (_orgId, client) => {
         guard();
-        const cards = fake.cards.filter((c) => c.client === client && !c.item);
+        const shelf = new Set(fake.lists.filter((l) => l.kind === "materials").map((l) => l.id));
+        const cards = fake.cards.filter((c) => c.client === client && !c.item && !(c.list && shelf.has(c.list)));
         const items = fake.items.filter((i) => i.client === client);
         const at = (column: PortalColumn) => items.filter((i) => COLUMN_OF[i.status] === column);
         return clone({
@@ -309,17 +312,23 @@ export function createFakePortal(
       },
       plan: async (_orgId, client) => {
         guard();
+        const lists = fake.lists.filter((l) => l.client === client);
+        const shelf = new Set(lists.filter((l) => l.kind === "materials").map((l) => l.id));
         const cards = fake.cards
           .filter((c) => c.client === client)
           .sort(byOrder)
-          .map(stageOf);
-        const lists = fake.lists.filter((l) => l.client === client);
+          .map((c) => ({ ...stageOf(c), material: !!c.list && shelf.has(c.list) }));
         const known = new Set(lists.map((l) => l.id));
         const carded = new Set(cards.map((c) => c.item).filter(Boolean));
         return clone({
           client,
           state: fake.state,
-          lists: lists.map(({ id, name }) => ({ id, name, cards: cards.filter((c) => c.list === id) })),
+          lists: lists.map(({ id, name, kind }) => ({
+            id,
+            name,
+            kind: kind ?? "plan",
+            cards: cards.filter((c) => c.list === id),
+          })),
           unlisted: cards.filter((c) => !c.list || !known.has(c.list)),
           loose: fake.items.filter((i) => i.client === client && !carded.has(i.id)),
           labels: fake.labels,
@@ -392,14 +401,14 @@ export function createFakePortal(
         const cards = new Set(fake.cards.map((c) => c.id));
         return clone(fake.tasks.filter((ref) => cards.has(ref.cardId)));
       },
-      createList: async (orgId, client, name) => {
-        log("portal.createList", orgId, client, name);
+      createList: async (orgId, client, name, kind) => {
+        log("portal.createList", orgId, client, name, ...(kind && kind !== "plan" ? [kind] : []));
         guard();
         const same = fake.lists.find((l) => l.client === client && l.name.toLowerCase() === name.trim().toLowerCase());
-        if (same) return { id: same.id, name: same.name };
-        const list = { id: `l-${hex()}`, name: name.trim(), client };
+        if (same) return { id: same.id, name: same.name, kind: same.kind ?? "plan" };
+        const list = { id: `l-${hex()}`, name: name.trim(), client, kind: kind ?? "plan" };
         fake.lists.push(list);
-        return { id: list.id, name: list.name };
+        return { id: list.id, name: list.name, kind: list.kind };
       },
       orderLists: async (orgId, client, ids) => {
         log("portal.orderLists", orgId, client, ids);
@@ -410,7 +419,7 @@ export function createFakePortal(
           ...mine.filter((l) => !ids.includes(l.id)),
         ];
         fake.lists = [...fake.lists.filter((l) => l.client !== client), ...ordered];
-        return ordered.map(({ id, name }) => ({ id, name }));
+        return ordered.map(({ id, name, kind }) => ({ id, name, kind: kind ?? "plan" }));
       },
       renameList: async (orgId, listId, name) => {
         log("portal.renameList", orgId, listId, name);
@@ -418,7 +427,15 @@ export function createFakePortal(
         const list = fake.lists.find((l) => l.id === listId);
         if (!list) throw new ApiError(400, "portal.refused", "No such list");
         list.name = name.trim();
-        return { id: list.id, name: list.name };
+        return { id: list.id, name: list.name, kind: list.kind ?? "plan" };
+      },
+      setListKind: async (orgId, listId, kind) => {
+        log("portal.setListKind", orgId, listId, kind);
+        guard();
+        const list = fake.lists.find((l) => l.id === listId);
+        if (!list) throw new ApiError(400, "portal.refused", "No such list");
+        list.kind = kind;
+        return { id: list.id, name: list.name, kind };
       },
       deleteList: async (orgId, listId) => {
         log("portal.deleteList", orgId, listId);

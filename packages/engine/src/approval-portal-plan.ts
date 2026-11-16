@@ -109,7 +109,7 @@ export async function myPortalWork(
   const today = portalDay(now, timeZone);
   const work: MyPortalWork = { today, late: [], today_: [], next: [], undated: [] };
   for (const card of cards) {
-    if (!card.members.includes(member)) continue;
+    if (!card.members.includes(member) || card.material) continue;
     const item = card.item ? byKey.get(`${card.client}/${card.item}`) : undefined;
     const plan = planCard(card, new Map(item ? [[item.id, item]] : []));
     if (!OPEN_STAGES.includes(plan.stage)) continue;
@@ -320,7 +320,7 @@ export async function portalPipeline(
     const item = card.item ? byKey.get(`${card.client}/${card.item}`) : undefined;
     if (item) carded.add(`${item.client}/${item.id}`);
     const plan = planCard(card, new Map(item ? [[item.id, item]] : []));
-    if (plan.stage === "posted") continue;
+    if (plan.stage === "posted" || card.material) continue;
     entries.push({
       client: card.client,
       kind: "card",

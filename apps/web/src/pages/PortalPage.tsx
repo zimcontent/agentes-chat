@@ -101,6 +101,7 @@ export function PortalPage() {
                 { value: "board", label: t("portal.board") },
                 { value: "plan", label: t("portal.plan.tab") },
                 { value: "posted", label: t("portal.columns.posted"), count: board.data.items.posted.length },
+                { value: "materials", label: t("portal.materials.tab") },
               ]}
             />
             {/* The schedule's two views, at the end of its tabs' row: its lists, or a calendar. */}
@@ -138,7 +139,7 @@ export function PortalPage() {
         </EmptyState>
       ) : (
         <>
-          {tab !== "plan" && <PortalNotices state={shown.data?.state} />}
+          {tab !== "plan" && tab !== "materials" && <PortalNotices state={shown.data?.state} />}
           {shown.isLoading && <LoadingCards count={3} />}
           {shown.isError && !shown.data && <ErrorState error={shown.error} onRetry={() => void shown.refetch()} />}
           {!client &&
@@ -154,8 +155,15 @@ export function PortalPage() {
             board.data &&
             (tab === "posted" ? (
               <PortalPosted client={client} items={board.data.items.posted} />
-            ) : tab === "plan" ? (
-              <PortalPlanTab client={client} view={view} changes={changes} onOpen={openCard} />
+            ) : tab === "plan" || tab === "materials" ? (
+              <PortalPlanTab
+                key={tab}
+                client={client}
+                view={view}
+                changes={changes}
+                onOpen={openCard}
+                section={tab === "materials" ? "materials" : "plan"}
+              />
             ) : (
               <PortalBoard
                 board={board.data}
@@ -172,10 +180,11 @@ export function PortalPage() {
         <NewListDialog
           open={newList}
           client={client}
+          kind={tab === "materials" ? "materials" : "plan"}
           onClose={() => setNewList(false)}
           onMade={() => {
             setNewList(false);
-            go({ client, tab: "plan" }, true);
+            go({ client, tab: tab === "materials" ? "materials" : "plan" }, true);
           }}
         />
       )}

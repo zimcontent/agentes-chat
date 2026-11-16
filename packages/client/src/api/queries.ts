@@ -166,6 +166,7 @@ import type {
   PortalItemEdit,
   PortalJob,
   PortalLabelColor,
+  PortalListKind,
   PortalOverview,
   PortalPlan,
   PortalSendInput,
@@ -7498,15 +7499,22 @@ export function usePortalLists(orgId: string, client: string) {
   const key = keys.portalPlan(orgId, client);
   const done = { meta: { silent: true }, onSettled: () => refreshPortal(qc, orgId) } as const;
   return {
-    create: useMutation({ mutationFn: (name: string) => portalOf(api).createList(orgId, client, name), ...done }),
+    create: useMutation({
+      mutationFn: (input: string | { name: string; kind: PortalListKind }) =>
+        typeof input === "string"
+          ? portalOf(api).createList(orgId, client, input)
+          : portalOf(api).createList(orgId, client, input.name, input.kind),
+      ...done,
+    }),
     /**
      * A list made at the head of the schedule, before every other ("New list" on the page): the portal adds it at the
      * end, so the order is set right after, from the schedule as it is now. The team moves it from there.
      */
     createFirst: useMutation({
-      mutationFn: async (name: string) => {
+      mutationFn: async (input: string | { name: string; kind: PortalListKind }) => {
         const portal = portalOf(api);
-        const list = await portal.createList(orgId, client, name);
+        const { name, kind } = typeof input === "string" ? { name: input, kind: "plan" as const } : input;
+        const list = await portal.createList(orgId, client, name, kind);
         const plan = await portal.plan(orgId, client);
         const ids = [list.id, ...plan.lists.map((l) => l.id).filter((id) => id !== list.id)];
         if (ids.length > 1) await portal.orderLists(orgId, client, ids);
@@ -7519,10 +7527,20 @@ export function usePortalLists(orgId: string, client: string) {
         portalOf(api).renameList(orgId, input.listId, input.name),
       ...done,
     }),
+    /** Between the schedule and the client's materials, with its cards. */
+    kind: useMutation({
+      mutationFn: (input: { listId: string; kind: PortalListKind }) =>
+        portalOf(api).setListKind(orgId, input.listId, input.kind),
+      ...done,
+    }),
     remove: useMutation({ mutationFn: (listId: string) => portalOf(api).deleteList(orgId, listId), ...done }),
     /** The new order shows at once, and the old one comes back when the portal refuses it. */
     order: useMutation({
-      mutationFn: (ids: string[]) => portalOf(api).orderLists(orgId, client, ids),
+      // A board shows one kind of list at a time: the lists it doesn't show keep their place after the ones it moved.
+      mutationFn: (ids: string[]) => {
+        const rest = (qc.getQueryData<PortalPlan>(key)?.lists ?? []).map((l) => l.id).filter((id) => !ids.includes(id));
+        return portalOf(api).orderLists(orgId, client, [...ids, ...rest]);
+      },
       meta: { silent: true },
       onMutate: async (ids: string[]) => {
         await qc.cancelQueries({ queryKey: key });

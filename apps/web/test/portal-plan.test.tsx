@@ -810,3 +810,73 @@ describe("Suas tarefas on Home", () => {
     expect(tasks()).toBeNull();
   });
 });
+
+describe("the client's materials (ADR 9001 §20)", () => {
+  /** Acme's schedule, plus a list of materials with a login in it. */
+  const withMaterials = (portal: FakePortal) => {
+    fill(portal);
+    portal.lists.push({ id: "l-0000aa", name: "Acessos", client: "acme", kind: "materials" });
+    portal.cards.push(
+      portalCard({ id: "c-0000aa", client: "acme", title: "Login do Instagram", list: "l-0000aa", order: 1 }),
+    );
+  };
+  const MATERIALS = "portal?client=acme&tab=materials";
+
+  test("a tab of its own beside Postados: its lists only, with no stage on the cards; the schedule leaves them out", async () => {
+    await go(MATERIALS, withPortal(), withMaterials);
+    expect(
+      within(main())
+        .getByRole("radio", { name: /Materiais do cliente/ })
+        .getAttribute("aria-checked"),
+    ).toBe("true");
+    expect(lists()).toEqual(["Acessos"]);
+    expect(cardsIn("Acessos")).toEqual(["Login do Instagram"]);
+    expect(card("Login do Instagram").querySelector(".portal-stagechip")).toBeNull();
+    expect(within(main()).queryByRole("region", { name: "Legenda" })).toBeNull();
+    cleanup();
+    await go(PLAN, withPortal(), withMaterials);
+    expect(lists()).toEqual(["Semana 02 a 06/11", "Semana 09 a 13/11", "Sem lista"]);
+  });
+
+  test("a right click on a card moves it to a list of either part, the materials under their own heading", async () => {
+    const { state } = await go(PLAN, withPortal(), withMaterials);
+    await act(async () => fireEvent.contextMenu(card("Story de enquete"), { clientX: 40, clientY: 60 }));
+    await settle(2);
+    const menu = screen().getByRole("menu");
+    expect(within(menu).getByText("Materiais do cliente")).toBeTruthy();
+    await click(within(menu).getByRole("menuitem", { name: "Acessos" }));
+    const [moved] = calls(state, "portal.updateCard");
+    expect(moved?.[1]).toBe("c-000003");
+    expect((moved?.[2] as { list: string } | undefined)?.list).toBe("l-0000aa");
+    expect(cardsIn("Semana 09 a 13/11")).toEqual([]);
+  });
+
+  test("and back: from the materials, its menu offers the schedule's lists", async () => {
+    const { state } = await go(MATERIALS, withPortal(), withMaterials);
+    const menu = await openMenu(
+      within(card("Login do Instagram")).getByRole("button", { name: "Ações: Login do Instagram" }),
+    );
+    await click(within(menu).getByRole("menuitem", { name: "Mover para Semana 02 a 06/11 · Cronograma estratégico" }));
+    expect((calls(state, "portal.updateCard")[0]?.[2] as { list: string } | undefined)?.list).toBe("l-000001");
+  });
+
+  test("a whole list moves to the materials from its menu; a list added there is one of materials", async () => {
+    const { state } = await go(PLAN, withPortal(), withMaterials);
+    const menu = await openMenu(
+      within(list("Semana 09 a 13/11")).getByRole("button", { name: "Ações: Semana 09 a 13/11" }),
+    );
+    await click(within(menu).getByRole("menuitem", { name: "Mover para Materiais do cliente" }));
+    expect(calls(state, "portal.setListKind")).toEqual([[ORG_ID, "l-000002", "materials"]]);
+    expect(lists()).not.toContain("Semana 09 a 13/11");
+
+    cleanup();
+    const again = await go(MATERIALS, withPortal(), withMaterials);
+    await click(within(main()).getByRole("button", { name: "Adicionar lista" }));
+    const name = within(main()).getByRole("textbox", { name: "Nome da lista" });
+    await act(async () => fireEvent.change(name, { target: { value: "Marca" } }));
+    await act(async () => fireEvent.submit(name.closest("form") as HTMLFormElement));
+    await settle(4);
+    expect(calls(again.state, "portal.createList")).toEqual([[ORG_ID, "acme", "Marca", "materials"]]);
+    expect(lists()).toEqual(["Acessos", "Marca"]);
+  });
+});

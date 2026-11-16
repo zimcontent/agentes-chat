@@ -1,6 +1,7 @@
 import { cx, FactLine, Icon, type IconName, type LineFact, useDragScroll } from "@agenteschat/ui";
 import {
   type HTMLAttributes,
+  type MouseEvent as ReactMouseEvent,
   type ReactNode,
   type PointerEvent as ReactPointerEvent,
   useEffect,
@@ -171,6 +172,7 @@ export function CardFace({
   facts = [],
   people,
   onOpen,
+  onContextMenu,
   drag,
   picked = false,
   className,
@@ -186,6 +188,8 @@ export function CardFace({
   facts?: LineFact[];
   people?: ReactNode;
   onOpen?: () => void;
+  /** The card's own menu on a right click. */
+  onContextMenu?: (e: ReactMouseEvent) => void;
   drag?: CardDrag;
   picked?: boolean;
   className?: string;
@@ -208,6 +212,7 @@ export function CardFace({
       draggable={drag?.draggable}
       onDragStart={drag?.onDragStart}
       onPointerDown={drag?.onPointerDown}
+      onContextMenu={onContextMenu}
       onClick={(e) => {
         if (onOpen && !(e.target as Element).closest("button, a, input, textarea, select, [role='menu']")) onOpen();
       }}

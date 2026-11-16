@@ -4,11 +4,11 @@ import { useCallback } from "react";
 
 const CLIENT = /^[a-z0-9][a-z0-9-]{0,63}$/;
 
-export type PortalTab = "board" | "posted" | "plan";
+export type PortalTab = "board" | "posted" | "plan" | "materials";
 
 export interface PortalSearch {
   client?: string;
-  tab?: "posted" | "plan";
+  tab?: "posted" | "plan" | "materials";
   /** The schedule as a calendar instead of its lists; the overview's pipeline as a list instead of its board. */
   view?: "calendar" | "list";
   /** The overview's pipeline, filtered: one client's work, one person's (`me`: mine), one of the four tiles'. */
@@ -20,8 +20,8 @@ export interface PortalSearch {
 }
 
 /**
- * What the page shows, in the URL, so a link and Back work: one client's board, its Posted list or its strategic
- * schedule (`tab=plan`, `view=calendar` for its calendar), and the card open in its dialog (`card=<id>`). With no
+ * What the page shows, in the URL, so a link and Back work: one client's board, its Posted list, its strategic
+ * schedule (`tab=plan`, `view=calendar` for its calendar) or its materials (`tab=materials`), and the card open in its dialog (`card=<id>`). With no
  * client, the overview's pipeline as it is filtered (`of`, `who`, `stage`) and shown (`view=list`).
  */
 export function portalSearch(search: Record<string, unknown>): PortalSearch {
@@ -37,7 +37,7 @@ export function portalSearch(search: Record<string, unknown>): PortalSearch {
       ...(search.view === "list" ? { view: "list" as const } : {}),
     };
   }
-  const tab = search.tab === "posted" || search.tab === "plan" ? search.tab : undefined;
+  const tab = search.tab === "posted" || search.tab === "plan" || search.tab === "materials" ? search.tab : undefined;
   const card = typeof search.card === "string" && /^c-[0-9a-f]{6,32}$/.test(search.card) ? search.card : undefined;
   return {
     client,

@@ -371,6 +371,28 @@ test("the strategic schedule: lists the team names, cards with labels and member
   const mine = (await (await api("/portal/mine")).json()) as Mine;
   expect([...mine.late, ...mine.today, ...mine.next].map((c) => (c as { id: string }).id)).toEqual([card]);
 
+  // The client's materials (ADR 9001 §20): a list of them, a card moved in leaves the caller's work and the board.
+  const shelf = await api("/portal/clients/acme/lists", { json: { name: "Acessos", kind: "materials" } });
+  const shelfId = ((await shelf.json()) as { list: { id: string; kind: string } }).list;
+  expect(shelfId.kind).toBe("materials");
+  expect((await api(`/portal/cards/${card}`, { method: "PATCH", json: { list: shelfId.id, order: 1 } })).status).toBe(
+    200,
+  );
+  const shelved = (await (await api("/portal/mine")).json()) as Mine;
+  expect([...shelved.late, ...shelved.today, ...shelved.next, ...shelved.undated]).toEqual([]);
+  const material = (await (await api("/portal/clients/acme/plan")).json()) as {
+    lists: { id: string; kind: string; cards: { id: string; material: boolean }[] }[];
+  };
+  expect(material.lists.find((l) => l.id === shelfId.id)?.cards).toEqual([
+    expect.objectContaining({ id: card, material: true }),
+  ]);
+  // A list changes part with a PATCH, and a PATCH with nothing in it is refused.
+  const moved = await api(`/portal/lists/${shelfId.id}`, { method: "PATCH", json: { kind: "plan" } });
+  expect(((await moved.json()) as { list: { kind: string } }).list.kind).toBe("plan");
+  expect((await api(`/portal/lists/${shelfId.id}`, { method: "PATCH", json: {} })).status).toBe(400);
+  expect((await api(`/portal/lists/${shelfId.id}`, { method: "DELETE" })).status).toBe(204);
+  expect((await api(`/portal/cards/${card}`, { method: "PATCH", json: { list: week2, order: 1 } })).status).toBe(200);
+
   // Sent: the card stays in its week, its stage is now the portal's, and it is nobody's task while the client has it.
   const file = await upload("tour.mp4", "video/mp4", new Uint8Array([1]));
   const sent = await api("/portal/send", { json: { client: "acme", type: "reel", artifactIds: [file], card } });

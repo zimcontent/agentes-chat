@@ -1920,9 +1920,12 @@ export function createHttpApi(options: TransportOptions = {}): HttpApi {
       mine: (orgId) => request<PortalMine>(`${org(orgId)}/portal/mine`),
       pipeline: (orgId) => request<PortalPipeline>(`${org(orgId)}/portal/pipeline`),
       tasks: async (orgId) => (await request<{ tasks: PortalTaskRef[] }>(`${org(orgId)}/portal/tasks`)).tasks,
-      createList: async (orgId, client, name) =>
-        (await request<{ list: PortalList }>(`${org(orgId)}/portal/clients/${enc(client)}/lists`, { json: { name } }))
-          .list,
+      createList: async (orgId, client, name, kind) =>
+        (
+          await request<{ list: PortalList }>(`${org(orgId)}/portal/clients/${enc(client)}/lists`, {
+            json: { name, ...(kind ? { kind } : {}) },
+          })
+        ).list,
       orderLists: async (orgId, client, ids) =>
         (
           await request<{ lists: PortalList[] }>(`${org(orgId)}/portal/clients/${enc(client)}/lists/order`, {
@@ -1935,6 +1938,13 @@ export function createHttpApi(options: TransportOptions = {}): HttpApi {
           await request<{ list: PortalList }>(`${org(orgId)}/portal/lists/${enc(listId)}`, {
             method: "PATCH",
             json: { name },
+          })
+        ).list,
+      setListKind: async (orgId, listId, kind) =>
+        (
+          await request<{ list: PortalList }>(`${org(orgId)}/portal/lists/${enc(listId)}`, {
+            method: "PATCH",
+            json: { kind },
           })
         ).list,
       deleteList: (orgId, listId) => request<void>(`${org(orgId)}/portal/lists/${enc(listId)}`, { method: "DELETE" }),
