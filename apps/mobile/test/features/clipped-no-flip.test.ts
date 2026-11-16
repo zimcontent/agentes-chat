@@ -123,7 +123,9 @@ describe("a live block with one long text never flips between cut and whole", ()
     const spec = src("features/blocks/SpecBlock.tsx");
     expect(spec).toContain("const capped = !screen && !open && (tall || height === 0);");
     expect(spec).toContain("<View style={capped ? (tall ? styles.cut : styles.unmeasured) : undefined}>");
-    expect(spec).toContain("const next = keptHeightAfter(height, Math.ceil(e.nativeEvent.layout.height), capped);");
+    expect(spec).toContain(
+      "const next = keptHeightAfter(height, Math.ceil(e.nativeEvent.layout.height), capped, INLINE_HEIGHT);",
+    );
     expect(spec).toContain('cut: { height: INLINE_HEIGHT, overflow: "hidden" },');
     expect(spec).toContain('unmeasured: { maxHeight: INLINE_HEIGHT + PAST_RULE, overflow: "hidden" },');
   });

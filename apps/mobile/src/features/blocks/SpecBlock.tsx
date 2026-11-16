@@ -129,9 +129,12 @@ export function SpecBlock({
   const [open, setOpen] = useState(keptOf(blockKey).open ?? false);
   // How tall its parts are whole, kept across the list's unmounts (`kept-sizes.ts`): a block coming back is cut from
   // its first frame. Never measured yet, it shows no taller than the card, a point past it (`PAST_RULE`): a tall one
-  // drew whole for a frame and then shrank, moving every row under it as the person scrolled.
+  // drew whole for a frame and then shrank, moving every row under it as the person scrolled. Its own for each version,
+  // width and text size: the height of the one before is not this one's (a shorter one stayed cut over blank space).
   const sizeKey = `spec:${blockKey}:${useLayoutKey()}`;
-  const [height, setHeight] = useState(() => keptSize(sizeKey) ?? 0);
+  const [sized, setSized] = useState(() => ({ key: sizeKey, height: keptSize(sizeKey) ?? 0 }));
+  if (sized.key !== sizeKey) setSized({ key: sizeKey, height: keptSize(sizeKey) ?? 0 });
+  const height = sized.height;
   const [said, setSaid] = useState<ReadonlySet<string>>(() => new Set(keptOf(blockKey).said));
 
   if (!compiled || !view) {
@@ -203,10 +206,11 @@ export function SpecBlock({
         <View
           style={styles.body}
           onLayout={(e: LayoutChangeEvent) => {
-            const next = keptHeightAfter(height, Math.ceil(e.nativeEvent.layout.height), capped);
+            // Under the cut a clamped text fills its room, so a reading below the cut is the parts' whole height.
+            const next = keptHeightAfter(height, Math.ceil(e.nativeEvent.layout.height), capped, INLINE_HEIGHT);
             if (next === null) return;
             keepSize(sizeKey, next);
-            setHeight(next);
+            setSized((now) => (now.key === sizeKey ? { key: sizeKey, height: next } : now));
           }}
         >
           <Copy.Provider value={{ accent: botColor, say, said, busy: reply.isPending }}>

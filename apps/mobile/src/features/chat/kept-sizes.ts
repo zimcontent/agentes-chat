@@ -80,9 +80,13 @@ export const PAST_RULE = 1;
  * whole, since the fold changes the room around it (a text reads no taller than its room): a message near the rule
  * measured just under it folded and just over it whole, and flipped between the two on every layout. Folded, a measure
  * only ever raises the height; unfolded, it is the part's whole height.
+ *
+ * `cap`: the height of the fold, when it is fixed (a live block's cut). A text it clamps reads its whole room, so the
+ * part then reads at least the cap; a measure under it was clamped by nothing and is the part's whole height, lower
+ * too (details closed, parts hidden by a switch). Never accepted, the block stayed a cut box over blank space.
  */
-export function keptHeightAfter(kept: number, measured: number, folded: boolean): number | null {
+export function keptHeightAfter(kept: number, measured: number, folded: boolean, cap = 0): number | null {
   if (!Number.isFinite(measured) || measured === kept) return null;
-  if (folded && measured < kept) return null;
+  if (folded && measured < kept && measured >= cap) return null;
   return measured;
 }

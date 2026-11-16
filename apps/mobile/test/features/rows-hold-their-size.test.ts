@@ -92,9 +92,9 @@ describe("rows that measure themselves come back at their size", () => {
 
   test("a block is cut from its first frame when it comes back, and no taller than its card before its first measure", () => {
     const spec = src("features/blocks/SpecBlock.tsx");
-    expect(spec).toContain("const [height, setHeight] = useState(() => keptSize(sizeKey) ?? 0);");
+    expect(spec).toContain("const [sized, setSized] = useState(() => ({ key: sizeKey, height: keptSize(sizeKey) ?? 0 }));");
     expect(spec).toContain('unmeasured: { maxHeight: INLINE_HEIGHT + PAST_RULE, overflow: "hidden" },');
-    expect(spec).toMatch(/keepSize\(sizeKey, next\);\s*setHeight\(next\);/);
+    expect(spec).toMatch(/keepSize\(sizeKey, next\);\s*setSized\(/);
   });
 
   test("pictures and GIFs take the room kept for their side, sent and still sending alike", () => {
