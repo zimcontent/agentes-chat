@@ -145,7 +145,9 @@ function MediaForm({ models, balance }: { models: MediaModel[]; balance: number 
   // A choice the new model doesn't have falls back to its own default.
   const q = model && quality && model.qualities.includes(quality) ? quality : model?.defaultQuality;
   const aspects = mediaAspects(model, q);
-  const a = aspect && aspects.includes(aspect) ? aspect : aspects[0];
+  // The Zim Studio's default: 16:9 for a video, square for an image, when the model offers it.
+  const preferred = kind === "video" ? "16:9" : "1:1";
+  const a = aspect && aspects.includes(aspect) ? aspect : aspects.includes(preferred) ? preferred : aspects[0];
   const durations = useMemo(() => {
     const d = model?.durations;
     if (!d) return [];
