@@ -6,6 +6,7 @@ import {
   CHAT_STYLES,
   CHAT_TEXT_SIZES,
   CHAT_TONES,
+  HOME_SECTIONS,
   ONBOARDING_STEPS,
   STANDING_STATES,
   START_PAGES,
@@ -123,6 +124,11 @@ export const ChatPrefs = z
       .enum(CHAT_TEXT_SIZES)
       .optional()
       .openapi({ description: "Tamanho do texto of the messages, smallest first; absent: `md`." }),
+    homeHidden: z
+      .array(z.enum(HOME_SECTIONS))
+      .max(HOME_SECTIONS.length)
+      .optional()
+      .openapi({ description: "Início's sections this person hid; absent: every one shows." }),
     feedbackAuto: z.boolean().optional().openapi({
       description:
         "Always send: a report an agent offers about the app goes with its reply, without asking; absent: it asks.",
