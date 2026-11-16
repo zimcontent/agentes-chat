@@ -857,6 +857,9 @@ function Chat({
   }, [rows, dividerKey]);
   const toEnd = useCallback(() => {
     letGo();
+    // Going to the end (a send, the round button) leaves nothing waiting to be read from the top: the room may have
+    // shrunk since (the dock grew), and a reply that fit would be taken for a tall one as my message lands.
+    toReadRef.current = null;
     setReadHold(false);
     setAtEnd(true);
     requestAnimationFrame(() => void listRef.current?.scrollToEnd({ animated: true }));
@@ -2453,6 +2456,14 @@ function Chat({
     if (!state) return;
     return state.listen("totalSize", checkReading);
   }, [showList, checkReading]);
+  // A reply is judged against the room it landed in. One that fit with the keyboard down is never judged again over
+  // the keyboard: a row changing size while the person types pulled the conversation up to that old reply's first line.
+  useEffect(() => {
+    const shown = KeyboardEvents.addListener("keyboardWillShow", () => {
+      toReadRef.current = null;
+    });
+    return () => shown.remove();
+  }, []);
   // Rows growing or shrinking (a reply streaming, a card opening) move the waiting requests' cards and the live rows.
   useEffect(() => {
     if (!showList) return;
