@@ -4851,6 +4851,8 @@
       "answer": "Jawab",
       "open": "Buka"
     },
+    "markRead": "Tandai sudah dibaca",
+    "setAside": "Ditandai sudah dibaca",
     "calm": {
       "title": "Semua beres",
       "text": "Agenmu akan memberi tahu di sini saat mereka membutuhkanmu."

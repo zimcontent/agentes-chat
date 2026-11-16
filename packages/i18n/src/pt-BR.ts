@@ -5264,6 +5264,9 @@ export const ptBR = {
     mission: "<b>{{name}}</b> espera você numa missão",
     seeAll: "Ver tudo",
     action: { review: "Revisar", answer: "Responder", open: "Abrir" },
+    /** A row of "Waiting on you"'s right click: it leaves the tile and the inbox (into Done). */
+    markRead: "Marcar como lido",
+    setAside: "Marcado como lido",
     calm: { title: "Tudo em dia", text: "Seus agentes avisam aqui quando precisarem de você." },
     /** One line back to the right hand's first-run checklist while a row is left (ADR 0155 §6). */
     firstRun: "Continue de onde parou · {{done}} de {{total}}",

@@ -12255,6 +12255,12 @@
   "home.action.open": {
     "value": "Open"
   },
+  "home.markRead": {
+    "value": "Mark as read"
+  },
+  "home.setAside": {
+    "value": "Marked as read"
+  },
   "home.calm.title": {
     "value": "All caught up"
   },

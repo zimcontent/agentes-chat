@@ -103,15 +103,17 @@ export const useSaveDesign = (orgId: string, reviewId: string) =>
 
 const taskVideoKey = (orgId: string, issueId: string) => ["org", orgId, "issues", issueId, "video-delivery"] as const;
 
-/** The review sent from this task, if any; read again now and then so a decision shows up by itself. */
+/** The reviews sent from this task, one per video; read again now and then so a decision shows up by itself. */
 export function useTaskVideo(orgId: string, issueId: string) {
   const api = useApi();
   return useQuery({
     queryKey: taskVideoKey(orgId, issueId),
     queryFn: async () => {
       const read = reviewsOf(api).taskVideo;
-      if (!read) return { reviewId: null };
-      return read(orgId, issueId);
+      if (!read) return { reviewId: null, reviewIds: [] as string[] };
+      const got = await read(orgId, issueId);
+      // A server from before several videos per task answers one.
+      return { ...got, reviewIds: got.reviewIds ?? (got.reviewId ? [got.reviewId] : []) };
     },
     enabled: Boolean(orgId) && Boolean(issueId) && Boolean(api.videoReviews?.taskVideo),
     refetchInterval: 30_000,
@@ -123,7 +125,7 @@ export function useSendTaskVideo(orgId: string, issueId: string) {
   const api = useApi();
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (input: { artifactId: string; note?: string }) => {
+    mutationFn: (input: { artifactId: string; note?: string; reviewId?: string }) => {
       const send = reviewsOf(api).sendTaskVideo;
       if (!send) throw new Error("This server has no editor delivery");
       return send(orgId, issueId, input);

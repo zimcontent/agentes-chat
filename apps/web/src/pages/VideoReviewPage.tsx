@@ -113,6 +113,43 @@ export function VideoReviewsPage() {
     [reviews.data, filter, medium, mixed, tabs, who, me.user.id],
   );
   const open = (reviews.data ?? []).filter((r) => r.status === "in_review").length;
+  // A task that asked for several videos (doug-0012 §13) shows them together, under the task, in their order.
+  const groups = useMemo(() => tasksTogether(list), [list]);
+  const row = (r: VideoReviewSummary, inTask: boolean) => (
+    <Link to="/org/$orgId/review/$reviewId" params={{ orgId: org.id, reviewId: r.id }} className="vr-row">
+      {r.medium === "design" && r.cover ? (
+        <img className="vr-row__cover" src={api.artifacts.fileUrl(org.id, r.cover)} alt="" loading="lazy" />
+      ) : r.agent ? (
+        <AgentAvatar agentId={r.agent.id} size="sm" name={r.agent.name} />
+      ) : r.sender ? (
+        <PersonAvatar id={r.sender.id} size="sm" name={r.sender.name} />
+      ) : (
+        <Icon name={r.medium === "design" ? "image" : "video"} />
+      )}
+      <span className="vr-row__words">
+        <span className="vr-row__title">{inTask && r.taskPart ? w.editor.part(r.taskPart) : r.title}</span>
+        <span className="vr-row__meta">
+          {[
+            inTask ? "" : r.client,
+            w.version(r.version),
+            inTask ? "" : r.agent ? w.by(r.agent.name) : r.sender ? w.editor.sentBy(r.sender.name) : "",
+            r.openNotes > 0 ? w.notesOpen(r.openNotes) : "",
+            roundLine(r.round, w.editor, when),
+            relativeTime(t, i18n.language, r.updatedAt),
+          ]
+            .filter(Boolean)
+            .join(" · ")}
+        </span>
+      </span>
+      {r.sender?.id === me.user.id && r.status === "changes" ? (
+        <Chip tone="waiting" icon="edit">
+          {w.editor.toDo}
+        </Chip>
+      ) : (
+        <StatusChip status={r.status} w={w} />
+      )}
+    </Link>
+  );
 
   return (
     <div className="page page--full vr-page">
@@ -173,46 +210,119 @@ export function VideoReviewsPage() {
       )}
       {list.length > 0 && (
         <ul className="vr-list">
-          {list.map((r) => (
-            <li key={r.id}>
-              <Link to="/org/$orgId/review/$reviewId" params={{ orgId: org.id, reviewId: r.id }} className="vr-row">
-                {r.medium === "design" && r.cover ? (
-                  <img className="vr-row__cover" src={api.artifacts.fileUrl(org.id, r.cover)} alt="" loading="lazy" />
-                ) : r.agent ? (
-                  <AgentAvatar agentId={r.agent.id} size="sm" name={r.agent.name} />
-                ) : r.sender ? (
-                  <PersonAvatar id={r.sender.id} size="sm" name={r.sender.name} />
-                ) : (
-                  <Icon name={r.medium === "design" ? "image" : "video"} />
-                )}
-                <span className="vr-row__words">
-                  <span className="vr-row__title">{r.title}</span>
-                  <span className="vr-row__meta">
-                    {[
-                      r.client,
-                      w.version(r.version),
-                      r.agent ? w.by(r.agent.name) : r.sender ? w.editor.sentBy(r.sender.name) : "",
-                      r.openNotes > 0 ? w.notesOpen(r.openNotes) : "",
-                      roundLine(r.round, w.editor, when),
-                      relativeTime(t, i18n.language, r.updatedAt),
-                    ]
-                      .filter(Boolean)
-                      .join(" · ")}
-                  </span>
-                </span>
-                {r.sender?.id === me.user.id && r.status === "changes" ? (
-                  <Chip tone="waiting" icon="edit">
-                    {w.editor.toDo}
-                  </Chip>
-                ) : (
-                  <StatusChip status={r.status} w={w} />
-                )}
-              </Link>
-            </li>
-          ))}
+          {groups.map((g) =>
+            g.rows.length === 1 && g.rows[0] ? (
+              <li key={g.rows[0].id}>{row(g.rows[0], false)}</li>
+            ) : (
+              <li key={g.key} className="vr-task">
+                <TaskHead rows={g.rows} all={reviews.data ?? []} />
+                <ul className="vr-list vr-task__videos">
+                  {g.rows.map((r) => (
+                    <li key={r.id}>{row(r, true)}</li>
+                  ))}
+                </ul>
+              </li>
+            ),
+          )}
         </ul>
       )}
     </div>
+  );
+}
+
+/**
+ * The list in groups: the videos of one task together (two or more of it in the list), where the first of them stands,
+ * in the task's order; anything else alone.
+ */
+function tasksTogether(list: VideoReviewSummary[]) {
+  const shown = new Map<string, number>();
+  for (const r of list) if (r.taskId) shown.set(r.taskId, (shown.get(r.taskId) ?? 0) + 1);
+  const groups: { key: string; rows: VideoReviewSummary[] }[] = [];
+  const at = new Map<string, { key: string; rows: VideoReviewSummary[] }>();
+  for (const r of list) {
+    if (r.taskId && (shown.get(r.taskId) ?? 0) > 1) {
+      const group = at.get(r.taskId);
+      if (group) group.rows.push(r);
+      else {
+        const made = { key: `task:${r.taskId}`, rows: [r] };
+        at.set(r.taskId, made);
+        groups.push(made);
+      }
+    } else groups.push({ key: r.id, rows: [r] });
+  }
+  for (const g of groups) g.rows.sort((a, b) => (a.taskPart ?? 1) - (b.taskPart ?? 1));
+  return groups;
+}
+
+/** A task's line over its videos: which task, whose, how many videos it has and how many are approved. */
+function TaskHead({ rows, all }: { rows: VideoReviewSummary[]; all: VideoReviewSummary[] }) {
+  const { org } = useOrg();
+  const w = useReviewWords();
+  const first = rows[0];
+  if (!first) return null;
+  const videos = all.filter((r) => r.taskId === first.taskId);
+  const approved = videos.filter((r) => r.status === "approved").length;
+  const title = first.taskTitle ?? first.title;
+  return (
+    <div className="vr-task__head">
+      <span className="vr-task__title">
+        {first.taskNumber ? (
+          <Link
+            to="/org/$orgId/issues/$number"
+            params={{ orgId: org.id, number: String(first.taskNumber) }}
+            className="ac-link"
+          >
+            {w.editor.taskGroup(first.taskNumber, title)}
+          </Link>
+        ) : (
+          title
+        )}
+      </span>
+      <span className="vr-row__meta">
+        {[
+          first.client,
+          first.sender ? w.editor.sentBy(first.sender.name) : "",
+          w.editor.videos(videos.length),
+          w.editor.partsApproved(approved, videos.length),
+        ]
+          .filter(Boolean)
+          .join(" · ")}
+      </span>
+    </div>
+  );
+}
+
+/** On a video of a task with several: the task's other videos, one click away, each with where it stands. */
+function TaskParts({ review }: { review: VideoReview }) {
+  const { org } = useOrg();
+  const w = useReviewWords();
+  const reviews = useVideoReviews(org.id);
+  const parts = (reviews.data ?? [])
+    .filter((r) => review.taskId && r.taskId === review.taskId)
+    .sort((a, b) => (a.taskPart ?? 1) - (b.taskPart ?? 1));
+  if (parts.length < 2) return null;
+  return (
+    <nav className="vr-parts" aria-label={w.editor.videosOfTask}>
+      <span className="small muted">{w.editor.videosOfTask}</span>
+      {parts.map((r) => (
+        <Link
+          key={r.id}
+          to="/org/$orgId/review/$reviewId"
+          params={{ orgId: org.id, reviewId: r.id }}
+          className="vr-parts__one"
+          data-status={r.status}
+          aria-current={r.id === review.id ? "page" : undefined}
+          title={`${w.editor.part(r.taskPart ?? 1)} · ${w.status[r.status]}`}
+        >
+          {r.status === "approved" ? (
+            <Icon name="check" size={14} />
+          ) : r.status === "changes" ? (
+            <Icon name="edit" size={14} />
+          ) : null}
+          {r.taskPart ?? 1}
+        </Link>
+      ))}
+    </nav>
   );
 }
 
@@ -1272,6 +1382,7 @@ export function VideoReviewDetailPage({ reviewId }: { reviewId: string }) {
               .filter(Boolean)
               .join(" · ")}
           />
+          <TaskParts review={review.data} />
           {review.data.medium === "design" ? (
             <DesignReviewBody review={review.data} w={w} />
           ) : (

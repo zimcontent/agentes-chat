@@ -169,6 +169,10 @@ export interface VideoReviewSummary {
   sender: { id: string; name: string } | null;
   /** The task it delivers, when sent from one. */
   taskId: string | null;
+  /** That task's number and title, and this video's number among its videos (doug-0012 §13). */
+  taskNumber: number | null;
+  taskTitle: string | null;
+  taskPart: number | null;
   /** A person's review: the newest round of changes asked of them, with when they saw and answered it. */
   round: ReviewRoundView | null;
   channelId: string;
@@ -205,6 +209,21 @@ export const reviewPath = (orgId: string, reviewId: string) => `/org/${orgId}/re
 export function portalStageOfTask(source: unknown): string | null {
   const s = (source ?? {}) as { type?: string; synced?: { card?: { stage?: unknown } } };
   return s.type === "portal" && typeof s.synced?.card?.stage === "string" ? s.synced.card.stage : null;
+}
+
+/**
+ * Where a person's video stands with the client: its own post's column, kept by the portal's tick
+ * (`syncEditorStages`); until the first read, the task's card's, when that card is this video's (a task may have
+ * several videos, each its own post: doug-0012 §13).
+ */
+export function clientStageOf(
+  review: { delivery: Record<string, unknown> | null; portalCard: string | null },
+  taskSource: unknown,
+): string | null {
+  const stage = review.delivery?.stage;
+  if (typeof stage === "string") return stage;
+  const card = (taskSource as { cardId?: unknown } | null)?.cardId;
+  return review.portalCard && review.portalCard === card ? portalStageOfTask(taskSource) : null;
 }
 
 /** `83.4 s` → `1:23`; a note about the whole video has no time. */
@@ -630,10 +649,13 @@ async function summaries(db: Database, orgId: string, ids?: string[]): Promise<V
       agentName: agents.name,
       agentHandle: agents.handle,
       senderName: users.name,
+      taskNumber: schema.issues.number,
+      taskTitle: schema.issues.title,
     })
     .from(videoReviews)
     .leftJoin(agents, eq(agents.id, videoReviews.agentId))
     .leftJoin(users, eq(users.id, videoReviews.senderUserId))
+    .leftJoin(schema.issues, eq(schema.issues.id, videoReviews.taskId))
     .where(and(eq(videoReviews.orgId, orgId), ids ? inArray(videoReviews.id, ids) : undefined))
     .orderBy(desc(videoReviews.updatedAt))
     .limit(ids ? ids.length : 200);
@@ -660,7 +682,7 @@ async function summaries(db: Database, orgId: string, ids?: string[]): Promise<V
     db,
     rows.filter((r) => r.review.senderUserId).map((r) => r.review.id),
   );
-  return rows.map(({ review, agentName, agentHandle, senderName }) => ({
+  return rows.map(({ review, agentName, agentHandle, senderName, taskNumber, taskTitle }) => ({
     id: review.id,
     medium: review.medium === "design" ? "design" : "video",
     title: review.title,
@@ -672,6 +694,9 @@ async function summaries(db: Database, orgId: string, ids?: string[]): Promise<V
     agent: review.agentId && agentName ? { id: review.agentId, name: agentName, handle: agentHandle ?? "" } : null,
     sender: review.senderUserId ? { id: review.senderUserId, name: senderName ?? "" } : null,
     taskId: review.taskId,
+    taskNumber: review.taskId ? (taskNumber ?? null) : null,
+    taskTitle: review.taskId ? (taskTitle ?? null) : null,
+    taskPart: review.taskId ? (review.taskPart ?? 1) : null,
     round: rounds.get(review.id) ?? null,
     channelId: review.channelId,
     threadId: review.threadId,
@@ -790,7 +815,7 @@ export async function getVideoReview(
           id: task.id,
           number: task.number,
           title: task.title,
-          stage: portalStageOfTask(task.source),
+          stage: clientStageOf(review, task.source),
         }
       : null,
     rounds: review.senderUserId ? await roundsOf(deps.db, review.id) : [],

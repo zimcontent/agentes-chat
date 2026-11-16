@@ -148,3 +148,65 @@
 .tvd-error {
   color: var(--danger);
 }
+
+/* Several videos in one task (doug-0012 §13): a row each, opening to its own steps. */
+.tvd-videos {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tvd-video {
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+}
+
+.tvd-video__head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-3);
+  align-items: center;
+  min-height: 44px;
+  padding: var(--space-2) var(--space-3);
+  border-radius: inherit;
+  cursor: pointer;
+  list-style: none;
+}
+
+.tvd-video__head::-webkit-details-marker {
+  display: none;
+}
+
+.tvd-video__head:hover {
+  background: var(--side-hover);
+}
+
+.tvd-video__head:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.tvd-video__arrow {
+  flex: none;
+  color: var(--muted);
+  transition: transform 0.15s ease;
+}
+
+.tvd-video[open] .tvd-video__arrow {
+  transform: rotate(90deg);
+}
+
+.tvd-video__name {
+  font-weight: 600;
+}
+
+.tvd-video__body {
+  padding: var(--space-2) var(--space-3) var(--space-4);
+}
+
+.tvd-new--more {
+  margin-top: var(--space-3);
+}

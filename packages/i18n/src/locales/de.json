@@ -5009,6 +5009,8 @@
       "answer": "Antworten",
       "open": "Öffnen"
     },
+    "markRead": "Als gelesen markieren",
+    "setAside": "Als gelesen markiert",
     "calm": {
       "title": "Alles erledigt",
       "text": "Deine Agenten sagen dir hier Bescheid, wenn sie dich brauchen."

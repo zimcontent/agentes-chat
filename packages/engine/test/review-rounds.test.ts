@@ -168,7 +168,7 @@ describe("review rounds", () => {
     expect(log[0]?.answeredAt).toBeNull();
 
     const v2 = await w.upload("v2.mp4");
-    await submitEditorVideo(w.d, w.editor.id, f.org.id, w.task.id, { artifactId: v2.id });
+    await submitEditorVideo(w.d, w.editor.id, f.org.id, w.task.id, { artifactId: v2.id, reviewId: review.id });
     const after = await getVideoReview(w.d, f.owner.id, f.org.id, review.id);
     expect(after.rounds[0]).toMatchObject({ answeredVersion: 2 });
     expect(after.round?.answeredVersion).toBe(2);
@@ -251,7 +251,10 @@ describe("review rounds", () => {
     // The editor's next version goes straight to the client and answers the round.
     await w.stage("adjusting");
     const v2 = await w.upload("v2.mp4");
-    const back = await submitEditorVideo(w.d, w.editor.id, f.org.id, w.task.id, { artifactId: v2.id });
+    const back = await submitEditorVideo(w.d, w.editor.id, f.org.id, w.task.id, {
+      artifactId: v2.id,
+      reviewId: review.id,
+    });
     expect(back.toClient).toBe(true);
     expect((await getVideoReview(w.d, f.owner.id, f.org.id, review.id)).rounds.at(-1)?.answeredVersion).toBe(2);
   });

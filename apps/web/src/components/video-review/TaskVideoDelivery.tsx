@@ -21,7 +21,8 @@ import "./task-video.css";
 /*
  * A post's video delivered from its task (docs/adr/doug-0012-editor-delivery.md): the editor sends the file here, the
  * team reviews it in Review, then the cover and the caption are approved here and one button sends the post to the
- * client. Each step says what is next, in order, so nobody has to know the flow to follow it.
+ * client. Each step says what is next, in order, so nobody has to know the flow to follow it. A task may ask for
+ * several videos (§13): each file dropped on the task is a video of its own, listed here with its own steps.
  */
 
 const VIDEO = /\.(mp4|m4v|mov|webm|mkv)$/i;
@@ -82,14 +83,16 @@ function DropFile({
   label,
   hint,
   accept,
-  onFile,
+  onFiles,
   busy,
+  multiple,
 }: {
   label: string;
   hint?: string;
   accept: string;
-  onFile: (file: File) => void;
+  onFiles: (files: File[]) => void;
   busy?: boolean;
+  multiple?: boolean;
 }) {
   const input = useRef<HTMLInputElement>(null);
   const [over, setOver] = useState(false);
@@ -107,8 +110,8 @@ function DropFile({
       onDrop={(e) => {
         e.preventDefault();
         setOver(false);
-        const file = e.dataTransfer.files[0];
-        if (file) onFile(file);
+        const files = [...e.dataTransfer.files];
+        if (files.length) onFiles(multiple ? files : files.slice(0, 1));
       }}
     >
       <Icon name="upload" size={20} />
@@ -118,11 +121,12 @@ function DropFile({
         ref={input}
         type="file"
         accept={accept}
+        multiple={multiple}
         hidden
         onChange={(e) => {
-          const file = e.target.files?.[0];
+          const files = [...(e.target.files ?? [])];
           e.target.value = "";
-          if (file) onFile(file);
+          if (files.length) onFiles(files);
         }}
       />
     </button>
@@ -156,16 +160,179 @@ function Progress({ share, label, onCancel }: { share: number; label: string; on
 export function TaskVideoDelivery({ issue }: { issue: Issue }) {
   const { org } = useOrg();
   const task = useTaskVideo(org.id, issue.id);
-  const reviewId = task.data?.reviewId ?? "";
-  const review = useVideoReview(org.id, reviewId);
+  const ids = task.data?.reviewIds ?? [];
   const w = useReviewWords().editor;
   const isPost = issue.source.type === "portal";
-  if (!isPost && !reviewId) return null;
-  if (task.isPending || (reviewId && review.isPending)) return null;
+  if (task.isPending || (!isPost && ids.length === 0)) return null;
   return (
-    <DetailsSection title={w.title}>
-      <Steps issue={issue} review={reviewId ? (review.data ?? null) : null} isPost={isPost} />
+    <DetailsSection title={ids.length > 1 ? w.titleMany(ids.length) : w.title}>
+      {ids.length === 0 && <Steps issue={issue} review={null} isPost={isPost} />}
+      {ids.length === 1 && <OneVideo issue={issue} reviewId={ids[0] as string} isPost={isPost} />}
+      {ids.length > 1 && (
+        <ul className="tvd-videos">
+          {ids.map((id, i) => (
+            <li key={id}>
+              <OneVideo issue={issue} reviewId={id} isPost={isPost} part={i + 1} many={ids.length} />
+            </li>
+          ))}
+        </ul>
+      )}
+      {ids.length > 0 && <NewVideos issue={issue} more />}
     </DetailsSection>
+  );
+}
+
+/** Where one video stands, in a few words, for its row among the task's videos (its steps say the rest). */
+function standing(review: VideoReview, words: ReturnType<typeof useReviewWords>) {
+  const w = words.editor;
+  const final = review.final?.state;
+  if (final === "kept" || final === "backed_up")
+    return { tone: "done" as const, icon: "check" as const, text: w.finalShort };
+  const delivery = review.delivery ?? null;
+  if (delivery && delivery.state !== "failed") {
+    if (review.task?.stage === "adjusting")
+      return { tone: "waiting" as const, icon: "edit" as const, text: w.clientAskedShort };
+    return { tone: "done" as const, icon: "send" as const, text: w.withClient };
+  }
+  const v = `V${review.version}`;
+  if (review.status === "approved")
+    return { tone: "done" as const, icon: "check" as const, text: `${words.status.approved} · ${v}` };
+  if (review.status === "changes")
+    return { tone: "waiting" as const, icon: "edit" as const, text: `${words.status.changes} · ${v}` };
+  return { tone: "waiting" as const, icon: "eye" as const, text: `${words.status.in_review} · ${v}` };
+}
+
+/**
+ * One video of the task. Alone, its steps show as they are; among several, it is a row that opens to its steps,
+ * open at first while it waits on someone here (changes to make, or approved and not sent yet).
+ */
+function OneVideo({
+  issue,
+  reviewId,
+  isPost,
+  part,
+  many,
+}: {
+  issue: Issue;
+  reviewId: string;
+  isPost: boolean;
+  part?: number;
+  many?: number;
+}) {
+  const { org } = useOrg();
+  const words = useReviewWords();
+  const w = words.editor;
+  const review = useVideoReview(org.id, reviewId);
+  // Open or closed as the person left it; until they touch it, open while it waits on someone here.
+  const [opened, setOpened] = useState<boolean | null>(null);
+  if (review.isPending) return null;
+  const data = review.data ?? null;
+  if (!part || !data) return <Steps issue={issue} review={data} isPost={isPost} />;
+  const now = standing(data, words);
+  const waiting = data.status === "changes" || (data.status === "approved" && !data.delivery && !data.final && isPost);
+  return (
+    <details
+      className="tvd-video"
+      open={opened ?? ((many ?? 0) <= 2 || waiting)}
+      onToggle={(e) => setOpened(e.currentTarget.open)}
+    >
+      <summary className="tvd-video__head">
+        <Icon name="chevronRight" size={16} className="tvd-video__arrow" />
+        <span className="tvd-video__name">{w.part(data.taskPart ?? part)}</span>
+        <Chip tone={now.tone} icon={now.icon}>
+          {now.text}
+        </Chip>
+      </summary>
+      <div className="tvd-video__body">
+        <Steps issue={issue} review={data} isPost={isPost} />
+      </div>
+    </details>
+  );
+}
+
+/**
+ * New videos for the task: one file or many at once, sent one after another, each its own video with its own review.
+ * `more`: the task has videos already, so it is a smaller target under them.
+ */
+function NewVideos({ issue, more }: { issue: Issue; more?: boolean }) {
+  const { org } = useOrg();
+  const { t, i18n } = useTranslation();
+  const w = useReviewWords().editor;
+  const send = useSendTaskVideo(org.id, issue.id);
+  const files = useTaskUpload(issue.id);
+  const [at, setAt] = useState<{ i: number; n: number } | null>(null);
+  const [errors, setErrors] = useState<string[]>([]);
+  const stopped = useRef(false);
+
+  const pick = async (list: File[]) => {
+    const refused: string[] = [];
+    const ok = list.filter((file) => {
+      if (!VIDEO.test(file.name)) refused.push(w.refused(file.name, w.notVideo));
+      else if (file.size > MAX_BYTES) refused.push(w.refused(file.name, w.tooBig));
+      else return true;
+      return false;
+    });
+    setErrors(refused);
+    stopped.current = false;
+    for (const [i, file] of ok.entries()) {
+      if (stopped.current) break;
+      setAt({ i: i + 1, n: ok.length });
+      try {
+        const uploaded = await files.upload(file);
+        await send.mutateAsync({ artifactId: uploaded.id });
+      } catch (e) {
+        if ((e as { name?: string }).name === "AbortError") {
+          stopped.current = true;
+          break;
+        }
+        refused.push(w.refused(file.name, errorText(t, e, i18n.language)));
+        setErrors([...refused]);
+      }
+    }
+    setAt(null);
+  };
+
+  const busy = at !== null;
+  return (
+    <div className={cx("tvd-new", more && "tvd-new--more")}>
+      {busy ? (
+        files.progress !== null ? (
+          <Progress
+            share={files.progress}
+            label={
+              at.n > 1
+                ? w.uploadingOf(at.i, at.n, Math.round(files.progress * 100))
+                : w.uploading(Math.round(files.progress * 100))
+            }
+            onCancel={() => {
+              stopped.current = true;
+              files.cancel();
+            }}
+          />
+        ) : (
+          <span className="tvd-line small muted">
+            <Spinner size={14} /> {w.registering}
+          </span>
+        )
+      ) : more ? (
+        <div className="tvd-line">
+          <DropFile label={w.addMore} accept="video/*,.mov,.mkv" onFiles={(l) => void pick(l)} multiple />
+        </div>
+      ) : (
+        <DropFile
+          label={w.dropMany}
+          hint={w.dropManyHint}
+          accept="video/*,.mov,.mkv"
+          onFiles={(l) => void pick(l)}
+          multiple
+        />
+      )}
+      {errors.map((error) => (
+        <p key={error} className="small tvd-error">
+          {error}
+        </p>
+      ))}
+    </div>
   );
 }
 
@@ -231,7 +398,11 @@ function VideoStep({ issue, review }: { issue: Issue; review: VideoReview | null
     if (file.size > MAX_BYTES) return setError(w.tooBig);
     try {
       const uploaded = await files.upload(file);
-      await send.mutateAsync({ artifactId: uploaded.id, ...(note.trim() ? { note: note.trim() } : {}) });
+      await send.mutateAsync({
+        artifactId: uploaded.id,
+        ...(review ? { reviewId: review.id } : {}),
+        ...(note.trim() ? { note: note.trim() } : {}),
+      });
       setNote("");
     } catch (e) {
       if ((e as { name?: string }).name === "AbortError") return;
@@ -260,7 +431,14 @@ function VideoStep({ issue, review }: { issue: Issue; review: VideoReview | null
           maxLength={4000}
         />
       )}
-      {sender ?? <DropFile label={label} hint={w.dropHint} accept="video/*,.mov,.mkv" onFile={pick} />}
+      {sender ?? (
+        <DropFile
+          label={label}
+          hint={w.dropHint}
+          accept="video/*,.mov,.mkv"
+          onFiles={([file]) => file && void pick(file)}
+        />
+      )}
     </>
   );
   const open = review && (
@@ -271,7 +449,7 @@ function VideoStep({ issue, review }: { issue: Issue; review: VideoReview | null
 
   return (
     <div className="tvd-step__content">
-      {!review && drop(w.drop)}
+      {!review && <NewVideos issue={issue} />}
       {review?.status === "in_review" && (
         <div className="tvd-line">
           <Chip tone="waiting" icon="eye">
@@ -341,7 +519,12 @@ function CoverStep({ issue, review, locked }: { issue: Issue; review: VideoRevie
       )}
       {files.progress === null && !chosen && (
         <div className="tvd-line">
-          <DropFile label={w.coverChoose} accept="image/jpeg,image/png,image/webp" onFile={pick} busy={set.isPending} />
+          <DropFile
+            label={w.coverChoose}
+            accept="image/jpeg,image/png,image/webp"
+            onFiles={([file]) => file && pick(file)}
+            busy={set.isPending}
+          />
           <Button
             size="sm"
             variant="ghost"

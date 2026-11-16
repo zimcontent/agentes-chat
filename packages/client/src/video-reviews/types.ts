@@ -20,6 +20,10 @@ export interface VideoReviewSummary {
   sender?: { id: string; name: string } | null;
   /** The task it delivers, when sent from one. */
   taskId?: string | null;
+  /** That task's number and title, and this video's number among its videos (a task may ask for several). */
+  taskNumber?: number | null;
+  taskTitle?: string | null;
+  taskPart?: number | null;
   /** A person's review: the newest round of changes asked of them (doug-0012 §10). */
   round?: ReviewRound | null;
   channelId: string;

@@ -393,6 +393,7 @@ const PLAIN_LINE = new Set([
   // (`reviewWords`), and the rest refuse an agent's tool call, whose message the agent reads.
   "editor_delivery.bad_cover",
   "editor_delivery.bad_file",
+  "editor_delivery.bad_review",
   "editor_delivery.no_caption",
   "editor_delivery.no_cover",
   "editor_delivery.no_portal",

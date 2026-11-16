@@ -322,6 +322,8 @@ export const EXTRA_COLUMNS = [
   // Rounds of changes asked of a person, their log, the client's own notes and where each person is told
   // (docs/adr/doug-0012-editor-delivery.md §10–§12).
   `ALTER TABLE "video_reviews" ADD COLUMN IF NOT EXISTS "portal_versions" jsonb NOT NULL DEFAULT '{}'::jsonb`,
+  // Several videos in one task (doug-0012 §13): each its own review, numbered in the task.
+  `ALTER TABLE "video_reviews" ADD COLUMN IF NOT EXISTS "task_part" integer`,
   `ALTER TABLE "video_review_notes" ADD COLUMN IF NOT EXISTS "author_name" text`,
   `ALTER TABLE "video_review_notes" ADD COLUMN IF NOT EXISTS "external_id" text`,
   `ALTER TABLE "video_review_notes" ADD COLUMN IF NOT EXISTS "from_client" boolean NOT NULL DEFAULT false`,
