@@ -17,6 +17,7 @@ import {
   useToggleReaction,
   useWaiting,
 } from "@agenteschat/client";
+import { actionCardOf, costlyProposalOf, stretchCardOf } from "@agenteschat/client/lib/action-cards";
 import { foldTalk, TALK_LINE_CHARS, talksToAgent } from "@agenteschat/client/lib/agent-talk";
 import { APP_BRANDS } from "@agenteschat/client/lib/apps";
 import { channelRefsOf } from "@agenteschat/client/lib/channel-refs";
@@ -28,25 +29,30 @@ import {
   CONTINUE_ERRORS,
   errorCode,
   errorText,
+  filesTextOnlyOf,
   runErrorText,
   sendFailureText,
   sendNeedsEdit,
 } from "@agenteschat/client/lib/errors";
 import { mentionsReader } from "@agenteschat/client/lib/everyone";
+import { feedbackOfferOf } from "@agenteschat/client/lib/feedback-offer";
 import { agentGrammar } from "@agenteschat/client/lib/grammar";
 import { issueWorkOf } from "@agenteschat/client/lib/issues";
 import { workAnchorBody, workContinuable, workIsOver } from "@agenteschat/client/lib/long-work";
-import { brainUnavailableOf } from "@agenteschat/client/lib/machine-outages";
+import { brainUnavailableOf, messageToolOff } from "@agenteschat/client/lib/machine-outages";
 import { isMediaAfterReply, messageMediaOf } from "@agenteschat/client/lib/media";
 import { memberRoleColor } from "@agenteschat/client/lib/member-groups";
 import { serverBody } from "@agenteschat/client/lib/message-body";
 import { missionSetupOf } from "@agenteschat/client/lib/missions";
+import { noAiCardOf } from "@agenteschat/client/lib/no-ai";
 import { isTalkerReply, routineReportText, talkerWaited } from "@agenteschat/client/lib/notices";
 import { can } from "@agenteschat/client/lib/permissions";
 import { modelStandInText } from "@agenteschat/client/lib/plan-usage";
 import { reachHandoffs } from "@agenteschat/client/lib/reach";
 import { replyOf } from "@agenteschat/client/lib/reply";
 import { isReminderMessage, reminderBody, routineReplyOf } from "@agenteschat/client/lib/routines";
+import { replyChipsOf } from "@agenteschat/client/lib/team-plan";
+import { usagePauseCardOf, usageWaitOf } from "@agenteschat/client/lib/usage-pause";
 import { appVia } from "@agenteschat/client/lib/via";
 import { listedText, voiceOf } from "@agenteschat/client/lib/voice";
 import { type ReplyStop, showsActivity, splitCanceled } from "@agenteschat/client/lib/work";
@@ -377,11 +383,10 @@ export const MessageRow = memo(function MessageRow({
   const link = missionLinkOf(meta);
   const files = artifactsOf(meta);
   const aboveReactions = useReactions(orgId, above?.id ?? "", false).data;
-  const ownReactions = useReactions(orgId, m.id, false).data;
   const run = runAround(
     runAt,
     above ? hangsUnder(above, aboveThread, aboveReactions, meId) : false,
-    hangsUnder(m, Boolean(thread), ownReactions, meId),
+    hangsUnder(m, Boolean(thread), cachedReactions.data, meId),
   );
   const question = isAgent ? questionOf(meta) : null;
   // An agent asks a person for a secret for its computer (ADR 0027).
@@ -391,6 +396,9 @@ export const MessageRow = memo(function MessageRow({
   const handoff = isAgent ? browserHandoffOf(meta) : null;
   // A card in a row of its own under the same author's words stands as far off them as in the same row.
   const cardRow = !body && !media && Boolean(meta?.actionCard || approvalId || question || secret || handoff);
+  // Settings it proposes, or a workspace action it asks for: their card (`SettingsProposals`).
+  const actionKind = actionCardOf(meta)?.kind;
+  const settingsCard = actionKind === "settings_proposal" || actionKind === "workspace_action";
   const rowGap = !grouped || newTurn ? rhythm.turn : cardRow ? rhythm.card : rhythm.part;
   const cardTop = body || media ? rhythm.card - rhythm.part : 0;
   // Where it browsed, or what it did on its desktop, after the run (as on the web): the steps' card.
@@ -881,7 +889,7 @@ export const MessageRow = memo(function MessageRow({
             {isAgent ? <HandedTaskChips message={m} /> : null}
             {isAgent ? <TeamChecks message={m} /> : null}
             {isAgent ? <ReachLines message={m} /> : null}
-            {isAgent ? <FeedbackOfferRow message={m} /> : null}
+            {isAgent && feedbackOfferOf(meta) ? <FeedbackOfferRow message={m} /> : null}
             {isAgent && m.longWork ? <MessageWorkLine message={m} threaded={Boolean(thread)} /> : null}
             {files.length > 0 ? <MessageFiles files={files} /> : null}
             {trails && m.author.id && trails.browser.length > 0 ? (
@@ -922,20 +930,22 @@ export const MessageRow = memo(function MessageRow({
                 skipScreens={onCards}
               />
             ) : null}
-            {/* What waits for a person's click comes last, after the words and the tools. */}
-            {isAgent ? <NoAiCard message={m} /> : null}
-            {isAgent ? <StretchCard message={m} /> : null}
-            {isAgent ? <CostlyProposalCard message={m} /> : null}
-            {isAgent ? <UsagePauseCard message={m} /> : null}
-            {isAgent ? <UsageWaitCancel message={m} /> : null}
-            {isAgent ? <WaitToolOffAction message={m} /> : null}
+            {/* What waits for a person's click comes last, after the words and the tools. Each card with work of its
+                own before it knows it has nothing to show (queries, the directory, a clock) is drawn only on a
+                message that carries it: under every agent's message, a scroll paid for all of them on each row. */}
+            {isAgent && noAiCardOf(meta) ? <NoAiCard message={m} /> : null}
+            {isAgent && stretchCardOf(meta) ? <StretchCard message={m} /> : null}
+            {isAgent && costlyProposalOf(meta) ? <CostlyProposalCard message={m} /> : null}
+            {isAgent && usagePauseCardOf(meta) ? <UsagePauseCard message={m} /> : null}
+            {isAgent && usageWaitOf(meta) ? <UsageWaitCancel message={m} /> : null}
+            {isAgent && messageToolOff(meta) ? <WaitToolOffAction message={m} /> : null}
             {isAgent ? <ProposalCard message={m} /> : null}
             {isAgent ? <TeamCard message={m} /> : null}
-            {isAgent ? <ReplyChips message={m} /> : null}
+            {isAgent && replyChipsOf(meta) ? <ReplyChips message={m} /> : null}
             {isAgent ? <OfferCard message={m} /> : null}
-            {isAgent ? <FilesTextOnlyFix message={m} /> : null}
+            {isAgent && filesTextOnlyOf(meta) ? <FilesTextOnlyFix message={m} /> : null}
             {isAgent ? <InstructionProposals message={m} /> : null}
-            {isAgent ? <SettingsProposals message={m} /> : null}
+            {isAgent && settingsCard ? <SettingsProposals message={m} /> : null}
             {isAgent ? <TeamWeek message={m} /> : null}
             {approvalId ? <ApprovalInline approvalId={approvalId} messageId={m.id} /> : null}
             {handoff ? <HandoffCard handoff={handoff} /> : null}
