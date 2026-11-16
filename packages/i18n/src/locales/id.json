@@ -1915,6 +1915,13 @@
       "homePersonal": "Harimu: apa yang menunggumu dan apa yang sedang dikerjakan agenmu"
     },
     "customizeSidebar": "Sesuaikan sidebar",
+    "launcher": {
+      "title": "Alat",
+      "production": "Produksi",
+      "work": "Percakapan dan tugas",
+      "team": "Agen dan tim",
+      "create": "Buat"
+    },
     "sidebarMenu": {
       "title": "Bilah samping",
       "newChannel": "Kanal baru",

@@ -2102,6 +2102,14 @@ export const en = {
       homePersonal: "Your day: what waits for you and what your agents are doing",
     },
     customizeSidebar: "Customize sidebar",
+    /** The grid of every tool, beside Go to… (DougBot's sidebar): its groups and the things it creates. */
+    launcher: {
+      title: "Tools",
+      production: "Production",
+      work: "Conversations and tasks",
+      team: "Agents and team",
+      create: "Create",
+    },
     /** The sidebar's own menu (right click on its empty space), its headers' + and its rows' hover buttons. */
     sidebarMenu: {
       title: "Sidebar",

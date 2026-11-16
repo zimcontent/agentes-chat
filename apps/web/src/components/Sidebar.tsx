@@ -377,8 +377,8 @@ export function Sidebar() {
     ) : id === "issues" && taskMentions > 0 ? (
       <UnreadCount count={taskMentions} mentions />
     ) : null;
-  // The name is on the row: only the rail and Doug's dock of tools (icons in a glass bar), which hide it, say it on hover.
-  const railTip = (id: SidebarItem | "home") => (rail || !personal ? t(`shell.${id}`) : undefined);
+  // The name is on the row: only the rail, which hides it, says it on hover.
+  const railTip = (id: SidebarItem | "home") => (rail ? t(`shell.${id}`) : undefined);
   const toolRow = (id: SidebarItem) => (
     <Link
       key={id}
@@ -696,7 +696,8 @@ export function Sidebar() {
   // The agents' rows, under the Agentes header in a team's workspace and with none in a personal one (ADR 0159).
   const agentRows = (
     <>
-      {rightHand && (
+      {/* DougBot: the right hand heads the faces on top, so the list doesn't name it twice. */}
+      {rightHand && !hero.includes(rightHand) && (
         <RightHandRow
           agent={rightHand}
           unread={rightHandDm?.unread ?? 0}
@@ -719,6 +720,62 @@ export function Sidebar() {
   const reviews = useVideoReviews(orgId).data ?? [];
   const reviewsWaiting = reviews.filter((r) => r.status === "in_review").length;
   const reviewWords = useReviewWords();
+  const reviewRow = reviews.length > 0 && !hiddenTools.includes("review") && (
+    <Link to="/org/$orgId/review" params={{ orgId }} className="sidebar__item" title={reviewWords.title}>
+      <Icon name="video" />
+      <span className="sidebar__item-label">{reviewWords.title}</span>
+      {reviewsWaiting > 0 && <CountBadge>{reviewsWaiting}</CountBadge>}
+    </Link>
+  );
+  // DougBot's team sidebar (the owner's choice of 2026-11-15): the tools as named rows under Go to…, the ones the
+  // team opens all day (Início, Portal, Revisão, Tarefas, Configurações); everything else in the grid beside Go to….
+  // Revisão comes right after Portal (what clients approve, then what the team reviews), the rest in the person's order.
+  const toolRows = (
+    <div className="sidebar__group sidebar__tools sidebar__nav">
+      <Link to="/org/$orgId/home" params={{ orgId }} className="sidebar__item">
+        <Icon name="home" />
+        <span className="sidebar__item-label">{t("shell.home")}</span>
+      </Link>
+      <ToolList items={listed} row={toolRow} after={reviewRow ? { id: "portal", node: reviewRow } : undefined} />
+      {/* A tool opened from the grid shows as a row while its page is open, so the sidebar always marks where I am.
+          Proposals are a tab of Esperando você: its row lights up for them. */}
+      <div className="sidebar__more-active">{inMore.filter((id) => id !== "proposals").map(toolRow)}</div>
+      <Link to="/org/$orgId/settings" params={{ orgId }} className="sidebar__item sidebar__nav-settings">
+        <Icon name="settings" />
+        <span className="sidebar__item-label">{t("shell.settings")}</span>
+      </Link>
+    </div>
+  );
+  const launcherTools: LauncherTool[] = [
+    ...toolOrder.map((id) => ({
+      key: id,
+      to: SIDEBAR_TOOLS[id].to,
+      label: t(`shell.${id}`),
+      hint: t(`shell.moreWhat.${id}`),
+      icon: <Icon name={SIDEBAR_TOOLS[id].icon} />,
+      count: counts[id] ?? 0,
+    })),
+    ...(whatsappShown
+      ? [{ key: "whatsapp", to: "/org/$orgId/whatsapp", label: "WhatsApp", icon: <WhatsAppMark size={18} /> }]
+      : []),
+    ...(reviews.length > 0 && !hiddenTools.includes("review")
+      ? [
+          {
+            key: "review",
+            to: "/org/$orgId/review",
+            label: reviewWords.title,
+            icon: <Icon name="video" />,
+            count: reviewsWaiting,
+          },
+        ]
+      : []),
+  ];
+  const launcherCreate = [
+    ...newChannelItem,
+    ...createAgentItem,
+    item("new-message", t("shell.sidebarMenu.newMessage"), "plus", openPalette),
+    ...newGroupItem,
+  ];
   const dock = (
     <div className="sidebar__group sidebar__tools sidebar__dock">
       <Link to="/org/$orgId/home" params={{ orgId }} className="sidebar__item" title={railTip("home")}>
@@ -733,13 +790,7 @@ export function Sidebar() {
           <span className="sidebar__item-label">WhatsApp</span>
         </Link>
       )}
-      {reviews.length > 0 && !hiddenTools.includes("review") && (
-        <Link to="/org/$orgId/review" params={{ orgId }} className="sidebar__item" title={reviewWords.title}>
-          <Icon name="video" />
-          <span className="sidebar__item-label">{reviewWords.title}</span>
-          {reviewsWaiting > 0 && <CountBadge>{reviewsWaiting}</CountBadge>}
-        </Link>
-      )}
+      {reviewRow}
       <MoreTools items={inMore} row={toolRow} countOf={countOf} onCustomize={() => setCustomizing(true)} />
       <Link
         to="/org/$orgId/settings"
@@ -1066,7 +1117,11 @@ export function Sidebar() {
             // and Go to… below have the whole width.
             <div className="sidebar__brand-row">
               <Logo className="sidebar__assina" size={18} />
-              <span className="sidebar__brand-acts">{bell}</span>
+              <span className="sidebar__brand-acts">
+                <AgoraButton below={compact} className="sidebar__agora" />
+                {bell}
+                <Button {...collapseProps} className="sidebar__collapse" />
+              </span>
             </div>
           ))}
         {personal ? (
@@ -1110,10 +1165,10 @@ export function Sidebar() {
                   <Kbd>{modKey()}</Kbd>
                   <Kbd>K</Kbd>
                 </button>
-                <AgoraButton below={compact} className="sidebar__agora" />
-                <Button {...collapseProps} className="sidebar__collapse" />
+                <ToolLauncher tools={launcherTools} create={launcherCreate} onCustomize={() => setCustomizing(true)} />
               </div>
             )}
+            {!rail && toolRows}
             {hero.length > 0 && (
               <PinnedHero
                 agents={hero}
@@ -1177,8 +1232,6 @@ export function Sidebar() {
               {t("sidebarAgents.working", { count: working })}
             </span>
           )}
-          {/* DougBot: the tools stay at the foot whatever the list scrolls to. */}
-          {!rail && dock}
           {/* The full sidebar creates from the Agentes header's + (always shown on touch screens); the rail has no
               headers. */}
           {rail && createAgentItem.length > 0 && <CreateAgentTile onOpen={newAgent} />}
@@ -1972,6 +2025,132 @@ function MoreTools({
       {/* Proposals in More are a tab of Aprovações: its row lights up for them. */}
       <div className="sidebar__more-active">{items.filter((id) => id !== "proposals").map(row)}</div>
     </>
+  );
+}
+
+/** One tool in the grid beside Go to… (`ToolLauncher`). */
+type LauncherTool = { key: string; to: string; label: string; icon: ReactNode; hint?: string; count?: number };
+
+/** The grid's groups, by what each tool is for; a tool no group names goes to the second. */
+const LAUNCHER_GROUPS = [
+  // The calendar is the posts' plan as much as the meetings': it sits with what clients approve.
+  { id: "production", keys: ["portal", "review", "media", "drive", "calendar"] },
+  { id: "work", keys: ["waiting", "issues", "threads", "whatsapp", "proposals"] },
+  { id: "team", keys: ["routines", "taskManager", "team", "wiki", "dashboards"] },
+] as const;
+
+/**
+ * Every tool at once (DougBot's team sidebar): a grid of icons and names in three groups, each tool where its count
+ * shows, then what the person may create, then Personalizar. It opens beside the sidebar from the button at Go to…'s
+ * end; the rows under Go to… keep the ones the person uses all day.
+ */
+function ToolLauncher({
+  tools,
+  create,
+  onCustomize,
+}: {
+  tools: LauncherTool[];
+  create: MenuEntry[];
+  onCustomize: () => void;
+}) {
+  const { t } = useTranslation();
+  const { org } = useOrg();
+  const [open, setOpen] = useState(false);
+  const trigger = useRef<HTMLButtonElement>(null);
+  // In a phone's drawer there is no room beside it: the grid opens under Go to…, slid into the screen.
+  const compact = useMediaQuery(COMPACT_QUERY);
+  const named = new Set<string>(LAUNCHER_GROUPS.flatMap((g) => g.keys));
+  const groups = LAUNCHER_GROUPS.map((g, i) => ({
+    id: g.id,
+    items: [
+      ...g.keys.flatMap((key) => tools.filter((tool) => tool.key === key)),
+      ...(i === 1 ? tools.filter((tool) => !named.has(tool.key)) : []),
+    ],
+  })).filter((g) => g.items.length > 0);
+  const close = () => setOpen(false);
+  return (
+    <Popover
+      open={open}
+      onOpenChange={setOpen}
+      label={t("shell.launcher.title")}
+      side={compact ? "bottom" : "right"}
+      align={compact ? "end" : "start"}
+      // Past the sidebar's edge, not over its rows: the button sits 20 in from it, the panel 8 beyond.
+      sideOffset={compact ? 8 : 28}
+      className="sidebar__launcher"
+      trigger={
+        <Button
+          ref={trigger}
+          variant="ghost"
+          iconOnly
+          icon="grid"
+          className="sidebar__launch"
+          aria-label={t("shell.launcher.title")}
+          title={t("shell.launcher.title")}
+        />
+      }
+    >
+      {groups.map((g) => (
+        <section key={g.id} className="sidebar__launcher-group" aria-label={t(`shell.launcher.${g.id}`)}>
+          <h3 className="sidebar__launcher-head">{t(`shell.launcher.${g.id}`)}</h3>
+          <div className="sidebar__launcher-grid">
+            {g.items.map((tool) => (
+              <Link
+                key={tool.key}
+                to={tool.to}
+                params={{ orgId: org.id }}
+                className="sidebar__launcher-tile"
+                title={tool.hint}
+                onClick={close}
+              >
+                <span className="sidebar__launcher-icon" aria-hidden="true">
+                  {tool.icon}
+                  {(tool.count ?? 0) > 0 && <CountBadge>{badgeCount(tool.count ?? 0)}</CountBadge>}
+                </span>
+                <span className="sidebar__launcher-name">{tool.label}</span>
+              </Link>
+            ))}
+          </div>
+        </section>
+      ))}
+      {create.length > 0 && (
+        <section className="sidebar__launcher-group" aria-label={t("shell.launcher.create")}>
+          <h3 className="sidebar__launcher-head">{t("shell.launcher.create")}</h3>
+          <div className="sidebar__launcher-create">
+            {create.flatMap((entry) =>
+              entry.kind === "item"
+                ? [
+                    <button
+                      key={entry.id}
+                      type="button"
+                      className="sidebar__launcher-new"
+                      onClick={() => {
+                        close();
+                        entry.run();
+                      }}
+                    >
+                      <Icon name="plus" size={16} />
+                      <span>{entry.label}</span>
+                    </button>,
+                  ]
+                : [],
+            )}
+          </div>
+        </section>
+      )}
+      <button
+        type="button"
+        className="ac-link ac-link--muted small sidebar__launcher-customize"
+        onClick={() => {
+          close();
+          // Closing the dialog brings focus back to the grid's button, not to this line, gone with the panel.
+          trigger.current?.focus();
+          onCustomize();
+        }}
+      >
+        {t("shell.customizeSidebar")}
+      </button>
+    </Popover>
   );
 }
 

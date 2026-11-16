@@ -1915,6 +1915,13 @@
       "homePersonal": "あなたの一日：待っていることとエージェントが今していること"
     },
     "customizeSidebar": "サイドバーをカスタマイズ",
+    "launcher": {
+      "title": "ツール",
+      "production": "制作",
+      "work": "会話とタスク",
+      "team": "エージェントとチーム",
+      "create": "作成"
+    },
     "sidebarMenu": {
       "title": "サイドバー",
       "newChannel": "新しいチャンネル",

@@ -2009,6 +2009,13 @@ export const ptBR = {
       homePersonal: "O seu dia: o que espera você e o que os seus agentes estão fazendo",
     },
     customizeSidebar: "Personalizar a barra lateral",
+    launcher: {
+      title: "Ferramentas",
+      production: "Produção",
+      work: "Conversas e tarefas",
+      team: "Agentes e equipe",
+      create: "Criar",
+    },
     /** The sidebar's own menu (right click on its empty space), its headers' + and its rows' hover buttons. */
     sidebarMenu: {
       title: "Barra lateral",

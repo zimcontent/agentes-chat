@@ -596,14 +596,19 @@ describe("Agendar post", () => {
 
 describe("Portal in the sidebar", () => {
   const tools = () =>
-    // The tools in the list: not Configurações, and not More's copies of the ones it holds (shown only when open).
-    [...nav().querySelectorAll<HTMLElement>(".sidebar__tools a.sidebar__item:not(.sidebar__dock-settings)")]
+    // The tools in the list: not Configurações, and not the grid's copies of the ones it holds (shown only when open).
+    [
+      ...nav().querySelectorAll<HTMLElement>(
+        ".sidebar__tools a.sidebar__item:not(.sidebar__dock-settings, .sidebar__nav-settings)",
+      ),
+    ]
       .filter((a) => !a.closest(".sidebar__more-active"))
       .map((a) => a.querySelector(".sidebar__item-label") as HTMLElement)
       .map((l) => l.textContent);
+  // DougBot's grid of every tool, beside Go to….
   const openMore = async () => {
-    await click(within(nav()).getByRole("button", { name: "Mais" }));
-    return screen().getByRole("dialog", { name: "Mais" });
+    await click(within(nav()).getByRole("button", { name: "Ferramentas" }));
+    return screen().getByRole("dialog", { name: "Ferramentas" });
   };
   const quiet = (state: State) => {
     for (const a of state.approvals) a.status = "approved";
@@ -613,15 +618,15 @@ describe("Portal in the sidebar", () => {
 
   test("only where the server has a portal: listed by default, and in Go to…", async () => {
     await go("portal", quiet(withPortal()));
-    expect(tools()).toEqual(["Início", "Portal", "Threads", "Tarefas", "Drive"]);
+    expect(tools()).toEqual(["Início", "Portal", "Tarefas"]);
     const row = within(nav()).getByRole("link", { name: "Portal" });
     expect(row.getAttribute("href")).toBe(`/org/${ORG_ID}/portal`);
     expect(row.getAttribute("data-status")).toBe("active");
   });
 
-  test("without one nothing changes: not in the list, not in More, not in Personalizar", async () => {
-    await go("drive", quiet(seedState()));
-    expect(tools()).toEqual(["Início", "Threads", "Tarefas", "Drive"]);
+  test("without one nothing changes: not in the list, not in the grid, not in Personalizar", async () => {
+    await go("issues", quiet(seedState()));
+    expect(tools()).toEqual(["Início", "Tarefas"]);
     const more = await openMore();
     expect(within(more).queryByRole("link", { name: /Portal/ })).toBeNull();
     await click(within(more).getByRole("button", { name: "Personalizar a barra lateral" }));
@@ -645,7 +650,7 @@ describe("Portal in the sidebar", () => {
         .getByRole("link", { name: /Esperando você/ })
         .getAttribute("href"),
     ).toBe(`/org/${ORG_ID}/waiting`);
-    expect(tools()).toEqual(["Início", "Esperando você", "Portal", "Threads", "Tarefas", "Drive"]);
+    expect(tools()).toEqual(["Início", "Esperando você", "Portal", "Tarefas"]);
   });
 
   test("a personal workspace's list draws rows: there the two are side by side on one row of their own", async () => {
@@ -663,9 +668,9 @@ describe("Portal in the sidebar", () => {
     expect(pair.querySelector(".ac-count")?.textContent).toBe("1");
   });
 
-  test("moved to More, it leaves the list and the pair with it", async () => {
-    await go("drive", quiet({ ...withPortal(), sidebarItems: { portal: "more" } }));
-    expect(tools()).toEqual(["Início", "Threads", "Tarefas", "Drive"]);
+  test("moved to the grid, it leaves the list and the pair with it", async () => {
+    await go("issues", quiet({ ...withPortal(), sidebarItems: { portal: "more" } }));
+    expect(tools()).toEqual(["Início", "Tarefas"]);
     expect(nav().querySelector(".sidebar__pair")).toBeNull();
     expect(
       within(await openMore())

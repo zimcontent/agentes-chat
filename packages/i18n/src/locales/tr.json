@@ -1965,6 +1965,13 @@
       "homePersonal": "Günün: seni bekleyenler ve ajanlarının şu an yaptıkları"
     },
     "customizeSidebar": "Kenar çubuğunu özelleştir",
+    "launcher": {
+      "title": "Araçlar",
+      "production": "Üretim",
+      "work": "Sohbetler ve görevler",
+      "team": "Ajanlar ve ekip",
+      "create": "Oluştur"
+    },
     "sidebarMenu": {
       "title": "Kenar çubuğu",
       "newChannel": "Yeni kanal",
