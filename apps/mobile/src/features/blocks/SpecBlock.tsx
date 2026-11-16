@@ -32,7 +32,7 @@ import { Button, fieldText, haptics, Segmented, Text, ToggleSwitch, useReducedMo
 import { useTheme } from "@/ui/theme";
 
 import { ChartView } from "../chat/ChartCard";
-import { keepSize, keptSize } from "../chat/kept-sizes";
+import { keepSize, keptHeightAfter, keptSize, PAST_RULE } from "../chat/kept-sizes";
 import { useLayoutKey } from "../chat/look";
 import { Table } from "../chat/MessageSpans";
 import { useColors, useDirectory, useOrgId } from "../shared/hooks";
@@ -128,8 +128,8 @@ export function SpecBlock({
   const [sent, setSent] = useState<Sent | null>(keptOf(blockKey).sent ?? null);
   const [open, setOpen] = useState(keptOf(blockKey).open ?? false);
   // How tall its parts are whole, kept across the list's unmounts (`kept-sizes.ts`): a block coming back is cut from
-  // its first frame. Never measured yet, it shows no taller than the card: a tall one drew whole for a frame and then
-  // shrank, moving every row under it as the person scrolled.
+  // its first frame. Never measured yet, it shows no taller than the card, a point past it (`PAST_RULE`): a tall one
+  // drew whole for a frame and then shrank, moving every row under it as the person scrolled.
   const sizeKey = `spec:${blockKey}:${useLayoutKey()}`;
   const [height, setHeight] = useState(() => keptSize(sizeKey) ?? 0);
   const [said, setSaid] = useState<ReadonlySet<string>>(() => new Set(keptOf(blockKey).said));
@@ -148,6 +148,10 @@ export function SpecBlock({
   }
 
   const tall = !screen && height > INLINE_HEIGHT;
+  // Cut at the card's height, or under the cap before the first measure: a text there reads no taller than its room,
+  // so a measure taken then only ever raises the height kept (`keptHeightAfter`). Kept as measured, a block with one
+  // long text read short cut, showed whole, read tall and was cut again, on every layout. Opened, it has no cap at all.
+  const capped = !screen && !open && (tall || height === 0);
   const openWhole = () => {
     tapHaptic();
     keptOf(blockKey).open = true;
@@ -195,21 +199,14 @@ export function SpecBlock({
 
   return (
     <View>
-      <View
-        style={
-          tall
-            ? [styles.cut, { height: open ? height : INLINE_HEIGHT }]
-            : height === 0 && !screen && !open
-              ? styles.unmeasured
-              : undefined
-        }
-      >
+      <View style={capped ? (tall ? styles.cut : styles.unmeasured) : undefined}>
         <View
           style={styles.body}
           onLayout={(e: LayoutChangeEvent) => {
-            const whole = Math.ceil(e.nativeEvent.layout.height);
-            keepSize(sizeKey, whole);
-            setHeight(whole);
+            const next = keptHeightAfter(height, Math.ceil(e.nativeEvent.layout.height), capped);
+            if (next === null) return;
+            keepSize(sizeKey, next);
+            setHeight(next);
           }}
         >
           <Copy.Provider value={{ accent: botColor, say, said, busy: reply.isPending }}>
@@ -1005,8 +1002,8 @@ function BlockChart({ part, accent }: { part: Extract<BlockViewPart, { kind: "ch
 
 const styles = StyleSheet.create({
   body: { gap: 14, paddingHorizontal: 14, paddingTop: 6, paddingBottom: 14 },
-  cut: { overflow: "hidden" },
-  unmeasured: { maxHeight: INLINE_HEIGHT, overflow: "hidden" },
+  cut: { height: INLINE_HEIGHT, overflow: "hidden" },
+  unmeasured: { maxHeight: INLINE_HEIGHT + PAST_RULE, overflow: "hidden" },
   fade: { position: "absolute", left: 0, right: 0, bottom: 0, height: 56 },
   more: { alignItems: "center", paddingBottom: 8 },
   foot: { gap: 8, padding: 12, borderTopWidth: StyleSheet.hairlineWidth },

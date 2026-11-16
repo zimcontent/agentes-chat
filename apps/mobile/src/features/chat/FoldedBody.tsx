@@ -4,6 +4,7 @@ import { Pressable, StyleSheet, View } from "react-native";
 import Animated from "react-native-reanimated";
 import { Text, useReducedMotion } from "@/ui";
 import { REVEAL } from "./ClippedMessage";
+import { PAST_RULE } from "./kept-sizes";
 import { MessageText } from "./MessageText";
 
 const FOLDED = 114;
@@ -17,7 +18,9 @@ export function FoldedBody({ body, muted = false }: { body: string; muted?: bool
   const reduced = useReducedMotion();
   const [open, setOpen] = useState(false);
   const [height, setHeight] = useState(0);
-  // Only what this width really cuts: the same text may fit whole on a tablet and not on a phone.
+  // Only what this width really cuts: the same text may fit whole on a tablet and not on a phone. The fold stands a
+  // point past its rule (`PAST_RULE`): a long paragraph under it reads no taller than the fold, and folded exactly at the
+  // rule it read "not over it", cut with no "Ver mais" to open the rest.
   const long = height > FOLDED;
   return (
     <View>
@@ -45,7 +48,7 @@ export function FoldedBody({ body, muted = false }: { body: string; muted?: bool
 
 const styles = StyleSheet.create({
   clip: { overflow: "hidden" },
-  folded: { maxHeight: FOLDED, overflow: "hidden" },
+  folded: { maxHeight: FOLDED + PAST_RULE, overflow: "hidden" },
   more: { marginTop: 2, textDecorationLine: "underline" },
   pressed: { opacity: 0.6 },
 });

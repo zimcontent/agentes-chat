@@ -66,7 +66,7 @@ describe("rows that measure themselves come back at their size", () => {
     expect(clip).toMatch(/const sizeKey = `words:\$\{id\}:\$\{useLayoutKey\(\)\}`;/);
     expect(clip).toContain("const [height, setHeight] = useState(() => keptSize(sizeKey) ?? 0);");
     expect(clip).toContain("const unmeasured = height === 0 && !open && lead == null;");
-    expect(clip).toContain('unmeasured: { maxHeight: LONG_MESSAGE.over, overflow: "hidden" },');
+    expect(clip).toContain('unmeasured: { maxHeight: LONG_MESSAGE.over + PAST_RULE, overflow: "hidden" },');
     expect(clip).toMatch(/keepSize\(sizeKey, next\);\s*setHeight\(next\);/);
   });
 
@@ -80,8 +80,8 @@ describe("rows that measure themselves come back at their size", () => {
   test("a block is cut from its first frame when it comes back, and no taller than its card before its first measure", () => {
     const spec = src("features/blocks/SpecBlock.tsx");
     expect(spec).toContain("const [height, setHeight] = useState(() => keptSize(sizeKey) ?? 0);");
-    expect(spec).toContain('unmeasured: { maxHeight: INLINE_HEIGHT, overflow: "hidden" },');
-    expect(spec).toMatch(/keepSize\(sizeKey, whole\);\s*setHeight\(whole\);/);
+    expect(spec).toContain('unmeasured: { maxHeight: INLINE_HEIGHT + PAST_RULE, overflow: "hidden" },');
+    expect(spec).toMatch(/keepSize\(sizeKey, next\);\s*setHeight\(next\);/);
   });
 
   test("pictures and GIFs take the room kept for their side, sent and still sending alike", () => {

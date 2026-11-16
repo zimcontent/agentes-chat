@@ -52,12 +52,22 @@ export function forgetKeptSizes() {
 }
 
 /**
- * The words' height to keep after a measure (`ClippedMessage`), or null when nothing changes. Folded (under the cut, or
- * the cap before the first measure) the words can measure shorter than they are whole, since the fold changes the room
- * around them: a message near the rule measured just under it folded and just over it whole, and flipped between the
- * two on every layout. Folded, a measure only ever raises the height; unfolded, it is the words' whole height.
+ * How far past its rule a part that folds may show before its first measure (a message's words, a live block's parts,
+ * a long text on a card). React Native measures a text no taller than the room its box gives it (a text under a cap
+ * reads at most the cap), so under a cap exactly at the rule a long paragraph read exactly the rule, "not over it": it
+ * showed whole for a frame and then folded, moving every row under it twice. A point past the rule, words that reach
+ * the cap are over the rule.
  */
-export function wordsHeightAfter(kept: number, measured: number, folded: boolean): number | null {
+export const PAST_RULE = 1;
+
+/**
+ * The height to keep after a measure of a part that folds (`ClippedMessage`'s words, `SpecBlock`'s parts), or null when
+ * nothing changes. Folded (under the cut, or the cap before the first measure) the part measures shorter than it is
+ * whole, since the fold changes the room around it (a text reads no taller than its room): a message near the rule
+ * measured just under it folded and just over it whole, and flipped between the two on every layout. Folded, a measure
+ * only ever raises the height; unfolded, it is the part's whole height.
+ */
+export function keptHeightAfter(kept: number, measured: number, folded: boolean): number | null {
   if (!Number.isFinite(measured) || measured === kept) return null;
   if (folded && measured < kept) return null;
   return measured;
