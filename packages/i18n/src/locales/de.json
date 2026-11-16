@@ -12674,6 +12674,7 @@
     "text": "Was du in einem anderen Workspace verbunden hast, kommt fertig mit, ohne erneute Anmeldung.",
     "none": "Noch nichts zum Holen. Was du in einem Workspace verbindest, erscheint hier in den anderen.",
     "connections": "Verbindungen",
+    "keys": "KI-Schlüssel",
     "with": "Kommt mit {{names}}",
     "here": "Schon hier",
     "needsReconnect": "Muss neu verbunden werden",

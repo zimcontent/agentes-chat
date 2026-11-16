@@ -9,6 +9,7 @@ import {
   withComposio,
 } from "@agenteschat/engine";
 import { createRoute, z } from "@hono/zod-openapi";
+import { endpointNet } from "./agents";
 import { type AppDeps, body, createAppRouter, errors, json, OrgParams, requireSession, security } from "./context";
 
 const tags = ["Connectors"];
@@ -39,6 +40,14 @@ const SourceAgent = z.object({
   here: z.boolean().openapi({ description: "This workspace has an agent with its handle." }),
 });
 
+const SourceKey = z.object({
+  id: z.uuid(),
+  provider: z.string(),
+  label: z.string(),
+  hint: z.string().openapi({ description: "The key's last characters, as its workspace shows them. Never the key." }),
+  here: z.boolean().openapi({ description: "This workspace has a live key of this provider with the same ending." }),
+});
+
 const Source = z
   .object({
     id: z.uuid(),
@@ -46,6 +55,7 @@ const Source = z
     logo: z.string().nullable(),
     connections: z.array(SourceConnection),
     agents: z.array(SourceAgent),
+    keys: z.array(SourceKey).openapi({ description: "AI provider keys, for who manages keys in both workspaces." }),
   })
   .openapi("CarrySource");
 
@@ -55,10 +65,13 @@ const Result = z
       z.object({ sourceId: z.uuid(), id: z.uuid(), label: z.string(), outcome: z.enum(["brought", "here"]) }),
     ),
     agents: z.array(z.object({ sourceId: z.uuid(), id: z.uuid(), name: z.string(), handle: z.string() })),
+    keys: z.array(
+      z.object({ sourceId: z.uuid(), id: z.uuid(), label: z.string(), outcome: z.enum(["brought", "here"]) }),
+    ),
     skills: z.number().int(),
     skipped: z.array(
       z.object({
-        kind: z.enum(["connection", "agent", "skill"]),
+        kind: z.enum(["connection", "agent", "skill", "key"]),
         id: z.string(),
         label: z.string(),
         reason: z.string(),
@@ -92,6 +105,7 @@ export function carryRoutes(deps: AppDeps) {
       if (!blobs) throw new Error("storage is not configured on this server");
       return { db, blobs, pubsub: adapters.pubsub };
     },
+    credentials: { keyWrapper: adapters.keyWrapper, fetch: deps.extras?.http, net: endpointNet(deps) },
     pubsub: adapters.pubsub,
   };
 
@@ -125,6 +139,7 @@ export function carryRoutes(deps: AppDeps) {
           z.object({
             connectionIds: z.array(z.uuid()).max(CARRY_LIMITS.connections).optional(),
             agentIds: z.array(z.uuid()).max(CARRY_LIMITS.agents).optional(),
+            credentialIds: z.array(z.uuid()).max(CARRY_LIMITS.keys).optional(),
           }),
         ),
       },

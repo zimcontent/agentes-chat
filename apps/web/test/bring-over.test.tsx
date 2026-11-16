@@ -172,4 +172,30 @@ describe("Trazer de outro workspace", () => {
     ]);
     expect(screen().getByText("2 itens trazidos para este workspace")).toBeTruthy();
   });
+
+  test("an AI key of another workspace is picked by its name and ending, and comes over (ADR 9002 addendum)", async () => {
+    const withKey: CarrySource[] = [
+      {
+        id: "org-c",
+        name: "ConsigBOT",
+        logo: null,
+        connections: [],
+        agents: [],
+        keys: [{ id: "k-od", provider: "opendesign", label: "OpenDesign", hint: "9f3a", here: false }],
+      },
+    ];
+    const { state } = await open(withKey);
+    fireEvent.click(screen().getByRole("button", { name: "Trazer de outro workspace" }));
+    await settle();
+    const dialog = screen().getByRole("dialog", { name: "Trazer de outro workspace" });
+    expect(dialog.textContent).toContain("Chaves de IA");
+    expect(dialog.textContent).toContain("…9f3a");
+    fireEvent.click(box(/OpenDesign/));
+    fireEvent.click(screen().getByRole("button", { name: "Trazer 1 item" }));
+    await settle(6);
+    expect(state.calls.filter((c) => c.method === "carry.bring").map((c) => c.args[1])).toEqual([
+      { agentIds: [], connectionIds: [], credentialIds: ["k-od"] },
+    ]);
+    expect(screen().getByText("1 item trazido para este workspace")).toBeTruthy();
+  });
 });

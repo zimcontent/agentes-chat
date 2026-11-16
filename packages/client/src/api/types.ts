@@ -2308,14 +2308,27 @@ export interface CarrySource {
   logo: string | null;
   connections: CarrySourceConnection[];
   agents: CarrySourceAgent[];
+  /** AI provider keys, for who manages keys in both workspaces. Older servers send none. */
+  keys?: CarrySourceKey[];
+}
+
+/** An AI provider key of another workspace: provider, name and last characters, never the key. */
+export interface CarrySourceKey {
+  id: string;
+  provider: string;
+  label: string;
+  hint: string;
+  /** This workspace has a live key of this provider with the same ending. */
+  here: boolean;
 }
 
 /** What bringing did: what came, what was here already and what stayed behind, with why. */
 export interface CarryResult {
   connections: { sourceId: string; id: string; label: string; outcome: "brought" | "here" }[];
   agents: { sourceId: string; id: string; name: string; handle: string }[];
+  keys?: { sourceId: string; id: string; label: string; outcome: "brought" | "here" }[];
   skills: number;
-  skipped: { kind: "connection" | "agent" | "skill"; id: string; label: string; reason: string }[];
+  skipped: { kind: "connection" | "agent" | "skill" | "key"; id: string; label: string; reason: string }[];
 }
 
 export interface Connection {

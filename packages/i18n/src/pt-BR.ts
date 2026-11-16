@@ -13128,6 +13128,7 @@ export const ptBR = {
     text: "O que você conectou em outro workspace vem pronto, sem entrar de novo.",
     none: "Nada para trazer ainda. O que você conectar em um workspace aparece aqui nos outros.",
     connections: "Conexões",
+    keys: "Chaves de IA",
     /** Under an agent's name: the connections that come with it. */
     with: "Vem com {{names}}",
     here: "Já está aqui",
