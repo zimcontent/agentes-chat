@@ -7,6 +7,7 @@ import { useColors } from "../shared/hooks";
 import { tapHaptic } from "../shared/parts";
 import { ChartCard } from "./ChartCard";
 import { CodeCard } from "./CodeCard";
+import { keepOpen, keptOpen } from "./kept-sizes";
 import { blocksOf, CHAT_TEXT_MAX_SCALE, type Inline } from "./logic";
 import { useRowLook } from "./look";
 import { Spans, Table } from "./MessageSpans";
@@ -141,7 +142,9 @@ function Details({
 }) {
   const c = useColors();
   const sized = useRowLook().text;
-  const [open, setOpen] = useState(false);
+  // Opened, it comes back open when its row comes back into view (`keptOpen`), as the person left it.
+  const keep = `details:${body}`;
+  const [open, setOpen] = useState(() => keptOpen(keep));
   return (
     <View style={[styles.details, { borderColor: c.line }]}>
       <Pressable
@@ -149,7 +152,8 @@ function Details({
         accessibilityState={{ expanded: open }}
         onPress={() => {
           tapHaptic();
-          setOpen((v) => !v);
+          keepOpen(keep, !open);
+          setOpen(!open);
         }}
         style={({ pressed }) => [styles.summary, pressed && styles.pressed]}
       >

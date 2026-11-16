@@ -23,6 +23,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Icon, IconButton, PressScale, Text, useReducedMotion, useTheme } from "@/ui";
 import { router } from "@/ui/navigation";
 import { useColors } from "../shared/hooks";
+import { keepOpen, keptOpen } from "./kept-sizes";
 import type { Inline } from "./logic";
 import { Table } from "./MessageSpans";
 
@@ -50,9 +51,11 @@ export const ChartCard = memo(function ChartCard({
 }) {
   const { t } = useTranslation();
   const c = useColors();
-  const [table, setTable] = useState(false);
+  // Its data names it (`keyOf`): it grows in only the first time it shows, and flipped to its table it comes back as
+  // the table when its row comes back into view (`keptOpen`), at the size the list kept for it.
+  const [key] = useState(() => keyOf(spec));
+  const [table, setTable] = useState(() => keptOpen(`chart-table:${key}`));
   const [still] = useState(() => {
-    const key = keyOf(spec);
     const seen = drawn.has(key);
     drawn.add(key);
     return seen;
@@ -72,7 +75,10 @@ export const ChartCard = memo(function ChartCard({
         </View>
         <PressScale
           to={0.92}
-          onPress={() => setTable((v) => !v)}
+          onPress={() => {
+            keepOpen(`chart-table:${key}`, !table);
+            setTable(!table);
+          }}
           accessibilityRole="switch"
           accessibilityState={{ checked: table }}
           // 30 tall in the card's head: the slop gives it the 44-point target, only up and down so it doesn't reach

@@ -120,6 +120,7 @@ import { ConsultPairRow, useRunConsults } from "./ConsultGroup";
 import { ApprovalInline, QuestionCard, ThreadLink } from "./cards";
 import { FeedbackOfferRow } from "./FeedbackOffer";
 import { HandedTaskChips, IssueWorkCard } from "./issue-work";
+import { keepOpen, keptOpen } from "./kept-sizes";
 import { cacheContinued } from "./live";
 import {
   approvalIdOf,
@@ -241,9 +242,9 @@ function RowBody({
   const meta = m.meta;
   const standIn = modelStandInText(t, meta);
   // What a routine found, told by its agent (as on the web): a small tag, and the report it answers on demand
-  // (that report's own line folds into this message).
+  // (that report's own line folds into this message). Unfolded, it comes back unfolded with its row (`keptOpen`).
   const routine = routineReplyOf(m);
-  const [reportOpen, setReportOpen] = useState(false);
+  const [reportOpen, setReportOpen] = useState(() => keptOpen(`report:${m.id}`));
   const qc = useQueryClient();
   const orgId = useOrgId();
   const { org } = useOrg();
@@ -677,7 +678,10 @@ function RowBody({
       ) : null}
       {routine && report ? (
         <Pressable
-          onPress={() => setReportOpen((o) => !o)}
+          onPress={() => {
+            keepOpen(`report:${m.id}`, !reportOpen);
+            setReportOpen(!reportOpen);
+          }}
           accessibilityRole="button"
           accessibilityState={{ expanded: reportOpen }}
           hitSlop={NAME_LINE_SLOP}

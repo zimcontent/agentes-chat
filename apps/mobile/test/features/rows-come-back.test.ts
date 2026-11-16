@@ -49,4 +49,51 @@ describe("a row comes back as the person left it", () => {
     const row = src("features/chat/MessageRow.tsx");
     expect(row.match(/keep=\{`tools:\$\{m\.id\}`\}/g)?.length).toBe(2);
   });
+
+  test("every part a person opens in a row comes back as they left it", () => {
+    const parts: [string, RegExp[]][] = [
+      [
+        "features/chat/MessageText.tsx",
+        [/const keep = `details:\$\{body\}`;/, /useState\(\(\) => keptOpen\(keep\)\)/, /keepOpen\(keep, !open\);/],
+      ],
+      [
+        "features/chat/EventLine.tsx",
+        [/const keep = `event:\$\{message\.id\}`;/, /useState\(\(\) => keptOpen\(keep\)\)/, /keepOpen\(keep, !open\);/],
+      ],
+      [
+        "features/chat/MessageRow.tsx",
+        [/useState\(\(\) => keptOpen\(`report:\$\{m\.id\}`\)\)/, /keepOpen\(`report:\$\{m\.id\}`, !reportOpen\);/],
+      ],
+      [
+        "features/chat/ChartCard.tsx",
+        [/useState\(\(\) => keptOpen\(`chart-table:\$\{key\}`\)\)/, /keepOpen\(`chart-table:\$\{key\}`, !table\);/],
+      ],
+      [
+        "features/browser/TrailCard.tsx",
+        [
+          /const keep = `trail:\$\{screen\}:\$\{runId \?\? agentId\}:\$\{steps\.at\(-1\)\?\.at \?\? ""\}`;/,
+          /useState\(\(\) => keptOpen\(keep\)\)/,
+          /keepOpen\(keep, !open\);/,
+        ],
+      ],
+    ];
+    for (const [file, pieces] of parts)
+      for (const piece of pieces)
+        expect({ file, piece: String(piece), kept: piece.test(src(file)) }).toEqual({
+          file,
+          piece: String(piece),
+          kept: true,
+        });
+    // A notice's line is drawn again only when what it shows changes, not with every redraw of the conversation.
+    expect(src("features/chat/EventLine.tsx")).toContain("export const EventLine = memo(function EventLine({");
+  });
+
+  test("a long text on a card comes back with its Ver mais from the first frame, and open if it was opened", () => {
+    const folded = src("features/chat/FoldedBody.tsx");
+    expect(folded).toMatch(/const sizeKey = `folded:\$\{useLayoutKey\(\)\}:\$\{body\}`;/);
+    expect(folded).toContain("const [height, setHeight] = useState(() => keptSize(sizeKey) ?? 0);");
+    expect(folded).toMatch(/const \[open, setOpen\] = useState\(\(\) => keptOpen\(`open:\$\{sizeKey\}`\)\);/);
+    expect(folded).toMatch(/keepSize\(sizeKey, measured\);\s*setHeight\(measured\);/);
+    expect(folded).toMatch(/keepOpen\(`open:\$\{sizeKey\}`, true\);\s*setOpen\(true\);/);
+  });
 });
