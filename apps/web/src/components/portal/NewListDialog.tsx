@@ -1,4 +1,4 @@
-import { usePortalLists } from "@agenteschat/client";
+import { type PortalListKind, usePortalLists } from "@agenteschat/client";
 import { portalErrorText } from "@agenteschat/client/lib/portal";
 import { Button, Dialog, DialogBody, DialogFooter, Field, Input } from "@agenteschat/ui";
 import { useRef, useState } from "react";
@@ -7,17 +7,20 @@ import { useOrg } from "@/components/org-context";
 import { useToast } from "@/lib/toast";
 
 /**
- * "New list" from the page's head: a name, and the list is made at the head of the client's schedule, before every
- * other (the team moves it from there); its cards are added in the list itself. `onMade` once it exists.
+ * "New list" from the page's head: a name, and the list is made at the head of the client's schedule (or of its
+ * materials, `kind`), before every other (the team moves it from there); its cards are added in the list itself.
+ * `onMade` once it exists.
  */
 export function NewListDialog({
   open,
   client,
+  kind = "plan",
   onClose,
   onMade,
 }: {
   open: boolean;
   client: string;
+  kind?: PortalListKind;
   onClose: () => void;
   onMade: () => void;
 }) {
@@ -37,7 +40,7 @@ export function NewListDialog({
       open={open}
       onOpenChange={(o) => !o && close()}
       title={t("portal.plan.newList")}
-      description={t("portal.plan.newListHint")}
+      description={t(kind === "materials" ? "portal.materials.newListHint" : "portal.plan.newListHint")}
       closeLabel={t("common.close")}
       width={440}
       initialFocus={nameRef}
@@ -46,13 +49,16 @@ export function NewListDialog({
         onSubmit={(e) => {
           e.preventDefault();
           if (!name.trim()) return;
-          lists.createFirst.mutate(name.trim(), {
-            onSuccess: () => {
-              setName("");
-              onMade();
+          lists.createFirst.mutate(
+            { name: name.trim(), kind },
+            {
+              onSuccess: () => {
+                setName("");
+                onMade();
+              },
+              onError: (error) => toast.show(portalErrorText(t, error, i18n.language), "error"),
             },
-            onError: (error) => toast.show(portalErrorText(t, error, i18n.language), "error"),
-          });
+          );
         }}
       >
         <DialogBody>

@@ -183,6 +183,7 @@ describe("the strategic schedule (ADR 9001 §8)", () => {
     item: null,
     task: null,
     done: false,
+    material: false,
     createdAt: 1,
     updatedAt: 1,
     stage: "todo",
@@ -193,8 +194,8 @@ describe("the strategic schedule (ADR 9001 §8)", () => {
   const plan = (): PortalPlan => ({
     client: "acme",
     lists: [
-      { id: "l1", name: "Week 1", cards: [planCard("a", "l1", 1), planCard("b", "l1", 2)] },
-      { id: "l2", name: "Week 2", cards: [planCard("c", "l2", 1)] },
+      { id: "l1", name: "Week 1", kind: "plan", cards: [planCard("a", "l1", 1), planCard("b", "l1", 2)] },
+      { id: "l2", name: "Week 2", kind: "plan", cards: [planCard("c", "l2", 1)] },
     ],
     unlisted: [planCard("d", null, 4)],
     loose: [],

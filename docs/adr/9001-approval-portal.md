@@ -197,6 +197,20 @@ the client sent back and what is ready.
     card's task follows, the client's "after approve" runs). Who did it and why go on the card's comments and in
     the audit log (`portal.approved_for_client`). Only administrators: approving for a client is a decision about
     the client, not about the team's work, so `assign_work` is not enough.
+20. **A client's materials live beside the schedule, not in it.** Agencies keep things per client that are nobody's
+    work: the Instagram login, the brand's links, the avatar, the ad account. Brought from another board they arrive
+    as cards, and as cards they became tasks and counted as open work. A list now has a kind: `plan` (the schedule,
+    as before) or `materials` (the bridge keeps `secao: "materiais"` on the list). The client's page has a tab for
+    them, "Materiais do cliente", after Postados: the same board, with no calendar, no stage and no legend.
+    - **Read from where the card is.** The bridge marks each card it lists `material` when its list is one of
+      materials, so moving a card, or a whole list, changes it with nothing else to keep in step.
+    - **Nobody's work.** A material card is left out of the client's board, the overview's count, the pipeline and
+      "Your tasks". It gets no task; one it already had is canceled and marked `shelved`, and opens again where the
+      card stands if the card goes back to the schedule.
+    - **Moved from its menus.** A card's menu, the "…" and a right click alike, lists every list of both parts, the
+      other part's under its own heading. A list's menu moves it, with its cards, to the other part.
+    - Logins kept here are as safe as a card's description: anyone who reads the portal reads them. The Vault
+      (ADR 0144) stays the place for a secret an agent uses.
 
 ## Consequences
 

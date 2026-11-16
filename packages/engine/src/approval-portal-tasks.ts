@@ -75,6 +75,8 @@ interface Synced {
 }
 
 type IssueRow = typeof issues.$inferSelect;
+/** What a portal task keeps of its card; `shelved`: canceled because its card went to the client's materials. */
+type PortalSource = Record<string, unknown> & { shelved?: boolean };
 
 /** A stage the pass saw change at the portal's side: what the notices are made from. */
 export interface PortalStageChange {
@@ -386,6 +388,32 @@ async function onePass(
     try {
       const stage = stageOf(card, items);
       const row = byCard.get(card.id);
+      if (card.material) {
+        // A client's material (ADR 9001 §20) is nobody's work: it gets no task, and an open one is put aside, marked
+        // so it opens again if the card goes back to the schedule.
+        if (row && row.status !== "done" && row.status !== "canceled") {
+          await updateIssue({ db, pubsub: deps.pubsub }, who.script, orgId, row.id, { status: "canceled" });
+          await db
+            .update(issues)
+            .set({ source: { ...(row.source as PortalSource), shelved: true } })
+            .where(eq(issues.id, row.id));
+        }
+        continue;
+      }
+      if (row && (row.source as PortalSource).shelved) {
+        // Back from the materials: its task opens again where the card stands, and the pair agrees from there.
+        if (row.status === "canceled") {
+          await updateIssue({ db, pubsub: deps.pubsub }, who.script, orgId, row.id, {
+            status: PORTAL_STAGE_STATUS[stage],
+          });
+        }
+        const fresh = (await reload(db, row.id)) ?? row;
+        await saveSynced(db, fresh, card.client, card.id, {
+          card: cardSide(card, stage, postOf(card)?.lastNote?.at),
+          issue: issueSide(fresh),
+        });
+        continue;
+      }
       if (!row) {
         // Its task was deleted on purpose, or it is out already: neither gets a task now.
         if (card.task || stage === "posted") continue;

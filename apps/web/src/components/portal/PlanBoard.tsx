@@ -1,4 +1,4 @@
-import type { PlanCard, PortalLabel, PortalPlan } from "@agenteschat/client";
+import type { PlanCard, PortalLabel, PortalList, PortalListKind, PortalPlan } from "@agenteschat/client";
 import { useMovePortalCard, usePortalLists, useSavePortalCard } from "@agenteschat/client";
 import {
   PORTAL_NO_LIST,
@@ -23,6 +23,7 @@ import {
 import { useId, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useOrg } from "@/components/org-context";
+import { contextMenuHandler, type MenuEntry } from "@/lib/context-menu";
 import { useToast } from "@/lib/toast";
 import { useIssueDrag } from "@/pages/issue-drag";
 import {
@@ -42,6 +43,9 @@ import { LabelChip, StageChip, stageName } from "./stage";
 
 type Column = { id: string; name: string; cards: PlanCard[]; list: boolean };
 
+/** Where a card can go from its menus: a list, and the part of the page it is in (the schedule or the materials). */
+export type CardMoveTo = { id: string; name: string; group: string; away: boolean; go: () => void };
+
 /**
  * The strategic schedule as a board (ADR 9001 §8), in the very columns and cards of the client's board: a column per
  * list the team named (usually a week), in the team's order, then the cards in no list when there are some, then
@@ -49,15 +53,23 @@ type Column = { id: string; name: string; cards: PlanCard[]; list: boolean };
  * arrows; a well shows where one lands, the board scrolls near its edges, Esc gives up), shown where they land at
  * once and put back when the portal refuses. Lists move by their head, or from their menu. The board's empty space
  * drags it sideways. `changes`: the person may give agents work; everyone else reads.
+ *
+ * The same board draws the client's materials (ADR 9001 §20, `section="materials"`): `plan` then holds only the lists
+ * of that part, and `elsewhere` the other part's, so a card's menus (its "…" and a right click) move it to any list of
+ * either, and a list's menu moves it, with its cards, to the other part.
  */
 export function PlanBoard({
   plan,
   changes,
   onOpen,
+  section = "plan",
+  elsewhere = [],
 }: {
   plan: PortalPlan;
   changes: boolean;
   onOpen: (cardId: string) => void;
+  section?: PortalListKind;
+  elsewhere?: (PortalList & { cards: PlanCard[] })[];
 }) {
   const { t, i18n } = useTranslation();
   const { org } = useOrg();
@@ -77,8 +89,12 @@ export function PlanBoard({
       : []),
   ];
   const nameOf = (id: string) => columns.find((c) => c.id === id)?.name ?? "";
+  const here = t(section === "materials" ? "portal.materials.tab" : "portal.plan.tab");
+  const there = t(section === "materials" ? "portal.plan.tab" : "portal.materials.tab");
+  const otherKind: PortalListKind = section === "materials" ? "plan" : "materials";
   const moveTo = (card: PlanCard, to: string, index: number) => {
-    const others = (columns.find((c) => c.id === to)?.cards ?? []).filter((c) => c.id !== card.id);
+    const cardsOf = [...columns, ...elsewhere].find((c) => c.id === to)?.cards ?? [];
+    const others = cardsOf.filter((c) => c.id !== card.id);
     move.mutate(
       { cardId: card.id, list: to === PORTAL_NO_LIST ? null : to, order: portalOrderAt(others, index) },
       { onError: failed },
@@ -191,6 +207,29 @@ export function PlanBoard({
                       {t("portal.plan.moveRight")}
                     </MenuItem>
                     <MenuSeparator />
+                    <MenuItem
+                      icon={otherKind === "materials" ? "archive" : "calendar"}
+                      onSelect={() =>
+                        lists.kind.mutate(
+                          { listId: col.id, kind: otherKind },
+                          {
+                            onError: failed,
+                            onSuccess: () =>
+                              toast.show(
+                                t(
+                                  otherKind === "materials"
+                                    ? "portal.materials.movedToMaterials"
+                                    : "portal.materials.movedToPlan",
+                                  { name: col.name },
+                                ),
+                              ),
+                          },
+                        )
+                      }
+                    >
+                      {t(otherKind === "materials" ? "portal.materials.toMaterials" : "portal.materials.toPlan")}
+                    </MenuItem>
+                    <MenuSeparator />
                     <MenuItem icon="trash" danger onSelect={() => setDeleting(col)}>
                       {t("portal.plan.deleteList")}
                     </MenuItem>
@@ -212,9 +251,18 @@ export function PlanBoard({
                     onDelete={changes ? () => setDeletingCard(card) : undefined}
                     moves={
                       changes
-                        ? columns
-                            .filter((c) => c.id !== col.id)
-                            .map((c) => ({ name: c.name, go: () => moveTo(card, c.id, c.cards.length) }))
+                        ? [
+                            ...columns
+                              .filter((c) => c.id !== col.id)
+                              .map((c) => ({ id: c.id, name: c.name, group: here, away: false, cards: c.cards })),
+                            ...elsewhere.map((c) => ({
+                              id: c.id,
+                              name: c.name,
+                              group: there,
+                              away: true,
+                              cards: c.cards,
+                            })),
+                          ].map(({ cards, ...c }) => ({ ...c, go: () => moveTo(card, c.id, cards.length) }))
                         : []
                     }
                   />
@@ -226,7 +274,7 @@ export function PlanBoard({
         })}
         {changes && (
           <section className="plan-add" aria-label={t("portal.plan.addList")}>
-            <AddList onAdd={(name) => lists.create.mutate(name, { onError: failed })} />
+            <AddList onAdd={(name) => lists.create.mutate({ name, kind: section }, { onError: failed })} />
           </section>
         )}
       </BoardFrame>
@@ -388,8 +436,9 @@ function AddCard({ client, list, cards }: { client: string; list: string; cards:
  * A card of the schedule, in the board's own card: its title, then its type, its stage (the board's chip, with the
  * stage's colour the legend explains) and the team's labels as chips; then what it holds as a line of facts (the day
  * its post goes out, the day it is made, comments, the checklist's progress, files, a description) with who is on it
- * at the line's end; and, once it was sent, the way to its post at the portal. A press opens it; its menu copies its
- * link, moves it to another list (`moves`, the way that needs neither a drag nor the arrows) and deletes it.
+ * at the line's end; and, once it was sent, the way to its post at the portal. A press opens it; its menu (the "…" and
+ * a right click) copies its link, moves it to another list (`moves`, the way that needs neither a drag nor the
+ * arrows, to the schedule's lists and the client's materials alike) and deletes it. A material has no stage.
  */
 export function PlanCardFace({
   card,
@@ -404,7 +453,7 @@ export function PlanCardFace({
   labels: PortalLabel[];
   picked?: boolean;
   drag?: CardDrag;
-  moves?: { name: string; go: () => void }[];
+  moves?: CardMoveTo[];
   onOpen: () => void;
   /** Who may change the board deletes it, at hand and from its menu. */
   onDelete?: () => void;
@@ -416,6 +465,26 @@ export function PlanCardFace({
   const post = portalWhen(i18n.language, card.postOn);
   const produce = portalWhen(i18n.language, card.produceOn);
   const link = portalLink(card.link);
+  const rightClick = contextMenuHandler(() => {
+    const entries: MenuEntry[] = [
+      { kind: "item", id: "link", label: t("portal.card.copyLink"), icon: "link", run: () => copyLink(card) },
+    ];
+    let group: string | null = null;
+    for (const m of moves) {
+      if (m.group !== group) {
+        group = m.group;
+        entries.push({ kind: "separator" }, { kind: "header", label: m.group });
+      }
+      entries.push({ kind: "item", id: `move-${m.id}`, label: m.name, icon: "move", run: m.go });
+    }
+    if (onDelete) {
+      entries.push(
+        { kind: "separator" },
+        { kind: "item", id: "delete", label: t("portal.delete"), icon: "trash", danger: true, run: onDelete },
+      );
+    }
+    return entries;
+  });
   const facts: LineFact[] = [
     ...(post
       ? [{ key: "post", icon: "calendar" as const, text: post, title: t("portal.plan.postOn", { when: post }) }]
@@ -475,6 +544,7 @@ export function PlanCardFace({
       picked={picked}
       drag={drag}
       onOpen={onOpen}
+      onContextMenu={rightClick}
       headEnd={
         <>
           {onDelete && (
@@ -506,8 +576,8 @@ export function PlanCardFace({
             </MenuItem>
             {moves.length > 0 && <MenuSeparator />}
             {moves.map((m) => (
-              <MenuItem key={m.name} icon="move" onSelect={m.go}>
-                {t("portal.moveTo", { column: m.name })}
+              <MenuItem key={m.id} icon={m.away ? (card.material ? "calendar" : "archive") : "move"} onSelect={m.go}>
+                {t("portal.moveTo", { column: m.away ? `${m.name} · ${m.group}` : m.name })}
               </MenuItem>
             ))}
             {onDelete && (
@@ -524,7 +594,7 @@ export function PlanCardFace({
       chips={
         <>
           <Chip>{t(`portal.types.${card.type}`)}</Chip>
-          <StageChip stage={card.stage} />
+          {!card.material && <StageChip stage={card.stage} />}
           {mine.map((label) => (
             <LabelChip key={label.id} label={label} />
           ))}

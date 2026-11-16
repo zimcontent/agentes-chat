@@ -120,8 +120,8 @@ export async function portalOverview(portal: ApprovalPortal): Promise<PortalClie
       summary.next = item.scheduledFor;
     }
   }
-  // A card that was sent is counted as its post, in the portal's column.
-  for (const card of cards) if (!card.item && !card.done) of(card.client).counts[card.state] += 1;
+  // A card that was sent is counted as its post, in the portal's column. A client's material is nobody's work.
+  for (const card of cards) if (!card.item && !card.done && !card.material) of(card.client).counts[card.state] += 1;
   for (const summary of byClient.values()) {
     summary.open = PORTAL_COLUMNS.reduce((sum, c) => sum + (c === "posted" ? 0 : summary.counts[c]), 0);
   }
@@ -138,7 +138,7 @@ export async function portalBoard(portal: ApprovalPortal, client: string): Promi
     cards: { todo: [], doing: [] },
     items: { approval: [], adjusting: [], approved: [], scheduled: [], posted: [] },
   };
-  for (const card of cards) if (!card.item && !card.done) board.cards[card.state].push(card);
+  for (const card of cards) if (!card.item && !card.done && !card.material) board.cards[card.state].push(card);
   for (const item of items) {
     if (item.client !== client) continue;
     board.items[portalColumnOf(item) as keyof PortalBoard["items"]].push(item);

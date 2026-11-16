@@ -21254,6 +21254,17 @@ export const ptBR = {
       notMedia: "Só imagens e vídeos sobem para aprovação.",
       coverNotImage: "A capa precisa ser uma imagem.",
     },
+    materials: {
+      tab: "Materiais do cliente",
+      intro: "Logins, links e referências do cliente. Ficam fora do cronograma e não viram tarefa.",
+      empty: "Nenhum material ainda",
+      emptyText: "Crie uma lista (Redes sociais, Acessos, Marca) e guarde os cartões dentro dela.",
+      newListHint: "Ela entra como a primeira dos materiais. Os cartões você cria dentro dela.",
+      toMaterials: "Mover para Materiais do cliente",
+      toPlan: "Voltar para o cronograma",
+      movedToMaterials: "“{{name}}” foi para Materiais do cliente.",
+      movedToPlan: "“{{name}}” voltou para o cronograma.",
+    },
     plan: {
       tab: "Cronograma estratégico",
       view: "Visualização",

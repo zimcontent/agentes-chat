@@ -107,10 +107,18 @@ export interface PortalClientLooks {
   logos: Record<string, string>;
 }
 
-/** A list of the strategic schedule: usually a week, named by the team. */
+/**
+ * Where a list lives (ADR 9001 §20): the strategic schedule (`plan`, usually a week), or the client's materials
+ * (`materials`: logins, links, references the team keeps for the client, which are nobody's work).
+ */
+export const PORTAL_LIST_KINDS = ["plan", "materials"] as const;
+export type PortalListKind = (typeof PORTAL_LIST_KINDS)[number];
+
+/** A list of a client's: a week of the strategic schedule, or a shelf of the client's materials. */
 export interface PortalList {
   id: string;
   name: string;
+  kind: PortalListKind;
 }
 
 /** A label of the team's own, the same for every client. */
@@ -192,6 +200,11 @@ export interface PortalCard {
    * stays in its list as history and is no longer something to make.
    */
   done: boolean;
+  /**
+   * In a list of the client's materials (ADR 9001 §20): kept for reference, never work to make. Read from where the
+   * card is, so moving it (or its list) changes it.
+   */
+  material: boolean;
   createdAt: number;
   updatedAt: number;
 }
@@ -294,8 +307,10 @@ export interface ApprovalPortal {
   /** A client's lists, in the team's order. */
   lists(client: string): Promise<PortalList[]>;
   /** A list by name: the one that already has it (whatever its capitals), else a new one at the end. */
-  createList(client: string, name: string): Promise<PortalList>;
+  createList(client: string, name: string, kind?: PortalListKind): Promise<PortalList>;
   renameList(id: string, name: string): Promise<PortalList>;
+  /** Moves a list, with its cards, between the schedule and the client's materials. */
+  setListKind(id: string, kind: PortalListKind): Promise<PortalList>;
   /** Every list of the client, once each, in the new order. */
   orderLists(client: string, ids: string[]): Promise<PortalList[]>;
   /** Its cards stay, in no list. */
@@ -472,7 +487,12 @@ const CLIENT_COLOR_OUT = Object.fromEntries(
 ) as Record<PortalClientColor, string>;
 const rows = (value: unknown) => (Array.isArray(value) ? (value as Wire[]) : []);
 const strings = (value: unknown) => (Array.isArray(value) ? value.map(String) : []);
-const listOf = (wire: Wire): PortalList => ({ id: String(wire.id), name: text(wire.nome) ?? "" });
+const listOf = (wire: Wire): PortalList => ({
+  id: String(wire.id),
+  name: text(wire.nome) ?? "",
+  kind: wire.secao === "materiais" ? "materials" : "plan",
+});
+const LIST_KIND_OUT: Record<PortalListKind, string> = { plan: "cronograma", materials: "materiais" };
 const labelOf = (wire: Wire): PortalLabel => ({
   id: String(wire.id),
   name: text(wire.nome) ?? "",
@@ -513,6 +533,7 @@ function cardOf(wire: Wire): PortalCard {
     item: text(wire.item),
     task: text(wire.tarefa),
     done: wire.concluido === true,
+    material: wire.material === true,
     createdAt: Math.round(Number(wire.criado) * 1000) || 0,
     updatedAt: Math.round(Number(wire.atualizado) * 1000) || 0,
   };
@@ -633,10 +654,20 @@ export function createBridgeApprovalPortal(options: BridgePortalOptions): Approv
         ).cartao as Wire,
       ),
     lists: async (client) => rows((await request(`/listas?tenant=${encodeURIComponent(client)}`)).listas).map(listOf),
-    createList: async (client, name) =>
-      listOf((await request("/listas", { json: { tenant: client, nome: name } })).lista as Wire),
+    createList: async (client, name, kind = "plan") =>
+      listOf(
+        (
+          await request("/listas", {
+            json: { tenant: client, nome: name, ...(kind === "plan" ? {} : { secao: LIST_KIND_OUT[kind] }) },
+          })
+        ).lista as Wire,
+      ),
     renameList: async (id, name) =>
       listOf((await request(`/listas/${encodeURIComponent(id)}`, { json: { nome: name } })).lista as Wire),
+    setListKind: async (id, kind) =>
+      listOf(
+        (await request(`/listas/${encodeURIComponent(id)}`, { json: { secao: LIST_KIND_OUT[kind] } })).lista as Wire,
+      ),
     orderLists: async (client, ids) =>
       rows((await request("/listas/ordem", { json: { tenant: client, ids } })).listas).map(listOf),
     deleteList: async (id) => {
@@ -783,7 +814,10 @@ export function createFakeApprovalPortal(seed: { items?: PortalItem[]; cards?: P
     },
     cards: async (client) => {
       check();
-      return [...cards.values()].filter((card) => !client || card.client === client);
+      const shelves = new Set([...lists.values()].flat().flatMap((l) => (l.kind === "materials" ? [l.id] : [])));
+      return [...cards.values()]
+        .filter((card) => !client || card.client === client)
+        .map((card) => ({ ...card, material: !!card.list && shelves.has(card.list) }));
     },
     createCard: async (client, input) => {
       check();
@@ -809,6 +843,7 @@ export function createFakeApprovalPortal(seed: { items?: PortalItem[]; cards?: P
         item: null,
         task: null,
         done: false,
+        material: false,
         ...input,
         createdAt: count,
         updatedAt: count,
@@ -844,12 +879,12 @@ export function createFakeApprovalPortal(seed: { items?: PortalItem[]; cards?: P
       check();
       return [...(lists.get(client) ?? [])];
     },
-    createList: async (client, name) => {
+    createList: async (client, name, kind = "plan") => {
       check();
       const of = lists.get(client) ?? [];
       const same = of.find((l) => l.name.toLowerCase() === name.toLowerCase());
       if (same) return same;
-      const list = { id: next("l-"), name };
+      const list: PortalList = { id: next("l-"), name, kind };
       lists.set(client, [...of, list]);
       return list;
     },
@@ -863,6 +898,13 @@ export function createFakeApprovalPortal(seed: { items?: PortalItem[]; cards?: P
         }
       }
       throw new ApprovalPortalError(404, "list not found");
+    },
+    setListKind: async (id, kind) => {
+      check();
+      const list = [...lists.values()].flat().find((l) => l.id === id);
+      if (!list) throw new ApprovalPortalError(404, "list not found");
+      list.kind = kind;
+      return list;
     },
     orderLists: async (client, ids) => {
       check();

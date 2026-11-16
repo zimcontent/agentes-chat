@@ -21300,6 +21300,17 @@ export const en = {
       coverNotImage: "The cover must be a picture.",
     },
     /** The strategic schedule (ADR 9001 §8): a client's posts planned in lists the team names, usually weeks. */
+    materials: {
+      tab: "Client materials",
+      intro: "The client's logins, links and references. They stay out of the schedule and never become tasks.",
+      empty: "No materials yet",
+      emptyText: "Make a list (Social media, Logins, Brand) and keep the cards in it.",
+      newListHint: "It comes first among the materials. You add its cards inside it.",
+      toMaterials: "Move to Client materials",
+      toPlan: "Back to the schedule",
+      movedToMaterials: "“{{name}}” went to Client materials.",
+      movedToPlan: "“{{name}}” is back in the schedule.",
+    },
     plan: {
       tab: "Strategic schedule",
       view: "View",

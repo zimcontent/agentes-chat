@@ -301,6 +301,7 @@ import type {
   PortalLabel,
   PortalLabelColor,
   PortalList,
+  PortalListKind,
   PortalMine,
   PortalOverview,
   PortalPipeline,
@@ -1635,10 +1636,12 @@ export interface ApiClient {
     /** Each card's task, to name it by its number and open it. */
     tasks(orgId: string): Promise<PortalTaskRef[]>;
     /** Makes a list (the same name answers the same list). */
-    createList(orgId: string, client: string, name: string): Promise<PortalList>;
+    createList(orgId: string, client: string, name: string, kind?: PortalListKind): Promise<PortalList>;
     /** Every list of the client, once each, in the new order. */
     orderLists(orgId: string, client: string, ids: string[]): Promise<PortalList[]>;
     renameList(orgId: string, listId: string, name: string): Promise<PortalList>;
+    /** Moves a list, with its cards, between the schedule and the client's materials. */
+    setListKind(orgId: string, listId: string, kind: PortalListKind): Promise<PortalList>;
     /** Its cards stay, in no list. */
     deleteList(orgId: string, listId: string): Promise<void>;
     labels(orgId: string): Promise<PortalLabel[]>;

@@ -177,6 +177,41 @@ describe("the approval portal's cards as tasks", () => {
     expect(await status()).toBe("done");
   });
 
+  test("a card in the client's materials is nobody's work: its task is put aside, and opens again when it comes back", async () => {
+    f = await setup();
+    const deps = { db: f.db, pubsub: f.pubsub };
+    const portal = createFakeApprovalPortal();
+    const week = await portal.createList("acme", "Semana 1");
+    const shelf = await portal.createList("acme", "Acessos", "materials");
+    expect(shelf.kind).toBe("materials");
+    const card = await portal.createCard("acme", { title: "Login do Instagram", list: week.id });
+    const kept = await portal.createCard("acme", { title: "Links da marca", list: shelf.id });
+    await syncPortalTasks(deps, portal, f.org.id);
+    expect((await portalTaskOf(f.db, f.org.id, card.id))?.status).toBe("todo");
+    // Made among the materials: no task at all, and not on the board nor in the overview's count.
+    expect(await portalTaskOf(f.db, f.org.id, kept.id)).toBeNull();
+    expect((await portalBoard(portal, "acme")).cards.todo.map((c) => c.id)).toEqual([card.id]);
+
+    await portal.updateCard(card.id, { list: shelf.id });
+    await syncPortalTasks(deps, portal, f.org.id);
+    expect((await portalTaskOf(f.db, f.org.id, card.id))?.status).toBe("canceled");
+    expect((await portalBoard(portal, "acme")).cards.todo).toEqual([]);
+    // A second pass leaves it as it is.
+    expect(await syncPortalTasks(deps, portal, f.org.id)).toMatchObject({ created: 0, toTasks: 0, toCards: 0 });
+
+    await portal.updateCard(card.id, { list: week.id });
+    await syncPortalTasks(deps, portal, f.org.id);
+    const back = await portalTaskOf(f.db, f.org.id, card.id);
+    expect(back?.status).toBe("todo");
+    expect((back?.source as { shelved?: boolean } | undefined)?.shelved).toBeUndefined();
+    expect(await syncPortalTasks(deps, portal, f.org.id)).toMatchObject({ created: 0, toTasks: 0, toCards: 0 });
+
+    // A whole list moved to the materials takes its cards along.
+    await portal.setListKind(week.id, "materials");
+    await syncPortalTasks(deps, portal, f.org.id);
+    expect((await portalTaskOf(f.db, f.org.id, card.id))?.status).toBe("canceled");
+  });
+
   test("a deleted task isn't made again, a deleted card cancels its task, a posted card gets none", async () => {
     f = await setup();
     const deps = { db: f.db, pubsub: f.pubsub };

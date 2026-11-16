@@ -8481,6 +8481,8 @@ export interface PortalCard {
   task: string | null;
   /** Finished without going through the portal: it stays in its list as history, with nothing left to make. */
   done: boolean;
+  /** In a list of the client's materials (ADR 9001 §20): kept for reference, never work. */
+  material: boolean;
   createdAt: number;
   updatedAt: number;
 }
@@ -8499,10 +8501,14 @@ export interface PortalComment {
   at: number;
 }
 
-/** A list of the strategic schedule: usually a week, named by the team. */
+/** Where a list lives: the strategic schedule, or the client's materials (logins, links: no work). */
+export type PortalListKind = "plan" | "materials";
+
+/** A list of a client's: a week of the strategic schedule, or a shelf of the client's materials. */
 export interface PortalList {
   id: string;
   name: string;
+  kind: PortalListKind;
 }
 
 export type PortalLabelColor =

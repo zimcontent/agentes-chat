@@ -3,6 +3,7 @@ import {
   PORTAL_CARD_STATES,
   PORTAL_CLIENT_COLORS,
   PORTAL_LABEL_COLORS,
+  PORTAL_LIST_KINDS,
   PORTAL_STATUSES,
   PORTAL_TYPES,
 } from "@agenteschat/adapters";
@@ -122,6 +123,7 @@ const Card = z
     item: z.string().nullable().openapi({ description: "The portal's post this card became, once sent." }),
     task: z.string().nullable().openapi({ description: "The workspace task that stands for it (its id)." }),
     done: z.boolean().openapi({ description: "Finished without going through the portal: history, nothing to make." }),
+    material: z.boolean().openapi({ description: "In a list of the client's materials: kept for reference, no work." }),
     createdAt: z.number(),
     updatedAt: z.number(),
   })
@@ -135,7 +137,11 @@ const PlanCard = Card.extend({
 }).openapi("PortalPlanCard");
 const ListId = z.string().regex(/^l-[0-9a-f]{6,32}$/);
 const LabelId = z.string().regex(/^e-[0-9a-f]{6,32}$/);
-const List = z.object({ id: z.string(), name: z.string() }).openapi("PortalList");
+const ListKind = z.enum(PORTAL_LIST_KINDS).openapi({
+  description:
+    "`plan`: a list of the strategic schedule. `materials`: the client's materials (logins, links), no work.",
+});
+const List = z.object({ id: z.string(), name: z.string(), kind: ListKind }).openapi("PortalList");
 const Label = z.object({ id: z.string(), name: z.string(), color: z.enum(PORTAL_LABEL_COLORS) }).openapi("PortalLabel");
 const ListName = z.string().trim().min(1).max(80);
 const LabelName = z.string().trim().min(1).max(40);
@@ -809,13 +815,17 @@ export function portalRoutes(deps: AppDeps) {
       tags,
       security,
       summary: "Add a list to a client's schedule; a name it already has answers that list (assign_work)",
-      request: { params: OrgParams.extend({ client: ClientId }), body: body(z.object({ name: ListName })) },
+      request: {
+        params: OrgParams.extend({ client: ClientId }),
+        body: body(z.object({ name: ListName, kind: ListKind.optional() })),
+      },
       responses: { 200: json(z.object({ list: List })), 502: unavailable, ...errors, 404: off },
     }),
     async (c) => {
       const { orgId, client } = c.req.valid("param");
       await requireChangePermission(db, c.get("user").id, orgId, "assign_work");
-      const out = await guarded(c, (portal) => portal.createList(client, c.req.valid("json").name));
+      const { name, kind } = c.req.valid("json");
+      const out = await guarded(c, (portal) => portal.createList(client, name, kind));
       return out.ok ? c.json({ list: out.value }, 200) : out.response;
     },
   );
@@ -847,14 +857,26 @@ export function portalRoutes(deps: AppDeps) {
       path: "/organizations/{orgId}/portal/lists/{listId}",
       tags,
       security,
-      summary: "Rename a list (assign_work)",
-      request: { params: OrgParams.extend({ listId: ListId }), body: body(z.object({ name: ListName })) },
+      summary: "Rename a list, or move it between the schedule and the client's materials (assign_work)",
+      request: {
+        params: OrgParams.extend({ listId: ListId }),
+        body: body(
+          z
+            .object({ name: ListName.optional(), kind: ListKind.optional() })
+            .refine((v) => v.name !== undefined || v.kind !== undefined, { message: "Give a name or a kind" }),
+        ),
+      },
       responses: { 200: json(z.object({ list: List })), 502: unavailable, ...errors, 404: off },
     }),
     async (c) => {
       const { orgId, listId } = c.req.valid("param");
       await requireChangePermission(db, c.get("user").id, orgId, "assign_work");
-      const out = await guarded(c, (portal) => portal.renameList(listId, c.req.valid("json").name));
+      const { name, kind } = c.req.valid("json");
+      const out = await guarded(c, async (portal) => {
+        let list = name !== undefined ? await portal.renameList(listId, name) : null;
+        if (kind !== undefined) list = await portal.setListKind(listId, kind);
+        return list as NonNullable<typeof list>;
+      });
       return out.ok ? c.json({ list: out.value }, 200) : out.response;
     },
   );
