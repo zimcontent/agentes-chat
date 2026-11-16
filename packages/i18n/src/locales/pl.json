@@ -5237,7 +5237,19 @@
       "mission": "Misja · {{done}} z {{total}}"
     },
     "done": {
-      "title": "Od twojej ostatniej wizyty"
+      "title": "Od twojej ostatniej wizyty",
+      "none": "Nic nowego od ostatniej wizyty."
+    },
+    "customize": {
+      "button": "Dostosuj",
+      "title": "Co pokazuje strona główna",
+      "sections": {
+        "team": "Plan zespołu",
+        "tasks": "Twoje zadania",
+        "board": "Czeka na ciebie i Teraz w pracy",
+        "since": "Od ostatniej wizyty",
+        "routines": "Wkrótce"
+      }
     },
     "routines": {
       "title": "Wkrótce"
@@ -5246,10 +5258,18 @@
       "title": "Plan zespołu",
       "who": "Czyj plan",
       "everyone": "Wszyscy",
+      "now": "Teraz",
       "late": "Zaległe",
       "today": "Dziś · {{day}}",
       "tomorrow": "Jutro · {{day}}",
       "wasDue": "Termin był {{when}}",
+      "due": "Termin {{when}}",
+      "todayShort": "dziś",
+      "tomorrowShort": "jutro",
+      "nowCount_one": "{{count}} teraz",
+      "nowCount_few": "{{count}} teraz",
+      "nowCount_many": "{{count}} teraz",
+      "nowCount_other": "{{count}} teraz",
       "lateCount_one": "{{count}} zaległe",
       "lateCount_few": "{{count}} zaległe",
       "lateCount_many": "{{count}} zaległych",

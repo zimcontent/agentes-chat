@@ -5314,18 +5314,38 @@ export const en = {
       in: "#{{channel}}",
       mission: "Mission · {{done}} of {{total}}",
     },
-    done: { title: "Since you were last here" },
+    done: { title: "Since you were last here", none: "Nothing new since your last visit." },
+    /** "Personalizar": which of Home's sections the person sees. */
+    customize: {
+      button: "Customize",
+      title: "What Home shows",
+      sections: {
+        team: "Team agenda",
+        tasks: "Your tasks",
+        board: "Waiting on you and Working now",
+        since: "Since you were last here",
+        routines: "Coming up",
+      },
+    },
     routines: { title: "Coming up" },
     /** Owners and admins: what each person and agent has to do today and in the next days, from tasks' due dates. */
     agenda: {
       title: "Team agenda",
       who: "Whose agenda",
       everyone: "Everyone",
+      /** Tasks under way (in progress or in review), whatever their date. */
+      now: "Now",
       late: "Late",
       /** `day`: the weekday and the day of the month ("Monday 16"). */
       today: "Today · {{day}}",
       tomorrow: "Tomorrow · {{day}}",
       wasDue: "Was due {{when}}",
+      /** A task under way: when it is due ("today", "tomorrow", "Friday 20"). */
+      due: "Due {{when}}",
+      todayShort: "today",
+      tomorrowShort: "tomorrow",
+      nowCount_one: "{{count}} now",
+      nowCount_other: "{{count}} now",
       lateCount_one: "{{count}} late",
       lateCount_other: "{{count}} late",
       todayCount_one: "{{count}} today",

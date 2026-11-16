@@ -1,4 +1,4 @@
-import { and, asc, type Database, eq, inArray, lte, schema, sql } from "@agenteschat/db";
+import { and, asc, type Database, eq, inArray, lte, or, schema, sql } from "@agenteschat/db";
 import { ForbiddenError, ValidationError } from "./errors";
 import { can, requireActiveMembership } from "./organizations";
 
@@ -17,8 +17,8 @@ export interface TeamAgendaTask {
   title: string;
   status: "todo" | "in_progress" | "in_review";
   priority: "low" | "normal" | "high";
-  /** `YYYY-MM-DD`; before `from` when it is late. */
-  dueDate: string;
+  /** `YYYY-MM-DD`; before `from` when it is late; null for one being done now that has no date. */
+  dueDate: string | null;
   assignee: { type: "person" | "agent"; id: string };
   project: { name: string; color: string } | null;
   blocked: boolean;
@@ -38,8 +38,9 @@ export function agendaEnd(from: string, days: number): string {
 }
 
 /**
- * What each person and agent of the workspace has to do from `from` (the asker's today) through the next `days`, and
- * what is already late: every open task with an assignee and a due date up to the last day. Owners and administrators
+ * What each person and agent of the workspace is doing now and has to do from `from` (the asker's today) through the
+ * next `days`, and what is already late: every open task with an assignee that is under way (in progress or in
+ * review, with or without a date) or due by the last day. Owners and administrators
  * only, who see every task (ADR 0151), so the read needs no audience filter. The portal's cards are tasks too (their
  * production day is the due date), so they show here as well.
  */
@@ -78,10 +79,10 @@ export async function teamAgenda(
         inArray(issues.status, ["todo", "in_progress", "in_review"]),
         inArray(issues.assigneeType, ["person", "agent"]),
         sql`${issues.assigneeId} is not null`,
-        lte(issues.dueDate, to),
+        or(lte(issues.dueDate, to), inArray(issues.status, ["in_progress", "in_review"])),
       ),
     )
-    .orderBy(asc(issues.dueDate), sql`${issues.priority} = 'high' desc`, asc(issues.number))
+    .orderBy(sql`${issues.dueDate} asc nulls last`, sql`${issues.priority} = 'high' desc`, asc(issues.number))
     .limit(TASKS_MAX);
   return {
     from: query.from,
@@ -92,7 +93,7 @@ export async function teamAgenda(
       title: r.title,
       status: r.status as TeamAgendaTask["status"],
       priority: r.priority,
-      dueDate: r.dueDate as string,
+      dueDate: r.dueDate,
       assignee: { type: r.assigneeType as "person" | "agent", id: r.assigneeId as string },
       project: r.projectName ? { name: r.projectName, color: r.projectColor ?? "graphite" } : null,
       blocked: r.blocked !== null,

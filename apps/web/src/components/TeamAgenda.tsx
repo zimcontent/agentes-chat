@@ -86,6 +86,7 @@ function PersonAgenda({ person, name, today }: { person: AgendaPerson; name: str
   const { t } = useTranslation();
   const todayCount = person.days.find((d) => d.key === today)?.tasks.length ?? 0;
   const summary = [
+    person.now > 0 ? t("home.agenda.nowCount", { count: person.now }) : "",
     person.late > 0 ? t("home.agenda.lateCount", { count: person.late }) : "",
     todayCount > 0 ? t("home.agenda.todayCount", { count: todayCount }) : "",
     t("home.agenda.total", { count: person.count }),
@@ -108,23 +109,28 @@ function PersonAgenda({ person, name, today }: { person: AgendaPerson; name: str
 
 function DayGroup({ day, today }: { day: AgendaDay; today: string }) {
   const { t, i18n } = useTranslation();
-  const label = day.late ? t("home.agenda.late") : dayLabel(t, i18n.language, day.key, today);
+  const label =
+    day.kind === "now"
+      ? t("home.agenda.now")
+      : day.kind === "late"
+        ? t("home.agenda.late")
+        : dayLabel(t, i18n.language, day.key, today);
   return (
-    <section className="home-tasks__group" data-group={day.late ? "late" : undefined} aria-label={label}>
+    <section className="home-tasks__group" data-group={day.kind === "day" ? undefined : day.kind} aria-label={label}>
       <h3 className="home-tasks__name">
         {label}
         <span className="tabular">{day.tasks.length}</span>
       </h3>
       <ul className="home-tasks__list">
         {day.tasks.map((task) => (
-          <AgendaRow key={task.id} task={task} late={day.late} />
+          <AgendaRow key={task.id} task={task} kind={day.kind} today={today} />
         ))}
       </ul>
     </section>
   );
 }
 
-function AgendaRow({ task, late }: { task: TeamAgendaTask; late: boolean }) {
+function AgendaRow({ task, kind, today }: { task: TeamAgendaTask; kind: AgendaDay["kind"]; today: string }) {
   const { t, i18n } = useTranslation();
   const { org } = useOrg();
   return (
@@ -139,14 +145,20 @@ function AgendaRow({ task, late }: { task: TeamAgendaTask; late: boolean }) {
           <span className="home-tasks__meta">
             <span className="tabular">#{task.number}</span>
             {task.project && <span>{task.project.name}</span>}
-            {late && <span>{t("home.agenda.wasDue", { when: shortDay(i18n.language, task.dueDate) })}</span>}
+            {task.dueDate && kind !== "day" && (
+              <span>
+                {task.dueDate < today
+                  ? t("home.agenda.wasDue", { when: shortDay(i18n.language, task.dueDate) })
+                  : t("home.agenda.due", { when: dayLabel(t, i18n.language, task.dueDate, today, true) })}
+              </span>
+            )}
           </span>
         </span>
-        {(task.status !== "todo" || task.blocked || task.priority === "high") && (
+        {(task.status === "in_review" || task.blocked || task.priority === "high") && (
           <span className="home-tasks__chips">
             {task.priority === "high" && <Chip tone="waiting">{t("home.agenda.high")}</Chip>}
             {task.blocked && <Chip tone="waiting">{t("home.agenda.blocked")}</Chip>}
-            {task.status !== "todo" && <Chip tone="info">{t(`home.agenda.status.${task.status}`)}</Chip>}
+            {task.status === "in_review" && <Chip tone="info">{t(`home.agenda.status.${task.status}`)}</Chip>}
           </span>
         )}
       </Link>
@@ -164,10 +176,13 @@ function shortDay(locale: string, day: string) {
   return new Intl.DateTimeFormat(locale, { day: "numeric", month: "short" }).format(dateOf(day));
 }
 
-/** "Hoje · segunda, 16", "Amanhã · terça, 17", "quarta, 18". */
-function dayLabel(t: TFunction, locale: string, day: string, today: string) {
+/** "Hoje · segunda, 16", "Amanhã · terça, 17", "quarta, 18"; `short`: "hoje", "amanhã", "quarta, 18". */
+function dayLabel(t: TFunction, locale: string, day: string, today: string, short = false) {
   const text = new Intl.DateTimeFormat(locale, { weekday: "long", day: "numeric" }).format(dateOf(day));
   const away = daysBetween(today, day);
+  if (short && away === 0) return t("home.agenda.todayShort");
+  if (short && away === 1) return t("home.agenda.tomorrowShort");
+  if (short) return text;
   if (away === 0) return t("home.agenda.today", { day: text });
   if (away === 1) return t("home.agenda.tomorrow", { day: text });
   return text.charAt(0).toLocaleUpperCase(locale) + text.slice(1);

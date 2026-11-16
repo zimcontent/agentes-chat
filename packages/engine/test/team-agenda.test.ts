@@ -39,6 +39,9 @@ describe("team agenda", () => {
       dueDate: "2026-11-17",
     });
     await createIssue(deps, owner, f.org.id, { title: "Longe", assignee: to(ronny.id), dueDate: "2026-11-30" });
+    // Under way: on the agenda whatever its date, or with none.
+    const doing = await createIssue(deps, owner, f.org.id, { title: "Fazendo", assignee: to(ronny.id) });
+    await updateIssue(deps, owner, f.org.id, doing.id, { status: "in_progress" });
     await createIssue(deps, owner, f.org.id, { title: "Sem data", assignee: to(ronny.id) });
     await createIssue(deps, owner, f.org.id, { title: "Sem dono", dueDate: "2026-11-16" });
     const done = await createIssue(deps, owner, f.org.id, {
@@ -50,9 +53,9 @@ describe("team agenda", () => {
 
     const agenda = await teamAgenda(f.db, admin.id, f.org.id, { from: "2026-11-16", days: 4 });
     expect(agenda.to).toBe("2026-11-19");
-    expect(agenda.tasks.map((t) => t.id)).toEqual([late.id, monday.id, agent.id]);
+    expect(agenda.tasks.map((t) => t.id)).toEqual([late.id, monday.id, agent.id, doing.id]);
     expect(agenda.tasks[0]).toMatchObject({ assignee: { type: "person", id: ronny.id }, dueDate: "2026-11-14" });
-    expect((await teamAgenda(f.db, f.owner.id, f.org.id, { from: "2026-11-16" })).tasks).toHaveLength(3);
+    expect((await teamAgenda(f.db, f.owner.id, f.org.id, { from: "2026-11-16" })).tasks).toHaveLength(4);
 
     // A member who is not an admin has no team agenda, and a date that isn't one is refused.
     await expect(teamAgenda(f.db, ronny.id, f.org.id, { from: "2026-11-16" })).rejects.toBeInstanceOf(ForbiddenError);

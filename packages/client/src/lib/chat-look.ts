@@ -21,6 +21,10 @@ export type ChatOpenAt = (typeof CHAT_OPEN_AT)[number];
 export const CHAT_TEXT_SIZES = ["xs", "sm", "md", "lg", "xl"] as const;
 export type ChatTextSize = (typeof CHAT_TEXT_SIZES)[number];
 
+/** Início's sections a person can hide. Mirrored in packages/engine/src/chat-prefs.ts. */
+export const HOME_SECTIONS = ["team", "tasks", "board", "since", "routines"] as const;
+export type HomeSection = (typeof HOME_SECTIONS)[number];
+
 /** Only what the person chose: a key not here follows the defaults below, so they can change for everyone else. */
 export interface ChatPrefs {
   channelStyle?: ChatStyle;
@@ -31,6 +35,8 @@ export interface ChatPrefs {
   textSize?: ChatTextSize;
   /** "Always send": a report an agent offers about the app goes with its reply, without asking me. */
   feedbackAuto?: boolean;
+  /** Início's sections I hid ("Personalizar"). */
+  homeHidden?: HomeSection[];
 }
 
 /**

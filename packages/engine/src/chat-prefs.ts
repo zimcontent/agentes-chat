@@ -15,6 +15,11 @@ export type ChatOpenAt = (typeof CHAT_OPEN_AT)[number];
 export const CHAT_TEXT_SIZES = ["xs", "sm", "md", "lg", "xl"] as const;
 export type ChatTextSize = (typeof CHAT_TEXT_SIZES)[number];
 
+/** Início's sections a person can hide ("Personalizar"): the team's agenda, their tasks, the board, since their last
+ * visit, the routines coming up. */
+export const HOME_SECTIONS = ["team", "tasks", "board", "since", "routines"] as const;
+export type HomeSection = (typeof HOME_SECTIONS)[number];
+
 /** Only what the person chose: a key not here keeps the app's default. */
 export interface ChatPrefs {
   channelStyle?: ChatStyle;
@@ -28,6 +33,8 @@ export interface ChatPrefs {
    * here because it is theirs alone, per workspace, on every device.
    */
   feedbackAuto?: boolean;
+  /** Início's sections this person hid; kept here for the same reason (theirs alone, per workspace, every device). */
+  homeHidden?: HomeSection[];
 }
 
 const oneOf = <T extends string>(list: readonly T[], v: unknown) => (list.includes(v as T) ? (v as T) : undefined);
@@ -43,6 +50,9 @@ export function chatPrefsOf(stored: unknown): ChatPrefs {
     openAt: oneOf(CHAT_OPEN_AT, o.openAt),
     textSize: oneOf(CHAT_TEXT_SIZES, o.textSize),
     feedbackAuto: typeof o.feedbackAuto === "boolean" ? o.feedbackAuto : undefined,
+    homeHidden: Array.isArray(o.homeHidden)
+      ? [...new Set(o.homeHidden.filter((s): s is HomeSection => HOME_SECTIONS.includes(s as HomeSection)))]
+      : undefined,
   };
   return Object.fromEntries(Object.entries(picks).filter(([, v]) => v !== undefined));
 }

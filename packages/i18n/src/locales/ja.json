@@ -4760,7 +4760,19 @@
       "mission": "ミッション · {{total}}件中{{done}}件"
     },
     "done": {
-      "title": "前回以降"
+      "title": "前回以降",
+      "none": "前回から新しいことはありません。"
+    },
+    "customize": {
+      "button": "カスタマイズ",
+      "title": "ホームに表示するもの",
+      "sections": {
+        "team": "チームの予定",
+        "tasks": "あなたのタスク",
+        "board": "あなた待ちと作業中",
+        "since": "前回の訪問以降",
+        "routines": "今後の予定"
+      }
     },
     "routines": {
       "title": "今後の予定"
@@ -4769,10 +4781,15 @@
       "title": "チームの予定",
       "who": "誰の予定",
       "everyone": "全員",
+      "now": "今",
       "late": "期限切れ",
       "today": "今日 · {{day}}",
       "tomorrow": "明日 · {{day}}",
       "wasDue": "期限 {{when}}",
+      "due": "期限 {{when}}",
+      "todayShort": "今日",
+      "tomorrowShort": "明日",
+      "nowCount_other": "今 {{count}} 件",
       "lateCount_other": "{{count}} 件期限切れ",
       "todayCount_other": "今日 {{count}} 件",
       "total_other": "{{count}} 件のタスク",

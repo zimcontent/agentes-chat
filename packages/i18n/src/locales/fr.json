@@ -5069,7 +5069,19 @@
       "mission": "Mission · {{done}} sur {{total}}"
     },
     "done": {
-      "title": "Depuis votre dernière visite"
+      "title": "Depuis votre dernière visite",
+      "none": "Rien de nouveau depuis votre dernière visite."
+    },
+    "customize": {
+      "button": "Personnaliser",
+      "title": "Ce que montre l'accueil",
+      "sections": {
+        "team": "Agenda de l'équipe",
+        "tasks": "Vos tâches",
+        "board": "Vous attend et Au travail",
+        "since": "Depuis votre dernière visite",
+        "routines": "À venir"
+      }
     },
     "routines": {
       "title": "À venir"
@@ -5078,10 +5090,17 @@
       "title": "Agenda de l'équipe",
       "who": "Agenda de qui",
       "everyone": "Tout le monde",
+      "now": "Maintenant",
       "late": "En retard",
       "today": "Aujourd'hui · {{day}}",
       "tomorrow": "Demain · {{day}}",
       "wasDue": "Prévue le {{when}}",
+      "due": "À rendre {{when}}",
+      "todayShort": "aujourd'hui",
+      "tomorrowShort": "demain",
+      "nowCount_one": "{{count}} maintenant",
+      "nowCount_many": "{{count}} maintenant",
+      "nowCount_other": "{{count}} maintenant",
       "lateCount_one": "{{count}} en retard",
       "lateCount_many": "{{count}} en retard",
       "lateCount_other": "{{count}} en retard",

@@ -1,4 +1,4 @@
-import type { Agent, AppNotification, Mission, Routine } from "@agenteschat/client";
+import type { AppNotification, Mission, Routine } from "@agenteschat/client";
 import {
   useAiStatus,
   useChannels,
@@ -7,11 +7,12 @@ import {
   useNotificationAction,
   useNotifications,
   useRoutines,
-  useSendDm,
+  useSetChatPrefs,
   useSetStart,
   useWorkingRuns,
 } from "@agenteschat/client";
 import { canTalk, listsAgent } from "@agenteschat/client/lib/audience";
+import { HOME_SECTIONS, type HomeSection } from "@agenteschat/client/lib/chat-look";
 import { firstName, relativeTime, timeLeft, upcomingAt } from "@agenteschat/client/lib/format";
 import { agentGrammar } from "@agenteschat/client/lib/grammar";
 import {
@@ -25,13 +26,14 @@ import {
 import { latestText } from "@agenteschat/client/lib/message-body";
 import { waitingParts, waitingText } from "@agenteschat/client/lib/missions";
 import { allItems, waitingCardOf, widgetNoticeOf } from "@agenteschat/client/lib/notifications";
+import { can } from "@agenteschat/client/lib/permissions";
 import { isRightHand } from "@agenteschat/client/lib/right-hand";
 import { dayPart } from "@agenteschat/client/lib/welcome";
 import { WORKING_POLL_MS, type WorkItem, workByAgent, workingNow } from "@agenteschat/client/lib/working";
 import { modeKey } from "@agenteschat/client/lib/workspace-mode";
-import { Composer, EmptyState, GroupHeading, Icon, PageHeader, Select } from "@agenteschat/ui";
-import { Link, useNavigate } from "@tanstack/react-router";
-import { type ReactNode, type RefObject, useRef, useState } from "react";
+import { Button, EmptyState, GroupHeading, Icon, Menu, MenuCheckboxItem, PageHeader, Select } from "@agenteschat/ui";
+import { Link } from "@tanstack/react-router";
+import type { ReactNode } from "react";
 import { Trans, useTranslation } from "react-i18next";
 import { AgentAvatar } from "@/components/AgentAvatar";
 import { useFirstRun } from "@/components/FirstRun";
@@ -40,6 +42,7 @@ import { useNotificationOpener } from "@/components/NotificationOpen";
 import { Face, Headline, SystemFace } from "@/components/NotificationParts";
 import { useOrg } from "@/components/org-context";
 import { HomeTasks } from "@/components/portal/HomeTasks";
+import { usePortalOn } from "@/components/SidebarSetup";
 import { TeamAgenda } from "@/components/TeamAgenda";
 import { HomeMural } from "@/components/widgets/HomeMural";
 import { WidgetNoticeActions, widgetNoticeLine } from "@/components/widgets/WidgetNotice";
@@ -53,9 +56,10 @@ import "./home.css";
 import "./notifications.css";
 
 /*
- * Início (ADR 0108): what waits on me, what my agents are doing, what got done and what comes next, from the lists
- * the inbox, Threads and Rotinas already read. A section shows only with something in it; a new workspace starts
- * with its first steps.
+ * Início (ADR 0108): on top, for owners and admins, what each person is doing and has to do in the next days; then my
+ * tasks, what waits on me and what my agents are doing (the board), what got done since my last visit and what comes
+ * next, from the lists the inbox, Threads and Rotinas already read. Each person hides the sections they don't want
+ * ("Personalizar", kept on their membership). Asking an agent is its own conversation: its face in the sidebar.
  */
 
 type Dir = ReturnType<typeof useDirectory>;
@@ -72,7 +76,8 @@ export function HomePage() {
   const active = useMissionList(org.id, { status: "active" });
   const routines = useRoutines(org.id);
   const dms = useDms(org.id);
-  const composer = useRef<HTMLTextAreaElement>(null);
+  const hidden = new Set(org.chatPrefs?.homeHidden ?? []);
+  const shows = (section: HomeSection) => !hidden.has(section);
 
   const listed = (id: string) => listsAgent(org, dir.agentById.get(id));
   const waiting = homeWaiting(allItems(waitingList.data), now);
@@ -117,7 +122,12 @@ export function HomePage() {
       <PageHeader
         title={t(`home.greeting.${dayPart(new Date(now).getHours())}`, { name: firstName(me.user.name) })}
         meta={loaded && summary}
-        actions={<StartChoice />}
+        actions={
+          <span className="home-head__acts">
+            <HomeCustomize hidden={hidden} />
+            <StartChoice />
+          </span>
+        }
       />
 
       {showSteps && lodi && (
@@ -141,87 +151,88 @@ export function HomePage() {
         </Link>
       )}
 
-      {/* Being deleted, the workspace takes no message: the line on top says why. */}
-      {askable.length > 0 && !org.deletion && <AskAgent agents={askable} composer={composer} />}
+      {/* Owners and admins: what each person is doing now and has to do today and in the next days. */}
+      {shows("team") && <TeamAgenda />}
 
       {/* The person's own cards of the approval portal (ADR 9001 §8), only where the server has one and they have some. */}
-      <HomeTasks />
+      {shows("tasks") && <HomeTasks />}
 
-      {/* Owners and admins: what each person and agent has to do today and in the next days. */}
-      <TeamAgenda />
-
-      <HomeMural
-        orgId={org.id}
-        waiting={{
-          title: t("home.waiting.title"),
-          count: waitingCount,
-          action:
-            waitingCount > HOME_ROWS ? (
-              <Link className="home-sec__more" to="/org/$orgId/notifications" params={{ orgId: org.id }}>
-                {t("home.seeAll")}
-              </Link>
-            ) : null,
-          body:
-            waitingCount > 0 ? (
-              <ul className="home-list">
-                {[
-                  ...waiting.map((n) =>
-                    widgetNoticeOf(n) ? (
-                      <WidgetNoticeRow key={n.id} n={n} dir={dir} now={now} />
-                    ) : (
-                      <InboxRow key={n.id} n={n} dir={dir} now={now} />
+      {shows("board") && (
+        <HomeMural
+          orgId={org.id}
+          waiting={{
+            title: t("home.waiting.title"),
+            count: waitingCount,
+            action:
+              waitingCount > HOME_ROWS ? (
+                <Link className="home-sec__more" to="/org/$orgId/notifications" params={{ orgId: org.id }}>
+                  {t("home.seeAll")}
+                </Link>
+              ) : null,
+            body:
+              waitingCount > 0 ? (
+                <ul className="home-list">
+                  {[
+                    ...waiting.map((n) =>
+                      widgetNoticeOf(n) ? (
+                        <WidgetNoticeRow key={n.id} n={n} dir={dir} now={now} />
+                      ) : (
+                        <InboxRow key={n.id} n={n} dir={dir} now={now} />
+                      ),
                     ),
-                  ),
-                  ...failures.map((n) => <WidgetNoticeRow key={n.id} n={n} dir={dir} now={now} />),
-                  ...missions.map((m) => <MissionRow key={m.id} m={m} dir={dir} />),
-                  ...mentions.map((n) => <InboxRow key={n.id} n={n} dir={dir} now={now} />),
-                ].slice(0, HOME_ROWS)}
-              </ul>
-            ) : calm ? (
-              <EmptyState
-                size="panel"
-                agent={lookOf(askable[0] ?? dir.agents[0]) ?? true}
-                who={askable[0] ?? dir.agents[0]}
-                mood="deal"
-                title={t("home.calm.title")}
-              >
-                {t("home.calm.text")}
-              </EmptyState>
-            ) : loaded ? (
-              <p className="wg__empty">{t("home.summary.calm")}</p>
-            ) : null,
-          horizon: !(waitingCount === 0 && calm),
-        }}
-        working={{
-          title: t("home.working.title"),
-          count: working.length,
-          action: (
-            <Link className="home-sec__more" to="/org/$orgId/task-manager" params={{ orgId: org.id }}>
-              {t("taskManager.actions.openManager")}
-            </Link>
-          ),
-          body:
-            working.length > 0 ? (
-              <ul className="home-list">
-                {working.slice(0, HOME_ROWS).map((w) => (
-                  <WorkRow key={w.key} w={w} dir={dir} now={now} />
-                ))}
-              </ul>
-            ) : (
-              <p className="wg__empty">{t("home.working.none")}</p>
+                    ...failures.map((n) => <WidgetNoticeRow key={n.id} n={n} dir={dir} now={now} />),
+                    ...missions.map((m) => <MissionRow key={m.id} m={m} dir={dir} />),
+                    ...mentions.map((n) => <InboxRow key={n.id} n={n} dir={dir} now={now} />),
+                  ].slice(0, HOME_ROWS)}
+                </ul>
+              ) : calm ? (
+                <EmptyState
+                  size="panel"
+                  agent={lookOf(askable[0] ?? dir.agents[0]) ?? true}
+                  who={askable[0] ?? dir.agents[0]}
+                  mood="deal"
+                  title={t("home.calm.title")}
+                >
+                  {t("home.calm.text")}
+                </EmptyState>
+              ) : loaded ? (
+                <p className="wg__empty">{t("home.summary.calm")}</p>
+              ) : null,
+            horizon: !(waitingCount === 0 && calm),
+          }}
+          working={{
+            title: t("home.working.title"),
+            count: working.length,
+            action: (
+              <Link className="home-sec__more" to="/org/$orgId/task-manager" params={{ orgId: org.id }}>
+                {t("taskManager.actions.openManager")}
+              </Link>
             ),
-        }}
-      />
+            body:
+              working.length > 0 ? (
+                <ul className="home-list">
+                  {working.slice(0, HOME_ROWS).map((w) => (
+                    <WorkRow key={w.key} w={w} dir={dir} now={now} />
+                  ))}
+                </ul>
+              ) : (
+                <p className="wg__empty">{t("home.working.none")}</p>
+              ),
+          }}
+        />
+      )}
 
-      {done.length > 0 && (
+      {shows("since") && loaded && (done.length > 0 || !showSteps) && (
         <Section title={t("home.done.title")} count={done.length} more={done.length > HOME_ROWS}>
-          {done.slice(0, HOME_ROWS).map((n) => (
-            <InboxRow key={n.id} n={n} dir={dir} now={now} />
-          ))}
+          {done.length > 0 ? (
+            done.slice(0, HOME_ROWS).map((n) => <InboxRow key={n.id} n={n} dir={dir} now={now} />)
+          ) : (
+            <li className="home-list__none">{t("home.done.none")}</li>
+          )}
         </Section>
       )}
 
-      {upcoming.length > 0 && (
+      {shows("routines") && upcoming.length > 0 && (
         <Section title={t("home.routines.title")} to="routines">
           {upcoming.map((r) => (
             <RoutineRow key={r.id} r={r} dir={dir} now={now} />
@@ -274,59 +285,42 @@ function StartChoice() {
   );
 }
 
-/** "Peça a um agente": the message goes to the agent's DM, which opens with it sent. */
-function AskAgent({ agents, composer }: { agents: Agent[]; composer: RefObject<HTMLTextAreaElement | null> }) {
+/** "Personalizar": which of Início's sections this person sees, on every device. */
+function HomeCustomize({ hidden }: { hidden: Set<HomeSection> }) {
   const { t } = useTranslation();
   const { org } = useOrg();
-  const navigate = useNavigate();
-  const ask = useSendDm(org.id);
-  const [picked, setPicked] = useState<string | null>(null);
-  const [text, setText] = useState("");
-  const agent = agents.find((a) => a.id === picked) ?? agents[0];
-  if (!agent) return null;
-  const g = agentGrammar(agent.name);
+  const save = useSetChatPrefs(org.id);
+  const portal = usePortalOn();
+  // Only the sections that could show here: the team's agenda for owners and admins, the tasks where a portal is.
+  const offered = HOME_SECTIONS.filter((s) =>
+    s === "team" ? can(org, "administrator") : s === "tasks" ? portal : true,
+  );
+  const toggle = (section: HomeSection, show: boolean) => {
+    const next = new Set(hidden);
+    if (show) next.delete(section);
+    else next.add(section);
+    save.mutate({ homeHidden: HOME_SECTIONS.filter((s) => next.has(s)) });
+  };
   return (
-    <section className="home-ask" aria-label={t("home.ask.title")}>
-      <Composer
-        value={text}
-        onChange={setText}
-        label={t("home.ask.label", g)}
-        placeholder={t("home.ask.placeholder", g)}
-        sendLabel={t("home.ask.send")}
-        textareaRef={composer}
-        sendBlocked={ask.isPending}
-        onSend={(body) =>
-          ask.mutate(
-            { agentId: agent.id, body },
-            {
-              onSuccess: () => {
-                setText("");
-                void navigate({ to: "/org/$orgId/dm/agent/$agentId", params: { orgId: org.id, agentId: agent.id } });
-              },
-            },
-          )
-        }
-        pills={
-          <Select
-            size="sm"
-            aria-label={t("home.ask.agent")}
-            value={agent.id}
-            onValueChange={setPicked}
-            options={agents.map((a) => ({
-              value: a.id,
-              label: a.name,
-              leading: <AgentAvatar agentId={a.id} name={a.name} size="sm" />,
-            }))}
-            renderValue={(o) => (
-              <span className="home-ask__agent">
-                <AgentAvatar agentId={o.value} name={o.label} size="xs" />
-                {o.label}
-              </span>
-            )}
-          />
-        }
-      />
-    </section>
+    <Menu
+      align="end"
+      label={t("home.customize.title")}
+      trigger={
+        <Button size="sm" icon="settings">
+          {t("home.customize.button")}
+        </Button>
+      }
+    >
+      {offered.map((section) => (
+        <MenuCheckboxItem
+          key={section}
+          checked={!hidden.has(section)}
+          onCheckedChange={(show) => toggle(section, show)}
+        >
+          {t(`home.customize.sections.${section}`)}
+        </MenuCheckboxItem>
+      ))}
+    </Menu>
   );
 }
 

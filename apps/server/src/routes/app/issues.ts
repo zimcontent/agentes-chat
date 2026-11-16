@@ -78,7 +78,10 @@ const AgendaTask = z
     title: z.string(),
     status: z.enum(["todo", "in_progress", "in_review"]),
     priority: Priority,
-    dueDate: z.string().openapi({ description: "`YYYY-MM-DD`; before `from` when it is late." }),
+    dueDate: z
+      .string()
+      .nullable()
+      .openapi({ description: "`YYYY-MM-DD`; before `from` when it is late; null for one under way with no date." }),
     assignee: Actor,
     project: z.object({ name: z.string(), color: z.string() }).nullable(),
     blocked: z.boolean(),

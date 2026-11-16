@@ -4773,7 +4773,19 @@
       "mission": "Misi · {{done}} dari {{total}}"
     },
     "done": {
-      "title": "Sejak terakhir kamu di sini"
+      "title": "Sejak terakhir kamu di sini",
+      "none": "Tidak ada yang baru sejak kunjungan terakhirmu."
+    },
+    "customize": {
+      "button": "Sesuaikan",
+      "title": "Yang ditampilkan Beranda",
+      "sections": {
+        "team": "Agenda tim",
+        "tasks": "Tugasmu",
+        "board": "Menunggumu dan Sedang bekerja",
+        "since": "Sejak kunjungan terakhirmu",
+        "routines": "Akan datang"
+      }
     },
     "routines": {
       "title": "Akan datang"
@@ -4782,10 +4794,15 @@
       "title": "Agenda tim",
       "who": "Agenda siapa",
       "everyone": "Semua",
+      "now": "Sekarang",
       "late": "Terlambat",
       "today": "Hari ini · {{day}}",
       "tomorrow": "Besok · {{day}}",
       "wasDue": "Tenggat {{when}}",
+      "due": "Tenggat {{when}}",
+      "todayShort": "hari ini",
+      "tomorrowShort": "besok",
+      "nowCount_other": "{{count}} sekarang",
       "lateCount_other": "{{count}} terlambat",
       "todayCount_other": "{{count}} hari ini",
       "total_other": "{{count}} tugas",

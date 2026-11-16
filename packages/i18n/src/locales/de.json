@@ -4926,7 +4926,19 @@
       "mission": "Mission · {{done}} von {{total}}"
     },
     "done": {
-      "title": "Seit deinem letzten Besuch"
+      "title": "Seit deinem letzten Besuch",
+      "none": "Nichts Neues seit deinem letzten Besuch."
+    },
+    "customize": {
+      "button": "Anpassen",
+      "title": "Was die Startseite zeigt",
+      "sections": {
+        "team": "Team-Agenda",
+        "tasks": "Deine Aufgaben",
+        "board": "Wartet auf dich und Arbeitet gerade",
+        "since": "Seit deinem letzten Besuch",
+        "routines": "Demnächst"
+      }
     },
     "routines": {
       "title": "Demnächst"
@@ -4935,10 +4947,16 @@
       "title": "Team-Agenda",
       "who": "Wessen Agenda",
       "everyone": "Alle",
+      "now": "Jetzt",
       "late": "Überfällig",
       "today": "Heute · {{day}}",
       "tomorrow": "Morgen · {{day}}",
       "wasDue": "Fällig am {{when}}",
+      "due": "Fällig {{when}}",
+      "todayShort": "heute",
+      "tomorrowShort": "morgen",
+      "nowCount_one": "{{count}} jetzt",
+      "nowCount_other": "{{count}} jetzt",
       "lateCount_one": "{{count}} überfällig",
       "lateCount_other": "{{count}} überfällig",
       "todayCount_one": "{{count}} heute",

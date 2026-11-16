@@ -4929,7 +4929,19 @@
       "mission": "Missie · {{done}} van {{total}}"
     },
     "done": {
-      "title": "Sinds je hier laatst was"
+      "title": "Sinds je hier laatst was",
+      "none": "Niets nieuws sinds je laatste bezoek."
+    },
+    "customize": {
+      "button": "Aanpassen",
+      "title": "Wat de startpagina toont",
+      "sections": {
+        "team": "Teamagenda",
+        "tasks": "Jouw taken",
+        "board": "Wacht op jou en Nu bezig",
+        "since": "Sinds je laatste bezoek",
+        "routines": "Binnenkort"
+      }
     },
     "routines": {
       "title": "Binnenkort"
@@ -4938,10 +4950,16 @@
       "title": "Teamagenda",
       "who": "Wiens agenda",
       "everyone": "Iedereen",
+      "now": "Nu",
       "late": "Te laat",
       "today": "Vandaag · {{day}}",
       "tomorrow": "Morgen · {{day}}",
       "wasDue": "Was voor {{when}}",
+      "due": "Klaar op {{when}}",
+      "todayShort": "vandaag",
+      "tomorrowShort": "morgen",
+      "nowCount_one": "{{count}} nu",
+      "nowCount_other": "{{count}} nu",
       "lateCount_one": "{{count}} te laat",
       "lateCount_other": "{{count}} te laat",
       "todayCount_one": "{{count}} vandaag",

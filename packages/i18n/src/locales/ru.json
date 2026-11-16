@@ -5238,7 +5238,19 @@
       "mission": "Миссия · {{done}} из {{total}}"
     },
     "done": {
-      "title": "С вашего прошлого визита"
+      "title": "С вашего прошлого визита",
+      "none": "Ничего нового с прошлого визита."
+    },
+    "customize": {
+      "button": "Настроить",
+      "title": "Что показывает главная",
+      "sections": {
+        "team": "План команды",
+        "tasks": "Ваши задачи",
+        "board": "Ждёт вас и Сейчас в работе",
+        "since": "С прошлого визита",
+        "routines": "Скоро"
+      }
     },
     "routines": {
       "title": "Скоро"
@@ -5247,10 +5259,18 @@
       "title": "План команды",
       "who": "Чей план",
       "everyone": "Все",
+      "now": "Сейчас",
       "late": "Просрочено",
       "today": "Сегодня · {{day}}",
       "tomorrow": "Завтра · {{day}}",
       "wasDue": "Срок был {{when}}",
+      "due": "Срок {{when}}",
+      "todayShort": "сегодня",
+      "tomorrowShort": "завтра",
+      "nowCount_one": "{{count}} сейчас",
+      "nowCount_few": "{{count}} сейчас",
+      "nowCount_many": "{{count}} сейчас",
+      "nowCount_other": "{{count}} сейчас",
       "lateCount_one": "{{count}} просрочена",
       "lateCount_few": "{{count}} просрочены",
       "lateCount_many": "{{count}} просрочено",

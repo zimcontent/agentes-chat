@@ -4763,7 +4763,19 @@
       "mission": "专项任务 · {{done}} / {{total}}"
     },
     "done": {
-      "title": "自你上次来过之后"
+      "title": "自你上次来过之后",
+      "none": "自上次访问以来没有新内容。"
+    },
+    "customize": {
+      "button": "自定义",
+      "title": "主页显示的内容",
+      "sections": {
+        "team": "团队日程",
+        "tasks": "你的任务",
+        "board": "等你处理与正在工作",
+        "since": "自上次访问以来",
+        "routines": "即将到来"
+      }
     },
     "routines": {
       "title": "即将进行"
@@ -4772,10 +4784,15 @@
       "title": "团队日程",
       "who": "谁的日程",
       "everyone": "所有人",
+      "now": "现在",
       "late": "已逾期",
       "today": "今天 · {{day}}",
       "tomorrow": "明天 · {{day}}",
       "wasDue": "截止 {{when}}",
+      "due": "截止 {{when}}",
+      "todayShort": "今天",
+      "tomorrowShort": "明天",
+      "nowCount_other": "现在 {{count}} 项",
       "lateCount_other": "{{count}} 项逾期",
       "todayCount_other": "今天 {{count}} 项",
       "total_other": "{{count}} 项任务",

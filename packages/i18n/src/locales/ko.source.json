@@ -12060,6 +12060,30 @@
   "home.done.title": {
     "value": "Since you were last here"
   },
+  "home.done.none": {
+    "value": "Nothing new since your last visit."
+  },
+  "home.customize.button": {
+    "value": "Customize"
+  },
+  "home.customize.title": {
+    "value": "What Home shows"
+  },
+  "home.customize.sections.team": {
+    "value": "Team agenda"
+  },
+  "home.customize.sections.tasks": {
+    "value": "Your tasks"
+  },
+  "home.customize.sections.board": {
+    "value": "Waiting on you and Working now"
+  },
+  "home.customize.sections.since": {
+    "value": "Since you were last here"
+  },
+  "home.customize.sections.routines": {
+    "value": "Coming up"
+  },
   "home.routines.title": {
     "value": "Coming up"
   },
@@ -12072,6 +12096,9 @@
   "home.agenda.everyone": {
     "value": "Everyone"
   },
+  "home.agenda.now": {
+    "value": "Now"
+  },
   "home.agenda.late": {
     "value": "Late"
   },
@@ -12083,6 +12110,21 @@
   },
   "home.agenda.wasDue": {
     "value": "Was due {{when}}"
+  },
+  "home.agenda.due": {
+    "value": "Due {{when}}"
+  },
+  "home.agenda.todayShort": {
+    "value": "today"
+  },
+  "home.agenda.tomorrowShort": {
+    "value": "tomorrow"
+  },
+  "home.agenda.nowCount": {
+    "value": {
+      "one": "{{count}} now",
+      "other": "{{count}} now"
+    }
   },
   "home.agenda.lateCount": {
     "value": {

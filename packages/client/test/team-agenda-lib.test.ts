@@ -2,11 +2,17 @@ import { describe, expect, test } from "bun:test";
 import type { TeamAgendaTask } from "../src/api/types";
 import { agendaByAssignee, daysBetween, localDay } from "../src/lib/team-agenda";
 
-const task = (id: string, who: string, dueDate: string, type: "person" | "agent" = "person"): TeamAgendaTask => ({
+const task = (
+  id: string,
+  who: string,
+  dueDate: string | null,
+  type: "person" | "agent" = "person",
+  status: TeamAgendaTask["status"] = "todo",
+): TeamAgendaTask => ({
   id,
   number: Number(id),
   title: id,
-  status: "todo",
+  status,
   priority: "normal",
   dueDate,
   assignee: { type, id: who },
@@ -27,13 +33,17 @@ describe("team agenda", () => {
           task("4", "ronny", "2026-11-14"),
           task("5", "ronny", "2026-11-16"),
           task("6", "ana", "2026-11-19"),
+          task("7", "ronny", null, "person", "in_progress"),
+          task("8", "ronny", "2026-11-16", "person", "in_review"),
         ],
       },
       (a) => a.id,
     );
     expect(people.map((p) => p.assignee.id)).toEqual(["ronny", "ana", "bot"]);
-    expect(people[0]?.days.map((d) => d.key)).toEqual(["late", "2026-11-16", "2026-11-17"]);
-    expect(people[0]).toMatchObject({ count: 3, late: 1 });
+    // What is under way goes in "now" only, whatever its date.
+    expect(people[0]?.days.map((d) => d.key)).toEqual(["now", "late", "2026-11-16", "2026-11-17"]);
+    expect(people[0]?.days[0]?.tasks.map((x) => x.id)).toEqual(["7", "8"]);
+    expect(people[0]).toMatchObject({ count: 5, now: 2, late: 1 });
   });
 
   test("days are the person's own", () => {
