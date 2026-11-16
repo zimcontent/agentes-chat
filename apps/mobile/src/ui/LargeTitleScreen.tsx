@@ -59,6 +59,11 @@ export interface LargeTitleScreenProps {
    * and the large title under it names the screen.
    */
   brand?: boolean;
+  /**
+   * No large title: the signature in the bar is all the screen's name (Início, where the tools lead). The title still
+   * names the screen for VoiceOver and the bar's back button.
+   */
+  bare?: boolean;
 }
 
 /**
@@ -86,6 +91,7 @@ export function LargeTitleScreen({
   grouped = false,
   collapsed = false,
   brand = false,
+  bare = false,
 }: LargeTitleScreenProps) {
   const { colors } = useTheme();
   const focused = useIsFocused();
@@ -148,7 +154,7 @@ export function LargeTitleScreen({
             ) : null}
             {/* The title shows at once when the screen opens; it fades only when it comes back after a search. */}
             <LayoutAnimationConfig skipEntering>
-              {collapsed ? null : (
+              {collapsed || bare ? null : (
                 <Animated.View entering={FadeIn.duration(200)} exiting={FadeOutUp.duration(180)}>
                   <Animated.View style={[styles.head, below ? styles.headTight : null, titleFade]}>
                     <Text variant="display" accessibilityRole="header" numberOfLines={1}>

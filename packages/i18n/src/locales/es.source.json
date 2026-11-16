@@ -5342,7 +5342,10 @@
   "sidebarAgents.order": {
     "value": "Order"
   },
-  "sidebarAgents.sort.workspace": {
+  "sidebarAgents.sort.recent": {
+    "value": "Latest message"
+  },
+  "sidebarAgents.sort.arranged": {
     "value": "Workspace's order"
   },
   "sidebarAgents.sort.mine": {

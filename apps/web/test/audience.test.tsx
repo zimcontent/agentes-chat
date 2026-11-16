@@ -144,7 +144,7 @@ describe("Quem pode falar com a Ada", () => {
     const withDm = onlyOwner();
     seedDm(withDm, { type: "agent", id: ADA_ID });
     // An owner lists the agents that don't talk to them only when they ask to (Agentes' ⋯).
-    withDm.sidebarView = { agentSort: "workspace", showAllAgents: true, pins: null };
+    withDm.sidebarView = { agentSort: "arranged", showAllAgents: true, pins: null };
     await go(`c/${ENG_ID}`, withDm);
     const nav = screen().getByRole("navigation", { name: "Navegação do workspace" });
     const sidebarAda = within(nav).getByRole("link", { name: /^Ada/ });

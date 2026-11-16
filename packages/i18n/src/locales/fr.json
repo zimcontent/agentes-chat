@@ -2210,7 +2210,8 @@
     "add": "Nouvel agent ou service",
     "order": "Ordre",
     "sort": {
-      "workspace": "Celui de l’espace de travail",
+      "recent": "Dernier message",
+      "arranged": "Celui de l’espace de travail",
       "mine": "Les miens d’abord",
       "working": "Au travail d’abord"
     },

@@ -14,6 +14,15 @@ import { haptics, TabFoot, useTheme } from "@/ui";
 import { type TabGlyph, tabGlyphKey } from "@/ui/tabGlyphs";
 import { tabGlyphFamily } from "@/ui/tabIcons";
 
+/**
+ * The bar's own short names, one word each so the five sit evenly (this fork's words, Portuguese and English; any
+ * other language reads English). Each screen keeps its full title ("Esperando você", "Configurações").
+ */
+const TAB_WORDS = {
+  pt: { activity: "Pendentes", you: "Ajustes" },
+  en: { activity: "Pending", you: "Settings" },
+} as const;
+
 const TABS: { name: string; glyph: TabGlyph; label: string }[] = [
   { name: "(chats)", glyph: "home", label: "shell.home" },
   { name: "activity", glyph: "waiting", label: "shell.waiting" },
@@ -24,14 +33,16 @@ const TABS: { name: string; glyph: TabGlyph; label: string }[] = [
 
 /**
  * The web sidebar's five rows, in its order, in the system tab bar (UITabBarController on iOS, Liquid Glass on iOS 26;
- * Material bottom navigation on Android): Início, Esperando você, Portal, Revisão and Configurações. Everything else
+ * Material bottom navigation on Android): Início, Pendentes (Esperando você), Portal, Revisão and Ajustes
+ * (Configurações), each a short word. Everything else
  * (WhatsApp, Mídia, Drive, Agentes, Tarefas, Threads, Buscar…) is in Início's tools, as the web's grid. Our own glyphs
  * (the sidebar's icons; outline, filled or bolder when selected), drawn as template images the bar tints. Badges: what
  * waits on you on Esperando você, unread conversations on Início, videos to review on Revisão. Every tab holds a
  * stack with a native header. Portal shows only where the approval portal is this workspace's.
  */
 export default function TabsLayout() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const short = TAB_WORDS[i18n.language?.startsWith("pt") ? "pt" : "en"];
   const { colors } = useTheme();
   const unread = useUnreadConversations();
   const unreadThreads = useUnreadThreads();
@@ -81,7 +92,13 @@ export default function TabsLayout() {
         ) : null}
         {TABS.map((tab) => {
           const label =
-            tab.name === "reviews" ? reviewWords.title : tab.name === "portal" ? portalWords.title : t(tab.label);
+            tab.name === "reviews"
+              ? reviewWords.title
+              : tab.name === "portal"
+                ? portalWords.title
+                : tab.name === "activity" || tab.name === "you"
+                  ? short[tab.name]
+                  : t(tab.label);
           const count = counts[tab.name] ?? 0;
           const badge = tabBadge(count);
           return (

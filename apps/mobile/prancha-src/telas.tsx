@@ -132,10 +132,10 @@ function Frame({
 /** The system tab bar, as the app sets it (`(tabs)/_layout.tsx`): the web sidebar's five, its own glyphs. */
 const TAB_LABEL: Record<TabGlyph, string> = {
   home: "Início",
-  waiting: "Esperando você",
+  waiting: "Pendentes",
   portal: "Portal",
   review: "Revisão",
-  settings: "Configurações",
+  settings: "Ajustes",
 };
 const TAB_BADGES: Partial<Record<TabGlyph, number>> = { home: 3, waiting: 2, review: 4 };
 
@@ -174,24 +174,13 @@ export function TabBar({ on }: { on: string }) {
   );
 }
 
-/** The tabs' bar: the workspace (Você on its corner) on the left, DougBot's signature in the middle, buttons right. */
-export function TabHeader({ search = false }: { search?: boolean }) {
-  const { colors } = useTheme();
-  const round = (icon: "search" | "plus") => (
-    <View style={[styles.barButton, { backgroundColor: colors.raised, borderColor: colors.line }]}>
-      <Icon name={icon} size={18} color={colors.ink} />
-    </View>
-  );
+/** The tabs' bar: DougBot's signature alone in the middle (doug-0014). */
+export function TabHeader() {
   return (
     <View style={styles.tabHeader}>
-      <View style={styles.barSide}>
-        <GroupPhoto icon={foto("elmx")} size={34} />
-      </View>
+      <View style={styles.barSide} />
       <Assinatura size={15} />
-      <View style={[styles.barSide, styles.barRight]}>
-        {search ? round("search") : null}
-        {round("plus")}
-      </View>
+      <View style={styles.barSide} />
     </View>
   );
 }
@@ -273,9 +262,10 @@ function GroupRow({
 const TOOLS: { key: string; label: string; icon: string; count?: number; green?: boolean }[] = [
   { key: "wa", label: "WhatsApp", icon: "message", green: true, count: 5 },
   { key: "midia", label: "Mídia", icon: "image" },
+  { key: "busca", label: "Buscar", icon: "search" },
+  { key: "tarefas", label: "Tarefas", icon: "checkc", count: 2 },
   { key: "drive", label: "Drive", icon: "drive" },
   { key: "agentes", label: "Agentes", icon: "agent" },
-  { key: "tarefas", label: "Tarefas", icon: "checkc", count: 2 },
   { key: "threads", label: "Threads", icon: "reply" },
   { key: "rotinas", label: "Rotinas", icon: "clock" },
   { key: "wiki", label: "Wiki", icon: "book" },
@@ -284,7 +274,7 @@ const TOOLS: { key: string; label: string; icon: string; count?: number; green?:
 
 function Ferramentas() {
   const { colors, shadows } = useTheme();
-  const front = [...TOOLS.slice(0, 5), { key: "mais", label: "Mais", icon: "more", count: 0, green: false }];
+  const front = [...TOOLS.slice(0, 4), { key: "mais", label: "Mais", icon: "more", count: 0, green: false }];
   return (
     <View style={styles.tools}>
       {front.map((t) => (
@@ -361,22 +351,31 @@ function Widgets() {
 function Inicio() {
   const { colors } = useTheme();
   return (
-    <Frame title="Início" tabs="home" header={<TabHeader search />}>
-      <View style={styles.pad}>
-        <Text variant="title2">Bom dia, Gabriel</Text>
-        <View style={styles.rowGap8}>
-          <InkOrbit size={13} />
-          <Text variant="subhead" tone="muted">
-            SONY está editando o reels da LEXEER
-          </Text>
-        </View>
-      </View>
+    <Frame tabs="home" header={<TabHeader />}>
       <Ferramentas />
       <Widgets />
-      <SECTION count={5}>Agentes</SECTION>
-      <AgentRow a={DOUG} sub="Resumi o dia dos grupos para você." time="09:12" unread={2} presence="online" />
-      <AgentRow a={SONY} sub="Editando o reels da LEXEER" time="09:40" mode="run" divider />
+      <SECTION count={2}>Esperando sua resposta</SECTION>
+      <ListRow
+        leading={<AgentAvatar agent={SONY} size={50} name={SONY.name} />}
+        title="SONY espera sua resposta"
+        titleLines={2}
+        time="5,4 h"
+        chevron
+      />
+      <ListRow
+        leading={<AgentAvatar agent={ROSA} size={50} name={ROSA.name} />}
+        title="ROSA espera sua aprovação"
+        titleLines={2}
+        time="12 min"
+        chevron
+        divider
+      />
+      <SECTION count={6}>Agentes</SECTION>
+      <AgentRow a={JUNIN} sub="Subi o ajuste do formulário." time="09:52" presence="online" />
+      <AgentRow a={SONY} sub="esperando você · 5,4 h" time="09:40" divider />
+      <AgentRow a={DOUG} sub="Resumi o dia dos grupos para você." time="09:12" unread={2} presence="online" divider />
       <AgentRow a={ROSA} sub="Pergunta: qual das duas capas?" time="08:55" mode="think" divider />
+      <AgentRow a={KIARA} sub="Fechei o orçamento de novembro." time="Ontem" divider />
       <SECTION count={3}>Grupos</SECTION>
       <GroupRow name="LEXEER" icon={foto("lexeer")} sub="Doug BOSS: aprovado, pode subir." time="09:30" />
       <GroupRow
@@ -1024,15 +1023,6 @@ const styles = StyleSheet.create({
     height: 44,
   },
   barSide: { width: 88, flexDirection: "row", alignItems: "center", gap: 8 },
-  barRight: { justifyContent: "flex-end" },
-  barButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    borderWidth: 0.5,
-    alignItems: "center",
-    justifyContent: "center",
-  },
   widgets: { flexDirection: "row", gap: 8, paddingHorizontal: 16, paddingTop: 12, paddingBottom: 4 },
   widget: { flex: 1, minHeight: 92, borderRadius: 16, padding: 10, gap: 4 },
   widgetHead: { flexDirection: "row", alignItems: "center", gap: 4 },

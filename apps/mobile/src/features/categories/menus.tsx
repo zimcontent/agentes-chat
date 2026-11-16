@@ -44,17 +44,13 @@ export function useCategoryMenus() {
     },
     [sheet],
   );
-  // What a row's long press offers: pin it on top (a channel, an agent's or a person's DM) or take it off, and move
-  // a channel (only where `movesChannel`). The same list fills the app's sheet and iOS's own menu.
+  // What a channel's long press offers: pin it on top or take it off, and move it (only where `movesChannel`). The
+  // same list fills the app's sheet and iOS's own menu. An agent's or a person's DM has none: those lists go by the
+  // latest message alone (docs/adr/doug-0014-latest-first.md).
   const rowActions = (r: ConversationRow): RowAction[] => {
     const channel = r.kind === "channel" ? channels.find((c) => c.id === r.channelId) : undefined;
-    const pin =
-      r.kind === "channel"
-        ? { kind: "channels" as const, id: r.channelId }
-        : r.kind === "dm"
-          ? { kind: r.with.type === "agent" ? ("agents" as const) : ("people" as const), id: r.with.id }
-          : null;
-    if (!pin || (r.kind === "channel" && !channel)) return [];
+    const pin = r.kind === "channel" ? { kind: "channels" as const, id: r.channelId } : null;
+    if (!pin || !channel) return [];
     const pinned = pins.isPinned(pin.kind, pin.id);
     return [
       {

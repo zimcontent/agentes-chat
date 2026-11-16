@@ -49,7 +49,7 @@ describe("the right hand's row in the sidebar", () => {
     seedDm(state, { type: "agent", id: LODI_ID }, { ago: 2 });
     seedDm(state, { type: "agent", id: ADA_ID }, { ago: 5 });
     state.sidebarView = {
-      agentSort: "workspace",
+      agentSort: "arranged",
       showAllAgents: false,
       pins: { agents: [ADA_ID], channels: [], people: [] },
     };

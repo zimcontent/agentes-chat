@@ -2301,7 +2301,7 @@ export const en = {
     options: "Agents options",
     add: "New agent or department",
     order: "Order",
-    sort: { workspace: "Workspace's order", mine: "Mine first", working: "Working first" },
+    sort: { recent: "Latest message", arranged: "Workspace's order", mine: "Mine first", working: "Working first" },
     showAll: "Show agents that don't talk to me",
     showHidden: "Show hidden agents ({{count}})",
     hide: "Hide from the sidebar",

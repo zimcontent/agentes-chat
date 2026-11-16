@@ -2092,7 +2092,8 @@
     "add": "新建智能体或部门",
     "order": "顺序",
     "sort": {
-      "workspace": "工作区的顺序",
+      "recent": "最新消息",
+      "arranged": "工作区的顺序",
       "mine": "我的优先",
       "working": "工作中优先"
     },

@@ -9,6 +9,7 @@ import { Icon, type IconName, Text, useTheme } from "@/ui";
 import { router } from "@/ui/navigation";
 import { openIssuesWithMe } from "../me/logic";
 import { useMediaOn } from "../media-gen/logic";
+import { mayCreate } from "../new/logic";
 import { useColors, useMeId } from "../shared/hooks";
 import { pickOne } from "../shared/PickerSheet";
 import { MentionCount } from "../shared/parts";
@@ -37,18 +38,27 @@ function WhatsAppMark({ size }: { size: number }) {
   );
 }
 
-/** Six to the row (five tools and "Mais"), each a small plate with its name under it. */
-const ROW = 6;
+/** This fork's own words, beside it in Portuguese and English (any other language reads English). */
+const WORDS = {
+  pt: { search: "Buscar", newAgent: "Novo agente", newChat: "Nova conversa" },
+  en: { search: "Search", newAgent: "New agent", newChat: "New conversation" },
+} as const;
+
+/** Up to five to the row (four tools and "Mais"), each a small plate with its name under it. */
+const FRONT = 4;
 const PLATE = 40;
 const GLYPH = 18;
 
 /**
- * Início's tools, in place of the widgets: everything the web keeps beside its five sidebar rows, summed up as one
- * row of small plates under the greeting: the first five, and "Mais" with the rest in a list. WhatsApp and Mídia only where the server has them
- * (as the web's sidebar); Threads only in a team's workspace (a personal one keeps it in Configurações).
+ * Início's tools: one row of small plates under the bar. In front what the team opens all day (WhatsApp, Mídia,
+ * Buscar, Tarefas), the rest behind "Mais", which opens with "Novo agente" and "Nova conversa" (the bar keeps no "+")
+ * and holds Threads, Drive and Agentes (the agents are already Início's list). WhatsApp and Mídia only where the server
+ * has them (as the web's sidebar), their places taken by the next tools when they're off; Threads only in a team's
+ * workspace (a personal one keeps it in Ajustes).
  */
 export function HomeTools() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const w = WORDS[i18n.language?.startsWith("pt") ? "pt" : "en"];
   const { org, orgId } = useOrg();
   const meId = useMeId();
   const whatsapp = useWhatsAppShown();
@@ -60,8 +70,7 @@ export function HomeTools() {
       ? [{ key: "whatsapp", label: "WhatsApp", href: "/whatsapp", icon: <WhatsAppMark size={GLYPH} /> }]
       : []),
     ...(media ? [{ key: "media", label: t("shell.media"), href: "/media", icon: "image" as const }] : []),
-    { key: "drive", label: t("mobile.me.drive"), href: "/drive", icon: "drive" },
-    { key: "team", label: t("mobile.agents.title"), href: "/agents", icon: "agent" },
+    { key: "search", label: w.search, href: "/search", icon: "search" },
     {
       key: "issues",
       label: t("mobile.me.issues"),
@@ -80,6 +89,8 @@ export function HomeTools() {
             count: threads,
           },
         ]),
+    { key: "drive", label: t("mobile.me.drive"), href: "/drive", icon: "drive" },
+    { key: "team", label: t("mobile.agents.title"), href: "/agents", icon: "agent" },
     { key: "routines", label: t("routines.title"), href: "/routines", icon: "clock" },
     { key: "wiki", label: t("wiki.title"), href: "/wiki", icon: "book" },
     { key: "dashboards", label: t("mobile.me.dashboards"), href: "/dashboards", icon: "chart" },
@@ -87,9 +98,15 @@ export function HomeTools() {
   // The tools an admin took out of the workspace for everyone (Settings › General) leave here too, as on the web.
   const hidden = org?.hiddenTools ?? [];
   const shown = tools.filter((tool) => !hidden.includes(tool.key));
-  // One row: the first five in sight, the rest behind "Mais" (with how many wait in them), so the home stays short.
-  const front = shown.length > ROW ? shown.slice(0, ROW - 1) : shown;
-  const rest = shown.slice(front.length);
+  const front = shown.slice(0, FRONT);
+  // Creating comes first in "Mais": the bar's "+" lives here now.
+  const create: Tool[] = [
+    ...(mayCreate(org, "agent")
+      ? [{ key: "new-agent", label: w.newAgent, href: "/new-agent", icon: "plus" as const }]
+      : []),
+    { key: "new", label: w.newChat, href: "/new", icon: "compose" },
+  ];
+  const rest = [...create, ...shown.slice(front.length)];
   const restCount = rest.reduce((n, tool) => n + (tool.count ?? 0), 0);
   const more = () =>
     void pickOne({
@@ -97,6 +114,7 @@ export function HomeTools() {
       options: rest.map((tool) => ({
         key: tool.key,
         label: (tool.count ?? 0) > 0 ? `${tool.label} · ${tool.count}` : tool.label,
+        ...(typeof tool.icon === "string" ? { leading: { kind: "icon" as const, name: tool.icon as IconName } } : {}),
       })),
     }).then((key) => {
       const tool = rest.find((x) => x.key === key);
@@ -107,12 +125,10 @@ export function HomeTools() {
       {front.map((tool) => (
         <ToolTile key={tool.key} tool={tool} onPress={() => router.push(tool.href as never)} />
       ))}
-      {rest.length > 0 ? (
-        <ToolTile
-          tool={{ key: "more", label: t("mobile.homeTools.more"), href: "", icon: "more", count: restCount }}
-          onPress={more}
-        />
-      ) : null}
+      <ToolTile
+        tool={{ key: "more", label: t("mobile.homeTools.more"), href: "", icon: "more", count: restCount }}
+        onPress={more}
+      />
     </View>
   );
 }

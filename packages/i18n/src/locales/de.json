@@ -2150,7 +2150,8 @@
     "add": "Neuer Agent oder neue Abteilung",
     "order": "Reihenfolge",
     "sort": {
-      "workspace": "Wie im Workspace",
+      "recent": "Letzte Nachricht",
+      "arranged": "Wie im Workspace",
       "mine": "Meine zuerst",
       "working": "Arbeitende zuerst"
     },
