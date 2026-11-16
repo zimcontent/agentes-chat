@@ -596,7 +596,7 @@ function Chat({
   // works, on what and for how long, and its reply shows whole once posted, with the work it did (kept here, so the
   // reply shows it at once, `recentTurn`). A run in its browser has its browser card instead.
   const atWork = useMemo(() => turnRuns(runs, new Set(browsing.map((r) => r.runId))), [runs, browsing]);
-  const workKey = atWork.map((r) => `${r.runId}:${turnSignature(turnItems(r))}`).join("|");
+  const workKey = useMemo(() => atWork.map((r) => `${r.runId}:${turnSignature(turnItems(r))}`).join("|"), [atWork]);
   // biome-ignore lint/correctness/useExhaustiveDependencies: `workKey` stands for the runs' work
   useEffect(() => {
     for (const run of atWork) {
@@ -621,8 +621,13 @@ function Chat({
   // ── Rows ──
   // One waiting card per agent and computer: an older "my computer is away" gives way to the newer one.
   const superseded = useMemo(() => supersededBrainNotices(list), [list]);
-  const waitsNow = conversationWaits(isThread ? list : list.filter((m) => !m.threadId), live.receipts, (id) =>
-    live.runs.some((r) => r.runId === id),
+  // Looked for again when the messages, the receipts or the runs change, not on every redraw (someone typing).
+  const waitsNow = useMemo(
+    () =>
+      conversationWaits(isThread ? list : list.filter((m) => !m.threadId), live.receipts, (id) =>
+        live.runs.some((r) => r.runId === id),
+      ),
+    [isThread, list, live.receipts, live.runs],
   );
   const waitsKey = waitsNow.map((w) => `${w.agentId}:${w.runId}`).join(" ");
   // biome-ignore lint/correctness/useExhaustiveDependencies: new only when the waits change, not on every receipt
@@ -1940,9 +1945,14 @@ function Chat({
   const receipt = useMemo(() => receiptNow, [receiptKey]);
   // Agents' messages that called several agents (their strip, `FanStrip`) and a person's mention of everyone one agent
   // answered for all (`EveryoneLine`). Only their receipts redraw the list.
-  const fanNow = shownMessages
-    .filter((m) => (m.author.type === "agent" && m.mentionedAgentIds.length > 1) || m.meta?.everyoneShape)
-    .map((m) => [m.id, live.receipts[m.id]] as const);
+  const fanned = useMemo(
+    () =>
+      shownMessages.filter(
+        (m) => (m.author.type === "agent" && m.mentionedAgentIds.length > 1) || m.meta?.everyoneShape,
+      ),
+    [shownMessages],
+  );
+  const fanNow = fanned.map((m) => [m.id, live.receipts[m.id]] as const);
   const fanKey = JSON.stringify(fanNow);
   // biome-ignore lint/correctness/useExhaustiveDependencies: `fanKey` stands for the receipts
   const receipts: ReceiptsState = useMemo(() => Object.fromEntries(fanNow.filter(([, r]) => r)), [fanKey]);
