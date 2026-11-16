@@ -1,6 +1,6 @@
 import { reviewLinksIn, useApi, useVideoReviews } from "@agenteschat/client";
 import { Image } from "expo-image";
-import { StyleSheet, View } from "react-native";
+import { Pressable, StyleSheet, View } from "react-native";
 import { Button, Chip, Icon, Text } from "@/ui";
 import { useCardTop } from "../chat/look";
 import { useColors, useOrgId } from "../shared/hooks";
@@ -41,17 +41,8 @@ function ReviewChatCard({ id }: { id: string }) {
   const facts = [r.client, w.version(r.version), r.agent ? w.by(r.agent.name) : ""].filter(Boolean).join(" · ");
   // A design piece shows its first slide: the art is ready, the card is the way in (docs/adr/doug-0010-design-review.md).
   const design = r.medium === "design";
-  return (
-    <View style={[styles.card, surface, top]}>
-      {design && r.cover ? (
-        <Image
-          source={ownSource(api.artifacts.fileUrl(orgId, r.cover))}
-          style={[styles.cover, { backgroundColor: c.sunken }]}
-          contentFit="cover"
-          transition={120}
-          accessibilityIgnoresInvertColors
-        />
-      ) : null}
+  const words = (
+    <>
       <View style={styles.row}>
         <Icon name={design ? "image" : "play"} size={15} color={c.muted} />
         <Text variant="caption" tone="muted" style={styles.bold}>
@@ -66,23 +57,53 @@ function ReviewChatCard({ id }: { id: string }) {
           {facts}
         </Text>
       ) : null}
-      <View style={styles.foot}>
-        <Chip tone={statusTone(r.status)} icon={statusIcon(r.status)} label={w.status[r.status]} />
-        <Button
-          variant={r.status === "in_review" ? "primary" : "secondary"}
-          size="sm"
-          label={w.open}
-          hint={design ? w.design.open : w.openVideo}
-          onPress={() => openReview(r.id)}
-        />
-      </View>
+    </>
+  );
+  const foot = (
+    <View style={styles.foot}>
+      <Chip tone={statusTone(r.status)} icon={statusIcon(r.status)} label={w.status[r.status]} />
+      <Button
+        variant={r.status === "in_review" ? "primary" : "secondary"}
+        size="sm"
+        label={w.open}
+        hint={design ? w.design.open : w.openVideo}
+        onPress={() => openReview(r.id)}
+      />
+    </View>
+  );
+  return (
+    <View style={[styles.card, surface, top]}>
+      {design && r.cover ? (
+        // The whole first slide, standing, beside its words: a tap on it opens the piece like the button.
+        <View style={styles.piece}>
+          <Pressable
+            onPress={() => openReview(r.id)}
+            accessibilityRole="button"
+            accessibilityLabel={`${w.design.open}: ${r.title}`}
+          >
+            <Image
+              source={ownSource(api.artifacts.fileUrl(orgId, r.cover))}
+              style={[styles.cover, { backgroundColor: c.sunken }]}
+              contentFit="contain"
+              transition={120}
+              accessibilityIgnoresInvertColors
+            />
+          </Pressable>
+          <View style={styles.words}>{words}</View>
+        </View>
+      ) : (
+        words
+      )}
+      {foot}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   card: { padding: 12, borderRadius: 20, gap: 4 },
-  cover: { width: "100%", aspectRatio: 4 / 5, maxHeight: 280, borderRadius: 12, marginBottom: 6 },
+  piece: { flexDirection: "row", gap: 12, alignItems: "flex-start" },
+  cover: { width: 96, aspectRatio: 4 / 5, borderRadius: 10 },
+  words: { flex: 1, minWidth: 0, gap: 4 },
   row: { flexDirection: "row", alignItems: "center", gap: 6 },
   bold: { fontWeight: "600" },
   foot: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 8, marginTop: 6 },

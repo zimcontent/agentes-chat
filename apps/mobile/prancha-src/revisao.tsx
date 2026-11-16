@@ -9,6 +9,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { HeaderHeightContext } from "expo-router/react-navigation";
 import { type ReactNode, useState } from "react";
 import { Platform, ScrollView, StyleSheet, View } from "react-native";
+import { DesignEditor } from "@/features/review/DesignEditor";
 import { ReviewChatCards } from "@/features/review/ReviewChatCard";
 import { ReviewScreen } from "@/features/review/ReviewScreen";
 import { ReviewsScreen } from "@/features/review/ReviewsScreen";
@@ -151,6 +152,71 @@ const REVIEW: VideoReview = {
   decidedAt: null,
 };
 
+// A design piece (docs/adr/doug-0010-design-review.md): a carousel's slides and its page, served beside the board
+// (`public/amostra/design/v1/pages/<n>` and `…/v1/source`).
+const ROSA = { id: "0198a4b2-0000-7000-8000-0000000000cc", name: "ROSA", handle: "rosa" };
+const D1 = "0198a4b2-0000-7000-8000-000000000201";
+const DESIGN_SUMMARY: VideoReviewSummary = {
+  ...summary(D1, "Carrossel venda 1015 N Glenwood", 1, "in_review", 3, 3),
+  medium: "design",
+  client: "Lexeer",
+  artifactId: "p1",
+  cover: "capa",
+  agent: ROSA,
+};
+REVIEWS.unshift(DESIGN_SUMMARY);
+const DESIGN: VideoReview = {
+  ...DESIGN_SUMMARY,
+  brief: "Carrossel de venda da casa da Glenwood, 4 lâminas, identidade LXR. Copy aprovada em inglês pela Letícia.",
+  links: [{ label: "Post no portal", url: "https://mydoug.io/portal" }],
+  versions: [
+    {
+      version: 1,
+      artifactId: "p1",
+      note: "Primeira versão, vidro com o título sobre a foto da entrada.",
+      light: false,
+      pages: ["p1", "p2", "p3", "p4"],
+      source: true,
+      editedBy: null,
+      createdAt: at(3),
+    },
+  ],
+  notes: [
+    note({
+      id: "d1",
+      version: 1,
+      page: 1,
+      x: 0.78,
+      y: 0.6,
+      kind: "image",
+      body: "Esse vidro está tapando todo o detalhe da casa, reposicione a imagem.",
+    }),
+    note({
+      id: "d2",
+      version: 1,
+      page: 1,
+      x: 0.3,
+      y: 0.24,
+      kind: "type",
+      voice: true,
+      body: "O last detail pode ficar um pouco maior.",
+      author: { id: "u2", name: "Letícia" },
+    }),
+    note({
+      id: "d3",
+      version: 1,
+      page: 2,
+      x: 0.76,
+      y: 0.24,
+      kind: "layout",
+      body: "Nada de quadrado, foto em tela cheia.",
+    }),
+    note({ id: "d4", version: 1, page: null, kind: "color", body: "Paleta ótima, mantém o tom quente em todas." }),
+  ],
+  decidedBy: null,
+  decidedAt: null,
+};
+
 /** A server that answers with the samples; anything else answers an empty list. */
 function fakeApi(): ApiClient {
   const empty = (): unknown =>
@@ -166,7 +232,9 @@ function fakeApi(): ApiClient {
     videoReviews: {
       list: async () => ({ reviews: REVIEWS }),
       videoUrl: () => `${origin()}/amostra/revisao.mp4`,
-      get: async (_o: string, id: string) => (id === R1 ? REVIEW : { ...REVIEW, ...REVIEWS.find((r) => r.id === id) }),
+      pageUrl: (_o: string, _r: string, v: number, n: number) => `${origin()}/amostra/design/v${v}/pages/${n}`,
+      get: async (_o: string, id: string) =>
+        id === D1 ? DESIGN : id === R1 ? REVIEW : { ...REVIEW, ...REVIEWS.find((r) => r.id === id) },
       addNote: async () => REVIEW.notes[0],
       addVoiceNote: async () => REVIEW.notes[2],
       deleteNote: async () => {},
@@ -175,7 +243,11 @@ function fakeApi(): ApiClient {
     artifacts: new Proxy(
       {
         fileUrl: (_o: string, id: string) =>
-          id === "foto" ? `${origin()}/amostra/foto.jpg` : `${origin()}/amostra/revisao.mp4`,
+          id === "foto"
+            ? `${origin()}/amostra/foto.jpg`
+            : id === "capa"
+              ? `${origin()}/amostra/design/capa.png`
+              : `${origin()}/amostra/revisao.mp4`,
       },
       { get: (t, k) => (k in t ? t[k as keyof typeof t] : empty()) },
     ),
@@ -242,3 +314,39 @@ const styles = StyleSheet.create({
   phone: { flex: 1 },
   chat: { padding: 16, paddingTop: 60, gap: 8 },
 });
+
+export function RevisaoDesign() {
+  return (
+    <Server>
+      <ReviewScreen id={D1} />
+    </Server>
+  );
+}
+
+export function RevisaoDesignEditor() {
+  return (
+    <Server>
+      <DesignEditor id={D1} version={1} />
+    </Server>
+  );
+}
+
+function MensagemDesign() {
+  const { colors: c } = useTheme();
+  const body = `Arte pronta para revisão: https://dougbot.app/org/${ORG}/review/${D1}`;
+  return (
+    <ScrollView style={{ flex: 1, backgroundColor: c.bg }} contentContainerStyle={styles.chat}>
+      <Text variant="callout">ROSA</Text>
+      <Text variant="body">{body}</Text>
+      <ReviewChatCards body={body} meta={null} />
+    </ScrollView>
+  );
+}
+
+export function RevisaoDesignConversa() {
+  return (
+    <Server>
+      <MensagemDesign />
+    </Server>
+  );
+}

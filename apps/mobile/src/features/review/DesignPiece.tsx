@@ -1,8 +1,9 @@
 import { useApi } from "@agenteschat/client";
 import { editorPage, type FrameCommand, type FrameMessage } from "@agenteschat/client/lib/design-bridge";
+import { PAGE_SANDBOX } from "@agenteschat/client/lib/isolated-page";
 import { useQuery } from "@tanstack/react-query";
-import { forwardRef, useImperativeHandle, useMemo, useRef, useState } from "react";
-import { ActivityIndicator, StyleSheet, View } from "react-native";
+import { createElement, forwardRef, useEffect, useImperativeHandle, useMemo, useRef, useState } from "react";
+import { ActivityIndicator, Platform, StyleSheet, View } from "react-native";
 import { WebView } from "react-native-webview";
 import { appHeaders, lastCookie } from "@/lib/auth";
 import { Text } from "@/ui";
@@ -63,7 +64,88 @@ export const PieceView = forwardRef<
     mode: "view" | "edit";
     onMessage: (m: FrameMessage) => void;
   }
->(function PieceView({ html, width, slide, mode, onMessage }, ref) {
+>(function PieceView(props, ref) {
+  // A browser has no native web view (the board, `prancha/`): the same page in a sandboxed frame.
+  return Platform.OS === "web" ? <FramePiece {...props} ref={ref} /> : <NativePiece {...props} ref={ref} />;
+});
+
+type PieceProps = {
+  html: string;
+  width: number;
+  slide: number;
+  mode: "view" | "edit";
+  onMessage: (m: FrameMessage) => void;
+};
+
+const FramePiece = forwardRef<PieceHandle, PieceProps>(function FramePiece(
+  { html, width, slide, mode, onMessage },
+  ref,
+) {
+  const frame = useRef<{ contentWindow: Window | null } | null>(null);
+  const w = useReviewWords();
+  const [size, setSize] = useState({ w: 1080, h: 1350 });
+  const k = width / size.w;
+  const state = useRef({ slide, mode, k, onMessage });
+  state.current = { slide, mode, k, onMessage };
+  const send = (cmd: FrameCommand) => frame.current?.contentWindow?.postMessage(cmd, "*");
+  useImperativeHandle(ref, () => ({ send }));
+  const url = useMemo(() => URL.createObjectURL(new Blob([editorPage(html)], { type: "text/html" })), [html]);
+  useEffect(() => () => URL.revokeObjectURL(url), [url]);
+  // biome-ignore lint/correctness/useExhaustiveDependencies: only a new width asks for it
+  useEffect(() => {
+    send({ ed: "scale", k: width / size.w });
+  }, [width]);
+  // biome-ignore lint/correctness/useExhaustiveDependencies: the listener reads the latest state through the ref
+  useEffect(() => {
+    const listen = (e: MessageEvent) => {
+      if (!frame.current || e.source !== frame.current.contentWindow) return;
+      const m = e.data as FrameMessage;
+      if (!m || typeof m !== "object" || !("ed" in m)) return;
+      const s = state.current;
+      if (m.ed === "boot") {
+        send({
+          ed: "words",
+          words: { text: w.design.text, photo: w.design.photo, shape: w.design.shape, logo: "Logo" },
+        });
+      } else if (m.ed === "ready" || m.ed === "slide") {
+        setSize({ w: m.w, h: m.h });
+        if (m.ed === "ready") {
+          send({ ed: "slide", slide: s.slide });
+          send({ ed: "mode", mode: s.mode });
+        }
+        send({ ed: "scale", k: width / m.w });
+      }
+      s.onMessage(m);
+    };
+    window.addEventListener("message", listen);
+    return () => window.removeEventListener("message", listen);
+  }, [width]);
+  return (
+    <View style={{ width, height: size.h * k, overflow: "hidden" }}>
+      {createElement("iframe", {
+        ref: frame,
+        src: url,
+        sandbox: PAGE_SANDBOX,
+        title: "piece",
+        style: {
+          width: size.w,
+          height: size.h,
+          maxWidth: "none",
+          maxHeight: "none",
+          flexShrink: 0,
+          border: 0,
+          transform: `scale(${k})`,
+          transformOrigin: "0 0",
+        },
+      })}
+    </View>
+  );
+});
+
+const NativePiece = forwardRef<PieceHandle, PieceProps>(function NativePiece(
+  { html, width, slide, mode, onMessage },
+  ref,
+) {
   const web = useRef<WebView<object>>(null);
   const w = useReviewWords();
   const c = useColors();
@@ -75,6 +157,13 @@ export const PieceView = forwardRef<
   const send = (cmd: FrameCommand) =>
     web.current?.injectJavaScript(`window.__ed&&window.__ed(${JSON.stringify(cmd)});true;`);
   useImperativeHandle(ref, () => ({ send }));
+  // The room changed after load (the panel grew or shrank): the same page, zoomed to it.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: only a new width asks for it
+  useEffect(() => {
+    if (!ready) return;
+    web.current?.injectJavaScript(setViewport(width / size.w));
+    send({ ed: "scale", k: width / size.w });
+  }, [width]);
   // Built once per page: the first scale guesses a portrait post, corrected when the slide says its size.
   // biome-ignore lint/correctness/useExhaustiveDependencies: the width's first value only; later ones go in by script
   const page = useMemo(() => editorPage(html).replace("<head>", `<head>${viewport(width / 1080)}`), [html]);

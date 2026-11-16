@@ -142,7 +142,11 @@ export function DesignEditor({ id, version }: { id: string; version: number }) {
     setSlide(next);
     send({ ed: "slide", slide: next });
   };
+  // The stage's room above the panel, and the slide's shape: the piece fits both (the panel grows as it offers more).
+  const [room, setRoom] = useState(0);
+  const [shape, setShape] = useState(1350 / 1080);
   const onMessage = (m: FrameMessage) => {
+    if (m.ed === "ready" || m.ed === "slide") setShape(m.h / m.w);
     if (m.ed === "ready") {
       setSlides(m.slides);
       setColors(m.colors);
@@ -235,7 +239,7 @@ export function DesignEditor({ id, version }: { id: string; version: number }) {
     );
   }
 
-  const width = screen - 32;
+  const width = Math.max(120, Math.floor(Math.min(screen - 32, room > 0 ? (room - 32) / shape : screen)));
   const step = (key: "scale" | "rotate" | "opacity" | "fontSize", by: number, min: number, max: number) => {
     if (!sel) return;
     tapHaptic();
@@ -250,6 +254,7 @@ export function DesignEditor({ id, version }: { id: string; version: number }) {
         contentContainerStyle={[styles.stage, { backgroundColor: c.sunken }]}
         // The fingers belong to the piece while editing: the screen doesn't scroll under a drag.
         scrollEnabled={false}
+        onLayout={(e) => setRoom(e.nativeEvent.layout.height)}
       >
         <PieceView ref={piece} html={source.data} width={width} slide={slide} mode="edit" onMessage={onMessage} />
       </ScrollView>
@@ -309,7 +314,7 @@ export function DesignEditor({ id, version }: { id: string; version: number }) {
           </Pressable>
         </View>
 
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chips}>
+        <View style={styles.chips}>
           <Chipish
             icon="checks"
             label={adding ? d.severalOn : d.several}
@@ -340,7 +345,7 @@ export function DesignEditor({ id, version }: { id: string; version: number }) {
               <Chipish icon="replay" label={d.reset} onPress={() => patch({ reset: true })} />
             </>
           ) : null}
-        </ScrollView>
+        </View>
 
         {sel ? (
           <>
@@ -359,7 +364,7 @@ export function DesignEditor({ id, version }: { id: string; version: number }) {
                 style={[styles.input, field, { color: c.ink, backgroundColor: c.sunken }]}
               />
             ) : null}
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chips}>
+            <View style={styles.chips}>
               {count < 2 ? (
                 <>
                   <Stepper label={d.size} value={sel.scale} unit="%" onStep={(s) => step("scale", s * 5, 5, 400)} />
@@ -380,9 +385,9 @@ export function DesignEditor({ id, version }: { id: string; version: number }) {
                 </>
               ) : null}
               <Stepper label={d.opacity} value={sel.opacity} unit="%" onStep={(s) => step("opacity", s * 10, 0, 100)} />
-            </ScrollView>
+            </View>
             {count < 2 && (sel.kind === "text" || sel.kind === "shape") && colors.length > 0 ? (
-              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chips}>
+              <View style={styles.chips}>
                 {colors.map((hex) => {
                   const on = (sel.kind === "text" ? sel.color : sel.fill)?.toLowerCase() === hex.toLowerCase();
                   return (
@@ -399,7 +404,7 @@ export function DesignEditor({ id, version }: { id: string; version: number }) {
                     />
                   );
                 })}
-              </ScrollView>
+              </View>
             ) : null}
           </>
         ) : (
@@ -408,14 +413,10 @@ export function DesignEditor({ id, version }: { id: string; version: number }) {
           </Text>
         )}
 
-        <Button
-          variant="primary"
-          wide
-          label={d.saveAs(version + 1)}
-          disabled={!dirty}
-          loading={save.isPending}
-          onPress={saveAs}
-        />
+        {/* Only once something changed: an untouched piece has nothing to save. */}
+        {dirty ? (
+          <Button variant="primary" wide label={d.saveAs(version + 1)} loading={save.isPending} onPress={saveAs} />
+        ) : null}
       </Glass>
 
       <Sheet open={showLayers} onClose={() => setShowLayers(false)} solid>
@@ -482,7 +483,8 @@ const styles = StyleSheet.create({
   grow: { flex: 1, minWidth: 0 },
   off: { opacity: 0.35 },
   flip: { transform: [{ scaleX: -1 }] },
-  chips: { gap: 8, alignItems: "center" },
+  // Rows that wrap: every control in sight on the narrowest phone, nothing past the edge.
+  chips: { flexDirection: "row", flexWrap: "wrap", gap: 8, alignItems: "center" },
   chip: {
     flexDirection: "row",
     alignItems: "center",
