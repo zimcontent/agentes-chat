@@ -1,0 +1,73 @@
+/* The rounds of changes asked of a person and where they are told (docs/adr/doug-0012-editor-delivery.md §10–§11). */
+.rr-log {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.rr-rounds {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.rr-round {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+}
+
+.rr-round__title {
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+  font-weight: 600;
+}
+
+.rr-tag {
+  padding: 0 var(--space-2);
+  border-radius: var(--radius-full);
+  background: var(--sunken);
+  color: var(--ink);
+  font-size: var(--text-xs);
+  font-weight: 600;
+}
+
+.rr-steps {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  color: var(--muted);
+  font-size: var(--text-sm);
+}
+
+.rr-steps li {
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+}
+
+.rr-steps li[data-done] {
+  color: var(--ink);
+}
+
+.rr-steps li[data-bad] {
+  color: var(--danger);
+}
+
+.rr-notice {
+  gap: var(--space-2) var(--space-4);
+}
+
+.rr-notice .ac-icon {
+  vertical-align: -2px;
+}

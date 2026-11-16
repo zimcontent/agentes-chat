@@ -7,14 +7,23 @@ import {
   deleteReviewNote,
   designPage,
   designSource,
+  getMembership,
   getVideoReview,
   listVideoReviews,
   NotFoundError,
+  POST_CAPTION_CHARS,
   REVIEW_NOTE_ATTACHMENTS,
   REVIEW_NOTE_CHARS,
   REVIEW_NOTE_KINDS,
+  retryEditorFinal,
   reviewVideo,
+  reviewWhatsAppTargets,
   saveDesignEdit,
+  sendPostToClient,
+  setReviewPost,
+  setReviewWhatsApp,
+  submitEditorVideo,
+  taskDelivery,
   ValidationError,
   type VideoReviewDeps,
 } from "@agenteschat/engine";
@@ -40,9 +49,39 @@ const VOICE = { limit: 30, windowMs: 60_000 };
 const EDITS = { limit: 20, windowMs: 60_000 };
 
 const ReviewParams = OrgParams.extend({ reviewId: z.uuid() });
+const TaskParams = OrgParams.extend({ issueId: z.uuid() });
+const SENDS = { limit: 30, windowMs: 60_000 };
 const NoteParams = ReviewParams.extend({ noteId: z.uuid() });
 
 const Who = z.object({ id: z.string(), name: z.string() });
+
+const Round = z
+  .object({
+    id: z.uuid(),
+    version: z.number().int(),
+    askedBy: z.string(),
+    fromClient: z.boolean(),
+    notes: z.number().int(),
+    askedAt: z.string(),
+    notified: z.record(z.string(), z.unknown()).nullable(),
+    seenAt: z.string().nullable(),
+    answeredAt: z.string().nullable(),
+    answeredVersion: z.number().int().nullable(),
+  })
+  .openapi("ReviewRound", {
+    description:
+      "One round of changes asked of the person who sent the work (docs/adr/doug-0012-editor-delivery.md §10): who asked, when they were told, saw it and answered it.",
+  });
+
+const WhatsAppTarget = z
+  .object({
+    userId: z.string(),
+    accountId: z.uuid(),
+    accountLabel: z.string(),
+    chatId: z.uuid(),
+    chatName: z.string(),
+  })
+  .openapi("ReviewWhatsAppTarget");
 
 const Attachment = z
   .union([
@@ -81,6 +120,12 @@ const Summary = z
       description: "A design piece's first slide (a picture file), from its newest version with pictures.",
     }),
     agent: z.object({ id: z.uuid(), name: z.string(), handle: z.string() }).nullable(),
+    sender: Who.nullable().openapi({
+      description:
+        "A person of the team who sent it from a task (docs/adr/doug-0012-editor-delivery.md); null: an agent.",
+    }),
+    taskId: z.uuid().nullable().openapi({ description: "The task it delivers, when sent from one." }),
+    round: Round.nullable().openapi({ description: "A person's review: the newest round of changes asked of them." }),
     channelId: z.uuid(),
     threadId: z.uuid().nullable(),
     openNotes: z.number().int().openapi({ description: "Notes on the newest version not yet sent to the agent." }),
@@ -107,10 +152,23 @@ const Note = z
     attachments: z.array(Attachment),
     voice: z.boolean(),
     author: Who.nullable(),
+    fromClient: z
+      .boolean()
+      .openapi({ description: "The client wrote it at the approval portal (`author.id` is empty)." }),
     sent: z.boolean(),
     createdAt: z.string(),
   })
   .openapi("VideoReviewNote");
+
+const Post = z
+  .object({
+    cover: z.uuid().nullable().optional(),
+    noCover: z.boolean().optional(),
+    coverOk: z.boolean().optional(),
+    caption: z.string().optional(),
+    captionOk: z.boolean().optional(),
+  })
+  .openapi("ReviewPost", { description: "A person's video's post: its cover and caption, each approved or not." });
 
 const Review = Summary.extend({
   portal: z
@@ -121,6 +179,16 @@ const Review = Summary.extend({
     .record(z.string(), z.unknown())
     .nullable()
     .openapi({ description: "What happened at the portal after the approval (`state`, `link`, `when`, `error`)." }),
+  post: Post,
+  final: z
+    .record(z.string(), z.unknown())
+    .nullable()
+    .openapi({ description: "The approved original kept as the final and its backup (`state`, `backup.link`)." }),
+  task: z
+    .object({ id: z.uuid(), number: z.number().int(), title: z.string(), stage: z.string().nullable() })
+    .nullable()
+    .openapi({ description: "The task it delivers and the stage of its post at the portal." }),
+  rounds: z.array(Round),
   brief: z.string(),
   links: z.array(z.object({ label: z.string(), url: z.string() })),
   versions: z.array(
@@ -151,6 +219,10 @@ export function videoReviewRoutes(deps: AppDeps) {
     const d = deps.extras?.videoReviews;
     if (!d) throw new NotFoundError();
     return d;
+  };
+  // Only the workspace's members read where each one is told.
+  const requireReviewer = async (userId: string, orgId: string) => {
+    if (!(await getMembership(reviews().db, userId, orgId))) throw new NotFoundError();
   };
   const allowed = async (key: string, limit: { limit: number; windowMs: number }) =>
     (await deps.adapters.rateLimiter.consume(key, limit)).allowed;
@@ -202,6 +274,7 @@ export function videoReviewRoutes(deps: AppDeps) {
         original: c.req.query("quality") === "original",
       },
     );
+    if ("redirect" in video) return c.redirect(video.redirect, 302);
     return rangedResponse(video.body, c.req.header("range"), {
       "content-type": video.contentType,
       "x-content-type-options": "nosniff",
@@ -449,5 +522,149 @@ export function videoReviewRoutes(deps: AppDeps) {
     },
   );
 
+  // Where each person is told of the changes asked of them (docs/adr/doug-0012-editor-delivery.md §11).
+  app.openapi(
+    createRoute({
+      method: "get",
+      path: "/organizations/{orgId}/review-whatsapp",
+      tags,
+      security,
+      summary: "Each person's WhatsApp conversation for the changes asked of them",
+      request: { params: OrgParams },
+      responses: { 200: json(z.object({ targets: z.array(WhatsAppTarget) })), ...errors },
+    }),
+    async (c) => {
+      const { orgId } = c.req.valid("param");
+      await requireReviewer(c.get("user").id, orgId);
+      return c.json({ targets: await reviewWhatsAppTargets(reviews().db, orgId) }, 200);
+    },
+  );
+  app.openapi(
+    createRoute({
+      method: "put",
+      path: "/organizations/{orgId}/review-whatsapp/{userId}",
+      tags,
+      security,
+      summary: "Set where a person is told of the changes asked of them (a conversation of a number), or none",
+      description:
+        "Needs `assign_work`. 400 `review.bad_whatsapp` for a conversation that isn't one of this workspace's numbers.",
+      request: {
+        params: OrgParams.extend({ userId: z.string().min(1).max(200) }),
+        body: body(z.object({ accountId: z.uuid(), chatId: z.uuid() }).nullable()),
+      },
+      responses: { 200: json(z.object({ target: WhatsAppTarget.nullable() })), ...errors },
+    }),
+    async (c) => {
+      const { orgId, userId } = c.req.valid("param");
+      const target = await setReviewWhatsApp(reviews().db, c.get("user").id, orgId, userId, c.req.valid("json"));
+      return c.json({ target }, 200);
+    },
+  );
+  // An editor's delivery from a task (docs/adr/doug-0012-editor-delivery.md).
+  app.openapi(
+    createRoute({
+      method: "get",
+      path: "/organizations/{orgId}/issues/{issueId}/video-delivery",
+      tags,
+      security,
+      summary: "The video review sent from this task, if any",
+      request: { params: TaskParams },
+      responses: { 200: json(z.object({ reviewId: z.uuid().nullable() })), ...errors },
+    }),
+    async (c) => {
+      const { orgId, issueId } = c.req.valid("param");
+      return c.json(await taskDelivery(reviews(), c.get("user").id, orgId, issueId), 200);
+    },
+  );
+  app.openapi(
+    createRoute({
+      method: "post",
+      path: "/organizations/{orgId}/issues/{issueId}/video-delivery",
+      tags,
+      security,
+      summary:
+        "Send the video edited for this task: to the team's review, or straight to the client after a change they asked for",
+      description:
+        "The file is uploaded to the task's conversation first (`POST …/artifacts/files` with its `channelId`/`threadId`). 409 `editor_delivery.with_client` while the client has the post and asked for nothing.",
+      request: {
+        params: TaskParams,
+        body: body(z.object({ artifactId: z.uuid(), note: z.string().max(REVIEW_NOTE_CHARS).optional() })),
+      },
+      responses: {
+        200: json(z.object({ review: Summary, toClient: z.boolean() })),
+        ...errors,
+        429: errorResponse("Too many (`rate_limited`)"),
+      },
+    }),
+    async (c) => {
+      const user = c.get("user");
+      if (!(await allowed(`editor-video:${user.id}`, SENDS))) return apiError(c, 429, "rate_limited", "Slow down");
+      const { orgId, issueId } = c.req.valid("param");
+      return c.json(await submitEditorVideo(reviews(), user.id, orgId, issueId, c.req.valid("json")), 200);
+    },
+  );
+  app.openapi(
+    createRoute({
+      method: "patch",
+      path: "/organizations/{orgId}/video-reviews/{reviewId}/post",
+      tags,
+      security,
+      summary: "Set the post's cover and caption, and approve each (changing one takes its approval back)",
+      request: {
+        params: ReviewParams,
+        body: body(
+          z.object({
+            caption: z.string().max(POST_CAPTION_CHARS).optional(),
+            captionOk: z.boolean().optional(),
+            cover: z.uuid().nullable().optional().openapi({ description: "A picture uploaded to the task." }),
+            noCover: z.boolean().optional(),
+            coverOk: z.boolean().optional(),
+          }),
+        ),
+      },
+      responses: { 200: json(Post), ...errors },
+    }),
+    async (c) => {
+      const { orgId, reviewId } = c.req.valid("param");
+      return c.json(await setReviewPost(reviews(), c.get("user").id, orgId, reviewId, c.req.valid("json")), 200);
+    },
+  );
+  app.openapi(
+    createRoute({
+      method: "post",
+      path: "/organizations/{orgId}/video-reviews/{reviewId}/send",
+      tags,
+      security,
+      summary: "Send the approved post to the client (or straight to scheduling, for a client set to `direct`)",
+      description: "Needs `assign_work`, the video approved and the cover and caption approved.",
+      request: { params: ReviewParams },
+      responses: {
+        200: json(
+          z.object({ delivery: z.record(z.string(), z.unknown()), afterApprove: z.enum(["portal", "direct"]) }),
+        ),
+        ...errors,
+      },
+    }),
+    async (c) => {
+      const { orgId, reviewId } = c.req.valid("param");
+      return c.json(await sendPostToClient(reviews(), c.get("user").id, orgId, reviewId), 200);
+    },
+  );
+  app.openapi(
+    createRoute({
+      method: "post",
+      path: "/organizations/{orgId}/video-reviews/{reviewId}/final/retry",
+      tags,
+      security,
+      summary: "Try the final's backup again, after it failed",
+      request: { params: ReviewParams },
+      responses: { ...noContent, ...errors },
+    }),
+    async (c) => {
+      const { orgId, reviewId } = c.req.valid("param");
+      await retryEditorFinal(reviews(), c.get("user").id, orgId, reviewId);
+      return c.body(null, 204);
+    },
+  );
   return app;
 }

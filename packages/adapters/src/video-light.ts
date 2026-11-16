@@ -56,6 +56,74 @@ export function lightCopyArgs(input: string, output: string): string[] {
   ];
 }
 
+/**
+ * The copy of an editor's video that goes to the post (docs/adr/doug-0012-editor-delivery.md): H.264 with the long
+ * side at 1920 at most, a quality a feed keeps (CRF 20, capped at 12 Mb/s), AAC at 192k, its index at the front. Far
+ * lighter than an editor's master (several GB of ProRes or a high-rate export), good enough to publish from.
+ */
+export function postCopyArgs(input: string, output: string): string[] {
+  const side = 1920;
+  return [
+    "-hide_banner",
+    "-loglevel",
+    "error",
+    "-y",
+    "-i",
+    input,
+    "-vf",
+    `scale='if(gt(iw,ih),min(${side},iw),-2)':'if(gt(iw,ih),-2,min(${side},ih))'`,
+    "-c:v",
+    "libx264",
+    "-preset",
+    "medium",
+    "-crf",
+    "20",
+    "-maxrate",
+    "12M",
+    "-bufsize",
+    "24M",
+    "-profile:v",
+    "high",
+    "-pix_fmt",
+    "yuv420p",
+    "-c:a",
+    "aac",
+    "-b:a",
+    "192k",
+    "-ac",
+    "2",
+    "-movflags",
+    "+faststart",
+    "-threads",
+    "2",
+    output,
+  ];
+}
+
+/**
+ * Copies of a video made from a file on disk into another, never whole in memory: what an editor's master of up to
+ * 2 GB needs. `light` is the phones' copy (`lightCopyArgs`), `post` the one that goes to the post (`postCopyArgs`).
+ */
+export type VideoCopies = (kind: "light" | "post", input: string, output: string) => Promise<void>;
+
+/** The longest a post copy may take: a few minutes of 1080p at the medium preset on two threads. */
+const POST_TIMEOUT_MS = 40 * 60_000;
+
+/** ffmpeg on this server's path, or null: without it no copy is made from a file. */
+export function createFfmpegVideoCopies(binary = Bun.which("ffmpeg")): VideoCopies | null {
+  if (!binary) return null;
+  return async (kind, input, output) => {
+    const args = kind === "post" ? postCopyArgs(input, output) : lightCopyArgs(input, output);
+    const proc = Bun.spawn([binary, ...args], { stdout: "ignore", stderr: "pipe" });
+    const timer = setTimeout(() => proc.kill(), kind === "post" ? POST_TIMEOUT_MS : LIGHT_TIMEOUT_MS * 3);
+    const code = await proc.exited.finally(() => clearTimeout(timer));
+    if (code !== 0) {
+      const why = (await new Response(proc.stderr).text()).trim().slice(-400);
+      throw new Error(`ffmpeg ended with ${code}: ${why}`);
+    }
+  };
+}
+
 /** ffmpeg on this server's path, or null: without it the apps play the original. */
 export function createFfmpegLightCopy(binary = Bun.which("ffmpeg")): LightCopy | null {
   if (!binary) return null;

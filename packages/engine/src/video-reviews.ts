@@ -1,14 +1,29 @@
-import { type ApprovalPortal, firstWords, type LightCopy, type PubSub, type SpeechEngine } from "@agenteschat/adapters";
+import { mkdtemp, readFile, rm, stat } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import {
+  type ApprovalPortal,
+  type BlobStore,
+  type FileBackup,
+  firstWords,
+  type LightCopy,
+  type PubSub,
+  type SpeechEngine,
+  type VideoCopies,
+} from "@agenteschat/adapters";
 import { and, asc, type Database, desc, eq, inArray, isNull, schema, sql } from "@agenteschat/db";
 import { type ArtifactActor, type ArtifactDeps, storedFileOfArtifact } from "./artifacts";
 import { requireChannelAccess } from "./channels";
 import { afterApproveOf, queueDesignDelivery } from "./design-delivery";
+import { decidePersonVideo } from "./editor-delivery";
 import { ConflictError, NotFoundError, ValidationError } from "./errors";
 import { lightKey } from "./file-reader";
 import { postPersonMessage } from "./messages";
 import { enqueue } from "./outbox";
+import { latestRounds, type ReviewRoundView, roundsOf, seeRounds } from "./review-rounds";
 import { replyThreadOf } from "./runs";
 import type { ToolContext, ToolDefinition, ToolOutput, ToolSource } from "./tools/types";
+import type { WhatsAppDeps } from "./whatsapp/accounts";
 
 const {
   agents,
@@ -63,6 +78,12 @@ export interface VideoReviewDeps {
   lightCopy?: LightCopy | null;
   /** The approval portal, where an approved design piece goes (doug-0010 §8); absent: the agent delivers it. */
   portal?: ApprovalPortal | null;
+  /** Copies made from a file on disk (a master of up to 2 GB): the light one and the post's (doug-0012). */
+  videoCopies?: VideoCopies | null;
+  /** Where an editor's approved final gets its second copy (doug-0012); absent: the workspace's storage only. */
+  backup?: FileBackup | null;
+  /** The workspace's WhatsApp numbers, where a person is told of the changes asked of them (doug-0012 §11). */
+  whatsapp?: Pick<WhatsAppDeps, "db" | "gateway" | "keyWrappers"> | null;
 }
 
 /** The job that makes a version's light copy, in the background after it arrives. */
@@ -126,6 +147,8 @@ export interface VideoReviewNoteView {
   attachments: schema.VideoReviewAttachment[];
   voice: boolean;
   author: { id: string; name: string } | null;
+  /** The client wrote it at the approval portal (doug-0012 §12): `author` is their name, with no id. */
+  fromClient: boolean;
   sent: boolean;
   createdAt: string;
 }
@@ -142,6 +165,12 @@ export interface VideoReviewSummary {
   /** A design piece's first slide, from its newest version that has pictures: what lists and cards show. */
   cover: string | null;
   agent: { id: string; name: string; handle: string } | null;
+  /** A person of the team who sent it from a task (docs/adr/doug-0012-editor-delivery.md); null: an agent did. */
+  sender: { id: string; name: string } | null;
+  /** The task it delivers, when sent from one. */
+  taskId: string | null;
+  /** A person's review: the newest round of changes asked of them, with when they saw and answered it. */
+  round: ReviewRoundView | null;
   channelId: string;
   threadId: string | null;
   openNotes: number;
@@ -154,6 +183,14 @@ export interface VideoReviewView extends VideoReviewSummary {
   portal: { client: string; afterApprove: "portal" | "direct" } | null;
   /** What happened at the portal after the approval; null: nothing yet. */
   delivery: Record<string, unknown> | null;
+  /** A person's video: its post's cover and caption, each approved or not (doug-0012). */
+  post: schema.ReviewPost;
+  /** The approved original kept as the final, and its backup; null: not yet. */
+  final: Record<string, unknown> | null;
+  /** The task it delivers, and where its post stands at the portal (the card's stage); null: not from a task. */
+  task: { id: string; number: number; title: string; stage: string | null } | null;
+  /** Every round of changes asked of the person who sent it: the log (doug-0012 §10). */
+  rounds: ReviewRoundView[];
   brief: string;
   links: schema.VideoReviewLink[];
   versions: VideoReviewVersionView[];
@@ -163,6 +200,12 @@ export interface VideoReviewView extends VideoReviewSummary {
 }
 
 export const reviewPath = (orgId: string, reviewId: string) => `/org/${orgId}/review/${reviewId}`;
+
+/** Where a portal task's post stands, as the last pass saw its card (ADR 9001 §11); null: not a portal task. */
+export function portalStageOfTask(source: unknown): string | null {
+  const s = (source ?? {}) as { type?: string; synced?: { card?: { stage?: unknown } } };
+  return s.type === "portal" && typeof s.synced?.card?.stage === "string" ? s.synced.card.stage : null;
+}
 
 /** `83.4 s` → `1:23`; a note about the whole video has no time. */
 export function timecode(ms: number | null): string {
@@ -586,9 +629,11 @@ async function summaries(db: Database, orgId: string, ids?: string[]): Promise<V
       review: videoReviews,
       agentName: agents.name,
       agentHandle: agents.handle,
+      senderName: users.name,
     })
     .from(videoReviews)
     .leftJoin(agents, eq(agents.id, videoReviews.agentId))
+    .leftJoin(users, eq(users.id, videoReviews.senderUserId))
     .where(and(eq(videoReviews.orgId, orgId), ids ? inArray(videoReviews.id, ids) : undefined))
     .orderBy(desc(videoReviews.updatedAt))
     .limit(ids ? ids.length : 200);
@@ -611,7 +656,11 @@ async function summaries(db: Database, orgId: string, ids?: string[]): Promise<V
     .select({ reviewId: videoReviewNotes.reviewId, version: videoReviewNotes.version })
     .from(videoReviewNotes)
     .where(and(inArray(videoReviewNotes.reviewId, reviewIds), isNull(videoReviewNotes.sentAt)));
-  return rows.map(({ review, agentName, agentHandle }) => ({
+  const rounds = await latestRounds(
+    db,
+    rows.filter((r) => r.review.senderUserId).map((r) => r.review.id),
+  );
+  return rows.map(({ review, agentName, agentHandle, senderName }) => ({
     id: review.id,
     medium: review.medium === "design" ? "design" : "video",
     title: review.title,
@@ -621,6 +670,9 @@ async function summaries(db: Database, orgId: string, ids?: string[]): Promise<V
     artifactId: versions.find((v) => v.reviewId === review.id && v.version === review.version)?.artifactId ?? null,
     cover: review.medium === "design" ? coverOf(review.id) : null,
     agent: review.agentId && agentName ? { id: review.agentId, name: agentName, handle: agentHandle ?? "" } : null,
+    sender: review.senderUserId ? { id: review.senderUserId, name: senderName ?? "" } : null,
+    taskId: review.taskId,
+    round: rounds.get(review.id) ?? null,
     channelId: review.channelId,
     threadId: review.threadId,
     openNotes: open.filter((n) => n.reviewId === review.id && n.version === review.version).length,
@@ -676,6 +728,8 @@ export async function getVideoReview(
   reviewId: string,
 ): Promise<VideoReviewView> {
   const review = await requireReview(deps.db, userId, orgId, reviewId);
+  // The person the changes are for opened them: the log keeps the first time (doug-0012 §10).
+  if (review.senderUserId === userId) await seeRounds(deps.db, review.id, userId);
   const [summary] = await summaries(deps.db, orgId, [review.id]);
   if (!summary) throw new NotFoundError("No such review");
   const versions = await deps.db
@@ -716,8 +770,30 @@ export async function getVideoReview(
           ),
         )
     : [];
+  const [task] = review.taskId
+    ? await deps.db
+        .select({
+          id: schema.issues.id,
+          number: schema.issues.number,
+          title: schema.issues.title,
+          source: schema.issues.source,
+        })
+        .from(schema.issues)
+        .where(and(eq(schema.issues.orgId, orgId), eq(schema.issues.id, review.taskId)))
+    : [];
   return {
     ...summary,
+    post: review.post ?? {},
+    final: review.final ?? null,
+    task: task
+      ? {
+          id: task.id,
+          number: task.number,
+          title: task.title,
+          stage: portalStageOfTask(task.source),
+        }
+      : null,
+    rounds: review.senderUserId ? await roundsOf(deps.db, review.id) : [],
     portal: review.portalClient
       ? {
           client: review.portalClient,
@@ -749,7 +825,12 @@ export async function getVideoReview(
       body: note.body,
       attachments: note.attachments ?? [],
       voice: note.voice,
-      author: note.authorUserId ? { id: note.authorUserId, name: authorName ?? "" } : null,
+      author: note.authorUserId
+        ? { id: note.authorUserId, name: authorName ?? "" }
+        : note.authorName
+          ? { id: "", name: note.authorName }
+          : null,
+      fromClient: note.fromClient,
       sent: note.sentAt !== null,
       createdAt: note.createdAt.toISOString(),
     })),
@@ -852,6 +933,7 @@ async function writeNote(
     attachments: row.attachments ?? [],
     voice: row.voice,
     author: author ?? null,
+    fromClient: false,
     sent: false,
     createdAt: row.createdAt.toISOString(),
   };
@@ -1067,6 +1149,8 @@ export async function decideVideoReview(
   if (review.status === "approved" && input.decision === "approve") {
     throw new ConflictError("This version is already approved", "video_review.decided");
   }
+  // A video a person of the team sent from a task: the decision goes back to them, no agent (doug-0012).
+  if (review.senderUserId) return decidePersonVideo(deps, userId, review, input);
   if (!review.agentId) throw new ValidationError("The agent that made this video was removed", "video_review.no_agent");
   const [agent] = await deps.db
     .select({ handle: agents.handle, archivedAt: agents.archivedAt })
@@ -1186,8 +1270,12 @@ export async function decideVideoReview(
 // ---------- the light copy for phones ----------
 
 /** Asks for a version's light copy, once: only where this server can make one. */
-async function queueLight(deps: Pick<VideoReviewDeps, "db" | "lightCopy">, orgId: string, versionId: string) {
-  if (!deps.lightCopy) return;
+async function queueLight(
+  deps: Pick<VideoReviewDeps, "db" | "lightCopy" | "videoCopies">,
+  orgId: string,
+  versionId: string,
+) {
+  if (!deps.lightCopy && !deps.videoCopies) return;
   const [asked] = await deps.db
     .update(videoReviewVersions)
     .set({ lightState: "pending" })
@@ -1220,7 +1308,7 @@ async function versionFile(deps: Pick<VideoReviewDeps, "db" | "artifacts">, orgI
  * original isn't kept (`none`): the apps play the original.
  */
 export async function makeLightCopy(
-  deps: Pick<VideoReviewDeps, "db" | "artifacts" | "lightCopy">,
+  deps: Pick<VideoReviewDeps, "db" | "artifacts" | "lightCopy" | "videoCopies">,
   versionId: string,
   options: { finalAttempt: boolean },
 ): Promise<void> {
@@ -1229,6 +1317,22 @@ export async function makeLightCopy(
   const settle = (lightState: string) =>
     deps.db.update(videoReviewVersions).set({ lightState }).where(eq(videoReviewVersions.id, versionId));
   const file = await versionFile(deps, v.orgId, v.artifactId);
+  // An editor's master (up to 2 GB) is copied from disk, never whole in memory (doug-0012).
+  const copies = deps.videoCopies;
+  if (file && copies && (file.size > LIGHT_SOURCE_BYTES || !deps.lightCopy)) {
+    try {
+      await onDisk(file.store, file.blobKey, async (input, dir) => {
+        const output = join(dir, "light.mp4");
+        await copies("light", input, output);
+        await putFromDisk(file.store, lightKey(file.blobKey), output);
+      });
+      await settle("ready");
+    } catch (error) {
+      if (options.finalAttempt) await settle("failed");
+      throw error;
+    }
+    return;
+  }
   if (!file || !deps.lightCopy || file.size > LIGHT_SOURCE_BYTES) {
     await settle("none");
     return;
@@ -1258,13 +1362,13 @@ export async function makeLightCopy(
  * (unless `original`), else the file. A light copy that went missing (the files moved) is made again.
  */
 export async function reviewVideo(
-  deps: Pick<VideoReviewDeps, "db" | "artifacts" | "lightCopy">,
+  deps: Pick<VideoReviewDeps, "db" | "artifacts" | "lightCopy" | "videoCopies">,
   userId: string,
   orgId: string,
   reviewId: string,
   version: number,
   options: { original?: boolean } = {},
-): Promise<{ body: Uint8Array; contentType: string; light: boolean }> {
+): Promise<{ body: Uint8Array; contentType: string; light: boolean } | { redirect: string }> {
   const review = await requireReview(deps.db, userId, orgId, reviewId);
   const [v] = await deps.db
     .select()
@@ -1279,9 +1383,52 @@ export async function reviewVideo(
     await deps.db.update(videoReviewVersions).set({ lightState: "" }).where(eq(videoReviewVersions.id, v.id));
     await queueLight(deps, orgId, v.id);
   }
+  // An editor's master is too large to hold here: the light copy plays once it is ready, and the original is the
+  // file's own download, which streams.
+  if (file.size > LIGHT_SOURCE_BYTES) {
+    if (options.original || v.lightState === "none" || v.lightState === "failed") {
+      return { redirect: `/api/app/organizations/${orgId}/artifacts/${v.artifactId}/file` };
+    }
+    throw new ConflictError("Its light copy is still being made", "video_review.preparing");
+  }
   const object = await file.store.get(file.blobKey);
   if (!object) throw new NotFoundError("The stored file is missing");
   return { body: object.body, contentType: object.contentType || "video/mp4", light: false };
+}
+
+// ---------- files on disk ----------
+
+/**
+ * Runs `fn` with the object `key` written to a file of its own on this server's disk, as it is read (never whole in
+ * memory where the store streams), then removes it.
+ */
+export async function onDisk<T>(store: BlobStore, key: string, fn: (path: string, dir: string) => Promise<T>) {
+  const dir = await mkdtemp(join(tmpdir(), "review-"));
+  try {
+    const input = join(dir, "in");
+    const stream = store.stream ? await store.stream(key) : null;
+    if (stream) await Bun.write(input, new Response(stream));
+    else {
+      const object = await store.get(key);
+      if (!object) throw new NotFoundError("The stored file is missing");
+      await Bun.write(input, object.body);
+    }
+    return await fn(input, dir);
+  } finally {
+    await rm(dir, { recursive: true, force: true }).catch(() => undefined);
+  }
+}
+
+/** Stores a file of this server's disk under `key`: as it is read where the store can, else whole. */
+export async function putFromDisk(store: BlobStore, key: string, path: string) {
+  if (store.putFile) {
+    const hasher = new Bun.CryptoHasher("sha256");
+    for await (const chunk of Bun.file(path).stream()) hasher.update(chunk);
+    const size = (await stat(path)).size;
+    await store.putFile(key, path, { contentType: "video/mp4", size, sha256: hasher.digest("hex") });
+    return;
+  }
+  await store.put(key, new Uint8Array(await readFile(path)), { contentType: "video/mp4" });
 }
 
 // ---------- shared with the design piece (`design-reviews.ts`) ----------
@@ -1291,6 +1438,7 @@ export {
   cleanBrief as cleanReviewBrief,
   cleanText as cleanReviewText,
   LINKS_SCHEMA as REVIEW_LINKS_SCHEMA,
+  queueLight as queueReviewLight,
   requireReview as requireVideoReview,
   summaries as reviewSummaries,
   versionFile as reviewVersionFile,

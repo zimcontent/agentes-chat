@@ -73,6 +73,17 @@ export function loadConfig(env: Record<string, string | undefined> = process.env
   if (Boolean(config.APPROVAL_PORTAL_URL) !== Boolean(config.APPROVAL_PORTAL_TOKEN)) {
     throw new ConfigError(["APPROVAL_PORTAL_URL and APPROVAL_PORTAL_TOKEN go together: set both or neither"]);
   }
+  const backup = [
+    config.BACKUP_GOOGLE_DRIVE_FOLDER_ID,
+    config.BACKUP_GOOGLE_DRIVE_CLIENT_ID,
+    config.BACKUP_GOOGLE_DRIVE_CLIENT_SECRET,
+    config.BACKUP_GOOGLE_DRIVE_REFRESH_TOKEN,
+  ].filter(Boolean).length;
+  if (backup !== 0 && backup !== 4) {
+    throw new ConfigError([
+      "BACKUP_GOOGLE_DRIVE_FOLDER_ID, _CLIENT_ID, _CLIENT_SECRET and _REFRESH_TOKEN go together: set all four or none",
+    ]);
+  }
   if (Boolean(config.ZIM_MEDIA_URL) !== Boolean(config.ZIM_MEDIA_SECRET)) {
     throw new ConfigError(["ZIM_MEDIA_URL and ZIM_MEDIA_SECRET go together: set both or neither"]);
   }

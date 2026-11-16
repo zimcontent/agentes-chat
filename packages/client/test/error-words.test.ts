@@ -391,6 +391,15 @@ test("a provider refused this server's own OAuth app: what's wrong and who fixes
 const PLAIN_LINE = new Set([
   // The Revisor (docs/adr/doug-0007-video-review.md, doug-0010-design-review.md) words its own failures in its screens
   // (`reviewWords`), and the rest refuse an agent's tool call, whose message the agent reads.
+  "editor_delivery.bad_cover",
+  "editor_delivery.bad_file",
+  "editor_delivery.no_caption",
+  "editor_delivery.no_cover",
+  "editor_delivery.no_portal",
+  "editor_delivery.not_approved",
+  "editor_delivery.not_video",
+  "editor_delivery.nothing_to_retry",
+  "editor_delivery.with_client",
   "video_review.bad_attachment",
   "video_review.bad_kind",
   "video_review.bad_page",
@@ -401,6 +410,8 @@ const PLAIN_LINE = new Set([
   "video_review.empty_note",
   "video_review.empty_page",
   "video_review.no_agent",
+  "video_review.preparing",
+  "review.bad_whatsapp",
   "video_review.no_channel",
   "video_review.nobody_here",
   "video_review.no_page",

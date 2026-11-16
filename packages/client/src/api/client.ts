@@ -27,6 +27,9 @@ import type {
 } from "../vault/types";
 import type {
   DesignEditInput,
+  ReviewPost,
+  ReviewPostPatch,
+  ReviewWhatsAppTarget,
   VideoReview,
   VideoReviewDecision,
   VideoReviewNote,
@@ -199,7 +202,6 @@ import type {
   InviteLinkChoices,
   InviteLinkMade,
   Issue,
-  TeamAgenda,
   IssueActivity,
   IssueColumn,
   IssueConversationRef,
@@ -372,6 +374,7 @@ import type {
   TaskOutput,
   TaskSteps,
   Team,
+  TeamAgenda,
   TeamAgentDraft,
   TeamProposalCard,
   TeamTemplate,
@@ -2000,11 +2003,11 @@ export interface ApiClient {
       orgId: string,
       input: { title: string; channelId?: string | null; content: ArtifactContent },
     ): Promise<ArtifactDetail>;
-    /** Uploads a file as is (multipart, ≤ 50 MB) to the Drive or to a channel. */
+    /** Uploads a file as is (multipart, up to 2 GB) to the Drive or to a channel; with progress and Cancel. */
     upload(
       orgId: string,
       file: File,
-      options?: { title?: string; channelId?: string | null; threadId?: string | null },
+      options?: { title?: string; channelId?: string | null; threadId?: string | null } & UploadOptions,
     ): Promise<ArtifactDetail>;
     /** A new version of an uploaded file (multipart, ≤ 50 MB). */
     uploadVersion(orgId: string, id: string, file: File, options?: { note?: string }): Promise<ArtifactDetail>;
@@ -2302,6 +2305,31 @@ export interface ApiClient {
     source?(orgId: string, reviewId: string, version: number): Promise<string>;
     /** Saves a design piece edited by hand as its next version. */
     saveDesign?(orgId: string, reviewId: string, input: DesignEditInput): Promise<VideoReviewSummary>;
+    /** The review sent from a task, if any (docs/adr/doug-0012-editor-delivery.md). */
+    taskVideo?(orgId: string, issueId: string): Promise<{ reviewId: string | null }>;
+    /** Sends the video a person edited for a task (a file already uploaded to the task's conversation). */
+    sendTaskVideo?(
+      orgId: string,
+      issueId: string,
+      input: { artifactId: string; note?: string },
+    ): Promise<{ review: VideoReviewSummary; toClient: boolean }>;
+    /** Sets the post's cover and caption, and approves each. */
+    setPost?(orgId: string, reviewId: string, patch: ReviewPostPatch): Promise<ReviewPost>;
+    /** Sends the approved post to the client (or straight to scheduling, for a `direct` client). */
+    sendToClient?(
+      orgId: string,
+      reviewId: string,
+    ): Promise<{ delivery: Record<string, unknown>; afterApprove: "portal" | "direct" }>;
+    /** Tries the final's backup again. */
+    retryFinal?(orgId: string, reviewId: string): Promise<void>;
+    /** Each person's WhatsApp conversation for the changes asked of them. */
+    whatsappTargets?(orgId: string): Promise<{ targets: ReviewWhatsAppTarget[] }>;
+    /** Sets (or, with null, takes away) where a person is told. */
+    setWhatsappTarget?(
+      orgId: string,
+      userId: string,
+      target: { accountId: string; chatId: string } | null,
+    ): Promise<{ target: ReviewWhatsAppTarget | null }>;
   };
   whatsapp?: {
     overview(orgId: string): Promise<WhatsAppOverview>;

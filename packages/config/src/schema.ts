@@ -542,6 +542,35 @@ export const envVars = {
     section: "Connectors",
     secret: true,
   },
+  BACKUP_GOOGLE_DRIVE_FOLDER_ID: {
+    schema: z
+      .string()
+      .regex(/^[A-Za-z0-9_-]{10,200}$/, "must be a Google Drive folder id (the end of the folder's address)")
+      .optional(),
+    description:
+      "Google Drive folder where approved final videos get a backup copy, optional (docs/adr/doug-0012-editor-delivery.md): its id, the end of the folder's address. With `BACKUP_GOOGLE_DRIVE_CLIENT_ID`, `BACKUP_GOOGLE_DRIVE_CLIENT_SECRET` and `BACKUP_GOOGLE_DRIVE_REFRESH_TOKEN`, every final an editor delivers is copied there, in a folder per workspace and client, after it is kept in the workspace's storage. Unset (default): finals stay in the workspace's storage only.",
+    section: "Connectors",
+    example: "1AbCdEfGhIjKlMnOpQrStUvWxYz012345",
+  },
+  BACKUP_GOOGLE_DRIVE_CLIENT_ID: {
+    schema: z.string().min(10).optional(),
+    description:
+      "OAuth client id of the Google app the backup signs in with. Goes with `BACKUP_GOOGLE_DRIVE_FOLDER_ID`.",
+    section: "Connectors",
+  },
+  BACKUP_GOOGLE_DRIVE_CLIENT_SECRET: {
+    schema: z.string().min(10).optional(),
+    description: "OAuth client secret of that Google app. Goes with `BACKUP_GOOGLE_DRIVE_FOLDER_ID`.",
+    section: "Connectors",
+    secret: true,
+  },
+  BACKUP_GOOGLE_DRIVE_REFRESH_TOKEN: {
+    schema: z.string().min(20).optional(),
+    description:
+      "A refresh token of the Google account that owns the backup folder, with Drive access, for that Google app. Goes with `BACKUP_GOOGLE_DRIVE_FOLDER_ID`; it never leaves this server.",
+    section: "Connectors",
+    secret: true,
+  },
   ZIM_MEDIA_URL: {
     schema: z.url({ protocol: /^https?$/ }).optional(),
     description:

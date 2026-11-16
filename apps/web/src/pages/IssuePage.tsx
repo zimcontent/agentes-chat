@@ -63,6 +63,7 @@ import { IssueFiles, useIssueFileEntries } from "@/components/IssueFiles";
 import { useOrg } from "@/components/org-context";
 import { SidePanel } from "@/components/SidePanel";
 import { TaskConversationButton, TaskConversationPanel, TaskConversationSummary } from "@/components/TaskConversation";
+import { TaskVideoDelivery } from "@/components/video-review/TaskVideoDelivery";
 import { IssueWhoSeesDialog, WhoSeesButton } from "@/components/WhoSees";
 import { useWikiLinkRenderer } from "@/components/WikiLinks";
 import { usePersonalView } from "@/hooks/usePersonalView";
@@ -338,6 +339,7 @@ export function IssueDetails({
         ]}
       >
         <TabPanel value="details">
+          <TaskVideoDelivery issue={i} />
           <WorkBox issue={i} />
           <IssueWorkBlock issue={i} />
           {i.assignee?.type !== "agent" && isOpen(i) && <AskAgent issue={i} />}
