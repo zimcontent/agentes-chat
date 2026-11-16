@@ -23,14 +23,15 @@ export const SIDEBAR_DEFAULTS: Record<SidebarItem, SidebarPlace> = {
   waiting: "auto",
   // Listed only where the server has an approval portal (ADR 9001): the apps leave it out elsewhere.
   portal: "always",
-  // Listed only where the server generates media (ADR doug-0011).
-  media: "always",
+  // Listed only where the server generates media (ADR doug-0011). DougBot keeps the list to the five the team opens
+  // all day (Início, Portal, Revisão, Tarefas, Configurações): Mídia, Threads and Drive start in the tools' grid.
+  media: "more",
   approvals: "auto",
   proposals: "more",
-  threads: "always",
+  threads: "more",
   issues: "always",
   wiki: "more",
-  drive: "always",
+  drive: "more",
   routines: "more",
   calendar: "more",
   // DougBot: in More; the agents' list already ends with "Mais N agentes na Equipe".

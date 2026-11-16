@@ -1915,6 +1915,13 @@
       "homePersonal": "你的一天：等着你的事和你的智能体正在做的事"
     },
     "customizeSidebar": "自定义侧边栏",
+    "launcher": {
+      "title": "工具",
+      "production": "制作",
+      "work": "对话和任务",
+      "team": "智能体和团队",
+      "create": "创建"
+    },
     "sidebarMenu": {
       "title": "侧边栏",
       "newChannel": "新建频道",

@@ -2017,6 +2017,13 @@
       "homePersonal": "Ta journée : ce qui t'attend et ce que font tes agents"
     },
     "customizeSidebar": "Personnaliser la barre latérale",
+    "launcher": {
+      "title": "Outils",
+      "production": "Création",
+      "work": "Conversations et tâches",
+      "team": "Agents et équipe",
+      "create": "Créer"
+    },
     "sidebarMenu": {
       "title": "Barre latérale",
       "newChannel": "Nouveau canal",

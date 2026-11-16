@@ -4826,6 +4826,21 @@
   "shell.customizeSidebar": {
     "value": "Customize sidebar"
   },
+  "shell.launcher.title": {
+    "value": "Tools"
+  },
+  "shell.launcher.production": {
+    "value": "Production"
+  },
+  "shell.launcher.work": {
+    "value": "Conversations and tasks"
+  },
+  "shell.launcher.team": {
+    "value": "Agents and team"
+  },
+  "shell.launcher.create": {
+    "value": "Create"
+  },
   "shell.sidebarMenu.title": {
     "value": "Sidebar"
   },

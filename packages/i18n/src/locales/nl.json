@@ -1965,6 +1965,13 @@
       "homePersonal": "Je dag: wat op je wacht en wat je agents nu doen"
     },
     "customizeSidebar": "Zijbalk aanpassen",
+    "launcher": {
+      "title": "Hulpmiddelen",
+      "production": "Productie",
+      "work": "Gesprekken en taken",
+      "team": "Agents en team",
+      "create": "Maken"
+    },
     "sidebarMenu": {
       "title": "Zijbalk",
       "newChannel": "Nieuw kanaal",

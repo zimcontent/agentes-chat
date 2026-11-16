@@ -1915,6 +1915,13 @@
       "homePersonal": "오늘 하루: 나를 기다리는 일과 에이전트가 하고 있는 일"
     },
     "customizeSidebar": "사이드바 맞춤 설정",
+    "launcher": {
+      "title": "도구",
+      "production": "제작",
+      "work": "대화 및 작업",
+      "team": "에이전트 및 팀",
+      "create": "만들기"
+    },
     "sidebarMenu": {
       "title": "사이드바",
       "newChannel": "새 채널",

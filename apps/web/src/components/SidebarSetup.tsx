@@ -31,6 +31,7 @@ import {
 import {
   cloneElement,
   type DragEvent,
+  Fragment,
   type KeyboardEvent,
   type ReactElement,
   type ReactNode,
@@ -123,7 +124,16 @@ const MOVE_KEYS = "Alt+Shift+ArrowUp Alt+Shift+ArrowDown";
  * (ADR 9001), "Waiting on you" and Portal share one row while both are in the list (`TOOL_PAIR`), where the first of
  * the two is in the person's order: two smaller buttons side by side, each still its own link that moves on its own.
  */
-export function ToolList({ items, row }: { items: SidebarItem[]; row: (id: SidebarItem) => ReactElement }) {
+export function ToolList({
+  items,
+  row,
+  after,
+}: {
+  items: SidebarItem[];
+  row: (id: SidebarItem) => ReactElement;
+  /** A row of another kind (DougBot's Revisão) right after this tool, or at the list's end when it isn't shown. */
+  after?: { id: SidebarItem; node: ReactNode };
+}) {
   const { t } = useTranslation();
   const { org } = useOrg();
   const { order, put } = useToolOrder(org.id, isPersonal(org));
@@ -184,10 +194,9 @@ export function ToolList({ items, row }: { items: SidebarItem[]; row: (id: Sideb
       onDragEnd: end,
     });
   };
-  if (!paired) return shown.map(tool);
-  const first = shown.find((id) => TOOL_PAIR.includes(id));
-  return shown
-    .filter((id) => id === first || !TOOL_PAIR.includes(id))
+  const first = paired ? shown.find((id) => TOOL_PAIR.includes(id)) : undefined;
+  const list = shown
+    .filter((id) => !paired || id === first || !TOOL_PAIR.includes(id))
     .map((id) =>
       id === first ? (
         <div key="pair" className="sidebar__pair">
@@ -197,6 +206,15 @@ export function ToolList({ items, row }: { items: SidebarItem[]; row: (id: Sideb
         tool(id)
       ),
     );
+  if (!after) return list;
+  // After the tool, or after the pair that holds it.
+  const at = shown.includes(after.id)
+    ? shown
+        .filter((id) => !paired || id === first || !TOOL_PAIR.includes(id))
+        .findIndex((id) => id === after.id || (paired && id === first && TOOL_PAIR.includes(after.id)))
+    : -1;
+  const extra = <Fragment key="after">{after.node}</Fragment>;
+  return at < 0 ? [...list, extra] : [...list.slice(0, at + 1), extra, ...list.slice(at + 1)];
 }
 
 /**

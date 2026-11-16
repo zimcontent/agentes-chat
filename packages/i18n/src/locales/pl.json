@@ -2068,6 +2068,13 @@
       "homePersonal": "Twój dzień: co na ciebie czeka i co robią twoi agenci"
     },
     "customizeSidebar": "Dostosuj pasek boczny",
+    "launcher": {
+      "title": "Narzędzia",
+      "production": "Produkcja",
+      "work": "Rozmowy i zadania",
+      "team": "Agenci i zespół",
+      "create": "Utwórz"
+    },
     "sidebarMenu": {
       "title": "Pasek boczny",
       "newChannel": "Nowy kanał",

@@ -419,14 +419,16 @@ describe("a personal workspace's sidebar", () => {
     expect(nav().querySelector(".sidebar__new-channel")).toBeNull();
   });
 
-  test("a team's sidebar (DougBot): me with the workspace under my name and the bell on top, ⌘K under it, no foot card", async () => {
+  test("a team's sidebar (DougBot): me with the workspace under my name and the bell on top, ⌘K under it with the tools' grid, the tools as rows, nothing at the foot", async () => {
     await go(seedState());
     expect(nav().querySelector(".sidebar__end")).toBeNull();
     expect(nav().querySelector(".sidebar__jump")).not.toBeNull();
     expect(nav().querySelector(".sidebar__brand-acts > .sidebar__bell")).not.toBeNull();
     expect(nav().querySelector(".sidebar__org--head .sidebar__org-meta")?.textContent).toContain("Acme");
     expect(nav().querySelector(".sidebar__foot .sidebar__me")).toBeNull();
-    expect(nav().querySelector(".sidebar__foot .sidebar__dock")).not.toBeNull();
+    expect(nav().querySelector(".sidebar__jump-row .sidebar__launch")).not.toBeNull();
+    expect(nav().querySelector(".sidebar__top .sidebar__nav")).not.toBeNull();
+    expect(nav().querySelector(".sidebar__dock")).toBeNull();
     expect(blocks()).toEqual(["channels", "agents", "people"]);
   });
 });

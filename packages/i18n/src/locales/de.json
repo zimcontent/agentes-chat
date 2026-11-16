@@ -1965,6 +1965,13 @@
       "homePersonal": "Dein Tag: was auf dich wartet und was deine Agenten gerade tun"
     },
     "customizeSidebar": "Seitenleiste anpassen",
+    "launcher": {
+      "title": "Werkzeuge",
+      "production": "Produktion",
+      "work": "Unterhaltungen und Aufgaben",
+      "team": "Agenten und Team",
+      "create": "Erstellen"
+    },
     "sidebarMenu": {
       "title": "Seitenleiste",
       "newChannel": "Neuer Kanal",
