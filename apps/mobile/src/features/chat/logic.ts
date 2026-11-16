@@ -780,6 +780,19 @@ export function tableKey(header: Inline[][], rows: Inline[][][]): string {
   return `${header.length}x${rows.length}:${(hash >>> 0).toString(36)}`;
 }
 
+/**
+ * Whether a table's cells hold spans drawn wider once something loads after they mount: a file, message or id pill (an
+ * icon until its query answers, then its title), a channel's name, a mention. Measured once at the icon, their column
+ * stayed narrow and the title wrapped in it for the rest of the session; such a table keeps measuring.
+ */
+export function tableResolvesLate(header: Inline[][], rows: Inline[][][]): boolean {
+  return [header, ...rows].some((r) =>
+    r.some((cell) =>
+      cell.some((s) => s.kind === "link" || s.kind === "id" || s.kind === "channel" || s.kind === "mention"),
+    ),
+  );
+}
+
 /** Which sides of a table scrolled sideways hide columns (`x`: the scroll, `frame`: the box, `total`: the table). */
 export function tableHidden(x: number, frame: number, total: number): { left: boolean; right: boolean } {
   return { left: x > 1, right: frame > 0 && x + frame < total - 1 };

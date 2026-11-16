@@ -35,6 +35,7 @@ import {
   tableColumnWidths,
   tableHidden,
   tableKey,
+  tableResolvesLate,
 } from "./logic";
 import { useLayoutKey, useRowLook } from "./look";
 import { MessageRefText } from "./MessageRefText";
@@ -232,23 +233,35 @@ export function Table({
   // Each column's width as drawn, kept across the list's unmounts (`kept-sizes.ts`): a table coming back lays out at
   // its widths from its first frame. At the letters' guess its cells wrapped otherwise (another height) until they
   // were measured again, and every row under it moved. Measured anew when what they depend on changes (the cells,
-  // the width, the text size).
+  // the width, the text size). Meanwhile the new cells draw at the widths measured last (`before`), never at the guess:
+  // a live block's table follows its slider step by step, and every step jumped to the guess and back.
   const content = useMemo(() => tableKey(header, rows), [header, rows]);
   const columnsKey = `table:${content}:${useLayoutKey()}`;
-  const [measured, setMeasured] = useState(() => ({ key: columnsKey, columns: { ...keptColumns(columnsKey) } }));
-  if (measured.key !== columnsKey) setMeasured({ key: columnsKey, columns: { ...keptColumns(columnsKey) } });
+  const [measured, setMeasured] = useState(() => ({
+    key: columnsKey,
+    columns: { ...keptColumns(columnsKey) },
+    before: {} as Record<number, number>,
+  }));
+  if (measured.key !== columnsKey)
+    setMeasured({
+      key: columnsKey,
+      columns: { ...keptColumns(columnsKey) },
+      before: { ...measured.before, ...measured.columns },
+    });
   const drawn: Record<number, number> = measured.columns;
   useEffect(() => {
     if (Object.keys(drawn).length > 0) keepColumns(columnsKey, drawn);
   }, [columnsKey, drawn]);
   // The unseen copy only until every column has its width: a table coming back has them all, and drew each of its
-  // cells twice on every mount for nothing.
+  // cells twice on every mount for nothing. Kept while a cell's pill or name loads after it mounts (wider then): its
+  // column measures again and widens, where measured once at the icon the title wrapped in it.
   const unmeasured = header.some((_, col) => drawn[col] === undefined);
+  const late = useMemo(() => tableResolvesLate(header, rows), [header, rows]);
   const [frame, setFrame] = useState(0);
   const [x, setX] = useState(0);
   const scroller = useRef<ComponentRef<typeof GestureScrollView>>(null);
   const flashed = useRef(false);
-  const widths = tableColumnWidths(header, rows, drawn, fontScale);
+  const widths = tableColumnWidths(header, rows, { ...measured.before, ...drawn }, fontScale);
   // The content's width said outright (not left to layout), so the box always knows it has more to scroll.
   const total = widths.reduce((sum, w) => sum + w, 0);
   const hidden = tableHidden(x, frame, total);
@@ -282,9 +295,11 @@ export function Table({
   );
   return (
     <View>
-      {/* Each column's cells unseen, on a sideways strip with no width to wrap them: their widths. */}
-      {unmeasured ? (
+      {/* Each column's cells unseen, on a sideways strip with no width to wrap them: their widths. A copy of its own for
+          each content, so every column says its width (one whose width didn't change would say nothing). */}
+      {unmeasured || late ? (
         <View
+          key={columnsKey}
           pointerEvents="none"
           style={styles.measure}
           accessibilityElementsHidden
@@ -298,9 +313,7 @@ export function Table({
                 onLayout={(e) => {
                   const w = e.nativeEvent.layout.width;
                   setMeasured((m) =>
-                    m.key !== columnsKey || m.columns[col] === w
-                      ? m
-                      : { key: m.key, columns: { ...m.columns, [col]: w } },
+                    m.key !== columnsKey || m.columns[col] === w ? m : { ...m, columns: { ...m.columns, [col]: w } },
                   );
                 }}
               >
