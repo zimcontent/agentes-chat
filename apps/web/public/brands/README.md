@@ -30,3 +30,11 @@ More marks name products elsewhere in the app, each from its maker's own file:
 | `vscode.png` | Visual Studio Code, for AI apps connected to the server (`ProviderLogo`, ADR 0119) | `vscode.png` from the icons download of https://code.visualstudio.com/brand, https://code.visualstudio.com/assets/branding/visual-studio-code-icons.zip (version 2021-06-21), scaled from 1024 to 128 px and otherwise unchanged. The blue icon is the one the guidelines ask for on any background with enough contrast, so there is no dark file. The phone ships the same file in `apps/mobile/assets/images/brands/`. Cursor's cube is a path in `packages/ui/src/brand/marks.ts`, from https://cursor.com/brand | Visual Studio Code's brand guidelines (https://code.visualstudio.com/brand), used only to name the product |
 
 Each logo is a trademark of its owner, used only to name the project; none of these licenses grants trademark rights.
+
+The model picker on the Mídia page (`apps/web/src/pages/media/ModelMark.tsx`, which model is whose in `packages/client/src/media/brand.ts`) shows each model's maker from `models/`:
+
+| File | Maker | Source | Terms |
+|---|---|---|---|
+| `models/bytedance-color.svg`, `gemini-color.svg`, `minimax-color.svg`, `qwen-color.svg`, `kling-color.svg`, `meta-color.svg`, `recraft.svg`, `ideogram.svg`, `grok.svg` | ByteDance, Google, MiniMax, Qwen, Kling, Meta, Recraft, Ideogram, xAI | Lobe Icons, https://github.com/lobehub/lobe-icons (`packages/static-svg/icons`) | MIT License (`models/LICENSE`); the marks belong to their makers and are shown only to name the model |
+| `models/openai.svg` | OpenAI | The Blossom, the same drawing as `openai` in `packages/ui/src/brand/marks.ts` (from https://openai.com/brand) | The mark belongs to OpenAI and is shown only to name the model |
+| `models/zim.png` | Zim Studio | The Zim Studio's own mark | Shown only to name the Zim Studio's models |

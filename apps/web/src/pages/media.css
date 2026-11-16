@@ -716,3 +716,18 @@
 .media-pack__price {
   color: var(--muted);
 }
+
+/* The maker's logo beside a model's name in the picker (ModelMark): 16px, the icons' column. */
+.media-mark {
+  display: block;
+  flex: none;
+  width: 16px;
+  height: 16px;
+  object-fit: contain;
+}
+.media-mark--mono {
+  background: currentColor;
+  mask-size: contain;
+  mask-repeat: no-repeat;
+  mask-position: center;
+}
