@@ -35,7 +35,9 @@ import {
   type DropResult,
   useListDrag,
 } from "./board-parts";
+import { useCopyCardLink } from "./card-link";
 import { MemberFaces } from "./members";
+import { DeleteCardDialog } from "./PortalBoard";
 import { LabelChip, StageChip, stageName } from "./stage";
 
 type Column = { id: string; name: string; cards: PlanCard[]; list: boolean };
@@ -65,6 +67,7 @@ export function PlanBoard({
   const lists = usePortalLists(org.id, plan.client);
   const [renaming, setRenaming] = useState<string | null>(null);
   const [deleting, setDeleting] = useState<Column | null>(null);
+  const [deletingCard, setDeletingCard] = useState<PlanCard | null>(null);
   const failed = (error: unknown) => toast.show(portalErrorText(t, error, i18n.language), "error");
 
   const columns: Column[] = [
@@ -206,6 +209,7 @@ export function PlanBoard({
                     picked={picked}
                     drag={changes ? { ...dnd.card(card, col.id), help: helpId } : undefined}
                     onOpen={() => onOpen(card.id)}
+                    onDelete={changes ? () => setDeletingCard(card) : undefined}
                     moves={
                       changes
                         ? columns
@@ -247,6 +251,7 @@ export function PlanBoard({
           </Button>
         </DialogFooter>
       </Dialog>
+      <DeleteCardDialog card={deletingCard} onClose={() => setDeletingCard(null)} />
     </div>
   );
 }
@@ -383,8 +388,8 @@ function AddCard({ client, list, cards }: { client: string; list: string; cards:
  * A card of the schedule, in the board's own card: its title, then its type, its stage (the board's chip, with the
  * stage's colour the legend explains) and the team's labels as chips; then what it holds as a line of facts (the day
  * its post goes out, the day it is made, comments, the checklist's progress, files, a description) with who is on it
- * at the line's end; and, once it was sent, the way to its post at the portal. A press opens it; its menu moves it to
- * another list (`moves`), the way that needs neither a drag nor the arrows.
+ * at the line's end; and, once it was sent, the way to its post at the portal. A press opens it; its menu copies its
+ * link, moves it to another list (`moves`, the way that needs neither a drag nor the arrows) and deletes it.
  */
 export function PlanCardFace({
   card,
@@ -393,6 +398,7 @@ export function PlanCardFace({
   drag,
   moves = [],
   onOpen,
+  onDelete,
 }: {
   card: PlanCard;
   labels: PortalLabel[];
@@ -400,8 +406,11 @@ export function PlanCardFace({
   drag?: CardDrag;
   moves?: { name: string; go: () => void }[];
   onOpen: () => void;
+  /** Who may change the board deletes it, at hand and from its menu. */
+  onDelete?: () => void;
 }) {
   const { t, i18n } = useTranslation();
+  const copyLink = useCopyCardLink();
   const mine = card.labels.flatMap((id) => labels.find((l) => l.id === id) ?? []);
   const checks = portalChecks(card);
   const post = portalWhen(i18n.language, card.postOn);
@@ -467,10 +476,21 @@ export function PlanCardFace({
       drag={drag}
       onOpen={onOpen}
       headEnd={
-        moves.length > 0 && (
+        <>
+          {onDelete && (
+            <Button
+              size="sm"
+              variant="ghost"
+              iconOnly
+              icon="trash"
+              aria-label={t("portal.card.deleteOf", { title: card.title })}
+              title={t("portal.delete")}
+              onClick={onDelete}
+            />
+          )}
           <Menu
             align="end"
-            label={t("portal.plan.moveCard")}
+            label={t("portal.actionsOf", { title: card.title })}
             trigger={
               <Button
                 size="sm"
@@ -481,13 +501,25 @@ export function PlanCardFace({
               />
             }
           >
+            <MenuItem icon="link" onSelect={() => copyLink(card)}>
+              {t("portal.card.copyLink")}
+            </MenuItem>
+            {moves.length > 0 && <MenuSeparator />}
             {moves.map((m) => (
               <MenuItem key={m.name} icon="move" onSelect={m.go}>
                 {t("portal.moveTo", { column: m.name })}
               </MenuItem>
             ))}
+            {onDelete && (
+              <>
+                <MenuSeparator />
+                <MenuItem icon="trash" danger onSelect={onDelete}>
+                  {t("portal.delete")}
+                </MenuItem>
+              </>
+            )}
           </Menu>
-        )
+        </>
       }
       chips={
         <>

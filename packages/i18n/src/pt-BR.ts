@@ -21074,6 +21074,9 @@ export const ptBR = {
       saved: "Cartão salvo.",
       deleted: "Cartão excluído.",
       deleteTitle: "Excluir este cartão?",
+      deleteOf: "Excluir o cartão {{title}}",
+      copyLink: "Copiar link do cartão",
+      linkCopied: "Link do cartão copiado.",
       deleteText: "“{{title}}” sai do quadro. Os arquivos continuam no Drive.",
     },
     post: {
@@ -21124,6 +21127,8 @@ export const ptBR = {
       viewCalendar: "Calendário",
       noList: "Sem lista",
       addList: "Adicionar lista",
+      newList: "Nova lista",
+      newListHint: "Ela entra como a primeira do cronograma. Os cartões você cria dentro dela.",
       listName: "Nome da lista",
       addCard: "Adicionar cartão",
       cardTitle: "Título do cartão",

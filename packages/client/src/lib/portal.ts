@@ -209,6 +209,10 @@ export function portalMonthName(locale: string, month: string): string {
 /** A link the portal sent, only when it is a web address: outside text never becomes another kind of link. */
 export const portalLink = (url: string | null | undefined) => (url && /^https?:\/\//i.test(url) ? url : null);
 
+/** The address that opens one card of a client's board in its dialog, to share: the page reads `client` and `card`. */
+export const portalCardAddress = (origin: string, orgId: string, client: string, cardId: string) =>
+  `${origin}/org/${encodeURIComponent(orgId)}/portal?${new URLSearchParams({ client, card: cardId }).toString()}`;
+
 /** The colours a label takes (`PORTAL_LABEL_COLORS`, packages/adapters/src/approval-portal.ts): names the apps draw. */
 export const PORTAL_LABEL_COLORS: readonly PortalLabelColor[] = [
   "green",

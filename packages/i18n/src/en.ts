@@ -21109,6 +21109,9 @@ export const en = {
       saved: "Card saved.",
       deleted: "Card deleted.",
       deleteTitle: "Delete this card?",
+      deleteOf: "Delete the card {{title}}",
+      copyLink: "Copy the card's link",
+      linkCopied: "Card link copied.",
       deleteText: "“{{title}}” leaves the board. Its files stay in the Drive.",
     },
     post: {
@@ -21162,6 +21165,8 @@ export const en = {
       viewCalendar: "Calendar",
       noList: "No list",
       addList: "Add a list",
+      newList: "New list",
+      newListHint: "It comes first in the schedule. You add its cards inside it.",
       listName: "List name",
       addCard: "Add a card",
       cardTitle: "Card title",
