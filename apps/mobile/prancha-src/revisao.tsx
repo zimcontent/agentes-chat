@@ -155,9 +155,9 @@ const REVIEW: VideoReview = {
 // A design piece (docs/adr/doug-0010-design-review.md): a carousel's slides and its page, served beside the board
 // (`public/amostra/design/v1/pages/<n>` and `…/v1/source`).
 const ROSA = { id: "0198a4b2-0000-7000-8000-0000000000cc", name: "ROSA", handle: "rosa" };
-const D1 = "0198a4b2-0000-7000-8000-000000000201";
+const DESIGN_ID = "0198a4b2-0000-7000-8000-000000000201";
 const DESIGN_SUMMARY: VideoReviewSummary = {
-  ...summary(D1, "Carrossel venda 1015 N Glenwood", 1, "in_review", 3, 3),
+  ...summary(DESIGN_ID, "Carrossel venda 1015 N Glenwood", 1, "in_review", 3, 3),
   medium: "design",
   client: "Lexeer",
   artifactId: "p1",
@@ -234,7 +234,7 @@ function fakeApi(): ApiClient {
       videoUrl: () => `${origin()}/amostra/revisao.mp4`,
       pageUrl: (_o: string, _r: string, v: number, n: number) => `${origin()}/amostra/design/v${v}/pages/${n}`,
       get: async (_o: string, id: string) =>
-        id === D1 ? DESIGN : id === R1 ? REVIEW : { ...REVIEW, ...REVIEWS.find((r) => r.id === id) },
+        id === DESIGN_ID ? DESIGN : id === R1 ? REVIEW : { ...REVIEW, ...REVIEWS.find((r) => r.id === id) },
       addNote: async () => REVIEW.notes[0],
       addVoiceNote: async () => REVIEW.notes[2],
       deleteNote: async () => {},
@@ -318,7 +318,7 @@ const styles = StyleSheet.create({
 export function RevisaoDesign() {
   return (
     <Server>
-      <ReviewScreen id={D1} />
+      <ReviewScreen id={DESIGN_ID} />
     </Server>
   );
 }
@@ -326,14 +326,14 @@ export function RevisaoDesign() {
 export function RevisaoDesignEditor() {
   return (
     <Server>
-      <DesignEditor id={D1} version={1} />
+      <DesignEditor id={DESIGN_ID} version={1} />
     </Server>
   );
 }
 
 function MensagemDesign() {
   const { colors: c } = useTheme();
-  const body = `Arte pronta para revisão: https://dougbot.app/org/${ORG}/review/${D1}`;
+  const body = `Arte pronta para revisão: https://dougbot.app/org/${ORG}/review/${DESIGN_ID}`;
   return (
     <ScrollView style={{ flex: 1, backgroundColor: c.bg }} contentContainerStyle={styles.chat}>
       <Text variant="callout">ROSA</Text>
