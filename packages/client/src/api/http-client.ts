@@ -1777,6 +1777,7 @@ export function createHttpApi(options: TransportOptions = {}): HttpApi {
         if (options.title) form.append("title", options.title);
         if (options.channelId) form.append("channelId", options.channelId);
         if (options.threadId) form.append("threadId", options.threadId);
+        if (options.reviewId) form.append("reviewId", options.reviewId);
         return files.upload<ArtifactDetail>(`${org(orgId)}/artifacts/files`, form, "POST", options);
       },
       uploadVersion: (orgId, id, file, options = {}) => {

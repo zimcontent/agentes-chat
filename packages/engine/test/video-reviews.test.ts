@@ -8,9 +8,11 @@ import {
   decideVideoReview,
   decisionMessage,
   deleteReviewNote,
+  getArtifact,
   getVideoReview,
   listVideoReviews,
   makeLightCopy,
+  openDm,
   REVIEW_LIGHT_JOB,
   reviewVideo,
   sendForReview,
@@ -18,7 +20,7 @@ import {
   timecode,
   type VideoReviewDeps,
 } from "../src";
-import { addMember, type Fixture, setup } from "./fixtures";
+import { addMember, addUser, type Fixture, setup } from "./fixtures";
 
 /** Video review (docs/adr/doug-0007-video-review.md): versions, notes on seconds, and the decision back to the agent. */
 
@@ -171,8 +173,8 @@ describe("video review", () => {
 
     const bia = await addMember(f.db, f.org.id, "member", "bia");
     const note = await addReviewNote(deps(), f.owner.id, f.org.id, review.id, { version: 1, atMs: null, body: "ok" });
-    // bia isn't in `general`: the review isn't hers to see.
-    await expect(listVideoReviews(deps(), bia.id, f.org.id)).resolves.toEqual([]);
+    // bia isn't in `general` but sees the review (doug-0014); another person's note still isn't hers to remove.
+    expect((await listVideoReviews(deps(), bia.id, f.org.id)).map((r) => r.id)).toEqual([review.id]);
     await expect(deleteReviewNote(deps(), bia.id, f.org.id, review.id, note.id)).rejects.toThrow();
     await deleteReviewNote(deps(), f.owner.id, f.org.id, review.id, note.id);
     expect((await getVideoReview(deps(), f.owner.id, f.org.id, review.id)).notes).toEqual([]);
@@ -344,6 +346,75 @@ describe("video review", () => {
     expect(asked?.body).toContain("Link: www.pexels.com — https://www.pexels.com/video/123/");
   });
 
+  test("a piece made in a DM is every member's to see, note and decide (doug-0014)", async () => {
+    f = await setup();
+    const dm = await openDm(f.db, f.owner.id, f.org.id, { agentId: f.agent.id });
+    const inDm = (name: string, bytes: number[], contentType: string, who = f.owner.id, placed = false) =>
+      createFileArtifact(f.artifactDeps, { type: "person", userId: who }, f.org.id, {
+        title: name,
+        name,
+        bytes: new Uint8Array(bytes),
+        contentType,
+        channelId: dm.id,
+        ...(placed ? { placed: true } : {}),
+      });
+    const v1 = await inDm("carrossel.mp4", [0, 0, 0, 24, 102, 116, 121, 112], "video/mp4");
+    const sent = await sendForReview(deps(), { ...ctx(), channelId: dm.id }, { artifactId: v1.id, title: "Carrossel" });
+    const id = sent.review.id;
+    const ownerPhoto = await inDm("ref.jpg", [255, 216, 255], "image/jpeg");
+    const privateFile = await inDm("privado.jpg", [255, 216, 255], "image/jpeg");
+    await addReviewNote(deps(), f.owner.id, f.org.id, id, {
+      version: 1,
+      atMs: 1_000,
+      attachments: [{ artifactId: ownerPhoto.id }],
+      body: "como esta",
+    });
+
+    // Another owner and a plain member, neither in the DM: both find it and open it.
+    const leticia = await addMember(f.db, f.org.id, "owner", "leticia");
+    const roni = await addMember(f.db, f.org.id, "member", "roni");
+    for (const who of [leticia, roni]) {
+      expect((await listVideoReviews(deps(), who.id, f.org.id)).map((r) => r.id)).toEqual([id]);
+      expect((await getVideoReview(deps(), who.id, f.org.id, id)).notes).toHaveLength(1);
+    }
+    // A note's file opens for them; the DM's other files stay its own.
+    const reader = { type: "person" as const, userId: roni.id };
+    expect((await getArtifact(f.artifactDeps, reader, f.org.id, ownerPhoto.id)).id).toBe(ownerPhoto.id);
+    await expect(getArtifact(f.artifactDeps, reader, f.org.id, privateFile.id)).rejects.toThrow();
+    // Into the DM only as a review's file (the route's `reviewId`), never on their own.
+    await expect(inDm("dela.jpg", [255, 216, 255], "image/jpeg", roni.id)).rejects.toThrow();
+    const roniPhoto = await inDm("dela.jpg", [255, 216, 255], "image/jpeg", roni.id, true);
+    const note = await addReviewNote(deps(), roni.id, f.org.id, id, {
+      version: 1,
+      atMs: 2_000,
+      attachments: [{ artifactId: roniPhoto.id }],
+      body: "troca essa foto",
+    });
+    expect(note.attachments).toHaveLength(1);
+
+    // Their decision is said in the DM, as them, and starts the agent's work there.
+    await decideVideoReview(deps(), leticia.id, f.org.id, id, { decision: "changes" });
+    const [said] = await f.db
+      .select()
+      .from(schema.messages)
+      .where(and(eq(schema.messages.orgId, f.org.id), eq(schema.messages.channelId, dm.id)))
+      .orderBy(desc(schema.messages.createdAt))
+      .limit(1);
+    expect(said?.authorUserId).toBe(leticia.id);
+    expect(said?.body).toContain(`@${f.agent.handle} Ajustes em «Carrossel» V1`);
+    expect(said?.body).toContain("troca essa foto (roni)");
+    const runs = await f.db
+      .select()
+      .from(schema.agentRuns)
+      .where(and(eq(schema.agentRuns.channelId, dm.id), eq(schema.agentRuns.triggerMessageId, said?.id ?? "")));
+    expect(runs.map((r) => r.agentId)).toEqual([f.agent.id]);
+
+    // Someone of no workspace here sees nothing.
+    const stranger = await addUser(f.db, "stranger");
+    expect(await listVideoReviews(deps(), stranger.id, f.org.id)).toEqual([]);
+    await expect(getVideoReview(deps(), stranger.id, f.org.id, id)).rejects.toThrow();
+  });
+
   test("every version gets a light copy for phones; the player gets it, or the original with HD or until it's made", async () => {
     f = await setup();
     const made: number[] = [];
@@ -380,10 +451,12 @@ describe("video review", () => {
     await makeLightCopy(small, versionId, { finalAttempt: false });
     expect(made).toEqual([8]);
 
-    // Someone who doesn't read the conversation gets neither.
-    const outsider = await addMember(f.db, f.org.id, "member", "outsider");
+    // Every member plays it, reading the conversation or not (doug-0014); someone of no workspace here doesn't.
+    const teammate = await addMember(f.db, f.org.id, "member", "teammate");
     await f.db.update(schema.channels).set({ visibility: "private" }).where(eq(schema.channels.id, f.general.id));
-    await expect(reviewVideo(small, outsider.id, f.org.id, id, 1)).rejects.toThrow();
+    expect((await playedVideo(small, teammate.id, f.org.id, id, 1)).light).toBe(true);
+    const stranger = await addUser(f.db, "stranger");
+    await expect(reviewVideo(small, stranger.id, f.org.id, id, 1)).rejects.toThrow();
 
     // A copy no smaller than the original isn't kept: the original plays.
     const big = light((bytes) => new Uint8Array(bytes.byteLength + 10));

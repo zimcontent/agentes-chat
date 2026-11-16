@@ -240,7 +240,7 @@ export function videoReviewRoutes(deps: AppDeps) {
       path: "/organizations/{orgId}/video-reviews",
       tags,
       security,
-      summary: "The videos in review this person may see (who reads the conversation a video came from), newest first",
+      summary: "Every review of the workspace (every member sees them, doug-0014), newest first",
       request: { params: OrgParams },
       responses: { 200: json(z.object({ reviews: z.array(Summary) })), ...errors },
     }),

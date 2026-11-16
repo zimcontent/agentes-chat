@@ -2022,7 +2022,13 @@ export interface ApiClient {
     upload(
       orgId: string,
       file: File,
-      options?: { title?: string; channelId?: string | null; threadId?: string | null } & UploadOptions,
+      options?: {
+        title?: string;
+        channelId?: string | null;
+        threadId?: string | null;
+        /** A review note's attachment: into that review's conversation, for any member (doug-0014). */
+        reviewId?: string | null;
+      } & UploadOptions,
     ): Promise<ArtifactDetail>;
     /** A new version of an uploaded file (multipart, ≤ 50 MB). */
     uploadVersion(orgId: string, id: string, file: File, options?: { note?: string }): Promise<ArtifactDetail>;

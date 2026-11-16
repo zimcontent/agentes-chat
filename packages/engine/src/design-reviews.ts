@@ -389,6 +389,8 @@ export async function saveDesignEdit(
     channelId: review.channelId,
     threadId: review.threadId,
     note: "Editada no Revisor",
+    // Whoever sees the review edits it, reading its conversation or not (doug-0014).
+    placed: true,
     bytes,
   });
   const note = cleanReviewText(input.note ?? "");

@@ -174,6 +174,8 @@ export function NoteDraft({
         .upload(orgId, filePart(a.uri, name, type) as unknown as Parameters<typeof api.artifacts.upload>[1], {
           channelId: review.channelId,
           ...(review.threadId ? { threadId: review.threadId } : {}),
+          // Into the review's conversation, for whoever reviews it, reading that conversation or not (doug-0014).
+          reviewId: review.id,
         })
         .then((saved) => {
           if (!live.current) return;
