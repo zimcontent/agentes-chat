@@ -36,6 +36,7 @@ import {
   updateSkillFromSource,
   ValidationError,
 } from "../src";
+import { SKILL_BLURB_MAX, skillBlurb } from "../src/context";
 import { toolDetail } from "../src/tool-detail";
 import { addMember, addUser, type Fixture, setup } from "./fixtures";
 
@@ -1455,5 +1456,17 @@ describe("a repository past the archive's cap", () => {
     expect(github.requests.filter((r) => r.auth && !r.url.startsWith("https://api.github.com/"))).toEqual([]);
     expect(github.requests.filter((r) => r.url.includes("raw.githubusercontent"))).toEqual([]);
     expect(github.requests.filter((r) => r.url.includes("/git/blobs/") && r.auth)).toHaveLength(3);
+  });
+});
+
+describe("skillBlurb", () => {
+  test("a long description is cut at a word, on one line, so a big team's skill list stays small", () => {
+    const long = `Corta vídeos longos\nem clipes verticais. ${"palavra ".repeat(80)}fim`;
+    const blurb = skillBlurb(long);
+    expect(blurb.length).toBeLessThanOrEqual(SKILL_BLURB_MAX);
+    expect(blurb).toStartWith("Corta vídeos longos em clipes verticais. palavra");
+    expect(blurb).toEndWith("palavra…");
+    expect(blurb).not.toContain("\n");
+    expect(skillBlurb("Escreve o relatório semanal.")).toBe("Escreve o relatório semanal.");
   });
 });

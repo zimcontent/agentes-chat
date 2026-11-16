@@ -337,6 +337,26 @@ test("parser: without partial messages the assistant text comes whole", () => {
   expect(p.push("not json").events).toEqual([]);
 });
 
+test("parser: Claude Code's own error frame is the failure, never the reply's text (ADR 0137 addendum 2026-11-16)", () => {
+  const p = new ClaudeStreamParser();
+  p.beginTurn();
+  const said =
+    "Autocompact is thrashing: the context refilled to the limit within 3 turns of the previous compact, 3 times in a row.";
+  expect(
+    p.push(
+      line({
+        type: "assistant",
+        parent_tool_use_id: null,
+        error: "invalid_request",
+        message: { id: "msg_x", model: "<synthetic>", content: [{ type: "text", text: said }] },
+      }),
+    ).events,
+  ).toEqual([]);
+  const end = p.push(line({ type: "result", subtype: "success", is_error: true, result: said }));
+  expect(end.events.filter((e) => e.type === "text_delta")).toEqual([]);
+  expect(end.final).toMatchObject({ type: "error", code: "claude_failed" });
+});
+
 test("parser: today's limit wordings are plan limits, the server's throttle is not; a text-only refusal is stored as limited", () => {
   const p = new ClaudeStreamParser();
   const end = (text: string) => {
@@ -609,7 +629,8 @@ test("protocol 41: a chat turn (the team's right hand on a plan) gets our MCP to
     settingsFile: "/b/settings.json",
     ...brainProfileLaunch("chat", true),
   });
-  expect(at(chat, "--tools")).toBe("");
+  // ToolSearch alone: without it Claude Code lists every one of our tools in each request (ADR 0137 addendum 2026-11-16).
+  expect(at(chat, "--tools")).toBe("ToolSearch");
   expect(chat).toContain("--strict-mcp-config");
   expect(at(chat, "--setting-sources")).toBe("");
   expect(at(chat, "--permission-mode")).toBe("dontAsk");
@@ -636,6 +657,8 @@ test("protocol 41: a chat turn (the team's right hand on a plan) gets our MCP to
   ]) {
     expect(denied).toContain(tool);
   }
+  // A deny rule would beat the tool list: ToolSearch must not be on it.
+  expect(denied).not.toContain("ToolSearch");
 });
 
 // ── The manager with a fake Claude Code ──────────────────────────────────────
@@ -1455,7 +1478,7 @@ test.if(posix)(
     expect(spawn.cwd).toBe(folder);
     expect(spawn.autoMemoryOff).toBe("1");
     expect(spawn.args).not.toContain("--add-dir");
-    expect(spawn.args[spawn.args.indexOf("--tools") + 1]).toBe("");
+    expect(spawn.args[spawn.args.indexOf("--tools") + 1]).toBe("ToolSearch");
     expect(spawn.system ?? "").not.toContain("SECRET NOTES");
     const settings = JSON.parse(readFileSync(spawn.args[spawn.args.indexOf("--settings") + 1] ?? "", "utf8"));
     expect(settings.permissions.allow).toEqual(["mcp__agentes"]);
@@ -2675,7 +2698,8 @@ test("delegated: its tool lock takes ToolSearch and our bridge, nothing else", (
   expect(delegatedToolsBreach(init(["Read"]))).toContain("Read");
   expect(delegatedToolsBreach({ tools: ["ToolSearch"], mcp_servers: [{ name: "evil" }] })).toContain("MCP evil");
   expect(delegatedToolsBreach({})).toContain("didn't list");
-  expect(chatToolsBreach(init(["ToolSearch"]))).toContain("ToolSearch");
+  expect(chatToolsBreach(init(["ToolSearch", "mcp__agentes__react"]))).toBeNull();
+  expect(chatToolsBreach(init(["ToolSearch", "Read"]))).toContain("Read");
 });
 
 test.if(posix)("delegated: root refuses what the CLI asks on stdout, and the turn goes on", async () => {

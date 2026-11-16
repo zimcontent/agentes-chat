@@ -1344,8 +1344,9 @@ export function missionFolderRules(missionFolder: string | undefined, tools: rea
 
 /**
  * A `chat` turn's deny list (protocol 41): every tool of Claude Code's own that reaches the computer, the web, other
- * agents or the plan's claude.ai account (cloud routines, artifacts), on top of `--tools ""` that lists none of them.
- * Names a version doesn't know are ignored by it.
+ * agents or the plan's claude.ai account (cloud routines, artifacts), on top of `--tools ToolSearch` that lists none
+ * of them. ToolSearch stays: it only loads our own tools' definitions, and without it Claude Code lists every one of
+ * them in each request (ADR 0137 addendum 2026-11-16). Names a version doesn't know are ignored by it.
  */
 export const CHAT_DENIED_TOOLS = [
   "Bash",
@@ -1391,17 +1392,17 @@ export const CHAT_DENIED_TOOLS = [
   "ListAgents",
   "ReportFindings",
   "Workflow",
-  "ToolSearch",
 ] as const;
 
 /**
  * A `chat` turn's guard, read on Claude Code's `system` `init` (it lists every tool the model gets, and the MCP
- * servers): anything but our bridge (`mcp__agentes__…`, server `agentes`) is a breach, and so is an `init` without
- * the lists. A tool a new version adds that `--tools ""` doesn't take away stops the turn before it can run.
+ * servers): anything but ToolSearch and our bridge (`mcp__agentes__…`, server `agentes`) is a breach, and so is an
+ * `init` without the lists. A tool a new version adds that `--tools ToolSearch` doesn't take away stops the turn
+ * before it can run.
  */
-export const chatToolsBreach = (init: Record<string, unknown>) => toolsBreach(init, []);
+export const chatToolsBreach = (init: Record<string, unknown>) => toolsBreach(init, ["ToolSearch"]);
 
-/** The same for a delegated CLI, which keeps ToolSearch to load our tools and nothing else of its own. */
+/** The same for a delegated CLI, which also keeps ToolSearch to load our tools and nothing else of its own. */
 export const delegatedToolsBreach = (init: Record<string, unknown>) => toolsBreach(init, ["ToolSearch"]);
 
 function toolsBreach(init: Record<string, unknown>, own: readonly string[]): string | null {
