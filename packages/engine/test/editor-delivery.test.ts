@@ -17,6 +17,7 @@ import {
   setAfterApprove,
   setReviewPost,
   submitEditorVideo,
+  syncEditorStages,
   taskDelivery,
   type VideoReviewDeps,
 } from "../src";
@@ -35,6 +36,7 @@ const JPG = new Uint8Array([0xff, 0xd8, 0xff, 0xe0, 1, 2]);
 
 function fakePortal(card: { id: string; date: string | null; type?: string } | null) {
   const calls: string[] = [];
+  const made: { id: string; title: string; type: string; date?: string; task?: string }[] = [];
   const job: PortalJob = {
     id: "job-1",
     state: "done",
@@ -74,9 +76,20 @@ function fakePortal(card: { id: string; date: string | null; type?: string } | n
     scheduleItem: async (_c: string, item: string, when: string) => {
       calls.push(`schedule ${item} ${when}`);
     },
-    cards: async () => (card ? [{ type: "reel", ...card, client: "lexeer" }] : []),
+    cards: async () => [
+      ...(card ? [{ type: "reel", ...card, client: "lexeer" }] : []),
+      ...made.map((c) => ({ ...c, client: "lexeer" })),
+    ],
+    createCard: async (_c: string, input: { title: string; type: string; date?: string; task?: string }) => {
+      const made_ = { id: `card-new-${made.length + 1}`, item: null, ...input };
+      made.push(made_);
+      calls.push(
+        `card ${input.title} ${input.type} date=${input.date ?? "-"} task=${input.task === undefined ? "-" : "yes"}`,
+      );
+      return made_;
+    },
   } as unknown as ApprovalPortal;
-  return { portal, calls };
+  return { portal, calls, made };
 }
 
 function deps(portal: ApprovalPortal | null, backup = createFakeFileBackup()) {
@@ -189,7 +202,10 @@ describe("editor delivery", () => {
 
     // V2, approved: the cover and the caption are what's left.
     const v2 = await upload(editor.id, taskId, "glenwood-v2.mp4");
-    const again = await submitEditorVideo(d, editor.id, f.org.id, taskId, { artifactId: v2.id });
+    const again = await submitEditorVideo(d, editor.id, f.org.id, taskId, {
+      artifactId: v2.id,
+      reviewId: sent.review.id,
+    });
     expect(again.review.version).toBe(2);
     expect(again.review.status).toBe("in_review");
     await decideVideoReview(d, f.owner.id, f.org.id, sent.review.id, { decision: "approve" });
@@ -313,16 +329,98 @@ describe("editor delivery", () => {
 
     // With the client and nothing asked: a new version waits.
     const early = await upload(editor.id, taskId, "glenwood-v2.mp4");
-    await expect(submitEditorVideo(d, editor.id, f.org.id, taskId, { artifactId: early.id })).rejects.toThrow(
-      /with the client/,
-    );
+    await expect(
+      submitEditorVideo(d, editor.id, f.org.id, taskId, { artifactId: early.id, reviewId: review.id }),
+    ).rejects.toThrow(/with the client/);
     await setStage(taskId, "adjusting");
-    const sent = await submitEditorVideo(d, editor.id, f.org.id, taskId, { artifactId: early.id });
+    const sent = await submitEditorVideo(d, editor.id, f.org.id, taskId, {
+      artifactId: early.id,
+      reviewId: review.id,
+    });
     expect(sent.toClient).toBe(true);
     expect(sent.review.status).toBe("approved");
     const jobs = await jobsOf(EDITOR_SEND_JOB);
     const version = jobs.find((j) => (j.payload as { kind?: string }).kind === "version");
     await runEditorSend(d, version?.payload as never);
     expect(calls.at(-1)).toBe("version item-9 file-Reel-Glenwood.mp4");
+  });
+
+  test("a task that asks for several videos: each is its own review and post, numbered in the task", async () => {
+    f = await setup({ rightHand: true });
+    const { portal, calls, made } = fakePortal({ id: "card-7", date: "2099-01-02T10:00" });
+    const { d } = deps(portal);
+    const { editor, taskId } = await portalTask();
+    const first = await submitEditorVideo(d, editor.id, f.org.id, taskId, {
+      artifactId: (await upload(editor.id, taskId, "a.mp4")).id,
+    });
+    // One video: the task's own title.
+    expect(first.review).toMatchObject({ title: "Reel Glenwood", taskPart: 1, taskNumber: expect.any(Number) });
+    const second = await submitEditorVideo(d, editor.id, f.org.id, taskId, {
+      artifactId: (await upload(editor.id, taskId, "b.mp4")).id,
+    });
+    const third = await submitEditorVideo(d, editor.id, f.org.id, taskId, {
+      artifactId: (await upload(editor.id, taskId, "c.mp4")).id,
+    });
+    // Each file sent to the task is a video of its own, at V1, and the first is renamed as one of them.
+    expect([second.review.version, third.review.version]).toEqual([1, 1]);
+    expect(third.review).toMatchObject({ title: "Reel Glenwood · Vídeo 3", taskPart: 3, taskTitle: "Reel Glenwood" });
+    const task = await taskDelivery(d, f.owner.id, f.org.id, taskId);
+    expect(task.reviewIds).toEqual([first.review.id, second.review.id, third.review.id]);
+    const list = await listVideoReviews(d, f.owner.id, f.org.id);
+    expect(list.find((r) => r.id === first.review.id)?.title).toBe("Reel Glenwood · Vídeo 1");
+
+    // A new version goes to the video it names, and only to a video of this task.
+    const changes = await submitEditorVideo(d, editor.id, f.org.id, taskId, {
+      artifactId: (await upload(editor.id, taskId, "b2.mp4")).id,
+      reviewId: second.review.id,
+    });
+    expect(changes.review).toMatchObject({ id: second.review.id, version: 2 });
+    const other = await createIssue({ db: f.db, pubsub: f.pubsub }, { type: "person", userId: f.owner.id }, f.org.id, {
+      title: "Outra",
+    });
+    const foreign = await submitEditorVideo(d, editor.id, f.org.id, other.id, {
+      artifactId: (await upload(editor.id, other.id, "x.mp4")).id,
+    });
+    await expect(
+      submitEditorVideo(d, editor.id, f.org.id, taskId, {
+        artifactId: (await upload(editor.id, taskId, "y.mp4")).id,
+        reviewId: foreign.review.id,
+      }),
+    ).rejects.toThrow(/not one of this task's/);
+
+    // Each approved video is its own post: the first finishes the task's card, the next gets a card of its own,
+    // tied to the same task and on the same day.
+    const ready = async (id: string) => {
+      await decideVideoReview(d, f.owner.id, f.org.id, id, { decision: "approve" });
+      await setReviewPost(d, f.owner.id, f.org.id, id, {
+        caption: "ok",
+        captionOk: true,
+        noCover: true,
+        coverOk: true,
+      });
+      await sendPostToClient(d, f.owner.id, f.org.id, id);
+    };
+    await ready(first.review.id);
+    await ready(third.review.id);
+    for (const job of await jobsOf(EDITOR_SEND_JOB)) await runEditorSend(d, job.payload as never);
+    expect(made).toHaveLength(1);
+    expect(calls).toContain("card Reel Glenwood · Vídeo 3 reel date=2099-01-02T10:00 task=yes");
+    const thirdView = await getVideoReview(d, f.owner.id, f.org.id, third.review.id);
+    expect(thirdView.delivery).toMatchObject({ state: "sent", item: "item-9" });
+    const [row] = await f.db.select().from(schema.videoReviews).where(eq(schema.videoReviews.id, third.review.id));
+    expect(row?.portalCard).toBe("card-new-1");
+
+    // Where each post stands is its own: read from the post at the portal, not from the task's card.
+    await f.db
+      .update(schema.videoReviews)
+      .set({ delivery: { state: "sent", item: "item-3", at: new Date().toISOString() } })
+      .where(eq(schema.videoReviews.id, third.review.id));
+    const item = (id: string, status: string) =>
+      ({ id, client: "lexeer", status }) as unknown as Parameters<typeof syncEditorStages>[2][number];
+    await syncEditorStages(f.db, f.org.id, [item("item-9", "sent"), item("item-3", "approved")]);
+    expect((await getVideoReview(d, f.owner.id, f.org.id, third.review.id)).task?.stage).toBe("approved");
+    expect((await getVideoReview(d, f.owner.id, f.org.id, first.review.id)).task?.stage).toBe("approval");
+    // Only the one the client approved is kept as the final.
+    expect(await queueEditorFinals(f.db, f.org.id)).toBe(1);
   });
 });

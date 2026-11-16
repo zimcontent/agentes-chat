@@ -3,10 +3,13 @@ import {
   type ApprovalPortal,
   backupName,
   PORTAL_FILE_BYTES,
+  type PortalCard,
+  type PortalItem,
   type PortalJob,
   type PortalType,
 } from "@agenteschat/adapters";
 import { and, asc, type Database, desc, eq, inArray, isNull, schema, sql } from "@agenteschat/db";
+import { portalColumnOf } from "./approval-portal";
 import { storedFileOfArtifact } from "./artifacts";
 import { afterApproveOf, type DesignDelivery } from "./design-delivery";
 import { ConflictError, ValidationError } from "./errors";
@@ -21,8 +24,8 @@ import { answerRounds, openRound } from "./review-rounds";
 import { rightHandId } from "./right-hand";
 import {
   cleanReviewText,
+  clientStageOf,
   onDisk,
-  portalStageOfTask,
   putFromDisk,
   queueReviewLight,
   type ReviewDecision,
@@ -137,26 +140,67 @@ export async function taskReviewOf(db: Database, orgId: string, issueId: string)
   return row ?? null;
 }
 
-/** What the task's panel reads: the review sent from it, if any. */
+/** A task's video reviews, one per video it asked for (doug-0012 §13), in their order: the first sent first. */
+export async function taskReviewsOf(db: Database, orgId: string, issueId: string) {
+  return db
+    .select()
+    .from(videoReviews)
+    .where(and(eq(videoReviews.orgId, orgId), eq(videoReviews.taskId, issueId), eq(videoReviews.medium, "video")))
+    .orderBy(sql`coalesce(${videoReviews.taskPart}, 1)`, asc(videoReviews.createdAt));
+}
+
+/** What the task's panel reads: the reviews sent from it, one per video, in their order. */
 export async function taskDelivery(deps: Pick<Deps, "db">, userId: string, orgId: string, issueId: string) {
   // Opening it checks that this person sees the task (and makes its conversation, where the review lives).
   await openTaskConversation(deps.db, { type: "person", userId }, orgId, issueId);
-  const review = await taskReviewOf(deps.db, orgId, issueId);
-  return { reviewId: review?.id ?? null };
+  const reviews = await taskReviewsOf(deps.db, orgId, issueId);
+  return { reviewId: reviews[0]?.id ?? null, reviewIds: reviews.map((r) => r.id) };
+}
+
+/** The title of one of a task's videos once it has more than one. */
+const partTitle = (task: string, part: number) => `${task.slice(0, 180)} · Vídeo ${part}`;
+
+/** The portal's tick: each editor's post at the portal keeps where it stands there, read from the post itself. */
+export async function syncEditorStages(db: Database, orgId: string, items: PortalItem[]) {
+  const rows = await db
+    .select({ id: videoReviews.id, client: videoReviews.portalClient, delivery: videoReviews.delivery })
+    .from(videoReviews)
+    .where(
+      and(
+        eq(videoReviews.orgId, orgId),
+        sql`${videoReviews.senderUserId} is not null`,
+        sql`${videoReviews.delivery}->>'item' is not null`,
+      ),
+    );
+  let changed = 0;
+  for (const row of rows) {
+    const delivery = (row.delivery ?? {}) as DesignDelivery & { stage?: string };
+    const item = items.find((i) => i.id === delivery.item && i.client === row.client);
+    if (!item) continue;
+    const stage = portalColumnOf(item);
+    if (stage === delivery.stage) continue;
+    await db
+      .update(videoReviews)
+      .set({ delivery: { ...delivery, stage } })
+      .where(eq(videoReviews.id, row.id));
+    changed++;
+  }
+  return changed;
 }
 
 /**
- * A person sends the video they edited for a task: a file they uploaded to the task's conversation. The first opens
- * the task's review (in its conversation, so whoever sees the task reviews it); the next ones are its versions. When
- * the client asked for a change at the portal, the new version goes straight to them (ADR 9001 §17): no review in
- * between.
+ * A person sends a video they edited for a task: a file they uploaded to the task's conversation. A task may ask for
+ * several videos (doug-0012 §13): a file sent to the task is a new video of it, with its own review (in the task's
+ * conversation, so whoever sees the task reviews it); a file sent to one of its reviews (`reviewId`) is that video's
+ * next version. When the client asked for a change at the portal, the new version goes straight to them (ADR 9001
+ * §17): no review in between.
  */
 export async function submitEditorVideo(
   deps: Deps,
   userId: string,
   orgId: string,
   issueId: string,
-  input: { artifactId: string; note?: string },
+  input: { artifactId: string; note?: string; reviewId?: string },
 ): Promise<{ review: VideoReviewSummary; toClient: boolean }> {
   const conversation = await openTaskConversation(deps.db, { type: "person", userId }, orgId, issueId);
   const file = await storedFileOfArtifact(deps.artifacts, { type: "person", userId }, orgId, input.artifactId);
@@ -177,13 +221,16 @@ export async function submitEditorVideo(
   if (!issue) throw new ValidationError("No such task", "editor_delivery.bad_file");
   const source = (issue.source ?? {}) as { type?: string; client?: string; cardId?: string };
   const portalTask = source.type === "portal" && source.client;
-  const stage = portalStageOfTask(issue.source);
   const note = cleanReviewText(input.note ?? "");
-  const existing = await taskReviewOf(deps.db, orgId, issueId);
+  const siblings = await taskReviewsOf(deps.db, orgId, issueId);
+  const existing = input.reviewId ? (siblings.find((r) => r.id === input.reviewId) ?? null) : null;
+  if (input.reviewId && !existing) {
+    throw new ValidationError("That video is not one of this task's", "editor_delivery.bad_review");
+  }
   const delivery = (existing?.delivery ?? null) as DesignDelivery | null;
   const atClient = Boolean(delivery?.item) && delivery?.state !== "failed";
   // The client asked for a change on the post it has: the new version is theirs at once.
-  const toClient = Boolean(existing && atClient && stage === "adjusting");
+  const toClient = Boolean(existing && atClient && clientStageOf(existing, issue.source) === "adjusting");
   if (existing && atClient && !toClient) {
     throw new ConflictError(
       "This video is with the client: a new version goes once they ask for a change",
@@ -215,6 +262,22 @@ export async function submitEditorVideo(
         .where(eq(videoReviews.id, review.id));
       return review.id;
     }
+    // A new video of the task, numbered after the others. The first keeps the task's card; the next get their own when
+    // they go to the client (`runEditorSend`).
+    const part = siblings.reduce((most, r) => Math.max(most, r.taskPart ?? 1), 0) + 1;
+    if (part === 2) {
+      // The task has more than one video now: the first is named as one of them.
+      await tx
+        .update(videoReviews)
+        .set({ title: partTitle(issue.title, 1), taskPart: 1 })
+        .where(
+          and(
+            eq(videoReviews.orgId, orgId),
+            eq(videoReviews.taskId, issue.id),
+            sql`coalesce(${videoReviews.taskPart}, 1) = 1`,
+          ),
+        );
+    }
     const [row] = await tx
       .insert(videoReviews)
       .values({
@@ -222,12 +285,13 @@ export async function submitEditorVideo(
         agentId: null,
         senderUserId: userId,
         taskId: issue.id,
+        taskPart: part,
         channelId: conversation.channelId,
         threadId: conversation.rootId,
-        title: issue.title.slice(0, 200),
+        title: part === 1 ? issue.title.slice(0, 200) : partTitle(issue.title, part),
         client: portalTask ? String(source.client) : "",
         portalClient: portalTask ? String(source.client) : null,
-        portalCard: portalTask && source.cardId ? String(source.cardId) : null,
+        portalCard: portalTask && source.cardId && part === 1 ? String(source.cardId) : null,
       })
       .returning({ id: videoReviews.id });
     if (!row) throw new Error("video review not inserted");
@@ -611,9 +675,28 @@ export async function runEditorSend(
 
   if (done && done.state !== "sending" && done.state !== "failed") return;
   const mode = await afterApproveOf(deps.db, review.orgId, client);
-  const card = review.portalCard
-    ? (await portal.cards(client).catch(() => [])).find((c) => c.id === review.portalCard)
-    : undefined;
+  const cards: PortalCard[] = await portal.cards(client).catch(() => []);
+  if (!review.portalCard && review.taskId) {
+    // Another video of a task whose card is the first's (doug-0012 §13): a card of its own, beside the task's, tied to
+    // the same task so the portal's sync makes no new task of it.
+    const [task] = await deps.db.select({ source: issues.source }).from(issues).where(eq(issues.id, review.taskId));
+    const taskCard = cards.find((c) => c.id === (task?.source as { cardId?: string } | null)?.cardId);
+    const made = await portal.createCard(
+      client,
+      {
+        title: review.title.slice(0, 120),
+        type: taskCard?.type === "story" ? "story" : "reel",
+        ...(taskCard?.date ? { date: taskCard.date } : {}),
+        ...(taskCard?.list ? { list: taskCard.list } : {}),
+        task: review.taskId,
+      },
+      by?.name ?? undefined,
+    );
+    await deps.db.update(videoReviews).set({ portalCard: made.id }).where(eq(videoReviews.id, review.id));
+    review.portalCard = made.id;
+    cards.push(made);
+  }
+  const card = review.portalCard ? cards.find((c) => c.id === review.portalCard) : undefined;
   let job: PortalJob | null = done?.job ? await portal.job(done.job).catch(() => null) : null;
   if (!job || job.state === "failed") {
     const post = review.post ?? {};
@@ -728,7 +811,12 @@ async function queueFinal(db: Database, orgId: string, reviewId: string) {
  */
 export async function queueEditorFinals(db: Database, orgId: string) {
   const rows = await db
-    .select({ id: videoReviews.id, source: issues.source })
+    .select({
+      id: videoReviews.id,
+      source: issues.source,
+      delivery: videoReviews.delivery,
+      portalCard: videoReviews.portalCard,
+    })
     .from(videoReviews)
     .innerJoin(issues, eq(issues.id, videoReviews.taskId))
     .where(
@@ -741,7 +829,7 @@ export async function queueEditorFinals(db: Database, orgId: string) {
     );
   let queued = 0;
   for (const row of rows) {
-    if (!CLIENT_APPROVED.includes(portalStageOfTask(row.source) ?? "")) continue;
+    if (!CLIENT_APPROVED.includes(clientStageOf(row, row.source) ?? "")) continue;
     await queueFinal(db, orgId, row.id);
     queued++;
   }

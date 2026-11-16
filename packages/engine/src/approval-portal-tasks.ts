@@ -11,7 +11,7 @@ import {
   shiftDay,
 } from "./approval-portal-watch";
 import { openPersonAgentDm } from "./dms";
-import { queueEditorFinals, taskReviewOf } from "./editor-delivery";
+import { queueEditorFinals, syncEditorStages, taskReviewOf } from "./editor-delivery";
 import { publishMessageCreated } from "./events";
 import { projectByName } from "./issue-projects";
 import {
@@ -996,7 +996,11 @@ export function portalTasksTick(deps: PortalTaskDeps, portal: ApprovalPortal): P
     // What the client wrote at the portal on an editor's post comes into its review, at the second they marked.
     await portal
       .items()
-      .then((items) => bringClientNotes(deps.db, orgId, items))
+      .then(async (items) => {
+        // Each editor's post keeps where it stands with the client: a task may have several (doug-0012 §13).
+        await syncEditorStages(deps.db, orgId, items);
+        return bringClientNotes(deps.db, orgId, items);
+      })
       .catch((error: unknown) =>
         deps.log?.warn("approval portal: the client's notes could not be brought to the reviews", {
           error: error instanceof Error ? error.message : String(error),

@@ -61,6 +61,8 @@ export const videoReviews = pgTable(
     senderUserId: text(),
     /** The task it delivers, when it was sent from one: its conversation is the review's. */
     taskId: uuid(),
+    /** Its number among the task's videos (a task may ask for several, doug-0012 §13); null: from before, the first. */
+    taskPart: integer(),
     /** The post around a person's video: its cover and caption, each approved by the team (`editor-delivery.ts`). */
     post: jsonb().$type<ReviewPost>().notNull().default({}),
     /** The approved original kept as the final, and its backup; null: not yet. */

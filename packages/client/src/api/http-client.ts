@@ -615,7 +615,9 @@ export function createHttpApi(options: TransportOptions = {}): HttpApi {
       saveDesign: (orgId, reviewId, input) =>
         request<VideoReviewSummary>(`${org(orgId)}/video-reviews/${enc(reviewId)}/design`, { json: input }),
       taskVideo: (orgId, issueId) =>
-        request<{ reviewId: string | null }>(`${org(orgId)}/issues/${enc(issueId)}/video-delivery`),
+        request<{ reviewId: string | null; reviewIds?: string[] }>(
+          `${org(orgId)}/issues/${enc(issueId)}/video-delivery`,
+        ),
       sendTaskVideo: (orgId, issueId, input) =>
         request<{ review: VideoReviewSummary; toClient: boolean }>(
           `${org(orgId)}/issues/${enc(issueId)}/video-delivery`,

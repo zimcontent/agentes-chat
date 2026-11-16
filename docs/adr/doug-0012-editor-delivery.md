@@ -75,3 +75,16 @@ to a backup, with nobody having to know the flow to follow it.
     client's (`from_client`, `author_name`). A change asked opens a round for the editor, told like the team's, and
     the review waits on them; their next version goes straight back to the client (§7). The client's words are notes
     for people, never a model's prompt.
+
+## Addendum 2026-11-16: a task that asks for several videos
+
+13. **A task may ask for several videos, each its own review and post.** A demand is often 2, 5 or 15 videos at once.
+    Each file dropped on the task (one or many at a time) is a new video of it: a review of its own, numbered in the
+    task (`video_reviews.task_part`), titled "<task> · Vídeo n" once there is more than one. A new version goes to the
+    video it is sent from (`reviewId`), never to whichever is newest. The task lists its videos, each a row that opens
+    to its own steps (video, cover, caption, client, final); Review shows a task's videos together under the task, with
+    how many are approved, and the player has the task's other videos one click away. At the portal each video is its
+    own post: the first finishes the task's card, every other one gets a card of its own beside it (same day and list)
+    tied to the same task, so the portal's sync makes no new task of it. Where each post stands with the client is read
+    from the post itself on every tick (`delivery.stage`), so one video's approval, change or final never speaks for
+    another's.
