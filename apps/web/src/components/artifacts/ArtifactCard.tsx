@@ -4,8 +4,9 @@ import { documentStart, KIND_ICON, parseDelimited, patchCounts } from "@agentesc
 import { fileIcon, formatBytes, pictureRatio, previewKind, previewKindOfName } from "@agenteschat/client/lib/files";
 import { Button, Icon, type IconName, Menu, Tip } from "@agenteschat/ui";
 import type { TFunction } from "i18next";
-import { type CSSProperties, type ReactNode, useEffect, useId, useRef, useState } from "react";
+import { type CSSProperties, type ReactNode, useCallback, useEffect, useId, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { useApi } from "@/api/context";
 import { ChoicesCard } from "@/components/blocks/ChoicesCard";
 import { LiveBlockCard } from "@/components/blocks/LiveBlock";
 import { PollCard } from "@/components/blocks/PollCard";
@@ -15,7 +16,7 @@ import { contextMenuHandler, type MenuEntry } from "@/lib/context-menu";
 import { Markdown } from "@/lib/markdown";
 import { useArtifactDownload, useDeleteArtifact } from "./ArtifactActions";
 import { useArtifactViewer } from "./ArtifactViewer";
-import { FileVideo, MAX_THUMB_BYTES, usePreviewUrl } from "./FileView";
+import { FileVideo, MAX_THUMB_BYTES } from "./FileView";
 import { HtmlFrame } from "./HtmlFrame";
 import { MermaidDiagram } from "./Mermaid";
 import { useFileShare } from "./ShareDialog";
@@ -418,7 +419,10 @@ function CoverTable({ columns, rows }: { columns: string[]; rows: string[][] }) 
   );
 }
 
-/** A picture's cover: its box is the tile's from the first paint, the picture comes into it. */
+/**
+ * A picture's cover: its box is the tile's from the first paint, the picture comes into it. A light copy (the server's
+ * WebP, kept by the browser), loaded only near the screen: a conversation with many pictures stays quick.
+ */
 function PictureCover({
   content,
   artifactId,
@@ -431,13 +435,26 @@ function PictureCover({
   title: string;
 }) {
   const { t } = useTranslation();
-  const { url, failed } = usePreviewUrl(artifactId, version, content.contentType, true);
-  // Fetched after it showed (a picture just made or sent, not one read again from the cache): it comes in softly.
-  const fresh = useRef(url === null);
+  const { org } = useOrg();
+  const api = useApi();
+  const [failed, setFailed] = useState(false);
+  // Fetched after it showed (a picture just made or sent, not one the browser already had): it comes in softly.
+  const [fresh, setFresh] = useState(false);
+  const watch = useCallback((img: HTMLImageElement | null) => {
+    if (img && !img.complete) setFresh(true);
+  }, []);
   if (failed) return <TypeCover content={content} />;
   return (
     <span className="artifact-tile__picture">
-      {url && <img src={url} alt={t("files.imageAlt", { title })} data-fresh={fresh.current || undefined} />}
+      <img
+        ref={watch}
+        src={api.artifacts.pictureUrl(org.id, artifactId, { version, size: "tile" })}
+        alt={t("files.imageAlt", { title })}
+        loading="lazy"
+        decoding="async"
+        data-fresh={fresh || undefined}
+        onError={() => setFailed(true)}
+      />
     </span>
   );
 }

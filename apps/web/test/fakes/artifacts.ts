@@ -286,6 +286,8 @@ export function createMockArtifacts(
       const qs = params.toString();
       return `/api/app/organizations/${orgId}/artifacts/${id}/file${qs ? `?${qs}` : ""}`;
     },
+    pictureUrl: (orgId, id, options) =>
+      `/api/app/organizations/${orgId}/artifacts/${id}/picture?size=${options.size}${options.version ? `&version=${options.version}` : ""}`,
     download: async (orgId, id, version) => {
       const { text, type } = serializeContent((await detail(orgId, await find(orgId, id), version)).content);
       return {

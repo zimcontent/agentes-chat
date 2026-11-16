@@ -7,6 +7,7 @@ import {
   answerChoices,
   artifactDownload,
   artifactFile,
+  artifactPicture,
   attachmentDisposition,
   BLOCK_REPLY_CHARS,
   BLOCK_STATE_KEYS,
@@ -623,6 +624,31 @@ export function artifactRoutes(deps: AppDeps) {
       "content-security-policy": "sandbox",
       // no-transform: no proxy rewrites the bytes (Cloudflare's email obfuscation edits text/html).
       "cache-control": "private, no-store, no-transform",
+    });
+  });
+
+  // An uploaded picture's light copy (a WebP at most 640 px for a tile, 2048 px for the viewer): a version never
+  // changes, so the browser keeps it. Shown in an <img>: its own type, never sniffed, never a page.
+  app.get("/organizations/:orgId/artifacts/:artifactId/picture", async (c) => {
+    const version = Number(c.req.query("version")) || undefined;
+    const size = c.req.query("size") === "view" ? "view" : "tile";
+    const picture = await artifactPicture(
+      artifacts(),
+      c.get("user").id,
+      c.req.param("orgId"),
+      c.req.param("artifactId"),
+      {
+        version,
+        size,
+      },
+    );
+    return new Response(picture.body, {
+      headers: {
+        "content-type": picture.contentType,
+        "x-content-type-options": "nosniff",
+        "content-security-policy": "sandbox",
+        "cache-control": version ? "private, max-age=31536000, immutable" : "private, no-cache",
+      },
     });
   });
 

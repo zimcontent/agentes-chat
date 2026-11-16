@@ -2002,6 +2002,11 @@ export interface ApiClient {
       id: string,
       options?: { version?: number; format?: "csv" | "patch" | "pdf" | "docx" },
     ): string;
+    /**
+     * Same-origin URL of an uploaded picture's light copy (a WebP, `tile` about 640 px, `view` 2048 px), kept by the
+     * browser: for an `<img>`, never the original's weight. GIFs come back as they are.
+     */
+    pictureUrl(orgId: string, id: string, options: { version?: number; size: "tile" | "view" }): string;
     create(
       orgId: string,
       input: { title: string; channelId?: string | null; content: ArtifactContent },
