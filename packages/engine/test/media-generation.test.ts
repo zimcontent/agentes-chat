@@ -4,15 +4,20 @@ import { ZimMediaError } from "@agenteschat/adapters";
 import { eq, schema } from "@agenteschat/db";
 import {
   agentMonthSpent,
+  createFileArtifact,
   createMediaGenerationToolSource,
   estimateCredits,
   forgetMediaCatalog,
   GENERATE_IMAGE_TOOL,
   GENERATE_VIDEO_TOOL,
+  inputsRefusal,
   listMediaGenerations,
   MEDIA_POLL_JOB,
   type MediaDeps,
   mediaPollHandler,
+  mediaRefType,
+  modelInputs,
+  quoteCredits,
   startGeneration,
   type ToolContext,
   updateAgent,
@@ -64,7 +69,60 @@ const MODELS: MediaModel[] = [
     firstFrame: true,
     prices: { "720p": { perSecond: false, credits: 64, silentCredits: 64 } },
   },
+  {
+    // Every input of the Studio: references of each kind and both frames at 480p, frames alone at 1080p.
+    id: "seedance-2.5-full",
+    kind: "video",
+    label: "Seedance 2.5 Full",
+    description: "Video with references.",
+    qualities: ["480p", "1080p"],
+    defaultQuality: "480p",
+    aspects: ["16:9"],
+    aspectsByQuality: { "1080p": ["16:9", "9:16"] },
+    durations: { min: 4, max: 15, default: 5 },
+    audio: "optional",
+    inputs: { images: 9, videos: 3, audios: 3, firstFrame: true, lastFrame: true },
+    modesByQuality: {
+      "480p": ["text_to_video", "multi_reference", "first_n_last_frames", "video_reference"],
+      "1080p": ["text_to_video", "first_n_last_frames"],
+    },
+    prices: {
+      "480p": { perSecond: true, credits: 50, silentCredits: 50 },
+      "1080p": { perSecond: true, credits: 300, silentCredits: 300 },
+    },
+  },
+  {
+    id: "kling-4.0",
+    kind: "video",
+    label: "Kling 4.0",
+    description: "Video.",
+    qualities: ["720p"],
+    defaultQuality: "720p",
+    aspects: ["16:9"],
+    durations: { min: 5, max: 10, default: 5 },
+    audio: "none",
+    inputs: { images: 4, videos: 1, audios: 0, firstFrame: true, lastFrame: true, framesOrRefs: true },
+    prices: { "720p": { perSecond: true, credits: 40, silentCredits: 40 } },
+  },
+  {
+    id: "kling-3",
+    kind: "video",
+    label: "Kling 3",
+    description: "Video.",
+    qualities: ["720p"],
+    defaultQuality: "720p",
+    aspects: ["16:9"],
+    durations: { min: 5, max: 10, default: 5 },
+    audio: "none",
+    inputs: { images: 3, videos: 0, audios: 0, firstFrame: true, lastFrame: true, firstFrameOnly: true },
+    prices: { "720p": { perSecond: true, credits: 30, silentCredits: 30 } },
+  },
 ];
+
+/** A reference video's own seconds, as the fake service charges them on top of the model's price. */
+const VIDEO_REF_CREDITS = 600;
+const MP4 = new Uint8Array([0, 0, 0, 0x18, 0x66, 0x74, 0x79, 0x70, 0x69, 0x73, 0x6f, 0x6d, 0, 0, 0, 0]);
+const WAV = new Uint8Array([0x52, 0x49, 0x46, 0x46, 0, 0, 0, 0, 0x57, 0x41, 0x56, 0x45, 0, 0, 0, 0]);
 
 const PNG = new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0, 0, 0, 0]);
 
@@ -73,21 +131,32 @@ function fakeZim(balance = 10_000) {
   const generations = new Map<string, MediaGeneration>();
   const byKey = new Map<string, string>();
   const calls: { orgId: string; request: MediaRequest; key: string }[] = [];
+  const uploads: string[] = [];
+  const quotes: MediaRequest[] = [];
   const state = { balance, finishImagesAtOnce: true };
-  const price = (r: MediaRequest) => estimateCredits(MODELS, r) ?? 10;
+  const price = (r: MediaRequest) =>
+    (estimateCredits(MODELS, { ...r, videoRefs: undefined }) ?? 10) + (r.videoRefs?.length ?? 0) * VIDEO_REF_CREDITS;
   const zim: ZimMedia = {
     catalog: async () => ({ models: MODELS, packs: [{ id: "topup_v3_30", brl: 30, credits: 3000 }] }),
-    quote: async (r) => ({
-      model: r.model,
-      kind: "image",
-      quality: "2K",
-      aspect: "1:1",
-      seconds: 0,
-      audio: false,
-      credits: price(r),
-    }),
+    quote: async (r) => {
+      quotes.push(r);
+      return {
+        model: r.model,
+        kind: "image",
+        quality: "2K",
+        aspect: "1:1",
+        seconds: 0,
+        audio: false,
+        credits: price(r),
+      };
+    },
     balance: async () => ({ balance: state.balance }),
-    uploadRef: async () => `ref_${"a".repeat(48)}`,
+    uploadRef: async (_org, _bytes, contentType) => {
+      uploads.push(contentType);
+      const kind = contentType.startsWith("video/") ? "video" : contentType.startsWith("audio/") ? "audio" : "image";
+      const token = `ref_${uploads.length.toString(16).padStart(48, "0")}`;
+      return { ref: token, kind, ...(kind === "image" ? {} : { seconds: 6 }) };
+    },
     async generate(orgId, input) {
       const existing = byKey.get(input.idempotencyKey);
       if (existing) return { generation: generations.get(existing)!, balance: state.balance };
@@ -142,7 +211,7 @@ function fakeZim(balance = 10_000) {
       ...(status === "failed" ? { error: { code: "moderation", message: "Barrado pela moderação." } } : {}),
     });
   };
-  return { zim, calls, state, finish };
+  return { zim, calls, uploads, quotes, state, finish };
 }
 
 let f: Fixture;
@@ -181,6 +250,65 @@ describe("price estimate", () => {
     expect(estimateCredits(MODELS, { model: "veo-3.1", seconds: 4 })).toBe(64);
     expect(estimateCredits(MODELS, { model: "gpt-image-2-5" })).toBe(15);
     expect(estimateCredits(MODELS, { model: "nope" })).toBeNull();
+  });
+});
+
+describe("what each model takes", () => {
+  const model = (id: string) => MODELS.find((m) => m.id === id)!;
+  test("the catalog's inputs, narrowed by the quality's modes and by a first-frame-only model", () => {
+    expect(modelInputs(model("seedance-2.5-full"), "480p")).toEqual({
+      images: 9,
+      videos: 3,
+      audios: 3,
+      firstFrame: true,
+      lastFrame: true,
+      framesOrRefs: false,
+    });
+    expect(modelInputs(model("seedance-2.5-full"), "1080p")).toMatchObject({ images: 0, videos: 0, audios: 0 });
+    expect(modelInputs(model("seedance-2.5-full"), "1080p").lastFrame).toBe(true);
+    expect(modelInputs(model("kling-3"))).toMatchObject({ images: 0, firstFrame: true, lastFrame: false });
+    // The older fields still read: Veo's opening image, GPT Image's reference count.
+    expect(modelInputs(model("veo-3.1"))).toMatchObject({ firstFrame: true, lastFrame: false, images: 0 });
+    expect(modelInputs(model("gpt-image-2-5")).images).toBe(8);
+  });
+
+  test("what doesn't fit is said before anything is sent", () => {
+    const none = { images: 0, videos: 0, audios: 0, firstFrame: false, lastFrame: false };
+    expect(inputsRefusal(model("kling-4.0"), undefined, { ...none, images: 1, firstFrame: true })).toContain(
+      "references or frames, never both",
+    );
+    expect(inputsRefusal(model("kling-4.0"), undefined, { ...none, images: 4 })).toBeNull();
+    expect(inputsRefusal(model("seedance-2.5-full"), "480p", { ...none, lastFrame: true })).toContain(
+      "needs a first frame",
+    );
+    expect(inputsRefusal(model("seedance-2.5-full"), "1080p", { ...none, videos: 1 })).toContain(
+      "takes no reference video",
+    );
+    expect(inputsRefusal(model("seedance-2.5-full"), "480p", { ...none, audios: 4 })).toContain("at most 3");
+  });
+
+  test("a reference file's kind comes from its bytes", () => {
+    expect(mediaRefType(PNG)?.contentType).toBe("image/png");
+    expect(mediaRefType(MP4)).toEqual({ kind: "video", contentType: "video/mp4" });
+    expect(mediaRefType(MP4, "audio/mp4")).toEqual({ kind: "audio", contentType: "audio/mp4" });
+    const mov = MP4.slice();
+    mov.set([0x71, 0x74, 0x20, 0x20], 8);
+    expect(mediaRefType(mov)?.contentType).toBe("video/quicktime");
+    expect(mediaRefType(new Uint8Array([0x1a, 0x45, 0xdf, 0xa3, 0, 0, 0, 0, 0, 0, 0, 0]))?.contentType).toBe(
+      "video/webm",
+    );
+    expect(mediaRefType(WAV)).toEqual({ kind: "audio", contentType: "audio/wav" });
+    expect(mediaRefType(new Uint8Array([0x49, 0x44, 0x33, 4, 0, 0, 0, 0, 0, 0, 0, 0]))?.contentType).toBe("audio/mpeg");
+    expect(mediaRefType(new TextEncoder().encode("just some text here"))).toBeNull();
+  });
+
+  test("a reference video's price is the service's quote", async () => {
+    const fake = fakeZim();
+    expect(estimateCredits(MODELS, { model: "seedance-2.5-full", seconds: 5, videoRefs: ["ref_x"] })).toBeNull();
+    const request = { model: "seedance-2.5-full", prompt: "x", seconds: 5, videoRefs: ["ref_x"] };
+    expect(await quoteCredits(fake.zim, MODELS, request)).toBe(250 + VIDEO_REF_CREDITS);
+    expect(await quoteCredits(fake.zim, MODELS, { model: "seedance-2.5-full", prompt: "x", seconds: 5 })).toBe(250);
+    expect(fake.quotes.length).toBe(1);
   });
 });
 
@@ -296,6 +424,100 @@ describe("the agents' tools", () => {
     );
     expect(out.isError).toBe(true);
     expect(out.content).toContain("doesn't have enough credits");
+  });
+});
+
+describe("the video tool's files", () => {
+  const driveFile = async (runId: string, name: string, bytes: Uint8Array, contentType: string) =>
+    (
+      await createFileArtifact(
+        f.artifactDeps,
+        { type: "agent", agentId: f.agent.id, channelId: f.general.id, threadId: null, runId },
+        f.org.id,
+        { title: name, name, contentType, bytes },
+      )
+    ).id;
+
+  test("the description says what each model takes, by quality where that changes", async () => {
+    const { zim } = fakeZim();
+    const video = await tool(zim, GENERATE_VIDEO_TOOL);
+    expect(video.description).toContain("closing_image_id");
+    expect(video.description).toContain("Kling 4.0): Video.");
+    expect(video.description).toContain("(frames or references, never both)");
+    expect(video.description).toContain("at 1080p opening_image_id and closing_image_id");
+    expect(video.description).toContain("up to 3 video_reference_ids");
+    expect(video.description).toContain("1080p: 16:9 9:16");
+    const props = (video.inputSchema as { properties: Record<string, { maxItems?: number }> }).properties;
+    expect(props.video_reference_ids?.maxItems).toBe(3);
+    expect(props.reference_ids?.maxItems).toBe(9);
+  });
+
+  test("frames, a reference video and an audio from the Drive go to the service, priced by its quote", async () => {
+    const fake = fakeZim();
+    const c = ctx();
+    const first = await driveFile(c.runId, "first.png", PNG, "image/png");
+    const last = await driveFile(c.runId, "last.png", PNG, "image/png");
+    const clip = await driveFile(c.runId, "clip.mp4", MP4, "video/mp4");
+    const voice = await driveFile(c.runId, "voice.wav", WAV, "audio/wav");
+    const video = await tool(fake.zim, GENERATE_VIDEO_TOOL, c);
+    const input = {
+      model: "seedance-2.5-full",
+      prompt: "the same dance on a beach",
+      seconds: 5,
+      opening_image_id: first,
+      closing_image_id: last,
+      video_reference_ids: [clip],
+      audio_reference_ids: [voice],
+    };
+    // Its price isn't known before the service measures the clip: a person approves it first.
+    expect(video.asksNobody?.(input)).toBe(false);
+    expect(video.describe?.(input).title).toContain("com vídeo de referência");
+    const out = await video.execute(input, c);
+    expect(out.isError).toBeFalsy();
+    expect(fake.uploads).toEqual(["image/png", "image/png", "video/mp4", "audio/wav"]);
+    const sent = fake.calls[0]!.request;
+    expect(sent.firstFrame).toBeString();
+    expect(sent.lastFrame).toBeString();
+    expect(sent.videoRefs?.length).toBe(1);
+    expect(sent.audioRefs?.length).toBe(1);
+    expect(fake.quotes.length).toBe(1);
+    expect(out.content).toContain(`${250 + VIDEO_REF_CREDITS} credits`);
+  });
+
+  test("a quote past the allowance stops before the generation", async () => {
+    const fake = fakeZim();
+    await updateAgent(f.db, f.owner.id, f.org.id, f.agent.id, { mediaMonthlyCredits: 700 });
+    const c = ctx();
+    const clip = await driveFile(c.runId, "clip.mp4", MP4, "video/mp4");
+    const out = await (await tool(fake.zim, GENERATE_VIDEO_TOOL, c)).execute(
+      { model: "seedance-2.5-full", prompt: "x", seconds: 5, video_reference_ids: [clip] },
+      c,
+    );
+    expect(out.isError).toBe(true);
+    expect(out.content).toContain("monthly media allowance");
+    expect(fake.calls.length).toBe(0);
+    await updateAgent(f.db, f.owner.id, f.org.id, f.agent.id, { mediaMonthlyCredits: 5000 });
+  });
+
+  test("files the model doesn't take, or of the wrong kind, are refused before anything is paid", async () => {
+    const fake = fakeZim();
+    const c = ctx();
+    const picture = await driveFile(c.runId, "a.png", PNG, "image/png");
+    const video = await tool(fake.zim, GENERATE_VIDEO_TOOL, c);
+    const both = await video.execute(
+      { model: "kling-4.0", prompt: "x", opening_image_id: picture, reference_ids: [picture] },
+      c,
+    );
+    expect(both.isError).toBe(true);
+    expect(both.content).toContain("never both");
+    const wrong = await video.execute(
+      { model: "seedance-2.5-full", prompt: "x", video_reference_ids: [picture] },
+      ctx({ runId: c.runId }),
+    );
+    expect(wrong.isError).toBe(true);
+    expect(wrong.content).toContain("isn't an MP4, MOV or WebM video");
+    expect(fake.uploads.length).toBe(0);
+    expect(fake.calls.length).toBe(0);
   });
 });
 

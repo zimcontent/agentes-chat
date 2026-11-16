@@ -1,5 +1,11 @@
 import { afterEach, expect, test } from "bun:test";
-import { type MediaGeneration, type ZimMedia, ZimMediaError } from "@agenteschat/adapters";
+import {
+  type MediaGeneration,
+  type MediaModel,
+  type MediaRequest,
+  type ZimMedia,
+  ZimMediaError,
+} from "@agenteschat/adapters";
 import { forgetMediaCatalog } from "@agenteschat/engine";
 import { browser, createTestServer, seedOrg, signUp, type TestServer } from "./harness";
 
@@ -15,9 +21,19 @@ afterEach(async () => {
 });
 
 const PNG = new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0, 0, 0, 0]);
+const MP4 = new Uint8Array([0, 0, 0, 0x18, 0x66, 0x74, 0x79, 0x70, 0x69, 0x73, 0x6f, 0x6d, 0, 0, 0, 0]);
+const WAV = new Uint8Array([0x52, 0x49, 0x46, 0x46, 0, 0, 0, 0, 0x57, 0x41, 0x56, 0x45, 0, 0, 0, 0]);
+const token = (n: number) => `ref_${String(n).padStart(48, "0")}`;
 
 function fakeZim(balance = 100) {
-  const state = { balance, generations: new Map<string, MediaGeneration>(), topups: [] as string[] };
+  const state = {
+    balance,
+    generations: new Map<string, MediaGeneration>(),
+    topups: [] as string[],
+    uploads: [] as string[],
+    requests: [] as MediaRequest[],
+    quotes: [] as MediaRequest[],
+  };
   const zim: ZimMedia = {
     catalog: async () => ({
       models: [
@@ -32,18 +48,46 @@ function fakeZim(balance = 100) {
           maxRefs: 8,
           prices: { "1K": 10 },
         },
-      ],
+        {
+          id: "seedance-2.5",
+          kind: "video",
+          label: "Seedance 2.5",
+          description: "Video.",
+          qualities: ["480p"],
+          defaultQuality: "480p",
+          aspects: ["16:9"],
+          durations: { min: 4, max: 15, default: 5 },
+          audio: "optional",
+          inputs: { images: 9, videos: 3, audios: 3, firstFrame: true, lastFrame: true },
+          modesByQuality: { "480p": ["text_to_video", "multi_reference", "first_n_last_frames", "video_reference"] },
+          prices: { "480p": { perSecond: true, credits: 10, silentCredits: 10 } },
+        },
+      ] as MediaModel[],
       packs: [{ id: "topup_v3_30", brl: 30, credits: 3000 }],
     }),
-    quote: async () => {
-      throw new Error("unused");
+    quote: async (request) => {
+      state.quotes.push(request);
+      return {
+        model: request.model,
+        kind: "video",
+        quality: "480p",
+        aspect: "16:9",
+        seconds: 5,
+        audio: true,
+        credits: 777,
+      };
     },
     balance: async () => ({ balance: state.balance, ledger: [] }),
-    uploadRef: async () => `ref_${"b".repeat(48)}`,
+    uploadRef: async (_org, _bytes, contentType) => {
+      state.uploads.push(contentType);
+      const kind = contentType.startsWith("video/") ? "video" : contentType.startsWith("audio/") ? "audio" : "image";
+      return { ref: token(state.uploads.length), kind, ...(kind === "image" ? {} : { seconds: 4.5 }) };
+    },
     async generate(_org, input) {
       if (state.balance < 10)
         throw new ZimMediaError("Saldo insuficiente.", 402, "insufficient_credits", 10, state.balance);
       state.balance -= 10;
+      state.requests.push(input.request);
       const g: MediaGeneration = {
         id: crypto.randomUUID(),
         kind: "image",
@@ -123,7 +167,7 @@ test("a person generates an image: charged once, saved to the Drive, listed as t
     canTopUp: boolean;
   };
   expect(overview.balance).toBe(100);
-  expect(overview.models.length).toBe(1);
+  expect(overview.models.length).toBe(2);
   expect(overview.canTopUp).toBe(true);
 
   const started = await owner(`${base}/media/generations`, {
@@ -173,4 +217,77 @@ test("a top-up opens Mercado Pago's checkout and comes back to the Mídia page",
   };
   expect(status.topup.status).toBe("approved");
   expect(status.balance).toBe(3100);
+});
+
+/** A file in the form's `file` field, as the page sends it. */
+const formWith = (bytes: Uint8Array, name: string, type: string) => {
+  const form = new FormData();
+  form.append("file", new File([bytes], name, { type }));
+  return form;
+};
+
+test("reference files: a picture, a video and an audio, each by its bytes and its own size limit", async () => {
+  const { zim, state } = fakeZim();
+  const { owner, base } = await start(zim);
+  const send = (bytes: Uint8Array, name: string, type: string) =>
+    owner(`${base}/media/refs`, { method: "POST", body: formWith(bytes, name, type) });
+
+  const image = await send(PNG, "a.png", "image/png");
+  expect(image.status).toBe(200);
+  expect(await image.json()).toEqual({ ref: token(1), kind: "image" });
+
+  const video = await send(MP4, "clip.mp4", "video/mp4");
+  expect(video.status).toBe(200);
+  expect(await video.json()).toEqual({ ref: token(2), kind: "video", seconds: 4.5 });
+
+  const audio = await send(WAV, "voice.wav", "audio/wav");
+  expect(((await audio.json()) as { kind: string }).kind).toBe("audio");
+  // An MP4 the browser calls audio is an audio.
+  expect(((await (await send(MP4, "voice.m4a", "audio/mp4")).json()) as { kind: string }).kind).toBe("audio");
+  expect(state.uploads).toEqual(["image/png", "video/mp4", "audio/wav", "audio/mp4"]);
+
+  // A text file named like a video is refused by its bytes, before the service hears of it.
+  const wrong = await send(new TextEncoder().encode("not a video at all, just words"), "clip.mp4", "video/mp4");
+  expect(wrong.status).toBe(400);
+  expect(((await wrong.json()) as { error: { code: string } }).error.code).toBe("media.ref_type");
+
+  // A picture past 12 MB is too large even though a video may be 50.
+  const big = new Uint8Array(13 * 1024 * 1024);
+  big.set(PNG);
+  const large = await send(big, "big.png", "image/png");
+  expect(large.status).toBe(413);
+  const answer = (await large.json()) as { error: { code: string; message: string } };
+  expect(answer.error.code).toBe("media.ref_too_large");
+  expect(answer.error.message).toContain("12 MB");
+  expect(state.uploads.length).toBe(4);
+});
+
+test("a video's frames and references reach the service, and its price is the service's quote", async () => {
+  const { zim, state } = fakeZim(5000);
+  const { owner, base } = await start(zim);
+  const files = {
+    firstFrame: token(1),
+    lastFrame: token(2),
+    refs: [token(3)],
+    videoRefs: [token(4)],
+    audioRefs: [token(5)],
+  };
+  const quoted = await owner(`${base}/media/quote`, { json: { model: "seedance-2.5", seconds: 5, ...files } });
+  expect(quoted.status).toBe(200);
+  expect(await quoted.json()).toEqual({ credits: 777 });
+  // Without a reference video the catalog's arithmetic answers, the service isn't asked.
+  const plain = await owner(`${base}/media/quote`, { json: { model: "seedance-2.5", seconds: 5 } });
+  expect(await plain.json()).toEqual({ credits: 50 });
+  expect(state.quotes.length).toBe(1);
+
+  const started = await owner(`${base}/media/generations`, {
+    json: { model: "seedance-2.5", prompt: "the same dance", seconds: 5, clientId: "click-0003", ...files },
+  });
+  expect(started.status).toBe(200);
+  expect(state.requests[0]).toMatchObject(files);
+
+  const bad = await owner(`${base}/media/generations`, {
+    json: { model: "seedance-2.5", prompt: "x", videoRefs: ["not-a-token"], clientId: "click-0004" },
+  });
+  expect(bad.status).toBe(400);
 });

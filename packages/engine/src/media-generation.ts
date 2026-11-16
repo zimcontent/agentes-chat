@@ -3,6 +3,8 @@ import {
   type MediaGeneration,
   type MediaModel,
   type MediaPack,
+  type MediaRef,
+  type MediaRefKind,
   type MediaRequest,
   type ZimMedia,
   ZimMediaError,
@@ -68,11 +70,12 @@ export function forgetMediaCatalog() {
 
 /**
  * The price of a request from the cached catalog, the same arithmetic as the service (`debit`: half to even, at
- * least 10). Null when the request doesn't fit the model: the service refuses it anyway, before any charge.
+ * least 10). Null when the request doesn't fit the model (the service refuses it anyway, before any charge) and when
+ * it carries a reference video, whose own seconds can count too: only the service's quote knows (`quoteCredits`).
  */
 export function estimateCredits(models: MediaModel[], request: Partial<MediaRequest>): number | null {
   const model = models.find((m) => m.id === request.model);
-  if (!model) return null;
+  if (!model || request.videoRefs?.length) return null;
   const quality = request.quality ?? model.defaultQuality;
   const price = model.prices[quality];
   if (price === undefined) return null;
@@ -85,10 +88,100 @@ export function estimateCredits(models: MediaModel[], request: Partial<MediaRequ
   return debit(price.perSecond ? perUnit * seconds : perUnit);
 }
 
+/**
+ * The price of a request ready to send: the catalog's arithmetic, or the service's quote when a reference video is in
+ * it (the Studio's rule for a reference video, such as Seedance 2.5 also charging the input's seconds, lives there).
+ */
+export async function quoteCredits(zim: ZimMedia, models: MediaModel[], request: MediaRequest): Promise<number | null> {
+  if (!request.videoRefs?.length) return estimateCredits(models, request);
+  return (await zim.quote(request)).credits;
+}
+
 function debit(value: number): number {
   const floor = Math.floor(value);
   const half = Math.abs(value - floor - 0.5) < 1e-8;
   return Math.max(10, half ? (floor % 2 === 0 ? floor : floor + 1) : Math.round(value));
+}
+
+// ---------- what a model takes ----------
+
+/** What one model takes at one quality, from `inputs`, the older fields and `modesByQuality`. */
+export interface ModelInputs {
+  images: number;
+  videos: number;
+  audios: number;
+  firstFrame: boolean;
+  lastFrame: boolean;
+  /** References or frames, never both. */
+  framesOrRefs: boolean;
+}
+
+/**
+ * Reads the catalog's description of a model's inputs at a quality. An image model takes `maxRefs` pictures. A video
+ * model takes what `inputs` says, narrowed by the quality's modes when the catalog lists them: reference images need
+ * `multi_reference`, audios `multi_reference` or `video_reference`, videos a reference, edit or extend mode, frames
+ * `first_n_last_frames`. A model that takes only a first frame (`firstFrameOnly`) takes no reference image or last
+ * frame. The web page reads the same rules (`packages/client/src/media/inputs.ts`).
+ */
+export function modelInputs(model: MediaModel, quality?: string): ModelInputs {
+  const none = { images: 0, videos: 0, audios: 0, firstFrame: false, lastFrame: false, framesOrRefs: false };
+  if (model.kind === "image") return { ...none, images: model.maxRefs ?? model.inputs?.images ?? 0 };
+  const q = quality ?? model.defaultQuality;
+  const i = model.inputs;
+  const firstFrame = i?.firstFrame ?? model.firstFrame ?? false;
+  const out: ModelInputs = {
+    images: i ? (i.imagesByQuality?.[q] ?? i.images) : 0,
+    videos: i?.videos ?? 0,
+    audios: i?.audios ?? 0,
+    firstFrame,
+    lastFrame: firstFrame && (i?.lastFrame ?? false),
+    framesOrRefs: i?.framesOrRefs ?? false,
+  };
+  if (i?.firstFrameOnly) {
+    out.images = 0;
+    out.lastFrame = false;
+  }
+  const modes = model.modesByQuality?.[q];
+  if (modes) {
+    const has = (...names: string[]) => names.some((n) => modes.includes(n));
+    if (!has("multi_reference")) out.images = 0;
+    if (!has("multi_reference", "video_reference")) out.audios = 0;
+    if (!has("multi_reference", "video_reference", "edit", "extend")) out.videos = 0;
+    if (!has("first_n_last_frames")) {
+      out.firstFrame = false;
+      out.lastFrame = false;
+    }
+  }
+  return out;
+}
+
+/** The aspects a model offers at a quality. */
+export function modelAspects(model: MediaModel, quality?: string): string[] {
+  return model.aspectsByQuality?.[quality ?? model.defaultQuality] ?? model.aspects;
+}
+
+/** Why a request's files don't fit the model, in words for an agent; null when they do. */
+export function inputsRefusal(
+  model: MediaModel,
+  quality: string | undefined,
+  given: { images: number; videos: number; audios: number; firstFrame: boolean; lastFrame: boolean },
+): string | null {
+  const can = modelInputs(model, quality);
+  const at = `${model.label} at ${quality ?? model.defaultQuality}`;
+  if (given.lastFrame && !given.firstFrame) return "A last frame needs a first frame too.";
+  if (given.firstFrame && !can.firstFrame) return `${at} takes no first frame.`;
+  if (given.lastFrame && !can.lastFrame) return `${at} takes no last frame.`;
+  const counts: [number, number, string][] = [
+    [given.images, can.images, "reference image"],
+    [given.videos, can.videos, "reference video"],
+    [given.audios, can.audios, "reference audio"],
+  ];
+  for (const [n, max, what] of counts) {
+    if (n > max) return max === 0 ? `${at} takes no ${what}.` : `${at} takes at most ${max} ${what}s.`;
+  }
+  if (can.framesOrRefs && given.firstFrame && given.images + given.videos + given.audios > 0)
+    return `${model.label} takes references or frames, never both.`;
+  return null;
 }
 
 // ---------- what an agent may spend ----------
@@ -115,26 +208,77 @@ export type MediaRequester =
   | { type: "person"; userId: string; name?: string }
   | { type: "agent"; agentId: string; runId: string; channelId: string; threadId: string | null; name?: string };
 
+const MIB = 1024 * 1024;
+
+/** The largest reference file of each kind: what the service takes. */
+export const MEDIA_REF_LIMITS: Record<MediaRefKind, number> = { image: 12 * MIB, video: 50 * MIB, audio: 15 * MIB };
+
+const KIND_WORDS: Record<MediaRefKind, string> = {
+  image: "a JPEG, PNG or WebP picture",
+  video: "an MP4, MOV or WebM video",
+  audio: "an MP3, WAV, M4A, AAC or OGG audio",
+};
+
 /** Files from the Drive become references the service can hand its provider (they expire there in a day). */
-async function uploadRefs(deps: MediaDeps, zim: ZimMedia, orgId: string, actor: ArtifactActor, artifactIds: string[]) {
+async function uploadRefs(
+  deps: MediaDeps,
+  zim: ZimMedia,
+  orgId: string,
+  actor: ArtifactActor,
+  artifactIds: string[],
+  kind: MediaRefKind,
+) {
   const tokens: string[] = [];
   for (const id of artifactIds) {
     const stored = await storedFileOfArtifact(deps.artifacts, actor, orgId, id);
     const object = await (await deps.artifacts.blobs.forConfig(orgId, stored.storageConfigId)).get(stored.blobKey);
     if (!object) throw new ValidationError(`The stored file of ${id} is missing`);
-    const type = imageType(stored.name, object.body);
-    if (!type) throw new ValidationError(`"${stored.name}" isn't a JPEG, PNG or WebP picture`);
-    tokens.push(await zim.uploadRef(orgId, object.body, type));
+    const type = mediaRefType(object.body, kind === "audio" ? "audio/" : undefined);
+    if (type?.kind !== kind) throw new ValidationError(`"${stored.name}" isn't ${KIND_WORDS[kind]}`);
+    if (object.body.byteLength > MEDIA_REF_LIMITS[kind])
+      throw new ValidationError(`"${stored.name}" is larger than ${MEDIA_REF_LIMITS[kind] / MIB} MB`);
+    tokens.push((await zim.uploadRef(orgId, object.body, type.contentType)).ref);
   }
   return tokens;
 }
 
 /** The picture's type from its first bytes (the name can lie). */
 export function imageType(name: string, bytes: Uint8Array): string | null {
-  if (bytes[0] === 0xff && bytes[1] === 0xd8) return "image/jpeg";
-  if (bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4e && bytes[3] === 0x47) return "image/png";
-  if (bytes[0] === 0x52 && bytes[1] === 0x49 && bytes[8] === 0x57 && bytes[9] === 0x45) return "image/webp";
   void name;
+  const type = mediaRefType(bytes);
+  return type?.kind === "image" ? type.contentType : null;
+}
+
+const ascii = (bytes: Uint8Array, from: number, to: number) => String.fromCharCode(...bytes.subarray(from, to));
+
+/**
+ * A reference file's kind and type from its first bytes, never from its name. An MP4 container holds a video or an
+ * audio: its brand says which, or else `declared` (the browser's type) when it starts with `audio/`.
+ */
+export function mediaRefType(bytes: Uint8Array, declared?: string): { kind: MediaRefKind; contentType: string } | null {
+  const b = bytes;
+  if (b.length < 12) return null;
+  if (b[0] === 0xff && b[1] === 0xd8 && b[2] === 0xff) return { kind: "image", contentType: "image/jpeg" };
+  if (b[0] === 0x89 && ascii(b, 1, 4) === "PNG") return { kind: "image", contentType: "image/png" };
+  if (ascii(b, 0, 4) === "RIFF" && ascii(b, 8, 12) === "WEBP") return { kind: "image", contentType: "image/webp" };
+  if (ascii(b, 0, 4) === "RIFF" && ascii(b, 8, 12) === "WAVE") return { kind: "audio", contentType: "audio/wav" };
+  if (ascii(b, 0, 4) === "OggS") return { kind: "audio", contentType: "audio/ogg" };
+  if (ascii(b, 0, 3) === "ID3") return { kind: "audio", contentType: "audio/mpeg" };
+  if (b[0] === 0x1a && b[1] === 0x45 && b[2] === 0xdf && b[3] === 0xa3)
+    return { kind: "video", contentType: "video/webm" };
+  if (ascii(b, 4, 8) === "ftyp") {
+    const brand = ascii(b, 8, 12);
+    if (brand === "qt  ") return { kind: "video", contentType: "video/quicktime" };
+    if (brand === "M4A " || brand === "M4B " || declared?.startsWith("audio/"))
+      return { kind: "audio", contentType: "audio/mp4" };
+    return { kind: "video", contentType: "video/mp4" };
+  }
+  // A bare frame header: ADTS AAC when the layer bits are 00, an MPEG audio frame (MP3) otherwise.
+  if (b[0] === 0xff && ((b[1] ?? 0) & 0xe0) === 0xe0) {
+    return ((b[1] ?? 0) & 0x06) === 0
+      ? { kind: "audio", contentType: "audio/aac" }
+      : { kind: "audio", contentType: "audio/mpeg" };
+  }
   return null;
 }
 
@@ -148,39 +292,76 @@ const serviceActorOf = (who: MediaRequester): MediaActor =>
     ? { type: "user", id: who.userId, ...(who.name ? { name: who.name } : {}) }
     : { type: "agent", id: who.agentId, ...(who.name ? { name: who.name } : {}) };
 
+/** A request's files: reference images, first and last frames, reference videos and audios. */
+export interface MediaFiles {
+  refs?: string[];
+  firstFrame?: string;
+  lastFrame?: string;
+  videoRefs?: string[];
+  audioRefs?: string[];
+}
+
+export type MediaBaseRequest = Omit<MediaRequest, keyof MediaFiles>;
+
 /**
- * Asks the service for a generation and keeps the row; `media.poll` follows it to the Drive. `refs` and
- * `firstFrame` are Drive file ids the requester may read.
+ * The request ready for the service: `drive` holds Drive file ids the requester may read, sent to the service here,
+ * and `tokens` files already sent to it (a person's own, through `uploadMediaRef`).
+ */
+export async function mediaRequestWithFiles(
+  deps: MediaDeps,
+  orgId: string,
+  who: MediaRequester,
+  request: MediaBaseRequest,
+  drive: MediaFiles = {},
+  tokens: MediaFiles = {},
+): Promise<MediaRequest> {
+  const zim = deps.zimMedia;
+  if (!zim) throw new NotFoundError("Media generation isn't set up on this server");
+  const actor = artifactActorOf(who);
+  const send = async (ids: string[] | undefined, kind: MediaRefKind) =>
+    ids?.length ? uploadRefs(deps, zim, orgId, actor, ids, kind) : [];
+  const many = async (ids: string[] | undefined, own: string[] | undefined, kind: MediaRefKind) => [
+    ...(await send(ids, kind)),
+    ...(own ?? []),
+  ];
+  const one = async (id: string | undefined, own: string | undefined) => (id ? (await send([id], "image"))[0] : own);
+  const refs = await many(drive.refs, tokens.refs, "image");
+  const firstFrame = await one(drive.firstFrame, tokens.firstFrame);
+  const lastFrame = await one(drive.lastFrame, tokens.lastFrame);
+  const videoRefs = await many(drive.videoRefs, tokens.videoRefs, "video");
+  const audioRefs = await many(drive.audioRefs, tokens.audioRefs, "audio");
+  return {
+    ...request,
+    ...(refs.length ? { refs } : {}),
+    ...(firstFrame ? { firstFrame } : {}),
+    ...(lastFrame ? { lastFrame } : {}),
+    ...(videoRefs.length ? { videoRefs } : {}),
+    ...(audioRefs.length ? { audioRefs } : {}),
+  };
+}
+
+/**
+ * Asks the service for a generation and keeps the row; `media.poll` follows it to the Drive. `drive` holds Drive
+ * file ids the requester may read, `tokens` files already sent to the service.
  */
 export async function startGeneration(
   deps: MediaDeps,
   orgId: string,
   who: MediaRequester,
   input: {
-    request: Omit<MediaRequest, "refs" | "firstFrame">;
-    /** Drive files the requester may read. */
-    refs?: string[];
-    firstFrame?: string;
-    /** Pictures already sent to the service (`uploadMediaRef`), from a person's own computer. */
-    refTokens?: string[];
-    firstFrameToken?: string;
+    request: MediaBaseRequest;
+    drive?: MediaFiles;
+    tokens?: MediaFiles;
     idempotencyKey: string;
   },
 ): Promise<{ row: MediaRow; generation: MediaGeneration; balance: number }> {
   const zim = deps.zimMedia;
   if (!zim) throw new NotFoundError("Media generation isn't set up on this server");
-  const actor = artifactActorOf(who);
-  const fromDrive = input.refs?.length ? await uploadRefs(deps, zim, orgId, actor, input.refs) : [];
-  const refs = [...fromDrive, ...(input.refTokens ?? [])];
-  const [firstFrame] = input.firstFrame
-    ? await uploadRefs(deps, zim, orgId, actor, [input.firstFrame])
-    : input.firstFrameToken
-      ? [input.firstFrameToken]
-      : [];
+  const request = await mediaRequestWithFiles(deps, orgId, who, input.request, input.drive, input.tokens);
   const { generation, balance } = await zim.generate(orgId, {
     idempotencyKey: input.idempotencyKey,
     actor: serviceActorOf(who),
-    request: { ...input.request, ...(refs.length ? { refs } : {}), ...(firstFrame ? { firstFrame } : {}) },
+    request,
   });
   const [inserted] = await deps.db
     .insert(mediaGenerations)
@@ -461,13 +642,33 @@ function modelLines(models: MediaModel[], kind: "image" | "video"): string {
             : `${q} ${p.credits}${p.perSecond ? "/s" : ""}${p.silentCredits !== p.credits ? ` (${p.silentCredits}${p.perSecond ? "/s" : ""} silent)` : ""}`,
         )
         .join(", ");
+      const aspects = m.aspectsByQuality
+        ? m.qualities.map((q) => `${q}: ${modelAspects(m, q).join(" ")}`).join(", ")
+        : m.aspects.join(" ");
       const extra =
         kind === "image"
           ? `up to ${m.maxRefs ?? 0} reference images`
-          : `${m.durations?.fixed ? `${m.durations.fixed.join("/")} s` : `${m.durations?.min}-${m.durations?.max} s`}, sound ${m.audio}${m.firstFrame ? ", opening image" : ""}`;
-      return `- ${m.id} (${m.label}): ${m.description} Credits: ${prices}. Aspects ${m.aspects.join(" ")}; ${extra}.`;
+          : `${m.durations?.fixed ? `${m.durations.fixed.join("/")} s` : `${m.durations?.min}-${m.durations?.max} s`}, sound ${m.audio}. Takes: ${videoInputsLine(m)}`;
+      return `- ${m.id} (${m.label}): ${m.description} Credits: ${prices}. Aspects ${aspects}; ${extra}.`;
     })
     .join("\n");
+}
+
+/** What a video model takes, per quality when that changes it, in the agent's words and the tool's field names. */
+function videoInputsLine(m: MediaModel): string {
+  const say = (i: ModelInputs) => {
+    const parts = [
+      i.firstFrame ? (i.lastFrame ? "opening_image_id and closing_image_id" : "opening_image_id only") : null,
+      i.images ? `up to ${i.images} reference_ids` : null,
+      i.videos ? `up to ${i.videos} video_reference_ids` : null,
+      i.audios ? `up to ${i.audios} audio_reference_ids` : null,
+    ].filter(Boolean);
+    if (!parts.length) return "the prompt alone";
+    return `${parts.join(", ")}${i.framesOrRefs && i.firstFrame && parts.length > 1 ? " (frames or references, never both)" : ""}`;
+  };
+  const byQuality = m.qualities.map((q) => [q, say(modelInputs(m, q))] as const);
+  if (byQuality.every(([, line]) => line === byQuality[0]?.[1])) return byQuality[0]?.[1] ?? "the prompt alone";
+  return byQuality.map(([q, line]) => `at ${q} ${line}`).join("; ");
 }
 
 function mediaTool(
@@ -478,19 +679,22 @@ function mediaTool(
 ): ToolDefinition {
   const ofKind = models.filter((m) => m.kind === kind);
   const name = kind === "image" ? GENERATE_IMAGE_TOOL : GENERATE_VIDEO_TOOL;
+  const most = (key: "images" | "videos" | "audios") =>
+    Math.max(1, ...ofKind.flatMap((m) => m.qualities.map((q) => modelInputs(m, q)[key])));
   const estimate = (input: Record<string, unknown>) =>
     estimateCredits(models, {
       model: str(input.model),
       quality: str(input.quality) || undefined,
       seconds: typeof input.seconds === "number" ? input.seconds : undefined,
       audio: typeof input.audio === "boolean" ? input.audio : undefined,
+      videoRefs: ids(input.video_reference_ids),
     });
   return {
     name,
     description:
       kind === "image"
         ? `Generate an image with AI and save it to the Drive; it comes attached to your reply. Paid in credits from the workspace's media wallet (1,000 credits = US$ 1), within your monthly allowance of ${limits.monthly}. Write the prompt in English, detailed (subject, setting, light, framing, style). To edit or keep a person or product the same, pass Drive pictures in \`reference_ids\`. Models:\n${modelLines(models, "image")}`
-        : `Generate a video with AI and save it to the Drive. It takes one to five minutes: the call returns at once and the video is posted in this conversation when it's ready (tell the person it's on its way). Paid in credits per second from the workspace's media wallet (1,000 credits = US$ 1), within your monthly allowance of ${limits.monthly}${limits.askAbove !== null ? `; above ${limits.askAbove} credits a person approves it first` : ""}. Write the prompt in English, describing motion and camera. Pass a Drive picture as \`opening_image_id\` to start the video from it. Models:\n${modelLines(models, "video")}`,
+        : `Generate a video with AI and save it to the Drive. It takes one to five minutes: the call returns at once and the video is posted in this conversation when it's ready (tell the person it's on its way). Paid in credits per second from the workspace's media wallet (1,000 credits = US$ 1), within your monthly allowance of ${limits.monthly}${limits.askAbove !== null ? `; above ${limits.askAbove} credits a person approves it first, and always when a reference video is in it (its price comes from the service)` : ""}. Write the prompt in English, describing motion and camera. Files are Drive or attachment ids: \`opening_image_id\` starts the video from a picture and \`closing_image_id\` ends it on another (only with an opening one), \`reference_ids\` keep people or products consistent, \`video_reference_ids\` give motion, camera or a clip to edit, \`audio_reference_ids\` a voice, music or sound to follow. Pick a model that takes the files you have. Models:\n${modelLines(models, "video")}`,
     scope: "",
     // A generation above the agent's threshold waits for a person's yes; under it, nobody is asked.
     sensitive: limits.askAbove !== null,
@@ -508,20 +712,38 @@ function mediaTool(
           type: "string",
           description: "Aspect ratio such as 16:9, 9:16 or 1:1; the model's first when left out.",
         },
-        ...(kind === "image"
+        reference_ids: {
+          type: "array",
+          items: { type: "string" },
+          maxItems: kind === "image" ? 14 : most("images"),
+          description:
+            kind === "image"
+              ? "Drive pictures (JPEG, PNG, WebP) to edit or keep consistent."
+              : "Drive pictures (JPEG, PNG, WebP) of people, products or places to keep in the video.",
+        },
+        ...(kind === "video"
           ? {
-              reference_ids: {
-                type: "array",
-                items: { type: "string" },
-                maxItems: 14,
-                description: "Drive pictures (JPEG, PNG, WebP) to edit or keep consistent.",
-              },
-            }
-          : {
               seconds: { type: "integer", minimum: 1, maximum: 30 },
               audio: { type: "boolean", description: "With sound (default) or silent, where the model offers both." },
               opening_image_id: { type: "string", description: "A Drive picture the video starts from." },
-            }),
+              closing_image_id: {
+                type: "string",
+                description: "A Drive picture the video ends on, only with opening_image_id.",
+              },
+              video_reference_ids: {
+                type: "array",
+                items: { type: "string" },
+                maxItems: most("videos"),
+                description: "Drive videos (MP4, MOV, WebM, up to 50 MB) to follow or edit.",
+              },
+              audio_reference_ids: {
+                type: "array",
+                items: { type: "string" },
+                maxItems: most("audios"),
+                description: "Drive audios (MP3, WAV, M4A, AAC, OGG, up to 15 MB) to follow.",
+              },
+            }
+          : {}),
         why: { type: "string", maxLength: 300, description: "When it needs approval: what this is for, in one line." },
       },
       required: ["model", "prompt"],
@@ -536,7 +758,11 @@ function mediaTool(
         kind === "video"
           ? `${typeof input.seconds === "number" ? input.seconds : (model?.durations?.default ?? 5)} s`
           : null,
-        credits !== null ? `${credits.toLocaleString("pt-BR")} créditos` : null,
+        credits !== null
+          ? `${credits.toLocaleString("pt-BR")} créditos`
+          : ids(input.video_reference_ids).length
+            ? "com vídeo de referência"
+            : null,
       ].filter(Boolean);
       return {
         title: `${kind === "image" ? "Gerar imagem" : "Gerar vídeo"} · ${bits.join(" · ")}`,
@@ -547,41 +773,68 @@ function mediaTool(
       try {
         const zim = deps.zimMedia;
         if (!zim) return { content: "Media generation isn't available.", isError: true };
-        const credits = estimate(input);
+        const model = ofKind.find((m) => m.id === str(input.model));
+        if (!model) return { content: `Unknown model "${str(input.model)}".`, isError: true };
+        const drive = {
+          refs: ids(input.reference_ids),
+          firstFrame: str(input.opening_image_id) || undefined,
+          lastFrame: str(input.closing_image_id) || undefined,
+          videoRefs: ids(input.video_reference_ids),
+          audioRefs: ids(input.audio_reference_ids),
+        };
+        const refusal = inputsRefusal(model, str(input.quality) || undefined, {
+          images: drive.refs.length,
+          videos: drive.videoRefs.length,
+          audios: drive.audioRefs.length,
+          firstFrame: Boolean(drive.firstFrame),
+          lastFrame: Boolean(drive.lastFrame),
+        });
+        if (refusal) return { content: `${refusal} Pick another model or other files.`, isError: true };
         const spent = await agentMonthSpent(ctx.db, ctx.orgId, ctx.agentId);
-        if (credits !== null && spent + credits > limits.monthly) {
-          return {
-            content: `This would pass your monthly media allowance: ${spent} of ${limits.monthly} credits used, and this costs ${credits}. Tell the person; an admin can raise it in your settings.`,
-            isError: true,
-          };
-        }
+        const overAllowance = (credits: number | null): ToolOutput | null =>
+          credits !== null && spent + credits > limits.monthly
+            ? {
+                content: `This would pass your monthly media allowance: ${spent} of ${limits.monthly} credits used, and this costs ${credits}. Tell the person; an admin can raise it in your settings.`,
+                isError: true,
+              }
+            : null;
+        const early = overAllowance(estimate(input));
+        if (early) return early;
         const threadId = replyThreadOf(ctx);
         const agent = await getAgentCached(ctx.db, ctx.orgId, ctx.agentId);
-        const { row, generation } = await startGeneration(
+        const who: MediaRequester = {
+          type: "agent",
+          agentId: ctx.agentId,
+          runId: ctx.runId,
+          channelId: ctx.channelId,
+          threadId,
+          name: agent?.name,
+        };
+        // The files go to the service first: a reference video's price is the service's quote, known only then.
+        const { refs, firstFrame, lastFrame, videoRefs, audioRefs, ...request } = await mediaRequestWithFiles(
           deps,
           ctx.orgId,
+          who,
           {
-            type: "agent",
-            agentId: ctx.agentId,
-            runId: ctx.runId,
-            channelId: ctx.channelId,
-            threadId,
-            name: agent?.name,
+            model: model.id,
+            prompt: str(input.prompt),
+            ...(str(input.quality) ? { quality: str(input.quality) } : {}),
+            ...(str(input.aspect) ? { aspect: str(input.aspect) } : {}),
+            ...(typeof input.seconds === "number" ? { seconds: input.seconds } : {}),
+            ...(typeof input.audio === "boolean" ? { audio: input.audio } : {}),
           },
-          {
-            idempotencyKey: `run:${ctx.runId}:${ctx.toolUseId ?? crypto.randomUUID()}`,
-            request: {
-              model: str(input.model),
-              prompt: str(input.prompt),
-              ...(str(input.quality) ? { quality: str(input.quality) } : {}),
-              ...(str(input.aspect) ? { aspect: str(input.aspect) } : {}),
-              ...(typeof input.seconds === "number" ? { seconds: input.seconds } : {}),
-              ...(typeof input.audio === "boolean" ? { audio: input.audio } : {}),
-            },
-            refs: ids(input.reference_ids),
-            firstFrame: str(input.opening_image_id) || undefined,
-          },
+          drive,
         );
+        const tokens = { refs, firstFrame, lastFrame, videoRefs, audioRefs };
+        if (videoRefs?.length) {
+          const quoted = overAllowance(await quoteCredits(zim, models, { ...request, ...tokens }));
+          if (quoted) return quoted;
+        }
+        const { row, generation } = await startGeneration(deps, ctx.orgId, who, {
+          idempotencyKey: `run:${ctx.runId}:${ctx.toolUseId ?? crypto.randomUUID()}`,
+          request,
+          tokens,
+        });
         if (generation.status === "failed") {
           return {
             content: `The generation failed: ${generation.error?.message ?? "no reason given"} No credits were spent.`,
@@ -646,12 +899,22 @@ export function createMediaGenerationToolSource(deps: MediaDeps): ToolSource {
 
 // ---------- wallet and top-ups, for the routes ----------
 
-/** A picture from a person's computer, sent to the service as a reference (it keeps it for a day). */
-export async function uploadMediaRef(deps: MediaDeps, orgId: string, bytes: Uint8Array): Promise<string> {
+/**
+ * A picture, video or audio from a person's computer, sent to the service as a reference (it keeps it for a day).
+ * Its kind is read from its bytes; `declared` (the browser's type) only tells an MP4 audio from an MP4 video.
+ */
+export async function uploadMediaRef(
+  deps: MediaDeps,
+  orgId: string,
+  bytes: Uint8Array,
+  declared?: string,
+): Promise<MediaRef> {
   const zim = await requireMediaWallet(deps);
-  const type = imageType("", bytes);
-  if (!type) throw new ValidationError("Send a JPEG, PNG or WebP picture");
-  return zim.uploadRef(orgId, bytes, type);
+  const type = mediaRefType(bytes, declared);
+  if (!type) throw new ValidationError("Send a picture, a video or an audio the models take", "media.ref_type");
+  if (bytes.byteLength > MEDIA_REF_LIMITS[type.kind])
+    throw new ValidationError(`The file is larger than ${MEDIA_REF_LIMITS[type.kind] / MIB} MB`, "media.ref_too_large");
+  return zim.uploadRef(orgId, bytes, type.contentType);
 }
 
 export async function requireMediaWallet(deps: MediaDeps): Promise<ZimMedia> {

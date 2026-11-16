@@ -2,6 +2,7 @@ import {
   ARTIFACT_LIMITS,
   DESIGN_SOURCE_BYTES,
   FEEDBACK_INBOX_BYTES,
+  MEDIA_REF_LIMITS,
   REVIEW_VOICE_BYTES,
   SKILL_LIMITS,
 } from "@agenteschat/engine";
@@ -65,6 +66,8 @@ const LIMITS: [RegExp, number][] = [
   [/\/organizations\/[^/]+\/video-reviews\/[^/]+\/notes\/voice$/, REVIEW_VOICE_BYTES + MULTIPART_SLACK_BYTES],
   // A design piece edited by hand: its whole page, photos inlined, as JSON (docs/adr/doug-0010-design-review.md).
   [/\/organizations\/[^/]+\/video-reviews\/[^/]+\/design$/, Math.ceil(DESIGN_SOURCE_BYTES * 1.1) + 64 * 1024],
+  // A media generation's reference file, at most a video's 50 MB, and its form (docs/adr/doug-0011-media-generation.md).
+  [/\/organizations\/[^/]+\/media\/refs$/, MEDIA_REF_LIMITS.video + MULTIPART_SLACK_BYTES],
 ];
 
 /** The most a request to `path` may send, or null where the route caps it itself. */

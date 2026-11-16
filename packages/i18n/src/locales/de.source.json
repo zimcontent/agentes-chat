@@ -49736,6 +49736,12 @@
   "mediaGen.subtitle": {
     "value": "Generate images and videos with AI, paid with the workspace's credits"
   },
+  "mediaGen.credits": {
+    "value": {
+      "one": "{{formatted}} credit",
+      "other": "{{formatted}} credits"
+    }
+  },
   "mediaGen.form": {
     "value": "Generate"
   },
@@ -49766,14 +49772,71 @@
   "mediaGen.seconds": {
     "value": "Length"
   },
+  "mediaGen.secondsValue": {
+    "value": {
+      "one": "{{count}} s",
+      "other": "{{count}} s"
+    }
+  },
   "mediaGen.audio": {
     "value": "With sound"
   },
+  "mediaGen.refs": {
+    "value": {
+      "one": "Reference image (up to {{count}})",
+      "other": "Reference images (up to {{count}})"
+    }
+  },
+  "mediaGen.videoRefs": {
+    "value": {
+      "one": "Reference video (up to {{count}})",
+      "other": "Reference videos (up to {{count}})"
+    }
+  },
+  "mediaGen.audioRefs": {
+    "value": {
+      "one": "Reference audio (up to {{count}})",
+      "other": "Reference audios (up to {{count}})"
+    }
+  },
   "mediaGen.firstFrame": {
-    "value": "Opening image"
+    "value": "First frame"
+  },
+  "mediaGen.lastFrame": {
+    "value": "Last frame"
+  },
+  "mediaGen.side": {
+    "value": "Use"
+  },
+  "mediaGen.sideFrames": {
+    "value": "Frames"
+  },
+  "mediaGen.sideRefs": {
+    "value": "References"
+  },
+  "mediaGen.sideHint": {
+    "value": "{{model}} takes frames or references, never both together."
   },
   "mediaGen.addRef": {
     "value": "Add image"
+  },
+  "mediaGen.addVideo": {
+    "value": "Add video"
+  },
+  "mediaGen.addAudio": {
+    "value": "Add audio"
+  },
+  "mediaGen.tooLarge": {
+    "value": "{{name}} is larger than {{size}} MB."
+  },
+  "mediaGen.wrongKind": {
+    "value": "{{name}} isn't the kind of file this field takes."
+  },
+  "mediaGen.quoting": {
+    "value": "Working out the price…"
+  },
+  "mediaGen.quoteFailed": {
+    "value": "Couldn't work out the price right now."
   },
   "mediaGen.uploading": {
     "value": "Uploading…"

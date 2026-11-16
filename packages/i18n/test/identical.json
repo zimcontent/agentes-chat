@@ -1084,6 +1084,7 @@
       "portal.home.clients"
     ],
     "de": [
+      "mediaGen.sideFrames",
       "mediaGen.video",
       "devices.iphone.steps.account",
       "devices.workspace",
@@ -1985,6 +1986,7 @@
       "ronda.title"
     ],
     "nl": [
+      "mediaGen.sideFrames",
       "mediaGen.title",
       "mediaGen.video",
       "mediaGen.model",

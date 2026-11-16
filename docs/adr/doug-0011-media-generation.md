@@ -46,3 +46,28 @@ price shown before anything runs, and brakes on what an agent spends alone.
 - The wallet and the provider keys live in one place another app (the Zim Studio, a future client) can also use.
 - A server that runs this code without the service shows nothing new.
 - The credit prices follow the Zim Studio's table, copied into the service. Changing a price is a change there.
+
+## Addendum (2026-11-15): the Studio's whole catalog and its inputs
+
+1. **The catalog says what each model takes.** Besides `maxRefs` and `firstFrame`, a model may carry `inputs` (how
+   many reference images, videos and audios, whether it takes a first and a last frame, a quality with another image
+   count, `framesOrRefs` for one that takes frames or references but never both, `firstFrameOnly` for one whose only
+   picture is the opening frame), `modesByQuality` (the Studio's modes per quality) and `aspectsByQuality`. The server
+   (`modelInputs`) and the page (`mediaInputs`) read them the same way: the modes narrow the inputs when the catalog
+   lists them for a quality, the older fields still read for a model that has no `inputs`.
+2. **References are pictures, videos or audios.** `POST …/media/refs` takes a picture up to 12 MB, a video (MP4, MOV,
+   WebM) up to 50 MB or an audio (MP3, WAV, M4A, AAC, OGG) up to 15 MB, its kind read from its bytes, never its name;
+   an MP4 is an audio only when its brand or the browser says so. The service answers with the kind and, for a video
+   or an audio, its seconds. A generation carries `lastFrame`, `videoRefs` and `audioRefs` besides `refs` and
+   `firstFrame`.
+3. **A reference video is priced by the service.** The Studio's rule for one (Seedance 2.5 also charges the clip's
+   seconds) lives in the service, so the page asks `POST …/media/quote` before it shows the price, and an agent's
+   call with a reference video has no price until the service quotes it: with a threshold set it always asks a person
+   first, and its monthly allowance is checked against the quote before the generation starts.
+4. **Agents pick the model by what they hold.** `generate_video` takes `closing_image_id`, `reference_ids`,
+   `video_reference_ids` and `audio_reference_ids` (Drive files or attachments), and its description lists per model,
+   per quality where it changes, which of them it takes. A call with files the model refuses is answered before
+   anything is sent or paid.
+5. **The page shows only what fits.** The form offers the first and last frames (the last once a first is in),
+   reference images, videos and audios as the chosen model and quality take them, a choice between frames and
+   references for a `framesOrRefs` model, and drops what a new model or quality doesn't take.
