@@ -9,10 +9,6 @@ describe("long messages on the phone", () => {
     const clip = src("features/chat/ClippedMessage.tsx");
     expect(clip).toContain('import { clippedHeight, LONG_MESSAGE } from "@agenteschat/client/lib/message-length"');
     expect(clip).toContain("const cut = clippedHeight(height);");
-    // A row coming back starts at its known height, and an unmeasured one never draws taller than the rule: a long
-    // message changing size as it re-entered moved the list, which kept jumping at the conversation's end.
-    expect(clip).toContain("useState(() => knownHeights.get(id) ?? 0)");
-    expect(clip).toContain("measured ? cut : LONG_MESSAGE.over");
     // In place: no sheet, no copy of its own (Copiar stays in the message's menu), and nothing folds it back.
     expect(clip).not.toContain("useSheetIfAny");
     expect(clip).not.toContain("copyText");
@@ -33,6 +29,21 @@ describe("long messages on the phone", () => {
     expect(clip).not.toContain("numberOfLines");
     const row = src("features/chat/MessageRow.tsx");
     expect(row.match(/<ClippedMessage /g)?.length).toBe(2);
+  });
+
+  test("a row the list mounts again draws its words at their measured height from its first frame", () => {
+    const clip = src("features/chat/ClippedMessage.tsx");
+    // Kept above the rows, by message, and read before the first draw: no frame whole and then clipped, which
+    // moved the conversation and kept it jumping at its end.
+    expect(clip).toContain("const [height, setHeight] = useState(() => measured.get(id) ?? 0);");
+    expect(clip).toMatch(
+      /onLayout=\{\(e\) => \{\s*const h = e\.nativeEvent\.layout\.height;\s*remember\(id, h\);\s*setHeight\(h\);/,
+    );
+    // Not measured yet, a closed message is never taller than one that shows whole.
+    expect(clip).toContain("const unmeasured = height === 0 && !open;");
+    expect(clip).toContain("[styles.clip, { maxHeight: LONG_MESSAGE.over }]");
+    // The memory is bounded.
+    expect(clip).toContain("if (measured.size > MEASURED_KEPT)");
   });
 
   test("an agent's long message to another agent opens in place too: no push to its thread", () => {

@@ -19,9 +19,11 @@ import { decidePersonVideo } from "./editor-delivery";
 import { ConflictError, NotFoundError, ValidationError } from "./errors";
 import { lightKey } from "./file-reader";
 import { postPersonMessage } from "./messages";
+import { getMembership, requireActiveMembership } from "./organizations";
 import { enqueue } from "./outbox";
 import { latestRounds, type ReviewRoundView, roundsOf, seeRounds } from "./review-rounds";
 import { replyThreadOf } from "./runs";
+import { readRefusal } from "./standing";
 import type { ToolContext, ToolDefinition, ToolOutput, ToolSource } from "./tools/types";
 import type { WhatsAppDeps } from "./whatsapp/accounts";
 
@@ -706,35 +708,23 @@ async function summaries(db: Database, orgId: string, ids?: string[]): Promise<V
   }));
 }
 
-/** Whether this person reads the conversation the video came from: who does reviews it. */
-async function sees(db: Database, userId: string, orgId: string, channelId: string) {
-  try {
-    await requireChannelAccess(db, userId, orgId, channelId);
-    return true;
-  } catch (error) {
-    if (error instanceof NotFoundError || (error as { name?: string }).name === "ForbiddenError") return false;
-    throw error;
-  }
+/**
+ * Whether this person sees the workspace's reviews: every member does, whatever conversation a piece came from, a DM
+ * included (docs/adr/doug-0014-review-for-everyone.md). A blocked account or a suspended workspace sees none.
+ */
+async function sees(db: Database, userId: string, orgId: string) {
+  const membership = await getMembership(db, userId, orgId);
+  return membership !== null && readRefusal(membership.standing) === null;
 }
 
-/** The reviews this person may see, newest first. */
+/** The reviews this person may see (every one of the workspace, for a member), newest first. */
 export async function listVideoReviews(
   deps: Pick<VideoReviewDeps, "db">,
   userId: string,
   orgId: string,
 ): Promise<VideoReviewSummary[]> {
-  const all = await summaries(deps.db, orgId);
-  const seen = new Map<string, boolean>();
-  const out: VideoReviewSummary[] = [];
-  for (const review of all) {
-    let ok = seen.get(review.channelId);
-    if (ok === undefined) {
-      ok = await sees(deps.db, userId, orgId, review.channelId);
-      seen.set(review.channelId, ok);
-    }
-    if (ok) out.push(review);
-  }
-  return out;
+  if (!(await sees(deps.db, userId, orgId))) return [];
+  return summaries(deps.db, orgId);
 }
 
 async function requireReview(db: Database, userId: string, orgId: string, reviewId: string) {
@@ -742,8 +732,31 @@ async function requireReview(db: Database, userId: string, orgId: string, review
     .select()
     .from(videoReviews)
     .where(and(eq(videoReviews.orgId, orgId), eq(videoReviews.id, reviewId)));
-  if (!review || !(await sees(db, userId, orgId, review.channelId))) throw new NotFoundError("No such review");
+  if (!review || !(await sees(db, userId, orgId))) throw new NotFoundError("No such review");
   return review;
+}
+
+/**
+ * Where this person's decision is said: the review's conversation, as them. One who doesn't read it (a DM between a
+ * teammate and the agent, a private channel) still decides there, since the agent's work and files live there: the
+ * workspace membership stands in for the conversation's (doug-0014).
+ */
+async function decisionPlace(db: Database, userId: string, orgId: string, channelId: string) {
+  try {
+    await requireChannelAccess(db, userId, orgId, channelId);
+    return undefined;
+  } catch (error) {
+    if (!(error instanceof NotFoundError) && (error as { name?: string }).name !== "ForbiddenError") throw error;
+  }
+  const membership = await requireActiveMembership(db, userId, orgId);
+  const [channel] = await db
+    .select()
+    .from(channels)
+    .where(and(eq(channels.orgId, orgId), eq(channels.id, channelId)));
+  if (!channel || channel.archivedAt) {
+    throw new ValidationError("The conversation this piece came from was archived", "video_review.no_conversation");
+  }
+  return { channel, membership, workspace: membership };
 }
 
 export async function getVideoReview(
@@ -1237,6 +1250,8 @@ export async function decideVideoReview(
   if (input.decision === "changes" && notes.length === 0 && !message) {
     throw new ValidationError("Say what to change: add a note first", "video_review.nothing_to_change");
   }
+  // Before anything changes: a conversation gone refuses the decision with the review as it was.
+  const place = await decisionPlace(deps.db, userId, orgId, review.channelId);
   const now = new Date();
   await deps.db
     .update(videoReviews)
@@ -1258,30 +1273,37 @@ export async function decideVideoReview(
         ),
       );
   }
-  await postPersonMessage(deps, userId, orgId, review.channelId, {
-    body: decisionMessage({
-      handle: agent.handle,
-      title: review.title,
-      version: review.version,
-      reviewId: review.id,
-      decision: input.decision,
-      design,
-      notes: notes.map((n) => ({
-        atMs: n.atMs,
-        endMs: n.endMs,
-        page: n.page,
-        kind: n.kind,
-        x: n.x,
-        y: n.y,
-        body: n.body,
-        attachments: n.attachments ?? [],
-        author: n.author ?? "",
-      })),
-      message,
-    }),
-    threadId: review.threadId,
-    meta: { videoReview: { id: review.id, version: review.version, decision: input.decision } },
-  });
+  await postPersonMessage(
+    deps,
+    userId,
+    orgId,
+    review.channelId,
+    {
+      body: decisionMessage({
+        handle: agent.handle,
+        title: review.title,
+        version: review.version,
+        reviewId: review.id,
+        decision: input.decision,
+        design,
+        notes: notes.map((n) => ({
+          atMs: n.atMs,
+          endMs: n.endMs,
+          page: n.page,
+          kind: n.kind,
+          x: n.x,
+          y: n.y,
+          body: n.body,
+          attachments: n.attachments ?? [],
+          author: n.author ?? "",
+        })),
+        message,
+      }),
+      threadId: review.threadId,
+      meta: { videoReview: { id: review.id, version: review.version, decision: input.decision } },
+    },
+    { place },
+  );
   // An approved design piece goes to its client's portal by code (doug-0010 §8), after the message above.
   if (input.decision === "approve" && design?.portal?.delivered) {
     await deps.db.update(videoReviews).set({ delivery: null }).where(eq(videoReviews.id, review.id));

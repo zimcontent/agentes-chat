@@ -10,24 +10,25 @@ import { withOpacity } from "./turn";
 /** How much of the clipped words fades out at their end. */
 const FADE = 96;
 
-/**
- * Each message's measured height, kept past its row: the conversation's list unmounts rows that leave the screen, and
- * a row coming back drew the whole words for a frame before folding them again. Next to a long message that change
- * of height moved the list, which brought another row in or out, and the list kept jumping at the conversation's
- * end (it flickered and took no tap). A row that comes back starts at its known height: nothing moves.
- */
-const knownHeights = new Map<string, number>();
-const KNOWN_MAX = 2000;
-function rememberHeight(id: string, height: number) {
-  if (knownHeights.size >= KNOWN_MAX && !knownHeights.has(id)) {
-    const first = knownHeights.keys().next().value;
-    if (first !== undefined) knownHeights.delete(first);
-  }
-  knownHeights.set(id, height);
-}
-
 /** Folded words growing down to their whole height once "Ver mais" opens them: what is above them stays still. */
 export const REVEAL = LinearTransition.duration(motion.base).easing(Easing.bezier(...motion.out));
+
+/**
+ * Each message's words as last measured, kept above the rows: the list unmounts a row that leaves the screen and
+ * mounts it again when it comes back, and a row that first drew its words whole and only then clipped them changed
+ * height under the list, which moved the conversation and, at its end, kept it jumping by itself. Oldest dropped
+ * first.
+ */
+const measured = new Map<string, number>();
+const MEASURED_KEPT = 2000;
+function remember(id: string, height: number) {
+  measured.delete(id);
+  measured.set(id, height);
+  if (measured.size > MEASURED_KEPT) {
+    const oldest = measured.keys().next().value;
+    if (oldest !== undefined) measured.delete(oldest);
+  }
+}
 
 /**
  * The messages opened in place on a conversation's screen, kept above the rows: its list unmounts a row that leaves
@@ -69,13 +70,13 @@ export function ClippedMessage({
   // Opened from this row: it grows. One the screen kept open comes back open, still.
   const [tapped, setTapped] = useState(false);
   const open = tapped || Boolean(screen?.has(id));
-  const [height, setHeight] = useState(() => knownHeights.get(id) ?? 0);
+  const [height, setHeight] = useState(() => measured.get(id) ?? 0);
   const cut = clippedHeight(height);
   const foldable = cut !== null || lead != null;
-  // Before the first measure, never taller than a message that still shows whole: a long one never draws in full
-  // for a frame (it would push the list) and lands at its fold with one small step at most.
-  const measured = height > 0;
-  const shows = open ? null : measured ? cut : LONG_MESSAGE.over;
+  const shows = open ? null : cut;
+  // Not measured yet: never taller than a message that shows whole, so a long one doesn't draw its full length for
+  // a frame before it clips.
+  const unmeasured = height === 0 && !open;
   const words = useRef<ComponentRef<typeof View>>(null);
   useEffect(() => {
     if (tapped && words.current) AccessibilityInfo.sendAccessibilityEvent(words.current, "focus");
@@ -85,21 +86,25 @@ export function ClippedMessage({
     <View>
       <Animated.View
         layout={tapped && !reduced ? REVEAL : undefined}
-        style={foldable || !measured ? [styles.clip, shows === null ? undefined : { maxHeight: shows }] : undefined}
+        style={
+          unmeasured
+            ? [styles.clip, { maxHeight: LONG_MESSAGE.over }]
+            : foldable
+              ? [styles.clip, shows === null ? undefined : { maxHeight: shows }]
+              : undefined
+        }
       >
         <View
           ref={words}
           onLayout={(e) => {
-            const next = e.nativeEvent.layout.height;
-            // Only a real change of height re-renders (a rounding wobble never does).
-            if (Math.abs(next - height) < 1) return;
-            rememberHeight(id, next);
-            setHeight(next);
+            const h = e.nativeEvent.layout.height;
+            remember(id, h);
+            setHeight(h);
           }}
         >
           {open || lead == null ? children : lead}
         </View>
-        {(shows === null || !foldable ? [] : behind).map((color, i) => (
+        {(shows === null ? [] : behind).map((color, i) => (
           <LinearGradient
             // biome-ignore lint/suspicious/noArrayIndexKey: the layers behind one text, in order
             key={i}

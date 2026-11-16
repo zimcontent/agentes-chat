@@ -705,7 +705,8 @@ function runSharedSql(personId: string | null, channelId: string) {
 }
 
 /** What decides who reads a file: where it lives and its sharing (absent for a conversation alone, as `placeNew` asks). */
-type Readable = Pick<ArtifactRow, "channelId"> & Partial<Pick<ArtifactRow, "share" | "shareUserIds" | "shareRoleIds">>;
+type Readable = Pick<ArtifactRow, "channelId"> &
+  Partial<Pick<ArtifactRow, "id" | "share" | "shareUserIds" | "shareRoleIds">>;
 
 const sharingOf = (a: Pick<ArtifactRow, "share" | "shareUserIds" | "shareRoleIds">): FileSharing => ({
   mode: a.share,
@@ -717,7 +718,22 @@ const sharingOf = (a: Pick<ArtifactRow, "share" | "shareUserIds" | "shareRoleIds
 async function personCanRead(db: Database, userId: string, orgId: string, a: Readable) {
   if (!a.channelId || a.share === "everyone" || (a.share === "people" && a.shareUserIds?.includes(userId))) return true;
   if (await readsWhereItLives(db, userId, orgId, a.channelId)) return true;
-  return a.share === "people" && sharedByRole(db, userId, orgId, a.shareRoleIds ?? []);
+  if (a.share === "people" && (await sharedByRole(db, userId, orgId, a.shareRoleIds ?? []))) return true;
+  return a.id !== undefined && attachedToReview(db, userId, orgId, a.id);
+}
+
+/**
+ * A file attached to a review's note: every member sees every review, so every member opens what its notes hand the
+ * agent, wherever the review's conversation is (docs/adr/doug-0014-review-for-everyone.md).
+ */
+async function attachedToReview(db: Database, userId: string, orgId: string, artifactId: string) {
+  const [row] = rowsOf<{ yes: boolean | string }>(
+    await db.execute(sql`select (exists (select 1 from organization_members rm
+        where rm.org_id = ${orgId}::uuid and rm.user_id = ${userId})
+      and exists (select 1 from ${schema.videoReviewNotes} rn where rn.org_id = ${orgId}::uuid
+        and rn.attachments @> jsonb_build_array(jsonb_build_object('artifactId', ${artifactId}::text)))) as yes`),
+  );
+  return row?.yes === true || row?.yes === "t";
 }
 
 /** Whether a people list's roles reach this person: one they hold, or administrator, who always sees a list. */
@@ -1039,7 +1055,7 @@ async function placeNew(
   db: Database,
   actor: ArtifactActor,
   orgId: string,
-  input: { title: string; channelId?: string | null; threadId?: string | null },
+  input: { title: string; channelId?: string | null; threadId?: string | null; placed?: boolean },
 ) {
   const membership = await requireMember(db, actor, orgId);
   if (membership && !can(membership, "upload_files")) throw new ForbiddenError();
@@ -1047,7 +1063,12 @@ async function placeNew(
   if (!title) throw new ValidationError("title is required");
   const channelId = actor.type === "agent" ? actor.channelId : (input.channelId ?? null);
   const threadId = actor.type === "agent" ? (actor.threadId ?? null) : (input.threadId ?? null);
-  if (channelId && actor.type === "person" && !(await readsWhereItLives(db, actor.userId, orgId, channelId))) {
+  if (
+    channelId &&
+    actor.type === "person" &&
+    !input.placed &&
+    !(await readsWhereItLives(db, actor.userId, orgId, channelId))
+  ) {
     throw new NotFoundError("Channel not found");
   }
   return { title, channelId, threadId };
@@ -1063,7 +1084,7 @@ async function placeFile(
   db: Database,
   actor: ArtifactActor,
   orgId: string,
-  input: { title: string; channelId?: string | null; threadId?: string | null },
+  input: { title: string; channelId?: string | null; threadId?: string | null; placed?: boolean },
 ) {
   const place = await placeNew(db, actor, orgId, input);
   if (actor.type !== "agent" || !actor.runId) return place;
@@ -1369,6 +1390,11 @@ export async function createFileArtifact(
     author?: ArtifactAuthor;
     /** What a tool brought back for the agent to work on, not saved for anyone: it stays in the run's conversation. */
     byProduct?: boolean;
+    /**
+     * The caller let this person put it in `channelId` without reading it: a review's conversation, which every member
+     * reviews (docs/adr/doug-0014-review-for-everyone.md). Never from a request as is.
+     */
+    placed?: boolean;
   } & FileBytes,
 ): Promise<ArtifactDetailView> {
   const place = await (input.byProduct ? placeNew : placeFile)(deps.db, actor, orgId, input);
