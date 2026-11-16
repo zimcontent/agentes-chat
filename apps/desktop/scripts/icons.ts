@@ -18,10 +18,10 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { deflateSync } from "node:zlib";
 import { Resvg } from "@resvg/resvg-js";
-import { DougBot, svgDoBot } from "../../mobile/src/brand/bots";
 import { png, render, resize } from "../../../packages/ui/scripts/app-icons/raster.mjs";
 import { APP_ICON_IDS, macLayers, SCENES, tiled } from "../../../packages/ui/scripts/app-icons/scenes.mjs";
 import { eyeShapes } from "../../../packages/ui/src/agent/engine.js";
+import { DougBot, svgDoBot } from "../../mobile/src/brand/bots";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 

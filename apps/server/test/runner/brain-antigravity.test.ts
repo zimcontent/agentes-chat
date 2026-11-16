@@ -5,6 +5,7 @@ import path from "node:path";
 import { accountCodeAad } from "@agenteschat/adapters/machine-protocol";
 import { cutAtWord } from "@agenteschat/adapters/redact";
 import { sealSecret } from "@agenteschat/adapters/secret-box";
+import { planState } from "@agenteschat/ui/plan-state";
 import {
   ACCOUNT_SIGNED_OUT,
   type AccountFolders,
@@ -204,8 +205,9 @@ test("the CLI's words: its models, its sign-in status, its sign-in link and its 
     { kind: "other", label: "Claude and GPT models · 7d", usedPercent: 0 },
   ]);
   expect(resetFromWords("Resets at 2026-11-05T10:00:00Z")).toBe("2026-11-05T10:00:00.000Z");
-  // What 1.5.9 really prints: tab-separated rows, every number what is left, a model's own row left out (an unused
-  // account's "Gemini 4 Argon Weekly Limit 100%" once read as a full plan and sent the agent to its API key).
+  // What 1.5.9 really prints: tab-separated rows, every number what is left. A model's own row is an `other` window,
+  // which binds only that model and never puts the plan at its limit (`planOwn`): an unused account's "Gemini 4 Argon
+  // Weekly Limit 100%" once read as a full plan and sent the agent to its API key.
   const real = antigravityUsage(
     [
       "Gemini Models\tWeekly Limit Remaining\t75%\t2026-11-21T20:35:02Z",
@@ -220,7 +222,9 @@ test("the CLI's words: its models, its sign-in status, its sign-in link and its 
     { kind: "seven_day", usedPercent: 25, resetsAt: "2026-11-21T20:35:02.000Z" },
     { kind: "five_hour", usedPercent: 0, resetsAt: "2026-11-15T01:35:02.000Z" },
     { kind: "other", label: "Claude and GPT models · 7d", usedPercent: 0, resetsAt: "2026-11-21T20:35:02.000Z" },
+    { kind: "other", label: "Gemini 4 Argon · 7d", usedPercent: 100, resetsAt: "2026-11-21T20:35:02.000Z" },
   ]);
+  expect(real && planState(real, NOW).state).toBe("ok");
 });
 
 test("the CLI's real /usage: one tab-separated row per quota, each model group its own, disabled ones skipped", () => {

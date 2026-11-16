@@ -33,7 +33,6 @@ import {
 } from "./media";
 import { can, lockOrgMembers, requireActiveMembership, requirePermission } from "./organizations";
 import { hiddenToolsOf, WORKSPACE_TOOLS, type WorkspaceTool } from "./sidebar-items";
-import { isRightHand, rightHandPermanent } from "./right-hand";
 import { type ApprovalsLevel, DEFAULT_APPROVALS_LEVEL } from "./tools/run-policy";
 import {
   agentBudgetsThisMonth,

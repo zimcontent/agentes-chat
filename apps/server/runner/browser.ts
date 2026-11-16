@@ -1080,8 +1080,6 @@ export interface InputState {
 
 /** Agent commands the runner does with a pointer path, a held button and typed keys (`humanSteps`). */
 const HUMAN_COMMANDS = new Set(["click", "dblclick", "hover", "fill", "type"]);
-/** Agent commands that may leave a mouse button down when a person's taking control cuts them off. */
-const POINTER_COMMANDS = new Set([...HUMAN_COMMANDS, "mouse", "drag"]);
 /** What the pointer does where each of them takes it, for whoever watches (`browser.pointer`). */
 const POINTER_ACTS: Record<string, AgentPointerAct> = {
   click: "click",
@@ -1800,10 +1798,6 @@ interface Session {
   link?: string;
   /** Where the agent's pointer was left on the page (`humanly`). */
   pointer?: Point;
-  /** Until when the agent's tab needs no look at whether it shows (`foreground`). */
-  shownUntil?: number;
-  /** Its tab was brought to the front and hasn't been seen showing since. */
-  broughtUp?: boolean;
   /** The viewport `pointer` was last said in (`pointerGoes`): a press on a point is said in it too. */
   pointerView?: { width: number; height: number };
   /** Where the page's corner was on the agent's desktop then, while its window is there. */
@@ -2818,44 +2812,6 @@ export class BrowserManager {
       if (left) return { success: false, data: null, error: left };
     }
     return answer;
-  }
-
-  /**
-   * The tab `agent-browser` works in, brought to the front when it doesn't show. Chrome starts with the tabs it had
-   * (the agent's sign-ins on session cookies come back with them) in front of which it puts the page it was started
-   * on, and `agent-browser` attaches to the first tab it finds: one in the background. A page that doesn't show
-   * draws nothing and answers no pointer event. Measured on Chrome 156 with `agent-browser` 0.39.1: each
-   * `mouse move` there waited out 5 s, so a click's path ran into the 33 s of its batch (17% of the clicks and 41%
-   * of the fills of a day on one computer), a page's timers ran once a second, and a live view got no picture.
-   * `agent-browser`'s own tab switch brings a tab to the front, so it is told to switch to the tab it holds.
-   * Never an answer of its own: a look that fails, or a tab still hidden after it was brought up (a window someone
-   * minimized on the agent's desktop comes back up; one that can't is left), is tried again later and the command
-   * goes on.
-   */
-  private async foreground(session: Session, signal?: AbortSignal): Promise<void> {
-    if (!session.chrome || (session.shownUntil !== undefined && this.now() < session.shownUntil)) return;
-    const opts = { timeoutMs: QUICK_TIMEOUT_MS, ...(signal ? { signal } : {}) };
-    const later = () => {
-      session.shownUntil = this.now() + SHOWN_RETRY_MS;
-    };
-    const seen = await this.run(session, ["eval", "document.visibilityState"], opts);
-    const state = isRecord(seen.data) ? seen.data.result : null;
-    if (state !== "hidden") {
-      if (state !== "visible") return later();
-      session.shownUntil = this.now() + SHOWN_MS;
-      session.broughtUp = false;
-      return;
-    }
-    // Brought to the front the last time, and still hidden: it can't show now.
-    if (session.broughtUp) return later();
-    const tabs = await this.run(session, ["tab"], opts);
-    const list = isRecord(tabs.data) && Array.isArray(tabs.data.tabs) ? tabs.data.tabs : [];
-    const held = list.find((t) => isRecord(t) && t.active === true);
-    const id = isRecord(held) && typeof held.tabId === "string" ? held.tabId : null;
-    if (!id || !(await this.run(session, ["tab", id], opts)).success) return later();
-    session.shownUntil = this.now() + SHOWN_MS;
-    session.broughtUp = true;
-    this.opts.log(`the browser of ${session.agent.handle} brought its tab to the front`);
   }
 
   /**
