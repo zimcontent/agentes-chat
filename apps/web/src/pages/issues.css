@@ -1400,51 +1400,6 @@ html:not([data-pointer]) .issues-dest:focus-visible {
   max-width: none;
 }
 
-/* "Pedir a um agente". */
-.issue-ask {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  padding: 14px;
-  border-radius: 16px;
-  box-shadow: inset 0 0 0 1.5px var(--line2);
-}
-/* A MediaRow: the face and the ask on one line, what it does under them; the two read as one. */
-.issue-ask__row {
-  row-gap: 4px;
-}
-.issue-ask__actions {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 8px;
-}
-/* A compact control of the ruler (32px, its radius), beside the small button it follows. */
-.issue-ask__other {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  height: var(--control-h-sm);
-  padding: 0 10px 0 6px;
-  border: 0;
-  border-radius: var(--control-r-sm);
-  background: var(--raised);
-  box-shadow: var(--e1), var(--top);
-  color: var(--ink2);
-  font: inherit;
-  font-size: 13px;
-  font-weight: 600;
-  line-height: normal;
-  cursor: pointer;
-}
-.issue-ask__other:hover {
-  box-shadow: var(--e2), var(--top);
-}
-html:not([data-pointer]) .issue-ask__other:focus-visible {
-  outline: none;
-  box-shadow: var(--focus-ring);
-}
-
 /* Activity events. */
 /* Events sit on the comments' avatar column: the icon centered under a 36px avatar, the words beside it; the icon
    stays on the first line when the words wrap (`.ac-iconline`). */

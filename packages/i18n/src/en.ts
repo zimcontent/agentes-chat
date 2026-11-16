@@ -5333,6 +5333,16 @@ export const en = {
       title: "Team agenda",
       who: "Whose agenda",
       everyone: "Everyone",
+      /** The day strip: the whole week shown (this one, or one ahead), then each day. */
+      pickDay: "Which day",
+      thisWeek: "This week",
+      wholeWeek: "Whole week",
+      todayChip: "Today",
+      tomorrowChip: "Tomorrow",
+      prevWeek: "Previous week",
+      nextWeek: "Next week",
+      noneDay: "Nothing due that day.",
+      noneWeek: "Nothing due that week.",
       /** Tasks under way (in progress or in review), whatever their date. */
       now: "Now",
       late: "Late",
