@@ -1,5 +1,6 @@
 import { and, type Database, eq, isNull, schema } from "@agenteschat/db";
 import { type ArtifactActor, createFileArtifact, storedFileOfArtifact } from "./artifacts";
+import { portalPlaceOf } from "./design-delivery";
 import { ConflictError, NotFoundError, ValidationError } from "./errors";
 import { replyThreadOf } from "./runs";
 import type { ToolContext, ToolDefinition, ToolOutput, ToolSource } from "./tools/types";
@@ -78,6 +79,10 @@ export interface SendDesignInput {
   links?: unknown;
   /** The group the review lives in, by name; absent: this conversation (`reviewPlace`). */
   channel?: string;
+  /** The portal task the piece is for (`#125`): it gives the portal's client and card (doug-0010 §8). */
+  task?: string;
+  /** The portal's client id, when there is no task (`lexeer`). */
+  portalClient?: string;
 }
 
 /** The agent sends a design piece for review, or its next version. */
@@ -109,6 +114,10 @@ export async function sendDesignForReview(
   const note = cleanReviewText(input.note ?? "");
   const now = new Date();
   const created = !input.reviewId;
+  const portalPlace =
+    input.task || input.portalClient
+      ? await portalPlaceOf(deps.db, ctx.orgId, { task: input.task, client: input.portalClient })
+      : null;
   const version = {
     artifactId: pages[0] as string,
     note,
@@ -141,6 +150,9 @@ export async function sendDesignForReview(
           updatedAt: now,
           ...(input.title?.trim() ? { title: input.title.trim().slice(0, 200) } : {}),
           ...(input.brief?.trim() ? { brief: cleanReviewBrief(input.brief) } : {}),
+          ...(portalPlace?.client
+            ? { portalClient: portalPlace.client, portalCard: portalPlace.card ?? review.portalCard }
+            : {}),
           ...(input.links !== undefined && cleanLinks(input.links).length > 0
             ? { links: cleanLinks(input.links) }
             : {}),
@@ -156,6 +168,8 @@ export async function sendDesignForReview(
         agentId: ctx.agentId,
         ...place,
         medium: "design",
+        portalClient: portalPlace?.client ?? null,
+        portalCard: portalPlace?.card ?? null,
         title: input.title?.trim().slice(0, 200) || "Peça",
         client: input.client?.trim().slice(0, 80) ?? "",
         brief: cleanReviewBrief(input.brief ?? ""),
@@ -218,6 +232,17 @@ function sendDesignTool(deps: VideoReviewDeps): ToolDefinition {
         brief: REVIEW_BRIEF_SCHEMA,
         links: REVIEW_LINKS_SCHEMA,
         channel: REVIEW_CHANNEL_SCHEMA,
+        task: {
+          type: "string",
+          maxLength: 12,
+          description:
+            "The portal task this piece is for (e.g. `#125`): once approved, the piece goes to that client's portal by itself, to the client or straight to scheduling as the client is set.",
+        },
+        portal_client: {
+          type: "string",
+          maxLength: 60,
+          description: "The client's id at the approval portal (e.g. `lexeer`), when the piece has no task.",
+        },
       },
       required: ["pages"],
       additionalProperties: false,
@@ -235,6 +260,8 @@ function sendDesignTool(deps: VideoReviewDeps): ToolDefinition {
           brief: toolText(input.brief) || undefined,
           links: input.links,
           channel: toolText(input.channel) || undefined,
+          task: toolText(input.task) || undefined,
+          portalClient: toolText(input.portal_client) || undefined,
         });
         return {
           content:

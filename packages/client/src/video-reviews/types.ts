@@ -49,6 +49,15 @@ export interface VideoReviewNote {
 }
 
 export interface VideoReview extends VideoReviewSummary {
+  /** A design piece's client at the approval portal and what an approval does there (doug-0010 §8). */
+  portal?: { client: string; afterApprove: "portal" | "direct" } | null;
+  /** What happened at the portal after the approval. */
+  delivery?: {
+    state?: "sending" | "sent" | "scheduled" | "approved" | "failed";
+    link?: string | null;
+    when?: string | null;
+    error?: string;
+  } | null;
   /** What was asked of the editor and whether there was direction; "" when the agent didn't say. */
   brief: string;
   /** The task, the footage, the delivery. */

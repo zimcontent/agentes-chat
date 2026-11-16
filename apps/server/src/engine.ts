@@ -338,6 +338,7 @@ export function buildEngine(o: EngineOptions) {
     publicUrl: config.PUBLIC_URL,
     // A light copy of every version for phones, where ffmpeg is installed (the image has it).
     lightCopy: createFfmpegLightCopy(),
+    portal: adapters.approvalPortal ?? null,
   };
   // Agents' computers (ADR 0025): connected machines, through the hub that holds their sockets.
   const machineHub = createMachineHub({

@@ -1637,6 +1637,9 @@ export interface ApiClient {
     deleteLabel(orgId: string, labelId: string): Promise<void>;
     /** A client's colour; `null` takes it away. */
     setClientColor(orgId: string, client: string, color: PortalClientColor | null): Promise<void>;
+    /** What an approved design piece does for each client set (doug-0010 §8); a client not listed: `portal`. */
+    clientSettings?(orgId: string): Promise<{ settings: { client: string; afterApprove: "portal" | "direct" }[] }>;
+    setAfterApprove?(orgId: string, client: string, afterApprove: "portal" | "direct"): Promise<void>;
     /** A client's logo, cropped square by the app; `null` takes it away. */
     setClientLogo(
       orgId: string,

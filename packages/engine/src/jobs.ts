@@ -34,6 +34,7 @@ import { LEARN_JOB, learnRun } from "./context/learn";
 import { REFLECT_DEFAULTS, reflectThread } from "./context/reflect";
 import { judgeOf, summaryModelReady } from "./context/summaries";
 import { reportDroppedMentions, tellWakeSkipped } from "./continuation";
+import { DESIGN_DELIVER_JOB, deliverDesign } from "./design-delivery";
 import { DEVICE_WAIT_EXPIRED_JOB, expireDeviceWait } from "./device-waits";
 import {
   deferMentionReport,
@@ -949,6 +950,14 @@ export function createJobHandlers(deps: JobDeps): JobHandlers {
     [REVIEW_LIGHT_JOB]: async (job, ctx) => {
       if (!deps.videoReviews) throw new PermanentJobError("no video review configured");
       await makeLightCopy(deps.videoReviews, String(job.payload.versionId), { finalAttempt: ctx.finalAttempt });
+    },
+    [DESIGN_DELIVER_JOB]: async (job) => {
+      if (!deps.videoReviews) throw new PermanentJobError("no video review configured");
+      await deliverDesign(
+        { ...deps.videoReviews, portal: deps.videoReviews.portal ?? null },
+        String(job.payload.reviewId),
+        Number(job.payload.version),
+      );
     },
     [VOICE_JOB]: async (job, ctx) => {
       if (!deps.voice) throw new PermanentJobError("no voice engine configured");
