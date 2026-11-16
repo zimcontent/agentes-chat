@@ -5134,6 +5134,8 @@
       "answer": "Responder",
       "open": "Abrir"
     },
+    "markRead": "Marcar como leído",
+    "setAside": "Marcado como leído",
     "calm": {
       "title": "Todo al día",
       "text": "Tus agentes te avisarán aquí cuando te necesiten."

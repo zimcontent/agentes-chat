@@ -50,7 +50,9 @@ import { useDirectory } from "@/hooks/useDirectory";
 import { useNow } from "@/hooks/useNow";
 import { agentLine, useAgentPresence } from "@/hooks/usePresence";
 import { TYPED_VALUES } from "@/i18n";
+import { contextMenuHandler } from "@/lib/context-menu";
 import { lookOf } from "@/lib/look";
+import { useToast } from "@/lib/toast";
 import "./home.css";
 // Its "Para você" draws the inbox's rows (Face, SystemFace, the calm card).
 import "./notifications.css";
@@ -177,12 +179,12 @@ export function HomePage() {
                       widgetNoticeOf(n) ? (
                         <WidgetNoticeRow key={n.id} n={n} dir={dir} now={now} />
                       ) : (
-                        <InboxRow key={n.id} n={n} dir={dir} now={now} />
+                        <InboxRow key={n.id} n={n} dir={dir} now={now} waits />
                       ),
                     ),
                     ...failures.map((n) => <WidgetNoticeRow key={n.id} n={n} dir={dir} now={now} />),
                     ...missions.map((m) => <MissionRow key={m.id} m={m} dir={dir} />),
-                    ...mentions.map((n) => <InboxRow key={n.id} n={n} dir={dir} now={now} />),
+                    ...mentions.map((n) => <InboxRow key={n.id} n={n} dir={dir} now={now} waits />),
                   ].slice(0, HOME_ROWS)}
                 </ul>
               ) : calm ? (
@@ -402,8 +404,37 @@ function RowBody({
   );
 }
 
-/** An inbox item: what waits on me, a mention, or what an agent finished. It opens where the inbox would. */
-function InboxRow({ n, dir, now }: { n: AppNotification; dir: Dir; now: number }) {
+/**
+ * "Marcar como lido" on a row of "Esperando você": out of the tile and the inbox (into "Concluídas", like the inbox's
+ * own Concluir), with Desfazer. Only this takes a row out: opening it keeps it there, and nothing leaves on its own
+ * with time, so what the person puts off for later stays until they say they've seen it.
+ */
+function useSetAside() {
+  const { t } = useTranslation();
+  const { org } = useOrg();
+  const act = useNotificationAction(org.id);
+  const toast = useToast();
+  const setAside = (n: AppNotification) => {
+    act.mutate({ type: "done", item: n, done: true });
+    toast.show(
+      t("home.setAside"),
+      "info",
+      { label: t("notifications.toast.undo"), run: () => act.mutate({ type: "done", item: n, done: false }) },
+      n.kind === "approval" ? t("notifications.toast.doneApproval") : undefined,
+    );
+  };
+  return (n: AppNotification, open: () => void) =>
+    contextMenuHandler(() => [
+      { kind: "item", id: "home.open", label: t("home.action.open"), icon: "chevronRight", run: open },
+      { kind: "item", id: "home.markRead", label: t("home.markRead"), icon: "check", run: () => setAside(n) },
+    ]);
+}
+
+/**
+ * An inbox item: what waits on me, a mention, or what an agent finished. It opens where the inbox would. In
+ * "Esperando você" (`waits`) opening it doesn't read it: it stays until "Marcar como lido" on its right click.
+ */
+function InboxRow({ n, dir, now, waits = false }: { n: AppNotification; dir: Dir; now: number; waits?: boolean }) {
   const { t, i18n } = useTranslation();
   const { org } = useOrg();
   const channels = useChannels(org.id);
@@ -424,13 +455,14 @@ function InboxRow({ n, dir, now }: { n: AppNotification; dir: Dir; now: number }
     .filter(Boolean)
     .join(" · ");
   const channelName = (id: string) => channels.data?.find((c) => c.id === id)?.name ?? "";
+  const menu = useSetAside();
   const open = () => {
-    if (n.readAt === null) read.mutate({ type: "read", item: n, read: true });
+    if (!waits && n.readAt === null) read.mutate({ type: "read", item: n, read: true });
     opener(n, org.id, { ai: ai.data });
   };
   const actor = n.actors[0];
   return (
-    <li>
+    <li onContextMenu={waits ? menu(n, open) : undefined}>
       <button type="button" className="home-row ac-mediarow ac-mediarow--row" onClick={open}>
         <RowBody
           face={
@@ -455,19 +487,17 @@ function WidgetNoticeRow({ n, dir, now }: { n: AppNotification; dir: Dir; now: n
   const { t, i18n } = useTranslation();
   const { org } = useOrg();
   const channels = useChannels(org.id);
-  const read = useNotificationAction(org.id);
   const opener = useNotificationOpener();
   const channelName = (id: string) => channels.data?.find((c) => c.id === id)?.name ?? "";
-  const open = () => {
-    if (n.readAt === null) read.mutate({ type: "read", item: n, read: true });
-    opener(n, org.id);
-  };
+  const menu = useSetAside();
+  // In "Esperando você": opening keeps it unread there, like every row of the tile.
+  const open = () => opener(n, org.id);
   const actor = n.actors[0];
   // One action sits at the row's end like every other row's ("Review"): an alert opens its widget (the row's own
   // press), a failure has Resolve there. A request to publish keeps its choices under the text.
   const kind = widgetNoticeOf(n)?.kind;
   return (
-    <li className={kind === "proposal" ? "home-wrow" : "home-wrow home-wrow--side"}>
+    <li className={kind === "proposal" ? "home-wrow" : "home-wrow home-wrow--side"} onContextMenu={menu(n, open)}>
       <button type="button" className="home-row ac-mediarow ac-mediarow--row" onClick={open}>
         <RowBody
           action={kind === "alert" ? t("widgets.notice.openWidget") : undefined}

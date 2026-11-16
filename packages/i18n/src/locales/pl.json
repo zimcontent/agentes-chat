@@ -5312,6 +5312,8 @@
       "answer": "Odpowiedz",
       "open": "Otwórz"
     },
+    "markRead": "Oznacz jako przeczytane",
+    "setAside": "Oznaczono jako przeczytane",
     "calm": {
       "title": "Wszystko na bieżąco",
       "text": "Twoi agenci dadzą ci tu znać, gdy będą cię potrzebować."

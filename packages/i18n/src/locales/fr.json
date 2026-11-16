@@ -5140,6 +5140,8 @@
       "answer": "Répondre",
       "open": "Ouvrir"
     },
+    "markRead": "Marquer comme lu",
+    "setAside": "Marqué comme lu",
     "calm": {
       "title": "Vous êtes à jour",
       "text": "Vos agents vous préviendront ici quand ils auront besoin de vous."
