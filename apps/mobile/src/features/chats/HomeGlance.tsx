@@ -15,24 +15,24 @@ const WORDS = {
     threads: "Threads",
     threadsNew: (n: number) => (n === 1 ? "1 nova" : `${n} novas`),
     threadsNone: "Nada novo",
-    editor: (name: string) => `${name} agora`,
+    editor: (name: string) => name,
     doing: { changes: "Ajustando", in_review: "Enviou para revisão", approved: "Aprovado" } as Record<
       EditorNow["status"],
       string
     >,
-    client: "Cliente pediu alteração",
+    client: "Alterações",
     clientNone: "Nenhum pedido",
   },
   en: {
     threads: "Threads",
     threadsNew: (n: number) => `${n} new`,
     threadsNone: "Nothing new",
-    editor: (name: string) => `${name} now`,
+    editor: (name: string) => name,
     doing: { changes: "Making changes", in_review: "Sent for review", approved: "Approved" } as Record<
       EditorNow["status"],
       string
     >,
-    client: "Client asked for changes",
+    client: "Changes",
     clientNone: "No requests",
   },
 } as const;
