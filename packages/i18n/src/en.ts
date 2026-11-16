@@ -3725,6 +3725,22 @@ export const en = {
     },
   },
   /** Agent settings: what it may start that nobody asked for directly, and which agents it may call (ADR 0131). */
+  agentTwins: {
+    title: "In your other workspaces",
+    subtitle: "The same agent in each: what trains one trains them all.",
+    help: "Its name, role, instructions, memory, skills and what it may use are the same in every copy, within a minute. Its model, AI key, computer, budget, routines and conversations stay each workspace's.",
+    trainedHere: "Trained as one with this one",
+    canJoin: "Same handle, trained apart",
+    join: "Train as one",
+    leave: "Train here alone",
+    off: "Trained here alone. It isn't joined on its own again.",
+    hidden_one: "And {{count}} workspace you aren't in.",
+    hidden_other: "And {{count}} workspaces you aren't in.",
+    synced: "Same training in all, checked {{when}}.",
+    syncing: "Bringing its training together. It takes up to a minute.",
+    missing: "Didn't reach {{workspace}}: {{what}}.",
+    failed: "Couldn't change it. Try again.",
+  },
   ronda: {
     title: "Ronda",
     subtitle: "It looks at the operation on its own, with nobody asking, and calls you only when it's worth it.",

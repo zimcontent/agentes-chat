@@ -79,6 +79,24 @@ export const providerCredentials = pgTable(
 );
 
 /**
+ * One agent in several workspaces (ADR doug-0013): the copies of it, one per workspace (`agents.twin_id`), are trained
+ * as one. It spans workspaces, so it has no `org_id`, like `connector_sign_ins`. `base` is what the copies held at the
+ * last sync (the profile, and each copy's skills and access), so a change made in one is told apart from what the
+ * others hold; `fingerprint` says whether anything changed since.
+ */
+export const agentTwins = pgTable("agent_twins", {
+  id: uuid().primaryKey().defaultRandom(),
+  /** Who linked them: the person whose rights bring a missing connection or skill into a copy's workspace. */
+  createdByUserId: text().references(() => users.id, { onDelete: "set null" }),
+  base: jsonb().$type<Record<string, unknown>>().notNull().default({}),
+  fingerprint: text(),
+  /** While in the future, one worker is syncing the copies. */
+  syncingUntil: timestamp({ withTimezone: true }),
+  syncedAt: timestamp({ withTimezone: true }),
+  createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
+});
+
+/**
  * A named group of the workspace's agents, shared by everyone in it (ADR 0083): the sidebar's sections. Shown as a
  * setor (department, ADR 0148) with its color, icon, the person who leads it and their substitute.
  * An agent is in at most one (`agents.group_id`).
@@ -288,6 +306,13 @@ export const agents = pgTable(
      * Null: its owner, else its setor's lead.
      */
     reportsToAgentId: uuid().references((): AnyPgColumn => agents.id, { onDelete: "set null" }),
+    /**
+     * The same agent in the person's other workspaces (ADR doug-0013): its training (profile, memory, skills, access)
+     * is kept the same in every copy of the group. Null: this workspace's alone. Created by `EXTRA_COLUMNS`.
+     */
+    twinId: uuid().references(() => agentTwins.id, { onDelete: "set null" }),
+    /** Someone took it out of its group: it is never joined again on its own (`autoLinkTwins`). */
+    twinOff: boolean().notNull().default(false),
     /**
      * A built-in agent the product ships (ADR 0137): `right_hand` is the team's right hand, one per workspace (the
      * index below), never archived, deleted, exported or imported. Null = an agent people made.

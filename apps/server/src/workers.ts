@@ -2,7 +2,9 @@ import type { ApprovalPortal, ErrorReporter, PubSub } from "@agenteschat/adapter
 import { type Database, ensureMessagePartitions, schema } from "@agenteschat/db";
 import {
   type ArtifactDeps,
+  autoLinkTwins,
   type BrowserLive,
+  type CarryDeps,
   type ContextDeps,
   claimStuckPhoneSetups,
   clearOldOutboxPayloads,
@@ -62,6 +64,7 @@ import {
   sweepExpiredVoice,
   sweepFeedbackFiles,
   sweepWidgetDrafts,
+  syncAllTwins,
   type VoiceDeps,
   wakeSnoozedNotifications,
 } from "@agenteschat/engine";
@@ -149,6 +152,11 @@ export interface WorkerDeps {
   errors?: ErrorReporter;
   /** The database is the built-in one (one process): the alarms advise what fits it. */
   builtInDatabase?: boolean;
+  /**
+   * What brings a connection or a skill into a workspace for a copy of an agent there (ADR doug-0013); absent, the
+   * copies still sync, and what would need bringing is listed as missing.
+   */
+  carry?: CarryDeps;
   log: Logger;
   workerId?: string;
 }
@@ -214,6 +222,11 @@ export const WORKER_INTERVALS_MS = {
   planRechecks: 60_000,
   /** Phones whose setup sat on one step for 10 minutes, each reported once (`claimStuckPhoneSetups`). */
   phoneSetups: 60_000,
+  /**
+   * The copies of one agent across workspaces (ADR doug-0013): what trains one reaches the others by then. Only groups
+   * with something new are synced; the owner's agents of the same handle are joined every tenth tick.
+   */
+  agentTwins: 60_000,
 };
 
 /**
@@ -319,6 +332,15 @@ export function startWorkers(deps: WorkerDeps) {
     every("planRechecks", WORKER_INTERVALS_MS.planRechecks, async () => {
       await recheckStuckPlans({ db, hub: machines });
     });
+  let twinTicks = 0;
+  every("agentTwins", WORKER_INTERVALS_MS.agentTwins, async () => {
+    if (twinTicks++ % 10 === 0) {
+      const joined = await autoLinkTwins(db);
+      if (joined > 0) log.info("agents joined across workspaces", { groups: joined });
+    }
+    const synced = await syncAllTwins({ db, pubsub: deps.pubsub, carry: deps.carry });
+    if (synced > 0) log.info("agent copies synced", { groups: synced });
+  });
   every("skillUpdates", WORKER_INTERVALS_MS.skillUpdates, async () => {
     if ((await enqueueSkillUpdates(db)) > 0) void ticks.get("outbox")?.();
   });

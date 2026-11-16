@@ -2481,6 +2481,30 @@ export function useCarry(orgId: string) {
   });
 }
 
+/** The same agent in the person's other workspaces, trained as one with it (ADR doug-0013). */
+export function useAgentTwins(orgId: string, agentId: string) {
+  const api = useApi();
+  return useQuery({ queryKey: keys.agentTwins(orgId, agentId), queryFn: () => api.carry.twins(orgId, agentId) });
+}
+
+/** Joins the agent with its copy in another workspace, or takes it out (`otherAgentId` null). */
+export function useSetAgentTwin(orgId: string, agentId: string) {
+  const api = useApi();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (otherAgentId: string | null) =>
+      otherAgentId ? api.carry.joinTwin(orgId, agentId, otherAgentId) : api.carry.leaveTwin(orgId, agentId),
+    onSuccess: (view) => {
+      qc.setQueryData(keys.agentTwins(orgId, agentId), view);
+      return Promise.all([
+        qc.invalidateQueries({ queryKey: keys.agents(orgId) }),
+        qc.invalidateQueries({ queryKey: keys.skills(orgId) }),
+        qc.invalidateQueries({ queryKey: keys.access(orgId) }),
+      ]);
+    },
+  });
+}
+
 /** Where the phone app's OAuth lands: the callback hands `state` and `code` back to the app. */
 export const APP_OAUTH_RETURN = "app:connectors";
 

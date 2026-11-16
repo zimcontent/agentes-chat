@@ -3628,6 +3628,22 @@ export const ptBR = {
     },
   },
   /** Configurações do agente: o que ele pode começar sem ninguém pedir diretamente, e quais agentes pode chamar (ADR 0131). */
+  agentTwins: {
+    title: "Nos seus outros workspaces",
+    subtitle: "O mesmo agente em cada um: o que treina um treina todos.",
+    help: "Nome, função, instruções, memória, skills e o que ele pode usar são iguais em todas as cópias, em até um minuto. Modelo, chave de IA, computador, orçamento, rotinas e conversas continuam de cada workspace.",
+    trainedHere: "Treinado junto com este",
+    canJoin: "Mesmo @, treinado à parte",
+    join: "Treinar junto",
+    leave: "Treinar só aqui",
+    off: "Treinado só aqui. Não é unido sozinho de novo.",
+    hidden_one: "E mais {{count}} workspace em que você não está.",
+    hidden_other: "E mais {{count}} workspaces em que você não está.",
+    synced: "Mesmo treinamento em todos, conferido {{when}}.",
+    syncing: "Juntando o treinamento. Leva até um minuto.",
+    missing: "Não chegou ao {{workspace}}: {{what}}.",
+    failed: "Não deu para mudar. Tente de novo.",
+  },
   ronda: {
     title: "Ronda",
     subtitle: "Ele olha a operação sozinho, sem ninguém pedir, e só te chama quando vale.",
