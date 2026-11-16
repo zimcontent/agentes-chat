@@ -53,7 +53,9 @@ css.textContent = [
   ".ed-h[data-h=rot]{left:50%;top:calc(-28px*var(--ed-u,1));border-radius:50%;cursor:grab;background:" + LIME + ";border-color:#0a0a0a}",
   ".ed-stem{position:absolute;left:50%;top:calc(-21px*var(--ed-u,1));width:calc(1.5px*var(--ed-u,1));height:calc(21px*var(--ed-u,1));background:" + LIME + ";transform:translateX(-50%)}",
   ".ed-g{position:fixed;pointer-events:none;z-index:2147483645;background:#ff4fd8}",
-  "@media (pointer:coarse){.ed-h{width:calc(22px*var(--ed-u,1));height:calc(22px*var(--ed-u,1));margin:calc(-11px*var(--ed-u,1)) 0 0 calc(-11px*var(--ed-u,1))}}"
+  // On a touchscreen the handle stays small to the eye (it would cover a short word) and its target grows past it.
+  ".ed-h::after{content:'';position:absolute;inset:calc(-6px*var(--ed-u,1));border-radius:50%}",
+  "@media (pointer:coarse){.ed-h{width:calc(16px*var(--ed-u,1));height:calc(16px*var(--ed-u,1));margin:calc(-8px*var(--ed-u,1)) 0 0 calc(-8px*var(--ed-u,1))}.ed-h::after{inset:calc(-14px*var(--ed-u,1))}}"
 ].join("");
 document.head.appendChild(css);
 
