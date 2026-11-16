@@ -71,3 +71,29 @@ price shown before anything runs, and brakes on what an agent spends alone.
 5. **The page shows only what fits.** The form offers the first and last frames (the last once a first is in),
    reference images, videos and audios as the chosen model and quality take them, a choice between frames and
    references for a `framesOrRefs` model, and drops what a new model or quality doesn't take.
+
+## Addendum (2026-11-15): the input block follows the Zim Studio
+
+1. **One mode decides the input.** The page offers the Studio's modes for the chosen model and quality: "Vídeo por
+   prompt", "Primeiro quadro" (where the model takes a first frame), "Primeiro e último quadro" (where it takes a
+   last one too, both required), "Multi referências", "Referência de vídeo" (MiniMax H3), "Editar vídeo" and
+   "Estender vídeo", read from `modesByQuality` and `inputs` (`mediaModes`, `mediaModeSpec` in
+   `packages/client/src/media/inputs.ts`). The mode replaces the old frames-or-references switch. Changing the model,
+   the quality or the mode keeps the nearest mode and moves the files by kind (frames to references and back, a
+   reference video to the clip of an edit), dropping only what finds no room.
+2. **Each mode has the Studio's layout.** Two frames side by side in the video's shape with ⇄ on the seam, the
+   picture whole over itself blurred and a quiet note when their shapes differ; references as a large field, then a
+   grid of thumbnails with a "+" (Imagem, Vídeo, Áudio as the model takes them, "x de N", reordered by dragging);
+   one large clip for the video modes, with optional references beside an edit where the model takes more than the
+   clip. Every slot takes a dropped file for itself, the whole form takes a drop or a pasted file and puts it where
+   its kind goes (a picture dropped on the prompt alone opens "Primeiro quadro"), a tap opens the file picker.
+   Generate stays off with the Studio's short reason while something required is missing.
+3. **The mode goes to the service.** A request may name `mode` (`text_to_video`, `multi_reference`,
+   `first_n_last_frames`, `video_reference`, `edit`, `extend`); without it the service works it out from the files.
+   The page sends the chosen one for a model that lists modes (both frame modes are `first_n_last_frames`).
+   `generate_video` takes an optional `mode` for an edit or an extension of the one clip in `video_reference_ids`,
+   refused where the quality doesn't list it.
+4. **The library.** "Biblioteca" in every slot and in the "+" lists the workspace's finished generations of the kinds
+   the slot takes. Picking one asks `POST …/media/refs/drive` with its Drive file id: the server reads the file as
+   the person (the Drive's own access check), reads its kind from its bytes and sends it to the service as an upload
+   would, so nothing goes down to the browser and up again.

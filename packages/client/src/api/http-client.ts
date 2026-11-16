@@ -1843,6 +1843,8 @@ export function createHttpApi(options: TransportOptions = {}): HttpApi {
         form.append("file", file, file instanceof File ? file.name : "ref");
         return files.upload<MediaRef>(`${org(orgId)}/media/refs`, form);
       },
+      driveRef: (orgId, artifactId) =>
+        request<MediaRef & { name: string }>(`${org(orgId)}/media/refs/drive`, { json: { artifactId } }),
       quote: async (orgId, input) =>
         (await request<{ credits: number | null }>(`${org(orgId)}/media/quote`, { json: input })).credits,
       generate: (orgId, input) =>

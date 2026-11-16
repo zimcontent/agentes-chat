@@ -83,7 +83,7 @@ const MODELS: MediaModel[] = [
     audio: "optional",
     inputs: { images: 9, videos: 3, audios: 3, firstFrame: true, lastFrame: true },
     modesByQuality: {
-      "480p": ["text_to_video", "multi_reference", "first_n_last_frames", "video_reference"],
+      "480p": ["text_to_video", "multi_reference", "first_n_last_frames", "video_reference", "edit"],
       "1080p": ["text_to_video", "first_n_last_frames"],
     },
     prices: {
@@ -285,6 +285,21 @@ describe("what each model takes", () => {
       "takes no reference video",
     );
     expect(inputsRefusal(model("seedance-2.5-full"), "480p", { ...none, audios: 4 })).toContain("at most 3");
+  });
+
+  test("a named mode: one the quality lists, an edit on exactly one clip and no frames", () => {
+    const none = { images: 0, videos: 0, audios: 0, firstFrame: false, lastFrame: false };
+    const full = model("seedance-2.5-full");
+    expect(inputsRefusal(full, "480p", { ...none, videos: 1, images: 2 }, "edit")).toBeNull();
+    expect(inputsRefusal(full, "1080p", { ...none, videos: 1 }, "edit")).toContain("has no edit mode");
+    expect(inputsRefusal(full, "480p", { ...none, videos: 2 }, "edit")).toContain("exactly one video");
+    expect(inputsRefusal(full, "480p", none, "edit")).toContain("exactly one video");
+    expect(inputsRefusal(full, "480p", { ...none, videos: 1, firstFrame: true }, "edit")).toContain(
+      "no opening or closing image",
+    );
+    expect(inputsRefusal(full, "480p", { ...none, images: 1 }, "text_to_video")).toContain("takes no files");
+    // A model that lists no modes takes the name as it is: the service decides.
+    expect(inputsRefusal(model("kling-4.0"), undefined, { ...none, images: 1 }, "multi_reference")).toBeNull();
   });
 
   test("a reference file's kind comes from its bytes", () => {
@@ -516,6 +531,37 @@ describe("the video tool's files", () => {
     expect(out.content).toContain("monthly media allowance");
     expect(fake.calls.length).toBe(0);
     await updateAgent(f.db, f.owner.id, f.org.id, f.agent.id, { mediaMonthlyCredits: 5000 });
+  });
+
+  test("an edit names its mode: the clip goes to the service with it, and a model without it is refused", async () => {
+    const fake = fakeZim();
+    const c = ctx();
+    const clip = await driveFile(c.runId, "clip.mp4", MP4, "video/mp4");
+    const video = await tool(fake.zim, GENERATE_VIDEO_TOOL, c);
+    expect(video.description).toContain("mode edit with one video_reference_ids");
+    const props = (video.inputSchema as { properties: Record<string, { enum?: string[]; description?: string }> })
+      .properties;
+    expect(props.mode?.enum).toContain("extend");
+    expect(props.aspect?.description).toContain("16:9 when left out");
+    const out = await video.execute(
+      {
+        model: "seedance-2.5-full",
+        prompt: "make it night",
+        quality: "480p",
+        mode: "edit",
+        video_reference_ids: [clip],
+      },
+      c,
+    );
+    expect(out.isError).toBeFalsy();
+    expect(fake.calls[0]!.request).toMatchObject({ mode: "edit", videoRefs: [expect.any(String)] });
+    const refused = await video.execute(
+      { model: "seedance-2.5-full", prompt: "x", quality: "1080p", mode: "edit", video_reference_ids: [clip] },
+      ctx({ runId: c.runId }),
+    );
+    expect(refused.isError).toBe(true);
+    expect(refused.content).toContain("has no edit mode");
+    expect(fake.calls.length).toBe(1);
   });
 
   test("files the model doesn't take, or of the wrong kind, are refused before anything is paid", async () => {

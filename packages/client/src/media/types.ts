@@ -37,6 +37,15 @@ export interface MediaModel {
 
 export type MediaRefKind = "image" | "video" | "audio";
 
+/** The modes the service takes in a request, the Studio's names. */
+export type MediaServiceMode =
+  | "text_to_video"
+  | "multi_reference"
+  | "first_n_last_frames"
+  | "video_reference"
+  | "edit"
+  | "extend";
+
 /** A file sent to the service for a generation (kept a day); `seconds` for a video or an audio. */
 export interface MediaRef {
   ref: string;
@@ -90,6 +99,8 @@ export interface MediaGenerateInput {
   lastFrame?: string;
   videoRefs?: string[];
   audioRefs?: string[];
+  /** The Studio's mode the page chose (`mediaServiceMode`); left out, the service works it out from the files. */
+  mode?: MediaServiceMode;
   /** This click's id: a retried request doesn't pay twice. */
   clientId: string;
 }
@@ -112,6 +123,8 @@ export interface MediaApi {
   generations(orgId: string, mine: boolean): Promise<MediaGenerationView[]>;
   generation(orgId: string, id: string): Promise<MediaGenerationView>;
   uploadRef(orgId: string, file: File | Blob): Promise<MediaRef>;
+  /** A Drive file the person may read (a generation of the workspace) as a reference, without the round trip. */
+  driveRef(orgId: string, artifactId: string): Promise<MediaRef & { name: string }>;
   /** The price from the server, the service's quote when a reference video is in it. */
   quote(orgId: string, input: MediaQuoteInput): Promise<number | null>;
   generate(orgId: string, input: MediaGenerateInput): Promise<{ generation: MediaGenerationView; balance: number }>;

@@ -1,6 +1,7 @@
-import { ZimMediaError } from "@agenteschat/adapters";
+import { MEDIA_MODES, ZimMediaError } from "@agenteschat/adapters";
 import {
   can,
+  driveMediaRef,
   listMediaGenerations,
   MEDIA_REF_LIMITS,
   type MediaDeps,
@@ -89,6 +90,8 @@ const MediaAsk = z.object({
   lastFrame: RefToken.optional(),
   videoRefs: z.array(RefToken).max(10).optional(),
   audioRefs: z.array(RefToken).max(10).optional(),
+  /** The page's mode: an edit or an extension of the one reference video; left out, the service works it out. */
+  mode: z.enum(MEDIA_MODES).optional(),
 });
 const Pack = z.object({ id: z.string(), brl: z.number(), credits: z.number(), highlight: z.boolean().optional() });
 const Generation = z.object({
@@ -345,6 +348,54 @@ export function mediaRoutes(deps: AppDeps) {
         const ref = await uploadMediaRef(media, orgId, bytes, file.type);
         return c.json(
           { ref: ref.ref, kind: ref.kind, ...(ref.seconds !== undefined ? { seconds: ref.seconds } : {}) },
+          200,
+        );
+      } catch (error) {
+        return refused(c, error);
+      }
+    },
+  );
+
+  app.openapi(
+    createRoute({
+      method: "post",
+      path: "/organizations/{orgId}/media/refs/drive",
+      tags,
+      security,
+      summary:
+        "Send a Drive file the person may read (a generation of the workspace) as a reference for a generation, without downloading it first",
+      request: { params: OrgParams, body: body(z.object({ artifactId: z.string().min(1).max(64) })) },
+      responses: {
+        200: json(
+          z.object({
+            ref: z.string(),
+            kind: z.enum(["image", "video", "audio"]),
+            seconds: z.number().optional(),
+            name: z.string(),
+          }),
+        ),
+        402: noCredits,
+        502: unavailable,
+        ...errors,
+        404: off,
+      },
+    }),
+    async (c) => {
+      const { orgId } = c.req.valid("param");
+      const userId = c.get("user").id;
+      await requirePermission(db, userId, orgId, "read");
+      const media = mediaDeps();
+      if (!media) return mediaOff(c);
+      try {
+        // The Drive reads it as this person: a file they can't open answers as the Drive answers it.
+        const ref = await driveMediaRef(media, orgId, userId, c.req.valid("json").artifactId);
+        return c.json(
+          {
+            ref: ref.ref,
+            kind: ref.kind,
+            name: ref.name,
+            ...(ref.seconds !== undefined ? { seconds: ref.seconds } : {}),
+          },
           200,
         );
       } catch (error) {

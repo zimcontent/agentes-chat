@@ -50,10 +50,41 @@
 }
 .media-form__foot {
   display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+.media-form__why {
+  margin: 0;
+  color: var(--muted);
+  font-size: var(--text-sm);
+}
+.media-form__go {
+  display: flex;
   align-items: center;
   justify-content: space-between;
   flex-wrap: wrap;
   gap: var(--space-3);
+}
+/* One column: the price and Gerar stay at the bottom of the screen while the form scrolls under them. */
+@media (max-width: 900px) {
+  .media-form__foot {
+    position: sticky;
+    bottom: 0;
+    z-index: 3;
+    margin: 0 calc(-1 * var(--card-pad)) calc(-1 * var(--card-pad));
+    padding: var(--space-3) var(--card-pad) var(--card-pad);
+    border-top: 1px solid var(--line);
+    border-radius: 0 0 var(--radius-section) 4px;
+    background: var(--surface-raised);
+  }
+}
+/* A phone: the price over a full-width Gerar (a card's lone primary button). */
+@media (max-width: 640px) {
+  .media-form__go {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--space-2);
+  }
 }
 .media-form__price {
   color: var(--muted);
@@ -63,46 +94,457 @@
   color: var(--danger);
 }
 
-.media-refs {
+/*
+ * The input block (`pages/media/MediaInput.tsx`), the Zim Studio's "Input" card in our kit: the mode on top, then the
+ * layout of that mode. An empty slot is a surface, never a dashed cut-out (the Studio's note: a dashed frame reads as an
+ * upload form), and only a held file turns it dashed, where it will land.
+ */
+.media-input {
   display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--space-2);
+  flex-direction: column;
+  gap: var(--space-3);
 }
-.media-refs__item {
-  position: relative;
+.media-input__stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+.media-input__note {
   margin: 0;
-  width: 56px;
-  height: 56px;
-  border-radius: var(--radius-md);
-  overflow: hidden;
-  border: 1px solid var(--line);
+  color: var(--muted);
+  font-size: var(--text-sm);
 }
-.media-refs__item img,
-.media-refs__item video {
+
+/* An empty slot or field: its whole face picks a file, the library link sits over it. */
+.media-slot,
+.media-drop {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-height: 128px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  background: var(--field-bg);
+  color: var(--muted);
+  overflow: hidden;
+  transition:
+    background-color var(--dur-fast) var(--out),
+    border-color var(--dur-fast) var(--out);
+}
+.media-slot:hover,
+.media-drop:hover {
+  border-color: var(--line-strong);
+  background: var(--raised);
+}
+.media-slot[data-over],
+.media-drop[data-over] {
+  border-style: dashed;
+  border-color: var(--focus-color);
+  background: var(--raised);
+  color: var(--ink);
+}
+.media-slot__pick {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  border-radius: inherit;
+  background: transparent;
+  cursor: pointer;
+}
+.media-slot__pick:disabled {
+  cursor: progress;
+}
+.media-slot__pick:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring-inset);
+}
+.media-slot__face {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-3);
+  text-align: center;
+  pointer-events: none;
+}
+.media-slot__title,
+.media-drop__title {
+  color: var(--ink);
+  font-weight: 600;
+}
+.media-slot__sub {
+  font-size: var(--text-sm);
+}
+.media-slot__library {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  min-height: 32px;
+  padding: 0 var(--space-2);
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  font-size: var(--text-sm);
+  cursor: pointer;
+  pointer-events: auto;
+}
+.media-slot__library:hover {
+  background: var(--plate-soft);
+  color: var(--ink);
+}
+.media-slot__library:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+/* A finger's target is 44 tall: the plate stays 32. */
+@media (pointer: coarse) {
+  .media-slot__library::after {
+    content: "";
+    position: absolute;
+    inset: -6px 0;
+  }
+}
+
+/* A picture whole in the video's shape, the same picture blurred around it (the Studio's note: it fills without
+   lying about the framing). */
+.media-slot--full {
+  display: block;
+}
+.media-slot--full:hover {
+  background: var(--field-bg);
+}
+.media-slot__blur {
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
-  display: block;
+  opacity: 0.45;
+  filter: blur(24px);
+  transform: scale(1.15);
 }
-/* An audio has no picture: its mark and its length on the square's bottom line, where a video's length sits, clear
-   of the remove button at the top. */
-.media-refs__audio {
-  display: flex;
-  align-items: flex-end;
-  justify-content: flex-start;
-  gap: var(--space-1);
+.media-slot__img {
+  position: relative;
+  display: block;
+  width: 100%;
   height: 100%;
-  padding: var(--space-1);
-  background: var(--surface-sunk);
+  object-fit: contain;
+}
+.media-slot__tag {
+  position: absolute;
+  top: var(--space-2);
+  left: var(--space-2);
+  max-width: calc(100% - 56px);
+  padding: 0 var(--space-2);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--ink);
+  font-size: var(--text-sm);
+  line-height: 24px;
+  box-shadow: var(--e1);
+}
+
+/* Remove: a round plate in the corner, always in sight (a finger has no hover). */
+.media-x {
+  position: absolute;
+  top: var(--space-2);
+  right: var(--space-2);
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: var(--surface);
+  color: var(--ink);
+  box-shadow: var(--e1);
+  cursor: pointer;
+}
+.media-x:hover {
+  background: var(--danger);
+  color: var(--on-action, #fff);
+}
+.media-x:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+/* The two frames share the row and the video's shape; ⇄ sits on the seam, not between them (the Studio's note: as
+   an item of the row it shrank the frames, and the framing is what's being decided). */
+.media-frames {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+.media-frames__row {
+  position: relative;
+  display: flex;
+  gap: var(--space-2);
+}
+.media-frames__row > .media-slot {
+  flex: 1 1 0;
+  min-width: 0;
+}
+/* Full, the shape is the video's: that's what is being decided. Empty, the height floor wins (the Studio's note: a
+   16:9 slot half a column wide is 97 tall, less than its icon, name, line and library link). */
+.media-frames__row > .media-slot--full {
+  aspect-ratio: var(--frame-ratio);
+  max-height: 260px;
+}
+.media-frames__row:not([data-pair]) > .media-slot--full {
+  flex: 0 1 auto;
+  width: 100%;
+  max-width: calc(260px * var(--frame-ratio));
+  margin-inline: auto;
+}
+.media-frames__swap {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 1px solid var(--line2);
+  border-radius: 50%;
+  background: var(--surface);
+  color: var(--ink);
+  box-shadow: var(--e1);
+  cursor: pointer;
+  transform: translate(-50%, -50%);
+}
+.media-frames__swap:hover:not(:disabled) {
+  border-color: var(--line-strong);
+}
+.media-frames__swap:disabled {
+  color: var(--faint);
+  cursor: default;
+}
+.media-frames__swap:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+@media (pointer: coarse) {
+  .media-frames__swap::after,
+  .media-x::after {
+    content: "";
+    position: absolute;
+    inset: -6px;
+  }
+}
+
+/* The clip a mode works on: in its own shape, playing silently, a tap pauses it. */
+.media-slot--clip {
+  min-height: 132px;
+}
+.media-slot--clip[data-big] {
+  min-height: 160px;
+}
+.media-clip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0;
+}
+.media-clip__frame {
+  position: relative;
+  width: min(100%, calc(260px * var(--clip-ratio)));
+  aspect-ratio: var(--clip-ratio);
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  background: #000;
+}
+.media-clip__frame[data-over] {
+  border-style: dashed;
+  border-color: var(--focus-color);
+}
+.media-clip__frame video {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.media-clip__play {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+.media-clip__play:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring-inset);
+}
+.media-clip__knob {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: rgb(0 0 0 / 0.55);
+  color: #fff;
+  transition: opacity var(--dur-fast) var(--out);
+}
+.media-clip__knob[data-playing] {
+  opacity: 0;
+}
+.media-clip__frame:hover .media-clip__knob,
+.media-clip__play:focus-visible .media-clip__knob {
+  opacity: 1;
+}
+.media-clip__caption {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  width: 100%;
+  color: var(--muted);
+  font-size: var(--text-sm);
+}
+.media-clip__name {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.media-clip__seconds {
+  font-variant-numeric: tabular-nums;
+}
+
+/* The references: one large field while empty, then a grid of three with a "+". */
+.media-drop--refs {
+  min-height: 148px;
+}
+.media-drop__plus {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  margin-bottom: var(--space-1);
+  border: 1px solid var(--line2);
+  border-radius: 50%;
+  background: var(--surface);
+  color: var(--ink);
+}
+/* The prompt alone: a held file shows where it lands, and dropping it opens the mode that takes it. */
+.media-input > .media-drop {
+  min-height: 96px;
+  gap: var(--space-1);
+  align-content: center;
+}
+.media-refs {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  border-radius: var(--radius-lg);
+  list-style: none;
+}
+.media-refs[data-over] {
+  outline: 1px dashed var(--focus-color);
+  outline-offset: 4px;
+}
+.media-refs__tally {
+  margin: var(--space-2) 0 0;
   color: var(--muted);
   font-size: var(--text-sm);
   font-variant-numeric: tabular-nums;
 }
-/* A video's length over its first frame, bottom left, clear of the remove button. */
-.media-refs__seconds {
+.media-thumb {
+  position: relative;
+  aspect-ratio: 1;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: var(--field-bg);
+}
+.media-thumb[draggable="true"] {
+  cursor: grab;
+}
+.media-thumb[data-held] {
+  opacity: 0.4;
+}
+.media-thumb[data-aim] {
+  box-shadow: 0 0 0 2px var(--focus-color);
+}
+.media-thumb > img,
+.media-thumb > video {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.media-thumb--waiting {
+  display: grid;
+  place-items: center;
+  color: var(--muted);
+}
+.media-thumb--add {
+  overflow: visible;
+  border: 0;
+  background: transparent;
+}
+.media-add {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border: 1px dashed var(--line2);
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+}
+.media-add:hover,
+.media-add[data-state="open"] {
+  border-color: var(--line-strong);
+  background: var(--raised);
+  color: var(--ink);
+}
+.media-add:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+.media-thumb__audio {
+  display: grid;
+  place-items: center;
+  height: 100%;
+}
+.media-thumb__play {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 1px solid var(--line2);
+  border-radius: 50%;
+  background: var(--surface);
+  color: var(--ink);
+  cursor: pointer;
+}
+.media-thumb__play:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+.media-thumb__seconds,
+.media-thumb__grip {
   position: absolute;
-  left: var(--space-1);
   bottom: var(--space-1);
   padding: 0 var(--space-1);
   border-radius: var(--radius-sm);
@@ -110,21 +552,79 @@
   color: var(--ink);
   font-size: var(--text-sm);
   font-variant-numeric: tabular-nums;
+  line-height: 20px;
 }
-.media-refs__remove {
-  position: absolute;
-  top: var(--space-1);
+.media-thumb__seconds {
+  left: var(--space-1);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+.media-thumb__grip {
   right: var(--space-1);
+  display: grid;
+  place-items: center;
+  height: 20px;
+  color: var(--muted);
+}
+
+/* The library: the workspace's generations as a grid of pictures, each a button. */
+.media-library {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.media-library__item {
+  position: relative;
+  display: block;
+  width: 100%;
+  aspect-ratio: 1;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: var(--field-bg);
+  cursor: pointer;
+}
+.media-library__item:hover {
+  border-color: var(--line-strong);
+}
+.media-library__item:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+.media-library__item > img,
+.media-library__item > video {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  pointer-events: none;
+}
+.media-library__mark {
+  position: absolute;
+  bottom: var(--space-1);
+  left: var(--space-1);
   display: grid;
   place-items: center;
   width: 24px;
   height: 24px;
-  padding: 0;
-  border: 0;
-  border-radius: 50%;
+  border-radius: var(--radius-sm);
   background: var(--surface);
   color: var(--ink);
-  cursor: pointer;
+}
+
+@media (max-width: 640px) {
+  .media-drop--refs {
+    min-height: 120px;
+  }
+  .media-slot--clip,
+  .media-slot--clip[data-big] {
+    min-height: 128px;
+  }
 }
 
 .media-gallery {

@@ -21075,24 +21075,96 @@
     "secondsValue_many": "{{count}} sec",
     "secondsValue_other": "{{count}} sec",
     "audio": "Avec le son",
-    "refs_one": "Image de référence (jusqu'à {{count}})",
-    "refs_many": "Images de référence (jusqu'à {{count}})",
-    "refs_other": "Images de référence (jusqu'à {{count}})",
-    "videoRefs_one": "Vidéo de référence (jusqu'à {{count}})",
-    "videoRefs_many": "Vidéos de référence (jusqu'à {{count}})",
-    "videoRefs_other": "Vidéos de référence (jusqu'à {{count}})",
-    "audioRefs_one": "Audio de référence (jusqu'à {{count}})",
-    "audioRefs_many": "Audios de référence (jusqu'à {{count}})",
-    "audioRefs_other": "Audios de référence (jusqu'à {{count}})",
-    "firstFrame": "Première image",
-    "lastFrame": "Dernière image",
-    "side": "Utiliser",
-    "sideFrames": "Images clés",
-    "sideRefs": "Références",
-    "sideHint": "{{model}} accepte des images clés ou des références, jamais les deux ensemble.",
-    "addRef": "Ajouter une image",
-    "addVideo": "Ajouter une vidéo",
-    "addAudio": "Ajouter un audio",
+    "audioKind": "Audio",
+    "input": "Entrée",
+    "modes": {
+      "text": {
+        "label": "Vidéo par prompt",
+        "hint": "Le prompt seul. Aucun fichier n'est envoyé."
+      },
+      "first": {
+        "label": "Première image",
+        "hint": "Choisis l'image qui ouvre la vidéo et décris le mouvement."
+      },
+      "frames": {
+        "label": "Première et dernière image",
+        "hint": "Choisis comment la vidéo commence et finit. Les deux images sont obligatoires."
+      },
+      "references": {
+        "label": "Multi-références",
+        "hint": "Jusqu'à {{list}}. Dis dans le prompt à quoi sert chaque référence."
+      },
+      "video_reference": {
+        "label": "Référence vidéo",
+        "hint": "Une vidéo de référence guide le mouvement et la continuité."
+      },
+      "edit": {
+        "label": "Modifier la vidéo",
+        "hint": "Change la vidéo comme le prompt le dit. Le résultat suit sa durée."
+      },
+      "extend": {
+        "label": "Prolonger la vidéo",
+        "hint": "Continue la vidéo à partir de sa fin, avec le même personnage, le même décor et le même son."
+      }
+    },
+    "nImages_one": "{{count}} image",
+    "nImages_many": "{{count}} images",
+    "nImages_other": "{{count}} images",
+    "nVideos_one": "{{count}} vidéo",
+    "nVideos_many": "{{count}} vidéos",
+    "nVideos_other": "{{count}} vidéos",
+    "nAudios_one": "{{count}} audio",
+    "nAudios_many": "{{count}} audios",
+    "nAudios_other": "{{count}} audios",
+    "tally": {
+      "images_one": "{{n}} sur {{count}} image",
+      "images_many": "{{n}} sur {{count}} images",
+      "images_other": "{{n}} sur {{count}} images",
+      "videos_one": "{{n}} sur {{count}} vidéo",
+      "videos_many": "{{n}} sur {{count}} vidéos",
+      "videos_other": "{{n}} sur {{count}} vidéos",
+      "audios_one": "{{n}} sur {{count}} audio",
+      "audios_many": "{{n}} sur {{count}} audios",
+      "audios_other": "{{n}} sur {{count}} audios"
+    },
+    "ofMax": "{{n}} sur {{max}}",
+    "firstFrameSlot": "Image de départ",
+    "lastFrameSlot": "Image de fin",
+    "required": "Obligatoire",
+    "swapFrames": "Échanger l'image de départ et l'image de fin",
+    "ratioMismatch": "Les deux images n'ont pas les mêmes proportions. La vidéo risque de sauter de cadrage à la coupe.",
+    "clip": {
+      "edit": "Envoie la vidéo à modifier",
+      "extend": "Envoie la vidéo à prolonger",
+      "follow": "Envoie la vidéo de référence",
+      "formats": "MP4, MOV ou WebM, jusqu'à 50 Mo"
+    },
+    "refsLabel": "Références",
+    "refsOptional": "Références · facultatif",
+    "refsTitle": "Ajoute des références",
+    "refsUpTo": "Jusqu'à {{list}}",
+    "addRefMenu": "Ajouter une référence",
+    "dropHere": "Dépose ici",
+    "library": "Bibliothèque",
+    "libraryText": "Utilise ce que le workspace a déjà généré, sans le télécharger ni l'envoyer à nouveau.",
+    "libraryEmpty": {
+      "title": "Rien à utiliser ici pour l'instant",
+      "text": "Les images et les vidéos que le workspace génère apparaissent dans cette liste."
+    },
+    "libraryUse": "Utiliser {{name}}",
+    "play": "Lire {{name}}",
+    "pause": "Mettre {{name}} en pause",
+    "noRoom": "{{name}} ne rentre pas dans ce mode.",
+    "missing": {
+      "firstFrame": "Ajoute l'image de départ",
+      "lastFrame": "Ajoute l'image de fin",
+      "reference": "Ajoute au moins une référence",
+      "videoReference": "Envoie la vidéo de référence",
+      "editVideo": "Envoie la vidéo à modifier",
+      "extendVideo": "Envoie la vidéo à prolonger",
+      "prompt": "Décris ce qu'il faut générer",
+      "uploading": "Attente de la fin de l'envoi des fichiers"
+    },
     "tooLarge": "{{name}} dépasse {{size}} Mo.",
     "wrongKind": "{{name}} n'est pas le type de fichier accepté ici.",
     "quoting": "Calcul du prix…",

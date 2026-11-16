@@ -19744,18 +19744,84 @@
     "seconds": "長さ",
     "secondsValue_other": "{{count}} 秒",
     "audio": "音声あり",
-    "refs_other": "参照画像 (最大 {{count}} 枚)",
-    "videoRefs_other": "参照動画 (最大 {{count}} 本)",
-    "audioRefs_other": "参照音声 (最大 {{count}} 件)",
-    "firstFrame": "最初のフレーム",
-    "lastFrame": "最後のフレーム",
-    "side": "使うもの",
-    "sideFrames": "フレーム",
-    "sideRefs": "参照",
-    "sideHint": "{{model}} はフレームか参照のどちらかを使えます。両方は使えません。",
-    "addRef": "画像を追加",
-    "addVideo": "動画を追加",
-    "addAudio": "音声を追加",
+    "audioKind": "音声",
+    "input": "入力",
+    "modes": {
+      "text": {
+        "label": "プロンプトから動画",
+        "hint": "プロンプトだけ。ファイルは送信されません。"
+      },
+      "first": {
+        "label": "最初のフレーム",
+        "hint": "動画の始まりになる画像を選び、動きを説明してください。"
+      },
+      "frames": {
+        "label": "最初と最後のフレーム",
+        "hint": "動画の始まりと終わりを選びます。両方のフレームが必要です。"
+      },
+      "references": {
+        "label": "マルチリファレンス",
+        "hint": "最大{{list}}。各リファレンスの役割をプロンプトに書いてください。"
+      },
+      "video_reference": {
+        "label": "動画リファレンス",
+        "hint": "リファレンス動画が動きと連続性を導きます。"
+      },
+      "edit": {
+        "label": "動画を編集",
+        "hint": "プロンプトのとおりに動画を変えます。出力の長さは元の動画に合わせます。"
+      },
+      "extend": {
+        "label": "動画を延長",
+        "hint": "同じキャラクター、場面、音のまま、動画の終わりから続けます。"
+      }
+    },
+    "nImages_other": "画像{{count}}枚",
+    "nVideos_other": "動画{{count}}本",
+    "nAudios_other": "音声{{count}}件",
+    "tally": {
+      "images_other": "画像 {{n}} / {{count}}",
+      "videos_other": "動画 {{n}} / {{count}}",
+      "audios_other": "音声 {{n}} / {{count}}"
+    },
+    "ofMax": "{{n}} / {{max}}",
+    "firstFrameSlot": "開始フレーム",
+    "lastFrameSlot": "終了フレーム",
+    "required": "必須",
+    "swapFrames": "開始フレームと終了フレームを入れ替え",
+    "ratioMismatch": "2つのフレームの縦横比が違います。カットで構図が飛びやすくなります。",
+    "clip": {
+      "edit": "編集する動画を送信",
+      "extend": "続ける動画を送信",
+      "follow": "リファレンス動画を送信",
+      "formats": "MP4、MOV、WebM、50 MBまで"
+    },
+    "refsLabel": "リファレンス",
+    "refsOptional": "リファレンス · 任意",
+    "refsTitle": "リファレンスを追加",
+    "refsUpTo": "最大{{list}}",
+    "addRefMenu": "リファレンスを追加",
+    "dropHere": "ここにドロップ",
+    "library": "ライブラリ",
+    "libraryText": "ワークスペースで生成済みのものを、ダウンロードや再アップロードなしで使えます。",
+    "libraryEmpty": {
+      "title": "まだ使えるものがありません",
+      "text": "ワークスペースで生成した画像と動画がこの一覧に表示されます。"
+    },
+    "libraryUse": "{{name}}を使う",
+    "play": "{{name}}を再生",
+    "pause": "{{name}}を一時停止",
+    "noRoom": "{{name}}はこのモードに入りません。",
+    "missing": {
+      "firstFrame": "開始フレームを追加してください",
+      "lastFrame": "終了フレームを追加してください",
+      "reference": "リファレンスを1つ以上追加してください",
+      "videoReference": "リファレンス動画を送信してください",
+      "editVideo": "編集する動画を送信してください",
+      "extendVideo": "続ける動画を送信してください",
+      "prompt": "生成する内容を説明してください",
+      "uploading": "ファイルのアップロード完了を待っています"
+    },
     "tooLarge": "{{name}} は {{size}} MB を超えています。",
     "wrongKind": "{{name}} はこの欄で使えない種類のファイルです。",
     "quoting": "価格を計算中…",

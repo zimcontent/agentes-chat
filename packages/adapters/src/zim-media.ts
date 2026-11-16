@@ -31,6 +31,17 @@ export interface MediaInputs {
  */
 export type MediaMode = string;
 
+/** The modes a request may name (`MediaRequest.mode`); without one the service works it out from the files. */
+export const MEDIA_MODES = [
+  "text_to_video",
+  "multi_reference",
+  "first_n_last_frames",
+  "video_reference",
+  "edit",
+  "extend",
+] as const;
+export type MediaRequestMode = (typeof MEDIA_MODES)[number];
+
 export interface MediaModel {
   id: string;
   kind: "image" | "video";
@@ -77,6 +88,11 @@ export interface MediaRequest {
   videoRefs?: string[];
   /** Audio tokens. */
   audioRefs?: string[];
+  /**
+   * What to do with the files, the Studio's mode: an `edit` or `extend` changes or continues the one video in
+   * `videoRefs`, where the same files alone would read as references. Left out, the service works it out.
+   */
+  mode?: MediaRequestMode;
 }
 
 export type MediaRefKind = "image" | "video" | "audio";

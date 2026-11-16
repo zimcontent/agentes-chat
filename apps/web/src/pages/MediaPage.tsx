@@ -1,18 +1,29 @@
 import {
   fitMediaFiles,
-  MEDIA_REF_ACCEPT,
   MEDIA_REF_LIMITS,
+  MEDIA_TARGET_KIND,
   type MediaFileSet,
-  type MediaFileSide,
+  type MediaFileTarget,
   type MediaGenerationView,
   type MediaGenKind,
+  type MediaInputMode,
   type MediaModel,
+  type MediaModeSpec,
+  type MediaRef,
   type MediaRefFile,
   type MediaRefKind,
   mediaAspects,
-  mediaInputs,
+  mediaDropTarget,
+  mediaMissing,
+  mediaModeFor,
+  mediaModeSpec,
+  mediaModes,
   mediaPrice,
+  mediaRequestFiles,
+  mediaServiceMode,
   NO_MEDIA_FILES,
+  pickMediaMode,
+  useDriveMediaRef,
   useGenerateMedia,
   useMediaGenerations,
   useMediaOverview,
@@ -40,10 +51,13 @@ import {
 import { useNavigate, useSearch } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { useApi } from "@/api/context";
 import { ArtifactCard } from "@/components/artifacts/ArtifactCard";
 import { ErrorState, LoadingCards } from "@/components/Loading";
 import { useOrg } from "@/components/org-context";
 import { useToast } from "@/lib/toast";
+import { dragHasFiles, MediaInput, type PendingFile } from "./media/MediaInput";
+import { MediaLibrary } from "./media/MediaLibrary";
 import "./media.css";
 
 /**
@@ -113,19 +127,41 @@ export function MediaPage() {
   );
 }
 
-/** Where a file goes in the request. Frames and reference images are pictures. */
-type FileRole = "firstFrame" | "lastFrame" | "images" | "videos" | "audios";
-const ROLE_KIND: Record<FileRole, MediaRefKind> = {
-  firstFrame: "image",
-  lastFrame: "image",
-  images: "image",
-  videos: "video",
-  audios: "audio",
-};
+/** A file's kind from what the browser says, or its name (a dropped file can come without a type). */
+function kindOfFile(file: File): MediaRefKind | null {
+  if (file.type.startsWith("image/")) return "image";
+  if (file.type.startsWith("video/")) return "video";
+  if (file.type.startsWith("audio/")) return "audio";
+  const ext = file.name.split(".").pop()?.toLowerCase() ?? "";
+  if (["jpg", "jpeg", "png", "webp"].includes(ext)) return "image";
+  if (["mp4", "mov", "webm"].includes(ext)) return "video";
+  if (["mp3", "wav", "m4a", "aac", "ogg"].includes(ext)) return "audio";
+  return null;
+}
+
+const SINGLE: MediaFileTarget[] = ["firstFrame", "lastFrame", "video"];
+const isSingle = (t: MediaFileTarget): t is "firstFrame" | "lastFrame" | "video" => SINGLE.includes(t);
+
+/** The files with the ones on their way counted in, for the room a new drop finds. */
+function withPending(files: MediaFileSet, pending: PendingFile[]): MediaFileSet {
+  const next: MediaFileSet = {
+    ...files,
+    images: [...files.images],
+    videos: [...files.videos],
+    audios: [...files.audios],
+  };
+  for (const p of pending) {
+    const stand: MediaRefFile = { token: p.id, kind: p.kind, name: p.name, url: "" };
+    if (isSingle(p.target)) next[p.target] = stand;
+    else next[p.target].push(stand);
+  }
+  return next;
+}
 
 function MediaForm({ models, balance }: { models: MediaModel[]; balance: number }) {
   const { t, i18n } = useTranslation();
   const { org } = useOrg();
+  const api = useApi();
   const toast = useToast();
   const [kind, setKind] = useState<MediaGenKind>("image");
   const ofKind = models.filter((m) => m.kind === kind);
@@ -136,10 +172,13 @@ function MediaForm({ models, balance }: { models: MediaModel[]; balance: number 
   const [seconds, setSeconds] = useState<string | undefined>(undefined);
   const [audio, setAudio] = useState(true);
   const [prompt, setPrompt] = useState("");
+  const [chosenMode, setMode] = useState<MediaInputMode>("text");
   const [stored, setFiles] = useState<MediaFileSet>(NO_MEDIA_FILES);
-  const [side, setSide] = useState<MediaFileSide>("frames");
-  const [busy, setBusy] = useState<FileRole | null>(null);
+  const [pending, setPending] = useState<PendingFile[]>([]);
+  const [over, setOver] = useState(false);
+  const [library, setLibrary] = useState<MediaFileTarget | "refs" | null>(null);
   const upload = useUploadMediaRef(org.id);
+  const fromDrive = useDriveMediaRef(org.id);
   const generate = useGenerateMedia(org.id);
 
   // A choice the new model doesn't have falls back to its own default.
@@ -157,120 +196,226 @@ function MediaForm({ models, balance }: { models: MediaModel[]; balance: number 
   const s =
     seconds && durations.includes(Number(seconds)) ? Number(seconds) : (model?.durations?.default ?? durations[0]);
   const withSound = model?.audio === "always" ? true : model?.audio === "none" ? false : audio;
-  const limits = mediaInputs(model, q);
-  const anyRefs = limits.images + limits.videos + limits.audios > 0;
-  // With a model that takes frames or references, the person picks which; without, both show.
-  const choosing = limits.framesOrRefs && limits.firstFrame && anyRefs;
-  const files = fitMediaFiles(stored, limits, side);
-  const showFrames = limits.firstFrame && (!choosing || side === "frames");
-  const showRefs = !choosing || side === "refs";
-  const tokens = {
-    ...(files.images.length ? { refs: files.images.map((f) => f.token) } : {}),
-    ...(files.firstFrame ? { firstFrame: files.firstFrame.token } : {}),
-    ...(files.lastFrame ? { lastFrame: files.lastFrame.token } : {}),
-    ...(files.videos.length ? { videoRefs: files.videos.map((f) => f.token) } : {}),
-    ...(files.audios.length ? { audioRefs: files.audios.map((f) => f.token) } : {}),
-  };
+  const modes = mediaModes(model, q);
+  const mode: MediaInputMode = kind === "image" ? "references" : pickMediaMode(model, q, chosenMode);
+  const spec = mediaModeSpec(model, q, mode);
+  const files = fitMediaFiles(stored, spec);
+  // An edit follows its clip: its length and shape are the clip's, so neither is asked (the Studio's rule).
+  const clipDecides = mode === "edit";
+  const missing = kind === "video" ? mediaMissing(spec, files) : null;
   const ask = {
     model: model?.id ?? "",
     quality: q,
-    aspect: a,
-    ...(kind === "video" ? { seconds: s, audio: withSound } : {}),
-    ...tokens,
+    ...(clipDecides ? {} : { aspect: a }),
+    ...(kind === "video" ? { ...(clipDecides ? {} : { seconds: s }), audio: withSound } : {}),
+    ...mediaRequestFiles(files),
+    // The service works the mode out by itself for a model that lists none.
+    ...(kind === "video" && model?.modesByQuality?.[q ?? ""] ? { mode: mediaServiceMode(mode) } : {}),
   };
   // A reference video's price is the service's (it measures the clip): asked as soon as the video is in.
-  const needsQuote = Boolean(model && files.videos.length);
+  const needsQuote = Boolean(model && ask.videoRefs?.length && !missing);
   const quote = useMediaQuote(org.id, ask, needsQuote);
-  const price = needsQuote ? (quote.data ?? null) : mediaPrice(model, { quality: q, seconds: s, audio: withSound });
+  // Shown while something is still missing too, unless only the service can price it (a clip not sent yet).
+  const price = needsQuote
+    ? (quote.data ?? null)
+    : spec.video
+      ? null
+      : mediaPrice(model, { quality: q, seconds: s, audio: withSound });
   const quoting = needsQuote && quote.isFetching;
   const short = price !== null && price > balance;
   const fmt = (n: number) => n.toLocaleString(i18n.language);
+  const why = pending.length ? "uploading" : (missing ?? (prompt.trim() ? null : "prompt"));
+
+  // What the drop and paste handlers read: the latest choice, files and uploads, set as they change.
+  const now = useRef({ model, q, mode, spec, files, pending });
+  now.current = { model, q, mode, spec, files, pending };
 
   /** Keeps only what the new choice takes, so a file the new model refuses never rides along unseen. */
-  const refit = (next: MediaModel | undefined, nextQuality: string | undefined, nextSide: MediaFileSide) =>
-    setFiles((f) => fitMediaFiles(f, mediaInputs(next, nextQuality), nextSide));
+  const choose = (next: MediaModel | undefined, nextQuality: string | undefined, wanted: MediaInputMode) => {
+    const nextMode = next?.kind === "image" ? "references" : pickMediaMode(next, nextQuality, wanted);
+    const nextSpec = mediaModeSpec(next, nextQuality, nextMode);
+    setMode(nextMode);
+    setFiles((f) => fitMediaFiles(f, nextSpec));
+    now.current = { ...now.current, mode: nextMode, spec: nextSpec, files: fitMediaFiles(now.current.files, nextSpec) };
+  };
   const chooseModel = (id: string) => {
     const next = ofKind.find((m) => m.id === id);
     setModelId(id);
-    refit(next, next && quality && next.qualities.includes(quality) ? quality : next?.defaultQuality, side);
+    choose(next, next && quality && next.qualities.includes(quality) ? quality : next?.defaultQuality, mode);
   };
   const chooseQuality = (value: string) => {
     setQuality(value);
-    refit(model, value, side);
-  };
-  const chooseSide = (value: MediaFileSide) => {
-    setSide(value);
-    refit(model, q, value);
+    choose(model, value, mode);
   };
   const switchKind = (next: MediaGenKind) => {
     setKind(next);
     setModelId(undefined);
+    setMode("text");
     setFiles(NO_MEDIA_FILES);
   };
 
-  const room = (role: FileRole) =>
-    role === "firstFrame" || role === "lastFrame"
-      ? files[role]
-        ? 0
-        : 1
-      : Math.max(0, limits[role] - files[role].length);
-  const pick = async (role: FileRole, list: FileList | null) => {
-    const want = ROLE_KIND[role];
-    setBusy(role);
+  const place = (target: MediaFileTarget, item: MediaRefFile) =>
+    setFiles((f) => (isSingle(target) ? { ...f, [target]: item } : { ...f, [target]: [...f[target], item] }));
+
+  /**
+   * Sends one file and puts it where it goes, showing it there on its way. Files sent together upload at once but
+   * land in the order they were picked: each waits for the one before it (`after`).
+   */
+  const send = async (
+    target: MediaFileTarget,
+    kindWanted: MediaRefKind,
+    name: string,
+    go: () => Promise<MediaRef>,
+    url: () => string,
+    after: Promise<unknown> = Promise.resolve(),
+  ) => {
+    const id = crypto.randomUUID();
+    const entry: PendingFile = { id, target, kind: kindWanted, name };
+    now.current = { ...now.current, pending: [...now.current.pending, entry] };
+    setPending((p) => [...p, entry]);
+    const job = go();
+    // Its own failure is told below: the chain only waits for its turn.
+    job.catch(() => {});
     try {
-      for (const file of Array.from(list ?? []).slice(0, room(role))) {
-        if (file.size > MEDIA_REF_LIMITS[want]) {
-          toast.show(t("mediaGen.tooLarge", { name: file.name, size: MEDIA_REF_LIMITS[want] / (1024 * 1024) }));
-          continue;
-        }
-        try {
-          const ref = await upload.mutateAsync(file);
-          if (ref.kind !== want) {
-            toast.show(t("mediaGen.wrongKind", { name: file.name }));
-            continue;
-          }
-          const item: MediaRefFile = {
-            token: ref.ref,
-            kind: ref.kind,
-            name: file.name,
-            url: URL.createObjectURL(file),
-            ...(ref.seconds !== undefined ? { seconds: ref.seconds } : {}),
-          };
-          setFiles((f) =>
-            role === "firstFrame" || role === "lastFrame"
-              ? { ...f, [role]: item }
-              : { ...f, [role]: [...f[role], item] },
-          );
-        } catch (error) {
-          toast.show(errorText(t, error, i18n.language));
-        }
+      await after.catch(() => {});
+      const ref = await job;
+      if (ref.kind !== kindWanted) {
+        toast.show(t("mediaGen.wrongKind", { name }));
+        return;
       }
+      place(target, {
+        token: ref.ref,
+        kind: ref.kind,
+        name,
+        url: url(),
+        ...(ref.seconds !== undefined ? { seconds: ref.seconds } : {}),
+      });
+    } catch (error) {
+      toast.show(errorText(t, error, i18n.language));
     } finally {
-      setBusy(null);
+      now.current = { ...now.current, pending: now.current.pending.filter((p) => p.id !== id) };
+      setPending((p) => p.filter((x) => x.id !== id));
     }
   };
-  const remove = (role: FileRole, token: string) =>
-    setFiles((f) => {
-      if (role === "firstFrame") return { ...f, firstFrame: undefined, lastFrame: undefined };
-      if (role === "lastFrame") return { ...f, lastFrame: undefined };
-      return { ...f, [role]: f[role].filter((x) => x.token !== token) };
+
+  /**
+   * Files from a slot (`target`), the picker, a drop on the form or a paste. Without a target each goes where its
+   * kind goes in the mode as it is; a file the mode takes nothing of switches to the mode that does (a picture
+   * dropped on "Vídeo por prompt" opens "Primeiro quadro").
+   */
+  const addFiles = (list: File[], target?: MediaFileTarget) => {
+    let { spec: at } = now.current;
+    const { model: m, q: mq } = now.current;
+    const kinds = list.map(kindOfFile);
+    const takes = (sp: MediaModeSpec, k: MediaRefKind) =>
+      k === "image" ? sp.firstFrame || sp.images > 0 : k === "video" ? sp.video || sp.videos > 0 : sp.audios > 0;
+    const firstKind = kinds.find((k): k is MediaRefKind => k !== null);
+    if (!target && firstKind && m?.kind === "video" && !takes(at, firstKind)) {
+      const next = mediaModeFor(m, mq, firstKind);
+      if (next) {
+        choose(m, mq, next);
+        at = now.current.spec;
+      }
+    }
+    let room = withPending(now.current.files, now.current.pending);
+    let before: Promise<unknown> = Promise.resolve();
+    list.forEach((file, i) => {
+      const k = kinds[i];
+      if (!k) {
+        toast.show(t("mediaGen.wrongKind", { name: file.name }));
+        return;
+      }
+      if (target && MEDIA_TARGET_KIND[target] !== k) {
+        toast.show(t("mediaGen.wrongKind", { name: file.name }));
+        return;
+      }
+      const where =
+        target && (isSingle(target) || room[target].length < at[target])
+          ? target
+          : target
+            ? null
+            : mediaDropTarget(at, room, k);
+      if (!where) {
+        toast.show(t("mediaGen.noRoom", { name: file.name }));
+        return;
+      }
+      if (file.size > MEDIA_REF_LIMITS[k]) {
+        toast.show(t("mediaGen.tooLarge", { name: file.name, size: MEDIA_REF_LIMITS[k] / (1024 * 1024) }));
+        return;
+      }
+      const stand: MediaRefFile = { token: `pending-${i}`, kind: k, name: file.name, url: "" };
+      room = isSingle(where) ? { ...room, [where]: stand } : { ...room, [where]: [...room[where], stand] };
+      before = send(
+        where,
+        k,
+        file.name,
+        () => upload.mutateAsync(file),
+        () => URL.createObjectURL(file),
+        before,
+      );
     });
-  const slot = (role: FileRole, label: string, max: number, addLabel: string) => (
-    <RefSlot
-      label={label}
-      kind={ROLE_KIND[role]}
-      items={role === "firstFrame" || role === "lastFrame" ? (files[role] ? [files[role]] : []) : files[role]}
-      max={max}
-      busy={busy === role}
-      disabled={busy !== null && busy !== role}
-      addLabel={addLabel}
-      onPick={(list) => void pick(role, list)}
-      onRemove={(token) => remove(role, token)}
-    />
-  );
+  };
+  const add = useRef(addFiles);
+  add.current = addFiles;
+
+  // Ctrl/Cmd+V with a picture (or a clip, a sound) anywhere on the page puts it where it goes.
+  useEffect(() => {
+    const onPaste = (e: ClipboardEvent) => {
+      const list = Array.from(e.clipboardData?.files ?? []).filter((f) => kindOfFile(f) !== null);
+      if (!list.length) return;
+      e.preventDefault();
+      add.current(list);
+    };
+    document.addEventListener("paste", onPaste);
+    return () => document.removeEventListener("paste", onPaste);
+  }, []);
+
+  /** A generation from the library: the server sends its Drive file to the service. */
+  const pickFromLibrary = (g: MediaGenerationView & { artifactId: string }) => {
+    const target = library;
+    setLibrary(null);
+    const k: MediaRefKind = g.kind;
+    const { spec: at } = now.current;
+    const room = withPending(now.current.files, now.current.pending);
+    const where = target && target !== "refs" ? target : mediaDropTarget(at, room, k);
+    if (!where) {
+      toast.show(t("mediaGen.noRoom", { name: g.prompt }));
+      return;
+    }
+    const name = fileTitleOf(g);
+    void send(
+      where,
+      k,
+      name,
+      () => fromDrive.mutateAsync(g.artifactId),
+      () => api.artifacts.fileUrl(org.id, g.artifactId),
+    );
+  };
+  const libraryKinds: MediaRefKind[] =
+    library === null
+      ? []
+      : library === "refs"
+        ? (["image", "video"] as const).filter((k) => (k === "image" ? spec.images : spec.videos) > 0)
+        : [MEDIA_TARGET_KIND[library]];
+
+  const remove = (target: MediaFileTarget, token: string) =>
+    setFiles((f) =>
+      isSingle(target) ? { ...f, [target]: undefined } : { ...f, [target]: f[target].filter((x) => x.token !== token) },
+    );
+  const swap = () => setFiles((f) => ({ ...f, firstFrame: f.lastFrame, lastFrame: f.firstFrame }));
+  const reorder = (target: "images" | "videos" | "audios", from: string, to: string) =>
+    setFiles((f) => {
+      const items = [...f[target]];
+      const i = items.findIndex((x) => x.token === from);
+      const j = items.findIndex((x) => x.token === to);
+      if (i < 0 || j < 0) return f;
+      const [moved] = items.splice(i, 1);
+      if (moved) items.splice(j, 0, moved);
+      return { ...f, [target]: items };
+    });
 
   const submit = () => {
-    if (!model || !prompt.trim()) return;
+    if (!model || why) return;
     generate.mutate(
       { ...ask, model: model.id, prompt: prompt.trim(), clientId: crypto.randomUUID() },
       {
@@ -286,7 +431,26 @@ function MediaForm({ models, balance }: { models: MediaModel[]; balance: number 
   };
 
   return (
-    <section className="ac-card media-form" aria-label={t("mediaGen.form")}>
+    <section
+      className="ac-card media-form"
+      aria-label={t("mediaGen.form")}
+      // The whole form takes a dropped file; each slot inside takes one for itself first.
+      onDragOver={(e) => {
+        if (!dragHasFiles(e)) return;
+        e.preventDefault();
+        if (!over) setOver(true);
+      }}
+      onDragLeave={(e) => {
+        if (e.currentTarget.contains(e.relatedTarget as Node | null)) return;
+        setOver(false);
+      }}
+      onDrop={(e) => {
+        if (!dragHasFiles(e)) return;
+        e.preventDefault();
+        setOver(false);
+        addFiles(Array.from(e.dataTransfer.files));
+      }}
+    >
       <Segmented
         block
         label={t("mediaGen.kind")}
@@ -305,8 +469,25 @@ function MediaForm({ models, balance }: { models: MediaModel[]; balance: number 
             options={ofKind.map((m) => ({ value: m.id, label: m.label, description: m.description }))}
           />
         </Field>
+        <MediaInput
+          kind={kind}
+          modes={modes}
+          mode={mode}
+          spec={spec}
+          refsSpec={mediaModeSpec(model, q, "references")}
+          files={files}
+          pending={pending}
+          aspect={a}
+          over={over}
+          onMode={(next) => choose(model, q, next)}
+          onFiles={addFiles}
+          onRemove={remove}
+          onSwap={swap}
+          onReorder={reorder}
+          onLibrary={setLibrary}
+        />
         <Field label={t("mediaGen.prompt")} example={t("mediaGen.promptExample")}>
-          <Textarea value={prompt} onChange={(e) => setPrompt(e.target.value)} rows={5} maxLength={4000} />
+          <Textarea value={prompt} onChange={(e) => setPrompt(e.target.value)} rows={4} maxLength={4000} />
         </Field>
         <div className="media-form__row">
           <Field label={t("mediaGen.quality")}>
@@ -316,10 +497,12 @@ function MediaForm({ models, balance }: { models: MediaModel[]; balance: number 
               options={(model?.qualities ?? []).map((v) => ({ value: v, label: v }))}
             />
           </Field>
-          <Field label={t("mediaGen.aspect")}>
-            <Select value={a} onValueChange={setAspect} options={aspects.map((v) => ({ value: v, label: v }))} />
-          </Field>
-          {kind === "video" && (
+          {!clipDecides && (
+            <Field label={t("mediaGen.aspect")}>
+              <Select value={a} onValueChange={setAspect} options={aspects.map((v) => ({ value: v, label: v }))} />
+            </Field>
+          )}
+          {kind === "video" && !clipDecides && (
             <Field label={t("mediaGen.seconds")}>
               <Select
                 value={String(s)}
@@ -335,138 +518,44 @@ function MediaForm({ models, balance }: { models: MediaModel[]; balance: number 
             <Switch checked={audio} onCheckedChange={setAudio} aria-label={t("mediaGen.audio")} />
           </div>
         )}
-        {choosing && (
-          <Field
-            label={t("mediaGen.side")}
-            group
-            hint={{ name: t("mediaGen.side"), text: t("mediaGen.sideHint", { model: model?.label ?? "" }) }}
-          >
-            <Segmented
-              block
-              label={t("mediaGen.side")}
-              value={side}
-              onValueChange={chooseSide}
-              options={[
-                { value: "frames", label: t("mediaGen.sideFrames") },
-                { value: "refs", label: t("mediaGen.sideRefs") },
-              ]}
-            />
-          </Field>
-        )}
-        {showFrames && (
-          <div className="media-form__row">
-            {slot("firstFrame", t("mediaGen.firstFrame"), 1, t("mediaGen.addRef"))}
-            {limits.lastFrame &&
-              files.firstFrame &&
-              slot("lastFrame", t("mediaGen.lastFrame"), 1, t("mediaGen.addRef"))}
-          </div>
-        )}
-        {showRefs &&
-          limits.images > 0 &&
-          slot("images", t("mediaGen.refs", { count: limits.images }), limits.images, t("mediaGen.addRef"))}
-        {showRefs &&
-          limits.videos > 0 &&
-          slot("videos", t("mediaGen.videoRefs", { count: limits.videos }), limits.videos, t("mediaGen.addVideo"))}
-        {showRefs &&
-          limits.audios > 0 &&
-          slot("audios", t("mediaGen.audioRefs", { count: limits.audios }), limits.audios, t("mediaGen.addAudio"))}
       </FormStack>
-      <div className="media-form__foot ac-actline">
-        <span className={short ? "media-form__price media-form__price--short" : "media-form__price"}>
-          {quoting
-            ? t("mediaGen.quoting")
-            : needsQuote && quote.isError
-              ? t("mediaGen.quoteFailed")
-              : price === null
-                ? ""
-                : short
-                  ? t("mediaGen.short", { price: fmt(price), balance: fmt(balance) })
-                  : t("mediaGen.price", { price: fmt(price) })}
-        </span>
-        <Button
-          variant="primary"
-          icon="bolt"
-          disabled={!prompt.trim() || !model || short || quoting || busy !== null || generate.isPending}
-          onClick={submit}
-        >
-          {generate.isPending ? t("mediaGen.generating") : t("mediaGen.generate")}
-        </Button>
+      <div className="media-form__foot">
+        {why && <p className="media-form__why">{t(`mediaGen.missing.${why}`)}</p>}
+        <div className="media-form__go">
+          <span className={short ? "media-form__price media-form__price--short" : "media-form__price"}>
+            {quoting
+              ? t("mediaGen.quoting")
+              : needsQuote && quote.isError
+                ? t("mediaGen.quoteFailed")
+                : price === null
+                  ? ""
+                  : short
+                    ? t("mediaGen.short", { price: fmt(price), balance: fmt(balance) })
+                    : t("mediaGen.price", { price: fmt(price) })}
+          </span>
+          <Button
+            variant="primary"
+            icon="bolt"
+            disabled={!model || why !== null || short || quoting || generate.isPending}
+            onClick={submit}
+          >
+            {generate.isPending ? t("mediaGen.generating") : t("mediaGen.generate")}
+          </Button>
+        </div>
       </div>
+      <MediaLibrary
+        open={library !== null}
+        onOpenChange={(open) => !open && setLibrary(null)}
+        kinds={libraryKinds}
+        onPick={pickFromLibrary}
+      />
     </section>
   );
 }
 
-/** One kind of file the request takes: what was sent, each with a way out, and a button while there's room. */
-function RefSlot({
-  label,
-  kind,
-  items,
-  max,
-  busy,
-  disabled,
-  addLabel,
-  onPick,
-  onRemove,
-}: {
-  label: string;
-  kind: MediaRefKind;
-  items: MediaRefFile[];
-  max: number;
-  busy: boolean;
-  disabled: boolean;
-  addLabel: string;
-  onPick: (files: FileList | null) => void;
-  onRemove: (token: string) => void;
-}) {
-  const { t } = useTranslation();
-  const input = useRef<HTMLInputElement>(null);
-  return (
-    <Field label={label} group>
-      <div className="media-refs">
-        {items.map((r) => (
-          <figure key={r.token} className={`media-refs__item media-refs__item--${r.kind}`}>
-            {r.kind === "image" && <img src={r.url} alt={r.name} />}
-            {r.kind === "video" && <video src={r.url} muted playsInline preload="metadata" aria-label={r.name} />}
-            {r.kind === "audio" && (
-              <span className="media-refs__audio" role="img" aria-label={r.name}>
-                <Icon name="sound" size={16} />
-                {r.seconds !== undefined && <span>{t("mediaGen.secondsValue", { count: Math.round(r.seconds) })}</span>}
-              </span>
-            )}
-            {r.kind === "video" && r.seconds !== undefined && (
-              <span className="media-refs__seconds">
-                {t("mediaGen.secondsValue", { count: Math.round(r.seconds) })}
-              </span>
-            )}
-            <button
-              type="button"
-              className="media-refs__remove"
-              aria-label={t("mediaGen.removeRef", { name: r.name })}
-              onClick={() => onRemove(r.token)}
-            >
-              <Icon name="close" size={16} />
-            </button>
-          </figure>
-        ))}
-        {items.length < max && (
-          <Button variant="default" icon="plus" disabled={busy || disabled} onClick={() => input.current?.click()}>
-            {busy ? t("mediaGen.uploading") : addLabel}
-          </Button>
-        )}
-        <input
-          ref={input}
-          type="file"
-          accept={MEDIA_REF_ACCEPT[kind]}
-          multiple={max - items.length > 1}
-          hidden
-          onChange={(e) => {
-            onPick(e.target.files);
-            e.target.value = "";
-          }}
-        />
-      </div>
-    </Field>
-  );
+/** A generation's name as a reference: its prompt, whole (the caption wraps it). */
+function fileTitleOf(g: MediaGenerationView): string {
+  return g.prompt.replace(/\s+/g, " ").trim() || g.id;
 }
 
 function MediaGallery({ models }: { models: MediaModel[] }) {

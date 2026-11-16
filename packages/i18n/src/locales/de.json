@@ -20368,21 +20368,90 @@
     "secondsValue_one": "{{count}} Sek.",
     "secondsValue_other": "{{count}} Sek.",
     "audio": "Mit Ton",
-    "refs_one": "Referenzbild (bis zu {{count}})",
-    "refs_other": "Referenzbilder (bis zu {{count}})",
-    "videoRefs_one": "Referenzvideo (bis zu {{count}})",
-    "videoRefs_other": "Referenzvideos (bis zu {{count}})",
-    "audioRefs_one": "Referenz-Audio (bis zu {{count}})",
-    "audioRefs_other": "Referenz-Audios (bis zu {{count}})",
-    "firstFrame": "Erster Frame",
-    "lastFrame": "Letzter Frame",
-    "side": "Verwenden",
-    "sideFrames": "Frames",
-    "sideRefs": "Referenzen",
-    "sideHint": "{{model}} nimmt Frames oder Referenzen, nie beides zusammen.",
-    "addRef": "Bild hinzufügen",
-    "addVideo": "Video hinzufügen",
-    "addAudio": "Audio hinzufügen",
+    "audioKind": "Audio",
+    "input": "Eingabe",
+    "modes": {
+      "text": {
+        "label": "Video aus Prompt",
+        "hint": "Nur der Prompt. Es wird keine Datei gesendet."
+      },
+      "first": {
+        "label": "Erster Frame",
+        "hint": "Wähle das Bild, mit dem das Video beginnt, und beschreibe die Bewegung."
+      },
+      "frames": {
+        "label": "Erster und letzter Frame",
+        "hint": "Wähle, wie das Video beginnt und endet. Beide Frames sind Pflicht."
+      },
+      "references": {
+        "label": "Mehrere Referenzen",
+        "hint": "Bis zu {{list}}. Sag im Prompt, wofür jede Referenz da ist."
+      },
+      "video_reference": {
+        "label": "Videoreferenz",
+        "hint": "Ein Referenzvideo führt Bewegung und Kontinuität."
+      },
+      "edit": {
+        "label": "Video bearbeiten",
+        "hint": "Ändert das Video so, wie der Prompt es sagt. Die Ausgabe folgt seiner Länge."
+      },
+      "extend": {
+        "label": "Video verlängern",
+        "hint": "Setzt das Video an seinem Ende fort, mit derselben Figur, Szene und demselben Ton."
+      }
+    },
+    "nImages_one": "{{count}} Bild",
+    "nImages_other": "{{count}} Bilder",
+    "nVideos_one": "{{count}} Video",
+    "nVideos_other": "{{count}} Videos",
+    "nAudios_one": "{{count}} Audio",
+    "nAudios_other": "{{count}} Audios",
+    "tally": {
+      "images_one": "{{n}} von {{count}} Bild",
+      "images_other": "{{n}} von {{count}} Bildern",
+      "videos_one": "{{n}} von {{count}} Video",
+      "videos_other": "{{n}} von {{count}} Videos",
+      "audios_one": "{{n}} von {{count}} Audio",
+      "audios_other": "{{n}} von {{count}} Audios"
+    },
+    "ofMax": "{{n}} von {{max}}",
+    "firstFrameSlot": "Erster Frame",
+    "lastFrameSlot": "Letzter Frame",
+    "required": "Pflicht",
+    "swapFrames": "Ersten und letzten Frame tauschen",
+    "ratioMismatch": "Die beiden Frames haben unterschiedliche Formate. Das Video springt beim Schnitt leicht im Bildausschnitt.",
+    "clip": {
+      "edit": "Sende das Video zum Bearbeiten",
+      "extend": "Sende das Video zum Fortsetzen",
+      "follow": "Sende das Referenzvideo",
+      "formats": "MP4, MOV oder WebM, bis 50 MB"
+    },
+    "refsLabel": "Referenzen",
+    "refsOptional": "Referenzen · optional",
+    "refsTitle": "Referenzen hinzufügen",
+    "refsUpTo": "Bis zu {{list}}",
+    "addRefMenu": "Referenz hinzufügen",
+    "dropHere": "Hier ablegen",
+    "library": "Bibliothek",
+    "libraryText": "Nutze, was der Workspace schon erzeugt hat, ohne es herunter- und wieder hochzuladen.",
+    "libraryEmpty": {
+      "title": "Hier gibt es noch nichts",
+      "text": "Die Bilder und Videos, die der Workspace erzeugt, erscheinen in dieser Liste."
+    },
+    "libraryUse": "{{name}} verwenden",
+    "play": "{{name}} abspielen",
+    "pause": "{{name}} pausieren",
+    "noRoom": "{{name}} passt nicht in diesen Modus.",
+    "missing": {
+      "firstFrame": "Füge den ersten Frame hinzu",
+      "lastFrame": "Füge den letzten Frame hinzu",
+      "reference": "Füge mindestens eine Referenz hinzu",
+      "videoReference": "Sende das Referenzvideo",
+      "editVideo": "Sende das Video zum Bearbeiten",
+      "extendVideo": "Sende das Video zum Fortsetzen",
+      "prompt": "Beschreibe, was erzeugt werden soll",
+      "uploading": "Warte, bis die Dateien hochgeladen sind"
+    },
     "tooLarge": "{{name}} ist größer als {{size}} MB.",
     "wrongKind": "{{name}} ist keine Datei, die dieses Feld annimmt.",
     "quoting": "Preis wird berechnet…",

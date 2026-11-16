@@ -63,6 +63,12 @@ export const useUploadMediaRef = (orgId: string) => {
   return useMutation({ mutationFn: (file: File) => mediaOf(api).uploadRef(orgId, file) });
 };
 
+/** A generation of the workspace (a Drive file) as a reference, sent to the service by the server. */
+export const useDriveMediaRef = (orgId: string) => {
+  const api = useApi();
+  return useMutation({ mutationFn: (artifactId: string) => mediaOf(api).driveRef(orgId, artifactId) });
+};
+
 /**
  * The price the server quotes, asked only when the form can't work it out itself (a reference video is in it): the
  * service measures the video and applies the Studio's rule.

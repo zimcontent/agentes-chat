@@ -21627,27 +21627,102 @@
     "secondsValue_many": "{{count}} sek.",
     "secondsValue_other": "{{count}} sek.",
     "audio": "Z dźwiękiem",
-    "refs_one": "Obraz referencyjny (maks. {{count}})",
-    "refs_few": "Obrazy referencyjne (maks. {{count}})",
-    "refs_many": "Obrazy referencyjne (maks. {{count}})",
-    "refs_other": "Obrazy referencyjne (maks. {{count}})",
-    "videoRefs_one": "Wideo referencyjne (maks. {{count}})",
-    "videoRefs_few": "Wideo referencyjne (maks. {{count}})",
-    "videoRefs_many": "Wideo referencyjne (maks. {{count}})",
-    "videoRefs_other": "Wideo referencyjne (maks. {{count}})",
-    "audioRefs_one": "Audio referencyjne (maks. {{count}})",
-    "audioRefs_few": "Audio referencyjne (maks. {{count}})",
-    "audioRefs_many": "Audio referencyjne (maks. {{count}})",
-    "audioRefs_other": "Audio referencyjne (maks. {{count}})",
-    "firstFrame": "Pierwsza klatka",
-    "lastFrame": "Ostatnia klatka",
-    "side": "Użyj",
-    "sideFrames": "Klatki",
-    "sideRefs": "Odniesienia",
-    "sideHint": "{{model}} przyjmuje klatki albo odniesienia, nigdy oba naraz.",
-    "addRef": "Dodaj obraz",
-    "addVideo": "Dodaj wideo",
-    "addAudio": "Dodaj audio",
+    "audioKind": "Audio",
+    "input": "Wejście",
+    "modes": {
+      "text": {
+        "label": "Wideo z promptu",
+        "hint": "Tylko prompt. Żaden plik nie jest wysyłany."
+      },
+      "first": {
+        "label": "Pierwsza klatka",
+        "hint": "Wybierz obraz, od którego zaczyna się wideo, i opisz ruch."
+      },
+      "frames": {
+        "label": "Pierwsza i ostatnia klatka",
+        "hint": "Wybierz, jak wideo się zaczyna i kończy. Obie klatki są wymagane."
+      },
+      "references": {
+        "label": "Wiele odniesień",
+        "hint": "Do {{list}}. Napisz w prompcie, do czego służy każde odniesienie."
+      },
+      "video_reference": {
+        "label": "Wideo referencyjne",
+        "hint": "Wideo referencyjne prowadzi ruch i ciągłość."
+      },
+      "edit": {
+        "label": "Edytuj wideo",
+        "hint": "Zmienia wideo tak, jak mówi prompt. Wynik ma jego długość."
+      },
+      "extend": {
+        "label": "Przedłuż wideo",
+        "hint": "Kontynuuje wideo od końca, z tą samą postacią, scenerią i dźwiękiem."
+      }
+    },
+    "nImages_one": "{{count}} obraz",
+    "nImages_few": "{{count}} obrazy",
+    "nImages_many": "{{count}} obrazów",
+    "nImages_other": "{{count}} obrazu",
+    "nVideos_one": "{{count}} wideo",
+    "nVideos_few": "{{count}} wideo",
+    "nVideos_many": "{{count}} wideo",
+    "nVideos_other": "{{count}} wideo",
+    "nAudios_one": "{{count}} plik audio",
+    "nAudios_few": "{{count}} pliki audio",
+    "nAudios_many": "{{count}} plików audio",
+    "nAudios_other": "{{count}} pliku audio",
+    "tally": {
+      "images_one": "Obrazy: {{n}} z {{count}}",
+      "images_few": "Obrazy: {{n}} z {{count}}",
+      "images_many": "Obrazy: {{n}} z {{count}}",
+      "images_other": "Obrazy: {{n}} z {{count}}",
+      "videos_one": "Wideo: {{n}} z {{count}}",
+      "videos_few": "Wideo: {{n}} z {{count}}",
+      "videos_many": "Wideo: {{n}} z {{count}}",
+      "videos_other": "Wideo: {{n}} z {{count}}",
+      "audios_one": "Audio: {{n}} z {{count}}",
+      "audios_few": "Audio: {{n}} z {{count}}",
+      "audios_many": "Audio: {{n}} z {{count}}",
+      "audios_other": "Audio: {{n}} z {{count}}"
+    },
+    "ofMax": "{{n}} z {{max}}",
+    "firstFrameSlot": "Klatka początkowa",
+    "lastFrameSlot": "Klatka końcowa",
+    "required": "Wymagane",
+    "swapFrames": "Zamień klatkę początkową i końcową",
+    "ratioMismatch": "Obie klatki mają różne proporcje. Kadr wideo może przeskoczyć przy cięciu.",
+    "clip": {
+      "edit": "Wyślij wideo do edycji",
+      "extend": "Wyślij wideo do kontynuacji",
+      "follow": "Wyślij wideo referencyjne",
+      "formats": "MP4, MOV lub WebM, do 50 MB"
+    },
+    "refsLabel": "Odniesienia",
+    "refsOptional": "Odniesienia · opcjonalnie",
+    "refsTitle": "Dodaj odniesienia",
+    "refsUpTo": "Do {{list}}",
+    "addRefMenu": "Dodaj odniesienie",
+    "dropHere": "Upuść tutaj",
+    "library": "Biblioteka",
+    "libraryText": "Użyj tego, co workspace już wygenerował, bez pobierania i wysyłania ponownie.",
+    "libraryEmpty": {
+      "title": "Na razie nie ma tu nic do użycia",
+      "text": "Obrazy i wideo wygenerowane w workspace pojawiają się na tej liście."
+    },
+    "libraryUse": "Użyj {{name}}",
+    "play": "Odtwórz {{name}}",
+    "pause": "Wstrzymaj {{name}}",
+    "noRoom": "{{name}} nie mieści się w tym trybie.",
+    "missing": {
+      "firstFrame": "Dodaj klatkę początkową",
+      "lastFrame": "Dodaj klatkę końcową",
+      "reference": "Dodaj co najmniej jedno odniesienie",
+      "videoReference": "Wyślij wideo referencyjne",
+      "editVideo": "Wyślij wideo do edycji",
+      "extendVideo": "Wyślij wideo do kontynuacji",
+      "prompt": "Opisz, co wygenerować",
+      "uploading": "Czekam, aż pliki skończą się wysyłać"
+    },
     "tooLarge": "{{name}} ma więcej niż {{size}} MB.",
     "wrongKind": "{{name}} to nie ten rodzaj pliku, który przyjmuje to pole.",
     "quoting": "Obliczanie ceny…",

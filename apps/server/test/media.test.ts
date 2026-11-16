@@ -7,7 +7,7 @@ import {
   ZimMediaError,
 } from "@agenteschat/adapters";
 import { forgetMediaCatalog } from "@agenteschat/engine";
-import { browser, createTestServer, seedOrg, signUp, type TestServer } from "./harness";
+import { browser, createTestServer, joinByInvitation, seedOrg, signUp, type TestServer } from "./harness";
 
 // The Mídia page's routes (ADR doug-0011): the wallet and catalog through the server only, a person's generation that
 // lands in the Drive, and the top-up's checkout for who manages billing.
@@ -290,4 +290,64 @@ test("a video's frames and references reach the service, and its price is the se
     json: { model: "seedance-2.5", prompt: "x", videoRefs: ["not-a-token"], clientId: "click-0004" },
   });
   expect(bad.status).toBe(400);
+});
+
+test("a Drive file as a reference: sent as the person reads it, refused to who can't read it", async () => {
+  const { zim, state } = fakeZim();
+  const { owner, base, orgId } = await start(zim);
+  const intoDrive = async (bytes: Uint8Array, name: string, type: string, channelId?: string) => {
+    const form = formWith(bytes, name, type);
+    if (channelId) form.append("channelId", channelId);
+    const res = await owner(`${base}/artifacts/files`, { method: "POST", body: form });
+    expect(res.status).toBe(201);
+    return ((await res.json()) as { id: string }).id;
+  };
+  const secret = (await (
+    await owner(`${base}/channels`, { json: { name: "secreto", visibility: "private" } })
+  ).json()) as {
+    id: string;
+  };
+  const picture = await intoDrive(PNG, "garrafa.png", "image/png", secret.id);
+  const clip = await intoDrive(MP4, "clip.mp4", "video/mp4");
+  const words = await intoDrive(new TextEncoder().encode("only words, not a picture"), "notes.txt", "text/plain");
+
+  const use = (who: typeof owner, artifactId: string) => who(`${base}/media/refs/drive`, { json: { artifactId } });
+  const own = await use(owner, picture);
+  expect(own.status).toBe(200);
+  expect(await own.json()).toEqual({ ref: token(1), kind: "image", name: "garrafa.png" });
+  const video = await use(owner, clip);
+  expect(await video.json()).toEqual({ ref: token(2), kind: "video", seconds: 4.5, name: "clip.mp4" });
+  expect(state.uploads).toEqual(["image/png", "video/mp4"]);
+
+  // A file the models don't take is refused by its bytes, before the service hears of it.
+  const text = await use(owner, words);
+  expect(text.status).toBe(400);
+  expect(((await text.json()) as { error: { code: string } }).error.code).toBe("media.ref_type");
+
+  // A member outside the private conversation can't read its file, so can't send it either.
+  const member = await joinByInvitation(t, owner, orgId, "member@example.com");
+  const refused = await use(member, picture);
+  expect([403, 404]).toContain(refused.status);
+  expect((await use(member, clip)).status).toBe(200);
+  expect(state.uploads.length).toBe(3);
+});
+
+test("the page's mode reaches the service, in the price and the generation", async () => {
+  const { zim, state } = fakeZim(5000);
+  const { owner, base } = await start(zim);
+  const ask = { model: "seedance-2.5", videoRefs: [token(1)], refs: [token(2)], mode: "edit" };
+  expect((await owner(`${base}/media/quote`, { json: ask })).status).toBe(200);
+  expect(state.quotes[0]).toMatchObject({ mode: "edit", videoRefs: [token(1)] });
+  const started = await owner(`${base}/media/generations`, {
+    json: { ...ask, prompt: "make it night", clientId: "click-0005" },
+  });
+  expect(started.status).toBe(200);
+  expect(state.requests[0]).toMatchObject({ mode: "edit", videoRefs: [token(1)], refs: [token(2)] });
+  // Left out, the service works it out: nothing is added.
+  await owner(`${base}/media/generations`, { json: { model: "seedance-2.5", prompt: "x", clientId: "click-0006" } });
+  expect(state.requests[1]?.mode).toBeUndefined();
+  const unknown = await owner(`${base}/media/generations`, {
+    json: { ...ask, mode: "zoom", prompt: "x", clientId: "click-0007" },
+  });
+  expect(unknown.status).toBe(400);
 });

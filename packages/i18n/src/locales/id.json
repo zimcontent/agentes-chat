@@ -19846,18 +19846,84 @@
     "seconds": "Durasi",
     "secondsValue_other": "{{count}} dtk",
     "audio": "Dengan suara",
-    "refs_other": "Gambar referensi (hingga {{count}})",
-    "videoRefs_other": "Video referensi (hingga {{count}})",
-    "audioRefs_other": "Audio referensi (hingga {{count}})",
-    "firstFrame": "Frame pertama",
-    "lastFrame": "Frame terakhir",
-    "side": "Gunakan",
-    "sideFrames": "Frame",
-    "sideRefs": "Referensi",
-    "sideHint": "{{model}} menerima frame atau referensi, tidak keduanya sekaligus.",
-    "addRef": "Tambah gambar",
-    "addVideo": "Tambah video",
-    "addAudio": "Tambah audio",
+    "audioKind": "Audio",
+    "input": "Input",
+    "modes": {
+      "text": {
+        "label": "Video dari prompt",
+        "hint": "Hanya prompt. Tidak ada file yang dikirim."
+      },
+      "first": {
+        "label": "Frame pertama",
+        "hint": "Pilih gambar pembuka video dan jelaskan gerakannya."
+      },
+      "frames": {
+        "label": "Frame pertama dan terakhir",
+        "hint": "Pilih bagaimana video dimulai dan diakhiri. Kedua frame wajib."
+      },
+      "references": {
+        "label": "Multi referensi",
+        "hint": "Hingga {{list}}. Sebutkan di prompt fungsi setiap referensi."
+      },
+      "video_reference": {
+        "label": "Referensi video",
+        "hint": "Video referensi memandu gerakan dan kesinambungan."
+      },
+      "edit": {
+        "label": "Edit video",
+        "hint": "Mengubah video sesuai prompt. Hasilnya mengikuti durasinya."
+      },
+      "extend": {
+        "label": "Perpanjang video",
+        "hint": "Melanjutkan video dari akhirnya, dengan karakter, latar, dan suara yang sama."
+      }
+    },
+    "nImages_other": "{{count}} gambar",
+    "nVideos_other": "{{count}} video",
+    "nAudios_other": "{{count}} audio",
+    "tally": {
+      "images_other": "{{n}} dari {{count}} gambar",
+      "videos_other": "{{n}} dari {{count}} video",
+      "audios_other": "{{n}} dari {{count}} audio"
+    },
+    "ofMax": "{{n}} dari {{max}}",
+    "firstFrameSlot": "Frame awal",
+    "lastFrameSlot": "Frame akhir",
+    "required": "Wajib",
+    "swapFrames": "Tukar frame awal dan akhir",
+    "ratioMismatch": "Kedua frame punya rasio berbeda. Video cenderung melompat pembingkaiannya di potongan.",
+    "clip": {
+      "edit": "Kirim video yang akan diedit",
+      "extend": "Kirim video yang akan dilanjutkan",
+      "follow": "Kirim video referensi",
+      "formats": "MP4, MOV, atau WebM, hingga 50 MB"
+    },
+    "refsLabel": "Referensi",
+    "refsOptional": "Referensi · opsional",
+    "refsTitle": "Tambahkan referensi",
+    "refsUpTo": "Hingga {{list}}",
+    "addRefMenu": "Tambahkan referensi",
+    "dropHere": "Lepaskan di sini",
+    "library": "Pustaka",
+    "libraryText": "Gunakan yang sudah dibuat workspace, tanpa mengunduh dan mengirimnya lagi.",
+    "libraryEmpty": {
+      "title": "Belum ada yang bisa dipakai di sini",
+      "text": "Gambar dan video yang dibuat workspace muncul di daftar ini."
+    },
+    "libraryUse": "Gunakan {{name}}",
+    "play": "Putar {{name}}",
+    "pause": "Jeda {{name}}",
+    "noRoom": "{{name}} tidak muat di mode ini.",
+    "missing": {
+      "firstFrame": "Tambahkan frame awal",
+      "lastFrame": "Tambahkan frame akhir",
+      "reference": "Tambahkan setidaknya satu referensi",
+      "videoReference": "Kirim video referensi",
+      "editVideo": "Kirim video yang akan diedit",
+      "extendVideo": "Kirim video yang akan dilanjutkan",
+      "prompt": "Jelaskan apa yang akan dibuat",
+      "uploading": "Menunggu file selesai diunggah"
+    },
     "tooLarge": "{{name}} lebih dari {{size}} MB.",
     "wrongKind": "{{name}} bukan jenis file yang diterima kolom ini.",
     "quoting": "Menghitung harga…",

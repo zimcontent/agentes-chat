@@ -1,4 +1,5 @@
 import {
+  MEDIA_MODES,
   type MediaActor,
   type MediaGeneration,
   type MediaModel,
@@ -6,6 +7,7 @@ import {
   type MediaRef,
   type MediaRefKind,
   type MediaRequest,
+  type MediaRequestMode,
   type ZimMedia,
   ZimMediaError,
 } from "@agenteschat/adapters";
@@ -163,14 +165,31 @@ export function modelAspects(model: MediaModel, quality?: string): string[] {
   return model.aspectsByQuality?.[quality ?? model.defaultQuality] ?? model.aspects;
 }
 
+/** The Studio's modes a model lists at a quality; null when the catalog lists none for it. */
+export function modelModes(model: MediaModel, quality?: string): string[] | null {
+  return model.modesByQuality?.[quality ?? model.defaultQuality] ?? null;
+}
+
 /** Why a request's files don't fit the model, in words for an agent; null when they do. */
 export function inputsRefusal(
   model: MediaModel,
   quality: string | undefined,
   given: { images: number; videos: number; audios: number; firstFrame: boolean; lastFrame: boolean },
+  mode?: MediaRequestMode,
 ): string | null {
   const can = modelInputs(model, quality);
   const at = `${model.label} at ${quality ?? model.defaultQuality}`;
+  if (mode) {
+    const modes = modelModes(model, quality);
+    if (modes && !modes.includes(mode)) return `${at} has no ${mode} mode (it has ${modes.join(", ")}).`;
+    // Edit and extend work on one clip: the one in video_reference_ids.
+    if ((mode === "edit" || mode === "extend") && given.videos !== 1)
+      return `The ${mode} mode takes exactly one video in video_reference_ids.`;
+    if ((mode === "edit" || mode === "extend" || mode === "multi_reference") && (given.firstFrame || given.lastFrame))
+      return `The ${mode} mode takes no opening or closing image.`;
+    if (mode === "text_to_video" && (given.images + given.videos + given.audios > 0 || given.firstFrame))
+      return "The text_to_video mode takes no files.";
+  }
   if (given.lastFrame && !given.firstFrame) return "A last frame needs a first frame too.";
   if (given.firstFrame && !can.firstFrame) return `${at} takes no first frame.`;
   if (given.lastFrame && !can.lastFrame) return `${at} takes no last frame.`;
@@ -232,17 +251,55 @@ async function uploadRefs(
   kind: MediaRefKind,
 ) {
   const tokens: string[] = [];
-  for (const id of artifactIds) {
-    const stored = await storedFileOfArtifact(deps.artifacts, actor, orgId, id);
-    const object = await (await deps.artifacts.blobs.forConfig(orgId, stored.storageConfigId)).get(stored.blobKey);
-    if (!object) throw new ValidationError(`The stored file of ${id} is missing`);
-    const type = mediaRefType(object.body, kind === "audio" ? "audio/" : undefined);
-    if (type?.kind !== kind) throw new ValidationError(`"${stored.name}" isn't ${KIND_WORDS[kind]}`);
-    if (object.body.byteLength > MEDIA_REF_LIMITS[kind])
-      throw new ValidationError(`"${stored.name}" is larger than ${MEDIA_REF_LIMITS[kind] / MIB} MB`);
-    tokens.push((await zim.uploadRef(orgId, object.body, type.contentType)).ref);
-  }
+  for (const id of artifactIds) tokens.push((await driveFileRef(deps, zim, orgId, actor, id, kind)).ref);
   return tokens;
+}
+
+/**
+ * One Drive file sent to the service as a reference, read as `actor` (who can't read it gets the Drive's own
+ * refusal): its kind from its bytes, `kind` when the caller needs one, and each kind's own size limit.
+ */
+async function driveFileRef(
+  deps: MediaDeps,
+  zim: ZimMedia,
+  orgId: string,
+  actor: ArtifactActor,
+  artifactId: string,
+  kind?: MediaRefKind,
+): Promise<MediaRef & { name: string }> {
+  const stored = await storedFileOfArtifact(deps.artifacts, actor, orgId, artifactId);
+  const object = await (await deps.artifacts.blobs.forConfig(orgId, stored.storageConfigId)).get(stored.blobKey);
+  if (!object) throw new ValidationError(`The stored file of ${artifactId} is missing`);
+  // An MP4 is an audio only by its brand, or here by its name when the caller asked for an audio.
+  const audioName = /\.(m4a|aac|mp3|wav|ogg)$/i.test(stored.name);
+  const type = mediaRefType(object.body, kind === "audio" || audioName ? "audio/" : undefined);
+  if (!type || (kind && type.kind !== kind))
+    throw new ValidationError(
+      `"${stored.name}" isn't ${kind ? KIND_WORDS[kind] : "a picture, a video or an audio the models take"}`,
+      "media.ref_type",
+    );
+  if (object.body.byteLength > MEDIA_REF_LIMITS[type.kind])
+    throw new ValidationError(
+      `"${stored.name}" is larger than ${MEDIA_REF_LIMITS[type.kind] / MIB} MB`,
+      "media.ref_too_large",
+    );
+  const ref = await zim.uploadRef(orgId, object.body, type.contentType);
+  return { ...ref, name: stored.name };
+}
+
+/**
+ * A Drive file a person picked on the Mídia page (a generation of the workspace, a picture they keep there), sent to
+ * the service as a reference without coming down to the browser and up again. The Drive decides whether they may
+ * read it.
+ */
+export async function driveMediaRef(
+  deps: MediaDeps,
+  orgId: string,
+  userId: string,
+  artifactId: string,
+): Promise<MediaRef & { name: string }> {
+  const zim = await requireMediaWallet(deps);
+  return driveFileRef(deps, zim, orgId, { type: "person", userId }, artifactId);
 }
 
 /** The picture's type from its first bytes (the name can lie). */
@@ -669,7 +726,13 @@ function videoInputsLine(m: MediaModel): string {
     if (!parts.length) return "the prompt alone";
     return `${parts.join(", ")}${i.framesOrRefs && i.firstFrame && parts.length > 1 ? " (frames or references, never both)" : ""}`;
   };
-  const byQuality = m.qualities.map((q) => [q, say(modelInputs(m, q))] as const);
+  const withModes = (q: string) => {
+    // Edit and extend name themselves: the same one video would otherwise read as a reference.
+    const own = (modelModes(m, q) ?? []).filter((mode) => mode === "edit" || mode === "extend");
+    const line = say(modelInputs(m, q));
+    return own.length ? `${line}; mode ${own.join(" or ")} with one video_reference_ids` : line;
+  };
+  const byQuality = m.qualities.map((q) => [q, withModes(q)] as const);
   if (byQuality.every(([, line]) => line === byQuality[0]?.[1])) return byQuality[0]?.[1] ?? "the prompt alone";
   return byQuality.map(([q, line]) => `at ${q} ${line}`).join("; ");
 }
@@ -713,7 +776,10 @@ function mediaTool(
         quality: { type: "string", description: "One of the model's qualities; its default when left out." },
         aspect: {
           type: "string",
-          description: "Aspect ratio such as 16:9, 9:16 or 1:1; the model's first when left out.",
+          description:
+            kind === "image"
+              ? "Aspect ratio such as 1:1, 16:9 or 9:16; 1:1 when left out."
+              : "Aspect ratio such as 16:9, 9:16 or 1:1; 16:9 when left out.",
         },
         reference_ids: {
           type: "array",
@@ -744,6 +810,12 @@ function mediaTool(
                 items: { type: "string" },
                 maxItems: most("audios"),
                 description: "Drive audios (MP3, WAV, M4A, AAC, OGG, up to 15 MB) to follow.",
+              },
+              mode: {
+                type: "string",
+                enum: [...MEDIA_MODES],
+                description:
+                  "Leave it out unless you edit or continue a clip: the files say what to do. `edit` changes the one video in video_reference_ids as the prompt says (the output follows its length), `extend` continues it from its end. Only where the model lists the mode.",
               },
             }
           : {}),
@@ -778,6 +850,7 @@ function mediaTool(
         if (!zim) return { content: "Media generation isn't available.", isError: true };
         const model = ofKind.find((m) => m.id === str(input.model));
         if (!model) return { content: `Unknown model "${str(input.model)}".`, isError: true };
+        const mode = MEDIA_MODES.find((m) => m === input.mode);
         const drive = {
           refs: ids(input.reference_ids),
           firstFrame: str(input.opening_image_id) || undefined,
@@ -785,13 +858,18 @@ function mediaTool(
           videoRefs: ids(input.video_reference_ids),
           audioRefs: ids(input.audio_reference_ids),
         };
-        const refusal = inputsRefusal(model, str(input.quality) || undefined, {
-          images: drive.refs.length,
-          videos: drive.videoRefs.length,
-          audios: drive.audioRefs.length,
-          firstFrame: Boolean(drive.firstFrame),
-          lastFrame: Boolean(drive.lastFrame),
-        });
+        const refusal = inputsRefusal(
+          model,
+          str(input.quality) || undefined,
+          {
+            images: drive.refs.length,
+            videos: drive.videoRefs.length,
+            audios: drive.audioRefs.length,
+            firstFrame: Boolean(drive.firstFrame),
+            lastFrame: Boolean(drive.lastFrame),
+          },
+          mode,
+        );
         if (refusal) return { content: `${refusal} Pick another model or other files.`, isError: true };
         const spent = await agentMonthSpent(ctx.db, ctx.orgId, ctx.agentId);
         const overAllowance = (credits: number | null): ToolOutput | null =>
@@ -825,6 +903,7 @@ function mediaTool(
             ...(str(input.aspect) ? { aspect: str(input.aspect) } : {}),
             ...(typeof input.seconds === "number" ? { seconds: input.seconds } : {}),
             ...(typeof input.audio === "boolean" ? { audio: input.audio } : {}),
+            ...(mode ? { mode } : {}),
           },
           drive,
         );

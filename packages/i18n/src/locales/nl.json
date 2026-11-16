@@ -20547,21 +20547,90 @@
     "secondsValue_one": "{{count}} sec",
     "secondsValue_other": "{{count}} sec",
     "audio": "Met geluid",
-    "refs_one": "Referentiebeeld (tot {{count}})",
-    "refs_other": "Referentiebeelden (tot {{count}})",
-    "videoRefs_one": "Referentievideo (tot {{count}})",
-    "videoRefs_other": "Referentievideo's (tot {{count}})",
-    "audioRefs_one": "Referentie-audio (tot {{count}})",
-    "audioRefs_other": "Referentie-audio's (tot {{count}})",
-    "firstFrame": "Eerste frame",
-    "lastFrame": "Laatste frame",
-    "side": "Gebruik",
-    "sideFrames": "Frames",
-    "sideRefs": "Referenties",
-    "sideHint": "{{model}} neemt frames of referenties, nooit allebei tegelijk.",
-    "addRef": "Afbeelding toevoegen",
-    "addVideo": "Video toevoegen",
-    "addAudio": "Audio toevoegen",
+    "audioKind": "Audio",
+    "input": "Invoer",
+    "modes": {
+      "text": {
+        "label": "Video uit prompt",
+        "hint": "Alleen de prompt. Er wordt geen bestand verstuurd."
+      },
+      "first": {
+        "label": "Eerste frame",
+        "hint": "Kies het beeld waarmee de video opent en beschrijf de beweging."
+      },
+      "frames": {
+        "label": "Eerste en laatste frame",
+        "hint": "Kies hoe de video begint en eindigt. Beide frames zijn verplicht."
+      },
+      "references": {
+        "label": "Meerdere referenties",
+        "hint": "Tot {{list}}. Zeg in de prompt waarvoor elke referentie dient."
+      },
+      "video_reference": {
+        "label": "Videoreferentie",
+        "hint": "Een referentievideo stuurt de beweging en de continuïteit."
+      },
+      "edit": {
+        "label": "Video bewerken",
+        "hint": "Verandert de video zoals de prompt zegt. De uitvoer volgt de lengte ervan."
+      },
+      "extend": {
+        "label": "Video verlengen",
+        "hint": "Gaat verder vanaf het einde van de video, met hetzelfde personage, decor en geluid."
+      }
+    },
+    "nImages_one": "{{count}} afbeelding",
+    "nImages_other": "{{count}} afbeeldingen",
+    "nVideos_one": "{{count}} video",
+    "nVideos_other": "{{count}} video's",
+    "nAudios_one": "{{count}} audio",
+    "nAudios_other": "{{count}} audio's",
+    "tally": {
+      "images_one": "{{n}} van {{count}} afbeelding",
+      "images_other": "{{n}} van {{count}} afbeeldingen",
+      "videos_one": "{{n}} van {{count}} video",
+      "videos_other": "{{n}} van {{count}} video's",
+      "audios_one": "{{n}} van {{count}} audio",
+      "audios_other": "{{n}} van {{count}} audio's"
+    },
+    "ofMax": "{{n}} van {{max}}",
+    "firstFrameSlot": "Beginframe",
+    "lastFrameSlot": "Eindframe",
+    "required": "Verplicht",
+    "swapFrames": "Begin- en eindframe omwisselen",
+    "ratioMismatch": "De twee frames hebben verschillende verhoudingen. De video verspringt dan vaak van kader bij de overgang.",
+    "clip": {
+      "edit": "Stuur de video om te bewerken",
+      "extend": "Stuur de video om voort te zetten",
+      "follow": "Stuur de referentievideo",
+      "formats": "MP4, MOV of WebM, tot 50 MB"
+    },
+    "refsLabel": "Referenties",
+    "refsOptional": "Referenties · optioneel",
+    "refsTitle": "Referenties toevoegen",
+    "refsUpTo": "Tot {{list}}",
+    "addRefMenu": "Referentie toevoegen",
+    "dropHere": "Hier neerzetten",
+    "library": "Bibliotheek",
+    "libraryText": "Gebruik wat de workspace al heeft gemaakt, zonder het te downloaden en opnieuw te uploaden.",
+    "libraryEmpty": {
+      "title": "Hier is nog niets te gebruiken",
+      "text": "De afbeeldingen en video's die de workspace maakt, verschijnen in deze lijst."
+    },
+    "libraryUse": "{{name}} gebruiken",
+    "play": "{{name}} afspelen",
+    "pause": "{{name}} pauzeren",
+    "noRoom": "{{name}} past niet in deze modus.",
+    "missing": {
+      "firstFrame": "Voeg het beginframe toe",
+      "lastFrame": "Voeg het eindframe toe",
+      "reference": "Voeg minstens één referentie toe",
+      "videoReference": "Stuur de referentievideo",
+      "editVideo": "Stuur de video om te bewerken",
+      "extendVideo": "Stuur de video om voort te zetten",
+      "prompt": "Beschrijf wat je wilt maken",
+      "uploading": "Wachten tot de bestanden klaar zijn met uploaden"
+    },
     "tooLarge": "{{name}} is groter dan {{size}} MB.",
     "wrongKind": "{{name}} is niet het soort bestand dat dit veld neemt.",
     "quoting": "Prijs berekenen…",

@@ -20299,21 +20299,90 @@
     "secondsValue_one": "{{count}} sn",
     "secondsValue_other": "{{count}} sn",
     "audio": "Sesli",
-    "refs_one": "Referans görsel (en fazla {{count}})",
-    "refs_other": "Referans görseller (en fazla {{count}})",
-    "videoRefs_one": "Referans video (en fazla {{count}})",
-    "videoRefs_other": "Referans videolar (en fazla {{count}})",
-    "audioRefs_one": "Referans ses (en fazla {{count}})",
-    "audioRefs_other": "Referans sesler (en fazla {{count}})",
-    "firstFrame": "İlk kare",
-    "lastFrame": "Son kare",
-    "side": "Kullan",
-    "sideFrames": "Kareler",
-    "sideRefs": "Referanslar",
-    "sideHint": "{{model}} kare ya da referans alır, ikisini birlikte almaz.",
-    "addRef": "Görsel ekle",
-    "addVideo": "Video ekle",
-    "addAudio": "Ses ekle",
+    "audioKind": "Ses",
+    "input": "Girdi",
+    "modes": {
+      "text": {
+        "label": "Prompttan video",
+        "hint": "Yalnızca prompt. Hiçbir dosya gönderilmez."
+      },
+      "first": {
+        "label": "İlk kare",
+        "hint": "Videoyu açan görseli seç ve hareketi anlat."
+      },
+      "frames": {
+        "label": "İlk ve son kare",
+        "hint": "Videonun nasıl başlayıp bittiğini seç. İki kare de zorunlu."
+      },
+      "references": {
+        "label": "Çoklu referans",
+        "hint": "En fazla {{list}}. Her referansın ne için olduğunu promptta söyle."
+      },
+      "video_reference": {
+        "label": "Video referansı",
+        "hint": "Bir referans video hareketi ve sürekliliği yönlendirir."
+      },
+      "edit": {
+        "label": "Videoyu düzenle",
+        "hint": "Videoyu promptun dediği gibi değiştirir. Çıktı onun süresini izler."
+      },
+      "extend": {
+        "label": "Videoyu uzat",
+        "hint": "Videoyu sonundan, aynı karakter, mekân ve sesle sürdürür."
+      }
+    },
+    "nImages_one": "{{count}} görsel",
+    "nImages_other": "{{count}} görsel",
+    "nVideos_one": "{{count}} video",
+    "nVideos_other": "{{count}} video",
+    "nAudios_one": "{{count}} ses",
+    "nAudios_other": "{{count}} ses",
+    "tally": {
+      "images_one": "{{count}} görselden {{n}}",
+      "images_other": "{{count}} görselden {{n}}",
+      "videos_one": "{{count}} videodan {{n}}",
+      "videos_other": "{{count}} videodan {{n}}",
+      "audios_one": "{{count}} sesten {{n}}",
+      "audios_other": "{{count}} sesten {{n}}"
+    },
+    "ofMax": "{{n}}/{{max}}",
+    "firstFrameSlot": "Başlangıç karesi",
+    "lastFrameSlot": "Bitiş karesi",
+    "required": "Zorunlu",
+    "swapFrames": "Başlangıç ve bitiş karelerini değiştir",
+    "ratioMismatch": "İki karenin oranları farklı. Video kesmede kadrajı atlatabilir.",
+    "clip": {
+      "edit": "Düzenlenecek videoyu gönder",
+      "extend": "Sürdürülecek videoyu gönder",
+      "follow": "Referans videoyu gönder",
+      "formats": "MP4, MOV veya WebM, en fazla 50 MB"
+    },
+    "refsLabel": "Referanslar",
+    "refsOptional": "Referanslar · isteğe bağlı",
+    "refsTitle": "Referans ekle",
+    "refsUpTo": "En fazla {{list}}",
+    "addRefMenu": "Referans ekle",
+    "dropHere": "Buraya bırak",
+    "library": "Kitaplık",
+    "libraryText": "Çalışma alanının zaten ürettiklerini indirip yeniden yüklemeden kullan.",
+    "libraryEmpty": {
+      "title": "Burada henüz kullanılacak bir şey yok",
+      "text": "Çalışma alanının ürettiği görseller ve videolar bu listede görünür."
+    },
+    "libraryUse": "{{name}} kullan",
+    "play": "{{name}} oynat",
+    "pause": "{{name}} duraklat",
+    "noRoom": "{{name}} bu moda sığmıyor.",
+    "missing": {
+      "firstFrame": "Başlangıç karesini ekle",
+      "lastFrame": "Bitiş karesini ekle",
+      "reference": "En az bir referans ekle",
+      "videoReference": "Referans videoyu gönder",
+      "editVideo": "Düzenlenecek videoyu gönder",
+      "extendVideo": "Sürdürülecek videoyu gönder",
+      "prompt": "Ne üretileceğini anlat",
+      "uploading": "Dosyaların yüklenmesi bekleniyor"
+    },
     "tooLarge": "{{name}} {{size}} MB'tan büyük.",
     "wrongKind": "{{name}} bu alanın aldığı türde bir dosya değil.",
     "quoting": "Fiyat hesaplanıyor…",
