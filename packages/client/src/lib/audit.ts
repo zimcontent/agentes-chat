@@ -77,6 +77,10 @@ export function auditPhrase(t: TFunction, row: AuditRow, locale?: string): strin
   if (row.action === "agent.merged_without_asking") {
     return t("audit.change.mergedWithoutAsking", { repo: row.target.id ?? "" });
   }
+  // A post an administrator approved in the client's place at the approval portal (ADR 9001 §19).
+  if (row.action === "portal.approved_for_client") {
+    return t("audit.change.portalApprovedForClient", { title: auditStr(row.details.title) ?? "" });
+  }
   const [area = "", rest = ""] = row.action.split(".");
   if (area === "approval") {
     const status = (["approved", "refused", "expired"] as const).find((s) => s === rest);

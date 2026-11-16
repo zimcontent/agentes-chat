@@ -1621,6 +1621,8 @@ export interface ApiClient {
      * stays `approved` with its date until then.
      */
     schedule(orgId: string, client: string, itemId: string, scheduledFor: string): Promise<void>;
+    /** An administrator approves a post in the client's place, with the reason, when the client went quiet. */
+    approveForClient(orgId: string, client: string, itemId: string, note?: string): Promise<void>;
     /** A client's strategic schedule: its lists with their cards, the cards in no list, the labels. */
     plan(orgId: string, client: string): Promise<PortalPlan>;
     /** The caller's own open work by production day. */
