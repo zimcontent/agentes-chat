@@ -24,6 +24,7 @@ import {
   listThreads,
   openAgentDm,
   openPersonAgentDm,
+  openTaskConversation,
   pendingReturns,
   postPersonMessage,
   RIGHT_HAND,
@@ -39,6 +40,7 @@ import {
   wakeFollowUp,
 } from "../src";
 import { advance, decideTurnEnd, type TurnEnd, toolsNamed } from "../src/continuation";
+import { personCanPost } from "../src/routine-state";
 import { addMember, type Fixture, setup } from "./fixtures";
 
 /**
@@ -480,6 +482,57 @@ test("at its time, an agent no longer in the conversation, or for a person who l
   expect(await wakeFollowUp({ db: f.db, pubsub: f.pubsub }, f.org.id, forAgent)).toBeNull();
   expect(await lineState(f, forAgent)).toBe("canceled");
   expect((await f.db.select().from(schema.agentRuns)).length).toBe(1);
+});
+
+test("in a task's conversation, read by people who are never its members, a follow-up still comes at its time", async () => {
+  f = await setup({ followUps: true });
+  const bia = await addMember(f.db, f.org.id, "member", "bia");
+  const asBia = { type: "person" as const, userId: bia.id };
+  const issue = await createIssue({ db: f.db, pubsub: f.pubsub }, asBia, f.org.id, {
+    title: "Migrate the build cache",
+    assignee: { type: "agent", id: f.agent.id },
+  });
+  const at = await openTaskConversation(f.db, asBia, f.org.id, issue.id);
+  await postPersonMessage({ db: f.db, pubsub: f.pubsub }, bia.id, f.org.id, at.channelId, {
+    body: "@dev keep an eye on the migration and tell me",
+    threadId: at.rootId,
+  });
+  await drainOutbox(f.db, f.handlers);
+  const [run] = await f.db.select().from(schema.agentRuns);
+  if (!run) throw new Error("no run");
+  const id = await setFollowUp(f, run.id, 5);
+  expect(id).not.toBe("");
+
+  expect(await wakeFollowUp({ db: f.db, pubsub: f.pubsub }, f.org.id, id)).not.toBeNull();
+  expect(await lineState(f, id)).toBe("done");
+  await drainOutbox(f.db, f.handlers);
+  const runs = await f.db.select().from(schema.agentRuns).where(eq(schema.agentRuns.agentId, f.agent.id));
+  expect(runs.length).toBe(2);
+});
+
+test("a task's reader may post in its conversation; a non-reader, an archived one or a post denied may not", async () => {
+  f = await setup();
+  const bia = await addMember(f.db, f.org.id, "member", "bia");
+  const ana = { type: "person" as const, userId: f.owner.id };
+  const open = await createIssue({ db: f.db, pubsub: f.pubsub }, ana, f.org.id, { title: "Rotate the staging keys" });
+  const shut = await createIssue({ db: f.db, pubsub: f.pubsub }, ana, f.org.id, {
+    title: "Plan the offsite",
+    audience: { mode: "people", userIds: [f.owner.id] },
+  });
+  const openAt = await openTaskConversation(f.db, ana, f.org.id, open.id);
+  const shutAt = await openTaskConversation(f.db, ana, f.org.id, shut.id);
+
+  expect(await personCanPost(f.db, f.org.id, bia.id, openAt.channelId)).toBe(true);
+  expect(await personCanPost(f.db, f.org.id, bia.id, shutAt.channelId)).toBe(false);
+  expect(await personCanPost(f.db, f.org.id, f.owner.id, shutAt.channelId)).toBe(true);
+
+  await f.db
+    .insert(schema.channelPermissionOverrides)
+    .values({ orgId: f.org.id, channelId: openAt.channelId, userId: bia.id, deny: ["post"] });
+  expect(await personCanPost(f.db, f.org.id, bia.id, openAt.channelId)).toBe(false);
+
+  await f.db.update(schema.channels).set({ archivedAt: new Date() }).where(eq(schema.channels.id, shutAt.channelId));
+  expect(await personCanPost(f.db, f.org.id, f.owner.id, shutAt.channelId)).toBe(false);
 });
 
 test("in a channel's timeline the follow-ups are each person's: cancel_follow_up and the limit count only theirs", async () => {

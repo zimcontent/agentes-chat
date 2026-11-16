@@ -18,7 +18,7 @@ import { scheduleOnRN } from "react-native-worklets";
 import { DB_FONTES } from "@/brand/tokens";
 import { Dither } from "@/sky/Dither";
 import { softTones } from "@/sky/math";
-import { Glass, haptics, PressScale, Text, useReducedMotion, useTheme } from "@/ui";
+import { Glass, haptics, liquidHere, PressScale, Text, useReducedMotion, useTheme } from "@/ui";
 
 /** The pill's own padding, the face's box and the gaps: the face sits in the capsule's curve. */
 /** DougBot: a glass piece 48 tall, radius 16, the face 32 at 8 from the edge (16 − 8 = 8, concentric). No pill. */
@@ -151,7 +151,7 @@ export function HeaderPill({
     open.value = withTiming(closed ? 0 : 1, { duration: closed ? 120 : 200, easing: EASE_OUT });
   }, [closed, open]);
   useEffect(() => {
-    if (working && !reduced) {
+    if (working && !reduced && !liquidHere) {
       breath.value = withRepeat(
         withSequence(
           withTiming(BREATH_SCALE, { duration: BREATH_MS, easing: BREATH_EASE }),

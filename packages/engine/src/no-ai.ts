@@ -1,7 +1,7 @@
 import type { PubSub } from "@agenteschat/adapters";
 import { and, type Database, desc, type Executor, eq, gt, inArray, isNull, schema, sql } from "@agenteschat/db";
 import { aiConnectIntent, type ConnectIntent } from "./ai-intent";
-import { type AgentAi, type AiStatusDeps, agentAiState, type NoAiReason, orgHasAi } from "./ai-status";
+import { type AgentAi, type AiStatusDeps, agentAiState, NO_AI_REASONS, orgHasAi } from "./ai-status";
 import { audienceError, canTalkTo, type Speaker, speakerFor } from "./audience";
 import { recordAudit } from "./audit";
 import { BRAIN_NAMES } from "./brains/types";
@@ -67,7 +67,8 @@ const cliFailedText = (why: string) => `I can't answer now: my plan's AI stopped
  * `plan_unattended`: the right hand's run nobody is behind, on a plan that answers only its owner: no one's own plan
  * would answer it, so the card never says to connect one.
  */
-export type NoAiCardReason = NoAiReason | "plan_hold" | "plan_unattended";
+export const NO_AI_CARD_REASONS = [...NO_AI_REASONS, "plan_hold", "plan_unattended"] as const;
+export type NoAiCardReason = (typeof NO_AI_CARD_REASONS)[number];
 
 /** A conversation gets the card again only after this long (per agent; once while the organization has no AI). */
 export const NO_AI_CARD_EVERY_MS = 6 * 3600_000;

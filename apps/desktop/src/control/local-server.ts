@@ -27,7 +27,10 @@ export interface LocalServerStatus {
   reach: boolean;
   /** Usage statistics on (`TELEMETRY`). */
   usage: boolean;
-  version: string | null;
+  /** The installed bundle's version, even while the server is stopped or restarting. */
+  installedVersion: string | null;
+  /** The package version reported by the running local server. */
+  serverVersion: string | null;
   dir: string;
   /** The person's name on this computer (the welcome window only). */
   systemName: string | null;
@@ -46,6 +49,10 @@ export interface LocalServerStatus {
   backups: LocalBackups;
   /** This Mac doesn't sleep while it runs (`caffeinate`). */
   awake: boolean;
+  /** Where "Erase and start over" moves its folder today (the app's own install only). */
+  eraseTo: string | null;
+  /** Where an erase moved its folder, until a new setup makes one again. */
+  erased: string | null;
 }
 
 export interface LocalBackups {
@@ -128,7 +135,8 @@ export const NO_SERVER: LocalServerStatus = {
   publicUrl: null,
   reach: false,
   usage: true,
-  version: null,
+  installedVersion: null,
+  serverVersion: null,
   dir: "~/.agentes",
   systemName: null,
   serving: false,
@@ -139,6 +147,8 @@ export const NO_SERVER: LocalServerStatus = {
   tailnetDown: false,
   backups: { nightly: true, copyTo: null, files: [], problem: null },
   awake: false,
+  eraseTo: null,
+  erased: null,
 };
 
 /** "Setting it up", in order; access from other devices only when it was asked for. */

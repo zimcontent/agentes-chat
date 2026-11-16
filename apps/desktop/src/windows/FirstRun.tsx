@@ -180,7 +180,8 @@ export function FirstRun({ start }: { start?: FirstScreen } = {}) {
       .welcomeMode()
       .then((mode) => {
         setAdding(mode === "add");
-        // No account left on the server the app runs: straight to Run here's form, which makes the new owner.
+        // No account left on the server the app runs, or it was just erased: straight to Run here's form, which
+        // makes the new owner.
         const at = screenRef.current;
         if (mode !== "owner" || at === "link" || at === "pair" || settingUp.current) return;
         setTrail(["choose"]);
@@ -932,7 +933,9 @@ function RunHere({
           ? t("desktop.here.again", { path: shortPath(status.dir) })
           : ownerless(status)
             ? t("desktop.here.ownerNone")
-            : t("desktop.here.how")}
+            : status.erased
+              ? t("desktop.server.erased", { path: shortPath(status.erased) })
+              : t("desktop.here.how")}
       </p>
       <form className="dk-fr__here" onSubmit={submit} noValidate>
         {view.ask && (

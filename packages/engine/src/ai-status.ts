@@ -29,24 +29,26 @@ export type AiState = "ready" | "no_ai" | "waiting";
  * the region that model needs), the plan answers only its owner, the computer's runner needs an update, commands or
  * the CLI are off there, or the plan's CLI there offers tools of its own (`rightHandNoAiReason`).
  */
-export type NoAiReason =
-  | "no_key"
-  | "not_signed_in"
-  | "no_computer"
-  | "cli_missing"
-  | "computer_away"
-  | "computer_failed"
-  | "cli_failed"
-  | "plan_limit"
-  | "model_limit"
-  | "model_region"
-  | "model_off"
-  | "plan_inactive"
-  | "commands_off"
-  | "plan_not_shared"
-  | "plans_not_yours"
-  | "runner_outdated"
-  | "plan_tools";
+export const NO_AI_REASONS = [
+  "no_key",
+  "not_signed_in",
+  "no_computer",
+  "cli_missing",
+  "computer_away",
+  "computer_failed",
+  "cli_failed",
+  "plan_limit",
+  "model_limit",
+  "model_region",
+  "model_off",
+  "plan_inactive",
+  "commands_off",
+  "plan_not_shared",
+  "plans_not_yours",
+  "runner_outdated",
+  "plan_tools",
+] as const;
+export type NoAiReason = (typeof NO_AI_REASONS)[number];
 
 export interface AgentAi {
   state: AiState;
