@@ -5377,6 +5377,9 @@ export const en = {
     mission: "<b>{{name}}</b> needs you in a mission",
     seeAll: "See all",
     action: { review: "Review", answer: "Answer", open: "Open" },
+    /** A row of "Waiting on you"'s right click: it leaves the tile and the inbox (into Done). */
+    markRead: "Mark as read",
+    setAside: "Marked as read",
     calm: { title: "All caught up", text: "Your agents will tell you here when they need you." },
     /** One line back to the right hand's first-run checklist while a row is left (ADR 0155 §6). */
     firstRun: "Pick up where you left off · {{done}} of {{total}}",

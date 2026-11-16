@@ -4978,6 +4978,8 @@
       "answer": "Yanıtla",
       "open": "Aç"
     },
+    "markRead": "Okundu olarak işaretle",
+    "setAside": "Okundu olarak işaretlendi",
     "calm": {
       "title": "Her şey yolunda",
       "text": "Ajanlarınız size ihtiyaç duyduklarında burada haber verecek."

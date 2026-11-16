@@ -276,11 +276,27 @@ describe("Início", () => {
     expect(document.querySelector(".home-continue")).toBeNull();
     expect(screen().queryByText("Tudo em dia")).toBeNull();
 
-    // A row opens where the inbox would, and reads the item.
+    // A row opens where the inbox would, and stays: only "Marcar como lido" takes it out.
     await click(within(rows("Esperando você")[1] as HTMLElement).getByRole("button"));
     await settle();
     expect(router.state.location.pathname).toBe(`/org/${ORG_ID}/approvals`);
-    expect(state.calls).toContainEqual({ method: "notifications.read", args: [ORG_ID, "n-approval", true] });
+    expect(state.calls.some((c) => c.method === "notifications.read")).toBe(false);
+  });
+
+  test("a waiting row's right click: Marcar como lido takes it out of Esperando você, with Desfazer", async () => {
+    const { api, state } = busy();
+    await renderApp(`/org/${ORG_ID}/home`, { api });
+    await settle(4);
+    expect(rows("Esperando você")).toHaveLength(4);
+    const row = rows("Esperando você")[1] as HTMLElement;
+    await act(async () => fireEvent.contextMenu(within(row).getByRole("button"), { clientX: 40, clientY: 60 }));
+    await settle(2);
+    const menu = screen().getByRole("menu");
+    await click(within(menu).getByRole("menuitem", { name: "Marcar como lido" }));
+    await settle(4);
+    expect(state.calls).toContainEqual({ method: "notifications.done", args: [ORG_ID, "n-approval", true] });
+    expect(rows("Esperando você")).toHaveLength(3);
+    expect(screen().getByText("Marcado como lido")).toBeTruthy();
   });
 
   test("while Doug's first-run checklist has a row left: one line back to it, never a second list (ADR 0155 §6)", async () => {

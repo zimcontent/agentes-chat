@@ -785,7 +785,8 @@ describe("a board's notices in Waiting on you", () => {
     expect(router.state.location.pathname).toBe(`/org/${ORG_ID}/home`);
     expect((router.state.location.search as { widget?: string }).widget).toBe(s.sales.id);
     expect(screen().getByRole("dialog", { name: "Vendas hoje" })).toBeTruthy();
-    expect(state.calls).toContainEqual({ method: "notifications.read", args: [ORG_ID, "n-alert", true] });
+    // Opening keeps it in Waiting on you: only its right click's "Marcar como lido" takes it out.
+    expect(state.calls.some((c) => c.method === "notifications.read")).toBe(false);
   });
 
   test("in the inbox too: a dashboard's chip, and the request decided in its row", async () => {
