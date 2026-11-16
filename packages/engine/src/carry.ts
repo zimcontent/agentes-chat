@@ -1,5 +1,6 @@
 import type { KeyWrapper, PubSub } from "@agenteschat/adapters";
 import { and, asc, type Database, eq, inArray, isNotNull, isNull, schema } from "@agenteschat/db";
+import { linkTwins } from "./agent-twins";
 import { type Agent, createAgent, NEW_AGENT_DEFAULTS, takenHandles } from "./agents";
 import { recordAudit } from "./audit";
 import { caches } from "./cache";
@@ -446,24 +447,65 @@ async function carryConnection(
   return row;
 }
 
-/** One of the source's skills as `target`'s: the one it has by that name, else a copy with its files. */
-async function carrySkill(deps: SkillDeps, actorId: string, targetOrgId: string, s: SkillRow) {
+/**
+ * One of the source's skills as `target`'s: the one it has by that name, else a copy with its files. `replace` (the
+ * copies of one agent, ADR doug-0013): the one it has takes the source's text and files as a new version, as an edit
+ * by hand would.
+ */
+export async function carrySkill(
+  deps: SkillDeps,
+  actorId: string,
+  targetOrgId: string,
+  s: SkillRow,
+  options: { replace?: boolean } = {},
+) {
   const [existing] = await deps.db
-    .select({ id: skills.id })
+    .select()
     .from(skills)
-    .where(and(eq(skills.orgId, targetOrgId), eq(skills.slug, s.slug), isNull(skills.deletedAt)));
-  if (existing) return { id: existing.id, copied: false };
+    .where(
+      and(eq(skills.orgId, targetOrgId), eq(skills.slug, s.slug), isNull(skills.deletedAt), isNull(skills.ownerUserId)),
+    );
+  if (existing && !options.replace) return { id: existing.id, copied: false };
   const files = await skillFolderFiles(deps, s);
   const saved = await saveSkill(deps, actorId, targetOrgId, {
     name: s.slug,
     description: s.description,
     body: s.body,
     metadata: s.metadata,
-    source: s.source === "url" ? "url" : s.source === "manual" ? "manual" : "upload",
-    sourceUrl: s.sourceUrl,
+    ...(existing
+      ? { source: "manual" as const, sourceUrl: existing.sourceUrl }
+      : {
+          source:
+            s.source === "url" ? ("url" as const) : s.source === "manual" ? ("manual" as const) : ("upload" as const),
+          sourceUrl: s.sourceUrl,
+        }),
     files: files.map((f) => ({ path: f.path, data: f.data })),
   });
-  return { id: saved.id, copied: true };
+  return { id: saved.id, copied: !existing };
+}
+
+/**
+ * `c`, a connection of another workspace, as `targetOrgId`'s (ADR doug-0013): the one there already (brought before,
+ * the same account), else brought now by `actorId` as "Trazer de outro workspace" would. Null: it can't come (not
+ * theirs to bring, blocked, no one to bring it).
+ */
+export async function connectionIn(
+  deps: CarryDeps,
+  actorId: string | null,
+  targetOrgId: string,
+  c: ConnectorConnection,
+): Promise<string | null> {
+  const here = twinOf(await liveConnections(deps.connectors.db, [targetOrgId]), c);
+  if (here) return here.id;
+  if (!actorId) return null;
+  try {
+    const result = await carryOver(deps, actorId, targetOrgId, { connectionIds: [c.id] });
+    return result.connections[0]?.id ?? null;
+  } catch (error) {
+    if (error instanceof ForbiddenError || error instanceof ValidationError || error instanceof ConflictError)
+      return null;
+    throw error;
+  }
 }
 
 /**
@@ -634,6 +676,16 @@ export async function carryOver(
     }
     const taken = await takenHandles(db, targetOrgId);
     if (taken.has(a.handle)) {
+      // The same agent is here already: from now on the two are trained as one (ADR doug-0013).
+      const [there] = await db
+        .select({ id: agents.id, builtin: agents.builtin })
+        .from(agents)
+        .where(and(eq(agents.orgId, targetOrgId), eq(agents.handle, a.handle), isNull(agents.deletedAt)));
+      if (there && !there.builtin) {
+        await linkTwins(db, actorId, [a.id, there.id]).catch((error) => {
+          if (!(error instanceof ValidationError)) throw error;
+        });
+      }
       result.skipped.push({ kind: "agent", id: a.id, label: a.name, reason: "here" });
       continue;
     }
@@ -688,6 +740,8 @@ export async function carryOver(
       target: { type: "agent", id: made.id },
       details: { name: made.name, handle: made.handle, from: source.orgName, skills: theirs.length },
     });
+    // From here on it is one agent in both workspaces, trained as one (ADR doug-0013).
+    await linkTwins(db, actorId, [a.id, made.id]);
     result.agents.push({ sourceId: a.id, id: made.id, name: made.name, handle: made.handle });
   }
   caches.scopes.deletePrefix(`${targetOrgId}:`);

@@ -2322,6 +2322,28 @@ export interface CarrySourceKey {
   here: boolean;
 }
 
+/** The same agent in another of the person's workspaces (ADR doug-0013). */
+export interface AgentTwinCopy {
+  agentId: string;
+  orgId: string;
+  orgName: string;
+  name: string;
+  handle: string;
+}
+
+/** One agent in several workspaces, trained as one: its copies, the ones that can join, what didn't reach a copy. */
+export interface AgentTwins {
+  copies: AgentTwinCopy[];
+  /** Copies in workspaces the person isn't in. */
+  hidden: number;
+  /** Agents of its handle in the person's other workspaces (where they manage agents) that can join. */
+  candidates: AgentTwinCopy[];
+  /** Taken out on purpose: it isn't joined on its own again. */
+  off: boolean;
+  syncedAt: string | null;
+  missing: { orgName: string; kind: "connection" | "skill"; label: string }[];
+}
+
 /** What bringing did: what came, what was here already and what stayed behind, with why. */
 export interface CarryResult {
   connections: { sourceId: string; id: string; label: string; outcome: "brought" | "here" }[];

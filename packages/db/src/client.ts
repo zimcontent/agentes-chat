@@ -379,6 +379,21 @@ export const EXTRA_COLUMNS = [
   )`,
   `CREATE INDEX IF NOT EXISTS "media_generations_org" ON "media_generations" ("org_id", "created_at")`,
   `CREATE INDEX IF NOT EXISTS "media_generations_agent" ON "media_generations" ("agent_id", "created_at")`,
+  // One agent in several workspaces, trained as one (ADR doug-0013).
+  `CREATE TABLE IF NOT EXISTS "agent_twins" (
+    "id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+    "created_by_user_id" text REFERENCES "users"("id") ON DELETE set null,
+    "base" jsonb DEFAULT '{}'::jsonb NOT NULL,
+    "fingerprint" text,
+    "syncing_until" timestamp with time zone,
+    "synced_at" timestamp with time zone,
+    "created_at" timestamp with time zone DEFAULT now() NOT NULL
+  )`,
+  `ALTER TABLE "agents" ADD COLUMN IF NOT EXISTS "twin_id" uuid REFERENCES "agent_twins"("id") ON DELETE set null`,
+  `ALTER TABLE "agents" ADD COLUMN IF NOT EXISTS "twin_off" boolean DEFAULT false NOT NULL`,
+  `CREATE INDEX IF NOT EXISTS "agents_twin_id_index" ON "agents" ("twin_id")`,
+  `ALTER TABLE "context_items" ADD COLUMN IF NOT EXISTS "twin_key" uuid`,
+  `CREATE INDEX IF NOT EXISTS "context_items_twin_key_index" ON "context_items" ("twin_key")`,
 ];
 
 /** The advisory lock every process takes around its migrations (`DatabaseHandle.migrate`). */

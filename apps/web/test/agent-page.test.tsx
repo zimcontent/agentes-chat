@@ -566,6 +566,39 @@ describe("agent page: inline editing and the save bar", () => {
     expect(saveBar()).toBeNull();
   });
 
+  test("its copies in the person's other workspaces, trained as one; an agent of its handle joins with one click", async () => {
+    const state = seedState();
+    const copy = (n: number, orgName: string) => ({
+      agentId: `00000000-0000-4000-8000-00000000d${n}00`,
+      orgId: `00000000-0000-4000-8000-00000000e${n}00`,
+      orgName,
+      name: "Ada",
+      handle: "ada",
+    });
+    state.agentTwins = {
+      [ADA_ID]: {
+        copies: [copy(1, "Cliente Lexeer")],
+        hidden: 0,
+        candidates: [copy(2, "ConsigBOT")],
+        off: false,
+        syncedAt: NOW.toISOString(),
+        missing: [{ orgName: "Cliente Lexeer", kind: "connection", label: "Figma" }],
+      },
+    };
+    await go("", state);
+    await openTab(/^Configurações/);
+    const card = screen().getByRole("region", { name: "Nos seus outros workspaces" });
+    expect(card.textContent).toContain("Cliente Lexeer");
+    expect(card.textContent).toContain("@ada · Treinado junto com este");
+    expect(card.textContent).toContain("Não chegou ao Cliente Lexeer: Figma.");
+    expect(card.textContent).toContain("Mesmo treinamento em todos, conferido");
+    await click(within(card).getByRole("button", { name: "Treinar junto" }));
+    expect(state.calls.some((c) => c.method === "carry.joinTwin")).toBe(true);
+    expect(card.textContent).not.toContain("Mesmo @, treinado à parte");
+    await click(within(card).getByRole("button", { name: "Treinar só aqui" }));
+    expect(state.calls.some((c) => c.method === "carry.leaveTwin")).toBe(true);
+  });
+
   test("Salvar: one PATCH, one access write for every level, the channels kept, then a toast", async () => {
     const { state } = await go("?tab=access");
     const github = screen().getByRole("radiogroup", { name: "Nível em GitHub" });

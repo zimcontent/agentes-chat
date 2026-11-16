@@ -152,6 +152,11 @@ export const contextItems = pgTable(
     createdById: text(),
     /** A proposal was already made from this item. */
     proposedAt: timestamp({ withTimezone: true }),
+    /**
+     * The same memory in the copies of one agent across workspaces (ADR doug-0013): every copy of an item shares it.
+     * Null: never copied. Created by `EXTRA_COLUMNS`.
+     */
+    twinKey: uuid(),
     createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
   },
