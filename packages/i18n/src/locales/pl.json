@@ -13613,6 +13613,7 @@
     "text": "To, co masz połączone w innej przestrzeni roboczej, przychodzi gotowe, bez ponownego logowania.",
     "none": "Nie ma jeszcze nic do przeniesienia. To, co połączysz w jednej przestrzeni roboczej, pojawi się tutaj w pozostałych.",
     "connections": "Połączenia",
+    "keys": "Klucze AI",
     "with": "Razem z: {{names}}",
     "here": "Już tu jest",
     "needsReconnect": "Wymaga ponownego połączenia",

@@ -13101,6 +13101,7 @@ export const en = {
     text: "What you connected in another workspace comes ready, with no signing in again.",
     none: "Nothing to bring yet. What you connect in one workspace shows here in the others.",
     connections: "Connections",
+    keys: "AI keys",
     /** Under an agent's name: the connections that come with it. */
     with: "Comes with {{names}}",
     here: "Already here",

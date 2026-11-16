@@ -12738,6 +12738,7 @@
     "text": "Wat je in een andere werkruimte hebt gekoppeld, komt kant-en-klaar mee, zonder opnieuw in te loggen.",
     "none": "Nog niets om mee te nemen. Wat je in de ene werkruimte koppelt, verschijnt hier in de andere.",
     "connections": "Koppelingen",
+    "keys": "AI-sleutels",
     "with": "Komt met {{names}}",
     "here": "Staat er al",
     "needsReconnect": "Moet opnieuw gekoppeld worden",

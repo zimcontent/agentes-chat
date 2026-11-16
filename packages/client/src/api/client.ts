@@ -1200,7 +1200,10 @@ export interface ApiClient {
     /** Their other workspaces with something to bring into this one. */
     sources(orgId: string): Promise<CarrySource[]>;
     /** Brings them: an agent's own connections come with it. */
-    bring(orgId: string, input: { connectionIds?: string[]; agentIds?: string[] }): Promise<CarryResult>;
+    bring(
+      orgId: string,
+      input: { connectionIds?: string[]; agentIds?: string[]; credentialIds?: string[] },
+    ): Promise<CarryResult>;
   };
   githubApp: {
     /** Whether this server can install the GitHub App, the organization's installations, and the server's app. */

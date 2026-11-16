@@ -13126,6 +13126,7 @@
     "text": "Lo que conectaste en otro espacio de trabajo llega listo, sin iniciar sesión de nuevo.",
     "none": "Aún no hay nada para traer. Lo que conectes en un espacio de trabajo aparece aquí en los demás.",
     "connections": "Conexiones",
+    "keys": "Claves de IA",
     "with": "Viene con {{names}}",
     "here": "Ya está aquí",
     "needsReconnect": "Hay que reconectar",

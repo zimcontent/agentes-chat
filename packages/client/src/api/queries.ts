@@ -2464,7 +2464,8 @@ export function useCarry(orgId: string) {
   const api = useApi();
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (input: { connectionIds?: string[]; agentIds?: string[] }) => api.carry.bring(orgId, input),
+    mutationFn: (input: { connectionIds?: string[]; agentIds?: string[]; credentialIds?: string[] }) =>
+      api.carry.bring(orgId, input),
     onSuccess: () =>
       Promise.all([
         qc.invalidateQueries({ queryKey: keys.carrySources(orgId) }),
@@ -2473,6 +2474,7 @@ export function useCarry(orgId: string) {
         qc.invalidateQueries({ queryKey: keys.access(orgId) }),
         qc.invalidateQueries({ queryKey: keys.agents(orgId) }),
         qc.invalidateQueries({ queryKey: keys.skills(orgId) }),
+        qc.invalidateQueries({ queryKey: keys.credentials(orgId) }),
       ]),
     meta: { silent: true },
   });

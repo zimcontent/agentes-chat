@@ -159,7 +159,7 @@ const Ronda = z
   .openapi("Ronda");
 
 /** How this server reaches endpoints people type (ADR 0146). */
-const endpointNet = (deps: AppDeps): EndpointNet => ({
+export const endpointNet = (deps: AppDeps): EndpointNet => ({
   allowPrivate: allowsPrivateEndpoints(deps.config),
   fetch: deps.extras?.http,
   resolveHost: deps.extras?.resolveHost,

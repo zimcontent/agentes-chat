@@ -12611,6 +12611,7 @@
     "text": "Başka bir çalışma alanında bağladıklarınız, yeniden giriş yapmadan hazır gelir.",
     "none": "Henüz getirilecek bir şey yok. Bir çalışma alanında bağladıklarınız diğerlerinde burada görünür.",
     "connections": "Bağlantılar",
+    "keys": "Yapay zekâ anahtarları",
     "with": "{{names}} ile gelir",
     "here": "Zaten burada",
     "needsReconnect": "Yeniden bağlanması gerekiyor",
