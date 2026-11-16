@@ -3559,6 +3559,23 @@
       "text": "No pregunta nada, tampoco en merge, deploy, pagos y rutinas."
     }
   },
+  "agentTwins": {
+    "title": "En tus otros workspaces",
+    "subtitle": "El mismo agente en cada uno: lo que entrena a uno los entrena a todos.",
+    "help": "Nombre, función, instrucciones, memoria, skills y lo que puede usar son iguales en todas las copias, en menos de un minuto. Modelo, clave de IA, computadora, presupuesto, rutinas y conversaciones siguen siendo de cada workspace.",
+    "trainedHere": "Entrenado junto con este",
+    "canJoin": "Mismo @, entrenado aparte",
+    "join": "Entrenar juntos",
+    "leave": "Entrenar solo aquí",
+    "off": "Entrenado solo aquí. No se vuelve a unir solo.",
+    "hidden_one": "Y {{count}} workspace en el que no estás.",
+    "hidden_many": "Y {{count}} workspaces en los que no estás.",
+    "hidden_other": "Y {{count}} workspaces en los que no estás.",
+    "synced": "Mismo entrenamiento en todos, revisado {{when}}.",
+    "syncing": "Juntando el entrenamiento. Tarda hasta un minuto.",
+    "missing": "No llegó a {{workspace}}: {{what}}.",
+    "failed": "No se pudo cambiar. Inténtalo de nuevo."
+  },
   "ronda": {
     "title": "Ronda",
     "subtitle": "Revisa la operación por su cuenta, sin que nadie se lo pida, y solo te avisa cuando vale la pena.",

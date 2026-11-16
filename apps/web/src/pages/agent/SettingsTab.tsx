@@ -60,6 +60,7 @@ import { CardHead, useAgentEdit, WasLine } from "./context";
 import { MediaAllowanceCard } from "./MediaAllowanceCard";
 import { ReadOnlyNote, useVisibleChannels } from "./pieces";
 import { RondaCard } from "./RondaCard";
+import { TwinsCard } from "./TwinsCard";
 
 const SECTION_ICON: Record<AgentSection, IconName> = {
   identity: "person",
@@ -358,6 +359,8 @@ export function SettingsTab({
             </Section>
           )}
 
+          {/* The same agent in the person's other workspaces, trained as one (ADR doug-0013). */}
+          <TwinsCard />
           {part !== "basic" && <RondaCard />}
           {part !== "basic" && <BrakesCard />}
           {part !== "basic" && <MediaAllowanceCard />}

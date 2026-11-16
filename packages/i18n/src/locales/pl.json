@@ -3680,6 +3680,24 @@
       "text": "Nigdy nie pyta, także przy merge, deploy, płatnościach i rutynach."
     }
   },
+  "agentTwins": {
+    "title": "W Twoich innych workspace'ach",
+    "subtitle": "Ten sam agent w każdym: co trenuje jednego, trenuje wszystkie.",
+    "help": "Nazwa, rola, instrukcje, pamięć, skille i to, z czego może korzystać, są takie same w każdej kopii w ciągu minuty. Model, klucz AI, komputer, budżet, rutyny i rozmowy pozostają w każdym workspace osobno.",
+    "trainedHere": "Trenowany razem z tym",
+    "canJoin": "Ten sam @, trenowany osobno",
+    "join": "Trenuj razem",
+    "leave": "Trenuj tylko tutaj",
+    "off": "Trenowany tylko tutaj. Nie zostanie już sam połączony.",
+    "hidden_one": "I {{count}} workspace, do którego nie należysz.",
+    "hidden_few": "I {{count}} workspace'y, do których nie należysz.",
+    "hidden_many": "I {{count}} workspace'ów, do których nie należysz.",
+    "hidden_other": "I {{count}} workspace'u, do których nie należysz.",
+    "synced": "To samo trenowanie wszędzie, sprawdzone {{when}}.",
+    "syncing": "Łączenie trenowania. Potrwa do minuty.",
+    "missing": "Nie dotarło do {{workspace}}: {{what}}.",
+    "failed": "Nie udało się zmienić. Spróbuj ponownie."
+  },
   "ronda": {
     "title": "Obchód",
     "subtitle": "Sam przegląda, jak idzie praca, bez niczyjej prośby, i daje znać tylko wtedy, gdy warto.",

@@ -589,7 +589,7 @@ describe("a card opened", () => {
     expect(text.hasAttribute("data-folded")).toBe(true);
   });
 
-  test("a short description has no Mostrar mais, and an empty one says so", async () => {
+  test("a short description has no Mostrar mais, and an empty one asks for one and opens the field", async () => {
     const { dialog } = await open();
     expect(within(dialog).queryByRole("button", { name: "Mostrar mais" })).toBeNull();
     cleanup();
@@ -597,7 +597,9 @@ describe("a card opened", () => {
     const part = within(screen().getByRole("dialog", { name: "Story de enquete" })).getByRole("region", {
       name: "Descrição",
     });
-    expect(part.textContent).toContain("Sem descrição");
+    const add = within(part).getByRole("button", { name: "Adicione uma descrição mais detalhada…" });
+    await act(async () => fireEvent.click(add));
+    expect(within(part).getByRole("textbox", { name: "Descrição" })).toBeTruthy();
   });
 
   test("Concluído beside the title marks the card finished, and takes it back", async () => {

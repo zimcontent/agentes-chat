@@ -3725,6 +3725,22 @@ export const en = {
     },
   },
   /** Agent settings: what it may start that nobody asked for directly, and which agents it may call (ADR 0131). */
+  agentTwins: {
+    title: "In your other workspaces",
+    subtitle: "The same agent in each: what trains one trains them all.",
+    help: "Its name, role, instructions, memory, skills and what it may use are the same in every copy, within a minute. Its model, AI key, computer, budget, routines and conversations stay each workspace's.",
+    trainedHere: "Trained as one with this one",
+    canJoin: "Same handle, trained apart",
+    join: "Train as one",
+    leave: "Train here alone",
+    off: "Trained here alone. It isn't joined on its own again.",
+    hidden_one: "And {{count}} workspace you aren't in.",
+    hidden_other: "And {{count}} workspaces you aren't in.",
+    synced: "Same training in all, checked {{when}}.",
+    syncing: "Bringing its training together. It takes up to a minute.",
+    missing: "Didn't reach {{workspace}}: {{what}}.",
+    failed: "Couldn't change it. Try again.",
+  },
   ronda: {
     title: "Ronda",
     subtitle: "It looks at the operation on its own, with nobody asking, and calls you only when it's worth it.",
@@ -21327,6 +21343,9 @@ export const en = {
       addCard: "Add a card",
       cardTitle: "Card title",
       listActions: "Actions: {{name}}",
+      /** The dots under a board on a phone: one per list, the one in view filled. */
+      lists: "Lists",
+      goToList: "Go to {{name}}",
       rename: "Rename",
       moveLeft: "Move left",
       moveRight: "Move right",
@@ -21404,6 +21423,8 @@ export const en = {
       edit: "Edit",
       editDescription: "Edit description",
       noDescription: "No description",
+      /** A card with no description yet: pressed, it opens the field to write one. */
+      addDescription: "Add a more detailed description…",
       showMore: "Show more",
       showLess: "Show less",
       /** The words the link button puts between the brackets for the person to replace. */

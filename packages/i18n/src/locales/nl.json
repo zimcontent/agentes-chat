@@ -3447,6 +3447,22 @@
       "text": "Vraagt nooit, ook niet bij merge, deploy, betalingen en routines."
     }
   },
+  "agentTwins": {
+    "title": "In je andere workspaces",
+    "subtitle": "Dezelfde agent in elke: wat de een traint, traint ze allemaal.",
+    "help": "Naam, rol, instructies, geheugen, skills en wat hij mag gebruiken zijn binnen een minuut in elke kopie gelijk. Model, AI-sleutel, computer, budget, routines en gesprekken blijven van elke workspace zelf.",
+    "trainedHere": "Samen met deze getraind",
+    "canJoin": "Zelfde @, apart getraind",
+    "join": "Samen trainen",
+    "leave": "Alleen hier trainen",
+    "off": "Alleen hier getraind. Wordt niet meer vanzelf samengevoegd.",
+    "hidden_one": "En {{count}} workspace waar je niet in zit.",
+    "hidden_other": "En {{count}} workspaces waar je niet in zit.",
+    "synced": "Overal dezelfde training, gecontroleerd {{when}}.",
+    "syncing": "De training wordt samengevoegd. Dat duurt tot een minuut.",
+    "missing": "Niet aangekomen in {{workspace}}: {{what}}.",
+    "failed": "Kon niet worden gewijzigd. Probeer het opnieuw."
+  },
   "ronda": {
     "title": "Ronde",
     "subtitle": "Hij bekijkt uit zichzelf hoe het werk loopt, zonder dat iemand het vraagt, en meldt zich alleen als het de moeite waard is.",

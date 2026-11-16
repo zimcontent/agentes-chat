@@ -8437,6 +8437,48 @@
   "approvalsLevel.never.text": {
     "value": "Never asks, merge, deploy, payments and routines included."
   },
+  "agentTwins.title": {
+    "value": "In your other workspaces"
+  },
+  "agentTwins.subtitle": {
+    "value": "The same agent in each: what trains one trains them all."
+  },
+  "agentTwins.help": {
+    "value": "Its name, role, instructions, memory, skills and what it may use are the same in every copy, within a minute. Its model, AI key, computer, budget, routines and conversations stay each workspace's."
+  },
+  "agentTwins.trainedHere": {
+    "value": "Trained as one with this one"
+  },
+  "agentTwins.canJoin": {
+    "value": "Same handle, trained apart"
+  },
+  "agentTwins.join": {
+    "value": "Train as one"
+  },
+  "agentTwins.leave": {
+    "value": "Train here alone"
+  },
+  "agentTwins.off": {
+    "value": "Trained here alone. It isn't joined on its own again."
+  },
+  "agentTwins.hidden": {
+    "value": {
+      "one": "And {{count}} workspace you aren't in.",
+      "other": "And {{count}} workspaces you aren't in."
+    }
+  },
+  "agentTwins.synced": {
+    "value": "Same training in all, checked {{when}}."
+  },
+  "agentTwins.syncing": {
+    "value": "Bringing its training together. It takes up to a minute."
+  },
+  "agentTwins.missing": {
+    "value": "Didn't reach {{workspace}}: {{what}}."
+  },
+  "agentTwins.failed": {
+    "value": "Couldn't change it. Try again."
+  },
   "ronda.title": {
     "value": "Ronda"
   },

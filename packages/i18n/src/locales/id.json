@@ -3328,6 +3328,21 @@
       "text": "Tidak pernah bertanya, termasuk untuk merge, deploy, pembayaran, dan rutinitas."
     }
   },
+  "agentTwins": {
+    "title": "Di workspace kamu yang lain",
+    "subtitle": "Agen yang sama di setiap workspace: yang melatih satu melatih semuanya.",
+    "help": "Nama, peran, instruksi, memori, skill, dan apa yang boleh dipakainya sama di setiap salinan, dalam satu menit. Model, kunci AI, komputer, anggaran, rutinitas, dan percakapan tetap milik masing-masing workspace.",
+    "trainedHere": "Dilatih bersama yang ini",
+    "canJoin": "@ sama, dilatih terpisah",
+    "join": "Latih bersama",
+    "leave": "Latih di sini saja",
+    "off": "Dilatih di sini saja. Tidak digabungkan sendiri lagi.",
+    "hidden_other": "Dan {{count}} workspace yang tidak kamu ikuti.",
+    "synced": "Pelatihan sama di semua, dicek {{when}}.",
+    "syncing": "Menggabungkan pelatihan. Butuh hingga satu menit.",
+    "missing": "Tidak sampai ke {{workspace}}: {{what}}.",
+    "failed": "Tidak bisa diubah. Coba lagi."
+  },
   "ronda": {
     "title": "Patroli",
     "subtitle": "Ia memeriksa operasional sendiri, tanpa diminta siapa pun, dan hanya memanggilmu saat memang perlu.",

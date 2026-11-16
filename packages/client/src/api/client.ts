@@ -85,6 +85,7 @@ import type {
   AgentSkill,
   AgentStatus,
   AgentStyle,
+  AgentTwins,
   AgentUsage,
   AiAccounts,
   AiStatus,
@@ -1209,6 +1210,12 @@ export interface ApiClient {
       orgId: string,
       input: { connectionIds?: string[]; agentIds?: string[]; credentialIds?: string[] },
     ): Promise<CarryResult>;
+    /** The same agent in the person's other workspaces, trained as one (ADR doug-0013). */
+    twins(orgId: string, agentId: string): Promise<AgentTwins>;
+    /** Joins it with its copy `otherAgentId` in another workspace. */
+    joinTwin(orgId: string, agentId: string, otherAgentId: string): Promise<AgentTwins>;
+    /** Takes this copy out: trained here alone from now on. */
+    leaveTwin(orgId: string, agentId: string): Promise<AgentTwins>;
   };
   githubApp: {
     /** Whether this server can install the GitHub App, the organization's installations, and the server's app. */

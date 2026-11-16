@@ -11,6 +11,7 @@ import type {
   AgentSecret,
   AgentSetupResult,
   AgentStatus,
+  AgentTwins,
   AiStatus,
   ApiClient,
   AppNotification,
@@ -275,6 +276,8 @@ export interface FakeState {
   composioUsage?: ComposioUsage;
   /** What the person can bring from their other workspaces (none unless a test sets it). */
   carrySources?: CarrySource[];
+  /** Each agent's copies in other workspaces (ADR doug-0013), by agent id; absent: none. */
+  agentTwins?: Record<string, AgentTwins>;
   /** What the organization's GitHub reaches (`githubApp.repositories`); unset = not connected. */
   githubRepos?: GitHubRepositories;
   /** The GitHub connection whose token GitHub no longer takes (its id): skills from private links say so. */
@@ -1119,6 +1122,9 @@ function approval(
     canDecide: true,
   };
 }
+
+/** An agent with no copy in another workspace. */
+const noTwins = (): AgentTwins => ({ copies: [], hidden: 0, candidates: [], off: false, syncedAt: null, missing: [] });
 
 /** `_costUsd` documents the run's price; runs carry tokens only (money is in the admins' usage report). */
 function run(id: string, agentId: string, what: string, tokens: number, _costUsd: number, minutes: number): Run {
@@ -3683,6 +3689,27 @@ export function createFakeHttpApi(state: FakeState): Omit<HttpApi, FakedParts> {
           skills: 0,
           skipped: [],
         };
+      },
+      twins: async (_orgId, agentId) => structuredClone(state.agentTwins?.[agentId] ?? noTwins()),
+      joinTwin: async (orgId, agentId, otherAgentId) => {
+        log("carry.joinTwin", orgId, agentId, otherAgentId);
+        const view = state.agentTwins?.[agentId] ?? noTwins();
+        const joined = view.candidates.find((c) => c.agentId === otherAgentId);
+        const next = {
+          ...view,
+          off: false,
+          copies: joined ? [...view.copies, joined] : view.copies,
+          candidates: view.candidates.filter((c) => c.agentId !== otherAgentId),
+        };
+        state.agentTwins = { ...state.agentTwins, [agentId]: next };
+        return structuredClone(next);
+      },
+      leaveTwin: async (orgId, agentId) => {
+        log("carry.leaveTwin", orgId, agentId);
+        const view = state.agentTwins?.[agentId] ?? noTwins();
+        const next = { ...view, off: true, copies: [], candidates: [...view.candidates, ...view.copies] };
+        state.agentTwins = { ...state.agentTwins, [agentId]: next };
+        return structuredClone(next);
       },
     },
     githubApp: {

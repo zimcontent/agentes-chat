@@ -3433,6 +3433,22 @@
       "text": "Hiç sormaz, merge, deploy, ödemeler ve rutinler dahil."
     }
   },
+  "agentTwins": {
+    "title": "Diğer çalışma alanlarında",
+    "subtitle": "Her birinde aynı ajan: birini eğiten hepsini eğitir.",
+    "help": "Adı, görevi, talimatları, hafızası, skill'leri ve kullanabildikleri bir dakika içinde her kopyada aynı olur. Modeli, yapay zekâ anahtarı, bilgisayarı, bütçesi, rutinleri ve konuşmaları her çalışma alanının kendisinde kalır.",
+    "trainedHere": "Bununla birlikte eğitiliyor",
+    "canJoin": "Aynı @, ayrı eğitiliyor",
+    "join": "Birlikte eğit",
+    "leave": "Yalnızca burada eğit",
+    "off": "Yalnızca burada eğitiliyor. Artık kendiliğinden birleştirilmez.",
+    "hidden_one": "Ve üyesi olmadığın {{count}} çalışma alanı.",
+    "hidden_other": "Ve üyesi olmadığın {{count}} çalışma alanı.",
+    "synced": "Hepsinde aynı eğitim, kontrol: {{when}}.",
+    "syncing": "Eğitim birleştiriliyor. Bir dakikaya kadar sürer.",
+    "missing": "{{workspace}} alanına ulaşmadı: {{what}}.",
+    "failed": "Değiştirilemedi. Tekrar dene."
+  },
   "ronda": {
     "title": "Devriye",
     "subtitle": "Kimse istemeden işleri kendi kendine gözden geçirir ve yalnızca gerektiğinde sana haber verir.",

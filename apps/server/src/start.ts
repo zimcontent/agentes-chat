@@ -106,6 +106,7 @@ import { createMachineSockets } from "./realtime/machines";
 import { createStreamSockets } from "./realtime/streams";
 import { createRealtime, type SocketData } from "./realtime/ws";
 import { createRestartHold } from "./restart-hold";
+import { carryDepsOf } from "./routes/app/carry";
 import { workerHealth } from "./routes/health";
 import { startTelemetry } from "./telemetry";
 import { releaseOf, version } from "./version";
@@ -530,6 +531,13 @@ async function boot(
     outbox,
     holdLong: () => restartHold.held(),
     builtInDatabase: !database.client,
+    carry: carryDepsOf({
+      db: database.db,
+      config,
+      adapters,
+      blobs: engine.artifacts?.blobs,
+      net: { allowPrivate: allowsPrivateEndpoints(config) },
+    }),
     errors,
     log,
   });

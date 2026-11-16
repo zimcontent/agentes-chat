@@ -88,3 +88,9 @@ key (an endpoint's address and models come with it). Listed by provider, name an
 the workspace already has (same provider, same ending, same endpoint address) shows "here" and is not copied twice.
 The audit log records `credential.carried` with where it came from. The dialog shows them under "Chaves de IA", and
 the button is also on the AI keys card (Settings › AI).
+
+## Addendum 2026-11-16: a brought agent stays one agent
+
+§8's "never its memory" is superseded by ADR doug-0013: an agent brought from another workspace is joined to the
+agent it came from, and one whose handle is already there is joined to that one. From then on what trains one copy
+(profile, memory, skills, access) reaches the other. Its conversations, model key, computer and routines still stay.

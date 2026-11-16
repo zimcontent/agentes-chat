@@ -3566,6 +3566,23 @@
       "text": "Non chiede mai, nemmeno per merge, deploy, pagamenti e routine."
     }
   },
+  "agentTwins": {
+    "title": "Negli altri tuoi workspace",
+    "subtitle": "Lo stesso agente in ognuno: ciò che ne addestra uno li addestra tutti.",
+    "help": "Nome, ruolo, istruzioni, memoria, skill e ciò che può usare sono uguali in ogni copia, entro un minuto. Modello, chiave IA, computer, budget, routine e conversazioni restano di ciascun workspace.",
+    "trainedHere": "Addestrato insieme a questo",
+    "canJoin": "Stesso @, addestrato a parte",
+    "join": "Addestra insieme",
+    "leave": "Addestra solo qui",
+    "off": "Addestrato solo qui. Non viene più unito da solo.",
+    "hidden_one": "E {{count}} workspace di cui non fai parte.",
+    "hidden_many": "E {{count}} workspace di cui non fai parte.",
+    "hidden_other": "E {{count}} workspace di cui non fai parte.",
+    "synced": "Stesso addestramento ovunque, controllato {{when}}.",
+    "syncing": "Sto unendo l'addestramento. Ci vuole fino a un minuto.",
+    "missing": "Non è arrivato a {{workspace}}: {{what}}.",
+    "failed": "Non è stato possibile cambiarlo. Riprova."
+  },
   "ronda": {
     "title": "Ronda",
     "subtitle": "Controlla l'attività da solo, senza che nessuno lo chieda, e ti chiama solo quando ne vale la pena.",

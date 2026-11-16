@@ -59,6 +59,7 @@ import type {
   AgentSkill,
   AgentStatus,
   AgentStyle,
+  AgentTwins,
   AgentUsage,
   AiAccounts,
   AiStatus,
@@ -1408,6 +1409,11 @@ export function createHttpApi(options: TransportOptions = {}): HttpApi {
     carry: {
       sources: async (orgId) => (await request<{ sources: CarrySource[] }>(`${org(orgId)}/carry`)).sources,
       bring: (orgId, input) => request<CarryResult>(`${org(orgId)}/carry`, { json: input }),
+      twins: (orgId, agentId) => request<AgentTwins>(`${org(orgId)}/agents/${enc(agentId)}/twins`),
+      joinTwin: (orgId, agentId, otherAgentId) =>
+        request<AgentTwins>(`${org(orgId)}/agents/${enc(agentId)}/twins`, { json: { agentId: otherAgentId } }),
+      leaveTwin: (orgId, agentId) =>
+        request<AgentTwins>(`${org(orgId)}/agents/${enc(agentId)}/twins`, { method: "DELETE" }),
     },
     githubApp: {
       info: (orgId) => request<GitHubAppInfo>(`${org(orgId)}/github-app`),

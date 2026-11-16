@@ -11,6 +11,8 @@ export * from "./agent-proposals";
 export * from "./agent-setup";
 export * from "./agent-status";
 export * from "./agent-style";
+export * from "./agent-twins";
+export { joinInstructions, mergeInstructions } from "./agent-twins-merge";
 export * from "./agent-undo";
 export * from "./agent-work";
 export * from "./agents";

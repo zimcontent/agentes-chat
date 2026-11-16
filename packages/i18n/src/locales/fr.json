@@ -3564,6 +3564,23 @@
       "text": "Ne demande rien, même pour un merge, un deploy, un paiement ou dans une routine."
     }
   },
+  "agentTwins": {
+    "title": "Dans tes autres workspaces",
+    "subtitle": "Le même agent dans chacun : ce qui en entraîne un les entraîne tous.",
+    "help": "Nom, rôle, instructions, mémoire, skills et ce qu'il peut utiliser sont les mêmes dans chaque copie, en moins d'une minute. Modèle, clé d'IA, ordinateur, budget, routines et conversations restent propres à chaque workspace.",
+    "trainedHere": "Entraîné avec celui-ci",
+    "canJoin": "Même @, entraîné à part",
+    "join": "Entraîner ensemble",
+    "leave": "Entraîner ici seulement",
+    "off": "Entraîné ici seulement. Il n'est plus réuni tout seul.",
+    "hidden_one": "Et {{count}} workspace dont tu n'es pas membre.",
+    "hidden_many": "Et {{count}} workspaces dont tu n'es pas membre.",
+    "hidden_other": "Et {{count}} workspaces dont tu n'es pas membre.",
+    "synced": "Même entraînement partout, vérifié {{when}}.",
+    "syncing": "Réunion de l'entraînement en cours. Cela prend jusqu'à une minute.",
+    "missing": "N'est pas arrivé dans {{workspace}} : {{what}}.",
+    "failed": "Impossible de modifier. Réessaie."
+  },
   "ronda": {
     "title": "Ronde",
     "subtitle": "Il surveille l'activité de lui-même, sans qu'on le lui demande, et ne vous appelle que quand ça vaut le coup.",

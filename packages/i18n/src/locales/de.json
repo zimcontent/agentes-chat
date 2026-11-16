@@ -3444,6 +3444,22 @@
       "text": "Fragt nie, auch nicht bei Merge, Deploy, Zahlungen und Routinen."
     }
   },
+  "agentTwins": {
+    "title": "In deinen anderen Workspaces",
+    "subtitle": "Derselbe Agent in jedem: Was einen trainiert, trainiert alle.",
+    "help": "Name, Rolle, Anweisungen, Gedächtnis, Skills und was er nutzen darf sind in jeder Kopie gleich, innerhalb einer Minute. Modell, KI-Schlüssel, Computer, Budget, Routinen und Unterhaltungen bleiben beim jeweiligen Workspace.",
+    "trainedHere": "Zusammen mit diesem trainiert",
+    "canJoin": "Gleiches Handle, getrennt trainiert",
+    "join": "Zusammen trainieren",
+    "leave": "Nur hier trainieren",
+    "off": "Nur hier trainiert. Wird nicht mehr von selbst verbunden.",
+    "hidden_one": "Und {{count}} Workspace, in dem du nicht bist.",
+    "hidden_other": "Und {{count}} Workspaces, in denen du nicht bist.",
+    "synced": "Gleiches Training überall, geprüft {{when}}.",
+    "syncing": "Das Training wird zusammengeführt. Das dauert bis zu einer Minute.",
+    "missing": "Nicht in {{workspace}} angekommen: {{what}}.",
+    "failed": "Konnte nicht geändert werden. Versuch es noch einmal."
+  },
   "ronda": {
     "title": "Rundgang",
     "subtitle": "Er schaut sich den Betrieb von selbst an, ohne dass jemand fragt, und meldet sich nur, wenn es sich lohnt.",
