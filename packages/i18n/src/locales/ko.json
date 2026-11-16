@@ -4758,10 +4758,45 @@
       "mission": "미션 · {{total}}개 중 {{done}}개"
     },
     "done": {
-      "title": "마지막 방문 이후"
+      "title": "마지막 방문 이후",
+      "none": "지난 방문 이후 새로운 것이 없어요."
+    },
+    "customize": {
+      "button": "맞춤 설정",
+      "title": "홈에 보일 것",
+      "sections": {
+        "team": "팀 일정",
+        "tasks": "내 작업",
+        "board": "나를 기다리는 것과 지금 작업 중",
+        "since": "지난 방문 이후",
+        "routines": "예정"
+      }
     },
     "routines": {
       "title": "예정된 루틴"
+    },
+    "agenda": {
+      "title": "팀 일정",
+      "who": "누구의 일정",
+      "everyone": "모두",
+      "now": "지금",
+      "late": "지연됨",
+      "today": "오늘 · {{day}}",
+      "tomorrow": "내일 · {{day}}",
+      "wasDue": "마감 {{when}}",
+      "due": "마감 {{when}}",
+      "todayShort": "오늘",
+      "tomorrowShort": "내일",
+      "nowCount_other": "지금 {{count}}개",
+      "lateCount_other": "{{count}}개 지연",
+      "todayCount_other": "오늘 {{count}}개",
+      "total_other": "작업 {{count}}개",
+      "high": "높음",
+      "blocked": "막힘",
+      "status": {
+        "in_progress": "진행 중",
+        "in_review": "검토 중"
+      }
     },
     "mission": "<b>{{name}}</b>이(가) 미션에서 나를 필요로 해요",
     "seeAll": "모두 보기",

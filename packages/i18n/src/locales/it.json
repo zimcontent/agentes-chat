@@ -5069,10 +5069,53 @@
       "mission": "Missione · {{done}} di {{total}}"
     },
     "done": {
-      "title": "Dall'ultima volta che sei passato"
+      "title": "Dall'ultima volta che sei passato",
+      "none": "Niente di nuovo dalla tua ultima visita."
+    },
+    "customize": {
+      "button": "Personalizza",
+      "title": "Cosa mostra la Home",
+      "sections": {
+        "team": "Agenda del team",
+        "tasks": "Le tue attività",
+        "board": "Ti aspetta e Al lavoro ora",
+        "since": "Dalla tua ultima visita",
+        "routines": "Prossimamente"
+      }
     },
     "routines": {
       "title": "In arrivo"
+    },
+    "agenda": {
+      "title": "Agenda del team",
+      "who": "Agenda di chi",
+      "everyone": "Tutti",
+      "now": "Adesso",
+      "late": "In ritardo",
+      "today": "Oggi · {{day}}",
+      "tomorrow": "Domani · {{day}}",
+      "wasDue": "Era per il {{when}}",
+      "due": "Scadenza {{when}}",
+      "todayShort": "oggi",
+      "tomorrowShort": "domani",
+      "nowCount_one": "{{count}} adesso",
+      "nowCount_many": "{{count}} adesso",
+      "nowCount_other": "{{count}} adesso",
+      "lateCount_one": "{{count}} in ritardo",
+      "lateCount_many": "{{count}} in ritardo",
+      "lateCount_other": "{{count}} in ritardo",
+      "todayCount_one": "{{count}} oggi",
+      "todayCount_many": "{{count}} oggi",
+      "todayCount_other": "{{count}} oggi",
+      "total_one": "{{count}} attività",
+      "total_many": "{{count}} attività",
+      "total_other": "{{count}} attività",
+      "high": "Alta",
+      "blocked": "Bloccata",
+      "status": {
+        "in_progress": "In corso",
+        "in_review": "In revisione"
+      }
     },
     "mission": "<b>{{name}}</b> ha bisogno di te in una missione",
     "seeAll": "Vedi tutto",

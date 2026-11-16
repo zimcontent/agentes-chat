@@ -144,6 +144,7 @@ import type {
   InviteLinkChanged,
   InviteLinkMade,
   Issue,
+  TeamAgenda,
   IssueActivity,
   IssueColumn,
   IssueConversationRef,
@@ -1779,6 +1780,8 @@ export function createHttpApi(options: TransportOptions = {}): HttpApi {
       purge: (orgId, id) => request<void>(`${org(orgId)}/artifacts-trash/${enc(id)}`, { method: "DELETE" }),
     },
     issues: {
+      agenda: (orgId, query) =>
+        request<TeamAgenda>(`${org(orgId)}/team-agenda`, { query: { from: query.from, days: query.days } }),
       list: async (orgId, filters = {}) =>
         (
           await request<{ issues: Issue[] }>(`${org(orgId)}/issues`, {

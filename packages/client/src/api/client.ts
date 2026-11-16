@@ -201,6 +201,7 @@ import type {
   InviteLinkChoices,
   InviteLinkMade,
   Issue,
+  TeamAgenda,
   IssueActivity,
   IssueColumn,
   IssueConversationRef,
@@ -1529,6 +1530,11 @@ export interface ApiClient {
     saveToVault?(orgId: string, requestId: string, input: SecretToVaultInput): Promise<VaultItem>;
   };
   issues: {
+    /**
+     * What each person and agent has to do from `from` (the asker's today) through `days`, and what is late. Owners
+     * and admins only. Optional so older fakes type-check.
+     */
+    agenda?(orgId: string, query: { from: string; days?: number }): Promise<TeamAgenda>;
     /** `projectId`: only that project's tasks, or `none` for the ones with no project. */
     list(orgId: string, filters?: { q?: string; projectId?: string }): Promise<Issue[]>;
     get(orgId: string, number: number): Promise<Issue>;
