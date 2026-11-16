@@ -4,10 +4,12 @@ import {
   type MouseEvent as ReactMouseEvent,
   type ReactNode,
   type PointerEvent as ReactPointerEvent,
+  type RefObject,
   useEffect,
   useRef,
   useState,
 } from "react";
+import { useTranslation } from "react-i18next";
 import type { CardMove, DropResult, IssueDrag } from "@/pages/issue-drag";
 
 export type { CardMove, DropResult };
@@ -28,23 +30,38 @@ export const pansBoard = (target: EventTarget | null) =>
 /**
  * The frame both boards share (ADR 9001): the task board's own sideways scroller, which a mouse drags by its empty
  * space as Trello's (a finger pans it natively, the wheel and the keyboard scroll it as ever). It sits on a canvas
- * of its own, light under dark cards and dark under light ones. A board wider than its frame gets a rail above its
+ * of its own, light under the darker columns as on Trello. A board wider than its frame gets a rail above its
  * columns: a full row of empty space to drag it by, there however full the columns are. It is the one bar the board
  * has: a second one at its foot said the same thing twice.
+ *
+ * On a phone it reads as Trello's app: a column takes the screen less a sliver of the next, a swipe stops on one
+ * column at a time, and a row of dots under the board says which one is in view and goes to any other when pressed
+ * (`ColumnDots`; the rail, a mouse's shortcut, steps aside there).
  */
 export function BoardFrame({ className, children }: { className?: string; children: ReactNode }) {
   const wrap = useRef<HTMLDivElement>(null);
   const [wide, setWide] = useState(false);
+  const [names, setNames] = useState<string[]>([]);
   useDragScroll(wrap, PORTAL_BOARD_SPACE);
   useEffect(() => {
     const el = wrap.current;
     if (!el) return;
-    const measure = () => setWide(el.scrollWidth > el.clientWidth + 1);
+    const measure = () => {
+      setWide(el.scrollWidth > el.clientWidth + 1);
+      const next = columnsOf(el).map((c) => c.getAttribute("aria-label") ?? "");
+      setNames((was) => (was.join("\n") === next.join("\n") ? was : next));
+    };
     measure();
     const watch = typeof ResizeObserver === "function" ? new ResizeObserver(measure) : null;
     watch?.observe(el);
     for (const child of el.children) watch?.observe(child);
-    return () => watch?.disconnect();
+    const board = el.querySelector(".portal-board");
+    const added = typeof MutationObserver === "function" ? new MutationObserver(measure) : null;
+    if (board) added?.observe(board, { childList: true });
+    return () => {
+      watch?.disconnect();
+      added?.disconnect();
+    };
   }, []);
   return (
     <div className="issues-boardframe portal-canvas">
@@ -55,7 +72,73 @@ export function BoardFrame({ className, children }: { className?: string; childr
         </div>
         <div className={cx("issues-board portal-board", className)}>{children}</div>
       </div>
+      {wide && names.length > 1 && <ColumnDots wrap={wrap} names={names} />}
     </div>
+  );
+}
+
+/** The board's columns in order (each `BoardColumn` says `data-col`). */
+const columnsOf = (wrap: HTMLElement) => [...wrap.querySelectorAll<HTMLElement>("[data-col]")];
+
+/**
+ * A dot per column under a board that doesn't fit, as Trello's app shows them: the one in view is filled, and a press
+ * on any slides the board to that column.
+ */
+function ColumnDots({ wrap, names }: { wrap: RefObject<HTMLDivElement | null>; names: string[] }) {
+  const { t } = useTranslation();
+  const [at, setAt] = useState(0);
+  useEffect(() => {
+    const el = wrap.current;
+    if (!el) return;
+    let frame = 0;
+    const read = () => {
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(() => {
+        const left = el.getBoundingClientRect().left;
+        const cols = columnsOf(el);
+        let best = 0;
+        let gap = Number.POSITIVE_INFINITY;
+        cols.forEach((c, i) => {
+          const d = Math.abs(c.getBoundingClientRect().left - left);
+          if (d < gap) {
+            gap = d;
+            best = i;
+          }
+        });
+        // At the end of the board the last column is the one read, however far its left edge sits.
+        if (el.scrollLeft + el.clientWidth >= el.scrollWidth - 2) best = cols.length - 1;
+        setAt(best);
+      });
+    };
+    read();
+    el.addEventListener("scroll", read, { passive: true });
+    return () => {
+      cancelAnimationFrame(frame);
+      el.removeEventListener("scroll", read);
+    };
+  }, [wrap]);
+  const go = (i: number) => {
+    const el = wrap.current;
+    const col = el && columnsOf(el)[i];
+    if (!el || !col) return;
+    const pad = Number.parseFloat(getComputedStyle(el).scrollPaddingLeft) || 0;
+    const left = el.scrollLeft + col.getBoundingClientRect().left - el.getBoundingClientRect().left - pad;
+    el.scrollTo({ left, behavior: "smooth" });
+  };
+  return (
+    <nav className="portal-dots" aria-label={t("portal.plan.lists")}>
+      {names.map((name, i) => (
+        <button
+          // biome-ignore lint/suspicious/noArrayIndexKey: two columns may share a name; their place is what tells them apart
+          key={i}
+          type="button"
+          className="portal-dots__dot"
+          aria-label={t("portal.plan.goToList", { name })}
+          aria-current={i === at || undefined}
+          onClick={() => go(i)}
+        />
+      ))}
+    </nav>
   );
 }
 

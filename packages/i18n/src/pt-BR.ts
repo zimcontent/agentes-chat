@@ -21297,6 +21297,8 @@ export const ptBR = {
       addCard: "Adicionar cartão",
       cardTitle: "Título do cartão",
       listActions: "Ações: {{name}}",
+      lists: "Listas",
+      goToList: "Ir para {{name}}",
       rename: "Renomear",
       moveLeft: "Mover para a esquerda",
       moveRight: "Mover para a direita",
@@ -21368,6 +21370,7 @@ export const ptBR = {
       edit: "Editar",
       editDescription: "Editar descrição",
       noDescription: "Sem descrição",
+      addDescription: "Adicione uma descrição mais detalhada…",
       showMore: "Mostrar mais",
       showLess: "Mostrar menos",
       /** The words the link button puts between the brackets for the person to replace. */
