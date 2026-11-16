@@ -59,6 +59,7 @@ import { useToast } from "@/lib/toast";
 import { dragHasFiles, MediaInput, type PendingFile } from "./media/MediaInput";
 import { MediaLibrary } from "./media/MediaLibrary";
 import "./media.css";
+import { ModelMark } from "./media/ModelMark";
 
 /**
  * Mídia (ADR doug-0011): generate an image or a video with the workspace's credits, see what people and agents made,
@@ -466,7 +467,11 @@ function MediaForm({ models, balance }: { models: MediaModel[]; balance: number 
           <Select
             value={model?.id}
             onValueChange={chooseModel}
-            options={ofKind.map((m) => ({ value: m.id, label: m.label, description: m.description }))}
+            options={ofKind.map((m) => ({
+              value: m.id,
+              label: m.label,
+              leading: <ModelMark id={m.id} label={m.label} />,
+            }))}
           />
         </Field>
         <MediaInput
