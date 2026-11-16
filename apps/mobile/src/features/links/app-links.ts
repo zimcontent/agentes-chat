@@ -121,7 +121,7 @@ function workspaceScreen(rest: string[], q: Record<string, string>): Record<stri
       return "/proposals";
     // Video review (docs/adr/doug-0007-video-review.md): the list, or one video's Revisor.
     case "review":
-      if (id === undefined) return "/review";
+      if (id === undefined) return "/reviews";
       return isSafeId(id) ? `/review/${id}` : null;
     case "task-manager":
       return isSafeId(q.task) ? `/task-manager/${q.task}` : "/task-manager";

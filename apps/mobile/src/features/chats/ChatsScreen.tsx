@@ -20,7 +20,6 @@ import { useOpenStart } from "../me/useStart";
 import { useOpenDm } from "../new/useOpenDm";
 import { OutageNotices } from "../outages/OutageNotice";
 import { useMachineOutages } from "../outages/queries";
-import { HomeReviews } from "../review/HomeReviews";
 import { RightHandAsk } from "../right-hand/Pin";
 import { useColors, useDirectory, useMeId, useOrgId, usePullRefresh } from "../shared/hooks";
 import { useActiveWork, useConversations, useHiddenAgents, useWorkingNow } from "../shared/queries";
@@ -33,7 +32,7 @@ import { FirstAgentEmpty, Greeting, GreetingSky } from "./Greeting";
 import { Arrive, useHomeEntrance, useWake } from "./HomeEntrance";
 import { CollapsibleSection, SeeAllRow, useHomeCollapsed } from "./HomeSection";
 import { HomeServerError, HomeServerNotice } from "./HomeServerError";
-import { HomeWidgets } from "./HomeWidgets";
+import { HomeTools } from "./HomeTools";
 import {
   agentStarters,
   type ConversationRow,
@@ -100,7 +99,20 @@ function Home() {
   const focused = useIsFocused();
   // What the person chose to open when the app starts goes over Conversas, once (ADR 0108).
   useOpenStart(focused);
-  const header = useTabHeader();
+  const tabHeader = useTabHeader();
+  // Buscar left the tab bar for the web sidebar's five: its magnifier sits in Início's bar, beside "+".
+  const header = {
+    ...tabHeader,
+    actions: [
+      {
+        icon: "search" as const,
+        sf: "magnifyingglass" as const,
+        label: t("mobile.find.title"),
+        onPress: () => router.push("/search"),
+      },
+      ...tabHeader.actions,
+    ],
+  };
   const dir = useDirectory();
   const list = useConversations();
   const work = useWorkingNow();
@@ -189,7 +201,7 @@ function Home() {
   let live = 0;
   return (
     <LargeTitleScreen
-      title={t("mobile.chats.title")}
+      title={t("shell.home")}
       {...header}
       backdrop={
         empty || failed ? undefined : (
@@ -224,10 +236,8 @@ function Home() {
       {list.stale && !failed ? <HomeServerNotice retry={list.refetch} /> : null}
       {failed || empty || list.loading ? null : (
         <>
-          {/* Início's widgets, and the way to Dashboards ("See all"), not a tab (ADR 0135 §15). */}
-          {/* Videos agents sent for review, with how many wait (docs/adr/doug-0007-video-review.md). */}
-          <HomeReviews />
-          <HomeWidgets collapsed={collapsed.includes("widgets")} onToggle={() => toggle("widgets")} />
+          {/* The tools beside the tab bar's five, as the web's grid (WhatsApp, Mídia, Drive…); Dashboards among them. */}
+          <HomeTools />
           <FirstRunLine />
         </>
       )}

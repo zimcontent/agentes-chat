@@ -58,6 +58,19 @@ const REVIEWS: VideoReviewSummary[] = [
   summary("0198a4b2-0000-7000-8000-000000000102", "Daley_Krom_Protection_Afterthought_9x16", 1, "in_review", 47),
   summary("0198a4b2-0000-7000-8000-000000000103", "Daley_Krom_Overlooked_Protection_9x16", 2, "changes", 180),
   summary("0198a4b2-0000-7000-8000-000000000104", "Melissa_Vazquez_Living_Benefits_9x16", 4, "approved", 1500),
+  // An editor's own deliveries from a task (docs/adr/doug-0012-editor-delivery.md): Revisão gives them a tab.
+  {
+    ...summary("0198a4b2-0000-7000-8000-000000000105", "Built_to_Endure_Ep12_Corte1", 2, "in_review", 25, 2),
+    agent: null,
+    sender: { id: "0198a4b2-0000-7000-8000-0000000000dd", name: "Ronny Alves" },
+    client: "Built to Endure",
+  },
+  {
+    ...summary("0198a4b2-0000-7000-8000-000000000106", "Built_to_Endure_Ep12_Corte2", 1, "in_review", 70),
+    agent: null,
+    sender: { id: "0198a4b2-0000-7000-8000-0000000000dd", name: "Ronny Alves" },
+    client: "Built to Endure",
+  },
 ];
 
 const note = (n: Partial<VideoReviewNote> & Pick<VideoReviewNote, "id" | "body">): VideoReviewNote => ({

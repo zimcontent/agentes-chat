@@ -69,6 +69,8 @@ export function useUserEvents() {
       applyComputerEvent(qc, orgId, event);
       // A device, a phone's state or holder, or a request to join changed: the devices list (it names no computer).
       if (event.type === "devices.changed") void qc.invalidateQueries({ queryKey: keys.devices(orgId) });
+      // A WhatsApp number's message, read or status: its screens read again (as the web's).
+      if (event.type === "whatsapp.changed") void qc.invalidateQueries({ queryKey: keys.whatsapp(orgId) });
       // The workspace's standing (the suspended screen comes and goes), its own computer on its way, the groups of
       // agents (Agentes' sections), and the lists anyone may have open (Drive, Wiki, calendar, routines, memory).
       applyWorkspaceEvent(qc, orgId, event);

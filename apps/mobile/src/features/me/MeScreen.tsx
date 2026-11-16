@@ -46,6 +46,9 @@ import { useLanguageChoice, usePushSwitch, useSoundLabel, useStartLabel } from "
 import { useChangePhoto } from "./parts";
 import { useWorkspacesAcross, WorkspaceMark } from "./WorkspacesPages";
 
+/** Under the list at a tab's root: the system's floating tab bar and its margin. */
+const TAB_BAR_ROOM = 100;
+
 /** The rows of Você's Work group. */
 type WorkRow = "issues" | "proposals" | "routines" | "wiki" | "drive" | "dashboards" | "memory" | "threads" | "team";
 /** A team's workspace: Threads is a tab and Team a row of Agents. */
@@ -99,7 +102,8 @@ let horizonArrived = false;
  * (ADR 0159) is yours: no workspace name after your @, your face as its mark, and its work led by what its sidebar
  * keeps in sight (Routines, Drive), with Threads (no tab there) and Team (no row in Agents) in it.
  */
-export function MeScreen() {
+/** `tab`: the Configurações tab's root (no back button; room for the tab bar under the list). */
+export function MeScreen({ tab = false }: { tab?: boolean }) {
   const { t, i18n } = useTranslation();
   const me = useMe();
   const meId = useMeId();
@@ -246,7 +250,7 @@ export function MeScreen() {
         text: t("mobile.me.signOut"),
         style: "destructive",
         onPress: () => {
-          goBack();
+          if (!tab) goBack();
           void signOut();
         },
       },
@@ -267,7 +271,7 @@ export function MeScreen() {
         scrollEventThrottle={16}
         contentInsetAdjustmentBehavior="never"
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: insets.bottom + 24 }}
+        contentContainerStyle={{ paddingBottom: insets.bottom + (tab ? TAB_BAR_ROOM : 24) }}
       >
         {/* The workspace's sky as a band under the clear bar; your photo hangs from its bottom edge. */}
         <View style={[styles.band, { height: insets.top + 62 + PHOTO_OVERLAP }]}>

@@ -6,6 +6,6 @@ import { isSafeId } from "@/features/shared/logic";
 export default function DesignEditRoute() {
   const { id, v } = useLocalSearchParams<{ id: string; v?: string }>();
   const version = v ? Number(v) : Number.NaN;
-  if (!isSafeId(id) || !Number.isInteger(version) || version < 1) return <Redirect href="/review" />;
+  if (!isSafeId(id) || !Number.isInteger(version) || version < 1) return <Redirect href="/reviews" />;
   return <DesignEditor key={`${id}:${version}`} id={id} version={version} />;
 }

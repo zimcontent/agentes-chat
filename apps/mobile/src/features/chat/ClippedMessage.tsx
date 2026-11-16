@@ -1,4 +1,4 @@
-import { clippedHeight } from "@agenteschat/client/lib/message-length";
+import { clippedHeight, LONG_MESSAGE } from "@agenteschat/client/lib/message-length";
 import { LinearGradient } from "expo-linear-gradient";
 import { type ComponentRef, createContext, type ReactNode, useContext, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -9,6 +9,22 @@ import { withOpacity } from "./turn";
 
 /** How much of the clipped words fades out at their end. */
 const FADE = 96;
+
+/**
+ * Each message's measured height, kept past its row: the conversation's list unmounts rows that leave the screen, and
+ * a row coming back drew the whole words for a frame before folding them again. Next to a long message that change
+ * of height moved the list, which brought another row in or out, and the list kept jumping at the conversation's
+ * end (it flickered and took no tap). A row that comes back starts at its known height: nothing moves.
+ */
+const knownHeights = new Map<string, number>();
+const KNOWN_MAX = 2000;
+function rememberHeight(id: string, height: number) {
+  if (knownHeights.size >= KNOWN_MAX && !knownHeights.has(id)) {
+    const first = knownHeights.keys().next().value;
+    if (first !== undefined) knownHeights.delete(first);
+  }
+  knownHeights.set(id, height);
+}
 
 /** Folded words growing down to their whole height once "Ver mais" opens them: what is above them stays still. */
 export const REVEAL = LinearTransition.duration(motion.base).easing(Easing.bezier(...motion.out));
@@ -53,10 +69,13 @@ export function ClippedMessage({
   // Opened from this row: it grows. One the screen kept open comes back open, still.
   const [tapped, setTapped] = useState(false);
   const open = tapped || Boolean(screen?.has(id));
-  const [height, setHeight] = useState(0);
+  const [height, setHeight] = useState(() => knownHeights.get(id) ?? 0);
   const cut = clippedHeight(height);
   const foldable = cut !== null || lead != null;
-  const shows = open ? null : cut;
+  // Before the first measure, never taller than a message that still shows whole: a long one never draws in full
+  // for a frame (it would push the list) and lands at its fold with one small step at most.
+  const measured = height > 0;
+  const shows = open ? null : measured ? cut : LONG_MESSAGE.over;
   const words = useRef<ComponentRef<typeof View>>(null);
   useEffect(() => {
     if (tapped && words.current) AccessibilityInfo.sendAccessibilityEvent(words.current, "focus");
@@ -66,12 +85,21 @@ export function ClippedMessage({
     <View>
       <Animated.View
         layout={tapped && !reduced ? REVEAL : undefined}
-        style={foldable ? [styles.clip, shows === null ? undefined : { maxHeight: shows }] : undefined}
+        style={foldable || !measured ? [styles.clip, shows === null ? undefined : { maxHeight: shows }] : undefined}
       >
-        <View ref={words} onLayout={(e) => setHeight(e.nativeEvent.layout.height)}>
+        <View
+          ref={words}
+          onLayout={(e) => {
+            const next = e.nativeEvent.layout.height;
+            // Only a real change of height re-renders (a rounding wobble never does).
+            if (Math.abs(next - height) < 1) return;
+            rememberHeight(id, next);
+            setHeight(next);
+          }}
+        >
           {open || lead == null ? children : lead}
         </View>
-        {(shows === null ? [] : behind).map((color, i) => (
+        {(shows === null || !foldable ? [] : behind).map((color, i) => (
           <LinearGradient
             // biome-ignore lint/suspicious/noArrayIndexKey: the layers behind one text, in order
             key={i}

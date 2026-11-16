@@ -7,8 +7,12 @@ const src = (file: string) => readFileSync(join(import.meta.dir, "../../src", fi
 describe("long messages on the phone", () => {
   test("a tall message clips by the rule the web uses, and Ver mais opens it in place for good, kept by the screen", () => {
     const clip = src("features/chat/ClippedMessage.tsx");
-    expect(clip).toContain('import { clippedHeight } from "@agenteschat/client/lib/message-length"');
+    expect(clip).toContain('import { clippedHeight, LONG_MESSAGE } from "@agenteschat/client/lib/message-length"');
     expect(clip).toContain("const cut = clippedHeight(height);");
+    // A row coming back starts at its known height, and an unmeasured one never draws taller than the rule: a long
+    // message changing size as it re-entered moved the list, which kept jumping at the conversation's end.
+    expect(clip).toContain("useState(() => knownHeights.get(id) ?? 0)");
+    expect(clip).toContain("measured ? cut : LONG_MESSAGE.over");
     // In place: no sheet, no copy of its own (Copiar stays in the message's menu), and nothing folds it back.
     expect(clip).not.toContain("useSheetIfAny");
     expect(clip).not.toContain("copyText");

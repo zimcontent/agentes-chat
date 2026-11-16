@@ -1477,6 +1477,7 @@ export const featureKeysPtBR = {
     stopBody_female: "A {{name}} para agora e conta o que já fez na conversa.",
   },
   // intentional: chats/activity/ui
+  homeTools: { title: "Ferramentas", more: "Mais" },
   homeNow: {
     working_one: "{{count}} trabalhando",
     working_other: "{{count}} trabalhando",

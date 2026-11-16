@@ -37,8 +37,7 @@ import type { Gaze } from "@/agent/AgentAvatar";
 import { STORED } from "@/lib/storage";
 import { useOrg } from "@/providers/org";
 import {
-  type HeaderAction,
-  LargeTitleScreen,
+  IconButton,
   LIST_PREVIEW,
   LineIcon,
   ListRow,
@@ -61,10 +60,10 @@ import { AgentFace } from "../shared/Face";
 import { FirstUse } from "../shared/FirstUse";
 import { useColors, useDirectory, useNow, useOrgId, usePullRefresh } from "../shared/hooks";
 import { agentLook } from "../shared/logic";
+import { PushedLargeTitle } from "../shared/PushedLargeTitle";
 import { successHaptic, Tile } from "../shared/parts";
 import { useHiddenAgents, useWaitingApprovals, useWorkingNow } from "../shared/queries";
 import { SheetHostProvider } from "../shared/SheetHost";
-import { useTabHeader } from "../shared/tabHeader";
 import { useAgentWorkLine, usePresenceOf } from "../status/hooks";
 import { useTasksToday } from "../task-manager/hooks";
 import { useSectorMenu } from "../team/SectorScreen";
@@ -103,7 +102,6 @@ export function AgentsScreen() {
 function Agents() {
   const { t } = useTranslation();
   const dir = useDirectory();
-  const header = useTabHeader();
   const orgId = useOrgId();
   const org = useOrg().org;
   const runs = useWorkingRuns(orgId);
@@ -185,16 +183,16 @@ function Agents() {
   // A server without the task manager shows no way into it.
   const tasks = useTasksToday({ pollMs: TASKS_POLL_MS });
   const showsManager = total > 0 && !(tasks.isError && !tasks.data);
-  // The bar's "+" does what the empty page's button does: a new agent, never the generic New.
+  // The bar's "+" does what the empty page's button does: a new agent.
   const creates = mayCreate(org, "agent");
-  const actions: HeaderAction[] = creates
-    ? [{ icon: "plus", sf: "plus", label: t("mobile.agents.create"), onPress: () => router.push("/new-agent") }]
-    : header.actions;
   return (
-    <LargeTitleScreen
+    <PushedLargeTitle
       title={t("mobile.agents.title")}
-      left={header.left}
-      actions={actions}
+      right={
+        creates ? (
+          <IconButton icon="plus" label={t("mobile.agents.create")} onPress={() => router.push("/new-agent")} />
+        ) : undefined
+      }
       refreshControl={<RefreshControl refreshing={pull.refreshing} onRefresh={pull.onRefresh} />}
     >
       {dir.loading ? null : dir.agents.length === 0 ? (
@@ -291,7 +289,7 @@ function Agents() {
           </>
         ) : null}
       </LayoutAnimationConfig>
-    </LargeTitleScreen>
+    </PushedLargeTitle>
   );
 }
 

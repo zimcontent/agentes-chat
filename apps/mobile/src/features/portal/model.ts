@@ -1,0 +1,216 @@
+import type {
+  PlanCard,
+  PortalBoard,
+  PortalCard,
+  PortalCardFile,
+  PortalClientColor,
+  PortalClientSummary,
+  PortalColumn,
+  PortalComment,
+  PortalItem,
+  PortalListKind,
+  PortalPlan,
+  PortalStatus,
+} from "@agenteschat/client";
+import { previewKindOfName } from "@agenteschat/client/lib/files";
+import {
+  PORTAL_BOARD_COLUMNS,
+  type PortalBoardColumn,
+  type PortalClientStatus,
+  portalAhead,
+  portalDayOf,
+  portalSendProblem,
+  portalTimeOf,
+} from "@agenteschat/client/lib/portal";
+import type { IconName } from "@/ui/Icon";
+import type { PortalWords } from "./words";
+
+/**
+ * The phone's approval portal (ADR 9001), pure: what each screen lists and in what order. The web's rules live in
+ * `@agenteschat/client/lib/portal`; this only shapes them for the phone's lists.
+ */
+
+/** A client as a route segment: the portal's slug, never anything that could leave the path. */
+export const isClientSlug = (client: unknown): client is string =>
+  typeof client === "string" && /^[\p{L}\p{N}_.-]{1,120}$/u.test(client) && !/^\.+$/.test(client);
+
+/** A card's or a post's id as a route segment: the portal's own ids, held to the same safe shape. */
+export const isPortalId = isClientSlug;
+
+/**
+ * A client's one line from the overview's counts alone, by the same priority as the pipeline's
+ * (`pipelineClientStatus`): used while the pipeline hasn't answered, which also knows what is late.
+ */
+export function summaryStatus(summary: Pick<PortalClientSummary, "counts" | "open">): PortalClientStatus {
+  const { counts } = summary;
+  if (counts.adjusting > 0) return { kind: "adjusting", count: counts.adjusting };
+  if (counts.approved > 0) return { kind: "schedule", count: counts.approved };
+  if (counts.approval > 0) return { kind: "client", count: counts.approval };
+  if (counts.todo + counts.doing > 0) return { kind: "making" };
+  return summary.open > 0 || counts.scheduled > 0 ? { kind: "clear" } : { kind: "idle" };
+}
+
+/** A client's status in words. */
+export function statusLine(w: PortalWords, status: PortalClientStatus): string {
+  switch (status.kind) {
+    case "adjusting":
+    case "late":
+    case "schedule":
+    case "client":
+      return w.clientStatus[status.kind](status.count);
+    default:
+      return w.clientStatus[status.kind];
+  }
+}
+
+/** One column of a client's board: the team's cards in the first two, the portal's posts in the others. */
+export interface BoardColumn {
+  column: PortalBoardColumn;
+  cards: PortalCard[];
+  items: PortalItem[];
+}
+
+export const boardColumns = (board: PortalBoard): BoardColumn[] =>
+  PORTAL_BOARD_COLUMNS.map((column) =>
+    column === "todo" || column === "doing"
+      ? { column, cards: board.cards[column], items: [] }
+      : { column, cards: [], items: board.items[column] },
+  );
+
+/** How many things wait in a column. */
+export const columnCount = (c: Pick<BoardColumn, "cards" | "items">) => c.cards.length + c.items.length;
+
+/** A post on the board by its id, with the column it is in (`posted` included). */
+export function findItem(
+  board: PortalBoard | undefined,
+  itemId: string,
+): { item: PortalItem; column: Exclude<PortalColumn, "todo" | "doing"> } | null {
+  if (!board) return null;
+  for (const column of ["approval", "adjusting", "approved", "scheduled", "posted"] as const) {
+    const item = board.items[column].find((i) => i.id === itemId);
+    if (item) return { item, column };
+  }
+  return null;
+}
+
+/** Every card of a schedule, materials included, the listed ones first. */
+export const allPlanCards = (plan: Pick<PortalPlan, "lists" | "unlisted"> | undefined): PlanCard[] =>
+  plan ? [...plan.lists.flatMap((l) => l.cards), ...plan.unlisted] : [];
+
+/** The card a post at the portal came from: it carries the files, the comments and the task. */
+export const cardOfItem = (plan: PortalPlan | undefined, itemId: string): PlanCard | null =>
+  allPlanCards(plan).find((c) => c.item === itemId) ?? null;
+
+/** One list of a section: its name and cards (`id` null: the cards in no list, which belong to the schedule). */
+export interface PlanGroup {
+  id: string | null;
+  name: string | null;
+  cards: PlanCard[];
+}
+
+/** A section of the schedule (its lists, then the cards in no list) or of the client's materials (lists only). */
+export function planGroups(plan: PortalPlan, kind: PortalListKind): PlanGroup[] {
+  const lists: PlanGroup[] = plan.lists
+    .filter((l) => l.kind === kind)
+    .map((l) => ({ id: l.id, name: l.name, cards: [...l.cards].sort((a, b) => a.order - b.order) }));
+  if (kind === "plan" && plan.unlisted.length > 0) {
+    lists.push({ id: null, name: null, cards: [...plan.unlisted].sort((a, b) => a.order - b.order) });
+  }
+  return lists;
+}
+
+/** The lists a card may move to: the ones of its own section (a material stays among materials). */
+export const listsFor = (plan: PortalPlan, card: Pick<PortalCard, "material">) =>
+  plan.lists.filter((l) => l.kind === (card.material ? "materials" : "plan"));
+
+export type FileKind = "image" | "video" | "other";
+export const fileKind = (file: Pick<PortalCardFile, "name">): FileKind => {
+  const kind = previewKindOfName(file.name);
+  return kind === "image" || kind === "video" ? kind : "other";
+};
+
+/** What stands for a card in a list: its first picture, else its first video, else nothing. */
+export function coverOf(files: readonly PortalCardFile[]): { file: PortalCardFile; kind: "image" | "video" } | null {
+  const image = files.find((f) => fileKind(f) === "image");
+  if (image) return { file: image, kind: "image" };
+  const video = files.find((f) => fileKind(f) === "video");
+  return video ? { file: video, kind: "video" } : null;
+}
+
+/** Why a card can't go for approval as it is (read from its files), or null: it can. */
+export const sendProblemOf = (card: Pick<PortalCard, "type" | "files">) => portalSendProblem(card.type, card.files);
+
+/** The send a card makes, with what it already knows. `key`: one press never sends twice. */
+export function sendInputOf(card: PortalCard, key: string) {
+  return {
+    client: card.client,
+    type: card.type,
+    artifactIds: card.files.map((f) => f.id),
+    ...(card.title.trim() ? { title: card.title.trim() } : {}),
+    ...(card.caption.trim() ? { caption: card.caption } : {}),
+    ...(portalDayOf(card.date) ? { date: `${portalDayOf(card.date)}T${portalTimeOf(card.date) ?? "09:00"}` } : {}),
+    ...(card.editor?.trim() ? { editor: card.editor.trim() } : {}),
+    card: card.id,
+    key,
+  };
+}
+
+/**
+ * The date an approved post can be released for from the phone: the one it already carries, while it is still ahead.
+ * Choosing another date is the web's (its date and time pickers); null: nothing to release here.
+ */
+export function releaseDateOf(
+  item: Pick<PortalItem, "status" | "released" | "scheduledFor">,
+  now = new Date(),
+): string | null {
+  if (item.status !== "approved" || item.released) return null;
+  const day = portalDayOf(item.scheduledFor);
+  const time = portalTimeOf(item.scheduledFor);
+  if (!day || !time || !portalAhead(day, time, now)) return null;
+  return `${day}T${time}`;
+}
+
+/** The two columns a team card moves between, and the other one. */
+export const otherTeamColumn = (state: "todo" | "doing") => (state === "todo" ? "doing" : "todo");
+
+/** What was said on a card, newest first. */
+export const commentsNewestFirst = (comments: readonly PortalComment[]) => [...comments].sort((a, b) => b.at - a.at);
+
+/** A stage's colour, the one the web's legend and calendar chips use (the same in both themes). */
+export const STAGE_COLOR: Record<PortalColumn, string> = {
+  todo: "#8a909c",
+  doing: "#3b82f6",
+  approval: "#f59e0b",
+  adjusting: "#ef4444",
+  approved: "#22c55e",
+  scheduled: "#8b5cf6",
+  posted: "#14b8a6",
+};
+
+/** A client's colour and the ink on it (`PORTAL_CLIENT_COLORS`), as the web's marks draw them. */
+export const CLIENT_COLOR: Record<PortalClientColor, { bg: string; ink: string }> = {
+  green: { bg: "#35c46a", ink: "#111111" },
+  blue: { bg: "#2563eb", ink: "#ffffff" },
+  navy: { bg: "#24409e", ink: "#ffffff" },
+  sky: { bg: "#7cc8f5", ink: "#111111" },
+  white: { bg: "#f2f2f0", ink: "#111111" },
+  teal: { bg: "#1fb5a6", ink: "#111111" },
+  yellow: { bg: "#e8c21a", ink: "#111111" },
+  orange: { bg: "#f08a3c", ink: "#111111" },
+  red: { bg: "#cf3535", ink: "#ffffff" },
+  pink: { bg: "#ee6fb0", ink: "#111111" },
+  purple: { bg: "#8448e0", ink: "#ffffff" },
+  gray: { bg: "#8a909c", ink: "#111111" },
+};
+
+/** A post status's icon and whether it waits on the team (`PORTAL_STATUS_LOOK`, in the phone's icons). */
+export const STATUS_LOOK: Record<PortalStatus, { icon: IconName; wait: boolean }> = {
+  sent: { icon: "send", wait: false },
+  seen: { icon: "eye", wait: false },
+  approved: { icon: "check", wait: false },
+  adjust_requested: { icon: "flag", wait: true },
+  adjusting: { icon: "pen", wait: false },
+  adjusted: { icon: "send", wait: false },
+  scheduled: { icon: "calendar", wait: false },
+  published: { icon: "check", wait: false },
+};

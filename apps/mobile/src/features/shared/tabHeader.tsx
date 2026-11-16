@@ -30,11 +30,11 @@ export function useMyFace(): { name: string; photo: ReturnType<typeof usePersonP
 }
 
 /**
- * The bar of the three tabs: on the left the workspace you are in (its logo, your photo small on its corner)
- * opens Você; "+" on the right pushes "New" (start a conversation or create something), in the native bar. A personal
+ * The bar of the tabs: on the left the workspace you are in (its logo, your photo small on its corner)
+ * opens Configurações (Você); "+" on the right pushes "New" (start a conversation or create something), in the native bar. A personal
  * workspace (ADR 0159) is yours: your photo alone, at the logo's size, and the label names only Você.
  */
-export function useTabHeader(): { left: ReactNode; actions: HeaderAction[] } {
+export function useTabHeader(): { left: ReactNode; actions: HeaderAction[]; brand: true } {
   const { t } = useTranslation();
   const { org } = useOrg();
   const personal = isPersonal(org);
@@ -46,7 +46,7 @@ export function useTabHeader(): { left: ReactNode; actions: HeaderAction[] } {
   return {
     left: (
       <Pressable
-        onPress={() => router.push("/me")}
+        onPress={() => router.navigate("/you")}
         // Holding the mark opens the workspaces as a sheet (ADR 0154): one light tap as it commits, the sheet is the
         // system's form sheet. A tap still opens Você.
         onLongPress={() => {
@@ -73,6 +73,8 @@ export function useTabHeader(): { left: ReactNode; actions: HeaderAction[] } {
       </Pressable>
     ),
     actions,
+    // DougBot's signature in the middle of every tab's bar.
+    brand: true,
   };
 }
 

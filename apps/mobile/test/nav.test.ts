@@ -73,8 +73,8 @@ describe("cover parallax", () => {
 });
 
 describe("tab glyphs", () => {
-  test("five tabs: Conversas, Threads, Agentes, Atividade and Buscar", () => {
-    expect([...TAB_GLYPHS]).toEqual(["chats", "threads", "agents", "activity", "search"]);
+  test("five tabs, the web sidebar's rows: Início, Esperando você, Portal, Revisão and Configurações", () => {
+    expect([...TAB_GLYPHS]).toEqual(["home", "waiting", "portal", "review", "settings"]);
   });
 
   test("every glyph in both states is a 24×24 SVG with finite numbers", () => {
@@ -91,39 +91,13 @@ describe("tab glyphs", () => {
     }
   });
 
-  test("outline when unselected, filled when selected", () => {
-    for (const glyph of TAB_GLYPHS.filter((g) => g !== "search")) {
-      const outline = tabGlyphSvg(glyph, false, "#000");
-      const filled = tabGlyphSvg(glyph, true, "#000");
-      expect(outline).not.toBe(filled);
-      expect(outline).toContain('fill="none"');
-      expect(filled).toContain('fill="#000"');
+  test("each glyph changes when selected; the even-odd ones keep their inner mark cut out", () => {
+    for (const glyph of TAB_GLYPHS) {
+      expect(tabGlyphSvg(glyph, false, "#000")).not.toBe(tabGlyphSvg(glyph, true, "#000"));
+      expect(tabGlyphSvg(glyph, false, "#000")).toContain('fill="none"');
     }
-  });
-
-  test("the selected agent is a solid body with the eyes cut out", () => {
-    const svg = tabGlyphSvg("agents", true, "#000");
-    expect(svg).toContain('fill-rule="evenodd"');
-    // Body plus two eyes: three closed subpaths in one path.
-    expect(svg.match(/Z/g)?.length).toBe(3);
-  });
-
-  test("Threads: two bubbles (filled when selected) and the branch between them stays a line", () => {
-    const outline = tabGlyphSvg("threads", false, "#000");
-    const filled = tabGlyphSvg("threads", true, "#000");
-    expect(outline.match(/<path /g)?.length).toBe(3);
-    expect(outline.match(/fill="none"/g)?.length).toBe(3);
-    expect(filled.match(/fill="#000"/g)?.length).toBe(2);
-    expect(filled.match(/fill="none"/g)?.length).toBe(1);
-  });
-
-  test("Buscar: the magnifier, never filled, bolder when selected", () => {
-    const outline = tabGlyphSvg("search", false, "#000");
-    const bold = tabGlyphSvg("search", true, "#000");
-    expect(outline).toContain("<circle ");
-    expect(bold).not.toContain('fill="#000"');
-    expect(outline).toContain('stroke-width="1.7"');
-    expect(bold).toContain('stroke-width="2.3"');
+    for (const glyph of ["home", "review"] as const)
+      expect(tabGlyphSvg(glyph, true, "#000")).toContain('fill-rule="evenodd"');
   });
 
   test("glyph keys round-trip and reject unknown names", () => {

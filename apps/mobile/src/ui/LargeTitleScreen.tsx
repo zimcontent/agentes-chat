@@ -5,6 +5,7 @@ import { Platform, type RefreshControlProps, StyleSheet, View } from "react-nati
 import Animated, { FadeIn, FadeOutUp, LayoutAnimationConfig } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { LivePause } from "@/agent/live";
+import { Assinatura } from "./Assinatura";
 import { CoverBarBackdrop, CoverParallax, FadingHeaderTitle, useCoverScroll, useScrollFade } from "./cover";
 import { type HeaderAction, useHeaderActionOptions } from "./headerActions";
 import { SCREEN_X } from "./rhythm";
@@ -53,6 +54,11 @@ export interface LargeTitleScreenProps {
    * `LinearTransition` layout.
    */
   collapsed?: boolean;
+  /**
+   * DougBot's signature in the middle of the bar, standing (the tab roots): the brand stays in sight on every tab,
+   * and the large title under it names the screen.
+   */
+  brand?: boolean;
 }
 
 /**
@@ -79,6 +85,7 @@ export function LargeTitleScreen({
   onScrollBeginDrag,
   grouped = false,
   collapsed = false,
+  brand = false,
 }: LargeTitleScreenProps) {
   const { colors } = useTheme();
   const focused = useIsFocused();
@@ -99,11 +106,13 @@ export function LargeTitleScreen({
       title,
       // Folded, the bar's plain title stands (no fade to drive; set, not left out, as options merge); else it fades
       // in as the large one leaves.
-      headerTitle: collapsed
-        ? title
-        : () => <FadingHeaderTitle y={y} from={BAR_TITLE_FROM} to={BAR_TITLE_TO} text={title} />,
+      headerTitle: brand
+        ? () => <Assinatura size={BRAND_SIZE} />
+        : collapsed
+          ? title
+          : () => <FadingHeaderTitle y={y} from={BAR_TITLE_FROM} to={BAR_TITLE_TO} text={title} />,
     }),
-    [actionOptions, title, y, collapsed],
+    [actionOptions, title, y, collapsed, brand],
   );
   return (
     <View style={[styles.screen, { backgroundColor: grouped ? colors.grouped : colors.bg }]}>
@@ -180,6 +189,9 @@ const TITLE_GONE = 40;
 /** The bar's title fades in over this stretch, as the large title leaves. */
 const BAR_TITLE_FROM = 28;
 const BAR_TITLE_TO = 48;
+
+/** The signature's name size in the bar (its Doug 1.42× that: 22, the bar buttons' glyph height). */
+const BRAND_SIZE = 15;
 
 /** The pull-down's gap, where the orbit sits (the system's wheel takes about as much). */
 const PULL_MARK = 56;
