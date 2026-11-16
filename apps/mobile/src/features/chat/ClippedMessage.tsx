@@ -6,7 +6,7 @@ import { AccessibilityInfo, Pressable, StyleSheet, View } from "react-native";
 import Animated, { Easing, LinearTransition } from "react-native-reanimated";
 import { useOrg } from "@/providers/org";
 import { motion, Text, useReducedMotion } from "@/ui";
-import { keepSize, keptSize } from "./kept-sizes";
+import { keepSize, keptSize, wordsHeightAfter } from "./kept-sizes";
 import { useLayoutKey } from "./look";
 import { withOpacity } from "./turn";
 
@@ -66,6 +66,9 @@ export function ClippedMessage({
   const foldable = cut !== null || lead != null;
   const shows = open ? null : cut;
   const unmeasured = height === 0 && !open && lead == null;
+  // Folded, a measure only ever raises the kept height (`wordsHeightAfter`): a message near the rule flipped between
+  // folded and whole on every layout, covering the next message each time it opened (seen on a phone).
+  const folded = shows !== null || unmeasured;
   const words = useRef<ComponentRef<typeof View>>(null);
   useEffect(() => {
     if (tapped && words.current) AccessibilityInfo.sendAccessibilityEvent(words.current, "focus");
@@ -86,9 +89,10 @@ export function ClippedMessage({
         <View
           ref={words}
           onLayout={(e) => {
-            const whole = e.nativeEvent.layout.height;
-            keepSize(sizeKey, whole);
-            setHeight(whole);
+            const next = wordsHeightAfter(height, e.nativeEvent.layout.height, folded);
+            if (next === null) return;
+            keepSize(sizeKey, next);
+            setHeight(next);
           }}
         >
           {open || lead == null ? children : lead}

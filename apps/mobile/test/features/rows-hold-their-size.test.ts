@@ -67,7 +67,7 @@ describe("rows that measure themselves come back at their size", () => {
     expect(clip).toContain("const [height, setHeight] = useState(() => keptSize(sizeKey) ?? 0);");
     expect(clip).toContain("const unmeasured = height === 0 && !open && lead == null;");
     expect(clip).toContain('unmeasured: { maxHeight: LONG_MESSAGE.over, overflow: "hidden" },');
-    expect(clip).toMatch(/keepSize\(sizeKey, whole\);\s*setHeight\(whole\);/);
+    expect(clip).toMatch(/keepSize\(sizeKey, next\);\s*setHeight\(next\);/);
   });
 
   test("a table lays out at its measured columns when it comes back", () => {

@@ -50,3 +50,15 @@ export function keepColumns(key: string, columns: Readonly<Record<number, number
 export function forgetKeptSizes() {
   kept.clear();
 }
+
+/**
+ * The words' height to keep after a measure (`ClippedMessage`), or null when nothing changes. Folded (under the cut, or
+ * the cap before the first measure) the words can measure shorter than they are whole, since the fold changes the room
+ * around them: a message near the rule measured just under it folded and just over it whole, and flipped between the
+ * two on every layout. Folded, a measure only ever raises the height; unfolded, it is the words' whole height.
+ */
+export function wordsHeightAfter(kept: number, measured: number, folded: boolean): number | null {
+  if (!Number.isFinite(measured) || measured === kept) return null;
+  if (folded && measured < kept) return null;
+  return measured;
+}
