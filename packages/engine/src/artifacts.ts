@@ -42,6 +42,7 @@ import {
 } from "./file-reader";
 import { formatBytes, tableToCsv } from "./format";
 import { imageSize } from "./image-size";
+import { cachedPicture, isRasterPicture, makePicture, type PictureSize, picturesRedraw } from "./picture";
 
 export { tableToCsv };
 
@@ -2770,6 +2771,33 @@ export async function artifactFile(
     return { body, contentType: "text/x-diff; charset=utf-8", filename: fileName(a, v.version, "patch") };
   }
   return { body: object.body, contentType: object.contentType, filename: fileName(a, v.version, EXTENSIONS[a.kind]) };
+}
+
+/**
+ * An uploaded picture's light copy (`picture.ts`): a conversation's tile or the viewer, read by whoever reads the
+ * file. A GIF, or a picture that can't be read, comes back as the original bytes.
+ */
+export async function artifactPicture(
+  deps: ArtifactDeps,
+  userId: string,
+  orgId: string,
+  artifactId: string,
+  options: { version?: number; size: PictureSize },
+): Promise<{ body: Uint8Array; contentType: string; filename: string }> {
+  const a = await readable(deps, { type: "person", userId }, orgId, artifactId);
+  const v = await versionRow(deps.db, a, options.version);
+  const filename = v.fileName ?? fileName(a, v.version, "bin");
+  const contentType = fileContentType(filename, v.contentType);
+  // Raster pictures only: anything else (SVG, HTML) is never served inline, only downloaded.
+  if (a.kind !== "file" || !isRasterPicture(contentType))
+    throw new ValidationError("Only uploaded pictures have a light copy", "artifact.not_picture");
+  const key = `${a.id}:${v.version}:${options.size}`;
+  const hit = cachedPicture(key);
+  if (hit) return { ...hit, filename };
+  const object = await readVersion(deps, a, v);
+  const original = { body: object.body, contentType };
+  if (!picturesRedraw(contentType)) return { ...original, filename };
+  return { ...((await makePicture(key, original, options.size)) ?? original), filename };
 }
 
 /**

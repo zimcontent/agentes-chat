@@ -5,7 +5,8 @@ import { previewKind } from "@agenteschat/client/lib/files";
 import { cx } from "@agenteschat/ui";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { MAX_THUMB_BYTES, usePreviewUrl } from "@/components/artifacts/FileView";
+import { useApi } from "@/api/context";
+import { MAX_THUMB_BYTES } from "@/components/artifacts/FileView";
 import { MermaidDiagram } from "@/components/artifacts/Mermaid";
 import { useOrg } from "@/components/org-context";
 
@@ -182,11 +183,23 @@ function PreviewBody({
 
 function FilePreview({ content, artifact }: { content: ArtifactFileContent; artifact: Artifact }) {
   const { t } = useTranslation();
+  const { org } = useOrg();
+  const api = useApi();
   const kind = previewKind(content.contentType);
   const image = kind === "image" && content.size <= MAX_THUMB_BYTES;
-  const { url, failed } = usePreviewUrl(artifact.id, artifact.version, content.contentType, image);
+  const [failed, setFailed] = useState(false);
   const ext = extensionOf(content.name) || t("drive.fileBadge");
-  if (image && !failed) return url ? <img src={url} alt="" /> : null;
+  // The server's light copy, loaded only near the screen (a Drive full of pictures stays quick).
+  if (image && !failed)
+    return (
+      <img
+        src={api.artifacts.pictureUrl(org.id, artifact.id, { version: artifact.version, size: "tile" })}
+        alt=""
+        loading="lazy"
+        decoding="async"
+        onError={() => setFailed(true)}
+      />
+    );
   if (kind === "pdf" || content.text !== undefined) {
     const lines =
       content.text

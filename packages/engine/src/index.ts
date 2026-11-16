@@ -261,6 +261,7 @@ export * from "./pdf";
 export * from "./permissions";
 export * from "./person-usage";
 export * from "./person-usage-report";
+export { forgetPictures, type PictureSize } from "./picture";
 export * from "./pins";
 export * from "./plan-models";
 export * from "./plan-usage";

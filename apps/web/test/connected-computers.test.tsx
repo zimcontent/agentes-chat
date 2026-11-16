@@ -65,7 +65,7 @@ const png = (name = "grafico.png") =>
 const orgEvent = (event: Record<string, unknown>) => ({ type: "event", scope: "org", event });
 
 describe("uploaded files in the Drive", () => {
-  test("an image: icon, name, size, Baixar, and an inline preview from the download", async () => {
+  test("an image: icon, name, size, Baixar, and an inline preview from its light copy", async () => {
     const api = createFakeApi(seedState());
     const file = await api.artifacts.upload(ORG_ID, png());
     await renderApp(`/org/${ORG_ID}/drive?artifact=${file.id}`, { api });
@@ -75,7 +75,8 @@ describe("uploaded files in the Drive", () => {
     expect(dialog.querySelector(".ac-details__subtitle")?.textContent).toMatch(/7\s?(byte|B)/);
     // The picture stays hidden (and nameless) until it has loaded and been fitted: its stage carries the name.
     const img = within(dialog).getByRole("group", { name: "Imagem: grafico.png" }).querySelector("img");
-    expect(img?.getAttribute("src")).toMatch(/^blob:preview-/);
+    // The viewer's light copy (2048 px at most); Baixar keeps the original.
+    expect(img?.getAttribute("src")).toMatch(/\/artifacts\/[^/]+\/picture\?size=view&version=1$/);
     // Text kinds' Editar never shows for files; Baixar saves the original with its name.
     expect(within(dialog).queryByRole("button", { name: "Editar" })).toBeNull();
     await click(within(dialog).getByRole("button", { name: "Baixar" }));
@@ -114,7 +115,10 @@ describe("uploaded files in the Drive", () => {
     const tiles = Array.from(document.querySelectorAll<HTMLElement>(".artifact-cards > .artifact-tile"));
     expect(tiles).toHaveLength(2);
     const [thumb, row] = tiles as [HTMLElement, HTMLElement];
-    expect(thumb.querySelector(".artifact-tile__picture img")?.getAttribute("src")).toMatch(/^blob:preview-/);
+    // The server's light copy, loaded as it nears the screen.
+    const cover = thumb.querySelector(".artifact-tile__picture img");
+    expect(cover?.getAttribute("src")).toMatch(/\/artifacts\/[^/]+\/picture\?size=tile&version=1$/);
+    expect(cover?.getAttribute("loading")).toBe("lazy");
     // A picture is only the picture (its name and size are in its tip and the viewer's header, below).
     expect(thumb.querySelector(".artifact-tile__foot")).toBeNull();
     expect(row.querySelector(".artifact-tile__title")?.textContent).toBe("carrossel.zip");

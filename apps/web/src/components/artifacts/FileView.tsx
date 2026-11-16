@@ -5,6 +5,7 @@ import {
   formatBytes,
   isJsonFile,
   MAX_PREVIEW_BYTES,
+  MAX_UPLOAD_BYTES,
   previewKind,
   previewType,
 } from "@agenteschat/client/lib/files";
@@ -65,8 +66,8 @@ export function useVideoLabels(): VideoPlayerLabels {
   );
 }
 
-/** Images up to this size get a thumbnail in the chat card (bigger ones only in the viewer). */
-export const MAX_THUMB_BYTES = 8 * 1024 * 1024;
+/** Images up to this size get a cover in the chat card: the server's light copy, so any upload (≤ 50 MB). */
+export const MAX_THUMB_BYTES = MAX_UPLOAD_BYTES;
 
 /** The blob of a previewable file as an object URL of exactly the allowed type (null until loaded). */
 export function usePreviewUrl(artifactId: string, version: number, contentType: string, enabled: boolean) {
@@ -155,8 +156,9 @@ export function FileView({
   const api = useApi();
   const kind = previewKind(content.contentType);
   // A video streams from the download: any size plays. The rest load whole, up to the preview limit.
-  const canPreview = kind !== null && (kind === "video" || content.size <= MAX_PREVIEW_BYTES);
-  const { url, failed } = usePreviewUrl(artifactId, version, content.contentType, canPreview && kind !== "video");
+  // A picture shows the server's light copy (2048 px at most, Baixar has the original): any upload, and it opens at once.
+  const canPreview = kind !== null && (kind === "video" || kind === "image" || content.size <= MAX_PREVIEW_BYTES);
+  const { url, failed } = usePreviewUrl(artifactId, version, content.contentType, kind === "pdf" && canPreview);
   const [videoFailed, setVideoFailed] = useState(false);
   const videoLabels = useVideoLabels();
 
@@ -181,15 +183,16 @@ export function FileView({
   }
 
   // A picture fills the viewer, with its zoom: its stage at once, the picture as soon as its bytes are here.
-  if (kind === "image" && canPreview && !failed) {
+  if (kind === "image") {
+    const picture = api.artifacts.pictureUrl(org.id, artifactId, { version, size: "view" });
     return (
       <div className="file-view file-view--image">
-        <ImageZoom key={url} src={url} alt={t("files.imageAlt", { title })} onSwipe={onSwipe} />
+        <ImageZoom key={picture} src={picture} alt={t("files.imageAlt", { title })} onSwipe={onSwipe} />
       </div>
     );
   }
   return (
-    <div className={kind === "image" && canPreview ? "file-view file-view--image" : "file-view"}>
+    <div className="file-view">
       {canPreview && (
         <div className={kind === "pdf" ? "file-view__preview file-view__preview--pdf" : "file-view__preview"}>
           {failed ? (

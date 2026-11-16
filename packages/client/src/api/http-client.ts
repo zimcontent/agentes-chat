@@ -1758,6 +1758,11 @@ export function createHttpApi(options: TransportOptions = {}): HttpApi {
         const qs = params.toString();
         return `${base}${org(orgId)}/artifacts/${enc(id)}/file${qs ? `?${qs}` : ""}`;
       },
+      pictureUrl: (orgId, id, options) => {
+        const params = new URLSearchParams({ size: options.size });
+        if (options.version) params.set("version", String(options.version));
+        return `${base}${org(orgId)}/artifacts/${enc(id)}/picture?${params.toString()}`;
+      },
       upload: (orgId, file, options = {}) => {
         const form = new FormData();
         form.append("file", file, file.name);
