@@ -21134,11 +21134,100 @@
     "secondsValue_many": "{{count}} sec",
     "secondsValue_other": "{{count}} sec",
     "audio": "Con audio",
-    "refs_one": "Riferimento (fino a {{count}})",
-    "refs_many": "Riferimenti (fino a {{count}})",
-    "refs_other": "Riferimenti (fino a {{count}})",
-    "firstFrame": "Immagine iniziale",
-    "addRef": "Aggiungi immagine",
+    "audioKind": "Audio",
+    "input": "Input",
+    "modes": {
+      "text": {
+        "label": "Video da prompt",
+        "hint": "Solo il prompt. Nessun file viene inviato."
+      },
+      "first": {
+        "label": "Primo fotogramma",
+        "hint": "Scegli l'immagine che apre il video e descrivi il movimento."
+      },
+      "frames": {
+        "label": "Primo e ultimo fotogramma",
+        "hint": "Scegli come inizia e finisce il video. Entrambi i fotogrammi sono obbligatori."
+      },
+      "references": {
+        "label": "Multi riferimenti",
+        "hint": "Fino a {{list}}. Scrivi nel prompt a cosa serve ogni riferimento."
+      },
+      "video_reference": {
+        "label": "Riferimento video",
+        "hint": "Un video di riferimento guida il movimento e la continuità."
+      },
+      "edit": {
+        "label": "Modifica video",
+        "hint": "Cambia il video come chiede il prompt. Il risultato segue la sua durata."
+      },
+      "extend": {
+        "label": "Estendi video",
+        "hint": "Continua il video dalla fine, con lo stesso personaggio, ambiente e suono."
+      }
+    },
+    "nImages_one": "{{count}} immagine",
+    "nImages_many": "{{count}} immagini",
+    "nImages_other": "{{count}} immagini",
+    "nVideos_one": "{{count}} video",
+    "nVideos_many": "{{count}} video",
+    "nVideos_other": "{{count}} video",
+    "nAudios_one": "{{count}} audio",
+    "nAudios_many": "{{count}} audio",
+    "nAudios_other": "{{count}} audio",
+    "tally": {
+      "images_one": "{{n}} di {{count}} immagine",
+      "images_many": "{{n}} di {{count}} immagini",
+      "images_other": "{{n}} di {{count}} immagini",
+      "videos_one": "{{n}} di {{count}} video",
+      "videos_many": "{{n}} di {{count}} video",
+      "videos_other": "{{n}} di {{count}} video",
+      "audios_one": "{{n}} di {{count}} audio",
+      "audios_many": "{{n}} di {{count}} audio",
+      "audios_other": "{{n}} di {{count}} audio"
+    },
+    "ofMax": "{{n}} di {{max}}",
+    "firstFrameSlot": "Fotogramma iniziale",
+    "lastFrameSlot": "Fotogramma finale",
+    "required": "Obbligatorio",
+    "swapFrames": "Scambia fotogramma iniziale e finale",
+    "ratioMismatch": "I due fotogrammi hanno proporzioni diverse. Il video tende a saltare di inquadratura nel taglio.",
+    "clip": {
+      "edit": "Invia il video da modificare",
+      "extend": "Invia il video da continuare",
+      "follow": "Invia il video di riferimento",
+      "formats": "MP4, MOV o WebM, fino a 50 MB"
+    },
+    "refsLabel": "Riferimenti",
+    "refsOptional": "Riferimenti · facoltativo",
+    "refsTitle": "Aggiungi riferimenti",
+    "refsUpTo": "Fino a {{list}}",
+    "addRefMenu": "Aggiungi un riferimento",
+    "dropHere": "Rilascia qui",
+    "library": "Libreria",
+    "libraryText": "Usa ciò che il workspace ha già generato, senza scaricarlo e inviarlo di nuovo.",
+    "libraryEmpty": {
+      "title": "Ancora niente da usare qui",
+      "text": "Le immagini e i video generati dal workspace compaiono in questo elenco."
+    },
+    "libraryUse": "Usa {{name}}",
+    "play": "Riproduci {{name}}",
+    "pause": "Metti in pausa {{name}}",
+    "noRoom": "{{name}} non entra in questa modalità.",
+    "missing": {
+      "firstFrame": "Aggiungi il fotogramma iniziale",
+      "lastFrame": "Aggiungi il fotogramma finale",
+      "reference": "Aggiungi almeno un riferimento",
+      "videoReference": "Invia il video di riferimento",
+      "editVideo": "Invia il video da modificare",
+      "extendVideo": "Invia il video da continuare",
+      "prompt": "Descrivi cosa generare",
+      "uploading": "In attesa che i file finiscano di caricarsi"
+    },
+    "tooLarge": "{{name}} supera i {{size}} MB.",
+    "wrongKind": "{{name}} non è il tipo di file che accetta questo campo.",
+    "quoting": "Calcolo del prezzo…",
+    "quoteFailed": "Non è stato possibile calcolare il prezzo ora.",
     "uploading": "Caricamento…",
     "removeRef": "Rimuovi {{name}}",
     "price": "Costa {{price}} crediti",

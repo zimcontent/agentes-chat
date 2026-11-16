@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { ApiClient } from "../api/client";
 import { useApi } from "../api/context";
 import { ApiError } from "../api/http";
-import type { MediaGenerateInput, MediaGenerationView } from "./types";
+import type { MediaGenerateInput, MediaGenerationView, MediaQuoteInput } from "./types";
 
 /** Media generation (ADR doug-0011): the wallet, the models and the generations, through the server only. */
 
@@ -61,6 +61,28 @@ export const useMediaGenerations = (orgId: string, mine: boolean) => {
 export const useUploadMediaRef = (orgId: string) => {
   const api = useApi();
   return useMutation({ mutationFn: (file: File) => mediaOf(api).uploadRef(orgId, file) });
+};
+
+/** A generation of the workspace (a Drive file) as a reference, sent to the service by the server. */
+export const useDriveMediaRef = (orgId: string) => {
+  const api = useApi();
+  return useMutation({ mutationFn: (artifactId: string) => mediaOf(api).driveRef(orgId, artifactId) });
+};
+
+/**
+ * The price the server quotes, asked only when the form can't work it out itself (a reference video is in it): the
+ * service measures the video and applies the Studio's rule.
+ */
+export const useMediaQuote = (orgId: string, input: MediaQuoteInput, enabled: boolean) => {
+  const api = useApi();
+  return useQuery({
+    queryKey: [...mediaKeys.all(orgId), "quote", input] as const,
+    queryFn: () => mediaOf(api).quote(orgId, input),
+    enabled,
+    staleTime: 60_000,
+    retry: false,
+    meta: { quiet: true },
+  });
 };
 
 export const useGenerateMedia = (orgId: string) => {

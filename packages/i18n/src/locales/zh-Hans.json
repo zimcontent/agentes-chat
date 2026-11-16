@@ -19968,9 +19968,88 @@
     "seconds": "时长",
     "secondsValue_other": "{{count}} 秒",
     "audio": "带声音",
-    "refs_other": "参考图（最多 {{count}} 张）",
-    "firstFrame": "开场图片",
-    "addRef": "添加图片",
+    "audioKind": "音频",
+    "input": "输入",
+    "modes": {
+      "text": {
+        "label": "提示词生成视频",
+        "hint": "只用提示词。不发送任何文件。"
+      },
+      "first": {
+        "label": "首帧",
+        "hint": "选择视频开头的图片，并描述动作。"
+      },
+      "frames": {
+        "label": "首帧和尾帧",
+        "hint": "选择视频的开头和结尾。两帧都必填。"
+      },
+      "references": {
+        "label": "多参考",
+        "hint": "最多{{list}}。在提示词里说明每个参考的用途。"
+      },
+      "video_reference": {
+        "label": "视频参考",
+        "hint": "参考视频引导动作和连贯性。"
+      },
+      "edit": {
+        "label": "编辑视频",
+        "hint": "按提示词修改视频。输出时长跟随原视频。"
+      },
+      "extend": {
+        "label": "延长视频",
+        "hint": "从视频结尾继续，保持相同的角色、场景和声音。"
+      }
+    },
+    "nImages_other": "{{count}} 张图片",
+    "nVideos_other": "{{count}} 个视频",
+    "nAudios_other": "{{count}} 段音频",
+    "tally": {
+      "images_other": "图片 {{n}}/{{count}}",
+      "videos_other": "视频 {{n}}/{{count}}",
+      "audios_other": "音频 {{n}}/{{count}}"
+    },
+    "ofMax": "{{n}}/{{max}}",
+    "firstFrameSlot": "起始帧",
+    "lastFrameSlot": "结束帧",
+    "required": "必填",
+    "swapFrames": "交换起始帧和结束帧",
+    "ratioMismatch": "两帧的比例不同。视频在切换处容易跳构图。",
+    "clip": {
+      "edit": "发送要编辑的视频",
+      "extend": "发送要延续的视频",
+      "follow": "发送参考视频",
+      "formats": "MP4、MOV 或 WebM，最大 50 MB"
+    },
+    "refsLabel": "参考",
+    "refsOptional": "参考 · 可选",
+    "refsTitle": "添加参考",
+    "refsUpTo": "最多{{list}}",
+    "addRefMenu": "添加参考",
+    "dropHere": "拖放到这里",
+    "library": "素材库",
+    "libraryText": "使用工作区已经生成的内容，无需下载再上传。",
+    "libraryEmpty": {
+      "title": "这里还没有可用的内容",
+      "text": "工作区生成的图片和视频会显示在这个列表里。"
+    },
+    "libraryUse": "使用 {{name}}",
+    "play": "播放 {{name}}",
+    "pause": "暂停 {{name}}",
+    "noRoom": "{{name}} 放不进这个模式。",
+    "missing": {
+      "firstFrame": "添加起始帧",
+      "lastFrame": "添加结束帧",
+      "reference": "至少添加一个参考",
+      "videoReference": "发送参考视频",
+      "editVideo": "发送要编辑的视频",
+      "extendVideo": "发送要延续的视频",
+      "prompt": "描述要生成的内容",
+      "uploading": "正在等待文件上传完成"
+    },
+    "tooLarge": "{{name}} 超过 {{size}} MB。",
+    "wrongKind": "{{name}} 不是这里接受的文件类型。",
+    "quoting": "正在计算价格…",
+    "quoteFailed": "现在无法计算价格。",
     "uploading": "正在上传…",
     "removeRef": "移除 {{name}}",
     "price": "需要 {{price}} 积分",

@@ -15,8 +15,42 @@ export interface MediaModel {
   maxRefs?: number;
   durations?: { min: number; max: number; fixed?: number[]; default: number };
   audio?: "optional" | "always" | "none";
+  /** The older form of `inputs.firstFrame`. */
   firstFrame?: boolean;
+  /** Only where the aspects change with the quality. */
+  aspectsByQuality?: Record<string, string[]>;
+  /** What a video model takes besides the prompt (read through `mediaInputs`). */
+  inputs?: {
+    images: number;
+    videos: number;
+    audios: number;
+    firstFrame: boolean;
+    lastFrame: boolean;
+    imagesByQuality?: Record<string, number>;
+    framesOrRefs?: boolean;
+    firstFrameOnly?: boolean;
+  };
+  /** The Studio's modes per quality: text_to_video, multi_reference, first_n_last_frames, video_reference, edit, extend. */
+  modesByQuality?: Record<string, string[]>;
   prices: Record<string, MediaPrice>;
+}
+
+export type MediaRefKind = "image" | "video" | "audio";
+
+/** The modes the service takes in a request, the Studio's names. */
+export type MediaServiceMode =
+  | "text_to_video"
+  | "multi_reference"
+  | "first_n_last_frames"
+  | "video_reference"
+  | "edit"
+  | "extend";
+
+/** A file sent to the service for a generation (kept a day); `seconds` for a video or an audio. */
+export interface MediaRef {
+  ref: string;
+  kind: MediaRefKind;
+  seconds?: number;
 }
 
 export interface MediaPack {
@@ -58,12 +92,21 @@ export interface MediaGenerateInput {
   aspect?: string;
   seconds?: number;
   audio?: boolean;
-  /** Tokens from `uploadRef`. */
+  /** Tokens from `uploadRef`: reference images. */
   refs?: string[];
   firstFrame?: string;
+  /** Only with `firstFrame`. */
+  lastFrame?: string;
+  videoRefs?: string[];
+  audioRefs?: string[];
+  /** The Studio's mode the page chose (`mediaServiceMode`); left out, the service works it out from the files. */
+  mode?: MediaServiceMode;
   /** This click's id: a retried request doesn't pay twice. */
   clientId: string;
 }
+
+/** What a price asks: a generation without its id, the words optional. */
+export type MediaQuoteInput = Omit<MediaGenerateInput, "clientId" | "prompt"> & { prompt?: string };
 
 export interface MediaTopup {
   id: string;
@@ -79,7 +122,11 @@ export interface MediaApi {
   overview(orgId: string): Promise<MediaOverview>;
   generations(orgId: string, mine: boolean): Promise<MediaGenerationView[]>;
   generation(orgId: string, id: string): Promise<MediaGenerationView>;
-  uploadRef(orgId: string, file: File | Blob): Promise<string>;
+  uploadRef(orgId: string, file: File | Blob): Promise<MediaRef>;
+  /** A Drive file the person may read (a generation of the workspace) as a reference, without the round trip. */
+  driveRef(orgId: string, artifactId: string): Promise<MediaRef & { name: string }>;
+  /** The price from the server, the service's quote when a reference video is in it. */
+  quote(orgId: string, input: MediaQuoteInput): Promise<number | null>;
   generate(orgId: string, input: MediaGenerateInput): Promise<{ generation: MediaGenerationView; balance: number }>;
   topup(orgId: string, pack: string): Promise<{ topup: MediaTopup; checkoutUrl: string }>;
   topupStatus(orgId: string, id: string): Promise<{ topup: MediaTopup; balance: number }>;
@@ -88,9 +135,10 @@ export interface MediaApi {
 /** The price of a request, the service's arithmetic (half to even, at least 10); null when it doesn't fit the model. */
 export function mediaPrice(
   model: MediaModel | undefined,
-  input: { quality?: string; seconds?: number; audio?: boolean },
+  input: { quality?: string; seconds?: number; audio?: boolean; videoRefs?: string[] },
 ): number | null {
-  if (!model) return null;
+  // A reference video's own seconds can count: only the service's quote knows (`useMediaQuote`).
+  if (!model || input.videoRefs?.length) return null;
   const price = model.prices[input.quality ?? model.defaultQuality];
   if (price === undefined) return null;
   if (typeof price === "number") return price;

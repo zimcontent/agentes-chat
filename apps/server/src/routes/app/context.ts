@@ -138,7 +138,7 @@ export const MULTIPART_PATHS = [
   // A file or a recording sent from a WhatsApp number.
   /\/organizations\/[^/]+\/whatsapp\/accounts\/[^/]+\/files$/,
   /\/feedback\/files$/,
-  // A reference picture for media generation (ADR doug-0011), checked against 12 MB by its route.
+  // A reference picture, video or audio for media generation (ADR doug-0011), checked by kind by its route.
   /\/organizations\/[^/]+\/media\/refs$/,
   // An agent's photo (`PUT`, the one upload that replaces rather than adds).
   /\/organizations\/[^/]+\/agents\/[^/]+\/photo$/,

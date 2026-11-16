@@ -1,11 +1,33 @@
 import {
+  fitMediaFiles,
+  MEDIA_REF_LIMITS,
+  MEDIA_TARGET_KIND,
+  type MediaFileSet,
+  type MediaFileTarget,
   type MediaGenerationView,
   type MediaGenKind,
+  type MediaInputMode,
   type MediaModel,
+  type MediaModeSpec,
+  type MediaRef,
+  type MediaRefFile,
+  type MediaRefKind,
+  mediaAspects,
+  mediaDropTarget,
+  mediaMissing,
+  mediaModeFor,
+  mediaModeSpec,
+  mediaModes,
   mediaPrice,
+  mediaRequestFiles,
+  mediaServiceMode,
+  NO_MEDIA_FILES,
+  pickMediaMode,
+  useDriveMediaRef,
   useGenerateMedia,
   useMediaGenerations,
   useMediaOverview,
+  useMediaQuote,
   useMediaTopup,
   useMediaTopupStatus,
   useUploadMediaRef,
@@ -29,10 +51,13 @@ import {
 import { useNavigate, useSearch } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { useApi } from "@/api/context";
 import { ArtifactCard } from "@/components/artifacts/ArtifactCard";
 import { ErrorState, LoadingCards } from "@/components/Loading";
 import { useOrg } from "@/components/org-context";
 import { useToast } from "@/lib/toast";
+import { dragHasFiles, MediaInput, type PendingFile } from "./media/MediaInput";
+import { MediaLibrary } from "./media/MediaLibrary";
 import "./media.css";
 
 /**
@@ -102,9 +127,41 @@ export function MediaPage() {
   );
 }
 
+/** A file's kind from what the browser says, or its name (a dropped file can come without a type). */
+function kindOfFile(file: File): MediaRefKind | null {
+  if (file.type.startsWith("image/")) return "image";
+  if (file.type.startsWith("video/")) return "video";
+  if (file.type.startsWith("audio/")) return "audio";
+  const ext = file.name.split(".").pop()?.toLowerCase() ?? "";
+  if (["jpg", "jpeg", "png", "webp"].includes(ext)) return "image";
+  if (["mp4", "mov", "webm"].includes(ext)) return "video";
+  if (["mp3", "wav", "m4a", "aac", "ogg"].includes(ext)) return "audio";
+  return null;
+}
+
+const SINGLE: MediaFileTarget[] = ["firstFrame", "lastFrame", "video"];
+const isSingle = (t: MediaFileTarget): t is "firstFrame" | "lastFrame" | "video" => SINGLE.includes(t);
+
+/** The files with the ones on their way counted in, for the room a new drop finds. */
+function withPending(files: MediaFileSet, pending: PendingFile[]): MediaFileSet {
+  const next: MediaFileSet = {
+    ...files,
+    images: [...files.images],
+    videos: [...files.videos],
+    audios: [...files.audios],
+  };
+  for (const p of pending) {
+    const stand: MediaRefFile = { token: p.id, kind: p.kind, name: p.name, url: "" };
+    if (isSingle(p.target)) next[p.target] = stand;
+    else next[p.target].push(stand);
+  }
+  return next;
+}
+
 function MediaForm({ models, balance }: { models: MediaModel[]; balance: number }) {
   const { t, i18n } = useTranslation();
   const { org } = useOrg();
+  const api = useApi();
   const toast = useToast();
   const [kind, setKind] = useState<MediaGenKind>("image");
   const ofKind = models.filter((m) => m.kind === kind);
@@ -115,14 +172,21 @@ function MediaForm({ models, balance }: { models: MediaModel[]; balance: number 
   const [seconds, setSeconds] = useState<string | undefined>(undefined);
   const [audio, setAudio] = useState(true);
   const [prompt, setPrompt] = useState("");
-  const [refs, setRefs] = useState<{ token: string; url: string; name: string }[]>([]);
+  const [chosenMode, setMode] = useState<MediaInputMode>("text");
+  const [stored, setFiles] = useState<MediaFileSet>(NO_MEDIA_FILES);
+  const [pending, setPending] = useState<PendingFile[]>([]);
+  const [over, setOver] = useState(false);
+  const [library, setLibrary] = useState<MediaFileTarget | "refs" | null>(null);
   const upload = useUploadMediaRef(org.id);
+  const fromDrive = useDriveMediaRef(org.id);
   const generate = useGenerateMedia(org.id);
-  const fileInput = useRef<HTMLInputElement>(null);
 
   // A choice the new model doesn't have falls back to its own default.
   const q = model && quality && model.qualities.includes(quality) ? quality : model?.defaultQuality;
-  const a = model && aspect && model.aspects.includes(aspect) ? aspect : model?.aspects[0];
+  const aspects = mediaAspects(model, q);
+  // The Zim Studio's default: 16:9 for a video, square for an image, when the model offers it.
+  const preferred = kind === "video" ? "16:9" : "1:1";
+  const a = aspect && aspects.includes(aspect) ? aspect : aspects.includes(preferred) ? preferred : aspects[0];
   const durations = useMemo(() => {
     const d = model?.durations;
     if (!d) return [];
@@ -132,38 +196,228 @@ function MediaForm({ models, balance }: { models: MediaModel[]; balance: number 
   const s =
     seconds && durations.includes(Number(seconds)) ? Number(seconds) : (model?.durations?.default ?? durations[0]);
   const withSound = model?.audio === "always" ? true : model?.audio === "none" ? false : audio;
-  const price = mediaPrice(model, { quality: q, seconds: s, audio: withSound });
-  const maxRefs = kind === "image" ? (model?.maxRefs ?? 0) : model?.firstFrame ? 1 : 0;
+  const modes = mediaModes(model, q);
+  const mode: MediaInputMode = kind === "image" ? "references" : pickMediaMode(model, q, chosenMode);
+  const spec = mediaModeSpec(model, q, mode);
+  const files = fitMediaFiles(stored, spec);
+  // An edit follows its clip: its length and shape are the clip's, so neither is asked (the Studio's rule).
+  const clipDecides = mode === "edit";
+  const missing = kind === "video" ? mediaMissing(spec, files) : null;
+  const ask = {
+    model: model?.id ?? "",
+    quality: q,
+    ...(clipDecides ? {} : { aspect: a }),
+    ...(kind === "video" ? { ...(clipDecides ? {} : { seconds: s }), audio: withSound } : {}),
+    ...mediaRequestFiles(files),
+    // The service works the mode out by itself for a model that lists none.
+    ...(kind === "video" && model?.modesByQuality?.[q ?? ""] ? { mode: mediaServiceMode(mode) } : {}),
+  };
+  // A reference video's price is the service's (it measures the clip): asked as soon as the video is in.
+  const needsQuote = Boolean(model && ask.videoRefs?.length && !missing);
+  const quote = useMediaQuote(org.id, ask, needsQuote);
+  // Shown while something is still missing too, unless only the service can price it (a clip not sent yet).
+  const price = needsQuote
+    ? (quote.data ?? null)
+    : spec.video
+      ? null
+      : mediaPrice(model, { quality: q, seconds: s, audio: withSound });
+  const quoting = needsQuote && quote.isFetching;
   const short = price !== null && price > balance;
   const fmt = (n: number) => n.toLocaleString(i18n.language);
+  const why = pending.length ? "uploading" : (missing ?? (prompt.trim() ? null : "prompt"));
 
-  const pick = async (files: FileList | null) => {
-    for (const file of Array.from(files ?? []).slice(0, Math.max(0, maxRefs - refs.length))) {
-      try {
-        const token = await upload.mutateAsync(file);
-        setRefs((r) => [...r, { token, url: URL.createObjectURL(file), name: file.name }]);
-      } catch (error) {
-        toast.show(errorText(t, error, i18n.language));
-      }
-    }
+  // What the drop and paste handlers read: the latest choice, files and uploads, set as they change.
+  const now = useRef({ model, q, mode, spec, files, pending });
+  now.current = { model, q, mode, spec, files, pending };
+
+  /** Keeps only what the new choice takes, so a file the new model refuses never rides along unseen. */
+  const choose = (next: MediaModel | undefined, nextQuality: string | undefined, wanted: MediaInputMode) => {
+    const nextMode = next?.kind === "image" ? "references" : pickMediaMode(next, nextQuality, wanted);
+    const nextSpec = mediaModeSpec(next, nextQuality, nextMode);
+    setMode(nextMode);
+    setFiles((f) => fitMediaFiles(f, nextSpec));
+    now.current = { ...now.current, mode: nextMode, spec: nextSpec, files: fitMediaFiles(now.current.files, nextSpec) };
+  };
+  const chooseModel = (id: string) => {
+    const next = ofKind.find((m) => m.id === id);
+    setModelId(id);
+    choose(next, next && quality && next.qualities.includes(quality) ? quality : next?.defaultQuality, mode);
+  };
+  const chooseQuality = (value: string) => {
+    setQuality(value);
+    choose(model, value, mode);
   };
   const switchKind = (next: MediaGenKind) => {
     setKind(next);
     setModelId(undefined);
-    setRefs([]);
+    setMode("text");
+    setFiles(NO_MEDIA_FILES);
   };
+
+  const place = (target: MediaFileTarget, item: MediaRefFile) =>
+    setFiles((f) => (isSingle(target) ? { ...f, [target]: item } : { ...f, [target]: [...f[target], item] }));
+
+  /**
+   * Sends one file and puts it where it goes, showing it there on its way. Files sent together upload at once but
+   * land in the order they were picked: each waits for the one before it (`after`).
+   */
+  const send = async (
+    target: MediaFileTarget,
+    kindWanted: MediaRefKind,
+    name: string,
+    go: () => Promise<MediaRef>,
+    url: () => string,
+    after: Promise<unknown> = Promise.resolve(),
+  ) => {
+    const id = crypto.randomUUID();
+    const entry: PendingFile = { id, target, kind: kindWanted, name };
+    now.current = { ...now.current, pending: [...now.current.pending, entry] };
+    setPending((p) => [...p, entry]);
+    const job = go();
+    // Its own failure is told below: the chain only waits for its turn.
+    job.catch(() => {});
+    try {
+      await after.catch(() => {});
+      const ref = await job;
+      if (ref.kind !== kindWanted) {
+        toast.show(t("mediaGen.wrongKind", { name }));
+        return;
+      }
+      place(target, {
+        token: ref.ref,
+        kind: ref.kind,
+        name,
+        url: url(),
+        ...(ref.seconds !== undefined ? { seconds: ref.seconds } : {}),
+      });
+    } catch (error) {
+      toast.show(errorText(t, error, i18n.language));
+    } finally {
+      now.current = { ...now.current, pending: now.current.pending.filter((p) => p.id !== id) };
+      setPending((p) => p.filter((x) => x.id !== id));
+    }
+  };
+
+  /**
+   * Files from a slot (`target`), the picker, a drop on the form or a paste. Without a target each goes where its
+   * kind goes in the mode as it is; a file the mode takes nothing of switches to the mode that does (a picture
+   * dropped on "Vídeo por prompt" opens "Primeiro quadro").
+   */
+  const addFiles = (list: File[], target?: MediaFileTarget) => {
+    let { spec: at } = now.current;
+    const { model: m, q: mq } = now.current;
+    const kinds = list.map(kindOfFile);
+    const takes = (sp: MediaModeSpec, k: MediaRefKind) =>
+      k === "image" ? sp.firstFrame || sp.images > 0 : k === "video" ? sp.video || sp.videos > 0 : sp.audios > 0;
+    const firstKind = kinds.find((k): k is MediaRefKind => k !== null);
+    if (!target && firstKind && m?.kind === "video" && !takes(at, firstKind)) {
+      const next = mediaModeFor(m, mq, firstKind);
+      if (next) {
+        choose(m, mq, next);
+        at = now.current.spec;
+      }
+    }
+    let room = withPending(now.current.files, now.current.pending);
+    let before: Promise<unknown> = Promise.resolve();
+    list.forEach((file, i) => {
+      const k = kinds[i];
+      if (!k) {
+        toast.show(t("mediaGen.wrongKind", { name: file.name }));
+        return;
+      }
+      if (target && MEDIA_TARGET_KIND[target] !== k) {
+        toast.show(t("mediaGen.wrongKind", { name: file.name }));
+        return;
+      }
+      const where =
+        target && (isSingle(target) || room[target].length < at[target])
+          ? target
+          : target
+            ? null
+            : mediaDropTarget(at, room, k);
+      if (!where) {
+        toast.show(t("mediaGen.noRoom", { name: file.name }));
+        return;
+      }
+      if (file.size > MEDIA_REF_LIMITS[k]) {
+        toast.show(t("mediaGen.tooLarge", { name: file.name, size: MEDIA_REF_LIMITS[k] / (1024 * 1024) }));
+        return;
+      }
+      const stand: MediaRefFile = { token: `pending-${i}`, kind: k, name: file.name, url: "" };
+      room = isSingle(where) ? { ...room, [where]: stand } : { ...room, [where]: [...room[where], stand] };
+      before = send(
+        where,
+        k,
+        file.name,
+        () => upload.mutateAsync(file),
+        () => URL.createObjectURL(file),
+        before,
+      );
+    });
+  };
+  const add = useRef(addFiles);
+  add.current = addFiles;
+
+  // Ctrl/Cmd+V with a picture (or a clip, a sound) anywhere on the page puts it where it goes.
+  useEffect(() => {
+    const onPaste = (e: ClipboardEvent) => {
+      const list = Array.from(e.clipboardData?.files ?? []).filter((f) => kindOfFile(f) !== null);
+      if (!list.length) return;
+      e.preventDefault();
+      add.current(list);
+    };
+    document.addEventListener("paste", onPaste);
+    return () => document.removeEventListener("paste", onPaste);
+  }, []);
+
+  /** A generation from the library: the server sends its Drive file to the service. */
+  const pickFromLibrary = (g: MediaGenerationView & { artifactId: string }) => {
+    const target = library;
+    setLibrary(null);
+    const k: MediaRefKind = g.kind;
+    const { spec: at } = now.current;
+    const room = withPending(now.current.files, now.current.pending);
+    const where = target && target !== "refs" ? target : mediaDropTarget(at, room, k);
+    if (!where) {
+      toast.show(t("mediaGen.noRoom", { name: g.prompt }));
+      return;
+    }
+    const name = fileTitleOf(g);
+    void send(
+      where,
+      k,
+      name,
+      () => fromDrive.mutateAsync(g.artifactId),
+      () => api.artifacts.fileUrl(org.id, g.artifactId),
+    );
+  };
+  const libraryKinds: MediaRefKind[] =
+    library === null
+      ? []
+      : library === "refs"
+        ? (["image", "video"] as const).filter((k) => (k === "image" ? spec.images : spec.videos) > 0)
+        : [MEDIA_TARGET_KIND[library]];
+
+  const remove = (target: MediaFileTarget, token: string) =>
+    setFiles((f) =>
+      isSingle(target) ? { ...f, [target]: undefined } : { ...f, [target]: f[target].filter((x) => x.token !== token) },
+    );
+  const swap = () => setFiles((f) => ({ ...f, firstFrame: f.lastFrame, lastFrame: f.firstFrame }));
+  const reorder = (target: "images" | "videos" | "audios", from: string, to: string) =>
+    setFiles((f) => {
+      const items = [...f[target]];
+      const i = items.findIndex((x) => x.token === from);
+      const j = items.findIndex((x) => x.token === to);
+      if (i < 0 || j < 0) return f;
+      const [moved] = items.splice(i, 1);
+      if (moved) items.splice(j, 0, moved);
+      return { ...f, [target]: items };
+    });
+
   const submit = () => {
-    if (!model || !prompt.trim()) return;
+    if (!model || why) return;
     generate.mutate(
-      {
-        model: model.id,
-        prompt: prompt.trim(),
-        quality: q,
-        aspect: a,
-        ...(kind === "video" ? { seconds: s, audio: withSound } : {}),
-        ...(kind === "image" ? { refs: refs.map((r) => r.token) } : refs[0] ? { firstFrame: refs[0].token } : {}),
-        clientId: crypto.randomUUID(),
-      },
+      { ...ask, model: model.id, prompt: prompt.trim(), clientId: crypto.randomUUID() },
       {
         onSuccess: (r) =>
           toast.show(
@@ -177,7 +431,26 @@ function MediaForm({ models, balance }: { models: MediaModel[]; balance: number 
   };
 
   return (
-    <section className="ac-card media-form" aria-label={t("mediaGen.form")}>
+    <section
+      className="ac-card media-form"
+      aria-label={t("mediaGen.form")}
+      // The whole form takes a dropped file; each slot inside takes one for itself first.
+      onDragOver={(e) => {
+        if (!dragHasFiles(e)) return;
+        e.preventDefault();
+        if (!over) setOver(true);
+      }}
+      onDragLeave={(e) => {
+        if (e.currentTarget.contains(e.relatedTarget as Node | null)) return;
+        setOver(false);
+      }}
+      onDrop={(e) => {
+        if (!dragHasFiles(e)) return;
+        e.preventDefault();
+        setOver(false);
+        addFiles(Array.from(e.dataTransfer.files));
+      }}
+    >
       <Segmented
         block
         label={t("mediaGen.kind")}
@@ -192,29 +465,44 @@ function MediaForm({ models, balance }: { models: MediaModel[]; balance: number 
         <Field label={t("mediaGen.model")}>
           <Select
             value={model?.id}
-            onValueChange={setModelId}
+            onValueChange={chooseModel}
             options={ofKind.map((m) => ({ value: m.id, label: m.label, description: m.description }))}
           />
         </Field>
+        <MediaInput
+          kind={kind}
+          modes={modes}
+          mode={mode}
+          spec={spec}
+          refsSpec={mediaModeSpec(model, q, "references")}
+          files={files}
+          pending={pending}
+          aspect={a}
+          over={over}
+          onMode={(next) => choose(model, q, next)}
+          onFiles={addFiles}
+          onRemove={remove}
+          onSwap={swap}
+          onReorder={reorder}
+          onLibrary={setLibrary}
+        />
         <Field label={t("mediaGen.prompt")} example={t("mediaGen.promptExample")}>
-          <Textarea value={prompt} onChange={(e) => setPrompt(e.target.value)} rows={5} maxLength={4000} />
+          <Textarea value={prompt} onChange={(e) => setPrompt(e.target.value)} rows={4} maxLength={4000} />
         </Field>
         <div className="media-form__row">
           <Field label={t("mediaGen.quality")}>
             <Select
               value={q}
-              onValueChange={setQuality}
+              onValueChange={chooseQuality}
               options={(model?.qualities ?? []).map((v) => ({ value: v, label: v }))}
             />
           </Field>
-          <Field label={t("mediaGen.aspect")}>
-            <Select
-              value={a}
-              onValueChange={setAspect}
-              options={(model?.aspects ?? []).map((v) => ({ value: v, label: v }))}
-            />
-          </Field>
-          {kind === "video" && (
+          {!clipDecides && (
+            <Field label={t("mediaGen.aspect")}>
+              <Select value={a} onValueChange={setAspect} options={aspects.map((v) => ({ value: v, label: v }))} />
+            </Field>
+          )}
+          {kind === "video" && !clipDecides && (
             <Field label={t("mediaGen.seconds")}>
               <Select
                 value={String(s)}
@@ -230,66 +518,44 @@ function MediaForm({ models, balance }: { models: MediaModel[]; balance: number 
             <Switch checked={audio} onCheckedChange={setAudio} aria-label={t("mediaGen.audio")} />
           </div>
         )}
-        {maxRefs > 0 && (
-          <Field label={kind === "image" ? t("mediaGen.refs", { count: maxRefs }) : t("mediaGen.firstFrame")} group>
-            <div className="media-refs">
-              {refs.map((r) => (
-                <figure key={r.token} className="media-refs__item">
-                  <img src={r.url} alt={r.name} />
-                  <button
-                    type="button"
-                    className="media-refs__remove"
-                    aria-label={t("mediaGen.removeRef", { name: r.name })}
-                    onClick={() => setRefs((all) => all.filter((x) => x.token !== r.token))}
-                  >
-                    <Icon name="close" size={16} />
-                  </button>
-                </figure>
-              ))}
-              {refs.length < maxRefs && (
-                <Button
-                  variant="default"
-                  icon="plus"
-                  disabled={upload.isPending}
-                  onClick={() => fileInput.current?.click()}
-                >
-                  {upload.isPending ? t("mediaGen.uploading") : t("mediaGen.addRef")}
-                </Button>
-              )}
-              <input
-                ref={fileInput}
-                type="file"
-                accept="image/jpeg,image/png,image/webp"
-                multiple={kind === "image"}
-                hidden
-                onChange={(e) => {
-                  void pick(e.target.files);
-                  e.target.value = "";
-                }}
-              />
-            </div>
-          </Field>
-        )}
       </FormStack>
-      <div className="media-form__foot ac-actline">
-        <span className={short ? "media-form__price media-form__price--short" : "media-form__price"}>
-          {price === null
-            ? ""
-            : short
-              ? t("mediaGen.short", { price: fmt(price), balance: fmt(balance) })
-              : t("mediaGen.price", { price: fmt(price) })}
-        </span>
-        <Button
-          variant="primary"
-          icon="bolt"
-          disabled={!prompt.trim() || !model || short || generate.isPending}
-          onClick={submit}
-        >
-          {generate.isPending ? t("mediaGen.generating") : t("mediaGen.generate")}
-        </Button>
+      <div className="media-form__foot">
+        {why && <p className="media-form__why">{t(`mediaGen.missing.${why}`)}</p>}
+        <div className="media-form__go">
+          <span className={short ? "media-form__price media-form__price--short" : "media-form__price"}>
+            {quoting
+              ? t("mediaGen.quoting")
+              : needsQuote && quote.isError
+                ? t("mediaGen.quoteFailed")
+                : price === null
+                  ? ""
+                  : short
+                    ? t("mediaGen.short", { price: fmt(price), balance: fmt(balance) })
+                    : t("mediaGen.price", { price: fmt(price) })}
+          </span>
+          <Button
+            variant="primary"
+            icon="bolt"
+            disabled={!model || why !== null || short || quoting || generate.isPending}
+            onClick={submit}
+          >
+            {generate.isPending ? t("mediaGen.generating") : t("mediaGen.generate")}
+          </Button>
+        </div>
       </div>
+      <MediaLibrary
+        open={library !== null}
+        onOpenChange={(open) => !open && setLibrary(null)}
+        kinds={libraryKinds}
+        onPick={pickFromLibrary}
+      />
     </section>
   );
+}
+
+/** A generation's name as a reference: its prompt, whole (the caption wraps it). */
+function fileTitleOf(g: MediaGenerationView): string {
+  return g.prompt.replace(/\s+/g, " ").trim() || g.id;
 }
 
 function MediaGallery({ models }: { models: MediaModel[] }) {

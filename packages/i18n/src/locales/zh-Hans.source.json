@@ -49859,6 +49859,12 @@
   "mediaGen.subtitle": {
     "value": "Generate images and videos with AI, paid with the workspace's credits"
   },
+  "mediaGen.credits": {
+    "value": {
+      "one": "{{formatted}} credit",
+      "other": "{{formatted}} credits"
+    }
+  },
   "mediaGen.form": {
     "value": "Generate"
   },
@@ -49889,14 +49895,206 @@
   "mediaGen.seconds": {
     "value": "Length"
   },
+  "mediaGen.secondsValue": {
+    "value": {
+      "one": "{{count}} s",
+      "other": "{{count}} s"
+    }
+  },
   "mediaGen.audio": {
     "value": "With sound"
   },
-  "mediaGen.firstFrame": {
-    "value": "Opening image"
+  "mediaGen.audioKind": {
+    "value": "Audio"
   },
-  "mediaGen.addRef": {
-    "value": "Add image"
+  "mediaGen.input": {
+    "value": "Input"
+  },
+  "mediaGen.modes.text.label": {
+    "value": "Video from a prompt"
+  },
+  "mediaGen.modes.text.hint": {
+    "value": "The prompt alone. No file is sent."
+  },
+  "mediaGen.modes.first.label": {
+    "value": "First frame"
+  },
+  "mediaGen.modes.first.hint": {
+    "value": "Pick the picture that opens the video and describe the motion."
+  },
+  "mediaGen.modes.frames.label": {
+    "value": "First and last frame"
+  },
+  "mediaGen.modes.frames.hint": {
+    "value": "Pick how the video starts and ends. Both frames are required."
+  },
+  "mediaGen.modes.references.label": {
+    "value": "Multi references"
+  },
+  "mediaGen.modes.references.hint": {
+    "value": "Up to {{list}}. Say in the prompt what each reference is for."
+  },
+  "mediaGen.modes.video_reference.label": {
+    "value": "Video reference"
+  },
+  "mediaGen.modes.video_reference.hint": {
+    "value": "A reference video guides the motion and the continuity."
+  },
+  "mediaGen.modes.edit.label": {
+    "value": "Edit video"
+  },
+  "mediaGen.modes.edit.hint": {
+    "value": "Changes the video as the prompt says. The output follows its length."
+  },
+  "mediaGen.modes.extend.label": {
+    "value": "Extend video"
+  },
+  "mediaGen.modes.extend.hint": {
+    "value": "Continues the video from its end, with the same character, setting and sound."
+  },
+  "mediaGen.nImages": {
+    "value": {
+      "one": "{{count}} image",
+      "other": "{{count}} images"
+    }
+  },
+  "mediaGen.nVideos": {
+    "value": {
+      "one": "{{count}} video",
+      "other": "{{count}} videos"
+    }
+  },
+  "mediaGen.nAudios": {
+    "value": {
+      "one": "{{count}} audio",
+      "other": "{{count}} audios"
+    }
+  },
+  "mediaGen.tally.images": {
+    "value": {
+      "one": "{{n}} of {{count}} image",
+      "other": "{{n}} of {{count}} images"
+    }
+  },
+  "mediaGen.tally.videos": {
+    "value": {
+      "one": "{{n}} of {{count}} video",
+      "other": "{{n}} of {{count}} videos"
+    }
+  },
+  "mediaGen.tally.audios": {
+    "value": {
+      "one": "{{n}} of {{count}} audio",
+      "other": "{{n}} of {{count}} audios"
+    }
+  },
+  "mediaGen.ofMax": {
+    "value": "{{n}} of {{max}}"
+  },
+  "mediaGen.firstFrameSlot": {
+    "value": "First frame"
+  },
+  "mediaGen.lastFrameSlot": {
+    "value": "Last frame"
+  },
+  "mediaGen.required": {
+    "value": "Required"
+  },
+  "mediaGen.swapFrames": {
+    "value": "Swap the first and last frames"
+  },
+  "mediaGen.ratioMismatch": {
+    "value": "The two frames have different shapes. The video tends to jump in framing at the cut."
+  },
+  "mediaGen.clip.edit": {
+    "value": "Send the video to edit"
+  },
+  "mediaGen.clip.extend": {
+    "value": "Send the video to continue"
+  },
+  "mediaGen.clip.follow": {
+    "value": "Send the reference video"
+  },
+  "mediaGen.clip.formats": {
+    "value": "MP4, MOV or WebM, up to 50 MB"
+  },
+  "mediaGen.refsLabel": {
+    "value": "References"
+  },
+  "mediaGen.refsOptional": {
+    "value": "References · optional"
+  },
+  "mediaGen.refsTitle": {
+    "value": "Add references"
+  },
+  "mediaGen.refsUpTo": {
+    "value": "Up to {{list}}"
+  },
+  "mediaGen.addRefMenu": {
+    "value": "Add a reference"
+  },
+  "mediaGen.dropHere": {
+    "value": "Drop here"
+  },
+  "mediaGen.library": {
+    "value": "Library"
+  },
+  "mediaGen.libraryText": {
+    "value": "Use what the workspace already generated, without downloading and sending it again."
+  },
+  "mediaGen.libraryEmpty.title": {
+    "value": "Nothing to use here yet"
+  },
+  "mediaGen.libraryEmpty.text": {
+    "value": "The images and videos the workspace generates show up in this list."
+  },
+  "mediaGen.libraryUse": {
+    "value": "Use {{name}}"
+  },
+  "mediaGen.play": {
+    "value": "Play {{name}}"
+  },
+  "mediaGen.pause": {
+    "value": "Pause {{name}}"
+  },
+  "mediaGen.noRoom": {
+    "value": "{{name}} doesn't fit in this mode."
+  },
+  "mediaGen.missing.firstFrame": {
+    "value": "Add the first frame"
+  },
+  "mediaGen.missing.lastFrame": {
+    "value": "Add the last frame"
+  },
+  "mediaGen.missing.reference": {
+    "value": "Add at least one reference"
+  },
+  "mediaGen.missing.videoReference": {
+    "value": "Send the reference video"
+  },
+  "mediaGen.missing.editVideo": {
+    "value": "Send the video to edit"
+  },
+  "mediaGen.missing.extendVideo": {
+    "value": "Send the video to continue"
+  },
+  "mediaGen.missing.prompt": {
+    "value": "Describe what to generate"
+  },
+  "mediaGen.missing.uploading": {
+    "value": "Waiting for the files to finish uploading"
+  },
+  "mediaGen.tooLarge": {
+    "value": "{{name}} is larger than {{size}} MB."
+  },
+  "mediaGen.wrongKind": {
+    "value": "{{name}} isn't the kind of file this field takes."
+  },
+  "mediaGen.quoting": {
+    "value": "Working out the price…"
+  },
+  "mediaGen.quoteFailed": {
+    "value": "Couldn't work out the price right now."
   },
   "mediaGen.uploading": {
     "value": "Uploading…"

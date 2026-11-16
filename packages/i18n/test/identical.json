@@ -333,6 +333,9 @@
       "ronda.title"
     ],
     "es": [
+      "mediaGen.audioKind",
+      "mediaGen.nVideos",
+      "mediaGen.nAudios",
       "mediaGen.video",
       "devices.iphone.path.general",
       "devices.cpus",
@@ -618,6 +621,9 @@
       "ronda.title"
     ],
     "fr": [
+      "mediaGen.audioKind",
+      "mediaGen.nImages",
+      "mediaGen.nAudios",
       "mediaGen.image",
       "channel.tooLong.fileName",
       "calendar.moreRuns",
@@ -1084,6 +1090,7 @@
       "portal.home.clients"
     ],
     "de": [
+      "mediaGen.audioKind",
       "mediaGen.video",
       "devices.iphone.steps.account",
       "devices.workspace",
@@ -1577,6 +1584,10 @@
       "look.shapes.monitor"
     ],
     "it": [
+      "mediaGen.audioKind",
+      "mediaGen.input",
+      "mediaGen.nVideos",
+      "mediaGen.nAudios",
       "mediaGen.title",
       "mediaGen.video",
       "shell.media",
@@ -1985,6 +1996,9 @@
       "ronda.title"
     ],
     "nl": [
+      "mediaGen.audioKind",
+      "mediaGen.nVideos",
+      "mediaGen.nAudios",
       "mediaGen.title",
       "mediaGen.video",
       "mediaGen.model",
@@ -3206,6 +3220,9 @@
       "portal.home.viewList"
     ],
     "id": [
+      "mediaGen.audioKind",
+      "mediaGen.input",
+      "mediaGen.modes.edit.label",
       "mediaGen.title",
       "mediaGen.video",
       "mediaGen.model",
@@ -3548,6 +3565,7 @@
       "look.shapes.monitor"
     ],
     "tr": [
+      "mediaGen.nVideos",
       "mediaGen.video",
       "mediaGen.model",
       "devices.cpus",
@@ -3769,6 +3787,7 @@
       "portal.home.viewList"
     ],
     "pl": [
+      "mediaGen.audioKind",
       "mediaGen.title",
       "mediaGen.model",
       "shell.media",

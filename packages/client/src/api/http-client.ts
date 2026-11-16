@@ -4,7 +4,7 @@ import { humanCheckHeaders } from "../lib/human-check";
 import type { OnboardingStepId } from "../lib/onboarding";
 import { type LodiPrefs, lodiPrefsOf } from "../lib/right-hand-prefs";
 import { CLOUD_SERVER } from "../lib/server";
-import type { MediaGenerationView, MediaOverview, MediaTopup } from "../media/types";
+import type { MediaGenerationView, MediaOverview, MediaRef, MediaTopup } from "../media/types";
 import { consultSeeds } from "../realtime/consults";
 import { steerStore } from "../realtime/steer";
 import type {
@@ -1872,8 +1872,12 @@ export function createHttpApi(options: TransportOptions = {}): HttpApi {
       uploadRef: async (orgId, file) => {
         const form = new FormData();
         form.append("file", file, file instanceof File ? file.name : "ref");
-        return (await files.upload<{ ref: string }>(`${org(orgId)}/media/refs`, form)).ref;
+        return files.upload<MediaRef>(`${org(orgId)}/media/refs`, form);
       },
+      driveRef: (orgId, artifactId) =>
+        request<MediaRef & { name: string }>(`${org(orgId)}/media/refs/drive`, { json: { artifactId } }),
+      quote: async (orgId, input) =>
+        (await request<{ credits: number | null }>(`${org(orgId)}/media/quote`, { json: input })).credits,
       generate: (orgId, input) =>
         request<{ generation: MediaGenerationView; balance: number }>(`${org(orgId)}/media/generations`, {
           json: input,

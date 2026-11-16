@@ -6,6 +6,42 @@ import { createHash, createHmac } from "node:crypto";
  * calls (`ZIM_MEDIA_URL`, `ZIM_MEDIA_SECRET`) and never hands an address of the service to a browser.
  */
 
+/** What a video model takes besides the prompt, as the Zim Studio offers it. */
+export interface MediaInputs {
+  /** Reference images (multi-reference). */
+  images: number;
+  /** Reference videos. */
+  videos: number;
+  /** Reference audios. */
+  audios: number;
+  firstFrame: boolean;
+  /** A last frame, only with a first one. */
+  lastFrame: boolean;
+  /** A quality that takes another number of reference images than `images`. */
+  imagesByQuality?: Record<string, number>;
+  /** References or frames, never both in one request. */
+  framesOrRefs?: boolean;
+  /** The only picture it takes is the first frame. */
+  firstFrameOnly?: boolean;
+}
+
+/**
+ * The Studio's names for what a quality does: `text_to_video`, `multi_reference`, `first_n_last_frames`,
+ * `video_reference`, `edit`, `extend`.
+ */
+export type MediaMode = string;
+
+/** The modes a request may name (`MediaRequest.mode`); without one the service works it out from the files. */
+export const MEDIA_MODES = [
+  "text_to_video",
+  "multi_reference",
+  "first_n_last_frames",
+  "video_reference",
+  "edit",
+  "extend",
+] as const;
+export type MediaRequestMode = (typeof MEDIA_MODES)[number];
+
 export interface MediaModel {
   id: string;
   kind: "image" | "video";
@@ -14,12 +50,17 @@ export interface MediaModel {
   qualities: string[];
   defaultQuality: string;
   aspects: string[];
-  /** Images: credits per image by quality. */
+  /** Only where the aspects change with the quality. */
+  aspectsByQuality?: Record<string, string[]>;
+  /** Images: how many reference pictures (0 takes none). */
   maxRefs?: number;
   /** Videos. */
   durations?: { min: number; max: number; fixed?: number[]; default: number };
   audio?: "optional" | "always" | "none";
+  /** The older form of `inputs.firstFrame`. */
   firstFrame?: boolean;
+  inputs?: MediaInputs;
+  modesByQuality?: Record<string, MediaMode[]>;
   prices: Record<string, number | { perSecond: boolean; credits: number; silentCredits: number }>;
 }
 
@@ -37,9 +78,30 @@ export interface MediaRequest {
   aspect?: string;
   seconds?: number;
   audio?: boolean;
-  /** Tokens from `uploadRef`. */
+  /** Tokens from `uploadRef`: reference images. */
   refs?: string[];
+  /** An image token. */
   firstFrame?: string;
+  /** An image token, only with `firstFrame`. */
+  lastFrame?: string;
+  /** Video tokens. */
+  videoRefs?: string[];
+  /** Audio tokens. */
+  audioRefs?: string[];
+  /**
+   * What to do with the files, the Studio's mode: an `edit` or `extend` changes or continues the one video in
+   * `videoRefs`, where the same files alone would read as references. Left out, the service works it out.
+   */
+  mode?: MediaRequestMode;
+}
+
+export type MediaRefKind = "image" | "video" | "audio";
+
+/** A file the service keeps for a day to hand its provider; `seconds` for a video or an audio, measured there. */
+export interface MediaRef {
+  ref: string;
+  kind: MediaRefKind;
+  seconds?: number;
 }
 
 export interface MediaQuote {
@@ -98,7 +160,7 @@ export interface ZimMedia {
   catalog(): Promise<{ models: MediaModel[]; packs: MediaPack[] }>;
   quote(request: MediaRequest): Promise<MediaQuote>;
   balance(orgId: string, withLedger?: boolean): Promise<{ balance: number; ledger?: MediaLedgerRow[] }>;
-  uploadRef(orgId: string, bytes: Uint8Array, contentType: string): Promise<string>;
+  uploadRef(orgId: string, bytes: Uint8Array, contentType: string): Promise<MediaRef>;
   generate(
     orgId: string,
     input: { idempotencyKey: string; actor: MediaActor; request: MediaRequest },
@@ -200,8 +262,20 @@ export function createZimMedia(options: { url: string; secret: string; fetch?: t
     quote: (request) => json("POST", "/v1/quote", request),
     balance: (orgId, withLedger) => json("GET", `${org(orgId)}/balance${withLedger ? "?ledger=1" : ""}`),
     async uploadRef(orgId, bytes, contentType) {
-      const res = await raw("POST", `${org(orgId)}/refs`, bytes, contentType, 60_000);
-      return ((await res.json()) as { ref: string }).ref;
+      // A video of up to 50 MB goes through two networks before the service measures it.
+      const timeout = contentType.startsWith("video/") ? 300_000 : contentType.startsWith("audio/") ? 120_000 : 60_000;
+      const res = await raw("POST", `${org(orgId)}/refs`, bytes, contentType, timeout);
+      const body = (await res.json()) as Partial<MediaRef>;
+      if (typeof body.ref !== "string") throw new ZimMediaError("O serviço de mídia não devolveu a referência.", 502);
+      const kind: MediaRefKind =
+        body.kind === "video" || body.kind === "audio" || body.kind === "image"
+          ? body.kind
+          : contentType.startsWith("video/")
+            ? "video"
+            : contentType.startsWith("audio/")
+              ? "audio"
+              : "image";
+      return { ref: body.ref, kind, ...(typeof body.seconds === "number" ? { seconds: body.seconds } : {}) };
     },
     // The image providers answer within the call (up to two tries of two minutes).
     generate: (orgId, input) => json("POST", `${org(orgId)}/generations`, input, 300_000),
