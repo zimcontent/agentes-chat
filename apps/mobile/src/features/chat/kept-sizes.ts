@@ -13,8 +13,8 @@
 
 export const MAX_KEPT = 3000;
 
-/** A height or a width, or a table's columns by index. */
-type Kept = number | Readonly<Record<number, number>>;
+/** A height or a width, a table's columns by index, or a part the person opened (`keepOpen`). */
+type Kept = number | Readonly<Record<number, number>> | true;
 
 const kept = new Map<string, Kept>();
 
@@ -44,6 +44,20 @@ export function keptColumns(key: string): Readonly<Record<number, number>> | und
 
 export function keepColumns(key: string, columns: Readonly<Record<number, number>>) {
   keep(key, { ...columns });
+}
+
+/**
+ * Whether the person left a row's part open (a reply's tools), kept as the sizes are: a block opened and scrolled away
+ * came back closed, another size than the one the list kept for its row. No key: nothing kept.
+ */
+export function keptOpen(key: string | undefined): boolean {
+  return key !== undefined && kept.get(key) === true;
+}
+
+export function keepOpen(key: string | undefined, open: boolean) {
+  if (key === undefined) return;
+  if (open) keep(key, true);
+  else kept.delete(key);
 }
 
 /** Everything kept, gone (tests). */

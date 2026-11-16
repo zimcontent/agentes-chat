@@ -51,6 +51,7 @@ import { ConnectorIcon, IconTile } from "../connectors/ConnectorIcon";
 import { useColors, useOrgId } from "../shared/hooks";
 import { MONO, tapHaptic } from "../shared/parts";
 import { CodeCard } from "./CodeCard";
+import { keepOpen, keptOpen } from "./kept-sizes";
 import { MessageText } from "./MessageText";
 import { outputTail } from "./turn";
 
@@ -224,6 +225,7 @@ export function ToolBlock({
   flash = null,
   onToggle,
   one = false,
+  keep,
 }: {
   logos: { key: string; node: ReactNode }[];
   head: BlockHead;
@@ -240,10 +242,12 @@ export function ToolBlock({
   onToggle?: (open: boolean) => void;
   /** The work is one call: its line in place of the head ("Criou uma rotina", not "Usou 1 ferramenta"). */
   one?: boolean;
+  /** In a conversation's row: whether it is open is kept by this key (`keptOpen`), so it comes back as it was left. */
+  keep?: string | undefined;
 }) {
   const c = useColors();
   const reduced = useReducedMotion();
-  const [open, setOpen] = useState(defaultOpen);
+  const [open, setOpen] = useState(() => defaultOpen || keptOpen(keep));
   const flashing = useFlash(flash, reduced ? FLASH_MS : FLASH_HOLD_MS);
   const moving = live && !reduced;
   const only = one ? items.find((i) => i.kind === "line") : undefined;
@@ -272,7 +276,7 @@ export function ToolBlock({
       <View style={[styles.block, { backgroundColor: c.raised, borderColor: c.line2 }]}>
         {plate}
         <View style={styles.one}>
-          <Line line={{ ...only.line, detail }} color={color} onToggle={onToggle} />
+          <Line line={{ ...only.line, detail }} color={color} onToggle={onToggle} keep={keep} />
         </View>
       </View>
     );
@@ -284,6 +288,7 @@ export function ToolBlock({
         onPress={() => {
           tapHaptic();
           setOpen(!open);
+          keepOpen(keep, !open);
           onToggle?.(!open);
         }}
         accessibilityRole="button"
@@ -352,14 +357,17 @@ function Line({
   line,
   color,
   onToggle,
+  keep,
 }: {
   line: BlockLine;
   color: AgentColorName;
   onToggle?: (open: boolean) => void;
+  /** A block's lone line: whether it is open is kept as the block's is (`ToolBlock`'s `keep`). */
+  keep?: string | undefined;
 }) {
   const c = useColors();
   const reduced = useReducedMotion();
-  const [open, setOpen] = useState(line.defaultOpen === true);
+  const [open, setOpen] = useState(() => line.defaultOpen === true || keptOpen(keep));
   // Open while it runs (its code), it folds when the call ends; a tap opens it again.
   const running = useRef(line.state === "run");
   useEffect(() => {
@@ -411,6 +419,7 @@ function Line({
           onPress={() => {
             tapHaptic();
             setOpen(!open);
+            keepOpen(keep, !open);
             onToggle?.(!open);
           }}
           accessibilityRole="button"
@@ -586,6 +595,7 @@ export function TurnTools({
   quoteOf,
   done = false,
   settled = false,
+  keep,
 }: {
   items: ToolItem[];
   agentName: string;
@@ -596,6 +606,8 @@ export function TurnTools({
   done?: boolean;
   /** Drawn by the saved reply (nothing comes in any more). */
   settled?: boolean;
+  /** On a reply: the key its block's open state is kept by (`ToolBlock`'s `keep`). */
+  keep?: string | undefined;
 }) {
   const { t, i18n } = useTranslation();
   const { org } = useOrg();
@@ -648,6 +660,7 @@ export function TurnTools({
         label={t("chat.work.block", agentGrammar(agentName))}
         live={!done && !settled}
         one={one}
+        keep={keep}
       />
       {items.map((i) =>
         i.kind === "steer" ? (
@@ -670,6 +683,7 @@ export function SavedTools({
   agentName,
   color,
   skipScreens = [],
+  keep,
 }: {
   runId: string;
   meta: Record<string, unknown> | undefined;
@@ -677,11 +691,13 @@ export function SavedTools({
   color: AgentColorName;
   /** Screens whose calls have their own card on the message (`TrailCard`): left out here. */
   skipScreens?: ScreenKind[];
+  /** The key its block's open state is kept by (`ToolBlock`'s `keep`): left open, it loads its steps coming back. */
+  keep?: string | undefined;
 }) {
   const { t, i18n } = useTranslation();
   const orgId = useOrgId();
   const { org } = useOrg();
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(() => keptOpen(keep));
   const run = useRun(orgId, open ? runId : null);
   const logo = useCallLogo();
   const compact = workMeta(meta);
@@ -733,6 +749,7 @@ export function SavedTools({
         label={t("chat.work.block", agentGrammar(agentName))}
         // Its steps stay once loaded: closing the line doesn't change what it says.
         onToggle={(o) => o && setOpen(true)}
+        keep={keep}
       />
     );
   }
@@ -750,6 +767,7 @@ export function SavedTools({
       color={color}
       label={t("chat.work.block", agentGrammar(agentName))}
       onToggle={setOpen}
+      keep={keep}
     />
   );
 }

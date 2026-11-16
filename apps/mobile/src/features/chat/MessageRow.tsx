@@ -154,7 +154,7 @@ import { ModelStandInLine, SpeedFallbackLine, StopPill } from "./StoppedLine";
 import { useStopMovedOn, useStoppedRun } from "./stopped-runs";
 import { TeamChecks } from "./TeamChecks";
 import { SavedTools, TurnTools } from "./ToolCalls";
-import { recentTurn, stepLimitOf, stoppedOf, turnOpener } from "./turn";
+import { keptTurn, stepLimitOf, stoppedOf, turnOpener } from "./turn";
 import { MessageWorkLine } from "./WorkLine";
 
 /** A run's message asks whether a take over still holds its browser only this recently (older: events only). */
@@ -169,24 +169,20 @@ const TRAIL_RECENT_MS = 12 * 60 * 60_000;
  * receipt is a mark in a line the row already has (`ReceiptMark`), so it never changes the row's height: after the
  * time under my turn, whether an agent read it ("lê na próxima pausa", "leu") or who read it in a DM; at the end of
  * someone else's name line, the agents' receipt of their latest message.
+ *
+ * What the row holds when it mounts just shows (`skipEntering`): the list mounts a row again each time it comes back
+ * into view, and a part that fades in when it changes (a receipt's mark, a decided request's outcome, an undone
+ * action's line) faded in again on every scroll. What changes while the row shows still fades in.
  */
-export const MessageRow = memo(function MessageRow({
-  message: m,
-  grouped: groupedIn,
-  newTurn,
-  meId,
-  thread,
-  onLongPress,
-  onRetry,
-  onQuote,
-  receipt,
-  seenBy,
-  readOnly = false,
-  inThread = false,
-  run: runAt = "solo",
-  above,
-  aboveThread = false,
-}: {
+export const MessageRow = memo(function MessageRow(props: RowProps) {
+  return (
+    <LayoutAnimationConfig skipEntering>
+      <RowBody {...props} />
+    </LayoutAnimationConfig>
+  );
+});
+
+interface RowProps {
   message: Message;
   grouped: boolean;
   /** Next in its turn, but under something else: it takes a turn's gap. */
@@ -212,7 +208,25 @@ export const MessageRow = memo(function MessageRow({
   readOnly?: boolean;
   /** On its thread's own screen: a long message between agents is read whole there. */
   inThread?: boolean;
-}) {
+}
+
+function RowBody({
+  message: m,
+  grouped: groupedIn,
+  newTurn,
+  meId,
+  thread,
+  onLongPress,
+  onRetry,
+  onQuote,
+  receipt,
+  seenBy,
+  readOnly = false,
+  inThread = false,
+  run: runAt = "solo",
+  above,
+  aboveThread = false,
+}: RowProps) {
   const { t, i18n } = useTranslation();
   // Mine and not sent for lack of a connection: it waits and goes by itself when the connection is back.
   const offline = useWaiting(m.local === "failed" ? m.clientId : null);
@@ -370,8 +384,9 @@ export const MessageRow = memo(function MessageRow({
   const atLimit = isAgent && m.agentRunId && !stopped && !mediaAfter ? stepLimitOf(meta) : null;
   // A long work's end after its AI provider failed: Continuar under it too.
   const providerCut = isAgent && m.agentRunId && !stopped && !atLimit ? workContinuable(meta) : null;
-  // This reply just took its live block's place here: the same tools (and the messages it read) stay.
-  const [kept] = useState(() => (ownWork && m.agentRunId ? recentTurn(m.agentRunId, Date.now()) : null));
+  // This reply just took its live block's place here: the same tools (and the messages it read) stay, also each time
+  // the row comes back into view (`keptTurn`).
+  const [kept] = useState(() => (ownWork && m.agentRunId ? keptTurn(m.id, m.agentRunId, Date.now()) : null));
   // The line its block opened with stays above the tools, where it was, instead of moving into them (`turnOpener`).
   const opened = kept ? turnOpener(kept.items, body) : null;
   const approvalId = approvalIdOf(meta);
@@ -911,7 +926,8 @@ export const MessageRow = memo(function MessageRow({
               />
             ) : null}
             {cards}
-            {/* Its tools after its words, what it changed and its cards: the same place live, kept and saved. */}
+            {/* Its tools after its words, what it changed and its cards: the same place live, kept and saved. Left
+                open, they come back open (`keptOpen`). */}
             {kept ? (
               <TurnTools
                 items={opened?.lines ?? kept.items}
@@ -920,6 +936,7 @@ export const MessageRow = memo(function MessageRow({
                 quoteOf={(id) => kept.quotes[id]}
                 done
                 settled
+                keep={`tools:${m.id}`}
               />
             ) : steps && m.agentRunId ? (
               <SavedTools
@@ -928,6 +945,7 @@ export const MessageRow = memo(function MessageRow({
                 agentName={agent?.name ?? name}
                 color={color}
                 skipScreens={onCards}
+                keep={`tools:${m.id}`}
               />
             ) : null}
             {/* What waits for a person's click comes last, after the words and the tools. Each card with work of its
@@ -960,7 +978,7 @@ export const MessageRow = memo(function MessageRow({
       </Pressable>
     </>
   );
-});
+}
 
 /** Reactions are stored by name: the thumbs up is `+1` (feedback to the agent). */
 const THUMBS = "+1";
