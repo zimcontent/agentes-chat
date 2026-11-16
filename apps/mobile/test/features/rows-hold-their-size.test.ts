@@ -63,7 +63,10 @@ describe("a table's key", () => {
 describe("rows that measure themselves come back at their size", () => {
   test("a long message is cut from its first frame when it comes back, and never draws whole before its first measure", () => {
     const clip = src("features/chat/ClippedMessage.tsx");
-    expect(clip).toMatch(/const sizeKey = `words:\$\{id\}:\$\{useLayoutKey\(\)\}`;/);
+    // Kept by what it shows: an agent's message to another shows its start here and whole on its thread's screen.
+    expect(clip).toMatch(
+      /const sizeKey = `words:\$\{id\}:\$\{open \|\| lead == null \? "whole" : "lead"\}:\$\{useLayoutKey\(\)\}`;/,
+    );
     expect(clip).toContain("const [height, setHeight] = useState(() => keptSize(sizeKey) ?? 0);");
     expect(clip).toContain("const unmeasured = height === 0 && !open && lead == null;");
     expect(clip).toContain('unmeasured: { maxHeight: LONG_MESSAGE.over + PAST_RULE, overflow: "hidden" },');

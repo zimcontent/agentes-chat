@@ -60,8 +60,10 @@ export function ClippedMessage({
   // How tall the words are whole, kept across the list's unmounts (`kept-sizes.ts`): a row coming back is cut from its
   // first frame. Never measured yet, they show no taller than a whole message may, a point past it (`PAST_RULE`: a long
   // paragraph under the cap reads the cap): a long one drew whole for a frame and then shrank, moving every row under
-  // it as the person scrolled.
-  const sizeKey = `words:${id}:${useLayoutKey()}`;
+  // it as the person scrolled. Kept by what it shows: an agent's long message to another agent shows its start
+  // (`lead`) in the conversation and whole on its thread's screen, and one size kept for both drew it whole for a frame
+  // there, or faded its short start out here.
+  const sizeKey = `words:${id}:${open || lead == null ? "whole" : "lead"}:${useLayoutKey()}`;
   const [height, setHeight] = useState(() => keptSize(sizeKey) ?? 0);
   const cut = clippedHeight(height);
   const foldable = cut !== null || lead != null;
