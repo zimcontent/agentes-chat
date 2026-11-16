@@ -125,6 +125,13 @@ const Summary = z
         "A person of the team who sent it from a task (docs/adr/doug-0012-editor-delivery.md); null: an agent.",
     }),
     taskId: z.uuid().nullable().openapi({ description: "The task it delivers, when sent from one." }),
+    taskNumber: z.number().int().nullable(),
+    taskTitle: z.string().nullable(),
+    taskPart: z
+      .number()
+      .int()
+      .nullable()
+      .openapi({ description: "Its number among the task's videos (a task may ask for several)." }),
     round: Round.nullable().openapi({ description: "A person's review: the newest round of changes asked of them." }),
     channelId: z.uuid(),
     threadId: z.uuid().nullable(),
@@ -567,9 +574,12 @@ export function videoReviewRoutes(deps: AppDeps) {
       path: "/organizations/{orgId}/issues/{issueId}/video-delivery",
       tags,
       security,
-      summary: "The video review sent from this task, if any",
+      summary: "The video reviews sent from this task, one per video, in their order",
       request: { params: TaskParams },
-      responses: { 200: json(z.object({ reviewId: z.uuid().nullable() })), ...errors },
+      responses: {
+        200: json(z.object({ reviewId: z.uuid().nullable(), reviewIds: z.array(z.uuid()) })),
+        ...errors,
+      },
     }),
     async (c) => {
       const { orgId, issueId } = c.req.valid("param");
@@ -585,10 +595,16 @@ export function videoReviewRoutes(deps: AppDeps) {
       summary:
         "Send the video edited for this task: to the team's review, or straight to the client after a change they asked for",
       description:
-        "The file is uploaded to the task's conversation first (`POST …/artifacts/files` with its `channelId`/`threadId`). 409 `editor_delivery.with_client` while the client has the post and asked for nothing.",
+        "The file is uploaded to the task's conversation first (`POST …/artifacts/files` with its `channelId`/`threadId`). Without `reviewId` it is a new video of the task, with its own review; with one, that video's next version. 409 `editor_delivery.with_client` while the client has the post and asked for nothing.",
       request: {
         params: TaskParams,
-        body: body(z.object({ artifactId: z.uuid(), note: z.string().max(REVIEW_NOTE_CHARS).optional() })),
+        body: body(
+          z.object({
+            artifactId: z.uuid(),
+            note: z.string().max(REVIEW_NOTE_CHARS).optional(),
+            reviewId: z.uuid().optional().openapi({ description: "The task's video this file is a new version of." }),
+          }),
+        ),
       },
       responses: {
         200: json(z.object({ review: Summary, toClient: z.boolean() })),

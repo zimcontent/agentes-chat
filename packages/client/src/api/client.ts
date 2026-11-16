@@ -2314,12 +2314,12 @@ export interface ApiClient {
     /** Saves a design piece edited by hand as its next version. */
     saveDesign?(orgId: string, reviewId: string, input: DesignEditInput): Promise<VideoReviewSummary>;
     /** The review sent from a task, if any (docs/adr/doug-0012-editor-delivery.md). */
-    taskVideo?(orgId: string, issueId: string): Promise<{ reviewId: string | null }>;
+    taskVideo?(orgId: string, issueId: string): Promise<{ reviewId: string | null; reviewIds?: string[] }>;
     /** Sends the video a person edited for a task (a file already uploaded to the task's conversation). */
     sendTaskVideo?(
       orgId: string,
       issueId: string,
-      input: { artifactId: string; note?: string },
+      input: { artifactId: string; note?: string; reviewId?: string },
     ): Promise<{ review: VideoReviewSummary; toClient: boolean }>;
     /** Sets the post's cover and caption, and approves each. */
     setPost?(orgId: string, reviewId: string, patch: ReviewPostPatch): Promise<ReviewPost>;

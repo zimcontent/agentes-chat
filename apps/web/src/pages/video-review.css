@@ -61,6 +61,65 @@
   font-size: var(--text-sm);
 }
 
+/* A task's videos together (doug-0012 §13): the task's line, its videos under it. */
+.vr-task {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: var(--sunken);
+}
+.vr-task__head {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: 0 var(--space-1);
+}
+.vr-task__title {
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+/* On a video of such a task: its siblings, a numbered pill each. */
+.vr-parts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  align-items: center;
+  margin-bottom: var(--space-4);
+}
+.vr-parts__one {
+  display: inline-flex;
+  gap: var(--space-1);
+  align-items: center;
+  justify-content: center;
+  min-width: 36px;
+  height: 32px;
+  padding: 0 var(--space-2);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-full);
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+  text-decoration: none;
+}
+.vr-parts__one:hover {
+  background: var(--side-hover);
+}
+.vr-parts__one:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+.vr-parts__one[data-status="approved"] {
+  color: var(--ok);
+}
+.vr-parts__one[aria-current="page"] {
+  border-color: var(--ink);
+  background: var(--ink);
+  color: var(--surface);
+}
+
 /* One video. */
 .vr-detail {
   display: grid;
