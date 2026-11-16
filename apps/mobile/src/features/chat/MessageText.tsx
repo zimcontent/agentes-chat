@@ -7,7 +7,7 @@ import { useColors } from "../shared/hooks";
 import { tapHaptic } from "../shared/parts";
 import { ChartCard } from "./ChartCard";
 import { CodeCard } from "./CodeCard";
-import { CHAT_TEXT_MAX_SCALE, type Inline, parseBlocks } from "./logic";
+import { blocksOf, CHAT_TEXT_MAX_SCALE, type Inline } from "./logic";
 import { useRowLook } from "./look";
 import { Spans, Table } from "./MessageSpans";
 
@@ -45,7 +45,8 @@ export const MessageText = memo(function MessageText({
 }) {
   const c = useColors();
   const look = useRowLook();
-  const blocks = useMemo(() => parseBlocks(body), [body]);
+  // Kept for the texts read lately (`blocksOf`): a row scrolled back into view doesn't parse its text again.
+  const blocks = useMemo(() => blocksOf(body), [body]);
   const inked = ink ? { color: ink } : undefined;
   const variant = small ? "footnote" : "body";
   // In a conversation, the person's Tamanho do texto, which the system's text size grows up to its cap.

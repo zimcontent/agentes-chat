@@ -916,6 +916,33 @@ export function parseBlocks(body: string): Block[] {
   return out;
 }
 
+/** Texts whose blocks are kept, and the longest one kept (a longer one is parsed each time, never held). */
+export const BLOCKS_KEPT = 400;
+const BLOCKS_KEPT_CHARS = 20_000;
+const blocksKept = new Map<string, Block[]>();
+
+/**
+ * `parseBlocks`, kept for the texts read lately (read only: nothing changes them). The conversation's list mounts a row
+ * again each time it comes back into view, and each mount parsed its text again. Bounded: past `BLOCKS_KEPT` the text
+ * read longest ago goes first.
+ */
+export function blocksOf(body: string): Block[] {
+  const hit = blocksKept.get(body);
+  if (hit) {
+    blocksKept.delete(body);
+    blocksKept.set(body, hit);
+    return hit;
+  }
+  const blocks = parseBlocks(body);
+  if (body.length > BLOCKS_KEPT_CHARS) return blocks;
+  blocksKept.set(body, blocks);
+  if (blocksKept.size > BLOCKS_KEPT) {
+    const oldest = blocksKept.keys().next();
+    if (!oldest.done) blocksKept.delete(oldest.value);
+  }
+  return blocks;
+}
+
 function plainBlocks(body: string): Block[] {
   const out: Block[] = [];
   const parts = body.split(/```([a-zA-Z0-9_+-]*)\n?([\s\S]*?)```/g);

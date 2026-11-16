@@ -73,8 +73,17 @@ describe("rows that measure themselves come back at their size", () => {
   test("a table lays out at its measured columns when it comes back", () => {
     const spans = src("features/chat/MessageSpans.tsx");
     expect(spans).toMatch(/const columnsKey = `table:\$\{content\}:\$\{useLayoutKey\(\)\}`;/);
-    expect(spans).toContain("useState<Record<number, number>>(() => ({ ...keptColumns(columnsKey) }));");
+    expect(spans).toContain(
+      "const [measured, setMeasured] = useState(() => ({ key: columnsKey, columns: { ...keptColumns(columnsKey) } }));",
+    );
+    // New cells, another width or text size: measured anew.
+    expect(spans).toContain(
+      "if (measured.key !== columnsKey) setMeasured({ key: columnsKey, columns: { ...keptColumns(columnsKey) } });",
+    );
     expect(spans).toContain("if (Object.keys(drawn).length > 0) keepColumns(columnsKey, drawn);");
+    // Its unseen copy only while a column has no width yet: coming back, each cell is drawn once.
+    expect(spans).toContain("const unmeasured = header.some((_, col) => drawn[col] === undefined);");
+    expect(spans).toContain("{unmeasured ? (");
   });
 
   test("a block is cut from its first frame when it comes back, and no taller than its card before its first measure", () => {
