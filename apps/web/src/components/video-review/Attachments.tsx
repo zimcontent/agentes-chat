@@ -55,7 +55,7 @@ export const carries = (data: DataTransfer) =>
 let next = 0;
 
 /** One note's attachments while it is written. */
-export function useAttachments(review: Pick<VideoReview, "channelId" | "threadId">) {
+export function useAttachments(review: Pick<VideoReview, "id" | "channelId" | "threadId">) {
   const api = useApi();
   const { org } = useOrg();
   const uploadFailed = useUploadFailed();
@@ -80,7 +80,8 @@ export function useAttachments(review: Pick<VideoReview, "channelId" | "threadId
           { key, type: "file", name: file.name, media, preview, artifactId: null, state: "up" },
         ]);
         api.artifacts
-          .upload(org.id, file, { channelId: review.channelId, threadId: review.threadId })
+          // Into the review's conversation, for whoever reviews it, reading that conversation or not (doug-0014).
+          .upload(org.id, file, { channelId: review.channelId, threadId: review.threadId, reviewId: review.id })
           .then((saved) =>
             setItems((all) =>
               all.map((i) => (i.key === key && i.type === "file" ? { ...i, artifactId: saved.id, state: "done" } : i)),
@@ -92,7 +93,7 @@ export function useAttachments(review: Pick<VideoReview, "channelId" | "threadId
           });
       }
     },
-    [api, org.id, review.channelId, review.threadId, uploadFailed],
+    [api, org.id, review.id, review.channelId, review.threadId, uploadFailed],
   );
 
   const addLinks = useCallback((urls: string[]) => {
