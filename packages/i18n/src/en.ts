@@ -2301,7 +2301,7 @@ export const en = {
     options: "Agents options",
     add: "New agent or department",
     order: "Order",
-    sort: { workspace: "Workspace's order", mine: "Mine first", working: "Working first" },
+    sort: { recent: "Latest message", arranged: "Workspace's order", mine: "Mine first", working: "Working first" },
     showAll: "Show agents that don't talk to me",
     showHidden: "Show hidden agents ({{count}})",
     hide: "Hide from the sidebar",
@@ -21461,6 +21461,9 @@ export const en = {
       addCard: "Add a card",
       cardTitle: "Card title",
       listActions: "Actions: {{name}}",
+      /** The dots under a board on a phone: one per list, the one in view filled. */
+      lists: "Lists",
+      goToList: "Go to {{name}}",
       rename: "Rename",
       moveLeft: "Move left",
       moveRight: "Move right",
@@ -21538,6 +21541,8 @@ export const en = {
       edit: "Edit",
       editDescription: "Edit description",
       noDescription: "No description",
+      /** A card with no description yet: pressed, it opens the field to write one. */
+      addDescription: "Add a more detailed description…",
       showMore: "Show more",
       showLess: "Show less",
       /** The words the link button puts between the brackets for the person to replace. */

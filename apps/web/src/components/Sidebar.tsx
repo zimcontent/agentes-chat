@@ -425,21 +425,20 @@ export function Sidebar() {
   const newAgent = () =>
     newAgentDialog ? newAgentDialog.open() : void navigate({ to: "/org/$orgId/agents/new", params: { orgId } });
   const sections = useSidebarSections(me.user.id, orgId);
-  // "Fixar no topo": pinned rows sit on top of their own section, above a thin line.
+  // "Fixar no topo": a pinned channel sits on top of its section, above a thin line; a pinned agent joins the faces on
+  // top. Agents and people otherwise go by their latest message alone (docs/adr/doug-0014-latest-first.md).
   const { view, setView, pins } = useSidebarPins();
-  // "Mensagens diretas": the people I talked to or just opened a DM with, latest first (an agent's row in AGENTES is its DM), pinned ones on top.
-  const pinnedPeople = pins.people.flatMap((id) => {
-    const m = id === me.user.id ? undefined : dir.memberById.get(id);
-    return m ? [m] : [];
-  });
+  // "Mensagens diretas": the people I talked to or just opened a DM with, latest first (an agent's row in AGENTES is
+  // its DM), a pinned one in its place with its mark.
   const directs = recentDms(dms.data ?? [], hiddenAgents).flatMap((d) => {
     const member = d.with.type === "person" ? dir.memberById.get(d.with.id) : undefined;
-    return member && !pins.people.includes(member.userId) ? [{ dm: d, member }] : [];
+    return member ? [{ dm: d, member }] : [];
   });
-  const directsUnread = [...pinnedPeople.map((m) => dmOf.get(m.userId)), ...directs.map((x) => x.dm)].reduce(
-    (n, d) => n + (d?.unread ?? 0),
-    0,
-  );
+  const directsUnread = directs.reduce((n, x) => n + x.dm.unread, 0);
+  // When each agent's DM last spoke, for AGENTES' "latest message first".
+  const lastActive = new Map<string, string>();
+  for (const d of dms.data ?? [])
+    if (d.with.type === "agent" && d.lastMessage) lastActive.set(d.with.id, d.lastMessage.createdAt);
 
   // Who works now: a run this tab hears, or the agents' list (work handed off in two agents' DM too). Who waits on
   // someone or is in line: a closed group still shows them.
@@ -503,16 +502,15 @@ export function Sidebar() {
   };
   const groups = useAgentGroups(orgId).data ?? [];
   const byGroup = agentSections(shownAgents, groups, (a) => a.id);
-  const ordered = (items: Agent[]) => {
-    const { top, rest } = splitPinned(items, pins.agents, (a) => a.id);
-    return { top, rest: sortAgents(rest, view.agentSort, me.user.id, busy) };
-  };
-  const loose = ordered(byGroup.ungrouped);
+  const ordered = (items: Agent[]) => sortAgents(items, view.agentSort, me.user.id, busy, lastActive);
   // Doug (after Nordus's pinned hero): up to four agents pinned on top leave the list for a row of big faces under the
   // search. The rail keeps them as rows.
   // DougBot: the right hand (the Doug, the team's chief) always first in the row, fixed; then the pinned ones.
-  const hero = rail || personal ? [] : [...(rightHand ? [rightHand] : []), ...loose.top].slice(0, HERO_MAX);
-  const looseTop = loose.top.filter((a) => !hero.includes(a));
+  const pinnedLoose = splitPinned(byGroup.ungrouped, pins.agents, (a) => a.id).top;
+  const hero = rail || personal ? [] : [...(rightHand ? [rightHand] : []), ...pinnedLoose].slice(0, HERO_MAX);
+  // The list: every agent not among the faces, in the person's order (the latest message first by default). A pin past
+  // the faces' four only marks its row: it doesn't move it.
+  const loose = ordered(byGroup.ungrouped.filter((a) => !hero.includes(a)));
   // Members never see an empty group; who arranges the agents keeps them, to drop agents in.
   const agentGroups = byGroup.groups.filter((g) => g.items.length > 0 || (manages && g.group.agentIds.length === 0));
   const groupIds = agentGroups.map((g) => `group:${g.group.id}` as SectionId);
@@ -706,9 +704,7 @@ export function Sidebar() {
         />
       )}
       {dir.loading && team.length === 0 && <SidebarSkeleton count={2} avatar label={t("common.loadingList")} />}
-      {looseTop.map(agentRow)}
-      {looseTop.length > 0 && (loose.rest.length > 0 || agentGroups.length > 0) && <hr className="sidebar__pins-end" />}
-      {loose.rest.map(agentRow)}
+      {loose.map(agentRow)}
     </>
   );
   // The tools each person keeps in sight; the rest open beside the sidebar from More. Doug draws them as a dock: a
@@ -922,8 +918,7 @@ export function Sidebar() {
           </SidebarSection>
         )}
         {agentGroups.map(({ group, items }) => {
-          const { top, rest } = ordered(items);
-          const list = [...top, ...rest];
+          const list = ordered(items);
           // Where a dragged row would land: a line before the row at that place among the others.
           const others = list.filter((a) => a.id !== drag.dragging);
           const lineAt = drag.over?.groupId === group.id ? drag.over.index : null;
@@ -958,9 +953,8 @@ export function Sidebar() {
               }
               drop={organize ? drag.zone(group.id) : undefined}
             >
-              {list.map((a, i) => (
+              {list.map((a) => (
                 <Fragment key={a.id}>
-                  {i > 0 && i === top.length && <hr className="sidebar__pins-end" />}
                   {lineAt === others.indexOf(a) && line}
                   {agentRow(a)}
                 </Fragment>
@@ -988,7 +982,7 @@ export function Sidebar() {
     ),
     // A personal workspace lists people only once someone else is a member (a family, ADR 0159).
     // The rail has no header or empty line to show: no one to list leaves no section (nor its rule) there.
-    people: !(personal && alone) && !(rail && pinnedPeople.length === 0 && directs.length === 0) && (
+    people: !(personal && alone) && !(rail && directs.length === 0) && (
       <SidebarSection
         id="people"
         label={t("shell.directMessages")}
@@ -1010,32 +1004,18 @@ export function Sidebar() {
           />
         }
       >
-        {pinnedPeople.map((m) => {
-          const dm = dmOf.get(m.userId);
-          return (
-            <ErrorBoundary key={m.userId} resetKey={m} fallback={unshownRow}>
-              <PersonRow
-                member={m}
-                unread={dm?.unread ?? 0}
-                pinned
-                onPrefetch={() => dm && prefetch(dm.channelId)}
-                onOpen={() => markOpen(dm?.channelId ?? m.userId)}
-              />
-            </ErrorBoundary>
-          );
-        })}
-        {pinnedPeople.length > 0 && directs.length > 0 && <hr className="sidebar__pins-end" />}
         {directs.map(({ dm, member }) => (
           <ErrorBoundary key={dm.channelId} resetKey={member} fallback={unshownRow}>
             <PersonRow
               member={member}
               unread={dm.unread}
+              pinned={pins.people.includes(member.userId)}
               onPrefetch={() => prefetch(dm.channelId)}
               onOpen={() => markOpen(dm.channelId)}
             />
           </ErrorBoundary>
         ))}
-        {!rail && pinnedPeople.length === 0 && directs.length === 0 && !dms.isLoading && (
+        {!rail && directs.length === 0 && !dms.isLoading && (
           <p className="sidebar__empty">
             {t("sidebarAgents.dmsEmpty")}{" "}
             <button type="button" className="ac-link" onClick={openPalette}>
@@ -2170,7 +2150,7 @@ function PinnedMark() {
  * addendum of 2026-11-13). For who manages agents it drags to another group (`drag`) and its right click has Mudar de
  * grupo (`menuExtra`). `live`: it works, waits or wrote to me, so a closed group still shows it.
  */
-/** Doug: how many pinned agents the hero row shows; past it, the rest stay pinned rows on top of the list. */
+/** Doug: how many pinned agents the hero row shows; past it, a pinned agent stays in the list in its place, marked. */
 const HERO_MAX = 4;
 
 /**

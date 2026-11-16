@@ -1925,7 +1925,7 @@ export function createFakeHttpApi(state: FakeState): Omit<HttpApi, FakedParts> {
         return [...(order ?? sidebarItemOrder(personalOrg(orgId)))];
       },
       sidebarView: async () =>
-        structuredClone(state.sidebarView ?? { agentSort: "workspace", showAllAgents: false, pins: null }),
+        structuredClone(state.sidebarView ?? { agentSort: "recent", showAllAgents: false, pins: null }),
       setSidebarView: async (orgId, view) => {
         log("orgs.setSidebarView", orgId, view);
         state.sidebarView = structuredClone(view);

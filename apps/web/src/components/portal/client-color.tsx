@@ -107,9 +107,21 @@ export function ClientColorMenu({ client }: { client: string }) {
         align="end"
         label={t("portal.clientColor.label")}
         trigger={
-          <Button variant="ghost" className="portal-colorbtn" title={t("portal.clientColor.label")}>
+          <Button
+            variant="ghost"
+            className="portal-colorbtn"
+            title={t("portal.clientColor.label")}
+            aria-label={
+              color
+                ? `${t("portal.clientColor.label")}: ${t(`portal.clientColor.colors.${color}`)}`
+                : t("portal.clientColor.label")
+            }
+          >
             <span className="portal-clientdot portal-clientdot--lg" data-client-color={color} aria-hidden="true" />
-            {color ? t(`portal.clientColor.colors.${color}`) : t("portal.clientColor.label")}
+            {/* On a phone the dot says it alone, leaving the row to the other actions. */}
+            <span className="portal-colorbtn__name">
+              {color ? t(`portal.clientColor.colors.${color}`) : t("portal.clientColor.label")}
+            </span>
           </Button>
         }
       >

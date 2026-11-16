@@ -28,6 +28,7 @@ import {
   MAX_MESSAGE_LENGTH,
   purgeArtifactNow,
   replyToBlock,
+  requireVideoReview,
   restoreArtifact,
   setBlockState,
   setFileSharing,
@@ -467,6 +468,12 @@ export function artifactRoutes(deps: AppDeps) {
           title: { type: "string", description: "Default: the file name (at most 200 characters)." },
           channelId: { type: "string", format: "uuid" },
           threadId: { type: "string", format: "uuid" },
+          reviewId: {
+            type: "string",
+            format: "uuid",
+            description:
+              "A note's attachment: the file goes to that review's conversation, which every member may add to (docs/adr/doug-0014-review-for-everyone.md); `channelId` and `threadId` are ignored.",
+          },
         }),
       },
       responses: { 201: json(ArtifactDetail, "Created"), 413: errorResponse("The file is too large"), ...errors },
@@ -475,13 +482,19 @@ export function artifactRoutes(deps: AppDeps) {
       const userId = c.get("user").id;
       const { orgId } = c.req.valid("param");
       return withUpload(c, async (fields, file) => {
+        const reviewId = field(fields, "reviewId", 36, true);
+        const review = reviewId ? await requireVideoReview(artifacts().db, userId, orgId, reviewId) : null;
         const created = await createFileArtifact(artifacts(), person(userId), orgId, {
           name: file.name,
           contentType: file.contentType,
           spooled: file,
           title: field(fields, "title", 200)?.trim() || file.name,
-          channelId: field(fields, "channelId", 36, true) ?? null,
-          threadId: field(fields, "threadId", 36, true) ?? null,
+          ...(review
+            ? { channelId: review.channelId, threadId: review.threadId, placed: true }
+            : {
+                channelId: field(fields, "channelId", 36, true) ?? null,
+                threadId: field(fields, "threadId", 36, true) ?? null,
+              }),
         });
         return c.json(await withFacts(userId, orgId, created), 201);
       });

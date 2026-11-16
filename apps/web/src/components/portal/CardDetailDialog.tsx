@@ -64,9 +64,10 @@ const DEFAULT_TIME = "09:00";
 
 /**
  * A card opened (ADR 9001 §8). On the left what the post is: its title with the mark that says it is finished, then
- * its stage, list and type on one line, its labels and members, and the description, which is the page's main thing
- * and reads as an article (formatted, its links as links, a long one folded under "Show more"); "Edit" turns it into
- * a field with a formatting bar, kept on "Save". Under it the checklist, the attachments with their pictures, and the
+ * its stage, list and type on one line, then the description, which is the page's main thing and so comes first, as on
+ * Trello: it reads as an article (formatted, its links as links, a long one folded under "Show more"); a press on it,
+ * on "Edit", or on the empty box that invites one turns it into a field with a formatting bar, kept on "Save". Then
+ * its labels and members. Under it the checklist, the attachments with their pictures, and the
  * caption. On the right the two days (the one the team makes it and, apart, the one it goes out) over what was said
  * about it, newest first. Every other change is kept as it is made (a text when its field is left). Whoever may give
  * agents work changes it; anyone who may post can still comment. Its stage is automatic. Once it was sent, "Send for
@@ -231,6 +232,17 @@ function Detail({
             </div>
           </Locked>
         </div>
+        {/* Right under the title, as on Trello: the card's main thing, found before its dates and people. */}
+        <div className="portal-detail__desc">
+          <Locked when={!changes}>
+            <Description
+              text={card.description}
+              changes={changes}
+              onSave={(description) => patch({ description })}
+              onWriting={onWriting}
+            />
+          </Locked>
+        </div>
         <div className="portal-detail__when">
           <Locked when={!changes}>
             {/* Two dates, never one beside the other in one field: the day it is made, and the day it goes out. */}
@@ -393,12 +405,6 @@ function Detail({
                   </span>
                 </Group>
               </div>
-              <Description
-                text={card.description}
-                changes={changes}
-                onSave={(description) => patch({ description })}
-                onWriting={onWriting}
-              />
               <Group label={t("portal.detail.checklist")} aside={checks ? `${checks.done}/${checks.total}` : undefined}>
                 {checks && <Meter value={checks.done} max={checks.total} label={t("portal.plan.checks", checks)} />}
                 <ul className="portal-detail__checks">
@@ -671,7 +677,7 @@ function Description({
     <section className="portal-detail__group portal-article" aria-label={name}>
       <span className="ac-field__label-row">
         <h3 className="ac-field__label">{name}</h3>
-        {changes && draft === null && (
+        {changes && draft === null && article && (
           <Button size="sm" onClick={start} aria-label={t("portal.detail.editDescription")}>
             {t("portal.detail.edit")}
           </Button>
@@ -731,7 +737,16 @@ function Description({
         </div>
       ) : article ? (
         <>
-          <div className="portal-article__text" data-folded={(long && !open) || undefined}>
+          {/* A press on the words (not on a link in them) opens them to write, as on Trello. */}
+          {/* biome-ignore lint/a11y/useKeyWithClickEvents lint/a11y/noStaticElementInteractions: "Edit" above is the keyboard's way */}
+          <div
+            className="portal-article__text"
+            data-folded={(long && !open) || undefined}
+            data-editable={changes || undefined}
+            onClick={(e) => {
+              if (changes && !(e.target as Element).closest("a, button")) start();
+            }}
+          >
             <Markdown source={article} variant="message" />
           </div>
           {long && (
@@ -746,6 +761,10 @@ function Description({
             </Button>
           )}
         </>
+      ) : changes ? (
+        <button type="button" className="portal-article__add" onClick={start}>
+          {t("portal.detail.addDescription")}
+        </button>
       ) : (
         <p className="small muted portal-article__none">{t("portal.detail.noDescription")}</p>
       )}

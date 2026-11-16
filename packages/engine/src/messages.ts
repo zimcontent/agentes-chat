@@ -1243,10 +1243,17 @@ export async function postPersonMessage(
     /** A GIF or an agent's sticker (ADR 0091), looked up here and stored as `meta.media`; `body` may be empty. */
     media?: MessageMediaInput;
   },
+  /**
+   * `place`: the conversation and this person's keys there, when the caller already let them speak in it without
+   * reading it: a review's decision, which every member makes (docs/adr/doug-0014-review-for-everyone.md). Never from
+   * a request. Default: checked here.
+   */
+  options: { place?: Awaited<ReturnType<typeof requireChannelAccess>> } = {},
 ): Promise<MessageView> {
   // One access check (membership + channel) instead of two round trips. It reads a workspace being deleted; posting
   // there is refused here too, for what posts without the API (a voice note's job).
-  const { channel, membership, workspace } = await requireChannelAccess(deps.db, userId, orgId, channelId);
+  const { channel, membership, workspace } =
+    options.place ?? (await requireChannelAccess(deps.db, userId, orgId, channelId));
   const closed = closedRefusal(membership.standing);
   if (closed) throw closed;
   if (!can(membership, "post")) throw postRefusal(workspace);

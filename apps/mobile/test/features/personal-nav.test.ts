@@ -9,10 +9,9 @@ const ROOT = join(import.meta.dir, "..", "..");
 const read = (path: string) => readFileSync(join(ROOT, path), "utf8");
 
 describe("the tabs of a personal workspace", () => {
-  test("Threads leaves the bar the system's way, and its list is pushed from You › Work", () => {
+  test("Threads is never a tab (the bar is the web sidebar's five), and its list is pushed from You › Work", () => {
     const tabs = read("app/(app)/(tabs)/_layout.tsx");
-    expect(tabs).toContain('{ name: "threads", glyph: "threads", label: "mobile.tabs.threads", teamOnly: true }');
-    expect(tabs).toContain("hidden={personal && tab.teamOnly === true}");
+    expect(tabs).not.toContain('name: "threads"');
     // A hidden tab can't be opened: the pushed list lives at /conversations/threads.
     const route = read("app/(app)/conversations/[kind].tsx");
     expect(route).toContain('if (kind === "threads" && personal) return <ThreadsScreen pushed />;');
@@ -22,21 +21,21 @@ describe("the tabs of a personal workspace", () => {
     expect(me).toContain("{...(unreadThreads > 0 ? { value: String(unreadThreads) } : {})}");
   });
 
-  test("the bar's mark is the person's own photo, and its label names no workspace", () => {
+  test("the bar holds DougBot's signature alone: no workspace mark, no photo, no '+' (doug-0014)", () => {
     const header = read("src/features/shared/tabHeader.tsx");
-    expect(header).toContain('<PersonAvatar name={face.name || "?"} size={ORG} photo={face.photo} />');
-    expect(header).toContain("accessibilityLabel={org?.name && !personal ? ");
+    expect(header).toContain("return { actions: [], brand: true };");
+    expect(header).not.toContain("OrgAvatar");
   });
 });
 
 describe("Conversas in a personal workspace", () => {
   test("channels are group conversations, and a quiet #general stays out while the person is alone", () => {
     const chats = read("src/features/chats/ChatsScreen.tsx");
-    expect(chats).toContain("withoutQuietGeneral(pinned.rows, hideGeneral)");
+    expect(chats).toContain("homeLayout(withoutQuietGeneral(rows, hideGeneral)");
     expect(chats).toContain('t("shell.channelsPersonal")');
     expect(chats).toContain("isPersonal(org) && ![...memberById.keys()].some((id) => id !== meId)");
     const list = read("src/features/chats/ConversationListScreen.tsx");
-    expect(list).toContain("withoutQuietGeneral(rightHandPin(list.rows, rightHandOf(dir.agents)).rows, hideGeneral)");
+    expect(list).toContain("withoutQuietGeneral(withRightHand(list.rows, rightHandOf(dir.agents)), hideGeneral)");
     expect(list).toContain('kind === "channels" && personal');
   });
 });

@@ -630,8 +630,8 @@ describe("the arrival card (#general for a newcomer's first day)", () => {
     expect(card).toContain('requestComposerText(channelId, "");');
   });
 
-  test("the Agentes tab shows the pinned agents first, the invitation's included", () => {
-    expect(src("features/agents/AgentsScreen.tsx")).toContain("freeSections(free, groups, pins.pins.agents)");
+  test("the Agentes tab lists the agents by their latest conversation, the invitation's included (doug-0014)", () => {
+    expect(src("features/agents/AgentsScreen.tsx")).toContain("freeSections(free, groups)");
   });
 });
 

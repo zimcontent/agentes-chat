@@ -7,7 +7,7 @@ const src = (file: string) => readFileSync(join(import.meta.dir, "../../src", fi
 describe("long messages on the phone", () => {
   test("a tall message clips by the rule the web uses, and Ver mais opens it in place for good, kept by the screen", () => {
     const clip = src("features/chat/ClippedMessage.tsx");
-    expect(clip).toContain('import { clippedHeight } from "@agenteschat/client/lib/message-length"');
+    expect(clip).toContain('import { clippedHeight, LONG_MESSAGE } from "@agenteschat/client/lib/message-length"');
     expect(clip).toContain("const cut = clippedHeight(height);");
     // In place: no sheet, no copy of its own (Copiar stays in the message's menu), and nothing folds it back.
     expect(clip).not.toContain("useSheetIfAny");
@@ -29,6 +29,21 @@ describe("long messages on the phone", () => {
     expect(clip).not.toContain("numberOfLines");
     const row = src("features/chat/MessageRow.tsx");
     expect(row.match(/<ClippedMessage /g)?.length).toBe(2);
+  });
+
+  test("a row the list mounts again draws its words at their measured height from its first frame", () => {
+    const clip = src("features/chat/ClippedMessage.tsx");
+    // Kept above the rows, by message, and read before the first draw: no frame whole and then clipped, which
+    // moved the conversation and kept it jumping at its end.
+    expect(clip).toContain("const [height, setHeight] = useState(() => measured.get(id) ?? 0);");
+    expect(clip).toMatch(
+      /onLayout=\{\(e\) => \{\s*const h = e\.nativeEvent\.layout\.height;\s*remember\(id, h\);\s*setHeight\(h\);/,
+    );
+    // Not measured yet, a closed message is never taller than one that shows whole.
+    expect(clip).toContain("const unmeasured = height === 0 && !open;");
+    expect(clip).toContain("[styles.clip, { maxHeight: LONG_MESSAGE.over }]");
+    // The memory is bounded.
+    expect(clip).toContain("if (measured.size > MEASURED_KEPT)");
   });
 
   test("an agent's long message to another agent opens in place too: no push to its thread", () => {

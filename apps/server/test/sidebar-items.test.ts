@@ -67,7 +67,7 @@ test("a saved layout holding a removed tool and an unknown one reads as the tool
 
 test("a stored sidebar view is never trusted as is: known orders only, each pin once, five at most", () => {
   expect(sidebarViewOf(undefined)).toEqual({
-    agentSort: "workspace",
+    agentSort: "recent",
     showAllAgents: false,
     pins: null,
     hiddenAgents: [],
@@ -79,11 +79,14 @@ test("a stored sidebar view is never trusted as is: known orders only, each pin 
       pins: { agents: ["a", "a", 3, "b"], channels: ["1", "2", "3", "4", "5", "6"], extra: ["x"] },
     }),
   ).toEqual({
-    agentSort: "workspace",
+    agentSort: "recent",
     showAllAgents: false,
     pins: { agents: ["a", "b"], channels: ["1", "2", "3", "4", "5"], people: [] },
     hiddenAgents: [],
   });
+  // The old default every view saved reads as the latest message first (doug-0014); the arranged order is kept.
+  expect(sidebarViewOf({ agentSort: "workspace" }).agentSort).toBe("recent");
+  expect(sidebarViewOf({ agentSort: "arranged" }).agentSort).toBe("arranged");
 });
 
 /** A new workspace, set up (one still in its onboarding would come back instead of another). */
@@ -296,7 +299,7 @@ test("the sidebar view: each person's own, per workspace, beside the tools' plac
   const put = (json: unknown, b = owner) => b(`${sidebar}/view`, { method: "PUT", json });
 
   // Never saved: no pins yet, so the apps pin the person's own agents.
-  expect(await view()).toEqual({ agentSort: "workspace", showAllAgents: false, pins: null, hiddenAgents: [] });
+  expect(await view()).toEqual({ agentSort: "recent", showAllAgents: false, pins: null, hiddenAgents: [] });
   await owner(sidebar, { method: "PATCH", json: { item: "wiki", place: "always" } });
   const mine = {
     agentSort: "mine",
@@ -317,10 +320,14 @@ test("the sidebar view: each person's own, per workspace, beside the tools' plac
   expect((await put({ view: six })).status).toBe(400);
   expect((await put({ view: { ...mine, agentSort: "alphabetical" } })).status).toBe(400);
   expect(await view()).toEqual(mine);
+  // An older app's "workspace" is still taken, kept as the latest message first.
+  expect((await put({ view: { ...mine, agentSort: "workspace" } })).status).toBe(200);
+  expect(await view()).toEqual({ ...mine, agentSort: "recent" });
+  await put({ view: mine });
 
   // Someone else keeps their own.
   const member = await joinByInvitation(t, owner, orgId, "member@example.com");
-  expect(await view(member)).toEqual({ agentSort: "workspace", showAllAgents: false, pins: null, hiddenAgents: [] });
+  expect(await view(member)).toEqual({ agentSort: "recent", showAllAgents: false, pins: null, hiddenAgents: [] });
 });
 
 test("a personal workspace reads its own default orders (ADR 0159); a saved order stays, the team's included", async () => {

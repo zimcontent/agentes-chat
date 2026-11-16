@@ -68,9 +68,22 @@ test("a section's pinned rows lead it, in the pins' order; the rest keep theirs"
 test("a group's order: the workspace's, mine first or working first, each keeping the rest in place", () => {
   const list = [agent("a", "Ada"), agent("b", "Bia", "me"), agent("c", "Caio"), agent("d", "Dario", "me")];
   const ids = (xs: { id: string }[]) => xs.map((x) => x.id);
-  expect(ids(sortAgents(list, "workspace", "me"))).toEqual(["a", "b", "c", "d"]);
+  expect(ids(sortAgents(list, "arranged", "me"))).toEqual(["a", "b", "c", "d"]);
   expect(ids(sortAgents(list, "mine", "me"))).toEqual(["b", "d", "a", "c"]);
   expect(ids(sortAgents(list, "working", "me", new Set(["c"])))).toEqual(["c", "a", "b", "d"]);
+});
+
+test("latest message first (the default, doug-0014): never talked to after, in the workspace's order", () => {
+  const list = [agent("a", "Ada"), agent("b", "Bia", "me"), agent("c", "Caio"), agent("d", "Dario", "me")];
+  const ids = (xs: { id: string }[]) => xs.map((x) => x.id);
+  const last = new Map([
+    ["c", "2026-11-16T10:00:00Z"],
+    ["b", "2026-11-16T09:00:00Z"],
+  ]);
+  expect(SIDEBAR_VIEW_DEFAULT.agentSort).toBe("recent");
+  expect(ids(sortAgents(list, "recent", "me", new Set(), last))).toEqual(["c", "b", "a", "d"]);
+  // Mine first, each part by its latest message.
+  expect(ids(sortAgents(list, "mine", "me", new Set(), last))).toEqual(["b", "d", "c", "a"]);
 });
 
 test("an agent put in a group by hand leaves the pins (it lands where it was dropped); Desfazer pins it back in its place", () => {

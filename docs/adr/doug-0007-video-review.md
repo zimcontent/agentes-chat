@@ -18,6 +18,7 @@ hand, and nothing kept the versions of one video together.
    (`keepsVersions`), so the review holds them.
 2. **Who reviews is who reads that conversation.** Every read and write checks `requireChannelAccess` on the review's
    conversation, so a review is as private as the place the agent worked in.
+   Changed by doug-0014: every member of the workspace sees and decides every review.
 3. **Notes are pinned to a version and a second** (`video_review_notes.at_ms`, null for the whole video). A note said
    aloud is transcribed at once with the speech chain (ADR 0100) and kept as its words, marked `voice`; the recording
    itself is not kept. Its author removes a note until it is sent.

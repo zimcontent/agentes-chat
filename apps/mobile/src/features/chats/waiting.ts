@@ -1,4 +1,4 @@
-import type { AppNotification, Approval, Mission } from "@agenteschat/client";
+import type { AgentStatus, AgentWork, AppNotification, Approval, Mission } from "@agenteschat/client";
 import { type AppHref, chatHref, notificationHref } from "../links/logic";
 import { minutesLeft } from "../shared/logic";
 import { missionWaitingItems } from "./logic";
@@ -114,3 +114,22 @@ export const waitingMinutes = (i: Pick<WaitingItem, "expiresAt">, now = Date.now
 export const waitingVerbKey = (kind: WaitingKind) => `mobile.chats.wait.verb.${kind}` as const;
 export const waitingChipKey = (kind: WaitingKind) => `mobile.chats.wait.chip.${kind}` as const;
 export const WAITING_ICON = { approval: "shield", question: "help", mission: "target" } as const;
+
+/** One agent waiting on the person: who, on what, since when and where it shows. */
+export interface WaitingAgent {
+  agentId: string;
+  work: AgentWork;
+}
+
+/**
+ * The agents whose work waits on this person (`work.state` `you`: a question to answer or a request to approve), the
+ * one waiting longest first. Only agents the person sees in their lists (`listed`).
+ */
+export function waitingAgents(
+  statuses: readonly Pick<AgentStatus, "agentId" | "work">[],
+  listed: (agentId: string) => boolean,
+): WaitingAgent[] {
+  return statuses
+    .flatMap((s) => (s.work?.state === "you" && listed(s.agentId) ? [{ agentId: s.agentId, work: s.work }] : []))
+    .sort((a, b) => a.work.since.localeCompare(b.work.since));
+}

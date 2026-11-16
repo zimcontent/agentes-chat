@@ -7262,7 +7262,7 @@ export type SidebarItems = Partial<Record<SidebarItem, SidebarPlace>>;
 /** A section of the sidebar, in the order I put them (`SIDEBAR_SECTIONS` in packages/engine/src/sidebar-items.ts). */
 export type SidebarSection = "tools" | "channels" | "agents" | "people";
 /** How AGENTES orders each group (`AGENT_SORTS` in packages/engine/src/sidebar-items.ts). */
-export type AgentSort = "workspace" | "mine" | "working";
+export type AgentSort = "recent" | "arranged" | "mine" | "working";
 /** "Fixar no topo": agent, channel and user ids on top of their own section, in order. */
 export interface SidebarPins {
   agents: string[];

@@ -37,8 +37,7 @@ import type { Gaze } from "@/agent/AgentAvatar";
 import { STORED } from "@/lib/storage";
 import { useOrg } from "@/providers/org";
 import {
-  type HeaderAction,
-  LargeTitleScreen,
+  IconButton,
   LIST_PREVIEW,
   LineIcon,
   ListRow,
@@ -53,7 +52,6 @@ import {
 import { router } from "@/ui/navigation";
 import { usePlanHold } from "../ai/parts";
 import { CollapsibleSection, useCollapsedSections } from "../chats/HomeSection";
-import { usePins } from "../chats/pins";
 import { mayCreate } from "../new/logic";
 import { useMachineOutages } from "../outages/queries";
 import { chooseAction } from "../settings/parts";
@@ -61,10 +59,10 @@ import { AgentFace } from "../shared/Face";
 import { FirstUse } from "../shared/FirstUse";
 import { useColors, useDirectory, useNow, useOrgId, usePullRefresh } from "../shared/hooks";
 import { agentLook } from "../shared/logic";
+import { PushedLargeTitle } from "../shared/PushedLargeTitle";
 import { successHaptic, Tile } from "../shared/parts";
 import { useHiddenAgents, useWaitingApprovals, useWorkingNow } from "../shared/queries";
 import { SheetHostProvider } from "../shared/SheetHost";
-import { useTabHeader } from "../shared/tabHeader";
 import { useAgentWorkLine, usePresenceOf } from "../status/hooks";
 import { useTasksToday } from "../task-manager/hooks";
 import { useSectorMenu } from "../team/SectorScreen";
@@ -103,7 +101,6 @@ export function AgentsScreen() {
 function Agents() {
   const { t } = useTranslation();
   const dir = useDirectory();
-  const header = useTabHeader();
   const orgId = useOrgId();
   const org = useOrg().org;
   const runs = useWorkingRuns(orgId);
@@ -141,14 +138,13 @@ function Agents() {
     return out;
   }, [runs.data]);
   // Rows in the order they show, so the others know which way to look at a newcomer.
-  const pins = usePins();
   const order = useMemo(
     () => [
       ...waiting.map((l) => l.agent.id),
       ...working.map((l) => l.agent.id),
-      ...freeSections(free, groups.data ?? [], pins.pins.agents).flatMap((s) => s.lines.map((l) => l.agent.id)),
+      ...freeSections(free, groups.data ?? []).flatMap((s) => s.lines.map((l) => l.agent.id)),
     ],
-    [waiting, working, free, groups.data, pins.pins.agents],
+    [waiting, working, free, groups.data],
   );
   const greeting = useGreeting(order);
   const gazeOf = (id: string): Gaze | undefined => {
@@ -185,16 +181,16 @@ function Agents() {
   // A server without the task manager shows no way into it.
   const tasks = useTasksToday({ pollMs: TASKS_POLL_MS });
   const showsManager = total > 0 && !(tasks.isError && !tasks.data);
-  // The bar's "+" does what the empty page's button does: a new agent, never the generic New.
+  // The bar's "+" does what the empty page's button does: a new agent.
   const creates = mayCreate(org, "agent");
-  const actions: HeaderAction[] = creates
-    ? [{ icon: "plus", sf: "plus", label: t("mobile.agents.create"), onPress: () => router.push("/new-agent") }]
-    : header.actions;
   return (
-    <LargeTitleScreen
+    <PushedLargeTitle
       title={t("mobile.agents.title")}
-      left={header.left}
-      actions={actions}
+      right={
+        creates ? (
+          <IconButton icon="plus" label={t("mobile.agents.create")} onPress={() => router.push("/new-agent")} />
+        ) : undefined
+      }
       refreshControl={<RefreshControl refreshing={pull.refreshing} onRefresh={pull.onRefresh} />}
     >
       {dir.loading ? null : dir.agents.length === 0 ? (
@@ -291,7 +287,7 @@ function Agents() {
           </>
         ) : null}
       </LayoutAnimationConfig>
-    </LargeTitleScreen>
+    </PushedLargeTitle>
   );
 }
 
@@ -351,13 +347,12 @@ function FreeSections({
   // A personal workspace's free agents are its person's, not a team (ADR 0159).
   const { org } = useOrg();
   const { collapsed, toggle } = useCollapsedSections<string>(STORED.agentGroupsCollapsed, null);
-  const pins = usePins();
   const sectorMenu = useSectorMenu();
   const manages = can(org, "manage_agents");
   let shown = before;
   return (
     <>
-      {freeSections(free, groups, pins.pins.agents).map(({ group, lines, pinnedCount }) => {
+      {freeSections(free, groups).map(({ group, lines }) => {
         const first = shown;
         shown += lines.length;
         const rows = lines.map((l, i) => (
@@ -367,7 +362,6 @@ function FreeSections({
             divider={i > 0}
             // The newcomer and the ones looking at it move while it arrives, wherever they sit in the list.
             live={first + i < LIVE_ROWS || greeting !== null}
-            pinned={i < pinnedCount}
             arriving={greeting === l.agent.id}
             gaze={gazeOf(l.agent.id)}
             routine={onRoutine.get(l.agent.id)}
@@ -409,13 +403,12 @@ type RowState = "asks" | "works" | "routine" | "away" | "noAi" | "out" | "waits"
  * One agent: its living body at 52 (running at work, asleep when it can't work), its name, the time at the right
  * (how long since it asked or started; when you last talked, free), then its state as text: what waits on you in
  * amber, what it is on with the orbit, its computer away or no AI in the quiet color, what its work waits on (the
- * clock, or amber for your answer) with how long, else its role in plain words. Pinned ones come first, with no mark.
+ * clock, or amber for your answer) with how long, else its role in plain words.
  */
 function AgentRow({
   line: l,
   divider,
   live,
-  pinned = false,
   arriving = false,
   gaze,
   routine,
@@ -423,8 +416,6 @@ function AgentRow({
   line: TeamLine;
   divider: boolean;
   live: boolean;
-  /** On top of the free ones ("Fixar no topo"): said to screen readers; the order shows it. */
-  pinned?: boolean;
   /** Just created on this phone: its row comes in once, the others looking at it. */
   arriving?: boolean;
   /** Where its face looks while a newcomer arrives (up or down at the newcomer's row). */
@@ -559,7 +550,6 @@ function AgentRow({
         accessibilityRole="button"
         accessibilityLabel={[
           said,
-          pinned ? t("sidebarPins.pinned") : null,
           a.role.trim() || null,
           time,
           state === "waits" && waits ? workLineText(waits) : state === "away" ? null : role,

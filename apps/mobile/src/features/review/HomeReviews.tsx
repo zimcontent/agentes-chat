@@ -25,7 +25,7 @@ export function HomeReviews() {
       <Pressable
         onPress={() => {
           tapHaptic();
-          router.push(only ? `/review/${only.id}` : "/review");
+          router.push(only ? `/review/${only.id}` : "/reviews");
         }}
         accessibilityRole="button"
         accessibilityLabel={[w.title, waiting.length > 0 ? `${waiting.length} ${w.filters.open}` : ""]

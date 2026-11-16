@@ -19,7 +19,6 @@ import { planLabel, planOfAccount } from "@agenteschat/client/lib/no-ai";
 import { can } from "@agenteschat/client/lib/permissions";
 import { isOutOfOffice } from "@agenteschat/client/lib/presence";
 import { isAuto, providerLabel } from "@agenteschat/client/lib/providers";
-import { splitPinned } from "@agenteschat/client/lib/sidebar-view";
 import { type WorkItem, workByAgent } from "@agenteschat/client/lib/working";
 import type { TFunction } from "i18next";
 import { daysAgo, previewOf } from "../shared/logic";
@@ -143,21 +142,20 @@ export function teamLines(
 
 /**
  * Livres by the workspace's groups of agents (ADR 0083), as the web sidebar shows them: the agents in no group
- * (`group` null), in Livres' order, then each group with its free agents in the group's order, each section with its
- * pinned ones first (`pinned`, in their order; `pinnedCount` of them). Empty ones are left out, so with no groups
- * this is Livres alone.
+ * (`group` null), then each group in the groups' order. Inside each, Livres' own order (the latest conversation
+ * first): neither a group's arranged order nor a pin moves an agent (docs/adr/doug-0014-latest-first.md). Empty ones
+ * are left out, so with no groups this is Livres alone.
  */
 export function freeSections(
   free: TeamLine[],
   groups: readonly AgentGroup[] | undefined,
-  pinned: readonly string[] = [],
-): { group: AgentGroup | null; lines: TeamLine[]; pinnedCount: number }[] {
+): { group: AgentGroup | null; lines: TeamLine[] }[] {
   const { ungrouped, groups: grouped } = agentSections(free, groups, (l) => l.agent.id);
+  const rank = new Map(free.map((l, i) => [l.agent.id, i]));
+  const byLatest = (lines: TeamLine[]) =>
+    [...lines].sort((a, b) => (rank.get(a.agent.id) ?? 0) - (rank.get(b.agent.id) ?? 0));
   return [{ group: null, items: ungrouped }, ...grouped]
-    .map(({ group, items }) => {
-      const { top, rest } = splitPinned(items, pinned, (l) => l.agent.id);
-      return { group, lines: [...top, ...rest], pinnedCount: top.length };
-    })
+    .map(({ group, items }) => ({ group, lines: byLatest(items) }))
     .filter((s) => s.lines.length > 0);
 }
 

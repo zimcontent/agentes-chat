@@ -2150,7 +2150,8 @@
     "add": "Nieuwe agent of afdeling",
     "order": "Volgorde",
     "sort": {
-      "workspace": "Die van de werkruimte",
+      "recent": "Laatste bericht",
+      "arranged": "Die van de werkruimte",
       "mine": "Mijn agents eerst",
       "working": "Aan het werk eerst"
     },

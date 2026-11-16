@@ -94,7 +94,10 @@ export function ActivityScreen() {
   const orgId = useOrgId();
   // `?filter=waiting`: opened from Conversas' "Esperando você" (selects Esperando; each visit with it does).
   const params = useLocalSearchParams<{ filter?: string; at?: string }>();
-  const [filter, setFilter] = useState<ActivityFilter>(params.filter === "waiting" ? "waiting" : "all");
+  // The tab is "Esperando você" (the web sidebar's row): it opens on what waits; Tudo and Feitas stay a tap away.
+  const [filter, setFilter] = useState<ActivityFilter>(
+    params.filter === "all" || params.filter === "done" ? params.filter : "waiting",
+  );
   const asked = params.filter === "waiting" ? (params.at ?? "link") : null;
   useEffect(() => {
     if (asked) setFilter("waiting");
@@ -113,16 +116,16 @@ export function ActivityScreen() {
   const cardMotion = reduced ? {} : { entering: CARD_IN, exiting: CARD_OUT, layout: LinearTransition };
   return (
     <LargeTitleScreen
-      title={t("mobile.activity.title")}
+      title={t("shell.waiting")}
       {...header}
       refreshControl={<RefreshControl refreshing={pull.refreshing} onRefresh={pull.onRefresh} tintColor={PULL_TINT} />}
       pullMark={<PullOrbit refreshing={pull.refreshing} />}
     >
       <Filters
         items={[
-          { key: "all", label: t("mobile.activity.filter.all") },
           // The count is the section's, once.
           { key: "waiting", label: t("mobile.activity.filter.waiting") },
+          { key: "all", label: t("mobile.activity.filter.all") },
           { key: "done", label: t("mobile.activity.filter.done") },
         ]}
         value={filter}

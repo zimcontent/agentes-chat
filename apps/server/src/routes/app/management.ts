@@ -32,6 +32,7 @@ import {
   ISSUES_VIEW_MAX_LABELS,
   ISSUES_VIEW_PRIORITIES,
   inviteMany,
+  LEGACY_AGENT_SORT,
   listAgentChannels,
   listInvitationsWithStatus,
   listMembers,
@@ -1120,8 +1121,9 @@ export function managementRoutes(deps: AppDeps) {
   const PinIds = z.array(z.string().min(1).max(64)).max(SIDEBAR_PIN_LIMIT);
   const SidebarView = z
     .object({
-      agentSort: z.enum(AGENT_SORTS).openapi({
-        description: "How AGENTES orders each group: the workspace's order, your agents first, or working first.",
+      agentSort: z.enum([...AGENT_SORTS, LEGACY_AGENT_SORT]).openapi({
+        description:
+          'How AGENTES orders each group: the latest message first, the workspace\'s arranged order, your agents first, or working first. "workspace", an older app\'s default, is kept as "recent".',
       }),
       showAllAgents: z.boolean().openapi({
         description: "Who manages agents also lists the ones that don't talk to them (each says who it talks to).",

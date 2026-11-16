@@ -48,7 +48,8 @@ describe("web addresses → the app's screens", () => {
 
   test("a video in review opens the app's Revisor, and the list its list", () => {
     const to = (path: string) => (linkOf(`${W}/org/${O}${path}`) as { to?: string }).to;
-    expect(to("/review")).toBe("/review");
+    // The list is the Revisão tab.
+    expect(to("/review")).toBe("/reviews");
     expect(to("/review/r1")).toBe("/review/r1");
     expect(appLinkFromUrl(`${W}/org/${O}/review/..%2Fsettings`)).toEqual({ web: `/org/${O}/review/..%2Fsettings` });
     expect(ownLinkHref(`${W}/org/${O}/review/r1`, W)).toContain(encodeURIComponent("/review/r1"));

@@ -1,6 +1,6 @@
-import { MeScreen } from "@/features/me/MeScreen";
+import { Redirect } from "expo-router";
 
-/** Você, a page pushed from the avatar (a clear bar over its sky; presentation set in `_layout`). */
+/** Você is the Configurações tab now: an old link to it lands there. */
 export default function MeRoute() {
-  return <MeScreen />;
+  return <Redirect href="/you" />;
 }
