@@ -10,7 +10,9 @@ import { systemText } from "./Text";
 import { useTheme } from "./theme";
 import { CHROME_MAX_SCALE, weights } from "./type-scale";
 
-export type SegmentedProps = FiltersProps & {
+export type SegmentedProps = Omit<FiltersProps, "value"> & {
+  /** The one chosen (a segmented control holds one group). */
+  value: string;
   /**
    * As wide as its box, the segments sharing it evenly (a screen's views, as an agent's Hoje · Acesso · Memória).
    * `fit`: each as wide as its words first, so long labels stay on one line (a form's choice).

@@ -712,11 +712,14 @@ export function Sidebar() {
   const whatsapp = useWhatsApp(orgId).data;
   const whatsappShown =
     !!whatsapp?.on && !hiddenTools.includes("whatsapp") && (whatsapp.manage || whatsapp.accounts.length > 0);
-  // Video review (docs/adr/doug-0007-video-review.md): in sight once a video was sent, with how many wait.
-  const reviews = useVideoReviews(orgId).data ?? [];
+  // Revisão (docs/adr/doug-0007-video-review.md), with how many wait: always in sight on a server that has it, since
+  // anyone of the team sends their own work from it (docs/adr/doug-0015-team-work-review.md).
+  const reviewsQuery = useVideoReviews(orgId);
+  const reviews = reviewsQuery.data ?? [];
+  const reviewsOn = reviewsQuery.isSuccess;
   const reviewsWaiting = reviews.filter((r) => r.status === "in_review").length;
   const reviewWords = useReviewWords();
-  const reviewRow = reviews.length > 0 && !hiddenTools.includes("review") && (
+  const reviewRow = reviewsOn && !hiddenTools.includes("review") && (
     <Link to="/org/$orgId/review" params={{ orgId }} className="sidebar__item" title={reviewWords.title}>
       <Icon name="video" />
       <span className="sidebar__item-label">{reviewWords.title}</span>
@@ -754,7 +757,7 @@ export function Sidebar() {
     ...(whatsappShown
       ? [{ key: "whatsapp", to: "/org/$orgId/whatsapp", label: "WhatsApp", icon: <WhatsAppMark size={18} /> }]
       : []),
-    ...(reviews.length > 0 && !hiddenTools.includes("review")
+    ...(reviewsOn && !hiddenTools.includes("review")
       ? [
           {
             key: "review",

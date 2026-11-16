@@ -36,6 +36,7 @@ import {
   useAttachments,
 } from "@/components/video-review/Attachments";
 import { useNoteRecorder } from "@/components/video-review/recorder";
+import { SendNextVersion } from "@/components/video-review/SendWork";
 import type { ReviewWords } from "@/components/video-review/words";
 import { useToast } from "@/lib/toast";
 import { LayerPanel } from "./LayerPanel";
@@ -155,6 +156,8 @@ function NoteRow({
 
 export function DesignReviewBody({ review, w }: { review: VideoReview; w: ReviewWords }) {
   const { org, me } = useOrg();
+  // Who made it: the agent, or the person of the team who sent it (doug-0015); the decision goes back to them.
+  const maker = review.agent ?? review.sender ?? null;
   const api = useApi();
   const toast = useToast();
   const { t, i18n } = useTranslation();
@@ -569,20 +572,23 @@ export function DesignReviewBody({ review, w }: { review: VideoReview; w: Review
   const stage = (
     <div className="dr-stage">
       <div className="dr-bar">
-        <Segmented
-          label={d.edit}
-          size="sm"
-          value={mode}
-          onValueChange={(v) => {
-            closeDraft();
-            if (v === "edit" && !canEdit) return;
-            setMode(v);
-          }}
-          options={[
-            { value: "comment", label: d.comment },
-            { value: "edit", label: d.edit },
-          ]}
-        />
+        {/* A person's piece is its pictures: nothing to edit in place, so no Comentar/Editar (doug-0015). */}
+        {!review.sender && (
+          <Segmented
+            label={d.edit}
+            size="sm"
+            value={mode}
+            onValueChange={(v) => {
+              closeDraft();
+              if (v === "edit" && !canEdit) return;
+              setMode(v);
+            }}
+            options={[
+              { value: "comment", label: d.comment },
+              { value: "edit", label: d.edit },
+            ]}
+          />
+        )}
         <div className="dr-bar__group">
           <Button
             size="sm"
@@ -612,7 +618,9 @@ export function DesignReviewBody({ review, w }: { review: VideoReview; w: Review
           options={ZOOMS.map((z) => ({ value: String(z), label: z === 1 ? d.fit : `${z * 100}%` }))}
         />
       </div>
-      {mode === "comment" && !canEdit && editTitle && shown && <p className="vr-muted dr-hint">{editTitle}</p>}
+      {mode === "comment" && !canEdit && editTitle && shown && !review.sender && (
+        <p className="vr-muted dr-hint">{editTitle}</p>
+      )}
 
       <div className="dr-canvas" ref={setBox} data-zoomed={zoom > 1 || undefined}>
         {/* biome-ignore lint/a11y/noStaticElementInteractions: a drop zone for photos; the note box's Attach does the same. */}
@@ -982,11 +990,11 @@ export function DesignReviewBody({ review, w }: { review: VideoReview; w: Review
 
         {open && (
           <div className="vr-decide">
-            {!review.agent && <p className="vr-muted">{d.agentGone}</p>}
+            {!maker && <p className="vr-muted">{d.agentGone}</p>}
             <Button
               variant={recorder.recording && voiceFor.current === "changes" ? "danger" : "default"}
               icon={recorder.recording && voiceFor.current === "changes" ? "stop" : "mic"}
-              disabled={!review.agent || dirty || (recorder.recording && voiceFor.current !== "changes")}
+              disabled={!maker || dirty || (recorder.recording && voiceFor.current !== "changes")}
               loading={addVoice.isPending && voiceFor.current === "changes"}
               title={w.sayChangesHint}
               onClick={() => talk("changes")}
@@ -997,8 +1005,13 @@ export function DesignReviewBody({ review, w }: { review: VideoReview; w: Review
                   ? w.sayingChanges
                   : w.sayChanges}
             </Button>
-            <Textarea value={message} rows={1} placeholder={w.message} onChange={(e) => setMessage(e.target.value)} />
-            <p className="vr-muted">{w.changesHint}</p>
+            <Textarea
+              value={message}
+              rows={1}
+              placeholder={review.sender ? w.editor.message(review.sender.name) : w.message}
+              onChange={(e) => setMessage(e.target.value)}
+            />
+            <p className="vr-muted">{review.sender ? w.team.changesHint(review.sender.name) : w.changesHint}</p>
             {review.portal && (
               <p className="vr-muted">
                 {d.afterApprove[review.portal.afterApprove](portalClientName(review.portal.client))}
@@ -1008,7 +1021,7 @@ export function DesignReviewBody({ review, w }: { review: VideoReview; w: Review
               <Button
                 variant="default"
                 icon="edit"
-                disabled={!review.agent || dirty || (notes.every((n) => n.sent) && !message.trim())}
+                disabled={!maker || dirty || (notes.every((n) => n.sent) && !message.trim())}
                 loading={decide.isPending && decide.variables?.decision === "changes"}
                 onClick={() => decideAs("changes")}
               >
@@ -1017,7 +1030,7 @@ export function DesignReviewBody({ review, w }: { review: VideoReview; w: Review
               <Button
                 variant="primary"
                 icon="check"
-                disabled={!review.agent || dirty}
+                disabled={!maker || dirty}
                 loading={decide.isPending && decide.variables?.decision === "approve"}
                 onClick={() => decideAs("approve")}
               >
@@ -1027,21 +1040,28 @@ export function DesignReviewBody({ review, w }: { review: VideoReview; w: Review
           </div>
         )}
 
-        <section className="vr-brief" aria-label={w.briefTitle}>
-          <h2 className="vr-notes__title">{w.briefTitle}</h2>
-          <p className={review.brief ? "vr-brief__text" : "vr-muted"}>{review.brief || d.briefNone}</p>
-          {review.links.length > 0 && (
-            <div className="vr-brief__links">
-              {review.links.map((link) => (
-                <Button key={link.url} size="sm" icon="external" asChild>
-                  <a href={link.url} target="_blank" rel="noreferrer noopener">
-                    {link.label}
-                  </a>
-                </Button>
-              ))}
-            </div>
-          )}
-        </section>
+        {review.sender && review.sender.id === me.user.id && review.status !== "approved" && (
+          <SendNextVersion review={review} />
+        )}
+
+        {/* A person's piece has no brief from an agent: the section shows only when there is one (as the video's). */}
+        {!(review.sender && !review.brief && review.links.length === 0) && (
+          <section className="vr-brief" aria-label={w.briefTitle}>
+            <h2 className="vr-notes__title">{w.briefTitle}</h2>
+            <p className={review.brief ? "vr-brief__text" : "vr-muted"}>{review.brief || d.briefNone}</p>
+            {review.links.length > 0 && (
+              <div className="vr-brief__links">
+                {review.links.map((link) => (
+                  <Button key={link.url} size="sm" icon="external" asChild>
+                    <a href={link.url} target="_blank" rel="noreferrer noopener">
+                      {link.label}
+                    </a>
+                  </Button>
+                ))}
+              </div>
+            )}
+          </section>
+        )}
       </div>
     );
 

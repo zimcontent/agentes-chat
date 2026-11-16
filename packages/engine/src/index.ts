@@ -263,6 +263,7 @@ export * from "./partner-waitlist";
 export * from "./password-link";
 export * from "./pdf";
 export * from "./permissions";
+export * from "./person-reviews";
 export * from "./person-usage";
 export * from "./person-usage-report";
 export { forgetPictures, type PictureSize } from "./picture";

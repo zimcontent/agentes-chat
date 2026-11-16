@@ -20,3 +20,10 @@ export function filePart(uri: string, name: string, type: string): Blob {
   const file = new File(uri);
   return { name, type, bytes: () => file.bytes() } as unknown as Blob;
 }
+
+/**
+ * A large file (a video up to 2 GB) as an upload's part when the upload reports its progress: that one goes by React
+ * Native's `XMLHttpRequest` (the client's `onProgress`), which streams the file from its `uri` and never holds it in
+ * memory. Expo's fetch (no progress) refuses this part: send it only with `onProgress`.
+ */
+export const streamedPart = (uri: string, name: string, type: string): Blob => ({ uri, name, type }) as unknown as Blob;

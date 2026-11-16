@@ -24,6 +24,7 @@ import { fraction, reviewOpen } from "./logic";
 import { ownSource, useReviewWords } from "./media";
 import { type Draft, NoteDraft } from "./NoteDraft";
 import { ReviewNotes } from "./ReviewNotes";
+import { SendNext } from "./SendWorkScreen";
 
 /*
  * A design piece's Revisor on the phone (docs/adr/doug-0010-design-review.md), the same review as the web's: its
@@ -272,6 +273,7 @@ export function DesignReview({ review }: { review: VideoReview }) {
           </ScrollView>
         ) : null}
 
+        <SendNext review={review} />
         {shown?.editedBy ? (
           <Text variant="footnote" tone="muted">
             {d.editedBy(shown.editedBy.name)}
@@ -347,7 +349,7 @@ export function DesignReview({ review }: { review: VideoReview }) {
             ))}
           </GroupedList>
         ) : null}
-        {!review.agent ? (
+        {!review.agent && !review.sender ? (
           <Text variant="footnote" tone="muted">
             {d.agentGone}
           </Text>

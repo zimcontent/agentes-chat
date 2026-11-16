@@ -1,4 +1,10 @@
 import {
+  filterReviews,
+  firstTab,
+  mixedIn,
+  type ReviewWho,
+  reviewTabsByWho,
+  teamPeople,
   useAddReviewNote,
   useAddVoiceReviewNote,
   useDecideVideoReview,
@@ -20,8 +26,11 @@ import {
   Icon,
   PageHeader,
   Segmented,
+  Select,
   Spinner,
+  Tabs,
   Textarea,
+  Toolbar,
 } from "@agenteschat/ui";
 import { Link } from "@tanstack/react-router";
 import { type PointerEvent as ReactPointerEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -41,6 +50,7 @@ import {
 } from "@/components/video-review/Attachments";
 import { ReviewLog, roundLine, useWhen, WhatsAppNotice } from "@/components/video-review/ReviewRounds";
 import { useNoteRecorder } from "@/components/video-review/recorder";
+import { SendNextVersion, SendWorkDialog } from "@/components/video-review/SendWork";
 import { frameCode, type ReviewWords, timecode, useReviewWords } from "@/components/video-review/words";
 import { useToast } from "@/lib/toast";
 import "./video-review.css";
@@ -78,41 +88,29 @@ export function VideoReviewsPage() {
   const { t, i18n } = useTranslation();
   const api = useApi();
   const reviews = useVideoReviews(org.id);
-  const [filter, setFilter] = useState<"open" | "all">("open");
-  const [medium, setMedium] = useState<"all" | "video" | "design">("all");
-  // The medium filter shows only once both kinds are in review here.
-  const mixed = new Set((reviews.data ?? []).map((r) => r.medium)).size > 1;
-  // Who sent it: agents, or each person of the team who sends from a task ("Revisão do Ronny", doug-0012).
-  const [who, setWho] = useState("all");
-  const senders = useMemo(() => {
-    const seen = new Map<string, string>();
-    for (const r of reviews.data ?? [])
-      if (r.sender && r.sender.id !== me.user.id) seen.set(r.sender.id, r.sender.name);
-    return [...seen].map(([id, name]) => ({ id, name }));
-  }, [reviews.data, me.user.id]);
-  // What the person sent themselves: the changes asked of them ("Meus ajustes"), opened first while one waits.
-  const mine = (reviews.data ?? []).filter((r) => r.sender?.id === me.user.id);
-  const myToDo = mine.filter((r) => r.status === "changes").length;
+  const all = reviews.data ?? [];
+  // By who made it (docs/adr/doug-0015-team-work-review.md): the agents' work, the team's, and what was asked of me.
+  const tabs = useMemo(() => reviewTabsByWho(all, me.user.id), [all, me.user.id]);
+  const [who, setWho] = useState<ReviewWho>("agents");
   const picked = useRef(false);
   useEffect(() => {
     if (picked.current || !reviews.isSuccess) return;
     picked.current = true;
-    if (myToDo > 0) setWho("mine");
-  }, [reviews.isSuccess, myToDo]);
-  const tabs = senders.length > 0 || mine.length > 0;
+    setWho(firstTab(tabs));
+  }, [reviews.isSuccess, tabs]);
+  const [person, setPerson] = useState("all");
+  const [medium, setMedium] = useState<"all" | "video" | "design">("all");
+  const [filter, setFilter] = useState<"open" | "all">("open");
+  const people = useMemo(() => teamPeople(all, me.user.id), [all, me.user.id]);
+  const shownPerson = who === "team" && people.some((p) => p.id === person) ? person : null;
+  // Vídeos or Peças, only where this tab holds both.
+  const mixed = mixedIn(all, who, me.user.id);
   const list = useMemo(
-    () =>
-      (reviews.data ?? []).filter(
-        (r) =>
-          (filter === "all" || (who === "mine" ? r.status === "changes" : r.status === "in_review")) &&
-          (!mixed || medium === "all" || r.medium === medium) &&
-          (!tabs ||
-            who === "all" ||
-            (who === "mine" ? r.sender?.id === me.user.id : (r.sender ? `person:${r.sender.id}` : "agents") === who)),
-      ),
-    [reviews.data, filter, medium, mixed, tabs, who, me.user.id],
+    () => filterReviews(all, { who, person: shownPerson, medium: mixed ? medium : "all", status: filter }, me.user.id),
+    [all, who, shownPerson, mixed, medium, filter, me.user.id],
   );
-  const open = (reviews.data ?? []).filter((r) => r.status === "in_review").length;
+  const open = filterReviews(all, { who, person: shownPerson, medium: "all", status: "open" }, me.user.id).length;
+  const [sending, setSending] = useState(false);
   // A task that asked for several videos (doug-0012 §13) shows them together, under the task, in their order.
   const groups = useMemo(() => tasksTogether(list), [list]);
   const row = (r: VideoReviewSummary, inTask: boolean) => (
@@ -153,37 +151,52 @@ export function VideoReviewsPage() {
 
   return (
     <div className="page page--full vr-page">
-      <PageHeader title={w.title} meta={w.meta}>
-        {tabs && (
-          <Segmented
-            label={w.title}
+      <PageHeader
+        title={w.title}
+        meta={w.meta}
+        actions={
+          <Button variant="primary" size="sm" icon="upload" onClick={() => setSending(true)}>
+            {w.team.send}
+          </Button>
+        }
+      />
+      <div className="tabs-bar">
+        <Tabs
+          value={who}
+          onValueChange={setWho}
+          label={w.title}
+          items={tabs.map((tab) => ({ value: tab.key, label: w.team.tabs[tab.key], count: tab.waiting || undefined }))}
+        >
+          {null}
+        </Tabs>
+      </div>
+      <Toolbar label={w.title}>
+        {who === "team" && people.length > 0 && (
+          <Select
             size="sm"
-            value={who}
-            onValueChange={setWho}
+            aria-label={w.team.tabs.team}
+            value={shownPerson ?? "all"}
+            onValueChange={setPerson}
             options={[
-              ...(mine.length > 0 ? [{ value: "mine", label: w.editor.mine, count: myToDo || undefined }] : []),
-              { value: "all", label: w.editor.who.all },
-              { value: "agents", label: w.editor.who.agents },
-              ...senders.map((s) => ({
-                value: `person:${s.id}`,
-                label: w.editor.who.person(s.name.split(" ")[0] || s.name),
-                count:
-                  (reviews.data ?? []).filter((r) => r.sender?.id === s.id && r.status === "in_review").length ||
-                  undefined,
+              { value: "all", label: w.team.everyone },
+              ...people.map((p) => ({
+                value: p.id,
+                label: p.waiting > 0 ? `${p.name} · ${p.waiting}` : p.name,
+                leading: <PersonAvatar id={p.id} size="xs" name={p.name} />,
               })),
             ]}
           />
         )}
         {mixed && (
           <Segmented
-            label={w.title}
+            label={w.team.kindLabel}
             size="sm"
             value={medium}
             onValueChange={setMedium}
             options={[
-              { value: "all", label: w.filters.all },
-              { value: "video", label: w.design.filter.video },
-              { value: "design", label: w.design.filter.design },
+              { value: "all", label: w.team.medium.all },
+              { value: "video", label: w.team.medium.video },
+              { value: "design", label: w.team.medium.design },
             ]}
           />
         )}
@@ -193,19 +206,32 @@ export function VideoReviewsPage() {
           value={filter}
           onValueChange={setFilter}
           options={[
-            { value: "open", label: w.filters.open, count: open },
+            { value: "open", label: who === "mine" ? w.editor.toDo : w.filters.open, count: open },
             { value: "all", label: w.filters.all },
           ]}
         />
-      </PageHeader>
-      {who.startsWith("person:") && (
-        <WhatsAppNotice person={senders.find((s) => `person:${s.id}` === who) ?? { id: who.slice(7), name: "" }} />
+      </Toolbar>
+      {shownPerson && (
+        <WhatsAppNotice person={people.find((p) => p.id === shownPerson) ?? { id: shownPerson, name: "" }} />
       )}
+      {sending && <SendWorkDialog onClose={() => setSending(false)} />}
       {reviews.isError && <ErrorState error={reviews.error} onRetry={() => void reviews.refetch()} />}
       {reviews.isPending && <Spinner />}
       {reviews.isSuccess && list.length === 0 && (
-        <EmptyState size="page" agent mood="deal" title={w.empty}>
-          {w.emptyText}
+        <EmptyState
+          size="page"
+          agent
+          mood="deal"
+          title={who === "mine" ? w.team.emptyMine : who === "team" ? w.team.emptyTeam : w.team.emptyAgents}
+          actions={
+            who === "team" ? (
+              <Button variant="primary" icon="upload" onClick={() => setSending(true)}>
+                {w.team.send}
+              </Button>
+            ) : undefined
+          }
+        >
+          {who === "mine" ? w.team.emptyMineText : who === "team" ? w.team.emptyTeamText : w.team.emptyAgentsText}
         </EmptyState>
       )}
       {list.length > 0 && (
@@ -236,16 +262,22 @@ export function VideoReviewsPage() {
  */
 function tasksTogether(list: VideoReviewSummary[]) {
   const shown = new Map<string, number>();
-  for (const r of list) if (r.taskId) shown.set(r.taskId, (shown.get(r.taskId) ?? 0) + 1);
+  // Only a task's videos are its parts (doug-0012 §13); a design piece sent for a task stands alone.
+  const part = (r: VideoReviewSummary) => (r.medium === "video" ? r.taskId : null);
+  for (const r of list) {
+    const task = part(r);
+    if (task) shown.set(task, (shown.get(task) ?? 0) + 1);
+  }
   const groups: { key: string; rows: VideoReviewSummary[] }[] = [];
   const at = new Map<string, { key: string; rows: VideoReviewSummary[] }>();
   for (const r of list) {
-    if (r.taskId && (shown.get(r.taskId) ?? 0) > 1) {
-      const group = at.get(r.taskId);
+    const task = part(r);
+    if (task && (shown.get(task) ?? 0) > 1) {
+      const group = at.get(task);
       if (group) group.rows.push(r);
       else {
-        const made = { key: `task:${r.taskId}`, rows: [r] };
-        at.set(r.taskId, made);
+        const made = { key: `task:${task}`, rows: [r] };
+        at.set(task, made);
         groups.push(made);
       }
     } else groups.push({ key: r.id, rows: [r] });
@@ -260,7 +292,7 @@ function TaskHead({ rows, all }: { rows: VideoReviewSummary[]; all: VideoReviewS
   const w = useReviewWords();
   const first = rows[0];
   if (!first) return null;
-  const videos = all.filter((r) => r.taskId === first.taskId);
+  const videos = all.filter((r) => r.medium === "video" && r.taskId === first.taskId);
   const approved = videos.filter((r) => r.status === "approved").length;
   const title = first.taskTitle ?? first.title;
   return (
@@ -1311,6 +1343,10 @@ function ReviewBody({ review, w }: { review: VideoReview; w: ReviewWords }) {
 
         <ReviewLog rounds={review.rounds ?? []} />
 
+        {review.sender && review.sender.id === me.user.id && review.status !== "approved" && (
+          <SendNextVersion review={review} />
+        )}
+
         {open && (
           <div className="vr-decide">
             {!maker && <p className="vr-muted">{w.agentGone}</p>}
@@ -1334,7 +1370,13 @@ function ReviewBody({ review, w }: { review: VideoReview; w: ReviewWords }) {
               placeholder={review.sender ? w.editor.message(review.sender.name) : w.message}
               onChange={(e) => setMessage(e.target.value)}
             />
-            <p className="vr-muted">{review.sender ? w.editor.changesHint(review.sender.name) : w.changesHint}</p>
+            <p className="vr-muted">
+              {!review.sender
+                ? w.changesHint
+                : review.taskId && review.medium === "video"
+                  ? w.editor.changesHint(review.sender.name)
+                  : w.team.changesHint(review.sender.name)}
+            </p>
             <div className="vr-decide__acts">
               <Button
                 variant="default"

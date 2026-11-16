@@ -8,7 +8,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Button, Chip, Icon, Text, useFieldText, useTheme, useToast } from "@/ui";
 import { useOrgId } from "../shared/hooks";
 import { successHaptic, tapHaptic } from "../shared/parts";
-import { statusIcon, statusTone, unsentOf } from "./logic";
+import { changesHintOf, statusIcon, statusTone, unsentOf } from "./logic";
 import { filePart, useReviewWords } from "./media";
 import { useTapRecorder } from "./recorder";
 
@@ -106,7 +106,7 @@ export function Decision({ review }: { review: VideoReview }) {
         {asking ? (
           <>
             <Text variant="footnote" tone="muted">
-              {w.changesHint}
+              {changesHintOf(review, w)}
             </Text>
             <Pressable
               onPress={() => void sayChanges()}

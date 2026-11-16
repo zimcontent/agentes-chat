@@ -13,6 +13,7 @@ import { useReviewWords } from "./media";
 import { type Draft, NoteDraft } from "./NoteDraft";
 import { ReviewNotes } from "./ReviewNotes";
 import { ReviewStage, type StageControls } from "./ReviewStage";
+import { SendNext } from "./SendWorkScreen";
 
 /**
  * One video's Revisor on the phone (docs/adr/doug-0007-video-review.md), the same review as the web's: the player
@@ -129,6 +130,7 @@ function Detail({ review }: { review: VideoReview }) {
             }}
           />
         ) : null}
+        <SendNext review={review} />
         {shownVersion?.note ? (
           <Text variant="footnote" tone="muted">
             {`${w.versionNote}: ${shownVersion.note}`}
@@ -197,7 +199,7 @@ function Detail({ review }: { review: VideoReview }) {
             ))}
           </GroupedList>
         ) : null}
-        {!review.agent ? (
+        {!review.agent && !review.sender ? (
           <Text variant="footnote" tone="muted">
             {w.agentGone}
           </Text>

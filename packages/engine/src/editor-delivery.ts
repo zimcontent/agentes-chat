@@ -32,7 +32,7 @@ import {
   requireVideoReview,
   reviewSummaries,
   reviewVersionFile,
-  timecode,
+  reviewWhere,
   type VideoReviewDeps,
   type VideoReviewSummary,
 } from "./video-reviews";
@@ -102,7 +102,7 @@ async function mention(db: Database, orgId: string, userId: string | null) {
  * A line in the review's conversation, written here (never by a model) and starting no agent's run: as a person (their
  * send, their decision) or as the workspace's assistant (what the server did). Whoever it names is notified.
  */
-async function line(
+export async function line(
   deps: Pick<Deps, "db" | "pubsub">,
   review: Pick<ReviewRow, "id" | "orgId" | "channelId" | "threadId" | "version">,
   author: { userId: string } | "assistant",
@@ -353,6 +353,7 @@ export async function decidePersonVideo(
       id: videoReviewNotes.id,
       atMs: videoReviewNotes.atMs,
       endMs: videoReviewNotes.endMs,
+      page: videoReviewNotes.page,
       kind: videoReviewNotes.kind,
       body: videoReviewNotes.body,
       attachments: videoReviewNotes.attachments,
@@ -367,7 +368,11 @@ export async function decidePersonVideo(
         isNull(videoReviewNotes.sentAt),
       ),
     )
-    .orderBy(sql`${videoReviewNotes.atMs} asc nulls first`, asc(videoReviewNotes.createdAt));
+    .orderBy(
+      sql`${videoReviewNotes.page} asc nulls first`,
+      sql`${videoReviewNotes.atMs} asc nulls first`,
+      asc(videoReviewNotes.createdAt),
+    );
   const message = cleanReviewText(input.message ?? "");
   if (input.decision === "changes" && notes.length === 0 && !message) {
     throw new ValidationError("Say what to change: add a note first", "video_review.nothing_to_change");
@@ -400,11 +405,12 @@ export async function decidePersonVideo(
   const who = await mention(deps.db, review.orgId, review.senderUserId);
   const lines: string[] = [];
   const v = review.version;
+  const design = review.medium === "design";
   if (input.decision === "approve") {
     const post = review.post ?? {};
     const missing = [post.coverOk ? "" : "a capa", post.captionOk ? "" : "a legenda"].filter(Boolean);
-    lines.push(`${who}Vídeo aprovado: «${review.title}» V${v}.`);
-    if (review.portalClient) {
+    lines.push(`${who}${design ? "Peça aprovada" : "Vídeo aprovado"}: «${review.title}» V${v}.`);
+    if (review.portalClient && !design) {
       lines.push(
         missing.length
           ? `Agora falta${missing.length > 1 ? "m" : ""} ${missing.join(" e ")}, na tarefa. Depois é só enviar ao cliente.`
@@ -412,15 +418,15 @@ export async function decidePersonVideo(
       );
     }
   } else {
-    lines.push(
-      `${who}Ajustes em «${review.title}» V${v}. Quando terminar, mande a V${v + 1} na tarefa, em Enviar vídeo.`,
-    );
+    // A task's video comes back by the task's steps; anything else sent from Revisão, from its page (doug-0015).
+    const where = review.taskId && !design ? "na tarefa, em Enviar vídeo" : "na Revisão, em Mandar nova versão";
+    lines.push(`${who}Ajustes em «${review.title}» V${v}. Quando terminar, mande a V${v + 1} ${where}.`);
   }
   if (message) lines.push("", message);
   if (notes.length > 0) {
     lines.push("", "Notas:");
     for (const n of notes) {
-      const at = n.endMs !== null && n.atMs !== null ? `${timecode(n.atMs)}–${timecode(n.endMs)}` : timecode(n.atMs);
+      const at = design && n.page === null ? "peça toda" : reviewWhere(n.atMs, n.endMs, n.page);
       const files = (n.attachments ?? []).map((a) => (a.type === "file" ? a.name : a.url));
       lines.push(
         `- [${at}] ${n.body.replace(/\n+/g, " ").trim() || "(veja o anexo)"}${files.length ? ` (anexo: ${files.join(", ")})` : ""}${n.author ? ` (${n.author})` : ""}`,
