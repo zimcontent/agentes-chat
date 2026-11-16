@@ -16823,6 +16823,7 @@ export const en = {
     removed: "Removed",
     change: {
       mergedWithoutAsking: "Merged in {{repo}} without asking",
+      portalApprovedForClient: "Approved “{{title}}” for the client at the portal",
       pattern: "{{verb}} {{area}}",
       approval: {
         approved: "Approved a request",
@@ -21127,6 +21128,16 @@ export const en = {
       past: "Choose a time that hasn't passed.",
       /** On an approved post that was released and waits for the publishing service to take it. */
       pending: "scheduling…",
+    },
+    /** An administrator approves a post in the client's place, when the client stopped answering (ADR 9001 §19). */
+    approveForClient: {
+      action: "Approve for the client",
+      title: "Approve for the client?",
+      text: "Only when the client stopped answering at the portal. The post turns Approved there as if the client had approved it, and what comes after approval runs.",
+      note: "Reason",
+      notePlaceholder: "The client approved it on WhatsApp",
+      confirm: "Approve",
+      done: "“{{title}}” approved for the client.",
     },
     form: {
       client: "Client",

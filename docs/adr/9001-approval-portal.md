@@ -188,6 +188,15 @@ the client sent back and what is ready.
       (the sidebar's, plus WhatsApp and video review) that takes it out of the sidebar and More for everyone in
       that workspace (`organization_settings.hidden_tools`, `PATCH …/settings` `hiddenTools`, also in `GET /me`).
       It hides an entry, never a permission: each person still orders what stays, as before.
+19. **The team approves in the client's place, by hand.** A client sometimes stops answering at the portal while
+    the post is due, or says yes somewhere else (a call, WhatsApp). An administrator then has "Aprovar pelo cliente"
+    on a post waiting on the client (the Approval column: sent, seen, or its new version sent), with an optional
+    reason (`POST …/portal/clients/{client}/items/{item}/approve`, `approveForClient`). It is code, never an agent's
+    tool: the post turns `approved` at the portal through the bridge's edit, which the portal keeps in the post's
+    history, and from there everything is as if the client had approved it (the watch sees the status change, the
+    card's task follows, the client's "after approve" runs). Who did it and why go on the card's comments and in
+    the audit log (`portal.approved_for_client`). Only administrators: approving for a client is a decision about
+    the client, not about the team's work, so `assign_work` is not enough.
 
 ## Consequences
 

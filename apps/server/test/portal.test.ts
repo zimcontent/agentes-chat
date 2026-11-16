@@ -1,7 +1,16 @@
 import { afterEach, expect, test } from "bun:test";
 import { createFakeApprovalPortal, type PortalItem } from "@agenteschat/adapters";
 import { eq, schema } from "@agenteschat/db";
-import { type Browser, browser, createTestServer, ORIGIN, seedOrg, signUp, type TestServer } from "./harness";
+import {
+  type Browser,
+  browser,
+  createTestServer,
+  joinByInvitation,
+  ORIGIN,
+  seedOrg,
+  signUp,
+  type TestServer,
+} from "./harness";
 
 // The approval portal's routes (ADR 9001): the board per client, the team's cards, and a send that reads each Drive
 // file as the caller may and hands it to the portal, with no model in the way.
@@ -246,6 +255,41 @@ test("an approved post is scheduled; one the client hasn't approved is refused i
   expect(early.status).toBe(400);
   expect(await early.json()).toMatchObject({ error: { code: "portal.refused" } });
   expect((await api(path("up-1"), { json: { scheduledFor: "tomorrow" } })).status).toBe(400);
+});
+
+test("an admin approves for a client who went quiet: approved at the portal, said on the card and in the audit", async () => {
+  const portal = createFakeApprovalPortal({
+    items: [item({ id: "up-1", status: "seen" }), item({ id: "up-2", status: "adjust_requested" })],
+  });
+  const { api, orgId, owner } = await start(portal);
+  const card = await portal.createCard("acme", { title: "Launch reel", type: "reel", item: "up-1" });
+  const path = (id: string) => `/portal/clients/acme/items/${id}/approve`;
+
+  // A member who may give work but isn't an administrator can't.
+  const member = await joinByInvitation(t, owner, orgId, "bia@example.com");
+  expect((await member(`/api/app/organizations/${orgId}${path("up-1")}`, { json: {} })).status).toBe(403);
+  expect(portal.edits).toEqual([]);
+
+  expect((await api(path("up-1"), { json: { note: "Said yes on WhatsApp" } })).status).toBe(204);
+  expect(portal.edits).toHaveLength(1);
+  expect(portal.edits[0]).toMatchObject({ client: "acme", item: "up-1", edit: { status: "approved" } });
+  const board = (await (await api("/portal/clients/acme")).json()) as { items: { approved: { id: string }[] } };
+  expect(board.items.approved.map((i) => i.id)).toEqual(["up-1"]);
+  const said = (await portal.cards()).find((c) => c.id === card.id)?.comments.map((c) => c.text) ?? [];
+  expect(said[0]).toContain("Motivo: Said yes on WhatsApp");
+  const audit = (await (await api("/audit?kind=change")).json()) as {
+    rows: { action: string; details: Record<string, unknown> }[];
+  };
+  expect(audit.rows.find((e) => e.action === "portal.approved_for_client")?.details).toMatchObject({
+    title: "Launch reel",
+    client: "acme",
+    note: "Said yes on WhatsApp",
+  });
+
+  // Already approved, or sent back by the client: not the client's move, refused.
+  expect((await api(path("up-1"), { json: {} })).status).toBe(400);
+  expect((await api(path("up-2"), { json: {} })).status).toBe(400);
+  expect(portal.edits).toHaveLength(1);
 });
 
 test("a portal that stopped answering: the last good read comes marked stale, with what still waits to reach it", async () => {

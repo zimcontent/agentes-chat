@@ -8,6 +8,7 @@ import {
 } from "@agenteschat/adapters";
 import {
   AFTER_APPROVE,
+  approveForClient,
   can,
   cancelPortalTask,
   myPortalWork,
@@ -24,6 +25,7 @@ import {
   portalPipeline,
   portalPlan,
   portalTaskRefs,
+  recordAudit,
   removePortalClientLogo,
   requireChangePermission,
   requirePermission,
@@ -32,6 +34,7 @@ import {
   setPortalClientLogo,
   startPortalAgent,
   syncPortalTasks,
+  TEAM_APPROVAL_NOTE,
 } from "@agenteschat/engine";
 import { createRoute, z } from "@hono/zod-openapi";
 import type { Context } from "hono";
@@ -619,6 +622,44 @@ export function portalRoutes(deps: AppDeps) {
       if (!portal) return portalOff(c);
       try {
         await portal.scheduleItem(client, itemId, c.req.valid("json").scheduledFor, user.id);
+        return c.body(null, 204);
+      } catch (error) {
+        return refused(c, error);
+      }
+    },
+  );
+
+  app.openapi(
+    createRoute({
+      method: "post",
+      path: "/organizations/{orgId}/portal/clients/{client}/items/{itemId}/approve",
+      tags,
+      security,
+      summary: "Approve a post in the client's place, when the client stopped answering (administrator)",
+      description:
+        "ADR 9001 §19. Only a post waiting on the client (sent, seen, or its new version sent). It turns `approved` at the portal, as a client's approval would, and the card it came from says who approved it and why.",
+      request: {
+        params: OrgParams.extend({ client: ClientId, itemId: ItemId }),
+        body: body(z.object({ note: z.string().trim().max(TEAM_APPROVAL_NOTE).optional() })),
+      },
+      responses: { ...noContent, 502: unavailable, ...errors, 404: off },
+    }),
+    async (c) => {
+      const { orgId, client, itemId } = c.req.valid("param");
+      const user = c.get("user");
+      await requireChangePermission(db, user.id, orgId, "administrator");
+      const portal = adapters.approvalPortal;
+      if (!portal) return portalOff(c);
+      const note = c.req.valid("json").note || undefined;
+      try {
+        const post = await approveForClient(portal, { client, item: itemId, note, by: user.id, byName: user.name });
+        await recordAudit(db, {
+          orgId,
+          actor: { type: "person", id: user.id },
+          action: "portal.approved_for_client",
+          target: { type: "portal_post", id: `${client}/${itemId}` },
+          details: { title: post.title, client, ...(note ? { note } : {}) },
+        });
         return c.body(null, 204);
       } catch (error) {
         return refused(c, error);

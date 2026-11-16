@@ -279,8 +279,8 @@ describe("a client's board", () => {
   test("a client's colour: picked on its page, it marks the client and its work on the overview", async () => {
     const { state, portal } = await go("portal?client=acme-foods");
     const menu = await openMenu(within(main()).getByRole("button", { name: /Cor do cliente/ }));
-    // Twelve colours, "No colour", and the way to the client's logo.
-    expect(within(menu).getAllByRole("menuitem")).toHaveLength(14);
+    // Twelve colours, "No colour", the way to the client's logo, and the two ways an approval goes on.
+    expect(within(menu).getAllByRole("menuitem")).toHaveLength(16);
     expect(within(menu).getByRole("menuitem", { name: "Logo do cliente" })).toBeTruthy();
     await click(within(menu).getByRole("menuitem", { name: /Azul escuro/ }));
     expect(calls(state, "portal.setClientColor")).toEqual([[ORG_ID, "acme-foods", "navy"]]);
@@ -462,6 +462,38 @@ describe("a client's board", () => {
         .getAllByRole("menuitem")
         .map((i) => i.textContent),
     ).toEqual(["Copiar link do cartão"]);
+  });
+});
+
+describe("Aprovar pelo cliente", () => {
+  const post = () => within(column("Para aprovação")).getByRole("article", { name: "Reel de inauguração" });
+
+  test("an admin approves a post the client left waiting, with the reason, and it moves to Aprovado", async () => {
+    const { state } = await go("portal?client=acme-foods");
+    // Only on what waits on the client: a post sent back or approved has nothing to approve.
+    expect(within(column("Em ajuste")).queryByRole("button", { name: "Aprovar pelo cliente" })).toBeNull();
+    expect(within(column("Aprovado")).queryByRole("button", { name: "Aprovar pelo cliente" })).toBeNull();
+    await click(within(post()).getByRole("button", { name: "Aprovar pelo cliente" }));
+    const dialog = screen().getByRole("dialog", { name: "Aprovar pelo cliente?" });
+    expect(dialog.textContent).toContain("Só quando o cliente parou de responder no portal.");
+    fireEvent.change(within(dialog).getByRole("textbox", { name: "Motivo" }), {
+      target: { value: "Aprovou no WhatsApp" },
+    });
+    await click(within(dialog).getByRole("button", { name: "Aprovar" }));
+    expect(calls(state, "portal.approveForClient")).toEqual([[ORG_ID, "acme-foods", "p1", "Aprovou no WhatsApp"]]);
+    expect(screen().queryByRole("dialog", { name: "Aprovar pelo cliente?" })).toBeNull();
+    expect(screen().getByText("“Reel de inauguração” aprovado pelo cliente.")).toBeTruthy();
+    expect(cardsIn("Aprovado")).toContain("Reel de inauguração");
+  });
+
+  test("who gives agents work but isn't an admin doesn't see it", async () => {
+    const state = withPortal();
+    meWithRole(state, ["assign_work"]);
+    const org = state.me?.organizations[0];
+    if (org) org.permissions = ["read", "post", "assign_work"];
+    await go("portal?client=acme-foods", state);
+    expect(within(post()).queryByRole("button", { name: "Aprovar pelo cliente" })).toBeNull();
+    expect(within(post()).getByRole("button", { name: /^Editar/ })).toBeTruthy();
   });
 });
 
