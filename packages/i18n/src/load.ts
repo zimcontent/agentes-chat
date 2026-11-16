@@ -1,13 +1,15 @@
+import { brandTree } from "./brand";
 import type { AppLocale } from "./locale";
 import { fillPluralGaps, type LocaleStrings } from "./plurals";
 
+/** DougBot: each language leaves under this instance's name (`brandTree`), as `STRINGS` does. */
 const json = (code: AppLocale, load: () => Promise<{ default: LocaleStrings }>) => () =>
-  load().then((m) => fillPluralGaps(code, m.default));
+  load().then((m) => brandTree(fillPluralGaps(code, m.default)));
 
 /** Each language as its own download: an app loads only the one in use (and English, the fallback). */
 export const loadStrings: Record<AppLocale, () => Promise<LocaleStrings>> = {
-  en: () => import("./en").then((m) => m.en),
-  "pt-BR": () => import("./pt-BR").then((m) => fillPluralGaps("pt-BR", m.ptBR)),
+  en: () => import("./en").then((m) => brandTree(m.en)),
+  "pt-BR": () => import("./pt-BR").then((m) => brandTree(fillPluralGaps("pt-BR", m.ptBR))),
   es: json("es", () => import("./locales/es.json")),
   fr: json("fr", () => import("./locales/fr.json")),
   de: json("de", () => import("./locales/de.json")),

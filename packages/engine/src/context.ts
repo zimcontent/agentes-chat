@@ -14,6 +14,7 @@ import {
   schema,
   sql,
 } from "@agenteschat/db";
+import { BRAND_NAME } from "@agenteschat/i18n/brand";
 import { isAppLocale, localeInfo } from "@agenteschat/i18n/locale";
 import type { ModelMessage, SystemBlock } from "@agenteschat/providers";
 import { agentStyleLine, agentStyleOf, isAgentStyle } from "./agent-style";
@@ -1083,8 +1084,8 @@ export async function buildRunContext(
     {
       text: [
         personal
-          ? `You work in "${org.name}" on agentes.chat, a personal workspace: one person, and maybe their family, with the AI agents that help them with their life and work. The app shows its channels to them as group conversations.`
-          : `You work in "${org.name}" on agentes.chat, a workspace where people and AI agents work together.`,
+          ? `You work in "${org.name}" on ${BRAND_NAME}, a personal workspace: one person, and maybe their family, with the AI agents that help them with their life and work. The app shows its channels to them as group conversations.`
+          : `You work in "${org.name}" on ${BRAND_NAME}, a workspace where people and AI agents work together.`,
         org.context.trim() ? `# About ${personal ? "the person" : "the organization"}\n${org.context.trim()}` : "",
         teamMemory,
         options.workspaceComputer ? workspaceComputerText(options.workspaceComputer) : "",

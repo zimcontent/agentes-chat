@@ -1,7 +1,8 @@
 import { timingSafeEqual } from "node:crypto";
-import { ComposioSignatureError } from "@agenteschat/adapters";
+import { ComposioSignatureError, WhatsAppGatewayError } from "@agenteschat/adapters";
 import {
   addGitHubRepoHook,
+  ConflictError,
   createWebhookEndpoint,
   ensureWebhookEndpoint,
   ForbiddenSignatureError,
@@ -10,9 +11,15 @@ import {
   handleWebhook,
   handleWhatsAppEvent,
   NotFoundError,
+  PORTAL_NOTICE_KEY_MAX,
+  PORTAL_NOTICE_PHONE,
+  PORTAL_NOTICE_TEXT_MAX,
+  portalNoticeRecipients,
   portalTasksNow,
   receiveRoutineHook,
+  sendPortalWhatsApp,
   setWebhookSecret,
+  TooManyError,
   ValidationError,
   WEBHOOK_PROVIDERS,
   type WebhookProvider,
@@ -36,6 +43,7 @@ import {
   security,
   whatsappDeps,
 } from "./app/context";
+import { WHATSAPP_NEW_CHATS_PER_NUMBER } from "./app/whatsapp";
 import { githubAccess } from "./github-app";
 import { readWebhookBytes, readWebhookText } from "./webhook-body";
 
@@ -45,6 +53,15 @@ import { readWebhookBytes, readWebhookText } from "./webhook-body";
  * messages with their small previews. Read only for an address a number listens at.
  */
 const WHATSAPP_EVENT_MAX = 64 * 1024 * 1024;
+
+/** The largest notice the approval portal may post: a number, a short text and a key. */
+const PORTAL_NOTICE_BODY_MAX = 16 * 1024;
+/** `{ to, text, key? }`: the recipient's digits (E.164 without the plus), the words and an idempotency key. */
+const PortalNotice = z.object({
+  to: z.string().regex(PORTAL_NOTICE_PHONE),
+  text: z.string().min(1).max(PORTAL_NOTICE_TEXT_MAX),
+  key: z.string().min(1).max(PORTAL_NOTICE_KEY_MAX).nullish(),
+});
 
 /** What a routine's address answers when it refuses a call (English: the caller is a program). */
 const HOOK_REFUSALS = {
@@ -134,6 +151,54 @@ export function registerWebhookReceiver(api: OpenAPIHono, deps: AppDeps) {
     } catch (error) {
       if (error instanceof NotFoundError) return c.json({ error: "not found" }, 404);
       if (error instanceof SyntaxError) return c.json({ error: "invalid body" }, 400);
+      throw error;
+    }
+  });
+  // The approval portal's notices on WhatsApp (docs/adr/doug-0001-whatsapp-numbers.md, addendum 2026-11-16): the
+  // portal runs on another server and asks this one to send a short text from a connected number, to one of the few
+  // numbers allowed. Off (404) without its three settings. Before the generic route, which its two segments match.
+  api.post("/webhooks/approval-portal/whatsapp", async (c) => {
+    const token = deps.config.PORTAL_WHATSAPP_TOKEN;
+    const from = deps.config.PORTAL_WHATSAPP_FROM;
+    const allowed = portalNoticeRecipients(deps.config.PORTAL_WHATSAPP_TO);
+    if (!token || !from || allowed.length === 0) return c.json({ error: "not found" }, 404);
+    const given = Buffer.from(c.req.header("authorization") ?? "");
+    const wanted = Buffer.from(`Bearer ${token}`);
+    if (given.length !== wanted.length || !timingSafeEqual(given, wanted)) {
+      return c.json({ error: "unauthorized" }, 401);
+    }
+    const raw = await readWebhookText(c.req.raw, PORTAL_NOTICE_BODY_MAX);
+    if (raw === null) return c.json({ error: "too large" }, 413);
+    let notice: z.infer<typeof PortalNotice>;
+    try {
+      const parsed = PortalNotice.safeParse(JSON.parse(raw));
+      if (!parsed.success) return c.json({ error: "invalid body" }, 400);
+      notice = parsed.data;
+    } catch {
+      return c.json({ error: "invalid body" }, 400);
+    }
+    if (!allowed.includes(notice.to)) return c.json({ error: "recipient not allowed" }, 403);
+    try {
+      const sent = await sendPortalWhatsApp(whatsappDeps(deps), {
+        from,
+        to: notice.to,
+        text: notice.text,
+        key: notice.key ?? null,
+        // The same count the app's own "new conversation" spends for this number (`whatsapp.new_chats_limit`).
+        mayStartChat: async (account) =>
+          (await deps.adapters.rateLimiter.consume(`whatsapp-new:${account.id}`, WHATSAPP_NEW_CHATS_PER_NUMBER))
+            .allowed,
+      });
+      return c.json({ ok: true, messageId: sent.messageId }, 200);
+    } catch (error) {
+      if (error instanceof WhatsAppGatewayError) {
+        deps.log?.warn("WhatsApp gateway refused a portal notice", { status: error.status, error: error.message });
+        return c.json({ error: "gateway", code: "whatsapp.unavailable" }, 502);
+      }
+      if (error instanceof NotFoundError) return c.json({ error: "not found" }, 404);
+      if (error instanceof ConflictError) return c.json({ error: "number not connected", code: error.code }, 409);
+      if (error instanceof TooManyError) return c.json({ error: "too many new conversations", code: error.code }, 429);
+      if (error instanceof ValidationError) return c.json({ error: error.message }, 400);
       throw error;
     }
   });

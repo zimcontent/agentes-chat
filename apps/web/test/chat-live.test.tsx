@@ -863,7 +863,7 @@ describe("receipts: who picked the agents for a message nobody mentioned", () =>
     ]);
     expect(within(pop).getByRole("button", { name: "Chamar um agente" })).toBeTruthy();
     expect(within(pop).getByRole("link", { name: "Como os agentes são escolhidos" }).getAttribute("href")).toBe(
-      "https://agentes.chat/pt/docs/who-answers",
+      "https://time.zimcontent.com/docs/who-answers",
     );
   });
 

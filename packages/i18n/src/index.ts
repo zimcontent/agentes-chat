@@ -4,6 +4,7 @@
  * language is a JSON file in `locales/`, filled by `bun run i18n:apply`, and falls back to English per key.
  * Apps load one language at a time through `@agenteschat/i18n/load`; this module holds them all (tests, tools).
  */
+import { brandTree } from "./brand";
 import { en } from "./en";
 import type { AppLocale } from "./locale";
 import de from "./locales/de.json";
@@ -21,12 +22,16 @@ import zhHans from "./locales/zh-Hans.json";
 import { fillPluralGaps, type LocaleStrings } from "./plurals";
 import { ptBR } from "./pt-BR";
 
+export { BRAND_NAME, brandText, brandTree } from "./brand";
 export { en, type Translations as Strings, type Translations } from "./en";
 export { fillPluralGaps, type LocaleStrings } from "./plurals";
 export { ptBR } from "./pt-BR";
 
-/** Every language's strings as written. */
-export const STRINGS: Record<AppLocale, LocaleStrings> = {
+/**
+ * Every language's strings as written. DougBot: under this instance's name (`brandTree`), so a string merged from the
+ * original project that names it reads as ours with no edit to the language files.
+ */
+export const STRINGS: Record<AppLocale, LocaleStrings> = /* @__PURE__ */ brandTree({
   en,
   "pt-BR": ptBR,
   es,
@@ -41,7 +46,7 @@ export const STRINGS: Record<AppLocale, LocaleStrings> = {
   tr,
   pl,
   ru,
-};
+});
 
 /** i18next resources for every language at once, one namespace (`translation`), plural gaps filled. */
 export const resources = /* @__PURE__ */ Object.fromEntries(
@@ -62,7 +67,7 @@ export function serverText(code: AppLocale, key: string, vars: Record<string, st
   const forms =
     vars.count === undefined ? [] : [`${key}_${new Intl.PluralRules(code).select(Number(vars.count))}`, `${key}_other`];
   for (const k of [...forms, key]) {
-    const raw = leafAt(STRINGS[code], k) ?? leafAt(en, k);
+    const raw = leafAt(STRINGS[code], k) ?? leafAt(STRINGS.en, k);
     if (typeof raw === "string") return raw.replace(/\{\{\s*(\w+)\s*\}\}/g, (m, name: string) => vars[name] ?? m);
   }
   return key;

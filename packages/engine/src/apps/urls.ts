@@ -1,5 +1,4 @@
 import { randomBytes } from "node:crypto";
-import { docsUrl } from "@agenteschat/i18n/docs";
 import { isPublicHostName, publicHostAddress, type ResolveHost, resolveHostDns } from "../net-guard";
 
 /**
@@ -57,7 +56,8 @@ export function appsUrls(publicUrl: string) {
     register: `${issuer}/api/oauth/register`,
     revoke: `${issuer}/api/oauth/revoke`,
     consentPage: `${issuer}/autorizar`,
-    docs: docsUrl("en", "apps-de-ia"),
+    // DougBot: this server's own docs page (`/docs/<page>` of its app), not the original project's site.
+    docs: `${issuer}/docs/apps-de-ia`,
     /** PNG first: clients that draw icons must support PNG, SVG only should (and directories ask for 512 px). */
     icon: `${issuer}/icon-512.png`,
     iconSvg: `${issuer}/favicon.svg`,

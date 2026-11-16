@@ -7,27 +7,24 @@ const go = async (path: string, acceptLanguage?: string) => {
   return [res.status, res.headers.get("location")];
 };
 
+// DougBot: the help pages are this server's own docs (`/docs/<page>` of its app, in the reader's language).
 describe("the old help pages", () => {
-  test("move for good to the docs site, in ?lang= or else the browser's language", async () => {
-    expect(await go("/help/memory?lang=en")).toEqual([301, "https://agentes.chat/docs/memory"]);
-    expect(await go("/help/memory?lang=pt-BR")).toEqual([301, "https://agentes.chat/pt/docs/memory"]);
-    expect(await go("/help/wiki?lang=zh-Hans")).toEqual([301, "https://agentes.chat/zh/docs/wiki"]);
-    expect(await go("/help/jev?lang=ko")).toEqual([301, "https://agentes.chat/ko/docs/jev"]);
-    expect(await go("/help/computers", "pt-PT,pt;q=0.9")).toEqual([301, "https://agentes.chat/pt/docs/computers"]);
-    // ?lang= wins over the browser; neither known reads English.
-    expect(await go("/help/computers?lang=fr", "de")).toEqual([301, "https://agentes.chat/fr/docs/computers"]);
-    expect(await go("/help/computers?lang=xx", "xx")).toEqual([301, "https://agentes.chat/docs/computers"]);
+  test("move for good to this server's docs, whatever the language asked", async () => {
+    expect(await go("/help/memory?lang=en")).toEqual([301, "/docs/memory"]);
+    expect(await go("/help/memory?lang=pt-BR")).toEqual([301, "/docs/memory"]);
+    expect(await go("/help/jev?lang=ko")).toEqual([301, "/docs/jev"]);
+    expect(await go("/help/computers", "pt-PT,pt;q=0.9")).toEqual([301, "/docs/computers"]);
   });
 
   test("the help root and a page that doesn't exist land on the docs index", async () => {
-    expect(await go("/help?lang=es")).toEqual([301, "https://agentes.chat/es/docs"]);
-    expect(await go("/help/")).toEqual([301, "https://agentes.chat/docs"]);
-    expect(await go("/help/nope?lang=pt-BR")).toEqual([301, "https://agentes.chat/pt/docs"]);
-    expect(await go("/help/toString?lang=en")).toEqual([301, "https://agentes.chat/docs"]);
+    expect(await go("/help?lang=es")).toEqual([301, "/docs"]);
+    expect(await go("/help/")).toEqual([301, "/docs"]);
+    expect(await go("/help/nope?lang=pt-BR")).toEqual([301, "/docs"]);
+    expect(await go("/help/toString?lang=en")).toEqual([301, "/docs"]);
   });
 
-  test("vary by the browser's language, so no cache hands one language's redirect to everyone", async () => {
-    const res = await app.request("/help/memory", { headers: { "accept-language": "pt-BR" } });
-    expect(res.headers.get("vary")).toBe("accept-language");
+  test("never leave for the original project's site", async () => {
+    for (const path of ["/help", "/help/memory", "/help/install-on-a-server?lang=pt-BR"])
+      expect((await go(path))[1]).not.toContain("agentes.chat");
   });
 });

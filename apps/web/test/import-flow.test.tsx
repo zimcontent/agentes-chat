@@ -168,7 +168,7 @@ describe("Configurações → Importar e exportar", () => {
     // Whoever shares the file needs to know what never goes in it: one line. The full list is on the help page.
     expect(card.querySelector(".imp-note")?.textContent).toBe("Nunca leva chaves, senhas, logins nem conversas.");
     const whatsIn = within(card).getByRole("link", { name: "O que vai no arquivo" });
-    expect(whatsIn.getAttribute("href")).toBe("https://agentes.chat/pt/docs/import#export");
+    expect(whatsIn.getAttribute("href")).toBe("https://time.zimcontent.com/docs/import#export");
     expect(whatsIn.className).toBe("ac-link ac-link--muted");
     expect([whatsIn.getAttribute("target"), whatsIn.getAttribute("rel")]).toEqual(["_blank", "noopener noreferrer"]);
     await click(within(card).getByRole("button", { name: "Baixar o arquivo" }));
@@ -366,7 +366,7 @@ describe("Configurações → Importar e exportar", () => {
     expect(text()).toContain("Cole o endereço no app. Ele abre esta página para você entrar.");
     const help = screen().getByRole("link", { name: "Como conectar, app por app" });
     expect([help.getAttribute("href"), help.getAttribute("target")]).toEqual([
-      "https://agentes.chat/pt/docs/apps-de-ia#connect",
+      "https://time.zimcontent.com/docs/apps-de-ia#connect",
       "_blank",
     ]);
 
@@ -815,7 +815,7 @@ describe("Configurações → Importar e exportar", () => {
     // Where each app puts its file is on the help page, one link under the request.
     expect(other.querySelector("dl")).toBeNull();
     const where = within(other).getByRole("link", { name: "Onde cada app entrega" });
-    expect(where.getAttribute("href")).toBe("https://agentes.chat/pt/docs/import#other-apps");
+    expect(where.getAttribute("href")).toBe("https://time.zimcontent.com/docs/import#other-apps");
     expect(where.className).toBe("ac-link ac-link--muted");
 
     await click(within(other).getByRole("button", { name: "Copiar o pedido" }), 2);

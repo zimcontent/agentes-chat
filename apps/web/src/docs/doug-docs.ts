@@ -1,3 +1,4 @@
+import { BRAND_NAME } from "@agenteschat/i18n/brand";
 import {
   type HelpBlock,
   type HelpDocument,
@@ -14,7 +15,7 @@ import {
  * arriving: the name is swapped as a page is read (`brandProse`), and the one page that says where the work comes
  * from (`open-source`, the attribution the NOTICE asks for) is written here.
  */
-export const BRAND = "DougBot";
+export const BRAND = BRAND_NAME;
 
 export const ABOUT_SLUG = "open-source";
 export type DocSlug = HelpSlug | typeof ABOUT_SLUG;

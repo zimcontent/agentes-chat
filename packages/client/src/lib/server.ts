@@ -1,5 +1,4 @@
-import { docsUrl } from "@agenteschat/i18n/docs";
-import { appLocale } from "@agenteschat/i18n/locale";
+import { appDocsUrl } from "@agenteschat/i18n/docs";
 import type { FetchLike } from "../api/http";
 import type { Instance } from "../api/types";
 
@@ -16,9 +15,11 @@ export const CLOUD_SERVER = "https://dougbot.app";
  * A help page on the public docs site, in the reader's language, at a section. Every edition and app links there,
  * with only the page, the language and the section: no server, organization or person. Every language has every
  * page (`@agenteschat/i18n` help test), so no English fallback here.
+ *
+ * DougBot: the page is this instance's own (`/docs/<page>` of its app, `appDocsUrl`), which shows it under its name
+ * in the reader's own language, so `locale` picks nothing in the address.
  */
-export const helpUrl = (slug: string, locale: string, section?: string) =>
-  docsUrl(appLocale([locale], true) ?? "en", slug, section);
+export const helpUrl = (slug: string, _locale: string, section?: string) => appDocsUrl(slug, section);
 
 /** The app API contract these apps speak; a server serves its `minApi` up to its `api` (`GET /api/instance`). */
 export const APP_API = 1;

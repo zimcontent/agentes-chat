@@ -49,6 +49,7 @@ import {
   ValidationError,
   type WorkspacePolicy,
 } from "@agenteschat/engine";
+import { BRAND_NAME } from "@agenteschat/i18n/brand";
 import { expo } from "@better-auth/expo";
 import { type BetterAuthPlugin, betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
@@ -150,7 +151,7 @@ export function createAuth(deps: {
   };
 
   return betterAuth({
-    appName: "agentes.chat",
+    appName: BRAND_NAME,
     baseURL: config.PUBLIC_URL,
     basePath: "/api/auth",
     // Over HTTP each would tell any session whether a password is right, with none of the limit `deletionProof` keeps:

@@ -647,6 +647,36 @@ export const envVars = {
     section: "Chat",
     example: "http://agentes:3000",
   },
+  PORTAL_WHATSAPP_TOKEN: {
+    schema: z.string().min(24, "must be at least 24 characters").optional(),
+    description:
+      'The bearer token your approval portal sends with each WhatsApp notice it asks this server to send (`POST /api/webhooks/approval-portal/whatsapp`: "a new version of post X", "post approved"). The portal runs on another server and has no WhatsApp of its own: a connected number here sends for it. Goes with `PORTAL_WHATSAPP_FROM` and `PORTAL_WHATSAPP_TO`; without the three, that address answers 404.',
+    section: "Chat",
+    secret: true,
+  },
+  PORTAL_WHATSAPP_FROM: {
+    schema: z
+      .string()
+      .regex(/^\d{8,15}$/, "must be the number's digits only, with its country code")
+      .optional(),
+    description:
+      "The connected WhatsApp number that sends the portal's notices: its digits only, country code first, as the number shows once connected. While it isn't connected the notices are refused (409), never kept for later.",
+    section: "Chat",
+    example: "13212048550",
+  },
+  PORTAL_WHATSAPP_TO: {
+    schema: z
+      .string()
+      .regex(
+        /^\s*\d{8,15}(\s*,\s*\d{8,15})*\s*$/,
+        "must be phone numbers, digits only with country code, separated by commas",
+      )
+      .optional(),
+    description:
+      "The only phone numbers the portal's notices may go to: digits only with country code, separated by commas. A notice to any other number is refused (403), so a leaked token can't write to strangers from your number.",
+    section: "Chat",
+    example: "5511987654321,5511912345678",
+  },
   SPEECH_ENGINES: {
     schema: z.string().optional(),
     description:

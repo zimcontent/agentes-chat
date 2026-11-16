@@ -264,13 +264,13 @@ describe("Entrar (e-mail primeiro)", () => {
       await settle(2);
       const get = screen().getByRole("dialog", { name: "Ter o seu próprio servidor" });
       expect(within(get).getByRole("link", { name: "Baixar o app" }).getAttribute("href")).toBe(
-        "https://agentes.chat/download",
+        "https://time.zimcontent.com/download",
       );
       expect(within(get).getByRole("link", { name: "Como funciona" }).getAttribute("href")).toBe(
-        "https://agentes.chat/pt/docs/run-on-your-computer",
+        "https://time.zimcontent.com/docs/run-on-your-computer",
       );
       expect(within(get).getByRole("link", { name: "Ver o passo a passo" }).getAttribute("href")).toBe(
-        "https://agentes.chat/pt/docs/install-on-a-server",
+        "https://time.zimcontent.com/docs/install-on-a-server",
       );
       await act(async () => fireEvent.click(within(get).getByRole("button", { name: "Use o Cloud" })));
       await settle(2);
@@ -1570,8 +1570,7 @@ describe("Onboarding: the workspace's name", () => {
     await type("Nome", "Beta");
     await next();
     expect(screen().getByRole("heading", { name: "Como se chama o seu workspace?" })).toBeTruthy();
-    const said =
-      "Você já tem um workspace esperando um plano do DougBot. Escolha o plano dele antes de criar outro.";
+    const said = "Você já tem um workspace esperando um plano do DougBot. Escolha o plano dele antes de criar outro.";
     expect(screen().getByRole("alert").textContent).toBe(said);
     // Said once, in place: no toast says it again.
     expect(document.body.textContent?.split(said)).toHaveLength(2);

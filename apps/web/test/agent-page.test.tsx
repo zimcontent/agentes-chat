@@ -837,7 +837,7 @@ describe("agent page: memory and proposals", () => {
   test("one column, and under its cards one link to how memory works", async () => {
     await go("?tab=memory");
     const link = screen().getByRole("link", { name: "Como a memória funciona" });
-    expect(link.getAttribute("href")).toBe("https://agentes.chat/pt/docs/memory");
+    expect(link.getAttribute("href")).toBe("https://time.zimcontent.com/docs/memory");
     expect(link.getAttribute("rel")).toBe("noopener noreferrer");
     expect(link.closest(".agp-cols")?.querySelectorAll(".agp-col")).toHaveLength(1);
     expect(link.closest(".page__note")?.textContent).toBe("Como a memória funciona");

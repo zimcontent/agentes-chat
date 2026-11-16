@@ -237,6 +237,11 @@ jobs:
             packages/engine/test/channel-refs.test.ts
             packages/engine/test/approval-portal.test.ts
             packages/engine/test/approval-portal-tasks.test.ts
+            packages/i18n/test/brand.test.ts
+            packages/engine/test/email-brand.test.ts
+            apps/server/test/brand.test.ts
+            apps/server/test/help-redirect.test.ts
+            apps/server/test/portal-whatsapp.test.ts
             apps/server/test/oauth.test.ts
             apps/server/test/connectors.test.ts
             apps/server/test/sidebar-items.test.ts

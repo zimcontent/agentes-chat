@@ -7,6 +7,13 @@ export { type Config, type EnvVarDefinition, type EnvVarName, envVars } from "./
 /** agentes.chat's own servers: their legal pages are their own, and their mail goes out from agentes.chat. */
 const OFFICIAL_HOSTS = new Set(["app.agentes.chat", "agentes.chat", "www.agentes.chat"]);
 
+/**
+ * DougBot: the name a person reads as the sender. This package imports no other of the workspace, so it holds the
+ * name as text; `BRAND_NAME` in `@agenteschat/i18n/brand` is the one to change, and a test keeps the two equal
+ * (`apps/server/test/brand.test.ts`).
+ */
+export const BRAND_NAME = "DougBot";
+
 /** Whether a VAPID public key (an uncompressed P-256 point) belongs to this private key (`d`), both base64url. */
 function vapidPairMatches(publicKey: string, privateKey: string): boolean {
   try {
@@ -136,7 +143,7 @@ export function loadConfig(env: Record<string, string | undefined> = process.env
   if (OFFICIAL_HOSTS.has(site.hostname)) {
     config.TERMS_URL ??= `${site.origin}/terms`;
     config.PRIVACY_URL ??= `${site.origin}/privacy`;
-    config.EMAIL_FROM ??= "agentes.chat <ping@agentes.chat>";
+    config.EMAIL_FROM ??= `${BRAND_NAME} <ping@agentes.chat>`;
   }
   return config;
 }

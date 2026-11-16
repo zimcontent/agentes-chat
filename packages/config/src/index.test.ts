@@ -60,7 +60,8 @@ describe("loadConfig", () => {
 
   test("agentes.chat's own servers send from ping@agentes.chat, whichever of its addresses they are at", () => {
     for (const site of ["https://app.agentes.chat", "https://agentes.chat"]) {
-      expect(loadConfig({ ...valid, PUBLIC_URL: site }).EMAIL_FROM).toBe("agentes.chat <ping@agentes.chat>");
+      // DougBot: the name a person reads is this instance's; the address stays the servers' own.
+      expect(loadConfig({ ...valid, PUBLIC_URL: site }).EMAIL_FROM).toBe("DougBot <ping@agentes.chat>");
     }
     const set = loadConfig({ ...valid, PUBLIC_URL: "https://app.agentes.chat", EMAIL_FROM: "ops@agentes.chat" });
     expect(set.EMAIL_FROM).toBe("ops@agentes.chat");

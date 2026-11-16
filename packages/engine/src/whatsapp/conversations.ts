@@ -14,6 +14,7 @@ import {
   accountToken,
   publishWhatsAppChanged,
   requireWhatsAppUse,
+  type WhatsAppAccountRow,
   type WhatsAppDeps,
   whatsappGateway,
 } from "./accounts";
@@ -283,6 +284,39 @@ export function whatsappJidOf(phone: string) {
 }
 
 /**
+ * A text out through the gateway and into its conversation here, as the number's own (`fromMe`): the one way a text
+ * leaves, whoever asked for it (a person in the app, or the approval portal's notice in `portal-notice.ts`). The
+ * conversation is made on its first message. Nothing here wakes the number's agent: only what the other side writes
+ * does (`inbound.ts`).
+ */
+export async function deliverWhatsAppText(
+  deps: WhatsAppDeps,
+  account: WhatsAppAccountRow,
+  input: { to: string; text: string; replyTo?: string | null },
+  by: { userId?: string | null; agentId?: string | null } = {},
+) {
+  const gateway = whatsappGateway(deps);
+  const replyTo = input.replyTo ?? null;
+  const sent = await gateway.sendText(await accountToken(deps, account), { to: input.to, text: input.text, replyTo });
+  const message: WhatsAppMessage = {
+    id: sent.id,
+    chat: bareJid(input.to),
+    sender: account.jid ?? "",
+    senderName: account.pushName,
+    fromMe: true,
+    group: isGroupJid(input.to),
+    groupName: "",
+    at: sent.at,
+    kind: "text",
+    text: input.text,
+    replyTo,
+    media: null,
+    raw: null,
+  };
+  return { sent, stored: await storeWhatsAppMessage(deps.db, account, message, by) };
+}
+
+/**
  * Sends a text from the number: into a conversation it has (`chatId`), or to a phone number it never talked to
  * (`phone`), which starts one. The message is kept as the person's (`sentByUserId`).
  */
@@ -294,7 +328,8 @@ export async function sendWhatsAppText(
   input: { chatId?: string; phone?: string; text: string; replyToId?: string | null },
 ) {
   const account = await requireWhatsAppUse(deps.db, userId, orgId, accountId);
-  const gateway = whatsappGateway(deps);
+  // Without a gateway, the refusal comes before anything is read.
+  whatsappGateway(deps);
   if (account.status !== "connected") throw new ValidationError("This number isn't connected");
   const text = input.text.trim();
   if (!text) throw new ValidationError("Write a message");
@@ -315,23 +350,7 @@ export async function sendWhatsAppText(
     if (!answered) throw new ValidationError("That message isn't in this number's conversations");
     replyTo = answered.waId;
   }
-  const sent = await gateway.sendText(await accountToken(deps, account), { to, text, replyTo });
-  const message: WhatsAppMessage = {
-    id: sent.id,
-    chat: bareJid(to),
-    sender: account.jid ?? "",
-    senderName: account.pushName,
-    fromMe: true,
-    group: isGroupJid(to),
-    groupName: "",
-    at: sent.at,
-    kind: "text",
-    text,
-    replyTo,
-    media: null,
-    raw: null,
-  };
-  const stored = await storeWhatsAppMessage(deps.db, account, message, { userId });
+  const { sent, stored } = await deliverWhatsAppText(deps, account, { to, text, replyTo }, { userId });
   // The gateway's own event for this message may have arrived first: it is the person's all the same.
   if (!stored.fresh) {
     await deps.db

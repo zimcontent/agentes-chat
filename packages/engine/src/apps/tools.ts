@@ -7,6 +7,7 @@ import {
   type RateLimiter,
 } from "@agenteschat/adapters";
 import { and, type Database, desc, eq, gte, inArray, isNull, lte, or, schema, sql } from "@agenteschat/db";
+import { BRAND_NAME } from "@agenteschat/i18n/brand";
 import {
   type AuthInfo,
   type CallToolResult,
@@ -587,7 +588,7 @@ export function buildAppsMcpServer(deps: AppsToolDeps, p: AppPrincipal, version:
   const server = new McpServer(
     {
       name: "agentes-chat",
-      title: "agentes.chat",
+      title: BRAND_NAME,
       version,
       websiteUrl: urls.issuer,
       icons: [

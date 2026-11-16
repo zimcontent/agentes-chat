@@ -1,4 +1,5 @@
 import { type CSSProperties, useMemo } from "react";
+import { BRAND_NAME } from "../brand/doug";
 import { cx } from "../cx";
 import { useDawn } from "../hooks/useDawn";
 import { HOSTING_CAST, type Hosting, teamSky } from "../sky/team";
@@ -128,7 +129,7 @@ export function PlaceScene({
             <span className="ac-place__brand">
               <Avatar
                 kind="agent"
-                name="agentes.chat"
+                name={BRAND_NAME}
                 appearance={{ color: "sky", eyes: "round" }}
                 size="xl"
                 framed={false}

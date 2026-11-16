@@ -355,7 +355,7 @@ describe("Preferences: a setting's explanation behind its ⓘ", () => {
         const link = [...el.querySelectorAll("button")].find((b) => b.textContent === "How folders work");
         expect(link?.className).toBe("ac-link ac-link--muted dk-link");
         await act(async () => link?.click());
-        expect(opened).toEqual(["https://agentes.chat/docs/computers#folders"]);
+        expect(opened).toEqual(["https://time.zimcontent.com/docs/computers#folders"]);
         expect(el.textContent).not.toContain("Removing deletes nothing");
       },
     ));

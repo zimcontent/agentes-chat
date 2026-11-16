@@ -90,7 +90,7 @@ describe("protocol", () => {
     });
     const client = new Client({ name: "test", version: "1.0.0" });
     await client.connect(transport);
-    expect(client.getServerVersion()).toMatchObject({ name: "agentes-chat", title: "agentes.chat" });
+    expect(client.getServerVersion()).toMatchObject({ name: "agentes-chat", title: "DougBot" });
     expect(client.getInstructions()).toContain('This connection acts as owner in the workspace "Acme"');
     const { tools } = await client.listTools();
     expect(tools.map((x) => x.name)).toEqual([...APP_TOOL_NAMES]);

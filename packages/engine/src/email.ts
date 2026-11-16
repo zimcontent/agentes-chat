@@ -14,6 +14,7 @@ import {
   schema,
   sql,
 } from "@agenteschat/db";
+import { BRAND_NAME, brandText } from "@agenteschat/i18n/brand";
 import { formatMoneyUsd } from "@agenteschat/i18n/format";
 import { appLocale, localeInfo } from "@agenteschat/i18n/locale";
 import { deepMerge } from "@agenteschat/i18n/tree";
@@ -54,7 +55,7 @@ const { users, organizations, organizationInvitations, agents, approvals, channe
  * The sender's name when `EMAIL_FROM` is unset: the name on the logo and in the subjects. The self-host setup
  * writes the same into a new server's `.env` (`senderAt` in packages/setup/src/lib.ts).
  */
-const SENDER_NAME = "DougBot";
+const SENDER_NAME = BRAND_NAME;
 
 /** The sender when `EMAIL_FROM` is unset, at this server's host (`loadConfig` sets the Cloud's: ping@agentes.chat). */
 export const defaultEmailFrom = (publicUrl: string) => `${SENDER_NAME} <ping@${new URL(publicUrl).hostname}>`;
@@ -1056,7 +1057,16 @@ export function renderEmail(
 ) {
   const sender = URL.canParse(art.home) && !isAgentesCloud(art.home) ? new URL(art.home).host : null;
   const doc = docOf(t, sender);
-  return { subject: doc.subject, preheader: doc.preheader, ...renderDoc(doc, art) };
+  const { html, text, ...rest } = renderDoc(doc, art);
+  // DougBot: every email leaves under this instance's name, whatever a word merged from the original project says
+  // (`brandText` leaves addresses alone: a link, a sender's host and a picture's source stay as they are).
+  return {
+    subject: brandText(doc.subject),
+    preheader: brandText(doc.preheader),
+    ...rest,
+    html: brandText(html),
+    text: brandText(text),
+  };
 }
 
 /**
