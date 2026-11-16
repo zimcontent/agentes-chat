@@ -113,6 +113,14 @@ const Note = z
   .openapi("VideoReviewNote");
 
 const Review = Summary.extend({
+  portal: z
+    .object({ client: z.string(), afterApprove: z.enum(["portal", "direct"]) })
+    .nullable()
+    .openapi({ description: "A design piece's client at the approval portal and what an approval does there." }),
+  delivery: z
+    .record(z.string(), z.unknown())
+    .nullable()
+    .openapi({ description: "What happened at the portal after the approval (`state`, `link`, `when`, `error`)." }),
   brief: z.string(),
   links: z.array(z.object({ label: z.string(), url: z.string() })),
   versions: z.array(

@@ -1,4 +1,16 @@
-import { boolean, index, integer, jsonb, pgTable, real, text, timestamp, uniqueIndex, uuid } from "drizzle-orm/pg-core";
+import {
+  boolean,
+  index,
+  integer,
+  jsonb,
+  pgTable,
+  primaryKey,
+  real,
+  text,
+  timestamp,
+  uniqueIndex,
+  uuid,
+} from "drizzle-orm/pg-core";
 import { agents } from "./agents";
 import { users } from "./auth";
 import { organizations } from "./tenancy";
@@ -36,6 +48,12 @@ export const videoReviews = pgTable(
     /** Where the work comes from and goes: the task, the footage, the delivery. */
     links: jsonb().$type<VideoReviewLink[]>().notNull().default([]),
     status: text().$type<VideoReviewStatus>().notNull().default("in_review"),
+    /** The approval portal's client a design piece is for (its id there, `lexeer`); null: none known. */
+    portalClient: text(),
+    /** The portal's card it finishes, when it came from one (a portal task, ADR 9001 §11). */
+    portalCard: text(),
+    /** What happened at the portal after the approval (`design-delivery.ts`); null: nothing yet. */
+    delivery: jsonb().$type<Record<string, unknown>>(),
     /** The newest version's number. */
     version: integer().notNull().default(1),
     decidedBy: text().references(() => users.id, { onDelete: "set null" }),
@@ -129,4 +147,23 @@ export const videoReviewNotes = pgTable(
     createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [index().on(t.reviewId, t.version)],
+);
+
+/**
+ * What an approval in the Revisor means for one of the approval portal's clients (docs/adr/doug-0010-design-review.md
+ * §8): `portal`, the piece goes to the client to approve (the default, for a client with no row), or `direct`, the
+ * team's approval is the last one and the post is scheduled.
+ */
+export const portalClientSettings = pgTable(
+  "portal_client_settings",
+  {
+    orgId: uuid()
+      .notNull()
+      .references(() => organizations.id, { onDelete: "cascade" }),
+    client: text().notNull(),
+    afterApprove: text().notNull().default("portal"),
+    updatedBy: text().references(() => users.id, { onDelete: "set null" }),
+    updatedAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [primaryKey({ columns: [t.orgId, t.client] })],
 );

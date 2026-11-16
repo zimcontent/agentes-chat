@@ -1913,6 +1913,15 @@ export function createHttpApi(options: TransportOptions = {}): HttpApi {
         request<void>(`${org(orgId)}/portal/labels/${enc(labelId)}`, { method: "DELETE" }),
       setClientColor: (orgId, client, color) =>
         request<void>(`${org(orgId)}/portal/clients/${enc(client)}/color`, { method: "PUT", json: { color } }),
+      clientSettings: (orgId) =>
+        request<{ settings: { client: string; afterApprove: "portal" | "direct" }[] }>(
+          `${org(orgId)}/portal/client-settings`,
+        ),
+      setAfterApprove: (orgId, client, afterApprove) =>
+        request<void>(`${org(orgId)}/portal/clients/${enc(client)}/after-approve`, {
+          method: "PUT",
+          json: { afterApprove },
+        }),
       setClientLogo: async (orgId, client, image) => {
         const path = `${org(orgId)}/portal/clients/${enc(client)}/logo`;
         if (image) await request<{ logo: string }>(path, { method: "PUT", json: image });

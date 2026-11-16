@@ -299,6 +299,18 @@ export const EXTRA_COLUMNS = [
   `ALTER TABLE "video_review_versions" ADD COLUMN IF NOT EXISTS "source_artifact_id" uuid`,
   `ALTER TABLE "video_review_versions" ADD COLUMN IF NOT EXISTS "edited_by" text`,
   `ALTER TABLE "video_review_notes" ADD COLUMN IF NOT EXISTS "page" integer`,
+  // What follows an approval of a design piece at the approval portal (docs/adr/doug-0010-design-review.md §8).
+  `ALTER TABLE "video_reviews" ADD COLUMN IF NOT EXISTS "portal_client" text`,
+  `ALTER TABLE "video_reviews" ADD COLUMN IF NOT EXISTS "portal_card" text`,
+  `ALTER TABLE "video_reviews" ADD COLUMN IF NOT EXISTS "delivery" jsonb`,
+  `CREATE TABLE IF NOT EXISTS "portal_client_settings" (
+    "org_id" uuid NOT NULL REFERENCES "organizations"("id") ON DELETE CASCADE,
+    "client" text NOT NULL,
+    "after_approve" text NOT NULL DEFAULT 'portal',
+    "updated_by" text REFERENCES "users"("id") ON DELETE SET NULL,
+    "updated_at" timestamp with time zone NOT NULL DEFAULT now(),
+    PRIMARY KEY ("org_id", "client")
+  )`,
   // Media generation paid in credits (ADR doug-0011, `schema/media.ts`).
   `ALTER TABLE "agents" ADD COLUMN IF NOT EXISTS "media_monthly_credits" integer NOT NULL DEFAULT 5000`,
   `ALTER TABLE "agents" ADD COLUMN IF NOT EXISTS "media_ask_above" integer DEFAULT 500`,

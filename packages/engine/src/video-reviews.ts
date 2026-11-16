@@ -1,7 +1,8 @@
-import { firstWords, type LightCopy, type PubSub, type SpeechEngine } from "@agenteschat/adapters";
+import { type ApprovalPortal, firstWords, type LightCopy, type PubSub, type SpeechEngine } from "@agenteschat/adapters";
 import { and, asc, type Database, desc, eq, inArray, isNull, schema, sql } from "@agenteschat/db";
 import { type ArtifactActor, type ArtifactDeps, storedFileOfArtifact } from "./artifacts";
 import { requireChannelAccess } from "./channels";
+import { afterApproveOf, queueDesignDelivery } from "./design-delivery";
 import { ConflictError, NotFoundError, ValidationError } from "./errors";
 import { lightKey } from "./file-reader";
 import { postPersonMessage } from "./messages";
@@ -60,6 +61,8 @@ export interface VideoReviewDeps {
   publicUrl: string;
   /** Makes a version's light copy for phones (ffmpeg on the server); absent: the apps play the original. */
   lightCopy?: LightCopy | null;
+  /** The approval portal, where an approved design piece goes (doug-0010 §8); absent: the agent delivers it. */
+  portal?: ApprovalPortal | null;
 }
 
 /** The job that makes a version's light copy, in the background after it arrives. */
@@ -147,6 +150,10 @@ export interface VideoReviewSummary {
 }
 
 export interface VideoReviewView extends VideoReviewSummary {
+  /** A design piece's client at the approval portal, and what an approval means for it (doug-0010 §8). */
+  portal: { client: string; afterApprove: "portal" | "direct" } | null;
+  /** What happened at the portal after the approval; null: nothing yet. */
+  delivery: Record<string, unknown> | null;
   brief: string;
   links: schema.VideoReviewLink[];
   versions: VideoReviewVersionView[];
@@ -698,8 +705,26 @@ export async function getVideoReview(
   const [decider] = review.decidedBy
     ? await deps.db.select({ id: users.id, name: users.name }).from(users).where(eq(users.id, review.decidedBy))
     : [];
+  const portalSetting = review.portalClient
+    ? await deps.db
+        .select({ afterApprove: schema.portalClientSettings.afterApprove })
+        .from(schema.portalClientSettings)
+        .where(
+          and(
+            eq(schema.portalClientSettings.orgId, orgId),
+            eq(schema.portalClientSettings.client, review.portalClient),
+          ),
+        )
+    : [];
   return {
     ...summary,
+    portal: review.portalClient
+      ? {
+          client: review.portalClient,
+          afterApprove: portalSetting[0]?.afterApprove === "direct" ? "direct" : "portal",
+        }
+      : null,
+    delivery: review.delivery ?? null,
     brief: review.brief,
     links: review.links ?? [],
     versions: versions.map((v) => ({
@@ -928,6 +953,11 @@ export interface DesignDecisionFacts {
   sourceArtifactId: string | null;
   /** A person made this version in the editor: the agent renders its slides from the page before delivering. */
   editedBy: string | null;
+  /**
+   * The portal's client and what an approval means for it, when known: the server sends the slides itself
+   * (`delivered`), or the agent does, when the version has no pictures (made by hand).
+   */
+  portal?: { client: string; afterApprove: "portal" | "direct"; delivered: boolean } | null;
 }
 
 /** What the agent reads: the decision and every note of the version, by time (on a design piece, by slide). */
@@ -961,6 +991,21 @@ export function decisionMessage(input: {
   } else {
     lines.push(
       `${head} Ajustes em «${input.title}» V${input.version} (review_id ${input.reviewId}). Faça a V${input.version + 1} e mande com ${tool} e esse review_id.`,
+    );
+  }
+  const portal = design?.portal;
+  if (input.decision === "approve" && portal) {
+    const where =
+      portal.afterApprove === "direct"
+        ? `aprovado direto (sem aprovação do cliente) e agendado na data do cartão`
+        : `para a aprovação do cliente`;
+    lines.push(
+      "",
+      portal.delivered
+        ? `O DougBot já está subindo esta versão ao portal (${portal.client}), ${where}. Não suba você nem agende: o resultado aparece nesta conversa.`
+        : `Esta versão não tem as lâminas em imagem: exporte os PNGs do HTML e suba ao portal (${portal.client}) com send_for_approval, ${where}${
+            portal.afterApprove === "direct" ? " (marque como aprovado e agende com schedule_post)" : ""
+          }.`,
     );
   }
   if (design?.editedBy) {
@@ -1012,7 +1057,7 @@ export function decisionMessage(input: {
  * this person, in the conversation the video came from, which starts the agent's work on it.
  */
 export async function decideVideoReview(
-  deps: Pick<VideoReviewDeps, "db" | "pubsub">,
+  deps: Pick<VideoReviewDeps, "db" | "pubsub" | "portal">,
   userId: string,
   orgId: string,
   reviewId: string,
@@ -1065,7 +1110,20 @@ export async function decideVideoReview(
       .from(videoReviewVersions)
       .leftJoin(users, eq(users.id, videoReviewVersions.editedBy))
       .where(and(eq(videoReviewVersions.reviewId, review.id), eq(videoReviewVersions.version, review.version)));
-    design = { sourceArtifactId: v?.source ?? null, editedBy: v?.source ? (v.editedBy ?? null) : null };
+    const [pics] = await deps.db
+      .select({ pages: videoReviewVersions.pages })
+      .from(videoReviewVersions)
+      .where(and(eq(videoReviewVersions.reviewId, review.id), eq(videoReviewVersions.version, review.version)));
+    const afterApprove = review.portalClient ? await afterApproveOf(deps.db, orgId, review.portalClient) : null;
+    design = {
+      sourceArtifactId: v?.source ?? null,
+      editedBy: v?.source ? (v.editedBy ?? null) : null,
+      portal:
+        // No portal on this server: the agent delivers as it always did, nothing said about it here.
+        review.portalClient && afterApprove && deps.portal
+          ? { client: review.portalClient, afterApprove, delivered: (pics?.pages ?? []).length > 0 }
+          : null,
+    };
   }
   if (input.decision === "changes" && notes.length === 0 && !message) {
     throw new ValidationError("Say what to change: add a note first", "video_review.nothing_to_change");
@@ -1115,6 +1173,11 @@ export async function decideVideoReview(
     threadId: review.threadId,
     meta: { videoReview: { id: review.id, version: review.version, decision: input.decision } },
   });
+  // An approved design piece goes to its client's portal by code (doug-0010 §8), after the message above.
+  if (input.decision === "approve" && design?.portal?.delivered) {
+    await deps.db.update(videoReviews).set({ delivery: null }).where(eq(videoReviews.id, review.id));
+    await queueDesignDelivery(deps.db, orgId, review.id, review.version);
+  }
   const [summary] = await summaries(deps.db, orgId, [review.id]);
   if (!summary) throw new NotFoundError("No such review");
   return summary;

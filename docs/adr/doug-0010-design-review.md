@@ -41,7 +41,17 @@ whole round for the agent to do it.
 6. **Pictures first, the page on demand.** Reviewing shows the slides' pictures (light, crisp, what the agent
    rendered); the page, which can weigh several megabytes with its photos inlined, is fetched only to edit or to show a
    version that has no pictures.
-7. **Tables stay outside the numbered migrations**, like doug-0007's: the new columns are in `EXTRA_COLUMNS`.
+8. **What "Aprovar" does is the client's, set on its page in the Portal.** A piece is tied to the approval portal's
+   client, and to the card it finishes, by the portal task the agent names (`task`, ADR 9001 §11) or by the client's id
+   (`portal_client`). Each client has `after_approve` (`portal_client_settings`, in the client's menu beside its colour
+   and logo, `assign_work` to change): `portal`, the default, sends the approved slides to the client's approval;
+   `direct`, for a client whose approval is the team's own, sends them, marks the post approved and releases it for
+   its card's day and hour. The send is code (`design-delivery.ts`, job `design_review.deliver`, the same upload and
+   send as ADR 9001 §4, keyed by review and version so a retried job never sends twice), and what happened is said
+   in the review's conversation by the workspace's assistant: sent to the client, scheduled for a day, approved with
+   no day yet (the card has none), or why it didn't go. The decision message tells the agent the server delivers it;
+   a version made by hand has no pictures, so then the agent renders and sends them with the portal's tools.
+9. **Tables stay outside the numbered migrations**, like doug-0007's: the new columns are in `EXTRA_COLUMNS`.
 
 ## Consequences
 

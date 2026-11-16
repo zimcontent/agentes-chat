@@ -1,5 +1,11 @@
 import type { PortalClientColor } from "@agenteschat/client";
-import { usePortalOverview, useSetPortalClientColor, useSetPortalClientLogo } from "@agenteschat/client";
+import {
+  usePortalAfterApprove,
+  usePortalOverview,
+  useSetPortalAfterApprove,
+  useSetPortalClientColor,
+  useSetPortalClientLogo,
+} from "@agenteschat/client";
 import {
   PORTAL_CLIENT_COLORS,
   portalClientColors,
@@ -14,6 +20,7 @@ import { type CSSProperties, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useOrg } from "@/components/org-context";
 import { ChannelPhoto, ImageCropDialog } from "@/components/ProfilePhoto";
+import { useReviewWords } from "@/components/video-review/words";
 import { useToast } from "@/lib/toast";
 
 /** Each client's colour (ADR 9001 §13), from the overview every portal page already reads. */
@@ -77,6 +84,18 @@ export function ClientColorMenu({ client }: { client: string }) {
   const set = useSetPortalClientColor(org.id);
   const setLogo = useSetPortalClientLogo(org.id, client);
   const [choosingLogo, setChoosingLogo] = useState(false);
+  // What "Aprovar" in the Revisor does for this client (docs/adr/doug-0010-design-review.md §8).
+  const w = useReviewWords().design.afterApproveMenu;
+  const afterApprove = usePortalAfterApprove(org.id).data?.get(client) ?? "portal";
+  const setAfter = useSetPortalAfterApprove(org.id);
+  const pickAfter = (next: "portal" | "direct") =>
+    setAfter.mutate(
+      { client, afterApprove: next },
+      {
+        onSuccess: () => toast.show(w.saved),
+        onError: (error) => toast.show(portalErrorText(t, error, i18n.language), "error"),
+      },
+    );
   const pick = (next: PortalClientColor | null) =>
     set.mutate(
       { client, color: next },
@@ -113,6 +132,18 @@ export function ClientColorMenu({ client }: { client: string }) {
         <MenuItem icon="image" onSelect={() => setChoosingLogo(true)}>
           {t("portal.clientLogo.menu")}
         </MenuItem>
+        <MenuSeparator />
+        <MenuHeading>{w.title}</MenuHeading>
+        {(["portal", "direct"] as const).map((value) => (
+          <MenuItem
+            key={value}
+            icon={value === "portal" ? "eye" : "send"}
+            hint={value === afterApprove ? "✓" : undefined}
+            onSelect={() => pickAfter(value)}
+          >
+            {w[value]}
+          </MenuItem>
+        ))}
       </Menu>
       <ImageCropDialog
         open={choosingLogo}

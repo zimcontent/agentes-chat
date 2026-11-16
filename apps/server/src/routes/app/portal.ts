@@ -7,6 +7,7 @@ import {
   PORTAL_TYPES,
 } from "@agenteschat/adapters";
 import {
+  AFTER_APPROVE,
   can,
   cancelPortalTask,
   myPortalWork,
@@ -16,6 +17,7 @@ import {
   personPortalReader,
   portalBoard,
   portalClientLogoFile,
+  portalClientSettingsOf,
   portalHere,
   portalLogoPath,
   portalOverview,
@@ -26,6 +28,7 @@ import {
   requireChangePermission,
   requirePermission,
   sendForApproval,
+  setAfterApprove,
   setPortalClientLogo,
   startPortalAgent,
   syncPortalTasks,
@@ -909,6 +912,63 @@ export function portalRoutes(deps: AppDeps) {
       await requireChangePermission(db, c.get("user").id, orgId, "assign_work");
       const out = await guarded(c, (portal) => portal.deleteLabel(labelId));
       return out.ok ? c.body(null, 204) : out.response;
+    },
+  );
+
+  // What an approval in the Revisor means for each client (docs/adr/doug-0010-design-review.md §8).
+  app.openapi(
+    createRoute({
+      method: "get",
+      path: "/organizations/{orgId}/portal/client-settings",
+      tags,
+      security,
+      summary:
+        "What an approved design piece does for each client: goes to the client (`portal`) or `direct` (members)",
+      request: { params: OrgParams },
+      responses: {
+        200: json(
+          z.object({
+            settings: z.array(z.object({ client: z.string(), afterApprove: z.enum(AFTER_APPROVE) })),
+          }),
+        ),
+        ...errors,
+      },
+    }),
+    async (c) => {
+      const { orgId } = c.req.valid("param");
+      await requirePermission(db, c.get("user").id, orgId, "read");
+      const rows = await portalClientSettingsOf(db, orgId);
+      return c.json(
+        {
+          settings: rows.map(
+            (r) => ({ client: r.client, afterApprove: r.afterApprove === "direct" ? "direct" : "portal" }) as const,
+          ),
+        },
+        200,
+      );
+    },
+  );
+
+  app.openapi(
+    createRoute({
+      method: "put",
+      path: "/organizations/{orgId}/portal/clients/{client}/after-approve",
+      tags,
+      security,
+      summary:
+        "Set what an approved design piece does for a client: to the client's approval (`portal`) or approved and scheduled on its card's day (`direct`) (assign_work)",
+      request: {
+        params: OrgParams.extend({ client: ClientId }),
+        body: body(z.object({ afterApprove: z.enum(AFTER_APPROVE) })),
+      },
+      responses: { ...noContent, ...errors },
+    }),
+    async (c) => {
+      const { orgId, client } = c.req.valid("param");
+      const user = c.get("user");
+      await requireChangePermission(db, user.id, orgId, "assign_work");
+      await setAfterApprove(db, orgId, client, c.req.valid("json").afterApprove, user.id);
+      return c.body(null, 204);
     },
   );
 

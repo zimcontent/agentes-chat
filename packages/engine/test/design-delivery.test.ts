@@ -1,0 +1,185 @@
+import { afterEach, describe, expect, test } from "bun:test";
+import type { ApprovalPortal, PortalJob } from "@agenteschat/adapters";
+import { and, desc, eq, schema } from "@agenteschat/db";
+import {
+  afterApproveOf,
+  createFileArtifact,
+  DESIGN_DELIVER_JOB,
+  decideVideoReview,
+  deliverDesign,
+  getVideoReview,
+  sendDesignForReview,
+  setAfterApprove,
+  type VideoReviewDeps,
+} from "../src";
+import { type Fixture, setup } from "./fixtures";
+
+/** After "Aprovar" on a design piece (docs/adr/doug-0010-design-review.md §8): the portal, by code, per client. */
+
+let f: Fixture;
+afterEach(async () => {
+  await f?.close();
+  f = undefined as unknown as Fixture;
+});
+
+const PNG = new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 9]);
+
+/** A portal that answers at once and writes down what it was asked. */
+function fakePortal(card: { id: string; date: string | null } | null) {
+  const calls: string[] = [];
+  const job: PortalJob = {
+    id: "job-1",
+    state: "done",
+    client: "lexeer",
+    item: "item-9",
+    title: "Post",
+    missing: [],
+    link: "https://portal.example/p/item-9",
+    error: null,
+  };
+  const portal = {
+    upload: async (name: string) => {
+      calls.push(`upload ${name}`);
+      return `file-${name}`;
+    },
+    send: async (input: { client: string; type: string; files: string[]; card?: string; key?: string }) => {
+      calls.push(`send ${input.client} ${input.type} ${input.files.length} card=${input.card ?? "-"} key=${input.key}`);
+      return job;
+    },
+    job: async () => job,
+    editItem: async (_c: string, item: string, edit: { status?: string }) => {
+      calls.push(`edit ${item} ${edit.status}`);
+    },
+    scheduleItem: async (_c: string, item: string, when: string) => {
+      calls.push(`schedule ${item} ${when}`);
+    },
+    cards: async () => (card ? [{ ...card, client: "lexeer" }] : []),
+  } as unknown as ApprovalPortal;
+  return { portal, calls };
+}
+
+const deps = (portal: ApprovalPortal | null): VideoReviewDeps => ({
+  db: f.db,
+  pubsub: f.pubsub,
+  artifacts: f.artifactDeps,
+  engines: () => [],
+  publicUrl: "https://doug.example",
+  portal,
+});
+
+const ctx = () => ({
+  orgId: f.org.id,
+  agentId: f.agent.id,
+  runId: crypto.randomUUID(),
+  channelId: f.general.id,
+  threadRootId: "",
+  triggerMessageId: "",
+});
+
+async function approvedPiece(portal: ApprovalPortal | null, card: string | null) {
+  const slides = [];
+  for (const name of ["01.png", "02.png"]) {
+    slides.push(
+      await createFileArtifact(f.artifactDeps, { type: "person", userId: f.owner.id }, f.org.id, {
+        title: name,
+        name,
+        bytes: PNG,
+        contentType: "image/png",
+        channelId: f.general.id,
+      }),
+    );
+  }
+  const sent = await sendDesignForReview(deps(portal), ctx(), {
+    pages: slides.map((s) => s.id),
+    title: "Glenwood vendida",
+    portalClient: "LEXEER",
+  });
+  if (card)
+    await f.db.update(schema.videoReviews).set({ portalCard: card }).where(eq(schema.videoReviews.id, sent.review.id));
+  await decideVideoReview(deps(portal), f.owner.id, f.org.id, sent.review.id, { decision: "approve" });
+  return sent.review.id;
+}
+
+const lastBody = async () => {
+  const [row] = await f.db
+    .select({ body: schema.messages.body })
+    .from(schema.messages)
+    .where(and(eq(schema.messages.orgId, f.org.id), eq(schema.messages.channelId, f.general.id)))
+    .orderBy(desc(schema.messages.createdAt))
+    .limit(1);
+  return row?.body ?? "";
+};
+
+describe("design delivery", () => {
+  test("each client is `portal` until the team says `direct`", async () => {
+    f = await setup();
+    expect(await afterApproveOf(f.db, f.org.id, "elmx")).toBe("portal");
+    await setAfterApprove(f.db, f.org.id, "elmx", "direct", f.owner.id);
+    expect(await afterApproveOf(f.db, f.org.id, "elmx")).toBe("direct");
+    await setAfterApprove(f.db, f.org.id, "elmx", "portal", f.owner.id);
+    expect(await afterApproveOf(f.db, f.org.id, "elmx")).toBe("portal");
+  });
+
+  test("approved for a `portal` client: the slides go to the client's approval, said in the conversation", async () => {
+    f = await setup({ rightHand: true });
+    const { portal, calls } = fakePortal(null);
+    const id = await approvedPiece(portal, "card-7");
+    // The decision tells the agent the server delivers it.
+    const decision = await lastBody();
+    expect(decision).toContain("O DougBot já está subindo esta versão ao portal (lexeer), para a aprovação do cliente");
+    const [job] = await f.db
+      .select()
+      .from(schema.outbox)
+      .where(and(eq(schema.outbox.orgId, f.org.id), eq(schema.outbox.kind, DESIGN_DELIVER_JOB)));
+    expect(job?.payload).toMatchObject({ reviewId: id, version: 1 });
+
+    await deliverDesign({ ...deps(portal), portal }, id, 1);
+    expect(calls).toEqual(["upload 01.png", "upload 02.png", `send lexeer carousel 2 card=card-7 key=review:${id}:v1`]);
+    expect(await lastBody()).toBe(
+      "«Glenwood vendida» foi para a aprovação do cliente no portal. https://portal.example/p/item-9",
+    );
+    const view = await getVideoReview(deps(portal), f.owner.id, f.org.id, id);
+    expect(view.portal).toEqual({ client: "lexeer", afterApprove: "portal" });
+    expect(view.delivery).toMatchObject({ state: "sent", item: "item-9" });
+
+    // Run again (a retried job): nothing is sent twice.
+    await deliverDesign({ ...deps(portal), portal }, id, 1);
+    expect(calls.filter((c) => c.startsWith("send")).length).toBe(1);
+  });
+
+  test("approved for a `direct` client: approved at the portal and scheduled on the card's day", async () => {
+    f = await setup({ rightHand: true });
+    await setAfterApprove(f.db, f.org.id, "lexeer", "direct", f.owner.id);
+    const { portal, calls } = fakePortal({ id: "card-7", date: "2099-11-18T10:00" });
+    const id = await approvedPiece(portal, "card-7");
+    expect(await lastBody()).toContain("aprovado direto (sem aprovação do cliente) e agendado na data do cartão");
+    await deliverDesign({ ...deps(portal), portal }, id, 1);
+    expect(calls.slice(-2)).toEqual(["edit item-9 approved", "schedule item-9 2099-11-18T10:00"]);
+    expect(await lastBody()).toBe(
+      "«Glenwood vendida» aprovado e agendado para 18/11/2099 às 10:00. https://portal.example/p/item-9",
+    );
+  });
+
+  test("`direct` with no day on the card: approved and ready, and the conversation is told what's missing", async () => {
+    f = await setup({ rightHand: true });
+    await setAfterApprove(f.db, f.org.id, "lexeer", "direct", f.owner.id);
+    const { portal, calls } = fakePortal({ id: "card-7", date: null });
+    const id = await approvedPiece(portal, "card-7");
+    await deliverDesign({ ...deps(portal), portal }, id, 1);
+    expect(calls).toContain("edit item-9 approved");
+    expect(calls.some((c) => c.startsWith("schedule"))).toBe(false);
+    expect(await lastBody()).toContain("aprovado e pronto no portal, mas falta quando sai (o cartão não tem data)");
+  });
+
+  test("no portal on the server, or no client known: the agent delivers as before", async () => {
+    f = await setup();
+    const id = await approvedPiece(null, null);
+    const [job] = await f.db
+      .select()
+      .from(schema.outbox)
+      .where(and(eq(schema.outbox.orgId, f.org.id), eq(schema.outbox.kind, DESIGN_DELIVER_JOB)));
+    expect(job).toBeUndefined();
+    expect(await lastBody()).not.toContain("portal");
+    void id;
+  });
+});

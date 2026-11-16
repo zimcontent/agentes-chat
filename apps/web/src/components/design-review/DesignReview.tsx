@@ -20,6 +20,7 @@ import {
 } from "@agenteschat/client/lib/design-bridge";
 import { relativeTime } from "@agenteschat/client/lib/format";
 import { PAGE_SANDBOX } from "@agenteschat/client/lib/isolated-page";
+import { portalClientName } from "@agenteschat/client/lib/portal";
 import { Button, Chip, type ChipTone, Dialog, DialogFooter, Icon, Segmented, Spinner, Textarea } from "@agenteschat/ui";
 import { type PointerEvent as ReactPointerEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -60,6 +61,13 @@ interface Draft {
   y: number;
   kind: VideoReviewNoteKind | null;
 }
+
+/** `2026-11-18T10:00` → `18/11 às 10:00`, as the portal's time reads. */
+const deliveryWhen = (when: string) => {
+  const [date, time] = when.split("T");
+  const [, m, d] = (date ?? "").split("-");
+  return d && m ? `${d}/${m}${time ? ` ${time.slice(0, 5)}` : ""}` : when;
+};
 
 /** The slide fitted to the stage's box: what one pixel of the slide is on screen. */
 function useFit(box: HTMLElement | null, size: { w: number; h: number }) {
@@ -876,6 +884,23 @@ export function DesignReviewBody({ review, w }: { review: VideoReview; w: Review
           )}
           {decidedLine && <p className="vr-muted">{decidedLine}</p>}
           {review.status === "changes" && <p className="vr-muted">{w.waitingNext(review.version + 1)}</p>}
+          {review.delivery?.state && (
+            <p className="vr-muted" role="status">
+              {review.delivery.state === "scheduled"
+                ? d.delivery.scheduled(deliveryWhen(review.delivery.when ?? ""))
+                : review.delivery.state === "failed"
+                  ? d.delivery.failed(review.delivery.error ?? "")
+                  : d.delivery[review.delivery.state]}
+              {review.delivery.link && (
+                <>
+                  {" · "}
+                  <a href={review.delivery.link} target="_blank" rel="noreferrer noopener" className="ac-link">
+                    {d.delivery.open}
+                  </a>
+                </>
+              )}
+            </p>
+          )}
           {dirty && (
             <div className="dr-unsaved" role="status">
               <span>{d.unsaved(history.changes)}</span>
@@ -974,6 +999,11 @@ export function DesignReviewBody({ review, w }: { review: VideoReview; w: Review
             </Button>
             <Textarea value={message} rows={1} placeholder={w.message} onChange={(e) => setMessage(e.target.value)} />
             <p className="vr-muted">{w.changesHint}</p>
+            {review.portal && (
+              <p className="vr-muted">
+                {d.afterApprove[review.portal.afterApprove](portalClientName(review.portal.client))}
+              </p>
+            )}
             <div className="vr-decide__acts">
               <Button
                 variant="default"

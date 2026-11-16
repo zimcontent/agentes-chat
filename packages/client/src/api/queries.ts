@@ -7252,6 +7252,35 @@ const portalOf = (api: ApiClient) => {
 };
 const refreshPortal = (qc: QueryClient, orgId: string) => qc.invalidateQueries({ queryKey: keys.portal(orgId) });
 
+/** What an approved design piece does for each client (doug-0010 §8): `portal` unless the team set `direct`. */
+export const usePortalAfterApprove = (orgId: string, enabled = true) => {
+  const api = useApi();
+  return useQuery({
+    queryKey: [...keys.portal(orgId), "after-approve"] as const,
+    queryFn: async () => {
+      const read = portalOf(api).clientSettings;
+      const rows = read ? (await read(orgId)).settings : [];
+      return new Map(rows.map((r) => [r.client, r.afterApprove] as const));
+    },
+    enabled: enabled && Boolean(orgId),
+    retry: false,
+    meta: { quiet: true },
+  });
+};
+
+export function useSetPortalAfterApprove(orgId: string) {
+  const api = useApi();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ client, afterApprove }: { client: string; afterApprove: "portal" | "direct" }) => {
+      const set = portalOf(api).setAfterApprove;
+      if (!set) throw new ApiError(404, "portal.off", "This server has no approval portal");
+      return set(orgId, client, afterApprove);
+    },
+    onSettled: () => qc.invalidateQueries({ queryKey: [...keys.portal(orgId), "after-approve"] }),
+  });
+}
+
 /** The approval portal's clients with their counts per column (ADR 9001): any member. */
 export const usePortalOverview = (orgId: string, enabled = true) => {
   const api = useApi();
