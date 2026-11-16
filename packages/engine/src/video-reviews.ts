@@ -63,8 +63,8 @@ export const REVIEW_NOTE_CHARS = 4000;
 export const REVIEW_VOICE_BYTES = 25 * 1024 * 1024;
 /** The most files and links one note carries. */
 export const REVIEW_NOTE_ATTACHMENTS = 8;
-/** The most slides a design piece has (a carousel holds 20). */
-export const DESIGN_PAGES = 20;
+/** The most slides a design piece has: a carousel holds 20, a sales deck (doug-0010) runs to 40 or more. */
+export const DESIGN_PAGES = 60;
 
 export interface VideoReviewDeps {
   db: Database;

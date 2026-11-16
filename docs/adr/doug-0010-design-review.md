@@ -60,3 +60,7 @@ whole round for the agent to do it.
 - A designer agent's instructions need the step that inlines a piece's assets before sending it, and the marks
   (`data-layer`, `section.slide`) that make its layers editable by name.
 - Rendering the final pictures stays on the agent's computer: the server does not run a browser.
+
+## Addendum 2026-11-15: up to 60 slides
+
+A piece may have up to 60 slides (`DESIGN_PAGES`), not 20. The client's sales decks (32 and 35 slides at 1920 x 1080) go through the same review as a carousel, so the team and the client can comment on any slide and edit the deck in place. The page's 40 MB cap (`DESIGN_SOURCE_BYTES`) still holds a deck of that size.
