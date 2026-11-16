@@ -546,6 +546,22 @@ export interface RunContext {
 }
 
 /**
+ * The most of a skill's description its line in "# Available skills" shows. A team with a hundred skills, some
+ * described in a thousand characters, spent 56 KB of every prompt on the list; its first sentences say when to load
+ * it, and `load_skill` returns the whole skill (ADR 0137 addendum 2026-11-16).
+ */
+export const SKILL_BLURB_MAX = 200;
+
+/** A skill's description cut at a word near `SKILL_BLURB_MAX`, on one line. */
+export function skillBlurb(description: string): string {
+  const flat = description.replace(/\s+/g, " ").trim();
+  if (flat.length <= SKILL_BLURB_MAX) return flat;
+  const cut = flat.slice(0, SKILL_BLURB_MAX - 1);
+  const space = cut.lastIndexOf(" ");
+  return `${(space > SKILL_BLURB_MAX / 2 ? cut.slice(0, space) : cut).replace(/[\s,;:.\-–—]+$/, "")}…`;
+}
+
+/**
  * Builds the fixed context of a run (ADR 0008): organization context,
  * agent instructions, channel and members, and the recent conversation up to
  * the trigger message. Search, memory and summaries (layers 2–4) come later as
@@ -1118,7 +1134,7 @@ export async function buildRunContext(
           {
             text: [
               "# Available skills",
-              ...options.skills.map((s) => `- ${s.name}: ${s.description}`),
+              ...options.skills.map((s) => `- ${s.name}: ${skillBlurb(s.description)}`),
               "When the task matches a skill, load it with `load_skill` before acting and follow its instructions.",
             ].join("\n"),
           },

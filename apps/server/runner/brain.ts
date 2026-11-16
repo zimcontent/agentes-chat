@@ -472,8 +472,11 @@ export class ClaudeStreamParser {
         if (ev.error === "authentication_failed") this.authFailed = true;
         if (ev.error === "rate_limit") this.limited = true;
         const content = isObj(ev.message) && Array.isArray(ev.message.content) ? ev.message.content : [];
-        // Claude Code's own frame for a provider's error (its `error` word set): its text is the provider's answer.
-        if (typeof ev.error === "string") {
+        // Claude Code's own frame for a provider's error (its `error` word set): its text is the provider's answer, or
+        // the CLI's own (`<synthetic>`, "Autocompact is thrashing…"), never the agent's words (ADR 0137 addendum
+        // 2026-11-16): it is the failure's cause, not part of the reply.
+        const errorFrame = typeof ev.error === "string";
+        if (errorFrame) {
           const said = content.map((b) => (isObj(b) && b.type === "text" ? str(b.text) : "")).join("\n");
           const failure = providerFailure({ error: ev.error, text: said });
           if (failure.cause || failure.httpStatus) this.failure = failure;
@@ -507,7 +510,7 @@ export class ClaudeStreamParser {
                 id: str(block.id),
                 name: str(block.name).slice(0, BRAIN_LIMITS.toolName),
               });
-          } else if (block.type === "text" && str(block.text) && !streamed) {
+          } else if (block.type === "text" && str(block.text) && !streamed && !errorFrame) {
             // No partial messages (an older Claude Code): the whole text block at once.
             events.push({ type: "text_delta", text: str(block.text) });
           }
@@ -844,6 +847,12 @@ export const WEB_BUILTIN_TOOLS = ["WebFetch", "WebSearch"] as const;
  * touches files or runs code comes from the agent's worker, as the agent's user.
  */
 export const DELEGATED_BUILTIN_TOOLS = ["ToolSearch"] as const;
+/**
+ * A `chat` turn's own tool: ToolSearch alone, which loads our MCP tools that aren't always listed. Without it Claude
+ * Code lists all of them in every request: an agent with a few connectors started each request near 170k tokens and
+ * its compactions thrashed (ADR 0137 addendum 2026-11-16).
+ */
+export const CHAT_BUILTIN_TOOLS = ["ToolSearch"] as const;
 
 /** Most of a checkout's CLAUDE.md and AGENTS.md a turn reads: room for real instructions, not for a dump. */
 export const REPO_INSTRUCTIONS_MAX = 20_000;
@@ -876,9 +885,10 @@ export function repoInstructions(cwd: string): string {
  * no settings files of the folder or the owner, no edits (the web stays), and every
  * command answered on the computer by `localVerdict` (reads only, never secrets);
  * nothing is ever asked of a person.
- * `chat` (protocol 41, the team's right hand on a person's plan, ADR 0137 §4): our MCP tools and nothing else. None
- * of Claude Code's own tools (`--tools ""`, each one denied too), no settings files, skills or slash commands, no
- * permission prompt (`dontAsk`: whatever isn't allowed is refused), whatever `personalMcp` says.
+ * `chat` (protocol 41, the team's right hand on a person's plan, ADR 0137 §4): our MCP tools and nothing else. Of
+ * Claude Code's own tools only ToolSearch, which loads ours (`--tools ToolSearch`, every other one denied too), no
+ * settings files, skills or slash commands, no permission prompt (`dontAsk`: whatever isn't allowed is refused),
+ * whatever `personalMcp` says.
  * `delegated`: the same `plan` and `work` for a CLI whose tools the agent's worker serves.
  * `asksFirst`: the agent always asks (ADR 0173), so a `work` turn accepts no edit by itself: each reaches the prompt.
  */
@@ -903,7 +913,7 @@ export function brainProfileLaunch(
       promptTool: false,
       permissionMode: "dontAsk",
       settingSources: "",
-      builtinTools: [],
+      builtinTools: CHAT_BUILTIN_TOOLS,
       disallowedTools: CHAT_DENIED_TOOLS,
       noSlashCommands: true,
     };
