@@ -12096,6 +12096,33 @@
   "home.agenda.everyone": {
     "value": "Everyone"
   },
+  "home.agenda.pickDay": {
+    "value": "Which day"
+  },
+  "home.agenda.thisWeek": {
+    "value": "This week"
+  },
+  "home.agenda.wholeWeek": {
+    "value": "Whole week"
+  },
+  "home.agenda.todayChip": {
+    "value": "Today"
+  },
+  "home.agenda.tomorrowChip": {
+    "value": "Tomorrow"
+  },
+  "home.agenda.prevWeek": {
+    "value": "Previous week"
+  },
+  "home.agenda.nextWeek": {
+    "value": "Next week"
+  },
+  "home.agenda.noneDay": {
+    "value": "Nothing due that day."
+  },
+  "home.agenda.noneWeek": {
+    "value": "Nothing due that week."
+  },
   "home.agenda.now": {
     "value": "Now"
   },

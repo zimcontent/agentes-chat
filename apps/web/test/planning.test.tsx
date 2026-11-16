@@ -123,7 +123,7 @@ describe("Issues (board and list)", () => {
     await settle(4);
     const dialog = screen().getByRole("dialog", { name: "Confirmação do agendamento por WhatsApp" });
     expect(dialog.textContent).toContain("#131");
-    expect(within(dialog).getByRole("region", { name: "Pedir a um agente" })).toBeTruthy();
+    expect(within(dialog).queryByRole("region", { name: "Pedir a um agente" })).toBeNull();
     expect(within(dialog).getByRole("group", { name: "Detalhes da tarefa" })).toBeTruthy();
     expect(within(dialog).queryByRole("complementary", { name: "Detalhes da tarefa" })).toBeNull();
     expect(router.state.location.href).toContain("?open=131");
@@ -604,19 +604,10 @@ describe("Issue detail", () => {
     expect((await api.issues.get(ORG_ID, 131)).title).toBe("Confirmação por WhatsApp");
   });
 
-  test("Pedir à Ada: assigns the agent, moves to Em andamento and logs it", async () => {
+  test("the task has no card to ask an agent: that is set up in the groups", async () => {
     await go("issues/131");
-    const ask = screen().getByRole("region", { name: "Pedir a um agente" });
-    expect(ask.textContent).toContain("Pedir à Ada para fazer esta tarefa");
-    expect(ask.textContent).toContain("A Ada lê o que precisa, comenta o plano aqui e faz.");
-    await click(within(ask).getByRole("button", { name: "Pedir à Ada" }));
-    await settle(6);
     expect(screen().queryByRole("region", { name: "Pedir a um agente" })).toBeNull();
-    const aside = screen().getByRole("group", { name: "Detalhes da tarefa" });
-    expect(within(aside).getByRole("combobox", { name: "Coluna" }).textContent).toContain("Em andamento");
-    expect(within(aside).getByRole("combobox", { name: "Responsável" }).textContent).toContain("Ada");
-    await tab("Histórico");
-    expect(screen().getByRole("region", { name: "Histórico" }).textContent).toContain("Walter pediu a Ada para fazer");
+    expect(document.body.textContent).not.toContain("para fazer esta tarefa");
   });
 
   test("change the status: the history says it", async () => {

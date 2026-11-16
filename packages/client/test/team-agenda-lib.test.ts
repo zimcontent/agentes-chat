@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import type { TeamAgendaTask } from "../src/api/types";
-import { agendaByAssignee, daysBetween, localDay } from "../src/lib/team-agenda";
+import { addDays, agendaByAssignee, agendaView, daysBetween, localDay, tasksByDay } from "../src/lib/team-agenda";
 
 const task = (
   id: string,
@@ -50,5 +50,45 @@ describe("team agenda", () => {
     expect(localDay(new Date(2026, 10, 16, 23, 30))).toBe("2026-11-16");
     expect(daysBetween("2026-11-16", "2026-11-17")).toBe(1);
     expect(daysBetween("2026-10-31", "2026-11-01")).toBe(1);
+  });
+});
+
+describe("one day, one week", () => {
+  const people = agendaByAssignee(
+    {
+      from: "2026-11-15",
+      to: "2026-11-28",
+      tasks: [
+        task("1", "ronny", "2026-11-14"),
+        task("2", "ronny", "2026-11-16"),
+        task("3", "ronny", "2026-11-17"),
+        task("4", "ana", "2026-11-17"),
+        task("5", "ana", "2026-11-24"),
+        task("6", "ana", null, "person", "in_progress"),
+      ],
+    },
+    (a) => a.id,
+  );
+
+  test("a day keeps that day's tasks; today's keeps what is under way and late too", () => {
+    const tuesday = agendaView(people, { today: "2026-11-15", from: "2026-11-15", day: "2026-11-17" });
+    expect(tuesday.map((p) => [p.assignee.id, p.days.map((d) => d.key), p.count])).toEqual([
+      ["ronny", ["2026-11-17"], 1],
+      ["ana", ["2026-11-17"], 1],
+    ]);
+    const monday = agendaView(people, { today: "2026-11-15", from: "2026-11-15", day: "2026-11-16" });
+    expect(monday.map((p) => p.assignee.id)).toEqual(["ronny"]);
+    const today = agendaView(people, { today: "2026-11-15", from: "2026-11-15", day: "2026-11-15" });
+    expect(today.map((p) => [p.assignee.id, p.days.map((d) => d.key)])).toEqual([
+      ["ronny", ["late"]],
+      ["ana", ["now"]],
+    ]);
+  });
+
+  test("the next week shows only its own days", () => {
+    const next = agendaView(people, { today: "2026-11-15", from: "2026-11-22", day: null });
+    expect(next.map((p) => [p.assignee.id, p.days.map((d) => d.key)])).toEqual([["ana", ["2026-11-24"]]]);
+    expect(tasksByDay(people).get("2026-11-17")).toBe(2);
+    expect(addDays("2026-11-30", 1)).toBe("2026-12-01");
   });
 });

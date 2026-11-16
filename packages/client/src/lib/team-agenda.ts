@@ -81,3 +81,38 @@ export function agendaByAssignee(agenda: TeamAgenda, name: (a: TeamAgendaTask["a
 export function daysBetween(from: string, to: string): number {
   return Math.round((Date.parse(`${to}T00:00:00Z`) - Date.parse(`${from}T00:00:00Z`)) / 86_400_000);
 }
+
+/** `day` (`YYYY-MM-DD`) plus `n` days. */
+export function addDays(day: string, n: number): string {
+  const d = new Date(`${day}T00:00:00Z`);
+  d.setUTCDate(d.getUTCDate() + n);
+  return d.toISOString().slice(0, 10);
+}
+
+/**
+ * One week of the agenda, seen from `from`: a week ahead of today shows only its own days (what is under way and what
+ * is late belong to today's), and a chosen `day` keeps only that day's tasks (today's with what is under way and late).
+ * People with nothing left drop out.
+ */
+export function agendaView(people: AgendaPerson[], view: { today: string; from: string; day: string | null }) {
+  const thisWeek = view.from === view.today;
+  return people.flatMap((p) => {
+    const days = p.days.filter((d) => {
+      if (d.kind !== "day") return thisWeek && (view.day === null || view.day === view.today);
+      return view.day === null ? d.key >= view.from : d.key === view.day;
+    });
+    if (days.length === 0) return [];
+    const count = days.reduce((n, d) => n + d.tasks.length, 0);
+    const now = days.find((d) => d.kind === "now")?.tasks.length ?? 0;
+    const late = days.find((d) => d.kind === "late")?.tasks.length ?? 0;
+    return [{ ...p, days, count, now, late }];
+  });
+}
+
+/** How many tasks each day of the week holds, for the day picker. */
+export function tasksByDay(people: AgendaPerson[]): Map<string, number> {
+  const out = new Map<string, number>();
+  for (const p of people)
+    for (const d of p.days) if (d.kind === "day") out.set(d.key, (out.get(d.key) ?? 0) + d.tasks.length);
+  return out;
+}
