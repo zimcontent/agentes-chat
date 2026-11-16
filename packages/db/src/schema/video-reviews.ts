@@ -54,6 +54,17 @@ export const videoReviews = pgTable(
     portalCard: text(),
     /** What happened at the portal after the approval (`design-delivery.ts`); null: nothing yet. */
     delivery: jsonb().$type<Record<string, unknown>>(),
+    /**
+     * A person who sent the video from a task (an editor on the team, docs/adr/doug-0012-editor-delivery.md); null: an
+     * agent sent it (`agentId`).
+     */
+    senderUserId: text(),
+    /** The task it delivers, when it was sent from one: its conversation is the review's. */
+    taskId: uuid(),
+    /** The post around a person's video: its cover and caption, each approved by the team (`editor-delivery.ts`). */
+    post: jsonb().$type<ReviewPost>().notNull().default({}),
+    /** The approved original kept as the final, and its backup; null: not yet. */
+    final: jsonb().$type<Record<string, unknown>>(),
     /** The newest version's number. */
     version: integer().notNull().default(1),
     decidedBy: text().references(() => users.id, { onDelete: "set null" }),
@@ -65,6 +76,16 @@ export const videoReviews = pgTable(
 );
 
 export type VideoReviewStatus = "in_review" | "changes" | "approved";
+/** The parts of a post besides its video (docs/adr/doug-0012-editor-delivery.md). */
+export interface ReviewPost {
+  /** The cover, a picture file of the review's conversation; absent: none chosen yet. */
+  cover?: string | null;
+  /** The post goes without a cover of its own (the portal uses the video's first frame). */
+  noCover?: boolean;
+  coverOk?: boolean;
+  caption?: string;
+  captionOk?: boolean;
+}
 export type ReviewMedium = "video" | "design";
 /** One slide of a design version: a picture file (an artifact), in order. */
 export interface DesignPage {
@@ -107,6 +128,11 @@ export const videoReviewVersions = pgTable(
     sourceArtifactId: uuid(),
     /** A person who made this version in the editor; null: the agent sent it. */
     editedBy: text(),
+    /**
+     * The copy that goes to the post (H.264 1080, `postKey` beside the file's bytes): "" not asked, `ready`, `failed`
+     * (docs/adr/doug-0012-editor-delivery.md).
+     */
+    postState: text().notNull().default(""),
     createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [uniqueIndex().on(t.reviewId, t.version)],

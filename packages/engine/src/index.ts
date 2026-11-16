@@ -124,6 +124,7 @@ export * from "./dispatch";
 export * from "./dms";
 export * from "./docx";
 export * from "./early-access";
+export * from "./editor-delivery";
 export * from "./email";
 export * from "./email-change";
 export * from "./email-codes";

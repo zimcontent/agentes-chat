@@ -365,16 +365,16 @@ describe("video review", () => {
     const versionId = String((jobs[0]?.payload as { versionId?: string } | undefined)?.versionId);
 
     // Until it's made, the player gets the original.
-    const before = await reviewVideo(small, f.owner.id, f.org.id, id, 1);
+    const before = await playedVideo(small, f.owner.id, f.org.id, id, 1);
     expect([before.light, before.body.byteLength]).toEqual([false, 8]);
     expect((await getVideoReview(small, f.owner.id, f.org.id, id)).versions[0]?.light).toBe(false);
 
     await makeLightCopy(small, versionId, { finalAttempt: false });
     expect(made).toEqual([8]);
     expect((await getVideoReview(small, f.owner.id, f.org.id, id)).versions[0]?.light).toBe(true);
-    const after = await reviewVideo(small, f.owner.id, f.org.id, id, 1);
+    const after = await playedVideo(small, f.owner.id, f.org.id, id, 1);
     expect([after.light, after.body.byteLength, after.contentType]).toEqual([true, 3, "video/mp4"]);
-    const hd = await reviewVideo(small, f.owner.id, f.org.id, id, 1, { original: true });
+    const hd = await playedVideo(small, f.owner.id, f.org.id, id, 1, { original: true });
     expect([hd.light, hd.body.byteLength]).toEqual([false, 8]);
     // Made once: running the job again does nothing.
     await makeLightCopy(small, versionId, { finalAttempt: false });
@@ -399,7 +399,7 @@ describe("video review", () => {
         (await f.db.select().from(schema.videoReviewVersions).where(eq(schema.videoReviewVersions.id, second.id)))[0]
           ?.lightState,
     ).toBe("none");
-    expect((await reviewVideo(big, f.owner.id, f.org.id, id, 2)).light).toBe(false);
+    expect((await playedVideo(big, f.owner.id, f.org.id, id, 2)).light).toBe(false);
 
     // Without ffmpeg nothing is asked, and the originals play.
     const v3 = await video("short-06.mp4");
@@ -418,3 +418,10 @@ describe("video review", () => {
     expect(asked[0]?.lightState).toBe("pending");
   });
 });
+
+/** A version played here: its bytes, never the redirect a master too large to hold gets. */
+async function playedVideo(...args: Parameters<typeof reviewVideo>) {
+  const played = await reviewVideo(...args);
+  if ("redirect" in played) throw new Error(`redirected to ${played.redirect}`);
+  return played;
+}

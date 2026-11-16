@@ -15,7 +15,7 @@ import type {
   VaultKeysImportResult,
   VaultOverview,
 } from "../vault/types";
-import type { VideoReview, VideoReviewNote, VideoReviewSummary } from "../video-reviews/types";
+import type { ReviewPost, VideoReview, VideoReviewNote, VideoReviewSummary } from "../video-reviews/types";
 import type {
   WhatsAppAccount,
   WhatsAppBrain,
@@ -607,6 +607,22 @@ export function createHttpApi(options: TransportOptions = {}): HttpApi {
         (await files.blob(`${org(orgId)}/video-reviews/${enc(reviewId)}/versions/${version}/source`)).text(),
       saveDesign: (orgId, reviewId, input) =>
         request<VideoReviewSummary>(`${org(orgId)}/video-reviews/${enc(reviewId)}/design`, { json: input }),
+      taskVideo: (orgId, issueId) =>
+        request<{ reviewId: string | null }>(`${org(orgId)}/issues/${enc(issueId)}/video-delivery`),
+      sendTaskVideo: (orgId, issueId, input) =>
+        request<{ review: VideoReviewSummary; toClient: boolean }>(
+          `${org(orgId)}/issues/${enc(issueId)}/video-delivery`,
+          { json: input },
+        ),
+      setPost: (orgId, reviewId, patch) =>
+        request<ReviewPost>(`${org(orgId)}/video-reviews/${enc(reviewId)}/post`, { method: "PATCH", json: patch }),
+      sendToClient: (orgId, reviewId) =>
+        request<{ delivery: Record<string, unknown>; afterApprove: "portal" | "direct" }>(
+          `${org(orgId)}/video-reviews/${enc(reviewId)}/send`,
+          { json: {} },
+        ),
+      retryFinal: (orgId, reviewId) =>
+        request<void>(`${org(orgId)}/video-reviews/${enc(reviewId)}/final/retry`, { json: {} }),
     },
     whatsapp: {
       overview: (orgId) => request<WhatsAppOverview>(`${org(orgId)}/whatsapp`),
@@ -1735,7 +1751,7 @@ export function createHttpApi(options: TransportOptions = {}): HttpApi {
         if (options.title) form.append("title", options.title);
         if (options.channelId) form.append("channelId", options.channelId);
         if (options.threadId) form.append("threadId", options.threadId);
-        return files.upload<ArtifactDetail>(`${org(orgId)}/artifacts/files`, form);
+        return files.upload<ArtifactDetail>(`${org(orgId)}/artifacts/files`, form, "POST", options);
       },
       uploadVersion: (orgId, id, file, options = {}) => {
         const form = new FormData();

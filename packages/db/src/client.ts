@@ -311,6 +311,14 @@ export const EXTRA_COLUMNS = [
     "updated_at" timestamp with time zone NOT NULL DEFAULT now(),
     PRIMARY KEY ("org_id", "client")
   )`,
+  // A person's video sent from a task, and the post around it (docs/adr/doug-0012-editor-delivery.md): who sent it,
+  // the task it delivers, the post's cover and caption, the final kept and backed up, and each version's post copy.
+  `ALTER TABLE "video_reviews" ADD COLUMN IF NOT EXISTS "sender_user_id" text`,
+  `ALTER TABLE "video_reviews" ADD COLUMN IF NOT EXISTS "task_id" uuid`,
+  `ALTER TABLE "video_reviews" ADD COLUMN IF NOT EXISTS "post" jsonb NOT NULL DEFAULT '{}'::jsonb`,
+  `ALTER TABLE "video_reviews" ADD COLUMN IF NOT EXISTS "final" jsonb`,
+  `CREATE INDEX IF NOT EXISTS "video_reviews_task_id_index" ON "video_reviews" ("task_id")`,
+  `ALTER TABLE "video_review_versions" ADD COLUMN IF NOT EXISTS "post_state" text NOT NULL DEFAULT ''`,
   // Media generation paid in credits (ADR doug-0011, `schema/media.ts`).
   `ALTER TABLE "agents" ADD COLUMN IF NOT EXISTS "media_monthly_credits" integer NOT NULL DEFAULT 5000`,
   `ALTER TABLE "agents" ADD COLUMN IF NOT EXISTS "media_ask_above" integer DEFAULT 500`,

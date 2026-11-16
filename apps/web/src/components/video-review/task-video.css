@@ -1,0 +1,150 @@
+/* A post's video delivered from its task (docs/adr/doug-0012-editor-delivery.md): numbered steps, one under another. */
+.tvd {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tvd-step {
+  display: flex;
+  gap: var(--space-3);
+  align-items: flex-start;
+}
+
+.tvd-step__mark {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-full);
+  color: var(--muted);
+  font-size: var(--text-xs);
+  font-variant-numeric: tabular-nums;
+}
+
+.tvd-step[data-state="now"] .tvd-step__mark {
+  border-color: var(--ink);
+  color: var(--ink);
+}
+
+.tvd-step[data-state="done"] .tvd-step__mark {
+  border-color: var(--ok);
+  background: var(--ok);
+  color: var(--surface);
+}
+
+.tvd-step__body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+/* The title's line is the mark's line. */
+.tvd-step__title {
+  line-height: 24px;
+  font-weight: 600;
+}
+
+.tvd-step[data-state="later"] .tvd-step__title {
+  color: var(--muted);
+}
+
+.tvd-step__content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.tvd-line {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-4);
+  align-items: center;
+}
+
+.tvd-drop {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 96px;
+  padding: var(--space-4);
+  border: 1px dashed var(--line);
+  border-radius: var(--radius-md);
+  background: var(--sunken);
+  color: var(--ink);
+  font: inherit;
+  text-align: center;
+  cursor: pointer;
+}
+
+.tvd-line .tvd-drop {
+  width: auto;
+  min-height: 0;
+  flex: 1 1 200px;
+  flex-direction: row;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+}
+
+.tvd-drop:hover,
+.tvd-drop--over {
+  border-color: var(--ink);
+  background: var(--side-hover);
+}
+
+.tvd-drop:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.tvd-drop:disabled {
+  cursor: default;
+  opacity: 0.6;
+}
+
+.tvd-drop__label {
+  font-weight: 600;
+}
+
+.tvd-progress {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.tvd-progress__bar {
+  overflow: hidden;
+  height: 8px;
+  border-radius: var(--radius-full);
+  background: var(--sunken);
+}
+
+.tvd-progress__bar > span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--ink);
+  transition: width 0.2s ease;
+}
+
+.tvd-cover {
+  width: 64px;
+  aspect-ratio: 9 / 16;
+  border-radius: var(--radius-sm);
+  background: var(--sunken);
+  object-fit: cover;
+}
+
+.tvd-error {
+  color: var(--danger);
+}

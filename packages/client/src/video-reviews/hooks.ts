@@ -1,7 +1,13 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { ApiClient } from "../api/client";
 import { useApi } from "../api/context";
-import type { DesignEditInput, VideoReviewDecision, VideoReviewNoteInput, VideoReviewVoiceInput } from "./types";
+import type {
+  DesignEditInput,
+  ReviewPostPatch,
+  VideoReviewDecision,
+  VideoReviewNoteInput,
+  VideoReviewVoiceInput,
+} from "./types";
 
 /*
  * Video review in the apps (docs/adr/doug-0007-video-review.md). A review has no realtime event of its own: an open one
@@ -91,4 +97,61 @@ export const useSaveDesign = (orgId: string, reviewId: string) =>
     const save = reviewsOf(api).saveDesign;
     if (!save) throw new Error("This server has no design review");
     return save(orgId, reviewId, input);
+  });
+
+// ---------- an editor's delivery from a task (docs/adr/doug-0012-editor-delivery.md) ----------
+
+const taskVideoKey = (orgId: string, issueId: string) => ["org", orgId, "issues", issueId, "video-delivery"] as const;
+
+/** The review sent from this task, if any; read again now and then so a decision shows up by itself. */
+export function useTaskVideo(orgId: string, issueId: string) {
+  const api = useApi();
+  return useQuery({
+    queryKey: taskVideoKey(orgId, issueId),
+    queryFn: async () => {
+      const read = reviewsOf(api).taskVideo;
+      if (!read) return { reviewId: null };
+      return read(orgId, issueId);
+    },
+    enabled: Boolean(orgId) && Boolean(issueId) && Boolean(api.videoReviews?.taskVideo),
+    refetchInterval: 30_000,
+  });
+}
+
+/** Sends a video already uploaded to the task's conversation. */
+export function useSendTaskVideo(orgId: string, issueId: string) {
+  const api = useApi();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (input: { artifactId: string; note?: string }) => {
+      const send = reviewsOf(api).sendTaskVideo;
+      if (!send) throw new Error("This server has no editor delivery");
+      return send(orgId, issueId, input);
+    },
+    onSettled: () =>
+      qc
+        .invalidateQueries({ queryKey: taskVideoKey(orgId, issueId) })
+        .then(() => qc.invalidateQueries({ queryKey: reviewKeys.all(orgId) })),
+  });
+}
+
+export const useSetReviewPost = (orgId: string, reviewId: string) =>
+  useReviewChange(orgId, reviewId, (api, patch: ReviewPostPatch) => {
+    const set = reviewsOf(api).setPost;
+    if (!set) throw new Error("This server has no editor delivery");
+    return set(orgId, reviewId, patch);
+  });
+
+export const useSendToClient = (orgId: string, reviewId: string) =>
+  useReviewChange(orgId, reviewId, (api, _input: undefined) => {
+    const send = reviewsOf(api).sendToClient;
+    if (!send) throw new Error("This server has no editor delivery");
+    return send(orgId, reviewId);
+  });
+
+export const useRetryFinal = (orgId: string, reviewId: string) =>
+  useReviewChange(orgId, reviewId, (api, _input: undefined) => {
+    const retry = reviewsOf(api).retryFinal;
+    if (!retry) throw new Error("This server has no editor delivery");
+    return retry(orgId, reviewId);
   });

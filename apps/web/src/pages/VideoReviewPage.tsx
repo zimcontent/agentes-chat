@@ -27,7 +27,7 @@ import { Link } from "@tanstack/react-router";
 import { type PointerEvent as ReactPointerEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useApi } from "@/api/context";
-import { AgentAvatar } from "@/components/AgentAvatar";
+import { AgentAvatar, PersonAvatar } from "@/components/AgentAvatar";
 import { DesignReviewBody } from "@/components/design-review/DesignReview";
 import { ErrorState } from "@/components/Loading";
 import { useOrg } from "@/components/org-context";
@@ -80,18 +80,47 @@ export function VideoReviewsPage() {
   const [medium, setMedium] = useState<"all" | "video" | "design">("all");
   // The medium filter shows only once both kinds are in review here.
   const mixed = new Set((reviews.data ?? []).map((r) => r.medium)).size > 1;
+  // Who sent it: agents, or each person of the team who sends from a task ("Revisão do Ronny", doug-0012).
+  const [who, setWho] = useState("all");
+  const senders = useMemo(() => {
+    const seen = new Map<string, string>();
+    for (const r of reviews.data ?? []) if (r.sender) seen.set(r.sender.id, r.sender.name);
+    return [...seen].map(([id, name]) => ({ id, name }));
+  }, [reviews.data]);
   const list = useMemo(
     () =>
       (reviews.data ?? []).filter(
-        (r) => (filter === "all" || r.status === "in_review") && (!mixed || medium === "all" || r.medium === medium),
+        (r) =>
+          (filter === "all" || r.status === "in_review") &&
+          (!mixed || medium === "all" || r.medium === medium) &&
+          (senders.length === 0 || who === "all" || (r.sender ? `person:${r.sender.id}` : "agents") === who),
       ),
-    [reviews.data, filter, medium, mixed],
+    [reviews.data, filter, medium, mixed, senders, who],
   );
   const open = (reviews.data ?? []).filter((r) => r.status === "in_review").length;
 
   return (
     <div className="page page--full vr-page">
       <PageHeader title={w.title} meta={w.meta}>
+        {senders.length > 0 && (
+          <Segmented
+            label={w.title}
+            size="sm"
+            value={who}
+            onValueChange={setWho}
+            options={[
+              { value: "all", label: w.editor.who.all },
+              { value: "agents", label: w.editor.who.agents },
+              ...senders.map((s) => ({
+                value: `person:${s.id}`,
+                label: w.editor.who.person(s.name.split(" ")[0] || s.name),
+                count:
+                  (reviews.data ?? []).filter((r) => r.sender?.id === s.id && r.status === "in_review").length ||
+                  undefined,
+              })),
+            ]}
+          />
+        )}
         {mixed && (
           <Segmented
             label={w.title}
@@ -132,6 +161,8 @@ export function VideoReviewsPage() {
                   <img className="vr-row__cover" src={api.artifacts.fileUrl(org.id, r.cover)} alt="" loading="lazy" />
                 ) : r.agent ? (
                   <AgentAvatar agentId={r.agent.id} size="sm" name={r.agent.name} />
+                ) : r.sender ? (
+                  <PersonAvatar id={r.sender.id} size="sm" name={r.sender.name} />
                 ) : (
                   <Icon name={r.medium === "design" ? "image" : "video"} />
                 )}
@@ -141,7 +172,7 @@ export function VideoReviewsPage() {
                     {[
                       r.client,
                       w.version(r.version),
-                      r.agent ? w.by(r.agent.name) : "",
+                      r.agent ? w.by(r.agent.name) : r.sender ? w.editor.sentBy(r.sender.name) : "",
                       r.openNotes > 0 ? w.notesOpen(r.openNotes) : "",
                       relativeTime(t, i18n.language, r.updatedAt),
                     ]
@@ -389,6 +420,8 @@ function ReviewBody({ review, w }: { review: VideoReview; w: ReviewWords }) {
   const addNote = useAddReviewNote(org.id, review.id);
   const addVoice = useAddVoiceReviewNote(org.id, review.id);
   const removeNote = useDeleteReviewNote(org.id, review.id);
+  // Who gets the decision: the agent that made it, or the person who sent it from a task (doug-0012).
+  const maker = review.agent ?? review.sender ?? null;
   const decide = useDecideVideoReview(org.id, review.id);
 
   // A new version arrived while the page was open: show it.
@@ -407,6 +440,8 @@ function ReviewBody({ review, w }: { review: VideoReview; w: ReviewWords }) {
     setHd((on) => !on);
   };
   const fps = useFrameRate(videoEl);
+  // An editor's large master doesn't play until its light copy is made (the server answers 409 till then).
+  const [unplayable, setUnplayable] = useState<string | null>(null);
   const notes = review.notes.filter((n) => n.version === version);
   const isLatest = version === review.version;
   const open = isLatest && review.status === "in_review";
@@ -770,7 +805,7 @@ function ReviewBody({ review, w }: { review: VideoReview; w: ReviewWords }) {
           >
             {/* biome-ignore lint/a11y/useMediaCaption: an edit in review has no captions yet; the notes say what is in it. */}
             <video
-              key={`${shown.artifactId}:${hd}`}
+              key={`${shown.artifactId}:${hd}:${shown.light}`}
               ref={bindVideo}
               className="vr-video"
               src={videoSrc(shown)}
@@ -790,11 +825,15 @@ function ReviewBody({ review, w }: { review: VideoReview; w: ReviewWords }) {
                 setNowMs(Math.round(e.currentTarget.currentTime * 1000));
               }}
               onEnded={() => setPlaying(false)}
+              onError={() => setUnplayable(`${shown.artifactId}:${hd}:${shown.light}`)}
               onSeeked={(e) => setNowMs(Math.round(e.currentTarget.currentTime * 1000))}
               onTimeUpdate={(e) => {
                 if (!playing) setNowMs(Math.round(e.currentTarget.currentTime * 1000));
               }}
             />
+            {unplayable === `${shown.artifactId}:${hd}:${shown.light}` && !shown.light && (
+              <p className="vr-preparing small">{w.editor.preparing}</p>
+            )}
             {frame &&
               [
                 ...(draft && draft.x !== null && draft.y !== null
@@ -1020,7 +1059,22 @@ function ReviewBody({ review, w }: { review: VideoReview; w: ReviewWords }) {
             </p>
           )}
           {decidedLine && <p className="vr-muted">{decidedLine}</p>}
-          {review.status === "changes" && <p className="vr-muted">{w.waitingNext(review.version + 1)}</p>}
+          {review.status === "changes" && (
+            <p className="vr-muted">
+              {review.sender
+                ? w.editor.waitingNext(review.sender.name, review.version + 1)
+                : w.waitingNext(review.version + 1)}
+            </p>
+          )}
+          {review.task && (
+            <Link
+              to="/org/$orgId/issues/$number"
+              params={{ orgId: org.id, number: String(review.task.number) }}
+              className="ac-link small"
+            >
+              {w.editor.openTask(review.task.number)}
+            </Link>
+          )}
         </div>
 
         <section className="vr-notes" aria-label={w.notesTitle}>
@@ -1102,11 +1156,11 @@ function ReviewBody({ review, w }: { review: VideoReview; w: ReviewWords }) {
 
         {open && (
           <div className="vr-decide">
-            {!review.agent && <p className="vr-muted">{w.agentGone}</p>}
+            {!maker && <p className="vr-muted">{w.agentGone}</p>}
             <Button
               variant={recorder.recording && voiceFor.current === "changes" ? "danger" : "default"}
               icon={recorder.recording && voiceFor.current === "changes" ? "stop" : "mic"}
-              disabled={!review.agent || (recorder.recording && voiceFor.current !== "changes")}
+              disabled={!maker || (recorder.recording && voiceFor.current !== "changes")}
               loading={addVoice.isPending && voiceFor.current === "changes"}
               title={w.sayChangesHint}
               onClick={() => talk("changes")}
@@ -1117,13 +1171,18 @@ function ReviewBody({ review, w }: { review: VideoReview; w: ReviewWords }) {
                   ? w.sayingChanges
                   : w.sayChanges}
             </Button>
-            <Textarea value={message} rows={1} placeholder={w.message} onChange={(e) => setMessage(e.target.value)} />
-            <p className="vr-muted">{w.changesHint}</p>
+            <Textarea
+              value={message}
+              rows={1}
+              placeholder={review.sender ? w.editor.message(review.sender.name) : w.message}
+              onChange={(e) => setMessage(e.target.value)}
+            />
+            <p className="vr-muted">{review.sender ? w.editor.changesHint(review.sender.name) : w.changesHint}</p>
             <div className="vr-decide__acts">
               <Button
                 variant="default"
                 icon="edit"
-                disabled={!review.agent || (notes.every((n) => n.sent) && !message.trim())}
+                disabled={!maker || (notes.every((n) => n.sent) && !message.trim())}
                 loading={decide.isPending && decide.variables?.decision === "changes"}
                 onClick={() => decideAs("changes")}
               >
@@ -1132,7 +1191,7 @@ function ReviewBody({ review, w }: { review: VideoReview; w: ReviewWords }) {
               <Button
                 variant="primary"
                 icon="check"
-                disabled={!review.agent}
+                disabled={!maker}
                 loading={decide.isPending && decide.variables?.decision === "approve"}
                 onClick={() => decideAs("approve")}
               >

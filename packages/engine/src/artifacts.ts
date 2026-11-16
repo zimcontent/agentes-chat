@@ -35,6 +35,7 @@ import {
   lightKey,
   MODEL_FILE_READ_BYTES,
   type ModelFile,
+  postKey,
   readForModel,
   tooBigToReadNote,
   transcriptKey,
@@ -2568,6 +2569,7 @@ async function dropVersions(deps: ArtifactDeps, list: { version: VersionRow; org
     await store?.delete(v.blobKey).catch(() => undefined);
     await store?.delete(transcriptKey(v.blobKey)).catch(() => undefined);
     await store?.delete(lightKey(v.blobKey)).catch(() => undefined);
+    await store?.delete(postKey(v.blobKey)).catch(() => undefined);
     await deps.db.delete(artifactVersions).where(eq(artifactVersions.id, v.id));
   }
   return list.length;

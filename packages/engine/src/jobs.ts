@@ -48,6 +48,7 @@ import {
   requesterOf,
 } from "./dispatch";
 import { isAgentOnlyDm } from "./dms";
+import { EDITOR_FINAL_JOB, EDITOR_SEND_JOB, runEditorFinal, runEditorSend } from "./editor-delivery";
 import {
   type EmailArt,
   PLAN_WAITING_JOB,
@@ -957,6 +958,24 @@ export function createJobHandlers(deps: JobDeps): JobHandlers {
         { ...deps.videoReviews, portal: deps.videoReviews.portal ?? null },
         String(job.payload.reviewId),
         Number(job.payload.version),
+      );
+    },
+    // An editor's post to the client, and its final kept and backed up (docs/adr/doug-0012-editor-delivery.md).
+    [EDITOR_SEND_JOB]: async (job) => {
+      if (!deps.videoReviews) throw new PermanentJobError("no video review configured");
+      await runEditorSend(deps.videoReviews, {
+        reviewId: String(job.payload.reviewId),
+        version: Number(job.payload.version),
+        kind: job.payload.kind === "version" ? "version" : "post",
+        ...(typeof job.payload.by === "string" ? { by: job.payload.by } : {}),
+      });
+    },
+    [EDITOR_FINAL_JOB]: async (job, ctx) => {
+      if (!deps.videoReviews) throw new PermanentJobError("no video review configured");
+      await runEditorFinal(
+        deps.videoReviews,
+        { reviewId: String(job.payload.reviewId) },
+        { finalAttempt: ctx.finalAttempt },
       );
     },
     [VOICE_JOB]: async (job, ctx) => {
