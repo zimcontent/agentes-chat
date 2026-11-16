@@ -30,6 +30,7 @@ import { DeletingNotice } from "./DeletingNotice";
 import { FirstRunLine } from "./FirstRunLine";
 import { FirstAgentEmpty, Greeting, GreetingSky } from "./Greeting";
 import { Arrive, useHomeEntrance, useWake } from "./HomeEntrance";
+import { HomeGlance } from "./HomeGlance";
 import { CollapsibleSection, SeeAllRow, useHomeCollapsed } from "./HomeSection";
 import { HomeServerError, HomeServerNotice } from "./HomeServerError";
 import { HomeTools } from "./HomeTools";
@@ -238,6 +239,8 @@ function Home() {
         <>
           {/* The tools beside the tab bar's five, as the web's grid (WhatsApp, Mídia, Drive…); Dashboards among them. */}
           <HomeTools />
+          {/* Under the tools, small cards: threads, the editor now, clients' changes. */}
+          <HomeGlance />
           <FirstRunLine />
         </>
       )}
