@@ -7439,6 +7439,21 @@ export function usePortalLists(orgId: string, client: string) {
   const done = { meta: { silent: true }, onSettled: () => refreshPortal(qc, orgId) } as const;
   return {
     create: useMutation({ mutationFn: (name: string) => portalOf(api).createList(orgId, client, name), ...done }),
+    /**
+     * A list made at the head of the schedule, before every other ("New list" on the page): the portal adds it at the
+     * end, so the order is set right after, from the schedule as it is now. The team moves it from there.
+     */
+    createFirst: useMutation({
+      mutationFn: async (name: string) => {
+        const portal = portalOf(api);
+        const list = await portal.createList(orgId, client, name);
+        const plan = await portal.plan(orgId, client);
+        const ids = [list.id, ...plan.lists.map((l) => l.id).filter((id) => id !== list.id)];
+        if (ids.length > 1) await portal.orderLists(orgId, client, ids);
+        return list;
+      },
+      ...done,
+    }),
     rename: useMutation({
       mutationFn: (input: { listId: string; name: string }) =>
         portalOf(api).renameList(orgId, input.listId, input.name),

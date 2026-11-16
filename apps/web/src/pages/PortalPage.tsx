@@ -8,8 +8,8 @@ import { useTranslation } from "react-i18next";
 import { ErrorState, LoadingCards } from "@/components/Loading";
 import { useOrg } from "@/components/org-context";
 import { CardDetailDialog } from "@/components/portal/CardDetailDialog";
-import { CardDialog } from "@/components/portal/CardDialog";
 import { ClientColorMenu } from "@/components/portal/client-color";
+import { NewListDialog } from "@/components/portal/NewListDialog";
 import { PortalBoard } from "@/components/portal/PortalBoard";
 import { PortalNotices } from "@/components/portal/PortalNotices";
 import { PortalOverview } from "@/components/portal/PortalOverview";
@@ -28,7 +28,8 @@ type Sending = { card: PortalCard | null };
  * The approval portal (ADR 9001): with no client picked, every client at a glance (what waits on the team first);
  * with one (`?client=`), its board from To do to Scheduled, its strategic schedule (`tab=plan`: the team's lists, or
  * a calendar) and the list of what was published. A card opens in its own dialog (`card=<id>`). Any member reads it;
- * whoever may give agents work (`assign_work`) makes cards, moves them and sends for approval. A server with no
+ * whoever may give agents work (`assign_work`) makes lists (the head's "New list" puts one first in the schedule) and
+ * cards in them, moves them and sends for approval. A server with no
  * portal says so, and one that didn't answer offers another try. While the portal itself doesn't answer, the server
  * shows its last good read: the page says so, with when it was read, and how many changes still wait to reach it.
  */
@@ -40,7 +41,7 @@ export function PortalPage() {
   const overview = usePortalOverview(org.id);
   const board = usePortalBoard(org.id, client);
   const look = useRightHandLook();
-  const [creating, setCreating] = useState(false);
+  const [newList, setNewList] = useState(false);
   const [sending, setSending] = useState<Sending | null>(null);
 
   const shown = client ? board : overview;
@@ -56,8 +57,8 @@ export function PortalPage() {
         {t("portal.send")}
       </Button>
       {client && (
-        <Button variant="primary" icon="plus" onClick={() => setCreating(true)}>
-          {t("portal.newCard")}
+        <Button variant="primary" icon="plus" onClick={() => setNewList(true)}>
+          {t("portal.plan.newList")}
         </Button>
       )}
     </>
@@ -166,7 +167,18 @@ export function PortalPage() {
         </>
       )}
 
-      {client && <CardDialog open={creating} client={client} card={null} onClose={() => setCreating(false)} />}
+      {/* "New list": made first in the schedule, which then shows it; cards are made in the list itself. */}
+      {client && (
+        <NewListDialog
+          open={newList}
+          client={client}
+          onClose={() => setNewList(false)}
+          onMade={() => {
+            setNewList(false);
+            go({ client, tab: "plan" }, true);
+          }}
+        />
+      )}
       {/* A card opened, from the board or the schedule (`?card=<id>`): closed while it is being sent. */}
       {client && (
         <CardDetailDialog

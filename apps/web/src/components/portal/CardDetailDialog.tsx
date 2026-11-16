@@ -1,11 +1,5 @@
 import type { PlanCard, PortalCardInput, PortalComment, PortalPlan, PortalType } from "@agenteschat/client";
-import {
-  useDeletePortalCard,
-  usePortalComments,
-  usePortalPlan,
-  usePortalTasks,
-  useSavePortalCard,
-} from "@agenteschat/client";
+import { usePortalComments, usePortalPlan, usePortalTasks, useSavePortalCard } from "@agenteschat/client";
 import { daysBetween, formatFullDate, formatShortDate, relativeTime } from "@agenteschat/client/lib/format";
 import { linkPill } from "@agenteschat/client/lib/link-pills";
 import { can } from "@agenteschat/client/lib/permissions";
@@ -59,7 +53,9 @@ import { useDirectory } from "@/hooks/useDirectory";
 import { useNow } from "@/hooks/useNow";
 import { Markdown } from "@/lib/markdown";
 import { useToast } from "@/lib/toast";
+import { useCopyCardLink } from "./card-link";
 import { usePortalPeople, WhoFace } from "./members";
+import { DeleteCardDialog } from "./PortalBoard";
 import { PortalFiles } from "./PortalFiles";
 import { LabelChip, StageChip } from "./stage";
 
@@ -98,6 +94,9 @@ export function CardDetailDialog({
   const card = cardId && plan.data ? (planCards(plan.data).find((c) => c.id === cardId) ?? null) : null;
   // A description being written is kept from a stray press outside or Esc.
   const [writing, setWriting] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const copyLink = useCopyCardLink();
+  const changes = can(org, "assign_work");
   return (
     <Dialog
       open={cardId !== null && card !== null}
@@ -110,16 +109,37 @@ export function CardDetailDialog({
       // The head is the card's name itself, to press and rewrite, after the mark that says it is finished. The
       // dialog's own title stays for whoever hears the page.
       leading={card ? <TitleHead key={card.id} card={card} /> : undefined}
+      // Its link, to share (it opens this very card), and "Delete" for whoever may change the board.
+      actions={
+        card && (
+          <>
+            <Button
+              size="sm"
+              variant="ghost"
+              iconOnly
+              icon="link"
+              aria-label={t("portal.card.copyLink")}
+              title={t("portal.card.copyLink")}
+              onClick={() => copyLink(card)}
+            />
+            {changes && (
+              <Button
+                size="sm"
+                variant="ghost"
+                iconOnly
+                icon="trash"
+                aria-label={t("portal.card.deleteOf", { title: card.title })}
+                title={t("portal.delete")}
+                onClick={() => setDeleting(true)}
+              />
+            )}
+          </>
+        )
+      }
     >
+      <DeleteCardDialog card={deleting ? card : null} onClose={() => setDeleting(false)} onDeleted={onClose} />
       {card && plan.data && (
-        <Detail
-          key={card.id}
-          card={card}
-          plan={plan.data}
-          onClose={onClose}
-          onSend={() => onSend(card)}
-          onWriting={setWriting}
-        />
+        <Detail key={card.id} card={card} plan={plan.data} onSend={() => onSend(card)} onWriting={setWriting} />
       )}
     </Dialog>
   );
@@ -128,13 +148,11 @@ export function CardDetailDialog({
 function Detail({
   card,
   plan,
-  onClose,
   onSend,
   onWriting,
 }: {
   card: PlanCard;
   plan: PortalPlan;
-  onClose: () => void;
   onSend: () => void;
   onWriting: (writing: boolean) => void;
 }) {
@@ -143,11 +161,9 @@ function Detail({
   const dir = useDirectory(org.id);
   const toast = useToast();
   const save = useSavePortalCard(org.id);
-  const remove = useDeletePortalCard(org.id);
   const changes = can(org, "assign_work");
   const [caption, setCaption] = useState(card.caption);
   const [check, setCheck] = useState("");
-  const [confirming, setConfirming] = useState(false);
   const failed = (error: unknown) => toast.show(portalErrorText(t, error, i18n.language), "error");
   const patch = (fields: PortalCardInput) => save.mutate({ cardId: card.id, ...fields }, { onError: failed });
   const day = portalDayOf(card.date);
@@ -454,28 +470,6 @@ function Detail({
         <Comments card={card} />
       </DialogBody>
       <DialogFooter>
-        {changes &&
-          (confirming ? (
-            <Button
-              variant="danger"
-              loading={remove.isPending}
-              onClick={() =>
-                remove.mutate(card.id, {
-                  onSuccess: () => {
-                    toast.show(t("portal.card.deleted"));
-                    onClose();
-                  },
-                  onError: failed,
-                })
-              }
-            >
-              {t("portal.card.deleteTitle")}
-            </Button>
-          ) : (
-            <Button variant="ghost" icon="trash" onClick={() => setConfirming(true)}>
-              {t("portal.delete")}
-            </Button>
-          ))}
         <span className="portal-detail__grow" />
         {rightHand && (
           <AskAgentButton

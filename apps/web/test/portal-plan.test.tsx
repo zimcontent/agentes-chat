@@ -240,6 +240,29 @@ describe("the strategic schedule", () => {
     expect(lists()).toContain("Semana 16 a 20/11");
   });
 
+  test("Nova lista at the page's head: no card, a list made first in the schedule, which then shows", async () => {
+    const { state, router } = await go("portal?client=acme");
+    expect(within(main()).queryByRole("button", { name: "Novo cartão" })).toBeNull();
+    await click(within(main()).getByRole("button", { name: "Nova lista" }));
+    const dialog = screen().getByRole("dialog", { name: "Nova lista" });
+    const make = within(dialog).getByRole("button", { name: "Nova lista" }) as HTMLButtonElement;
+    expect(make.disabled).toBe(true);
+    await act(async () =>
+      fireEvent.change(within(dialog).getByRole("textbox", { name: "Nome da lista" }), {
+        target: { value: "Semana 23 a 27/11" },
+      }),
+    );
+    await click(make);
+    await settle(6);
+    expect(calls(state, "portal.createList")).toEqual([[ORG_ID, "acme", "Semana 23 a 27/11"]]);
+    const made = calls(state, "portal.orderLists")[0]?.[2] as string[];
+    expect(made).toHaveLength(3);
+    expect(made.slice(1)).toEqual(["l-000001", "l-000002"]);
+    expect(screen().queryByRole("dialog", { name: "Nova lista" })).toBeNull();
+    expect(router.state.location.search).toEqual({ client: "acme", tab: "plan" });
+    expect(lists()).toEqual(["Semana 23 a 27/11", "Semana 02 a 06/11", "Semana 09 a 13/11", "Sem lista"]);
+  });
+
   test("Adicionar cartão at a list's foot: a title and Enter, and it stays open for the next", async () => {
     const { state } = await go(PLAN);
     await click(within(list("Semana 09 a 13/11")).getByRole("button", { name: "Adicionar cartão" }));

@@ -34,6 +34,7 @@ import {
   CardSlots,
   type DropResult,
 } from "./board-parts";
+import { useCopyCardLink } from "./card-link";
 import { ItemDialog } from "./ItemDialog";
 import { COLUMN_ICON } from "./PortalOverview";
 import { ScheduleDialog } from "./ScheduleDialog";
@@ -173,9 +174,10 @@ export function PortalBoard({
 }
 
 /**
- * A post the team still has to make: its title, type, date, owner, how many files go up with it and its note, then,
- * for who may change it, its menu (move, edit, delete) and "Send for approval" (plated, not green: green is the
- * page's one main action). A press on the card opens it; it is dragged to the other column, or moved from its menu.
+ * A post the team still has to make: its title, type, date, owner, how many files go up with it and a mark when it has
+ * a note (read once it is open), then, for who may change it, "Delete" at hand, its menu (copy its link, move, edit,
+ * delete) and "Send for approval" (plated, not green: green is the page's one main action). Anyone copies its link. A
+ * press on the card opens it; it is dragged to the other column, or moved from its menu.
  */
 function TeamCard({
   card,
@@ -197,6 +199,7 @@ function TeamCard({
   onSend: () => void;
 }) {
   const { t, i18n } = useTranslation();
+  const copyLink = useCopyCardLink();
   const other = card.state === "todo" ? "doing" : "todo";
   const when = portalWhen(i18n.language, card.date);
   const facts: LineFact[] = [
@@ -204,6 +207,10 @@ function TeamCard({
     ...(card.owner ? [{ key: "owner", icon: "person" as const, text: card.owner }] : []),
     ...(card.files.length > 0
       ? [{ key: "files", icon: "attach" as const, text: t("portal.files", { count: card.files.length }) }]
+      : []),
+    // What it says is read once it is open: the closed card only says there is something to read.
+    ...(card.note || card.description
+      ? [{ key: "desc", icon: "document" as const, text: "", title: t("portal.plan.hasDescription") }]
       : []),
   ];
   return (
@@ -214,7 +221,18 @@ function TeamCard({
       drag={drag}
       onOpen={onOpen}
       headEnd={
-        changes && (
+        <>
+          {changes && (
+            <Button
+              size="sm"
+              variant="ghost"
+              iconOnly
+              icon="trash"
+              aria-label={t("portal.card.deleteOf", { title: card.title })}
+              title={t("portal.delete")}
+              onClick={onDelete}
+            />
+          )}
           <Menu
             align="end"
             trigger={
@@ -227,23 +245,29 @@ function TeamCard({
               />
             }
           >
-            <MenuItem icon="move" onSelect={onMove}>
-              {t("portal.moveTo", { column: t(`portal.columns.${other}`) })}
+            <MenuItem icon="link" onSelect={() => copyLink(card)}>
+              {t("portal.card.copyLink")}
             </MenuItem>
-            <MenuItem icon="edit" onSelect={onOpen}>
-              {t("portal.edit")}
-            </MenuItem>
-            <MenuSeparator />
-            <MenuItem icon="trash" danger onSelect={onDelete}>
-              {t("portal.delete")}
-            </MenuItem>
+            {changes && (
+              <>
+                <MenuItem icon="move" onSelect={onMove}>
+                  {t("portal.moveTo", { column: t(`portal.columns.${other}`) })}
+                </MenuItem>
+                <MenuItem icon="edit" onSelect={onOpen}>
+                  {t("portal.edit")}
+                </MenuItem>
+                <MenuSeparator />
+                <MenuItem icon="trash" danger onSelect={onDelete}>
+                  {t("portal.delete")}
+                </MenuItem>
+              </>
+            )}
           </Menu>
-        )
+        </>
       }
       chips={<Chip>{t(`portal.types.${card.type}`)}</Chip>}
       facts={facts}
     >
-      {card.note && <p className="portal-card__note">{card.note}</p>}
       {changes && (
         <Button size="sm" icon="send" block onClick={onSend}>
           {t("portal.send")}
@@ -326,8 +350,16 @@ function PostCard({ item, onEdit, onSchedule }: { item: PortalItem; onEdit?: () 
   );
 }
 
-/** "Delete this card?": its files stay in the Drive, only the card leaves the board. */
-function DeleteCardDialog({ card, onClose }: { card: PortalCard | null; onClose: () => void }) {
+/** "Delete this card?": its files stay in the Drive, only the card leaves the board. `onDeleted` once it left. */
+export function DeleteCardDialog({
+  card,
+  onClose,
+  onDeleted,
+}: {
+  card: Pick<PortalCard, "id" | "title"> | null;
+  onClose: () => void;
+  onDeleted?: () => void;
+}) {
   const { t, i18n } = useTranslation();
   const { org } = useOrg();
   const toast = useToast();
@@ -353,6 +385,7 @@ function DeleteCardDialog({ card, onClose }: { card: PortalCard | null; onClose:
             remove.mutate(card.id, {
               onSuccess: () => {
                 onClose();
+                onDeleted?.();
                 toast.show(t("portal.card.deleted"));
               },
               onError: (error) => toast.show(portalErrorText(t, error, i18n.language), "error"),

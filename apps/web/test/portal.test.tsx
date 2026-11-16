@@ -217,8 +217,14 @@ describe("a client's board", () => {
     expect(card.textContent).toContain("20 de nov.");
     expect(card.textContent).toContain("Maria");
     expect(card.textContent).toContain("1 arquivo");
-    expect(card.textContent).toContain("Usar as fotos novas");
+    // Its note is read once it is open: the closed card only marks that there is one.
+    expect(card.textContent).not.toContain("Usar as fotos novas");
+    expect(card.querySelector("[title='Tem descrição']")).toBeTruthy();
     expect(within(card).getByRole("button", { name: "Subir para aprovação" })).toBeTruthy();
+    // Deleting is at hand, and asks first.
+    await click(within(card).getByRole("button", { name: "Excluir o cartão Lançamento do cardápio" }));
+    const asking = screen().getByRole("dialog", { name: "Excluir este cartão?" });
+    await click(within(asking).getByRole("button", { name: "Cancelar" }));
 
     const seen = within(column("Para aprovação")).getByRole("article", { name: "Reel de inauguração" });
     expect([...seen.querySelectorAll(".ac-chip")].map((c) => c.textContent)).toEqual(["Reel", "Visto", "Sem legenda"]);
@@ -318,24 +324,37 @@ describe("a client's board", () => {
     expect(cardsIn("Em produção")).toEqual(["Lançamento do cardápio", "Bastidores da cozinha"]);
   });
 
-  test("Novo cartão: the title is all it needs, and it lands in A produzir", async () => {
-    const { state } = await go("portal?client=acme-foods");
-    await click(within(main()).getByRole("button", { name: "Novo cartão" }));
-    const dialog = screen().getByRole("dialog", { name: "Novo cartão" });
-    const save = within(dialog).getByRole("button", { name: "Salvar" }) as HTMLButtonElement;
-    expect(save.disabled).toBe(true);
-    await act(async () =>
-      fireEvent.change(within(dialog).getByLabelText("Título"), { target: { value: "Depoimento do chef" } }),
-    );
-    await click(save);
-    expect(calls(state, "portal.createCard")[0]?.[1]).toMatchObject({
-      client: "acme-foods",
-      title: "Depoimento do chef",
-      type: "reel",
-      files: [],
+  test("a card's link, from its menu and from the card opened, is the address that opens that very card", async () => {
+    const copied: string[] = [];
+    Object.defineProperty(navigator, "clipboard", {
+      configurable: true,
+      value: { writeText: async (text: string) => void copied.push(text) },
     });
-    expect(screen().queryByRole("dialog", { name: "Novo cartão" })).toBeNull();
-    expect(cardsIn("A produzir")).toEqual(["Lançamento do cardápio", "Depoimento do chef"]);
+    const { router } = await go("portal?client=acme-foods");
+    const menu = await openMenu(
+      within(column("A produzir")).getByRole("button", { name: "Ações: Lançamento do cardápio" }),
+    );
+    await click(within(menu).getByRole("menuitem", { name: "Copiar link do cartão" }));
+    const address = `${window.location.origin}/org/${ORG_ID}/portal?client=acme-foods&card=c-000001`;
+    expect(copied).toEqual([address]);
+
+    await click(within(column("A produzir")).getByRole("article", { name: "Lançamento do cardápio" }));
+    const dialog = screen().getByRole("dialog", { name: "Lançamento do cardápio" });
+    await click(within(dialog).getByRole("button", { name: "Copiar link do cartão" }));
+    expect(copied).toEqual([address, address]);
+    expect(router.state.location.search).toEqual({ client: "acme-foods", card: "c-000001" });
+  });
+
+  test("a card opened is deleted from its head, after asking, and the dialog closes", async () => {
+    const { state, router } = await go("portal?client=acme-foods&card=c-000001");
+    const dialog = screen().getByRole("dialog", { name: "Lançamento do cardápio" });
+    await click(within(dialog).getByRole("button", { name: "Excluir o cartão Lançamento do cardápio" }));
+    const asking = screen().getByRole("dialog", { name: "Excluir este cartão?" });
+    await click(within(asking).getByRole("button", { name: "Excluir" }));
+    await settle(4);
+    expect(calls(state, "portal.deleteCard")).toEqual([[ORG_ID, "c-000001"]]);
+    expect(screen().queryByRole("dialog", { name: "Lançamento do cardápio" })).toBeNull();
+    expect(router.state.location.search).toEqual({ client: "acme-foods" });
   });
 
   test("a card is deleted only after a yes", async () => {
@@ -405,14 +424,18 @@ describe("a client's board", () => {
     expect(within(dialog).getByRole("button", { name: "Escolher a capa" })).toBeTruthy();
   });
 
-  test("the portal's refusal shows in its own words, and the card dialog stays open", async () => {
+  test("the portal's refusal of a new list shows in its own words, and the dialog stays open", async () => {
     const { portal } = await go("portal?client=acme-foods");
-    await click(within(main()).getByRole("button", { name: "Novo cartão" }));
-    const dialog = screen().getByRole("dialog", { name: "Novo cartão" });
-    await act(async () => fireEvent.change(within(dialog).getByLabelText("Título"), { target: { value: "X" } }));
-    portal.fail = new ApiError(400, "portal.refused", "Este cliente não aceita cards novos");
-    await click(within(dialog).getByRole("button", { name: "Salvar" }));
-    expect(within(dialog).getByRole("alert").textContent).toBe("Este cliente não aceita cards novos");
+    await click(within(main()).getByRole("button", { name: "Nova lista" }));
+    const dialog = screen().getByRole("dialog", { name: "Nova lista" });
+    await act(async () =>
+      fireEvent.change(within(dialog).getByRole("textbox", { name: "Nome da lista" }), { target: { value: "X" } }),
+    );
+    portal.fail = new ApiError(400, "portal.refused", "Este cliente não aceita listas novas");
+    await click(within(dialog).getByRole("button", { name: "Nova lista" }));
+    await settle(4);
+    expect(document.body.textContent).toContain("Este cliente não aceita listas novas");
+    expect(screen().getByRole("dialog", { name: "Nova lista" })).toBeTruthy();
   });
 
   test("without the permission to give agents work: everything to read, nothing to press on a card", async () => {
@@ -423,13 +446,22 @@ describe("a client's board", () => {
     if (org) org.permissions = ["read", "post"];
     await go("portal?client=acme-foods", state);
     expect(cardsIn("A produzir")).toEqual(["Lançamento do cardápio"]);
-    expect(within(main()).queryByRole("button", { name: "Novo cartão" })).toBeNull();
+    expect(within(main()).queryByRole("button", { name: "Nova lista" })).toBeNull();
     expect(within(main()).queryByRole("button", { name: "Subir para aprovação" })).toBeNull();
-    expect(within(main()).queryByRole("button", { name: /^Ações/ })).toBeNull();
+    expect(within(main()).queryByRole("button", { name: /^Excluir/ })).toBeNull();
     expect(within(main()).queryByRole("button", { name: /^Editar/ })).toBeNull();
     expect(within(main()).queryByRole("button", { name: "Agendar post" })).toBeNull();
     // The way to the portal stays: reading needs no permission.
     expect(within(main()).getAllByRole("link", { name: "Abrir no portal" }).length).toBe(3);
+    // A card's menu holds only its link, which anyone may share.
+    const menu = await openMenu(
+      within(column("A produzir")).getByRole("button", { name: "Ações: Lançamento do cardápio" }),
+    );
+    expect(
+      within(menu)
+        .getAllByRole("menuitem")
+        .map((i) => i.textContent),
+    ).toEqual(["Copiar link do cartão"]);
   });
 });
 
