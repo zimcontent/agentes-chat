@@ -500,6 +500,9 @@ function Conversation({
           keysHold: t("voice.keysHold"),
           keysPaused: t("voice.keysPaused"),
           left: (seconds) => t("voice.left", { seconds }),
+          askDiscard: t("voice.askDiscard"),
+          askDelete: t("voice.askDelete"),
+          askKeep: t("voice.askKeep"),
         },
       }
     : undefined;

@@ -33,6 +33,8 @@ import {
   Meter,
   OptionCard,
   PageHeader,
+  PlanMeter,
+  type PlanMeterUsage,
   ProviderLogo,
   planLevel,
   RadioCard,
@@ -52,6 +54,7 @@ import { type ReactNode, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { AgentAvatar } from "@/components/AgentAvatar";
 import { botColorOf } from "@/components/Sky";
+import { planMeterText } from "@/lib/plan-usage";
 import { useTheme } from "@/lib/theme";
 import "@/components/ai/model-picker.css";
 
@@ -107,6 +110,20 @@ const WIDGETS: { title: string; spec: WidgetSpec | null; status: WidgetStatus; w
     w: 2,
   },
 ];
+/** An Antigravity plan as its CLI reported it on 2026-11-14 (`agy -p /usage`), its resets moved to now. */
+function antigravityUsage(): PlanMeterUsage {
+  const now = Date.now();
+  const at = (hours: number) => new Date(now + hours * 3_600_000).toISOString();
+  return {
+    windows: [
+      { kind: "seven_day", usedPercent: 2, resetsAt: at(7 * 24) },
+      { kind: "five_hour", usedPercent: 3, resetsAt: at(5) },
+      { kind: "other", label: "Claude and GPT models · 7d", usedPercent: 100, resetsAt: at(54) },
+      { kind: "other", label: "Gemini 4 Argon · 7d", usedPercent: 1, resetsAt: at(7 * 24) },
+    ],
+    at: at(0),
+  };
+}
 
 function Section({ title, children }: { title: string; children: ReactNode }) {
   return (
@@ -118,7 +135,7 @@ function Section({ title, children }: { title: string; children: ReactNode }) {
 }
 
 export function GalleryPage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const theme = useTheme();
   const [role, setRole] = useState("member");
   const [check, setCheck] = useState(true);
@@ -553,6 +570,13 @@ Semana ${Math.round(used / 2)}% · renova sex às 10:00`}
             </Button>
           </DialogFooter>
         </Dialog>
+      </Section>
+
+      <Section title="PlanMeter · Antigravity">
+        <div style={{ display: "grid", gap: 24, maxWidth: 360 }}>
+          <PlanMeter usage={antigravityUsage()} text={planMeterText(t, i18n.language)} />
+          <PlanMeter usage={antigravityUsage()} text={planMeterText(t, i18n.language)} compact label="maya.lin" />
+        </div>
       </Section>
 
       <Section title="Diff">

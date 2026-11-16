@@ -16,6 +16,7 @@ import {
 } from "@tanstack/react-query";
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { moveInGroups } from "../lib/agent-groups";
+import { type LevelsBefore, levelsBefore } from "../lib/approvals-level";
 import { artifactRefs } from "../lib/artifacts";
 import { newerBlockState, stateChanges, stateForPage } from "../lib/blocks";
 import type { ChatPrefs } from "../lib/chat-look";
@@ -66,7 +67,7 @@ import { playSound } from "../lib/sounds";
 import type { TeamWeekAct } from "../lib/team-week";
 import { threadStartOf } from "../lib/threads";
 import { upsertMessage, withLocalCopies } from "../lib/timeline";
-import { voiceOf } from "../lib/voice";
+import { listedText } from "../lib/voice";
 import type { AudienceChoice } from "../lib/who-sees";
 import type { WikiAccess } from "../lib/wiki";
 import type { RealtimeConnection } from "../realtime/connection";
@@ -99,6 +100,7 @@ import type {
   AppNotification,
   Approval,
   ApprovalCoverInput,
+  ApprovalsLevel,
   ArtifactContent,
   ArtifactDetail,
   ArtifactFilters,
@@ -139,6 +141,7 @@ import type {
   IssueStatus,
   IssuesView,
   JevKey,
+  JevKeyInput,
   LiveVoice,
   Machine,
   MachineAccessReduce,
@@ -154,6 +157,7 @@ import type {
   NotificationEvent,
   NotificationFilter,
   OrgRoles,
+  OrgSettings,
   PendingReturn,
   Person,
   PersonalTokenInput,
@@ -173,6 +177,7 @@ import type {
   Proposal,
   ReactionCount,
   ReminderInput,
+  RequestHeader,
   RightHandApprovals,
   RightHandApprovalsInput,
   Role,
@@ -371,7 +376,7 @@ function useJevChange<T>(change: (api: ApiClient, input: T) => Promise<JevKey>, 
     ...(silent ? { meta: { silent: true } } : {}),
   });
 }
-export const useSaveJevKey = () => useJevChange((api, apiKey: string) => api.system.saveJev(apiKey), true);
+export const useSaveJevKey = () => useJevChange((api, input: JevKeyInput) => api.system.saveJev(input), true);
 export const useCheckJevKey = () => useJevChange<void>((api) => api.system.checkJev());
 export const useRemoveJevKey = () => useJevChange<void>((api) => api.system.removeJev());
 
@@ -1971,6 +1976,8 @@ export function dropLocalVoice(qc: QueryClient, orgId: string, channelId: string
  * Sends a recording (ADR 0100): its bubble appears at once and stays until the server's message replaces it (same
  * `clientId`). Without a connection the recording waits in memory and goes when it comes back, with the same
  * `clientId`, so a send whose answer was lost is stored once. `onRefused`: the server said no, and the bubble went.
+ * `text` and the files in `meta.artifacts` (as `localMeta` writes them) go in the same message. Resolves false when
+ * the server refused it, so the caller can give the text and the files back.
  */
 export function useSendVoice(
   orgId: string,
@@ -1991,8 +1998,11 @@ export function useSendVoice(
       replyTo: string | null;
       language: string | null;
       meta?: Record<string, unknown>;
-    }) => {
+      text?: string;
+    }): Promise<boolean> => {
       const { blob, durationMs, peaks, threadId, replyTo, language, meta } = input;
+      const text = input.text?.trim() ?? "";
+      const attachments = artifactRefs(meta).map((r) => r.id);
       const clientId = newClientId();
       voiceLocal.set(clientId, URL.createObjectURL(blob));
       const local: Message = {
@@ -2000,10 +2010,10 @@ export function useSendVoice(
         channelId,
         threadId,
         author: { type: "person", id: latest.current.me.id },
-        body: "",
+        body: text,
         mentionedAgentIds: [],
         agentRunId: null,
-        meta: { ...meta, voice: { clipId: "", durationMs, peaks } },
+        meta: { ...meta, voice: { clipId: "", durationMs, peaks, ...(text ? { text } : {}) } },
         clientId,
         local: "pending",
         createdAt: new Date().toISOString(),
@@ -2018,14 +2028,24 @@ export function useSendVoice(
         );
       for (let attempt = 0; ; attempt++) {
         try {
-          await api.voice.send(orgId, channelId, { blob, durationMs, peaks, clientId, threadId, replyTo, language });
+          await api.voice.send(orgId, channelId, {
+            blob,
+            durationMs,
+            peaks,
+            clientId,
+            threadId,
+            replyTo,
+            language,
+            ...(text ? { text } : {}),
+            ...(attachments.length > 0 ? { attachments } : {}),
+          });
           waiting(false);
-          return;
+          return true;
         } catch (error) {
           if (!sendWaits(error)) {
             dropLocalVoice(qc, orgId, channelId, clientId);
             latest.current.onRefused?.(error);
-            return;
+            return false;
           }
           waiting(true);
           await voiceRetryWait(attempt);
@@ -2823,6 +2843,73 @@ export function useUpdateSettings(orgId: string) {
         predicate: (q) => q.queryKey[0] === "org" && q.queryKey[1] === orgId && q.queryKey[4] === "detail",
       });
     },
+  });
+}
+
+/** Sets the workspace's approvals level: the settings and every agent's level show it at once. */
+export function useSetWorkspaceApprovalsLevel(orgId: string) {
+  const api = useApi();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (input: { level: ApprovalsLevel; everyAgent?: boolean }) => api.orgs.setApprovalsLevel(orgId, input),
+    onSuccess: ({ level }) => {
+      qc.setQueryData<OrgSettings>(keys.settings(orgId), (s) => (s ? { ...s, approvalsLevel: level } : s));
+      levelsChanged(qc, orgId);
+    },
+  });
+}
+
+/**
+ * "Mudar quando perguntar": one agent's own level, or with `everyAgent` the workspace's for every agent (their own
+ * choices cleared). Resolves to the levels before, for "Desfazer" (`useUndoWhenAsks`).
+ */
+export function useChangeWhenAsks(orgId: string) {
+  const api = useApi();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      agentId,
+      level,
+      everyAgent,
+    }: {
+      agentId: string;
+      level: ApprovalsLevel;
+      everyAgent?: boolean;
+    }) => {
+      const [agents, settings] = await Promise.all([
+        qc.ensureQueryData({ queryKey: keys.agents(orgId), queryFn: () => api.agents.list(orgId) }),
+        everyAgent
+          ? qc.ensureQueryData({ queryKey: keys.settings(orgId), queryFn: () => api.orgs.settings(orgId) })
+          : null,
+      ]);
+      const before = levelsBefore(settings?.approvalsLevel ?? "risky", agents, everyAgent ? undefined : agentId);
+      if (everyAgent) await api.orgs.setApprovalsLevel(orgId, { level, everyAgent: true });
+      else await api.agents.update(orgId, agentId, { approvalsLevel: level });
+      return before;
+    },
+    onSuccess: () => levelsChanged(qc, orgId),
+  });
+}
+
+/** "Desfazer" after `useChangeWhenAsks`: the workspace's level (for every agent) and each agent's choice come back. */
+export function useUndoWhenAsks(orgId: string) {
+  const api = useApi();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ before, everyAgent }: { before: LevelsBefore; everyAgent?: boolean }) => {
+      if (everyAgent) await api.orgs.setApprovalsLevel(orgId, { level: before.workspace });
+      // ponytail: one request per agent that had its own choice, a batch call if workspaces with many appear.
+      for (const a of before.agents) await api.agents.update(orgId, a.id, { approvalsLevel: a.level });
+    },
+    onSuccess: () => levelsChanged(qc, orgId),
+  });
+}
+
+function levelsChanged(qc: QueryClient, orgId: string) {
+  void qc.invalidateQueries({ queryKey: keys.settings(orgId) });
+  void qc.invalidateQueries({ queryKey: keys.agents(orgId) });
+  void qc.invalidateQueries({
+    predicate: (q) => q.queryKey[0] === "org" && q.queryKey[1] === orgId && q.queryKey[4] === "detail",
   });
 }
 
@@ -3932,9 +4019,12 @@ export function useCustomServerAction(orgId: string) {
         label?: string;
         returnTo: string;
         connectionId?: string;
+        headers?: RequestHeader[];
       }) => api.customConnectors.connect(orgId, input),
       // A new server is every agent's: their access trees change too.
       onSuccess: () => Promise.all([done(), qc.invalidateQueries({ queryKey: keys.access(orgId) })]),
+      // The form says its own failures: a refused header shows on its row.
+      meta: { silent: true },
     }),
     refresh: useMutation({ mutationFn: (id: string) => api.customConnectors.refresh(orgId, id), onSuccess: done }),
     save: useMutation({
@@ -5800,7 +5890,7 @@ export function cachedThreadInfo(qc: QueryClient, orgId: string, threadId: strin
     channelName: channel?.name ?? "",
     channelKind: channel ? "channel" : "dm",
     title: null,
-    rootText: voiceOf(root.meta) ? "" : root.body.replace(/\s+/g, " ").trim(),
+    rootText: listedText(root.body, root.meta).replace(/\s+/g, " ").trim(),
     rootAuthor: author,
     state: "open",
     createdBy: null,
@@ -6180,7 +6270,8 @@ export const useIssuesView = (orgId: string) => {
   const api = useApi();
   return useQuery({
     queryKey: keys.issuesView(orgId),
-    queryFn: () => api.orgs.issuesView(orgId),
+    // Whole even from a server of before a part of it.
+    queryFn: async () => withIssuesView(await api.orgs.issuesView(orgId), {}),
     staleTime: 60_000,
   });
 };

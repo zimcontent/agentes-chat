@@ -79,6 +79,7 @@ import { AccessMatrixSection } from "@/components/AccessLevels";
 import { AccountSection } from "@/components/AccountSettings";
 import { AiAppsSection } from "@/components/AiApps";
 import { ApprovalsSection } from "@/components/ApprovalCover";
+import { WorkspaceApprovalsRow } from "@/components/ApprovalsLevelDialog";
 import { AppsDownloadSection } from "@/components/AppsDownload";
 import { AuditSection } from "@/components/Audit";
 import { AutoModelsRow } from "@/components/AutoModels";
@@ -609,6 +610,7 @@ function GeneralSection() {
         {nameRow}
         {!personal && zoneRow}
         {checkRow}
+        <WorkspaceApprovalsRow />
         {modeRow}
       </div>
     </Card>

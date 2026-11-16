@@ -4970,6 +4970,9 @@
   "devices.notice.cli_request": {
     "value": "{{names}} asks you to install {{tool}} on your {{device}}"
   },
+  "devices.notice.folder_request": {
+    "value": "{{names}} asks for the folder {{path}} on your {{device}}"
+  },
   "devices.notice.allowOnce": {
     "value": "Allow once"
   },

@@ -50,8 +50,17 @@ export interface AppInfo {
   arch: string;
   /** The system's own version where the app reads it (macOS: `15.1`). */
   system?: string | null;
-  /** Linux: how it draws the app, one line to copy ("Ubuntu 26.04 LTS · wayland (GNOME) · WebKitGTK 2.50.4 · …"). */
-  graphics?: string | null;
+  /** The line to copy: versions, and on Linux how it draws ("agentes.chat 0.8.9 · Linux · Ubuntu 26.04 LTS · …"). */
+  details: string;
+}
+
+/** Linux's Compatibility mode (graphics.rs): drawing without the graphics card at the next opening. */
+export interface CompatMode {
+  on: boolean;
+  /** This opening fell back: the last one, with the graphics card, never painted. True for the first ask only. */
+  fellBack: boolean;
+  /** WEBKIT_DISABLE_DMABUF_RENDERER was set when the app started: it decides (`on` says what it does), not the switch. */
+  own: boolean;
 }
 
 /** A server's answer to `siteFetch`: its status and body as text. */
@@ -117,7 +126,8 @@ export interface Host {
   siteFetch(server: string, method: string, path: string, body?: string): Promise<SiteAnswer>;
   /**
    * How the welcome window opens, taken once: `add` from the site's "Add a workspace", `owner` when the app opened it
-   * because no account is left on the server it runs (Run here's form makes the new owner), else null.
+   * on Run here's form to make a new owner (no account is left on the server it runs, or it was just erased), else
+   * null.
    */
   welcomeMode(): Promise<"add" | "owner" | null>;
   /** The welcome window in its adding mode ("Add a workspace", from Preferences). */
@@ -144,6 +154,11 @@ export interface Host {
   hideWindow(name: WindowName): Promise<void>;
   quit(): Promise<void>;
   appInfo(): Promise<AppInfo>;
+  /** Linux: Compatibility mode as the next opening will have it. */
+  compatMode(): Promise<CompatMode>;
+  setCompatMode(on: boolean): Promise<void>;
+  /** Quits and opens the app again, for a setting read only when it starts. */
+  reopen(): Promise<void>;
   autostart(): Promise<boolean>;
   setAutostart(on: boolean): Promise<void>;
   notify(title: string, body: string): Promise<void>;
@@ -213,6 +228,13 @@ export interface Host {
   setLocalBackups(nightly: boolean, copyTo: string | null): Promise<void>;
   /** The server here goes back to one of its backups; rejects with `start` when that backup didn't start. */
   restoreLocalServer(file: string): Promise<void>;
+  /**
+   * "Erase and start over": it stops, its folder moves whole to `eraseTo`, the app forgets it and the welcome window
+   * opens. Resolves with where its data went; when the folder couldn't move (its data stays where it was), rejects with
+   * `held` (another server uses the folder), `move` (the move itself failed; it stays stopped) or `running` (it started
+   * again meanwhile).
+   */
+  eraseLocalServer(): Promise<string>;
   /** Automatic login and start after a power failure (macOS). */
   keepRunning(): Promise<KeepRunning>;
   /** System Settings at Users & Groups or Energy (macOS). */
