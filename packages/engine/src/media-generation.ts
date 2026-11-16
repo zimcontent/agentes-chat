@@ -152,6 +152,9 @@ export function modelInputs(model: MediaModel, quality?: string): ModelInputs {
       out.lastFrame = false;
     }
   }
+  // The service never takes frames and references in one request (the Zim Studio's rule), so a model that takes
+  // both makes the person pick one side.
+  out.framesOrRefs = out.firstFrame && out.images + out.videos + out.audios > 0;
   return out;
 }
 
@@ -179,7 +182,7 @@ export function inputsRefusal(
   for (const [n, max, what] of counts) {
     if (n > max) return max === 0 ? `${at} takes no ${what}.` : `${at} takes at most ${max} ${what}s.`;
   }
-  if (can.framesOrRefs && given.firstFrame && given.images + given.videos + given.audios > 0)
+  if (given.firstFrame && given.images + given.videos + given.audios > 0)
     return `${model.label} takes references or frames, never both.`;
   return null;
 }

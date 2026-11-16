@@ -45,6 +45,9 @@ export function mediaInputs(model: MediaModel | undefined, quality?: string): Me
       out.lastFrame = false;
     }
   }
+  // The service never takes frames and references in one request (the Zim Studio's rule), so a model that takes
+  // both makes the person pick one side.
+  out.framesOrRefs = out.firstFrame && out.images + out.videos + out.audios > 0;
   return out;
 }
 

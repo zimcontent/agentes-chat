@@ -61,7 +61,8 @@ describe("what a model takes", () => {
       audios: 3,
       firstFrame: true,
       lastFrame: true,
-      framesOrRefs: false,
+      // Frames and references never go in one request: a model that takes both makes the person pick.
+      framesOrRefs: true,
     });
     // No modes listed at 1080p: the catalog's inputs, with that quality's own image count.
     expect(mediaInputs(seedance, "1080p").images).toBe(1);
@@ -79,7 +80,8 @@ describe("what a model takes", () => {
       videos: [],
       audios: [],
     });
-    expect(fitMediaFiles(full, mediaInputs(seedance, "1080p"), "frames").images.map((f) => f.token)).toEqual(["i1"]);
+    expect(fitMediaFiles(full, mediaInputs(seedance, "1080p"), "frames").images).toEqual([]);
+    expect(fitMediaFiles(full, mediaInputs(seedance, "1080p"), "refs").images.map((f) => f.token)).toEqual(["i1"]);
     // Kling 4.0: frames or references, the side the person picked.
     const frames = fitMediaFiles(full, mediaInputs(kling4), "frames");
     expect(frames.firstFrame?.token).toBe("first");

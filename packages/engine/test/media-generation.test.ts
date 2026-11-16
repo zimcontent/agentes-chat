@@ -262,7 +262,7 @@ describe("what each model takes", () => {
       audios: 3,
       firstFrame: true,
       lastFrame: true,
-      framesOrRefs: false,
+      framesOrRefs: true,
     });
     expect(modelInputs(model("seedance-2.5-full"), "1080p")).toMatchObject({ images: 0, videos: 0, audios: 0 });
     expect(modelInputs(model("seedance-2.5-full"), "1080p").lastFrame).toBe(true);
@@ -452,11 +452,9 @@ describe("the video tool's files", () => {
     expect(props.reference_ids?.maxItems).toBe(9);
   });
 
-  test("frames, a reference video and an audio from the Drive go to the service, priced by its quote", async () => {
+  test("a reference video and an audio from the Drive go to the service, priced by its quote", async () => {
     const fake = fakeZim();
     const c = ctx();
-    const first = await driveFile(c.runId, "first.png", PNG, "image/png");
-    const last = await driveFile(c.runId, "last.png", PNG, "image/png");
     const clip = await driveFile(c.runId, "clip.mp4", MP4, "video/mp4");
     const voice = await driveFile(c.runId, "voice.wav", WAV, "audio/wav");
     const video = await tool(fake.zim, GENERATE_VIDEO_TOOL, c);
@@ -464,8 +462,6 @@ describe("the video tool's files", () => {
       model: "seedance-2.5-full",
       prompt: "the same dance on a beach",
       seconds: 5,
-      opening_image_id: first,
-      closing_image_id: last,
       video_reference_ids: [clip],
       audio_reference_ids: [voice],
     };
@@ -474,14 +470,37 @@ describe("the video tool's files", () => {
     expect(video.describe?.(input).title).toContain("com vídeo de referência");
     const out = await video.execute(input, c);
     expect(out.isError).toBeFalsy();
-    expect(fake.uploads).toEqual(["image/png", "image/png", "video/mp4", "audio/wav"]);
+    expect(fake.uploads).toEqual(["video/mp4", "audio/wav"]);
     const sent = fake.calls[0]!.request;
-    expect(sent.firstFrame).toBeString();
-    expect(sent.lastFrame).toBeString();
     expect(sent.videoRefs?.length).toBe(1);
     expect(sent.audioRefs?.length).toBe(1);
     expect(fake.quotes.length).toBe(1);
     expect(out.content).toContain(`${250 + VIDEO_REF_CREDITS} credits`);
+  });
+
+  test("opening and closing frames go to the service; frames with references are refused before any upload", async () => {
+    const fake = fakeZim();
+    const c = ctx();
+    const first = await driveFile(c.runId, "first.png", PNG, "image/png");
+    const last = await driveFile(c.runId, "last.png", PNG, "image/png");
+    const clip = await driveFile(c.runId, "clip.mp4", MP4, "video/mp4");
+    const video = await tool(fake.zim, GENERATE_VIDEO_TOOL, c);
+    const both = await video.execute(
+      { model: "seedance-2.5-full", prompt: "x", seconds: 5, opening_image_id: first, video_reference_ids: [clip] },
+      c,
+    );
+    expect(both.isError).toBe(true);
+    expect(both.content).toContain("never both");
+    expect(fake.uploads).toEqual([]);
+    const out = await video.execute(
+      { model: "seedance-2.5-full", prompt: "x", seconds: 5, opening_image_id: first, closing_image_id: last },
+      c,
+    );
+    expect(out.isError).toBeFalsy();
+    expect(fake.uploads).toEqual(["image/png", "image/png"]);
+    const sent = fake.calls[0]!.request;
+    expect(sent.firstFrame).toBeString();
+    expect(sent.lastFrame).toBeString();
   });
 
   test("a quote past the allowance stops before the generation", async () => {
