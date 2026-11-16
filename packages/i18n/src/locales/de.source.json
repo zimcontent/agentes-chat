@@ -12060,8 +12060,128 @@
   "home.done.title": {
     "value": "Since you were last here"
   },
+  "home.done.none": {
+    "value": "Nothing new since your last visit."
+  },
+  "home.customize.button": {
+    "value": "Customize"
+  },
+  "home.customize.title": {
+    "value": "What Home shows"
+  },
+  "home.customize.sections.team": {
+    "value": "Team agenda"
+  },
+  "home.customize.sections.tasks": {
+    "value": "Your tasks"
+  },
+  "home.customize.sections.board": {
+    "value": "Waiting on you and Working now"
+  },
+  "home.customize.sections.since": {
+    "value": "Since you were last here"
+  },
+  "home.customize.sections.routines": {
+    "value": "Coming up"
+  },
   "home.routines.title": {
     "value": "Coming up"
+  },
+  "home.agenda.title": {
+    "value": "Team agenda"
+  },
+  "home.agenda.who": {
+    "value": "Whose agenda"
+  },
+  "home.agenda.everyone": {
+    "value": "Everyone"
+  },
+  "home.agenda.pickDay": {
+    "value": "Which day"
+  },
+  "home.agenda.thisWeek": {
+    "value": "This week"
+  },
+  "home.agenda.wholeWeek": {
+    "value": "Whole week"
+  },
+  "home.agenda.todayChip": {
+    "value": "Today"
+  },
+  "home.agenda.tomorrowChip": {
+    "value": "Tomorrow"
+  },
+  "home.agenda.prevWeek": {
+    "value": "Previous week"
+  },
+  "home.agenda.nextWeek": {
+    "value": "Next week"
+  },
+  "home.agenda.noneDay": {
+    "value": "Nothing due that day."
+  },
+  "home.agenda.noneWeek": {
+    "value": "Nothing due that week."
+  },
+  "home.agenda.now": {
+    "value": "Now"
+  },
+  "home.agenda.late": {
+    "value": "Late"
+  },
+  "home.agenda.today": {
+    "value": "Today · {{day}}"
+  },
+  "home.agenda.tomorrow": {
+    "value": "Tomorrow · {{day}}"
+  },
+  "home.agenda.wasDue": {
+    "value": "Was due {{when}}"
+  },
+  "home.agenda.due": {
+    "value": "Due {{when}}"
+  },
+  "home.agenda.todayShort": {
+    "value": "today"
+  },
+  "home.agenda.tomorrowShort": {
+    "value": "tomorrow"
+  },
+  "home.agenda.nowCount": {
+    "value": {
+      "one": "{{count}} now",
+      "other": "{{count}} now"
+    }
+  },
+  "home.agenda.lateCount": {
+    "value": {
+      "one": "{{count}} late",
+      "other": "{{count}} late"
+    }
+  },
+  "home.agenda.todayCount": {
+    "value": {
+      "one": "{{count}} today",
+      "other": "{{count}} today"
+    }
+  },
+  "home.agenda.total": {
+    "value": {
+      "one": "{{count}} task",
+      "other": "{{count}} tasks"
+    }
+  },
+  "home.agenda.high": {
+    "value": "High"
+  },
+  "home.agenda.blocked": {
+    "value": "Blocked"
+  },
+  "home.agenda.status.in_progress": {
+    "value": "In progress"
+  },
+  "home.agenda.status.in_review": {
+    "value": "In review"
   },
   "home.mission": {
     "value": "<b>{{name}}</b> needs you in a mission"
@@ -31059,6 +31179,9 @@
   },
   "carry.connections": {
     "value": "Connections"
+  },
+  "carry.keys": {
+    "value": "AI keys"
   },
   "carry.with": {
     "value": "Comes with {{names}}"

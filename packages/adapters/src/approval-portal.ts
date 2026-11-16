@@ -52,6 +52,11 @@ export interface PortalItem {
   released: boolean;
   /** The last thing said on it (the client's adjustment request, an approval's note). Outside text. */
   lastNote: { at: string | null; by: string | null; text: string } | null;
+  /**
+   * Everything the client wrote on it, each point they marked (a second of a video, a spot of a slide) or each
+   * comment, oldest first (docs/adr/doug-0012-editor-delivery.md §12). Outside text. Absent: a bridge from before.
+   */
+  clientNotes?: PortalClientNote[];
   /** Where it was published, once it was. */
   postUrl: string | null;
   /** The post at the portal, for a signed-in person. */
@@ -121,6 +126,26 @@ export interface PortalComment {
   by: string;
   text: string;
   at: number;
+}
+
+/** One thing the client wrote on a post at the portal: a mark on a point of it, or a comment on the whole. */
+export interface PortalClientNote {
+  /** Stable at the portal: the same note always has it. */
+  id: string;
+  /** The portal's version of the post it is on. */
+  version: number;
+  /** Where in a video, in seconds; null: not a point in time. */
+  atSeconds: number | null;
+  /** A carousel's slide, from 1; null: none. */
+  page: number | null;
+  /** Where on the picture, as fractions of its width and height; null: nowhere in particular. */
+  x: number | null;
+  y: number | null;
+  text: string;
+  /** What the client attached (a photo, a reference), as links to the portal's files. */
+  files: string[];
+  by: string | null;
+  at: string | null;
 }
 
 export interface PortalCheck {
@@ -375,9 +400,41 @@ function itemOf(wire: Wire): PortalItem {
           text: text(note.nota) ?? "",
         }
       : null,
+    ...(Array.isArray(wire.notas_cliente) ? { clientNotes: wire.notas_cliente.flatMap(clientNoteOf) } : {}),
     postUrl: text(wire.ig_url),
     link: text(wire.link) ?? "",
   };
+}
+
+const num = (value: unknown) => (typeof value === "number" && Number.isFinite(value) ? value : null);
+const fraction = (value: unknown) => {
+  const n = num(value);
+  return n === null ? null : Math.min(1, Math.max(0, n));
+};
+
+function clientNoteOf(value: unknown): PortalClientNote[] {
+  if (!value || typeof value !== "object") return [];
+  const w = value as Wire;
+  const body = (text(w.texto) ?? "").trim();
+  const id = text(w.id);
+  if (!id || !body) return [];
+  const slide = num(w.slide);
+  return [
+    {
+      id,
+      version: Number(w.v) || 1,
+      atSeconds: num(w.t),
+      page: slide === null ? null : Math.round(slide) + 1,
+      x: fraction(w.x),
+      y: fraction(w.y),
+      text: body.slice(0, 4000),
+      files: (Array.isArray(w.anexos) ? w.anexos : []).filter(
+        (f): f is string => typeof f === "string" && /^https?:\/\//.test(f),
+      ),
+      by: text(w.por),
+      at: text(w.em),
+    },
+  ];
 }
 
 const COLOR_IN: Record<string, PortalLabelColor> = {

@@ -105,7 +105,7 @@ function transport(options: TransportOptions): Transport {
 interface Xhr {
   open(method: string, url: string): void;
   setRequestHeader(name: string, value: string): void;
-  send(body: string): void;
+  send(body: string | FormData): void;
   abort(): void;
   withCredentials: boolean;
   readonly status: number;
@@ -122,7 +122,12 @@ const platformXhr = () => (globalThis as { XMLHttpRequest?: new () => Xhr }).XML
 function sendWithProgress(
   Request: new () => Xhr,
   url: string,
-  init: { headers: Record<string, string>; body: string; credentials: Transport["credentials"]; signal?: AbortSignal },
+  init: {
+    headers: Record<string, string>;
+    body: string | FormData;
+    credentials: Transport["credentials"];
+    signal?: AbortSignal;
+  },
   onProgress: (sent: number) => void,
 ): Promise<Response> {
   return new Promise((resolve, reject) => {
@@ -235,8 +240,27 @@ export type Requester = ReturnType<typeof createRequester>;
 export function createFileRequester(options: TransportOptions = {}) {
   const t = transport(options);
   return {
-    /** `POST` (or `PUT`) a form; the platform sets the multipart boundary. */
-    async upload<T>(path: string, form: FormData, method: "POST" | "PUT" = "POST"): Promise<T> {
+    /**
+     * `POST` (or `PUT`) a form; the platform sets the multipart boundary. With `onProgress`, a `POST` goes by
+     * `XMLHttpRequest` where there is one, so a large file shows how much went.
+     */
+    async upload<T>(
+      path: string,
+      form: FormData,
+      method: "POST" | "PUT" = "POST",
+      options: UploadOptions = {},
+    ): Promise<T> {
+      const xhr = options.onProgress && method === "POST" && !t.ownFetch ? platformXhr() : undefined;
+      if (options.onProgress && xhr) {
+        const headers = { ...(t.headers ? await t.headers() : {}), accept: "application/json" };
+        const res = await sendWithProgress(
+          xhr,
+          t.base + path,
+          { headers, body: form, credentials: t.credentials, signal: options.signal },
+          options.onProgress,
+        );
+        return parseResponse<T>(res);
+      }
       const res = await t.fetch(t.base + path, {
         method,
         headers: { ...(t.headers ? await t.headers() : {}), accept: "application/json" },

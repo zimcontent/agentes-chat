@@ -11,6 +11,7 @@ import {
   shiftDay,
 } from "./approval-portal-watch";
 import { openPersonAgentDm } from "./dms";
+import { queueEditorFinals, taskReviewOf } from "./editor-delivery";
 import { publishMessageCreated } from "./events";
 import { projectByName } from "./issue-projects";
 import {
@@ -24,6 +25,7 @@ import {
 } from "./issues";
 import { insertMessage, messageView, postPersonMessage } from "./messages";
 import { notifyMessage } from "./notification-producers";
+import { bringClientNotes } from "./review-rounds";
 import { rightHandId } from "./right-hand";
 
 const { agents, channels, issues, organizationMembers, organizations, users } = schema;
@@ -625,13 +627,21 @@ const NOTICES: Record<NoticeLocale, Partial<Record<PortalColumn, (title: string)
  */
 const VERSION_NOTICES: Record<
   NoticeLocale,
-  { up: (title: string) => string; more: (title: string) => string; yours: string; at: (link: string) => string }
+  {
+    up: (title: string) => string;
+    more: (title: string) => string;
+    yours: string;
+    /** For a post whose video an editor sends from the task (doug-0012): the task takes the new version. */
+    yoursHere: string;
+    at: (link: string) => string;
+  }
 > = {
   "pt-BR": {
     up: (t) => `A nova versão de "${t}" já está no portal, pronta para o cliente aprovar.`,
     more: (t) =>
       `O cliente pediu mais um ajuste em "${t}", antes de a nova versão subir. O pedido está no cartão do Portal.`,
     yours: "Quando terminar, suba a nova versão direto no portal.",
+    yoursHere: "Quando terminar, mande a nova versão aqui na tarefa, em Enviar vídeo: ela vai direto para o cliente.",
     at: (link) => `Abrir no portal: ${link}`,
   },
   en: {
@@ -639,6 +649,8 @@ const VERSION_NOTICES: Record<
     more: (t) =>
       `The client asked for one more change on "${t}", before the new version went up. The request is on the card in the Portal.`,
     yours: "When it is done, put the new version up at the portal itself.",
+    yoursHere:
+      "When it is done, send the new version here on the task, with Send video: it goes straight to the client.",
     at: (link) => `Open at the portal: ${link}`,
   },
 };
@@ -762,12 +774,13 @@ export async function announcePortalStages(deps: PortalTaskDeps, orgId: string, 
         // goes: the portal itself takes it from them.
         const to = change.to === "adjusting" && change.assignee?.type === "person" ? change.assignee.id : null;
         const name = to ? await mentionOf(db, orgId, to) : "";
+        const here = to ? Boolean(await taskReviewOf(db, orgId, change.issueId)) : false;
         const said = await commentIssue(
           { db, pubsub },
           who.script,
           orgId,
           change.issueId,
-          `${name}${line}${to ? ` ${words.yours}` : ""}${at}`,
+          `${name}${line}${to ? ` ${here ? words.yoursHere : words.yours}` : ""}${at}`,
         );
         await notifyMessage({ db, pubsub }, orgId, said.id).catch(() => {});
         const group = redone || GROUP_STAGES.includes(change.to) ? await clientChannel(db, orgId, change.client) : null;
@@ -952,6 +965,21 @@ export function portalTasksTick(deps: PortalTaskDeps, portal: ApprovalPortal): P
     if (!orgId) return null;
     const result = await syncPortalTasks(deps, portal, orgId);
     await announcePortalStages(deps, orgId, result.changes);
+    // What the client wrote at the portal on an editor's post comes into its review, at the second they marked.
+    await portal
+      .items()
+      .then((items) => bringClientNotes(deps.db, orgId, items))
+      .catch((error: unknown) =>
+        deps.log?.warn("approval portal: the client's notes could not be brought to the reviews", {
+          error: error instanceof Error ? error.message : String(error),
+        }),
+      );
+    // A post the client approved: an editor's original is kept as the final and backed up (doug-0012).
+    await queueEditorFinals(deps.db, orgId).catch((error: unknown) =>
+      deps.log?.warn("approval portal: the finals of approved posts could not be queued", {
+        error: error instanceof Error ? error.message : String(error),
+      }),
+    );
     await watchPortalDates(deps, orgId).catch((error: unknown) =>
       deps.log?.warn("approval portal: the posts' days could not be watched", {
         error: error instanceof Error ? error.message : String(error),

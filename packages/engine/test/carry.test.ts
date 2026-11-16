@@ -11,6 +11,7 @@ import {
   connectorGrantValidator,
   createApiKeyConnection,
   createOrganization,
+  decryptCredential,
   enabledSkills,
   ForbiddenError,
   listAgentScopes,
@@ -287,5 +288,41 @@ describe("bringing an agent", () => {
     expect(again.agents).toEqual([]);
     expect(again.skipped).toEqual([{ kind: "agent", id: f.agent.id, label: f.agent.name, reason: "here" }]);
     expect(await live(f, second.id)).toHaveLength(1);
+  });
+});
+
+describe("AI keys (ADR 9002 addendum 2026-11-16)", () => {
+  test("the owner brings a workspace's AI key: a copy sealed for the other workspace, listed by its ending, never twice", async () => {
+    f = await setup();
+    const second = await otherWorkspace(f, f.owner.id);
+    const deps: CarryDeps = { ...depsOf(f), credentials: { keyWrapper: f.keyWrapper } };
+    const [source] = await carrySources(f.db, f.owner.id, second.id);
+    const key = source?.keys.find((k) => k.id === f.credential.id);
+    expect(key).toMatchObject({ provider: "anthropic", here: false });
+    expect(JSON.stringify(source)).not.toContain("sk-ant-test-key");
+
+    const out = await carryOver(deps, f.owner.id, second.id, { credentialIds: [f.credential.id] });
+    expect(out.keys.map((k) => k.outcome)).toEqual(["brought"]);
+    const copy = await decryptCredential(f.db, [f.keyWrapper], second.id, out.keys[0]?.id ?? "");
+    expect(copy).toMatchObject({ provider: "anthropic", apiKey: "sk-ant-test-key-1234" });
+
+    // Brought once: the next time it is here already.
+    const [after] = await carrySources(f.db, f.owner.id, second.id);
+    expect(after?.keys.find((k) => k.id === f.credential.id)?.here).toBe(true);
+    const again = await carryOver(deps, f.owner.id, second.id, { credentialIds: [f.credential.id] });
+    expect(again.keys.map((k) => k.outcome)).toEqual(["here"]);
+  });
+
+  test("someone who doesn't manage keys where it comes from neither sees nor brings them", async () => {
+    f = await setup();
+    const bia = await addMember(f.db, f.org.id, "member", "bia");
+    const theirs = await otherWorkspace(f, bia.id, "Bia's");
+    const sources = await carrySources(f.db, bia.id, theirs.id);
+    expect(sources.flatMap((s) => s.keys)).toEqual([]);
+    const out = await carryOver({ ...depsOf(f), credentials: { keyWrapper: f.keyWrapper } }, bia.id, theirs.id, {
+      credentialIds: [f.credential.id],
+    });
+    expect(out.keys).toEqual([]);
+    expect(out.skipped.map((s) => [s.kind, s.reason])).toEqual([["key", "not_yours"]]);
   });
 });

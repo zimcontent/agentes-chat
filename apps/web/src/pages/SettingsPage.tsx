@@ -87,6 +87,7 @@ import { EndpointForm } from "@/components/ai/EndpointForm";
 import { WhoPicksSection } from "@/components/ai/Jev";
 import { StandInOrderCard } from "@/components/ai/StandInOrder";
 import { BillingLinkButton } from "@/components/BillingLinkButton";
+import { BringOver } from "@/components/BringOver";
 import { ConnectorsSection } from "@/components/Connectors";
 import { DeleteWorkspaceDialog } from "@/components/DeleteWorkspace";
 import type { ConnectStart } from "@/components/devices/ConnectDialog";
@@ -842,9 +843,13 @@ function KeysSection() {
         action={
           !noKeys &&
           !hold && (
-            <Button size="sm" icon="plus" onClick={() => setDialog({ type: "add" })}>
-              {t("settings.addKey")}
-            </Button>
+            <div className="bring-over__acts">
+              {/* A key of another workspace of theirs comes over sealed again for this one (ADR 9002). */}
+              <BringOver orgId={org.id} allowed size="sm" />
+              <Button size="sm" icon="plus" onClick={() => setDialog({ type: "add" })}>
+                {t("settings.addKey")}
+              </Button>
+            </div>
           )
         }
       />
@@ -857,9 +862,12 @@ function KeysSection() {
           agent={look}
           title={t("settings.noKeysTitle")}
           actions={
-            <Button variant="primary" icon="plus" onClick={() => setDialog({ type: "add" })}>
-              {t("settings.addKey")}
-            </Button>
+            <>
+              <BringOver orgId={org.id} allowed />
+              <Button variant="primary" icon="plus" onClick={() => setDialog({ type: "add" })}>
+                {t("settings.addKey")}
+              </Button>
+            </>
           }
         >
           {t("settings.noKeys")}

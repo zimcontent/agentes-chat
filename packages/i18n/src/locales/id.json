@@ -4773,10 +4773,54 @@
       "mission": "Misi · {{done}} dari {{total}}"
     },
     "done": {
-      "title": "Sejak terakhir kamu di sini"
+      "title": "Sejak terakhir kamu di sini",
+      "none": "Tidak ada yang baru sejak kunjungan terakhirmu."
+    },
+    "customize": {
+      "button": "Sesuaikan",
+      "title": "Yang ditampilkan Beranda",
+      "sections": {
+        "team": "Agenda tim",
+        "tasks": "Tugasmu",
+        "board": "Menunggumu dan Sedang bekerja",
+        "since": "Sejak kunjungan terakhirmu",
+        "routines": "Akan datang"
+      }
     },
     "routines": {
       "title": "Akan datang"
+    },
+    "agenda": {
+      "title": "Agenda tim",
+      "who": "Agenda siapa",
+      "everyone": "Semua",
+      "pickDay": "Hari apa",
+      "thisWeek": "Minggu ini",
+      "wholeWeek": "Seminggu penuh",
+      "todayChip": "Hari ini",
+      "tomorrowChip": "Besok",
+      "prevWeek": "Minggu sebelumnya",
+      "nextWeek": "Minggu berikutnya",
+      "noneDay": "Tidak ada tenggat hari itu.",
+      "noneWeek": "Tidak ada tenggat minggu itu.",
+      "now": "Sekarang",
+      "late": "Terlambat",
+      "today": "Hari ini · {{day}}",
+      "tomorrow": "Besok · {{day}}",
+      "wasDue": "Tenggat {{when}}",
+      "due": "Tenggat {{when}}",
+      "todayShort": "hari ini",
+      "tomorrowShort": "besok",
+      "nowCount_other": "{{count}} sekarang",
+      "lateCount_other": "{{count}} terlambat",
+      "todayCount_other": "{{count}} hari ini",
+      "total_other": "{{count}} tugas",
+      "high": "Tinggi",
+      "blocked": "Terhambat",
+      "status": {
+        "in_progress": "Sedang dikerjakan",
+        "in_review": "Sedang ditinjau"
+      }
     },
     "mission": "<b>{{name}}</b> membutuhkanmu dalam misi",
     "seeAll": "Lihat semua",
@@ -12227,6 +12271,7 @@
     "text": "Yang kamu hubungkan di ruang kerja lain datang siap pakai, tanpa perlu masuk lagi.",
     "none": "Belum ada yang bisa dibawa. Yang kamu hubungkan di satu ruang kerja muncul di sini di ruang kerja lainnya.",
     "connections": "Koneksi",
+    "keys": "Kunci AI",
     "with": "Datang dengan {{names}}",
     "here": "Sudah ada di sini",
     "needsReconnect": "Perlu dihubungkan ulang",

@@ -77,3 +77,14 @@ token, the first to renew would spend it, and the other would be refused and ask
 - A renewal that fails between the provider's answer and the write leaves every connection of that sign-in with a
   spent refresh token, as it already left one.
 - The phone app has no screen for this yet: it reads what was brought like anything else connected.
+
+## Addendum 2026-11-16: AI provider keys
+
+An AI provider key comes too, so a key added in one workspace is not typed again in the next (a cheap model a
+ronda thinks with, ADR 9004 §5, is the case that asked for it). Who manages keys in the workspace it comes from
+(`manage_credentials`; the owner always) brings it into one where they manage keys too. It is a copy of its own:
+opened with the source's seal and sealed again for the new workspace by `createCredential`, which checks it as any new
+key (an endpoint's address and models come with it). Listed by provider, name and last characters, never the key; one
+the workspace already has (same provider, same ending, same endpoint address) shows "here" and is not copied twice.
+The audit log records `credential.carried` with where it came from. The dialog shows them under "Chaves de IA", and
+the button is also on the AI keys card (Settings › AI).

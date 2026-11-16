@@ -2,7 +2,9 @@ import {
   type Adapters,
   type BrainTurnRequest,
   createFfmpegLightCopy,
+  createFfmpegVideoCopies,
   createGarageStorageHost,
+  createGoogleDriveBackup,
   type ErrorReporter,
   type S3Fetch,
   type SpeechFetch,
@@ -339,6 +341,22 @@ export function buildEngine(o: EngineOptions) {
     // A light copy of every version for phones, where ffmpeg is installed (the image has it).
     lightCopy: createFfmpegLightCopy(),
     portal: adapters.approvalPortal ?? null,
+    // Where a person is told of the changes asked of them: the workspace's WhatsApp numbers (doug-0012 §11).
+    whatsapp: adapters.whatsapp ? { db, gateway: adapters.whatsapp, keyWrappers } : null,
+    // An editor's master is copied from disk; its approved final gets a backup copy when one is set (doug-0012).
+    videoCopies: createFfmpegVideoCopies(),
+    backup:
+      config.BACKUP_GOOGLE_DRIVE_FOLDER_ID &&
+      config.BACKUP_GOOGLE_DRIVE_CLIENT_ID &&
+      config.BACKUP_GOOGLE_DRIVE_CLIENT_SECRET &&
+      config.BACKUP_GOOGLE_DRIVE_REFRESH_TOKEN
+        ? createGoogleDriveBackup({
+            folderId: config.BACKUP_GOOGLE_DRIVE_FOLDER_ID,
+            clientId: config.BACKUP_GOOGLE_DRIVE_CLIENT_ID,
+            clientSecret: config.BACKUP_GOOGLE_DRIVE_CLIENT_SECRET,
+            refreshToken: config.BACKUP_GOOGLE_DRIVE_REFRESH_TOKEN,
+          })
+        : null,
   };
   // Agents' computers (ADR 0025): connected machines, through the hub that holds their sockets.
   const machineHub = createMachineHub({

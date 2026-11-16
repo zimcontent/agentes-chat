@@ -316,20 +316,30 @@ describe("Início", () => {
     expect(document.querySelector(".home-continue")).toBeNull();
   });
 
-  test("asking an agent sends the message in its DM, which opens with it", async () => {
+  test("no box to ask an agent; Personalizar hides a section for good, on every device", async () => {
     const state = seedState();
-    const { router } = await renderApp(`/org/${ORG_ID}/home`, { api: backend(state) });
+    await renderApp(`/org/${ORG_ID}/home`, { api: backend(state) });
     await settle(4);
-    const ask = screen().getByRole("region", { name: "Peça a um agente" });
-    await pick(within(ask).getByRole("combobox", { name: "Agente" }), "Atlas");
-    const box = within(ask).getByRole("textbox", { name: "Mensagem para o Atlas" });
-    await act(async () => fireEvent.change(box, { target: { value: "Resume a semana" } }));
-    await act(async () => fireEvent.keyDown(box, { key: "Enter" }));
-    await settle(4);
-    expect(state.calls.find((c) => c.method === "dms.open")?.args).toEqual([ORG_ID, { agentId: ATLAS_ID }]);
-    const post = state.calls.find((c) => c.method === "chat.post");
-    expect(post?.args[2]).toMatchObject({ body: "Resume a semana" });
-    expect(router.state.location.pathname).toBe(`/org/${ORG_ID}/dm/agent/${ATLAS_ID}`);
+    expect(screen().queryByRole("region", { name: "Peça a um agente" })).toBeNull();
+    expect(screen().getByRole("region", { name: "Esperando você" })).toBeTruthy();
+    const trigger = screen().getByRole("button", { name: "Personalizar" });
+    trigger.focus();
+    await act(async () => fireEvent.keyDown(trigger, { key: "Enter" }));
+    const menu = screen().getByRole("menu");
+    // Owners see the team's agenda among the sections; a server with no portal offers no "Suas tarefas".
+    expect(within(menu).getAllByRole("menuitemcheckbox").map((i) => i.textContent)).toEqual([
+      "Agenda da equipe",
+      "Esperando você e Trabalhando agora",
+      "Desde a sua última visita",
+      "Próximas rotinas",
+    ]);
+    await click(within(menu).getByRole("menuitemcheckbox", { name: "Esperando você e Trabalhando agora" }));
+    await settle(2);
+    expect(state.calls.find((c) => c.method === "orgs.setChatPrefs")?.args).toEqual([
+      ORG_ID,
+      { homeHidden: ["board"] },
+    ]);
+    expect(screen().queryByRole("region", { name: "Esperando você" })).toBeNull();
   });
 });
 
@@ -344,7 +354,7 @@ describe("what opens when the app starts", () => {
   test("Início by default, a chosen channel, or where I left off", async () => {
     let { router } = await opening(undefined);
     expect(router.state.location.pathname).toBe(`/org/${ORG_ID}/home`);
-    expect(screen().getByRole("region", { name: "Peça a um agente" })).toBeTruthy();
+    expect(screen().getByRole("button", { name: "Personalizar" })).toBeTruthy();
     cleanup();
 
     ({ router } = await opening({ page: "channel", channelId: ENG_ID }));

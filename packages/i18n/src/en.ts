@@ -5314,8 +5314,58 @@ export const en = {
       in: "#{{channel}}",
       mission: "Mission · {{done}} of {{total}}",
     },
-    done: { title: "Since you were last here" },
+    done: { title: "Since you were last here", none: "Nothing new since your last visit." },
+    /** "Personalizar": which of Home's sections the person sees. */
+    customize: {
+      button: "Customize",
+      title: "What Home shows",
+      sections: {
+        team: "Team agenda",
+        tasks: "Your tasks",
+        board: "Waiting on you and Working now",
+        since: "Since you were last here",
+        routines: "Coming up",
+      },
+    },
     routines: { title: "Coming up" },
+    /** Owners and admins: what each person and agent has to do today and in the next days, from tasks' due dates. */
+    agenda: {
+      title: "Team agenda",
+      who: "Whose agenda",
+      everyone: "Everyone",
+      /** The day strip: the whole week shown (this one, or one ahead), then each day. */
+      pickDay: "Which day",
+      thisWeek: "This week",
+      wholeWeek: "Whole week",
+      todayChip: "Today",
+      tomorrowChip: "Tomorrow",
+      prevWeek: "Previous week",
+      nextWeek: "Next week",
+      noneDay: "Nothing due that day.",
+      noneWeek: "Nothing due that week.",
+      /** Tasks under way (in progress or in review), whatever their date. */
+      now: "Now",
+      late: "Late",
+      /** `day`: the weekday and the day of the month ("Monday 16"). */
+      today: "Today · {{day}}",
+      tomorrow: "Tomorrow · {{day}}",
+      wasDue: "Was due {{when}}",
+      /** A task under way: when it is due ("today", "tomorrow", "Friday 20"). */
+      due: "Due {{when}}",
+      todayShort: "today",
+      tomorrowShort: "tomorrow",
+      nowCount_one: "{{count}} now",
+      nowCount_other: "{{count}} now",
+      lateCount_one: "{{count}} late",
+      lateCount_other: "{{count}} late",
+      todayCount_one: "{{count}} today",
+      todayCount_other: "{{count}} today",
+      total_one: "{{count}} task",
+      total_other: "{{count}} tasks",
+      high: "High",
+      blocked: "Blocked",
+      status: { in_progress: "In progress", in_review: "In review" },
+    },
     mission: "<b>{{name}}</b> needs you in a mission",
     seeAll: "See all",
     action: { review: "Review", answer: "Answer", open: "Open" },
@@ -13101,6 +13151,7 @@ export const en = {
     text: "What you connected in another workspace comes ready, with no signing in again.",
     none: "Nothing to bring yet. What you connect in one workspace shows here in the others.",
     connections: "Connections",
+    keys: "AI keys",
     /** Under an agent's name: the connections that come with it. */
     with: "Comes with {{names}}",
     here: "Already here",
@@ -16823,6 +16874,7 @@ export const en = {
     removed: "Removed",
     change: {
       mergedWithoutAsking: "Merged in {{repo}} without asking",
+      portalApprovedForClient: "Approved “{{title}}” for the client at the portal",
       pattern: "{{verb}} {{area}}",
       approval: {
         approved: "Approved a request",
@@ -21199,6 +21251,16 @@ export const en = {
       past: "Choose a time that hasn't passed.",
       /** On an approved post that was released and waits for the publishing service to take it. */
       pending: "scheduling…",
+    },
+    /** An administrator approves a post in the client's place, when the client stopped answering (ADR 9001 §19). */
+    approveForClient: {
+      action: "Approve for the client",
+      title: "Approve for the client?",
+      text: "Only when the client stopped answering at the portal. The post turns Approved there as if the client had approved it, and what comes after approval runs.",
+      note: "Reason",
+      notePlaceholder: "The client approved it on WhatsApp",
+      confirm: "Approve",
+      done: "“{{title}}” approved for the client.",
     },
     form: {
       client: "Client",

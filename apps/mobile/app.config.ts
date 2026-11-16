@@ -278,6 +278,8 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       "@config-plugins/react-native-webrtc",
       { cameraPermission: CAMERA_USE, microphonePermission: MICROPHONE_USE },
     ],
+    // Its Java classes kept through R8 in release builds (optional codecs it refers to are missing).
+    "./plugins/with-webrtc-proguard",
     [
       // "Compartilhar com…": the app in the system's share sheet (an iOS share extension and Android's send intents),
       // for photos, videos, files, links and text; what arrives opens the agent picker (src/features/share). The

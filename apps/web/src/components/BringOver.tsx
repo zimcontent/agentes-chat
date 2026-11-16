@@ -2,6 +2,7 @@ import type { CarrySource, CarrySourceConnection, ConnectorDef } from "@agentesc
 import { useCarry, useCarrySources, useCatalog } from "@agenteschat/client";
 import { sameServer } from "@agenteschat/client/lib/custom-tools";
 import { joinNames } from "@agenteschat/client/lib/format";
+import { providerLabel } from "@agenteschat/client/lib/providers";
 import {
   Button,
   type ButtonProps,
@@ -12,6 +13,7 @@ import {
   DialogFooter,
   GroupHeading,
   Locked,
+  ProviderLogo,
 } from "@agenteschat/ui";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -42,7 +44,10 @@ export function BringOver({
   const [open, setOpen] = useState(false);
   // Something that can still come: a workspace whose every item is here already has nothing to ask about.
   const fresh = (sources.data ?? []).some(
-    (s) => s.agents.some((a) => !a.here) || s.connections.some((c) => !c.here && !c.blocked),
+    (s) =>
+      s.agents.some((a) => !a.here) ||
+      s.connections.some((c) => !c.here && !c.blocked) ||
+      (s.keys ?? []).some((k) => !k.here),
   );
   useEffect(() => {
     if (!ask || !allowed || !fresh) return;
@@ -78,6 +83,7 @@ function BringOverDialog({ orgId, sources, onClose }: { orgId: string; sources: 
   const carry = useCarry(orgId);
   const [agents, setAgents] = useState<ReadonlySet<string>>(new Set());
   const [connections, setConnections] = useState<ReadonlySet<string>>(new Set());
+  const [keys, setKeys] = useState<ReadonlySet<string>>(new Set());
   const toggle = (set: ReadonlySet<string>, id: string, on: boolean) => {
     const next = new Set(set);
     if (on) next.add(id);
@@ -88,7 +94,7 @@ function BringOverDialog({ orgId, sources, onClose }: { orgId: string; sources: 
   const along = new Set(
     sources.flatMap((s) => s.agents.filter((a) => agents.has(a.id)).flatMap((a) => a.connectionIds)),
   );
-  const count = agents.size + [...connections].filter((id) => !along.has(id)).length;
+  const count = agents.size + [...connections].filter((id) => !along.has(id)).length + keys.size;
   const defOf = (c: CarrySourceConnection): ConnectorDef | null =>
     catalog.data?.connectors.find((d) =>
       c.connector.startsWith("custom:")
@@ -97,10 +103,17 @@ function BringOverDialog({ orgId, sources, onClose }: { orgId: string; sources: 
     ) ?? null;
   const bring = () =>
     carry.mutate(
-      { agentIds: [...agents], connectionIds: [...connections] },
+      {
+        agentIds: [...agents],
+        connectionIds: [...connections],
+        ...(keys.size > 0 ? { credentialIds: [...keys] } : {}),
+      },
       {
         onSuccess: (out) => {
-          const came = out.agents.length + out.connections.filter((c) => c.outcome === "brought").length;
+          const came =
+            out.agents.length +
+            out.connections.filter((c) => c.outcome === "brought").length +
+            (out.keys ?? []).filter((k) => k.outcome === "brought").length;
           if (came > 0) toast.show(t("carry.done", { count: came }));
           if (out.skipped.length > 0) toast.show(t("carry.skipped", { count: out.skipped.length }), "error");
           if (came === 0 && out.skipped.length === 0) toast.show(t("carry.nothingNew"));
@@ -184,6 +197,30 @@ function BringOverDialog({ orgId, sources, onClose }: { orgId: string; sources: 
                           ) : c.blocked === "github_app" ? (
                             <Chip>{t("carry.githubApp")}</Chip>
                           ) : null}
+                        </span>
+                      </label>
+                    );
+                  })}
+                </div>
+              )}
+              {(source.keys ?? []).length > 0 && (
+                <div className="bring-over__list">
+                  <h4 className="ac-eyebrow">{t("carry.keys")}</h4>
+                  {(source.keys ?? []).map((k) => {
+                    const id = `bring-k-${k.id}`;
+                    return (
+                      <label key={k.id} htmlFor={id} className="scope-row" data-off={k.here ? "" : undefined}>
+                        <Checkbox
+                          id={id}
+                          checked={keys.has(k.id)}
+                          disabled={k.here}
+                          onCheckedChange={(on) => setKeys(toggle(keys, k.id, on))}
+                        />
+                        <ProviderLogo id={k.provider} size="sm" />
+                        <span className="scope-row__text">
+                          <span>{k.label}</span>
+                          <span className="small muted">{`${providerLabel(k.provider)} · …${k.hint}`}</span>
+                          {k.here && <Chip>{t("carry.here")}</Chip>}
                         </span>
                       </label>
                     );

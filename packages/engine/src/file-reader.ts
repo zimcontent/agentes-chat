@@ -340,3 +340,6 @@ export const transcriptKey = (blobKey: string) => `${blobKey}.transcript.txt`;
 
 /** Where a video's light copy for phones is kept, beside its bytes (docs/adr/doug-0007-video-review.md). */
 export const lightKey = (blobKey: string) => `${blobKey}.light.mp4`;
+
+/** Where an editor's video's post copy is kept, beside its bytes (docs/adr/doug-0012-editor-delivery.md). */
+export const postKey = (blobKey: string) => `${blobKey}.post.mp4`;

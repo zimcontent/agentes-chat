@@ -5069,10 +5069,62 @@
       "mission": "Missione · {{done}} di {{total}}"
     },
     "done": {
-      "title": "Dall'ultima volta che sei passato"
+      "title": "Dall'ultima volta che sei passato",
+      "none": "Niente di nuovo dalla tua ultima visita."
+    },
+    "customize": {
+      "button": "Personalizza",
+      "title": "Cosa mostra la Home",
+      "sections": {
+        "team": "Agenda del team",
+        "tasks": "Le tue attività",
+        "board": "Ti aspetta e Al lavoro ora",
+        "since": "Dalla tua ultima visita",
+        "routines": "Prossimamente"
+      }
     },
     "routines": {
       "title": "In arrivo"
+    },
+    "agenda": {
+      "title": "Agenda del team",
+      "who": "Agenda di chi",
+      "everyone": "Tutti",
+      "pickDay": "Quale giorno",
+      "thisWeek": "Questa settimana",
+      "wholeWeek": "Tutta la settimana",
+      "todayChip": "Oggi",
+      "tomorrowChip": "Domani",
+      "prevWeek": "Settimana precedente",
+      "nextWeek": "Settimana successiva",
+      "noneDay": "Niente in scadenza quel giorno.",
+      "noneWeek": "Niente in scadenza quella settimana.",
+      "now": "Adesso",
+      "late": "In ritardo",
+      "today": "Oggi · {{day}}",
+      "tomorrow": "Domani · {{day}}",
+      "wasDue": "Era per il {{when}}",
+      "due": "Scadenza {{when}}",
+      "todayShort": "oggi",
+      "tomorrowShort": "domani",
+      "nowCount_one": "{{count}} adesso",
+      "nowCount_many": "{{count}} adesso",
+      "nowCount_other": "{{count}} adesso",
+      "lateCount_one": "{{count}} in ritardo",
+      "lateCount_many": "{{count}} in ritardo",
+      "lateCount_other": "{{count}} in ritardo",
+      "todayCount_one": "{{count}} oggi",
+      "todayCount_many": "{{count}} oggi",
+      "todayCount_other": "{{count}} oggi",
+      "total_one": "{{count}} attività",
+      "total_many": "{{count}} attività",
+      "total_other": "{{count}} attività",
+      "high": "Alta",
+      "blocked": "Bloccata",
+      "status": {
+        "in_progress": "In corso",
+        "in_review": "In revisione"
+      }
     },
     "mission": "<b>{{name}}</b> ha bisogno di te in una missione",
     "seeAll": "Vedi tutto",
@@ -13152,6 +13204,7 @@
     "text": "Quello che hai collegato in un altro spazio di lavoro arriva pronto, senza accedere di nuovo.",
     "none": "Ancora niente da portare. Quello che colleghi in uno spazio di lavoro compare qui negli altri.",
     "connections": "Collegamenti",
+    "keys": "Chiavi IA",
     "with": "Arriva con {{names}}",
     "here": "Già qui",
     "needsReconnect": "Da ricollegare",

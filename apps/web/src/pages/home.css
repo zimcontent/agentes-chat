@@ -14,13 +14,6 @@
   color: var(--muted);
 }
 
-.home-ask__agent {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  min-width: 0;
-}
-
 .home-sec {
   display: flex;
   flex-direction: column;
@@ -199,4 +192,68 @@ html:not([data-pointer]) :is(a, button).home-row:focus-visible {
 }
 html:not([data-pointer]) .home-continue:focus-visible {
   box-shadow: var(--field-ring);
+}
+
+/* The team's agenda (owners and admins): one card per person, their late tasks and each day's under their name. */
+.team-agenda__people {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 360px), 1fr));
+  align-items: start;
+  gap: var(--space-3);
+}
+.team-agenda__person {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.team-agenda__who {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1) var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--line2);
+}
+.team-agenda__name {
+  font-weight: 650;
+  overflow-wrap: anywhere;
+}
+.team-agenda__sum {
+  margin-left: auto;
+  font-size: 12.5px;
+  color: var(--muted);
+}
+/* What each one is doing now leads their card, in the colour of work under way. */
+.team-agenda .home-tasks__group[data-group="now"] > .home-tasks__name {
+  color: var(--ok);
+}
+/* "Personalizar" and "Ao abrir o app", side by side at the header's end. */
+.home-head__acts {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-2) var(--space-4);
+}
+/* "Desde sua última visita" with nothing new: one quiet line in its card. */
+.home-list__none {
+  padding: var(--row-py) var(--space-4);
+  color: var(--muted);
+}
+/* The agenda's days: the week's arrows around a strip of its days, the strip scrolling sideways on a phone. */
+.team-agenda__days {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-3);
+  min-width: 0;
+}
+.team-agenda__strip {
+  flex: 0 1 auto;
+  min-width: 0;
+}
+.team-agenda__none {
+  margin: 0;
+  padding: var(--space-4);
+  color: var(--muted);
 }

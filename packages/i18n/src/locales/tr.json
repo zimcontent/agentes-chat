@@ -4911,10 +4911,58 @@
       "mission": "Misyon · {{done}}/{{total}}"
     },
     "done": {
-      "title": "Son ziyaretinizden beri"
+      "title": "Son ziyaretinizden beri",
+      "none": "Son ziyaretinden beri yeni bir şey yok."
+    },
+    "customize": {
+      "button": "Özelleştir",
+      "title": "Ana sayfada ne görünsün",
+      "sections": {
+        "team": "Ekip ajandası",
+        "tasks": "Görevlerin",
+        "board": "Seni bekleyenler ve Şu an çalışanlar",
+        "since": "Son ziyaretinden beri",
+        "routines": "Yaklaşanlar"
+      }
     },
     "routines": {
       "title": "Yaklaşanlar"
+    },
+    "agenda": {
+      "title": "Ekip ajandası",
+      "who": "Kimin ajandası",
+      "everyone": "Herkes",
+      "pickDay": "Hangi gün",
+      "thisWeek": "Bu hafta",
+      "wholeWeek": "Tüm hafta",
+      "todayChip": "Bugün",
+      "tomorrowChip": "Yarın",
+      "prevWeek": "Önceki hafta",
+      "nextWeek": "Sonraki hafta",
+      "noneDay": "O gün için bir şey yok.",
+      "noneWeek": "O hafta için bir şey yok.",
+      "now": "Şimdi",
+      "late": "Geciken",
+      "today": "Bugün · {{day}}",
+      "tomorrow": "Yarın · {{day}}",
+      "wasDue": "Son gün {{when}}",
+      "due": "Son gün {{when}}",
+      "todayShort": "bugün",
+      "tomorrowShort": "yarın",
+      "nowCount_one": "Şimdi {{count}}",
+      "nowCount_other": "Şimdi {{count}}",
+      "lateCount_one": "{{count}} geciken",
+      "lateCount_other": "{{count}} geciken",
+      "todayCount_one": "Bugün {{count}}",
+      "todayCount_other": "Bugün {{count}}",
+      "total_one": "{{count}} görev",
+      "total_other": "{{count}} görev",
+      "high": "Yüksek",
+      "blocked": "Takıldı",
+      "status": {
+        "in_progress": "Devam ediyor",
+        "in_review": "İncelemede"
+      }
     },
     "mission": "<b>{{name}}</b> bir misyonda size ihtiyaç duyuyor",
     "seeAll": "Tümünü gör",
@@ -12611,6 +12659,7 @@
     "text": "Başka bir çalışma alanında bağladıklarınız, yeniden giriş yapmadan hazır gelir.",
     "none": "Henüz getirilecek bir şey yok. Bir çalışma alanında bağladıklarınız diğerlerinde burada görünür.",
     "connections": "Bağlantılar",
+    "keys": "Yapay zekâ anahtarları",
     "with": "{{names}} ile gelir",
     "here": "Zaten burada",
     "needsReconnect": "Yeniden bağlanması gerekiyor",

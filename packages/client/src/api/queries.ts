@@ -2464,7 +2464,8 @@ export function useCarry(orgId: string) {
   const api = useApi();
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (input: { connectionIds?: string[]; agentIds?: string[] }) => api.carry.bring(orgId, input),
+    mutationFn: (input: { connectionIds?: string[]; agentIds?: string[]; credentialIds?: string[] }) =>
+      api.carry.bring(orgId, input),
     onSuccess: () =>
       Promise.all([
         qc.invalidateQueries({ queryKey: keys.carrySources(orgId) }),
@@ -2473,6 +2474,7 @@ export function useCarry(orgId: string) {
         qc.invalidateQueries({ queryKey: keys.access(orgId) }),
         qc.invalidateQueries({ queryKey: keys.agents(orgId) }),
         qc.invalidateQueries({ queryKey: keys.skills(orgId) }),
+        qc.invalidateQueries({ queryKey: keys.credentials(orgId) }),
       ]),
     meta: { silent: true },
   });
@@ -4444,6 +4446,23 @@ export const useIssues = (orgId: string, q = "", project = "") => {
     placeholderData: (prev) => prev,
     // While an agent works on an issue its steps change without an event: look again every 10 s.
     refetchInterval: (query) => (query.state.data?.some((i) => i.work && i.work.state !== "stalled") ? 10_000 : false),
+  });
+};
+
+/**
+ * The team's agenda on Home (owners and admins): every open, assigned task due from `from` (the person's today)
+ * through `days`, and the late ones. Changes to tasks refresh it with the task list (same key root); asked again
+ * every 5 minutes too, so a day that turns shows.
+ */
+export const useTeamAgenda = (orgId: string, from: string, days: number, enabled = true) => {
+  const api = useApi();
+  const agenda = api.issues.agenda;
+  return useQuery({
+    enabled: enabled && !!agenda,
+    queryKey: keys.teamAgenda(orgId, from, days),
+    queryFn: () => (agenda ? agenda(orgId, { from, days }) : Promise.reject(new Error("no agenda"))),
+    placeholderData: (prev) => prev,
+    refetchInterval: 5 * 60_000,
   });
 };
 
@@ -7400,6 +7419,18 @@ export function useSchedulePortalItem(orgId: string) {
   return useMutation({
     mutationFn: (input: { client: string; itemId: string; scheduledFor: string }) =>
       portalOf(api).schedule(orgId, input.client, input.itemId, input.scheduledFor),
+    meta: { silent: true },
+    onSettled: () => refreshPortal(qc, orgId),
+  });
+}
+
+/** An administrator approves a post in the client's place (ADR 9001 §19): the board is read again, where it shows in Approved. */
+export function useApproveForClient(orgId: string) {
+  const api = useApi();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (input: { client: string; itemId: string; note?: string }) =>
+      portalOf(api).approveForClient(orgId, input.client, input.itemId, input.note),
     meta: { silent: true },
     onSettled: () => refreshPortal(qc, orgId),
   });

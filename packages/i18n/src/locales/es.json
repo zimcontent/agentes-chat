@@ -5063,10 +5063,62 @@
       "mission": "Misión · {{done}} de {{total}}"
     },
     "done": {
-      "title": "Desde tu última visita"
+      "title": "Desde tu última visita",
+      "none": "Nada nuevo desde tu última visita."
+    },
+    "customize": {
+      "button": "Personalizar",
+      "title": "Qué muestra Inicio",
+      "sections": {
+        "team": "Agenda del equipo",
+        "tasks": "Tus tareas",
+        "board": "Esperándote y Trabajando ahora",
+        "since": "Desde tu última visita",
+        "routines": "Próximamente"
+      }
     },
     "routines": {
       "title": "Próximas rutinas"
+    },
+    "agenda": {
+      "title": "Agenda del equipo",
+      "who": "Agenda de quién",
+      "everyone": "Todos",
+      "pickDay": "Qué día",
+      "thisWeek": "Esta semana",
+      "wholeWeek": "Semana entera",
+      "todayChip": "Hoy",
+      "tomorrowChip": "Mañana",
+      "prevWeek": "Semana anterior",
+      "nextWeek": "Semana siguiente",
+      "noneDay": "Nada para ese día.",
+      "noneWeek": "Nada para esa semana.",
+      "now": "Ahora",
+      "late": "Atrasadas",
+      "today": "Hoy · {{day}}",
+      "tomorrow": "Mañana · {{day}}",
+      "wasDue": "Era para el {{when}}",
+      "due": "Entrega {{when}}",
+      "todayShort": "hoy",
+      "tomorrowShort": "mañana",
+      "nowCount_one": "{{count}} ahora",
+      "nowCount_many": "{{count}} ahora",
+      "nowCount_other": "{{count}} ahora",
+      "lateCount_one": "{{count}} atrasada",
+      "lateCount_many": "{{count}} atrasadas",
+      "lateCount_other": "{{count}} atrasadas",
+      "todayCount_one": "{{count}} hoy",
+      "todayCount_many": "{{count}} hoy",
+      "todayCount_other": "{{count}} hoy",
+      "total_one": "{{count}} tarea",
+      "total_many": "{{count}} tareas",
+      "total_other": "{{count}} tareas",
+      "high": "Alta",
+      "blocked": "Bloqueada",
+      "status": {
+        "in_progress": "En curso",
+        "in_review": "En revisión"
+      }
     },
     "mission": "<b>{{name}}</b> te necesita en una misión",
     "seeAll": "Ver todo",
@@ -13126,6 +13178,7 @@
     "text": "Lo que conectaste en otro espacio de trabajo llega listo, sin iniciar sesión de nuevo.",
     "none": "Aún no hay nada para traer. Lo que conectes en un espacio de trabajo aparece aquí en los demás.",
     "connections": "Conexiones",
+    "keys": "Claves de IA",
     "with": "Viene con {{names}}",
     "here": "Ya está aquí",
     "needsReconnect": "Hay que reconectar",

@@ -538,3 +538,16 @@
 .vr-note__words .vr-attach__list {
   margin-top: var(--space-1);
 }
+
+/* An editor's master whose light copy is still being made (docs/adr/doug-0012-editor-delivery.md). */
+.vr-preparing {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  margin: 0;
+  padding: var(--space-4);
+  background: rgb(0 0 0 / 0.6);
+  color: #fff;
+  text-align: center;
+}

@@ -4763,10 +4763,54 @@
       "mission": "专项任务 · {{done}} / {{total}}"
     },
     "done": {
-      "title": "自你上次来过之后"
+      "title": "自你上次来过之后",
+      "none": "自上次访问以来没有新内容。"
+    },
+    "customize": {
+      "button": "自定义",
+      "title": "主页显示的内容",
+      "sections": {
+        "team": "团队日程",
+        "tasks": "你的任务",
+        "board": "等你处理与正在工作",
+        "since": "自上次访问以来",
+        "routines": "即将到来"
+      }
     },
     "routines": {
       "title": "即将进行"
+    },
+    "agenda": {
+      "title": "团队日程",
+      "who": "谁的日程",
+      "everyone": "所有人",
+      "pickDay": "哪一天",
+      "thisWeek": "本周",
+      "wholeWeek": "整周",
+      "todayChip": "今天",
+      "tomorrowChip": "明天",
+      "prevWeek": "上一周",
+      "nextWeek": "下一周",
+      "noneDay": "那天没有安排。",
+      "noneWeek": "那周没有安排。",
+      "now": "现在",
+      "late": "已逾期",
+      "today": "今天 · {{day}}",
+      "tomorrow": "明天 · {{day}}",
+      "wasDue": "截止 {{when}}",
+      "due": "截止 {{when}}",
+      "todayShort": "今天",
+      "tomorrowShort": "明天",
+      "nowCount_other": "现在 {{count}} 项",
+      "lateCount_other": "{{count}} 项逾期",
+      "todayCount_other": "今天 {{count}} 项",
+      "total_other": "{{count}} 项任务",
+      "high": "高",
+      "blocked": "受阻",
+      "status": {
+        "in_progress": "进行中",
+        "in_review": "审核中"
+      }
     },
     "mission": "<b>{{name}}</b> 在一项专项任务中需要你",
     "seeAll": "查看全部",
@@ -12237,6 +12281,7 @@
     "text": "你在其他工作区连接的内容会直接带过来，无需重新登录。",
     "none": "暂时没有可带过来的内容。你在一个工作区连接的内容会显示在其他工作区的这里。",
     "connections": "连接",
+    "keys": "AI 密钥",
     "with": "附带 {{names}}",
     "here": "已在这里",
     "needsReconnect": "需要重新连接",

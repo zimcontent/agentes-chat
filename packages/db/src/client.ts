@@ -311,6 +311,48 @@ export const EXTRA_COLUMNS = [
     "updated_at" timestamp with time zone NOT NULL DEFAULT now(),
     PRIMARY KEY ("org_id", "client")
   )`,
+  // A person's video sent from a task, and the post around it (docs/adr/doug-0012-editor-delivery.md): who sent it,
+  // the task it delivers, the post's cover and caption, the final kept and backed up, and each version's post copy.
+  `ALTER TABLE "video_reviews" ADD COLUMN IF NOT EXISTS "sender_user_id" text`,
+  `ALTER TABLE "video_reviews" ADD COLUMN IF NOT EXISTS "task_id" uuid`,
+  `ALTER TABLE "video_reviews" ADD COLUMN IF NOT EXISTS "post" jsonb NOT NULL DEFAULT '{}'::jsonb`,
+  `ALTER TABLE "video_reviews" ADD COLUMN IF NOT EXISTS "final" jsonb`,
+  `CREATE INDEX IF NOT EXISTS "video_reviews_task_id_index" ON "video_reviews" ("task_id")`,
+  `ALTER TABLE "video_review_versions" ADD COLUMN IF NOT EXISTS "post_state" text NOT NULL DEFAULT ''`,
+  // Rounds of changes asked of a person, their log, the client's own notes and where each person is told
+  // (docs/adr/doug-0012-editor-delivery.md §10–§12).
+  `ALTER TABLE "video_reviews" ADD COLUMN IF NOT EXISTS "portal_versions" jsonb NOT NULL DEFAULT '{}'::jsonb`,
+  `ALTER TABLE "video_review_notes" ADD COLUMN IF NOT EXISTS "author_name" text`,
+  `ALTER TABLE "video_review_notes" ADD COLUMN IF NOT EXISTS "external_id" text`,
+  `ALTER TABLE "video_review_notes" ADD COLUMN IF NOT EXISTS "from_client" boolean NOT NULL DEFAULT false`,
+  `CREATE UNIQUE INDEX IF NOT EXISTS "video_review_notes_review_id_external_id_index" ON "video_review_notes" ("review_id", "external_id")`,
+  `CREATE TABLE IF NOT EXISTS "video_review_rounds" (
+    "id" uuid PRIMARY KEY,
+    "org_id" uuid NOT NULL REFERENCES "organizations"("id") ON DELETE CASCADE,
+    "review_id" uuid NOT NULL REFERENCES "video_reviews"("id") ON DELETE CASCADE,
+    "version" integer NOT NULL,
+    "for_user_id" text,
+    "asked_by_user_id" text,
+    "asked_by_name" text NOT NULL DEFAULT '',
+    "from_client" boolean NOT NULL DEFAULT false,
+    "notes" integer NOT NULL DEFAULT 0,
+    "asked_at" timestamp with time zone NOT NULL DEFAULT now(),
+    "notified" jsonb,
+    "seen_at" timestamp with time zone,
+    "answered_at" timestamp with time zone,
+    "answered_version" integer
+  )`,
+  `CREATE INDEX IF NOT EXISTS "video_review_rounds_review_id_index" ON "video_review_rounds" ("review_id", "asked_at")`,
+  `CREATE INDEX IF NOT EXISTS "video_review_rounds_org_id_for_user_id_index" ON "video_review_rounds" ("org_id", "for_user_id")`,
+  `CREATE TABLE IF NOT EXISTS "review_whatsapp" (
+    "org_id" uuid NOT NULL REFERENCES "organizations"("id") ON DELETE CASCADE,
+    "user_id" text NOT NULL,
+    "account_id" uuid NOT NULL,
+    "chat_id" uuid NOT NULL,
+    "updated_by" text,
+    "updated_at" timestamp with time zone NOT NULL DEFAULT now(),
+    PRIMARY KEY ("org_id", "user_id")
+  )`,
   // Media generation paid in credits (ADR doug-0011, `schema/media.ts`).
   `ALTER TABLE "agents" ADD COLUMN IF NOT EXISTS "media_monthly_credits" integer NOT NULL DEFAULT 5000`,
   `ALTER TABLE "agents" ADD COLUMN IF NOT EXISTS "media_ask_above" integer DEFAULT 500`,

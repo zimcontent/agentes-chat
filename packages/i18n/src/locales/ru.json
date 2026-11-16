@@ -5238,10 +5238,66 @@
       "mission": "Миссия · {{done}} из {{total}}"
     },
     "done": {
-      "title": "С вашего прошлого визита"
+      "title": "С вашего прошлого визита",
+      "none": "Ничего нового с прошлого визита."
+    },
+    "customize": {
+      "button": "Настроить",
+      "title": "Что показывает главная",
+      "sections": {
+        "team": "План команды",
+        "tasks": "Ваши задачи",
+        "board": "Ждёт вас и Сейчас в работе",
+        "since": "С прошлого визита",
+        "routines": "Скоро"
+      }
     },
     "routines": {
       "title": "Скоро"
+    },
+    "agenda": {
+      "title": "План команды",
+      "who": "Чей план",
+      "everyone": "Все",
+      "pickDay": "Какой день",
+      "thisWeek": "Эта неделя",
+      "wholeWeek": "Вся неделя",
+      "todayChip": "Сегодня",
+      "tomorrowChip": "Завтра",
+      "prevWeek": "Предыдущая неделя",
+      "nextWeek": "Следующая неделя",
+      "noneDay": "На этот день ничего нет.",
+      "noneWeek": "На эту неделю ничего нет.",
+      "now": "Сейчас",
+      "late": "Просрочено",
+      "today": "Сегодня · {{day}}",
+      "tomorrow": "Завтра · {{day}}",
+      "wasDue": "Срок был {{when}}",
+      "due": "Срок {{when}}",
+      "todayShort": "сегодня",
+      "tomorrowShort": "завтра",
+      "nowCount_one": "{{count}} сейчас",
+      "nowCount_few": "{{count}} сейчас",
+      "nowCount_many": "{{count}} сейчас",
+      "nowCount_other": "{{count}} сейчас",
+      "lateCount_one": "{{count}} просрочена",
+      "lateCount_few": "{{count}} просрочены",
+      "lateCount_many": "{{count}} просрочено",
+      "lateCount_other": "{{count}} просрочено",
+      "todayCount_one": "{{count}} сегодня",
+      "todayCount_few": "{{count}} сегодня",
+      "todayCount_many": "{{count}} сегодня",
+      "todayCount_other": "{{count}} сегодня",
+      "total_one": "{{count}} задача",
+      "total_few": "{{count}} задачи",
+      "total_many": "{{count}} задач",
+      "total_other": "{{count}} задачи",
+      "high": "Высокий",
+      "blocked": "Застряла",
+      "status": {
+        "in_progress": "В работе",
+        "in_review": "На проверке"
+      }
     },
     "mission": "<b>{{name}}</b> ждёт вас в миссии",
     "seeAll": "Показать все",
@@ -13563,6 +13619,7 @@
     "text": "То, что вы подключили в другом рабочем пространстве, приходит готовым, без повторного входа.",
     "none": "Пока нечего переносить. То, что вы подключите в одном рабочем пространстве, появится здесь в остальных.",
     "connections": "Подключения",
+    "keys": "Ключи ИИ",
     "with": "Вместе с: {{names}}",
     "here": "Уже здесь",
     "needsReconnect": "Нужно подключить заново",

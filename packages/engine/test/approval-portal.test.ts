@@ -2,6 +2,7 @@ import { describe, expect, test } from "bun:test";
 import { createFakeApprovalPortal, type PortalItem } from "@agenteschat/adapters";
 import {
   type ArtifactDeps,
+  approveForClient,
   createPortalToolSource,
   labelIdsByName,
   myPortalWork,
@@ -250,6 +251,46 @@ describe("sendNewVersion", () => {
     await expect(send()).rejects.toThrow("already with the client");
     expect(portal.versions).toHaveLength(1);
     expect(first.state).toBe("done");
+  });
+});
+
+describe("approveForClient", () => {
+  test("a post waiting on the client turns approved, and its card says who and why", async () => {
+    const post = item({ id: "up-4", status: "seen" });
+    const portal = createFakeApprovalPortal({ items: [post] });
+    const card = await portal.createCard("acme", { title: "Launch reel", type: "reel", item: post.id });
+    const approved = await approveForClient(portal, {
+      client: "acme",
+      item: "up-4",
+      note: "  Said yes on WhatsApp  ",
+      by: "user-1",
+      byName: "Gabriel",
+    });
+    expect(approved.status).toBe("approved");
+    expect(portal.edits).toEqual([{ client: "acme", item: "up-4", edit: { status: "approved" }, by: "user-1" }]);
+    expect(portalColumnOf(post)).toBe("approved");
+    const comments = (await portal.cards()).find((c) => c.id === card.id)?.comments ?? [];
+    expect(comments.map((c) => c.text)).toEqual([
+      "Aprovado pela equipe no lugar do cliente, por Gabriel. Motivo: Said yes on WhatsApp",
+    ]);
+  });
+
+  test("a new version with the client can be approved; anything else is refused and nothing changes", async () => {
+    const portal = createFakeApprovalPortal({
+      items: [
+        item({ id: "v2", status: "adjusted" }),
+        item({ id: "asked", status: "adjust_requested" }),
+        item({ id: "done", status: "approved" }),
+        item({ id: "out", status: "published" }),
+      ],
+    });
+    const approve = (id: string) => approveForClient(portal, { client: "acme", item: id, by: "u", byName: "Lê" });
+    expect((await approve("v2")).status).toBe("approved");
+    for (const id of ["asked", "done", "out"]) {
+      await expect(approve(id)).rejects.toThrow("Only a post waiting on the client's approval");
+    }
+    await expect(approve("nope")).rejects.toThrow("No post nope");
+    expect(portal.edits).toHaveLength(1);
   });
 });
 

@@ -4760,10 +4760,54 @@
       "mission": "ミッション · {{total}}件中{{done}}件"
     },
     "done": {
-      "title": "前回以降"
+      "title": "前回以降",
+      "none": "前回から新しいことはありません。"
+    },
+    "customize": {
+      "button": "カスタマイズ",
+      "title": "ホームに表示するもの",
+      "sections": {
+        "team": "チームの予定",
+        "tasks": "あなたのタスク",
+        "board": "あなた待ちと作業中",
+        "since": "前回の訪問以降",
+        "routines": "今後の予定"
+      }
     },
     "routines": {
       "title": "今後の予定"
+    },
+    "agenda": {
+      "title": "チームの予定",
+      "who": "誰の予定",
+      "everyone": "全員",
+      "pickDay": "日付",
+      "thisWeek": "今週",
+      "wholeWeek": "週全体",
+      "todayChip": "今日",
+      "tomorrowChip": "明日",
+      "prevWeek": "前の週",
+      "nextWeek": "次の週",
+      "noneDay": "その日の予定はありません。",
+      "noneWeek": "その週の予定はありません。",
+      "now": "今",
+      "late": "期限切れ",
+      "today": "今日 · {{day}}",
+      "tomorrow": "明日 · {{day}}",
+      "wasDue": "期限 {{when}}",
+      "due": "期限 {{when}}",
+      "todayShort": "今日",
+      "tomorrowShort": "明日",
+      "nowCount_other": "今 {{count}} 件",
+      "lateCount_other": "{{count}} 件期限切れ",
+      "todayCount_other": "今日 {{count}} 件",
+      "total_other": "{{count}} 件のタスク",
+      "high": "高",
+      "blocked": "停止中",
+      "status": {
+        "in_progress": "進行中",
+        "in_review": "レビュー中"
+      }
     },
     "mission": "<b>{{name}}</b>がミッションであなたを必要としています",
     "seeAll": "すべて見る",
@@ -12173,6 +12217,7 @@
     "text": "別のワークスペースで接続したものが、再ログインなしでそのまま使えます。",
     "none": "持ってこられるものはまだありません。ワークスペースで接続したものは、ほかのワークスペースのここに表示されます。",
     "connections": "接続",
+    "keys": "AIキー",
     "with": "{{names}}付き",
     "here": "すでにあります",
     "needsReconnect": "再接続が必要です",

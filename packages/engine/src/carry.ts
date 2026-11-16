@@ -1,4 +1,4 @@
-import type { PubSub } from "@agenteschat/adapters";
+import type { KeyWrapper, PubSub } from "@agenteschat/adapters";
 import { and, asc, type Database, eq, inArray, isNotNull, isNull, schema } from "@agenteschat/db";
 import { type Agent, createAgent, NEW_AGENT_DEFAULTS, takenHandles } from "./agents";
 import { recordAudit } from "./audit";
@@ -18,7 +18,9 @@ import {
 import { CUSTOM_PREFIX, isCustom } from "./connectors/custom";
 import { clientAad, serverKey } from "./connectors/oauth-mcp";
 import { serverUrlShown } from "./connectors/presets";
+import { createCredential, decryptCredential } from "./credentials";
 import { openSecret, sealSecret } from "./crypto";
+import type { EndpointNet } from "./endpoints";
 import { ConflictError, ForbiddenError, ValidationError } from "./errors";
 import { can, listMemberships, type Membership, requireChangePermission, requirePermission } from "./organizations";
 import { isRightHand } from "./right-hand";
@@ -45,10 +47,15 @@ const { connectorConnections, connectorSignIns, oauthClients, customTools, agent
   schema;
 
 /** How many of each one request brings. */
-export const CARRY_LIMITS = { connections: 50, agents: 20 };
+export const CARRY_LIMITS = { connections: 50, agents: 20, keys: 20 };
 
 export interface CarryDeps {
   connectors: ConnectorDeps;
+  /**
+   * AI provider keys (addendum 2026-11-16): the wrapper that seals the copy, and how its check reaches the provider
+   * or an endpoint. Absent: keys can't be brought here (`skipped` says so).
+   */
+  credentials?: { keyWrapper: KeyWrapper; fetch?: typeof fetch; net?: EndpointNet };
   /** Skills' storage, asked only when an agent's skills come along (a server without storage refuses those). */
   skills: () => SkillDeps;
   pubsub?: PubSub;
@@ -83,20 +90,52 @@ export interface CarrySourceAgent {
   here: boolean;
 }
 
+/** An AI provider key of another workspace: its provider, name and the last characters it shows, never the key. */
+export interface CarrySourceKey {
+  id: string;
+  provider: string;
+  label: string;
+  hint: string;
+  /** The workspace asking has a live key of this provider with the same last characters (or endpoint address). */
+  here: boolean;
+}
+
 export interface CarrySource {
   id: string;
   name: string;
   logo: string | null;
   connections: CarrySourceConnection[];
   agents: CarrySourceAgent[];
+  keys: CarrySourceKey[];
 }
 
 export interface CarryResult {
   connections: { sourceId: string; id: string; label: string; outcome: "brought" | "here" }[];
   agents: { sourceId: string; id: string; name: string; handle: string }[];
+  keys: { sourceId: string; id: string; label: string; outcome: "brought" | "here" }[];
   skills: number;
-  skipped: { kind: "connection" | "agent" | "skill"; id: string; label: string; reason: string }[];
+  skipped: { kind: "connection" | "agent" | "skill" | "key"; id: string; label: string; reason: string }[];
 }
+
+type KeyRow = typeof schema.providerCredentials.$inferSelect;
+
+const liveKeys = (db: Database, orgIds: string[]) =>
+  orgIds.length === 0
+    ? Promise.resolve([] as KeyRow[])
+    : db
+        .select()
+        .from(schema.providerCredentials)
+        .where(and(inArray(schema.providerCredentials.orgId, orgIds), isNull(schema.providerCredentials.revokedAt)))
+        .orderBy(asc(schema.providerCredentials.createdAt));
+
+const endpointOf = (k: KeyRow) => (k.options as { endpoint?: { baseURL?: string } } | null)?.endpoint?.baseURL ?? null;
+
+/** The live key of `target` that is `k` already: same provider and last characters (an endpoint: its address too). */
+const keyTwinOf = (target: KeyRow[], k: KeyRow) =>
+  target.find((t) => t.provider === k.provider && t.keyHint === k.keyHint && endpointOf(t) === endpointOf(k));
+
+/** Who brings a workspace's AI keys: who manages them there (the owner always does). */
+const mayBringKey = (m: Membership) => can(m, "manage_credentials");
 
 const blockOf = (c: ConnectorConnection): CarryBlock | null =>
   c.authType === GITHUB_APP_AUTH ? "github_app" : c.status === "needs_reconnect" ? "needs_reconnect" : null;
@@ -154,14 +193,18 @@ async function sourceMemberships(db: Database, userId: string, targetOrgId: stri
  */
 export async function carrySources(db: Database, userId: string, targetOrgId: string): Promise<CarrySource[]> {
   const membership = await requirePermission(db, userId, targetOrgId, "read");
-  if (!can(membership, "manage_connectors") && !can(membership, "create_agents")) throw new ForbiddenError();
+  const keysHere = can(membership, "manage_credentials");
+  if (!can(membership, "manage_connectors") && !can(membership, "create_agents") && !keysHere)
+    throw new ForbiddenError();
   const sources = await sourceMemberships(db, userId, targetOrgId);
   const orgIds = sources.map((m) => m.orgId);
-  const [connections, team, here, hereAgents] = await Promise.all([
+  const [connections, team, here, hereAgents, keys, hereKeys] = await Promise.all([
     liveConnections(db, orgIds),
     liveAgents(db, orgIds),
     liveConnections(db, [targetOrgId]),
     liveAgents(db, [targetOrgId]),
+    keysHere ? liveKeys(db, orgIds) : Promise.resolve([] as KeyRow[]),
+    keysHere ? liveKeys(db, [targetOrgId]) : Promise.resolve([] as KeyRow[]),
   ]);
   const agentIds = team.map((a) => a.id);
   const [grants, agentSkillRows] = await Promise.all([
@@ -218,9 +261,20 @@ export async function carrySources(db: Database, userId: string, targetOrgId: st
             ],
             here: handlesHere.has(a.handle),
           })),
+        keys: mayBringKey(m)
+          ? keys
+              .filter((k) => k.orgId === m.orgId)
+              .map((k) => ({
+                id: k.id,
+                provider: k.provider,
+                label: k.label,
+                hint: k.keyHint,
+                here: Boolean(keyTwinOf(hereKeys, k)),
+              }))
+          : [],
       };
     })
-    .filter((s) => s.connections.length > 0 || s.agents.length > 0);
+    .filter((s) => s.connections.length > 0 || s.agents.length > 0 || s.keys.length > 0);
 }
 
 /**
@@ -421,13 +475,19 @@ export async function carryOver(
   deps: CarryDeps,
   actorId: string,
   targetOrgId: string,
-  input: { connectionIds?: string[]; agentIds?: string[] },
+  input: { connectionIds?: string[]; agentIds?: string[]; credentialIds?: string[] },
 ): Promise<CarryResult> {
   const { db } = deps.connectors;
   const connectionIds = [...new Set(input.connectionIds ?? [])];
   const agentIds = [...new Set(input.agentIds ?? [])];
-  if (connectionIds.length + agentIds.length === 0) throw new ValidationError("Pick something to bring");
-  if (connectionIds.length > CARRY_LIMITS.connections || agentIds.length > CARRY_LIMITS.agents) {
+  const credentialIds = [...new Set(input.credentialIds ?? [])];
+  if (connectionIds.length + agentIds.length + credentialIds.length === 0)
+    throw new ValidationError("Pick something to bring");
+  if (
+    connectionIds.length > CARRY_LIMITS.connections ||
+    agentIds.length > CARRY_LIMITS.agents ||
+    credentialIds.length > CARRY_LIMITS.keys
+  ) {
     throw new ValidationError("Too many at once");
   }
   const target = await requireChangePermission(
@@ -439,7 +499,72 @@ export async function carryOver(
   if (agentIds.length > 0 && !can(target, "create_agents")) throw new ForbiddenError();
   const sources = new Map((await sourceMemberships(db, actorId, targetOrgId)).map((m) => [m.orgId, m]));
   const orgIds = [...sources.keys()];
-  const result: CarryResult = { connections: [], agents: [], skills: 0, skipped: [] };
+  const result: CarryResult = { connections: [], agents: [], keys: [], skills: 0, skipped: [] };
+
+  // AI provider keys: each a copy of its own here, sealed for this workspace, checked with its provider as any new
+  // key is; one already here (same provider and last characters) is not copied again.
+  if (credentialIds.length > 0) {
+    if (!can(target, "manage_credentials")) throw new ForbiddenError();
+    const candidates = (await liveKeys(db, orgIds)).filter((k) => credentialIds.includes(k.id));
+    for (const id of credentialIds) {
+      if (!candidates.some((k) => k.id === id)) result.skipped.push({ kind: "key", id, label: "", reason: "gone" });
+    }
+    for (const k of candidates) {
+      const source = sources.get(k.orgId);
+      if (!source || !mayBringKey(source)) {
+        result.skipped.push({ kind: "key", id: k.id, label: k.label, reason: "not_yours" });
+        continue;
+      }
+      const twin = keyTwinOf(await liveKeys(db, [targetOrgId]), k);
+      if (twin) {
+        result.keys.push({ sourceId: k.id, id: twin.id, label: twin.label, outcome: "here" });
+        continue;
+      }
+      if (!deps.credentials) {
+        result.skipped.push({ kind: "key", id: k.id, label: k.label, reason: "unavailable" });
+        continue;
+      }
+      const open = await decryptCredential(db, deps.connectors.keyWrappers, k.orgId, k.id);
+      if (!open) {
+        result.skipped.push({ kind: "key", id: k.id, label: k.label, reason: "gone" });
+        continue;
+      }
+      const endpoint = open.options?.endpoint;
+      try {
+        const made = await createCredential(
+          db,
+          deps.credentials.keyWrapper,
+          actorId,
+          targetOrgId,
+          {
+            provider: open.provider,
+            label: k.label,
+            apiKey: open.apiKey,
+            workspaceId: open.workspaceId ?? null,
+            organization: open.options?.organization ?? null,
+            project: open.options?.project ?? null,
+            ...(endpoint ? { endpoint } : {}),
+          },
+          {
+            fetch: deps.credentials.fetch,
+            net: deps.credentials.net,
+            keyWrappers: deps.connectors.keyWrappers,
+          },
+        );
+        await recordAudit(db, {
+          orgId: targetOrgId,
+          actor: { type: "person", id: actorId },
+          action: "credential.carried",
+          target: { type: "credential", id: made.id },
+          details: { provider: k.provider, label: k.label, from: source.orgName },
+        });
+        result.keys.push({ sourceId: k.id, id: made.id, label: made.label, outcome: "brought" });
+      } catch (error) {
+        if (!(error instanceof ValidationError) && !(error instanceof ConflictError)) throw error;
+        result.skipped.push({ kind: "key", id: k.id, label: k.label, reason: error.code });
+      }
+    }
+  }
 
   const team = (await liveAgents(db, orgIds)).filter((a) => agentIds.includes(a.id));
   for (const id of agentIds) {

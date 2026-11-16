@@ -3673,6 +3673,13 @@ export function createFakeHttpApi(state: FakeState): Omit<HttpApi, FakedParts> {
             outcome: "brought" as const,
           })),
           agents: agents.map((a) => ({ sourceId: a.id, id: id("agent"), name: a.name, handle: a.handle })),
+          keys: all
+            .flatMap((s) => s.keys ?? [])
+            .filter((k) => input.credentialIds?.includes(k.id))
+            .map((k) => {
+              k.here = true;
+              return { sourceId: k.id, id: id("cred"), label: k.label, outcome: "brought" as const };
+            }),
           skills: 0,
           skipped: [],
         };

@@ -275,6 +275,45 @@ export async function sendNewVersion(
   return job;
 }
 
+/** The reason a team approval keeps at most. */
+export const TEAM_APPROVAL_NOTE = 500;
+
+export interface ApproveForClient {
+  client: string;
+  item: string;
+  /** Why the team approves in the client's place (the client went quiet, said yes elsewhere). */
+  note?: string;
+  /** Who approved (a user id), for the bridge's log and the card's comment. */
+  by: string;
+  /** Their name, written on the card's comment. */
+  byName: string;
+}
+
+/**
+ * The team approves a post in its client's place (ADR 9001 §19): an administrator's last resort when the client
+ * stopped answering at the portal. Only a post waiting on the client (`approval`: sent, seen, or its new version
+ * sent) can be: it turns `approved` at the portal, which keeps the change in the post's history, and from there it
+ * is the same as a client's approval (the workspace's watch sees it change, the card's task follows, what the client
+ * set for "after approve" runs). The card it came from says who approved it and why.
+ */
+export async function approveForClient(portal: ApprovalPortal, input: ApproveForClient): Promise<PortalItem> {
+  const post = (await portal.items()).find((item) => item.client === input.client && item.id === input.item);
+  if (!post) throw new ValidationError(`No post ${input.item} of ${input.client} at the portal`);
+  if (portalColumnOf(post) !== "approval") {
+    throw new ValidationError(
+      `Only a post waiting on the client's approval can be approved; this one is ${post.status}`,
+    );
+  }
+  const note = input.note?.trim().slice(0, TEAM_APPROVAL_NOTE) ?? "";
+  await portal.editItem(input.client, input.item, { status: "approved" }, input.by);
+  const card = (await portal.cards(input.client).catch(() => [])).find((c) => c.item === input.item);
+  if (card) {
+    const said = `Aprovado pela equipe no lugar do cliente, por ${input.byName}.${note ? ` Motivo: ${note}` : ""}`;
+    await portal.comment(card.id, said, input.by).catch(() => {});
+  }
+  return { ...post, status: "approved" };
+}
+
 /** A person's reader: the file as they may download it. */
 export const personPortalReader = (deps: ArtifactDeps, userId: string, orgId: string) => async (artifactId: string) => {
   const file = await artifactFile(deps, userId, orgId, artifactId);

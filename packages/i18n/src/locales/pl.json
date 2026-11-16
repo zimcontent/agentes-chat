@@ -5237,10 +5237,66 @@
       "mission": "Misja · {{done}} z {{total}}"
     },
     "done": {
-      "title": "Od twojej ostatniej wizyty"
+      "title": "Od twojej ostatniej wizyty",
+      "none": "Nic nowego od ostatniej wizyty."
+    },
+    "customize": {
+      "button": "Dostosuj",
+      "title": "Co pokazuje strona główna",
+      "sections": {
+        "team": "Plan zespołu",
+        "tasks": "Twoje zadania",
+        "board": "Czeka na ciebie i Teraz w pracy",
+        "since": "Od ostatniej wizyty",
+        "routines": "Wkrótce"
+      }
     },
     "routines": {
       "title": "Wkrótce"
+    },
+    "agenda": {
+      "title": "Plan zespołu",
+      "who": "Czyj plan",
+      "everyone": "Wszyscy",
+      "pickDay": "Który dzień",
+      "thisWeek": "Ten tydzień",
+      "wholeWeek": "Cały tydzień",
+      "todayChip": "Dziś",
+      "tomorrowChip": "Jutro",
+      "prevWeek": "Poprzedni tydzień",
+      "nextWeek": "Następny tydzień",
+      "noneDay": "Nic na ten dzień.",
+      "noneWeek": "Nic na ten tydzień.",
+      "now": "Teraz",
+      "late": "Zaległe",
+      "today": "Dziś · {{day}}",
+      "tomorrow": "Jutro · {{day}}",
+      "wasDue": "Termin był {{when}}",
+      "due": "Termin {{when}}",
+      "todayShort": "dziś",
+      "tomorrowShort": "jutro",
+      "nowCount_one": "{{count}} teraz",
+      "nowCount_few": "{{count}} teraz",
+      "nowCount_many": "{{count}} teraz",
+      "nowCount_other": "{{count}} teraz",
+      "lateCount_one": "{{count}} zaległe",
+      "lateCount_few": "{{count}} zaległe",
+      "lateCount_many": "{{count}} zaległych",
+      "lateCount_other": "{{count}} zaległych",
+      "todayCount_one": "{{count}} dziś",
+      "todayCount_few": "{{count}} dziś",
+      "todayCount_many": "{{count}} dziś",
+      "todayCount_other": "{{count}} dziś",
+      "total_one": "{{count}} zadanie",
+      "total_few": "{{count}} zadania",
+      "total_many": "{{count}} zadań",
+      "total_other": "{{count}} zadania",
+      "high": "Wysoki",
+      "blocked": "Zablokowane",
+      "status": {
+        "in_progress": "W toku",
+        "in_review": "W przeglądzie"
+      }
     },
     "mission": "<b>{{name}}</b> potrzebuje cię w misji",
     "seeAll": "Zobacz wszystko",
@@ -13613,6 +13669,7 @@
     "text": "To, co masz połączone w innej przestrzeni roboczej, przychodzi gotowe, bez ponownego logowania.",
     "none": "Nie ma jeszcze nic do przeniesienia. To, co połączysz w jednej przestrzeni roboczej, pojawi się tutaj w pozostałych.",
     "connections": "Połączenia",
+    "keys": "Klucze AI",
     "with": "Razem z: {{names}}",
     "here": "Już tu jest",
     "needsReconnect": "Wymaga ponownego połączenia",

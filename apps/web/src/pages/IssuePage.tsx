@@ -8,7 +8,6 @@ import {
   useIssueActivity,
   useIssueColumns,
 } from "@agenteschat/client";
-import { canTalk } from "@agenteschat/client/lib/audience";
 import { FIELD_LIMITS } from "@agenteschat/client/lib/field-limits";
 import { relativeTime, whenAt } from "@agenteschat/client/lib/format";
 import { githubLinkLabel, isGithubLink } from "@agenteschat/client/lib/github-link";
@@ -63,6 +62,7 @@ import { IssueFiles, useIssueFileEntries } from "@/components/IssueFiles";
 import { useOrg } from "@/components/org-context";
 import { SidePanel } from "@/components/SidePanel";
 import { TaskConversationButton, TaskConversationPanel, TaskConversationSummary } from "@/components/TaskConversation";
+import { TaskVideoDelivery } from "@/components/video-review/TaskVideoDelivery";
 import { IssueWhoSeesDialog, WhoSeesButton } from "@/components/WhoSees";
 import { useWikiLinkRenderer } from "@/components/WikiLinks";
 import { usePersonalView } from "@/hooks/usePersonalView";
@@ -71,7 +71,6 @@ import {
   columnIdOf,
   columnsOf,
   isCustomBoard,
-  isOpen,
   PRIORITIES,
   STATUS_ICON,
   STATUSES,
@@ -338,9 +337,9 @@ export function IssueDetails({
         ]}
       >
         <TabPanel value="details">
+          <TaskVideoDelivery issue={i} />
           <WorkBox issue={i} />
           <IssueWorkBlock issue={i} />
-          {i.assignee?.type !== "agent" && isOpen(i) && <AskAgent issue={i} />}
           <DetailsSection title={t("issues.description")}>
             <IssueDescription issue={i} hasFiles={createdFiles.length > 0} onSaved={flashSaved} />
             {createdFiles.length > 0 && (
@@ -741,56 +740,6 @@ function WorkBox({ issue: i }: { issue: Issue }) {
         )
       )}
       {!stalled && <WorkSweep color={color(i) ?? "sky"} waiting={waiting} />}
-    </section>
-  );
-}
-
-/** The agents offered by "Pedir a um agente", the ones that answer me (as the server asks): a developer first. */
-function useAgentChoices() {
-  const { dir } = useActors();
-  const agents = dir.agents.filter(canTalk);
-  const dev = agents.find((a) => /dev|engenh|program|cód/i.test(`${a.role} ${a.name}`)) ?? agents[0];
-  return dev ? [dev, ...agents.filter((a) => a.id !== dev.id)] : [];
-}
-
-function AskAgent({ issue }: { issue: Issue }) {
-  const { t } = useTranslation();
-  const { org } = useOrg();
-  const toast = useToast();
-  const action = useIssueAction(org.id);
-  const { avatar } = useActors();
-  const [agent, ...others] = useAgentChoices();
-  if (!agent) return null;
-  const ask = (a: { id: string; name: string }) => {
-    const g = agentGrammar(a.name);
-    action.mutate(
-      { type: "ask", id: issue.id, agentId: a.id },
-      { onSuccess: () => toast.show(t("issues.asked", { context: g.context, name: a.name })) },
-    );
-  };
-  const g = agentGrammar(agent.name);
-  return (
-    <section aria-label={t("issues.askSection")} className="issue-ask">
-      <div className="issue-ask__row ac-mediarow ac-mediarow--row">
-        <span className="ac-mediarow__face">{avatar({ type: "agent", id: agent.id }, "sm")}</span>
-        <span className="ac-mediarow__head">
-          <b>{t("issues.askTitle", { context: g.context, name: agent.name })}</b>
-        </span>
-        <span className="ac-mediarow__body small muted">{t("issues.askText", g)}</span>
-      </div>
-      <div className="issue-ask__actions">
-        <Locked when={action.isPending}>
-          <Button variant="agent" icon="agent" size="sm" loading={action.isPending} onClick={() => ask(agent)}>
-            {t("issues.askButton", { context: g.context, name: agent.name })}
-          </Button>
-          {others.slice(0, 3).map((a) => (
-            <button key={a.id} type="button" className="issue-ask__other" onClick={() => ask(a)}>
-              {avatar({ type: "agent", id: a.id }, "xs")}
-              {a.name}
-            </button>
-          ))}
-        </Locked>
-      </div>
     </section>
   );
 }

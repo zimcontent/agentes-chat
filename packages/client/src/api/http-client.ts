@@ -15,7 +15,13 @@ import type {
   VaultKeysImportResult,
   VaultOverview,
 } from "../vault/types";
-import type { VideoReview, VideoReviewNote, VideoReviewSummary } from "../video-reviews/types";
+import type {
+  ReviewPost,
+  ReviewWhatsAppTarget,
+  VideoReview,
+  VideoReviewNote,
+  VideoReviewSummary,
+} from "../video-reviews/types";
 import type {
   WhatsAppAccount,
   WhatsAppBrain,
@@ -265,6 +271,7 @@ import type {
   TaskOutput,
   TaskSteps,
   Team,
+  TeamAgenda,
   TeamProposalCard,
   TeamTemplate,
   ThreadFilters,
@@ -607,6 +614,28 @@ export function createHttpApi(options: TransportOptions = {}): HttpApi {
         (await files.blob(`${org(orgId)}/video-reviews/${enc(reviewId)}/versions/${version}/source`)).text(),
       saveDesign: (orgId, reviewId, input) =>
         request<VideoReviewSummary>(`${org(orgId)}/video-reviews/${enc(reviewId)}/design`, { json: input }),
+      taskVideo: (orgId, issueId) =>
+        request<{ reviewId: string | null }>(`${org(orgId)}/issues/${enc(issueId)}/video-delivery`),
+      sendTaskVideo: (orgId, issueId, input) =>
+        request<{ review: VideoReviewSummary; toClient: boolean }>(
+          `${org(orgId)}/issues/${enc(issueId)}/video-delivery`,
+          { json: input },
+        ),
+      setPost: (orgId, reviewId, patch) =>
+        request<ReviewPost>(`${org(orgId)}/video-reviews/${enc(reviewId)}/post`, { method: "PATCH", json: patch }),
+      sendToClient: (orgId, reviewId) =>
+        request<{ delivery: Record<string, unknown>; afterApprove: "portal" | "direct" }>(
+          `${org(orgId)}/video-reviews/${enc(reviewId)}/send`,
+          { json: {} },
+        ),
+      whatsappTargets: (orgId) => request<{ targets: ReviewWhatsAppTarget[] }>(`${org(orgId)}/review-whatsapp`),
+      setWhatsappTarget: (orgId, userId, target) =>
+        request<{ target: ReviewWhatsAppTarget | null }>(`${org(orgId)}/review-whatsapp/${enc(userId)}`, {
+          method: "PUT",
+          json: target,
+        }),
+      retryFinal: (orgId, reviewId) =>
+        request<void>(`${org(orgId)}/video-reviews/${enc(reviewId)}/final/retry`, { json: {} }),
     },
     whatsapp: {
       overview: (orgId) => request<WhatsAppOverview>(`${org(orgId)}/whatsapp`),
@@ -1735,7 +1764,7 @@ export function createHttpApi(options: TransportOptions = {}): HttpApi {
         if (options.title) form.append("title", options.title);
         if (options.channelId) form.append("channelId", options.channelId);
         if (options.threadId) form.append("threadId", options.threadId);
-        return files.upload<ArtifactDetail>(`${org(orgId)}/artifacts/files`, form);
+        return files.upload<ArtifactDetail>(`${org(orgId)}/artifacts/files`, form, "POST", options);
       },
       uploadVersion: (orgId, id, file, options = {}) => {
         const form = new FormData();
@@ -1763,6 +1792,8 @@ export function createHttpApi(options: TransportOptions = {}): HttpApi {
       purge: (orgId, id) => request<void>(`${org(orgId)}/artifacts-trash/${enc(id)}`, { method: "DELETE" }),
     },
     issues: {
+      agenda: (orgId, query) =>
+        request<TeamAgenda>(`${org(orgId)}/team-agenda`, { query: { from: query.from, days: query.days } }),
       list: async (orgId, filters = {}) =>
         (
           await request<{ issues: Issue[] }>(`${org(orgId)}/issues`, {
@@ -1880,6 +1911,10 @@ export function createHttpApi(options: TransportOptions = {}): HttpApi {
       schedule: (orgId, client, itemId, scheduledFor) =>
         request<void>(`${org(orgId)}/portal/clients/${enc(client)}/items/${enc(itemId)}/schedule`, {
           json: { scheduledFor },
+        }),
+      approveForClient: (orgId, client, itemId, note) =>
+        request<void>(`${org(orgId)}/portal/clients/${enc(client)}/items/${enc(itemId)}/approve`, {
+          json: note ? { note } : {},
         }),
       plan: (orgId, client) => request<PortalPlan>(`${org(orgId)}/portal/clients/${enc(client)}/plan`),
       mine: (orgId) => request<PortalMine>(`${org(orgId)}/portal/mine`),
