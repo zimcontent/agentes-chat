@@ -40,6 +40,7 @@ import { useNotificationOpener } from "@/components/NotificationOpen";
 import { Face, Headline, SystemFace } from "@/components/NotificationParts";
 import { useOrg } from "@/components/org-context";
 import { HomeTasks } from "@/components/portal/HomeTasks";
+import { TeamAgenda } from "@/components/TeamAgenda";
 import { HomeMural } from "@/components/widgets/HomeMural";
 import { WidgetNoticeActions, widgetNoticeLine } from "@/components/widgets/WidgetNotice";
 import { useDirectory } from "@/hooks/useDirectory";
@@ -145,6 +146,9 @@ export function HomePage() {
 
       {/* The person's own cards of the approval portal (ADR 9001 §8), only where the server has one and they have some. */}
       <HomeTasks />
+
+      {/* Owners and admins: what each person and agent has to do today and in the next days. */}
+      <TeamAgenda />
 
       <HomeMural
         orgId={org.id}

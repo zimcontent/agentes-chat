@@ -5243,6 +5243,33 @@
     "routines": {
       "title": "Скоро"
     },
+    "agenda": {
+      "title": "План команды",
+      "who": "Чей план",
+      "everyone": "Все",
+      "late": "Просрочено",
+      "today": "Сегодня · {{day}}",
+      "tomorrow": "Завтра · {{day}}",
+      "wasDue": "Срок был {{when}}",
+      "lateCount_one": "{{count}} просрочена",
+      "lateCount_few": "{{count}} просрочены",
+      "lateCount_many": "{{count}} просрочено",
+      "lateCount_other": "{{count}} просрочено",
+      "todayCount_one": "{{count}} сегодня",
+      "todayCount_few": "{{count}} сегодня",
+      "todayCount_many": "{{count}} сегодня",
+      "todayCount_other": "{{count}} сегодня",
+      "total_one": "{{count}} задача",
+      "total_few": "{{count}} задачи",
+      "total_many": "{{count}} задач",
+      "total_other": "{{count}} задачи",
+      "high": "Высокий",
+      "blocked": "Застряла",
+      "status": {
+        "in_progress": "В работе",
+        "in_review": "На проверке"
+      }
+    },
     "mission": "<b>{{name}}</b> ждёт вас в миссии",
     "seeAll": "Показать все",
     "action": {

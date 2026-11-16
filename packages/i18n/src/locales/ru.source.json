@@ -12063,6 +12063,57 @@
   "home.routines.title": {
     "value": "Coming up"
   },
+  "home.agenda.title": {
+    "value": "Team agenda"
+  },
+  "home.agenda.who": {
+    "value": "Whose agenda"
+  },
+  "home.agenda.everyone": {
+    "value": "Everyone"
+  },
+  "home.agenda.late": {
+    "value": "Late"
+  },
+  "home.agenda.today": {
+    "value": "Today · {{day}}"
+  },
+  "home.agenda.tomorrow": {
+    "value": "Tomorrow · {{day}}"
+  },
+  "home.agenda.wasDue": {
+    "value": "Was due {{when}}"
+  },
+  "home.agenda.lateCount": {
+    "value": {
+      "one": "{{count}} late",
+      "other": "{{count}} late"
+    }
+  },
+  "home.agenda.todayCount": {
+    "value": {
+      "one": "{{count}} today",
+      "other": "{{count}} today"
+    }
+  },
+  "home.agenda.total": {
+    "value": {
+      "one": "{{count}} task",
+      "other": "{{count}} tasks"
+    }
+  },
+  "home.agenda.high": {
+    "value": "High"
+  },
+  "home.agenda.blocked": {
+    "value": "Blocked"
+  },
+  "home.agenda.status.in_progress": {
+    "value": "In progress"
+  },
+  "home.agenda.status.in_review": {
+    "value": "In review"
+  },
   "home.mission": {
     "value": "<b>{{name}}</b> needs you in a mission"
   },

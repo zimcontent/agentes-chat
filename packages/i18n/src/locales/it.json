@@ -5074,6 +5074,30 @@
     "routines": {
       "title": "In arrivo"
     },
+    "agenda": {
+      "title": "Agenda del team",
+      "who": "Agenda di chi",
+      "everyone": "Tutti",
+      "late": "In ritardo",
+      "today": "Oggi · {{day}}",
+      "tomorrow": "Domani · {{day}}",
+      "wasDue": "Era per il {{when}}",
+      "lateCount_one": "{{count}} in ritardo",
+      "lateCount_many": "{{count}} in ritardo",
+      "lateCount_other": "{{count}} in ritardo",
+      "todayCount_one": "{{count}} oggi",
+      "todayCount_many": "{{count}} oggi",
+      "todayCount_other": "{{count}} oggi",
+      "total_one": "{{count}} attività",
+      "total_many": "{{count}} attività",
+      "total_other": "{{count}} attività",
+      "high": "Alta",
+      "blocked": "Bloccata",
+      "status": {
+        "in_progress": "In corso",
+        "in_review": "In revisione"
+      }
+    },
     "mission": "<b>{{name}}</b> ha bisogno di te in una missione",
     "seeAll": "Vedi tutto",
     "action": {

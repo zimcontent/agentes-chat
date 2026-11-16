@@ -4765,6 +4765,24 @@
     "routines": {
       "title": "今後の予定"
     },
+    "agenda": {
+      "title": "チームの予定",
+      "who": "誰の予定",
+      "everyone": "全員",
+      "late": "期限切れ",
+      "today": "今日 · {{day}}",
+      "tomorrow": "明日 · {{day}}",
+      "wasDue": "期限 {{when}}",
+      "lateCount_other": "{{count}} 件期限切れ",
+      "todayCount_other": "今日 {{count}} 件",
+      "total_other": "{{count}} 件のタスク",
+      "high": "高",
+      "blocked": "停止中",
+      "status": {
+        "in_progress": "進行中",
+        "in_review": "レビュー中"
+      }
+    },
     "mission": "<b>{{name}}</b>がミッションであなたを必要としています",
     "seeAll": "すべて見る",
     "action": {

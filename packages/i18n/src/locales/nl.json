@@ -4934,6 +4934,27 @@
     "routines": {
       "title": "Binnenkort"
     },
+    "agenda": {
+      "title": "Teamagenda",
+      "who": "Wiens agenda",
+      "everyone": "Iedereen",
+      "late": "Te laat",
+      "today": "Vandaag · {{day}}",
+      "tomorrow": "Morgen · {{day}}",
+      "wasDue": "Was voor {{when}}",
+      "lateCount_one": "{{count}} te laat",
+      "lateCount_other": "{{count}} te laat",
+      "todayCount_one": "{{count}} vandaag",
+      "todayCount_other": "{{count}} vandaag",
+      "total_one": "{{count}} taak",
+      "total_other": "{{count}} taken",
+      "high": "Hoog",
+      "blocked": "Geblokkeerd",
+      "status": {
+        "in_progress": "Bezig",
+        "in_review": "Ter beoordeling"
+      }
+    },
     "mission": "<b>{{name}}</b> heeft je nodig in een missie",
     "seeAll": "Alles bekijken",
     "action": {

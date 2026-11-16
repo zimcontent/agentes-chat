@@ -4449,6 +4449,23 @@ export const useIssues = (orgId: string, q = "", project = "") => {
   });
 };
 
+/**
+ * The team's agenda on Home (owners and admins): every open, assigned task due from `from` (the person's today)
+ * through `days`, and the late ones. Changes to tasks refresh it with the task list (same key root); asked again
+ * every 5 minutes too, so a day that turns shows.
+ */
+export const useTeamAgenda = (orgId: string, from: string, days: number, enabled = true) => {
+  const api = useApi();
+  const agenda = api.issues.agenda;
+  return useQuery({
+    enabled: enabled && !!agenda,
+    queryKey: keys.teamAgenda(orgId, from, days),
+    queryFn: () => (agenda ? agenda(orgId, { from, days }) : Promise.reject(new Error("no agenda"))),
+    placeholderData: (prev) => prev,
+    refetchInterval: 5 * 60_000,
+  });
+};
+
 export const useIssue = (orgId: string, number: number, enabled = true) => {
   const api = useApi();
   return useQuery({

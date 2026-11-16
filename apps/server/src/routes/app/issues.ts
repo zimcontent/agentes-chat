@@ -19,6 +19,8 @@ import {
   ROLE_COLORS,
   setCriterion,
   setIssueAudience,
+  TEAM_AGENDA_DAYS_MAX,
+  teamAgenda,
   updateIssue,
   updateIssueColumn,
   updateIssueProject,
@@ -68,6 +70,21 @@ const ProjectId = z
   .nullable()
   .openapi({ description: "The task's one project (`null`: none). An archived project takes no new task." });
 const ProjectParams = OrgParams.extend({ projectId: z.uuid() });
+
+const AgendaTask = z
+  .object({
+    id: z.uuid(),
+    number: z.number().int(),
+    title: z.string(),
+    status: z.enum(["todo", "in_progress", "in_review"]),
+    priority: Priority,
+    dueDate: z.string().openapi({ description: "`YYYY-MM-DD`; before `from` when it is late." }),
+    assignee: Actor,
+    project: z.object({ name: z.string(), color: z.string() }).nullable(),
+    blocked: z.boolean(),
+  })
+  .openapi("TeamAgendaTask");
+const TeamAgenda = z.object({ from: z.string(), to: z.string(), tasks: z.array(AgendaTask) }).openapi("TeamAgenda");
 
 const ConversationRef = z.object({
   channelId: z.uuid().openapi({ description: "The conversation's own channel (kind `task`): the chat's routes." }),
@@ -226,6 +243,32 @@ export function issueRoutes(deps: AppDeps) {
         projectId: query.projectId,
       });
       return c.json({ issues: list }, 200);
+    },
+  );
+
+  app.openapi(
+    createRoute({
+      method: "get",
+      path: "/organizations/{orgId}/team-agenda",
+      tags,
+      security,
+      summary: "What each person and agent has to do in the next days, and what is late (owners and admins)",
+      request: {
+        params: OrgParams,
+        query: z.object({
+          from: z
+            .string()
+            .regex(/^\d{4}-\d{2}-\d{2}$/)
+            .openapi({ description: "The asker's today (their own calendar day)." }),
+          days: z.coerce.number().int().min(1).max(TEAM_AGENDA_DAYS_MAX).optional(),
+        }),
+      },
+      responses: { 200: json(TeamAgenda), ...errors },
+    }),
+    async (c) => {
+      const { orgId } = c.req.valid("param");
+      const query = c.req.valid("query");
+      return c.json(await teamAgenda(db, c.get("user").id, orgId, query), 200);
     },
   );
 

@@ -4763,6 +4763,24 @@
     "routines": {
       "title": "예정된 루틴"
     },
+    "agenda": {
+      "title": "팀 일정",
+      "who": "누구의 일정",
+      "everyone": "모두",
+      "late": "지연됨",
+      "today": "오늘 · {{day}}",
+      "tomorrow": "내일 · {{day}}",
+      "wasDue": "마감 {{when}}",
+      "lateCount_other": "{{count}}개 지연",
+      "todayCount_other": "오늘 {{count}}개",
+      "total_other": "작업 {{count}}개",
+      "high": "높음",
+      "blocked": "막힘",
+      "status": {
+        "in_progress": "진행 중",
+        "in_review": "검토 중"
+      }
+    },
     "mission": "<b>{{name}}</b>이(가) 미션에서 나를 필요로 해요",
     "seeAll": "모두 보기",
     "action": {

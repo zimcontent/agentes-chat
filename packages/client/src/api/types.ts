@@ -3951,6 +3951,26 @@ export interface IssueWork {
   reason?: "failed" | "canceled" | "budget";
 }
 
+/** A task on the team's agenda (owners and admins): open, assigned, due by the agenda's last day. */
+export interface TeamAgendaTask {
+  id: string;
+  number: number;
+  title: string;
+  status: "todo" | "in_progress" | "in_review";
+  priority: "low" | "normal" | "high";
+  /** `YYYY-MM-DD`; before `from` when it is late. */
+  dueDate: string;
+  assignee: { type: "person" | "agent"; id: string };
+  project: { name: string; color: string } | null;
+  blocked: boolean;
+}
+
+export interface TeamAgenda {
+  from: string;
+  to: string;
+  tasks: TeamAgendaTask[];
+}
+
 export interface Issue {
   id: string;
   /** Per organization: #131. */

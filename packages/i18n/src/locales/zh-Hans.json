@@ -4768,6 +4768,24 @@
     "routines": {
       "title": "即将进行"
     },
+    "agenda": {
+      "title": "团队日程",
+      "who": "谁的日程",
+      "everyone": "所有人",
+      "late": "已逾期",
+      "today": "今天 · {{day}}",
+      "tomorrow": "明天 · {{day}}",
+      "wasDue": "截止 {{when}}",
+      "lateCount_other": "{{count}} 项逾期",
+      "todayCount_other": "今天 {{count}} 项",
+      "total_other": "{{count}} 项任务",
+      "high": "高",
+      "blocked": "受阻",
+      "status": {
+        "in_progress": "进行中",
+        "in_review": "审核中"
+      }
+    },
     "mission": "<b>{{name}}</b> 在一项专项任务中需要你",
     "seeAll": "查看全部",
     "action": {

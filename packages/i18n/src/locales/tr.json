@@ -4916,6 +4916,27 @@
     "routines": {
       "title": "Yaklaşanlar"
     },
+    "agenda": {
+      "title": "Ekip ajandası",
+      "who": "Kimin ajandası",
+      "everyone": "Herkes",
+      "late": "Geciken",
+      "today": "Bugün · {{day}}",
+      "tomorrow": "Yarın · {{day}}",
+      "wasDue": "Son gün {{when}}",
+      "lateCount_one": "{{count}} geciken",
+      "lateCount_other": "{{count}} geciken",
+      "todayCount_one": "Bugün {{count}}",
+      "todayCount_other": "Bugün {{count}}",
+      "total_one": "{{count}} görev",
+      "total_other": "{{count}} görev",
+      "high": "Yüksek",
+      "blocked": "Takıldı",
+      "status": {
+        "in_progress": "Devam ediyor",
+        "in_review": "İncelemede"
+      }
+    },
     "mission": "<b>{{name}}</b> bir misyonda size ihtiyaç duyuyor",
     "seeAll": "Tümünü gör",
     "action": {

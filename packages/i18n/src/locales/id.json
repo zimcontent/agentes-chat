@@ -4778,6 +4778,24 @@
     "routines": {
       "title": "Akan datang"
     },
+    "agenda": {
+      "title": "Agenda tim",
+      "who": "Agenda siapa",
+      "everyone": "Semua",
+      "late": "Terlambat",
+      "today": "Hari ini · {{day}}",
+      "tomorrow": "Besok · {{day}}",
+      "wasDue": "Tenggat {{when}}",
+      "lateCount_other": "{{count}} terlambat",
+      "todayCount_other": "{{count}} hari ini",
+      "total_other": "{{count}} tugas",
+      "high": "Tinggi",
+      "blocked": "Terhambat",
+      "status": {
+        "in_progress": "Sedang dikerjakan",
+        "in_review": "Sedang ditinjau"
+      }
+    },
     "mission": "<b>{{name}}</b> membutuhkanmu dalam misi",
     "seeAll": "Lihat semua",
     "action": {
