@@ -1908,6 +1908,10 @@ export function createHttpApi(options: TransportOptions = {}): HttpApi {
         request<void>(`${org(orgId)}/portal/clients/${enc(client)}/items/${enc(itemId)}/schedule`, {
           json: { scheduledFor },
         }),
+      approveForClient: (orgId, client, itemId, note) =>
+        request<void>(`${org(orgId)}/portal/clients/${enc(client)}/items/${enc(itemId)}/approve`, {
+          json: note ? { note } : {},
+        }),
       plan: (orgId, client) => request<PortalPlan>(`${org(orgId)}/portal/clients/${enc(client)}/plan`),
       mine: (orgId) => request<PortalMine>(`${org(orgId)}/portal/mine`),
       pipeline: (orgId) => request<PortalPipeline>(`${org(orgId)}/portal/pipeline`),

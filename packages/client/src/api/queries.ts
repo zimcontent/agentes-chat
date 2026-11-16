@@ -7424,6 +7424,18 @@ export function useSchedulePortalItem(orgId: string) {
   });
 }
 
+/** An administrator approves a post in the client's place (ADR 9001 §19): the board is read again, where it shows in Approved. */
+export function useApproveForClient(orgId: string) {
+  const api = useApi();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (input: { client: string; itemId: string; note?: string }) =>
+      portalOf(api).approveForClient(orgId, input.client, input.itemId, input.note),
+    meta: { silent: true },
+    onSettled: () => refreshPortal(qc, orgId),
+  });
+}
+
 /** A person's own work is asked about again this often while Home is open, and when the window comes back. */
 export const PORTAL_MINE_REFRESH_MS = 5 * 60_000;
 

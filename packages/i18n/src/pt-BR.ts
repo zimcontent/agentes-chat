@@ -16794,6 +16794,7 @@ export const ptBR = {
     removed: "Removido",
     change: {
       mergedWithoutAsking: "Fez o merge em {{repo}} sem perguntar",
+      portalApprovedForClient: "Aprovou “{{title}}” pelo cliente no portal",
       pattern: "{{verb}} {{area}}",
       approval: {
         approved: "Aprovou um pedido",
@@ -21126,6 +21127,15 @@ export const ptBR = {
       done: "Liberado para {{when}}.",
       past: "Escolha um horário que ainda não passou.",
       pending: "agendando…",
+    },
+    approveForClient: {
+      action: "Aprovar pelo cliente",
+      title: "Aprovar pelo cliente?",
+      text: "Só quando o cliente parou de responder no portal. O post passa para Aprovado lá, como se o cliente tivesse aprovado, e o que vem depois da aprovação acontece.",
+      note: "Motivo",
+      notePlaceholder: "O cliente aprovou pelo WhatsApp",
+      confirm: "Aprovar",
+      done: "“{{title}}” aprovado pelo cliente.",
     },
     form: {
       client: "Cliente",

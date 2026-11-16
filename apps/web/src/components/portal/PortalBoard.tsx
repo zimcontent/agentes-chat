@@ -1,5 +1,6 @@
 import type { PortalBoard as Board, PortalCard, PortalCardState, PortalItem } from "@agenteschat/client";
 import { useDeletePortalCard, useMovePortalCardState } from "@agenteschat/client";
+import { can } from "@agenteschat/client/lib/permissions";
 import {
   PORTAL_BOARD_COLUMNS,
   PORTAL_STATUS_LOOK,
@@ -25,6 +26,7 @@ import { useTranslation } from "react-i18next";
 import { useOrg } from "@/components/org-context";
 import { useToast } from "@/lib/toast";
 import { useIssueDrag } from "@/pages/issue-drag";
+import { ApproveForClientDialog } from "./ApproveForClientDialog";
 import {
   BoardColumn,
   BoardFrame,
@@ -72,6 +74,9 @@ export function PortalBoard({
   const [deleting, setDeleting] = useState<PortalCard | null>(null);
   const [editingItem, setEditingItem] = useState<PortalItem | null>(null);
   const [scheduling, setScheduling] = useState<PortalItem | null>(null);
+  const [approving, setApproving] = useState<PortalItem | null>(null);
+  // Approving in the client's place is an administrator's last resort (ADR 9001 §19).
+  const approves = can(org, "administrator");
   const moveTo = (card: PortalCard, state: PortalCardState) =>
     move.mutate(
       { cardId: card.id, state },
@@ -156,6 +161,7 @@ export function PortalBoard({
                       onSchedule={
                         changes && column === "approved" && !item.released ? () => setScheduling(item) : undefined
                       }
+                      onApprove={approves && column === "approval" ? () => setApproving(item) : undefined}
                     />
                   ))
                 ) : (
@@ -168,6 +174,7 @@ export function PortalBoard({
       </BoardFrame>
       <ItemDialog item={editingItem} onClose={() => setEditingItem(null)} />
       <ScheduleDialog item={scheduling} onClose={() => setScheduling(null)} />
+      <ApproveForClientDialog item={approving} onClose={() => setApproving(null)} />
       <DeleteCardDialog card={deleting} onClose={() => setDeleting(null)} />
     </div>
   );
@@ -282,9 +289,20 @@ function TeamCard({
  * sent back, what they asked. Everything typed at the portal (title, note, who wrote it) is outside text: plain
  * words only, never formatted. The link opens the post there, in another tab. An approved post carries "Schedule
  * post" (`onSchedule`), with or without a proposed date; one already released (`released`) shows "scheduling…"
- * instead, until the publishing service has it and it moves to Scheduled, which takes a few minutes.
+ * instead, until the publishing service has it and it moves to Scheduled, which takes a few minutes. A post waiting
+ * on the client carries "Approve for the client" (`onApprove`) for an administrator, when the client went quiet.
  */
-function PostCard({ item, onEdit, onSchedule }: { item: PortalItem; onEdit?: () => void; onSchedule?: () => void }) {
+function PostCard({
+  item,
+  onEdit,
+  onSchedule,
+  onApprove,
+}: {
+  item: PortalItem;
+  onEdit?: () => void;
+  onSchedule?: () => void;
+  onApprove?: () => void;
+}) {
   const { t, i18n } = useTranslation();
   const look = PORTAL_STATUS_LOOK[item.status];
   const when = portalWhen(i18n.language, item.scheduledFor);
@@ -344,6 +362,11 @@ function PostCard({ item, onEdit, onSchedule }: { item: PortalItem; onEdit?: () 
       {onSchedule && (
         <Button size="sm" variant="primary" icon="calendar" block onClick={onSchedule}>
           {t("portal.schedule.action")}
+        </Button>
+      )}
+      {onApprove && (
+        <Button size="sm" icon="check" block onClick={onApprove}>
+          {t("portal.approveForClient.action")}
         </Button>
       )}
     </article>

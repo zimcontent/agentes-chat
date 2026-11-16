@@ -489,6 +489,15 @@ export function createFakePortal(
         item.scheduledFor = `${scheduledFor}:00-03:00`;
         item.released = true;
       },
+      approveForClient: async (orgId, client, itemId, note) => {
+        log("portal.approveForClient", orgId, client, itemId, note);
+        guard();
+        const item = fake.items.find((i) => i.client === client && i.id === itemId);
+        if (!item || !["sent", "seen", "adjusted"].includes(item.status)) {
+          throw new ApiError(400, "portal.refused", "Only a post waiting on the client's approval can be approved");
+        }
+        item.status = "approved";
+      },
     },
   };
   return fake;
