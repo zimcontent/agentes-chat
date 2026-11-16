@@ -20,8 +20,10 @@ import { ConflictError, NotFoundError, ValidationError } from "./errors";
 import { lightKey } from "./file-reader";
 import { postPersonMessage } from "./messages";
 import { enqueue } from "./outbox";
+import { latestRounds, type ReviewRoundView, roundsOf, seeRounds } from "./review-rounds";
 import { replyThreadOf } from "./runs";
 import type { ToolContext, ToolDefinition, ToolOutput, ToolSource } from "./tools/types";
+import type { WhatsAppDeps } from "./whatsapp/accounts";
 
 const {
   agents,
@@ -80,6 +82,8 @@ export interface VideoReviewDeps {
   videoCopies?: VideoCopies | null;
   /** Where an editor's approved final gets its second copy (doug-0012); absent: the workspace's storage only. */
   backup?: FileBackup | null;
+  /** The workspace's WhatsApp numbers, where a person is told of the changes asked of them (doug-0012 §11). */
+  whatsapp?: Pick<WhatsAppDeps, "db" | "gateway" | "keyWrappers"> | null;
 }
 
 /** The job that makes a version's light copy, in the background after it arrives. */
@@ -143,6 +147,8 @@ export interface VideoReviewNoteView {
   attachments: schema.VideoReviewAttachment[];
   voice: boolean;
   author: { id: string; name: string } | null;
+  /** The client wrote it at the approval portal (doug-0012 §12): `author` is their name, with no id. */
+  fromClient: boolean;
   sent: boolean;
   createdAt: string;
 }
@@ -163,6 +169,8 @@ export interface VideoReviewSummary {
   sender: { id: string; name: string } | null;
   /** The task it delivers, when sent from one. */
   taskId: string | null;
+  /** A person's review: the newest round of changes asked of them, with when they saw and answered it. */
+  round: ReviewRoundView | null;
   channelId: string;
   threadId: string | null;
   openNotes: number;
@@ -181,6 +189,8 @@ export interface VideoReviewView extends VideoReviewSummary {
   final: Record<string, unknown> | null;
   /** The task it delivers, and where its post stands at the portal (the card's stage); null: not from a task. */
   task: { id: string; number: number; title: string; stage: string | null } | null;
+  /** Every round of changes asked of the person who sent it: the log (doug-0012 §10). */
+  rounds: ReviewRoundView[];
   brief: string;
   links: schema.VideoReviewLink[];
   versions: VideoReviewVersionView[];
@@ -646,6 +656,10 @@ async function summaries(db: Database, orgId: string, ids?: string[]): Promise<V
     .select({ reviewId: videoReviewNotes.reviewId, version: videoReviewNotes.version })
     .from(videoReviewNotes)
     .where(and(inArray(videoReviewNotes.reviewId, reviewIds), isNull(videoReviewNotes.sentAt)));
+  const rounds = await latestRounds(
+    db,
+    rows.filter((r) => r.review.senderUserId).map((r) => r.review.id),
+  );
   return rows.map(({ review, agentName, agentHandle, senderName }) => ({
     id: review.id,
     medium: review.medium === "design" ? "design" : "video",
@@ -658,6 +672,7 @@ async function summaries(db: Database, orgId: string, ids?: string[]): Promise<V
     agent: review.agentId && agentName ? { id: review.agentId, name: agentName, handle: agentHandle ?? "" } : null,
     sender: review.senderUserId ? { id: review.senderUserId, name: senderName ?? "" } : null,
     taskId: review.taskId,
+    round: rounds.get(review.id) ?? null,
     channelId: review.channelId,
     threadId: review.threadId,
     openNotes: open.filter((n) => n.reviewId === review.id && n.version === review.version).length,
@@ -713,6 +728,8 @@ export async function getVideoReview(
   reviewId: string,
 ): Promise<VideoReviewView> {
   const review = await requireReview(deps.db, userId, orgId, reviewId);
+  // The person the changes are for opened them: the log keeps the first time (doug-0012 §10).
+  if (review.senderUserId === userId) await seeRounds(deps.db, review.id, userId);
   const [summary] = await summaries(deps.db, orgId, [review.id]);
   if (!summary) throw new NotFoundError("No such review");
   const versions = await deps.db
@@ -776,6 +793,7 @@ export async function getVideoReview(
           stage: portalStageOfTask(task.source),
         }
       : null,
+    rounds: review.senderUserId ? await roundsOf(deps.db, review.id) : [],
     portal: review.portalClient
       ? {
           client: review.portalClient,
@@ -807,7 +825,12 @@ export async function getVideoReview(
       body: note.body,
       attachments: note.attachments ?? [],
       voice: note.voice,
-      author: note.authorUserId ? { id: note.authorUserId, name: authorName ?? "" } : null,
+      author: note.authorUserId
+        ? { id: note.authorUserId, name: authorName ?? "" }
+        : note.authorName
+          ? { id: "", name: note.authorName }
+          : null,
+      fromClient: note.fromClient,
       sent: note.sentAt !== null,
       createdAt: note.createdAt.toISOString(),
     })),
@@ -910,6 +933,7 @@ async function writeNote(
     attachments: row.attachments ?? [],
     voice: row.voice,
     author: author ?? null,
+    fromClient: false,
     sent: false,
     createdAt: row.createdAt.toISOString(),
   };

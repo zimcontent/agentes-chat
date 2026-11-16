@@ -25,6 +25,7 @@ import {
 } from "./issues";
 import { insertMessage, messageView, postPersonMessage } from "./messages";
 import { notifyMessage } from "./notification-producers";
+import { bringClientNotes } from "./review-rounds";
 import { rightHandId } from "./right-hand";
 
 const { agents, channels, issues, organizationMembers, organizations, users } = schema;
@@ -964,6 +965,15 @@ export function portalTasksTick(deps: PortalTaskDeps, portal: ApprovalPortal): P
     if (!orgId) return null;
     const result = await syncPortalTasks(deps, portal, orgId);
     await announcePortalStages(deps, orgId, result.changes);
+    // What the client wrote at the portal on an editor's post comes into its review, at the second they marked.
+    await portal
+      .items()
+      .then((items) => bringClientNotes(deps.db, orgId, items))
+      .catch((error: unknown) =>
+        deps.log?.warn("approval portal: the client's notes could not be brought to the reviews", {
+          error: error instanceof Error ? error.message : String(error),
+        }),
+      );
     // A post the client approved: an editor's original is kept as the final and backed up (doug-0012).
     await queueEditorFinals(deps.db, orgId).catch((error: unknown) =>
       deps.log?.warn("approval portal: the finals of approved posts could not be queued", {

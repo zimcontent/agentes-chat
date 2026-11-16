@@ -341,6 +341,8 @@ export function buildEngine(o: EngineOptions) {
     // A light copy of every version for phones, where ffmpeg is installed (the image has it).
     lightCopy: createFfmpegLightCopy(),
     portal: adapters.approvalPortal ?? null,
+    // Where a person is told of the changes asked of them: the workspace's WhatsApp numbers (doug-0012 §11).
+    whatsapp: adapters.whatsapp ? { db, gateway: adapters.whatsapp, keyWrappers } : null,
     // An editor's master is copied from disk; its approved final gets a backup copy when one is set (doug-0012).
     videoCopies: createFfmpegVideoCopies(),
     backup:

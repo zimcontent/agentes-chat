@@ -17,6 +17,7 @@ import { insertMessage, messageView } from "./messages";
 import { notifyMessage } from "./notification-producers";
 import { requirePermission } from "./organizations";
 import { enqueue } from "./outbox";
+import { answerRounds, openRound } from "./review-rounds";
 import { rightHandId } from "./right-hand";
 import {
   cleanReviewText,
@@ -239,6 +240,8 @@ export async function submitEditorVideo(
   });
   if (versionId) await queueReviewLight(deps, orgId, versionId);
   const [review] = await deps.db.select().from(videoReviews).where(eq(videoReviews.id, reviewId));
+  // The changes asked of them are answered by this version: the round's log says when.
+  if (existing && review) await answerRounds(deps.db, reviewId, review.version);
   if (review) {
     if (toClient) {
       await enqueue(deps.db, {
@@ -361,6 +364,15 @@ export async function decidePersonVideo(
     }
   }
   await line(deps, review, { userId }, lines.join("\n"), input.decision);
+  if (input.decision === "changes") {
+    const [decider] = await deps.db.select({ name: users.name }).from(users).where(eq(users.id, userId));
+    await openRound(deps.db, review, {
+      askedByUserId: userId,
+      askedByName: decider?.name ?? "",
+      fromClient: false,
+      notes: notes.length + (message ? 1 : 0),
+    });
+  }
   const [summary] = await reviewSummaries(deps.db, review.orgId, [review.id]);
   if (!summary) throw new Error("review not found after decision");
   return summary;
@@ -580,6 +592,13 @@ export async function runEditorSend(
       return;
     }
     const link = job.link ? ` ${job.link}` : "";
+    // The portal's next version is this one.
+    const known = Object.keys(review.portalVersions ?? {}).map(Number);
+    const next = (known.length ? Math.max(...known) : 1) + 1;
+    await deps.db
+      .update(videoReviews)
+      .set({ portalVersions: { ...(review.portalVersions ?? {}), [String(next)]: payload.version } })
+      .where(eq(videoReviews.id, review.id));
     await line(
       deps,
       review,
@@ -634,6 +653,11 @@ export async function runEditorSend(
     return;
   }
   const link = job.link ? ` ${job.link}` : "";
+  // The portal's first version is this one: the client's notes on it land on it (doug-0012 §12).
+  await deps.db
+    .update(videoReviews)
+    .set({ portalVersions: { "1": payload.version } })
+    .where(eq(videoReviews.id, review.id));
   if (mode === "portal") {
     await setDelivery(deps.db, review.id, { state: "sent", job: job.id, item: job.item, link: job.link, at: now() });
     await line(

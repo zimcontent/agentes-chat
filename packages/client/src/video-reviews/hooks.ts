@@ -155,3 +155,29 @@ export const useRetryFinal = (orgId: string, reviewId: string) =>
     if (!retry) throw new Error("This server has no editor delivery");
     return retry(orgId, reviewId);
   });
+
+/** Each person's WhatsApp conversation for the changes asked of them (doug-0012 §11). */
+export function useReviewWhatsApp(orgId: string, enabled = true) {
+  const api = useApi();
+  return useQuery({
+    queryKey: ["org", orgId, "review-whatsapp"] as const,
+    queryFn: async () => {
+      const read = reviewsOf(api).whatsappTargets;
+      return read ? (await read(orgId)).targets : [];
+    },
+    enabled: enabled && Boolean(orgId) && Boolean(api.videoReviews?.whatsappTargets),
+  });
+}
+
+export function useSetReviewWhatsApp(orgId: string) {
+  const api = useApi();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (input: { userId: string; target: { accountId: string; chatId: string } | null }) => {
+      const set = reviewsOf(api).setWhatsappTarget;
+      if (!set) throw new Error("This server has no review notices");
+      return set(orgId, input.userId, input.target);
+    },
+    onSettled: () => qc.invalidateQueries({ queryKey: ["org", orgId, "review-whatsapp"] }),
+  });
+}

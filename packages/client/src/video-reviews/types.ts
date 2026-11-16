@@ -20,6 +20,8 @@ export interface VideoReviewSummary {
   sender?: { id: string; name: string } | null;
   /** The task it delivers, when sent from one. */
   taskId?: string | null;
+  /** A person's review: the newest round of changes asked of them (doug-0012 §10). */
+  round?: ReviewRound | null;
   channelId: string;
   threadId: string | null;
   /** Notes on the newest version not yet sent to the agent. */
@@ -47,6 +49,8 @@ export interface VideoReviewNote {
   /** Said aloud and transcribed. */
   voice: boolean;
   author: { id: string; name: string } | null;
+  /** The client wrote it at the approval portal: `author` is their name. */
+  fromClient?: boolean;
   /** Already went to the agent with a decision: read only. */
   sent: boolean;
   createdAt: string;
@@ -68,6 +72,8 @@ export interface VideoReview extends VideoReviewSummary {
   final?: EditorFinal | null;
   /** The task it delivers and where its post stands at the portal (`approval`, `adjusting`, `approved`…). */
   task?: { id: string; number: number; title: string; stage: string | null } | null;
+  /** Every round of changes asked of the person who sent it: the log. */
+  rounds?: ReviewRound[];
   /** What was asked of the editor and whether there was direction; "" when the agent didn't say. */
   brief: string;
   /** The task, the footage, the delivery. */
@@ -94,6 +100,29 @@ export interface VideoReviewVersion {
 }
 
 export type VideoReviewDecision = "approve" | "changes";
+
+/** One round of changes asked of the person who sent the work: asked, told, seen, answered. */
+export interface ReviewRound {
+  id: string;
+  version: number;
+  askedBy: string;
+  fromClient: boolean;
+  notes: number;
+  askedAt: string;
+  notified: { whatsapp?: { at: string; chat: string }; error?: string; none?: boolean } | null;
+  seenAt: string | null;
+  answeredAt: string | null;
+  answeredVersion: number | null;
+}
+
+/** Where a person is told of the changes asked of them: a conversation of one of the workspace's numbers. */
+export interface ReviewWhatsAppTarget {
+  userId: string;
+  accountId: string;
+  accountLabel: string;
+  chatId: string;
+  chatName: string;
+}
 
 /** The parts of a post besides its video: a cover (a picture of the task) or none, and the caption. */
 export interface ReviewPost {

@@ -39,6 +39,7 @@ import {
   NoteAttachments,
   useAttachments,
 } from "@/components/video-review/Attachments";
+import { ReviewLog, roundLine, useWhen, WhatsAppNotice } from "@/components/video-review/ReviewRounds";
 import { useNoteRecorder } from "@/components/video-review/recorder";
 import { frameCode, type ReviewWords, timecode, useReviewWords } from "@/components/video-review/words";
 import { useToast } from "@/lib/toast";
@@ -71,7 +72,8 @@ function StatusChip({ status, w }: { status: VideoReviewSummary["status"]; w: Re
 }
 
 export function VideoReviewsPage() {
-  const { org } = useOrg();
+  const { org, me } = useOrg();
+  const when = useWhen();
   const w = useReviewWords();
   const { t, i18n } = useTranslation();
   const api = useApi();
@@ -84,31 +86,45 @@ export function VideoReviewsPage() {
   const [who, setWho] = useState("all");
   const senders = useMemo(() => {
     const seen = new Map<string, string>();
-    for (const r of reviews.data ?? []) if (r.sender) seen.set(r.sender.id, r.sender.name);
+    for (const r of reviews.data ?? [])
+      if (r.sender && r.sender.id !== me.user.id) seen.set(r.sender.id, r.sender.name);
     return [...seen].map(([id, name]) => ({ id, name }));
-  }, [reviews.data]);
+  }, [reviews.data, me.user.id]);
+  // What the person sent themselves: the changes asked of them ("Meus ajustes"), opened first while one waits.
+  const mine = (reviews.data ?? []).filter((r) => r.sender?.id === me.user.id);
+  const myToDo = mine.filter((r) => r.status === "changes").length;
+  const picked = useRef(false);
+  useEffect(() => {
+    if (picked.current || !reviews.isSuccess) return;
+    picked.current = true;
+    if (myToDo > 0) setWho("mine");
+  }, [reviews.isSuccess, myToDo]);
+  const tabs = senders.length > 0 || mine.length > 0;
   const list = useMemo(
     () =>
       (reviews.data ?? []).filter(
         (r) =>
-          (filter === "all" || r.status === "in_review") &&
+          (filter === "all" || (who === "mine" ? r.status === "changes" : r.status === "in_review")) &&
           (!mixed || medium === "all" || r.medium === medium) &&
-          (senders.length === 0 || who === "all" || (r.sender ? `person:${r.sender.id}` : "agents") === who),
+          (!tabs ||
+            who === "all" ||
+            (who === "mine" ? r.sender?.id === me.user.id : (r.sender ? `person:${r.sender.id}` : "agents") === who)),
       ),
-    [reviews.data, filter, medium, mixed, senders, who],
+    [reviews.data, filter, medium, mixed, tabs, who, me.user.id],
   );
   const open = (reviews.data ?? []).filter((r) => r.status === "in_review").length;
 
   return (
     <div className="page page--full vr-page">
       <PageHeader title={w.title} meta={w.meta}>
-        {senders.length > 0 && (
+        {tabs && (
           <Segmented
             label={w.title}
             size="sm"
             value={who}
             onValueChange={setWho}
             options={[
+              ...(mine.length > 0 ? [{ value: "mine", label: w.editor.mine, count: myToDo || undefined }] : []),
               { value: "all", label: w.editor.who.all },
               { value: "agents", label: w.editor.who.agents },
               ...senders.map((s) => ({
@@ -145,6 +161,9 @@ export function VideoReviewsPage() {
           ]}
         />
       </PageHeader>
+      {who.startsWith("person:") && (
+        <WhatsAppNotice person={senders.find((s) => `person:${s.id}` === who) ?? { id: who.slice(7), name: "" }} />
+      )}
       {reviews.isError && <ErrorState error={reviews.error} onRetry={() => void reviews.refetch()} />}
       {reviews.isPending && <Spinner />}
       {reviews.isSuccess && list.length === 0 && (
@@ -174,13 +193,20 @@ export function VideoReviewsPage() {
                       w.version(r.version),
                       r.agent ? w.by(r.agent.name) : r.sender ? w.editor.sentBy(r.sender.name) : "",
                       r.openNotes > 0 ? w.notesOpen(r.openNotes) : "",
+                      roundLine(r.round, w.editor, when),
                       relativeTime(t, i18n.language, r.updatedAt),
                     ]
                       .filter(Boolean)
                       .join(" · ")}
                   </span>
                 </span>
-                <StatusChip status={r.status} w={w} />
+                {r.sender?.id === me.user.id && r.status === "changes" ? (
+                  <Chip tone="waiting" icon="edit">
+                    {w.editor.toDo}
+                  </Chip>
+                ) : (
+                  <StatusChip status={r.status} w={w} />
+                )}
               </Link>
             </li>
           ))}
@@ -276,6 +302,7 @@ function where(atMs: number | null, endMs: number | null, w: ReviewWords) {
 function NoteRow({
   note,
   w,
+  sentTo,
   mine,
   active,
   onSeek,
@@ -283,6 +310,8 @@ function NoteRow({
 }: {
   note: VideoReviewNote;
   w: ReviewWords;
+  /** "Enviada ao Ronny" for a person's review; absent: to the agent. */
+  sentTo?: string;
   mine: boolean;
   active: boolean;
   onSeek: (ms: number) => void;
@@ -302,7 +331,14 @@ function NoteRow({
         {note.body && <span className="vr-note__body">{note.body}</span>}
         <NoteAttachments items={note.attachments} w={w} />
         <span className="vr-note__meta">
-          {[note.author?.name, note.voice ? w.voice : "", note.sent ? w.sent : ""].filter(Boolean).join(" · ")}
+          {[
+            note.author?.name,
+            note.voice ? w.voice : "",
+            // The client's notes come from the portal; the others went to whoever makes the next version.
+            note.fromClient ? w.editor.fromPortal : note.sent ? (sentTo ?? w.sent) : "",
+          ]
+            .filter(Boolean)
+            .join(" · ")}
         </span>
       </span>
       {mine && !note.sent && (
@@ -776,12 +812,15 @@ function ReviewBody({ review, w }: { review: VideoReview; w: ReviewWords }) {
       { onSuccess: () => setMessage(""), onError: failed },
     );
 
+  const lastRound = review.rounds?.at(-1);
   const decidedLine =
-    review.decidedBy && review.status !== "in_review"
-      ? `${review.status === "approved" ? w.approvedBy(review.decidedBy.name) : w.changesBy(review.decidedBy.name)}${
-          review.decidedAt ? ` · ${relativeTime(t, i18n.language, review.decidedAt)}` : ""
-        }`
-      : null;
+    review.status === "changes" && lastRound?.fromClient && !lastRound.answeredAt
+      ? `${w.changesBy(lastRound.askedBy)} · ${relativeTime(t, i18n.language, lastRound.askedAt)}`
+      : review.decidedBy && review.status !== "in_review"
+        ? `${review.status === "approved" ? w.approvedBy(review.decidedBy.name) : w.changesBy(review.decidedBy.name)}${
+            review.decidedAt ? ` · ${relativeTime(t, i18n.language, review.decidedAt)}` : ""
+          }`
+        : null;
 
   const nearNote = (n: VideoReviewNote) =>
     n.atMs !== null && (n.endMs !== null ? nowMs >= n.atMs && nowMs <= n.endMs : Math.abs(nowMs - n.atMs) < 700);
@@ -999,21 +1038,24 @@ function ReviewBody({ review, w }: { review: VideoReview; w: ReviewWords }) {
         </div>
         <p className="vr-muted vr-keys">{open ? w.keys : w.keysClosed}</p>
 
-        <section className="vr-brief" aria-label={w.briefTitle}>
-          <h2 className="vr-notes__title">{w.briefTitle}</h2>
-          <p className={review.brief ? "vr-brief__text" : "vr-muted"}>{review.brief || w.noBrief}</p>
-          {review.links.length > 0 && (
-            <div className="vr-brief__links">
-              {review.links.map((link) => (
-                <Button key={link.url} size="sm" icon="external" asChild>
-                  <a href={link.url} target="_blank" rel="noreferrer noopener">
-                    {link.label}
-                  </a>
-                </Button>
-              ))}
-            </div>
-          )}
-        </section>
+        {/* A person's video has no agent's brief: its task says what was asked. */}
+        {!(review.sender && !review.brief && review.links.length === 0) && (
+          <section className="vr-brief" aria-label={w.briefTitle}>
+            <h2 className="vr-notes__title">{w.briefTitle}</h2>
+            <p className={review.brief ? "vr-brief__text" : "vr-muted"}>{review.brief || w.noBrief}</p>
+            {review.links.length > 0 && (
+              <div className="vr-brief__links">
+                {review.links.map((link) => (
+                  <Button key={link.url} size="sm" icon="external" asChild>
+                    <a href={link.url} target="_blank" rel="noreferrer noopener">
+                      {link.label}
+                    </a>
+                  </Button>
+                ))}
+              </div>
+            )}
+          </section>
+        )}
       </div>
 
       <div className="vr-side">
@@ -1091,6 +1133,9 @@ function ReviewBody({ review, w }: { review: VideoReview; w: ReviewWords }) {
                   note={note}
                   w={w}
                   mine={note.author?.id === me.user.id}
+                  sentTo={
+                    review.sender ? w.editor.sentTo(review.sender.name.split(" ")[0] || review.sender.name) : undefined
+                  }
                   active={nearNote(note)}
                   onSeek={(ms) => {
                     video.current?.pause();
@@ -1153,6 +1198,8 @@ function ReviewBody({ review, w }: { review: VideoReview; w: ReviewWords }) {
             </div>
           </div>
         )}
+
+        <ReviewLog rounds={review.rounds ?? []} />
 
         {open && (
           <div className="vr-decide">

@@ -105,6 +105,7 @@ import { notifyPersonLimit, PERSON_LIMIT_JOB } from "./person-usage";
 import { deliverPush } from "./push";
 import { reachOf, settleReach } from "./reach";
 import { routineCreatorOf } from "./requester";
+import { notifyRound, ROUND_NOTIFY_JOB } from "./review-rounds";
 import { considerCard, RIGHT_HAND_DECIDE_JOB } from "./right-hand-approvals";
 import { lodiLaneHandlers } from "./right-hand-lanes";
 import {
@@ -947,6 +948,11 @@ export function createJobHandlers(deps: JobDeps): JobHandlers {
         { chatId: String(job.payload.chatId), messageId: String(job.payload.messageId) },
         { finalAttempt: ctx.finalAttempt },
       );
+    },
+    // The person asked for changes is told in their WhatsApp conversation (doug-0012 §11).
+    [ROUND_NOTIFY_JOB]: async (job, ctx) => {
+      if (!deps.videoReviews) throw new PermanentJobError("no video review configured");
+      await notifyRound(deps.videoReviews, String(job.payload.roundId), { finalAttempt: ctx.finalAttempt });
     },
     [REVIEW_LIGHT_JOB]: async (job, ctx) => {
       if (!deps.videoReviews) throw new PermanentJobError("no video review configured");

@@ -15,7 +15,13 @@ import type {
   VaultKeysImportResult,
   VaultOverview,
 } from "../vault/types";
-import type { ReviewPost, VideoReview, VideoReviewNote, VideoReviewSummary } from "../video-reviews/types";
+import type {
+  ReviewPost,
+  ReviewWhatsAppTarget,
+  VideoReview,
+  VideoReviewNote,
+  VideoReviewSummary,
+} from "../video-reviews/types";
 import type {
   WhatsAppAccount,
   WhatsAppBrain,
@@ -144,7 +150,6 @@ import type {
   InviteLinkChanged,
   InviteLinkMade,
   Issue,
-  TeamAgenda,
   IssueActivity,
   IssueColumn,
   IssueConversationRef,
@@ -266,6 +271,7 @@ import type {
   TaskOutput,
   TaskSteps,
   Team,
+  TeamAgenda,
   TeamProposalCard,
   TeamTemplate,
   ThreadFilters,
@@ -622,6 +628,12 @@ export function createHttpApi(options: TransportOptions = {}): HttpApi {
           `${org(orgId)}/video-reviews/${enc(reviewId)}/send`,
           { json: {} },
         ),
+      whatsappTargets: (orgId) => request<{ targets: ReviewWhatsAppTarget[] }>(`${org(orgId)}/review-whatsapp`),
+      setWhatsappTarget: (orgId, userId, target) =>
+        request<{ target: ReviewWhatsAppTarget | null }>(`${org(orgId)}/review-whatsapp/${enc(userId)}`, {
+          method: "PUT",
+          json: target,
+        }),
       retryFinal: (orgId, reviewId) =>
         request<void>(`${org(orgId)}/video-reviews/${enc(reviewId)}/final/retry`, { json: {} }),
     },

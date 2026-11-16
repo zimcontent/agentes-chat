@@ -54,3 +54,24 @@ to a backup, with nobody having to know the flow to follow it.
 - The backup's credentials are the installation's, not each workspace's: one Google account holds every workspace's
   finals, in folders apart. A workspace-owned backup is a later decision.
 - The phone app reads the same review; sending from a task's steps is on the web (a phone's browser included).
+
+## Addendum 2026-11-16: rounds, their log, the WhatsApp notice and the client's own notes
+
+10. **A round per change asked, and its log.** Every time the team asks for changes, or the client asks at the
+    portal, a round opens for the person who sent the work (`video_review_rounds`): who asked and when, when the
+    person was told beyond the app, when they first opened the review (`seen_at`, only their own opening counts), and
+    when their next version came (`answered_at`, `answered_version`). The review page shows the rounds as
+    "Histórico de ajustes", and each list row says where the newest stands (asked, seen, answered). Nothing here is
+    about video or an editor: any member who sends work for review gets the same.
+11. **Each person has their own view, and is told where they read.** Review opens on "Meus ajustes" for whoever has
+    changes waiting, with "Ajuste para fazer" on each. Whoever may give work picks, on a person's tab, a conversation
+    of one of the workspace's WhatsApp numbers (a group such as "Rony Demandas", `review_whatsapp`). When a round
+    opens, a job (`review_round.notify`) posts there, as that number's agent, a line written in code: the work, who
+    asked, the notes with their times, the review's link and the task's. What happened is kept on the round.
+12. **The client's portal and the player are one.** The bridge lists what the client wrote on each post (each point
+    they marked, with the second, the slide and the spot, and each request with no mark; their attachments as links:
+    `notas_cliente`). The portal's tick brings each into the post's review once (`external_id`), on the review's
+    version the portal's version stands for (`portal_versions`, kept as each version is sent), at its second, as the
+    client's (`from_client`, `author_name`). A change asked opens a round for the editor, told like the team's, and
+    the review waits on them; their next version goes straight back to the client (§7). The client's words are notes
+    for people, never a model's prompt.
