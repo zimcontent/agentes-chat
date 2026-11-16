@@ -439,16 +439,18 @@ export function agentStarters(
 }
 
 /**
- * The right hand's own row (ADR 0137), first in Conversas' Agentes and never among its sorted rows: its DM, or one to
- * start (no channel yet); the other rows without it. No pin when there is none for this person (outside its audience).
+ * The rows with the right hand (ADR 0137) among them: its DM is one of Agentes' rows like any agent's, by its latest
+ * message; before its first conversation it is a row to start one, at the end. With no agent conversation at all the
+ * rows stay as they are (the home lists every agent to start one), and outside its audience (`agent` undefined) too.
  */
-export function rightHandPin(
+export function withRightHand(
   rows: ConversationRow[],
   agent: { id: string; name: string; handle: string } | undefined,
-): { pin: ConversationRow | null; rows: ConversationRow[] } {
-  if (!agent) return { pin: null, rows };
-  const isIt = (r: ConversationRow) => r.kind === "dm" && r.with.type === "agent" && r.with.id === agent.id;
-  return { pin: rows.find(isIt) ?? agentStarters([agent])[0] ?? null, rows: rows.filter((r) => !isIt(r)) };
+): ConversationRow[] {
+  const agentDm = (r: ConversationRow) => r.kind === "dm" && r.with.type === "agent";
+  if (!agent || !rows.some(agentDm)) return rows;
+  const has = rows.some((r) => agentDm(r) && r.kind === "dm" && r.with.id === agent.id);
+  return has ? rows : [...rows, ...agentStarters([agent])];
 }
 
 /** The home's closed sections as remembered: any keys (categories come and go), anything unreadable: none. */

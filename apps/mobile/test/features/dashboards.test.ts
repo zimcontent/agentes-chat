@@ -454,10 +454,9 @@ describe("dashboards on the phone (ADR 0135)", () => {
       [],
     );
     expect(frozenBoard({ ...manager, pinned: false }, { deletion: undefined })).toMatchObject({ canEdit: true });
-    // The board's screen and the home's strip read it through this, so "+", Share and a card's long press go too.
+    // The board's screen reads it through this, so "+", Share and a card's long press go too.
     const read = (path: string) => readFileSync(join(import.meta.dir, "../../src/features", path), "utf8");
     expect(read("dashboards/hooks.ts")).toContain("board: q.data && frozenBoard(q.data, org)");
-    expect(read("chats/HomeWidgets.tsx")).toContain("const board = home.board && frozenBoard(home.board, org);");
   });
 
   test("Use on Home: any board seen; on Início it offers Remove; My Home brings Início back", () => {
@@ -537,7 +536,7 @@ describe("dashboards in links, notifications and routines", () => {
     expect(existsSync(join(app, "(tabs)", "dashboards"))).toBe(false);
     expect(readFileSync(join(app, "_layout.tsx"), "utf8")).toContain('name="dashboards"');
     expect(readFileSync(join(app, "(tabs)", "_layout.tsx"), "utf8")).not.toContain("dashboards");
-    expect([...TAB_GLYPHS]).toEqual(["chats", "threads", "agents", "activity", "search"]);
+    expect([...TAB_GLYPHS]).not.toContain("dashboards");
   });
 
   test("an alert or a failure opens its widget; a request to publish, its board", () => {

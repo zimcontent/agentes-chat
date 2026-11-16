@@ -113,7 +113,7 @@ describe("what a member's sidebar lists", () => {
     expect(agentRows()).toEqual(["Atlas"]);
     cleanup();
     const state = acme("owner");
-    state.sidebarView = { agentSort: "workspace", showAllAgents: true, pins: null };
+    state.sidebarView = { agentSort: "arranged", showAllAgents: true, pins: null };
     await go(state);
     expect(sections()).toEqual(["Grupos", "Engenharia", "Diretoria", "Agentes", "Integrations", "Mensagens diretas"]);
     expect(agentRows()).toEqual(["Atlas", "Ada"]);
@@ -185,7 +185,7 @@ describe("an agent's row", () => {
     // Ada answers Walter and João; pinned or not, the role line is the same.
     if (ada) ada.audience = { mode: "people", userIds: ["u-joao"] };
     state.sidebarView = {
-      agentSort: "workspace",
+      agentSort: "arranged",
       showAllAgents: false,
       pins: { agents: [], channels: [], people: [] },
     };

@@ -2209,7 +2209,8 @@
     "add": "Nuevo agente o departamento",
     "order": "Orden",
     "sort": {
-      "workspace": "El del espacio de trabajo",
+      "recent": "Último mensaje",
+      "arranged": "El del espacio de trabajo",
       "mine": "Los míos primero",
       "working": "Trabajando primero"
     },

@@ -2150,7 +2150,8 @@
     "add": "Yeni ajan veya departman",
     "order": "Sıra",
     "sort": {
-      "workspace": "Çalışma alanı sırası",
+      "recent": "Son mesaj",
+      "arranged": "Çalışma alanı sırası",
       "mine": "Önce benimkiler",
       "working": "Önce çalışanlar"
     },

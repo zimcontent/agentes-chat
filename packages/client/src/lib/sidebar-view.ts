@@ -5,11 +5,16 @@ import { groupOf } from "./agent-groups";
 export const SIDEBAR_PIN_LIMIT = 5;
 export type PinKind = keyof SidebarPins;
 /** AGENTES' orders, as its ⋯ menu lists them (`AGENT_SORTS`, packages/engine/src/sidebar-items.ts). */
-export const AGENT_SORTS = ["workspace", "mine", "working"] as const satisfies readonly SidebarView["agentSort"][];
+export const AGENT_SORTS = [
+  "recent",
+  "arranged",
+  "mine",
+  "working",
+] as const satisfies readonly SidebarView["agentSort"][];
 
 /** The view of someone who never changed it. */
 export const SIDEBAR_VIEW_DEFAULT: SidebarView = {
-  agentSort: "workspace",
+  agentSort: "recent",
   showAllAgents: false,
   pins: null,
   hiddenAgents: [],
@@ -93,16 +98,22 @@ export function repinAgent(view: SidebarView, id: string, at: number): SidebarVi
 }
 
 /**
- * One group's agents in the person's order (stable): the workspace's, the ones I'm responsible for first (`mine`), or
- * the ones working now first (`working`, `busy` their ids).
+ * One group's agents in the person's order: the latest message first (`recent`, `lastActive`: agent id → ISO time of
+ * its DM's last message; never talked to: after, in the workspace's order), the workspace's arranged order
+ * (`arranged`), the ones I'm responsible for first (`mine`) or the ones working now first (`working`, `busy` their
+ * ids), each of those two by latest message after that (docs/adr/doug-0014-latest-first.md).
  */
 export function sortAgents<A extends Pick<Agent, "id" | "ownerUserId">>(
   agents: readonly A[],
   sort: SidebarView["agentSort"],
   myUserId: string,
   busy: ReadonlySet<string> = new Set(),
+  lastActive: ReadonlyMap<string, string> = new Map(),
 ): A[] {
-  if (sort === "workspace") return [...agents];
+  if (sort === "arranged") return [...agents];
+  // Stable: two never talked to keep the workspace's order.
+  const latest = [...agents].sort((a, b) => (lastActive.get(b.id) ?? "").localeCompare(lastActive.get(a.id) ?? ""));
+  if (sort === "recent") return latest;
   const first = (a: A) => (sort === "mine" ? a.ownerUserId === myUserId : busy.has(a.id));
-  return [...agents.filter(first), ...agents.filter((a) => !first(a))];
+  return [...latest.filter(first), ...latest.filter((a) => !first(a))];
 }

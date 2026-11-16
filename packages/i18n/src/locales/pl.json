@@ -2269,7 +2269,8 @@
     "add": "Nowy agent lub dział",
     "order": "Kolejność",
     "sort": {
-      "workspace": "Taka jak w przestrzeni roboczej",
+      "recent": "Ostatnia wiadomość",
+      "arranged": "Taka jak w przestrzeni roboczej",
       "mine": "Moi najpierw",
       "working": "Pracujący najpierw"
     },

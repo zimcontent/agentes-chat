@@ -15,7 +15,7 @@ import {
 } from "@agenteschat/client/lib/right-hand";
 import { STICKER_STILL_T, WAVE_SECONDS } from "@agenteschat/ui/agent/stickers";
 import { stickerFrame } from "../../src/agent/sticker";
-import { agentStarters, buildConversations, homeLayout, rightHandPin } from "../../src/features/chats/logic";
+import { agentStarters, buildConversations, homeLayout, withRightHand } from "../../src/features/chats/logic";
 import { SETTINGS_SECTIONS } from "../../src/features/settings/logic";
 import { agent, at } from "./fixtures";
 
@@ -28,39 +28,36 @@ const dm = (a: { id: string; name: string; handle: string }, minutesAgo: number,
   unread,
 });
 
-test("the right hand is its own row, its DM's unread kept, never one of Agentes' sorted rows", () => {
-  const rows = buildConversations({ channels: [], dms: [dm(lodi, 1, 2), dm(theo, 5)], threads: [] });
-  const { pin, rows: rest } = rightHandPin(rows, rightHandOf([theo, lodi]));
-  expect(pin).toMatchObject({ kind: "dm", channelId: "d-a-lodi", unread: 2 });
-  const agents = homeLayout(rest, []).find((s) => s.key === "agents");
-  expect(agents?.rows.map((r) => r.key)).toEqual(["d:d-a-theo"]);
+test("the right hand is one of Agentes' rows, by its latest message like any agent (doug-0014)", () => {
+  const rows = buildConversations({ channels: [], dms: [dm(lodi, 5, 2), dm(theo, 1)], threads: [] });
+  const all = withRightHand(rows, rightHandOf([theo, lodi]));
+  const agents = homeLayout(all, []).find((s) => s.key === "agents");
+  // Theo wrote last: first. The right hand keeps its unread.
+  expect(agents?.rows.map((r) => r.key)).toEqual(["d:d-a-theo", "d:d-a-lodi"]);
+  expect(agents?.rows[1]).toMatchObject({ unread: 2 });
 });
 
-test("Conversas asks the right hand from its own field under the greeting, never one of Agentes' rows", () => {
+test("Início has no field of its own for the right hand: no greeting, no box, its DM in the list", () => {
   const src = (f: string) => readFileSync(new URL(`../../src/features/${f}`, import.meta.url), "utf8");
   const chats = src("chats/ChatsScreen.tsx");
-  // Its face wakes as Conversas arrives after the splash (once per launch).
-  expect(chats).toContain(
-    "<RightHandAsk row={pinned.pin} onStart={startDm} faceMode={wake.mode} faceStyle={wake.style} />",
-  );
-  expect(chats).toContain("after={ask}");
-  expect(chats).not.toContain("kept: lead");
-  expect(src("right-hand/Pin.tsx")).toContain('t("mobile.chat.messageTo", { name: row.with.name })');
+  expect(chats).not.toContain("RightHandAsk");
+  expect(chats).not.toContain("<Greeting");
+  expect(chats).toContain("withRightHand(list.rows, rightHand && canTalk(rightHand) ? rightHand : undefined)");
 });
 
-test("with no DM yet its row starts one, and the Agentes starters leave it out", () => {
-  const { pin, rows } = rightHandPin([], lodi);
-  expect(pin).toMatchObject({ kind: "dm", channelId: "", with: { id: "a-lodi" } });
-  expect(rows).toEqual([]);
-  const starters = agentStarters([lodi, theo].filter((a) => a.builtin !== "right_hand"));
-  expect(starters.map((r) => r.key)).toEqual(["a:a-theo"]);
+test("with no DM yet its row starts one, at the end; with no agent DM at all, every agent is a starter", () => {
+  const rows = buildConversations({ channels: [], dms: [dm(theo, 1)], threads: [] });
+  expect(withRightHand(rows, lodi).map((r) => r.key)).toEqual(["d:d-a-theo", "a:a-lodi"]);
+  expect(withRightHand([], lodi)).toEqual([]);
+  const starters = agentStarters([lodi, theo]);
+  expect(starters.map((r) => r.key)).toEqual(["a:a-lodi", "a:a-theo"]);
 });
 
-test("outside its audience there is no pin", () => {
+test("outside its audience it isn't added", () => {
   const hidden = { ...lodi, canTalk: false };
   expect(canTalk(hidden)).toBe(false);
-  const rows = buildConversations({ channels: [], dms: [dm(lodi, 1)], threads: [] });
-  expect(rightHandPin(rows, canTalk(hidden) ? hidden : undefined)).toEqual({ pin: null, rows });
+  const rows = buildConversations({ channels: [], dms: [dm(theo, 1)], threads: [] });
+  expect(withRightHand(rows, canTalk(hidden) ? hidden : undefined)).toEqual(rows);
 });
 
 test("the way to build the team: with a team, no card left and no open checklist, for who may create agents", () => {
@@ -182,13 +179,10 @@ test("its greeting of a newcomer is the one ask only until they answer it, whate
   expect(welcomeOpen(undefined, true)).toBe(false);
 });
 
-test("the phone's greeting draws the checklist and Conversas has one line back to it, not a second list", () => {
+test("the right hand's conversation draws the checklist; Início shows who waits on your reply instead (doug-0014)", () => {
   const src = (f: string) => readFileSync(new URL(`../../src/features/${f}`, import.meta.url), "utf8");
   expect(src("right-hand/Intro.tsx")).toContain("<FirstRunCard agent={agent} channelId={channelId} />");
-  expect(src("chats/ChatsScreen.tsx")).toContain("<FirstRunLine />");
-  // One line that says who is setting up the team and how far ("Atlas is setting up the team · 1 of 3"); a personal
-  // workspace's says "your agents" (ADR 0159).
-  expect(src("chats/FirstRunLine.tsx")).toContain('t(modeKey(org, "mobile.chats.firstRunLine")');
+  expect(src("chats/ChatsScreen.tsx")).toContain("<HomeWaiting ");
   // The apps row names what it reads, as the web's does, never "Sem apps" with apps connected; an invitation waiting
   // finishes the people row, saying who; a personal workspace's rows read its own words (ADR 0159).
   const card = src("right-hand/FirstRun.tsx");

@@ -1,17 +1,11 @@
-import { bodyPath, EYE_STYLES, EYE_X } from "@agenteschat/ui/agent/engine";
-import { ICONS } from "./icons.data";
-
 /**
- * The tab bar's own glyphs (Conversas, Threads, Agentes, Atividade, Buscar) as SVG documents, in two states:
- * outline (unselected) and filled (selected). They are template images: one opaque color, and the
- * native tab bar tints them by state. 24×24 viewBox, stroke 1.7 with round caps, the line icons'
- * geometry; Threads is a message with a reply branching off it; Agentes is our agent (the engine's body with
- * the cut bottom-left corner and two pill eyes); Buscar is the line icons' magnifier, bolder when selected
- * (a filled lens reads as a dot, so it never fills, like the system's search tab).
- * Pure: `tabIcons.ts` rasterizes them with Skia.
+ * The tab bar's own glyphs (Início, Esperando você, Portal, Revisão, Configurações: the web sidebar's rows, in the
+ * same order and with the same icons) as SVG documents, in two states: outline (unselected) and filled or bolder
+ * (selected). They are template images: one opaque color, and the native tab bar tints them by state. 24×24 viewBox,
+ * stroke 1.7 with round caps. Pure: `tabIcons.ts` rasterizes them with Skia.
  */
 
-export const TAB_GLYPHS = ["chats", "threads", "agents", "activity", "search"] as const;
+export const TAB_GLYPHS = ["home", "waiting", "portal", "review", "settings"] as const;
 export type TabGlyph = (typeof TAB_GLYPHS)[number];
 
 /** A glyph and its state, as one name (the icon "family" of the tab bar takes a single name). */
@@ -30,99 +24,76 @@ export function parseTabGlyphKey(key: string): { glyph: TabGlyph; selected: bool
 const STROKE = 1.7;
 const f = (n: number) => Number(n.toFixed(3));
 
-function pathD(name: "chat" | "bell", index = 0): string {
-  const shape = ICONS[name][index];
-  if (shape?.t !== "path") throw new Error(`icon ${name} has no path ${index}`);
-  return shape.d;
-}
-
-const line = (d: string, color: string) =>
-  `<path d="${d}" fill="none" stroke="${color}" stroke-width="${STROKE}" stroke-linecap="round" stroke-linejoin="round"/>`;
-/** Filled and stroked with the same color: the solid shape keeps the outline's outer edge. */
-const solid = (d: string, color: string) =>
-  `<path d="${d}" fill="${color}" stroke="${color}" stroke-width="${STROKE}" stroke-linecap="round" stroke-linejoin="round"/>`;
-
 /**
- * Threads: a message (top left), a line branching down from it, and the reply it leads to (bottom right).
- * The two bubbles fill when selected; the branch stays a line.
+ * The web sidebar's icons (`packages/ui` line icons, a 20 grid) drawn on the bar's 24 grid: scaled by 1.2, the stroke
+ * narrowed by as much so it lands at the bar's 1.7. The bar draws them as templates (only alpha counts), so a
+ * selected glyph either fills with its inner mark cut out by the even-odd rule, or, where the mark is a line, draws
+ * bolder (as the system's search tab).
  */
-const THREAD_MESSAGE =
-  "M6 3.5h7A2.5 2.5 0 0 1 15.5 6v2A2.5 2.5 0 0 1 13 10.5H6A2.5 2.5 0 0 1 3.5 8V6A2.5 2.5 0 0 1 6 3.5Z";
-const THREAD_BRANCH = "M7 10.5v4.25a2.5 2.5 0 0 0 2.5 2.5";
-const THREAD_REPLY =
-  "M12 14h6a2.5 2.5 0 0 1 2.5 2.5V18a2.5 2.5 0 0 1-2.5 2.5h-6A2.5 2.5 0 0 1 9.5 18v-1.5A2.5 2.5 0 0 1 12 14Z";
+const WEB = 1.2;
+const BOLD = 2.3;
+const webGroup = (inner: string, color: string, width = STROKE) =>
+  `<g transform="scale(${WEB})" fill="none" stroke="${color}" stroke-width="${f(width / WEB)}" stroke-linecap="round" stroke-linejoin="round">${inner}</g>`;
 
-function threadsGlyph(selected: boolean, color: string): string {
-  const bubble = selected ? solid : line;
-  return `${bubble(THREAD_MESSAGE, color)}${line(THREAD_BRANCH, color)}${bubble(THREAD_REPLY, color)}`;
+/** Início: the sidebar's house; selected, its body fills with the door cut out. */
+function homeGlyph(selected: boolean, color: string): string {
+  const roof = '<path d="M3.5 9 10 3.5 16.5 9"/>';
+  if (!selected)
+    return webGroup(`${roof}<path d="M5 7.8v6.7A1.5 1.5 0 0 0 6.5 16h2v-4h3v4h2a1.5 1.5 0 0 0 1.5-1.5V7.8"/>`, color);
+  const body = "M5 7.8 10 3.6l5 4.2v6.7a1.5 1.5 0 0 1-1.5 1.5h-7A1.5 1.5 0 0 1 5 14.5ZM8.5 16v-4h3v4Z";
+  return webGroup(`${roof}<path d="${body}" fill="${color}" fill-rule="evenodd" stroke="none"/>`, color);
 }
 
-/** A vertical pill (an eye) as a closed path. */
-function pill(cx: number, cy: number, w: number, h: number): string {
-  const r = w / 2;
-  const x = cx - r;
-  const top = cy - h / 2;
-  const bottom = cy + h / 2;
-  return [
-    `M${f(x)} ${f(top + r)}`,
-    `A${f(r)} ${f(r)} 0 0 1 ${f(x + w)} ${f(top + r)}`,
-    `V${f(bottom - r)}`,
-    `A${f(r)} ${f(r)} 0 0 1 ${f(x)} ${f(bottom - r)}`,
-    "Z",
-  ].join("");
+/** Esperando você: the sidebar's question in a circle, bolder when selected. */
+function waitingGlyph(selected: boolean, color: string): string {
+  const mark = "M8 7.9a2.1 2.1 0 1 1 2.8 1.9c-.5.3-.8.7-.8 1.3v.3M10 14v.01";
+  return webGroup(`<circle cx="10" cy="10" r="7"/><path d="${mark}"/>`, color, selected ? BOLD : STROKE);
 }
 
-/** Body side and origin of the agent glyph in the 24 grid (the stroke's center line). */
-const AGENT_SIDE = 15.4;
-const AGENT_AT = (24 - AGENT_SIDE) / 2;
-
-/** The agent's two eyes for a body at `at` with side `side`; never thinner than `minW` (legible at 24pt). */
-function agentEyes(at: number, side: number, minW: number): string {
-  const eye = EYE_STYLES.round;
-  const w = Math.max(eye.w * side, minW);
-  const h = eye.h * side;
-  const cy = at + eye.cy * side;
-  return EYE_X.map((x) => pill(at + x * side, cy, w, h)).join("");
+/** Portal: the sidebar's card with a check, bolder when selected. */
+function portalGlyph(selected: boolean, color: string): string {
+  const card = "M7 3h6a4 4 0 0 1 4 4v6a4 4 0 0 1-4 4H3V7a4 4 0 0 1 4-4z";
+  return webGroup(`<path d="${card}"/><path d="m7 10.2 2 2 4-4.4"/>`, color, selected ? BOLD : STROKE);
 }
 
-function agentGlyph(selected: boolean, color: string): string {
-  if (!selected) {
-    // The outline body, the eyes filled.
-    return `${line(bodyPath(AGENT_AT, AGENT_AT, AGENT_SIDE), color)}<path d="${agentEyes(AGENT_AT, AGENT_SIDE, 1.8)}" fill="${color}"/>`;
-  }
-  // The solid body out to the outline's outer edge, the eyes cut out (even-odd), so the bar's tint
-  // shows a filled agent with see-through eyes.
-  const at = AGENT_AT - STROKE / 2;
-  const side = AGENT_SIDE + STROKE;
-  return `<path d="${bodyPath(at, at, side)}${agentEyes(at, side, 2.1)}" fill="${color}" fill-rule="evenodd"/>`;
+/** Revisão: the sidebar's video frame with its play; selected, the frame fills with the play cut out. */
+function reviewGlyph(selected: boolean, color: string): string {
+  if (!selected)
+    return webGroup(
+      '<rect x="3" y="4.5" width="14" height="11" rx="2.5"/><path d="m8.5 7.8 3.7 2.2-3.7 2.2z"/>',
+      color,
+    );
+  const frame = "M5.5 4.5h9A2.5 2.5 0 0 1 17 7v6a2.5 2.5 0 0 1-2.5 2.5h-9A2.5 2.5 0 0 1 3 13V7a2.5 2.5 0 0 1 2.5-2.5Z";
+  return webGroup(`<path d="${frame}M8.5 7.8v4.4l3.7-2.2Z" fill="${color}" fill-rule="evenodd"/>`, color);
 }
 
-/** Buscar: the magnifier of the line icons (`search`), with a heavier stroke when selected. */
-function searchGlyph(selected: boolean, color: string): string {
-  const width = selected ? SEARCH_SELECTED_STROKE : STROKE;
-  const attrs = `fill="none" stroke="${color}" stroke-width="${width}" stroke-linecap="round" stroke-linejoin="round"`;
-  return `<circle cx="11" cy="11" r="6.5" ${attrs}/><path d="m16 16 4 4" ${attrs}/>`;
+/** Configurações: the sidebar's two sliders; selected, their knobs fill. */
+function settingsGlyph(selected: boolean, color: string): string {
+  const knob = selected ? ` fill="${color}"` : "";
+  return webGroup(
+    `<path d="M3.5 6h7M15.5 6h1M3.5 14h1M9.5 14h7"/><circle cx="13" cy="6" r="2"${knob}/><circle cx="7" cy="14" r="2"${knob}/>`,
+    color,
+  );
 }
-const SEARCH_SELECTED_STROKE = 2.3;
 
 /** The SVG document of a tab glyph in a state, drawn in `color` (any opaque color: it is a template). */
 export function tabGlyphSvg(glyph: TabGlyph, selected: boolean, color = "#000000"): string {
   let body: string;
   switch (glyph) {
-    case "chats":
-      body = selected ? solid(pathD("chat"), color) : line(pathD("chat"), color);
+    case "home":
+      body = homeGlyph(selected, color);
       break;
-    case "activity":
-      body = `${selected ? solid(pathD("bell"), color) : line(pathD("bell"), color)}${line(pathD("bell", 1), color)}`;
+    case "waiting":
+      body = waitingGlyph(selected, color);
       break;
-    case "threads":
-      body = threadsGlyph(selected, color);
+    case "portal":
+      body = portalGlyph(selected, color);
       break;
-    case "agents":
-      body = agentGlyph(selected, color);
+    case "review":
+      body = reviewGlyph(selected, color);
       break;
-    case "search":
-      body = searchGlyph(selected, color);
+    case "settings":
+      body = settingsGlyph(selected, color);
       break;
   }
   return `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">${body}</svg>`;

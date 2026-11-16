@@ -1,6 +1,6 @@
-import { ReviewsScreen } from "@/features/review/ReviewsScreen";
+import { Redirect } from "expo-router";
 
-/** Revisão (docs/adr/doug-0007-video-review.md): the videos agents sent for review, pushed from the home. */
+/** Revisão is a tab now (the web sidebar's row): the old address lands there. */
 export default function ReviewsRoute() {
-  return <ReviewsScreen />;
+  return <Redirect href="/reviews" />;
 }

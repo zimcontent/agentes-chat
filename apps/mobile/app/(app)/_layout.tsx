@@ -153,6 +153,22 @@ function AppStack() {
       <Stack.Screen name="widget/[id]" options={{ ...pushed, ...scrollUnder }} />
       {/* Video review (docs/adr/doug-0007-video-review.md): the list from the home, a video from it or a chat's card. */}
       <Stack.Screen name="review/index" options={{ ...pushed, ...scrollUnder }} />
+      {/* Out of the tab bar since it became the web sidebar's five (Início's tools open them). */}
+      <Stack.Screen name="agents" options={{ ...pushed, ...scrollUnder }} />
+      <Stack.Screen name="threads" options={{ ...pushed, ...scrollUnder }} />
+      <Stack.Screen name="search" options={{ ...pushed, ...scrollUnder }} />
+      {/* WhatsApp (docs/adr/doug-0001-whatsapp-numbers.md): the numbers from Início, a number's conversations, one. */}
+      <Stack.Screen name="whatsapp/index" options={{ ...pushed, ...scrollUnder }} />
+      <Stack.Screen name="whatsapp/[account]" options={{ ...pushed, ...scrollUnder }} />
+      <Stack.Screen name="whatsapp/chat" options={pushed} />
+      {/* Mídia (docs/adr/doug-0011): the gallery from Início, a new generation, one generation. */}
+      <Stack.Screen name="media/index" options={{ ...pushed, ...scrollUnder }} />
+      <Stack.Screen name="media/new" options={{ ...pushed, ...scrollUnder }} />
+      <Stack.Screen name="media/[id]" options={{ ...pushed, ...scrollUnder }} />
+      {/* The approval portal (ADR 9001): a client from the Portal tab, a card, a post. */}
+      <Stack.Screen name="portal/client/[id]" options={{ ...pushed, ...scrollUnder }} />
+      <Stack.Screen name="portal/card/[id]" options={{ ...pushed, ...scrollUnder }} />
+      <Stack.Screen name="portal/post/[id]" options={{ ...pushed, ...scrollUnder }} />
       <Stack.Screen name="review/[id]" options={{ ...pushed, ...scrollUnder }} />
       {/* The piece in the editor: its own gestures, so no swipe back over it (docs/adr/doug-0010-design-review.md). */}
       <Stack.Screen name="review/edit/[id]" options={{ ...pushed, gestureEnabled: false }} />

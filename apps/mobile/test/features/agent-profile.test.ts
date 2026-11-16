@@ -92,7 +92,7 @@ describe("Agentes: esperando você, trabalhando, livres", () => {
     expect(free.map((l) => l.agent.id).sort()).toEqual(["iris", "theo"]);
   });
 
-  test("Livres by the workspace's groups: the ones in none first, then each group in its order; empty ones left out", () => {
+  test("Livres by the workspace's groups: the ones in none first, then each group, each by latest conversation", () => {
     const team = [...agents, agent({ id: "zoe", name: "Zoe" }), agent({ id: "ana", name: "Ana" })];
     const { working, free } = teamLines(team, [work("nina", ago(1))], []);
     const groups = [
@@ -101,22 +101,16 @@ describe("Agentes: esperando você, trabalhando, livres", () => {
       { id: "g3", name: "Lumen | Gestão e Financeiro", agentIds: ["ana"] },
     ];
     const sections = freeSections(free, groups);
+    // Inside a group Livres' order (the latest conversation, then the name), not the order it was arranged in.
     expect(sections.map((s) => [s.group?.name ?? null, s.lines.map((l) => l.agent.id)])).toEqual([
       [null, ["iris"]],
-      ["Integrations", ["zoe", "theo"]],
+      ["Integrations", ["theo", "zoe"]],
       ["Lumen | Gestão e Financeiro", ["ana"]],
     ]);
     // A working agent stays under "Trabalhando agora", out of its group's section.
     expect(working.map((l) => l.agent.id)).toEqual(["nina"]);
     // No groups: Livres alone, as before.
     expect(freeSections(free, []).map((s) => [s.group, s.lines.length])).toEqual([[null, free.length]]);
-    // Pinned ("Fixar no topo", the web's pins): first in their own section, so a setor keeps every agent in it.
-    const pinned = freeSections(free, groups, ["theo", "nina", "ana"]);
-    expect(pinned.map((s) => [s.group?.name ?? null, s.lines.map((l) => l.agent.id), s.pinnedCount])).toEqual([
-      [null, ["iris"], 0],
-      ["Integrations", ["theo", "zoe"], 1],
-      ["Lumen | Gestão e Financeiro", ["ana"], 1],
-    ]);
   });
 });
 

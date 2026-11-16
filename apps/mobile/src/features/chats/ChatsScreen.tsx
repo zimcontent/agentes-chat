@@ -1,18 +1,17 @@
 import { keys, useArchivedChannels, useChannelCategories, useChannels, useMuteChannel } from "@agenteschat/client";
 import { canTalk } from "@agenteschat/client/lib/audience";
 import { waitingComputerByAgent } from "@agenteschat/client/lib/machine-outages";
-import { isRightHand, rightHandOf } from "@agenteschat/client/lib/right-hand";
+import { rightHandOf } from "@agenteschat/client/lib/right-hand";
 import { WORKING_POLL_MS } from "@agenteschat/client/lib/working";
 import { isPersonal, modeKey } from "@agenteschat/client/lib/workspace-mode";
 import { useQueryClient } from "@tanstack/react-query";
 import { useIsFocused } from "expo-router";
 import { useCallback, useEffect, useMemo } from "react";
 import { useTranslation } from "react-i18next";
-import { RefreshControl, StyleSheet, View } from "react-native";
+import { RefreshControl, View } from "react-native";
 import { useOrg } from "@/providers/org";
 import { GroupedRow, LargeTitleScreen, PULL_TINT, PullOrbit, SkeletonList, SwipeRow } from "@/ui";
 import { router } from "@/ui/navigation";
-import { workByAgent } from "../agents/logic";
 import { useCategoryMenus } from "../categories/menus";
 import { SetupNotice } from "../computer/SetupWait";
 import { chatHref } from "../links/logic";
@@ -20,20 +19,18 @@ import { useOpenStart } from "../me/useStart";
 import { useOpenDm } from "../new/useOpenDm";
 import { OutageNotices } from "../outages/OutageNotice";
 import { useMachineOutages } from "../outages/queries";
-import { HomeReviews } from "../review/HomeReviews";
-import { RightHandAsk } from "../right-hand/Pin";
 import { useColors, useDirectory, useMeId, useOrgId, usePullRefresh } from "../shared/hooks";
-import { useActiveWork, useConversations, useHiddenAgents, useWorkingNow } from "../shared/queries";
+import { useConversations, useHiddenAgents, useWorkingNow } from "../shared/queries";
 import { SheetHostProvider } from "../shared/SheetHost";
 import { useTabHeader } from "../shared/tabHeader";
 import { ConversationRowView } from "./ConversationRowView";
 import { DeletingNotice } from "./DeletingNotice";
-import { FirstRunLine } from "./FirstRunLine";
-import { FirstAgentEmpty, Greeting, GreetingSky } from "./Greeting";
-import { Arrive, useHomeEntrance, useWake } from "./HomeEntrance";
+import { FirstAgentEmpty } from "./Greeting";
+import { HomeGlance } from "./HomeGlance";
 import { CollapsibleSection, SeeAllRow, useHomeCollapsed } from "./HomeSection";
 import { HomeServerError, HomeServerNotice } from "./HomeServerError";
-import { HomeWidgets } from "./HomeWidgets";
+import { HomeTools } from "./HomeTools";
+import { HomeWaiting } from "./HomeWaiting";
 import {
   agentStarters,
   type ConversationRow,
@@ -41,11 +38,11 @@ import {
   type HomeBlock,
   homeLayout,
   type ListKind,
-  rightHandPin,
   withoutQuietGeneral,
+  withRightHand,
 } from "./logic";
 import { usePins } from "./pins";
-import { useAgentRowStates, useFinished } from "./useHomeNow";
+import { useAgentRowStates } from "./useHomeNow";
 import { useWaitingItems } from "./useWaitingItems";
 
 /** Rows of the home whose agent moves (a long list stays light). */
@@ -66,20 +63,21 @@ export function useHidesQuietGeneral(): boolean {
 }
 
 /**
- * Conversas, the home: the
- * large title with Você and "+" (Novo) in the bar, over a light sky, the greeting under it with what changed
- * (what an agent finished, how many work), then Agentes, Canais and Pessoas by latest activity, each
- * collapsible (remembered), five rows and "Ver todos". Under the greeting, the workspace's own computer while it
- * is being prepared, and a notice per computer that went offline with agents waiting for it. Above the sections a
- * Dashboards row pushes the Dashboards list (ADR 0135 §15). An agent's row says it waits on your ok, waits
- * for its computer, or what it is doing. A row swiped left pins it on top (or takes it off), the long press's menu
- * has the rest. While the list loads, rows of its own shape stand in (no spinner, nothing moves when it lands).
- * Search and Threads have their own tabs. Empty, it invites the first agent. Nothing opens over it on its own: the
- * offer to turn on notifications comes as a line in the right hand's conversation. When the server doesn't answer
- * it says so (`HomeServerError`), over the kept rows as a card, and tries again on its own. A personal workspace
- * (ADR 0159) calls its channels group conversations and, while its person is alone in it, leaves a quiet #general out.
+ * Início, the home (docs/adr/doug-0014-latest-first.md): no large title and no greeting, the bar holds DougBot's
+ * signature alone. First the tools (WhatsApp, Mídia, Buscar, Tarefas, and "Mais" with "Novo agente" and the rest),
+ * small cards of what the team asks about all day, the agents waiting on your reply, then Agentes, Canais and Pessoas,
+ * each collapsible (remembered), five rows and "Ver todos". Agents and people go by their latest message alone, the
+ * right hand among them; only a channel may be pinned on top. Above it, the workspace's own computer while it is being
+ * prepared, and a notice per computer that went offline with agents waiting for it. An agent's row says it waits on
+ * your ok, waits for its computer, or what it is doing. A channel swiped left pins it on top (or takes it off), the
+ * long press's menu has the rest. While the list loads, rows of its own shape stand in (no spinner, nothing moves when
+ * it lands). Empty, it invites the first agent. Nothing opens over it on its own. When the server doesn't answer it
+ * says so (`HomeServerError`), over the kept rows as a card, and tries again on its own. A personal workspace (ADR
+ * 0159) calls its channels group conversations and, while its person is alone in it, leaves a quiet #general out.
  */
 const OTHER_CHANNELS = "otherChannels";
+/** The agents waiting on your reply, its key among the closed sections. */
+const WAITING = "waitingAgents";
 
 export function ChatsScreen() {
   return (
@@ -100,12 +98,11 @@ function Home() {
   const focused = useIsFocused();
   // What the person chose to open when the app starts goes over Conversas, once (ADR 0108).
   useOpenStart(focused);
+  // The bar holds DougBot's signature alone: Buscar is one of the tools, "+" is in their "Mais".
   const header = useTabHeader();
   const dir = useDirectory();
   const list = useConversations();
   const work = useWorkingNow();
-  // A run that stops on your ok hasn't finished: "terminou" is told from all the work, waiting included.
-  const active = useActiveWork();
   const waiting = useWaitingItems();
   const { collapsed, toggle } = useHomeCollapsed();
   const categories = useChannelCategories(orgId);
@@ -124,35 +121,23 @@ function Home() {
   const outages = useMachineOutages();
   const offline = useMemo(() => waitingComputerByAgent(outages.outages), [outages.outages]);
   const { hidden } = useHiddenAgents();
-  // An agent waiting for its offline computer isn't working (its run only waits), and the count matches Agentes,
-  // which it opens: my lists can leave some agents out.
-  const working = workByAgent(work)
-    .map((w) => w.agentId)
-    .filter((id) => dir.agentById.has(id) && !hidden.has(id) && !offline.has(id));
-  const finished = useFinished(active, list.rows);
   const agentStates = useAgentRowStates(list.rows, work, waiting.items, offline);
   const pull = usePullRefresh(() => Promise.allSettled([list.refetch(), waiting.refetch(), outages.refetch()]));
   const openDm = useOpenDm();
   const startDm = useCallback((agentId: string) => void openDm({ agentId }), [openDm]);
-  // The right hand (ADR 0137): its own field under the greeting, not one of Agentes' rows; outside its audience, none.
+  // The right hand (ADR 0137) is one of Agentes' rows, by its latest message as every agent; before its first
+  // conversation it waits at the list's end, to start one. Outside its audience, none.
   const rightHand = rightHandOf(dir.agents);
-  const pinned = rightHandPin(list.rows, rightHand && canTalk(rightHand) ? rightHand : undefined);
-  const starters = useMemo(
-    () =>
-      agentStarters(
-        dir.agents.filter((a) => !isRightHand(a)),
-        hidden,
-      ),
-    [dir.agents, hidden],
-  );
+  const rows = withRightHand(list.rows, rightHand && canTalk(rightHand) ? rightHand : undefined);
+  const starters = useMemo(() => agentStarters(dir.agents, hidden), [dir.agents, hidden]);
   const pins = usePins();
-  const sections = homeLayout(
-    withoutQuietGeneral(pinned.rows, hideGeneral),
-    categories.data ?? [],
-    undefined,
-    starters,
-    pins.pins,
-  );
+  // Agents and people by their latest message alone, as WhatsApp's chats (docs/adr/doug-0014-latest-first.md): a pin
+  // keeps only channels on top.
+  const sections = homeLayout(withoutQuietGeneral(rows, hideGeneral), categories.data ?? [], undefined, starters, {
+    ...pins.pins,
+    agents: [],
+    people: [],
+  });
   // A section's title: a fixed one by its key (a personal workspace's channels are its group conversations), a
   // category by its name.
   const sectionTitle = (b: HomeBlock) =>
@@ -166,49 +151,18 @@ function Home() {
     b.categoryId || (personal && b.key === "channels")
       ? t("mobile.categories.seeAll")
       : t(`mobile.chats.seeAll.${b.key}`);
-  // A list that failed to load isn't an empty workspace: it says the server didn't answer. A #general left out of
-  // sight still counts: the home keeps its greeting and the right hand's field.
+  // A list that failed to load isn't an empty workspace: it says the server didn't answer.
   const failed = list.failed && list.rows.length === 0;
   // Agents already in the team fill the home (Agentes) instead of the invitation to create the first one.
-  const empty = !list.loading && !failed && pinned.rows.length === 0 && starters.length === 0;
-
-  // The first Conversas after the splash arrives as one gesture (once per launch, never holding a tap back): the sky
-  // comes up from the splash's, the greeting rises, the right hand's field follows and its face wakes with a small
-  // hop. The title stays put: it is where the eye lands.
-  const entrance = useHomeEntrance();
-  const wake = useWake(entrance.armed, entrance.play);
-  const arrive = { armed: entrance.armed, play: entrance.play };
-
-  const ask =
-    pinned.pin && !failed && !list.loading ? (
-      <Arrive {...arrive} delay={90}>
-        <RightHandAsk row={pinned.pin} onStart={startDm} faceMode={wake.mode} faceStyle={wake.style} />
-      </Arrive>
-    ) : null;
+  const empty = !list.loading && !failed && rows.length === 0 && starters.length === 0;
 
   let live = 0;
   return (
     <LargeTitleScreen
-      title={t("mobile.chats.title")}
+      title={t("shell.home")}
+      // No large title and no greeting: the signature in the bar says where you are, the tools lead.
+      bare
       {...header}
-      backdrop={
-        empty || failed ? undefined : (
-          <Arrive {...arrive} rise={0} duration={700} style={StyleSheet.absoluteFill}>
-            <GreetingSky />
-          </Arrive>
-        )
-      }
-      below={
-        empty || failed ? undefined : (
-          <Greeting
-            working={working}
-            finished={finished.finished}
-            onFinishedPress={(f) => finished.dismiss(f.key)}
-            after={ask}
-            arrive={arrive}
-          />
-        )
-      }
       refreshControl={<RefreshControl refreshing={pull.refreshing} onRefresh={pull.onRefresh} tintColor={PULL_TINT} />}
       pullMark={<PullOrbit refreshing={pull.refreshing} />}
     >
@@ -224,11 +178,12 @@ function Home() {
       {list.stale && !failed ? <HomeServerNotice retry={list.refetch} /> : null}
       {failed || empty || list.loading ? null : (
         <>
-          {/* Início's widgets, and the way to Dashboards ("See all"), not a tab (ADR 0135 §15). */}
-          {/* Videos agents sent for review, with how many wait (docs/adr/doug-0007-video-review.md). */}
-          <HomeReviews />
-          <HomeWidgets collapsed={collapsed.includes("widgets")} onToggle={() => toggle("widgets")} />
-          <FirstRunLine />
+          {/* The tools beside the tab bar's five (WhatsApp, Mídia, Buscar, Tarefas, and "Mais" with the rest). */}
+          <HomeTools />
+          {/* Under the tools, small cards: threads, the editor now, clients' changes. */}
+          <HomeGlance />
+          {/* The agents waiting on your reply, before the lists. */}
+          <HomeWaiting collapsed={collapsed.includes(WAITING)} onToggle={() => toggle(WAITING)} />
         </>
       )}
       {failed ? (

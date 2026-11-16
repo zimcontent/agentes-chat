@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { useState } from "react";
 import { Platform, Text as RNText, ScrollView, StyleSheet, TextInput, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { SvgXml } from "react-native-svg";
 import type { AgentLookInput } from "@/agent/looks";
 import { botDoAgente, corDoBot } from "@/brand/bots";
 import { DB_FONTES } from "@/brand/tokens";
@@ -30,6 +31,7 @@ import {
   Text,
   WithPresence,
 } from "@/ui";
+import { TAB_GLYPHS, type TabGlyph, tabGlyphSvg } from "@/ui/tabGlyphs";
 import { useTheme } from "@/ui/theme";
 import {
   RevisaoConversa,
@@ -127,31 +129,35 @@ function Frame({
   );
 }
 
-/** The system tab bar, as the app sets it (`(tabs)/_layout.tsx`): ink when chosen, faint otherwise, the stage under. */
-function TabBar({ on }: { on: string }) {
+/** The system tab bar, as the app sets it (`(tabs)/_layout.tsx`): the web sidebar's five, its own glyphs. */
+const TAB_LABEL: Record<TabGlyph, string> = {
+  home: "Início",
+  waiting: "Pendentes",
+  portal: "Portal",
+  review: "Revisão",
+  settings: "Ajustes",
+};
+const TAB_BADGES: Partial<Record<TabGlyph, number>> = { home: 3, waiting: 2, review: 4 };
+
+export function TabBar({ on }: { on: string }) {
   const { colors } = useTheme();
-  const tabs = [
-    { key: "conversas", icon: "chat", label: "Conversas", badge: 3 },
-    { key: "threads", icon: "reply", label: "Threads" },
-    { key: "agentes", icon: "agent", label: "Agentes" },
-    { key: "atividade", icon: "bell", label: "Atividade", badge: 1 },
-    { key: "buscar", icon: "search", label: "Buscar" },
-  ] as const;
   return (
     <View style={[styles.tabBar, { backgroundColor: colors.glass, borderTopColor: colors.glassEdge }]}>
-      {tabs.map((t) => {
-        const chosen = t.key === on;
+      {TAB_GLYPHS.map((g) => {
+        const chosen = g === on;
+        const badge = TAB_BADGES[g];
         return (
-          <View key={t.key} style={styles.tab}>
+          <View key={g} style={styles.tab}>
             <View>
-              <Icon name={t.icon} size={24} color={chosen ? colors.ink : colors.faint} />
-              {"badge" in t && t.badge ? (
+              <SvgXml xml={tabGlyphSvg(g, chosen, chosen ? colors.ink : colors.faint)} width={26} height={26} />
+              {badge ? (
                 <View style={styles.tabBadge}>
-                  <Count value={t.badge} size={11} inverted fill={colors.badge} color="#FFFFFF" />
+                  <Count value={badge} size={11} inverted fill={colors.badge} color="#FFFFFF" />
                 </View>
               ) : null}
             </View>
             <RNText
+              numberOfLines={1}
               style={{
                 fontFamily: chosen ? DB_FONTES.texto600 : DB_FONTES.texto500,
                 fontSize: 10,
@@ -159,11 +165,22 @@ function TabBar({ on }: { on: string }) {
                 color: chosen ? colors.ink : colors.faint,
               }}
             >
-              {t.label}
+              {TAB_LABEL[g]}
             </RNText>
           </View>
         );
       })}
+    </View>
+  );
+}
+
+/** The tabs' bar: DougBot's signature alone in the middle (doug-0014). */
+export function TabHeader() {
+  return (
+    <View style={styles.tabHeader}>
+      <View style={styles.barSide} />
+      <Assinatura size={15} />
+      <View style={styles.barSide} />
     </View>
   );
 }
@@ -242,24 +259,123 @@ function GroupRow({
   );
 }
 
+const TOOLS: { key: string; label: string; icon: string; count?: number; green?: boolean }[] = [
+  { key: "wa", label: "WhatsApp", icon: "message", green: true, count: 5 },
+  { key: "midia", label: "Mídia", icon: "image" },
+  { key: "busca", label: "Buscar", icon: "search" },
+  { key: "tarefas", label: "Tarefas", icon: "checkc", count: 2 },
+  { key: "drive", label: "Drive", icon: "drive" },
+  { key: "agentes", label: "Agentes", icon: "agent" },
+  { key: "threads", label: "Threads", icon: "reply" },
+  { key: "rotinas", label: "Rotinas", icon: "clock" },
+  { key: "wiki", label: "Wiki", icon: "book" },
+  { key: "dash", label: "Dashboards", icon: "chart" },
+];
+
+function Ferramentas() {
+  const { colors, shadows } = useTheme();
+  const front = [...TOOLS.slice(0, 4), { key: "mais", label: "Mais", icon: "more", count: 0, green: false }];
+  return (
+    <View style={styles.tools}>
+      {front.map((t) => (
+        <View key={t.key} style={styles.tool}>
+          <View
+            style={[
+              styles.toolPlate,
+              { backgroundColor: colors.raised, boxShadow: `0px 0px 0px 0.5px ${colors.line2}, ${shadows.e1}` },
+            ]}
+          >
+            {t.green ? (
+              <SvgXml xml={WHATSAPP_SVG} width={18} height={18} />
+            ) : (
+              <Icon name={t.icon as never} size={18} color={colors.ink} />
+            )}
+            {t.count ? (
+              <View style={styles.toolBadge}>
+                <Count value={t.count} size={11} inverted fill={colors.badge} color="#FFFFFF" />
+              </View>
+            ) : null}
+          </View>
+          <RNText numberOfLines={1} style={[styles.toolLabel, { color: colors.muted }]}>
+            {t.label}
+          </RNText>
+        </View>
+      ))}
+    </View>
+  );
+}
+
+const WHATSAPP_SVG =
+  '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="#25D366" d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>';
+
+const WIDGETS = [
+  { key: "t", icon: "reply", title: "Threads", big: "3 novas", line: "Capa do reels da LEXEER", hot: true },
+  { key: "e", icon: "play", title: "Ronny", big: "Ajustando", line: "Built_to_Endure_Ep12_Corte1", hot: false },
+  { key: "c", icon: "flag", title: "Alterações", big: "4", line: "ELMX Capital, LEXEER", hot: true },
+] as const;
+
+function Widgets() {
+  const { colors, shadows } = useTheme();
+  return (
+    <View style={styles.widgets}>
+      {WIDGETS.map((x) => (
+        <View
+          key={x.key}
+          style={[
+            styles.widget,
+            { backgroundColor: colors.raised, boxShadow: `0px 0px 0px 0.5px ${colors.line2}, ${shadows.e1}` },
+          ]}
+        >
+          <View style={styles.widgetHead}>
+            <Icon name={x.icon} size={14} color={colors.muted} />
+            <Text variant="footnote" tone="muted" numberOfLines={1} style={styles.widgetTitle}>
+              {x.title}
+            </Text>
+          </View>
+          <Text
+            variant="subhead"
+            numberOfLines={1}
+            style={[styles.widgetBig, x.hot ? { color: colors.amberInk } : null]}
+          >
+            {x.big}
+          </Text>
+          <Text variant="footnote" tone="muted" numberOfLines={2}>
+            {x.line}
+          </Text>
+        </View>
+      ))}
+    </View>
+  );
+}
+
 function Inicio() {
   const { colors } = useTheme();
   return (
-    <Frame title="Conversas" tabs="conversas">
-      <View style={styles.pad}>
-        <Text variant="title2">Bom dia, Gabriel</Text>
-        <View style={styles.rowGap8}>
-          <InkOrbit size={13} />
-          <Text variant="subhead" tone="muted">
-            SONY está editando o reels da LEXEER
-          </Text>
-        </View>
-      </View>
-      <SECTION count={5}>Agentes</SECTION>
-      <AgentRow a={DOUG} sub="Resumi o dia dos grupos para você." time="09:12" unread={2} presence="online" />
-      <AgentRow a={SONY} sub="Editando o reels da LEXEER" time="09:40" mode="run" divider />
+    <Frame tabs="home" header={<TabHeader />}>
+      <Ferramentas />
+      <Widgets />
+      <SECTION count={2}>Esperando sua resposta</SECTION>
+      <ListRow
+        leading={<AgentAvatar agent={SONY} size={50} name={SONY.name} />}
+        title="SONY espera sua resposta"
+        titleLines={2}
+        time="5,4 h"
+        chevron
+      />
+      <ListRow
+        leading={<AgentAvatar agent={ROSA} size={50} name={ROSA.name} />}
+        title="ROSA espera sua aprovação"
+        titleLines={2}
+        time="12 min"
+        chevron
+        divider
+      />
+      <SECTION count={6}>Agentes</SECTION>
+      <AgentRow a={JUNIN} sub="Subi o ajuste do formulário." time="09:52" presence="online" />
+      <AgentRow a={SONY} sub="esperando você · 5,4 h" time="09:40" divider />
+      <AgentRow a={DOUG} sub="Resumi o dia dos grupos para você." time="09:12" unread={2} presence="online" divider />
       <AgentRow a={ROSA} sub="Pergunta: qual das duas capas?" time="08:55" mode="think" divider />
-      <AgentRow a={LIA} sub="Respondi os 3 clientes de ontem." time="Ontem" divider />
+      <AgentRow a={KIARA} sub="Fechei o orçamento de novembro." time="Ontem" divider />
       <SECTION count={3}>Grupos</SECTION>
       <GroupRow name="LEXEER" icon={foto("lexeer")} sub="Doug BOSS: aprovado, pode subir." time="09:30" />
       <GroupRow
@@ -269,7 +385,6 @@ function Inicio() {
         time="08:02"
         divider
       />
-      <GroupRow name="#geral" sub="Gabriel: bom dia, time!" time="Ontem" divider />
       <SECTION count={1}>Pessoas</SECTION>
       <ListRow
         leading={<PersonAvatar name="Letícia" size={52} photo={null} />}
@@ -296,7 +411,7 @@ const TEAM: { a: AgentLookInput; mode: "idle" | "run" | "think" | "sleep"; state
 
 function Agentes() {
   return (
-    <Frame title="Agentes" tabs="agentes">
+    <Frame title="Agentes">
       <SECTION count={TEAM.length}>Time</SECTION>
       {TEAM.map((m, i) => (
         <ListRow
@@ -615,7 +730,7 @@ function Execucao() {
   ];
   const rosa = corDoBot(botDoAgente({ name: "ROSA" }));
   return (
-    <Frame title="Trabalho" tabs="atividade">
+    <Frame title="Trabalho" tabs="waiting">
       <View style={[styles.pad, { gap: 16 }]}>
         <Card>
           <View style={styles.cardPad}>
@@ -684,7 +799,7 @@ function Busca() {
   const [q, setQ] = useState("doug");
   const [f, setF] = useState("tudo");
   return (
-    <Frame title="Buscar" tabs="buscar">
+    <Frame title="Buscar">
       <View style={[styles.pad, { gap: 12 }]}>
         <SearchField value={q} onChangeText={setQ} placeholder="Buscar conversas, agentes, mensagens" />
         <Filters
@@ -900,6 +1015,24 @@ const styles = StyleSheet.create({
   },
   tab: { flex: 1, alignItems: "center", gap: 3 },
   tabBadge: { position: "absolute", top: -4, right: -10 },
+  tabHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 16,
+    height: 44,
+  },
+  barSide: { width: 88, flexDirection: "row", alignItems: "center", gap: 8 },
+  widgets: { flexDirection: "row", gap: 8, paddingHorizontal: 16, paddingTop: 12, paddingBottom: 4 },
+  widget: { flex: 1, minHeight: 92, borderRadius: 16, padding: 10, gap: 4 },
+  widgetHead: { flexDirection: "row", alignItems: "center", gap: 4 },
+  widgetTitle: { flexShrink: 1, fontWeight: "500" },
+  widgetBig: { fontWeight: "700" },
+  tools: { flexDirection: "row", paddingHorizontal: 6, paddingTop: 12, paddingBottom: 4 },
+  tool: { flex: 1, alignItems: "center", gap: 5 },
+  toolPlate: { width: 40, height: 40, borderRadius: 12, alignItems: "center", justifyContent: "center" },
+  toolBadge: { position: "absolute", top: -5, right: -7 },
+  toolLabel: { fontFamily: DB_FONTES.texto500, fontSize: 10, lineHeight: 12, textAlign: "center" },
   grid: { flexDirection: "row", flexWrap: "wrap", paddingHorizontal: 8, gap: 0 },
   cell: { width: "33.33%", alignItems: "center", gap: 6, paddingVertical: 10 },
   cellSmall: { width: "20%", alignItems: "center", gap: 6, paddingVertical: 6 },

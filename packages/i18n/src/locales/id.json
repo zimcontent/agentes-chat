@@ -2092,7 +2092,8 @@
     "add": "Agen atau departemen baru",
     "order": "Urutan",
     "sort": {
-      "workspace": "Urutan ruang kerja",
+      "recent": "Pesan terakhir",
+      "arranged": "Urutan ruang kerja",
       "mine": "Milik saya dulu",
       "working": "Yang bekerja dulu"
     },

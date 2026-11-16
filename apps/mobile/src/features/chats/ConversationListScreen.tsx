@@ -14,7 +14,7 @@ import { FocusLive, PushedHeader } from "../shared/parts";
 import { useConversations, useWorkingNow } from "../shared/queries";
 import { useHidesQuietGeneral } from "./ChatsScreen";
 import { ConversationRowView } from "./ConversationRowView";
-import { type ConversationRow, type ListKind, rightHandPin, rowsOfKind, withoutQuietGeneral } from "./logic";
+import { type ConversationRow, type ListKind, rowsOfKind, withoutQuietGeneral, withRightHand } from "./logic";
 import { useAgentRowStates } from "./useHomeNow";
 import { useWaitingItems } from "./useWaitingItems";
 
@@ -38,8 +38,8 @@ export function ConversationListScreen({ kind, categoryId }: { kind: ListKind; c
   const category = categoryId ? categories.data?.find((x) => x.id === categoryId) : undefined;
   const inCategory = (r: ConversationRow) => r.kind === "channel" && r.categoryId === categoryId;
   const hideGeneral = useHidesQuietGeneral();
-  // The right hand has its own row on Conversas, never one in Agentes (ADR 0137).
-  const all = withoutQuietGeneral(rightHandPin(list.rows, rightHandOf(dir.agents)).rows, hideGeneral);
+  // The right hand is one of Agentes' rows, by its latest message (docs/adr/doug-0014-latest-first.md).
+  const all = withoutQuietGeneral(withRightHand(list.rows, rightHandOf(dir.agents)), hideGeneral);
   const rows = categoryId ? rowsOfKind(all, "channels").filter(inCategory) : rowsOfKind(all, kind);
   const work = useWorkingNow();
   const waiting = useWaitingItems();

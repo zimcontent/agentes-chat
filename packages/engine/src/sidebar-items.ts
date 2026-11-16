@@ -285,9 +285,18 @@ export async function setMySidebarToolOrder(
 
 const VIEW_KEY = "view";
 
-/** How the AGENTES section orders the agents inside each group: the workspace's order, mine first, working first. */
-export const AGENT_SORTS = ["workspace", "mine", "working"] as const;
+/**
+ * How the AGENTES section orders the agents inside each group: the latest message first (the default, as WhatsApp's
+ * chats), the workspace's arranged order, mine first, working first; the last two by latest message after that
+ * (docs/adr/doug-0014-latest-first.md).
+ */
+export const AGENT_SORTS = ["recent", "arranged", "mine", "working"] as const;
 export type AgentSort = (typeof AGENT_SORTS)[number];
+/**
+ * The default before "recent" existed, saved by every view whatever the person chose: read as "recent", so the new
+ * default reaches everyone. "arranged" is that same order, now picked on purpose.
+ */
+export const LEGACY_AGENT_SORT = "workspace";
 /** At most this many pinned rows on top of each section ("Fixar no topo"). */
 export const SIDEBAR_PIN_LIMIT = 5;
 export const SIDEBAR_PIN_KINDS = ["agents", "channels", "people"] as const;
@@ -320,7 +329,7 @@ const ids = (raw: unknown) =>
 /** Only what the apps know, each pin list once per id and at most `SIDEBAR_PIN_LIMIT`: a row is never trusted as is. */
 export function sidebarViewOf(raw: unknown): SidebarView {
   const v = raw && typeof raw === "object" ? (raw as Record<string, unknown>) : {};
-  const sort = (AGENT_SORTS as readonly unknown[]).includes(v.agentSort) ? (v.agentSort as AgentSort) : "workspace";
+  const sort = (AGENT_SORTS as readonly unknown[]).includes(v.agentSort) ? (v.agentSort as AgentSort) : "recent";
   const pins =
     v.pins && typeof v.pins === "object"
       ? (Object.fromEntries(
@@ -350,8 +359,11 @@ export async function setMySidebarView(
   db: Database,
   orgId: string,
   userId: string,
-  // `hiddenAgents` may be left out (older apps): `sidebarViewOf` reads it as none.
-  view: Omit<SidebarView, "hiddenAgents"> & { hiddenAgents?: string[] },
+  // `hiddenAgents` may be left out and `agentSort` be the old default (older apps): `sidebarViewOf` reads them.
+  view: Omit<SidebarView, "hiddenAgents" | "agentSort"> & {
+    agentSort: AgentSort | typeof LEGACY_AGENT_SORT;
+    hiddenAgents?: string[];
+  },
 ): Promise<SidebarView> {
   await requirePermission(db, userId, orgId, "read");
   const clean = sidebarViewOf(view);

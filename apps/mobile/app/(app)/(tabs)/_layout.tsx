@@ -1,8 +1,10 @@
-import { isPersonal } from "@agenteschat/client/lib/workspace-mode";
+import { useVideoReviews } from "@agenteschat/client";
 import { NativeTabs } from "expo-router/native-tabs";
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { Platform } from "react-native";
+import { usePortalOn, usePortalWords } from "@/features/portal/hooks";
+import { useReviewWords } from "@/features/review/media";
 import { useUnreadConversations, useUnreadThreads, useWaitingCount } from "@/features/shared/queries";
 import { ALONG_STRIP, alongInAccessory } from "@/features/work-along/logic";
 import { AccessoryLine, AlongStrip, useWorkAlong } from "@/features/work-along/WorkAlong";
@@ -12,32 +14,44 @@ import { haptics, TabFoot, useTheme } from "@/ui";
 import { type TabGlyph, tabGlyphKey } from "@/ui/tabGlyphs";
 import { tabGlyphFamily } from "@/ui/tabIcons";
 
-const TABS: { name: string; glyph: TabGlyph; label: string; role?: "search"; teamOnly?: true }[] = [
-  { name: "(chats)", glyph: "chats", label: "mobile.tabs.chats" },
-  // A conversation that branches is rare for one person: a personal workspace (ADR 0159) opens Threads from You › Work.
-  { name: "threads", glyph: "threads", label: "mobile.tabs.threads", teamOnly: true },
-  { name: "agents", glyph: "agents", label: "mobile.tabs.agents" },
-  { name: "activity", glyph: "activity", label: "mobile.tabs.activity" },
-  // The search role: on iOS 26 the round button apart at the bar's end (like Music); a plain tab on Android.
-  { name: "search", glyph: "search", label: "mobile.tabs.search", role: "search" },
+/**
+ * The bar's own short names, one word each so the five sit evenly (this fork's words, Portuguese and English; any
+ * other language reads English). Each screen keeps its full title ("Esperando você", "Configurações").
+ */
+const TAB_WORDS = {
+  pt: { activity: "Pendentes", you: "Ajustes" },
+  en: { activity: "Pending", you: "Settings" },
+} as const;
+
+const TABS: { name: string; glyph: TabGlyph; label: string }[] = [
+  { name: "(chats)", glyph: "home", label: "shell.home" },
+  { name: "activity", glyph: "waiting", label: "shell.waiting" },
+  { name: "portal", glyph: "portal", label: "portal" },
+  { name: "reviews", glyph: "review", label: "review" },
+  { name: "you", glyph: "settings", label: "shell.settings" },
 ];
 
 /**
- * Conversas (the home), Threads (threads and missions), Agentes, Atividade and Buscar in the system tab bar
- * (UITabBarController on iOS, Liquid Glass on iOS 26; Material bottom navigation on Android). Our own glyphs on both platforms (outline, filled when
- * selected), drawn as template images the bar tints. Badges for unread conversations (Conversas: channels
- * and DMs; Threads: its rows, never both) and what waits on you. Every tab holds a stack with a native header. A
- * personal workspace (ADR 0159) leaves Threads out of the bar (`hidden`, the system bar's own way: changing it redraws
- * the tabs from Conversas); its row in You › Work opens the same list, pushed.
+ * The web sidebar's five rows, in its order, in the system tab bar (UITabBarController on iOS, Liquid Glass on iOS 26;
+ * Material bottom navigation on Android): Início, Pendentes (Esperando você), Portal, Revisão and Ajustes
+ * (Configurações), each a short word. Everything else
+ * (WhatsApp, Mídia, Drive, Agentes, Tarefas, Threads, Buscar…) is in Início's tools, as the web's grid. Our own glyphs
+ * (the sidebar's icons; outline, filled or bolder when selected), drawn as template images the bar tints. Badges: what
+ * waits on you on Esperando você, unread conversations on Início, videos to review on Revisão. Every tab holds a
+ * stack with a native header. Portal shows only where the approval portal is this workspace's.
  */
 export default function TabsLayout() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const short = TAB_WORDS[i18n.language?.startsWith("pt") ? "pt" : "en"];
   const { colors } = useTheme();
-  const personal = isPersonal(useOrg().org);
   const unread = useUnreadConversations();
   const unreadThreads = useUnreadThreads();
   const waiting = useWaitingCount();
-  const counts: Record<string, number> = { "(chats)": unread, threads: unreadThreads, activity: waiting };
+  const reviewWords = useReviewWords();
+  const portalWords = usePortalWords();
+  const toReview = (useVideoReviews(useOrg().orgId).data ?? []).filter((r) => r.status === "in_review").length;
+  const portalOn = usePortalOn();
+  const counts: Record<string, number> = { "(chats)": unread + unreadThreads, activity: waiting, reviews: toReview };
   // Long work and what waits on you go with you across the tabs, the phone's Agora (iOS 26: the bar's accessory, the
   // system's glass; Android and older iOS: a strip over the bar, on the tab roots). "Esperando você" only where
   // something really waits on me (the home's strip and Atividade read the same list).
@@ -77,15 +91,21 @@ export default function TabsLayout() {
           </NativeTabs.BottomAccessory>
         ) : null}
         {TABS.map((tab) => {
-          const label = t(tab.label);
+          const label =
+            tab.name === "reviews"
+              ? reviewWords.title
+              : tab.name === "portal"
+                ? portalWords.title
+                : tab.name === "activity" || tab.name === "you"
+                  ? short[tab.name]
+                  : t(tab.label);
           const count = counts[tab.name] ?? 0;
           const badge = tabBadge(count);
           return (
             <NativeTabs.Trigger
               key={tab.name}
               name={tab.name}
-              hidden={personal && tab.teamOnly === true}
-              {...(tab.role ? { role: tab.role } : {})}
+              hidden={tab.name === "portal" && !portalOn}
               accessibilityLabel={badge ? t("mobile.tabs.withCount", { label, count }) : label}
               contentStyle={{ backgroundColor: colors.bg }}
             >

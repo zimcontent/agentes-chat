@@ -2203,7 +2203,12 @@ export const ptBR = {
     options: "Opções de Agentes",
     add: "Novo agente ou setor",
     order: "Ordem",
-    sort: { workspace: "Do workspace", mine: "Meus primeiro", working: "Trabalhando primeiro" },
+    sort: {
+      recent: "Última mensagem",
+      arranged: "Do workspace",
+      mine: "Meus primeiro",
+      working: "Trabalhando primeiro",
+    },
     showAll: "Mostrar agentes que não falam comigo",
     showHidden: "Mostrar agentes ocultos ({{count}})",
     hide: "Ocultar da barra",

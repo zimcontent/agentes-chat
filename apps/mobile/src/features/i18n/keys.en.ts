@@ -1524,6 +1524,7 @@ export const featureKeysEn = {
     stopBody_female: "{{name}} stops now and tells the conversation what was done so far.",
   },
   // intentional: chats/activity/ui
+  homeTools: { title: "Tools", more: "More" },
   homeNow: {
     working_one: "{{count}} working",
     working_other: "{{count}} working",

@@ -143,7 +143,7 @@ describe("Agentes and its groups", () => {
     if (atlas) atlas.ownerUserId = "u-walter";
     // Day one would pin Atlas (mine): a person who already chose their pins.
     state.sidebarView = {
-      agentSort: "workspace",
+      agentSort: "arranged",
       showAllAgents: false,
       pins: { agents: [], channels: [], people: [] },
     };
@@ -232,7 +232,7 @@ describe("Dragging into a setor", () => {
     await settle(6);
   };
   const pinned = (state: State, agents: string[]) => {
-    state.sidebarView = { agentSort: "workspace", showAllAgents: false, pins: { agents, channels: [], people: [] } };
+    state.sidebarView = { agentSort: "arranged", showAllAgents: false, pins: { agents, channels: [], people: [] } };
     return state;
   };
 
@@ -345,10 +345,10 @@ describe("Fixar no topo", () => {
     expect(within(nav()).queryByRole("img", { name: "Fixado no topo" })).toBeNull();
   });
 
-  test("an agent pinned before it went into a setor shows in that setor, on top, whoever put it there", async () => {
+  test("an agent pinned before it went into a setor shows in that setor, in its place and marked, whoever put it there", async () => {
     const state = withGroups();
     state.sidebarView = {
-      agentSort: "workspace",
+      agentSort: "arranged",
       showAllAgents: false,
       pins: { agents: [ADA_ID], channels: [], people: [] },
     };
@@ -364,7 +364,8 @@ describe("Fixar no topo", () => {
     ];
     await act(async () => socket.push({ type: "event", scope: "org", event: { type: "agent.groups" } }));
     await settle(4);
-    expect(rowsIn(section("Integrations"))).toEqual(["Ada", "Atlas"]);
+    // A pin doesn't move a row (docs/adr/doug-0014-latest-first.md): the setor's own order holds.
+    expect(rowsIn(section("Integrations"))).toEqual(["Atlas", "Ada"]);
     expect(head("Integrations").querySelector(".sidebar__section-count")?.textContent).toBe("2");
     const ada = nav().querySelector(`[data-agent-row="${ADA_ID}"]`) as HTMLElement;
     expect(within(ada).getByRole("img", { name: "Fixado no topo" })).toBeTruthy();
@@ -375,7 +376,7 @@ describe("Fixar no topo", () => {
   test("Fixar no topo puts the agent first, so the row moves where the person looks", async () => {
     const state = seedState();
     state.sidebarView = {
-      agentSort: "workspace",
+      agentSort: "arranged",
       showAllAgents: false,
       pins: { agents: [ATLAS_ID], channels: [], people: [] },
     };
@@ -393,7 +394,7 @@ describe("Fixar no topo", () => {
     const state = seedState();
     const gone = ["b1", "b2", "b3", "b4"].map((n) => `00000000-0000-4000-8000-0000000000${n}`);
     state.sidebarView = {
-      agentSort: "workspace",
+      agentSort: "arranged",
       showAllAgents: false,
       pins: { agents: [...gone, ATLAS_ID], channels: [], people: [] },
     };
@@ -419,17 +420,36 @@ describe("Fixar no topo", () => {
     expect(canais.querySelector(".sidebar__pins-end")).toBeNull();
   });
 
-  test("a person pinned stays on top of Mensagens diretas even before a conversation", async () => {
+  test("a person pinned keeps their place in Mensagens diretas, by latest message, with the pin's mark", async () => {
     const state = seedState();
     state.sidebarView = {
-      agentSort: "workspace",
+      agentSort: "recent",
       showAllAgents: false,
       pins: { agents: [], channels: [], people: ["u-joao"] },
     };
+    const people = () =>
+      [...section("Mensagens diretas").querySelectorAll("a .sidebar__item-label")].map((l) => l.textContent);
     await go(state);
-    expect(
-      [...section("Mensagens diretas").querySelectorAll("a .sidebar__item-label")].map((l) => l.textContent),
-    ).toEqual(["João"]);
+    // No conversation yet: a pin alone holds no row.
+    expect(people()).toEqual([]);
+    cleanup();
+    seedDm(state, { type: "person", id: "u-joao" }, { ago: 3 });
+    await go(state);
+    expect(people()).toEqual(["João"]);
+    expect(within(section("Mensagens diretas")).getByRole("img", { name: "Fixado no topo" })).toBeTruthy();
+  });
+
+  test("Agentes goes by the latest message by default, as WhatsApp's chats", async () => {
+    const state = seedState();
+    state.sidebarView = { agentSort: "recent", showAllAgents: false, pins: { agents: [], channels: [], people: [] } };
+    seedDm(state, { type: "agent", id: ADA_ID }, { ago: 30 });
+    seedDm(state, { type: "agent", id: ATLAS_ID }, { ago: 2 });
+    await go(state);
+    expect(rowsIn(section("Agentes"))).toEqual(["Atlas", "Ada"]);
+    cleanup();
+    state.sidebarView = { ...state.sidebarView, agentSort: "arranged" };
+    await go(state);
+    expect(rowsIn(section("Agentes"))).toEqual(["Ada", "Atlas"]);
   });
 
   test("five per section: the sixth says so and pins nothing", async () => {
@@ -445,7 +465,7 @@ describe("Fixar no topo", () => {
         createdAt: state.channels[0]?.createdAt ?? "",
       });
     state.sidebarView = {
-      agentSort: "workspace",
+      agentSort: "arranged",
       showAllAgents: false,
       pins: { agents: [], channels: five, people: [] },
     };

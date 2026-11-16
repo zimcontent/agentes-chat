@@ -17,10 +17,11 @@ import { useTranslation } from "react-i18next";
 import { BackHandler, Keyboard, StyleSheet, type TextInputInstance, View } from "react-native";
 import Animated, { LinearTransition } from "react-native-reanimated";
 import { STORED } from "@/lib/storage";
-import { LargeTitleScreen, SearchField, SectionHeader, useReducedMotion } from "@/ui";
+import { SearchField, SectionHeader, useReducedMotion } from "@/ui";
 import { ConversationRowView } from "../chats/ConversationRowView";
 import { kindOf } from "../chats/logic";
 import { useOrgId } from "../shared/hooks";
+import { PushedLargeTitle } from "../shared/PushedLargeTitle";
 import { useConversations } from "../shared/queries";
 import { useRecentSearches, useSearchDirectory } from "./hooks";
 import { typeSearch } from "./logic";
@@ -112,7 +113,7 @@ export function SearchScreen() {
   const layout = reduced ? undefined : LinearTransition.duration(220);
   const collapsed = searching || words;
   return (
-    <LargeTitleScreen title={t("mobile.find.title")} collapsed={collapsed}>
+    <PushedLargeTitle title={t("mobile.find.title")} collapsed={collapsed} keyboard>
       <Animated.View layout={layout}>
         <View style={styles.search}>
           <SearchField
@@ -173,7 +174,7 @@ export function SearchScreen() {
           </View>
         )}
       </Animated.View>
-    </LargeTitleScreen>
+    </PushedLargeTitle>
   );
 }
 

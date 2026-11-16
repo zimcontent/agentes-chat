@@ -1055,7 +1055,7 @@ describe("a newcomer's first #general", () => {
   test("the invitation's first agent greets them: pinned on top, it's whom Conversar com opens", async () => {
     const state = newcomer();
     state.sidebarView = {
-      agentSort: "workspace",
+      agentSort: "arranged",
       showAllAgents: false,
       pins: { agents: [ATLAS_ID], channels: [], people: [] },
     };
