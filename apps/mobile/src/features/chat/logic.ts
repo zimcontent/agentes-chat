@@ -734,6 +734,16 @@ export function tableHidden(x: number, frame: number, total: number): { left: bo
   return { left: x > 1, right: frame > 0 && x + frame < total - 1 };
 }
 
+/**
+ * A mentioned person's chip in their role's color (`memberRoleColor`, as their name shows in the bubbles); none for a
+ * person with no colored role, whose chip takes a neutral plate.
+ */
+export function personMentionTint(roleColor: string | undefined, scheme: "light" | "dark") {
+  if (!roleColor) return undefined;
+  const tone = mentionTone(roleColor as AgentColorName, scheme === "dark");
+  return { color: tone.ink, backgroundColor: tone.background };
+}
+
 /** A mentioned agent's chip in its own tone (`mentionTone`); none for a person or an unknown handle. */
 export function mentionTint(
   handle: string,

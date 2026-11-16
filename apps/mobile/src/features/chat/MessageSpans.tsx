@@ -1,5 +1,8 @@
+import { useRoles } from "@agenteschat/client";
+import { agentsByAnyHandle } from "@agenteschat/client/lib/directory";
 import { everyoneWord, isEveryoneWord } from "@agenteschat/client/lib/everyone";
 import { linkPill } from "@agenteschat/client/lib/link-pills";
+import { memberRoleColor } from "@agenteschat/client/lib/member-groups";
 import { parseFileLink, parseMessageLink } from "@agenteschat/client/lib/message-links";
 import { LinearGradient } from "expo-linear-gradient";
 import { type ComponentRef, useEffect, useRef, useState } from "react";
@@ -13,7 +16,8 @@ import { withAlpha } from "@/ui/palette";
 import { variantStyle } from "@/ui/Text";
 import { openPage } from "../ai/parts";
 import { ownLinkHref } from "../links/app-links";
-import { useColors, useDirectory, useMyHandle } from "../shared/hooks";
+import { Face } from "../shared/Face";
+import { useColors, useDirectory, useMyHandle, useOrgId } from "../shared/hooks";
 import { MONO } from "../shared/parts";
 import { ChannelRefText } from "./ChannelRefText";
 import { FileRefText } from "./FileRefText";
@@ -26,6 +30,7 @@ import {
   chatCodeOf,
   type Inline,
   mentionTint,
+  personMentionTint,
   tableColumnWidths,
   tableHidden,
 } from "./logic";
@@ -54,10 +59,13 @@ export function Spans({
   const myHandle = useMyHandle();
   const { i18n } = useTranslation();
   const { agents, memberByHandle } = useDirectory();
+  const roles = useRoles(useOrgId()).data?.roles;
   const { scheme } = useTheme();
   // In a conversation, the size of code in its card (`chatCodeOf`), so inline and fenced code agree at every step.
   const sized = useRowLook().text;
   const codeSize = sized ? { fontSize: chatCodeOf(sized).fontSize } : undefined;
+  // A mentioned person's face at the words' size (the web's 1.15em).
+  const faceSize = Math.round((sized?.fontSize ?? variantStyle("body").fontSize ?? 17) * 1.15);
   return (
     <>
       {inline.map((s, i) => {
@@ -120,8 +128,16 @@ export function Spans({
           case "mention": {
             const handle = s.text.slice(1);
             const all = everyone && isEveryoneWord(handle);
-            const tint = mentionTint(handle, agents, scheme);
-            if (!all && !tint && !memberByHandle.has(handle.toLowerCase())) return <RNText key={key}>{s.text}</RNText>;
+            const agentTint = mentionTint(handle, agents, scheme);
+            const agent = agentTint ? agentsByAnyHandle(agents).get(handle.toLowerCase()) : undefined;
+            const person = all || agentTint ? undefined : memberByHandle.get(handle.toLowerCase());
+            if (!all && !agentTint && !person) return <RNText key={key}>{s.text}</RNText>;
+            // A person: their role's tone, else a neutral plate that stands out from the words, as an agent's does.
+            const tint = agentTint ??
+              personMentionTint(person ? memberRoleColor(person, roles ?? []) : undefined, scheme) ?? {
+                color: c.ink,
+                backgroundColor: withAlpha(c.ink, 0.1),
+              };
             return (
               <RNText
                 key={key}
@@ -131,9 +147,15 @@ export function Spans({
                     ? { color: ink, backgroundColor: "rgba(0,0,0,0.16)" }
                     : all || handle.toLowerCase() === myHandle
                       ? { color: c.amber, backgroundColor: `${c.amber}2e` }
-                      : (tint ?? { color: c.ink }),
+                      : tint,
                 ]}
               >
+                {person || agent ? (
+                  <MentionFace
+                    who={person ? { type: "person", id: person.userId } : { type: "agent", id: agent?.id ?? null }}
+                    size={faceSize}
+                  />
+                ) : null}
                 {all ? `@${everyoneWord(i18n.language)}` : s.text}
               </RNText>
             );
@@ -145,6 +167,29 @@ export function Spans({
     </>
   );
 }
+
+/**
+ * The face of who a mention names (an agent's still bot, a person's photo or initials) inside their chip, then a narrow
+ * space before the name (the web's `.ac-mention__face`). A view inside a line of text sits on the baseline: lowered to
+ * sit on the words' middle, as `AgentWho`'s. Hidden from screen readers, which read the name.
+ */
+function MentionFace({ who, size }: { who: { type: "agent" | "person"; id: string | null }; size: number }) {
+  return (
+    <>
+      <View
+        style={{ width: size, height: size, transform: [{ translateY: Math.round(size * 0.2) }] }}
+        accessibilityElementsHidden
+        importantForAccessibility="no-hide-descendants"
+      >
+        <Face who={who} size={size} live={false} />
+      </View>
+      {NARROW}
+    </>
+  );
+}
+
+/** A narrow no-break space: the gap between an inline face and its name, as text. */
+const NARROW = "\u202F";
 
 type TableBlock = Extract<Block, { kind: "table" }>;
 

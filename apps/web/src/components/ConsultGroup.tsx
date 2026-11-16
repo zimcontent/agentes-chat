@@ -304,12 +304,18 @@ function ConsultInPlace({
           body={withoutRelayLine(c.question)}
           resolveMention={dir.mentionName}
           mentionTone={dir.mentionTone}
+          mentionWho={dir.mentionWho}
         />
       </div>
       <small>{t("chat.consultation.answerOf", { name: to.name, context: to.context })}</small>
       {state === "answered" ? (
         <div className="ac-consult__text">
-          <MessageBody body={c.answer ?? ""} resolveMention={dir.mentionName} mentionTone={dir.mentionTone} />
+          <MessageBody
+            body={c.answer ?? ""}
+            resolveMention={dir.mentionName}
+            mentionTone={dir.mentionTone}
+            mentionWho={dir.mentionWho}
+          />
         </div>
       ) : (
         <p className="ac-consult__text ac-consult__text--q">{consultLineLabel(t, state, c, to)}</p>

@@ -4477,7 +4477,12 @@ export const TimelineMessage = memo(function TimelineMessage({
         label={t("profile.of", { name: shown })}
         className="profile-trigger--mention"
       >
-        <Mention tone={dir.mentionTone(handle)} className={isMe ? "ac-mention--me" : undefined}>
+        <Mention
+          tone={isMe ? undefined : dir.mentionTone(handle)}
+          person={Boolean(p)}
+          face={<ActorAvatar actor={actor} name={shown} size="xs" />}
+          className={isMe ? "ac-mention--me" : undefined}
+        >
           @{shown}
         </Mention>
       </ProfileTrigger>

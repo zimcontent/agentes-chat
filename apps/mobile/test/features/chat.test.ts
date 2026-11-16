@@ -44,6 +44,7 @@ import {
   parseBlocks,
   parseInline,
   parseSlash,
+  personMentionTint,
   questionOf,
   reactionEmoji,
   reactionName,
@@ -1490,5 +1491,12 @@ describe("an agent's @mention", () => {
     expect(mentionTint("ada", agents, "light")?.color).not.toBe(light?.color);
     expect(mentionTint("maria", agents, "light")).toBeUndefined();
     expect(mentionTint("teo", agents, "light")).toEqual(light);
+  });
+
+  test("a mentioned person's chip takes their role's color, and none with no colored role", () => {
+    const owner = personMentionTint("violet", "light");
+    expect(owner?.backgroundColor).toMatch(/^#[0-9a-f]{6}$/);
+    expect(personMentionTint("violet", "dark")?.backgroundColor).not.toBe(owner?.backgroundColor);
+    expect(personMentionTint(undefined, "light")).toBeUndefined();
   });
 });

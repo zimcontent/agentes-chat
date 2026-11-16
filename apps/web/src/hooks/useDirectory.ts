@@ -1,4 +1,4 @@
-import type { Agent, Member, Message } from "@agenteschat/client";
+import type { Actor, Agent, Member, Message } from "@agenteschat/client";
 import { useAgents, useFormerAgents, useMembers, useRoles } from "@agenteschat/client";
 import { agentsByAnyHandle, formerById } from "@agenteschat/client/lib/directory";
 import { memberRoleColor } from "@agenteschat/client/lib/member-groups";
@@ -46,21 +46,39 @@ export function useDirectory(orgId: string) {
     /** `@ada` → "Ada", `@joao` → "João"; unknown handles stay as typed. */
     const mentionName = (handle: string) =>
       agentByHandle.get(handle.toLowerCase())?.name ?? memberByHandle.get(handle.toLowerCase())?.name ?? null;
-    /** A mentioned agent's color; none for a person or an unknown handle (their chip stays neutral). */
-    const mentionTone = (handle: string) => {
+    /** The workspace member a handle names (with their photo); undefined for an agent or an unknown handle. */
+    const mentionPerson = (handle: string) => {
+      const key = handle.toLowerCase();
+      if (agentByHandle.has(key)) return undefined;
+      const member = memberByHandle.get(key);
+      return member ? (memberById.get(member.userId) ?? member) : undefined;
+    };
+    /**
+     * A mention's color: an agent's bot's, a person's role's, as their name shows in the bubbles (`nameColorOf`);
+     * none for a person with no colored role or an unknown handle (a neutral chip).
+     */
+    const mentionTone = (handle: string): AgentColor | undefined => {
       const agent = agentByHandle.get(handle.toLowerCase());
       // Its bot's color (IDENTIDADE.md: a bot's color shows where it is), a hex the chip's gradient takes.
-      return agent
-        ? (corDoBot(
-            botDoAgente({
-              name: agent.name,
-              handle: agent.handle,
-              role: agent.role,
-              builtin: agent.builtin,
-              look: lookOf(agent),
-            }),
-          ) as AgentColor)
-        : undefined;
+      if (agent)
+        return corDoBot(
+          botDoAgente({
+            name: agent.name,
+            handle: agent.handle,
+            role: agent.role,
+            builtin: agent.builtin,
+            look: lookOf(agent),
+          }),
+        ) as AgentColor;
+      const person = mentionPerson(handle);
+      return person ? (memberRoleColor(person, roles.data?.roles ?? []) as AgentColor | undefined) : undefined;
+    };
+    /** Who a handle names, for the face before their mention: an agent or a member; undefined for anyone else. */
+    const mentionWho = (handle: string): (Actor & { id: string; name: string }) | undefined => {
+      const agent = agentByHandle.get(handle.toLowerCase());
+      if (agent) return { type: "agent", id: agent.id, name: agent.name };
+      const person = mentionPerson(handle);
+      return person ? { type: "person", id: person.userId, name: person.name } : undefined;
     };
     /** A name's color in the bubbles, on a light and a dark surface: an agent's own, a person's role's; none: the ink. */
     const nameColorOf = (author: Message["author"]) => {
@@ -90,6 +108,8 @@ export function useDirectory(orgId: string) {
       memberByHandle,
       authorName,
       mentionName,
+      mentionPerson,
+      mentionWho,
       mentionTone,
       agentInitials,
       nameColorOf,

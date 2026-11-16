@@ -27,7 +27,12 @@ export function FoldedBody({ body }: { body: string }) {
         data-folded={open ? undefined : ""}
         data-cut={cut && !open ? "" : undefined}
       >
-        <MessageBody body={body} resolveMention={dir.mentionName} mentionTone={dir.mentionTone} />
+        <MessageBody
+          body={body}
+          resolveMention={dir.mentionName}
+          mentionTone={dir.mentionTone}
+          mentionWho={dir.mentionWho}
+        />
       </div>
       {cut && !open && (
         <button

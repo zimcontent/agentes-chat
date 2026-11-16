@@ -44,19 +44,53 @@ describe("a message that mentions me", () => {
     await renderApp(`/org/${ORG_ID}/c/${ENG_ID}`, { api: createFakeApi(state) });
     await settle(8);
     expect(row("m-me").classList.contains("ac-msg--mentions-me")).toBe(true);
-    const chips = [...row("m-me").querySelectorAll(".ac-mention")].map((c) => [c.textContent, c.className]);
-    expect(chips).toEqual([
-      ["@Walter", "ac-mention ac-mention--me"],
-      ["@Ada", "ac-mention ac-mention--agent"],
+    // The words are the name; the face before it (a person's or an agent's) stays out of the text.
+    const chips = [...row("m-me").querySelectorAll(".ac-mention")].map((c) => [
+      (c.querySelector(".ac-mention__name") ?? c).textContent,
+      c.className,
     ]);
-    // Ada's chip carries her tone for both themes; a person's has none.
+    expect(chips).toEqual([
+      ["@Walter", "ac-mention ac-mention--person ac-mention--face ac-mention--me"],
+      ["@Ada", "ac-mention ac-mention--toned ac-mention--face"],
+    ]);
+    // Ada's chip carries her tone for both themes, led by her bot; mine stays the attention color, led by my face.
     const [walter, ada] = [...row("m-me").querySelectorAll<HTMLElement>(".ac-mention")];
     expect(walter?.style.getPropertyValue("--mention-bg")).toBe("");
+    expect(walter?.querySelector(".ac-mention__face[aria-hidden='true'] .ac-avatar")).not.toBeNull();
+    expect(ada?.querySelector(".ac-mention__face .ac-avatar--agent")).not.toBeNull();
     expect(ada?.style.getPropertyValue("--mention-bg")).toMatch(/^#[0-9a-f]{6}$/);
     expect(ada?.style.getPropertyValue("--mention-ink-dark")).toMatch(/^#[0-9a-f]{6}$/);
     // m-1 mentions only Ada.
     expect(row("m-1").classList.contains("ac-msg--mentions-me")).toBe(false);
   });
+
+  for (const colored of [true, false]) {
+    test(`a mention of another person stands out like an agent's, led by their face (${colored ? "their role's tone" : "no colored role: a neutral plate"})`, async () => {
+      const state = seedState();
+      // João is an Admin, a role with a color; without it his chip keeps the neutral plate.
+      if (!colored) state.members = state.members.map((m) => (m.userId === "u-joao" ? { ...m, roleIds: [] } : m));
+      state.messages.push({
+        id: "m-joao",
+        channelId: ENG_ID,
+        threadId: null,
+        author: { type: "person", id: "u-walter" },
+        body: "@joao consegue revisar?",
+        mentionedAgentIds: [],
+        agentRunId: null,
+        createdAt: new Date().toISOString(),
+      } as Message);
+      await renderApp(`/org/${ORG_ID}/c/${ENG_ID}`, { api: createFakeApi(state) });
+      await settle(8);
+      const chip = row("m-joao").querySelector<HTMLElement>(".ac-mention");
+      expect(chip?.className).toBe(
+        `ac-mention ${colored ? "ac-mention--toned " : ""}ac-mention--person ac-mention--face`,
+      );
+      expect(chip?.querySelector(".ac-mention__name")?.textContent).toBe("@João");
+      expect(chip?.querySelector(".ac-mention__face .ac-avatar")).not.toBeNull();
+      if (colored) expect(chip?.style.getPropertyValue("--mention-bg")).toMatch(/^#[0-9a-f]{6}$/);
+      else expect(chip?.style.getPropertyValue("--mention-bg")).toBe("");
+    });
+  }
 
   test("the handle matches as the backend reads it: any case, never inside an email", () => {
     expect(mentionsHandle("oi @Walter, tudo bem?", "walter")).toBe(true);
@@ -72,8 +106,10 @@ describe("a message that mentions me", () => {
     expect(value(css, ".ac-mention", "padding")).toBe("0 4px");
     expect(value(css, ".ac-mention", "border-radius")).toBe("var(--radius-sm)");
     expect(value(css, ".ac-mention--me", "color")).toBe("var(--attention)");
-    expect(value(css, ".ac-mention--agent", "background")).toBe("var(--mention-bg)");
-    expect(value(css, '[data-theme="dark"] .ac-mention--agent', "color")).toBe("var(--mention-ink-dark)");
+    expect(value(css, ".ac-mention--toned", "background")).toBe("var(--mention-bg)");
+    expect(value(css, '[data-theme="dark"] .ac-mention--toned', "color")).toBe("var(--mention-ink-dark)");
+    // A person with no role color: a plate of the ink, never the sunken surface (the page's own color in some themes).
+    expect(value(css, ".ac-mention--person", "background")).toBe("color-mix(in srgb, var(--ink) 10%, transparent)");
   });
 
   test("only a mention of me tints a row: my own, one row like anyone's, gets no plate even under the pointer", async () => {

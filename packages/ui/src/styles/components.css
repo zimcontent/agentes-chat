@@ -1715,7 +1715,8 @@ html:not([data-pointer]) .ac-msg__time--details:focus-visible {
 .ac-who {
   white-space: nowrap;
 }
-.ac-who > .ac-avatar {
+.ac-who > .ac-avatar,
+.ac-mention__face > .ac-avatar {
   font-size: inherit;
   display: inline-block;
   width: var(--who-face, 1.15em);
@@ -1728,11 +1729,13 @@ html:not([data-pointer]) .ac-msg__time--details:focus-visible {
 }
 /* A person's letters and photo out of the flow, so the box's bottom is its baseline as an agent's canvas is and the
    formula above holds. The letters keep the tile's trim to their capitals (`.ac-avatar__initials`), centred in it. */
-.ac-who > .ac-avatar > :is(img, .ac-avatar__initials) {
+.ac-who > .ac-avatar > :is(img, .ac-avatar__initials),
+.ac-mention__face > .ac-avatar > :is(img, .ac-avatar__initials) {
   position: absolute;
   inset: 0;
 }
-.ac-who > .ac-avatar > .ac-avatar__initials {
+.ac-who > .ac-avatar > .ac-avatar__initials,
+.ac-mention__face > .ac-avatar > .ac-avatar__initials {
   width: fit-content;
   height: fit-content;
   margin: auto;
@@ -1748,16 +1751,40 @@ html:not([data-pointer]) .ac-msg__time--details:focus-visible {
   color: var(--ink);
   white-space: normal;
 }
+/* A person with no role color: a plate of the ink itself, so it stands out on any surface (the sunken one is the
+   page's own color in some themes, and the chip read as plain words). */
+.ac-mention--person {
+  background: color-mix(in srgb, var(--ink) 10%, transparent);
+}
+/* A face before the name, at the text's size, centred on the capitals as `.ac-who`'s; the face stays with the name's
+   first word, a long name wraps between its words. The face is out of a selection, so a copied text keeps "@Name". */
+.ac-mention--face {
+  white-space: nowrap;
+}
+.ac-mention__name {
+  white-space: normal;
+}
+.ac-mention__face {
+  user-select: none;
+}
+/* Inside its plate the face keeps no room before it (the plate's padding is it) and a quarter of the size after. Its
+   letters (no photo) sit on a disc a step over the plate: the avatar's own sunken one is the page's color here. */
+.ac-mention__face > .ac-avatar {
+  margin-inline: 0 0.25em;
+}
+.ac-mention__face > .ac-avatar:not(.ac-avatar--agent) {
+  background: color-mix(in srgb, currentColor 18%, transparent);
+}
 .ac-mention--me {
   color: var(--attention);
   background: color-mix(in srgb, var(--attention) 18%, transparent);
 }
-/* A mentioned agent: its own tone, worked out per theme (`mentionTone`). */
-.ac-mention--agent {
+/* A mentioned agent, or a person whose role has a color: that tone, worked out per theme (`mentionTone`). */
+.ac-mention--toned {
   color: var(--mention-ink);
   background: var(--mention-bg);
 }
-[data-theme="dark"] .ac-mention--agent {
+[data-theme="dark"] .ac-mention--toned {
   color: var(--mention-ink-dark);
   background: var(--mention-bg-dark);
 }
@@ -6905,7 +6932,7 @@ html:not([data-pointer]) .ac-msg:focus-within .ac-msg__actions,
   filter: brightness(1.14);
 }
 /* A mention on the bubble: a translucent chip, so it reads on the bubble's gray in both themes. */
-.ac-msg--own .ac-msg__text :is(.ac-mention:not(.ac-mention--agent), code:not(pre code)) {
+.ac-msg--own .ac-msg__text :is(.ac-mention:not(.ac-mention--toned), code:not(pre code)) {
   background: rgb(127 127 127 / 0.16);
 }
 /* Sending: the bubble waits, quieter; not sent: a danger outline, the words kept. */
