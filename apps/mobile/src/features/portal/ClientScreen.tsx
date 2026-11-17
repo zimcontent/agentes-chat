@@ -9,79 +9,128 @@ import {
   portalTaskNumbers,
   portalWhen,
 } from "@agenteschat/client/lib/portal";
+import { useHeaderHeight } from "expo-router/react-navigation";
 import { type ReactNode, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { RefreshControl, StyleSheet, View } from "react-native";
-import { Chip, EmptyState, GroupedHeader, GroupedList, GroupedRow, Segmented, SkeletonList, Text } from "@/ui";
+import { KeyboardAvoidingView, Platform, RefreshControl, ScrollView, StyleSheet, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import {
+  Chip,
+  EmptyState,
+  GroupedHeader,
+  GroupedList,
+  GroupedRow,
+  Segmented,
+  SkeletonList,
+  Text,
+  useTheme,
+} from "@/ui";
 import { useOrgId, usePullRefresh } from "../shared/hooks";
-import { PushedLargeTitle } from "../shared/PushedLargeTitle";
+import { PushedHeader } from "../shared/parts";
 import { RetryLine } from "../shared/TeamSkyEmpty";
 import { usePortalWords } from "./hooks";
-import { boardColumns, cardOfItem, columnCount, planGroups } from "./model";
-import { CardCover, HeaderCount, openCard, openPost, PortalNotice, StageChip, StatusChip } from "./parts";
+import { boardColumns, boardPaint, cardOfItem, columnCount } from "./model";
+import { PlanBoard } from "./PlanBoard";
+import { CardCover, HeaderCount, openCard, openPost, PortalNotice, StatusChip } from "./parts";
 import type { PortalWords } from "./words";
 
 type Tab = "board" | "plan" | "posted" | "materials";
 
 /**
- * One client of the portal (ADR 9001), pushed from the Portal tab: its board as the web's columns, from To do to
- * Scheduled (a column with nothing in it isn't drawn), its strategic schedule by list, what was posted by month, and
- * its materials (logins, links, references). A team card or a post the team made from a card opens that card; a post
- * no card stands for opens the post itself.
+ * One client of the portal (ADR 9001), pushed from the Portal tab, its name in the bar and its four views under it:
+ * its board as the web's columns, from To do to Scheduled (a column with nothing in it isn't drawn); its schedule and
+ * its materials (logins, links, references) as Trello's app shows a board, the lists side by side, one a swipe
+ * (`PlanBoard`); and what was posted by month. A team card or a post the team made from a card opens that card; a
+ * post no card stands for opens the post itself.
  */
-export function ClientScreen({ client }: { client: string }) {
+export function ClientScreen({ client, initialTab = "board" }: { client: string; initialTab?: Tab }) {
   const w = usePortalWords();
   const orgId = useOrgId();
+  const { colors: c, scheme } = useTheme();
+  const insets = useSafeAreaInsets();
+  const headerHeight = useHeaderHeight();
   const board = usePortalBoard(orgId, client);
   const plan = usePortalPlan(orgId, client);
-  const summary = usePortalOverview(orgId).data?.clients.find((c) => c.client === client);
+  const summary = usePortalOverview(orgId).data?.clients.find((x) => x.client === client);
   const numbers = portalTaskNumbers(usePortalTasks(orgId).data);
-  const [tab, setTab] = useState<Tab>("board");
+  const [tab, setTab] = useState<Tab>(initialTab);
   const pull = usePullRefresh(() => Promise.all([board.refetch(), plan.refetch()]));
   const off = isPortalOff(board.error);
   const posted = board.data?.items.posted.length;
-  const shown = tab === "board" || tab === "posted" ? board : plan;
+  const lists = tab === "plan" || tab === "materials";
+  const shown = lists ? plan : board;
+  const paint = boardPaint(scheme === "dark", c);
+  const refresh = <RefreshControl refreshing={pull.refreshing} onRefresh={pull.onRefresh} />;
   return (
-    <PushedLargeTitle
-      title={portalClientName(client)}
-      grouped
-      refreshControl={<RefreshControl refreshing={pull.refreshing} onRefresh={pull.onRefresh} />}
-    >
-      <View style={styles.in}>
-        {summary && summary.open > 0 ? (
-          <Text variant="subhead" tone="muted">
-            {w.open(summary.open)}
-          </Text>
-        ) : null}
-        <Segmented
-          wide
-          value={tab}
-          onChange={(v) => setTab(v as Tab)}
-          items={[
-            { key: "board", label: w.tabs.board },
-            { key: "plan", label: w.tabs.plan },
-            { key: "posted", label: w.tabs.posted, ...(posted ? { count: posted } : {}) },
-            { key: "materials", label: w.tabs.materials },
-          ]}
-        />
+    <View style={[styles.screen, { backgroundColor: lists ? paint.board : c.grouped }]}>
+      <PushedHeader
+        title={portalClientName(client)}
+        {...(summary && summary.open > 0 ? { subtitle: w.open(summary.open) } : {})}
+        grouped
+      />
+      <KeyboardAvoidingView
+        style={styles.screen}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        keyboardVerticalOffset={headerHeight}
+      >
+        <View style={styles.tabs}>
+          <Segmented
+            wide="fit"
+            value={tab}
+            onChange={(v) => setTab(v as Tab)}
+            items={[
+              { key: "board", label: w.tabs.board },
+              { key: "plan", label: w.tabs.plan },
+              { key: "posted", label: w.tabs.posted, ...(posted ? { count: posted } : {}) },
+              { key: "materials", label: w.tabs.materials },
+            ]}
+          />
+        </View>
         {off ? (
           <EmptyState size="page" icon="check" title={w.off} subtitle={w.offText} />
         ) : shown.isLoading ? (
-          <SkeletonList rows={5} />
+          <View style={styles.in}>
+            <SkeletonList rows={5} />
+          </View>
         ) : !shown.data ? (
-          <RetryLine onRetry={() => void shown.refetch()} />
-        ) : tab === "board" && board.data ? (
-          <>
-            <PortalNotice state={board.data.state} />
-            <Board w={w} client={client} board={board.data} plan={plan.data} numbers={numbers} />
-          </>
-        ) : tab === "posted" && board.data ? (
-          <Posted w={w} client={client} items={board.data.items.posted} plan={plan.data} />
-        ) : plan.data ? (
-          <Lists w={w} client={client} plan={plan.data} numbers={numbers} materials={tab === "materials"} />
-        ) : null}
-      </View>
-    </PushedLargeTitle>
+          <View style={styles.in}>
+            <RetryLine onRetry={() => void shown.refetch()} />
+          </View>
+        ) : lists && plan.data ? (
+          <View style={[styles.screen, { paddingBottom: insets.bottom }]}>
+            <PortalNotice state={plan.data.state} />
+            {tab === "materials" ? (
+              <Text variant="footnote" tone="muted" style={styles.intro}>
+                {w.materialsIntro}
+              </Text>
+            ) : null}
+            <PlanBoard
+              key={tab}
+              client={client}
+              plan={plan.data}
+              section={tab === "materials" ? "materials" : "plan"}
+              numbers={numbers}
+              refreshing={pull.refreshing}
+              onRefresh={pull.onRefresh}
+            />
+          </View>
+        ) : (
+          <ScrollView
+            refreshControl={refresh}
+            contentContainerStyle={[styles.in, { paddingBottom: insets.bottom + 24 }]}
+          >
+            {tab === "board" && board.data ? (
+              <>
+                <PortalNotice state={board.data.state} />
+                <Board w={w} client={client} board={board.data} plan={plan.data} numbers={numbers} />
+              </>
+            ) : board.data ? (
+              <Posted w={w} client={client} items={board.data.items.posted} plan={plan.data} />
+            ) : null}
+          </ScrollView>
+        )}
+      </KeyboardAvoidingView>
+    </View>
   );
 }
 
@@ -110,49 +159,6 @@ function Board({
           <GroupedList>
             {col.cards.map((card) => teamRow(w, when, card, numbers.get(card.id)))}
             {col.items.map((item) => postRow(w, when, client, item, cardOfItem(plan, item.id), numbers))}
-          </GroupedList>
-        </View>
-      ))}
-    </>
-  );
-}
-
-/** A client's schedule by list (the cards in no list last), or its materials' lists with what they are for. */
-function Lists({
-  w,
-  client,
-  plan,
-  numbers,
-  materials,
-}: {
-  w: PortalWords;
-  client: string;
-  plan: PortalPlan;
-  numbers: Map<string, number>;
-  materials: boolean;
-}) {
-  const when = useDayWords();
-  const groups = planGroups(plan, materials ? "materials" : "plan").filter((g) => g.cards.length > 0);
-  if (groups.length === 0) {
-    return materials ? (
-      <EmptyState size="page" icon="archive" title={w.noMaterials} subtitle={w.materialsIntro} />
-    ) : (
-      <EmptyState size="page" icon="calendar" title={w.noLists} subtitle={w.noListsText} />
-    );
-  }
-  return (
-    <>
-      <PortalNotice state={plan.state} />
-      {materials ? (
-        <Text variant="footnote" tone="muted" style={styles.intro}>
-          {w.materialsIntro}
-        </Text>
-      ) : null}
-      {groups.map((g) => (
-        <View key={g.id ?? "none"}>
-          <GroupedHeader aside={<HeaderCount count={g.cards.length} />}>{g.name ?? w.noList}</GroupedHeader>
-          <GroupedList>
-            {g.cards.map((card) => planRow(w, when, client, card, numbers.get(card.id), materials))}
           </GroupedList>
         </View>
       ))}
@@ -280,52 +286,15 @@ function postRow(
   );
 }
 
-/** A card of the schedule or the materials: its stage (none for a material: nothing there is work). */
-function planRow(
-  w: PortalWords,
-  when: DayWords,
-  client: string,
-  card: PlanCard,
-  task: number | undefined,
-  material: boolean,
-) {
-  const day = when(card.postOn);
-  const facts = material
-    ? [card.files.length > 0 ? w.fileCount(card.files.length) : null]
-    : [w.types[card.type], day ? `${w.postOn}: ${day}` : null];
-  return (
-    <GroupedRow
-      key={card.id}
-      label={card.title}
-      labelLines={2}
-      sub={facts.filter((f): f is string => Boolean(f)).join(" · ")}
-      media
-      leading={<CardCover files={card.files} />}
-      {...(task !== undefined ? { value: `#${task}` } : {})}
-      {...(material
-        ? {}
-        : {
-            below: (
-              <Chips>
-                <StageChip stage={card.stage} />
-                {card.done ? <Chip icon="check" label={w.done} /> : null}
-              </Chips>
-            ),
-          })}
-      faint={card.done}
-      chevron
-      onPress={() => openCard(client, card.id)}
-    />
-  );
-}
-
 function Chips({ children }: { children: ReactNode }) {
   return <View style={styles.chips}>{children}</View>;
 }
 
 const styles = StyleSheet.create({
+  screen: { flex: 1 },
+  tabs: { paddingHorizontal: 16, paddingTop: 8, paddingBottom: 12 },
   in: { paddingHorizontal: 16, gap: 16 },
   chips: { flexDirection: "row", flexWrap: "wrap", gap: 6, marginTop: 6 },
   asked: { flexBasis: "100%" },
-  intro: { paddingHorizontal: 16 },
+  intro: { paddingHorizontal: 16, paddingBottom: 12 },
 });

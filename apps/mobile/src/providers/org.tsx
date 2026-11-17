@@ -135,8 +135,19 @@ export function OrgProvider({ children }: { children: ReactNode }) {
   return <OrgContext.Provider value={value}>{children}</OrgContext.Provider>;
 }
 
-/** One workspace, fixed: the visual board's (`prancha/`), with no session and no server. Never in the app. */
-export function FixedOrg({ orgId, children }: { orgId: string; children: ReactNode }) {
+/**
+ * One workspace, fixed: the visual board's (`prancha/`), with no session and no server. Never in the app. `org`: the
+ * workspace's summary when a screen reads what the person may do there (its permissions).
+ */
+export function FixedOrg({
+  orgId,
+  org = null,
+  children,
+}: {
+  orgId: string;
+  org?: OrgSummary | null;
+  children: ReactNode;
+}) {
   const value = useMemo<OrgGate>(
     () => ({
       loading: false,
@@ -144,9 +155,9 @@ export function FixedOrg({ orgId, children }: { orgId: string; children: ReactNo
       unreachable: false,
       retry: async () => {},
       choose: () => {},
-      state: { orgId, org: null, orgs: [], setOrgId: () => {} },
+      state: { orgId, org, orgs: org ? [org] : [], setOrgId: () => {} },
     }),
-    [orgId],
+    [orgId, org],
   );
   return <OrgContext.Provider value={value}>{children}</OrgContext.Provider>;
 }
