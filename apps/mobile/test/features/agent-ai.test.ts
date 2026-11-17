@@ -646,13 +646,11 @@ describe("the agent's AI", () => {
     expect(ownSignInTitle(await translator("pt-BR"), { kind: "claude_code", plan: "max" })).toBe("Claude · Max");
     const read = (file: string) => Bun.file(new URL(`../../src/features/${file}`, import.meta.url).pathname).text();
     expect(await read("ai/logic.ts")).toContain("label: accountTitle(choice.login),");
-    // AI accounts' grouped rows take a `label`, the Me page's rows a `title`.
-    for (const [screen, row, prop] of [["ai/AiAccountsScreen.tsx", "a", "label"]]) {
-      const source = await read(screen);
-      expect(source).toContain(`${prop}={accountTitle(${row})}`);
-      expect(source).toContain(`${prop}={ownSignInTitle(t, o)}`);
-      expect(source).not.toContain("planWordOf(o.plan)");
-    }
+    // The Painel de IA's cards say the plan once too, as the prototype writes it ("Claude Max": `accountCardTitle`,
+    // tested in packages/client), a computer's own sign-in by its maker the same way.
+    const panel = await read("ai/AiAccountsScreen.tsx");
+    expect(panel).toContain("accountCardTitle({ label: t(`aiAccounts.connect.");
+    expect(panel).not.toContain("planWordOf(o.plan)");
     expect((await translator("pt-BR"))("connectAi.plan.claude.tiers")).toBe("Pro, Max, Ultra, Team ou Enterprise");
     expect((await translator("en"))("connectAi.plan.claude.tiers")).toBe("Pro, Max, Ultra, Team or Enterprise");
   });

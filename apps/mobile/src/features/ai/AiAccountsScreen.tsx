@@ -1,4 +1,4 @@
-import type { AiAccounts as AiAccountsView, Credential } from "@agenteschat/client";
+import type { Agent, AiAccounts as AiAccountsView, Credential } from "@agenteschat/client";
 import {
   keys,
   useAiAccounts,
@@ -6,22 +6,21 @@ import {
   useApi,
   useCredentials,
   useMachines,
+  useModels,
   usePlatformKey,
   useSettings,
   useUpdateSettings,
 } from "@agenteschat/client";
 import {
-  accountTitle,
   agentsToGive,
   endsOnClaude,
-  identityUnknown,
   keyRemovalText,
   offersSignInAgain,
   onSeveralComputers,
   ownSignIns,
-  ownSignInTitle,
-  signInOf,
 } from "@agenteschat/client/lib/ai-accounts";
+import { accountCards, accountCardTitle } from "@agenteschat/client/lib/ai-panel";
+import { mayPickModel } from "@agenteschat/client/lib/brain-picker";
 import { computerNameOf } from "@agenteschat/client/lib/computer";
 import { errorText, keyRefusal } from "@agenteschat/client/lib/errors";
 import { joinNames, relativeTime } from "@agenteschat/client/lib/format";
@@ -31,6 +30,7 @@ import { can } from "@agenteschat/client/lib/permissions";
 import { settingsSectionNameKey, settingsSectionTextKey } from "@agenteschat/client/lib/personal-view";
 import { planOf, signInProviderOf } from "@agenteschat/client/lib/plans";
 import { keyCopiesLine, keyName, keyNamedAfterProvider, keySource, shownKeys } from "@agenteschat/client/lib/providers";
+import { isRightHand } from "@agenteschat/client/lib/right-hand";
 import { isPersonal } from "@agenteschat/client/lib/workspace-mode";
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
@@ -38,15 +38,17 @@ import { useTranslation } from "react-i18next";
 import { ActivityIndicator, Alert, Platform, ScrollView, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useOrg } from "@/providers/org";
-import { Button, GroupedList, GroupedRow, InfoHint, ProviderLogo, Text, useToast } from "@/ui";
+import { Button, GroupedList, GroupedRow, IconButton, ProviderLogo, Text, useToast } from "@/ui";
 import { router } from "@/ui/navigation";
+import { openRightHandSettings } from "../right-hand/SettingsScreen";
 import { personalAiParts } from "../settings/logic";
 import { chooseAction } from "../settings/parts";
 import { FirstUse } from "../shared/FirstUse";
 import { useColors, useDirectory, useMeId } from "../shared/hooks";
 import { errorHaptic, PushedHeader, successHaptic } from "../shared/parts";
-import { PlanMeter } from "../usage/parts";
 import { AddAccount } from "./AddAccount";
+import { AccountCardView, PanelHeading, UsesList } from "./AiPanel";
+import { openChangeAi } from "./ChangeAiSheet";
 import { openKeyForAll } from "./KeyForAllScreen";
 import { openConnectAi } from "./NoAiCard";
 import { alertKeyRefused, Note, PlanHoldNote, usePlanHold } from "./parts";
@@ -83,6 +85,7 @@ export function AiAccountsScreen() {
   const dir = useDirectory();
   const meId = useMeId();
   const status = useAiStatus(orgId);
+  const models = useModels();
   const [again, setAgain] = useState<Account | null>(null);
   const hold = usePlanHold(orgId, org);
   // Looking at the plans: their usage is looked up again (it comes back as `machine.updated`).
@@ -200,103 +203,53 @@ export function AiAccountsScreen() {
 
   // Under a hold its note says what comes first: an invitation to connect a plan would contradict it.
   const none = !hold && ai.isSuccess && rows.length === 0 && own.length === 0;
+  // A computer's own sign-in by its CLI's plan ("Claude Max"), as its account would be named.
+  const cards = accountCards(ai.data, (kind, plan) =>
+    accountCardTitle({ label: t(`aiAccounts.connect.${kind}`), plan }),
+  );
+  const team = dir.agents.filter((a) => !a.former && a.seesDetails !== false);
+  const admin = can(org, "manage_agents");
+  const onAgent = (a: Agent) =>
+    isRightHand(a) ? openRightHandSettings : mayPickModel(a, meId, admin) ? () => openChangeAi(a.id) : null;
   return (
     <View style={[styles.screen, { backgroundColor: c.grouped }]}>
       <PushedHeader
-        title={t(isPersonal(org) ? "settings.section.keysPersonal" : "mobile.ai.row")}
+        title={t(isPersonal(org) ? "settings.section.keysPersonal" : "mobile.aiPanel.title")}
         solid={false}
         grouped
+        {...(hold
+          ? {}
+          : { right: <IconButton icon="plus" label={t("aiAccounts.page.connect")} onPress={() => openConnectAi()} /> })}
       />
       <ScrollView
         contentInsetAdjustmentBehavior="automatic"
         contentContainerStyle={[styles.in, { paddingBottom: insets.bottom + 24 }]}
       >
-        <View style={styles.sectionHead}>
-          <InfoHint
-            name={t("common.about", { label: t("aiAccounts.page.title") })}
-            text={t("aiAccounts.page.hint")}
-            variant="title"
-          >
-            <Text variant="title" tone="ink">
-              {t("aiAccounts.page.title")}
-            </Text>
-          </InfoHint>
-        </View>
         {hold && !again ? <PlanHoldNote org={org} /> : null}
         {ai.isLoading ? <ActivityIndicator color={c.muted} /> : null}
         {ai.isError ? <Note icon="x">{t("common.loadFailed")}</Note> : null}
         {none ? (
           <FirstUse place="ai" size="panel" acts label={t("aiAccounts.page.connect")} onPress={() => openConnectAi()} />
         ) : null}
-        {/* Settings' own groups on the grouped gray: the mark in the 32 pt column, the hairline from the text on. */}
-        {own.length > 0 ? (
-          <GroupedList>
-            {own.map((o) => (
-              <GroupedRow
-                key={o.key}
-                leading={<ProviderLogo id={o.kind} size="sm" />}
-                label={ownSignInTitle(t, o)}
-                sub={t("aiAccounts.page.ownOn", { computer: o.computer })}
-                below={
-                  o.usage ? (
-                    <View style={styles.below}>
-                      <PlanMeter usage={o.usage} compact />
-                    </View>
-                  ) : undefined
-                }
-              />
-            ))}
-          </GroupedList>
-        ) : null}
-        {rows.length > 0 ? (
-          <GroupedList>
-            {rows.map((a) => {
-              const plan = planOf(a.provider);
-              const out = signInOf(a) === "signed_out";
-              const unknown = signInOf(a) === "unknown";
-              const facts = [
-                a.email ??
-                  (a.keyHint
-                    ? t("aiAccounts.page.keyEnds", { hint: a.keyHint })
-                    : identityUnknown(a, machineOf(a))
-                      ? t("aiAccounts.page.identityUnknown")
-                      : null),
-                several ? t("aiAccounts.page.on", { computer: computerOf(a.computer) }) : null,
-                a.usedBy.length > 0
-                  ? t("aiAccounts.page.usedBy", { count: a.usedBy.length, agents: names(a.usedBy) })
-                  : t("aiAccounts.page.noAgent"),
-              ].filter(Boolean);
-              return (
-                <GroupedRow
-                  key={a.id}
-                  leading={<ProviderLogo id={a.provider ?? a.kind} size="sm" off={out} />}
-                  label={accountTitle(a)}
-                  sub={facts.join(" · ")}
-                  more
-                  onPress={() => actions(a)}
-                  below={
-                    out || unknown || a.usage || (plan && !plan.usage) ? (
-                      <View style={styles.below}>
-                        {out ? (
-                          <Note icon="x">
-                            {plan ? t("aiAccounts.page.keyRefused") : t("aiAccounts.page.signedOut")}
-                          </Note>
-                        ) : null}
-                        {unknown ? <Note icon="info">{t("aiAccounts.page.statusUnknown")}</Note> : null}
-                        {a.usage ? (
-                          <PlanMeter usage={a.usage} compact />
-                        ) : plan && !plan.usage ? (
-                          <Text variant="small" tone="muted">
-                            {t("aiAccounts.usage.notShared", { maker: plan.maker })}
-                          </Text>
-                        ) : null}
-                      </View>
-                    ) : undefined
+        {/* "Suas contas": each account a card (its actions on a tap), then the computers' own sign-ins. */}
+        {cards.length > 0 ? (
+          <View>
+            <PanelHeading>{t("mobile.aiPanel.accounts")}</PanelHeading>
+            <View style={styles.cards}>
+              {cards.map((card) => (
+                <AccountCardView
+                  key={card.key}
+                  card={card}
+                  where={
+                    several && card.account
+                      ? t("aiAccounts.page.on", { computer: computerOf(card.account.computer) })
+                      : undefined
                   }
+                  {...(card.account ? { onPress: () => actions(card.account as Account) } : {})}
                 />
-              );
-            })}
-          </GroupedList>
+              ))}
+            </View>
+          </View>
         ) : null}
         {again ? (
           // On the page, not in a card: the steps draw their own.
@@ -326,17 +279,13 @@ export function AiAccountsScreen() {
             )}
           </View>
         ) : null}
-        {none || hold ? null : (
-          <View style={styles.start}>
-            <Button
-              size="sm"
-              variant={rows.length || own.length ? "secondary" : "primary"}
-              icon="plus"
-              label={t("aiAccounts.page.connect")}
-              onPress={() => openConnectAi()}
-            />
+        {/* "Quem usa o quê": each agent with the model it thinks with; a tap opens its sheet. */}
+        {team.length > 0 ? (
+          <View style={styles.nextSection}>
+            <PanelHeading>{t("mobile.aiPanel.uses")}</PanelHeading>
+            <UsesList agents={team} models={models.data?.models ?? []} onAgent={onAgent} />
           </View>
-        )}
+        ) : null}
         {can(org, "manage_credentials") ? <KeysSection locale={i18n.language} /> : null}
         <PersonalParts />
       </ScrollView>
@@ -529,7 +478,10 @@ function KeysSection({ locale }: { locale: string }) {
 const styles = StyleSheet.create({
   screen: { flex: 1 },
   // The settings screens' side margin: the groups on the same 16 pt edge as everywhere else.
-  in: { paddingHorizontal: 16, paddingTop: 8, gap: 12 },
+  in: { paddingHorizontal: 16, paddingTop: 0, gap: 12 },
+  cards: { gap: 8 },
+  // A section after another: its heading's own 16 above it, not the page's gap too.
+  nextSection: { marginTop: -12 },
   sectionHead: { gap: 4, paddingHorizontal: 2 },
   keysHead: { marginTop: 20 },
   below: { gap: 8, marginTop: 6 },

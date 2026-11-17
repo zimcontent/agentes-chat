@@ -2208,6 +2208,7 @@
     "addressHelp": "La dirección del servidor MCP del servicio (empieza con https://).",
     "addressLabel": "Dirección",
     "addressInvalid": "Usa una dirección https://.",
+    "computerOnly": "Conecta {{name}} desde una computadora: su inicio de sesión no puede volver a la app.",
     "needsKey": "Este servidor pide una clave.",
     "working": "Conectando…",
     "failed": "No se pudo conectar. Inténtalo de nuevo.",
@@ -2250,8 +2251,7 @@
       "refreshing": "Buscando…",
       "refreshFailed": "No se pudieron volver a buscar las herramientas. Inténtalo de nuevo.",
       "waiting": "Un admin tiene que revisar las herramientas de este servidor antes de que los agentes las usen."
-    },
-    "computerOnly": "Conecta {{name}} desde una computadora: su inicio de sesión no puede volver a la app."
+    }
   },
   "invite": {
     "invitedBy": "{{name}} te invitó a {{org}}",
@@ -2295,6 +2295,11 @@
     "blocked": "La verificación no cargó. Prueba con otra red."
   },
   "invitePeople": {
+    "emailsHelp": "Pega una lista o escribe. Cada persona recibe un correo y entra de inmediato.",
+    "here": "Ya está aquí",
+    "invited": "Ya invitado",
+    "fix": "Revisa esto",
+    "channels": "Grupos",
     "optional": "Opcional",
     "ok": "OK",
     "noteHelp": "Aparece en el correo con tu nombre. Hasta {{max}} caracteres.",
@@ -2302,11 +2307,6 @@
     "cancelTitle": "¿Cancelar la invitación a {{email}}?",
     "cancelText": "Su enlace deja de abrir.",
     "send": "Enviar",
-    "emailsHelp": "Pega una lista o escribe. Cada persona recibe un correo y entra de inmediato.",
-    "here": "Ya está aquí",
-    "invited": "Ya invitado",
-    "fix": "Revisa esto",
-    "channels": "Grupos",
     "roleHelp": "Cambia lo que la persona recibe al entrar.",
     "remove": "Quitar de la lista"
   },
@@ -2348,6 +2348,47 @@
     "enter": "Entrar al espacio de trabajo",
     "shareMessage": "Únete a {{org}} en DougBot: {{url}}",
     "failed": "No se pudo guardar. Inténtalo de nuevo."
+  },
+  "aiPanel": {
+    "title": "Panel de IA",
+    "accounts": "Tus cuentas",
+    "uses": "Quién usa qué",
+    "of": "de {{name}}",
+    "ok": "Todo bien",
+    "almost": "Casi en el límite",
+    "limited": "En el límite",
+    "signedOut": "Desconectada",
+    "renews": "El límite se renueva a las {{hour}}",
+    "renewsOn": "El límite se renueva el {{day}} a las {{hour}}",
+    "week": "Semana",
+    "month": "Mes",
+    "sheet": {
+      "title": "Cambiar la IA de {{name}}",
+      "title_female": "Cambiar la IA de {{name}}",
+      "smart": "Más inteligente",
+      "balanced": "Equilibrio",
+      "fast": "Más rápida y económica",
+      "smartPlan": "Piensa más. Más lenta y gasta más de la cuota.",
+      "smartKey": "Piensa más. Más lenta y más cara.",
+      "balancedLine": "Recomendado para la mayoría de las tareas.",
+      "fastLine": "Responde al instante. Mejor para tareas simples.",
+      "current": "Actual",
+      "inPlan": "incluido en el plan",
+      "price": "≈ {{input}} / {{output}} por millón de tokens",
+      "runsOn": "Funciona en la cuenta",
+      "accountOf": "{{account}} de {{owner}}",
+      "standIn": "Si se acaba la cuota, usar",
+      "standInNone": "Esperar a que vuelva la cuota",
+      "standInAll": "Vale para todos tus agentes.",
+      "standInAlmost": "La cuenta de reserva también está casi en el límite.",
+      "standInLimited": "La cuenta de reserva también está en el límite.",
+      "switchTo": "Cambiar a {{intent}}",
+      "now": "Ahora: {{model}}",
+      "none": "No hay otra IA a la que cambiar ahora. Conecta una cuenta o una clave para tener opciones.",
+      "rightHand": "La IA de {{name}} se elige en sus ajustes.",
+      "rightHand_female": "La IA de {{name}} se elige en sus ajustes.",
+      "openSettings": "Abrir ajustes"
+    }
   },
   "ai": {
     "yourPlan": "Tu plan de IA",

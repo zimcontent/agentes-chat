@@ -5418,6 +5418,113 @@
   "onb.failed": {
     "value": "Couldn't save. Try again."
   },
+  "aiPanel.title": {
+    "value": "AI panel"
+  },
+  "aiPanel.accounts": {
+    "value": "Your accounts"
+  },
+  "aiPanel.uses": {
+    "value": "Who uses what"
+  },
+  "aiPanel.of": {
+    "value": "{{name}}'s"
+  },
+  "aiPanel.ok": {
+    "value": "All good"
+  },
+  "aiPanel.almost": {
+    "value": "Almost at the limit"
+  },
+  "aiPanel.limited": {
+    "value": "At the limit"
+  },
+  "aiPanel.signedOut": {
+    "value": "Signed out"
+  },
+  "aiPanel.renews": {
+    "value": "Limit renews at {{hour}}"
+  },
+  "aiPanel.renewsOn": {
+    "value": "Limit renews {{day}} at {{hour}}"
+  },
+  "aiPanel.week": {
+    "value": "Week"
+  },
+  "aiPanel.month": {
+    "value": "Month"
+  },
+  "aiPanel.sheet.title": {
+    "value": "Change {{name}}'s AI",
+    "female": "Change {{name}}'s AI"
+  },
+  "aiPanel.sheet.smart": {
+    "value": "Smartest"
+  },
+  "aiPanel.sheet.balanced": {
+    "value": "Balanced"
+  },
+  "aiPanel.sheet.fast": {
+    "value": "Fastest and cheapest"
+  },
+  "aiPanel.sheet.smartPlan": {
+    "value": "Thinks more. Slower, and uses more of the quota."
+  },
+  "aiPanel.sheet.smartKey": {
+    "value": "Thinks more. Slower, and costs more."
+  },
+  "aiPanel.sheet.balancedLine": {
+    "value": "Recommended for most tasks."
+  },
+  "aiPanel.sheet.fastLine": {
+    "value": "Answers right away. Best for simple tasks."
+  },
+  "aiPanel.sheet.current": {
+    "value": "Current"
+  },
+  "aiPanel.sheet.inPlan": {
+    "value": "included in the plan"
+  },
+  "aiPanel.sheet.price": {
+    "value": "≈ {{input}} / {{output}} per million tokens"
+  },
+  "aiPanel.sheet.runsOn": {
+    "value": "Runs on"
+  },
+  "aiPanel.sheet.accountOf": {
+    "value": "{{owner}}'s {{account}}"
+  },
+  "aiPanel.sheet.standIn": {
+    "value": "If the quota runs out, use"
+  },
+  "aiPanel.sheet.standInNone": {
+    "value": "Wait for the quota"
+  },
+  "aiPanel.sheet.standInAll": {
+    "value": "Applies to all your agents."
+  },
+  "aiPanel.sheet.standInAlmost": {
+    "value": "The backup account is almost at its limit too."
+  },
+  "aiPanel.sheet.standInLimited": {
+    "value": "The backup account is at its limit too."
+  },
+  "aiPanel.sheet.switchTo": {
+    "value": "Switch to {{intent}}"
+  },
+  "aiPanel.sheet.now": {
+    "value": "Now: {{model}}"
+  },
+  "aiPanel.sheet.none": {
+    "value": "No other AI to switch to now. Connect an account or a key to have options."
+  },
+  "aiPanel.sheet.rightHand": {
+    "value": "{{name}}'s AI is set in its settings.",
+    "female": "{{name}}'s AI is set in its settings."
+  },
+  "aiPanel.sheet.openSettings": {
+    "value": "Open settings"
+  },
   "ai.yourPlan": {
     "value": "Your AI plan"
   },
