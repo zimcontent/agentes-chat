@@ -59,6 +59,11 @@ type Shape = "none" | "brand" | "pill" | "small" | "open";
 const BRAND_SIZE = 15;
 /** The signature on the dark glass: the identity's ink on the dark stage. */
 const BRAND_INK = "#EDEDED";
+/** How long a tab's let-go waits for the next tab's hold. */
+const BRAND_LET_GO_MS = 120;
+/** The bar the pill centers in where it neither wraps the camera nor hangs from the notch. */
+const IOS_BAR = 44;
+const ANDROID_BAR = 56;
 
 /** Pulled past its edge, the island follows less the further it goes (a boundary that resists, not a wall). */
 function rubberband(overshoot: number, dimension: number, constant = 0.55) {
@@ -81,7 +86,18 @@ export function NoticeIsland() {
   const { width, height: screenHeight } = useWindowDimensions();
   const { status } = useRealtime();
   const snap = useSyncExternalStore(island.subscribe, island.get, island.get);
-  const branded = useSyncExternalStore(brandSpot.subscribe, brandSpot.get, brandSpot.get);
+  const brandedNow = useSyncExternalStore(brandSpot.subscribe, brandSpot.get, brandSpot.get);
+  // Let go a beat late: going from one tab to another, the old one lets go before the new one holds, and the signature
+  // shouldn't blink in between.
+  const [branded, setBranded] = useState(brandedNow);
+  useEffect(() => {
+    if (brandedNow) {
+      setBranded(true);
+      return;
+    }
+    const timer = setTimeout(() => setBranded(false), BRAND_LET_GO_MS);
+    return () => clearTimeout(timer);
+  }, [brandedNow]);
   const [open, setOpen] = useState(false);
   const [openHeight, setOpenHeight] = useState(OPEN_GUESS);
 
@@ -120,9 +136,15 @@ export function NoticeIsland() {
   const camera = kind === "camera";
   // Held to the top of the screen: out of the camera, or hanging from the notch (its top corners square there).
   const attached = kind !== "plain";
-  const brand = brandBox(kind, insets.top);
+  const brand = brandBox(kind, insets.top, Platform.OS === "android" ? ANDROID_BAR : IOS_BAR);
   const shape: Shape = !lead ? (branded ? "brand" : "none") : open ? "open" : small ? "small" : "pill";
-  const top = shape === "brand" ? brand.top : noticeTop(kind, insets.top);
+  // What it showed before it went: the signature leaves as the signature (fading where it is, or into the camera),
+  // never as the last notice it once grew into.
+  const wasBrand = useRef(false);
+  if (shape === "brand") wasBrand.current = true;
+  else if (shape !== "none") wasBrand.current = false;
+  const leavingBrand = shape === "none" && wasBrand.current;
+  const top = shape === "brand" || (leavingBrand && !camera) ? brand.top : noticeTop(kind, insets.top);
   // Grown out of the camera or the notch, the pill and the open island cover the status bar's line: their content
   // starts under it (never behind it) and the status bar steps aside meanwhile, as with the system's own island.
   const clear = noticeClear(kind, insets.top);
@@ -132,7 +154,7 @@ export function NoticeIsland() {
   // Only while open: the last open height outlives it, and a closed pill must keep its swipe away.
   const scrolls = shape === "open" && openHeight > openMax;
   const size = {
-    none: camera ? { w: CAMERA.width, h: CAMERA.height } : branded ? { w: brand.w, h: brand.h } : { w: 44, h: 44 },
+    none: camera ? { w: CAMERA.width, h: CAMERA.height } : leavingBrand ? { w: brand.w, h: brand.h } : { w: 44, h: 44 },
     brand: { w: brand.w, h: brand.h },
     pill: { w: Math.min(width - 20, 420), h: PILL_HEIGHT + clear },
     small: { w: camera ? 250 : 200, h: camera ? CAMERA.height : kind === "notch" ? clear + 40 : 40 },
@@ -206,15 +228,16 @@ export function NoticeIsland() {
     width: w.value,
     height: h.value,
     borderRadius: r.value,
-    // Hanging from the notch: square where it meets the screen's edge.
-    ...(kind === "notch" ? { borderTopLeftRadius: 0, borderTopRightRadius: 0 } : null),
+    // Hanging from the notch: square where it meets the screen's edge, with no rim along it.
+    ...(kind === "notch" ? { borderTopLeftRadius: 0, borderTopRightRadius: 0, borderTopWidth: 0 } : null),
     opacity: fade.value,
     transform: [{ translateY: y.value + drag.value }],
   }));
   const inner = useAnimatedStyle(() => ({ opacity: content.value }));
 
   const item = lead ?? shown.current;
-  if (!item && shape === "none" && !branded) return null;
+  // The signature leaving still fades out, drawn.
+  if (!item && shape === "none" && !leavingBrand) return null;
 
   return (
     <>
@@ -226,7 +249,7 @@ export function NoticeIsland() {
           accessibilityRole="button"
         />
       ) : null}
-      {camera ? <StatusBar hidden={coversBar} animated /> : null}
+      {attached ? <StatusBar hidden={coversBar} animated /> : null}
       <View pointerEvents="box-none" style={styles.place}>
         <GestureDetector gesture={pan}>
           <Animated.View
@@ -235,7 +258,7 @@ export function NoticeIsland() {
           >
             <IslandGlass dim={dim} />
             <Animated.View style={[styles.fill, inner]}>
-              {shape === "brand" || (shape === "none" && !item) ? (
+              {shape === "brand" || leavingBrand || (shape === "none" && !item) ? (
                 <View style={[styles.brand, { paddingTop: brand.clear }]}>
                   <Assinatura size={BRAND_SIZE} color={BRAND_INK} />
                 </View>

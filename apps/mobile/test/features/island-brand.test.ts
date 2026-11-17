@@ -40,9 +40,10 @@ describe("DougBot's signature resting in the island", () => {
     expect(b.h).toBe(33 + BRAND_ROW);
   });
 
-  test("with neither, a pill under the status bar", () => {
-    const b = brandBox("plain", 24);
-    expect(b.top).toBe(28);
+  test("with neither, a pill centered in the bar under the status bar: 44 on an iPhone, 56 on Android", () => {
+    const b = brandBox("plain", 20);
+    expect(b.top).toBe(20 + 6);
+    expect(brandBox("plain", 24, 56).top).toBe(24 + 12);
     expect(b.clear).toBe(0);
     expect(b.corner).toBe(b.h / 2);
   });

@@ -47,9 +47,9 @@ export interface IslandBox {
 
 /**
  * DougBot's signature at rest: glass grown out of the camera's island (wrapping it, the name under it), hanging from
- * the notch (its top flush with the screen's edge), or a small glass pill under the status bar.
+ * the notch (its top flush with the screen's edge), or a small glass pill centered in the bar (`barHeight`).
  */
-export function brandBox(kind: TopKind, insetTop: number): IslandBox {
+export function brandBox(kind: TopKind, insetTop: number, barHeight = 44): IslandBox {
   if (kind === "camera") {
     const clear = BRAND_RING + CAMERA.height;
     return {
@@ -65,7 +65,14 @@ export function brandBox(kind: TopKind, insetTop: number): IslandBox {
     const clear = notchHeight(insetTop);
     return { top: 0, w: BRAND_WIDTH, h: clear + BRAND_ROW, corner: 16, clear };
   }
-  return { top: insetTop + 4, w: BRAND_WIDTH - 16, h: BRAND_ROW, corner: BRAND_ROW / 2, clear: 0 };
+  // Centered in the bar under the status bar (44 on an iPhone, 56 on Android).
+  return {
+    top: insetTop + (barHeight - BRAND_ROW) / 2,
+    w: BRAND_WIDTH - 16,
+    h: BRAND_ROW,
+    corner: BRAND_ROW / 2,
+    clear: 0,
+  };
 }
 
 /** Where a notice's island starts: out of the camera, from the screen's edge under the notch, or under the bar. */
