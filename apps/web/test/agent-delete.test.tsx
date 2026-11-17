@@ -111,7 +111,7 @@ describe("deleting an agent (ADR 0082)", () => {
   test("an archived agent has no page: admins delete it from Equipe › Arquivados", async () => {
     const state = seedState();
     state.former = [{ id: "agent-old", name: "New agent", role: "", appearance: null, deleted: false }];
-    await go("team", state);
+    await go("team?view=list", state);
     const card = screen().getByRole("heading", { name: "Arquivados" }).closest(".team-archived") as HTMLElement;
     expect(card.textContent).toContain("New agent");
     await click(within(card).getByRole("button", { name: "Apagar o New agent" }));
@@ -126,7 +126,7 @@ describe("deleting an agent (ADR 0082)", () => {
   test("an archived agent comes back from Equipe › Arquivados with Restaurar", async () => {
     const state = seedState();
     state.former = [{ id: "agent-old", name: "New agent", role: "", appearance: null, deleted: false }];
-    await go("team", state);
+    await go("team?view=list", state);
     const card = screen().getByRole("heading", { name: "Arquivados" }).closest(".team-archived") as HTMLElement;
     await click(within(card).getByRole("button", { name: "Restaurar o New agent" }));
     await settle(6);
@@ -136,7 +136,8 @@ describe("deleting an agent (ADR 0082)", () => {
   });
 
   test("archiving an agent: Desfazer in its toast brings it back, on its page", async () => {
-    const { state, router } = await go(`agents/${ADA_ID}`);
+    // Archiving is in Ajustes (docs/adr/doug-0017-agents-lean.md), in its cover's menu.
+    const { state, router } = await go(`agents/${ADA_ID}?tab=overview`);
     const more = screen().getByRole("button", { name: "Mais ações" });
     await act(async () => {
       fireEvent.keyDown(more, { key: "Enter" });
@@ -159,7 +160,7 @@ describe("deleting an agent (ADR 0082)", () => {
     const state = seedState();
     state.former = [{ id: "agent-old", name: "New agent", role: "", appearance: null, deleted: false }];
     if (state.me?.organizations[0]) state.me.organizations[0].role = "member";
-    await go("team", state);
+    await go("team?view=list", state);
     expect(screen().queryByRole("heading", { name: "Arquivados" })).toBeNull();
   });
 

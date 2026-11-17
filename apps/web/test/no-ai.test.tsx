@@ -527,14 +527,15 @@ describe("no AI connected: above the composer", () => {
   });
 
   test("the agent's page: who it thinks with says no AI too, not the model it's set to, and connects one", async () => {
-    await open(seedState({ aiStatus: aiStatus(true, ADA_ID) }), `agents/${ADA_ID}`);
+    // "Como trabalha" is in Ajustes › Visão geral (docs/adr/doug-0017-agents-lean.md).
+    await open(seedState({ aiStatus: aiStatus(true, ADA_ID) }), `agents/${ADA_ID}?tab=overview`);
     const work = screen().getByRole("region", { name: "Como trabalha" });
     expect(work.textContent).toContain("Pensa comSem IA");
     expect(work.textContent).not.toContain("Pela API");
     await click(within(work).getByRole("button", { name: "Conectar uma IA" }));
     expect(dialog("Conectar uma IA para a Ada")).not.toBeNull();
     cleanup();
-    await open(seedState({ aiStatus: aiStatus(true, ATLAS_ID) }), `agents/${ADA_ID}`);
+    await open(seedState({ aiStatus: aiStatus(true, ATLAS_ID) }), `agents/${ADA_ID}?tab=overview`);
     expect(screen().getByRole("region", { name: "Como trabalha" }).textContent).toContain("Pela API");
   });
 
@@ -542,7 +543,7 @@ describe("no AI connected: above the composer", () => {
     const state = walters(seedState({ aiStatus: aiStatus(true, ADA_ID) }), ADA_ID);
     const ada = state.agents.find((a) => a.id === ADA_ID);
     if (ada) ada.brain = { kind: "codex", model: null };
-    await open(state, `agents/${ADA_ID}`);
+    await open(state, `agents/${ADA_ID}?tab=overview`);
     await click(screen().getByRole("button", { name: "Sem IA" }), 6);
     const chip = dialog("Conectar uma IA para a Ada") as HTMLElement;
     expect(inBand(chip)).toBe(true);

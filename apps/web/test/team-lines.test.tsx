@@ -24,10 +24,9 @@ const go = async (state: ReturnType<typeof seedState>, path: string) => {
   await settle(8);
   return state;
 };
-const team = (state: ReturnType<typeof seedState>, shown: "chart" | "map" | "sectors" | "list") => {
-  localStorage.setItem("agentes.team.view", shown);
-  return go(state, "team");
-};
+/** Equipe on one of its views, in the address (`?view=`, docs/adr/doug-0017-agents-lean.md). */
+const team = (state: ReturnType<typeof seedState>, shown: "chart" | "map" | "sectors" | "list") =>
+  go(state, `team?view=${shown}`);
 const pick = async (label: string, option: string) => {
   const field = screen().getByRole("combobox", { name: label });
   field.focus();

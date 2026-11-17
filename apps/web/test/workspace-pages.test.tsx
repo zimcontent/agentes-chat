@@ -653,7 +653,6 @@ describe("Criar agente", () => {
 });
 
 describe("Equipe (ADR 0148)", () => {
-  afterEach(() => localStorage.removeItem("agentes.team.view"));
   const view = async (name: string) => {
     await click(screen().getByRole("radio", { name }));
     await settle(3);
@@ -674,7 +673,7 @@ describe("Equipe (ADR 0148)", () => {
       },
     });
     state.approvals = state.approvals.filter((a) => a.agentId !== ATLAS_ID);
-    await go("team", state);
+    await go("team?view=list", state);
     expect(screen().getByRole("heading", { name: "Equipe" })).toBeTruthy();
     // Its count on the title's row.
     const count = document.querySelector(".ac-pagehead__titleline > .ac-pagehead__count");
@@ -715,11 +714,11 @@ describe("Equipe (ADR 0148)", () => {
     };
     const count = () => document.querySelector(".ac-pagehead__titleline > .ac-pagehead__count")?.textContent;
     // On for Todos by default: every agent, as before.
-    await go("team", member(true));
+    await go("team?view=list", member(true));
     expect(count()).toBe("2 pessoas · 2 agentes · 2 setores");
     expect(rows()).toEqual(["Atlas", "Ada"]);
     cleanup();
-    await go("team", member(false));
+    await go("team?view=list", member(false));
     expect(count()).toBe("2 pessoas · 1 agente · 1 setor");
     expect(rows()).toEqual(["Atlas"]);
     await view("Setores");
@@ -729,7 +728,7 @@ describe("Equipe (ADR 0148)", () => {
   });
 
   test("Lista: search by name, role or channel, filter, and sort by a column", async () => {
-    await go("team");
+    await go("team?view=list");
     expect(rows()).toEqual(["Ada", "Atlas"]);
     await act(async () =>
       fireEvent.change(screen().getByRole("searchbox", { name: "Buscar no time" }), {
@@ -752,14 +751,14 @@ describe("Equipe (ADR 0148)", () => {
   });
 
   test("the agent waiting for its computer reads neither Available nor No AI", async () => {
-    await go("team", seedState({ aiStatus: { any: true, agents: [{ agentId: ADA_ID, state: "waiting" }] } }));
+    await go("team?view=list", seedState({ aiStatus: { any: true, agents: [{ agentId: ADA_ID, state: "waiting" }] } }));
     const ada = within(screen().getByRole("table")).getByRole("link", { name: /Ada/ }).closest("tr") as HTMLElement;
     expect(ada.textContent).not.toContain("Disponível");
     expect(within(ada).queryByRole("button", { name: "Sem IA" })).toBeNull();
   });
 
   test("Organograma: the workspace on top, each person with the agents that report to them", async () => {
-    await go("team");
+    await go("team?view=list");
     await view("Organograma");
     const chart = screen().getByRole("region", { name: "Organograma" });
     expect(chart.querySelector(".team-node--org")?.textContent).toContain("Acme");
@@ -771,7 +770,7 @@ describe("Equipe (ADR 0148)", () => {
   });
 
   test("Mapa: a column per channel; dropping an agent on another channel asks the right hand for a card", async () => {
-    const { state } = await go("team");
+    const { state } = await go("team?view=list");
     await view("Mapa");
     const map = screen().getByRole("region", { name: "Mapa" });
     const eng = within(map).getByRole("region", { name: "#eng" });
@@ -798,7 +797,7 @@ describe("Equipe (ADR 0148)", () => {
   });
 
   test("Governança e uso: Settings' use per person, with the way to Settings", async () => {
-    await go("team");
+    await go("team?view=list");
     await view("Governança e uso");
     const usage = screen().getByRole("region", { name: "Governança e uso" });
     expect(
@@ -810,11 +809,13 @@ describe("Equipe (ADR 0148)", () => {
     expect(usage.textContent).toContain("Uso por pessoa");
   });
 
-  test("the view chosen stays for the next visit", async () => {
-    await go("team");
+  test("it opens on Agora; the view chosen goes in the address, which opens it again", async () => {
+    const { router } = await go("team");
+    expect(screen().getByRole("radio", { name: "Agora" }).getAttribute("aria-checked")).toBe("true");
     await view("Setores");
+    expect(router.state.location.search).toMatchObject({ view: "sectors" });
     cleanup();
-    await go("team");
+    await go("team?view=sectors");
     expect(screen().getByRole("radio", { name: "Setores" }).getAttribute("aria-checked")).toBe("true");
   });
 });

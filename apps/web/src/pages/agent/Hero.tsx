@@ -48,10 +48,13 @@ function useLiveRun(agentId: string) {
 /** `panel` / `onExpand`: in the panel beside its DM, where "Conversar" is the conversation next to it (its × is the panel's). */
 export function AgentHero({
   onArchive,
+  onBack,
   panel,
   onExpand,
 }: {
   onArchive: () => void;
+  /** Ajustes (docs/adr/doug-0017-agents-lean.md): back to the agent's page as it opens. */
+  onBack?: () => void;
   panel?: boolean;
   onExpand?: () => void;
 }) {
@@ -76,6 +79,11 @@ export function AgentHero({
         <div className="agp-cover" data-busy={busy || undefined}>
           <AgentCover color={draft.look.color as AgentColor} busy={busy} clear={() => [face.current, acts.current]} />
           <div className="agp-cover__acts" ref={acts}>
+            {onBack && (
+              <Button size="sm" icon="chevronLeft" className="agp-glass agp-back" onClick={onBack}>
+                {name}
+              </Button>
+            )}
             {!panel && (
               // The same glass as "…" beside it: a solid button on the light cover read as a washed-out slab.
               <Button asChild size="sm" className="agp-chat agp-glass">

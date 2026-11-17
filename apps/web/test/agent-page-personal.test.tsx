@@ -17,7 +17,8 @@ const personal = () => {
   if (org) org.mode = "personal";
   return state;
 };
-const go = async (query = "", state = personal()) => {
+/** Ajustes at Visão geral by default (docs/adr/doug-0017-agents-lean.md: the page itself opens lean). */
+const go = async (query = "?tab=overview", state = personal()) => {
   const r = await renderApp(`/org/${ORG_ID}/agents/${ADA_ID}${query}`, { api: createFakeApi(state) });
   await settle(8);
   return r;

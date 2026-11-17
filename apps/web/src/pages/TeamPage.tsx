@@ -22,25 +22,26 @@ import { useOrg } from "@/components/org-context";
 import { TeamChart } from "@/components/team/TeamChart";
 import { TeamList } from "@/components/team/TeamList";
 import { TeamMap } from "@/components/team/TeamMap";
+import { TeamNow } from "@/components/team/TeamNow";
 import { TeamSectors } from "@/components/team/TeamSectors";
 import { TeamUsage } from "@/components/team/TeamUsage";
 import { useDirectory } from "@/hooks/useDirectory";
 import { useRightHandLook } from "@/hooks/useRightHandLook";
-import { STORAGE_KEYS, storage } from "@/lib/storage";
 import { useToast } from "@/lib/toast";
 import "./team.css";
 import { CreateAgentButton } from "@/components/new-agent/NewAgentDialog";
 
-const VIEWS = ["list", "chart", "map", "sectors", "usage"] as const;
-type TeamView = (typeof VIEWS)[number];
-const isView = (v: string | null): v is TeamView => VIEWS.includes(v as TeamView);
+export const TEAM_VIEWS = ["now", "list", "chart", "map", "sectors", "usage"] as const;
+export type TeamView = (typeof TEAM_VIEWS)[number];
+export const isTeamView = (v: unknown): v is TeamView => TEAM_VIEWS.includes(v as TeamView);
 
 /**
- * Equipe (ADR 0148): one page, five views of the same people, agents and setores. Lista, Organograma (who reports to
- * whom), Mapa (one column per channel, as the team works), Setores and Governança e uso. The view is remembered in
- * this browser.
+ * Equipe (ADR 0148): one page, six views of the same people, agents and setores. It opens on "Seu time agora"
+ * (docs/adr/doug-0017-agents-lean.md), the team's front: who coordinates, what each agent does now and what waits on
+ * you. Lista, Organograma (who reports to whom), Mapa (one column per channel, as the team works), Setores and
+ * Governança e uso are one tab away, in the address (`?view=`).
  */
-export function TeamPage() {
+export function TeamPage({ view, onView }: { view: TeamView; onView: (view: TeamView) => void }) {
   const { t } = useTranslation();
   const { org } = useOrg();
   const team = useTeam(org.id);
@@ -50,14 +51,6 @@ export function TeamPage() {
   const dir = useDirectory(org.id);
   // Asked with the page, so every view says at once whether an agent can work.
   useAiStatus(org.id);
-  const [view, setView] = useState<TeamView>(() => {
-    const saved = storage.get(STORAGE_KEYS.teamView);
-    return isView(saved) ? saved : "list";
-  });
-  const pick = (v: TeamView) => {
-    setView(v);
-    storage.set(STORAGE_KEYS.teamView, v);
-  };
   const data = team.data;
   const agents = data?.agents.filter((a) => !isRightHand(dir.agentById.get(a.id))) ?? [];
   // Archived agents have no page: admins bring them back, or delete them for good (ADR 0082), here.
@@ -94,7 +87,7 @@ export function TeamPage() {
   return (
     <div className="page team">
       <PageHeader
-        title={t("team.title")}
+        title={view === "now" ? t("teamNow.title") : t("team.title")}
         count={
           !!data &&
           [
@@ -103,13 +96,22 @@ export function TeamPage() {
             t("team.sectorsCount", { count: groups.length }),
           ].join(" · ")
         }
-        actions={!noAgents && makes}
+        actions={
+          <>
+            {!noAgents && makes}
+            <Button asChild icon="bolt">
+              <Link to="/org/$orgId/ai" params={{ orgId: org.id }}>
+                {t("aiPanel.title")}
+              </Link>
+            </Button>
+          </>
+        }
       >
         <Segmented
           value={view}
-          onValueChange={pick}
+          onValueChange={onView}
           label={t("team.viewLabel")}
-          options={VIEWS.map((v) => ({ value: v, label: t(`team.view.${v}`) }))}
+          options={TEAM_VIEWS.map((v) => ({ value: v, label: t(`team.view.${v}`) }))}
         />
       </PageHeader>
       {view !== "usage" &&
@@ -132,6 +134,7 @@ export function TeamPage() {
           {t(maker ? "team.empty" : "team.emptyViewer")}
         </EmptyState>
       )}
+      {shown && view === "now" && <TeamNow team={shown} />}
       {shown && view === "list" && <TeamList team={shown} groups={groups} />}
       {shown && view === "chart" && <TeamChart team={shown} groups={groups} />}
       {shown && view === "map" && <TeamMap team={shown} />}
