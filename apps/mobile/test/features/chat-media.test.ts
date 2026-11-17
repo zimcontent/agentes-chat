@@ -1,4 +1,6 @@
 import { describe, expect, test } from "bun:test";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import type { DirectMessage, Message } from "@agenteschat/client";
 import { isMediaAlone, mediaTabsOf, shownMediaSettings } from "@agenteschat/client/lib/media";
 import { previewBody } from "@agenteschat/client/lib/message-body";
@@ -379,5 +381,22 @@ describe("a GIF or a sticker where a message's text shows", () => {
     // Words win; without the word function, nothing changes.
     expect(subtitleOf(notification({ id: "n", latest: { text: "olha", media: "gif" } }), say, word)).toBe("olha");
     expect(subtitleOf(notification({ id: "n", latest: { text: "", media: "gif" } }), say)).toBe("");
+  });
+});
+
+describe("sending a GIF or a sticker from the picker", () => {
+  const src = (path: string) => readFileSync(join(import.meta.dir, "../../src", path), "utf8");
+
+  test("it goes once the sheet is gone, and the picker stops playing at the first pick", () => {
+    const screen = src("features/chat/ChatScreen.tsx");
+    // Sent while the sheet slid out, the new row, the scroll and the picker's GIFs moved under a closing modal.
+    expect(screen).toMatch(
+      /const sendMedia = \(media: MessageMedia\) => \{\s*const meta = \{ \.\.\.takeQuote\(\), media \};\s*sheet\.close\(\(\) => \{\s*send\("", threadId, meta\);\s*toEnd\(\);/,
+    );
+    const picker = src("features/chat/MediaPickerSheet.tsx");
+    expect(picker).toContain("if (pickedRef.current) return;");
+    expect(picker).toContain("if (picked) return <View style={{ height }} />;");
+    expect(picker).toContain("<GifTab onSend={send} />");
+    expect(picker).toContain("onSend={send} />");
   });
 });

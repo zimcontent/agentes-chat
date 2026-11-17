@@ -1099,7 +1099,7 @@ function Chat({
   };
 
   // GIFs and stickers (ADR 0091): the button only where one can go; one tap in the sheet sends it like any message of
-  // mine. The list is aimed at the end before the sheet closes: the place it held under the sheet doesn't come back.
+  // mine, once the sheet is gone (`sendMedia`); going to the end lets go of the place the sheet gave back.
   const settings = useSettings(orgId).data;
   const mediaTabs = mediaTabsOf(settings, dir.agents.length, Boolean(api.gifs));
   const voiceOn = Boolean(meId && settings?.voiceAvailable && settings.voiceMessages);
@@ -1140,10 +1140,15 @@ function Chat({
     const timer = setInterval(() => sendTyping(threadId, undefined, "voice", true), 1000);
     return () => clearInterval(timer);
   }, [uploading, sendTyping, threadId]);
+  // A GIF or a sticker goes once the picker's sheet is gone, as the camera and the library open (`onPlus`): sent while
+  // the sheet slid out, the new row (a playing GIF), the scroll to the end and the picker's own playing GIFs all moved
+  // under a modal iOS was taking away, and the app closed.
   const sendMedia = (media: MessageMedia) => {
-    send("", threadId, { ...takeQuote(), media });
-    toEnd();
-    sheet.close();
+    const meta = { ...takeQuote(), media };
+    sheet.close(() => {
+      send("", threadId, meta);
+      toEnd();
+    });
   };
   const openMedia = () =>
     sheet.open(
