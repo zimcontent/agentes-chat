@@ -1,4 +1,15 @@
-import { Canvas, Group, LinearGradient, Path, Rect, rect, Skia, type SkPath, vec } from "@shopify/react-native-skia";
+import {
+  Canvas,
+  Group,
+  LinearGradient,
+  Mask,
+  Path,
+  Rect,
+  rect,
+  Skia,
+  type SkPath,
+  vec,
+} from "@shopify/react-native-skia";
 import { useState } from "react";
 import { type LayoutChangeEvent, StyleSheet, type ViewStyle } from "react-native";
 import { type SharedValue, useDerivedValue } from "react-native-reanimated";
@@ -68,7 +79,7 @@ export function PixelWave({
   onWidth,
   height,
   handle = false,
-  fade,
+  fade = false,
   style,
 }: {
   inner: SharedValue<SkPath>;
@@ -80,8 +91,8 @@ export function PixelWave({
   height: number;
   /** A square at `progress`, to grab and drag, on a spread wave (`wavePaths` without `tail`). */
   handle?: boolean;
-  /** The field's color: the left end of a growing recording fades into it. */
-  fade?: string;
+  /** The left end of a growing recording fades out, into whatever is behind it (the field's glass). */
+  fade?: boolean;
   style?: ViewStyle;
 }) {
   const [width, setWidth] = useState(0);
@@ -94,29 +105,35 @@ export function PixelWave({
   const at = useDerivedValue(() => (handle ? handleAt(progress.value, width) + HANDLE / 2 : width * progress.value));
   const clip = useDerivedValue(() => rect(0, 0, at.value, height));
   const handleX = useDerivedValue(() => at.value - HANDLE / 2);
-  return (
-    <Canvas onLayout={layout} style={[styles.canvas, { height }, style]}>
+  const bars = (
+    <Group>
       <Path path={inner} color={off} />
       <Path path={edge} color={off} />
       <Group clip={clip}>
         <Path path={inner} color={tones[0]} />
         <Path path={edge} color={tones[1]} />
       </Group>
+    </Group>
+  );
+  return (
+    <Canvas onLayout={layout} style={[styles.canvas, { height }, style]}>
       {fade ? (
-        <Rect x={0} y={0} width={width * FADE} height={height}>
-          <LinearGradient start={vec(0, 0)} end={vec(width * FADE, 0)} colors={[fade, transparent(fade)]} />
-        </Rect>
-      ) : null}
+        // An alpha mask, not a color painted over: on glass there is no one color to fade into.
+        <Mask
+          mask={
+            <Rect x={0} y={0} width={width} height={height}>
+              <LinearGradient start={vec(0, 0)} end={vec(width * FADE, 0)} colors={["#00000000", "#000000"]} />
+            </Rect>
+          }
+        >
+          {bars}
+        </Mask>
+      ) : (
+        bars
+      )}
       {handle ? <Rect x={handleX} y={height / 2 - HANDLE / 2} width={HANDLE} height={HANDLE} color={tones[0]} /> : null}
     </Canvas>
   );
-}
-
-/** The same color with no alpha, for a gradient's far end ("#rrggbb" or "rgb(a)(…)"). */
-function transparent(color: string): string {
-  if (/^#[0-9a-f]{6}$/i.test(color)) return `${color}00`;
-  const m = /^rgba?\(\s*([\d.]+)\s*,\s*([\d.]+)\s*,\s*([\d.]+)/i.exec(color);
-  return m ? `rgba(${m[1]}, ${m[2]}, ${m[3]}, 0)` : "transparent";
 }
 
 const styles = StyleSheet.create({ canvas: { flex: 1, minWidth: 0 } });

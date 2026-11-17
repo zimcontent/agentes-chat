@@ -1,6 +1,7 @@
-import { createContext, type ReactNode, useCallback, useContext, useMemo, useRef, useState } from "react";
+import { createContext, type ReactNode, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { StyleSheet, View } from "react-native";
 import { Sheet } from "@/ui";
+import { createAfterGone } from "./after-gone";
 
 /**
  * One bottom sheet per screen, opened from anywhere inside it (a card in a
@@ -30,27 +31,22 @@ export function SheetHostProvider({ children }: { children: ReactNode }) {
   const [open, setOpen] = useState(false);
   const onClosed = useRef<(() => void) | null>(null);
   const listeners = useRef(new Set<(open: boolean) => void>());
-  // Whether a sheet is on screen (opening, open or still sliding out), and what waits for it to be gone.
-  const shown = useRef(false);
-  const afterGone = useRef<(() => void)[]>([]);
-  const gone = useCallback(() => {
-    shown.current = false;
-    const waiting = afterGone.current;
-    afterGone.current = [];
-    for (const then of waiting) then();
-  }, []);
+  // What waits for the sheet to be gone; dropped with the screen.
+  const [afterGone] = useState(createAfterGone);
+  useEffect(() => () => afterGone.drop(), [afterGone]);
+  const gone = afterGone.gone;
   // `then` only when a function: the scrim's press passes its event here.
-  const close = useCallback((then?: unknown) => {
-    if (typeof then === "function") {
-      if (shown.current) afterGone.current.push(then as () => void);
-      else then();
-    }
-    setOpen(false);
-    for (const l of listeners.current) l(false);
-    const closed = onClosed.current;
-    onClosed.current = null;
-    closed?.();
-  }, []);
+  const close = useCallback(
+    (then?: unknown) => {
+      afterGone.closing(typeof then === "function" ? (then as () => void) : undefined);
+      setOpen(false);
+      for (const l of listeners.current) l(false);
+      const closed = onClosed.current;
+      onClosed.current = null;
+      closed?.();
+    },
+    [afterGone],
+  );
   const host = useMemo<SheetHost>(
     () => ({
       open: (next, options) => {
@@ -58,7 +54,7 @@ export function SheetHostProvider({ children }: { children: ReactNode }) {
         setContent(next);
         setSolid(Boolean(options?.solid));
         onClosed.current = options?.onClose ?? null;
-        shown.current = true;
+        afterGone.opened();
         setOpen(true);
       },
       close,
@@ -69,7 +65,7 @@ export function SheetHostProvider({ children }: { children: ReactNode }) {
         };
       },
     }),
-    [close],
+    [close, afterGone],
   );
   return (
     <SheetContext.Provider value={host}>

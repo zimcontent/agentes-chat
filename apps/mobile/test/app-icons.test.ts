@@ -14,7 +14,7 @@ import {
   madeIcons,
 } from "@agenteschat/client/lib/app-icons";
 import { Resvg } from "@resvg/resvg-js";
-import { opaquePng } from "../scripts/icon-png.mjs";
+import { opaquePng, png } from "../scripts/icon-png.mjs";
 import * as Doug from "../src/brand/doug-icons.js";
 import { iconOfNativeName, nativeIconName, phoneIcons } from "../src/features/me/app-icon-names";
 
@@ -183,6 +183,57 @@ describe("app icons on the phone (ADR 0179; the Doug's, doug-0010)", () => {
     const icon = readFileSync(join(import.meta.dir, "..", "assets", "images", "icon.png"));
     expect(icon.equals(opaquePng(Doug.iconSvg(Doug.SHIPPED_ICON), 1024))).toBe(true);
   });
+
+  test("Android's front layer stays in the safe circle a round mask never cuts; a peek's body may lean past it", () => {
+    // The safe circle is 66 of the layer's 108 (as a share of half the side); a round launcher shows 72 of it.
+    const SAFE = 66 / 108;
+    const MASK = 72 / 108;
+    const N = 144;
+    const h = N / 2;
+    const icons = [
+      ...APP_ICONS.map((id) => Doug.READY_ICONS[id].light),
+      // Every ground, color and pose (a face changes only the eyes, which the ready icons' faces cover).
+      ...madeIcons().filter((icon) => icon.face === "normal"),
+    ];
+    const over: string[] = [];
+    for (const icon of icons) {
+      const px = new Resvg(Doug.iconSvg(icon, "front"), { fitTo: { mode: "width", value: N } }).render().pixels;
+      let drawn = 0;
+      let upper = 0;
+      let eyes = 0;
+      let bottom = 0;
+      for (let y = 0; y < N; y++)
+        for (let x = 0; x < N; x++) {
+          const i = (y * N + x) * 4;
+          const a = px[i + 3] ?? 0;
+          // A shadow or a glow counts from 5%: fainter, a mask's cut doesn't show.
+          if (a < 13) continue;
+          const dx = (x + 0.5 - h) / h;
+          const dy = (y + 0.5 - h) / h;
+          const d = Math.hypot(dx, dy);
+          drawn = Math.max(drawn, d);
+          if (a < 128) continue;
+          if (dy <= 0) upper = Math.max(upper, d);
+          bottom = Math.max(bottom, dy);
+          // The night's eyes: the dark inside his glass.
+          if (icon.ground === "night" && a > 250 && (px[i] ?? 0) + (px[i + 1] ?? 0) + (px[i + 2] ?? 0) < 90)
+            eyes = Math.max(eyes, d);
+        }
+      const id = madeIconId(icon);
+      if (icon.pose === "peek") {
+        // The top of his head and his eyes inside; the rest still comes in from below, past the mask.
+        if (upper > SAFE || eyes > SAFE) over.push(`${id}: head ${upper.toFixed(3)}, eyes ${eyes.toFixed(3)}`);
+        expect(bottom).toBeGreaterThan(MASK);
+      } else if (drawn > SAFE) over.push(`${id}: ${drawn.toFixed(3)}`);
+    }
+    expect(over).toEqual([]);
+    // The committed layers are the drawing's.
+    for (const id of APP_ICONS) {
+      const side = id === DEFAULT_APP_ICON ? 1024 : 432;
+      const front = png(Doug.iconSvg(Doug.READY_ICONS[id].light, "front"), side);
+      expect(readFileSync(join(ASSETS, id, "android-foreground.png")).equals(front)).toBe(true);
+    }
+  }, 30_000);
 
   test("every icon has the files the app and the plugin read", () => {
     const missing: string[] = [];
