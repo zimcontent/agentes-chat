@@ -32,6 +32,7 @@ import {
   useTheme,
 } from "@/ui";
 import { router } from "@/ui/navigation";
+import { useCreateAgent } from "../agents/elsewhere";
 import { chatHref } from "../links/logic";
 import { askTargets } from "../new/logic";
 import { AgentFace } from "../shared/Face";
@@ -62,6 +63,7 @@ const EASE_OUT = Easing.bezier(0.23, 1, 0.32, 1);
  * where the photos and the words go out through the conversation's own sending, so the agent starts reading at once.
  */
 export function ShareScreen() {
+  const createAgent = useCreateAgent();
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const navigation = useNavigation();
@@ -242,7 +244,7 @@ export function ShareScreen() {
                           variant="secondary"
                           size="sm"
                           label={t("mobile.share.createAgent")}
-                          onPress={() => router.replace("/new-agent")}
+                          onPress={() => createAgent()}
                         />
                       ) : undefined
                     }

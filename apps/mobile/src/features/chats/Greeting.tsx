@@ -2,7 +2,7 @@ import { useTranslation } from "react-i18next";
 import { Pressable, StyleSheet, View } from "react-native";
 import { useOrg } from "@/providers/org";
 import { AgentAvatar, Button, CARD_PAD, Card, Icon, Sky, Text } from "@/ui";
-import { router } from "@/ui/navigation";
+import { useCreateAgent } from "../agents/elsewhere";
 import { mayCreate } from "../new/logic";
 import { FirstUse } from "../shared/FirstUse";
 import { useColors } from "../shared/hooks";
@@ -22,8 +22,8 @@ export function FirstAgentEmpty() {
   const c = useColors();
   const surface = useSurface();
   const { org } = useOrg();
-  const newAgent = (what?: string) =>
-    router.push(what ? { pathname: "/new-agent", params: { what } } : { pathname: "/new-agent" });
+  // A first agent is asked of the right hand, the example's words already in its field.
+  const newAgent = useCreateAgent();
   if (!mayCreate(org, "agent")) return <FirstUse place="agents" acts={false} />;
   return (
     <View>

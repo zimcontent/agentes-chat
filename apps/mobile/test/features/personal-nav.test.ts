@@ -72,11 +72,6 @@ describe("You in a personal workspace", () => {
     expect(me).toContain('onPress={() => open("/team")}');
   });
 
-  test("Agents' Team row stays a team's: a personal workspace has it in You › Work", () => {
-    const agents = read("src/features/agents/AgentsScreen.tsx");
-    expect(agents).toContain("{total > 0 && !isPersonal(org) ? <TeamEntry /> : null}");
-  });
-
   test("a personal workspace in the lists wears your face and says whose it is", () => {
     const pages = read("src/features/me/WorkspacesPages.tsx");
     expect(pages).toContain('if (isPersonal(org) && org.role === "owner")');

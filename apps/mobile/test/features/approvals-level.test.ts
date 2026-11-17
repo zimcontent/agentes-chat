@@ -4,21 +4,6 @@ import { join } from "node:path";
 
 const read = (path: string) => readFileSync(join(import.meta.dir, "..", "..", "src", path), "utf8");
 
-test("Aprovações on the agent's profile: one row with the level, a sheet only for who manages agents, off while saving", () => {
-  const row = read("features/agents/ApprovalsLevelRow.tsx");
-  // The row says the level, or that it follows the workspace; the three choices and their lines are the web's.
-  expect(row).toMatch(/followsWorkspace\(agent\) && !update\.isPending\s*\? t\("approvalsLevel\.follows"\)/);
-  expect(row).toContain("APPROVALS_LEVELS.map(");
-  expect(row).toContain("sub: t(`approvalsLevel.${value}.text`)");
-  // Each line is a sentence: never cut to one line by a long language or large text.
-  expect(row).toContain("subLines: 3");
-  expect(read("features/shared/PickerSheet.tsx")).toContain("{ subLines: o.subLines }");
-  expect(row).toMatch(/can\(org, "manage_agents"\)\s*\? \{ chevron: true, disabled: update\.isPending, onPress:/);
-  // A failed save says so.
-  expect(row).toContain("{ onError: failed }");
-  expect(read("features/agents/AgentProfileScreen.tsx")).toContain("<ApprovalsLevelRow agent={agent} />");
-});
-
 test("Settings → Aprovações: the workspace's level for who manages agents, with its ⓘ and how many keep their own", () => {
   const row = read("features/agents/ApprovalsLevelRow.tsx");
   expect(row).toContain(

@@ -1,7 +1,6 @@
 import { describe, expect, test } from "bun:test";
-import type { Agent } from "@agenteschat/client";
 import { type OutageTargetLike, targetOptions, waitingComputerByAgent } from "@agenteschat/client/lib/machine-outages";
-import { teamLines, type WorkItem } from "../../src/features/agents/logic";
+import type { WorkItem } from "../../src/features/agents/logic";
 import { agentRowState } from "../../src/features/chats/now";
 import {
   computerIcon,
@@ -164,13 +163,5 @@ describe("Computador desconectado (phone)", () => {
       kind: "waiting",
     });
     expect(agentRowState("ada", "d1", work, [])).toMatchObject({ kind: "working" });
-
-    const agent = (id: string, name: string) => ({ id, name, role: "", instructions: "" }) as unknown as Agent;
-    const { working, free } = teamLines([agent("ada", "Ada"), agent("atlas", "Atlas")], work, [], [], offline);
-    expect(working).toEqual([]);
-    expect(free.map((l) => [l.agent.id, l.computer])).toEqual([
-      ["ada", "MacBook Air"],
-      ["atlas", undefined],
-    ]);
   });
 });

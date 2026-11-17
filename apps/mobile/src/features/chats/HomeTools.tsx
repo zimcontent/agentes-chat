@@ -8,6 +8,7 @@ import { useOrg } from "@/providers/org";
 import { Icon, type IconName, Text, useTheme } from "@/ui";
 import { router } from "@/ui/navigation";
 import { pillSurface, surfaceStyle } from "@/ui/surfaces";
+import { useCreateAgent } from "../agents/elsewhere";
 import { openIssuesWithMe } from "../me/logic";
 import { useMediaOn } from "../media-gen/logic";
 import { mayCreate } from "../new/logic";
@@ -66,6 +67,7 @@ export function HomeTools() {
   const media = useMediaOn();
   const issues = useIssues(orgId);
   const threads = useUnreadThreads();
+  const createAgent = useCreateAgent();
   const tools: Tool[] = [
     ...(whatsapp
       ? [{ key: "whatsapp", label: "WhatsApp", href: "/whatsapp", icon: <WhatsAppMark size={GLYPH} /> }]
@@ -119,7 +121,9 @@ export function HomeTools() {
       })),
     }).then((key) => {
       const tool = rest.find((x) => x.key === key);
-      if (tool) router.push(tool.href as never);
+      // A new agent is asked of the right hand (the phone has no form for it).
+      if (tool?.key === "new-agent") createAgent();
+      else if (tool) router.push(tool.href as never);
     });
   return (
     <View style={styles.row} accessibilityLabel={t("mobile.homeTools.title")}>

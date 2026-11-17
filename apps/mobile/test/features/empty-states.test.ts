@@ -42,7 +42,6 @@ describe("who gets the first step", () => {
   });
 
   test.each([
-    ["agents/AgentsScreen.tsx", 'place="agents"', 'acts={mayCreate(org, "agent")}'],
     ["chats/Greeting.tsx", 'place="agents"', 'if (!mayCreate(org, "agent"))'],
     ["drive/DriveScreen.tsx", 'place="drive"', 'can(useOrg().org, "upload_files")'],
     ["issues/IssuesScreen.tsx", 'place="tasks"', 'mayCreate(useOrg().org, "task")'],

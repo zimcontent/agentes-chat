@@ -41,8 +41,8 @@ import {
   useToast,
 } from "@/ui";
 import { router } from "@/ui/navigation";
-import { MemoryFix } from "../agents/AgentProfileScreen";
 import { WorkspaceApprovalsRow } from "../agents/ApprovalsLevelRow";
+import { MemoryFix } from "../agents/MemoryFix";
 import { useMemoryOriginText } from "../agents/useMemoryOriginText";
 import { Note } from "../ai/parts";
 import { ZoneList } from "../me/AccountPage";

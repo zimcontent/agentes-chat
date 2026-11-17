@@ -15,6 +15,7 @@ import { ActivityIndicator, StyleSheet, View } from "react-native";
 import { useOrg } from "@/providers/org";
 import { GroupedFooter, GroupedHeader, GroupedList, GroupedRow, InfoHint, Segmented, Text } from "@/ui";
 import { router } from "@/ui/navigation";
+import { useCreateAgent } from "../agents/elsewhere";
 import { Note } from "../ai/parts";
 import { ConnectorIcon } from "../connectors/ConnectorIcon";
 import { mayCreate } from "../new/logic";
@@ -32,6 +33,7 @@ import { SettingsPage } from "./parts";
  * tool by tool is the connector's Ferramentas.
  */
 export function AccessScreen() {
+  const createAgent = useCreateAgent();
   const { t } = useTranslation();
   const c = useColors();
   const failed = useErrorToast();
@@ -113,7 +115,7 @@ export function AccessScreen() {
           size="panel"
           acts={mayCreate(org, "agent")}
           label={t("mobile.homeNow.first.create")}
-          onPress={() => router.push("/new-agent")}
+          onPress={() => createAgent()}
         />
       ) : null}
       {first && columns.length === 0 && kind === "connector" ? (

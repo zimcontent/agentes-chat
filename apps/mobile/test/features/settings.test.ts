@@ -268,12 +268,6 @@ describe("a personal workspace's settings on the phone (ADR 0159 §3): one short
     expect(src("me/MeScreen.tsx")).toMatch(/\{personal \? null : \(\s+<GroupedRow\s+key="approvals"/);
   });
 
-  test("with family, an agent's Edit opens who talks to it, for whoever may change it", () => {
-    const edit = src("agents/AgentEditScreen.tsx");
-    expect(edit).toContain("personal && (others ?? 0) > 0 && !rightHand && agent.setup && (admin || owner)");
-    expect(edit).toContain('onPress={() => openSetupStep(id, "who")}');
-  });
-
   test("the switch says what changes in the person's language", async () => {
     const t = await translator("pt-BR");
     expect(t("settings.section.generalPersonal")).toBe("Sobre você");

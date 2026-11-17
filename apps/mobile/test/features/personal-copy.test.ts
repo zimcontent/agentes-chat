@@ -47,13 +47,6 @@ describe("a personal workspace's words on the phone (ADR 0159)", () => {
     );
   });
 
-  test("Agents' free section and a new agent's toast: the person's agents, never a team they joined", () => {
-    expect(src("agents/AgentsScreen.tsx")).toContain('t(modeKey(org, "mobile.agents.teamSection"))');
-    const create = src("agents/NewAgentScreen.tsx");
-    expect(create).toContain('? t("newAgent.createdTitlePersonal", { name: agent.name })');
-    expect(create).toContain(': t("mobile.agents.created", { name: agent.name })');
-  });
-
   test("a request that leaves the workspace says the person's, on the card, the sheet and the chips", () => {
     expect(src("chat/cards.tsx")).toContain('kindNote={high ? t(modeKey(org, "mobile.approval.leaves")) : undefined}');
     const parts = src("approvals/parts.tsx");

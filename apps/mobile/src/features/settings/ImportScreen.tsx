@@ -9,8 +9,7 @@ import { Platform, StyleSheet, View } from "react-native";
 import { appHeaders, readCookie } from "@/lib/auth";
 import { useOrg } from "@/providers/org";
 import { GroupedFooter, GroupedHeader, GroupedList, GroupedRow, useToast } from "@/ui";
-import { router } from "@/ui/navigation";
-import { IMPORT_AGENTS_HREF } from "../agents/import";
+import { openSitePath } from "../agents/elsewhere";
 import { Note, openPage } from "../ai/parts";
 import { successHaptic } from "../shared/parts";
 import { exportFileName } from "./logic";
@@ -19,7 +18,7 @@ import { SettingsPage } from "./parts";
 /**
  * Importar e exportar (who creates agents; the export, who manages them), as the web's, as far as a phone goes: this
  * workspace as a file (the share sheet saves it to Arquivos or sends it on), with what it never carries and what goes
- * in it. Bringing agents from another app opens Criar agente on that step, never in a workspace being deleted.
+ * in it. Bringing agents from another app opens the website's page, never in a workspace being deleted.
  */
 export function ImportScreen() {
   const { t, i18n } = useTranslation();
@@ -95,7 +94,8 @@ export function ImportScreen() {
                   icon="archive"
                   label={t("shell.importAgents")}
                   chevron
-                  onPress={() => router.push(IMPORT_AGENTS_HREF as never)}
+                  // Bringing agents from another app is the website's, in this workspace's Importar e exportar.
+                  onPress={() => openSitePath(`/org/${encodeURIComponent(orgId)}/settings/import`)}
                 />
               </GroupedList>
             </>

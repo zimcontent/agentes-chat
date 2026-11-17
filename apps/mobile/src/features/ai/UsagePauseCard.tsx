@@ -18,7 +18,7 @@ import { useTranslation } from "react-i18next";
 import { StyleSheet, View } from "react-native";
 import { useOrg } from "@/providers/org";
 import { Button, EventPillAction, EventPillText, Text } from "@/ui";
-import { openAgentEdit } from "../agents/AgentEditScreen";
+import { useRaiseBudget } from "../agents/elsewhere";
 import { AskDone, AskWaiting } from "../chat/asks";
 import { UsageQueueSheet } from "../queue/UsageQueueSheet";
 import { useFailed } from "../routines/hooks";
@@ -132,6 +132,7 @@ export function UsageWaitCancel({ message: m }: { message: Message }) {
   const now = useNow(60_000);
   const queue = useUsageQueue(orgId, m.author.id ?? "", live && planLimitNote(m.meta));
   const checked = live ? usageCheckedText(t, m.meta, queue.data?.checkedAt, now) : null;
+  const raiseBudget = useRaiseBudget();
   if (!wait || (!skipped && (wait.canceled || wait.ended))) return null;
   const owner = dir.agentById.get(m.author.id ?? "")?.ownerUserId;
   const admin = can(org, "manage_agents");
@@ -158,7 +159,7 @@ export function UsageWaitCancel({ message: m }: { message: Message }) {
             variant="secondary"
             size="sm"
             label={t(`usageCard.${fix}`)}
-            onPress={() => (fix === "raiseBudget" ? openAgentEdit : openChangeAi)(m.author.id ?? "")}
+            onPress={() => (fix === "raiseBudget" ? raiseBudget : openChangeAi)(m.author.id ?? "")}
           />
         ) : null}
         {skipped ? (

@@ -113,14 +113,10 @@ function AppStack() {
       <Stack.Screen name="agent-ai/[id]" options={{ ...pushed, ...scrollUnder }} />
       <Stack.Screen name="agent-model/[id]" options={{ ...pushed, ...scrollUnder }} />
       <Stack.Screen name="agent-advanced/[id]" options={{ ...pushed, ...scrollUnder }} />
-      <Stack.Screen name="agent-more/[id]" options={{ ...pushed, ...scrollUnder }} />
-      <Stack.Screen name="agent-setup/[id]" options={{ ...pushed, ...scrollUnder }} />
+      <Stack.Screen name="agent-settings/[id]" options={{ ...pushed, ...scrollUnder }} />
       <Stack.Screen name="agent-step/[id]" options={{ ...pushed, ...scrollUnder }} />
-      <Stack.Screen name="agent-edit" options={{ ...pushed, ...scrollUnder }} />
-      <Stack.Screen name="agent-delete" options={{ ...pushed, ...scrollUnder }} />
       <Stack.Screen name="new" options={newSheet} />
       <Stack.Screen name="share-to" options={shareSheet} />
-      <Stack.Screen name="new-agent" options={{ ...pushed, ...scrollUnder }} />
       <Stack.Screen name="issues/index" options={{ ...pushed, ...scrollUnder }} />
       <Stack.Screen name="issues/[id]" options={{ ...pushed, ...scrollUnder }} />
       <Stack.Screen name="issues/new" options={{ ...pushed, ...scrollUnder }} />

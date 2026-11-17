@@ -37,6 +37,7 @@ import {
 } from "@/ui";
 import { TAB_GLYPHS, type TabGlyph, tabGlyphSvg } from "@/ui/tabGlyphs";
 import { useTheme } from "@/ui/theme";
+import { AgentePerfil, TimeAgora } from "./agentes";
 import { Arquivos, Senhas, SenhasItem, SenhasLogins } from "./arquivos-senhas";
 import { Paineis, Paineis320, PaineisFormas } from "./paineis";
 import { PainelIa, PainelIa320, PainelIaFolha, PainelIaFolha320 } from "./painel-ia";
@@ -1049,6 +1050,8 @@ export const TELAS: Record<string, () => ReactNode> = {
   "painel-ia-folha": PainelIaFolha,
   "painel-ia-320": PainelIa320,
   "painel-ia-folha-320": PainelIaFolha320,
+  "agente-perfil": AgentePerfil,
+  "time-agora": TimeAgora,
 };
 
 const styles = StyleSheet.create({
