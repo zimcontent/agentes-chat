@@ -1,6 +1,7 @@
 import { entryLine, entryState } from "@agenteschat/client/lib/agent-computer";
 import { computerName } from "@agenteschat/client/lib/computer";
 import { isPersonal } from "@agenteschat/client/lib/workspace-mode";
+import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useOrg } from "@/providers/org";
 import { IconButton } from "@/ui";
@@ -47,12 +48,26 @@ export function useComputerSays(agentId: string) {
 /**
  * "Computador" in an agent's DM header, as the web's: for whoever may watch the agent's computer (the
  * profile's entry shows to the same people) once it has one, it opens it full screen. While the agent needs
- * someone there or works on it, a screen reader hears that too.
+ * someone there or works on it, a screen reader hears that too. `onShown` says whether it is drawn, so the bar's
+ * pill keeps its room only while it is.
  */
-export function DmComputerButton({ agentId, onOpen }: { agentId: string; onOpen?: () => void }) {
+export function DmComputerButton({
+  agentId,
+  onOpen,
+  onShown,
+}: {
+  agentId: string;
+  onOpen?: () => void;
+  onShown?: (shown: boolean) => void;
+}) {
   const { t } = useTranslation();
   const view = useWatchableComputer(agentId);
   const says = useComputerSays(agentId);
+  const shown = Boolean(view);
+  useEffect(() => {
+    onShown?.(shown);
+    return () => onShown?.(false);
+  }, [shown, onShown]);
   if (!view) return null;
   return (
     <IconButton

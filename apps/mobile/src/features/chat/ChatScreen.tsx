@@ -1745,6 +1745,8 @@ function Chat({
   // web's DM header) for whoever may watch it: one entry, the line while turns wait for the computer (the way on to
   // it inside), else the computer.
   const dmComputer = dmAgentId && !isThread && !rightHand ? { agentId: dmAgentId, onOpen: leavePlace } : undefined;
+  // The computer's button draws nothing until the computer is known and watchable: it says when it shows.
+  const [computerShown, setComputerShown] = useState(false);
   // The bar's buttons, each with the room it takes (in 44-point buttons): drawn from this list and the pill's width
   // taken from it too, so a button added here is never one the pill runs under.
   const barButtons: { key: string; room: number; node: ReactNode }[] =
@@ -1770,7 +1772,8 @@ function Chat({
           queueShown && barQueue && queueMachineId
             ? {
                 key: "queue",
-                room: 1,
+                // The icon and its count, as the tasks' button: wider than a lone icon.
+                room: 1.3,
                 node: dmComputer ? (
                   <DmQueueButton
                     agentId={dmComputer.agentId}
@@ -1784,8 +1787,10 @@ function Chat({
             : dmComputer
               ? {
                   key: "computer",
-                  room: 1,
-                  node: <DmComputerButton agentId={dmComputer.agentId} onOpen={leavePlace} />,
+                  room: computerShown ? 1 : 0,
+                  node: (
+                    <DmComputerButton agentId={dmComputer.agentId} onOpen={leavePlace} onShown={setComputerShown} />
+                  ),
                 }
               : null,
           // A voice call here (an agent's DM calls the agent), as the web's header (docs/adr/doug-0006-live-voice.md).
