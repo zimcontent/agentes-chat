@@ -2256,11 +2256,21 @@ function Chat({
     [],
   );
   const [composerHeight, setComposerHeight] = useState(0);
+  // Read while laying out the box: at the conversation's end and following it (not held where the person reads).
+  const followingEnd = useRef(true);
+  followingEnd.current = atEnd && !readHold;
   const onComposerBoxLayout = (e: LayoutChangeEvent) => {
     const height = e.nativeEvent.layout.height;
+    const grew = boxHeight.current > 0 && height > boxHeight.current + 0.5;
     boxHeight.current = height;
     endInset.value = height + pillsRoom;
     setComposerHeight(height);
+    // The dock grew under the conversation (who is working, the reply bar, a taller field): at the end, the
+    // conversation keeps ending above it, as a chat's own does. The list's shift for a grown inset only runs when
+    // the list already rests at its end, so a line that appears while a sent message still scrolls down (an agent
+    // starts thinking as it lands) was left covering that message.
+    if (grew && followingEnd.current)
+      requestAnimationFrame(() => void listRef.current?.scrollToEnd({ animated: true }));
   };
   const bottomPad = Math.max(insets.bottom, 10);
   // The header floats over the conversation (glass on iOS 26, a blur before; round plates on Android), which
