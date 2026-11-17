@@ -64,3 +64,9 @@ whole round for the agent to do it.
 ## Addendum 2026-11-15: up to 60 slides
 
 A piece may have up to 60 slides (`DESIGN_PAGES`), not 20. The client's sales decks (32 and 35 slides at 1920 x 1080) go through the same review as a carousel, so the team and the client can comment on any slide and edit the deck in place. The page's 40 MB cap (`DESIGN_SOURCE_BYTES`) still holds a deck of that size.
+
+## Addendum 2026-11-17: `direct` approves and stops there
+
+For a `direct` client the post is still sent and marked approved at the portal, but it is no longer released for its
+card's day: nothing schedules a post but a person, by hand, at the Portal (ADR 9001, addendum 2026-11-17). The
+conversation is told the post is ready and that the team schedules it.

@@ -8742,8 +8742,6 @@ export interface PortalSendInput {
   coverArtifactId?: string;
   title?: string;
   caption?: string;
-  /** `YYYY-MM-DDTHH:MM`. */
-  date?: string;
   editor?: string;
   /** The board's card this send finishes: removed once the send is done. */
   card?: string;
@@ -8766,8 +8764,9 @@ export interface PortalJob {
 export interface PortalItemEdit {
   title?: string;
   caption?: string;
-  scheduledFor?: string | null;
-  status?: PortalStatus;
+  /** Only cleared: a post's date is set by scheduling it, by a person (ADR 9001, addendum 2026-11-17). */
+  scheduledFor?: null;
+  status?: Exclude<PortalStatus, "scheduled" | "published">;
   editor?: string;
 }
 

@@ -146,7 +146,6 @@ const ELSEWHERE = new Set([
   // A post leaves for a client's eyes (ADR 9001): only a run a person is behind sends it.
   "send_for_approval",
   "send_new_version",
-  "schedule_post",
   "portal_plan",
   "portal_card",
   // A message to someone outside, as a WhatsApp number (docs/adr/doug-0004-whatsapp-bridge.md).
@@ -161,13 +160,12 @@ const ROUTINE_REACH = new Set(["post_message", "send_dm", "ask_agent", "tell_age
 
 /**
  * What the right hand's own routines also reach at `never` (ADR 9005 §7): a post for a client's approval and its new
- * versions, the portal's plan and cards, a scheduled post, and a WhatsApp message. A person chose that it never asks,
+ * versions, the portal's plan and cards, and a WhatsApp message (never a scheduled post: only a person schedules). A person chose that it never asks,
  * so its ronda finishes the work it finds instead of leaving it in hand_off.
  */
 const RIGHT_HAND_REACH = new Set([
   "send_for_approval",
   "send_new_version",
-  "schedule_post",
   "portal_plan",
   "portal_card",
   "whatsapp_send",

@@ -1117,14 +1117,14 @@ export function decisionMessage(input: {
   if (input.decision === "approve" && portal) {
     const where =
       portal.afterApprove === "direct"
-        ? `aprovado direto (sem aprovação do cliente) e agendado na data do cartão`
+        ? `aprovado direto (sem aprovação do cliente), sem data: quem agenda é a equipe`
         : `para a aprovação do cliente`;
     lines.push(
       "",
       portal.delivered
-        ? `O DougBot já está subindo esta versão ao portal (${portal.client}), ${where}. Não suba você nem agende: o resultado aparece nesta conversa.`
+        ? `O DougBot já está subindo esta versão ao portal (${portal.client}), ${where}. Não suba você nem agende (agendar é só da equipe, no Portal): o resultado aparece nesta conversa.`
         : `Esta versão não tem as lâminas em imagem: exporte os PNGs do HTML e suba ao portal (${portal.client}) com send_for_approval, ${where}${
-            portal.afterApprove === "direct" ? " (marque como aprovado e agende com schedule_post)" : ""
+            portal.afterApprove === "direct" ? " (sem data; agendar é só da equipe, no Portal)" : ""
           }.`,
     );
   }

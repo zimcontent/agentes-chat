@@ -88,3 +88,9 @@ to a backup, with nobody having to know the flow to follow it.
     tied to the same task, so the portal's sync makes no new task of it. Where each post stands with the client is read
     from the post itself on every tick (`delivery.stage`), so one video's approval, change or final never speaks for
     another's.
+
+## Addendum 2026-11-17: `direct` approves and stops there
+
+For a `direct` client the post is still sent and marked approved at the portal, but it is no longer released for its
+card's day: nothing schedules a post but a person, by hand, at the Portal (ADR 9001, addendum 2026-11-17). The
+conversation is told the post is ready and that the team schedules it.

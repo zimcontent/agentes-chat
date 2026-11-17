@@ -5,17 +5,13 @@ import {
   PORTAL_SEND_FILES,
   PORTAL_TYPES,
   portalClientName,
-  portalDayOf,
   portalErrorText,
   portalLink,
-  portalSendDate,
   portalSendProblem,
-  portalTimeOf,
 } from "@agenteschat/client/lib/portal";
 import {
   Button,
   Chip,
-  DatePicker,
   Dialog,
   DialogBody,
   DialogFooter,
@@ -26,19 +22,16 @@ import {
   PixelSpinner,
   Select,
   Textarea,
-  TimeSelect,
 } from "@agenteschat/ui";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useOrg } from "@/components/org-context";
 import { PortalCover, PortalFiles } from "./PortalFiles";
 
-/** The hour a date starts with when none was set. */
-const DEFAULT_TIME = "09:00";
-
 /**
  * "Send for approval" (ADR 9001): the client, the type and the Drive files, then whatever is already known (title,
- * caption, date and time, editor); what a post still lacks comes back after the send and can be completed later.
+ * caption, editor); never a date: a post goes to the client without one, and gets it when a person schedules it
+ * (ADR 9001, addendum 2026-11-17). What a post still lacks comes back after the send and can be completed later.
  * A reel is one video, its cover a picture apart; a carousel goes in the order shown. Started from a card, its
  * fields and files fill the form and the card leaves the board once the send is done. After "Send" the dialog
  * follows the send to its end (the link at the portal and what is missing, or the portal's own words when it
@@ -97,8 +90,6 @@ function SendBody({
   const [cover, setCover] = useState<PortalCardFile | null>(null);
   const [title, setTitle] = useState(card?.title ?? "");
   const [caption, setCaption] = useState(card?.caption ?? "");
-  const [day, setDay] = useState<string | null>(portalDayOf(card?.date));
-  const [time, setTime] = useState(portalTimeOf(card?.date) ?? DEFAULT_TIME);
   const [editor, setEditor] = useState(card?.editor ?? "");
   const [error, setError] = useState<string | null>(null);
   // Said once files were picked: an empty form asks for nothing yet.
@@ -116,7 +107,6 @@ function SendBody({
         ...(type === "reel" && cover ? { coverArtifactId: cover.id } : {}),
         ...(title.trim() ? { title: title.trim() } : {}),
         ...(caption.trim() ? { caption } : {}),
-        ...(day ? { date: portalSendDate(day, time) } : {}),
         ...(editor.trim() ? { editor: editor.trim() } : {}),
         ...(card ? { card: card.id } : {}),
         // A key of this press alone: the same press never sends twice, another try is another send.
@@ -178,29 +168,6 @@ function SendBody({
           <Field label={t("portal.form.caption")}>
             <Textarea value={caption} rows={3} maxLength={5000} onChange={(e) => setCaption(e.target.value)} />
           </Field>
-          <div className="portal-form__pair">
-            <Field label={t("portal.form.date")}>
-              <DatePicker
-                value={day}
-                short
-                onChange={setDay}
-                onClear={() => setDay(null)}
-                locale={i18n.language}
-                placeholder={t("portal.empty.noDate")}
-                labels={{
-                  previousMonth: t("common.previousMonth"),
-                  nextMonth: t("common.nextMonth"),
-                  choose: t("common.chooseDate"),
-                  clear: t("portal.empty.noDate"),
-                }}
-              />
-            </Field>
-            {day && (
-              <Field label={t("portal.form.time")}>
-                <TimeSelect value={time} onChange={setTime} />
-              </Field>
-            )}
-          </div>
           <Field label={t("portal.form.editor")}>
             <Input value={editor} maxLength={40} onChange={(e) => setEditor(e.target.value)} />
           </Field>

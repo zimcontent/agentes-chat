@@ -140,7 +140,10 @@ export function coverOf(files: readonly PortalCardFile[]): { file: PortalCardFil
 /** Why a card can't go for approval as it is (read from its files), or null: it can. */
 export const sendProblemOf = (card: Pick<PortalCard, "type" | "files">) => portalSendProblem(card.type, card.files);
 
-/** The send a card makes, with what it already knows. `key`: one press never sends twice. */
+/**
+ * The send a card makes, with what it already knows but its date: a post goes to the client without one, and gets it
+ * when a person schedules it (ADR 9001, addendum 2026-11-17). `key`: one press never sends twice.
+ */
 export function sendInputOf(card: PortalCard, key: string) {
   return {
     client: card.client,
@@ -148,7 +151,6 @@ export function sendInputOf(card: PortalCard, key: string) {
     artifactIds: card.files.map((f) => f.id),
     ...(card.title.trim() ? { title: card.title.trim() } : {}),
     ...(card.caption.trim() ? { caption: card.caption } : {}),
-    ...(portalDayOf(card.date) ? { date: `${portalDayOf(card.date)}T${portalTimeOf(card.date) ?? "09:00"}` } : {}),
     ...(card.editor?.trim() ? { editor: card.editor.trim() } : {}),
     card: card.id,
     key,

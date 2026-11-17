@@ -252,8 +252,8 @@ export interface PortalSend {
   cover?: string;
   title?: string;
   caption?: string;
-  /** `YYYY-MM-DDTHH:MM`, the portal's own time zone when it has no offset. */
-  date?: string;
+  // No date: a post goes to the client's approval without one. The team sets it when it schedules the post
+  // (`scheduleItem`), never before (docs/adr/9001-approval-portal.md, addendum 2026-11-17).
   editor?: string;
   /** The card this send finishes: it leaves the cards once the send is done. */
   card?: string;
@@ -275,11 +275,15 @@ export interface PortalVersion {
   by?: string;
 }
 
+/** What no edit sets: a post is scheduled by `scheduleItem` alone, by a person, and posted by the portal. */
+export type PortalEditStatus = Exclude<PortalStatus, "scheduled" | "published">;
+
 export interface PortalItemEdit {
   title?: string;
   caption?: string;
-  scheduledFor?: string | null;
-  status?: PortalStatus;
+  /** Only cleared: a post's date is set by scheduling it (ADR 9001, addendum 2026-11-17). */
+  scheduledFor?: null;
+  status?: PortalEditStatus;
   editor?: string;
 }
 
@@ -732,7 +736,6 @@ export function createBridgeApprovalPortal(options: BridgePortalOptions): Approv
               capa: input.cover,
               titulo: input.title,
               legenda: input.caption,
-              data: input.date,
               editor: input.editor,
               cartao: input.card,
               chave: input.key,
@@ -983,7 +986,7 @@ export function createFakeApprovalPortal(seed: { items?: PortalItem[]; cards?: P
         title: input.title ?? names[0] ?? "",
         type: input.type,
         status: "sent",
-        scheduledFor: input.date ?? null,
+        scheduledFor: null,
         publishedAt: null,
         createdAt: null,
         updatedAt: null,
@@ -992,7 +995,7 @@ export function createFakeApprovalPortal(seed: { items?: PortalItem[]; cards?: P
         files: input.files.length,
         video: input.type === "reel",
         version: 1,
-        missing: [...(input.caption ? [] : (["caption"] as const)), ...(input.date ? [] : (["date"] as const))],
+        missing: input.caption ? [] : (["caption"] as const),
         released: false,
         lastNote: null,
         postUrl: null,
