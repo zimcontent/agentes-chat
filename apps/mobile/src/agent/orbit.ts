@@ -37,5 +37,10 @@ export const inkOrbitCells = (head: number) =>
   });
 
 /** The stop square's opacity: it breathes 1 → 0.6 → 1 every 1.6 s (solid when still). */
-export const stopBreath = (ms: number, still = false) =>
-  still ? 1 : 0.8 + 0.2 * Math.cos((2 * Math.PI * (ms % 1600)) / 1600);
+export const stopBreath = (ms: number, still = false) => {
+  "worklet";
+  return still ? 1 : 0.8 + 0.2 * Math.cos((2 * Math.PI * (ms % 1600)) / 1600);
+};
+
+/** One breath of the stop square, in ms (`useLoop`'s round for it). */
+export const BREATH_MS = 1600;

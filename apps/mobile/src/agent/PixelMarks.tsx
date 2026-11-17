@@ -3,8 +3,8 @@ import { View } from "react-native";
 import Animated, { useAnimatedStyle, useSharedValue, withSequence, withTiming } from "react-native-reanimated";
 import Svg, { Circle, Path } from "react-native-svg";
 import { useReducedMotion, useTheme } from "@/ui/theme";
-import { useFrameTime } from "./live";
-import { stopBreath } from "./orbit";
+import { useLoop } from "./loop";
+import { BREATH_MS, stopBreath } from "./orbit";
 import { Spinner } from "./PixelOrbit";
 
 /**
@@ -87,18 +87,21 @@ export function PixelStopped({ size = 14 }: { size?: number }) {
 export function PixelStop({ size = 13, color, moving = true }: { size?: number; color: string; moving?: boolean }) {
   const reduced = useReducedMotion();
   const still = reduced || !moving;
-  const t = useFrameTime(!still, 0);
+  const phase = useLoop(BREATH_MS, !still);
+  const breath = useAnimatedStyle(() => ({ opacity: stopBreath(phase.value * BREATH_MS, still) }));
   const side = Math.round(size * 0.76);
   return (
     <View style={{ width: size, height: size, alignItems: "center", justifyContent: "center" }} {...hidden}>
-      <View
-        style={{
-          width: side,
-          height: side,
-          borderRadius: Math.max(2, Math.round(side * 0.24)),
-          backgroundColor: color,
-          opacity: stopBreath(t * 1000, still),
-        }}
+      <Animated.View
+        style={[
+          {
+            width: side,
+            height: side,
+            borderRadius: Math.max(2, Math.round(side * 0.24)),
+            backgroundColor: color,
+          },
+          breath,
+        ]}
       />
     </View>
   );

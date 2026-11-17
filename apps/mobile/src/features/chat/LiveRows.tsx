@@ -32,12 +32,13 @@ import Animated, {
   Easing,
   FadeIn,
   FadeOut,
+  type SharedValue,
   useAnimatedStyle,
   useSharedValue,
   withTiming,
   ZoomIn,
 } from "react-native-reanimated";
-import { useFrameTime } from "@/agent/live";
+import { useLoop } from "@/agent/loop";
 import { Dither } from "@/sky/Dither";
 import { softTones } from "@/sky/math";
 import { CHROME_MAX_SCALE, haptics, Icon, PixelStop, Text, useReducedMotion, useTheme } from "@/ui";
@@ -567,55 +568,80 @@ function BarWords({
   );
 }
 
+/** One round of the typing dots and the recording bars. */
+const MARK_ROUND_MS = 1200;
+
 /**
  * Three bars rising and falling in turn while someone records a voice message (the web's `.ac-typing__bars`), where
- * the dots are for typing; still with Reduce Motion.
+ * the dots are for typing; still with Reduce Motion. On the UI thread (`useLoop`).
  */
 function RecordingBars({ color }: { color: string }) {
   const reduced = useReducedMotion();
-  const t = useFrameTime(!reduced, 0);
+  const phase = useLoop(MARK_ROUND_MS, !reduced);
   return (
     <View style={styles.bars} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
-      {[0.34, 0.75, 0.5].map((still, i) => {
-        // A 1.2 s round, each bar 0.2 s after the one before: tallest at 40% of its round.
-        const at = (((t - i * 0.2) % 1.2) + 1.2) % 1.2;
-        const up = Math.max(0, 1 - Math.abs(at / 1.2 - 0.4) / 0.4);
-        return (
-          <View
-            key={still}
-            style={[
-              styles.bar,
-              { backgroundColor: color, transform: [{ scaleY: reduced ? still : 0.34 + 0.66 * up }] },
-            ]}
-          />
-        );
-      })}
+      {[0.34, 0.75, 0.5].map((still, i) => (
+        <RecordingBar key={still} color={color} phase={phase} index={i} still={reduced ? still : undefined} />
+      ))}
     </View>
   );
 }
 
-/** Three dots rising in turn while only people type (the web's `.ac-typing__dots`); still with Reduce Motion. */
+function RecordingBar({
+  color,
+  phase,
+  index,
+  still,
+}: {
+  color: string;
+  phase: SharedValue<number>;
+  index: number;
+  still: number | undefined;
+}) {
+  const rise = useAnimatedStyle(() => {
+    if (still !== undefined) return { transform: [{ scaleY: still }] };
+    // A 1.2 s round, each bar 0.2 s after the one before: tallest at 40% of its round.
+    const at = (((phase.value * 1.2 - index * 0.2) % 1.2) + 1.2) % 1.2;
+    const up = Math.max(0, 1 - Math.abs(at / 1.2 - 0.4) / 0.4);
+    return { transform: [{ scaleY: 0.34 + 0.66 * up }] };
+  });
+  return <Animated.View style={[styles.bar, { backgroundColor: color }, rise]} />;
+}
+
+/**
+ * Three dots rising in turn while only people type (the web's `.ac-typing__dots`); still with Reduce Motion. On the
+ * UI thread (`useLoop`).
+ */
 function TypingDots({ color }: { color: string }) {
   const reduced = useReducedMotion();
-  const t = useFrameTime(!reduced, 0);
+  const phase = useLoop(MARK_ROUND_MS, !reduced);
   return (
     <View style={styles.dots} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
-      {[0, 1, 2].map((i) => {
-        // A 1.2 s round, each dot 0.15 s after the one before: up and bright at 30% of its round.
-        const at = (((t - i * 0.15) % 1.2) + 1.2) % 1.2;
-        const up = reduced ? 0 : Math.max(0, 1 - Math.abs(at / 1.2 - 0.3) / 0.3);
-        return (
-          <View
-            key={i}
-            style={[
-              styles.dot,
-              { backgroundColor: color, opacity: 0.4 + 0.6 * up, transform: [{ translateY: -2 * up }] },
-            ]}
-          />
-        );
-      })}
+      {[0, 1, 2].map((i) => (
+        <TypingDot key={i} color={color} phase={phase} index={i} still={reduced} />
+      ))}
     </View>
   );
+}
+
+function TypingDot({
+  color,
+  phase,
+  index,
+  still,
+}: {
+  color: string;
+  phase: SharedValue<number>;
+  index: number;
+  still: boolean;
+}) {
+  const rise = useAnimatedStyle(() => {
+    // A 1.2 s round, each dot 0.15 s after the one before: up and bright at 30% of its round.
+    const at = (((phase.value * 1.2 - index * 0.15) % 1.2) + 1.2) % 1.2;
+    const up = still ? 0 : Math.max(0, 1 - Math.abs(at / 1.2 - 0.3) / 0.3);
+    return { opacity: 0.4 + 0.6 * up, transform: [{ translateY: -2 * up }] };
+  });
+  return <Animated.View style={[styles.dot, { backgroundColor: color }, rise]} />;
 }
 
 const styles = StyleSheet.create({

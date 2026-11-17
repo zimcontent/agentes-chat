@@ -32,9 +32,9 @@ import type { TFunction } from "i18next";
 import { type ReactNode, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Pressable, StyleSheet, View } from "react-native";
-import Animated, { FadeIn, FadeInDown, FadeOut, ZoomIn } from "react-native-reanimated";
-import { useFrameTime } from "@/agent/live";
-import { stopBreath } from "@/agent/orbit";
+import Animated, { FadeIn, FadeInDown, FadeOut, useAnimatedStyle, ZoomIn } from "react-native-reanimated";
+import { useLoop } from "@/agent/loop";
+import { BREATH_MS, stopBreath } from "@/agent/orbit";
 import { useOrg } from "@/providers/org";
 import {
   CHROME_MAX_SCALE,
@@ -471,8 +471,9 @@ function Mark({ state, color }: { state: ToolState; color: AgentColorName }) {
  */
 function Breathing({ on, children }: { on: boolean; children: ReactNode }) {
   const reduced = useReducedMotion();
-  const t = useFrameTime(on && !reduced, 0);
-  return <View style={on ? { opacity: stopBreath(t * 1000, reduced) } : undefined}>{children}</View>;
+  const phase = useLoop(BREATH_MS, on && !reduced);
+  const breath = useAnimatedStyle(() => ({ opacity: on ? stopBreath(phase.value * BREATH_MS, reduced) : 1 }));
+  return <Animated.View style={breath}>{children}</Animated.View>;
 }
 
 /** Monospace text on a sunken plate: what it printed, or what it was given and answered. */
