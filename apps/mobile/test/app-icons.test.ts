@@ -1,18 +1,21 @@
 import { describe, expect, test } from "bun:test";
-import { existsSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import {
   APP_ICONS,
   DEFAULT_APP_ICON,
+  DEFAULT_MADE_ICON,
   MADE_ICON_COLORS,
   MADE_ICON_FACES,
-  MADE_ICON_LOOKS,
+  MADE_ICON_GROUNDS,
   MADE_ICON_POSES,
-  MADE_ICON_SKIES,
   madeIconId,
   madeIconOf,
   madeIcons,
 } from "@agenteschat/client/lib/app-icons";
+import { Resvg } from "@resvg/resvg-js";
+import { opaquePng } from "../scripts/icon-png.mjs";
+import * as Doug from "../src/brand/doug-icons.js";
 import { iconOfNativeName, nativeIconName, phoneIcons } from "../src/features/me/app-icon-names";
 
 interface Node {
@@ -26,7 +29,7 @@ interface Manifest {
 // The config plugin is plain CommonJS (expo prebuild loads it); its pure parts are tested here.
 const plugin = require("../plugins/with-app-icons") as {
   ICONS: string[];
-  MADE: { skies: string[]; colors: string[]; faces: string[]; looks: string[]; poses: string[] };
+  MADE: { grounds: string[]; colors: string[]; faces: string[]; poses: string[] };
   MADE_IDS: string[];
   iosName: (id: string) => string;
   androidAlias: (id: string) => string;
@@ -59,7 +62,7 @@ const manifest = (): Manifest => ({
   },
 });
 
-describe("app icons on the phone (ADR 0179)", () => {
+describe("app icons on the phone (ADR 0179; the Doug's, doug-0010)", () => {
   test("the plugin, the app and the shared list name the same icons", () => {
     expect(plugin.ICONS).toEqual([...APP_ICONS]);
     for (const id of APP_ICONS) {
@@ -93,7 +96,7 @@ describe("app icons on the phone (ADR 0179)", () => {
     // The ready ones, then every icon a person can make, as the app lists them for the module.
     expect(ours.map((a) => a.$?.["android:name"])).toEqual(phoneIcons().map((i) => `.${nativeIconName(i, "android")}`));
     expect(ours.map((a) => a.$?.["android:enabled"])).toEqual(["true", ...ours.slice(1).map(() => "false")]);
-    expect(ours[5]?.$?.["android:icon"]).toBe("@mipmap/ic_launcher_made_night_sky_round");
+    expect(ours[5]?.$?.["android:icon"]).toBe("@mipmap/ic_launcher_made_day_green_normal");
     expect(ours[0]?.$?.["android:icon"]).toBe("@mipmap/ic_launcher");
     expect(ours[3]?.$?.["android:icon"]).toBe("@mipmap/ic_launcher_peek_night");
     for (const alias of ours) {
@@ -106,22 +109,24 @@ describe("app icons on the phone (ADR 0179)", () => {
     expect(plugin.launcherAliases(structuredClone(out))).toEqual(out);
   });
 
-  test("the icons a person makes: the plugin, the app and the shared list name the same", () => {
+  test("the icons a person makes: the plugin, the drawing, the app and the shared list name the same", () => {
     expect(plugin.MADE).toEqual({
-      skies: [...MADE_ICON_SKIES],
+      grounds: [...MADE_ICON_GROUNDS],
       colors: [...MADE_ICON_COLORS],
       faces: [...MADE_ICON_FACES],
-      looks: [...MADE_ICON_LOOKS],
       poses: [...MADE_ICON_POSES],
     });
+    expect(Doug.ICON_GROUNDS).toEqual([...MADE_ICON_GROUNDS]);
+    expect(Doug.ICON_COLORS).toEqual([...MADE_ICON_COLORS]);
+    expect(Doug.ICON_FACES).toEqual([...MADE_ICON_FACES]);
+    expect(Doug.ICON_POSES).toEqual([...MADE_ICON_POSES]);
+    expect(Doug.SHIPPED_ICON).toEqual(DEFAULT_MADE_ICON);
     const made = madeIcons();
-    // Facing: 2 skies × 8 colors × 21 faces and accessories. Leaning: 2 × 8 × 10 faces.
-    expect(made).toHaveLength(336 + 160);
-    expect(
-      made.filter((icon) => icon.pose === "peek").every((icon) => MADE_ICON_FACES.includes(icon.look as never)),
-    ).toBe(true);
+    // 2 grounds × 8 colors × 10 faces × 2 poses.
+    expect(made).toHaveLength(320);
+    expect(Doug.madeIcons().map(Doug.madeIconId)).toEqual(made.map(madeIconId));
     expect(plugin.MADE_IDS).toEqual(made.map(madeIconId));
-    expect(new Set(made.map((icon) => nativeIconName(icon, "android"))).size).toBe(496);
+    expect(new Set(made.map((icon) => nativeIconName(icon, "android"))).size).toBe(320);
     for (const icon of made) {
       const id = madeIconId(icon);
       expect(madeIconOf(id)).toEqual(icon);
@@ -130,22 +135,53 @@ describe("app icons on the phone (ADR 0179)", () => {
       expect(iconOfNativeName(nativeIconName(icon, "ios"), "ios")).toEqual(icon);
       expect(iconOfNativeName(nativeIconName(icon, "android"), "android")).toEqual(icon);
     }
-    expect(plugin.iosName("made-sky-rose-heart")).toBe("AppIcon-made-sky-rose-heart");
-    expect(plugin.androidAlias("made-sky-rose-heart")).toBe("AppIconMadeSkyRoseHeart");
-    expect(plugin.androidRes("made-sky-rose-heart")).toBe("ic_launcher_made_sky_rose_heart");
-    expect(plugin.iosName("made-sky-rose-heart-peek")).toBe("AppIcon-made-sky-rose-heart-peek");
-    expect(plugin.androidAlias("made-sky-rose-heart-peek")).toBe("AppIconMadeSkyRoseHeartPeek");
-    expect(plugin.androidRes("made-sky-rose-heart-peek")).toBe("ic_launcher_made_sky_rose_heart_peek");
-    expect(madeIconOf("made-sky-rose-heart-peek")).toEqual({ sky: "sky", color: "rose", look: "heart", pose: "peek" });
-    expect(madeIconOf("made-sky-rose-nothing")).toBeNull();
-    // Leaning, the agent wears nothing.
-    expect(madeIconOf("made-sky-rose-crown-peek")).toBeNull();
-    expect(madeIconOf("made-sky-rose-heart-up")).toBeNull();
+    expect(plugin.iosName("made-night-pink-wink")).toBe("AppIcon-made-night-pink-wink");
+    expect(plugin.androidAlias("made-night-pink-wink")).toBe("AppIconMadeNightPinkWink");
+    expect(plugin.androidRes("made-night-pink-wink-peek")).toBe("ic_launcher_made_night_pink_wink_peek");
+    expect(madeIconOf("made-night-pink-wink-peek")).toEqual({
+      ground: "night",
+      color: "pink",
+      face: "wink",
+      pose: "peek",
+    });
+    // Upstream's made icons (a sky, an agent's color, a face or an accessory) are no icon here.
+    expect(madeIconOf("made-sky-rose-heart")).toBeNull();
+    expect(madeIconOf("made-night-pink-crown")).toBeNull();
+    expect(madeIconOf("made-night-pink-wink-up")).toBeNull();
     expect(madeIconOf("night")).toBeNull();
-    for (const sky of MADE_ICON_SKIES) {
-      expect(existsSync(join(ASSETS, "made", `${sky}.png`))).toBe(true);
-      expect(existsSync(join(ASSETS, "made", `${sky}-peek.png`))).toBe(true);
+  });
+
+  test("each made icon is its own picture: its ground, color, face and pose all show", () => {
+    /** The icon drawn at 48 px, as bytes. */
+    const picture = (patch: Partial<typeof DEFAULT_MADE_ICON>) =>
+      Buffer.from(
+        new Resvg(Doug.iconSvg({ ...DEFAULT_MADE_ICON, ...patch }), { fitTo: { mode: "width", value: 48 } })
+          .render()
+          .asPng(),
+      ).toString("base64");
+    const faces = MADE_ICON_FACES.map((face) => picture({ face }));
+    expect(new Set(faces).size).toBe(MADE_ICON_FACES.length);
+    const colors = MADE_ICON_COLORS.map((color) => picture({ color, ground: "night" }));
+    expect(new Set(colors).size).toBe(MADE_ICON_COLORS.length);
+    expect(picture({ pose: "peek" })).not.toBe(picture({}));
+    expect(picture({ ground: "night" })).not.toBe(picture({}));
+    // Every layer is a whole SVG of the 1024 square.
+    for (const layer of ["whole", "back", "front", "mono", "tinted", "favicon"] as const)
+      expect(Doug.iconSvg({ ...DEFAULT_MADE_ICON, pose: "peek" }, layer)).toMatch(
+        /^<svg [^>]*width="1024"[\s\S]*<\/svg>$/,
+      );
+  });
+
+  test("the committed pictures are the drawing's: the ready icons' and the shipped icon's", () => {
+    expect(Object.keys(Doug.READY_ICONS)).toEqual([...APP_ICONS]);
+    for (const id of APP_ICONS) {
+      const { light, dark } = Doug.READY_ICONS[id];
+      expect(readFileSync(join(ASSETS, id, "preview.png")).equals(opaquePng(Doug.iconSvg(light), 180))).toBe(true);
+      expect(readFileSync(join(ASSETS, id, "preview-dark.png")).equals(opaquePng(Doug.iconSvg(dark), 180))).toBe(true);
     }
+    // The app's own icon (scripts/brand-assets.ts) is the shipped one.
+    const icon = readFileSync(join(import.meta.dir, "..", "assets", "images", "icon.png"));
+    expect(icon.equals(opaquePng(Doug.iconSvg(Doug.SHIPPED_ICON), 1024))).toBe(true);
   });
 
   test("every icon has the files the app and the plugin read", () => {
@@ -165,5 +201,24 @@ describe("app icons on the phone (ADR 0179)", () => {
       for (const file of files) if (!existsSync(join(ASSETS, id, file))) missing.push(`${id}/${file}`);
     }
     expect(missing).toEqual([]);
+  });
+
+  test("the desktop app lists the same icons, and the web has their files at their sizes", () => {
+    const ROOT = join(import.meta.dir, "..", "..", "..");
+    const rust = readFileSync(join(ROOT, "apps/desktop/src-tauri/src/app_icon.rs"), "utf8");
+    expect([...rust.matchAll(/icon!\("(\w+)"\)/g)].map((m) => m[1])).toEqual([...APP_ICONS]);
+    const read = (path: string) => readFileSync(join(ROOT, path));
+    /** A PNG's width and height (its IHDR), and an .ico's images' sizes. */
+    const sizeOf = (bytes: Buffer) => [bytes.readUInt32BE(16), bytes.readUInt32BE(20)];
+    const icoSizes = (bytes: Buffer) => Array.from({ length: bytes.readUInt16LE(4) }, (_, i) => bytes[6 + 16 * i]);
+    for (const id of APP_ICONS) {
+      for (const look of ["ios", "ios-dark", "ios-tinted"])
+        expect(sizeOf(read(`apps/mobile/assets/app-icons/${id}/${look}.png`))).toEqual([1024, 1024]);
+      expect(sizeOf(read(`apps/web/public/app-icons/${id}.png`))).toEqual([160, 160]);
+      expect(icoSizes(read(`apps/web/public/app-icons/${id}.ico`))).toEqual([16, 32, 48]);
+    }
+    expect(icoSizes(read("apps/web/public/favicon.ico"))).toEqual([16, 32, 48]);
+    expect(sizeOf(read("apps/web/public/apple-touch-icon.png"))).toEqual([180, 180]);
+    expect(sizeOf(read("apps/web/public/icon-512.png"))).toEqual([512, 512]);
   });
 });

@@ -1827,29 +1827,47 @@
     "readyOne": "Prédéfinie",
     "use": "Utiliser cette icône",
     "inUse": "Utilisée",
-    "sky": "Arrière-plan",
+    "ground": "Arrière-plan",
+    "grounds": {
+      "day": "Jour",
+      "night": "Nuit"
+    },
     "pose": "Pose",
     "poses": {
       "front": "De face",
       "peek": "Coup d'œil"
     },
-    "peekBare": "En coup d'œil, il ne porte pas d'accessoire.",
-    "expression": "Expression du visage",
-    "ready": "Prédéfinies",
-    "oneOrOther": "Avec un accessoire, l'expression reste la normale.",
-    "faces": {
-      "wink": "Clin d'œil",
-      "heart": "Cœurs",
-      "star": "Étoiles",
-      "surprised": "Surprise",
-      "angry": "Colère"
+    "color": "Couleur",
+    "colors": {
+      "green": "Vert",
+      "yellow": "Jaune",
+      "orange": "Orange",
+      "pink": "Rose",
+      "violet": "Lilas",
+      "blue": "Bleu",
+      "cyan": "Cyan",
+      "white": "Blanc"
     },
+    "expression": "Expression du visage",
+    "faces": {
+      "normal": "Normal",
+      "happy": "Content",
+      "wink": "Clin d'œil",
+      "surprised": "Surpris",
+      "unimpressed": "Sceptique",
+      "sad": "Triste",
+      "angry": "Fâché",
+      "aside": "De côté",
+      "laugh": "Rieur",
+      "asleep": "Endormi"
+    },
+    "ready": "Prédéfinies",
     "names": {
-      "night": "Nuit",
-      "moon": "Lune",
-      "sky": "Ciel",
-      "peekNight": "Coup d'œil nocturne",
-      "peekSky": "Coup d'œil dans le ciel"
+      "night": "Doug",
+      "moon": "Bonne nuit",
+      "sky": "Blanc",
+      "peekNight": "Curieux",
+      "peekSky": "Clin d'œil"
     }
   },
   "legal": {

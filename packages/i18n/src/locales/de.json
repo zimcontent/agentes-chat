@@ -1775,29 +1775,47 @@
     "readyOne": "Vorgefertigt",
     "use": "Dieses Symbol verwenden",
     "inUse": "In Verwendung",
-    "sky": "Hintergrund",
+    "ground": "Hintergrund",
+    "grounds": {
+      "day": "Tag",
+      "night": "Nacht"
+    },
     "pose": "Haltung",
     "poses": {
       "front": "Von vorn",
       "peek": "Neugierig"
     },
-    "peekBare": "Neugierig trägt er kein Accessoire.",
-    "expression": "Gesichtsausdruck",
-    "ready": "Vorgefertigte",
-    "oneOrOther": "Mit einem Accessoire bleibt der Ausdruck der normale.",
-    "faces": {
-      "wink": "Zwinkern",
-      "heart": "Herzen",
-      "star": "Sterne",
-      "surprised": "Überrascht",
-      "angry": "Wütend"
+    "color": "Farbe",
+    "colors": {
+      "green": "Grün",
+      "yellow": "Gelb",
+      "orange": "Orange",
+      "pink": "Pink",
+      "violet": "Flieder",
+      "blue": "Blau",
+      "cyan": "Cyan",
+      "white": "Weiß"
     },
+    "expression": "Gesichtsausdruck",
+    "faces": {
+      "normal": "Normal",
+      "happy": "Fröhlich",
+      "wink": "Zwinkernd",
+      "surprised": "Überrascht",
+      "unimpressed": "Skeptisch",
+      "sad": "Traurig",
+      "angry": "Wütend",
+      "aside": "Zur Seite",
+      "laugh": "Lachend",
+      "asleep": "Schlafend"
+    },
+    "ready": "Vorgefertigte",
     "names": {
-      "night": "Nacht",
-      "moon": "Mond",
-      "sky": "Himmel",
-      "peekNight": "Neugierig bei Nacht",
-      "peekSky": "Neugierig am Himmel"
+      "night": "Doug",
+      "moon": "Gute Nacht",
+      "sky": "Weiß",
+      "peekNight": "Neugierig",
+      "peekSky": "Zwinkern"
     }
   },
   "legal": {

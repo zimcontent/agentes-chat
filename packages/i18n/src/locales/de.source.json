@@ -4400,8 +4400,14 @@
   "appIcon.inUse": {
     "value": "In use"
   },
-  "appIcon.sky": {
+  "appIcon.ground": {
     "value": "Background"
+  },
+  "appIcon.grounds.day": {
+    "value": "Day"
+  },
+  "appIcon.grounds.night": {
+    "value": "Night"
   },
   "appIcon.pose": {
     "value": "Position"
@@ -4412,47 +4418,83 @@
   "appIcon.poses.peek": {
     "value": "Peeking"
   },
-  "appIcon.peekBare": {
-    "value": "Peeking, it wears no accessory."
+  "appIcon.color": {
+    "value": "Color"
+  },
+  "appIcon.colors.green": {
+    "value": "Green"
+  },
+  "appIcon.colors.yellow": {
+    "value": "Yellow"
+  },
+  "appIcon.colors.orange": {
+    "value": "Orange"
+  },
+  "appIcon.colors.pink": {
+    "value": "Pink"
+  },
+  "appIcon.colors.violet": {
+    "value": "Lilac"
+  },
+  "appIcon.colors.blue": {
+    "value": "Blue"
+  },
+  "appIcon.colors.cyan": {
+    "value": "Cyan"
+  },
+  "appIcon.colors.white": {
+    "value": "White"
   },
   "appIcon.expression": {
     "value": "Expression"
   },
-  "appIcon.ready": {
-    "value": "Ready-made"
+  "appIcon.faces.normal": {
+    "value": "Normal"
   },
-  "appIcon.oneOrOther": {
-    "value": "With an accessory, the expression stays the plain one."
+  "appIcon.faces.happy": {
+    "value": "Happy"
   },
   "appIcon.faces.wink": {
     "value": "Winking"
   },
-  "appIcon.faces.heart": {
-    "value": "Hearts"
-  },
-  "appIcon.faces.star": {
-    "value": "Stars"
-  },
   "appIcon.faces.surprised": {
     "value": "Surprised"
+  },
+  "appIcon.faces.unimpressed": {
+    "value": "Unimpressed"
+  },
+  "appIcon.faces.sad": {
+    "value": "Sad"
   },
   "appIcon.faces.angry": {
     "value": "Angry"
   },
+  "appIcon.faces.aside": {
+    "value": "Looking aside"
+  },
+  "appIcon.faces.laugh": {
+    "value": "Laughing"
+  },
+  "appIcon.faces.asleep": {
+    "value": "Asleep"
+  },
+  "appIcon.ready": {
+    "value": "Ready-made"
+  },
   "appIcon.names.night": {
-    "value": "Night"
+    "value": "Doug"
   },
   "appIcon.names.moon": {
-    "value": "Moon"
+    "value": "Good night"
   },
   "appIcon.names.sky": {
-    "value": "Sky"
+    "value": "White"
   },
   "appIcon.names.peekNight": {
-    "value": "Peeking at night"
+    "value": "Peeking"
   },
   "appIcon.names.peekSky": {
-    "value": "Peeking in the sky"
+    "value": "Wink"
   },
   "legal.updated": {
     "value": "Last updated {{date}}"

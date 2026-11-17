@@ -1725,29 +1725,47 @@
     "readyOne": "Siap pakai",
     "use": "Gunakan ikon ini",
     "inUse": "Sedang dipakai",
-    "sky": "Latar",
+    "ground": "Latar",
+    "grounds": {
+      "day": "Siang",
+      "night": "Malam"
+    },
     "pose": "Posisi",
     "poses": {
       "front": "Menghadap depan",
       "peek": "Mengintip"
     },
-    "peekBare": "Saat mengintip, ia tidak memakai aksesori.",
-    "expression": "Ekspresi",
-    "ready": "Ikon siap pakai",
-    "oneOrOther": "Dengan aksesori, ekspresinya tetap yang biasa.",
-    "faces": {
-      "wink": "Kedip",
-      "heart": "Hati",
-      "star": "Bintang",
-      "surprised": "Terkejut",
-      "angry": "Marah"
+    "color": "Warna",
+    "colors": {
+      "green": "Hijau",
+      "yellow": "Kuning",
+      "orange": "Oranye",
+      "pink": "Merah muda",
+      "violet": "Ungu muda",
+      "blue": "Biru",
+      "cyan": "Sian",
+      "white": "Putih"
     },
+    "expression": "Ekspresi",
+    "faces": {
+      "normal": "Biasa",
+      "happy": "Senang",
+      "wink": "Mengedip",
+      "surprised": "Terkejut",
+      "unimpressed": "Curiga",
+      "sad": "Sedih",
+      "angry": "Marah",
+      "aside": "Melirik",
+      "laugh": "Tertawa",
+      "asleep": "Tidur"
+    },
+    "ready": "Ikon siap pakai",
     "names": {
-      "night": "Malam",
-      "moon": "Bulan",
-      "sky": "Langit",
-      "peekNight": "Mengintip di malam hari",
-      "peekSky": "Mengintip di langit"
+      "night": "Doug",
+      "moon": "Selamat malam",
+      "sky": "Putih",
+      "peekNight": "Mengintip",
+      "peekSky": "Kedipan"
     }
   },
   "legal": {

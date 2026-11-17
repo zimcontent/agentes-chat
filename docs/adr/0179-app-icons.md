@@ -1,6 +1,6 @@
 # 0179. App icons: drawn from the agent engine, and picked per device
 
-- Status: Proposed
+- Status: Proposed. On this instance the icons are drawn from the Doug instead: doug-0010.
 - Date: 2026-11-10
 - Code: generator `packages/ui/scripts/app-icons.mjs` (`app-icons/scenes.mjs`, `app-icons/raster.mjs`), desktop
   `apps/desktop/scripts/icons.ts`; the list

@@ -149,17 +149,40 @@ const __alvo = {};
     }
   };
 
-  // Os olhos do Doug: duas pílulas. É o jeito delas que diz o estado, e olho fechado é um traço.
-  function olhosDoDoug(estado, cor) {
+  // Os olhos do Doug: duas pílulas. É o jeito delas que diz o estado, e olho fechado é um traço. `rosto` é o estado
+  // ou um olhar (a opção `olhar`): as carinhas que ele faz parado, num ícone ou num adesivo. Só os olhos mudam.
+  function olhosDoDoug(rosto, cor) {
     var y = 69.6;
     function pilula(x, yy, w, h, giro) { return '<rect x="' + n(x - w / 2) + '" y="' + n(yy - h / 2) + '" width="' + w + '" height="' + h + '" rx="' + n(Math.min(w, h) / 2) + '" fill="' + cor + '"' + (giro ? ' transform="rotate(' + giro + ' ' + x + ' ' + n(yy) + ')"' : '') + '/>'; }
-    return [46.6, 73.2].map(function (x) {
-      // Terminou: os olhos sorriem. Dormindo: fechados. Pedindo: para cima, para quem ele chama.
-      if (estado === 'terminou') return traco('M' + n(x - 7.4) + ' ' + n(y + 4.4) + 'Q' + x + ' ' + n(y - 10.8) + ' ' + n(x + 7.4) + ' ' + n(y + 4.4), cor, 5.8);
-      if (estado === 'dormindo') return pilula(x, y + 1.3, 18, 6.8);
-      if (estado === 'pedindo') return pilula(x, y - 4.4, 11, 20.8);
-      // Trabalhando: abertos, um pouco apertados, varrendo de um lado a outro (doug.css anima `.db-varre`).
-      if (estado === 'trabalhando') return '<g class="db-varre">' + pilula(x, y + 1.2, 11, 14.6) + '</g>';
+    function sorri(x) { return traco('M' + n(x - 7.4) + ' ' + n(y + 4.4) + 'Q' + x + ' ' + n(y - 10.8) + ' ' + n(x + 7.4) + ' ' + n(y + 4.4), cor, 5.8); }
+    // Pálpebra: a pílula cortada por cima numa reta que vai de `fora` a `dentro` (o lado do nariz), em y. Desenhada
+    // para o olho esquerdo; o direito é o espelho dela.
+    function palpebra(x, lado, dentro, fora) {
+      var w = 5.9, fundo = y + 5.6;
+      return '<path d="M' + n(x - w) + ' ' + n(y + fora) + 'L' + n(x + w) + ' ' + n(y + dentro) + 'V' + n(fundo) + 'A' + w + ' ' + w + ' 0 0 1 ' + n(x - w) + ' ' + n(fundo) + 'Z" fill="' + cor + '" stroke="' + cor + '" stroke-width="1.6" stroke-linejoin="round"' + (lado < 0 ? ' transform="translate(' + n(2 * x) + ' 0) scale(-1 1)"' : '') + '/>';
+    }
+    // Rindo: os olhos apertados em setas, apontando um para o outro.
+    function aperta(x, lado) { return traco('M' + n(x - 4.6 * lado) + ' ' + n(y - 7) + 'L' + n(x + 4.6 * lado) + ' ' + n(y) + 'L' + n(x - 4.6 * lado) + ' ' + n(y + 7), cor, 5.2); }
+    return [46.6, 73.2].map(function (x, i) {
+      var lado = i ? -1 : 1; // para onde fica o nariz: à direita do olho esquerdo, à esquerda do direito
+      // Terminou (feliz): os olhos sorriem. Dormindo: fechados. Pedindo (pra cima): para cima, para quem ele chama.
+      if (rosto === 'terminou' || rosto === 'feliz') return sorri(x);
+      if (rosto === 'dormindo') return pilula(x, y + 1.3, 18, 6.8);
+      if (rosto === 'pedindo' || rosto === 'pra-cima') return pilula(x, y - 4.4, 11, 20.8);
+      // Trabalhando: abertos, um pouco apertados, varrendo de um lado a outro (doug.css anima `.db-varre`). De lado:
+      // os mesmos olhos parados, olhando o trabalho.
+      if (rosto === 'trabalhando') return '<g class="db-varre">' + pilula(x, y + 1.2, 11, 14.6) + '</g>';
+      if (rosto === 'de-lado') return pilula(x + 4.4, y + 1.2, 11, 14.6);
+      // Piscando: um olho aberto, o outro sorri.
+      if (rosto === 'piscando') return i ? sorri(x) : pilula(x, y, 11, 20.8, -5);
+      if (rosto === 'rindo') return aperta(x, lado);
+      // Surpreso: redondos e maiores.
+      if (rosto === 'surpreso') return '<ellipse cx="' + x + '" cy="' + n(y - 1) + '" rx="8.4" ry="10.6" fill="' + cor + '"/>';
+      // Desconfiado: meio fechados, a pálpebra reta.
+      if (rosto === 'desconfiado') return palpebra(x, lado, -0.6, -0.6);
+      // Triste: a pálpebra sobe para o meio. Bravo: desce para o meio.
+      if (rosto === 'triste') return palpebra(x, lado, -9.4, -1.2);
+      if (rosto === 'bravo') return palpebra(x, lado, -1.6, -10.4);
       return pilula(x, y, 11, 20.8, -5);
     }).join('');
   }
@@ -208,6 +231,8 @@ const __alvo = {};
     var p = ficha(o);
     var id = o.id || ('db' + (++conta));
     var estado = p.estado || 'ok';
+    // O que os olhos fazem: o olhar pedido ou, sem ele, o estado.
+    var rosto = p.olhar || estado;
     var ap = estado === 'dormindo';
     var corBase = p.cor || VERDE;
     var cor = ap ? mix(corBase, '#1A1A1A', .84) : corBase;
@@ -230,7 +255,7 @@ const __alvo = {};
     // A peça chapada: as mesmas formas em cores cheias, sem luz nem filtro. Para onde o peso conta (uma página que
     // viaja inteira dentro de outro arquivo): algumas centenas de bytes no lugar de alguns milhares.
     if (eDoug && !solto && p.material === 'chapado') {
-      return abre + '<path d="' + QUADRO + '" fill="' + cor + '"/><g transform="' + lugar(perto) + '"><path d="' + CABECA + '" fill="' + TINTA + '"/>' + olhosDoDoug(estado, ap ? tinta : '#fff') + '</g>' + chama + '</svg>';
+      return abre + '<path d="' + QUADRO + '" fill="' + cor + '"/><g transform="' + lugar(perto) + '"><path d="' + CABECA + '" fill="' + TINTA + '"/>' + olhosDoDoug(rosto, ap ? tinta : '#fff') + '</g>' + chama + '</svg>';
     }
 
     var s = abre + '<defs>' +
@@ -244,11 +269,11 @@ const __alvo = {};
     if (p.brilho !== false && !ap && p.material !== 'chapado') s += '<path d="' + (solto ? CABECA : d) + '" transform="translate(6 15) scale(.9)' + (solto ? ' ' + SOLTA : '') + '" fill="' + cor + '" opacity=".36" filter="url(#' + id + 'g)"/>';
 
     if (solto) {
-      s += '<g transform="' + SOLTA + '">' + (p.material === 'preto' ? cabecaPreta(id, ap, estado, corBase, ap ? tinta : '#fff')
-        : p.material === 'chapado' ? '<defs><mask id="' + id + 'hm" maskUnits="userSpaceOnUse" x="0" y="0" width="120" height="120"><path d="' + CABECA + '" fill="#fff"/>' + olhosDoDoug(estado, '#000') + '</mask></defs><rect width="120" height="120" fill="' + corBase + '" mask="url(#' + id + 'hm)"/>'
-        : vidro(CABECA, cor, id + 'k', id, ap) + olhosDoDoug(estado, tinta)) + '</g>';
+      s += '<g transform="' + SOLTA + '">' + (p.material === 'preto' ? cabecaPreta(id, ap, rosto, corBase, ap ? tinta : '#fff')
+        : p.material === 'chapado' ? '<defs><mask id="' + id + 'hm" maskUnits="userSpaceOnUse" x="0" y="0" width="120" height="120"><path d="' + CABECA + '" fill="#fff"/>' + olhosDoDoug(rosto, '#000') + '</mask></defs><rect width="120" height="120" fill="' + corBase + '" mask="url(#' + id + 'hm)"/>'
+        : vidro(CABECA, cor, id + 'k', id, ap) + olhosDoDoug(rosto, tinta)) + '</g>';
     } else if (eDoug) {
-      s += vidro(d, cor, id + 'k', id, ap) + naPeca(id, ap, estado, perto, corBase, ap ? tinta : '#fff');
+      s += vidro(d, cor, id + 'k', id, ap) + naPeca(id, ap, rosto, perto, corBase, ap ? tinta : '#fff');
     } else {
       s += (ac.atras || '') + vidro(d, cor, id + 'k', id, ap) + (ac.meio || '') + visor(dv, cor, id + 'v', id, ap, id + 'ka');
       var ey = p.sorriso ? cy - 5 : cy;
@@ -276,7 +301,7 @@ const __alvo = {};
     });
   }
 
-  var api = { avatar: avatar, montar: montar, ficha: ficha, mix: mix, TIME: TIME, ORDEM: ORDEM, CORPOS: CORPOS, VISORES: VISORES, QUADRO: QUADRO, CABECA: CABECA, ACESSORIOS: ACESSORIOS, versao: '0.12' };
+  var api = { avatar: avatar, montar: montar, ficha: ficha, mix: mix, TIME: TIME, ORDEM: ORDEM, CORPOS: CORPOS, VISORES: VISORES, QUADRO: QUADRO, CABECA: CABECA, ACESSORIOS: ACESSORIOS, versao: '0.13' };
   raiz.DougBot = api;
 })(__alvo);
 export default __alvo.DougBot;

@@ -1725,29 +1725,47 @@
     "readyOne": "预设",
     "use": "使用此图标",
     "inUse": "使用中",
-    "sky": "背景",
+    "ground": "背景",
+    "grounds": {
+      "day": "白天",
+      "night": "夜晚"
+    },
     "pose": "姿势",
     "poses": {
       "front": "正面",
       "peek": "探头"
     },
-    "peekBare": "探头时不佩戴配饰。",
-    "expression": "表情",
-    "ready": "预设图标",
-    "oneOrOther": "佩戴配饰时，表情保持普通样式。",
-    "faces": {
-      "wink": "眨眼",
-      "heart": "爱心",
-      "star": "星星",
-      "surprised": "惊讶",
-      "angry": "生气"
+    "color": "颜色",
+    "colors": {
+      "green": "绿色",
+      "yellow": "黄色",
+      "orange": "橙色",
+      "pink": "粉色",
+      "violet": "淡紫",
+      "blue": "蓝色",
+      "cyan": "青色",
+      "white": "白色"
     },
+    "expression": "表情",
+    "faces": {
+      "normal": "普通",
+      "happy": "开心",
+      "wink": "眨眼",
+      "surprised": "惊讶",
+      "unimpressed": "怀疑",
+      "sad": "难过",
+      "angry": "生气",
+      "aside": "斜视",
+      "laugh": "大笑",
+      "asleep": "睡着"
+    },
+    "ready": "预设图标",
     "names": {
-      "night": "夜晚",
-      "moon": "月亮",
-      "sky": "天空",
-      "peekNight": "夜里探头",
-      "peekSky": "天空探头"
+      "night": "Doug",
+      "moon": "晚安",
+      "sky": "白色",
+      "peekNight": "偷看",
+      "peekSky": "眨眼"
     }
   },
   "legal": {

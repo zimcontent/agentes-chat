@@ -1775,29 +1775,47 @@
     "readyOne": "Kant-en-klaar",
     "use": "Dit icoon gebruiken",
     "inUse": "In gebruik",
-    "sky": "Achtergrond",
+    "ground": "Achtergrond",
+    "grounds": {
+      "day": "Dag",
+      "night": "Nacht"
+    },
     "pose": "Houding",
     "poses": {
       "front": "Recht vooruit",
       "peek": "Glurend"
     },
-    "peekBare": "Glurend draagt hij geen accessoire.",
-    "expression": "Gezichtsuitdrukking",
-    "ready": "Kant-en-klare iconen",
-    "oneOrOther": "Met een accessoire blijft de uitdrukking de gewone.",
-    "faces": {
-      "wink": "Knipoog",
-      "heart": "Hartjes",
-      "star": "Sterren",
-      "surprised": "Verrast",
-      "angry": "Boos"
+    "color": "Kleur",
+    "colors": {
+      "green": "Groen",
+      "yellow": "Geel",
+      "orange": "Oranje",
+      "pink": "Roze",
+      "violet": "Lila",
+      "blue": "Blauw",
+      "cyan": "Cyaan",
+      "white": "Wit"
     },
+    "expression": "Gezichtsuitdrukking",
+    "faces": {
+      "normal": "Normaal",
+      "happy": "Blij",
+      "wink": "Knipogend",
+      "surprised": "Verrast",
+      "unimpressed": "Sceptisch",
+      "sad": "Verdrietig",
+      "angry": "Boos",
+      "aside": "Opzij",
+      "laugh": "Lachend",
+      "asleep": "Slapend"
+    },
+    "ready": "Kant-en-klare iconen",
     "names": {
-      "night": "Nacht",
-      "moon": "Maan",
-      "sky": "Lucht",
-      "peekNight": "Gluren in de nacht",
-      "peekSky": "Gluren in de lucht"
+      "night": "Doug",
+      "moon": "Welterusten",
+      "sky": "Wit",
+      "peekNight": "Gluurend",
+      "peekSky": "Knipoog"
     }
   },
   "legal": {

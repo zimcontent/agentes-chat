@@ -1931,26 +1931,48 @@ export const en = {
     use: "Use this icon",
     /** The same button when the icon shown is the one in use. */
     inUse: "In use",
-    /** The made icon's parts. */
-    sky: "Background",
-    /** How the agent stands in the icon: facing, or leaning in from the corner. */
+    /** The made icon's parts (DougBot: the Doug on a ground, in a color, with a face; docs/adr/doug-0010). */
+    ground: "Background",
+    /** By day his black head on a piece of glass of the color; by night his head in that glass on a dark stage. */
+    grounds: { day: "Day", night: "Night" },
+    /** How the Doug stands in the icon: facing, or leaning in from the corner. */
     pose: "Position",
     poses: { front: "Facing", peek: "Peeking" },
-    /** Under the positions: the peeking agent has a face, never an accessory. */
-    peekBare: "Peeking, it wears no accessory.",
+    /** The glass's color: the brand's green, then the team's bots' colors, and white. */
+    color: "Color",
+    colors: {
+      green: "Green",
+      yellow: "Yellow",
+      orange: "Orange",
+      pink: "Pink",
+      violet: "Lilac",
+      blue: "Blue",
+      cyan: "Cyan",
+      white: "White",
+    },
+    /** The Doug's faces: only his eyes change. */
     expression: "Expression",
+    faces: {
+      normal: "Normal",
+      happy: "Happy",
+      wink: "Winking",
+      surprised: "Surprised",
+      unimpressed: "Unimpressed",
+      sad: "Sad",
+      angry: "Angry",
+      aside: "Looking aside",
+      laugh: "Laughing",
+      asleep: "Asleep",
+    },
     /** Over the icons that come ready. */
     ready: "Ready-made",
-    /** Under the accessories: an icon has a face or an accessory, never both. */
-    oneOrOther: "With an accessory, the expression stays the plain one.",
-    /** The expressions besides the agents' eye styles (`look.eyesNames`). */
-    faces: { wink: "Winking", heart: "Hearts", star: "Stars", surprised: "Surprised", angry: "Angry" },
+    /** The ready icons: the Doug (shipped), asleep on the stage, on white glass, peeking, and peeking with a wink. */
     names: {
-      night: "Night",
-      moon: "Moon",
-      sky: "Sky",
-      peekNight: "Peeking at night",
-      peekSky: "Peeking in the sky",
+      night: "Doug",
+      moon: "Good night",
+      sky: "White",
+      peekNight: "Peeking",
+      peekSky: "Wink",
     },
   },
   legal: {
