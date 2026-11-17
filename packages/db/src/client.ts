@@ -394,6 +394,17 @@ export const EXTRA_COLUMNS = [
   `CREATE INDEX IF NOT EXISTS "agents_twin_id_index" ON "agents" ("twin_id")`,
   `ALTER TABLE "context_items" ADD COLUMN IF NOT EXISTS "twin_key" uuid`,
   `CREATE INDEX IF NOT EXISTS "context_items_twin_key_index" ON "context_items" ("twin_key")`,
+  // The project's indexes for lookups that scanned whole tables (its migrations 0283_run_id_indexes and
+  // 0285_query_sweep), built here ahead of them: Drizzle never runs a migration older than the last one it ran, so
+  // those two can't come before the project's 0281 and 0282. Same names and IF NOT EXISTS, so when the migrations
+  // arrive they find them built and leave them as they are.
+  `CREATE INDEX IF NOT EXISTS "usage_records_run_id_index" ON "usage_records" USING btree ("run_id")`,
+  `CREATE INDEX IF NOT EXISTS "routine_runs_agent_run_id_index" ON "routine_runs" USING btree ("agent_run_id")`,
+  `CREATE INDEX IF NOT EXISTS "messages_agent_run_id_index" ON "messages" USING btree ("agent_run_id") WHERE "messages"."agent_run_id" is not null`,
+  `CREATE INDEX IF NOT EXISTS "agent_budget_periods_org_id_period_start_index" ON "agent_budget_periods" USING btree ("org_id","period_start")`,
+  `CREATE INDEX IF NOT EXISTS "agent_run_steps_tool_call_run_idx" ON "agent_run_steps" USING btree ("run_id","seq") WHERE "agent_run_steps"."kind" = 'tool_call'`,
+  `CREATE INDEX IF NOT EXISTS "agent_runs_org_id_brain_session_id_index" ON "agent_runs" USING btree ("org_id","brain_session_id") WHERE "agent_runs"."brain_session_id" is not null`,
+  `CREATE INDEX IF NOT EXISTS "agent_scopes_connection_id_index" ON "agent_scopes" USING btree ("connection_id") WHERE "agent_scopes"."connection_id" is not null`,
 ];
 
 /** The advisory lock every process takes around its migrations (`DatabaseHandle.migrate`). */

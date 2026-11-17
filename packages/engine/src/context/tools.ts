@@ -435,7 +435,7 @@ export function createContextToolSource(deps: ContextDeps): ToolSource {
                 eq(agentRuns.orgId, ctx.orgId),
                 or(
                   eq(agentRuns.id, ctx.runId),
-                  and(eq(agentRuns.agentId, ctx.agentId), inArray(agentRuns.brainSessionId, session)),
+                  and(eq(agentRuns.agentId, ctx.agentId), eq(agentRuns.brainSessionId, sql`(${session})`)),
                 ),
                 sql`${agentRuns.transcript} -> 'messages' @> ${JSON.stringify([{ content: [{ type: "tool_use", id }] }])}::jsonb`,
               ),
