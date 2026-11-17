@@ -24,6 +24,18 @@ export const liquidHere = Platform.OS === "ios" && isLiquidGlassAvailable();
  */
 export function Glass({ style, intensity = 60, solid = false, liquid = false, children }: GlassProps) {
   const { colors, scheme } = useTheme();
+  // The web is only the visual board (`prancha/`): it draws the iPhone's blur with the browser's own.
+  if (!solid && Platform.OS === "web")
+    return (
+      <View
+        style={[
+          { backgroundColor: colors.glass, backdropFilter: `blur(${Math.round(intensity / 4)}px) saturate(180%)` },
+          style,
+        ]}
+      >
+        {children}
+      </View>
+    );
   if (solid || Platform.OS !== "ios")
     return <View style={[{ backgroundColor: solid ? colors.bg : colors.glassSolid }, style]}>{children}</View>;
   if (liquid && liquidHere)

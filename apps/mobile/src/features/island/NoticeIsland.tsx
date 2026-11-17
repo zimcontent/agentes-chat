@@ -21,10 +21,11 @@ import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Animated, { useAnimatedStyle, useSharedValue, withDelay, withSpring, withTiming } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { scheduleOnRN } from "react-native-worklets";
+import { brandSpot } from "@/lib/brand-spot";
 import { setIslandLive } from "@/lib/push";
 import { useOrg } from "@/providers/org";
 import { useRealtime } from "@/providers/realtime";
-import { haptics, Icon, type IconName, LineIcon, Text, useTheme } from "@/ui";
+import { Assinatura, haptics, Icon, type IconName, LineIcon, Text, useTheme } from "@/ui";
 import { router } from "@/ui/navigation";
 import { variantStyle } from "@/ui/Text";
 import { useNoticeTitle } from "../activity/noticeTitle";
@@ -33,12 +34,10 @@ import { notificationHref, notificationWebPath } from "../links/logic";
 import { openWebPath } from "../links/open-web";
 import { Face } from "../shared/Face";
 import { useOrgId } from "../shared/hooks";
+import { ISLAND_RIM, IslandGlass } from "./IslandGlass";
 import { island } from "./island";
+import { BRAND_ROW, brandBox, CAMERA, noticeClear, noticeTop, topKindOf } from "./shape";
 
-/** The camera's island on iPhones that have one: the island grows out of it and folds back into it. */
-const CAMERA = { width: 126, height: 37, top: 11 };
-/** From this top inset an iPhone has the camera's island (14 Pro and later); below it, a notch or nothing. */
-const CAMERA_INSET = 59;
 const PILL_HEIGHT = 72;
 /** The face on the small island, beside the camera. */
 const SMALL_FACE = 27;
@@ -55,7 +54,11 @@ const WHITE = "#fff";
 const MUTED = "rgba(255,255,255,0.64)";
 const LINE = "rgba(255,255,255,0.12)";
 
-type Shape = "none" | "pill" | "small" | "open";
+type Shape = "none" | "brand" | "pill" | "small" | "open";
+/** The signature's name size at rest (its Doug 1.42× that: 21). */
+const BRAND_SIZE = 15;
+/** The signature on the dark glass: the identity's ink on the dark stage. */
+const BRAND_INK = "#EDEDED";
 
 /** Pulled past its edge, the island follows less the further it goes (a boundary that resists, not a wall). */
 function rubberband(overshoot: number, dimension: number, constant = 0.55) {
@@ -65,7 +68,9 @@ function rubberband(overshoot: number, dimension: number, constant = 0.55) {
 
 /**
  * The island on the phone (ADR 0071 §9): what reaches me while the app is open grows out of the camera's island (on
- * other phones it drops from the top as a dark pill), with the face of whoever called. A tap opens it with the whole
+ * an iPhone with a notch it hangs from the notch; on other phones it drops from the top as a pill), with the face of
+ * whoever called. On the tab roots it rests as DougBot's signature on frosted glass, out of the camera or the notch
+ * (`brandSpot`), and a notice grows out of that. A tap opens it with the whole
  * text and the answer right there; swiping it up puts it away. A notice leaves after a few seconds, and one waiting
  * on me shrinks beside the camera until I decide. While it is up, the system's banner stays away.
  */
@@ -76,6 +81,7 @@ export function NoticeIsland() {
   const { width, height: screenHeight } = useWindowDimensions();
   const { status } = useRealtime();
   const snap = useSyncExternalStore(island.subscribe, island.get, island.get);
+  const branded = useSyncExternalStore(brandSpot.subscribe, brandSpot.get, brandSpot.get);
   const [open, setOpen] = useState(false);
   const [openHeight, setOpenHeight] = useState(OPEN_GUESS);
 
@@ -110,28 +116,47 @@ export function NoticeIsland() {
     if (snap.items.length) haptics.light();
   }, [snap.seq, snap.items.length]);
 
-  const camera = Platform.OS === "ios" && insets.top >= CAMERA_INSET;
-  const top = camera ? CAMERA.top : insets.top + 6;
-  const shape: Shape = !lead ? "none" : open ? "open" : small ? "small" : "pill";
-  // Grown out of the camera, the pill and the open island cover the status bar's line: their content starts under
-  // the camera (never behind it) and the status bar steps aside meanwhile, as with the system's own island.
-  const clear = camera ? CAMERA.height : 0;
-  const coversBar = camera && (shape === "pill" || shape === "open");
+  const kind = topKindOf(Platform.OS, insets.top);
+  const camera = kind === "camera";
+  // Held to the top of the screen: out of the camera, or hanging from the notch (its top corners square there).
+  const attached = kind !== "plain";
+  const brand = brandBox(kind, insets.top);
+  const shape: Shape = !lead ? (branded ? "brand" : "none") : open ? "open" : small ? "small" : "pill";
+  const top = shape === "brand" ? brand.top : noticeTop(kind, insets.top);
+  // Grown out of the camera or the notch, the pill and the open island cover the status bar's line: their content
+  // starts under it (never behind it) and the status bar steps aside meanwhile, as with the system's own island.
+  const clear = noticeClear(kind, insets.top);
+  const coversBar = attached && (shape === "pill" || shape === "open");
   // Open, it stops above the bottom edge and scrolls inside: long choices never run off the screen.
   const openMax = screenHeight - top - insets.bottom - 16;
   // Only while open: the last open height outlives it, and a closed pill must keep its swipe away.
   const scrolls = shape === "open" && openHeight > openMax;
   const size = {
-    none: camera ? { w: CAMERA.width, h: CAMERA.height } : { w: 44, h: 44 },
+    none: camera ? { w: CAMERA.width, h: CAMERA.height } : branded ? { w: brand.w, h: brand.h } : { w: 44, h: 44 },
+    brand: { w: brand.w, h: brand.h },
     pill: { w: Math.min(width - 20, 420), h: PILL_HEIGHT + clear },
-    small: { w: camera ? 250 : 200, h: camera ? CAMERA.height : 40 },
+    small: { w: camera ? 250 : 200, h: camera ? CAMERA.height : kind === "notch" ? clear + 40 : 40 },
     open: { w: Math.min(width - 16, 440), h: Math.min(openHeight, openMax) },
   }[shape];
-  const corner = shape === "open" ? (camera ? 44 : 28) : shape === "pill" ? 36 : size.h / 2;
+  const corner =
+    shape === "brand"
+      ? brand.corner
+      : shape === "open"
+        ? attached
+          ? 44
+          : 28
+        : shape === "pill"
+          ? 36
+          : kind === "notch"
+            ? 20
+            : size.h / 2;
 
   const w = useSharedValue(size.w);
   const h = useSharedValue(size.h);
   const r = useSharedValue(corner);
+  const y = useSharedValue(top);
+  // The glass darkens for a notice's words, and thins back to the signature's.
+  const dim = useSharedValue(shape === "brand" ? 0 : 1);
   const fade = useSharedValue(0);
   const content = useSharedValue(0);
   const drag = useSharedValue(0);
@@ -140,6 +165,8 @@ export function NoticeIsland() {
     w.value = to(size.w);
     h.value = to(size.h);
     r.value = to(corner);
+    y.value = to(top);
+    dim.value = withTiming(shape === "brand" || shape === "none" ? 0 : 1, { duration: 220 });
     if (shape === "none") {
       content.value = withTiming(0, { duration: 120 });
       // Back into the camera's island (or a dot), then gone.
@@ -149,7 +176,7 @@ export function NoticeIsland() {
       content.value = 0;
       content.value = withDelay(reducedMotion ? 0 : 160, withTiming(1, { duration: 220 }));
     }
-  }, [shape, size.w, size.h, corner, reducedMotion, motion.pop, w, h, r, fade, content]);
+  }, [shape, size.w, size.h, corner, top, reducedMotion, motion.pop, w, h, r, y, dim, fade, content]);
 
   // Swiped up: what isn't waiting leaves, what is shrinks beside the camera. The island is the finger while it is
   // down (up freely; pulled down it resists, it lives at the top), and lets go on distance or on a flick, the spring
@@ -179,13 +206,15 @@ export function NoticeIsland() {
     width: w.value,
     height: h.value,
     borderRadius: r.value,
+    // Hanging from the notch: square where it meets the screen's edge.
+    ...(kind === "notch" ? { borderTopLeftRadius: 0, borderTopRightRadius: 0 } : null),
     opacity: fade.value,
-    transform: [{ translateY: drag.value }],
+    transform: [{ translateY: y.value + drag.value }],
   }));
   const inner = useAnimatedStyle(() => ({ opacity: content.value }));
 
   const item = lead ?? shown.current;
-  if (!item && shape === "none") return null;
+  if (!item && shape === "none" && !branded) return null;
 
   return (
     <>
@@ -198,11 +227,19 @@ export function NoticeIsland() {
         />
       ) : null}
       {camera ? <StatusBar hidden={coversBar} animated /> : null}
-      <View pointerEvents="box-none" style={[styles.place, { top }]}>
+      <View pointerEvents="box-none" style={styles.place}>
         <GestureDetector gesture={pan}>
-          <Animated.View pointerEvents={shape === "none" ? "none" : "auto"} style={[styles.island, box]}>
+          <Animated.View
+            pointerEvents={shape === "none" || shape === "brand" ? "none" : "auto"}
+            style={[styles.island, box]}
+          >
+            <IslandGlass dim={dim} />
             <Animated.View style={[styles.fill, inner]}>
-              {shape === "open" ? (
+              {shape === "brand" || (shape === "none" && !item) ? (
+                <View style={[styles.brand, { paddingTop: brand.clear }]}>
+                  <Assinatura size={BRAND_SIZE} color={BRAND_INK} />
+                </View>
+              ) : shape === "open" ? (
                 <ScrollView
                   scrollEnabled={scrolls}
                   bounces={false}
@@ -237,7 +274,13 @@ export function NoticeIsland() {
                   </View>
                 </ScrollView>
               ) : item && shape === "small" ? (
-                <SmallIsland item={item} others={others} camera={camera} onPress={() => setOpen(true)} />
+                <SmallIsland
+                  item={item}
+                  others={others}
+                  camera={camera}
+                  clear={kind === "notch" ? clear : 0}
+                  onPress={() => setOpen(true)}
+                />
               ) : item ? (
                 <Pill
                   item={item}
@@ -356,11 +399,14 @@ function SmallIsland({
   item,
   others,
   camera,
+  clear,
   onPress,
 }: {
   item: IslandItem;
   others: number;
   camera: boolean;
+  /** Room on top for the notch it hangs from. */
+  clear: number;
   onPress: () => void;
 }) {
   const { t } = useTranslation();
@@ -374,6 +420,7 @@ function SmallIsland({
       style={({ pressed }) => [
         styles.small,
         camera ? styles.smallSplit : styles.smallTogether,
+        { paddingTop: clear },
         pressed && styles.pressed,
       ]}
       accessibilityRole="button"
@@ -594,15 +641,18 @@ function IslandFace({ n, size, round = false }: { n: AppNotification; size: numb
 }
 
 const styles = StyleSheet.create({
-  // The island's place: centered, whatever its width while it grows.
-  place: { position: "absolute", left: 0, right: 0, alignItems: "center", zIndex: 100 },
+  // The island's place: centered, whatever its width while it grows (its top moves with its shape).
+  place: { position: "absolute", top: 0, left: 0, right: 0, alignItems: "center", zIndex: 100 },
   island: {
-    backgroundColor: "#000",
     overflow: "hidden",
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: ISLAND_RIM,
     borderCurve: "continuous",
     boxShadow: "0 18px 40px -16px rgba(0,0,0,0.6)",
   },
   fill: { flex: 1 },
+  // The signature under the camera or the notch, centered in its row.
+  brand: { flex: 1, alignItems: "center", justifyContent: "center", minHeight: BRAND_ROW },
   sysFace: { alignItems: "center", justifyContent: "center", backgroundColor: "rgba(255,255,255,0.14)" },
   pill: { flex: 1, flexDirection: "row", alignItems: "center", gap: 12, paddingLeft: 16, paddingRight: 18 },
   grow: { flex: 1, minWidth: 0 },
