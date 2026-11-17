@@ -16036,6 +16036,7 @@ export const ptBR = {
       ui_automation_off: "A Automação de UI está desligada",
       xcode_missing: "O Xcode não está instalado no Mac",
       xcode_too_old: "O Xcode é antigo demais para este iOS",
+      ios_behind_xcode: "O iOS deste iPhone é mais antigo que o do Xcode",
       device_support: "O Mac está baixando as ferramentas do iPhone",
       helper_missing: "O assistente de testes ainda não foi preparado",
       helper_expired: "O assistente de testes precisa ser renovado",
@@ -16064,6 +16065,7 @@ export const ptBR = {
       ui_automation_off: "Ative a Automação de UI",
       xcode_missing: "Instale o Xcode",
       xcode_too_old: "Atualize o Xcode",
+      ios_behind_xcode: "Atualize o iPhone",
       device_support: "Deixe o Mac ligado",
       helper_missing: "Abra o app no Mac",
       helper_expired: "Abra o app no Mac",
@@ -16404,6 +16406,8 @@ export const ptBR = {
       helperText: "Criado e renovado pelo Mac a cada 7 dias. Uma Conta Apple gratuita no Xcode basta.",
       helperUntrustedText: "Toque no nome do desenvolvedor e em Confiar.",
       teamLimitText: "Remova do iPhone um app que você mesmo criou: a Conta Apple gratuita permite 3.",
+      iosBehind:
+        "Este iPhone está no iOS {{ios}} e o Xcode deste Mac é para o iOS {{sdk}}. Atualize o iPhone: Ajustes › Geral › Atualização de Software.",
       xcodeOld:
         "{{name}} usa o iOS {{version}} e o Xcode em {{mac}} conhece no máximo o iOS {{sdk}}. Instale o Xcode {{major}} e rode isto no Terminal.",
       xcodeOldAny:
