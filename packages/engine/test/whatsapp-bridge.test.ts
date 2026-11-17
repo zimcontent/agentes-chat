@@ -7,11 +7,13 @@ import {
   clientWorkFor,
   createWhatsAppAccount,
   createWhatsAppToolSource,
+  draftWhatsAppInstructions,
   fitWhatsAppPrompt,
   getWhatsAppBrain,
   handleWhatsAppEvent,
   mirrorAgentReply,
   openPersonAgentDm,
+  parseInstructionsDraft,
   postPersonMessage,
   setWhatsAppBrain,
   setWhatsAppContact,
@@ -497,5 +499,85 @@ describe("voice messages", () => {
     const [next] = await f.db.select().from(schema.whatsappMessages).where(eq(schema.whatsappMessages.waId, "V3"));
     await answerWhatsAppChat(deps, { chatId: job.chatId, messageId: next?.id as string });
     expect(String(lastRequest()?.messages[0]?.content)).toMatch(/Them: \[audio\]\n/);
+  });
+});
+
+describe("a new direction for the number's instructions (addendum 2026-11-17)", () => {
+  const hearing = (text: string) => ({
+    id: "local" as const,
+    model: "fake",
+    nanoUsdPerHour: 0,
+    minBilledSeconds: 0,
+    file: async () => ({ text }),
+  });
+  const drafted = (instructions: string) => () => ({ chunks: [JSON.stringify({ instructions })] });
+
+  test("a recording is heard and the number's AI rewrites the whole document with it, saving nothing", async () => {
+    f = await setup({ reply: drafted("# Atendimento\n- Responda em até duas frases.\n- Nunca fale de preço.") });
+    const { deps, account } = await number();
+    await updateWhatsAppAccount(deps, f.owner.id, f.org.id, account.id, {
+      instructions: "# Atendimento\n- Seja breve.",
+    });
+    await setWhatsAppBrain(deps, f.owner.id, f.org.id, account.id, { model: "claude-haiku-5-5" });
+    const draft = await draftWhatsAppInstructions(
+      { ...deps, speech: () => [hearing("  não fala de   preço com ninguém ")] },
+      f.owner.id,
+      f.org.id,
+      account.id,
+      { audio: { bytes: new Uint8Array([1, 2, 3]), contentType: "audio/mp4", durationMs: 4000 } },
+    );
+    expect(draft).toEqual({
+      heard: "não fala de preço com ninguém",
+      instructions: "# Atendimento\n- Responda em até duas frases.\n- Nunca fale de preço.",
+    });
+    // The number's own AI wrote it, from the saved document and what was said.
+    expect(lastRequest()?.model).toBe("claude-haiku-5-5");
+    const prompt = String(lastRequest()?.messages[0]?.content);
+    expect(prompt).toContain("- Seja breve.");
+    expect(prompt).toContain("não fala de preço com ninguém");
+    const [row] = await f.db.select().from(schema.whatsappAccounts).where(eq(schema.whatsappAccounts.id, account.id));
+    expect(row?.instructions).toBe("# Atendimento\n- Seja breve.");
+  });
+
+  test("typed words go on the document still in the settings, unsaved", async () => {
+    f = await setup({ reply: drafted("Novo") });
+    const { deps, account } = await number();
+    await draftWhatsAppInstructions(deps, f.owner.id, f.org.id, account.id, {
+      text: "Chame todo mundo pelo nome",
+      current: "Rascunho que ainda não foi salvo",
+    });
+    const prompt = String(lastRequest()?.messages[0]?.content);
+    expect(prompt).toContain("Rascunho que ainda não foi salvo");
+    expect(prompt).toContain("Chame todo mundo pelo nome");
+  });
+
+  test("refused: no agent, no speech engine for a recording, nothing said, or someone who can't change the number", async () => {
+    f = await setup({ reply: drafted("x") });
+    const { deps, account } = await number();
+    const audio = { bytes: new Uint8Array([1]), contentType: "audio/mp4" };
+    await expect(draftWhatsAppInstructions(deps, f.owner.id, f.org.id, account.id, { audio })).rejects.toMatchObject({
+      code: "whatsapp.voice_off",
+    });
+    await expect(
+      draftWhatsAppInstructions({ ...deps, speech: () => [hearing("  ")] }, f.owner.id, f.org.id, account.id, {
+        audio,
+      }),
+    ).rejects.toMatchObject({ code: "whatsapp.unheard" });
+    await expect(draftWhatsAppInstructions(deps, f.owner.id, f.org.id, account.id, { text: "  " })).rejects.toThrow();
+    const member = await addMember(f.db, f.org.id, "member");
+    await expect(draftWhatsAppInstructions(deps, member.id, f.org.id, account.id, { text: "oi" })).rejects.toThrow();
+    await updateWhatsAppAccount(deps, f.owner.id, f.org.id, account.id, { agentId: null });
+    await expect(
+      draftWhatsAppInstructions(deps, f.owner.id, f.org.id, account.id, { text: "oi" }),
+    ).rejects.toMatchObject({ code: "whatsapp.no_agent" });
+  });
+
+  test("the answer read: the JSON's document, or bare Markdown from a model that forgot the JSON", () => {
+    expect(parseInstructionsDraft('{"instructions": "  # Oi\\n- a "}')).toBe("# Oi\n- a");
+    expect(parseInstructionsDraft({ instructions: "# Oi" })).toBe("# Oi");
+    expect(parseInstructionsDraft("# Oi\n- sem JSON")).toBe("# Oi\n- sem JSON");
+    expect(parseInstructionsDraft('{"instructions": ""}')).toBeNull();
+    expect(parseInstructionsDraft("{quebrado")).toBeNull();
+    expect(parseInstructionsDraft(null)).toBeNull();
   });
 });

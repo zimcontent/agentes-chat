@@ -160,6 +160,9 @@ function AppStack() {
       <Stack.Screen name="whatsapp/[account]" options={{ ...pushed, headerShown: false }} />
       <Stack.Screen name="whatsapp/chat" options={{ ...pushed, headerShown: false }} />
       <Stack.Screen name="whatsapp/new" options={formSheet} />
+      {/* A number's settings and its AI (docs/adr/doug-0004-whatsapp-bridge.md, addendum 2026-11-17). */}
+      <Stack.Screen name="whatsapp/settings" options={{ ...pushed, ...scrollUnder }} />
+      <Stack.Screen name="whatsapp/ai" options={{ ...pushed, ...scrollUnder }} />
       {/* Mídia (docs/adr/doug-0011): the gallery from Início, a new generation, one generation. */}
       <Stack.Screen name="media/index" options={{ ...pushed, ...scrollUnder }} />
       <Stack.Screen name="media/new" options={{ ...pushed, ...scrollUnder }} />

@@ -378,6 +378,7 @@ export * from "./whatsapp/brain";
 export * from "./whatsapp/contacts";
 export * from "./whatsapp/conversations";
 export * from "./whatsapp/inbound";
+export * from "./whatsapp/instructions";
 export * from "./whatsapp/portal-notice";
 export * from "./whatsapp/tools";
 export * from "./whatsapp/transcribe";

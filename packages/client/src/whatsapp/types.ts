@@ -192,3 +192,11 @@ export interface WhatsAppBrainInput {
   brain?: { brain?: BrainKind; model?: string | null; account?: string | null; effort?: string | null } | null;
   model?: string;
 }
+
+/** A new direction worked into a number's instructions (`POST …/instructions/draft`): to be read, then saved. */
+export interface WhatsAppInstructionsDraft {
+  /** The recording in words; empty when only text went. */
+  heard: string;
+  /** The whole instructions with the direction in them. */
+  instructions: string;
+}

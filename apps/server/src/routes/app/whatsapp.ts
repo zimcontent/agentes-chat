@@ -2,6 +2,7 @@ import { DEFAULT_VOICE_OUT, isVoiceOutId, WhatsAppGatewayError } from "@agentesc
 import {
   clearWhatsAppBrain,
   createWhatsAppAccount,
+  draftWhatsAppInstructions,
   getWhatsAppBrain,
   listWhatsAppAccounts,
   listWhatsAppChats,
@@ -23,11 +24,14 @@ import {
   updateWhatsAppAccount,
   WHATSAPP_AGENT_STYLE_BOUNDS,
   WHATSAPP_BRAIN_KINDS,
+  WHATSAPP_DIRECTION_AUDIO_MAX_BYTES,
+  WHATSAPP_DIRECTION_MAX,
   WHATSAPP_INSTRUCTIONS_MAX,
   WHATSAPP_LABEL_MAX,
   WHATSAPP_PAGE_MAX,
   WHATSAPP_SEND_FILE_MAX_BYTES,
   WHATSAPP_TEXT_MAX,
+  WhatsAppAgentBusy,
   whatsappChatPhoto,
   whatsappMessageFile,
   whatsappPortalClients,
@@ -57,6 +61,8 @@ export const WHATSAPP_SENDS_PER_PERSON = { limit: 30, windowMs: 60_000 };
  * is what WhatsApp bans numbers for, whoever types: past this the number only answers and continues conversations.
  */
 export const WHATSAPP_NEW_CHATS_PER_NUMBER = { limit: 20, windowMs: 24 * 60 * 60_000 };
+/** Drafts of a number's instructions one person may ask for: each one is a call to the number's AI. */
+export const WHATSAPP_DRAFTS_PER_PERSON = { limit: 20, windowMs: 60 * 60_000 };
 /** Times one person may ask the phone for older messages: each one wakes the phone. */
 export const WHATSAPP_HISTORY_PER_PERSON = { limit: 20, windowMs: 60_000 };
 /** Files one person may load: a conversation full of pictures, opened and scrolled. */
@@ -858,6 +864,79 @@ export function whatsappRoutes(deps: AppDeps) {
     async (c) => {
       const { orgId, accountId } = c.req.valid("param");
       return c.json(await clearWhatsAppBrain(wa, c.get("user").id, orgId, accountId), 200);
+    },
+  );
+
+  app.openapi(
+    createRoute({
+      method: "post",
+      path: "/organizations/{orgId}/whatsapp/accounts/{accountId}/instructions/draft",
+      tags,
+      security,
+      summary: "Rewrite the number's instructions with a new direction, typed or recorded",
+      description:
+        "A form with `text` (typed), `audio` (a recording, put into words by the server's speech engines) or both, and `current`, the instructions as the settings hold them (absent: the saved ones). The AI that answers on the number rewrites the whole Markdown with the direction; nothing is saved: the draft comes back for the person to read and save (`PATCH …/accounts/{id}`). `manage_connectors`. 409 `whatsapp.no_agent` while the number has no agent, `whatsapp.voice_off` for a recording on a server that hears none, `whatsapp.ai_busy` while the plan's account is taken; 400 `whatsapp.unheard` when nothing could be heard; 413 past 7 MB; 429 past 20 drafts an hour. Docs: docs/adr/doug-0004-whatsapp-bridge.md, addendum 2026-11-17.",
+      request: {
+        params: AccountParams,
+        body: {
+          required: true,
+          content: {
+            "multipart/form-data": {
+              schema: z.object({
+                text: z.string().max(WHATSAPP_DIRECTION_MAX).optional(),
+                audio: z.any().optional().openapi({ type: "string", format: "binary" }),
+                seconds: z.string().max(10).optional().openapi({ description: "The recording's length, in seconds." }),
+                current: z.string().max(WHATSAPP_INSTRUCTIONS_MAX).optional(),
+              }),
+            },
+          },
+        },
+      },
+      responses: {
+        200: json(
+          z.object({
+            heard: z.string().openapi({ description: "The recording in words; empty when only text came." }),
+            instructions: z.string().openapi({ description: "The whole instructions with the direction in them." }),
+          }),
+          "The draft",
+        ),
+        413: errorResponse("The recording is too large (`too_large`)"),
+        ...tooMany,
+        ...errors,
+      },
+    }),
+    async (c) => {
+      const { orgId, accountId } = c.req.valid("param");
+      const user = c.get("user");
+      const agentDeps = deps.extras?.whatsappAgent;
+      if (!agentDeps) return apiError(c, 404, "not_found", "WhatsApp isn't set up on this server");
+      if (await limited(`whatsapp-draft:${user.id}`, WHATSAPP_DRAFTS_PER_PERSON)) {
+        return apiError(c, 429, "rate_limited", "Slow down");
+      }
+      const form = c.req.valid("form");
+      const file: unknown = form.audio;
+      let audio: { bytes: Uint8Array; contentType: string; durationMs?: number } | undefined;
+      if (file instanceof File && file.size > 0) {
+        if (file.size > WHATSAPP_DIRECTION_AUDIO_MAX_BYTES)
+          return apiError(c, 413, "too_large", "The recording is too large");
+        const seconds = Number(form.seconds);
+        audio = {
+          bytes: new Uint8Array(await file.arrayBuffer()),
+          contentType: file.type || "audio/mp4",
+          ...(Number.isFinite(seconds) && seconds > 0 ? { durationMs: Math.round(seconds * 1000) } : {}),
+        };
+      }
+      try {
+        const draft = await draftWhatsAppInstructions(agentDeps, user.id, orgId, accountId, {
+          text: form.text,
+          current: form.current,
+          audio,
+        });
+        return c.json(draft, 200);
+      } catch (error) {
+        if (!(error instanceof WhatsAppAgentBusy)) throw error;
+        return apiError(c, 409, "whatsapp.ai_busy", "The number's AI account is busy: try again in a moment");
+      }
     },
   );
 

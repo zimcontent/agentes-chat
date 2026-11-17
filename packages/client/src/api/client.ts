@@ -44,6 +44,7 @@ import type {
   WhatsAppBrain,
   WhatsAppBrainInput,
   WhatsAppChatPage,
+  WhatsAppInstructionsDraft,
   WhatsAppMessagePage,
   WhatsAppOverview,
   WhatsAppSendInput,
@@ -2434,6 +2435,15 @@ export interface ApiClient {
     setBrain(orgId: string, accountId: string, input: WhatsAppBrainInput): Promise<WhatsAppBrain>;
     /** The number answers with its agent's own AI again. */
     clearBrain(orgId: string, accountId: string): Promise<WhatsAppBrain>;
+    /**
+     * The number's instructions rewritten by its AI with a new direction, typed (`text`) or recorded (`audio`, with
+     * its length in `seconds`), on top of `current` (the settings' text, saved or not). Nothing is saved.
+     */
+    draftInstructions(
+      orgId: string,
+      accountId: string,
+      input: { text?: string; audio?: { file: Blob; fileName: string; seconds?: number }; current?: string },
+    ): Promise<WhatsAppInstructionsDraft>;
   };
   /**
    * The Vault (ADR 0144): logins, keys and contacts agents use without seeing a password or a key. No answer carries

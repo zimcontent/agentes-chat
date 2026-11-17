@@ -255,6 +255,7 @@ export async function createTestServer(
         speech: engine.speech,
         voice: engine.voice,
         videoReviews: engine.videoReviews,
+        whatsappAgent: engine.whatsappAgent,
       },
     },
     log,

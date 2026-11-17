@@ -437,7 +437,28 @@ async function ask(
   group = false,
   gif = false,
 ): Promise<WhatsAppAgentAnswer> {
-  const system = systemFor(most, group, gif);
+  const raw = await thinkOnce(deps, agent, {
+    system: systemFor(most, group, gif),
+    prompt,
+    schema: ANSWER_SCHEMA,
+    maxTokens: 900,
+  });
+  const answer = parseWhatsAppAgentAnswer(raw, most);
+  if (!answer) throw new Error("the agent's answer wasn't in the shape asked for");
+  return answer;
+}
+
+/**
+ * One request to the agent's own brain, with no tool: its plan on its computer (`brain.route`) when it thinks with
+ * one, else its API model through the Model Gateway. Answers the plan's JSON or the model's text, for the caller to
+ * check; usage is recorded either way. Throws `WhatsAppAgentBusy` while the plan's account is taken.
+ */
+export async function thinkOnce(
+  deps: Pick<WhatsAppAgentDeps, "db" | "models" | "machines">,
+  agent: Agent,
+  input: { system: string; prompt: string; schema: Record<string, unknown>; maxTokens: number },
+): Promise<unknown> {
+  const { system, prompt, schema: shape } = input;
   const plan =
     agent.brain === "claude_code" || agent.brain === "codex" || agent.brain === "antigravity" ? agent.brain : null;
   if (plan && agent.machineId && deps.machines) {
@@ -473,7 +494,7 @@ async function ask(
           timeoutMs: ROUTE_TIMEOUT_MAX_MS,
           system,
           prompt,
-          schema: ANSWER_SCHEMA,
+          schema: shape,
         },
         { timeoutMs: ROUTE_TIMEOUT_MAX_MS + 10_000 },
       );
@@ -490,9 +511,7 @@ async function ask(
         cacheReadTokens: tokens(reply.usage?.cacheRead),
         cacheWriteTokens: tokens(reply.usage?.cacheWrite),
       }).catch(() => null);
-      const answer = parseWhatsAppAgentAnswer(reply.json, most);
-      if (!answer) throw new Error("the agent's answer wasn't in the shape asked for");
-      return answer;
+      return reply.json;
     }
     if (!agent.brainFallback) throw new Error("the agent's computer isn't answering");
   } else if (agent.brain !== "model" && !agent.brainFallback) {
@@ -514,12 +533,10 @@ async function ask(
     agent: thinker,
     system,
     messages: [{ role: "user", content: prompt }],
-    maxTokens: 900,
+    maxTokens: input.maxTokens,
     onDelta() {},
   });
-  const answer = parseWhatsAppAgentAnswer(result.text, most);
-  if (!answer) throw new Error("the agent's answer wasn't in the shape asked for");
-  return answer;
+  return result.text;
 }
 
 async function latestMessage(deps: Pick<WhatsAppDeps, "db">, chatId: string) {

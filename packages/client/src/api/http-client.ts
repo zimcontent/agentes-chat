@@ -26,6 +26,7 @@ import type {
   WhatsAppAccount,
   WhatsAppBrain,
   WhatsAppChatPage,
+  WhatsAppInstructionsDraft,
   WhatsAppMessagePage,
   WhatsAppOverview,
   WhatsAppVoices,
@@ -712,6 +713,19 @@ export function createHttpApi(options: TransportOptions = {}): HttpApi {
         }),
       clearBrain: (orgId, accountId) =>
         request<WhatsAppBrain>(`${org(orgId)}/whatsapp/accounts/${enc(accountId)}/brain`, { method: "DELETE" }),
+      draftInstructions: (orgId, accountId, input) => {
+        const form = new FormData();
+        if (input.text) form.set("text", input.text);
+        if (input.current !== undefined) form.set("current", input.current);
+        if (input.audio) {
+          form.set("audio", input.audio.file, input.audio.fileName);
+          if (input.audio.seconds) form.set("seconds", String(input.audio.seconds));
+        }
+        return files.upload<WhatsAppInstructionsDraft>(
+          `${org(orgId)}/whatsapp/accounts/${enc(accountId)}/instructions/draft`,
+          form,
+        );
+      },
     },
     gifs: {
       search: (orgId, query) =>
