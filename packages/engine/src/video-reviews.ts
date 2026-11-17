@@ -21,6 +21,7 @@ import { lightKey } from "./file-reader";
 import { postPersonMessage } from "./messages";
 import { getMembership, requireActiveMembership } from "./organizations";
 import { enqueue } from "./outbox";
+import { approvedOnCard } from "./review-gate";
 import { latestRounds, type ReviewRoundView, roundsOf, seeRounds } from "./review-rounds";
 import { replyThreadOf } from "./runs";
 import { readRefusal } from "./standing";
@@ -1123,7 +1124,7 @@ export function decisionMessage(input: {
       "",
       portal.delivered
         ? `O DougBot já está subindo esta versão ao portal (${portal.client}), ${where}. Não suba você nem agende: o resultado aparece nesta conversa.`
-        : `Esta versão não tem as lâminas em imagem: exporte os PNGs do HTML e suba ao portal (${portal.client}) com send_for_approval, ${where}${
+        : `Esta versão não tem as lâminas em imagem: exporte os PNGs do HTML e suba ao portal (${portal.client}) com send_for_approval e review_id ${input.reviewId}, ${where}${
             portal.afterApprove === "direct" ? " (marque como aprovado e agende com schedule_post)" : ""
           }.`,
     );
@@ -1188,7 +1189,11 @@ export async function decideVideoReview(
     throw new ConflictError("This version is already approved", "video_review.decided");
   }
   // A video a person of the team sent from a task: the decision goes back to them, no agent (doug-0012).
-  if (review.senderUserId) return decidePersonVideo(deps, userId, review, input);
+  if (review.senderUserId) {
+    const decided = await decidePersonVideo(deps, userId, review, input);
+    if (input.decision === "approve") await putApprovedOnCard(deps, orgId, review.id, userId);
+    return decided;
+  }
   if (!review.agentId) throw new ValidationError("The agent that made this video was removed", "video_review.no_agent");
   const [agent] = await deps.db
     .select({ handle: agents.handle, archivedAt: agents.archivedAt })
@@ -1309,9 +1314,20 @@ export async function decideVideoReview(
     await deps.db.update(videoReviews).set({ delivery: null }).where(eq(videoReviews.id, review.id));
     await queueDesignDelivery(deps.db, orgId, review.id, review.version);
   }
+  if (input.decision === "approve") await putApprovedOnCard(deps, orgId, review.id, userId);
   const [summary] = await summaries(deps.db, orgId, [review.id]);
   if (!summary) throw new NotFoundError("No such review");
   return summary;
+}
+
+/** The approved version goes on its post's card at the portal (doug-0019); a failure there never undoes the approval. */
+async function putApprovedOnCard(
+  deps: Pick<VideoReviewDeps, "db" | "portal">,
+  orgId: string,
+  reviewId: string,
+  userId: string,
+) {
+  await approvedOnCard(deps.db, deps.portal, orgId, reviewId, userId).catch(() => {});
 }
 
 // ---------- the light copy for phones ----------

@@ -25,6 +25,7 @@ import { portalHere } from "./approval-portal-tasks";
 import { type ArtifactActor, type ArtifactDeps, artifactFile, storedFileOfArtifact } from "./artifacts";
 import { ValidationError } from "./errors";
 import { personBehindCall } from "./requester";
+import { reviewGate, reviewGateRefusal } from "./review-gate";
 import { replyThreadOf } from "./runs";
 import type { ToolContext, ToolDefinition, ToolOutput, ToolSource } from "./tools/types";
 import { untrustedBlock } from "./untrusted";
@@ -529,7 +530,7 @@ function sendTool(deps: PortalToolDeps, portal: ApprovalPortal): ToolDefinition 
   return {
     name: SEND_FOR_APPROVAL_TOOL,
     description:
-      'Send a post to the client\'s approval at the approval portal. Use it when a person of the team tells you to send something for approval ("sobe para aprovação", "send it for approval"), never on your own judgment. `artifact_ids` are uploaded files of this conversation or the Drive (a file on your computer goes to the Drive first, with `upload_file`). A reel is one video, and its cover goes in `cover_artifact_id`; a carousel takes its images in order. Nothing is required beyond the client, the type and the files: a missing title, caption, date or cover is listed back as missing and can be completed later. The send goes on by itself after this answers; the answer carries the post\'s link.',
+      'Send a post to the client\'s approval at the approval portal. Only what the team already approved in Review goes up: every file must be the approved version of a review (`send_for_review` first, then wait for "Aprovado"; an approved piece usually goes to the portal by itself), and anything else is refused. Use it when a person of the team tells you to send something for approval ("sobe para aprovação", "send it for approval"), never on your own judgment. `artifact_ids` are uploaded files of this conversation or the Drive (a file on your computer goes to the Drive first, with `upload_file`). A reel is one video, and its cover goes in `cover_artifact_id`; a carousel takes its images in order. Nothing is required beyond the client, the type and the files: a missing title, caption, date or cover is listed back as missing and can be completed later. The send goes on by itself after this answers; the answer carries the post\'s link.',
     scope: "",
     external: true,
     inputSchema: {
@@ -549,6 +550,13 @@ function sendTool(deps: PortalToolDeps, portal: ApprovalPortal): ToolDefinition 
         date: { type: "string", maxLength: 40, description: "Proposed date and time: YYYY-MM-DDTHH:MM." },
         editor: { type: "string", maxLength: 40, description: "Who edited the video, when the team said." },
         card: { type: "string", maxLength: 40, description: "The board's card this post finishes, if it has one." },
+        review_id: {
+          type: "string",
+          minLength: 36,
+          maxLength: 36,
+          description:
+            "The approved review this post is. Needed only for a design piece approved as its page alone: its slides, exported after the approval, go up under it.",
+        },
       },
       required: ["client", "type", "artifact_ids"],
       additionalProperties: false,
@@ -556,6 +564,13 @@ function sendTool(deps: PortalToolDeps, portal: ApprovalPortal): ToolDefinition 
     describe: (input) => ({ title: `Send "${str(input.title) || "a post"}" to ${str(input.client)}'s approval` }),
     async execute(input, ctx) {
       try {
+        // Only what the team approved in Review goes up (doug-0019): held here, before a byte is read or sent.
+        const gate = await reviewGate(ctx.db as Database, ctx.orgId, {
+          artifactIds: (input.artifact_ids as string[]) ?? [],
+          coverArtifactId: str(input.cover_artifact_id) || undefined,
+          reviewId: str(input.review_id) || undefined,
+        });
+        if (gate.unapproved.length) return { content: reviewGateRefusal(gate), isError: true };
         const by = (await personBehindCall(ctx)) ?? `agent:${ctx.agentId}`;
         const job = await sendForApproval(portal, agentPortalReader(deps.artifacts, actorOf(ctx), ctx.orgId), {
           client: str(input.client),
