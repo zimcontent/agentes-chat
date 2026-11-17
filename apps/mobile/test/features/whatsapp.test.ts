@@ -1,16 +1,24 @@
 import { describe, expect, test } from "bun:test";
-import type { WhatsAppAccount } from "@agenteschat/client";
+import type { WhatsAppAccount, WhatsAppChat } from "@agenteschat/client";
 import {
+  ANSWERING_MS,
   accountsInOrder,
+  agentAnswering,
+  agentHere,
+  agentStoppable,
   chatTitle,
   clockOf,
   fileShape,
+  filterChats,
   handedLine,
+  initialsOf,
   lastLine,
   onlyAccount,
   previewOf,
   showPhone,
   startsDay,
+  toneOf,
+  unreadChats,
   whatsappShown,
 } from "../../src/features/whatsapp/rules";
 import { whatsappWords } from "../../src/features/whatsapp/words";
@@ -109,5 +117,80 @@ describe("messages", () => {
     expect(startsDay(list, 2, true)).toBe(true);
     expect(startsDay(list, 2, false)).toBe(false);
     expect(startsDay(list, 5, true)).toBe(false);
+  });
+});
+
+const chat = (over: Partial<WhatsAppChat>): WhatsAppChat =>
+  ({
+    id: "c",
+    phone: "5511999990000",
+    name: "",
+    group: false,
+    lastAt: null,
+    lastText: "",
+    lastKind: "text",
+    lastFromMe: false,
+    unread: 0,
+    agent: null,
+    agentQuietUntil: null,
+    agentNote: "",
+    ...over,
+  }) as WhatsAppChat;
+
+describe("the list", () => {
+  const list = [
+    chat({ id: "1", name: "Fernanda Lima", unread: 2, lastText: "Quinta às 15h" }),
+    chat({ id: "2", name: "Alliance Group", group: true, phone: null, unread: 3, lastText: "vídeo novo" }),
+    chat({ id: "3", name: "Marcos", lastText: "Combinado" }),
+  ];
+  test("the filters: all, unread, groups", () => {
+    expect(filterChats(list, "all", "", pt).map((c) => c.id)).toEqual(["1", "2", "3"]);
+    expect(filterChats(list, "unread", "", pt).map((c) => c.id)).toEqual(["1", "2"]);
+    expect(filterChats(list, "groups", "", pt).map((c) => c.id)).toEqual(["2"]);
+    expect(unreadChats(list)).toBe(2);
+  });
+  test("the search finds every word in the name, the number or the last line, any case or accent", () => {
+    expect(filterChats(list, "all", "fernanda", pt).map((c) => c.id)).toEqual(["1"]);
+    expect(filterChats(list, "all", "VIDEO", pt).map((c) => c.id)).toEqual(["2"]);
+    expect(filterChats(list, "all", "99999", pt).map((c) => c.id)).toEqual(["1", "3"]);
+    expect(filterChats(list, "all", "marcos combinado", pt).map((c) => c.id)).toEqual(["3"]);
+    expect(filterChats(list, "unread", "marcos", pt)).toEqual([]);
+  });
+  test("the agent is answering while it is on and the other side wrote last, a short while ago", () => {
+    const now = Date.parse("2026-11-17T10:06:00Z");
+    const wrote = (min: number) => new Date(now - min * 60_000).toISOString();
+    expect(agentAnswering(chat({ agent: "on", lastAt: wrote(1) }), now)).toBe(true);
+    expect(agentAnswering(chat({ agent: "on", lastAt: wrote(ANSWERING_MS / 60_000 + 1) }), now)).toBe(false);
+    expect(agentAnswering(chat({ agent: "on", lastAt: wrote(1), lastFromMe: true }), now)).toBe(false);
+    expect(agentAnswering(chat({ agent: "quiet", lastAt: wrote(1) }), now)).toBe(false);
+    expect(agentAnswering(chat({ agent: "on", lastAt: wrote(1), group: true }), now)).toBe(false);
+    expect(agentAnswering(chat({ agent: null, lastAt: wrote(1) }), now)).toBe(false);
+  });
+  test("the agent's face and the strip's stop: where it answers or only waits a person out", () => {
+    expect(agentHere(chat({ agent: "on" }))).toBe(true);
+    expect(agentHere(chat({ agent: "quiet" }))).toBe(true);
+    expect(agentHere(chat({ agent: "off" }))).toBe(false);
+    expect(agentHere(chat({ agent: "person" }))).toBe(false);
+    expect(agentStoppable(chat({ agent: "quiet" }))).toBe(true);
+    expect(agentStoppable(chat({ agent: "person" }))).toBe(false);
+    expect(agentStoppable(null)).toBe(false);
+  });
+  test("a photo without a picture: initials, else the number's last digits, on a tone that is always its own", () => {
+    expect(initialsOf("Fernanda Lima")).toBe("FL");
+    expect(initialsOf("Marcos · Obra 3720")).toBe("MO");
+    expect(initialsOf("Dr. Mancini")).toBe("DM");
+    expect(initialsOf("ana")).toBe("AN");
+    expect(initialsOf("+55 11 99999-0000")).toBe("00");
+    const tones = ["#1", "#2", "#3"];
+    expect(toneOf("abc", tones)).toBe(toneOf("abc", tones));
+    expect(tones).toContain(toneOf("xyz", tones));
+  });
+  test("the agent's words carry its name, in both languages", () => {
+    expect(pt.list.answering("ROSA")).toBe("ROSA está respondendo…");
+    expect(pt.chat.strip("ROSA")).toBe("ROSA responde esta conversa");
+    expect(pt.chat.stop).toBe("Parar a IA aqui");
+    expect(pt.chat.takeOver("ROSA", 60)).toBe("Você assume. ROSA para de responder por 60 min.");
+    expect(pt.sentBy("ROSA")).toBe("Enviada por ROSA");
+    expect(en.chat.strip("ROSA")).toBe("ROSA answers this conversation");
   });
 });

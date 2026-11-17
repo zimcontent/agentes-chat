@@ -160,6 +160,9 @@ const Chat = z
     lastText: z.string().openapi({ description: "The latest message's words (outside text); empty for a file." }),
     lastKind: z.string(),
     lastFromMe: z.boolean(),
+    lastStatus: z.enum(["received", "sent", "delivered", "read"]).nullable().openapi({
+      description: "While the latest message is ours: how far it got (the list's ticks). null for theirs.",
+    }),
     unread: z.number().int(),
     agent: z.enum(["on", "quiet", "off", "person"]).nullable().openapi({
       description:

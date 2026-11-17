@@ -42,6 +42,8 @@ export interface WhatsAppChatView {
   lastText: string;
   lastKind: string;
   lastFromMe: boolean;
+  /** While the latest message is ours: how far it got (the list's ticks); null for theirs. */
+  lastStatus: MessageRow["status"] | null;
   unread: number;
   /** Where the number's agent stands here (`whatsappAgentState`); null: no agent answers this conversation. */
   agent: WhatsAppAgentState;
@@ -83,7 +85,12 @@ const phoneOf = (jid: string) => /^(\d{6,20})@s\.whatsapp\.net$/.exec(jid)?.[1] 
 
 type AgentOf = Pick<typeof schema.whatsappAccounts.$inferSelect, "agentId" | "agentOn" | "agentQuietMinutes">;
 
-const chatView = (row: ChatRow, account: AgentOf, now = new Date()): WhatsAppChatView => {
+const chatView = (
+  row: ChatRow,
+  account: AgentOf,
+  now = new Date(),
+  lastStatus: MessageRow["status"] | null = null,
+): WhatsAppChatView => {
   const agent = whatsappAgentState(account, row, now);
   return {
     id: row.id,
@@ -94,6 +101,7 @@ const chatView = (row: ChatRow, account: AgentOf, now = new Date()): WhatsAppCha
     lastText: row.lastText,
     lastKind: row.lastKind,
     lastFromMe: row.lastFromMe,
+    lastStatus: row.lastFromMe ? lastStatus : null,
     unread: row.unread,
     agent: agent.state,
     agentQuietUntil: agent.quietUntil?.toISOString() ?? null,
@@ -209,10 +217,29 @@ export async function listWhatsAppChats(
     .orderBy(desc(chats.lastAt), desc(chats.id))
     .limit(limit + 1);
   const shown = rows.slice(0, limit);
+  const statuses = await lastStatuses(
+    deps,
+    shown.filter((row) => row.lastFromMe).map((row) => row.id),
+  );
+  const now = new Date();
   return {
-    chats: shown.map((row) => chatView(row, account)),
+    chats: shown.map((row) => chatView(row, account, now, statuses.get(row.id) ?? null)),
     next: rows.length > limit ? (shown.at(-1)?.lastAt?.toISOString() ?? null) : null,
   };
+}
+
+/** How far each conversation's latest message got (its ticks in the list), for the ones whose latest is ours. */
+async function lastStatuses(deps: WhatsAppDeps, chatIds: string[]) {
+  const found = new Map<string, MessageRow["status"]>();
+  if (chatIds.length === 0) return found;
+  const messages = schema.whatsappMessages;
+  const rows = await deps.db
+    .selectDistinctOn([messages.chatId], { chatId: messages.chatId, status: messages.status })
+    .from(messages)
+    .where(inArray(messages.chatId, chatIds))
+    .orderBy(messages.chatId, desc(messages.at), desc(messages.createdAt));
+  for (const row of rows) found.set(row.chatId, row.status);
+  return found;
 }
 
 async function chatOf(deps: WhatsAppDeps, accountId: string, chatId: string) {

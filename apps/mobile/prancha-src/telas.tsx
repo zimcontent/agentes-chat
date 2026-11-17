@@ -42,6 +42,7 @@ import {
   RevisaoLista,
   RevisaoVideo,
 } from "./revisao";
+import { WhatsAppConversa, WhatsAppLista } from "./whatsapp";
 
 /** Sample photos served beside the board (`doug-mobile/fotos`): a person's and the groups' (JPG, as people send). */
 const foto = (name: string) => (Platform.OS === "web" ? `${window.location.origin}/fotos/${name}.jpg` : null);
@@ -994,6 +995,8 @@ export const TELAS: Record<string, () => ReactNode> = {
   "portal-cronograma": PortalCronograma,
   "portal-cronograma-320": PortalCronograma320,
   "portal-cartao": PortalCartao,
+  whatsapp: WhatsAppLista,
+  "whatsapp-conversa": WhatsAppConversa,
 };
 
 const styles = StyleSheet.create({
