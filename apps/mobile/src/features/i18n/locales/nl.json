@@ -6,11 +6,11 @@
   "categories": {
     "title": "Categorieën",
     "where": "Waar #{{channel}} staat",
-    "whereHelp": "Verandert voor iedereen. Wie er in het kanaal meedoet, blijft hetzelfde.",
+    "whereHelp": "Verandert voor iedereen. Wie in de groep zit, blijft hetzelfde.",
     "create": "Aanmaken",
     "endOfList": "Komt voor iedereen onderaan de lijst.",
-    "channelCount_one": "{{count}} kanaal",
-    "channelCount_other": "{{count}} kanalen",
+    "channelCount_one": "{{count}} groep",
+    "channelCount_other": "{{count}} groepen",
     "none": "Nog geen categorieën.",
     "manageHelp": "Tik op een categorie om de naam te wijzigen, haar te verplaatsen of te verwijderen.",
     "manageHint": "Volgorde, namen en verwijderen",
@@ -20,7 +20,7 @@
     "down": "Omlaag",
     "position": "{{at}} van {{count}}.",
     "channelPosition": "{{at}} van {{count}}.",
-    "itsChannels": "Kanalen",
+    "itsChannels": "Groepen",
     "seeAll": "Alles bekijken"
   },
   "blocks": {
@@ -29,8 +29,8 @@
     "thousand": "k",
     "building": "Wordt samengesteld…",
     "openBig": "Openen op volledig scherm",
-    "keep": "Bewaren in Drive",
-    "kept": "Bewaard in Drive",
+    "keep": "Bewaren in Bestanden",
+    "kept": "Bewaard in Bestanden",
     "wake": "Tik om te openen",
     "pageTitle": "Blok met eigen code",
     "pageBody": "Het draait los van de app, zonder toegang tot je account of internet.",
@@ -190,12 +190,12 @@
     },
     "section": {
       "agents": "Agents",
-      "channels": "Kanalen",
+      "channels": "Groepen",
       "people": "Mensen"
     },
     "seeAll": {
       "agents": "Alle agents bekijken",
-      "channels": "Alle kanalen bekijken",
+      "channels": "Alle groepen bekijken",
       "people": "Alle mensen bekijken"
     },
     "wait": {
@@ -235,10 +235,10 @@
     "mission": "Missie",
     "unreadLabel_one": "{{count}} ongelezen",
     "unreadLabel_other": "{{count}} ongelezen",
-    "newChannel": "Nieuw kanaal",
+    "newChannel": "Nieuwe groep",
     "newChannelHint": "Voor een team of een onderwerp",
-    "channelPlaceholder": "Kanaalnaam, bijv. marketing",
-    "createChannel": "Kanaal aanmaken",
+    "channelPlaceholder": "Groepsnaam, bijv. marketing",
+    "createChannel": "Groep maken",
     "newChannelHintPersonal": "Voor één onderwerp, met meerdere agents",
     "channelPlaceholderPersonal": "Naam, bijv. reis",
     "createChannelPersonal": "Groepsgesprek aanmaken",
@@ -366,11 +366,11 @@
     "switchTitle": "Van gesprek wisselen",
     "switchSearch": "Gesprekken zoeken",
     "switchAgents": "Agents",
-    "switchChannels": "Kanalen",
+    "switchChannels": "Groepen",
     "switchPeople": "Mensen",
     "switchNone": "Geen gesprek met die naam.",
     "switchWorking": "aan het werk",
-    "join": "Lid worden van het kanaal",
+    "join": "Lid worden van de groep",
     "sending": "Versturen…",
     "toLatest": "Naar de nieuwste berichten",
     "toLatestNew": "Naar de nieuwste berichten: {{text}}",
@@ -804,10 +804,10 @@
     "thinksWith": "Denkt met {{label}}"
   },
   "team": {
-    "entry": "Organogram en kanalen",
+    "entry": "Organogram en groepen",
     "sectorLead": "{{name}} leidt",
     "sectorBackup": "{{name}} valt in",
-    "mapHint": "Om een agent naar een ander kanaal te verplaatsen, gebruik je de kaart op het web of praat je met {{name}}."
+    "mapHint": "Om een agent naar een andere groep te verplaatsen, gebruik je de kaart op het web of praat je met {{name}}."
   },
   "agentEdit": {
     "missing": "Deze agent bestaat niet meer.",
@@ -1033,21 +1033,21 @@
     }
   },
   "channelRef": {
-    "list": "Kanalen",
-    "a11y": "Kanaal #{{name}}",
-    "archivedA11y": "Kanaal #{{name}}, gearchiveerd",
+    "list": "Groepen",
+    "a11y": "Groep #{{name}}",
+    "archivedA11y": "Groep #{{name}}, gearchiveerd",
     "archived": "#{{name}} is gearchiveerd",
     "notMember": "je bent geen lid"
   },
   "mention": {
     "list": "Mensen en agents",
-    "inChannel": "In dit kanaal",
-    "outside": "Niet in het kanaal",
+    "inChannel": "In deze groep",
+    "outside": "Niet in de groep",
     "agent": "agent",
     "person": "persoon",
     "add": "Toevoegen",
-    "addA11y": "{{name}} aan het kanaal toevoegen",
-    "added": "{{name}} is lid geworden van het kanaal"
+    "addA11y": "{{name}} aan de groep toevoegen",
+    "added": "{{name}} is lid geworden van de groep"
   },
   "me": {
     "title": "Jij",
@@ -1065,7 +1065,7 @@
     "start": "Als de app opent",
     "startHome": "Gesprekken",
     "startLast": "Waar je was gebleven",
-    "startChannels": "Een kanaal",
+    "startChannels": "Een groep",
     "startHint": "Voor deze werkruimte, hier en op je computer, waar de start de pagina Start is.",
     "startFailed": "Opslaan lukte niet. Probeer het opnieuw.",
     "activity": "Antwoorden van agents",
@@ -1095,7 +1095,7 @@
     "issuesWithMe_other": "{{count}} bij jou",
     "proposalsWaiting_one": "{{count}} wacht",
     "proposalsWaiting_other": "{{count}} wachten",
-    "drive": "Drive",
+    "drive": "Bestanden",
     "connectors": "Connectors en MCP's",
     "preferences": "Voorkeuren",
     "editProfile": "Profiel bewerken",
@@ -1111,7 +1111,7 @@
     "notificationsOnHint": "Ze komen ook binnen in de browser en de desktop-app, als ze daar aan staan.",
     "notificationsOffHint": "Zet ze aan om hier meldingen te krijgen. De soorten hieronder gelden voor al je apparaten.",
     "notificationsKindsHint": "Activiteit bewaart alles. Dit geldt voor deze werkruimte, op al je apparaten.",
-    "version": "agentes.chat · versie {{version}}",
+    "version": "DougBot · versie {{version}}",
     "edit": "Bewerken",
     "status": "Status",
     "workspace": "Werkruimte",
@@ -1131,11 +1131,11 @@
     "workspacesUnreachable": "Nu geen antwoord",
     "addWorkspace": "Workspace toevoegen",
     "addWorkspaceCreate": "Een nieuwe workspace maken",
-    "addWorkspaceCreateSub": "Op agentes.chat",
+    "addWorkspaceCreateSub": "Op DougBot",
     "addWorkspaceTeam": "Naar de server van je team",
     "addWorkspaceTeamSub": "Met het adres of de QR-code die op de computer staat",
     "teamServer": "Server van het team",
-    "teamServerLead": "Het agentes.chat-adres van je team, hetzelfde als in de browser.",
+    "teamServerLead": "Het DougBot-adres van je team, hetzelfde als in de browser.",
     "teamServerFoot": "Je verlaat geen enkele workspace: de server van je team komt in je lijst, met je account daar.",
     "workspacesHoldHint": "Ingedrukt houden om van werkruimte te wisselen",
     "workspacesSheetFoot": "Je blijft bij allemaal ingelogd. De meldingen van elk komen hier binnen.",
@@ -1196,7 +1196,7 @@
     "blocked": "Je bent de enige eigenaar van {{names}}. Maak op de website, bij Mensen, iemand anders eigenaar en kom dan terug.",
     "addPasswordFirst": "Voeg eerst op de website een wachtwoord toe aan je account en typ het dan hier.",
     "addPasswordWeb": "Een wachtwoord toevoegen op de website",
-    "onThisComputer": "Verwijder het in de agentes.chat-app op de computer waarop deze server draait.",
+    "onThisComputer": "Verwijder het in de DougBot-app op de computer waarop deze server draait.",
     "otherAccount": "Je bent ingelogd op een ander account. Er is niets verwijderd.",
     "hold": "Ingedrukt houden om te verwijderen"
   },
@@ -1218,7 +1218,7 @@
     "more": "Meer opties",
     "send": "Versturen",
     "savePhotos": "Bewaren in Foto's",
-    "drive": "Bekijken in Drive",
+    "drive": "Bekijken in Bestanden",
     "saved": "Bewaard in Foto's",
     "photosDenied": "Geen toegang tot Foto's",
     "photosDeniedSub": "Sta het toe in Instellingen om afbeeldingen te bewaren.",
@@ -1330,15 +1330,15 @@
     }
   },
   "drive": {
-    "title": "Drive",
-    "search": "Zoeken in Drive",
+    "title": "Bestanden",
+    "search": "Bestanden zoeken",
     "types": "Bestandstypen",
     "type": {
       "all": "Alles",
       "documents": "Documenten",
       "images": "Afbeeldingen",
       "tables": "Tabellen",
-      "diffs": "Diffs"
+      "diffs": "Codewijzigingen"
     },
     "section": {
       "today": "Vandaag",
@@ -1347,14 +1347,57 @@
     "kind": {
       "document": "Document",
       "table": "Tabel",
-      "diff": "Diff",
+      "diff": "Codewijziging",
       "image": "Afbeelding",
       "file": "Bestand"
     },
     "by": "{{name}} · {{when}}",
     "noResults": "Niets met deze filters.",
-    "loadFailed": "De Drive kon niet worden geladen.",
-    "more": "Meer tonen"
+    "loadFailed": "De bestanden konden niet worden geladen.",
+    "more": "Meer tonen",
+    "you": "Jij",
+    "anyone": "Iedereen",
+    "filter": {
+      "type": "Type",
+      "people": "Mensen",
+      "modified": "Gewijzigd"
+    },
+    "when": {
+      "any": "Altijd",
+      "today": "Vandaag",
+      "week": "Laatste 7 dagen",
+      "month": "Laatste 30 dagen",
+      "year": "Dit jaar"
+    },
+    "change": {
+      "edited": "{{name}} bewerkte",
+      "sent": "{{name}} stuurde",
+      "made": "{{name}} maakte"
+    },
+    "suggested": "Voorgesteld",
+    "list": "Bestanden",
+    "folder_one": "gesprek met {{count}} bestand",
+    "folder_other": "gesprek met {{count}} bestanden",
+    "moreFolders_one": "Nog {{count}} gesprek",
+    "moreFolders_other": "Nog {{count}} gesprekken",
+    "menu": "Opties voor {{name}}",
+    "more2": "Meer opties",
+    "open": "Openen",
+    "goToChat": "Naar het gesprek",
+    "new": "Nieuw",
+    "order": {
+      "label": "Volgorde: {{order}}",
+      "recent": "Nieuwste eerst",
+      "name": "Op naam",
+      "short": {
+        "recent": "Nieuwste",
+        "name": "Naam"
+      }
+    },
+    "view": {
+      "grid": "Als raster",
+      "list": "Als lijst"
+    }
   },
   "constellation": {
     "openHint": "Opent wat je in de lucht hebt aangetikt"
@@ -1439,6 +1482,10 @@
     "stopTitle": "“{{title}}” stoppen?",
     "stopBody": "{{name}} stopt nu en vertelt in het gesprek wat er tot nu toe is gedaan."
   },
+  "homeTools": {
+    "title": "Hulpmiddelen",
+    "more": "Meer"
+  },
   "homeNow": {
     "working_one": "{{count}} aan het werk",
     "working_other": "{{count}} aan het werk",
@@ -1484,6 +1531,54 @@
       "tomorrow": "morgen om {{time}}",
       "later": "{{day}} om {{time}}"
     }
+  },
+  "agentLite": {
+    "uses": "Kan gebruiken",
+    "usesNone": "Nog niets",
+    "menu": "Meer opties",
+    "month": "Deze maand",
+    "reportsTo": "Rapporteert aan",
+    "inProgress": "bezig",
+    "waitsYou": "wacht op jou",
+    "doneAt": "opgeleverd om {{time}}",
+    "todayEmptyF": "{{name}} heeft vandaag nog niets voor je gedaan.",
+    "todayEmptyM": "{{name}} heeft vandaag nog niets voor je gedaan.",
+    "call": "Bellen",
+    "tasks": "Taken",
+    "settings": "Instellingen",
+    "talk": "Chatten",
+    "settingsTitle": "Instellingen",
+    "ai": "AI",
+    "aiNone": "Nog geen AI",
+    "more": "Al het andere",
+    "onSite": "Meer instellingen op de website",
+    "askDoug": "Vraag het aan {{name}}",
+    "askDougAbout": "Over {{name}}:  ",
+    "moreHelp": "Instructies, budget, limieten en het verwijderen van de agent vind je op de website, of vraag het aan {{name}} in je eigen woorden.",
+    "raiseBudgetF": "Budget van {{name}} verhogen",
+    "raiseBudgetM": "Budget van {{name}} verhogen",
+    "create": "Ik wil een nieuwe agent om  ",
+    "createWhat": "Ik wil een nieuwe agent om {{what}}",
+    "inChannel": "te werken in de groep #{{channel}}:  ",
+    "onPlan": "te denken met het {{plan}}-abonnement:  "
+  },
+  "teamNow": {
+    "title": "Je team nu",
+    "lead_one": "{{name}} coördineert {{count}} agent",
+    "lead_other": "{{name}} coördineert {{count}} agents",
+    "working_one": "{{count}} aan het werk",
+    "working_other": "{{count}} aan het werk",
+    "asking_one": "{{count}} wacht op jou",
+    "asking_other": "{{count}} wachten op jou",
+    "quiet": "Niemand is nu aan het werk",
+    "since": "begonnen {{ago}}",
+    "asks": "Heeft een vraag voor je",
+    "waitsYou": "wacht op jou",
+    "stoppedF": "Gestopt",
+    "stoppedM": "Gestopt",
+    "freeF": "Vrij",
+    "freeM": "Vrij",
+    "empty": "Nog geen agents in het team."
   },
   "intentAgents": {
     "waitingSection": "Wacht op jou",
@@ -1578,7 +1673,7 @@
       },
       "area": {
         "context": "Geheugen",
-        "drive": "Drive",
+        "drive": "Bestanden",
         "issues": "Taken",
         "calendar": "Agenda",
         "wiki": "Wiki",
@@ -1895,8 +1990,8 @@
       "serverText": "Eén regel om in de terminal te plakken",
       "computer": "Een andere computer",
       "computerText": "Installeer de app erop",
-      "appNote": "Op een Mac of pc die je gebruikt, koppelt de desktop-app van agentes.chat hem ook.",
-      "appStep1": "Zet de agentes.chat-app erop",
+      "appNote": "Op een Mac of pc die je gebruikt, koppelt de desktop-app van DougBot hem ook.",
+      "appStep1": "Zet de DougBot-app erop",
       "appStep2": "Open hem en log in met je eigen account",
       "appStep3": "Klik op Toestaan als hij vraagt of de agents van {{org}} hem mogen gebruiken",
       "appShows": "Hij verschijnt hier vanzelf, alleen voor jou tot je hem deelt.",
@@ -1919,7 +2014,7 @@
       "connecting": "Verbinden met {{host}}",
       "computer": "Computer",
       "noHost": "Deze telefoon werkt via een computer van je. Koppel er eerst een.",
-      "hostOffline": "{{host}} is offline. Zet hem aan en open daar agentes.chat.",
+      "hostOffline": "{{host}} is offline. Zet hem aan en open daar DougBot.",
       "step1": "Zet Ontwikkelaarsopties aan",
       "step1Text": "Tik 7 keer op Buildnummer en voer dan je pincode in. Op een Samsung: Software-informatie › Buildnummer.",
       "openAbout": "Over de telefoon openen",
@@ -1944,9 +2039,9 @@
       "wifi1Text": "Vink Altijd toestaan op dit netwerk aan en tik op Toestaan.",
       "wifi2": "Scan de code op een computer",
       "wifi2Text": "Via Draadloze foutopsporing › Apparaat koppelen met QR-code. Gebruik de camera niet: die leest de code als een wifinetwerk en haalt de telefoon van je wifi.",
-      "wifi2Hint": "Open in agentes.chat op een computer Apparaat koppelen › Android-telefoon › Via wifi en kies {{host}}.",
+      "wifi2Hint": "Open in DougBot op een computer Apparaat koppelen › Android-telefoon › Via wifi en kies {{host}}.",
       "codeHead": "Koppelen met een koppelingscode",
-      "codeNote": "Via Draadloze foutopsporing › Apparaat koppelen met koppelingscode. Open Instellingen en agentes.chat naast elkaar, zodat de code in beeld blijft.",
+      "codeNote": "Via Draadloze foutopsporing › Apparaat koppelen met koppelingscode. Open Instellingen en DougBot naast elkaar, zodat de code in beeld blijft.",
       "wifiNote": "Wifi kan wegvallen na een herstart. Een kabel is betrouwbaarder.",
       "done": "{{name}} is gekoppeld",
       "openFailed": "Deze telefoon opende dat scherm niet. Zoek het in Instellingen."
@@ -2003,7 +2098,7 @@
         "openXcode": "Xcode openen",
         "opened": "Xcode is geopend op {{host}}. Kijk opnieuw in Instellingen en sluit Xcode daar daarna.",
         "unlock": "Aangezet en herstart? De melding met Zet aan verschijnt zodra deze iPhone ontgrendeld is.",
-        "outdated": "De agentes.chat-app op {{host}} is verouderd. Werk hem bij op die Mac."
+        "outdated": "De DougBot-app op {{host}} is verouderd. Werk hem bij op die Mac."
       }
     },
     "notice": {
@@ -2100,7 +2195,7 @@
     "usedBy_other": "{{names}} gebruiken het",
     "fromAgent": "Een dienst koppelen",
     "githubApp": {
-      "useApp": "De agentes.chat-app gebruiken",
+      "useApp": "De DougBot-app gebruiken",
       "useAccount": "Een GitHub-account gebruiken",
       "createInBrowser": "Maken in de browser"
     },
@@ -2155,6 +2250,11 @@
     "blocked": "De controle is niet geladen. Probeer een ander netwerk."
   },
   "invitePeople": {
+    "emailsHelp": "Plak een lijst of typ. Iedereen krijgt een e-mail en komt er meteen bij.",
+    "here": "Al hier",
+    "invited": "Al uitgenodigd",
+    "fix": "Controleer dit",
+    "channels": "Groepen",
     "optional": "Optioneel",
     "ok": "OK",
     "noteHelp": "Staat in de e-mail met je naam. Maximaal {{max}} tekens.",
@@ -2194,12 +2294,53 @@
     "zoneTitle": "Tijdzone",
     "anotherTitle": "Hoe heet de nieuwe werkruimte?",
     "anotherPurpose": "Waarvoor is de nieuwe werkruimte?",
-    "anotherLead": "Op agentes.chat. Je blijft in {{org}} en kunt altijd wisselen.",
+    "anotherLead": "Op DougBot. Je blijft in {{org}} en kunt altijd wisselen.",
     "suggested": "Op basis van je e-mail bij {{domain}} stelde ik {{org}} voor.",
     "create": "Aanmaken",
     "enter": "Naar de werkruimte",
-    "shareMessage": "Kom bij {{org}} op agentes.chat: {{url}}",
+    "shareMessage": "Kom bij {{org}} op DougBot: {{url}}",
     "failed": "Opslaan lukte niet. Probeer het opnieuw."
+  },
+  "aiPanel": {
+    "title": "AI-paneel",
+    "accounts": "Je accounts",
+    "uses": "Wie gebruikt wat",
+    "of": "van {{name}}",
+    "ok": "Alles goed",
+    "almost": "Bijna aan de limiet",
+    "limited": "Aan de limiet",
+    "signedOut": "Afgemeld",
+    "renews": "Limiet vernieuwt om {{hour}}",
+    "renewsOn": "Limiet vernieuwt {{day}} om {{hour}}",
+    "week": "Deze week",
+    "month": "Deze maand",
+    "sheet": {
+      "title": "AI van {{name}} wisselen",
+      "title_female": "AI van {{name}} wisselen",
+      "smart": "Slimst",
+      "balanced": "Gebalanceerd",
+      "fast": "Snelst en goedkoopst",
+      "smartPlan": "Denkt meer na. Trager en gebruikt meer van het tegoed.",
+      "smartKey": "Denkt meer na. Trager en duurder.",
+      "balancedLine": "Aanbevolen voor de meeste taken.",
+      "fastLine": "Antwoordt meteen. Het best voor eenvoudige taken.",
+      "current": "Huidig",
+      "inPlan": "inbegrepen in het abonnement",
+      "price": "≈ {{input}} / {{output}} per miljoen tokens",
+      "runsOn": "Draait op account",
+      "accountOf": "{{account}} van {{owner}}",
+      "standIn": "Als het tegoed op is, gebruik",
+      "standInNone": "Wachten op het tegoed",
+      "standInAll": "Geldt voor al je agents.",
+      "standInAlmost": "Het reserve-account zit ook bijna aan de limiet.",
+      "standInLimited": "Het reserve-account zit ook aan de limiet.",
+      "switchTo": "Wisselen naar {{intent}}",
+      "now": "Nu: {{model}}",
+      "none": "Nu geen andere AI om naar te wisselen. Koppel een account of een sleutel om opties te hebben.",
+      "rightHand": "De AI van {{name}} stel je in bij de instellingen.",
+      "rightHand_female": "De AI van {{name}} stel je in bij de instellingen.",
+      "openSettings": "Instellingen openen"
+    }
   },
   "ai": {
     "yourPlan": "Je AI-abonnement",
@@ -2437,6 +2578,46 @@
     }
   },
   "vault": {
+    "home": {
+      "title": "Wachtwoorden",
+      "search": "Wachtwoorden zoeken",
+      "vaults": "Kluizen",
+      "items_one": "{{count}} item",
+      "items_other": "{{count}} items",
+      "switch_one": "{{name}}, {{count}} item. Andere kluis",
+      "switch_other": "{{name}}, {{count}} items. Andere kluis",
+      "favorites": "Favorieten",
+      "connections": "Wachtwoordmanagers",
+      "noFavorites": "Tik op de ster van een item om het hier te houden."
+    },
+    "sheet": {
+      "username": "gebruikersnaam",
+      "password": "wachtwoord",
+      "site": "website",
+      "keyName": "naam van de sleutel",
+      "value": "waarde",
+      "note": "notitie",
+      "endsIn": "eindigt op {{hint}}",
+      "agentsOnly": "alleen agents gebruiken het",
+      "sealed": "bewaard, alleen agents gebruiken het",
+      "copy": "{{label}} kopiëren",
+      "copied": "Gekopieerd",
+      "clears": "Het klembord wist zichzelf na 1 minuut.",
+      "copyFailed": "Kopiëren mislukt.",
+      "edit": "Bewerken",
+      "details": "Details",
+      "star": "Aan favorieten toevoegen",
+      "unstar": "Uit favorieten verwijderen",
+      "who": "Wie het mag gebruiken",
+      "changeWho": "Wijzigen wie het mag gebruiken",
+      "onlyYou": "Alleen jij",
+      "everyone": "Iedereen",
+      "usedByF": "Gebruikt door {{name}} {{when}}",
+      "usedByM": "Gebruikt door {{name}} {{when}}",
+      "used": "Gebruikt {{when}}",
+      "neverUsed": "Nog niet gebruikt",
+      "history": "Geschiedenis bekijken"
+    },
     "newItem": "Nieuw item",
     "search": "Zoeken in de Vault",
     "noResults": "Niets komt overeen met “{{q}}”.",
@@ -2671,6 +2852,10 @@
     "bySelfUntil": "Geschreven door {{name}} · {{when}}"
   },
   "dashboards": {
+    "editBoard": "Bewerken",
+    "back": "Terug",
+    "page": "Dashboard {{at}} van {{count}}",
+    "pick": "Ander dashboard kiezen",
     "homeRow": "Alleen jij · je eigen widgets",
     "loadFailed": "De dashboards konden niet worden geladen.",
     "create": "Maken",
@@ -2804,10 +2989,10 @@
     },
     "channels": {
       "title": "Breng mensen en agents samen in een kanaal",
-      "text": "Elk kanaal brengt samen wie voor een onderwerp zorgt.",
-      "viewerTitle": "Hier staan de kanalen van het team",
-      "viewerText": "Wie kanalen maakt, opent het eerste, en dat verschijnt hier.",
-      "action": "Kanaal maken",
+      "text": "Elke groep brengt mensen samen die zich met één onderwerp bezighouden.",
+      "viewerTitle": "Hier staan de groepen van het team",
+      "viewerText": "Wie groepen maakt, opent de eerste, en die verschijnt hier.",
+      "action": "Groep maken",
       "titlePersonal": "Praat met meerdere agents tegelijk",
       "textPersonal": "Elk groepsgesprek brengt de agents en mensen voor één onderwerp samen.",
       "viewerTitlePersonal": "Hier staan de groepsgesprekken",
@@ -2896,7 +3081,7 @@
     "meHint": "Je foto is zichtbaar voor de mensen in je workspaces."
   },
   "brand": {
-    "basedOn": "Gebaseerd op agentes.chat van Codari Global, LLC · AGPL-3.0",
+    "basedOn": "Gebaseerd op DougBot van Codari Global, LLC · AGPL-3.0",
     "source": "Broncode van DougBot"
   }
 }

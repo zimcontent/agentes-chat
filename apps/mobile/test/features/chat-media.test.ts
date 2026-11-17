@@ -7,7 +7,6 @@ import { createFrameClock } from "../../src/agent/clock";
 import { stickerFrame } from "../../src/agent/sticker";
 import { createStickerStage } from "../../src/agent/sticker-stage";
 import { subtitleOf } from "../../src/features/activity/logic";
-import { teamLines } from "../../src/features/agents/logic";
 import { buildRows } from "../../src/features/chat/logic";
 import {
   continuesReply,
@@ -370,17 +369,6 @@ describe("a GIF or a sticker where a message's text shows", () => {
     expect(previewBody(t, last?.text ?? "", last?.meta ?? null, last?.mediaKind)).toBe("Figurinha");
     const en = await translator("en");
     expect(previewBody(en, "", null, "gif")).toBe("GIF");
-  });
-
-  test("the agents' list keeps the kind of their DM's last message", () => {
-    const dev = agent({ id: "dev", name: "Dev" });
-    const dm = {
-      with: { type: "agent" as const, id: "dev", name: "Dev", handle: "dev" },
-      lastMessage: { id: "m", body: "", meta: null, mediaKind: "gif" as const, createdAt: at(1), authorType: "agent" },
-    };
-    const { free } = teamLines([dev], [], [dm]);
-    expect(free[0]?.preview).toBeNull();
-    expect(free[0]?.previewMedia).toBe("gif");
   });
 
   test("the inbox names a GIF with no words", () => {

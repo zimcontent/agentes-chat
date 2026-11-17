@@ -3,7 +3,8 @@ import { useCallback, useState } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
 import Animated, { FadeIn, LayoutAnimationConfig, useAnimatedStyle, withTiming } from "react-native-reanimated";
 import { readValueSync, STORED, writeValue } from "@/lib/storage";
-import { Count, Icon, IconButton, LIST_INSET, SCREEN_X, Text, useReducedMotion, weights } from "@/ui";
+import { Count, Icon, IconButton, LIST_INSET, SCREEN_X, Text, useReducedMotion, useTheme, weights } from "@/ui";
+import { PANEL_RADIUS, panelSurface, pillSurface, surfaceStyle } from "@/ui/surfaces";
 import { useColors } from "../shared/hooks";
 import {
   HOME_SECTIONS,
@@ -60,6 +61,7 @@ export function CollapsibleSection({
   onToggle,
   menu,
   kept,
+  panel = false,
   children,
 }: {
   title: string;
@@ -73,10 +75,15 @@ export function CollapsibleSection({
   menu?: { label: string; onPress: () => void };
   /** Shown while closed (a category's unread channels). */
   kept?: ReactNode;
+  /** Its rows in the site's panel (Início): a rounded card one step above the stage, inset from the sides. */
+  panel?: boolean;
   children: ReactNode;
 }) {
   const c = useColors();
+  const { scheme } = useTheme();
   const reduced = useReducedMotion();
+  const box = (node: ReactNode) =>
+    panel ? <View style={[styles.panel, surfaceStyle(panelSurface(scheme), PANEL_RADIUS)]}>{node}</View> : node;
   const chevron = useAnimatedStyle(() => ({
     transform: [{ rotate: withTiming(collapsed ? "-90deg" : "0deg", { duration: reduced ? 0 : 200 }) }],
   }));
@@ -99,10 +106,23 @@ export function CollapsibleSection({
         accessibilityState={{ expanded: !collapsed }}
         style={({ pressed }) => [styles.head, pressed && styles.pressed]}
       >
-        <Text variant="small" tone="ink" style={styles.title} accessibilityRole="header" numberOfLines={1}>
+        <Text
+          variant={panel ? "subhead" : "small"}
+          tone="ink"
+          style={[styles.title, panel && styles.panelTitle]}
+          accessibilityRole="header"
+          numberOfLines={1}
+        >
           {title}
         </Text>
-        <Count value={count} size={15} weight={weights.medium} color={c.faint} />
+        {panel ? (
+          // The site's count: a small dark pill with its rim (`.ac-tag`).
+          <View style={[styles.countPill, surfaceStyle(pillSurface(scheme), 10)]}>
+            <Count value={count} size={12} weight={weights.semibold} color={c.ink} />
+          </View>
+        ) : (
+          <Count value={count} size={15} weight={weights.medium} color={c.faint} />
+        )}
         <View style={styles.grow} />
         {menu ? (
           <View style={styles.menu}>
@@ -113,11 +133,11 @@ export function CollapsibleSection({
           <Icon name="chev" size={15} color={c.faint} />
         </Animated.View>
       </Pressable>
-      {collapsed ? (kept ?? null) : null}
+      {collapsed && kept ? box(kept) : null}
       {/* Opened while the list shows, its rows fade in; open when the list mounts, they just show. */}
       <LayoutAnimationConfig skipEntering>
         {collapsed ? null : (
-          <Animated.View entering={reduced ? undefined : FadeIn.duration(160)}>{children}</Animated.View>
+          <Animated.View entering={reduced ? undefined : FadeIn.duration(160)}>{box(children)}</Animated.View>
         )}
       </LayoutAnimationConfig>
     </View>
@@ -152,6 +172,9 @@ const styles = StyleSheet.create({
     paddingBottom: 8,
   },
   pressed: { opacity: 0.6 },
+  panel: { marginHorizontal: SCREEN_X, overflow: "hidden" },
+  panelTitle: { fontWeight: "700" },
+  countPill: { minWidth: 22, height: 20, paddingHorizontal: 7, alignItems: "center", justifyContent: "center" },
   title: { fontWeight: "600", flexShrink: 1 },
   // The toolbar's 32 over the title's 20-point line: the header keeps its height.
   menu: { marginVertical: -6 },

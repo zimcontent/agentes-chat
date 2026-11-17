@@ -1,26 +1,7 @@
-import type {
-  Agent,
-  AgentAccess,
-  AgentBrainLine,
-  AgentForYouItem,
-  AgentGroup,
-  AgentStatusLine,
-  AgentUsage,
-  Approval,
-  DirectMessage,
-  MediaKind,
-  Memory,
-  OrgSummary,
-  PreviewMeta,
-} from "@agenteschat/client";
+import type { Agent, AgentAccess, AgentForYouItem, AgentUsage, Memory, OrgSummary } from "@agenteschat/client";
 import { asksAt, levelOf, resourcesOf } from "@agenteschat/client/lib/access-levels";
-import { agentSections } from "@agenteschat/client/lib/agent-groups";
-import { planLabel, planOfAccount } from "@agenteschat/client/lib/no-ai";
 import { can } from "@agenteschat/client/lib/permissions";
-import { isOutOfOffice } from "@agenteschat/client/lib/presence";
-import { isAuto, providerLabel } from "@agenteschat/client/lib/providers";
-import { type WorkItem, workByAgent } from "@agenteschat/client/lib/working";
-import type { TFunction } from "i18next";
+import type { WorkItem } from "@agenteschat/client/lib/working";
 import { daysAgo, previewOf } from "../shared/logic";
 
 /**
@@ -35,129 +16,6 @@ export const busyAgents = (work: WorkItem[]) => new Set(work.map((w) => w.agentI
 
 /** Conversations where an agent is on something now (an agent DM shows "trabalhando…"). */
 export const busyChannels = (work: WorkItem[]) => new Set(work.map((w) => w.channelId));
-
-/** One agent on Agentes: what waits on you, what it is on (working) or its last conversation (free). */
-export interface TeamLine {
-  agent: Agent;
-  /** What it is on now; null when free, or at work where you don't read (its line says the bare state). */
-  work: WorkItem | null;
-  /** Waiting on you: the request asked first (the exact item), and how many there are. */
-  approval: Pick<Approval, "id" | "title" | "createdAt"> | null;
-  waitingCount: number;
-  /** Waiting: since it asked. Working: since when. Free: its DM's last message. */
-  at: string | null;
-  /** Free: the last message of its DM (one line), else null. */
-  preview: string | null;
-  /** Free: that message's body was written by the server; show it in the reader's language (`previewBody`). */
-  previewMeta?: PreviewMeta | null;
-  /** Free: that message was a GIF or a sticker with no text (ADR 0091): its word stands for it. */
-  previewMedia?: MediaKind | null;
-  /** Its brain's computer is offline and it waits for it ("Esperando o MacBook Air"): the computer's name. */
-  computer?: string;
-}
-
-/**
- * Agentes: "Esperando você" (agents with a request you may decide, the one asked
- * first; `waiting` as `waitingApprovals` gives it), "Trabalhando agora" (in `workByAgent` order:
- * missions, then the newest runs, then those at work where you don't read, `atWork`) and "Livres" (the latest
- * conversation first, then by name), each agent once.
- */
-export function teamLines(
-  agents: Agent[],
-  work: WorkItem[],
-  dms: Pick<DirectMessage, "with" | "lastMessage">[],
-  waitingOnYou: Pick<Approval, "id" | "agentId" | "title" | "createdAt">[] = [],
-  /** Agents waiting for an offline computer (`waitingComputerByAgent`): never "working", listed first in Livres. */
-  offline: ReadonlyMap<string, { name: string }> = new Map(),
-  /**
-   * Agents at work by their work for you (`AgentStatus.work`, ADR 0084 addendum), with since when: also work in places
-   * you don't read, which `work` leaves out. A routine's is not "working" (the agent is out on it).
-   */
-  atWork: ReadonlyMap<string, string> = new Map(),
-): { waiting: TeamLine[]; working: TeamLine[]; free: TeamLine[] } {
-  const byId = new Map(agents.map((a) => [a.id, a]));
-  const waiting: TeamLine[] = [];
-  const counts = new Map<string, number>();
-  for (const a of waitingOnYou) counts.set(a.agentId, (counts.get(a.agentId) ?? 0) + 1);
-  const firstWork = new Map(workByAgent(work).map((w) => [w.agentId, w]));
-  for (const a of waitingOnYou) {
-    const agent = byId.get(a.agentId);
-    if (!agent || waiting.some((l) => l.agent.id === a.agentId)) continue;
-    waiting.push({
-      agent,
-      work: firstWork.get(a.agentId) ?? null,
-      approval: { id: a.id, title: a.title, createdAt: a.createdAt },
-      waitingCount: counts.get(a.agentId) ?? 1,
-      at: a.createdAt,
-      preview: null,
-    });
-  }
-  const asking = new Set(waiting.map((l) => l.agent.id));
-  const working: TeamLine[] = [];
-  for (const w of workByAgent(work)) {
-    const agent = byId.get(w.agentId);
-    if (agent && !asking.has(agent.id) && !offline.has(agent.id))
-      working.push({ agent, work: w, approval: null, waitingCount: 0, at: w.since, preview: null });
-  }
-  for (const [id, since] of atWork) {
-    const agent = byId.get(id);
-    if (agent && !asking.has(id) && !offline.has(id) && !firstWork.has(id))
-      working.push({ agent, work: null, approval: null, waitingCount: 0, at: since, preview: null });
-  }
-  const busy = new Set([...asking, ...working.map((l) => l.agent.id)]);
-  const lastOf = new Map<string, NonNullable<DirectMessage["lastMessage"]>>();
-  for (const d of dms) {
-    if (d.with.type !== "agent" || !d.lastMessage) continue;
-    const prev = lastOf.get(d.with.id);
-    if (!prev || d.lastMessage.createdAt > prev.createdAt) lastOf.set(d.with.id, d.lastMessage);
-  }
-  const free = agents
-    .filter((a) => !busy.has(a.id))
-    .map((agent): TeamLine => {
-      const last = lastOf.get(agent.id);
-      return {
-        agent,
-        work: null,
-        approval: null,
-        waitingCount: 0,
-        at: last?.createdAt ?? null,
-        preview: last ? previewOf(last.body) || null : null,
-        ...(last?.meta ? { previewMeta: last.meta } : {}),
-        ...(last?.mediaKind ? { previewMedia: last.mediaKind } : {}),
-        ...(offline.has(agent.id) ? { computer: offline.get(agent.id)?.name ?? "" } : {}),
-      };
-    })
-    .sort((a, b) => {
-      if (a.computer !== undefined || b.computer !== undefined) {
-        if (a.computer === undefined) return 1;
-        if (b.computer === undefined) return -1;
-      }
-      if (a.at && b.at) return b.at.localeCompare(a.at);
-      if (a.at) return -1;
-      if (b.at) return 1;
-      return a.agent.name.localeCompare(b.agent.name);
-    });
-  return { waiting, working, free };
-}
-
-/**
- * Livres by the workspace's groups of agents (ADR 0083), as the web sidebar shows them: the agents in no group
- * (`group` null), then each group in the groups' order. Inside each, Livres' own order (the latest conversation
- * first): neither a group's arranged order nor a pin moves an agent (docs/adr/doug-0014-latest-first.md). Empty ones
- * are left out, so with no groups this is Livres alone.
- */
-export function freeSections(
-  free: TeamLine[],
-  groups: readonly AgentGroup[] | undefined,
-): { group: AgentGroup | null; lines: TeamLine[] }[] {
-  const { ungrouped, groups: grouped } = agentSections(free, groups, (l) => l.agent.id);
-  const rank = new Map(free.map((l, i) => [l.agent.id, i]));
-  const byLatest = (lines: TeamLine[]) =>
-    [...lines].sort((a, b) => (rank.get(a.agent.id) ?? 0) - (rank.get(b.agent.id) ?? 0));
-  return [{ group: null, items: ungrouped }, ...grouped]
-    .map(({ group, items }) => ({ group, lines: byLatest(items) }))
-    .filter((s) => s.lines.length > 0);
-}
 
 /** "há 4 min": how long ago, in the largest whole unit (under a minute: now). */
 export type Ago = { unit: "now" } | { unit: "minutes" | "hours" | "days"; count: number };
@@ -243,21 +101,6 @@ export function plainRole(instructions: string | null | undefined): string | nul
     return line.charAt(0).toUpperCase() + line.slice(1);
   }
   return null;
-}
-
-/**
- * Whether the profile shows the agent's status card under what it is on now (ADR 0084), so each thing is said once:
- * its own words always, and out of office always (it says when it is back); a line the server picked for its work
- * only while no running job's row says it; a wait unless it is the request already shown as a card.
- */
-export function statusCardShown(
-  line: Pick<AgentStatusLine, "by" | "kind"> | null | undefined,
-  now: { working: boolean; asking: boolean },
-): boolean {
-  if (!line) return false;
-  if (line.by === "self" || isOutOfOffice(line)) return true;
-  if (line.by === "wait") return !(now.asking && line.kind === "waiting_approval");
-  return !now.working;
 }
 
 /** Only the agent's owner or who reviews memory may correct or forget its memories (the server checks it again). */
@@ -462,21 +305,4 @@ export function usesOf(access: AgentAccess | null | undefined): { lines: UseLine
     });
   }
   return { lines, asks };
-}
-
-/**
- * A profile's Modelo row as the web's fact sheet says it: the model it thinks with, and how after it on the value's
- * line ("Pela API", or the plan whose model it is). On Automático through the API, the maker its models come from,
- * then Automático.
- */
-export function modelRow(t: TFunction, brain: AgentBrainLine | undefined, apiModel: string) {
-  // Only Automático carries a maker. `apiModel` may already be that maker's name (`apiModelName`): the note says
-  // Automático itself, never "Claude · Claude".
-  if (brain?.kind === "model" && brain.maker)
-    return { value: providerLabel(brain.maker), valueNote: t("brain.auto.label") };
-  if (!brain || brain.kind === "model") return { value: apiModel, valueNote: t("brain.foot.api") };
-  return {
-    value: isAuto(brain.model) ? t("brain.auto.label") : (brain.model ?? apiModel),
-    valueNote: planLabel(t, planOfAccount({ kind: brain.kind, provider: brain.provider ?? null })),
-  };
 }

@@ -27,20 +27,21 @@ export function AgentPanel({
   /** The memory or skill to land on in Memória; with `tab` "settings", `brain:<screen>` for "Quem pensa". */
   item?: string;
   closeRequest?: number;
-  onTab: (tab: AgentTab) => void;
+  /** No tab: the agent's page as it opens (docs/adr/doug-0017-agents-lean.md). */
+  onTab: (tab: AgentTab | undefined) => void;
   onClose: () => void;
 }) {
   const { t } = useTranslation();
   const { org } = useOrg();
   const dir = useDirectory(org.id);
   const name = dir.agentById.get(agentId)?.name ?? "";
-  const shown = tab ?? "overview";
+  const shown = tab;
   // "brain:<screen>" (the model picker's "Mais opções"): "Quem pensa" opens on that screen.
   const [brainAt] = useState(() =>
     tab === "settings" && item?.startsWith("brain:") ? (item.slice(6) as BrainScreen) : undefined,
   );
   // A section belongs to the tab it was picked on: a tab the URL moves to (Back, a card) opens at its top.
-  const [picked, setPicked] = useState<{ tab: AgentTab; section?: AgentSection }>(() =>
+  const [picked, setPicked] = useState<{ tab: AgentTab | undefined; section?: AgentSection }>(() =>
     brainAt ? { tab: "settings", section: "brain" } : { tab: shown },
   );
   const [closeRequest, setCloseRequest] = useState(0);

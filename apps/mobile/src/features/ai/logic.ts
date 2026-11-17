@@ -1,7 +1,6 @@
 import type {
   AgentBrain,
   AgentBrainInput,
-  AiAccounts,
   BrainKind,
   Credential,
   Edition,
@@ -9,7 +8,6 @@ import type {
   MachineAccountKind,
   PlanUsage,
 } from "@agenteschat/client";
-import { autonomyWords, type NewAgentStart } from "@agenteschat/client/lib/agent-setup";
 import {
   type AccountChoice,
   accountAbout,
@@ -21,24 +19,10 @@ import {
   signInOf,
 } from "@agenteschat/client/lib/ai-accounts";
 import { thinksWith } from "@agenteschat/client/lib/brain";
-import { type Advanced, advancedDefaults, advancedParts } from "@agenteschat/client/lib/brain-advanced";
-import {
-  type BrainPick,
-  brainPickInput,
-  type ModelRow,
-  modelInput,
-  modelRows,
-  needsOwnSignIn,
-} from "@agenteschat/client/lib/brain-picker";
+import { type Advanced, advancedDefaults } from "@agenteschat/client/lib/brain-advanced";
+import { type ModelRow, modelInput, modelRows } from "@agenteschat/client/lib/brain-picker";
 import { agentGrammar } from "@agenteschat/client/lib/grammar";
-import {
-  aiChoiceOf,
-  gateRechecks,
-  type PlanChoice,
-  type PlanGate,
-  planOfAccount,
-  planOfKind,
-} from "@agenteschat/client/lib/no-ai";
+import { aiChoiceOf, gateRechecks, type PlanChoice, type PlanGate, planOfAccount } from "@agenteschat/client/lib/no-ai";
 import { planWord } from "@agenteschat/client/lib/plan-usage";
 import { brainPlan } from "@agenteschat/client/lib/plans";
 import { AUTO, isAuto, keyLine } from "@agenteschat/client/lib/providers";
@@ -227,28 +211,6 @@ export function existingRows(
 }
 
 /**
- * "Usar em outros agentes" on the phone (ADR 0094): the agent's saved setup in words, as the web's dialog says it
- * ("Opus pelo plano do Claude · Esforço alto · Autonomia: Não pergunta"): the model by the plan that pays for it (the
- * API's model alone), what differs in its advanced settings and its Autonomia.
- */
-export function setupWords(
-  t: TFunction,
-  language: string,
-  view: Pick<AgentBrain, "brain" | "effectiveModel" | "options" | "accounts" | "account" | "autonomy">,
-  o: { apiKey: boolean; now: Advanced },
-): string {
-  const parts = advancedParts(t, language, {
-    kind: view.brain,
-    autoModel: isAuto(view.effectiveModel),
-    apiKey: o.apiKey,
-    // The workspace's setup for a key carries no effort yet (ADR 0041, amended 2026-11-12): its words name none.
-    now: view.brain === "model" ? { ...o.now, effort: null } : o.now,
-  });
-  const autonomy = view.autonomy ? autonomyWords(t, view.autonomy) : null;
-  return [thinksNow(t, view), ...parts, autonomy].filter(Boolean).join(" · ");
-}
-
-/**
  * What "Voltar ao padrão" saves (`advancedDefaults`). On a key a chosen effort goes back to none (`auto`, the
  * provider's default), "Automático" too; on a computer "Automático" keeps picking its own.
  */
@@ -270,60 +232,5 @@ export function advancedResetInput(
           ...(to.onlyOwner !== view.onlyOwner ? { onlyOwner: to.onlyOwner } : {}),
           fallback: to.fallback,
         }),
-  };
-}
-
-/**
- * What the phone's Criar agente sends for who thinks (ADR 0094): the last setup's API model and key at creation, and
- * its context window right after; or Automático there and the last setup's plan saved on it right after; with no
- * setup, Automático on the API. The setup's Autonomia goes at creation either way.
- */
-export function newAgentAi(thinks: NewAgentStart | null): {
-  model: string;
-  credentialId: string | null;
-  contextTokens: number | null;
-  plan: { machineId: string; input: AgentBrainInput } | null;
-  autonomy: NewAgentStart["autonomy"] | undefined;
-  /** A plan to connect once the agent exists (`pickedAi`). */
-  connect: PlanChoice | null;
-} {
-  const autonomy = thinks?.autonomy;
-  if (thinks?.brain === "model") {
-    return {
-      model: thinks.model,
-      credentialId: thinks.key,
-      contextTokens: thinks.contextTokens,
-      plan: null,
-      autonomy,
-      connect: null,
-    };
-  }
-  return {
-    model: AUTO,
-    credentialId: null,
-    contextTokens: null,
-    plan: thinks ? { machineId: thinks.machineId, input: thinks.input } : null,
-    autonomy,
-    connect: null,
-  };
-}
-
-/**
- * What a pick in the phone's "Quem pensa" sends, as the web's step: an API model at creation; or Automático there and
- * the plan saved right after; or, for a plan with nothing to think with yet, Connect on it once the agent exists (also
- * a computer's own sign-in that can't think for the person's agent yet: `computers`, `useAiAccounts`).
- */
-export function pickedAi(
-  pick: BrainPick,
-  computers: AiAccounts["computers"] | undefined,
-): ReturnType<typeof newAgentAi> {
-  const none = { credentialId: null, contextTokens: null, plan: null, autonomy: undefined, connect: null };
-  if (pick.kind === "model") return { ...none, model: pick.model };
-  if (pick.kind === "connect") return { ...none, model: AUTO, connect: pick.choice };
-  return {
-    ...none,
-    model: AUTO,
-    plan: { machineId: pick.machineId, input: brainPickInput(pick) },
-    connect: needsOwnSignIn(computers, pick) ? planOfKind(pick.kind) : null,
   };
 }

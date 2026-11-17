@@ -3,11 +3,12 @@ import type { Who } from "@agenteschat/client/lib/live-host";
 import { useTranslation } from "react-i18next";
 import { Alert, Pressable, ScrollView, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { haptics, Icon, IconButton, type IconName, Text, useTheme } from "@/ui";
+import { Icon, IconButton, Text, useTheme } from "@/ui";
 import { router } from "@/ui/navigation";
 import { AgentFace, Face } from "../shared/Face";
 import { useDirectory, useMeId } from "../shared/hooks";
 import { goBack } from "../shared/parts";
+import { AgentCallView, CallAction } from "./AgentCallView";
 import { type ActiveCall, useAgentCallState, useCalls, useRoomState, useTick } from "./CallProvider";
 import { elapsedText, phoneHostsOthers, tilesOf } from "./logic";
 import type { PhoneAgentCall } from "./phone-agent-call";
@@ -59,46 +60,6 @@ function Top({ title, since, onMinimize }: { title: string; since: number; onMin
         </Text>
       </View>
       <View style={styles.side} />
-    </View>
-  );
-}
-
-/** One round button of the call's bar, with its word under it. */
-function CallAction({
-  icon,
-  label,
-  word,
-  on,
-  danger,
-  onPress,
-}: {
-  icon: IconName;
-  label: string;
-  word: string;
-  on?: boolean;
-  danger?: boolean;
-  onPress: () => void;
-}) {
-  const { colors: c } = useTheme();
-  const bg = danger ? c.danger : on ? c.ink : c.sunken;
-  const ink = danger ? "#fff" : on ? c.bg : c.ink;
-  return (
-    <View style={styles.action}>
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel={label}
-        accessibilityState={on === undefined ? undefined : { selected: on }}
-        onPress={() => {
-          haptics.light();
-          onPress();
-        }}
-        style={({ pressed }) => [styles.actionButton, { backgroundColor: bg, opacity: pressed ? 0.8 : 1 }]}
-      >
-        <Icon name={icon} size={24} color={ink} />
-      </Pressable>
-      <Text variant="caption" tone="faint" numberOfLines={1}>
-        {word}
-      </Text>
     </View>
   );
 }
@@ -239,56 +200,46 @@ function RoomView({ call, active }: { call: PhoneRoom; active: ActiveCall }) {
 
 function AgentView({ call, active }: { call: PhoneAgentCall; active: ActiveCall }) {
   const { t, i18n } = useTranslation();
-  const insets = useSafeAreaInsets();
   const calls = useCalls();
   const s = useAgentCallState(call);
+  const now = useTick();
   const dir = useDirectory();
   const name = dir.nameOf({ type: "agent", id: call.agentId });
   return (
-    <View style={[styles.screen, { paddingTop: insets.top + 8, paddingBottom: insets.bottom + 16 }]}>
-      <Top title={active.title || name} since={s.startedAt} onMinimize={goBack} />
-      <View style={[styles.flex, styles.center]}>
-        <Glow level={s.level} size={168}>
-          <AgentFace agentId={call.agentId} size={140} mode={s.level > 0.1 ? "run" : "idle"} />
-        </Glow>
-        <View style={{ height: 20 }} />
-        <Text variant="title2" style={styles.centerText}>
-          {name}
-        </Text>
-        <Text variant="footnote" tone="faint" style={styles.centerText}>
-          {s.phase === "connecting"
-            ? t("liveVoice.agentCall.connecting", { name })
-            : s.phase === "failed"
-              ? errorText(t, s.error, i18n.language)
-              : t("liveVoice.agentCall.listening")}
-        </Text>
-        {s.caption ? (
-          <Text variant="callout" numberOfLines={3} style={[styles.centerText, styles.agentCaption]}>
-            {s.caption.text}
-          </Text>
-        ) : null}
-      </View>
-      <View style={styles.actions}>
-        <CallAction
-          icon={s.micOn ? "mic" : "micOff"}
-          on={!s.micOn}
-          word={s.micOn ? t("liveVoice.phone.mic") : t("liveVoice.room.muted")}
-          label={s.micOn ? t("liveVoice.room.micOff") : t("liveVoice.room.micOn")}
-          onPress={() => call.toggleMic()}
-        />
-        <RouteAction route={s.route} onChange={(r) => call.setRoute(r)} />
-        <CallAction
-          icon="handset"
-          danger
-          word={t("liveVoice.agentCall.hangUp")}
-          label={t("liveVoice.agentCall.hangUp")}
-          onPress={() => {
-            calls?.hangUp();
-            goBack();
-          }}
-        />
-      </View>
-    </View>
+    <AgentCallView
+      name={active.title || name}
+      face={(size) => <AgentFace agentId={call.agentId} size={size} mode={s.level > 0.1 ? "run" : "idle"} />}
+      since={elapsedText(s.startedAt, now)}
+      connecting={s.phase === "connecting"}
+      failed={s.phase === "failed" ? errorText(t, s.error, i18n.language) : null}
+      level={s.level}
+      caption={s.caption}
+      micOn={s.micOn}
+      speaker={s.route === "speaker"}
+      onMinimize={goBack}
+      onMic={() => call.toggleMic()}
+      onSpeaker={() => call.setRoute(s.route === "speaker" ? "earpiece" : "speaker")}
+      // Writing goes back to the conversation with the call still on (its bar on top).
+      onWrite={goBack}
+      onHangUp={() => {
+        calls?.hangUp();
+        goBack();
+      }}
+      hangUpWord={t("liveVoice.agentCall.hangUp")}
+      micWords={{
+        on: t("liveVoice.phone.mic"),
+        off: t("liveVoice.room.muted"),
+        turnOff: t("liveVoice.room.micOff"),
+        turnOn: t("liveVoice.room.micOn"),
+      }}
+      speakerWords={{
+        speaker: t("liveVoice.phone.speaker"),
+        earpiece: t("liveVoice.phone.earpiece"),
+        toSpeaker: t("liveVoice.phone.toSpeaker"),
+        toEarpiece: t("liveVoice.phone.toEarpiece"),
+      }}
+      minimizeLabel={t("liveVoice.room.minimize")}
+    />
   );
 }
 

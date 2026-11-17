@@ -1,6 +1,6 @@
-import { AgentsScreen } from "@/features/agents/AgentsScreen";
+import { TeamNowScreen } from "@/features/agents/TeamNowScreen";
 
-/** Agentes, pushed from Início's tools. */
+/** "Seu time agora", pushed from Início's Agentes. */
 export default function AgentsRoute() {
-  return <AgentsScreen />;
+  return <TeamNowScreen />;
 }

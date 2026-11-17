@@ -43,8 +43,6 @@ test("the DM draws the checklist on top for whoever sets it up, not the first da
   // No no-AI line over it (nor over the plan hold's).
   expect(chat).toContain("member && !rightHand && !planHeld && !setupIntro");
   expect(chat.match(/<AgentSetupIntro agent=\{dmAgent\} channelId=\{channelId\} \/>/g)?.length).toBe(2);
-  // Its screen shows the same card while something is left.
-  expect(src("agents/AgentProfileScreen.tsx")).toContain('<AgentSetupCard agent={agent} place="profile" />');
 });
 
 test("each step but thinking is a pushed screen, registered in the stack; thinking opens Connect AI", () => {

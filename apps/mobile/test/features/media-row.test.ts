@@ -85,7 +85,7 @@ describe("MediaRow", () => {
       ["features/roles/AgentsScreen.tsx", 3],
       ["features/roles/PeopleScreen.tsx", 3],
       ["features/roles/LookScreen.tsx", 1],
-      ["features/vault/VaultScreen.tsx", 3],
+      ["features/vault/VaultScreen.tsx", 2],
       ["features/vault/parts.tsx", 3],
     ];
     for (const [file, count] of uses)

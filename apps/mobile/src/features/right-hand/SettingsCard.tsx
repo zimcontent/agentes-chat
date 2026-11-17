@@ -46,7 +46,7 @@ import { useTranslation } from "react-i18next";
 import { StyleSheet, View } from "react-native";
 import { useOrg } from "@/providers/org";
 import { Button, Icon, LineIcon, Text } from "@/ui";
-import { openAgentDelete } from "../agents/DeleteAgentScreen";
+import { useOpenAgentSite } from "../agents/elsewhere";
 import { AgentProposalView } from "../agents/ProposalCard";
 import { useDelegateUndoAction } from "../agents/RightHandDelegate";
 import { type AskAnswer, AskButtons, AskCard, AskFoot } from "../chat/asks";
@@ -156,6 +156,7 @@ function SettingsRow({
   const c = useColors();
   const qc = useQueryClient();
   const failed = useFailed();
+  const openSite = useOpenAgentSite();
   const modelLabel = useModelLabel();
   const members = useMembers(orgId).data ?? [];
   const channels = useChannels(orgId).data ?? [];
@@ -255,7 +256,7 @@ function SettingsRow({
           disabled={decide.isPending}
           onPress={() =>
             p.agentId && removalOf([p]) === "delete"
-              ? openAgentDelete(p.agentId, p.id)
+              ? openSite(p.agentId)
               : decide.mutate({ id: p.id, decision: "accept" }, { onError: failed })
           }
         />

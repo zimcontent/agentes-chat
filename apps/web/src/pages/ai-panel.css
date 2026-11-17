@@ -1,0 +1,75 @@
+/* Painel de IA (docs/adr/doug-0017-agents-lean.md). */
+.aip-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.aip-list.ac-card {
+  padding-block: var(--space-1);
+}
+
+.aip-row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
+  grid-template-areas: "who role model change";
+  align-items: center;
+  column-gap: var(--space-3);
+  row-gap: var(--space-1);
+  min-height: 48px;
+  padding-block: var(--row-py);
+}
+
+.aip-who {
+  grid-area: who;
+}
+
+.aip-role {
+  grid-area: role;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.aip-model {
+  grid-area: model;
+}
+
+.aip-row > .ac-btn {
+  grid-area: change;
+}
+
+.aip-row + .aip-row {
+  border-top: 1px solid var(--line);
+}
+
+.aip-model .mp-label__text {
+  white-space: nowrap;
+}
+
+.aip-who {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-width: 0;
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.aip-who:hover b {
+  text-decoration: underline;
+}
+
+.aip-who__text {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 640px) {
+  .aip-row {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      "who change"
+      "role role"
+      "model model";
+  }
+}

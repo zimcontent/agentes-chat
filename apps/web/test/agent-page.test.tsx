@@ -23,7 +23,8 @@ afterEach(() => cleanup());
 
 const DESIGN_ID = "00000000-0000-4000-8000-0000000000c9";
 
-const go = async (query = "", state = seedState()) => {
+/** Ajustes at Visão geral by default: the agent's lean page is `lean-agents.test.tsx`'s (docs/adr/doug-0017-agents-lean.md). */
+const go = async (query = "?tab=overview", state = seedState()) => {
   const r = await renderApp(`/org/${ORG_ID}/agents/${ADA_ID}${query}`, { api: createFakeApi(state) });
   await settle(8);
   return { ...r, state };
@@ -73,14 +74,14 @@ const updates = (state: ReturnType<typeof seedState>) =>
   state.calls.filter((c) => c.method === "agents.update").map((c) => c.args[2]);
 
 describe("agent page: tabs and the URL", () => {
-  test("four tabs and More; the chosen one goes to ?tab=; a link opens a tab; the memory tab counts the proposal", async () => {
+  test("Ajustes: five tabs and More; the chosen one goes to ?tab=; a link opens a tab; the memory tab counts the proposal", async () => {
     const { router } = await go();
     const tabs = screen().getByRole("tablist", { name: "Seções da Ada" });
     expect(
       within(tabs)
         .getAllByRole("tab")
         .map((t) => t.textContent),
-    ).toEqual(["Visão geral", "Instruções", "Memória1", "Atividade"]);
+    ).toEqual(["Configurações", "Instruções", "Ferramentas e acesso", "Memória1", "Atividade", "Visão geral"]);
     // The rest are in More; the one opened from there shows in the bar, and More keeps the others.
     await openTab(/^Uso/);
     expect(router.state.location.search).toMatchObject({ tab: "usage" });
@@ -88,7 +89,7 @@ describe("agent page: tabs and the URL", () => {
       within(screen().getByRole("tablist", { name: "Seções da Ada" }))
         .getAllByRole("tab")
         .map((t) => t.textContent),
-    ).toEqual(["Visão geral", "Instruções", "Memória1", "Atividade", "Uso"]);
+    ).toEqual(["Configurações", "Instruções", "Ferramentas e acesso", "Memória1", "Atividade", "Uso"]);
     await act(async () =>
       fireEvent.pointerDown(
         within(screen().getByRole("tablist", { name: "Seções da Ada" })).getByRole("button", { name: /^Mais/ }),
@@ -100,7 +101,7 @@ describe("agent page: tabs and the URL", () => {
       within(screen().getByRole("menu", { name: "Mais" }))
         .getAllByRole("menuitem")
         .map((m) => m.textContent),
-    ).toEqual(["Ferramentas e acesso", "Arquivos", "Configurações"]);
+    ).toEqual(["Visão geral", "Arquivos"]);
     await act(async () => fireEvent.keyDown(screen().getByRole("menu", { name: "Mais" }), { key: "Escape" }));
     await settle(2);
     expect(screen().getByRole("heading", { level: 1, name: "Ada" })).toBeTruthy();
@@ -198,7 +199,7 @@ describe("agent page: what it does", () => {
     if (ada)
       ada.instructions =
         "Investiga primeiro: lê o código e as tarefas e erros relacionados antes de responder, e volta com o que achou e uma proposta concreta de PR com teste.\nTrabalha em branches e abre PRs pequenos; para mudanças grandes, abre o PR como rascunho e explica o plano ali.\nNunca faz merge sozinho: pede revisão a uma pessoa.";
-    await go("", state);
+    await go("?tab=overview", state);
     const does = screen().getByRole("region", { name: "O que a Ada faz" });
     const text = does.querySelector(".agp-prose")?.textContent ?? "";
     expect(text).toEndWith("explica o plano ali.");
@@ -222,7 +223,7 @@ describe("agent page: what it does", () => {
         "- Seja cuidadosa com o que é dos outros.",
         "- Lembre do que importa.",
       ].join("\n");
-    await go("", state);
+    await go("?tab=overview", state);
     const does = screen().getByRole("region", { name: "O que a Ada faz" });
     expect(does.querySelector(".agp-prose")?.textContent).toBe(
       "Você não é um chatbot. Você está se tornando alguém.\nAjude de verdade. Pule o “Ótima pergunta!” e ajude.\nTenha opiniões.",
@@ -353,7 +354,7 @@ describe("agent page: the budget on the overview", () => {
     const state = asMember();
     const ada = state.agents.find((a) => a.id === ADA_ID);
     if (ada) ada.brain = { kind: "claude_code", model: "Sonnet" };
-    await go("", state);
+    await go("?tab=overview", state);
     const work = screen().getByRole("region", { name: "Como trabalha" });
     // The plan that pays for it in the label, the model under it.
     expect(work.textContent).toContain("Pensa com ClaudeSonnet");
@@ -390,7 +391,7 @@ describe("agent page: a plan's limits where the budget was (ADR 0063 §5)", () =
   const line = (el: Element) => el.querySelector(".ac-planmeter__line")?.textContent;
 
   test("on a plan: its account's tightest windows and one bar, and no budget while it spent nothing through the API", async () => {
-    const { router } = await go("", onPlan(0));
+    const { router } = await go("?tab=overview", onPlan(0));
     const work = screen().getByRole("region", { name: "Como trabalha" });
     expect(line(work)).toBe("Claude Team · semana 40% · 5h 12%");
     expect(within(work).getByRole("meter", { name: "Semana" }).getAttribute("aria-valuenow")).toBe("40");
@@ -406,7 +407,7 @@ describe("agent page: a plan's limits where the budget was (ADR 0063 §5)", () =
   });
 
   test("on a plan that also spent through the API: the plan's limits first, the budget after them", async () => {
-    await go("", onPlan(12.3));
+    await go("?tab=overview", onPlan(12.3));
     const work = screen().getByRole("region", { name: "Como trabalha" }).textContent ?? "";
     expect(work.indexOf("Claude Team · semana 40%")).toBeGreaterThanOrEqual(0);
     expect(work.indexOf("Claude Team · semana 40%")).toBeLessThan(work.indexOf("US$\u00a012,30 de US$\u00a040"));
@@ -425,7 +426,7 @@ describe("agent page: a plan's limits where the budget was (ADR 0063 §5)", () =
   });
 
   test("a plan whose windows aren't known yet shows nothing rather than 0%", async () => {
-    await go("", onPlan(0, null));
+    await go("?tab=overview", onPlan(0, null));
     const work = screen().getByRole("region", { name: "Como trabalha" });
     expect(work.querySelector(".ac-planmeter")).toBeNull();
     expect(work.textContent).not.toMatch(/orçamento|US\$/);
@@ -438,7 +439,7 @@ describe("agent page: a plan's limits where the budget was (ADR 0063 §5)", () =
       ...LIMITS,
       windows: [{ kind: "five_hour", usedPercent: 92, resetsAt: new Date(Date.now() + 90 * 60_000).toISOString() }],
     };
-    await go("", onPlan(0, almost));
+    await go("?tab=overview", onPlan(0, almost));
     await click(screen().getByRole("button", { name: "Uso" }));
     const card = screen().getByRole("dialog", { name: "Uso" });
     expect(line(card)).toBe("Claude Team · 5h 92%");
@@ -585,7 +586,7 @@ describe("agent page: inline editing and the save bar", () => {
         missing: [{ orgName: "Cliente Lexeer", kind: "connection", label: "Figma" }],
       },
     };
-    await go("", state);
+    await go("?tab=overview", state);
     await openTab(/^Configurações/);
     const card = screen().getByRole("region", { name: "Nos seus outros workspaces" });
     expect(card.textContent).toContain("Cliente Lexeer");

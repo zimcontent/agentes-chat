@@ -11,6 +11,7 @@ import { StyleSheet, View } from "react-native";
 import { useOrg } from "@/providers/org";
 import { Button, EventPill, EventPillAction, PixelStop, useToast } from "@/ui";
 import { openAgentAi } from "../ai/AgentAiScreen";
+import { openChangeAi } from "../ai/ChangeAiSheet";
 import { openKeyForAll } from "../ai/KeyForAllScreen";
 import { useColors, useDirectory, useMeId, useOrgId, useWhen } from "../shared/hooks";
 import { ReasonField } from "../task-manager/parts";
@@ -188,7 +189,7 @@ export function ModelStandInLine({ message, text }: { message: Message; text: st
                 onPress={() => openKeyForAll(key.machineId, key.account, key.model)}
               />
             ) : null}
-            <EventPillAction label={t("chat.modelStandIn.pick")} onPress={() => openAgentAi(agent.id)} />
+            <EventPillAction label={t("chat.modelStandIn.pick")} onPress={() => openChangeAi(agent.id)} />
           </>
         ) : null
       }

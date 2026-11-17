@@ -34,7 +34,8 @@ test("the kit's screens, grouped rows and toolbar controls read those numbers in
 
 test("a small button and a card's footer button are the web's 32, their targets grown to 44 above and below only", () => {
   const button = source("Button.tsx");
-  expect(button).toContain("const SMALL = { height: TOOL_H, radius: 8, padding: 12");
+  // Round as on dougbot.app: the small button is a pill (half its height).
+  expect(button).toContain("const SMALL = { height: TOOL_H, radius: TOOL_H / 2, padding: 14");
   expect(button).toMatch(/card: SMALL,\s*sm: SMALL,/);
   expect(button).toContain("const grow = (TOUCH - height) / 2;");
   expect(button).toContain("return grow > 0 ? { top: grow, bottom: grow } : undefined;");

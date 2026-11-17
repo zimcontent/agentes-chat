@@ -12,9 +12,7 @@ describe("a long text field never cuts what is pasted or dictated", () => {
     "features/browser/HandoffCard.tsx",
     "features/settings/GeneralScreen.tsx",
     "features/right-hand/Approvals.tsx",
-    "features/agents/AgentProfileScreen.tsx",
-    "features/agents/AgentEditScreen.tsx",
-    "features/agents/NewAgentScreen.tsx",
+    "features/agents/MemoryFix.tsx",
     "features/issues/NewIssueForm.tsx",
     // Recado no e-mail, pushed over Convidar pessoas.
     "features/members/InvitePickers.tsx",

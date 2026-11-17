@@ -9,6 +9,7 @@ import { StyleSheet, View } from "react-native";
 import { useOrg } from "@/providers/org";
 import { EmptyState, SectionHeader, SkeletonList } from "@/ui";
 import { router } from "@/ui/navigation";
+import { useCreateAgent } from "../agents/elsewhere";
 import { chatHref } from "../links/logic";
 import { AgentFace, Face } from "../shared/Face";
 import { useDirectory, useOrgId, useWhen } from "../shared/hooks";
@@ -26,6 +27,7 @@ const ACTION_ICON = { newConversation: "compose", newTask: "target", newAgent: "
  * results come, rows of their shape stand in.
  */
 export function SearchResults({ q }: { q: string }) {
+  const createAgent = useCreateAgent();
   const { t } = useTranslation();
   const orgId = useOrgId();
   const dir = useDirectory();
@@ -50,7 +52,7 @@ export function SearchResults({ q }: { q: string }) {
   const r = createsAgents ? found : { ...found, actions: found.actions.filter((a) => a !== "newAgent") };
   const runAction = (a: SearchAction) => {
     if (a === "newConversation") router.push("/new-chat");
-    else if (a === "newAgent") router.push("/new-agent");
+    else if (a === "newAgent") createAgent();
     else router.navigate("/agents");
   };
   const channelName = (id: string | undefined) => (id ? channels.data?.find((x) => x.id === id)?.name : undefined);

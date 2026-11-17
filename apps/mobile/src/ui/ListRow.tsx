@@ -59,7 +59,16 @@ export interface ListRowProps extends Omit<PressableProps, "style" | "children">
   chevron?: boolean;
   /** Pinned on top: a small pin before the time, so what the person pinned reads as pinned. */
   pinned?: boolean;
+  /**
+   * Inside a panel (Início's, the site's card): a 44 face, the 15 name and 14 from the panel's edges, so the rows sit
+   * as dense as the site's lists.
+   */
+  compact?: boolean;
 }
+
+/** A compact row's face box and its sides (inside a panel). */
+export const COMPACT_AVATAR = 44;
+const COMPACT_SIDE = 14;
 
 /**
  * One full-width row of a list: no card, the
@@ -82,6 +91,7 @@ export function ListRow({
   background,
   chevron = false,
   pinned = false,
+  compact = false,
   ...press
 }: ListRowProps) {
   const { colors: c } = useTheme();
@@ -95,16 +105,23 @@ export function ListRow({
       {...press}
       style={({ pressed }) => [
         styles.row,
+        compact ? styles.compactRow : null,
         background ? { backgroundColor: background } : null,
         pressed && { backgroundColor: c.sunken },
       ]}
     >
-      {divider ? <View style={[styles.divider, { backgroundColor: c.line2 }]} /> : null}
-      <View style={styles.avatar}>{leading}</View>
+      {divider ? (
+        <View style={[styles.divider, compact ? styles.compactDivider : null, { backgroundColor: c.line2 }]} />
+      ) : null}
+      <View style={[styles.avatar, compact ? styles.compactAvatar : null]}>{leading}</View>
       <View style={styles.tx}>
         <View style={styles.l1}>
           {typeof title === "string" ? (
-            <Text variant="title" numberOfLines={titleLines} style={[styles.shrink, unread && styles.unreadName]}>
+            <Text
+              variant={compact ? "subhead" : "title"}
+              numberOfLines={titleLines}
+              style={[styles.shrink, compact && styles.compactName, unread && styles.unreadName]}
+            >
               {title}
             </Text>
           ) : (
@@ -114,7 +131,7 @@ export function ListRow({
             <View style={[styles.time, styles.timeRow, { minHeight: titleLine }]}>
               {pinned ? <Icon name="pin" size={12} color={c.faint} /> : null}
               <Text
-                variant={TIME_VARIANT}
+                variant={compact ? "caption" : TIME_VARIANT}
                 tone={unread ? "ink2" : "faint"}
                 style={[LIST_TIME, unread && styles.unreadTime]}
               >
@@ -155,6 +172,10 @@ const styles = StyleSheet.create({
     minHeight: 76,
   },
   divider: { position: "absolute", top: 0, left: LIST_INSET, right: 0, height: StyleSheet.hairlineWidth },
+  compactRow: { paddingVertical: 10, paddingHorizontal: COMPACT_SIDE, minHeight: 64 },
+  compactDivider: { left: COMPACT_SIDE + COMPACT_AVATAR + GAP, right: COMPACT_SIDE },
+  compactAvatar: { width: COMPACT_AVATAR, height: COMPACT_AVATAR },
+  compactName: { fontWeight: weights.semibold },
   dot: { width: 10, height: 10, borderRadius: 5, marginLeft: DOT_GAP - GAP },
   avatar: { width: LIST_AVATAR, height: LIST_AVATAR, alignItems: "center", justifyContent: "center" },
   tx: { flex: 1, minWidth: 0, gap: 2 },

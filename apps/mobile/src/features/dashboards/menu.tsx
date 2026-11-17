@@ -18,7 +18,7 @@ import { useSheet } from "../shared/SheetHost";
 import { type BoardMenuKey, boardMenuKeys, HOME } from "./logic";
 
 interface MenuItem {
-  key: BoardMenuKey;
+  key: BoardMenuKey | "add" | "newBoard";
   icon: IconName;
   label: string;
   danger?: boolean;
@@ -29,9 +29,13 @@ interface MenuItem {
  * A board's "…" (ADR 0135): Use on Home or Remove from Home (§18), Organize, Share, Rename, Pin to the top or Unpin,
  * and Delete (with a confirmation), only what the viewer may do. As the routines' menu: the system's action sheet on
  * iOS, the app's own list in a sheet on Android (the screen hosts it: `SheetHostProvider`). Called before the board
- * loads: it offers nothing until then.
+ * loads: it offers nothing until then. Dashboards' "Editar" adds New widget first (`add`) and New dashboard last
+ * (`newBoard`), and stays on its pages when the board is deleted (`onDeleted`, else the screen goes back).
  */
-export function useBoardMenu(board: Dashboard | undefined) {
+export function useBoardMenu(
+  board: Dashboard | undefined,
+  more: { add?: () => void; newBoard?: () => void; onDeleted?: () => void } = {},
+) {
   const { t } = useTranslation();
   const orgId = useOrgId();
   const toast = useToast();
@@ -79,7 +83,8 @@ export function useBoardMenu(board: Dashboard | undefined) {
               onSuccess: () => {
                 successHaptic();
                 toast({ title: t("dashboards.delete.done", { title }) });
-                goBack();
+                if (more.onDeleted) more.onDeleted();
+                else goBack();
               },
               onError: failed,
             }),
@@ -100,7 +105,13 @@ export function useBoardMenu(board: Dashboard | undefined) {
     unpin: { icon: "pin", label: t("dashboards.unpin"), run: () => setPinned(false) },
     delete: { icon: "trash", label: t("dashboards.delete.action"), danger: true, run: confirmDelete },
   };
-  const items: MenuItem[] = boardMenuKeys(board, onHome).map((key) => ({ key, ...all[key] }));
+  const items: MenuItem[] = [
+    ...(more.add ? [{ key: "add" as const, icon: "plus" as const, label: t("widgets.add.label"), run: more.add }] : []),
+    ...boardMenuKeys(board, onHome).map((key) => ({ key, ...all[key] })),
+    ...(more.newBoard
+      ? [{ key: "newBoard" as const, icon: "chart" as const, label: t("dashboards.new"), run: more.newBoard }]
+      : []),
+  ];
   const open = () => {
     if (items.length === 0) return;
     if (Platform.OS === "ios") {

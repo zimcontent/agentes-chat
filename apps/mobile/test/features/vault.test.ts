@@ -17,6 +17,7 @@ import {
   accessSentence,
   agentOn,
   agentsSummary,
+  CLIPBOARD_CLEAR_MS,
   codeComplete,
   codeLength,
   connectInput,
@@ -36,9 +37,12 @@ import {
   itemInput,
   itemLine,
   itemPatch,
+  itemTile,
   keyNameFrom,
   kindsIn,
+  lastUse,
   type Names,
+  parseFavorites,
   patchEmpty,
   peopleSummary,
   reservedKeyName,
@@ -47,9 +51,11 @@ import {
   secretToVaultInput,
   shownFields,
   sourceErrorKey,
+  stillOurs,
   textParam,
   titleOf,
   toggleAgent,
+  toggleFavorite,
   usageFacts,
   usageWords,
   type VaultForm,
@@ -58,6 +64,7 @@ import {
   vaultList,
   vaultQueryRoot,
   vaultSaveOffered,
+  viewItems,
   websiteOrigin,
 } from "../../src/features/vault/logic";
 
@@ -576,5 +583,83 @@ describe("the request card and the screens", () => {
     expect(textParam("i1")).toBe("i1");
     expect(textParam(["i1", "i2"])).toBe("i1");
     expect(textParam(undefined)).toBe("");
+  });
+});
+
+describe("Senhas as the password managers open it", () => {
+  const item = (over: Partial<VaultItem>): VaultItem =>
+    ({
+      id: "i",
+      kind: "login",
+      scope: "team",
+      title: "Item",
+      website: null,
+      username: null,
+      keyName: null,
+      description: "",
+      sourceName: null,
+      ...over,
+    }) as VaultItem;
+  const items = [
+    item({ id: "a", title: "Instagram", website: "https://instagram.com", username: "@lexeer" }),
+    item({ id: "b", kind: "key", title: "Stripe", keyName: "STRIPE_KEY" }),
+    item({ id: "c", kind: "contact", title: "Empresa" }),
+    item({ id: "d", scope: "personal", title: "Banco" }),
+  ];
+
+  test("a category lists its kind; the favorites only what is starred; a search reaches every kind", () => {
+    expect(viewItems(items, "team", "login", "", new Set()).map((i) => i.id)).toEqual(["a"]);
+    expect(viewItems(items, "team", "favorites", "", new Set(["b", "d"])).map((i) => i.id)).toEqual(["b"]);
+    expect(viewItems(items, "team", "home", "stripe", new Set()).map((i) => i.id)).toEqual(["b"]);
+    expect(viewItems(items, "team", "home", "", new Set()).map((i) => i.id)).toEqual(["c", "a", "b"]);
+  });
+
+  test("the stars are kept per workspace, and a broken value reads as none", () => {
+    const once = toggleFavorite(null, "o1", "a");
+    expect(parseFavorites(once, "o1")).toEqual(["a"]);
+    expect(parseFavorites(once, "o2")).toEqual([]);
+    const both = toggleFavorite(toggleFavorite(once, "o2", "x"), "o1", "b");
+    expect(parseFavorites(both, "o1")).toEqual(["b", "a"]);
+    expect(parseFavorites(both, "o2")).toEqual(["x"]);
+    expect(parseFavorites(toggleFavorite(both, "o1", "a"), "o1")).toEqual(["b"]);
+    expect(parseFavorites("{nope", "o1")).toEqual([]);
+  });
+
+  test("an item's tile: two letters of its site, the same color for the same name", () => {
+    expect(itemTile({ title: "Instagram da Lexeer", website: "https://www.instagram.com" }).letters).toBe("in");
+    expect(itemTile({ title: "Chave", website: null }).letters).toBe("ch");
+    expect(itemTile({ title: "X", website: null }).color).toBe(itemTile({ title: "X", website: "https://a.b" }).color);
+  });
+
+  test("the last use names the agent that typed or ran it; a person's change is no use", () => {
+    const use = (action: VaultUse["action"], agentId: string | null, at: string) =>
+      ({
+        id: at,
+        action,
+        agentId,
+        userId: null,
+        onBehalfOfUserId: null,
+        routineName: null,
+        origin: null,
+        at,
+      }) as VaultUse;
+    expect(lastUse({ uses: [use("edit", null, "t3"), use("fill", "rosa", "t2")], lastUsedAt: "t2" })).toEqual({
+      agentId: "rosa",
+      at: "t2",
+    });
+    expect(lastUse({ uses: [], lastUsedAt: "t1" })).toEqual({ agentId: null, at: "t1" });
+    expect(lastUse({ uses: [], lastUsedAt: null })).toBeNull();
+  });
+
+  test("the clipboard is taken back only while it still holds what the app copied", () => {
+    expect(stillOurs("@lexeer", "@lexeer")).toBe(true);
+    expect(stillOurs("something else", "@lexeer")).toBe(false);
+    expect(CLIPBOARD_CLEAR_MS).toBe(60_000);
+  });
+
+  test("no saved password comes back: the sheet has no way to show or copy one (ADR 0144 §2)", () => {
+    const sheet = readFileSync(join(import.meta.dir, "../../src/features/vault/VaultSheet.tsx"), "utf8");
+    expect(sheet).toContain("<Sealed");
+    expect(sheet).not.toMatch(/name="eye"/);
   });
 });

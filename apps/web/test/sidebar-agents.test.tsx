@@ -298,8 +298,7 @@ describe("a setor's ⋯ in the sidebar", () => {
     expect(rowsIn(section("Agentes"))).toEqual(["Ada", "Atlas"]);
   });
 
-  test("Organizar setores na Equipe opens Equipe on its setores, whatever view it showed last", async () => {
-    localStorage.setItem("agentes.team.view", "list");
+  test("Organizar setores na Equipe opens Equipe on its setores (`?view=sectors`), not on Seu time agora", async () => {
     await go(withGroups());
     await click(
       within(await openMenu("Opções de Agentes")).getByRole("menuitem", { name: "Organizar setores na Equipe" }),

@@ -1,13 +1,6 @@
-import { type Agent, useAgents, useSettings, useSetWorkspaceApprovalsLevel, useUpdateAgent } from "@agenteschat/client";
-import {
-  APPROVALS_LEVELS,
-  followsWorkspace,
-  ownApprovalsCount,
-  shownApprovalsLevel,
-} from "@agenteschat/client/lib/approvals-level";
-import { can } from "@agenteschat/client/lib/permissions";
+import { useAgents, useSettings, useSetWorkspaceApprovalsLevel } from "@agenteschat/client";
+import { APPROVALS_LEVELS, ownApprovalsCount } from "@agenteschat/client/lib/approvals-level";
 import { useTranslation } from "react-i18next";
-import { useOrg } from "@/providers/org";
 import { GroupedList, GroupedRow } from "@/ui";
 import { useFailed } from "../routines/hooks";
 import { useOrgId } from "../shared/hooks";
@@ -23,47 +16,6 @@ const useLevelOptions = () => {
     subLines: 3,
   }));
 };
-
-/**
- * The web's Aprovações (ADR 0173) on the phone: how much the agent asks before acting, one row with the choice in
- * sight, "Segue o workspace" while it has no choice of its own. Whoever manages agents opens the three choices in a
- * sheet, and a pick saves at once. Anyone else reads the row.
- */
-export function ApprovalsLevelRow({ agent }: { agent: Agent }) {
-  const { t } = useTranslation();
-  const { org } = useOrg();
-  const failed = useFailed();
-  const options = useLevelOptions();
-  const update = useUpdateAgent(useOrgId(), agent.id);
-  const level = shownApprovalsLevel(agent, update);
-  const title = t("approvalsLevel.title");
-  const choose = async () => {
-    const picked = await pickOne({
-      title,
-      note: t("approvalsLevel.lead", { name: agent.name }),
-      value: level,
-      options,
-    });
-    const next = APPROVALS_LEVELS.find((value) => value === picked);
-    if (next && next !== level) update.mutate({ approvalsLevel: next }, { onError: failed });
-  };
-  return (
-    <GroupedList>
-      <GroupedRow
-        icon="shield"
-        label={title}
-        value={
-          followsWorkspace(agent) && !update.isPending
-            ? t("approvalsLevel.follows")
-            : t(`approvalsLevel.${level}.title`)
-        }
-        {...(can(org, "manage_agents")
-          ? { chevron: true, disabled: update.isPending, onPress: () => void choose() }
-          : {})}
-      />
-    </GroupedList>
-  );
-}
 
 /**
  * Settings → Aprovações (ADR 0173 addendum 2026-11-15), for who may set every agent's level: the workspace's level,

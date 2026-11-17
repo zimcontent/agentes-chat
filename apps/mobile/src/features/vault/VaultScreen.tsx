@@ -1,146 +1,241 @@
 import { useVault, type VaultConnection, type VaultItem, type VaultOverview } from "@agenteschat/client";
-import { joinNames, relativeTime } from "@agenteschat/client/lib/format";
+import { joinNames } from "@agenteschat/client/lib/format";
 import { webSettingsUrl } from "@agenteschat/client/lib/server";
 import { vaultNoAgents } from "@agenteschat/client/lib/vault";
-import { useState } from "react";
+import { type ReactNode, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { ActivityIndicator, StyleSheet, View } from "react-native";
+import {
+  ActivityIndicator,
+  RefreshControl,
+  Text as RNText,
+  ScrollView,
+  StyleSheet,
+  TextInput,
+  View,
+} from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { serverUrl } from "@/lib/server";
 import {
   Button,
   Chip,
   EmptyState,
-  Filters,
   GroupedFooter,
   GroupedHeader,
   GroupedList,
   GroupedRow,
+  Icon,
+  IconButton,
   type IconName,
-  SearchField,
-  Segmented,
+  PressScale,
+  SCREEN_X,
   Text,
 } from "@/ui";
 import { router } from "@/ui/navigation";
 import { Note, openPage } from "../ai/parts";
-import { Gap, SettingsPage } from "../settings/parts";
 import { FirstUse } from "../shared/FirstUse";
-import { useColors, useNow, useOrgId } from "../shared/hooks";
-import { Loaded, MONO } from "../shared/parts";
+import { useNow, useOrgId, usePullRefresh } from "../shared/hooks";
+import { pickOne, showActionSheet } from "../shared/PickerSheet";
+import { ScreenTopBar } from "../shared/ScreenTopBar";
 import {
-  agentsSummary,
+  CATEGORY_COLOR,
   connectionLine,
   connectionState,
   firstTab,
   itemLine,
-  KIND_ICON,
-  kindsIn,
-  type VaultKindFilter,
+  VAULT_KINDS,
   type VaultTab,
+  type VaultView,
   vaultCounts,
   vaultHref,
-  vaultList,
+  viewItems,
 } from "./logic";
-import { useVaultNames } from "./parts";
+import { ItemTile, StarGlyph, useVaultFavorites, useVaultLook, vaultText } from "./look";
 
-/** Above this many items a tab gets its search (a few rows read faster than a search box). */
-const SEARCH_FROM = 6;
+/** Each category's glyph: a login's key, a key's lock, a contact's person; the managers' lightning. */
+const CATEGORY_ICON: Record<"login" | "key" | "contact" | "connections", IconName> = {
+  login: "key",
+  key: "lock",
+  contact: "person",
+  connections: "bolt",
+};
 
 /**
- * Settings › Vault (ADR 0144), as the web's: the team's items, the person's own and the password managers connected,
- * one view at a time. Each row says what it is, which agents use it and when it was last used, and opens its page.
- * New items start here; importing a passwords file happens on a computer (the web), and a row says so.
+ * Senhas (the Vault, ADR 0144) the way the password managers people know open: the vault on top (Equipe or Pessoal,
+ * with its count), the search, Favoritos, then the categories of the Vault's own model (Logins, Chaves, Contatos) with
+ * their counts, and the password managers connected. Tapping the search lists everything, and the words narrow it; a
+ * category lists its items. An item opens in a sheet over the list.
  */
-export function VaultScreen() {
+export function VaultScreen({ start = "home" }: { start?: VaultView } = {}) {
   const { t } = useTranslation();
-  const c = useColors();
+  const look = useVaultLook();
+  const insets = useSafeAreaInsets();
   const orgId = useOrgId();
   const vault = useVault(orgId);
-  const [tab, setTab] = useState<VaultTab | null>(null);
-  const title = t("settings.section.vault");
+  const pull = usePullRefresh(vault.refetch);
+  const favorites = useVaultFavorites(orgId);
+  const [tab, setTab] = useState<Exclude<VaultTab, "connections"> | null>(null);
+  const [view, setView] = useState<VaultView>(start);
+  const [q, setQ] = useState("");
+  const [searching, setSearching] = useState(false);
   const data = vault.data;
-  if (!data) {
-    return (
-      <SettingsPage title={title}>
-        {vault.isError ? (
-          <View style={styles.note}>
-            <Note icon="x">{t("common.loadFailed")}</Note>
-          </View>
-        ) : (
-          <ActivityIndicator color={c.muted} style={styles.loading} />
-        )}
-      </SettingsPage>
-    );
-  }
-  const current = tab ?? firstTab(data);
+  const current = tab ?? (data ? (firstTab(data) === "personal" ? "personal" : "team") : "team");
   const counts = vaultCounts(data);
-  // A new item starts where the person is: the team's tab adds to the team when they may.
-  const newScope = current === "team" && data.canManageTeam ? "team" : "personal";
-  const tabEmpty = current === newScope && !data.items.some((i) => i.scope === current);
+  // A new item starts where the person is: the team's vault adds to the team when they may.
+  const mayAdd = current === "personal" || (data?.canManageTeam ?? false);
+  const newItem = () => router.push(vaultHref.create(current) as never);
+
+  const switchVault = async () => {
+    const key = await pickOne({
+      title: t("mobile.vault.home.vaults"),
+      options: (["team", "personal"] as const).map((k) => ({
+        key: k,
+        label: t(`mobile.vault.tab.${k}`),
+        sub: t("mobile.vault.home.items", { count: counts[k] }),
+        leading: { kind: "icon" as const, name: (k === "team" ? "members" : "lock") as IconName },
+      })),
+      value: current,
+    });
+    if (key === "team" || key === "personal") {
+      setTab(key);
+      setView((v) => (v === "connections" ? v : "home"));
+    }
+  };
+  const plus = () =>
+    showActionSheet(t("mobile.vault.newItem"), [
+      ...(mayAdd ? [{ label: t("mobile.vault.newItem"), onPress: newItem }] : []),
+      ...(mayAdd ? [{ label: t("vault.env.open"), onPress: () => router.push(vaultHref.env(current) as never) }] : []),
+      { label: t("mobile.vault.import.title"), onPress: () => openPage(webSettingsUrl(serverUrl(), orgId, "vault")) },
+    ]);
+  const back = () => {
+    if (searching || q) {
+      setQ("");
+      setSearching(false);
+    } else if (view !== "home") setView("home");
+    else router.back();
+  };
+
+  const title =
+    view === "home"
+      ? t("mobile.vault.home.title")
+      : view === "favorites"
+        ? t("mobile.vault.home.favorites")
+        : view === "connections"
+          ? t("mobile.vault.home.connections")
+          : t(`mobile.vault.kinds.${view}`);
+  const listing = searching || q.trim() !== "" || (view !== "home" && view !== "connections");
+
   return (
-    <SettingsPage title={title}>
-      <Loaded>
-        <GroupedFooter>{t("settings.sectionText.vault")}</GroupedFooter>
-        {/* Empty, the button in the tab's empty state is the one way to add. */}
-        {tabEmpty ? null : (
-          <>
-            <Gap />
-            <GroupedList>
-              <GroupedRow
-                icon="plus"
-                label={t("mobile.vault.newItem")}
-                chevron
-                onPress={() => router.push(vaultHref.create(newScope) as never)}
-              />
-            </GroupedList>
-          </>
-        )}
-        <View style={styles.tabs}>
-          <Segmented
-            items={[
-              { key: "team", label: t("mobile.vault.tab.team"), count: counts.team },
-              { key: "personal", label: t("mobile.vault.tab.personal"), count: counts.personal },
-              { key: "connections", label: t("mobile.vault.tab.connections"), count: counts.connections },
-            ]}
-            value={current}
-            onChange={(key) => setTab(key as VaultTab)}
-          />
-        </View>
-        {/* Another tab's rows fade in where the last one's were. */}
-        <Loaded key={current}>
-          {current === "connections" ? (
-            <Connections data={data} />
+    <View style={[styles.fill, { backgroundColor: look.bg }]}>
+      <ScreenTopBar
+        onBack={back}
+        middle={
+          <PressScale
+            to={0.96}
+            onPress={() => void switchVault()}
+            accessibilityRole="button"
+            accessibilityLabel={t("mobile.vault.home.switch", {
+              name: t(`mobile.vault.tab.${current}`),
+              count: counts[current],
+            })}
+            style={[styles.switcher, { backgroundColor: look.pill }]}
+            contentStyle={styles.switcherIn}
+          >
+            <Icon name={current === "team" ? "members" : "lock"} size={17} color={look.pillInk} />
+            <RNText numberOfLines={1} style={[styles.switchName, { color: look.ink }]}>
+              {t(`mobile.vault.tab.${current}`)}
+            </RNText>
+            <RNText numberOfLines={1} style={[styles.switchCount, { color: look.pillInk }]}>
+              {t("mobile.vault.home.items", { count: counts[current] })}
+            </RNText>
+            <Icon name="chev" size={14} color={look.pillInk} />
+          </PressScale>
+        }
+        right={<IconButton icon="plus" plate label={t("mobile.vault.newItem")} onPress={plus} />}
+      />
+      <ScrollView
+        style={styles.fill}
+        contentContainerStyle={{ paddingBottom: 32 + insets.bottom }}
+        keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="on-drag"
+        refreshControl={<RefreshControl refreshing={pull.refreshing} onRefresh={pull.onRefresh} />}
+      >
+        <RNText accessibilityRole="header" numberOfLines={1} style={[styles.title, { color: look.ink }]}>
+          {title}
+        </RNText>
+        {view !== "connections" ? (
+          <View style={[styles.search, { backgroundColor: look.pill }]}>
+            <Icon name="search" size={17} color={look.sub} />
+            <TextInput
+              value={q}
+              onChangeText={setQ}
+              onFocus={() => setSearching(true)}
+              onBlur={() => setSearching(q.trim() !== "")}
+              placeholder={t("mobile.vault.home.search")}
+              placeholderTextColor={look.sub}
+              accessibilityLabel={t("mobile.vault.home.search")}
+              returnKeyType="search"
+              autoCorrect={false}
+              autoCapitalize="none"
+              style={[styles.searchInput, { color: look.ink }]}
+            />
+            {q ? <IconButton icon="x" small label={t("filters.clearSearch")} onPress={() => setQ("")} /> : null}
+          </View>
+        ) : null}
+        {!data ? (
+          vault.isError ? (
+            <View style={styles.note}>
+              <Note icon="x">{t("common.loadFailed")}</Note>
+            </View>
           ) : (
-            <Items data={data} tab={current} onNew={() => router.push(vaultHref.create(newScope) as never)} />
-          )}
-        </Loaded>
-      </Loaded>
-    </SettingsPage>
+            <ActivityIndicator color={look.sub} style={styles.loading} />
+          )
+        ) : view === "connections" ? (
+          <View style={styles.pad}>
+            <Connections data={data} />
+          </View>
+        ) : listing ? (
+          <Items
+            data={data}
+            tab={current}
+            view={searching && view === "home" ? "home" : view}
+            q={q}
+            favorites={favorites.ids}
+            mayAdd={mayAdd}
+            onNew={newItem}
+            onClear={() => setQ("")}
+          />
+        ) : (
+          <Home data={data} tab={current} favorites={favorites.ids} mayAdd={mayAdd} onNew={newItem} onView={setView} />
+        )}
+      </ScrollView>
+    </View>
   );
 }
 
-/** One tab of items: what it is for, a search and a kind filter when it holds enough, the rows. */
-function Items({ data, tab, onNew }: { data: VaultOverview; tab: "team" | "personal"; onNew: () => void }) {
+/** Favoritos, the categories with their counts and the managers connected; the vault's first item when empty. */
+function Home({
+  data,
+  tab,
+  favorites,
+  mayAdd,
+  onNew,
+  onView,
+}: {
+  data: VaultOverview;
+  tab: "team" | "personal";
+  favorites: ReadonlySet<string>;
+  mayAdd: boolean;
+  onNew: () => void;
+  onView: (view: VaultView) => void;
+}) {
   const { t } = useTranslation();
+  const look = useVaultLook();
   const orgId = useOrgId();
-  const now = useNow(60_000);
-  const [kind, setKind] = useState<VaultKindFilter>("all");
-  const [q, setQ] = useState("");
-  const all = data.items.filter((i) => i.scope === tab);
-  const kinds = kindsIn(data.items, tab);
-  const shown = vaultList(data.items, tab, kinds.length > 1 ? kind : "all", q);
-  const mayAdd = tab === "personal" || data.canManageTeam;
-  return (
-    <>
-      {all.length > 0 ? (
-        <GroupedFooter>
-          {tab === "personal"
-            ? t("mobile.vault.personalText")
-            : data.canManageTeam
-              ? t("mobile.vault.teamText")
-              : t("mobile.vault.teamReadText")}
-        </GroupedFooter>
-      ) : null}
-      {all.length === 0 ? (
+  const items = data.items.filter((i) => i.scope === tab);
+  const favCount = items.filter((i) => favorites.has(i.id)).length;
+  if (items.length === 0 && data.connections.length === 0)
+    return (
+      <View style={styles.pad}>
         <FirstUse
           place={tab === "personal" ? "vaultPersonal" : "vaultTeam"}
           size="panel"
@@ -148,122 +243,179 @@ function Items({ data, tab, onNew }: { data: VaultOverview; tab: "team" | "perso
           label={t("mobile.vault.newItem")}
           onPress={onNew}
         />
-      ) : (
-        <>
-          {all.length > SEARCH_FROM ? (
-            <View style={styles.search}>
-              <SearchField
-                value={q}
-                onChangeText={setQ}
-                placeholder={t("mobile.vault.search")}
-                accessibilityLabel={t("mobile.vault.search")}
-              />
-            </View>
-          ) : null}
-          {kinds.length > 1 ? (
-            <View style={styles.filters}>
-              <Filters
-                items={[
-                  { key: "all", label: t("mobile.vault.kinds.all") },
-                  ...kinds.map((k) => ({ key: k, label: t(`mobile.vault.kinds.${k}`) })),
-                ]}
-                value={kind}
-                onChange={(k) => setKind(k as VaultKindFilter)}
-              />
-            </View>
-          ) : (
-            <Gap />
-          )}
-          {shown.length === 0 ? (
-            <EmptyState
-              size="inline"
-              title={t("mobile.vault.noResults", { q: q.trim() })}
-              action={
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  label={t("filters.clearAll")}
-                  onPress={() => {
-                    setQ("");
-                    setKind("all");
-                  }}
-                />
-              }
-            />
-          ) : (
-            <GroupedList>
-              {shown.map((item) => (
-                <ItemRow key={item.id} icon={KIND_ICON[item.kind]} item={item} now={now} />
-              ))}
-            </GroupedList>
-          )}
-        </>
-      )}
-      <Gap />
-      <GroupedList>
-        {mayAdd ? (
-          <GroupedRow
-            icon="key"
-            label={t("vault.env.open")}
-            chevron
-            onPress={() => router.push(vaultHref.env(tab) as never)}
+      </View>
+    );
+  return (
+    <>
+      <CategoryRow
+        loose
+        tile={<StarGlyph color="#FFFFFF" />}
+        color={CATEGORY_COLOR.favorites}
+        label={t("mobile.vault.home.favorites")}
+        count={favCount}
+        onPress={() => onView("favorites")}
+      />
+      <View style={[styles.card, { backgroundColor: look.card }]}>
+        {VAULT_KINDS.map((k, i) => (
+          <CategoryRow
+            key={k}
+            first={i === 0}
+            tile={<Icon name={CATEGORY_ICON[k]} size={17} color="#FFFFFF" />}
+            color={CATEGORY_COLOR[k]}
+            label={t(`mobile.vault.kinds.${k}`)}
+            count={items.filter((x) => x.kind === k).length}
+            onPress={() => onView(k)}
           />
-        ) : null}
-        <GroupedRow
-          icon="laptop"
-          label={t("mobile.vault.import.title")}
-          sub={t("mobile.vault.import.text")}
-          subLines={4}
-          media
-          chevron
-          onPress={() => openPage(webSettingsUrl(serverUrl(), orgId, "vault"))}
+        ))}
+        <CategoryRow
+          tile={<Icon name={CATEGORY_ICON.connections} size={17} color="#FFFFFF" />}
+          color={CATEGORY_COLOR.connections}
+          label={t("mobile.vault.home.connections")}
+          count={data.connections.length}
+          onPress={() => onView("connections")}
         />
-      </GroupedList>
+      </View>
+      <RNText style={[styles.foot, { color: look.sub }]}>
+        {tab === "personal"
+          ? t("mobile.vault.personalText")
+          : data.canManageTeam
+            ? t("mobile.vault.teamText")
+            : t("mobile.vault.teamReadText")}
+      </RNText>
+      <View style={styles.pad}>
+        <GroupedList>
+          <GroupedRow
+            icon="laptop"
+            label={t("mobile.vault.import.title")}
+            sub={t("mobile.vault.import.text")}
+            subLines={4}
+            media
+            chevron
+            onPress={() => openPage(webSettingsUrl(serverUrl(), orgId, "vault"))}
+          />
+        </GroupedList>
+      </View>
     </>
   );
 }
 
-/**
- * An item's row: what it is, its source and state, which agents use it and its last use. `icon` is a prop of the row
- * itself so the list insets the line between rows past the icon, as it does for its own rows.
- */
-function ItemRow({ icon, item, now }: { icon: IconName; item: VaultItem; now: number }) {
-  const { t, i18n } = useTranslation();
-  const c = useColors();
-  const names = useVaultNames();
-  const line = itemLine(item);
-  const facts = [
-    agentsSummary(t, item.access, names),
-    item.lastUsedAt
-      ? t("mobile.vault.usedAt", { when: relativeTime(t, i18n.language, item.lastUsedAt, new Date(now)) })
-      : t("mobile.vault.neverUsed"),
-  ].join(" · ");
-  const chips = item.sourceName !== null || item.missing;
+function CategoryRow({
+  tile,
+  color,
+  label,
+  count,
+  onPress,
+  first = false,
+  loose = false,
+}: {
+  tile: ReactNode;
+  color: string;
+  label: string;
+  count: number;
+  onPress: () => void;
+  first?: boolean;
+  /** Outside the card (Favoritos): the screen's own inset. */
+  loose?: boolean;
+}) {
+  const look = useVaultLook();
   return (
-    <GroupedRow
-      icon={icon}
-      label={item.title}
-      {...(line ? { sub: line } : {})}
-      belowText={facts}
-      media
-      below={
-        <>
-          {item.kind === "key" && item.keyName ? (
-            <Text numberOfLines={1} style={[styles.code, { color: c.ink2 }]}>
-              {item.keyName}
-            </Text>
-          ) : null}
-          {chips ? (
-            <View style={styles.chips}>
-              {item.sourceName ? <Chip icon="bolt" label={item.sourceName} /> : null}
-              {item.missing ? <Chip icon="wait" label={t("mobile.vault.missing")} /> : null}
-            </View>
-          ) : null}
-        </>
-      }
-      chevron
-      onPress={() => router.push(vaultHref.item(item.id) as never)}
-    />
+    <PressScale
+      to={0.98}
+      haptic={false}
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={`${label}, ${count}`}
+      style={[loose && styles.loose, !first && !loose && { borderTopWidth: 1, borderTopColor: look.sep }]}
+      contentStyle={[styles.category, loose ? styles.looseIn : styles.inCard]}
+    >
+      <View style={[styles.catTile, { backgroundColor: color }]}>{tile}</View>
+      <RNText numberOfLines={1} style={[styles.catLabel, { color: look.ink }]}>
+        {label}
+      </RNText>
+      <RNText style={[styles.catCount, { color: look.sub }]}>{count}</RNText>
+      <Icon name="right" size={15} color={look.sub} />
+    </PressScale>
+  );
+}
+
+/** The items of a category, the favorites, or what the search finds: tile, name, site and user. */
+function Items({
+  data,
+  tab,
+  view,
+  q,
+  favorites,
+  mayAdd,
+  onNew,
+  onClear,
+}: {
+  data: VaultOverview;
+  tab: "team" | "personal";
+  view: VaultView;
+  q: string;
+  favorites: ReadonlySet<string>;
+  mayAdd: boolean;
+  onNew: () => void;
+  onClear: () => void;
+}) {
+  const { t } = useTranslation();
+  const look = useVaultLook();
+  const shown = viewItems(data.items, tab, view, q, favorites);
+  if (shown.length === 0)
+    return q.trim() ? (
+      <EmptyState
+        size="inline"
+        title={t("mobile.vault.noResults", { q: q.trim() })}
+        action={<Button variant="secondary" size="sm" label={t("filters.clearSearch")} onPress={onClear} />}
+      />
+    ) : view === "favorites" ? (
+      <EmptyState size="inline" title={t("mobile.vault.home.noFavorites")} />
+    ) : (
+      <View style={styles.pad}>
+        <FirstUse
+          place={tab === "personal" ? "vaultPersonal" : "vaultTeam"}
+          size="panel"
+          acts={mayAdd}
+          label={t("mobile.vault.newItem")}
+          onPress={onNew}
+        />
+      </View>
+    );
+  return (
+    <View style={[styles.card, { backgroundColor: look.card }]}>
+      {shown.map((item, i) => (
+        <ItemRow key={item.id} item={item} first={i === 0} starred={favorites.has(item.id)} />
+      ))}
+    </View>
+  );
+}
+
+function ItemRow({ item, first, starred }: { item: VaultItem; first: boolean; starred: boolean }) {
+  const { t } = useTranslation();
+  const look = useVaultLook();
+  const line = itemLine(item) || t(`mobile.vault.kind.${item.kind}`);
+  return (
+    <PressScale
+      to={0.98}
+      haptic={false}
+      onPress={() => router.push(vaultHref.sheet(item.id) as never)}
+      accessibilityRole="button"
+      accessibilityLabel={`${item.title}, ${line}`}
+      style={!first && { borderTopWidth: 1, borderTopColor: look.sep }}
+      contentStyle={styles.item}
+    >
+      <ItemTile item={item} size={34} />
+      <View style={styles.itemText}>
+        <RNText numberOfLines={1} style={[styles.itemTitle, { color: look.ink }]}>
+          {item.title}
+        </RNText>
+        <RNText numberOfLines={1} style={[styles.itemSub, { color: look.sub }]}>
+          {line}
+        </RNText>
+      </View>
+      {starred ? <StarGlyph color={CATEGORY_COLOR.favorites} size={15} filled /> : null}
+      {item.missing ? <Icon name="wait" size={16} color={look.sub} /> : null}
+    </PressScale>
   );
 }
 
@@ -348,12 +500,52 @@ function ConnectionRow({ icon, conn, now }: { icon: IconName; conn: VaultConnect
 }
 
 const styles = StyleSheet.create({
-  note: { paddingHorizontal: 4, paddingTop: 10 },
-  loading: { marginVertical: 16 },
-  tabs: { paddingTop: 20, paddingBottom: 4, paddingHorizontal: 4 },
-  search: { paddingTop: 12, paddingBottom: 4 },
-  // The pills scroll to the screen's edges; their row has its own inset.
-  filters: { marginHorizontal: -16, paddingTop: 10, paddingBottom: 10 },
+  fill: { flex: 1 },
+  switcher: { height: 40, borderRadius: 20, maxWidth: "100%" },
+  switcherIn: { flexDirection: "row", alignItems: "center", gap: 7, paddingHorizontal: 12 },
+  switchName: { fontFamily: vaultText.semibold, fontSize: 14, flexShrink: 1 },
+  switchCount: { fontFamily: vaultText.regular, fontSize: 13.5, flexShrink: 1 },
+  title: {
+    fontFamily: vaultText.bold,
+    fontSize: 30,
+    letterSpacing: -0.6,
+    paddingHorizontal: SCREEN_X,
+    paddingTop: 14,
+    paddingBottom: 10,
+  },
+  search: {
+    marginHorizontal: 16,
+    height: 40,
+    borderRadius: 12,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    paddingLeft: 12,
+    paddingRight: 4,
+  },
+  searchInput: { flex: 1, minWidth: 0, height: 40, fontFamily: vaultText.regular, fontSize: 15.5, padding: 0 },
+  note: { paddingHorizontal: SCREEN_X, paddingTop: 10 },
+  loading: { marginVertical: 24 },
+  pad: { paddingHorizontal: 16, paddingTop: 8 },
+  card: { marginHorizontal: 16, marginTop: 4, borderRadius: 16, overflow: "hidden" },
+  category: { flexDirection: "row", alignItems: "center", gap: 14, height: 52 },
+  loose: { marginTop: 10 },
+  looseIn: { paddingLeft: SCREEN_X, paddingRight: 18 },
+  inCard: { paddingHorizontal: 14 },
+  catTile: { width: 30, height: 30, borderRadius: 8, alignItems: "center", justifyContent: "center" },
+  catLabel: { flex: 1, minWidth: 0, fontFamily: vaultText.medium, fontSize: 16 },
+  catCount: { fontFamily: vaultText.medium, fontSize: 14 },
+  foot: { fontFamily: vaultText.regular, fontSize: 13, lineHeight: 18, paddingHorizontal: SCREEN_X, paddingTop: 12 },
+  item: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    minHeight: 60,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+  },
+  itemText: { flex: 1, minWidth: 0 },
+  itemTitle: { fontFamily: vaultText.medium, fontSize: 16, lineHeight: 21 },
+  itemSub: { fontFamily: vaultText.regular, fontSize: 13.5, lineHeight: 18 },
   chips: { flexDirection: "row", flexWrap: "wrap", gap: 6, paddingTop: 4 },
-  code: { fontFamily: MONO, fontSize: 12, lineHeight: 17, paddingTop: 2 },
 });

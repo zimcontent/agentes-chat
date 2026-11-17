@@ -2,7 +2,7 @@ import type { Agent, AgentSetupStep } from "@agenteschat/client";
 import { useAgentAccess, useAgentDetail, useAiStatus, useMe } from "@agenteschat/client";
 import { levelOf, resourcesOf } from "@agenteschat/client/lib/access-levels";
 import { audienceOf } from "@agenteschat/client/lib/audience";
-import { firstName, joinNames } from "@agenteschat/client/lib/format";
+import { firstName, NAMES_SHOWN, namesText } from "@agenteschat/client/lib/format";
 import { agentGrammar } from "@agenteschat/client/lib/grammar";
 import { aiStateOf, planHoldPhoneLine } from "@agenteschat/client/lib/no-ai";
 import { addsAgentsTo, can } from "@agenteschat/client/lib/permissions";
@@ -197,9 +197,10 @@ export function AgentSetupCard({
   if (steps.length === 0 || (place === "profile" && all)) return null;
 
   const names = (list: typeof connectors) =>
-    joinNames(
-      list.map((r) => resourceName(t, r, items)),
+    namesText(
       t,
+      list.map((r) => resourceName(t, r, items)),
+      NAMES_SHOWN,
     );
   const suggested = suggestedLevels(role);
   const suggestedApps = connectors.filter((r) => r.connector && suggested[r.connector]);
@@ -215,9 +216,10 @@ export function AgentSetupCard({
       granted: granted.length ? names(granted) : null,
       suggested: suggestedApps.length ? names(suggestedApps) : null,
       channels: inChannels.length
-        ? joinNames(
-            inChannels.map((ch) => `#${ch.name}`),
+        ? namesText(
             t,
+            inChannels.map((ch) => `#${ch.name}`),
+            NAMES_SHOWN,
           )
         : null,
       firstChannel: firstChannel ? `#${firstChannel.name}` : null,

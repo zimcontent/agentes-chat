@@ -6,9 +6,24 @@ import appConfig, { LEGACY_REDIRECTS } from "../app.config";
 const APP = join(import.meta.dir, "..", "app");
 
 describe("legacy routes", () => {
-  test("the removed paths go to Conversas", () => {
-    expect(LEGACY_REDIRECTS.map((r) => r.source).sort()).toEqual(["/chats", "/home"]);
-    for (const r of LEGACY_REDIRECTS) expect(r.destination).toBe("/");
+  test("the removed paths go to Conversas, the agents' setup to the team or the agent", () => {
+    expect(Object.fromEntries(LEGACY_REDIRECTS.map((r) => [r.source, r.destination]))).toEqual({
+      "/chats": "/",
+      "/home": "/",
+      "/new-agent": "/agents",
+      "/agent-edit": "/agents",
+      "/agent-delete": "/agents",
+      "/agent-more/[id]": "/agent/[id]",
+      "/agent-setup/[id]": "/agent/[id]",
+    });
+  });
+
+  test("each redirect lands on a screen the app has", () => {
+    for (const r of LEGACY_REDIRECTS) {
+      const to =
+        r.destination === "/" ? join("(app)", "(tabs)", "(chats)", "index") : join("(app)", r.destination.slice(1));
+      expect(existsSync(join(APP, `${to}.tsx`))).toBe(true);
+    }
   });
 
   test("Conversas is the app's `/` and no redirect shadows a real route", () => {

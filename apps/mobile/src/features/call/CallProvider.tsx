@@ -174,7 +174,7 @@ export function CallProvider({ children }: { children: ReactNode }) {
   return (
     <CallContext.Provider value={value}>
       {children}
-      {current && phase !== "ended" ? <CallBar call={current} /> : null}
+      {current && phase !== "ended" ? <CallBar call={current} onHangUp={hangUp} /> : null}
       {ring && !inThatCall ? (
         <RingCard
           ring={ring}
@@ -218,28 +218,56 @@ export function useTick(ms = 1000) {
   return now;
 }
 
-/** The call in reach while the person moves around the app: a tap opens it again. */
-function CallBar({ call }: { call: ActiveCall }) {
-  const { t } = useTranslation();
+/** The pill is dark green in both themes: its words stay light. */
+const BAR_INK = "#EDEDED";
+
+/** This fork's own words for the call's pill, in Portuguese and English (any other language reads English). */
+const BAR_WORDS = {
+  pt: { call: "Ligação", back: "Voltar à ligação" },
+  en: { call: "Call", back: "Back to the call" },
+} as const;
+
+/**
+ * The call in reach while the person moves around the app (the look in docs/adr/doug-0016-doug-pinned.md): a dark
+ * green pill under the status bar with the time, "Voltar à ligação" and a red button that hangs up there.
+ */
+function CallBar({ call, onHangUp }: { call: ActiveCall; onHangUp: () => void }) {
+  const { t, i18n } = useTranslation();
+  const w = BAR_WORDS[i18n.language?.startsWith("pt") ? "pt" : "en"];
   const { colors: c } = useTheme();
   const insets = useSafeAreaInsets();
   const now = useTick();
   const started = useSyncExternalStore(call.call.subscribe, () => call.call.getState().startedAt);
+  const open = () => router.push("/call");
   return (
-    <Pressable
-      accessibilityRole="button"
-      accessibilityLabel={`${t("liveVoice.room.open")}, ${call.title}`}
-      onPress={() => router.push("/call")}
-      style={[styles.bar, { top: insets.top + 4, backgroundColor: c.green }]}
-    >
-      <Icon name="handset" size={16} color={c.greenInk} />
-      <Text variant="footnote" style={[styles.barText, { color: c.greenInk }]} numberOfLines={1}>
-        {call.title || t("liveVoice.room.inCall")}
-      </Text>
-      <Text variant="footnote" style={{ color: c.greenInk, fontVariant: ["tabular-nums"] }}>
-        {elapsedText(started, now)}
-      </Text>
-    </Pressable>
+    <View style={[styles.bar, { top: insets.top + 4 }]}>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={`${t("liveVoice.room.open")}, ${call.title}`}
+        onPress={open}
+        style={styles.barMain}
+      >
+        <Icon name="handset" size={15} color={c.green} />
+        <Text variant="footnote" style={[styles.barText, { color: BAR_INK }]} numberOfLines={1}>
+          {`${call.title || w.call} · ${elapsedText(started, now)}`}
+        </Text>
+        <View style={styles.barBack}>
+          <Text variant="footnote" style={[styles.barBackText, { color: BAR_INK }]} numberOfLines={1}>
+            {w.back}
+          </Text>
+        </View>
+      </Pressable>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={t("liveVoice.agentCall.hangUp")}
+        onPress={onHangUp}
+        style={[styles.barHang, { backgroundColor: c.danger }]}
+      >
+        <View style={styles.down}>
+          <Icon name="handset" size={15} color="#FFFFFF" />
+        </View>
+      </Pressable>
+    </View>
   );
 }
 
@@ -298,16 +326,31 @@ function RingCard({ ring, onJoin, onClose }: { ring: Ring; onJoin: () => void; o
 const styles = StyleSheet.create({
   bar: {
     position: "absolute",
-    alignSelf: "center",
+    left: 12,
+    right: 12,
     flexDirection: "row",
     alignItems: "center",
-    gap: 8,
-    paddingHorizontal: 14,
-    height: 32,
-    borderRadius: 16,
-    maxWidth: "70%",
+    gap: 6,
+    height: 42,
+    paddingLeft: 12,
+    paddingRight: 4,
+    borderRadius: 21,
+    backgroundColor: "#16240A",
+    boxShadow: "inset 0px 0px 0px 1px rgba(156, 250, 5, 0.35), 0px 8px 24px -8px rgba(0, 0, 0, 0.6)",
   },
+  barMain: { flex: 1, minWidth: 0, flexDirection: "row", alignItems: "center", gap: 8, height: 42 },
   barText: { flexShrink: 1, fontWeight: "600" },
+  barBack: {
+    marginLeft: "auto",
+    height: 32,
+    paddingHorizontal: 12,
+    borderRadius: 16,
+    justifyContent: "center",
+    backgroundColor: "rgba(255, 255, 255, 0.12)",
+  },
+  barBackText: { fontWeight: "600" },
+  barHang: { width: 34, height: 34, borderRadius: 17, alignItems: "center", justifyContent: "center" },
+  down: { transform: [{ rotate: "135deg" }] },
   ring: {
     position: "absolute",
     left: 12,

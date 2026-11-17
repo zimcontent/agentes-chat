@@ -526,6 +526,7 @@ export const MessageRow = memo(function MessageRow({
           styles.bubbleEnd,
           BUBBLE_RUN[run],
           { backgroundColor: (bubbled && look.fill) || c.bubble },
+          bubbled && look.fill ? null : { boxShadow: c.bubbleRim },
         ]}
       >
         {quote ? <QuotePlate reply={quote} onJump={onQuote} {...(solidInk ? { ink: solidInk } : {})} /> : null}
@@ -711,7 +712,7 @@ export const MessageRow = memo(function MessageRow({
     ) : null;
   // What is painted behind someone else's words, bottom first: the screen, then the bubble or a mention's tint.
   const tinted = mentionsMe ? [c.bg, `${c.amber}${bubbled ? "21" : "17"}`] : null;
-  const behindWords = tinted ?? [bubbled ? c.bubble : c.bg];
+  const behindWords = tinted ?? [bubbled ? c.bubbleTheirs : c.bg];
   const messageWords = body ? (
     <MessageText
       body={body}
@@ -817,7 +818,7 @@ export const MessageRow = memo(function MessageRow({
                       style={[
                         lookRows.bubble,
                         OTHER_RUN[run],
-                        { backgroundColor: mentionsMe ? `${c.amber}21` : c.bubble },
+                        { backgroundColor: mentionsMe ? `${c.amber}21` : c.bubbleTheirs, boxShadow: c.bubbleTheirsRim },
                       ]}
                     >
                       {!grouped && (look.names || tagged) ? who(true) : null}

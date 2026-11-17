@@ -88,6 +88,7 @@ import { ActivityTab } from "./agent/ActivityTab";
 import { AdvancedTab } from "./agent/AdvancedTab";
 import { type AgentEdit, AgentEditProvider, type Change, type Draft } from "./agent/context";
 import { FilesTab } from "./agent/FilesTab";
+import { AgentFront } from "./agent/Front";
 import { AgentHero } from "./agent/Hero";
 import { InstructionsTab } from "./agent/InstructionsTab";
 import { MemoryTab } from "./agent/MemoryTab";
@@ -103,14 +104,16 @@ import { type WorkDialog, WorkDialogs } from "./agent/Work";
 const sortIds = (ids: string[]) => [...ids].sort();
 
 /**
- * The tabs always in the bar; the rest live in its "More" menu, and the one open from there shows in the bar. A
- * personal workspace's bar (ADR 0159 §3) is `PERSONAL_AGENT_TABS`, with Advanced instead of "More".
+ * Ajustes (docs/adr/doug-0017-agents-lean.md): the tabs always in the bar, Configurações first; the rest live in its
+ * "More" menu, and the one open from there shows in the bar. A personal workspace's bar (ADR 0159 §3) is
+ * `PERSONAL_AGENT_TABS`, with Advanced instead of "More".
  */
-const MAIN_TABS: AgentTab[] = ["overview", "instructions", "memory", "activity"];
+const MAIN_TABS: AgentTab[] = ["settings", "instructions", "access", "memory", "activity"];
 const MORE_TABS = AGENT_TABS.filter((id) => !MAIN_TABS.includes(id) && id !== "advanced");
 const PERSONAL_TABS: readonly AgentTab[] = PERSONAL_AGENT_TABS;
 const RIGHT_HAND_TABS: readonly AgentTab[] = ["settings", "access", "memory"];
 const MORE_ICON: Partial<Record<AgentTab, IconName>> = {
+  overview: "document",
   access: "plug",
   files: "file",
   usage: "clock",
@@ -119,14 +122,15 @@ const MORE_ICON: Partial<Record<AgentTab, IconName>> = {
 
 export interface AgentPageProps {
   agentId: string;
-  tab: AgentTab;
+  /** Ajustes at this tab; absent, the agent's page as it opens (`AgentFront`). */
+  tab?: AgentTab | undefined;
   section?: AgentSection;
   /** With the section "brain": the screen "Quem pensa" opens on (a notification's "Escolher outro modelo"). */
   brainAt?: BrainScreen;
   /** The memory or skill a link opened Memória at. */
   item?: string;
-  /** Changes the tab (and section) in the URL. */
-  onNavigate: (tab: AgentTab, section?: AgentSection) => void;
+  /** Changes the tab (and section) in the URL; no tab goes back to the agent's page as it opens. */
+  onNavigate: (tab: AgentTab | undefined, section?: AgentSection) => void;
   /** Shown in the panel beside its DM (like a thread's), not as a page: closes the panel. */
   onClose?: () => void;
   /** The panel was asked to close (a new number each time): close, asking first when something is unsaved. */
@@ -139,8 +143,9 @@ export function AgentPage(props: AgentPageProps) {
   const { org } = useOrg();
   const dir = useDirectory(org.id);
   const agent = dir.agentById.get(props.agentId);
-  // Only the full profile edits, so only it asks before closing; every other view here closes on the request.
-  const full = Boolean(agent && !dir.loading && seesDetails(agent));
+  // Only the full profile (Ajustes, or the right hand's page) edits, so only it asks before closing; every other view
+  // here, the agent's lean page included, closes on the request.
+  const full = Boolean(agent && !dir.loading && seesDetails(agent) && (props.tab !== undefined || isRightHand(agent)));
   const closeRef = useRef(props.onClose);
   closeRef.current = full ? undefined : props.onClose;
   useEffect(() => {
@@ -171,12 +176,23 @@ export function AgentPage(props: AgentPageProps) {
     );
   }
   if (!seesDetails(agent)) return <AgentPublicCard agent={agent} />;
-  return <AgentProfile key={agent.id} agent={agent} {...props} />;
+  // As it opens (docs/adr/doug-0017-agents-lean.md): who it is, how it is now and its day; Ajustes holds the rest.
+  // The right hand keeps its own page.
+  if (props.tab === undefined && !isRightHand(agent))
+    return (
+      <AgentFront
+        key={agent.id}
+        agent={agent}
+        panel={Boolean(props.onClose)}
+        onOpen={(tab, section) => props.onNavigate(tab, section)}
+      />
+    );
+  return <AgentProfile key={agent.id} agent={agent} {...props} tab={props.tab ?? "settings"} />;
 }
 
 function AgentProfile({
   agent,
-  tab,
+  tab: asked,
   section,
   brainAt,
   item,
@@ -184,6 +200,7 @@ function AgentProfile({
   onClose,
   closeRequest,
 }: AgentPageProps & { agent: Agent }) {
+  const tab = asked ?? "settings";
   const { t, i18n } = useTranslation();
   const { org, me } = useOrg();
   const api = useApi();
@@ -784,6 +801,7 @@ function AgentProfile({
         <div className={cx("page page--full agp", onClose && "agp--panel")} data-dirty={dirty || undefined}>
           <AgentHero
             onArchive={() => setArchiving(true)}
+            onBack={() => onNavigate(undefined)}
             panel={Boolean(onClose)}
             onExpand={
               onClose &&
@@ -791,7 +809,7 @@ function AgentProfile({
                 void navigate({
                   to: "/org/$orgId/agents/$agentId",
                   params: { orgId: org.id, agentId: agent.id },
-                  search: { tab: tab === "overview" ? undefined : tab, sec: section },
+                  search: { tab, sec: section },
                 }))
             }
           />

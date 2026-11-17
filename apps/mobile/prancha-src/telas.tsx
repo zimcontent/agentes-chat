@@ -6,7 +6,12 @@ import { SvgXml } from "react-native-svg";
 import type { AgentLookInput } from "@/agent/looks";
 import { botDoAgente, corDoBot } from "@/brand/bots";
 import { DB_FONTES } from "@/brand/tokens";
+import { AgentCallView } from "@/features/call/AgentCallView";
 import { HeaderPill } from "@/features/chat/HeaderPill";
+import { DougPinnedCard, useDougWords } from "@/features/chats/DougPinnedCard";
+import { GlanceCard } from "@/features/chats/HomeGlance";
+import { CollapsibleSection } from "@/features/chats/HomeSection";
+import { ToolTile, WhatsAppMark } from "@/features/chats/HomeTools";
 import { GroupPhoto } from "@/features/shared/GroupPhoto";
 import {
   AgentAvatar,
@@ -21,7 +26,6 @@ import {
   GroupedHeader,
   GroupedList,
   GroupedRow,
-  Icon,
   InkOrbit,
   ListRow,
   PersonAvatar,
@@ -33,6 +37,10 @@ import {
 } from "@/ui";
 import { TAB_GLYPHS, type TabGlyph, tabGlyphSvg } from "@/ui/tabGlyphs";
 import { useTheme } from "@/ui/theme";
+import { AgentePerfil, TimeAgora } from "./agentes";
+import { Arquivos, Senhas, SenhasItem, SenhasLogins } from "./arquivos-senhas";
+import { Paineis, Paineis320, PaineisFormas } from "./paineis";
+import { PainelIa, PainelIa320, PainelIaFolha, PainelIaFolha320 } from "./painel-ia";
 import { PortalCartao, PortalCronograma, PortalCronograma320 } from "./portal";
 import {
   RevisaoConversa,
@@ -42,6 +50,7 @@ import {
   RevisaoLista,
   RevisaoVideo,
 } from "./revisao";
+import { WhatsAppConversa, WhatsAppLista } from "./whatsapp";
 
 /** Sample photos served beside the board (`doug-mobile/fotos`): a person's and the groups' (JPG, as people send). */
 const foto = (name: string) => (Platform.OS === "web" ? `${window.location.origin}/fotos/${name}.jpg` : null);
@@ -118,7 +127,7 @@ function Frame({
       <View style={{ height: top }} />
       {header}
       {scroll ? (
-        <ScrollView style={styles.fill} contentContainerStyle={{ paddingBottom: 24 }}>
+        <ScrollView style={styles.fill} contentContainerStyle={{ paddingBottom: tabs ? 110 : 24 }}>
           {body}
         </ScrollView>
       ) : (
@@ -141,14 +150,34 @@ const TAB_LABEL: Record<TabGlyph, string> = {
 const TAB_BADGES: Partial<Record<TabGlyph, number>> = { home: 3, waiting: 2, review: 4 };
 
 export function TabBar({ on }: { on: string }) {
-  const { colors } = useTheme();
+  const { colors, scheme } = useTheme();
+  // iOS 26 draws the bar as a floating pill of Liquid Glass over the list; the board draws that glass.
+  const glass =
+    scheme === "dark"
+      ? {
+          backgroundColor: "rgba(22, 22, 22, 0.86)",
+          boxShadow:
+            "inset 0px 1px 0px rgba(255, 255, 255, 0.16), inset 0px 0px 0px 1px rgba(255, 255, 255, 0.085), 0px 24px 56px -16px rgba(0, 0, 0, 0.75)",
+        }
+      : {
+          backgroundColor: "rgba(255, 255, 255, 0.9)",
+          boxShadow: "inset 0px 0px 0px 1px rgba(10, 10, 10, 0.08), 0px 12px 32px -12px rgba(0, 0, 0, 0.25)",
+        };
   return (
-    <View style={[styles.tabBar, { backgroundColor: colors.glass, borderTopColor: colors.glassEdge }]}>
+    <View style={[styles.tabBar, glass]}>
       {TAB_GLYPHS.map((g) => {
         const chosen = g === on;
         const badge = TAB_BADGES[g];
         return (
-          <View key={g} style={styles.tab}>
+          <View
+            key={g}
+            style={[
+              styles.tab,
+              chosen
+                ? { backgroundColor: scheme === "dark" ? "rgba(255, 255, 255, 0.1)" : "rgba(10, 10, 10, 0.06)" }
+                : null,
+            ]}
+          >
             <View>
               <SvgXml xml={tabGlyphSvg(g, chosen, chosen ? colors.ink : colors.faint)} width={26} height={26} />
               {badge ? (
@@ -203,8 +232,10 @@ function AgentRow({
   unread,
   divider,
   presence,
+  compact = false,
 }: {
   a: AgentLookInput;
+  compact?: boolean;
   sub: string;
   time?: string;
   mode?: "idle" | "run" | "think" | "sleep";
@@ -212,12 +243,13 @@ function AgentRow({
   divider?: boolean;
   presence?: "online" | "away" | "busy";
 }) {
-  const face = <AgentAvatar agent={a} size={50} mode={mode} name={a.name} />;
+  const size = compact ? 40 : 50;
+  const face = <AgentAvatar agent={a} size={size} mode={mode} name={a.name} />;
   return (
     <ListRow
       leading={
         presence ? (
-          <WithPresence size={50} presence={presence}>
+          <WithPresence size={size} presence={presence}>
             {face}
           </WithPresence>
         ) : (
@@ -230,6 +262,7 @@ function AgentRow({
       subLines={1}
       unread={Boolean(unread)}
       divider={divider}
+      compact={compact}
       trailing={unread ? <Count value={unread} size={13} inverted /> : undefined}
     />
   );
@@ -241,73 +274,27 @@ function GroupRow({
   sub,
   time,
   divider,
+  compact = false,
 }: {
   name: string;
   icon?: string | null;
   sub: string;
   time: string;
   divider?: boolean;
+  compact?: boolean;
 }) {
   return (
     <ListRow
-      leading={<GroupPhoto icon={icon ?? null} size={52} />}
+      leading={<GroupPhoto icon={icon ?? null} size={compact ? 44 : 52} />}
       title={name}
       time={time}
       sub={sub}
       subLines={1}
       divider={divider}
+      compact={compact}
     />
   );
 }
-
-const TOOLS: { key: string; label: string; icon: string; count?: number; green?: boolean }[] = [
-  { key: "wa", label: "WhatsApp", icon: "message", green: true, count: 5 },
-  { key: "midia", label: "Mídia", icon: "image" },
-  { key: "busca", label: "Buscar", icon: "search" },
-  { key: "tarefas", label: "Tarefas", icon: "checkc", count: 2 },
-  { key: "drive", label: "Drive", icon: "drive" },
-  { key: "agentes", label: "Agentes", icon: "agent" },
-  { key: "threads", label: "Threads", icon: "reply" },
-  { key: "rotinas", label: "Rotinas", icon: "clock" },
-  { key: "wiki", label: "Wiki", icon: "book" },
-  { key: "dash", label: "Dashboards", icon: "chart" },
-];
-
-function Ferramentas() {
-  const { colors, shadows } = useTheme();
-  const front = [...TOOLS.slice(0, 4), { key: "mais", label: "Mais", icon: "more", count: 0, green: false }];
-  return (
-    <View style={styles.tools}>
-      {front.map((t) => (
-        <View key={t.key} style={styles.tool}>
-          <View
-            style={[
-              styles.toolPlate,
-              { backgroundColor: colors.raised, boxShadow: `0px 0px 0px 0.5px ${colors.line2}, ${shadows.e1}` },
-            ]}
-          >
-            {t.green ? (
-              <SvgXml xml={WHATSAPP_SVG} width={18} height={18} />
-            ) : (
-              <Icon name={t.icon as never} size={18} color={colors.ink} />
-            )}
-            {t.count ? (
-              <View style={styles.toolBadge}>
-                <Count value={t.count} size={11} inverted fill={colors.badge} color="#FFFFFF" />
-              </View>
-            ) : null}
-          </View>
-          <RNText numberOfLines={1} style={[styles.toolLabel, { color: colors.muted }]}>
-            {t.label}
-          </RNText>
-        </View>
-      ))}
-    </View>
-  );
-}
-
-const WHATSAPP_SVG =
-  '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="#25D366" d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>';
 
 const WIDGETS = [
   { key: "t", icon: "reply", title: "Threads", big: "3 novas", line: "Capa do reels da LEXEER", hot: true },
@@ -315,87 +302,120 @@ const WIDGETS = [
   { key: "c", icon: "flag", title: "Alterações", big: "4", line: "ELMX Capital, LEXEER", hot: true },
 ] as const;
 
-function Widgets() {
-  const { colors, shadows } = useTheme();
+function Inicio() {
+  const { colors } = useTheme();
+  const w = useDougWords();
+  const noop = () => {};
   return (
-    <View style={styles.widgets}>
-      {WIDGETS.map((x) => (
-        <View
-          key={x.key}
-          style={[
-            styles.widget,
-            { backgroundColor: colors.raised, boxShadow: `0px 0px 0px 0.5px ${colors.line2}, ${shadows.e1}` },
-          ]}
-        >
-          <View style={styles.widgetHead}>
-            <Icon name={x.icon} size={14} color={colors.muted} />
-            <Text variant="footnote" tone="muted" numberOfLines={1} style={styles.widgetTitle}>
-              {x.title}
-            </Text>
-          </View>
-          <Text
-            variant="subhead"
-            numberOfLines={1}
-            style={[styles.widgetBig, x.hot ? { color: colors.amberInk } : null]}
-          >
-            {x.big}
-          </Text>
-          <Text variant="footnote" tone="muted" numberOfLines={2}>
-            {x.line}
-          </Text>
-        </View>
-      ))}
-    </View>
+    <Frame tabs="home" header={<TabHeader />}>
+      {/* Doug pinned on top (docs/adr/doug-0016-doug-pinned.md), the same card the app draws. */}
+      <DougPinnedCard
+        face={<AgentAvatar agent={DOUG} size={50} mode="run" name="Doug" />}
+        name="Doug"
+        status={w.coordinating(5)}
+        message={`Boa noite, Gabriel. ${w.decisions(2)}`}
+        primary={w.seeDecisions}
+        words={w}
+        live
+        onOpen={noop}
+        onCall={noop}
+      />
+      <View style={styles.tools9}>
+        {[
+          { key: "wa", label: "WhatsApp", href: "", icon: <WhatsAppMark size={21} />, count: 5 },
+          { key: "midia", label: "Mídia", href: "", icon: "image" as const },
+          { key: "busca", label: "Buscar", href: "", icon: "search" as const },
+          { key: "tarefas", label: "Tarefas", href: "", icon: "checkc" as const, count: 2 },
+          { key: "mais", label: "Mais", href: "", icon: "more" as const },
+        ].map((tool) => (
+          <ToolTile key={tool.key} tool={tool} onPress={noop} />
+        ))}
+      </View>
+      <View style={styles.widgets}>
+        {WIDGETS.map((x) => (
+          <GlanceCard
+            key={x.key}
+            card={{ key: x.key, icon: x.icon, title: x.title, big: x.big, line: x.line, hot: x.hot, onPress: noop }}
+          />
+        ))}
+      </View>
+      <CollapsibleSection title="Esperando sua resposta" count={2} collapsed={false} onToggle={noop} panel>
+        <ListRow
+          leading={<AgentAvatar agent={SONY} size={40} name={SONY.name} />}
+          title="SONY espera sua resposta"
+          titleLines={2}
+          time="5,4 h"
+          chevron
+          compact
+        />
+        <ListRow
+          leading={<AgentAvatar agent={ROSA} size={40} name={ROSA.name} />}
+          title="ROSA espera sua aprovação"
+          titleLines={2}
+          time="12 min"
+          chevron
+          divider
+          compact
+        />
+      </CollapsibleSection>
+      <CollapsibleSection title="Agentes" count={5} collapsed={false} onToggle={noop} panel>
+        <AgentRow a={JUNIN} sub="Subi o ajuste do formulário." time="09:52" presence="online" compact />
+        <AgentRow a={SONY} sub="esperando você · 5,4 h" time="09:40" divider compact />
+        <AgentRow a={ROSA} sub="Pergunta: qual das duas capas?" time="08:55" mode="think" divider compact />
+        <AgentRow a={KIARA} sub="Fechei o orçamento de novembro." time="Ontem" divider compact />
+      </CollapsibleSection>
+      <CollapsibleSection title="Grupos" count={3} collapsed={false} onToggle={noop} panel>
+        <GroupRow name="LEXEER" icon={foto("lexeer")} sub="Doug BOSS: aprovado, pode subir." time="09:30" compact />
+        <GroupRow
+          name="ELMX Capital"
+          icon={foto("elmx")}
+          sub="KIARA: fechei o orçamento de novembro."
+          time="08:02"
+          divider
+          compact
+        />
+      </CollapsibleSection>
+      <View style={{ height: 8, backgroundColor: colors.bg }} />
+    </Frame>
   );
 }
 
-function Inicio() {
-  const { colors } = useTheme();
+/** A call with Doug (docs/adr/doug-0006-live-voice.md): talking with captions, or ringing. */
+function Ligacao({ ringing = false }: { ringing?: boolean }) {
+  const noop = () => {};
   return (
-    <Frame tabs="home" header={<TabHeader />}>
-      <Ferramentas />
-      <Widgets />
-      <SECTION count={2}>Esperando sua resposta</SECTION>
-      <ListRow
-        leading={<AgentAvatar agent={SONY} size={50} name={SONY.name} />}
-        title="SONY espera sua resposta"
-        titleLines={2}
-        time="5,4 h"
-        chevron
-      />
-      <ListRow
-        leading={<AgentAvatar agent={ROSA} size={50} name={ROSA.name} />}
-        title="ROSA espera sua aprovação"
-        titleLines={2}
-        time="12 min"
-        chevron
-        divider
-      />
-      <SECTION count={6}>Agentes</SECTION>
-      <AgentRow a={JUNIN} sub="Subi o ajuste do formulário." time="09:52" presence="online" />
-      <AgentRow a={SONY} sub="esperando você · 5,4 h" time="09:40" divider />
-      <AgentRow a={DOUG} sub="Resumi o dia dos grupos para você." time="09:12" unread={2} presence="online" divider />
-      <AgentRow a={ROSA} sub="Pergunta: qual das duas capas?" time="08:55" mode="think" divider />
-      <AgentRow a={KIARA} sub="Fechei o orçamento de novembro." time="Ontem" divider />
-      <SECTION count={3}>Grupos</SECTION>
-      <GroupRow name="LEXEER" icon={foto("lexeer")} sub="Doug BOSS: aprovado, pode subir." time="09:30" />
-      <GroupRow
-        name="ELMX Capital"
-        icon={foto("elmx")}
-        sub="KIARA: fechei o orçamento de novembro."
-        time="08:02"
-        divider
-      />
-      <SECTION count={1}>Pessoas</SECTION>
-      <ListRow
-        leading={<PersonAvatar name="Letícia" size={52} photo={null} />}
-        title="Letícia"
-        time="Ter"
-        sub="Viu o vídeo novo?"
-        subLines={1}
-      />
-      <View style={{ height: 8, backgroundColor: colors.bg }} />
-    </Frame>
+    <AgentCallView
+      name="Doug"
+      face={(size) => <AgentAvatar agent={DOUG} size={size} mode={ringing ? "idle" : "run"} name="Doug" />}
+      since="0:48"
+      connecting={ringing}
+      failed={null}
+      level={0.4}
+      caption={
+        ringing
+          ? null
+          : {
+              who: "agent",
+              text: "Agora a proposta da Connor & Michelle: conferi preço e prazo, está tudo certo. Posso mandar?",
+            }
+      }
+      micOn
+      speaker={false}
+      onMinimize={noop}
+      onMic={noop}
+      onSpeaker={noop}
+      onWrite={noop}
+      onHangUp={noop}
+      hangUpWord="Desligar"
+      micWords={{ on: "Mudo", off: "Mudo", turnOff: "Desligar o microfone", turnOn: "Ligar o microfone" }}
+      speakerWords={{
+        speaker: "Alto-falante",
+        earpiece: "Fone",
+        toSpeaker: "Usar o alto-falante",
+        toEarpiece: "Usar o fone",
+      }}
+      minimizeLabel="Continuar trabalhando"
+    />
   );
 }
 
@@ -596,11 +616,11 @@ function Servidor() {
 
 type Msg = { who: AgentLookInput | "eu"; text: string; mode?: "run" | "think" };
 
-function Bubble({ m }: { m: Msg }) {
+function Bubble({ m, dm = false }: { m: Msg; dm?: boolean }) {
   const { colors } = useTheme();
   if (m.who === "eu")
     return (
-      <View style={[styles.bubble, styles.mine, { backgroundColor: colors.bubble }]}>
+      <View style={[styles.bubble, styles.mine, { backgroundColor: colors.bubble, boxShadow: colors.bubbleRim }]}>
         <Text variant="body" style={styles.chatText}>
           {m.text}
         </Text>
@@ -609,9 +629,16 @@ function Bubble({ m }: { m: Msg }) {
   return (
     <View style={styles.theirs}>
       <AgentAvatar agent={m.who} size={32} mode={m.mode ?? "idle"} />
-      <View style={[styles.bubble, styles.theirBubble, { backgroundColor: colors.raised2 }]}>
-        <BotName a={m.who} />
-        <Text variant="body" style={[styles.chatText, { marginTop: 4 }]}>
+      <View
+        style={[
+          styles.bubble,
+          styles.theirBubble,
+          { backgroundColor: colors.bubbleTheirs, boxShadow: colors.bubbleTheirsRim },
+        ]}
+      >
+        {/* A DM's bubble has no name: the header already says who it is (as the app's \`MessageRow\`). */}
+        {dm ? null : <BotName a={m.who} />}
+        <Text variant="body" style={[styles.chatText, dm ? null : { marginTop: 4 }]}>
           {m.text}
         </Text>
       </View>
@@ -619,12 +646,25 @@ function Bubble({ m }: { m: Msg }) {
   );
 }
 
-function Chat({ header, msgs, extra }: { header: ReactNode; msgs: Msg[]; extra?: ReactNode }) {
+function Chat({
+  header,
+  msgs,
+  extra,
+  dm = false,
+}: {
+  header: ReactNode;
+  msgs: Msg[];
+  extra?: ReactNode;
+  dm?: boolean;
+}) {
   const insets = useSafeAreaInsets();
   return (
     <Frame
       scroll
-      header={<View style={styles.chatHeader}>{header}</View>}
+      header={
+        // The bar's back and actions are the system's (iOS 26 glass): the board draws the pill alone.
+        <View style={styles.chatHeader}>{header}</View>
+      }
       bottom={
         <View style={{ paddingHorizontal: 16, paddingTop: 8, paddingBottom: Math.max(insets.bottom, 34) }}>
           <Composer placeholder="Mensagem" onSend={() => {}} onPlus={() => {}} />
@@ -637,7 +677,7 @@ function Chat({ header, msgs, extra }: { header: ReactNode; msgs: Msg[]; extra?:
         </View>
         {msgs.map((m, i) => (
           // biome-ignore lint/suspicious/noArrayIndexKey: a fixed sample
-          <Bubble key={i} m={m} />
+          <Bubble key={i} m={m} dm={dm} />
         ))}
         {extra}
       </View>
@@ -648,6 +688,7 @@ function Chat({ header, msgs, extra }: { header: ReactNode; msgs: Msg[]; extra?:
 function Dm() {
   return (
     <Chat
+      dm
       header={
         <HeaderPill
           lead={<AgentAvatar agent={DOUG} size={32} />}
@@ -974,6 +1015,8 @@ export const TELAS: Record<string, () => ReactNode> = {
   login: Login,
   servidor: Servidor,
   inicio: Inicio,
+  ligacao: () => <Ligacao />,
+  chamando: () => <Ligacao ringing />,
   abas: Agentes,
   dm: Dm,
   grupo: Grupo,
@@ -994,6 +1037,21 @@ export const TELAS: Record<string, () => ReactNode> = {
   "portal-cronograma": PortalCronograma,
   "portal-cronograma-320": PortalCronograma320,
   "portal-cartao": PortalCartao,
+  whatsapp: WhatsAppLista,
+  "whatsapp-conversa": WhatsAppConversa,
+  arquivos: Arquivos,
+  senhas: Senhas,
+  "senhas-item": SenhasItem,
+  "senhas-logins": SenhasLogins,
+  paineis: Paineis,
+  "paineis-formas": PaineisFormas,
+  "paineis-320": Paineis320,
+  "painel-ia": PainelIa,
+  "painel-ia-folha": PainelIaFolha,
+  "painel-ia-320": PainelIa320,
+  "painel-ia-folha-320": PainelIaFolha320,
+  "agente-perfil": AgentePerfil,
+  "time-agora": TimeAgora,
 };
 
 const styles = StyleSheet.create({
@@ -1012,12 +1070,16 @@ const styles = StyleSheet.create({
   rowGap8: { flexDirection: "row", alignItems: "center", gap: 8, marginTop: 6 },
   rowGap12: { flexDirection: "row", alignItems: "center", gap: 12 },
   tabBar: {
+    position: "absolute",
+    left: 16,
+    right: 16,
+    bottom: 26,
+    height: 64,
+    borderRadius: 32,
     flexDirection: "row",
-    paddingTop: 8,
-    paddingBottom: 30,
-    borderTopWidth: 1,
+    padding: 5,
   },
-  tab: { flex: 1, alignItems: "center", gap: 3 },
+  tab: { flex: 1, alignItems: "center", justifyContent: "center", gap: 2, borderRadius: 27 },
   tabBadge: { position: "absolute", top: -4, right: -10 },
   tabHeader: {
     flexDirection: "row",
@@ -1033,6 +1095,8 @@ const styles = StyleSheet.create({
   widgetTitle: { flexShrink: 1, fontWeight: "500" },
   widgetBig: { fontWeight: "700" },
   tools: { flexDirection: "row", paddingHorizontal: 6, paddingTop: 12, paddingBottom: 4 },
+  tools9: { flexDirection: "row", paddingHorizontal: 8, paddingTop: 16, paddingBottom: 4 },
+  panel: { marginHorizontal: 16, overflow: "hidden" },
   tool: { flex: 1, alignItems: "center", gap: 5 },
   toolPlate: { width: 40, height: 40, borderRadius: 12, alignItems: "center", justifyContent: "center" },
   toolBadge: { position: "absolute", top: -5, right: -7 },

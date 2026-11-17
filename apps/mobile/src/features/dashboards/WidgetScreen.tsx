@@ -42,7 +42,7 @@ import {
   useToast,
 } from "@/ui";
 import { router } from "@/ui/navigation";
-import { openAgentEdit } from "../agents/AgentEditScreen";
+import { useRaiseBudget } from "../agents/elsewhere";
 import { openAgentAi } from "../ai/AgentAiScreen";
 import { openComputer } from "../computer/AgentComputerRow";
 import { boardHref, routineHref } from "../links/logic";
@@ -481,8 +481,9 @@ function WaitFix({ agentId, wait }: { agentId: string; wait: WidgetWait }) {
   const owner = dir.anyAgent(agentId)?.ownerUserId === meId;
   const fix = widgetWaitFix(wait, { admin: can(org, "manage_agents"), owner });
   const watches = useDesktopStatus(orgId, agentId, { enabled: fix === "openComputer" }).isSuccess;
+  const raiseBudget = useRaiseBudget();
   if (!fix || (fix === "openComputer" && !watches)) return null;
-  const go = fix === "openComputer" ? openComputer : fix === "raiseBudget" ? openAgentEdit : openAgentAi;
+  const go = fix === "openComputer" ? openComputer : fix === "raiseBudget" ? raiseBudget : openAgentAi;
   return (
     <View style={styles.failure}>
       <Button

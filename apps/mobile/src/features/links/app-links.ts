@@ -105,7 +105,8 @@ function workspaceScreen(rest: string[], q: Record<string, string>): Record<stri
       if (id === undefined) return open ? { thread: open } : "/conversations/threads";
       return isSafeId(id) ? { thread: id, m } : null;
     case "agents":
-      if (id === "new") return "/new-agent";
+      // Creating an agent has no screen on the phone: the website's page opens.
+      if (id === "new") return null;
       if (!isSafeId(id)) return null;
       return sub === "memory" ? `/memory?agent=${id}` : `/agent/${id}`;
     case "approvals":

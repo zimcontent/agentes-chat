@@ -1,0 +1,231 @@
+/* The agent's page as it opens (docs/adr/doug-0017-agents-lean.md): one centered column, who it is, three actions,
+   the facts card and its day. */
+.agf {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  width: 100%;
+  max-width: 680px;
+  margin-inline: auto;
+}
+
+.agf-top {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-2);
+}
+
+.agf-who {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  text-align: center;
+}
+
+.agf-name {
+  margin: var(--space-2) 0 0;
+  font-size: var(--text-h1);
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+
+.agf-role {
+  margin: 0;
+  color: var(--ink-muted);
+  font-size: var(--text-md);
+}
+
+.agf-states {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-2);
+}
+
+.agf-state {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: var(--control-h-sm);
+  padding-inline: var(--space-3);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-full);
+  background: var(--raised);
+  color: var(--ink);
+  font-size: var(--text-sm);
+}
+
+.agf-state__dot {
+  width: 8px;
+  height: 8px;
+  flex: none;
+  border-radius: var(--radius-full);
+  background: var(--faint);
+}
+
+.agf-state[data-presence="online"] .agf-state__dot {
+  background: var(--ok);
+}
+
+.agf-state[data-tone="working"] .agf-state__dot {
+  background: var(--info);
+}
+
+.agf-state[data-tone="you"] {
+  border-color: var(--warn);
+}
+
+.agf-state[data-tone="you"] .agf-state__dot {
+  background: var(--warn);
+}
+
+.agf-acts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(0, 1fr));
+  gap: var(--space-3);
+}
+
+.agf-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-1);
+  min-height: 72px;
+  padding: var(--space-3);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  background: var(--raised);
+  color: var(--ink);
+  font: inherit;
+  font-size: var(--text-md);
+  font-weight: 600;
+  cursor: pointer;
+  transition: background var(--dur-fast);
+}
+
+.agf-tile:hover:not(:disabled) {
+  background: var(--raised-2);
+}
+
+.agf-tile:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.agf-tile:disabled {
+  color: var(--ink-muted);
+  cursor: default;
+}
+
+.agf-tile svg {
+  width: 20px;
+  height: 20px;
+}
+
+.agf-waits {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.agf-wait__words {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.agf-facts.ac-card {
+  padding-block: var(--space-1);
+}
+
+.agf-fact {
+  display: grid;
+  grid-template-columns: 112px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-3);
+  min-height: 48px;
+  padding-block: var(--space-2);
+}
+
+.agf-fact + .agf-fact {
+  border-top: 1px solid var(--line);
+}
+
+.agf-fact__label {
+  color: var(--ink-muted);
+  font-size: var(--text-md);
+}
+
+.agf-fact__value {
+  min-width: 0;
+}
+
+.agf-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.agf-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: var(--control-h-sm);
+  padding-inline: var(--space-3);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-full);
+  font-size: var(--text-sm);
+  white-space: nowrap;
+}
+
+.agf-chip > :is(img, svg, .ac-avatar, .provider-logo) {
+  flex: none;
+}
+
+.agf-month {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.agf-month .ac-meter {
+  flex: 1;
+}
+
+.agf-month__pct {
+  font-weight: 600;
+}
+
+.agf-today {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+@media (max-width: 640px) {
+  .agf-fact {
+    grid-template-columns: 88px minmax(0, 1fr) auto;
+  }
+
+  .agf-tile {
+    min-height: 64px;
+  }
+}
+
+/* Ajustes: back to the agent's page at the cover's left, its other actions where they were. */
+.agp-cover__acts:has(.agp-back) {
+  left: 14px;
+}
+
+.agp-back.ac-btn {
+  max-width: 50%;
+  margin-right: auto;
+}
+
+/* A new agent's checklist keeps the column's own spacing here. */
+.agf > .setup-cl[data-place="profile"] {
+  margin: 0;
+}

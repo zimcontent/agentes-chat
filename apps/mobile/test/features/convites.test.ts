@@ -629,10 +629,6 @@ describe("the arrival card (#general for a newcomer's first day)", () => {
     expect(card.match(/variant="(primary|ghost)"\s+wide/g)?.length).toBe(3);
     expect(card).toContain('requestComposerText(channelId, "");');
   });
-
-  test("the Agentes tab lists the agents by their latest conversation, the invitation's included (doug-0014)", () => {
-    expect(src("features/agents/AgentsScreen.tsx")).toContain("freeSections(free, groups)");
-  });
 });
 
 describe("the worst case (break-ui): long names, one of each, a thousand of them", () => {

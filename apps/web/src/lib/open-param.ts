@@ -121,7 +121,7 @@ export function useThreadPanel(
   return [panel, set];
 }
 
-/** The agent's page open in the panel beside a conversation, at one of its tabs (none: Visão geral). */
+/** The agent's page open in the panel beside a conversation: Ajustes at one of its tabs, none its lean page (docs/adr/doug-0017-agents-lean.md). */
 export interface AgentPanelPlace {
   agentId: string;
   tab?: AgentTab;
@@ -168,7 +168,7 @@ export function useAgentPanel(
           return {
             ...others,
             agent: next.agentId,
-            ...(next.tab && next.tab !== "overview" ? { agentTab: next.tab } : {}),
+            ...(next.tab ? { agentTab: next.tab } : {}),
           };
         }) as never,
       });

@@ -235,7 +235,7 @@ test("Configurações lists no section for it: its settings open from its own pr
   const src = (f: string) => readFileSync(new URL(`../../src/features/${f}`, import.meta.url), "utf8");
   expect(SETTINGS_SECTIONS.map((s) => s.id as string)).not.toContain("right_hand");
   expect(src("right-hand/SettingsScreen.tsx")).toContain('router.push("/settings/right-hand" as never)');
-  expect(src("agents/AgentProfileScreen.tsx")).toContain("onPress: openRightHandSettings");
+  expect(src("agents/AgentProfileScreen.tsx")).toContain("rightHand ? openRightHandSettings() : openAgentSettings(id)");
 });
 
 test("its DM, cards and profile treat it apart through the one shared helper", () => {
@@ -245,17 +245,12 @@ test("its DM, cards and profile treat it apart through the one shared helper", (
   expect(chat).toContain("isRightHand(dmAgent)");
   expect(chat).not.toContain('t("rightHand.composerHint")');
   expect(chat).toMatch(/dmComputer = dmAgentId && !isThread && !rightHand/);
-  // Never archived or deleted from the phone.
-  expect(src("agents/AgentEditScreen.tsx")).toContain("admin && !rightHand");
-  // Its profile shows what it may use like any agent's (apps, built-in areas, mailboxes), without the AI row: its AI
-  // is each person's, on its settings.
+  // Its profile's Ajustes are its own settings (its AI is each person's there), and it answers to no agent.
   const profile = src("agents/AgentProfileScreen.tsx");
-  expect(profile).toContain("{details ? accessView : null}");
-  expect(profile).toContain("const mailboxes = useAgentMailboxes(id, details);");
-  expect(profile).toContain("{thinks && !rightHand ? (");
+  expect(profile).toContain("rightHand || !teamAgent");
   // No coordinator anywhere on the phone (ADR 0093, superseded by 0137).
   for (const f of [
-    "agents/AgentEditScreen.tsx",
+    "agents/AgentSettingsScreen.tsx",
     "agents/edit.ts",
     "agents/AgentProfileScreen.tsx",
     "chat/ChannelMembers.tsx",

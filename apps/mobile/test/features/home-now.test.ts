@@ -270,11 +270,13 @@ describe("the native look", () => {
     expect(c.greenText).toBe("#3E6B00");
   });
 
-  test("dark: DougBot's stage (grouped is the background, my bubble one step up)", () => {
+  test("dark: DougBot's stage (grouped is the background, my bubble in the lime's wash)", () => {
     const c = appColors("dark");
     expect(c.bg).toBe("#0A0A0A");
     expect(c.grouped).toBe(c.bg);
-    expect(c.bubble).toBe("#212121");
+    // The site's own bubble: 14% of the lime over the glass's step (docs/adr/doug-0016-doug-pinned.md).
+    expect(c.bubble).toBe("#2C3917");
+    expect(c.bubbleTheirs).toBe("#1A1A1A");
     expect(c.greenText).toBe("#9CFA05");
     expect(appShadows("dark").e1.length).toBeGreaterThan(0);
   });
