@@ -3487,3 +3487,72 @@ html[data-theme]:not([data-pointer]) .sky-welcome__close:focus-visible {
   width: 40px;
   height: 40px;
 }
+
+/* ── A denser sidebar (the owner's note of 2026-11-17: the top took too much room): the tools 28 high and 0 apart,
+   the pinned faces 28 with one line of name, Go to… 34 high, and the top's parts 10 apart, so the list gets the height. The pinned
+   row now leads the list and scrolls away with it (Sidebar.tsx). ── */
+[data-theme] .sidebar:not([data-rail="true"]) .sidebar__top {
+  gap: 10px;
+}
+[data-theme] .sidebar:not([data-rail="true"]) .sidebar__head-row > .sidebar__org--head {
+  min-height: 44px;
+  padding-block: 6px;
+}
+[data-theme] .sidebar:not([data-rail="true"]) .sidebar__nav {
+  gap: 0;
+}
+[data-theme] .sidebar:not([data-rail="true"]) .sidebar__nav .sidebar__item {
+  min-height: 28px;
+  font-size: 13.5px;
+}
+[data-theme] .sidebar:not([data-rail="true"]) .sidebar__nav .sidebar__item > .ac-icon {
+  width: 20px;
+  height: 20px;
+  padding: 2px;
+}
+[data-theme] .sidebar:not([data-rail="true"]) .sidebar__hero {
+  padding: 0;
+}
+[data-theme] .sidebar:not([data-rail="true"]) .sidebar__hero-link,
+[data-theme] .sidebar:not([data-rail="true"]) .sidebar__hero-link:hover,
+[data-theme] .sidebar:not([data-rail="true"]) .sidebar__hero-link[data-status="active"] {
+  gap: 3px;
+  padding: 4px 2px 0;
+}
+[data-theme] .sidebar:not([data-rail="true"]) .sidebar__hero .ac-avatar {
+  width: 28px;
+  height: 28px;
+}
+[data-theme] .sidebar:not([data-rail="true"]) .sidebar__hero-face::after {
+  inset: -8px;
+}
+[data-theme] .sidebar:not([data-rail="true"]) .sidebar__hero-face > :is(.ac-count, .sidebar__unread) {
+  top: -5px;
+  left: -8px;
+}
+/* One line of name, cut with an ellipsis (the whole name is in the tile's title). */
+[data-theme] .sidebar:not([data-rail="true"]) .sidebar__hero-name {
+  font-size: 10.5px;
+  line-height: 14px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow-wrap: normal;
+}
+/* Go to… and the grid's button: 34 high, the keys 20. */
+[data-theme] .sidebar:not([data-rail="true"]) .sidebar__jump {
+  height: 34px;
+  min-height: 34px;
+}
+[data-theme] .sidebar:not([data-rail="true"]) .sidebar__jump .ac-kbd {
+  height: 20px;
+  min-width: 20px;
+}
+[data-theme] .sidebar:not([data-rail="true"]) .sidebar__launch.ac-btn {
+  width: 34px;
+  height: 34px;
+}
+/* The "N working" line at the foot: no room of its own under the list beyond its line. */
+[data-theme] .sidebar:not([data-rail="true"]) .sidebar__working {
+  padding: 2px var(--dg-s3) 0;
+}
