@@ -1893,6 +1893,12 @@ html:not([data-pointer]) .brw-mf-end__row:focus-visible {
 .brw-cur__body {
   fill: var(--cursor);
 }
+/* DougBot's arrow: one smooth path, its rim drawn as a stroke in the paper's tone. */
+.brw-cur__arrow {
+  stroke: var(--site-paper);
+  stroke-width: 0.7;
+  stroke-linejoin: round;
+}
 .brw-cur__who {
   position: absolute;
   left: 11px;

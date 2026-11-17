@@ -10,18 +10,11 @@ export interface EffortStep<V extends string> {
   label: string;
 }
 
-const hash = (a: number, b: number, c: number) => {
-  let h = (a * 374761393 + b * 668265263 + c * 2147483647) | 0;
-  h = Math.imul(h ^ (h >>> 13), 1274126177);
-  return ((h ^ (h >>> 16)) >>> 0) / 4294967295;
-};
-
 /**
- * Draws one frame (exported for tests and prototypes): one-pixel bars, a pixel
- * apart, climbing left to right in `steps` groups. Bars up to `pos` (in steps,
- * 0..steps) are filled in the agent's tone and breathe a pixel out of phase
- * with their neighbours, a few cells twinkle lighter; an ink column marks the
- * edge; the rest is dotted.
+ * Draws one frame (exported for tests and prototypes), DougBot's way (no pixel art): one rounded bar per step,
+ * climbing left to right, a gap between them. Bars up to `pos` (in steps, 0..steps) fill in the agent's tone, the
+ * bar being reached fills as far as `pos` goes; the rest stays in the faint tone. `t` breathes the reached bar's top
+ * a little (0 stands still).
  */
 export function drawEffort(
   ctx: CanvasRenderingContext2D,
@@ -36,45 +29,45 @@ export function drawEffort(
     canvas.width = W;
     canvas.height = H;
   }
-  const p = Math.max(2, Math.round(3 * dpr));
-  const cols = Math.floor(W / p);
-  const rows = Math.floor(H / p);
-  const ox = Math.floor((W - cols * p) / 2);
-  const per = cols / opts.steps;
-  const tick = Math.floor(opts.t / 110);
-  const ramp = (i: number) => Math.max(2, Math.round(2 + (rows - 3) * (i / (cols - 1)) ** 1.15));
   ctx.clearRect(0, 0, W, H);
-  ctx.imageSmoothingEnabled = false;
-  let front = -1;
-  for (let i = 0; i < cols; i += 2) {
-    const step = Math.floor(i / per);
-    // A wider gap between the steps.
-    if (step < opts.steps - 1 && i + 2 >= Math.round((step + 1) * per)) continue;
-    const on = ((i + 0.5) / cols) * opts.steps <= opts.pos;
-    let h = ramp(i);
-    if (on) {
-      front = i;
-      h = Math.min(rows, h + Math.round((Math.sin(opts.t / 380 - i * 0.45) + 1) * 0.5));
+  const n = Math.max(1, opts.steps);
+  const gap = Math.round(6 * dpr);
+  const bw = (W - gap * (n - 1)) / n;
+  const r = Math.min(bw / 2, 8 * dpr);
+  const bar = (x: number, y: number, w: number, h: number) => {
+    ctx.beginPath();
+    if (typeof ctx.roundRect === "function") ctx.roundRect(x, y, w, h, Math.min(r, w / 2, h / 2));
+    else ctx.rect(x, y, w, h);
+    ctx.fill();
+  };
+  for (let i = 0; i < n; i++) {
+    const h = Math.round(H * (0.3 + (0.7 * i) / Math.max(1, n - 1)));
+    const x = i * (bw + gap);
+    const y = H - h;
+    ctx.globalAlpha = 0.22;
+    ctx.fillStyle = opts.off;
+    bar(x, y, bw, h);
+    const share = Math.max(0, Math.min(1, opts.pos - i));
+    if (share > 0) {
+      ctx.globalAlpha = 1;
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(x, 0, bw * share, H);
+      ctx.clip();
+      const g = ctx.createLinearGradient(0, y, 0, H);
+      g.addColorStop(0, opts.tip);
+      g.addColorStop(1, opts.fill);
+      ctx.fillStyle = g;
+      bar(x, y, bw, h);
+      ctx.restore();
     }
-    for (let r = 0; r < h; r++) {
-      if (!on && r % 2) continue;
-      ctx.globalAlpha = on ? 1 : 0.22;
-      ctx.fillStyle = !on ? opts.off : r === h - 1 || hash(i, r, tick + i) < 0.035 ? opts.tip : opts.fill;
-      ctx.fillRect(ox + i * p, H - (r + 1) * p, p, p);
-    }
-  }
-  if (front >= 0) {
-    const h = Math.min(rows, Math.max(4, ramp(front) + 2));
-    ctx.globalAlpha = 1;
-    ctx.fillStyle = opts.ink;
-    for (let r = 0; r < h; r++) ctx.fillRect(ox + front * p, H - (r + 1) * p, p, p);
   }
   ctx.globalAlpha = 1;
 }
 
 /**
  * How much an agent thinks, as a slider: a ramp of
- * pixel bars in the agent's color fills up to the chosen step, the step names
+ * rounded bars in the agent's color fills up to the chosen step, the step names
  * under it, the label and what the step means on the line above. Drag or click
  * the ramp, click a name, or the arrow keys (`role="slider"`, one tab stop).
  * Still with reduced motion.

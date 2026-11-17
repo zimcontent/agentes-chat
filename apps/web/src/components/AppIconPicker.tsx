@@ -31,13 +31,13 @@ export function useFollowPickedAgent(orgId: string) {
 }
 
 /** An agent drawn as the app icon (lib/agent-app-icon.ts), the size of the others; blank while it is drawn. */
-function AgentIconPicture({ look, className }: { look: AgentAppearance; className?: string }) {
+function AgentIconPicture({ look, name, className }: { look: AgentAppearance; name?: string; className?: string }) {
   const [src, setSrc] = useState<string | null>(null);
-  const key = `${look.color ?? ""}|${look.eyes ?? ""}|${look.accessory ?? ""}`;
+  const key = `${name ?? ""}|${look.shape ?? ""}|${look.color ?? ""}|${look.eyes ?? ""}|${look.accessory ?? ""}`;
   // biome-ignore lint/correctness/useExhaustiveDependencies: redrawn when the look's parts change (`key`)
   useEffect(() => {
     let live = true;
-    void agentIconPicture(look).then((url) => live && setSrc(url));
+    void agentIconPicture(look, 160, name).then((url) => live && setSrc(url));
     return () => {
       live = false;
     };
@@ -48,7 +48,8 @@ function AgentIconPicture({ look, className }: { look: AgentAppearance; classNam
 
 /** A pick's picture in iOS's shape (the corners round like a home screen's): an icon's, or the agent's. */
 export function AppIconPicture({ pick, className }: { pick: AppIconPick; className?: string }) {
-  if (typeof pick !== "string") return <AgentIconPicture look={pick.agent.look} className={className} />;
+  if (typeof pick !== "string")
+    return <AgentIconPicture look={pick.agent.look} name={pick.agent.name} className={className} />;
   return <img src={appIconPicture(pick)} alt="" className={["app-icon-pic", className].filter(Boolean).join(" ")} />;
 }
 
@@ -123,7 +124,7 @@ export function AppIconDialog({ open, onClose }: { open: boolean; onClose: () =>
                       className="app-icons__agent"
                       onClick={() => pick({ agent: { orgId: org.id, id: agent.id, name: agent.name, look } })}
                     >
-                      <AgentIconPicture look={look} />
+                      <AgentIconPicture look={look} name={agent.name} />
                       <span className="app-icons__agent-name">{agent.name}</span>
                     </button>
                   );

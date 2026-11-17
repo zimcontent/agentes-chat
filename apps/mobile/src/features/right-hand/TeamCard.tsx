@@ -468,7 +468,7 @@ function TeamCardView({ message: m, card }: { message: Message; card: TeamPropos
               {plan.agents.map((a) => (
                 <StickerCanvas
                   key={a.handle}
-                  look={fullLook(a.appearance)}
+                  look={{ ...fullLook(a.appearance), name: a.name, handle: a.handle }}
                   mood="wave"
                   size={MESSAGE_STICKER}
                   seed={a.handle}

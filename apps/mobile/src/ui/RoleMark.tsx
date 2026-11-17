@@ -1,12 +1,12 @@
 import { bodyTones } from "@agenteschat/ui/agent/engine";
 import { useId } from "react";
 import { StyleSheet, View } from "react-native";
-import Svg, { Circle, ClipPath, Defs, G, Path } from "react-native-svg";
+import Svg, { Circle, Defs, LinearGradient, Stop } from "react-native-svg";
 import { Icon } from "./Icon";
-import { ditherPaths, roleMarkFit, roleMarkIcon } from "./role-mark";
+import { roleMarkFit, roleMarkIcon } from "./role-mark";
 
 /**
- * A workspace role's mark (ADR 0085), as the web's: the role's color in the agents' dither in a full circle (never a
+ * A workspace role's mark (ADR 0085), as the web's: the role's color in a full circle of glass (DougBot: no pixel dither; a soft light from the top) (never a
  * person's tile or an agent's cut corner), its icon in white on top with the web's one-point shadow. Decorative: the
  * role's name is always beside it. Without `icon` (Todos' and the owners' marks pass theirs) the circle alone.
  */
@@ -23,17 +23,20 @@ export function RoleMark({ color, icon, size = 26 }: { color: string; icon?: str
     >
       <Svg width={size} height={size} viewBox={`0 0 ${cells} ${cells}`}>
         <Defs>
-          <ClipPath id={clip}>
-            <Circle cx={cells / 2} cy={cells / 2} r={cells / 2} />
-          </ClipPath>
+          <LinearGradient id={clip} x1="0" y1="0" x2="0" y2="1">
+            <Stop offset="0" stopColor={tones[3] ?? color} />
+            <Stop offset="1" stopColor={tones[1] ?? color} />
+          </LinearGradient>
         </Defs>
-        {/* The middle tone under the runs: no light seam where two rows meet on a fractional point. */}
-        <Circle cx={cells / 2} cy={cells / 2} r={cells / 2} fill={tones[2]} />
-        <G clipPath={`url(#${clip})`}>
-          {ditherPaths(color, cells).map((p) => (
-            <Path key={p.fill} d={p.d} fill={p.fill} />
-          ))}
-        </G>
+        <Circle cx={cells / 2} cy={cells / 2} r={cells / 2} fill={`url(#${clip})`} />
+        <Circle
+          cx={cells / 2}
+          cy={cells / 2}
+          r={cells / 2 - 0.4}
+          fill="none"
+          stroke="rgba(255,255,255,0.28)"
+          strokeWidth={0.8}
+        />
       </Svg>
       {name ? (
         <>

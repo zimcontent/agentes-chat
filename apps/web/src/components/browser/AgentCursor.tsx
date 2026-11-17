@@ -1,5 +1,4 @@
 import {
-  AGENT_ARROW,
   type CountedPointer,
   CURSOR_FLIP_AT,
   CURSOR_IDLE_MS,
@@ -25,7 +24,7 @@ interface AgentCursorProps {
 }
 
 /**
- * The agent's cursor over the picture of its page (ADR 0040 §7.2): a pixel arrow in the agent's color carrying
+ * The agent's cursor over the picture of its page (ADR 0040 §7.2): a clean arrow in the agent's color (DougBot: no pixel art) carrying
  * its avatar and name, going to each point the computer says as the gesture starts, dimmed where it rests after a
  * quiet while (a gesture already over when shown is placed there at once). The page has no pointer of
  * its own (the agent's input goes straight to it), so this is drawn here, the same size whatever the picture's
@@ -140,22 +139,11 @@ export function AgentCursor({ agentId, name, color, pointer }: AgentCursorProps)
             .filter(Boolean)
             .join(" ")}
         >
-          <svg width="16" height="24" viewBox="0 0 8 12" shapeRendering="crispEdges" role="presentation">
-            {AGENT_ARROW.flatMap((row, y) =>
-              [...row].map((c, x) =>
-                c === "." ? null : (
-                  <rect
-                    // biome-ignore lint/suspicious/noArrayIndexKey: a fixed grid.
-                    key={`${x}-${y}`}
-                    x={x}
-                    y={y}
-                    width="1.02"
-                    height="1.02"
-                    className={c === "X" ? "brw-cur__edge" : "brw-cur__body"}
-                  />
-                ),
-              ),
-            )}
+          <svg width="16" height="24" viewBox="0 0 8 12" role="presentation">
+            <path
+              className="brw-cur__body brw-cur__arrow"
+              d="M0.5 0.5 L0.5 10 L2.7 8 L4.4 11.6 L5.8 11 L4.1 7.4 L7.4 7.4 Z"
+            />
           </svg>
           <span className="brw-cur__who">
             <AgentAvatar agentId={agentId} name={name} size="xs" state="idle" />

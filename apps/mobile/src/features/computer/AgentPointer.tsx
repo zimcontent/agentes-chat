@@ -1,5 +1,4 @@
 import {
-  AGENT_ARROW,
   type CountedPointer,
   CURSOR_IDLE_MS,
   CURSOR_REST_OPACITY,
@@ -26,7 +25,7 @@ import Animated, {
   withSequence,
   withTiming,
 } from "react-native-reanimated";
-import Svg, { G, Rect } from "react-native-svg";
+import Svg, { G, Path } from "react-native-svg";
 import { scheduleOnRN } from "react-native-worklets";
 import { Text, useReducedMotion } from "@/ui";
 import { AgentFace } from "../shared/Face";
@@ -37,12 +36,9 @@ import { type PointerBox, pointerStep } from "./agent-pointer";
 const PAPER = "#ffffff";
 const INK = "#111111";
 const SHADOW = "#0a1428";
-/** Points per arrow pixel, and the hard shadow's offset in pixels (the web's 1.5 px). */
+/** Points per unit of the arrow's 8 × 12 box, and the hard shadow's offset in pixels (the web's 1.5 px). */
 const CELL = 2;
 const DROP = 0.75;
-const ARROW_CELLS = AGENT_ARROW.flatMap((row, y) =>
-  [...row].flatMap((c, x) => (c === "." ? [] : [{ x, y, edge: c === "X" }])),
-);
 const RING = 30;
 const RING_MS = 500;
 const FADE_MS = 600;
@@ -76,18 +72,15 @@ function ringLook(k: number, at: CursorSpot) {
   };
 }
 
-/** The pixel arrow and its hard shadow, the same between gestures. */
+/** The agent's arrow (DougBot: one smooth path, no pixel art), its light rim and a soft shadow under it. */
+const ARROW_PATH = "M0.5 0.5 L0.5 10 L2.7 8 L4.4 11.6 L5.8 11 L4.1 7.4 L7.4 7.4 Z";
 const Arrow = memo(function Arrow({ deep }: { deep: string }) {
   return (
     <Svg width={(8 + DROP) * CELL} height={(12 + DROP) * CELL} viewBox={`0 0 ${8 + DROP} ${12 + DROP}`}>
-      <G opacity={0.38}>
-        {ARROW_CELLS.map((c) => (
-          <Rect key={`s${c.x}-${c.y}`} x={c.x + DROP} y={c.y + DROP} width={1.02} height={1.02} fill={SHADOW} />
-        ))}
+      <G opacity={0.38} transform={`translate(${DROP} ${DROP})`}>
+        <Path d={ARROW_PATH} fill={SHADOW} />
       </G>
-      {ARROW_CELLS.map((c) => (
-        <Rect key={`${c.x}-${c.y}`} x={c.x} y={c.y} width={1.02} height={1.02} fill={c.edge ? PAPER : deep} />
-      ))}
+      <Path d={ARROW_PATH} fill={deep} stroke={PAPER} strokeWidth={0.7} strokeLinejoin="round" />
     </Svg>
   );
 });
@@ -101,7 +94,7 @@ type PointerProps = {
 
 /**
  * The agent's cursor over the picture of its page or its desktop (ADR 0040 §7.2), as the web's `AgentCursor`: the
- * pixel arrow in the agent's deep color with its face and name, gliding on an arc to each point its computer says as
+ * arrow in the agent's deep color with its face and name, gliding on an arc to each point its computer says as
  * the gesture starts, a ring on a click (two on a double), only the face while it types, dimmed where it rests after a
  * quiet while.
  * `view` is how the box shows the picture (a desktop's camera, which a pinch or a pan moves, or a letterboxed page),
