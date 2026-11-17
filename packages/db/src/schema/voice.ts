@@ -40,7 +40,8 @@ export const voiceClips = pgTable(
     text: text(),
     /** Files (artifact ids) sent with the take, checked as a typed message's when it arrived. */
     attachments: jsonb().$type<string[]>(),
-    status: text().$type<"pending" | "sent" | "dropped">().notNull().default("pending"),
+    /** `dictated`: words handed back to the field, no audio kept and no message (dictation). */
+    status: text().$type<"pending" | "sent" | "dropped" | "dictated">().notNull().default("pending"),
     messageId: uuid(),
     /** Which engine made the words, and what they cost us. Never shown. */
     engine: text(),

@@ -16,7 +16,8 @@
 // `--conversation`'s, or a new one when it doesn't know that one; its tools: our server's alone with `--agent`, else
 // the CLI's own and ours, or $FAKE_AGY_TOOLS), a text delta, a shell step (none with "BRIDGE_ONLY"), a call to our
 // server (a tool of the CLI's own with "OWN_TOOL"), the last delta with usage and the result. "LIMIT": an AGY_ERROR
-// quota line on stderr and exit 3. "DENIED": a command it refused without asking, and an empty answer. "ENV": the shell step's output is the env.
+// quota line on stderr and exit 3. "DENIED": a command it refused without asking, and an empty answer
+// ("DENIED_AGAIN": the nudge that follows is refused too). "ENV": the shell step's output is the env.
 import { appendFileSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import path from "node:path";
 
@@ -178,52 +179,10 @@ if (args[0] === "-p") {
   }
   // No terminal sandbox (1.5.9, seen on Ubuntu 24.04, 2026-11-14): the command is soft-denied and the turn ends
   // "successfully" with nothing said.
-  // "DENIED_READ": a read it refused (a path outside its folder, seen 2026-11-16), every time with "ALWAYS"; told to
-  // go on in the same conversation, it answers.
-  if (prompt.includes("DENIED_READ") || (prompt.includes("Your last step was refused") && env.FAKE_AGY_ALWAYS)) {
-    step({
-      step_index: 1,
-      state: "DONE",
-      step_type: "agent_response",
-      usage: { input_tokens: 900, output_tokens: 40 },
-    });
-    out({
-      event: "result",
-      result: {
-        conversation_id: conversation,
-        status: "SUCCESS",
-        response: "",
-        denied_actions: [{ action: "read_file", display_name: "ReadFile" }],
-      },
-    });
-    process.exit(0);
-  }
-  // "DENIED_BYPASS": a command ran in the sandbox without the network, then the same one asked outside it was refused
-  // (seen 2026-11-17); told to go on, it answers.
-  if (prompt.includes("DENIED_BYPASS")) {
-    step({
-      step_index: 1,
-      state: "DONE",
-      step_type: "tool",
-      tool_name: "run_command",
-      tool_info: {
-        name: "run_command",
-        parameters: { CommandLine: "python3 upload.py" },
-        output: "Command exited with code 6.\n\nCommand output:\ncurl: (6) Could not resolve host: api.example.com",
-      },
-    });
-    out({
-      event: "result",
-      result: {
-        conversation_id: conversation,
-        status: "SUCCESS",
-        response: "",
-        denied_actions: [{ action: "command", display_name: "Bash" }],
-      },
-    });
-    process.exit(0);
-  }
-  if (prompt.includes("DENIED")) {
+  // A nudge after a denial (`agyDeniedNudge`) goes on, unless the turn was "DENIED_AGAIN": refused once more.
+  const stubborn = path.join(dir, `fake-denied-again-${conversation}`);
+  if (prompt.includes("DENIED_AGAIN")) writeFileSync(stubborn, "1");
+  if (prompt.includes("DENIED") || (prompt.startsWith("Your last action") && existsSync(stubborn))) {
     step({
       step_index: 1,
       state: "DONE",

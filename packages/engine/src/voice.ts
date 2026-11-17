@@ -211,6 +211,66 @@ export async function acceptVoiceClip(
   return { clipId: winner.id };
 }
 
+/**
+ * Dictation (ADR 0100 addendum 2026-11-17): the words of a short recording, handed back to the person's field to read
+ * and send as text. The same engines, names and fair use as a voice message; nothing is stored or posted. The row it
+ * leaves is only for fair use and what the words cost (`status` `dictated`, no audio), so the limits count it.
+ */
+export async function dictateVoice(
+  deps: VoiceDeps,
+  userId: string,
+  orgId: string,
+  channelId: string,
+  input: { audio: Uint8Array; contentType: string; durationMs: number; language?: string | null },
+): Promise<{ text: string }> {
+  const { membership } = await requireChannelAccess(deps.db, userId, orgId, channelId);
+  if (!can(membership, "post")) throw new ForbiddenError();
+  if (!(await voiceOn(deps, orgId))) throw new ValidationError("Voice is off here", "voice.unavailable");
+  if (input.audio.length === 0 || input.audio.length > VOICE_MAX_BYTES) {
+    throw new ValidationError("The recording is too large", "voice.too_large");
+  }
+  if (input.durationMs < VOICE_MIN_MS || input.durationMs > VOICE_MAX_MS + VOICE_DURATION_SLACK_MS) {
+    throw new ValidationError("The recording is too long or too short", "voice.bad_duration");
+  }
+  if (!(await voiceAllowed(deps, userId, orgId))) throw new ValidationError("Too much voice today", "voice.limit");
+  const declared = input.contentType.split(";")[0]?.trim().toLowerCase() || "audio/mp4";
+  const contentType = VOICE_ARRIVES_AS[declared] ?? declared;
+  if (!VOICE_TYPES.includes(contentType)) throw new ValidationError("Not a voice recording", "voice.bad_type");
+  const durationMs = Math.round(input.durationMs);
+  const noEngine = () => new ValidationError("No engine could make out the words now", "voice.no_engine");
+  // Words nobody could make out cost the person nothing: only words handed back count.
+  const words = await firstWords(
+    deps.engines(),
+    {
+      audio: input.audio,
+      contentType,
+      language: input.language?.slice(0, 8) ?? null,
+      terms: await namesFor(deps.db, orgId),
+      orgId,
+      durationMs,
+    },
+    (deps.hedgeAfterMs ?? hedgeAfterMs)(durationMs),
+  ).catch(() => null);
+  if (!words) throw noEngine();
+  await deps.db.insert(voiceClips).values({
+    orgId,
+    channelId,
+    userId,
+    clientId: `dictation:${crypto.randomUUID()}`,
+    blobKey: "",
+    contentType,
+    size: 0,
+    durationMs,
+    peaks: [],
+    language: input.language?.slice(0, 8) ?? null,
+    status: "dictated",
+    engine: words.engine.id,
+    costNanoUsd: costOf(words.engine, durationMs),
+    audioDeletedAt: new Date(),
+  });
+  return { text: words.text.trim() };
+}
+
 /** Names the recording most likely says: the workspace's agents, its people and channels. */
 async function namesFor(db: Database, orgId: string): Promise<string[]> {
   const [agentRows, people, rooms] = await Promise.all([

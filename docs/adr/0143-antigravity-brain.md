@@ -54,23 +54,29 @@ launched `agy` without `AGY_CLI_DISABLE_AUTO_UPDATE`, so it updated itself on th
 (`probeEnv`), the switch `AGY_QUIET_ENV` also carries. A locked (`chat`) turn on 1.5.9 and 1.5.10 lists all of the CLI's
 own tools, so the right hand doesn't stand in on it (ADR doug-0003, addendum 2026-11-17).
 
-## Addendum (2026-11-16): a refused action doesn't end the turn
+## Addendum 2026-11-17: the sandbox has no network, and the model is told so
 
-Headless, the CLI ends a turn with nothing said when it refuses an action (`result.denied_actions`). Seen with Gemini 4 Hydrogen: reading its own tool's description, the model dropped part of the account folder's long path, the read fell outside what the CLI allows, and a long video job stopped at minute two. Now the runner goes on in the same conversation (`--conversation`), telling the model what was refused and where its tools' descriptions are (`agyDeniedNudge`), at most `AGY_DENIED_RESUMES` (2) times per turn; refused again, the turn ends with the error as before. A refused command is not resumed: it means no terminal sandbox on the computer (the AppArmor profile in SELF_HOSTING.md), which going on doesn't change.
+Commands run in the CLI's terminal sandbox, which has no network (ADR 0053 §3), and nothing told the model. A
+`git clone` or a `curl` failed there, the model asked to run it outside (`BypassSandbox`), headless mode refused that
+without asking, and the turn ended with no answer: 10 of the Antigravity turns that stopped before finishing in 30
+days. On six tasks run twice on this computer (Gemini 4 Hydrogen medium), 8 of 12 finished as turns ran then, the four
+that needed the network all refused; with the note below, 12 of 12, none needing the second chance.
 
-## Addendum 2026-11-17: the network outside the sandbox for a work turn
+- Every new chat (not the right hand's, which runs no commands) reads `AGY_SANDBOX_NOTE` before the engine's context:
+  no network in the sandbox, never `BypassSandbox`, the network through our server's `run_code` when the agent has it,
+  and otherwise do the rest and say what needed the network.
+- A turn the CLI still ends at a refused action with nothing said goes on once in the same conversation, reading
+  `agyDeniedNudge` (what was refused, not to ask again, `run_code` for a command that needs the network). Refused
+  again, it fails as before (`agyDenied`).
 
-The CLI's terminal sandbox has no network (DNS included). A command that needs it fails there, and the model asks to
-run it again outside (`BypassSandbox: true`), which headless mode can't confirm: it is soft-denied and the turn ends
-with what it did so far ("stopped before finishing"), seen many times a day with Gemini 4 Hydrogen uploading media with
-`curl` to a signed address. The CLI's `sandboxAllowNetwork` is the IDE's setting and not read from its
-`settings.json` (1.5.10); an allow rule `command(<program>)` there is, and runs that command outside the sandbox
-without asking. So a `work` turn's settings allow `AGY_NETWORK_COMMANDS` (`curl`, `wget`, `git`, `gh`, `yt-dlp`):
+## Addendum 2026-11-17: network commands outside the sandbox for a work turn
+
+Beside the note above, which reaches only new chats and leans on `run_code`, which not every agent has: the CLI's
+`sandboxAllowNetwork` is the IDE's setting and is not read from its `settings.json` (1.5.10), but an allow rule
+`command(<program>)` there is, and runs that command outside the sandbox without asking (tried on `curl …` and
+`cd /tmp && curl …`). A `work` turn's settings allow `AGY_NETWORK_COMMANDS` (`curl`, `wget`, `git`, `gh`, `yt-dlp`):
 programs that fetch and send over the network, never a shell or an interpreter, which would lift the sandbox for
-anything. A `plan` or `chat` turn gets none. Since the settings are the account's, a `plan` turn running at the same
-moment as a `work` one on the same account may start with either list, as with every other shared setting.
-
-Any other command asked outside the sandbox is still refused. When a command of the CLI already ran in that turn (so
-there is a sandbox), the refusal goes on in the same conversation like a refused read (`agyDeniedNudge`, at most
-`AGY_DENIED_RESUMES` times), telling the model which programs may leave the sandbox and to use them as their own
-command. A refused command with none run still means no sandbox on the computer, and ends the turn as before.
+anything. A `plan` or `chat` turn gets none. A work turn's `agyDeniedNudge` names them, for a model without
+`run_code`. Seen before it: an agent in an old conversation uploading media with `curl` to a signed address, refused
+again and again. Since the settings are the account's, a `plan` turn starting at the same moment as a `work` one on
+the same account may start with either list, as with every other shared setting.

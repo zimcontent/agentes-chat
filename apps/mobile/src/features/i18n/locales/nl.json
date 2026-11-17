@@ -324,12 +324,12 @@
     "createAgent": "Agent aanmaken"
   },
   "voice": {
-    "slideToCancel": "schuif om te annuleren",
-    "slideUpToLock": "schuif omhoog om te vergrendelen",
-    "locked": "Vergrendeld",
-    "recording": "Opnemen",
-    "discard": "Verwijderen",
-    "send": "Versturen",
+    "dictate": "Dicteren",
+    "stopDictating": "Stoppen en uitschrijven",
+    "cancelDictating": "Dictaat annuleren",
+    "transcribing": "Bezig met uitschrijven…",
+    "noWords": "Niets gehoord",
+    "dictationFailed": "Uitschrijven lukte niet. Probeer het opnieuw.",
     "seeAll": "Alles bekijken"
   },
   "chat": {

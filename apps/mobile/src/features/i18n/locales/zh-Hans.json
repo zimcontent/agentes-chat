@@ -315,12 +315,12 @@
     "createAgent": "创建智能体"
   },
   "voice": {
-    "slideToCancel": "滑动以取消",
-    "slideUpToLock": "上滑以锁定",
-    "locked": "已锁定",
-    "recording": "正在录音",
-    "discard": "删除",
-    "send": "发送",
+    "dictate": "听写",
+    "stopDictating": "停止并转写",
+    "cancelDictating": "取消听写",
+    "transcribing": "正在转写…",
+    "noWords": "没有听到内容",
+    "dictationFailed": "无法转写，请重试。",
     "seeAll": "查看全部"
   },
   "chat": {

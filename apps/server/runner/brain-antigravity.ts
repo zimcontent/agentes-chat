@@ -205,7 +205,7 @@ export function antigravityProblem(
  * user namespaces (SELF_HOSTING.md). Null when nothing was denied.
  */
 export function agyDenied(result: Record<string, unknown>): string | null {
-  const denied = deniedOf(result);
+  const denied = Array.isArray(result.denied_actions) ? result.denied_actions.filter(isRecord) : [];
   if (denied.length === 0) return null;
   const names = [...new Set(denied.map((d) => String(d.display_name ?? d.action ?? "a tool").slice(0, 40)))];
   const command = denied.some((d) => d.action === "command");
@@ -216,36 +216,35 @@ export function agyDenied(result: Record<string, unknown>): string | null {
   }`;
 }
 
-/** How many times one turn goes on after the CLI ended it over a refused action. */
-export const AGY_DENIED_RESUMES = 2;
-
-const deniedOf = (result: Record<string, unknown>) =>
-  Array.isArray(result.denied_actions) ? result.denied_actions.filter(isRecord) : [];
-
-/** A refused command: no terminal sandbox on this computer (`agyDenied`), or a command asked to leave it. */
-const deniedCommand = (result: Record<string, unknown>) => deniedOf(result).some((d) => d.action === "command");
+/**
+ * What every new Antigravity chat reads first (not the right hand's, which runs no commands). The CLI's terminal
+ * sandbox has no network (ADR 0053 §3), and nothing tells the model so: a `git clone` or a `curl` fails there, the
+ * model asks to run it outside the sandbox (`BypassSandbox`), headless mode refuses that without asking and the turn
+ * ends with no answer (`agyDenied`). Our server's `run_code`, when the agent has it, runs on the computer with its
+ * network under the server's own policy. Measured 2026-11-17 on six tasks run twice: 8 of 12 finished without this
+ * note (the four that needed the network all ended refused), 12 of 12 with it.
+ */
+export const AGY_SANDBOX_NOTE =
+  "How this computer works: your own terminal commands run in a sandbox with no network access. Never set BypassSandbox on a command: that needs a confirmation nobody can give here, so it is refused and your turn ends unfinished. For anything that needs the network (git clone or fetch, curl, wget, package installs, downloads), use the run_code tool from agenteschat_agentes when you have it: it runs outside the sandbox, with network. Without it, do everything else and say plainly what needed the network.";
 
 /**
- * What the same conversation is told after the CLI ended a turn over a refused action, so it goes on instead of
- * stopping. Seen 2026-11-16 (Gemini 4 Hydrogen): reading its own tool's description, the model dropped part of the
- * account folder's long path, the read fell outside what the CLI allows and the turn ended with nothing said. The
- * right folder is named here; repeating the same action is ruled out, as the CLI's own denial asks. Seen 2026-11-17:
- * a command that failed without the network in the sandbox, asked again outside it (`BypassSandbox`) with a program
- * no allow rule names (`AGY_NETWORK_COMMANDS`), was refused the same way; the model is told which ones may leave it.
+ * What a turn the CLI cut at a refused action reads, once, in the same conversation: it goes on from there. `network`:
+ * the programs a `work` turn's settings let leave the sandbox (`AGY_NETWORK_COMMANDS`, ADR 0143 addendum 2026-11-17),
+ * for a model with no `run_code`.
  */
-export function agyDeniedNudge(result: Record<string, unknown>, home: string): string {
-  const names = [...new Set(deniedOf(result).map((d) => String(d.display_name ?? d.action ?? "a tool").slice(0, 40)))];
-  const tools = path.join(home, ".gemini", "antigravity-cli", "mcp", CODEX_MCP_SERVER);
-  return [
-    `Your last step was refused (${names.slice(0, 4).join(", ") || "a tool"}) and your turn stopped there, with the task unfinished.`,
-    `If you were reading a file, check its path letter by letter: the descriptions of your tools are the JSON files in ${tools}/ (one per tool, named after it); your other files are in your current folder.`,
-    ...(deniedCommand(result)
-      ? [
-          `If it was a command outside the sandbox (BypassSandbox): only ${AGY_NETWORK_COMMANDS.join(", ")} may run there, as their own command (never inside bash -c, python or a script). Fetch or send over the network with them, and do the rest inside the sandbox, in your current folder or /tmp.`,
-        ]
-      : []),
-    "Don't repeat the refused action as it was. Go on with the task from where you stopped and finish it: what you already did stays done.",
-  ].join("\n");
+export function agyDeniedNudge(result: Record<string, unknown>, network: readonly string[] = []): string {
+  const denied = Array.isArray(result.denied_actions) ? result.denied_actions.filter(isRecord) : [];
+  const names = [...new Set(denied.map((d) => String(d.display_name ?? d.action ?? "a tool").slice(0, 40)))];
+  const command = denied.some((d) => d.action === "command");
+  return `Your last action (${names.slice(0, 4).join(", ") || "a tool"}) was refused: it needed a confirmation nobody can give here, so don't ask for it again. ${
+    command
+      ? `Commands that need the network go through the run_code tool from agenteschat_agentes when you have it; the others run in your sandbox as they are. ${
+          network.length > 0
+            ? `Without run_code, only ${network.join(", ")} may run outside the sandbox (BypassSandbox), each as its own command, never inside bash -c, python or a script. `
+            : ""
+        }`
+      : ""
+  }Continue from where you stopped and finish the task, doing without what was refused if you must.`;
 }
 
 const tokens = (v: unknown) => (typeof v === "number" && Number.isFinite(v) && v > 0 ? Math.round(v) : 0);
@@ -299,8 +298,10 @@ export async function runAntigravityTurn(input: AntigravityTurnInput, opts: Anti
   if ((opts.platform ?? process.platform) !== "linux") {
     return fail("unsupported", "Gemini plans think on Linux computers only, for now.");
   }
+  // Only a work turn's commands may leave the sandbox for the network (`AGY_NETWORK_COMMANDS`).
+  const profile = input.chat ? undefined : (input.profile ?? "work");
   try {
-    prepareAgyHome(input.account.home, opts.mcpCommand, input.chat ? undefined : (input.profile ?? "work"));
+    prepareAgyHome(input.account.home, opts.mcpCommand, profile);
     if (input.chat) {
       // Nothing of the workspace's own config (`.agents/`, `.gemini/`) in Lodi's folder.
       for (const name of [".agents", ".gemini"]) rmSync(path.join(input.cwd, name), { recursive: true, force: true });
@@ -326,17 +327,14 @@ export async function runAntigravityTurn(input: AntigravityTurnInput, opts: Anti
   const clean = (text: string) => (opts.redact ? opts.redact(text) : text);
   const hold = opts.redact ? (opts.redactHold ?? 0) : 0;
 
-  // One retry, as a new chat, when the CLI doesn't have the conversation it was to resume. A turn the CLI ended over a
-  // refused action goes on in the same conversation, told why (`agyDeniedNudge`), at most `AGY_DENIED_RESUMES` times.
+  const system = input.chat ? input.system : [AGY_SANDBOX_NOTE, input.system].filter(Boolean).join("\n\n");
+  // Once a turn, a turn cut at a refused action goes on in the same conversation, told why (`agyDeniedNudge`).
   let nudge: string | null = null;
-  let nudges = 0;
-  // A command of the CLI ran in this turn: it has a terminal sandbox, so a refused command asked to leave it.
-  let ranCommand = false;
-  let denied: string | null = null;
+  // One retry, as a new chat, when the CLI doesn't have the conversation it was to resume.
   for (let attempt = 0; ; attempt++) {
     const chat = opts.chats.get(chatKey);
     const args = antigravityTurnArgs({
-      prompt: nudge ?? cursorPrompt(input.system, input.prompt, !chat),
+      prompt: nudge && chat ? nudge : cursorPrompt(system, input.prompt, !chat),
       ...(chat ? { chat } : {}),
       ...(input.model ? { model: input.model } : {}),
       ...(input.effort ? { effort: input.effort } : {}),
@@ -398,7 +396,7 @@ export async function runAntigravityTurn(input: AntigravityTurnInput, opts: Anti
         const id = typeof ev.conversation_id === "string" ? ev.conversation_id : undefined;
         if (isRecord(ev.init) && typeof ev.init.model === "string") model = ev.init.model;
         // A resume the CLI didn't have comes back as a new conversation, without the context.
-        if (chat && id && id !== chat && (attempt === 0 || nudge)) {
+        if (chat && id && id !== chat && attempt === 0) {
           lost = true;
           killTree(child, "SIGKILL");
           return;
@@ -427,7 +425,6 @@ export async function runAntigravityTurn(input: AntigravityTurnInput, opts: Anti
       if (step.step_type !== "tool" || step.state !== "DONE" || !info) return;
       const name = typeof step.tool_name === "string" ? step.tool_name : String(info.name ?? "tool");
       worked = true;
-      if (name === "run_command") ranCommand = true;
       // Our bridge's calls: the engine ran them.
       if (isOurAgyTool(name)) return;
       flush("", true);
@@ -477,8 +474,6 @@ export async function runAntigravityTurn(input: AntigravityTurnInput, opts: Anti
         true,
       );
     }
-    // Told to go on after a refusal, but the CLI lost the conversation: what it refused is the end.
-    if (nudge && lost) return fail("antigravity_failed", denied ?? "The Antigravity CLI lost the conversation.");
     if (chat && attempt === 0 && (lost || (!sawInit && /conversation[^\n]*not found/i.test(stderr)))) {
       opts.chats.delete(chatKey);
       continue;
@@ -500,17 +495,12 @@ export async function runAntigravityTurn(input: AntigravityTurnInput, opts: Anti
     if (r.status === "SUCCESS" && exit.code === 0) {
       const text = clean(response.trimEnd());
       // Nothing said because the CLI refused what the turn needed: never an empty answer, which reads as "Done.".
-      denied = text || streamed ? null : agyDenied(r);
+      const denied = text || streamed ? null : agyDenied(r);
+      if (denied && !nudge && !input.chat && opts.chats.get(chatKey)) {
+        nudge = agyDeniedNudge(r, profile === "work" ? AGY_NETWORK_COMMANDS : []);
+        continue;
+      }
       if (denied) {
-        // A refused read or tool (a path it copied wrong, a file outside its folder), or a command asked outside the
-        // sandbox once commands ran in it: the same conversation goes on, told what happened. A refused command with
-        // none run means no sandbox on this computer: going on wouldn't change that.
-        const again = opts.chats.get(chatKey);
-        if (again && nudges < AGY_DENIED_RESUMES && (!deniedCommand(r) || ranCommand)) {
-          nudges++;
-          nudge = agyDeniedNudge(r, input.account.home);
-          continue;
-        }
         opts.emit({ type: "error", code: "antigravity_failed", message: denied, retryable: false });
         return;
       }
