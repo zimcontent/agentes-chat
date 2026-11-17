@@ -224,6 +224,7 @@ import type {
   Poll,
   PortalBoard,
   PortalCard,
+  PortalItem,
   PortalJob,
   PortalLabel,
   PortalList,
@@ -1960,6 +1961,7 @@ export function createHttpApi(options: TransportOptions = {}): HttpApi {
       plan: (orgId, client) => request<PortalPlan>(`${org(orgId)}/portal/clients/${enc(client)}/plan`),
       mine: (orgId) => request<PortalMine>(`${org(orgId)}/portal/mine`),
       pipeline: (orgId) => request<PortalPipeline>(`${org(orgId)}/portal/pipeline`),
+      toSchedule: (orgId) => request<{ items: PortalItem[] }>(`${org(orgId)}/portal/to-schedule`),
       tasks: async (orgId) => (await request<{ tasks: PortalTaskRef[] }>(`${org(orgId)}/portal/tasks`)).tasks,
       createList: async (orgId, client, name, kind) =>
         (

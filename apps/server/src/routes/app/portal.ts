@@ -26,6 +26,7 @@ import {
   portalPipeline,
   portalPlan,
   portalTaskRefs,
+  portalToSchedule,
   recordAudit,
   removePortalClientLogo,
   requireChangePermission,
@@ -729,6 +730,26 @@ export function portalRoutes(deps: AppDeps) {
       const { orgId } = c.req.valid("param");
       await requirePermission(db, c.get("user").id, orgId, "read");
       const out = await guarded(c, (portal) => portalPipeline(portal));
+      return out.ok ? c.json(out.value, 200) : out.response;
+    },
+  );
+
+  app.openapi(
+    createRoute({
+      method: "get",
+      path: "/organizations/{orgId}/portal/to-schedule",
+      tags,
+      security,
+      summary: "Approved posts nobody scheduled yet, across every client, the longest waiting first (members)",
+      description:
+        "What waits for a person of the team to schedule by hand: Home lists them under Waiting on you. A post only gets a date when someone schedules it (ADR 9001, addendum 2026-11-17).",
+      request: { params: OrgParams },
+      responses: { 200: json(z.object({ items: z.array(Item) })), 502: unavailable, ...errors, 404: off },
+    }),
+    async (c) => {
+      const { orgId } = c.req.valid("param");
+      await requirePermission(db, c.get("user").id, orgId, "read");
+      const out = await guarded(c, async (portal) => ({ items: await portalToSchedule(portal) }));
       return out.ok ? c.json(out.value, 200) : out.response;
     },
   );

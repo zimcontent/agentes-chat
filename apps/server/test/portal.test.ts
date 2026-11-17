@@ -275,6 +275,27 @@ test("an approved post is scheduled; one the client hasn't approved is refused i
   expect((await api(path("up-1"), { json: { scheduledFor: "tomorrow" } })).status).toBe(400);
 });
 
+test("approved posts nobody scheduled wait on the team, the longest waiting first, until someone schedules them", async () => {
+  const portal = createFakeApprovalPortal({
+    items: [
+      item({ id: "up-1", status: "approved", updatedAt: "2026-11-16T10:00:00-03:00" }),
+      item({ id: "up-2", status: "sent" }),
+      item({ id: "up-3", status: "approved", updatedAt: "2026-11-15T10:00:00-03:00" }),
+      item({ id: "up-4", status: "approved", released: true }),
+      item({ id: "up-5", status: "scheduled" }),
+    ],
+  });
+  const { api } = await start(portal);
+  const waiting = async () =>
+    ((await (await api("/portal/to-schedule")).json()) as { items: { id: string }[] }).items.map((i) => i.id);
+  expect(await waiting()).toEqual(["up-3", "up-1"]);
+  // A person schedules one: it leaves the list.
+  expect(
+    (await api("/portal/clients/acme/items/up-3/schedule", { json: { scheduledFor: "2099-12-05T10:00" } })).status,
+  ).toBe(204);
+  expect(await waiting()).toEqual(["up-1"]);
+});
+
 test("an admin approves for a client who went quiet: approved at the portal, said on the card and in the audit", async () => {
   const portal = createFakeApprovalPortal({
     items: [item({ id: "up-1", status: "seen" }), item({ id: "up-2", status: "adjust_requested" })],

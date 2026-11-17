@@ -5261,6 +5261,11 @@ export const ptBR = {
       send: "Enviar",
     },
     waiting: { title: "Esperando você" },
+    toSchedule: {
+      meta: "Aprovado, aguardando agendamento",
+      action: "Agendar",
+      label: "Agendar {{title}}",
+    },
     working: {
       title: "Trabalhando agora",
       none: "Nenhum agente trabalhando agora.",

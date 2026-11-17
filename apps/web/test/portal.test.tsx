@@ -700,3 +700,42 @@ describe("a card's task on Tarefas", () => {
     expect(screen().getByRole("dialog", { name: "Lançamento do cardápio" })).toBeTruthy();
   });
 });
+
+describe("Início: aprovados, aguardando agendamento", () => {
+  const waitingTile = () => screen().getByRole("region", { name: "Esperando você" });
+
+  test("an approved post nobody scheduled waits on the team with Agendar, which asks for the day and time", async () => {
+    await go("home", withPortal(), (portal) => {
+      fill(portal);
+      portal.items.push(
+        portalItem({
+          id: "p9",
+          client: "blue-studio",
+          title: "Bastidores do ensaio",
+          status: "approved",
+          released: true,
+        }),
+      );
+    });
+    const tile = waitingTile();
+    // "Antes e depois" is approved and not released; the released one and the posts with the client aren't here.
+    const row = within(tile).getByRole("button", { name: "Agendar Antes e depois" });
+    expect(row.textContent).toContain("Aprovado, aguardando agendamento");
+    expect(row.textContent).toContain("Blue Studio");
+    expect(within(tile).queryByRole("button", { name: "Agendar Bastidores do ensaio" })).toBeNull();
+    expect(within(tile).queryByRole("button", { name: "Agendar Reel de inauguração" })).toBeNull();
+    await click(row);
+    expect(screen().getByRole("dialog", { name: "Agendar post" })).toBeTruthy();
+  });
+
+  test("a member who doesn't plan the work isn't asked to schedule", async () => {
+    const state = withPortal();
+    meWithRole(state, []);
+    const org = state.me?.organizations[0];
+    if (org) org.permissions = ["read", "post"];
+    const { portal } = await go("home", state);
+    expect(portal.items.some((i) => i.title === "Antes e depois" && i.status === "approved")).toBe(true);
+    expect(document.querySelector(".home")).toBeTruthy();
+    expect(screen().queryByRole("button", { name: "Agendar Antes e depois" })).toBeNull();
+  });
+});

@@ -1,4 +1,4 @@
-import type { AppNotification, Mission, Routine } from "@agenteschat/client";
+import type { AppNotification, Mission, PortalItem, Routine } from "@agenteschat/client";
 import {
   useAiStatus,
   useChannels,
@@ -6,6 +6,7 @@ import {
   useMissionList,
   useNotificationAction,
   useNotifications,
+  usePortalToSchedule,
   useRoutines,
   useSetChatPrefs,
   useSetStart,
@@ -27,13 +28,14 @@ import { latestText } from "@agenteschat/client/lib/message-body";
 import { waitingParts, waitingText } from "@agenteschat/client/lib/missions";
 import { allItems, waitingCardOf, widgetNoticeOf } from "@agenteschat/client/lib/notifications";
 import { can } from "@agenteschat/client/lib/permissions";
+import { portalClientName } from "@agenteschat/client/lib/portal";
 import { isRightHand } from "@agenteschat/client/lib/right-hand";
 import { dayPart } from "@agenteschat/client/lib/welcome";
 import { WORKING_POLL_MS, type WorkItem, workByAgent, workingNow } from "@agenteschat/client/lib/working";
 import { modeKey } from "@agenteschat/client/lib/workspace-mode";
 import { Button, EmptyState, GroupHeading, Icon, Menu, MenuCheckboxItem, PageHeader, Select } from "@agenteschat/ui";
 import { Link } from "@tanstack/react-router";
-import type { ReactNode } from "react";
+import { type ReactNode, useState } from "react";
 import { Trans, useTranslation } from "react-i18next";
 import { AgentAvatar } from "@/components/AgentAvatar";
 import { useFirstRun } from "@/components/FirstRun";
@@ -42,6 +44,7 @@ import { useNotificationOpener } from "@/components/NotificationOpen";
 import { Face, Headline, SystemFace } from "@/components/NotificationParts";
 import { useOrg } from "@/components/org-context";
 import { HomeTasks } from "@/components/portal/HomeTasks";
+import { ScheduleDialog } from "@/components/portal/ScheduleDialog";
 import { usePortalOn } from "@/components/SidebarSetup";
 import { TeamAgenda } from "@/components/TeamAgenda";
 import { HomeMural } from "@/components/widgets/HomeMural";
@@ -94,7 +97,12 @@ export function HomePage() {
   );
   // Being deleted, its routines' slots pass: none is ahead (the server says so too, once the list is read again).
   const upcoming = org.deletion ? [] : upcomingRoutines(routines.data ?? [], now);
-  const waitingCount = waiting.length + failures.length + missions.length + mentions.length;
+  // Approved posts nobody scheduled yet wait on whoever plans the work (ADR 9001, addendum 2026-11-17): only a person
+  // schedules a post, from here or the Portal.
+  const portalOn = usePortalOn();
+  const toSchedule = usePortalToSchedule(org.id, portalOn && can(org, "assign_work")).data?.items ?? [];
+  const [scheduling, setScheduling] = useState<PortalItem | null>(null);
+  const waitingCount = toSchedule.length + waiting.length + failures.length + missions.length + mentions.length;
 
   // Who I may ask, the one I talked to last first.
   const lastTalk = new Map((dms.data ?? []).map((d) => [d.with.id, d.lastMessage?.createdAt ?? ""]));
@@ -159,6 +167,8 @@ export function HomePage() {
       {/* The person's own cards of the approval portal (ADR 9001 §8), only where the server has one and they have some. */}
       {shows("tasks") && <HomeTasks />}
 
+      <ScheduleDialog item={scheduling} onClose={() => setScheduling(null)} />
+
       {shows("board") && (
         <HomeMural
           orgId={org.id}
@@ -175,6 +185,14 @@ export function HomePage() {
               waitingCount > 0 ? (
                 <ul className="home-list">
                   {[
+                    ...toSchedule.map((item) => (
+                      <ScheduleRow
+                        key={`${item.client}/${item.id}`}
+                        item={item}
+                        now={now}
+                        onSchedule={() => setScheduling(item)}
+                      />
+                    )),
                     ...waiting.map((n) =>
                       widgetNoticeOf(n) ? (
                         <WidgetNoticeRow key={n.id} n={n} dir={dir} now={now} />
@@ -434,6 +452,37 @@ function useSetAside() {
  * An inbox item: what waits on me, a mention, or what an agent finished. It opens where the inbox would. In
  * "Esperando você" (`waits`) opening it doesn't read it: it stays until "Marcar como lido" on its right click.
  */
+/**
+ * A post the client approved that nobody scheduled yet (ADR 9001, addendum 2026-11-17): its title, type and client,
+ * and "Schedule", which asks a person for the day and time. The title is outside text, typed at the portal.
+ */
+function ScheduleRow({ item, now, onSchedule }: { item: PortalItem; now: number; onSchedule: () => void }) {
+  const { t, i18n } = useTranslation();
+  const since = item.updatedAt ? relativeTime(t, i18n.language, item.updatedAt, new Date(now)) : "";
+  return (
+    <li>
+      <button
+        type="button"
+        className="home-row ac-mediarow ac-mediarow--row"
+        aria-label={t("home.toSchedule.label", { title: item.title })}
+        onClick={onSchedule}
+      >
+        <RowBody
+          face={
+            <span className="nt-sys nt-av24" aria-hidden="true">
+              <Icon name="calendar" size={16} />
+            </span>
+          }
+          title={item.title}
+          sub={`${t(`portal.types.${item.type}`)} · ${portalClientName(item.client)}`}
+          meta={[t("home.toSchedule.meta"), since].filter(Boolean).join(" · ")}
+          action={t("home.toSchedule.action")}
+        />
+      </button>
+    </li>
+  );
+}
+
 function InboxRow({ n, dir, now, waits = false }: { n: AppNotification; dir: Dir; now: number; waits?: boolean }) {
   const { t, i18n } = useTranslation();
   const { org } = useOrg();

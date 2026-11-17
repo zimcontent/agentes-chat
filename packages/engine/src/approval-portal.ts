@@ -57,6 +57,16 @@ const COLUMN_OF: Record<PortalStatus, PortalColumn> = {
 
 export const portalColumnOf = (item: Pick<PortalItem, "status">): PortalColumn => COLUMN_OF[item.status];
 
+/**
+ * Posts the client approved that nobody released yet, across every client, the longest waiting first: what waits for
+ * a person of the team to schedule it by hand (ADR 9001, addendum 2026-11-17). Home shows them under "Waiting on you".
+ */
+export async function portalToSchedule(portal: ApprovalPortal): Promise<PortalItem[]> {
+  return (await portal.items())
+    .filter((item) => item.status === "approved" && !item.released)
+    .sort((a, b) => (a.updatedAt ?? "").localeCompare(b.updatedAt ?? "") || a.id.localeCompare(b.id));
+}
+
 export interface PortalClientSummary {
   client: string;
   counts: Record<PortalColumn, number>;
