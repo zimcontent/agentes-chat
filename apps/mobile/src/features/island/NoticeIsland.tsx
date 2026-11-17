@@ -192,13 +192,31 @@ export function NoticeIsland() {
     if (shape === "none") {
       content.value = withTiming(0, { duration: 120 });
       // Back into the camera's island (or a dot), then gone.
-      fade.value = withDelay(reducedMotion ? 0 : 260, withTiming(0, { duration: 160 }));
+      // Off the camera the signature has nothing to fold into: it fades at once, not over the next screen's header.
+      fade.value = withDelay(reducedMotion || (leavingBrand && !camera) ? 0 : 260, withTiming(0, { duration: 160 }));
     } else {
       fade.value = withTiming(1, { duration: 120 });
       content.value = 0;
       content.value = withDelay(reducedMotion ? 0 : 160, withTiming(1, { duration: 220 }));
     }
-  }, [shape, size.w, size.h, corner, top, reducedMotion, motion.pop, w, h, r, y, dim, fade, content]);
+  }, [
+    shape,
+    size.w,
+    size.h,
+    corner,
+    top,
+    leavingBrand,
+    camera,
+    reducedMotion,
+    motion.pop,
+    w,
+    h,
+    r,
+    y,
+    dim,
+    fade,
+    content,
+  ]);
 
   // Swiped up: what isn't waiting leaves, what is shrinks beside the camera. The island is the finger while it is
   // down (up freely; pulled down it resists, it lives at the top), and lets go on distance or on a flick, the spring
