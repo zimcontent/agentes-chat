@@ -746,6 +746,22 @@
       "notedSub": "ミッションの決定事項に残ります。"
     }
   },
+  "task": {
+    "make": "タスクを作成",
+    "makeThread": "この会話からタスクを作成",
+    "made": "タスク #{{number}} を作成しました",
+    "madeSub": "会話はここに残り、タスクにも表示されます。",
+    "held": "この会話はすでにタスク #{{number}} です。",
+    "open": "開く",
+    "openNumber": "タスク #{{number}} を開く"
+  },
+  "missions": {
+    "running_other": "{{count}} 件のミッションが進行中",
+    "waiting_other": "{{count}} 件があなたを待っています",
+    "open": "エージェントの長い作業。計画とステップがあります",
+    "emptyTitle": "ミッションはまだありません",
+    "emptyText": "ミッションはエージェントの長い作業で、計画とステップがあります。"
+  },
   "threads": {
     "title": "スレッド",
     "section": {
@@ -1386,8 +1402,8 @@
     }
   },
   "taskManager": {
-    "loadFailed": "タスクを読み込めませんでした。",
-    "gone": "このタスクはもうありません。",
+    "loadFailed": "作業を読み込めませんでした。",
+    "gone": "この作業はもうありません。",
     "quiet": "進行中のものはありません",
     "doneToday_other": "今日{{count}}件完了",
     "request": "依頼",

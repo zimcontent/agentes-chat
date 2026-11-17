@@ -4674,6 +4674,22 @@ export function useIssueLive(
   }, [connection, orgId, qc, issueId, channelId]);
 }
 
+/**
+ * "Criar tarefa" on a message (ADR doug-0018): the task holds the message's thread as its conversation. A thread that
+ * already is a task's gives that task back. The board and the thread (its "Tarefa #N") refetch.
+ */
+export function useTaskFromMessage(orgId: string) {
+  const api = useApi();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (messageId: string) => api.issues.fromMessage(orgId, messageId),
+    onSettled: () => {
+      void qc.invalidateQueries({ queryKey: keys.issues(orgId) });
+      void qc.invalidateQueries({ queryKey: keys.threads(orgId) });
+    },
+  });
+}
+
 export function useIssueAction(orgId: string) {
   const api = useApi();
   const qc = useQueryClient();

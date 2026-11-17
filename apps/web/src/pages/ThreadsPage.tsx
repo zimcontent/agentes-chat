@@ -1,13 +1,14 @@
 import type { ThreadActor, ThreadInfo } from "@agenteschat/client";
-import { useChannels, useMissionList, useThreadList } from "@agenteschat/client";
+import { useChannels, useThreadList } from "@agenteschat/client";
 import { relativeTime } from "@agenteschat/client/lib/format";
+import { STATUS_ICON } from "@agenteschat/client/lib/issues";
 import { previewBody } from "@agenteschat/client/lib/message-body";
-import { can } from "@agenteschat/client/lib/permissions";
 import { threadStatus, threadTitle } from "@agenteschat/client/lib/threads";
 import {
   AvatarStack,
   Button,
   Checkbox,
+  Chip,
   cx,
   EmptyState,
   FilterBar,
@@ -31,8 +32,6 @@ import { useActors } from "@/components/actors";
 import { useActorFilterOptions, useFilterCopy } from "@/components/filters";
 import { ErrorState, LoadingList } from "@/components/Loading";
 import { MissionStatusChip, missionSummaryStatusKey } from "@/components/missions/MissionBits";
-import { NewMissionDialog } from "@/components/missions/MissionDialogs";
-import { MissionsTab } from "@/components/missions/MissionList";
 import { useOrg } from "@/components/org-context";
 import { SelectionBar } from "@/components/SelectionBar";
 import { SidePanel } from "@/components/SidePanel";
@@ -72,7 +71,6 @@ export function ThreadsPage({ initialTab, initialChannel }: { initialTab?: Threa
   // The thread open in the panel beside the list, in the URL (`?open=…`).
   const [openId, setOpenId] = useOpenParam();
   const [picked, setPicked] = useState<Set<string>>(() => new Set());
-  const [newMission, setNewMission] = useState(false);
   // Channel groups folded by the person (this visit only).
   const [collapsed, setCollapsed] = useState<Set<string>>(() => new Set());
   const toggleGroup = (key: string) =>
@@ -82,12 +80,6 @@ export function ThreadsPage({ initialTab, initialChannel }: { initialTab?: Threa
       else next.add(key);
       return next;
     });
-  const missions = tab === "missions";
-  // The server's rule. With none yet, the empty state holds the button (the same two lists it reads, unfiltered).
-  const opensMissions = can(org, "post") && can(org, "assign_work");
-  const openMissions = useMissionList(org.id, { status: "open" }, missions);
-  const closedMissions = useMissionList(org.id, { status: "closed" }, missions);
-  const noMissions = missions && openMissions.data?.missions.length === 0 && closedMissions.data?.missions.length === 0;
   const filters = {
     tab,
     ...(channel[0] ? { channelId: channel[0] } : {}),
@@ -96,9 +88,7 @@ export function ThreadsPage({ initialTab, initialChannel }: { initialTab?: Threa
     ...(mine ? { mine: true } : {}),
     ...(query ? { q: query } : {}),
   };
-  const list = useThreadList(org.id, filters, !missions);
-  // "Missões" + a count chip: the open missions I see (the server counts them).
-  const missionCounts = useMissionList(org.id, { status: "open", limit: 1 }).data?.counts;
+  const list = useThreadList(org.id, filters);
   const threads = useMemo(() => list.data?.pages.flatMap((p) => p.threads) ?? [], [list.data]);
   const controls = useThreadControls();
   const toast = useToast();
@@ -144,22 +134,7 @@ export function ThreadsPage({ initialTab, initialChannel }: { initialTab?: Threa
   return (
     <div className="page page--list threads">
       <div className="threads__main">
-        <PageHeader
-          title={missions ? t("missions.title") : t("threads.title")}
-          meta={missions ? t("missions.subtitle") : t("threads.subtitle")}
-          actions={
-            opensMissions &&
-            !noMissions && (
-              <Button
-                variant={missions ? "primary" : "default"}
-                icon={missions ? "plus" : "flag"}
-                onClick={() => setNewMission(true)}
-              >
-                {t("missions.new.open")}
-              </Button>
-            )
-          }
-        />
+        <PageHeader title={t("threads.title")} meta={t("threads.subtitle")} />
         <div className="threads-tabs">
           <Segmented
             label={t("threads.tabsLabel")}
@@ -168,11 +143,7 @@ export function ThreadsPage({ initialTab, initialChannel }: { initialTab?: Threa
               setTab(v);
               setOpenId(null);
             }}
-            options={THREAD_TABS.map((v) => ({
-              value: v,
-              label: t(`threads.tabs.${v}`),
-              ...(v === "missions" && missionCounts?.active ? { count: missionCounts.active } : {}),
-            }))}
+            options={THREAD_TABS.map((v) => ({ value: v, label: t(`threads.tabs.${v}`) }))}
           />
         </div>
         <Toolbar
@@ -182,9 +153,7 @@ export function ThreadsPage({ initialTab, initialChannel }: { initialTab?: Threa
               onChange={(e) => setQ(e.target.value)}
               onClear={() => setQ("")}
               clearLabel={copy.clearSearch}
-              placeholder={
-                tab === "archived" ? t("threads.searchArchived") : missions ? t("missions.search") : t("threads.search")
-              }
+              placeholder={tab === "archived" ? t("threads.searchArchived") : t("threads.search")}
               aria-label={t("threads.search")}
             />
           }
@@ -230,28 +199,24 @@ export function ThreadsPage({ initialTab, initialChannel }: { initialTab?: Threa
                   />
                 ),
               },
-              ...(missions
-                ? []
-                : [
-                    {
-                      key: "needsYou",
-                      active: needsYou,
-                      node: (
-                        <FilterToggle icon="waiting" pressed={needsYou} onPressedChange={setNeedsYou}>
-                          {t("threads.needsYou")}
-                        </FilterToggle>
-                      ),
-                    },
-                    {
-                      key: "mine",
-                      active: mine,
-                      node: (
-                        <FilterToggle icon="person" pressed={mine} onPressedChange={setMine}>
-                          {t("threads.mine")}
-                        </FilterToggle>
-                      ),
-                    },
-                  ]),
+              {
+                key: "needsYou",
+                active: needsYou,
+                node: (
+                  <FilterToggle icon="waiting" pressed={needsYou} onPressedChange={setNeedsYou}>
+                    {t("threads.needsYou")}
+                  </FilterToggle>
+                ),
+              },
+              {
+                key: "mine",
+                active: mine,
+                node: (
+                  <FilterToggle icon="person" pressed={mine} onPressedChange={setMine}>
+                    {t("threads.mine")}
+                  </FilterToggle>
+                ),
+              },
             ]}
           />
         </Toolbar>
@@ -263,31 +228,12 @@ export function ThreadsPage({ initialTab, initialChannel }: { initialTab?: Threa
             </span>
           </p>
         )}
-        {tab === "closed" && (
-          <p className="threads-note ac-iconline">
-            <Icon name="refresh" size={14} />
-            <span>{t("threads.notes.closed")}</span>
-          </p>
-        )}
-        {missions && (
-          <MissionsTab
-            filters={{
-              q: query,
-              ...(agent[0] ? { agentId: agent[0].slice("agent:".length) } : {}),
-              ...(channel[0] ? { channelId: channel[0] } : {}),
-            }}
-            onNew={() => setNewMission(true)}
-            onClear={clearFilters}
-          />
-        )}
-        {!missions && list.isPending && <LoadingList count={5} />}
-        {!missions && list.isError && !list.data && (
-          <ErrorState error={list.error} onRetry={() => void list.refetch()} />
-        )}
-        {!missions && list.isSuccess && threads.length === 0 && (
+        {list.isPending && <LoadingList count={5} />}
+        {list.isError && !list.data && <ErrorState error={list.error} onRetry={() => void list.refetch()} />}
+        {list.isSuccess && threads.length === 0 && (
           <ThreadsEmpty tab={tab} filtered={filtered} onClear={clearFilters} onAll={() => setTab("all")} />
         )}
-        {!missions && threads.length > 0 && (
+        {threads.length > 0 && (
           <div className="ac-groups threads-groups" data-selecting={picked.size > 0 || undefined}>
             {byPlace(threads).map((group) => {
               const shut = collapsed.has(group.key);
@@ -326,7 +272,7 @@ export function ThreadsPage({ initialTab, initialChannel }: { initialTab?: Threa
             })}
           </div>
         )}
-        {!missions && list.hasNextPage && (
+        {list.hasNextPage && (
           <Button className="threads-more" loading={list.isFetchingNextPage} onClick={() => void list.fetchNextPage()}>
             {t("threads.loadMore")}
           </Button>
@@ -339,16 +285,9 @@ export function ThreadsPage({ initialTab, initialChannel }: { initialTab?: Threa
                 <span className="drive-selbar__label">{t("threads.actions.unarchive")}</span>
               </Button>
             ) : (
-              <>
-                {tab !== "closed" && (
-                  <Button size="sm" variant="ghost" icon="check" onClick={() => bulk("close")}>
-                    <span className="drive-selbar__label">{t("threads.actions.close")}</span>
-                  </Button>
-                )}
-                <Button size="sm" variant="ghost" icon="archiveBox" onClick={() => bulk("archive")}>
-                  <span className="drive-selbar__label">{t("threads.actions.archive")}</span>
-                </Button>
-              </>
+              <Button size="sm" variant="ghost" icon="archiveBox" onClick={() => bulk("archive")}>
+                <span className="drive-selbar__label">{t("threads.actions.archive")}</span>
+              </Button>
             )}
             <span className="drive-selbar__sep" aria-hidden="true" />
             <Button
@@ -378,26 +317,19 @@ export function ThreadsPage({ initialTab, initialChannel }: { initialTab?: Threa
         </SidePanel>
       )}
       {controls.dialog}
-      {newMission && (
-        <NewMissionDialog
-          open={newMission}
-          onOpenChange={setNewMission}
-          initialChannelId={channel[0]}
-          initialAgentId={agent[0]?.slice("agent:".length)}
-        />
-      )}
     </div>
   );
 }
 
 type RowAction = "close" | "reopen" | "archive" | "unarchive";
 
-/** Quick actions on hover (and in ⋯): what makes sense for the thread's state. */
+/**
+ * Quick actions on hover (and in ⋯): archiving, which tidies a conversation away. Done is a task's state, never a
+ * conversation's, so there is no "Fechar" (ADR doug-0018).
+ */
 function quickActions(thread: ThreadInfo): RowAction[] {
   if (!thread.canManage) return [];
-  if (thread.state === "archived") return ["unarchive"];
-  if (thread.state === "closed") return ["reopen", "archive"];
-  return ["close", "archive"];
+  return thread.state === "archived" ? ["unarchive"] : ["archive"];
 }
 const ACTION_ICON = { close: "check", reopen: "refresh", archive: "archiveBox", unarchive: "unarchive" } as const;
 
@@ -434,18 +366,11 @@ function ThreadRow({
         status={missionSummaryStatusKey(thread.mission, thread.working)}
         agentId={thread.mission.agentId}
       />
-    ) : status !== "open" || thread.wait ? (
+    ) : thread.task ? (
+      // The task this conversation is (ADR doug-0018): its number and stage, as the board says it.
+      <Chip icon={STATUS_ICON[thread.task.status]}>{t("threads.task.button", { number: thread.task.number })}</Chip>
+    ) : (status !== "open" && status !== "closed") || thread.wait ? (
       <ThreadStatusChip thread={thread} />
-    ) : thread.suggestedResolved && thread.canManage ? (
-      <button
-        type="button"
-        className="thread-row__resolved"
-        title={t("threads.resolvedHint")}
-        onClick={() => onAction("close")}
-      >
-        <Icon name="check" size={14} />
-        {t("threads.resolved")}
-      </button>
     ) : null;
   return (
     // biome-ignore lint/a11y: a mouse shortcut to the thread; the title button is the keyboard way
@@ -621,8 +546,6 @@ function ThreadsEmpty({
   return (
     <EmptyState
       size="panel"
-      // Nobody working is a calm moment: the others are only an empty tab.
-      agent={tab === "working" ? look : undefined}
       mood="deal"
       title={t(`threads.empty.${tab}Title`)}
       actions={<Button onClick={onAll}>{t("threads.empty.seeAll")}</Button>}

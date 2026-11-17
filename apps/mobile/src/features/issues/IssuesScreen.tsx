@@ -1,4 +1,11 @@
-import { type Issue, useIssueColumns, useIssueProjects, useIssues } from "@agenteschat/client";
+import {
+  type Issue,
+  MISSIONS_WAITING_COUNT,
+  useIssueColumns,
+  useIssueProjects,
+  useIssues,
+  useMissionList,
+} from "@agenteschat/client";
 import { dueLabel } from "@agenteschat/client/lib/format";
 import { liveProjectFilter, NO_PROJECT, projectFilterRows } from "@agenteschat/client/lib/issue-projects";
 import { useHeaderHeight } from "expo-router/react-navigation";
@@ -132,30 +139,61 @@ function Tasks() {
   const empty = issues.isSuccess && (issues.data ?? []).length === 0;
   const right = mayNew ? <IconButton icon="plus" label={t("mobile.issues.new")} onPress={openNew} /> : undefined;
   const views = (
-    <View style={styles.views}>
-      <Segmented
-        wide
-        items={[
-          { key: "list", label: t("mobile.issues.viewList") },
-          { key: "board", label: t("mobile.issues.viewBoard") },
-        ]}
-        value={view}
-        onChange={(k) => setView(k as TaskView)}
-      />
-      {projects.length > 0 ? (
-        <View style={styles.project}>
-          <PropChip
-            label={t("issues.projects.label")}
-            value={project?.name ?? t(shown === NO_PROJECT ? "issues.projects.none" : "issues.projects.all")}
-            {...(shown ? { leading: <ProjectDot color={project?.color} /> } : { icon: "issue" as const })}
-            onPress={pickProject}
-          />
-        </View>
-      ) : null}
-    </View>
+    <>
+      <View style={styles.views}>
+        <Segmented
+          wide
+          items={[
+            { key: "list", label: t("mobile.issues.viewList") },
+            { key: "board", label: t("mobile.issues.viewBoard") },
+          ]}
+          value={view}
+          onChange={(k) => setView(k as TaskView)}
+        />
+        {projects.length > 0 ? (
+          <View style={styles.project}>
+            <PropChip
+              label={t("issues.projects.label")}
+              value={project?.name ?? t(shown === NO_PROJECT ? "issues.projects.none" : "issues.projects.all")}
+              {...(shown ? { leading: <ProjectDot color={project?.color} /> } : { icon: "issue" as const })}
+              onPress={pickProject}
+            />
+          </View>
+        ) : null}
+      </View>
+      <MissionsRow />
+    </>
   );
   if (view === "board" && !empty) return <Board right={right} views={views} mayNew={mayNew} project={shown} />;
   return <TaskList right={right} views={views} empty={empty} mayNew={mayNew} onNew={openNew} project={shown} />;
+}
+
+/**
+ * While missions run: "2 missões em andamento · 1 esperando você", opening them. A mission is a task an agent runs
+ * with a plan, so it lives with the tasks (ADR doug-0018). Nothing when none runs, so a workspace that never used one
+ * never sees the word.
+ */
+function MissionsRow() {
+  const { t } = useTranslation();
+  const orgId = useOrgId();
+  const c = useColors();
+  const active = useMissionList(orgId, { status: "open", limit: 1 }).data?.counts.active ?? 0;
+  const waiting = useMissionList(orgId, MISSIONS_WAITING_COUNT).data?.counts.waitingYou ?? 0;
+  if (active === 0) return null;
+  return (
+    <ListRow
+      leading={
+        <View style={styles.check}>
+          <Icon name="flag" size={24} color={waiting > 0 ? c.amber : c.faint} />
+        </View>
+      }
+      title={t("mobile.missions.running", { count: active })}
+      sub={waiting > 0 ? t("mobile.missions.waiting", { count: waiting }) : t("mobile.missions.open")}
+      chevron
+      accessibilityRole="button"
+      onPress={() => router.push("/missions")}
+    />
+  );
 }
 
 /** Lista: the search, the views, then the sections ("Para você", Em andamento, Em revisão, A fazer, Feitas hoje). */

@@ -1,9 +1,11 @@
-import { type Message, usePinMessage } from "@agenteschat/client";
+import { type Message, usePinMessage, useTaskFromMessage } from "@agenteschat/client";
+import { errorText } from "@agenteschat/client/lib/errors";
 import { messagePath } from "@agenteschat/client/lib/message-links";
 import { can } from "@agenteschat/client/lib/permissions";
 import { listedText } from "@agenteschat/client/lib/voice";
 import { Button, EmojiPickerPopover, Menu } from "@agenteschat/ui";
 import { chartBlocksOf, chartBlockToWidgetSpec } from "@agenteschat/ui/widgets/spec";
+import { useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useChannelActions } from "@/components/channel-actions";
@@ -110,6 +112,9 @@ export function useMessageMenu(
   const [picking, setPicking] = useState(false);
   const labels = useEmojiLabels();
   const pin = usePinMessage(org.id);
+  // "Criar tarefa" (ADR doug-0018): the message's thread becomes the task's conversation, nothing moves.
+  const toTask = useTaskFromMessage(org.id);
+  const navigate = useNavigate();
   // An agent's chart can go on a board as a widget (ADR 0135): the first one the message has that reads as one.
   const chart = useMemo(
     () =>
@@ -177,6 +182,35 @@ export function useMessageMenu(
                 { onSuccess: () => toast.show(t(pinned ? "contextMenu.unpinned" : "contextMenu.pinned")) },
               ),
           };
+    // Only where people may post: the task is made by the person, from what they can read.
+    const taskEntry: MenuEntry | null =
+      options.readOnly || !can(org, "post")
+        ? null
+        : {
+            kind: "item",
+            id: "task",
+            label: t("contextMenu.makeTask"),
+            icon: "issues",
+            run: () =>
+              toTask.mutate(message.id, {
+                onSuccess: (task) => {
+                  toast.show(
+                    t(task.created ? "contextMenu.taskMade" : "contextMenu.taskHeld", { number: task.number }),
+                    "success",
+                    {
+                      label: t("contextMenu.openTask"),
+                      run: () =>
+                        void navigate({
+                          to: "/org/$orgId/issues",
+                          params: { orgId: org.id },
+                          search: { open: String(task.number) } as never,
+                        }),
+                    },
+                  );
+                },
+                onError: (error) => toast.show(errorText(t, error), "error"),
+              }),
+          };
     return [
       {
         kind: "reactions",
@@ -214,6 +248,7 @@ export function useMessageMenu(
       ...(words ? [copy(text, "copy-text", t("contextMenu.copyText"))] : []),
       copyLink,
       { kind: "separator" },
+      ...(taskEntry ? [taskEntry] : []),
       ...(pinEntry ? [pinEntry] : []),
       ...(chart
         ? ([

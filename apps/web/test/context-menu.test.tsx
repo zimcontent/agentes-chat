@@ -96,7 +96,7 @@ describe("one list, two looks", () => {
 });
 
 describe("right click on a message", () => {
-  test("in the app: our menu with reactions, Responder, Copiar texto, Copiar link, Fixar, Salvar na wiki", async () => {
+  test("in the app: our menu with reactions, Responder, Copiar texto, Copiar link, Criar tarefa, Fixar, Salvar na wiki", async () => {
     inTheApp();
     await renderApp(`/org/${ORG_ID}/c/${ENG_ID}`, { api: createFakeApi(seedState()) });
     await settle(8);
@@ -118,6 +118,7 @@ describe("right click on a message", () => {
       "Responder",
       "Copiar texto",
       "Copiar link da mensagem",
+      "Criar tarefa",
       "Fixar mensagem",
       "Salvar na wiki",
     ]);

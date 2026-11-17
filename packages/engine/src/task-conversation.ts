@@ -1,4 +1,4 @@
-import { and, type Database, type Executor, eq, inArray, isNull, rowsOf, schema, sql } from "@agenteschat/db";
+import { and, type Database, type Executor, eq, inArray, isNull, or, rowsOf, schema, sql } from "@agenteschat/db";
 import { quietNoticeSql } from "./notices";
 import { admitTaskAgents } from "./task-access";
 
@@ -80,6 +80,62 @@ export async function ensureTaskConversation(db: Database, issueId: string): Pro
     await admitTaskAgents(tx, issue.orgId, channel.id, { taskAgent: true });
     return { channelId: channel.id, rootId: root.id };
   });
+}
+
+/**
+ * A thread that already exists becomes the task's conversation (ADR doug-0018): a task made from a message or a
+ * thread, or the card of an agent's background work, keeps talking where the talk already is instead of opening a
+ * second place. Nothing moves and nothing is owned: the thread stays in its channel or DM, read by its readers, and
+ * the task points at it (`thread_channel_id`, `thread_root_id`), so deleting the task leaves the thread. A task that
+ * holds a thread or has a room of its own keeps it, a thread is one task's at most, and a reply is never a root:
+ * each returns `null`.
+ */
+export async function linkTaskThread(
+  db: Database,
+  issueId: string,
+  thread: TaskConversationRef,
+): Promise<TaskConversationRef | null> {
+  return db.transaction(async (tx) => {
+    const [issue] = await tx.select().from(issues).where(eq(issues.id, issueId)).for("update");
+    if (!issue || issue.threadRootId || issue.conversationRootId) return null;
+    if (await taskOfThread(tx, issue.orgId, thread.rootId)) return null;
+    const [root] = await tx
+      .select({ threadId: messages.threadId, kind: channels.kind })
+      .from(messages)
+      .innerJoin(channels, eq(channels.id, messages.channelId))
+      .where(
+        and(eq(messages.orgId, issue.orgId), eq(messages.channelId, thread.channelId), eq(messages.id, thread.rootId)),
+      );
+    // A root of a conversation's own timeline (threads don't nest), and never a task's room.
+    if (!root || root.threadId || root.kind === "task") return null;
+    await tx
+      .update(issues)
+      .set({ threadChannelId: thread.channelId, threadRootId: thread.rootId })
+      .where(eq(issues.id, issue.id));
+    return thread;
+  });
+}
+
+/**
+ * Where a task talks now, without making anything: its room when it has one (ADR 0145), else the thread it holds
+ * (ADR doug-0018), else nothing yet.
+ */
+export const taskConversationNow = (
+  issue: Pick<IssueRow, "conversationChannelId" | "conversationRootId" | "threadChannelId" | "threadRootId">,
+): TaskConversationRef | null =>
+  issue.conversationChannelId && issue.conversationRootId
+    ? { channelId: issue.conversationChannelId, rootId: issue.conversationRootId }
+    : issue.threadChannelId && issue.threadRootId
+      ? { channelId: issue.threadChannelId, rootId: issue.threadRootId }
+      : null;
+
+/** The task whose conversation is this thread (its room's or one it holds), when one is. */
+export async function taskOfThread(db: Executor, orgId: string, rootId: string) {
+  const [row] = await db
+    .select({ id: issues.id, number: issues.number, title: issues.title, status: issues.status })
+    .from(issues)
+    .where(and(eq(issues.orgId, orgId), or(eq(issues.conversationRootId, rootId), eq(issues.threadRootId, rootId))));
+  return row ?? null;
 }
 
 async function liveUser(tx: Executor, userId: string) {
@@ -188,15 +244,21 @@ const LIVE = sql`('queued', 'running', 'waiting_approval', 'waiting_input')`;
 /** The conversations of these tasks, in one query (a whole board). */
 export async function taskConversationSummaries(
   db: Database,
-  rows: Pick<IssueRow, "id" | "orgId" | "conversationChannelId" | "conversationRootId">[],
+  rows: Pick<
+    IssueRow,
+    "id" | "orgId" | "conversationChannelId" | "conversationRootId" | "threadChannelId" | "threadRootId"
+  >[],
 ): Promise<Map<string, TaskConversationSummary>> {
   const out = new Map<string, TaskConversationSummary>();
-  const withOne = rows.filter((r) => r.conversationChannelId && r.conversationRootId);
+  const withOne = rows.filter((r) => taskConversationNow(r));
   if (withOne.length === 0) return out;
   const orgId = withOne[0]?.orgId as string;
   const ids = `{${withOne.map((r) => r.id).join(",")}}`;
-  const shown = sql`m.org_id = i.org_id and m.channel_id = i.conversation_channel_id
-    and m.thread_id = i.conversation_root_id and m.deleted_at is null and not ${quietNoticeSql(sql`m.meta`)}`;
+  // Its room, else the thread it holds (ADR doug-0018).
+  const channel = sql`coalesce(i.conversation_channel_id, i.thread_channel_id)`;
+  const root = sql`(case when i.conversation_channel_id is not null then i.conversation_root_id else i.thread_root_id end)`;
+  const shown = sql`m.org_id = i.org_id and m.channel_id = ${channel}
+    and m.thread_id = ${root} and m.deleted_at is null and not ${quietNoticeSql(sql`m.meta`)}`;
   const found = rowsOf<{
     id: string;
     channel_id: string;
@@ -206,7 +268,7 @@ export async function taskConversationSummaries(
     participants: { type: "person" | "agent"; id: string }[] | string | null;
     working: boolean | string;
   }>(
-    await db.execute(sql`select i.id, i.conversation_channel_id as channel_id, i.conversation_root_id as root_id,
+    await db.execute(sql`select i.id, ${channel} as channel_id, ${root} as root_id,
         s.count, s.last_at,
         (select coalesce(json_agg(json_build_object('type', p.author_type, 'id', p.who) order by p.first), '[]')
           from (select m.author_type, coalesce(m.author_user_id, m.author_agent_id::text) as who,
@@ -214,10 +276,11 @@ export async function taskConversationSummaries(
             from ${messages} m where ${shown} and coalesce(m.author_user_id, m.author_agent_id::text) is not null
             group by 1, 2 order by min(m.created_at) limit 5) p) as participants,
         exists (select 1 from ${schema.agentRuns} r where r.org_id = i.org_id
-          and r.channel_id = i.conversation_channel_id and r.status in ${LIVE}) as working
+          and r.channel_id = ${channel} and r.thread_root_id = ${root} and r.status in ${LIVE}) as working
       from ${issues} i
-      cross join lateral (select count(*)::int as count, max(m.created_at) as last_at from ${messages} m
-        where ${shown}) s
+      -- A held thread's root is a message people see, so it counts; a room's root stands for the task and doesn't.
+      cross join lateral (select count(*)::int + (case when i.conversation_channel_id is null then 1 else 0 end) as count,
+        max(m.created_at) as last_at from ${messages} m where ${shown}) s
       where i.org_id = ${orgId}::uuid and i.id = any(${ids}::uuid[])`),
   );
   for (const r of found) {

@@ -1589,6 +1589,11 @@ export interface ApiClient {
     askAgent(orgId: string, id: string, agentId: string): Promise<Issue>;
     /** The task's conversation (made on first use): the thread the chat's routes read and post to (ADR 0145). */
     conversation(orgId: string, id: string): Promise<IssueConversationRef>;
+    /**
+     * "Criar tarefa" on a message: a task whose conversation is the message's thread (ADR doug-0018). A thread that
+     * already is a task's gives that task back.
+     */
+    fromMessage(orgId: string, messageId: string): Promise<Issue & { created: boolean }>;
     /** The board's columns, board order: by stage, then position. */
     columns(orgId: string): Promise<IssueColumn[]>;
     /** Adds a column to a stage (after `afterId` when it is in the same stage, else at the stage's end). */

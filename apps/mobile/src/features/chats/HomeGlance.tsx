@@ -7,15 +7,11 @@ import { router } from "@/ui/navigation";
 import { CARD_RADIUS, panelSurface, surfaceStyle } from "@/ui/surfaces";
 import { usePortalOn } from "../portal/hooks";
 import { useColors, useMeId, useOrgId } from "../shared/hooks";
-import { useConversations } from "../shared/queries";
 import { type EditorNow, editorNow, portalAdjusting } from "./glance";
 
 /** This fork's own words, beside it in Portuguese and English (any other language reads English). */
 const WORDS = {
   pt: {
-    threads: "Threads",
-    threadsNew: (n: number) => (n === 1 ? "1 nova" : `${n} novas`),
-    threadsNone: "Nada novo",
     editor: (name: string) => name,
     doing: { changes: "Ajustando", in_review: "Enviou para revisão", approved: "Aprovado" } as Record<
       EditorNow["status"],
@@ -25,9 +21,6 @@ const WORDS = {
     clientNone: "Nenhum pedido",
   },
   en: {
-    threads: "Threads",
-    threadsNew: (n: number) => `${n} new`,
-    threadsNone: "Nothing new",
     editor: (name: string) => name,
     doing: { changes: "Making changes", in_review: "Sent for review", approved: "Approved" } as Record<
       EditorNow["status"],
@@ -39,8 +32,8 @@ const WORDS = {
 } as const;
 
 /**
- * Início's glance, under the tools: small cards side by side with what the team asks about all day: the threads with
- * something new, what the editor is on now (from the videos they send to Revisão: making changes, sent for review,
+ * Início's glance, under the tools: small cards side by side with what the team asks about all day: what the editor
+ * is on now (from the videos they send to Revisão: making changes, sent for review,
  * approved; docs/adr/doug-0012-editor-delivery.md), and the posts a client sent back for changes at the portal
  * (ADR 9001). A card with nothing to stand on (no editor yet, no portal) stays out; a tap opens where it comes from.
  */
@@ -49,24 +42,11 @@ export function HomeGlance() {
   const w = WORDS[i18n.language?.startsWith("pt") ? "pt" : "en"];
   const orgId = useOrgId();
   const meId = useMeId();
-  const rows = useConversations().rows;
-  const threads = rows.flatMap((r) => (r.kind === "thread" || r.kind === "mission" ? [r] : []));
-  const newThreads = threads.filter((r) => r.unread > 0);
-  const latest = newThreads[0] ?? threads[0];
   const reviews: VideoReviewSummary[] = useVideoReviews(orgId).data ?? [];
   const editor = editorNow(reviews, meId);
   const portalOn = usePortalOn();
   const adjusting = portalAdjusting(usePortalOverview(orgId, portalOn).data?.clients ?? []);
   const cards: GlanceCardData[] = [
-    {
-      key: "threads",
-      icon: "reply",
-      title: w.threads,
-      big: newThreads.length > 0 ? w.threadsNew(newThreads.length) : w.threadsNone,
-      line: latest?.title ?? "",
-      hot: newThreads.length > 0,
-      onPress: () => router.push("/threads"),
-    },
     ...(editor
       ? [
           {
@@ -94,6 +74,8 @@ export function HomeGlance() {
         ]
       : []),
   ];
+  // Threads aren't a card of their own (ADR doug-0018): work is in Tarefas, a thread opens from its conversation.
+  if (cards.length === 0) return null;
   return (
     <View style={styles.row}>
       {cards.map((card) => (

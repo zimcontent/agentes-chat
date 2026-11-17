@@ -91,6 +91,7 @@ import { IssueDialog } from "./IssuePage";
 import { DeleteProjectDialog, ProjectChip, ProjectDialog } from "./IssueProjects";
 import { DisplayButton, IssueFilters, PRIORITY_ICON } from "./IssuesToolbar";
 import { type CardMove, type DropResult, type IssueDrag, useIssueDrag } from "./issue-drag";
+import { MissionsLine } from "./MissionsView";
 import { NewIssueDialog } from "./NewIssueDialog";
 import "./issues.css";
 
@@ -139,6 +140,7 @@ export function IssuesPage() {
   const [focusParam] = useOpenParam("m");
   const openNumber = openParam && /^\d+$/.test(openParam) ? Number(openParam) : null;
   const copy = useFilterCopy();
+  const navigate = useNavigate();
   const searchRef = useRef<HTMLInputElement>(null);
   // "Nova tarefa": false, or open (in a given column of A fazer, or the first).
   const [creating, setCreating] = useState<false | { columnId: string | null }>(false);
@@ -242,6 +244,16 @@ export function IssuesPage() {
             }
           />
           <StalledNow issues={all} onOpen={toggle} />
+          {!projectParam && (
+            <MissionsLine
+              onOpen={() =>
+                void navigate({
+                  to: ".",
+                  search: ((prev: Record<string, unknown>) => ({ ...prev, view: "missions" })) as never,
+                })
+              }
+            />
+          )}
           <Toolbar
             label={t("issues.filters")}
             search={

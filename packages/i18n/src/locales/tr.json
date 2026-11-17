@@ -1624,6 +1624,10 @@
     "openComputer": "Bilgisayarı aç",
     "linkCopied": "Bağlantı kopyalandı.",
     "saveToWiki": "Wiki'ye kaydet",
+    "makeTask": "Görev oluştur",
+    "taskMade": "Görev #{{number}} oluşturuldu. Konuşma burada kalır ve görevde de görünür.",
+    "taskHeld": "Bu konuşma zaten görev #{{number}}.",
+    "openTask": "Görevi aç",
     "pin": "Mesajı sabitle",
     "unpin": "Mesajın sabitlemesini kaldır",
     "pinned": "Mesaj sabitlendi.",
@@ -2077,7 +2081,7 @@
     "routines": "Rutinler",
     "team": "Ekip",
     "dashboards": "Panolar",
-    "taskManager": "Görev yöneticisi",
+    "taskManager": "Ajan etkinliği",
     "calendar": "Takvim",
     "drive": "Drive",
     "members": "Üyeler",
@@ -7788,6 +7792,14 @@
     }
   },
   "issues": {
+    "missions": {
+      "back": "Görevlere dön",
+      "running_one": "{{count}} misyon sürüyor",
+      "running_other": "{{count}} misyon sürüyor",
+      "waiting_one": "{{count}} sizi bekliyor",
+      "waiting_other": "{{count}} sizi bekliyor",
+      "see": "Misyonları gör"
+    },
     "delete": {
       "action": "Görevi sil",
       "title": "#{{number}} görevi silinsin mi?",
@@ -8880,7 +8892,7 @@
       "declined": "{{name}} kişisinin isteği reddedildi."
     },
     "title": "Misyonlar",
-    "subtitle": "Bir ajanın kendi bilgisayarında, bir ileti dizisinde yürüttüğü uzun iş.",
+    "subtitle": "Bir ajanın planı ve adımları olan uzun işi.",
     "search": "Misyonlarda ara",
     "online": "çevrimiçi",
     "offline": "çevrimdışı",
@@ -9539,8 +9551,14 @@
     "waitingCloud": "Misyonlar {{computer}} hazır olunca başlar."
   },
   "threads": {
+    "task": {
+      "button": "Görev #{{number}}",
+      "open": "Görev #{{number}} aç ({{status}})",
+      "make": "Bu konuşmadan görev oluştur",
+      "makeHint": "Konuşma burada kalır ve görevde de görünür."
+    },
     "title": "İleti dizileri",
-    "subtitle": "Kanallardan ve doğrudan mesajlardan ayrılan konular.",
+    "subtitle": "İleti dizilerindeki konuşmalar. Yapılacak işler Görevler'de.",
     "tabsLabel": "İleti dizisi filtresi",
     "tabs": {
       "all": "Tümü",
@@ -9606,7 +9624,7 @@
     },
     "empty": {
       "missionsTitle": "Henüz misyon yok",
-      "missions": "Misyon, bir planı, kararları ve bir ajanın bilgisayarındaki çalışmasını içeren bir ileti dizisidir.",
+      "missions": "Misyon, bir ajanın planı, kararları ve adımları olan uzun işidir.",
       "allTitle": "Her konu kendi sohbetinde",
       "all": "Bir ileti dizisi açmak için bir mesajı yanıtlayın, kanal düzenli kalır.",
       "workingTitle": "Şu anda çalışan ajan yok",
@@ -9667,6 +9685,8 @@
       "reply": "Yanıtla",
       "replies_one": "{{count}} yanıt",
       "replies_other": "{{count}} yanıt",
+      "taskReplies_one": "Görev #{{number}} · {{count}} yanıt",
+      "taskReplies_other": "Görev #{{number}} · {{count}} yanıt",
       "closed_one": "İleti dizisi kapatıldı · {{title}} · {{count}} mesaj",
       "closed_other": "İleti dizisi kapatıldı · {{title}} · {{count}} mesaj",
       "archived_one": "Arşivlenmiş {{count}} ileti dizisi burada gösterilmiyor",
@@ -10452,10 +10472,10 @@
       "removeCopies": "Kaldır",
       "copiesRemoved_one": "Kullanılmayan {{count}} giriş kaldırıldı.",
       "copiesRemoved_other": "Kullanılmayan {{count}} giriş kaldırıldı.",
-      "removeAllDone": "{{n}} Grok oturumu kaldırıldı.",
-      "removeAllText": "{{computers}} üzerinde artık kendi ajanları için düşünmezler. Başkalarının oturumlarına dokunulmaz.",
-      "removeAllTitle": "{{n}} Grok oturumunun tümü kaldırılsın mı?",
       "removeAllGrok": "Tüm Grok oturumlarını kaldır",
+      "removeAllTitle": "{{n}} Grok oturumunun tümü kaldırılsın mı?",
+      "removeAllText": "{{computers}} üzerinde artık kendi ajanları için düşünmezler. Başkalarının oturumlarına dokunulmaz.",
+      "removeAllDone": "{{n}} Grok oturumu kaldırıldı.",
       "disconnect": "Bağlantıyı kes",
       "renameTitle": "{{label}} adını değiştir",
       "nameLabel": "Ad",
@@ -19285,10 +19305,10 @@
     "allWaiting_one": "{{count}} şey sizi bekliyor",
     "allWaiting_other": "Sizi bekleyen {{count}} şeyin hepsi",
     "actions": "Diğer işlemler",
-    "openManager": "Görev yöneticisini aç"
+    "openManager": "Ajan etkinliğini aç"
   },
   "taskManager": {
-    "title": "Görev yöneticisi",
+    "title": "Ajan etkinliği",
     "subtitle": "Ajanların şu an yaptıkları ve bugün bitenler.",
     "search": "Görev, ajan veya uygulama ara",
     "working_one": "{{count}} çalışıyor",
@@ -19395,7 +19415,7 @@
       "stopAll": "Tümünü durdur",
       "stopAllOf": "{{name}} ajanının tüm görevlerini durdur",
       "open": "Sohbette aç",
-      "openManager": "Görev yöneticisinde aç"
+      "openManager": "Ajan etkinliğinde aç"
     },
     "confirm": {
       "chainTitle_one": "{{name}} ve {{count}} yardımcı durdurulsun mu?",

@@ -768,6 +768,24 @@
       "notedSub": "Ze blijft bij de beslissingen van de missie."
     }
   },
+  "task": {
+    "make": "Taak maken",
+    "makeThread": "Een taak maken van dit gesprek",
+    "made": "Taak #{{number}} gemaakt",
+    "madeSub": "Het gesprek blijft hier en staat ook bij de taak.",
+    "held": "Dit gesprek is al taak #{{number}}.",
+    "open": "Openen",
+    "openNumber": "Taak #{{number}} openen"
+  },
+  "missions": {
+    "running_one": "{{count}} missie bezig",
+    "running_other": "{{count}} missies bezig",
+    "waiting_one": "{{count}} wacht op jou",
+    "waiting_other": "{{count}} wachten op jou",
+    "open": "Langdurig werk van een agent, met een plan en stappen",
+    "emptyTitle": "Nog geen missies",
+    "emptyText": "Een missie is langdurig werk van een agent, met een plan en stappen."
+  },
   "threads": {
     "title": "Threads",
     "section": {
@@ -1473,8 +1491,8 @@
     }
   },
   "taskManager": {
-    "loadFailed": "Kon de taken niet laden.",
-    "gone": "Deze taak is er niet meer.",
+    "loadFailed": "Kon het werk niet laden.",
+    "gone": "Dit werk is er niet meer.",
     "quiet": "Er loopt niets",
     "doneToday_one": "{{count}} vandaag afgerond",
     "doneToday_other": "{{count}} vandaag afgerond",

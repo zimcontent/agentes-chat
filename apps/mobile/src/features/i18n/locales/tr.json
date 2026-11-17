@@ -768,6 +768,24 @@
       "notedSub": "Misyonun kararları arasında kalır."
     }
   },
+  "task": {
+    "make": "Görev oluştur",
+    "makeThread": "Bu konuşmadan görev oluştur",
+    "made": "Görev #{{number}} oluşturuldu",
+    "madeSub": "Konuşma burada kalır ve görevde de görünür.",
+    "held": "Bu konuşma zaten görev #{{number}}.",
+    "open": "Aç",
+    "openNumber": "Görev #{{number}} aç"
+  },
+  "missions": {
+    "running_one": "{{count}} misyon sürüyor",
+    "running_other": "{{count}} misyon sürüyor",
+    "waiting_one": "{{count}} sizi bekliyor",
+    "waiting_other": "{{count}} sizi bekliyor",
+    "open": "Bir ajanın planı ve adımları olan uzun işi",
+    "emptyTitle": "Henüz misyon yok",
+    "emptyText": "Misyon, bir ajanın planı ve adımları olan uzun işidir."
+  },
   "threads": {
     "title": "İleti dizileri",
     "section": {
@@ -1473,8 +1491,8 @@
     }
   },
   "taskManager": {
-    "loadFailed": "Görevler yüklenemedi.",
-    "gone": "Bu görev artık burada değil.",
+    "loadFailed": "İş yüklenemedi.",
+    "gone": "Bu iş artık burada değil.",
     "quiet": "Devam eden bir şey yok",
     "doneToday_one": "Bugün {{count}} tane tamamlandı",
     "doneToday_other": "Bugün {{count}} tane tamamlandı",

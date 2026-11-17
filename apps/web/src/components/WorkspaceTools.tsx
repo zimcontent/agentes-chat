@@ -46,7 +46,8 @@ export function WorkspaceToolsCard() {
     org.hiddenTools ??
     [];
   const tools = WORKSPACE_TOOLS.filter(
-    (id) => (id !== "portal" || portal) && (id !== "media" || media) && (id !== "whatsapp" || whatsapp),
+    (id) =>
+      id !== "threads" && (id !== "portal" || portal) && (id !== "media" || media) && (id !== "whatsapp" || whatsapp),
   ) as WorkspaceTool[];
   const label = (id: WorkspaceTool) =>
     id === "whatsapp" ? "WhatsApp" : id === "review" ? review.title : t(`shell.${id}`);

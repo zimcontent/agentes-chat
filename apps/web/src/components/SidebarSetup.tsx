@@ -80,7 +80,13 @@ export const toolsHere = <T extends SidebarItem>(
   media = false,
 ): T[] =>
   ids.filter(
-    (id) => id !== "approvals" && (portal || id !== "portal") && (media || id !== "media") && !hidden.includes(id),
+    (id) =>
+      id !== "approvals" &&
+      // Threads aren't a place of their own (ADR doug-0018): work is in Tarefas, a thread opens from its channel.
+      id !== "threads" &&
+      (portal || id !== "portal") &&
+      (media || id !== "media") &&
+      !hidden.includes(id),
   );
 
 /**

@@ -35,7 +35,7 @@ import { agentLook } from "../shared/logic";
 import { pickOne } from "../shared/PickerSheet";
 import { goBack, MentionCount, PushedHeader } from "../shared/parts";
 import { usePersonPhoto } from "../shared/photo";
-import { useTasksUnreadMarks, useUnreadThreads } from "../shared/queries";
+import { useTasksUnreadMarks } from "../shared/queries";
 import { useMyPerson, usePresenceOf } from "../status/hooks";
 import { personLine } from "../status/logic";
 import { openStatus } from "../status/StatusScreen";
@@ -50,24 +50,14 @@ import { useWorkspacesAcross, WorkspaceMark } from "./WorkspacesPages";
 const TAB_BAR_ROOM = 100;
 
 /** The rows of Você's Work group. */
-type WorkRow = "issues" | "proposals" | "routines" | "wiki" | "drive" | "dashboards" | "memory" | "threads" | "team";
-/** A team's workspace: Threads is a tab and Team a row of Agents. */
+type WorkRow = "issues" | "proposals" | "routines" | "wiki" | "drive" | "dashboards" | "memory" | "team";
+/** A team's workspace: Team is a row of Agents. Threads open from their conversation (ADR doug-0018). */
 const TEAM_WORK: WorkRow[] = ["issues", "proposals", "routines", "wiki", "drive", "dashboards", "memory"];
 /**
- * A personal workspace (ADR 0159): what its sidebar keeps in sight first, then the rest of its More; Threads (no tab
- * there) and Team (no row in Agents) live here, Team last.
+ * A personal workspace (ADR 0159): what its sidebar keeps in sight first, then the rest of its More; Team (no row in
+ * Agents) lives here, last. Threads aren't a place of their own (ADR doug-0018).
  */
-const PERSONAL_WORK: WorkRow[] = [
-  "routines",
-  "drive",
-  "issues",
-  "threads",
-  "proposals",
-  "wiki",
-  "dashboards",
-  "memory",
-  "team",
-];
+const PERSONAL_WORK: WorkRow[] = ["routines", "drive", "issues", "proposals", "wiki", "dashboards", "memory", "team"];
 
 /** Opens a screen over this page with the platform's push (back comes here). */
 const open = (href: string) => router.push(href as never);
@@ -137,7 +127,6 @@ export function MeScreen({ tab = false }: { tab?: boolean }) {
   // Mentions of me not read in a task's conversation: the red badge before the value, as on Conversas.
   const tasksUnread = useTasksUnreadMarks();
   // Threads with something new, the badge their tab has in a team's workspace.
-  const unreadThreads = useUnreadThreads();
   const version = Constants.expoConfig?.version ?? "";
   const myAgents = dir.agents.filter((a) => a.ownerUserId === meId);
   const handle = mine?.handle ? `@${mine.handle}` : null;
@@ -192,17 +181,6 @@ export function MeScreen({ tab = false }: { tab?: boolean }) {
     ),
     memory: (
       <GroupedRow key="memory" icon="brain" label={t("mobile.memory.title")} chevron onPress={() => open("/memory")} />
-    ),
-    // The tab's list, pushed: a tab left out of the bar can't be opened.
-    threads: (
-      <GroupedRow
-        key="threads"
-        icon="reply"
-        label={t("mobile.threads.title")}
-        {...(unreadThreads > 0 ? { value: String(unreadThreads) } : {})}
-        chevron
-        onPress={() => open("/conversations/threads")}
-      />
     ),
     team: <GroupedRow key="team" icon="members" label={t("team.title")} chevron onPress={() => open("/team")} />,
   };

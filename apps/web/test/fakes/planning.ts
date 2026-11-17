@@ -701,6 +701,29 @@ export function createMockPlanning(
         }
         return { channelId: i.conversation.channelId, rootId: i.conversation.rootId };
       },
+      // Like the server (ADR doug-0018): the message's thread is the task's conversation, and asked again the same task.
+      async fromMessage(orgId, messageId) {
+        record("issues.fromMessage", messageId);
+        const message = (await ctx.lookup.messages?.(orgId))?.find((m) => m.id === messageId);
+        if (!message) throw new MockNotFoundError("Mensagem não encontrada.");
+        const rootId = message.threadId ?? message.id;
+        const s = await store(orgId);
+        const held = s.issues.find((i) => i.conversation?.rootId === rootId);
+        if (held) return { ...clone(held), created: false };
+        const made = await this.create(orgId, { title: message.body.split("\n")[0]?.slice(0, 120) || "Nova tarefa" });
+        const i = await findIssue(orgId, made.id);
+        i.description = message.body;
+        i.source = { type: "message", channelId: message.channelId, messageId: message.id };
+        i.conversation = {
+          channelId: message.channelId,
+          rootId,
+          count: 0,
+          lastAt: null,
+          participants: [],
+          working: false,
+        };
+        return { ...clone(i), created: true };
+      },
       columns: async (orgId) => clone((await columnsOf(orgId)).columns),
       addColumn: async (orgId, input) => {
         record("issues.addColumn", input);

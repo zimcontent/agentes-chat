@@ -1675,6 +1675,10 @@
     "openComputer": "Abrir la computadora",
     "linkCopied": "Enlace copiado.",
     "saveToWiki": "Guardar en la wiki",
+    "makeTask": "Crear tarea",
+    "taskMade": "Tarea #{{number}} creada. La conversación sigue aquí y aparece en la tarea.",
+    "taskHeld": "Esta conversación ya es la tarea #{{number}}.",
+    "openTask": "Abrir tarea",
     "pin": "Fijar mensaje",
     "unpin": "Dejar de fijar mensaje",
     "pinned": "Mensaje fijado.",
@@ -2130,7 +2134,7 @@
     "routines": "Rutinas",
     "team": "Equipo",
     "dashboards": "Paneles",
-    "taskManager": "Gestor de tareas",
+    "taskManager": "Actividad de los agentes",
     "calendar": "Calendario",
     "drive": "Drive",
     "members": "Miembros",
@@ -8107,6 +8111,16 @@
     }
   },
   "issues": {
+    "missions": {
+      "back": "Volver a Tareas",
+      "running_one": "{{count}} misión en curso",
+      "running_many": "{{count}} misiones en curso",
+      "running_other": "{{count}} misiones en curso",
+      "waiting_one": "{{count}} esperándote",
+      "waiting_many": "{{count}} esperándote",
+      "waiting_other": "{{count}} esperándote",
+      "see": "Ver misiones"
+    },
     "delete": {
       "action": "Eliminar tarea",
       "title": "¿Eliminar la tarea #{{number}}?",
@@ -9237,7 +9251,7 @@
       "declined": "Rechazaste la solicitud de {{name}}."
     },
     "title": "Misiones",
-    "subtitle": "Trabajo largo de un agente en su computadora, en un hilo.",
+    "subtitle": "Trabajo largo de un agente, con plan y pasos.",
     "search": "Buscar misiones",
     "online": "en línea",
     "offline": "sin conexión",
@@ -9944,8 +9958,14 @@
     "waitingCloud": "Las misiones empiezan cuando {{computer}} esté lista."
   },
   "threads": {
+    "task": {
+      "button": "Tarea #{{number}}",
+      "open": "Abrir tarea #{{number}} ({{status}})",
+      "make": "Crear una tarea con esta conversación",
+      "makeHint": "La conversación sigue aquí y aparece en la tarea."
+    },
     "title": "Hilos",
-    "subtitle": "Temas que salieron de grupos y mensajes directos.",
+    "subtitle": "Conversaciones en hilos. Lo que hay que hacer está en Tareas.",
     "tabsLabel": "Filtro de hilos",
     "tabs": {
       "all": "Todos",
@@ -10013,7 +10033,7 @@
     },
     "empty": {
       "missionsTitle": "Aún no hay misiones",
-      "missions": "Una misión es un hilo con un plan, decisiones y el trabajo de un agente en su computadora.",
+      "missions": "Una misión es un trabajo largo de un agente, con plan, decisiones y pasos.",
       "allTitle": "Cada tema en su propia conversación",
       "all": "Responde a un mensaje para abrir un hilo, y el grupo sigue ordenado.",
       "workingTitle": "Ningún agente está trabajando ahora",
@@ -10084,6 +10104,9 @@
       "replies_one": "{{count}} respuesta",
       "replies_many": "{{count}} respuestas",
       "replies_other": "{{count}} respuestas",
+      "taskReplies_one": "Tarea #{{number}} · {{count}} respuesta",
+      "taskReplies_many": "Tarea #{{number}} · {{count}} respuestas",
+      "taskReplies_other": "Tarea #{{number}} · {{count}} respuestas",
       "closed_one": "Hilo cerrado · {{title}} · {{count}} mensaje",
       "closed_many": "Hilo cerrado · {{title}} · {{count}} mensajes",
       "closed_other": "Hilo cerrado · {{title}} · {{count}} mensajes",
@@ -10902,10 +10925,10 @@
       "copiesRemoved_one": "{{count}} inicio de sesión sin uso quitado.",
       "copiesRemoved_many": "{{count}} inicios de sesión sin uso quitados.",
       "copiesRemoved_other": "{{count}} inicios de sesión sin uso quitados.",
-      "removeAllDone": "{{n}} inicios de sesión de Grok quitados.",
-      "removeAllText": "Dejan de pensar por sus agentes en {{computers}}. Los inicios de sesión de otras personas no se tocan.",
-      "removeAllTitle": "¿Quitar los {{n}} inicios de sesión de Grok?",
       "removeAllGrok": "Quitar todos los inicios de sesión de Grok",
+      "removeAllTitle": "¿Quitar los {{n}} inicios de sesión de Grok?",
+      "removeAllText": "Dejan de pensar por sus agentes en {{computers}}. Los inicios de sesión de otras personas no se tocan.",
+      "removeAllDone": "{{n}} inicios de sesión de Grok quitados.",
       "disconnect": "Desconectar",
       "renameTitle": "Cambiar el nombre de {{label}}",
       "nameLabel": "Nombre",
@@ -19958,10 +19981,10 @@
     "allWaiting_many": "Las {{count}} cosas que te esperan",
     "allWaiting_other": "Las {{count}} cosas que te esperan",
     "actions": "Más acciones",
-    "openManager": "Abrir el gestor de tareas"
+    "openManager": "Abrir la actividad de los agentes"
   },
   "taskManager": {
-    "title": "Gestor de tareas",
+    "title": "Actividad de los agentes",
     "subtitle": "Lo que los agentes hacen ahora y lo que terminó hoy.",
     "search": "Busca una tarea, agente o app",
     "working_one": "{{count}} trabajando",
@@ -20075,7 +20098,7 @@
       "stopAll": "Detener todas",
       "stopAllOf": "Detener todo lo de {{name}}",
       "open": "Abrir en la conversación",
-      "openManager": "Abrir en el gestor de tareas"
+      "openManager": "Abrir en la actividad de los agentes"
     },
     "confirm": {
       "chainTitle_one": "¿Detener a {{name}} y {{count}} ayudante?",

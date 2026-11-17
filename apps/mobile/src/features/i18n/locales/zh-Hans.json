@@ -746,6 +746,22 @@
       "notedSub": "会保留在专项任务的决定中。"
     }
   },
+  "task": {
+    "make": "创建任务",
+    "makeThread": "用这个对话创建任务",
+    "made": "已创建任务 #{{number}}",
+    "madeSub": "对话留在这里，也会显示在任务中。",
+    "held": "这个对话已经是任务 #{{number}}。",
+    "open": "打开",
+    "openNumber": "打开任务 #{{number}}"
+  },
+  "missions": {
+    "running_other": "{{count}} 个专项任务进行中",
+    "waiting_other": "{{count}} 个在等你",
+    "open": "智能体的长期工作，有计划和步骤",
+    "emptyTitle": "还没有专项任务",
+    "emptyText": "专项任务是智能体的长期工作，有计划和步骤。"
+  },
   "threads": {
     "title": "话题",
     "section": {
@@ -1386,8 +1402,8 @@
     }
   },
   "taskManager": {
-    "loadFailed": "无法加载任务。",
-    "gone": "这个任务已经不在这里了。",
+    "loadFailed": "无法加载工作。",
+    "gone": "这项工作已不在这里。",
     "quiet": "没有进行中的事项",
     "doneToday_other": "今天完成 {{count}} 个",
     "request": "请求",

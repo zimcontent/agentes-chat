@@ -37,7 +37,6 @@ import {
   useSidebarItems,
   useSkills,
   useTasksUnread,
-  useUnreadThreads,
   useVideoReviews,
   useWaitingOnMe,
   useWhatsApp,
@@ -325,17 +324,14 @@ export function Sidebar() {
     if (unreadNotifications > lastUnread.current) setBumps((b) => b + 1);
     lastUnread.current = unreadNotifications;
   }, [unreadNotifications]);
-  // Threads: how many open missions wait for me (the server counts: a decision, a review, a suggestion…).
+  // Tarefas: how many open missions wait for me (the server counts: a decision, a review, a suggestion…). Missions
+  // live with the tasks (ADR doug-0018).
   const missionList = useMissionList(orgId, MISSIONS_WAITING_COUNT);
   const missionsWaiting = missionList.data?.counts.waitingYou ?? 0;
   // Tarefas: bold for a reply I haven't read in a task's conversation, red for a mention of me there, as a channel.
   const { unread: unreadTasks, mentions: taskMentions } = useTasksUnread(orgId);
-  // …and whether a thread I follow has a reply I haven't read: the entry lights like an unread channel.
-  const unreadThreads = useUnreadThreads(orgId).data ?? 0;
   // The tools on top, each where I put it (the rest in More); one there "when there's something" while its count is.
   const sidebarItems = useSidebarItems(orgId).data;
-  // An unread reply counts as "something" for a Threads set to show "when there's something": it comes into the list
-  // lit, and leaves once read, as Approvals does once nothing waits.
   // Proposals are a tab of Aprovações and count there, unless the person gave them a row of their own.
   const proposalsRow = inSidebarList(sidebarPlace(sidebarItems, "proposals", personal), proposalsWaiting);
   const pending = (overview.data?.approvalsWaitingForMe ?? 0) + (proposalsRow ? 0 : proposalsWaiting);
@@ -349,7 +345,6 @@ export function Sidebar() {
     waiting: waitingTotal,
     approvals: pending,
     proposals: proposalsWaiting,
-    threads: missionsWaiting + unreadThreads,
   };
   // The mode's defaults and order (ADR 0159): in a personal workspace, Routines and Drive in sight, the rest in More.
   // Portal is a tool only where the server has an approval portal (ADR 9001): elsewhere nothing lists it.
@@ -365,8 +360,10 @@ export function Sidebar() {
       </CountBadge>
     ) : id === "proposals" && proposalsWaiting > 0 ? (
       <CountBadge aria-label={t("shell.pendingProposals", { count: proposalsWaiting })}>{proposalsWaiting}</CountBadge>
-    ) : id === "threads" && missionsWaiting > 0 ? (
-      // Missões is a tab of Threads: the missions waiting for me as a neutral count.
+    ) : id === "issues" && taskMentions > 0 ? (
+      <UnreadCount count={taskMentions} mentions />
+    ) : id === "issues" && missionsWaiting > 0 ? (
+      // Missions are in Tarefas: the ones waiting for me as a neutral count, after a mention's red one.
       <CountChip
         className="sidebar__count"
         role="img"
@@ -374,8 +371,6 @@ export function Sidebar() {
       >
         {missionsWaiting}
       </CountChip>
-    ) : id === "issues" && taskMentions > 0 ? (
-      <UnreadCount count={taskMentions} mentions />
     ) : null;
   // The name is on the row: only the rail, which hides it, says it on hover.
   const railTip = (id: SidebarItem | "home") => (rail ? t(`shell.${id}`) : undefined);
@@ -385,8 +380,8 @@ export function Sidebar() {
       to={SIDEBAR_TOOLS[id].to}
       params={{ orgId }}
       className="sidebar__item"
-      title={id === "threads" && unreadThreads > 0 ? t("shell.unreadThreads", { count: unreadThreads }) : railTip(id)}
-      data-unread={(id === "threads" && unreadThreads > 0) || (id === "issues" && unreadTasks > 0)}
+      title={railTip(id)}
+      data-unread={id === "issues" && unreadTasks > 0}
       // Aprovações and Propostas are tabs of "Esperando você": its row is the one lit on them.
       inactiveProps={
         id === "waiting" && (onApprovals || (onProposals && !proposalsRow)) ? { "data-status": "active" } : undefined
@@ -2016,7 +2011,7 @@ type LauncherTool = { key: string; to: string; label: string; icon: ReactNode; h
 const LAUNCHER_GROUPS = [
   // The calendar is the posts' plan as much as the meetings': it sits with what clients approve.
   { id: "production", keys: ["portal", "review", "media", "drive", "calendar"] },
-  { id: "work", keys: ["waiting", "issues", "threads", "whatsapp", "proposals"] },
+  { id: "work", keys: ["waiting", "issues", "whatsapp", "proposals"] },
   { id: "team", keys: ["routines", "taskManager", "team", "wiki", "dashboards"] },
 ] as const;
 

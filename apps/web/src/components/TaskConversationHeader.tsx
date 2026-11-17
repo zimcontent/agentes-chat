@@ -13,6 +13,8 @@ export function TaskConversationHeader({ thread, onClose }: { thread: ThreadInfo
   const { t, i18n } = useTranslation();
   const actors = useActors();
   const people = thread.participants.flatMap((p) => (p.id ? [{ type: p.type, id: p.id }] : []));
+  // A task's room hides its root; a thread the task holds shows it, so it counts (ADR doug-0018).
+  const count = thread.channelKind === "task" ? thread.replyCount : thread.replyCount + 1;
   const names = joinNames(
     people.slice(0, 4).map((p) => actors.name(p)),
     t,
@@ -33,10 +35,10 @@ export function TaskConversationHeader({ thread, onClose }: { thread: ThreadInfo
         </h1>
         <span className="channel__topic thread-head__meta">
           {names && <span className="thread-head__where">{names}</span>}
-          {thread.replyCount > 0 && (
+          {count > 0 && (
             <>
               {names && <span aria-hidden="true">·</span>}
-              <span>{t("issues.conversation.messages", { count: thread.replyCount })}</span>
+              <span>{t("issues.conversation.messages", { count })}</span>
             </>
           )}
           <span aria-hidden="true">·</span>

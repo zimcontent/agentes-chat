@@ -99,7 +99,10 @@ export function ThreadReplyLine({ thread, count }: { thread: ThreadInfo; count: 
   const state = thread.state === "open" ? threadWorkState(thread, Boolean(liveAgent)) : null;
   const people = thread.participants.flatMap((p) => (p.id ? [{ type: p.type, id: p.id }] : []));
   const at = thread.lastMessage?.createdAt ?? thread.lastActivityAt;
-  const replies = t("threads.line.replies", { count });
+  // A thread a task holds says so where people see it, in the channel (ADR doug-0018).
+  const replies = thread.task
+    ? t("threads.line.taskReplies", { number: thread.task.number, count })
+    : t("threads.line.replies", { count });
   const open = view?.open === thread.id;
   return (
     <OpenThread threadId={thread.id} className="thread-line" pressed={open}>

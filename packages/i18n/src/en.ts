@@ -1762,6 +1762,11 @@ export const en = {
     openComputer: "Open the computer",
     linkCopied: "Link copied.",
     saveToWiki: "Save to wiki",
+    /** A message's menu: a task made from it keeps this conversation as its own (ADR doug-0018). */
+    makeTask: "Create task",
+    taskMade: "Task #{{number}} created. The conversation stays here and shows on the task.",
+    taskHeld: "This conversation already is task #{{number}}.",
+    openTask: "Open task",
     pin: "Pin message",
     unpin: "Unpin message",
     pinned: "Message pinned.",
@@ -2224,7 +2229,7 @@ export const en = {
     routines: "Routines",
     team: "Team",
     dashboards: "Dashboards",
-    taskManager: "Task manager",
+    taskManager: "Agent activity",
     calendar: "Calendar",
     drive: "Drive",
     members: "Members",
@@ -8337,6 +8342,15 @@ export const en = {
     },
   },
   issues: {
+    /** Missions live with the tasks (ADR doug-0018): the line on the board and their own view. */
+    missions: {
+      back: "Back to Tasks",
+      running_one: "{{count}} mission running",
+      running_other: "{{count}} missions running",
+      waiting_one: "{{count}} waiting for you",
+      waiting_other: "{{count}} waiting for you",
+      see: "See missions",
+    },
     delete: {
       action: "Delete task",
       title: "Delete task #{{number}}?",
@@ -9413,7 +9427,7 @@ export const en = {
       declined: "Declined {{name}}'s request.",
     },
     title: "Missions",
-    subtitle: "Long work by an agent on its computer, in a thread.",
+    subtitle: "Long work by an agent, with a plan and steps.",
     search: "Search missions",
     online: "online",
     offline: "offline",
@@ -10062,8 +10076,15 @@ export const en = {
     waitingCloud: "Missions start once {{computer}} is ready.",
   },
   threads: {
+    /** A thread that is a task's conversation, or becomes one (ADR doug-0018). */
+    task: {
+      button: "Task #{{number}}",
+      open: "Open task #{{number}} ({{status}})",
+      make: "Create a task from this conversation",
+      makeHint: "The conversation stays here and shows on the task.",
+    },
     title: "Threads",
-    subtitle: "Subjects that left groups and DMs.",
+    subtitle: "Threaded conversations. What needs doing lives in Tasks.",
     tabsLabel: "Thread filter",
     tabs: { all: "All", working: "With work", missions: "Missions", closed: "Closed", archived: "Archived" },
     search: "Search threads",
@@ -10125,7 +10146,7 @@ export const en = {
     },
     empty: {
       missionsTitle: "No missions yet",
-      missions: "A mission is a thread with a plan, decisions and an agent's work on its computer.",
+      missions: "A mission is an agent's long work, with a plan, decisions and steps.",
       allTitle: "Every topic in its own conversation",
       all: "Reply to a message to open a thread, and the group stays clear.",
       workingTitle: "No agent working right now",
@@ -10180,6 +10201,9 @@ export const en = {
       reply: "Reply",
       replies_one: "{{count}} reply",
       replies_other: "{{count}} replies",
+      /** A thread a task holds, under its message in the channel (ADR doug-0018). */
+      taskReplies_one: "Task #{{number}} · {{count}} reply",
+      taskReplies_other: "Task #{{number}} · {{count}} replies",
       closed_one: "Thread closed · {{title}} · {{count}} message",
       closed_other: "Thread closed · {{title}} · {{count}} messages",
       archived_one: "{{count}} archived thread isn't shown here",
@@ -19982,10 +20006,10 @@ export const en = {
     allWaiting_one: "{{count}} thing waiting for you",
     allWaiting_other: "All {{count}} things waiting for you",
     actions: "More actions",
-    openManager: "Open the task manager",
+    openManager: "Open agent activity",
   },
   taskManager: {
-    title: "Task manager",
+    title: "Agent activity",
     /** Under the title when no agent is working or waiting on you. */
     subtitle: "What the agents are doing now and what ended today.",
     search: "Search a task, agent or app",
@@ -20098,7 +20122,7 @@ export const en = {
       stopAll: "Stop all",
       stopAllOf: "Stop everything of {{name}}",
       open: "Open in the conversation",
-      openManager: "Open in the task manager",
+      openManager: "Open in agent activity",
     },
     confirm: {
       /** One task and the agents it asked, stopped together. */

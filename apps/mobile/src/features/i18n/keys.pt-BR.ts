@@ -790,6 +790,26 @@ export const featureKeysPtBR = {
       notedSub: "Fica nas decisões da missão.",
     },
   },
+  /** A task made from a conversation keeps it as its own (ADR doug-0018). */
+  task: {
+    make: "Criar tarefa",
+    makeThread: "Criar tarefa com esta conversa",
+    made: "Tarefa #{{number}} criada",
+    madeSub: "A conversa continua aqui e aparece na tarefa.",
+    held: "Esta conversa já é a tarefa #{{number}}.",
+    open: "Abrir",
+    openNumber: "Abrir a tarefa #{{number}}",
+  },
+  /** Missions live with the tasks (ADR doug-0018). */
+  missions: {
+    running_one: "{{count}} missão em andamento",
+    running_other: "{{count}} missões em andamento",
+    waiting_one: "{{count}} esperando você",
+    waiting_other: "{{count}} esperando você",
+    open: "Trabalho longo de um agente, com plano e etapas",
+    emptyTitle: "Nenhuma missão ainda",
+    emptyText: "Uma missão é um trabalho longo de um agente, com plano e etapas.",
+  },
   threads: {
     title: "Threads",
     section: {
@@ -1485,13 +1505,13 @@ export const featureKeysPtBR = {
   },
   // The task manager (ADR 0128; the rest of its words are shared, `taskManager.*`).
   taskManager: {
-    loadFailed: "Não deu para carregar as tarefas.",
-    gone: "Essa tarefa não está mais aqui.",
+    loadFailed: "Não deu para carregar os trabalhos.",
+    gone: "Esse trabalho não está mais aqui.",
     /** Under the title when nothing runs or waits. */
     quiet: "Nada em andamento",
     /** In the line under an agent's tasks: how many it finished today. */
-    doneToday_one: "{{count}} feita hoje",
-    doneToday_other: "{{count}} feitas hoje",
+    doneToday_one: "{{count}} feito hoje",
+    doneToday_other: "{{count}} feitos hoje",
     /** The group over who asked for the task, on its screen. */
     request: "Pedido",
     /** The system alert before stopping one task from its screen. */

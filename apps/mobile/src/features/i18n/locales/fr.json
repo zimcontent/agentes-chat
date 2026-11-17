@@ -790,6 +790,26 @@
       "notedSub": "Elle reste dans les décisions de la mission."
     }
   },
+  "task": {
+    "make": "Créer une tâche",
+    "makeThread": "Créer une tâche à partir de cette conversation",
+    "made": "Tâche #{{number}} créée",
+    "madeSub": "La conversation reste ici et apparaît dans la tâche.",
+    "held": "Cette conversation est déjà la tâche #{{number}}.",
+    "open": "Ouvrir",
+    "openNumber": "Ouvrir la tâche #{{number}}"
+  },
+  "missions": {
+    "running_one": "{{count}} mission en cours",
+    "running_many": "{{count}} missions en cours",
+    "running_other": "{{count}} missions en cours",
+    "waiting_one": "{{count}} vous attend",
+    "waiting_many": "{{count}} vous attendent",
+    "waiting_other": "{{count}} vous attendent",
+    "open": "Un long travail d'un agent, avec un plan et des étapes",
+    "emptyTitle": "Pas encore de missions",
+    "emptyText": "Une mission est un long travail d'un agent, avec un plan et des étapes."
+  },
   "threads": {
     "title": "Fils",
     "section": {
@@ -1556,8 +1576,8 @@
     }
   },
   "taskManager": {
-    "loadFailed": "Impossible de charger les tâches.",
-    "gone": "Cette tâche n'est plus là.",
+    "loadFailed": "Impossible de charger le travail.",
+    "gone": "Ce travail n'est plus là.",
     "quiet": "Rien en cours",
     "doneToday_one": "{{count}} terminée aujourd'hui",
     "doneToday_other": "{{count}} terminées aujourd'hui",

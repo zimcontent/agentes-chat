@@ -102,7 +102,9 @@ function workspaceScreen(rest: string[], q: Record<string, string>): Record<stri
       if (!isSafeId(sub)) return null;
       return id === "agent" ? { agent: sub, m } : id === "person" ? { person: sub, m } : null;
     case "threads":
-      if (id === undefined) return open ? { thread: open } : "/conversations/threads";
+      // The missions live in Tarefas (ADR doug-0018): `?tab=missions` opens them, the rest lands on the tasks.
+      if (id === undefined)
+        return open ? { thread: open } : q.tab === "missions" ? "/missions" : "/conversations/threads";
       return isSafeId(id) ? { thread: id, m } : null;
     case "agents":
       // Creating an agent has no screen on the phone: the website's page opens.
@@ -115,7 +117,7 @@ function workspaceScreen(rest: string[], q: Record<string, string>): Record<stri
       return open ? { notification: open } : "/activity";
     case "issues": {
       const number = id ?? open;
-      if (number === undefined || number === null) return "/issues";
+      if (number === undefined || number === null) return q.view === "missions" ? "/missions" : "/issues";
       return /^\d{1,9}$/.test(number) ? `/issues/${number}` : null;
     }
     case "proposals":

@@ -27,8 +27,11 @@ export function ThreadPage({
   onGone,
   onBack,
   onSeeInChannel,
+  asTask,
 }: {
   threadId: string;
+  /** Shown as a task's conversation, in its dialog: the task's header, also for a thread it holds (ADR doug-0018). */
+  asTask?: boolean;
   reply?: boolean;
   /** Open at this message (a card someone was sent to). */
   focusMessageId?: string;
@@ -96,13 +99,14 @@ export function ThreadPage({
       }}
       chrome={{
         // A mission's thread: its header is the mission's (no card floating over the messages).
-        header: task ? (
-          <TaskConversationHeader thread={thread} onClose={onClose} />
-        ) : mission && !onClose ? (
-          <MissionThreadHeader thread={thread} mission={mission} />
-        ) : (
-          <ThreadHeader thread={thread} onClose={onClose} onBack={onBack} onSeeInChannel={onSeeInChannel} />
-        ),
+        header:
+          task || asTask ? (
+            <TaskConversationHeader thread={thread} onClose={onClose} />
+          ) : mission && !onClose ? (
+            <MissionThreadHeader thread={thread} mission={mission} />
+          ) : (
+            <ThreadHeader thread={thread} onClose={onClose} onBack={onBack} onSeeInChannel={onSeeInChannel} />
+          ),
         top: (
           <>
             <ThreadOrigin thread={thread} />
@@ -113,7 +117,7 @@ export function ThreadPage({
           mission && isOpenMission(mission) && mission.role === "none" ? (
             <MissionJoinNote mission={mission} />
           ) : undefined,
-        composerLabel: task ? t("issues.commentPlaceholder") : t("threads.view.composer"),
+        composerLabel: task || asTask ? t("issues.commentPlaceholder") : t("threads.view.composer"),
         composerReplacement: archived ? <ArchivedNote thread={thread} /> : undefined,
         panel: Boolean(onClose),
         // A person's reply here makes it a "Responder" thread (its replies leave the channel's timeline),
