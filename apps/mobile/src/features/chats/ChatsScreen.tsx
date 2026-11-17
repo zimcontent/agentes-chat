@@ -10,8 +10,9 @@ import { useCallback, useEffect, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { RefreshControl, View } from "react-native";
 import { useOrg } from "@/providers/org";
-import { GroupedRow, LargeTitleScreen, PULL_TINT, PullOrbit, SkeletonList, SwipeRow } from "@/ui";
+import { GroupedRow, LargeTitleScreen, PULL_TINT, PullOrbit, SkeletonList, SwipeRow, useTheme } from "@/ui";
 import { router } from "@/ui/navigation";
+import { panelSurface } from "@/ui/surfaces";
 import { useCategoryMenus } from "../categories/menus";
 import { SetupNotice } from "../computer/SetupWait";
 import { chatHref } from "../links/logic";
@@ -20,11 +21,12 @@ import { useOpenDm } from "../new/useOpenDm";
 import { OutageNotices } from "../outages/OutageNotice";
 import { useMachineOutages } from "../outages/queries";
 import { useColors, useDirectory, useMeId, useOrgId, usePullRefresh } from "../shared/hooks";
-import { useConversations, useHiddenAgents, useWorkingNow } from "../shared/queries";
+import { useConversations, useHiddenAgents, useWaitingCount, useWorkingNow } from "../shared/queries";
 import { SheetHostProvider } from "../shared/SheetHost";
 import { useTabHeader } from "../shared/tabHeader";
 import { ConversationRowView } from "./ConversationRowView";
 import { DeletingNotice } from "./DeletingNotice";
+import { DougPinned } from "./DougPinned";
 import { FirstAgentEmpty } from "./Greeting";
 import { HomeGlance } from "./HomeGlance";
 import { CollapsibleSection, SeeAllRow, useHomeCollapsed } from "./HomeSection";
@@ -38,6 +40,7 @@ import {
   type HomeBlock,
   homeLayout,
   type ListKind,
+  withoutPinnedAgent,
   withoutQuietGeneral,
   withRightHand,
 } from "./logic";
@@ -90,6 +93,7 @@ export function ChatsScreen() {
 function Home() {
   const { t } = useTranslation();
   const c = useColors();
+  const { scheme } = useTheme();
   const orgId = useOrgId();
   const { org } = useOrg();
   const personal = isPersonal(org);
@@ -104,6 +108,8 @@ function Home() {
   const list = useConversations();
   const work = useWorkingNow();
   const waiting = useWaitingItems();
+  // The pinned Doug's count is Pendentes' own badge: the two never disagree.
+  const waitingCount = useWaitingCount();
   const { collapsed, toggle } = useHomeCollapsed();
   const categories = useChannelCategories(orgId);
   // An administrator reads every channel (ADR 0151): the ones they aren't in wait at the end of the home.
@@ -128,8 +134,14 @@ function Home() {
   // The right hand (ADR 0137) is one of Agentes' rows, by its latest message as every agent; before its first
   // conversation it waits at the list's end, to start one. Outside its audience, none.
   const rightHand = rightHandOf(dir.agents);
-  const rows = withRightHand(list.rows, rightHand && canTalk(rightHand) ? rightHand : undefined);
-  const starters = useMemo(() => agentStarters(dir.agents, hidden), [dir.agents, hidden]);
+  // Doug is pinned above the tools (docs/adr/doug-0016-doug-pinned.md): its row leaves Agentes while it is there.
+  const pinnedId = rightHand && canTalk(rightHand) ? rightHand.id : undefined;
+  const allRows = withRightHand(list.rows, rightHand && canTalk(rightHand) ? rightHand : undefined);
+  const rows = withoutPinnedAgent(allRows, pinnedId);
+  const starters = useMemo(
+    () => withoutPinnedAgent(agentStarters(dir.agents, hidden), pinnedId),
+    [dir.agents, hidden, pinnedId],
+  );
   const pins = usePins();
   // Agents and people by their latest message alone, as WhatsApp's chats (docs/adr/doug-0014-latest-first.md): a pin
   // keeps only channels on top.
@@ -154,7 +166,7 @@ function Home() {
   // A list that failed to load isn't an empty workspace: it says the server didn't answer.
   const failed = list.failed && list.rows.length === 0;
   // Agents already in the team fill the home (Agentes) instead of the invitation to create the first one.
-  const empty = !list.loading && !failed && rows.length === 0 && starters.length === 0;
+  const empty = !list.loading && !failed && allRows.length === 0 && starters.length === 0 && !pinnedId;
 
   let live = 0;
   return (
@@ -178,6 +190,8 @@ function Home() {
       {list.stale && !failed ? <HomeServerNotice retry={list.refetch} /> : null}
       {failed || empty || list.loading ? null : (
         <>
+          {/* Doug pinned on top: what the team is doing, what waits on you, his conversation and a call. */}
+          <DougPinned rows={list.rows} working={new Set(work.map((x) => x.agentId)).size} waiting={waitingCount} />
           {/* The tools beside the tab bar's five (WhatsApp, Mídia, Buscar, Tarefas, and "Mais" with the rest). */}
           <HomeTools />
           {/* Under the tools, small cards: threads, the editor now, clients' changes. */}
@@ -216,6 +230,7 @@ function Home() {
                 key={r.key}
                 row={r}
                 divider={i > 0}
+                compact
                 live={shown && live++ < LIVE_ROWS}
                 agent={agentStates.get(r.key)}
                 // The pin mark only for what the person pinned, not day one's default (every agent they made).
@@ -249,7 +264,7 @@ function Home() {
                 : null;
             return (
               <SwipeRow key={r.key} right={mutePane ? [pinPane, mutePane] : pinPane}>
-                <View style={{ backgroundColor: c.bg }}>{view}</View>
+                <View style={{ backgroundColor: panelSurface(scheme).backgroundColor }}>{view}</View>
               </SwipeRow>
             );
           };
@@ -261,6 +276,7 @@ function Home() {
               count={s.total}
               collapsed={off}
               onToggle={() => toggle(s.key)}
+              panel
               // A closed category keeps its unread channels in sight, as on the web.
               {...(s.categoryId && s.unread.length > 0 ? { kept: s.unread.map((r, i) => row(r, i, true)) } : {})}
               {...(hold

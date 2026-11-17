@@ -5,7 +5,6 @@ setupDom();
 
 import { ptBR } from "@agenteschat/i18n/pt-BR";
 import { act, cleanup, fireEvent, within } from "@testing-library/react";
-import { STORAGE_KEYS, storage } from "@/lib/storage";
 import { ADA_ID, createFakeApi, type FakeState, ORG_ID, seedState, withRightHand } from "./fake-api";
 import { renderApp, screen, settle } from "./render";
 
@@ -129,8 +128,7 @@ describe("never empty before the answer, and never on an error", () => {
   test("Equipe: no setor state while the setores load", async () => {
     const api = createFakeApi(fresh(), { seed: false });
     api.agentGroups.list = never;
-    storage.set(STORAGE_KEYS.teamView, "sectors");
-    await renderApp(`/org/${ORG_ID}/team`, { api });
+    await renderApp(`/org/${ORG_ID}/team?view=sectors`, { api });
     await settle(8);
     expect(document.body.textContent).not.toContain("Organize o time por área");
   });
@@ -138,8 +136,7 @@ describe("never empty before the answer, and never on an error", () => {
   test("Mapa: no map state while the channels load", async () => {
     const api = createFakeApi(fresh(), { seed: false });
     api.chat.channels = never;
-    storage.set(STORAGE_KEYS.teamView, "map");
-    await renderApp(`/org/${ORG_ID}/team`, { api });
+    await renderApp(`/org/${ORG_ID}/team?view=map`, { api });
     await settle(8);
     expect(document.body.textContent).not.toContain("Veja onde cada agente trabalha");
   });

@@ -57,7 +57,7 @@ export class PhoneLeg implements HostLeg {
     this.channel.addEventListener("message", (e) => this.receive(String(e.data)));
     this.pc.addEventListener("track", (e) => {
       const track = e.track;
-      if (!track || track.kind !== "audio") return;
+      if (track?.kind !== "audio") return;
       this.voiceTrack = track;
       this.handlers.voice?.(track);
     });

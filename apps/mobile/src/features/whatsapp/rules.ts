@@ -100,3 +100,77 @@ export function startsDay(messages: readonly Pick<WhatsAppMessage, "at">[], inde
 
 /** A file the server takes: up to 32 MB (the web's limit). */
 export const FILE_MAX = 32 * 1024 * 1024;
+
+/** The list's filters, as WhatsApp's own row of them. */
+export type ChatFilter = "all" | "unread" | "groups";
+
+/** Whether a conversation's words hold every word searched for (its name, number or last line), any case or accent. */
+function matches(chat: WhatsAppChat, query: string, w: WhatsAppWords): boolean {
+  const fold = (s: string) => s.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase();
+  const words = fold(query).split(/\s+/).filter(Boolean);
+  if (words.length === 0) return true;
+  const hay = fold(`${chatTitle(chat, w)} ${chat.phone ?? ""} ${chat.lastText}`);
+  return words.every((word) => hay.includes(word));
+}
+
+/** The conversations a filter and a search leave, in the order they came. */
+export function filterChats(
+  chats: readonly WhatsAppChat[],
+  filter: ChatFilter,
+  query: string,
+  w: WhatsAppWords,
+): WhatsAppChat[] {
+  return chats.filter(
+    (chat) => (filter === "all" || (filter === "unread" ? chat.unread > 0 : chat.group)) && matches(chat, query, w),
+  );
+}
+
+/** How many conversations have something unread (the "Não lidas" filter's count). */
+export const unreadChats = (chats: readonly WhatsAppChat[]) => chats.filter((chat) => chat.unread > 0).length;
+
+/**
+ * How long after the other side wrote the list still says the agent is answering. The agent answers every message
+ * of a conversation it is on (docs/adr/doug-0002-whatsapp-agent.md), after a wait the number sets (3 to 300 s) and
+ * "typing…": past this it has answered, or something stopped it, and the list shows the last line again.
+ */
+export const ANSWERING_MS = 6 * 60_000;
+
+/**
+ * Whether the number's agent is answering this conversation now: it is on here, the last message is the other
+ * side's and recent. A group it answers only once called, so a group never says it from the list alone.
+ */
+export function agentAnswering(
+  chat: Pick<WhatsAppChat, "agent" | "group" | "lastFromMe" | "lastAt">,
+  now = Date.now(),
+): boolean {
+  if (chat.agent !== "on" || chat.group || chat.lastFromMe || !chat.lastAt) return false;
+  const since = now - new Date(chat.lastAt).getTime();
+  return since >= 0 && since < ANSWERING_MS;
+}
+
+/** The agent answers here (its face on the photo's corner): on, or only paused while a person writes. */
+export const agentHere = (chat: Pick<WhatsAppChat, "agent">) => chat.agent === "on" || chat.agent === "quiet";
+
+/** Whether the strip above the field offers to stop the agent here: it answers, or would after its pause. */
+export const agentStoppable = (chat: Pick<WhatsAppChat, "agent"> | null | undefined) =>
+  chat?.agent === "on" || chat?.agent === "quiet";
+
+/** Initials for a photo that has none: the first letters of the first two words, else the number's last two digits. */
+export function initialsOf(title: string): string {
+  const words = title
+    .replace(/[^\p{L}\p{N}\s]/gu, " ")
+    .split(/\s+/)
+    .filter(Boolean);
+  const letters = words.filter((word) => /\p{L}/u.test(word[0] ?? ""));
+  if (letters.length >= 2) return `${letters[0]?.[0] ?? ""}${letters[1]?.[0] ?? ""}`.toUpperCase();
+  if (letters.length === 1) return (letters[0] ?? "").slice(0, 2).toUpperCase();
+  const digits = title.replace(/\D/g, "");
+  return digits.slice(-2) || "?";
+}
+
+/** One of a few tones for a photo with no picture, the same for the same conversation every time. */
+export function toneOf(id: string, tones: readonly string[]): string {
+  let hash = 0;
+  for (let i = 0; i < id.length; i++) hash = (hash * 31 + id.charCodeAt(i)) >>> 0;
+  return tones[hash % tones.length] ?? tones[0] ?? "#4F7DF0";
+}

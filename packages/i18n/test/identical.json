@@ -4356,6 +4356,7 @@
       "browser.live.key.Escape",
       "browser.live.key.Tab",
       "chart.item",
+      "vault.home.items",
       "chat.thread",
       "chats.thread",
       "connectors.mcps",
@@ -4502,7 +4503,9 @@
       "roles.tabs.permissions",
       "roles.tabs.agents",
       "photo.section",
-      "chat.messagePlain"
+      "chat.messagePlain",
+      "drive.filter.type",
+      "vault.sheet.note"
     ],
     "de": [
       "devices.status.offline",
@@ -4579,7 +4582,9 @@
       "invite.ask.step.code",
       "settings.group.org",
       "threads.title",
-      "roles.icons.person"
+      "roles.icons.person",
+      "drive.order.short.name",
+      "vault.sheet.details"
     ],
     "it": [
       "devices.status.offline",
@@ -4633,7 +4638,8 @@
       "agents.teamSection",
       "find.filterWord.in",
       "connectors.accountTitle",
-      "roles.icons.mail"
+      "roles.icons.mail",
+      "vault.sheet.password"
     ],
     "nl": [
       "devices.status.offline",
@@ -4716,7 +4722,12 @@
       "threads.title",
       "connectors.accountTitle",
       "roles.reach.agents",
-      "roles.tabs.agents"
+      "roles.tabs.agents",
+      "drive.filter.type",
+      "vault.home.items",
+      "vault.sheet.site",
+      "vault.sheet.details",
+      "agentLite.ai"
     ],
     "ja": [
       "devices.os.android",
@@ -4731,7 +4742,8 @@
       "me.account.save",
       "onb.emailsPlaceholder",
       "vault.field.keyNamePlaceholder",
-      "vault.field.websitePlaceholder"
+      "vault.field.websitePlaceholder",
+      "agentLite.ai"
     ],
     "ko": [
       "devices.os.android",
@@ -4743,7 +4755,8 @@
       "files.type.pdf",
       "onb.emailsPlaceholder",
       "vault.field.keyNamePlaceholder",
-      "vault.field.websitePlaceholder"
+      "vault.field.websitePlaceholder",
+      "agentLite.ai"
     ],
     "zh-Hans": [
       "devices.os.android",
@@ -4757,7 +4770,8 @@
       "files.type.pdf",
       "onb.emailsPlaceholder",
       "vault.field.keyNamePlaceholder",
-      "vault.field.websitePlaceholder"
+      "vault.field.websitePlaceholder",
+      "agentLite.ai"
     ],
     "id": [
       "devices.status.offline",
@@ -4789,7 +4803,10 @@
       "vault.kind.login",
       "files.type.video",
       "me.status",
-      "roles.icons.mail"
+      "roles.icons.mail",
+      "vault.sheet.edit",
+      "agentLite.talk",
+      "agentLite.ai"
     ],
     "tr": [
       "devices.os.android",
@@ -4840,7 +4857,8 @@
       "time.short.minutes",
       "time.short.days",
       "me.status",
-      "roles.reach.agents"
+      "roles.reach.agents",
+      "agentLite.ai"
     ],
     "ru": [
       "devices.os.android",

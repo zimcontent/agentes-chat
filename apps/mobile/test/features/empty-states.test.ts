@@ -42,7 +42,6 @@ describe("who gets the first step", () => {
   });
 
   test.each([
-    ["agents/AgentsScreen.tsx", 'place="agents"', 'acts={mayCreate(org, "agent")}'],
     ["chats/Greeting.tsx", 'place="agents"', 'if (!mayCreate(org, "agent"))'],
     ["drive/DriveScreen.tsx", 'place="drive"', 'can(useOrg().org, "upload_files")'],
     ["issues/IssuesScreen.tsx", 'place="tasks"', 'mayCreate(useOrg().org, "task")'],
@@ -61,8 +60,8 @@ describe("who gets the first step", () => {
   });
 
   test.each([
-    ["dashboards/BoardScreen.tsx", "acts={board.canEdit}"],
-    ["vault/VaultScreen.tsx", 'const mayAdd = tab === "personal" || data.canManageTeam;'],
+    ["dashboards/BoardPages.tsx", "acts={board.canEdit}"],
+    ["vault/VaultScreen.tsx", 'const mayAdd = current === "personal" || (data?.canManageTeam ?? false);'],
     ["memory/MemoryScreen.tsx", "find((a) => a && canTalk(a))"],
     ["chat/ChatScreen.tsx", "acts={member && channel?.can?.post !== false}"],
   ])("%s takes the server's answer", (file, gate) => {

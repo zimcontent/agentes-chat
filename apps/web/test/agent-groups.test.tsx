@@ -56,11 +56,8 @@ const openMenu = async (name: string, within$ = view()) => {
 };
 const calls = (state: ReturnType<typeof seedState>, method: string) =>
   state.calls.filter((c) => c.method === method).map((c) => c.args.slice(1));
-/** Equipe on one of its views (remembered in this browser). */
-const team = (state = seedState(), shown: "sectors" | "list" = "sectors") => {
-  localStorage.setItem("agentes.team.view", shown);
-  return go(state, "team");
-};
+/** Equipe on one of its views, in the address (`?view=`). */
+const team = (state = seedState(), shown: "sectors" | "list" = "sectors") => go(state, `team?view=${shown}`);
 const pick = async (label: string, option: string) => {
   const field = screen().getByRole("combobox", { name: label });
   field.focus();
@@ -197,8 +194,7 @@ describe("setores on Equipe (ADR 0083, ADR 0148)", () => {
 describe("Organograma › Por setor with no setor", () => {
   const bySector = async (state: ReturnType<typeof seedState>) => {
     state.agentGroups = [];
-    localStorage.setItem("agentes.team.view", "chart");
-    await go(state, "team");
+    await go(state, "team?view=chart");
     await click(screen().getByRole("radio", { name: "Por setor" }));
   };
 

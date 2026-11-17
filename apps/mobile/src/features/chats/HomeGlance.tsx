@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { Pressable, StyleSheet, View } from "react-native";
 import { Icon, type IconName, Text, useTheme } from "@/ui";
 import { router } from "@/ui/navigation";
+import { CARD_RADIUS, panelSurface, surfaceStyle } from "@/ui/surfaces";
 import { usePortalOn } from "../portal/hooks";
 import { useColors, useMeId, useOrgId } from "../shared/hooks";
 import { useConversations } from "../shared/queries";
@@ -56,7 +57,7 @@ export function HomeGlance() {
   const editor = editorNow(reviews, meId);
   const portalOn = usePortalOn();
   const adjusting = portalAdjusting(usePortalOverview(orgId, portalOn).data?.clients ?? []);
-  const cards: Card[] = [
+  const cards: GlanceCardData[] = [
     {
       key: "threads",
       icon: "reply",
@@ -102,7 +103,7 @@ export function HomeGlance() {
   );
 }
 
-interface Card {
+export interface GlanceCardData {
   key: string;
   icon: IconName;
   title: string;
@@ -115,19 +116,15 @@ interface Card {
   onPress: () => void;
 }
 
-function GlanceCard({ card }: { card: Card }) {
+export function GlanceCard({ card }: { card: GlanceCardData }) {
   const c = useColors();
-  const { shadows } = useTheme();
+  const { scheme } = useTheme();
   return (
     <Pressable
       onPress={card.onPress}
       accessibilityRole="button"
       accessibilityLabel={[card.title, card.big, card.line].filter(Boolean).join(", ")}
-      style={({ pressed }) => [
-        styles.card,
-        { backgroundColor: c.raised, boxShadow: `0px 0px 0px 0.5px ${c.line2}, ${shadows.e1}` },
-        pressed && styles.pressed,
-      ]}
+      style={({ pressed }) => [styles.card, surfaceStyle(panelSurface(scheme), CARD_RADIUS), pressed && styles.pressed]}
     >
       <View style={styles.head}>
         <Icon name={card.icon} size={14} color={c.muted} />
@@ -149,7 +146,7 @@ function GlanceCard({ card }: { card: Card }) {
 
 const styles = StyleSheet.create({
   row: { flexDirection: "row", gap: 8, paddingHorizontal: 16, paddingTop: 12, paddingBottom: 4 },
-  card: { flex: 1, minHeight: 92, borderRadius: 16, padding: 10, gap: 4 },
+  card: { flex: 1, minHeight: 92, paddingVertical: 11, paddingHorizontal: 12, gap: 3 },
   pressed: { opacity: 0.7 },
   head: { flexDirection: "row", alignItems: "center", gap: 4 },
   title: { flexShrink: 1, fontWeight: "500" },

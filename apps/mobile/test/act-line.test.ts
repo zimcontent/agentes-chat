@@ -20,21 +20,9 @@ test("words and their actions wrap as the web's .ac-actline: the words from thei
     "features/chat/TeamChecks.tsx",
     "features/chat/cards.tsx",
     "ui/SectionHeader.tsx",
-    "features/agents/ImportAgents.tsx",
-    "features/agents/NewAgentScreen.tsx",
     "features/push/PushOfferLine.tsx",
   ])
     expect(readFileSync(join(SRC, user), "utf8")).toContain("ACT_LINE.row");
-});
-
-test("an import's head keeps its name whole: Trocar arquivo beside it while it fits, under it otherwise", () => {
-  const imp = readFileSync(join(SRC, "features/agents/ImportAgents.tsx"), "utf8");
-  const head = imp.slice(
-    imp.indexOf("<SourceMark card={origin.card} size={44} />"),
-    imp.indexOf("onPress={imp.reset}"),
-  );
-  expect(head).toContain("<View style={[ACT_LINE.row, styles.line]}>");
-  expect(head).not.toContain("numberOfLines");
 });
 
 test("a section's header: its way on beside the title while the title fits its line, under it otherwise, never cut", () => {

@@ -66,6 +66,8 @@ export interface WhatsAppChat {
   lastText: string;
   lastKind: string;
   lastFromMe: boolean;
+  /** While the latest message is ours: how far it got (the list's ticks). Absent on older servers. */
+  lastStatus?: WhatsAppMessageStatus | null;
   unread: number;
   /**
    * Where the number's agent stands here: `on` (it answers), `quiet` (a person wrote here less than an hour ago),

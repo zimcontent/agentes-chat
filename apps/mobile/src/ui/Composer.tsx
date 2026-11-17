@@ -142,14 +142,15 @@ export interface ComposerProps {
 
 /**
  * DougBot's conversation field (IDENTIDADE.md §6 "Campo de conversa", with the 16 of room every card and the composer
- * keep): 64 tall, radius 22, its buttons 32 at 16 from every edge, their corners concentric (22 − 16 = 6). No pill.
+ * keep): 64 tall, radius 22, its buttons 32 at 16 from every edge. The buttons are round, as dougbot.app's composer's
+ * "+" and send (docs/adr/doug-0016-doug-pinned.md).
  */
 const FIELD = 64;
 const SEND = 32;
 /** Space around the buttons inside the field: they sit centered on the first line. */
 const INSET = (FIELD - SEND) / 2;
 const FIELD_RADIUS = 22;
-const BUTTON_RADIUS = FIELD_RADIUS - INSET;
+const BUTTON_RADIUS = SEND / 2;
 /** The field's 1 px edge (the green at 35% while it is active) and its soft shadow; a voice take's bar wears the same. */
 const FIELD_SHADOW = (line: string) => `0px 0px 0px 1px ${line}, 0px 6px 18px -10px rgba(0, 0, 0, 0.25)`;
 /** How long the send button is held to stop the agent and send; the ring around it fills meanwhile. */

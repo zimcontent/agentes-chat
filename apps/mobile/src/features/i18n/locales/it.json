@@ -6,12 +6,12 @@
   "categories": {
     "title": "Categorie",
     "where": "Dove appare #{{channel}}",
-    "whereHelp": "Cambia per tutti. Chi partecipa al canale resta lo stesso.",
+    "whereHelp": "Cambia per tutti. Chi partecipa al gruppo resta lo stesso.",
     "create": "Crea",
     "endOfList": "Va in fondo all'elenco per tutti.",
-    "channelCount_one": "{{count}} canale",
-    "channelCount_many": "{{count}} canali",
-    "channelCount_other": "{{count}} canali",
+    "channelCount_one": "{{count}} gruppo",
+    "channelCount_many": "{{count}} gruppi",
+    "channelCount_other": "{{count}} gruppi",
     "none": "Ancora nessuna categoria.",
     "manageHelp": "Tocca una categoria per rinominarla, spostarla o eliminarla.",
     "manageHint": "Ordine, nomi ed eliminazione",
@@ -21,7 +21,7 @@
     "down": "Sposta giù",
     "position": "{{at}} di {{count}}.",
     "channelPosition": "{{at}} di {{count}}.",
-    "itsChannels": "Canali",
+    "itsChannels": "Gruppi",
     "seeAll": "Vedi tutti"
   },
   "blocks": {
@@ -30,8 +30,8 @@
     "thousand": "k",
     "building": "Lo sto preparando…",
     "openBig": "Apri a schermo intero",
-    "keep": "Salva in Drive",
-    "kept": "Salvato in Drive",
+    "keep": "Tieni in File",
+    "kept": "Tenuto in File",
     "wake": "Tocca per aprire",
     "pageTitle": "Blocco con codice proprio",
     "pageBody": "Funziona separato dall’app, senza accesso al tuo account né a internet.",
@@ -196,12 +196,12 @@
     },
     "section": {
       "agents": "Agenti",
-      "channels": "Canali",
+      "channels": "Gruppi",
       "people": "Persone"
     },
     "seeAll": {
       "agents": "Vedi tutti gli agenti",
-      "channels": "Vedi tutti i canali",
+      "channels": "Vedi tutti i gruppi",
       "people": "Vedi tutte le persone"
     },
     "wait": {
@@ -243,10 +243,10 @@
     "unreadLabel_one": "{{count}} non letto",
     "unreadLabel_many": "{{count}} non letti",
     "unreadLabel_other": "{{count}} non letti",
-    "newChannel": "Nuovo canale",
+    "newChannel": "Nuovo gruppo",
     "newChannelHint": "Per un team o un argomento",
-    "channelPlaceholder": "Nome del canale, es. marketing",
-    "createChannel": "Crea canale",
+    "channelPlaceholder": "Nome del gruppo, es. marketing",
+    "createChannel": "Crea gruppo",
     "newChannelHintPersonal": "Per un argomento, con più agenti",
     "channelPlaceholderPersonal": "Nome, es. viaggio",
     "createChannelPersonal": "Crea conversazione di gruppo",
@@ -380,11 +380,11 @@
     "switchTitle": "Cambia conversazione",
     "switchSearch": "Cerca conversazioni",
     "switchAgents": "Agenti",
-    "switchChannels": "Canali",
+    "switchChannels": "Gruppi",
     "switchPeople": "Persone",
     "switchNone": "Nessuna conversazione con quel nome.",
     "switchWorking": "al lavoro",
-    "join": "Entra nel canale",
+    "join": "Entra nel gruppo",
     "sending": "Invio…",
     "toLatest": "Vai agli ultimi messaggi",
     "toLatestNew": "Vai agli ultimi messaggi: {{text}}",
@@ -827,10 +827,10 @@
     "thinksWith": "Pensa con {{label}}"
   },
   "team": {
-    "entry": "Organigramma e canali",
+    "entry": "Organigramma e gruppi",
     "sectorLead": "Responsabile: {{name}}",
     "sectorBackup": "Sostituto: {{name}}",
-    "mapHint": "Per spostare un agente in un altro canale, usa la mappa sul web o parla con {{name}}."
+    "mapHint": "Per spostare un agente in un altro gruppo, usa la mappa sul web o parla con {{name}}."
   },
   "agentEdit": {
     "missing": "Questo agente non esiste più.",
@@ -1105,21 +1105,21 @@
     }
   },
   "channelRef": {
-    "list": "Canali",
-    "a11y": "Canale #{{name}}",
-    "archivedA11y": "Canale #{{name}}, archiviato",
+    "list": "Gruppi",
+    "a11y": "Gruppo #{{name}}",
+    "archivedA11y": "Gruppo #{{name}}, archiviato",
     "archived": "#{{name}} è stato archiviato",
     "notMember": "non ne fai parte"
   },
   "mention": {
     "list": "Persone e agenti",
-    "inChannel": "In questo canale",
-    "outside": "Fuori dal canale",
+    "inChannel": "In questo gruppo",
+    "outside": "Fuori dal gruppo",
     "agent": "agente",
     "person": "persona",
     "add": "Aggiungi",
-    "addA11y": "Aggiungi {{name}} al canale",
-    "added": "{{name}} è entrato nel canale"
+    "addA11y": "Aggiungi {{name}} al gruppo",
+    "added": "{{name}} è entrato nel gruppo"
   },
   "me": {
     "title": "Tu",
@@ -1137,7 +1137,7 @@
     "start": "Quando si apre l'app",
     "startHome": "Conversazioni",
     "startLast": "Dove eri rimasto",
-    "startChannels": "Un canale",
+    "startChannels": "Un gruppo",
     "startHint": "Per questo spazio di lavoro, qui e sul tuo computer, dove la schermata iniziale è la pagina Home.",
     "startFailed": "Non è stato possibile salvare. Riprova.",
     "activity": "Risposte degli agenti",
@@ -1170,7 +1170,7 @@
     "proposalsWaiting_one": "{{count}} in attesa",
     "proposalsWaiting_many": "{{count}} in attesa",
     "proposalsWaiting_other": "{{count}} in attesa",
-    "drive": "Drive",
+    "drive": "File",
     "connectors": "Connettori e MCP",
     "preferences": "Preferenze",
     "editProfile": "Modifica profilo",
@@ -1186,7 +1186,7 @@
     "notificationsOnHint": "Arrivano anche nel browser e nell'app desktop, se lì sono attive.",
     "notificationsOffHint": "Attivale per ricevere notifiche qui. I tipi qui sotto valgono per tutti i tuoi dispositivi.",
     "notificationsKindsHint": "Attività recenti tiene tutto. Vale per questo spazio di lavoro, su tutti i tuoi dispositivi.",
-    "version": "agentes.chat · versione {{version}}",
+    "version": "DougBot · versione {{version}}",
     "edit": "Modifica",
     "status": "Stato",
     "workspace": "Spazio di lavoro",
@@ -1206,11 +1206,11 @@
     "workspacesUnreachable": "Nessuna risposta ora",
     "addWorkspace": "Aggiungi workspace",
     "addWorkspaceCreate": "Crea un nuovo workspace",
-    "addWorkspaceCreateSub": "Su agentes.chat",
+    "addWorkspaceCreateSub": "Su DougBot",
     "addWorkspaceTeam": "Entra nel server del tuo team",
     "addWorkspaceTeamSub": "Con il suo indirizzo o il codice QR mostrato sul computer",
     "teamServer": "Server del team",
-    "teamServerLead": "L’indirizzo agentes.chat del tuo team, lo stesso che vedi nel browser.",
+    "teamServerLead": "L'indirizzo DougBot del tuo team, lo stesso che vedi nel browser.",
     "teamServerFoot": "Non esci da nessun workspace: il server del tuo team entra nella tua lista, con il tuo account lì.",
     "workspacesHoldHint": "Tieni premuto per cambiare spazio di lavoro",
     "workspacesSheetFoot": "Resti connesso a tutti. Le notifiche di ciascuno ti arrivano qui.",
@@ -1271,7 +1271,7 @@
     "blocked": "Sei l'unico proprietario di {{names}}. Sul sito, in Persone, rendi proprietario qualcun altro, poi torna qui.",
     "addPasswordFirst": "Prima aggiungi una password al tuo account sul sito, poi scrivila qui.",
     "addPasswordWeb": "Aggiungi una password sul sito",
-    "onThisComputer": "Eliminalo nell'app agentes.chat sul computer su cui gira questo server.",
+    "onThisComputer": "Eliminalo nell'app DougBot sul computer su cui gira questo server.",
     "otherAccount": "Hai fatto l'accesso con un altro account. Non è stato eliminato nulla.",
     "hold": "Tieni premuto per eliminare"
   },
@@ -1293,7 +1293,7 @@
     "more": "Altre opzioni",
     "send": "Invia",
     "savePhotos": "Salva in Foto",
-    "drive": "Vedi in Drive",
+    "drive": "Vedi in File",
     "saved": "Salvata in Foto",
     "photosDenied": "Nessun accesso a Foto",
     "photosDeniedSub": "Consentilo nelle Impostazioni per salvare le immagini.",
@@ -1406,15 +1406,15 @@
     }
   },
   "drive": {
-    "title": "Drive",
-    "search": "Cerca nel Drive",
+    "title": "File",
+    "search": "Cerca nei file",
     "types": "Tipi di file",
     "type": {
       "all": "Tutti",
       "documents": "Documenti",
       "images": "Immagini",
       "tables": "Tabelle",
-      "diffs": "Diff"
+      "diffs": "Modifiche al codice"
     },
     "section": {
       "today": "Oggi",
@@ -1423,14 +1423,59 @@
     "kind": {
       "document": "Documento",
       "table": "Tabella",
-      "diff": "Diff",
+      "diff": "Modifica al codice",
       "image": "Immagine",
       "file": "File"
     },
     "by": "{{name}} · {{when}}",
     "noResults": "Niente con questi filtri.",
-    "loadFailed": "Non è stato possibile caricare il Drive.",
-    "more": "Mostra altro"
+    "loadFailed": "Impossibile caricare i file.",
+    "more": "Mostra altro",
+    "you": "Tu",
+    "anyone": "Chiunque",
+    "filter": {
+      "type": "Tipo",
+      "people": "Persone",
+      "modified": "Modificato"
+    },
+    "when": {
+      "any": "In qualsiasi momento",
+      "today": "Oggi",
+      "week": "Ultimi 7 giorni",
+      "month": "Ultimi 30 giorni",
+      "year": "Quest'anno"
+    },
+    "change": {
+      "edited": "{{name}} ha modificato",
+      "sent": "{{name}} ha inviato",
+      "made": "{{name}} ha creato"
+    },
+    "suggested": "Suggeriti",
+    "list": "File",
+    "folder_one": "conversazione con {{count}} file",
+    "folder_many": "conversazione con {{count}} file",
+    "folder_other": "conversazione con {{count}} file",
+    "moreFolders_one": "Ancora {{count}} conversazione",
+    "moreFolders_many": "Ancora {{count}} conversazioni",
+    "moreFolders_other": "Ancora {{count}} conversazioni",
+    "menu": "Opzioni per {{name}}",
+    "more2": "Altre opzioni",
+    "open": "Apri",
+    "goToChat": "Vai alla conversazione",
+    "new": "Nuovo",
+    "order": {
+      "label": "Ordine: {{order}}",
+      "recent": "Più recenti prima",
+      "name": "Per nome",
+      "short": {
+        "recent": "Recenti",
+        "name": "Nome"
+      }
+    },
+    "view": {
+      "grid": "Vedi a griglia",
+      "list": "Vedi a elenco"
+    }
   },
   "constellation": {
     "openHint": "Apre quello che hai toccato nel cielo"
@@ -1520,6 +1565,10 @@
     "stopTitle": "Fermare “{{title}}”?",
     "stopBody": "{{name}} si ferma subito e racconta nella conversazione cosa ha fatto finora."
   },
+  "homeTools": {
+    "title": "Strumenti",
+    "more": "Altro"
+  },
   "homeNow": {
     "working_one": "{{count}} al lavoro",
     "working_many": "{{count}} al lavoro",
@@ -1566,6 +1615,57 @@
       "tomorrow": "domani alle {{time}}",
       "later": "{{day}} alle {{time}}"
     }
+  },
+  "agentLite": {
+    "uses": "Può usare",
+    "usesNone": "Ancora niente",
+    "menu": "Altre opzioni",
+    "month": "Questo mese",
+    "reportsTo": "Risponde a",
+    "inProgress": "in corso",
+    "waitsYou": "ti aspetta",
+    "doneAt": "consegnato alle {{time}}",
+    "todayEmptyF": "{{name}} oggi non ha ancora fatto niente per te.",
+    "todayEmptyM": "{{name}} oggi non ha ancora fatto niente per te.",
+    "call": "Chiama",
+    "tasks": "Attività",
+    "settings": "Impostazioni",
+    "talk": "Chatta",
+    "settingsTitle": "Impostazioni",
+    "ai": "IA",
+    "aiNone": "Ancora nessuna IA",
+    "more": "Tutto il resto",
+    "onSite": "Altre impostazioni sul sito web",
+    "askDoug": "Chiedi a {{name}}",
+    "askDougAbout": "Su {{name}}:  ",
+    "moreHelp": "Istruzioni, budget, limiti e rimozione dell'agente sono sul sito web, oppure chiedi a {{name}} a parole.",
+    "raiseBudgetF": "Aumenta il budget di {{name}}",
+    "raiseBudgetM": "Aumenta il budget di {{name}}",
+    "create": "Voglio un nuovo agente per  ",
+    "createWhat": "Voglio un nuovo agente per {{what}}",
+    "inChannel": "lavorare nel gruppo #{{channel}}:  ",
+    "onPlan": "pensare con il piano {{plan}}:  "
+  },
+  "teamNow": {
+    "title": "Il tuo team adesso",
+    "lead_one": "{{name}} coordina {{count}} agente",
+    "lead_many": "{{name}} coordina {{count}} agenti",
+    "lead_other": "{{name}} coordina {{count}} agenti",
+    "working_one": "{{count}} al lavoro",
+    "working_many": "{{count}} al lavoro",
+    "working_other": "{{count}} al lavoro",
+    "asking_one": "{{count}} ti aspetta",
+    "asking_many": "{{count}} ti aspettano",
+    "asking_other": "{{count}} ti aspettano",
+    "quiet": "Nessuno sta lavorando adesso",
+    "since": "iniziato {{ago}}",
+    "asks": "Ha una domanda per te",
+    "waitsYou": "ti aspetta",
+    "stoppedF": "Ferma",
+    "stoppedM": "Fermo",
+    "freeF": "Libera",
+    "freeM": "Libero",
+    "empty": "Ancora nessun agente nel team."
   },
   "intentAgents": {
     "waitingSection": "Ti aspetta",
@@ -1662,7 +1762,7 @@
       },
       "area": {
         "context": "Memoria",
-        "drive": "Drive",
+        "drive": "File",
         "issues": "Attività",
         "calendar": "Calendario",
         "wiki": "Wiki",
@@ -1989,8 +2089,8 @@
       "serverText": "Una riga da incollare nel suo terminale",
       "computer": "Un altro computer",
       "computerText": "Installa l'app lì",
-      "appNote": "Su un Mac o un PC che usi, lo collega anche l'app desktop di agentes.chat.",
-      "appStep1": "Installa lì l'app agentes.chat",
+      "appNote": "Su un Mac o un PC che usi, lo collega anche l'app desktop di DougBot.",
+      "appStep1": "Installa lì l'app DougBot",
       "appStep2": "Aprila e accedi con il tuo account",
       "appStep3": "Fai clic su Consenti quando chiede di far usare il computer agli agenti di {{org}}",
       "appShows": "Compare qui da solo, solo per te finché non lo condividi.",
@@ -2013,7 +2113,7 @@
       "connecting": "Connessione a {{host}}",
       "computer": "Computer",
       "noHost": "Questo telefono funziona tramite un tuo computer. Collegane prima uno.",
-      "hostOffline": "{{host}} è offline. Accendilo e apri agentes.chat lì.",
+      "hostOffline": "{{host}} è offline. Accendilo e apri lì DougBot.",
       "step1": "Attiva Opzioni sviluppatore",
       "step1Text": "Tocca 7 volte Numero build, poi inserisci il PIN. Sui Samsung: Informazioni software › Numero build.",
       "openAbout": "Apri Informazioni sul telefono",
@@ -2038,9 +2138,9 @@
       "wifi1Text": "Spunta Consenti sempre su questa rete, poi tocca Consenti.",
       "wifi2": "Scansiona il codice su un computer",
       "wifi2Text": "Da Debug wireless › Accoppia dispositivo con codice QR. Non usare la fotocamera: legge il codice come una rete Wi-Fi e toglie il telefono dalla tua rete.",
-      "wifi2Hint": "In agentes.chat su un computer, apri Collega un dispositivo › Telefono Android › Tramite Wi-Fi e scegli {{host}}.",
+      "wifi2Hint": "In DougBot su un computer, apri Collega un dispositivo › Telefono Android › Tramite Wi-Fi e scegli {{host}}.",
       "codeHead": "Accoppia con un codice di accoppiamento",
-      "codeNote": "Da Debug wireless › Accoppia dispositivo con codice di accoppiamento. Apri Impostazioni e agentes.chat affiancati, così il codice resta sullo schermo.",
+      "codeNote": "Da Debug wireless › Accoppia dispositivo con codice di accoppiamento. Apri Impostazioni e DougBot affiancati, così il codice resta sullo schermo.",
       "wifiNote": "Il Wi-Fi può cadere dopo un riavvio. Un cavo è più affidabile.",
       "done": "{{name}} è collegato",
       "openFailed": "Questo telefono non ha aperto quella schermata. Cercala in Impostazioni."
@@ -2097,7 +2197,7 @@
         "openXcode": "Apri Xcode",
         "opened": "Xcode si è aperto su {{host}}. Guarda di nuovo in Impostazioni, poi chiudi Xcode lì.",
         "unlock": "L'hai attivata e si è riavviato? L'avviso con Attiva compare quando questo iPhone è sbloccato.",
-        "outdated": "L'app agentes.chat su {{host}} non è aggiornata. Aggiornala su quel Mac."
+        "outdated": "L'app DougBot su {{host}} non è aggiornata. Aggiornala su quel Mac."
       }
     },
     "notice": {
@@ -2195,7 +2295,7 @@
     "usedBy_other": "{{names}} lo usano",
     "fromAgent": "Collega un servizio",
     "githubApp": {
-      "useApp": "Usa l'app agentes.chat",
+      "useApp": "Usa l'app DougBot",
       "useAccount": "Usa un account GitHub",
       "createInBrowser": "Crea nel browser"
     },
@@ -2250,6 +2350,11 @@
     "blocked": "La verifica non si è caricata. Prova un'altra rete."
   },
   "invitePeople": {
+    "emailsHelp": "Incolla un elenco o scrivi. Ogni persona riceve un'email ed entra subito.",
+    "here": "Già qui",
+    "invited": "Già invitato",
+    "fix": "Controlla",
+    "channels": "Gruppi",
     "optional": "Facoltativo",
     "ok": "OK",
     "noteHelp": "Compare nell'email con il tuo nome. Fino a {{max}} caratteri.",
@@ -2290,12 +2395,53 @@
     "zoneTitle": "Fuso orario",
     "anotherTitle": "Come si chiama il nuovo spazio di lavoro?",
     "anotherPurpose": "A cosa serve il nuovo spazio di lavoro?",
-    "anotherLead": "Su agentes.chat. Resti in {{org}} e puoi cambiare quando vuoi.",
+    "anotherLead": "Su DougBot. Resti in {{org}} e puoi cambiare quando vuoi.",
     "suggested": "In base alla tua email di {{domain}}, ho suggerito {{org}}.",
     "create": "Crea",
     "enter": "Entra nello spazio di lavoro",
-    "shareMessage": "Entra in {{org}} su agentes.chat: {{url}}",
+    "shareMessage": "Entra in {{org}} su DougBot: {{url}}",
     "failed": "Non è stato possibile salvare. Riprova."
+  },
+  "aiPanel": {
+    "title": "Pannello IA",
+    "accounts": "I tuoi account",
+    "uses": "Chi usa cosa",
+    "of": "di {{name}}",
+    "ok": "Tutto a posto",
+    "almost": "Quasi al limite",
+    "limited": "Al limite",
+    "signedOut": "Disconnesso",
+    "renews": "Il limite si rinnova alle {{hour}}",
+    "renewsOn": "Il limite si rinnova {{day}} alle {{hour}}",
+    "week": "Settimana",
+    "month": "Mese",
+    "sheet": {
+      "title": "Cambia l'IA di {{name}}",
+      "title_female": "Cambia l'IA di {{name}}",
+      "smart": "Più intelligente",
+      "balanced": "Equilibrio",
+      "fast": "Più veloce ed economica",
+      "smartPlan": "Pensa di più. Più lenta e usa più quota.",
+      "smartKey": "Pensa di più. Più lenta e più costosa.",
+      "balancedLine": "Consigliato per la maggior parte delle attività.",
+      "fastLine": "Risponde subito. Ideale per compiti semplici.",
+      "current": "Attuale",
+      "inPlan": "incluso nel piano",
+      "price": "≈ {{input}} / {{output}} per milione di token",
+      "runsOn": "Gira sull'account",
+      "accountOf": "{{account}} di {{owner}}",
+      "standIn": "Se la quota finisce, usa",
+      "standInNone": "Aspettare la quota",
+      "standInAll": "Vale per tutti i tuoi agenti.",
+      "standInAlmost": "Anche l'account di riserva è quasi al limite.",
+      "standInLimited": "Anche l'account di riserva è al limite.",
+      "switchTo": "Passa a {{intent}}",
+      "now": "Ora: {{model}}",
+      "none": "Nessun'altra IA a cui passare ora. Collega un account o una chiave per avere opzioni.",
+      "rightHand": "L'IA di {{name}} si sceglie nelle sue impostazioni.",
+      "rightHand_female": "L'IA di {{name}} si sceglie nelle sue impostazioni.",
+      "openSettings": "Apri impostazioni"
+    }
   },
   "ai": {
     "yourPlan": "Il tuo piano di IA",
@@ -2541,6 +2687,48 @@
     }
   },
   "vault": {
+    "home": {
+      "title": "Password",
+      "search": "Cerca nelle password",
+      "vaults": "Casseforti",
+      "items_one": "{{count}} elemento",
+      "items_many": "{{count}} elementi",
+      "items_other": "{{count}} elementi",
+      "switch_one": "{{name}}, {{count}} elemento. Cambia cassaforte",
+      "switch_many": "{{name}}, {{count}} elementi. Cambia cassaforte",
+      "switch_other": "{{name}}, {{count}} elementi. Cambia cassaforte",
+      "favorites": "Preferiti",
+      "connections": "Gestori di password",
+      "noFavorites": "Tocca la stella di un elemento per tenerlo qui."
+    },
+    "sheet": {
+      "username": "nome utente",
+      "password": "password",
+      "site": "sito web",
+      "keyName": "nome della chiave",
+      "value": "valore",
+      "note": "nota",
+      "endsIn": "finisce con {{hint}}",
+      "agentsOnly": "la usano solo gli agenti",
+      "sealed": "salvata, la usano solo gli agenti",
+      "copy": "Copia {{label}}",
+      "copied": "Copiato",
+      "clears": "Gli appunti si svuotano da soli tra 1 minuto.",
+      "copyFailed": "Impossibile copiare.",
+      "edit": "Modifica",
+      "details": "Dettagli",
+      "star": "Aggiungi ai preferiti",
+      "unstar": "Rimuovi dai preferiti",
+      "who": "Chi può usarlo",
+      "changeWho": "Cambia chi può usarlo",
+      "onlyYou": "Solo tu",
+      "everyone": "Tutti",
+      "usedByF": "Usato da {{name}} {{when}}",
+      "usedByM": "Usato da {{name}} {{when}}",
+      "used": "Usato {{when}}",
+      "neverUsed": "Non ancora usato",
+      "history": "Vedi cronologia"
+    },
     "newItem": "Nuovo elemento",
     "search": "Cerca nel Vault",
     "noResults": "Nessun risultato per “{{q}}”.",
@@ -2775,6 +2963,10 @@
     "bySelfUntil": "Scritto da {{name}} · {{when}}"
   },
   "dashboards": {
+    "editBoard": "Modifica",
+    "back": "Indietro",
+    "page": "Dashboard {{at}} di {{count}}",
+    "pick": "Scegli un'altra dashboard",
     "homeRow": "Solo tu · i tuoi widget",
     "loadFailed": "Impossibile caricare le dashboard.",
     "create": "Crea",
@@ -2911,10 +3103,10 @@
     },
     "channels": {
       "title": "Riunisci persone e agenti in un canale",
-      "text": "Ogni canale riunisce chi si occupa di un argomento.",
-      "viewerTitle": "I canali del team sono qui",
-      "viewerText": "Chi crea i canali apre il primo, e compare qui.",
-      "action": "Crea canale",
+      "text": "Ogni gruppo riunisce chi si occupa di un argomento.",
+      "viewerTitle": "Qui ci sono i gruppi del team",
+      "viewerText": "Chi crea gruppi apre il primo, e compare qui.",
+      "action": "Crea gruppo",
       "titlePersonal": "Parla con più agenti insieme",
       "textPersonal": "Ogni conversazione di gruppo riunisce gli agenti e le persone su un argomento.",
       "viewerTitlePersonal": "Le conversazioni di gruppo sono qui",
@@ -3003,7 +3195,7 @@
     "meHint": "La tua foto è visibile alle persone dei tuoi workspace."
   },
   "brand": {
-    "basedOn": "Basato su agentes.chat di Codari Global, LLC · AGPL-3.0",
+    "basedOn": "Basato su DougBot di Codari Global, LLC · AGPL-3.0",
     "source": "Codice sorgente di DougBot"
   }
 }

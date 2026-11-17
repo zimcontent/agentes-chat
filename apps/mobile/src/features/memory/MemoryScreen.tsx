@@ -24,8 +24,8 @@ import {
   useToast,
 } from "@/ui";
 import { router } from "@/ui/navigation";
-import { MemoryFix } from "../agents/AgentProfileScreen";
 import { canEditMemories } from "../agents/logic";
+import { MemoryFix } from "../agents/MemoryFix";
 import { useMemoryOriginText } from "../agents/useMemoryOriginText";
 import { StarCard, StarStrip } from "../constellation/Constellation";
 import { aroundStar, memoryMap } from "../constellation/logic";

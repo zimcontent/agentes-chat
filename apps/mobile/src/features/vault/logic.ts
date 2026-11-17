@@ -6,6 +6,7 @@ import type {
   VaultConnection,
   VaultContactFields,
   VaultItem,
+  VaultItemDetail,
   VaultItemInput,
   VaultItemKind,
   VaultItemPatch,
@@ -604,6 +605,8 @@ const param = (key: string, value: string) => `${key}=${encodeURIComponent(value
 export const vaultHref = {
   list: "/settings/vault",
   item: (id: string) => `/settings/vault-item?${param("id", id)}`,
+  /** The item in a sheet over the list (Senhas' own look); `item` is its full page. */
+  sheet: (id: string) => `/settings/vault-sheet?${param("id", id)}`,
   create: (scope: VaultScope) => `/settings/vault-new?${param("scope", scope)}`,
   env: (scope: VaultScope) => `/settings/vault-env?${param("scope", scope)}`,
   itemAccess: (id: string) => `/settings/vault-access?${param("id", id)}`,
@@ -630,3 +633,90 @@ export const VAULT_CHANGED = "vault.changed";
 export const vaultQueryRoot = (orgId: string) => ["org", orgId, "vault"] as const;
 
 export const isVaultChanged = (event: { type: string }) => event.type === VAULT_CHANGED;
+
+// ── The home (the password managers' look: vault, favorites, categories) ─────────────────────────────────────
+
+/** What the home lists under its search: the categories, or one of them, the favorites or what the search finds. */
+export type VaultView = "home" | "favorites" | "connections" | VaultItemKind;
+
+/** Each category's tile color (the kinds of ADR 0144 §1, then the password managers connected). */
+export const CATEGORY_COLOR: Record<VaultItemKind | "favorites" | "connections", string> = {
+  favorites: "#5B5BD6",
+  login: "#1A8CFF",
+  key: "#E0A030",
+  contact: "#34C38F",
+  connections: "#F08A3C",
+};
+
+/** One vault's items in a view (a kind, the favorites, everything when searching), by name. */
+export function viewItems(
+  items: readonly VaultItem[],
+  tab: Exclude<VaultTab, "connections">,
+  view: VaultView,
+  query: string,
+  favorites: ReadonlySet<string>,
+): VaultItem[] {
+  const all = vaultList(items, tab, "all", query);
+  if (view === "favorites") return all.filter((i) => favorites.has(i.id));
+  if (view === "login" || view === "key" || view === "contact") return all.filter((i) => i.kind === view);
+  return all;
+}
+
+/** Starred items, read from what the phone keeps (one list per workspace); anything unreadable is none. */
+export function parseFavorites(raw: string | null, orgId: string): string[] {
+  try {
+    const all = JSON.parse(raw ?? "{}") as Record<string, unknown>;
+    const list = all[orgId];
+    return Array.isArray(list) ? list.filter((x): x is string => typeof x === "string") : [];
+  } catch {
+    return [];
+  }
+}
+
+/** The kept list with one item starred or not, as the phone keeps it. */
+export function toggleFavorite(raw: string | null, orgId: string, itemId: string): string {
+  let all: Record<string, unknown> = {};
+  try {
+    const read = JSON.parse(raw ?? "{}");
+    if (read && typeof read === "object" && !Array.isArray(read)) all = read as Record<string, unknown>;
+  } catch {
+    // Start over.
+  }
+  const list = parseFavorites(raw, orgId);
+  const next = list.includes(itemId) ? list.filter((id) => id !== itemId) : [itemId, ...list];
+  return JSON.stringify({ ...all, [orgId]: next });
+}
+
+const TILE_COLORS = ["#1A8CFF", "#DD2A7B", "#8134AF", "#34C38F", "#F08A3C", "#E0A030", "#5B5BD6", "#2BA5A5"];
+
+/** An item's tile: two letters of its site (or name) on a color its name always gets. */
+export function itemTile(item: Pick<VaultItem, "title" | "website">): { letters: string; color: string } {
+  const host = hostOf(item.website).replace(/^www\./, "");
+  const base = (host.split(".")[0] || item.title).trim();
+  const letters =
+    base
+      .replace(/[^\p{L}\p{N}]/gu, "")
+      .slice(0, 2)
+      .toLowerCase() || "?";
+  let h = 0;
+  for (const ch of item.title) h = (h * 31 + (ch.codePointAt(0) ?? 0)) >>> 0;
+  return { letters, color: TILE_COLORS[h % TILE_COLORS.length] as string };
+}
+
+/**
+ * The item's last use, for the sheet's foot: who used it (an agent typing a login or a key in a command) and when, or
+ * only when when no one is named.
+ */
+export function lastUse(
+  item: Pick<VaultItemDetail, "uses" | "lastUsedAt">,
+): { agentId: string | null; at: string } | null {
+  const use = item.uses.find((u) => u.action === "fill" || u.action === "key");
+  if (use) return { agentId: use.agentId, at: use.at };
+  return item.lastUsedAt ? { agentId: null, at: item.lastUsedAt } : null;
+}
+
+/** How long a copied text stays on the clipboard before the app takes it back. */
+export const CLIPBOARD_CLEAR_MS = 60_000;
+
+/** Whether the clipboard still holds what the app copied (anything else the person copied since stays). */
+export const stillOurs = (current: string | null, copied: string) => current === copied;

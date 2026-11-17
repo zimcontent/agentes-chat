@@ -6,7 +6,7 @@ import { LOGO_SIZES, type LogoSize, MARK_GRADIENT, markShapes, STACK_RING, stack
 import { useTheme } from "./theme";
 import { initialText } from "./type-scale";
 
-const INITIAL_SIZE = { xs: 9, chip: 10, sm: 13, tile: 18, hero: 24 } as const;
+const INITIAL_SIZE = { xs: 9, mark: 13, chip: 10, sm: 13, tile: 18, hero: 24 } as const;
 
 /** The phone's own copies of the image marks (assets/images/brands/README.md). */
 const MARK_IMAGES: Partial<Record<MarkId, number>> = {
@@ -18,7 +18,7 @@ const MARK_IMAGES: Partial<Record<MarkId, number>> = {
 export interface ProviderLogoProps {
   /** A provider, plan, brain or mission executor id (`anthropic`, `zai`, `claude_code`…). */
   id: string;
-  /** `xs`: the bare mark beside text; `chip`: a 20 pt tile, for `ProviderStack`; `sm`: 30 pt; `tile`: 48 pt; `hero`: 64 pt raised. */
+  /** `xs`: the bare mark beside text; `mark`: the bare mark heading a card (22 pt); `chip`: a 20 pt tile, for `ProviderStack`; `sm`: 30 pt; `tile`: 48 pt; `hero`: 64 pt raised. */
   size?: LogoSize;
   /** Can't be used now (not installed, signed out, computer offline): dimmed, in its own colors. */
   off?: boolean;
@@ -34,7 +34,7 @@ export function ProviderLogo({ id, size = "tile", off = false, label }: Provider
   const { colors, scheme, shadows } = useTheme();
   const drawn = markShapes(id, scheme, colors.ink2);
   const [box, drawing] = LOGO_SIZES[size];
-  const tile = size !== "xs" || !drawn;
+  const tile = (size !== "xs" && size !== "mark") || !drawn;
   return (
     <View
       {...(label

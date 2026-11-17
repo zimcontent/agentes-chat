@@ -1,0 +1,87 @@
+/* "Seu time agora" (docs/adr/doug-0017-agents-lean.md). */
+.team-now {
+  white-space: normal;
+  align-self: stretch;
+  width: 100%;
+  max-width: 760px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.team-now > .ac-card {
+  align-self: stretch;
+  width: 100%;
+  margin-inline: 0;
+}
+
+.team-now__boss {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+.team-now__boss-text {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.team-now__list.ac-card {
+  padding-block: var(--space-1);
+}
+
+.team-now__list ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.team-now__list li + li {
+  border-top: 1px solid var(--line);
+}
+
+.team-now__row {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding-block: var(--space-3);
+  color: var(--ink);
+  text-decoration: none;
+  border-radius: var(--radius-md);
+}
+
+.team-now__row:hover .team-now__name b {
+  text-decoration: underline;
+}
+
+.team-now__row:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.team-now__row[data-presence="out"],
+.team-now__row[data-presence="offline"] {
+  color: var(--ink-muted);
+}
+
+.team-now__text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.team-now__name {
+  overflow-wrap: anywhere;
+}
+
+.team-now__now {
+  overflow-wrap: anywhere;
+}
+
+.team-now__work {
+  max-width: 100%;
+}

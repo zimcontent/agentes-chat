@@ -2281,6 +2281,7 @@ export const ptBR = {
     sectorsCount_other: "{{count}} setores",
     viewLabel: "Visão da equipe",
     view: {
+      now: "Agora",
       list: "Lista",
       chart: "Organograma",
       map: "Mapa",
@@ -5854,6 +5855,64 @@ export const ptBR = {
     budgetDefaultHelpAmount: "Vazio: o padrão do workspace ({{amount}}).",
     budgetInvalid: "Use um valor maior que zero.",
     notFound: "Este agente não existe ou foi arquivado.",
+  },
+  /** An agent's page as it opens (docs/adr/doug-0017-agents-lean.md): who it is, how it is now, its day; Ajustes holds the rest. */
+  agentFront: {
+    call: "Ligar",
+    tasks: "Tarefas",
+    settings: "Ajustes",
+    canUse: "Pode usar",
+    month: "Este mês",
+    reportsTo: "Responde a",
+    reportsToNobody: "Ninguém",
+    ai: "IA",
+    today: "Hoje",
+    todayNone: "Nada hoje ainda.",
+    /** A task of today that ended: "entregue às 15:10". */
+    doneAt: "entregue às {{time}}",
+    going: "em andamento",
+    failed: "não terminou",
+  },
+  /** "Seu time agora" (docs/adr/doug-0017-agents-lean.md): the team's front, the right hand coordinating. */
+  teamNow: {
+    title: "Seu time agora",
+    coordinates_one: "{{name}} coordena {{count}} agente",
+    coordinates_other: "{{name}} coordena {{count}} agentes",
+    working_one: "{{count}} trabalhando agora",
+    working_other: "{{count}} trabalhando agora",
+    waiting_one: "{{count}} espera você",
+    waiting_other: "{{count}} esperam você",
+    waitingButton_one: "{{count}} esperando você",
+    waitingButton_other: "{{count}} esperando você",
+  },
+  /** Painel de IA (docs/adr/doug-0017-agents-lean.md): who thinks with what, changing an agent's AI by intent, and the AI accounts. */
+  aiPanel: {
+    title: "Painel de IA",
+    uses: "Quem usa o quê",
+    accounts: "Contas de IA",
+    usage: "Chaves e uso",
+    change: "Trocar a IA",
+    noAgents: "Nenhum agente ainda.",
+    dialog: {
+      title: "Trocar a IA do {{name}}",
+      title_female: "Trocar a IA da {{name}}",
+      smart: "Mais inteligente",
+      balanced: "Equilíbrio",
+      fast: "Mais rápida e econômica",
+      smartPlan: "Pensa mais. Mais lenta e gasta mais da cota.",
+      smartKey: "Pensa mais. Mais lenta e mais cara.",
+      balancedLine: "Recomendado para a maioria das tarefas.",
+      fastLine: "Responde na hora. Melhor para tarefas simples.",
+      current: "Atual",
+      inPlan: "incluído no plano",
+      /** A key's list prices in reais per million tokens read and written. */
+      price: "≈ {{input}} / {{output}} por milhão de tokens",
+      switchTo: "Trocar para {{model}}",
+      keep: "Manter",
+      now: "Agora: {{model}}",
+      more: "Mais opções",
+      none: "Nenhuma outra IA para trocar agora. Conecte uma conta ou uma chave para ter opções.",
+    },
   },
   agentPage: {
     work: {

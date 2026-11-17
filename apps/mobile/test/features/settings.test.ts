@@ -161,7 +161,13 @@ describe("the workspace's settings on the phone: who opens what (the web's sub-n
       .map((f) => `settings/${f.replace(/\\/g, "/").replace(/\.tsx$/, "")}`);
     expect(routes.length).toBeGreaterThan(10);
     // The workspace's settings page sits on the grouped gray like the screens it opens: all scroll under the bar.
-    for (const route of routes) expect(layout).toContain(`name="${route}" options={{ ...pushed, ...scrollUnder }}`);
+    // Senhas draws its own bar as the password managers do, and opens an item in a sheet over it.
+    const own: Record<string, string> = {
+      "settings/vault": "{{ ...pushed, headerShown: false }}",
+      "settings/vault-sheet": "{pushSheet}",
+    };
+    for (const route of routes)
+      expect(layout).toContain(`name="${route}" options=${own[route] ?? "{{ ...pushed, ...scrollUnder }}"}`);
   });
 });
 
@@ -260,12 +266,6 @@ describe("a personal workspace's settings on the phone (ADR 0159 §3): one short
     expect(src("ai/AgentAdvancedScreen.tsx")).toMatch(/disabled=\{busy\}\s+keep\s+\/>/);
     // Delegated approvals move from You to Advanced in a personal workspace.
     expect(src("me/MeScreen.tsx")).toMatch(/\{personal \? null : \(\s+<GroupedRow\s+key="approvals"/);
-  });
-
-  test("with family, an agent's Edit opens who talks to it, for whoever may change it", () => {
-    const edit = src("agents/AgentEditScreen.tsx");
-    expect(edit).toContain("personal && (others ?? 0) > 0 && !rightHand && agent.setup && (admin || owner)");
-    expect(edit).toContain('onPress={() => openSetupStep(id, "who")}');
   });
 
   test("the switch says what changes in the person's language", async () => {

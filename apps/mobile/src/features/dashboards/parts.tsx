@@ -9,10 +9,9 @@ import {
   withEditRoles,
 } from "@agenteschat/client";
 import { WIDGET_SCHEDULES, WIDGET_SIZES, type WidgetSize } from "@agenteschat/ui/widgets/spec";
-import { Canvas } from "@shopify/react-native-skia";
 import { type ReactNode, useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { Pressable, ScrollView, StyleSheet, View } from "react-native";
+import { ScrollView, StyleSheet, View } from "react-native";
 import Svg, { Path, Rect } from "react-native-svg";
 import {
   Button,
@@ -34,62 +33,14 @@ import {
 import { router } from "@/ui/navigation";
 import { useFailed } from "../routines/hooks";
 import { AgentFace } from "../shared/Face";
-import { useDirectory, useOrgId } from "../shared/hooks";
-import { agentLook } from "../shared/logic";
+import { useOrgId } from "../shared/hooks";
 import { successHaptic, useSurface } from "../shared/parts";
-import { DitherShape } from "./Dither";
 import { closeEditRoles, openEditRoles } from "./edit-roles";
 import { useAgentLook, useCustomRoles } from "./hooks";
-import {
-  type AudienceDraft,
-  editorsChoices,
-  roleNamesOf,
-  roundRectPath,
-  thumbRects,
-  toggleRole,
-  widgetTones,
-  withAudience,
-  withEditors,
-} from "./logic";
+import { type AudienceDraft, editorsChoices, roleNamesOf, toggleRole, withAudience, withEditors } from "./logic";
 import { usePickMenu } from "./menu";
 
 /** Pieces the dashboards' screens share (ADR 0135). */
-
-const THUMB_W = 56;
-const THUMB_H = 44;
-
-/** A board's thumbnail: its first widgets as small dithered tiles in their agents' tones. */
-export function BoardThumb({ thumbs }: { thumbs: DashboardSummary["thumbs"] }) {
-  const { colors: c, scheme } = useTheme();
-  const dir = useDirectory();
-  const rects = thumbRects(thumbs, THUMB_W, THUMB_H);
-  return (
-    <View style={[styles.thumb, { backgroundColor: c.sunken }]}>
-      {rects.length > 0 ? (
-        <Canvas style={StyleSheet.absoluteFill}>
-          {rects.map((r, i) => {
-            const tones = widgetTones(agentLook(dir.anyAgent(r.agentId)).color, scheme === "dark");
-            return (
-              <DitherShape
-                // biome-ignore lint/suspicious/noArrayIndexKey: the tiles of one thumbnail, in order
-                key={i}
-                x={r.x}
-                y={r.y}
-                width={r.w}
-                height={r.h}
-                shape={roundRectPath(0.5, 0.5, r.w - 1, r.h - 1, 3)}
-                fill={tones.fill}
-                stroke={tones.stroke}
-                strokeWidth={1}
-                cell={1}
-              />
-            );
-          })}
-        </Canvas>
-      ) : null}
-    </View>
-  );
-}
 
 /**
  * "Created by Theo · 4 widgets", "Created by you · 1 widget"; with `count` false only who made it (a board's bar,
@@ -106,77 +57,6 @@ export function useBoardByline() {
     const widgets = count ? t("dashboards.meta.widgets", { count: board.widgetCount }) : null;
     return [by, widgets].filter(Boolean).join(" · ");
   };
-}
-
-/** A board in the Dashboards list: its thumbnail, its name (a lock when not the whole workspace's), who made it. */
-export function BoardRow({
-  board,
-  title,
-  sub,
-  onPress,
-  locked,
-}: {
-  board: Pick<DashboardSummary, "thumbs">;
-  title: string;
-  sub: string;
-  onPress: () => void;
-  locked: boolean;
-}) {
-  const { colors: c } = useTheme();
-  return (
-    <Pressable
-      onPress={onPress}
-      accessibilityRole="button"
-      accessibilityLabel={[title, sub].join(", ")}
-      style={({ pressed }) => [styles.boardRow, pressed ? { backgroundColor: c.sunken } : null]}
-    >
-      <BoardThumb thumbs={board.thumbs} />
-      <View style={styles.grow}>
-        <View style={styles.titleLine}>
-          <Text variant="body" numberOfLines={1} style={[styles.semibold, styles.shrink]}>
-            {title}
-          </Text>
-          {locked ? <Icon name="lock" size={17} color={c.faint} /> : null}
-        </View>
-        <Text variant="footnote" tone="faint" numberOfLines={1}>
-          {sub}
-        </Text>
-      </View>
-      <Icon name="right" size={15} color={c.faint} />
-    </Pressable>
-  );
-}
-
-/** Who sees a board, as its meta line says it: the whole workspace, its roles (each with its mark), or only you. */
-export function AudienceLine({ board, after }: { board: Pick<Dashboard, "audience" | "roleIds">; after?: string }) {
-  const { t } = useTranslation();
-  const { colors: c } = useTheme();
-  const roles = useCustomRoles();
-  const picked = roles.filter((r) => board.roleIds.includes(r.id));
-  return (
-    <View style={styles.audience}>
-      <Icon name={board.audience === "workspace" ? "globe" : "lock"} size={13} color={c.muted} />
-      {board.audience === "roles" ? (
-        picked.map((r) => (
-          <View key={r.id} style={styles.role}>
-            <RoleMark color={r.color} icon={r.icon} size={14} />
-            <Text variant="footnote" tone="muted" style={styles.semibold}>
-              {r.name}
-            </Text>
-          </View>
-        ))
-      ) : (
-        <Text variant="footnote" tone="muted" style={styles.semibold}>
-          {board.audience === "workspace" ? t("dashboards.audience.workspace") : t("dashboards.audience.private")}
-        </Text>
-      )}
-      {after ? (
-        <Text variant="footnote" tone="faint">
-          {`· ${after}`}
-        </Text>
-      ) : null}
-    </View>
-  );
 }
 
 /**
@@ -494,15 +374,7 @@ export function AudienceFields({
 }
 
 const styles = StyleSheet.create({
-  grow: { flex: 1, minWidth: 0 },
-  shrink: { flexShrink: 1 },
   semibold: { fontWeight: "600" },
-  thumb: { width: THUMB_W, height: THUMB_H, borderRadius: 10, overflow: "hidden" },
-  // GroupedRow's 14 sides and 12 gap.
-  boardRow: { flexDirection: "row", alignItems: "center", gap: 12, paddingHorizontal: 14, paddingVertical: 10 },
-  titleLine: { flexDirection: "row", alignItems: "center", gap: 6 },
-  audience: { flexDirection: "row", alignItems: "center", flexWrap: "wrap", gap: 6 },
-  role: { flexDirection: "row", alignItems: "center", gap: 4 },
   proposal: {
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,

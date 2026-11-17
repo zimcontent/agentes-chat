@@ -32,7 +32,8 @@ import {
   useReducedMotion,
   useToast,
 } from "@/ui";
-import { openAgentAi, openAgentModel } from "../ai/AgentAiScreen";
+import { openAgentAi } from "../ai/AgentAiScreen";
+import { openChangeAi } from "../ai/ChangeAiSheet";
 import { openConnectAi } from "../ai/NoAiCard";
 import { Note, OpenPage, usePlanHold } from "../ai/parts";
 import { AgentFace, Face } from "../shared/Face";
@@ -70,7 +71,7 @@ export function FilesTextOnlyFix({ message: m }: { message: Message }) {
   if (fix !== "changeModel" || !agentId) return null;
   return (
     <View style={styles.fix}>
-      <Button variant="secondary" size="sm" label={t("usageCard.changeModel")} onPress={() => openAgentAi(agentId)} />
+      <Button variant="secondary" size="sm" label={t("usageCard.changeModel")} onPress={() => openChangeAi(agentId)} />
     </View>
   );
 }
@@ -222,7 +223,7 @@ export const AgentReceiptLine = memo(function AgentReceiptLine({
             fix === "useKey"
               ? openConnectAi({ agentId: failedAgent, intent: "api_key" })
               : fix === "changeModel"
-                ? openAgentModel(failedAgent)
+                ? openChangeAi(failedAgent)
                 : openAgentAi(failedAgent)
           }
         />

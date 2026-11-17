@@ -42,7 +42,7 @@ async function entryOf(o: Options = {}) {
     await api.sandbox.setTarget(ORG_ID, ADA_ID, m.id);
   }
   fake.desktops.set(ADA_ID, o.desktop ?? { available: true, reason: null, running: true });
-  await renderApp(`/org/${ORG_ID}/agents/${ADA_ID}`, { api });
+  await renderApp(`/org/${ORG_ID}/agents/${ADA_ID}?tab=overview`, { api });
   await settle(10);
   return screen().queryByRole("region", { name: "Computador da Ada" });
 }
@@ -168,7 +168,7 @@ describe("what the agent keeps running (keep_running), under its computer", () =
     await api.sandbox.setTarget(ORG_ID, ADA_ID, m.id);
     fake.desktops.set(ADA_ID, { available: true, reason: null, running: true });
     fake.holds.set(ADA_ID, { holds: [{ ...HOLD, until: holds.until ?? null }], canStop: holds.canStop });
-    await renderApp(`/org/${ORG_ID}/agents/${ADA_ID}`, { api });
+    await renderApp(`/org/${ORG_ID}/agents/${ADA_ID}?tab=overview`, { api });
     await settle(10);
     return { fake, row: screen().queryByRole("region", { name: "Mantido rodando" }) };
   }
@@ -212,7 +212,7 @@ describe("what the agent keeps running (keep_running), under its computer", () =
       until: i % 2 ? "2026-10-27T18:00:00.000Z" : null,
     }));
     fake.holds.set(ADA_ID, { holds, canStop: true });
-    await renderApp(`/org/${ORG_ID}/agents/${ADA_ID}`, { api });
+    await renderApp(`/org/${ORG_ID}/agents/${ADA_ID}?tab=overview`, { api });
     await settle(10);
     const row = screen().getByRole("region", { name: "Mantido rodando" });
     expect(row.querySelectorAll(".cmp-kept__item")).toHaveLength(10);

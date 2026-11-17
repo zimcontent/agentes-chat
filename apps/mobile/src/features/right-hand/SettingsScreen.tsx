@@ -44,7 +44,7 @@ import {
   useToast,
 } from "@/ui";
 import { router } from "@/ui/navigation";
-import { openAgentEdit } from "../agents/AgentEditScreen";
+import { useOpenAgentSite } from "../agents/elsewhere";
 import { openAgentAi, openAgentModel } from "../ai/AgentAiScreen";
 import { openConnectAi } from "../ai/NoAiCard";
 import { PlanHoldNote, usePlanHold } from "../ai/parts";
@@ -416,6 +416,7 @@ function Form({ agent }: { agent: Agent }) {
   const c = useColors();
   const toast = useToast();
   const failed = useFailed();
+  const openSite = useOpenAgentSite();
   const usesApi = useWorkspaceUsesApi(orgId);
   const { solo } = usePersonalView();
   const dir = useDirectory();
@@ -463,7 +464,7 @@ function Form({ agent }: { agent: Agent }) {
           label={agent.name}
           sub={`@${agent.handle}`}
           chevron
-          onPress={() => openAgentEdit(agent.id)}
+          onPress={() => openSite(agent.id)}
         />
       </GroupedList>
 

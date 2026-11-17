@@ -19,7 +19,7 @@ import { useAgentEdit } from "./context";
 import "@/components/computer/computer.css";
 
 /** Older links to the agent's computer: notifications and the Mac app's tray carry them. */
-const OLD_LINKS = ["browser", "desktop", "terminal"] as const;
+export const OLD_LINKS = ["browser", "desktop", "terminal"] as const;
 
 /**
  * "Desk's computer", the first row of the overview's fact sheet (Ficha.tsx) (on its page and in the panel beside its DM): one status

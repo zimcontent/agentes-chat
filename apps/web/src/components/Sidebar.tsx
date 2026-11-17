@@ -902,11 +902,9 @@ export function Sidebar() {
                   {manages && (
                     <MenuItem
                       icon="layers"
-                      onSelect={() => {
-                        // Equipe opens on the view it remembers: here, its setores.
-                        storage.set(STORAGE_KEYS.teamView, "sectors");
-                        void navigate({ to: "/org/$orgId/team", params: { orgId } });
-                      }}
+                      onSelect={() =>
+                        void navigate({ to: "/org/$orgId/team", params: { orgId }, search: { view: "sectors" } })
+                      }
                     >
                       {t("sidebarAgents.organize")}
                     </MenuItem>

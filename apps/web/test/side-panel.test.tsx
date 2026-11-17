@@ -130,12 +130,8 @@ test("over the agent's page with unsaved edits, a click on the scrim or leaving 
   expect(router.state.location.search).toEqual({ agent: ADA_ID });
   expect(document.querySelectorAll(".thread-panel")).toHaveLength(1);
   expect(document.querySelectorAll(".thread-panel__scrim")).toHaveLength(1);
-  // Configurações is in the tabs' More menu (Radix opens it on pointer down).
-  await act(async () =>
-    fireEvent.pointerDown(within(side).getByRole("button", { name: /^Mais$/ }), { button: 0, ctrlKey: false }),
-  );
-  await settle(2);
-  await click(within(screen().getByRole("menu", { name: "Mais" })).getByRole("menuitem", { name: /^Configurações/ }));
+  // The page opens lean (docs/adr/doug-0017-agents-lean.md): Ajustes opens its tabs, on Configurações.
+  await click(within(side).getByRole("button", { name: "Ajustes" }));
   await settle(4);
   await click(within(within(side).getByRole("group", { name: "Cor" })).getByRole("button", { name: "Rosa" }));
   await click(side.previousElementSibling as HTMLElement);

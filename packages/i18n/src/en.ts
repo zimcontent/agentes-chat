@@ -2379,6 +2379,7 @@ export const en = {
     /** Equipe's five views (ADR 0148), a segmented control in the header. */
     viewLabel: "Team view",
     view: {
+      now: "Now",
       list: "List",
       chart: "Org chart",
       map: "Map",
@@ -5969,6 +5970,64 @@ export const en = {
     budgetDefaultHelpAmount: "Empty: the workspace default ({{amount}}).",
     budgetInvalid: "Use a value greater than zero.",
     notFound: "This agent doesn't exist or was archived.",
+  },
+  /** An agent's page as it opens (docs/adr/doug-0017-agents-lean.md): who it is, how it is now, its day; Settings holds the rest. */
+  agentFront: {
+    call: "Call",
+    tasks: "Tasks",
+    settings: "Settings",
+    canUse: "Can use",
+    month: "This month",
+    reportsTo: "Reports to",
+    reportsToNobody: "Nobody",
+    ai: "AI",
+    today: "Today",
+    todayNone: "Nothing today yet.",
+    /** A task of today that ended: "delivered at 3:10 PM". */
+    doneAt: "delivered at {{time}}",
+    going: "in progress",
+    failed: "didn't finish",
+  },
+  /** "Your team now" (docs/adr/doug-0017-agents-lean.md): the team's front, the right hand coordinating. */
+  teamNow: {
+    title: "Your team now",
+    coordinates_one: "{{name}} coordinates {{count}} agent",
+    coordinates_other: "{{name}} coordinates {{count}} agents",
+    working_one: "{{count}} working now",
+    working_other: "{{count}} working now",
+    waiting_one: "{{count}} waiting on you",
+    waiting_other: "{{count}} waiting on you",
+    waitingButton_one: "{{count}} waiting on you",
+    waitingButton_other: "{{count}} waiting on you",
+  },
+  /** AI panel (docs/adr/doug-0017-agents-lean.md): who thinks with what, changing an agent's AI by intent, and the AI accounts. */
+  aiPanel: {
+    title: "AI panel",
+    uses: "Who uses what",
+    accounts: "AI accounts",
+    usage: "Keys and usage",
+    change: "Change AI",
+    noAgents: "No agents yet.",
+    dialog: {
+      title: "Change {{name}}'s AI",
+      title_female: "Change {{name}}'s AI",
+      smart: "Smartest",
+      balanced: "Balanced",
+      fast: "Fastest and cheapest",
+      smartPlan: "Thinks more. Slower, and uses more of the quota.",
+      smartKey: "Thinks more. Slower, and costs more.",
+      balancedLine: "Recommended for most tasks.",
+      fastLine: "Answers right away. Best for simple tasks.",
+      current: "Current",
+      inPlan: "included in the plan",
+      /** A key's list prices in reais per million tokens read and written. */
+      price: "≈ {{input}} / {{output}} per million tokens",
+      switchTo: "Switch to {{model}}",
+      keep: "Keep",
+      now: "Now: {{model}}",
+      more: "More options",
+      none: "No other AI to switch to now. Connect an account or a key to have options.",
+    },
   },
   agentPage: {
     work: {

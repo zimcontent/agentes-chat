@@ -33,12 +33,12 @@ export interface ButtonProps {
   hint?: string;
 }
 
-/** In a card or a row: 32 tall, radius 8, its target grown to 44 past it (`slopOf`). */
-const SMALL = { height: TOOL_H, radius: 8, padding: 12, text: "subhead", icon: 16 } as const;
+/** In a card or a row: 32 tall and round (the site's pill), its target grown to 44 past it (`slopOf`). */
+const SMALL = { height: TOOL_H, radius: TOOL_H / 2, padding: 14, text: "subhead", icon: 16 } as const;
 
-/** DougBot's button (IDENTIDADE.md §6): 44 tall, radius 12, Inter 600 15/22. */
+/** DougBot's button: 44 tall and round as on dougbot.app (the site's pill buttons), Inter 600 15/22. */
 export const BUTTON_SIZES = {
-  md: { height: 44, radius: 12, padding: 20, text: "subhead", icon: 18 },
+  md: { height: 44, radius: 22, padding: 20, text: "subhead", icon: 18 },
   // A request's footer in the conversation: the in-card small button, so the card stays a message.
   card: SMALL,
   sm: SMALL,
@@ -60,7 +60,9 @@ export function primaryLook(theme: Pick<Theme, "colors">) {
   return {
     gradient: VERDE_BOTAO.colors,
     locations: VERDE_BOTAO.locations,
-    shadow: "0px 1px 2px 0px rgba(0, 0, 0, 0.18), 0px 6px 16px -8px rgba(132, 228, 7, 0.55)",
+    // The site's lime button: its own rim and a soft glow under it (`.ac-btn--primary`).
+    shadow:
+      "0px 0px 0px 1px rgba(156, 250, 5, 0.5), 0px 10px 30px -8px rgba(156, 250, 5, 0.55), 0px 0px 22px -6px rgba(156, 250, 5, 0.45)",
     highlight: "rgba(255, 255, 255, 0.35)",
     lowlight: "rgba(77, 145, 8, 0.35)",
     text: theme.colors.greenInk,

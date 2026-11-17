@@ -104,13 +104,20 @@ const CAMERA_USE = "To take pictures for your conversations and your agents' pho
 const MICROPHONE_USE = "To record voice messages and to talk on voice calls.";
 
 /**
- * Paths the app no longer has (the old Início and Conversas routes), sent to Conversas (`/`) so a stale link,
- * notification or restored URL never lands on "not found". expo-router applies these to deep links and to
- * in-app navigation alike. (`/search` is the search tab again.)
+ * Paths the app no longer has, so a stale link, notification or restored URL never lands on "not found": the old
+ * Início and Conversas routes go to Conversas (`/`); the agents' setup screens that left the phone (creating,
+ * editing, removing an agent, its Advanced and "Usar em outros agentes") go to "Seu time agora" (`/agents`) or to the
+ * agent's own profile. expo-router applies these to deep links and to in-app navigation alike. (`/search` is the
+ * search tab again.)
  */
 export const LEGACY_REDIRECTS = [
   { source: "/chats", destination: "/" },
   { source: "/home", destination: "/" },
+  { source: "/new-agent", destination: "/agents" },
+  { source: "/agent-edit", destination: "/agents" },
+  { source: "/agent-delete", destination: "/agents" },
+  { source: "/agent-more/[id]", destination: "/agent/[id]" },
+  { source: "/agent-setup/[id]", destination: "/agent/[id]" },
 ];
 
 export default ({ config }: ConfigContext): ExpoConfig => ({

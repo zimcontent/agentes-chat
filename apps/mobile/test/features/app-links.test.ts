@@ -69,7 +69,8 @@ describe("web addresses → the app's screens", () => {
     expect(to("/threads")).toBe("/conversations/threads");
     expect(to("/agents/a1")).toBe("/agent/a1");
     expect(to("/agents/a1/memory")).toBe("/memory?agent=a1");
-    expect(to("/agents/new")).toBe("/new-agent");
+    // Creating an agent is the website's: no screen here, the in-app browser opens it.
+    expect(appLinkFromUrl(`${W}/org/${O}/agents/new`)).toEqual({ web: `/org/${O}/agents/new` });
     expect(to("/approvals?open=ap1")).toBe("/approval/ap1");
     expect(to("/approvals")).toBe("/activity");
     expect(to("/notifications")).toBe("/activity");

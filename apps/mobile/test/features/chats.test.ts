@@ -6,6 +6,8 @@ import i18next from "i18next";
 import {
   appBadgeCount,
   buildConversations,
+  type ConversationRow,
+  dougCardLine,
   hiddenAgentIds,
   homeSections,
   isListedThread,
@@ -29,6 +31,7 @@ import {
   unreadConversations,
   unreadThreadCount,
   waitingTotal,
+  withoutPinnedAgent,
   withoutQuietGeneral,
 } from "../../src/features/chats/logic";
 import {
@@ -691,5 +694,29 @@ describe("the app icon's number", () => {
     const src = await Bun.file(new URL("../../src/features/shared/queries.ts", import.meta.url)).text();
     const hook = src.slice(src.indexOf("export function useAppIconBadge"));
     expect(hook).toContain("() => () => void Notifications.setBadgeCountAsync(0)");
+  });
+});
+
+describe("Doug pinned on Início (docs/adr/doug-0016-doug-pinned.md)", () => {
+  const dm = (id: string): ConversationRow => ({
+    kind: "dm",
+    key: `dm:${id}`,
+    channelId: `c-${id}`,
+    with: { type: "agent", id, name: id, handle: id },
+    last: null,
+    at: null,
+    unread: 0,
+    working: false,
+  });
+
+  test("its row leaves Agentes while it is pinned, the rest stay in order", () => {
+    const rows = [dm("rosa"), dm("doug"), dm("sony")];
+    expect(withoutPinnedAgent(rows, "doug").map((r) => r.key)).toEqual(["dm:rosa", "dm:sony"]);
+    expect(withoutPinnedAgent(rows, undefined)).toBe(rows);
+  });
+
+  test("its line never counts below zero", () => {
+    expect(dougCardLine({ waiting: 3, working: 5 })).toEqual({ waiting: 3, working: 5 });
+    expect(dougCardLine({ waiting: -1, working: -2 })).toEqual({ waiting: 0, working: 0 });
   });
 });

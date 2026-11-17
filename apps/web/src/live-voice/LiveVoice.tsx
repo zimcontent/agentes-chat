@@ -1056,7 +1056,7 @@ function KeyWhere() {
   );
 }
 
-function NeedsKeyDialog({ name, onClose }: { name: string; onClose: () => void }) {
+export function NeedsKeyDialog({ name, onClose }: { name: string; onClose: () => void }) {
   const { t } = useTranslation();
   return (
     <Dialog

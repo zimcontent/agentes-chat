@@ -113,18 +113,14 @@ function AppStack() {
       <Stack.Screen name="agent-ai/[id]" options={{ ...pushed, ...scrollUnder }} />
       <Stack.Screen name="agent-model/[id]" options={{ ...pushed, ...scrollUnder }} />
       <Stack.Screen name="agent-advanced/[id]" options={{ ...pushed, ...scrollUnder }} />
-      <Stack.Screen name="agent-more/[id]" options={{ ...pushed, ...scrollUnder }} />
-      <Stack.Screen name="agent-setup/[id]" options={{ ...pushed, ...scrollUnder }} />
+      <Stack.Screen name="agent-settings/[id]" options={{ ...pushed, ...scrollUnder }} />
       <Stack.Screen name="agent-step/[id]" options={{ ...pushed, ...scrollUnder }} />
-      <Stack.Screen name="agent-edit" options={{ ...pushed, ...scrollUnder }} />
-      <Stack.Screen name="agent-delete" options={{ ...pushed, ...scrollUnder }} />
       <Stack.Screen name="new" options={newSheet} />
       <Stack.Screen name="share-to" options={shareSheet} />
-      <Stack.Screen name="new-agent" options={{ ...pushed, ...scrollUnder }} />
       <Stack.Screen name="issues/index" options={{ ...pushed, ...scrollUnder }} />
       <Stack.Screen name="issues/[id]" options={{ ...pushed, ...scrollUnder }} />
       <Stack.Screen name="issues/new" options={{ ...pushed, ...scrollUnder }} />
-      <Stack.Screen name="drive/index" options={{ ...pushed, ...scrollUnder }} />
+      <Stack.Screen name="drive/index" options={{ ...pushed, headerShown: false }} />
       <Stack.Screen name="memory/index" options={{ ...pushed, ...scrollUnder }} />
       <Stack.Screen name="memory/[id]" options={{ ...pushed, ...scrollUnder }} />
       <Stack.Screen name="wiki/index" options={{ ...pushed, ...scrollUnder }} />
@@ -159,8 +155,10 @@ function AppStack() {
       <Stack.Screen name="search" options={{ ...pushed, ...scrollUnder }} />
       {/* WhatsApp (docs/adr/doug-0001-whatsapp-numbers.md): the numbers from Início, a number's conversations, one. */}
       <Stack.Screen name="whatsapp/index" options={{ ...pushed, ...scrollUnder }} />
-      <Stack.Screen name="whatsapp/[account]" options={{ ...pushed, ...scrollUnder }} />
-      <Stack.Screen name="whatsapp/chat" options={pushed} />
+      {/* A number's list and a conversation draw WhatsApp's own bars, the app's round back in them. */}
+      <Stack.Screen name="whatsapp/[account]" options={{ ...pushed, headerShown: false }} />
+      <Stack.Screen name="whatsapp/chat" options={{ ...pushed, headerShown: false }} />
+      <Stack.Screen name="whatsapp/new" options={formSheet} />
       {/* Mídia (docs/adr/doug-0011): the gallery from Início, a new generation, one generation. */}
       <Stack.Screen name="media/index" options={{ ...pushed, ...scrollUnder }} />
       <Stack.Screen name="media/new" options={{ ...pushed, ...scrollUnder }} />
@@ -192,6 +190,7 @@ function AppStack() {
       <Stack.Screen name="approval/[id]" options={approvalSheet} />
       <Stack.Screen name="join-requests" options={requestsSheet} />
       <Stack.Screen name="switch-computer/[machineId]" options={switchSheet} />
+      <Stack.Screen name="agent-switch/[id]" options={pushSheet} />
       <Stack.Screen name="computer-setup" options={setupSheet} />
       {/* Connect an AI: pushed screens, one question each, on the grouped gray (its bar counts the steps). */}
       <Stack.Screen
@@ -277,7 +276,8 @@ function AppStack() {
       <Stack.Screen name="settings/media" options={{ ...pushed, ...scrollUnder }} />
       <Stack.Screen name="settings/storage" options={{ ...pushed, ...scrollUnder }} />
       <Stack.Screen name="settings/import" options={{ ...pushed, ...scrollUnder }} />
-      <Stack.Screen name="settings/vault" options={{ ...pushed, ...scrollUnder }} />
+      <Stack.Screen name="settings/vault" options={{ ...pushed, headerShown: false }} />
+      <Stack.Screen name="settings/vault-sheet" options={pushSheet} />
       <Stack.Screen name="settings/vault-item" options={{ ...pushed, ...scrollUnder }} />
       <Stack.Screen name="settings/vault-new" options={{ ...pushed, ...scrollUnder }} />
       <Stack.Screen name="settings/vault-env" options={{ ...pushed, ...scrollUnder }} />

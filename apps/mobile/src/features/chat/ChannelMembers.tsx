@@ -27,6 +27,7 @@ import { ActivityIndicator, Alert, StyleSheet, View } from "react-native";
 import { useOrg } from "@/providers/org";
 import { Button, Card, Count, Icon, Locked, Row, SearchField, Text, useToast, weights } from "@/ui";
 import { router } from "@/ui/navigation";
+import { useCreateAgent } from "../agents/elsewhere";
 import { Face, OpensAgent } from "../shared/Face";
 import { useColors, useDirectory, useMeId, useNow, useOrgId } from "../shared/hooks";
 import { SheetTitle } from "../shared/PromptForm";
@@ -416,6 +417,7 @@ function MemberOptions({
 
 /** Adds people and agents to the channel: search, tap to pick, "Adicionar N" (as the web's dialog). */
 function AddChannelMembers({ channelId, channelName }: { channelId: string; channelName: string }) {
+  const createAgent = useCreateAgent();
   const { t } = useTranslation();
   const orgId = useOrgId();
   const api = useApi();
@@ -485,7 +487,8 @@ function AddChannelMembers({ channelId, channelName }: { channelId: string; chan
             key: "agent",
             icon: "plus" as const,
             label: t("shell.createAgent"),
-            onPress: leaveFor(`/new-agent?channel=${channelId}`),
+            onPress: () =>
+              createAgent(t("mobile.agentLite.inChannel", { channel: channelName }), { channel: channelId }),
           },
         ]
       : []),

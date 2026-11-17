@@ -4,7 +4,20 @@ import { join } from "node:path";
 import type { Artifact, Issue, IssueColumn } from "@agenteschat/client";
 import { githubLinkLabel, isGithubLink } from "@agenteschat/client/lib/github-link";
 import { conversationLine } from "@agenteschat/client/lib/issues";
-import { cardPreview, cardShape, driveSections, gridRows, kindKey, matchesType } from "../../src/features/drive/logic";
+import {
+  cardPreview,
+  cardShape,
+  changedWithin,
+  changeKey,
+  driveFolders,
+  driveSections,
+  fileMark,
+  gridRows,
+  kindKey,
+  matchesType,
+  orderFiles,
+  suggestedFiles,
+} from "../../src/features/drive/logic";
 import {
   columnChoices,
   columnOfIssue,
@@ -691,7 +704,7 @@ describe("the Drive past what loaded", () => {
   test("Mostrar mais brings the server's next page once the loaded files are shown", () => {
     const screen = readFileSync(join(import.meta.dir, "../../src/features/drive/DriveScreen.tsx"), "utf8");
     expect(screen).toContain("void list.fetchNextPage()");
-    expect(screen).toContain("visible < total || list.hasNextPage");
+    expect(screen).toContain("files.length < total || list.hasNextPage");
   });
 });
 
@@ -722,5 +735,91 @@ describe("Tarefas as one list", () => {
     const doneOnly = [issue({ number: 9, status: "done", updatedAt: at(30, NOW) })];
     expect(taskListSections(doneOnly, null, NOW).map((s) => s.key)).toEqual(["doneToday"]);
     expect(taskListSections([], "me", NOW)).toEqual([]);
+  });
+});
+
+describe("Arquivos as the phone's file apps show it", () => {
+  const NOW2 = new Date(2026, 10, 17, 12, 0);
+  const a = (over: Partial<Artifact>): Artifact =>
+    ({
+      id: "x",
+      kind: "file",
+      title: "x",
+      version: 1,
+      channelId: null,
+      threadId: null,
+      createdBy: { type: "person", id: "me" },
+      updatedBy: { type: "person", id: "me" },
+      createdAt: NOW2.toISOString(),
+      updatedAt: NOW2.toISOString(),
+      canEdit: true,
+      untrusted: false,
+      audience: { kind: "workspace" },
+      ...over,
+    }) as Artifact;
+
+  test("each row's tile follows the type: texts, tables, slides, PDFs, pictures, code", () => {
+    expect(fileMark(a({ kind: "document" }))).toBe("doc");
+    expect(fileMark(a({ kind: "table" }))).toBe("sheet");
+    expect(fileMark(a({ kind: "diff" }))).toBe("code");
+    expect(fileMark(a({ kind: "html" }))).toBe("slide");
+    expect(fileMark(a({ title: "Proposta.pdf" }))).toBe("pdf");
+    expect(fileMark(a({ title: "Capa.pptx" }))).toBe("slide");
+    expect(fileMark(a({ title: "foto.jpg" }))).toBe("image");
+    expect(fileMark(a({ title: "bruto.mp4" }))).toBe("video");
+    expect(fileMark(a({ title: "planilha.xlsx" }))).toBe("sheet");
+    expect(fileMark(a({ title: "pacote.zip" }))).toBe("zip");
+    expect(fileMark(a({ title: "sem tipo" }))).toBe("file");
+  });
+
+  test("who changed it and how: a new file was sent or made, a later version edited", () => {
+    expect(changeKey(a({ version: 1 }))).toBe("sent");
+    expect(changeKey(a({ kind: "document", version: 1 }))).toBe("made");
+    expect(changeKey(a({ kind: "document", version: 3 }))).toBe("edited");
+  });
+
+  test("the conversations the files came from are the folders, newest change first; outside ones stay loose", () => {
+    const chan = (name: string) => ({ kind: "channel" as const, name, private: false });
+    const list = [
+      a({ id: "1", channelId: "c1", audience: chan("Lexeer"), updatedAt: at(600, NOW2) }),
+      a({
+        id: "2",
+        channelId: "c2",
+        audience: chan("Brutos"),
+        updatedAt: at(30, NOW2),
+        updatedBy: { type: "agent", id: "ed" },
+      }),
+      a({ id: "3", channelId: "c1", audience: chan("Lexeer"), updatedAt: at(5, NOW2) }),
+      a({ id: "4", channelId: "c3", audience: { kind: "channel", name: "Fora", private: true, outside: true } }),
+      a({ id: "5" }),
+    ];
+    const folders = driveFolders(list);
+    expect(folders.map((f) => [f.id, f.name, f.count])).toEqual([
+      ["c1", "Lexeer", 2],
+      ["c2", "Brutos", 1],
+    ]);
+    expect(folders[1]?.updatedBy).toEqual({ type: "agent", id: "ed" });
+  });
+
+  test("Modificado reaches back a day, 7 or 30 days, or the calendar year", () => {
+    expect(changedWithin(at(60, NOW2), "today", NOW2)).toBe(true);
+    expect(changedWithin(new Date(2026, 10, 12).toISOString(), "today", NOW2)).toBe(false);
+    expect(changedWithin(new Date(2026, 10, 12).toISOString(), "week", NOW2)).toBe(true);
+    expect(changedWithin(new Date(2026, 9, 1).toISOString(), "month", NOW2)).toBe(false);
+    expect(changedWithin(new Date(2026, 0, 2).toISOString(), "year", NOW2)).toBe(true);
+    expect(changedWithin(new Date(2025, 11, 31).toISOString(), "year", NOW2)).toBe(false);
+    expect(changedWithin("2001-01-01T00:00:00Z", "any", NOW2)).toBe(true);
+  });
+
+  test("by name (accents aside, numbers as numbers) or newest first; the two newest are suggested", () => {
+    const list = [
+      a({ id: "a", title: "Orçamento 10", updatedAt: at(5, NOW2) }),
+      a({ id: "b", title: "orçamento 9", updatedAt: at(50, NOW2) }),
+      a({ id: "c", title: "Ata", updatedAt: at(500, NOW2) }),
+    ];
+    expect(orderFiles(list, "name", "pt-BR").map((x) => x.id)).toEqual(["c", "b", "a"]);
+    expect(orderFiles(list, "nameDesc", "pt-BR").map((x) => x.id)).toEqual(["a", "b", "c"]);
+    expect(orderFiles(list, "recent", "pt-BR").map((x) => x.id)).toEqual(["a", "b", "c"]);
+    expect(suggestedFiles(list).map((x) => x.id)).toEqual(["a", "b"]);
   });
 });

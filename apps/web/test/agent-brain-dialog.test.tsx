@@ -43,7 +43,7 @@ const callOrder = (state: ReturnType<typeof seedState>) =>
   state.calls.map((c) => c.method).filter((m) => m === "sandbox.setTarget" || m === "agents.setBrain");
 
 async function open(state = seedState(), api = createFakeApi(state)) {
-  const { services } = await renderApp(`/org/${ORG_ID}/agents/${ADA_ID}`, { api });
+  const { services } = await renderApp(`/org/${ORG_ID}/agents/${ADA_ID}?tab=overview`, { api });
   await settle(8);
   return { state, api, services };
 }

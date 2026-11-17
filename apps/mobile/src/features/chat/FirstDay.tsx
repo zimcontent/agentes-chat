@@ -194,7 +194,13 @@ export function FirstDay({
                   {t("mobile.chat.intent.now")}
                 </Text>
               </View>
-              {bubbled ? <View style={[lookRows.bubble, { backgroundColor: c.bubble }]}>{body}</View> : body}
+              {bubbled ? (
+                <View style={[lookRows.bubble, { backgroundColor: c.bubbleTheirs, boxShadow: c.bubbleTheirsRim }]}>
+                  {body}
+                </View>
+              ) : (
+                body
+              )}
             </Animated.View>
             <View style={styles.starts}>
               {asks.map((a, i) => {

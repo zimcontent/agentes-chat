@@ -152,6 +152,7 @@ describe("events into conversations", () => {
       group: false,
       lastText: "tudo bem?",
       lastFromMe: false,
+      lastStatus: null,
       unread: 2,
     });
     const page = await listWhatsAppMessages(deps, f.owner.id, f.org.id, account.id, chats[0]?.id as string);
@@ -228,14 +229,18 @@ describe("sending and reading", () => {
     );
 
     const read = () => listWhatsAppMessages(deps, f.owner.id, f.org.id, account.id, chatId);
+    const listed = async () => (await listWhatsAppChats(deps, f.owner.id, f.org.id, account.id)).chats[0];
     let mine = (await read()).messages.filter((m) => m.fromMe);
     expect(mine).toHaveLength(1);
+    expect(await listed()).toMatchObject({ lastFromMe: true, lastStatus: "sent" });
     expect(mine[0]).toMatchObject({ body: "oi, Ana", status: "sent", sentByUserId: f.owner.id, replyToId: first?.id });
 
     await post(event("Receipt", { Chat: ANA, MessageIDs: ["SENT1"] }, { state: "Read" }));
     await post(event("Receipt", { Chat: ANA, MessageIDs: ["SENT1"] }, { state: "Delivered" }));
     mine = (await read()).messages.filter((m) => m.fromMe);
     expect(mine[0]?.status).toBe("read");
+    // The list's ticks follow the latest message: blue once read.
+    expect((await listed())?.lastStatus).toBe("read");
   });
 
   test("a phone number starts a conversation; one that isn't a number, an empty text and a number that is out refuse", async () => {

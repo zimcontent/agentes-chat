@@ -37,8 +37,8 @@ describe("a form that is sending turns its controls off", () => {
   });
 
   test("fixing a memory locks its text while it saves", () => {
-    const profile = read("features/agents/AgentProfileScreen.tsx");
-    expect(profile).toMatch(/<Locked when=\{action\.isPending\}>\s*<TextArea value=\{text\}/);
+    const fix = read("features/agents/MemoryFix.tsx");
+    expect(fix).toMatch(/<Locked when=\{action\.isPending\}>\s*<TextArea value=\{text\}/);
   });
 
   test("answering a choice card leaves the keyboard to the composer, which `Locked` would close", () => {
