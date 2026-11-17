@@ -4,12 +4,15 @@ import {
   actionsFor,
   addRunStep,
   approveSkillUpdate,
+  createFileArtifact,
   createSkillToolSource,
   createToolGateway,
   dismissSkillUpdate,
+  enabledSkills,
   enqueueSkillUpdates,
   ForbiddenError,
   getSkill,
+  importSkillFile,
   importSkillFromUrl,
   insertMessage,
   linkRunActions,
@@ -456,6 +459,61 @@ describe("agents installing and updating skills", () => {
     expect(load).toMatchObject({ isError: true });
     expect(load.content).toContain("The skill deploy is installed here but not on for you: ask for it with");
     expect(await cardsOf(f)).toHaveLength(1);
+  });
+
+  test("a skill sent as a file in the conversation: the card names it, and installing from it turns it on for the agent", async () => {
+    f = await setup();
+    const member = await addMember(f.db, f.org.id, "member");
+    const { deps } = depsOf(f, {});
+    const ctx = await runFor(f, member.id);
+    const attach = async (name: string, bytes: Uint8Array) =>
+      (
+        await createFileArtifact(f.artifactDeps, { type: "person", userId: member.id }, f.org.id, {
+          title: name,
+          name,
+          channelId: f.general.id,
+          bytes,
+        })
+      ).id;
+    const folder = await attach(
+      "deploy.zip",
+      zip([
+        ["deploy/SKILL.md", skillMd("# Do zip")],
+        ["deploy/refs/notes.md", "notas"],
+      ]),
+    );
+    const out = await call(deps, ctx, "offer_install_skill", { file_id: folder, why: "Faz deploys" });
+    expect(out.content).toContain("Posted the card");
+    expect((await cardsOf(f)).map((m) => m.meta.actionCard)).toEqual([
+      {
+        kind: "install_skill",
+        forUserId: member.id,
+        params: {
+          artifactId: folder,
+          fileName: "deploy.zip",
+          name: "deploy",
+          description: "Antes de qualquer deploy.",
+          why: "Faz deploys",
+        },
+      },
+    ]);
+    // Nothing installed by the card; a file that holds no skill posts nothing.
+    expect(await f.db.select().from(schema.skills).where(eq(schema.skills.orgId, f.org.id))).toHaveLength(0);
+    const notes = await attach("notas.txt", new TextEncoder().encode("só notas"));
+    const refused = await call(deps, ctx, "offer_install_skill", { file_id: notes, why: "x" });
+    expect(refused).toMatchObject({ isError: true });
+    expect(refused.content).toContain("doesn't install as a skill");
+    expect(await cardsOf(f)).toHaveLength(1);
+
+    // Who manages agents installs it from the card, on for the agent; a member can't for the team.
+    await expect(importSkillFile(deps, member.id, f.org.id, folder)).rejects.toBeInstanceOf(ForbiddenError);
+    const skill = await importSkillFile(deps, f.owner.id, f.org.id, folder, { forAgentId: f.agent.id });
+    expect(skill).toMatchObject({ name: "deploy", source: "upload" });
+    expect(skill.files.map((x) => x.path)).toEqual(["refs/notes.md"]);
+    expect((await enabledSkills(f.db, f.org.id, f.agent.id)).map((k) => k.name)).toEqual(["deploy"]);
+    // A SKILL.md alone installs as well.
+    const md = await attach("SKILL.md", new TextEncoder().encode(skillMd("# Só o md")));
+    expect(await importSkillFile(deps, f.owner.id, f.org.id, md)).toMatchObject({ name: "deploy", version: 2 });
   });
 
   test("update_skill_from_source: text applies with Undo, a script waits on a card, and who can't gets a card for who can", async () => {

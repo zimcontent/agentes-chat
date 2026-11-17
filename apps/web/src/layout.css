@@ -4134,6 +4134,27 @@ html:not([data-pointer]) .skill-file--open:focus-visible {
   flex-direction: column;
   gap: 12px;
 }
+/* Instalar skill › Enviar .zip: the pick and the place to drop one, lit while a file is dragged over the dialog. */
+.skill-drop {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  padding: 12px;
+  border: 1.5px dashed var(--line2);
+  border-radius: 20px;
+  transition:
+    background 120ms ease,
+    border-color 120ms ease;
+}
+.skill-drop[data-over] {
+  background: var(--plate);
+  border-color: var(--ink);
+}
+.skill-drop__text {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
 /* Instalar skill › Escolher do GitHub conectado: an account over its repositories, on the rows' icons. */
 .skill-repos {
   display: flex;

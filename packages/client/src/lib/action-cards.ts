@@ -135,15 +135,21 @@ export interface InviteCard {
 }
 
 /**
- * "Instalar skill" (`offer_install_skill`): the install dialog with the skill's GitHub link filled in, where a person
- * who manages skills picks it and installs it.
+ * "Instalar skill" (`offer_install_skill`): the install dialog with the skill's GitHub link filled in, or the file
+ * attached in the conversation, where a person who manages skills picks it and installs it.
  */
-export interface InstallSkillCard {
+export type InstallSkillCard = {
   kind: "install_skill";
   forUserId: string | null;
-  url: string;
   why: string;
-}
+} & (
+  | { url: string; file?: undefined }
+  | {
+      url?: undefined;
+      /** A file a person attached in the conversation: a .zip of the skill's folder or its SKILL.md. */
+      file: { artifactId: string; fileName: string; name: string; description: string };
+    }
+);
 
 /**
  * "Atualizar skills" (`update_skill_from_source`): the skills to update from their links, or whose update waits on
@@ -490,6 +496,15 @@ export function actionCardOf(meta: Record<string, unknown> | null | undefined): 
     };
   }
   if (card.kind === "install_skill") {
+    if (typeof p.artifactId === "string" && typeof p.name === "string") {
+      const file = {
+        artifactId: p.artifactId,
+        fileName: typeof p.fileName === "string" ? p.fileName : p.name,
+        name: p.name,
+        description: typeof p.description === "string" ? p.description : "",
+      };
+      return { kind: "install_skill", forUserId, why, file };
+    }
     return typeof p.url === "string" && isHttpsUrl(p.url)
       ? { kind: "install_skill", forUserId, url: p.url, why }
       : null;
@@ -632,9 +647,18 @@ export const inviteDone = (card: InviteCard, invited: readonly string[]) => {
   return card.emails.every((e) => have.has(e.toLowerCase()));
 };
 
-/** Done once the library has a skill installed from the card's link. */
-export const installSkillDone = (card: InstallSkillCard, skills: readonly Pick<Skill, "sourceUrl">[]) =>
-  skills.some((s) => s.sourceUrl === card.url);
+/**
+ * Done once the library has a skill installed from the card's link, or, for a file, a skill of its name changed since
+ * the card was posted (`postedAt`).
+ */
+export const installSkillDone = (
+  card: InstallSkillCard,
+  skills: readonly (Pick<Skill, "sourceUrl"> & Partial<Pick<Skill, "name" | "updatedAt">>)[],
+  postedAt?: string,
+) =>
+  card.file
+    ? skills.some((s) => s.name === card.file.name && (!postedAt || (s.updatedAt ?? "") >= postedAt))
+    : skills.some((s) => s.sourceUrl === card.url);
 
 /** The install an agent's card opened: its own link and the agent that posted it (kept by the app that opened it). */
 export interface CardInstall {

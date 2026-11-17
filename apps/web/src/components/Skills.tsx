@@ -94,7 +94,7 @@ import {
   Textarea,
   useUnsavedInDialog,
 } from "@agenteschat/ui";
-import { useEffect, useRef, useState } from "react";
+import { type DragEvent, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ConnectFlow, type FlowState } from "@/components/ConnectFlow";
 import { ConnectorIcon } from "@/components/ConnectorCatalog";
@@ -539,7 +539,9 @@ const returnHere = (orgId: string, url: string, forAgentId?: string) => {
  * default) turns what installs on for it, and only from the card's own link (`initialUrl`): a link typed over it or a
  * repository picked instead goes on for nobody. A pick named like an installed or a removed skill says it replaces it.
  * `scope`: where skills split into the team's and each person's, "Para quem" starts there (Equipe only for who manages
- * agents); absent, the team's library as before.
+ * agents); absent, the team's library as before. `initialFile`: a file attached in a conversation that the agent's card
+ * offered (a .zip or a SKILL.md), installed on the server from where it is, on for `forAgentId` while it is the one
+ * chosen. A .zip dropped anywhere on the dialog goes to the .zip tab.
  */
 export function InstallSkillDialog({
   open,
@@ -550,6 +552,7 @@ export function InstallSkillDialog({
   returnTo,
   forAgentId,
   scope: startScope,
+  initialFile,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -560,6 +563,7 @@ export function InstallSkillDialog({
   returnTo?: (url: string) => string;
   forAgentId?: string;
   scope?: SkillScope;
+  initialFile?: { artifactId: string; fileName: string; name: string };
 }) {
   const { t, i18n } = useTranslation();
   const { org } = useOrg();
@@ -596,6 +600,10 @@ export function InstallSkillDialog({
   const [tab, setTab] = useState<InstallTab>("github");
   const [url, setUrl] = useState("");
   const [file, setFile] = useState<File | null>(null);
+  /** The card's file, until another is picked or dropped. */
+  const [chatFile, setChatFile] = useState(initialFile ?? null);
+  /** A file dragged over the dialog. */
+  const [over, setOver] = useState(false);
   const tooBig = file !== null && file.size > SKILL_ZIP_BYTES;
   const [form, setForm] = useState({ name: "", description: "", body: "" });
   const unsaved = useEdited(open, form);
@@ -624,6 +632,8 @@ export function InstallSkillDialog({
   const pick = (paths: string[], on: boolean) => setPicked(pickSkills(picked, paths, on));
   const cardLink = forAgentId && forName ? initialUrl?.trim() : undefined;
   const forCard = cardLink !== undefined && url.trim() === cardLink;
+  /** The card's file is what installs, and the card's agent is live: its box shows. */
+  const forFile = Boolean(forAgentId && forName && chatFile && !file);
   /** The agent what installs from `link` goes on for, when the box shows it and is checked. */
   const sendFor = (link: string) =>
     turnOn && cardLink !== undefined && link.trim() === cardLink ? forAgentId : undefined;
@@ -668,6 +678,9 @@ export function InstallSkillDialog({
     }
     setUrl(initialUrl ?? "");
     setFile(null);
+    setChatFile(initialFile ?? null);
+    setOver(false);
+    if (initialFile) setTab("zip");
     setSending(null);
     setForm({ name: "", description: "", body: "" });
     setError(null);
@@ -718,6 +731,16 @@ export function InstallSkillDialog({
         },
       );
     } else if (tab === "zip") {
+      if (!file && chatFile) {
+        const forAgent = turnOn && forFile ? forAgentId : undefined;
+        return action.mutate(
+          {
+            type: "import",
+            input: { artifactId: chatFile.artifactId, ...(forAgent ? { forAgentId: forAgent } : {}), ...mine },
+          },
+          { onSuccess: done, onError },
+        );
+      }
       if (!file) return setError(t("skills.zipMissing"));
       if (tooBig) return;
       const stopper = new AbortController();
@@ -752,6 +775,26 @@ export function InstallSkillDialog({
       );
     }
   };
+  /** A .zip picked or dropped: in place of the card's file. Anything else is refused as it lands. */
+  const takeFile = (f: File | undefined) => {
+    if (!f) return;
+    setTab("zip");
+    setHidden(null);
+    if (!/\.zip$/i.test(f.name)) {
+      setError(t("skills.zipNotZip", { name: f.name }));
+      return;
+    }
+    setFile(f);
+    setChatFile(null);
+    setError(null);
+  };
+  /** A drag that carries files, while nothing is on its way: the dialog takes it. */
+  const dragging = (e: DragEvent) => {
+    if (!Array.from(e.dataTransfer.types).includes("Files") || busy) return false;
+    e.preventDefault();
+    e.stopPropagation();
+    return true;
+  };
   const mayConnect = can(org, "manage_connectors") && Boolean(github);
   const said = hidden ? hiddenRepoText(t, hidden, mayConnect) : null;
   return (
@@ -782,7 +825,22 @@ export function InstallSkillDialog({
           }}
         >
           <Locked when={busy}>
-            <DialogBody>
+            <DialogBody
+              className="skill-install"
+              data-over={over || undefined}
+              onDragEnter={(e) => dragging(e) && setOver(true)}
+              onDragOver={(e) => {
+                if (dragging(e)) e.dataTransfer.dropEffect = "copy";
+              }}
+              onDragLeave={(e) => {
+                if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setOver(false);
+              }}
+              onDrop={(e) => {
+                if (!dragging(e)) return;
+                setOver(false);
+                takeFile(e.dataTransfer.files[0]);
+              }}
+            >
               <Tabs
                 value={tab}
                 onValueChange={(v) => {
@@ -913,18 +971,32 @@ export function InstallSkillDialog({
                     className="ac-visually-hidden"
                     aria-label={t("skills.zipPick")}
                     onChange={(e) => {
-                      setFile(e.target.files?.[0] ?? null);
-                      setError(null);
+                      takeFile(e.target.files?.[0]);
+                      e.target.value = "";
                     }}
                   />
-                  <div className="row" style={{ gap: 8, alignItems: "center" }}>
+                  <div className="skill-drop" data-over={over || undefined}>
                     <Button type="button" icon="attach" onClick={() => fileInput.current?.click()}>
                       {t("skills.zipPick")}
                     </Button>
-                    <span className="small muted">
-                      {file ? `${file.name} · ${formatBytes(i18n.language, file.size)}` : t("skills.zipNone")}
+                    <span className="small muted skill-drop__text">
+                      {file
+                        ? `${file.name} · ${formatBytes(i18n.language, file.size)}`
+                        : chatFile
+                          ? t("skills.zipFromChat", { name: chatFile.name, file: chatFile.fileName })
+                          : t("skills.zipDrop")}
                     </span>
                   </div>
+                  {forFile && (
+                    <label htmlFor="skill-file-for-agent" className="scope-row">
+                      <Checkbox
+                        id="skill-file-for-agent"
+                        checked={turnOn}
+                        onCheckedChange={(on) => setTurnOn(on === true)}
+                      />
+                      <span className="scope-row__text">{t("skills.forAgent", { agent: forName, count: 1 })}</span>
+                    </label>
+                  )}
                   {file && tooBig && (
                     <div className="skill-hidden">
                       <Alert>

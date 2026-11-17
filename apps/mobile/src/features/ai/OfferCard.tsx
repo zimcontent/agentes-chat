@@ -9,6 +9,7 @@ import {
   useConnections,
   useCustomServers,
   useMembers,
+  useSkillAction,
   useSkills,
 } from "@agenteschat/client";
 import {
@@ -53,7 +54,7 @@ export function OfferCard({ message: m }: { message: Message }) {
   if (m.author.type !== "agent" || !card) return null;
   if (card.kind === "connect_app") return <ConnectApp card={card} />;
   if (card.kind === "invite_people") return <Invite card={card} />;
-  if (card.kind === "install_skill") return <InstallSkill card={card} agentId={m.author.id} />;
+  if (card.kind === "install_skill") return <InstallSkill card={card} agentId={m.author.id} postedAt={m.createdAt} />;
   if (card.kind === "update_skills") return <UpdateSkills card={card} postedAt={m.createdAt} />;
   if (card.kind === "approvals")
     return (
@@ -123,12 +124,22 @@ function Invite({ card }: { card: Extract<Card, { kind: "invite_people" }> }) {
 
 /**
  * Its screen's check row turns what installs on for the agent that posted the card (`agentId`), as on the web. Anyone
- * opens it: who doesn't manage agents installs it as their own personal skill.
+ * opens it: who doesn't manage agents installs it as their own personal skill. A file attached in the conversation (a
+ * .zip or a SKILL.md) installs from the card itself, on for that agent, with no screen to fill.
  */
-function InstallSkill({ card, agentId }: { card: Extract<Card, { kind: "install_skill" }>; agentId: string | null }) {
+function InstallSkill({
+  card,
+  agentId,
+  postedAt,
+}: {
+  card: Extract<Card, { kind: "install_skill" }>;
+  agentId: string | null;
+  postedAt: string;
+}) {
   const { t } = useTranslation();
   const { orgId } = useOrg();
   const skills = useSkills(orgId);
+  if (card.file) return <InstallSkillFile card={card} file={card.file} agentId={agentId} postedAt={postedAt} />;
   return (
     <OfferShell
       icon="brain"
@@ -138,11 +149,59 @@ function InstallSkill({ card, agentId }: { card: Extract<Card, { kind: "install_
       done={installSkillDone(card, skills.data ?? []) ? `${t("actionCard.install_skill.done")}: ${card.url}` : null}
       action={t("actionCard.install_skill.open")}
       onAction={() => {
+        if (!card.url) return;
         if (agentId) openedFromCard({ url: card.url, agentId });
         router.push(
           `/settings/skills/new?url=${encodeURIComponent(card.url)}${agentId ? `&agent=${encodeURIComponent(agentId)}` : ""}` as never,
         );
       }}
+      blocked=""
+    />
+  );
+}
+
+function InstallSkillFile({
+  card,
+  file,
+  agentId,
+  postedAt,
+}: {
+  card: Extract<Card, { kind: "install_skill" }>;
+  file: NonNullable<Extract<Card, { kind: "install_skill" }>["file"]>;
+  agentId: string | null;
+  postedAt: string;
+}) {
+  const { t } = useTranslation();
+  const { orgId, org } = useOrg();
+  const skills = useSkills(orgId);
+  const action = useSkillAction(orgId);
+  const toast = useToast();
+  const personal = !org || !can(org, "manage_agents");
+  const done = installSkillDone(card, skills.data ?? [], postedAt);
+  return (
+    <OfferShell
+      icon="brain"
+      title={t("actionCard.install_skill.title")}
+      why={card.why}
+      detail={file.fileName}
+      done={done ? `${t("actionCard.install_skill.done")}: ${file.name}` : null}
+      action={action.isPending ? null : t("actionCard.install_skill.open")}
+      onAction={() =>
+        action.mutate(
+          {
+            type: "import",
+            input: {
+              artifactId: file.artifactId,
+              ...(agentId ? { forAgentId: agentId } : {}),
+              ...(personal ? { personal } : {}),
+            },
+          },
+          {
+            onSuccess: () => toast({ title: t("skills.installed", { name: file.name }), icon: "check" }),
+            onError: (e) => toast({ title: errorText(t, e), icon: "x" }),
+          },
+        )
+      }
       blocked=""
     />
   );
