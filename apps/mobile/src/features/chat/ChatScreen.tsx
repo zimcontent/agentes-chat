@@ -134,6 +134,7 @@ import {
   type SendHow,
   Text,
   useReducedMotion,
+  useTapAway,
   useTheme,
   useToast,
 } from "@/ui";
@@ -2149,6 +2150,9 @@ function Chat({
   // keyboard is dragged down interactively).
   const composerRef = useRef<ComponentRef<typeof View>>(null);
   const { contentInsetEndAdjustment, onComposerLayout } = useKeyboardChatComposerInset(listRef, composerRef);
+  // A tap on the conversation (a message, the space between, the empty chat's greeting) closes the keyboard: dragging
+  // the list down only works where it scrolls, and a short conversation doesn't.
+  const tapAway = useTapAway();
   // On iOS the keyboard library moves what rides the keyboard (the composer's dock) when a move starts and while
   // the keyboard is dragged, and never when the move ends, while the list takes its room from the start and the
   // end. A last event that wasn't the final state left the box up at the keyboard's height over a list that had
@@ -2406,7 +2410,7 @@ function Chat({
                   hears it open, and its first message landed under it. */}
               <Animated.View style={[styles.grow, listFade]}>
                 {/* The list's frame, where the waiting requests' cards are measured from (never flattened away). */}
-                <View ref={listFrame} collapsable={false} style={styles.grow} onLayout={watchList}>
+                <View ref={listFrame} collapsable={false} style={styles.grow} onLayout={watchList} {...tapAway}>
                   {/* The right hand's cards here show the place its work in this conversation is on. */}
                   <ConversationSeat
                     orgId={orgId}
@@ -2509,7 +2513,7 @@ function Chat({
               </Animated.View>
               {showList ? null : (
                 // A conversation with nothing yet: the agent's first day or a quiet line, over the empty list.
-                <View style={StyleSheet.absoluteFill}>
+                <View style={StyleSheet.absoluteFill} {...tapAway}>
                   {dmAgent && rightHand ? (
                     <ScrollView contentContainerStyle={{ paddingTop: headerHeight, paddingBottom: composerHeight }}>
                       <RightHandIntro agent={dmAgent} channelId={channelId} waveFrom={waveFrom} />
