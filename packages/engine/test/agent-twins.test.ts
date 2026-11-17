@@ -210,6 +210,53 @@ describe("one agent in several workspaces (ADR doug-0013)", () => {
     expect(brought?.connectionId).not.toBe(github.id);
   });
 
+  test("three workspaces: a server by address is brought once to each, never again round the ring", async () => {
+    f = await setup();
+    const { organization: second } = await createOrganization(f.db, f.owner.id, { name: "Second" });
+    const { organization: third } = await createOrganization(f.db, f.owner.id, { name: "Third" });
+    const [helper] = await f.db
+      .insert(agents)
+      .values({ orgId: f.org.id, name: "Helper", handle: "helper", model: f.agent.model, ownerUserId: f.owner.id })
+      .returning();
+    if (!helper) throw new Error("no agent");
+    const toSecond = await carryOver(carryOf(f), f.owner.id, second.id, { agentIds: [f.agent.id, helper.id] });
+    await carryOver(carryOf(f), f.owner.id, third.id, { agentIds: [f.agent.id, helper.id] });
+    await syncAll(f, f.agent.id);
+    await syncAll(f, helper.id);
+    const id = crypto.randomUUID();
+    const sounds = "https://mcp.sounds.test/mcp";
+    await f.db.insert(schema.connectorConnections).values({
+      id,
+      orgId: f.org.id,
+      connector: `custom:${id}`,
+      label: "Sound library",
+      toolPrefix: "sound_library",
+      serverUrl: sounds,
+      authType: "api_key",
+      reviewedAt: new Date(),
+      createdByUserId: f.owner.id,
+    });
+    const liveSounds = () =>
+      f.db
+        .select()
+        .from(schema.connectorConnections)
+        .where(and(eq(schema.connectorConnections.serverUrl, sounds)));
+    // One copy uses it: it is brought to the other two workspaces, each a copy of the first.
+    await grantScopes(f.db, f.org.id, f.agent.id, [{ connectionId: id, scope: "connector:*" }]);
+    await syncAll(f, f.agent.id);
+    expect((await liveSounds()).length).toBe(3);
+    // Another agent uses the second workspace's copy: the third already has its sibling, nothing new is brought.
+    const helperThere = toSecond.agents.find((a) => a.sourceId === helper.id)?.id as string;
+    const inSecond = (await liveSounds()).find((c) => c.orgId === second.id);
+    if (!inSecond) throw new Error("not brought");
+    await grantScopes(f.db, second.id, helperThere, [{ connectionId: inSecond.id, scope: "connector:*" }]);
+    for (let i = 0; i < 4; i++) {
+      await syncAll(f, helper.id);
+      await syncAll(f, f.agent.id);
+    }
+    expect((await liveSounds()).map((c) => c.orgId).sort()).toEqual([f.org.id, second.id, third.id].sort());
+  });
+
   test("the owner's agents of the same handle in their workspaces are joined on their own; taken out, they stay apart", async () => {
     f = await setup();
     const { organization: second } = await createOrganization(f.db, f.owner.id, { name: "Second" });
