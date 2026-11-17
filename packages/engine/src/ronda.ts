@@ -1,5 +1,5 @@
 import type { PubSub } from "@agenteschat/adapters";
-import { and, type Database, desc, type Executor, eq, inArray, isNull, schema, sql } from "@agenteschat/db";
+import { and, type Database, desc, type Executor, eq, inArray, isNull, rowsOf, schema, sql } from "@agenteschat/db";
 import { isCustomModel, isKnownModel } from "@agenteschat/providers";
 import { canTalkTo, speakerFor } from "./audience";
 import { recordAudit } from "./audit";
@@ -10,7 +10,7 @@ import { cutText } from "./format";
 import type { Judge } from "./judge";
 import type { MailDeps } from "./mail/accounts";
 import { can, requireActiveMembership } from "./organizations";
-import { isRightHand } from "./right-hand";
+import { isRightHand, RIGHT_HAND } from "./right-hand";
 import { isRondaTarget, RONDA_EVENT, type RondaChanges, rondaChanges, rondaEvent } from "./ronda-changes";
 
 const { agents, routines, routineRuns } = schema;
@@ -234,6 +234,103 @@ export async function setRonda(
   await publishListChanged(deps.pubsub, orgId, "routines");
   await publishRoutineRuns(deps.pubsub, orgId, routineId).catch(() => {});
   return getRonda(db, actorId, orgId, agentId);
+}
+
+/** How recently a person used the workspace for the right hand to start a ronda with them on its own (ADR 9005 §6). */
+const ACTIVE_FOR_RONDA_MS = 30 * 24 * 3_600_000;
+
+/**
+ * The right hand's ronda is on for every person by default (ADR 9005 §6): each member who used the workspace in the
+ * last 30 days and may talk to it gets their own ronda, every hour of the day in their time zone, unless they ever had
+ * one. One they switched off or deleted is never made again: off is their choice. Runs at boot and every hour, so a
+ * person who joins or comes back gets theirs. Returns how many it made.
+ */
+export async function ensureRightHandRondas(db: Database, now = new Date()): Promise<number> {
+  const hands = await db
+    .select()
+    .from(agents)
+    .innerJoin(schema.organizations, eq(schema.organizations.id, agents.orgId))
+    .where(
+      and(
+        eq(agents.builtin, RIGHT_HAND),
+        isNull(agents.archivedAt),
+        isNull(agents.deletedAt),
+        isNull(schema.organizations.deletionDueAt),
+      ),
+    );
+  const since = new Date(now.getTime() - ACTIVE_FOR_RONDA_MS);
+  const schedule = "hourly" as const;
+  const cron = RONDA_CRON[schedule];
+  let made = 0;
+  for (const { agents: agent } of hands) {
+    const people = rowsOf<{ user_id: string; timezone: string | null }>(
+      await db.execute(sql`select om.user_id, coalesce(om.timezone, os.timezone) as timezone
+          from ${schema.organizationMembers} om
+          join ${schema.users} u on u.id = om.user_id
+          left join ${schema.organizationSettings} os on os.org_id = om.org_id
+          where om.org_id = ${agent.orgId}::uuid and u.blocked_at is null and u.deletion_due_at is null
+            and om.last_seen_at >= ${since.toISOString()}::timestamptz
+            and not exists (select 1 from ${routines} r where r.org_id = om.org_id and r.agent_id = ${agent.id}::uuid
+              and r.created_by_user_id = om.user_id and (r.target ->> 'ronda') = 'true')`),
+    );
+    for (const person of people) {
+      if (!canTalkTo(agent, person.user_id, await speakerFor(db, agent.orgId, person.user_id))) continue;
+      const timezone = validZone(person.timezone);
+      const added = await db.transaction(async (tx) => {
+        // Two servers sweeping at once make one: the second finds the first's row under the lock.
+        await tx.execute(
+          sql`select pg_advisory_xact_lock(hashtext(${`right-hand-ronda:${agent.id}:${person.user_id}`}))`,
+        );
+        const [had] = await tx
+          .select({ id: routines.id })
+          .from(routines)
+          .where(
+            and(
+              eq(routines.orgId, agent.orgId),
+              eq(routines.agentId, agent.id),
+              eq(routines.createdByUserId, person.user_id),
+              sql`(${routines.target} ->> 'ronda') = 'true'`,
+            ),
+          )
+          .limit(1);
+        if (had) return false;
+        await tx.insert(routines).values({
+          orgId: agent.orgId,
+          agentId: agent.id,
+          name: "Ronda",
+          prompt: RONDA_PROMPT,
+          target: { type: "dm", ronda: true },
+          triggerType: "schedule",
+          phrase: null,
+          cron,
+          rule: null,
+          timezone,
+          description: SCHEDULE_WORDS[schedule],
+          event: null,
+          access: "act",
+          report: "when_new",
+          ownActions: [],
+          createdByUserId: person.user_id,
+          active: true,
+          nextRunAt: nextCronTime(cron, timezone, now),
+        });
+        return true;
+      });
+      if (added) made++;
+    }
+  }
+  return made;
+}
+
+/** A stored time zone the cron can use, or UTC. */
+function validZone(zone: string | null): string {
+  if (!zone) return "UTC";
+  try {
+    new Intl.DateTimeFormat("en", { timeZone: zone });
+    return zone;
+  } catch {
+    return "UTC";
+  }
 }
 
 /**

@@ -20,6 +20,7 @@ import {
   enqueueSkillUpdates,
   enqueueVaultSyncs,
   enqueueWaitlistContacts,
+  ensureRightHandRondas,
   expireAgentProposalAsks,
   expireApprovals,
   expireBrowserHandoffs,
@@ -199,6 +200,8 @@ export const WORKER_INTERVALS_MS = {
   mailReconcile: 15 * 60_000,
   /** Workspaces past their deletion's date that nothing keeps any more (a hold lifted, a job lost): also at boot. */
   deletions: 3600_000,
+  /** The right hand's ronda for people who have none yet (ADR 9005 §6): who joined or came back. Also at boot. */
+  rightHandRondas: 3600_000,
   /** Yesterday's stall-and-noise report, queued for an hour after the UTC day ended (once per day: its dedupe key). */
   opsReport: 3600_000,
   /** AI apps' expired requests, tokens and unused registrations (ADR 0119). */
@@ -373,6 +376,11 @@ export function startWorkers(deps: WorkerDeps) {
       log.info("workspace deletions due", { due, accounts });
       void ticks.get("outbox")?.();
     }
+  });
+
+  every("rightHandRondas", WORKER_INTERVALS_MS.rightHandRondas, async () => {
+    const made = await ensureRightHandRondas(db);
+    if (made > 0) log.info("right hand rondas on", { made });
   });
 
   every("approvals", WORKER_INTERVALS_MS.approvals, async () => {

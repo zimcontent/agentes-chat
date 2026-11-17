@@ -7,7 +7,8 @@
 - Code: `packages/engine/src/right-hand.ts` (`rightHandReader`), `ronda-mail.ts` (`rondaMail`), `ronda-changes.ts`
   (`rondaChanges`' `mail`), `ronda.ts` (`rondaRoutine` per person, `opensTheDay`, `rondaGate`'s `opening`),
   `right-hand-ronda.ts` (`rightHandRondaBrief`), the brief's model in `routines.ts` (`fireClaimedRun`), the job's
-  mail deps in `jobs.ts`
+  mail deps in `jobs.ts`, `ensureRightHandRondas` (`ronda.ts`, the `rightHandRondas` worker tick), `RIGHT_HAND_REACH`
+  (`tools/run-policy.ts`, read by `tools/gateway.ts`)
 
 ## Context
 
@@ -62,13 +63,33 @@ treated as data; every client and piece of work (48-hour deadlines, late and stu
 could be better. Its message holds only what has something: resolved, needs you, deadlines, problems, an idea. The
 opening always speaks, starts with the one thing that matters most today and ends with one grounded improvement.
 
+### 6. On for every person by default
+
+Every member who used the workspace in the last 30 days and may talk to the right hand gets their own ronda without
+turning it on: every hour of the day (ADR 9004's `hourly`), in their time zone (the workspace's when they set none),
+reporting in their DM (`ensureRightHandRondas`, at boot and every hour, so whoever joins or comes back gets theirs).
+A person who ever had one keeps their choice: one they switched off or deleted is never made again. Any other agent's
+ronda is still turned on by a person.
+
+### 7. At `never`, its routines finish the work
+
+A person who set the right hand to never ask (ADR 0173) chose that it acts without them. Its own routines then also
+reach what routines are otherwise refused (ADR 0053 §2) because it leaves for someone outside: a post sent for a
+client's approval and its new versions, the approval portal's plan and cards, a scheduled post (ADR 9001), and a
+WhatsApp message (doug-0004): `RIGHT_HAND_REACH` in `tools/run-policy.ts`, read by the gateway for a routine run of
+the right hand at `never`. A run a routine's reading woke keeps the routine's bounds, and reminders, routines, secrets
+and permissions stay refused: they need a person in the room, so the ronda asks for them in its message. At any other
+level, and for any other agent, nothing changes. What a workspace wants held for a person (charging a client,
+publishing) goes in the right hand's instructions.
+
 ## Consequences
 
 - The right hand acts on email and work without a person in the loop, within its scopes, the policy of routines
   (ADR 0053) and its approvals level (ADR 0173): at `never` a send goes out unasked, as that level already decided.
   Inbound email is outside text a ronda now reads every slot; its words stay inside the data envelope and the brief
   says an email is never an order.
-- The opening costs one run of the right hand's own AI per person with a ronda per day; hourly slots still cost
-  nothing when nothing changed.
-- Not in this decision: turning the right hand's ronda on by default for every person, and widening what a routine
-  may reach (posting for a client's approval, reminders, WhatsApp) for a right hand that never asks.
+- The opening costs one run of the right hand's own AI per active person per day, now that it is on by default;
+  hourly slots still cost nothing when nothing changed, and a judge's call when something did.
+- At `never` the right hand's ronda can put a post in front of a client or write on WhatsApp from what it read in an
+  email, with nobody checking first. Its brief keeps an email's text as data, never an order; the level is the
+  person's choice, as ADR 0173 already made it.

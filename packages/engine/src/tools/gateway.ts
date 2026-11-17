@@ -45,7 +45,7 @@ import { cutMarked, cutText, pgSafeJson, pgSafeText } from "../format";
 import { mergeReposOfCall, recordMergeDone, reposOfGithubCall } from "../git/repos";
 import { recordRead } from "../outbound";
 import { routineCreatorOf } from "../requester";
-import { isRightHand, RIGHT_HAND_NOT_OFFERED } from "../right-hand";
+import { isRightHand, isRightHandId, RIGHT_HAND_NOT_OFFERED } from "../right-hand";
 import { type RoutineBrief, routineBriefOf } from "../routine-brief";
 import { keysOfCall, RUN_CODE_TOOL, routineKeysAllowed, routineKeysKind } from "../routine-keys";
 import { addRunStep } from "../runs";
@@ -498,7 +498,12 @@ const policyFor = (
   tool: ToolDefinition,
   level = DEFAULT_APPROVALS_LEVEL,
   creatorDecides = false,
-) => (authority ? toolPolicy(authority, tool, level, creatorDecides) : ALLOWED);
+  rightHand = false,
+) => (authority ? toolPolicy(authority, tool, level, creatorDecides, rightHand) : ALLOWED);
+
+/** Whether the run is a routine of the right hand at `never`, the one case its policy reads that (ADR 9005 §7). */
+const rightHandRoutine = (ctx: ToolContext, authority: RunAuthority | null, level: string) =>
+  authority?.kind === "routine" && level === "never" ? isRightHandId(ctx.db, ctx.orgId, ctx.agentId) : false;
 
 /**
  * A tool as a run sees it: one the policy says asks a person becomes sensitive (its card, and the
@@ -610,10 +615,11 @@ export function createToolGateway(deps: {
       approvalsLevelOf(ctx.db, ctx.orgId, ctx.agentId),
       creatorDecides(ctx, authority),
     ]);
+    const hand = await rightHandRoutine(ctx, authority, level);
     return [...all.values()]
       .filter((t) => isAllowed(accessWithNeeds(keys, t).state))
       .flatMap((t) => {
-        const decision = policyFor(authority, t, level, decides);
+        const decision = policyFor(authority, t, level, decides, hand);
         if (decision.action !== "refuse") return [asListed(t, decision, unaskedAtNever(level, t, authority))];
         heldBack?.push(t.name);
         return [];
@@ -1345,6 +1351,7 @@ export function createToolGateway(deps: {
         tool,
         tool.looksOnly?.(call.input) ? DEFAULT_APPROVALS_LEVEL : level,
         decides,
+        await rightHandRoutine(ctx, authority, level),
       );
       if (decision.action === "refuse") {
         return finish(

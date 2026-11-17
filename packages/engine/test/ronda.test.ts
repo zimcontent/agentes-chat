@@ -4,6 +4,7 @@ import type { ModelRequest } from "@agenteschat/providers";
 import {
   drainOutbox,
   ensureRightHand,
+  ensureRightHandRondas,
   getRonda,
   RIGHT_HAND,
   RONDA_CRON,
@@ -196,6 +197,40 @@ test("the right hand: each person who talks to it turns on their own ronda, in t
   // Switching hers off leaves his.
   await setRonda(deps(), bia.id, f.org.id, lodi.id, "off", "America/Sao_Paulo");
   expect((await routineRow(f, mine.routineId ?? "")).active).toBe(true);
+});
+
+test("the right hand's ronda is on for everyone who used the workspace lately; one switched off stays off", async () => {
+  f = await setup();
+  const lodi = await rightHandOf(f);
+  const bia = await addMember(f.db, f.org.id, "member", "bia");
+  const away = await addMember(f.db, f.org.id, "member", "carlos");
+  const members = schema.organizationMembers;
+  await f.db.update(members).set({ lastSeenAt: new Date() }).where(eq(members.orgId, f.org.id));
+  await f.db
+    .update(members)
+    .set({ lastSeenAt: new Date(Date.now() - 40 * 24 * 3_600_000) })
+    .where(eq(members.userId, away.id));
+  await f.db.update(members).set({ timezone: "America/Sao_Paulo" }).where(eq(members.userId, bia.id));
+  // The owner had one and switched it off: that is their choice, never undone.
+  await setRonda(deps(), f.owner.id, f.org.id, lodi.id, "daily", "UTC");
+  await setRonda(deps(), f.owner.id, f.org.id, lodi.id, "off", "UTC");
+
+  expect(await ensureRightHandRondas(f.db)).toBe(1);
+  const hers = await getRonda(f.db, bia.id, f.org.id, lodi.id);
+  expect(hers.schedule).toBe("hourly");
+  expect(hers.personId).toBe(bia.id);
+  const row = await routineRow(f, hers.routineId ?? "");
+  expect(row.timezone).toBe("America/Sao_Paulo");
+  expect(row.target).toEqual({ type: "dm", ronda: true });
+  expect((await getRonda(f.db, f.owner.id, f.org.id, lodi.id)).schedule).toBe("off");
+  expect((await getRonda(f.db, away.id, f.org.id, lodi.id)).routineId).toBeNull();
+  // Any other agent never gets one on its own; and a second sweep makes nothing.
+  expect((await getRonda(f.db, f.owner.id, f.org.id, f.agent.id)).routineId).toBeNull();
+  expect(await ensureRightHandRondas(f.db)).toBe(0);
+  // Switched off, then swept again: still off.
+  await setRonda(deps(), bia.id, f.org.id, lodi.id, "off", "UTC");
+  expect(await ensureRightHandRondas(f.db)).toBe(0);
+  expect((await getRonda(f.db, bia.id, f.org.id, lodi.id)).schedule).toBe("off");
 });
 
 test("the right hand's first ronda of the day opens it: it runs with nothing new, on its own AI, told to resolve and bring an idea", async () => {

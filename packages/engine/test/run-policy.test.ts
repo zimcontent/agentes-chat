@@ -137,6 +137,28 @@ describe("run policy table", () => {
       });
   });
 
+  test("the right hand's routine at never also posts for a client's approval, schedules posts and sends WhatsApp", () => {
+    const reach = [
+      "send_for_approval",
+      "send_new_version",
+      "schedule_post",
+      "portal_plan",
+      "portal_card",
+      "whatsapp_send",
+    ];
+    const r = routine("act");
+    for (const name of reach) {
+      expect(toolPolicy(r, builtIn(name), "never", false, true).action).toBe("allow");
+      // Not at another level, not any other agent's, not a run a routine's reading fed.
+      expect(toolPolicy(r, builtIn(name), "risky", false, true).action).toBe("refuse");
+      expect(toolPolicy(r, builtIn(name), "never", false, false).action).toBe("refuse");
+      expect(toolPolicy(reportWoke, builtIn(name), "never", false, true).action).toBe("refuse");
+    }
+    // Still never: reminders, routines, secrets.
+    for (const name of ["schedule_reminder", "create_routine", "request_secret"])
+      expect(toolPolicy(r, builtIn(name), "never", false, true).action).toBe("refuse");
+  });
+
   test("unattended: it works as the agent itself, with every tool a person's run has but hand_off", () => {
     for (const tool of [
       builtIn("react"),

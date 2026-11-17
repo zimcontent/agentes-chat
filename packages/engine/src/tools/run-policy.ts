@@ -40,6 +40,8 @@ import type { ToolDefinition } from "./types";
  * tool this table doesn't know, on a person's run, the agent's own, a routine's and one a routine's reading feeds.
  * At `never` nothing asks: this table still answers `approve` for a routine's write to a connected app, and the
  * gateway lifts every card there (`unaskedAtNever`), so a refusal here is never lifted with it.
+ * The right hand's own routines at `never` also reach a client's approval portal, scheduled posts and WhatsApp
+ * (`RIGHT_HAND_REACH`, ADR 9005 §7); a run a routine's reading feeds never does.
  *
  * Tool names are written here as plain strings (not imported) so the table loads before the tool
  * modules, which import the gateway.
@@ -156,6 +158,20 @@ const SELF_WORK = new Set(["work_in_background", "post_update", "steer_work", "s
 
 /** What a routine may use of `ELSEWHERE`, by name. */
 const ROUTINE_REACH = new Set(["post_message", "send_dm", "ask_agent", "tell_agent"]);
+
+/**
+ * What the right hand's own routines also reach at `never` (ADR 9005 §7): a post for a client's approval and its new
+ * versions, the portal's plan and cards, a scheduled post, and a WhatsApp message. A person chose that it never asks,
+ * so its ronda finishes the work it finds instead of leaving it in hand_off.
+ */
+const RIGHT_HAND_REACH = new Set([
+  "send_for_approval",
+  "send_new_version",
+  "schedule_post",
+  "portal_plan",
+  "portal_card",
+  "whatsapp_send",
+]);
 
 /** Speaks in the run's own conversation, by name. */
 const HERE = new Set([
@@ -423,6 +439,8 @@ export function toolPolicy(
   level: ApprovalsLevel = DEFAULT_APPROVALS_LEVEL,
   /** A routine's own run whose creator still decides its agent's approvals (the gateway reads it fresh). */
   creatorDecides = false,
+  /** The run's agent is the workspace's right hand (ADR 9005 §7). */
+  rightHand = false,
 ): PolicyDecision {
   const what = toolKind(tool);
   const asks = level === "always" && asksAtAlways(what, tool);
@@ -447,8 +465,9 @@ export function toolPolicy(
     case "hand_off":
       return fed ? refuse(REFUSALS.handOffOnly) : ALLOW;
     case "elsewhere":
-      if (!ROUTINE_REACH.has(tool.name)) return refuse(fed ? REFUSALS.fedElsewhere : REFUSALS.routineElsewhere);
-      return asks ? APPROVE : ALLOW;
+      if (ROUTINE_REACH.has(tool.name)) return asks ? APPROVE : ALLOW;
+      if (!fed && rightHand && level === "never" && RIGHT_HAND_REACH.has(tool.name)) return ALLOW;
+      return refuse(fed ? REFUSALS.fedElsewhere : REFUSALS.routineElsewhere);
     case "here":
       return fed ? ALLOW : refuse(ROUTINE_HERE_REFUSAL[tool.name] ?? REFUSALS.routineHere);
     case "internal":
