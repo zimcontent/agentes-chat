@@ -95,8 +95,22 @@ export function MediaPickerSheet({
   const [tab, setTab] = useState<MediaTab>(tabs[0] ?? "gifs");
   const { height: windowHeight } = useWindowDimensions();
   const keyboard = useKeyboardRoom();
+  // One pick: the sheet goes, and nothing in it plays or takes a second tap while it slides out (see `sendMedia`).
+  const [picked, setPicked] = useState(false);
+  const pickedRef = useRef(false);
+  const send = useCallback(
+    (media: MessageMedia) => {
+      if (pickedRef.current) return;
+      pickedRef.current = true;
+      setPicked(true);
+      onSend(media);
+    },
+    [onSend],
+  );
+  const height = pickerHeight(windowHeight, keyboard);
+  if (picked) return <View style={{ height }} />;
   return (
-    <View style={[styles.picker, { height: pickerHeight(windowHeight, keyboard) }]}>
+    <View style={[styles.picker, { height }]}>
       {tabs.length > 1 ? (
         <View style={styles.tabs} accessibilityLabel={t("media.picker.tabs")}>
           <Segmented
@@ -110,9 +124,9 @@ export function MediaPickerSheet({
         </View>
       ) : null}
       {tab === "gifs" ? (
-        <GifTab onSend={onSend} />
+        <GifTab onSend={send} />
       ) : (
-        <StickerTab channelId={channelId} isDm={isDm} dmAgentId={dmAgentId} onSend={onSend} />
+        <StickerTab channelId={channelId} isDm={isDm} dmAgentId={dmAgentId} onSend={send} />
       )}
     </View>
   );

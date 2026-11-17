@@ -63,6 +63,7 @@ describe("a request body past its path's limit is refused before any route reads
       `${org}/imports/files`,
       `${org}/vault/import`,
       `${org}/channels/ch_1/voice`,
+      `${org}/channels/ch_1/voice/dictate`,
       "/api/app/feedback/files",
       "/api/machines/uploads/3f2b8c1e-0000-4000-8000-000000000000",
       "/api/webhooks/composio",

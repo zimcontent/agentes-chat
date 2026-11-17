@@ -324,12 +324,12 @@
     "createAgent": "Ajan oluştur"
   },
   "voice": {
-    "slideToCancel": "iptal etmek için kaydırın",
-    "slideUpToLock": "kilitlemek için yukarı kaydırın",
-    "locked": "Kilitlendi",
-    "recording": "Kayıt yapılıyor",
-    "discard": "Sil",
-    "send": "Gönder",
+    "dictate": "Dikte et",
+    "stopDictating": "Durdur ve metne dök",
+    "cancelDictating": "Dikteyi iptal et",
+    "transcribing": "Metne dökülüyor…",
+    "noWords": "Hiçbir şey duyulmadı",
+    "dictationFailed": "Metne dökülemedi. Tekrar dene.",
     "seeAll": "Tümünü gör"
   },
   "chat": {

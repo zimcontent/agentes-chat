@@ -341,18 +341,18 @@ export const featureKeysEn = {
     createAgent: "Create agent",
   },
   voice: {
-    /** Above the field while the finger holds the microphone: slide left to throw the recording away. */
-    slideToCancel: "slide to cancel",
-    /** The capsule above the microphone while holding: slide up to record hands free. */
-    slideUpToLock: "slide up to lock",
-    /** The same capsule once the recording is hands free. */
-    locked: "Locked",
-    /** The line above the field while recording hands free ("Recording · 0:12"). */
-    recording: "Recording",
-    /** Red text in the "+"'s place while a paused recording can be heard: throws it away. */
-    discard: "Delete",
-    /** The button that sends a paused recording. */
-    send: "Send",
+    /** The microphone in the field: speak, and the words go into the field as text. */
+    dictate: "Dictate",
+    /** The same button while recording: stops, and the words are made out. */
+    stopDictating: "Stop and transcribe",
+    /** The × over the field while recording: throws the recording away. */
+    cancelDictating: "Cancel dictation",
+    /** Over the field while the words are made out. */
+    transcribing: "Transcribing…",
+    /** A dictation in which nothing was heard. */
+    noWords: "Nothing was heard",
+    /** A dictation whose words couldn't be made out now. */
+    dictationFailed: "Couldn't transcribe. Try again.",
     /** Under a voice message's first line of words, when there is more. */
     seeAll: "See all",
   },

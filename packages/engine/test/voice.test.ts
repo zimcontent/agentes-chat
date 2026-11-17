@@ -14,6 +14,7 @@ import {
   createFileArtifact,
   createLocalKeyWrapper,
   createSpeechSettings,
+  dictateVoice,
   envSpeechEngines,
   MAX_MESSAGE_LENGTH,
   previewMediaKind,
@@ -639,5 +640,54 @@ describe("the owner's provider", () => {
     expect(speech.chain().map((e) => e.id)).toEqual(["elevenlabs", "groq"]);
     expect((await speech.remove()).state).toBe("off");
     expect(speech.chain().map((e) => e.id)).toEqual(["groq"]);
+  });
+});
+
+describe("dictation", () => {
+  const dictate = (deps: VoiceDeps, over: Partial<Parameters<typeof dictateVoice>[4]> = {}) =>
+    dictateVoice(deps, f.owner.id, f.org.id, f.general.id, {
+      audio: new Uint8Array([1, 2, 3, 4]),
+      contentType: "audio/mp4",
+      durationMs: 3000,
+      language: "pt",
+      ...over,
+    });
+
+  test("hands the words back, knowing the workspace's names, and posts nothing", async () => {
+    f = await setup();
+    const fake = engine("  Ada, puxa as vendas  ");
+    const before = await f.db.select().from(messages).where(eq(messages.orgId, f.org.id));
+    expect(await dictate(voiceDeps([fake]))).toEqual({ text: "Ada, puxa as vendas" });
+    expect(fake.terms[0]).toContain(f.agent.name);
+    const after = await f.db.select().from(messages).where(eq(messages.orgId, f.org.id));
+    expect(after.length).toBe(before.length);
+    // Its row counts for fair use and cost, with no audio kept.
+    const [row] = await f.db.select().from(voiceClips).where(eq(voiceClips.orgId, f.org.id));
+    expect(row).toMatchObject({ status: "dictated", size: 0, durationMs: 3000, costNanoUsd: 3_000_000 });
+    expect(row?.audioDeletedAt).not.toBeNull();
+  });
+
+  test("counts toward the same fair use as voice messages", async () => {
+    f = await setup();
+    const limits: VoiceLimits = { personMinutesPerDay: 1, orgMinutesPerMember: 0, orgMinMinutesPerDay: 0 };
+    const deps = voiceDeps([engine("oi"), engine("oi")], { limits });
+    await dictate(deps, { durationMs: 90_000 });
+    expect(await voiceAllowed(deps, f.owner.id, f.org.id)).toBe(false);
+    await expect(dictate(deps)).rejects.toMatchObject({ code: "voice.limit" });
+  });
+
+  test("nothing said is empty text; no engine answering is an error to try again", async () => {
+    f = await setup();
+    expect(await dictate(voiceDeps([engine("  ")]))).toEqual({ text: "" });
+    const down = () => new SpeechError("busy", "down");
+    await expect(dictate(voiceDeps([engine(down())]))).rejects.toMatchObject({ code: "voice.no_engine" });
+  });
+
+  test("only audio, within its limits, where voice is on", async () => {
+    f = await setup();
+    const deps = voiceDeps([engine("oi")]);
+    await expect(dictate(deps, { contentType: "image/png" })).rejects.toMatchObject({ code: "voice.bad_type" });
+    await expect(dictate(deps, { durationMs: 10 })).rejects.toMatchObject({ code: "voice.bad_duration" });
+    await expect(dictate(voiceDeps([]))).rejects.toMatchObject({ code: "voice.unavailable" });
   });
 });

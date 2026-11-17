@@ -1,6 +1,7 @@
 import { SPEECH_PROVIDERS } from "@agenteschat/adapters";
 import {
   acceptVoiceClip,
+  dictateVoice,
   isAgentesCloud,
   MAX_MESSAGE_LENGTH,
   NotFoundError,
@@ -52,6 +53,13 @@ export function voiceRoutes(deps: AppDeps) {
   app.use("/organizations/*", requireSession(deps.auth));
   app.use(
     "/organizations/:orgId/channels/:channelId/voice",
+    bodyLimit({
+      maxSize: VOICE_MAX_BYTES + MULTIPART_SLACK_BYTES,
+      onError: (c) => apiError(c, 413, "voice.too_large", "The recording is too large"),
+    }),
+  );
+  app.use(
+    "/organizations/:orgId/channels/:channelId/voice/dictate",
     bodyLimit({
       maxSize: VOICE_MAX_BYTES + MULTIPART_SLACK_BYTES,
       onError: (c) => apiError(c, 413, "voice.too_large", "The recording is too large"),
@@ -161,6 +169,73 @@ export function voiceRoutes(deps: AppDeps) {
           if (error.code === "voice.limit") return apiError(c, 429, "voice_limit", error.message);
           if (error.code === "voice.unavailable") return apiError(c, 409, error.code, error.message);
           if (error.code === "voice.too_large") return apiError(c, 413, error.code, error.message);
+        }
+        throw error;
+      }
+    },
+  );
+
+  app.openapi(
+    createRoute({
+      method: "post",
+      path: "/organizations/{orgId}/channels/{channelId}/voice/dictate",
+      tags,
+      security,
+      summary: "Dictate: the words of a recording, back as text for the field",
+      description:
+        "Nothing is stored or posted: the app puts the words in its field, to read and send as text. Counts toward " +
+        "the same fair use as voice messages. An empty `text` means nothing was said.",
+      request: {
+        params: ChannelParams,
+        body: {
+          required: true,
+          content: {
+            "multipart/form-data": {
+              schema: z.object({
+                file: z.any().openapi({ type: "string", format: "binary", description: "The recording." }),
+                durationMs: z.coerce.number().int().positive(),
+                language: z
+                  .string()
+                  .max(8)
+                  .optional()
+                  .openapi({ description: "The app's language (`pt`, `en`): a hint for engines that take one." }),
+              }),
+            },
+          },
+        },
+      },
+      responses: {
+        200: json(z.object({ text: z.string() }), "The words said"),
+        ...errors,
+        409: errorResponse("Voice is off (`voice.unavailable`)"),
+        413: errorResponse("The recording is too large (`voice.too_large`)"),
+        429: errorResponse("Too many (`voice_limit`, `rate_limited`)"),
+        503: errorResponse("No engine could make out the words now (`voice.no_engine`)"),
+      },
+    }),
+    async (c) => {
+      const { orgId, channelId } = c.req.valid("param");
+      const form = c.req.valid("form");
+      const user = c.get("user");
+      if (!(await adapters.rateLimiter.consume(`voice:${user.id}`, SENDS_PER_PERSON)).allowed) {
+        return apiError(c, 429, "rate_limited", "Slow down");
+      }
+      const file: unknown = form.file;
+      if (!(file instanceof File)) throw new ValidationError("send the recording in the field file", "voice.bad_type");
+      try {
+        const words = await dictateVoice(voice(), user.id, orgId, channelId, {
+          audio: new Uint8Array(await file.arrayBuffer()),
+          contentType: file.type,
+          durationMs: form.durationMs,
+          language: form.language ?? null,
+        });
+        return c.json(words, 200);
+      } catch (error) {
+        if (error instanceof ValidationError) {
+          if (error.code === "voice.limit") return apiError(c, 429, "voice_limit", error.message);
+          if (error.code === "voice.unavailable") return apiError(c, 409, error.code, error.message);
+          if (error.code === "voice.too_large") return apiError(c, 413, error.code, error.message);
+          if (error.code === "voice.no_engine") return apiError(c, 503, error.code, error.message);
         }
         throw error;
       }

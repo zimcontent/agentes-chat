@@ -1,7 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { VOICE_MAX_MS } from "@agenteschat/client/lib/voice";
 import { hidesBody } from "../../src/features/chat/logic";
 import {
   handleAt,
@@ -9,13 +8,9 @@ import {
   levelOf,
   localVoiceMessage,
   nextSpeed,
-  peaksOf,
   playedColumns,
   retryDelayMs,
-  secondsLeft,
-  slideIntent,
   spokenWords,
-  takeBack,
   uploadVerdict,
   voiceFields,
   WAVE_CELL,
@@ -23,86 +18,13 @@ import {
   WAVE_PITCH,
   waveAt,
 } from "../../src/features/voice/logic";
-import { joinM4a } from "../../src/features/voice/m4a";
+import { spliceWords } from "../../src/ui/splice-words";
 
-const u32 = (...v: number[]) => {
-  const out = new Uint8Array(v.length * 4);
-  const d = new DataView(out.buffer);
-  v.forEach((n, i) => {
-    d.setUint32(i * 4, n);
-  });
-  return out;
-};
-function box(type: string, ...parts: Uint8Array[]) {
-  const size = 8 + parts.reduce((s, p) => s + p.length, 0);
-  const out = new Uint8Array(size);
-  new DataView(out.buffer).setUint32(0, size);
-  for (let i = 0; i < 4; i++) out[4 + i] = type.charCodeAt(i);
-  let at = 8;
-  for (const p of parts) {
-    out.set(p, at);
-    at += p.length;
-  }
-  return out;
-}
-
-/** An AAC file reduced to what the join reads: samples of `sizes` bytes filled with `fill`, 1024 ticks each. */
-function m4a(sizes: number[], fill: number) {
-  const ftyp = box("ftyp", new TextEncoder().encode("M4A "));
-  const stsd = box("stsd", u32(0, 0));
-  const tables = (at: number) =>
-    box(
-      "stbl",
-      stsd,
-      box("stts", u32(0, 1, sizes.length, 1024)),
-      box("stsc", u32(0, 1, 1, sizes.length, 1)),
-      box("stsz", u32(0, 0, sizes.length, ...sizes)),
-      box("stco", u32(0, 1, at)),
-    );
-  const moov = (at: number) =>
-    box(
-      "moov",
-      box("mvhd", u32(0, 0, 0, 1000, 0)),
-      box(
-        "trak",
-        box("tkhd", u32(0, 0, 0, 1, 0, 0)),
-        box("edts", u32(0)),
-        box("mdia", box("mdhd", u32(0, 0, 0, 44_100, 0)), box("minf", tables(at))),
-      ),
-    );
-  const dataAt = ftyp.length + moov(0).length + 8;
-  const total = sizes.reduce((s, n) => s + n, 0);
-  const mdat = box("mdat", new Uint8Array(total).fill(fill));
-  const out = new Uint8Array(ftyp.length + moov(0).length + mdat.length);
-  out.set(ftyp, 0);
-  out.set(moov(dataAt), ftyp.length);
-  out.set(mdat, ftyp.length + moov(0).length);
-  return out;
-}
-
-const text = (b: Uint8Array) => new TextDecoder("latin1").decode(b);
-
-describe("voice gestures and wave", () => {
-  test("sliding far enough deletes or locks, and deleting wins", () => {
-    expect(slideIntent(-40, -20)).toBeNull();
-    expect(slideIntent(-110, 0)).toBe("cancel");
-    expect(slideIntent(0, -70)).toBe("lock");
-    expect(slideIntent(-120, -90)).toBe("cancel");
-  });
+describe("voice wave", () => {
   test("levels stay in range, and silence still draws a bar", () => {
     expect(levelOf(0)).toBe(1);
     expect(levelOf(-160)).toBe(0.04);
     expect(levelOf(undefined)).toBe(0.04);
-  });
-  test("peaks keep the loudest of each stretch", () => {
-    const peaks = peaksOf([0.1, 0.9, 0.1, 0.1, 0.2, 0.1], 2);
-    expect(peaks).toEqual([0.9, 0.2]);
-    expect(peaksOf([], 4)).toEqual([]);
-  });
-  test("the countdown shows only near the limit", () => {
-    expect(secondsLeft(0)).toBeNull();
-    expect(secondsLeft(VOICE_MAX_MS - 13_000)).toBe(13);
-    expect(secondsLeft(VOICE_MAX_MS + 1000)).toBe(0);
   });
   test("speed goes round", () => {
     expect([nextSpeed(1), nextSpeed(1.5), nextSpeed(2)]).toEqual([1.5, 2, 1]);
@@ -155,7 +77,7 @@ describe("voice messages hold no text", () => {
   });
 });
 
-describe("a voice note with typed text and files", () => {
+describe("a voice note with typed text and files (sent before dictation, or from the web)", () => {
   const voice = { clipId: "c", durationMs: 1200, peaks: [] };
   const typed = "Veja a captura, por favor.";
   const sent = { body: `${typed}\n\nOlá Atlas, revise o painel.`, meta: { voice: { ...voice, text: typed } } };
@@ -196,27 +118,6 @@ describe("a voice note with typed text and files", () => {
     expect(plain).toEqual({ durationMs: "1200", peaks: "[0.5]", clientId: "k1", language: "pt" });
   });
 
-  test("a take the server refuses gives its typed text and files back to the composer it was sent from, and nowhere else", () => {
-    const here = { channelId: "ch", threadId: null };
-    expect(takeBack({ ...item, text: typed }, here)).toEqual({ text: typed, artifacts: [] });
-    expect(takeBack({ ...item, artifacts: files }, here)).toEqual({ text: "", artifacts: files });
-    expect(takeBack({ ...item, text: typed }, { channelId: "other", threadId: null })).toBeNull();
-    expect(takeBack({ ...item, text: typed }, { channelId: "ch", threadId: "t1" })).toBeNull();
-    expect(takeBack(item, here)).toBeNull();
-    const take = src("features/voice/useVoiceTake.ts");
-    expect(take).toMatch(
-      /const back = item \? takeBack\(item, targetRef\.current\) : null;\s*if \(back\) targetRef\.current\.takeBack\?\.\(back\);/,
-    );
-    expect(src("features/voice/outbox.ts")).toContain('onRefused(verdict === "limit" ? "limit" : "refused", item);');
-    const chat = src("features/chat/ChatScreen.tsx");
-    expect(chat).toContain("takeBack: voiceTakeBack,");
-    // The files come back from what was uploaded for the take, to wait above the field again.
-    expect(chat).toMatch(/sentWithVoice\.current\.set\(a\.id, file\)/);
-    expect(chat).toMatch(
-      /sentWithVoice\.current\.get\(a\.id\)[\s\S]{0,200}setPending\(\(now\) => \[\.\.\.files, \.\.\.now\]/,
-    );
-  });
-
   test("the bubble until the server answers shows the typed text, the take and the files", () => {
     const local = localVoiceMessage({ ...item, text: typed, artifacts: files });
     expect(local.body).toBe(typed);
@@ -225,37 +126,6 @@ describe("a voice note with typed text and files", () => {
     expect(hidesBody(local)).toBe(false);
     expect(localVoiceMessage(item).body).toBe("");
     expect(localVoiceMessage(item).meta?.artifacts).toBeUndefined();
-  });
-
-  test('the take is a row above the field, which stays usable with its "+", and the trash is in the row', () => {
-    const composer = src("ui/Composer.tsx");
-    expect(composer).not.toContain("styles.hidden");
-    expect(composer).not.toContain("voice.leading");
-    // The take's row comes before the row of the "+" and the field.
-    expect(composer.indexOf("{voice.bar}")).toBeLessThan(composer.indexOf("<View style={styles.row}>"));
-    // A take may start while files wait; with words typed the send button holds the slot.
-    expect(composer).toContain("const mic = voice && !typed ? voice.mic : null;");
-    // The field's send hands its words to the take; a take that didn't go gives them back.
-    expect(composer).toMatch(
-      /if \(take\) \{[\s\S]{0,200}take\(value\)\.then\(\(sent\) => \{[\s\S]{0,80}joinDrafts\(value, now\)/,
-    );
-    const bar = src("features/voice/useVoiceComposer.tsx");
-    expect(bar).toContain('const trash = control("trash", t("voice.delete"), () => void take.cancel(true));');
-    expect(bar).toContain("send: locked || paused ? take.send : null");
-    // The swipe to cancel on the held mic is unchanged.
-    expect(bar).toContain('if (intent === "cancel") scheduleOnRN(take.cancel, true);');
-  });
-
-  test("sending uploads the waiting files first, and a failed upload keeps the take", () => {
-    const screen = src("features/chat/ChatScreen.tsx");
-    expect(screen).toMatch(/const withVoice = async \(text: string\) => \{[\s\S]{0,200}uploadPending\(pending\)/);
-    expect(screen).toContain("prepare: prepareVoice,");
-    const take = src("features/voice/useVoiceTake.ts");
-    expect(take).toMatch(/if \(!extra\) \{\s*await held\(\);\s*return false;/);
-    expect(take).toContain("...(file === files[0] && extra.text ? { text: extra.text } : {}),");
-    expect(src("features/voice/outbox.ts")).toContain(
-      "for (const [name, value] of voiceFields(item)) form.append(name, value);",
-    );
   });
 
   test("the sent message: the typed words above the player, the words said alone in it; lists show the typed part", () => {
@@ -269,22 +139,44 @@ describe("a voice note with typed text and files", () => {
   });
 });
 
-describe("joinM4a", () => {
-  test("keeps every sample, in order, and adds the durations", () => {
-    const out = joinM4a(m4a([3, 4], 0xaa), m4a([5], 0xbb));
-    const s = text(out);
-    expect(s).not.toContain("edts");
-    const mdat = s.indexOf("mdat") + 4;
-    expect([...out.subarray(mdat)]).toEqual([...new Array(7).fill(0xaa), ...new Array(5).fill(0xbb)]);
-    const d = new DataView(out.buffer);
-    const stsz = s.indexOf("stsz") + 4;
-    expect(d.getUint32(stsz + 8)).toBe(3);
-    const stco = s.indexOf("stco") + 4;
-    expect(d.getUint32(stco + 8)).toBe(mdat);
-    const mdhd = s.indexOf("mdhd") + 4;
-    expect(d.getUint32(mdhd + 16)).toBe(3072);
+describe("dictation", () => {
+  const src = (path: string) => readFileSync(join(import.meta.dir, "../../src", path), "utf8");
+
+  test("the words go in at the caret, a space where they touch a word", () => {
+    expect(spliceWords("", 0, "oi Ada")).toEqual({ text: "oi Ada", caret: 6 });
+    expect(spliceWords("Bom dia", 7, "tudo bem?")).toEqual({ text: "Bom dia tudo bem?", caret: 17 });
+    expect(spliceWords("Bom dia ", 8, "Ada")).toEqual({ text: "Bom dia Ada", caret: 11 });
+    expect(spliceWords("olá mundo", 3, "querido")).toEqual({ text: "olá querido mundo", caret: 11 });
+    expect(spliceWords("a\n", 2, "b")).toEqual({ text: "a\nb", caret: 3 });
   });
-  test("refuses what it can't read", () => {
-    expect(() => joinM4a(new Uint8Array(12), m4a([1], 1))).toThrow();
+
+  test("one tap records, the same button stops, the × throws it away; nothing is held or dragged", () => {
+    const d = src("features/voice/useDictation.tsx");
+    expect(d).toContain("onPress={() => void (recording ? stop() : start())}");
+    expect(d).toContain("onPress={() => void cancel()}");
+    expect(d).not.toMatch(/Gesture|onLongPress|activateAfterLongPress/);
+    // A tap while the recorder starts ends it as soon as it records, never leaving it on.
+    expect(d).toMatch(/if \(starting\.current\) \{\s*ending\.current = "stop";/);
+    expect(d).toMatch(
+      /if \(ending\.current === "cancel"\) await cancel\(\);\s*else if \(ending\.current === "stop"\) await stop\(\);/,
+    );
+    // The words come from the server's engine and go into the field; the file never stays.
+    expect(d).toContain("/voice/dictate`");
+    expect(d).toMatch(/if \(body\.text\.trim\(\)\) put\(body\.text\.trim\(\)\);/);
+    expect(d).toMatch(/finally \{\s*removeFile\(uri\);\s*reset\(\);/);
+  });
+
+  test("the field puts the words at the caret and steps its buttons aside while dictating", () => {
+    const composer = src("ui/Composer.tsx");
+    expect(composer).toContain("const next = spliceWords(text, at, words);");
+    expect(composer).toContain("const button = (has || stopMode) && !dictating;");
+    expect(composer).toContain("const mediaButton = media && !has && !dictating ? media : null;");
+    // The microphone is there with words too, before the send.
+    expect(composer.indexOf("{mic ? <View style={styles.micBox}>{mic}</View> : null}")).toBeLessThan(
+      composer.indexOf("<SendButton"),
+    );
+    const screen = src("features/chat/ChatScreen.tsx");
+    expect(screen).toContain("const onWords = useCallback((text: string) => setInsert({ text, at: Date.now() }), []);");
+    expect(screen).toContain("<Composer {...composer} dictation={dictation} insert={insert} />");
   });
 });
