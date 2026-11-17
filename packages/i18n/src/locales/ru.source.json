@@ -24950,6 +24950,15 @@
   "skills.zipNone": {
     "value": "No file chosen"
   },
+  "skills.zipDrop": {
+    "value": "Or drag the .zip here"
+  },
+  "skills.zipNotZip": {
+    "value": "{{name}} isn't a .zip. Send the skill's folder compressed as a .zip."
+  },
+  "skills.zipFromChat": {
+    "value": "{{name}}, from the file {{file}} sent in the conversation"
+  },
   "skills.zipMissing": {
     "value": "Choose a .zip file."
   },

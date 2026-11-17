@@ -10655,6 +10655,12 @@ export const ptBR = {
     zipSending: "Enviando o arquivo… {{percent}}",
     zipPick: "Escolher .zip",
     zipNone: "Nenhum arquivo escolhido",
+    /** Beside "Escolher .zip" while nothing is chosen: the dialog also takes a dropped .zip. */
+    zipDrop: "Ou arraste o .zip para cá",
+    /** A dropped or picked file that isn't a .zip. */
+    zipNotZip: "{{name}} não é um .zip. Envie a pasta da skill compactada em .zip.",
+    /** The file an agent's card offered, attached in the conversation. */
+    zipFromChat: "{{name}}, do arquivo {{file}} enviado na conversa",
     zipMissing: "Escolha um arquivo .zip.",
     name: "Nome",
     description: "Quando usar",

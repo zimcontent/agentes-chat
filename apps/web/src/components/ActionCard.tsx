@@ -144,7 +144,9 @@ export function ActionCard({ message }: { message: Message }) {
   if (card.kind === "person_limit") return <PersonLimitCardView message={message} card={card} />;
   if (card.kind === "connect_app") return <ConnectAppCardView card={card} />;
   if (card.kind === "invite_people") return <InviteCardView card={card} />;
-  if (card.kind === "install_skill") return <InstallSkillCardView card={card} agentId={message.author.id} />;
+  if (card.kind === "install_skill") {
+    return <InstallSkillCardView card={card} agentId={message.author.id} postedAt={message.createdAt} />;
+  }
   if (card.kind === "update_skills") return <UpdateSkillsCardView message={message} card={card} />;
   if (card.kind === "autonomy_proposal") return <CostlyProposalCardView message={message} card={card} />;
   if (card.kind === "team_week") return <TeamWeekCardView message={message} card={card} />;
@@ -262,17 +264,26 @@ function ConnectAppCardView({ card }: { card: ConnectAppCard }) {
  * card (`agentId`). Who manages agents installs it for the team or for themselves, anyone else as their own personal
  * skill. Done once the library has a skill from that link.
  */
-function InstallSkillCardView({ card, agentId }: { card: InstallSkillCard; agentId?: string | null }) {
+function InstallSkillCardView({
+  card,
+  agentId,
+  postedAt,
+}: {
+  card: InstallSkillCard;
+  agentId?: string | null;
+  postedAt?: string;
+}) {
   const { t } = useTranslation();
   const { org } = useOrg();
   const admin = can(org, "manage_agents");
   const skills = useSkills(org.id);
   const [open, setOpen] = useState(false);
   const title = t("actionCard.install_skill.title");
-  if (installSkillDone(card, skills.data ?? [])) {
+  const what = card.file ? card.file.name : card.url;
+  if (installSkillDone(card, skills.data ?? [], postedAt)) {
     return (
       <RequestDone done label={title}>
-        {t("actionCard.install_skill.done")}: <b>{card.url}</b>
+        {t("actionCard.install_skill.done")}: <b>{what}</b>
       </RequestDone>
     );
   }
@@ -287,7 +298,9 @@ function InstallSkillCardView({ card, agentId }: { card: InstallSkillCard; agent
             primary
             onClick={() => {
               // Kept for the way back from connecting GitHub on its site (SkillsSection).
-              if (agentId) sessionStore.set(STORAGE_KEYS.skillInstallFor, JSON.stringify({ url: card.url, agentId }));
+              if (agentId && card.url) {
+                sessionStore.set(STORAGE_KEYS.skillInstallFor, JSON.stringify({ url: card.url, agentId }));
+              }
               setOpen(true);
             }}
           >
@@ -298,7 +311,7 @@ function InstallSkillCardView({ card, agentId }: { card: InstallSkillCard; agent
           <>
             {card.why && <p>{inlineWords(card.why)}</p>}
             <p>
-              <code>{card.url}</code>
+              <code>{card.file ? card.file.fileName : card.url}</code>
             </p>
           </>
         }
@@ -310,6 +323,7 @@ function InstallSkillCardView({ card, agentId }: { card: InstallSkillCard; agent
         onOpenChange={setOpen}
         onInstalled={() => {}}
         initialUrl={open ? card.url : undefined}
+        initialFile={card.file}
         forAgentId={agentId ?? undefined}
         scope={admin ? undefined : "personal"}
       />

@@ -1,7 +1,8 @@
 import type { BlobStoreResolver, PubSub } from "@agenteschat/adapters";
 import { and, asc, type Database, eq, gt, inArray, isNull, lte, or, type SQL, schema, sql } from "@agenteschat/db";
-import { SKILL_ASSET_BYTES, SKILL_TEXT_BYTES } from "@agenteschat/tokens/skills";
+import { SKILL_ASSET_BYTES, SKILL_TEXT_BYTES, SKILL_ZIP_BYTES } from "@agenteschat/tokens/skills";
 import { getAgent } from "./agents";
+import { type ArtifactActor, storedFileOfArtifact } from "./artifacts";
 import { recordAudit } from "./audit";
 import { mapInBatches } from "./batches";
 import { activeConnections, type ConnectorDeps } from "./connectors/connections";
@@ -711,16 +712,73 @@ export async function importSkillZip(
   options: { personal?: boolean } = {},
 ) {
   await requirePermission(deps.db, actorId, orgId, options.personal ? "read" : "manage_agents");
-  const entries = listZip(zip).filter((e) => !e.symlink);
   return saveSkill(deps, actorId, orgId, {
-    ...(await repositorySkill(
-      async (e) => inflateZipEntry(zip, e),
-      "",
-      entries.map((e) => [e.path, e]),
-    )),
+    ...(await zipSkill(zip)),
     source: "upload",
     owner: options.personal ? actorId : null,
   });
+}
+
+/** The skill a zip of its folder holds (`SKILL.md` at its top or in its one folder), nothing saved. */
+async function zipSkill(zip: Uint8Array) {
+  const entries = listZip(zip).filter((e) => !e.symlink);
+  return repositorySkill(
+    async (e) => inflateZipEntry(zip, e),
+    "",
+    entries.map((e) => [e.path, e]),
+  );
+}
+
+/** A zip starts with a local file header (`PK\x03\x04`), an empty one with the end record (`PK\x05\x06`). */
+const isZip = (b: Uint8Array) => b[0] === 0x50 && b[1] === 0x4b && (b[2] === 0x03 || b[2] === 0x05);
+
+/**
+ * The skill in a file of the Drive (one attached in a conversation): a .zip of its folder or its SKILL.md alone, read
+ * as `actor` may read the file, nothing saved. `fileName`: the file's own name.
+ */
+export async function skillInFile(deps: SkillDeps, actor: ArtifactActor, orgId: string, artifactId: string) {
+  const f = await storedFileOfArtifact(deps, actor, orgId, artifactId);
+  if (f.size > SKILL_ZIP_BYTES) {
+    throw new ValidationError(
+      `${f.name} is ${formatBytes(f.size)}: a skill's .zip may be up to ${formatBytes(SKILL_ZIP_BYTES)}`,
+      "skill.file_too_large",
+      { name: f.name },
+    );
+  }
+  const object = await (await deps.blobs.forConfig(orgId, f.storageConfigId)).get(f.blobKey);
+  if (!object) throw new NotFoundError("The stored file is missing");
+  const bytes = object.body;
+  if (isZip(bytes)) return { ...(await zipSkill(bytes)), fileName: f.name };
+  if (/\.md$/i.test(f.name)) {
+    return { ...parseSkillMarkdown(new TextDecoder().decode(bytes)), files: [], fileName: f.name };
+  }
+  throw new ValidationError(
+    `${f.name} is not a skill: send the skill's folder as a .zip, or its SKILL.md`,
+    "skill.not_a_skill_file",
+    { name: f.name },
+  );
+}
+
+/**
+ * Installs the skill in a file of the Drive (`skillInFile`), read as the person installing may read it: from an
+ * agent's card in a conversation (`offer_install_skill` with a file). `forAgentId`: that agent (`turnOnFor`).
+ */
+export async function importSkillFile(
+  deps: SkillDeps,
+  actorId: string,
+  orgId: string,
+  artifactId: string,
+  options: { forAgentId?: string; personal?: boolean } = {},
+) {
+  await requirePermission(deps.db, actorId, orgId, options.personal ? "read" : "manage_agents");
+  const { fileName: _name, ...skill } = await skillInFile(deps, { type: "person", userId: actorId }, orgId, artifactId);
+  const saved = await saveSkill(deps, actorId, orgId, {
+    ...skill,
+    source: "upload",
+    owner: options.personal ? actorId : null,
+  });
+  await turnOnFor(deps, actorId, orgId, options.forAgentId, [saved.id]);
+  return saved;
 }
 
 const GITHUB_HOSTS = new Set(["github.com", "raw.githubusercontent.com", "api.github.com", "codeload.github.com"]);

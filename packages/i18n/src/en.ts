@@ -10667,6 +10667,12 @@ export const en = {
     zipSending: "Uploading the file… {{percent}}",
     zipPick: "Choose .zip",
     zipNone: "No file chosen",
+    /** Beside "Choose .zip" while nothing is chosen: the dialog also takes a dropped .zip. */
+    zipDrop: "Or drag the .zip here",
+    /** A dropped or picked file that isn't a .zip. */
+    zipNotZip: "{{name}} isn't a .zip. Send the skill's folder compressed as a .zip.",
+    /** The file an agent's card offered, attached in the conversation. */
+    zipFromChat: "{{name}}, from the file {{file}} sent in the conversation",
     zipMissing: "Choose a .zip file.",
     name: "Name",
     description: "When to use",

@@ -9,6 +9,7 @@ import {
   getSkillFile,
   getSkillSettings,
   importPickedSkills,
+  importSkillFile,
   importSkillFromUrl,
   importSkillZip,
   listSkills,
@@ -361,6 +362,16 @@ export function skillRoutes(deps: AppDeps) {
                 }),
               personal: Personal,
             }),
+            z.object({
+              artifactId: z.uuid().openapi({
+                description:
+                  "A file attached in a conversation (`offer_install_skill` with a file): a .zip of the skill's folder or its SKILL.md, read as the installer may read it.",
+              }),
+              forAgentId: z.uuid().optional().openapi({
+                description: "The agent whose card offered the file: what installs goes on for it, as with `url`.",
+              }),
+              personal: Personal,
+            }),
           ]),
         ),
       },
@@ -401,6 +412,10 @@ export function skillRoutes(deps: AppDeps) {
           personal,
         });
         return "choices" in result ? c.json(result, 200) : c.json(result, 201);
+      }
+      if ("artifactId" in input) {
+        const { forAgentId, personal } = input;
+        return c.json(await importSkillFile(skills(), actor, orgId, input.artifactId, { forAgentId, personal }), 201);
       }
       let zip: Uint8Array;
       try {

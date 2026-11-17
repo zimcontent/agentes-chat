@@ -15,6 +15,7 @@ import { insertMessage, messageView } from "./messages";
 import { can, getMembership } from "./organizations";
 import { personBehindCall } from "./requester";
 import { bodyCode } from "./run-tools";
+import { replyThreadOf } from "./runs";
 import { type SandboxDeps, withSandbox } from "./sandbox";
 import { cardsLeft, hopOf, NOBODY_READS, REQUEST_SETTINGS_TOOL, whoActs } from "./setup-tools";
 import { updateSkillFromSource } from "./skill-updates";
@@ -26,6 +27,7 @@ import {
   type SkillDeps,
   skillFile,
   skillFilesOf,
+  skillInFile,
 } from "./skills";
 import type { ToolContext, ToolDefinition, ToolOutput, ToolSource } from "./tools/types";
 
@@ -39,11 +41,16 @@ export const UPDATE_SKILLS_CARD = "action_update_skills";
 /** Skills one `update_skill_from_source` reads (each a repository's archive), the least recently read first. */
 export const MAX_SKILL_UPDATES_PER_CALL = 10;
 
-/** "Instalar skill": its button opens the app's install dialog with the link filled in, to pick and install. */
+/**
+ * "Instalar skill": its button opens the app's install dialog with the link filled in, to pick and install, or with
+ * the file a person attached in the conversation (a .zip of the skill's folder or its SKILL.md), read on the server.
+ */
 export interface InstallSkillCard {
   kind: "install_skill";
   forUserId: string | null;
-  params: { url: string; why: string };
+  params:
+    | { url: string; why: string }
+    | { artifactId: string; fileName: string; name: string; description: string; why: string };
 }
 
 /**
@@ -153,6 +160,70 @@ export function createSkillToolSource(
     });
     if (deps.pubsub) await publishMessageCreated(deps.pubsub, messageView(message));
     return message;
+  };
+  /** Who may install it and whether a card is left: the card's place, or why nothing is posted. */
+  const installPlace = async (
+    ctx: ToolContext,
+  ): Promise<
+    | { refused: ToolOutput }
+    | { at: { channelId: string; threadId: string | null }; forUserId: string | null; acts: string }
+  > => {
+    const at = await cardPlace(ctx);
+    if (!at) return { refused: NOBODY_READS };
+    const forUserId = await personBehindCall(ctx);
+    const acts = await whoActs(ctx, forUserId, "manage_agents", at.channelId);
+    if (!acts) {
+      return {
+        refused: {
+          content:
+            "Nothing was posted: installing skills is for people who manage agents, and none of them can open this conversation. Tell the person, and offer to ask one (request_approval, or in a channel an admin reads).",
+          isError: true,
+        },
+      };
+    }
+    const full = await cardsLeft(ctx);
+    if (full) return { refused: full };
+    return { at, forUserId, acts };
+  };
+  const posted = (acts: string, messageId: string): ToolOutput => ({
+    content: `Posted the card to install the skill: a person installs it in the app's dialog.${acts === "person" ? "" : " The person who asked can't install skills: someone who manages agents here does it from the card. Say so."} Installed from the card, it goes on for you too. Don't install it anywhere yourself, and don't say it's installed until it shows in your skills.`,
+    data: { actionCard: { messageId } },
+  });
+  /** The card for a file attached here: the skill in it read first, so a file that holds none posts nothing. */
+  const offerFile = async (ctx: ToolContext, fileId: string, why: string): Promise<ToolOutput> => {
+    const actor = {
+      type: "agent" as const,
+      agentId: ctx.agentId,
+      channelId: ctx.channelId,
+      threadId: replyThreadOf(ctx),
+      runId: ctx.runId,
+    };
+    let skill: Awaited<ReturnType<typeof skillInFile>>;
+    try {
+      skill = await skillInFile(deps, actor, ctx.orgId, fileId);
+    } catch (error) {
+      return {
+        content: `That file doesn't install as a skill: ${error instanceof Error ? error.message : String(error)}. A skill is a .zip of its folder with SKILL.md at its top (name and description in its frontmatter), or that SKILL.md alone. Tell the person.`,
+        isError: true,
+      };
+    }
+    const place = await installPlace(ctx);
+    if ("refused" in place) return place.refused;
+    const params = {
+      artifactId: fileId,
+      fileName: skill.fileName,
+      name: skill.name,
+      description: cutText(skill.description, 300),
+      why,
+    };
+    const message = await postCard(
+      ctx,
+      place.at,
+      `Install the skill ${skill.name} from ${skill.fileName}: ${why}`,
+      INSTALL_SKILL_CARD,
+      { kind: "install_skill", forUserId: place.forUserId, params },
+    );
+    return posted(place.acts, message.id);
   };
   const tools: ToolDefinition[] = [
     {
@@ -391,7 +462,7 @@ export function createSkillToolSource(
     {
       name: OFFER_INSTALL_SKILL_TOOL,
       description:
-        "Offer to install a skill for the workspace with a card in this conversation: its button opens the app's install dialog (Settings › Skills) with the GitHub link filled in, where a person who manages skills picks it and installs it, since a skill adds instructions and scripts agents run. Installed from the card, it goes on for you. Use it whenever someone asks to install or add a skill that isn't installed here (one that is, but not on for you: request_settings_change). Never install one into your CLI's own skills folder on your computer (~/.claude/skills, ~/.codex/skills, .agents/skills…) for the workspace: only you would have it there, nobody reviews it and it never updates.",
+        "Offer to install a skill for the workspace with a card in this conversation: its button opens the app's install dialog (Settings › Skills) with the GitHub link (`url`) or the file a person attached here (`file_id`: a .zip of the skill's folder, or its SKILL.md) filled in, where a person who manages skills installs it, since a skill adds instructions and scripts agents run. Installed from the card, it goes on for you. Use it whenever someone asks to install or add a skill that isn't installed here, or sends one as a file (one that is, but not on for you: request_settings_change). Never install one into your CLI's own skills folder on your computer (~/.claude/skills, ~/.codex/skills, .agents/skills…) for the workspace: only you would have it there, nobody reviews it and it never updates.",
       scope: "skills:read",
       inputSchema: {
         type: "object",
@@ -402,6 +473,13 @@ export function createSkillToolSource(
             maxLength: 2000,
             description: "The skill's GitHub link: a repository, a folder or its SKILL.md.",
           },
+          file_id: {
+            type: "string",
+            minLength: 36,
+            maxLength: 36,
+            description:
+              "Instead of `url`: the id of a file attached in this conversation, a .zip of the skill's folder or its SKILL.md.",
+          },
           why: {
             type: "string",
             minLength: 1,
@@ -409,20 +487,30 @@ export function createSkillToolSource(
             description: "One short line on the card for the person, in their language: what the skill does.",
           },
         },
-        required: ["url", "why"],
+        required: ["why"],
         additionalProperties: false,
       },
       async execute(input, ctx) {
         try {
           const why = str(input.why).trim();
           if (!why) return { content: "Say in `why` what the skill does: one short line.", isError: true };
+          const fileId = str(input.file_id).trim();
+          if (fileId && str(input.url).trim()) {
+            return { content: "Give either `url` or `file_id`, not both.", isError: true };
+          }
+          if (fileId) return offerFile(ctx, fileId, why);
           const url = str(input.url).trim();
+          if (!url)
+            return {
+              content: "Give the skill's GitHub link in `url`, or an attached file in `file_id`.",
+              isError: true,
+            };
           try {
             parseGithubUrl(url);
           } catch {
             return {
               content:
-                "Only GitHub links install as skills (a repository, a folder in it or a SKILL.md). Ask the person for the skill's GitHub link; a .zip they upload in Settings › Skills themselves.",
+                "Only GitHub links install as skills from a link (a repository, a folder in it or a SKILL.md). Ask the person for the skill's GitHub link, or to attach its .zip here and pass it as `file_id`.",
               isError: true,
             };
           }
@@ -444,28 +532,14 @@ export function createSkillToolSource(
               isError: true,
             };
           }
-          const at = await cardPlace(ctx);
-          if (!at) return NOBODY_READS;
-          const forUserId = await personBehindCall(ctx);
-          const acts = await whoActs(ctx, forUserId, "manage_agents", at.channelId);
-          if (!acts) {
-            return {
-              content:
-                "Nothing was posted: installing skills is for people who manage agents, and none of them can open this conversation. Tell the person, and offer to ask one (request_approval, or in a channel an admin reads).",
-              isError: true,
-            };
-          }
-          const full = await cardsLeft(ctx);
-          if (full) return full;
-          const message = await postCard(ctx, at, `Install the skill at ${url}: ${why}`, INSTALL_SKILL_CARD, {
+          const place = await installPlace(ctx);
+          if ("refused" in place) return place.refused;
+          const message = await postCard(ctx, place.at, `Install the skill at ${url}: ${why}`, INSTALL_SKILL_CARD, {
             kind: "install_skill",
-            forUserId,
+            forUserId: place.forUserId,
             params: { url, why },
           });
-          return {
-            content: `Posted the card to install the skill: a person picks and installs it in the app's dialog.${acts === "person" ? "" : " The person who asked can't install skills: someone who manages agents here does it from the card. Say so."} Installed from the card, it goes on for you too. Don't install it anywhere yourself, and don't say it's installed until it shows in your skills.`,
-            data: { actionCard: { messageId: message.id } },
-          };
+          return posted(place.acts, message.id);
         } catch (error) {
           return failed(error);
         }
