@@ -233,3 +233,7 @@ scheduled only by a person, by hand, and that what goes to the client carries no
   portal's watch tells the agents to leave an approved post for the team.
 - A `direct` client's approval in the review (docs/adr/doug-0012-editor-delivery.md) still turns the post `approved` at the
   portal, and stops there: the conversation is told it is ready and that the team schedules it.
+- What waits for that person shows on Home: `GET …/portal/to-schedule` (`portalToSchedule`) lists the approved posts
+  not released yet, across every client, the longest waiting first, and "Waiting on you" draws each with "Schedule",
+  which opens the same dialog as the board (a day and a time, by hand). Only for who may give agents work
+  (`assign_work`), in the workspace the portal is.

@@ -351,6 +351,14 @@ export function createFakePortal(
           undated: open.filter((c) => c.produceOn === null).sort(byOrder),
         });
       },
+      toSchedule: async () => {
+        guard();
+        return clone({
+          items: fake.items
+            .filter((i) => i.status === "approved" && !i.released)
+            .sort((a, b) => (a.updatedAt ?? "").localeCompare(b.updatedAt ?? "") || a.id.localeCompare(b.id)),
+        });
+      },
       pipeline: async () => {
         guard();
         const carded = new Set<string>();

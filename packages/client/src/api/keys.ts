@@ -317,6 +317,7 @@ export const keys = {
   portalPlan: (orgId: string, client: string) => ["org", orgId, "portal", "plan", client] as const,
   portalMine: (orgId: string) => ["org", orgId, "portal", "mine"] as const,
   portalPipeline: (orgId: string) => ["org", orgId, "portal", "pipeline"] as const,
+  portalToSchedule: (orgId: string) => ["org", orgId, "portal", "to-schedule"] as const,
   portalTasks: (orgId: string) => ["org", orgId, "portal", "tasks"] as const,
   /** Outside `portal`: a change to the board never reads a send again. */
   portalJob: (orgId: string, jobId: string) => ["org", orgId, "portal-job", jobId] as const,

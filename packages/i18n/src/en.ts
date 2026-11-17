@@ -5382,6 +5382,12 @@ export const en = {
       send: "Send",
     },
     waiting: { title: "Waiting on you" },
+    /** An approved post nobody scheduled yet (ADR 9001, addendum 2026-11-17): a person schedules it from here. */
+    toSchedule: {
+      meta: "Approved, waiting to be scheduled",
+      action: "Schedule",
+      label: "Schedule {{title}}",
+    },
     working: {
       title: "Working now",
       none: "No agent is working right now.",

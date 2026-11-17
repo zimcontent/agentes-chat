@@ -7837,6 +7837,22 @@ export const usePortalPipeline = (orgId: string, enabled = true) => {
 };
 
 /**
+ * Approved posts nobody scheduled yet (ADR 9001, addendum 2026-11-17): Home's "Waiting on you" lists them with
+ * "Schedule". Under the portal's key, so a schedule from anywhere reads it again.
+ */
+export const usePortalToSchedule = (orgId: string, enabled = true) => {
+  const api = useApi();
+  return useQuery({
+    queryKey: keys.portalToSchedule(orgId),
+    queryFn: () => portalOf(api).toSchedule(orgId),
+    enabled,
+    refetchInterval: (q) => (isPortalOff(q.state.error) ? false : PORTAL_REFRESH_MS),
+    retry: false,
+    meta: { quiet: true },
+  });
+};
+
+/**
  * Each card's task (ADR 9001): every card of the board is also a task of the workspace, and this says its number.
  * Under the portal's key, so it is read again after any change to a board (a new card has a task at once).
  */

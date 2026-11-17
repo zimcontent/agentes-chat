@@ -301,6 +301,7 @@ import type {
   PortalCard,
   PortalCardInput,
   PortalClientColor,
+  PortalItem,
   PortalItemEdit,
   PortalJob,
   PortalLabel,
@@ -1677,6 +1678,8 @@ export interface ApiClient {
     mine(orgId: string): Promise<PortalMine>;
     /** Every piece of work not posted yet, across all clients: what the overview draws. */
     pipeline(orgId: string): Promise<PortalPipeline>;
+    /** Approved posts nobody scheduled yet, across every client, the longest waiting first. */
+    toSchedule(orgId: string): Promise<{ items: PortalItem[] }>;
     /** Each card's task, to name it by its number and open it. */
     tasks(orgId: string): Promise<PortalTaskRef[]>;
     /** Makes a list (the same name answers the same list). */
