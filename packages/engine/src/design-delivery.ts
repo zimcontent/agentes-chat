@@ -20,8 +20,6 @@ const { issues, portalClientSettings, users, videoReviews, videoReviewVersions }
 export const AFTER_APPROVE = ["portal", "direct"] as const;
 export type AfterApprove = (typeof AFTER_APPROVE)[number];
 export const DESIGN_DELIVER_JOB = "design_review.deliver";
-/** `YYYY-MM-DDTHH:MM`: a day and an hour, what the portal schedules at. */
-const WHEN = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/;
 
 export type DesignDelivery = {
   state: "sending" | "sent" | "scheduled" | "approved" | "failed";
@@ -113,16 +111,10 @@ async function say(deps: DeliveryDeps, review: typeof videoReviews.$inferSelect,
   await publishMessageCreated(deps.pubsub, messageView(message));
 }
 
-const day = (when: string) => {
-  const [date, time] = when.split("T");
-  const [y, m, d] = (date ?? "").split("-");
-  return `${d}/${m}${y ? `/${y}` : ""}${time ? ` às ${time.slice(0, 5)}` : ""}`;
-};
-
 /**
  * Job `design_review.deliver`: the approved version's slides go up and are sent to the portal (the same key never
- * sends twice, so a retried job finds its send); then, for a `direct` client, the post is marked approved and released
- * for its card's day. A version made by hand has no pictures: the agent was told to render and send them itself.
+ * sends twice, so a retried job finds its send); then, for a `direct` client, the post is marked approved, and a person
+ * schedules it (ADR 9001, addendum 2026-11-17). A version made by hand has no pictures: the agent was told to render and send them itself.
  */
 export async function deliverDesign(deps: DeliveryDeps, reviewId: string, version: number): Promise<void> {
   const [review] = await deps.db.select().from(videoReviews).where(eq(videoReviews.id, reviewId));
@@ -190,25 +182,9 @@ export async function deliverDesign(deps: DeliveryDeps, reviewId: string, versio
     await say(deps, review, `«${review.title}» foi para a aprovação do cliente no portal.${link}`);
     return;
   }
-  // Direct: the team's approval is the last one.
+  // Direct: the team's approval is the last one, so the post turns approved. Scheduling it is the team's, by hand,
+  // at the Portal: never the card's date on its own (ADR 9001, addendum 2026-11-17).
   await portal.editItem(client, job.item, { status: "approved" }, decider?.name ?? undefined);
-  const card = review.portalCard
-    ? (await portal.cards(client).catch(() => [])).find((c) => c.id === review.portalCard)
-    : undefined;
-  const when = card?.date && WHEN.test(card.date) ? card.date.slice(0, 16) : null;
-  if (when && new Date(when) > new Date()) {
-    await portal.scheduleItem(client, job.item, when, decider?.name ?? undefined);
-    await setDelivery(deps.db, review.id, {
-      state: "scheduled",
-      job: job.id,
-      item: job.item,
-      link: job.link,
-      when,
-      at: new Date().toISOString(),
-    });
-    await say(deps, review, `«${review.title}» aprovado e agendado para ${day(when)}.${link}`);
-    return;
-  }
   await setDelivery(deps.db, review.id, {
     state: "approved",
     job: job.id,
@@ -217,15 +193,10 @@ export async function deliverDesign(deps: DeliveryDeps, reviewId: string, versio
     when: null,
     at: new Date().toISOString(),
   });
-  const why = card?.date
-    ? `o cartão diz ${day(card.date)}, sem uma hora no futuro`
-    : review.portalCard
-      ? "o cartão não tem data"
-      : "a peça não veio de um cartão do portal";
   await say(
     deps,
     review,
-    `«${review.title}» aprovado e pronto no portal, mas falta quando sai (${why}). Agende o post no Portal ou peça ao Doug, com o dia e a hora.${link}`,
+    `«${review.title}» aprovado e pronto no portal. Quando sai é a equipe que decide: agende o post no Portal, com o dia e a hora.${link}`,
   );
 }
 

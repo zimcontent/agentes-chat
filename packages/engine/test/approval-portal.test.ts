@@ -12,7 +12,6 @@ import {
   PORTAL_WORK_TOOL,
   portalColumnOf,
   portalPlan,
-  SCHEDULE_POST_TOOL,
   SEND_FOR_APPROVAL_TOOL,
   SEND_NEW_VERSION_TOOL,
   sendForApproval,
@@ -68,9 +67,10 @@ describe("the portal's tools", () => {
       PORTAL_PLAN_TOOL,
       SEND_FOR_APPROVAL_TOOL,
       SEND_NEW_VERSION_TOOL,
-      SCHEDULE_POST_TOOL,
     ]);
     // A routine's run only reads (it tells each person their day); a call with no run gets none.
+    // No agent schedules a post: only a person does, at the Portal (ADR 9001, addendum 2026-11-17).
+    expect(await names(source, ctx())).not.toContain("schedule_post");
     expect(await names(source, ctx({ background: true }))).toEqual([PORTAL_BOARD_TOOL, PORTAL_WORK_TOOL]);
     expect(await names(source, ctx({ runId: null as unknown as string }))).toEqual([]);
     // Another workspace on the same server is another operation: none of the portal's tools (ADR 9001 §18).
@@ -81,7 +81,6 @@ describe("the portal's tools", () => {
     const builtIn = (name: string) => ({ name, scope: "" });
     expect(toolKind(builtIn(SEND_FOR_APPROVAL_TOOL)).kind).toBe("elsewhere");
     expect(toolKind(builtIn(PORTAL_CARD_TOOL)).kind).toBe("elsewhere");
-    expect(toolKind(builtIn(SCHEDULE_POST_TOOL)).kind).toBe("elsewhere");
     expect(toolKind(builtIn(SEND_NEW_VERSION_TOOL)).kind).toBe("elsewhere");
     expect(toolKind(builtIn(PORTAL_BOARD_TOOL)).kind).toBe("read");
     expect(toolKind(builtIn(PORTAL_WORK_TOOL)).kind).toBe("read");

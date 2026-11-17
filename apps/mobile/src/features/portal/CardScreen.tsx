@@ -186,7 +186,7 @@ function Stage({ stage }: { stage: PlanCard["stage"] }) {
 }
 
 /**
- * What a card not sent yet can do: go up for approval with its files, title, caption and date (asked first; why it
+ * What a card not sent yet can do: go up for approval with its files, title and caption, never a date (asked first; why it
  * can't, when its files don't make a post), and move between To do and In production. The send is followed to its
  * end on this screen: what the post still lacks, or the portal's own words when it refuses.
  */

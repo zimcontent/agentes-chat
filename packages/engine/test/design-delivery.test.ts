@@ -147,28 +147,19 @@ describe("design delivery", () => {
     expect(calls.filter((c) => c.startsWith("send")).length).toBe(1);
   });
 
-  test("approved for a `direct` client: approved at the portal and scheduled on the card's day", async () => {
+  test("approved for a `direct` client: approved at the portal, never scheduled, even with a day on the card", async () => {
     f = await setup({ rightHand: true });
     await setAfterApprove(f.db, f.org.id, "lexeer", "direct", f.owner.id);
     const { portal, calls } = fakePortal({ id: "card-7", date: "2099-11-18T10:00" });
     const id = await approvedPiece(portal, "card-7");
-    expect(await lastBody()).toContain("aprovado direto (sem aprovação do cliente) e agendado na data do cartão");
+    expect(await lastBody()).toContain("aprovado direto (sem aprovação do cliente), sem data: quem agenda é a equipe");
     await deliverDesign({ ...deps(portal), portal }, id, 1);
-    expect(calls.slice(-2)).toEqual(["edit item-9 approved", "schedule item-9 2099-11-18T10:00"]);
-    expect(await lastBody()).toBe(
-      "«Glenwood vendida» aprovado e agendado para 18/11/2099 às 10:00. https://portal.example/p/item-9",
-    );
-  });
-
-  test("`direct` with no day on the card: approved and ready, and the conversation is told what's missing", async () => {
-    f = await setup({ rightHand: true });
-    await setAfterApprove(f.db, f.org.id, "lexeer", "direct", f.owner.id);
-    const { portal, calls } = fakePortal({ id: "card-7", date: null });
-    const id = await approvedPiece(portal, "card-7");
-    await deliverDesign({ ...deps(portal), portal }, id, 1);
+    // Scheduling is a person's, at the Portal (ADR 9001, addendum 2026-11-17): the card's day schedules nothing.
     expect(calls).toContain("edit item-9 approved");
     expect(calls.some((c) => c.startsWith("schedule"))).toBe(false);
-    expect(await lastBody()).toContain("aprovado e pronto no portal, mas falta quando sai (o cartão não tem data)");
+    expect(await lastBody()).toBe(
+      "«Glenwood vendida» aprovado e pronto no portal. Quando sai é a equipe que decide: agende o post no Portal, com o dia e a hora. https://portal.example/p/item-9",
+    );
   });
 
   test("no portal on the server, or no client known: the agent delivers as before", async () => {

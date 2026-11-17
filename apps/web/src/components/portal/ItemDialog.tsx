@@ -1,30 +1,15 @@
 import type { PortalItem, PortalItemEdit } from "@agenteschat/client";
 import { useEditPortalItem } from "@agenteschat/client";
-import { portalDayOf, portalErrorText, portalSendDate, portalTimeOf } from "@agenteschat/client/lib/portal";
-import {
-  Button,
-  DatePicker,
-  Dialog,
-  DialogBody,
-  DialogFooter,
-  Field,
-  Input,
-  Locked,
-  Textarea,
-  TimeSelect,
-} from "@agenteschat/ui";
+import { portalErrorText } from "@agenteschat/client/lib/portal";
+import { Button, Dialog, DialogBody, DialogFooter, Field, Input, Locked, Textarea } from "@agenteschat/ui";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useOrg } from "@/components/org-context";
 import { useToast } from "@/lib/toast";
 
-/** The hour a date starts with when the post had none. */
-const DEFAULT_TIME = "09:00";
-
 /**
- * A post at the portal, completed or changed from here (ADR 9001): its title, caption and date. Only what changed
- * is sent. The date is the portal's own clock: read and written as the portal has it, never moved to this
- * browser's time zone.
+ * A post at the portal, completed or changed from here (ADR 9001): its title and caption. Only what changed is sent.
+ * Its date isn't here: a post gets one only when a person schedules it (ADR 9001, addendum 2026-11-17).
  */
 export function ItemDialog({ item, onClose }: { item: PortalItem | null; onClose: () => void }) {
   const { t } = useTranslation();
@@ -46,16 +31,12 @@ function ItemForm({ item, onClose }: { item: PortalItem; onClose: () => void }) 
   const { org } = useOrg();
   const toast = useToast();
   const edit = useEditPortalItem(org.id);
-  const was = { day: portalDayOf(item.scheduledFor), time: portalTimeOf(item.scheduledFor) ?? DEFAULT_TIME };
   const [title, setTitle] = useState(item.title);
   const [caption, setCaption] = useState(item.caption);
-  const [day, setDay] = useState<string | null>(was.day);
-  const [time, setTime] = useState(was.time);
   const [error, setError] = useState<string | null>(null);
   const changes: PortalItemEdit = {
     ...(title.trim() !== item.title ? { title: title.trim() } : {}),
     ...(caption !== item.caption ? { caption } : {}),
-    ...(day !== was.day || (day && time !== was.time) ? { scheduledFor: day ? portalSendDate(day, time) : null } : {}),
   };
   const ready = title.trim().length > 0 && Object.keys(changes).length > 0;
   const submit = () => {
@@ -88,29 +69,6 @@ function ItemForm({ item, onClose }: { item: PortalItem; onClose: () => void }) 
           <Field label={t("portal.form.caption")}>
             <Textarea value={caption} rows={4} maxLength={5000} onChange={(e) => setCaption(e.target.value)} />
           </Field>
-          <div className="portal-form__pair">
-            <Field label={t("portal.form.date")}>
-              <DatePicker
-                value={day}
-                short
-                onChange={setDay}
-                onClear={() => setDay(null)}
-                locale={i18n.language}
-                placeholder={t("portal.empty.noDate")}
-                labels={{
-                  previousMonth: t("common.previousMonth"),
-                  nextMonth: t("common.nextMonth"),
-                  choose: t("common.chooseDate"),
-                  clear: t("portal.empty.noDate"),
-                }}
-              />
-            </Field>
-            {day && (
-              <Field label={t("portal.form.time")}>
-                <TimeSelect value={time} onChange={setTime} />
-              </Field>
-            )}
-          </div>
           {/* The portal's own refusal, as it said it. */}
           {error && (
             <p className="ac-field__error" role="alert">

@@ -68,8 +68,6 @@ const EDITOR_VIDEO = /\.(mp4|m4v|mov|webm|mkv)$/i;
 const PICTURE = /\.(jpe?g|png|webp)$/i;
 /** The most a caption says (Instagram's own limit). */
 export const POST_CAPTION_CHARS = 2200;
-/** `YYYY-MM-DDTHH:MM`: a day and an hour, what the portal schedules at. */
-const WHEN = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/;
 /** The stages after the client's approval (ADR 9001 §2): the final is kept from the first of them on. */
 const CLIENT_APPROVED = ["approved", "scheduled", "posted"];
 
@@ -594,12 +592,6 @@ async function setDelivery(db: Database, reviewId: string, delivery: DesignDeliv
   await db.update(videoReviews).set({ delivery, updatedAt: new Date() }).where(eq(videoReviews.id, reviewId));
 }
 
-const day = (when: string) => {
-  const [date, time] = when.split("T");
-  const [y, m, d] = (date ?? "").split("-");
-  return `${d}/${m}${y ? `/${y}` : ""}${time ? ` às ${time.slice(0, 5)}` : ""}`;
-};
-
 /** A name for the file at the portal and in the backup: the post's title, in letters it keeps. */
 const fileName = (title: string, ext: string) =>
   `${
@@ -622,7 +614,7 @@ async function waitFor(portal: ApprovalPortal, job: PortalJob) {
 
 /**
  * Job `editor_delivery.send`. `post`: the approved video goes to the client's approval with its cover and caption, or,
- * for a client whose approval is the team's, straight to approved and scheduled for its card's day. `version`: the new
+ * for a client whose approval is the team's, straight to approved (a person schedules it). `version`: the new
  * version of a post the client sent back goes to them at once.
  */
 export async function runEditorSend(
@@ -758,43 +750,24 @@ export async function runEditorSend(
     );
     return;
   }
-  // Direct: the team's approval is the last one, so the post is approved, scheduled for its card's day, and final.
+  // Direct: the team's approval is the last one, so the post is approved and final. Scheduling it is the team's, by
+  // hand, at the Portal: never the card's date on its own (ADR 9001, addendum 2026-11-17).
   await portal.editItem(client, job.item, { status: "approved" }, by?.name ?? undefined);
-  const when = card?.date && WHEN.test(card.date) ? card.date.slice(0, 16) : null;
-  if (when && new Date(when) > new Date()) {
-    await portal.scheduleItem(client, job.item, when, by?.name ?? undefined);
-    await setDelivery(deps.db, review.id, {
-      state: "scheduled",
-      job: job.id,
-      item: job.item,
-      link: job.link,
-      when,
-      at: now(),
-    });
-    await line(
-      deps,
-      review,
-      "assistant",
-      `«${review.title}» aprovado e agendado para ${day(when)}.${link}`,
-      "delivered",
-    );
-  } else {
-    await setDelivery(deps.db, review.id, {
-      state: "approved",
-      job: job.id,
-      item: job.item,
-      link: job.link,
-      when: null,
-      at: now(),
-    });
-    await line(
-      deps,
-      review,
-      "assistant",
-      `«${review.title}» aprovado e pronto no portal, mas falta quando sai (${card?.date ? `o cartão diz ${day(card.date)}, sem uma hora no futuro` : "o cartão não tem data"}). Agende no Portal.${link}`,
-      "delivered",
-    );
-  }
+  await setDelivery(deps.db, review.id, {
+    state: "approved",
+    job: job.id,
+    item: job.item,
+    link: job.link,
+    when: null,
+    at: now(),
+  });
+  await line(
+    deps,
+    review,
+    "assistant",
+    `«${review.title}» aprovado e pronto no portal. Quando sai é a equipe que decide: agende no Portal, com o dia e a hora.${link}`,
+    "delivered",
+  );
   await queueFinal(deps.db, review.orgId, review.id);
 }
 

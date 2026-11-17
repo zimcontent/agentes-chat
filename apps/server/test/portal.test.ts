@@ -185,8 +185,12 @@ test("a send reads the Drive files, hands them over in order and finishes the ca
   ]);
   // The card it finished stays, tied to the post, which is on the board, waiting for the client.
   expect((await portal.cards()).map((c) => c.item)).toEqual([job.item]);
-  const board = (await (await api("/portal/clients/acme")).json()) as { items: { approval: { id: string }[] } };
+  const board = (await (await api("/portal/clients/acme")).json()) as {
+    items: { approval: { id: string; scheduledFor: string | null }[] };
+  };
   expect(board.items.approval.map((i) => i.id)).toEqual([job.item]);
+  // The date an older app still sends is dropped: a post goes to the client without one (ADR 9001, addendum 2026-11-17).
+  expect(board.items.approval[0]?.scheduledFor).toBeNull();
   expect(((await (await api(`/portal/jobs/${job.id}`)).json()) as { job: { id: string } }).job.id).toBe(job.id);
 
   // Asked again with the same key: the same job, nothing sent twice.
@@ -211,10 +215,24 @@ test("a post is completed at the portal; the portal's refusal comes back in its 
   const { api } = await start(portal);
   const edited = await api("/portal/clients/acme/items/up-9", {
     method: "PATCH",
-    json: { caption: "New caption", scheduledFor: "2026-12-03T09:00:00-03:00" },
+    json: { caption: "New caption", scheduledFor: null },
   });
   expect(edited.status).toBe(204);
-  expect(portal.edits[0]).toMatchObject({ client: "acme", item: "up-9", edit: { caption: "New caption" } });
+  expect(portal.edits[0]).toMatchObject({
+    client: "acme",
+    item: "up-9",
+    edit: { caption: "New caption", scheduledFor: null },
+  });
+  // A date is only cleared here, and nothing turns a post scheduled or posted: a person schedules it (ADR 9001,
+  // addendum 2026-11-17).
+  for (const json of [
+    { scheduledFor: "2026-12-03T09:00:00-03:00" },
+    { status: "scheduled" },
+    { status: "published" },
+  ]) {
+    expect((await api("/portal/clients/acme/items/up-9", { method: "PATCH", json })).status).toBe(400);
+  }
+  expect(portal.edits).toHaveLength(1);
 
   portal.fail(400, "status must be one of the portal's");
   const refused = await api("/portal/clients/acme/items/up-9", { method: "PATCH", json: { status: "approved" } });
