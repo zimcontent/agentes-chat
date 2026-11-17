@@ -1071,6 +1071,21 @@ export function Sidebar() {
     : [];
   const summary = headCounts.length > 0 ? headCounts.join(" · ") : null;
 
+  const heroRow =
+    hero.length > 0 ? (
+      <PinnedHero
+        agents={hero}
+        unreadOf={(id) => dmOf.get(id)?.unread ?? 0}
+        onPrefetch={(id) => {
+          const dm = dmOf.get(id);
+          if (dm) prefetch(dm.channelId);
+        }}
+        onOpen={(id) => markOpen(dmOf.get(id)?.channelId ?? id)}
+        drag={organize ? (id) => (id === rightHand?.id ? undefined : drag.row(id)) : undefined}
+        menuExtra={(a) => (isRightHand(a) ? [] : [...hideEntry(a), ...(manages ? groupEntries(a) : [])])}
+      />
+    ) : null;
+
   return (
     <nav
       className="sidebar"
@@ -1145,19 +1160,6 @@ export function Sidebar() {
               </div>
             )}
             {!rail && toolRows}
-            {hero.length > 0 && (
-              <PinnedHero
-                agents={hero}
-                unreadOf={(id) => dmOf.get(id)?.unread ?? 0}
-                onPrefetch={(id) => {
-                  const dm = dmOf.get(id);
-                  if (dm) prefetch(dm.channelId);
-                }}
-                onOpen={(id) => markOpen(dmOf.get(id)?.channelId ?? id)}
-                drag={organize ? (id) => (id === rightHand?.id ? undefined : drag.row(id)) : undefined}
-                menuExtra={(a) => (isRightHand(a) ? [] : [...hideEntry(a), ...(manages ? groupEntries(a) : [])])}
-              />
-            )}
           </>
         )}
       </div>
@@ -1172,6 +1174,9 @@ export function Sidebar() {
         onKeyDown={(e) => spaceEvent(e) && sidebarMenu.onKeyDown(e)}
         onContextMenu={(e) => spaceEvent(e) && sidebarMenu.onContextMenu(e)}
       >
+        {/* DougBot: the pinned faces lead the list and scroll away with it (like a chat app's pinned chats), so the
+            list below gets the room. */}
+        {heroRow}
         {sectionOrder.order.filter((id) => blocks[id]).map((id) => sectionOrder.block(id, blocks[id], !rail))}
       </div>
 
