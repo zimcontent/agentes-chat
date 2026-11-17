@@ -237,7 +237,12 @@ export function ConsultationDialog({
             <div className="ac-consult__body ac-consult__body--inline consult-answer">
               <small>{t("chat.consultation.answerOf", { name: to.name, context: to.context })}</small>
               <div className="ac-consult__text">
-                <MessageBody body={c.answer} resolveMention={dir.mentionName} mentionTone={dir.mentionTone} />
+                <MessageBody
+                  body={c.answer}
+                  resolveMention={dir.mentionName}
+                  mentionTone={dir.mentionTone}
+                  mentionWho={dir.mentionWho}
+                />
               </div>
             </div>
           )}
