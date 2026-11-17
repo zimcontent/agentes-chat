@@ -66,7 +66,8 @@ function fromDoug(scheme: Scheme): AppColors {
     ink: t.texto,
     ink2: dark ? "#D4D4D4" : "#1F211C",
     muted: t.texto2,
-    faint: t.texto3,
+    // The quiet words at 4.6:1 on the dark stage (the site's `--db-texto-leve`); the identity's #6B6B6B stays for marks.
+    faint: dark ? "#8A8A8A" : t.texto3,
     focusColor: t.verdeTexto,
     agent: t.texto,
     agent2: t.texto2,

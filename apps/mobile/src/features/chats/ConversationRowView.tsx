@@ -10,7 +10,7 @@ import { Platform, StyleSheet, View } from "react-native";
 import { GroupPhoto } from "@/features/shared/GroupPhoto";
 import { TAB_BADGE } from "@/lib/nav";
 import { useOrg } from "@/providers/org";
-import { Count, LIST_AVATAR, LIST_PREVIEW, LineIcon, ListRow, PixelOrbit, Text } from "@/ui";
+import { COMPACT_AVATAR, Count, LIST_AVATAR, LIST_PREVIEW, LineIcon, ListRow, PixelOrbit, Text } from "@/ui";
 import { router } from "@/ui/navigation";
 import { workTitle } from "../agents/work";
 import type { RowAction } from "../categories/menus";
@@ -20,7 +20,6 @@ import { chatHref } from "../links/logic";
 import { AgentFace, Face } from "../shared/Face";
 import { useColors, useDirectory, useNow, useWhen } from "../shared/hooks";
 import { agentLook } from "../shared/logic";
-import { Tile } from "../shared/parts";
 import { useAgentWorkLine, usePresenceOf } from "../status/hooks";
 import { type ConversationRow, type LastLine, rowBadge, threadRowLines } from "./logic";
 import type { AgentRowState } from "./now";
@@ -55,6 +54,7 @@ export const ConversationRowView = memo(function ConversationRowView({
   onOpen,
   pinned = false,
   holdActions,
+  compact = false,
 }: {
   row: ConversationRow;
   /** A hairline above (every row but the first). */
@@ -78,6 +78,8 @@ export const ConversationRowView = memo(function ConversationRowView({
   onOpen?: () => void;
   /** The long press's actions for iOS's own menu under the preview (`onHold`'s sheet elsewhere). */
   holdActions?: (row: ConversationRow) => RowAction[];
+  /** Inside Início's panel: the compact row (a 44 face). */
+  compact?: boolean;
 }) {
   const { t, i18n } = useTranslation();
   const dir = useDirectory();
@@ -85,6 +87,7 @@ export const ConversationRowView = memo(function ConversationRowView({
   const when = useWhen();
   const presenceOf = usePresenceOf();
   const { org } = useOrg();
+  const avatar = compact ? COMPACT_AVATAR : AVATAR;
   const lastText = (last: LastLine | null) => {
     if (!last) return { who: "", text: "" };
     const who = last.name || (last.author ? dir.nameOf(last.author) : "");
@@ -127,20 +130,20 @@ export const ConversationRowView = memo(function ConversationRowView({
       agentDm ? (
         <AgentFace
           agentId={r.with.id}
-          size={AVATAR - 2}
+          size={avatar - 2}
           mode={away ? "rest" : working ? "run" : "idle"}
           live={live}
           presence
         />
       ) : (
-        <Face who={{ type: r.with.type, id: r.with.id }} size={AVATAR} live={false} presence />
+        <Face who={{ type: r.with.type, id: r.with.id }} size={avatar} live={false} presence />
       )
     ) : r.kind === "mission" && r.mission ? (
-      <AgentFace agentId={r.mission.agentId} size={AVATAR - 2} mode={working ? "run" : "idle"} live={live} />
+      <AgentFace agentId={r.mission.agentId} size={avatar - 2} mode={working ? "run" : "idle"} live={live} />
     ) : r.kind === "thread" || r.kind === "mission" ? (
-      <Face who={r.face} size={r.face.type === "agent" ? AVATAR - 2 : AVATAR} live={live} />
+      <Face who={r.face} size={r.face.type === "agent" ? avatar - 2 : avatar} live={live} />
     ) : (
-      <GroupPhoto icon={r.kind === "channel" ? r.icon : null} size={AVATAR} />
+      <GroupPhoto icon={r.kind === "channel" ? r.icon : null} size={avatar} />
     );
   // A thread on a GIF or a sticker has no words of its own to title it (ADR 0091).
   const name =
@@ -361,6 +364,7 @@ export const ConversationRowView = memo(function ConversationRowView({
       accessibilityRole="button"
       accessibilityLabel={a11y}
       divider={divider}
+      compact={compact}
       unread={r.unread > 0}
       leading={leading}
       title={name}

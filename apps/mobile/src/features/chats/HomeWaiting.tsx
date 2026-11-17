@@ -2,7 +2,7 @@ import { useAgentStatuses } from "@agenteschat/client";
 import { workTime } from "@agenteschat/client/lib/agent-work";
 import { canTalk } from "@agenteschat/client/lib/audience";
 import { useTranslation } from "react-i18next";
-import { LIST_AVATAR, ListRow } from "@/ui";
+import { COMPACT_AVATAR, ListRow } from "@/ui";
 import { router } from "@/ui/navigation";
 import { chatHref } from "../links/logic";
 import { useOpenDm } from "../new/useOpenDm";
@@ -55,7 +55,7 @@ export function HomeWaiting({ collapsed, onToggle }: { collapsed: boolean; onTog
   const open = ({ agentId, work }: WaitingAgent) =>
     work.channelId ? router.push(chatHref(work.channelId, work.threadId)) : void openDm({ agentId });
   return (
-    <CollapsibleSection title={w.title} count={waiting.length} collapsed={collapsed} onToggle={onToggle}>
+    <CollapsibleSection title={w.title} count={waiting.length} collapsed={collapsed} onToggle={onToggle} panel>
       {shown.map((item, i) => {
         const name = dir.agentById.get(item.agentId)?.name ?? "";
         const text = item.work.ask === "approval" ? w.approval(name) : w.answer(name);
@@ -63,10 +63,11 @@ export function HomeWaiting({ collapsed, onToggle }: { collapsed: boolean; onTog
         return (
           <ListRow
             key={item.agentId}
-            leading={<AgentFace agentId={item.agentId} size={LIST_AVATAR - 2} presence />}
+            leading={<AgentFace agentId={item.agentId} size={COMPACT_AVATAR - 4} presence />}
             title={text}
             // A long name still leaves the verb in sight: the line may take two.
             titleLines={2}
+            compact
             time={time}
             divider={i > 0}
             chevron

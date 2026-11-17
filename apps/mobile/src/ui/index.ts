@@ -64,7 +64,15 @@ export { InfoHint, type InfoHintOptions } from "./InfoHint";
 export { ICON_NAMES } from "./icons.data";
 export { LargeTitleScreen, type LargeTitleScreenProps, TabFoot } from "./LargeTitleScreen";
 export { LineIcon, type LineIconProps } from "./LineIcon";
-export { LIST_AVATAR, LIST_INSET, LIST_PREVIEW, LIST_TIME, ListRow, type ListRowProps } from "./ListRow";
+export {
+  COMPACT_AVATAR,
+  LIST_AVATAR,
+  LIST_INSET,
+  LIST_PREVIEW,
+  LIST_TIME,
+  ListRow,
+  type ListRowProps,
+} from "./ListRow";
 export { Locked } from "./Locked";
 export { LogoMark } from "./LogoMark";
 export { MediaRow, type MediaRowProps } from "./MediaRow";

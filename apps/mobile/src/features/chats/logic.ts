@@ -600,3 +600,20 @@ export function serverTrouble(input: {
   if (problem === "unreachable" && !input.tailnet) return { kind: "down" };
   return { kind: "problem", problem };
 }
+
+/**
+ * What the pinned Doug says on Início (docs/adr/doug-0016-doug-pinned.md): how many agents are working now and how
+ * many decisions wait on you. The waiting count is the same list Pendentes counts, so the two never disagree.
+ */
+export function dougCardLine({ waiting, working }: { waiting: number; working: number }): {
+  waiting: number;
+  working: number;
+} {
+  return { waiting: Math.max(0, waiting), working: Math.max(0, working) };
+}
+
+/** Agentes' rows without the right hand's conversation while Doug is pinned above the list. */
+export function withoutPinnedAgent(rows: ConversationRow[], agentId: string | undefined): ConversationRow[] {
+  if (!agentId) return rows;
+  return rows.filter((r) => !(r.kind === "dm" && r.with.type === "agent" && r.with.id === agentId));
+}
