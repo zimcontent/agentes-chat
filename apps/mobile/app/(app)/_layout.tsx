@@ -159,8 +159,10 @@ function AppStack() {
       <Stack.Screen name="search" options={{ ...pushed, ...scrollUnder }} />
       {/* WhatsApp (docs/adr/doug-0001-whatsapp-numbers.md): the numbers from Início, a number's conversations, one. */}
       <Stack.Screen name="whatsapp/index" options={{ ...pushed, ...scrollUnder }} />
-      <Stack.Screen name="whatsapp/[account]" options={{ ...pushed, ...scrollUnder }} />
-      <Stack.Screen name="whatsapp/chat" options={pushed} />
+      {/* A number's list and a conversation draw WhatsApp's own bars, the app's round back in them. */}
+      <Stack.Screen name="whatsapp/[account]" options={{ ...pushed, headerShown: false }} />
+      <Stack.Screen name="whatsapp/chat" options={{ ...pushed, headerShown: false }} />
+      <Stack.Screen name="whatsapp/new" options={formSheet} />
       {/* Mídia (docs/adr/doug-0011): the gallery from Início, a new generation, one generation. */}
       <Stack.Screen name="media/index" options={{ ...pushed, ...scrollUnder }} />
       <Stack.Screen name="media/new" options={{ ...pushed, ...scrollUnder }} />
