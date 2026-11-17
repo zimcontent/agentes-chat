@@ -134,3 +134,4 @@ export {
   weights,
 } from "./theme";
 export { CHROME_MAX_SCALE, countStyle, type TypeStyle, typeScale } from "./type-scale";
+export { useTapAway } from "./useTapAway";
