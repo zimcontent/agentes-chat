@@ -6,6 +6,7 @@ import { SvgXml } from "react-native-svg";
 import type { AgentLookInput } from "@/agent/looks";
 import { botDoAgente, corDoBot } from "@/brand/bots";
 import { DB_FONTES } from "@/brand/tokens";
+import { AgentCallView } from "@/features/call/AgentCallView";
 import { HeaderPill } from "@/features/chat/HeaderPill";
 import { DougPinnedCard, useDougWords } from "@/features/chats/DougPinnedCard";
 import { GlanceCard } from "@/features/chats/HomeGlance";
@@ -371,6 +372,45 @@ function Inicio() {
       </CollapsibleSection>
       <View style={{ height: 8, backgroundColor: colors.bg }} />
     </Frame>
+  );
+}
+
+/** A call with Doug (docs/adr/doug-0006-live-voice.md): talking with captions, or ringing. */
+function Ligacao({ ringing = false }: { ringing?: boolean }) {
+  const noop = () => {};
+  return (
+    <AgentCallView
+      name="Doug"
+      face={(size) => <AgentAvatar agent={DOUG} size={size} mode={ringing ? "idle" : "run"} name="Doug" />}
+      since="0:48"
+      connecting={ringing}
+      failed={null}
+      level={0.4}
+      caption={
+        ringing
+          ? null
+          : {
+              who: "agent",
+              text: "Agora a proposta da Connor & Michelle: conferi preço e prazo, está tudo certo. Posso mandar?",
+            }
+      }
+      micOn
+      speaker={false}
+      onMinimize={noop}
+      onMic={noop}
+      onSpeaker={noop}
+      onWrite={noop}
+      onHangUp={noop}
+      hangUpWord="Desligar"
+      micWords={{ on: "Mudo", off: "Mudo", turnOff: "Desligar o microfone", turnOn: "Ligar o microfone" }}
+      speakerWords={{
+        speaker: "Alto-falante",
+        earpiece: "Fone",
+        toSpeaker: "Usar o alto-falante",
+        toEarpiece: "Usar o fone",
+      }}
+      minimizeLabel="Continuar trabalhando"
+    />
   );
 }
 
@@ -970,6 +1010,8 @@ export const TELAS: Record<string, () => ReactNode> = {
   login: Login,
   servidor: Servidor,
   inicio: Inicio,
+  ligacao: () => <Ligacao />,
+  chamando: () => <Ligacao ringing />,
   abas: Agentes,
   dm: Dm,
   grupo: Grupo,
