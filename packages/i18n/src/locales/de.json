@@ -1624,6 +1624,10 @@
     "openComputer": "Computer öffnen",
     "linkCopied": "Link kopiert.",
     "saveToWiki": "Im Wiki speichern",
+    "makeTask": "Aufgabe erstellen",
+    "taskMade": "Aufgabe #{{number}} erstellt. Die Unterhaltung bleibt hier und erscheint in der Aufgabe.",
+    "taskHeld": "Diese Unterhaltung ist schon Aufgabe #{{number}}.",
+    "openTask": "Aufgabe öffnen",
     "pin": "Nachricht anheften",
     "unpin": "Nachricht lösen",
     "pinned": "Nachricht angeheftet.",
@@ -1775,29 +1779,47 @@
     "readyOne": "Vorgefertigt",
     "use": "Dieses Symbol verwenden",
     "inUse": "In Verwendung",
-    "sky": "Hintergrund",
+    "ground": "Hintergrund",
+    "grounds": {
+      "day": "Tag",
+      "night": "Nacht"
+    },
     "pose": "Haltung",
     "poses": {
       "front": "Von vorn",
       "peek": "Neugierig"
     },
-    "peekBare": "Neugierig trägt er kein Accessoire.",
-    "expression": "Gesichtsausdruck",
-    "ready": "Vorgefertigte",
-    "oneOrOther": "Mit einem Accessoire bleibt der Ausdruck der normale.",
-    "faces": {
-      "wink": "Zwinkern",
-      "heart": "Herzen",
-      "star": "Sterne",
-      "surprised": "Überrascht",
-      "angry": "Wütend"
+    "color": "Farbe",
+    "colors": {
+      "green": "Grün",
+      "yellow": "Gelb",
+      "orange": "Orange",
+      "pink": "Pink",
+      "violet": "Flieder",
+      "blue": "Blau",
+      "cyan": "Cyan",
+      "white": "Weiß"
     },
+    "expression": "Gesichtsausdruck",
+    "faces": {
+      "normal": "Normal",
+      "happy": "Fröhlich",
+      "wink": "Zwinkernd",
+      "surprised": "Überrascht",
+      "unimpressed": "Skeptisch",
+      "sad": "Traurig",
+      "angry": "Wütend",
+      "aside": "Zur Seite",
+      "laugh": "Lachend",
+      "asleep": "Schlafend"
+    },
+    "ready": "Vorgefertigte",
     "names": {
-      "night": "Nacht",
-      "moon": "Mond",
-      "sky": "Himmel",
-      "peekNight": "Neugierig bei Nacht",
-      "peekSky": "Neugierig am Himmel"
+      "night": "Doug",
+      "moon": "Gute Nacht",
+      "sky": "Weiß",
+      "peekNight": "Neugierig",
+      "peekSky": "Zwinkern"
     }
   },
   "legal": {
@@ -2077,7 +2099,7 @@
     "routines": "Routinen",
     "team": "Team",
     "dashboards": "Dashboards",
-    "taskManager": "Task-Manager",
+    "taskManager": "Agentenaktivität",
     "calendar": "Kalender",
     "drive": "Drive",
     "members": "Mitglieder",
@@ -7828,6 +7850,14 @@
     }
   },
   "issues": {
+    "missions": {
+      "back": "Zurück zu Aufgaben",
+      "running_one": "{{count}} Mission läuft",
+      "running_other": "{{count}} Missionen laufen",
+      "waiting_one": "{{count}} wartet auf dich",
+      "waiting_other": "{{count}} warten auf dich",
+      "see": "Missionen ansehen"
+    },
     "delete": {
       "action": "Aufgabe löschen",
       "title": "Aufgabe #{{number}} löschen?",
@@ -8923,7 +8953,7 @@
       "declined": "Anfrage von {{name}} abgelehnt."
     },
     "title": "Missionen",
-    "subtitle": "Lange Arbeit eines Agenten auf seinem Computer, in einem Thread.",
+    "subtitle": "Lange Arbeit eines Agenten, mit Plan und Schritten.",
     "search": "Missionen suchen",
     "online": "online",
     "offline": "offline",
@@ -9594,8 +9624,14 @@
     "waitingCloud": "Missionen starten, sobald {{computer}} bereit ist."
   },
   "threads": {
+    "task": {
+      "button": "Aufgabe #{{number}}",
+      "open": "Aufgabe #{{number}} öffnen ({{status}})",
+      "make": "Aus dieser Unterhaltung eine Aufgabe machen",
+      "makeHint": "Die Unterhaltung bleibt hier und erscheint in der Aufgabe."
+    },
     "title": "Threads",
-    "subtitle": "Themen, die aus Kanälen und Direktnachrichten herausgelöst wurden.",
+    "subtitle": "Unterhaltungen in Threads. Was zu tun ist, steht in Aufgaben.",
     "tabsLabel": "Thread-Filter",
     "tabs": {
       "all": "Alle",
@@ -9661,7 +9697,7 @@
     },
     "empty": {
       "missionsTitle": "Noch keine Missionen",
-      "missions": "Eine Mission ist ein Thread mit einem Plan, Entscheidungen und der Arbeit eines Agenten auf seinem Computer.",
+      "missions": "Eine Mission ist die lange Arbeit eines Agenten, mit Plan, Entscheidungen und Schritten.",
       "allTitle": "Jedes Thema in seiner eigenen Unterhaltung",
       "all": "Antworte auf eine Nachricht, um einen Thread zu öffnen, und der Kanal bleibt übersichtlich.",
       "workingTitle": "Gerade arbeitet kein Agent",
@@ -9722,6 +9758,8 @@
       "reply": "Antworten",
       "replies_one": "{{count}} Antwort",
       "replies_other": "{{count}} Antworten",
+      "taskReplies_one": "Aufgabe #{{number}} · {{count}} Antwort",
+      "taskReplies_other": "Aufgabe #{{number}} · {{count}} Antworten",
       "closed_one": "Thread geschlossen · {{title}} · {{count}} Nachricht",
       "closed_other": "Thread geschlossen · {{title}} · {{count}} Nachrichten",
       "archived_one": "{{count}} archivierter Thread wird hier nicht angezeigt",
@@ -10508,10 +10546,10 @@
       "removeCopies": "Entfernen",
       "copiesRemoved_one": "{{count}} ungenutzte Anmeldung entfernt.",
       "copiesRemoved_other": "{{count}} ungenutzte Anmeldungen entfernt.",
-      "removeAllDone": "{{n}} Grok-Anmeldungen entfernt.",
-      "removeAllText": "Sie denken dann für ihre Agenten auf {{computers}} nicht mehr mit. Anmeldungen anderer Personen bleiben unangetastet.",
-      "removeAllTitle": "Alle {{n}} Grok-Anmeldungen entfernen?",
       "removeAllGrok": "Alle Grok-Anmeldungen entfernen",
+      "removeAllTitle": "Alle {{n}} Grok-Anmeldungen entfernen?",
+      "removeAllText": "Sie denken dann für ihre Agenten auf {{computers}} nicht mehr mit. Anmeldungen anderer Personen bleiben unangetastet.",
+      "removeAllDone": "{{n}} Grok-Anmeldungen entfernt.",
       "disconnect": "Trennen",
       "renameTitle": "{{label}} umbenennen",
       "nameLabel": "Name",
@@ -19354,10 +19392,10 @@
     "allWaiting_one": "{{count}} Sache wartet auf dich",
     "allWaiting_other": "Alle {{count}} Sachen warten auf dich",
     "actions": "Weitere Aktionen",
-    "openManager": "Task-Manager öffnen"
+    "openManager": "Agentenaktivität öffnen"
   },
   "taskManager": {
-    "title": "Task-Manager",
+    "title": "Agentenaktivität",
     "subtitle": "Was die Agenten gerade tun und was heute fertig wurde.",
     "search": "Aufgabe, Agent oder App suchen",
     "working_one": "{{count}} in Arbeit",
@@ -19464,7 +19502,7 @@
       "stopAll": "Alle stoppen",
       "stopAllOf": "Alles von {{name}} stoppen",
       "open": "In der Unterhaltung öffnen",
-      "openManager": "Im Task-Manager öffnen"
+      "openManager": "In der Agentenaktivität öffnen"
     },
     "confirm": {
       "chainTitle_one": "{{name}} und {{count}} Helfer stoppen?",

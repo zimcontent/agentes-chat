@@ -692,9 +692,11 @@ export function applyThreadEvent(
   if (event.change === "deleted") qc.removeQueries({ queryKey: one });
   else if (event.thread) {
     const fresh = event.thread;
-    // The event leaves out what is only mine: my `canManage`, following it and its unread for me stay.
+    // The event leaves out what is only mine: my `canManage`, following it, its unread and its task for me stay.
     qc.setQueryData<ThreadInfo>(one, (old) =>
-      old ? { ...fresh, canManage: old.canManage, following: old.following, unread: old.unread } : undefined,
+      old
+        ? { ...fresh, canManage: old.canManage, following: old.following, unread: old.unread, task: old.task }
+        : undefined,
     );
     if (!qc.getQueryData(one)) void qc.invalidateQueries({ queryKey: one });
   } else void qc.invalidateQueries({ queryKey: one });

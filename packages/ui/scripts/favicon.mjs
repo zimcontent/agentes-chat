@@ -1,5 +1,6 @@
 // The agent's mark as an SVG, from the agent engine: `node packages/ui/scripts/favicon.mjs`. It is the boot screen's
-// picture and the app's logo for connectors; the tab's icon is favicon.ico, from app-icons.mjs (ADR 0179).
+// picture and the app's logo for connectors; the tab's icon is the Doug (favicon.svg; favicon.ico
+// from apps/mobile/scripts/app-icons.ts, ADR 0179).
 import { writeFileSync } from "node:fs";
 import { bodyPath, bodySvg, eyeShapes } from "../src/agent/engine.js";
 

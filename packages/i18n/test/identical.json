@@ -332,7 +332,9 @@
       "portal.home.produce",
       "portal.home.scheduled",
       "portal.home.viewList",
-      "ronda.title"
+      "ronda.title",
+      "appIcon.faces.normal",
+      "appIcon.names.night"
     ],
     "es": [
       "mediaGen.audioKind",
@@ -622,7 +624,10 @@
       "portal.home.scheduled",
       "portal.home.viewList",
       "look.shapes.monitor",
-      "ronda.title"
+      "ronda.title",
+      "appIcon.color",
+      "appIcon.faces.normal",
+      "appIcon.names.night"
     ],
     "fr": [
       "mediaGen.audioKind",
@@ -1093,7 +1098,11 @@
       "portal.home.produce",
       "portal.home.scheduled",
       "portal.home.viewList",
-      "portal.home.clients"
+      "portal.home.clients",
+      "appIcon.colors.orange",
+      "appIcon.colors.cyan",
+      "appIcon.faces.normal",
+      "appIcon.names.night"
     ],
     "de": [
       "mediaGen.audioKind",
@@ -1590,7 +1599,12 @@
       "portal.home.scheduled",
       "portal.home.viewList",
       "portal.home.person",
-      "look.shapes.monitor"
+      "look.shapes.monitor",
+      "appIcon.colors.orange",
+      "appIcon.colors.pink",
+      "appIcon.colors.cyan",
+      "appIcon.faces.normal",
+      "appIcon.names.night"
     ],
     "it": [
       "mediaGen.audioKind",
@@ -2004,7 +2018,8 @@
       "portal.home.scheduled",
       "portal.home.viewList",
       "look.shapes.monitor",
-      "ronda.title"
+      "ronda.title",
+      "appIcon.names.night"
     ],
     "nl": [
       "mediaGen.audioKind",
@@ -2653,7 +2668,8 @@
       "portal.home.produce",
       "portal.home.scheduled",
       "portal.home.viewList",
-      "look.shapes.monitor"
+      "look.shapes.monitor",
+      "appIcon.names.night"
     ],
     "ja": [
       "channel.tooLong.fileName",
@@ -2855,7 +2871,8 @@
       "portal.home.pipeline",
       "portal.home.produce",
       "portal.home.scheduled",
-      "portal.home.viewList"
+      "portal.home.viewList",
+      "appIcon.names.night"
     ],
     "ko": [
       "channel.tooLong.fileName",
@@ -3051,7 +3068,8 @@
       "portal.home.pipeline",
       "portal.home.produce",
       "portal.home.scheduled",
-      "portal.home.viewList"
+      "portal.home.viewList",
+      "appIcon.names.night"
     ],
     "zh-Hans": [
       "channel.tooLong.fileName",
@@ -3238,7 +3256,8 @@
       "portal.home.pipeline",
       "portal.home.produce",
       "portal.home.scheduled",
-      "portal.home.viewList"
+      "portal.home.viewList",
+      "appIcon.names.night"
     ],
     "id": [
       "mediaGen.audioKind",
@@ -3586,7 +3605,8 @@
       "portal.home.produce",
       "portal.home.scheduled",
       "portal.home.viewList",
-      "look.shapes.monitor"
+      "look.shapes.monitor",
+      "appIcon.names.night"
     ],
     "tr": [
       "mediaGen.nVideos",
@@ -3810,7 +3830,9 @@
       "portal.home.pipeline",
       "portal.home.produce",
       "portal.home.scheduled",
-      "portal.home.viewList"
+      "portal.home.viewList",
+      "appIcon.faces.normal",
+      "appIcon.names.night"
     ],
     "pl": [
       "mediaGen.audioKind",
@@ -4146,7 +4168,8 @@
       "portal.home.produce",
       "portal.home.scheduled",
       "portal.home.viewList",
-      "look.shapes.monitor"
+      "look.shapes.monitor",
+      "appIcon.names.night"
     ],
     "ru": [
       "channel.tooLong.fileName",
@@ -4333,7 +4356,8 @@
       "portal.home.pipeline",
       "portal.home.produce",
       "portal.home.scheduled",
-      "portal.home.viewList"
+      "portal.home.viewList",
+      "appIcon.names.night"
     ]
   },
   "mobile-base": {

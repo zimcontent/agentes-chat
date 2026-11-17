@@ -237,6 +237,29 @@ describe("WhatsApp over HTTP", () => {
     expect((await api(`/accounts/${account.id}/files`, { method: "POST", body: none })).status).toBe(400);
   });
 
+  test("a direction typed in the settings comes back as the whole instructions, nothing saved", async () => {
+    const { api, agentId } = await start(createFakeWhatsAppGateway(), () => ({
+      chunks: [JSON.stringify({ instructions: "# Atendimento\n- Nunca fale de preço." })],
+    }));
+    const account = (await (await api("/accounts", { json: { label: "Comercial" } })).json()) as Account;
+    const draft = (text: string) => {
+      const form = new FormData();
+      form.set("text", text);
+      form.set("current", "# Atendimento");
+      return api(`/accounts/${account.id}/instructions/draft`, { method: "POST", body: form });
+    };
+    // No agent on the number yet: nothing to write for.
+    expect((await draft("não fale de preço")).status).toBe(409);
+    await api(`/accounts/${account.id}`, { method: "PATCH", json: { agentId } });
+    const made = await draft("não fale de preço");
+    expect([made.status, await made.json()]).toEqual([
+      200,
+      { heard: "", instructions: "# Atendimento\n- Nunca fale de preço." },
+    ]);
+    const list = (await (await api("")).json()) as { accounts: { instructions: string | null }[] };
+    expect(list.accounts[0]?.instructions).toBe("");
+  });
+
   test("a sticker is picked from the number's own and the gateway fetches its picture from a signed address", async () => {
     const { api, post, secret, gateway } = await start();
     const account = (await (await api("/accounts", { json: { label: "Comercial" } })).json()) as Account;

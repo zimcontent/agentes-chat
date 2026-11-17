@@ -5,10 +5,25 @@ export type DougBotEstado = "ok" | "trabalhando" | "pedindo" | "terminou" | "dor
 export type DougBotForma = "petala" | "monitor" | "quadrado" | "torre" | "moeda" | "hexagono" | "squircle";
 export type DougBotOlhos = "pilula" | "largo" | "meia" | "ponto";
 export type DougBotAcessorio = "fone" | "gravata" | "chaves";
+/** A look the Doug holds still (his eyes only): the faces of the app icon. */
+export type DougBotOlhar =
+  | "normal"
+  | "feliz"
+  | "piscando"
+  | "surpreso"
+  | "desconfiado"
+  | "triste"
+  | "bravo"
+  | "de-lado"
+  | "pra-cima"
+  | "rindo"
+  | "dormindo";
 
 export interface DougBotOpcoes {
   bot?: DougBotNome;
   estado?: DougBotEstado;
+  /** The Doug only: what his eyes do, instead of what his state gives them (the state still dims him asleep). */
+  olhar?: DougBotOlhar;
   /** Size in px: below 60 the Doug's head fills his piece of glass (unless `perto` says). */
   tamanho?: number;
   perto?: boolean;

@@ -34,6 +34,7 @@ import {
   useWhatsAppKeepFresh,
 } from "./logic";
 import { useWa, WA_FONT, type WaColors, WaGlyph, WaPhoto, WaTicks, WhatsAppMark } from "./look";
+import { openWhatsAppNumber } from "./WhatsAppNumberScreen";
 import { useWhatsAppWords, type WhatsAppWords } from "./words";
 
 /** How often the list is asked again while it is in front (see `useWhatsAppKeepFresh`). */
@@ -188,6 +189,16 @@ export function WhatsAppChatsScreen({ accountId }: { accountId: string }) {
           </View>
           {numbers.length > 1 ? <WaGlyph name="down" size={15} color={wa.soft} /> : null}
         </Pressable>
+        {account?.manage ? (
+          <Pressable
+            onPress={() => openWhatsAppNumber(accountId)}
+            accessibilityRole="button"
+            accessibilityLabel={w.settings.open(account.label)}
+            style={styles.plus}
+          >
+            <WaGlyph name="sliders" size={22} color={wa.soft} />
+          </Pressable>
+        ) : null}
         {mine && account?.status === "connected" ? (
           <Pressable
             onPress={() => router.push(`/whatsapp/new?account=${encodeURIComponent(accountId)}`)}

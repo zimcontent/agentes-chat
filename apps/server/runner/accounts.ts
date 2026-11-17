@@ -71,15 +71,16 @@ import { errnoCode, RunnerError } from "./errors";
 import { killTree } from "./exec";
 import {
   AGY_BIN,
+  AGY_NO_UPDATE_ENV,
   CURSOR_BIN,
   claudeKeptPlan,
   claudePlan,
   claudeTier,
   cliSpawn,
-  parseAgyModels,
   GROK_BIN,
   isExecutable,
   OPENCODE_BIN,
+  parseAgyModels,
   parseGrokModels,
   resolveCommand,
 } from "./executors";
@@ -339,7 +340,7 @@ export const GROK_QUIET_ENV: Readonly<Record<string, string>> = {
 
 /** What every Antigravity CLI process gets (ADR 0143): no updates of its own (the image pins it), no logo. */
 export const AGY_QUIET_ENV: Readonly<Record<string, string>> = {
-  AGY_CLI_DISABLE_AUTO_UPDATE: "true",
+  ...AGY_NO_UPDATE_ENV,
   AGY_CLI_HIDE_LOGO: "1",
   AGY_CLI_OSC7501: "off",
 };

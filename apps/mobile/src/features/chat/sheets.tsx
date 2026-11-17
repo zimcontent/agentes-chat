@@ -18,6 +18,7 @@ import {
   usePinMessage,
   usePins,
   useReactions,
+  useTaskFromMessage,
   useThreadInfo,
   useThreadMutation,
   useToggleReaction,
@@ -91,6 +92,26 @@ export function useMessageActions(context: MessageActionsContext, close: () => v
   const cached = useReactions(orgId, m.id, false);
   const toggle = useToggleReaction(orgId, m.id);
   const pin = usePinMessage(orgId);
+  const toTask = useTaskFromMessage(orgId);
+  // "Criar tarefa" (ADR doug-0018): the message's thread becomes the task's conversation, nothing moves. A thread that
+  // already is a task's gives that task back, which the toast says.
+  const makeTask = () => {
+    close();
+    toTask.mutate(m.id, {
+      onSuccess: (task) => {
+        const fresh = task.created;
+        toast({
+          title: fresh
+            ? t("mobile.task.made", { number: task.number })
+            : t("mobile.task.held", { number: task.number }),
+          ...(fresh ? { subtitle: t("mobile.task.madeSub") } : {}),
+          icon: "issue",
+          action: { label: t("mobile.task.open"), onPress: () => router.push(`/issues/${task.number}`) },
+        });
+      },
+      onError: () => toast({ title: t("mobile.app.failed"), icon: "x" }),
+    });
+  };
   const pinned = Boolean(m.pinned);
   const togglePin = () => {
     close();
@@ -191,6 +212,18 @@ export function useMessageActions(context: MessageActionsContext, close: () => v
             label: t("mobile.remind.aboutThis"),
             // The reminder's sheet takes this one's place (no close in between).
             onPress: () => onRemind(m),
+          },
+        ]
+      : []),
+    // Where something can be written here (`onReply`): the task is made by the person, from what they can read.
+    ...(onReply && !m.local
+      ? [
+          {
+            key: "task",
+            icon: "issue" as const,
+            symbol: "checklist" as const,
+            label: t("mobile.task.make"),
+            onPress: makeTask,
           },
         ]
       : []),
@@ -371,9 +404,12 @@ export function ThreadOptions({
   mission,
   onMission,
   onPins,
+  canTask = false,
 }: {
   thread: ThreadInfo;
   mission: Mission | null;
+  /** "Criar tarefa com esta conversa" is offered: the person may write here (ADR doug-0018). */
+  canTask?: boolean;
   /** "Transformar em missão" (a plain thread). */
   onMission?: () => void;
   /** "Fixadas" of the conversation. */
@@ -412,7 +448,21 @@ export function ThreadOptions({
   const name = mission ? (dir.agentById.get(mission.agentId)?.name ?? "") : "";
   const g = genderOf(name);
   const fail = () => toast({ title: t("mobile.app.failed"), icon: "x" });
-  const act = (action: "close" | "reopen" | "archive") =>
+  const toTask = useTaskFromMessage(orgId);
+  const makeTask = () =>
+    toTask.mutate(thread.id, {
+      onSuccess: (task) => {
+        sheet.close();
+        toast({
+          title: t("mobile.task.made", { number: task.number }),
+          subtitle: t("mobile.task.madeSub"),
+          icon: "issue",
+          action: { label: t("mobile.task.open"), onPress: () => router.push(`/issues/${task.number}`) },
+        });
+      },
+      onError: fail,
+    });
+  const act = (action: "archive") =>
     mutate.mutate(
       { type: "action", thread, action },
       {
@@ -420,10 +470,9 @@ export function ThreadOptions({
           sheet.close();
           toast({
             title: t(`mobile.thread.done.${action}`),
-            ...(action === "close" ? { subtitle: t("mobile.thread.done.closeSub") } : {}),
-            icon: action === "archive" ? "archive" : "check",
+            icon: "archive",
           });
-          if (action !== "reopen" && router.canGoBack()) router.back();
+          if (router.canGoBack()) router.back();
         },
         onError: fail,
       },
@@ -509,17 +558,31 @@ export function ThreadOptions({
                     ]
                   : []),
               ]
-            : onMission
-              ? [
-                  {
-                    key: "mission",
-                    icon: "target" as const,
-                    label: t("mobile.chat.toMission"),
-                    hint: t("mobile.thread.toMissionHint"),
-                    onPress: onMission,
-                  },
-                ]
-              : []),
+            : [
+                // The conversation becomes a task's, without moving (ADR doug-0018).
+                ...(canTask && thread.task === null && thread.state !== "archived"
+                  ? [
+                      {
+                        key: "task",
+                        icon: "issue" as const,
+                        label: t("mobile.task.makeThread"),
+                        hint: t("mobile.task.madeSub"),
+                        onPress: makeTask,
+                      },
+                    ]
+                  : []),
+                ...(onMission
+                  ? [
+                      {
+                        key: "mission",
+                        icon: "target" as const,
+                        label: t("mobile.chat.toMission"),
+                        hint: t("mobile.thread.toMissionHint"),
+                        onPress: onMission,
+                      },
+                    ]
+                  : []),
+              ]),
         ]}
       />
       <ActionList
@@ -547,24 +610,8 @@ export function ThreadOptions({
                   },
                 ]
               : []
-            : thread.canManage
-              ? [
-                  thread.state === "closed"
-                    ? {
-                        key: "reopen",
-                        icon: "reply" as const,
-                        label: t("mobile.thread.reopen"),
-                        onPress: () => act("reopen"),
-                      }
-                    : {
-                        key: "close",
-                        icon: "check" as const,
-                        label: t("mobile.thread.close"),
-                        hint: t("mobile.thread.closeHint"),
-                        onPress: () => act("close"),
-                      },
-                ]
-              : []),
+            : // No "Fechar": done is a task's state, never a conversation's (ADR doug-0018).
+              []),
           ...(thread.canManage
             ? [
                 {

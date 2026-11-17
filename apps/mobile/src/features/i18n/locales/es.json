@@ -790,6 +790,26 @@
       "notedSub": "Queda en las decisiones de la misión."
     }
   },
+  "task": {
+    "make": "Crear tarea",
+    "makeThread": "Crear una tarea con esta conversación",
+    "made": "Tarea #{{number}} creada",
+    "madeSub": "La conversación sigue aquí y aparece en la tarea.",
+    "held": "Esta conversación ya es la tarea #{{number}}.",
+    "open": "Abrir",
+    "openNumber": "Abrir tarea #{{number}}"
+  },
+  "missions": {
+    "running_one": "{{count}} misión en curso",
+    "running_many": "{{count}} misiones en curso",
+    "running_other": "{{count}} misiones en curso",
+    "waiting_one": "{{count}} esperándote",
+    "waiting_many": "{{count}} esperándote",
+    "waiting_other": "{{count}} esperándote",
+    "open": "Trabajo largo de un agente, con plan y pasos",
+    "emptyTitle": "Aún no hay misiones",
+    "emptyText": "Una misión es un trabajo largo de un agente, con plan y pasos."
+  },
   "threads": {
     "title": "Hilos",
     "section": {
@@ -1556,8 +1576,8 @@
     }
   },
   "taskManager": {
-    "loadFailed": "No se pudieron cargar las tareas.",
-    "gone": "Esta tarea ya no está aquí.",
+    "loadFailed": "No se pudo cargar el trabajo.",
+    "gone": "Este trabajo ya no está aquí.",
     "quiet": "Nada en curso",
     "doneToday_one": "{{count}} completada hoy",
     "doneToday_other": "{{count}} completadas hoy",

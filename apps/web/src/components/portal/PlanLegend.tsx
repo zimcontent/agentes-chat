@@ -29,8 +29,8 @@ export function PlanLegend({ labels, changes }: { labels: PortalLabel[]; changes
           {labels.length === 0 && <li className="small muted">{t("portal.plan.noLabels")}</li>}
         </ul>
         {changes && (
-          <Button size="sm" icon="edit" onClick={() => setManaging(true)}>
-            {t("portal.plan.manageLabels")}
+          <Button size="sm" icon="edit" title={t("portal.plan.manageLabels")} onClick={() => setManaging(true)}>
+            <span className="portal-act__words">{t("portal.plan.manageLabels")}</span>
           </Button>
         )}
       </div>

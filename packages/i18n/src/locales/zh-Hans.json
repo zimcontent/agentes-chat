@@ -1574,6 +1574,10 @@
     "openComputer": "打开电脑",
     "linkCopied": "链接已复制。",
     "saveToWiki": "保存到 Wiki",
+    "makeTask": "创建任务",
+    "taskMade": "已创建任务 #{{number}}。对话留在这里，也会显示在任务中。",
+    "taskHeld": "这个对话已经是任务 #{{number}}。",
+    "openTask": "打开任务",
     "pin": "置顶消息",
     "unpin": "取消置顶",
     "pinned": "消息已置顶。",
@@ -1725,29 +1729,47 @@
     "readyOne": "预设",
     "use": "使用此图标",
     "inUse": "使用中",
-    "sky": "背景",
+    "ground": "背景",
+    "grounds": {
+      "day": "白天",
+      "night": "夜晚"
+    },
     "pose": "姿势",
     "poses": {
       "front": "正面",
       "peek": "探头"
     },
-    "peekBare": "探头时不佩戴配饰。",
-    "expression": "表情",
-    "ready": "预设图标",
-    "oneOrOther": "佩戴配饰时，表情保持普通样式。",
-    "faces": {
-      "wink": "眨眼",
-      "heart": "爱心",
-      "star": "星星",
-      "surprised": "惊讶",
-      "angry": "生气"
+    "color": "颜色",
+    "colors": {
+      "green": "绿色",
+      "yellow": "黄色",
+      "orange": "橙色",
+      "pink": "粉色",
+      "violet": "淡紫",
+      "blue": "蓝色",
+      "cyan": "青色",
+      "white": "白色"
     },
+    "expression": "表情",
+    "faces": {
+      "normal": "普通",
+      "happy": "开心",
+      "wink": "眨眼",
+      "surprised": "惊讶",
+      "unimpressed": "怀疑",
+      "sad": "难过",
+      "angry": "生气",
+      "aside": "斜视",
+      "laugh": "大笑",
+      "asleep": "睡着"
+    },
+    "ready": "预设图标",
     "names": {
-      "night": "夜晚",
-      "moon": "月亮",
-      "sky": "天空",
-      "peekNight": "夜里探头",
-      "peekSky": "天空探头"
+      "night": "Doug",
+      "moon": "晚安",
+      "sky": "白色",
+      "peekNight": "偷看",
+      "peekSky": "眨眼"
     }
   },
   "legal": {
@@ -2025,7 +2047,7 @@
     "routines": "例行工作",
     "team": "团队",
     "dashboards": "仪表盘",
-    "taskManager": "任务管理器",
+    "taskManager": "智能体活动",
     "calendar": "日历",
     "drive": "Drive",
     "members": "成员",
@@ -7582,6 +7604,12 @@
     }
   },
   "issues": {
+    "missions": {
+      "back": "返回任务",
+      "running_other": "{{count}} 个专项任务进行中",
+      "waiting_other": "{{count}} 个在等你",
+      "see": "查看专项任务"
+    },
     "delete": {
       "action": "删除任务",
       "title": "删除任务 #{{number}}？",
@@ -8657,7 +8685,7 @@
       "declined": "已拒绝 {{name}} 的申请。"
     },
     "title": "专项任务",
-    "subtitle": "智能体在自己电脑上进行的长期工作，在一个话题中展开。",
+    "subtitle": "智能体的长期工作，有计划和步骤。",
     "search": "搜索专项任务",
     "online": "在线",
     "offline": "离线",
@@ -9269,8 +9297,14 @@
     "waitingCloud": "{{computer}} 准备就绪后，专项任务就会开始。"
   },
   "threads": {
+    "task": {
+      "button": "任务 #{{number}}",
+      "open": "打开任务 #{{number}}（{{status}}）",
+      "make": "用这个对话创建任务",
+      "makeHint": "对话留在这里，也会显示在任务中。"
+    },
     "title": "话题",
-    "subtitle": "从频道和私信中分出来的主题。",
+    "subtitle": "话题中的对话。需要做的事在任务里。",
     "tabsLabel": "话题筛选",
     "tabs": {
       "all": "全部",
@@ -9334,7 +9368,7 @@
     },
     "empty": {
       "missionsTitle": "还没有专项任务",
-      "missions": "专项任务是一个带有计划、决定以及智能体在其电脑上所做工作的话题。",
+      "missions": "专项任务是智能体的长期工作，有计划、决定和步骤。",
       "allTitle": "每个主题都有自己的对话",
       "all": "回复一条消息即可开启话题，频道保持清爽。",
       "workingTitle": "目前没有智能体在工作",
@@ -9385,6 +9419,7 @@
       "openShort": "打开",
       "reply": "回复",
       "replies_other": "{{count}} 条回复",
+      "taskReplies_other": "任务 #{{number}} · {{count}} 条回复",
       "closed_other": "话题已关闭 · {{title}} · {{count}} 条消息",
       "archived_other": "这里没有显示 {{count}} 个已归档的话题",
       "see": "查看"
@@ -10145,10 +10180,10 @@
       "copies_other": "这个账号还有 {{count}} 个登录，没有任何智能体使用。",
       "removeCopies": "移除",
       "copiesRemoved_other": "已移除 {{count}} 个未使用的登录。",
-      "removeAllDone": "已移除 {{n}} 个 Grok 登录。",
-      "removeAllText": "它们将不再为 {{computers}} 上的代理思考。其他人的登录不会被改动。",
-      "removeAllTitle": "要移除全部 {{n}} 个 Grok 登录吗？",
       "removeAllGrok": "移除所有 Grok 登录",
+      "removeAllTitle": "要移除全部 {{n}} 个 Grok 登录吗？",
+      "removeAllText": "它们将不再为 {{computers}} 上的代理思考。其他人的登录不会被改动。",
+      "removeAllDone": "已移除 {{n}} 个 Grok 登录。",
       "disconnect": "断开连接",
       "renameTitle": "重命名 {{label}}",
       "nameLabel": "名称",
@@ -18927,10 +18962,10 @@
     },
     "allWaiting_other": "查看 {{count}} 件等你处理的事",
     "actions": "更多操作",
-    "openManager": "打开任务管理器"
+    "openManager": "打开智能体活动"
   },
   "taskManager": {
-    "title": "任务管理器",
+    "title": "智能体活动",
     "subtitle": "智能体现在在做什么，以及今天完成了什么。",
     "search": "搜索任务、智能体或应用",
     "working_other": "{{count}} 个进行中",
@@ -19030,7 +19065,7 @@
       "stopAll": "全部停止",
       "stopAllOf": "停止 {{name}} 的全部任务",
       "open": "在对话中打开",
-      "openManager": "在任务管理器中打开"
+      "openManager": "在智能体活动中打开"
     },
     "confirm": {
       "chainTitle_other": "停止 {{name}} 和 {{count}} 个协助者？",

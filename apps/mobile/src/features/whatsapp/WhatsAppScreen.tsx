@@ -6,12 +6,14 @@ import { Button, Chip, EmptyState, GroupedList, GroupedRow, SkeletonList, Text }
 import { useOrgId, usePullRefresh } from "../shared/hooks";
 import { PushedLargeTitle } from "../shared/PushedLargeTitle";
 import { accountsInOrder, onlyAccount, openWhatsAppAccount, showPhone } from "./logic";
+import { openWhatsAppNumber } from "./WhatsAppNumberScreen";
 import { useWhatsAppWords } from "./words";
 
 /**
  * WhatsApp on the phone (docs/adr/doug-0001-whatsapp-numbers.md), pushed from the home: the workspace's numbers this
  * person may use, each with whether it is connected. With one number it opens straight on its conversations.
  * Connecting is reading a QR code with the number's own phone, so it stays on the web: here the empty state says so.
+ * Whoever manages a number opens its settings from the sliders at the end of its row.
  */
 export function WhatsAppScreen() {
   const w = useWhatsAppWords();
@@ -82,8 +84,15 @@ function AccountRow({ account: a }: { account: WhatsAppAccount }) {
           </View>
         )
       }
-      chevron
+      chevron={!a.manage}
       onPress={() => openWhatsAppAccount(a.id)}
+      {...(a.manage
+        ? {
+            buttons: [
+              { icon: "sliders" as const, label: w.settings.open(a.label), onPress: () => openWhatsAppNumber(a.id) },
+            ],
+          }
+        : {})}
     />
   );
 }

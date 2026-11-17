@@ -807,6 +807,26 @@ export const featureKeysEn = {
       notedSub: "It stays in the mission's decisions.",
     },
   },
+  /** A task made from a conversation keeps it as its own (ADR doug-0018). */
+  task: {
+    make: "Create task",
+    makeThread: "Create a task from this conversation",
+    made: "Task #{{number}} created",
+    madeSub: "The conversation stays here and shows on the task.",
+    held: "This conversation already is task #{{number}}.",
+    open: "Open",
+    openNumber: "Open task #{{number}}",
+  },
+  /** Missions live with the tasks (ADR doug-0018). */
+  missions: {
+    running_one: "{{count}} mission running",
+    running_other: "{{count}} missions running",
+    waiting_one: "{{count}} waiting for you",
+    waiting_other: "{{count}} waiting for you",
+    open: "An agent's long work, with a plan and steps",
+    emptyTitle: "No missions yet",
+    emptyText: "A mission is an agent's long work, with a plan and steps.",
+  },
   threads: {
     title: "Threads",
     section: {
@@ -1532,8 +1552,8 @@ export const featureKeysEn = {
   },
   // The task manager (ADR 0128; the rest of its words are shared, `taskManager.*`).
   taskManager: {
-    loadFailed: "Couldn't load the tasks.",
-    gone: "This task is no longer here.",
+    loadFailed: "Couldn't load the work.",
+    gone: "This work is no longer here.",
     /** Under the title when nothing runs or waits. */
     quiet: "Nothing in progress",
     /** In the line under an agent's tasks: how many it finished today. */

@@ -19,6 +19,7 @@ import type {
   Talker,
   VideoReviewDeps,
   VoiceDeps,
+  WhatsAppAgentDeps,
 } from "@agenteschat/engine";
 
 /**
@@ -75,4 +76,9 @@ export interface AppExtras {
   liveVoice?: LiveVoiceDeps;
   /** Videos sent for the team's review (docs/adr/doug-0007-video-review.md); absent: those routes answer 404. */
   videoReviews?: VideoReviewDeps;
+  /**
+   * What the number's agent thinks with (its Model Gateway and computers, the speech engines), for drafting a number's
+   * instructions from a direction (docs/adr/doug-0004-whatsapp-bridge.md, addendum 2026-11-17); absent: no gateway.
+   */
+  whatsappAgent?: WhatsAppAgentDeps;
 }

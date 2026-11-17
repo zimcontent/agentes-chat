@@ -768,6 +768,24 @@
       "notedSub": "Sie bleibt bei den Entscheidungen der Mission."
     }
   },
+  "task": {
+    "make": "Aufgabe erstellen",
+    "makeThread": "Aus dieser Unterhaltung eine Aufgabe machen",
+    "made": "Aufgabe #{{number}} erstellt",
+    "madeSub": "Die Unterhaltung bleibt hier und erscheint in der Aufgabe.",
+    "held": "Diese Unterhaltung ist schon Aufgabe #{{number}}.",
+    "open": "Öffnen",
+    "openNumber": "Aufgabe #{{number}} öffnen"
+  },
+  "missions": {
+    "running_one": "{{count}} Mission läuft",
+    "running_other": "{{count}} Missionen laufen",
+    "waiting_one": "{{count}} wartet auf dich",
+    "waiting_other": "{{count}} warten auf dich",
+    "open": "Lange Arbeit eines Agenten, mit Plan und Schritten",
+    "emptyTitle": "Noch keine Missionen",
+    "emptyText": "Eine Mission ist die lange Arbeit eines Agenten, mit Plan und Schritten."
+  },
   "threads": {
     "title": "Threads",
     "section": {
@@ -1473,8 +1491,8 @@
     }
   },
   "taskManager": {
-    "loadFailed": "Die Aufgaben konnten nicht geladen werden.",
-    "gone": "Diese Aufgabe ist nicht mehr da.",
+    "loadFailed": "Die Arbeit konnte nicht geladen werden.",
+    "gone": "Diese Arbeit ist nicht mehr da.",
     "quiet": "Nichts in Arbeit",
     "doneToday_one": "{{count}} heute erledigt",
     "doneToday_other": "{{count}} heute erledigt",

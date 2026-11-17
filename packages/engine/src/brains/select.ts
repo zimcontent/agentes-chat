@@ -750,6 +750,43 @@ export const STAND_IN_MODELS: Partial<Record<BrainKind, string>> = {
 };
 
 /**
+ * Brains whose CLI doesn't keep the right hand to our server's tools (ADR 0137 §4), so none of them stands in for it
+ * (ADR doug-0003, addendum 2026-11-17): the Antigravity CLI from 1.5.9 lists all of its own tools in a `chat` turn's
+ * `init` whatever its agent's `tools: []` says, and the runner stops every such turn before the model reads it.
+ */
+export const RIGHT_HAND_UNLOCKED: ReadonlySet<BrainKind> = new Set<BrainKind>(["antigravity"]);
+
+/** How long a CLI that broke the right hand's lock on a computer stays out of its stand-in order there. */
+export const UNLOCKED_MS = 6 * 60 * 60_000;
+
+/** Computers and brains whose CLI broke the right hand's lock on this process (`tools_not_locked`), until when. */
+const unlocked = new Map<string, number>();
+const unlockedKey = (machineId: string, kind: BrainKind) => `${machineId}:${kind}`;
+
+/**
+ * The right hand's turn was stopped at a tool of the CLI's own (`tools_not_locked`): that brain stands in for it on
+ * that computer no more for `UNLOCKED_MS`, so the run and the next ones go on with the next account of the order.
+ */
+export function noteUnlocked(machineId: string, kind: BrainKind, now = Date.now()) {
+  unlocked.set(unlockedKey(machineId, kind), now + UNLOCKED_MS);
+}
+
+/** Whether `kind` may stand in for the right hand on that computer now. */
+export function locksForRightHand(machineId: string, kind: BrainKind, now = Date.now()) {
+  if (RIGHT_HAND_UNLOCKED.has(kind)) return false;
+  const until = unlocked.get(unlockedKey(machineId, kind));
+  if (until === undefined) return true;
+  if (until > now) return false;
+  unlocked.delete(unlockedKey(machineId, kind));
+  return true;
+}
+
+/** Tests: forget the brains noted as not locking. */
+export function clearUnlocked() {
+  unlocked.clear();
+}
+
+/**
  * The account that thinks while the one the agent would think with (`account`, past `standInAccount`) is at 90% of a
  * window or at its limit (`handsOver`), from its owner's stand-in order (`machine_accounts.stand_in_rank`, ADR
  * doug-0003, addendum 2026-11-14): the first there, lowest rank first, signed in on the same computer and under the
@@ -757,7 +794,8 @@ export const STAND_IN_MODELS: Partial<Record<BrainKind, string>> = {
  * server switch. None without an order, with every account in it past the line (then the agent's own goes on to its
  * limit, and the API key after it where the agent has one), for a signed-out account (signing in fixes that), or where
  * each agent is its own OS user. `answers`: the right hand, which thinks for whoever asked (ADR 0137 §11): only an
- * account that serves everyone, or that person's own, stands in, so a plan kept to its owner never answers others.
+ * account that serves everyone, or that person's own, stands in, so a plan kept to its owner never answers others,
+ * and only on a brain whose CLI keeps it to our tools (`locksForRightHand`).
  */
 export async function chainStandIn(
   db: Executor,
@@ -797,7 +835,9 @@ export async function chainStandIn(
     (r) =>
       r.rank !== null &&
       r.createdBy === mine.createdBy &&
-      (!answers || r.serves === "everyone" || r.createdBy === answers.person),
+      (!answers ||
+        ((r.serves === "everyone" || r.createdBy === answers.person) &&
+          locksForRightHand(machineId, r.kind as BrainKind, now))),
   );
   if (order.length === 0) return undefined;
   const past = (r: (typeof rows)[number]) =>

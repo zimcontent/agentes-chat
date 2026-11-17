@@ -1574,6 +1574,10 @@
     "openComputer": "Buka komputer",
     "linkCopied": "Tautan disalin.",
     "saveToWiki": "Simpan ke Wiki",
+    "makeTask": "Buat tugas",
+    "taskMade": "Tugas #{{number}} dibuat. Percakapan tetap di sini dan muncul di tugas.",
+    "taskHeld": "Percakapan ini sudah menjadi tugas #{{number}}.",
+    "openTask": "Buka tugas",
     "pin": "Sematkan pesan",
     "unpin": "Lepas sematan pesan",
     "pinned": "Pesan disematkan.",
@@ -1725,29 +1729,47 @@
     "readyOne": "Siap pakai",
     "use": "Gunakan ikon ini",
     "inUse": "Sedang dipakai",
-    "sky": "Latar",
+    "ground": "Latar",
+    "grounds": {
+      "day": "Siang",
+      "night": "Malam"
+    },
     "pose": "Posisi",
     "poses": {
       "front": "Menghadap depan",
       "peek": "Mengintip"
     },
-    "peekBare": "Saat mengintip, ia tidak memakai aksesori.",
-    "expression": "Ekspresi",
-    "ready": "Ikon siap pakai",
-    "oneOrOther": "Dengan aksesori, ekspresinya tetap yang biasa.",
-    "faces": {
-      "wink": "Kedip",
-      "heart": "Hati",
-      "star": "Bintang",
-      "surprised": "Terkejut",
-      "angry": "Marah"
+    "color": "Warna",
+    "colors": {
+      "green": "Hijau",
+      "yellow": "Kuning",
+      "orange": "Oranye",
+      "pink": "Merah muda",
+      "violet": "Ungu muda",
+      "blue": "Biru",
+      "cyan": "Sian",
+      "white": "Putih"
     },
+    "expression": "Ekspresi",
+    "faces": {
+      "normal": "Biasa",
+      "happy": "Senang",
+      "wink": "Mengedip",
+      "surprised": "Terkejut",
+      "unimpressed": "Curiga",
+      "sad": "Sedih",
+      "angry": "Marah",
+      "aside": "Melirik",
+      "laugh": "Tertawa",
+      "asleep": "Tidur"
+    },
+    "ready": "Ikon siap pakai",
     "names": {
-      "night": "Malam",
-      "moon": "Bulan",
-      "sky": "Langit",
-      "peekNight": "Mengintip di malam hari",
-      "peekSky": "Mengintip di langit"
+      "night": "Doug",
+      "moon": "Selamat malam",
+      "sky": "Putih",
+      "peekNight": "Mengintip",
+      "peekSky": "Kedipan"
     }
   },
   "legal": {
@@ -2025,7 +2047,7 @@
     "routines": "Rutinitas",
     "team": "Tim",
     "dashboards": "Dasbor",
-    "taskManager": "Pengelola tugas",
+    "taskManager": "Aktivitas agen",
     "calendar": "Kalender",
     "drive": "Drive",
     "members": "Anggota",
@@ -7571,6 +7593,12 @@
     }
   },
   "issues": {
+    "missions": {
+      "back": "Kembali ke Tugas",
+      "running_other": "{{count}} misi berjalan",
+      "waiting_other": "{{count}} menunggu Anda",
+      "see": "Lihat misi"
+    },
     "delete": {
       "action": "Hapus tugas",
       "title": "Hapus tugas #{{number}}?",
@@ -8649,7 +8677,7 @@
       "declined": "Permintaan {{name}} ditolak."
     },
     "title": "Misi",
-    "subtitle": "Pekerjaan panjang oleh agen di komputernya, dalam sebuah utas.",
+    "subtitle": "Pekerjaan panjang oleh agen, dengan rencana dan langkah.",
     "search": "Cari misi",
     "online": "online",
     "offline": "offline",
@@ -9273,8 +9301,14 @@
     "waitingCloud": "Misi dimulai setelah {{computer}} siap."
   },
   "threads": {
+    "task": {
+      "button": "Tugas #{{number}}",
+      "open": "Buka tugas #{{number}} ({{status}})",
+      "make": "Buat tugas dari percakapan ini",
+      "makeHint": "Percakapan tetap di sini dan muncul di tugas."
+    },
     "title": "Utas",
-    "subtitle": "Topik yang keluar dari kanal dan DM.",
+    "subtitle": "Percakapan dalam utas. Yang perlu dikerjakan ada di Tugas.",
     "tabsLabel": "Filter utas",
     "tabs": {
       "all": "Semua",
@@ -9338,7 +9372,7 @@
     },
     "empty": {
       "missionsTitle": "Belum ada misi",
-      "missions": "Misi adalah utas dengan rencana, keputusan, dan pekerjaan agen di komputernya.",
+      "missions": "Misi adalah pekerjaan panjang oleh agen, dengan rencana, keputusan, dan langkah.",
       "allTitle": "Setiap topik di percakapannya sendiri",
       "all": "Balas pesan untuk membuka utas, dan kanal tetap rapi.",
       "workingTitle": "Tidak ada agen yang sedang bekerja",
@@ -9389,6 +9423,7 @@
       "openShort": "Buka",
       "reply": "Balas",
       "replies_other": "{{count}} balasan",
+      "taskReplies_other": "Tugas #{{number}} · {{count}} balasan",
       "closed_other": "Utas ditutup · {{title}} · {{count}} pesan",
       "archived_other": "{{count}} utas yang diarsipkan tidak ditampilkan di sini",
       "see": "Lihat"
@@ -10141,10 +10176,10 @@
       "copies_other": "{{count}} login lain dari akun ini, tanpa agen.",
       "removeCopies": "Hapus",
       "copiesRemoved_other": "{{count}} login yang tidak dipakai dihapus.",
-      "removeAllDone": "{{n}} login Grok dihapus.",
-      "removeAllText": "Mereka berhenti berpikir untuk agennya di {{computers}}. Login orang lain tidak disentuh.",
-      "removeAllTitle": "Hapus semua {{n}} login Grok?",
       "removeAllGrok": "Hapus semua login Grok",
+      "removeAllTitle": "Hapus semua {{n}} login Grok?",
+      "removeAllText": "Mereka berhenti berpikir untuk agennya di {{computers}}. Login orang lain tidak disentuh.",
+      "removeAllDone": "{{n}} login Grok dihapus.",
       "disconnect": "Putuskan",
       "renameTitle": "Ganti nama {{label}}",
       "nameLabel": "Nama",
@@ -18850,10 +18885,10 @@
     },
     "allWaiting_other": "Lihat {{count}} hal yang menunggumu",
     "actions": "Tindakan lain",
-    "openManager": "Buka pengelola tugas"
+    "openManager": "Buka aktivitas agen"
   },
   "taskManager": {
-    "title": "Pengelola tugas",
+    "title": "Aktivitas agen",
     "subtitle": "Apa yang sedang dikerjakan agen dan apa yang selesai hari ini.",
     "search": "Cari tugas, agen, atau aplikasi",
     "working_other": "{{count}} sedang bekerja",
@@ -18953,7 +18988,7 @@
       "stopAll": "Hentikan semua",
       "stopAllOf": "Hentikan semua tugas {{name}}",
       "open": "Buka di percakapan",
-      "openManager": "Buka di pengelola tugas"
+      "openManager": "Buka di aktivitas agen"
     },
     "confirm": {
       "chainTitle_other": "Hentikan {{name}} dan {{count}} pembantu?",

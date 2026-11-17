@@ -20,7 +20,8 @@ test("what the workspace does: the onboarding's step 2, the business types saved
 test("a conversation draws the team card and the answers to tap under a right hand's question", () => {
   const row = src("chat/MessageRow.tsx");
   expect(row).toContain("{isAgent ? <TeamCard message={m} /> : null}");
-  expect(row).toContain("{isAgent ? <ReplyChips message={m} /> : null}");
+  // The chips only under a message that carries them (they read the conversation's messages to know the answer).
+  expect(row).toContain("{isAgent && replyChipsOf(meta) ? <ReplyChips message={m} /> : null}");
   const card = src("right-hand/TeamCard.tsx");
   for (const key of [
     "teamPlan.card.create",

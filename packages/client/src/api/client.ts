@@ -44,6 +44,7 @@ import type {
   WhatsAppBrain,
   WhatsAppBrainInput,
   WhatsAppChatPage,
+  WhatsAppInstructionsDraft,
   WhatsAppMessagePage,
   WhatsAppOverview,
   WhatsAppSendInput,
@@ -1589,6 +1590,11 @@ export interface ApiClient {
     askAgent(orgId: string, id: string, agentId: string): Promise<Issue>;
     /** The task's conversation (made on first use): the thread the chat's routes read and post to (ADR 0145). */
     conversation(orgId: string, id: string): Promise<IssueConversationRef>;
+    /**
+     * "Criar tarefa" on a message: a task whose conversation is the message's thread (ADR doug-0018). A thread that
+     * already is a task's gives that task back.
+     */
+    fromMessage(orgId: string, messageId: string): Promise<Issue & { created: boolean }>;
     /** The board's columns, board order: by stage, then position. */
     columns(orgId: string): Promise<IssueColumn[]>;
     /** Adds a column to a stage (after `afterId` when it is in the same stage, else at the stage's end). */
@@ -2429,6 +2435,15 @@ export interface ApiClient {
     setBrain(orgId: string, accountId: string, input: WhatsAppBrainInput): Promise<WhatsAppBrain>;
     /** The number answers with its agent's own AI again. */
     clearBrain(orgId: string, accountId: string): Promise<WhatsAppBrain>;
+    /**
+     * The number's instructions rewritten by its AI with a new direction, typed (`text`) or recorded (`audio`, with
+     * its length in `seconds`), on top of `current` (the settings' text, saved or not). Nothing is saved.
+     */
+    draftInstructions(
+      orgId: string,
+      accountId: string,
+      input: { text?: string; audio?: { file: Blob; fileName: string; seconds?: number }; current?: string },
+    ): Promise<WhatsAppInstructionsDraft>;
   };
   /**
    * The Vault (ADR 0144): logins, keys and contacts agents use without seeing a password or a key. No answer carries

@@ -1,8 +1,9 @@
 import type { ThreadInfo } from "@agenteschat/client";
-import { useChannels, useDms, useThreadMutation, useThreadRange } from "@agenteschat/client";
+import { useChannels, useDms, useTaskFromMessage, useThreadMutation, useThreadRange } from "@agenteschat/client";
 import { errorText } from "@agenteschat/client/lib/errors";
 import { formatTime, joinNames, relativeTime } from "@agenteschat/client/lib/format";
 import { textOrMedia } from "@agenteschat/client/lib/media";
+import { can } from "@agenteschat/client/lib/permissions";
 import { quoteExcerpt } from "@agenteschat/client/lib/reply";
 import { threadTitle, timeSpan } from "@agenteschat/client/lib/threads";
 import { AvatarStack, Button, Chip, cx, Icon, Menu, MenuItem, MenuSeparator } from "@agenteschat/ui";
@@ -16,6 +17,7 @@ import { useOrg } from "@/components/org-context";
 import { useDirectory } from "@/hooks/useDirectory";
 import { useToast } from "@/lib/toast";
 import { ThreadStatusChip, useThreadControls, useThreadFlows } from "./ThreadBits";
+import { ThreadTaskButton } from "./ThreadTask";
 import "./threads.css";
 
 /**
@@ -159,6 +161,15 @@ export function ThreadHeader({
   const archived = thread.state === "archived";
   const people = thread.participants.flatMap((p) => (p.id ? [{ type: p.type, id: p.id }] : []));
   const more = t("threads.view.more");
+  // A thread is a conversation, never a to-do of its own (ADR doug-0018): what has to be done is a task, and the
+  // conversation becomes that task's without moving.
+  const toTask = useTaskFromMessage(org.id);
+  const makeTask = () =>
+    toTask.mutate(thread.id, {
+      onSuccess: (task) =>
+        toast.show(t(task.created ? "contextMenu.taskMade" : "contextMenu.taskHeld", { number: task.number })),
+      onError: (error) => toast.show(errorText(t, error), "error"),
+    });
   return (
     <header className={onClose ? "channel__header thread-head thread-head--panel" : "channel__header thread-head"}>
       {!onClose && (
@@ -209,7 +220,8 @@ export function ThreadHeader({
           <time dateTime={thread.lastActivityAt}>{relativeTime(t, i18n.language, thread.lastActivityAt)}</time>
         </span>
       </div>
-      {thread.state !== "open" && <ThreadStatusChip thread={thread} />}
+      {archived && <ThreadStatusChip thread={thread} />}
+      <ThreadTaskButton thread={thread} />
       <Menu
         align="end"
         label={more}
@@ -224,6 +236,11 @@ export function ThreadHeader({
         >
           {t("threads.view.seeInChannel", { channel: thread.channelName })}
         </MenuItem>
+        {thread.task === null && !archived && can(org, "post") && (
+          <MenuItem icon="issues" description={t("threads.task.makeHint")} onSelect={makeTask}>
+            {t("threads.task.make")}
+          </MenuItem>
+        )}
         <MenuItem
           icon="link"
           onSelect={async () => {
@@ -246,24 +263,10 @@ export function ThreadHeader({
                 {t("threads.actions.unarchive")}
               </MenuItem>
             ) : (
-              <>
-                {thread.state === "closed" ? (
-                  <MenuItem icon="refresh" onSelect={() => controls.request([thread], "reopen")}>
-                    {t("threads.actions.reopen")}
-                  </MenuItem>
-                ) : (
-                  <MenuItem
-                    icon="check"
-                    description={t("threads.actions.closeHint")}
-                    onSelect={() => controls.request([thread], "close")}
-                  >
-                    {t("threads.actions.close")}
-                  </MenuItem>
-                )}
-                <MenuItem icon="archiveBox" onSelect={() => controls.request([thread], "archive")}>
-                  {t("threads.actions.archive")}
-                </MenuItem>
-              </>
+              // No "Fechar" any more: done is a task's state, never a conversation's (ADR doug-0018).
+              <MenuItem icon="archiveBox" onSelect={() => controls.request([thread], "archive")}>
+                {t("threads.actions.archive")}
+              </MenuItem>
             )}
           </>
         )}

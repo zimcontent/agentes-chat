@@ -26,6 +26,7 @@ import type {
   WhatsAppAccount,
   WhatsAppBrain,
   WhatsAppChatPage,
+  WhatsAppInstructionsDraft,
   WhatsAppMessagePage,
   WhatsAppOverview,
   WhatsAppVoices,
@@ -712,6 +713,19 @@ export function createHttpApi(options: TransportOptions = {}): HttpApi {
         }),
       clearBrain: (orgId, accountId) =>
         request<WhatsAppBrain>(`${org(orgId)}/whatsapp/accounts/${enc(accountId)}/brain`, { method: "DELETE" }),
+      draftInstructions: (orgId, accountId, input) => {
+        const form = new FormData();
+        if (input.text) form.set("text", input.text);
+        if (input.current !== undefined) form.set("current", input.current);
+        if (input.audio) {
+          form.set("audio", input.audio.file, input.audio.fileName);
+          if (input.audio.seconds) form.set("seconds", String(input.audio.seconds));
+        }
+        return files.upload<WhatsAppInstructionsDraft>(
+          `${org(orgId)}/whatsapp/accounts/${enc(accountId)}/instructions/draft`,
+          form,
+        );
+      },
     },
     gifs: {
       search: (orgId, query) =>
@@ -1847,6 +1861,8 @@ export function createHttpApi(options: TransportOptions = {}): HttpApi {
         request<Issue>(`${org(orgId)}/issues/${enc(id)}/ask-agent`, { json: { agentId } }),
       conversation: (orgId, id) =>
         request<IssueConversationRef>(`${org(orgId)}/issues/${enc(id)}/conversation`, { method: "POST" }),
+      fromMessage: (orgId, messageId) =>
+        request<Issue & { created: boolean }>(`${org(orgId)}/messages/${enc(messageId)}/issue`, { json: {} }),
       columns: async (orgId) => (await request<{ columns: IssueColumn[] }>(`${org(orgId)}/issue-columns`)).columns,
       addColumn: async (orgId, input) =>
         (await request<{ columns: IssueColumn[] }>(`${org(orgId)}/issue-columns`, { json: input })).columns,

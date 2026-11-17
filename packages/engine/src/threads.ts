@@ -29,7 +29,7 @@ import { pendingCommandsSql } from "./mission-command-rules";
 import { quietNoticeSql } from "./notices";
 import { can, type Membership, requirePermission } from "./organizations";
 import { maySql } from "./permissions";
-import { taskReaderSql } from "./task-access";
+import { taskReaderSql, taskSeenSql } from "./task-access";
 
 const { threads, messages, channels, channelMembers } = schema;
 
@@ -166,7 +166,16 @@ export interface ThreadInfo {
   unread: number;
   /** The thread's mission (ADR 0029), in short: details at `GET …/threads/{id}/mission`. */
   mission: ThreadMissionSummary | null;
+  /** The task this thread is the conversation of (ADR 0145, doug-0018), when the actor sees that task. */
+  task: ThreadTaskSummary | null;
   createdAt: string;
+}
+
+export interface ThreadTaskSummary {
+  id: string;
+  number: number;
+  title: string;
+  status: "todo" | "in_progress" | "in_review" | "done" | "canceled";
 }
 
 export interface ThreadMissionSummary {
@@ -979,6 +988,10 @@ interface ThreadSqlRow {
   mission_plan_done?: number | string | null;
   mission_plan_total?: number | string | null;
   mission_waiting?: number | string | null;
+  task_id?: string | null;
+  task_number?: number | string | null;
+  task_title?: string | null;
+  task_status?: string | null;
   /** `last_at` with microseconds, for the cursor. */
   cursor_at: string;
 }
@@ -1202,13 +1215,18 @@ async function queryThreads(
             + case when mi.owner_id = ${userId} or exists (select 1 from ${schema.missionParticipants} mpc
                 where mpc.mission_id = mi.id and mpc.user_id = ${userId} and mpc.role = 'decide')
               then ${pendingCommandsSql(sql`mi.id`)} + case when mi.status = 'awaiting_close' then 1 else 0 end else 0 end
-          end as mission_waiting
+          end as mission_waiting,
+          ti.id as task_id, ti.number as task_number, ti.title as task_title, ti.status as task_status
         from candidates c
         join ${messages} root on root.id = c.root_id and root.org_id = ${orgId}::uuid
         join visible v on v.id = root.channel_id
         left join replies r on r.root_id = root.id
         left join ${threads} t on t.org_id = ${orgId}::uuid and t.root_message_id = root.id
         left join ${schema.missions} mi on mi.org_id = ${orgId}::uuid and mi.thread_root_id = root.id
+        -- The task this thread is the conversation of (ADR doug-0018), for who sees that task.
+        left join ${schema.issues} ti on ti.org_id = ${orgId}::uuid
+          and (ti.conversation_root_id = root.id or ti.thread_root_id = root.id)
+          and ${taskSeenSql("ti", sql`${userId}::text`)}
         where root.thread_id is null and root.deleted_at is null
       )
       select l.*, l.needs_you_since is not null as needs_you, ${threadWorkRunsSql(orgId)} as work_runs,
@@ -1353,6 +1371,15 @@ function toView(
             waitingYou: Number(r.mission_waiting ?? 0),
           }
         : null,
+    task:
+      r.task_id && r.task_number != null
+        ? {
+            id: r.task_id,
+            number: Number(r.task_number),
+            title: r.task_title ?? "",
+            status: (r.task_status ?? "todo") as ThreadTaskSummary["status"],
+          }
+        : null,
     createdAt: toDate(r.created_at).toISOString(),
   };
 }
@@ -1435,11 +1462,13 @@ export async function getThread(db: Database, actorId: string, orgId: string, ro
 }
 
 /** What everyone may hear of a thread: nothing only the actor has (following it, its unread for them). */
+// The task is the reader's own too: who sees it is checked per person (ADR doug-0018).
 const withoutFollowing = ({
   following: _,
   unread: __,
+  task: ___,
   ...view
-}: ThreadInfo): Omit<ThreadInfo, "following" | "unread"> => view;
+}: ThreadInfo): Omit<ThreadInfo, "following" | "unread" | "task"> => view;
 
 async function followsRoot(db: Database, orgId: string, userId: string, rootId: string) {
   const [row] = rowsOf<{ following: boolean | null }>(

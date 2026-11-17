@@ -243,6 +243,19 @@ export function cliSpawn(
   return { file: resolveCommand(file, pathList), args: [...pre, ...args] };
 }
 
+/**
+ * The Antigravity CLI updates itself on any launch (`agy --version`, `agy models`) unless told not to: the look below
+ * runs it every few minutes, and a new version broke the right hand's lock on 2026-11-17 (ADR 0143, addendum
+ * 2026-11-17). Every launch of it here goes with this, as turns' do (`AGY_QUIET_ENV`).
+ */
+export const AGY_NO_UPDATE_ENV: Readonly<Record<string, string>> = { AGY_CLI_DISABLE_AUTO_UPDATE: "true" };
+
+/** The env a look at `command` runs with: the runner's, plus what its launcher needs and `AGY_NO_UPDATE_ENV`. */
+export function probeEnv(command: string, launcher: NodeJS.ProcessEnv | undefined, base: NodeJS.ProcessEnv) {
+  const own = command === AGY_BIN ? AGY_NO_UPDATE_ENV : undefined;
+  return launcher || own ? { ...base, ...launcher, ...own } : base;
+}
+
 const defaultRun: Run = (command, args) =>
   new Promise((resolve) => {
     const run = cliSpawn([command], args);
@@ -254,7 +267,7 @@ const defaultRun: Run = (command, args) =>
         timeout: 8000,
         maxBuffer: 1024 * 1024,
         windowsHide: true,
-        env: run.env ? { ...process.env, ...run.env } : process.env,
+        env: probeEnv(command, run.env, process.env),
         windowsVerbatimArguments: run.windowsVerbatimArguments,
       },
       (err, stdout, stderr) => {

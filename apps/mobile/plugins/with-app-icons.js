@@ -1,7 +1,7 @@
 /**
  * Expo config plugin: the app icons a person may pick on their phone (ADR 0179), besides the one the app ships with
  * (`ios.icon` and `android.adaptiveIcon` in app.config.ts). Their files are assets/app-icons/<id>/, written by
- * packages/ui/scripts/app-icons.mjs; the ids are packages/client's `APP_ICONS` (a test keeps them equal).
+ * scripts/app-icons.ts from the Doug (DougBot); the ids are packages/client's `APP_ICONS` (a test keeps them equal).
  * - iOS: one `AppIcon-<id>` set per icon in the asset catalog, in light, dark and tinted (iOS 18), named in
  *   ASSETCATALOG_COMPILER_ALTERNATE_APPICON_NAMES so the build lists them in Info.plist; the app switches with
  *   `setAlternateIconName` (modules/app-icon).
@@ -9,12 +9,12 @@
  *   (`.AppIcon<Id>`, only the shipped one on), each with its adaptive icon (back, front and one-color layers, and a
  *   PNG for Android 7); the app turns the picked one on and the others off.
  *
- * Besides those five, the icons a person makes (a sky, a color and a face or an accessory, or the agent leaning in
- * with a face: `MADE`, 496 of them). A
- * phone takes only icons its build carries, so every combination is one more icon of the same two kinds. Their files
- * are not in the repository: packages/ui/scripts/app-icons/made-files.mjs draws them here, once per version of those
- * scripts (kept in node_modules/.cache/app-icons). A made icon has one look on iOS, and on Android shares its sky's
- * back layer and its face's or accessory's one-color layer with the others.
+ * Besides those five, the icons a person makes (DougBot's: the Doug on a ground, in a color, with a face, facing or
+ * leaning in from the corner, docs/adr/doug-0010-doug-app-icons.md; `MADE`, 320 of them). A phone takes only icons its
+ * build carries, so every combination is one more icon of the same two kinds. Their files are not in the repository:
+ * scripts/made-icons.mjs draws them here from the identity's code (src/brand/doug-icons.js), once per version of it
+ * (kept in node_modules/.cache/app-icons). A made icon has one look on iOS, and on Android shares its back layer
+ * (its ground and color) and its one-color layer (its face) with the others of the same pose.
  */
 const { execFileSync } = require("node:child_process");
 const { createHash } = require("node:crypto");
@@ -27,26 +27,22 @@ const ICONS = ["night", "moon", "sky", "peekNight", "peekSky"];
 const OTHERS = ICONS.slice(1);
 const ASSETS = "assets/app-icons";
 
-/** What a made icon is made of, as packages/client's lists and the generator's (tests keep the three equal). */
-const FACES = ["round", "dots", "wide", "happy", "sleepy", "wink", "heart", "star", "surprised", "angry"];
+/** What a made icon is made of, as packages/client's lists and the drawing's (tests keep the three equal). */
 const MADE = {
-  skies: ["night", "sky"],
-  colors: ["sky", "indigo", "violet", "rose", "amber", "green", "teal", "graphite"],
-  faces: FACES,
-  looks: [
-    ...FACES,
-    ...["hat", "cap", "headphones", "bow", "crown", "antenna", "headset", "beanie", "party", "flower", "scarf"],
-  ],
+  grounds: ["day", "night"],
+  colors: ["green", "yellow", "orange", "pink", "violet", "blue", "cyan", "white"],
+  faces: ["normal", "happy", "wink", "surprised", "unimpressed", "sad", "angry", "aside", "laugh", "asleep"],
   poses: ["front", "peek"],
 };
-/** `made-<sky>-<color>-<look>`, and `…-peek` for the leaning agent (a face only), in the lists' order. */
+/** `made-<ground>-<color>-<face>`, and `…-peek` for the leaning Doug, in the lists' order. */
 const MADE_ICONS = MADE.poses.flatMap((pose) =>
-  MADE.skies.flatMap((sky) =>
+  MADE.grounds.flatMap((ground) =>
     MADE.colors.flatMap((color) =>
-      (pose === "peek" ? MADE.faces : MADE.looks).map((look) => ({
-        id: `made-${sky}-${color}-${look}${pose === "peek" ? "-peek" : ""}`,
-        sky,
-        look,
+      MADE.faces.map((face) => ({
+        id: `made-${ground}-${color}-${face}${pose === "peek" ? "-peek" : ""}`,
+        ground,
+        color,
+        face,
         pose,
       })),
     ),
@@ -54,21 +50,20 @@ const MADE_ICONS = MADE.poses.flatMap((pose) =>
 );
 const MADE_IDS = MADE_ICONS.map((icon) => icon.id);
 
-const GENERATOR = "../../packages/ui/scripts/app-icons";
+const GENERATOR = "scripts/made-icons.mjs";
 /** What the made icons are drawn from: a change to any of these draws them again. */
-const GENERATOR_SOURCES = ["made-files.mjs", "scenes.mjs", "raster.mjs", "../../src/agent/engine.js"];
+const GENERATOR_SOURCES = [GENERATOR, "src/brand/doug-icons.js", "src/brand/dougbot-avatar.js"];
 
 /** The folder with the made icons' files, drawn now if these scripts never drew them. */
 function madeFiles(projectRoot) {
-  const scripts = path.join(projectRoot, GENERATOR);
   const hash = createHash("sha1");
-  for (const file of GENERATOR_SOURCES) hash.update(fs.readFileSync(path.join(scripts, file)));
+  for (const file of GENERATOR_SOURCES) hash.update(fs.readFileSync(path.join(projectRoot, file)));
   const dir = path.join(projectRoot, "node_modules", ".cache", "app-icons", hash.digest("hex").slice(0, 16));
   const done = path.join(dir, "done");
   if (!fs.existsSync(done)) {
     console.log(`with-app-icons: drawing ${MADE_IDS.length} icons (a few minutes, once)`);
     fs.rmSync(dir, { recursive: true, force: true });
-    execFileSync(process.execPath, [path.join(scripts, "made-files.mjs"), dir], { stdio: "inherit" });
+    execFileSync(process.execPath, [path.join(projectRoot, GENERATOR), dir], { stdio: "inherit" });
     fs.writeFileSync(done, "");
   }
   return dir;
@@ -199,10 +194,10 @@ const adaptiveXml = (
     <monochrome android:drawable="@drawable/${mono}"/>
 </adaptive-icon>
 `;
-/** The layers the made icons share: a sky's back and a face's or accessory's one-color shape, each pose its own. */
+/** The layers the made icons share: a ground in a color behind, a face's one-color shape, each pose its own. */
 const tail = (pose, sep) => (pose === "peek" ? `${sep}peek` : "");
-const madeBack = (sky, pose) => `ic_launcher_made_back_${sky}${tail(pose, "_")}`;
-const madeMono = (look, pose) => `ic_launcher_made_mono_${look}${tail(pose, "_")}`;
+const madeBack = (ground, color, pose) => `ic_launcher_made_back_${ground}_${color}${tail(pose, "_")}`;
+const madeMono = (face, pose) => `ic_launcher_made_mono_${face}${tail(pose, "_")}`;
 
 function withAndroidIcons(config) {
   const withAliases = withAndroidManifest(config, (c) => {
@@ -229,26 +224,27 @@ function withAndroidIcons(config) {
       }
       const made = madeFiles(projectRoot);
       for (const pose of MADE.poses) {
-        for (const sky of MADE.skies)
+        for (const ground of MADE.grounds)
+          for (const color of MADE.colors)
+            put(
+              "drawable-nodpi",
+              `${madeBack(ground, color, pose)}.png`,
+              path.join(made, `back-${ground}-${color}${tail(pose, "-")}`, "android-background.png"),
+            );
+        for (const face of MADE.faces)
           put(
             "drawable-nodpi",
-            `${madeBack(sky, pose)}.png`,
-            path.join(made, `sky-${sky}${tail(pose, "-")}`, "android-background.png"),
-          );
-        for (const look of pose === "peek" ? MADE.faces : MADE.looks)
-          put(
-            "drawable-nodpi",
-            `${madeMono(look, pose)}.png`,
-            path.join(made, `mono-${look}${tail(pose, "-")}`, "android-monochrome.png"),
+            `${madeMono(face, pose)}.png`,
+            path.join(made, `mono-${face}${tail(pose, "-")}`, "android-monochrome.png"),
           );
       }
-      for (const { id, sky, look, pose } of MADE_ICONS) {
+      for (const { id, ground, color, face, pose } of MADE_ICONS) {
         const name = androidRes(id);
         put("drawable-nodpi", `${name}_foreground.png`, path.join(made, id, "android-foreground.png"));
         put("mipmap-xxxhdpi", `${name}.png`, path.join(made, id, "android-legacy.png"));
         fs.writeFileSync(
           path.join(res, "mipmap-anydpi-v26", `${name}.xml`),
-          adaptiveXml(name, madeBack(sky, pose), madeMono(look, pose)),
+          adaptiveXml(name, madeBack(ground, color, pose), madeMono(face, pose)),
         );
       }
       return c;

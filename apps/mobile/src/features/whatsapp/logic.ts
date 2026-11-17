@@ -31,12 +31,17 @@ export const ownFile = (path: (base: string) => string) => ({
 export function useWhatsAppSay() {
   const { t } = useTranslation();
   const w = useWhatsAppWords();
+  const ours: Record<string, string> = {
+    "whatsapp.unavailable": w.errors.unavailable,
+    "whatsapp.new_chats_limit": w.errors.newChatsLimit,
+    "whatsapp.voice_off": w.errors.voiceOff,
+    "whatsapp.unheard": w.errors.unheard,
+    "whatsapp.recording_long": w.errors.recordingLong,
+    "whatsapp.ai_busy": w.errors.aiBusy,
+    "whatsapp.no_agent": w.errors.noAgent,
+  };
   return (error: unknown) =>
-    error instanceof ApiError && error.code === "whatsapp.unavailable"
-      ? w.errors.unavailable
-      : error instanceof ApiError && error.code === "whatsapp.new_chats_limit"
-        ? w.errors.newChatsLimit
-        : errorText(t, error);
+    (error instanceof ApiError && error.code ? ours[error.code] : undefined) ?? errorText(t, error);
 }
 
 /**

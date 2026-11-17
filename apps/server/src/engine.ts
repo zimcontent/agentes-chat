@@ -148,6 +148,7 @@ import {
   type VaultDeps,
   type VideoReviewDeps,
   type VoiceDeps,
+  type WhatsAppAgentDeps,
   warmAgentBrowser,
   withComposio,
   withJudgeFallback,
@@ -863,6 +864,28 @@ export function buildEngine(o: EngineOptions) {
       postPersonMessage({ db, pubsub: adapters.pubsub }, userId, orgId, channelId, { body, meta }),
     log: o.log,
   };
+  const whatsappAgent: WhatsAppAgentDeps | undefined = adapters.whatsapp
+    ? {
+        db,
+        gateway: adapters.whatsapp,
+        keyWrappers,
+        pubsub: adapters.pubsub,
+        hookBase: (config.WHATSAPP_HOOK_URL ?? config.PUBLIC_URL).replace(/\/+$/, ""),
+        models: gateway,
+        machines: machineHub,
+        // What the agent knows from its work comes into its WhatsApp answers (docs/adr/doug-0004-whatsapp-bridge.md).
+        context,
+        // Voice messages heard by the same engines as the app's (ADR 0100) before the agent reads them.
+        speech: speech.chain,
+        // And spoken, now and then, in the number's voice (ElevenLabs, the same key).
+        voiceOut: whatsappVoiceOut(config.ELEVENLABS_API_KEY),
+        // A GIF now and then, from the same search as the app's (docs/adr/doug-0008-whatsapp-gif.md).
+        gifs: adapters.gifs ?? null,
+        // A member's messages go to their conversation with the agent, as theirs (addendum 2026-11-15).
+        relay: (userId, orgId, channelId, input) =>
+          postPersonMessage({ db, pubsub: adapters.pubsub }, userId, orgId, channelId, input),
+      }
+    : undefined;
   const jobDeps: JobDeps = {
     feedbackBlobs: adapters.platformBlobs,
     feedbackFetch: o.http,
@@ -871,30 +894,7 @@ export function buildEngine(o: EngineOptions) {
     voice,
     videoReviews,
     // The agent answering a WhatsApp number, with its own brain: its API model, or its plan on its computer.
-    ...(adapters.whatsapp
-      ? {
-          whatsapp: {
-            db,
-            gateway: adapters.whatsapp,
-            keyWrappers,
-            pubsub: adapters.pubsub,
-            hookBase: (config.WHATSAPP_HOOK_URL ?? config.PUBLIC_URL).replace(/\/+$/, ""),
-            models: gateway,
-            machines: machineHub,
-            // What the agent knows from its work comes into its WhatsApp answers (docs/adr/doug-0004-whatsapp-bridge.md).
-            context,
-            // Voice messages heard by the same engines as the app's (ADR 0100) before the agent reads them.
-            speech: speech.chain,
-            // And spoken, now and then, in the number's voice (ElevenLabs, the same key).
-            voiceOut: whatsappVoiceOut(config.ELEVENLABS_API_KEY),
-            // A GIF now and then, from the same search as the app's (docs/adr/doug-0008-whatsapp-gif.md).
-            gifs: adapters.gifs ?? null,
-            // A member's messages go to their conversation with the agent, as theirs (addendum 2026-11-15).
-            relay: (userId, orgId, channelId, input) =>
-              postPersonMessage({ db, pubsub: adapters.pubsub }, userId, orgId, channelId, input),
-          },
-        }
-      : {}),
+    ...(whatsappAgent ? { whatsapp: whatsappAgent } : {}),
     db,
     gateway,
     pubsub: adapters.pubsub,
@@ -1018,6 +1018,8 @@ export function buildEngine(o: EngineOptions) {
     voice,
     liveVoice,
     videoReviews,
+    /** The number's agent thinking (drafts of a number's instructions); undefined without a gateway. */
+    whatsappAgent,
   };
 }
 

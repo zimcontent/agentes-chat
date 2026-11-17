@@ -138,6 +138,13 @@ export const issues = pgTable(
      */
     conversationChannelId: uuid().references((): AnyPgColumn => channels.id, { onDelete: "set null" }),
     conversationRootId: uuid(),
+    /**
+     * The thread the task talks in when it was made from one (ADR doug-0018): a conversation of a channel or a DM,
+     * which the task holds without owning (deleting the task leaves it). Its conversation while it has no room of its
+     * own (`conversationChannelId`). One task per thread.
+     */
+    threadChannelId: uuid().references((): AnyPgColumn => channels.id, { onDelete: "set null" }),
+    threadRootId: uuid(),
     createdByType: text().notNull(),
     createdById: text().notNull(),
     createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
@@ -150,6 +157,7 @@ export const issues = pgTable(
     index().on(t.orgId, t.projectId),
     index().on(t.parentIssueId),
     uniqueIndex().on(t.conversationChannelId),
+    uniqueIndex().on(t.threadRootId),
     // Every run reads its agent's open tasks, latest activity first (`openTasksBrief`).
     index().on(t.orgId, t.assigneeType, t.assigneeId, t.updatedAt),
   ],

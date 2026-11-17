@@ -9,16 +9,15 @@ const ROOT = join(import.meta.dir, "..", "..");
 const read = (path: string) => readFileSync(join(ROOT, path), "utf8");
 
 describe("the tabs of a personal workspace", () => {
-  test("Threads is never a tab (the bar is the web sidebar's five), and its list is pushed from You › Work", () => {
+  test("Threads are never a place of their own: their old addresses land on Tarefas (ADR doug-0018)", () => {
     const tabs = read("app/(app)/(tabs)/_layout.tsx");
     expect(tabs).not.toContain('name: "threads"');
-    // A hidden tab can't be opened: the pushed list lives at /conversations/threads.
     const route = read("app/(app)/conversations/[kind].tsx");
-    expect(route).toContain('if (kind === "threads" && personal) return <ThreadsScreen pushed />;');
-    expect(read("src/features/chats/ThreadsScreen.tsx")).toContain("<PushedLargeTitle");
+    expect(route).toContain('return <Redirect href={kind === "threads" ? "/issues" : "/"} />;');
+    expect(read("app/(app)/threads.tsx")).toContain('<Redirect href="/issues" />');
+    expect(read("src/features/issues/MissionsScreen.tsx")).toContain("<PushedLargeTitle");
     const me = read("src/features/me/MeScreen.tsx");
-    expect(me).toContain('onPress={() => open("/conversations/threads")}');
-    expect(me).toContain("{...(unreadThreads > 0 ? { value: String(unreadThreads) } : {})}");
+    expect(me).not.toContain('open("/conversations/threads")');
   });
 
   test("the bar holds DougBot's signature alone: no workspace mark, no photo, no '+' (doug-0014)", () => {
@@ -61,7 +60,6 @@ describe("You in a personal workspace", () => {
       "routines",
       "drive",
       "issues",
-      "threads",
       "proposals",
       "wiki",
       "dashboards",

@@ -746,6 +746,22 @@
       "notedSub": "Tersimpan di keputusan misi."
     }
   },
+  "task": {
+    "make": "Buat tugas",
+    "makeThread": "Buat tugas dari percakapan ini",
+    "made": "Tugas #{{number}} dibuat",
+    "madeSub": "Percakapan tetap di sini dan muncul di tugas.",
+    "held": "Percakapan ini sudah menjadi tugas #{{number}}.",
+    "open": "Buka",
+    "openNumber": "Buka tugas #{{number}}"
+  },
+  "missions": {
+    "running_other": "{{count}} misi berjalan",
+    "waiting_other": "{{count}} menunggu Anda",
+    "open": "Pekerjaan panjang oleh agen, dengan rencana dan langkah",
+    "emptyTitle": "Belum ada misi",
+    "emptyText": "Misi adalah pekerjaan panjang oleh agen, dengan rencana dan langkah."
+  },
   "threads": {
     "title": "Utas",
     "section": {
@@ -1386,8 +1402,8 @@
     }
   },
   "taskManager": {
-    "loadFailed": "Tidak bisa memuat tugas.",
-    "gone": "Tugas ini sudah tidak ada di sini.",
+    "loadFailed": "Tidak bisa memuat pekerjaan.",
+    "gone": "Pekerjaan ini sudah tidak ada.",
     "quiet": "Tidak ada yang berjalan",
     "doneToday_other": "{{count}} selesai hari ini",
     "request": "Permintaan",

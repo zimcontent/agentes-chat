@@ -26,7 +26,7 @@ describe("a reply's tools sit last", () => {
           "<SavedTools",
           "<NoAiCard message={m} />",
           // The foot is the reply's last part: only the double tap's one-time hint and its 👍 over the row follow it.
-          "{foot}\n          </RowPartContext.Provider>\n          {hintNode}\n        </View>\n        {popNode}\n      </Pressable>\n    </>\n  );\n});",
+          "{foot}\n          </RowPartContext.Provider>\n          {hintNode}\n        </View>\n        {popNode}\n      </Pressable>\n    </>\n  );\n}\n",
         ]),
       ),
     ).toBe(true);
@@ -44,7 +44,7 @@ describe("a reply's tools sit last", () => {
     const row = source("MessageRow.tsx");
     const [toolsAt, footAt] = at(row, [
       "<SavedTools\n",
-      "{foot}\n          </RowPartContext.Provider>\n          {hintNode}\n        </View>\n        {popNode}\n      </Pressable>\n    </>\n  );\n});",
+      "{foot}\n          </RowPartContext.Provider>\n          {hintNode}\n        </View>\n        {popNode}\n      </Pressable>\n    </>\n  );\n}\n",
     ]);
     const last = row.slice(toolsAt, footAt);
     for (const card of [
@@ -144,7 +144,7 @@ describe("one call is its own line", () => {
     expect(tools).toContain("const one = oneCall(items);");
     expect(tools).toContain("one={one}");
     expect(tools).toContain("const lone = savedOneLine(meta, onCard);");
-    expect(tools).toContain("<Line line={{ ...only.line, detail }} color={color} onToggle={onToggle} />");
+    expect(tools).toContain("<Line line={{ ...only.line, detail }} color={color} onToggle={onToggle} keep={keep} />");
   });
 });
 

@@ -17,6 +17,7 @@ import {
   useToggleReaction,
   useWaiting,
 } from "@agenteschat/client";
+import { actionCardOf, costlyProposalOf, stretchCardOf } from "@agenteschat/client/lib/action-cards";
 import { foldTalk, TALK_LINE_CHARS, talksToAgent } from "@agenteschat/client/lib/agent-talk";
 import { APP_BRANDS } from "@agenteschat/client/lib/apps";
 import { channelRefsOf } from "@agenteschat/client/lib/channel-refs";
@@ -28,25 +29,30 @@ import {
   CONTINUE_ERRORS,
   errorCode,
   errorText,
+  filesTextOnlyOf,
   runErrorText,
   sendFailureText,
   sendNeedsEdit,
 } from "@agenteschat/client/lib/errors";
 import { mentionsReader } from "@agenteschat/client/lib/everyone";
+import { feedbackOfferOf } from "@agenteschat/client/lib/feedback-offer";
 import { agentGrammar } from "@agenteschat/client/lib/grammar";
 import { issueWorkOf } from "@agenteschat/client/lib/issues";
 import { workAnchorBody, workContinuable, workIsOver } from "@agenteschat/client/lib/long-work";
-import { brainUnavailableOf } from "@agenteschat/client/lib/machine-outages";
+import { brainUnavailableOf, messageToolOff } from "@agenteschat/client/lib/machine-outages";
 import { isMediaAfterReply, messageMediaOf } from "@agenteschat/client/lib/media";
 import { memberRoleColor } from "@agenteschat/client/lib/member-groups";
 import { serverBody } from "@agenteschat/client/lib/message-body";
 import { missionSetupOf } from "@agenteschat/client/lib/missions";
+import { noAiCardOf } from "@agenteschat/client/lib/no-ai";
 import { isTalkerReply, routineReportText, talkerWaited } from "@agenteschat/client/lib/notices";
 import { can } from "@agenteschat/client/lib/permissions";
 import { modelStandInText } from "@agenteschat/client/lib/plan-usage";
 import { reachHandoffs } from "@agenteschat/client/lib/reach";
 import { replyOf } from "@agenteschat/client/lib/reply";
 import { isReminderMessage, reminderBody, routineReplyOf } from "@agenteschat/client/lib/routines";
+import { replyChipsOf } from "@agenteschat/client/lib/team-plan";
+import { usagePauseCardOf, usageWaitOf } from "@agenteschat/client/lib/usage-pause";
 import { appVia } from "@agenteschat/client/lib/via";
 import { listedText, voiceOf } from "@agenteschat/client/lib/voice";
 import { type ReplyStop, showsActivity, splitCanceled } from "@agenteschat/client/lib/work";
@@ -114,6 +120,7 @@ import { ConsultPairRow, useRunConsults } from "./ConsultGroup";
 import { ApprovalInline, QuestionCard, ThreadLink } from "./cards";
 import { FeedbackOfferRow } from "./FeedbackOffer";
 import { HandedTaskChips, IssueWorkCard } from "./issue-work";
+import { keepOpen, keptOpen } from "./kept-sizes";
 import { cacheContinued } from "./live";
 import {
   approvalIdOf,
@@ -148,7 +155,7 @@ import { ModelStandInLine, SpeedFallbackLine, StopPill } from "./StoppedLine";
 import { useStopMovedOn, useStoppedRun } from "./stopped-runs";
 import { TeamChecks } from "./TeamChecks";
 import { SavedTools, TurnTools } from "./ToolCalls";
-import { recentTurn, stepLimitOf, stoppedOf, turnOpener } from "./turn";
+import { keptTurn, stepLimitOf, stoppedOf, turnOpener } from "./turn";
 import { MessageWorkLine } from "./WorkLine";
 
 /** A run's message asks whether a take over still holds its browser only this recently (older: events only). */
@@ -163,24 +170,20 @@ const TRAIL_RECENT_MS = 12 * 60 * 60_000;
  * receipt is a mark in a line the row already has (`ReceiptMark`), so it never changes the row's height: after the
  * time under my turn, whether an agent read it ("lê na próxima pausa", "leu") or who read it in a DM; at the end of
  * someone else's name line, the agents' receipt of their latest message.
+ *
+ * What the row holds when it mounts just shows (`skipEntering`): the list mounts a row again each time it comes back
+ * into view, and a part that fades in when it changes (a receipt's mark, a decided request's outcome, an undone
+ * action's line) faded in again on every scroll. What changes while the row shows still fades in.
  */
-export const MessageRow = memo(function MessageRow({
-  message: m,
-  grouped: groupedIn,
-  newTurn,
-  meId,
-  thread,
-  onLongPress,
-  onRetry,
-  onQuote,
-  receipt,
-  seenBy,
-  readOnly = false,
-  inThread = false,
-  run: runAt = "solo",
-  above,
-  aboveThread = false,
-}: {
+export const MessageRow = memo(function MessageRow(props: RowProps) {
+  return (
+    <LayoutAnimationConfig skipEntering>
+      <RowBody {...props} />
+    </LayoutAnimationConfig>
+  );
+});
+
+interface RowProps {
   message: Message;
   grouped: boolean;
   /** Next in its turn, but under something else: it takes a turn's gap. */
@@ -206,7 +209,25 @@ export const MessageRow = memo(function MessageRow({
   readOnly?: boolean;
   /** On its thread's own screen: a long message between agents is read whole there. */
   inThread?: boolean;
-}) {
+}
+
+function RowBody({
+  message: m,
+  grouped: groupedIn,
+  newTurn,
+  meId,
+  thread,
+  onLongPress,
+  onRetry,
+  onQuote,
+  receipt,
+  seenBy,
+  readOnly = false,
+  inThread = false,
+  run: runAt = "solo",
+  above,
+  aboveThread = false,
+}: RowProps) {
   const { t, i18n } = useTranslation();
   // Mine and not sent for lack of a connection: it waits and goes by itself when the connection is back.
   const offline = useWaiting(m.local === "failed" ? m.clientId : null);
@@ -221,9 +242,9 @@ export const MessageRow = memo(function MessageRow({
   const meta = m.meta;
   const standIn = modelStandInText(t, meta);
   // What a routine found, told by its agent (as on the web): a small tag, and the report it answers on demand
-  // (that report's own line folds into this message).
+  // (that report's own line folds into this message). Unfolded, it comes back unfolded with its row (`keptOpen`).
   const routine = routineReplyOf(m);
-  const [reportOpen, setReportOpen] = useState(false);
+  const [reportOpen, setReportOpen] = useState(() => keptOpen(`report:${m.id}`));
   const qc = useQueryClient();
   const orgId = useOrgId();
   const { org } = useOrg();
@@ -364,8 +385,9 @@ export const MessageRow = memo(function MessageRow({
   const atLimit = isAgent && m.agentRunId && !stopped && !mediaAfter ? stepLimitOf(meta) : null;
   // A long work's end after its AI provider failed: Continuar under it too.
   const providerCut = isAgent && m.agentRunId && !stopped && !atLimit ? workContinuable(meta) : null;
-  // This reply just took its live block's place here: the same tools (and the messages it read) stay.
-  const [kept] = useState(() => (ownWork && m.agentRunId ? recentTurn(m.agentRunId, Date.now()) : null));
+  // This reply just took its live block's place here: the same tools (and the messages it read) stay, also each time
+  // the row comes back into view (`keptTurn`).
+  const [kept] = useState(() => (ownWork && m.agentRunId ? keptTurn(m.id, m.agentRunId, Date.now()) : null));
   // The line its block opened with stays above the tools, where it was, instead of moving into them (`turnOpener`).
   const opened = kept ? turnOpener(kept.items, body) : null;
   const approvalId = approvalIdOf(meta);
@@ -377,11 +399,10 @@ export const MessageRow = memo(function MessageRow({
   const link = missionLinkOf(meta);
   const files = artifactsOf(meta);
   const aboveReactions = useReactions(orgId, above?.id ?? "", false).data;
-  const ownReactions = useReactions(orgId, m.id, false).data;
   const run = runAround(
     runAt,
     above ? hangsUnder(above, aboveThread, aboveReactions, meId) : false,
-    hangsUnder(m, Boolean(thread), ownReactions, meId),
+    hangsUnder(m, Boolean(thread), cachedReactions.data, meId),
   );
   const question = isAgent ? questionOf(meta) : null;
   // An agent asks a person for a secret for its computer (ADR 0027).
@@ -391,6 +412,9 @@ export const MessageRow = memo(function MessageRow({
   const handoff = isAgent ? browserHandoffOf(meta) : null;
   // A card in a row of its own under the same author's words stands as far off them as in the same row.
   const cardRow = !body && !media && Boolean(meta?.actionCard || approvalId || question || secret || handoff);
+  // Settings it proposes, or a workspace action it asks for: their card (`SettingsProposals`).
+  const actionKind = actionCardOf(meta)?.kind;
+  const settingsCard = actionKind === "settings_proposal" || actionKind === "workspace_action";
   const rowGap = !grouped || newTurn ? rhythm.turn : cardRow ? rhythm.card : rhythm.part;
   const cardTop = body || media ? rhythm.card - rhythm.part : 0;
   // Where it browsed, or what it did on its desktop, after the run (as on the web): the steps' card.
@@ -654,7 +678,10 @@ export const MessageRow = memo(function MessageRow({
       ) : null}
       {routine && report ? (
         <Pressable
-          onPress={() => setReportOpen((o) => !o)}
+          onPress={() => {
+            keepOpen(`report:${m.id}`, !reportOpen);
+            setReportOpen(!reportOpen);
+          }}
           accessibilityRole="button"
           accessibilityState={{ expanded: reportOpen }}
           hitSlop={NAME_LINE_SLOP}
@@ -881,7 +908,7 @@ export const MessageRow = memo(function MessageRow({
             {isAgent ? <HandedTaskChips message={m} /> : null}
             {isAgent ? <TeamChecks message={m} /> : null}
             {isAgent ? <ReachLines message={m} /> : null}
-            {isAgent ? <FeedbackOfferRow message={m} /> : null}
+            {isAgent && feedbackOfferOf(meta) ? <FeedbackOfferRow message={m} /> : null}
             {isAgent && m.longWork ? <MessageWorkLine message={m} threaded={Boolean(thread)} /> : null}
             {files.length > 0 ? <MessageFiles files={files} /> : null}
             {trails && m.author.id && trails.browser.length > 0 ? (
@@ -903,7 +930,8 @@ export const MessageRow = memo(function MessageRow({
               />
             ) : null}
             {cards}
-            {/* Its tools after its words, what it changed and its cards: the same place live, kept and saved. */}
+            {/* Its tools after its words, what it changed and its cards: the same place live, kept and saved. Left
+                open, they come back open (`keptOpen`). */}
             {kept ? (
               <TurnTools
                 items={opened?.lines ?? kept.items}
@@ -912,6 +940,7 @@ export const MessageRow = memo(function MessageRow({
                 quoteOf={(id) => kept.quotes[id]}
                 done
                 settled
+                keep={`tools:${m.id}`}
               />
             ) : steps && m.agentRunId ? (
               <SavedTools
@@ -920,22 +949,25 @@ export const MessageRow = memo(function MessageRow({
                 agentName={agent?.name ?? name}
                 color={color}
                 skipScreens={onCards}
+                keep={`tools:${m.id}`}
               />
             ) : null}
-            {/* What waits for a person's click comes last, after the words and the tools. */}
-            {isAgent ? <NoAiCard message={m} /> : null}
-            {isAgent ? <StretchCard message={m} /> : null}
-            {isAgent ? <CostlyProposalCard message={m} /> : null}
-            {isAgent ? <UsagePauseCard message={m} /> : null}
-            {isAgent ? <UsageWaitCancel message={m} /> : null}
-            {isAgent ? <WaitToolOffAction message={m} /> : null}
+            {/* What waits for a person's click comes last, after the words and the tools. Each card with work of its
+                own before it knows it has nothing to show (queries, the directory, a clock) is drawn only on a
+                message that carries it: under every agent's message, a scroll paid for all of them on each row. */}
+            {isAgent && noAiCardOf(meta) ? <NoAiCard message={m} /> : null}
+            {isAgent && stretchCardOf(meta) ? <StretchCard message={m} /> : null}
+            {isAgent && costlyProposalOf(meta) ? <CostlyProposalCard message={m} /> : null}
+            {isAgent && usagePauseCardOf(meta) ? <UsagePauseCard message={m} /> : null}
+            {isAgent && usageWaitOf(meta) ? <UsageWaitCancel message={m} /> : null}
+            {isAgent && messageToolOff(meta) ? <WaitToolOffAction message={m} /> : null}
             {isAgent ? <ProposalCard message={m} /> : null}
             {isAgent ? <TeamCard message={m} /> : null}
-            {isAgent ? <ReplyChips message={m} /> : null}
+            {isAgent && replyChipsOf(meta) ? <ReplyChips message={m} /> : null}
             {isAgent ? <OfferCard message={m} /> : null}
-            {isAgent ? <FilesTextOnlyFix message={m} /> : null}
+            {isAgent && filesTextOnlyOf(meta) ? <FilesTextOnlyFix message={m} /> : null}
             {isAgent ? <InstructionProposals message={m} /> : null}
-            {isAgent ? <SettingsProposals message={m} /> : null}
+            {isAgent && settingsCard ? <SettingsProposals message={m} /> : null}
             {isAgent ? <TeamWeek message={m} /> : null}
             {approvalId ? <ApprovalInline approvalId={approvalId} messageId={m.id} /> : null}
             {handoff ? <HandoffCard handoff={handoff} /> : null}
@@ -950,7 +982,7 @@ export const MessageRow = memo(function MessageRow({
       </Pressable>
     </>
   );
-});
+}
 
 /** Reactions are stored by name: the thumbs up is `+1` (feedback to the agent). */
 const THUMBS = "+1";

@@ -5803,7 +5803,19 @@ export interface ThreadInfo {
   unread?: number;
   /** The thread's mission, in short (details: `GET …/threads/{id}/mission`). */
   mission?: ThreadMissionSummary | null;
+  /**
+   * The task this thread is the conversation of, when you see that task (ADR doug-0018). Always sent by the API;
+   * absent in `thread.updated` events (it is per person).
+   */
+  task?: ThreadTaskSummary | null;
   createdAt: string;
+}
+
+export interface ThreadTaskSummary {
+  id: string;
+  number: number;
+  title: string;
+  status: IssueStatus;
 }
 
 export interface ThreadMissionSummary {

@@ -790,6 +790,26 @@
       "notedSub": "Resta tra le decisioni della missione."
     }
   },
+  "task": {
+    "make": "Crea attività",
+    "makeThread": "Crea un'attività da questa conversazione",
+    "made": "Attività #{{number}} creata",
+    "madeSub": "La conversazione resta qui e compare nell'attività.",
+    "held": "Questa conversazione è già l'attività #{{number}}.",
+    "open": "Apri",
+    "openNumber": "Apri attività #{{number}}"
+  },
+  "missions": {
+    "running_one": "{{count}} missione in corso",
+    "running_many": "{{count}} missioni in corso",
+    "running_other": "{{count}} missioni in corso",
+    "waiting_one": "{{count}} ti aspetta",
+    "waiting_many": "{{count}} ti aspettano",
+    "waiting_other": "{{count}} ti aspettano",
+    "open": "Lavoro lungo di un agente, con un piano e dei passaggi",
+    "emptyTitle": "Ancora nessuna missione",
+    "emptyText": "Una missione è un lavoro lungo di un agente, con un piano e dei passaggi."
+  },
   "threads": {
     "title": "Thread",
     "section": {
@@ -1556,8 +1576,8 @@
     }
   },
   "taskManager": {
-    "loadFailed": "Impossibile caricare le attività.",
-    "gone": "Questa attività non c'è più.",
+    "loadFailed": "Impossibile caricare il lavoro.",
+    "gone": "Questo lavoro non c'è più.",
     "quiet": "Niente in corso",
     "doneToday_one": "{{count}} completata oggi",
     "doneToday_other": "{{count}} completate oggi",

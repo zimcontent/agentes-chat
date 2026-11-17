@@ -1,7 +1,7 @@
 import { joinDrafts, tooLongText, tooLongToSend } from "@agenteschat/client/lib/message-length";
 import { applyFormat, FORMAT_KINDS, type FormatKind } from "@agenteschat/ui/format";
 import { Canvas, Group, Path, Skia, vec } from "@shopify/react-native-skia";
-import { type ReactNode, useEffect, useRef, useState } from "react";
+import { type ReactNode, useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore } from "react";
 import { useTranslation } from "react-i18next";
 import {
   Platform,
@@ -23,15 +23,15 @@ import {
 import Animated, {
   cancelAnimation,
   Easing,
+  type EntryExitAnimationFunction,
   FadeIn,
   FadeOut,
   useAnimatedStyle,
   useDerivedValue,
   useSharedValue,
+  withDelay,
   withSpring,
   withTiming,
-  ZoomIn,
-  ZoomOut,
 } from "react-native-reanimated";
 import { scheduleOnRN } from "react-native-worklets";
 import { PixelStop } from "@/agent/PixelMarks";
@@ -90,6 +90,12 @@ export interface ComposerProps {
    * ("Pedir revisão do Caio" fills "Pede para o Caio revisar antes").
    */
   suggestions?: { icon: IconName; label: string; text?: string }[];
+  /**
+   * Where the "@"/"#" picker and the suggestion pills are drawn when the screen puts them outside the box it measures
+   * (`createComposerFloat`, drawn by `ComposerFloat`): they come and go with each key typed, and inside a box whose
+   * height insets a list they moved the list each time. Without it they sit at the top of the composer.
+   */
+  float?: ComposerFloatSlot;
   /** The field's `nativeID` (the chat links it to the keyboard's drag-to-dismiss area). */
   inputNativeID?: string;
   /** While "@…" is typed right before the caret (and the field is focused): the card above the field. */
@@ -142,16 +148,25 @@ const FIELD = 64;
 const SEND = 32;
 /** Space around the buttons inside the field: they sit centered on the first line. */
 const INSET = (FIELD - SEND) / 2;
+/** A suggestion pill's height and the space under the pills' row. */
+const PILL = 32;
+const PILLS_GAP = 8;
+/** The suggestion pills' row, whole: a screen drawing it outside its measured box (`float`) keeps this room for it. */
+export const PILLS_ROOM = PILL + PILLS_GAP;
 const FIELD_RADIUS = 22;
 const BUTTON_RADIUS = SEND / 2;
 /** The field's 1 px edge (the green at 35% while it is active) and its soft shadow. */
 const FIELD_SHADOW = (line: string) => `0px 0px 0px 1px ${line}, 0px 6px 18px -10px rgba(0, 0, 0, 0.25)`;
-/** How long the send button is held to stop the agent and send; the ring around it fills meanwhile. */
 /** Words left in a conversation's field, by `draftKey`, while the app runs. */
 const DRAFTS = new Map<string, string>();
 
+/** How long the send button is held to stop the agent and send; the ring around it fills meanwhile. */
 const HOLD_SEND_MS = 600;
-
+/**
+ * The ring waits this long before it shows and starts to fill (it still closes at `HOLD_SEND_MS`): a quick tap on send
+ * never flashes it.
+ */
+const RING_DELAY_MS = 120;
 const RING = 44;
 const RING_PATH = (() => {
   // Paths are immutable in this Skia: they are made with a builder.
@@ -160,10 +175,74 @@ const RING_PATH = (() => {
   return path.build();
 })();
 const EASE_OUT = Easing.bezier(0.23, 1, 0.32, 1);
+/**
+ * The send button comes in from 0.85 and fading, on the strong ease-out with no overshoot, and leaves the same way:
+ * it shows dozens of times a conversation, so it is quick and plain. Reduced motion keeps only the fade.
+ */
+const SEND_MS = 140;
+const SEND_FROM = 0.85;
+const SEND_IN: EntryExitAnimationFunction = () => {
+  "worklet";
+  return {
+    initialValues: { opacity: 0, transform: [{ scale: SEND_FROM }] },
+    animations: {
+      opacity: withTiming(1, { duration: SEND_MS, easing: EASE_OUT }),
+      transform: [{ scale: withTiming(1, { duration: SEND_MS, easing: EASE_OUT }) }],
+    },
+  };
+};
+const SEND_OUT: EntryExitAnimationFunction = () => {
+  "worklet";
+  return {
+    initialValues: { opacity: 1, transform: [{ scale: 1 }] },
+    animations: {
+      opacity: withTiming(0, { duration: SEND_MS, easing: EASE_OUT }),
+      transform: [{ scale: withTiming(SEND_FROM, { duration: SEND_MS, easing: EASE_OUT }) }],
+    },
+  };
+};
+const SEND_FADE_IN = FadeIn.duration(SEND_MS);
+const SEND_FADE_OUT = FadeOut.duration(SEND_MS);
+
+/** Where a composer's floating parts go when the screen draws them outside its measured box (`ComposerProps.float`). */
+export interface ComposerFloatSlot {
+  get: () => ReactNode;
+  set: (node: ReactNode) => void;
+  subscribe: (listener: () => void) => () => void;
+}
+
+/** A slot for one composer's floating parts, made once per screen (`useState(createComposerFloat)`). */
+export function createComposerFloat(): ComposerFloatSlot {
+  let node: ReactNode = null;
+  const listeners = new Set<() => void>();
+  return {
+    get: () => node,
+    set: (next) => {
+      if (next === node) return;
+      node = next;
+      for (const listener of listeners) listener();
+    },
+    subscribe: (listener) => {
+      listeners.add(listener);
+      return () => {
+        listeners.delete(listener);
+      };
+    },
+  };
+}
+
+/**
+ * Draws what the composer put in its slot, where the screen places this: the "@"/"#" picker or the suggestion pills. It
+ * redraws in the same frame as the composer (the slot is set in a layout effect), so nothing lags the keys.
+ */
+export function ComposerFloat({ slot }: { slot: ComposerFloatSlot }) {
+  const node = useSyncExternalStore(slot.subscribe, slot.get, slot.get);
+  return <>{node}</>;
+}
 
 /**
  * The center of the app: a round glass "+" for attachments and actions,
- * then the field, a raised pill; with text, the round ink send button pops in. One line keeps "+", text and send on the
+ * then the field, a raised pill; with text, the round ink send button comes in. One line keeps "+", text and send on the
  * same center line; longer text grows the pill upward and everything stays at the bottom. GIFs and stickers (`media`)
  * have their button at the empty field's end: they go as a message of their own, never with words.
  * Formatting has no button in the row: while words are selected in the field, a bar of them (bold, italic, lists…)
@@ -180,6 +259,7 @@ export function Composer({
   working = null,
   onPlus,
   suggestions,
+  float,
   inputNativeID,
   mention,
   mentionAt,
@@ -298,39 +378,50 @@ export function Composer({
     put(next.text, next.caret);
   };
 
+  // The picker while "@…" or "#…" is typed, else the pills while the field is empty: above the field, in the screen's
+  // slot when it gives one.
+  const floating =
+    token && mention ? (
+      mention({ query: token.query, sigil: token.sigil, pick })
+    ) : suggestions && suggestions.length > 0 && !typed && !sendEmpty && !holding ? (
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+        style={styles.pillsBleed}
+        contentContainerStyle={styles.pills}
+      >
+        {suggestions.map((s) => (
+          <PressScale
+            key={s.label}
+            onPress={() => put(s.text ?? s.label)}
+            accessibilityRole="button"
+            // 32 tall: the slop reaches 44 without pushing the field down.
+            hitSlop={{ top: 6, bottom: 6 }}
+            style={[styles.pill, { backgroundColor: colors.raised, boxShadow: `${shadows.e1}, ${shadows.top}` }]}
+          >
+            <View style={styles.pillIn}>
+              <Icon name={s.icon} size={15} color={colors.muted} />
+              <RNText
+                maxFontSizeMultiplier={CHROME_MAX_SCALE}
+                style={[systemText("subhead", weights.medium), { color: colors.ink2 }]}
+              >
+                {s.label}
+              </RNText>
+            </View>
+          </PressScale>
+        ))}
+      </ScrollView>
+    ) : null;
+  // Handed to the slot after every draw, in the same frame (a layout effect), and taken back when the field goes.
+  useLayoutEffect(() => {
+    float?.set(floating);
+  });
+  useLayoutEffect(() => () => float?.set(null), [float]);
+
   return (
     <View>
-      {token && mention ? mention({ query: token.query, sigil: token.sigil, pick }) : null}
-      {suggestions && suggestions.length > 0 && !token && !typed && !sendEmpty && !holding ? (
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          keyboardShouldPersistTaps="handled"
-          style={styles.pillsBleed}
-          contentContainerStyle={styles.pills}
-        >
-          {suggestions.map((s) => (
-            <PressScale
-              key={s.label}
-              onPress={() => put(s.text ?? s.label)}
-              accessibilityRole="button"
-              // 32 tall: the slop reaches 44 without pushing the field down.
-              hitSlop={{ top: 6, bottom: 6 }}
-              style={[styles.pill, { backgroundColor: colors.raised, boxShadow: `${shadows.e1}, ${shadows.top}` }]}
-            >
-              <View style={styles.pillIn}>
-                <Icon name={s.icon} size={15} color={colors.muted} />
-                <RNText
-                  maxFontSizeMultiplier={CHROME_MAX_SCALE}
-                  style={[systemText("subhead", weights.medium), { color: colors.ink2 }]}
-                >
-                  {s.label}
-                </RNText>
-              </View>
-            </PressScale>
-          ))}
-        </ScrollView>
-      ) : null}
+      {float ? null : floating}
       {banner}
       {tooLong ? (
         <View accessibilityRole="alert" style={styles.tooLong}>
@@ -511,13 +602,14 @@ export function Composer({
 }
 
 /**
- * The field's round button: the send arrow, or the stop square. It pops in (ZoomIn) on the glyph it shows, its value
- * born with it: iOS draws a glyph still turning inside that pop blurry. On a button already there the two swap in
- * place, one turning away as the other turns in.
+ * The field's round button: the send arrow, or the stop square. It comes in (`SEND_IN`: from 0.85, fading, no
+ * overshoot) on the glyph it shows, its value born with it: iOS draws a glyph still turning inside that entrance
+ * blurry. On a button already there the two swap in place, one turning away as the other turns in.
  *
  * With `hold` (an agent at work and text to send), a tap sends and holding fills a ring of ink around the button,
- * linear, for as long as the hold takes; let go early and it empties fast. The ring closed, a firm haptic lands with
- * it and the message goes "now". Both run on the UI thread; React hears of the tap and the hold only.
+ * linear, for as long as the hold takes; the ring and its track show only after `RING_DELAY_MS`, so a tap never
+ * flashes them. Let go early and it empties fast. The ring closed, a firm haptic lands with it and the message goes
+ * "now". Both run on the UI thread; React hears of the tap and the hold only.
  */
 function SendButton({
   stop,
@@ -550,7 +642,11 @@ function SendButton({
       "worklet";
       held.value = false;
       pressed.value = reducedMotion ? 1 : withSpring(1, motion.press);
-      ring.value = withTiming(1, { duration: HOLD_SEND_MS, easing: Easing.linear });
+      // Linear, as time passes, and only once the touch has lasted past a tap: it still closes when the hold lands.
+      ring.value = withDelay(
+        RING_DELAY_MS,
+        withTiming(1, { duration: HOLD_SEND_MS - RING_DELAY_MS, easing: Easing.linear }),
+      );
     },
     onActivate: () => {
       "worklet";
@@ -601,8 +697,8 @@ function SendButton({
   );
   return (
     <Animated.View
-      entering={reducedMotion ? undefined : ZoomIn.springify().damping(14).stiffness(320).mass(1)}
-      exiting={reducedMotion ? undefined : ZoomOut.duration(120)}
+      entering={reducedMotion ? SEND_FADE_IN : SEND_IN}
+      exiting={reducedMotion ? SEND_FADE_OUT : SEND_OUT}
       style={styles.sendBox}
     >
       {hold ? (
@@ -708,8 +804,8 @@ const styles = StyleSheet.create({
   // The row runs to the screen edges (past the composer's own inset) so a long last chip scrolls instead of
   // being cut at the padding.
   pillsBleed: { marginHorizontal: -10 },
-  pills: { gap: 6, paddingHorizontal: 14, paddingBottom: 8 },
-  pill: { height: 32, borderRadius: 8 },
+  pills: { gap: 6, paddingHorizontal: 14, paddingBottom: PILLS_GAP },
+  pill: { height: PILL, borderRadius: 8 },
   // As the pills: to the screen edges, so on a narrow phone the last buttons scroll in instead of being cut.
   formatBleed: { marginHorizontal: -10 },
   formatRow: { paddingHorizontal: 10, paddingBottom: 8 },

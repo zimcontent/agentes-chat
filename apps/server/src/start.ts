@@ -595,6 +595,7 @@ async function boot(
         voice: engine.voice,
         liveVoice: engine.liveVoice,
         videoReviews: engine.videoReviews,
+        whatsappAgent: engine.whatsappAgent,
         gitProxy: engine.gitProxy,
         pushRelaySender: relayServeSender(direct),
       },

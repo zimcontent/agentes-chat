@@ -1624,6 +1624,10 @@
     "openComputer": "Computer openen",
     "linkCopied": "Link gekopieerd.",
     "saveToWiki": "Opslaan in de wiki",
+    "makeTask": "Taak maken",
+    "taskMade": "Taak #{{number}} gemaakt. Het gesprek blijft hier en staat ook bij de taak.",
+    "taskHeld": "Dit gesprek is al taak #{{number}}.",
+    "openTask": "Taak openen",
     "pin": "Bericht vastzetten",
     "unpin": "Bericht losmaken",
     "pinned": "Bericht vastgezet.",
@@ -1775,29 +1779,47 @@
     "readyOne": "Kant-en-klaar",
     "use": "Dit icoon gebruiken",
     "inUse": "In gebruik",
-    "sky": "Achtergrond",
+    "ground": "Achtergrond",
+    "grounds": {
+      "day": "Dag",
+      "night": "Nacht"
+    },
     "pose": "Houding",
     "poses": {
       "front": "Recht vooruit",
       "peek": "Glurend"
     },
-    "peekBare": "Glurend draagt hij geen accessoire.",
-    "expression": "Gezichtsuitdrukking",
-    "ready": "Kant-en-klare iconen",
-    "oneOrOther": "Met een accessoire blijft de uitdrukking de gewone.",
-    "faces": {
-      "wink": "Knipoog",
-      "heart": "Hartjes",
-      "star": "Sterren",
-      "surprised": "Verrast",
-      "angry": "Boos"
+    "color": "Kleur",
+    "colors": {
+      "green": "Groen",
+      "yellow": "Geel",
+      "orange": "Oranje",
+      "pink": "Roze",
+      "violet": "Lila",
+      "blue": "Blauw",
+      "cyan": "Cyaan",
+      "white": "Wit"
     },
+    "expression": "Gezichtsuitdrukking",
+    "faces": {
+      "normal": "Normaal",
+      "happy": "Blij",
+      "wink": "Knipogend",
+      "surprised": "Verrast",
+      "unimpressed": "Sceptisch",
+      "sad": "Verdrietig",
+      "angry": "Boos",
+      "aside": "Opzij",
+      "laugh": "Lachend",
+      "asleep": "Slapend"
+    },
+    "ready": "Kant-en-klare iconen",
     "names": {
-      "night": "Nacht",
-      "moon": "Maan",
-      "sky": "Lucht",
-      "peekNight": "Gluren in de nacht",
-      "peekSky": "Gluren in de lucht"
+      "night": "Doug",
+      "moon": "Welterusten",
+      "sky": "Wit",
+      "peekNight": "Gluurend",
+      "peekSky": "Knipoog"
     }
   },
   "legal": {
@@ -2077,7 +2099,7 @@
     "routines": "Routines",
     "team": "Team",
     "dashboards": "Dashboards",
-    "taskManager": "Taakbeheer",
+    "taskManager": "Activiteit van agents",
     "calendar": "Agenda",
     "drive": "Drive",
     "members": "Leden",
@@ -7868,6 +7890,14 @@
     }
   },
   "issues": {
+    "missions": {
+      "back": "Terug naar Taken",
+      "running_one": "{{count}} missie bezig",
+      "running_other": "{{count}} missies bezig",
+      "waiting_one": "{{count}} wacht op jou",
+      "waiting_other": "{{count}} wachten op jou",
+      "see": "Missies bekijken"
+    },
     "delete": {
       "action": "Taak verwijderen",
       "title": "Taak #{{number}} verwijderen?",
@@ -8969,7 +8999,7 @@
       "declined": "Aanvraag van {{name}} afgewezen."
     },
     "title": "Missies",
-    "subtitle": "Langdurig werk van een agent op zijn computer, in een thread.",
+    "subtitle": "Langdurig werk van een agent, met een plan en stappen.",
     "search": "Missies zoeken",
     "online": "online",
     "offline": "offline",
@@ -9640,8 +9670,14 @@
     "waitingCloud": "Missies starten zodra {{computer}} klaar is."
   },
   "threads": {
+    "task": {
+      "button": "Taak #{{number}}",
+      "open": "Taak #{{number}} openen ({{status}})",
+      "make": "Een taak maken van dit gesprek",
+      "makeHint": "Het gesprek blijft hier en staat ook bij de taak."
+    },
     "title": "Threads",
-    "subtitle": "Onderwerpen die uit kanalen en DM's zijn gehaald.",
+    "subtitle": "Gesprekken in threads. Wat er moet gebeuren staat in Taken.",
     "tabsLabel": "Threadfilter",
     "tabs": {
       "all": "Alle",
@@ -9707,7 +9743,7 @@
     },
     "empty": {
       "missionsTitle": "Nog geen missies",
-      "missions": "Een missie is een thread met een plan, besluiten en het werk van een agent op zijn computer.",
+      "missions": "Een missie is langdurig werk van een agent, met een plan, beslissingen en stappen.",
       "allTitle": "Elk onderwerp in een eigen gesprek",
       "all": "Reageer op een bericht om een thread te openen, en het kanaal blijft overzichtelijk.",
       "workingTitle": "Er is nu geen agent aan het werk",
@@ -9768,6 +9804,8 @@
       "reply": "Antwoorden",
       "replies_one": "{{count}} antwoord",
       "replies_other": "{{count}} antwoorden",
+      "taskReplies_one": "Taak #{{number}} · {{count}} antwoord",
+      "taskReplies_other": "Taak #{{number}} · {{count}} antwoorden",
       "closed_one": "Thread gesloten · {{title}} · {{count}} bericht",
       "closed_other": "Thread gesloten · {{title}} · {{count}} berichten",
       "archived_one": "{{count}} gearchiveerde thread wordt hier niet getoond",
@@ -10561,10 +10599,10 @@
       "removeCopies": "Verwijderen",
       "copiesRemoved_one": "{{count}} ongebruikte login verwijderd.",
       "copiesRemoved_other": "{{count}} ongebruikte logins verwijderd.",
-      "removeAllDone": "{{n}} Grok-aanmeldingen verwijderd.",
-      "removeAllText": "Ze denken niet meer voor hun agenten op {{computers}}. Aanmeldingen van anderen blijven staan.",
-      "removeAllTitle": "Alle {{n}} Grok-aanmeldingen verwijderen?",
       "removeAllGrok": "Alle Grok-aanmeldingen verwijderen",
+      "removeAllTitle": "Alle {{n}} Grok-aanmeldingen verwijderen?",
+      "removeAllText": "Ze denken niet meer voor hun agenten op {{computers}}. Aanmeldingen van anderen blijven staan.",
+      "removeAllDone": "{{n}} Grok-aanmeldingen verwijderd.",
       "disconnect": "Ontkoppelen",
       "renameTitle": "{{label}} hernoemen",
       "nameLabel": "Naam",
@@ -19533,10 +19571,10 @@
     "allWaiting_one": "{{count}} ding wacht op jou",
     "allWaiting_other": "Alle {{count}} dingen wachten op jou",
     "actions": "Meer acties",
-    "openManager": "Taakbeheer openen"
+    "openManager": "Activiteit van agents openen"
   },
   "taskManager": {
-    "title": "Taakbeheer",
+    "title": "Activiteit van agents",
     "subtitle": "Wat de agents nu doen en wat vandaag klaar is.",
     "search": "Zoek een taak, agent of app",
     "working_one": "{{count}} bezig",
@@ -19643,7 +19681,7 @@
       "stopAll": "Alles stoppen",
       "stopAllOf": "Alles van {{name}} stoppen",
       "open": "Openen in het gesprek",
-      "openManager": "Openen in Taakbeheer"
+      "openManager": "Openen in activiteit van agents"
     },
     "confirm": {
       "chainTitle_one": "{{name}} en {{count}} hulp stoppen?",

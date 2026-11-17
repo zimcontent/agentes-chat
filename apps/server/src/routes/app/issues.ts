@@ -731,16 +731,25 @@ export function issueRoutes(deps: AppDeps) {
       path: "/organizations/{orgId}/messages/{messageId}/issue",
       tags,
       security,
-      summary: '"Transformar em issue": a message becomes an issue',
+      summary: '"Criar tarefa": a message becomes a task that holds its thread',
+      description:
+        "The task's conversation is the thread the message replies in, else the one it starts (ADR doug-0018). A thread that already is a task's gives that task back: `created` false, 200.",
       request: {
         params: OrgParams.extend({ messageId: z.uuid() }),
         body: body(z.object({ title: z.string().max(300).optional() })),
       },
-      responses: { 201: json(Issue, "Created"), ...errors },
+      responses: {
+        201: json(Issue.extend({ created: z.literal(true) }), "Created"),
+        200: json(Issue.extend({ created: z.literal(false) }), "The task that already holds this thread"),
+        ...errors,
+      },
     }),
     async (c) => {
       const { orgId, messageId } = c.req.valid("param");
-      return c.json(await issueFromMessage(issues, c.get("user").id, orgId, messageId, c.req.valid("json")), 201);
+      const task = await issueFromMessage(issues, c.get("user").id, orgId, messageId, c.req.valid("json"));
+      return task.created
+        ? c.json({ ...task, created: true as const }, 201)
+        : c.json({ ...task, created: false as const }, 200);
     },
   );
 

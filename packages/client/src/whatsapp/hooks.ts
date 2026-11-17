@@ -260,3 +260,16 @@ export function useSetWhatsAppBrain(orgId: string, accountId: string) {
     onSuccess: () => void refresh(),
   });
 }
+
+/** Rewrites the number's instructions with a direction typed or recorded; answers the draft, saving nothing. */
+export function useDraftWhatsAppInstructions(orgId: string, accountId: string) {
+  const api = useApi();
+  return useMutation({
+    mutationFn: (input: {
+      text?: string;
+      audio?: { file: Blob; fileName: string; seconds?: number };
+      current?: string;
+    }) => whatsappOf(api).draftInstructions(orgId, accountId, input),
+    meta: { silent: true },
+  });
+}

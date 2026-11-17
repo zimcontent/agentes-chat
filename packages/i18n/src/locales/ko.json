@@ -1574,6 +1574,10 @@
     "openComputer": "컴퓨터 열기",
     "linkCopied": "링크를 복사했어요.",
     "saveToWiki": "Wiki에 저장",
+    "makeTask": "작업 만들기",
+    "taskMade": "작업 #{{number}}을(를) 만들었어요. 대화는 여기 그대로 있고 작업에도 보여요.",
+    "taskHeld": "이 대화는 이미 작업 #{{number}}이에요.",
+    "openTask": "작업 열기",
     "pin": "메시지 고정",
     "unpin": "메시지 고정 해제",
     "pinned": "메시지를 고정했어요.",
@@ -1725,29 +1729,47 @@
     "readyOne": "기본 제공",
     "use": "이 아이콘 사용",
     "inUse": "사용 중",
-    "sky": "배경",
+    "ground": "배경",
+    "grounds": {
+      "day": "낮",
+      "night": "밤"
+    },
     "pose": "자세",
     "poses": {
       "front": "정면",
       "peek": "빼꼼"
     },
-    "peekBare": "빼꼼 자세에서는 액세서리를 쓰지 않아요.",
-    "expression": "표정",
-    "ready": "기본 제공 아이콘",
-    "oneOrOther": "액세서리를 쓰면 표정은 기본으로 돌아가요.",
-    "faces": {
-      "wink": "윙크",
-      "heart": "하트",
-      "star": "별",
-      "surprised": "놀람",
-      "angry": "화남"
+    "color": "색",
+    "colors": {
+      "green": "초록",
+      "yellow": "노랑",
+      "orange": "주황",
+      "pink": "분홍",
+      "violet": "라일락",
+      "blue": "파랑",
+      "cyan": "청록",
+      "white": "흰색"
     },
+    "expression": "표정",
+    "faces": {
+      "normal": "보통",
+      "happy": "행복",
+      "wink": "윙크",
+      "surprised": "놀람",
+      "unimpressed": "의심",
+      "sad": "슬픔",
+      "angry": "화남",
+      "aside": "곁눈질",
+      "laugh": "웃음",
+      "asleep": "잠"
+    },
+    "ready": "기본 제공 아이콘",
     "names": {
-      "night": "밤",
-      "moon": "달",
-      "sky": "하늘",
-      "peekNight": "밤에 빼꼼",
-      "peekSky": "하늘에서 빼꼼"
+      "night": "Doug",
+      "moon": "잘 자",
+      "sky": "흰색",
+      "peekNight": "빼꼼",
+      "peekSky": "윙크"
     }
   },
   "legal": {
@@ -2025,7 +2047,7 @@
     "routines": "루틴",
     "team": "팀",
     "dashboards": "대시보드",
-    "taskManager": "작업 관리자",
+    "taskManager": "에이전트 활동",
     "calendar": "캘린더",
     "drive": "Drive",
     "members": "멤버",
@@ -7540,6 +7562,12 @@
     }
   },
   "issues": {
+    "missions": {
+      "back": "작업으로 돌아가기",
+      "running_other": "미션 {{count}}개 진행 중",
+      "waiting_other": "{{count}}개가 기다리는 중",
+      "see": "미션 보기"
+    },
     "delete": {
       "action": "작업 삭제",
       "title": "작업 #{{number}}을(를) 삭제할까요?",
@@ -8609,7 +8637,7 @@
       "declined": "{{name}} 님의 요청을 거절했어요."
     },
     "title": "미션",
-    "subtitle": "에이전트가 자기 컴퓨터에서 스레드로 진행하는 긴 작업이에요.",
+    "subtitle": "에이전트의 긴 작업이에요. 계획과 단계가 있어요.",
     "search": "미션 검색",
     "online": "온라인",
     "offline": "오프라인",
@@ -9218,8 +9246,14 @@
     "waitingCloud": "{{computer}}이(가) 준비되면 미션이 시작돼요."
   },
   "threads": {
+    "task": {
+      "button": "작업 #{{number}}",
+      "open": "작업 #{{number}} 열기 ({{status}})",
+      "make": "이 대화로 작업 만들기",
+      "makeHint": "대화는 여기 그대로 있고 작업에도 보여요."
+    },
     "title": "스레드",
-    "subtitle": "채널과 DM에서 갈라져 나온 주제예요.",
+    "subtitle": "스레드로 나눈 대화예요. 해야 할 일은 작업에 있어요.",
     "tabsLabel": "스레드 필터",
     "tabs": {
       "all": "전체",
@@ -9283,7 +9317,7 @@
     },
     "empty": {
       "missionsTitle": "아직 미션이 없어요",
-      "missions": "미션은 계획, 결정 사항, 에이전트가 컴퓨터에서 하는 작업이 담긴 스레드예요.",
+      "missions": "미션은 에이전트의 긴 작업으로, 계획, 결정, 단계가 있어요.",
       "allTitle": "주제마다 따로 대화해요",
       "all": "메시지에 답장하면 스레드가 열리고 채널은 깔끔하게 유지돼요.",
       "workingTitle": "지금 작업 중인 에이전트가 없어요",
@@ -9334,6 +9368,7 @@
       "openShort": "열기",
       "reply": "답장",
       "replies_other": "답장 {{count}}개",
+      "taskReplies_other": "작업 #{{number}} · 답글 {{count}}개",
       "closed_other": "스레드 닫힘 · {{title}} · 메시지 {{count}}개",
       "archived_other": "보관된 스레드 {{count}}개는 여기에 표시되지 않아요",
       "see": "보기"
@@ -10086,10 +10121,10 @@
       "copies_other": "에이전트가 없는 이 계정의 로그인이 {{count}}개 더 있어요.",
       "removeCopies": "삭제",
       "copiesRemoved_other": "쓰지 않는 로그인 {{count}}개를 삭제했어요.",
-      "removeAllDone": "Grok 로그인 {{n}}개를 제거했습니다.",
-      "removeAllText": "{{computers}}에서 각자의 에이전트를 위해 생각하지 않게 됩니다. 다른 사람의 로그인은 그대로 둡니다.",
-      "removeAllTitle": "Grok 로그인 {{n}}개를 모두 제거할까요?",
       "removeAllGrok": "Grok 로그인 모두 제거",
+      "removeAllTitle": "Grok 로그인 {{n}}개를 모두 제거할까요?",
+      "removeAllText": "{{computers}}에서 각자의 에이전트를 위해 생각하지 않게 됩니다. 다른 사람의 로그인은 그대로 둡니다.",
+      "removeAllDone": "Grok 로그인 {{n}}개를 제거했습니다.",
       "disconnect": "연결 해제",
       "renameTitle": "{{label}} 이름 바꾸기",
       "nameLabel": "이름",
@@ -18740,10 +18775,10 @@
     },
     "allWaiting_other": "내 확인 대기 {{count}}개 보기",
     "actions": "더 보기",
-    "openManager": "작업 관리자 열기"
+    "openManager": "에이전트 활동 열기"
   },
   "taskManager": {
-    "title": "작업 관리자",
+    "title": "에이전트 활동",
     "subtitle": "에이전트가 지금 하는 일과 오늘 끝난 일이에요.",
     "search": "작업, 에이전트, 앱 검색",
     "working_other": "{{count}}개 작업 중",
@@ -18843,7 +18878,7 @@
       "stopAll": "모두 중지",
       "stopAllOf": "{{name}}의 작업 모두 중지",
       "open": "대화에서 열기",
-      "openManager": "작업 관리자에서 열기"
+      "openManager": "에이전트 활동에서 열기"
     },
     "confirm": {
       "chainTitle_other": "{{name}}와(과) 도우미 {{count}}명을 멈출까요?",
