@@ -4,6 +4,7 @@ import { rightHandOf } from "@agenteschat/client/lib/right-hand";
 import { dayPart } from "@agenteschat/client/lib/welcome";
 import { useTranslation } from "react-i18next";
 import { Alert } from "react-native";
+import { router } from "@/ui/navigation";
 import { useCalls } from "../call/CallProvider";
 import { useOpenDm } from "../new/useOpenDm";
 import { AgentFace } from "../shared/Face";
@@ -53,8 +54,10 @@ export function DougPinned({ rows, working, waiting }: { rows: ConversationRow[]
       primary={line.waiting > 0 ? w.seeDecisions : w.talk}
       words={w}
       live={line.working > 0}
-      onOpen={open}
+      // What waits is listed in Pendentes, with the same count; with nothing waiting, his conversation.
+      onOpen={line.waiting > 0 ? () => router.navigate("/activity") : open}
       // A call needs the conversation it happens in: before the first one, "Ligar" opens it.
+      onTalk={open}
       onCall={meId ? call : open}
     />
   );

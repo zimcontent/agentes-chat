@@ -49,6 +49,7 @@ export function DougPinnedCard({
   words,
   live,
   onOpen,
+  onTalk,
   onCall,
 }: {
   face: ReactNode;
@@ -58,7 +59,10 @@ export function DougPinnedCard({
   primary: string;
   words: DougWords;
   live: boolean;
+  /** The main button. */
   onOpen: () => void;
+  /** His face and name: his conversation (default: the main button's). */
+  onTalk?: () => void;
   onCall: () => void;
 }) {
   const { colors, scheme } = useTheme();
@@ -73,7 +77,7 @@ export function DougPinnedCard({
         pointerEvents="none"
       />
       <Pressable
-        onPress={onOpen}
+        onPress={onTalk ?? onOpen}
         accessibilityRole="button"
         accessibilityLabel={`${name}, ${status}`}
         style={styles.top}
