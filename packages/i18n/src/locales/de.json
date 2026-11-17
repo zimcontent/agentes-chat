@@ -3294,7 +3294,7 @@
       "gemini": {
         "title": "Dein Gemini-Abo",
         "tiers": "Google AI Pro, Google AI Ultra oder Gemini Enterprise",
-        "warning": "Google sagt, dass die Nutzung eines privaten Gemini-Abos in anderen Apps zur Sperrung des Kontos führen kann."
+        "warning": "Google sagt, dass die Nutzung eines privaten Gemini-Abos in anderen Apps zur Sperrung des Kontos führen kann. Um dieses Risiko zu vermeiden, nutze einen Gemini-API-Schlüssel oder Gemini Enterprise."
       },
       "zen": {
         "title": "OpenCode",

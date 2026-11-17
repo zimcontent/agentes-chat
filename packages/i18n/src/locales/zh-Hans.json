@@ -3169,7 +3169,7 @@
       "gemini": {
         "title": "你的 Gemini 套餐",
         "tiers": "Google AI Pro、Google AI Ultra 或 Gemini Enterprise",
-        "warning": "Google 表示，在其他应用中使用个人 Gemini 套餐可能导致账号被停用。"
+        "warning": "Google 表示，在其他应用中使用个人 Gemini 套餐可能导致账号被停用。为避免这一风险，请使用 Gemini API 密钥或 Gemini Enterprise。"
       },
       "zen": {
         "title": "OpenCode",

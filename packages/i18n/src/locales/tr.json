@@ -3283,7 +3283,7 @@
       "gemini": {
         "title": "Gemini planınız",
         "tiers": "Google AI Pro, Google AI Ultra veya Gemini Enterprise",
-        "warning": "Google, kişisel bir Gemini planını başka uygulamaların içinde kullanmanın hesabın askıya alınmasına yol açabileceğini söylüyor."
+        "warning": "Google, kişisel bir Gemini planını başka uygulamaların içinde kullanmanın hesabın askıya alınmasına yol açabileceğini söylüyor. Bu riskten kaçınmak için bir Gemini API anahtarı veya Gemini Enterprise kullanın."
       },
       "zen": {
         "title": "OpenCode",

@@ -8123,7 +8123,7 @@
     "value": "Google AI Pro, Google AI Ultra or Gemini Enterprise"
   },
   "connectAi.plan.gemini.warning": {
-    "value": "Google says using a personal Gemini plan inside other apps can get the account suspended."
+    "value": "Google says using a personal Gemini plan inside other apps can get the account suspended. To avoid that risk, use a Gemini API key or Gemini Enterprise."
   },
   "connectAi.plan.zen.title": {
     "value": "OpenCode"

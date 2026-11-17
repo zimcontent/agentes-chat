@@ -3176,7 +3176,7 @@
       "gemini": {
         "title": "Paket Gemini-mu",
         "tiers": "Google AI Pro, Google AI Ultra, atau Gemini Enterprise",
-        "warning": "Google menyatakan bahwa memakai paket Gemini pribadi di dalam aplikasi lain bisa membuat akun ditangguhkan."
+        "warning": "Google menyatakan bahwa memakai paket Gemini pribadi di dalam aplikasi lain bisa membuat akun ditangguhkan. Untuk menghindari risiko itu, pakai kunci API Gemini atau Gemini Enterprise."
       },
       "zen": {
         "title": "OpenCode",

@@ -3567,7 +3567,8 @@ export const en = {
         title: "Your Gemini plan",
         tiers: "Google AI Pro, Google AI Ultra or Gemini Enterprise",
         /** Shown plainly wherever a personal Gemini plan is connected or chosen: Google's own rule for consumer plans. */
-        warning: "Google says using a personal Gemini plan inside other apps can get the account suspended.",
+        warning:
+          "Google says using a personal Gemini plan inside other apps can get the account suspended. To avoid that risk, use a Gemini API key or Gemini Enterprise.",
       },
       /** OpenCode's CLI (ADR 0132): its free models with no sign-in, or a key from OpenCode's console. */
       zen: { title: "OpenCode", tiers: "Free models, or your OpenCode key" },

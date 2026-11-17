@@ -3528,7 +3528,7 @@
       "gemini": {
         "title": "Ваш тариф Gemini",
         "tiers": "Google AI Pro, Google AI Ultra или Gemini Enterprise",
-        "warning": "Google предупреждает, что использование личного тарифа Gemini внутри других приложений может привести к блокировке аккаунта."
+        "warning": "Google предупреждает, что использование личного тарифа Gemini внутри других приложений может привести к блокировке аккаунта. Чтобы избежать этого риска, используйте API-ключ Gemini или Gemini Enterprise."
       },
       "zen": {
         "title": "OpenCode",

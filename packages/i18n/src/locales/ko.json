@@ -3166,7 +3166,7 @@
       "gemini": {
         "title": "내 Gemini 요금제",
         "tiers": "Google AI Pro, Google AI Ultra 또는 Gemini Enterprise",
-        "warning": "Google에 따르면 개인 Gemini 요금제를 다른 앱 안에서 사용하면 계정이 정지될 수 있어요."
+        "warning": "Google에 따르면 개인 Gemini 요금제를 다른 앱 안에서 사용하면 계정이 정지될 수 있어요. 이 위험을 피하려면 Gemini API 키나 Gemini Enterprise를 사용하세요."
       },
       "zen": {
         "title": "OpenCode",

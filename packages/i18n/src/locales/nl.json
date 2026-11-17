@@ -3295,7 +3295,7 @@
       "gemini": {
         "title": "Je Gemini-abonnement",
         "tiers": "Google AI Pro, Google AI Ultra of Gemini Enterprise",
-        "warning": "Volgens Google kan het gebruik van een persoonlijk Gemini-abonnement in andere apps ertoe leiden dat het account wordt geschorst."
+        "warning": "Volgens Google kan het gebruik van een persoonlijk Gemini-abonnement in andere apps ertoe leiden dat het account wordt geschorst. Gebruik een Gemini-API-sleutel of Gemini Enterprise om dat risico te vermijden."
       },
       "zen": {
         "title": "OpenCode",

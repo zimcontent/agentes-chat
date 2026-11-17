@@ -3479,7 +3479,8 @@ export const ptBR = {
       gemini: {
         title: "Seu plano do Gemini",
         tiers: "Google AI Pro, Google AI Ultra ou Gemini Enterprise",
-        warning: "O Google diz que usar um plano pessoal do Gemini dentro de outros apps pode suspender a conta.",
+        warning:
+          "O Google diz que usar um plano pessoal do Gemini dentro de outros apps pode suspender a conta. Para não correr esse risco, use uma chave de API do Gemini ou o Gemini Enterprise.",
       },
       zen: { title: "OpenCode", tiers: "Modelos grátis, ou a sua chave do OpenCode" },
       zai: { tiers: "Lite, Pro ou Max" },
