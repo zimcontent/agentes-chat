@@ -773,6 +773,9 @@ function RowBody({
   ) : null;
   // The bubble holds its words, the tags of its name line and, at its end, the time; a row with none keeps its line.
   const inBubble = bubbled && Boolean(body) && !brainWait && !deviceWait && !choiceReply;
+  // An agent's words in its own DM read as plain text across the column, no plate behind them: only my side keeps a
+  // bubble (the phone's board, docs/adr/doug-0016-doug-pinned.md). A mention of me keeps its tint.
+  const bare = inBubble && isAgent && !look.names && !mentionsMe;
   const tagged = Boolean(reminder || via || routine || talker || helping || m.pinned);
   const opener = opened?.said ? <MessageText body={opened.said} selectable={false} accent={accent} /> : null;
   // Outside a bubble the line it opened with is a part of its own, as the web's second text.
@@ -804,6 +807,7 @@ function RowBody({
         style={({ pressed }) => [
           styles.msg,
           bubbled && lookRows.bubblesRow,
+          bare && lookRows.bareRow,
           compact && lookRows.compactRow,
           rowFrame(rhythm.block, rowGap),
           // On the quote it answers, its plate never over it.
@@ -842,11 +846,18 @@ function RowBody({
                     {pinLine}
                     {reportOpened}
                     <View
-                      style={[
-                        lookRows.bubble,
-                        OTHER_RUN[run],
-                        { backgroundColor: mentionsMe ? `${c.amber}21` : c.bubbleTheirs, boxShadow: c.bubbleTheirsRim },
-                      ]}
+                      style={
+                        bare
+                          ? lookRows.bare
+                          : [
+                              lookRows.bubble,
+                              OTHER_RUN[run],
+                              {
+                                backgroundColor: mentionsMe ? `${c.amber}21` : c.bubbleTheirs,
+                                boxShadow: c.bubbleTheirsRim,
+                              },
+                            ]
+                      }
                     >
                       {!grouped && (look.names || tagged) ? who(true) : null}
                       {quote ? <QuotePlate reply={quote} onJump={onQuote} /> : null}
@@ -1355,7 +1366,9 @@ const POP_IN: EntryExitAnimationFunction = () => {
 const POP_OUT = FadeOut.duration(160);
 
 /** The turn's last corner, cut as a card's is, on the side my bubble stands. */
-const BUBBLE_CUT = 6;
+const BUBBLE_CUT = 8;
+/** Where a bubble meets its neighbour in a run. */
+const BUBBLE_JOIN = 8;
 
 /** A row under the quote it answers: they read as one. */
 const QUOTE_GAP = 2;
@@ -1365,17 +1378,17 @@ const PIN_GAP = 2;
 /** The bubble's corners by its place in a run of my rows: the sides it shares with its neighbours square off. */
 const BUBBLE_RUN: Record<RunPosition, { borderTopRightRadius?: number; borderBottomRightRadius?: number }> = {
   solo: { borderBottomRightRadius: BUBBLE_CUT },
-  start: { borderBottomRightRadius: 6 },
-  mid: { borderTopRightRadius: 6, borderBottomRightRadius: 6 },
-  end: { borderTopRightRadius: 6, borderBottomRightRadius: BUBBLE_CUT },
+  start: { borderBottomRightRadius: BUBBLE_JOIN },
+  mid: { borderTopRightRadius: BUBBLE_JOIN, borderBottomRightRadius: BUBBLE_JOIN },
+  end: { borderTopRightRadius: BUBBLE_JOIN, borderBottomRightRadius: BUBBLE_CUT },
 };
 
 /** Anyone else's bubble in `bubbles`: the same, on the left. */
 const OTHER_RUN: Record<RunPosition, { borderTopLeftRadius?: number; borderBottomLeftRadius?: number }> = {
   solo: {},
-  start: { borderBottomLeftRadius: 6 },
-  mid: { borderTopLeftRadius: 6, borderBottomLeftRadius: 6 },
-  end: { borderTopLeftRadius: 6 },
+  start: { borderBottomLeftRadius: BUBBLE_JOIN },
+  mid: { borderTopLeftRadius: BUBBLE_JOIN, borderBottomLeftRadius: BUBBLE_JOIN },
+  end: { borderTopLeftRadius: BUBBLE_JOIN },
 };
 
 /** Words and time on my solid bubble. */

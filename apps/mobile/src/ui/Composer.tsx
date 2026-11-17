@@ -36,6 +36,7 @@ import Animated, {
 import { scheduleOnRN } from "react-native-worklets";
 import { PixelStop } from "@/agent/PixelMarks";
 import { readValueSync, STORED, writeValueSync } from "@/lib/storage";
+import { Glass } from "./Glass";
 import { haptics } from "./haptics";
 import { Icon, type IconName } from "./Icon";
 import { PressScale } from "./PressScale";
@@ -140,20 +141,24 @@ export interface ComposerProps {
 }
 
 /**
- * DougBot's conversation field (IDENTIDADE.md §6 "Campo de conversa", with the 16 of room every card and the composer
- * keep): 64 tall, radius 22, its buttons 32 at 16 from every edge. The buttons are round, as dougbot.app's composer's
- * "+" and send (docs/adr/doug-0016-doug-pinned.md).
+ * DougBot's conversation field, as the phone's board draws it (docs/adr/doug-0016-doug-pinned.md): a round glass pill
+ * 56 tall, its round buttons 42 at 7 from every edge ("+", the microphone and send), 8 apart. On iOS 26 the pill is
+ * the system's Liquid Glass, as the bar's own buttons; a blur under the theme's glass before it.
  */
-const FIELD = 64;
-const SEND = 32;
+const FIELD = 56;
+const SEND = 42;
 /** Space around the buttons inside the field: they sit centered on the first line. */
 const INSET = (FIELD - SEND) / 2;
-/** A suggestion pill's height and the space under the pills' row. */
-const PILL = 32;
-const PILLS_GAP = 8;
+/** Between the field's parts. */
+const GAP = 8;
+/** The field's geometry, for what draws over it (the dictation's overlay). */
+export const COMPOSER_FIELD = { button: SEND, inset: INSET, gap: GAP, radius: FIELD / 2 } as const;
+/** A suggestion pill's height and the space under the pills' row: round glass, 40 tall, 10 over the field. */
+const PILL = 40;
+const PILLS_GAP = 10;
 /** The suggestion pills' row, whole: a screen drawing it outside its measured box (`float`) keeps this room for it. */
 export const PILLS_ROOM = PILL + PILLS_GAP;
-const FIELD_RADIUS = 22;
+const FIELD_RADIUS = FIELD / 2;
 const BUTTON_RADIUS = SEND / 2;
 /** The field's 1 px edge (the green at 35% while it is active) and its soft shadow. */
 const FIELD_SHADOW = (line: string) => `0px 0px 0px 1px ${line}, 0px 6px 18px -10px rgba(0, 0, 0, 0.25)`;
@@ -398,13 +403,14 @@ export function Composer({
             accessibilityRole="button"
             // 32 tall: the slop reaches 44 without pushing the field down.
             hitSlop={{ top: 6, bottom: 6 }}
-            style={[styles.pill, { backgroundColor: colors.raised, boxShadow: `${shadows.e1}, ${shadows.top}` }]}
+            style={[styles.pill, { boxShadow: `${shadows.e1}, 0px 0px 0px 1px ${colors.glassEdge}` }]}
           >
+            <Glass liquid style={styles.pillGlass} />
             <View style={styles.pillIn}>
-              <Icon name={s.icon} size={15} color={colors.muted} />
+              <Icon name={s.icon} size={17} color={colors.muted} />
               <RNText
                 maxFontSizeMultiplier={CHROME_MAX_SCALE}
-                style={[systemText("subhead", weights.medium), { color: colors.ink2 }]}
+                style={[systemText("subhead", weights.medium), { color: colors.ink }]}
               >
                 {s.label}
               </RNText>
@@ -494,13 +500,11 @@ export function Composer({
         <View
           style={[
             styles.field,
-            {
-              backgroundColor: colors.raised2,
-              boxShadow: FIELD_SHADOW(focused ? colors.greenGlow : colors.glassEdge),
-              paddingRight: INSET,
-            },
+            { boxShadow: FIELD_SHADOW(focused ? colors.greenGlow : colors.glassEdge), paddingRight: INSET },
           ]}
         >
+          {/* The glass behind everything in the pill: its own layer, so its clip never cuts the field's edge. */}
+          <Glass liquid style={styles.fieldGlass} />
           {/* The "+" button, inside the field at its start. */}
           {onPlus ? (
             <PressScale
@@ -570,6 +574,16 @@ export function Composer({
             </Animated.View>
           ) : null}
           {mic ? <View style={styles.micBox}>{mic}</View> : null}
+          {!button && !mediaButton && !dictating && !holding ? (
+            // Nothing to send yet: the send's place stays, quiet, so the field never shifts when words come.
+            <View
+              style={[styles.send, styles.idle, { backgroundColor: colors.plate }]}
+              importantForAccessibility="no-hide-descendants"
+              accessibilityElementsHidden
+            >
+              <Icon name="send" size={17} color={colors.faint} />
+            </View>
+          ) : null}
           {button ? (
             <SendButton
               stop={stopMode}
@@ -765,7 +779,8 @@ const inputText: TextStyle = {
   ...Platform.select<TextStyle>({
     // The board in a browser (prancha): no focus outline, the field's green edge says it.
     web: { outlineStyle: "none", paddingTop: 4, paddingBottom: 4, lineHeight: body.lineHeight } as unknown as TextStyle,
-    ios: { paddingTop: 6, paddingBottom: 6 },
+    // The system font's 16 is a 20-point line: 11 above and below make the 42 of the buttons beside it.
+    ios: { paddingTop: 11, paddingBottom: 11 },
     // The one line centered in the send button's height: the field is exactly as tall.
     default: {
       lineHeight: body.lineHeight,
@@ -803,16 +818,17 @@ const styles = StyleSheet.create({
   placeholder: { position: "absolute", left: 0, right: 0, bottom: 0, height: SEND, justifyContent: "center" },
   // The row runs to the screen edges (past the composer's own inset) so a long last chip scrolls instead of
   // being cut at the padding.
-  pillsBleed: { marginHorizontal: -10 },
-  pills: { gap: 6, paddingHorizontal: 14, paddingBottom: PILLS_GAP },
-  pill: { height: PILL, borderRadius: 8 },
+  pillsBleed: { marginHorizontal: -12 },
+  pills: { gap: 8, paddingHorizontal: 12, paddingBottom: PILLS_GAP },
+  pill: { height: PILL, borderRadius: PILL / 2 },
+  pillGlass: { ...StyleSheet.absoluteFill, borderRadius: PILL / 2 },
   // As the pills: to the screen edges, so on a narrow phone the last buttons scroll in instead of being cut.
-  formatBleed: { marginHorizontal: -10 },
+  formatBleed: { marginHorizontal: -12 },
   formatRow: { paddingHorizontal: 10, paddingBottom: 8 },
   format: { flexDirection: "row", height: 44, padding: 6, gap: 2, borderRadius: 12 },
   formatButton: { width: SEND, height: SEND, borderRadius: 6 },
-  pillIn: { flexGrow: 1, flexDirection: "row", alignItems: "center", gap: 6, paddingHorizontal: 12 },
-  row: { flexDirection: "row", alignItems: "flex-end", gap: 8 },
+  pillIn: { flexGrow: 1, flexDirection: "row", alignItems: "center", gap: 8, paddingLeft: 12, paddingRight: 14 },
+  row: { flexDirection: "row", alignItems: "flex-end", gap: GAP },
   plus: { width: SEND, height: SEND, borderRadius: BUTTON_RADIUS },
   center: { flex: 1, alignItems: "center", justifyContent: "center" },
   field: {
@@ -822,10 +838,12 @@ const styles = StyleSheet.create({
     borderRadius: FIELD_RADIUS,
     flexDirection: "row",
     alignItems: "flex-end",
-    gap: 12,
+    gap: GAP,
     paddingVertical: INSET,
     paddingLeft: INSET,
   },
+  fieldGlass: { ...StyleSheet.absoluteFill, borderRadius: FIELD_RADIUS },
+  idle: { alignItems: "center", justifyContent: "center" },
   holdHint: { paddingTop: 8, minHeight: 20, alignItems: "center" },
   sendBox: { width: SEND, height: SEND },
   // Around the button, 4 past it on every side.
