@@ -20,6 +20,7 @@ import { authedFetch } from "@/lib/auth";
 import { placeKey } from "@/lib/server";
 import { serverOf } from "@/lib/server-choice";
 import { haptics, Icon, PressScale, Text, useTheme, useToast } from "@/ui";
+import { COMPOSER_FIELD } from "@/ui/Composer";
 import { useDirectory } from "../shared/hooks";
 import { agentLook } from "../shared/logic";
 import { levelOf } from "./logic";
@@ -37,9 +38,7 @@ const TICK_MS = 50;
 /** The wave's height in the field. */
 const WAVE = 24;
 /** The field's buttons and their inset (`Composer`'s numbers). */
-const BUTTON = 32;
-const INSET = 16;
-const GAP = 12;
+const { button: BUTTON, inset: INSET, gap: GAP, radius: RADIUS } = COMPOSER_FIELD;
 
 export type DictationPhase = "idle" | "recording" | "transcribing";
 
@@ -359,7 +358,7 @@ const styles = StyleSheet.create({
   // Over the field's words and its other buttons, leaving the microphone's place (the field's end) free.
   overlay: {
     ...StyleSheet.absoluteFill,
-    borderRadius: 22,
+    borderRadius: RADIUS,
     flexDirection: "row",
     alignItems: "flex-end",
     gap: GAP,

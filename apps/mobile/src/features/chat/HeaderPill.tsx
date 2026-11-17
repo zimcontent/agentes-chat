@@ -21,14 +21,17 @@ import { softTones } from "@/sky/math";
 import { Glass, haptics, liquidHere, PressScale, Text, useReducedMotion, useTheme } from "@/ui";
 
 /** The pill's own padding, the face's box and the gaps: the face sits in the capsule's curve. */
-/** DougBot: a glass piece 48 tall, radius 16, the face 32 at 8 from the edge (16 − 8 = 8, concentric). No pill. */
-const PAD_LEFT = 8;
+/**
+ * DougBot, as the phone's board draws it: a round glass pill 46 tall, the face 32 at 7 from its start, centred on the
+ * pill's height (7 above and below).
+ */
+const PAD_LEFT = 7;
 const PAD_RIGHT = 16;
 const LEAD = 32;
 const GAP = 9;
 const TRAILING_GAP = 2;
-const HEIGHT = 48;
-const RADIUS = 16;
+const HEIGHT = 46;
+const RADIUS = HEIGHT / 2;
 const BORDER = StyleSheet.hairlineWidth;
 const MIN_WIDTH = 120;
 const WIDTH_SPRING = { stiffness: 300, damping: 30, mass: 1 };

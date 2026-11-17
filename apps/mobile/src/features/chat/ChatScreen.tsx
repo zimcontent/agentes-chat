@@ -2989,13 +2989,13 @@ const styles = StyleSheet.create({
   pin: { paddingHorizontal: 12, paddingBottom: 10 },
   day: { alignSelf: "center", textAlign: "center", fontWeight: "600" },
   listPad: { paddingTop: 8, paddingBottom: 8 },
-  composer: { paddingHorizontal: 10, paddingTop: 6 },
+  composer: { paddingHorizontal: 12, paddingTop: 6 },
   readOnly: { textAlign: "center", paddingHorizontal: 16, paddingVertical: 12 },
   composerDock: { position: "absolute", left: 0, right: 0, bottom: 0 },
   // Over the list, at the dock's top right; the list under the rest of its row still takes the touches.
   jumpAt: { alignSelf: "flex-end", marginRight: 14, marginBottom: 10 },
   // The composer's side inset, so the picker and the pills line up with the field under them.
-  float: { paddingHorizontal: 10 },
+  float: { paddingHorizontal: 12 },
   older: { height: OLDER_ROW, alignItems: "center", justifyContent: "center" },
   jump: { width: 40, height: 40, borderRadius: 20 },
   jumpIcon: { flex: 1, alignItems: "center", justifyContent: "center" },

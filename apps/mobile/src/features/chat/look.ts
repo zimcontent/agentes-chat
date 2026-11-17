@@ -110,5 +110,9 @@ export const lookRows = StyleSheet.create({
   compactRow: { paddingLeft: 10, paddingRight: 12, gap: 6 },
   compactSlot: { width: 18, paddingTop: 1 },
   compactClock: { width: 34, textAlign: "right", lineHeight: 20, fontVariant: ["tabular-nums"] },
-  bubble: { alignSelf: "flex-start", maxWidth: "100%", paddingVertical: 7, paddingHorizontal: 13, borderRadius: 18 },
+  // As the phone's board draws them: 22 round, 10 and 15 inside (the turn's last corner cut to 8, `BUBBLE_RUN`).
+  bubble: { alignSelf: "flex-start", maxWidth: "100%", paddingVertical: 10, paddingHorizontal: 15, borderRadius: 22 },
+  // An agent's words in its DM, with no bubble: the column's whole width, a little in from the screen's edge.
+  bareRow: { paddingLeft: 16, paddingRight: 16 },
+  bare: { alignSelf: "stretch", paddingHorizontal: 2, paddingTop: 2 },
 });
