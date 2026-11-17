@@ -468,7 +468,8 @@ describe("the light profile (the phone keeps no agents' setup)", () => {
       read("src/features/agents/AgentSettingsScreen.tsx"),
       read("src/features/agents/elsewhere.ts"),
     ]);
-    expect(settings).toContain("onPress: () => openAgentAi(agent.id)");
+    // Its AI opens the intentional switch (Mais inteligente, Equilíbrio, Mais rápida e econômica).
+    expect(settings).toContain("onPress: () => openChangeAi(agent.id)");
     expect(settings).toContain("<Memories agentId={id} name={name} />");
     expect(settings).toContain(
       '<AlwaysApproved agentId={id} name={name} mayRemove={mine || can(org, "approve_actions")} />',
