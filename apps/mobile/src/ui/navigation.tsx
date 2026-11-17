@@ -7,11 +7,13 @@ import {
   type Theme as NavigationTheme,
   Stack,
 } from "expo-router";
+import { useHeaderHeight } from "expo-router/react-navigation";
 import { type ReactNode, useLayoutEffect, useMemo, useState, useSyncExternalStore } from "react";
 import { useTranslation } from "react-i18next";
 import { Platform } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { DB_FONTES } from "@/brand/tokens";
-import { needsHeaderBlur, pushOnce } from "@/lib/nav";
+import { clearBarTop, needsHeaderBlur, pushOnce } from "@/lib/nav";
 import { IconButton } from "./IconButton";
 import { sheetColors } from "./palette";
 import { useTheme } from "./theme";
@@ -286,4 +288,14 @@ export function useFormSheetOptions(
     }),
     [key, background, colors, screen],
   );
+}
+
+/**
+ * The room a pushed screen keeps on top for its clear iOS bar, so tabs and lists start below the bar and never behind
+ * the back button (`clearBarTop`: the stack's own height, never less than the status bar and a bar).
+ */
+export function useClearBarTop(): number {
+  const reported = useHeaderHeight();
+  const insets = useSafeAreaInsets();
+  return clearBarTop(Platform.OS, reported, insets.top);
 }

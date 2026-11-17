@@ -83,6 +83,7 @@ export {
   HeaderSlot,
   type HeaderSlotStore,
   TabStack,
+  useClearBarTop,
   useFormSheetOptions,
   useHeaderSlot,
   useLargeTitleOptions,

@@ -9,7 +9,6 @@ import {
   portalTaskNumbers,
   portalWhen,
 } from "@agenteschat/client/lib/portal";
-import { useHeaderHeight } from "expo-router/react-navigation";
 import { type ReactNode, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { KeyboardAvoidingView, Platform, RefreshControl, ScrollView, StyleSheet, View } from "react-native";
@@ -23,6 +22,7 @@ import {
   Segmented,
   SkeletonList,
   Text,
+  useClearBarTop,
   useTheme,
 } from "@/ui";
 import { useOrgId, usePullRefresh } from "../shared/hooks";
@@ -48,7 +48,7 @@ export function ClientScreen({ client, initialTab = "board" }: { client: string;
   const orgId = useOrgId();
   const { colors: c, scheme } = useTheme();
   const insets = useSafeAreaInsets();
-  const headerHeight = useHeaderHeight();
+  const barTop = useClearBarTop();
   const board = usePortalBoard(orgId, client);
   const plan = usePortalPlan(orgId, client);
   const summary = usePortalOverview(orgId).data?.clients.find((x) => x.client === client);
@@ -64,12 +64,7 @@ export function ClientScreen({ client, initialTab = "board" }: { client: string;
   return (
     // The bar is clear on iOS (the route's scroll-under bar) and nothing here scrolls under it: the tabs and the
     // lists start below it, as on Tarefas (`IssuesScreen`). Android's bar is opaque and already holds its room.
-    <View
-      style={[
-        styles.screen,
-        { backgroundColor: lists ? paint.board : c.grouped, paddingTop: Platform.OS === "ios" ? headerHeight : 0 },
-      ]}
-    >
+    <View style={[styles.screen, { backgroundColor: lists ? paint.board : c.grouped, paddingTop: barTop }]}>
       <PushedHeader
         title={portalClientName(client)}
         {...(summary && summary.open > 0 ? { subtitle: w.open(summary.open) } : {})}
@@ -78,7 +73,7 @@ export function ClientScreen({ client, initialTab = "board" }: { client: string;
       <KeyboardAvoidingView
         style={styles.screen}
         behavior={Platform.OS === "ios" ? "padding" : undefined}
-        keyboardVerticalOffset={headerHeight}
+        keyboardVerticalOffset={barTop}
       >
         <View style={styles.tabs}>
           <Segmented

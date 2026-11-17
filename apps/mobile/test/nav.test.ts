@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
-import { AGAIN_MS, contrastRatio, needsHeaderBlur, pushOnce, TAB_BADGE, tabBadge } from "../src/lib/nav";
+import { AGAIN_MS, clearBarTop, contrastRatio, needsHeaderBlur, pushOnce, TAB_BADGE, tabBadge } from "../src/lib/nav";
 import { coverTransform, PARALLAX, progress } from "../src/lib/parallax";
 import { parseTabGlyphKey, TAB_GLYPHS, tabGlyphKey, tabGlyphSvg } from "../src/ui/tabGlyphs";
 
@@ -146,5 +146,21 @@ describe("a quick double tap opens a screen once", () => {
     );
     expect(direct).toEqual([]);
     expect(readFileSync(own, "utf8")).toContain("export const router: typeof expoRouter = new Proxy(expoRouter");
+  });
+});
+
+describe("clearBarTop", () => {
+  test("never less than the status bar and a bar on iOS, even when the stack reports 0", () => {
+    // iPhone 13 Pro Max (47), 14 Pro (59), SE (20).
+    expect(clearBarTop("ios", 0, 47)).toBe(91);
+    expect(clearBarTop("ios", 0, 59)).toBe(103);
+    expect(clearBarTop("ios", 0, 20)).toBe(64);
+    expect(clearBarTop("ios", Number.NaN, 47)).toBe(91);
+  });
+  test("the stack's own height when it reports a taller bar", () => {
+    expect(clearBarTop("ios", 113, 59)).toBe(113);
+  });
+  test("nothing on Android, whose bar is opaque", () => {
+    expect(clearBarTop("android", 104, 48)).toBe(0);
   });
 });
