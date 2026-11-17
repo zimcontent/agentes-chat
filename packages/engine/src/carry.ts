@@ -150,7 +150,8 @@ const mayBringAgent = (m: Membership, userId: string, a: Agent) => can(m, "manag
 /**
  * Where each connection was first made, following "brought from" through every hop, revoked ones included: a
  * connection brought A → B → C is A's in all three. Without it a sync across three or more workspaces (ADR
- * doug-0013) found no twin for a copy of a copy and brought a new one each time round, for ever.
+ * doug-0013) found no twin for a copy of a copy and brought a new one each time round, for ever. No cap that a long
+ * chain could pass: a chain can't loop (each row names an older one), and one that grew long is exactly what this finds.
  */
 async function carryRoots(db: Database, ids: string[]): Promise<Map<string, string>> {
   if (ids.length === 0) return new Map();
@@ -161,7 +162,7 @@ async function carryRoots(db: Database, ids: string[]): Promise<Map<string, stri
         union all
         select up.id, p.id, p.carried_from_id, up.depth + 1 from up
           join connector_connections p on p.id = up.parent
-          where up.depth < 64
+          where up.depth < 100000
       ) select distinct on (id) id, cur as root from up order by id, depth desc`),
   );
   return new Map(rows.map((r) => [r.id, r.root]));
