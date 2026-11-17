@@ -31,8 +31,8 @@
     "thousand": "tys.",
     "building": "Składanie w całość…",
     "openBig": "Otwórz na pełnym ekranie",
-    "keep": "Zachowaj w Drive",
-    "kept": "Zachowano w Drive",
+    "keep": "Zachowaj w Plikach",
+    "kept": "Zachowano w Plikach",
     "wake": "Stuknij, aby otworzyć",
     "pageTitle": "Blok z własnym kodem",
     "pageBody": "Działa oddzielnie od aplikacji, bez dostępu do Twojego konta i internetu.",
@@ -1245,7 +1245,7 @@
     "proposalsWaiting_few": "{{count}} czekają",
     "proposalsWaiting_many": "{{count}} czeka",
     "proposalsWaiting_other": "{{count}} czeka",
-    "drive": "Drive",
+    "drive": "Pliki",
     "connectors": "Konektory i MCP",
     "preferences": "Preferencje",
     "editProfile": "Edytuj profil",
@@ -1374,7 +1374,7 @@
     "more": "Więcej opcji",
     "send": "Wyślij",
     "savePhotos": "Zapisz w Zdjęciach",
-    "drive": "Zobacz w Drive",
+    "drive": "Zobacz w Plikach",
     "saved": "Zapisano w Zdjęciach",
     "photosDenied": "Brak dostępu do Zdjęć",
     "photosDeniedSub": "Zezwól na niego w Ustawieniach, żeby zapisywać zdjęcia.",
@@ -1488,8 +1488,8 @@
     }
   },
   "drive": {
-    "title": "Drive",
-    "search": "Szukaj w Drive",
+    "title": "Pliki",
+    "search": "Szukaj w plikach",
     "types": "Typy plików",
     "type": {
       "all": "Wszystkie",
@@ -1511,8 +1511,55 @@
     },
     "by": "{{name}} · {{when}}",
     "noResults": "Nic z tymi filtrami.",
-    "loadFailed": "Nie udało się wczytać Drive.",
-    "more": "Pokaż więcej"
+    "loadFailed": "Nie udało się wczytać plików.",
+    "more": "Pokaż więcej",
+    "you": "Ty",
+    "anyone": "Każdy",
+    "filter": {
+      "type": "Typ",
+      "people": "Osoby",
+      "modified": "Zmodyfikowano"
+    },
+    "when": {
+      "any": "Kiedykolwiek",
+      "today": "Dziś",
+      "week": "Ostatnie 7 dni",
+      "month": "Ostatnie 30 dni",
+      "year": "Ten rok"
+    },
+    "change": {
+      "edited": "{{name}} edytował(a)",
+      "sent": "{{name}} wysłał(a)",
+      "made": "{{name}} utworzył(a)"
+    },
+    "suggested": "Sugerowane",
+    "list": "Pliki",
+    "folder_one": "rozmowa z {{count}} plikiem",
+    "folder_few": "rozmowa z {{count}} plikami",
+    "folder_many": "rozmowa z {{count}} plikami",
+    "folder_other": "rozmowa z {{count}} pliku",
+    "moreFolders_one": "Jeszcze {{count}} rozmowa",
+    "moreFolders_few": "Jeszcze {{count}} rozmowy",
+    "moreFolders_many": "Jeszcze {{count}} rozmów",
+    "moreFolders_other": "Jeszcze {{count}} rozmowy",
+    "menu": "Opcje: {{name}}",
+    "more2": "Więcej opcji",
+    "open": "Otwórz",
+    "goToChat": "Przejdź do rozmowy",
+    "new": "Nowy",
+    "order": {
+      "label": "Kolejność: {{order}}",
+      "recent": "Najnowsze najpierw",
+      "name": "Według nazwy",
+      "short": {
+        "recent": "Najnowsze",
+        "name": "Nazwa"
+      }
+    },
+    "view": {
+      "grid": "Pokaż jako siatkę",
+      "list": "Pokaż jako listę"
+    }
   },
   "constellation": {
     "openHint": "Otwiera to, co stuknięto na niebie"
@@ -2660,6 +2707,50 @@
   },
   "vault": {
     "newItem": "Nowy element",
+    "home": {
+      "title": "Hasła",
+      "search": "Szukaj w hasłach",
+      "vaults": "Sejfy",
+      "items_one": "{{count}} element",
+      "items_few": "{{count}} elementy",
+      "items_many": "{{count}} elementów",
+      "items_other": "{{count}} elementu",
+      "switch_one": "{{name}}, {{count}} element. Zmień sejf",
+      "switch_few": "{{name}}, {{count}} elementy. Zmień sejf",
+      "switch_many": "{{name}}, {{count}} elementów. Zmień sejf",
+      "switch_other": "{{name}}, {{count}} elementu. Zmień sejf",
+      "favorites": "Ulubione",
+      "connections": "Menedżery haseł",
+      "noFavorites": "Stuknij gwiazdkę elementu, aby był tutaj."
+    },
+    "sheet": {
+      "username": "użytkownik",
+      "password": "hasło",
+      "site": "strona",
+      "keyName": "nazwa klucza",
+      "value": "wartość",
+      "note": "notatka",
+      "endsIn": "kończy się na {{hint}}",
+      "agentsOnly": "używają go tylko agenci",
+      "sealed": "zapisane, używają go tylko agenci",
+      "copy": "Kopiuj: {{label}}",
+      "copied": "Skopiowano",
+      "clears": "Schowek wyczyści się sam za 1 minutę.",
+      "copyFailed": "Nie udało się skopiować.",
+      "edit": "Edytuj",
+      "details": "Szczegóły",
+      "star": "Dodaj do ulubionych",
+      "unstar": "Usuń z ulubionych",
+      "who": "Kto może używać",
+      "changeWho": "Zmień, kto może używać",
+      "onlyYou": "Tylko ty",
+      "everyone": "Wszyscy",
+      "usedByF": "Użyte przez {{name}} {{when}}",
+      "usedByM": "Użyte przez {{name}} {{when}}",
+      "used": "Użyte {{when}}",
+      "neverUsed": "Jeszcze nieużyte",
+      "history": "Zobacz historię"
+    },
     "search": "Szukaj w Vault",
     "noResults": "Nic nie pasuje do „{{q}}”.",
     "personalText": "Widzisz je tylko ty. Twoi agenci używają ich tylko wtedy, gdy o to poprosisz.",

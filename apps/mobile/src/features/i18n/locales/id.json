@@ -28,8 +28,8 @@
     "thousand": "rb",
     "building": "Sedang disusun…",
     "openBig": "Buka layar penuh",
-    "keep": "Simpan di Drive",
-    "kept": "Tersimpan di Drive",
+    "keep": "Simpan di File",
+    "kept": "Tersimpan di File",
     "wake": "Ketuk untuk membuka",
     "pageTitle": "Blok dengan kodenya sendiri",
     "pageBody": "Berjalan terpisah dari aplikasi, tanpa akses ke akunmu atau internet.",
@@ -1020,7 +1020,7 @@
     "issues": "Tugas",
     "issuesWithMe_other": "{{count}} bersamamu",
     "proposalsWaiting_other": "{{count}} menunggu",
-    "drive": "Drive",
+    "drive": "File",
     "connectors": "Konektor dan MCP",
     "preferences": "Preferensi",
     "editProfile": "Ubah profil",
@@ -1140,7 +1140,7 @@
     "more": "Opsi lainnya",
     "send": "Kirim",
     "savePhotos": "Simpan ke Foto",
-    "drive": "Lihat di Drive",
+    "drive": "Lihat di File",
     "saved": "Tersimpan di Foto",
     "photosDenied": "Tidak ada akses ke Foto",
     "photosDeniedSub": "Izinkan di Pengaturan untuk menyimpan gambar.",
@@ -1251,8 +1251,8 @@
     }
   },
   "drive": {
-    "title": "Drive",
-    "search": "Cari di Drive",
+    "title": "File",
+    "search": "Cari di file",
     "types": "Jenis file",
     "type": {
       "all": "Semua",
@@ -1274,8 +1274,49 @@
     },
     "by": "{{name}} · {{when}}",
     "noResults": "Tidak ada hasil dengan filter ini.",
-    "loadFailed": "Tidak bisa memuat Drive.",
-    "more": "Tampilkan lainnya"
+    "loadFailed": "File tidak dapat dimuat.",
+    "more": "Tampilkan lainnya",
+    "you": "Anda",
+    "anyone": "Siapa saja",
+    "filter": {
+      "type": "Jenis",
+      "people": "Orang",
+      "modified": "Diubah"
+    },
+    "when": {
+      "any": "Kapan saja",
+      "today": "Hari ini",
+      "week": "7 hari terakhir",
+      "month": "30 hari terakhir",
+      "year": "Tahun ini"
+    },
+    "change": {
+      "edited": "{{name}} mengedit",
+      "sent": "{{name}} mengirim",
+      "made": "{{name}} membuat"
+    },
+    "suggested": "Disarankan",
+    "list": "File",
+    "folder_other": "percakapan dengan {{count}} file",
+    "moreFolders_other": "{{count}} percakapan lagi",
+    "menu": "Opsi untuk {{name}}",
+    "more2": "Opsi lainnya",
+    "open": "Buka",
+    "goToChat": "Ke percakapan",
+    "new": "Baru",
+    "order": {
+      "label": "Urutan: {{order}}",
+      "recent": "Terbaru dulu",
+      "name": "Menurut nama",
+      "short": {
+        "recent": "Terbaru",
+        "name": "Nama"
+      }
+    },
+    "view": {
+      "grid": "Lihat sebagai kisi",
+      "list": "Lihat sebagai daftar"
+    }
   },
   "constellation": {
     "openHint": "Membuka yang kamu ketuk di langit"
@@ -2327,6 +2368,44 @@
   },
   "vault": {
     "newItem": "Item baru",
+    "home": {
+      "title": "Kata sandi",
+      "search": "Cari di kata sandi",
+      "vaults": "Brankas",
+      "items_other": "{{count}} item",
+      "switch_other": "{{name}}, {{count}} item. Ganti brankas",
+      "favorites": "Favorit",
+      "connections": "Pengelola kata sandi",
+      "noFavorites": "Ketuk bintang pada item agar muncul di sini."
+    },
+    "sheet": {
+      "username": "nama pengguna",
+      "password": "kata sandi",
+      "site": "situs",
+      "keyName": "nama kunci",
+      "value": "nilai",
+      "note": "catatan",
+      "endsIn": "berakhiran {{hint}}",
+      "agentsOnly": "hanya agen yang memakai",
+      "sealed": "tersimpan, hanya agen yang memakai",
+      "copy": "Salin {{label}}",
+      "copied": "Disalin",
+      "clears": "Papan klip terhapus sendiri dalam 1 menit.",
+      "copyFailed": "Tidak dapat menyalin.",
+      "edit": "Edit",
+      "details": "Detail",
+      "star": "Tambahkan ke favorit",
+      "unstar": "Hapus dari favorit",
+      "who": "Siapa yang bisa memakai",
+      "changeWho": "Ubah siapa yang bisa memakai",
+      "onlyYou": "Hanya Anda",
+      "everyone": "Semua",
+      "usedByF": "Dipakai oleh {{name}} {{when}}",
+      "usedByM": "Dipakai oleh {{name}} {{when}}",
+      "used": "Dipakai {{when}}",
+      "neverUsed": "Belum dipakai",
+      "history": "Lihat riwayat"
+    },
     "search": "Cari di Vault",
     "noResults": "Tidak ada yang cocok dengan “{{q}}”.",
     "personalText": "Hanya kamu yang melihat ini. Agenmu hanya menggunakannya saat kamu minta.",

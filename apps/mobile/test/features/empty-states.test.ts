@@ -62,7 +62,7 @@ describe("who gets the first step", () => {
 
   test.each([
     ["dashboards/BoardScreen.tsx", "acts={board.canEdit}"],
-    ["vault/VaultScreen.tsx", 'const mayAdd = tab === "personal" || data.canManageTeam;'],
+    ["vault/VaultScreen.tsx", 'const mayAdd = current === "personal" || (data?.canManageTeam ?? false);'],
     ["memory/MemoryScreen.tsx", "find((a) => a && canTalk(a))"],
     ["chat/ChatScreen.tsx", "acts={member && channel?.can?.post !== false}"],
   ])("%s takes the server's answer", (file, gate) => {

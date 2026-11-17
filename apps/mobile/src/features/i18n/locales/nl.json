@@ -29,8 +29,8 @@
     "thousand": "k",
     "building": "Wordt samengesteld…",
     "openBig": "Openen op volledig scherm",
-    "keep": "Bewaren in Drive",
-    "kept": "Bewaard in Drive",
+    "keep": "Bewaren in Bestanden",
+    "kept": "Bewaard in Bestanden",
     "wake": "Tik om te openen",
     "pageTitle": "Blok met eigen code",
     "pageBody": "Het draait los van de app, zonder toegang tot je account of internet.",
@@ -1095,7 +1095,7 @@
     "issuesWithMe_other": "{{count}} bij jou",
     "proposalsWaiting_one": "{{count}} wacht",
     "proposalsWaiting_other": "{{count}} wachten",
-    "drive": "Drive",
+    "drive": "Bestanden",
     "connectors": "Connectors en MCP's",
     "preferences": "Voorkeuren",
     "editProfile": "Profiel bewerken",
@@ -1218,7 +1218,7 @@
     "more": "Meer opties",
     "send": "Versturen",
     "savePhotos": "Bewaren in Foto's",
-    "drive": "Bekijken in Drive",
+    "drive": "Bekijken in Bestanden",
     "saved": "Bewaard in Foto's",
     "photosDenied": "Geen toegang tot Foto's",
     "photosDeniedSub": "Sta het toe in Instellingen om afbeeldingen te bewaren.",
@@ -1330,8 +1330,8 @@
     }
   },
   "drive": {
-    "title": "Drive",
-    "search": "Zoeken in Drive",
+    "title": "Bestanden",
+    "search": "Zoeken in bestanden",
     "types": "Bestandstypen",
     "type": {
       "all": "Alles",
@@ -1353,8 +1353,51 @@
     },
     "by": "{{name}} · {{when}}",
     "noResults": "Niets met deze filters.",
-    "loadFailed": "De Drive kon niet worden geladen.",
-    "more": "Meer tonen"
+    "loadFailed": "De bestanden konden niet laden.",
+    "more": "Meer tonen",
+    "you": "Jij",
+    "anyone": "Iedereen",
+    "filter": {
+      "type": "Type",
+      "people": "Mensen",
+      "modified": "Gewijzigd"
+    },
+    "when": {
+      "any": "Altijd",
+      "today": "Vandaag",
+      "week": "Laatste 7 dagen",
+      "month": "Laatste 30 dagen",
+      "year": "Dit jaar"
+    },
+    "change": {
+      "edited": "{{name}} bewerkte",
+      "sent": "{{name}} stuurde",
+      "made": "{{name}} maakte"
+    },
+    "suggested": "Voorgesteld",
+    "list": "Bestanden",
+    "folder_one": "gesprek met {{count}} bestand",
+    "folder_other": "gesprek met {{count}} bestanden",
+    "moreFolders_one": "Nog {{count}} gesprek",
+    "moreFolders_other": "Nog {{count}} gesprekken",
+    "menu": "Opties voor {{name}}",
+    "more2": "Meer opties",
+    "open": "Openen",
+    "goToChat": "Naar het gesprek",
+    "new": "Nieuw",
+    "order": {
+      "label": "Volgorde: {{order}}",
+      "recent": "Nieuwste eerst",
+      "name": "Op naam",
+      "short": {
+        "recent": "Nieuwste",
+        "name": "Naam"
+      }
+    },
+    "view": {
+      "grid": "Als raster",
+      "list": "Als lijst"
+    }
   },
   "constellation": {
     "openHint": "Opent wat je in de lucht hebt aangetikt"
@@ -2438,6 +2481,46 @@
   },
   "vault": {
     "newItem": "Nieuw item",
+    "home": {
+      "title": "Wachtwoorden",
+      "search": "Zoeken in wachtwoorden",
+      "vaults": "Kluizen",
+      "items_one": "{{count}} element",
+      "items_other": "{{count}} elementen",
+      "switch_one": "{{name}}, {{count}} element. Andere kluis",
+      "switch_other": "{{name}}, {{count}} elementen. Andere kluis",
+      "favorites": "Favorieten",
+      "connections": "Wachtwoordmanagers",
+      "noFavorites": "Tik op de ster van een item om het hier te houden."
+    },
+    "sheet": {
+      "username": "gebruikersnaam",
+      "password": "wachtwoord",
+      "site": "website",
+      "keyName": "naam van de sleutel",
+      "value": "waarde",
+      "note": "notitie",
+      "endsIn": "eindigt op {{hint}}",
+      "agentsOnly": "alleen agents gebruiken het",
+      "sealed": "bewaard, alleen agents gebruiken het",
+      "copy": "{{label}} kopiëren",
+      "copied": "Gekopieerd",
+      "clears": "Het klembord wist zichzelf na 1 minuut.",
+      "copyFailed": "Kopiëren lukte niet.",
+      "edit": "Bewerken",
+      "details": "Details",
+      "star": "Aan favorieten toevoegen",
+      "unstar": "Uit favorieten halen",
+      "who": "Wie het mag gebruiken",
+      "changeWho": "Wijzigen wie het mag gebruiken",
+      "onlyYou": "Alleen jij",
+      "everyone": "Iedereen",
+      "usedByF": "Gebruikt door {{name}} {{when}}",
+      "usedByM": "Gebruikt door {{name}} {{when}}",
+      "used": "Gebruikt {{when}}",
+      "neverUsed": "Nog niet gebruikt",
+      "history": "Geschiedenis bekijken"
+    },
     "search": "Zoeken in de Vault",
     "noResults": "Niets komt overeen met “{{q}}”.",
     "personalText": "Alleen jij ziet deze. Je agenten gebruiken ze alleen als je erom vraagt.",
