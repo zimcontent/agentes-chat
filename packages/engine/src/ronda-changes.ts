@@ -4,9 +4,11 @@ import { seesAgentDetails } from "./audience";
 import { readsOrMayJoin } from "./channels";
 import { cutText } from "./format";
 import { listIssues } from "./issues";
+import type { MailDeps } from "./mail/accounts";
 import { oneLine } from "./mail/text";
 import { readableBody } from "./message-preview";
 import { getMembership } from "./organizations";
+import { rondaMail } from "./ronda-mail";
 import { isRoutineRoomKey } from "./routine-brief";
 import { untrustedBlock } from "./untrusted";
 
@@ -16,7 +18,7 @@ const { agents, routines, routineRuns } = schema;
  * What changed in the operation since an agent's last ronda (ADR 9004 §2), read from stored data with no model call:
  * the gate that decides whether a ronda costs anything at all. Everything is what the ronda's person (the routine's
  * creator, accountable for it) may see: conversations they read, tasks they see (`taskSeenSql`), approvals they may
- * decide, agents whose details they see. A count of zero means nothing happened, and the ronda passes without a model.
+ * decide, agents whose details they see, and new mail in the mailboxes they connected (ADR 9005 §2). A count of zero means nothing happened, and the ronda passes without a model.
  */
 export interface RondaChanges {
   /** How many things changed: 0 means nothing did. */
@@ -44,21 +46,30 @@ const section = (title: string, lines: string[]) => (lines.length ? `${title}\n$
 
 export async function rondaChanges(
   db: Database,
-  input: { orgId: string; agentId: string; personId: string; since: Date; now?: Date },
+  input: {
+    orgId: string;
+    agentId: string;
+    personId: string;
+    since: Date;
+    now?: Date;
+    /** The person's mailboxes, for new mail (ADR 9005 §2); absent: mail is not read. */
+    mail?: Omit<MailDeps, "db"> | null;
+  },
 ): Promise<RondaChanges> {
   const now = input.now ?? new Date();
   const since = new Date(Math.max(input.since.getTime(), now.getTime() - RONDA_MAX_WINDOW_MS));
   const { orgId, agentId, personId } = input;
   const membership = await getMembership(db, personId, orgId);
   if (!membership) return { count: 0, headline: [], text: "" };
-  const [conversations, tasks, failed, approvals, routineTrouble] = await Promise.all([
+  const [conversations, tasks, failed, approvals, routineTrouble, mail] = await Promise.all([
     conversationChanges(db, { orgId, agentId, personId, since, now }),
     taskChanges(db, { orgId, agentId, personId, since, now }),
     failedRuns(db, { orgId, agentId, personId, membership, since, now }),
     forgottenApprovals(db, { orgId, personId, since, now }),
     routineFailures(db, { orgId, agentId, personId, since, now }),
+    input.mail ? rondaMail({ ...input.mail, db }, { orgId, agentId, personId, since, now }) : Promise.resolve(nothing),
   ]);
-  const parts = [conversations, tasks, failed, approvals, routineTrouble];
+  const parts = [mail, conversations, tasks, failed, approvals, routineTrouble];
   return {
     count: parts.reduce((n, p) => n + p.count, 0),
     headline: parts.flatMap((p) => (p.count ? [p.headline] : [])),

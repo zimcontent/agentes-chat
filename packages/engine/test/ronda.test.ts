@@ -1,8 +1,18 @@
 import { afterEach, expect, test } from "bun:test";
 import { eq, schema } from "@agenteschat/db";
 import type { ModelRequest } from "@agenteschat/providers";
-import { drainOutbox, getRonda, RONDA_CRON, RONDA_PROMPT, rondaChanges, setRonda } from "../src";
+import {
+  drainOutbox,
+  ensureRightHand,
+  getRonda,
+  RIGHT_HAND,
+  RONDA_CRON,
+  RONDA_PROMPT,
+  rondaChanges,
+  setRonda,
+} from "../src";
 import { addMember, type Fixture, setup } from "./fixtures";
+import { giveMail, imapAccount, mailSetup } from "./mail-fixtures";
 import { fire, minutesFromNow, routineRow } from "./routine-fixtures";
 
 let f: Fixture;
@@ -162,4 +172,86 @@ test("what changed is what the person sees: a private channel they don't read st
   expect(forOwner.text).toContain("salários de novembro");
   expect(forBia.text).not.toContain("salários");
   expect(forBia.count).toBe(0);
+});
+
+// ── The right hand's ronda (ADR 9005) ───────────────────────────────────────
+
+async function rightHandOf(fx: Fixture) {
+  await ensureRightHand(fx.db, fx.org.id);
+  const [lodi] = await fx.db.select().from(schema.agents).where(eq(schema.agents.builtin, RIGHT_HAND));
+  if (!lodi) throw new Error("no right hand");
+  return lodi;
+}
+
+test("the right hand: each person who talks to it turns on their own ronda, in their own DM", async () => {
+  f = await setup();
+  const lodi = await rightHandOf(f);
+  const bia = await addMember(f.db, f.org.id, "member", "bia");
+  const mine = await setRonda(deps(), f.owner.id, f.org.id, lodi.id, "daily", "America/Sao_Paulo");
+  const hers = await setRonda(deps(), bia.id, f.org.id, lodi.id, "hourly", "America/Sao_Paulo");
+  expect(hers.routineId).not.toBe(mine.routineId);
+  expect(hers.personId).toBe(bia.id);
+  expect((await getRonda(f.db, f.owner.id, f.org.id, lodi.id)).schedule).toBe("daily");
+  expect((await getRonda(f.db, bia.id, f.org.id, lodi.id)).schedule).toBe("hourly");
+  // Switching hers off leaves his.
+  await setRonda(deps(), bia.id, f.org.id, lodi.id, "off", "America/Sao_Paulo");
+  expect((await routineRow(f, mine.routineId ?? "")).active).toBe(true);
+});
+
+test("the right hand's first ronda of the day opens it: it runs with nothing new, on its own AI, told to resolve and bring an idea", async () => {
+  const requests: ModelRequest[] = [];
+  f = await setup({
+    reply: (req) => {
+      requests.push(req);
+      return { chunks: ["Bom dia."] };
+    },
+  });
+  const lodi = await rightHandOf(f);
+  const { routineId } = await setRonda(deps(), f.owner.id, f.org.id, lodi.id, "hourly", "UTC", "claude-haiku-5-5");
+  const opening = await fire(f, routineId ?? "", minutesFromNow(-2), "schedule");
+  expect(opening.status).not.toBe("skipped");
+  expect(opening.event).toMatchObject({ type: "ronda.changes", opening: true });
+  expect(judged()).toEqual([]);
+  await drainOutbox(f.db, f.handlers);
+  const last = requests.at(-1);
+  const seen = JSON.stringify(last?.messages ?? []) + JSON.stringify(last?.system ?? "");
+  expect(seen).toContain("This is the day's opening ronda");
+  expect(seen).toContain("Your second brain first");
+  expect(last?.model).not.toBe("claude-haiku-5-5");
+  // Later the same day, nothing new: the slot passes as any ronda's.
+  const later = await fire(f, routineId ?? "", minutesFromNow(-1), "schedule");
+  expect(later).toMatchObject({ status: "skipped", code: "ronda_nothing" });
+});
+
+test("an agent that isn't the right hand has no opening: nothing new still passes", async () => {
+  f = await setup();
+  const { routineId } = await setRonda(deps(), f.owner.id, f.org.id, f.agent.id, "hourly", "UTC");
+  const slot = await fire(f, routineId ?? "", minutesFromNow(-1), "schedule");
+  expect(slot).toMatchObject({ status: "skipped", code: "ronda_nothing" });
+});
+
+test("new mail in the person's own mailboxes the agent reads is news; another person's mailbox never is", async () => {
+  const m = await mailSetup();
+  f = m.f;
+  const account = await imapAccount(m);
+  const since = new Date(Date.now() - 3_600_000);
+  m.box.add({ id: "m1", subject: "Contrato para assinar até sexta", date: new Date().toISOString(), unread: true });
+  m.box.add({ id: "m0", subject: "Antigo", date: new Date(Date.now() - 86_400_000).toISOString() });
+  const read = (personId: string) =>
+    rondaChanges(f.db, {
+      orgId: f.org.id,
+      agentId: f.agent.id,
+      personId,
+      since,
+      mail: { keyWrappers: m.deps.keyWrappers, mail: m.mail, publicUrl: "" },
+    });
+  // The agent can't read it yet: nothing.
+  expect((await read(f.owner.id)).count).toBe(0);
+  await giveMail(m, account.id, "read");
+  const mine = await read(f.owner.id);
+  expect(mine.headline).toContain("1 new emails");
+  expect(mine.text).toContain("Contrato para assinar até sexta");
+  expect(mine.text).not.toContain("Antigo");
+  const bia = await addMember(f.db, f.org.id, "member", "bia");
+  expect((await read(bia.id)).text).not.toContain("Contrato");
 });

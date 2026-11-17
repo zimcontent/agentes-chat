@@ -149,7 +149,7 @@ async function mailboxUserCheck(ctx: ToolContext, authority: RunAuthority | null
 }
 
 /** Why a message is outside what the agent may read; null = inside. */
-function messageRefusal(policy: MailPolicy, m: MailSummary, now: Date): string | null {
+export function messageRefusal(policy: MailPolicy, m: MailSummary, now: Date): string | null {
   if (policy.folders.length > 0 && (!m.folder || !policy.folders.includes(m.folder))) {
     return `Not allowed: this agent may only read mail in the folders ${shown(policy.folders)}.`;
   }

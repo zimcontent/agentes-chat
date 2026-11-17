@@ -937,6 +937,8 @@ export function createJobHandlers(deps: JobDeps): JobHandlers {
           pubsub: deps.pubsub,
           context: deps.context,
           ai: { gateway: deps.gateway, machines: deps.machines ?? null },
+          mail: deps.mail,
+          keyWrappers: deps.connectors?.keyWrappers,
         },
         String(job.payload.routineRunId),
       );

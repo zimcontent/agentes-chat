@@ -24,17 +24,18 @@ const AGENT_AI = "agent";
 
 /**
  * The ronda's state and actions for one agent (ADR 9004), shared by any agent's card and the right hand's row. Saved at
- * once, outside the page's save bar, by who manages agents or the agent's owner; everyone else reads it. Turning it on
- * makes you its person: it tells you in your DM.
+ * once, outside the page's save bar, by who manages agents or the agent's owner; everyone else reads it. The right
+ * hand's is each person's own (ADR 9005 §3): whoever sees its row sets theirs. Turning it on makes you its person: it
+ * tells you in your DM.
  */
-export function useRondaControl(agent: { id: string; ownerUserId?: string | null }) {
+export function useRondaControl(agent: { id: string; ownerUserId?: string | null; builtin?: string | null }) {
   const { t, i18n } = useTranslation();
   const { org, me } = useOrg();
   const ronda = useRonda(org.id, agent.id);
   const set = useSetRonda(org.id, agent.id);
   const act = useRoutineAction(org.id);
   const toast = useToast();
-  const editable = can(org, "manage_agents") || agent.ownerUserId === me.user.id;
+  const editable = agent.builtin === "right_hand" || can(org, "manage_agents") || agent.ownerUserId === me.user.id;
   const schedule = set.isPending ? (set.variables?.schedule ?? "off") : (ronda.data?.schedule ?? "off");
   const save = (next: RondaSchedule) => {
     if (!editable || next === schedule) return;
