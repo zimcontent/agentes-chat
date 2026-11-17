@@ -47,3 +47,17 @@ export function pushOnce<A extends unknown[]>(push: (...args: A) => void, now: (
     push(...args);
   };
 }
+
+/** An iPhone's navigation bar under the status bar, in points. */
+export const IOS_NAV_BAR = 44;
+
+/**
+ * Where a screen's own top content starts under a clear iOS bar: the bar's height as the stack reports it, but never
+ * less than the status bar and a bar. On a pushed screen the stack has reported 0 (seen on iOS 26 under the clear,
+ * scroll-under bar), which laid the screen's tabs behind the status bar and the back button. Elsewhere 0: Android's
+ * bar is opaque and already holds its room.
+ */
+export function clearBarTop(os: string, reported: number, insetTop: number): number {
+  if (os !== "ios") return 0;
+  return Math.max(Number.isFinite(reported) ? reported : 0, insetTop + IOS_NAV_BAR);
+}

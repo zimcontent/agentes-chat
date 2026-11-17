@@ -8,11 +8,9 @@ import {
 } from "@agenteschat/client";
 import { dueLabel } from "@agenteschat/client/lib/format";
 import { liveProjectFilter, NO_PROJECT, projectFilterRows } from "@agenteschat/client/lib/issue-projects";
-import { useHeaderHeight } from "expo-router/react-navigation";
 import { Fragment, type ReactNode, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
-  Platform,
   RefreshControl,
   ScrollView,
   type ScrollViewInstance,
@@ -36,6 +34,7 @@ import {
   SkeletonList,
   Text,
   textLineOf,
+  useClearBarTop,
   useFontScale,
   useReducedMotion,
 } from "@/ui";
@@ -358,7 +357,7 @@ function Board({
   const { t } = useTranslation();
   const c = useColors();
   const orgId = useOrgId();
-  const headerHeight = useHeaderHeight();
+  const barTop = useClearBarTop();
   const { width } = useWindowDimensions();
   const issues = useIssues(orgId, "", project);
   const columns = useIssueColumns(orgId);
@@ -382,7 +381,7 @@ function Board({
     pager.current?.scrollTo({ x: index * step, animated: true });
   };
   return (
-    <View style={[styles.screen, { backgroundColor: c.bg, paddingTop: Platform.OS === "ios" ? headerHeight : 0 }]}>
+    <View style={[styles.screen, { backgroundColor: c.bg, paddingTop: barTop }]}>
       <PushedHeader solid={false} {...(right ? { right } : {})} />
       <Text variant="display" accessibilityRole="header" numberOfLines={1} style={styles.title}>
         {t("mobile.issues.title")}
