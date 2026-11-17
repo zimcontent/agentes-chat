@@ -24,7 +24,7 @@ import { UsageQueueSheet } from "../queue/UsageQueueSheet";
 import { useFailed } from "../routines/hooks";
 import { useDirectory, useMeId, useNow } from "../shared/hooks";
 import { useSheetIfAny } from "../shared/SheetHost";
-import { openAgentAi } from "./AgentAiScreen";
+import { openChangeAi } from "./ChangeAiSheet";
 
 /**
  * "Don't run it" on what waits for a plan's or budget's limit (the web's): cancels the run, so nothing runs when the
@@ -158,7 +158,7 @@ export function UsageWaitCancel({ message: m }: { message: Message }) {
             variant="secondary"
             size="sm"
             label={t(`usageCard.${fix}`)}
-            onPress={() => (fix === "raiseBudget" ? openAgentEdit : openAgentAi)(m.author.id ?? "")}
+            onPress={() => (fix === "raiseBudget" ? openAgentEdit : openChangeAi)(m.author.id ?? "")}
           />
         ) : null}
         {skipped ? (

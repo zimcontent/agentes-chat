@@ -416,8 +416,9 @@ describe("Perfil: o mês, com os limites do plano (ADR 0063 §5)", () => {
     expect(screen).toContain("label={thinksPlan ?? thinks.text}");
     expect(screen).toContain("{...(thinksUnder ? { sub: thinksUnder, subLines: 2 } : {})}");
     expect(screen).toContain("!isAuto(effortView.effectiveModel)");
-    // Its owner and admins change it on its AI page, pushed from this row; the conversation's bar has no button for it.
-    expect(screen).toContain("? { chevron: true, onPress: () => openAgentAi(agent.id) }");
+    // Its owner and admins change it in the "Trocar a IA" sheet this row opens (its full AI page is a row there); the
+    // conversation's bar has no button for it.
+    expect(screen).toContain("? { chevron: true, onPress: () => openChangeAi(agent.id) }");
     expect(screen).not.toContain("ModelPickerSheet");
     const chat = await Bun.file(new URL("../../src/features/chat/ChatScreen.tsx", import.meta.url).pathname).text();
     expect(chat).not.toContain("DmModelButton");
