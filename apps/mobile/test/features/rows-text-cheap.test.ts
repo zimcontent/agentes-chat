@@ -15,7 +15,9 @@ describe("a text's pieces", () => {
     const plain = spans.slice(spansAt, mentionAt);
     for (const hook of ["useDirectory()", "useMyHandle()", "useTranslation()", "useTheme()"])
       expect({ hook, inEveryText: plain.includes(hook) }).toEqual({ hook, inEveryText: false });
-    expect(plain).toContain("return <MentionText key={key} text={s.text} everyone={everyone} ink={ink} faceSize={faceSize} />;");
+    expect(plain).toContain(
+      "return <MentionText key={key} text={s.text} everyone={everyone} ink={ink} faceSize={faceSize} />;",
+    );
     const mention = spans.slice(mentionAt, spans.indexOf("type TableBlock"));
     for (const hook of ["useDirectory()", "useMyHandle()", "useTranslation()", "useTheme()"])
       expect({ hook, inMention: mention.includes(hook) }).toEqual({ hook, inMention: true });
