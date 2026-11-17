@@ -21,6 +21,19 @@ test("the conversation's pill never runs under the bar's buttons: its room comes
   // A button that may draw nothing keeps no room while it does: the computer's says when it shows.
   expect(chat).toContain("room: computerShown ? 1 : 0,");
   expect(source("DmComputerButton.tsx")).toContain("onShown?.(shown);");
-  // The pill's room is the screen less the bar's margins, back, "…" and those buttons.
-  expect(source("HeaderPill.tsx")).toContain("const room = Math.max(160, screen - 152 - extraActions * 44);");
+  // The pill's room is the screen less the bar's margins, back, "…" and those buttons, with no floor wider than the
+  // closed pill: a floor of 160 ran under an agent DM's tasks, computer and call on a 375-point phone.
+  const pill = source("HeaderPill.tsx");
+  expect(pill).toContain("const room = Math.max(HEIGHT, screen - 152 - extraActions * 44);");
+  // Less room than its least width, the pill closes to its lead; a channel's faces go before the name does.
+  expect(pill).toContain("const closed = (collapsed || room < MIN_WIDTH) && Boolean(lead);");
+  expect(pill).toContain("const showTrailing = Boolean(trailing) && room - bare - faces >= MIN_WORDS;");
+});
+
+test("the pill's words grow with the text size only as far as both lines fit its height", () => {
+  const pill = source("HeaderPill.tsx");
+  expect(pill).toContain("const WORDS_MAX_SCALE = (HEIGHT - 2 * WORDS_INSET) / (TITLE_LINE + STATUS_LINE);");
+  // The name, the quiet line and what measures them share the cap, so the measured widths are the drawn ones.
+  expect(pill.match(/maxFontSizeMultiplier=\{WORDS_MAX_SCALE\}/g)?.length).toBe(4);
+  expect(pill).toContain("const lineBox = Math.ceil(STATUS_LINE * Math.min(useFontScale(), WORDS_MAX_SCALE));");
 });
