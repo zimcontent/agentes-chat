@@ -68,3 +68,15 @@ that needed the network all refused; with the note below, 12 of 12, none needing
 - A turn the CLI still ends at a refused action with nothing said goes on once in the same conversation, reading
   `agyDeniedNudge` (what was refused, not to ask again, `run_code` for a command that needs the network). Refused
   again, it fails as before (`agyDenied`).
+
+## Addendum 2026-11-17: network commands outside the sandbox for a work turn
+
+Beside the note above, which reaches only new chats and leans on `run_code`, which not every agent has: the CLI's
+`sandboxAllowNetwork` is the IDE's setting and is not read from its `settings.json` (1.5.10), but an allow rule
+`command(<program>)` there is, and runs that command outside the sandbox without asking (tried on `curl …` and
+`cd /tmp && curl …`). A `work` turn's settings allow `AGY_NETWORK_COMMANDS` (`curl`, `wget`, `git`, `gh`, `yt-dlp`):
+programs that fetch and send over the network, never a shell or an interpreter, which would lift the sandbox for
+anything. A `plan` or `chat` turn gets none. A work turn's `agyDeniedNudge` names them, for a model without
+`run_code`. Seen before it: an agent in an old conversation uploading media with `curl` to a signed address, refused
+again and again. Since the settings are the account's, a `plan` turn starting at the same moment as a `work` one on
+the same account may start with either list, as with every other shared setting.

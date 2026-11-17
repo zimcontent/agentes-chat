@@ -21,6 +21,7 @@ import {
 } from "../../runner/accounts";
 import {
   AGY_CHAT_AGENT,
+  AGY_NETWORK_COMMANDS,
   AGY_PLANTED,
   AGY_SIGN_IN_FILE,
   agyAuthOf,
@@ -118,6 +119,18 @@ test("the account's home: what a turn planted goes, our settings, our server alo
   });
   // Turns pass `--disable-slash-commands`; `/usage` and `/logout` must still reach the CLI.
   expect(settings.disableSlashCommands).toBeUndefined();
+  // Only a `work` turn's commands may leave the sandbox for the network, with the programs listed.
+  prepareAgyHome(home, ["/usr/bin/agentes-runner"], "work");
+  const work = JSON.parse(readFileSync(path.join(home, ".gemini/antigravity-cli/settings.json"), "utf8"));
+  expect(work.permissions.allow).toEqual([
+    `mcp(${CODEX_MCP_SERVER}/*)`,
+    ...AGY_NETWORK_COMMANDS.map((c) => `command(${c})`),
+  ]);
+  expect(work.permissions.allow).not.toContain("command(bash)");
+  expect(work.permissions.allow).not.toContain("command(python3)");
+  prepareAgyHome(home, ["/usr/bin/agentes-runner"], "plan");
+  const plan = JSON.parse(readFileSync(path.join(home, ".gemini/antigravity-cli/settings.json"), "utf8"));
+  expect(plan.permissions).toEqual({ allow: [`mcp(${CODEX_MCP_SERVER}/*)`] });
   expect(existsSync(agyRuntimeDir(home))).toBe(true);
   const agent = readFileSync(path.join(home, `.gemini/config/agents/${AGY_CHAT_AGENT}/agent.md`), "utf8");
   expect(agent).toContain("tools: []");
@@ -826,6 +839,10 @@ test("a turn the CLI ended with nothing because it denied a command says so, wit
   expect(nudge).toStartWith("Your last action (Bash) was refused");
   expect(nudge).toContain("run_code");
   expect(agyDeniedNudge({ denied_actions: [{ action: "file", display_name: "ReadFile" }] })).not.toContain("run_code");
+  // A work turn's nudge names the programs its settings let leave the sandbox; any other turn's names none.
+  expect(nudge).not.toContain("BypassSandbox");
+  const work = agyDeniedNudge({ denied_actions: [{ action: "command", display_name: "Bash" }] }, AGY_NETWORK_COMMANDS);
+  expect(work).toContain(`only ${AGY_NETWORK_COMMANDS.join(", ")} may run outside the sandbox`);
 });
 
 test("the look at installed CLIs runs agy with its own updates off, and every other CLI as it was", () => {
