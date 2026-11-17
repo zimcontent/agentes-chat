@@ -230,3 +230,22 @@ test("the typed text and the files are refused as a typed message's would be, an
   expect(await errorCode(tooMany)).toBe("message.too_many_attachments");
   expect(await server.db.select().from(schema.voiceClips)).toHaveLength(0);
 });
+
+function dictate(b: Browser, orgId: string, channelId: string, name = "voice.m4a") {
+  const form = new FormData();
+  form.set("file", new File([new Uint8Array(32)], name));
+  form.set("durationMs", "2000");
+  form.set("language", "pt");
+  return b(`/api/app/organizations/${orgId}/channels/${channelId}/voice/dictate`, { method: "POST", body: form });
+}
+
+test("dictation hands the words back as text; an outsider gets nothing", async () => {
+  const { owner, other, orgId, channelId } = await start();
+  const res = await dictate(owner, orgId, channelId);
+  expect(res.status).toBe(200);
+  expect(await res.json()).toEqual({ text: "Ada, oi" });
+  expect([403, 404]).toContain((await dictate(other, orgId, channelId)).status);
+  const refused = await dictate(owner, orgId, channelId, "page.html");
+  expect(refused.status).toBe(400);
+  expect(await errorCode(refused)).toBe("voice.bad_type");
+});

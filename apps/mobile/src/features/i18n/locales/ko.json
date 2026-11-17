@@ -315,12 +315,12 @@
     "createAgent": "에이전트 만들기"
   },
   "voice": {
-    "slideToCancel": "밀어서 취소",
-    "slideUpToLock": "위로 밀어서 잠금",
-    "locked": "잠김",
-    "recording": "녹음 중",
-    "discard": "삭제",
-    "send": "보내기",
+    "dictate": "받아쓰기",
+    "stopDictating": "멈추고 텍스트로 변환",
+    "cancelDictating": "받아쓰기 취소",
+    "transcribing": "텍스트로 변환 중…",
+    "noWords": "아무것도 들리지 않았어요",
+    "dictationFailed": "변환하지 못했어요. 다시 시도해 주세요.",
     "seeAll": "전체 보기"
   },
   "chat": {

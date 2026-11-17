@@ -315,12 +315,12 @@
     "createAgent": "Buat agen"
   },
   "voice": {
-    "slideToCancel": "geser untuk batal",
-    "slideUpToLock": "geser ke atas untuk mengunci",
-    "locked": "Terkunci",
-    "recording": "Merekam",
-    "discard": "Hapus",
-    "send": "Kirim",
+    "dictate": "Dikte",
+    "stopDictating": "Berhenti dan transkripsikan",
+    "cancelDictating": "Batalkan dikte",
+    "transcribing": "Mentranskripsikan…",
+    "noWords": "Tidak ada yang terdengar",
+    "dictationFailed": "Tidak bisa mentranskripsikan. Coba lagi.",
     "seeAll": "Lihat selengkapnya"
   },
   "chat": {

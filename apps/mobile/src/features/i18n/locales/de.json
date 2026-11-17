@@ -324,12 +324,12 @@
     "createAgent": "Agent erstellen"
   },
   "voice": {
-    "slideToCancel": "zum Abbrechen wischen",
-    "slideUpToLock": "zum Fixieren nach oben wischen",
-    "locked": "Fixiert",
-    "recording": "Aufnahme",
-    "discard": "Löschen",
-    "send": "Senden",
+    "dictate": "Diktieren",
+    "stopDictating": "Stoppen und transkribieren",
+    "cancelDictating": "Diktat abbrechen",
+    "transcribing": "Wird transkribiert…",
+    "noWords": "Nichts gehört",
+    "dictationFailed": "Transkription fehlgeschlagen. Versuche es erneut.",
     "seeAll": "Alles anzeigen"
   },
   "chat": {

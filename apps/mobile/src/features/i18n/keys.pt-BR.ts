@@ -341,12 +341,12 @@ export const featureKeysPtBR = {
     createAgent: "Criar agente",
   },
   voice: {
-    slideToCancel: "deslize para cancelar",
-    slideUpToLock: "suba para travar",
-    locked: "Travado",
-    recording: "Gravando",
-    discard: "Apagar",
-    send: "Enviar",
+    dictate: "Ditar",
+    stopDictating: "Parar e transcrever",
+    cancelDictating: "Cancelar ditado",
+    transcribing: "Transcrevendo…",
+    noWords: "Não ouvi nada",
+    dictationFailed: "Não deu para transcrever. Tente de novo.",
     seeAll: "Ver tudo",
   },
   chat: {

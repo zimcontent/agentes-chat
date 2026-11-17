@@ -761,23 +761,23 @@
   "share.createAgent": {
     "value": "Create agent"
   },
-  "voice.slideToCancel": {
-    "value": "slide to cancel"
+  "voice.dictate": {
+    "value": "Dictate"
   },
-  "voice.slideUpToLock": {
-    "value": "slide up to lock"
+  "voice.stopDictating": {
+    "value": "Stop and transcribe"
   },
-  "voice.locked": {
-    "value": "Locked"
+  "voice.cancelDictating": {
+    "value": "Cancel dictation"
   },
-  "voice.recording": {
-    "value": "Recording"
+  "voice.transcribing": {
+    "value": "Transcribing…"
   },
-  "voice.discard": {
-    "value": "Delete"
+  "voice.noWords": {
+    "value": "Nothing was heard"
   },
-  "voice.send": {
-    "value": "Send"
+  "voice.dictationFailed": {
+    "value": "Couldn't transcribe. Try again."
   },
   "voice.seeAll": {
     "value": "See all"

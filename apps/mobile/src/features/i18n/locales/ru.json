@@ -342,12 +342,12 @@
     "createAgent": "Создать агента"
   },
   "voice": {
-    "slideToCancel": "проведите для отмены",
-    "slideUpToLock": "вверх для фиксации",
-    "locked": "Зафиксировано",
-    "recording": "Запись",
-    "discard": "Удалить",
-    "send": "Отправить",
+    "dictate": "Диктовка",
+    "stopDictating": "Остановить и расшифровать",
+    "cancelDictating": "Отменить диктовку",
+    "transcribing": "Расшифровка…",
+    "noWords": "Ничего не слышно",
+    "dictationFailed": "Не удалось расшифровать. Попробуйте ещё раз.",
     "seeAll": "Показать всё"
   },
   "chat": {

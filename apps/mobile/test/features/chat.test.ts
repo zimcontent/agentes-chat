@@ -412,18 +412,8 @@ describe("working line", () => {
     expect(lines).toContain("bar: { width: 3, height: 12, borderRadius: 1.5, opacity: 0.7 },");
   });
 
-  test("the phone tells the conversation while it records (held or hands free, not paused) and while the take uploads", async () => {
-    const take = await source("features/voice/useVoiceTake.ts");
-    const tick = take.slice(take.indexOf("const tick = useCallback("), take.indexOf("const record = useCallback("));
-    expect(tick).toContain('if (phaseNow === "hold" || phaseNow === "locked") targetRef.current.onRecording?.();');
+  test("the phone tells the conversation while a voice message it queued uploads", async () => {
     const screen = await source("features/chat/ChatScreen.tsx");
-    // Recording never waits on what was just written (an agent asked in it waits for the take); the upload's frames do.
-    expect(screen).toContain(
-      'const onRecording = useCallback(() => sendTyping(threadId, undefined, "voice"), [sendTyping, threadId]);',
-    );
-    // Through the field's own component, which keeps what it is handed (`ChatComposer`).
-    const field = screen.slice(screen.indexOf("const ChatComposer = memo("), screen.indexOf("function ToLatest("));
-    expect(field).toContain("afterSend: onVoiceSent,\n    onRecording,\n  });");
     expect(screen).toContain("!m.meta?.voiceAccepted &&");
     expect(screen).toContain('const timer = setInterval(() => sendTyping(threadId, undefined, "voice", true), 1000);');
     const live = (await source("features/chat/live.ts")).replace(/\s+/g, " ");

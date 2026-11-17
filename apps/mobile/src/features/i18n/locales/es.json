@@ -333,12 +333,12 @@
     "createAgent": "Crear agente"
   },
   "voice": {
-    "slideToCancel": "desliza para cancelar",
-    "slideUpToLock": "desliza hacia arriba para bloquear",
-    "locked": "Bloqueado",
-    "recording": "Grabando",
-    "discard": "Borrar",
-    "send": "Enviar",
+    "dictate": "Dictar",
+    "stopDictating": "Detener y transcribir",
+    "cancelDictating": "Cancelar dictado",
+    "transcribing": "Transcribiendo…",
+    "noWords": "No se oyó nada",
+    "dictationFailed": "No se pudo transcribir. Inténtalo de nuevo.",
     "seeAll": "Ver todo"
   },
   "chat": {

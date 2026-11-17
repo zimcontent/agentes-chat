@@ -315,12 +315,12 @@
     "createAgent": "エージェントを作成"
   },
   "voice": {
-    "slideToCancel": "スライドしてキャンセル",
-    "slideUpToLock": "上にスライドしてロック",
-    "locked": "ロック中",
-    "recording": "録音中",
-    "discard": "削除",
-    "send": "送信",
+    "dictate": "音声入力",
+    "stopDictating": "停止して文字起こし",
+    "cancelDictating": "音声入力をキャンセル",
+    "transcribing": "文字起こし中…",
+    "noWords": "何も聞こえませんでした",
+    "dictationFailed": "文字起こしできませんでした。もう一度お試しください。",
     "seeAll": "すべて表示"
   },
   "chat": {

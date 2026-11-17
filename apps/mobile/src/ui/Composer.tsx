@@ -39,6 +39,7 @@ import { readValueSync, STORED, writeValueSync } from "@/lib/storage";
 import { haptics } from "./haptics";
 import { Icon, type IconName } from "./Icon";
 import { PressScale } from "./PressScale";
+import { spliceWords } from "./splice-words";
 import { systemText } from "./Text";
 import { useTheme } from "./theme";
 import { CHROME_MAX_SCALE, weights } from "./type-scale";
@@ -124,20 +125,12 @@ export interface ComposerProps {
   /** The button in the empty field that opens the GIFs and stickers (null where neither can be sent). */
   media?: { label: string; onPress: () => void } | null;
   /**
-   * Voice messages (null where they are off): `mic` in a field with no words (files may wait); while the mic is held,
-   * `overlay` covers the field. Hands free or paused, `bar` is the take's row above the field, in the field's own
-   * capsule (same height, radius, ring and inset), the field and the "+" stay usable, and the field's send hands the
-   * words to `send`, which sends them with the take (and the files) as one message. `above` sits over the row (the
-   * slide-to-cancel hint, the recording line).
+   * Dictation (null where voice is off): `mic` sits in the field before the send, words or not; while it records or
+   * makes out the words, `overlay` covers the field's words and the field's other buttons step aside.
    */
-  voice?: {
-    mic: ReactNode | null;
-    overlay: ReactNode | null;
-    bar: ReactNode | null;
-    send: ((text: string) => Promise<boolean>) | null;
-    above: ReactNode | null;
-    active: boolean;
-  } | null;
+  dictation?: { mic: ReactNode; overlay: ReactNode | null; active: boolean } | null;
+  /** Words to put in at the caret, as dictated: each request with a new `at`. */
+  insert?: { text: string; at: number } | null;
 }
 
 /**
@@ -151,13 +144,14 @@ const SEND = 32;
 const INSET = (FIELD - SEND) / 2;
 const FIELD_RADIUS = 22;
 const BUTTON_RADIUS = SEND / 2;
-/** The field's 1 px edge (the green at 35% while it is active) and its soft shadow; a voice take's bar wears the same. */
+/** The field's 1 px edge (the green at 35% while it is active) and its soft shadow. */
 const FIELD_SHADOW = (line: string) => `0px 0px 0px 1px ${line}, 0px 6px 18px -10px rgba(0, 0, 0, 0.25)`;
 /** How long the send button is held to stop the agent and send; the ring around it fills meanwhile. */
 /** Words left in a conversation's field, by `draftKey`, while the app runs. */
 const DRAFTS = new Map<string, string>();
 
 const HOLD_SEND_MS = 600;
+
 const RING = 44;
 const RING_PATH = (() => {
   // Paths are immutable in this Skia: they are made with a builder.
@@ -198,7 +192,8 @@ export function Composer({
   onType,
   draftKey,
   media,
-  voice,
+  dictation,
+  insert,
 }: ComposerProps) {
   const theme = useTheme();
   const { colors, shadows, reducedMotion } = theme;
@@ -230,17 +225,28 @@ export function Composer({
   useEffect(() => {
     if (focusAt) input.current?.focus();
   }, [focusAt]);
+  const insertAt = insert?.at;
+  const caretRef = useRef(caret);
+  caretRef.current = caret;
+  // biome-ignore lint/correctness/useExhaustiveDependencies: once per request (its time), wherever the caret is
+  useEffect(() => {
+    const words = insert?.text.trim();
+    if (!words) return;
+    const at = Math.min(caretRef.current, text.length);
+    const next = spliceWords(text, at, words);
+    put(next.text, next.caret);
+    input.current?.focus();
+  }, [insertAt]);
   const typed = text.trim().length > 0;
-  const take = voice?.send ?? null;
-  const has = typed || sendEmpty || Boolean(take);
-  // The mic held: the field is the recording, nothing else shows around it.
-  const holding = Boolean(voice?.overlay);
+  const has = typed || sendEmpty;
+  // Dictating: the field is the recording, nothing else shows around it but its own buttons.
+  const dictating = Boolean(dictation?.active);
+  const holding = Boolean(dictation?.overlay);
   const token = focused && mention && mentionAt ? mentionAt(text, caret) : null;
-  const stopMode = Boolean(working?.stop) && !has && !voice?.active;
-  const button = has || stopMode;
-  const mediaButton = media && !has ? media : null;
-  // Files waiting don't take it away: a take started then goes with them.
-  const mic = voice && !typed ? voice.mic : null;
+  const stopMode = Boolean(working?.stop) && !has && !dictating;
+  const button = (has || stopMode) && !dictating;
+  const mediaButton = media && !has && !dictating ? media : null;
+  const mic = dictation?.mic ?? null;
 
   const put = (next: string, at = next.length) => {
     setText(next);
@@ -250,14 +256,6 @@ export function Composer({
 
   const send = (how: SendHow) => {
     const value = text.trim();
-    if (take) {
-      if (tooLong) return;
-      put("", 0);
-      void take(value).then((sent) => {
-        if (!sent && value) setText((now) => joinDrafts(value, now));
-      });
-      return;
-    }
     if ((!value && !sendEmpty) || tooLong) return;
     onSend(value, working ? how : "join");
     put("", 0);
@@ -281,7 +279,7 @@ export function Composer({
     setTaught(true);
     writeValueSync(STORED.stopSendTaught, "1");
   };
-  const hold = working && has && !take && !tooLong ? { hint: t("mobile.composer.holdToStop"), onHold: holdSend } : null;
+  const hold = working && has && !tooLong ? { hint: t("mobile.composer.holdToStop"), onHold: holdSend } : null;
 
   const formatting = focused && range.end > range.start && !holding;
   const format = (kind: FormatKind) => {
@@ -361,12 +359,6 @@ export function Composer({
               </RNText>
             </Pressable>
           ) : null}
-        </View>
-      ) : null}
-      {voice?.above ?? null}
-      {voice?.bar ? (
-        <View style={[styles.bar, { backgroundColor: colors.raised2, boxShadow: FIELD_SHADOW(colors.glassEdge) }]}>
-          {voice.bar}
         </View>
       ) : null}
       {formatting ? (
@@ -486,6 +478,7 @@ export function Composer({
               </PressScale>
             </Animated.View>
           ) : null}
+          {mic ? <View style={styles.micBox}>{mic}</View> : null}
           {button ? (
             <SendButton
               stop={stopMode}
@@ -494,8 +487,7 @@ export function Composer({
               hold={hold}
             />
           ) : null}
-          {voice?.overlay ?? null}
-          {mic ? <View style={styles.micBox}>{mic}</View> : null}
+          {dictation?.overlay ?? null}
         </View>
       </View>
       {hold && !taught && !token ? (
@@ -738,20 +730,11 @@ const styles = StyleSheet.create({
     paddingVertical: INSET,
     paddingLeft: INSET,
   },
-  // A take's row above the field: the field's capsule at its one-line height, its 36 controls INSET from every edge.
-  bar: {
-    marginBottom: 8,
-    height: FIELD,
-    borderRadius: FIELD_RADIUS,
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: INSET,
-  },
   holdHint: { paddingTop: 8, minHeight: 20, alignItems: "center" },
   sendBox: { width: SEND, height: SEND },
   // Around the button, 4 past it on every side.
   ring: { position: "absolute", left: (SEND - RING) / 2, top: (SEND - RING) / 2, width: RING, height: RING },
-  // Above the overlay: the finger that holds it stays on the same button while the field changes.
+  // Above the dictation's overlay: the same button stops what it started.
   micBox: { width: SEND, height: SEND, zIndex: 2 },
   send: { width: SEND, height: SEND, borderRadius: BUTTON_RADIUS },
   media: { width: SEND, height: SEND, borderRadius: BUTTON_RADIUS },

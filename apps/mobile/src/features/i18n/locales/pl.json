@@ -342,12 +342,12 @@
     "createAgent": "Utwórz agenta"
   },
   "voice": {
-    "slideToCancel": "przesuń, aby anulować",
-    "slideUpToLock": "przesuń w górę, aby zablokować",
-    "locked": "Zablokowane",
-    "recording": "Nagrywanie",
-    "discard": "Usuń",
-    "send": "Wyślij",
+    "dictate": "Dyktuj",
+    "stopDictating": "Zatrzymaj i przepisz",
+    "cancelDictating": "Anuluj dyktowanie",
+    "transcribing": "Przepisywanie…",
+    "noWords": "Nic nie usłyszano",
+    "dictationFailed": "Nie udało się przepisać. Spróbuj ponownie.",
     "seeAll": "Pokaż wszystko"
   },
   "chat": {

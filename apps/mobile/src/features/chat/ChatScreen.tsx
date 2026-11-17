@@ -168,8 +168,7 @@ import { PersonStatusCard } from "../status/StatusCard";
 import { AgentTasksButton, useDmAgentTasks } from "../task-manager/AgentTasksButton";
 import { agentTasksHref, tasksBadge } from "../task-manager/logic";
 import { retryVoice, type VoiceRefusal } from "../voice/outbox";
-import { useVoiceComposer } from "../voice/useVoiceComposer";
-import type { VoiceTarget } from "../voice/useVoiceTake";
+import { useDictation } from "../voice/useDictation";
 import { AgentReceiptLine, EveryoneLine } from "./AgentReceipts";
 import { AttachmentStrip, MAX_PENDING, type PendingFile } from "./AttachmentStrip";
 import { markRowId, receiptMessageId } from "./agent-receipts";
@@ -1103,26 +1102,8 @@ function Chat({
   const settings = useSettings(orgId).data;
   const mediaTabs = mediaTabsOf(settings, dir.agents.length, Boolean(api.gifs));
   const voiceOn = Boolean(meId && settings?.voiceAvailable && settings.voiceMessages);
-  const afterVoice = useCallback(() => {
-    setQuote(null);
-    toEnd();
-  }, [toEnd]);
-  // A take goes with the words typed beside it and the files waiting above the field, in one message. The files that
-  // can't upload keep the take, paused, and the words in the field (the composer puts them back).
-  const withVoice = async (text: string) => {
-    if (pending.length === 0) return { text, artifacts: [] };
-    const artifacts = await uploadPending(pending);
-    if (!artifacts) return null;
-    artifacts.forEach((a, i) => {
-      const file = pending[i];
-      if (file) sentWithVoice.current.set(a.id, file);
-    });
-    setPending([]);
-    return { text, artifacts };
-  };
-  const onRecording = useCallback(() => sendTyping(threadId, undefined, "voice"), [sendTyping, threadId]);
-  // "gravando áudio…" goes on for the others while my recording uploads here; the server keeps it from then until the
-  // message comes.
+  // "gravando áudio…" goes on for the others while a voice message recorded here before dictation (still in the
+  // outbox) uploads; the server keeps it from then until the message comes.
   const uploading = useMemo(
     () =>
       list.some(
@@ -1167,16 +1148,6 @@ function Chat({
   // stays, marked, and the caption comes back to the field, so nothing typed is lost.
   const [pending, setPending] = useState<PendingFile[]>([]);
   const [captionBack, setCaptionBack] = useState<{ text: string; at: number; join?: boolean } | null>(null);
-  // The local files a take carried, by their uploaded ids: a refused take puts them back above the field.
-  const sentWithVoice = useRef(new Map<string, PendingFile>());
-  const voiceTakeBack = useCallback(({ text, artifacts }: { text: string; artifacts: ArtifactRef[] }) => {
-    if (text) setCaptionBack({ text, at: Date.now(), join: true });
-    const files = artifacts.flatMap((a) => {
-      const file = sentWithVoice.current.get(a.id);
-      return file ? [{ ...file, state: "waiting" as const }] : [];
-    });
-    if (files.length > 0) setPending((now) => [...files, ...now].slice(0, MAX_PENDING));
-  }, []);
   const addPending = (files: { uri: string; name: string; type: string }[]) => {
     if (files.length === 0) return;
     const at = Date.now();
@@ -2115,7 +2086,6 @@ function Chat({
   // to the next: an agent's work arrives here many times a second, and none of it redraws the field under the
   // person's typing. What it calls reads the conversation as it is at that moment (`useLatest`).
   const sendFromField = useLatest(onSend);
-  const voiceFromField = useLatest(withVoice);
   const plusFromField = useLatest(openPlus);
   const longFromField = useLatest(longAsFile);
   const removeFromStrip = useLatest(removePending);
@@ -2670,15 +2640,8 @@ function Chat({
                     onType={onType}
                     orgId={orgId}
                     channelId={channelId}
-                    threadId={threadId}
                     agentId={dmAgentId}
-                    replyTo={quote?.id ?? null}
-                    authorId={meId ?? ""}
                     voiceOn={voiceOn}
-                    onVoiceSent={afterVoice}
-                    prepareVoice={voiceFromField}
-                    voiceTakeBack={voiceTakeBack}
-                    onRecording={onRecording}
                   />
                 ) : (
                   <>
@@ -2713,54 +2676,28 @@ function useLatest<A extends unknown[], R>(fn: (...args: A) => R) {
 }
 
 /**
- * The conversation's field with its voice messages. On its own so that it redraws for what it shows (the words, a
- * take's clock and wave) and never for the conversation above it: everything it is handed keeps its identity between
- * the conversation's renders.
+ * The conversation's field with its dictation. On its own so that it redraws for what it shows (the words, the
+ * dictation's clock and wave) and never for the conversation above it: everything it is handed keeps its identity
+ * between the conversation's renders.
  */
 const ChatComposer = memo(function ChatComposer({
   orgId,
   channelId,
-  threadId,
   agentId,
-  replyTo,
-  authorId,
   voiceOn,
-  onVoiceSent,
-  prepareVoice,
-  voiceTakeBack,
-  onRecording,
   ...composer
-}: Omit<ComposerProps, "voice"> & {
+}: Omit<ComposerProps, "dictation" | "insert"> & {
   orgId: string;
   channelId: string;
-  threadId: string | null;
-  /** The agent this conversation is with, if one (its face listens in the field). */
+  /** The agent this conversation is with, if one (its tones color the wave). */
   agentId: string | null;
-  /** The message a voice take answers. */
-  replyTo: string | null;
-  authorId: string;
   voiceOn: boolean;
-  onVoiceSent: () => void;
-  /** What goes with a take: the words typed beside it and the files, uploaded (`VoiceTarget.prepare`). */
-  prepareVoice: NonNullable<VoiceTarget["prepare"]>;
-  voiceTakeBack: NonNullable<VoiceTarget["takeBack"]>;
-  /** While a take records: the others see "gravando áudio…" (throttled by the caller). */
-  onRecording: () => void;
 }) {
-  const voice = useVoiceComposer({
-    orgId,
-    channelId,
-    threadId,
-    agentId,
-    replyTo,
-    authorId,
-    enabled: voiceOn,
-    prepare: prepareVoice,
-    takeBack: voiceTakeBack,
-    afterSend: onVoiceSent,
-    onRecording,
-  });
-  return <Composer {...composer} voice={voice} />;
+  // The dictated words go into the field at the caret, each time with a new request.
+  const [insert, setInsert] = useState<{ text: string; at: number } | null>(null);
+  const onWords = useCallback((text: string) => setInsert({ text, at: Date.now() }), []);
+  const dictation = useDictation({ orgId, channelId, agentId, enabled: voiceOn, onWords });
+  return <Composer {...composer} dictation={dictation} insert={insert} />;
 });
 
 /**
