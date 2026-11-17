@@ -467,7 +467,6 @@
     gap: var(--space-2);
   }
   .portal-tabs > .ac-seg > .ac-seg__item {
-    flex: 1 1 auto;
     padding: 0 var(--space-2);
   }
 }
@@ -785,7 +784,6 @@
   gap: var(--space-2);
   margin-right: auto;
 }
-/* A week keeps seven days side by side: on a phone the month scrolls sideways instead of squeezing its chips. */
 /* The whole month in view on every width, as on a computer: on a phone the days narrow, their chips get smaller and
    are clipped at the day's edge as Google Calendar's are (the whole title is the chip's tooltip and its card). */
 .plan-cal__grid {
@@ -874,6 +872,9 @@
   background: none;
   color: var(--muted);
 }
+.plan-cal__more-short {
+  display: none;
+}
 
 /* ── Legend and labels ──────────────────────────────────────────────────── */
 .plan-legend {
@@ -956,9 +957,10 @@
   .plan-cal__num {
     align-self: center;
   }
+  /* 18 high, 2 more than the type alone, so a finger finds a chip without making the month taller than its days. */
   .plan-cal__chip,
   .plan-cal__more {
-    padding: 1px 3px;
+    padding: 2px 3px;
     border-radius: 4px;
     font-size: 11px;
     line-height: 14px;
@@ -967,6 +969,13 @@
   }
   .plan-cal__chip {
     overflow-wrap: normal;
+  }
+  /* "+N more" doesn't fit a phone's day: the count alone, its words stay the button's name. */
+  .plan-cal__more-long {
+    display: none;
+  }
+  .plan-cal__more-short {
+    display: inline;
   }
   /* The legend is one line that slides sideways, its names inline and "Manage labels" as its icon: the board keeps
      the height. */
@@ -1939,6 +1948,34 @@ html:not([data-pointer]) .portal-tile:focus-visible {
   }
   .portal-tabs > .ac-seg > .ac-seg__item {
     flex: none;
+  }
+  /* The kit fades a sliding row's edges with a scroll timeline. A browser without one (an older Safari, the Mac
+     app's WebKit) gets the same fade from the flags PortalPage sets, so it's clear there are more tabs. */
+  @supports not (animation-timeline: scroll()) {
+    .portal-tabs > .ac-seg {
+      --portal-fade-start: 0px;
+      --portal-fade-end: 0px;
+      -webkit-mask-image: linear-gradient(
+        to right,
+        transparent 0,
+        #000 var(--portal-fade-start),
+        #000 calc(100% - var(--portal-fade-end)),
+        transparent 100%
+      );
+      mask-image: linear-gradient(
+        to right,
+        transparent 0,
+        #000 var(--portal-fade-start),
+        #000 calc(100% - var(--portal-fade-end)),
+        transparent 100%
+      );
+    }
+    .portal-tabs > .ac-seg[data-fade-start="true"] {
+      --portal-fade-start: 24px;
+    }
+    .portal-tabs > .ac-seg[data-fade-end="true"] {
+      --portal-fade-end: 24px;
+    }
   }
   .page.portal .plan-legend {
     gap: var(--space-4);

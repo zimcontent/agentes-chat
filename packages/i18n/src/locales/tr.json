@@ -2245,6 +2245,7 @@
     "sectorsCount_other": "{{count}} departman",
     "viewLabel": "Ekip görünümü",
     "view": {
+      "now": "Şimdi",
       "list": "Liste",
       "chart": "Organizasyon şeması",
       "map": "Harita",
@@ -4963,6 +4964,11 @@
     "waiting": {
       "title": "Sizi bekleyenler"
     },
+    "toSchedule": {
+      "meta": "Onaylandı, zamanlanmayı bekliyor",
+      "action": "Zamanla",
+      "label": "Zamanla: {{title}}"
+    },
     "working": {
       "title": "Şu anda çalışanlar",
       "none": "Şu anda çalışan ajan yok.",
@@ -5565,6 +5571,58 @@
     "budgetDefaultHelpAmount": "Boş: çalışma alanı varsayılanı ({{amount}}).",
     "budgetInvalid": "Sıfırdan büyük bir değer girin.",
     "notFound": "Bu ajan yok ya da arşivlendi."
+  },
+  "agentFront": {
+    "call": "Ara",
+    "tasks": "Görevler",
+    "settings": "Ayarlar",
+    "canUse": "Kullanabilir",
+    "month": "Bu ay",
+    "reportsTo": "Rapor verdiği",
+    "reportsToNobody": "Kimse",
+    "ai": "Yapay zeka",
+    "today": "Bugün",
+    "todayNone": "Bugün henüz bir şey yok.",
+    "doneAt": "{{time}} saatinde teslim edildi",
+    "going": "devam ediyor",
+    "failed": "tamamlanamadı"
+  },
+  "teamNow": {
+    "title": "Ekibiniz şu anda",
+    "coordinates_one": "{{name}}, {{count}} ajanı koordine ediyor",
+    "coordinates_other": "{{name}}, {{count}} ajanı koordine ediyor",
+    "working_one": "{{count}} ajan şu anda çalışıyor",
+    "working_other": "{{count}} ajan şu anda çalışıyor",
+    "waiting_one": "{{count}} ajan sizi bekliyor",
+    "waiting_other": "{{count}} ajan sizi bekliyor",
+    "waitingButton_one": "{{count}} sizi bekliyor",
+    "waitingButton_other": "{{count}} sizi bekliyor"
+  },
+  "aiPanel": {
+    "title": "Yapay zeka paneli",
+    "uses": "Kim neyi kullanıyor",
+    "accounts": "Yapay zeka hesapları",
+    "usage": "Anahtarlar ve kullanım",
+    "change": "Yapay zekayı değiştir",
+    "noAgents": "Henüz ajan yok.",
+    "dialog": {
+      "title": "Yapay zekayı değiştir: {{name}}",
+      "smart": "En akıllı",
+      "balanced": "Dengeli",
+      "fast": "En hızlı ve en ucuz",
+      "smartPlan": "Daha çok düşünür. Daha yavaştır ve kotadan daha fazla harcar.",
+      "smartKey": "Daha çok düşünür. Daha yavaş ve daha pahalıdır.",
+      "balancedLine": "Çoğu görev için önerilir.",
+      "fastLine": "Hemen yanıt verir. Basit görevler için en iyisi.",
+      "current": "Geçerli",
+      "inPlan": "plana dahil",
+      "price": "Milyon token başına ≈ {{input}} / {{output}}",
+      "switchTo": "{{model}} modeline geç",
+      "keep": "Koru",
+      "now": "Şu an: {{model}}",
+      "more": "Diğer seçenekler",
+      "none": "Şu anda geçilecek başka bir yapay zeka yok. Seçenek için bir hesap ya da anahtar bağlayın."
+    }
   },
   "agentPage": {
     "work": {
@@ -7349,6 +7407,14 @@
         "helpsText": "Sizin gibi ajanları, ayarları ve buradaki kişileri değiştirebilir."
       },
       "where": {
+        "titleOne": "{{name}} hangi gruplara hemen katılsın?",
+        "titleMany": "Bu kişiler hangi gruplara hemen katılsın?",
+        "titleOnePersonal": "{{name}} hangi grup sohbetlerine hemen katılsın?",
+        "titleManyPersonal": "Bu kişiler hangi grup sohbetlerine hemen katılsın?",
+        "lead": "Herkes #{{channel}} kanalında başlar. Diğerlerini siz seçersiniz.",
+        "label": "Gruplar",
+        "labelPersonal": "Grup sohbetleri",
+        "everyone": "Herkes katılır",
         "private": "Özel · siz de buradasınız",
         "people_one": "{{count}} kişi",
         "people_other": "{{count}} kişi"
@@ -10748,9 +10814,23 @@
   },
   "liveVoice": {
     "you": "Siz",
+    "invite": {
+      "title": "Birini aramaya çağır",
+      "lead": "Telefonda ve bilgisayarda bir bildirim alırlar, katılmanın bir yolu da gelir.",
+      "send": "Çağır",
+      "refused": "{{names}} çağrılamadı: bu sohbete kişi eklemeyi yalnızca onu yöneten kişi yapabilir.",
+      "none": "Çalışma alanındaki herkes zaten aramada."
+    },
+    "ring": {
+      "title": "{{name}} sizi arıyor",
+      "where": "{{channel}} içinde sesli arama",
+      "join": "Katıl",
+      "decline": "Şimdi değil"
+    },
     "call": {
       "topic": "Konu (isteğe bağlı)",
       "topicHint": "Ajanlar bu konuyu tartışarak başlar. İstediğin zaman katıl.",
+      "people": "Kişileri de çağır",
       "start": "Sesli arama başlat",
       "join_one": "Aramaya katıl ({{count}})",
       "join_other": "Aramaya katıl ({{count}})",
@@ -10795,6 +10875,7 @@
       "quiet": "Ajanlar yalnızca dinliyor",
       "leave": "Aramadan ayrıl",
       "endAll": "Herkes için bitir",
+      "invite": "Birini çağır",
       "endTitle": "Arama herkes için bitirilsin mi?",
       "endText": "Aramanın notları sohbete gider. Doug BOSS alınan kararları ve sonraki adımları içeren raporu gönderir.",
       "hasWord": "Söz sırası: {{name}}",
@@ -11925,6 +12006,8 @@
       "no_computer": "Kullanmak için Bilgisayar bölümünden bağlı bir bilgisayar seçin.",
       "exec_off": "Bilgisayar, program çalıştırma izni olmadan bağlandı.",
       "runner_old": "Kullanmak için bilgisayardaki DougBot programını güncelleyin.",
+      "tool_off": "{{program}}, {{computer}} üzerinde kapalı. Orada, DougBot uygulamasında açın: Tercihler → Araçlar.",
+      "tool_offLinux": "{{program}}, {{computer}} üzerinde kapalı. Orada, DougBot uygulamasında ya da {{command}} ile açın.",
       "tool_offOne": "{{program}}, {{computer}} üzerinde kapalı.",
       "not_installed": "{{program}}, {{computer}} üzerinde yüklü değil.",
       "cant_start": "{{program}}, {{computer}} üzerinde var ama açılmıyor.",
@@ -13556,6 +13639,13 @@
       "ruleset": "kural kümesi|kural kümeleri"
     },
     "label": {
+      "portal_board": "Onay panosunu gör",
+      "portal_plan": "Stratejik takvimi gör",
+      "portal_work": "Bir kişinin görevlerini gör",
+      "portal_card": "Onay panosunu güncelle",
+      "send_for_approval": "Onaya gönder",
+      "send_new_version": "Yeni sürümü gönder",
+      "schedule_post": "Gönderiyi zamanla",
       "git_clone": "Depoyu klonla",
       "create_repository": "Depo oluştur",
       "delete_repository": "Depoyu sil",
@@ -16635,6 +16725,7 @@
     "removed": "Kaldırıldı",
     "change": {
       "mergedWithoutAsking": "{{repo}} içinde sormadan birleştirdi",
+      "portalApprovedForClient": "Portalda “{{title}}” öğesini müşteri adına onayladı",
       "pattern": "{{verb}}: {{area}}",
       "approval": {
         "approved": "Bir isteği onayladı",
@@ -18075,11 +18166,6 @@
       "interrupted": "Sunucu yeniden başlatıldığı için kesildi. Devam etmek için yeniden sorun.",
       "step_limit": "Bitirmeden adımlarım tükendi.",
       "stuck": "Takıldım ve bitirmeden durdum."
-    },
-    "talk": {
-      "readAll": "Tümünü oku",
-      "more_one": "{{count}} satır daha",
-      "more_other": "{{count}} satır daha"
     }
   },
   "builtinTools": {
@@ -20751,6 +20837,9 @@
       "saved": "Kart kaydedildi.",
       "deleted": "Kart silindi.",
       "deleteTitle": "Bu kart silinsin mi?",
+      "deleteOf": "{{title}} kartını sil",
+      "copyLink": "Kartın bağlantısını kopyala",
+      "linkCopied": "Kart bağlantısı kopyalandı.",
       "deleteText": "“{{title}}” panodan kaldırılır. Dosyaları Drive'da kalır."
     },
     "post": {
@@ -20764,6 +20853,15 @@
       "done": "{{when}} için yayına bırakıldı.",
       "past": "Henüz geçmemiş bir saat seçin.",
       "pending": "planlanıyor…"
+    },
+    "approveForClient": {
+      "action": "Müşteri adına onayla",
+      "title": "Müşteri adına onaylansın mı?",
+      "text": "Yalnızca müşteri portalda yanıt vermeyi bıraktıysa. Gönderi orada müşteri onaylamış gibi Onaylandı olur ve onaydan sonraki adımlar çalışır.",
+      "note": "Gerekçe",
+      "notePlaceholder": "Müşteri WhatsApp'tan onayladı",
+      "confirm": "Onayla",
+      "done": "“{{title}}” müşteri adına onaylandı."
     },
     "form": {
       "client": "Müşteri",
@@ -20793,17 +20891,33 @@
       "notMedia": "Onaya yalnızca görseller ve videolar gönderilir.",
       "coverNotImage": "Kapak bir görsel olmalı."
     },
+    "materials": {
+      "tab": "Müşteri materyalleri",
+      "intro": "Müşterinin girişleri, bağlantıları ve referansları. Takvimin dışında kalır ve asla göreve dönüşmez.",
+      "empty": "Henüz materyal yok",
+      "emptyText": "Bir liste oluşturun (Sosyal medya, Girişler, Marka) ve kartları içinde tutun.",
+      "newListHint": "Materyallerde ilk sıraya gelir. Kartlarını içine siz eklersiniz.",
+      "toMaterials": "Müşteri materyallerine taşı",
+      "toPlan": "Takvime geri al",
+      "movedToMaterials": "“{{name}}” Müşteri materyallerine taşındı.",
+      "movedToPlan": "“{{name}}” takvime geri döndü."
+    },
     "plan": {
       "tab": "Stratejik takvim",
+      "tabShort": "Takvim",
       "view": "Görünüm",
       "viewBoard": "Pano",
       "viewCalendar": "Takvim",
       "noList": "Liste yok",
       "addList": "Liste ekle",
+      "newList": "Yeni liste",
+      "newListHint": "Takvimde ilk sıraya gelir. Kartlarını içine siz eklersiniz.",
       "listName": "Liste adı",
       "addCard": "Kart ekle",
       "cardTitle": "Kart başlığı",
       "listActions": "İşlemler: {{name}}",
+      "lists": "Listeler",
+      "goToList": "{{name}} listesine git",
       "rename": "Yeniden adlandır",
       "moveLeft": "Sola taşı",
       "moveRight": "Sağa taşı",
@@ -20875,6 +20989,7 @@
       "edit": "Düzenle",
       "editDescription": "Açıklamayı düzenle",
       "noDescription": "Açıklama yok",
+      "addDescription": "Daha ayrıntılı bir açıklama ekleyin…",
       "showMore": "Daha fazla göster",
       "showLess": "Daha az göster",
       "linkText": "bağlantı metni",

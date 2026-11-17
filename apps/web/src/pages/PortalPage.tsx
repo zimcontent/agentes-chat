@@ -3,7 +3,7 @@ import { isPortalOff, usePortalBoard, usePortalOverview } from "@agenteschat/cli
 import { can } from "@agenteschat/client/lib/permissions";
 import { portalClientName, portalTotals } from "@agenteschat/client/lib/portal";
 import { Button, EmptyState, PageHeader, Segmented } from "@agenteschat/ui";
-import { useState } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ErrorState, LoadingCards } from "@/components/Loading";
 import { useOrg } from "@/components/org-context";
@@ -18,6 +18,7 @@ import { PortalPosted } from "@/components/portal/PortalPosted";
 import { SendDialog } from "@/components/portal/SendDialog";
 import { usePortalSearch } from "@/components/portal/search";
 import { useRightHandLook } from "@/hooks/useRightHandLook";
+import { useScrollEdges } from "@/lib/scroll-edges";
 import "./issues.css";
 import "./portal.css";
 
@@ -43,6 +44,14 @@ export function PortalPage() {
   const look = useRightHandLook();
   const [newList, setNewList] = useState(false);
   const [sending, setSending] = useState<Sending | null>(null);
+  // The tabs' track slides sideways on a phone: its edges fade where there are more tabs (portal.css).
+  const tabsRow = useRef<HTMLDivElement>(null);
+  const tabsTrack = useRef<HTMLElement | null>(null);
+  const tabsShown = Boolean(client && board.data);
+  useLayoutEffect(() => {
+    tabsTrack.current = tabsShown ? (tabsRow.current?.querySelector<HTMLElement>(".ac-seg") ?? null) : null;
+  }, [tabsShown]);
+  useScrollEdges(tabsTrack, [tabsShown, tab], "x");
 
   const shown = client ? board : overview;
   const off = isPortalOff(overview.error) || isPortalOff(board.error);
@@ -92,7 +101,7 @@ export function PortalPage() {
         actions={actions}
       >
         {client && board.data && (
-          <div className="portal-tabs">
+          <div className="portal-tabs" ref={tabsRow}>
             <Segmented
               label={portalClientName(client)}
               value={tab}

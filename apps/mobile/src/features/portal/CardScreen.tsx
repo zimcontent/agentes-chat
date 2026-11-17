@@ -9,6 +9,7 @@ import {
   useSavePortalCard,
   useSendForApproval,
 } from "@agenteschat/client";
+import { linkPill } from "@agenteschat/client/lib/link-pills";
 import {
   PORTAL_SEND_FILES,
   portalArticle,
@@ -26,6 +27,7 @@ import { useTranslation } from "react-i18next";
 import { ActivityIndicator, Alert, Pressable, RefreshControl, StyleSheet, TextInput, View } from "react-native";
 import { Button, Chip, GroupedHeader, GroupedList, GroupedRow, Text, useFieldText } from "@/ui";
 import { router } from "@/ui/navigation";
+import { LinkPillText } from "../chat/LinkPillText";
 import { Face } from "../shared/Face";
 import { useColors, useDirectory, useMeId, useOrgId, usePullRefresh, useWhen } from "../shared/hooks";
 import { PushedLargeTitle } from "../shared/PushedLargeTitle";
@@ -529,25 +531,32 @@ function Comments({ w, card }: { w: PortalWords; card: PlanCard }) {
   );
 }
 
-/** Plain words with their web addresses pressable, inside the caller's `Text` (`portalTextParts`, as the web's). */
+/**
+ * Plain words with their web addresses pressable, inside the caller's `Text` (`portalTextParts`, as the web's): a known
+ * service's address as its pill, any other in the house link style (the ink, semibold, a quiet underline).
+ */
 function Linked({ text, variant = "subhead" }: { text: string; variant?: "subhead" | "body" }) {
-  return portalTextParts(text).map((part, i) =>
-    part.href ? (
+  const c = useColors();
+  return portalTextParts(text).map((part, i) => {
+    if (!part.href) return part.text;
+    const href = part.href;
+    const pill = linkPill(href);
+    // biome-ignore lint/suspicious/noArrayIndexKey: the parts of one text, in its order
+    if (pill) return <LinkPillText key={i} href={href} pill={pill} />;
+    return (
       <Text
         // biome-ignore lint/suspicious/noArrayIndexKey: the parts of one text, in its order
         key={i}
         variant={variant}
         tone="ink"
         accessibilityRole="link"
-        style={styles.link}
-        onPress={() => openLink(part.href as string)}
+        style={[styles.link, { textDecorationColor: c.line2 }]}
+        onPress={() => openLink(href)}
       >
         {part.text}
       </Text>
-    ) : (
-      part.text
-    ),
-  );
+    );
+  });
 }
 
 const styles = StyleSheet.create({
@@ -571,5 +580,5 @@ const styles = StyleSheet.create({
   pressed: { opacity: 0.7 },
   count: { paddingTop: 20, paddingBottom: 8, paddingRight: 0 },
   commentText: { marginTop: 2 },
-  link: { textDecorationLine: "underline" },
+  link: { fontWeight: "600", textDecorationLine: "underline" },
 });

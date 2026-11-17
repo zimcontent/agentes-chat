@@ -334,7 +334,8 @@
       "portal.home.viewList",
       "ronda.title",
       "appIcon.faces.normal",
-      "appIcon.names.night"
+      "appIcon.names.night",
+      "onboarding.import.agenteschatName"
     ],
     "es": [
       "mediaGen.audioKind",
@@ -627,7 +628,9 @@
       "ronda.title",
       "appIcon.color",
       "appIcon.faces.normal",
-      "appIcon.names.night"
+      "appIcon.names.night",
+      "onboarding.import.agenteschatName",
+      "contextMenu.lookOurs"
     ],
     "fr": [
       "mediaGen.audioKind",
@@ -1102,7 +1105,9 @@
       "appIcon.colors.orange",
       "appIcon.colors.cyan",
       "appIcon.faces.normal",
-      "appIcon.names.night"
+      "appIcon.names.night",
+      "onboarding.import.agenteschatName",
+      "contextMenu.lookOurs"
     ],
     "de": [
       "mediaGen.audioKind",
@@ -1604,7 +1609,9 @@
       "appIcon.colors.pink",
       "appIcon.colors.cyan",
       "appIcon.faces.normal",
-      "appIcon.names.night"
+      "appIcon.names.night",
+      "onboarding.import.agenteschatName",
+      "contextMenu.lookOurs"
     ],
     "it": [
       "mediaGen.audioKind",
@@ -2019,7 +2026,9 @@
       "portal.home.viewList",
       "look.shapes.monitor",
       "ronda.title",
-      "appIcon.names.night"
+      "appIcon.names.night",
+      "onboarding.import.agenteschatName",
+      "contextMenu.lookOurs"
     ],
     "nl": [
       "mediaGen.audioKind",
@@ -2669,7 +2678,10 @@
       "portal.home.scheduled",
       "portal.home.viewList",
       "look.shapes.monitor",
-      "appIcon.names.night"
+      "appIcon.names.night",
+      "onboarding.import.agenteschatName",
+      "contextMenu.lookOurs",
+      "agentFront.ai"
     ],
     "ja": [
       "channel.tooLong.fileName",
@@ -2872,7 +2884,10 @@
       "portal.home.produce",
       "portal.home.scheduled",
       "portal.home.viewList",
-      "appIcon.names.night"
+      "appIcon.names.night",
+      "onboarding.import.agenteschatName",
+      "contextMenu.lookOurs",
+      "agentFront.ai"
     ],
     "ko": [
       "channel.tooLong.fileName",
@@ -3069,7 +3084,10 @@
       "portal.home.produce",
       "portal.home.scheduled",
       "portal.home.viewList",
-      "appIcon.names.night"
+      "appIcon.names.night",
+      "onboarding.import.agenteschatName",
+      "contextMenu.lookOurs",
+      "agentFront.ai"
     ],
     "zh-Hans": [
       "channel.tooLong.fileName",
@@ -3257,9 +3275,13 @@
       "portal.home.produce",
       "portal.home.scheduled",
       "portal.home.viewList",
-      "appIcon.names.night"
+      "appIcon.names.night",
+      "onboarding.import.agenteschatName",
+      "contextMenu.lookOurs",
+      "agentFront.ai"
     ],
     "id": [
+      "agentFront.ai",
       "mediaGen.audioKind",
       "mediaGen.input",
       "mediaGen.modes.edit.label",
@@ -3606,7 +3628,9 @@
       "portal.home.scheduled",
       "portal.home.viewList",
       "look.shapes.monitor",
-      "appIcon.names.night"
+      "appIcon.names.night",
+      "onboarding.import.agenteschatName",
+      "contextMenu.lookOurs"
     ],
     "tr": [
       "mediaGen.nVideos",
@@ -3832,7 +3856,9 @@
       "portal.home.scheduled",
       "portal.home.viewList",
       "appIcon.faces.normal",
-      "appIcon.names.night"
+      "appIcon.names.night",
+      "onboarding.import.agenteschatName",
+      "contextMenu.lookOurs"
     ],
     "pl": [
       "mediaGen.audioKind",
@@ -4169,7 +4195,10 @@
       "portal.home.scheduled",
       "portal.home.viewList",
       "look.shapes.monitor",
-      "appIcon.names.night"
+      "appIcon.names.night",
+      "onboarding.import.agenteschatName",
+      "contextMenu.lookOurs",
+      "agentFront.ai"
     ],
     "ru": [
       "channel.tooLong.fileName",
@@ -4357,7 +4386,9 @@
       "portal.home.produce",
       "portal.home.scheduled",
       "portal.home.viewList",
-      "appIcon.names.night"
+      "appIcon.names.night",
+      "onboarding.import.agenteschatName",
+      "contextMenu.lookOurs"
     ]
   },
   "mobile-base": {

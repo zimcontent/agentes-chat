@@ -2180,6 +2180,7 @@
     "sectorsCount_other": "부서 {{count}}개",
     "viewLabel": "팀 보기",
     "view": {
+      "now": "지금",
       "list": "목록",
       "chart": "조직도",
       "map": "지도",
@@ -4808,6 +4809,11 @@
     "waiting": {
       "title": "나를 기다리는 항목"
     },
+    "toSchedule": {
+      "meta": "승인됨, 예약 대기 중",
+      "action": "예약",
+      "label": "{{title}} 예약"
+    },
     "working": {
       "title": "지금 작업 중",
       "none": "지금 작업 중인 에이전트가 없어요.",
@@ -5377,6 +5383,54 @@
     "budgetDefaultHelpAmount": "비워 두면 워크스페이스 기본값({{amount}})이 적용돼요.",
     "budgetInvalid": "0보다 큰 값을 입력하세요.",
     "notFound": "이 에이전트는 존재하지 않거나 보관되었어요."
+  },
+  "agentFront": {
+    "call": "통화",
+    "tasks": "작업",
+    "settings": "설정",
+    "canUse": "사용 가능",
+    "month": "이번 달",
+    "reportsTo": "보고 대상",
+    "reportsToNobody": "없음",
+    "ai": "AI",
+    "today": "오늘",
+    "todayNone": "오늘은 아직 아무것도 없어요.",
+    "doneAt": "{{time}}에 완료",
+    "going": "진행 중",
+    "failed": "끝나지 않았어요"
+  },
+  "teamNow": {
+    "title": "지금 우리 팀",
+    "coordinates_other": "{{name}} 님이 에이전트 {{count}}명을 조율해요",
+    "working_other": "{{count}}명이 작업 중",
+    "waiting_other": "{{count}}명이 나를 기다려요",
+    "waitingButton_other": "나를 기다리는 중 {{count}}"
+  },
+  "aiPanel": {
+    "title": "AI 패널",
+    "uses": "누가 무엇을 쓰는지",
+    "accounts": "AI 계정",
+    "usage": "키와 사용량",
+    "change": "AI 바꾸기",
+    "noAgents": "아직 에이전트가 없어요.",
+    "dialog": {
+      "title": "{{name}}의 AI 바꾸기",
+      "smart": "가장 똑똑하게",
+      "balanced": "균형",
+      "fast": "가장 빠르고 저렴하게",
+      "smartPlan": "더 깊이 생각해요. 느리고 한도를 더 많이 써요.",
+      "smartKey": "더 깊이 생각해요. 느리고 비용이 더 들어요.",
+      "balancedLine": "대부분의 작업에 추천해요.",
+      "fastLine": "바로 답해요. 간단한 작업에 좋아요.",
+      "current": "현재",
+      "inPlan": "플랜에 포함",
+      "price": "100만 토큰당 ≈ {{input}} / {{output}}",
+      "switchTo": "{{model}}(으)로 바꾸기",
+      "keep": "유지",
+      "now": "현재: {{model}}",
+      "more": "옵션 더 보기",
+      "none": "지금 바꿀 수 있는 다른 AI가 없어요. 계정이나 키를 연결하면 선택지가 생겨요."
+    }
   },
   "agentPage": {
     "work": {
@@ -7114,6 +7168,14 @@
         "helpsText": "나처럼 에이전트, 설정, 멤버를 바꿀 수 있어요. 내 다이렉트 메시지를 빼고 여기서 공유된 모든 걸 볼 수 있어요."
       },
       "where": {
+        "titleOne": "{{name}} 님이 바로 들어갈 그룹은?",
+        "titleMany": "이 사람들이 바로 들어갈 그룹은?",
+        "titleOnePersonal": "{{name}} 님이 바로 들어갈 그룹 대화는?",
+        "titleManyPersonal": "이 사람들이 바로 들어갈 그룹 대화는?",
+        "lead": "모두 #{{channel}}에서 시작해요. 나머지는 직접 골라요.",
+        "label": "그룹",
+        "labelPersonal": "그룹 대화",
+        "everyone": "모두 참여",
         "private": "비공개 · 내가 참여 중",
         "people_other": "{{count}}명"
       },
@@ -10371,9 +10433,23 @@
   },
   "liveVoice": {
     "you": "나",
+    "invite": {
+      "title": "사람을 통화에 부르기",
+      "lead": "상대의 휴대폰과 컴퓨터로 알림이 가고, 바로 참여할 수 있어요.",
+      "send": "부르기",
+      "refused": "{{names}} 님을 부르지 못했어요. 이 대화를 관리하는 사람만 사람을 추가할 수 있어요.",
+      "none": "워크스페이스의 모든 사람이 이미 통화 중이에요."
+    },
+    "ring": {
+      "title": "{{name}} 님이 부르고 있어요",
+      "where": "{{channel}}의 음성 통화",
+      "join": "참여",
+      "decline": "나중에"
+    },
     "call": {
       "topic": "주제 (선택)",
       "topicHint": "에이전트들이 이 주제로 토론을 시작해요. 언제든 참여하세요.",
+      "people": "사람도 부르기",
       "start": "음성 통화 시작",
       "join_other": "통화 참여 ({{count}})",
       "title": "음성 통화",
@@ -10416,6 +10492,7 @@
       "quiet": "에이전트는 듣기만 해요",
       "leave": "통화 나가기",
       "endAll": "모두에게 종료",
+      "invite": "사람 부르기",
       "endTitle": "모두에게 통화를 종료할까요?",
       "endText": "통화 메모는 대화로 가요. Doug BOSS가 결정된 내용과 다음 단계를 담은 보고서를 보내요.",
       "hasWord": "{{name}} 님이 말하고 있어요",
@@ -11500,6 +11577,8 @@
       "no_computer": "사용하려면 컴퓨터에서 연결된 컴퓨터를 선택하세요.",
       "exec_off": "프로그램 실행 권한 없이 연결된 컴퓨터예요.",
       "runner_old": "사용하려면 컴퓨터에서 DougBot 프로그램을 업데이트하세요.",
+      "tool_off": "{{computer}}에서 {{program}}이(가) 꺼져 있어요. 그 컴퓨터의 DougBot 앱에서 켜세요: 환경설정 → 도구.",
+      "tool_offLinux": "{{computer}}에서 {{program}}이(가) 꺼져 있어요. 그 컴퓨터의 DougBot 앱이나 {{command}}(으)로 켜세요.",
       "tool_offOne": "{{computer}}에서 {{program}}이(가) 꺼져 있습니다.",
       "not_installed": "{{computer}}에 {{program}}이(가) 설치되어 있지 않아요.",
       "cant_start": "{{program}}이(가) {{computer}}에 있지만 실행되지 않습니다.",
@@ -13095,6 +13174,13 @@
       "ruleset": "규칙 세트"
     },
     "label": {
+      "portal_board": "승인 보드 보기",
+      "portal_plan": "전략 일정 보기",
+      "portal_work": "사람의 작업 보기",
+      "portal_card": "승인 보드 업데이트",
+      "send_for_approval": "승인 요청 보내기",
+      "send_new_version": "새 버전 보내기",
+      "schedule_post": "게시물 예약",
       "git_clone": "저장소 클론",
       "create_repository": "저장소 생성",
       "delete_repository": "저장소 삭제",
@@ -16119,6 +16205,7 @@
     "removed": "삭제됨",
     "change": {
       "mergedWithoutAsking": "{{repo}}에서 묻지 않고 병합했어요",
+      "portalApprovedForClient": "포털에서 클라이언트 대신 “{{title}}” 승인",
       "pattern": "{{area}} {{verb}}",
       "approval": {
         "approved": "요청을 승인했어요",
@@ -17541,10 +17628,6 @@
       "interrupted": "서버 재시작으로 중단됐어요. 계속하려면 다시 요청하세요.",
       "step_limit": "끝내기 전에 단계를 모두 썼어요.",
       "stuck": "막혀서 끝내기 전에 멈췄어요."
-    },
-    "talk": {
-      "readAll": "전체 읽기",
-      "more_other": "{{count}}줄 더"
     }
   },
   "builtinTools": {
@@ -20166,6 +20249,9 @@
       "saved": "카드를 저장했어요.",
       "deleted": "카드를 삭제했어요.",
       "deleteTitle": "이 카드를 삭제할까요?",
+      "deleteOf": "{{title}} 카드 삭제",
+      "copyLink": "카드 링크 복사",
+      "linkCopied": "카드 링크를 복사했어요.",
       "deleteText": "“{{title}}” 카드가 보드에서 사라져요. 파일은 Drive에 남아요."
     },
     "post": {
@@ -20179,6 +20265,15 @@
       "done": "{{when}}에 게시되도록 넘겼어요.",
       "past": "아직 지나지 않은 시간을 골라 주세요.",
       "pending": "예약 중…"
+    },
+    "approveForClient": {
+      "action": "클라이언트 대신 승인",
+      "title": "클라이언트 대신 승인할까요?",
+      "text": "클라이언트가 포털에서 답하지 않을 때만 쓰세요. 게시물은 클라이언트가 승인한 것처럼 포털에서 승인됨으로 바뀌고, 승인 뒤의 작업도 진행돼요.",
+      "note": "이유",
+      "notePlaceholder": "클라이언트가 WhatsApp으로 승인했어요",
+      "confirm": "승인",
+      "done": "클라이언트 대신 “{{title}}”을(를) 승인했어요."
     },
     "form": {
       "client": "클라이언트",
@@ -20208,17 +20303,33 @@
       "notMedia": "이미지와 동영상만 승인 요청으로 보낼 수 있어요.",
       "coverNotImage": "커버는 이미지여야 해요."
     },
+    "materials": {
+      "tab": "클라이언트 자료",
+      "intro": "클라이언트의 로그인 정보, 링크, 참고 자료예요. 일정에 들어가지 않고 작업이 되지도 않아요.",
+      "empty": "아직 자료가 없어요",
+      "emptyText": "리스트(소셜 미디어, 로그인 정보, 브랜드)를 만들고 그 안에 카드를 보관하세요.",
+      "newListHint": "자료의 맨 앞에 추가돼요. 카드는 그 안에서 만들어요.",
+      "toMaterials": "클라이언트 자료로 이동",
+      "toPlan": "일정으로 되돌리기",
+      "movedToMaterials": "“{{name}}”을(를) 클라이언트 자료로 옮겼어요.",
+      "movedToPlan": "“{{name}}”이(가) 일정으로 돌아왔어요."
+    },
     "plan": {
       "tab": "전략 일정",
+      "tabShort": "일정",
       "view": "보기",
       "viewBoard": "보드",
       "viewCalendar": "캘린더",
       "noList": "리스트 없음",
       "addList": "리스트 추가",
+      "newList": "새 리스트",
+      "newListHint": "일정의 맨 앞에 추가돼요. 카드는 그 안에서 만들어요.",
       "listName": "리스트 이름",
       "addCard": "카드 추가",
       "cardTitle": "카드 제목",
       "listActions": "작업: {{name}}",
+      "lists": "리스트",
+      "goToList": "{{name}}(으)로 이동",
       "rename": "이름 바꾸기",
       "moveLeft": "왼쪽으로 이동",
       "moveRight": "오른쪽으로 이동",
@@ -20289,6 +20400,7 @@
       "edit": "편집",
       "editDescription": "설명 편집",
       "noDescription": "설명 없음",
+      "addDescription": "더 자세한 설명 추가…",
       "showMore": "더 보기",
       "showLess": "접기",
       "linkText": "링크 텍스트",
