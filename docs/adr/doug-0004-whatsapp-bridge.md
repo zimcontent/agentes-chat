@@ -103,3 +103,23 @@ ElevenLabs with the key that already hears voice messages; `agent_voice_notes` t
 to copy or click (a link, an e-mail, a long number, a list, code): that is written. The recording goes as WhatsApp's
 own voice note (the gateway's waveform), stored as the agent's audio message with its words as the body. A member who
 asked by voice gets a short, sayable answer from their conversation back the same way. A voice that fails is written.
+
+## Addendum 2026-11-17: a number's settings on the phone, and instructions changed by voice
+
+The phone gets the number's settings that until now lived only on the web's dialog, for whoever manages the number
+(`manage_connectors`): who answers (an agent, or only people) and whether it answers now, how it answers (wait, typing
+speed, messages per answer, pause after a person, voice notes), its instructions, and what thinks there (the agent's
+own AI, or one just for the number: an API model, or a Claude, ChatGPT or Gemini plan with its account, model and
+effort, through the same `…/brain` routes). The number's people and its QR connection stay on the web. A number's AI
+has no context window of its own: it reads the latest 40 messages of a conversation plus what the agent knows, so the
+setting shown there is the agent's, opened on the agent's own screen.
+
+Under the instructions, a person says or writes what changes. `POST …/whatsapp/accounts/{id}/instructions/draft`
+(`whatsapp/instructions.ts`) takes the typed words and a recording (at most 5 minutes and 7 MB, under the 8 MiB every
+body is capped at), puts the recording into words with the server's speech engines (ADR 0100), and asks the AI that
+answers on the number (`thinkOnce`, the same call as its answers, with no tool: its plan through `brain.route` or its
+API model through the Model Gateway, usage recorded as the agent's) to rewrite the whole Markdown with the direction.
+Nothing is saved: the draft replaces the text in the settings, with Undo, and the person reads it and saves it as any
+other change, so a misheard word never reaches a customer unread. Refusals: no agent (`whatsapp.no_agent`), a
+recording on a server that hears none (`whatsapp.voice_off`), nothing heard (`whatsapp.unheard`), the plan's account
+busy (`whatsapp.ai_busy`); at most 20 drafts an hour per person.

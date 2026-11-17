@@ -138,6 +138,8 @@ export const MULTIPART_PATHS = [
   /\/organizations\/[^/]+\/video-reviews\/[^/]+\/notes\/voice$/,
   // A file or a recording sent from a WhatsApp number.
   /\/organizations\/[^/]+\/whatsapp\/accounts\/[^/]+\/files$/,
+  // A direction for a number's instructions, typed or recorded (docs/adr/doug-0004-whatsapp-bridge.md, addendum 2026-11-17).
+  /\/organizations\/[^/]+\/whatsapp\/accounts\/[^/]+\/instructions\/draft$/,
   /\/feedback\/files$/,
   // A reference picture, video or audio for media generation (ADR doug-0011), checked by kind by its route.
   /\/organizations\/[^/]+\/media\/refs$/,
