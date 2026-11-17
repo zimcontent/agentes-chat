@@ -21,6 +21,7 @@ import {
 } from "../../runner/accounts";
 import {
   AGY_CHAT_AGENT,
+  AGY_NETWORK_COMMANDS,
   AGY_PLANTED,
   AGY_SIGN_IN_FILE,
   agyAuthOf,
@@ -31,6 +32,7 @@ import {
   writeAgySettings,
 } from "../../runner/agy-home";
 import {
+  AGY_DENIED_RESUMES,
   type AntigravityBrainContext,
   type AntigravityBrainTurnRequest,
   agyDenied,
@@ -116,6 +118,18 @@ test("the account's home: what a turn planted goes, our settings, our server alo
   });
   // Turns pass `--disable-slash-commands`; `/usage` and `/logout` must still reach the CLI.
   expect(settings.disableSlashCommands).toBeUndefined();
+  // Only a `work` turn's commands may leave the sandbox for the network, with the programs listed.
+  prepareAgyHome(home, ["/usr/bin/agentes-runner"], "work");
+  const work = JSON.parse(readFileSync(path.join(home, ".gemini/antigravity-cli/settings.json"), "utf8"));
+  expect(work.permissions.allow).toEqual([
+    `mcp(${CODEX_MCP_SERVER}/*)`,
+    ...AGY_NETWORK_COMMANDS.map((c) => `command(${c})`),
+  ]);
+  expect(work.permissions.allow).not.toContain("command(bash)");
+  expect(work.permissions.allow).not.toContain("command(python3)");
+  prepareAgyHome(home, ["/usr/bin/agentes-runner"], "plan");
+  const plan = JSON.parse(readFileSync(path.join(home, ".gemini/antigravity-cli/settings.json"), "utf8"));
+  expect(plan.permissions).toEqual({ allow: [`mcp(${CODEX_MCP_SERVER}/*)`] });
   expect(existsSync(agyRuntimeDir(home))).toBe(true);
   const agent = readFileSync(path.join(home, `.gemini/config/agents/${AGY_CHAT_AGENT}/agent.md`), "utf8");
   expect(agent).toContain("tools: []");
@@ -438,6 +452,58 @@ test.skipIf(!posix)(
       message: expect.stringContaining("refused Bash"),
     });
     expect(await final({}, { ...ctx, platform: "darwin" })).toMatchObject({ code: "unsupported" });
+  },
+  20_000,
+);
+
+test.skipIf(!posix)(
+  "a read the CLI refused goes on in the same conversation, told the right folder; refused again and again, it ends",
+  async () => {
+    const root = tempDir("brain-agy-");
+    dirs.push(root);
+    const { ctx, accountDir } = turnContext(root);
+    signIn(accountDir);
+    const log = path.join(root, "agy.log");
+    process.env.FAKE_AGY_LOG = log;
+    const events = await run(ctx, turn({ prompt: "DENIED_READ" }));
+    expect(events.at(-1)).toEqual({ type: "done", text: "Let me check. All good.", session: { id: SESSION } });
+    const [first, second] = logOf(log);
+    expect(first?.args).not.toContain("--conversation");
+    expect(second?.args.join(" ")).toContain(`--conversation ${FIRST}`);
+    expect(second?.args[1]).toContain("refused (ReadFile)");
+    expect(second?.args[1]).toContain(
+      path.join(accountDir, ".gemini", "antigravity-cli", "mcp", "agenteschat_agentes"),
+    );
+
+    process.env.FAKE_AGY_ALWAYS = "1";
+    try {
+      const stuck = await run(ctx, turn({ runId: RUN.replace(/1$/, "8"), prompt: "DENIED_READ" }));
+      expect(stuck.at(-1)).toMatchObject({ type: "error", code: "antigravity_failed", retryable: false });
+      // The first try and two resumes, then it stops.
+      expect(logOf(log)).toHaveLength(2 + 1 + AGY_DENIED_RESUMES);
+    } finally {
+      delete process.env.FAKE_AGY_ALWAYS;
+    }
+  },
+  20_000,
+);
+
+test.skipIf(!posix)(
+  "a command asked outside the sandbox and refused goes on in the same conversation, told which programs may leave it",
+  async () => {
+    const root = tempDir("brain-agy-");
+    dirs.push(root);
+    const { ctx, accountDir } = turnContext(root);
+    signIn(accountDir);
+    const log = path.join(root, "agy.log");
+    process.env.FAKE_AGY_LOG = log;
+    const events = await run(ctx, turn({ prompt: "DENIED_BYPASS" }));
+    expect(events.at(-1)).toEqual({ type: "done", text: "Let me check. All good.", session: { id: SESSION } });
+    const [first, second] = logOf(log);
+    expect(first?.args).not.toContain("--conversation");
+    expect(second?.args.join(" ")).toContain(`--conversation ${FIRST}`);
+    expect(second?.args[1]).toContain("refused (Bash)");
+    expect(second?.args[1]).toContain(`only ${AGY_NETWORK_COMMANDS.join(", ")} may run there`);
   },
   20_000,
 );

@@ -16,7 +16,7 @@ import {
   withoutContainers,
   withoutSignIns,
 } from "./accounts";
-import { AGY_CHAT_AGENT, prepareAgyHome } from "./agy-home";
+import { AGY_CHAT_AGENT, AGY_NETWORK_COMMANDS, prepareAgyHome } from "./agy-home";
 import { LIMIT_TEXT } from "./brain";
 import { type CodexBrainEvent, CodexThreads, chatFolder, codexProfileOf, codexThreadKey } from "./brain-codex";
 import { cursorPrompt } from "./brain-cursor";
@@ -205,7 +205,7 @@ export function antigravityProblem(
  * user namespaces (SELF_HOSTING.md). Null when nothing was denied.
  */
 export function agyDenied(result: Record<string, unknown>): string | null {
-  const denied = Array.isArray(result.denied_actions) ? result.denied_actions.filter(isRecord) : [];
+  const denied = deniedOf(result);
   if (denied.length === 0) return null;
   const names = [...new Set(denied.map((d) => String(d.display_name ?? d.action ?? "a tool").slice(0, 40)))];
   const command = denied.some((d) => d.action === "command");
@@ -214,6 +214,38 @@ export function agyDenied(result: Record<string, unknown>): string | null {
       ? " It asks before every command when it has no terminal sandbox on this computer: on Ubuntu 24.04 or newer, give it an AppArmor profile that allows user namespaces (SELF_HOSTING.md, Antigravity CLI)."
       : ""
   }`;
+}
+
+/** How many times one turn goes on after the CLI ended it over a refused action. */
+export const AGY_DENIED_RESUMES = 2;
+
+const deniedOf = (result: Record<string, unknown>) =>
+  Array.isArray(result.denied_actions) ? result.denied_actions.filter(isRecord) : [];
+
+/** A refused command: no terminal sandbox on this computer (`agyDenied`), or a command asked to leave it. */
+const deniedCommand = (result: Record<string, unknown>) => deniedOf(result).some((d) => d.action === "command");
+
+/**
+ * What the same conversation is told after the CLI ended a turn over a refused action, so it goes on instead of
+ * stopping. Seen 2026-11-16 (Gemini 4 Hydrogen): reading its own tool's description, the model dropped part of the
+ * account folder's long path, the read fell outside what the CLI allows and the turn ended with nothing said. The
+ * right folder is named here; repeating the same action is ruled out, as the CLI's own denial asks. Seen 2026-11-17:
+ * a command that failed without the network in the sandbox, asked again outside it (`BypassSandbox`) with a program
+ * no allow rule names (`AGY_NETWORK_COMMANDS`), was refused the same way; the model is told which ones may leave it.
+ */
+export function agyDeniedNudge(result: Record<string, unknown>, home: string): string {
+  const names = [...new Set(deniedOf(result).map((d) => String(d.display_name ?? d.action ?? "a tool").slice(0, 40)))];
+  const tools = path.join(home, ".gemini", "antigravity-cli", "mcp", CODEX_MCP_SERVER);
+  return [
+    `Your last step was refused (${names.slice(0, 4).join(", ") || "a tool"}) and your turn stopped there, with the task unfinished.`,
+    `If you were reading a file, check its path letter by letter: the descriptions of your tools are the JSON files in ${tools}/ (one per tool, named after it); your other files are in your current folder.`,
+    ...(deniedCommand(result)
+      ? [
+          `If it was a command outside the sandbox (BypassSandbox): only ${AGY_NETWORK_COMMANDS.join(", ")} may run there, as their own command (never inside bash -c, python or a script). Fetch or send over the network with them, and do the rest inside the sandbox, in your current folder or /tmp.`,
+        ]
+      : []),
+    "Don't repeat the refused action as it was. Go on with the task from where you stopped and finish it: what you already did stays done.",
+  ].join("\n");
 }
 
 const tokens = (v: unknown) => (typeof v === "number" && Number.isFinite(v) && v > 0 ? Math.round(v) : 0);
@@ -268,7 +300,7 @@ export async function runAntigravityTurn(input: AntigravityTurnInput, opts: Anti
     return fail("unsupported", "Gemini plans think on Linux computers only, for now.");
   }
   try {
-    prepareAgyHome(input.account.home, opts.mcpCommand);
+    prepareAgyHome(input.account.home, opts.mcpCommand, input.chat ? undefined : (input.profile ?? "work"));
     if (input.chat) {
       // Nothing of the workspace's own config (`.agents/`, `.gemini/`) in Lodi's folder.
       for (const name of [".agents", ".gemini"]) rmSync(path.join(input.cwd, name), { recursive: true, force: true });
@@ -294,11 +326,17 @@ export async function runAntigravityTurn(input: AntigravityTurnInput, opts: Anti
   const clean = (text: string) => (opts.redact ? opts.redact(text) : text);
   const hold = opts.redact ? (opts.redactHold ?? 0) : 0;
 
-  // One retry, as a new chat, when the CLI doesn't have the conversation it was to resume.
+  // One retry, as a new chat, when the CLI doesn't have the conversation it was to resume. A turn the CLI ended over a
+  // refused action goes on in the same conversation, told why (`agyDeniedNudge`), at most `AGY_DENIED_RESUMES` times.
+  let nudge: string | null = null;
+  let nudges = 0;
+  // A command of the CLI ran in this turn: it has a terminal sandbox, so a refused command asked to leave it.
+  let ranCommand = false;
+  let denied: string | null = null;
   for (let attempt = 0; ; attempt++) {
     const chat = opts.chats.get(chatKey);
     const args = antigravityTurnArgs({
-      prompt: cursorPrompt(input.system, input.prompt, !chat),
+      prompt: nudge ?? cursorPrompt(input.system, input.prompt, !chat),
       ...(chat ? { chat } : {}),
       ...(input.model ? { model: input.model } : {}),
       ...(input.effort ? { effort: input.effort } : {}),
@@ -360,7 +398,7 @@ export async function runAntigravityTurn(input: AntigravityTurnInput, opts: Anti
         const id = typeof ev.conversation_id === "string" ? ev.conversation_id : undefined;
         if (isRecord(ev.init) && typeof ev.init.model === "string") model = ev.init.model;
         // A resume the CLI didn't have comes back as a new conversation, without the context.
-        if (chat && id && id !== chat && attempt === 0) {
+        if (chat && id && id !== chat && (attempt === 0 || nudge)) {
           lost = true;
           killTree(child, "SIGKILL");
           return;
@@ -389,6 +427,7 @@ export async function runAntigravityTurn(input: AntigravityTurnInput, opts: Anti
       if (step.step_type !== "tool" || step.state !== "DONE" || !info) return;
       const name = typeof step.tool_name === "string" ? step.tool_name : String(info.name ?? "tool");
       worked = true;
+      if (name === "run_command") ranCommand = true;
       // Our bridge's calls: the engine ran them.
       if (isOurAgyTool(name)) return;
       flush("", true);
@@ -438,6 +477,8 @@ export async function runAntigravityTurn(input: AntigravityTurnInput, opts: Anti
         true,
       );
     }
+    // Told to go on after a refusal, but the CLI lost the conversation: what it refused is the end.
+    if (nudge && lost) return fail("antigravity_failed", denied ?? "The Antigravity CLI lost the conversation.");
     if (chat && attempt === 0 && (lost || (!sawInit && /conversation[^\n]*not found/i.test(stderr)))) {
       opts.chats.delete(chatKey);
       continue;
@@ -459,8 +500,17 @@ export async function runAntigravityTurn(input: AntigravityTurnInput, opts: Anti
     if (r.status === "SUCCESS" && exit.code === 0) {
       const text = clean(response.trimEnd());
       // Nothing said because the CLI refused what the turn needed: never an empty answer, which reads as "Done.".
-      const denied = text || streamed ? null : agyDenied(r);
+      denied = text || streamed ? null : agyDenied(r);
       if (denied) {
+        // A refused read or tool (a path it copied wrong, a file outside its folder), or a command asked outside the
+        // sandbox once commands ran in it: the same conversation goes on, told what happened. A refused command with
+        // none run means no sandbox on this computer: going on wouldn't change that.
+        const again = opts.chats.get(chatKey);
+        if (again && nudges < AGY_DENIED_RESUMES && (!deniedCommand(r) || ranCommand)) {
+          nudges++;
+          nudge = agyDeniedNudge(r, input.account.home);
+          continue;
+        }
         opts.emit({ type: "error", code: "antigravity_failed", message: denied, retryable: false });
         return;
       }
