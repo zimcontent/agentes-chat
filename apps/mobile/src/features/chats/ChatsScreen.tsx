@@ -172,7 +172,7 @@ function Home() {
   return (
     <LargeTitleScreen
       title={t("shell.home")}
-      // No large title and no greeting: the signature in the bar says where you are, the tools lead.
+      // No large title and no greeting: the signature in the island says where you are, the tools lead.
       bare
       {...header}
       refreshControl={<RefreshControl refreshing={pull.refreshing} onRefresh={pull.onRefresh} tintColor={PULL_TINT} />}
