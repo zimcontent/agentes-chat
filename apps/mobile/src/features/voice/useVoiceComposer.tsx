@@ -2,9 +2,16 @@ import { keys, useApi } from "@agenteschat/client";
 import { voiceClock } from "@agenteschat/client/lib/voice";
 import { gradientOf, mixHex } from "@agenteschat/ui/agent/engine";
 import { useQuery } from "@tanstack/react-query";
+import { useCallback, useMemo, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { StyleSheet, View } from "react-native";
-import { GestureDetector, useExclusiveGestures, usePanGesture, useTapGesture } from "react-native-gesture-handler";
+import {
+  GestureDetector,
+  type PanGestureConfig,
+  useExclusiveGestures,
+  usePanGesture,
+  useTapGesture,
+} from "react-native-gesture-handler";
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -44,6 +51,11 @@ const LEAD = 48;
 const OVERSHOOT = 80;
 /** A flick toward a line, from past half way, counts as crossing it (points per second). */
 const FLICK = 900;
+
+/** What a hold on the microphone asks the take for, from the UI thread. */
+type HoldAct = "start" | "release" | "cancel" | "lock" | "hint";
+/** Where the finger is and how fast it goes, as a pan reports it. */
+type Motion = { translationX: number; translationY: number; velocityX: number; velocityY: number };
 
 /** What the composer draws for voice; see `Composer`'s `voice`. */
 export interface ComposerVoice {
@@ -118,7 +130,8 @@ export function useVoiceComposer(
   const x = useSharedValue(0);
   const y = useSharedValue(0);
   const scale = useSharedValue(1);
-  const spent = useSharedValue(false);
+  // Whether the hold in progress has had its ending: true until a hold starts, so a press that never held ends nothing.
+  const spent = useSharedValue(true);
 
   const agent = agentId ? dir.agentById.get(agentId) : undefined;
   // The agent's sky, deep inside and light at the ends; in the dark the light tone and a paler one. Ink without one.
@@ -128,63 +141,91 @@ export function useVoiceComposer(
     return scheme === "dark" ? [light, mixHex(light, "#ffffff", 0.4)] : [deep, light];
   })();
 
-  const hint = () => toast({ title: t("voice.holdToRecord"), icon: "mic" });
-  const lockNow = () => {
-    haptics.medium();
-    take.lock();
-  };
-  const settle = (vx: number, vy: number) => {
-    "worklet";
-    if (reducedMotion) {
-      x.value = withTiming(0, { duration: 150 });
-      y.value = withTiming(0, { duration: 150 });
-      scale.value = withTiming(1, { duration: 150 });
-      return;
-    }
-    const spring = (velocity: number): WithSpringConfig => ({ duration: 300, dampingRatio: 0.9, velocity });
-    x.value = withSpring(0, spring(vx));
-    y.value = withSpring(0, spring(vy));
-    scale.value = withSpring(1, { duration: 250, dampingRatio: 1 });
-  };
-  const pan = usePanGesture({
-    activateAfterLongPress: HOLD_MS,
-    onActivate: () => {
+  // What the hold asks of the take, one function that stays the same from render to render: the gestures below are
+  // built once, because RNGH 3 sets a changed gesture up again on the native side, and a finger lifted while that
+  // happens (the clock re-renders every second) lost its release and left the take held, "gravando", for good.
+  const latest = useRef({ take, hint: () => toast({ title: t("voice.holdToRecord"), icon: "mic" }) });
+  latest.current = { take, hint: () => toast({ title: t("voice.holdToRecord"), icon: "mic" }) };
+  const act = useCallback((what: HoldAct) => {
+    const now = latest.current;
+    if (what === "start") void now.take.start();
+    else if (what === "release") now.take.release();
+    else if (what === "cancel") void now.take.cancel(true);
+    else if (what === "lock") {
+      haptics.medium();
+      now.take.lock();
+    } else now.hint();
+  }, []);
+  const panConfig = useMemo(() => {
+    const settle = (vx: number, vy: number) => {
       "worklet";
-      spent.value = false;
-      scale.value = reducedMotion ? HELD : withSpring(HELD, { duration: 250, dampingRatio: 0.7 });
-      scheduleOnRN(take.start);
-    },
-    onUpdate: (e) => {
+      if (reducedMotion) {
+        x.value = withTiming(0, { duration: 150 });
+        y.value = withTiming(0, { duration: 150 });
+        scale.value = withTiming(1, { duration: 150 });
+        return;
+      }
+      const spring = (velocity: number): WithSpringConfig => ({ duration: 300, dampingRatio: 0.9, velocity });
+      x.value = withSpring(0, spring(vx));
+      y.value = withSpring(0, spring(vy));
+      scale.value = withSpring(1, { duration: 250, dampingRatio: 1 });
+    };
+    /** The finger left: what it asked for, once. */
+    const end = (e: Partial<Motion>) => {
       "worklet";
-      if (spent.value) return;
-      x.value = follow(e.translationX, CANCEL_X);
-      y.value = follow(e.translationY, LOCK_Y);
-      const intent = slideIntent(e.translationX, e.translationY);
-      if (!intent) return;
-      // Once, on the frame the line is crossed: the haptic lands with the change it announces.
-      spent.value = true;
-      settle(e.velocityX, e.velocityY);
-      if (intent === "cancel") scheduleOnRN(take.cancel, true);
-      else scheduleOnRN(lockNow);
-    },
-    onDeactivate: (e) => {
-      "worklet";
-      settle(e.velocityX, e.velocityY);
+      const vx = e.velocityX ?? 0;
+      const vy = e.velocityY ?? 0;
+      const tx = e.translationX ?? 0;
+      const ty = e.translationY ?? 0;
+      settle(vx, vy);
       if (spent.value) return;
       spent.value = true;
       // A flick toward a line from past half way is the same intent as reaching it.
-      if (e.velocityY < -FLICK && e.translationY < LOCK_Y / 2) scheduleOnRN(lockNow);
-      else if (e.velocityX < -FLICK && e.translationX < CANCEL_X / 2) scheduleOnRN(take.cancel, true);
-      else scheduleOnRN(take.release);
-    },
-  });
-  const tap = useTapGesture({
-    maxDuration: HOLD_MS - 20,
-    onDeactivate: () => {
-      "worklet";
-      scheduleOnRN(hint);
-    },
-  });
+      if (vy < -FLICK && ty < LOCK_Y / 2) scheduleOnRN(act, "lock");
+      else if (vx < -FLICK && tx < CANCEL_X / 2) scheduleOnRN(act, "cancel");
+      else scheduleOnRN(act, "release");
+    };
+    return {
+      activateAfterLongPress: HOLD_MS,
+      onActivate: () => {
+        "worklet";
+        spent.value = false;
+        scale.value = reducedMotion ? HELD : withSpring(HELD, { duration: 250, dampingRatio: 0.7 });
+        scheduleOnRN(act, "start");
+      },
+      onUpdate: (e: Motion) => {
+        "worklet";
+        if (spent.value) return;
+        x.value = follow(e.translationX, CANCEL_X);
+        y.value = follow(e.translationY, LOCK_Y);
+        const intent = slideIntent(e.translationX, e.translationY);
+        if (!intent) return;
+        // Once, on the frame the line is crossed: the haptic lands with the change it announces.
+        spent.value = true;
+        settle(e.velocityX, e.velocityY);
+        scheduleOnRN(act, intent);
+      },
+      onDeactivate: end,
+      // Every ending passes here, also one whose deactivation never came: a hold that started always ends. Its event
+      // is typed without the motion, which the native side sends with it all the same.
+      onFinalize: (e: object) => {
+        "worklet";
+        end(e as Partial<Motion>);
+      },
+    } satisfies PanGestureConfig;
+  }, [act, reducedMotion, x, y, scale, spent]);
+  const pan = usePanGesture(panConfig);
+  const tapConfig = useMemo(
+    () => ({
+      maxDuration: HOLD_MS - 20,
+      onDeactivate: () => {
+        "worklet";
+        scheduleOnRN(act, "hint");
+      },
+    }),
+    [act],
+  );
+  const tap = useTapGesture(tapConfig);
   const press = useExclusiveGestures(pan, tap);
 
   const micStyle = useAnimatedStyle(() => ({
@@ -199,29 +240,34 @@ export function useVoiceComposer(
 
   const scrubStart = useSharedValue(0);
   const scrubWidth = useSharedValue(0);
-  const scrub = usePanGesture({
-    enabled: take.phase === "paused",
-    activeOffsetX: [-2, 2],
-    onBegin: (e) => {
-      "worklet";
-      if (scrubWidth.value > 0) scrubStart.value = waveAt(e.x, scrubWidth.value);
-      take.progress.value = scrubStart.value;
-    },
-    onUpdate: (e) => {
-      "worklet";
-      if (scrubWidth.value > 0) take.progress.value = waveAt(e.x, scrubWidth.value);
-    },
-    onFinalize: () => {
-      "worklet";
-      scheduleOnRN(take.scrub, take.progress.value);
-    },
-  });
+  const paused = take.phase === "paused";
+  const { progress, scrub: scrubTo } = take;
+  const scrubConfig = useMemo(
+    () => ({
+      enabled: paused,
+      activeOffsetX: [-2, 2] as [number, number],
+      onBegin: (e: { x: number }) => {
+        "worklet";
+        if (scrubWidth.value > 0) scrubStart.value = waveAt(e.x, scrubWidth.value);
+        progress.value = scrubStart.value;
+      },
+      onUpdate: (e: { x: number }) => {
+        "worklet";
+        if (scrubWidth.value > 0) progress.value = waveAt(e.x, scrubWidth.value);
+      },
+      onFinalize: () => {
+        "worklet";
+        scheduleOnRN(scrubTo, progress.value);
+      },
+    }),
+    [paused, progress, scrubTo, scrubStart, scrubWidth],
+  );
+  const scrub = usePanGesture(scrubConfig);
 
   if (!enabled) return null;
   const { phase } = take;
   const holding = phase === "hold";
   const locked = phase === "locked";
-  const paused = phase === "paused";
   const left = secondsLeft(take.seconds * 1000);
   const clock = left !== null && !paused ? t("voice.left", { seconds: left }) : voiceClock(take.seconds * 1000);
 

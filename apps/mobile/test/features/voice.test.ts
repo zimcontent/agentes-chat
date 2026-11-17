@@ -242,8 +242,30 @@ describe("a voice note with typed text and files", () => {
     const bar = src("features/voice/useVoiceComposer.tsx");
     expect(bar).toContain('const trash = control("trash", t("voice.delete"), () => void take.cancel(true));');
     expect(bar).toContain("send: locked || paused ? take.send : null");
-    // The swipe to cancel on the held mic is unchanged.
-    expect(bar).toContain('if (intent === "cancel") scheduleOnRN(take.cancel, true);');
+    // The swipe to cancel on the held mic is unchanged: crossing a line asks the take for it, once.
+    expect(bar).toContain("const intent = slideIntent(e.translationX, e.translationY);");
+    expect(bar).toContain("scheduleOnRN(act, intent);");
+    expect(bar).toContain('else if (what === "cancel") void now.take.cancel(true);');
+  });
+
+  test("letting go of the microphone always ends the hold", () => {
+    const bar = src("features/voice/useVoiceComposer.tsx");
+    // The hold's gestures are built once: RNGH 3 sets a changed gesture up again natively, and a finger lifted then
+    // lost its release, leaving the take "gravando" under no finger.
+    expect(bar).toContain("const pan = usePanGesture(panConfig);");
+    expect(bar).toContain("const tap = useTapGesture(tapConfig);");
+    expect(bar).toContain("const scrub = usePanGesture(scrubConfig);");
+    expect(bar).toMatch(/const act = useCallback\(\(what: HoldAct\) => \{[\s\S]*?\}, \[\]\);/);
+    expect(bar).not.toMatch(/use(Pan|Tap)Gesture\(\{/);
+    // Every ending of the hold passes its end, once, even one whose deactivation never came.
+    expect(bar).toContain("onDeactivate: end,");
+    expect(bar).toMatch(/onFinalize: \(e: object\) => \{\s*"worklet";\s*end\(e as Partial<Motion>\);/);
+    expect(bar).toContain("const spent = useSharedValue(true);");
+    // A held take that couldn't go stops and waits, paused, instead of recording on.
+    const take = src("features/voice/useVoiceTake.ts");
+    expect(take).toMatch(/void send\(\)\.then\(\s*\(\) => unhold\(\),/);
+    expect(take).toContain("if (released.current) await send().finally(unhold);");
+    expect(take).toMatch(/if \(doneMs\.current > 0\) await held\(\)\.catch\(\(\) => reset\(\)\);\s*else reset\(\);/);
   });
 
   test("sending uploads the waiting files first, and a failed upload keeps the take", () => {

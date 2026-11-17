@@ -324,6 +324,19 @@ export function useVoiceTake(target: VoiceTarget) {
     timer.current = setInterval(tick, TICK_MS);
   }, [progress, recorder, tick]);
 
+  /**
+   * A held take that couldn't go: never left recording under no finger, it stops and waits, paused, where it can be
+   * heard, sent or deleted.
+   */
+  const unhold = useCallback(async () => {
+    // A pause or a send already ending it moves it on by itself.
+    if (phaseRef.current !== "hold" || ending.current) return;
+    await finishStretch().catch(() => undefined);
+    if (phaseRef.current !== "hold") return;
+    if (doneMs.current > 0) await held().catch(() => reset());
+    else reset();
+  }, [finishStretch, held, reset]);
+
   /** The hold reached its time. A first use only asks: the next hold records. */
   const start = useCallback(async () => {
     if (phaseRef.current !== "idle" || starting.current) return;
@@ -352,14 +365,14 @@ export function useVoiceTake(target: VoiceTarget) {
       await record();
       // Deleted while the recorder was starting (`cancel` found nothing to stop yet): it stops here, not never.
       if (phaseRef.current === "idle") return void (await cancel(false));
-      if (released.current) await send();
+      if (released.current) await send().finally(unhold);
     } catch {
       toast({ title: t("voice.notSent"), icon: "x" });
       reset();
     } finally {
       starting.current = false;
     }
-  }, [cancel, record, reset, send, setPhase, t, toast]);
+  }, [cancel, record, reset, send, setPhase, t, toast, unhold]);
 
   /** The finger came up: a hold sends; a lock already took over. */
   const release = useCallback(() => {
@@ -367,8 +380,15 @@ export function useVoiceTake(target: VoiceTarget) {
       released.current = true;
       return;
     }
-    if (phaseRef.current === "hold") void send();
-  }, [send]);
+    if (phaseRef.current !== "hold") return;
+    void send().then(
+      () => unhold(),
+      () => {
+        toast({ title: t("voice.notSent"), icon: "x" });
+        return unhold();
+      },
+    );
+  }, [send, t, toast, unhold]);
 
   /** Hands free. The haptic is the gesture's, on the frame the finger crosses the line, so none here. */
   const lock = useCallback(() => {
