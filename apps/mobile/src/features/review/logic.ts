@@ -63,39 +63,24 @@ export function reviewIdsOf(links: { orgId: string; reviewId: string }[], orgId:
   return ids;
 }
 
-/** Revisão's tabs on the phone: everything, the agents' videos, each editor's videos (by person), the design pieces. */
-export type ReviewKind = "all" | "ai" | "design" | `editor:${string}`;
-
-/** Which tab a review sits in: a video a person sent is that editor's; one an agent made, AI's; a piece, Design. */
-export function reviewKindOf(r: { medium: "video" | "design"; sender?: { id: string } | null }): ReviewKind {
-  if (r.medium === "design") return "design";
-  return r.sender ? `editor:${r.sender.id}` : "ai";
-}
+/** Whether I send this work's next version: I sent it, and it isn't approved (docs/adr/doug-0015-team-work-review.md). */
+export const sendsNext = (
+  review: { sender?: { id: string } | null; status: VideoReviewStatus },
+  meId: string | null,
+): boolean => Boolean(meId) && review.sender?.id === meId && review.status !== "approved";
 
 /**
- * The tabs a list of reviews needs, in a fixed order (Tudo, Vídeo de IA, each editor by name, Design), only the ones
- * with something in them (Tudo always), each with how many wait on review.
+ * Where "Pedir ajustes" tells the decider the notes go: the agent, the person who sent it from a task (they send the
+ * next one from the task), or the person who sent it from Revisão (they send the next one here).
  */
-export function reviewTabs(
-  reviews: readonly {
-    medium: "video" | "design";
-    status: string;
-    sender?: { id: string; name: string } | null;
-  }[],
-): { key: ReviewKind; editor?: string; waiting: number }[] {
-  const waiting = (key: ReviewKind) =>
-    reviews.filter((r) => (key === "all" || reviewKindOf(r) === key) && r.status === "in_review").length;
-  const editors = new Map<string, string>();
-  for (const r of reviews) if (r.medium === "video" && r.sender) editors.set(r.sender.id, r.sender.name);
-  const has = (key: ReviewKind) => reviews.some((r) => reviewKindOf(r) === key);
-  return [
-    { key: "all" as ReviewKind, waiting: waiting("all") },
-    ...(has("ai") ? [{ key: "ai" as ReviewKind, waiting: waiting("ai") }] : []),
-    ...[...editors].map(([id, name]) => ({
-      key: `editor:${id}` as ReviewKind,
-      editor: name.split(" ")[0] || name,
-      waiting: waiting(`editor:${id}`),
-    })),
-    ...(has("design") ? [{ key: "design" as ReviewKind, waiting: waiting("design") }] : []),
-  ];
+export function changesHintOf(
+  review: { sender?: { name: string } | null; taskId?: string | null },
+  w: {
+    changesHint: string;
+    editor: { changesHint: (name: string) => string };
+    team: { changesHint: (name: string) => string };
+  },
+): string {
+  if (!review.sender) return w.changesHint;
+  return review.taskId ? w.editor.changesHint(review.sender.name) : w.team.changesHint(review.sender.name);
 }

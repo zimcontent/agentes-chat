@@ -19,6 +19,7 @@ import {
   reviewVideo,
   reviewWhatsAppTargets,
   saveDesignEdit,
+  sendPersonWork,
   sendPostToClient,
   setReviewPost,
   setReviewWhatsApp,
@@ -247,6 +248,44 @@ export function videoReviewRoutes(deps: AppDeps) {
     async (c) => {
       const { orgId } = c.req.valid("param");
       return c.json({ reviews: await listVideoReviews(reviews(), c.get("user").id, orgId) }, 200);
+    },
+  );
+  // A person's work sent from Revisão itself (docs/adr/doug-0015-team-work-review.md).
+  app.openapi(
+    createRoute({
+      method: "post",
+      path: "/organizations/{orgId}/video-reviews",
+      tags,
+      security,
+      summary:
+        "Send work a person made (a video, or a design piece's slides) for the team's review, or its next version",
+      description:
+        "The files are uploaded first (`POST …/artifacts/files`) to the conversation the work goes to: the task's (`taskId`, its conversation from `GET …/issues/{issueId}/conversation`), or a group's (`channelId`); a next version (`reviewId`) to its review's (`reviewId` on the upload). A video for a task follows the task's delivery (doug-0012).",
+      request: {
+        params: OrgParams,
+        body: body(
+          z.object({
+            medium: z.enum(["video", "design"]),
+            files: z.array(z.uuid()).min(1).max(DESIGN_PAGES),
+            title: z.string().max(200).optional(),
+            note: z.string().max(REVIEW_NOTE_CHARS).optional(),
+            reviewId: z.uuid().optional(),
+            taskId: z.uuid().optional(),
+            channelId: z.uuid().optional(),
+          }),
+        ),
+      },
+      responses: {
+        200: json(z.object({ review: Summary, toClient: z.boolean() })),
+        ...errors,
+        429: errorResponse("Too many (`rate_limited`)"),
+      },
+    }),
+    async (c) => {
+      const user = c.get("user");
+      if (!(await allowed(`person-work:${user.id}`, SENDS))) return apiError(c, 429, "rate_limited", "Slow down");
+      const { orgId } = c.req.valid("param");
+      return c.json(await sendPersonWork(reviews(), user.id, orgId, c.req.valid("json")), 200);
     },
   );
 

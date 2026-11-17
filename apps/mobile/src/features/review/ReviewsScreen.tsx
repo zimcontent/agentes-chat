@@ -1,6 +1,16 @@
-import { useApi, useVideoReviews, type VideoReviewSummary } from "@agenteschat/client";
+import {
+  filterReviews,
+  firstTab,
+  mixedIn,
+  type ReviewWho,
+  reviewTabsByWho,
+  teamPeople,
+  useApi,
+  useVideoReviews,
+  type VideoReviewSummary,
+} from "@agenteschat/client";
 import { Image } from "expo-image";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { RefreshControl, StyleSheet, View } from "react-native";
 import {
@@ -10,6 +20,7 @@ import {
   Filters,
   GroupedList,
   GroupedRow,
+  IconButton,
   LargeTitleScreen,
   PersonAvatar,
   PULL_TINT,
@@ -20,67 +31,86 @@ import {
 } from "@/ui";
 import { router } from "@/ui/navigation";
 import { AgentFace, Face } from "../shared/Face";
-import { useColors, useDirectory, useOrgId, usePullRefresh, useWhen } from "../shared/hooks";
+import { useColors, useDirectory, useMeId, useOrgId, usePullRefresh, useWhen } from "../shared/hooks";
 import { PushedLargeTitle } from "../shared/PushedLargeTitle";
 import { useTabHeader } from "../shared/tabHeader";
-import { type ReviewKind, reviewKindOf, reviewTabs, statusIcon, statusTone } from "./logic";
+import { statusIcon, statusTone } from "./logic";
 import { ownSource, useReviewWords } from "./media";
+import { openSendWork } from "./SendWorkScreen";
+import { filterRow, pickInRow, type RowState } from "./team-logic";
 
 /** Opens one video's Revisor. */
 export const openReview = (id: string) => router.push(`/review/${id}`);
 
 /**
- * Revisão on the phone (docs/adr/doug-0007-video-review.md): the videos agents sent for review, the ones waiting first
- * ("Para revisar"), or all of them. A row opens the video's Revisor.
+ * Revisão on the phone, by who made the work (docs/adr/doug-0015-team-work-review.md, the web's tabs): Meus ajustes
+ * (once I sent work: the changes asked of me), Agentes and Equipe, each with what waits. Under them one sideways row:
+ * Equipe's people, Vídeos or Peças where the tab holds both, and Para revisar or Todos. "Mandar para revisão" sends
+ * one's own work. A row opens the work's Revisor.
  */
 export function ReviewsScreen({ tab = false }: { tab?: boolean }) {
   const w = useReviewWords();
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const orgId = useOrgId();
+  const meId = useMeId() ?? "";
   const reviews = useVideoReviews(orgId);
-  const [kind, setKind] = useState<ReviewKind>("all");
   const pull = usePullRefresh(reviews.refetch);
-  const [filter, setFilter] = useState<"open" | "all">("open");
-  // What the team reviews comes in kinds, each a tab (as the web's): the agents' videos, each editor's, design pieces.
   const everything = reviews.data ?? [];
-  const tabs = reviewTabs(everything);
-  const shownKind = tabs.some((x) => x.key === kind) ? kind : "all";
-  const all = everything.filter((r) => shownKind === "all" || reviewKindOf(r) === shownKind);
-  const open = all.filter((r) => r.status === "in_review").length;
-  const list = all.filter((r) => filter === "all" || r.status === "in_review");
-  const tabWords = KIND_WORDS[i18n.language?.startsWith("pt") ? "pt" : "en"];
-  const tabLabel = (x: (typeof tabs)[number]) => {
-    const name =
-      x.key === "all"
-        ? tabWords.all
-        : x.key === "ai"
-          ? tabWords.ai
-          : x.key === "design"
-            ? tabWords.design
-            : tabWords.editor(x.editor ?? "");
-    return x.waiting > 0 ? `${name} · ${x.waiting}` : name;
+  const tabs = reviewTabsByWho(everything, meId);
+  const [who, setWho] = useState<ReviewWho>("agents");
+  // It opens on the tab with work waiting once the list is in, and then stays where the person puts it.
+  const picked = useRef(false);
+  // biome-ignore lint/correctness/useExhaustiveDependencies: once, when the list (and who I am) first arrive
+  useEffect(() => {
+    if (picked.current || !reviews.isSuccess || !meId) return;
+    picked.current = true;
+    setWho(firstTab(tabs));
+  }, [reviews.isSuccess, meId]);
+  const shownWho = tabs.some((x) => x.key === who) ? who : "agents";
+  const [row, setRow] = useState<RowState>({ person: null, medium: "all", status: "open" });
+  const people = teamPeople(everything, meId);
+  const person = shownWho === "team" && people.some((p) => p.id === row.person) ? row.person : null;
+  const mixed = mixedIn(everything, shownWho, meId);
+  const medium = mixed ? row.medium : "all";
+  const list = filterReviews(everything, { who: shownWho, person, medium, status: row.status }, meId);
+  const open = filterReviews(everything, { who: shownWho, person, medium, status: "open" }, meId).length;
+  const filters = filterRow(
+    { who: shownWho, people, mixed, open, person, medium, status: row.status },
+    {
+      everyone: w.team.everyone,
+      video: w.team.medium.video,
+      design: w.team.medium.design,
+      open: shownWho === "mine" ? w.editor.toDo : w.filters.open,
+      all: w.filters.all,
+    },
+  );
+  const send = () => openSendWork();
+  const tabHeader = useTabHeader();
+  const header = {
+    ...tabHeader,
+    actions: [{ icon: "plus" as const, sf: "plus" as const, label: w.team.send, onPress: send }, ...tabHeader.actions],
   };
-  const header = useTabHeader();
+  const empty =
+    shownWho === "mine"
+      ? { title: w.team.emptyMine, text: w.team.emptyMineText }
+      : shownWho === "team"
+        ? { title: w.team.emptyTeam, text: w.team.emptyTeamText }
+        : { title: w.team.emptyAgents, text: w.team.emptyAgentsText };
   const body = (
     <View style={styles.in}>
-      {tabs.length > 2 ? (
-        <View style={styles.kinds}>
-          <Filters
-            items={tabs.map((x) => ({ key: x.key, label: tabLabel(x) }))}
-            value={shownKind}
-            onChange={(key) => setKind(key as ReviewKind)}
-          />
-        </View>
-      ) : null}
       <Segmented
         wide
-        value={filter}
-        onChange={(v) => setFilter(v as "open" | "all")}
-        items={[
-          { key: "open", label: w.filters.open, count: open },
-          { key: "all", label: w.filters.all },
-        ]}
+        value={shownWho}
+        onChange={(v) => setWho(v as ReviewWho)}
+        items={tabs.map((x) => ({
+          key: x.key,
+          label: w.team.tabs[x.key],
+          ...(x.waiting > 0 ? { count: x.waiting } : {}),
+        }))}
       />
+      <View style={styles.row}>
+        <Filters items={filters.items} value={filters.value} onChange={(key) => setRow((r) => pickInRow(r, key))} />
+      </View>
       {reviews.isLoading ? (
         <SkeletonList rows={4} />
       ) : reviews.isError && !reviews.data ? (
@@ -96,17 +126,27 @@ export function ReviewsScreen({ tab = false }: { tab?: boolean }) {
           />
         </View>
       ) : list.length === 0 ? (
-        <EmptyState size="page" agent title={w.empty} subtitle={w.emptyText} />
+        <EmptyState
+          size="page"
+          agent
+          title={empty.title}
+          subtitle={empty.text}
+          action={
+            shownWho === "team" ? (
+              <Button variant="primary" icon="plus" label={w.team.send} onPress={send} />
+            ) : undefined
+          }
+        />
       ) : (
         <GroupedList>
           {list.map((r) => (
-            <ReviewRow key={r.id} review={r} />
+            <ReviewRow key={r.id} review={r} mine={r.sender?.id === meId} />
           ))}
         </GroupedList>
       )}
     </View>
   );
-  // The Revisão tab (the web sidebar's row): the tabs' bar, with the workspace and "+"; pushed from a link, a back.
+  // The Revisão tab (the web sidebar's row): the tabs' bar with "Mandar para revisão"; pushed from a link, a back.
   if (tab)
     return (
       <LargeTitleScreen
@@ -125,6 +165,7 @@ export function ReviewsScreen({ tab = false }: { tab?: boolean }) {
     <PushedLargeTitle
       title={w.title}
       grouped
+      right={<IconButton icon="plus" label={w.team.send} onPress={send} />}
       refreshControl={<RefreshControl refreshing={pull.refreshing} onRefresh={pull.onRefresh} />}
     >
       {body}
@@ -132,7 +173,7 @@ export function ReviewsScreen({ tab = false }: { tab?: boolean }) {
   );
 }
 
-function ReviewRow({ review: r }: { review: VideoReviewSummary }) {
+function ReviewRow({ review: r, mine }: { review: VideoReviewSummary; mine: boolean }) {
   const w = useReviewWords();
   const when = useWhen();
   const api = useApi();
@@ -179,7 +220,12 @@ function ReviewRow({ review: r }: { review: VideoReviewSummary }) {
       icon={cover || r.agent || r.sender ? undefined : r.medium === "design" ? "image" : "play"}
       below={
         <View style={styles.chip}>
-          <Chip tone={statusTone(r.status)} icon={statusIcon(r.status)} label={w.status[r.status]} />
+          {mine && r.status === "changes" ? (
+            // Changes asked of me: mine to make (the web's "Ajuste para fazer").
+            <Chip tone="wait" icon="pen" label={w.editor.toDo} />
+          ) : (
+            <Chip tone={statusTone(r.status)} icon={statusIcon(r.status)} label={w.status[r.status]} />
+          )}
         </View>
       }
       chevron
@@ -188,15 +234,9 @@ function ReviewRow({ review: r }: { review: VideoReviewSummary }) {
   );
 }
 
-/** The tabs' names: this feature's words live beside it, in Portuguese and English. */
-const KIND_WORDS = {
-  pt: { all: "Tudo", ai: "Vídeo de IA", design: "Design", editor: (name: string) => `Vídeo do ${name}` },
-  en: { all: "All", ai: "AI videos", design: "Design", editor: (name: string) => `${name}'s videos` },
-} as const;
-
 const styles = StyleSheet.create({
   // The pills reach the screen's edges (they scroll sideways), past the list's side margin.
-  kinds: { marginHorizontal: -16 },
+  row: { marginHorizontal: -16 },
   in: { paddingHorizontal: 16, gap: 16 },
   center: { alignItems: "center", gap: 12, paddingVertical: 32 },
   centerText: { textAlign: "center" },

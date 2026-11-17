@@ -169,6 +169,8 @@ function AppStack() {
       <Stack.Screen name="portal/client/[id]" options={{ ...pushed, ...scrollUnder }} />
       <Stack.Screen name="portal/card/[id]" options={{ ...pushed, ...scrollUnder }} />
       <Stack.Screen name="portal/post/[id]" options={{ ...pushed, ...scrollUnder }} />
+      {/* Mandar para revisão (docs/adr/doug-0015-team-work-review.md): pushed like every new-thing form. */}
+      <Stack.Screen name="review/send" options={{ ...pushed, ...scrollUnder }} />
       <Stack.Screen name="review/[id]" options={{ ...pushed, ...scrollUnder }} />
       {/* The piece in the editor: its own gestures, so no swipe back over it (docs/adr/doug-0010-design-review.md). */}
       <Stack.Screen name="review/edit/[id]" options={{ ...pushed, gestureEnabled: false }} />

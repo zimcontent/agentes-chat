@@ -79,7 +79,7 @@ function useTaskUpload(issueId: string) {
 }
 
 /** Where the editor drops the file: one big target, the click opens the picker. */
-function DropFile({
+export function DropFile({
   label,
   hint,
   accept,
@@ -133,7 +133,7 @@ function DropFile({
   );
 }
 
-function Progress({ share, label, onCancel }: { share: number; label: string; onCancel: () => void }) {
+export function Progress({ share, label, onCancel }: { share: number; label: string; onCancel: () => void }) {
   const w = useReviewWords().editor;
   return (
     <div className="tvd-progress">

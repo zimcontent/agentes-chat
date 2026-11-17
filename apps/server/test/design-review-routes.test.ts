@@ -68,3 +68,39 @@ test("a person reads the slides and the page, notes a slide's point and saves an
   expect((await stranger(`${base}/versions/1/source`)).status).toBe(401);
   expect((await stranger(`${base}/versions/1/pages/1`)).status).toBe(401);
 });
+
+test("a person sends their own piece from Revisão: uploaded to a group, opened there, theirs to send again", async () => {
+  t = await createTestServer();
+  const b = browser(t);
+  await signUp(b, "ana@example.com");
+  const { orgId, channelId } = await seedOrg(b);
+  const base = `/api/app/organizations/${orgId}`;
+  const upload = async (name: string) => {
+    const form = new FormData();
+    form.append("file", new File([PNG], name, { type: "image/png" }));
+    form.append("channelId", channelId);
+    const res = await b(`${base}/artifacts/files`, { method: "POST", body: form });
+    expect(res.status).toBe(201);
+    return ((await res.json()) as { id: string }).id;
+  };
+  const slides = [await upload("01.png"), await upload("02.png")];
+  const sent = await b(`${base}/video-reviews`, {
+    json: { medium: "design", files: slides, title: "Carrossel", channelId },
+  });
+  expect(sent.status).toBe(200);
+  const { review } = (await sent.json()) as { review: { id: string; medium: string; sender: { id: string } | null } };
+  expect(review.medium).toBe("design");
+  expect(review.sender).not.toBeNull();
+  expect((await b(`${base}/video-reviews/${review.id}/versions/1/pages/2`)).status).toBe(200);
+
+  // With no group nor task it has nowhere to live.
+  const nowhere = await b(`${base}/video-reviews`, { json: { medium: "design", files: slides, title: "X" } });
+  expect(nowhere.status).toBe(400);
+  expect(((await nowhere.json()) as { error: { code: string } }).error.code).toBe("video_review.no_place");
+
+  const next = await b(`${base}/video-reviews`, {
+    json: { medium: "design", files: [await upload("01-v2.png")], reviewId: review.id },
+  });
+  expect(next.status).toBe(200);
+  expect(((await next.json()) as { review: { version: number } }).review.version).toBe(2);
+});

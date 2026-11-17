@@ -625,6 +625,8 @@ export function createHttpApi(options: TransportOptions = {}): HttpApi {
           `${org(orgId)}/issues/${enc(issueId)}/video-delivery`,
           { json: input },
         ),
+      sendWork: (orgId, input) =>
+        request<{ review: VideoReviewSummary; toClient: boolean }>(`${org(orgId)}/video-reviews`, { json: input }),
       setPost: (orgId, reviewId, patch) =>
         request<ReviewPost>(`${org(orgId)}/video-reviews/${enc(reviewId)}/post`, { method: "PATCH", json: patch }),
       sendToClient: (orgId, reviewId) =>

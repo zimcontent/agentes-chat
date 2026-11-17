@@ -20,11 +20,14 @@ export interface FilterItem {
   icon?: IconName;
   /** What a screen reader says where the label doesn't say it in words (Segmented only). */
   accessibilityLabel?: string;
+  /** Starts another group of the same row (Filters only): a quiet rule before it. */
+  divider?: boolean;
 }
 
 export interface FiltersProps {
   items: FilterItem[];
-  value: string;
+  /** The chosen key, or one per group when the row holds several groups (Revisão: who, kind, open or all). */
+  value: string | readonly string[];
   onChange: (key: string) => void;
 }
 
@@ -33,10 +36,13 @@ export function Filters({ items, value, onChange }: FiltersProps) {
   const { colors } = useTheme();
   const row = useRef<ScrollViewInstance>(null);
   const lefts = useRef(new Map<string, number>());
+  const chosen = typeof value === "string" ? [value] : value;
+  // A row of groups: it follows the one alone; with several chosen, the one tapped is already in sight.
+  const follow = typeof value === "string" ? value : null;
   useEffect(() => {
-    const left = lefts.current.get(value);
+    const left = follow === null ? undefined : lefts.current.get(follow);
     if (left !== undefined) row.current?.scrollTo({ x: Math.max(0, left - PEEK), animated: true });
-  }, [value]);
+  }, [follow]);
   return (
     <ScrollView
       ref={row}
@@ -49,9 +55,9 @@ export function Filters({ items, value, onChange }: FiltersProps) {
       contentContainerStyle={{ gap: 8, paddingHorizontal: SCREEN_X, paddingBottom: 4 }}
     >
       {items.map((item) => {
-        const on = item.key === value;
+        const on = chosen.includes(item.key);
         const color = on ? colors.ink : colors.muted;
-        return (
+        const pill = (
           <Pressable
             key={item.key}
             onLayout={(e) => lefts.current.set(item.key, e.nativeEvent.layout.x)}
@@ -88,6 +94,17 @@ export function Filters({ items, value, onChange }: FiltersProps) {
               {item.count !== undefined ? <Count value={item.count} size={15} color={color} /> : null}
             </View>
           </Pressable>
+        );
+        if (!item.divider) return pill;
+        return (
+          <View key={item.key} style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+            <View
+              style={{ width: 1, height: TOOL_H / 2, backgroundColor: colors.line }}
+              accessibilityElementsHidden
+              importantForAccessibility="no"
+            />
+            {pill}
+          </View>
         );
       })}
     </ScrollView>

@@ -3,6 +3,7 @@ import type { ApiClient } from "../api/client";
 import { useApi } from "../api/context";
 import type {
   DesignEditInput,
+  PersonWorkInput,
   ReviewPostPatch,
   VideoReviewDecision,
   VideoReviewNoteInput,
@@ -134,6 +135,20 @@ export function useSendTaskVideo(orgId: string, issueId: string) {
       qc
         .invalidateQueries({ queryKey: taskVideoKey(orgId, issueId) })
         .then(() => qc.invalidateQueries({ queryKey: reviewKeys.all(orgId) })),
+  });
+}
+
+/** Sends work a person made for review, or its next version (docs/adr/doug-0015-team-work-review.md). */
+export function useSendWork(orgId: string) {
+  const api = useApi();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (input: PersonWorkInput) => {
+      const send = reviewsOf(api).sendWork;
+      if (!send) throw new Error("This server has no team review");
+      return send(orgId, input);
+    },
+    onSettled: () => qc.invalidateQueries({ queryKey: reviewKeys.all(orgId) }),
   });
 }
 

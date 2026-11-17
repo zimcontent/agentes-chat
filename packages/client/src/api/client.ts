@@ -27,6 +27,7 @@ import type {
 } from "../vault/types";
 import type {
   DesignEditInput,
+  PersonWorkInput,
   ReviewPost,
   ReviewPostPatch,
   ReviewWhatsAppTarget,
@@ -2360,6 +2361,8 @@ export interface ApiClient {
       issueId: string,
       input: { artifactId: string; note?: string; reviewId?: string },
     ): Promise<{ review: VideoReviewSummary; toClient: boolean }>;
+    /** Sends work a person made (a video or a design piece) for review, or its next version (doug-0015). */
+    sendWork?(orgId: string, input: PersonWorkInput): Promise<{ review: VideoReviewSummary; toClient: boolean }>;
     /** Sets the post's cover and caption, and approves each. */
     setPost?(orgId: string, reviewId: string, patch: ReviewPostPatch): Promise<ReviewPost>;
     /** Sends the approved post to the client (or straight to scheduling, for a `direct` client). */

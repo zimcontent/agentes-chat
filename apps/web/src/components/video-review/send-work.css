@@ -1,0 +1,38 @@
+/* Work a person sends for review (docs/adr/doug-0015-team-work-review.md): the form and the next version's card. */
+
+.sw-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+/* What was picked, and "Trocar" after it while the name fits on its line (an action line). */
+.sw-picked {
+  gap: var(--space-1) var(--space-3);
+  align-items: baseline;
+  min-height: var(--control-h-md);
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--line);
+  border-radius: var(--control-r-md);
+  background: var(--surface);
+}
+
+.sw-picked__name {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+/* The next version, under the log: a card like the decision's. */
+.sw-next {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-4);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+}
+
+.sw-next > p {
+  margin: 0;
+}

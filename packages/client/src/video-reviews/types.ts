@@ -195,3 +195,17 @@ export interface DesignEditInput {
   html: string;
   note?: string;
 }
+
+/**
+ * Work a person made, sent for review from Revisão (docs/adr/doug-0015-team-work-review.md): a video or a design
+ * piece's slides, uploaded first to the conversation it goes to (the task's, or a group's; a next version, its review's).
+ */
+export interface PersonWorkInput {
+  medium: "video" | "design";
+  files: string[];
+  title?: string;
+  note?: string;
+  reviewId?: string;
+  taskId?: string;
+  channelId?: string;
+}
