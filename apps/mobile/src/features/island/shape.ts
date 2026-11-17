@@ -84,3 +84,26 @@ export function noticeTop(kind: TopKind, insetTop: number) {
 export function noticeClear(kind: TopKind, insetTop: number) {
   return kind === "camera" ? CAMERA.height : kind === "notch" ? notchHeight(insetTop) : 0;
 }
+
+/** The island's shapes: gone, DougBot's signature at rest, a notice's pill, a waiting request's small island, open. */
+export type IslandShape = "none" | "brand" | "pill" | "small" | "open";
+
+/**
+ * The island's shape now. A request waiting on me stays as a small island only beside the camera's island, in the
+ * status bar's line. Off the camera (a notch, an older iPhone, Android) the small island reached into the screen's
+ * bar, over its back button and title, until the person decided: there it goes once its pill has shown (back to the
+ * signature where one rests), and the request keeps waiting in Pendentes, with its count.
+ */
+export function islandShape(input: {
+  kind: TopKind;
+  lead: boolean;
+  open: boolean;
+  small: boolean;
+  branded: boolean;
+}): IslandShape {
+  const rest = input.branded ? "brand" : "none";
+  if (!input.lead) return rest;
+  if (input.open) return "open";
+  if (input.small) return input.kind === "camera" ? "small" : rest;
+  return "pill";
+}

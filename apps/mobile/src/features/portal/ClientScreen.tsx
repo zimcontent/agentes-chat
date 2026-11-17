@@ -62,7 +62,14 @@ export function ClientScreen({ client, initialTab = "board" }: { client: string;
   const paint = boardPaint(scheme === "dark", c);
   const refresh = <RefreshControl refreshing={pull.refreshing} onRefresh={pull.onRefresh} />;
   return (
-    <View style={[styles.screen, { backgroundColor: lists ? paint.board : c.grouped }]}>
+    // The bar is clear on iOS (the route's scroll-under bar) and nothing here scrolls under it: the tabs and the
+    // lists start below it, as on Tarefas (`IssuesScreen`). Android's bar is opaque and already holds its room.
+    <View
+      style={[
+        styles.screen,
+        { backgroundColor: lists ? paint.board : c.grouped, paddingTop: Platform.OS === "ios" ? headerHeight : 0 },
+      ]}
+    >
       <PushedHeader
         title={portalClientName(client)}
         {...(summary && summary.open > 0 ? { subtitle: w.open(summary.open) } : {})}

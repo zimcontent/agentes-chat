@@ -36,7 +36,7 @@ import { Face } from "../shared/Face";
 import { useOrgId } from "../shared/hooks";
 import { ISLAND_RIM, IslandGlass } from "./IslandGlass";
 import { island } from "./island";
-import { BRAND_ROW, brandBox, CAMERA, noticeClear, noticeTop, topKindOf } from "./shape";
+import { BRAND_ROW, brandBox, CAMERA, type IslandShape, islandShape, noticeClear, noticeTop, topKindOf } from "./shape";
 
 const PILL_HEIGHT = 72;
 /** The face on the small island, beside the camera. */
@@ -54,7 +54,7 @@ const WHITE = "#fff";
 const MUTED = "rgba(255,255,255,0.64)";
 const LINE = "rgba(255,255,255,0.12)";
 
-type Shape = "none" | "brand" | "pill" | "small" | "open";
+type Shape = IslandShape;
 /** The signature's name size at rest (its Doug 1.42× that: 21). */
 const BRAND_SIZE = 15;
 /** The signature on the dark glass: the identity's ink on the dark stage. */
@@ -137,7 +137,7 @@ export function NoticeIsland() {
   // Held to the top of the screen: out of the camera, or hanging from the notch (its top corners square there).
   const attached = kind !== "plain";
   const brand = brandBox(kind, insets.top, Platform.OS === "android" ? ANDROID_BAR : IOS_BAR);
-  const shape: Shape = !lead ? (branded ? "brand" : "none") : open ? "open" : small ? "small" : "pill";
+  const shape: Shape = islandShape({ kind, lead: Boolean(lead), open, small, branded });
   // What it showed before it went: the signature leaves as the signature (fading where it is, or into the camera),
   // never as the last notice it once grew into.
   const wasBrand = useRef(false);
