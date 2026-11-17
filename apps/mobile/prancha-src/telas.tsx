@@ -33,6 +33,7 @@ import {
 } from "@/ui";
 import { TAB_GLYPHS, type TabGlyph, tabGlyphSvg } from "@/ui/tabGlyphs";
 import { useTheme } from "@/ui/theme";
+import { Paineis, Paineis320, PaineisFormas } from "./paineis";
 import { PortalCartao, PortalCronograma, PortalCronograma320 } from "./portal";
 import {
   RevisaoConversa,
@@ -994,6 +995,9 @@ export const TELAS: Record<string, () => ReactNode> = {
   "portal-cronograma": PortalCronograma,
   "portal-cronograma-320": PortalCronograma320,
   "portal-cartao": PortalCartao,
+  paineis: Paineis,
+  "paineis-formas": PaineisFormas,
+  "paineis-320": Paineis320,
 };
 
 const styles = StyleSheet.create({

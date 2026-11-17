@@ -2735,6 +2735,11 @@ export const featureKeysPtBR = {
   },
   // Dashboards on the phone (ADR 0135); the rest of their words are the web's, `dashboards.*` and `widgets.*`.
   dashboards: {
+    /** Dashboards' pages (`BoardPages`): the bar's "Editar", back, the dots and the title's tap. */
+    editBoard: "Editar",
+    back: "Voltar",
+    page: "Painel {{at}} de {{count}}",
+    pick: "Escolher outro painel",
     homeRow: "Só você · seus próprios widgets",
     loadFailed: "Não deu para carregar os painéis.",
     create: "Criar",

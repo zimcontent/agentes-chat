@@ -2554,6 +2554,10 @@
     "bySelfUntil": "Ditulis oleh {{name}} · {{when}}"
   },
   "dashboards": {
+    "editBoard": "Edit",
+    "back": "Kembali",
+    "page": "Dasbor {{at}} dari {{count}}",
+    "pick": "Pilih dasbor lain",
     "homeRow": "Hanya kamu · widget milikmu sendiri",
     "loadFailed": "Dasbor tidak bisa dimuat.",
     "create": "Buat",

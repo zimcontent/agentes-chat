@@ -6558,6 +6558,18 @@
   "status.bySelfUntil": {
     "value": "Written by {{name}} · {{when}}"
   },
+  "dashboards.editBoard": {
+    "value": "Edit"
+  },
+  "dashboards.back": {
+    "value": "Back"
+  },
+  "dashboards.page": {
+    "value": "Dashboard {{at}} of {{count}}"
+  },
+  "dashboards.pick": {
+    "value": "Pick another dashboard"
+  },
   "dashboards.homeRow": {
     "value": "Only you · your own widgets"
   },

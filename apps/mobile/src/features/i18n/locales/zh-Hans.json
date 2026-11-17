@@ -2554,6 +2554,10 @@
     "bySelfUntil": "由 {{name}} 填写 · {{when}}"
   },
   "dashboards": {
+    "editBoard": "编辑",
+    "back": "返回",
+    "page": "仪表盘 {{at}}/{{count}}",
+    "pick": "选择其他仪表盘",
     "homeRow": "仅你自己 · 你自己的小组件",
     "loadFailed": "无法加载仪表盘。",
     "create": "创建",

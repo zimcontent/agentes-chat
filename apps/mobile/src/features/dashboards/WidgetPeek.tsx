@@ -2,7 +2,7 @@ import { useBuildOnceAi, useRefreshWidget, useRemoveWidget, type Widget, widgetN
 import { Link } from "expo-router";
 import { useTranslation } from "react-i18next";
 import { Alert, Platform, StyleSheet, useWindowDimensions, View } from "react-native";
-import { useToast } from "@/ui";
+import { useTheme, useToast } from "@/ui";
 import { router } from "@/ui/navigation";
 import { widgetHref } from "../links/logic";
 import { useFailed } from "../routines/hooks";
@@ -10,13 +10,16 @@ import { useOrgId } from "../shared/hooks";
 import { successHaptic } from "../shared/parts";
 import { useAgentLook } from "./hooks";
 import { shownWidgetTitle } from "./logic";
-import { useWidgetSurface, WidgetCard, type WidgetCardData } from "./WidgetView";
+import { TILE_HEIGHT } from "./tile-look";
+import { WidgetTile } from "./WidgetTile";
+import { WidgetCard, type WidgetCardData } from "./WidgetView";
 
-/** The long press's preview: the widget drawn big, as tall as this. */
-const PREVIEW_HEIGHT = 360;
+/** The long press's preview: the widget drawn large (L), as tall as its tile. */
+const PREVIEW_HEIGHT = TILE_HEIGHT.l;
 
 /**
- * A widget's card on a board or the home's strip that opens its screen, with iOS's own gestures (ADR 0135): a tap
+ * A widget on a board (its colored tile, `WidgetTile`) or the home's strip (its card) that opens its screen, with
+ * iOS's own gestures (ADR 0135): a tap
  * zooms the card into its screen (iOS 18+); a long press lifts it into the system's preview with the widget drawn
  * big, and for whoever edits the board the system's menu under it (Update now, Organize, Remove, confirmed).
  * Tapping the preview opens the widget. Elsewhere (Android) the card just opens it.
@@ -39,7 +42,7 @@ export function WidgetPeek({
   const toast = useToast();
   const failed = useFailed();
   const look = useAgentLook(w.agentId);
-  const surface = useWidgetSurface();
+  const { colors: c } = useTheme();
   const refresh = useRefreshWidget(orgId);
   const remove = useRemoveWidget(orgId);
   useBuildOnceAi(orgId, w, canEdit);
@@ -58,7 +61,11 @@ export function WidgetPeek({
     wait: w.wait,
   };
   if (Platform.OS !== "ios") {
-    return <WidgetCard widget={data} compact={compact} onPress={() => router.push(href)} />;
+    return compact ? (
+      <WidgetCard widget={data} compact onPress={() => router.push(href)} />
+    ) : (
+      <WidgetTile id={w.id} widget={data} onPress={() => router.push(href)} />
+    );
   }
   const shown = shownWidgetTitle(w.title, w.kind, (k) => t(k));
   const updateNow = () =>
@@ -92,12 +99,12 @@ export function WidgetPeek({
   return (
     <Link href={href} asChild>
       <Link.Trigger withAppleZoom>
-        <PeekTrigger widget={data} compact={compact} />
+        <PeekTrigger id={w.id} widget={data} compact={compact} />
       </Link.Trigger>
       <Link.Preview style={{ width: width - 32, height: PREVIEW_HEIGHT }}>
-        {/* The card fills the preview; the surface behind it keeps its corners from showing white. */}
-        <View style={[styles.preview, surface]}>
-          <WidgetCard big widget={{ ...data, w: 2, h: 2 }} />
+        {/* The tile fills the preview; the page's color behind it keeps its corners from showing white. */}
+        <View style={[styles.preview, { backgroundColor: c.bg }]}>
+          <WidgetTile id={w.id} widget={{ ...data, w: 2, h: 2 }} />
         </View>
       </Link.Preview>
       {/* Only for whoever edits the board: someone who only sees it gets the preview alone. */}
@@ -124,10 +131,24 @@ export function WidgetPeek({
  * kept as a real view (`collapsable={false}`, never flattened away) lets the card's own corners show. `onPress`
  * comes from the link (`Link.Trigger` passes it on).
  */
-function PeekTrigger({ widget, compact, onPress }: { widget: WidgetCardData; compact: boolean; onPress?: () => void }) {
+function PeekTrigger({
+  id,
+  widget,
+  compact,
+  onPress,
+}: {
+  id: string;
+  widget: WidgetCardData;
+  compact: boolean;
+  onPress?: () => void;
+}) {
   return (
     <View collapsable={false} style={styles.trigger}>
-      <WidgetCard widget={widget} compact={compact} onPress={onPress} />
+      {compact ? (
+        <WidgetCard widget={widget} compact onPress={onPress} />
+      ) : (
+        <WidgetTile id={id} widget={widget} {...(onPress ? { onPress } : {})} />
+      )}
     </View>
   );
 }

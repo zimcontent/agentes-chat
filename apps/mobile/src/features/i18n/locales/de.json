@@ -2671,6 +2671,10 @@
     "bySelfUntil": "Geschrieben von {{name}} · {{when}}"
   },
   "dashboards": {
+    "editBoard": "Bearbeiten",
+    "back": "Zurück",
+    "page": "Dashboard {{at}} von {{count}}",
+    "pick": "Anderes Dashboard wählen",
     "homeRow": "Nur du · deine eigenen Widgets",
     "loadFailed": "Die Dashboards konnten nicht geladen werden.",
     "create": "Erstellen",

@@ -2554,6 +2554,10 @@
     "bySelfUntil": "{{name}} 작성 · {{when}}"
   },
   "dashboards": {
+    "editBoard": "편집",
+    "back": "뒤로",
+    "page": "대시보드 {{at}}/{{count}}",
+    "pick": "다른 대시보드 선택",
     "homeRow": "나만 · 내 위젯",
     "loadFailed": "대시보드를 불러오지 못했어요.",
     "create": "만들기",
