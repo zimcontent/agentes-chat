@@ -53,22 +53,17 @@ test("Sua IA is one row that opens its choice: what answers me, by its logo and 
   expect(screen).toContain('text: t("rightHand.settings.mineHelp", agentGrammar(agent.name)),');
   expect(screen).not.toContain("rightHandFallback");
   expect(screen).toContain("openConnectAi({ agentId: agent.id })");
-  // On the right hand's profile, and first in its settings, under "Só para você".
-  expect(profile).toContain("<RightHandMine agent={agent} />");
+  // First in its settings, under "Só para você".
   const mine = screen.indexOf('<GroupTitle>{t("rightHand.settings.groupMine")}</GroupTitle>');
   const workspace = screen.indexOf('{t("rightHand.settings.groupWorkspace")}</GroupTitle>');
   expect(mine).toBeGreaterThan(-1);
   expect(screen.indexOf("<RightHandMine agent={agent} />")).toBeGreaterThan(mine);
   expect(screen.indexOf("<RightHandApprovalsGroup />")).toBeGreaterThan(mine);
   expect(screen.indexOf("<RightHandApprovalsGroup />")).toBeLessThan(workspace);
-  // The workspace's group is only for who manages agents, and the settings open for everyone from the profile.
+  // The workspace's group is only for who manages agents, and the settings open for everyone from the profile's
+  // Ajustes.
   expect(screen.slice(mine, workspace)).toContain('{can(org, "manage_agents") ? (');
-  expect(profile).toContain(
-    '? { action: { label: t("rightHand.profile.configure"), onPress: openRightHandSettings } }',
-  );
-  expect(profile).not.toContain(
-    '? can(org, "manage_agents")\n              ? { action: { label: t("rightHand.profile.configure")',
-  );
+  expect(profile).toContain("onPress: () => (rightHand ? openRightHandSettings() : openAgentSettings(id)),");
 });
 
 test("Lodi's settings: the workspace's plan has no lending switch, since a plan serves the whole workspace", () => {

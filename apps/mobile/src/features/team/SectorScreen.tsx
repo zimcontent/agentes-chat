@@ -22,9 +22,7 @@ import { SettingsPage } from "../settings/parts";
 import { AgentFace } from "../shared/Face";
 import { useColors, useDirectory, useOrgId } from "../shared/hooks";
 import { pickOne } from "../shared/PickerSheet";
-import { SheetTitle } from "../shared/PromptForm";
-import { ActionList, goBack, successHaptic } from "../shared/parts";
-import { useSheet } from "../shared/SheetHost";
+import { goBack, successHaptic } from "../shared/parts";
 
 /** The picker's key for "Ninguém" (no person). */
 const NOBODY = "\u0000nobody";
@@ -56,42 +54,6 @@ export function useDeleteSector() {
       },
     ]);
   return { ask, pending: action.isPending };
-}
-
-/** A setor header's "…" and long press in Agentes (who manages agents): Editar (its page) and Excluir setor. */
-export function useSectorMenu() {
-  const { t } = useTranslation();
-  const sheet = useSheet();
-  const remove = useDeleteSector();
-  return (group: AgentGroup) =>
-    sheet.open(
-      <>
-        <SheetTitle title={group.name} />
-        <ActionList
-          items={[
-            {
-              key: "edit",
-              icon: "pen",
-              label: t("agentGroups.rename"),
-              onPress: () => {
-                sheet.close();
-                router.push(`/sector/${group.id}`);
-              },
-            },
-            {
-              key: "delete",
-              icon: "trash",
-              label: t("agentGroups.delete"),
-              danger: true,
-              onPress: () => {
-                sheet.close();
-                remove.ask(group);
-              },
-            },
-          ]}
-        />
-      </>,
-    );
 }
 
 /**

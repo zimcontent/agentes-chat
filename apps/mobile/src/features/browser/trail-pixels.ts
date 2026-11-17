@@ -21,7 +21,7 @@ export const STRIP_ROWS = 7;
 const COLUMN_W = 3;
 const COLUMN_GAP = 1;
 
-/** The cells grouped by color, in the order the colors first appear (also the agent's month, `month-pixels.ts`). */
+/** The cells grouped by color, in the order the colors first appear. */
 export class CellGrid {
   private readonly byColor = new Map<string, number[]>();
   put(x: number, y: number, color: string) {

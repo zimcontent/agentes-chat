@@ -41,6 +41,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useOrg } from "@/providers/org";
 import { Button, Text, useToast } from "@/ui";
 import { router } from "@/ui/navigation";
+import { useCreateAgent } from "../agents/elsewhere";
 import { useColors, useDirectory, useMeId } from "../shared/hooks";
 import { PushedHeader } from "../shared/parts";
 import { ConnectAiFlow, viewOf } from "./ConnectAiSteps";
@@ -156,6 +157,7 @@ const STEPS = 3;
  * notification): a plan's page says so.
  */
 export function ConnectAiSheet() {
+  const createAgent = useCreateAgent();
   const { t } = useTranslation();
   const api = useApi();
   const qc = useQueryClient();
@@ -339,7 +341,7 @@ export function ConnectAiSheet() {
               variant="primary"
               wide
               label={t("connectAi.makeAgent")}
-              onPress={() => router.replace(`/new-agent?account=${encodeURIComponent(makeWith.id)}` as never)}
+              onPress={() => createAgent(t("mobile.agentLite.onPlan", { plan: makeWith.label }))}
             />
           ) : null}
           <Button variant={makeWith ? "secondary" : "primary"} wide label={t("connectAi.done")} onPress={close} />

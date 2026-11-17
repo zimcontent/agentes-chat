@@ -46,4 +46,6 @@ test("Início: no large title, no greeting; the tools lead with Buscar and keep 
   expect([...at].sort((a, b) => a - b)).toEqual(at);
   expect(tools).toContain("const FRONT = 4;");
   expect(tools).toContain('href: "/new-agent"');
+  // The phone has no form for it: the tool asks the right hand.
+  expect(tools).toContain('if (tool?.key === "new-agent") createAgent();');
 });

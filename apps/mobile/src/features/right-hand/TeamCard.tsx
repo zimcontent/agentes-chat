@@ -40,6 +40,7 @@ import { useOrg } from "@/providers/org";
 import { AgentAvatar, Button, fieldText, Icon, LineIcon, Locked, MEDIA_ROW, MediaRow, Sheet, Text } from "@/ui";
 import { router } from "@/ui/navigation";
 import { fullLook } from "../agents/edit";
+import { useCreateAgent } from "../agents/elsewhere";
 import { openConnectAi } from "../ai/NoAiCard";
 import { usePlanHold } from "../ai/parts";
 import { type AskAnswer, AskButtons, AskCard, AskFoot } from "../chat/asks";
@@ -757,6 +758,7 @@ export function TeamTemplatesSheet({
   /** The business the first run's row 1 saved (ADR 0155 §6): its template opens picked. */
   initial?: string | undefined;
 }) {
+  const createAgent = useCreateAgent();
   const { t, i18n } = useTranslation();
   const { orgId, org } = useOrg();
   const c = useColors();
@@ -896,7 +898,7 @@ export function TeamTemplatesSheet({
               label={t("teamPlan.templates.scratch")}
               onPress={() => {
                 onClose();
-                router.push("/new-agent");
+                createAgent();
               }}
             />
           </>

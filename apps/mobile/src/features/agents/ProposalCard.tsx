@@ -43,6 +43,7 @@ import { useFailed } from "../routines/hooks";
 import { proposedRoutineWhen } from "../routines/rule";
 import { useDirectory, useMeId, useWhen } from "../shared/hooks";
 import { fullLook } from "./edit";
+import { newAgentSitePath, openSitePath } from "./elsewhere";
 import { useDelegateUndoAction } from "./RightHandDelegate";
 
 /**
@@ -148,7 +149,8 @@ export function AgentProposalView({
         onError: failed,
       },
     );
-  const edit = () => router.push(`/new-agent?proposal=${encodeURIComponent(messageId)}` as never);
+  // Changing a proposed agent before creating it is the website's "Criar agente", on the proposal's draft.
+  const edit = () => openSitePath(newAgentSitePath(orgId, { proposal: messageId }));
   const dismiss = () => deny.mutate(messageId, { onSuccess: () => asks?.settle(messageId), onError: failed });
   // Created, refused, expired or replaced by a newer one: the same card, how it ended where its buttons were, and
   // what can still be done (its page, a routine left to make) under it.

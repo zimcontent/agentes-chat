@@ -11,6 +11,7 @@ import { useTranslation } from "react-i18next";
 import { StyleSheet, View } from "react-native";
 import { GroupedFooter, GroupedHeader, GroupedList, GroupedRow, useToast } from "@/ui";
 import { router } from "@/ui/navigation";
+import { useCreateAgent } from "../agents/elsewhere";
 import { Note } from "../ai/parts";
 import { useWidenAsk } from "../chat/ReachLines";
 import { SettingsPage } from "../settings/parts";
@@ -36,6 +37,7 @@ import { CargoMark, Gone, rolesHref, useFail, useRolesData, Waiting } from "./pa
  * today's questions (someone's plan, a mailbox). When neither Todos nor the cargo talks to agents, that comes first.
  */
 export function RoleAgentsScreen({ roleId }: { roleId: string }) {
+  const createAgent = useCreateAgent();
   const { t } = useTranslation();
   const fail = useFail();
   const { orgId, org, data, everyone, people, failed, error, retry, viewer } = useRolesData();
@@ -98,7 +100,7 @@ export function RoleAgentsScreen({ roleId }: { roleId: string }) {
           <GroupedFooter>{t("mobile.roles.agents.none")}</GroupedFooter>
           {can(org, "create_agents") ? (
             <GroupedList>
-              <GroupedRow icon="plus" label={t("shell.createAgent")} onPress={() => router.push("/new-agent")} />
+              <GroupedRow icon="plus" label={t("shell.createAgent")} onPress={() => createAgent()} />
             </GroupedList>
           ) : null}
         </>

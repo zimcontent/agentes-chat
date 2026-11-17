@@ -32,6 +32,7 @@ import {
   useTheme,
 } from "@/ui";
 import { router } from "@/ui/navigation";
+import { useCreateAgent } from "../agents/elsewhere";
 import { busyAgents } from "../agents/logic";
 import { AgentFace, Face } from "../shared/Face";
 import { useDirectory, useMeId } from "../shared/hooks";
@@ -252,11 +253,12 @@ const CREATE_LOOK: Record<Exclude<CreateItem, "invite">, { icon: IconName; color
  * is a group conversation, and its wiki is for its person's agents (ADR 0159).
  */
 function CreateList({ items }: { items: CreateItem[] }) {
+  const createAgent = useCreateAgent();
   const { t } = useTranslation();
   const { org } = useOrg();
   // The short names reuse labels already translated in every language (a form field's or a screen's name elsewhere).
   const spec: Record<Exclude<CreateItem, "invite">, { label: string; sub: string; onPress: () => void }> = {
-    agent: { label: t("missions.new.agent"), sub: t("mobile.new.agentHint"), onPress: () => router.push("/new-agent") },
+    agent: { label: t("missions.new.agent"), sub: t("mobile.new.agentHint"), onPress: () => createAgent() },
     channel: {
       label: isPersonal(org) ? t("mobile.new.channelPersonal") : t("missions.new.channel"),
       sub: t(modeKey(org, "mobile.chats.newChannelHint")),

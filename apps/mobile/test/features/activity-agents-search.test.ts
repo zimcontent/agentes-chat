@@ -12,15 +12,7 @@ import {
   subtitleOf,
   whoOf,
 } from "../../src/features/activity/logic";
-import {
-  agoOf,
-  busyAgents,
-  busyChannels,
-  canUse,
-  spendOf,
-  teamLines,
-  workingNow,
-} from "../../src/features/agents/logic";
+import { agoOf, busyAgents, busyChannels, canUse, spendOf, workingNow } from "../../src/features/agents/logic";
 import { featureKeysEn } from "../../src/features/i18n/keys.en";
 import { featureKeysPtBR } from "../../src/features/i18n/keys.pt-BR";
 import { filterResults, fold, isEmpty, matches, searchCounts, searchResults } from "../../src/features/search/logic";
@@ -274,35 +266,6 @@ describe("who is working", () => {
     expect(m?.since).toBe(ago(3));
     expect(started?.since).toBe(ago(1));
     expect(queued?.since).toBe(ago(2));
-  });
-
-  test("Agentes: working ones with since when, then free ones by their last conversation, then by name", () => {
-    const agents = [
-      agent({ id: "bento", name: "Bento" }),
-      agent({ id: "nina", name: "Nina" }),
-      agent({ id: "iris", name: "Iris" }),
-      agent({ id: "ana", name: "Ana" }),
-      agent({ id: "theo", name: "Theo" }),
-    ];
-    const work = workingNow([run("r1", "theo", "running", "t9", ago(0.1)), run("r2", "ghost", "running", "t2")], []);
-    const dm = (id: string, hours: number | null, body = "**Pronto**, mandei.") => ({
-      with: { type: "agent" as const, id, name: id, handle: id },
-      lastMessage: hours === null ? null : { id: `m-${id}`, body, createdAt: ago(hours), authorType: "agent" },
-    });
-    const { working, free } = teamLines(agents, work, [
-      dm("nina", 5),
-      dm("iris", 1),
-      dm("theo", 0.5),
-      dm("ana", null),
-      { ...dm("x", 1), with: { type: "person" as const, id: "bento", name: "B", handle: null } },
-    ]);
-    expect(working.map((l) => [l.agent.id, l.at])).toEqual([["theo", ago(0.1)]]);
-    expect(free.map((l) => [l.agent.id, l.at, l.preview])).toEqual([
-      ["iris", ago(1), "Pronto, mandei."],
-      ["nina", ago(5), "Pronto, mandei."],
-      ["ana", null, null],
-      ["bento", null, null],
-    ]);
   });
 
   test("how long ago, in the largest whole unit", () => {

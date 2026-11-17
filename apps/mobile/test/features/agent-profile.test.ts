@@ -1,20 +1,18 @@
 import { describe, expect, test } from "bun:test";
-import type { AgentAccess, AgentForYouItem, AgentStatusLine, Memory, OrgSummary, PlanUsage } from "@agenteschat/client";
+import type { AgentAccess, AgentForYouItem, Memory, OrgSummary, PlanUsage } from "@agenteschat/client";
 import { listsAgent, mailLossText, widenQuestion } from "@agenteschat/client/lib/audience";
 import { planMeterText } from "@agenteschat/client/lib/plan-usage";
 import { planLine } from "@agenteschat/ui/plan-state";
+import { monthShare, TEAM_ORDER, teamNowOf, todayRows } from "../../src/features/agents/lite";
 import {
   byPlaybook,
   canEditMemories,
+  type DidLine,
   dayWord,
   didLines,
-  freeSections,
   knownAboutMe,
   memoryOrigin,
-  modelRow,
   plainRole,
-  statusCardShown,
-  teamLines,
   usesOf,
   type WorkItem,
 } from "../../src/features/agents/logic";
@@ -35,83 +33,6 @@ const work = (agentId: string, since: string): WorkItem => ({
   plan: null,
   since,
   waiting: false,
-});
-
-describe("Agentes: esperando você, trabalhando, livres", () => {
-  const agents = [
-    agent({ id: "theo", name: "Theo" }),
-    agent({ id: "nina", name: "Nina" }),
-    agent({ id: "iris", name: "Iris" }),
-  ];
-
-  test("an agent waiting on you goes first with the exact request, once, and leaves the other sections", () => {
-    const { waiting, working, free } = teamLines(
-      agents,
-      [work("theo", ago(0.5)), work("nina", ago(0.4))],
-      [],
-      [
-        { id: "a1", agentId: "theo", title: "Merge PR #128", createdAt: ago(0.1) },
-        { id: "a2", agentId: "theo", title: "Deploy", createdAt: ago(0.2) },
-        { id: "a3", agentId: "ghost", title: "x", createdAt: ago(0.2) },
-      ],
-    );
-    expect(waiting.map((l) => [l.agent.id, l.approval?.title, l.waitingCount, l.at])).toEqual([
-      ["theo", "Merge PR #128", 2, ago(0.1)],
-    ]);
-    expect(working.map((l) => l.agent.id)).toEqual(["nina"]);
-    expect(free.map((l) => l.agent.id)).toEqual(["iris"]);
-  });
-
-  test("at work where you don't read: under Trabalhando by its work for you, once, never over what waits on you", () => {
-    const atWork = new Map([
-      ["iris", ago(0.3)],
-      ["nina", ago(2)],
-      ["theo", ago(0.2)],
-    ]);
-    const { waiting, working, free } = teamLines(
-      agents,
-      [work("nina", ago(1))],
-      [],
-      [{ id: "a1", agentId: "theo", title: "Merge PR #128", createdAt: ago(0.1) }],
-      new Map(),
-      atWork,
-    );
-    expect(waiting.map((l) => l.agent.id)).toEqual(["theo"]);
-    // Nina's own item first, as Início lists it; Iris by its work for you alone, with since when.
-    expect(working.map((l) => [l.agent.id, l.work?.what ?? null, l.at])).toEqual([
-      ["nina", "pesquisando os preços", ago(1)],
-      ["iris", null, ago(0.3)],
-    ]);
-    expect(free).toEqual([]);
-  });
-
-  test("without requests it is the old split (nothing waiting)", () => {
-    const { waiting, working, free } = teamLines(agents, [work("nina", ago(1))], []);
-    expect(waiting).toEqual([]);
-    expect(working.map((l) => l.agent.id)).toEqual(["nina"]);
-    expect(free.map((l) => l.agent.id).sort()).toEqual(["iris", "theo"]);
-  });
-
-  test("Livres by the workspace's groups: the ones in none first, then each group, each by latest conversation", () => {
-    const team = [...agents, agent({ id: "zoe", name: "Zoe" }), agent({ id: "ana", name: "Ana" })];
-    const { working, free } = teamLines(team, [work("nina", ago(1))], []);
-    const groups = [
-      { id: "g1", name: "Integrations", agentIds: ["zoe", "nina", "theo"] },
-      { id: "g2", name: "Produto", agentIds: ["nina"] },
-      { id: "g3", name: "Lumen | Gestão e Financeiro", agentIds: ["ana"] },
-    ];
-    const sections = freeSections(free, groups);
-    // Inside a group Livres' order (the latest conversation, then the name), not the order it was arranged in.
-    expect(sections.map((s) => [s.group?.name ?? null, s.lines.map((l) => l.agent.id)])).toEqual([
-      [null, ["iris"]],
-      ["Integrations", ["theo", "zoe"]],
-      ["Lumen | Gestão e Financeiro", ["ana"]],
-    ]);
-    // A working agent stays under "Trabalhando agora", out of its group's section.
-    expect(working.map((l) => l.agent.id)).toEqual(["nina"]);
-    // No groups: Livres alone, as before.
-    expect(freeSections(free, []).map((s) => [s.group, s.lines.length])).toEqual([[null, free.length]]);
-  });
 });
 
 describe("Perfil: a função numa frase", () => {
@@ -385,46 +306,6 @@ describe("Perfil: o mês, com os limites do plano (ADR 0063 §5)", () => {
     });
   });
 
-  test("the screen: one row for the month, the plan's account named first, the budget only once it spent through the API", async () => {
-    // The screens are components the tests can't render: what they wire in, as text.
-    const read = (file: string) => Bun.file(new URL(`../../src/features/${file}`, import.meta.url).pathname).text();
-    const [screen, parts] = await Promise.all([read("agents/AgentProfileScreen.tsx"), read("usage/parts.tsx")]);
-    expect(screen).toContain("const shown = usageShown(agent?.brain, detail.data?.budgetUsedPercent ?? 0);");
-    // Its name: the plan's account, else the plan, else its model; its value: the plan's tightest window.
-    expect(screen).toContain("shown.plan?.account ?? thinksPlan ?? thinks?.text ?? apiModel");
-    expect(screen).toContain("const planNow = shown.plan ? planLine(shown.plan.usage, meter, now) : null;");
-    expect(screen).toContain("meter.short(planNow.top)");
-    // The budget only where it shows, its share as the web says it ("<1%" for a little spent).
-    expect(screen).toContain("if (!spend || !shown.budget) return null;");
-    expect(screen.match(/formatPercent\(i18n\.language, spend\.percent\)/g)).toHaveLength(1);
-    // No meter card and no separate usage card: the row itself opens the usage page.
-    expect(screen).not.toContain("<PlanMeter");
-    expect(screen).toContain("onPress={() => openAgentUsage(id)}");
-    // The phone's meter draws the same line as the web's (`planLine`).
-    expect(parts).toContain("const shown = planLine(usage, text, now);");
-    // The budget is never called a limit next to a plan's limits.
-    const t = await translator("pt-BR");
-    expect(t("mobile.agent.ofMonthBudget")).toBe("do orçamento do mês");
-    expect(t("mobile.agent.exhaustedF", { name: "Ada" })).toBe("A Ada usou todo o orçamento do mês.");
-    expect(t("settings.usageAgentLine", { spent: "US$ 3,20", budget: "US$ 50,00" })).toBe("US$ 3,20 de US$ 50,00");
-  });
-
-  test("Pensa com: the plan as the row's name, the model and a fixed model's effort under it, on two lines", async () => {
-    const screen = await Bun.file(
-      new URL("../../src/features/agents/AgentProfileScreen.tsx", import.meta.url).pathname,
-    ).text();
-    expect(screen).toContain("label={thinksPlan ?? thinks.text}");
-    expect(screen).toContain("{...(thinksUnder ? { sub: thinksUnder, subLines: 2 } : {})}");
-    expect(screen).toContain("!isAuto(effortView.effectiveModel)");
-    // Its owner and admins change it on its AI page, pushed from this row; the conversation's bar has no button for it.
-    expect(screen).toContain("? { chevron: true, onPress: () => openAgentAi(agent.id) }");
-    expect(screen).not.toContain("ModelPickerSheet");
-    const chat = await Bun.file(new URL("../../src/features/chat/ChatScreen.tsx", import.meta.url).pathname).text();
-    expect(chat).not.toContain("DmModelButton");
-    const t = await translator("pt-BR");
-    expect(t("agentPage.work.cell.effort", { level: "médio" })).toBe("esforço médio");
-  });
-
   test("the bars as the web colors them: each window by its own level, the words and the compact bar by the plan's", async () => {
     const parts = await Bun.file(new URL("../../src/features/usage/parts.tsx", import.meta.url).pathname).text();
     expect(parts).toContain('const tone = c[PLAN_TONE[planLevel(shown.top?.used ?? 0, shown.state === "limited")]];');
@@ -448,73 +329,6 @@ describe("Perfil: o mês, com os limites do plano (ADR 0063 §5)", () => {
     expect(screen).toContain("source: { gap: 6, paddingVertical: 12 },");
     expect(screen).toContain('n: { alignItems: "flex-start" },');
     expect(screen).not.toContain("maxWidth: 110");
-  });
-});
-
-describe("Perfil: agora, cada coisa uma vez", () => {
-  const line = (by: AgentStatusLine["by"], kind: AgentStatusLine["kind"] = null) => ({ by, kind });
-  const idle = { working: false, asking: false };
-
-  test("its own words and out of office always; the server's work line only with no job row; a wait unless it is the request shown", () => {
-    expect(statusCardShown(null, idle)).toBe(false);
-    expect(statusCardShown(line("self"), { working: true, asking: true })).toBe(true);
-    expect(statusCardShown(line("auto", "out_of_plan"), { working: true, asking: false })).toBe(true);
-    expect(statusCardShown(line("auto", "coding"), { working: true, asking: false })).toBe(false);
-    expect(statusCardShown(line("auto", "coding"), idle)).toBe(true);
-    expect(statusCardShown(line("wait", "waiting_approval"), { working: false, asking: true })).toBe(false);
-    expect(statusCardShown(line("wait", "waiting_approval"), idle)).toBe(true);
-    expect(statusCardShown(line("wait", "waiting_plan"), { working: false, asking: true })).toBe(true);
-  });
-
-  test("the screen: three views, the request as the shared card and out of the list, the jobs as rows, no pills", async () => {
-    // The screens are components the tests can't render: what they wire in, as text.
-    const read = (file: string) => Bun.file(new URL(`../../src/features/${file}`, import.meta.url).pathname).text();
-    const [screen, mail, computer] = await Promise.all([
-      read("agents/AgentProfileScreen.tsx"),
-      read("agents/AgentMailSection.tsx"),
-      read("computer/AgentComputerRow.tsx"),
-    ]);
-    expect(screen).toContain('{ key: "today", label: t("common.today") }');
-    expect(screen).toContain('{ key: "access", label: t("agentPage.fields.levels") }');
-    expect(screen).toContain('{ key: "memory", label: t("agentPage.tabs.memory") }');
-    expect(screen).toContain('kind={{ icon: "shield", label: t("mobile.intentAgents.asksApproval") }}');
-    expect(screen).toContain('!(waitingNow && l.href?.kind === "approval" && l.href.id === waitingNow.id)');
-    expect(screen).toContain("statusCardShown(statusLine, { working: busy, asking: asking.length > 0 })");
-    expect(screen).toContain("<PixelOrbit color={look.color} size={14} />");
-    // One surface level: grouped lists on the gray, no pills, sections or cards of its own.
-    expect(screen).not.toContain("NowPill");
-    expect(screen).not.toMatch(/<(Section|Card|Row)\b/);
-    // Mailboxes are rows of "Can use"; Chat stands alone under the name, and the computer is a card on Today.
-    expect(mail).toContain("export function useAgentMailboxes(agentId: string, enabled = true): MailboxLine[]");
-    expect(screen).not.toContain("AgentComputerButton");
-    expect(screen).toContain(
-      'acts: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, marginTop: 8 },',
-    );
-    expect(computer).toContain('label={helps ? t("agentComputer.help") : t("agentComputer.button")}');
-    // One card: the picture when there is one, the row with the status line always, in the lists' own relief.
-    expect(computer).toContain("{...(line ? { sub: line, subLines: 2 } : {})}");
-    expect(computer).toContain("{ backgroundColor: colors.raised, boxShadow:");
-    // The screen's views are as tall as its button.
-    expect(screen).toContain('wide\n                size="page"');
-    // The screen's recent picture on Today; the rules people gave on Memory, under what it learned; where it merges on
-    // Access; the right hand's own AI above how it works: each in the grouped lists, none a section of its own.
-    expect(screen).toContain("      {nowBlock}\n      <AgentComputerCard agentId={id} />");
-    expect(computer).toContain("asksPicture(focused, view.desktopQ.data ?? null)");
-    expect(screen).toContain(
-      "      {knows.data ? memoryKnows : null}\n      {/* What people told it to always do, under what it learned, as the web's Memória. */}\n      <GivenRules agentId={id} name={name} rightHand={rightHand} />",
-    );
-    expect(screen).toContain(
-      '<MergeReposSection agentId={id} name={name} mayEdit={mine || can(org, "manage_agents")} />',
-    );
-    expect(screen).toContain(
-      '<GroupedHeader>{t("rightHand.settings.mine")}</GroupedHeader>\n            <RightHandMine',
-    );
-    const t = await translator("pt-BR");
-    const tabs = [t("common.today"), t("agentPage.fields.levels"), t("agentPage.tabs.memory")];
-    expect(tabs).toEqual(["Hoje", "Acesso", "Memória"]);
-    expect(t("ask.kind.approval")).toBe("Pede sua aprovação");
-    expect(t("mobile.intentAgents.asksApproval")).toBe("Pede sua aprovação");
-    expect(t("mobile.agent.canUse")).toBe("Pode usar");
   });
 });
 
@@ -564,25 +378,109 @@ describe("an agent that doesn't answer me", () => {
   });
 });
 
-describe("Perfil: the Modelo row says how it thinks on the value's line (#44)", () => {
-  test("through the API: the model, then Pela API; on a plan: the plan's model, then the plan", async () => {
-    const pt = await translator("pt-BR");
-    expect(modelRow(pt, undefined, "Claude Sonnet 4.5")).toEqual({ value: "Claude Sonnet 4.5", valueNote: "Pela API" });
-    expect(modelRow(pt, { kind: "model", model: null }, "Automático")).toEqual({
-      value: "Automático",
-      valueNote: "Pela API",
+describe("the light profile (the phone keeps no agents' setup)", () => {
+  const read = (file: string) => Bun.file(new URL(`../../${file}`, import.meta.url).pathname).text();
+  const did = (key: string, at: string, waiting = false): DidLine => ({
+    key,
+    icon: "doc",
+    title: { key: "file", values: { title: key } },
+    sub: null,
+    href: null,
+    at,
+    waiting,
+  });
+
+  test("Hoje: what it is on first, then what it did since midnight, newest first, five at most", () => {
+    const rows = todayRows(
+      [work("ada", ago(0.2))],
+      [
+        did("ontem", ago(20)),
+        did("cedo", ago(5)),
+        did("agora", ago(1)),
+        did("a", ago(2)),
+        did("b", ago(3)),
+        did("c", ago(4)),
+      ],
+      NOW.getTime(),
+    );
+    expect(rows.map((r) => (r.kind === "work" ? "work" : r.did.key))).toEqual(["work", "agora", "a", "b", "c"]);
+    expect(todayRows([], [did("ontem", ago(20))], NOW.getTime())).toEqual([]);
+  });
+
+  test("Este mês: a plan's busiest window, else the budget's share, else nothing", () => {
+    expect(monthShare({ planUsed: 42, spend: { kind: "percent", percent: 90 } })).toBe(42);
+    expect(monthShare({ planUsed: null, spend: { kind: "money", fraction: 0.256 } })).toBe(26);
+    expect(monthShare({ planUsed: null, spend: { kind: "percent", percent: 140 } })).toBe(100);
+    expect(monthShare({ planUsed: null, spend: null })).toBeNull();
+  });
+
+  test("Seu time agora: waiting on you over at work (its plan's bar), then stopped or free", () => {
+    const at = work("ada", ago(0.2));
+    expect(teamNowOf({ presence: "working", work: [{ ...at, plan: { done: 3, total: 4 } }], waiting: [] })).toEqual({
+      kind: "working",
+      work: { ...at, plan: { done: 3, total: 4 } },
+      progress: 0.75,
     });
-    expect(modelRow(pt, { kind: "claude_code", model: "Sonnet" }, "Claude Sonnet 4.5")).toEqual({
-      value: "Sonnet",
-      valueNote: "Claude",
+    expect(teamNowOf({ presence: "working", work: [at], waiting: [] })).toMatchObject({ progress: null });
+    expect(teamNowOf({ presence: "working", work: [at], waiting: [{ title: "Proposta" }] })).toEqual({
+      kind: "waiting",
+      what: "Proposta",
     });
-    expect(modelRow(pt, { kind: "claude_code", model: "auto" }, "Claude Sonnet 4.5").value).toBe("Automático");
-    // Automático through the API: the maker its models come from, then Automático.
-    expect(modelRow(pt, { kind: "model", model: null, maker: "anthropic" }, "Automático")).toEqual({
-      value: "Claude",
-      valueNote: "Automático",
+    expect(teamNowOf({ presence: "waiting", work: [{ ...at, waiting: true }], waiting: [] })).toEqual({
+      kind: "waiting",
+      what: at.what,
     });
-    // The profile names Automático by its key's maker already (`apiModelName`): the note still says Automático.
-    expect(modelRow(pt, { kind: "model", model: null, maker: "anthropic" }, "Claude").valueNote).toBe("Automático");
+    expect(teamNowOf({ presence: "out", work: [], waiting: [] })).toEqual({ kind: "stopped", why: "out" });
+    expect(teamNowOf({ presence: "online", work: [], waiting: [] })).toEqual({ kind: "free" });
+    expect(TEAM_ORDER.waiting).toBe(TEAM_ORDER.working);
+    expect(TEAM_ORDER.working).toBeLessThan(TEAM_ORDER.free);
+    expect(TEAM_ORDER.free).toBeLessThan(TEAM_ORDER.stopped);
+  });
+
+  test("the profile: Ligar, Tarefas, Ajustes; Conversar at the foot; the month opens its usage", async () => {
+    const [screen, view] = await Promise.all([
+      read("src/features/agents/AgentProfileScreen.tsx"),
+      read("src/features/agents/ProfileView.tsx"),
+    ]);
+    // Ligar is the conversation's own call (live voice), after its conversation is open.
+    expect(screen).toContain(".then(({ channelId }) => calls.callAgent(id, channelId, name))");
+    expect(screen).toContain("router.push(agentTasksHref(id, null))");
+    expect(screen).toContain("rightHand ? openRightHandSettings() : openAgentSettings(id)");
+    expect(screen).toContain("onPress: () => openAgentUsage(id)");
+    expect(screen).toContain("const shown = usageShown(agent?.brain, detail.data?.budgetUsedPercent ?? 0);");
+    // Read only: what it can use, its month and who it answers to are words, never a picker.
+    expect(screen).not.toMatch(/ReportsToSection|BrakesSection|BudgetSection|openAgentEdit/);
+    expect(view).toContain('label={t("mobile.agentLite.uses")}');
+    expect(view).toContain('label={t("mobile.agentLite.reportsTo")}');
+    // The composer stays the conversation's: a button to it at the foot.
+    expect(view).not.toContain("Composer");
+    const t = await translator("pt-BR");
+    expect([t("mobile.agentLite.call"), t("mobile.agentLite.tasks"), t("mobile.agentLite.settings")]).toEqual([
+      "Ligar",
+      "Tarefas",
+      "Ajustes",
+    ]);
+    expect(t("mobile.agentLite.talk")).toBe("Conversar");
+  });
+
+  test("Ajustes: its AI, its memory and Aprovado sempre; the rest on the website or asked of the right hand", async () => {
+    const [settings, elsewhere] = await Promise.all([
+      read("src/features/agents/AgentSettingsScreen.tsx"),
+      read("src/features/agents/elsewhere.ts"),
+    ]);
+    expect(settings).toContain("onPress: () => openAgentAi(agent.id)");
+    expect(settings).toContain("<Memories agentId={id} name={name} />");
+    expect(settings).toContain(
+      '<AlwaysApproved agentId={id} name={name} mayRemove={mine || can(org, "approve_actions")} />',
+    );
+    expect(settings).toContain("onPress={() => openSite(id)}");
+    // The website's agent page opens in the in-app browser, never through the app's links (it would come back here).
+    expect(elsewhere).toMatch(/openOwnPage\(`\$\{serverUrl\(\)\}\$\{path\}`\)/);
+    expect(elsewhere).toContain("?tab=settings");
+    expect(elsewhere).toContain("openDm({ agentId: doug.id }, { compose: true");
+    const t = await translator("pt-BR");
+    expect(t("mobile.agentLite.raiseBudgetF", { name: "ROSA" })).toBe("Aumenta o orçamento da ROSA");
+    expect(t("mobile.agentLite.askDoug", { name: "Doug" })).toBe("Pedir ao Doug");
+    expect(t("mobile.teamNow.lead", { name: "Doug", count: 5 })).toBe("Doug coordena 5 agentes");
   });
 });

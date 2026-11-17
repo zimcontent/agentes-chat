@@ -250,10 +250,10 @@ describe("git requests on the phone", () => {
     expect(approvalTable(remove, 3, () => "GitHub").at(-1)?.value).toBe(branches.join(", "));
   });
 
-  test("the profile lists what it runs without asking, × for its owner and whoever decides approvals", async () => {
+  test("the agent's Ajustes lists what it runs without asking, × for its owner and whoever decides approvals", async () => {
     // The screens are components the tests can't render: what they wire in, as text.
     const screen = await Bun.file(
-      new URL("../../src/features/agents/AgentProfileScreen.tsx", import.meta.url).pathname,
+      new URL("../../src/features/agents/AgentSettingsScreen.tsx", import.meta.url).pathname,
     ).text();
     expect(screen).toContain(
       '<AlwaysApproved agentId={id} name={name} mayRemove={mine || can(org, "approve_actions")} />',
