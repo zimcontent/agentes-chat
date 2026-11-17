@@ -464,7 +464,8 @@ function cardTool(portal: ApprovalPortal): ToolDefinition {
           type: "array",
           items: { type: "string", maxLength: 120 },
           maxItems: 10,
-          description: "People of the workspace on it, by name. Replaces who was on it.",
+          description:
+            "People or agents of the workspace on it, by name or handle. The first is the one responsible (an agent there starts on it). Replaces who was on it.",
         },
         labels: {
           type: "array",
