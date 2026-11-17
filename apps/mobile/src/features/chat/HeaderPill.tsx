@@ -108,7 +108,7 @@ export function HeaderPill({
   onPress?: () => void;
   /** What a screen reader says (name, state and what a tap does). */
   label: string;
-  /** Bar buttons beside "…" (an agent's computer): the pill gives up their 44 points each. */
+  /** The bar's buttons beside "…", in 44-point buttons (`barButtons` in ChatScreen): the pill gives up that room. */
   extraActions?: number;
   onHold?: () => void;
   /** What a screen reader says the hold does. */
