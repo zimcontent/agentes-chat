@@ -13,7 +13,7 @@ const TRAIL = [0, 1, 2];
 
 /**
  * The band over "Conectar uma IA" (the web's `ConnectScene`): two of the team asleep under the night, the workspace's
- * computer and the AIs' marks, a few pixels between them. Decoration: the screen's words say what it shows.
+ * computer and the AIs' marks, a few dots between them. Decoration: the screen's words say what it shows.
  */
 export function ConnectScene() {
   const { colors: c } = useTheme();
@@ -65,7 +65,7 @@ const styles = StyleSheet.create({
   },
   cast: { flexDirection: "row", alignItems: "flex-end", gap: 8 },
   trail: { flexDirection: "row", gap: 5 },
-  pixel: { width: 6, height: 6, backgroundColor: "#ffffff66" },
+  pixel: { width: 6, height: 6, borderRadius: 3, backgroundColor: "#ffffff66" },
   marks: { flexDirection: "row" },
   plate: { width: 36, height: 36, borderRadius: 12, alignItems: "center", justifyContent: "center" },
   over: { marginLeft: -8 },

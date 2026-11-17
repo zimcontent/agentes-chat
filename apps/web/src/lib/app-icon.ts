@@ -64,7 +64,9 @@ function show(pick: AppIconPick) {
   current = pick;
   const link = document.querySelector<HTMLLinkElement>('link[rel="icon"]');
   const href =
-    typeof pick === "string" ? faviconOf(pick) : agentFavicon(pick.agent.look) || faviconOf(DEFAULT_APP_ICON);
+    typeof pick === "string"
+      ? faviconOf(pick)
+      : agentFavicon(pick.agent.look, 32, pick.agent.name) || faviconOf(DEFAULT_APP_ICON);
   if (link && link.getAttribute("href") !== href) link.setAttribute("href", href);
   window.dispatchEvent(new Event(CHANGE_EVENT));
 }
@@ -73,7 +75,10 @@ function show(pick: AppIconPick) {
 export async function setAppIcon(pick: AppIconPick) {
   if (inDesktopApp()) {
     if (typeof pick === "string") await thisMac.appIcon({ icon: pick });
-    else await thisMac.appIcon({ agent: { ...pick.agent, ...(await agentDesktopPictures(pick.agent.look)) } });
+    else
+      await thisMac.appIcon({
+        agent: { ...pick.agent, ...(await agentDesktopPictures(pick.agent.look, pick.agent.name)) },
+      });
   } else storage.set(STORAGE_KEYS.appIcon, keptValue(pick));
   show(pick);
 }

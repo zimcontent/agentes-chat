@@ -2,41 +2,23 @@ import { type AgentBrainInput, type BrainKind, type BrainScope, keys, useApi } f
 import { type EffortLevel, effortLevelsOf, effortTextOf } from "@agenteschat/client/lib/brain-advanced";
 import { AUTO } from "@agenteschat/client/lib/providers";
 import { bodyTones } from "@agenteschat/ui/agent/engine";
-import { Canvas, Fill, Shader, Skia, useClock } from "@shopify/react-native-skia";
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { type AccessibilityActionEvent, Pressable, StyleSheet, View } from "react-native";
 import { GestureDetector, useExclusiveGestures, usePanGesture, useTapGesture } from "react-native-gesture-handler";
-import Animated, { useDerivedValue, useSharedValue, withSpring } from "react-native-reanimated";
+import Animated, { type SharedValue, useAnimatedStyle, useSharedValue, withSpring } from "react-native-reanimated";
 import { scheduleOnRN } from "react-native-worklets";
-import { useLivePaused } from "@/agent/live";
 import { useOrg } from "@/providers/org";
-import { rgba } from "@/sky/math";
-import { EFFORT_SHADER } from "@/sky/shaders";
 import { haptics, Text, useReducedMotion, useTheme, useToast } from "@/ui";
 import { effortReach, effortStep } from "./effort";
 
 const HEIGHT = 46;
-const CELL = 3;
 const FILL_SPRING = { stiffness: 220, damping: 22, mass: 1 };
 
-/** Compiled once; null if the device refuses it (the names under the ramp still choose). */
-let effect: ReturnType<typeof Skia.RuntimeEffect.Make> | undefined;
-function effortEffect() {
-  if (effect === undefined) {
-    try {
-      effect = Skia.RuntimeEffect.Make(EFFORT_SHADER);
-    } catch {
-      effect = null;
-    }
-  }
-  return effect;
-}
-
 /**
- * How much an agent thinks, the web's pixel ramp (`EffortPixels`) on the phone: bars in the agent's color fill up to
- * the chosen step, under the finger and on the UI thread, with a tick at each step; the step's name and what it means
+ * How much an agent thinks, a ramp of rounded bars (DougBot: no pixels), rising step by step, filled in the agent's color
+ * up to the chosen step, under the finger and on the UI thread, with a tick at each step; the step's name and what it means
  * follow. Drag or tap the ramp, or tap a name; it says the choice when let go. Still with reduced motion. `kind`: what
  * the agent thinks with (an API key takes fewer levels); `value` null: none chosen, the ramp stays empty.
  */
@@ -58,7 +40,6 @@ export function EffortRamp({
   const { t } = useTranslation();
   const { colors } = useTheme();
   const reduced = useReducedMotion();
-  const paused = useLivePaused();
   const index = value ? levels.indexOf(value) : -1;
   const [shown, setShown] = useState(index);
   const [width, setWidth] = useState(0);
@@ -131,20 +112,8 @@ export function EffortRamp({
   });
   const gesture = useExclusiveGestures(pan, tap);
 
-  const source = effortEffect();
-  const moving = !reduced && !paused && !disabled;
-  const clock = useClock();
   const tones = bodyTones(color);
-  const base = {
-    size: [width, HEIGHT],
-    px: CELL,
-    steps: STEPS,
-    fillTone: rgba(tones[1] ?? colors.ink),
-    tipTone: rgba(tones[3] ?? colors.ink),
-    inkTone: rgba(colors.ink),
-    offTone: rgba(colors.faint),
-  };
-  const uniforms = useDerivedValue(() => ({ ...base, pos: pos.value, t: moving ? clock.value : 0 }));
+  const fill = tones[1] ?? colors.ink;
 
   const label = t("agentPage.work.brain.effort");
   const level = levels[shown] ?? null;
@@ -183,13 +152,9 @@ export function EffortRamp({
             setWidth(w);
           }}
         >
-          {source && width > 0 ? (
-            <Canvas style={{ width, height: HEIGHT }}>
-              <Fill>
-                <Shader source={source} uniforms={uniforms} />
-              </Fill>
-            </Canvas>
-          ) : null}
+          {width > 0
+            ? levels.map((e, i) => <EffortBar key={e} i={i} steps={STEPS} pos={pos} fill={fill} off={colors.line} />)
+            : null}
         </Animated.View>
       </GestureDetector>
       <View style={styles.names}>
@@ -214,6 +179,29 @@ export function EffortRamp({
       <Text variant="footnote" tone="muted" numberOfLines={2} style={styles.hint}>
         {t(`agentPage.work.brain.effortText.${effortTextOf(kind, level)}`)}
       </Text>
+    </View>
+  );
+}
+
+/** One step of the ramp: a rounded bar, taller each step, filled as far as `pos` reaches it (on the UI thread). */
+function EffortBar({
+  i,
+  steps,
+  pos,
+  fill,
+  off,
+}: {
+  i: number;
+  steps: number;
+  pos: SharedValue<number>;
+  fill: string;
+  off: string;
+}) {
+  const height = Math.round(HEIGHT * (0.3 + (0.7 * i) / Math.max(1, steps - 1)));
+  const inner = useAnimatedStyle(() => ({ width: `${Math.max(0, Math.min(1, pos.value - i)) * 100}%` }));
+  return (
+    <View style={[styles.bar, { height, backgroundColor: off }]}>
+      <Animated.View style={[styles.barFill, { backgroundColor: fill }, inner]} />
     </View>
   );
 }
@@ -274,7 +262,9 @@ const styles = StyleSheet.create({
   off: { opacity: 0.55 },
   head: { flexDirection: "row", alignItems: "baseline", justifyContent: "space-between", gap: 12 },
   bold: { fontWeight: "600" },
-  track: { height: HEIGHT },
+  track: { height: HEIGHT, flexDirection: "row", alignItems: "flex-end", gap: 6 },
+  bar: { flex: 1, borderRadius: 8, overflow: "hidden" },
+  barFill: { height: "100%", borderRadius: 8 },
   names: { flexDirection: "row", marginTop: -2 },
   name: { flex: 1, alignItems: "center", paddingVertical: 6 },
   pressed: { opacity: 0.6 },

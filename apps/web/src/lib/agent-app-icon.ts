@@ -1,11 +1,9 @@
-import type { AgentAppearance } from "@agenteschat/ui";
-import { bodyTones, drawAccessory, drawAgent, inBody, toneAt } from "@agenteschat/ui/agent/engine";
+import { type AgentAppearance, botDoAgente, DougBot } from "@agenteschat/ui";
 
 /**
- * A workspace's agent as the app icon (ADR 0179): the Night icon's sky (`/app-icons/night-sky.png`, written by
- * upstream's generator without its agent and kept as it was; DougBot's icons come from the Doug, doug-0010) with the agent drawn by the agent engine in its own look, on
- * the sky's cells as the shipped icon's. The tab's icon is drawn pixel by pixel like the shipped favicons, without
- * the accessory (at 16 px it is noise). The desktop app can't draw: it is sent the Dock's and the windows' pictures.
+ * A workspace's agent as the app icon (ADR 0179, redrawn for DougBot in doug-0010): the agent's own DougBot (the
+ * identity's bot for its name, or its free bot), drawn by the identity's code on the brand's black stage, as the
+ * Doug's own icons are. No pixel art. The desktop app can't draw: it is sent the Dock's and the windows' pictures.
  */
 export interface AgentIcon {
   orgId: string;
@@ -14,18 +12,9 @@ export interface AgentIcon {
   look: AgentAppearance;
 }
 
-const NAVY_TILE = "#06192f";
-const SKY = "/app-icons/night-sky.png";
-let sky: Promise<HTMLImageElement | null> | null = null;
-function nightSky() {
-  sky ??= new Promise((resolve) => {
-    const img = new Image();
-    img.onload = () => resolve(img);
-    img.onerror = () => resolve(null);
-    img.src = SKY;
-  });
-  return sky;
-}
+/** The brand's stage (`--db-palco`) and a touch of light at the top, as the Doug's night icons. */
+const STAGE = "#0A0A0A";
+const STAGE_TOP = "#1A1A1A";
 
 function canvas(px: number) {
   const c = document.createElement("canvas");
@@ -33,63 +22,53 @@ function canvas(px: number) {
   return c;
 }
 
-/** The icon's square scene at `px`: the sky, then the agent (with an accessory, smaller and lower so it fits). */
-async function scene(px: number, look: AgentAppearance) {
+/** The agent's bot as SVG text, `px` wide (no title: an icon has no words). */
+function botSvg(look: AgentAppearance, name: string | undefined, px: number) {
+  const bot = botDoAgente({ name: name ?? "", look: look.shape ? look : null });
+  return DougBot.avatar({ ...bot, estado: "ok", tamanho: px, brilho: false, id: `icon${px}` }).replace(
+    /<title>[^<]*<\/title>/,
+    "",
+  );
+}
+
+const svgUrl = (svg: string) => `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
+
+function loadImage(src: string) {
+  return new Promise<HTMLImageElement | null>((resolve) => {
+    const img = new Image();
+    img.onload = () => resolve(img);
+    img.onerror = () => resolve(null);
+    img.src = src;
+  });
+}
+
+/** The icon's square scene at `px`: the stage, then the bot, 80% of the side, centered. */
+async function scene(px: number, look: AgentAppearance, name?: string) {
   const c = canvas(px);
   const g = c.getContext("2d");
   if (!g) return c;
-  g.imageSmoothingEnabled = false;
-  const img = await nightSky();
-  if (img) g.drawImage(img, 0, 0, px, px);
-  else {
-    g.fillStyle = NAVY_TILE;
-    g.fillRect(0, 0, px, px);
-  }
-  const u = px / 1024;
-  const accessory = look.accessory && look.accessory !== "none" ? look.accessory : undefined;
-  // On the sky's 32 cells: 576 (18 cells) from (224, 192) as the shipped icon; with an accessory 512 (16) from (256, 416).
-  const [x, y, s, cells] = accessory ? [256, 416, 512, 16] : [224, 192, 576, 18];
-  drawAgent(g, x * u, y * u, s * u, {
-    color: look.color,
-    eyes: look.eyes,
-    cells,
-    after: accessory ? (ctx, side, frame) => drawAccessory(ctx, side, accessory, frame) : undefined,
-  });
+  const ground = g.createLinearGradient(0, 0, 0, px);
+  ground.addColorStop(0, STAGE_TOP);
+  ground.addColorStop(1, STAGE);
+  g.fillStyle = ground;
+  g.fillRect(0, 0, px, px);
+  const side = Math.round(px * 0.8);
+  const img = await loadImage(svgUrl(botSvg(look, name, side)));
+  if (img) g.drawImage(img, (px - side) / 2, (px - side) / 2, side, side);
   return c;
 }
 
 /** The picker's and the row's picture (a square; CSS rounds it like the others). */
-export async function agentIconPicture(look: AgentAppearance, px = 160) {
-  return (await scene(px, look)).toDataURL("image/png");
+export async function agentIconPicture(look: AgentAppearance, px = 160, name?: string) {
+  return (await scene(px, look, name)).toDataURL("image/png");
 }
 
-/** The tab's icon at 16 or 32: a navy tile, the body in flat bands (16) or the dither (32), eyes on whole pixels. */
-export function agentFavicon(look: AgentAppearance, N: 16 | 32 = 32) {
-  const c = canvas(N);
-  const g = c.getContext("2d");
-  if (!g) return "";
-  g.fillStyle = NAVY_TILE;
-  g.beginPath();
-  g.roundRect(0, 0, N, N, N === 16 ? 3.5 : 7);
-  g.fill();
-  const tones = bodyTones(look.color);
-  const [at, side] = N === 16 ? [2, 12] : [5, 22];
-  for (let y = 0; y < side; y++)
-    for (let x = 0; x < side; x++) {
-      if (!inBody((x + 0.5) / side, (y + 0.5) / side)) continue;
-      const tone = N === 16 ? ([4, 3, 2][Math.min(2, Math.floor(y / 4))] ?? 2) : toneAt(x >> 1, y >> 1, side / 2);
-      g.fillStyle = tones[tone] ?? tones[2] ?? NAVY_TILE;
-      g.fillRect(at + x, at + y, 1, 1);
-    }
-  g.fillStyle = "#ffffff";
-  if (N === 16) {
-    g.fillRect(6, 6, 1, 4);
-    g.fillRect(9, 6, 1, 4);
-  } else {
-    g.fillRect(12, 12, 2, 6);
-    g.fillRect(18, 12, 2, 6);
-  }
-  return c.toDataURL("image/png");
+/** The tab's icon: the agent's bot as SVG on the brand's black tile (a vector favicon, sharp at any size). */
+export function agentFavicon(look: AgentAppearance, N: 16 | 32 = 32, name?: string) {
+  const bot = botSvg(look, name, 26);
+  const inner = encodeURIComponent(bot);
+  const tile = `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="${N}" height="${N}" viewBox="0 0 32 32"><rect width="32" height="32" rx="7" fill="${STAGE}"/><image x="3" y="3" width="26" height="26" href="data:image/svg+xml;charset=utf-8,${inner}"/></svg>`;
+  return svgUrl(tile);
 }
 
 /** macOS's shape on Apple's grid (as the generator's `macLayers`): a superellipse of 824 at 100, a soft shadow under. */
@@ -113,8 +92,8 @@ function squircle(g: CanvasRenderingContext2D, px: number) {
 const base64Of = (c: HTMLCanvasElement) => c.toDataURL("image/png").slice("data:image/png;base64,".length);
 
 /** The pictures the desktop app keeps for an agent: the Dock's (512, macOS's shape) and the windows' (256, rounded). */
-export async function agentDesktopPictures(look: AgentAppearance) {
-  const art = await scene(1024, look);
+export async function agentDesktopPictures(look: AgentAppearance, name?: string) {
+  const art = await scene(1024, look, name);
   const dock = canvas(512);
   const d = dock.getContext("2d");
   if (d) {
@@ -124,7 +103,7 @@ export async function agentDesktopPictures(look: AgentAppearance) {
     d.shadowColor = "rgba(0, 0, 0, 0.3)";
     d.shadowBlur = 26 * u;
     d.shadowOffsetY = 10 * u;
-    d.fillStyle = NAVY_TILE;
+    d.fillStyle = STAGE;
     d.fill();
     d.restore();
     squircle(d, 512);
@@ -147,4 +126,5 @@ export const sameAgent = (a: AgentIcon, b: AgentIcon) =>
   a.name === b.name &&
   (a.look.color ?? "") === (b.look.color ?? "") &&
   (a.look.eyes ?? "") === (b.look.eyes ?? "") &&
-  (a.look.accessory ?? "") === (b.look.accessory ?? "");
+  (a.look.accessory ?? "") === (b.look.accessory ?? "") &&
+  (a.look.shape ?? "") === (b.look.shape ?? "");
