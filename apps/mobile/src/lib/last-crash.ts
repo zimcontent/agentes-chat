@@ -12,19 +12,24 @@ const NAME = "last-crash.txt";
  * device copy from --domain-type appDataContainer`) when nothing was attached to watch it. Errors drawing a screen
  * don't get here: its error boundary shows them (`ScreenError`).
  */
+/** Writes an error to the same file: one that closed the app, or one caught on its way to closing it (`caught`). */
+export function keepError(error: unknown, where = "") {
+  try {
+    const e = error instanceof Error ? error : new Error(String(error));
+    new File(Paths.document, NAME).write(
+      `${new Date().toISOString()}${where ? ` ${where}` : ""}\n${e.message}\n${e.stack ?? ""}\n`,
+    );
+  } catch {
+    // Nothing to keep it in.
+  }
+}
+
 export function keepLastCrash() {
   const errorUtils = (globalThis as { ErrorUtils?: ErrorUtilsLike }).ErrorUtils;
   if (!errorUtils) return;
   const next = errorUtils.getGlobalHandler();
   errorUtils.setGlobalHandler((error, isFatal) => {
-    if (isFatal) {
-      try {
-        const e = error instanceof Error ? error : new Error(String(error));
-        new File(Paths.document, NAME).write(`${new Date().toISOString()}\n${e.message}\n${e.stack ?? ""}\n`);
-      } catch {
-        // Nothing to keep it in: the crash goes on as before.
-      }
-    }
+    if (isFatal) keepError(error);
     next(error, isFatal);
   });
 }
