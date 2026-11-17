@@ -6,11 +6,11 @@
   "categories": {
     "title": "Kategorien",
     "where": "Wo #{{channel}} erscheint",
-    "whereHelp": "Ändert sich für alle. Wer im Kanal mitmacht, bleibt gleich.",
+    "whereHelp": "Ändert sich für alle. Wer in der Gruppe mitmacht, bleibt gleich.",
     "create": "Erstellen",
     "endOfList": "Kommt für alle ans Ende der Liste.",
-    "channelCount_one": "{{count}} Kanal",
-    "channelCount_other": "{{count}} Kanäle",
+    "channelCount_one": "{{count}} Gruppe",
+    "channelCount_other": "{{count}} Gruppen",
     "none": "Noch keine Kategorien.",
     "manageHelp": "Tippe auf eine Kategorie, um sie umzubenennen, zu verschieben oder zu löschen.",
     "manageHint": "Reihenfolge, Namen und Löschen",
@@ -20,7 +20,7 @@
     "down": "Nach unten",
     "position": "{{at}} von {{count}}.",
     "channelPosition": "{{at}} von {{count}}.",
-    "itsChannels": "Kanäle",
+    "itsChannels": "Gruppen",
     "seeAll": "Alle ansehen"
   },
   "blocks": {
@@ -190,12 +190,12 @@
     },
     "section": {
       "agents": "Agenten",
-      "channels": "Kanäle",
+      "channels": "Gruppen",
       "people": "Personen"
     },
     "seeAll": {
       "agents": "Alle Agenten ansehen",
-      "channels": "Alle Kanäle ansehen",
+      "channels": "Alle Gruppen ansehen",
       "people": "Alle Personen ansehen"
     },
     "wait": {
@@ -235,10 +235,10 @@
     "mission": "Mission",
     "unreadLabel_one": "{{count}} ungelesen",
     "unreadLabel_other": "{{count}} ungelesen",
-    "newChannel": "Neuer Kanal",
+    "newChannel": "Neue Gruppe",
     "newChannelHint": "Für ein Team oder ein Thema",
-    "channelPlaceholder": "Kanalname, z. B. marketing",
-    "createChannel": "Kanal erstellen",
+    "channelPlaceholder": "Gruppenname, z. B. marketing",
+    "createChannel": "Gruppe erstellen",
     "newChannelHintPersonal": "Für ein Thema, mit mehreren Agenten",
     "channelPlaceholderPersonal": "Name, z. B. urlaub",
     "createChannelPersonal": "Gruppenunterhaltung erstellen",
@@ -366,11 +366,11 @@
     "switchTitle": "Unterhaltung wechseln",
     "switchSearch": "Unterhaltungen durchsuchen",
     "switchAgents": "Agenten",
-    "switchChannels": "Kanäle",
+    "switchChannels": "Gruppen",
     "switchPeople": "Personen",
     "switchNone": "Keine Unterhaltung mit diesem Namen.",
     "switchWorking": "arbeitet",
-    "join": "Dem Kanal beitreten",
+    "join": "Der Gruppe beitreten",
     "sending": "Wird gesendet…",
     "toLatest": "Zu den neuesten Nachrichten",
     "toLatestNew": "Zu den neuesten Nachrichten: {{text}}",
@@ -804,10 +804,10 @@
     "thinksWith": "Denkt mit {{label}}"
   },
   "team": {
-    "entry": "Organigramm und Kanäle",
+    "entry": "Organigramm und Gruppen",
     "sectorLead": "{{name}} leitet",
     "sectorBackup": "{{name}} vertritt",
-    "mapHint": "Um einen Agenten in einen anderen Kanal zu verschieben, nutze die Karte im Web oder sprich mit {{name}}."
+    "mapHint": "Um einen Agenten in eine andere Gruppe zu verschieben, nutze die Karte im Web oder sprich mit {{name}}."
   },
   "agentEdit": {
     "missing": "Diesen Agenten gibt es nicht mehr.",
@@ -1033,21 +1033,21 @@
     }
   },
   "channelRef": {
-    "list": "Kanäle",
-    "a11y": "Kanal #{{name}}",
-    "archivedA11y": "Kanal #{{name}}, archiviert",
+    "list": "Gruppen",
+    "a11y": "Gruppe #{{name}}",
+    "archivedA11y": "Gruppe #{{name}}, archiviert",
     "archived": "#{{name}} wurde archiviert",
     "notMember": "du bist nicht dabei"
   },
   "mention": {
     "list": "Personen und Agenten",
-    "inChannel": "In diesem Kanal",
-    "outside": "Nicht im Kanal",
+    "inChannel": "In dieser Gruppe",
+    "outside": "Nicht in der Gruppe",
     "agent": "Agent",
     "person": "Person",
     "add": "Hinzufügen",
-    "addA11y": "{{name}} zum Kanal hinzufügen",
-    "added": "{{name}} ist dem Kanal beigetreten"
+    "addA11y": "{{name}} zur Gruppe hinzufügen",
+    "added": "{{name}} ist der Gruppe beigetreten"
   },
   "me": {
     "title": "Du",
@@ -1065,7 +1065,7 @@
     "start": "Beim Öffnen der App",
     "startHome": "Unterhaltungen",
     "startLast": "Wo du aufgehört hast",
-    "startChannels": "Ein Kanal",
+    "startChannels": "Eine Gruppe",
     "startHint": "Für diesen Workspace, hier und auf deinem Computer, wo die Startseite die Startseite ist.",
     "startFailed": "Das ließ sich nicht speichern. Versuch es noch einmal.",
     "activity": "Antworten der Agenten",
@@ -1111,7 +1111,7 @@
     "notificationsOnHint": "Sie kommen auch im Browser und in der Desktop-App an, wenn sie dort eingeschaltet sind.",
     "notificationsOffHint": "Schalte sie ein, um hier Benachrichtigungen zu bekommen. Die Arten unten gelten für alle deine Geräte.",
     "notificationsKindsHint": "In der Aktivität bleibt alles. Das gilt für diesen Workspace, auf all deinen Geräten.",
-    "version": "agentes.chat · Version {{version}}",
+    "version": "DougBot · Version {{version}}",
     "edit": "Bearbeiten",
     "status": "Status",
     "workspace": "Workspace",
@@ -1131,11 +1131,11 @@
     "workspacesUnreachable": "Gerade keine Antwort",
     "addWorkspace": "Workspace hinzufügen",
     "addWorkspaceCreate": "Neuen Workspace erstellen",
-    "addWorkspaceCreateSub": "Auf agentes.chat",
+    "addWorkspaceCreateSub": "Auf DougBot",
     "addWorkspaceTeam": "Dem Server deines Teams beitreten",
     "addWorkspaceTeamSub": "Über seine Adresse oder den QR-Code auf dem Computer",
     "teamServer": "Server des Teams",
-    "teamServerLead": "Die agentes.chat-Adresse deines Teams, dieselbe wie im Browser.",
+    "teamServerLead": "Die DougBot-Adresse deines Teams, dieselbe wie im Browser.",
     "teamServerFoot": "Du verlässt keinen Workspace: Der Server deines Teams kommt in deine Liste, mit deinem Konto dort.",
     "workspacesHoldHint": "Gedrückt halten, um den Workspace zu wechseln",
     "workspacesSheetFoot": "Du bleibst in allen angemeldet. Die Benachrichtigungen von jedem kommen hier an.",
@@ -1196,7 +1196,7 @@
     "blocked": "Du bist der einzige Inhaber von {{names}}. Mach auf der Website unter Personen jemand anderen zum Inhaber und komm dann zurück.",
     "addPasswordFirst": "Füge deinem Konto zuerst auf der Website ein Passwort hinzu und gib es dann hier ein.",
     "addPasswordWeb": "Passwort auf der Website hinzufügen",
-    "onThisComputer": "Lösche es in der agentes.chat-App auf dem Computer, auf dem dieser Server läuft.",
+    "onThisComputer": "Lösche es in der DougBot-App auf dem Computer, auf dem dieser Server läuft.",
     "otherAccount": "Du hast dich mit einem anderen Konto angemeldet. Es wurde nichts gelöscht.",
     "hold": "Zum Löschen gedrückt halten"
   },
@@ -1482,6 +1482,10 @@
     "stopTitle": "„{{title}}“ stoppen?",
     "stopBody": "{{name}} stoppt sofort und schreibt in die Unterhaltung, was bisher erledigt ist."
   },
+  "homeTools": {
+    "title": "Werkzeuge",
+    "more": "Mehr"
+  },
   "homeNow": {
     "working_one": "{{count}} arbeitet",
     "working_other": "{{count}} arbeiten",
@@ -1527,6 +1531,54 @@
       "tomorrow": "morgen um {{time}}",
       "later": "{{day}} um {{time}}"
     }
+  },
+  "agentLite": {
+    "uses": "Darf nutzen",
+    "usesNone": "Noch nichts",
+    "menu": "Weitere Optionen",
+    "month": "Diesen Monat",
+    "reportsTo": "Berichtet an",
+    "inProgress": "in Arbeit",
+    "waitsYou": "wartet auf dich",
+    "doneAt": "geliefert um {{time}}",
+    "todayEmptyF": "{{name}} hat heute noch nichts für dich erledigt.",
+    "todayEmptyM": "{{name}} hat heute noch nichts für dich erledigt.",
+    "call": "Anrufen",
+    "tasks": "Aufgaben",
+    "settings": "Einstellungen",
+    "talk": "Chatten",
+    "settingsTitle": "Einstellungen",
+    "ai": "KI",
+    "aiNone": "Noch keine KI",
+    "more": "Alles andere",
+    "onSite": "Weitere Einstellungen auf der Website",
+    "askDoug": "{{name}} fragen",
+    "askDougAbout": "Zu {{name}}:  ",
+    "moreHelp": "Anweisungen, Budget, Limits und das Löschen des Agenten findest du auf der Website, oder frag {{name}} einfach in eigenen Worten.",
+    "raiseBudgetF": "Budget von {{name}} erhöhen",
+    "raiseBudgetM": "Budget von {{name}} erhöhen",
+    "create": "Ich möchte einen neuen Agenten, der  ",
+    "createWhat": "Ich möchte einen neuen Agenten, der {{what}}",
+    "inChannel": "in der Gruppe #{{channel}} arbeitet:  ",
+    "onPlan": "mit dem Tarif {{plan}} denkt:  "
+  },
+  "teamNow": {
+    "title": "Dein Team jetzt",
+    "lead_one": "{{name}} koordiniert {{count}} Agenten",
+    "lead_other": "{{name}} koordiniert {{count}} Agenten",
+    "working_one": "{{count}} arbeitet",
+    "working_other": "{{count}} arbeiten",
+    "asking_one": "{{count}} wartet auf dich",
+    "asking_other": "{{count}} warten auf dich",
+    "quiet": "Gerade arbeitet niemand",
+    "since": "gestartet {{ago}}",
+    "asks": "Hat eine Frage an dich",
+    "waitsYou": "wartet auf dich",
+    "stoppedF": "Gestoppt",
+    "stoppedM": "Gestoppt",
+    "freeF": "Frei",
+    "freeM": "Frei",
+    "empty": "Noch keine Agenten im Team."
   },
   "intentAgents": {
     "waitingSection": "Wartet auf dich",
@@ -1621,7 +1673,7 @@
       },
       "area": {
         "context": "Gedächtnis",
-        "drive": "Drive",
+        "drive": "Dateien",
         "issues": "Aufgaben",
         "calendar": "Kalender",
         "wiki": "Wiki",
@@ -1938,8 +1990,8 @@
       "serverText": "Eine Zeile für sein Terminal",
       "computer": "Ein anderer Computer",
       "computerText": "Installiere dort die App",
-      "appNote": "Auf einem Mac oder PC, den du nutzt, verbindet ihn auch die agentes.chat-Desktop-App.",
-      "appStep1": "Hol dir die agentes.chat-App darauf",
+      "appNote": "Auf einem Mac oder PC, den du nutzt, verbindet ihn auch die DougBot-Desktop-App.",
+      "appStep1": "Hol dir die DougBot-App darauf",
       "appStep2": "Öffne sie und melde dich mit deinem eigenen Konto an",
       "appStep3": "Klicke auf Erlauben, wenn sie fragt, ob die Agenten von {{org}} ihn nutzen dürfen",
       "appShows": "Er erscheint hier von selbst, nur für dich, bis du ihn teilst.",
@@ -1962,7 +2014,7 @@
       "connecting": "Verbinde mit {{host}}",
       "computer": "Computer",
       "noHost": "Dieses Handy arbeitet über einen deiner Computer. Verbinde zuerst einen.",
-      "hostOffline": "{{host}} ist offline. Schalte ihn ein und öffne dort agentes.chat.",
+      "hostOffline": "{{host}} ist offline. Schalte ihn ein und öffne dort DougBot.",
       "step1": "Entwickleroptionen aktivieren",
       "step1Text": "Tippe 7-mal auf Build-Nummer und gib dann deine PIN ein. Bei Samsung: Softwareinformationen › Buildnummer.",
       "openAbout": "Über das Telefon öffnen",
@@ -1987,9 +2039,9 @@
       "wifi1Text": "Setz das Häkchen bei In diesem Netzwerk immer zulassen und tippe auf Zulassen.",
       "wifi2": "Code auf einem Computer scannen",
       "wifi2Text": "Unter Debugging über WLAN › Gerät über QR-Code koppeln. Nicht die Kamera nutzen: Sie liest den Code als WLAN-Netz und nimmt das Handy aus deinem WLAN.",
-      "wifi2Hint": "Öffne agentes.chat auf einem Computer, dann Gerät verbinden › Android-Handy › Über WLAN, und wähle {{host}}.",
+      "wifi2Hint": "Öffne DougBot auf einem Computer, dann Gerät verbinden › Android-Handy › Über WLAN, und wähle {{host}}.",
       "codeHead": "Mit Kopplungscode koppeln",
-      "codeNote": "Unter Debugging über WLAN › Gerät über Kopplungscode koppeln. Öffne Einstellungen und agentes.chat nebeneinander, damit der Code sichtbar bleibt.",
+      "codeNote": "Unter Debugging über WLAN › Gerät über Kopplungscode koppeln. Öffne Einstellungen und DougBot nebeneinander, damit der Code sichtbar bleibt.",
       "wifiNote": "Das WLAN kann nach einem Neustart abbrechen. Ein Kabel ist zuverlässiger.",
       "done": "{{name}} ist verbunden",
       "openFailed": "Dieses Handy hat den Bildschirm nicht geöffnet. Such ihn in den Einstellungen."
@@ -2046,7 +2098,7 @@
         "openXcode": "Xcode öffnen",
         "opened": "Xcode ist auf {{host}} offen. Schau noch einmal in den Einstellungen und schließ Xcode dort danach.",
         "unlock": "Eingeschaltet und neu gestartet? Die Abfrage mit Aktivieren erscheint, sobald dieses iPhone entsperrt ist.",
-        "outdated": "Die agentes.chat-App auf {{host}} ist veraltet. Aktualisiere sie auf diesem Mac."
+        "outdated": "Die DougBot-App auf {{host}} ist veraltet. Aktualisiere sie auf diesem Mac."
       }
     },
     "notice": {
@@ -2143,7 +2195,7 @@
     "usedBy_other": "{{names}} nutzen es",
     "fromAgent": "Dienst verbinden",
     "githubApp": {
-      "useApp": "agentes.chat-App nutzen",
+      "useApp": "DougBot-App nutzen",
       "useAccount": "GitHub-Konto nutzen",
       "createInBrowser": "Im Browser erstellen"
     },
@@ -2198,6 +2250,11 @@
     "blocked": "Die Prüfung wurde nicht geladen. Versuch ein anderes Netzwerk."
   },
   "invitePeople": {
+    "emailsHelp": "Füge eine Liste ein oder tippe. Jede Person bekommt eine E-Mail und ist sofort dabei.",
+    "here": "Schon hier",
+    "invited": "Schon eingeladen",
+    "fix": "Bitte prüfen",
+    "channels": "Gruppen",
     "optional": "Optional",
     "ok": "Fertig",
     "noteHelp": "Erscheint in der E-Mail mit deinem Namen. Bis zu {{max}} Zeichen.",
@@ -2237,11 +2294,11 @@
     "zoneTitle": "Zeitzone",
     "anotherTitle": "Wie heißt der neue Workspace?",
     "anotherPurpose": "Wofür ist der neue Workspace?",
-    "anotherLead": "Auf agentes.chat. Du bleibst in {{org}} und kannst jederzeit wechseln.",
+    "anotherLead": "Auf DougBot. Du bleibst in {{org}} und kannst jederzeit wechseln.",
     "suggested": "Anhand deiner E-Mail bei {{domain}} habe ich {{org}} vorgeschlagen.",
     "create": "Erstellen",
     "enter": "Zum Workspace",
-    "shareMessage": "Tritt {{org}} auf agentes.chat bei: {{url}}",
+    "shareMessage": "Tritt {{org}} auf DougBot bei: {{url}}",
     "failed": "Speichern hat nicht geklappt. Versuch es noch einmal."
   },
   "aiPanel": {
@@ -2521,7 +2578,6 @@
     }
   },
   "vault": {
-    "newItem": "Neuer Eintrag",
     "home": {
       "title": "Passwörter",
       "search": "Passwörter durchsuchen",
@@ -2562,6 +2618,7 @@
       "neverUsed": "Noch nicht genutzt",
       "history": "Verlauf ansehen"
     },
+    "newItem": "Neuer Eintrag",
     "search": "Im Vault suchen",
     "noResults": "Nichts passt zu „{{q}}“.",
     "personalText": "Nur du siehst sie. Deine Agenten verwenden sie nur, wenn du sie darum bittest.",
@@ -2932,10 +2989,10 @@
     },
     "channels": {
       "title": "Bring Personen und Agenten in einem Kanal zusammen",
-      "text": "Jeder Kanal versammelt alle, die sich um ein Thema kümmern.",
-      "viewerTitle": "Hier sind die Kanäle des Teams",
-      "viewerText": "Wer Kanäle erstellt, öffnet den ersten, und er erscheint hier.",
-      "action": "Kanal erstellen",
+      "text": "Jede Gruppe versammelt alle, die sich um ein Thema kümmern.",
+      "viewerTitle": "Hier sind die Gruppen des Teams",
+      "viewerText": "Wer Gruppen erstellt, öffnet die erste, und sie erscheint hier.",
+      "action": "Gruppe erstellen",
       "titlePersonal": "Sprich mit mehreren Agenten gleichzeitig",
       "textPersonal": "Jede Gruppenunterhaltung bringt die Agenten und Personen zu einem Thema zusammen.",
       "viewerTitlePersonal": "Hier sind die Gruppenunterhaltungen",
@@ -3024,7 +3081,7 @@
     "meHint": "Dein Foto sehen die Personen in deinen Workspaces."
   },
   "brand": {
-    "basedOn": "Basiert auf agentes.chat von Codari Global, LLC · AGPL-3.0",
+    "basedOn": "Basiert auf DougBot von Codari Global, LLC · AGPL-3.0",
     "source": "Quellcode von DougBot"
   }
 }

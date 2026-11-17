@@ -6,13 +6,13 @@
   "categories": {
     "title": "Kategorie",
     "where": "Gdzie widać #{{channel}}",
-    "whereHelp": "Zmienia się dla wszystkich. Skład kanału zostaje bez zmian.",
+    "whereHelp": "Zmienia się dla wszystkich. Uczestnicy grupy pozostają ci sami.",
     "create": "Utwórz",
     "endOfList": "Trafi na koniec listy u wszystkich.",
-    "channelCount_one": "{{count}} kanał",
-    "channelCount_few": "{{count}} kanały",
-    "channelCount_many": "{{count}} kanałów",
-    "channelCount_other": "{{count}} kanału",
+    "channelCount_one": "{{count}} grupa",
+    "channelCount_few": "{{count}} grupy",
+    "channelCount_many": "{{count}} grup",
+    "channelCount_other": "{{count}} grupy",
     "none": "Nie ma jeszcze kategorii.",
     "manageHelp": "Stuknij kategorię, aby zmienić jej nazwę, przenieść ją albo usunąć.",
     "manageHint": "Kolejność, nazwy i usuwanie",
@@ -22,7 +22,7 @@
     "down": "Przesuń w dół",
     "position": "{{at}} z {{count}}.",
     "channelPosition": "{{at}} z {{count}}.",
-    "itsChannels": "Kanały",
+    "itsChannels": "Grupy",
     "seeAll": "Zobacz wszystkie"
   },
   "blocks": {
@@ -202,12 +202,12 @@
     },
     "section": {
       "agents": "Agenci",
-      "channels": "Kanały",
+      "channels": "Grupy",
       "people": "Osoby"
     },
     "seeAll": {
       "agents": "Zobacz wszystkich agentów",
-      "channels": "Zobacz wszystkie kanały",
+      "channels": "Zobacz wszystkie grupy",
       "people": "Zobacz wszystkie osoby"
     },
     "wait": {
@@ -251,10 +251,10 @@
     "unreadLabel_few": "{{count}} nieprzeczytane",
     "unreadLabel_many": "{{count}} nieprzeczytanych",
     "unreadLabel_other": "{{count}} nieprzeczytanej",
-    "newChannel": "Nowy kanał",
+    "newChannel": "Nowa grupa",
     "newChannelHint": "Dla zespołu albo tematu",
-    "channelPlaceholder": "Nazwa kanału, np. marketing",
-    "createChannel": "Utwórz kanał",
+    "channelPlaceholder": "Nazwa grupy, np. marketing",
+    "createChannel": "Utwórz grupę",
     "newChannelHintPersonal": "Na jeden temat, z kilkoma agentami",
     "channelPlaceholderPersonal": "Nazwa, np. podróż",
     "createChannelPersonal": "Utwórz rozmowę grupową",
@@ -394,11 +394,11 @@
     "switchTitle": "Przełącz rozmowę",
     "switchSearch": "Szukaj rozmów",
     "switchAgents": "Agenci",
-    "switchChannels": "Kanały",
+    "switchChannels": "Grupy",
     "switchPeople": "Osoby",
     "switchNone": "Brak rozmowy o tej nazwie.",
     "switchWorking": "pracuje",
-    "join": "Dołącz do kanału",
+    "join": "Dołącz do grupy",
     "sending": "Wysyłanie…",
     "toLatest": "Przejdź do najnowszych wiadomości",
     "toLatestNew": "Przejdź do najnowszych wiadomości: {{text}}",
@@ -850,10 +850,10 @@
     "thinksWith": "Myśli za pomocą {{label}}"
   },
   "team": {
-    "entry": "Schemat organizacyjny i kanały",
+    "entry": "Schemat organizacyjny i grupy",
     "sectorLead": "{{name}} prowadzi",
     "sectorBackup": "{{name}} zastępuje",
-    "mapHint": "Aby przenieść agenta do innego kanału, użyj mapy w wersji webowej albo porozmawiaj z {{name}}."
+    "mapHint": "Aby przenieść agenta do innej grupy, użyj mapy w wersji webowej albo porozmawiaj z {{name}}."
   },
   "agentEdit": {
     "missing": "Ten agent już nie istnieje.",
@@ -1177,21 +1177,21 @@
     }
   },
   "channelRef": {
-    "list": "Kanały",
-    "a11y": "Kanał #{{name}}",
-    "archivedA11y": "Kanał #{{name}}, zarchiwizowany",
+    "list": "Grupy",
+    "a11y": "Grupa #{{name}}",
+    "archivedA11y": "Grupa #{{name}}, zarchiwizowana",
     "archived": "Kanał #{{name}} został zarchiwizowany",
     "notMember": "nie należysz do niego"
   },
   "mention": {
     "list": "Osoby i agenci",
-    "inChannel": "Na tym kanale",
-    "outside": "Spoza kanału",
+    "inChannel": "W tej grupie",
+    "outside": "Poza grupą",
     "agent": "agent",
     "person": "osoba",
     "add": "Dodaj",
-    "addA11y": "Dodaj {{name}} do kanału",
-    "added": "{{name}} dołącza do kanału"
+    "addA11y": "Dodaj {{name}} do grupy",
+    "added": "{{name}} dołączył(a) do grupy"
   },
   "me": {
     "title": "Ty",
@@ -1209,7 +1209,7 @@
     "start": "Po otwarciu aplikacji",
     "startHome": "Rozmowy",
     "startLast": "Ostatnio otwarte miejsce",
-    "startChannels": "Kanał",
+    "startChannels": "Grupa",
     "startHint": "Dotyczy tej przestrzeni roboczej, tutaj i na komputerze, gdzie stroną startową jest Start.",
     "startFailed": "Nie udało się zapisać. Spróbuj ponownie.",
     "activity": "Odpowiedzi agentów",
@@ -1261,7 +1261,7 @@
     "notificationsOnHint": "Przychodzą też w przeglądarce i aplikacji na komputer, jeśli są tam włączone.",
     "notificationsOffHint": "Włącz je, żeby dostawać tu powiadomienia. Rodzaje poniżej dotyczą wszystkich twoich urządzeń.",
     "notificationsKindsHint": "Aktywność zachowuje wszystko. To ustawienie dotyczy tej przestrzeni roboczej na wszystkich twoich urządzeniach.",
-    "version": "agentes.chat · wersja {{version}}",
+    "version": "DougBot · wersja {{version}}",
     "edit": "Edytuj",
     "status": "Status",
     "workspace": "Przestrzeń robocza",
@@ -1287,11 +1287,11 @@
     "workspacesUnreachable": "Na razie brak odpowiedzi",
     "addWorkspace": "Dodaj workspace",
     "addWorkspaceCreate": "Utwórz nowy workspace",
-    "addWorkspaceCreateSub": "W agentes.chat",
+    "addWorkspaceCreateSub": "W DougBot",
     "addWorkspaceTeam": "Dołącz do serwera swojego zespołu",
     "addWorkspaceTeamSub": "Przez jego adres lub kod QR widoczny na komputerze",
     "teamServer": "Serwer zespołu",
-    "teamServerLead": "Adres agentes.chat twojego zespołu, ten sam co w przeglądarce.",
+    "teamServerLead": "Adres DougBot twojego zespołu, ten sam co w przeglądarce.",
     "teamServerFoot": "Nie opuszczasz żadnego workspace’u: serwer twojego zespołu trafia na twoją listę, z twoim kontem w nim.",
     "workspacesHoldHint": "Przytrzymaj, aby przełączyć przestrzeń roboczą",
     "workspacesSheetFoot": "Nie wylogowujemy cię z żadnej. Powiadomienia z każdej trafiają tutaj.",
@@ -1352,7 +1352,7 @@
     "blocked": "Jesteś jedynym właścicielem: {{names}}. Na stronie, w sekcji Osoby, nadaj komuś rolę właściciela i wróć tutaj.",
     "addPasswordFirst": "Najpierw dodaj hasło do konta na stronie, a potem wpisz je tutaj.",
     "addPasswordWeb": "Dodaj hasło na stronie",
-    "onThisComputer": "Usuń to w aplikacji agentes.chat na komputerze, na którym działa ten serwer.",
+    "onThisComputer": "Usuń to w aplikacji DougBot na komputerze, na którym działa ten serwer.",
     "otherAccount": "Zalogowano się na inne konto. Nic nie zostało usunięte.",
     "hold": "Przytrzymaj, aby usunąć"
   },
@@ -1489,7 +1489,7 @@
   },
   "drive": {
     "title": "Pliki",
-    "search": "Szukaj w plikach",
+    "search": "Szukaj plików",
     "types": "Typy plików",
     "type": {
       "all": "Wszystkie",
@@ -1521,7 +1521,7 @@
       "modified": "Zmodyfikowano"
     },
     "when": {
-      "any": "Kiedykolwiek",
+      "any": "Dowolny czas",
       "today": "Dziś",
       "week": "Ostatnie 7 dni",
       "month": "Ostatnie 30 dni",
@@ -1542,7 +1542,7 @@
     "moreFolders_few": "Jeszcze {{count}} rozmowy",
     "moreFolders_many": "Jeszcze {{count}} rozmów",
     "moreFolders_other": "Jeszcze {{count}} rozmowy",
-    "menu": "Opcje: {{name}}",
+    "menu": "Opcje dla {{name}}",
     "more2": "Więcej opcji",
     "open": "Otwórz",
     "goToChat": "Przejdź do rozmowy",
@@ -1658,6 +1658,10 @@
     "stopTitle": "Zatrzymać „{{title}}”?",
     "stopBody": "{{name}} zatrzymuje się teraz i pisze w rozmowie, co udało się dotąd zrobić."
   },
+  "homeTools": {
+    "title": "Narzędzia",
+    "more": "Więcej"
+  },
   "homeNow": {
     "working_one": "{{count}} pracuje",
     "working_few": "{{count}} pracują",
@@ -1705,6 +1709,60 @@
       "tomorrow": "jutro o {{time}}",
       "later": "{{day}} o {{time}}"
     }
+  },
+  "agentLite": {
+    "uses": "Może używać",
+    "usesNone": "Na razie nic",
+    "menu": "Więcej opcji",
+    "month": "Ten miesiąc",
+    "reportsTo": "Podlega",
+    "inProgress": "w toku",
+    "waitsYou": "czeka na ciebie",
+    "doneAt": "dostarczono o {{time}}",
+    "todayEmptyF": "{{name}} dziś jeszcze nic dla ciebie nie zrobiła.",
+    "todayEmptyM": "{{name}} dziś jeszcze nic dla ciebie nie zrobił.",
+    "call": "Zadzwoń",
+    "tasks": "Zadania",
+    "settings": "Ustawienia",
+    "talk": "Czat",
+    "settingsTitle": "Ustawienia",
+    "ai": "AI",
+    "aiNone": "Jeszcze bez AI",
+    "more": "Cała reszta",
+    "onSite": "Więcej ustawień na stronie",
+    "askDoug": "Poproś {{name}}",
+    "askDougAbout": "O {{name}}:  ",
+    "moreHelp": "Instrukcje, budżet, limity i usuwanie agenta są na stronie internetowej albo poproś o to {{name}} własnymi słowami.",
+    "raiseBudgetF": "Zwiększ budżet {{name}}",
+    "raiseBudgetM": "Zwiększ budżet {{name}}",
+    "create": "Chcę nowego agenta, który  ",
+    "createWhat": "Chcę nowego agenta, który {{what}}",
+    "inChannel": "będzie pracować w grupie #{{channel}}:  ",
+    "onPlan": "będzie myśleć w planie {{plan}}:  "
+  },
+  "teamNow": {
+    "title": "Twój zespół teraz",
+    "lead_one": "{{name}} koordynuje {{count}} agenta",
+    "lead_few": "{{name}} koordynuje {{count}} agentów",
+    "lead_many": "{{name}} koordynuje {{count}} agentów",
+    "lead_other": "{{name}} koordynuje {{count}} agenta",
+    "working_one": "{{count}} pracuje",
+    "working_few": "{{count}} pracują",
+    "working_many": "{{count}} pracuje",
+    "working_other": "{{count}} pracuje",
+    "asking_one": "{{count}} czeka na ciebie",
+    "asking_few": "{{count}} czekają na ciebie",
+    "asking_many": "{{count}} czeka na ciebie",
+    "asking_other": "{{count}} czeka na ciebie",
+    "quiet": "Teraz nikt nie pracuje",
+    "since": "zaczęto {{ago}}",
+    "asks": "Ma do ciebie pytanie",
+    "waitsYou": "czeka na ciebie",
+    "stoppedF": "Zatrzymana",
+    "stoppedM": "Zatrzymany",
+    "freeF": "Wolna",
+    "freeM": "Wolny",
+    "empty": "W zespole nie ma jeszcze agentów."
   },
   "intentAgents": {
     "waitingSection": "Czeka na ciebie",
@@ -1803,7 +1861,7 @@
       },
       "area": {
         "context": "Pamięć",
-        "drive": "Drive",
+        "drive": "Pliki",
         "issues": "Zadania",
         "calendar": "Kalendarz",
         "wiki": "Wiki",
@@ -2140,8 +2198,8 @@
       "serverText": "Jedno polecenie do wklejenia w jego terminalu",
       "computer": "Inny komputer",
       "computerText": "Zainstaluj na nim aplikację",
-      "appNote": "Maca albo PC, z którego korzystasz, podłączy też aplikacja agentes.chat na komputer.",
-      "appStep1": "Zainstaluj na nim aplikację agentes.chat",
+      "appNote": "Maca albo PC, z którego korzystasz, podłączy też aplikacja DougBot na komputer.",
+      "appStep1": "Zainstaluj na nim aplikację DougBot",
       "appStep2": "Otwórz ją i zaloguj się na swoje konto",
       "appStep3": "Kliknij Zezwól, gdy zapyta, czy agenci {{org}} mogą go używać",
       "appShows": "Pojawi się tu sam, widoczny tylko dla ciebie, dopóki go nie udostępnisz.",
@@ -2164,7 +2222,7 @@
       "connecting": "Łączenie z {{host}}",
       "computer": "Komputer",
       "noHost": "Ten telefon działa przez twój komputer. Najpierw podłącz komputer.",
-      "hostOffline": "{{host}} jest offline. Włącz go i otwórz tam agentes.chat.",
+      "hostOffline": "{{host}} jest offline. Włącz go i otwórz tam DougBot.",
       "step1": "Włącz Opcje programisty",
       "step1Text": "Stuknij 7 razy Numer kompilacji, a potem wpisz PIN. Na Samsungu: Informacje o oprogramowaniu › Numer wersji.",
       "openAbout": "Otwórz Informacje o telefonie",
@@ -2189,9 +2247,9 @@
       "wifi1Text": "Zaznacz Zawsze zezwalaj w tej sieci i stuknij Zezwól.",
       "wifi2": "Zeskanuj kod na komputerze",
       "wifi2Text": "W Debugowanie bezprzewodowe › Sparuj urządzenie za pomocą kodu QR. Nie używaj aparatu: odczyta kod jako sieć Wi-Fi i odłączy telefon od twojej sieci.",
-      "wifi2Hint": "W agentes.chat na komputerze otwórz Podłącz urządzenie › Telefon z Androidem › Przez Wi-Fi i wybierz {{host}}.",
+      "wifi2Hint": "W DougBot na komputerze otwórz Podłącz urządzenie › Telefon z Androidem › Przez Wi-Fi i wybierz {{host}}.",
       "codeHead": "Sparuj za pomocą kodu parowania",
-      "codeNote": "W Debugowanie bezprzewodowe › Sparuj urządzenie za pomocą kodu parowania. Otwórz Ustawienia i agentes.chat obok siebie, żeby kod został na ekranie.",
+      "codeNote": "W Debugowanie bezprzewodowe › Sparuj urządzenie za pomocą kodu parowania. Otwórz Ustawienia i DougBot obok siebie, żeby kod został na ekranie.",
       "wifiNote": "Wi-Fi może się rozłączyć po ponownym uruchomieniu. Kabel jest pewniejszy.",
       "done": "{{name}} jest podłączony",
       "openFailed": "Ten telefon nie otworzył tego ekranu. Znajdź go w Ustawieniach."
@@ -2248,7 +2306,7 @@
         "openXcode": "Otwórz Xcode",
         "opened": "Xcode otworzył się na {{host}}. Zajrzyj jeszcze raz do Ustawień, a potem zamknij tam Xcode.",
         "unlock": "Włączone i uruchomił się ponownie? Alert z Włącz pojawia się, gdy ten iPhone jest odblokowany.",
-        "outdated": "Aplikacja agentes.chat na {{host}} jest nieaktualna. Zaktualizuj ją na tym Macu."
+        "outdated": "Aplikacja DougBot na {{host}} jest nieaktualna. Zaktualizuj ją na tym Macu."
       }
     },
     "notice": {
@@ -2351,7 +2409,7 @@
     "usedBy_other": "{{names}} korzystają",
     "fromAgent": "Połącz usługę",
     "githubApp": {
-      "useApp": "Użyj aplikacji agentes.chat",
+      "useApp": "Użyj aplikacji DougBot",
       "useAccount": "Użyj konta GitHub",
       "createInBrowser": "Utwórz w przeglądarce"
     },
@@ -2406,6 +2464,11 @@
     "blocked": "Weryfikacja się nie wczytała. Spróbuj innej sieci."
   },
   "invitePeople": {
+    "emailsHelp": "Wklej listę albo wpisz. Każda osoba dostaje e-mail i od razu dołącza.",
+    "here": "Już tu jest",
+    "invited": "Już zaproszono",
+    "fix": "Sprawdź to",
+    "channels": "Grupy",
     "optional": "Opcjonalnie",
     "ok": "OK",
     "noteHelp": "Pojawi się w e-mailu z twoim imieniem. Maksymalnie {{max}} znaków.",
@@ -2447,11 +2510,11 @@
     "zoneTitle": "Strefa czasowa",
     "anotherTitle": "Jak nazywa się nowa przestrzeń robocza?",
     "anotherPurpose": "Do czego ma służyć nowa przestrzeń robocza?",
-    "anotherLead": "W agentes.chat. Zostajesz w {{org}} i możesz przełączyć się w każdej chwili.",
+    "anotherLead": "W DougBot. Zostajesz w {{org}} i możesz przełączyć się w każdej chwili.",
     "suggested": "Na podstawie twojego adresu w domenie {{domain}} proponuję {{org}}.",
     "create": "Utwórz",
     "enter": "Wejdź do przestrzeni roboczej",
-    "shareMessage": "Dołącz do {{org}} w agentes.chat: {{url}}",
+    "shareMessage": "Dołącz do {{org}} w DougBot: {{url}}",
     "failed": "Nie udało się zapisać. Spróbuj ponownie."
   },
   "aiPanel": {
@@ -2747,7 +2810,6 @@
     }
   },
   "vault": {
-    "newItem": "Nowy element",
     "home": {
       "title": "Hasła",
       "search": "Szukaj w hasłach",
@@ -2765,7 +2827,7 @@
       "noFavorites": "Stuknij gwiazdkę elementu, aby był tutaj."
     },
     "sheet": {
-      "username": "użytkownik",
+      "username": "nazwa użytkownika",
       "password": "hasło",
       "site": "strona",
       "keyName": "nazwa klucza",
@@ -2774,7 +2836,7 @@
       "endsIn": "kończy się na {{hint}}",
       "agentsOnly": "używają go tylko agenci",
       "sealed": "zapisane, używają go tylko agenci",
-      "copy": "Kopiuj: {{label}}",
+      "copy": "Kopiuj {{label}}",
       "copied": "Skopiowano",
       "clears": "Schowek wyczyści się sam za 1 minutę.",
       "copyFailed": "Nie udało się skopiować.",
@@ -2789,9 +2851,10 @@
       "usedByF": "Użyte przez {{name}} {{when}}",
       "usedByM": "Użyte przez {{name}} {{when}}",
       "used": "Użyte {{when}}",
-      "neverUsed": "Jeszcze nieużyte",
+      "neverUsed": "Jeszcze nieużywane",
       "history": "Zobacz historię"
     },
+    "newItem": "Nowy element",
     "search": "Szukaj w Vault",
     "noResults": "Nic nie pasuje do „{{q}}”.",
     "personalText": "Widzisz je tylko ty. Twoi agenci używają ich tylko wtedy, gdy o to poprosisz.",
@@ -3180,10 +3243,10 @@
     },
     "channels": {
       "title": "Zbierz osoby i agentów na kanale",
-      "text": "Każdy kanał łączy tych, którzy zajmują się jednym tematem.",
-      "viewerTitle": "Tutaj są kanały zespołu",
-      "viewerText": "Osoba tworząca kanały otworzy pierwszy, a on pojawi się tutaj.",
-      "action": "Utwórz kanał",
+      "text": "Każda grupa zbiera osoby zajmujące się jednym tematem.",
+      "viewerTitle": "Tu są grupy zespołu",
+      "viewerText": "Kto tworzy grupy, otwiera pierwszą, a ona pojawi się tutaj.",
+      "action": "Utwórz grupę",
       "titlePersonal": "Rozmawiaj z kilkoma agentami naraz",
       "textPersonal": "Każda rozmowa grupowa łączy agentów i osoby wokół jednego tematu.",
       "viewerTitlePersonal": "Tutaj są rozmowy grupowe",
@@ -3272,7 +3335,7 @@
     "meHint": "Twoje zdjęcie widzą osoby z Twoich przestrzeni roboczych."
   },
   "brand": {
-    "basedOn": "Na podstawie agentes.chat od Codari Global, LLC · AGPL-3.0",
+    "basedOn": "Na podstawie DougBot od Codari Global, LLC · AGPL-3.0",
     "source": "Kod źródłowy DougBot"
   }
 }

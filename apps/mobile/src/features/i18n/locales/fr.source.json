@@ -12,7 +12,7 @@
     "value": "Where #{{channel}} shows"
   },
   "categories.whereHelp": {
-    "value": "Changes for everyone. Who takes part in the channel stays the same."
+    "value": "Changes for everyone. Who takes part in the group stays the same."
   },
   "categories.create": {
     "value": "Create"
@@ -22,8 +22,8 @@
   },
   "categories.channelCount": {
     "value": {
-      "one": "{{count}} channel",
-      "other": "{{count}} channels"
+      "one": "{{count}} group",
+      "other": "{{count}} groups"
     }
   },
   "categories.none": {
@@ -54,7 +54,7 @@
     "value": "{{at}} of {{count}}."
   },
   "categories.itsChannels": {
-    "value": "Channels"
+    "value": "Groups"
   },
   "categories.seeAll": {
     "value": "See all"
@@ -75,10 +75,10 @@
     "value": "Open full screen"
   },
   "blocks.keep": {
-    "value": "Keep in Drive"
+    "value": "Keep in Files"
   },
   "blocks.kept": {
-    "value": "Kept in Drive"
+    "value": "Kept in Files"
   },
   "blocks.wake": {
     "value": "Tap to open"
@@ -459,7 +459,7 @@
     "value": "Agents"
   },
   "chats.section.channels": {
-    "value": "Channels"
+    "value": "Groups"
   },
   "chats.section.people": {
     "value": "People"
@@ -468,7 +468,7 @@
     "value": "See all agents"
   },
   "chats.seeAll.channels": {
-    "value": "See all channels"
+    "value": "See all groups"
   },
   "chats.seeAll.people": {
     "value": "See all people"
@@ -561,16 +561,16 @@
     }
   },
   "chats.newChannel": {
-    "value": "New channel"
+    "value": "New group"
   },
   "chats.newChannelHint": {
     "value": "For a team or a topic"
   },
   "chats.channelPlaceholder": {
-    "value": "Channel name, e.g. marketing"
+    "value": "Group name, e.g. marketing"
   },
   "chats.createChannel": {
-    "value": "Create channel"
+    "value": "Create group"
   },
   "chats.newChannelHintPersonal": {
     "value": "For one subject, with several agents"
@@ -882,7 +882,7 @@
     "value": "Agents"
   },
   "chat.switchChannels": {
-    "value": "Channels"
+    "value": "Groups"
   },
   "chat.switchPeople": {
     "value": "People"
@@ -894,7 +894,7 @@
     "value": "working"
   },
   "chat.join": {
-    "value": "Join the channel"
+    "value": "Join the group"
   },
   "chat.sending": {
     "value": "Sending…"
@@ -1902,7 +1902,7 @@
     "value": "Thinks with {{label}}"
   },
   "team.entry": {
-    "value": "Org chart and channels"
+    "value": "Org chart and groups"
   },
   "team.sectorLead": {
     "value": "{{name}} leads"
@@ -1911,7 +1911,7 @@
     "value": "{{name}} stands in"
   },
   "team.mapHint": {
-    "value": "To move an agent to another channel, use the map on the web or talk to {{name}}."
+    "value": "To move an agent to another group, use the map on the web or talk to {{name}}."
   },
   "agentEdit.missing": {
     "value": "This agent no longer exists."
@@ -2502,13 +2502,13 @@
     "value": "Create agent"
   },
   "channelRef.list": {
-    "value": "Channels"
+    "value": "Groups"
   },
   "channelRef.a11y": {
-    "value": "Channel #{{name}}"
+    "value": "Group #{{name}}"
   },
   "channelRef.archivedA11y": {
-    "value": "Channel #{{name}}, archived"
+    "value": "Group #{{name}}, archived"
   },
   "channelRef.archived": {
     "value": "#{{name}} was archived"
@@ -2520,10 +2520,10 @@
     "value": "People and agents"
   },
   "mention.inChannel": {
-    "value": "In this channel"
+    "value": "In this group"
   },
   "mention.outside": {
-    "value": "Not in the channel"
+    "value": "Not in the group"
   },
   "mention.agent": {
     "value": "agent"
@@ -2535,10 +2535,10 @@
     "value": "Add"
   },
   "mention.addA11y": {
-    "value": "Add {{name}} to the channel"
+    "value": "Add {{name}} to the group"
   },
   "mention.added": {
-    "value": "{{name}} joined the channel"
+    "value": "{{name}} joined the group"
   },
   "me.title": {
     "value": "You"
@@ -2580,7 +2580,7 @@
     "value": "Where you left off"
   },
   "me.startChannels": {
-    "value": "A channel"
+    "value": "A group"
   },
   "me.startHint": {
     "value": "For this workspace, here and on your computer, where home is the Home page."
@@ -2670,7 +2670,7 @@
     }
   },
   "me.drive": {
-    "value": "Drive"
+    "value": "Files"
   },
   "me.connectors": {
     "value": "Connectors and MCPs"
@@ -2718,7 +2718,7 @@
     "value": "Activity keeps everything. This applies to this workspace, on all your devices."
   },
   "me.version": {
-    "value": "agentes.chat · version {{version}}"
+    "value": "DougBot · version {{version}}"
   },
   "me.edit": {
     "value": "Edit"
@@ -2778,7 +2778,7 @@
     "value": "Create a new workspace"
   },
   "me.addWorkspaceCreateSub": {
-    "value": "On agentes.chat"
+    "value": "On DougBot"
   },
   "me.addWorkspaceTeam": {
     "value": "Join your team's server"
@@ -2790,7 +2790,7 @@
     "value": "Team server"
   },
   "me.teamServerLead": {
-    "value": "Your team's agentes.chat address, the same one shown in the browser."
+    "value": "Your team's DougBot address, the same one shown in the browser."
   },
   "me.teamServerFoot": {
     "value": "You don't leave any workspace: your team's server joins your list, with your account there."
@@ -2949,7 +2949,7 @@
     "value": "Add a password on the website"
   },
   "delete.onThisComputer": {
-    "value": "Delete it in the agentes.chat app on the computer that runs this server."
+    "value": "Delete it in the DougBot app on the computer that runs this server."
   },
   "delete.otherAccount": {
     "value": "You signed in to another account. Nothing was deleted."
@@ -3003,7 +3003,7 @@
     "value": "Save to Photos"
   },
   "files.drive": {
-    "value": "View in Drive"
+    "value": "View in Files"
   },
   "files.saved": {
     "value": "Saved to Photos"
@@ -3285,10 +3285,10 @@
     "value": "Couldn't create the task."
   },
   "drive.title": {
-    "value": "Drive"
+    "value": "Files"
   },
   "drive.search": {
-    "value": "Search the Drive"
+    "value": "Search files"
   },
   "drive.types": {
     "value": "File types"
@@ -3306,7 +3306,7 @@
     "value": "Tables"
   },
   "drive.type.diffs": {
-    "value": "Diffs"
+    "value": "Code changes"
   },
   "drive.section.today": {
     "value": "Today"
@@ -3321,7 +3321,7 @@
     "value": "Table"
   },
   "drive.kind.diff": {
-    "value": "Diff"
+    "value": "Code change"
   },
   "drive.kind.image": {
     "value": "Image"
@@ -3336,10 +3336,103 @@
     "value": "Nothing with these filters."
   },
   "drive.loadFailed": {
-    "value": "Couldn't load the Drive."
+    "value": "Couldn't load the files."
   },
   "drive.more": {
     "value": "Show more"
+  },
+  "drive.you": {
+    "value": "You"
+  },
+  "drive.anyone": {
+    "value": "Anyone"
+  },
+  "drive.filter.type": {
+    "value": "Type"
+  },
+  "drive.filter.people": {
+    "value": "People"
+  },
+  "drive.filter.modified": {
+    "value": "Modified"
+  },
+  "drive.when.any": {
+    "value": "Any time"
+  },
+  "drive.when.today": {
+    "value": "Today"
+  },
+  "drive.when.week": {
+    "value": "Last 7 days"
+  },
+  "drive.when.month": {
+    "value": "Last 30 days"
+  },
+  "drive.when.year": {
+    "value": "This year"
+  },
+  "drive.change.edited": {
+    "value": "{{name}} edited"
+  },
+  "drive.change.sent": {
+    "value": "{{name}} sent"
+  },
+  "drive.change.made": {
+    "value": "{{name}} made"
+  },
+  "drive.suggested": {
+    "value": "Suggested"
+  },
+  "drive.list": {
+    "value": "Files"
+  },
+  "drive.folder": {
+    "value": {
+      "one": "conversation with {{count}} file",
+      "other": "conversation with {{count}} files"
+    }
+  },
+  "drive.moreFolders": {
+    "value": {
+      "one": "{{count}} more conversation",
+      "other": "{{count}} more conversations"
+    }
+  },
+  "drive.menu": {
+    "value": "Options for {{name}}"
+  },
+  "drive.more2": {
+    "value": "More options"
+  },
+  "drive.open": {
+    "value": "Open"
+  },
+  "drive.goToChat": {
+    "value": "Go to the conversation"
+  },
+  "drive.new": {
+    "value": "New"
+  },
+  "drive.order.label": {
+    "value": "Order: {{order}}"
+  },
+  "drive.order.recent": {
+    "value": "Newest first"
+  },
+  "drive.order.name": {
+    "value": "By name"
+  },
+  "drive.order.short.recent": {
+    "value": "Newest"
+  },
+  "drive.order.short.name": {
+    "value": "Name"
+  },
+  "drive.view.grid": {
+    "value": "Show as a grid"
+  },
+  "drive.view.list": {
+    "value": "Show as a list"
   },
   "constellation.openHint": {
     "value": "Opens what you tapped in the sky"
@@ -3555,6 +3648,12 @@
     "value": "{{name}} stops now and tells the conversation what was done so far.",
     "female": "{{name}} stops now and tells the conversation what was done so far."
   },
+  "homeTools.title": {
+    "value": "Tools"
+  },
+  "homeTools.more": {
+    "value": "More"
+  },
   "homeNow.working": {
     "value": {
       "one": "{{count}} working",
@@ -3644,6 +3743,138 @@
   },
   "activityNow.next.later": {
     "value": "{{day}} at {{time}}"
+  },
+  "agentLite.uses": {
+    "value": "Can use"
+  },
+  "agentLite.usesNone": {
+    "value": "Nothing yet"
+  },
+  "agentLite.menu": {
+    "value": "More options"
+  },
+  "agentLite.month": {
+    "value": "This month"
+  },
+  "agentLite.reportsTo": {
+    "value": "Reports to"
+  },
+  "agentLite.inProgress": {
+    "value": "in progress"
+  },
+  "agentLite.waitsYou": {
+    "value": "waiting for you"
+  },
+  "agentLite.doneAt": {
+    "value": "delivered at {{time}}"
+  },
+  "agentLite.todayEmptyF": {
+    "value": "{{name}} hasn't done anything for you today."
+  },
+  "agentLite.todayEmptyM": {
+    "value": "{{name}} hasn't done anything for you today."
+  },
+  "agentLite.call": {
+    "value": "Call"
+  },
+  "agentLite.tasks": {
+    "value": "Tasks"
+  },
+  "agentLite.settings": {
+    "value": "Settings"
+  },
+  "agentLite.talk": {
+    "value": "Chat"
+  },
+  "agentLite.settingsTitle": {
+    "value": "Settings"
+  },
+  "agentLite.ai": {
+    "value": "AI"
+  },
+  "agentLite.aiNone": {
+    "value": "No AI yet"
+  },
+  "agentLite.more": {
+    "value": "Everything else"
+  },
+  "agentLite.onSite": {
+    "value": "More settings on the website"
+  },
+  "agentLite.askDoug": {
+    "value": "Ask {{name}}"
+  },
+  "agentLite.askDougAbout": {
+    "value": "About {{name}}: "
+  },
+  "agentLite.moreHelp": {
+    "value": "Instructions, budget, limits and removing the agent are on the website, or ask {{name}} in words."
+  },
+  "agentLite.raiseBudgetF": {
+    "value": "Raise {{name}}'s budget"
+  },
+  "agentLite.raiseBudgetM": {
+    "value": "Raise {{name}}'s budget"
+  },
+  "agentLite.create": {
+    "value": "I want a new agent to "
+  },
+  "agentLite.createWhat": {
+    "value": "I want a new agent to {{what}}"
+  },
+  "agentLite.inChannel": {
+    "value": "work in the #{{channel}} group: "
+  },
+  "agentLite.onPlan": {
+    "value": "think with the {{plan}} plan: "
+  },
+  "teamNow.title": {
+    "value": "Your team now"
+  },
+  "teamNow.lead": {
+    "value": {
+      "one": "{{name}} coordinates {{count}} agent",
+      "other": "{{name}} coordinates {{count}} agents"
+    }
+  },
+  "teamNow.working": {
+    "value": {
+      "one": "{{count}} working",
+      "other": "{{count}} working"
+    }
+  },
+  "teamNow.asking": {
+    "value": {
+      "one": "{{count}} waiting for you",
+      "other": "{{count}} waiting for you"
+    }
+  },
+  "teamNow.quiet": {
+    "value": "Nobody is working right now"
+  },
+  "teamNow.since": {
+    "value": "started {{ago}}"
+  },
+  "teamNow.asks": {
+    "value": "Has a question for you"
+  },
+  "teamNow.waitsYou": {
+    "value": "waiting for you"
+  },
+  "teamNow.stoppedF": {
+    "value": "Stopped"
+  },
+  "teamNow.stoppedM": {
+    "value": "Stopped"
+  },
+  "teamNow.freeF": {
+    "value": "Free"
+  },
+  "teamNow.freeM": {
+    "value": "Free"
+  },
+  "teamNow.empty": {
+    "value": "No agents in the team yet."
   },
   "intentAgents.waitingSection": {
     "value": "Waiting on you"
@@ -3870,7 +4101,7 @@
     "value": "Memory"
   },
   "intentAgents.uses.area.drive": {
-    "value": "Drive"
+    "value": "Files"
   },
   "intentAgents.uses.area.issues": {
     "value": "Tasks"
@@ -4656,10 +4887,10 @@
     "value": "Install the app on it"
   },
   "devices.connect.appNote": {
-    "value": "On a Mac or a PC you use, the agentes.chat desktop app connects it too."
+    "value": "On a Mac or a PC you use, the DougBot desktop app connects it too."
   },
   "devices.connect.appStep1": {
-    "value": "Get the agentes.chat app on it"
+    "value": "Get the DougBot app on it"
   },
   "devices.connect.appStep2": {
     "value": "Open it and sign in as yourself"
@@ -4722,7 +4953,7 @@
     "value": "This phone works through a computer of yours. Connect one first."
   },
   "devices.android.hostOffline": {
-    "value": "{{host}} is offline. Turn it on and open agentes.chat there."
+    "value": "{{host}} is offline. Turn it on and open DougBot there."
   },
   "devices.android.step1": {
     "value": "Turn on Developer options"
@@ -4791,13 +5022,13 @@
     "value": "From Wireless debugging › Pair device with QR code. Don't use the camera: it reads the code as a Wi-Fi network and takes the phone off your Wi-Fi."
   },
   "devices.android.wifi2Hint": {
-    "value": "In agentes.chat on a computer, open Connect a device › Android phone › Over Wi-Fi and pick {{host}}."
+    "value": "In DougBot on a computer, open Connect a device › Android phone › Over Wi-Fi and pick {{host}}."
   },
   "devices.android.codeHead": {
     "value": "Pair with a pairing code"
   },
   "devices.android.codeNote": {
-    "value": "From Wireless debugging › Pair device with pairing code. Open Settings and agentes.chat side by side so the code stays on screen."
+    "value": "From Wireless debugging › Pair device with pairing code. Open Settings and DougBot side by side so the code stays on screen."
   },
   "devices.android.wifiNote": {
     "value": "Wi-Fi can drop after a restart. A cable is more reliable."
@@ -4941,7 +5172,7 @@
     "value": "Turned it on and it restarted? The alert with Turn On shows once this iPhone is unlocked."
   },
   "devices.iphone.devMode.outdated": {
-    "value": "The agentes.chat app on {{host}} is out of date. Update it on that Mac."
+    "value": "The DougBot app on {{host}} is out of date. Update it on that Mac."
   },
   "devices.notice.kind": {
     "value": "Devices"
@@ -5200,7 +5431,7 @@
     "value": "Connect a service"
   },
   "connectors.githubApp.useApp": {
-    "value": "Use the agentes.chat app"
+    "value": "Use the DougBot app"
   },
   "connectors.githubApp.useAccount": {
     "value": "Use a GitHub account"
@@ -5313,6 +5544,21 @@
   "humanCheck.blocked": {
     "value": "The check didn't load. Try another network."
   },
+  "invitePeople.emailsHelp": {
+    "value": "Paste a list or type. Each person gets an email and joins right away."
+  },
+  "invitePeople.here": {
+    "value": "Already here"
+  },
+  "invitePeople.invited": {
+    "value": "Already invited"
+  },
+  "invitePeople.fix": {
+    "value": "Check this"
+  },
+  "invitePeople.channels": {
+    "value": "Groups"
+  },
   "invitePeople.optional": {
     "value": "Optional"
   },
@@ -5401,7 +5647,7 @@
     "value": "What's the new workspace for?"
   },
   "onb.anotherLead": {
-    "value": "On agentes.chat. You stay in {{org}} and can switch any time."
+    "value": "On DougBot. You stay in {{org}} and can switch any time."
   },
   "onb.suggested": {
     "value": "From your {{domain}} e-mail, I suggested {{org}}."
@@ -5413,7 +5659,7 @@
     "value": "Go to the workspace"
   },
   "onb.shareMessage": {
-    "value": "Join {{org}} on agentes.chat: {{url}}"
+    "value": "Join {{org}} on DougBot: {{url}}"
   },
   "onb.failed": {
     "value": "Couldn't save. Try again."
@@ -6094,6 +6340,114 @@
   },
   "roles.mail.giveAnyway": {
     "value": "Give it anyway"
+  },
+  "vault.home.title": {
+    "value": "Passwords"
+  },
+  "vault.home.search": {
+    "value": "Search passwords"
+  },
+  "vault.home.vaults": {
+    "value": "Vaults"
+  },
+  "vault.home.items": {
+    "value": {
+      "one": "{{count}} item",
+      "other": "{{count}} items"
+    }
+  },
+  "vault.home.switch": {
+    "value": {
+      "one": "{{name}}, {{count}} item. Change vault",
+      "other": "{{name}}, {{count}} items. Change vault"
+    }
+  },
+  "vault.home.favorites": {
+    "value": "Favorites"
+  },
+  "vault.home.connections": {
+    "value": "Password managers"
+  },
+  "vault.home.noFavorites": {
+    "value": "Star an item to keep it here."
+  },
+  "vault.sheet.username": {
+    "value": "username"
+  },
+  "vault.sheet.password": {
+    "value": "password"
+  },
+  "vault.sheet.site": {
+    "value": "website"
+  },
+  "vault.sheet.keyName": {
+    "value": "key name"
+  },
+  "vault.sheet.value": {
+    "value": "value"
+  },
+  "vault.sheet.note": {
+    "value": "note"
+  },
+  "vault.sheet.endsIn": {
+    "value": "ends in {{hint}}"
+  },
+  "vault.sheet.agentsOnly": {
+    "value": "only agents use it"
+  },
+  "vault.sheet.sealed": {
+    "value": "saved, only agents use it"
+  },
+  "vault.sheet.copy": {
+    "value": "Copy {{label}}"
+  },
+  "vault.sheet.copied": {
+    "value": "Copied"
+  },
+  "vault.sheet.clears": {
+    "value": "The clipboard clears itself in 1 minute."
+  },
+  "vault.sheet.copyFailed": {
+    "value": "Couldn't copy."
+  },
+  "vault.sheet.edit": {
+    "value": "Edit"
+  },
+  "vault.sheet.details": {
+    "value": "Details"
+  },
+  "vault.sheet.star": {
+    "value": "Add to favorites"
+  },
+  "vault.sheet.unstar": {
+    "value": "Remove from favorites"
+  },
+  "vault.sheet.who": {
+    "value": "Who can use it"
+  },
+  "vault.sheet.changeWho": {
+    "value": "Change who can use it"
+  },
+  "vault.sheet.onlyYou": {
+    "value": "Only you"
+  },
+  "vault.sheet.everyone": {
+    "value": "Everyone"
+  },
+  "vault.sheet.usedByF": {
+    "value": "Used by {{name}} {{when}}"
+  },
+  "vault.sheet.usedByM": {
+    "value": "Used by {{name}} {{when}}"
+  },
+  "vault.sheet.used": {
+    "value": "Used {{when}}"
+  },
+  "vault.sheet.neverUsed": {
+    "value": "Not used yet"
+  },
+  "vault.sheet.history": {
+    "value": "See history"
   },
   "vault.newItem": {
     "value": "New item"
@@ -6960,16 +7314,16 @@
     "value": "Bring people and agents together"
   },
   "empty.channels.text": {
-    "value": "Each channel gathers whoever takes care of one subject."
+    "value": "Each group gathers whoever takes care of one subject."
   },
   "empty.channels.viewerTitle": {
-    "value": "The team's channels live here"
+    "value": "The team's groups live here"
   },
   "empty.channels.viewerText": {
-    "value": "Whoever creates channels opens the first one, and it shows up here."
+    "value": "Whoever creates groups opens the first one, and it shows up here."
   },
   "empty.channels.action": {
-    "value": "Create channel"
+    "value": "Create group"
   },
   "empty.channels.titlePersonal": {
     "value": "Talk to several agents at once"
@@ -7149,7 +7503,7 @@
     "value": "Your photo shows to the people in your workspaces."
   },
   "brand.basedOn": {
-    "value": "Based on agentes.chat by Codari Global, LLC · AGPL-3.0"
+    "value": "Based on DougBot by Codari Global, LLC · AGPL-3.0"
   },
   "brand.source": {
     "value": "DougBot source code"

@@ -6,7 +6,7 @@
   "categories": {
     "title": "Categorías",
     "where": "Dónde aparece #{{channel}}",
-    "whereHelp": "Cambia para todos. Quién participa en el grupo no cambia.",
+    "whereHelp": "Cambia para todos. Quién participa en el grupo sigue igual.",
     "create": "Crear",
     "endOfList": "Va al final de la lista para todos.",
     "channelCount_one": "{{count}} grupo",
@@ -384,7 +384,7 @@
     "switchPeople": "Personas",
     "switchNone": "No hay ninguna conversación con ese nombre.",
     "switchWorking": "trabajando",
-    "join": "Unirte al grupo",
+    "join": "Unirse al grupo",
     "sending": "Enviando…",
     "toLatest": "Ir a los mensajes más recientes",
     "toLatestNew": "Ir a los mensajes más recientes: {{text}}",
@@ -1118,7 +1118,7 @@
     "agent": "agente",
     "person": "persona",
     "add": "Agregar",
-    "addA11y": "Agregar a {{name}} al grupo",
+    "addA11y": "Añadir a {{name}} al grupo",
     "added": "{{name}} se unió al grupo"
   },
   "me": {
@@ -1271,7 +1271,7 @@
     "blocked": "Eres el único propietario de {{names}}. En el sitio web, en Personas, haz propietario a alguien más y después vuelve.",
     "addPasswordFirst": "Primero agrega una contraseña a tu cuenta en el sitio web y después escríbela aquí.",
     "addPasswordWeb": "Agregar una contraseña en el sitio web",
-    "onThisComputer": "Bórralo en la app de DougBot en la computadora donde corre este servidor.",
+    "onThisComputer": "Bórralo en la app de DougBot en el ordenador donde corre este servidor.",
     "otherAccount": "Iniciaste sesión en otra cuenta. No se eliminó nada.",
     "hold": "Mantén presionado para eliminar"
   },
@@ -1407,7 +1407,7 @@
   },
   "drive": {
     "title": "Archivos",
-    "search": "Buscar en los archivos",
+    "search": "Buscar archivos",
     "types": "Tipos de archivo",
     "type": {
       "all": "Todos",
@@ -1565,6 +1565,10 @@
     "stopTitle": "¿Detener “{{title}}”?",
     "stopBody": "{{name}} se detiene ahora y cuenta en la conversación lo que hizo hasta el momento."
   },
+  "homeTools": {
+    "title": "Herramientas",
+    "more": "Más"
+  },
   "homeNow": {
     "working_one": "{{count}} trabajando",
     "working_many": "{{count}} trabajando",
@@ -1611,6 +1615,57 @@
       "tomorrow": "mañana a las {{time}}",
       "later": "{{day}} a las {{time}}"
     }
+  },
+  "agentLite": {
+    "uses": "Puede usar",
+    "usesNone": "Nada todavía",
+    "menu": "Más opciones",
+    "month": "Este mes",
+    "reportsTo": "Responde a",
+    "inProgress": "en curso",
+    "waitsYou": "te espera",
+    "doneAt": "entregado a las {{time}}",
+    "todayEmptyF": "{{name}} todavía no ha hecho nada por ti hoy.",
+    "todayEmptyM": "{{name}} todavía no ha hecho nada por ti hoy.",
+    "call": "Llamar",
+    "tasks": "Tareas",
+    "settings": "Ajustes",
+    "talk": "Chatear",
+    "settingsTitle": "Ajustes",
+    "ai": "IA",
+    "aiNone": "Aún sin IA",
+    "more": "Todo lo demás",
+    "onSite": "Más ajustes en el sitio web",
+    "askDoug": "Pedirle a {{name}}",
+    "askDougAbout": "Sobre {{name}}:  ",
+    "moreHelp": "Las instrucciones, el presupuesto, los límites y la eliminación del agente están en el sitio web, o pídeselo a {{name}} con palabras.",
+    "raiseBudgetF": "Subir el presupuesto de {{name}}",
+    "raiseBudgetM": "Subir el presupuesto de {{name}}",
+    "create": "Quiero un agente nuevo para  ",
+    "createWhat": "Quiero un agente nuevo para {{what}}",
+    "inChannel": "trabajar en el grupo #{{channel}}:  ",
+    "onPlan": "pensar con el plan {{plan}}:  "
+  },
+  "teamNow": {
+    "title": "Tu equipo ahora",
+    "lead_one": "{{name}} coordina {{count}} agente",
+    "lead_many": "{{name}} coordina {{count}} agentes",
+    "lead_other": "{{name}} coordina {{count}} agentes",
+    "working_one": "{{count}} trabajando",
+    "working_many": "{{count}} trabajando",
+    "working_other": "{{count}} trabajando",
+    "asking_one": "{{count}} te espera",
+    "asking_many": "{{count}} te esperan",
+    "asking_other": "{{count}} te esperan",
+    "quiet": "Nadie está trabajando ahora",
+    "since": "empezó {{ago}}",
+    "asks": "Tiene una pregunta para ti",
+    "waitsYou": "te espera",
+    "stoppedF": "Detenida",
+    "stoppedM": "Detenido",
+    "freeF": "Libre",
+    "freeM": "Libre",
+    "empty": "Aún no hay agentes en el equipo."
   },
   "intentAgents": {
     "waitingSection": "Esperándote",
@@ -1707,7 +1762,7 @@
       },
       "area": {
         "context": "Memoria",
-        "drive": "Drive",
+        "drive": "Archivos",
         "issues": "Tareas",
         "calendar": "Calendario",
         "wiki": "Wiki",
@@ -2034,8 +2089,8 @@
       "serverText": "Una línea para pegar en su terminal",
       "computer": "Otra computadora",
       "computerText": "Instala la app en ella",
-      "appNote": "En una Mac o PC que uses, la app de escritorio de DougBot también la conecta.",
-      "appStep1": "Instala la app de DougBot en ella",
+      "appNote": "En un Mac o PC que uses, la app de escritorio de DougBot también lo conecta.",
+      "appStep1": "Instala en él la app de DougBot",
       "appStep2": "Ábrela e inicia sesión con tu cuenta",
       "appStep3": "Haz clic en Permitir cuando pregunte si los agentes de {{org}} pueden usarla",
       "appShows": "Aparece aquí sola, solo para ti hasta que la compartas.",
@@ -2058,7 +2113,7 @@
       "connecting": "Conectando con {{host}}",
       "computer": "Computadora",
       "noHost": "Este teléfono funciona a través de una computadora tuya. Conecta una primero.",
-      "hostOffline": "{{host}} está sin conexión. Enciéndela y abre DougBot ahí.",
+      "hostOffline": "{{host}} está sin conexión. Enciéndelo y abre DougBot ahí.",
       "step1": "Activa las Opciones para desarrolladores",
       "step1Text": "Toca 7 veces Número de compilación y luego escribe tu PIN. En Samsung: Información de software › Número de compilación.",
       "openAbout": "Abrir Información del teléfono",
@@ -2083,9 +2138,9 @@
       "wifi1Text": "Marca Permitir siempre en esta red y toca Permitir.",
       "wifi2": "Escanea el código en una computadora",
       "wifi2Text": "Desde Depuración inalámbrica › Vincular dispositivo con código QR. No uses la cámara: lee el código como una red Wi-Fi y saca el teléfono de tu Wi-Fi.",
-      "wifi2Hint": "En DougBot en una computadora, abre Conectar un dispositivo › Teléfono Android › Por Wi-Fi y elige {{host}}.",
+      "wifi2Hint": "En DougBot en un ordenador, abre Conectar un dispositivo › Teléfono Android › Por Wi-Fi y elige {{host}}.",
       "codeHead": "Vincular con un código de vinculación",
-      "codeNote": "Desde Depuración inalámbrica › Vincular dispositivo con código de sincronización. Abre Configuración y DougBot en pantalla dividida para que el código siga a la vista.",
+      "codeNote": "Desde Depuración inalámbrica › Vincular dispositivo con código de sincronización. Abre Ajustes y DougBot en pantalla dividida para que el código siga a la vista.",
       "wifiNote": "El Wi-Fi puede cortarse tras un reinicio. Un cable es más confiable.",
       "done": "{{name}} está conectado",
       "openFailed": "Este teléfono no abrió esa pantalla. Búscala en Configuración."
@@ -2142,7 +2197,7 @@
         "openXcode": "Abrir Xcode",
         "opened": "Xcode se abrió en {{host}}. Vuelve a mirar en Ajustes y cierra Xcode allí después.",
         "unlock": "¿Lo activaste y se reinició? El aviso con Activar aparece cuando este iPhone está desbloqueado.",
-        "outdated": "La app DougBot en {{host}} está desactualizada. Actualízala en ese Mac."
+        "outdated": "La app de DougBot en {{host}} está desactualizada. Actualízala en ese Mac."
       }
     },
     "notice": {
@@ -2240,7 +2295,7 @@
     "usedBy_other": "{{names}} lo usan",
     "fromAgent": "Conectar un servicio",
     "githubApp": {
-      "useApp": "Usar la app DougBot",
+      "useApp": "Usar la app de DougBot",
       "useAccount": "Usar una cuenta de GitHub",
       "createInBrowser": "Crear en el navegador"
     },
@@ -2306,9 +2361,7 @@
     "sendAgain": "Enviar de nuevo",
     "cancelTitle": "¿Cancelar la invitación a {{email}}?",
     "cancelText": "Su enlace deja de abrir.",
-    "send": "Enviar",
-    "roleHelp": "Cambia lo que la persona recibe al entrar.",
-    "remove": "Quitar de la lista"
+    "send": "Enviar"
   },
   "members": {
     "waiting_one": "{{count}} esperando",
@@ -2634,7 +2687,6 @@
     }
   },
   "vault": {
-    "newItem": "Nuevo elemento",
     "home": {
       "title": "Contraseñas",
       "search": "Buscar en las contraseñas",
@@ -2652,7 +2704,7 @@
     "sheet": {
       "username": "usuario",
       "password": "contraseña",
-      "site": "sitio",
+      "site": "sitio web",
       "keyName": "nombre de la clave",
       "value": "valor",
       "note": "nota",
@@ -2667,16 +2719,17 @@
       "details": "Detalles",
       "star": "Añadir a favoritos",
       "unstar": "Quitar de favoritos",
-      "who": "Quién puede usarlo",
-      "changeWho": "Cambiar quién puede usarlo",
+      "who": "Quién puede usarla",
+      "changeWho": "Cambiar quién puede usarla",
       "onlyYou": "Solo tú",
       "everyone": "Todos",
-      "usedByF": "Usado por {{name}} {{when}}",
-      "usedByM": "Usado por {{name}} {{when}}",
-      "used": "Usado {{when}}",
-      "neverUsed": "Aún no usado",
+      "usedByF": "Usada por {{name}} {{when}}",
+      "usedByM": "Usada por {{name}} {{when}}",
+      "used": "Usada {{when}}",
+      "neverUsed": "Aún sin usar",
       "history": "Ver historial"
     },
+    "newItem": "Nuevo elemento",
     "search": "Buscar en el Vault",
     "noResults": "Nada coincide con “{{q}}”.",
     "personalText": "Solo tú los ves. Tus agentes los usan solo cuando se lo pides.",
@@ -3051,7 +3104,7 @@
     "channels": {
       "title": "Reúne a personas y agentes en un grupo",
       "text": "Cada grupo reúne a quienes se ocupan de un tema.",
-      "viewerTitle": "Los grupos del equipo están aquí",
+      "viewerTitle": "Aquí están los grupos del equipo",
       "viewerText": "Quien crea grupos abre el primero, y aparece aquí.",
       "action": "Crear grupo",
       "titlePersonal": "Habla con varios agentes a la vez",

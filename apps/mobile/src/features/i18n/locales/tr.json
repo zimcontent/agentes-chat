@@ -6,11 +6,11 @@
   "categories": {
     "title": "Kategoriler",
     "where": "#{{channel}} kanalının göründüğü yer",
-    "whereHelp": "Herkes için değişir. Kanala kimlerin katıldığı aynı kalır.",
+    "whereHelp": "Herkes için değişir. Gruba kimlerin katıldığı aynı kalır.",
     "create": "Oluştur",
     "endOfList": "Herkes için listenin sonuna eklenir.",
-    "channelCount_one": "{{count}} kanal",
-    "channelCount_other": "{{count}} kanal",
+    "channelCount_one": "{{count}} grup",
+    "channelCount_other": "{{count}} grup",
     "none": "Henüz kategori yok.",
     "manageHelp": "Yeniden adlandırmak, taşımak veya silmek için bir kategoriye dokunun.",
     "manageHint": "Sıra, adlar ve silme",
@@ -20,7 +20,7 @@
     "down": "Aşağı taşı",
     "position": "{{at}} / {{count}}.",
     "channelPosition": "{{at}} / {{count}}.",
-    "itsChannels": "Kanallar",
+    "itsChannels": "Gruplar",
     "seeAll": "Tümünü gör"
   },
   "blocks": {
@@ -190,12 +190,12 @@
     },
     "section": {
       "agents": "Ajanlar",
-      "channels": "Kanallar",
+      "channels": "Gruplar",
       "people": "Kişiler"
     },
     "seeAll": {
       "agents": "Tüm ajanları gör",
-      "channels": "Tüm kanalları gör",
+      "channels": "Tüm grupları gör",
       "people": "Tüm kişileri gör"
     },
     "wait": {
@@ -235,10 +235,10 @@
     "mission": "Misyon",
     "unreadLabel_one": "{{count}} okunmamış",
     "unreadLabel_other": "{{count}} okunmamış",
-    "newChannel": "Yeni kanal",
+    "newChannel": "Yeni grup",
     "newChannelHint": "Bir ekip ya da konu için",
-    "channelPlaceholder": "Kanal adı, ör. pazarlama",
-    "createChannel": "Kanal oluştur",
+    "channelPlaceholder": "Grup adı, ör. marketing",
+    "createChannel": "Grup oluştur",
     "newChannelHintPersonal": "Tek bir konu için, birkaç ajanla",
     "channelPlaceholderPersonal": "Ad, ör. tatil",
     "createChannelPersonal": "Grup sohbeti oluştur",
@@ -366,11 +366,11 @@
     "switchTitle": "Sohbet değiştir",
     "switchSearch": "Sohbetlerde ara",
     "switchAgents": "Ajanlar",
-    "switchChannels": "Kanallar",
+    "switchChannels": "Gruplar",
     "switchPeople": "Kişiler",
     "switchNone": "Bu adla bir sohbet yok.",
     "switchWorking": "çalışıyor",
-    "join": "Kanala katıl",
+    "join": "Gruba katıl",
     "sending": "Gönderiliyor…",
     "toLatest": "En son mesajlara git",
     "toLatestNew": "En son mesajlara git: {{text}}",
@@ -804,10 +804,10 @@
     "thinksWith": "{{label}} ile düşünür"
   },
   "team": {
-    "entry": "Organizasyon şeması ve kanallar",
+    "entry": "Organizasyon şeması ve gruplar",
     "sectorLead": "{{name}} yönetiyor",
     "sectorBackup": "{{name}} yedekte",
-    "mapHint": "Bir ajanı başka bir kanala taşımak için web'deki haritayı kullanın veya {{name}} ile konuşun."
+    "mapHint": "Bir ajanı başka bir gruba taşımak için web'deki haritayı kullan veya {{name}} ile konuş."
   },
   "agentEdit": {
     "missing": "Bu ajan artık yok.",
@@ -1033,21 +1033,21 @@
     }
   },
   "channelRef": {
-    "list": "Kanallar",
-    "a11y": "#{{name}} kanalı",
-    "archivedA11y": "#{{name}} kanalı, arşivlendi",
+    "list": "Gruplar",
+    "a11y": "Grup #{{name}}",
+    "archivedA11y": "Grup #{{name}}, arşivlendi",
     "archived": "#{{name}} arşivlendi",
     "notMember": "üye değilsiniz"
   },
   "mention": {
     "list": "Kişiler ve ajanlar",
-    "inChannel": "Bu kanalda",
-    "outside": "Kanalda değil",
+    "inChannel": "Bu grupta",
+    "outside": "Grupta değil",
     "agent": "ajan",
     "person": "kişi",
     "add": "Ekle",
-    "addA11y": "{{name}} kanala eklensin",
-    "added": "{{name}} kanala katıldı"
+    "addA11y": "{{name}} kişisini gruba ekle",
+    "added": "{{name}} gruba katıldı"
   },
   "me": {
     "title": "Siz",
@@ -1065,7 +1065,7 @@
     "start": "Uygulama açıldığında",
     "startHome": "Sohbetler",
     "startLast": "Kaldığınız yer",
-    "startChannels": "Bir kanal",
+    "startChannels": "Bir grup",
     "startHint": "Bu çalışma alanı için geçerli, burada ve bilgisayarınızda (orada başlangıç Ana sayfa'dır).",
     "startFailed": "Kaydedilemedi. Tekrar deneyin.",
     "activity": "Ajanların yanıtları",
@@ -1111,7 +1111,7 @@
     "notificationsOnHint": "Açıksa tarayıcıya ve masaüstü uygulamasına da gelir.",
     "notificationsOffHint": "Burada bildirim almak için açın. Aşağıdaki türler tüm cihazlarınız için geçerlidir.",
     "notificationsKindsHint": "Etkinlik her şeyi tutar. Bu ayar, tüm cihazlarınızda bu çalışma alanı için geçerlidir.",
-    "version": "agentes.chat · sürüm {{version}}",
+    "version": "DougBot · sürüm {{version}}",
     "edit": "Düzenle",
     "status": "Durum",
     "workspace": "Çalışma alanı",
@@ -1131,11 +1131,11 @@
     "workspacesUnreachable": "Şu an yanıt yok",
     "addWorkspace": "Çalışma alanı ekle",
     "addWorkspaceCreate": "Yeni bir çalışma alanı oluştur",
-    "addWorkspaceCreateSub": "agentes.chat'te",
+    "addWorkspaceCreateSub": "DougBot'ta",
     "addWorkspaceTeam": "Ekibinin sunucusuna katıl",
     "addWorkspaceTeamSub": "Adresiyle ya da bilgisayarda görünen QR koduyla",
     "teamServer": "Ekibin sunucusu",
-    "teamServerLead": "Ekibinin agentes.chat adresi, tarayıcıda görünenle aynı.",
+    "teamServerLead": "Ekibinin DougBot adresi, tarayıcıda görünenle aynı.",
     "teamServerFoot": "Hiçbir çalışma alanından çıkmazsın: ekibinin sunucusu oradaki hesabınla listene eklenir.",
     "workspacesHoldHint": "Çalışma alanını değiştirmek için basılı tutun",
     "workspacesSheetFoot": "Hepsinde oturumunuz açık kalır. Her birinin bildirimleri buraya gelir.",
@@ -1196,7 +1196,7 @@
     "blocked": "{{names}} çalışma alanının tek sahibi sizsiniz. Web sitesinde, Kişiler bölümünde başka birini sahip yapın, sonra geri gelin.",
     "addPasswordFirst": "Önce web sitesinden hesabınıza bir şifre ekleyin, sonra buraya yazın.",
     "addPasswordWeb": "Web sitesinde şifre ekle",
-    "onThisComputer": "Bu sunucuyu çalıştıran bilgisayardaki agentes.chat uygulamasından silin.",
+    "onThisComputer": "Bu sunucuyu çalıştıran bilgisayardaki DougBot uygulamasından sil.",
     "otherAccount": "Başka bir hesaba giriş yaptınız. Hiçbir şey silinmedi.",
     "hold": "Silmek için basılı tutun"
   },
@@ -1338,7 +1338,7 @@
       "documents": "Belgeler",
       "images": "Görseller",
       "tables": "Tablolar",
-      "diffs": "Farklar"
+      "diffs": "Kod değişiklikleri"
     },
     "section": {
       "today": "Bugün",
@@ -1347,7 +1347,7 @@
     "kind": {
       "document": "Belge",
       "table": "Tablo",
-      "diff": "Fark",
+      "diff": "Kod değişikliği",
       "image": "Görsel",
       "file": "Dosya"
     },
@@ -1380,7 +1380,7 @@
     "folder_other": "{{count}} dosyalı sohbet",
     "moreFolders_one": "{{count}} sohbet daha",
     "moreFolders_other": "{{count}} sohbet daha",
-    "menu": "{{name}} seçenekleri",
+    "menu": "{{name}} için seçenekler",
     "more2": "Diğer seçenekler",
     "open": "Aç",
     "goToChat": "Sohbete git",
@@ -1482,6 +1482,10 @@
     "stopTitle": "“{{title}}” durdurulsun mu?",
     "stopBody": "{{name}} hemen durur ve şimdiye kadar yapılanları sohbette anlatır."
   },
+  "homeTools": {
+    "title": "Araçlar",
+    "more": "Daha fazla"
+  },
   "homeNow": {
     "working_one": "{{count}} çalışıyor",
     "working_other": "{{count}} çalışıyor",
@@ -1527,6 +1531,54 @@
       "tomorrow": "yarın {{time}}",
       "later": "{{day}} {{time}}"
     }
+  },
+  "agentLite": {
+    "uses": "Kullanabilir",
+    "usesNone": "Henüz yok",
+    "menu": "Diğer seçenekler",
+    "month": "Bu ay",
+    "reportsTo": "Bağlı olduğu kişi",
+    "inProgress": "devam ediyor",
+    "waitsYou": "seni bekliyor",
+    "doneAt": "{{time}} saatinde teslim edildi",
+    "todayEmptyF": "{{name}} bugün senin için henüz bir şey yapmadı.",
+    "todayEmptyM": "{{name}} bugün senin için henüz bir şey yapmadı.",
+    "call": "Ara",
+    "tasks": "Görevler",
+    "settings": "Ayarlar",
+    "talk": "Sohbet",
+    "settingsTitle": "Ayarlar",
+    "ai": "YZ",
+    "aiNone": "Henüz YZ yok",
+    "more": "Geri kalan her şey",
+    "onSite": "Daha fazla ayar web sitesinde",
+    "askDoug": "{{name}} kişisine sor",
+    "askDougAbout": "{{name}} hakkında:  ",
+    "moreHelp": "Talimatlar, bütçe, sınırlar ve ajanı silme web sitesinde. İstersen {{name}} kişisine kendi sözlerinle de söyleyebilirsin.",
+    "raiseBudgetF": "{{name}} bütçesini artır",
+    "raiseBudgetM": "{{name}} bütçesini artır",
+    "create": "Şunun için yeni bir ajan istiyorum:  ",
+    "createWhat": "Şunun için yeni bir ajan istiyorum: {{what}}",
+    "inChannel": "#{{channel}} grubunda çalışsın:  ",
+    "onPlan": "{{plan}} planıyla düşünsün:  "
+  },
+  "teamNow": {
+    "title": "Ekibin şu an",
+    "lead_one": "{{name}} {{count}} ajanı koordine ediyor",
+    "lead_other": "{{name}} {{count}} ajanı koordine ediyor",
+    "working_one": "{{count}} çalışıyor",
+    "working_other": "{{count}} çalışıyor",
+    "asking_one": "{{count}} seni bekliyor",
+    "asking_other": "{{count}} seni bekliyor",
+    "quiet": "Şu an kimse çalışmıyor",
+    "since": "{{ago}} başladı",
+    "asks": "Senin için bir sorusu var",
+    "waitsYou": "seni bekliyor",
+    "stoppedF": "Durduruldu",
+    "stoppedM": "Durduruldu",
+    "freeF": "Boşta",
+    "freeM": "Boşta",
+    "empty": "Ekipte henüz ajan yok."
   },
   "intentAgents": {
     "waitingSection": "Sizi bekleyenler",
@@ -1621,7 +1673,7 @@
       },
       "area": {
         "context": "Bellek",
-        "drive": "Drive",
+        "drive": "Dosyalar",
         "issues": "Görevler",
         "calendar": "Takvim",
         "wiki": "Wiki",
@@ -1938,8 +1990,8 @@
       "serverText": "Terminaline yapıştırılacak tek satır",
       "computer": "Başka bir bilgisayar",
       "computerText": "Uygulamayı ona yükleyin",
-      "appNote": "Kullandığınız bir Mac ya da PC'yi agentes.chat masaüstü uygulaması da bağlayabilir.",
-      "appStep1": "agentes.chat uygulamasını ona yükleyin",
+      "appNote": "Kullandığın bir Mac ya da PC'yi DougBot masaüstü uygulaması da bağlayabilir.",
+      "appStep1": "DougBot uygulamasını ona yükle",
       "appStep2": "Açın ve kendi hesabınızla oturum açın",
       "appStep3": "{{org}} ajanlarının onu kullanıp kullanamayacağını sorduğunda İzin ver'e tıklayın",
       "appShows": "Burada kendiliğinden görünür, paylaşana kadar yalnızca sizin içindir.",
@@ -1962,7 +2014,7 @@
       "connecting": "{{host}} ile bağlantı kuruluyor",
       "computer": "Bilgisayar",
       "noHost": "Bu telefon sizin bir bilgisayarınız üzerinden çalışır. Önce bir bilgisayar bağlayın.",
-      "hostOffline": "{{host}} çevrimdışı. Açın ve orada agentes.chat'i açın.",
+      "hostOffline": "{{host}} çevrimdışı. Aç ve orada DougBot'u aç.",
       "step1": "Geliştirici seçeneklerini açın",
       "step1Text": "Derleme numarası'na 7 kez dokunun, ardından PIN'inizi girin. Samsung'da: Yazılım bilgileri › Yapım numarası.",
       "openAbout": "Telefon hakkında'yı aç",
@@ -1987,9 +2039,9 @@
       "wifi1Text": "Bu ağda her zaman izin ver'i işaretleyip İzin ver'e dokunun.",
       "wifi2": "Kodu bir bilgisayarda tarayın",
       "wifi2Text": "Kablosuz hata ayıklama › Cihazı QR koduyla eşle bölümünden. Kamerayı kullanmayın: kodu bir Wi-Fi ağı olarak okur ve telefonu Wi-Fi ağınızdan çıkarır.",
-      "wifi2Hint": "Bir bilgisayardaki agentes.chat'te Cihaz bağla › Android telefon › Wi-Fi üzerinden'i açıp {{host}} seçin.",
+      "wifi2Hint": "Bir bilgisayardaki DougBot'ta Cihaz bağla › Android telefon › Wi-Fi üzerinden'i açıp {{host}} seç.",
       "codeHead": "Eşleme koduyla eşle",
-      "codeNote": "Kablosuz hata ayıklama › Cihazı eşleme koduyla eşle bölümünden. Kod ekranda kalsın diye Ayarlar'ı ve agentes.chat'i yan yana açın.",
+      "codeNote": "Kablosuz hata ayıklama › Cihazı eşleme koduyla eşle bölümünden. Kod ekranda kalsın diye Ayarlar'ı ve DougBot'u yan yana aç.",
       "wifiNote": "Wi-Fi yeniden başlatmadan sonra kopabilir. Kablo daha güvenilirdir.",
       "done": "{{name}} bağlandı",
       "openFailed": "Bu telefon o ekranı açmadı. Ayarlar'da bulun."
@@ -2046,7 +2098,7 @@
         "openXcode": "Xcode'u aç",
         "opened": "Xcode {{host}} üzerinde açıldı. Ayarlar'a yeniden bakın, sonra oradaki Xcode'u kapatın.",
         "unlock": "Açtınız ve yeniden başladı mı? Aç düğmeli uyarı, bu iPhone'un kilidi açıldığında çıkar.",
-        "outdated": "{{host}} üzerindeki agentes.chat uygulaması eski. O Mac'te güncelleyin."
+        "outdated": "{{host}} üzerindeki DougBot uygulaması eski. O Mac'te güncelle."
       }
     },
     "notice": {
@@ -2143,7 +2195,7 @@
     "usedBy_other": "{{names}} kullanıyor",
     "fromAgent": "Bir hizmet bağla",
     "githubApp": {
-      "useApp": "agentes.chat uygulamasını kullan",
+      "useApp": "DougBot uygulamasını kullan",
       "useAccount": "Bir GitHub hesabı kullan",
       "createInBrowser": "Tarayıcıda oluştur"
     },
@@ -2198,6 +2250,11 @@
     "blocked": "Doğrulama yüklenmedi. Başka bir ağ deneyin."
   },
   "invitePeople": {
+    "emailsHelp": "Bir liste yapıştır ya da yaz. Herkes bir e-posta alır ve hemen katılır.",
+    "here": "Zaten burada",
+    "invited": "Zaten davet edildi",
+    "fix": "Şunu kontrol et",
+    "channels": "Gruplar",
     "optional": "İsteğe bağlı",
     "ok": "Tamam",
     "noteHelp": "E-postada adınızla birlikte görünür. En fazla {{max}} karakter.",
@@ -2237,11 +2294,11 @@
     "zoneTitle": "Saat dilimi",
     "anotherTitle": "Yeni çalışma alanının adı ne?",
     "anotherPurpose": "Yeni çalışma alanı ne için?",
-    "anotherLead": "agentes.chat üzerinde. {{org}} çalışma alanında kalırsınız ve istediğiniz zaman geçiş yapabilirsiniz.",
+    "anotherLead": "DougBot'ta. {{org}} içinde kalırsın ve istediğin zaman geçiş yapabilirsin.",
     "suggested": "{{domain}} alan adlı e-postanıza bakarak {{org}} adını önerdim.",
     "create": "Oluştur",
     "enter": "Çalışma alanına gir",
-    "shareMessage": "agentes.chat üzerinde {{org}} çalışma alanına katılın: {{url}}",
+    "shareMessage": "DougBot'ta {{org}} ekibine katıl: {{url}}",
     "failed": "Kaydedilemedi. Tekrar deneyin."
   },
   "aiPanel": {
@@ -2521,7 +2578,6 @@
     }
   },
   "vault": {
-    "newItem": "Yeni öğe",
     "home": {
       "title": "Parolalar",
       "search": "Parolalarda ara",
@@ -2532,12 +2588,12 @@
       "switch_other": "{{name}}, {{count}} öğe. Kasayı değiştir",
       "favorites": "Favoriler",
       "connections": "Parola yöneticileri",
-      "noFavorites": "Burada tutmak için bir öğenin yıldızına dokunun."
+      "noFavorites": "Burada tutmak için bir öğenin yıldızına dokun."
     },
     "sheet": {
       "username": "kullanıcı adı",
       "password": "parola",
-      "site": "site",
+      "site": "web sitesi",
       "keyName": "anahtar adı",
       "value": "değer",
       "note": "not",
@@ -2562,6 +2618,7 @@
       "neverUsed": "Henüz kullanılmadı",
       "history": "Geçmişi gör"
     },
+    "newItem": "Yeni öğe",
     "search": "Vault'ta ara",
     "noResults": "“{{q}}” ile eşleşen bir şey yok.",
     "personalText": "Bunları yalnızca siz görürsünüz. Ajanlarınız bunları yalnızca siz istediğinizde kullanır.",
@@ -2932,10 +2989,10 @@
     },
     "channels": {
       "title": "Kişileri ve ajanları bir kanalda toplayın",
-      "text": "Her kanal bir konuyla ilgilenenleri bir araya getirir.",
-      "viewerTitle": "Ekibin kanalları burada",
-      "viewerText": "Kanal oluşturan kişi ilkini açar ve burada görünür.",
-      "action": "Kanal oluştur",
+      "text": "Her grup, bir konuyla ilgilenenleri bir araya getirir.",
+      "viewerTitle": "Ekibin grupları burada",
+      "viewerText": "Grup oluşturan kişi ilkini açınca burada görünür.",
+      "action": "Grup oluştur",
       "titlePersonal": "Birkaç ajanla aynı anda konuşun",
       "textPersonal": "Her grup sohbeti bir konu için ajanları ve kişileri bir araya getirir.",
       "viewerTitlePersonal": "Grup sohbetleri burada",
@@ -3024,7 +3081,7 @@
     "meHint": "Fotoğrafın, çalışma alanlarındaki kişilere görünür."
   },
   "brand": {
-    "basedOn": "Codari Global, LLC'nin agentes.chat projesine dayanır · AGPL-3.0",
+    "basedOn": "Codari Global, LLC'nin DougBot projesine dayanır · AGPL-3.0",
     "source": "DougBot kaynak kodu"
   }
 }

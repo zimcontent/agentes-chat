@@ -6,10 +6,10 @@
   "categories": {
     "title": "カテゴリ",
     "where": "#{{channel}}を表示する場所",
-    "whereHelp": "全員に反映されます。チャンネルの参加者は変わりません。",
+    "whereHelp": "全員に反映されます。グループの参加者は変わりません。",
     "create": "作成",
     "endOfList": "全員のリストの最後に移動します。",
-    "channelCount_other": "{{count}}個のチャンネル",
+    "channelCount_other": "{{count}}個のグループ",
     "none": "カテゴリはまだありません。",
     "manageHelp": "カテゴリをタップすると、名前の変更、移動、削除ができます。",
     "manageHint": "並び順、名前、削除",
@@ -19,7 +19,7 @@
     "down": "下へ移動",
     "position": "{{count}}中{{at}}番目。",
     "channelPosition": "{{count}}中{{at}}番目。",
-    "itsChannels": "チャンネル",
+    "itsChannels": "グループ",
     "seeAll": "すべて表示"
   },
   "blocks": {
@@ -184,12 +184,12 @@
     },
     "section": {
       "agents": "エージェント",
-      "channels": "チャンネル",
+      "channels": "グループ",
       "people": "人"
     },
     "seeAll": {
       "agents": "すべてのエージェントを表示",
-      "channels": "すべてのチャンネルを表示",
+      "channels": "すべてのグループを見る",
       "people": "すべての人を表示"
     },
     "wait": {
@@ -227,10 +227,10 @@
     "missionWith": "{{who}}とのミッション",
     "mission": "ミッション",
     "unreadLabel_other": "未読{{count}}件",
-    "newChannel": "新しいチャンネル",
+    "newChannel": "新しいグループ",
     "newChannelHint": "チームやトピック用",
-    "channelPlaceholder": "チャンネル名（例: マーケティング）",
-    "createChannel": "チャンネルを作成",
+    "channelPlaceholder": "グループ名(例: marketing)",
+    "createChannel": "グループを作成",
     "newChannelHintPersonal": "ひとつの話題を複数のエージェントと",
     "channelPlaceholderPersonal": "名前（例: 旅行）",
     "createChannelPersonal": "グループ会話を作成",
@@ -352,11 +352,11 @@
     "switchTitle": "会話を切り替え",
     "switchSearch": "会話を検索",
     "switchAgents": "エージェント",
-    "switchChannels": "チャンネル",
+    "switchChannels": "グループ",
     "switchPeople": "人",
     "switchNone": "その名前の会話はありません。",
     "switchWorking": "作業中",
-    "join": "チャンネルに参加",
+    "join": "グループに参加",
     "sending": "送信中…",
     "toLatest": "最新のメッセージへ",
     "toLatestNew": "最新のメッセージへ: {{text}}",
@@ -781,10 +781,10 @@
     "thinksWith": "{{label}}で考えます"
   },
   "team": {
-    "entry": "組織図とチャンネル",
+    "entry": "組織図とグループ",
     "sectorLead": "{{name}}が担当",
     "sectorBackup": "{{name}}が代理",
-    "mapHint": "エージェントを別のチャンネルに移すには、Web のマップを使うか {{name}} に話しかけてください。"
+    "mapHint": "エージェントを別のグループに移すには、Web のマップを使うか {{name}} に話しかけてください。"
   },
   "agentEdit": {
     "missing": "このエージェントはもう存在しません。",
@@ -961,21 +961,21 @@
     }
   },
   "channelRef": {
-    "list": "チャンネル",
-    "a11y": "チャンネル #{{name}}",
-    "archivedA11y": "チャンネル #{{name}}、アーカイブ済み",
+    "list": "グループ",
+    "a11y": "グループ #{{name}}",
+    "archivedA11y": "グループ #{{name}}、アーカイブ済み",
     "archived": "#{{name}}はアーカイブされました",
     "notMember": "参加していません"
   },
   "mention": {
     "list": "人とエージェント",
-    "inChannel": "このチャンネル内",
-    "outside": "チャンネル外",
+    "inChannel": "このグループ内",
+    "outside": "グループ外",
     "agent": "エージェント",
     "person": "人",
     "add": "追加",
-    "addA11y": "{{name}}をチャンネルに追加",
-    "added": "{{name}}がチャンネルに参加しました"
+    "addA11y": "{{name}}をグループに追加",
+    "added": "{{name}}がグループに参加しました"
   },
   "me": {
     "title": "あなた",
@@ -993,7 +993,7 @@
     "start": "アプリを開いたとき",
     "startHome": "会話",
     "startLast": "前回の続き",
-    "startChannels": "チャンネル",
+    "startChannels": "グループ",
     "startHint": "このワークスペース用です。こことコンピューターの両方に適用され、ホームはホームページです。",
     "startFailed": "保存できませんでした。もう一度お試しください。",
     "activity": "エージェントの返信",
@@ -1036,7 +1036,7 @@
     "notificationsOnHint": "ブラウザやデスクトップアプリでもオンにしていれば、そちらにも届きます。",
     "notificationsOffHint": "ここで通知を受け取るにはオンにしてください。下の種類はすべてのデバイスに適用されます。",
     "notificationsKindsHint": "アクティビティにはすべてが残ります。この設定はこのワークスペースの、すべてのデバイスに適用されます。",
-    "version": "agentes.chat · バージョン {{version}}",
+    "version": "DougBot · バージョン {{version}}",
     "edit": "編集",
     "status": "ステータス",
     "workspace": "ワークスペース",
@@ -1053,11 +1053,11 @@
     "workspacesUnreachable": "今は応答がありません",
     "addWorkspace": "ワークスペースを追加",
     "addWorkspaceCreate": "新しいワークスペースを作成",
-    "addWorkspaceCreateSub": "agentes.chat で",
+    "addWorkspaceCreateSub": "DougBot で",
     "addWorkspaceTeam": "チームのサーバーに参加",
     "addWorkspaceTeamSub": "アドレスか、コンピューターに表示される QR コードで",
     "teamServer": "チームのサーバー",
-    "teamServerLead": "チームの agentes.chat のアドレス(ブラウザに表示されるものと同じ)。",
+    "teamServerLead": "チームの DougBot のアドレス(ブラウザに表示されるものと同じ)。",
     "teamServerFoot": "どのワークスペースからも抜けません。チームのサーバーがリストに加わり、そこでのアカウントで使えます。",
     "workspacesHoldHint": "長押しでワークスペースを切り替え",
     "workspacesSheetFoot": "すべてにログインしたままです。それぞれの通知がここに届きます。",
@@ -1118,7 +1118,7 @@
     "blocked": "あなたは{{names}}の唯一のオーナーです。ウェブサイトの「人」で別の人をオーナーにしてから、戻ってきてください。",
     "addPasswordFirst": "まずウェブサイトでアカウントにパスワードを追加してから、ここに入力してください。",
     "addPasswordWeb": "ウェブサイトでパスワードを追加",
-    "onThisComputer": "このサーバーを動かしているコンピューターの agentes.chat アプリで削除してください。",
+    "onThisComputer": "このサーバーを動かしているコンピューターの DougBot アプリで削除してください。",
     "otherAccount": "別のアカウントでログインしました。何も削除されていません。",
     "hold": "長押しして削除"
   },
@@ -1259,7 +1259,7 @@
       "documents": "ドキュメント",
       "images": "画像",
       "tables": "表",
-      "diffs": "差分"
+      "diffs": "コードの変更"
     },
     "section": {
       "today": "今日",
@@ -1268,7 +1268,7 @@
     "kind": {
       "document": "ドキュメント",
       "table": "表",
-      "diff": "差分",
+      "diff": "コードの変更",
       "image": "画像",
       "file": "ファイル"
     },
@@ -1280,11 +1280,11 @@
     "anyone": "すべての人",
     "filter": {
       "type": "種類",
-      "people": "ユーザー",
+      "people": "人",
       "modified": "更新日"
     },
     "when": {
-      "any": "すべての期間",
+      "any": "いつでも",
       "today": "今日",
       "week": "過去7日間",
       "month": "過去30日間",
@@ -1394,6 +1394,10 @@
     "stopTitle": "「{{title}}」を止めますか？",
     "stopBody": "{{name}}はすぐに止まり、ここまでにやったことを会話で伝えます。"
   },
+  "homeTools": {
+    "title": "ツール",
+    "more": "その他"
+  },
   "homeNow": {
     "working_other": "{{count}}人が作業中",
     "finished": {
@@ -1438,6 +1442,51 @@
       "tomorrow": "明日 {{time}}",
       "later": "{{day}} {{time}}"
     }
+  },
+  "agentLite": {
+    "uses": "使えるもの",
+    "usesNone": "まだありません",
+    "menu": "その他のオプション",
+    "month": "今月",
+    "reportsTo": "報告先",
+    "inProgress": "進行中",
+    "waitsYou": "あなたを待っています",
+    "doneAt": "{{time}}に納品",
+    "todayEmptyF": "{{name}}は今日まだ何もしていません。",
+    "todayEmptyM": "{{name}}は今日まだ何もしていません。",
+    "call": "通話",
+    "tasks": "タスク",
+    "settings": "設定",
+    "talk": "チャット",
+    "settingsTitle": "設定",
+    "ai": "AI",
+    "aiNone": "まだAIがありません",
+    "more": "そのほか",
+    "onSite": "そのほかの設定はウェブサイトで",
+    "askDoug": "{{name}}に頼む",
+    "askDougAbout": "{{name}}について:  ",
+    "moreHelp": "指示、予算、上限、エージェントの削除はウェブサイトでできます。{{name}}に言葉で頼むこともできます。",
+    "raiseBudgetF": "{{name}}の予算を増やす",
+    "raiseBudgetM": "{{name}}の予算を増やす",
+    "create": "新しいエージェントがほしいです。内容:  ",
+    "createWhat": "新しいエージェントがほしいです。内容: {{what}}",
+    "inChannel": "グループ #{{channel}} で働く:  ",
+    "onPlan": "{{plan}}プランで考える:  "
+  },
+  "teamNow": {
+    "title": "チームの今",
+    "lead_other": "{{name}}が{{count}}人のエージェントを取りまとめています",
+    "working_other": "{{count}}人が作業中",
+    "asking_other": "{{count}}人があなたを待っています",
+    "quiet": "いま作業中の人はいません",
+    "since": "{{ago}}に開始",
+    "asks": "質問があります",
+    "waitsYou": "あなたを待っています",
+    "stoppedF": "停止中",
+    "stoppedM": "停止中",
+    "freeF": "空き",
+    "freeM": "空き",
+    "empty": "チームにはまだエージェントがいません。"
   },
   "intentAgents": {
     "waitingSection": "あなたの対応待ち",
@@ -1530,7 +1579,7 @@
       },
       "area": {
         "context": "メモリ",
-        "drive": "Drive",
+        "drive": "ファイル",
         "issues": "タスク",
         "calendar": "カレンダー",
         "wiki": "Wiki",
@@ -1837,8 +1886,8 @@
       "serverText": "ターミナルに1行貼り付けるだけ",
       "computer": "ほかのコンピューター",
       "computerText": "アプリをインストール",
-      "appNote": "普段使っているMacやPCなら、agentes.chatのデスクトップアプリからも接続できます。",
-      "appStep1": "そのコンピューターにagentes.chatアプリを入れます",
+      "appNote": "普段使っているMacやPCなら、DougBotのデスクトップアプリからも接続できます。",
+      "appStep1": "そのコンピューターにDougBotアプリを入れます",
       "appStep2": "アプリを開いて、自分のアカウントでログインします",
       "appStep3": "{{org}}のエージェントに使わせるか聞かれたら「許可」をクリックします",
       "appShows": "ここに自動で表示されます。共有するまではあなただけが使えます。",
@@ -1861,7 +1910,7 @@
       "connecting": "{{host}}に接続中",
       "computer": "コンピューター",
       "noHost": "このスマートフォンは、あなたのコンピューター経由で使います。先にコンピューターを接続してください。",
-      "hostOffline": "{{host}}はオフラインです。電源を入れて、そこでagentes.chatを開いてください。",
+      "hostOffline": "{{host}}はオフラインです。電源を入れて、そこでDougBotを開いてください。",
       "step1": "開発者向けオプションをオンにする",
       "step1Text": "「ビルド番号」を7回タップしてから、PINを入力します。Samsungでは「ソフトウェア情報 › ビルド番号」です。",
       "openAbout": "「デバイス情報」を開く",
@@ -1886,9 +1935,9 @@
       "wifi1Text": "「このネットワークで常に許可する」にチェックを入れて「許可」をタップします。",
       "wifi2": "コンピューターでコードをスキャン",
       "wifi2Text": "ワイヤレス デバッグ › QR コードによるデバイスのペア設定 から。カメラは使わないでください。コードを Wi-Fi ネットワークとして読み取り、スマートフォンがいまの Wi-Fi から外れます。",
-      "wifi2Hint": "コンピューターの agentes.chat で デバイスを接続 › Androidスマートフォン › Wi-Fiで を開き、{{host}}を選びます。",
+      "wifi2Hint": "コンピューターの DougBot で デバイスを接続 › Androidスマートフォン › Wi-Fiで を開き、{{host}}を選びます。",
       "codeHead": "ペア設定コードでペア設定",
-      "codeNote": "ワイヤレス デバッグ › ペア設定コードによるデバイスのペア設定 から。コードが画面に残るよう、設定と agentes.chat を分割画面で並べて開いてください。",
+      "codeNote": "ワイヤレス デバッグ › ペア設定コードによるデバイスのペア設定 から。コードが画面に残るよう、設定と DougBot を分割画面で並べて開いてください。",
       "wifiNote": "Wi-Fi接続は再起動後に切れることがあります。ケーブルのほうが安定しています。",
       "done": "{{name}}を接続しました",
       "openFailed": "このスマートフォンではその画面を開けませんでした。設定から探してください。"
@@ -1945,7 +1994,7 @@
         "openXcode": "Xcodeを開く",
         "opened": "{{host}}でXcodeが開きました。設定をもう一度確認し、あとでそのMacのXcodeを閉じてください。",
         "unlock": "オンにして再起動しましたか？「オンにする」の通知は、このiPhoneのロックを解除すると表示されます。",
-        "outdated": "{{host}}のagentes.chatアプリが古くなっています。そのMacでアップデートしてください。"
+        "outdated": "{{host}}のDougBotアプリが古くなっています。そのMacでアップデートしてください。"
       }
     },
     "notice": {
@@ -2039,7 +2088,7 @@
     "usedBy_other": "{{names}}が使用中",
     "fromAgent": "サービスを接続",
     "githubApp": {
-      "useApp": "agentes.chat アプリを使う",
+      "useApp": "DougBot アプリを使う",
       "useAccount": "GitHubアカウントを使う",
       "createInBrowser": "ブラウザで作成"
     },
@@ -2094,6 +2143,11 @@
     "blocked": "確認を読み込めませんでした。別のネットワークでお試しください。"
   },
   "invitePeople": {
+    "emailsHelp": "リストを貼り付けるか入力してください。各自にメールが届き、すぐに参加できます。",
+    "here": "参加済み",
+    "invited": "招待済み",
+    "fix": "要確認",
+    "channels": "グループ",
     "optional": "任意",
     "ok": "OK",
     "noteHelp": "あなたの名前と一緒にメールに表示されます。最大{{max}}文字。",
@@ -2132,11 +2186,11 @@
     "zoneTitle": "タイムゾーン",
     "anotherTitle": "新しいワークスペースの名前は？",
     "anotherPurpose": "新しいワークスペースは何に使いますか？",
-    "anotherLead": "agentes.chatに作成します。{{org}}からは抜けず、いつでも切り替えられます。",
+    "anotherLead": "DougBotに作成します。{{org}}からは抜けず、いつでも切り替えられます。",
     "suggested": "{{domain}}のメールアドレスから、{{org}}を提案しました。",
     "create": "作成",
     "enter": "ワークスペースへ",
-    "shareMessage": "agentes.chatで{{org}}に参加しましょう: {{url}}",
+    "shareMessage": "DougBotで{{org}}に参加しましょう: {{url}}",
     "failed": "保存できませんでした。もう一度お試しください。"
   },
   "aiPanel": {
@@ -2408,7 +2462,6 @@
     }
   },
   "vault": {
-    "newItem": "新しい項目",
     "home": {
       "title": "パスワード",
       "search": "パスワードを検索",
@@ -2436,17 +2489,18 @@
       "edit": "編集",
       "details": "詳細",
       "star": "お気に入りに追加",
-      "unstar": "お気に入りから外す",
+      "unstar": "お気に入りから削除",
       "who": "使用できる人",
       "changeWho": "使用できる人を変更",
-      "onlyYou": "あなただけ",
+      "onlyYou": "自分だけ",
       "everyone": "全員",
       "usedByF": "{{name}}が{{when}}に使用",
       "usedByM": "{{name}}が{{when}}に使用",
       "used": "{{when}}に使用",
-      "neverUsed": "まだ使用されていません",
+      "neverUsed": "未使用",
       "history": "履歴を見る"
     },
+    "newItem": "新しい項目",
     "search": "Vaultを検索",
     "noResults": "「{{q}}」に一致するものはありません。",
     "personalText": "これらはあなただけに表示されます。エージェントは、あなたが頼んだときだけ使います。",
@@ -2808,10 +2862,10 @@
     },
     "channels": {
       "title": "人とエージェントをチャンネルに集めましょう",
-      "text": "チャンネルには、ひとつのテーマを担当する人が集まります。",
-      "viewerTitle": "チームのチャンネルはここに表示されます",
-      "viewerText": "チャンネルを作成できる人が最初のチャンネルを開くと、ここに表示されます。",
-      "action": "チャンネルを作成",
+      "text": "グループごとに、ひとつのテーマを担当する人が集まります。",
+      "viewerTitle": "チームのグループはここに表示されます",
+      "viewerText": "グループを作れる人が最初のグループを作ると、ここに表示されます。",
+      "action": "グループを作成",
       "titlePersonal": "複数のエージェントと一度に話しましょう",
       "textPersonal": "グループ会話ごとに、一つのテーマのエージェントと人が集まります。",
       "viewerTitlePersonal": "グループ会話はここに表示されます",
@@ -2900,7 +2954,7 @@
     "meHint": "あなたの写真はワークスペースのメンバーに表示されます。"
   },
   "brand": {
-    "basedOn": "Codari Global, LLC の agentes.chat をベースにしています · AGPL-3.0",
+    "basedOn": "Codari Global, LLC の DougBot をベースにしています · AGPL-3.0",
     "source": "DougBotのソースコード"
   }
 }
