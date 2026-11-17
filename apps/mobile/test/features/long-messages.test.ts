@@ -35,15 +35,11 @@ describe("long messages on the phone", () => {
     const clip = src("features/chat/ClippedMessage.tsx");
     // Kept above the rows, by message, and read before the first draw: no frame whole and then clipped, which
     // moved the conversation and kept it jumping at its end.
-    expect(clip).toContain("const [height, setHeight] = useState(() => measured.get(id) ?? 0);");
-    expect(clip).toMatch(
-      /onLayout=\{\(e\) => \{\s*const h = e\.nativeEvent\.layout\.height;\s*remember\(id, h\);\s*setHeight\(h\);/,
-    );
+    expect(clip).toContain("const [height, setHeight] = useState(() => keptSize(sizeKey) ?? 0);");
+    expect(clip).toMatch(/keepSize\(sizeKey, next\);\s*setHeight\(next\);/);
     // Not measured yet, a closed message is never taller than one that shows whole.
-    expect(clip).toContain("const unmeasured = height === 0 && !open;");
-    expect(clip).toContain("[styles.clip, { maxHeight: LONG_MESSAGE.over }]");
-    // The memory is bounded.
-    expect(clip).toContain("if (measured.size > MEASURED_KEPT)");
+    expect(clip).toContain("const unmeasured = height === 0 && !open && lead == null;");
+    expect(clip).toContain('unmeasured: { maxHeight: LONG_MESSAGE.over + PAST_RULE, overflow: "hidden" },');
   });
 
   test("an agent's long message to another agent opens in place too: no push to its thread", () => {

@@ -48,9 +48,11 @@ describe("the floating date while the conversation scrolls", () => {
 
   test("it shows while the person drags or flings the list and fades a moment after it stops", () => {
     const screen = src("features/chat/ChatScreen.tsx");
-    expect(screen).toMatch(/onScrollBeginDrag=\{\(\) => \{\s*dragging\.current = true;\s*showDay\(\);/);
+    expect(screen).toMatch(/const onDragStart = useCallback\(\(\) => \{\s*dragging\.current = true;\s*showDay\(\);/);
+    expect(screen).toContain("onScrollBeginDrag={onDragStart}");
     expect(screen).toContain("onMomentumScrollBegin={showDay}");
-    expect(screen).toMatch(/onMomentumScrollEnd=\{\(\) => \{\s*releaseAtEnd\(\);\s*hideDay\(\);/);
+    expect(screen).toMatch(/const onScrollSettled = useCallback\(\(\) => \{\s*releaseAtEnd\(\);\s*hideDay\(\);/);
+    expect(screen).toContain("onMomentumScrollEnd={onScrollSettled}");
     expect(screen).toContain("setTopDay((prev) => dayInView(viewableItems, prev))");
     // The person's locale: the shared day words ("Hoje", "Ontem", a weekday this week, else a date).
     expect(src("features/chat/DatePill.tsx")).toContain('dayLabel(t, i18n.language || "en", day)');

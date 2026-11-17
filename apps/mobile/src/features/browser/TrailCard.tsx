@@ -20,6 +20,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Linking, Pressable, StyleSheet, View } from "react-native";
 import { Icon, Text } from "@/ui";
+import { keepOpen, keptOpen } from "../chat/kept-sizes";
 import { useCardTop } from "../chat/look";
 import { useColors, useDirectory, useMeId, useOrgId, useWhen } from "../shared/hooks";
 import { agentLook } from "../shared/logic";
@@ -76,7 +77,9 @@ export function TrailCard({
   const cardTop = useCardTop();
   const when = useWhen();
   const surface = useSurface("e2");
-  const [open, setOpen] = useState(false);
+  // Opened, it comes back open when its row comes back into view (`keptOpen`), at the size the list kept for it.
+  const keep = `trail:${screen}:${runId ?? agentId}:${steps.at(-1)?.at ?? ""}`;
+  const [open, setOpen] = useState(() => keptOpen(keep));
   const asks = recent && runId !== null && screen === "browser";
   const handoff = useAgentBrowserHandoff(orgId, agentId, asks, HELD_STALE_MS);
   const agent = dir.agentById.get(agentId);
@@ -111,7 +114,8 @@ export function TrailCard({
   const summary = tt("after.summaryNoSite", { steps: count, duration });
   const toggle = () => {
     tapHaptic();
-    setOpen((o) => !o);
+    keepOpen(keep, !open);
+    setOpen(!open);
   };
 
   return (

@@ -10,6 +10,7 @@ import { router } from "@/ui/navigation";
 import { ChoicesCard } from "../blocks/ChoicesCard";
 import { LiveBlockCard } from "../blocks/LiveBlock";
 import { PollCard } from "../blocks/PollCard";
+import { useKeptWidth } from "../chat/look";
 import { useColors, useOrgId } from "../shared/hooks";
 import { useSurface } from "../shared/parts";
 import { AttachmentTile } from "./AttachmentTile";
@@ -57,7 +58,9 @@ export function MessageFiles({ files, align = "start" }: { files: MessageFile[];
     orgId,
     live.map((f) => (f.version !== undefined ? { id: f.id, version: f.version } : { id: f.id })),
   );
-  const [width, setWidth] = useState(0);
+  // The room the files have, kept across the list's unmounts: a row coming back draws its pictures at their size from
+  // its first frame, not at the widest and then narrower (shorter), moving the rows under it.
+  const [width, onWidth] = useKeptWidth(`files:${align}`);
 
   const images: { file: MessageFile; detail: ArtifactDetail | undefined }[] = [];
   // What lives in the conversation isn't a file: the thing itself (ADR 0113).
@@ -113,7 +116,7 @@ export function MessageFiles({ files, align = "start" }: { files: MessageFile[];
   };
 
   return (
-    <View onLayout={(e) => setWidth(e.nativeEvent.layout.width)} style={[styles.wrap, align === "end" && styles.end]}>
+    <View onLayout={onWidth} style={[styles.wrap, align === "end" && styles.end]}>
       {pictures.length > 1 ? <ImageStack images={pictures} width={blockWidth} /> : null}
       {only && onlyBox && pictures.length === 1 ? (
         <View style={{ width: onlyBox.width }}>
