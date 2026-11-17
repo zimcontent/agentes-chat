@@ -17,6 +17,7 @@ import {
   portalLink,
   portalOrderAt,
   portalTaskNumbers,
+  portalTextParts,
   portalWhen,
   portalWriterName,
 } from "@agenteschat/client/lib/portal";
@@ -375,7 +376,7 @@ function Description({ w, card }: { w: PortalWords; card: PlanCard }) {
           style={({ pressed }) => [styles.descBox, { backgroundColor: c.raised }, pressed ? styles.pressed : null]}
         >
           <Text variant="body" tone={text ? "ink" : "muted"}>
-            {text || w.addDescription}
+            {text ? <Linked text={text} variant="body" /> : w.addDescription}
           </Text>
         </Pressable>
       )}
@@ -426,8 +427,8 @@ function Checklist({ w, card }: { w: PortalWords; card: PlanCard }) {
 
 /**
  * What was said about the card, newest first, under a field to say more. Whoever wrote it is found among the people
- * and agents; a comment brought from another board says its writer's name as it was there. A comment is plain words.
- * One's own is deleted with its ×, and any by who may change the board.
+ * and agents; a comment brought from another board says its writer's name as it was there. A comment is plain words,
+ * its web addresses pressable (opened in the in-app browser), nothing else read as markup. One's own is deleted with its ×, and any by who may change the board.
  */
 function Comments({ w, card }: { w: PortalWords; card: PlanCard }) {
   const c = useColors();
@@ -507,7 +508,7 @@ function Comments({ w, card }: { w: PortalWords; card: PlanCard }) {
                 value={when.short(new Date(x.at).toISOString())}
                 below={
                   <Text variant="subhead" tone="ink2" style={styles.commentText}>
-                    {x.text}
+                    <Linked text={x.text} />
                   </Text>
                 }
                 leading={<Face who={a.who} size={32} live={false} />}
@@ -525,6 +526,27 @@ function Comments({ w, card }: { w: PortalWords; card: PlanCard }) {
         </GroupedList>
       )}
     </View>
+  );
+}
+
+/** Plain words with their web addresses pressable, inside the caller's `Text` (`portalTextParts`, as the web's). */
+function Linked({ text, variant = "subhead" }: { text: string; variant?: "subhead" | "body" }) {
+  return portalTextParts(text).map((part, i) =>
+    part.href ? (
+      <Text
+        // biome-ignore lint/suspicious/noArrayIndexKey: the parts of one text, in its order
+        key={i}
+        variant={variant}
+        tone="ink"
+        accessibilityRole="link"
+        style={styles.link}
+        onPress={() => openLink(part.href as string)}
+      >
+        {part.text}
+      </Text>
+    ) : (
+      part.text
+    ),
   );
 }
 
@@ -549,4 +571,5 @@ const styles = StyleSheet.create({
   pressed: { opacity: 0.7 },
   count: { paddingTop: 20, paddingBottom: 8, paddingRight: 0 },
   commentText: { marginTop: 2 },
+  link: { textDecorationLine: "underline" },
 });

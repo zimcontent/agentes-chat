@@ -58,7 +58,7 @@ function portalPost(source: unknown) {
     "- Write what you make on the card with `portal_card` (caption, files, description).",
     stage === "adjusting"
       ? `- The client asked for a change on this post${post ? ` (item ${post} at the portal)` : ""}. Read what they asked with \`portal_board\` (the client's note under the post), make the change, and put the new version up yourself with \`send_new_version\`: every file of the post again, in order. It goes straight to the client. Nobody of the team approves it first: don't ask and don't wait for an OK. Then say here, in one line, that it is up, with the link the tool answered.`
-      : "- When the post is ready, say so here. It goes to the client with `send_for_approval` naming this card, and only when a person of the team tells you to send it.",
+      : "- When the post is ready, send it for the team's review (`send_for_review`) and say so here. Nothing goes to the client before the team approves it in Review; once approved, Review sends it to the portal by itself (or `send_for_approval` naming this card, with the approved files, when a person of the team tells you to).",
     "- The stage and the task's status follow the portal on their own: never set them yourself.",
   ]
     .filter(Boolean)
