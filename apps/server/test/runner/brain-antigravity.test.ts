@@ -43,7 +43,7 @@ import {
   parseAgyError,
 } from "../../runner/brain-antigravity";
 import type { CodexBrainEvent } from "../../runner/brain-codex";
-import { detectExecutors, parseAgyModels, withAccountModels } from "../../runner/executors";
+import { detectExecutors, parseAgyModels, probeEnv, withAccountModels } from "../../runner/executors";
 import { CODEX_MCP_SERVER } from "../../runner/mcp";
 import { antigravityUsage, resetFromWords } from "../../runner/plan-usage";
 import type { Spawn } from "../../runner/scope-gate";
@@ -810,4 +810,15 @@ test("a turn the CLI ended with nothing because it denied a command says so, wit
   expect(agyDenied({ denied_actions: [{ action: "mcp", display_name: "post_message" }] })).not.toContain("AppArmor");
   expect(agyDenied({ status: "SUCCESS", response: "oi" })).toBeNull();
   expect(agyDenied({ denied_actions: [] })).toBeNull();
+});
+
+test("the look at installed CLIs runs agy with its own updates off, and every other CLI as it was", () => {
+  const base = { HOME: "/home/x", PATH: "/usr/bin" };
+  expect(probeEnv("agy", undefined, base)).toEqual({ ...base, AGY_CLI_DISABLE_AUTO_UPDATE: "true" });
+  expect(probeEnv("agy", { NoDefaultCurrentDirectoryInExePath: "1" }, base)).toMatchObject({
+    AGY_CLI_DISABLE_AUTO_UPDATE: "true",
+    NoDefaultCurrentDirectoryInExePath: "1",
+  });
+  expect(probeEnv("claude", undefined, base)).toBe(base);
+  expect(probeEnv("grok", undefined, base)).not.toHaveProperty("AGY_CLI_DISABLE_AUTO_UPDATE");
 });

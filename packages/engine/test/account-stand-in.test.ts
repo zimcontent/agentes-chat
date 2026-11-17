@@ -8,6 +8,7 @@ import {
   brainAccountFor,
   chainStandIn,
   clearPlanLimits,
+  clearUnlocked,
   createJobHandlers,
   drainOutbox,
   enableAccountStandIns,
@@ -29,6 +30,7 @@ let f: Fixture;
 afterEach(() => {
   enableAccountStandIns(false);
   clearPlanLimits();
+  clearUnlocked();
   const fx: Fixture | undefined = f;
   f = undefined as unknown as Fixture;
   return fx?.close();
@@ -425,4 +427,105 @@ test("the right hand never stands in on an account kept to its owner for someone
   const { seen, run } = await rightHandAtLimit("owner");
   expect(seen).toHaveLength(0);
   expect(run?.status).not.toBe("done");
+});
+
+/**
+ * Addendum 2026-11-17: a CLI that doesn't keep the right hand to our tools never stands in for it. On 2026-11-17 Doug's
+ * Claude passed 90%, the order's next was Gemini, and every one of its turns stopped with "não ficou só nas
+ * ferramentas do DougBot" while Claude 2 had room.
+ */
+async function rightHandOrder(order: (ids: Awaited<ReturnType<typeof chain>>["ids"]) => string[], brains: Brain[]) {
+  f = await setup({ reply: () => ({ chunks: ["pela API"] }) });
+  const { ids, set, machineId, agent } = await chain(f);
+  await f.db.update(schema.agents).set({ builtin: "right_hand" }).where(eq(schema.agents.id, f.agent.id));
+  await setStandInOrder(f, f.owner.id, f.org.id, order(ids));
+  await set(ids.claude2, 91);
+  await set(ids.gemini, 9);
+  await set(ids.gpt, 5);
+  await set(ids.claude, 2);
+  const handlers = createJobHandlers({
+    ...f.jobDeps,
+    brains: Object.fromEntries(brains.map((b) => [b.kind, () => b])),
+    machines: {
+      status: async (id) => ({
+        ...statusOf(id),
+        executors: {
+          claude: { version: "9.9.9", loggedIn: true },
+          codex: { version: "9.9.9" },
+          antigravity: { version: "1.5.10" },
+          detectedAt: new Date().toISOString(),
+        },
+      }),
+    },
+  });
+  await postPersonMessage({ db: f.db, pubsub: f.pubsub }, f.owner.id, f.org.id, f.general.id, {
+    body: `@${f.agent.handle} o que o Ronny fez essa semana?`,
+  });
+  await drainOutbox(f.db, handlers);
+  const [run] = await f.db.select().from(schema.agentRuns);
+  return { ids, run, machineId, agent: { ...agent, builtin: "right_hand" } };
+}
+
+const answering = (kind: Brain["kind"], seen: (string | undefined)[]): Brain => ({
+  kind,
+  async *run(turn) {
+    seen.push(turn.account?.id);
+    yield { type: "done", text: "O Ronny fechou os três reels." };
+  },
+});
+
+test("the right hand skips Gemini in its order and thinks on the next Claude", async () => {
+  const seen: (string | undefined)[] = [];
+  const gemini: Brain = {
+    kind: "antigravity",
+    // biome-ignore lint/correctness/useYield: it must never be asked
+    async *run() {
+      throw new Error("Gemini must not think for the right hand");
+    },
+  };
+  const { ids, run, machineId, agent } = await rightHandOrder(
+    (ids) => [ids.claude2, ids.gemini, ids.claude],
+    [answering("claude_code", seen), gemini],
+  );
+  expect(seen).toEqual([ids.claude]);
+  expect(run?.brain).toBe("claude_code");
+  expect(run?.status).toBe("done");
+  const account = await brainAccountFor(f.db, agent, "claude_code", machineId);
+  const next = await chainStandIn(f.db, f.org.id, "claude_code", machineId, account, Date.now(), {
+    person: f.owner.id,
+  });
+  expect(next?.account.id).toBe(ids.claude);
+  // Any other agent keeps the owner's order as it is: Gemini next.
+  const other = await chainStandIn(f.db, f.org.id, "claude_code", machineId, account);
+  expect(other?.account.id).toBe(ids.gemini);
+});
+
+test("a CLI that broke the lock in the turn: the same run goes on with the next account, and it stands in no more", async () => {
+  const seen: (string | undefined)[] = [];
+  const tried: (string | undefined)[] = [];
+  const codex: Brain = {
+    kind: "codex",
+    async *run(turn) {
+      tried.push(turn.account?.id);
+      yield { type: "error", code: "tools_not_locked", message: "Codex offers tools of its own", retryable: false };
+    },
+  };
+  const { ids, run, machineId, agent } = await rightHandOrder(
+    (ids) => [ids.claude2, ids.gpt, ids.claude],
+    [answering("claude_code", seen), codex],
+  );
+  expect(tried).toEqual([ids.gpt]);
+  expect(seen).toEqual([ids.claude]);
+  expect(run?.brain).toBe("claude_code");
+  expect(run?.status).toBe("done");
+  const said = await f.db
+    .select()
+    .from(schema.messages)
+    .where(eq(schema.messages.agentRunId, run?.id ?? ""));
+  expect(said.some((m) => m.meta.bodyCode === "no_ai")).toBe(false);
+  const account = await brainAccountFor(f.db, agent, "claude_code", machineId);
+  const next = await chainStandIn(f.db, f.org.id, "claude_code", machineId, account, Date.now(), {
+    person: f.owner.id,
+  });
+  expect(next?.account.id).toBe(ids.claude);
 });

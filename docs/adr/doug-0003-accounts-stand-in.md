@@ -93,3 +93,18 @@ its owner's next account had room. Now the order covers it as any agent (`resolv
 parked run's hand-over and the turn cut mid-work, which takes the next account of the same brain at once, `useStandInAccount`),
 with one rule more: only an account that serves everyone, or the person it thinks for, stands in (`chainStandIn`'s
 `answers`), so a plan kept to its owner never answers someone else through it.
+
+## Addendum 2026-11-17: only a brain that locks stands in for the right hand
+
+The right hand's turns are locked to our server's tools (ADR 0137 §4), and the runner stops one whose CLI offers tools
+of its own (`tools_not_locked`). The Antigravity CLI from 1.5.9 lists all of its own tools in a locked turn whatever its
+agent's `tools: []` says. On 2026-11-17 the right hand's Claude account passed 90%, its owner's order had Gemini next,
+and every one of its turns stopped with "não ficou só nas ferramentas do DougBot" while the account after it had room.
+
+- `chainStandIn` with `answers` (the right hand) skips the brains in `RIGHT_HAND_UNLOCKED` (Antigravity) and any brain
+  whose CLI broke the lock on that computer in the last `UNLOCKED_MS` (6 hours, `noteUnlocked`, kept per process). Any
+  other agent keeps its owner's order as it is.
+- A right hand's turn stopped that way before it did anything goes on in the same run with the brain `resolveBrain`
+  picks again (`useLockedStandIn`, once a run, `Transcript.lockedStandIn`), so a CLI that breaks the lock after an update
+  costs one stopped turn, unseen, never a "Parei antes de responder". The person's own chosen brain is not replaced: its
+  DM still says why it can't answer.
