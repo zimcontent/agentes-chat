@@ -66,10 +66,18 @@ export const SHIPPED_ICON = { ground: "day", color: "green", face: "normal", pos
 /** His head's share of the side, and how far above the middle it sits (its shadow takes the room under it). */
 const HEAD = 0.824;
 const UP = -0.014;
-/** On Android's layers the head stays inside the safe circle (61% of the side). */
-const ADAPTIVE = { scale: 0.586, dy: -0.006 };
+/**
+ * On Android's layers everything drawn stays inside the safe circle (66 of the layer's 108, 61% of the side), which no
+ * launcher's mask cuts: the head, and its shadow or glow drawn closer (`spread`, a share of the icon's blur).
+ */
+const ADAPTIVE = { scale: 0.57, dy: -0.02, spread: 0.7 };
 /** Peeking: bigger, its middle low and to the right, turned to the left around it. */
 const PEEK = { scale: 1.3, x: 0.64, y: 0.68, degrees: -18 };
+/**
+ * Peeking on Android's layers: smaller and closer to the middle than the icon's, so its eyes and the top of its head
+ * stay in the safe circle on a round mask; the rest of it still leans in from the bottom right, past the edge.
+ */
+const PEEK_ADAPTIVE = { scale: 0.86, x: 0.5, y: 0.58 };
 
 const hexOf = (color) => ICON_HEX[color] ?? ICON_HEX.green;
 
@@ -119,7 +127,10 @@ function stage(light, at = [512, 540]) {
 
 /** Where the head is and how big, for a pose and a frame (`adaptive`: Android's layers). */
 function placeOf(pose, frame) {
-  if (pose === "peek") return { scale: PEEK.scale, cx: SIDE * PEEK.x, cy: SIDE * PEEK.y, degrees: PEEK.degrees };
+  if (pose === "peek") {
+    const k = frame === "adaptive" ? PEEK_ADAPTIVE : PEEK;
+    return { scale: k.scale, cx: SIDE * k.x, cy: SIDE * k.y, degrees: PEEK.degrees };
+  }
   const { scale, dy } = frame === "adaptive" ? ADAPTIVE : { scale: HEAD, dy: UP };
   return { scale, cx: SIDE / 2, cy: SIDE * (0.5 + dy), degrees: 0, dy };
 }
@@ -132,7 +143,7 @@ function figure(icon, frame, light) {
   const c = light ?? hexOf(icon.color);
   const olhar = ICON_LOOKS[icon.face] ?? "normal";
   const p = placeOf(icon.pose, frame);
-  const s = p.scale / HEAD;
+  const s = (p.scale / HEAD) * (frame === "adaptive" ? ADAPTIVE.spread : 1);
   const at = (dy, scale = p.scale) => [p.cx, p.cy + dy * SIDE * (scale / HEAD)];
   const peek = icon.pose === "peek";
   if (icon.ground === "night") {
@@ -162,18 +173,15 @@ function figure(icon, frame, light) {
   );
 }
 
-/** The ground alone. */
-function ground(icon, light) {
+/** The ground alone; the night's light around where the head is in that frame (`adaptive`: Android's layers). */
+function ground(icon, light, frame = "icon") {
   if (icon.ground !== "night") return glass(icon.color);
-  const p = placeOf(icon.pose, "icon");
+  const p = placeOf(icon.pose, frame);
   return stage(light ?? hexOf(icon.color), [p.cx, p.cy + 42]);
 }
 
 const svg = (body) =>
   `<svg xmlns="http://www.w3.org/2000/svg" width="${SIDE}" height="${SIDE}" viewBox="0 0 ${SIDE} ${SIDE}">${body}</svg>`;
-
-/** A leaning head on Android's layers: the icon's square fills the middle two thirds the launcher shows. */
-const inAdaptive = (body) => `<g transform="translate(${r(SIDE / 6)} ${r(SIDE / 6)}) scale(${r(2 / 3)})">${body}</g>`;
 
 /**
  * An icon's picture, as SVG on a 1024 square:
@@ -185,11 +193,10 @@ const inAdaptive = (body) => `<g transform="translate(${r(SIDE / 6)} ${r(SIDE / 
  */
 export function iconSvg(icon, layer = "whole") {
   const i = { ...SHIPPED_ICON, ...icon };
-  const peek = i.pose === "peek";
-  if (layer === "back") return svg(ground(i));
-  if (layer === "front") return svg(peek ? inAdaptive(figure(i, "icon")) : figure(i, "adaptive"));
+  if (layer === "back") return svg(ground(i, undefined, "adaptive"));
+  if (layer === "front") return svg(figure(i, "adaptive"));
   if (layer === "mono") {
-    const p = placeOf(i.pose, peek ? "icon" : "adaptive");
+    const p = placeOf(i.pose, "adaptive");
     const drawing = head(
       SIDE,
       p.scale,
@@ -199,7 +206,7 @@ export function iconSvg(icon, layer = "whole") {
       { peca: false, material: "chapado", cor: "#fff", olhar: ICON_LOOKS[i.face] },
       "m",
     );
-    return svg(peek ? inAdaptive(drawing) : drawing);
+    return svg(drawing);
   }
   if (layer === "tinted") {
     const n = { ...i, ground: "night" };

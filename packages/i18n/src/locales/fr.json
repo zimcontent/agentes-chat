@@ -2312,6 +2312,7 @@
     "sectorsCount_other": "{{count}} services",
     "viewLabel": "Vue de l'équipe",
     "view": {
+      "now": "Maintenant",
       "list": "Liste",
       "chart": "Organigramme",
       "map": "Carte",
@@ -5123,6 +5124,11 @@
     "waiting": {
       "title": "Vous attend"
     },
+    "toSchedule": {
+      "meta": "Approuvé, en attente de programmation",
+      "action": "Programmer",
+      "label": "Programmer {{title}}"
+    },
     "working": {
       "title": "En cours",
       "none": "Aucun agent ne travaille en ce moment.",
@@ -5766,6 +5772,63 @@
     "budgetDefaultHelpAmount": "Vide : la valeur par défaut de l'espace de travail ({{amount}}).",
     "budgetInvalid": "Indiquez une valeur supérieure à zéro.",
     "notFound": "Cet agent n'existe pas ou a été archivé."
+  },
+  "agentFront": {
+    "call": "Appeler",
+    "tasks": "Tâches",
+    "settings": "Réglages",
+    "canUse": "Peut utiliser",
+    "month": "Ce mois-ci",
+    "reportsTo": "Rend compte à",
+    "reportsToNobody": "Personne",
+    "ai": "IA",
+    "today": "Aujourd'hui",
+    "todayNone": "Rien aujourd'hui pour l'instant.",
+    "doneAt": "livrée à {{time}}",
+    "going": "en cours",
+    "failed": "n'a pas abouti"
+  },
+  "teamNow": {
+    "title": "Votre équipe maintenant",
+    "coordinates_one": "{{name}} coordonne {{count}} agent",
+    "coordinates_many": "{{name}} coordonne {{count}} agents",
+    "coordinates_other": "{{name}} coordonne {{count}} agents",
+    "working_one": "{{count}} au travail",
+    "working_many": "{{count}} au travail",
+    "working_other": "{{count}} au travail",
+    "waiting_one": "{{count}} vous attend",
+    "waiting_many": "{{count}} vous attendent",
+    "waiting_other": "{{count}} vous attendent",
+    "waitingButton_one": "{{count}} en attente de vous",
+    "waitingButton_many": "{{count}} en attente de vous",
+    "waitingButton_other": "{{count}} en attente de vous"
+  },
+  "aiPanel": {
+    "title": "Panneau de l'IA",
+    "uses": "Qui utilise quoi",
+    "accounts": "Comptes d'IA",
+    "usage": "Clés et utilisation",
+    "change": "Changer d'IA",
+    "noAgents": "Aucun agent pour l'instant.",
+    "dialog": {
+      "title": "Changer l'IA de {{name}}",
+      "title_female": "Changer l'IA de {{name}}",
+      "smart": "La plus intelligente",
+      "balanced": "Équilibre",
+      "fast": "La plus rapide et économique",
+      "smartPlan": "Réfléchit davantage. Plus lente, et consomme plus de quota.",
+      "smartKey": "Réfléchit davantage. Plus lente, et plus chère.",
+      "balancedLine": "Recommandée pour la plupart des tâches.",
+      "fastLine": "Répond tout de suite. Idéale pour les tâches simples.",
+      "current": "Actuelle",
+      "inPlan": "incluse dans l'abonnement",
+      "price": "≈ {{input}} / {{output}} par million de jetons",
+      "switchTo": "Passer à {{model}}",
+      "keep": "Garder",
+      "now": "Actuellement : {{model}}",
+      "more": "Plus d'options",
+      "none": "Aucune autre IA disponible pour le moment. Connectez un compte ou une clé pour avoir le choix."
+    }
   },
   "agentPage": {
     "work": {
@@ -7651,6 +7714,14 @@
         "helpsText": "Peut modifier les agents, les paramètres et qui est ici, comme vous. Voit tout ce qui est partagé ici, sauf vos messages directs."
       },
       "where": {
+        "titleOne": "Quels canaux {{name}} rejoint dès son arrivée ?",
+        "titleMany": "Quels canaux ces personnes rejoignent dès leur arrivée ?",
+        "titleOnePersonal": "Quelles conversations de groupe {{name}} rejoint dès son arrivée ?",
+        "titleManyPersonal": "Quelles conversations de groupe ces personnes rejoignent dès leur arrivée ?",
+        "lead": "Tout le monde commence dans #{{channel}}. Vous choisissez les autres.",
+        "label": "Canaux",
+        "labelPersonal": "Conversations de groupe",
+        "everyone": "Tout le monde rejoint",
         "private": "Privé · vous en faites partie",
         "people_one": "{{count}} personne",
         "people_many": "{{count}} personnes",
@@ -11223,9 +11294,23 @@
   },
   "liveVoice": {
     "you": "Vous",
+    "invite": {
+      "title": "Appeler quelqu'un",
+      "lead": "La personne reçoit une notification sur son téléphone et son ordinateur, avec un moyen de rejoindre.",
+      "send": "Appeler",
+      "refused": "Impossible d'appeler {{names}} : seule la personne qui gère cette conversation peut y ajouter des gens.",
+      "none": "Tout le monde dans l'espace de travail est déjà dans l'appel."
+    },
+    "ring": {
+      "title": "{{name}} vous appelle",
+      "where": "Appel vocal dans {{channel}}",
+      "join": "Rejoindre",
+      "decline": "Pas maintenant"
+    },
     "call": {
       "topic": "Sujet (facultatif)",
       "topicHint": "Les agents commencent par débattre de ce sujet. Intervenez quand vous voulez.",
+      "people": "Appeler aussi des personnes",
       "start": "Lancer un appel vocal",
       "join_one": "Rejoindre l'appel ({{count}})",
       "join_many": "Rejoindre l'appel ({{count}})",
@@ -11272,6 +11357,7 @@
       "quiet": "Les agents écoutent seulement",
       "leave": "Quitter l'appel",
       "endAll": "Terminer pour tous",
+      "invite": "Appeler quelqu'un",
       "endTitle": "Terminer l'appel pour tous ?",
       "endText": "Les notes de l'appel vont dans la conversation et Doug BOSS envoie le compte rendu avec les décisions et les prochaines étapes.",
       "hasWord": "{{name}} a la parole",
@@ -12432,6 +12518,8 @@
       "no_computer": "Choisissez un ordinateur connecté dans Ordinateur pour l'utiliser.",
       "exec_off": "L'ordinateur a été connecté sans permission d'exécuter des programmes.",
       "runner_old": "Mettez à jour le programme DougBot sur l'ordinateur pour l'utiliser.",
+      "tool_off": "{{program}} est désactivé sur {{computer}}. Activez-le là-bas, dans l'app DougBot : Préférences → Outils.",
+      "tool_offLinux": "{{program}} est désactivé sur {{computer}}. Activez-le là-bas, dans l'app DougBot ou avec {{command}}.",
       "tool_offOne": "{{program}} est désactivé sur {{computer}}.",
       "not_installed": "{{program}} n'est pas installé sur {{computer}}.",
       "cant_start": "{{program}} est sur {{computer}}, mais ne démarre pas.",
@@ -14102,6 +14190,13 @@
       "ruleset": "ensemble de règles|ensembles de règles|de l'ensemble de règles"
     },
     "label": {
+      "portal_board": "Voir le tableau d'approbation",
+      "portal_plan": "Voir le planning stratégique",
+      "portal_work": "Voir les tâches d'une personne",
+      "portal_card": "Mettre à jour le tableau d'approbation",
+      "send_for_approval": "Envoyer pour approbation",
+      "send_new_version": "Envoyer la nouvelle version",
+      "schedule_post": "Programmer la publication",
       "git_clone": "Cloner un dépôt",
       "create_repository": "Créer un dépôt",
       "delete_repository": "Supprimer un dépôt",
@@ -17232,6 +17327,7 @@
     "removed": "Retiré",
     "change": {
       "mergedWithoutAsking": "A mergé dans {{repo}} sans demander",
+      "portalApprovedForClient": "A approuvé « {{title}} » au nom du client dans le portail",
       "pattern": "{{verb}} {{area}}",
       "approval": {
         "approved": "A approuvé une demande",
@@ -18714,12 +18810,6 @@
       "interrupted": "Interrompu par un redémarrage du serveur. Redemandez pour continuer.",
       "step_limit": "Je n'avais plus d'étapes avant de terminer.",
       "stuck": "J'ai été bloqué et je me suis arrêté avant de terminer."
-    },
-    "talk": {
-      "readAll": "Tout lire",
-      "more_one": "{{count}} ligne de plus",
-      "more_many": "{{count}} lignes de plus",
-      "more_other": "{{count}} lignes de plus"
     }
   },
   "builtinTools": {
@@ -21547,6 +21637,9 @@
       "saved": "Carte enregistrée.",
       "deleted": "Carte supprimée.",
       "deleteTitle": "Supprimer cette carte ?",
+      "deleteOf": "Supprimer la carte {{title}}",
+      "copyLink": "Copier le lien de la carte",
+      "linkCopied": "Lien de la carte copié.",
       "deleteText": "« {{title}} » quitte le tableau. Ses fichiers restent dans le Drive."
     },
     "post": {
@@ -21560,6 +21653,15 @@
       "done": "Planifiée pour le {{when}}.",
       "past": "L'heure doit être à venir.",
       "pending": "programmation…"
+    },
+    "approveForClient": {
+      "action": "Approuver au nom du client",
+      "title": "Approuver au nom du client ?",
+      "text": "Seulement quand le client ne répond plus dans le portail. La publication passe en Approuvé là-bas, comme si le client l'avait approuvée, et la suite prévue après l'approbation se déclenche.",
+      "note": "Motif",
+      "notePlaceholder": "Le client l'a approuvé sur WhatsApp",
+      "confirm": "Approuver",
+      "done": "« {{title}} » approuvé au nom du client."
     },
     "form": {
       "client": "Client",
@@ -21589,17 +21691,33 @@
       "notMedia": "Seules les images et les vidéos partent en approbation.",
       "coverNotImage": "La couverture doit être une image."
     },
+    "materials": {
+      "tab": "Ressources du client",
+      "intro": "Les accès, liens et références du client. Ils restent hors du planning et ne deviennent jamais des tâches.",
+      "empty": "Aucune ressource pour l'instant",
+      "emptyText": "Créez une liste (Réseaux sociaux, Accès, Marque) et rangez-y les cartes.",
+      "newListHint": "Elle arrive en premier parmi les ressources. Vous créez ses cartes à l'intérieur.",
+      "toMaterials": "Déplacer vers Ressources du client",
+      "toPlan": "Revenir au planning",
+      "movedToMaterials": "« {{name}} » est passée dans Ressources du client.",
+      "movedToPlan": "« {{name}} » est revenue dans le planning."
+    },
     "plan": {
       "tab": "Planning stratégique",
+      "tabShort": "Planning",
       "view": "Affichage",
       "viewBoard": "Tableau",
       "viewCalendar": "Calendrier",
       "noList": "Sans liste",
       "addList": "Ajouter une liste",
+      "newList": "Nouvelle liste",
+      "newListHint": "Elle arrive en premier dans le planning. Vous créez ses cartes à l'intérieur.",
       "listName": "Nom de la liste",
       "addCard": "Ajouter une carte",
       "cardTitle": "Titre de la carte",
       "listActions": "Actions : {{name}}",
+      "lists": "Listes",
+      "goToList": "Aller à {{name}}",
       "rename": "Renommer",
       "moveLeft": "Déplacer à gauche",
       "moveRight": "Déplacer à droite",
@@ -21672,6 +21790,7 @@
       "edit": "Modifier",
       "editDescription": "Modifier la description",
       "noDescription": "Aucune description",
+      "addDescription": "Ajouter une description plus détaillée…",
       "showMore": "Afficher plus",
       "showLess": "Afficher moins",
       "linkText": "texte du lien",

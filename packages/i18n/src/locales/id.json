@@ -2180,6 +2180,7 @@
     "sectorsCount_other": "{{count}} departemen",
     "viewLabel": "Tampilan tim",
     "view": {
+      "now": "Sekarang",
       "list": "Daftar",
       "chart": "Bagan organisasi",
       "map": "Peta",
@@ -4823,6 +4824,11 @@
     "waiting": {
       "title": "Menunggumu"
     },
+    "toSchedule": {
+      "meta": "Disetujui, menunggu dijadwalkan",
+      "action": "Jadwalkan",
+      "label": "Jadwalkan {{title}}"
+    },
     "working": {
       "title": "Sedang bekerja",
       "none": "Tidak ada agen yang sedang bekerja.",
@@ -5394,6 +5400,54 @@
     "budgetDefaultHelpAmount": "Kosong: default ruang kerja ({{amount}}).",
     "budgetInvalid": "Gunakan nilai lebih dari nol.",
     "notFound": "Agen ini tidak ada atau sudah diarsipkan."
+  },
+  "agentFront": {
+    "call": "Telepon",
+    "tasks": "Tugas",
+    "settings": "Pengaturan",
+    "canUse": "Bisa dipakai",
+    "month": "Bulan ini",
+    "reportsTo": "Melapor ke",
+    "reportsToNobody": "Tidak ada",
+    "ai": "AI",
+    "today": "Hari ini",
+    "todayNone": "Belum ada apa-apa hari ini.",
+    "doneAt": "selesai pukul {{time}}",
+    "going": "sedang dikerjakan",
+    "failed": "tidak selesai"
+  },
+  "teamNow": {
+    "title": "Timmu sekarang",
+    "coordinates_other": "{{name}} mengoordinasikan {{count}} agen",
+    "working_other": "{{count}} sedang bekerja",
+    "waiting_other": "{{count}} menunggumu",
+    "waitingButton_other": "{{count}} menunggumu"
+  },
+  "aiPanel": {
+    "title": "Panel AI",
+    "uses": "Siapa memakai apa",
+    "accounts": "Akun AI",
+    "usage": "Kunci dan penggunaan",
+    "change": "Ganti AI",
+    "noAgents": "Belum ada agen.",
+    "dialog": {
+      "title": "Ganti AI {{name}}",
+      "smart": "Paling pintar",
+      "balanced": "Seimbang",
+      "fast": "Paling cepat dan hemat",
+      "smartPlan": "Berpikir lebih lama. Lebih lambat dan memakai lebih banyak kuota.",
+      "smartKey": "Berpikir lebih lama. Lebih lambat dan lebih mahal.",
+      "balancedLine": "Disarankan untuk sebagian besar tugas.",
+      "fastLine": "Langsung menjawab. Cocok untuk tugas sederhana.",
+      "current": "Saat ini",
+      "inPlan": "termasuk dalam paket",
+      "price": "≈ {{input}} / {{output}} per sejuta token",
+      "switchTo": "Ganti ke {{model}}",
+      "keep": "Pertahankan",
+      "now": "Sekarang: {{model}}",
+      "more": "Opsi lainnya",
+      "none": "Belum ada AI lain untuk dipilih. Hubungkan akun atau kunci agar ada pilihan."
+    }
   },
   "agentPage": {
     "work": {
@@ -7145,6 +7199,14 @@
         "helpsText": "Bisa mengubah agen, pengaturan, dan siapa yang ada di sini, sepertimu. Melihat semua yang dibagikan di sini, kecuali pesan langsungmu."
       },
       "where": {
+        "titleOne": "Grup mana yang langsung diikuti {{name}}?",
+        "titleMany": "Grup mana yang langsung diikuti orang-orang ini?",
+        "titleOnePersonal": "Percakapan grup mana yang langsung diikuti {{name}}?",
+        "titleManyPersonal": "Percakapan grup mana yang langsung diikuti orang-orang ini?",
+        "lead": "Semua orang mulai di #{{channel}}. Sisanya kamu yang pilih.",
+        "label": "Grup",
+        "labelPersonal": "Percakapan grup",
+        "everyone": "Semua orang ikut",
         "private": "Privat · kamu ada di sini",
         "people_other": "{{count}} orang"
       },
@@ -10428,9 +10490,23 @@
   },
   "liveVoice": {
     "you": "Kamu",
+    "invite": {
+      "title": "Ajak ke panggilan",
+      "lead": "Mereka mendapat notifikasi di ponsel dan komputer, beserta cara untuk bergabung.",
+      "send": "Panggil",
+      "refused": "Tidak bisa memanggil {{names}}: hanya pengelola percakapan ini yang bisa menambahkan orang.",
+      "none": "Semua orang di ruang kerja sudah ada di panggilan."
+    },
+    "ring": {
+      "title": "{{name}} memanggilmu",
+      "where": "Panggilan suara di {{channel}}",
+      "join": "Gabung",
+      "decline": "Nanti saja"
+    },
     "call": {
       "topic": "Topik (opsional)",
       "topicHint": "Para agen mulai dengan membahas topik ini. Bergabunglah kapan saja.",
+      "people": "Panggil orang juga",
       "start": "Mulai panggilan suara",
       "join_other": "Gabung panggilan ({{count}})",
       "title": "Panggilan suara",
@@ -10473,6 +10549,7 @@
       "quiet": "Agen hanya mendengarkan",
       "leave": "Keluar dari panggilan",
       "endAll": "Akhiri untuk semua",
+      "invite": "Panggil seseorang",
       "endTitle": "Akhiri panggilan untuk semua?",
       "endText": "Catatan panggilan masuk ke percakapan. Doug BOSS mengirim laporan berisi keputusan dan langkah berikutnya.",
       "hasWord": "{{name}} sedang bicara",
@@ -11559,6 +11636,8 @@
       "no_computer": "Pilih komputer yang terhubung di Komputer untuk memakainya.",
       "exec_off": "Komputer ini terhubung tanpa izin menjalankan program.",
       "runner_old": "Perbarui program DougBot di komputer untuk memakainya.",
+      "tool_off": "{{program}} mati di {{computer}}. Nyalakan di sana, di aplikasi DougBot: Preferensi → Alat.",
+      "tool_offLinux": "{{program}} mati di {{computer}}. Nyalakan di sana, di aplikasi DougBot atau dengan {{command}}.",
       "tool_offOne": "{{program}} mati di {{computer}}.",
       "not_installed": "{{program}} belum terpasang di {{computer}}.",
       "cant_start": "{{program}} ada di {{computer}}, tetapi tidak mau berjalan.",
@@ -13155,6 +13234,13 @@
       "ruleset": "ruleset|ruleset|ruleset"
     },
     "label": {
+      "portal_board": "Lihat papan persetujuan",
+      "portal_plan": "Lihat jadwal strategis",
+      "portal_work": "Lihat tugas seseorang",
+      "portal_card": "Perbarui papan persetujuan",
+      "send_for_approval": "Kirim untuk persetujuan",
+      "send_new_version": "Kirim versi baru",
+      "schedule_post": "Jadwalkan postingan",
       "git_clone": "Clone repositori",
       "create_repository": "Buat repositori",
       "delete_repository": "Hapus repositori",
@@ -16181,6 +16267,7 @@
     "removed": "Dihapus",
     "change": {
       "mergedWithoutAsking": "Merge di {{repo}} tanpa bertanya",
+      "portalApprovedForClient": "Menyetujui “{{title}}” atas nama klien di portal",
       "pattern": "{{verb}} {{area}}",
       "approval": {
         "approved": "Menyetujui permintaan",
@@ -17603,10 +17690,6 @@
       "interrupted": "Terputus karena server dimulai ulang. Minta lagi untuk melanjutkan.",
       "step_limit": "Langkahku habis sebelum selesai.",
       "stuck": "Aku macet dan berhenti sebelum selesai."
-    },
-    "talk": {
-      "readAll": "Baca semua",
-      "more_other": "{{count}} baris lagi"
     }
   },
   "builtinTools": {
@@ -20276,6 +20359,9 @@
       "saved": "Kartu disimpan.",
       "deleted": "Kartu dihapus.",
       "deleteTitle": "Hapus kartu ini?",
+      "deleteOf": "Hapus kartu {{title}}",
+      "copyLink": "Salin tautan kartu",
+      "linkCopied": "Tautan kartu disalin.",
       "deleteText": "“{{title}}” keluar dari papan. File-nya tetap ada di Drive."
     },
     "post": {
@@ -20289,6 +20375,15 @@
       "done": "Dirilis untuk {{when}}.",
       "past": "Pilih jam yang belum lewat.",
       "pending": "menjadwalkan…"
+    },
+    "approveForClient": {
+      "action": "Setujui atas nama klien",
+      "title": "Setujui atas nama klien?",
+      "text": "Hanya jika klien berhenti merespons di portal. Postingan menjadi Disetujui di sana seolah klien yang menyetujuinya, dan langkah setelah persetujuan berjalan.",
+      "note": "Alasan",
+      "notePlaceholder": "Klien sudah menyetujuinya lewat WhatsApp",
+      "confirm": "Setujui",
+      "done": "“{{title}}” disetujui atas nama klien."
     },
     "form": {
       "client": "Klien",
@@ -20318,17 +20413,33 @@
       "notMedia": "Hanya gambar dan video yang bisa dikirim untuk persetujuan.",
       "coverNotImage": "Sampul harus berupa gambar."
     },
+    "materials": {
+      "tab": "Materi klien",
+      "intro": "Login, tautan, dan referensi klien. Semuanya di luar jadwal dan tidak pernah jadi tugas.",
+      "empty": "Belum ada materi",
+      "emptyText": "Buat daftar (Media sosial, Login, Merek) dan simpan kartunya di dalamnya.",
+      "newListHint": "Daftar ini jadi yang pertama di materi. Kartunya kamu tambahkan di dalamnya.",
+      "toMaterials": "Pindahkan ke Materi klien",
+      "toPlan": "Kembali ke jadwal",
+      "movedToMaterials": "“{{name}}” dipindahkan ke Materi klien.",
+      "movedToPlan": "“{{name}}” kembali ke jadwal."
+    },
     "plan": {
       "tab": "Jadwal strategis",
+      "tabShort": "Jadwal",
       "view": "Tampilan",
       "viewBoard": "Papan",
       "viewCalendar": "Kalender",
       "noList": "Tanpa daftar",
       "addList": "Tambah daftar",
+      "newList": "Daftar baru",
+      "newListHint": "Daftar ini jadi yang pertama di jadwal. Kartunya kamu tambahkan di dalamnya.",
       "listName": "Nama daftar",
       "addCard": "Tambah kartu",
       "cardTitle": "Judul kartu",
       "listActions": "Tindakan: {{name}}",
+      "lists": "Daftar",
+      "goToList": "Buka {{name}}",
       "rename": "Ganti nama",
       "moveLeft": "Pindahkan ke kiri",
       "moveRight": "Pindahkan ke kanan",
@@ -20399,6 +20510,7 @@
       "edit": "Sunting",
       "editDescription": "Sunting deskripsi",
       "noDescription": "Tanpa deskripsi",
+      "addDescription": "Tambahkan deskripsi yang lebih rinci…",
       "showMore": "Tampilkan lebih banyak",
       "showLess": "Tampilkan lebih sedikit",
       "linkText": "teks tautan",

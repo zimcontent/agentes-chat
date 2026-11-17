@@ -5579,6 +5579,9 @@
   "team.viewLabel": {
     "value": "Team view"
   },
+  "team.view.now": {
+    "value": "Now"
+  },
   "team.view.list": {
     "value": "List"
   },
@@ -12198,6 +12201,15 @@
   "home.waiting.title": {
     "value": "Waiting on you"
   },
+  "home.toSchedule.meta": {
+    "value": "Approved, waiting to be scheduled"
+  },
+  "home.toSchedule.action": {
+    "value": "Schedule"
+  },
+  "home.toSchedule.label": {
+    "value": "Schedule {{title}}"
+  },
   "home.working.title": {
     "value": "Working now"
   },
@@ -13755,6 +13767,139 @@
   },
   "agent.notFound": {
     "value": "This agent doesn't exist or was archived."
+  },
+  "agentFront.call": {
+    "value": "Call"
+  },
+  "agentFront.tasks": {
+    "value": "Tasks"
+  },
+  "agentFront.settings": {
+    "value": "Settings"
+  },
+  "agentFront.canUse": {
+    "value": "Can use"
+  },
+  "agentFront.month": {
+    "value": "This month"
+  },
+  "agentFront.reportsTo": {
+    "value": "Reports to"
+  },
+  "agentFront.reportsToNobody": {
+    "value": "Nobody"
+  },
+  "agentFront.ai": {
+    "value": "AI"
+  },
+  "agentFront.today": {
+    "value": "Today"
+  },
+  "agentFront.todayNone": {
+    "value": "Nothing today yet."
+  },
+  "agentFront.doneAt": {
+    "value": "delivered at {{time}}"
+  },
+  "agentFront.going": {
+    "value": "in progress"
+  },
+  "agentFront.failed": {
+    "value": "didn't finish"
+  },
+  "teamNow.title": {
+    "value": "Your team now"
+  },
+  "teamNow.coordinates": {
+    "value": {
+      "one": "{{name}} coordinates {{count}} agent",
+      "other": "{{name}} coordinates {{count}} agents"
+    }
+  },
+  "teamNow.working": {
+    "value": {
+      "one": "{{count}} working now",
+      "other": "{{count}} working now"
+    }
+  },
+  "teamNow.waiting": {
+    "value": {
+      "one": "{{count}} waiting on you",
+      "other": "{{count}} waiting on you"
+    }
+  },
+  "teamNow.waitingButton": {
+    "value": {
+      "one": "{{count}} waiting on you",
+      "other": "{{count}} waiting on you"
+    }
+  },
+  "aiPanel.title": {
+    "value": "AI panel"
+  },
+  "aiPanel.uses": {
+    "value": "Who uses what"
+  },
+  "aiPanel.accounts": {
+    "value": "AI accounts"
+  },
+  "aiPanel.usage": {
+    "value": "Keys and usage"
+  },
+  "aiPanel.change": {
+    "value": "Change AI"
+  },
+  "aiPanel.noAgents": {
+    "value": "No agents yet."
+  },
+  "aiPanel.dialog.title": {
+    "value": "Change {{name}}'s AI",
+    "female": "Change {{name}}'s AI"
+  },
+  "aiPanel.dialog.smart": {
+    "value": "Smartest"
+  },
+  "aiPanel.dialog.balanced": {
+    "value": "Balanced"
+  },
+  "aiPanel.dialog.fast": {
+    "value": "Fastest and cheapest"
+  },
+  "aiPanel.dialog.smartPlan": {
+    "value": "Thinks more. Slower, and uses more of the quota."
+  },
+  "aiPanel.dialog.smartKey": {
+    "value": "Thinks more. Slower, and costs more."
+  },
+  "aiPanel.dialog.balancedLine": {
+    "value": "Recommended for most tasks."
+  },
+  "aiPanel.dialog.fastLine": {
+    "value": "Answers right away. Best for simple tasks."
+  },
+  "aiPanel.dialog.current": {
+    "value": "Current"
+  },
+  "aiPanel.dialog.inPlan": {
+    "value": "included in the plan"
+  },
+  "aiPanel.dialog.price": {
+    "value": "≈ {{input}} / {{output}} per million tokens"
+  },
+  "aiPanel.dialog.switchTo": {
+    "value": "Switch to {{model}}"
+  },
+  "aiPanel.dialog.keep": {
+    "value": "Keep"
+  },
+  "aiPanel.dialog.now": {
+    "value": "Now: {{model}}"
+  },
+  "aiPanel.dialog.more": {
+    "value": "More options"
+  },
+  "aiPanel.dialog.none": {
+    "value": "No other AI to switch to now. Connect an account or a key to have options."
   },
   "agentPage.work.sentenceMember": {
     "value": "Thinks with <brain/><end>.</end>"
@@ -18070,6 +18215,30 @@
   },
   "members.dialog.role.helpsText": {
     "value": "Can change agents, settings and who's here, as you can. Sees everything shared here, except your direct messages."
+  },
+  "members.dialog.where.titleOne": {
+    "value": "Which groups does {{name}} join right away?"
+  },
+  "members.dialog.where.titleMany": {
+    "value": "Which groups do these people join right away?"
+  },
+  "members.dialog.where.titleOnePersonal": {
+    "value": "Which group conversations does {{name}} join right away?"
+  },
+  "members.dialog.where.titleManyPersonal": {
+    "value": "Which group conversations do these people join right away?"
+  },
+  "members.dialog.where.lead": {
+    "value": "Everyone starts in #{{channel}}. You pick the others."
+  },
+  "members.dialog.where.label": {
+    "value": "Groups"
+  },
+  "members.dialog.where.labelPersonal": {
+    "value": "Group conversations"
+  },
+  "members.dialog.where.everyone": {
+    "value": "Everyone joins"
   },
   "members.dialog.where.private": {
     "value": "Private · you're in it"
@@ -26333,11 +26502,41 @@
   "liveVoice.you": {
     "value": "You"
   },
+  "liveVoice.invite.title": {
+    "value": "Call someone in"
+  },
+  "liveVoice.invite.lead": {
+    "value": "They get a notification on their phone and computer, and a way to join."
+  },
+  "liveVoice.invite.send": {
+    "value": "Call"
+  },
+  "liveVoice.invite.refused": {
+    "value": "Couldn't call {{names}}: only whoever manages this conversation can add people to it."
+  },
+  "liveVoice.invite.none": {
+    "value": "Everyone in the workspace is already on the call."
+  },
+  "liveVoice.ring.title": {
+    "value": "{{name}} is calling you"
+  },
+  "liveVoice.ring.where": {
+    "value": "Voice call in {{channel}}"
+  },
+  "liveVoice.ring.join": {
+    "value": "Join"
+  },
+  "liveVoice.ring.decline": {
+    "value": "Not now"
+  },
   "liveVoice.call.topic": {
     "value": "Topic (optional)"
   },
   "liveVoice.call.topicHint": {
     "value": "The agents open by debating this. Jump in whenever you want."
+  },
+  "liveVoice.call.people": {
+    "value": "Call people too"
   },
   "liveVoice.call.start": {
     "value": "Start a voice call"
@@ -26452,6 +26651,9 @@
   },
   "liveVoice.room.endAll": {
     "value": "End for everyone"
+  },
+  "liveVoice.room.invite": {
+    "value": "Call someone"
   },
   "liveVoice.room.endTitle": {
     "value": "End the call for everyone?"
@@ -29338,6 +29540,12 @@
   },
   "brain.reasons.runner_old": {
     "value": "Update the agentes.chat program on the computer to use it."
+  },
+  "brain.reasons.tool_off": {
+    "value": "{{program}} is turned off on {{computer}}. Turn it on there, in the DougBot app: Preferences → Tools."
+  },
+  "brain.reasons.tool_offLinux": {
+    "value": "{{program}} is turned off on {{computer}}. Turn it on there, in the DougBot app or with {{command}}."
   },
   "brain.reasons.tool_offOne": {
     "value": "{{program}} is turned off on {{computer}}."
@@ -33195,6 +33403,27 @@
   },
   "toolNames.noun.ruleset": {
     "value": "ruleset|rulesets"
+  },
+  "toolNames.label.portal_board": {
+    "value": "See the approval board"
+  },
+  "toolNames.label.portal_plan": {
+    "value": "See the strategic schedule"
+  },
+  "toolNames.label.portal_work": {
+    "value": "See a person's tasks"
+  },
+  "toolNames.label.portal_card": {
+    "value": "Update the approval board"
+  },
+  "toolNames.label.send_for_approval": {
+    "value": "Send for approval"
+  },
+  "toolNames.label.send_new_version": {
+    "value": "Send the new version"
+  },
+  "toolNames.label.schedule_post": {
+    "value": "Schedule post"
   },
   "toolNames.label.git_clone": {
     "value": "Clone repository"
@@ -41118,6 +41347,9 @@
   },
   "audit.change.mergedWithoutAsking": {
     "value": "Merged in {{repo}} without asking"
+  },
+  "audit.change.portalApprovedForClient": {
+    "value": "Approved “{{title}}” for the client at the portal"
   },
   "audit.change.pattern": {
     "value": "{{verb}} {{area}}"
@@ -50882,6 +51114,15 @@
   "portal.card.deleteTitle": {
     "value": "Delete this card?"
   },
+  "portal.card.deleteOf": {
+    "value": "Delete the card {{title}}"
+  },
+  "portal.card.copyLink": {
+    "value": "Copy the card's link"
+  },
+  "portal.card.linkCopied": {
+    "value": "Card link copied."
+  },
   "portal.card.deleteText": {
     "value": "“{{title}}” leaves the board. Its files stay in the Drive."
   },
@@ -50908,6 +51149,27 @@
   },
   "portal.schedule.pending": {
     "value": "scheduling…"
+  },
+  "portal.approveForClient.action": {
+    "value": "Approve for the client"
+  },
+  "portal.approveForClient.title": {
+    "value": "Approve for the client?"
+  },
+  "portal.approveForClient.text": {
+    "value": "Only when the client stopped answering at the portal. The post turns Approved there as if the client had approved it, and what comes after approval runs."
+  },
+  "portal.approveForClient.note": {
+    "value": "Reason"
+  },
+  "portal.approveForClient.notePlaceholder": {
+    "value": "The client approved it on WhatsApp"
+  },
+  "portal.approveForClient.confirm": {
+    "value": "Approve"
+  },
+  "portal.approveForClient.done": {
+    "value": "“{{title}}” approved for the client."
   },
   "portal.form.client": {
     "value": "Client"
@@ -50981,8 +51243,38 @@
   "portal.sending.coverNotImage": {
     "value": "The cover must be a picture."
   },
+  "portal.materials.tab": {
+    "value": "Client materials"
+  },
+  "portal.materials.intro": {
+    "value": "The client's logins, links and references. They stay out of the schedule and never become tasks."
+  },
+  "portal.materials.empty": {
+    "value": "No materials yet"
+  },
+  "portal.materials.emptyText": {
+    "value": "Make a list (Social media, Logins, Brand) and keep the cards in it."
+  },
+  "portal.materials.newListHint": {
+    "value": "It comes first among the materials. You add its cards inside it."
+  },
+  "portal.materials.toMaterials": {
+    "value": "Move to Client materials"
+  },
+  "portal.materials.toPlan": {
+    "value": "Back to the schedule"
+  },
+  "portal.materials.movedToMaterials": {
+    "value": "“{{name}}” went to Client materials."
+  },
+  "portal.materials.movedToPlan": {
+    "value": "“{{name}}” is back in the schedule."
+  },
   "portal.plan.tab": {
     "value": "Strategic schedule"
+  },
+  "portal.plan.tabShort": {
+    "value": "Schedule"
   },
   "portal.plan.view": {
     "value": "View"
@@ -50999,6 +51291,12 @@
   "portal.plan.addList": {
     "value": "Add a list"
   },
+  "portal.plan.newList": {
+    "value": "New list"
+  },
+  "portal.plan.newListHint": {
+    "value": "It comes first in the schedule. You add its cards inside it."
+  },
   "portal.plan.listName": {
     "value": "List name"
   },
@@ -51010,6 +51308,12 @@
   },
   "portal.plan.listActions": {
     "value": "Actions: {{name}}"
+  },
+  "portal.plan.lists": {
+    "value": "Lists"
+  },
+  "portal.plan.goToList": {
+    "value": "Go to {{name}}"
   },
   "portal.plan.rename": {
     "value": "Rename"
@@ -51193,6 +51497,9 @@
   },
   "portal.detail.noDescription": {
     "value": "No description"
+  },
+  "portal.detail.addDescription": {
+    "value": "Add a more detailed description…"
   },
   "portal.detail.showMore": {
     "value": "Show more"

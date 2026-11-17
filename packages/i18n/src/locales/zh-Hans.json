@@ -2180,6 +2180,7 @@
     "sectorsCount_other": "{{count}} 个部门",
     "viewLabel": "团队视图",
     "view": {
+      "now": "现在",
       "list": "列表",
       "chart": "组织架构图",
       "map": "地图",
@@ -4813,6 +4814,11 @@
     "waiting": {
       "title": "等你处理"
     },
+    "toSchedule": {
+      "meta": "已批准，等待排期",
+      "action": "排期",
+      "label": "排期 {{title}}"
+    },
     "working": {
       "title": "正在工作",
       "none": "目前没有智能体在工作。",
@@ -5390,6 +5396,54 @@
     "budgetDefaultHelpAmount": "留空：使用工作区默认值（{{amount}}）。",
     "budgetInvalid": "请输入大于零的值。",
     "notFound": "该智能体不存在或已归档。"
+  },
+  "agentFront": {
+    "call": "通话",
+    "tasks": "任务",
+    "settings": "设置",
+    "canUse": "可以使用",
+    "month": "本月",
+    "reportsTo": "汇报对象",
+    "reportsToNobody": "无",
+    "ai": "AI",
+    "today": "今天",
+    "todayNone": "今天还没有任务。",
+    "doneAt": "{{time}} 完成",
+    "going": "进行中",
+    "failed": "未完成"
+  },
+  "teamNow": {
+    "title": "你的团队现在",
+    "coordinates_other": "{{name}} 协调 {{count}} 个智能体",
+    "working_other": "{{count}} 个正在工作",
+    "waiting_other": "{{count}} 个在等你",
+    "waitingButton_other": "等你处理 {{count}}"
+  },
+  "aiPanel": {
+    "title": "AI 面板",
+    "uses": "谁在用什么",
+    "accounts": "AI 账号",
+    "usage": "密钥和用量",
+    "change": "更换 AI",
+    "noAgents": "还没有智能体。",
+    "dialog": {
+      "title": "更换 {{name}} 的 AI",
+      "smart": "最聪明",
+      "balanced": "均衡",
+      "fast": "最快最省",
+      "smartPlan": "思考更多。更慢，也更耗额度。",
+      "smartKey": "思考更多。更慢，也更贵。",
+      "balancedLine": "推荐用于大多数任务。",
+      "fastLine": "立即回答。最适合简单任务。",
+      "current": "当前",
+      "inPlan": "包含在套餐中",
+      "price": "每百万 token ≈ {{input}} / {{output}}",
+      "switchTo": "切换到 {{model}}",
+      "keep": "保留",
+      "now": "当前：{{model}}",
+      "more": "更多选项",
+      "none": "目前没有其他可切换的 AI。连接一个账号或密钥即可获得更多选择。"
+    }
   },
   "agentPage": {
     "work": {
@@ -7156,6 +7210,14 @@
         "helpsText": "可以像你一样修改智能体、设置和成员。能看到这里共享的所有内容，但看不到你的私信。"
       },
       "where": {
+        "titleOne": "{{name}} 一开始加入哪些群组？",
+        "titleMany": "这些成员一开始加入哪些群组？",
+        "titleOnePersonal": "{{name}} 一开始加入哪些群聊？",
+        "titleManyPersonal": "这些成员一开始加入哪些群聊？",
+        "lead": "每个人都从 #{{channel}} 开始。其他的由你来选。",
+        "label": "群组",
+        "labelPersonal": "群聊",
+        "everyone": "所有人加入",
         "private": "私密 · 你在其中",
         "people_other": "{{count}} 人"
       },
@@ -10443,9 +10505,23 @@
   },
   "liveVoice": {
     "you": "你",
+    "invite": {
+      "title": "邀请成员加入通话",
+      "lead": "对方会在手机和电脑上收到通知，并可以加入。",
+      "send": "呼叫",
+      "refused": "无法呼叫 {{names}}：只有管理此对话的人才能添加成员。",
+      "none": "工作区里的所有人都已在通话中。"
+    },
+    "ring": {
+      "title": "{{name}} 正在呼叫你",
+      "where": "{{channel}} 中的语音通话",
+      "join": "加入",
+      "decline": "暂不"
+    },
     "call": {
       "topic": "主题（可选）",
       "topicHint": "智能体会先围绕这个主题展开讨论。你可以随时加入。",
+      "people": "同时呼叫成员",
       "start": "发起语音通话",
       "join_other": "加入通话（{{count}}）",
       "title": "语音通话",
@@ -10488,6 +10564,7 @@
       "quiet": "智能体只听不说",
       "leave": "退出通话",
       "endAll": "为所有人结束",
+      "invite": "呼叫成员",
       "endTitle": "为所有人结束通话？",
       "endText": "通话记录会发到对话中。Doug BOSS 会发送报告，写明已做的决定和下一步。",
       "hasWord": "{{name}} 正在发言",
@@ -11573,6 +11650,8 @@
       "no_computer": "在“电脑”中选择一台已连接的电脑即可使用。",
       "exec_off": "这台电脑连接时没有授予运行程序的权限。",
       "runner_old": "在电脑上更新 DougBot 程序即可使用。",
+      "tool_off": "{{computer}} 上的 {{program}} 已关闭。请在那台电脑上的 DougBot 应用中打开：偏好设置 → 工具。",
+      "tool_offLinux": "{{computer}} 上的 {{program}} 已关闭。请在那台电脑上的 DougBot 应用中或用 {{command}} 打开。",
       "tool_offOne": "{{computer}} 上的 {{program}} 已关闭。",
       "not_installed": "{{computer}} 上没有安装 {{program}}。",
       "cant_start": "{{program}} 在 {{computer}} 上，但无法启动。",
@@ -13165,6 +13244,13 @@
       "ruleset": "规则集|规则集"
     },
     "label": {
+      "portal_board": "查看审批看板",
+      "portal_plan": "查看策略排期表",
+      "portal_work": "查看某人的任务",
+      "portal_card": "更新审批看板",
+      "send_for_approval": "送去审批",
+      "send_new_version": "提交新版本",
+      "schedule_post": "排期帖子",
       "git_clone": "克隆仓库",
       "create_repository": "创建仓库",
       "delete_repository": "删除仓库",
@@ -16191,6 +16277,7 @@
     "removed": "已移除",
     "change": {
       "mergedWithoutAsking": "未经询问在 {{repo}} 中合并",
+      "portalApprovedForClient": "在门户中代客户批准了“{{title}}”",
       "pattern": "{{verb}}{{area}}",
       "approval": {
         "approved": "批准了一个请求",
@@ -17619,10 +17706,6 @@
       "interrupted": "因服务器重启而中断。请再问一次以继续。",
       "step_limit": "完成前步骤已用完。",
       "stuck": "我卡住了，在完成前停了下来。"
-    },
-    "talk": {
-      "readAll": "阅读全部",
-      "more_other": "还有 {{count}} 行"
     }
   },
   "builtinTools": {
@@ -20353,6 +20436,9 @@
       "saved": "卡片已保存。",
       "deleted": "卡片已删除。",
       "deleteTitle": "删除这张卡片？",
+      "deleteOf": "删除卡片 {{title}}",
+      "copyLink": "复制卡片链接",
+      "linkCopied": "卡片链接已复制。",
       "deleteText": "“{{title}}”会从看板移除。文件仍保留在 Drive 中。"
     },
     "post": {
@@ -20366,6 +20452,15 @@
       "done": "已安排在 {{when}} 发布。",
       "past": "请选择一个还没过去的时间。",
       "pending": "排期中…"
+    },
+    "approveForClient": {
+      "action": "代客户批准",
+      "title": "代客户批准？",
+      "text": "仅在客户不再在门户中回复时使用。帖子会在门户中变为已批准，就像客户批准了一样，批准之后的流程也会照常进行。",
+      "note": "原因",
+      "notePlaceholder": "客户在 WhatsApp 上批准了",
+      "confirm": "批准",
+      "done": "已代客户批准“{{title}}”。"
     },
     "form": {
       "client": "客户",
@@ -20395,17 +20490,33 @@
       "notMedia": "只有图片和视频可以送去审批。",
       "coverNotImage": "封面必须是图片。"
     },
+    "materials": {
+      "tab": "客户资料",
+      "intro": "客户的登录信息、链接和参考资料。它们不进入排期表，也不会变成任务。",
+      "empty": "还没有资料",
+      "emptyText": "创建一个列表（社交媒体、登录信息、品牌），把卡片放在里面。",
+      "newListHint": "它会排在资料的最前面。卡片在列表里面创建。",
+      "toMaterials": "移到客户资料",
+      "toPlan": "移回排期表",
+      "movedToMaterials": "“{{name}}”已移到客户资料。",
+      "movedToPlan": "“{{name}}”已移回排期表。"
+    },
     "plan": {
       "tab": "策略排期表",
+      "tabShort": "排期表",
       "view": "视图",
       "viewBoard": "看板",
       "viewCalendar": "日历",
       "noList": "无列表",
       "addList": "添加列表",
+      "newList": "新建列表",
+      "newListHint": "它会排在排期表的最前面。卡片在列表里面创建。",
       "listName": "列表名称",
       "addCard": "添加卡片",
       "cardTitle": "卡片标题",
       "listActions": "操作：{{name}}",
+      "lists": "列表",
+      "goToList": "前往 {{name}}",
       "rename": "重命名",
       "moveLeft": "向左移动",
       "moveRight": "向右移动",
@@ -20476,6 +20587,7 @@
       "edit": "编辑",
       "editDescription": "编辑描述",
       "noDescription": "暂无描述",
+      "addDescription": "添加更详细的描述…",
       "showMore": "显示更多",
       "showLess": "收起",
       "linkText": "链接文字",

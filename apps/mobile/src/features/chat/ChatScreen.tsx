@@ -91,7 +91,17 @@ import * as ImagePicker from "expo-image-picker";
 import { LinearGradient } from "expo-linear-gradient";
 import { useFocusEffect, useIsFocused, useIsPreview } from "expo-router";
 import { useHeaderHeight } from "expo-router/react-navigation";
-import { type ComponentRef, memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  type ComponentRef,
+  Fragment,
+  memo,
+  type ReactNode,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
@@ -1731,6 +1741,107 @@ function Chat({
     },
     holdHint: t("mobile.chat.switchHint"),
   };
+  // An agent's DM also opens its tasks while it has some (ADR 0128), pushed like a thread, and its computer (as the
+  // web's DM header) for whoever may watch it: one entry, the line while turns wait for the computer (the way on to
+  // it inside), else the computer.
+  const dmComputer = dmAgentId && !isThread && !rightHand ? { agentId: dmAgentId, onOpen: leavePlace } : undefined;
+  // The computer's button draws nothing until the computer is known and watchable: it says when it shows.
+  const [computerShown, setComputerShown] = useState(false);
+  // The bar's buttons, each with the room it takes (in 44-point buttons): drawn from this list and the pill's width
+  // taken from it too, so a button added here is never one the pill runs under.
+  const barButtons: { key: string; room: number; node: ReactNode }[] =
+    (isThread && info) || dm || channel
+      ? [
+          dmAgentId && agentTasks
+            ? {
+                key: "tasks",
+                room: tasksBadge(agentTasks).room,
+                node: (
+                  <AgentTasksButton
+                    agentId={dmAgentId}
+                    view={agentTasks}
+                    onPress={() => {
+                      leavePlace();
+                      router.push(agentTasksHref(dmAgentId, { channelId, threadId }));
+                    }}
+                  />
+                ),
+              }
+            : null,
+          // Its AI and model are changed on its profile ("Pensa com"), not from the bar.
+          queueShown && barQueue && queueMachineId
+            ? {
+                key: "queue",
+                // The icon and its count, as the tasks' button: wider than a lone icon.
+                room: 1.3,
+                node: dmComputer ? (
+                  <DmQueueButton
+                    agentId={dmComputer.agentId}
+                    queue={barQueue}
+                    onPress={() => openQueue(queueMachineId, dmComputer)}
+                  />
+                ) : (
+                  <QueueButton queue={barQueue} onPress={() => openQueue(queueMachineId)} />
+                ),
+              }
+            : dmComputer
+              ? {
+                  key: "computer",
+                  room: computerShown ? 1 : 0,
+                  node: (
+                    <DmComputerButton agentId={dmComputer.agentId} onOpen={leavePlace} onShown={setComputerShown} />
+                  ),
+                }
+              : null,
+          // A voice call here (an agent's DM calls the agent), as the web's header (docs/adr/doug-0006-live-voice.md).
+          !isThread && (dm || channel?.isMember)
+            ? {
+                key: "call",
+                room: 1,
+                node: (
+                  <CallButton
+                    channelId={channelId}
+                    title={dm ? dm.with.name : channel ? `#${groupTitle(channel)}` : title}
+                    dmAgentId={dmAgentId}
+                  />
+                ),
+              }
+            : null,
+          // The task this thread is the conversation of (ADR doug-0018): "Tarefa #N" opens it.
+          isThread && info?.task
+            ? {
+                key: "task",
+                room: 1,
+                node: (
+                  <IconButton
+                    icon="issue"
+                    label={t("mobile.task.openNumber", { number: info.task.number })}
+                    onPress={() => {
+                      leavePlace();
+                      router.push(`/issues/${info.task?.number}`);
+                    }}
+                  />
+                ),
+              }
+            : null,
+          // A DM searches from its "…" (its name and the agent's own buttons keep the room).
+          searchPlace && !dm
+            ? {
+                key: "search",
+                room: 1,
+                node: <IconButton icon="search" label={t("searchPage.searchHere")} onPress={openSearch} />,
+              }
+            : null,
+          {
+            key: "more",
+            room: 1,
+            node: <IconButton icon="more" label={t("mobile.chat.options")} onPress={openOptions} />,
+          },
+        ].filter((b) => b !== null)
+      : [];
+  const right = barButtons.length ? barButtons.map((b) => <Fragment key={b.key}>{b.node}</Fragment>) : null;
+  // The pill's own room already leaves the "…": it gives up the rest.
+  const barRoom = Math.max(0, barButtons.reduce((sum, b) => sum + b.room, 0) - 1);
   const pill =
     isThread && info ? (
       <HeaderPill
@@ -1738,6 +1849,7 @@ function Chat({
         title={title}
         subtitle={subtitle}
         onPress={openOptions}
+        extraActions={barRoom}
         {...hold}
         label={t("mobile.chat.headerChannel", { who: who(title, subtitle ?? "") })}
       />
@@ -1763,7 +1875,7 @@ function Chat({
         working={Boolean(dmDoing)}
         // Reading far up, only the face stays (the screen is the messages); a new reply opens it again.
         collapsed={far && unseen.messages === 0}
-        extraActions={(dmAgentId ? 1 : 0) + (queueShown ? 1 : 0) + (agentTasks ? tasksBadge(agentTasks).room : 0)}
+        extraActions={barRoom}
         onPress={dmAgentId ? () => router.push(`/agent/${dmAgentId}`) : openOptions}
         {...hold}
         label={
@@ -1801,69 +1913,11 @@ function Chat({
           ) : undefined
         }
         onPress={openMembers}
-        extraActions={(queueShown ? 1 : 0) + (searchPlace ? 1 : 0)}
+        extraActions={barRoom}
         {...hold}
         label={t("mobile.chat.headerChannel", { who: who(title, subtitle ?? "") })}
       />
     ) : null;
-  // An agent's DM also opens its tasks while it has some (ADR 0128), pushed like a thread, and its computer (as the
-  // web's DM header) for whoever may watch it: one entry, the line while turns wait for the computer (the way on to
-  // it inside), else the computer.
-  const dmComputer = dmAgentId && !isThread && !rightHand ? { agentId: dmAgentId, onOpen: leavePlace } : undefined;
-  const right =
-    (isThread && info) || dm || channel ? (
-      <>
-        {dmAgentId && agentTasks ? (
-          <AgentTasksButton
-            agentId={dmAgentId}
-            view={agentTasks}
-            onPress={() => {
-              leavePlace();
-              router.push(agentTasksHref(dmAgentId, { channelId, threadId }));
-            }}
-          />
-        ) : null}
-        {/* Its AI and model are changed on its profile ("Pensa com"), not from the bar. */}
-        {queueShown && barQueue && queueMachineId ? (
-          dmComputer ? (
-            <DmQueueButton
-              agentId={dmComputer.agentId}
-              queue={barQueue}
-              onPress={() => openQueue(queueMachineId, dmComputer)}
-            />
-          ) : (
-            <QueueButton queue={barQueue} onPress={() => openQueue(queueMachineId)} />
-          )
-        ) : dmComputer ? (
-          <DmComputerButton agentId={dmComputer.agentId} onOpen={leavePlace} />
-        ) : null}
-        {/* A voice call here (an agent's DM calls the agent), as the web's header (docs/adr/doug-0006-live-voice.md). */}
-        {!isThread && (dm || channel?.isMember) ? (
-          <CallButton
-            channelId={channelId}
-            title={dm ? dm.with.name : channel ? `#${groupTitle(channel)}` : title}
-            dmAgentId={dmAgentId}
-          />
-        ) : null}
-        {/* The task this thread is the conversation of (ADR doug-0018): "Tarefa #N" opens it. */}
-        {isThread && info?.task ? (
-          <IconButton
-            icon="issue"
-            label={t("mobile.task.openNumber", { number: info.task.number })}
-            onPress={() => {
-              leavePlace();
-              router.push(`/issues/${info.task?.number}`);
-            }}
-          />
-        ) : null}
-        {/* A DM searches from its "…" (its name and the agent's own buttons keep the room). */}
-        {searchPlace && !dm ? (
-          <IconButton icon="search" label={t("searchPage.searchHere")} onPress={openSearch} />
-        ) : null}
-        <IconButton icon="more" label={t("mobile.chat.options")} onPress={openOptions} />
-      </>
-    ) : null;
-
   const placeholder = isThread
     ? rootTask
       ? // One line on the phone: the tip after "·" in the web's placeholder doesn't fit.

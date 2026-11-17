@@ -2180,6 +2180,7 @@
     "sectorsCount_other": "{{count}} 部署",
     "viewLabel": "チームの表示",
     "view": {
+      "now": "いま",
       "list": "一覧",
       "chart": "組織図",
       "map": "マップ",
@@ -4810,6 +4811,11 @@
     "waiting": {
       "title": "あなたの対応待ち"
     },
+    "toSchedule": {
+      "meta": "承認済み、予約待ち",
+      "action": "予約",
+      "label": "{{title}}を予約"
+    },
     "working": {
       "title": "作業中",
       "none": "いま作業中のエージェントはいません。",
@@ -5379,6 +5385,54 @@
     "budgetDefaultHelpAmount": "空欄: ワークスペースのデフォルト（{{amount}}）。",
     "budgetInvalid": "0より大きい値を入力してください。",
     "notFound": "このエージェントは存在しないか、アーカイブされています。"
+  },
+  "agentFront": {
+    "call": "通話",
+    "tasks": "タスク",
+    "settings": "設定",
+    "canUse": "使えるもの",
+    "month": "今月",
+    "reportsTo": "報告先",
+    "reportsToNobody": "なし",
+    "ai": "AI",
+    "today": "今日",
+    "todayNone": "今日はまだ何もありません。",
+    "doneAt": "{{time}}に完了",
+    "going": "進行中",
+    "failed": "完了しませんでした"
+  },
+  "teamNow": {
+    "title": "いまのチーム",
+    "coordinates_other": "{{name}}が{{count}}人のエージェントを統括",
+    "working_other": "{{count}}人が作業中",
+    "waiting_other": "{{count}}人があなたを待っています",
+    "waitingButton_other": "あなた待ち {{count}}件"
+  },
+  "aiPanel": {
+    "title": "AIパネル",
+    "uses": "誰が何を使っているか",
+    "accounts": "AIアカウント",
+    "usage": "キーと利用状況",
+    "change": "AIを変更",
+    "noAgents": "まだエージェントがいません。",
+    "dialog": {
+      "title": "{{name}}のAIを変更",
+      "smart": "最も賢い",
+      "balanced": "バランス",
+      "fast": "最速で低コスト",
+      "smartPlan": "よく考えます。遅めで、プランの上限を多く使います。",
+      "smartKey": "よく考えます。遅めで、費用も高くなります。",
+      "balancedLine": "ほとんどのタスクにおすすめです。",
+      "fastLine": "すぐに答えます。簡単なタスク向けです。",
+      "current": "現在",
+      "inPlan": "プランに含まれます",
+      "price": "100万トークンあたり ≈ {{input}} / {{output}}",
+      "switchTo": "{{model}}に切り替え",
+      "keep": "そのままにする",
+      "now": "現在：{{model}}",
+      "more": "その他のオプション",
+      "none": "いま切り替えられるAIはほかにありません。アカウントかキーを接続すると選べるようになります。"
+    }
   },
   "agentPage": {
     "work": {
@@ -7117,6 +7171,14 @@
         "helpsText": "あなたと同じように、エージェント、設定、メンバーを変更できます。あなたのダイレクトメッセージ以外、ここで共有されているものはすべて見られます。"
       },
       "where": {
+        "titleOne": "{{name}}が最初から参加するグループは？",
+        "titleMany": "この人たちが最初から参加するグループは？",
+        "titleOnePersonal": "{{name}}が最初から参加するグループ会話は？",
+        "titleManyPersonal": "この人たちが最初から参加するグループ会話は？",
+        "lead": "全員が #{{channel}} から始めます。ほかはあなたが選びます。",
+        "label": "グループ",
+        "labelPersonal": "グループ会話",
+        "everyone": "全員が参加",
         "private": "プライベート · あなたも参加中",
         "people_other": "{{count}}人"
       },
@@ -10377,9 +10439,23 @@
   },
   "liveVoice": {
     "you": "あなた",
+    "invite": {
+      "title": "人を通話に呼ぶ",
+      "lead": "相手のスマートフォンとコンピューターに通知が届き、参加できます。",
+      "send": "呼ぶ",
+      "refused": "{{names}}を呼べませんでした。この会話を管理している人だけが人を追加できます。",
+      "none": "ワークスペースの全員がすでに通話中です。"
+    },
+    "ring": {
+      "title": "{{name}}から呼び出しです",
+      "where": "{{channel}}の音声通話",
+      "join": "参加",
+      "decline": "今はしない"
+    },
     "call": {
       "topic": "テーマ（任意）",
       "topicHint": "エージェントはこのテーマの議論から始めます。いつでも参加できます。",
+      "people": "人も呼ぶ",
       "start": "音声通話を開始",
       "join_other": "通話に参加（{{count}}）",
       "title": "音声通話",
@@ -10422,6 +10498,7 @@
       "quiet": "エージェントは聞くだけ",
       "leave": "通話から退出",
       "endAll": "全員の通話を終了",
+      "invite": "人を呼ぶ",
       "endTitle": "全員の通話を終了しますか？",
       "endText": "通話のメモは会話に送られます。Doug BOSS が決まったことと次のステップをまとめたレポートを送ります。",
       "hasWord": "{{name}} が発言中です",
@@ -11506,6 +11583,8 @@
       "no_computer": "使うには「コンピューター」で接続済みのコンピューターを選んでください。",
       "exec_off": "このコンピューターは、プログラムの実行を許可せずに接続されています。",
       "runner_old": "使うには、コンピューターのDougBotプログラムをアップデートしてください。",
+      "tool_off": "{{computer}} では {{program}} がオフです。そのコンピューターの DougBot アプリでオンにしてください：環境設定 → ツール。",
+      "tool_offLinux": "{{computer}} では {{program}} がオフです。そのコンピューターの DougBot アプリか {{command}} でオンにしてください。",
       "tool_offOne": "{{computer}} では {{program}} がオフです。",
       "not_installed": "{{computer}}に{{program}}がインストールされていません。",
       "cant_start": "{{program}} は {{computer}} にありますが、起動しません。",
@@ -13101,6 +13180,13 @@
       "ruleset": "ルールセット|ルールセット|ルールセットの"
     },
     "label": {
+      "portal_board": "承認ボードを見る",
+      "portal_plan": "戦略スケジュールを見る",
+      "portal_work": "人のタスクを見る",
+      "portal_card": "承認ボードを更新",
+      "send_for_approval": "承認に送る",
+      "send_new_version": "新しいバージョンを送る",
+      "schedule_post": "投稿を予約",
       "git_clone": "リポジトリをクローン",
       "create_repository": "リポジトリを作成",
       "delete_repository": "リポジトリを削除",
@@ -16127,6 +16213,7 @@
     "removed": "削除済み",
     "change": {
       "mergedWithoutAsking": "{{repo}}で確認なしでマージしました",
+      "portalApprovedForClient": "ポータルでクライアントの代わりに「{{title}}」を承認しました",
       "pattern": "{{verb}}: {{area}}",
       "approval": {
         "approved": "リクエストを承認",
@@ -17549,10 +17636,6 @@
       "interrupted": "サーバーの再起動で中断されました。続けるにはもう一度依頼してください。",
       "step_limit": "完了する前にステップを使い切りました。",
       "stuck": "行き詰まったため、完了前に停止しました。"
-    },
-    "talk": {
-      "readAll": "すべて読む",
-      "more_other": "あと{{count}}行"
     }
   },
   "builtinTools": {
@@ -20174,6 +20257,9 @@
       "saved": "カードを保存しました。",
       "deleted": "カードを削除しました。",
       "deleteTitle": "このカードを削除しますか？",
+      "deleteOf": "カード {{title}} を削除",
+      "copyLink": "カードのリンクをコピー",
+      "linkCopied": "カードのリンクをコピーしました。",
       "deleteText": "「{{title}}」はボードから消えます。ファイルはDriveに残ります。"
     },
     "post": {
@@ -20187,6 +20273,15 @@
       "done": "{{when}} に公開するよう手配しました。",
       "past": "まだ過ぎていない時刻を選んでください。",
       "pending": "予約中…"
+    },
+    "approveForClient": {
+      "action": "クライアントの代わりに承認",
+      "title": "クライアントの代わりに承認しますか？",
+      "text": "クライアントがポータルで応答しなくなったときだけ使います。投稿はクライアントが承認したのと同じように承認済みになり、承認後の処理も実行されます。",
+      "note": "理由",
+      "notePlaceholder": "クライアントがWhatsAppで承認しました",
+      "confirm": "承認",
+      "done": "クライアントの代わりに「{{title}}」を承認しました。"
     },
     "form": {
       "client": "クライアント",
@@ -20216,17 +20311,33 @@
       "notMedia": "承認に送れるのは画像と動画だけです。",
       "coverNotImage": "カバーは画像にしてください。"
     },
+    "materials": {
+      "tab": "クライアント資料",
+      "intro": "クライアントのログイン情報、リンク、参考資料です。スケジュールには入らず、タスクにもなりません。",
+      "empty": "まだ資料がありません",
+      "emptyText": "リスト（SNS、ログイン情報、ブランド）を作って、その中にカードを保管しましょう。",
+      "newListHint": "資料の先頭に追加されます。カードはその中で作成します。",
+      "toMaterials": "クライアント資料に移動",
+      "toPlan": "スケジュールに戻す",
+      "movedToMaterials": "「{{name}}」をクライアント資料に移動しました。",
+      "movedToPlan": "「{{name}}」をスケジュールに戻しました。"
+    },
     "plan": {
       "tab": "戦略スケジュール",
+      "tabShort": "スケジュール",
       "view": "表示",
       "viewBoard": "ボード",
       "viewCalendar": "カレンダー",
       "noList": "リストなし",
       "addList": "リストを追加",
+      "newList": "新しいリスト",
+      "newListHint": "スケジュールの先頭に追加されます。カードはその中で作成します。",
       "listName": "リスト名",
       "addCard": "カードを追加",
       "cardTitle": "カードのタイトル",
       "listActions": "操作：{{name}}",
+      "lists": "リスト",
+      "goToList": "{{name}}へ移動",
       "rename": "名前を変更",
       "moveLeft": "左に移動",
       "moveRight": "右に移動",
@@ -20297,6 +20408,7 @@
       "edit": "編集",
       "editDescription": "説明を編集",
       "noDescription": "説明なし",
+      "addDescription": "詳しい説明を追加…",
       "showMore": "もっと見る",
       "showLess": "折りたたむ",
       "linkText": "リンクのテキスト",

@@ -10,45 +10,35 @@ import { returnClock, returnWhen } from "@agenteschat/client/lib/agent-work";
 import { errorText } from "@agenteschat/client/lib/errors";
 import { formatLineTime } from "@agenteschat/client/lib/format";
 import {
-  type AgentTasks,
   agentSummary,
   causeWords,
   computerRoomText,
   computersBesides,
   endedState,
   endedText,
-  groupLead,
-  groupTasks,
   hiddenCount,
   returnCanceledText,
   returnPlace,
   shownCauses,
   taskPlace,
-  taskState,
   taskTime,
   taskTitle,
-  taskWaitWords,
   type WaitCause,
 } from "@agenteschat/client/lib/task-manager";
-import { useMemo, useState } from "react";
+import { type ReactNode, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ActivityIndicator, Pressable, RefreshControl, StyleSheet, View } from "react-native";
-import Animated, {
-  FadeIn,
-  FadeOut,
-  LayoutAnimationConfig,
-  LinearTransition,
-  useAnimatedStyle,
-  withTiming,
-} from "react-native-reanimated";
+import Animated, { FadeIn, FadeOut, LayoutAnimationConfig, LinearTransition } from "react-native-reanimated";
 import { ComputerIcon, useComputerKind } from "@/computer/ComputerPortrait";
 import {
   Button,
+  Card,
   Count,
   EmptyState,
   Icon,
   PixelDone,
   PixelFail,
+  PixelOrbit,
   PixelStopped,
   ProviderLogo,
   SCREEN_X,
@@ -67,13 +57,12 @@ import { useOpenQueue } from "../queue/QueueSheet";
 import { AgentFace, OpensAgent } from "../shared/Face";
 import { useEmptyLook } from "../shared/FirstUse";
 import { useColors, useDirectory, useMeId, useNow, useOrgId, usePullRefresh, useWhen } from "../shared/hooks";
-import { agentLook } from "../shared/logic";
 import { SheetTitle } from "../shared/PromptForm";
 import { PushedLargeTitle } from "../shared/PushedLargeTitle";
 import { type ActionItem, ActionList, Tile } from "../shared/parts";
 import { SheetHostProvider, useSheet } from "../shared/SheetHost";
 import { useStopper, useTasksToday } from "./hooks";
-import { endedLatestFirst, groupLine, type RowState, rowState, taskStateWords, taskSubline } from "./logic";
+import { endedLatestFirst, isHeld, type RowState, rowState, taskStateWords, taskSubline } from "./logic";
 import { TaskMark, useAgentColor, WaitLines } from "./parts";
 
 /** Rows whose agent moves (a long list stays light). */
@@ -97,12 +86,11 @@ function useRowMotion() {
 }
 
 /**
- * The task manager (ADR 0128), pushed from Agentes: what the agents are doing now, under a line that counts it
- * ("2 trabalhando · 1 espera você"). The tasks people asked for, by agent (its row says how its tasks stand and is
- * one tap: folded until opened), each a row with its state as a mark (the orbit while it runs, amber while it waits on
- * you), its time and a chevron: stopping is done on the task's own screen, never from a button in the list. Then the
- * routines' work in the background and what ended today. Above them, the computers with work, each opening its line
- * in a sheet. Every row is one line that ends in "…": a task's own screen says it whole, a return's sheet its words.
+ * The task manager (ADR 0128), pushed from Agentes, read from the top as three questions: how things stand (three
+ * tiles: working, waiting on you, done today), what needs you (a card per task that waits on your ok or answer, its
+ * title whole and one button), and what runs (a card per agent, its tasks under its face). Then what is paused and
+ * why, the returns agents set in time order, the computers with work, and what ended today, folded. A task's own
+ * screen is where it is stopped, never a button in the list.
  */
 export function TaskManagerScreen() {
   return (
@@ -125,13 +113,14 @@ function TaskManager() {
   const [opened, setOpened] = useState<ReadonlySet<string>>(() => new Set());
   const [endedOpen, setEndedOpen] = useState(false);
   const view = tasks.data;
-  const { groups, delegated, background } = useMemo(
-    () => groupTasks(view?.tasks ?? [], stopping),
-    [view?.tasks, stopping],
-  );
+  const all = view?.tasks ?? [];
   const ended = useMemo(() => endedLatestFirst(view?.ended ?? []), [view?.ended]);
-  // The returns agents set ("Retornos", ADR 0037), and those canceled today among what ended.
-  const followUps = view?.followUps ?? [];
+  const { needsYou, byAgent, paused } = useMemo(() => splitTasks(all, stopping), [all, stopping]);
+  // The returns agents set ("Retornos", ADR 0037), the soonest first, and those canceled today among what ended.
+  const followUps = useMemo(
+    () => [...(view?.followUps ?? [])].sort((a, b) => a.at.localeCompare(b.at)),
+    [view?.followUps],
+  );
   const endedRows = useMemo(
     () =>
       [
@@ -145,35 +134,24 @@ function TaskManager() {
       ].sort((a, b) => b.at.localeCompare(a.at)),
     [ended, view?.canceledFollowUps],
   );
-  const all = view?.tasks ?? [];
   const sum = agentSummary(all);
   // Everyone's work counts here, as on the computers' rows; what the viewer may not see only counts.
   const working = sum.working + (view?.hidden?.working ?? 0);
   const hidden = hiddenCount(view?.hidden, null);
-  // The line under the title: how many work and how many wait on you, else that nothing is on.
-  const summary =
-    [
-      working > 0 ? t("taskManager.working", { count: working }) : null,
-      sum.waiting > 0 ? t("taskManager.waiting", { count: sum.waiting }) : null,
-    ]
-      .filter(Boolean)
-      .join(" · ") || t("mobile.taskManager.quiet");
-  const toggle = (agentId: string) =>
+  const toggle = (key: string) =>
     setOpened((was) => {
       const next = new Set(was);
-      if (next.has(agentId)) next.delete(agentId);
-      else next.add(agentId);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
       return next;
     });
-  const askedCount = groups.reduce((n, g) => n + g.tasks.length, 0);
-  const delegatedCount = delegated.reduce((n, g) => n + g.tasks.length, 0);
   const computers = view?.computers ?? [];
-  const causes = shownCauses(all);
+  const causes = shownCauses(all).filter((cause) => cause.kind !== "person");
   const listed = computersBesides(computers, causes);
   const done = view?.doneToday ?? ended.filter((e) => e.status === "done").length;
   return (
     <PushedLargeTitle
-      title={t("taskManager.title")}
+      title={t("mobile.taskManager.shortTitle")}
       refreshControl={<RefreshControl refreshing={pull.refreshing} onRefresh={pull.onRefresh} />}
     >
       {tasks.isLoading ? (
@@ -190,22 +168,7 @@ function TaskManager() {
         // Loaded, the list fades in over the spinner; the rows it starts with don't each fade again.
         <Animated.View {...fade}>
           <LayoutAnimationConfig skipEntering>
-            <Text variant="subhead" tone="muted" style={styles.summary}>
-              {summary}
-            </Text>
-            {causes.length > 0 ? (
-              <Animated.View {...fade} layout={layout}>
-                <Text variant="footnote" tone="muted" style={styles.today}>
-                  {t("taskManager.capacity.today", {
-                    count: done,
-                    waiting: all.filter((x) => taskState(x) === "waiting").length,
-                  })}
-                </Text>
-                {causes.map((cause, i) => (
-                  <CauseRow key={cause.key} cause={cause} computers={computers} divider={i > 0} />
-                ))}
-              </Animated.View>
-            ) : null}
+            <Overview working={working} waiting={needsYou.length} done={done} onDone={() => setEndedOpen(true)} />
             {sum.tasks + hidden > 0 ? null : (
               <EmptyState
                 size="panel"
@@ -220,74 +183,79 @@ function TaskManager() {
                 {t("taskManager.hiddenLine", { count: hidden })}
               </Text>
             ) : null}
-            {listed.length > 0 ? (
+            {needsYou.length > 0 ? (
               <Animated.View {...fade} layout={layout}>
-                <SectionHeader title={t("taskManager.queue.computers")} count={listed.length} />
-                {listed.map((m, i) => (
-                  <Animated.View key={m.id} {...fade} layout={layout}>
-                    <ComputerRow computer={m} divider={i > 0} />
-                  </Animated.View>
-                ))}
+                <SectionHeader title={t("mobile.taskManager.needsYou")} count={needsYou.length} />
+                <View style={styles.cards}>
+                  {needsYou.map((task) => (
+                    <Animated.View key={task.runId} {...fade} layout={layout}>
+                      <NeedsYouCard task={task} now={now} meId={meId} />
+                    </Animated.View>
+                  ))}
+                </View>
               </Animated.View>
             ) : null}
-            {groups.length > 0 ? (
+            {byAgent.length > 0 ? (
               <Animated.View {...fade} layout={layout}>
-                <SectionHeader title={t("taskManager.sections.asked")} count={askedCount} />
-                <WaitLines tasks={groups.flatMap((g) => g.tasks)} now={now} />
-                {groups.map((g, i) => (
-                  <AgentGroup
-                    key={g.agentId}
-                    group={g}
-                    open={opened.has(g.agentId)}
-                    onToggle={() => toggle(g.agentId)}
-                    divider={i > 0}
-                    live={i < LIVE_ROWS}
-                    stopping={stopping}
-                    now={now}
-                    meId={meId}
-                  />
-                ))}
+                <SectionHeader
+                  title={t("mobile.taskManager.inProgress")}
+                  count={byAgent.reduce((n, g) => n + g.tasks.length, 0)}
+                />
+                <View style={styles.cards}>
+                  {byAgent.map((g, i) => (
+                    <Animated.View key={g.agentId} {...fade} layout={layout}>
+                      <AgentCard
+                        agentId={g.agentId}
+                        tasks={g.tasks}
+                        open={opened.has(g.agentId)}
+                        onToggle={() => toggle(g.agentId)}
+                        live={i < LIVE_ROWS}
+                        stopping={stopping}
+                        now={now}
+                        meId={meId}
+                      />
+                    </Animated.View>
+                  ))}
+                </View>
               </Animated.View>
             ) : null}
-            {delegated.length > 0 ? (
+            {causes.length > 0 ? (
               <Animated.View {...fade} layout={layout}>
-                <SectionHeader title={t("taskManager.sections.delegated")} count={delegatedCount} />
-                <WaitLines tasks={delegated.flatMap((g) => g.tasks)} now={now} />
-                {delegated.map((g, i) => (
-                  <AgentGroup
-                    key={g.agentId}
-                    group={g}
-                    flat
-                    open={opened.has(`by:${g.agentId}`)}
-                    onToggle={() => toggle(`by:${g.agentId}`)}
-                    divider={i > 0}
-                    live={i < LIVE_ROWS}
-                    stopping={stopping}
-                    now={now}
-                    meId={meId}
-                  />
-                ))}
-              </Animated.View>
-            ) : null}
-            {background.length > 0 ? (
-              <Animated.View {...fade} layout={layout}>
-                <SectionHeader title={t("taskManager.sections.background")} count={background.length} />
-                <WaitLines tasks={background} now={now} />
-                {background.map((task, i) => (
-                  <Animated.View key={task.runId} {...fade} layout={layout}>
-                    <TaskRow task={task} state={rowState(task, stopping)} flat divider={i > 0} now={now} meId={meId} />
-                  </Animated.View>
-                ))}
+                <SectionHeader title={t("mobile.taskManager.paused")} count={paused.length} />
+                <View style={styles.cards}>
+                  <Card>
+                    {causes.map((cause, i) => (
+                      <CauseRow key={cause.key} cause={cause} computers={computers} divider={i > 0} />
+                    ))}
+                  </Card>
+                </View>
+                <WaitLines tasks={paused} now={now} />
               </Animated.View>
             ) : null}
             {followUps.length > 0 ? (
               <Animated.View {...fade} layout={layout}>
-                <SectionHeader title={t("taskManager.sections.returns")} count={followUps.length} />
-                {followUps.map((r, i) => (
-                  <Animated.View key={r.messageId} {...fade} layout={layout}>
-                    <ReturnRow item={r} divider={i > 0} now={now} />
-                  </Animated.View>
-                ))}
+                <SectionHeader title={t("mobile.taskManager.comingBack")} count={followUps.length} />
+                <View style={styles.cards}>
+                  <Card>
+                    {followUps.map((r, i) => (
+                      <Animated.View key={r.messageId} {...fade} layout={layout}>
+                        <ReturnRow item={r} divider={i > 0} now={now} />
+                      </Animated.View>
+                    ))}
+                  </Card>
+                </View>
+              </Animated.View>
+            ) : null}
+            {listed.length > 0 ? (
+              <Animated.View {...fade} layout={layout}>
+                <SectionHeader title={t("taskManager.queue.computers")} count={listed.length} />
+                <View style={styles.cards}>
+                  <Card>
+                    {listed.map((m, i) => (
+                      <ComputerRow key={m.id} computer={m} divider={i > 0} />
+                    ))}
+                  </Card>
+                </View>
               </Animated.View>
             ) : null}
             {/* The same folding header as the other lists' sections (title, count, the chevron at the right). */}
@@ -325,108 +293,265 @@ function TaskManager() {
 }
 
 /**
- * An agent's row and, open, its tasks under it, one line: its face (running while it works), its name with the count
- * beside it (unless its words say it), how its tasks stand ("1 trabalhando · 1 espera você") cut at the end, the mark
- * and time of the task that says it, and the chevron that folds them. One tap, the whole row.
+ * The screen's three groups: what waits on the person's ok or answer (oldest wait first), what runs or waits its turn
+ * by agent (whoever asked: a person, another agent or a routine; the agent working most first), and what a computer,
+ * a plan or a budget holds.
  */
-function AgentGroup({
-  group,
-  flat = false,
+function splitTasks(all: readonly ManagedTask[], stopping: ReadonlySet<string>) {
+  const needsYou: ManagedTask[] = [];
+  const paused: ManagedTask[] = [];
+  const agents = new Map<string, ManagedTask[]>();
+  for (const task of all) {
+    const state = rowState(task, stopping);
+    if (state === "ok" || state === "answer") needsYou.push(task);
+    else {
+      if (isHeld(state)) paused.push(task);
+      const list = agents.get(task.agentId) ?? [];
+      list.push(task);
+      agents.set(task.agentId, list);
+    }
+  }
+  const since = (task: ManagedTask) => Date.parse(task.wait?.since ?? task.startedAt ?? task.createdAt);
+  needsYou.sort((a, b) => since(a) - since(b));
+  const byAgent = [...agents.entries()]
+    .map(([agentId, tasks]) => ({
+      agentId,
+      tasks: [...tasks].sort((a, b) => rank(a, stopping) - rank(b, stopping) || since(a) - since(b)),
+      working: tasks.filter((task) => rowState(task, stopping) === "working").length,
+    }))
+    .sort((a, b) => b.working - a.working || b.tasks.length - a.tasks.length);
+  return { needsYou, byAgent, paused };
+}
+
+/** Within an agent's card: what runs first, then what waits its turn, then what something holds. */
+const rank = (task: ManagedTask, stopping: ReadonlySet<string>) => {
+  const state = rowState(task, stopping);
+  return state === "working" || state === "stopping" ? 0 : state === "queued" ? 1 : 2;
+};
+
+/**
+ * How things stand, at a glance: three tiles, each a big number over its word. Working shows the orbit, waiting on you
+ * is amber while there is any, done today has the check and opens what ended.
+ */
+function Overview({
+  working,
+  waiting,
+  done,
+  onDone,
+}: {
+  working: number;
+  waiting: number;
+  done: number;
+  onDone: () => void;
+}) {
+  const { t } = useTranslation();
+  const c = useColors();
+  const calls = waiting > 0;
+  return (
+    <View style={styles.tiles}>
+      <StatTile
+        mark={<PixelOrbit color="#9CFA05" size={14} />}
+        value={working}
+        label={t("mobile.taskManager.stat.working")}
+        dim={working === 0}
+      />
+      <StatTile
+        mark={<Icon name="wait" size={15} color={calls ? c.amber : c.faint} />}
+        value={waiting}
+        label={t("mobile.taskManager.stat.waiting")}
+        tone={calls ? { fill: c.attentionSoft, ink: c.amberInk } : undefined}
+        dim={!calls}
+      />
+      <StatTile
+        mark={<PixelDone size={13} />}
+        value={done}
+        label={t("mobile.taskManager.stat.done")}
+        onPress={onDone}
+        dim={done === 0}
+      />
+    </View>
+  );
+}
+
+function StatTile({
+  mark,
+  value,
+  label,
+  tone,
+  dim,
+  onPress,
+}: {
+  mark: ReactNode;
+  value: number;
+  label: string;
+  tone?: { fill: string; ink: string };
+  dim: boolean;
+  onPress?: () => void;
+}) {
+  const c = useColors();
+  const body = (
+    <>
+      <View style={styles.tileMark}>{mark}</View>
+      <Count value={value} size={34} hero color={tone?.ink ?? (dim ? c.faint : c.ink)} />
+      <Text variant="footnote" numberOfLines={2} style={{ color: tone?.ink ?? c.muted }}>
+        {label}
+      </Text>
+    </>
+  );
+  const box = [
+    styles.tile,
+    { backgroundColor: tone?.fill ?? c.raised, borderColor: tone ? "transparent" : c.glassEdge },
+  ];
+  return onPress ? (
+    <Pressable
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={`${value} ${label}`}
+      style={({ pressed }) => [...box, pressed && { opacity: 0.7 }]}
+    >
+      {body}
+    </Pressable>
+  ) : (
+    <View accessible accessibilityLabel={`${value} ${label}`} style={box}>
+      {body}
+    </View>
+  );
+}
+
+/**
+ * A task that waits on you, as a card: who and since when on top, its title whole (two lines at most), what it waits
+ * for in amber, and one button that opens it, where the ok or the answer is given.
+ */
+function NeedsYouCard({ task, now, meId }: { task: ManagedTask; now: number; meId: string | null }) {
+  const { t, i18n } = useTranslation();
+  const c = useColors();
+  const dir = useDirectory();
+  const title = taskTitle(t, task);
+  const sub = taskSubline(t, task, meId, title, (id) => dir.anyAgent(id)?.name);
+  const state = rowState(task, new Set());
+  const words = taskStateWords(t, i18n.language, task, state, now);
+  const agent = dir.nameOf({ type: "agent", id: task.agentId }) || t("channel.unknownAgent");
+  const open = () => router.push(taskHref(task.runId));
+  return (
+    <Pressable
+      onPress={open}
+      accessibilityRole="button"
+      accessibilityLabel={[agent, title, words.state, sub].filter(Boolean).join(", ")}
+      style={({ pressed }) => [
+        styles.card,
+        { backgroundColor: c.raised, borderColor: c.amber },
+        pressed && { backgroundColor: c.sunken },
+      ]}
+    >
+      <View style={styles.cardHead}>
+        <OpensAgent agentId={task.agentId}>
+          <AgentFace agentId={task.agentId} size={24} live={false} />
+        </OpensAgent>
+        <Text variant="subhead" numberOfLines={1} style={[styles.grow, styles.semibold]}>
+          {agent}
+        </Text>
+        <Text variant="caption" tone="faint" style={styles.num}>
+          {taskTime(t, task, now)}
+        </Text>
+      </View>
+      <Text variant="body" numberOfLines={2} style={styles.semibold}>
+        {title}
+      </Text>
+      {sub ? (
+        <Text variant="footnote" tone="muted" numberOfLines={1}>
+          {sub}
+        </Text>
+      ) : null}
+      <View style={styles.cardState}>
+        <Icon name="wait" size={14} color={c.amber} />
+        <Text variant="footnote" style={[styles.grow, { color: c.amberInk }]}>
+          {words.state}
+        </Text>
+      </View>
+      <Button variant="secondary" size="sm" wide label={t("mobile.taskManager.review")} onPress={open} />
+    </Pressable>
+  );
+}
+
+/**
+ * An agent at work, as a card: its face (running while it works), its name and how its tasks stand, then each task on
+ * a line of its own (its mark, its title, its time), three at most until "+N" opens the rest. A task opens its screen.
+ */
+function AgentCard({
+  agentId,
+  tasks,
   open,
   onToggle,
-  divider,
   live,
   stopping,
   now,
   meId,
 }: {
-  group: AgentTasks;
-  /** The group of an agent that asked: its rows are other agents' tasks, each with its face. */
-  flat?: boolean;
+  agentId: string;
+  tasks: ManagedTask[];
   open: boolean;
   onToggle: () => void;
-  divider: boolean;
   live: boolean;
   stopping: ReadonlySet<string>;
   now: number;
   meId: string | null;
 }) {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const c = useColors();
   const dir = useDirectory();
-  const name = dir.nameOf({ type: "agent", id: group.agentId }) || t("channel.unknownAgent");
-  const color = agentLook(dir.anyAgent(group.agentId)).color;
-  const heldTask = group.tasks.find((task) => taskState(task) === "waiting");
-  const line = groupLine(t, group, heldTask ? taskWaitWords(t, i18n.language, heldTask, now)?.state : null);
-  const mark: RowState = line.mark === "working" ? "working" : line.mark === "waiting" ? "ok" : "queued";
-  const time = taskTime(t, groupLead(group), now);
-  const chevron = useAnimatedStyle(() => ({
-    transform: [{ rotate: withTiming(open ? "0deg" : "-90deg", { duration: 200 }) }],
-  }));
-  const { fade, layout } = useRowMotion();
-  // All working or all waiting on you: its words already say how many ("2 working").
-  const counted = group.tasks.length === group.working || group.tasks.length === group.waiting;
+  const name = dir.nameOf({ type: "agent", id: agentId }) || t("channel.unknownAgent");
+  const working = tasks.filter((task) => rowState(task, stopping) === "working").length;
+  const line =
+    working > 0
+      ? t("taskManager.working", { count: working })
+      : tasks.some((task) => isHeld(rowState(task, stopping)))
+        ? t("mobile.taskManager.pausedLine")
+        : t("taskManager.state.queued");
+  const shown = open ? tasks : tasks.slice(0, CARD_ROWS);
+  const more = tasks.length - shown.length;
   return (
-    <Animated.View {...fade} layout={layout}>
-      <Pressable
-        onPress={onToggle}
-        accessibilityRole="button"
-        accessibilityState={{ expanded: open }}
-        accessibilityLabel={`${name}, ${line.text}, ${time}`}
-        style={({ pressed }) => [styles.agent, pressed && { backgroundColor: c.sunken }]}
-      >
-        {divider ? <View style={[styles.divider, styles.agentDivider, { backgroundColor: c.line2 }]} /> : null}
-        <OpensAgent agentId={group.agentId}>
-          <AgentFace agentId={group.agentId} size={LEAD} mode={line.mark === "working" ? "run" : "idle"} live={live} />
+    <Card>
+      <View style={styles.agentHead}>
+        <OpensAgent agentId={agentId}>
+          <AgentFace agentId={agentId} size={36} mode={working > 0 ? "run" : "idle"} live={live} />
         </OpensAgent>
-        <Text variant="title" numberOfLines={1} style={styles.grow}>
-          {name}
-          {counted ? null : (
-            <>
-              {" "}
-              <Count value={group.tasks.length} size={13} weight={weights.regular} color={c.faint} />
-            </>
-          )}
-          <Text variant="footnote" style={{ color: line.mark === "waiting" ? c.amber : c.muted }}>
-            {`${GAP}${line.text}`}
+        <View style={styles.grow}>
+          <Text variant="title" numberOfLines={1}>
+            {name}
           </Text>
-        </Text>
-        <TaskMark state={mark} color={color} />
-        <Text variant="caption" tone="faint" style={styles.num}>
-          {time}
-        </Text>
-        <Animated.View style={chevron}>
-          <Icon name="down" size={CHEVRON} color={c.faint} />
-        </Animated.View>
-      </Pressable>
-      {open
-        ? group.tasks.map((task, i) => (
-            <Animated.View key={task.runId} {...fade} layout={layout}>
-              <TaskRow task={task} state={rowState(task, stopping)} flat={flat} divider={i > 0} now={now} meId={meId} />
-            </Animated.View>
-          ))
-        : null}
-    </Animated.View>
+          <Text variant="footnote" tone="muted" numberOfLines={1}>
+            {line}
+          </Text>
+        </View>
+      </View>
+      {shown.map((task) => (
+        <TaskLine key={task.runId} task={task} state={rowState(task, stopping)} now={now} meId={meId} />
+      ))}
+      {more > 0 || (open && tasks.length > CARD_ROWS) ? (
+        <Pressable
+          onPress={onToggle}
+          accessibilityRole="button"
+          accessibilityState={{ expanded: open }}
+          style={({ pressed }) => [styles.more, pressed && { backgroundColor: c.sunken }]}
+        >
+          <Text variant="footnote" tone="muted">
+            {open ? t("mobile.taskManager.fewer") : t("mobile.taskManager.more", { count: more })}
+          </Text>
+        </Pressable>
+      ) : null}
+    </Card>
   );
 }
 
-/**
- * A task, one line: its state's mark (the orbit while it runs, amber while it waits on you) under its agent's face, its
- * title and what it is about in quiet type, cut at the end, its time and a chevron, since it opens its own screen,
- * where it is said whole and where it is stopped. A routine's or another agent's (`flat`) says whose it is first.
- */
-function TaskRow({
+/** A task in its agent's card: its mark, its title with who asked under it, its time, a chevron to its screen. */
+function TaskLine({
   task,
   state,
-  flat = false,
-  divider,
   now,
   meId,
 }: {
   task: ManagedTask;
   state: RowState;
-  flat?: boolean;
-  divider: boolean;
   now: number;
   meId: string | null;
 }) {
@@ -437,20 +562,26 @@ function TaskRow({
   const title = taskTitle(t, task);
   const sub = taskSubline(t, task, meId, title, (id) => dir.anyAgent(id)?.name);
   const words = taskStateWords(t, i18n.language, task, state, now);
-  const agent = dir.nameOf({ type: "agent", id: task.agentId });
-  const line = flat ? [agent, sub].filter(Boolean).join(" · ") : sub;
+  const quiet = state !== "working";
   return (
     <Pressable
       onPress={() => router.push(taskHref(task.runId))}
       accessibilityRole="button"
-      accessibilityLabel={[title, line, words.state, words.next].filter(Boolean).join(", ")}
-      style={({ pressed }) => [styles.task, pressed && { backgroundColor: c.sunken }]}
+      accessibilityLabel={[title, sub, words.state].filter(Boolean).join(", ")}
+      style={({ pressed }) => [styles.taskLine, pressed && { backgroundColor: c.sunken }]}
     >
-      {divider ? <View style={[styles.divider, styles.textDivider, { backgroundColor: c.line2 }]} /> : null}
-      <View style={styles.lead}>
+      <View style={[styles.divider, styles.lineDivider, { backgroundColor: c.line2 }]} />
+      <View style={styles.lineMark}>
         <TaskMark state={state} color={color} />
       </View>
-      <OneLine title={title} line={line} />
+      <View style={styles.grow}>
+        <Text variant="body" numberOfLines={1} style={quiet ? { color: c.muted } : undefined}>
+          {title}
+        </Text>
+        <Text variant="caption" tone="faint" numberOfLines={1}>
+          {quiet ? [words.state, sub].filter(Boolean).join(" · ") : sub || words.state}
+        </Text>
+      </View>
       {state === "stopping" ? null : (
         <Text variant="caption" tone="faint" style={styles.num}>
           {taskTime(t, task, now)}
@@ -613,14 +744,19 @@ function ReturnRow({ item, divider, now }: { item: PendingReturn; divider: boole
       accessibilityLabel={[item.about, line, when, soon].filter(Boolean).join(", ")}
       style={({ pressed }) => [styles.task, pressed && { backgroundColor: c.sunken }]}
     >
-      {divider ? <View style={[styles.divider, styles.textDivider, { backgroundColor: c.line2 }]} /> : null}
-      <View style={styles.lead}>
-        <Icon name="clock" size={16} color={c.faint} />
-      </View>
-      <OneLine title={item.about} line={line} />
-      <Text variant="caption" tone="faint" style={styles.num}>
-        {item.held ? when : returnClock(t, i18n.language, item.at, now)}
+      {divider ? <View style={[styles.divider, styles.lineDivider, { backgroundColor: c.line2 }]} /> : null}
+      {/* The time leads: the card reads as a timeline, the soonest on top. */}
+      <Text variant="subhead" numberOfLines={1} style={[styles.when, styles.semibold, styles.num]}>
+        {item.held ? "…" : returnClock(t, i18n.language, item.at, now)}
       </Text>
+      <View style={styles.grow}>
+        <Text variant="body" numberOfLines={1}>
+          {item.about}
+        </Text>
+        <Text variant="caption" tone="faint" numberOfLines={1}>
+          {item.held ? [when, line].filter(Boolean).join(" · ") : line}
+        </Text>
+      </View>
       <Icon name="right" size={15} color={c.faint} />
     </Pressable>
   );
@@ -734,8 +870,8 @@ function ReturnSheet({
   );
 }
 
-/** An agent row's folding chevron (at its right). */
-const CHEVRON = 16;
+/** Tasks an agent's card shows before "+N". */
+const CARD_ROWS = 3;
 /**
  * What leads a row: an agent's face, a computer's tile, or a task's mark centred in as wide a box, so a task's mark
  * sits under its agent's face and every row's words start on one column (16 + 28 + 12).
@@ -747,18 +883,28 @@ const GAP = "  ";
 const styles = StyleSheet.create({
   center: { alignItems: "center", gap: 12, paddingVertical: 48, paddingHorizontal: 24 },
   centerText: { textAlign: "center" },
-  // Under the large title's words, as Equipe's line.
-  summary: { paddingHorizontal: SCREEN_X, marginTop: -4, paddingBottom: 4 },
-  today: { paddingHorizontal: SCREEN_X, paddingTop: 8 },
-  // One line each: the touch rows' 12 above and below it, the lead (28) at most as tall as that.
-  agent: {
+  // The three tiles, under the large title, one row at the screen's margins.
+  tiles: { flexDirection: "row", gap: 8, paddingHorizontal: SCREEN_X, paddingTop: 4, paddingBottom: 8 },
+  tile: { flex: 1, minWidth: 0, borderRadius: 16, borderWidth: 1, padding: 12, gap: 4 },
+  tileMark: { height: 16, justifyContent: "center", marginBottom: 4 },
+  // Cards stand 12 apart at the screen's margins.
+  cards: { paddingHorizontal: SCREEN_X, gap: 12 },
+  card: { borderRadius: 22, borderWidth: 1, padding: 16, gap: 8 },
+  cardHead: { flexDirection: "row", alignItems: "center", gap: 8 },
+  cardState: { flexDirection: "row", alignItems: "center", gap: 8, paddingBottom: 4 },
+  agentHead: { flexDirection: "row", alignItems: "center", gap: 12, padding: 16 },
+  taskLine: {
     flexDirection: "row",
     alignItems: "center",
     gap: 12,
-    minHeight: 52,
-    paddingVertical: 12,
+    minHeight: 56,
+    paddingVertical: 8,
     paddingHorizontal: 16,
   },
+  // The task's mark under the agent's face (36 wide), so the words start on the name's column.
+  lineMark: { width: 36, alignItems: "center" },
+  lineDivider: { left: 16 },
+  more: { paddingVertical: 12, paddingHorizontal: 16, alignItems: "center" },
   task: {
     flexDirection: "row",
     alignItems: "center",
@@ -767,12 +913,12 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 16,
   },
-  lead: { width: LEAD, alignItems: "center" },
+  when: { width: 52 },
   grow: { flex: 1, minWidth: 0 },
+  semibold: { fontWeight: weights.semibold },
   num: { fontVariant: ["tabular-nums"] },
   divider: { position: "absolute", top: 0, right: 0, height: StyleSheet.hairlineWidth },
-  agentDivider: { left: 16 },
-  // Under the words, past the lead: the rows under an agent read as its own.
+  // Under the words, past the lead.
   textDivider: { left: 16 + LEAD + 12 },
   none: { paddingHorizontal: SCREEN_X, paddingBottom: 12 },
 });

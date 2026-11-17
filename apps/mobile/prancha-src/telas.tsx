@@ -1,6 +1,14 @@
 import type { ReactNode } from "react";
-import { useState } from "react";
-import { Platform, Text as RNText, ScrollView, StyleSheet, TextInput, View } from "react-native";
+import { useEffect, useRef, useState } from "react";
+import {
+  Platform,
+  Text as RNText,
+  ScrollView,
+  type ScrollViewInstance,
+  StyleSheet,
+  TextInput,
+  View,
+} from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { SvgXml } from "react-native-svg";
 import type { AgentLookInput } from "@/agent/looks";
@@ -39,6 +47,7 @@ import { TAB_GLYPHS, type TabGlyph, tabGlyphSvg } from "@/ui/tabGlyphs";
 import { useTheme } from "@/ui/theme";
 import { AgentePerfil, TimeAgora } from "./agentes";
 import { Arquivos, Senhas, SenhasItem, SenhasLogins } from "./arquivos-senhas";
+import { IlhaCena } from "./ilha";
 import { Paineis, Paineis320, PaineisFormas } from "./paineis";
 import { PainelIa, PainelIa320, PainelIaFolha, PainelIaFolha320 } from "./painel-ia";
 import { PortalCartao, PortalCronograma, PortalCronograma320 } from "./portal";
@@ -99,6 +108,9 @@ function Frame({
   header,
   bottom,
   scroll = true,
+  scrolledBy,
+  topInset,
+  over,
 }: {
   title?: string;
   children?: ReactNode;
@@ -106,10 +118,37 @@ function Frame({
   header?: ReactNode;
   bottom?: ReactNode;
   scroll?: boolean;
+  /** The list already scrolled this far under a clear bar (the header lies over the content, as in the app). */
+  scrolledBy?: number;
+  /** The phone's top inset (59 with the camera's island, 47 with a notch). */
+  topInset?: number;
+  /** Drawn over everything (the island, the status bar, the camera). */
+  over?: ReactNode;
 }) {
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
-  const top = Math.max(insets.top, 47);
+  const top = topInset ?? Math.max(insets.top, 47);
+  const list = useRef<ScrollViewInstance>(null);
+  useEffect(() => {
+    if (scrolledBy) list.current?.scrollTo({ y: scrolledBy, animated: false });
+  }, [scrolledBy]);
+  if (scrolledBy !== undefined)
+    return (
+      <View style={[styles.fill, { backgroundColor: colors.bg }]}>
+        <ScrollView
+          ref={list}
+          style={styles.fill}
+          contentContainerStyle={{ paddingTop: top + 44, paddingBottom: tabs ? 110 : 24 }}
+        >
+          {children}
+        </ScrollView>
+        <View pointerEvents="box-none" style={[styles.overBar, { paddingTop: top }]}>
+          {header}
+        </View>
+        {tabs ? <TabBar on={tabs} /> : null}
+        {over}
+      </View>
+    );
   const body = (
     <>
       {title ? (
@@ -204,12 +243,11 @@ export function TabBar({ on }: { on: string }) {
   );
 }
 
-/** The tabs' bar: DougBot's signature alone in the middle (doug-0014). */
+/** The tabs' bar: its middle empty, DougBot's signature resting in the island above it (`ilha.tsx`). */
 export function TabHeader() {
   return (
     <View style={styles.tabHeader}>
       <View style={styles.barSide} />
-      <Assinatura size={15} />
       <View style={styles.barSide} />
     </View>
   );
@@ -302,12 +340,20 @@ const WIDGETS = [
   { key: "c", icon: "flag", title: "Alterações", big: "4", line: "ELMX Capital, LEXEER", hot: true },
 ] as const;
 
-function Inicio() {
+export function Inicio({
+  scrolledBy,
+  topInset,
+  over,
+}: {
+  scrolledBy?: number;
+  topInset?: number;
+  over?: ReactNode;
+} = {}) {
   const { colors } = useTheme();
   const w = useDougWords();
   const noop = () => {};
   return (
-    <Frame tabs="home" header={<TabHeader />}>
+    <Frame tabs="home" header={<TabHeader />} scrolledBy={scrolledBy} topInset={topInset} over={over}>
       {/* Doug pinned on top (docs/adr/doug-0016-doug-pinned.md), the same card the app draws. */}
       <DougPinnedCard
         face={<AgentAvatar agent={DOUG} size={50} mode="run" name="Doug" />}
@@ -1014,7 +1060,12 @@ function Agente() {
 export const TELAS: Record<string, () => ReactNode> = {
   login: Login,
   servidor: Servidor,
-  inicio: Inicio,
+  inicio: () => <Inicio />,
+  /** The island resting as the signature, and grown into an agent's notice: with the camera's island, with a notch. */
+  "ilha-camera": () => <IlhaCena kind="camera" />,
+  "ilha-camera-aviso": () => <IlhaCena kind="camera" notice />,
+  "ilha-entalhe": () => <IlhaCena kind="notch" />,
+  "ilha-entalhe-aviso": () => <IlhaCena kind="notch" notice />,
   ligacao: () => <Ligacao />,
   chamando: () => <Ligacao ringing />,
   abas: Agentes,
@@ -1056,6 +1107,7 @@ export const TELAS: Record<string, () => ReactNode> = {
 
 const styles = StyleSheet.create({
   fill: { flex: 1 },
+  overBar: { position: "absolute", top: 0, left: 0, right: 0 },
   pad: { paddingHorizontal: 16 },
   center: { textAlign: "center" },
   largeTitle: { paddingHorizontal: 16, paddingTop: 8, paddingBottom: 12 },

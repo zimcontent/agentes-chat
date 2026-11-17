@@ -75,12 +75,27 @@ export function Sheet({ open, onClose, children, solid = false, onGone, header }
   closeRef.current = onClose;
   const goneRef = useRef(onGone);
   goneRef.current = onGone;
+  const openRef = useRef(open);
+  openRef.current = open;
   const wasMounted = useRef(mounted);
-  // Unmounted, the modal still dismisses for a moment on iOS: what follows waits for that too.
+  const goneTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Unmounted, the modal still dismisses for a moment on iOS: what follows waits for that too. Back on screen before
+  // then, it isn't gone after all.
   useEffect(() => {
-    if (wasMounted.current && !mounted) setTimeout(() => goneRef.current?.(), GONE_MS);
+    if (goneTimer.current) clearTimeout(goneTimer.current);
+    goneTimer.current = null;
+    if (wasMounted.current && !mounted) {
+      goneTimer.current = setTimeout(() => {
+        goneTimer.current = null;
+        goneRef.current?.();
+      }, GONE_MS);
+    }
     wasMounted.current = mounted;
   }, [mounted]);
+  // The slide out ended, finished or cut short: still closed, the sheet goes. Reopened meanwhile, it stays.
+  const settle = () => {
+    if (!openRef.current) setMounted(false);
+  };
 
   const ease = Easing.bezier(0.32, 0.72, 0, 1);
   const ms = reducedMotion ? 0 : 420;
@@ -98,8 +113,10 @@ export function Sheet({ open, onClose, children, solid = false, onGone, header }
       scrim.value = withTiming(1, { duration: reducedMotion ? 0 : motion.panel });
     } else if (mounted) {
       scrim.value = withTiming(0, { duration: reducedMotion ? 0 : motion.base });
-      y.value = withTiming(height, { duration: reducedMotion ? 0 : motion.panel, easing: ease }, (done) => {
-        if (done) runOnJS(setMounted)(false);
+      // Whether or not it finished: a slide out cut short (reopened, the screen turned) used to leave the sheet mounted
+      // and never gone, and what waited for it (a GIF to send) never ran.
+      y.value = withTiming(height, { duration: reducedMotion ? 0 : motion.panel, easing: ease }, () => {
+        runOnJS(settle)();
       });
     }
   }, [open]);
@@ -109,16 +126,18 @@ export function Sheet({ open, onClose, children, solid = false, onGone, header }
       PanResponder.create({
         // A tap goes to what is under the finger (the header's buttons and field); a move down takes the sheet.
         onStartShouldSetPanResponder: () => false,
-        onMoveShouldSetPanResponder: (_e, g) => g.dy > 4 && Math.abs(g.dy) > Math.abs(g.dx),
+        // Only while open: a drag on a sheet sliding out would stop its slide where the finger is.
+        onMoveShouldSetPanResponder: (_e, g) => openRef.current && g.dy > 4 && Math.abs(g.dy) > Math.abs(g.dx),
         onPanResponderMove: (_e, g) => {
-          y.value = Math.max(0, g.dy);
+          if (openRef.current) y.value = Math.max(0, g.dy);
         },
         onPanResponderRelease: (_e, g) => {
+          if (!openRef.current) return;
           if (g.dy > CLOSE_DRAG || g.vy > 1.2) closeRef.current();
           else y.value = withTiming(0, { duration: 220, easing: Easing.bezier(0.2, 0.8, 0.2, 1) });
         },
         onPanResponderTerminate: () => {
-          y.value = withTiming(0, { duration: 220 });
+          if (openRef.current) y.value = withTiming(0, { duration: 220 });
         },
       }),
     [y],

@@ -12,6 +12,7 @@ import {
   TextInput,
   type TextInputInstance,
   type TextStyle,
+  useWindowDimensions,
   View,
 } from "react-native";
 import {
@@ -133,7 +134,8 @@ export interface ComposerProps {
   media?: { label: string; onPress: () => void } | null;
   /**
    * Dictation (null where voice is off): `mic` sits in the field before the send, words or not; while it records or
-   * makes out the words, `overlay` covers the field's words and the field's other buttons step aside.
+   * makes out the words, `overlay` takes the field's place over its own glass (drawing no surface of its own): the
+   * field's words and "+" go invisible under it and its other buttons step aside.
    */
   dictation?: { mic: ReactNode; overlay: ReactNode | null; active: boolean } | null;
   /** Words to put in at the caret, as dictated: each request with a new `at`. */
@@ -151,8 +153,18 @@ const SEND = 42;
 const INSET = (FIELD - SEND) / 2;
 /** Between the field's parts. */
 const GAP = 8;
-/** The field's geometry, for what draws over it (the dictation's overlay). */
-export const COMPOSER_FIELD = { button: SEND, inset: INSET, gap: GAP, radius: FIELD / 2 } as const;
+/**
+ * Android before 9 (API 28) draws no `boxShadow`: there the field's 1 px edge is a border of the same color, inside the
+ * pill, its width taken from the padding so the buttons keep their place.
+ */
+const EDGE_BORDER = Platform.OS === "android" && typeof Platform.Version === "number" && Platform.Version < 28 ? 1 : 0;
+/** The field's geometry inside its edge, for what draws over it (the dictation's overlay). */
+export const COMPOSER_FIELD = {
+  button: SEND,
+  inset: INSET - EDGE_BORDER,
+  gap: GAP,
+  radius: FIELD / 2 - EDGE_BORDER,
+} as const;
 /** A suggestion pill's height and the space under the pills' row: round glass, 40 tall, 10 over the field. */
 const PILL = 40;
 const PILLS_GAP = 10;
@@ -162,6 +174,11 @@ const FIELD_RADIUS = FIELD / 2;
 const BUTTON_RADIUS = SEND / 2;
 /** The field's 1 px edge (the green at 35% while it is active) and its soft shadow. */
 const FIELD_SHADOW = (line: string) => `0px 0px 0px 1px ${line}, 0px 6px 18px -10px rgba(0, 0, 0, 0.25)`;
+/** What the dictation's overlay hides stays out of a screen reader's way too. */
+const UNDER_OVERLAY_A11Y = {
+  accessibilityElementsHidden: true,
+  importantForAccessibility: "no-hide-descendants",
+} as const;
 /** Words left in a conversation's field, by `draftKey`, while the app runs. */
 const DRAFTS = new Map<string, string>();
 
@@ -282,6 +299,11 @@ export function Composer({
 }: ComposerProps) {
   const theme = useTheme();
   const { colors, shadows, reducedMotion } = theme;
+  // The words grow with the system's text size only while one line still fits the buttons' height, and the padding
+  // around that line is what is left of it: words and placeholder stay on the buttons' middle at any size.
+  const lineScale = Math.min(useWindowDimensions().fontScale, INPUT_MAX_SCALE);
+  const linePad =
+    Platform.OS === "web" ? null : { paddingTop: inputPad(lineScale), paddingBottom: inputPad(lineScale) };
   const { t, i18n } = useTranslation();
   const [text, setText] = useState(() => (draftKey ? (DRAFTS.get(draftKey) ?? "") : ""));
   const tooLong = tooLongToSend(text);
@@ -292,7 +314,8 @@ export function Composer({
     if (text.trim()) DRAFTS.set(draftKey, text);
     else DRAFTS.delete(draftKey);
   }, [text]);
-  const [caret, setCaret] = useState(0);
+  // At the end of a draft brought back: words dictated before the person taps the field go after it, not before.
+  const [caret, setCaret] = useState(text.length);
   const [selection, setSelection] = useState<{ start: number; end: number } | undefined>(undefined);
   // The words selected in the field: with some, the formatting bar shows over the field.
   const [range, setRange] = useState({ start: 0, end: 0 });
@@ -304,7 +327,10 @@ export function Composer({
   useEffect(() => {
     if (!prefill) return;
     const handed = prefill.text;
-    setText((current) => (prefill.join ? joinDrafts(handed, current) : current.trim() ? current : handed));
+    const current = text;
+    const next = prefill.join ? joinDrafts(handed, current) : current.trim() ? current : handed;
+    // Words handed in put the caret at their end (a dictation goes after them); a field left as it was keeps its caret.
+    if (next !== current) put(next);
     input.current?.focus();
   }, [prefillAt]);
   useEffect(() => {
@@ -403,7 +429,11 @@ export function Composer({
             accessibilityRole="button"
             // 32 tall: the slop reaches 44 without pushing the field down.
             hitSlop={{ top: 6, bottom: 6 }}
-            style={[styles.pill, { boxShadow: `${shadows.e1}, 0px 0px 0px 1px ${colors.glassEdge}` }]}
+            style={[
+              styles.pill,
+              { boxShadow: `${shadows.e1}, 0px 0px 0px 1px ${colors.glassEdge}` },
+              EDGE_BORDER ? { borderWidth: EDGE_BORDER, borderColor: colors.glassEdge } : null,
+            ]}
           >
             <Glass liquid style={styles.pillGlass} />
             <View style={styles.pillIn}>
@@ -500,20 +530,32 @@ export function Composer({
         <View
           style={[
             styles.field,
-            { boxShadow: FIELD_SHADOW(focused ? colors.greenGlow : colors.glassEdge), paddingRight: INSET },
+            {
+              boxShadow: FIELD_SHADOW(focused ? colors.greenGlow : colors.glassEdge),
+              paddingRight: INSET - EDGE_BORDER,
+            },
+            EDGE_BORDER
+              ? { borderWidth: EDGE_BORDER, borderColor: focused ? colors.greenGlow : colors.glassEdge }
+              : null,
           ]}
         >
-          {/* The glass behind everything in the pill: its own layer, so its clip never cuts the field's edge. */}
+          {/*
+           * The glass behind everything in the pill: its own layer, so its clip never cuts the field's edge. While the
+           * dictation's overlay holds the field, the words and "+" go invisible under it and the overlay draws no
+           * surface: it sits on this same glass on every platform (iOS 26's Liquid Glass, the blur, Android's color).
+           */}
           <Glass liquid style={styles.fieldGlass} />
           {/* The "+" button, inside the field at its start. */}
           {onPlus ? (
             <PressScale
               to={0.9}
               onPress={onPlus}
+              disabled={holding}
               accessibilityRole="button"
               accessibilityLabel={t("mobile.a11y.attach")}
               hitSlop={6}
-              style={[styles.plus, { backgroundColor: colors.plate }]}
+              style={[styles.plus, { backgroundColor: colors.plate }, holding && styles.underOverlay]}
+              {...(holding ? UNDER_OVERLAY_A11Y : {})}
             >
               <View style={styles.center}>
                 <Icon name="plus" size={20} color={colors.ink2} />
@@ -521,10 +563,14 @@ export function Composer({
             </PressScale>
           ) : null}
           {/* The placeholder is ours, on one line (cut with "…"): a long one wrapped and grew the empty field. */}
-          <View style={styles.inputBox}>
+          <View style={[styles.inputBox, holding && styles.underOverlay]} {...(holding ? UNDER_OVERLAY_A11Y : {})}>
             {!text ? (
               <View style={styles.placeholder} pointerEvents="none">
-                <RNText numberOfLines={1} style={[placeholderText, { color: colors.faint }]}>
+                <RNText
+                  numberOfLines={1}
+                  maxFontSizeMultiplier={INPUT_MAX_SCALE}
+                  style={[placeholderText, { color: colors.faint }]}
+                >
                   {placeholder}
                 </RNText>
               </View>
@@ -550,7 +596,8 @@ export function Composer({
               onFocus={() => setFocused(true)}
               onBlur={() => setFocused(false)}
               accessibilityLabel={placeholder}
-              style={[inputText, styles.inputFill, { color: colors.ink }]}
+              maxFontSizeMultiplier={INPUT_MAX_SCALE}
+              style={[inputText, styles.inputFill, linePad, { color: colors.ink }]}
             />
           </View>
           {mediaButton ? (
@@ -766,6 +813,12 @@ function SendButton({
  * keeps the font's own height and the padding centers it; Android centers it itself.
  */
 const body = { ...systemText("body"), fontSize: 16, lineHeight: 24 };
+/** One line of the field's words at the default text size: the system font's 16 is a 20-point line on iOS. */
+const INPUT_LINE = Platform.OS === "ios" ? 20 : body.lineHeight;
+/** The most the field's words grow with the system's text size: one line still fits in the buttons' height. */
+const INPUT_MAX_SCALE = SEND / INPUT_LINE;
+/** Above and below the field's one line, at a text size: the line and the two make the buttons' height. */
+const inputPad = (scale: number) => Math.max(0, (SEND - INPUT_LINE * scale) / 2);
 const inputText: TextStyle = {
   flex: 1,
   minWidth: 0,
@@ -779,16 +832,10 @@ const inputText: TextStyle = {
   ...Platform.select<TextStyle>({
     // The board in a browser (prancha): no focus outline, the field's green edge says it.
     web: { outlineStyle: "none", paddingTop: 4, paddingBottom: 4, lineHeight: body.lineHeight } as unknown as TextStyle,
-    // The system font's 16 is a 20-point line: 11 above and below make the 42 of the buttons beside it.
-    ios: { paddingTop: 11, paddingBottom: 11 },
-    // The one line centered in the send button's height: the field is exactly as tall.
-    default: {
-      lineHeight: body.lineHeight,
-      paddingTop: (SEND - (body.lineHeight ?? SEND)) / 2,
-      paddingBottom: (SEND - (body.lineHeight ?? SEND)) / 2,
-      textAlignVertical: "center",
-      includeFontPadding: false,
-    },
+    // The padding above and below the one line comes with the text size (`inputPad`): line and padding make the 42
+    // of the buttons beside it. Android centers the line in that height itself.
+    ios: {},
+    default: { lineHeight: body.lineHeight, textAlignVertical: "center", includeFontPadding: false },
   }),
 };
 
@@ -813,6 +860,8 @@ const styles = StyleSheet.create({
   },
   tooLongAct: { textDecorationLine: "underline" },
   inputBox: { flex: 1, minWidth: 0 },
+  // Under the dictation's overlay: kept in place (the field keeps its height), not seen.
+  underOverlay: { opacity: 0 },
   inputFill: { flex: 0, width: "100%" },
   // Over the empty field's one line, centered on it.
   placeholder: { position: "absolute", left: 0, right: 0, bottom: 0, height: SEND, justifyContent: "center" },
@@ -839,10 +888,10 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "flex-end",
     gap: GAP,
-    paddingVertical: INSET,
-    paddingLeft: INSET,
+    paddingVertical: INSET - EDGE_BORDER,
+    paddingLeft: INSET - EDGE_BORDER,
   },
-  fieldGlass: { ...StyleSheet.absoluteFill, borderRadius: FIELD_RADIUS },
+  fieldGlass: { ...StyleSheet.absoluteFill, borderRadius: FIELD_RADIUS - EDGE_BORDER },
   idle: { alignItems: "center", justifyContent: "center" },
   holdHint: { paddingTop: 8, minHeight: 20, alignItems: "center" },
   sendBox: { width: SEND, height: SEND },

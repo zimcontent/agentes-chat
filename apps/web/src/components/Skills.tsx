@@ -604,6 +604,9 @@ export function InstallSkillDialog({
   const [chatFile, setChatFile] = useState(initialFile ?? null);
   /** A file dragged over the dialog. */
   const [over, setOver] = useState(false);
+  /** How many of the dialog's boxes the drag is inside: WebKit (Safari, the Mac app) sends no `relatedTarget` on
+   *  dragleave, so moving over a child would read as leaving. The highlight goes when the count is back to 0. */
+  const dragDepth = useRef(0);
   const tooBig = file !== null && file.size > SKILL_ZIP_BYTES;
   const [form, setForm] = useState({ name: "", description: "", body: "" });
   const unsaved = useEdited(open, form);
@@ -679,6 +682,7 @@ export function InstallSkillDialog({
     setUrl(initialUrl ?? "");
     setFile(null);
     setChatFile(initialFile ?? null);
+    dragDepth.current = 0;
     setOver(false);
     if (initialFile) setTab("zip");
     setSending(null);
@@ -828,16 +832,23 @@ export function InstallSkillDialog({
             <DialogBody
               className="skill-install"
               data-over={over || undefined}
-              onDragEnter={(e) => dragging(e) && setOver(true)}
+              onDragEnter={(e) => {
+                if (!dragging(e)) return;
+                dragDepth.current += 1;
+                setOver(true);
+              }}
               onDragOver={(e) => {
                 if (dragging(e)) e.dataTransfer.dropEffect = "copy";
               }}
-              onDragLeave={(e) => {
-                if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setOver(false);
+              onDragLeave={() => {
+                if (dragDepth.current === 0) return;
+                dragDepth.current -= 1;
+                if (dragDepth.current === 0) setOver(false);
               }}
               onDrop={(e) => {
-                if (!dragging(e)) return;
+                dragDepth.current = 0;
                 setOver(false);
+                if (!dragging(e)) return;
                 takeFile(e.dataTransfer.files[0]);
               }}
             >

@@ -18,7 +18,7 @@ import { scheduleOnRN } from "react-native-worklets";
 import { DB_FONTES } from "@/brand/tokens";
 import { Dither } from "@/sky/Dither";
 import { softTones } from "@/sky/math";
-import { Glass, haptics, liquidHere, PressScale, Text, useReducedMotion, useTheme } from "@/ui";
+import { Glass, haptics, liquidHere, PressScale, Text, useFontScale, useReducedMotion, useTheme } from "@/ui";
 
 /** The pill's own padding, the face's box and the gaps: the face sits in the capsule's curve. */
 /**
@@ -34,6 +34,18 @@ const HEIGHT = 46;
 const RADIUS = HEIGHT / 2;
 const BORDER = StyleSheet.hairlineWidth;
 const MIN_WIDTH = 120;
+/** The least the words keep beside a channel's faces: below it the faces give their room to the name. */
+const MIN_WORDS = 48;
+/** The name's line and the quiet line under it, at the default text size. */
+const TITLE_LINE = 20;
+const STATUS_LINE = 16;
+/** The least between the two lines and the pill's top and bottom. */
+const WORDS_INSET = 4;
+/**
+ * The most the pill's words grow with the text size: the pill keeps the bar's height (as iOS's own bar title does), so
+ * the name and the line under it grow only as far as both still fit inside it.
+ */
+const WORDS_MAX_SCALE = (HEIGHT - 2 * WORDS_INSET) / (TITLE_LINE + STATUS_LINE);
 const WIDTH_SPRING = { stiffness: 300, damping: 30, mass: 1 };
 const LINE_SPRING = { stiffness: 260, damping: 26, mass: 1 };
 const SKY_SPRING = { stiffness: 90, damping: 18, mass: 1 };
@@ -108,7 +120,7 @@ export function HeaderPill({
   onPress?: () => void;
   /** What a screen reader says (name, state and what a tap does). */
   label: string;
-  /** Bar buttons beside "…" (an agent's computer): the pill gives up their 44 points each. */
+  /** The bar's buttons beside "…", in 44-point buttons (`barButtons` in ChatScreen): the pill gives up that room. */
   extraActions?: number;
   onHold?: () => void;
   /** What a screen reader says the hold does. */
@@ -117,24 +129,26 @@ export function HeaderPill({
   const { colors, shadows } = useTheme();
   const reduced = useReducedMotion();
   const { width: screen } = useWindowDimensions();
-  // The bar's margins, the back and "…" circles and a gap on each side.
-  const room = Math.max(160, screen - 152 - extraActions * 44);
+  // The bar's margins, the back and "…" circles and a gap on each side. No floor past the closed pill's circle: a
+  // wider floor ran under the bar's buttons on a 375-point phone (an agent's DM with its tasks, computer and call).
+  const room = Math.max(HEIGHT, screen - 152 - extraActions * 44);
+  // The quiet line's box grows with its words, as far as the pill lets them (`WORDS_MAX_SCALE`).
+  const lineBox = Math.ceil(STATUS_LINE * Math.min(useFontScale(), WORDS_MAX_SCALE));
 
   const [nameWidth, setNameWidth] = useState<number | null>(null);
   const [lineWidth, setLineWidth] = useState(0);
   const [trailingWidth, setTrailingWidth] = useState(0);
   // The hairline border is inside the pill's width too: without it a name sized to fit loses its last letters to "…".
-  const chrome =
-    // +2: a name measured to a fraction (Manrope's tracking) lost its last letter to "…" by a rounding.
-    PAD_LEFT +
-    PAD_RIGHT +
-    2 * BORDER +
-    2 +
-    (lead ? LEAD + GAP : 0) +
-    (trailing ? trailingWidth + GAP + TRAILING_GAP : 0);
+  // +2: a name measured to a fraction (Manrope's tracking) lost its last letter to "…" by a rounding.
+  const bare = PAD_LEFT + PAD_RIGHT + 2 * BORDER + 2 + (lead ? LEAD + GAP : 0);
+  const faces = trailingWidth + GAP + TRAILING_GAP;
+  // A channel's faces show while the name keeps its least room beside them in the pill's room.
+  const showTrailing = Boolean(trailing) && room - bare - faces >= MIN_WORDS;
+  const chrome = bare + (showTrailing ? faces : 0);
   const words = Math.max(nameWidth ?? 0, subtitle ? lineWidth : 0);
-  // Closed, the pill is a circle around its lead (no lead to close around: it stays open).
-  const closed = collapsed && Boolean(lead);
+  // Closed, the pill is a circle around its lead (no lead to close around: it stays open): reading far up, or when the
+  // bar's buttons leave it less than its least width.
+  const closed = (collapsed || room < MIN_WIDTH) && Boolean(lead);
   const target = nameWidth === null ? null : closed ? HEIGHT : Math.min(room, Math.max(MIN_WIDTH, chrome + words));
 
   // -1 until the words are measured: the first width is set, not sprung.
@@ -189,13 +203,29 @@ export function HeaderPill({
         accessibilityElementsHidden
         importantForAccessibility="no-hide-descendants"
       >
-        <Text variant="callout" numberOfLines={1} style={styles.title} onLayout={measured(setNameWidth)}>
+        <Text
+          variant="callout"
+          numberOfLines={1}
+          maxFontSizeMultiplier={WORDS_MAX_SCALE}
+          style={styles.title}
+          onLayout={measured(setNameWidth)}
+        >
           {title}
         </Text>
         {subtitle ? (
-          <Text variant="caption" numberOfLines={1} onLayout={measured(setLineWidth)}>
+          <Text
+            variant="caption"
+            numberOfLines={1}
+            maxFontSizeMultiplier={WORDS_MAX_SCALE}
+            onLayout={measured(setLineWidth)}
+          >
             {subtitle}
           </Text>
+        ) : null}
+        {trailing ? (
+          <View style={styles.trailing} onLayout={measured(setTrailingWidth)}>
+            {trailing}
+          </View>
         ) : null}
       </View>
       <PressScale
@@ -244,12 +274,13 @@ export function HeaderPill({
               importantForAccessibility="no-hide-descendants"
               pointerEvents="none"
             >
-              <Text variant="callout" numberOfLines={1} style={styles.title}>
+              <Text variant="callout" numberOfLines={1} maxFontSizeMultiplier={WORDS_MAX_SCALE} style={styles.title}>
                 {title}
               </Text>
               {subtitle ? (
                 <StatusLine
                   text={subtitle}
+                  height={lineBox}
                   natural={lineWidth}
                   // Closed, the line is faded out: no sliding to read it.
                   box={(closed ? room : (target ?? room)) - chrome}
@@ -257,11 +288,7 @@ export function HeaderPill({
                 />
               ) : null}
             </Animated.View>
-            {trailing ? (
-              <Animated.View style={[styles.trailing, wordsShown]} onLayout={measured(setTrailingWidth)}>
-                {trailing}
-              </Animated.View>
-            ) : null}
+            {showTrailing ? <Animated.View style={[styles.trailing, wordsShown]}>{trailing}</Animated.View> : null}
           </Glass>
         </Animated.View>
       </PressScale>
@@ -270,9 +297,21 @@ export function HeaderPill({
 }
 
 /** The quiet line: each new one rolls in over the last. */
-function StatusLine({ text, natural, box, reduced }: { text: string; natural: number; box: number; reduced: boolean }) {
+function StatusLine({
+  text,
+  height,
+  natural,
+  box,
+  reduced,
+}: {
+  text: string;
+  height: number;
+  natural: number;
+  box: number;
+  reduced: boolean;
+}) {
   return (
-    <View style={styles.lineBox}>
+    <View style={[styles.lineBox, { height }]}>
       <LayoutAnimationConfig skipEntering>
         <Animated.View key={text} {...(reduced ? {} : { entering: rollIn, exiting: rollOut })} style={styles.line}>
           <SlidingText text={text} natural={natural} box={box} reduced={reduced} />
@@ -324,7 +363,7 @@ function SlidingText({
   const moved = useAnimatedStyle(() => ({ transform: [{ translateX: x.value }] }));
   return (
     <Animated.View style={[free && { width: natural + 2 }, moved]}>
-      <Text variant="caption" tone="muted" numberOfLines={1}>
+      <Text variant="caption" tone="muted" numberOfLines={1} maxFontSizeMultiplier={WORDS_MAX_SCALE}>
         {text}
       </Text>
     </Animated.View>
@@ -353,8 +392,8 @@ const styles = StyleSheet.create({
   lead: { alignItems: "center", justifyContent: "center", width: LEAD },
   text: { flex: 1, minWidth: 0 },
   // The name in Manrope (DougBot's names and titles).
-  title: { fontFamily: DB_FONTES.titulo700, fontWeight: "700", lineHeight: 20, letterSpacing: -0.2 },
-  lineBox: { height: 16, overflow: "hidden" },
+  title: { fontFamily: DB_FONTES.titulo700, fontWeight: "700", lineHeight: TITLE_LINE, letterSpacing: -0.2 },
+  lineBox: { overflow: "hidden" },
   line: { position: "absolute", top: 0, left: 0, right: 0 },
   trailing: { flexDirection: "row", alignItems: "center", marginLeft: TRAILING_GAP },
 });

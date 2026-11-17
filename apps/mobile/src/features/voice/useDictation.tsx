@@ -308,7 +308,7 @@ export function useDictation(input: {
   );
 
   const overlay = recording ? (
-    <View style={[styles.overlay, { backgroundColor: c.raised2 }]} accessibilityLiveRegion="polite">
+    <View style={styles.overlay} accessibilityLiveRegion="polite">
       <PressScale
         to={0.9}
         onPress={() => void cancel()}
@@ -327,22 +327,14 @@ export function useDictation(input: {
           width.current = e.nativeEvent.layout.width;
         }}
       >
-        <PixelWave
-          inner={inner}
-          edge={edge}
-          progress={progress}
-          tones={tones}
-          off={c.faint}
-          height={WAVE}
-          fade={c.raised2}
-        />
+        <PixelWave inner={inner} edge={edge} progress={progress} tones={tones} off={c.faint} height={WAVE} fade />
       </View>
       <Text variant="subhead" tone="muted" numberOfLines={1} style={styles.time}>
         {voiceClock(seconds * 1000)}
       </Text>
     </View>
   ) : transcribing ? (
-    <View style={[styles.overlay, { backgroundColor: c.raised2 }]} accessibilityLiveRegion="polite">
+    <View style={styles.overlay} accessibilityLiveRegion="polite">
       <Text variant="subhead" tone="muted" numberOfLines={1} style={styles.transcribing}>
         {t("mobile.voice.transcribing")}
       </Text>
@@ -355,7 +347,8 @@ export function useDictation(input: {
 const styles = StyleSheet.create({
   center: { flex: 1, alignItems: "center", justifyContent: "center" },
   button: { width: BUTTON, height: BUTTON, borderRadius: BUTTON / 2 },
-  // Over the field's words and its other buttons, leaving the microphone's place (the field's end) free.
+  // Over the field's words and its other buttons, leaving the microphone's place (the field's end) free. No surface of
+  // its own: the field hides what is under it and its glass shows through, the same look on each platform.
   overlay: {
     ...StyleSheet.absoluteFill,
     borderRadius: RADIUS,

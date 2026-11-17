@@ -2245,6 +2245,7 @@
     "sectorsCount_other": "{{count}} Abteilungen",
     "viewLabel": "Teamansicht",
     "view": {
+      "now": "Jetzt",
       "list": "Liste",
       "chart": "Organigramm",
       "map": "Karte",
@@ -4978,6 +4979,11 @@
     "waiting": {
       "title": "Wartet auf dich"
     },
+    "toSchedule": {
+      "meta": "Freigegeben, wartet auf Planung",
+      "action": "Planen",
+      "label": "{{title}} planen"
+    },
     "working": {
       "title": "Arbeitet gerade",
       "none": "Gerade arbeitet kein Agent.",
@@ -5582,6 +5588,58 @@
     "budgetDefaultHelpAmount": "Leer: der Standard des Workspace ({{amount}}).",
     "budgetInvalid": "Gib einen Wert über null ein.",
     "notFound": "Diesen Agenten gibt es nicht oder er wurde archiviert."
+  },
+  "agentFront": {
+    "call": "Anrufen",
+    "tasks": "Aufgaben",
+    "settings": "Einstellungen",
+    "canUse": "Kann nutzen",
+    "month": "Diesen Monat",
+    "reportsTo": "Berichtet an",
+    "reportsToNobody": "Niemand",
+    "ai": "KI",
+    "today": "Heute",
+    "todayNone": "Heute noch nichts.",
+    "doneAt": "erledigt um {{time}}",
+    "going": "in Arbeit",
+    "failed": "nicht fertig geworden"
+  },
+  "teamNow": {
+    "title": "Dein Team jetzt",
+    "coordinates_one": "{{name}} koordiniert {{count}} Agenten",
+    "coordinates_other": "{{name}} koordiniert {{count}} Agenten",
+    "working_one": "{{count}} arbeitet gerade",
+    "working_other": "{{count}} arbeiten gerade",
+    "waiting_one": "{{count}} wartet auf dich",
+    "waiting_other": "{{count}} warten auf dich",
+    "waitingButton_one": "{{count}} wartet auf dich",
+    "waitingButton_other": "{{count}} warten auf dich"
+  },
+  "aiPanel": {
+    "title": "KI-Panel",
+    "uses": "Wer nutzt was",
+    "accounts": "KI-Konten",
+    "usage": "Schlüssel und Nutzung",
+    "change": "KI wechseln",
+    "noAgents": "Noch keine Agenten.",
+    "dialog": {
+      "title": "KI von {{name}} wechseln",
+      "smart": "Am klügsten",
+      "balanced": "Ausgewogen",
+      "fast": "Am schnellsten und günstigsten",
+      "smartPlan": "Denkt mehr nach. Langsamer und verbraucht mehr vom Kontingent.",
+      "smartKey": "Denkt mehr nach. Langsamer und teurer.",
+      "balancedLine": "Empfohlen für die meisten Aufgaben.",
+      "fastLine": "Antwortet sofort. Am besten für einfache Aufgaben.",
+      "current": "Aktuell",
+      "inPlan": "im Plan enthalten",
+      "price": "≈ {{input}} / {{output}} pro Million Tokens",
+      "switchTo": "Zu {{model}} wechseln",
+      "keep": "Behalten",
+      "now": "Jetzt: {{model}}",
+      "more": "Weitere Optionen",
+      "none": "Gerade gibt es keine andere KI zum Wechseln. Verbinde ein Konto oder einen Schlüssel, um Optionen zu haben."
+    }
   },
   "agentPage": {
     "work": {
@@ -7388,6 +7446,14 @@
         "helpsText": "Kann Agenten, Einstellungen und Mitglieder ändern, so wie du."
       },
       "where": {
+        "titleOne": "In welche Gruppen kommt {{name}} gleich?",
+        "titleMany": "In welche Gruppen kommen diese Personen gleich?",
+        "titleOnePersonal": "In welche Gruppenunterhaltungen kommt {{name}} gleich?",
+        "titleManyPersonal": "In welche Gruppenunterhaltungen kommen diese Personen gleich?",
+        "lead": "Alle starten in #{{channel}}. Die anderen wählst du.",
+        "label": "Gruppen",
+        "labelPersonal": "Gruppenunterhaltungen",
+        "everyone": "Alle sind drin",
         "private": "Privat · du bist drin",
         "people_one": "{{count}} Person",
         "people_other": "{{count}} Personen"
@@ -10804,9 +10870,23 @@
   },
   "liveVoice": {
     "you": "Du",
+    "invite": {
+      "title": "Jemanden dazuholen",
+      "lead": "Die Person bekommt eine Benachrichtigung auf Handy und Computer, mit einer Möglichkeit beizutreten.",
+      "send": "Anrufen",
+      "refused": "{{names}} konnte nicht angerufen werden: Nur wer diese Unterhaltung verwaltet, kann Personen hinzufügen.",
+      "none": "Alle im Workspace sind schon im Anruf."
+    },
+    "ring": {
+      "title": "{{name}} ruft dich an",
+      "where": "Sprachanruf in {{channel}}",
+      "join": "Beitreten",
+      "decline": "Nicht jetzt"
+    },
     "call": {
       "topic": "Thema (optional)",
       "topicHint": "Die Agenten beginnen mit einer Debatte darüber. Steig ein, wann du willst.",
+      "people": "Auch Personen anrufen",
       "start": "Sprachanruf starten",
       "join_one": "Anruf beitreten ({{count}})",
       "join_other": "Anruf beitreten ({{count}})",
@@ -10851,6 +10931,7 @@
       "quiet": "Agenten hören nur zu",
       "leave": "Anruf verlassen",
       "endAll": "Für alle beenden",
+      "invite": "Jemanden anrufen",
       "endTitle": "Anruf für alle beenden?",
       "endText": "Die Notizen des Anrufs kommen in die Unterhaltung. Doug BOSS schickt den Bericht mit den Entscheidungen und den nächsten Schritten.",
       "hasWord": "{{name}} hat das Wort",
@@ -11984,6 +12065,8 @@
       "no_computer": "Wähle unter Computer einen verbundenen Computer, um es zu nutzen.",
       "exec_off": "Der Computer wurde ohne die Berechtigung verbunden, Programme auszuführen.",
       "runner_old": "Aktualisiere das DougBot-Programm auf dem Computer, um es zu nutzen.",
+      "tool_off": "{{program}} ist auf {{computer}} ausgeschaltet. Schalte es dort in der DougBot-App ein: Einstellungen → Tools.",
+      "tool_offLinux": "{{program}} ist auf {{computer}} ausgeschaltet. Schalte es dort ein, in der DougBot-App oder mit {{command}}.",
       "tool_offOne": "{{program}} ist auf {{computer}} ausgeschaltet.",
       "not_installed": "{{program}} ist auf {{computer}} nicht installiert.",
       "cant_start": "{{program}} ist auf {{computer}}, startet aber nicht.",
@@ -13619,6 +13702,13 @@
       "ruleset": "Regelsatz|Regelsätze|des Regelsatzes"
     },
     "label": {
+      "portal_board": "Freigabe-Board ansehen",
+      "portal_plan": "Strategischen Zeitplan ansehen",
+      "portal_work": "Aufgaben einer Person ansehen",
+      "portal_card": "Freigabe-Board aktualisieren",
+      "send_for_approval": "Zur Freigabe senden",
+      "send_new_version": "Neue Version senden",
+      "schedule_post": "Beitrag planen",
       "git_clone": "Repository klonen",
       "create_repository": "Repository erstellen",
       "delete_repository": "Repository löschen",
@@ -16698,6 +16788,7 @@
     "removed": "Entfernt",
     "change": {
       "mergedWithoutAsking": "In {{repo}} ohne Nachfrage gemergt",
+      "portalApprovedForClient": "„{{title}}“ im Portal für den Kunden freigegeben",
       "pattern": "{{verb}}: {{area}}",
       "approval": {
         "approved": "Hat eine Anfrage freigegeben",
@@ -18144,11 +18235,6 @@
       "interrupted": "Durch einen Neustart des Servers unterbrochen. Frag noch einmal, um weiterzumachen.",
       "step_limit": "Mir sind die Schritte ausgegangen, bevor ich fertig war.",
       "stuck": "Ich bin hängen geblieben und habe aufgehört, bevor ich fertig war."
-    },
-    "talk": {
-      "readAll": "Alles lesen",
-      "more_one": "{{count}} weitere Zeile",
-      "more_other": "{{count}} weitere Zeilen"
     }
   },
   "builtinTools": {
@@ -20820,6 +20906,9 @@
       "saved": "Karte gespeichert.",
       "deleted": "Karte gelöscht.",
       "deleteTitle": "Diese Karte löschen?",
+      "deleteOf": "Karte {{title}} löschen",
+      "copyLink": "Link der Karte kopieren",
+      "linkCopied": "Link der Karte kopiert.",
       "deleteText": "„{{title}}“ verschwindet vom Board. Die Dateien bleiben im Drive."
     },
     "post": {
@@ -20833,6 +20922,15 @@
       "done": "Freigegeben für {{when}}.",
       "past": "Die Uhrzeit muss in der Zukunft liegen.",
       "pending": "wird geplant…"
+    },
+    "approveForClient": {
+      "action": "Für den Kunden freigeben",
+      "title": "Für den Kunden freigeben?",
+      "text": "Nur wenn der Kunde im Portal nicht mehr antwortet. Der Beitrag wird dort Freigegeben, als hätte der Kunde ihn freigegeben, und was nach der Freigabe kommt, läuft an.",
+      "note": "Grund",
+      "notePlaceholder": "Der Kunde hat per WhatsApp freigegeben",
+      "confirm": "Freigeben",
+      "done": "„{{title}}“ für den Kunden freigegeben."
     },
     "form": {
       "client": "Kunde",
@@ -20862,17 +20960,33 @@
       "notMedia": "Nur Bilder und Videos gehen zur Freigabe.",
       "coverNotImage": "Das Titelbild muss ein Bild sein."
     },
+    "materials": {
+      "tab": "Kundenmaterial",
+      "intro": "Zugänge, Links und Referenzen des Kunden. Sie bleiben außerhalb des Zeitplans und werden nie zu Aufgaben.",
+      "empty": "Noch kein Material",
+      "emptyText": "Leg eine Liste an (Social Media, Zugänge, Marke) und bewahre die Karten darin auf.",
+      "newListHint": "Sie kommt als erste ins Material. Die Karten legst du darin an.",
+      "toMaterials": "Zu Kundenmaterial verschieben",
+      "toPlan": "Zurück in den Zeitplan",
+      "movedToMaterials": "„{{name}}“ ist jetzt im Kundenmaterial.",
+      "movedToPlan": "„{{name}}“ ist wieder im Zeitplan."
+    },
     "plan": {
       "tab": "Strategischer Zeitplan",
+      "tabShort": "Zeitplan",
       "view": "Ansicht",
       "viewBoard": "Board",
       "viewCalendar": "Kalender",
       "noList": "Keine Liste",
       "addList": "Liste hinzufügen",
+      "newList": "Neue Liste",
+      "newListHint": "Sie kommt als erste in den Zeitplan. Die Karten legst du darin an.",
       "listName": "Name der Liste",
       "addCard": "Karte hinzufügen",
       "cardTitle": "Titel der Karte",
       "listActions": "Aktionen: {{name}}",
+      "lists": "Listen",
+      "goToList": "Zu {{name}}",
       "rename": "Umbenennen",
       "moveLeft": "Nach links verschieben",
       "moveRight": "Nach rechts verschieben",
@@ -20944,6 +21058,7 @@
       "edit": "Bearbeiten",
       "editDescription": "Beschreibung bearbeiten",
       "noDescription": "Keine Beschreibung",
+      "addDescription": "Ausführlichere Beschreibung hinzufügen…",
       "showMore": "Mehr anzeigen",
       "showLess": "Weniger anzeigen",
       "linkText": "Linktext",
