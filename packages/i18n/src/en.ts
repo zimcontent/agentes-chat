@@ -4623,6 +4623,9 @@ export const en = {
     computerAway:
       "{{agent}}'s computer isn't answering right now. This request stays open until {{time}}. Try again in a moment.",
     computerPaused: "{{agent}}'s computer is paused by its owner. This request stays open until {{time}}.",
+    /** Sealing a secret or a sign-in code needs the browser's crypto, which a plain-http address doesn't get. */
+    insecureContext:
+      "This page isn't open over https, so the browser won't lock the key. Open it at https:// (or localhost).",
     failed: "Couldn't deliver it. Is the agent's computer on?",
     changed: "This request changed while you answered. Nothing was sent. Send it again.",
     empty: "Type the value.",

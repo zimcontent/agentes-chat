@@ -10497,6 +10497,9 @@
   "secret.computerPaused": {
     "value": "{{agent}}'s computer is paused by its owner. This request stays open until {{time}}."
   },
+  "secret.insecureContext": {
+    "value": "This page isn't open over https, so the browser won't lock the key. Open it at https:// (or localhost)."
+  },
   "secret.failed": {
     "value": "Couldn't deliver it. Is the agent's computer on?"
   },

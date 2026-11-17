@@ -4539,6 +4539,7 @@
     "seeNewer": "Zobacz nowsze żądanie",
     "computerAway": "Komputer nie odpowiada teraz ({{agent}}). To żądanie pozostaje otwarte do {{time}}. Spróbuj ponownie za chwilę.",
     "computerPaused": "Właściciel wstrzymał komputer ({{agent}}). To żądanie pozostaje otwarte do {{time}}.",
+    "insecureContext": "Ta strona nie jest otwarta przez https, więc przeglądarka nie zablokuje klucza. Otwórz ją pod adresem https:// (lub localhost).",
     "failed": "Nie udało się dostarczyć. Czy komputer agenta jest włączony?",
     "changed": "Ta prośba zmieniła się w trakcie odpowiedzi. Nic nie wysłano. Wyślij ponownie.",
     "empty": "Wpisz wartość.",
