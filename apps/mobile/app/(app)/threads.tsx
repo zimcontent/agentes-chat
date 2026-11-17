@@ -1,6 +1,9 @@
-import { ThreadsScreen } from "@/features/chats/ThreadsScreen";
+import { Redirect } from "expo-router";
 
-/** Threads: threads and missions, pushed from Início's tools (deep link `agenteschat://threads`). */
+/**
+ * Threads aren't a place of their own (ADR doug-0018): what has to be done is in Tarefas, missions included, and a
+ * thread opens from its conversation. An older link (`agenteschat://threads`) lands on the tasks.
+ */
 export default function ThreadsRoute() {
-  return <ThreadsScreen pushed />;
+  return <Redirect href="/issues" />;
 }

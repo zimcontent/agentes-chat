@@ -1,5 +1,4 @@
 import { useIssues } from "@agenteschat/client";
-import { isPersonal } from "@agenteschat/client/lib/workspace-mode";
 import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { Pressable, StyleSheet, View } from "react-native";
@@ -15,7 +14,6 @@ import { mayCreate } from "../new/logic";
 import { useColors, useMeId } from "../shared/hooks";
 import { pickOne } from "../shared/PickerSheet";
 import { MentionCount } from "../shared/parts";
-import { useUnreadThreads } from "../shared/queries";
 import { useWhatsAppShown } from "../whatsapp/logic";
 
 /** One tool on Início's grid: where it opens, its glyph, and how many wait in it (0: no badge). */
@@ -54,9 +52,9 @@ const GLYPH = 21;
 /**
  * Início's tools: one row of small plates under the bar. In front what the team opens all day (WhatsApp, Mídia,
  * Buscar, Tarefas), the rest behind "Mais", which opens with "Novo agente" and "Nova conversa" (the bar keeps no "+")
- * and holds Threads, Drive and Agentes (the agents are already Início's list). WhatsApp and Mídia only where the server
- * has them (as the web's sidebar), their places taken by the next tools when they're off; Threads only in a team's
- * workspace (a personal one keeps it in Ajustes).
+ * and holds Drive and Agentes (the agents are already Início's list). WhatsApp and Mídia only where the server has them
+ * (as the web's sidebar), their places taken by the next tools when they're off. Threads aren't a tool: work is in
+ * Tarefas, missions included, and a thread opens from its conversation (ADR doug-0018).
  */
 export function HomeTools() {
   const { t, i18n } = useTranslation();
@@ -66,7 +64,6 @@ export function HomeTools() {
   const whatsapp = useWhatsAppShown();
   const media = useMediaOn();
   const issues = useIssues(orgId);
-  const threads = useUnreadThreads();
   const createAgent = useCreateAgent();
   const tools: Tool[] = [
     ...(whatsapp
@@ -81,17 +78,6 @@ export function HomeTools() {
       icon: "checkc",
       count: openIssuesWithMe(issues.data, meId),
     },
-    ...(isPersonal(org)
-      ? []
-      : [
-          {
-            key: "threads",
-            label: t("mobile.threads.title"),
-            href: "/threads",
-            icon: "reply" as const,
-            count: threads,
-          },
-        ]),
     { key: "drive", label: t("mobile.me.drive"), href: "/drive", icon: "drive" },
     { key: "team", label: t("mobile.agents.title"), href: "/agents", icon: "agent" },
     { key: "routines", label: t("routines.title"), href: "/routines", icon: "clock" },

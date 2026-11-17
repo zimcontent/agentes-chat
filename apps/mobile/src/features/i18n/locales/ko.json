@@ -746,6 +746,22 @@
       "notedSub": "미션의 결정 사항에 남아요."
     }
   },
+  "task": {
+    "make": "작업 만들기",
+    "makeThread": "이 대화로 작업 만들기",
+    "made": "작업 #{{number}}을(를) 만들었어요",
+    "madeSub": "대화는 여기 그대로 있고 작업에도 보여요.",
+    "held": "이 대화는 이미 작업 #{{number}}이에요.",
+    "open": "열기",
+    "openNumber": "작업 #{{number}} 열기"
+  },
+  "missions": {
+    "running_other": "미션 {{count}}개 진행 중",
+    "waiting_other": "{{count}}개가 기다리는 중",
+    "open": "에이전트의 긴 작업, 계획과 단계 포함",
+    "emptyTitle": "아직 미션이 없어요",
+    "emptyText": "미션은 에이전트의 긴 작업으로, 계획과 단계가 있어요."
+  },
   "threads": {
     "title": "스레드",
     "section": {
@@ -1386,7 +1402,7 @@
     }
   },
   "taskManager": {
-    "loadFailed": "작업을 불러오지 못했어요.",
+    "loadFailed": "작업 내용을 불러오지 못했어요.",
     "gone": "이 작업은 더 이상 없어요.",
     "quiet": "진행 중인 작업이 없어요",
     "doneToday_other": "오늘 {{count}}개 완료",

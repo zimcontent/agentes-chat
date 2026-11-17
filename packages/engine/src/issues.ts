@@ -43,9 +43,12 @@ import { agentSearchChannels, enqueueIndex, registerDocumentBuilder } from "./se
 import { AUDIENCE_MAX, type Audience, admitTaskAgents, taskSeenSql } from "./task-access";
 import {
   ensureTaskConversation,
+  linkTaskThread,
   type TaskConversationRef,
   type TaskConversationSummary,
+  taskConversationNow,
   taskConversationSummaries,
+  taskOfThread,
 } from "./task-conversation";
 import { promptAnswer, promptPoll, toolDetail } from "./tool-detail";
 import { syncWikiLinks, withWikiLinks } from "./wiki-links";
@@ -1461,7 +1464,11 @@ export async function commentIssue(
   const issue = await findVisible(deps.db, actor, orgId, { id: issueId });
   const uploaded = await ownFiles(deps.db, actor, orgId, options.attachmentIds);
   const files = await withLinked(deps.db, orgId, uploaded, options.linkFileIds);
-  const conversation = await ensureTaskConversation(deps.db, issue.id);
+  const conversation = await conversationFor(
+    deps.db,
+    issue,
+    actor.type === "person" ? actor : { type: "agent", agentId: actor.agentId },
+  );
   const message = await postInConversation(
     deps,
     actor,
@@ -1569,12 +1576,44 @@ export async function openTaskConversation(
   issueId: string,
 ): Promise<TaskConversationRef> {
   const issue = await findVisible(db, actor, orgId, { id: issueId });
-  return ensureTaskConversation(db, issue.id);
+  // The thread it holds is its conversation while it has no room (ADR doug-0018): opening it makes nothing.
+  return taskConversationNow(issue) ?? ensureTaskConversation(db, issue.id);
+}
+
+/**
+ * Where a task's talk goes for whoever writes it (ADR doug-0018): the thread it holds, while it has no room of its own,
+ * when they may write there (a member of that conversation, or a person in a public channel); else its room, made on
+ * first use (ADR 0145). An agent is never let into a channel for a task: one outside it works in the task's room.
+ */
+async function conversationFor(
+  db: Database,
+  issue: IssueRow,
+  writer: { type: "person"; userId: string } | { type: "agent"; agentId: string },
+): Promise<TaskConversationRef> {
+  if (issue.conversationRootId || !issue.threadChannelId || !issue.threadRootId)
+    return ensureTaskConversation(db, issue.id);
+  const thread = { channelId: issue.threadChannelId, rootId: issue.threadRootId };
+  const member =
+    writer.type === "person" ? eq(channelMembers.userId, writer.userId) : eq(channelMembers.agentId, writer.agentId);
+  const [row] = await db
+    .select({
+      kind: channels.kind,
+      visibility: channels.visibility,
+      archivedAt: channels.archivedAt,
+      member: channelMembers.channelId,
+    })
+    .from(channels)
+    .leftJoin(channelMembers, and(eq(channelMembers.channelId, channels.id), member))
+    .where(and(eq(channels.id, thread.channelId), eq(channels.orgId, issue.orgId)));
+  const open = writer.type === "person" && row?.kind === "channel" && row.visibility === "public";
+  return row && !row.archivedAt && (row.member || open) ? thread : ensureTaskConversation(db, issue.id);
 }
 
 /**
  * "Turn into issue": a message becomes an issue that keeps its channel's visibility, with the message's files (they
- * live where it was said, which the task's readers read).
+ * live where it was said, which the task's readers read). Its thread (the one it replies in, else the one it starts)
+ * is the task's conversation from then on (ADR doug-0018): the talk stays where it is and the task holds it. A thread
+ * that already is a task's gives that task back, so one subject never becomes two tasks.
  */
 export async function issueFromMessage(
   deps: IssueDeps,
@@ -1582,7 +1621,7 @@ export async function issueFromMessage(
   orgId: string,
   messageId: string,
   input: { title?: string } = {},
-) {
+): Promise<IssueView & { created: boolean }> {
   const message = await getMessage(deps.db, orgId, messageId);
   if (!message) throw new NotFoundError("Message not found");
   const actor: IssueActor = { type: "person", userId };
@@ -1592,8 +1631,14 @@ export async function issueFromMessage(
     await requireChannelAccess(deps.db, userId, orgId, message.channelId).catch(() => {
       throw new NotFoundError("Message not found");
     });
+  const thread = { channelId: message.channelId, rootId: message.threadId ?? message.id };
+  const existing = await taskOfThread(deps.db, orgId, thread.rootId);
+  if (existing) {
+    const found = await findVisible(deps.db, actor, orgId, { id: existing.id }).catch(() => null);
+    if (found) return { ...(await one(deps.db, found, userId)), created: false };
+  }
   const firstLine = plainLines(message.body)[0] ?? plainLine(message.body);
-  return createIssue(deps, actor, orgId, {
+  const created = await createIssue(deps, actor, orgId, {
     title: input.title?.trim() || firstLine.slice(0, 120) || "New issue",
     description: message.body,
     source: { type: "message", channelId: message.channelId, messageId: message.id },
@@ -1601,6 +1646,10 @@ export async function issueFromMessage(
     ...(made.scope?.restricted ? { audience: { mode: "people", userIds: made.scope.audienceUserIds } } : {}),
     linkFileIds: fileIdsOf(message.meta),
   });
+  // A task's room already is a task's conversation (its root found above); any other thread is held here.
+  if (!existing && (await linkTaskThread(deps.db, created.id, thread)))
+    return { ...(await getIssue(deps.db, actor, orgId, { id: created.id })), created: true };
+  return { ...created, created: true };
 }
 
 /**
@@ -1634,7 +1683,8 @@ export async function askAgentToImplement(
     issue.assigneeType === "agent" && issue.assigneeId === agentId
       ? await one(db, issue, userId)
       : await updateIssue(deps, actor, orgId, issue.id, { assignee: { type: "agent", id: agentId } });
-  const conversation = await ensureTaskConversation(db, issue.id);
+  // In the thread the task holds when the agent is in that conversation (ADR doug-0018), else in its room.
+  const conversation = await conversationFor(db, issue, { type: "agent", agentId });
   await admitTaskAgents(db, orgId, conversation.channelId, { ids: [agentId] });
   const card: IssueWorkMeta = { issueId: issue.id, number: issue.number, title: issue.title, agentId };
   const author: WorkActor = by ? { type: "agent", id: by.agentId } : { type: "person", id: userId };
@@ -1712,7 +1762,8 @@ export async function askAgentToImplement(
       ...(by ? { runId: by.runId, onBehalfOfUserId: userId } : {}),
     });
   });
-  await announceTaken(deps, issue, card);
+  // Working in the thread it came from, the start line there already says it (ADR doug-0018).
+  if (conversation.rootId !== issue.threadRootId) await announceTaken(deps, issue, card);
   await startedWork(deps, issue, agentId, runId ? [runId] : []);
   const fresh = await reload(db, issue);
   if (!fresh) return updated;
@@ -1753,15 +1804,24 @@ async function announceTaken(deps: IssueDeps, issue: IssueRow, card: IssueWorkMe
  */
 export async function mirrorReplyToIssue(
   deps: IssueDeps,
-  run: { orgId: string; agentId: string; channelId: string },
+  run: { orgId: string; agentId: string; channelId: string; threadRootId?: string | null },
   issueId: string,
   text: string,
 ) {
   const [issue] = await deps.db
-    .select({ conversationChannelId: issues.conversationChannelId })
+    .select({
+      conversationChannelId: issues.conversationChannelId,
+      conversationRootId: issues.conversationRootId,
+      threadChannelId: issues.threadChannelId,
+      threadRootId: issues.threadRootId,
+    })
     .from(issues)
     .where(and(eq(issues.id, issueId), eq(issues.orgId, run.orgId)));
-  if (!issue || issue.conversationChannelId === run.channelId) return;
+  if (!issue) return;
+  // In the conversation already: its room, or the thread it holds, one of a channel's several (ADR doug-0018).
+  const at = taskConversationNow(issue);
+  if (issue.conversationChannelId === run.channelId) return;
+  if (at && run.threadRootId && at.rootId === run.threadRootId) return;
   await commentIssue(deps, { type: "agent", agentId: run.agentId, channelId: run.channelId }, run.orgId, issueId, text);
 }
 
@@ -1914,6 +1974,9 @@ export async function linkIssueToWork(
       channelId: work.channelId,
     });
     issueId = created.id;
+    // The card talks where the work does (ADR doug-0018): its conversation is the work's thread, not a second one.
+    const thread = work.ownThread ? work.anchorMessageId : work.homeThreadId;
+    if (thread) await linkTaskThread(deps.db, issueId, { channelId: work.channelId, rootId: thread });
   }
   await deps.db.update(schema.agentWorks).set({ issueId }).where(eq(schema.agentWorks.id, work.id));
   await deps.db

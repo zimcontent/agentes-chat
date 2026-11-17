@@ -1727,6 +1727,10 @@
     "openComputer": "Otwórz komputer",
     "linkCopied": "Skopiowano link.",
     "saveToWiki": "Zapisz w wiki",
+    "makeTask": "Utwórz zadanie",
+    "taskMade": "Utworzono zadanie #{{number}}. Rozmowa zostaje tutaj i widać ją w zadaniu.",
+    "taskHeld": "Ta rozmowa jest już zadaniem #{{number}}.",
+    "openTask": "Otwórz zadanie",
     "pin": "Przypnij wiadomość",
     "unpin": "Odepnij wiadomość",
     "pinned": "Przypięto wiadomość.",
@@ -2184,7 +2188,7 @@
     "routines": "Rutyny",
     "team": "Zespół",
     "dashboards": "Dashboardy",
-    "taskManager": "Menedżer zadań",
+    "taskManager": "Aktywność agentów",
     "calendar": "Kalendarz",
     "drive": "Drive",
     "members": "Członkowie",
@@ -8362,6 +8366,18 @@
     }
   },
   "issues": {
+    "missions": {
+      "back": "Wróć do Zadań",
+      "running_one": "{{count}} misja w toku",
+      "running_few": "{{count}} misje w toku",
+      "running_many": "{{count}} misji w toku",
+      "running_other": "{{count}} misji w toku",
+      "waiting_one": "{{count}} czeka na Ciebie",
+      "waiting_few": "{{count}} czekają na Ciebie",
+      "waiting_many": "{{count}} czeka na Ciebie",
+      "waiting_other": "{{count}} czeka na Ciebie",
+      "see": "Zobacz misje"
+    },
     "delete": {
       "action": "Usuń zadanie",
       "title": "Usunąć zadanie #{{number}}?",
@@ -9508,7 +9524,7 @@
       "declined": "Odrzucono prośbę {{name}}."
     },
     "title": "Misje",
-    "subtitle": "Dłuższa praca agenta na jego komputerze, w wątku.",
+    "subtitle": "Dłuższa praca agenta, z planem i krokami.",
     "search": "Szukaj misji",
     "online": "online",
     "offline": "offline",
@@ -10261,8 +10277,14 @@
     "waitingCloud": "Misje ruszą, gdy {{computer}} będzie gotowy."
   },
   "threads": {
+    "task": {
+      "button": "Zadanie #{{number}}",
+      "open": "Otwórz zadanie #{{number}} ({{status}})",
+      "make": "Utwórz zadanie z tej rozmowy",
+      "makeHint": "Rozmowa zostaje tutaj i widać ją w zadaniu."
+    },
     "title": "Wątki",
-    "subtitle": "Tematy, które wyszły z kanałów i wiadomości bezpośrednich.",
+    "subtitle": "Rozmowy w wątkach. To, co trzeba zrobić, jest w Zadaniach.",
     "tabsLabel": "Filtr wątków",
     "tabs": {
       "all": "Wszystkie",
@@ -10332,7 +10354,7 @@
     },
     "empty": {
       "missionsTitle": "Na razie brak misji",
-      "missions": "Misja to wątek z planem, decyzjami i pracą agenta na jego komputerze.",
+      "missions": "Misja to dłuższa praca agenta, z planem, decyzjami i krokami.",
       "allTitle": "Każdy temat w osobnej rozmowie",
       "all": "Odpowiedz na wiadomość, aby otworzyć wątek, a kanał pozostanie czytelny.",
       "workingTitle": "Żaden agent teraz nie pracuje",
@@ -10413,6 +10435,10 @@
       "replies_few": "{{count}} odpowiedzi",
       "replies_many": "{{count}} odpowiedzi",
       "replies_other": "{{count}} odpowiedzi",
+      "taskReplies_one": "Zadanie #{{number}} · {{count}} odpowiedź",
+      "taskReplies_few": "Zadanie #{{number}} · {{count}} odpowiedzi",
+      "taskReplies_many": "Zadanie #{{number}} · {{count}} odpowiedzi",
+      "taskReplies_other": "Zadanie #{{number}} · {{count}} odpowiedzi",
       "closed_one": "Wątek zamknięty · {{title}} · {{count}} wiadomość",
       "closed_few": "Wątek zamknięty · {{title}} · {{count}} wiadomości",
       "closed_many": "Wątek zamknięty · {{title}} · {{count}} wiadomości",
@@ -11272,10 +11298,10 @@
       "copiesRemoved_few": "Usunięto {{count}} nieużywane logowania.",
       "copiesRemoved_many": "Usunięto {{count}} nieużywanych logowań.",
       "copiesRemoved_other": "Usunięto {{count}} nieużywanego logowania.",
-      "removeAllDone": "Usunięto {{n}} logowań Grok.",
-      "removeAllText": "Przestaną myśleć za swoje agenty na {{computers}}. Logowania innych osób zostają.",
-      "removeAllTitle": "Usunąć wszystkie {{n}} logowań Grok?",
       "removeAllGrok": "Usuń wszystkie logowania Grok",
+      "removeAllTitle": "Usunąć wszystkie {{n}} logowań Grok?",
+      "removeAllText": "Przestaną myśleć za swoje agenty na {{computers}}. Logowania innych osób zostają.",
+      "removeAllDone": "Usunięto {{n}} logowań Grok.",
       "disconnect": "Rozłącz",
       "renameTitle": "Zmień nazwę: {{label}}",
       "nameLabel": "Nazwa",
@@ -20577,10 +20603,10 @@
     "allWaiting_many": "{{count}} rzeczy czeka na ciebie",
     "allWaiting_other": "{{count}} rzeczy czeka na ciebie",
     "actions": "Więcej akcji",
-    "openManager": "Otwórz menedżer zadań"
+    "openManager": "Otwórz aktywność agentów"
   },
   "taskManager": {
-    "title": "Menedżer zadań",
+    "title": "Aktywność agentów",
     "subtitle": "Co agenci robią teraz i co skończyło się dzisiaj.",
     "search": "Szukaj zadania, agenta lub aplikacji",
     "working_one": "{{count}} pracuje",
@@ -20701,7 +20727,7 @@
       "stopAll": "Zatrzymaj wszystkie",
       "stopAllOf": "Zatrzymaj wszystkie zadania agenta {{name}}",
       "open": "Otwórz w rozmowie",
-      "openManager": "Otwórz w menedżerze zadań"
+      "openManager": "Otwórz w aktywności agentów"
     },
     "confirm": {
       "chainTitle_one": "Zatrzymać {{name}} i {{count}} pomocnika?",

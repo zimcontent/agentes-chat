@@ -1820,6 +1820,48 @@
   "mission.decision.notedSub": {
     "value": "It stays in the mission's decisions."
   },
+  "task.make": {
+    "value": "Create task"
+  },
+  "task.makeThread": {
+    "value": "Create a task from this conversation"
+  },
+  "task.made": {
+    "value": "Task #{{number}} created"
+  },
+  "task.madeSub": {
+    "value": "The conversation stays here and shows on the task."
+  },
+  "task.held": {
+    "value": "This conversation already is task #{{number}}."
+  },
+  "task.open": {
+    "value": "Open"
+  },
+  "task.openNumber": {
+    "value": "Open task #{{number}}"
+  },
+  "missions.running": {
+    "value": {
+      "one": "{{count}} mission running",
+      "other": "{{count}} missions running"
+    }
+  },
+  "missions.waiting": {
+    "value": {
+      "one": "{{count}} waiting for you",
+      "other": "{{count}} waiting for you"
+    }
+  },
+  "missions.open": {
+    "value": "An agent's long work, with a plan and steps"
+  },
+  "missions.emptyTitle": {
+    "value": "No missions yet"
+  },
+  "missions.emptyText": {
+    "value": "A mission is an agent's long work, with a plan and steps."
+  },
   "threads.title": {
     "value": "Threads"
   },
@@ -3624,10 +3666,10 @@
     "value": "Last day"
   },
   "taskManager.loadFailed": {
-    "value": "Couldn't load the tasks."
+    "value": "Couldn't load the work."
   },
   "taskManager.gone": {
-    "value": "This task is no longer here."
+    "value": "This work is no longer here."
   },
   "taskManager.quiet": {
     "value": "Nothing in progress"

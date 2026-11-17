@@ -3989,6 +3989,18 @@
   "contextMenu.saveToWiki": {
     "value": "Save to wiki"
   },
+  "contextMenu.makeTask": {
+    "value": "Create task"
+  },
+  "contextMenu.taskMade": {
+    "value": "Task #{{number}} created. The conversation stays here and shows on the task."
+  },
+  "contextMenu.taskHeld": {
+    "value": "This conversation already is task #{{number}}."
+  },
+  "contextMenu.openTask": {
+    "value": "Open task"
+  },
   "contextMenu.pin": {
     "value": "Pin message"
   },
@@ -5139,7 +5151,7 @@
     "value": "Dashboards"
   },
   "shell.taskManager": {
-    "value": "Task manager"
+    "value": "Agent activity"
   },
   "shell.calendar": {
     "value": "Calendar"
@@ -19021,6 +19033,24 @@
   "scopes.custom_write.description": {
     "value": "Use the write tools. Those marked sensitive always ask for approval."
   },
+  "issues.missions.back": {
+    "value": "Back to Tasks"
+  },
+  "issues.missions.running": {
+    "value": {
+      "one": "{{count}} mission running",
+      "other": "{{count}} missions running"
+    }
+  },
+  "issues.missions.waiting": {
+    "value": {
+      "one": "{{count}} waiting for you",
+      "other": "{{count}} waiting for you"
+    }
+  },
+  "issues.missions.see": {
+    "value": "See missions"
+  },
   "issues.delete.action": {
     "value": "Delete task"
   },
@@ -21668,7 +21698,7 @@
     "value": "Missions"
   },
   "missions.subtitle": {
-    "value": "Long work by an agent on its computer, in a thread."
+    "value": "Long work by an agent, with a plan and steps."
   },
   "missions.search": {
     "value": "Search missions"
@@ -23326,11 +23356,23 @@
   "missions.waitingCloud": {
     "value": "Missions start once {{computer}} is ready."
   },
+  "threads.task.button": {
+    "value": "Task #{{number}}"
+  },
+  "threads.task.open": {
+    "value": "Open task #{{number}} ({{status}})"
+  },
+  "threads.task.make": {
+    "value": "Create a task from this conversation"
+  },
+  "threads.task.makeHint": {
+    "value": "The conversation stays here and shows on the task."
+  },
   "threads.title": {
     "value": "Threads"
   },
   "threads.subtitle": {
-    "value": "Subjects that left channels and DMs."
+    "value": "Threaded conversations. What needs doing lives in Tasks."
   },
   "threads.tabsLabel": {
     "value": "Thread filter"
@@ -23501,7 +23543,7 @@
     "value": "No missions yet"
   },
   "threads.empty.missions": {
-    "value": "A mission is a thread with a plan, decisions and an agent's work on its computer."
+    "value": "A mission is an agent's long work, with a plan, decisions and steps."
   },
   "threads.empty.allTitle": {
     "value": "Every topic in its own conversation"
@@ -23645,6 +23687,12 @@
     "value": {
       "one": "{{count}} reply",
       "other": "{{count}} replies"
+    }
+  },
+  "threads.line.taskReplies": {
+    "value": {
+      "one": "Task #{{number}} · {{count}} reply",
+      "other": "Task #{{number}} · {{count}} replies"
     }
   },
   "threads.line.closed": {
@@ -47484,10 +47532,10 @@
     "value": "More actions"
   },
   "agora.openManager": {
-    "value": "Open the task manager"
+    "value": "Open agent activity"
   },
   "taskManager.title": {
-    "value": "Task manager"
+    "value": "Agent activity"
   },
   "taskManager.subtitle": {
     "value": "What the agents are doing now and what ended today."
@@ -47757,7 +47805,7 @@
     "value": "Open in the conversation"
   },
   "taskManager.actions.openManager": {
-    "value": "Open in the task manager"
+    "value": "Open in agent activity"
   },
   "taskManager.confirm.chainTitle": {
     "value": {

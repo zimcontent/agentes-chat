@@ -118,6 +118,19 @@ const Thread = z
       })
       .nullable()
       .openapi({ description: "The thread's mission, in short (details: `GET …/threads/{id}/mission`)." }),
+    task: z
+      .object({
+        id: z.uuid(),
+        number: z.number().int(),
+        title: z.string(),
+        status: z.enum(["todo", "in_progress", "in_review", "done", "canceled"]),
+      })
+      .nullable()
+      .optional()
+      .openapi({
+        description:
+          "The task this thread is the conversation of, when you see that task. Left out of `thread.updated` events.",
+      }),
     createdAt: z.string(),
   })
   .openapi("Thread");

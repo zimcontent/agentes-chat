@@ -812,6 +812,28 @@
       "notedSub": "Zostaje w decyzjach misji."
     }
   },
+  "task": {
+    "make": "Utwórz zadanie",
+    "makeThread": "Utwórz zadanie z tej rozmowy",
+    "made": "Utworzono zadanie #{{number}}",
+    "madeSub": "Rozmowa zostaje tutaj i widać ją w zadaniu.",
+    "held": "Ta rozmowa jest już zadaniem #{{number}}.",
+    "open": "Otwórz",
+    "openNumber": "Otwórz zadanie #{{number}}"
+  },
+  "missions": {
+    "running_one": "{{count}} misja w toku",
+    "running_few": "{{count}} misje w toku",
+    "running_many": "{{count}} misji w toku",
+    "running_other": "{{count}} misji w toku",
+    "waiting_one": "{{count}} czeka na Ciebie",
+    "waiting_few": "{{count}} czekają na Ciebie",
+    "waiting_many": "{{count}} czeka na Ciebie",
+    "waiting_other": "{{count}} czeka na Ciebie",
+    "open": "Dłuższa praca agenta, z planem i krokami",
+    "emptyTitle": "Nie ma jeszcze misji",
+    "emptyText": "Misja to dłuższa praca agenta, z planem i krokami."
+  },
   "threads": {
     "title": "Wątki",
     "section": {
@@ -1647,8 +1669,8 @@
     }
   },
   "taskManager": {
-    "loadFailed": "Nie udało się wczytać zadań.",
-    "gone": "Tego zadania już tu nie ma.",
+    "loadFailed": "Nie udało się wczytać pracy.",
+    "gone": "Tej pracy już tu nie ma.",
     "quiet": "Nic w toku",
     "doneToday_one": "ukończone dziś: {{count}}",
     "doneToday_few": "ukończone dziś: {{count}}",

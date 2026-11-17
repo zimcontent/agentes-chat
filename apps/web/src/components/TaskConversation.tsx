@@ -19,7 +19,11 @@ import "@/components/threads/threads.css";
 /** Someone's turn is live in its conversation now (the card's `working` lags until it refetches). */
 export function useTaskLive(issue: Pick<Issue, "conversation">) {
   const channelId = issue.conversation?.channelId;
-  const live = useStreams((s) => (channelId ? runsInChannel(s, channelId).length > 0 : false));
+  const rootId = issue.conversation?.rootId;
+  // Its thread's runs: a channel may hold several tasks' threads (ADR doug-0018).
+  const live = useStreams((s) =>
+    channelId ? runsInChannel(s, channelId).some((r) => !rootId || r.threadId === rootId) : false,
+  );
   return Boolean(issue.conversation?.working) || live;
 }
 
@@ -126,5 +130,5 @@ export function TaskConversationPanel({
   const { org } = useOrg();
   const at = useTaskConversation(org.id, issue, true);
   if (!at) return <ChannelSkeleton thread panel />;
-  return <ThreadPage threadId={at.rootId} focusMessageId={focusMessageId} onClose={onClose} />;
+  return <ThreadPage threadId={at.rootId} focusMessageId={focusMessageId} onClose={onClose} asTask />;
 }

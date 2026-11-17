@@ -70,7 +70,7 @@ import { type AgentRun, replyThreadOf } from "./runs";
 import { SITE_SECRET_TTL_TEXT, secretStillHeld } from "./secrets";
 import { stretchCardOf } from "./stretch";
 import { channelReaderSql, channelReadersSql } from "./task-access";
-import { taskConversationOf } from "./task-conversation";
+import { taskConversationOf, taskOfThread } from "./task-conversation";
 import { loadTeam, rosterScopeNames, TEAM_IN_PROMPT, teammatesFor, teammatesNowPrompt, teamPrompt } from "./team";
 import { rangeStillVisible, threadRunInfo } from "./threads";
 import { HAND_OVER_STEP } from "./tools/directory";
@@ -1005,7 +1005,11 @@ export async function buildRunContext(
   // A task's conversation (ADR 0145), or an older work thread in a DM (asked to implement it): the task, read from
   // the issue now, never shown in the chat. In the conversation the assignee works on it; another agent was called in.
   const issueWork = root ? issueWorkOf(root.meta) : null;
-  const taskHere = root ? taskConversationOf(root.meta) : null;
+  // A thread a task holds (ADR doug-0018) is its conversation too, though its root is an ordinary message.
+  const taskHere = root
+    ? (taskConversationOf(root.meta) ??
+      (await taskOfThread(db, run.orgId, root.id).then((t) => (t ? { issueId: t.id } : null))))
+    : null;
   const workIssueId = issueWork && issueWork.agentId === agent.id ? issueWork.issueId : null;
   const taskAsked = taskHere ? await assignedTo(db, run.orgId, taskHere.issueId, agent.id) : false;
   const issueBrief = workIssueId

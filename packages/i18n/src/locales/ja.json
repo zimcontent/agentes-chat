@@ -1574,6 +1574,10 @@
     "openComputer": "コンピューターを開く",
     "linkCopied": "リンクをコピーしました。",
     "saveToWiki": "Wikiに保存",
+    "makeTask": "タスクを作成",
+    "taskMade": "タスク #{{number}} を作成しました。会話はここに残り、タスクにも表示されます。",
+    "taskHeld": "この会話はすでにタスク #{{number}} です。",
+    "openTask": "タスクを開く",
     "pin": "メッセージをピン留め",
     "unpin": "ピン留めを外す",
     "pinned": "メッセージをピン留めしました。",
@@ -2025,7 +2029,7 @@
     "routines": "ルーティン",
     "team": "チーム",
     "dashboards": "ダッシュボード",
-    "taskManager": "タスクマネージャー",
+    "taskManager": "エージェントのアクティビティ",
     "calendar": "カレンダー",
     "drive": "Drive",
     "members": "メンバー",
@@ -7543,6 +7547,12 @@
     }
   },
   "issues": {
+    "missions": {
+      "back": "タスクに戻る",
+      "running_other": "{{count}} 件のミッションが進行中",
+      "waiting_other": "{{count}} 件があなたを待っています",
+      "see": "ミッションを見る"
+    },
     "delete": {
       "action": "タスクを削除",
       "title": "タスク #{{number}} を削除しますか？",
@@ -8612,7 +8622,7 @@
       "declined": "{{name}}のリクエストを断りました。"
     },
     "title": "ミッション",
-    "subtitle": "エージェントが自分のコンピューターで、スレッドの中で進める長い作業です。",
+    "subtitle": "エージェントの長い作業です。計画とステップがあります。",
     "search": "ミッションを検索",
     "online": "オンライン",
     "offline": "オフライン",
@@ -9224,8 +9234,14 @@
     "waitingCloud": "{{computer}}の準備ができしだい、ミッションが始まります。"
   },
   "threads": {
+    "task": {
+      "button": "タスク #{{number}}",
+      "open": "タスク #{{number}} を開く（{{status}}）",
+      "make": "この会話からタスクを作成",
+      "makeHint": "会話はここに残り、タスクにも表示されます。"
+    },
     "title": "スレッド",
-    "subtitle": "チャンネルやDMから分かれた話題。",
+    "subtitle": "スレッドでの会話です。やるべきことはタスクにあります。",
     "tabsLabel": "スレッドの絞り込み",
     "tabs": {
       "all": "すべて",
@@ -9289,7 +9305,7 @@
     },
     "empty": {
       "missionsTitle": "まだミッションはありません",
-      "missions": "ミッションとは、計画、決定事項、コンピューター上でのエージェントの作業を含むスレッドです。",
+      "missions": "ミッションはエージェントの長い作業で、計画、判断、ステップがあります。",
       "allTitle": "話題ごとに会話を分けられます",
       "all": "メッセージに返信するとスレッドが開き、チャンネルはすっきりしたままです。",
       "workingTitle": "現在作業中のエージェントはいません",
@@ -9340,6 +9356,7 @@
       "openShort": "開く",
       "reply": "返信",
       "replies_other": "{{count}}件の返信",
+      "taskReplies_other": "タスク #{{number}} · 返信 {{count}} 件",
       "closed_other": "スレッドを閉じました · {{title}} · {{count}}件のメッセージ",
       "archived_other": "アーカイブした{{count}}件のスレッドはここに表示されません",
       "see": "見る"
@@ -10092,10 +10109,10 @@
       "copies_other": "エージェントのいない、このアカウントのログインがあと{{count}}件あります。",
       "removeCopies": "削除",
       "copiesRemoved_other": "使われていないログインを{{count}}件削除しました。",
-      "removeAllDone": "Grok のログインを {{n}} 件削除しました。",
-      "removeAllText": "{{computers}} でそれぞれのエージェントのために考えなくなります。他の人のログインはそのまま残ります。",
-      "removeAllTitle": "Grok のログイン {{n}} 件をすべて削除しますか？",
       "removeAllGrok": "Grok のログインをすべて削除",
+      "removeAllTitle": "Grok のログイン {{n}} 件をすべて削除しますか？",
+      "removeAllText": "{{computers}} でそれぞれのエージェントのために考えなくなります。他の人のログインはそのまま残ります。",
+      "removeAllDone": "Grok のログインを {{n}} 件削除しました。",
       "disconnect": "接続を解除",
       "renameTitle": "{{label}}の名前を変更",
       "nameLabel": "名前",
@@ -18748,10 +18765,10 @@
     },
     "allWaiting_other": "対応待ちの{{count}}件を見る",
     "actions": "その他の操作",
-    "openManager": "タスクマネージャーを開く"
+    "openManager": "エージェントのアクティビティを開く"
   },
   "taskManager": {
-    "title": "タスクマネージャー",
+    "title": "エージェントのアクティビティ",
     "subtitle": "エージェントが今していることと、今日終わったこと。",
     "search": "タスク、エージェント、アプリを検索",
     "working_other": "{{count}}件作業中",
@@ -18851,7 +18868,7 @@
       "stopAll": "すべて停止",
       "stopAllOf": "{{name}}のタスクをすべて停止",
       "open": "会話で開く",
-      "openManager": "タスクマネージャーで開く"
+      "openManager": "エージェントのアクティビティで開く"
     },
     "confirm": {
       "chainTitle_other": "{{name}}と手伝い{{count}}件を止めますか？",

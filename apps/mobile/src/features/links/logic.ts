@@ -42,6 +42,7 @@ export type AppHref =
   | "/settings/skills"
   | "/activity"
   | "/conversations/threads"
+  | "/missions"
   | "/join-requests"
   | "/computer-setup"
   | "/connect-ai?ready=1"
@@ -184,9 +185,10 @@ export function hrefFromUrl(url: string): AppHref | null {
     case "activity":
       return "/activity";
     case "threads":
-      // Through Conversas' list route, which shows them where a personal workspace has no Threads tab (ADR 0159) and
-      // sends a team's to the tab.
+      // Threads aren't a place of their own (ADR doug-0018): Conversas' list route lands this on Tarefas.
       return "/conversations/threads";
+    case "missions":
+      return "/missions";
     case "join-requests":
       return "/join-requests";
     case "proposals":

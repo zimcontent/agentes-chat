@@ -564,7 +564,7 @@ export type ChannelEvent =
       change: ThreadChange;
       state?: ThreadState;
       /** Without `following` (each person reads their own from the API). */
-      thread?: Omit<ThreadInfo, "following" | "unread">;
+      thread?: Omit<ThreadInfo, "following" | "unread" | "task">;
       messageIds?: string[];
     }
   /** Someone reacted or took a reaction back: the message's reactions now (replace, don't merge). */

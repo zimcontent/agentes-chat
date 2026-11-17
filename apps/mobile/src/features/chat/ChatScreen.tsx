@@ -1650,6 +1650,7 @@ function Chat({
             mission={mission}
             onMission={() => openNewMission("", info.id)}
             onPins={openPins}
+            canTask={canReply}
           />,
         )
       : sheet.open(
@@ -1810,6 +1811,17 @@ function Chat({
             channelId={channelId}
             title={dm ? dm.with.name : channel ? `#${groupTitle(channel)}` : title}
             dmAgentId={dmAgentId}
+          />
+        ) : null}
+        {/* The task this thread is the conversation of (ADR doug-0018): "Tarefa #N" opens it. */}
+        {isThread && info?.task ? (
+          <IconButton
+            icon="issue"
+            label={t("mobile.task.openNumber", { number: info.task.number })}
+            onPress={() => {
+              leavePlace();
+              router.push(`/issues/${info.task?.number}`);
+            }}
           />
         ) : null}
         {/* A DM searches from its "…" (its name and the agent's own buttons keep the room). */}

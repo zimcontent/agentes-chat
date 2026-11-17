@@ -1676,6 +1676,10 @@
     "openComputer": "Ouvrir l'ordinateur",
     "linkCopied": "Lien copié.",
     "saveToWiki": "Enregistrer dans le wiki",
+    "makeTask": "Créer une tâche",
+    "taskMade": "Tâche #{{number}} créée. La conversation reste ici et apparaît dans la tâche.",
+    "taskHeld": "Cette conversation est déjà la tâche #{{number}}.",
+    "openTask": "Ouvrir la tâche",
     "pin": "Épingler le message",
     "unpin": "Désépingler le message",
     "pinned": "Message épinglé.",
@@ -2131,7 +2135,7 @@
     "routines": "Routines",
     "team": "Équipe",
     "dashboards": "Tableaux de bord",
-    "taskManager": "Gestionnaire des tâches",
+    "taskManager": "Activité des agents",
     "calendar": "Agenda",
     "drive": "Drive",
     "members": "Membres",
@@ -8103,6 +8107,16 @@
     }
   },
   "issues": {
+    "missions": {
+      "back": "Retour aux Tâches",
+      "running_one": "{{count}} mission en cours",
+      "running_many": "{{count}} missions en cours",
+      "running_other": "{{count}} missions en cours",
+      "waiting_one": "{{count}} vous attend",
+      "waiting_many": "{{count}} vous attendent",
+      "waiting_other": "{{count}} vous attendent",
+      "see": "Voir les missions"
+    },
     "delete": {
       "action": "Supprimer la tâche",
       "title": "Supprimer la tâche #{{number}} ?",
@@ -9233,7 +9247,7 @@
       "declined": "Demande de {{name}} refusée."
     },
     "title": "Missions",
-    "subtitle": "Un long travail d'un agent sur son ordinateur, dans un fil.",
+    "subtitle": "Un long travail d'un agent, avec un plan et des étapes.",
     "search": "Chercher des missions",
     "online": "en ligne",
     "offline": "hors ligne",
@@ -9939,8 +9953,14 @@
     "waitingCloud": "Les missions démarrent dès que {{computer}} est prêt."
   },
   "threads": {
+    "task": {
+      "button": "Tâche #{{number}}",
+      "open": "Ouvrir la tâche #{{number}} ({{status}})",
+      "make": "Créer une tâche à partir de cette conversation",
+      "makeHint": "La conversation reste ici et apparaît dans la tâche."
+    },
     "title": "Fils",
-    "subtitle": "Sujets sortis des canaux et des messages directs.",
+    "subtitle": "Conversations en fils. Ce qu'il faut faire se trouve dans Tâches.",
     "tabsLabel": "Filtre des fils",
     "tabs": {
       "all": "Tous",
@@ -10008,7 +10028,7 @@
     },
     "empty": {
       "missionsTitle": "Aucune mission pour l'instant",
-      "missions": "Une mission est un fil avec un plan, des décisions et le travail d'un agent sur son ordinateur.",
+      "missions": "Une mission est un long travail d'un agent, avec un plan, des décisions et des étapes.",
       "allTitle": "Chaque sujet dans sa propre conversation",
       "all": "Répondez à un message pour ouvrir un fil, et le canal reste clair.",
       "workingTitle": "Aucun agent au travail en ce moment",
@@ -10079,6 +10099,9 @@
       "replies_one": "{{count}} réponse",
       "replies_many": "{{count}} réponses",
       "replies_other": "{{count}} réponses",
+      "taskReplies_one": "Tâche #{{number}} · {{count}} réponse",
+      "taskReplies_many": "Tâche #{{number}} · {{count}} réponses",
+      "taskReplies_other": "Tâche #{{number}} · {{count}} réponses",
       "closed_one": "Fil fermé · {{title}} · {{count}} message",
       "closed_many": "Fil fermé · {{title}} · {{count}} messages",
       "closed_other": "Fil fermé · {{title}} · {{count}} messages",
@@ -10903,10 +10926,10 @@
       "copiesRemoved_one": "{{count}} connexion inutilisée supprimée.",
       "copiesRemoved_many": "{{count}} connexions inutilisées supprimées.",
       "copiesRemoved_other": "{{count}} connexions inutilisées supprimées.",
-      "removeAllDone": "{{n}} connexions Grok supprimées.",
-      "removeAllText": "Elles cessent de réfléchir pour leurs agents sur {{computers}}. Les connexions des autres personnes ne sont pas touchées.",
-      "removeAllTitle": "Supprimer les {{n}} connexions Grok ?",
       "removeAllGrok": "Supprimer toutes les connexions Grok",
+      "removeAllTitle": "Supprimer les {{n}} connexions Grok ?",
+      "removeAllText": "Elles cessent de réfléchir pour leurs agents sur {{computers}}. Les connexions des autres personnes ne sont pas touchées.",
+      "removeAllDone": "{{n}} connexions Grok supprimées.",
       "disconnect": "Déconnecter",
       "renameTitle": "Renommer {{label}}",
       "nameLabel": "Nom",
@@ -20044,10 +20067,10 @@
     "allWaiting_many": "Vos {{count}} choses en attente",
     "allWaiting_other": "Vos {{count}} choses en attente",
     "actions": "Plus d'actions",
-    "openManager": "Ouvrir le gestionnaire des tâches"
+    "openManager": "Ouvrir l'activité des agents"
   },
   "taskManager": {
-    "title": "Gestionnaire des tâches",
+    "title": "Activité des agents",
     "subtitle": "Ce que font les agents maintenant et ce qui s'est terminé aujourd'hui.",
     "search": "Rechercher une tâche, un agent ou une app",
     "working_one": "{{count}} au travail",
@@ -20161,7 +20184,7 @@
       "stopAll": "Tout arrêter",
       "stopAllOf": "Tout arrêter pour {{name}}",
       "open": "Ouvrir dans la conversation",
-      "openManager": "Ouvrir dans le gestionnaire des tâches"
+      "openManager": "Ouvrir dans l'activité des agents"
     },
     "confirm": {
       "chainTitle_one": "Arrêter {{name}} et {{count}} assistant ?",

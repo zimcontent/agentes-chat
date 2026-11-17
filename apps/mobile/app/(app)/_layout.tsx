@@ -152,6 +152,7 @@ function AppStack() {
       {/* Out of the tab bar since it became the web sidebar's five (Início's tools open them). */}
       <Stack.Screen name="agents" options={{ ...pushed, ...scrollUnder }} />
       <Stack.Screen name="threads" options={{ ...pushed, ...scrollUnder }} />
+      <Stack.Screen name="missions" options={{ ...pushed, ...scrollUnder }} />
       <Stack.Screen name="search" options={{ ...pushed, ...scrollUnder }} />
       {/* WhatsApp (docs/adr/doug-0001-whatsapp-numbers.md): the numbers from Início, a number's conversations, one. */}
       <Stack.Screen name="whatsapp/index" options={{ ...pushed, ...scrollUnder }} />

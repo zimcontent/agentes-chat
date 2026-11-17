@@ -167,7 +167,7 @@ describe("a list that didn't load is not an empty one", () => {
       expect(code.indexOf(guard)).toBeGreaterThan(-1);
       expect(code.indexOf(guard)).toBeLessThan(code.indexOf(empty));
     };
-    before("chats/ThreadsScreen.tsx", "list.failed", "<TeamSkyEmpty");
+    before("issues/MissionsScreen.tsx", "list.failed", "<TeamSkyEmpty");
     before("chats/ConversationListScreen.tsx", "list.failed", "<FirstUse {...firstStep}");
     before("activity/ActivityScreen.tsx", "list.isError && !list.data", "<AllClear />");
     before("team/TeamScreen.tsx", "!groups.data ? null", "title={t(noSectors.title)}");

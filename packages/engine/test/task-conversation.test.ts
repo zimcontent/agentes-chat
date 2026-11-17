@@ -2,15 +2,19 @@ import { afterEach, describe, expect, test } from "bun:test";
 import { eq, schema } from "@agenteschat/db";
 import {
   addChannelMember,
+  askAgentToImplement,
   commentIssue,
   createAgent,
   createChannel,
   createIssue,
+  deleteIssue,
   drainOutbox,
   ForbiddenError,
   getIssue,
+  getThread,
   insertMessageWithRuns,
   issueFromMessage,
+  linkTaskThread,
   listApprovals,
   listIssueActivity,
   listIssues,
@@ -232,8 +236,11 @@ describe("a task's conversation (ADR 0145)", () => {
     const deps = { db: f.db, pubsub: f.pubsub };
     const bia = await addMember(f.db, f.org.id, "member", "Bia");
     const secret = await createChannel(f.db, f.owner.id, f.org.id, { name: "secreto", visibility: "private" });
-    const said = await postPersonMessage(deps, f.owner.id, f.org.id, secret.id, { body: "Checkout quebra" });
-    const issue = await issueFromMessage(deps, f.owner.id, f.org.id, said.id);
+    // A task of the channel made on the board (one made from a message there keeps that message's thread).
+    const issue = await createIssue(deps, person(f.owner.id), f.org.id, {
+      title: "Checkout quebra",
+      channelId: secret.id,
+    });
     const at = await openTaskConversation(f.db, person(f.owner.id), f.org.id, issue.id);
 
     // An approval card the agent asked for there (a merge): read like the conversation.
@@ -373,8 +380,10 @@ describe("a task's conversation (ADR 0145)", () => {
     await listMembers(f.db, f.org.id); // assigns their handles
     const secret = await createChannel(f.db, f.owner.id, f.org.id, { name: "secreto", visibility: "private" });
     await addChannelMember(f.db, f.owner.id, f.org.id, secret.id, { userId: bia.id });
-    const said = await postPersonMessage(deps, f.owner.id, f.org.id, secret.id, { body: "Checkout quebra" });
-    const issue = await issueFromMessage(deps, f.owner.id, f.org.id, said.id);
+    const issue = await createIssue(deps, person(f.owner.id), f.org.id, {
+      title: "Checkout quebra",
+      channelId: secret.id,
+    });
     const at = await openTaskConversation(f.db, person(f.owner.id), f.org.id, issue.id);
 
     // Nobody in a task's channel is a member: who sees the task and is named is mentioned all the same.
@@ -436,5 +445,100 @@ describe("a task's conversation (ADR 0145)", () => {
     expect(
       (await f.db.select().from(schema.outbox)).filter((o) => JSON.stringify(o.payload).includes(at.rootId)),
     ).toEqual([]);
+  });
+});
+
+describe("a task made from a conversation keeps its thread (ADR doug-0018)", () => {
+  test("the message's thread is the task's conversation; asked again from the thread, the same task comes back", async () => {
+    f = await setup();
+    const deps = { db: f.db, pubsub: f.pubsub };
+    const said = await postPersonMessage(deps, f.owner.id, f.org.id, f.general.id, {
+      body: "Trocar o fornecedor de frete",
+    });
+    const reply = await postPersonMessage(deps, f.owner.id, f.org.id, f.general.id, {
+      body: "Pede três orçamentos",
+      threadId: said.id,
+    });
+    const issue = await issueFromMessage(deps, f.owner.id, f.org.id, said.id);
+    // The thread's first message counts with its reply, the way the room counts its opening line (ADR doug-0018).
+    expect(issue.conversation).toMatchObject({ channelId: f.general.id, rootId: said.id, count: 2 });
+    // No second place: opening the conversation gives the same thread, and no room is made.
+    expect(await openTaskConversation(f.db, person(f.owner.id), f.org.id, issue.id)).toEqual({
+      channelId: f.general.id,
+      rootId: said.id,
+    });
+    const rooms = await f.db.select().from(schema.channels).where(eq(schema.channels.kind, "task"));
+    expect(rooms).toEqual([]);
+    // A comment goes in that thread too.
+    await commentIssue(deps, person(f.owner.id), f.org.id, issue.id, "Já pedi");
+    expect((await repliesIn(f.general.id)).map((m) => m.body)).toEqual(["Pede três orçamentos", "Já pedi"]);
+    // From a reply in it: the thread's task, not a new one.
+    const again = await issueFromMessage(deps, f.owner.id, f.org.id, reply.id);
+    expect(again.id).toBe(issue.id);
+    expect((await listIssues(f.db, person(f.owner.id), f.org.id, {})).length).toBe(1);
+    // The thread knows its task.
+    expect((await getThread(f.db, f.owner.id, f.org.id, said.id)).task).toMatchObject({
+      id: issue.id,
+      number: issue.number,
+      status: "todo",
+    });
+    // Deleting the task leaves the conversation where it was.
+    await deleteIssue(
+      { db: f.db, pubsub: f.pubsub, hub: null, mail: undefined } as Parameters<typeof deleteIssue>[0],
+      f.owner.id,
+      f.org.id,
+      issue.id,
+    );
+    const general = await f.db.select().from(schema.channels).where(eq(schema.channels.id, f.general.id));
+    expect(general).toHaveLength(1);
+    expect((await repliesIn(f.general.id)).map((m) => m.body)).toEqual(["Pede três orçamentos", "Já pedi"]);
+  });
+
+  test("an agent asked to do it works in the thread when it is in that conversation, else in the task's room", async () => {
+    f = await setup({ reply: () => ({ chunks: ["ok"] }) });
+    const deps = { db: f.db, pubsub: f.pubsub };
+    const said = await postPersonMessage(deps, f.owner.id, f.org.id, f.general.id, { body: "Atualizar o site" });
+    const here = await issueFromMessage(deps, f.owner.id, f.org.id, said.id);
+    const asked = await askAgentToImplement(deps, f.owner.id, f.org.id, here.id, f.agent.id);
+    expect(asked.conversation).toMatchObject({ channelId: f.general.id, rootId: said.id });
+    // An agent outside #secreto is never let in for a task: it works in the task's own room.
+    const secret = await createChannel(f.db, f.owner.id, f.org.id, { name: "secreto", visibility: "private" });
+    const hidden = await postPersonMessage(deps, f.owner.id, f.org.id, secret.id, { body: "Checkout quebra" });
+    const there = await issueFromMessage(deps, f.owner.id, f.org.id, hidden.id);
+    const outside = await askAgentToImplement(deps, f.owner.id, f.org.id, there.id, f.agent.id);
+    expect(outside.conversation?.channelId).not.toBe(secret.id);
+    const agentsInSecret = (
+      await f.db.select().from(schema.channelMembers).where(eq(schema.channelMembers.channelId, secret.id))
+    ).filter((m) => m.agentId);
+    expect(agentsInSecret).toEqual([]);
+  });
+
+  test("a message in a task's own room gives that task back", async () => {
+    f = await setup();
+    const deps = { db: f.db, pubsub: f.pubsub };
+    const issue = await createIssue(deps, person(f.owner.id), f.org.id, { title: "Revisar contrato" });
+    const at = await openTaskConversation(f.db, person(f.owner.id), f.org.id, issue.id);
+    const m = await postPersonMessage(deps, f.owner.id, f.org.id, at.channelId, { body: "vi", threadId: at.rootId });
+    expect((await issueFromMessage(deps, f.owner.id, f.org.id, m.id)).id).toBe(issue.id);
+  });
+
+  test("a task keeps the thread or room it has; a thread is one task's; a reply is never a root", async () => {
+    f = await setup();
+    const deps = { db: f.db, pubsub: f.pubsub };
+    const said = await postPersonMessage(deps, f.owner.id, f.org.id, f.general.id, { body: "Assunto" });
+    const reply = await postPersonMessage(deps, f.owner.id, f.org.id, f.general.id, { body: "r", threadId: said.id });
+    const other = await postPersonMessage(deps, f.owner.id, f.org.id, f.general.id, { body: "Outro" });
+    const a = await createIssue(deps, person(f.owner.id), f.org.id, { title: "A" });
+    const b = await createIssue(deps, person(f.owner.id), f.org.id, { title: "B" });
+    const roomed = await createIssue(deps, person(f.owner.id), f.org.id, { title: "C" });
+    await openTaskConversation(f.db, person(f.owner.id), f.org.id, roomed.id);
+    const at = (rootId: string) => ({ channelId: f.general.id, rootId });
+    expect(await linkTaskThread(f.db, a.id, at(reply.id))).toBeNull();
+    expect(await linkTaskThread(f.db, a.id, at(said.id))).toEqual(at(said.id));
+    expect(await linkTaskThread(f.db, b.id, at(said.id))).toBeNull();
+    expect(await linkTaskThread(f.db, a.id, at(other.id))).toBeNull();
+    expect(await linkTaskThread(f.db, roomed.id, at(other.id))).toBeNull();
+    // Two tasks in one channel, each with its own thread.
+    expect(await linkTaskThread(f.db, b.id, at(other.id))).toEqual(at(other.id));
   });
 });
