@@ -252,6 +252,9 @@ describe("the profile in the panel is part of the address", () => {
     await click(within(header).getByRole("button", { name: "Perfil de Ada" }));
     expect(searchOf(router)).toMatchObject({ agent: ADA_ID });
     const entries = router.history.length;
+    // It opens lean (docs/adr/doug-0017-agents-lean.md); Ajustes, then a tab, replace it in place.
+    await click(within(panel() as HTMLElement).getByRole("button", { name: "Ajustes" }));
+    expect(searchOf(router)).toMatchObject({ agent: ADA_ID, agentTab: "settings" });
     // Radix's tabs move on the press.
     await act(async () => fireEvent.mouseDown(tab(/^Memória/), { button: 0 }));
     await settle(4);

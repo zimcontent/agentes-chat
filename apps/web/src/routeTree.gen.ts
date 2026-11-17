@@ -35,6 +35,7 @@ import { Route as DocsSlugRouteImport } from './routes/docs.$slug'
 import { Route as InviteTokenRouteImport } from './routes/invite.$token'
 import { Route as OrgOrgIdRouteImport } from './routes/org.$orgId'
 import { Route as OrgOrgIdIndexRouteImport } from './routes/org.$orgId.index'
+import { Route as OrgOrgIdAiRouteImport } from './routes/org.$orgId.ai'
 import { Route as OrgOrgIdApprovalsRouteImport } from './routes/org.$orgId.approvals'
 import { Route as OrgOrgIdCalendarRouteImport } from './routes/org.$orgId.calendar'
 import { Route as OrgOrgIdDriveRouteImport } from './routes/org.$orgId.drive'
@@ -204,6 +205,11 @@ const OrgOrgIdRoute = OrgOrgIdRouteImport.update({
 const OrgOrgIdIndexRoute = OrgOrgIdIndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => OrgOrgIdRoute,
+} as any)
+const OrgOrgIdAiRoute = OrgOrgIdAiRouteImport.update({
+  id: '/ai',
+  path: '/ai',
   getParentRoute: () => OrgOrgIdRoute,
 } as any)
 const OrgOrgIdApprovalsRoute = OrgOrgIdApprovalsRouteImport.update({
@@ -442,6 +448,7 @@ export interface FileRoutesByFullPath {
   '/invite/$token': typeof InviteTokenRoute
   '/org/$orgId': typeof OrgOrgIdRouteWithChildren
   '/docs/': typeof DocsIndexRoute
+  '/org/$orgId/ai': typeof OrgOrgIdAiRoute
   '/org/$orgId/approvals': typeof OrgOrgIdApprovalsRoute
   '/org/$orgId/calendar': typeof OrgOrgIdCalendarRoute
   '/org/$orgId/drive': typeof OrgOrgIdDriveRoute
@@ -509,6 +516,7 @@ export interface FileRoutesByTo {
   '/docs/$slug': typeof DocsSlugRoute
   '/invite/$token': typeof InviteTokenRoute
   '/docs': typeof DocsIndexRoute
+  '/org/$orgId/ai': typeof OrgOrgIdAiRoute
   '/org/$orgId/approvals': typeof OrgOrgIdApprovalsRoute
   '/org/$orgId/calendar': typeof OrgOrgIdCalendarRoute
   '/org/$orgId/drive': typeof OrgOrgIdDriveRoute
@@ -578,6 +586,7 @@ export interface FileRoutesById {
   '/invite/$token': typeof InviteTokenRoute
   '/org/$orgId': typeof OrgOrgIdRouteWithChildren
   '/docs/': typeof DocsIndexRoute
+  '/org/$orgId/ai': typeof OrgOrgIdAiRoute
   '/org/$orgId/approvals': typeof OrgOrgIdApprovalsRoute
   '/org/$orgId/calendar': typeof OrgOrgIdCalendarRoute
   '/org/$orgId/drive': typeof OrgOrgIdDriveRoute
@@ -648,6 +657,7 @@ export interface FileRouteTypes {
     | '/invite/$token'
     | '/org/$orgId'
     | '/docs/'
+    | '/org/$orgId/ai'
     | '/org/$orgId/approvals'
     | '/org/$orgId/calendar'
     | '/org/$orgId/drive'
@@ -715,6 +725,7 @@ export interface FileRouteTypes {
     | '/docs/$slug'
     | '/invite/$token'
     | '/docs'
+    | '/org/$orgId/ai'
     | '/org/$orgId/approvals'
     | '/org/$orgId/calendar'
     | '/org/$orgId/drive'
@@ -783,6 +794,7 @@ export interface FileRouteTypes {
     | '/invite/$token'
     | '/org/$orgId'
     | '/docs/'
+    | '/org/$orgId/ai'
     | '/org/$orgId/approvals'
     | '/org/$orgId/calendar'
     | '/org/$orgId/drive'
@@ -1036,6 +1048,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/org/$orgId/'
       preLoaderRoute: typeof OrgOrgIdIndexRouteImport
+      parentRoute: typeof OrgOrgIdRoute
+    }
+    '/org/$orgId/ai': {
+      id: '/org/$orgId/ai'
+      path: '/ai'
+      fullPath: '/org/$orgId/ai'
+      preLoaderRoute: typeof OrgOrgIdAiRouteImport
       parentRoute: typeof OrgOrgIdRoute
     }
     '/org/$orgId/approvals': {
@@ -1322,6 +1341,7 @@ declare module '@tanstack/react-router' {
 }
 
 interface OrgOrgIdRouteChildren {
+  OrgOrgIdAiRoute: typeof OrgOrgIdAiRoute
   OrgOrgIdApprovalsRoute: typeof OrgOrgIdApprovalsRoute
   OrgOrgIdCalendarRoute: typeof OrgOrgIdCalendarRoute
   OrgOrgIdDriveRoute: typeof OrgOrgIdDriveRoute
@@ -1366,6 +1386,7 @@ interface OrgOrgIdRouteChildren {
 }
 
 const OrgOrgIdRouteChildren: OrgOrgIdRouteChildren = {
+  OrgOrgIdAiRoute: OrgOrgIdAiRoute,
   OrgOrgIdApprovalsRoute: OrgOrgIdApprovalsRoute,
   OrgOrgIdCalendarRoute: OrgOrgIdCalendarRoute,
   OrgOrgIdDriveRoute: OrgOrgIdDriveRoute,

@@ -32,7 +32,7 @@ const click = async (el: Element) => {
 };
 
 async function open(state = seedState(), api = createFakeApi(state)) {
-  const { services } = await renderApp(`/org/${ORG_ID}/agents/${ADA_ID}`, { api });
+  const { services } = await renderApp(`/org/${ORG_ID}/agents/${ADA_ID}?tab=overview`, { api });
   await settle(8);
   return { state, api, services };
 }

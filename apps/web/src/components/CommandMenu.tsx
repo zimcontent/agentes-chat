@@ -123,6 +123,7 @@ export function CommandMenu() {
       { key: "calendar", to: "/org/$orgId/calendar", icon: "calendar", label: t("shell.calendar") },
       { key: "drive", to: "/org/$orgId/drive", icon: "drive", label: t("shell.drive") },
       { key: "team", to: "/org/$orgId/team", icon: "agent", label: t("shell.team") },
+      { key: "ai", to: "/org/$orgId/ai", icon: "bolt", label: t("aiPanel.title") },
       { key: "members", to: "/org/$orgId/members", icon: "members", label: t("shell.members") },
       { key: "search", to: "/org/$orgId/search", icon: "search", label: t("shell.searchWorkspace") },
     ] as const;
@@ -180,8 +181,8 @@ export function CommandMenu() {
           keywords: [keywords, t("palette.changeModelKeywords")].join(" "),
           mark,
           searchOnly: true,
-          // "Quem pensa" opens from the address (`?sec=brain`).
-          onSelect: () => void navigate({ to: "/org/$orgId/agents/$agentId", params, search: { sec: "brain" } }),
+          // The Painel de IA, with this agent's "Trocar a IA" open (docs/adr/doug-0017-agents-lean.md).
+          onSelect: () => void navigate({ to: "/org/$orgId/ai", params: { orgId }, search: { agent: a.id } }),
         });
       for (const tab of tabs)
         list.push({
@@ -198,6 +199,7 @@ export function CommandMenu() {
             void navigate({
               to: "/org/$orgId/agents/$agentId",
               params,
+              // The page as it opens for "Página"; every other tab is in Ajustes.
               search: { tab: tab === "overview" ? undefined : tab },
             }),
         });

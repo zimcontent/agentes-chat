@@ -44,8 +44,11 @@ export const deviceServer = (home: Home, local: { run: boolean; url: string | nu
   return local.run && server && server === local.url && local.publicUrl ? local.publicUrl : server;
 };
 
-/** The workspace's agents on the web, each one's "Quem pensa" a click away (where an account is given to agents). */
-export const agentsPageUrl = (server: string, orgId: string) => `${server}/org/${encodeURIComponent(orgId)}/team`;
+/**
+ * Where an account is given to agents: the web's Painel de IA, every agent with what it thinks with and "Trocar a IA"
+ * (docs/adr/doug-0017-agents-lean.md).
+ */
+export const agentsPageUrl = (server: string, orgId: string) => `${server}/org/${encodeURIComponent(orgId)}/ai`;
 
 /** The web's Android steps for a phone plugged into this computer (its connect dialog, live with this computer). */
 export const androidStepsUrl = (server: string, orgId: string, machineId: string) =>
