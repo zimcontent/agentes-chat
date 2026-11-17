@@ -34,11 +34,10 @@ import { openWebPath } from "../links/open-web";
 import { Face } from "../shared/Face";
 import { useOrgId } from "../shared/hooks";
 import { island } from "./island";
+import { hasCameraIsland, type IslandShape, islandShape } from "./shape";
 
 /** The camera's island on iPhones that have one: the island grows out of it and folds back into it. */
 const CAMERA = { width: 126, height: 37, top: 11 };
-/** From this top inset an iPhone has the camera's island (14 Pro and later); below it, a notch or nothing. */
-const CAMERA_INSET = 59;
 const PILL_HEIGHT = 72;
 /** The face on the small island, beside the camera. */
 const SMALL_FACE = 27;
@@ -55,7 +54,7 @@ const WHITE = "#fff";
 const MUTED = "rgba(255,255,255,0.64)";
 const LINE = "rgba(255,255,255,0.12)";
 
-type Shape = "none" | "pill" | "small" | "open";
+type Shape = IslandShape;
 
 /** Pulled past its edge, the island follows less the further it goes (a boundary that resists, not a wall). */
 function rubberband(overshoot: number, dimension: number, constant = 0.55) {
@@ -110,9 +109,9 @@ export function NoticeIsland() {
     if (snap.items.length) haptics.light();
   }, [snap.seq, snap.items.length]);
 
-  const camera = Platform.OS === "ios" && insets.top >= CAMERA_INSET;
+  const camera = hasCameraIsland(Platform.OS, insets.top);
   const top = camera ? CAMERA.top : insets.top + 6;
-  const shape: Shape = !lead ? "none" : open ? "open" : small ? "small" : "pill";
+  const shape: Shape = islandShape({ lead: Boolean(lead), open, small, camera });
   // Grown out of the camera, the pill and the open island cover the status bar's line: their content starts under
   // the camera (never behind it) and the status bar steps aside meanwhile, as with the system's own island.
   const clear = camera ? CAMERA.height : 0;
