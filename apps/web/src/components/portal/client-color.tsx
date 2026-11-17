@@ -119,7 +119,7 @@ export function ClientColorMenu({ client }: { client: string }) {
           >
             <span className="portal-clientdot portal-clientdot--lg" data-client-color={color} aria-hidden="true" />
             {/* On a phone the dot says it alone, leaving the row to the other actions. */}
-            <span className="portal-colorbtn__name">
+            <span className="portal-colorbtn__name portal-act__words">
               {color ? t(`portal.clientColor.colors.${color}`) : t("portal.clientColor.label")}
             </span>
           </Button>

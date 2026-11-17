@@ -21564,6 +21564,7 @@ export const en = {
     },
     plan: {
       tab: "Strategic schedule",
+      tabShort: "Schedule",
       view: "View",
       viewBoard: "Board",
       viewCalendar: "Calendar",
