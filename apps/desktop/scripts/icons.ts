@@ -18,10 +18,9 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { deflateSync } from "node:zlib";
 import { Resvg } from "@resvg/resvg-js";
-import { png, render, resize } from "../../../packages/ui/scripts/app-icons/raster.mjs";
-import { APP_ICON_IDS, macLayers, SCENES, tiled } from "../../../packages/ui/scripts/app-icons/scenes.mjs";
-import { eyeShapes } from "../../../packages/ui/src/agent/engine.js";
+import { png, rounded } from "../../mobile/scripts/icon-png.mjs";
 import { DougBot, svgDoBot } from "../../mobile/src/brand/bots";
+import { iconSvg, READY_ICONS } from "../../mobile/src/brand/doug-icons.js";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 
@@ -259,14 +258,24 @@ function appIconPng(S = 1024): Uint8Array {
   return new Resvg(svg, { fitTo: { mode: "width", value: S }, font: { loadSystemFonts: false } }).render().asPng();
 }
 
-/* ---------- App icon (ADR 0179): from the app icons' generator (packages/ui/scripts/app-icons) ---------- */
+/* ---------- App icon (ADR 0179): the Doug's app icons (apps/mobile/src/brand/doug-icons.js) ---------- */
 
 /**
- * The bundle's masters (1024; `tauri icon` makes the .icns, .ico and PNGs from one) are the shipped icon: macOS's
- * shape and shadow, which sits inside Apple's grid with a margin all round, for the .icns; and the full rounded square
- * for Windows and Linux, whose taskbars draw an icon edge to edge, so the macOS margin would show it smaller than its
- * neighbours. Every icon's Dock picture (512) and window picture (256, the rounded square) are what the person may pick
- * while the app runs (src/app_icon.rs embeds them).
+ * An icon in macOS's shape: its square on Apple's grid (824 of 1024, corners of 185) with the shadow under it, the
+ * margin all round transparent.
+ */
+function macSvg(icon: (typeof READY_ICONS)[keyof typeof READY_ICONS]["light"]): string {
+  const inner = iconSvg(icon)
+    .replace(/^<svg[^>]*>/, "")
+    .replace(/<\/svg>$/, "");
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024"><defs><filter id="mcs" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="14"/></filter><clipPath id="mcc"><rect x="100" y="100" width="824" height="824" rx="185"/></clipPath></defs><rect x="100" y="112" width="824" height="824" rx="185" fill="#000" opacity=".3" filter="url(#mcs)"/><g clip-path="url(#mcc)"><g transform="translate(100 100) scale(${824 / 1024})">${inner}</g></g></svg>`;
+}
+
+/**
+ * The bundle's masters (1024; `tauri icon` makes the .icns, .ico and PNGs from one) are the Doug's own drawing, on
+ * every system. Every icon's Dock picture (512, macOS's shape) and window picture (256, the rounded square) are what
+ * the person may pick while the app runs (src/app_icon.rs embeds them): the shipped one is the Doug's drawing too, the
+ * others the Doug's app icons, the same as the phone's and the web's.
  */
 function appIcons(): {
   master: Uint8Array;
@@ -276,23 +285,17 @@ function appIcons(): {
 } {
   const dock = new Map<string, Uint8Array>();
   const window = new Map<string, Uint8Array>();
-  let master: Uint8Array | null = null;
-  let tile: Uint8Array | null = null;
-  for (const id of APP_ICON_IDS) {
-    const scene = SCENES[id];
-    const mac = render(1024, macLayers(scene.light()));
-    const square = render(1024, tiled(scene.light()));
-    if (id === APP_ICON_IDS[0]) {
-      master = png(mac);
-      tile = png(square);
-    }
-    dock.set(id, png(resize(mac, 512)));
-    window.set(id, png(resize(square, 256)));
+  const ids = Object.keys(READY_ICONS) as (keyof typeof READY_ICONS)[];
+  for (const id of ids) {
+    const { light } = READY_ICONS[id];
+    dock.set(id, png(macSvg(light), 512));
+    window.set(id, png(rounded(iconSvg(light)), 256));
   }
-  if (!master || !tile) throw new Error("icons: no app icons");
+  const [shipped] = ids;
+  if (!shipped) throw new Error("icons: no app icons");
   // DougBot: the shipped icon, on every system, is the Doug's drawing.
-  dock.set(APP_ICON_IDS[0], appIconPng(512));
-  window.set(APP_ICON_IDS[0], appIconPng(256));
+  dock.set(shipped, appIconPng(512));
+  window.set(shipped, appIconPng(256));
   return { master: appIconPng(), tile: appIconPng(), dock, window };
 }
 

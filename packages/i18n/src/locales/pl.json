@@ -1882,29 +1882,47 @@
     "readyOne": "Gotowa",
     "use": "Użyj tej ikony",
     "inUse": "W użyciu",
-    "sky": "Tło",
+    "ground": "Tło",
+    "grounds": {
+      "day": "Dzień",
+      "night": "Noc"
+    },
     "pose": "Pozycja",
     "poses": {
       "front": "Na wprost",
       "peek": "Zerkanie"
     },
-    "peekBare": "Gdy zerka, nie nosi dodatku.",
-    "expression": "Mina",
-    "ready": "Gotowe ikony",
-    "oneOrOther": "Z dodatkiem mina pozostaje zwykła.",
-    "faces": {
-      "wink": "Mrugnięcie",
-      "heart": "Serca",
-      "star": "Gwiazdki",
-      "surprised": "Zdziwienie",
-      "angry": "Złość"
+    "color": "Kolor",
+    "colors": {
+      "green": "Zielony",
+      "yellow": "Żółty",
+      "orange": "Pomarańczowy",
+      "pink": "Różowy",
+      "violet": "Liliowy",
+      "blue": "Niebieski",
+      "cyan": "Cyjan",
+      "white": "Biały"
     },
+    "expression": "Mina",
+    "faces": {
+      "normal": "Zwykły",
+      "happy": "Wesoły",
+      "wink": "Puszcza oko",
+      "surprised": "Zdziwiony",
+      "unimpressed": "Nieufny",
+      "sad": "Smutny",
+      "angry": "Zły",
+      "aside": "Zerka w bok",
+      "laugh": "Śmieje się",
+      "asleep": "Śpi"
+    },
+    "ready": "Gotowe ikony",
     "names": {
-      "night": "Noc",
-      "moon": "Księżyc",
-      "sky": "Niebo",
-      "peekNight": "Zerkanie nocą",
-      "peekSky": "Zerkanie w niebie"
+      "night": "Doug",
+      "moon": "Dobranoc",
+      "sky": "Biały",
+      "peekNight": "Zerkający",
+      "peekSky": "Oczko"
     }
   },
   "legal": {

@@ -3,7 +3,7 @@ import { bodyTones, drawAccessory, drawAgent, inBody, toneAt } from "@agentescha
 
 /**
  * A workspace's agent as the app icon (ADR 0179): the Night icon's sky (`/app-icons/night-sky.png`, written by
- * packages/ui/scripts/app-icons.mjs without its agent) with the agent drawn by the agent engine in its own look, on
+ * upstream's generator without its agent and kept as it was; DougBot's icons come from the Doug, doug-0010) with the agent drawn by the agent engine in its own look, on
  * the sky's cells as the shipped icon's. The tab's icon is drawn pixel by pixel like the shipped favicons, without
  * the accessory (at 16 px it is noise). The desktop app can't draw: it is sent the Dock's and the windows' pictures.
  */

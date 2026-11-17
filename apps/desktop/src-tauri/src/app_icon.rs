@@ -3,7 +3,7 @@
 //! the app runs. The bundle keeps the default one, so Finder, Launchpad and the Dock of a closed app show that:
 //! changing the bundle would break its signature. Kept in `app-icon.json` (the app's config folder) and shown again
 //! at launch and whenever a window is made. The ids are the site's (packages/client `app-icons.ts`); the images come
-//! from packages/ui/scripts/app-icons.mjs. The pick can also be one of a workspace's agents: the site draws it (it
+//! from the Doug's app icons (apps/desktop/scripts/icons.ts, DougBot's doug-0010). The pick can also be one of a workspace's agents: the site draws it (it
 //! has the agent engine) and sends both pictures, kept beside the choice, so the Dock shows it on every server.
 
 use std::path::PathBuf;

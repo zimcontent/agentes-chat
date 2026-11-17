@@ -132,7 +132,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   // Upright everywhere (the plugin below); only the agent's screen, in control, lies down (`useSideways`).
   orientation: "default",
   // The icon the app ships with (ADR 0179); the others a person may pick are added by ./plugins/with-app-icons.
-  // All of them come from packages/ui/scripts/app-icons.mjs.
+  // All of them are the Doug (scripts/app-icons.ts, scripts/brand-assets.ts; docs/adr/doug-0010-doug-app-icons.md).
   icon: "./assets/images/icon.png",
   userInterfaceStyle: "automatic",
   ios: {

@@ -1,9 +1,4 @@
-import {
-  type AppIconId,
-  DEFAULT_APP_ICON,
-  type MadeIconPose,
-  type MadeIconSky,
-} from "@agenteschat/client/lib/app-icons";
+import { type AppIconId, DEFAULT_APP_ICON } from "@agenteschat/client/lib/app-icons";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { requireOptionalNativeModule } from "expo";
 import { Platform } from "react-native";
@@ -49,18 +44,6 @@ export const APP_ICON_PICTURES: Record<AppIconId, { light: number; dark: number 
   peekSky: {
     light: require("../../../assets/app-icons/peekSky/preview.png"),
     dark: require("../../../assets/app-icons/peekSky/preview-dark.png"),
-  },
-};
-
-/** The made icons' skies without an agent, as each pose's icon has them: the picker draws the agent over them. */
-export const MADE_ICON_SKY_PICTURES: Record<MadeIconPose, Record<MadeIconSky, number>> = {
-  front: {
-    night: require("../../../assets/app-icons/made/night.png"),
-    sky: require("../../../assets/app-icons/made/sky.png"),
-  },
-  peek: {
-    night: require("../../../assets/app-icons/made/night-peek.png"),
-    sky: require("../../../assets/app-icons/made/sky-peek.png"),
   },
 };
 

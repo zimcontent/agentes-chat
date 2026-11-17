@@ -1729,29 +1729,47 @@
     "readyOne": "기본 제공",
     "use": "이 아이콘 사용",
     "inUse": "사용 중",
-    "sky": "배경",
+    "ground": "배경",
+    "grounds": {
+      "day": "낮",
+      "night": "밤"
+    },
     "pose": "자세",
     "poses": {
       "front": "정면",
       "peek": "빼꼼"
     },
-    "peekBare": "빼꼼 자세에서는 액세서리를 쓰지 않아요.",
-    "expression": "표정",
-    "ready": "기본 제공 아이콘",
-    "oneOrOther": "액세서리를 쓰면 표정은 기본으로 돌아가요.",
-    "faces": {
-      "wink": "윙크",
-      "heart": "하트",
-      "star": "별",
-      "surprised": "놀람",
-      "angry": "화남"
+    "color": "색",
+    "colors": {
+      "green": "초록",
+      "yellow": "노랑",
+      "orange": "주황",
+      "pink": "분홍",
+      "violet": "라일락",
+      "blue": "파랑",
+      "cyan": "청록",
+      "white": "흰색"
     },
+    "expression": "표정",
+    "faces": {
+      "normal": "보통",
+      "happy": "행복",
+      "wink": "윙크",
+      "surprised": "놀람",
+      "unimpressed": "의심",
+      "sad": "슬픔",
+      "angry": "화남",
+      "aside": "곁눈질",
+      "laugh": "웃음",
+      "asleep": "잠"
+    },
+    "ready": "기본 제공 아이콘",
     "names": {
-      "night": "밤",
-      "moon": "달",
-      "sky": "하늘",
-      "peekNight": "밤에 빼꼼",
-      "peekSky": "하늘에서 빼꼼"
+      "night": "Doug",
+      "moon": "잘 자",
+      "sky": "흰색",
+      "peekNight": "빼꼼",
+      "peekSky": "윙크"
     }
   },
   "legal": {

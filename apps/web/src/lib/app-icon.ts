@@ -46,7 +46,7 @@ export const pickedAgent = (pick: AppIconPick) => (typeof pick === "string" ? nu
 
 let current: AppIconPick = inDesktopApp() ? DEFAULT_APP_ICON : parsePick(storage.get(STORAGE_KEYS.appIcon));
 
-/** The icon's picture in the picker (packages/ui/scripts/app-icons.mjs writes them). */
+/** The icon's picture in the picker (apps/mobile/scripts/app-icons.ts writes them, from the Doug). */
 export const appIconPicture = (id: AppIconId) => `/app-icons/${id}.png`;
 /** The tab's icon: the shipped one is the Doug (DougBot's mark, the same as index.html's), the others their own. */
 export const faviconOf = (id: AppIconId) => (id === DEFAULT_APP_ICON ? "/favicon.svg" : `/app-icons/${id}.ico`);

@@ -1779,29 +1779,47 @@
     "readyOne": "Hazır",
     "use": "Bu simgeyi kullan",
     "inUse": "Kullanımda",
-    "sky": "Arka plan",
+    "ground": "Arka plan",
+    "grounds": {
+      "day": "Gündüz",
+      "night": "Gece"
+    },
     "pose": "Duruş",
     "poses": {
       "front": "Karşıdan",
       "peek": "Gözetleyen"
     },
-    "peekBare": "Gözetlerken aksesuar takmaz.",
-    "expression": "İfade",
-    "ready": "Hazır simgeler",
-    "oneOrOther": "Aksesuar takılıyken ifade normal kalır.",
-    "faces": {
-      "wink": "Göz kırpma",
-      "heart": "Kalpler",
-      "star": "Yıldızlar",
-      "surprised": "Şaşkın",
-      "angry": "Kızgın"
+    "color": "Renk",
+    "colors": {
+      "green": "Yeşil",
+      "yellow": "Sarı",
+      "orange": "Turuncu",
+      "pink": "Pembe",
+      "violet": "Leylak",
+      "blue": "Mavi",
+      "cyan": "Camgöbeği",
+      "white": "Beyaz"
     },
+    "expression": "İfade",
+    "faces": {
+      "normal": "Normal",
+      "happy": "Mutlu",
+      "wink": "Göz kırpan",
+      "surprised": "Şaşkın",
+      "unimpressed": "Şüpheci",
+      "sad": "Üzgün",
+      "angry": "Kızgın",
+      "aside": "Yan bakış",
+      "laugh": "Gülen",
+      "asleep": "Uykuda"
+    },
+    "ready": "Hazır simgeler",
     "names": {
-      "night": "Gece",
-      "moon": "Ay",
-      "sky": "Gökyüzü",
-      "peekNight": "Gece gözetleyen",
-      "peekSky": "Gökyüzünde gözetleyen"
+      "night": "Doug",
+      "moon": "İyi geceler",
+      "sky": "Beyaz",
+      "peekNight": "Gizlice bakan",
+      "peekSky": "Göz kırpma"
     }
   },
   "legal": {

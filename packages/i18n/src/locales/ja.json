@@ -1729,29 +1729,47 @@
     "readyOne": "既製",
     "use": "このアイコンを使う",
     "inUse": "使用中",
-    "sky": "背景",
+    "ground": "背景",
+    "grounds": {
+      "day": "昼",
+      "night": "夜"
+    },
     "pose": "ポーズ",
     "poses": {
       "front": "正面",
       "peek": "のぞく"
     },
-    "peekBare": "のぞくときは、アクセサリーをつけません。",
-    "expression": "表情",
-    "ready": "既製のアイコン",
-    "oneOrOther": "アクセサリーをつけると、表情はふつうになります。",
-    "faces": {
-      "wink": "ウインク",
-      "heart": "ハート",
-      "star": "スター",
-      "surprised": "びっくり",
-      "angry": "ぷんぷん"
+    "color": "色",
+    "colors": {
+      "green": "グリーン",
+      "yellow": "イエロー",
+      "orange": "オレンジ",
+      "pink": "ピンク",
+      "violet": "ライラック",
+      "blue": "ブルー",
+      "cyan": "シアン",
+      "white": "ホワイト"
     },
+    "expression": "表情",
+    "faces": {
+      "normal": "ふつう",
+      "happy": "うれしい",
+      "wink": "ウインク",
+      "surprised": "びっくり",
+      "unimpressed": "うたがい",
+      "sad": "かなしい",
+      "angry": "おこり",
+      "aside": "よそ見",
+      "laugh": "わらい",
+      "asleep": "おやすみ"
+    },
+    "ready": "既製のアイコン",
     "names": {
-      "night": "夜",
-      "moon": "月",
-      "sky": "空",
-      "peekNight": "夜にのぞく",
-      "peekSky": "空からのぞく"
+      "night": "Doug",
+      "moon": "おやすみ",
+      "sky": "ホワイト",
+      "peekNight": "のぞき見",
+      "peekSky": "ウインク"
     }
   },
   "legal": {
