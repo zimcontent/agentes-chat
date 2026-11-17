@@ -83,6 +83,7 @@ import {
   noteAnswered,
   noteModelLimit,
   notePlanLimit,
+  noteUnlocked,
   offRefusal,
   recordRunBrain,
   refusalScope,
@@ -668,6 +669,11 @@ export interface Transcript {
    * of the key, for its "Usar o <modelo> em todos".
    */
   modelStandIn?: { plan: string; from: string; to: string; model?: string; machineId?: string; account?: string };
+  /**
+   * The right hand's turn was stopped at a tool of its CLI's own (`tools_not_locked`) and the run went on with the
+   * brain picked again without it (`noteUnlocked`, ADR doug-0003, addendum 2026-11-17): the brain it left. Once a run.
+   */
+  lockedStandIn?: { from: BrainKind; to: BrainKind };
   /**
    * The computer brain is unavailable and nothing can stand in: the run waits for the computer. A usage wait
    * (`USAGE_WAIT_CODES`: the plan's limit, the agent's budget) has no computer to wait for: `machineId` is empty,
@@ -3922,6 +3928,39 @@ async function executeRunInner(
   };
 
   /**
+   * The right hand's turn was stopped at a tool of its CLI's own before it did anything (`tools_not_locked`): that
+   * brain is out of the stand-in order on this computer (`noteUnlocked`), and the run goes on at once with the brain
+   * `resolveBrain` picks now, the next account of the order (ADR doug-0003, addendum 2026-11-17). Once a run; false
+   * when it picks the same brain again (the person's own choice), and then the DM says why as before.
+   */
+  const useLockedStandIn = async (machineId: string): Promise<boolean> => {
+    const t = transcript as Transcript;
+    const from = plan.kind;
+    const fromLabel = plan.account?.label ?? from;
+    if (from === "model" || plan.missionId || t.lockedStandIn) return false;
+    noteUnlocked(machineId, from);
+    const next = await resolveBrain(deps, agent, run, replyThreadId ?? run.channelId, {
+      fresh: Boolean(viaRoutine) || run.background,
+      promptKey: t.promptKey,
+    }).catch(() => null);
+    if (!next || next.kind === "model" || next.kind === from || next.unavailable || next.missionId) return false;
+    plan = next;
+    brain = createBrain(deps, thinker, run, next.kind, turnToken, () => transcript as Transcript);
+    if (next.kind !== "claude_code") onDemandForOtherBrain(t);
+    t.lockedStandIn = { from, to: next.kind };
+    await saveTranscript(db, t);
+    await recordRunBrain(db, run.id, next.kind);
+    run = { ...run, brain: next.kind };
+    later(() =>
+      addRunStep(db, run, "context", {
+        accountStandIn: { from: fromLabel, to: next.account?.label ?? next.kind },
+        lockedStandIn: t.lockedStandIn,
+      }),
+    );
+    return true;
+  };
+
+  /**
    * The plan's limit (`plan_limit`) or the agent's monthly budget (`budget`) stops the run: it parks in its own
    * session (no computer to wait for) and a job resumes it when the limit resets (the refusal's time, else the
    * stored window's, else the re-checks of `LIMIT_LADDER_MS`), at the next month, or when the budget goes up
@@ -4961,6 +5000,8 @@ async function executeRunInner(
           // The right hand's CLI killed at a tool of its own (ADR 0137 §4): nothing of that turn is posted, only its
           // DM's line (`brainUnavailable`), whatever it did through the bridge before.
           const killed = isRightHand(agent) && error instanceof BrainFailure && error.code === "tools_not_locked";
+          // Stopped before it did anything: the next account of the order, on a brain that locks, takes the turn.
+          if (killed && machineId && executed.length === 0 && (await useLockedStandIn(machineId))) continue;
           if (executed.length > 0 && !killed) {
             const failure =
               error instanceof BrainFailure

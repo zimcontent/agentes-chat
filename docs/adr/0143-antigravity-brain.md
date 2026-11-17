@@ -45,3 +45,11 @@ What the CLI does, read in antigravity.google/docs (cli/headless, cli/reference,
 
 - A Gemini plan thinks for its owner's agents on a Linux computer whose runner is 44 or newer with the Antigravity CLI installed, and for Lodi locked to our server's tools, with Google's warning in plain sight wherever a personal plan is in play.
 - Everything Antigravity-specific is behind runner protocol 44 and `kind: "antigravity"`: older runners and servers never see it.
+
+## Addendum 2026-11-17: the look at installed CLIs never updates agy
+
+The runner's look at which CLIs are installed (`detectExecutors`: `agy --version`, `agy models`, every few minutes)
+launched `agy` without `AGY_CLI_DISABLE_AUTO_UPDATE`, so it updated itself on the computer (1.5.9 to 1.5.10 on
+2026-11-17) though turns pass the switch. Every launch of it in that look now goes with `AGY_NO_UPDATE_ENV`
+(`probeEnv`), the switch `AGY_QUIET_ENV` also carries. A locked (`chat`) turn on 1.5.9 and 1.5.10 lists all of the CLI's
+own tools, so the right hand doesn't stand in on it (ADR doug-0003, addendum 2026-11-17).
