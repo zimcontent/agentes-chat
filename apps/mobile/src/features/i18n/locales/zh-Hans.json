@@ -28,8 +28,8 @@
     "thousand": "k",
     "building": "正在整理…",
     "openBig": "全屏打开",
-    "keep": "保存到 Drive",
-    "kept": "已保存到 Drive",
+    "keep": "保存到文件",
+    "kept": "已保存到文件",
     "wake": "点按打开",
     "pageTitle": "带自有代码的区块",
     "pageBody": "它与应用隔离运行，无法访问你的账户或互联网。",
@@ -1020,7 +1020,7 @@
     "issues": "任务",
     "issuesWithMe_other": "{{count}} 个与你有关",
     "proposalsWaiting_other": "{{count}} 条待处理",
-    "drive": "Drive",
+    "drive": "文件",
     "connectors": "连接器和 MCP",
     "preferences": "偏好设置",
     "editProfile": "编辑资料",
@@ -1140,7 +1140,7 @@
     "more": "更多选项",
     "send": "发送",
     "savePhotos": "保存到相册",
-    "drive": "在 Drive 中查看",
+    "drive": "在文件中查看",
     "saved": "已保存到相册",
     "photosDenied": "无法访问相册",
     "photosDeniedSub": "请在设置中允许访问，以保存图片。",
@@ -1251,8 +1251,8 @@
     }
   },
   "drive": {
-    "title": "Drive",
-    "search": "搜索 Drive",
+    "title": "文件",
+    "search": "搜索文件",
     "types": "文件类型",
     "type": {
       "all": "全部",
@@ -1274,8 +1274,49 @@
     },
     "by": "{{name}} · {{when}}",
     "noResults": "没有符合这些筛选条件的内容。",
-    "loadFailed": "无法加载 Drive。",
-    "more": "显示更多"
+    "loadFailed": "无法加载文件。",
+    "more": "显示更多",
+    "you": "你",
+    "anyone": "任何人",
+    "filter": {
+      "type": "类型",
+      "people": "人员",
+      "modified": "修改时间"
+    },
+    "when": {
+      "any": "任何时间",
+      "today": "今天",
+      "week": "最近 7 天",
+      "month": "最近 30 天",
+      "year": "今年"
+    },
+    "change": {
+      "edited": "{{name}} 编辑了",
+      "sent": "{{name}} 发送了",
+      "made": "{{name}} 创建了"
+    },
+    "suggested": "建议",
+    "list": "文件",
+    "folder_other": "含 {{count}} 个文件的对话",
+    "moreFolders_other": "另外 {{count}} 个对话",
+    "menu": "{{name}} 的选项",
+    "more2": "更多选项",
+    "open": "打开",
+    "goToChat": "前往对话",
+    "new": "新建",
+    "order": {
+      "label": "顺序：{{order}}",
+      "recent": "最新的在前",
+      "name": "按名称",
+      "short": {
+        "recent": "最新",
+        "name": "名称"
+      }
+    },
+    "view": {
+      "grid": "网格显示",
+      "list": "列表显示"
+    }
   },
   "constellation": {
     "openHint": "打开你在天空中点按的内容"
@@ -2327,6 +2368,44 @@
   },
   "vault": {
     "newItem": "新建项目",
+    "home": {
+      "title": "密码",
+      "search": "搜索密码",
+      "vaults": "保险库",
+      "items_other": "{{count}} 项",
+      "switch_other": "{{name}}，{{count}} 项。切换保险库",
+      "favorites": "收藏",
+      "connections": "密码管理器",
+      "noFavorites": "点按某项的星标即可放到这里。"
+    },
+    "sheet": {
+      "username": "用户名",
+      "password": "密码",
+      "site": "网站",
+      "keyName": "密钥名称",
+      "value": "值",
+      "note": "备注",
+      "endsIn": "尾号 {{hint}}",
+      "agentsOnly": "仅智能体使用",
+      "sealed": "已保存，仅智能体使用",
+      "copy": "复制{{label}}",
+      "copied": "已复制",
+      "clears": "剪贴板将在 1 分钟后自动清除。",
+      "copyFailed": "无法复制。",
+      "edit": "编辑",
+      "details": "详情",
+      "star": "加入收藏",
+      "unstar": "移出收藏",
+      "who": "谁可以使用",
+      "changeWho": "更改谁可以使用",
+      "onlyYou": "仅你",
+      "everyone": "所有人",
+      "usedByF": "{{name}} {{when}}使用过",
+      "usedByM": "{{name}} {{when}}使用过",
+      "used": "{{when}}使用过",
+      "neverUsed": "尚未使用",
+      "history": "查看记录"
+    },
     "search": "搜索 Vault",
     "noResults": "没有与“{{q}}”匹配的内容。",
     "personalText": "只有你能看到这些。你的智能体只在你要求时使用它们。",

@@ -37,6 +37,7 @@ import {
 } from "@/ui";
 import { TAB_GLYPHS, type TabGlyph, tabGlyphSvg } from "@/ui/tabGlyphs";
 import { useTheme } from "@/ui/theme";
+import { Arquivos, Senhas, SenhasItem, SenhasLogins } from "./arquivos-senhas";
 import { PortalCartao, PortalCronograma, PortalCronograma320 } from "./portal";
 import {
   RevisaoConversa,
@@ -1035,6 +1036,10 @@ export const TELAS: Record<string, () => ReactNode> = {
   "portal-cartao": PortalCartao,
   whatsapp: WhatsAppLista,
   "whatsapp-conversa": WhatsAppConversa,
+  arquivos: Arquivos,
+  senhas: Senhas,
+  "senhas-item": SenhasItem,
+  "senhas-logins": SenhasLogins,
 };
 
 const styles = StyleSheet.create({

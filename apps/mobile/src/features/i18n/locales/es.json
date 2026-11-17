@@ -30,8 +30,8 @@
     "thousand": "k",
     "building": "Armándolo…",
     "openBig": "Abrir en pantalla completa",
-    "keep": "Guardar en Drive",
-    "kept": "Guardado en Drive",
+    "keep": "Guardar en Archivos",
+    "kept": "Guardado en Archivos",
     "wake": "Toca para abrir",
     "pageTitle": "Bloque con código propio",
     "pageBody": "Se ejecuta aparte de la app, sin acceso a tu cuenta ni a internet.",
@@ -1170,7 +1170,7 @@
     "proposalsWaiting_one": "{{count}} en espera",
     "proposalsWaiting_many": "{{count}} en espera",
     "proposalsWaiting_other": "{{count}} en espera",
-    "drive": "Drive",
+    "drive": "Archivos",
     "connectors": "Conectores y MCP",
     "preferences": "Preferencias",
     "editProfile": "Editar perfil",
@@ -1293,7 +1293,7 @@
     "more": "Más opciones",
     "send": "Enviar",
     "savePhotos": "Guardar en Fotos",
-    "drive": "Ver en Drive",
+    "drive": "Ver en Archivos",
     "saved": "Guardada en Fotos",
     "photosDenied": "Sin acceso a Fotos",
     "photosDeniedSub": "Permítelo en Configuración para guardar imágenes.",
@@ -1406,8 +1406,8 @@
     }
   },
   "drive": {
-    "title": "Drive",
-    "search": "Buscar en el Drive",
+    "title": "Archivos",
+    "search": "Buscar en los archivos",
     "types": "Tipos de archivo",
     "type": {
       "all": "Todos",
@@ -1429,8 +1429,53 @@
     },
     "by": "{{name}} · {{when}}",
     "noResults": "Nada con estos filtros.",
-    "loadFailed": "No se pudo cargar el Drive.",
-    "more": "Mostrar más"
+    "loadFailed": "No se pudieron cargar los archivos.",
+    "more": "Mostrar más",
+    "you": "Tú",
+    "anyone": "Cualquiera",
+    "filter": {
+      "type": "Tipo",
+      "people": "Personas",
+      "modified": "Modificado"
+    },
+    "when": {
+      "any": "Cualquier fecha",
+      "today": "Hoy",
+      "week": "Últimos 7 días",
+      "month": "Últimos 30 días",
+      "year": "Este año"
+    },
+    "change": {
+      "edited": "{{name}} editó",
+      "sent": "{{name}} envió",
+      "made": "{{name}} creó"
+    },
+    "suggested": "Sugeridos",
+    "list": "Archivos",
+    "folder_one": "conversación con {{count}} archivo",
+    "folder_many": "conversación con {{count}} archivos",
+    "folder_other": "conversación con {{count}} archivos",
+    "moreFolders_one": "{{count}} conversación más",
+    "moreFolders_many": "{{count}} conversaciones más",
+    "moreFolders_other": "{{count}} conversaciones más",
+    "menu": "Opciones de {{name}}",
+    "more2": "Más opciones",
+    "open": "Abrir",
+    "goToChat": "Ir a la conversación",
+    "new": "Nuevo",
+    "order": {
+      "label": "Orden: {{order}}",
+      "recent": "Más recientes primero",
+      "name": "Por nombre",
+      "short": {
+        "recent": "Recientes",
+        "name": "Nombre"
+      }
+    },
+    "view": {
+      "grid": "Ver en cuadrícula",
+      "list": "Ver en lista"
+    }
   },
   "constellation": {
     "openHint": "Abre lo que tocaste en el cielo"
@@ -2549,6 +2594,48 @@
   },
   "vault": {
     "newItem": "Nuevo elemento",
+    "home": {
+      "title": "Contraseñas",
+      "search": "Buscar en las contraseñas",
+      "vaults": "Bóvedas",
+      "items_one": "{{count}} elemento",
+      "items_many": "{{count}} elementos",
+      "items_other": "{{count}} elementos",
+      "switch_one": "{{name}}, {{count}} elemento. Cambiar de bóveda",
+      "switch_many": "{{name}}, {{count}} elementos. Cambiar de bóveda",
+      "switch_other": "{{name}}, {{count}} elementos. Cambiar de bóveda",
+      "favorites": "Favoritos",
+      "connections": "Gestores de contraseñas",
+      "noFavorites": "Toca la estrella de un elemento para tenerlo aquí."
+    },
+    "sheet": {
+      "username": "usuario",
+      "password": "contraseña",
+      "site": "sitio",
+      "keyName": "nombre de la clave",
+      "value": "valor",
+      "note": "nota",
+      "endsIn": "termina en {{hint}}",
+      "agentsOnly": "solo la usan los agentes",
+      "sealed": "guardada, solo la usan los agentes",
+      "copy": "Copiar {{label}}",
+      "copied": "Copiado",
+      "clears": "El portapapeles se borra solo en 1 minuto.",
+      "copyFailed": "No se pudo copiar.",
+      "edit": "Editar",
+      "details": "Detalles",
+      "star": "Añadir a favoritos",
+      "unstar": "Quitar de favoritos",
+      "who": "Quién puede usarlo",
+      "changeWho": "Cambiar quién puede usarlo",
+      "onlyYou": "Solo tú",
+      "everyone": "Todos",
+      "usedByF": "Usado por {{name}} {{when}}",
+      "usedByM": "Usado por {{name}} {{when}}",
+      "used": "Usado {{when}}",
+      "neverUsed": "Aún no usado",
+      "history": "Ver historial"
+    },
     "search": "Buscar en el Vault",
     "noResults": "Nada coincide con “{{q}}”.",
     "personalText": "Solo tú los ves. Tus agentes los usan solo cuando se lo pides.",

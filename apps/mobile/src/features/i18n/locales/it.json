@@ -30,8 +30,8 @@
     "thousand": "k",
     "building": "Lo sto preparando…",
     "openBig": "Apri a schermo intero",
-    "keep": "Salva in Drive",
-    "kept": "Salvato in Drive",
+    "keep": "Tieni in File",
+    "kept": "Tenuto in File",
     "wake": "Tocca per aprire",
     "pageTitle": "Blocco con codice proprio",
     "pageBody": "Funziona separato dall’app, senza accesso al tuo account né a internet.",
@@ -1170,7 +1170,7 @@
     "proposalsWaiting_one": "{{count}} in attesa",
     "proposalsWaiting_many": "{{count}} in attesa",
     "proposalsWaiting_other": "{{count}} in attesa",
-    "drive": "Drive",
+    "drive": "File",
     "connectors": "Connettori e MCP",
     "preferences": "Preferenze",
     "editProfile": "Modifica profilo",
@@ -1293,7 +1293,7 @@
     "more": "Altre opzioni",
     "send": "Invia",
     "savePhotos": "Salva in Foto",
-    "drive": "Vedi in Drive",
+    "drive": "Vedi in File",
     "saved": "Salvata in Foto",
     "photosDenied": "Nessun accesso a Foto",
     "photosDeniedSub": "Consentilo nelle Impostazioni per salvare le immagini.",
@@ -1406,8 +1406,8 @@
     }
   },
   "drive": {
-    "title": "Drive",
-    "search": "Cerca nel Drive",
+    "title": "File",
+    "search": "Cerca nei file",
     "types": "Tipi di file",
     "type": {
       "all": "Tutti",
@@ -1429,8 +1429,53 @@
     },
     "by": "{{name}} · {{when}}",
     "noResults": "Niente con questi filtri.",
-    "loadFailed": "Non è stato possibile caricare il Drive.",
-    "more": "Mostra altro"
+    "loadFailed": "Impossibile caricare i file.",
+    "more": "Mostra altro",
+    "you": "Tu",
+    "anyone": "Chiunque",
+    "filter": {
+      "type": "Tipo",
+      "people": "Persone",
+      "modified": "Modificato"
+    },
+    "when": {
+      "any": "Qualsiasi data",
+      "today": "Oggi",
+      "week": "Ultimi 7 giorni",
+      "month": "Ultimi 30 giorni",
+      "year": "Quest'anno"
+    },
+    "change": {
+      "edited": "{{name}} ha modificato",
+      "sent": "{{name}} ha inviato",
+      "made": "{{name}} ha creato"
+    },
+    "suggested": "Suggeriti",
+    "list": "File",
+    "folder_one": "conversazione con {{count}} file",
+    "folder_many": "conversazione con {{count}} file",
+    "folder_other": "conversazione con {{count}} file",
+    "moreFolders_one": "Ancora {{count}} conversazione",
+    "moreFolders_many": "Ancora {{count}} conversazioni",
+    "moreFolders_other": "Ancora {{count}} conversazioni",
+    "menu": "Opzioni di {{name}}",
+    "more2": "Altre opzioni",
+    "open": "Apri",
+    "goToChat": "Vai alla conversazione",
+    "new": "Nuovo",
+    "order": {
+      "label": "Ordine: {{order}}",
+      "recent": "Più recenti prima",
+      "name": "Per nome",
+      "short": {
+        "recent": "Recenti",
+        "name": "Nome"
+      }
+    },
+    "view": {
+      "grid": "Vedi a griglia",
+      "list": "Vedi a elenco"
+    }
   },
   "constellation": {
     "openHint": "Apre quello che hai toccato nel cielo"
@@ -2542,6 +2587,48 @@
   },
   "vault": {
     "newItem": "Nuovo elemento",
+    "home": {
+      "title": "Password",
+      "search": "Cerca nelle password",
+      "vaults": "Casseforti",
+      "items_one": "{{count}} elemento",
+      "items_many": "{{count}} elementi",
+      "items_other": "{{count}} elementi",
+      "switch_one": "{{name}}, {{count}} elemento. Cambia cassaforte",
+      "switch_many": "{{name}}, {{count}} elementi. Cambia cassaforte",
+      "switch_other": "{{name}}, {{count}} elementi. Cambia cassaforte",
+      "favorites": "Preferiti",
+      "connections": "Gestori di password",
+      "noFavorites": "Tocca la stella di un elemento per tenerlo qui."
+    },
+    "sheet": {
+      "username": "utente",
+      "password": "password",
+      "site": "sito",
+      "keyName": "nome della chiave",
+      "value": "valore",
+      "note": "nota",
+      "endsIn": "finisce con {{hint}}",
+      "agentsOnly": "la usano solo gli agenti",
+      "sealed": "salvata, la usano solo gli agenti",
+      "copy": "Copia {{label}}",
+      "copied": "Copiato",
+      "clears": "Gli appunti si svuotano da soli tra 1 minuto.",
+      "copyFailed": "Impossibile copiare.",
+      "edit": "Modifica",
+      "details": "Dettagli",
+      "star": "Aggiungi ai preferiti",
+      "unstar": "Togli dai preferiti",
+      "who": "Chi può usarlo",
+      "changeWho": "Cambia chi può usarlo",
+      "onlyYou": "Solo tu",
+      "everyone": "Tutti",
+      "usedByF": "Usato da {{name}} {{when}}",
+      "usedByM": "Usato da {{name}} {{when}}",
+      "used": "Usato {{when}}",
+      "neverUsed": "Non ancora usato",
+      "history": "Vedi cronologia"
+    },
     "search": "Cerca nel Vault",
     "noResults": "Nessun risultato per “{{q}}”.",
     "personalText": "Li vedi solo tu. I tuoi agenti li usano solo quando glielo chiedi.",

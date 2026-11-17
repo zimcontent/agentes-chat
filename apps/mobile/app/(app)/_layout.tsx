@@ -124,7 +124,7 @@ function AppStack() {
       <Stack.Screen name="issues/index" options={{ ...pushed, ...scrollUnder }} />
       <Stack.Screen name="issues/[id]" options={{ ...pushed, ...scrollUnder }} />
       <Stack.Screen name="issues/new" options={{ ...pushed, ...scrollUnder }} />
-      <Stack.Screen name="drive/index" options={{ ...pushed, ...scrollUnder }} />
+      <Stack.Screen name="drive/index" options={{ ...pushed, headerShown: false }} />
       <Stack.Screen name="memory/index" options={{ ...pushed, ...scrollUnder }} />
       <Stack.Screen name="memory/[id]" options={{ ...pushed, ...scrollUnder }} />
       <Stack.Screen name="wiki/index" options={{ ...pushed, ...scrollUnder }} />
@@ -279,7 +279,8 @@ function AppStack() {
       <Stack.Screen name="settings/media" options={{ ...pushed, ...scrollUnder }} />
       <Stack.Screen name="settings/storage" options={{ ...pushed, ...scrollUnder }} />
       <Stack.Screen name="settings/import" options={{ ...pushed, ...scrollUnder }} />
-      <Stack.Screen name="settings/vault" options={{ ...pushed, ...scrollUnder }} />
+      <Stack.Screen name="settings/vault" options={{ ...pushed, headerShown: false }} />
+      <Stack.Screen name="settings/vault-sheet" options={pushSheet} />
       <Stack.Screen name="settings/vault-item" options={{ ...pushed, ...scrollUnder }} />
       <Stack.Screen name="settings/vault-new" options={{ ...pushed, ...scrollUnder }} />
       <Stack.Screen name="settings/vault-env" options={{ ...pushed, ...scrollUnder }} />

@@ -161,7 +161,13 @@ describe("the workspace's settings on the phone: who opens what (the web's sub-n
       .map((f) => `settings/${f.replace(/\\/g, "/").replace(/\.tsx$/, "")}`);
     expect(routes.length).toBeGreaterThan(10);
     // The workspace's settings page sits on the grouped gray like the screens it opens: all scroll under the bar.
-    for (const route of routes) expect(layout).toContain(`name="${route}" options={{ ...pushed, ...scrollUnder }}`);
+    // Senhas draws its own bar as the password managers do, and opens an item in a sheet over it.
+    const own: Record<string, string> = {
+      "settings/vault": "{{ ...pushed, headerShown: false }}",
+      "settings/vault-sheet": "{pushSheet}",
+    };
+    for (const route of routes)
+      expect(layout).toContain(`name="${route}" options=${own[route] ?? "{{ ...pushed, ...scrollUnder }}"}`);
   });
 });
 

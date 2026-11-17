@@ -29,8 +29,8 @@
     "thousand": "B",
     "building": "Hazırlanıyor…",
     "openBig": "Tam ekran aç",
-    "keep": "Drive'da sakla",
-    "kept": "Drive'da saklandı",
+    "keep": "Dosyalarda tut",
+    "kept": "Dosyalarda tutuldu",
     "wake": "Açmak için dokunun",
     "pageTitle": "Kendi kodu olan blok",
     "pageBody": "Uygulamadan ayrı çalışır. Hesabına ya da internete erişemez.",
@@ -1095,7 +1095,7 @@
     "issuesWithMe_other": "{{count}} tanesi sizde",
     "proposalsWaiting_one": "{{count}} bekliyor",
     "proposalsWaiting_other": "{{count}} bekliyor",
-    "drive": "Drive",
+    "drive": "Dosyalar",
     "connectors": "Bağlayıcılar ve MCP'ler",
     "preferences": "Tercihler",
     "editProfile": "Profili düzenle",
@@ -1218,7 +1218,7 @@
     "more": "Diğer seçenekler",
     "send": "Gönder",
     "savePhotos": "Fotoğraflar'a kaydet",
-    "drive": "Drive'da görüntüle",
+    "drive": "Dosyalarda gör",
     "saved": "Fotoğraflar'a kaydedildi",
     "photosDenied": "Fotoğraflar'a erişim yok",
     "photosDeniedSub": "Görselleri kaydetmek için Ayarlar'dan izin verin.",
@@ -1330,8 +1330,8 @@
     }
   },
   "drive": {
-    "title": "Drive",
-    "search": "Drive'da ara",
+    "title": "Dosyalar",
+    "search": "Dosyalarda ara",
     "types": "Dosya türleri",
     "type": {
       "all": "Tümü",
@@ -1353,8 +1353,51 @@
     },
     "by": "{{name}} · {{when}}",
     "noResults": "Bu filtrelerle bir şey yok.",
-    "loadFailed": "Drive yüklenemedi.",
-    "more": "Daha fazla göster"
+    "loadFailed": "Dosyalar yüklenemedi.",
+    "more": "Daha fazla göster",
+    "you": "Sen",
+    "anyone": "Herkes",
+    "filter": {
+      "type": "Tür",
+      "people": "Kişiler",
+      "modified": "Değiştirilme"
+    },
+    "when": {
+      "any": "Her zaman",
+      "today": "Bugün",
+      "week": "Son 7 gün",
+      "month": "Son 30 gün",
+      "year": "Bu yıl"
+    },
+    "change": {
+      "edited": "{{name}} düzenledi",
+      "sent": "{{name}} gönderdi",
+      "made": "{{name}} oluşturdu"
+    },
+    "suggested": "Önerilenler",
+    "list": "Dosyalar",
+    "folder_one": "{{count}} dosyalı sohbet",
+    "folder_other": "{{count}} dosyalı sohbet",
+    "moreFolders_one": "{{count}} sohbet daha",
+    "moreFolders_other": "{{count}} sohbet daha",
+    "menu": "{{name}} seçenekleri",
+    "more2": "Diğer seçenekler",
+    "open": "Aç",
+    "goToChat": "Sohbete git",
+    "new": "Yeni",
+    "order": {
+      "label": "Sıra: {{order}}",
+      "recent": "Önce en yeniler",
+      "name": "Ada göre",
+      "short": {
+        "recent": "En yeni",
+        "name": "Ad"
+      }
+    },
+    "view": {
+      "grid": "Izgara olarak gör",
+      "list": "Liste olarak gör"
+    }
   },
   "constellation": {
     "openHint": "Gökyüzünde dokunduğunuz şeyi açar"
@@ -2438,6 +2481,46 @@
   },
   "vault": {
     "newItem": "Yeni öğe",
+    "home": {
+      "title": "Parolalar",
+      "search": "Parolalarda ara",
+      "vaults": "Kasalar",
+      "items_one": "{{count}} öğe",
+      "items_other": "{{count}} öğe",
+      "switch_one": "{{name}}, {{count}} öğe. Kasayı değiştir",
+      "switch_other": "{{name}}, {{count}} öğe. Kasayı değiştir",
+      "favorites": "Favoriler",
+      "connections": "Parola yöneticileri",
+      "noFavorites": "Burada tutmak için bir öğenin yıldızına dokunun."
+    },
+    "sheet": {
+      "username": "kullanıcı adı",
+      "password": "parola",
+      "site": "site",
+      "keyName": "anahtar adı",
+      "value": "değer",
+      "note": "not",
+      "endsIn": "{{hint}} ile biter",
+      "agentsOnly": "yalnızca ajanlar kullanır",
+      "sealed": "kayıtlı, yalnızca ajanlar kullanır",
+      "copy": "{{label}} kopyala",
+      "copied": "Kopyalandı",
+      "clears": "Pano 1 dakika sonra kendiliğinden temizlenir.",
+      "copyFailed": "Kopyalanamadı.",
+      "edit": "Düzenle",
+      "details": "Ayrıntılar",
+      "star": "Favorilere ekle",
+      "unstar": "Favorilerden çıkar",
+      "who": "Kimler kullanabilir",
+      "changeWho": "Kimlerin kullanabileceğini değiştir",
+      "onlyYou": "Yalnızca sen",
+      "everyone": "Herkes",
+      "usedByF": "{{name}} {{when}} kullandı",
+      "usedByM": "{{name}} {{when}} kullandı",
+      "used": "{{when}} kullanıldı",
+      "neverUsed": "Henüz kullanılmadı",
+      "history": "Geçmişi gör"
+    },
     "search": "Vault'ta ara",
     "noResults": "“{{q}}” ile eşleşen bir şey yok.",
     "personalText": "Bunları yalnızca siz görürsünüz. Ajanlarınız bunları yalnızca siz istediğinizde kullanır.",

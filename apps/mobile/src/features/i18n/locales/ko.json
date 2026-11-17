@@ -28,8 +28,8 @@
     "thousand": "천",
     "building": "준비하는 중…",
     "openBig": "전체 화면으로 열기",
-    "keep": "Drive에 보관",
-    "kept": "Drive에 보관됨",
+    "keep": "파일에 보관",
+    "kept": "파일에 보관됨",
     "wake": "탭해서 열기",
     "pageTitle": "자체 코드가 있는 블록",
     "pageBody": "앱과 분리되어 실행되며 계정이나 인터넷에 접근할 수 없어요.",
@@ -1020,7 +1020,7 @@
     "issues": "작업",
     "issuesWithMe_other": "나와 관련된 작업 {{count}}개",
     "proposalsWaiting_other": "{{count}}개 대기 중",
-    "drive": "Drive",
+    "drive": "파일",
     "connectors": "커넥터와 MCP",
     "preferences": "환경설정",
     "editProfile": "프로필 편집",
@@ -1140,7 +1140,7 @@
     "more": "더 많은 옵션",
     "send": "보내기",
     "savePhotos": "사진에 저장",
-    "drive": "Drive에서 보기",
+    "drive": "파일에서 보기",
     "saved": "사진에 저장했어요",
     "photosDenied": "사진에 접근할 수 없어요",
     "photosDeniedSub": "사진을 저장하려면 설정에서 허용해 주세요.",
@@ -1251,8 +1251,8 @@
     }
   },
   "drive": {
-    "title": "Drive",
-    "search": "Drive 검색",
+    "title": "파일",
+    "search": "파일 검색",
     "types": "파일 형식",
     "type": {
       "all": "전체",
@@ -1274,8 +1274,49 @@
     },
     "by": "{{name}} · {{when}}",
     "noResults": "이 필터에 맞는 항목이 없어요.",
-    "loadFailed": "Drive를 불러오지 못했어요.",
-    "more": "더 보기"
+    "loadFailed": "파일을 불러오지 못했습니다.",
+    "more": "더 보기",
+    "you": "나",
+    "anyone": "누구나",
+    "filter": {
+      "type": "유형",
+      "people": "사람",
+      "modified": "수정"
+    },
+    "when": {
+      "any": "모든 날짜",
+      "today": "오늘",
+      "week": "지난 7일",
+      "month": "지난 30일",
+      "year": "올해"
+    },
+    "change": {
+      "edited": "{{name}} 님이 수정",
+      "sent": "{{name}} 님이 보냄",
+      "made": "{{name}} 님이 만듦"
+    },
+    "suggested": "추천",
+    "list": "파일",
+    "folder_other": "파일 {{count}}개가 있는 대화",
+    "moreFolders_other": "대화 {{count}}개 더",
+    "menu": "{{name}} 옵션",
+    "more2": "옵션 더 보기",
+    "open": "열기",
+    "goToChat": "대화로 이동",
+    "new": "새로 만들기",
+    "order": {
+      "label": "순서: {{order}}",
+      "recent": "최신순",
+      "name": "이름순",
+      "short": {
+        "recent": "최신",
+        "name": "이름"
+      }
+    },
+    "view": {
+      "grid": "그리드로 보기",
+      "list": "목록으로 보기"
+    }
   },
   "constellation": {
     "openHint": "하늘에서 탭한 항목을 열어요"
@@ -2327,6 +2368,44 @@
   },
   "vault": {
     "newItem": "새 항목",
+    "home": {
+      "title": "비밀번호",
+      "search": "비밀번호 검색",
+      "vaults": "보관함",
+      "items_other": "{{count}}개 항목",
+      "switch_other": "{{name}}, {{count}}개 항목. 보관함 바꾸기",
+      "favorites": "즐겨찾기",
+      "connections": "비밀번호 관리자",
+      "noFavorites": "항목의 별을 누르면 여기에 표시됩니다."
+    },
+    "sheet": {
+      "username": "사용자 이름",
+      "password": "비밀번호",
+      "site": "사이트",
+      "keyName": "키 이름",
+      "value": "값",
+      "note": "메모",
+      "endsIn": "끝자리 {{hint}}",
+      "agentsOnly": "에이전트만 사용",
+      "sealed": "저장됨, 에이전트만 사용",
+      "copy": "{{label}} 복사",
+      "copied": "복사됨",
+      "clears": "클립보드는 1분 뒤 자동으로 지워집니다.",
+      "copyFailed": "복사하지 못했습니다.",
+      "edit": "편집",
+      "details": "세부 정보",
+      "star": "즐겨찾기에 추가",
+      "unstar": "즐겨찾기에서 제거",
+      "who": "사용할 수 있는 사람",
+      "changeWho": "사용할 수 있는 사람 변경",
+      "onlyYou": "나만",
+      "everyone": "모두",
+      "usedByF": "{{name}} 님이 {{when}} 사용",
+      "usedByM": "{{name}} 님이 {{when}} 사용",
+      "used": "{{when}} 사용",
+      "neverUsed": "아직 사용되지 않음",
+      "history": "기록 보기"
+    },
     "search": "Vault 검색",
     "noResults": "“{{q}}”에 맞는 결과가 없어요.",
     "personalText": "나만 볼 수 있어요. 내가 부탁할 때만 에이전트가 사용해요.",

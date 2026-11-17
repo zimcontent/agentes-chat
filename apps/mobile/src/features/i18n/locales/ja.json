@@ -28,8 +28,8 @@
     "thousand": "千",
     "building": "まとめています…",
     "openBig": "全画面で開く",
-    "keep": "Driveに保存",
-    "kept": "Driveに保存済み",
+    "keep": "ファイルに保存",
+    "kept": "ファイルに保存済み",
     "wake": "タップして開く",
     "pageTitle": "独自のコードを持つブロック",
     "pageBody": "アプリとは切り離されて動き、あなたのアカウントやインターネットにはアクセスできません。",
@@ -1020,7 +1020,7 @@
     "issues": "タスク",
     "issuesWithMe_other": "あなた担当: {{count}}件",
     "proposalsWaiting_other": "{{count}} 件待ち",
-    "drive": "Drive",
+    "drive": "ファイル",
     "connectors": "コネクタとMCP",
     "preferences": "環境設定",
     "editProfile": "プロフィールを編集",
@@ -1140,7 +1140,7 @@
     "more": "その他のオプション",
     "send": "送る",
     "savePhotos": "写真に保存",
-    "drive": "Driveで表示",
+    "drive": "ファイルで見る",
     "saved": "写真に保存しました",
     "photosDenied": "写真へのアクセスがありません",
     "photosDeniedSub": "画像を保存するには、設定で許可してください。",
@@ -1251,8 +1251,8 @@
     }
   },
   "drive": {
-    "title": "Drive",
-    "search": "Driveを検索",
+    "title": "ファイル",
+    "search": "ファイルを検索",
     "types": "ファイルの種類",
     "type": {
       "all": "すべて",
@@ -1274,8 +1274,49 @@
     },
     "by": "{{name}} · {{when}}",
     "noResults": "この条件に一致するものはありません。",
-    "loadFailed": "Driveを読み込めませんでした。",
-    "more": "もっと見る"
+    "loadFailed": "ファイルを読み込めませんでした。",
+    "more": "もっと見る",
+    "you": "あなた",
+    "anyone": "すべての人",
+    "filter": {
+      "type": "種類",
+      "people": "ユーザー",
+      "modified": "更新日"
+    },
+    "when": {
+      "any": "すべての期間",
+      "today": "今日",
+      "week": "過去7日間",
+      "month": "過去30日間",
+      "year": "今年"
+    },
+    "change": {
+      "edited": "{{name}}が編集",
+      "sent": "{{name}}が送信",
+      "made": "{{name}}が作成"
+    },
+    "suggested": "おすすめ",
+    "list": "ファイル",
+    "folder_other": "{{count}}件のファイルがある会話",
+    "moreFolders_other": "ほかに{{count}}件の会話",
+    "menu": "{{name}}のオプション",
+    "more2": "その他のオプション",
+    "open": "開く",
+    "goToChat": "会話へ移動",
+    "new": "新規",
+    "order": {
+      "label": "並び順: {{order}}",
+      "recent": "新しい順",
+      "name": "名前順",
+      "short": {
+        "recent": "新しい順",
+        "name": "名前"
+      }
+    },
+    "view": {
+      "grid": "グリッド表示",
+      "list": "リスト表示"
+    }
   },
   "constellation": {
     "openHint": "空でタップしたものを開きます"
@@ -2327,6 +2368,44 @@
   },
   "vault": {
     "newItem": "新しい項目",
+    "home": {
+      "title": "パスワード",
+      "search": "パスワードを検索",
+      "vaults": "保管庫",
+      "items_other": "{{count}}件",
+      "switch_other": "{{name}}、{{count}}件。保管庫を切り替え",
+      "favorites": "お気に入り",
+      "connections": "パスワード管理ツール",
+      "noFavorites": "項目の星をタップするとここに表示されます。"
+    },
+    "sheet": {
+      "username": "ユーザー名",
+      "password": "パスワード",
+      "site": "サイト",
+      "keyName": "キーの名前",
+      "value": "値",
+      "note": "メモ",
+      "endsIn": "末尾 {{hint}}",
+      "agentsOnly": "エージェントだけが使用",
+      "sealed": "保存済み、エージェントだけが使用",
+      "copy": "{{label}}をコピー",
+      "copied": "コピーしました",
+      "clears": "クリップボードは1分後に自動で消去されます。",
+      "copyFailed": "コピーできませんでした。",
+      "edit": "編集",
+      "details": "詳細",
+      "star": "お気に入りに追加",
+      "unstar": "お気に入りから外す",
+      "who": "使用できる人",
+      "changeWho": "使用できる人を変更",
+      "onlyYou": "あなただけ",
+      "everyone": "全員",
+      "usedByF": "{{name}}が{{when}}に使用",
+      "usedByM": "{{name}}が{{when}}に使用",
+      "used": "{{when}}に使用",
+      "neverUsed": "まだ使用されていません",
+      "history": "履歴を見る"
+    },
     "search": "Vaultを検索",
     "noResults": "「{{q}}」に一致するものはありません。",
     "personalText": "これらはあなただけに表示されます。エージェントは、あなたが頼んだときだけ使います。",

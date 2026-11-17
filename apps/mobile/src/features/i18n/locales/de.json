@@ -29,8 +29,8 @@
     "thousand": "Tsd.",
     "building": "Wird zusammengestellt…",
     "openBig": "Im Vollbild öffnen",
-    "keep": "Im Drive behalten",
-    "kept": "Im Drive behalten",
+    "keep": "In Dateien behalten",
+    "kept": "In Dateien behalten",
     "wake": "Zum Öffnen tippen",
     "pageTitle": "Block mit eigenem Code",
     "pageBody": "Er läuft getrennt von der App, ohne Zugriff auf dein Konto oder das Internet.",
@@ -1095,7 +1095,7 @@
     "issuesWithMe_other": "{{count}} bei dir",
     "proposalsWaiting_one": "{{count}} wartet",
     "proposalsWaiting_other": "{{count}} warten",
-    "drive": "Drive",
+    "drive": "Dateien",
     "connectors": "Konnektoren und MCP",
     "preferences": "Einstellungen",
     "editProfile": "Profil bearbeiten",
@@ -1218,7 +1218,7 @@
     "more": "Weitere Optionen",
     "send": "Senden",
     "savePhotos": "In Fotos sichern",
-    "drive": "Im Drive ansehen",
+    "drive": "In Dateien ansehen",
     "saved": "In Fotos gesichert",
     "photosDenied": "Kein Zugriff auf Fotos",
     "photosDeniedSub": "Erlaube es in den Einstellungen, um Bilder zu sichern.",
@@ -1330,8 +1330,8 @@
     }
   },
   "drive": {
-    "title": "Drive",
-    "search": "Im Drive suchen",
+    "title": "Dateien",
+    "search": "In Dateien suchen",
     "types": "Dateitypen",
     "type": {
       "all": "Alle",
@@ -1353,8 +1353,51 @@
     },
     "by": "{{name}} · {{when}}",
     "noResults": "Nichts mit diesen Filtern.",
-    "loadFailed": "Der Drive ließ sich nicht laden.",
-    "more": "Mehr zeigen"
+    "loadFailed": "Die Dateien konnten nicht geladen werden.",
+    "more": "Mehr zeigen",
+    "you": "Du",
+    "anyone": "Alle",
+    "filter": {
+      "type": "Typ",
+      "people": "Personen",
+      "modified": "Geändert"
+    },
+    "when": {
+      "any": "Jederzeit",
+      "today": "Heute",
+      "week": "Letzte 7 Tage",
+      "month": "Letzte 30 Tage",
+      "year": "Dieses Jahr"
+    },
+    "change": {
+      "edited": "{{name}} hat bearbeitet",
+      "sent": "{{name}} hat gesendet",
+      "made": "{{name}} hat erstellt"
+    },
+    "suggested": "Vorschläge",
+    "list": "Dateien",
+    "folder_one": "Unterhaltung mit {{count}} Datei",
+    "folder_other": "Unterhaltung mit {{count}} Dateien",
+    "moreFolders_one": "{{count}} weitere Unterhaltung",
+    "moreFolders_other": "{{count}} weitere Unterhaltungen",
+    "menu": "Optionen für {{name}}",
+    "more2": "Weitere Optionen",
+    "open": "Öffnen",
+    "goToChat": "Zur Unterhaltung",
+    "new": "Neu",
+    "order": {
+      "label": "Reihenfolge: {{order}}",
+      "recent": "Neueste zuerst",
+      "name": "Nach Name",
+      "short": {
+        "recent": "Neueste",
+        "name": "Name"
+      }
+    },
+    "view": {
+      "grid": "Als Raster",
+      "list": "Als Liste"
+    }
   },
   "constellation": {
     "openHint": "Öffnet, was du am Himmel angetippt hast"
@@ -2438,6 +2481,46 @@
   },
   "vault": {
     "newItem": "Neuer Eintrag",
+    "home": {
+      "title": "Passwörter",
+      "search": "Passwörter durchsuchen",
+      "vaults": "Tresore",
+      "items_one": "{{count}} Eintrag",
+      "items_other": "{{count}} Einträge",
+      "switch_one": "{{name}}, {{count}} Eintrag. Tresor wechseln",
+      "switch_other": "{{name}}, {{count}} Einträge. Tresor wechseln",
+      "favorites": "Favoriten",
+      "connections": "Passwortmanager",
+      "noFavorites": "Tippe auf den Stern eines Eintrags, damit er hier steht."
+    },
+    "sheet": {
+      "username": "Benutzername",
+      "password": "Passwort",
+      "site": "Website",
+      "keyName": "Name des Schlüssels",
+      "value": "Wert",
+      "note": "Notiz",
+      "endsIn": "endet auf {{hint}}",
+      "agentsOnly": "nur Agenten nutzen es",
+      "sealed": "gespeichert, nur Agenten nutzen es",
+      "copy": "{{label}} kopieren",
+      "copied": "Kopiert",
+      "clears": "Die Zwischenablage leert sich nach 1 Minute.",
+      "copyFailed": "Kopieren fehlgeschlagen.",
+      "edit": "Bearbeiten",
+      "details": "Details",
+      "star": "Zu Favoriten",
+      "unstar": "Aus Favoriten entfernen",
+      "who": "Wer es nutzen darf",
+      "changeWho": "Ändern, wer es nutzen darf",
+      "onlyYou": "Nur du",
+      "everyone": "Alle",
+      "usedByF": "Genutzt von {{name}} {{when}}",
+      "usedByM": "Genutzt von {{name}} {{when}}",
+      "used": "Genutzt {{when}}",
+      "neverUsed": "Noch nicht genutzt",
+      "history": "Verlauf ansehen"
+    },
     "search": "Im Vault suchen",
     "noResults": "Nichts passt zu „{{q}}“.",
     "personalText": "Nur du siehst sie. Deine Agenten verwenden sie nur, wenn du sie darum bittest.",

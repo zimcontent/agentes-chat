@@ -30,8 +30,8 @@
     "thousand": "k",
     "building": "Préparation…",
     "openBig": "Ouvrir en plein écran",
-    "keep": "Garder dans Drive",
-    "kept": "Gardé dans Drive",
+    "keep": "Garder dans Fichiers",
+    "kept": "Gardé dans Fichiers",
     "wake": "Touchez pour ouvrir",
     "pageTitle": "Bloc avec son propre code",
     "pageBody": "Il s’exécute à part de l’app, sans accès à ton compte ni à internet.",
@@ -1170,7 +1170,7 @@
     "proposalsWaiting_one": "{{count}} en attente",
     "proposalsWaiting_many": "{{count}} en attente",
     "proposalsWaiting_other": "{{count}} en attente",
-    "drive": "Drive",
+    "drive": "Fichiers",
     "connectors": "Connecteurs et MCP",
     "preferences": "Préférences",
     "editProfile": "Modifier le profil",
@@ -1293,7 +1293,7 @@
     "more": "Plus d'options",
     "send": "Envoyer",
     "savePhotos": "Enregistrer dans Photos",
-    "drive": "Voir dans Drive",
+    "drive": "Voir dans Fichiers",
     "saved": "Enregistré dans Photos",
     "photosDenied": "Pas d'accès à Photos",
     "photosDeniedSub": "Autorisez-le dans les Réglages pour enregistrer des images.",
@@ -1406,8 +1406,8 @@
     }
   },
   "drive": {
-    "title": "Drive",
-    "search": "Rechercher dans le Drive",
+    "title": "Fichiers",
+    "search": "Rechercher dans les fichiers",
     "types": "Types de fichiers",
     "type": {
       "all": "Tout",
@@ -1429,8 +1429,53 @@
     },
     "by": "{{name}} · {{when}}",
     "noResults": "Rien avec ces filtres.",
-    "loadFailed": "Impossible de charger le Drive.",
-    "more": "Afficher plus"
+    "loadFailed": "Impossible de charger les fichiers.",
+    "more": "Afficher plus",
+    "you": "Vous",
+    "anyone": "N'importe qui",
+    "filter": {
+      "type": "Type",
+      "people": "Personnes",
+      "modified": "Modifié"
+    },
+    "when": {
+      "any": "N'importe quand",
+      "today": "Aujourd'hui",
+      "week": "7 derniers jours",
+      "month": "30 derniers jours",
+      "year": "Cette année"
+    },
+    "change": {
+      "edited": "{{name}} a modifié",
+      "sent": "{{name}} a envoyé",
+      "made": "{{name}} a créé"
+    },
+    "suggested": "Suggestions",
+    "list": "Fichiers",
+    "folder_one": "conversation avec {{count}} fichier",
+    "folder_many": "conversation avec {{count}} fichiers",
+    "folder_other": "conversation avec {{count}} fichiers",
+    "moreFolders_one": "{{count}} autre conversation",
+    "moreFolders_many": "{{count}} autres conversations",
+    "moreFolders_other": "{{count}} autres conversations",
+    "menu": "Options de {{name}}",
+    "more2": "Plus d'options",
+    "open": "Ouvrir",
+    "goToChat": "Aller à la conversation",
+    "new": "Nouveau",
+    "order": {
+      "label": "Ordre : {{order}}",
+      "recent": "Plus récents d'abord",
+      "name": "Par nom",
+      "short": {
+        "recent": "Récents",
+        "name": "Nom"
+      }
+    },
+    "view": {
+      "grid": "Afficher en grille",
+      "list": "Afficher en liste"
+    }
   },
   "constellation": {
     "openHint": "Ouvre ce que vous avez touché dans le ciel"
@@ -2542,6 +2587,48 @@
   },
   "vault": {
     "newItem": "Nouvel élément",
+    "home": {
+      "title": "Mots de passe",
+      "search": "Rechercher dans les mots de passe",
+      "vaults": "Coffres",
+      "items_one": "{{count}} élément",
+      "items_many": "{{count}} éléments",
+      "items_other": "{{count}} éléments",
+      "switch_one": "{{name}}, {{count}} élément. Changer de coffre",
+      "switch_many": "{{name}}, {{count}} éléments. Changer de coffre",
+      "switch_other": "{{name}}, {{count}} éléments. Changer de coffre",
+      "favorites": "Favoris",
+      "connections": "Gestionnaires de mots de passe",
+      "noFavorites": "Touchez l'étoile d'un élément pour le garder ici."
+    },
+    "sheet": {
+      "username": "identifiant",
+      "password": "mot de passe",
+      "site": "site",
+      "keyName": "nom de la clé",
+      "value": "valeur",
+      "note": "note",
+      "endsIn": "se termine par {{hint}}",
+      "agentsOnly": "seuls les agents l'utilisent",
+      "sealed": "enregistré, seuls les agents l'utilisent",
+      "copy": "Copier {{label}}",
+      "copied": "Copié",
+      "clears": "Le presse-papiers s'efface tout seul dans 1 minute.",
+      "copyFailed": "Impossible de copier.",
+      "edit": "Modifier",
+      "details": "Détails",
+      "star": "Ajouter aux favoris",
+      "unstar": "Retirer des favoris",
+      "who": "Qui peut l'utiliser",
+      "changeWho": "Changer qui peut l'utiliser",
+      "onlyYou": "Vous seul",
+      "everyone": "Tout le monde",
+      "usedByF": "Utilisé par {{name}} {{when}}",
+      "usedByM": "Utilisé par {{name}} {{when}}",
+      "used": "Utilisé {{when}}",
+      "neverUsed": "Pas encore utilisé",
+      "history": "Voir l'historique"
+    },
     "search": "Chercher dans le Vault",
     "noResults": "Rien ne correspond à “{{q}}”.",
     "personalText": "Vous seul les voyez. Vos agents les utilisent seulement quand vous le demandez.",

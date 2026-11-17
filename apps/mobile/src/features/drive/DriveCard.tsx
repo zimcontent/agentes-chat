@@ -85,7 +85,8 @@ export const DriveCard = memo(function DriveCard({
   );
 });
 
-function Preview({ artifact: a }: { artifact: Artifact }) {
+/** The item's real picture at its version (a document's lines, a table's rows, the image), filling its box. */
+export function Preview({ artifact: a }: { artifact: Artifact }) {
   const orgId = useOrgId();
   const image = cardShape(a) === "image";
   // At its exact version: never stale, and shared with the viewer.

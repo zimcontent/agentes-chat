@@ -78,6 +78,8 @@ export const STORED = {
   lastPlace: "last-place",
   /** Recent searches, newest first, per workspace (JSON by workspace id; ADR 0123). */
   searchRecent: "search-recent",
+  /** The Vault items starred on this phone, per workspace (JSON by workspace id: item ids; features/vault). */
+  vaultFavorites: "vault-favorites",
   /** Recent searches inside one conversation, newest first (JSON by `<workspace id>:<channel id>`). */
   conversationSearchRecent: "conversation-search-recent",
   /** The person has touched the trackpad: its lesson is over ("1"). */
