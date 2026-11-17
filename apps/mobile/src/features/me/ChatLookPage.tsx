@@ -140,7 +140,7 @@ function PreviewRow({ line, first, dm }: { line: Line; first: boolean; dm: boole
       ) : null}
       <View style={styles.body}>
         {bubbled ? (
-          <View style={[lookRows.bubble, { backgroundColor: c.bubble }]}>
+          <View style={[lookRows.bubble, { backgroundColor: c.bubbleTheirs, boxShadow: c.bubbleTheirsRim }]}>
             {dm ? null : nameText}
             <View style={styles.bubbleLine}>
               {words}

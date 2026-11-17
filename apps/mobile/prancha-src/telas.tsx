@@ -571,11 +571,11 @@ function Servidor() {
 
 type Msg = { who: AgentLookInput | "eu"; text: string; mode?: "run" | "think" };
 
-function Bubble({ m }: { m: Msg }) {
+function Bubble({ m, dm = false }: { m: Msg; dm?: boolean }) {
   const { colors } = useTheme();
   if (m.who === "eu")
     return (
-      <View style={[styles.bubble, styles.mine, { backgroundColor: colors.bubble }]}>
+      <View style={[styles.bubble, styles.mine, { backgroundColor: colors.bubble, boxShadow: colors.bubbleRim }]}>
         <Text variant="body" style={styles.chatText}>
           {m.text}
         </Text>
@@ -584,9 +584,16 @@ function Bubble({ m }: { m: Msg }) {
   return (
     <View style={styles.theirs}>
       <AgentAvatar agent={m.who} size={32} mode={m.mode ?? "idle"} />
-      <View style={[styles.bubble, styles.theirBubble, { backgroundColor: colors.raised2 }]}>
-        <BotName a={m.who} />
-        <Text variant="body" style={[styles.chatText, { marginTop: 4 }]}>
+      <View
+        style={[
+          styles.bubble,
+          styles.theirBubble,
+          { backgroundColor: colors.bubbleTheirs, boxShadow: colors.bubbleTheirsRim },
+        ]}
+      >
+        {/* A DM's bubble has no name: the header already says who it is (as the app's \`MessageRow\`). */}
+        {dm ? null : <BotName a={m.who} />}
+        <Text variant="body" style={[styles.chatText, dm ? null : { marginTop: 4 }]}>
           {m.text}
         </Text>
       </View>
@@ -594,12 +601,25 @@ function Bubble({ m }: { m: Msg }) {
   );
 }
 
-function Chat({ header, msgs, extra }: { header: ReactNode; msgs: Msg[]; extra?: ReactNode }) {
+function Chat({
+  header,
+  msgs,
+  extra,
+  dm = false,
+}: {
+  header: ReactNode;
+  msgs: Msg[];
+  extra?: ReactNode;
+  dm?: boolean;
+}) {
   const insets = useSafeAreaInsets();
   return (
     <Frame
       scroll
-      header={<View style={styles.chatHeader}>{header}</View>}
+      header={
+        // The bar's back and actions are the system's (iOS 26 glass): the board draws the pill alone.
+        <View style={styles.chatHeader}>{header}</View>
+      }
       bottom={
         <View style={{ paddingHorizontal: 16, paddingTop: 8, paddingBottom: Math.max(insets.bottom, 34) }}>
           <Composer placeholder="Mensagem" onSend={() => {}} onPlus={() => {}} />
@@ -612,7 +632,7 @@ function Chat({ header, msgs, extra }: { header: ReactNode; msgs: Msg[]; extra?:
         </View>
         {msgs.map((m, i) => (
           // biome-ignore lint/suspicious/noArrayIndexKey: a fixed sample
-          <Bubble key={i} m={m} />
+          <Bubble key={i} m={m} dm={dm} />
         ))}
         {extra}
       </View>
@@ -623,6 +643,7 @@ function Chat({ header, msgs, extra }: { header: ReactNode; msgs: Msg[]; extra?:
 function Dm() {
   return (
     <Chat
+      dm
       header={
         <HeaderPill
           lead={<AgentAvatar agent={DOUG} size={32} />}

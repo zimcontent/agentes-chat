@@ -12,8 +12,13 @@ export type Scheme = "light" | "dark";
 export interface AppColors extends ThemeColors {
   /** The grouped background (Settings-like screens, Atividade, sheets); white cards sit on it. */
   grouped: string;
-  /** My own message bubble. */
+  /** My own message bubble: the lime's wash over the glass (the site's own bubble, `--own-bubble`). */
   bubble: string;
+  /** Someone else's bubble: the glass's own step (the site's `.ac-msg__text`). */
+  bubbleTheirs: string;
+  /** A bubble's 1 px rim and lit top line: mine in the lime, theirs in white. */
+  bubbleRim: string;
+  bubbleTheirsRim: string;
   /** The only color for "waits on you" (requests, questions, what expires). */
   amber: string;
   /** Words in amber on an amber-tinted fill (a "Needs you" chip): darker in light, so they keep 4.5:1. */
@@ -93,8 +98,15 @@ function fromDoug(scheme: Scheme): AppColors {
     attentionSoft: dark ? "#33270F" : "#FBEED5",
     success: t.texto,
     grouped: t.palco,
-    // The person's own message: one step up (`--db-palco-4` in dark), as the identity's "Mensagem".
-    bubble: t.palco4,
+    // The person's own message: 14% of the lime over the glass's step, with a lime rim (dougbot.app's bubbles).
+    bubble: dark ? "#2C3917" : "#E4F3C8",
+    bubbleTheirs: t.palco3,
+    bubbleRim: dark
+      ? "inset 0px 1px 0px rgba(156, 250, 5, 0.1), inset 0px 0px 0px 1px rgba(156, 250, 5, 0.2)"
+      : "inset 0px 0px 0px 1px rgba(62, 107, 0, 0.18)",
+    bubbleTheirsRim: dark
+      ? "inset 0px 1px 0px rgba(255, 255, 255, 0.05), inset 0px 0px 0px 1px rgba(255, 255, 255, 0.047)"
+      : "inset 0px 0px 0px 1px rgba(10, 10, 10, 0.06)",
     amber: t.atencao,
     amberInk: dark ? t.atencao : "#7A4700",
     chip: t.palco3,
