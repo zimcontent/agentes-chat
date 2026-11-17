@@ -1505,6 +1505,17 @@ export const featureKeysPtBR = {
   },
   // The task manager (ADR 0128; the rest of its words are shared, `taskManager.*`).
   taskManager: {
+    shortTitle: "Atividade",
+    stat: { working: "Trabalhando", waiting: "Esperam você", done: "Feitas hoje" },
+    needsYou: "Precisa de você",
+    review: "Abrir e responder",
+    inProgress: "Em andamento",
+    paused: "Pausadas",
+    pausedLine: "Pausado",
+    comingBack: "Próximos retornos",
+    more_one: "Mais {{count}} tarefa",
+    more_other: "Mais {{count}} tarefas",
+    fewer: "Mostrar menos",
     loadFailed: "Não deu para carregar os trabalhos.",
     gone: "Esse trabalho não está mais aqui.",
     /** Under the title when nothing runs or waits. */

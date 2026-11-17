@@ -1552,6 +1552,17 @@ export const featureKeysEn = {
   },
   // The task manager (ADR 0128; the rest of its words are shared, `taskManager.*`).
   taskManager: {
+    shortTitle: "Activity",
+    stat: { working: "Working", waiting: "Waiting on you", done: "Done today" },
+    needsYou: "Needs you",
+    review: "Open and reply",
+    inProgress: "In progress",
+    paused: "Paused",
+    pausedLine: "Paused",
+    comingBack: "Coming back",
+    more_one: "{{count}} more task",
+    more_other: "{{count}} more tasks",
+    fewer: "Show less",
     loadFailed: "Couldn't load the work.",
     gone: "This work is no longer here.",
     /** Under the title when nothing runs or waits. */

@@ -137,32 +137,33 @@ describe("a task's row (ADR 0128)", () => {
 describe("one line a row", () => {
   const read = (f: string) => readFileSync(join(import.meta.dir, "../../src/features/task-manager", f), "utf8");
 
-  test("a task's row: its mark under its agent's face, its title and what it is about cut at the end, its time", () => {
+  test("the screen reads as three questions: how things stand, what needs you, what runs", () => {
     const screen = read("TaskManagerScreen.tsx");
-    // One Text, one line: the title, then what it is about in quiet type; "…" at the end when it doesn't fit.
-    expect(screen).toMatch(
-      /<Text variant=\{variant\} numberOfLines=\{1\} style=\{styles\.grow\}>\s*\{title\}\s*\{line \? <Text variant="footnote" tone="muted">/,
+    // Three tiles under the short title: working, waiting on you (amber while any), done today (opens what ended).
+    expect(screen).toContain('title={t("mobile.taskManager.shortTitle")}');
+    for (const key of ["stat.working", "stat.waiting", "stat.done"])
+      expect(screen).toContain(`t("mobile.taskManager.${key}")`);
+    expect(screen).toContain("onDone={() => setEndedOpen(true)}");
+    // What waits on a person's ok or answer is a card of its own, before the agents' work, and not repeated there.
+    expect(screen.indexOf('t("mobile.taskManager.needsYou")')).toBeLessThan(
+      screen.indexOf('t("mobile.taskManager.inProgress")'),
     );
-    expect(screen).toContain("<OneLine title={title} line={line} />");
-    // Its state is its mark, in a box as wide as the agent's face above it; the words stay on its screen.
-    expect(screen).toMatch(/<View style=\{styles\.lead\}>\s*<TaskMark state=\{state\} color=\{color\} \/>/);
-    expect(screen).toContain('lead: { width: LEAD, alignItems: "center" }');
-    expect(screen).not.toContain("<StateLine");
-    expect(screen).not.toContain("MediaRow");
-    // Every row opens what says it whole (a task's screen, its agent's tasks, a computer's line): a chevron, never a
-    // stop button squeezing the title.
+    expect(screen).toContain('if (state === "ok" || state === "answer") needsYou.push(task);');
+    expect(screen).toContain("<NeedsYouCard task={task} now={now} meId={meId} />");
+    // A task's line in its agent's card: its mark under the agent's face, its title, its time, a chevron to its screen;
+    // never a stop button.
+    expect(screen).toMatch(/<View style=\{styles\.lineMark\}>\s*<TaskMark state=\{state\} color=\{color\} \/>/);
     expect(screen).not.toContain("end={stop}");
     expect(screen).toContain('<Icon name="right" size={15} color={c.faint} />');
-    for (const row of ["computer.name", "title"]) expect(screen).toContain(`<OneLine title={${row}}`);
   });
 
-  test("what holds the waiting work: today's line, then up to three causes, each one line that opens its way out", () => {
+  test("what holds the waiting work: its causes, each a row that opens its way out", () => {
     const screen = read("TaskManagerScreen.tsx");
-    expect(screen).toContain("const causes = shownCauses(all);");
-    // A computer in the strip is not listed again under Computadores.
+    // A person's wait is its own card above: the causes left are a plan, a budget or a computer.
+    expect(screen).toContain('const causes = shownCauses(all).filter((cause) => cause.kind !== "person");');
+    // A computer in the causes is not listed again under Computadores.
     expect(screen).toContain("const listed = computersBesides(computers, causes);");
     expect(screen).toContain("{listed.map((m, i) => (");
-    expect(screen).toContain('t("taskManager.capacity.today", {');
     // Today's count is asked by this screen alone: an agent's tasks, a task and a DM's header count what ended.
     expect(screen).toContain("useTasksToday({ doneToday: true })");
     for (const other of ["TaskScreen.tsx", "AgentTasksScreen.tsx", "AgentTasksButton.tsx"])
@@ -199,13 +200,12 @@ describe("one line a row", () => {
     expect(read("TaskScreen.tsx")).toContain("onPress={() => openQueue(line)}");
   });
 
-  test("an agent's tasks stay folded under its row until it is tapped; the row says how long, as its tasks do", () => {
+  test('an agent\'s card shows three tasks until "more" opens the rest; each says how long', () => {
     const screen = read("TaskManagerScreen.tsx");
     expect(screen).toContain("useState<ReadonlySet<string>>(() => new Set())");
     expect(screen).toContain("open={opened.has(g.agentId)}");
-    expect(screen).toContain("open={opened.has(`by:");
-    expect(screen).not.toContain("closed.has(");
-    expect(screen).toContain("taskTime(t, groupLead(group), now)");
+    expect(screen).toContain("const shown = open ? tasks : tasks.slice(0, CARD_ROWS);");
+    expect(screen).toContain("const CARD_ROWS = 3;");
     // A task's time is its clock at work, how long it has waited otherwise: never "82:07:59".
     expect(read("parts.tsx")).toContain("taskTime(t, task, now)");
     expect(read("parts.tsx")).not.toContain("taskClock");
@@ -485,16 +485,18 @@ describe("returns agents set (Retornos, ADR 0037 addendum)", () => {
     );
   });
 
-  test("the screen lists them after the routines, one line each; a tap or a long press opens their whole words", () => {
+  test("the screen lists them after the agents' work, the soonest first; a tap or a long press opens their whole words", () => {
     const src = readFileSync(join(import.meta.dir, "../../src/features/task-manager/TaskManagerScreen.tsx"), "utf8");
     const at = (s: string) => src.indexOf(s);
     const fn = (name: string) => src.slice(at(`function ${name}(`), src.indexOf("\n}\n", at(`function ${name}(`)));
-    expect(at('t("taskManager.sections.returns")')).toBeGreaterThan(at('t("taskManager.sections.background")'));
-    // Note A on the phone: one line, cut at the end; a tap shows it whole where a return has no screen of its own (a
-    // canceled one shows nowhere else: the conversation has no line for it).
+    expect(at('t("mobile.taskManager.comingBack")')).toBeGreaterThan(at('t("mobile.taskManager.inProgress")'));
+    expect(src).toContain("[...(view?.followUps ?? [])].sort((a, b) => a.at.localeCompare(b.at))");
+    // A tap shows it whole where a return has no screen of its own (a canceled one shows nowhere else: the
+    // conversation has no line for it).
+    expect(fn("ReturnRow")).toContain("{item.about}");
+    expect(fn("CanceledReturnRow")).toMatch(/<OneLine title=\{item\.about\}/);
     for (const row of ["ReturnRow", "CanceledReturnRow"]) {
       const code = fn(row);
-      expect(code).toMatch(/<OneLine title=\{item\.about\}/);
       expect(code).toContain("onPress={open}");
       expect(code).toContain("onLongPress={open}");
       expect(code).toContain("<ReturnSheet");
