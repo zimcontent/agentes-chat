@@ -106,6 +106,7 @@ import {
 } from "react-native";
 import {
   KeyboardController,
+  KeyboardEvents,
   KeyboardGestureArea,
   KeyboardStickyView,
   useKeyboardHandler,
