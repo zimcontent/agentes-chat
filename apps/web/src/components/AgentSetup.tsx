@@ -27,7 +27,7 @@ import { channelsAfter, sameAudience } from "@agenteschat/client/lib/agent-edit"
 import { audienceModeKey, audienceModeTextKey, audienceOf, audiencePatch } from "@agenteschat/client/lib/audience";
 import { setDraftFor } from "@agenteschat/client/lib/drafts";
 import { errorText } from "@agenteschat/client/lib/errors";
-import { formatTime, joinNames } from "@agenteschat/client/lib/format";
+import { formatTime, NAMES_SHOWN, namesText } from "@agenteschat/client/lib/format";
 import { agentGrammar } from "@agenteschat/client/lib/grammar";
 import { aiStateOf } from "@agenteschat/client/lib/no-ai";
 import { addsAgentsTo, can } from "@agenteschat/client/lib/permissions";
@@ -249,9 +249,10 @@ export function AgentSetupCard({ agent, place }: { agent: Agent; place: "dm" | "
   if (steps.length === 0 || (place === "profile" && all)) return null;
 
   const names = (list: AccessResource[]) =>
-    joinNames(
-      list.map((r) => resourceName(t, r, items)),
+    namesText(
       t,
+      list.map((r) => resourceName(t, r, items)),
+      NAMES_SHOWN,
     );
   // The apps its card chose (ADR 0164), else its role's: the connected ones by name, else the catalog's names.
   const cardApps = setupApps(agent.setup);
@@ -273,11 +274,16 @@ export function AgentSetupCard({ agent, place }: { agent: Agent; place: "dm" | "
       org: org.name,
       role,
       granted: granted.length ? names(granted) : null,
-      suggested: suggestedApps.length ? names(suggestedApps) : catalogNames.length ? joinNames(catalogNames, t) : null,
+      suggested: suggestedApps.length
+        ? names(suggestedApps)
+        : catalogNames.length
+          ? namesText(t, catalogNames, NAMES_SHOWN)
+          : null,
       channels: inChannels.length
-        ? joinNames(
-            inChannels.map((c) => `#${c.name}`),
+        ? namesText(
             t,
+            inChannels.map((c) => `#${c.name}`),
+            NAMES_SHOWN,
           )
         : null,
       firstChannel: firstChannel ? `#${firstChannel.name}` : null,

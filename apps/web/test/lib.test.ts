@@ -10,6 +10,7 @@ import {
   formatTokensShort,
   formatUsd,
   joinNames,
+  NAMES_SHOWN,
   namesText,
   nextLabel,
   parseDayInput,
@@ -21,6 +22,7 @@ import {
   whenAt,
 } from "@agenteschat/client/lib/format";
 import { agentGrammar, isFeminineName } from "@agenteschat/client/lib/grammar";
+import { setupRow } from "@agenteschat/client/lib/setup-checklist";
 import {
   earlyAccessHeaders,
   earlyAccessState,
@@ -156,6 +158,27 @@ describe("format (pt-BR, machine numbers precise)", () => {
       if (more) expect(namesText(tl, ["Ada", "Atlas", "Theo", "Lia"])).toBe(more);
     }
     expect(shortModel("Claude Sonnet 5.5")).toBe("sonnet 5.5");
+  });
+  test("an agent's apps in its checklist: the first few by name, then how many more", () => {
+    const apps = [
+      "Epidemic Sound",
+      "Zim Studio",
+      "Trello",
+      "Metricool",
+      ...Array.from({ length: 12 }, (_, i) => `App ${i}`),
+    ];
+    const facts = {
+      org: "Zim",
+      role: null,
+      granted: namesText(t, apps, NAMES_SHOWN),
+      suggested: null,
+      channels: null,
+      firstChannel: null,
+      audience: "everyone" as const,
+      otherOwner: null,
+      onPlan: false,
+    };
+    expect(setupRow(t, "apps", true, facts).title).toBe("Uso Epidemic Sound, Zim Studio, Trello, Metricool e mais 12");
   });
   test("a roster: one agent per line with its role, said once, then how many more", () => {
     const team = [
