@@ -22,7 +22,7 @@ import {
 } from "@agenteschat/client/lib/portal";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { ActivityIndicator, Alert, RefreshControl, StyleSheet, TextInput, View } from "react-native";
+import { ActivityIndicator, Alert, Pressable, RefreshControl, StyleSheet, TextInput, View } from "react-native";
 import { Button, Chip, GroupedHeader, GroupedList, GroupedRow, Text, useFieldText } from "@/ui";
 import { router } from "@/ui/navigation";
 import { Face } from "../shared/Face";
@@ -89,6 +89,7 @@ export function CardScreen({ client, cardId }: { client: string; cardId: string 
         </Text>
         <FileStrip files={card.files} />
         <View style={[styles.pad, styles.parts]}>
+          <Description w={w} card={card} />
           <Facts w={w} card={card} plan={plan.data} />
           {post ? (
             <PostPanel client={client} item={post.item} column={post.column} caption={!card.caption} />
@@ -301,16 +302,83 @@ function SendState({
   );
 }
 
-/** The caption the post goes with, and the card's description (its formatting's marks shown as written). */
+/** The caption the post goes with. */
 function Words({ w, card }: { w: PortalWords; card: PlanCard }) {
-  const description = portalArticle(card.description);
-  if (!card.caption && !description) return null;
+  if (!card.caption) return null;
   return (
     <View>
       <GroupedList>
-        {card.caption ? <GroupedRow label={w.caption} sub={card.caption} subLines={60} /> : null}
-        {description ? <GroupedRow label={w.description} sub={description} subLines={80} /> : null}
+        <GroupedRow label={w.caption} sub={card.caption} subLines={60} />
       </GroupedList>
+    </View>
+  );
+}
+
+/**
+ * The card's description, right under its files, as Trello's card has it: what it says (its formatting's marks shown
+ * as written), and a press to edit it in place, Salvar or Cancelar under the field. Empty, whoever may change the
+ * board sees "Adicione uma descrição mais detalhada…", which opens the field. Comments are their own part below.
+ */
+function Description({ w, card }: { w: PortalWords; card: PlanCard }) {
+  const c = useColors();
+  const orgId = useOrgId();
+  const failed = usePortalFailed();
+  const field = useFieldText("body");
+  const save = useSavePortalCard(orgId);
+  const { changes } = usePortalRights();
+  const [draft, setDraft] = useState<string | null>(null);
+  const text = portalArticle(card.description);
+  if (!text && !changes) return null;
+  const done = () =>
+    save.mutate(
+      { cardId: card.id, description: draft ?? "" },
+      {
+        onSuccess: () => {
+          successHaptic();
+          setDraft(null);
+        },
+        onError: failed,
+      },
+    );
+  return (
+    <View style={styles.say}>
+      <GroupedHeader>{w.description}</GroupedHeader>
+      {draft !== null ? (
+        <>
+          <TextInput
+            value={draft}
+            onChangeText={setDraft}
+            placeholder={w.addDescription}
+            placeholderTextColor={c.faint}
+            accessibilityLabel={w.description}
+            autoFocus
+            multiline
+            maxLength={20000}
+            style={[styles.field, styles.described, field, { color: c.ink, backgroundColor: c.raised }]}
+          />
+          <View style={styles.formActs}>
+            <View style={styles.grow}>
+              <Button variant="primary" wide label={w.save} onPress={done} loading={save.isPending} />
+            </View>
+            <View style={styles.grow}>
+              <Button variant="secondary" wide label={w.cancel} onPress={() => setDraft(null)} />
+            </View>
+          </View>
+        </>
+      ) : (
+        <Pressable
+          onPress={changes ? () => setDraft(card.description) : undefined}
+          disabled={!changes}
+          accessibilityRole={changes ? "button" : "text"}
+          accessibilityLabel={text || w.addDescription}
+          {...(changes ? { accessibilityHint: w.editDescription } : {})}
+          style={({ pressed }) => [styles.descBox, { backgroundColor: c.raised }, pressed ? styles.pressed : null]}
+        >
+          <Text variant="body" tone={text ? "ink" : "muted"}>
+            {text || w.addDescription}
+          </Text>
+        </Pressable>
+      )}
     </View>
   );
 }
@@ -475,6 +543,10 @@ const styles = StyleSheet.create({
   comments: { gap: 8 },
   say: { gap: 8 },
   field: { minHeight: 64, maxHeight: 160, borderRadius: 12, paddingHorizontal: 12, paddingVertical: 10 },
+  described: { minHeight: 120, maxHeight: 320, textAlignVertical: "top" },
+  descBox: { borderRadius: 12, paddingHorizontal: 16, paddingVertical: 12, minHeight: 48 },
+  formActs: { flexDirection: "row", gap: 8 },
+  pressed: { opacity: 0.7 },
   count: { paddingTop: 20, paddingBottom: 8, paddingRight: 0 },
   commentText: { marginTop: 2 },
 });

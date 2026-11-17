@@ -96,7 +96,7 @@ export function Segmented({ items, value, onChange, wide = false, size }: Segmen
               );
             }}
             style={({ pressed }) => [
-              wide === "fit" ? { flexGrow: 1 } : wide ? { flex: 1 } : null,
+              wide === "fit" ? { flexGrow: 1, flexShrink: 1 } : wide ? { flex: 1 } : null,
               pressed && !on ? { opacity: 0.6 } : null,
             ]}
             // The slop gives a segment the 44 a finger needs, past the track's own padding (a page's is 48 already).
@@ -125,6 +125,10 @@ export function Segmented({ items, value, onChange, wide = false, size }: Segmen
               {item.icon ? <Icon name={item.icon} size={13} color={on ? colors.ink : colors.muted} /> : null}
               <RNText
                 maxFontSizeMultiplier={CHROME_MAX_SCALE}
+                // A segment's word never breaks in two ("Cronogra/ma"): it shrinks a little to keep its line.
+                numberOfLines={1}
+                adjustsFontSizeToFit
+                minimumFontScale={0.75}
                 style={[
                   systemText(page ? "callout" : "footnote", weights.semibold),
                   { color: on ? colors.ink : colors.muted },

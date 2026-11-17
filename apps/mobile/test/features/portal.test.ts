@@ -1,7 +1,13 @@
 import { describe, expect, test } from "bun:test";
 import type { PlanCard, PortalBoard, PortalCard, PortalItem, PortalPlan } from "@agenteschat/client";
 import {
+  BOARD,
   boardColumns,
+  boardIndexAt,
+  boardListWidth,
+  boardPaint,
+  boardStep,
+  cardBadges,
   cardOfItem,
   columnCount,
   commentsNewestFirst,
@@ -261,5 +267,61 @@ describe("portal on the phone", () => {
         { id: "b", by: "u", text: "", at: 3 },
       ]).map((c) => c.id),
     ).toEqual(["b", "a"]);
+  });
+});
+
+describe("the schedule as Trello's board on the phone", () => {
+  test("a list takes the screen but the side, the gap and the next list's edge", () => {
+    expect(boardListWidth(390)).toBe(390 - BOARD.side - BOARD.gap - BOARD.peek);
+    expect(boardStep(390)).toBe(boardListWidth(390) + BOARD.gap);
+    // A small phone keeps a list wide enough to read; a tablet doesn't stretch one across the screen.
+    expect(boardListWidth(200)).toBe(BOARD.min);
+    expect(boardListWidth(1024)).toBe(BOARD.max);
+  });
+
+  test("the list in front follows the swipe and never leaves the lists there are", () => {
+    const step = boardStep(390);
+    expect(boardIndexAt(0, step, 4)).toBe(0);
+    expect(boardIndexAt(step * 0.4, step, 4)).toBe(0);
+    expect(boardIndexAt(step * 0.6, step, 4)).toBe(1);
+    expect(boardIndexAt(step * 2, step, 4)).toBe(2);
+    expect(boardIndexAt(step * 9, step, 4)).toBe(3);
+    expect(boardIndexAt(-40, step, 4)).toBe(0);
+    expect(boardIndexAt(100, step, 0)).toBe(0);
+  });
+
+  test("light board, darker lists, white cards; dark keeps the steps in the same order", () => {
+    const c = { bg: "#F4F6F2", raised: "#FFFFFF", raised2: "#ECEFE8", bubble: "#E3E7DE", line: "#E1E4DC" };
+    expect(boardPaint(false, c)).toEqual({ board: "#F4F6F2", list: "#E3E7DE", card: "#FFFFFF", edge: "#E1E4DC" });
+    const d = { bg: "#0A0A0A", raised: "#121212", raised2: "#1A1A1A", bubble: "#212121", line: "#262626" };
+    const dark = boardPaint(true, d);
+    expect([dark.board, dark.list]).toEqual(["#0A0A0A", "#1A1A1A"]);
+    expect(dark.card > dark.list).toBe(true);
+  });
+
+  test("a card's face counts its checklist, comments and files, and says when it has a description", () => {
+    expect(cardBadges(planCard())).toEqual({ checks: null, comments: 0, files: 0, described: false });
+    const full = planCard({
+      description: "  Brief from the client  ",
+      checklist: [
+        { id: "a", text: "Script", done: true },
+        { id: "b", text: "Shoot", done: false },
+      ],
+      comments: [{ id: "m", by: "u1", text: "ok", at: 1 }],
+      files: [{ id: "f", name: "cover.png" }],
+    } as Partial<PlanCard>);
+    expect(cardBadges(full)).toEqual({ checks: { done: 1, total: 2 }, comments: 1, files: 1, described: true });
+    expect(cardBadges(planCard({ description: "   " })).described).toBe(false);
+  });
+
+  test("the board's words exist in both languages", () => {
+    for (const lang of ["pt-BR", "en"]) {
+      const w = portalWords(lang);
+      expect(w.addCard.length).toBeGreaterThan(0);
+      expect(w.addDescription.endsWith("…")).toBe(true);
+      expect(w.moveCardTitle("Reel")).toContain("Reel");
+      expect(w.listOf(2, 9)).toContain("2");
+    }
+    expect(portalWords("pt-BR").addDescription).toBe("Adicione uma descrição mais detalhada…");
   });
 });

@@ -214,3 +214,65 @@ export const STATUS_LOOK: Record<PortalStatus, { icon: IconName; wait: boolean }
   scheduled: { icon: "calendar", wait: false },
   published: { icon: "check", wait: false },
 };
+
+/**
+ * The schedule as Trello's app draws it on a phone: one list across the screen at a time, the next one's edge in
+ * sight at the right so the eye knows there is more, and a swipe stops on each list. Every number is the list's
+ * width or a step of it, so the snap, the dots and a dot's press all agree.
+ */
+export const BOARD = {
+  /** Space before the first list and after the last: the screen's own side margin. */
+  side: 16,
+  /** Between two lists. */
+  gap: 8,
+  /** How much of the next list stays in sight past the gap. */
+  peek: 24,
+  /** A list never narrower than this (a small phone in landscape), nor wider (a tablet). */
+  min: 260,
+  max: 400,
+} as const;
+
+/** A list's width on a screen this wide. */
+export const boardListWidth = (screen: number) =>
+  Math.round(Math.min(BOARD.max, Math.max(BOARD.min, screen - BOARD.side - BOARD.gap - BOARD.peek)));
+
+/** The distance a swipe moves from one list to the next. */
+export const boardStep = (screen: number) => boardListWidth(screen) + BOARD.gap;
+
+/** Which list is in front for a sideways scroll (`x`), held to the lists there are. */
+export function boardIndexAt(x: number, step: number, count: number): number {
+  if (count <= 0 || step <= 0) return 0;
+  return Math.min(count - 1, Math.max(0, Math.round(x / step)));
+}
+
+/**
+ * The board's three layers, as the desktop and Trello draw them: a light board, the lists a step darker, white cards
+ * on them. Dark keeps the same order of steps: the board darkest, the lists above it, the cards above them.
+ */
+export function boardPaint(
+  dark: boolean,
+  c: { bg: string; raised: string; raised2: string; bubble: string; line: string },
+): { board: string; list: string; card: string; edge: string } {
+  return dark
+    ? { board: c.bg, list: c.raised2, card: DARK_CARD, edge: c.line }
+    : { board: c.bg, list: c.bubble, card: c.raised, edge: c.line };
+}
+
+/** A card on a dark list: the step above the list's own. */
+const DARK_CARD = "#262626";
+
+/** What a card's face says at a glance: the checklist's progress, how many comments and files, a description. */
+export function cardBadges(card: Pick<PlanCard, "checklist" | "comments" | "files" | "description">): {
+  checks: { done: number; total: number } | null;
+  comments: number;
+  files: number;
+  described: boolean;
+} {
+  const total = card.checklist.length;
+  return {
+    checks: total > 0 ? { done: card.checklist.filter((x) => x.done).length, total } : null,
+    comments: card.comments.length,
+    files: card.files.length,
+    described: card.description.trim().length > 0,
+  };
+}

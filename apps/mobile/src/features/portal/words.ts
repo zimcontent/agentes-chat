@@ -127,6 +127,20 @@ const en = {
   cancel: "Cancel",
   post: "Post",
   lastNote: "Last note",
+  addCard: "Add a card",
+  cardTitle: "Card title",
+  add: "Add",
+  addList: "Add a list",
+  listName: "List name",
+  moveCard: "Move to list",
+  moveCardTitle: (title: string) => `Move “${title}” to`,
+  openCard: "Open card",
+  moved: (list: string) => `Moved to ${list}.`,
+  addDescription: "Add a more detailed description…",
+  editDescription: "Edit description",
+  save: "Save",
+  listOf: (at: number, total: number) => `List ${at} of ${total}`,
+  goToList: (name: string) => `Go to ${name}`,
 };
 
 export type PortalWords = typeof en;
@@ -251,6 +265,20 @@ const ptBR: PortalWords = {
   cancel: "Cancelar",
   post: "Post",
   lastNote: "Última observação",
+  addCard: "Adicionar cartão",
+  cardTitle: "Título do cartão",
+  add: "Adicionar",
+  addList: "Adicionar lista",
+  listName: "Nome da lista",
+  moveCard: "Mover para outra lista",
+  moveCardTitle: (title: string) => `Mover “${title}” para`,
+  openCard: "Abrir cartão",
+  moved: (list: string) => `Movido para ${list}.`,
+  addDescription: "Adicione uma descrição mais detalhada…",
+  editDescription: "Editar descrição",
+  save: "Salvar",
+  listOf: (at: number, total: number) => `Lista ${at} de ${total}`,
+  goToList: (name: string) => `Ir para ${name}`,
 };
 
 /** The words in the person's language: Portuguese for any `pt`, English for everything else. */
