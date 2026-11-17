@@ -2996,6 +2996,10 @@
     "bySelfUntil": "Ustawione przez: {{name}} · {{when}}"
   },
   "dashboards": {
+    "editBoard": "Edytuj",
+    "back": "Wstecz",
+    "page": "Dashboard {{at}} z {{count}}",
+    "pick": "Wybierz inny dashboard",
     "homeRow": "Tylko ty · twoje własne widżety",
     "loadFailed": "Nie udało się wczytać dashboardów.",
     "create": "Utwórz",

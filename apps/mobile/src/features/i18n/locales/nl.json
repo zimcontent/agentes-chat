@@ -2754,6 +2754,10 @@
     "bySelfUntil": "Geschreven door {{name}} · {{when}}"
   },
   "dashboards": {
+    "editBoard": "Bewerken",
+    "back": "Terug",
+    "page": "Dashboard {{at}} van {{count}}",
+    "pick": "Ander dashboard kiezen",
     "homeRow": "Alleen jij · je eigen widgets",
     "loadFailed": "De dashboards konden niet worden geladen.",
     "create": "Maken",

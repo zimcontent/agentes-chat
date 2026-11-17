@@ -2869,6 +2869,10 @@
     "bySelfUntil": "Escrito por {{name}} · {{when}}"
   },
   "dashboards": {
+    "editBoard": "Editar",
+    "back": "Volver",
+    "page": "Panel {{at}} de {{count}}",
+    "pick": "Elegir otro panel",
     "homeRow": "Solo tú · tus propios widgets",
     "loadFailed": "No se pudieron cargar los paneles.",
     "create": "Crear",

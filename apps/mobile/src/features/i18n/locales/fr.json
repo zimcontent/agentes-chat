@@ -2862,6 +2862,10 @@
     "bySelfUntil": "Écrit par {{name}} · {{when}}"
   },
   "dashboards": {
+    "editBoard": "Modifier",
+    "back": "Retour",
+    "page": "Tableau de bord {{at}} sur {{count}}",
+    "pick": "Choisir un autre tableau de bord",
     "homeRow": "Vous seul · vos propres widgets",
     "loadFailed": "Impossible de charger les tableaux de bord.",
     "create": "Créer",

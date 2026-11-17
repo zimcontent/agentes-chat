@@ -2633,6 +2633,10 @@
     "bySelfUntil": "{{name}}が設定 · {{when}}"
   },
   "dashboards": {
+    "editBoard": "編集",
+    "back": "戻る",
+    "page": "ダッシュボード {{at}}/{{count}}",
+    "pick": "別のダッシュボードを選ぶ",
     "homeRow": "あなただけ · 自分のウィジェット",
     "loadFailed": "ダッシュボードを読み込めませんでした。",
     "create": "作成",

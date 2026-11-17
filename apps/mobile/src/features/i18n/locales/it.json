@@ -2862,6 +2862,10 @@
     "bySelfUntil": "Scritto da {{name}} · {{when}}"
   },
   "dashboards": {
+    "editBoard": "Modifica",
+    "back": "Indietro",
+    "page": "Dashboard {{at}} di {{count}}",
+    "pick": "Scegli un'altra dashboard",
     "homeRow": "Solo tu · i tuoi widget",
     "loadFailed": "Impossibile caricare le dashboard.",
     "create": "Crea",

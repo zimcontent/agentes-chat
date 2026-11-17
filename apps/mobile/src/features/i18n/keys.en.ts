@@ -2903,6 +2903,11 @@ export const featureKeysEn = {
   },
   // Dashboards on the phone (ADR 0135); the rest of their words are the web's, `dashboards.*` and `widgets.*`.
   dashboards: {
+    /** Dashboards' pages (`BoardPages`): the bar's "Editar", back, the dots and the title's tap. */
+    editBoard: "Edit",
+    back: "Back",
+    page: "Dashboard {{at}} of {{count}}",
+    pick: "Pick another dashboard",
     homeRow: "Only you · your own widgets",
     loadFailed: "Couldn't load the dashboards.",
     create: "Create",

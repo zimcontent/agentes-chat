@@ -2754,6 +2754,10 @@
     "bySelfUntil": "Yazan: {{name}} · {{when}}"
   },
   "dashboards": {
+    "editBoard": "Düzenle",
+    "back": "Geri",
+    "page": "Pano {{at}}/{{count}}",
+    "pick": "Başka bir pano seç",
     "homeRow": "Yalnızca siz · kendi widget'larınız",
     "loadFailed": "Panolar yüklenemedi.",
     "create": "Oluştur",
