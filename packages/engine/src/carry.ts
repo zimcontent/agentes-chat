@@ -1,5 +1,5 @@
 import type { KeyWrapper, PubSub } from "@agenteschat/adapters";
-import { and, asc, type Database, eq, inArray, isNotNull, isNull, schema } from "@agenteschat/db";
+import { and, asc, type Database, eq, inArray, isNotNull, isNull, rowsOf, schema, sql } from "@agenteschat/db";
 import { linkTwins } from "./agent-twins";
 import { type Agent, createAgent, NEW_AGENT_DEFAULTS, takenHandles } from "./agents";
 import { recordAudit } from "./audit";
@@ -147,12 +147,49 @@ const mayBring = (m: Membership, userId: string, c: ConnectorConnection) =>
 
 const mayBringAgent = (m: Membership, userId: string, a: Agent) => can(m, "manage_agents") || a.ownerUserId === userId;
 
-/** The live connection of `target` that is `c` already: brought before, the same catalog connector or account. */
-function twinOf(target: ConnectorConnection[], c: ConnectorConnection) {
+/**
+ * Where each connection was first made, following "brought from" through every hop, revoked ones included: a
+ * connection brought A → B → C is A's in all three. Without it a sync across three or more workspaces (ADR
+ * doug-0013) found no twin for a copy of a copy and brought a new one each time round, for ever.
+ */
+async function carryRoots(db: Database, ids: string[]): Promise<Map<string, string>> {
+  if (ids.length === 0) return new Map();
+  const rows = rowsOf<{ id: string; root: string }>(
+    await db.execute(sql`with recursive up(id, cur, parent, depth) as (
+        select c.id, c.id, c.carried_from_id, 0 from connector_connections c
+          where c.id = any(${`{${ids.join(",")}}`}::uuid[])
+        union all
+        select up.id, p.id, p.carried_from_id, up.depth + 1 from up
+          join connector_connections p on p.id = up.parent
+          where up.depth < 64
+      ) select distinct on (id) id, cur as root from up order by id, depth desc`),
+  );
+  return new Map(rows.map((r) => [r.id, r.root]));
+}
+
+/** The live connections of `orgId` and where each of them and `also` was first made (`carryRoots`). */
+async function liveWithRoots(db: Database, orgId: string, also: ConnectorConnection[]) {
+  const here = await liveConnections(db, [orgId]);
+  return {
+    here,
+    roots: await carryRoots(
+      db,
+      [...here, ...also].map((c) => c.id),
+    ),
+  };
+}
+
+/**
+ * The live connection of `target` that is `c` already: brought before (directly or through other workspaces, by
+ * `roots`), the same catalog connector or account.
+ */
+function twinOf(target: ConnectorConnection[], c: ConnectorConnection, roots?: Map<string, string>) {
+  const root = roots?.get(c.id);
   return target.find(
     (t) =>
       t.carriedFromId === c.id ||
       c.carriedFromId === t.id ||
+      (root !== undefined && roots?.get(t.id) === root) ||
       (c.signInId !== null && t.signInId === c.signInId) ||
       (isCustom(c)
         ? isCustom(t) &&
@@ -207,6 +244,10 @@ export async function carrySources(db: Database, userId: string, targetOrgId: st
     keysHere ? liveKeys(db, orgIds) : Promise.resolve([] as KeyRow[]),
     keysHere ? liveKeys(db, [targetOrgId]) : Promise.resolve([] as KeyRow[]),
   ]);
+  const roots = await carryRoots(
+    db,
+    [...here, ...connections].map((c) => c.id),
+  );
   const agentIds = team.map((a) => a.id);
   const [grants, agentSkillRows] = await Promise.all([
     agentIds.length === 0
@@ -242,7 +283,7 @@ export async function carrySources(db: Database, userId: string, targetOrgId: st
           accountLabel: c.accountLabel,
           icon: c.icon,
           blocked: blockOf(c),
-          here: Boolean(twinOf(here, c)),
+          here: Boolean(twinOf(here, c, roots)),
         })),
         agents: team
           .filter((a) => a.orgId === m.orgId && !isRightHand(a) && mayBringAgent(m, userId, a))
@@ -495,7 +536,8 @@ export async function connectionIn(
   targetOrgId: string,
   c: ConnectorConnection,
 ): Promise<string | null> {
-  const here = twinOf(await liveConnections(deps.connectors.db, [targetOrgId]), c);
+  const live = await liveWithRoots(deps.connectors.db, targetOrgId, [c]);
+  const here = twinOf(live.here, c, live.roots);
   if (here) return here.id;
   if (!actorId) return null;
   try {
@@ -651,7 +693,8 @@ export async function carryOver(
         }
         continue;
       }
-      const twin = twinOf(await liveConnections(db, [targetOrgId]), c);
+      const live = await liveWithRoots(db, targetOrgId, [c]);
+      const twin = twinOf(live.here, c, live.roots);
       if (twin) {
         brought.set(c.id, twin);
         result.connections.push({ sourceId: c.id, id: twin.id, label: twin.label, outcome: "here" });
