@@ -5742,6 +5742,36 @@
   "aiPanel.month": {
     "value": "Month"
   },
+  "aiPanel.sheet.nowTitle": {
+    "value": "Now"
+  },
+  "aiPanel.sheet.account": {
+    "value": "Account"
+  },
+  "aiPanel.sheet.model": {
+    "value": "Model"
+  },
+  "aiPanel.sheet.effort": {
+    "value": "Effort"
+  },
+  "aiPanel.sheet.context": {
+    "value": "Context"
+  },
+  "aiPanel.sheet.contextFull": {
+    "value": "The model's whole window"
+  },
+  "aiPanel.sheet.autoPerTask": {
+    "value": "picked for each task"
+  },
+  "aiPanel.sheet.autoLine": {
+    "value": "Picks the model and the effort for each task, on the same account."
+  },
+  "aiPanel.sheet.switchTitle": {
+    "value": "Switch to"
+  },
+  "aiPanel.sheet.on": {
+    "value": "on {{place}}"
+  },
   "aiPanel.sheet.title": {
     "value": "Change {{name}}'s AI",
     "female": "Change {{name}}'s AI"

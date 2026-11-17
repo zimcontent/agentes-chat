@@ -2364,6 +2364,19 @@ export const featureKeysPtBR = {
     week: "Semana",
     month: "Mês",
     sheet: {
+      nowTitle: "Agora",
+      account: "Conta",
+      model: "Modelo",
+      effort: "Esforço",
+      context: "Contexto",
+      /** No context limit chosen: the model reads up to its whole window. */
+      contextFull: "Janela inteira do modelo",
+      /** Under "Automático" in Agora. */
+      autoPerTask: "escolhe a cada tarefa",
+      autoLine: "Escolhe o modelo e o esforço a cada tarefa, na mesma conta.",
+      switchTitle: "Trocar para",
+      /** A choice that moves the agent to another account or key: "Haiku 5.5 · em ChatGPT Pro". */
+      on: "em {{place}}",
       title: "Trocar a IA do {{name}}",
       title_female: "Trocar a IA da {{name}}",
       smart: "Mais inteligente",

@@ -2442,6 +2442,19 @@ export const featureKeysEn = {
     week: "Week",
     month: "Month",
     sheet: {
+      nowTitle: "Now",
+      account: "Account",
+      model: "Model",
+      effort: "Effort",
+      context: "Context",
+      /** No context limit chosen: the model reads up to its whole window. */
+      contextFull: "The model's whole window",
+      /** Under "Automatic" in Now. */
+      autoPerTask: "picked for each task",
+      autoLine: "Picks the model and the effort for each task, on the same account.",
+      switchTitle: "Switch to",
+      /** A choice that moves the agent to another account or key: "Haiku 5.5 · on ChatGPT Pro". */
+      on: "on {{place}}",
       title: "Change {{name}}'s AI",
       title_female: "Change {{name}}'s AI",
       smart: "Smartest",

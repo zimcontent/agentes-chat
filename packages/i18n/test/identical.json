@@ -4529,7 +4529,8 @@
       "photo.section",
       "chat.messagePlain",
       "drive.filter.type",
-      "vault.sheet.note"
+      "vault.sheet.note",
+      "aiPanel.sheet.effort"
     ],
     "de": [
       "devices.status.offline",
@@ -4663,7 +4664,8 @@
       "find.filterWord.in",
       "connectors.accountTitle",
       "roles.icons.mail",
-      "vault.sheet.password"
+      "vault.sheet.password",
+      "aiPanel.sheet.account"
     ],
     "nl": [
       "devices.status.offline",
@@ -4751,7 +4753,10 @@
       "vault.home.items",
       "vault.sheet.site",
       "vault.sheet.details",
-      "agentLite.ai"
+      "agentLite.ai",
+      "aiPanel.sheet.account",
+      "aiPanel.sheet.model",
+      "aiPanel.sheet.context"
     ],
     "ja": [
       "devices.os.android",
@@ -4830,7 +4835,8 @@
       "roles.icons.mail",
       "vault.sheet.edit",
       "agentLite.talk",
-      "agentLite.ai"
+      "agentLite.ai",
+      "aiPanel.sheet.model"
     ],
     "tr": [
       "devices.os.android",
@@ -4848,7 +4854,8 @@
       "onb.logo",
       "vault.field.keyNamePlaceholder",
       "vault.field.websitePlaceholder",
-      "files.type.video"
+      "files.type.video",
+      "aiPanel.sheet.model"
     ],
     "pl": [
       "devices.status.offline",
@@ -4882,7 +4889,8 @@
       "time.short.days",
       "me.status",
       "roles.reach.agents",
-      "agentLite.ai"
+      "agentLite.ai",
+      "aiPanel.sheet.model"
     ],
     "ru": [
       "devices.os.android",

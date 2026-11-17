@@ -6,6 +6,8 @@ import {
   accountCards,
   accountCardTitle,
   agentModelChip,
+  agentNow,
+  autoOption,
   hourWords,
   intentChoices,
   intentOptions,
@@ -221,6 +223,64 @@ describe("the three intents", () => {
       ["claude", "claude-max", "haiku"],
       ["chatgpt", "chatgpt-pro", "gpt-6-luna"],
       ["api:anthropic", null, "claude-haiku-5-5"],
+    ]);
+  });
+});
+
+describe("Automático and the facts of now", () => {
+  const auto = (v: View, providers: string[] = [], apiModel: string | null = "claude-sonnet-5-5") =>
+    autoOption(t, "pt-BR", v, "u1", keys(providers), apiModel, MODELS);
+
+  test("Automático stays on the account the agent thinks with", () => {
+    const a = auto(view());
+    expect([a?.tile.key, a?.account?.id, a?.model.value, a?.current]).toEqual(["claude", "claude-max", AUTO, false]);
+    expect(auto(view({ model: AUTO, effectiveModel: AUTO }))?.current).toBe(true);
+  });
+
+  test("on a key: the key's own Automático", () => {
+    const a = auto(view({ brain: "model", account: null, accounts: [] }), ["anthropic"], AUTO);
+    expect([a?.tile.key, a?.account, a?.model.value, a?.current]).toEqual(["api:anthropic", undefined, AUTO, true]);
+  });
+
+  test("Agora: the account by plan and login, the model's effort and context", () => {
+    const now = agentNow(
+      {
+        ...view(),
+        accounts: [{ ...MAX, email: "info@zim.example" }, PRO, GEM],
+        effort: "high",
+        contextTokens: 400_000,
+      },
+      null,
+      MODELS,
+    );
+    expect(now).toEqual({
+      account: { mark: "claude_code", title: "Claude Max", login: "info@zim.example", owner: "Gabriel", mine: true },
+      ownSignIn: false,
+      keyProvider: null,
+      auto: false,
+      effort: "high",
+      contextTokens: 400_000,
+    });
+  });
+
+  test("Agora on Automático: the effort is picked per task too; on a key, its maker", () => {
+    const now = agentNow(
+      { ...view({ model: AUTO, effectiveModel: AUTO }), effort: "medium", contextTokens: null },
+      null,
+      MODELS,
+    );
+    expect([now.auto, now.effort, now.contextTokens]).toEqual([true, "auto", null]);
+    const key = agentNow(
+      { ...view({ brain: "model", account: null, accounts: [] }), effort: null, contextTokens: null },
+      "claude-opus-5-5",
+      MODELS,
+    );
+    expect([key.account, key.ownSignIn, key.keyProvider, key.auto, key.effort]).toEqual([
+      null,
+      false,
+      "anthropic",
+      false,
+      null,
     ]);
   });
 });

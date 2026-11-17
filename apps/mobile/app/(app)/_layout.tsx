@@ -194,7 +194,7 @@ function AppStack() {
       <Stack.Screen name="approval/[id]" options={approvalSheet} />
       <Stack.Screen name="join-requests" options={requestsSheet} />
       <Stack.Screen name="switch-computer/[machineId]" options={switchSheet} />
-      <Stack.Screen name="agent-switch/[id]" options={pushSheet} />
+      <Stack.Screen name="agent-switch/[id]" options={switchSheet} />
       <Stack.Screen name="computer-setup" options={setupSheet} />
       {/* Connect an AI: pushed screens, one question each, on the grouped gray (its bar counts the steps). */}
       <Stack.Screen
