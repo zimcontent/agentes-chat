@@ -1,5 +1,6 @@
 import { mkdirSync, readdirSync, readFileSync, renameSync, rmSync, writeFileSync } from "node:fs";
 import path from "node:path";
+import type { CommandProfile } from "@agenteschat/adapters/command-policy";
 import { isObject } from "@agenteschat/adapters/machine-protocol";
 import { readSmallJson } from "./json-file";
 import { CODEX_MCP_SERVER } from "./mcp";
@@ -53,13 +54,28 @@ function writeIfChanged(file: string, text: string) {
 }
 
 /**
- * The account's `settings.json`, the same for every turn on it: its sign-in type (and the Google Cloud project the
+ * What a `work` turn may run outside the CLI's sandbox, which has no network (ADR 0143, addendum 2026-11-17). Asked
+ * for by the model with `BypassSandbox`, a command headless mode can't confirm is soft-denied and the turn ends; an
+ * allow rule (`command(<program>)`) runs it outside instead (tried with CLI 1.5.10 on `curl …` and
+ * `cd /tmp && curl …`). Programs that fetch and send over the network, never a shell or an interpreter, which would
+ * lift the sandbox for anything.
+ */
+export const AGY_NETWORK_COMMANDS = ["curl", "wget", "git", "gh", "yt-dlp"] as const;
+
+/**
+ * The account's `settings.json`, written before every turn on it: its sign-in type (and the Google Cloud project the
  * CLI saved for an Enterprise seat) kept, everything else ours. Terminal commands in the sandbox, nothing outside the
  * turn's folder, our server's tools without asking, no AI credits spent past the plan's quota. Slash commands stay on
  * here: turns pass `--disable-slash-commands`, and `/usage` and `/logout` must reach the CLI, not the model.
- * `gcp`: the seat's project from the home whose sign-in this one copies.
+ * `gcp`: the seat's project from the home whose sign-in this one copies. `profile`: a `work` turn also gets
+ * `AGY_NETWORK_COMMANDS`.
  */
-export function writeAgySettings(home: string, auth?: AgyAuth, gcp?: Record<string, unknown>) {
+export function writeAgySettings(
+  home: string,
+  auth?: AgyAuth,
+  gcp?: Record<string, unknown>,
+  profile?: CommandProfile,
+) {
   const was = readSettings(home);
   const kept = auth ?? agyAuthOf(home) ?? "oauth-personal";
   const seat = gcp ?? (isObject(was.gcp) ? was.gcp : undefined);
@@ -74,7 +90,12 @@ export function writeAgySettings(home: string, auth?: AgyAuth, gcp?: Record<stri
     showFeedbackSurvey: false,
     notifications: false,
     artifactReviewPolicy: "always-proceed",
-    permissions: { allow: [`mcp(${CODEX_MCP_SERVER}/*)`] },
+    permissions: {
+      allow: [
+        `mcp(${CODEX_MCP_SERVER}/*)`,
+        ...(profile === "work" ? AGY_NETWORK_COMMANDS.map((c) => `command(${c})`) : []),
+      ],
+    },
   };
   writeIfChanged(settingsFile(home), `${JSON.stringify(settings, null, 2)}\n`);
   mkdirSync(agyRuntimeDir(home), { recursive: true, mode: 0o700 });
@@ -220,11 +241,12 @@ export const agyChatAgent = (): string =>
 
 /**
  * Before a turn: what an earlier turn planted dropped, then our settings, our server alone and Lodi's agent written
- * (each only when it differs).
+ * (each only when it differs). `profile`: a `work` turn's commands may leave the sandbox for the network
+ * (`AGY_NETWORK_COMMANDS`); any other turn's never.
  */
-export function prepareAgyHome(home: string, command: string[] | undefined) {
+export function prepareAgyHome(home: string, command: string[] | undefined, profile?: CommandProfile) {
   for (const rel of AGY_PLANTED) rmSync(path.join(home, rel), { recursive: true, force: true });
-  writeAgySettings(home);
+  writeAgySettings(home, undefined, undefined, profile);
   writeIfChanged(path.join(configDir(home), "mcp_config.json"), agyMcpConfig(command));
   writeIfChanged(path.join(configDir(home), "agents", AGY_CHAT_AGENT, "agent.md"), agyChatAgent());
 }
