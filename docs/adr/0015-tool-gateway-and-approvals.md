@@ -103,3 +103,21 @@ People approved the same harmless command again and again ("gh pr view", "gh iss
 ## Addendum (2026-11-07): "Aprovar sempre" for a custom server's own tool
 
 People approved the same image again and again through a server connected by address (Higgsfield's), because only Composio's executor and actions could be remembered. A custom server's own tool is one action, as a Composio action is: when it asks only because of its level (an admin set it to ask, or the suggestion did), the connector source offers "Aprovar sempre" on it (`rememberAs`, the server's own tool name, `generate_image`), for that agent and with any values. Never a sensitive one (deletes, sends, payments, a destructive hint), never Composio's workbench, bash or proxy, and never a name that always asks (`customAlwaysAsks`: what `alwaysAsks` says, with merge, deploy and rollback first among them; a leading run, execute, trigger, invoke or commit, since the verb comes first in a custom server's names; or a word that runs whatever its arguments say: exec, eval, bash, shell, script, command, code, request, http, curl). Undone in Ferramentas e acesso, on the agent's page.
+
+## Addendum (2026-11-17): a run hunting for a tool it doesn't have
+
+Over 30 days, 27 of 179 runs of one model brain (DeepSeek V4.1 Flash) ended at the 200-call backstop, and a look at
+them found the same shape: asked to read a connector nobody had connected, the agent searched the directory again and
+again (it always answers with its closest matches, so a missing tool reads as "not found yet"), then spent the rest
+of its calls looking for the tool on the computer (its files, its processes, the server behind it). Every call was
+new, so the repetition signs never fired. Claude, asked the same 30 times, used about 4 calls and asked a colleague.
+
+- **Searches in vain, counted** (`tool-hunt.ts`, `noteToolHunt`, `Transcript.toolHunt`): after each step of a
+  model-brain run, a search (`find_tools` or a connector's own `…_find_tools`) is in vain when none of the tools it
+  listed is called successfully, directly or through `use_tool`, before the next search; a `use_tool` for a name that
+  doesn't exist counts too. Other tools in between don't close a search.
+- **At 3: a note** (`TOOL_HUNT_NOTE`: if `find_tools` doesn't list it, you don't have it; don't look for it on the
+  computer; work with what you have, ask a colleague or the person, or say what is missing), once a run. **At 6: the
+  run ends the stuck way** (`STUCK_END_REPLY_NOTE` or `STUCK_END_NOTE`, two more calls, Continuar), without asking the
+  judge: six searches that led nowhere are the evidence. Each is a `context` step (`toolHunt`: the count and what
+  followed).

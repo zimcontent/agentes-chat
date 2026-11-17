@@ -53,3 +53,18 @@ launched `agy` without `AGY_CLI_DISABLE_AUTO_UPDATE`, so it updated itself on th
 2026-11-17) though turns pass the switch. Every launch of it in that look now goes with `AGY_NO_UPDATE_ENV`
 (`probeEnv`), the switch `AGY_QUIET_ENV` also carries. A locked (`chat`) turn on 1.5.9 and 1.5.10 lists all of the CLI's
 own tools, so the right hand doesn't stand in on it (ADR doug-0003, addendum 2026-11-17).
+
+## Addendum 2026-11-17: the sandbox has no network, and the model is told so
+
+Commands run in the CLI's terminal sandbox, which has no network (ADR 0053 §3), and nothing told the model. A
+`git clone` or a `curl` failed there, the model asked to run it outside (`BypassSandbox`), headless mode refused that
+without asking, and the turn ended with no answer: 10 of the Antigravity turns that stopped before finishing in 30
+days. On six tasks run twice on this computer (Gemini 4 Hydrogen medium), 8 of 12 finished as turns ran then, the four
+that needed the network all refused; with the note below, 12 of 12, none needing the second chance.
+
+- Every new chat (not the right hand's, which runs no commands) reads `AGY_SANDBOX_NOTE` before the engine's context:
+  no network in the sandbox, never `BypassSandbox`, the network through our server's `run_code` when the agent has it,
+  and otherwise do the rest and say what needed the network.
+- A turn the CLI still ends at a refused action with nothing said goes on once in the same conversation, reading
+  `agyDeniedNudge` (what was refused, not to ask again, `run_code` for a command that needs the network). Refused
+  again, it fails as before (`agyDenied`).

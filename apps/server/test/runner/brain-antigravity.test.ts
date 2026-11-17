@@ -31,9 +31,11 @@ import {
   writeAgySettings,
 } from "../../runner/agy-home";
 import {
+  AGY_SANDBOX_NOTE,
   type AntigravityBrainContext,
   type AntigravityBrainTurnRequest,
   agyDenied,
+  agyDeniedNudge,
   antigravityChatBreach,
   antigravityChatsFile,
   antigravityProblem,
@@ -385,7 +387,8 @@ test.skipIf(!posix)(
       cacheRead: 400,
     });
     const [first] = logOf(log);
-    expect(first?.args[1]).toBe("You are Dev, the team's developer.\n\nrun the tests");
+    // A new chat reads how this computer's sandbox works first (no network: run_code), then the context.
+    expect(first?.args[1]).toBe(`${AGY_SANDBOX_NOTE}\n\nYou are Dev, the team's developer.\n\nrun the tests`);
     expect(first?.args).not.toContain("--conversation");
     expect(first?.args.join(" ")).not.toContain("tok_run");
     expect(first).toMatchObject({ home: accountDir, run: RUN, token: "tok_run" });
@@ -407,7 +410,9 @@ test.skipIf(!posix)(
     );
     const again = await run(other.ctx, turn({ runId: RUN.replace(/1$/, "3"), prompt: "still there?" }));
     expect(again.at(-1)).toMatchObject({ type: "done" });
-    expect(logOf(log).at(-1)?.args[1]).toBe("You are Dev, the team's developer.\n\nstill there?");
+    expect(logOf(log).at(-1)?.args[1]).toBe(
+      `${AGY_SANDBOX_NOTE}\n\nYou are Dev, the team's developer.\n\nstill there?`,
+    );
   },
   20_000,
 );
@@ -430,8 +435,14 @@ test.skipIf(!posix)(
     const limited = await run(ctx, turn({ runId: RUN.replace(/1$/, "6"), prompt: "LIMIT" }));
     expect(limited.find((e) => e.type === "limit")).toMatchObject({ resetsAt: expect.any(String) });
     expect(limited.at(-1)).toMatchObject({ type: "error", code: "plan_limit" });
-    // A command the CLI denied without asking, and nothing said: an error with the way out, never an empty answer.
+    // A command the CLI denied without asking, and nothing said: the same conversation goes on once, told why, and
+    // finishes the turn.
     expect(await final({ runId: RUN.replace(/1$/, "7"), prompt: "DENIED" })).toMatchObject({
+      type: "done",
+      text: "Let me check. All good.",
+    });
+    // Refused again: an error with the way out, never an empty answer.
+    expect(await final({ runId: RUN.replace(/1$/, "8"), prompt: "DENIED_AGAIN" })).toMatchObject({
       type: "error",
       code: "antigravity_failed",
       retryable: false,
@@ -810,6 +821,11 @@ test("a turn the CLI ended with nothing because it denied a command says so, wit
   expect(agyDenied({ denied_actions: [{ action: "mcp", display_name: "post_message" }] })).not.toContain("AppArmor");
   expect(agyDenied({ status: "SUCCESS", response: "oi" })).toBeNull();
   expect(agyDenied({ denied_actions: [] })).toBeNull();
+  // What the model reads when its turn goes on: what was refused, never to ask again, and the way to the network.
+  const nudge = agyDeniedNudge({ denied_actions: [{ action: "command", display_name: "Bash" }] });
+  expect(nudge).toStartWith("Your last action (Bash) was refused");
+  expect(nudge).toContain("run_code");
+  expect(agyDeniedNudge({ denied_actions: [{ action: "file", display_name: "ReadFile" }] })).not.toContain("run_code");
 });
 
 test("the look at installed CLIs runs agy with its own updates off, and every other CLI as it was", () => {

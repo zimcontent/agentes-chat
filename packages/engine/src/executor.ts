@@ -348,6 +348,7 @@ import { isStuck, noteStep, STUCK_END_NOTE, STUCK_END_REPLY_NOTE, STUCK_NOTE, ty
 import { archivedAgentsPrompt, FIND_AGENT_TOOL, renamedAgentsPrompt, teammateMeans } from "./team";
 import { linkRunChecks, runChecksForReply } from "./team-actions";
 import { carriesCredential, cliErrorWords, maskCredentials, maskCredentialsExcept, scrubSignIns } from "./tool-detail";
+import { noteToolHunt, TOOL_HUNT_NOTE, type ToolHuntState } from "./tool-hunt";
 import { chooseToolGroups, keptToolGroups, recentForJudge, type ToolGroupChoice } from "./tool-loading";
 import {
   EVERY_TOOL,
@@ -649,6 +650,8 @@ export interface Transcript {
   wrapUpNoted?: boolean;
   /** Whether it goes in circles (`stuck.ts`): its latest steps and what was found. */
   stuck?: StuckState;
+  /** Whether it keeps searching for a tool it doesn't have (`tool-hunt.ts`). */
+  toolHunt?: ToolHuntState;
   /**
    * What the person asked, carried by Continuar (`continueRun`): the new run's trigger is its own stopped reply, so
    * the judges read this as the request instead.
@@ -5337,6 +5340,27 @@ async function executeRunInner(
                 appendUserText(transcript, STUCK_NOTE);
               } else if (action === "end") {
                 // As near the cap: a couple of calls to say where it stands, then the run ends.
+                stuck.endAt = run.turns + WRAP_UP_TURNS;
+                maxTurns = Math.min(maxTurns, stuck.endAt);
+                appendUserText(transcript, run.background ? STUCK_END_NOTE : STUCK_END_REPLY_NOTE);
+              }
+            }
+            // Hunting for a tool it doesn't have (`tool-hunt.ts`): told once, then the run ends as a stuck one does.
+            const hunt = noteToolHunt(
+              transcript.toolHunt,
+              calls.map((c) => ({
+                name: c.name,
+                input: toolUses.find((u) => u.id === c.toolUseId)?.input,
+                content: c.result?.content ?? "",
+                isError: c.result?.isError === true,
+              })),
+            );
+            transcript.toolHunt = hunt.state;
+            if (hunt.action && stuck.endAt === undefined) {
+              later(() => addRunStep(db, run, "context", { toolHunt: { vain: hunt.state.vain, action: hunt.action } }));
+              if (hunt.action === "note") appendUserText(transcript, TOOL_HUNT_NOTE);
+              else {
+                stuck.noted = true;
                 stuck.endAt = run.turns + WRAP_UP_TURNS;
                 maxTurns = Math.min(maxTurns, stuck.endAt);
                 appendUserText(transcript, run.background ? STUCK_END_NOTE : STUCK_END_REPLY_NOTE);

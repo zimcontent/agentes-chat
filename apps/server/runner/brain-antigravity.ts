@@ -216,6 +216,29 @@ export function agyDenied(result: Record<string, unknown>): string | null {
   }`;
 }
 
+/**
+ * What every new Antigravity chat reads first (not the right hand's, which runs no commands). The CLI's terminal
+ * sandbox has no network (ADR 0053 §3), and nothing tells the model so: a `git clone` or a `curl` fails there, the
+ * model asks to run it outside the sandbox (`BypassSandbox`), headless mode refuses that without asking and the turn
+ * ends with no answer (`agyDenied`). Our server's `run_code`, when the agent has it, runs on the computer with its
+ * network under the server's own policy. Measured 2026-11-17 on six tasks run twice: 8 of 12 finished without this
+ * note (the four that needed the network all ended refused), 12 of 12 with it.
+ */
+export const AGY_SANDBOX_NOTE =
+  "How this computer works: your own terminal commands run in a sandbox with no network access. Never set BypassSandbox on a command: that needs a confirmation nobody can give here, so it is refused and your turn ends unfinished. For anything that needs the network (git clone or fetch, curl, wget, package installs, downloads), use the run_code tool from agenteschat_agentes when you have it: it runs outside the sandbox, with network. Without it, do everything else and say plainly what needed the network.";
+
+/** What a turn the CLI cut at a refused action reads, once, in the same conversation: it goes on from there. */
+export function agyDeniedNudge(result: Record<string, unknown>): string {
+  const denied = Array.isArray(result.denied_actions) ? result.denied_actions.filter(isRecord) : [];
+  const names = [...new Set(denied.map((d) => String(d.display_name ?? d.action ?? "a tool").slice(0, 40)))];
+  const command = denied.some((d) => d.action === "command");
+  return `Your last action (${names.slice(0, 4).join(", ") || "a tool"}) was refused: it needed a confirmation nobody can give here, so don't ask for it again. ${
+    command
+      ? "Commands that need the network go through the run_code tool from agenteschat_agentes when you have it; the others run in your sandbox as they are. "
+      : ""
+  }Continue from where you stopped and finish the task, doing without what was refused if you must.`;
+}
+
 const tokens = (v: unknown) => (typeof v === "number" && Number.isFinite(v) && v > 0 ? Math.round(v) : 0);
 
 /** One usage record as ours: every input token (the CLI's input may already leave the cache out), output with thinking. */
@@ -294,11 +317,14 @@ export async function runAntigravityTurn(input: AntigravityTurnInput, opts: Anti
   const clean = (text: string) => (opts.redact ? opts.redact(text) : text);
   const hold = opts.redact ? (opts.redactHold ?? 0) : 0;
 
+  const system = input.chat ? input.system : [AGY_SANDBOX_NOTE, input.system].filter(Boolean).join("\n\n");
+  // Once a turn, a turn cut at a refused action goes on in the same conversation, told why (`agyDeniedNudge`).
+  let nudge: string | null = null;
   // One retry, as a new chat, when the CLI doesn't have the conversation it was to resume.
   for (let attempt = 0; ; attempt++) {
     const chat = opts.chats.get(chatKey);
     const args = antigravityTurnArgs({
-      prompt: cursorPrompt(input.system, input.prompt, !chat),
+      prompt: nudge && chat ? nudge : cursorPrompt(system, input.prompt, !chat),
       ...(chat ? { chat } : {}),
       ...(input.model ? { model: input.model } : {}),
       ...(input.effort ? { effort: input.effort } : {}),
@@ -460,6 +486,10 @@ export async function runAntigravityTurn(input: AntigravityTurnInput, opts: Anti
       const text = clean(response.trimEnd());
       // Nothing said because the CLI refused what the turn needed: never an empty answer, which reads as "Done.".
       const denied = text || streamed ? null : agyDenied(r);
+      if (denied && !nudge && !input.chat && opts.chats.get(chatKey)) {
+        nudge = agyDeniedNudge(r);
+        continue;
+      }
       if (denied) {
         opts.emit({ type: "error", code: "antigravity_failed", message: denied, retryable: false });
         return;
