@@ -492,11 +492,6 @@ export function portalRoutes(deps: AppDeps) {
             coverArtifactId: z.uuid().optional(),
             title: z.string().max(120).optional(),
             caption: z.string().max(5000).optional(),
-            date: z
-              .string()
-              .regex(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/)
-              .max(40)
-              .optional(),
             editor: z.string().max(40).optional(),
             card: CardId.optional(),
             key: z.string().max(120).optional(),
@@ -578,8 +573,10 @@ export function portalRoutes(deps: AppDeps) {
             .object({
               title: z.string().trim().min(1).max(120),
               caption: z.string().max(5000),
-              scheduledFor: z.string().max(40).nullable(),
-              status: z.enum(PORTAL_STATUSES),
+              // A date is only cleared here; it is set by scheduling the post (ADR 9001, addendum 2026-11-17).
+              scheduledFor: z.null(),
+              // Scheduled and posted come from the portal itself, never from an edit.
+              status: z.enum(PORTAL_STATUSES).exclude(["scheduled", "published"]),
               editor: z.string().max(40),
             })
             .partial(),

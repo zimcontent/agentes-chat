@@ -137,15 +137,8 @@ describe("run policy table", () => {
       });
   });
 
-  test("the right hand's routine at never also posts for a client's approval, schedules posts and sends WhatsApp", () => {
-    const reach = [
-      "send_for_approval",
-      "send_new_version",
-      "schedule_post",
-      "portal_plan",
-      "portal_card",
-      "whatsapp_send",
-    ];
+  test("the right hand's routine at never also posts for a client's approval and sends WhatsApp, and never schedules a post", () => {
+    const reach = ["send_for_approval", "send_new_version", "portal_plan", "portal_card", "whatsapp_send"];
     const r = routine("act");
     for (const name of reach) {
       expect(toolPolicy(r, builtIn(name), "never", false, true).action).toBe("allow");

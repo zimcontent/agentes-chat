@@ -208,7 +208,7 @@ describe("portal on the phone", () => {
     expect(sendProblemOf(card({ type: "carousel", files: [{ id: "d", name: "a.pdf" }] }))).toBe("notMedia");
   });
 
-  test("a send carries what the card knows, and only that", () => {
+  test("a send carries what the card knows but its date, and only that", () => {
     const sent = sendInputOf(
       card({
         files: [{ id: "v", name: "a.mp4" }],
@@ -224,13 +224,12 @@ describe("portal on the phone", () => {
       artifactIds: ["v"],
       title: "Launch reel",
       caption: "Hello",
-      date: "2026-11-20T14:00",
       editor: "Ana",
       card: "c1",
       key: "k1",
     });
     const bare = sendInputOf(card({ title: " ", date: "2026-11-20" }), "k2");
-    expect(bare.date).toBe("2026-11-20T09:00");
+    expect("date" in bare).toBe(false);
     expect("title" in bare).toBe(false);
     expect("caption" in bare).toBe(false);
   });

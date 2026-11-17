@@ -218,3 +218,18 @@ the client sent back and what is ready.
 - The cards are outside this server's backup: whoever runs a bridge keeps its state.
 - A file is held in memory on its way to the bridge, so one file is capped at 512 MiB.
 - The apps show the page only when `GET /api/app/auth-config` says `approvalPortal` and the workspace is the portal's (`portal` in `GET /me`, §18).
+
+## Addendum 2026-11-17: a post's date is a person's, set when they schedule it
+
+Posts reached the client with the card's day as their date, and a `direct` client's approval in the review scheduled
+the post for that day by itself; an agent could also schedule with `schedule_post`. The team's rule is that a post is
+scheduled only by a person, by hand, and that what goes to the client carries no date at all.
+
+- A send for approval carries no date: `PortalSend` has none, the route drops one an older app still sends, and the
+  web and phone forms no longer ask for it. The card keeps its own day; it never becomes the post's.
+- An edit of a post (`PortalItemEdit`) only clears a date and never sets `scheduled` or `published`. A post gets its
+  date only through `scheduleItem`, the Schedule button a person presses.
+- No agent schedules: `schedule_post` is gone, from every run and from the right hand's routines at `never`. The
+  portal's watch tells the agents to leave an approved post for the team.
+- A `direct` client's approval in the review (docs/adr/doug-0012-editor-delivery.md) still turns the post `approved` at the
+  portal, and stops there: the conversation is told it is ready and that the team schedules it.

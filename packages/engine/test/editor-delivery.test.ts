@@ -287,7 +287,7 @@ describe("editor delivery", () => {
     expect((await lastBody(view.channelId)).body).toContain("com cópia no Google Drive");
   });
 
-  test("a `direct` client: approved, scheduled on its card's day and kept as final at once", async () => {
+  test("a `direct` client: approved and kept as final at once, never scheduled on its card's day", async () => {
     f = await setup({ rightHand: true });
     const { portal, calls } = fakePortal({ id: "card-7", date: "2099-01-02T10:00" });
     const { d } = deps(portal);
@@ -305,7 +305,9 @@ describe("editor delivery", () => {
     await sendPostToClient(d, f.owner.id, f.org.id, review.id);
     const [job] = await jobsOf(EDITOR_SEND_JOB);
     await runEditorSend(d, job?.payload as never);
-    expect(calls.slice(-2)).toEqual(["edit item-9 approved", "schedule item-9 2099-01-02T10:00"]);
+    // Scheduling is a person's, at the Portal (ADR 9001, addendum 2026-11-17).
+    expect(calls.at(-1)).toBe("edit item-9 approved");
+    expect(calls.some((c) => c.startsWith("schedule"))).toBe(false);
     expect(await jobsOf(EDITOR_FINAL_JOB)).toHaveLength(1);
   });
 

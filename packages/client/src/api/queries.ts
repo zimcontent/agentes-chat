@@ -5175,7 +5175,11 @@ export function useSkillAction(orgId: string, { silent = false } = {}) {
       action:
         | {
             type: "import";
-            input: ({ url: string; list?: boolean; forAgentId?: string } | { zipBase64: string }) & {
+            input: (
+              | { url: string; list?: boolean; forAgentId?: string }
+              | { zipBase64: string }
+              | { artifactId: string; forAgentId?: string }
+            ) & {
               personal?: boolean;
             };
             upload?: UploadOptions;

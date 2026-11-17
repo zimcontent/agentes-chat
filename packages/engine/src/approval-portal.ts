@@ -25,6 +25,7 @@ import { portalHere } from "./approval-portal-tasks";
 import { type ArtifactActor, type ArtifactDeps, artifactFile, storedFileOfArtifact } from "./artifacts";
 import { ValidationError } from "./errors";
 import { personBehindCall } from "./requester";
+import { reviewGate, reviewGateRefusal } from "./review-gate";
 import { replyThreadOf } from "./runs";
 import type { ToolContext, ToolDefinition, ToolOutput, ToolSource } from "./tools/types";
 import { untrustedBlock } from "./untrusted";
@@ -162,7 +163,6 @@ export interface SendForApproval {
   coverArtifactId?: string;
   title?: string;
   caption?: string;
-  date?: string;
   editor?: string;
   card?: string;
   key?: string;
@@ -205,7 +205,6 @@ export async function sendForApproval(
     cover: cover ? await portal.upload(cover.name, cover.bytes) : undefined,
     title: input.title?.trim() || undefined,
     caption: input.caption,
-    date: input.date,
     editor: input.editor,
     card: input.card,
     key: input.key,
@@ -333,7 +332,6 @@ export const agentPortalReader = (deps: ArtifactDeps, actor: ArtifactActor, orgI
 export const PORTAL_BOARD_TOOL = "portal_board";
 export const PORTAL_CARD_TOOL = "portal_card";
 export const SEND_FOR_APPROVAL_TOOL = "send_for_approval";
-export const SCHEDULE_POST_TOOL = "schedule_post";
 export const SEND_NEW_VERSION_TOOL = "send_new_version";
 
 export interface PortalToolDeps {
@@ -529,7 +527,7 @@ function sendTool(deps: PortalToolDeps, portal: ApprovalPortal): ToolDefinition 
   return {
     name: SEND_FOR_APPROVAL_TOOL,
     description:
-      'Send a post to the client\'s approval at the approval portal. Use it when a person of the team tells you to send something for approval ("sobe para aprovação", "send it for approval"), never on your own judgment. `artifact_ids` are uploaded files of this conversation or the Drive (a file on your computer goes to the Drive first, with `upload_file`). A reel is one video, and its cover goes in `cover_artifact_id`; a carousel takes its images in order. Nothing is required beyond the client, the type and the files: a missing title, caption, date or cover is listed back as missing and can be completed later. The send goes on by itself after this answers; the answer carries the post\'s link.',
+      'Send a post to the client\'s approval at the approval portal. Only what the team already approved in Review goes up: every file must be the approved version of a review (`send_for_review` first, then wait for "Aprovado"; an approved piece usually goes to the portal by itself), and anything else is refused. Use it when a person of the team tells you to send something for approval ("sobe para aprovação", "send it for approval"), never on your own judgment. `artifact_ids` are uploaded files of this conversation or the Drive (a file on your computer goes to the Drive first, with `upload_file`). A reel is one video, and its cover goes in `cover_artifact_id`; a carousel takes its images in order. Nothing is required beyond the client, the type and the files: a missing title, caption or cover is listed back as missing and can be completed later. The send goes on by itself after this answers; the answer carries the post\'s link.',
     scope: "",
     external: true,
     inputSchema: {
@@ -546,9 +544,15 @@ function sendTool(deps: PortalToolDeps, portal: ApprovalPortal): ToolDefinition 
         cover_artifact_id: { type: "string", minLength: 36, maxLength: 36 },
         title: { type: "string", maxLength: 120 },
         caption: { type: "string", maxLength: 5000 },
-        date: { type: "string", maxLength: 40, description: "Proposed date and time: YYYY-MM-DDTHH:MM." },
         editor: { type: "string", maxLength: 40, description: "Who edited the video, when the team said." },
         card: { type: "string", maxLength: 40, description: "The board's card this post finishes, if it has one." },
+        review_id: {
+          type: "string",
+          minLength: 36,
+          maxLength: 36,
+          description:
+            "The approved review this post is. Needed only for a design piece approved as its page alone: its slides, exported after the approval, go up under it.",
+        },
       },
       required: ["client", "type", "artifact_ids"],
       additionalProperties: false,
@@ -556,6 +560,13 @@ function sendTool(deps: PortalToolDeps, portal: ApprovalPortal): ToolDefinition 
     describe: (input) => ({ title: `Send "${str(input.title) || "a post"}" to ${str(input.client)}'s approval` }),
     async execute(input, ctx) {
       try {
+        // Only what the team approved in Review goes up (doug-0019): held here, before a byte is read or sent.
+        const gate = await reviewGate(ctx.db as Database, ctx.orgId, {
+          artifactIds: (input.artifact_ids as string[]) ?? [],
+          coverArtifactId: str(input.cover_artifact_id) || undefined,
+          reviewId: str(input.review_id) || undefined,
+        });
+        if (gate.unapproved.length) return { content: reviewGateRefusal(gate), isError: true };
         const by = (await personBehindCall(ctx)) ?? `agent:${ctx.agentId}`;
         const job = await sendForApproval(portal, agentPortalReader(deps.artifacts, actorOf(ctx), ctx.orgId), {
           client: str(input.client),
@@ -564,7 +575,6 @@ function sendTool(deps: PortalToolDeps, portal: ApprovalPortal): ToolDefinition 
           coverArtifactId: str(input.cover_artifact_id) || undefined,
           title: str(input.title) || undefined,
           caption: str(input.caption) || undefined,
-          date: str(input.date) || undefined,
           editor: str(input.editor) || undefined,
           card: str(input.card) || undefined,
           // One call sends once, however many times it is retried.
@@ -651,39 +661,6 @@ function versionTool(deps: PortalToolDeps, portal: ApprovalPortal): ToolDefiniti
 
 /** `YYYY-MM-DDTHH:MM`, with or without seconds and an offset: what a schedule's time looks like. */
 export const PORTAL_WHEN = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2})?(Z|[+-]\d{2}:\d{2})?$/;
-
-function scheduleTool(portal: ApprovalPortal): ToolDefinition {
-  return {
-    name: SCHEDULE_POST_TOOL,
-    description:
-      "Schedule a post the client already approved: it is released at the approval portal and goes to the publishing service by itself, with the portal's own caption and files. Use it when a person of the team tells you to schedule an approved post, never on your own judgment. Only a post in the board's approved column is scheduled, at a time in the future.",
-    scope: "",
-    external: true,
-    inputSchema: {
-      type: "object",
-      properties: {
-        client: { type: "string", maxLength: 64 },
-        item: { type: "string", maxLength: 80, description: "The post's id, as `portal_board` lists it." },
-        when: { type: "string", maxLength: 40, description: "YYYY-MM-DDTHH:MM, the portal's own time zone." },
-      },
-      required: ["client", "item", "when"],
-      additionalProperties: false,
-    },
-    describe: (input) => ({ title: `Schedule ${str(input.client)}'s post ${str(input.item)} for ${str(input.when)}` }),
-    async execute(input, ctx) {
-      try {
-        if (!PORTAL_WHEN.test(str(input.when))) throw new ValidationError("`when` is YYYY-MM-DDTHH:MM");
-        const by = (await personBehindCall(ctx)) ?? `agent:${ctx.agentId}`;
-        await portal.scheduleItem(str(input.client), str(input.item), str(input.when), by);
-        return {
-          content: `Released for ${str(input.when)}: the portal takes it to the publishing service within minutes.`,
-        };
-      } catch (error) {
-        return failed(error);
-      }
-    },
-  };
-}
 
 export const PORTAL_WORK_TOOL = "portal_work";
 
@@ -778,14 +755,7 @@ export function createPortalToolSource(deps: PortalToolDeps): ToolSource {
       // A routine reads (it tells each person their day) and changes nothing here.
       const reads = [boardTool(portal), workTool(portal)];
       if (ctx.background) return reads;
-      return [
-        ...reads,
-        cardTool(portal),
-        planTool(portal),
-        sendTool(deps, portal),
-        versionTool(deps, portal),
-        scheduleTool(portal),
-      ];
+      return [...reads, cardTool(portal), planTool(portal), sendTool(deps, portal), versionTool(deps, portal)];
     },
   };
 }

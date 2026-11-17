@@ -386,9 +386,10 @@ describe("a client's board", () => {
       type: "carousel",
       artifactIds: ["11111111-1111-4111-8111-111111111111"],
       title: "Lançamento do cardápio",
-      date: "2026-11-20T09:00",
       card: "c-000001",
     });
+    // The card's day stays on the card: a post goes to the client without a date (ADR 9001, addendum 2026-11-17).
+    expect(sent?.[1]).not.toHaveProperty("date");
     expect(typeof (sent?.[1] as { key?: string } | undefined)?.key).toBe("string");
     expect(within(dialog).getByRole("status").textContent).toBe("Subindo para a aprovação de Acme Foods…");
 
