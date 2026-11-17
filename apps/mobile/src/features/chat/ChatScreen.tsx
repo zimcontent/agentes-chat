@@ -299,6 +299,12 @@ const rowType = (r: Row) => {
 };
 /** A sticker's row counts as in view from here: one barely in at the edge doesn't take a place among those playing. */
 const STICKER_VIEW = { id: "stickers", itemVisiblePercentThreshold: 30 };
+/**
+ * The conversation's list, drawn again only when what it is handed changes: the screen redraws for someone typing, a
+ * presence, an agent's step, and the list (a large component) was drawn again with each (upstream 541256b48). Typed as
+ * the list itself: a memo keeps its props but not its item type.
+ */
+const ConversationList = memo(KeyboardAwareLegendList) as unknown as typeof KeyboardAwareLegendList;
 const DIVIDER_KEY = "unseen-divider";
 /** A dropped connection shows only past this long (a quick reconnect says nothing). */
 const OFFLINE_AFTER_MS = 1200;
@@ -2478,6 +2484,64 @@ function Chat({
     if (state && state.distanceFromEnd <= READ_RELEASE_PX) setReadHold(false);
   }, []);
 
+  // ── The list's own props ──
+  // The list is drawn again only when what it is handed changes (`ConversationList`): someone typing, a presence, an
+  // agent's step redraw the screen many times a minute and leave it alone. So nothing it is handed is made anew there.
+  const listIndicator = useMemo(() => ({ top: headerHeight }), [headerHeight]);
+  const onDragStart = useCallback(() => {
+    dragging.current = true;
+    showDay();
+  }, [showDay]);
+  const onScrollSettled = useCallback(() => {
+    releaseAtEnd();
+    hideDay();
+  }, [releaseAtEnd, hideDay]);
+  const openPinsRef = useRef(openPins);
+  openPinsRef.current = openPins;
+  const openPinsHere = useCallback(() => openPinsRef.current(), []);
+  const goToPinRef = useRef(goToPin);
+  goToPinRef.current = goToPin;
+  const goToPinHere = useCallback((...pin: Parameters<typeof goToPin>) => goToPinRef.current(...pin), []);
+  // Before the conversation's start: the older pages' row (a spinner while one loads, the way to ask again when one
+  // didn't). At its start, once it is loaded: the pinned messages (pulling down past the first message reveals them),
+  // then the right hand's greeting or a new agent's checklist.
+  const listHeader = useMemo(
+    () =>
+      !atStart ? (
+        <OlderRow loading={loadingOlder} failed={olderFailed} onRetry={fetchOlder} />
+      ) : hasPins || (dmAgent && (rightHand || setupIntro)) ? (
+        <>
+          {hasPins ? (
+            <PinnedLines channelId={channelId} threadId={threadId} onOpen={openPinsHere} onPick={goToPinHere} />
+          ) : null}
+          {dmAgent && rightHand ? (
+            <RightHandIntro agent={dmAgent} channelId={channelId} waveFrom={waveFrom} />
+          ) : dmAgent && setupIntro ? (
+            <AgentSetupIntro agent={dmAgent} channelId={channelId} />
+          ) : null}
+        </>
+      ) : (
+        // The older pages' row keeps its room once the start is reached: taking it out moved every message up as the
+        // last page came in.
+        <View style={styles.older} />
+      ),
+    [
+      atStart,
+      loadingOlder,
+      olderFailed,
+      fetchOlder,
+      hasPins,
+      dmAgent,
+      rightHand,
+      setupIntro,
+      channelId,
+      threadId,
+      openPinsHere,
+      goToPinHere,
+      waveFrom,
+    ],
+  );
+
   return (
     <AskStoreProvider store={asks}>
       <AskProbes messages={shownMessages} />
@@ -2527,7 +2591,7 @@ function Chat({
                           <StoppedRunsContext.Provider value={stoppedRuns}>
                             <StopsMovedOnContext.Provider value={stopsMoved}>
                               <OpenedMessagesContext.Provider value={openedMessages}>
-                                <KeyboardAwareLegendList
+                                <ConversationList
                                   ref={listRef}
                                   style={styles.grow}
                                   data={shownRows}
@@ -2553,7 +2617,7 @@ function Chat({
                                   // bar's room is the content's top padding, the indicator kept below the bar.
                                   contentInsetAdjustmentBehavior="never"
                                   automaticallyAdjustContentInsets={false}
-                                  scrollIndicatorInsets={{ top: headerHeight }}
+                                  scrollIndicatorInsets={listIndicator}
                                   // Still while a sheet or the agent's computer covers the conversation.
                                   freeze={freeze}
                                   onReady={revealList}
@@ -2563,19 +2627,10 @@ function Chat({
                                   onScroll={onListScroll}
                                   onViewableItemsChanged={onViewable}
                                   viewabilityConfig={STICKER_VIEW}
-                                  onScrollBeginDrag={() => {
-                                    dragging.current = true;
-                                    showDay();
-                                  }}
-                                  onScrollEndDrag={() => {
-                                    releaseAtEnd();
-                                    hideDay();
-                                  }}
+                                  onScrollBeginDrag={onDragStart}
+                                  onScrollEndDrag={onScrollSettled}
                                   onMomentumScrollBegin={showDay}
-                                  onMomentumScrollEnd={() => {
-                                    releaseAtEnd();
-                                    hideDay();
-                                  }}
+                                  onMomentumScrollEnd={onScrollSettled}
                                   onStartReachedThreshold={0.5}
                                   keyboardDismissMode="interactive"
                                   keyboardShouldPersistTaps="handled"
@@ -2587,35 +2642,7 @@ function Chat({
                                   keyboardLiftBehavior="whenAtEnd"
                                   contentInsetEndAdjustment={endInset}
                                   contentContainerStyle={listPad}
-                                  // Before the conversation's start: the older pages' row (a spinner while one loads, the
-                                  // way to ask again when one didn't). At its start, once it is loaded: the pinned messages
-                                  // (pulling down past the first message reveals them), then the right hand's greeting or a
-                                  // new agent's checklist.
-                                  ListHeaderComponent={
-                                    !atStart ? (
-                                      <OlderRow loading={loadingOlder} failed={olderFailed} onRetry={fetchOlder} />
-                                    ) : hasPins || (dmAgent && (rightHand || setupIntro)) ? (
-                                      <>
-                                        {hasPins ? (
-                                          <PinnedLines
-                                            channelId={channelId}
-                                            threadId={threadId}
-                                            onOpen={openPins}
-                                            onPick={goToPin}
-                                          />
-                                        ) : null}
-                                        {dmAgent && rightHand ? (
-                                          <RightHandIntro agent={dmAgent} channelId={channelId} waveFrom={waveFrom} />
-                                        ) : dmAgent && setupIntro ? (
-                                          <AgentSetupIntro agent={dmAgent} channelId={channelId} />
-                                        ) : null}
-                                      </>
-                                    ) : (
-                                      // The older pages' row keeps its room once the start is reached: taking it out
-                                      // moved every message up as the last page came in.
-                                      <View style={styles.older} />
-                                    )
-                                  }
+                                  ListHeaderComponent={listHeader}
                                 />
                               </OpenedMessagesContext.Provider>
                             </StopsMovedOnContext.Provider>

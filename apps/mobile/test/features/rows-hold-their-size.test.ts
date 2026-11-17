@@ -97,9 +97,10 @@ describe("rows that measure themselves come back at their size", () => {
     expect(spec).toMatch(/keepSize\(sizeKey, next\);\s*setSized\(/);
   });
 
-  test("pictures and GIFs take the room kept for their side, sent and still sending alike", () => {
+  test("pictures and GIFs take the room kept for their side", () => {
     const files = src("features/files/MessageFiles.tsx");
-    expect(files.match(/useKeptWidth\(`files:\$\{align\}`\)/g)?.length).toBe(2);
+    // This app has no "still sending" files block: the sent files alone keep their side's room.
+    expect(files.match(/useKeptWidth\(`files:\$\{align\}`\)/g)?.length).toBe(1);
     expect(files).not.toContain("setWidth(e.nativeEvent.layout.width)");
     const media = src("features/chat/ChatMedia.tsx");
     expect(media).toMatch(/useKeptWidth\(`gif:\$\{align\}`\)/);
