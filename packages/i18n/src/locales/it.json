@@ -2312,6 +2312,7 @@
     "sectorsCount_other": "{{count}} reparti",
     "viewLabel": "Vista del team",
     "view": {
+      "now": "Adesso",
       "list": "Elenco",
       "chart": "Organigramma",
       "map": "Mappa",
@@ -5123,6 +5124,11 @@
     "waiting": {
       "title": "Ti aspetta"
     },
+    "toSchedule": {
+      "meta": "Approvato, in attesa di programmazione",
+      "action": "Programma",
+      "label": "Programma {{title}}"
+    },
     "working": {
       "title": "Al lavoro ora",
       "none": "Nessun agente sta lavorando adesso.",
@@ -5768,6 +5774,63 @@
     "budgetDefaultHelpAmount": "Vuoto: il predefinito dello spazio di lavoro ({{amount}}).",
     "budgetInvalid": "Usa un valore maggiore di zero.",
     "notFound": "Questo agente non esiste o è stato archiviato."
+  },
+  "agentFront": {
+    "call": "Chiama",
+    "tasks": "Attività",
+    "settings": "Impostazioni",
+    "canUse": "Può usare",
+    "month": "Questo mese",
+    "reportsTo": "Risponde a",
+    "reportsToNobody": "Nessuno",
+    "ai": "IA",
+    "today": "Oggi",
+    "todayNone": "Ancora niente oggi.",
+    "doneAt": "consegnata alle {{time}}",
+    "going": "in corso",
+    "failed": "non è finita"
+  },
+  "teamNow": {
+    "title": "Il tuo team adesso",
+    "coordinates_one": "{{name}} coordina {{count}} agente",
+    "coordinates_many": "{{name}} coordina {{count}} agenti",
+    "coordinates_other": "{{name}} coordina {{count}} agenti",
+    "working_one": "{{count}} al lavoro adesso",
+    "working_many": "{{count}} al lavoro adesso",
+    "working_other": "{{count}} al lavoro adesso",
+    "waiting_one": "{{count}} ti aspetta",
+    "waiting_many": "{{count}} ti aspettano",
+    "waiting_other": "{{count}} ti aspettano",
+    "waitingButton_one": "{{count}} in attesa di te",
+    "waitingButton_many": "{{count}} in attesa di te",
+    "waitingButton_other": "{{count}} in attesa di te"
+  },
+  "aiPanel": {
+    "title": "Pannello dell'IA",
+    "uses": "Chi usa cosa",
+    "accounts": "Account IA",
+    "usage": "Chiavi e utilizzo",
+    "change": "Cambia IA",
+    "noAgents": "Ancora nessun agente.",
+    "dialog": {
+      "title": "Cambia l'IA di {{name}}",
+      "title_female": "Cambia l'IA di {{name}}",
+      "smart": "La più intelligente",
+      "balanced": "Equilibrio",
+      "fast": "La più veloce ed economica",
+      "smartPlan": "Ragiona di più. Più lenta, e consuma più quota.",
+      "smartKey": "Ragiona di più. Più lenta, e costa di più.",
+      "balancedLine": "Consigliata per la maggior parte delle attività.",
+      "fastLine": "Risponde subito. Ideale per attività semplici.",
+      "current": "Attuale",
+      "inPlan": "incluso nel piano",
+      "price": "≈ {{input}} / {{output}} per milione di token",
+      "switchTo": "Passa a {{model}}",
+      "keep": "Mantieni",
+      "now": "Ora: {{model}}",
+      "more": "Altre opzioni",
+      "none": "Al momento non c'è un'altra IA a cui passare. Collega un account o una chiave per avere delle opzioni."
+    }
   },
   "agentPage": {
     "work": {
@@ -7658,6 +7721,14 @@
         "helpsText": "Può cambiare agenti, impostazioni e chi c'è qui, come te."
       },
       "where": {
+        "titleOne": "In quali canali entra subito {{name}}?",
+        "titleMany": "In quali canali entrano subito queste persone?",
+        "titleOnePersonal": "In quali conversazioni di gruppo entra subito {{name}}?",
+        "titleManyPersonal": "In quali conversazioni di gruppo entrano subito queste persone?",
+        "lead": "Tutti iniziano in #{{channel}}. Gli altri li scegli tu.",
+        "label": "Canali",
+        "labelPersonal": "Conversazioni di gruppo",
+        "everyone": "Entrano tutti",
         "private": "Privato · ci sei dentro",
         "people_one": "{{count}} persona",
         "people_many": "{{count}} persone",
@@ -11240,9 +11311,23 @@
   },
   "liveVoice": {
     "you": "Tu",
+    "invite": {
+      "title": "Chiama qualcuno",
+      "lead": "Riceve una notifica sul telefono e sul computer, con un modo per entrare.",
+      "send": "Chiama",
+      "refused": "Impossibile chiamare {{names}}: solo chi gestisce questa conversazione può aggiungere persone.",
+      "none": "Tutti nello spazio di lavoro sono già nella chiamata."
+    },
+    "ring": {
+      "title": "{{name}} ti sta chiamando",
+      "where": "Chiamata vocale in {{channel}}",
+      "join": "Partecipa",
+      "decline": "Non ora"
+    },
     "call": {
       "topic": "Argomento (facoltativo)",
       "topicHint": "Gli agenti iniziano discutendo di questo. Intervieni quando vuoi.",
+      "people": "Chiama anche persone",
       "start": "Avvia una chiamata vocale",
       "join_one": "Partecipa alla chiamata ({{count}})",
       "join_many": "Partecipa alla chiamata ({{count}})",
@@ -11289,6 +11374,7 @@
       "quiet": "Gli agenti ascoltano soltanto",
       "leave": "Esci dalla chiamata",
       "endAll": "Termina per tutti",
+      "invite": "Chiama qualcuno",
       "endTitle": "Terminare la chiamata per tutti?",
       "endText": "Le note della chiamata vanno nella conversazione e Doug BOSS invia il resoconto con le decisioni e i prossimi passi.",
       "hasWord": "{{name}} ha la parola",
@@ -12448,6 +12534,8 @@
       "no_computer": "Scegli un computer collegato in Computer per usarlo.",
       "exec_off": "Il computer è stato collegato senza il permesso di eseguire programmi.",
       "runner_old": "Aggiorna il programma DougBot sul computer per usarlo.",
+      "tool_off": "{{program}} è disattivato su {{computer}}. Attivalo lì, nell'app DougBot: Preferenze → Strumenti.",
+      "tool_offLinux": "{{program}} è disattivato su {{computer}}. Attivalo lì, nell'app DougBot o con {{command}}.",
       "tool_offOne": "{{program}} è disattivato su {{computer}}.",
       "not_installed": "{{program}} non è installato su {{computer}}.",
       "cant_start": "{{program}} è su {{computer}}, ma non si avvia.",
@@ -14114,6 +14202,13 @@
       "ruleset": "set di regole|set di regole|del set di regole"
     },
     "label": {
+      "portal_board": "Vedi la bacheca di approvazione",
+      "portal_plan": "Vedi il calendario strategico",
+      "portal_work": "Vedi le attività di una persona",
+      "portal_card": "Aggiorna la bacheca di approvazione",
+      "send_for_approval": "Invia per approvazione",
+      "send_new_version": "Invia la nuova versione",
+      "schedule_post": "Programma post",
       "git_clone": "Clona repository",
       "create_repository": "Crea repository",
       "delete_repository": "Elimina repository",
@@ -17244,6 +17339,7 @@
     "removed": "Rimosso",
     "change": {
       "mergedWithoutAsking": "Ha fatto il merge in {{repo}} senza chiedere",
+      "portalApprovedForClient": "Ha approvato “{{title}}” per conto del cliente nel portale",
       "pattern": "{{verb}} {{area}}",
       "approval": {
         "approved": "Ha approvato una richiesta",
@@ -18720,12 +18816,6 @@
       "interrupted": "Interrotto da un riavvio del server. Chiedi di nuovo per continuare.",
       "step_limit": "Ho esaurito i passaggi prima di finire.",
       "stuck": "Mi sono bloccato e mi sono fermato prima di finire."
-    },
-    "talk": {
-      "readAll": "Leggi tutto",
-      "more_one": "{{count}} riga in più",
-      "more_many": "{{count}} righe in più",
-      "more_other": "{{count}} righe in più"
     }
   },
   "builtinTools": {
@@ -21553,6 +21643,9 @@
       "saved": "Scheda salvata.",
       "deleted": "Scheda eliminata.",
       "deleteTitle": "Eliminare questa scheda?",
+      "deleteOf": "Elimina la scheda {{title}}",
+      "copyLink": "Copia il link della scheda",
+      "linkCopied": "Link della scheda copiato.",
       "deleteText": "“{{title}}” esce dalla bacheca. I suoi file restano nel Drive."
     },
     "post": {
@@ -21566,6 +21659,15 @@
       "done": "Rilasciato per {{when}}.",
       "past": "Scegli un orario che non sia già passato.",
       "pending": "programmazione…"
+    },
+    "approveForClient": {
+      "action": "Approva per conto del cliente",
+      "title": "Approvare per conto del cliente?",
+      "text": "Solo quando il cliente ha smesso di rispondere nel portale. Il post passa ad Approvato lì, come se l'avesse approvato il cliente, e parte quello che segue l'approvazione.",
+      "note": "Motivo",
+      "notePlaceholder": "Il cliente l'ha approvato su WhatsApp",
+      "confirm": "Approva",
+      "done": "“{{title}}” approvato per conto del cliente."
     },
     "form": {
       "client": "Cliente",
@@ -21595,17 +21697,33 @@
       "notMedia": "Solo immagini e video vanno in approvazione.",
       "coverNotImage": "La copertina deve essere un'immagine."
     },
+    "materials": {
+      "tab": "Materiali del cliente",
+      "intro": "Accessi, link e riferimenti del cliente. Restano fuori dal calendario e non diventano mai attività.",
+      "empty": "Ancora nessun materiale",
+      "emptyText": "Crea una lista (Social, Accessi, Brand) e tieni le schede al suo interno.",
+      "newListHint": "Diventa la prima tra i materiali. Le sue schede le crei al suo interno.",
+      "toMaterials": "Sposta in Materiali del cliente",
+      "toPlan": "Torna al calendario",
+      "movedToMaterials": "“{{name}}” è passata in Materiali del cliente.",
+      "movedToPlan": "“{{name}}” è tornata nel calendario."
+    },
     "plan": {
       "tab": "Calendario strategico",
+      "tabShort": "Calendario",
       "view": "Vista",
       "viewBoard": "Bacheca",
       "viewCalendar": "Calendario",
       "noList": "Senza lista",
       "addList": "Aggiungi una lista",
+      "newList": "Nuova lista",
+      "newListHint": "Diventa la prima del calendario. Le sue schede le crei al suo interno.",
       "listName": "Nome della lista",
       "addCard": "Aggiungi una scheda",
       "cardTitle": "Titolo della scheda",
       "listActions": "Azioni: {{name}}",
+      "lists": "Liste",
+      "goToList": "Vai a {{name}}",
       "rename": "Rinomina",
       "moveLeft": "Sposta a sinistra",
       "moveRight": "Sposta a destra",
@@ -21678,6 +21796,7 @@
       "edit": "Modifica",
       "editDescription": "Modifica descrizione",
       "noDescription": "Nessuna descrizione",
+      "addDescription": "Aggiungi una descrizione più dettagliata…",
       "showMore": "Mostra altro",
       "showLess": "Mostra meno",
       "linkText": "testo del link",

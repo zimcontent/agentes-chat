@@ -2378,6 +2378,7 @@
     "sectorsCount_other": "{{count}} działu",
     "viewLabel": "Widok zespołu",
     "view": {
+      "now": "Teraz",
       "list": "Lista",
       "chart": "Schemat organizacyjny",
       "map": "Mapa",
@@ -5293,6 +5294,11 @@
     "waiting": {
       "title": "Czeka na ciebie"
     },
+    "toSchedule": {
+      "meta": "Zatwierdzone, czeka na zaplanowanie",
+      "action": "Zaplanuj",
+      "label": "Zaplanuj: {{title}}"
+    },
     "working": {
       "title": "Pracuje teraz",
       "none": "Teraz nie pracuje żaden agent.",
@@ -5969,6 +5975,66 @@
     "budgetDefaultHelpAmount": "Puste: domyślny dla przestrzeni roboczej ({{amount}}).",
     "budgetInvalid": "Podaj wartość większą od zera.",
     "notFound": "Ten agent nie istnieje albo został zarchiwizowany."
+  },
+  "agentFront": {
+    "call": "Zadzwoń",
+    "tasks": "Zadania",
+    "settings": "Ustawienia",
+    "canUse": "Może używać",
+    "month": "W tym miesiącu",
+    "reportsTo": "Raportuje do",
+    "reportsToNobody": "Nikt",
+    "ai": "AI",
+    "today": "Dziś",
+    "todayNone": "Dziś jeszcze nic.",
+    "doneAt": "ukończone o {{time}}",
+    "going": "w toku",
+    "failed": "nieukończone"
+  },
+  "teamNow": {
+    "title": "Twój zespół teraz",
+    "coordinates_one": "{{name}} koordynuje {{count}} agenta",
+    "coordinates_few": "{{name}} koordynuje {{count}} agentów",
+    "coordinates_many": "{{name}} koordynuje {{count}} agentów",
+    "coordinates_other": "{{name}} koordynuje {{count}} agenta",
+    "working_one": "{{count}} pracuje teraz",
+    "working_few": "{{count}} pracują teraz",
+    "working_many": "{{count}} pracuje teraz",
+    "working_other": "{{count}} pracuje teraz",
+    "waiting_one": "{{count}} czeka na ciebie",
+    "waiting_few": "{{count}} czekają na ciebie",
+    "waiting_many": "{{count}} czeka na ciebie",
+    "waiting_other": "{{count}} czeka na ciebie",
+    "waitingButton_one": "{{count}} czeka na ciebie",
+    "waitingButton_few": "{{count}} czekają na ciebie",
+    "waitingButton_many": "{{count}} czeka na ciebie",
+    "waitingButton_other": "{{count}} czeka na ciebie"
+  },
+  "aiPanel": {
+    "title": "Panel AI",
+    "uses": "Kto używa czego",
+    "accounts": "Konta AI",
+    "usage": "Klucze i użycie",
+    "change": "Zmień AI",
+    "noAgents": "Nie ma jeszcze agentów.",
+    "dialog": {
+      "title": "Zmień AI agenta {{name}}",
+      "smart": "Najinteligentniejsza",
+      "balanced": "Zrównoważona",
+      "fast": "Najszybsza i najtańsza",
+      "smartPlan": "Myśli dłużej. Wolniejsza i zużywa więcej limitu.",
+      "smartKey": "Myśli dłużej. Wolniejsza i droższa.",
+      "balancedLine": "Zalecana do większości zadań.",
+      "fastLine": "Odpowiada od razu. Najlepsza do prostych zadań.",
+      "current": "Obecna",
+      "inPlan": "w ramach planu",
+      "price": "≈ {{input}} / {{output}} za milion tokenów",
+      "switchTo": "Przełącz na {{model}}",
+      "keep": "Zostaw",
+      "now": "Teraz: {{model}}",
+      "more": "Więcej opcji",
+      "none": "Nie ma teraz innej AI do wyboru. Połącz konto lub klucz, żeby mieć opcje."
+    }
   },
   "agentPage": {
     "work": {
@@ -7897,6 +7963,14 @@
         "helpsText": "Może zmieniać agentów, ustawienia i to, kto tu jest, tak jak ty. Widzi wszystko, co jest tu udostępnione, poza twoimi wiadomościami bezpośrednimi."
       },
       "where": {
+        "titleOne": "Do których grup {{name}} od razu dołącza?",
+        "titleMany": "Do których grup te osoby od razu dołączają?",
+        "titleOnePersonal": "Do których rozmów grupowych {{name}} od razu dołącza?",
+        "titleManyPersonal": "Do których rozmów grupowych te osoby od razu dołączają?",
+        "lead": "Każdy zaczyna na #{{channel}}. Pozostałe wybierasz ty.",
+        "label": "Grupy",
+        "labelPersonal": "Rozmowy grupowe",
+        "everyone": "Dołączają wszyscy",
         "private": "Prywatny · jesteś w nim",
         "people_one": "{{count}} osoba",
         "people_few": "{{count}} osoby",
@@ -11601,9 +11675,23 @@
   },
   "liveVoice": {
     "you": "Ty",
+    "invite": {
+      "title": "Zaproś kogoś do rozmowy",
+      "lead": "Ta osoba dostanie powiadomienie na telefonie i komputerze, z możliwością dołączenia.",
+      "send": "Zadzwoń",
+      "refused": "Nie udało się zadzwonić do: {{names}}. Tylko osoba zarządzająca tą konwersacją może dodawać do niej osoby.",
+      "none": "Wszyscy z przestrzeni roboczej są już w rozmowie."
+    },
+    "ring": {
+      "title": "{{name}} dzwoni do ciebie",
+      "where": "Rozmowa głosowa w {{channel}}",
+      "join": "Dołącz",
+      "decline": "Nie teraz"
+    },
     "call": {
       "topic": "Temat (opcjonalnie)",
       "topicHint": "Agenci zaczynają od dyskusji na ten temat. Dołącz, kiedy chcesz.",
+      "people": "Zadzwoń też do osób",
       "start": "Rozpocznij rozmowę głosową",
       "join_one": "Dołącz do rozmowy ({{count}})",
       "join_few": "Dołącz do rozmowy ({{count}})",
@@ -11652,6 +11740,7 @@
       "quiet": "Agenci tylko słuchają",
       "leave": "Opuść rozmowę",
       "endAll": "Zakończ dla wszystkich",
+      "invite": "Zadzwoń do kogoś",
       "endTitle": "Zakończyć rozmowę dla wszystkich?",
       "endText": "Notatki z rozmowy trafią do konwersacji. Doug BOSS wyśle raport z ustaleniami i kolejnymi krokami.",
       "hasWord": "{{name}} ma głos",
@@ -12881,6 +12970,8 @@
       "no_computer": "Wybierz połączony komputer w sekcji Komputer, żeby z tego korzystać.",
       "exec_off": "Komputer połączono bez uprawnienia do uruchamiania programów.",
       "runner_old": "Zaktualizuj program DougBot na komputerze, żeby z tego korzystać.",
+      "tool_off": "{{program}} jest wyłączony na {{computer}}. Włącz go tam w aplikacji DougBot: Preferencje → Narzędzia.",
+      "tool_offLinux": "{{program}} jest wyłączony na {{computer}}. Włącz go tam w aplikacji DougBot lub poleceniem {{command}}.",
       "tool_offOne": "{{program}} jest wyłączony na {{computer}}.",
       "not_installed": "{{program}} nie jest zainstalowany na komputerze {{computer}}.",
       "cant_start": "{{program}} jest na {{computer}}, ale się nie uruchamia.",
@@ -14592,6 +14683,13 @@
       "ruleset": "zestaw reguł|zestawy reguł|zestawu reguł"
     },
     "label": {
+      "portal_board": "Zobacz tablicę zatwierdzeń",
+      "portal_plan": "Zobacz harmonogram strategiczny",
+      "portal_work": "Zobacz zadania osoby",
+      "portal_card": "Zaktualizuj tablicę zatwierdzeń",
+      "send_for_approval": "Wyślij do zatwierdzenia",
+      "send_new_version": "Wyślij nową wersję",
+      "schedule_post": "Zaplanuj post",
       "git_clone": "Sklonuj repozytorium",
       "create_repository": "Utwórz repozytorium",
       "delete_repository": "Usuń repozytorium",
@@ -17778,6 +17876,7 @@
     "removed": "Usunięte",
     "change": {
       "mergedWithoutAsking": "Scalono w {{repo}} bez pytania",
+      "portalApprovedForClient": "Zatwierdzono „{{title}}” w portalu w imieniu klienta",
       "pattern": "{{verb}} {{area}}",
       "approval": {
         "approved": "Zatwierdzono prośbę",
@@ -19278,13 +19377,6 @@
       "interrupted": "Przerwane przez restart serwera. Poproś ponownie, żeby kontynuować.",
       "step_limit": "Skończył mi się limit kroków przed zakończeniem.",
       "stuck": "Praca utknęła i została przerwana przed zakończeniem."
-    },
-    "talk": {
-      "readAll": "Czytaj całość",
-      "more_one": "jeszcze {{count}} wiersz",
-      "more_few": "jeszcze {{count}} wiersze",
-      "more_many": "jeszcze {{count}} wierszy",
-      "more_other": "jeszcze {{count}} wiersza"
     }
   },
   "builtinTools": {
@@ -22123,6 +22215,9 @@
       "saved": "Karta zapisana.",
       "deleted": "Karta usunięta.",
       "deleteTitle": "Usunąć tę kartę?",
+      "deleteOf": "Usuń kartę {{title}}",
+      "copyLink": "Kopiuj link do karty",
+      "linkCopied": "Skopiowano link do karty.",
       "deleteText": "„{{title}}” znika z tablicy. Jej pliki zostają w Drive."
     },
     "post": {
@@ -22136,6 +22231,15 @@
       "done": "Zaplanowano na {{when}}.",
       "past": "Wybierz godzinę, która jeszcze nie minęła.",
       "pending": "planowanie…"
+    },
+    "approveForClient": {
+      "action": "Zatwierdź w imieniu klienta",
+      "title": "Zatwierdzić w imieniu klienta?",
+      "text": "Tylko gdy klient przestał odpowiadać w portalu. Post zmieni tam status na Zatwierdzone, jakby zatwierdził go klient, i ruszy to, co następuje po zatwierdzeniu.",
+      "note": "Powód",
+      "notePlaceholder": "Klient zatwierdził przez WhatsApp",
+      "confirm": "Zatwierdź",
+      "done": "Zatwierdzono „{{title}}” w imieniu klienta."
     },
     "form": {
       "client": "Klient",
@@ -22165,17 +22269,33 @@
       "notMedia": "Do zatwierdzenia trafiają tylko obrazy i filmy.",
       "coverNotImage": "Okładka musi być obrazem."
     },
+    "materials": {
+      "tab": "Materiały klienta",
+      "intro": "Loginy, linki i materiały referencyjne klienta. Zostają poza harmonogramem i nigdy nie stają się zadaniami.",
+      "empty": "Nie ma jeszcze materiałów",
+      "emptyText": "Utwórz listę (Media społecznościowe, Dostępy, Marka) i trzymaj w niej karty.",
+      "newListHint": "Trafi na początek materiałów. Karty tworzysz w niej.",
+      "toMaterials": "Przenieś do Materiałów klienta",
+      "toPlan": "Wróć do harmonogramu",
+      "movedToMaterials": "Lista „{{name}}” trafiła do Materiałów klienta.",
+      "movedToPlan": "Lista „{{name}}” wróciła do harmonogramu."
+    },
     "plan": {
       "tab": "Harmonogram strategiczny",
+      "tabShort": "Harmonogram",
       "view": "Widok",
       "viewBoard": "Tablica",
       "viewCalendar": "Kalendarz",
       "noList": "Bez listy",
       "addList": "Dodaj listę",
+      "newList": "Nowa lista",
+      "newListHint": "Trafi na początek harmonogramu. Karty tworzysz w niej.",
       "listName": "Nazwa listy",
       "addCard": "Dodaj kartę",
       "cardTitle": "Tytuł karty",
       "listActions": "Działania: {{name}}",
+      "lists": "Listy",
+      "goToList": "Przejdź do {{name}}",
       "rename": "Zmień nazwę",
       "moveLeft": "Przenieś w lewo",
       "moveRight": "Przenieś w prawo",
@@ -22249,6 +22369,7 @@
       "edit": "Edytuj",
       "editDescription": "Edytuj opis",
       "noDescription": "Brak opisu",
+      "addDescription": "Dodaj bardziej szczegółowy opis…",
       "showMore": "Pokaż więcej",
       "showLess": "Pokaż mniej",
       "linkText": "tekst linku",

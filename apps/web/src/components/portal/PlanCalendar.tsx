@@ -95,45 +95,54 @@ export function PlanCalendar({
           ]}
         />
       </div>
-      <div className="plan-cal__scroll">
-        <div className="plan-cal__grid">
-          {weekdays.map((w) => (
-            <span key={w} className="plan-cal__dow" aria-hidden="true">
-              {w}
-            </span>
-          ))}
-          {grid.map((d) => {
-            const day = ymd(d);
-            const entries = days.get(day) ?? [];
-            const all = open === day || entries.length <= DAY_ROOM + 1;
-            const shown = all ? entries : entries.slice(0, DAY_ROOM);
-            return (
-              <div
-                key={day}
-                className="plan-cal__day"
-                data-day={day}
-                data-out={d.getMonth() !== month.getMonth() || undefined}
-                data-today={day === ymd(today) || undefined}
-              >
-                <time className="plan-cal__num" dateTime={day}>
-                  {d.getDate()}
-                </time>
-                {entries.length > 0 && (
-                  <ul className="plan-cal__chips">
-                    {shown.map(chip)}
-                    {!all && (
-                      <li>
-                        <button type="button" className="plan-cal__more" onClick={() => setOpen(day)}>
+      <div className="plan-cal__grid">
+        {weekdays.map((w) => (
+          <span key={w} className="plan-cal__dow" aria-hidden="true">
+            {w}
+          </span>
+        ))}
+        {grid.map((d) => {
+          const day = ymd(d);
+          const entries = days.get(day) ?? [];
+          const all = open === day || entries.length <= DAY_ROOM + 1;
+          const shown = all ? entries : entries.slice(0, DAY_ROOM);
+          return (
+            <div
+              key={day}
+              className="plan-cal__day"
+              data-day={day}
+              data-out={d.getMonth() !== month.getMonth() || undefined}
+              data-today={day === ymd(today) || undefined}
+            >
+              <time className="plan-cal__num" dateTime={day}>
+                {d.getDate()}
+              </time>
+              {entries.length > 0 && (
+                <ul className="plan-cal__chips">
+                  {shown.map(chip)}
+                  {!all && (
+                    <li>
+                      <button
+                        type="button"
+                        className="plan-cal__more"
+                        aria-label={t("portal.calendar.more", { count: entries.length - DAY_ROOM })}
+                        onClick={() => setOpen(day)}
+                      >
+                        {/* On a phone the day is too narrow for the words: "+N", the words stay its name. */}
+                        <span className="plan-cal__more-long" aria-hidden="true">
                           {t("portal.calendar.more", { count: entries.length - DAY_ROOM })}
-                        </button>
-                      </li>
-                    )}
-                  </ul>
-                )}
-              </div>
-            );
-          })}
-        </div>
+                        </span>
+                        <span className="plan-cal__more-short" aria-hidden="true">
+                          +{entries.length - DAY_ROOM}
+                        </span>
+                      </button>
+                    </li>
+                  )}
+                </ul>
+              )}
+            </div>
+          );
+        })}
       </div>
     </section>
   );

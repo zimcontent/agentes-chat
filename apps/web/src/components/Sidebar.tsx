@@ -622,12 +622,13 @@ export function Sidebar() {
   }, [float]);
 
   // The open conversation stays in sight: once per navigation (as soon as its row exists), a row
-  // hidden past the list's edge is brought to the middle. Later scrolling is the person's.
+  // hidden past the list's edge is brought to the middle. Later scrolling is the person's. A pinned agent's face
+  // counts too: the pinned row leads the list and scrolls away with it.
   const shownFor = useRef<string | null>(null);
   // biome-ignore lint/correctness/useExhaustiveDependencies: retry when the lists load
   useLayoutEffect(() => {
     const nav = navRef.current;
-    const active = nav?.querySelector<HTMLElement>('.sidebar__item[data-status="active"]');
+    const active = nav?.querySelector<HTMLElement>(':is(.sidebar__item, .sidebar__hero-link)[data-status="active"]');
     if (!nav || !active || shownFor.current === pathname) return;
     shownFor.current = pathname;
     const n = nav.getBoundingClientRect();

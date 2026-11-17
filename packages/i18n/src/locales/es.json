@@ -2311,6 +2311,7 @@
     "sectorsCount_other": "{{count}} departamentos",
     "viewLabel": "Vista del equipo",
     "view": {
+      "now": "Ahora",
       "list": "Lista",
       "chart": "Organigrama",
       "map": "Mapa",
@@ -5117,6 +5118,11 @@
     "waiting": {
       "title": "Esperándote"
     },
+    "toSchedule": {
+      "meta": "Aprobado, esperando programación",
+      "action": "Programar",
+      "label": "Programar {{title}}"
+    },
     "working": {
       "title": "Trabajando ahora",
       "none": "Ningún agente está trabajando ahora.",
@@ -5752,6 +5758,63 @@
     "budgetDefaultHelpAmount": "Vacío: el predeterminado del espacio de trabajo ({{amount}}).",
     "budgetInvalid": "Usa un valor mayor que cero.",
     "notFound": "Este agente no existe o fue archivado."
+  },
+  "agentFront": {
+    "call": "Llamar",
+    "tasks": "Tareas",
+    "settings": "Ajustes",
+    "canUse": "Puede usar",
+    "month": "Este mes",
+    "reportsTo": "Responde a",
+    "reportsToNobody": "Nadie",
+    "ai": "IA",
+    "today": "Hoy",
+    "todayNone": "Nada hoy todavía.",
+    "doneAt": "entregada a las {{time}}",
+    "going": "en curso",
+    "failed": "no terminó"
+  },
+  "teamNow": {
+    "title": "Tu equipo ahora",
+    "coordinates_one": "{{name}} coordina {{count}} agente",
+    "coordinates_many": "{{name}} coordina {{count}} agentes",
+    "coordinates_other": "{{name}} coordina {{count}} agentes",
+    "working_one": "{{count}} trabajando ahora",
+    "working_many": "{{count}} trabajando ahora",
+    "working_other": "{{count}} trabajando ahora",
+    "waiting_one": "{{count}} te espera",
+    "waiting_many": "{{count}} te esperan",
+    "waiting_other": "{{count}} te esperan",
+    "waitingButton_one": "{{count}} esperándote",
+    "waitingButton_many": "{{count}} esperándote",
+    "waitingButton_other": "{{count}} esperándote"
+  },
+  "aiPanel": {
+    "title": "Panel de IA",
+    "uses": "Quién usa qué",
+    "accounts": "Cuentas de IA",
+    "usage": "Claves y uso",
+    "change": "Cambiar la IA",
+    "noAgents": "Aún no hay agentes.",
+    "dialog": {
+      "title": "Cambiar la IA de {{name}}",
+      "title_female": "Cambiar la IA de {{name}}",
+      "smart": "La más inteligente",
+      "balanced": "Equilibrio",
+      "fast": "La más rápida y económica",
+      "smartPlan": "Piensa más. Es más lenta y gasta más de la cuota.",
+      "smartKey": "Piensa más. Es más lenta y más cara.",
+      "balancedLine": "Recomendada para la mayoría de las tareas.",
+      "fastLine": "Responde al instante. Ideal para tareas simples.",
+      "current": "Actual",
+      "inPlan": "incluido en el plan",
+      "price": "≈ {{input}} / {{output}} por millón de tokens",
+      "switchTo": "Cambiar a {{model}}",
+      "keep": "Mantener",
+      "now": "Ahora: {{model}}",
+      "more": "Más opciones",
+      "none": "No hay otra IA a la que cambiar ahora. Conecta una cuenta o una clave para tener opciones."
+    }
   },
   "agentPage": {
     "work": {
@@ -7610,8 +7673,7 @@
         "private": "Privado · estás en él",
         "people_one": "{{count}} persona",
         "people_many": "{{count}} personas",
-        "people_other": "{{count}} personas",
-        "fromChannel": "#{{channel}} ya viene marcado: invitaste desde ahí."
+        "people_other": "{{count}} personas"
       },
       "again": "Invitar a más personas",
       "finish": "Terminar",
@@ -7627,53 +7689,6 @@
         "waiting_other": "{{count}} solicitudes te esperan",
         "seeRequests": "Ver solicitudes",
         "byEmail": "Invitar por correo"
-      },
-      "stepOf": "Paso {{n}} de {{total}} · {{step}}",
-      "steps": {
-        "who": "Quién",
-        "role": "Rol",
-        "where": "Dónde empiezan",
-        "note": "Nota"
-      },
-      "continueWith": "Continuar con {{count}}",
-      "who": {
-        "title": "¿A quién quieres traer?",
-        "lead": "Pásame los correos. Cada persona recibe una invitación y entra directamente."
-      },
-      "reach": {
-        "line_one": "<agents/> responderá a quien entre.",
-        "line_many": "<agents/> responderán a quien entre.",
-        "line_other": "<agents/> responderán a quien entre."
-      },
-      "noteStep": {
-        "title": "¿Quieres que diga algo en la invitación?",
-        "lead": "Va en el correo. Si no, la envío así."
-      },
-      "mailFor": "Así le llega a {{names}}",
-      "mail": {
-        "from": "DougBot · para {{to}}",
-        "toMany": "{{email}} y {{count}} más",
-        "subject": "Te invitaron a un espacio de trabajo en DougBot",
-        "headline": "Te invitaron a un espacio de trabajo",
-        "body": "<b>{{name}}</b> ({{email}}) te invitó a unirte a <b>{{org}}</b> como miembro.",
-        "noteFrom": "<b>{{name}}:</b> “{{note}}”",
-        "what": "DougBot es donde personas y agentes de IA trabajan juntos.",
-        "button": "Aceptar invitación",
-        "small": "La invitación es válida por 7 días. Acéptala con esta dirección de correo."
-      },
-      "done": {
-        "title": "Listo, envié la invitación a {{names}}.",
-        "leadOne": "Cuando {{name}} entre, le doy la bienvenida en {{channels}} y te aviso.",
-        "leadMany": "Cuando cada persona entre, le doy la bienvenida en {{channels}} y te aviso.",
-        "none": "Esta vez no salió ninguna invitación.",
-        "noneLead": "Abajo está el motivo de cada dirección."
-      },
-      "result": {
-        "invited": "Enviada",
-        "already_member": "ya está en {{org}}",
-        "already_memberPersonal": "ya está aquí",
-        "already_invited": "ya tenía invitación",
-        "invalid_email": "correo no válido"
       }
     },
     "invitations": {
@@ -9807,8 +9822,7 @@
       "start": "Empezar misión",
       "created": "Misión creada: {{name}} está armando el plan.",
       "who": "Quién programa",
-      "codexOld": "Codex en {{computer}} es demasiado antiguo para misiones: actualízalo ahí.",
-      "needsMachine": "Las misiones corren en una computadora conectada. Conecta una a {{name}} en Configuración › Dispositivos."
+      "codexOld": "Codex en {{computer}} es demasiado antiguo para misiones: actualízalo ahí."
     },
     "commandApproval": {
       "label": "Autonomía",
@@ -11211,9 +11225,23 @@
   },
   "liveVoice": {
     "you": "Tú",
+    "invite": {
+      "title": "Llamar a alguien",
+      "lead": "Recibe una notificación en el celular y en la computadora, con una forma de unirse.",
+      "send": "Llamar",
+      "refused": "No se pudo llamar a {{names}}: solo quien administra esta conversación puede agregarle personas.",
+      "none": "Todos en el espacio de trabajo ya están en la llamada."
+    },
+    "ring": {
+      "title": "{{name}} te está llamando",
+      "where": "Llamada de voz en {{channel}}",
+      "join": "Unirse",
+      "decline": "Ahora no"
+    },
     "call": {
       "topic": "Tema (opcional)",
       "topicHint": "Los agentes empiezan debatiendo esto. Entra cuando quieras.",
+      "people": "Llamar también a personas",
       "start": "Iniciar llamada de voz",
       "join_one": "Unirse a la llamada ({{count}})",
       "join_many": "Unirse a la llamada ({{count}})",
@@ -11260,6 +11288,7 @@
       "quiet": "Los agentes solo escuchan",
       "leave": "Salir de la llamada",
       "endAll": "Finalizar para todos",
+      "invite": "Llamar a alguien",
       "endTitle": "¿Finalizar la llamada para todos?",
       "endText": "Las notas de la llamada van a la conversación y Doug BOSS envía el informe con lo que se decidió y los próximos pasos.",
       "hasWord": "{{name}} tiene la palabra",
@@ -12418,6 +12447,8 @@
       "no_computer": "Elige una computadora conectada en Computadora para usarlo.",
       "exec_off": "La computadora se conectó sin permiso para ejecutar programas.",
       "runner_old": "Actualiza el programa de DougBot en la computadora para usarlo.",
+      "tool_off": "{{program}} está desactivado en {{computer}}. Actívalo allí, en la app de DougBot: Preferencias → Herramientas.",
+      "tool_offLinux": "{{program}} está desactivado en {{computer}}. Actívalo allí, en la app de DougBot o con {{command}}.",
       "tool_offOne": "{{program}} está desactivado en {{computer}}.",
       "not_installed": "{{program}} no está instalado en {{computer}}.",
       "cant_start": "{{program}} está en {{computer}}, pero no abre.",
@@ -14088,6 +14119,13 @@
       "ruleset": "conjunto de reglas|conjuntos de reglas|del conjunto de reglas"
     },
     "label": {
+      "portal_board": "Ver el tablero de aprobación",
+      "portal_plan": "Ver el cronograma estratégico",
+      "portal_work": "Ver las tareas de una persona",
+      "portal_card": "Actualizar el tablero de aprobación",
+      "send_for_approval": "Enviar a aprobación",
+      "send_new_version": "Enviar la nueva versión",
+      "schedule_post": "Programar publicación",
       "git_clone": "Clonar repositorio",
       "create_repository": "Crear repositorio",
       "delete_repository": "Borrar repositorio",
@@ -14734,8 +14772,7 @@
       "get_my_usage": "Ver mi uso",
       "send_feedback": "Enviar feedback",
       "offer_feedback": "Ofrecer reportar un problema"
-    },
-    "catalog": "none"
+    }
   },
   "toolReview": {
     "title": "Revisa lo que el agente puede hacer por su cuenta",
@@ -17219,6 +17256,7 @@
     "removed": "Eliminado",
     "change": {
       "mergedWithoutAsking": "Hizo merge en {{repo}} sin preguntar",
+      "portalApprovedForClient": "Aprobó “{{title}}” en nombre del cliente en el portal",
       "pattern": "{{verb}} {{area}}",
       "approval": {
         "approved": "Aprobó una solicitud",
@@ -18689,12 +18727,6 @@
       "interrupted": "Interrumpido por un reinicio del servidor. Vuelve a pedirlo para continuar.",
       "step_limit": "Me quedé sin pasos antes de terminar.",
       "stuck": "Me trabé y me detuve antes de terminar."
-    },
-    "talk": {
-      "readAll": "Leer todo",
-      "more_one": "{{count}} línea más",
-      "more_many": "{{count}} líneas más",
-      "more_other": "{{count}} líneas más"
     }
   },
   "builtinTools": {
@@ -21461,6 +21493,9 @@
       "saved": "Tarjeta guardada.",
       "deleted": "Tarjeta eliminada.",
       "deleteTitle": "¿Eliminar esta tarjeta?",
+      "deleteOf": "Eliminar la tarjeta {{title}}",
+      "copyLink": "Copiar el enlace de la tarjeta",
+      "linkCopied": "Enlace de la tarjeta copiado.",
       "deleteText": "“{{title}}” sale del tablero. Sus archivos siguen en el Drive."
     },
     "post": {
@@ -21474,6 +21509,15 @@
       "done": "Liberada para {{when}}.",
       "past": "Elige una hora que aún no haya pasado.",
       "pending": "programando…"
+    },
+    "approveForClient": {
+      "action": "Aprobar en nombre del cliente",
+      "title": "¿Aprobar en nombre del cliente?",
+      "text": "Solo cuando el cliente dejó de responder en el portal. La publicación pasa a Aprobado allí, como si el cliente la hubiera aprobado, y sigue lo que viene después de la aprobación.",
+      "note": "Motivo",
+      "notePlaceholder": "El cliente lo aprobó por WhatsApp",
+      "confirm": "Aprobar",
+      "done": "“{{title}}” aprobado en nombre del cliente."
     },
     "form": {
       "client": "Cliente",
@@ -21503,17 +21547,33 @@
       "notMedia": "Solo imágenes y videos van a aprobación.",
       "coverNotImage": "La portada tiene que ser una imagen."
     },
+    "materials": {
+      "tab": "Materiales del cliente",
+      "intro": "Accesos, enlaces y referencias del cliente. Quedan fuera del cronograma y nunca se vuelven tareas.",
+      "empty": "Aún no hay materiales",
+      "emptyText": "Crea una lista (Redes sociales, Accesos, Marca) y guarda las tarjetas en ella.",
+      "newListHint": "Queda primera entre los materiales. Sus tarjetas las creas dentro de ella.",
+      "toMaterials": "Mover a Materiales del cliente",
+      "toPlan": "Volver al cronograma",
+      "movedToMaterials": "“{{name}}” pasó a Materiales del cliente.",
+      "movedToPlan": "“{{name}}” volvió al cronograma."
+    },
     "plan": {
       "tab": "Cronograma estratégico",
+      "tabShort": "Cronograma",
       "view": "Vista",
       "viewBoard": "Tablero",
       "viewCalendar": "Calendario",
       "noList": "Sin lista",
       "addList": "Agregar lista",
+      "newList": "Nueva lista",
+      "newListHint": "Queda primera en el cronograma. Sus tarjetas las creas dentro de ella.",
       "listName": "Nombre de la lista",
       "addCard": "Agregar tarjeta",
       "cardTitle": "Título de la tarjeta",
       "listActions": "Acciones: {{name}}",
+      "lists": "Listas",
+      "goToList": "Ir a {{name}}",
       "rename": "Renombrar",
       "moveLeft": "Mover a la izquierda",
       "moveRight": "Mover a la derecha",
@@ -21586,6 +21646,7 @@
       "edit": "Editar",
       "editDescription": "Editar descripción",
       "noDescription": "Sin descripción",
+      "addDescription": "Agrega una descripción más detallada…",
       "showMore": "Mostrar más",
       "showLess": "Mostrar menos",
       "linkText": "texto del enlace",

@@ -2245,6 +2245,7 @@
     "sectorsCount_other": "{{count}} afdelingen",
     "viewLabel": "Teamweergave",
     "view": {
+      "now": "Nu",
       "list": "Lijst",
       "chart": "Organogram",
       "map": "Kaart",
@@ -4981,6 +4982,11 @@
     "waiting": {
       "title": "Wacht op jou"
     },
+    "toSchedule": {
+      "meta": "Goedgekeurd, wacht op inplannen",
+      "action": "Inplannen",
+      "label": "{{title}} inplannen"
+    },
     "working": {
       "title": "Nu bezig",
       "none": "Er werkt nu geen agent.",
@@ -5593,6 +5599,58 @@
     "budgetDefaultHelpAmount": "Leeg: de standaard van de werkruimte ({{amount}}).",
     "budgetInvalid": "Gebruik een waarde groter dan nul.",
     "notFound": "Deze agent bestaat niet of is gearchiveerd."
+  },
+  "agentFront": {
+    "call": "Bellen",
+    "tasks": "Taken",
+    "settings": "Instellingen",
+    "canUse": "Mag gebruiken",
+    "month": "Deze maand",
+    "reportsTo": "Rapporteert aan",
+    "reportsToNobody": "Niemand",
+    "ai": "AI",
+    "today": "Vandaag",
+    "todayNone": "Vandaag nog niets.",
+    "doneAt": "afgerond om {{time}}",
+    "going": "bezig",
+    "failed": "niet afgemaakt"
+  },
+  "teamNow": {
+    "title": "Je team nu",
+    "coordinates_one": "{{name}} coördineert {{count}} agent",
+    "coordinates_other": "{{name}} coördineert {{count}} agents",
+    "working_one": "{{count}} is nu bezig",
+    "working_other": "{{count}} zijn nu bezig",
+    "waiting_one": "{{count}} wacht op jou",
+    "waiting_other": "{{count}} wachten op jou",
+    "waitingButton_one": "{{count}} wacht op jou",
+    "waitingButton_other": "{{count}} wachten op jou"
+  },
+  "aiPanel": {
+    "title": "AI-paneel",
+    "uses": "Wie gebruikt wat",
+    "accounts": "AI-accounts",
+    "usage": "Sleutels en gebruik",
+    "change": "AI wijzigen",
+    "noAgents": "Nog geen agents.",
+    "dialog": {
+      "title": "AI van {{name}} wijzigen",
+      "smart": "Slimst",
+      "balanced": "Gebalanceerd",
+      "fast": "Snelst en goedkoopst",
+      "smartPlan": "Denkt meer na. Trager en verbruikt meer van het quotum.",
+      "smartKey": "Denkt meer na. Trager en duurder.",
+      "balancedLine": "Aanbevolen voor de meeste taken.",
+      "fastLine": "Antwoordt meteen. Het best voor eenvoudige taken.",
+      "current": "Huidig",
+      "inPlan": "inbegrepen in het abonnement",
+      "price": "≈ {{input}} / {{output}} per miljoen tokens",
+      "switchTo": "Overstappen op {{model}}",
+      "keep": "Behouden",
+      "now": "Nu: {{model}}",
+      "more": "Meer opties",
+      "none": "Er is nu geen andere AI om op over te stappen. Koppel een account of een sleutel om opties te hebben."
+    }
   },
   "agentPage": {
     "work": {
@@ -7428,6 +7486,14 @@
         "helpsText": "Kan agents, instellingen en wie er is wijzigen, net als jij."
       },
       "where": {
+        "titleOne": "In welke groepen komt {{name}} meteen?",
+        "titleMany": "In welke groepen komen deze mensen meteen?",
+        "titleOnePersonal": "In welke groepsgesprekken komt {{name}} meteen?",
+        "titleManyPersonal": "In welke groepsgesprekken komen deze mensen meteen?",
+        "lead": "Iedereen begint in #{{channel}}. De andere kies jij.",
+        "label": "Groepen",
+        "labelPersonal": "Groepsgesprekken",
+        "everyone": "Iedereen doet mee",
         "private": "Privé · jij zit erin",
         "people_one": "{{count}} persoon",
         "people_other": "{{count}} mensen"
@@ -10870,9 +10936,23 @@
   },
   "liveVoice": {
     "you": "Jij",
+    "invite": {
+      "title": "Iemand erbij bellen",
+      "lead": "Diegene krijgt een melding op telefoon en computer, met een manier om mee te doen.",
+      "send": "Bellen",
+      "refused": "Kon {{names}} niet bellen: alleen wie dit gesprek beheert, kan er mensen aan toevoegen.",
+      "none": "Iedereen in de werkruimte zit al in de oproep."
+    },
+    "ring": {
+      "title": "{{name}} belt je",
+      "where": "Spraakoproep in {{channel}}",
+      "join": "Deelnemen",
+      "decline": "Niet nu"
+    },
     "call": {
       "topic": "Onderwerp (optioneel)",
       "topicHint": "De agenten beginnen met een debat hierover. Doe mee wanneer je wilt.",
+      "people": "Ook mensen bellen",
       "start": "Spraakoproep starten",
       "join_one": "Deelnemen aan oproep ({{count}})",
       "join_other": "Deelnemen aan oproep ({{count}})",
@@ -10917,6 +10997,7 @@
       "quiet": "Agents luisteren alleen",
       "leave": "Oproep verlaten",
       "endAll": "Voor iedereen beëindigen",
+      "invite": "Iemand bellen",
       "endTitle": "Oproep voor iedereen beëindigen?",
       "endText": "De notities van de oproep gaan naar het gesprek en Doug BOSS stuurt het verslag met wat is besloten en de volgende stappen.",
       "hasWord": "{{name}} heeft het woord",
@@ -12051,6 +12132,8 @@
       "no_computer": "Kies een gekoppelde computer bij Computer om dit te gebruiken.",
       "exec_off": "De computer is gekoppeld zonder toestemming om programma's uit te voeren.",
       "runner_old": "Werk het DougBot-programma op de computer bij om dit te gebruiken.",
+      "tool_off": "{{program}} staat uit op {{computer}}. Zet het daar aan, in de DougBot-app: Voorkeuren → Tools.",
+      "tool_offLinux": "{{program}} staat uit op {{computer}}. Zet het daar aan, in de DougBot-app of met {{command}}.",
       "tool_offOne": "{{program}} staat uit op {{computer}}.",
       "not_installed": "{{program}} is niet geïnstalleerd op {{computer}}.",
       "cant_start": "{{program}} staat op {{computer}}, maar start niet.",
@@ -13683,6 +13766,13 @@
       "ruleset": "regelset|regelsets"
     },
     "label": {
+      "portal_board": "Goedkeuringsbord bekijken",
+      "portal_plan": "Strategische planning bekijken",
+      "portal_work": "Taken van een persoon bekijken",
+      "portal_card": "Goedkeuringsbord bijwerken",
+      "send_for_approval": "Ter goedkeuring versturen",
+      "send_new_version": "Nieuwe versie versturen",
+      "schedule_post": "Post inplannen",
       "git_clone": "Repository klonen",
       "create_repository": "Repository maken",
       "delete_repository": "Repository verwijderen",
@@ -16762,6 +16852,7 @@
     "removed": "Verwijderd",
     "change": {
       "mergedWithoutAsking": "Gemerged in {{repo}} zonder te vragen",
+      "portalApprovedForClient": "“{{title}}” in het portaal goedgekeurd namens de klant",
       "pattern": "{{verb}}: {{area}}",
       "approval": {
         "approved": "Een verzoek goedgekeurd",
@@ -18214,11 +18305,6 @@
       "interrupted": "Onderbroken door een herstart van de server. Vraag het opnieuw om verder te gaan.",
       "step_limit": "Mijn stappen waren op voordat ik klaar was.",
       "stuck": "Ik liep vast en stopte voordat ik klaar was."
-    },
-    "talk": {
-      "readAll": "Alles lezen",
-      "more_one": "nog {{count}} regel",
-      "more_other": "nog {{count}} regels"
     }
   },
   "builtinTools": {
@@ -20999,6 +21085,9 @@
       "saved": "Kaart opgeslagen.",
       "deleted": "Kaart verwijderd.",
       "deleteTitle": "Deze kaart verwijderen?",
+      "deleteOf": "Kaart {{title}} verwijderen",
+      "copyLink": "Link van de kaart kopiëren",
+      "linkCopied": "Link van de kaart gekopieerd.",
       "deleteText": "“{{title}}” verdwijnt van het bord. De bestanden blijven in de Drive."
     },
     "post": {
@@ -21012,6 +21101,15 @@
       "done": "Vrijgegeven voor {{when}}.",
       "past": "Kies een tijd die nog niet voorbij is.",
       "pending": "wordt ingepland…"
+    },
+    "approveForClient": {
+      "action": "Goedkeuren namens de klant",
+      "title": "Goedkeuren namens de klant?",
+      "text": "Alleen als de klant niet meer reageert in het portaal. De post wordt daar Goedgekeurd alsof de klant hem heeft goedgekeurd, en wat na de goedkeuring komt, gaat door.",
+      "note": "Reden",
+      "notePlaceholder": "De klant keurde het goed via WhatsApp",
+      "confirm": "Goedkeuren",
+      "done": "“{{title}}” goedgekeurd namens de klant."
     },
     "form": {
       "client": "Klant",
@@ -21041,17 +21139,33 @@
       "notMedia": "Alleen afbeeldingen en video's gaan ter goedkeuring.",
       "coverNotImage": "De omslag moet een afbeelding zijn."
     },
+    "materials": {
+      "tab": "Klantmateriaal",
+      "intro": "Logins, links en referenties van de klant. Ze blijven buiten de planning en worden nooit taken.",
+      "empty": "Nog geen materiaal",
+      "emptyText": "Maak een lijst (Social media, Logins, Merk) en bewaar de kaarten erin.",
+      "newListHint": "Die komt als eerste bij het materiaal. De kaarten maak je erin aan.",
+      "toMaterials": "Naar Klantmateriaal verplaatsen",
+      "toPlan": "Terug naar de planning",
+      "movedToMaterials": "“{{name}}” staat nu in Klantmateriaal.",
+      "movedToPlan": "“{{name}}” staat weer in de planning."
+    },
     "plan": {
       "tab": "Strategische planning",
+      "tabShort": "Planning",
       "view": "Weergave",
       "viewBoard": "Bord",
       "viewCalendar": "Kalender",
       "noList": "Geen lijst",
       "addList": "Lijst toevoegen",
+      "newList": "Nieuwe lijst",
+      "newListHint": "Die komt als eerste in de planning. De kaarten maak je erin aan.",
       "listName": "Naam van de lijst",
       "addCard": "Kaart toevoegen",
       "cardTitle": "Titel van de kaart",
       "listActions": "Acties: {{name}}",
+      "lists": "Lijsten",
+      "goToList": "Naar {{name}}",
       "rename": "Naam wijzigen",
       "moveLeft": "Naar links verplaatsen",
       "moveRight": "Naar rechts verplaatsen",
@@ -21123,6 +21237,7 @@
       "edit": "Bewerken",
       "editDescription": "Beschrijving bewerken",
       "noDescription": "Geen beschrijving",
+      "addDescription": "Voeg een uitgebreidere beschrijving toe…",
       "showMore": "Meer tonen",
       "showLess": "Minder tonen",
       "linkText": "linktekst",
