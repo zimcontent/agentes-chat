@@ -26,6 +26,7 @@ import {
   VAULT_LIST_GUIDANCE,
   type VaultRun,
 } from "../src";
+import { openRoutineRoom } from "../src/routine-room";
 import { addMember, type Fixture } from "./fixtures";
 import { imapAccount, type MailFixture, mailSetup } from "./mail-fixtures";
 import { type VaultFixture, vaultSetup } from "./vault-fixtures";
@@ -132,6 +133,61 @@ async function lodiRoutineRun(f: Fixture, creatorId: string, channelId?: string)
     agentId: lodi.id,
     runId: run.id,
     channelId: place,
+    threadRootId: fired.id,
+    triggerMessageId: fired.id,
+  };
+}
+
+/**
+ * A routine's own run of the right hand as it really runs: in the routine's room, which no person reads, reporting in
+ * `deliverTo` (`creatorId`'s own DM with it when left out).
+ */
+async function lodiRoutineRoomRun(f: Fixture, creatorId: string, deliverTo?: string): Promise<ToolContext> {
+  const lodi = await lodiOf(f);
+  const routineId = crypto.randomUUID();
+  const room = await openRoutineRoom(f.db, f.org.id, lodi.id, routineId);
+  const place = deliverTo ?? (await openPersonAgentDm(f.db, f.org.id, creatorId, lodi.id)).id;
+  const fired = await insertMessage(f.db, {
+    orgId: f.org.id,
+    channelId: room.id,
+    author: { type: "person", userId: creatorId },
+    body: "Ronda",
+    meta: {
+      background: true,
+      routineBrief: {
+        routineId,
+        routineRunId: crypto.randomUUID(),
+        name: "Ronda",
+        creatorUserId: creatorId,
+        deliverTo: { channelId: place, threadId: null },
+        access: "act",
+        report: "when_new",
+        trigger: "schedule",
+        dueAt: new Date().toISOString(),
+      },
+    },
+  });
+  const [run] = await f.db
+    .insert(schema.agentRuns)
+    .values({
+      orgId: f.org.id,
+      agentId: lodi.id,
+      channelId: room.id,
+      threadRootId: fired.id,
+      triggerMessageId: fired.id,
+      trigger: "mention",
+      hop: 1,
+      status: "running",
+      background: true,
+    })
+    .returning();
+  if (!run) throw new Error("no run");
+  return {
+    db: f.db,
+    orgId: f.org.id,
+    agentId: lodi.id,
+    runId: run.id,
+    channelId: room.id,
     threadRootId: fired.id,
     triggerMessageId: fired.id,
   };
@@ -285,6 +341,36 @@ describe("a mailbox its routine watches", () => {
     // Taken over, it is the other person's routine: the mail stops.
     await takeOverRoutine(deps, lia.id, f.org.id, routine.id);
     expect(await ingestMail({ db: f.db }, watch.id, [incoming("m2")])).toEqual({ added: 0, fired: false });
+  });
+});
+
+describe("its routine's own run, in the routine's room (ADR 9005 §1)", () => {
+  test("reads its creator's mailbox when it reports only to them; nobody else's, and not when it reports in a channel", async () => {
+    const m = await mailSetup();
+    open = m.f;
+    const { f } = m;
+    const lia = await addMember(f.db, f.org.id, "admin", "lia");
+    const lodi = await lodiOf(f);
+    const account = await imapAccount(m);
+    await setAgentMail(f.db, f.owner.id, f.org.id, lodi.id, account.id, {
+      level: "read",
+      canDelete: false,
+      policy: {
+        folders: [],
+        senders: [],
+        windowDays: null,
+        allowedRecipients: [],
+        dailySendCap: 25,
+        sendWithoutAsking: false,
+        fromAddress: null,
+      },
+    });
+    const mail = async (ctx: ToolContext) =>
+      (await m.tools.list(ctx)).map((t) => t.name).filter((n) => n.startsWith("mail_"));
+    expect((await mail(await lodiRoutineRoomRun(f, f.owner.id))).length).toBeGreaterThan(0);
+    expect(await mail(await lodiRoutineRoomRun(f, lia.id))).toEqual([]);
+    const room = await createChannel(f.db, f.owner.id, f.org.id, { name: "financeiro", visibility: "private" });
+    expect(await mail(await lodiRoutineRoomRun(f, f.owner.id, room.id))).toEqual([]);
   });
 });
 

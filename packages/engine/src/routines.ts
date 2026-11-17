@@ -1,4 +1,4 @@
-import type { MailAdapters, PubSub } from "@agenteschat/adapters";
+import type { KeyWrapper, MailAdapters, PubSub } from "@agenteschat/adapters";
 import {
   and,
   type Database,
@@ -409,6 +409,8 @@ export interface RoutineDeps {
   context?: ContextDeps;
   /** Mail adapters: email routines on Gmail/Outlook create and delete Composio triggers. */
   mail?: MailAdapters | null;
+  /** Opens mailboxes' secrets: a ronda reads its person's new mail with them (ADR 9005 §2); absent: it doesn't. */
+  keyWrappers?: KeyWrapper[];
   /** Webhook routines' addresses: needed to make one, and to show it to who manages the routine. */
   hooks?: RoutineHookConfig;
   /** Connector events' webhooks are registered at the provider through the connection (ADR 0130). */
@@ -2342,12 +2344,18 @@ async function fireClaimedRun(deps: RoutineDeps, run: RunRow) {
     return;
   }
   // A ronda (ADR 9004): what changed, in code, then the judge; nothing worth it passes the slot without a model run.
+  let opening = false;
   if (isRondaTarget(routine.target)) {
     const ronda = await rondaGate(
-      { db, judge: deps.context ? judgeOf(deps.context) : null },
+      {
+        db,
+        judge: deps.context ? judgeOf(deps.context) : null,
+        mail: deps.keyWrappers ? { keyWrappers: deps.keyWrappers, mail: deps.mail, publicUrl: "" } : null,
+      },
       { routine, run, agent, personId: creator },
     );
     if ("skip" in ronda) return skip(ronda.skip);
+    opening = ronda.opening;
   }
   const brief: RoutineBrief = {
     routineId: routine.id,
@@ -2362,7 +2370,8 @@ async function fireClaimedRun(deps: RoutineDeps, run: RunRow) {
     dueAt: run.at.toISOString(),
     ...(widget ? { widget } : {}),
     ...(aiUserId !== undefined ? { aiUserId } : {}),
-    ...rondaModelOf(routine.target),
+    // The day's opening thinks with the agent's own AI, not the ronda's lighter model (ADR 9005 §4).
+    ...(opening ? {} : rondaModelOf(routine.target)),
   };
   // The widget shows it is being redone (its last data stays on screen).
   if (widget) await widgetRunStarting(deps, routine.orgId, widget.widgetId);

@@ -288,6 +288,7 @@ export * from "./right-hand-lanes";
 export * from "./right-hand-prefs";
 export * from "./right-hand-proactive";
 export * from "./right-hand-prompt";
+export * from "./right-hand-ronda";
 export * from "./right-hand-seats";
 export * from "./right-hand-swap";
 export * from "./right-hand-welcome";

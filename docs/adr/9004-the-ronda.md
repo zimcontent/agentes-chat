@@ -4,6 +4,7 @@
 - Date: 2026-11-15
 - Numbering: 9001 and up are this distribution's own decisions, apart from the upstream sequence, so the two never take the same number.
 - Extends: ADR 0053 (routines and unattended work), ADR 0131 (autonomy brakes), ADR 0120 (agents learn on their own)
+- Extended by: ADR 9005 (the right hand: email, a ronda per person, the day's opening)
 - Code: `packages/engine/src/ronda.ts` (`setRonda`, `getRonda`, `rondaGate`, `RONDA_PROMPT`, `RONDA_CRON`), `ronda-changes.ts` (`rondaChanges`, `rondaEvent`, `rondaEventText`, `isRondaTarget`), the gate in `routines.ts` (`fireClaimedRun`), the event in `context.ts`; server `apps/server/src/routes/app/agents.ts` (`GET`/`PUT …/agents/{agentId}/ronda`); client `useRonda`, `useSetRonda`, `RUN_CODES` (`ronda_nothing`, `ronda_quiet`); web `apps/web/src/pages/agent/RondaCard.tsx`
 
 ## Context

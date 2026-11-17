@@ -1,13 +1,16 @@
 import type { PubSub } from "@agenteschat/adapters";
-import { and, type Database, desc, type Executor, eq, inArray, isNull, schema, sql } from "@agenteschat/db";
+import { and, type Database, desc, type Executor, eq, inArray, isNull, rowsOf, schema, sql } from "@agenteschat/db";
 import { isCustomModel, isKnownModel } from "@agenteschat/providers";
+import { canTalkTo, speakerFor } from "./audience";
 import { recordAudit } from "./audit";
 import { nextCronTime } from "./cron";
 import { ForbiddenError, NotFoundError, ValidationError } from "./errors";
 import { publishListChanged, publishRoutineRuns } from "./events";
 import { cutText } from "./format";
 import type { Judge } from "./judge";
+import type { MailDeps } from "./mail/accounts";
 import { can, requireActiveMembership } from "./organizations";
+import { isRightHand, RIGHT_HAND } from "./right-hand";
 import { isRondaTarget, RONDA_EVENT, type RondaChanges, rondaChanges, rondaEvent } from "./ronda-changes";
 
 const { agents, routines, routineRuns } = schema;
@@ -69,8 +72,16 @@ export interface RondaView {
 
 type RoutineRow = typeof routines.$inferSelect;
 
-/** The agent's ronda routine (one at most, the newest when two raced), live or switched off. */
-async function rondaRoutine(db: Database, orgId: string, agentId: string): Promise<RoutineRow | null> {
+/**
+ * The agent's ronda routine (one at most, the newest when two raced), live or switched off. The right hand has one per
+ * person (ADR 9005 §3): `personId` is whose; any other agent has one, whoever turned it on.
+ */
+async function rondaRoutine(
+  db: Database,
+  orgId: string,
+  agentId: string,
+  personId?: string,
+): Promise<RoutineRow | null> {
   const [row] = await db
     .select()
     .from(routines)
@@ -80,6 +91,7 @@ async function rondaRoutine(db: Database, orgId: string, agentId: string): Promi
         eq(routines.agentId, agentId),
         isNull(routines.deletedAt),
         sql`(${routines.target} ->> 'ronda') = 'true'`,
+        personId ? eq(routines.createdByUserId, personId) : undefined,
       ),
     )
     .orderBy(desc(routines.createdAt))
@@ -96,7 +108,7 @@ const scheduleOf = (row: RoutineRow | null): RondaSchedule => {
 /** The agent's ronda as its settings show it (any member who reads the agent). */
 export async function getRonda(db: Database, actorId: string, orgId: string, agentId: string): Promise<RondaView> {
   await requireActiveMembership(db, actorId, orgId);
-  const row = await rondaRoutine(db, orgId, agentId);
+  const row = await rondaRoutine(db, orgId, agentId, (await rightHandOf(db, orgId, agentId)) ? actorId : undefined);
   const recent = row
     ? await db
         .select({
@@ -149,9 +161,13 @@ export async function setRonda(
     .from(agents)
     .where(and(eq(agents.id, agentId), eq(agents.orgId, orgId), isNull(agents.deletedAt)));
   if (!agent || agent.archivedAt) throw new NotFoundError("agent not found");
-  if (!can(membership, "manage_agents") && agent.ownerUserId !== actorId) throw new ForbiddenError();
+  // The right hand is everyone's (ADR 9005 §3): each person who may talk to it sets their own ronda, in their own DM.
+  const own = isRightHand(agent);
+  if (own) {
+    if (!canTalkTo(agent, actorId, await speakerFor(db, orgId, actorId))) throw new ForbiddenError();
+  } else if (!can(membership, "manage_agents") && agent.ownerUserId !== actorId) throw new ForbiddenError();
   const now = deps.now?.() ?? new Date();
-  const existing = await rondaRoutine(db, orgId, agentId);
+  const existing = await rondaRoutine(db, orgId, agentId, own ? actorId : undefined);
   const keptModel = model === undefined ? rondaModelOf(existing?.target).model : model;
   const target: Record<string, unknown> = { type: "dm", ronda: true, ...(keptModel ? { model: keptModel } : {}) };
   if (schedule === "off") {
@@ -220,6 +236,103 @@ export async function setRonda(
   return getRonda(db, actorId, orgId, agentId);
 }
 
+/** How recently a person used the workspace for the right hand to start a ronda with them on its own (ADR 9005 §6). */
+const ACTIVE_FOR_RONDA_MS = 30 * 24 * 3_600_000;
+
+/**
+ * The right hand's ronda is on for every person by default (ADR 9005 §6): each member who used the workspace in the
+ * last 30 days and may talk to it gets their own ronda, every hour of the day in their time zone, unless they ever had
+ * one. One they switched off or deleted is never made again: off is their choice. Runs at boot and every hour, so a
+ * person who joins or comes back gets theirs. Returns how many it made.
+ */
+export async function ensureRightHandRondas(db: Database, now = new Date()): Promise<number> {
+  const hands = await db
+    .select()
+    .from(agents)
+    .innerJoin(schema.organizations, eq(schema.organizations.id, agents.orgId))
+    .where(
+      and(
+        eq(agents.builtin, RIGHT_HAND),
+        isNull(agents.archivedAt),
+        isNull(agents.deletedAt),
+        isNull(schema.organizations.deletionDueAt),
+      ),
+    );
+  const since = new Date(now.getTime() - ACTIVE_FOR_RONDA_MS);
+  const schedule = "hourly" as const;
+  const cron = RONDA_CRON[schedule];
+  let made = 0;
+  for (const { agents: agent } of hands) {
+    const people = rowsOf<{ user_id: string; timezone: string | null }>(
+      await db.execute(sql`select om.user_id, coalesce(om.timezone, os.timezone) as timezone
+          from ${schema.organizationMembers} om
+          join ${schema.users} u on u.id = om.user_id
+          left join ${schema.organizationSettings} os on os.org_id = om.org_id
+          where om.org_id = ${agent.orgId}::uuid and u.blocked_at is null and u.deletion_due_at is null
+            and om.last_seen_at >= ${since.toISOString()}::timestamptz
+            and not exists (select 1 from ${routines} r where r.org_id = om.org_id and r.agent_id = ${agent.id}::uuid
+              and r.created_by_user_id = om.user_id and (r.target ->> 'ronda') = 'true')`),
+    );
+    for (const person of people) {
+      if (!canTalkTo(agent, person.user_id, await speakerFor(db, agent.orgId, person.user_id))) continue;
+      const timezone = validZone(person.timezone);
+      const added = await db.transaction(async (tx) => {
+        // Two servers sweeping at once make one: the second finds the first's row under the lock.
+        await tx.execute(
+          sql`select pg_advisory_xact_lock(hashtext(${`right-hand-ronda:${agent.id}:${person.user_id}`}))`,
+        );
+        const [had] = await tx
+          .select({ id: routines.id })
+          .from(routines)
+          .where(
+            and(
+              eq(routines.orgId, agent.orgId),
+              eq(routines.agentId, agent.id),
+              eq(routines.createdByUserId, person.user_id),
+              sql`(${routines.target} ->> 'ronda') = 'true'`,
+            ),
+          )
+          .limit(1);
+        if (had) return false;
+        await tx.insert(routines).values({
+          orgId: agent.orgId,
+          agentId: agent.id,
+          name: "Ronda",
+          prompt: RONDA_PROMPT,
+          target: { type: "dm", ronda: true },
+          triggerType: "schedule",
+          phrase: null,
+          cron,
+          rule: null,
+          timezone,
+          description: SCHEDULE_WORDS[schedule],
+          event: null,
+          access: "act",
+          report: "when_new",
+          ownActions: [],
+          createdByUserId: person.user_id,
+          active: true,
+          nextRunAt: nextCronTime(cron, timezone, now),
+        });
+        return true;
+      });
+      if (added) made++;
+    }
+  }
+  return made;
+}
+
+/** A stored time zone the cron can use, or UTC. */
+function validZone(zone: string | null): string {
+  if (!zone) return "UTC";
+  try {
+    new Intl.DateTimeFormat("en", { timeZone: zone });
+    return zone;
+  } catch {
+    return "UTC";
+  }
+}
+
 /**
  * Where this ronda's window starts (§2): when its last gate looked (`until` on that slot's event, written whether the
  * slot ran or passed). Slots skipped before the gate (paused, the previous still running) looked at nothing.
@@ -252,7 +365,50 @@ async function lastRecord(db: Database, routineId: string): Promise<string> {
   return last?.summary ?? "";
 }
 
-export type RondaGate = { skip: typeof RONDA_NOTHING | typeof RONDA_QUIET } | { event: Record<string, unknown> };
+export type RondaGate =
+  | { skip: typeof RONDA_NOTHING | typeof RONDA_QUIET }
+  | { event: Record<string, unknown>; opening: boolean };
+
+/** The calendar day of `at` in `zone` (`2026-11-17`). */
+const dayIn = (at: Date, zone: string) => {
+  try {
+    return new Intl.DateTimeFormat("en-CA", {
+      timeZone: zone,
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    }).format(at);
+  } catch {
+    return at.toISOString().slice(0, 10);
+  }
+};
+
+/**
+ * Whether this slot opens the person's day (ADR 9005 §4): the right hand's first ronda that looks today, in the
+ * routine's time zone. A person's "Run now" never takes the opening from the day's first scheduled slot.
+ */
+async function opensTheDay(
+  db: Database,
+  routine: { id: string; timezone: string | null },
+  run: { id: string; trigger: string },
+  now: Date,
+): Promise<boolean> {
+  if (run.trigger === "manual") return false;
+  const [last] = await db
+    .select({ at: routineRuns.at })
+    .from(routineRuns)
+    .where(
+      and(
+        eq(routineRuns.routineId, routine.id),
+        sql`${routineRuns.id} <> ${run.id}::uuid`,
+        sql`${routineRuns.event} ->> 'opening' = 'true'`,
+      ),
+    )
+    .orderBy(desc(routineRuns.at))
+    .limit(1);
+  const zone = routine.timezone || "UTC";
+  return !last || dayIn(last.at, zone) !== dayIn(now, zone);
+}
 
 /**
  * The gate before a ronda's run (§2–§3), called as its slot fires: what changed, from stored data (no model); nothing
@@ -262,11 +418,11 @@ export type RondaGate = { skip: typeof RONDA_NOTHING | typeof RONDA_QUIET } | { 
  * a ronda that saw changes should not go silent because a cheap call failed.
  */
 export async function rondaGate(
-  deps: { db: Database; judge?: Judge | null; now?: Date },
+  deps: { db: Database; judge?: Judge | null; now?: Date; mail?: Omit<MailDeps, "db"> | null },
   input: {
-    routine: Pick<RoutineRow, "id" | "orgId" | "target">;
+    routine: Pick<RoutineRow, "id" | "orgId" | "target"> & Partial<Pick<RoutineRow, "timezone">>;
     run: { id: string; trigger: string };
-    agent: { id: string; name: string; handle: string; role: string; instructions: string };
+    agent: { id: string; name: string; handle: string; role: string; instructions: string; builtin?: string | null };
     personId: string;
   },
 ): Promise<RondaGate> {
@@ -278,8 +434,13 @@ export async function rondaGate(
     personId: input.personId,
     since,
     now,
+    mail: deps.mail,
   });
-  const asked = input.run.trigger === "manual";
+  // The right hand's first ronda of the day always runs (ADR 9005 §4): it opens the person's day.
+  const opening =
+    isRightHand(input.agent) &&
+    (await opensTheDay(deps.db, { id: input.routine.id, timezone: input.routine.timezone ?? null }, input.run, now));
+  const asked = input.run.trigger === "manual" || opening;
   const quiet =
     !asked &&
     (changes.count === 0
@@ -288,9 +449,18 @@ export async function rondaGate(
         ? RONDA_QUIET
         : null);
   // Kept on the slot either way: the run reads it, and the next ronda's window starts at `until`.
-  const event = rondaEvent(changes, since, now);
+  const event = { ...rondaEvent(changes, since, now), ...(opening ? { opening: true } : {}) };
   await deps.db.update(routineRuns).set({ event }).where(eq(routineRuns.id, input.run.id));
-  return quiet ? { skip: quiet } : { event };
+  return quiet ? { skip: quiet } : { event, opening };
+}
+
+/** Whether `agentId` is the workspace's right hand. */
+async function rightHandOf(db: Database, orgId: string, agentId: string) {
+  const [row] = await db
+    .select({ builtin: agents.builtin })
+    .from(agents)
+    .where(and(eq(agents.orgId, orgId), eq(agents.id, agentId)));
+  return row?.builtin === "right_hand";
 }
 
 /** The judge's read (§3): is there something here this agent should act on or bring to the person? */
