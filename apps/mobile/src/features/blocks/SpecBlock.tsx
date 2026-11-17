@@ -14,7 +14,7 @@ import {
 import * as Clipboard from "expo-clipboard";
 import { randomUUID } from "expo-crypto";
 import { LinearGradient } from "expo-linear-gradient";
-import { createContext, useContext, useEffect, useMemo, useRef, useState } from "react";
+import { createContext, type ReactNode, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { type LayoutChangeEvent, Pressable, ScrollView, StyleSheet, TextInput, View } from "react-native";
 import { GestureDetector, useExclusiveGestures, usePanGesture, useTapGesture } from "react-native-gesture-handler";
@@ -39,17 +39,28 @@ import { useColors, useDirectory, useOrgId } from "../shared/hooks";
 import { agentLook } from "../shared/logic";
 import { tapHaptic } from "../shared/parts";
 import { INLINE_HEIGHT } from "./logic";
+import { PieceViewer } from "./PieceViewer";
 
 /**
  * What the copy parts need from the block: the agent's bot color (its marks), a button's message to the agent
- * (`say`, sent at once) and which buttons already sent theirs.
+ * (`say`, sent at once), which buttons already sent theirs, and a note about one piece written on the whole screen
+ * (`note`, true once it went).
  */
 const Copy = createContext<{
   accent: string;
   say: (key: string, text: string) => void;
   said: ReadonlySet<string>;
   busy: boolean;
-}>({ accent: "#9be22d", say: () => {}, said: new Set(), busy: false });
+  agentName: string;
+  note: (text: string) => Promise<boolean>;
+}>({
+  accent: "#9be22d",
+  say: () => {},
+  said: new Set(),
+  busy: false,
+  agentName: "",
+  note: async () => false,
+});
 
 /** A "#rrggbb" with an opacity, as "#rrggbbaa". */
 const alpha = (hex: string, a: number) =>
@@ -194,6 +205,19 @@ export function SpecBlock({
       },
     );
   };
+  const note = (text: string) =>
+    new Promise<boolean>((done) => {
+      reply.mutate(
+        { text, clientId: randomUUID() },
+        {
+          onSuccess: () => done(true),
+          onError: () => {
+            toast({ title: t("mobile.blocks.sendFailed"), icon: "x" });
+            done(false);
+          },
+        },
+      );
+    });
   const time = sent
     ? new Intl.DateTimeFormat(i18n.language, { hour: clockHour(i18n.language), minute: "2-digit" }).format(
         new Date(sent.at),
@@ -213,7 +237,9 @@ export function SpecBlock({
             setSized((now) => (now.key === sizeKey ? { key: sizeKey, height: next } : now));
           }}
         >
-          <Copy.Provider value={{ accent: botColor, say, said, busy: reply.isPending }}>
+          <Copy.Provider
+            value={{ accent: botColor, say, said, busy: reply.isPending, agentName: agent?.name ?? "", note }}
+          >
             <Parts parts={view.parts} values={values} accent={accent} />
           </Copy.Provider>
         </View>
@@ -272,7 +298,6 @@ function Part({ part: p, values, accent }: { part: BlockViewPart; values: Values
   const c = useColors();
   const copy = useContext(Copy);
   const { t } = useTranslation();
-  const { fonts } = useTheme();
   const set = (raw: unknown) => {
     const name = "name" in p ? p.name : undefined;
     if (typeof name !== "string") return;
@@ -538,45 +563,7 @@ function Part({ part: p, values, accent }: { part: BlockViewPart; values: Values
     case "slides":
       return <Slides part={p} />;
     case "poster":
-      return (
-        <View
-          style={[styles.poster, { backgroundColor: c.sunken, borderColor: alpha(copy.accent, 0.6) }]}
-          accessible
-          accessibilityLabel={[p.eyebrow, `${p.title.before}${p.title.mark}${p.title.after}`, p.sub, p.button]
-            .filter(Boolean)
-            .join(". ")}
-        >
-          <LinearGradient
-            pointerEvents="none"
-            colors={[alpha(copy.accent, 0.38), alpha(copy.accent, 0)]}
-            start={{ x: 1, y: 0 }}
-            end={{ x: 0.2, y: 0.75 }}
-            style={StyleSheet.absoluteFill}
-          />
-          {p.eyebrow ? (
-            <Text variant="caption" tone="ink2" style={styles.posterEyebrow}>
-              {p.eyebrow}
-            </Text>
-          ) : null}
-          <Text variant="title2" style={styles.posterTitle}>
-            {p.title.before}
-            {p.title.mark ? <Text style={{ color: copy.accent }}>{p.title.mark}</Text> : null}
-            {p.title.after}
-          </Text>
-          {p.sub ? (
-            <Text variant="footnote" tone="ink2">
-              {p.sub}
-            </Text>
-          ) : null}
-          {p.button ? (
-            <View style={[styles.posterButton, { backgroundColor: copy.accent }]}>
-              <Text variant="footnote" style={[styles.bold, { color: "#0b0b0b" }]}>
-                {p.button}
-              </Text>
-            </View>
-          ) : null}
-        </View>
-      );
+      return <Poster part={p} />;
     case "fields":
       return (
         <View style={styles.fields}>
@@ -594,41 +581,7 @@ function Part({ part: p, values, accent }: { part: BlockViewPart; values: Values
     case "copy":
       return <CopyText label={p.label} text={p.text} />;
     case "timeline":
-      return (
-        <View>
-          {p.label ? <Eyebrow text={p.label} /> : null}
-          <View style={[styles.timeline, { borderLeftColor: c.line2 }]}>
-            {p.items.map((x, i) => (
-              <View
-                // biome-ignore lint/suspicious/noArrayIndexKey: the beats of one script, in order
-                key={i}
-                style={[
-                  styles.beat,
-                  i > 0 ? { borderTopColor: c.line, borderTopWidth: StyleSheet.hairlineWidth } : null,
-                ]}
-              >
-                <View style={[styles.dot, { backgroundColor: i === 0 ? copy.accent : c.faint }]} />
-                <Text variant="caption" style={[styles.time, { color: copy.accent, fontFamily: fonts.mono }]}>
-                  {x.time}
-                </Text>
-                <Text variant="subhead">{x.text}</Text>
-                {x.note ? (
-                  <Text variant="footnote" tone="muted">
-                    {x.note}
-                  </Text>
-                ) : null}
-                {x.screen ? (
-                  <View style={[styles.screen, { backgroundColor: c.sunken, borderColor: c.line2 }]}>
-                    <Text variant="caption" tone="ink2" style={styles.bold}>
-                      {x.screen}
-                    </Text>
-                  </View>
-                ) : null}
-              </View>
-            ))}
-          </View>
-        </View>
-      );
+      return <Timeline part={p} />;
   }
 }
 
@@ -652,12 +605,226 @@ function Marked({ text, color }: { text: MarkedText; color: string }) {
 }
 
 const SLIDE = 132;
+/** The viewer draws a piece at the screen's width and the type grows with it, up to what a 4:5 card still holds. */
+const BIG_FROM = 240;
 
-/** A carousel's slides side by side, swiped sideways and snapping per slide, with a dot for each. */
+/** One slide of a carousel at a given width: its number and tag, its title and its text, larger when it is large. */
+function SlideFace({
+  item: x,
+  index: i,
+  width,
+}: {
+  item: Extract<BlockViewPart, { kind: "slides" }>["items"][number];
+  index: number;
+  width: number;
+}) {
+  const c = useColors();
+  const copy = useContext(Copy);
+  const big = width >= BIG_FROM;
+  return (
+    <View
+      style={[
+        styles.slide,
+        big ? styles.slideBig : null,
+        { width, backgroundColor: c.sunken, borderColor: x.tag ? alpha(copy.accent, 0.7) : c.line2 },
+      ]}
+    >
+      {x.tag && i === 0 ? (
+        <LinearGradient
+          pointerEvents="none"
+          colors={[alpha(copy.accent, 0.32), alpha(copy.accent, 0)]}
+          start={{ x: 0.1, y: 0 }}
+          end={{ x: 0.6, y: 0.8 }}
+          style={StyleSheet.absoluteFill}
+        />
+      ) : null}
+      <Text variant={big ? "footnote" : "caption"} tone="faint" style={styles.bold}>
+        {String(i + 1).padStart(2, "0")}
+        {x.tag ? ` · ${x.tag.toUpperCase()}` : ""}
+      </Text>
+      <Text variant={big ? "title2" : "footnote"} style={[big ? styles.posterTitle : styles.bold, styles.slideTitle]}>
+        {x.title}
+      </Text>
+      {x.text ? (
+        <Text variant={big ? "body" : "caption"} tone={big ? "ink2" : "muted"}>
+          {x.text}
+        </Text>
+      ) : null}
+    </View>
+  );
+}
+
+/** A static post as it will look, at a given width (the conversation caps it, the viewer fills the screen). */
+function PosterFace({ part: p, width }: { part: Extract<BlockViewPart, { kind: "poster" }>; width?: number }) {
+  const c = useColors();
+  const copy = useContext(Copy);
+  const big = width !== undefined && width >= BIG_FROM;
+  return (
+    <View
+      style={[
+        styles.poster,
+        width !== undefined ? { width, maxWidth: width } : null,
+        big ? styles.posterBig : null,
+        { backgroundColor: c.sunken, borderColor: alpha(copy.accent, 0.6) },
+      ]}
+      accessible
+      accessibilityLabel={[p.eyebrow, `${p.title.before}${p.title.mark}${p.title.after}`, p.sub, p.button]
+        .filter(Boolean)
+        .join(". ")}
+    >
+      <LinearGradient
+        pointerEvents="none"
+        colors={[alpha(copy.accent, 0.38), alpha(copy.accent, 0)]}
+        start={{ x: 1, y: 0 }}
+        end={{ x: 0.2, y: 0.75 }}
+        style={StyleSheet.absoluteFill}
+      />
+      {p.eyebrow ? (
+        <Text variant={big ? "footnote" : "caption"} tone="ink2" style={styles.posterEyebrow}>
+          {p.eyebrow}
+        </Text>
+      ) : null}
+      <Text variant={big ? "display2" : "title2"} style={styles.posterTitle}>
+        {p.title.before}
+        {p.title.mark ? <Text style={{ color: copy.accent }}>{p.title.mark}</Text> : null}
+        {p.title.after}
+      </Text>
+      {p.sub ? (
+        <Text variant={big ? "body" : "footnote"} tone="ink2">
+          {p.sub}
+        </Text>
+      ) : null}
+      {p.button ? (
+        <View style={[styles.posterButton, { backgroundColor: copy.accent }]}>
+          <Text variant={big ? "subhead" : "footnote"} style={[styles.bold, { color: "#0b0b0b" }]}>
+            {p.button}
+          </Text>
+        </View>
+      ) : null}
+    </View>
+  );
+}
+
+/** A tap opens the piece on the whole screen: what a thumbnail can't show, and where a note about it is written. */
+function Opens({ label, onPress, children }: { label: string; onPress: () => void; children: ReactNode }) {
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      onPress={() => {
+        tapHaptic();
+        onPress();
+      }}
+      style={({ pressed }) => (pressed ? styles.pressed : null)}
+    >
+      {children}
+    </Pressable>
+  );
+}
+
+/** A static post in the conversation: tapped, it opens on the whole screen. */
+function Poster({ part }: { part: Extract<BlockViewPart, { kind: "poster" }> }) {
+  const { t } = useTranslation();
+  const copy = useContext(Copy);
+  const [open, setOpen] = useState(false);
+  const title = `${part.title.before}${part.title.mark}${part.title.after}`.trim();
+  return (
+    <>
+      <Opens label={t("mobile.blocks.openPiece")} onPress={() => setOpen(true)}>
+        <PosterFace part={part} />
+      </Opens>
+      <PieceViewer
+        visible={open}
+        title={part.eyebrow || t("mobile.blocks.posterTitle")}
+        pages={[
+          { about: t("mobile.blocks.aboutPoster", { title }), face: (w) => <PosterFace part={part} width={w} /> },
+        ]}
+        start={0}
+        agentName={copy.agentName}
+        onClose={() => setOpen(false)}
+        onNote={copy.note}
+      />
+    </>
+  );
+}
+
+/** A reel's script beat by beat; a tapped beat opens the script on the whole screen at that beat. */
+function Timeline({ part: p }: { part: Extract<BlockViewPart, { kind: "timeline" }> }) {
+  const { t } = useTranslation();
+  const c = useColors();
+  const copy = useContext(Copy);
+  const { fonts } = useTheme();
+  const [open, setOpen] = useState<number | null>(null);
+  const beat = (x: (typeof p.items)[number], big: boolean) => (
+    <>
+      <Text
+        variant={big ? "subhead" : "caption"}
+        style={[styles.time, styles.bold, { color: copy.accent, fontFamily: fonts.mono }]}
+      >
+        {x.time}
+      </Text>
+      <Text variant={big ? "title" : "subhead"}>{x.text}</Text>
+      {x.note ? (
+        <Text variant={big ? "body" : "footnote"} tone="muted">
+          {x.note}
+        </Text>
+      ) : null}
+      {x.screen ? (
+        <View style={[styles.screen, { backgroundColor: c.sunken, borderColor: c.line2 }]}>
+          <Text variant={big ? "subhead" : "caption"} tone="ink2" style={styles.bold}>
+            {x.screen}
+          </Text>
+        </View>
+      ) : null}
+    </>
+  );
+  return (
+    <View>
+      {p.label ? <Eyebrow text={p.label} /> : null}
+      <View style={[styles.timeline, { borderLeftColor: c.line2 }]}>
+        {p.items.map((x, i) => (
+          <Opens
+            // biome-ignore lint/suspicious/noArrayIndexKey: the beats of one script, in order
+            key={i}
+            label={t("mobile.blocks.openPiece")}
+            onPress={() => setOpen(i)}
+          >
+            <View
+              style={[styles.beat, i > 0 ? { borderTopColor: c.line, borderTopWidth: StyleSheet.hairlineWidth } : null]}
+            >
+              <View style={[styles.dot, { backgroundColor: i === 0 ? copy.accent : c.faint }]} />
+              {beat(x, false)}
+            </View>
+          </Opens>
+        ))}
+      </View>
+      <PieceViewer
+        visible={open !== null}
+        title={p.label || t("mobile.blocks.reelTitle")}
+        pages={p.items.map((x) => ({
+          about: t("mobile.blocks.aboutBeat", { time: x.time }),
+          face: (w) => (
+            <View style={[styles.beatBig, { width: w, backgroundColor: c.raised, borderColor: c.line2 }]}>
+              {beat(x, true)}
+            </View>
+          ),
+        }))}
+        start={open ?? 0}
+        agentName={copy.agentName}
+        onClose={() => setOpen(null)}
+        onNote={copy.note}
+      />
+    </View>
+  );
+}
+
+/** A carousel's slides side by side, swiped sideways and snapping per slide, with a dot for each; a tap opens them big. */
 function Slides({ part }: { part: Extract<BlockViewPart, { kind: "slides" }> }) {
+  const { t } = useTranslation();
   const c = useColors();
   const copy = useContext(Copy);
   const [at, setAt] = useState(0);
+  const [open, setOpen] = useState<number | null>(null);
   return (
     <View style={styles.slidesWrap}>
       {part.label ? <Eyebrow text={part.label} /> : null}
@@ -672,36 +839,14 @@ function Slides({ part }: { part: Extract<BlockViewPart, { kind: "slides" }> }) 
         onScroll={(e) => setAt(Math.round(e.nativeEvent.contentOffset.x / (SLIDE + 8)))}
       >
         {part.items.map((x, i) => (
-          <View
+          <Opens
             // biome-ignore lint/suspicious/noArrayIndexKey: the slides of one carousel, in order
             key={i}
-            style={[
-              styles.slide,
-              { backgroundColor: c.sunken, borderColor: x.tag ? alpha(copy.accent, 0.7) : c.line2 },
-            ]}
+            label={t("mobile.blocks.openSlide", { at: i + 1 })}
+            onPress={() => setOpen(i)}
           >
-            {x.tag && i === 0 ? (
-              <LinearGradient
-                pointerEvents="none"
-                colors={[alpha(copy.accent, 0.32), alpha(copy.accent, 0)]}
-                start={{ x: 0.1, y: 0 }}
-                end={{ x: 0.6, y: 0.8 }}
-                style={StyleSheet.absoluteFill}
-              />
-            ) : null}
-            <Text variant="caption" tone="faint" style={styles.bold}>
-              {String(i + 1).padStart(2, "0")}
-              {x.tag ? ` · ${x.tag.toUpperCase()}` : ""}
-            </Text>
-            <Text variant="footnote" style={[styles.bold, styles.slideTitle]}>
-              {x.title}
-            </Text>
-            {x.text ? (
-              <Text variant="caption" tone="muted">
-                {x.text}
-              </Text>
-            ) : null}
-          </View>
+            <SlideFace item={x} index={i} width={SLIDE} />
+          </Opens>
         ))}
       </ScrollView>
       {part.items.length > 2 ? (
@@ -715,6 +860,18 @@ function Slides({ part }: { part: Extract<BlockViewPart, { kind: "slides" }> }) 
           ))}
         </View>
       ) : null}
+      <PieceViewer
+        visible={open !== null}
+        title={part.label || t("mobile.blocks.carouselTitle")}
+        pages={part.items.map((x, i) => ({
+          about: t("mobile.blocks.aboutSlide", { at: i + 1, title: x.title }),
+          face: (w) => <SlideFace item={x} index={i} width={w} />,
+        }))}
+        start={open ?? 0}
+        agentName={copy.agentName}
+        onClose={() => setOpen(null)}
+        onNote={copy.note}
+      />
     </View>
   );
 }
@@ -1104,6 +1261,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     overflow: "hidden",
   },
+  slideBig: { gap: 8, padding: 20, borderRadius: 20, borderBottomLeftRadius: 6 },
   slideTitle: { marginTop: "auto" },
   dots: { flexDirection: "row", justifyContent: "center", gap: 5 },
   dotSmall: { width: 5, height: 5, borderRadius: 3 },
@@ -1118,6 +1276,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     overflow: "hidden",
   },
+  posterBig: { gap: 14, padding: 24, borderRadius: 20, borderBottomLeftRadius: 6 },
   posterEyebrow: { fontWeight: "600", letterSpacing: 0.6 },
   posterTitle: { marginTop: "auto", fontWeight: "800", letterSpacing: -0.4 },
   posterButton: {
@@ -1140,6 +1299,7 @@ const styles = StyleSheet.create({
   beat: { gap: 2, paddingLeft: 14, paddingVertical: 8 },
   dot: { position: "absolute", left: -6, top: 13, width: 10, height: 10, borderRadius: 5 },
   time: { fontVariant: ["tabular-nums"] },
+  beatBig: { gap: 8, padding: 20, borderRadius: 16, borderBottomLeftRadius: 4, borderWidth: StyleSheet.hairlineWidth },
   screen: {
     alignSelf: "flex-start",
     marginTop: 4,

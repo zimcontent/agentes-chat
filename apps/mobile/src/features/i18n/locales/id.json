@@ -42,7 +42,20 @@
     "pollClosed": "Pemungutan suara ditutup",
     "pollMultiple": "Kamu bisa memilih lebih dari satu.",
     "pollAnswered_other": "{{count}} dari {{total}} menjawab",
-    "voteFailed": "Suaramu tidak terkirim."
+    "voteFailed": "Suaramu tidak terkirim.",
+    "openPiece": "Buka besar",
+    "openSlide": "Buka salindia {{at}}",
+    "pieceAt": "{{at}} dari {{count}}",
+    "carouselTitle": "Karosel",
+    "posterTitle": "Post statis",
+    "reelTitle": "Naskah reel",
+    "aboutSlide": "salindia {{at}} (“{{title}}”)",
+    "aboutPoster": "post statis (“{{title}}”)",
+    "aboutBeat": "bagian {{time}} dari reel",
+    "noteMessage": "Tentang {{about}}: {{note}}",
+    "notePlaceholder": "Komentari {{about}}",
+    "noteLabel": "Komentar Anda",
+    "noteSent": "Terkirim ke {{name}}"
   },
   "choices": {
     "step": "{{step}} dari {{total}}",

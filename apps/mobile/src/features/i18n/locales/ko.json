@@ -42,7 +42,20 @@
     "pollClosed": "투표 마감",
     "pollMultiple": "여러 개를 고를 수 있어요.",
     "pollAnswered_other": "{{total}}명 중 {{count}}명 응답",
-    "voteFailed": "투표가 반영되지 않았어요."
+    "voteFailed": "투표가 반영되지 않았어요.",
+    "openPiece": "크게 열기",
+    "openSlide": "슬라이드 {{at}} 열기",
+    "pieceAt": "{{at}} / {{count}}",
+    "carouselTitle": "캐러셀",
+    "posterTitle": "정적 게시물",
+    "reelTitle": "릴스 대본",
+    "aboutSlide": "슬라이드 {{at}} (“{{title}}”)",
+    "aboutPoster": "정적 게시물 (“{{title}}”)",
+    "aboutBeat": "릴스의 {{time}} 구간",
+    "noteMessage": "{{about}}에 대해: {{note}}",
+    "notePlaceholder": "{{about}}에 의견 남기기",
+    "noteLabel": "내 의견",
+    "noteSent": "{{name}}에게 보냄"
   },
   "choices": {
     "step": "{{step}}/{{total}}",

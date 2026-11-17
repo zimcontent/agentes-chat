@@ -46,7 +46,20 @@
     "pollAnswered_one": "{{count}} sur {{total}} a répondu",
     "pollAnswered_many": "{{count}} sur {{total}} ont répondu",
     "pollAnswered_other": "{{count}} sur {{total}} ont répondu",
-    "voteFailed": "Votre vote n'a pas été pris en compte."
+    "voteFailed": "Votre vote n'a pas été pris en compte.",
+    "openPiece": "Ouvrir en grand",
+    "openSlide": "Ouvrir la diapo {{at}}",
+    "pieceAt": "{{at}} sur {{count}}",
+    "carouselTitle": "Carrousel",
+    "posterTitle": "Post statique",
+    "reelTitle": "Script du reel",
+    "aboutSlide": "la diapo {{at}} (« {{title}} »)",
+    "aboutPoster": "le post statique (« {{title}} »)",
+    "aboutBeat": "le passage {{time}} du reel",
+    "noteMessage": "À propos de {{about}} : {{note}}",
+    "notePlaceholder": "Commenter {{about}}",
+    "noteLabel": "Votre commentaire",
+    "noteSent": "Envoyé à {{name}}"
   },
   "choices": {
     "step": "{{step}} sur {{total}}",

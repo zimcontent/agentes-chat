@@ -48,7 +48,20 @@
     "pollAnswered_few": "Odpowiedzi: {{count}} z {{total}}",
     "pollAnswered_many": "Odpowiedzi: {{count}} z {{total}}",
     "pollAnswered_other": "Odpowiedzi: {{count}} z {{total}}",
-    "voteFailed": "Twój głos nie został zapisany."
+    "voteFailed": "Twój głos nie został zapisany.",
+    "openPiece": "Otwórz na całym ekranie",
+    "openSlide": "Otwórz slajd {{at}}",
+    "pieceAt": "{{at}} z {{count}}",
+    "carouselTitle": "Karuzela",
+    "posterTitle": "Post statyczny",
+    "reelTitle": "Scenariusz rolki",
+    "aboutSlide": "slajd {{at}} („{{title}}”)",
+    "aboutPoster": "post statyczny („{{title}}”)",
+    "aboutBeat": "fragment {{time}} rolki",
+    "noteMessage": "O {{about}}: {{note}}",
+    "notePlaceholder": "Uwaga do: {{about}}",
+    "noteLabel": "Twoja uwaga",
+    "noteSent": "Wysłano do: {{name}}"
   },
   "choices": {
     "step": "{{step}} z {{total}}",
