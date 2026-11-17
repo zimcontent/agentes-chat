@@ -53,12 +53,12 @@ export function PortalPage() {
   const actions = changes && !off && (client ? board.data : clients.length > 0) && (
     <>
       {client && <ClientColorMenu client={client} />}
-      <Button icon="send" onClick={() => setSending({ card: null })}>
-        {t("portal.send")}
+      <Button icon="send" title={t("portal.send")} onClick={() => setSending({ card: null })}>
+        <span className="portal-act__words">{t("portal.send")}</span>
       </Button>
       {client && (
-        <Button variant="primary" icon="plus" onClick={() => setNewList(true)}>
-          {t("portal.plan.newList")}
+        <Button variant="primary" icon="plus" title={t("portal.plan.newList")} onClick={() => setNewList(true)}>
+          <span className="portal-act__words">{t("portal.plan.newList")}</span>
         </Button>
       )}
     </>
@@ -99,7 +99,16 @@ export function PortalPage() {
               onValueChange={(next) => go(next === "board" ? { client } : { client, tab: next }, true)}
               options={[
                 { value: "board", label: t("portal.board") },
-                { value: "plan", label: t("portal.plan.tab") },
+                {
+                  value: "plan",
+                  // On a phone the short name, so the tabs and the schedule's two views share one row.
+                  label: (
+                    <>
+                      <span className="portal-tab__long">{t("portal.plan.tab")}</span>
+                      <span className="portal-tab__short">{t("portal.plan.tabShort")}</span>
+                    </>
+                  ),
+                },
                 { value: "posted", label: t("portal.columns.posted"), count: board.data.items.posted.length },
                 { value: "materials", label: t("portal.materials.tab") },
               ]}

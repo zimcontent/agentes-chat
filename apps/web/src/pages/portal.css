@@ -425,6 +425,52 @@
   padding: 0;
   border: 0;
 }
+.portal-tab__short {
+  display: none;
+}
+/* A phone gives the board the room (ADR 9001 §8): the header's buttons are their icons beside the title (their words
+   stay their names and tooltips), and the tabs, under their short names, share one row with the schedule's views. */
+@media (max-width: 640px) {
+  .portal .ac-pagehead__text {
+    flex-basis: 0;
+  }
+  .portal .ac-pagehead__actions {
+    flex: none;
+    flex-wrap: nowrap;
+  }
+  .portal .ac-pagehead__actions > .ac-btn.ac-btn {
+    flex: none;
+    width: var(--control-h-md);
+    padding: 0;
+    justify-content: center;
+  }
+  .portal .portal-act__words {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+  .portal-tab__long {
+    display: none;
+  }
+  .portal-tab__short {
+    display: inline;
+  }
+  .portal-tabs > .ac-seg {
+    display: flex;
+    flex: 1 1 auto;
+  }
+  .portal-tabs {
+    gap: var(--space-2);
+  }
+  .portal-tabs > .ac-seg > .ac-seg__item {
+    flex: 1 1 auto;
+    padding: 0 var(--space-2);
+  }
+}
 .portal-views > .ac-btn[aria-pressed="true"] {
   background: var(--sunken);
   box-shadow: inset 0 0 0 1px var(--line);
@@ -740,14 +786,11 @@
   margin-right: auto;
 }
 /* A week keeps seven days side by side: on a phone the month scrolls sideways instead of squeezing its chips. */
-.plan-cal__scroll {
-  overflow-x: auto;
-  margin: 0 calc(-1 * var(--page-x));
-  padding: 2px var(--page-x) var(--space-2);
-}
+/* The whole month in view on every width, as on a computer: on a phone the days narrow, their chips get smaller and
+   are clipped at the day's edge as Google Calendar's are (the whole title is the chip's tooltip and its card). */
 .plan-cal__grid {
   display: grid;
-  grid-template-columns: repeat(7, minmax(108px, 1fr));
+  grid-template-columns: repeat(7, minmax(0, 1fr));
   border-radius: var(--radius-section);
   background: var(--raised);
   box-shadow: var(--e1), var(--top);
@@ -889,6 +932,77 @@
   grid-template-columns: 16px minmax(0, 1fr) 132px auto;
   padding-top: var(--space-3);
   border-top: 1px solid var(--line2);
+}
+@media (max-width: 640px) {
+  .plan-cal__bar > .ac-seg {
+    display: flex;
+    flex: 1 1 100%;
+  }
+  .plan-cal__bar > .ac-seg > .ac-seg__item {
+    flex: 1 1 0;
+  }
+  .plan-cal__dow {
+    padding: var(--space-1);
+    text-align: center;
+    overflow: hidden;
+    white-space: nowrap;
+  }
+  .plan-cal__day {
+    align-items: stretch;
+    gap: 2px;
+    min-height: 72px;
+    padding: var(--space-1) 2px;
+  }
+  .plan-cal__num {
+    align-self: center;
+  }
+  .plan-cal__chip,
+  .plan-cal__more {
+    padding: 1px 3px;
+    border-radius: 4px;
+    font-size: 11px;
+    line-height: 14px;
+    white-space: nowrap;
+    overflow: hidden;
+  }
+  .plan-cal__chip {
+    overflow-wrap: normal;
+  }
+  /* The legend is one line that slides sideways, its names inline and "Manage labels" as its icon: the board keeps
+     the height. */
+  .portal .plan-legend {
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: var(--space-4);
+    padding: var(--space-2) var(--space-3);
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
+  }
+  .portal .plan-legend::-webkit-scrollbar {
+    display: none;
+  }
+  .portal .plan-legend__row,
+  .portal .plan-legend__list {
+    flex: none;
+    flex-wrap: nowrap;
+  }
+  .portal .plan-legend__row {
+    gap: var(--space-2);
+  }
+  .portal .plan-legend__name {
+    min-width: 0;
+    white-space: nowrap;
+  }
+  .plan-legend__list :is(li, .ac-chip) {
+    white-space: nowrap;
+  }
+  .plan-legend .ac-btn {
+    width: var(--control-h-sm);
+    padding: 0;
+    justify-content: center;
+  }
 }
 @media (max-width: 520px) {
   .plan-labels__row,
@@ -1798,5 +1912,49 @@ html:not([data-pointer]) .portal-tile:focus-visible {
   }
   .plan-legend > .plan-legend__row > .ac-btn {
     flex: none;
+  }
+}
+
+/* ── A client on a narrow phone ─────────────────────────────────────────── */
+/* Under 640 the header's buttons are their icons on their 40 plates beside the title, the tabs slide sideways when
+   they don't all fit (the schedule's two views stay in sight at the row's end), and the legend is one card a single
+   line tall with its names: the rest of the height goes to the board. */
+@media (max-width: 640px) {
+  [data-theme] .page.portal .ac-pagehead__actions > .ac-btn {
+    flex: none;
+    width: var(--control-h-md);
+    height: var(--control-h-md);
+    min-height: var(--control-h-md);
+    padding: 0;
+    border-radius: var(--control-r-md);
+    justify-content: center;
+  }
+  .portal-tabs > .ac-seg {
+    min-width: 0;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .portal-tabs > .ac-seg::-webkit-scrollbar {
+    display: none;
+  }
+  .portal-tabs > .ac-seg > .ac-seg__item {
+    flex: none;
+  }
+  .page.portal .plan-legend {
+    gap: var(--space-4);
+    padding: var(--space-2) var(--space-3);
+    border-radius: var(--radius-section);
+    background: var(--raised);
+    box-shadow: var(--e1), var(--top);
+  }
+  .page.portal :is(.plan-legend__row, .plan-legend__list) {
+    display: flex;
+  }
+  .page.portal .plan-legend__name {
+    display: block;
+  }
+  .page.portal .plan-legend .ac-chip {
+    height: 22px;
+    font-size: 12px;
   }
 }

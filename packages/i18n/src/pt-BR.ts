@@ -21502,6 +21502,7 @@ export const ptBR = {
     },
     plan: {
       tab: "Cronograma estratégico",
+      tabShort: "Cronograma",
       view: "Visualização",
       viewBoard: "Quadro",
       viewCalendar: "Calendário",
