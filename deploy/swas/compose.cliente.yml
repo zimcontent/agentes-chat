@@ -5,8 +5,10 @@
 # .env as variáveis novas.
 #
 # Os dados ficam em ./dados (o Postgres em dados/postgres, os arquivos em dados/files), para a
-# cota de disco do cliente ser uma pasta só. A porta do servidor só abre no loopback: quem
-# publica o cliente é o Caddy do host (deploy/swas/caddy), com TLS.
+# cota de disco do cliente ser uma pasta só. A porta do servidor só abre no loopback (o doug-cliente
+# e o doug-atualizar-clientes conferem o /api/health por ela); quem publica o cliente é o proxy,
+# com TLS: o Caddy de deploy/swas/caddy (por essa porta) ou o proxy que já existe na máquina (pela
+# rede do cliente, pelo nome do contêiner: README, "O proxy").
 name: "doug-${DOUG_CLIENT_CODE:?defina DOUG_CLIENT_CODE no .env}"
 
 services:
@@ -42,11 +44,17 @@ services:
   agentes:
     image: "${DOUG_IMAGE:?defina DOUG_IMAGE no .env}"
     env_file: .env
+    # Um uid por cliente (100000 + o código, no .env): o dono de dados/files de um cliente não é
+    # o de outro cliente nem o de um login da máquina. A imagem roda com um uid qualquer: o /app é
+    # do root e legível por todos, e o servidor só escreve em /tmp e em FILES_DIR.
+    user: "${DOUG_UID:?defina DOUG_UID no .env}:${DOUG_UID}"
     environment:
       DATABASE_URL: "postgres://agentes:${POSTGRES_PASSWORD}@postgres:5432/agentes"
       FILES_DIR: /data/files
+      # Um uid sem entrada em /etc/passwd não tem HOME.
+      HOME: /tmp
     volumes:
-      # Pertence ao usuário `bun` da imagem (uid 1000): o doug-cliente ajusta ao criar.
+      # Do uid DOUG_UID: o doug-cliente ajusta ao criar.
       - ./dados/files:/data/files
     ports:
       # Só no loopback: o Docker publica portas pelo iptables, por cima de qualquer firewall do host.
@@ -74,6 +82,13 @@ services:
     logging: *logs
 
 networks:
-  # A rede é só deste cliente: nenhum outro cliente enxerga o Postgres dele.
+  # A rede é só deste cliente: nenhum outro cliente enxerga o Postgres dele. A sub-rede é fixa,
+  # 10.64.<código>.0/24 (DOUG_REDE no .env): o servidor só confia no proxy dessa faixa
+  # (TRUSTED_PROXIES), e o proxy que já existe na máquina entra nela com o endereço .2 (o
+  # doug-cliente o liga). Os contêineres do cliente pegam endereços de .128 para cima.
   cliente:
     name: "doug-${DOUG_CLIENT_CODE}"
+    ipam:
+      config:
+        - subnet: "${DOUG_REDE:?defina DOUG_REDE no .env}.0/24"
+          ip_range: "${DOUG_REDE}.128/25"

@@ -42,11 +42,15 @@ cat >"$BIN/docker" <<'EOF'
 #!/usr/bin/env bash
 # docker falso: anota a chamada e responde o que o doug-cliente pergunta.
 printf '%s\n' "$*" >>"$FAKE_LOG"
+# O descritor 9 é o da trava: um filho que o herda a segura depois de o script acabar.
+[[ ! -e /proc/$$/fd/9 ]] || printf '%s\n' "$*" >>"$FAKE_LOG.fd9"
 case "$*" in
   "compose version"*) echo "Docker Compose version v2.30.0" ;;
+  "network inspect"*) printf '%s\n' "${FAKE_NET_MEMBERS:-}" ;;
+  "network connect"*) [[ -z ${FAKE_NET_FAIL:-} ]] || exit 1 ;;
+  "network disconnect"*) [[ -z ${FAKE_NET_FAIL:-} ]] || exit 1 ;;
   "images "*) echo "agentes-zim:doug-abc1234" ;;
   "image inspect "*) [[ -z ${FAKE_NO_IMAGE:-} ]] || exit 1 ;;
-  "info "*) echo "${FAKE_POOLS:-null}" ;;
   *" ps "*) for ((i = 0; i < ${FAKE_RUNNING:-2}; i++)); do echo "contêiner$i"; done ;;
   *"pg_isready"*) ;;
   *"pg_dump"*) [[ -z ${FAKE_DUMP_FAIL:-} ]] || exit 1; printf 'PGDMP falso\n' ;;
@@ -75,6 +79,18 @@ case $2 in
   *) exit 1 ;;
 esac
 EOF
+# chown falso: anota o que o instalador pediria (de verdade só o root troca de dono).
+cat >"$BIN/chown" <<'EOF'
+#!/usr/bin/env bash
+printf '%s\n' "$*" >>"$FAKE_CHOWN_LOG"
+EOF
+# du que anota onde mediu e mede de verdade: mostra que o disco é medido antes da trava.
+REAL_DU=$(command -v du)
+cat >"$BIN/du" <<EOF
+#!/usr/bin/env bash
+printf '%s\n' "\$*" >>"\$FAKE_DU_LOG"
+exec "$REAL_DU" "\$@"
+EOF
 chmod +x "$BIN"/*
 
 # O docker de verdade (se esta conta o alcança), para o `docker compose config`: o PATH abaixo põe o
@@ -90,13 +106,14 @@ novo_ambiente() {
   export DOUG_CADDY_DIR=$A/caddy
   export FAKE_LOG=$A/docker.log
   export FAKE_CONTADOR=$A/contador
+  export FAKE_CHOWN_LOG=$A/chown.log
+  export FAKE_DU_LOG=$A/du.log
   : >"$FAKE_LOG"
-  unset FAKE_NO_IMAGE FAKE_HEALTH_FAIL FAKE_CADDY_FAIL FAKE_DUMP_FAIL FAKE_RUNNING FAKE_CURL_SLEEP FAKE_OPENSSL_FAIL DOUG_PROXY_RELOAD
+  : >"$FAKE_CHOWN_LOG"
+  : >"$FAKE_DU_LOG"
+  unset FAKE_NO_IMAGE FAKE_HEALTH_FAIL FAKE_CADDY_FAIL FAKE_DUMP_FAIL FAKE_RUNNING FAKE_CURL_SLEEP FAKE_OPENSSL_FAIL DOUG_PROXY_RELOAD FAKE_NET_MEMBERS FAKE_NET_FAIL DOUG_PROXY_CONTAINER DOUG_PROXY_SITES_DIR
   # Os testes de Caddy abaixo são do modo próprio; o modo externo tem o seu grupo.
   export DOUG_PROXY_MODE=proprio
-  # Um pool de sub-redes configurado: sem ele o `novo` avisa (grupo próprio abaixo).
-  export FAKE_POOLS='[{"Base":"10.64.0.0/10","Size":24}]'
-  export DOUG_FILES_OWNER="$(id -u):$(id -g)"
   export DOUG_TRAVA_ESPERA=3
   export DOUG_CLIENT_QUOTA_GB=1
   export DOUG_PORTA_INICIAL=47100
@@ -299,9 +316,19 @@ arquivo_tem_linha "$FAKE_LOG" '^compose -p doug-064 .* down' && ok "derrubou a s
 dump_linha=$(grep -n 'pg_dump' "$FAKE_LOG" | tail -1 | cut -d: -f1)
 down_linha=$(grep -n ' down' "$FAKE_LOG" | tail -1 | cut -d: -f1)
 ((dump_linha < down_linha)) && ok "o backup acontece antes de derrubar" || falha "o backup acontece antes de derrubar"
-# Backup que falha: não remove.
+# A janela de escrita: o servidor para antes do dump (o Postgres fica no ar para ele).
+stop_linha=$(grep -n 'compose -p doug-064 .* stop agentes$' "$FAKE_LOG" | tail -1 | cut -d: -f1)
+[[ -n $stop_linha ]] && ((stop_linha < dump_linha)) && ok "remover para o servidor (stop agentes) antes do dump" || falha "remover para o servidor (stop agentes) antes do dump" "$stop_linha $dump_linha"
+! grep -q 'compose -p doug-064 .* stop$\|compose -p doug-064 .* stop postgres' "$FAKE_LOG" && ok "só o servidor para antes do dump, o Postgres fica no ar" || falha "só o servidor para antes do dump, o Postgres fica no ar"
+# Backup que falha: não remove, e o servidor volta antes de sair.
+: >"$FAKE_LOG"
 FAKE_DUMP_FAIL=1 rodar remover 065 --sim
 [[ $CODIGO_SAIDA != 0 && -d $DOUG_CLIENTES_DIR/065-cafe-sol ]] && grep -q '^065' "$REGISTRO" && ok "se o backup falha, nada é removido" || falha "se o backup falha, nada é removido" "$SAIDA"
+stop_l=$(grep -n 'compose -p doug-065 .* stop agentes$' "$FAKE_LOG" | head -1 | cut -d: -f1)
+dump_l=$(grep -n 'pg_dump' "$FAKE_LOG" | head -1 | cut -d: -f1)
+volta_l=$(grep -n 'compose -p doug-065 .* up -d agentes$' "$FAKE_LOG" | tail -1 | cut -d: -f1)
+[[ -n $stop_l && -n $dump_l && -n $volta_l ]] && ((stop_l < dump_l && dump_l < volta_l)) && ! grep -q 'compose -p doug-065 .* down' "$FAKE_LOG" && ok "backup que falha: o servidor é religado (up -d agentes) e nada é derrubado" || falha "backup que falha: o servidor é religado" "$stop_l $dump_l $volta_l"
+contem "$SAIDA" "religuei o servidor" && ok "a saída diz que religou o servidor" || falha "a saída diz que religou o servidor" "$SAIDA"
 # --apagar-dados.
 echo "segredo do arquivo do cliente" >"$DOUG_CLIENTES_DIR/065-cafe-sol/dados/files/nota.txt"
 rodar remover 065 --apagar-dados --dry-run
@@ -333,7 +360,10 @@ rodar cota 099
 
 echo "modelos: SSRF, logs, admin do Caddy"
 arquivo_tem_linha "$MODELO" '^MODEL_ENDPOINTS_PRIVATE=false$' && ok "o modelo fecha os endereços privados (MODEL_ENDPOINTS_PRIVATE=false)" || falha "o modelo fecha os endereços privados"
-arquivo_tem_linha "$MODELO" '^TRUSTED_PROXIES=.*10\.64\.0\.0/10' && ok "TRUSTED_PROXIES inclui o pool de sub-redes do README" || falha "TRUSTED_PROXIES inclui o pool de sub-redes do README"
+arquivo_tem_linha "$MODELO" '^TRUSTED_PROXIES=__REDE__\.0/24$' && ok "TRUSTED_PROXIES do modelo é só a faixa da rede do cliente" || falha "TRUSTED_PROXIES do modelo é só a faixa da rede do cliente"
+! arquivo_contem "$MODELO" '172.16.0.0/12' && ! arquivo_tem_linha "$MODELO" '^TRUSTED_PROXIES=.*10\.64\.0\.0/10' && ok "o modelo não confia em todo o pool do Docker" || falha "o modelo não confia em todo o pool do Docker"
+arquivo_tem_linha "$SWAS/compose.cliente.yml" 'user: "\$\{DOUG_UID:\?[^}]*\}:\$\{DOUG_UID\}"' && ok "o compose roda o servidor com o uid do cliente (DOUG_UID)" || falha "o compose roda o servidor com o uid do cliente (DOUG_UID)"
+arquivo_contem "$SWAS/compose.cliente.yml" 'subnet: "${DOUG_REDE' && arquivo_contem "$SWAS/compose.cliente.yml" '.0/24"' && ok "o compose fixa a sub-rede do cliente (ipam, DOUG_REDE)" || falha "o compose fixa a sub-rede do cliente (ipam, DOUG_REDE)"
 [[ $(grep -c 'max-size: "10m"\|logging: \*logs' "$SWAS/compose.cliente.yml") == 2 ]] && ok "o compose limita o log dos dois serviços (max-size)" || falha "o compose limita o log dos dois serviços (max-size)"
 arquivo_contem "$SWAS/caddy/Caddyfile" 'admin unix//run/caddy-admin/admin.sock' && ! arquivo_contem "$SWAS/caddy/Caddyfile" 'localhost:2019' && ok "o admin do Caddy é um socket Unix, não uma porta" || falha "o admin do Caddy é um socket Unix, não uma porta"
 arquivo_contem "$SWAS/caddy/compose.yml" 'caddy-admin:/run/caddy-admin' && ok "o socket fica num volume do Docker" || falha "o socket fica num volume do Docker"
@@ -465,37 +495,78 @@ printf '' >"$REGISTRO"
 rodar novo 064 padaria-aurora "Padaria Aurora"
 [[ $(modo "$P") == 711 && $(modo "$P/dados") == 711 && $(modo "$P/dados/files") == 700 && $(modo "$P/.env") == 600 && $(modo "$P/compose.yml") == 644 ]] && ok "a retomada refaz os modos (711, 711, 700, 600, 644)" || falha "a retomada refaz os modos" "$(modo "$P") $(modo "$P/dados") $(modo "$P/dados/files") $(modo "$P/.env") $(modo "$P/compose.yml")"
 
-echo "pool de sub-redes do Docker"
-novo_ambiente pool
-FAKE_POOLS=null rodar novo 064 padaria-aurora "Padaria Aurora" --dry-run
-contem "$SAIDA" "default-address-pools" && ok "o novo avisa quando o daemon não tem pool de sub-redes" || falha "o novo avisa quando o daemon não tem pool de sub-redes" "$SAIDA"
-[[ $CODIGO_SAIDA == 0 ]] && ok "o aviso do pool não impede o novo" || falha "o aviso do pool não impede o novo"
-FAKE_POOLS='[]' rodar novo 064 padaria-aurora "Padaria Aurora" --dry-run
-contem "$SAIDA" "default-address-pools" && ok "o novo avisa também com a lista vazia" || falha "o novo avisa também com a lista vazia"
-rodar novo 064 padaria-aurora "Padaria Aurora" --dry-run
-! contem "$SAIDA" "default-address-pools" && ok "com o pool configurado, o novo não avisa" || falha "com o pool configurado, o novo não avisa" "$SAIDA"
-
-echo "proxy: modo externo"
+echo "proxy: modo externo (o proxy é um contêiner, ligado à rede do cliente)"
 novo_ambiente externo
 export DOUG_PROXY_MODE=externo
-export DOUG_PROXY_RELOAD="echo recarga-do-proxy-existente >>$A/proxy.log"
+export DOUG_PROXY_CONTAINER=proxy-teste
+export DOUG_PROXY_SITES_DIR=$A/sites
+export DOUG_PROXY_RELOAD="docker exec proxy-teste caddy reload --config /etc/caddy/Caddyfile"
 rodar novo 064 padaria-aurora "Padaria Aurora" --imagem agentes-zim:doug-abc1234
 [[ $CODIGO_SAIDA == 0 ]] && ok "novo no modo externo termina bem" || falha "novo no modo externo termina bem" "$SAIDA"
-arquivo_contem "$DOUG_CADDY_DIR/clientes/padaria-aurora.caddy" "reverse_proxy 127.0.0.1:47100" && ok "o modo externo escreve caddy/clientes/<slug>.caddy" || falha "o modo externo escreve caddy/clientes/<slug>.caddy"
-[[ $(cat "$A/proxy.log" 2>/dev/null) == recarga-do-proxy-existente ]] && ok "o modo externo roda DOUG_PROXY_RELOAD" || falha "o modo externo roda DOUG_PROXY_RELOAD"
-! grep -q 'caddy' "$FAKE_LOG" && ok "o modo externo não sobe nem recarrega o Caddy próprio" || falha "o modo externo não sobe nem recarrega o Caddy próprio"
+SITE=$DOUG_PROXY_SITES_DIR/padaria-aurora.caddy
+arquivo_contem "$SITE" "reverse_proxy doug-064-agentes-1:3000" && ! arquivo_contem "$SITE" "127.0.0.1" && ok "o upstream é o contêiner do cliente pelo nome, não o loopback" || falha "o upstream é o contêiner do cliente pelo nome, não o loopback" "$(cat "$SITE" 2>/dev/null)"
+[[ ! -e $DOUG_CADDY_DIR/clientes/padaria-aurora.caddy ]] && ok "o arquivo vai para DOUG_PROXY_SITES_DIR, não para a pasta do repositório" || falha "o arquivo vai para DOUG_PROXY_SITES_DIR"
+[[ $(stat -c %a "$SITE") == 644 && $(stat -c %a "$DOUG_PROXY_SITES_DIR") == 755 ]] && ok "o arquivo do site (644) e a pasta (755) ficam legíveis para o contêiner do proxy" || falha "o arquivo do site (644) e a pasta (755) ficam legíveis para o contêiner do proxy"
+arquivo_contem "$FAKE_LOG" "network connect --ip 10.64.64.2 doug-064 proxy-teste" && ok "liga o contêiner do proxy à rede doug-064 com o endereço .2 da rede do cliente" || falha "liga o contêiner do proxy à rede doug-064" "$(grep network "$FAKE_LOG")"
+up_l=$(grep -n 'compose -p doug-064 .* up -d$' "$FAKE_LOG" | head -1 | cut -d: -f1)
+con_l=$(grep -n 'network connect' "$FAKE_LOG" | head -1 | cut -d: -f1)
+rel_l=$(grep -n 'exec proxy-teste caddy reload' "$FAKE_LOG" | head -1 | cut -d: -f1)
+[[ -n $up_l && -n $con_l && -n $rel_l ]] && ((up_l < con_l && con_l < rel_l)) && ok "a ordem é subir a stack, ligar a rede, recarregar o proxy" || falha "a ordem é subir a stack, ligar a rede, recarregar o proxy" "$up_l $con_l $rel_l"
+arquivo_contem "$FAKE_LOG" "exec proxy-teste caddy reload --config /etc/caddy/Caddyfile" && ok "o modo externo roda DOUG_PROXY_RELOAD (docker exec no contêiner do proxy)" || falha "o modo externo roda DOUG_PROXY_RELOAD"
+! arquivo_contem "$FAKE_LOG" "-f $DOUG_CADDY_DIR/compose.yml" && ok "o modo externo não sobe nem recarrega o Caddy próprio" || falha "o modo externo não sobe nem recarrega o Caddy próprio"
+arquivo_tem_linha "$DOUG_CLIENTES_DIR/064-padaria-aurora/.env" '^TRUSTED_PROXIES=10\.64\.64\.0/24$' && ok "TRUSTED_PROXIES é a faixa do cliente, onde o proxy entra (10.64.64.2)" || falha "TRUSTED_PROXIES é a faixa do cliente"
+# Retomada com o proxy já ligado: não liga de novo.
+: >"$FAKE_LOG"
+export FAKE_NET_MEMBERS="outro-conteiner proxy-teste"
+awk -F'\t' '$1 != "064"' "$REGISTRO" >"$REGISTRO.x" && mv "$REGISTRO.x" "$REGISTRO"
+rodar novo 064 padaria-aurora "Padaria Aurora"
+[[ $CODIGO_SAIDA == 0 ]] && ! arquivo_contem "$FAKE_LOG" "network connect" && ok "com o proxy já na rede, a retomada não liga de novo" || falha "com o proxy já na rede, a retomada não liga de novo" "$SAIDA"
+unset FAKE_NET_MEMBERS
+# Segundo cliente: rede própria.
+rodar novo 065 cafe-sol "Café Sol" --imagem agentes-zim:doug-abc1234
+arquivo_contem "$FAKE_LOG" "network connect --ip 10.64.65.2 doug-065 proxy-teste" && arquivo_contem "$DOUG_PROXY_SITES_DIR/cafe-sol.caddy" "doug-065-agentes-1:3000" && ok "cada cliente tem a sua rede e o seu upstream" || falha "cada cliente tem a sua rede e o seu upstream" "$SAIDA"
+# A rede não liga: nada é registrado.
+FAKE_NET_FAIL=1 rodar novo 066 loja-lua "Loja Lua" --imagem agentes-zim:doug-abc1234
+[[ $CODIGO_SAIDA != 0 ]] && contem "$SAIDA" "não consegui ligar o contêiner proxy-teste" && ! grep -q '^066' "$REGISTRO" && [[ ! -e $DOUG_PROXY_SITES_DIR/loja-lua.caddy ]] && ok "se o proxy não liga à rede, não publica nem registra" || falha "se o proxy não liga à rede, não publica nem registra" "$SAIDA"
+# Recarga que falha: volta o arquivo.
 export DOUG_PROXY_RELOAD=false
-rodar novo 065 cafe-sol "Café Sol" --imagem agentes-zim:doug-abc1234
-[[ $CODIGO_SAIDA != 0 && ! -e $DOUG_CADDY_DIR/clientes/cafe-sol.caddy ]] && ! grep -q '^065' "$REGISTRO" && ok "recarga que falha: o arquivo volta ao que era e não registra" || falha "recarga que falha: o arquivo volta ao que era e não registra" "$SAIDA"
+rodar novo 067 padaria-sol "Padaria Sol" --imagem agentes-zim:doug-abc1234
+[[ $CODIGO_SAIDA != 0 && ! -e $DOUG_PROXY_SITES_DIR/padaria-sol.caddy ]] && ! grep -q '^067' "$REGISTRO" && ok "recarga que falha: o arquivo volta ao que era e não registra" || falha "recarga que falha: o arquivo volta ao que era e não registra" "$SAIDA"
 unset DOUG_PROXY_RELOAD
-rodar novo 065 cafe-sol "Café Sol" --imagem agentes-zim:doug-abc1234
+rodar novo 067 padaria-sol "Padaria Sol" --imagem agentes-zim:doug-abc1234
 [[ $CODIGO_SAIDA == 0 ]] && contem "$SAIDA" "DOUG_PROXY_RELOAD não está definido" && ok "sem DOUG_PROXY_RELOAD o aviso manda recarregar à mão" || falha "sem DOUG_PROXY_RELOAD o aviso manda recarregar à mão" "$SAIDA"
+# remover: desliga o proxy da rede antes de derrubar, tira o arquivo e recarrega.
 export DOUG_PROXY_RELOAD="echo recarga-ao-remover >>$A/proxy.log"
-rodar remover 064 --sim
-[[ $CODIGO_SAIDA == 0 && ! -e $DOUG_CADDY_DIR/clientes/padaria-aurora.caddy ]] && grep -q recarga-ao-remover "$A/proxy.log" && ok "remover tira o arquivo e recarrega o proxy externo" || falha "remover tira o arquivo e recarrega o proxy externo" "$SAIDA"
+: >"$FAKE_LOG"
+FAKE_NET_MEMBERS="proxy-teste" rodar remover 064 --sim
+[[ $CODIGO_SAIDA == 0 && ! -e $DOUG_PROXY_SITES_DIR/padaria-aurora.caddy ]] && grep -q recarga-ao-remover "$A/proxy.log" && ok "remover tira o arquivo e recarrega o proxy externo" || falha "remover tira o arquivo e recarrega o proxy externo" "$SAIDA"
+dis_l=$(grep -n 'network disconnect doug-064 proxy-teste' "$FAKE_LOG" | head -1 | cut -d: -f1)
+dow_l=$(grep -n 'compose -p doug-064 .* down' "$FAKE_LOG" | head -1 | cut -d: -f1)
+[[ -n $dis_l && -n $dow_l ]] && ((dis_l < dow_l)) && ok "remover desconecta a rede do proxy antes de derrubar a stack" || falha "remover desconecta a rede do proxy antes de derrubar a stack" "$dis_l $dow_l"
+: >"$FAKE_LOG"
+rodar remover 065 --sim
+! arquivo_contem "$FAKE_LOG" "network disconnect" && ok "com o proxy fora da rede, remover não desconecta" || falha "com o proxy fora da rede, remover não desconecta"
+FAKE_NET_MEMBERS="proxy-teste" FAKE_NET_FAIL=1 rodar remover 067 --sim
+[[ $CODIGO_SAIDA != 0 && -d $DOUG_CLIENTES_DIR/067-padaria-sol ]] && grep -q '^067' "$REGISTRO" && ! grep -q 'compose -p doug-067 .* down' "$FAKE_LOG" && ok "se não desconecta a rede, remover não derruba nada" || falha "se não desconecta a rede, remover não derruba nada" "$SAIDA"
+# religar-proxy: o contêiner do proxy foi recriado e perdeu as redes.
+rodar novo 069 mercado-sol "Mercado Sol" --imagem agentes-zim:doug-abc1234
+: >"$FAKE_LOG"
+recargas_antes=$(grep -c recarga-ao-remover "$A/proxy.log")
+rodar religar-proxy
+[[ $CODIGO_SAIDA == 0 ]] && arquivo_contem "$FAKE_LOG" "network connect --ip 10.64.67.2 doug-067 proxy-teste" && arquivo_contem "$FAKE_LOG" "network connect --ip 10.64.69.2 doug-069 proxy-teste" && ok "religar-proxy liga o proxy à rede de cada cliente" || falha "religar-proxy liga o proxy à rede de cada cliente" "$SAIDA"
+[[ $(grep -c recarga-ao-remover "$A/proxy.log") == $((recargas_antes + 1)) ]] && ok "religar-proxy recarrega o proxy" || falha "religar-proxy recarrega o proxy"
+: >"$FAKE_LOG"
+FAKE_NET_MEMBERS="proxy-teste" rodar religar-proxy
+! arquivo_contem "$FAKE_LOG" "network connect" && ok "religar-proxy não liga o que já está ligado" || falha "religar-proxy não liga o que já está ligado"
+# Sem o nome do contêiner do proxy, o modo externo recusa.
+DOUG_PROXY_CONTAINER="" rodar novo 068 loja-sol "Loja Sol" --dry-run
+[[ $CODIGO_SAIDA != 0 ]] && contem "$SAIDA" "DOUG_PROXY_CONTAINER" && ok "o modo externo sem DOUG_PROXY_CONTAINER é recusado" || falha "o modo externo sem DOUG_PROXY_CONTAINER é recusado" "$SAIDA"
 DOUG_PROXY_MODE=abacate rodar novo 066 loja "Loja" --dry-run
 [[ $CODIGO_SAIDA != 0 ]] && contem "$SAIDA" "DOUG_PROXY_MODE" && ok "modo de proxy desconhecido é recusado" || falha "modo de proxy desconhecido é recusado" "$SAIDA"
+DOUG_PROXY_MODE=proprio rodar religar-proxy
+[[ $CODIGO_SAIDA != 0 ]] && contem "$SAIDA" "modo externo" && ok "religar-proxy é só do modo externo" || falha "religar-proxy é só do modo externo" "$SAIDA"
 export DOUG_PROXY_MODE=proprio
+unset DOUG_PROXY_CONTAINER DOUG_PROXY_SITES_DIR DOUG_PROXY_RELOAD
 
 echo "proxy: modo próprio, admin por socket Unix"
 novo_ambiente proprio
@@ -505,11 +576,38 @@ arquivo_contem "$FAKE_LOG" "caddy reload --config /etc/caddy/Caddyfile --address
 echo "configuração de root (<raiz>/doug-cliente.conf)"
 novo_ambiente conf
 mkdir -p "$DOUG_CLIENTES_DIR"
-printf 'DOUG_PROXY_MODE=externo\nDOUG_PROXY_RELOAD="echo da-conf >>%s/proxy.log"\n' "$A" >"$DOUG_CLIENTES_DIR/doug-cliente.conf"
-chmod 600 "$DOUG_CLIENTES_DIR/doug-cliente.conf"
+CONF=$DOUG_CLIENTES_DIR/doug-cliente.conf
+cat >"$CONF" <<EOF
+# a conf não é um script: só NOME=valor
+DOUG_PROXY_MODE=externo
+DOUG_PROXY_CONTAINER='proxy-conf'
+DOUG_PROXY_SITES_DIR="$A/sites-conf"
+DOUG_PROXY_RELOAD="echo da-conf >>$A/proxy.log"
+EOF
+chmod 600 "$CONF"
 rodar novo 064 padaria-aurora "Padaria Aurora" --imagem agentes-zim:doug-abc1234
 [[ $CODIGO_SAIDA == 0 && $(cat "$A/proxy.log" 2>/dev/null) == da-conf ]] && ok "a conf de root vale mais que o ambiente (modo e comando de recarga)" || falha "a conf de root vale mais que o ambiente" "$SAIDA"
-chmod 666 "$DOUG_CLIENTES_DIR/doug-cliente.conf"
+[[ -f $A/sites-conf/padaria-aurora.caddy ]] && arquivo_contem "$FAKE_LOG" "network connect --ip 10.64.64.2 doug-064 proxy-conf" && ok "a conf dá o contêiner do proxy e a pasta dos sites (valores entre aspas simples e duplas)" || falha "a conf dá o contêiner do proxy e a pasta dos sites"
+# Sem source: o que parece comando ou expansão é só texto.
+cat >"$CONF" <<EOF
+DOUG_DOMINIO=\$(touch $A/executou-1)
+DOUG_PROXY_MODE=proprio
+EOF
+rodar lista
+[[ ! -e $A/executou-1 ]] && ok "a conf não executa \$(...) de um valor" || falha "a conf não executa \$(...) de um valor"
+printf 'touch %s/executou-2\nDOUG_PROXY_MODE=proprio\n' "$A" >"$CONF"
+rodar lista
+[[ $CODIGO_SAIDA != 0 && ! -e $A/executou-2 ]] && contem "$SAIDA" "só vale NOME=valor" && ok "uma linha que não é NOME=valor é recusada, e não roda" || falha "uma linha que não é NOME=valor é recusada, e não roda" "$SAIDA"
+printf 'DOUG_QUALQUER_COISA=1\nPATH=/nada\nDOUG_CLIENTES_DIR=/nada-de-raiz\nDOUG_PROXY_MODE=proprio\n' >"$CONF"
+rodar lista
+[[ $CODIGO_SAIDA == 0 ]] && contem "$SAIDA" "DOUG_QUALQUER_COISA não vale na conf" && contem "$SAIDA" "PATH não vale na conf" && ok "chave que não é das conhecidas é ignorada, com aviso (nem o PATH entra)" || falha "chave que não é das conhecidas é ignorada, com aviso" "$SAIDA"
+contem "$SAIDA" "DOUG_CLIENTES_DIR não vale na conf" && ok "DOUG_CLIENTES_DIR não vale na conf (ela fica dentro dele)" || falha "DOUG_CLIENTES_DIR não vale na conf" "$SAIDA"
+[[ ! -e /nada-de-raiz ]] && ok "a raiz continua a do ambiente" || falha "a raiz continua a do ambiente"
+printf 'DOUG_PORTA_INICIAL=a[$(touch %s/executou-3)]\n' "$A" >"$CONF"
+rodar lista
+[[ $CODIGO_SAIDA != 0 && ! -e $A/executou-3 ]] && contem "$SAIDA" "não é um número" && ok "um valor numérico que não é número é recusado, sem avaliar" || falha "um valor numérico que não é número é recusado, sem avaliar" "$SAIDA"
+printf 'DOUG_PROXY_MODE=proprio\n' >"$CONF"
+chmod 666 "$CONF"
 rodar lista
 [[ $CODIGO_SAIDA != 0 ]] && contem "$SAIDA" "sem escrita para grupo nem outros" && ok "a conf com escrita para outros é recusada" || falha "a conf com escrita para outros é recusada" "$SAIDA"
 
@@ -585,6 +683,176 @@ rodar novo 064 padaria-aurora "Padaria Aurora" --imagem agentes-zim:doug-abc1234
 novo_ambiente orfao2
 FAKE_OPENSSL_FAIL=1 rodar novo 064 padaria-aurora "Padaria Aurora" --imagem agentes-zim:doug-abc1234
 [[ $CODIGO_SAIDA != 0 && ! -e $DOUG_CLIENTES_DIR/064-padaria-aurora/.env.novo && ! -e $DOUG_CLIENTES_DIR/064-padaria-aurora/.env ]] && ok "openssl que falha não deixa .env nem .env.novo" || falha "openssl que falha não deixa .env nem .env.novo" "$SAIDA"
+
+echo "um uid e uma rede por cliente"
+novo_ambiente uid
+rodar novo 064 padaria-aurora "Padaria Aurora" --imagem agentes-zim:doug-abc1234
+rodar novo 065 cafe-sol "Café Sol" --imagem agentes-zim:doug-abc1234
+rodar novo 010 loja-dez "Loja Dez" --imagem agentes-zim:doug-abc1234
+rodar novo 000 loja-zero "Loja Zero" --imagem agentes-zim:doug-abc1234
+rodar novo 255 loja-fim "Loja Fim" --imagem agentes-zim:doug-abc1234
+P64=$DOUG_CLIENTES_DIR/064-padaria-aurora
+P65=$DOUG_CLIENTES_DIR/065-cafe-sol
+arquivo_tem_linha "$P64/.env" '^DOUG_UID=100064$' && arquivo_tem_linha "$P65/.env" '^DOUG_UID=100065$' && ok "DOUG_UID é 100000 + o código, um por cliente" || falha "DOUG_UID é 100000 + o código, um por cliente"
+arquivo_tem_linha "$DOUG_CLIENTES_DIR/010-loja-dez/.env" '^DOUG_UID=100010$' && arquivo_tem_linha "$DOUG_CLIENTES_DIR/010-loja-dez/.env" '^DOUG_REDE=10\.64\.10$' && ok "o código 010 vale dez (decimal, não octal)" || falha "o código 010 vale dez (decimal, não octal)"
+arquivo_tem_linha "$DOUG_CLIENTES_DIR/000-loja-zero/.env" '^DOUG_UID=100000$' && arquivo_tem_linha "$DOUG_CLIENTES_DIR/255-loja-fim/.env" '^DOUG_REDE=10\.64\.255$' && ok "os códigos 000 e 255 funcionam" || falha "os códigos 000 e 255 funcionam"
+arquivo_tem_linha "$P64/.env" '^DOUG_REDE=10\.64\.64$' && arquivo_tem_linha "$P65/.env" '^DOUG_REDE=10\.64\.65$' && ok "DOUG_REDE é 10.64.<código>, uma por cliente" || falha "DOUG_REDE é 10.64.<código>, uma por cliente"
+arquivo_tem_linha "$P64/.env" '^TRUSTED_PROXIES=10\.64\.64\.0/24$' && arquivo_tem_linha "$P65/.env" '^TRUSTED_PROXIES=10\.64\.65\.0/24$' && ok "TRUSTED_PROXIES de cada cliente é só a faixa da rede dele" || falha "TRUSTED_PROXIES de cada cliente é só a faixa da rede dele" "$(grep TRUSTED "$P64/.env" "$P65/.env")"
+! grep -q '10\.64\.65' "$P64/.env" && ! grep -q '10\.64\.64' "$P65/.env" && ok "um cliente não confia na faixa do outro" || falha "um cliente não confia na faixa do outro"
+arquivo_tem_linha "$P64/.env" '^TRUSTED_PROXIES=' && [[ $(grep -c '^TRUSTED_PROXIES=' "$P64/.env") == 1 ]] && ok ".env tem uma linha só de TRUSTED_PROXIES" || falha ".env tem uma linha só de TRUSTED_PROXIES"
+# chown: o root fica com a pasta e os arquivos, o uid do cliente com dados/files.
+grep -qE "^root:root $P64 $P64/dados $P64/compose.yml $P64/.env" "$FAKE_CHOWN_LOG" && ok "chown dá a pasta, dados/, compose.yml e .env ao root:root" || falha "chown dá a pasta, dados/, compose.yml e .env ao root:root" "$(cat "$FAKE_CHOWN_LOG")"
+grep -qxF "100064:100064 $P64/dados/files" "$FAKE_CHOWN_LOG" && grep -qxF "100065:100065 $P65/dados/files" "$FAKE_CHOWN_LOG" && ok "chown dá dados/files ao uid do cliente (100064, 100065), não ao 1000" || falha "chown dá dados/files ao uid do cliente" "$(cat "$FAKE_CHOWN_LOG")"
+! grep -qE '(^| )1000(:| )' "$FAKE_CHOWN_LOG" && ok "nenhum chown usa o uid 1000 (um login da máquina)" || falha "nenhum chown usa o uid 1000"
+grep -qxF "100064:100064 $P64/dados/files" <(grep '/dados/files$' "$FAKE_CHOWN_LOG" | sort -u | grep 064-) && [[ $(grep -c "dados/files$" "$FAKE_CHOWN_LOG" | head -1) -ge 5 ]] && ok "cada cliente leva o chown de dados/files" || falha "cada cliente leva o chown de dados/files"
+: >"$FAKE_CHOWN_LOG"
+rodar compose 064
+grep -qxF "100064:100064 $P64/dados/files" "$FAKE_CHOWN_LOG" && ok "compose refaz o dono de dados/files" || falha "compose refaz o dono de dados/files" "$(cat "$FAKE_CHOWN_LOG")"
+# Um .env de antes do uid ganha as variáveis com `compose`.
+grep -v '^DOUG_UID=\|^DOUG_REDE=' "$P64/.env" >"$P64/.env.t" && cat "$P64/.env.t" >"$P64/.env" && rm -f "$P64/.env.t"
+rodar compose 064
+arquivo_tem_linha "$P64/.env" '^DOUG_UID=100064$' && arquivo_tem_linha "$P64/.env" '^DOUG_REDE=10\.64\.64$' && ok "compose acrescenta DOUG_UID e DOUG_REDE a um .env que não os tinha" || falha "compose acrescenta DOUG_UID e DOUG_REDE a um .env que não os tinha" "$SAIDA"
+rodar novo 256 loja-acima "Loja Acima" --dry-run
+[[ $CODIGO_SAIDA != 0 ]] && contem "$SAIDA" "000 a 255" && ok "o código 256 é recusado: não cabe na rede 10.64.<código>.0/24" || falha "o código 256 é recusado: não cabe na rede 10.64.<código>.0/24" "$SAIDA"
+rodar novo 999 loja-acima "Loja Acima" --imagem agentes-zim:doug-abc1234
+[[ $CODIGO_SAIDA != 0 && ! -e $DOUG_CLIENTES_DIR/999-loja-acima ]] && ok "o código 999 é recusado e nada é criado" || falha "o código 999 é recusado e nada é criado" "$SAIDA"
+rodar novo 064 padaria-aurora "Padaria Aurora" --dry-run
+contem "$SAIDA" "uid:      100064, rede 10.64.64.0/24" || true
+
+echo "permissões: .lock, clientes.tsv, backups/ e removidos/"
+novo_ambiente perm2
+mkdir -p "$DOUG_CLIENTES_DIR"
+# Um .lock e um clientes.tsv que alguém criou abertos (o script os fecha).
+: >"$DOUG_CLIENTES_DIR/.lock"
+chmod 666 "$DOUG_CLIENTES_DIR/.lock"
+: >"$REGISTRO"
+chmod 644 "$REGISTRO"
+( umask 000; "$SCRIPT" novo 064 padaria-aurora "Padaria Aurora" --imagem agentes-zim:doug-abc1234 ) >"$TMP/saida" 2>&1 || falha "novo com umask 000" "$(cat "$TMP/saida")"
+[[ $(modo "$REGISTRO") == 600 ]] && ok "clientes.tsv, que existia 644, fica 600 depois de acrescentar um cliente" || falha "clientes.tsv fica 600 depois de acrescentar" "$(modo "$REGISTRO")"
+(
+  umask 000
+  "$SCRIPT" novo 065 cafe-sol "Café Sol" --imagem agentes-zim:doug-abc1234
+  "$SCRIPT" backup 064
+  "$SCRIPT" remover 065 --sim
+) >"$TMP/saida" 2>&1 || falha "a sequência de permissões" "$(cat "$TMP/saida")"
+[[ $(modo "$DOUG_CLIENTES_DIR/.lock") == 600 ]] && ok ".lock fica 600 (mesmo existindo aberto e com umask 000)" || falha ".lock fica 600" "$(modo "$DOUG_CLIENTES_DIR/.lock")"
+[[ $(modo "$REGISTRO") == 600 ]] && ok "clientes.tsv continua 600 depois de tirar um cliente" || falha "clientes.tsv fica 600" "$(modo "$REGISTRO")"
+[[ $(modo "$DOUG_CLIENTES_DIR/backups") == 700 && $(modo "$DOUG_CLIENTES_DIR/backups/064") == 700 ]] && ok "backups/ e backups/<codigo>/ ficam 700 (umask 000)" || falha "backups/ e backups/<codigo>/ ficam 700"
+[[ $(modo "$DOUG_CLIENTES_DIR/removidos") == 700 ]] && ok "removidos/ fica 700 (umask 000)" || falha "removidos/ fica 700" "$(modo "$DOUG_CLIENTES_DIR/removidos" 2>&1)"
+[[ $(modo "$DOUG_CLIENTES_DIR/backups/064"/manual-*.dump) == 600 && $(modo "$DOUG_CLIENTES_DIR/backups/065"/remocao-*.dump) == 600 ]] && ok "os dumps ficam 600" || falha "os dumps ficam 600"
+# O .lock continua o mesmo arquivo (um flock vale por arquivo): o script não o recria.
+ino=$(stat -c %i "$DOUG_CLIENTES_DIR/.lock")
+"$SCRIPT" lista >/dev/null 2>&1
+rodar parar 064
+[[ $(stat -c %i "$DOUG_CLIENTES_DIR/.lock") == "$ino" ]] && ok "o .lock não é recriado a cada comando" || falha "o .lock não é recriado a cada comando"
+
+echo "o descritor da trava não vai para os filhos"
+novo_ambiente fd9
+export DOUG_PROXY_MODE=externo DOUG_PROXY_CONTAINER=proxy-teste DOUG_PROXY_SITES_DIR=$A/sites
+export DOUG_PROXY_RELOAD="if [ -e /proc/self/fd/9 ]; then echo aberto >>$A/fd9-reload; fi; echo ok >>$A/reload-rodou"
+# O detector funciona: um filho que herda o descritor 9 é visto.
+( exec 9>"$A/qualquer"; "$BIN/docker" detector ) 2>/dev/null
+[[ -s $FAKE_LOG.fd9 ]] && ok "o detector do docker falso vê o descritor 9 quando ele é herdado" || falha "o detector do docker falso vê o descritor 9 quando ele é herdado"
+rm -f "$FAKE_LOG.fd9"
+rodar novo 064 padaria-aurora "Padaria Aurora" --imagem agentes-zim:doug-abc1234
+rodar parar 064
+rodar iniciar 064
+rodar backup 064
+[[ -s $A/reload-rodou ]] && [[ ! -e $A/fd9-reload ]] && ok "o comando de recarga do proxy roda sem o descritor 9" || falha "o comando de recarga do proxy roda sem o descritor 9"
+[[ ! -e $FAKE_LOG.fd9 ]] && ok "nenhuma chamada ao docker (compose, network, exec, image) herda o descritor 9" || falha "nenhuma chamada ao docker herda o descritor 9" "$(cat "$FAKE_LOG.fd9")"
+echo x | "$SCRIPT" remover 064 --sim >/dev/null 2>&1
+[[ ! -e $FAKE_LOG.fd9 ]] && ok "o remover também não passa o descritor 9 ao docker" || falha "o remover também não passa o descritor 9 ao docker"
+export DOUG_PROXY_MODE=proprio
+unset DOUG_PROXY_CONTAINER DOUG_PROXY_SITES_DIR DOUG_PROXY_RELOAD
+
+echo "o disco dos clientes é medido antes da trava"
+novo_ambiente antes
+rodar novo 064 padaria-aurora "Padaria Aurora" --imagem agentes-zim:doug-abc1234
+: >"$FAKE_DU_LOG"
+exec 8>"$DOUG_CLIENTES_DIR/.lock"
+flock -n 8
+DOUG_TRAVA_ESPERA=1 rodar novo 065 cafe-sol "Café Sol" --imagem agentes-zim:doug-abc1234
+exec 8>&-
+[[ $CODIGO_SAIDA != 0 ]] && contem "$SAIDA" "trava em" && grep -q '064-padaria-aurora/dados' "$FAKE_DU_LOG" && ok "com a trava ocupada, o novo já mediu o disco dos clientes (a medida não segura a trava)" || falha "com a trava ocupada, o novo já mediu o disco dos clientes" "$SAIDA | $(cat "$FAKE_DU_LOG")"
+
+echo "compose: o modelo que não preenche para o comando"
+novo_ambiente modelo-ruim
+rodar novo 064 padaria-aurora "Padaria Aurora" --imagem agentes-zim:doug-abc1234
+P=$DOUG_CLIENTES_DIR/064-padaria-aurora
+RUIM=$TMP/swas-ruim
+rm -rf "$RUIM"
+mkdir -p "$RUIM"
+cp "$SCRIPT" "$SWAS/compose.cliente.yml" "$SWAS/cliente.env.example" "$RUIM/"
+printf 'NOVA_VARIAVEL=__SEM_VALOR__\n' >>"$RUIM/cliente.env.example"
+env_antes=$(cat "$P/.env")
+compose_antes=$(cat "$P/compose.yml")
+SAIDA=$("$RUIM/doug-cliente" compose 064 2>&1)
+CODIGO_SAIDA=$?
+[[ $CODIGO_SAIDA != 0 ]] && contem "$SAIDA" "campo que o instalador não preenche" && ok "compose sai com erro (não com 0) quando o modelo tem um campo sem valor" || falha "compose sai com erro quando o modelo tem um campo sem valor" "$CODIGO_SAIDA $SAIDA"
+[[ $(cat "$P/.env") == "$env_antes" && $(cat "$P/compose.yml") == "$compose_antes" ]] && ok "e não muda o .env nem o compose.yml" || falha "e não muda o .env nem o compose.yml"
+SAIDA=$("$RUIM/doug-cliente" compose 064 --dry-run 2>&1)
+[[ $? != 0 ]] && ok "o --dry-run do compose também sai com erro" || falha "o --dry-run do compose também sai com erro" "$SAIDA"
+
+echo "menores: openssl, imagem, slug e cota de um cliente começado"
+novo_ambiente openssl
+FAKE_OPENSSL_FAIL=1 rodar novo 064 padaria-aurora "Padaria Aurora" --imagem agentes-zim:doug-abc1234
+[[ $CODIGO_SAIDA != 0 ]] && contem "$SAIDA" "openssl não gerou" && ok "openssl que falha diz que foi o openssl (e sai com erro)" || falha "openssl que falha diz que foi o openssl" "$SAIDA"
+novo_ambiente menores
+for ruim in -x --force 'a b' 'agentes zim:doug' 'img;rm'; do
+  rodar novo 064 padaria-aurora "Padaria Aurora" --imagem "$ruim"
+  [[ $CODIGO_SAIDA != 0 ]] && ok "recusa --imagem '$ruim'" || falha "recusa --imagem '$ruim'" "$SAIDA"
+done
+rodar novo 064 padaria-aurora "Padaria Aurora" --imagem=-x
+[[ $CODIGO_SAIDA != 0 ]] && contem "$SAIDA" "não começa com hífen" && ok "recusa --imagem=-x, com a causa" || falha "recusa --imagem=-x, com a causa" "$SAIDA"
+DOUG_IMAGE=-x rodar novo 064 padaria-aurora "Padaria Aurora"
+[[ $CODIGO_SAIDA != 0 ]] && contem "$SAIDA" "nome de imagem inválido" && ok "recusa DOUG_IMAGE que começa com hífen" || falha "recusa DOUG_IMAGE que começa com hífen" "$SAIDA"
+[[ ! -e $DOUG_CLIENTES_DIR/064-padaria-aurora ]] && ok "as imagens recusadas não criam pasta" || falha "as imagens recusadas não criam pasta"
+# Um cliente começado e ainda não registrado reserva o slug e a cota.
+novo_ambiente reserva
+FAKE_HEALTH_FAIL=1 rodar novo 070 mercado-lua "Mercado Lua" --imagem agentes-zim:doug-abc1234
+[[ ! -s $REGISTRO && -d $DOUG_CLIENTES_DIR/070-mercado-lua ]] && ok "o cliente que caiu antes do registro deixa a pasta" || falha "o cliente que caiu antes do registro deixa a pasta"
+rodar novo 071 mercado-lua "Outro Mercado" --imagem agentes-zim:doug-abc1234
+[[ $CODIGO_SAIDA != 0 ]] && contem "$SAIDA" "começado e ainda não registrado" && [[ ! -e $DOUG_CLIENTES_DIR/071-mercado-lua ]] && ok "o slug de um cliente começado e não registrado é dele" || falha "o slug de um cliente começado e não registrado é dele" "$SAIDA"
+rodar novo 070 mercado-lua "Mercado Lua" --imagem agentes-zim:doug-abc1234
+[[ $CODIGO_SAIDA == 0 ]] && ok "o mesmo código e slug continuam o cliente começado" || falha "o mesmo código e slug continuam o cliente começado" "$SAIDA"
+novo_ambiente reserva2
+livre=$(df -Pk "$TMP" | awk 'NR == 2 { print $4 }')
+export DOUG_CLIENT_QUOTA_GB=$(awk -v l="$livre" 'BEGIN { printf "%.6f", l * 0.6 / 1048576 }')
+FAKE_HEALTH_FAIL=1 rodar novo 064 padaria-aurora "Padaria Aurora" --imagem agentes-zim:doug-abc1234
+[[ ! -s $REGISTRO ]] && ok "o primeiro cliente caiu antes do registro" || falha "o primeiro cliente caiu antes do registro"
+rodar novo 065 cafe-sol "Café Sol" --imagem agentes-zim:doug-abc1234
+[[ $CODIGO_SAIDA != 0 ]] && contem "$SAIDA" "falta disco" && contem "$SAIDA" "1 clientes de hoje" && ok "a cota de um cliente começado e não registrado conta na conta do disco" || falha "a cota de um cliente começado e não registrado conta na conta do disco" "$SAIDA"
+
+echo "limpar-backups"
+novo_ambiente limpa
+rodar novo 064 padaria-aurora "Padaria Aurora" --imagem agentes-zim:doug-abc1234
+B=$DOUG_CLIENTES_DIR/backups/064
+mkdir -p "$B"
+chmod 700 "$B"
+for f in manual-20261001-100000.dump remocao-20261002-100000.dump remocao-20261002-100000.env remocao-20261002-100000-files.tar manual-20261120-100000.dump pre-20261001-100000.dump falhou-20261001-100000.dump; do
+  echo x >"$B/$f"
+done
+rodar limpar-backups 064
+[[ $CODIGO_SAIDA != 0 ]] && contem "$SAIDA" "--antes" && ok "limpar-backups sem --antes recusa" || falha "limpar-backups sem --antes recusa" "$SAIDA"
+rodar limpar-backups 064 --antes ontem
+[[ $CODIGO_SAIDA != 0 ]] && contem "$SAIDA" "data válida" && ok "limpar-backups com uma data inválida recusa" || falha "limpar-backups com uma data inválida recusa" "$SAIDA"
+rodar limpar-backups 064 --antes 2026-02-31
+[[ $CODIGO_SAIDA != 0 ]] && ok "limpar-backups recusa uma data que não existe" || falha "limpar-backups recusa uma data que não existe" "$SAIDA"
+rodar limpar-backups 064 --antes 2026-11-01 --dry-run
+[[ $CODIGO_SAIDA == 0 && $(ls "$B" | wc -l) == 7 ]] && contem "$SAIDA" "manual-20261001-100000.dump" && ok "--dry-run lista o que apagaria e não apaga" || falha "--dry-run lista o que apagaria e não apaga" "$SAIDA"
+echo "não" | "$SCRIPT" limpar-backups 064 --antes 2026-11-01 >"$TMP/saida" 2>&1
+[[ $? != 0 && $(ls "$B" | wc -l) == 7 ]] && ok "sem a confirmação, não apaga nada" || falha "sem a confirmação, não apaga nada" "$(cat "$TMP/saida")"
+rodar limpar-backups 064 --antes 2026-11-01 --sim
+[[ $CODIGO_SAIDA == 0 ]] && ok "limpar-backups --antes --sim termina bem" || falha "limpar-backups --antes --sim termina bem" "$SAIDA"
+[[ ! -e $B/manual-20261001-100000.dump && ! -e $B/remocao-20261002-100000.dump && ! -e $B/remocao-20261002-100000.env && ! -e $B/remocao-20261002-100000-files.tar ]] && ok "apaga o dump, o .env e o tar de antes da data" || falha "apaga o dump, o .env e o tar de antes da data" "$(ls "$B")"
+[[ -e $B/manual-20261120-100000.dump ]] && ok "guarda o que é da data ou depois" || falha "guarda o que é da data ou depois"
+[[ -e $B/pre-20261001-100000.dump && -e $B/falhou-20261001-100000.dump ]] && ok "não toca nos pre-* e falhou-* do doug-atualizar-clientes" || falha "não toca nos pre-* e falhou-* do doug-atualizar-clientes"
+echo "APAGAR padaria-aurora" | "$SCRIPT" remover 064 --apagar-dados >/dev/null 2>&1
+ls "$B"/remocao-*.dump >/dev/null 2>&1 && ok "o remover --apagar-dados deixa o dump em backups/ (é o que a guarda de LGPD limpa)" || falha "o remover --apagar-dados deixa o dump em backups/"
+rodar limpar-backups 064 --antes 2099-01-01 --sim
+[[ $CODIGO_SAIDA == 0 ]] && ! ls "$B"/remocao-* >/dev/null 2>&1 && [[ -e $B/pre-20261001-100000.dump ]] && ok "vale também para um cliente que já foi removido (o dump, o .env e o tar da remoção saem)" || falha "vale também para um cliente que já foi removido" "$SAIDA $(ls "$B")"
+rodar limpar-backups 099 --antes 2099-01-01 --sim
+[[ $CODIGO_SAIDA != 0 ]] && contem "$SAIDA" "não há backups" && ok "limpar-backups de um código sem backups avisa" || falha "limpar-backups de um código sem backups avisa" "$SAIDA"
 
 echo "ajuda"
 rodar ajuda
