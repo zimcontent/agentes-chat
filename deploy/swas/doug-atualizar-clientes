@@ -952,7 +952,7 @@ _atualizar_um() {
   rm -f "$guarda"
   C_GUARDA=
   C_COMMITADO=0
-  ((C_RECRIADO)) || liberar_servidor
+  liberar_servidor # nada a fazer se o up -d recriou o container (C_SINALIZADO já zerado)
   if subir_e_conferir "$atual"; then
     marca_gravar "$codigo" "$nova" voltou "$BACKUP_FEITO"
     diz "VOLTOU: $atual saudável de novo. Backup, se a versão nova migrou o banco: ${BACKUP_FEITO}"

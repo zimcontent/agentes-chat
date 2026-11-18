@@ -261,3 +261,7 @@ comandos de root para quem tiver a regra. Uma atualização parcial se faz como 
 - O script supõe, no `compose.yml` do cliente, os serviços `agentes` e `postgres`, o projeto `doug-<codigo>` e
   `DOUG_IMAGE` no `.env`; se o instalador usar outros nomes, ajuste `DOUG_SERVER_SERVICE` e `DOUG_DB_SERVICE` na unidade.
   A imagem tem de ter o `bun` (a do DougBot tem: é o que o `HEALTHCHECK` usa), para o health sem porta publicada.
+
+## Quando um cliente sai
+
+Os dumps `pre-*` e `falhou-*` que este script guarda em `$RAIZ/backups/<codigo>/` ainda não levam o slug no nome, e o `doug-cliente limpar-backups` só limpa os `manual-*` e `remocao-*`. Depois de `doug-cliente remover <codigo>`, apague à mão os `pre-*` e `falhou-*` desse código antes de reaproveitá-lo para outro cliente. Assim os dados de quem saiu não ficam no disco, e ninguém restaura um dump de outro cliente.
