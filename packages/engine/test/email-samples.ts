@@ -472,6 +472,19 @@ export const EMAIL_SAMPLES: Record<string, EmailTemplate> = {
     clientCode: null,
     version: "1.2.3",
   },
+  /** Their words on their own lines, with an order number and a phone number a mail client must not link. */
+  "support_request-lines.pt-BR": {
+    kind: "support_request",
+    locale: "pt-BR",
+    url: APP,
+    name: "Ana Souza",
+    email: "ana@padariasouza.com.br",
+    orgName: "Padaria Souza",
+    text: "Nenhuma nota da compra 2026111800391 é publicada desde segunda.\n\nO cliente ligou no 0800 591 2211 e ninguém respondeu.",
+    agent: { name: "Ada", handle: "ada" },
+    clientCode: "064",
+    version: "1.2.3",
+  },
   "autonomy_report.en": {
     kind: "autonomy_report",
     locale: "en",

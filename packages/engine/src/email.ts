@@ -23,7 +23,7 @@ import { z } from "zod";
 import { notifiedIds } from "./approvals";
 import { isComputerBrain, planName } from "./brains/types";
 import { invitationMailProof } from "./crypto";
-import { inertText } from "./email/inert";
+import { inertLines, inertText } from "./email/inert";
 import {
   type Block,
   EMAIL_PICTURES,
@@ -346,7 +346,7 @@ export type EmailTemplate =
   /**
    * A person's request for help with this installation itself (`contact_support`), to whoever runs the server
    * (`SUPPORT_EMAIL`): their words, who they are, and which installation (`clientCode`, `version`). `url`: the server's
-   * own address, for the picture.
+   * own address, for the picture. The email goes in their name, so an answer reached by Reply goes to `email`.
    */
   | {
       kind: "support_request";
@@ -477,6 +477,10 @@ const INVITE_NAMES_SHOWN = 5;
 const JOIN_NAME_SHOWN = 60;
 /** An admin's reason for denying a request to join, as long as it is kept. */
 const JOIN_REASON_SHOWN = 300;
+/** A support request's own words, as many as a tool call may carry (`SUPPORT_MAX` in `support.ts`). */
+const SUPPORT_TEXT_MAX = 4000;
+/** A support request's address, whole: the longest one an email address may be (`RFC 5321` §4.5.3.1.3). */
+const SUPPORT_EMAIL_MAX = 254;
 
 /**
  * The template's stamp for a personal workspace (ADR 0159), spread into it where it is queued: the mode it had then
@@ -884,23 +888,35 @@ function docOf(t: EmailTemplate, sender: string | null): EmailDoc {
     }
     case "support_request": {
       const c = w.supportRequest;
-      // The person's words first, made inert; then who asked and from where, and which installation it is.
-      const who = inertText(t.name) || inertText(t.email);
-      const facts: [string, string][] = [
-        [c.facts.from, `${who} <${inertText(t.email)}>`],
+      // The person's words first, as they asked for them to travel: their lines, no number masked, and only what would
+      // become a link broken. Then who asked and from where, and which installation it is.
+      // Their address, whole and readable: a mailto the client draws, or the text as typed when it isn't one.
+      const address: Text = z.email().safeParse(t.email).success
+        ? { mail: t.email }
+        : inertText(t.email, SUPPORT_EMAIL_MAX);
+      const named = inertText(t.name);
+      const facts: [string, Text][] = [
+        [c.facts.from, named ? [named, " <", address, ">"] : address],
         [c.facts.workspace, inertText(t.orgName)],
         [
           c.facts.writtenBy,
           t.agent ? `${inertText(t.agent.name)} (@${inertText(t.agent.handle)}), ${c.anAgent}` : c.anAgent,
         ],
-        ...(t.clientCode ? ([[c.facts.client, t.clientCode]] as [string, string][]) : []),
+        ...(t.clientCode ? ([[c.facts.client, t.clientCode]] as [string, Text][]) : []),
         [c.facts.version, t.version],
       ];
+      // Their paragraphs, each a paragraph of the card and a blank line of the plain text: a break inside a block is
+      // not a line a client draws.
+      const words = inertLines(t.text, SUPPORT_TEXT_MAX)
+        .split("\n")
+        .map((line) => line.trim())
+        .filter(Boolean)
+        .map((line) => ({ p: line }) as const);
       return doc(
         c.subject,
         c.preheader,
         c.headline,
-        [{ p: inertText(t.text) }, { h2: c.from }, { facts }, { small: c.closing }],
+        [...words, { h2: c.from }, { facts }, { small: c.closing }],
         c.why,
       );
     }
@@ -1158,6 +1174,8 @@ export async function queueEmail(
     key: string;
     to: string[];
     template: EmailTemplate;
+    /** Where an answer to this email goes (`feedback.ts` does the same for a form's): the person's own address. */
+    replyTo?: string;
     maxAttempts?: number;
     runAt?: Date;
   },
@@ -1167,7 +1185,7 @@ export async function queueEmail(
   await enqueue(tx, {
     orgId: input.orgId,
     kind: "email.send",
-    payload: { key: input.key, to, template: input.template },
+    payload: { key: input.key, to, template: input.template, ...(input.replyTo ? { replyTo: input.replyTo } : {}) },
     dedupeKey: `email:${input.key}`,
     maxAttempts: input.maxAttempts ?? 6,
     runAt: input.runAt,
@@ -1254,12 +1272,16 @@ export async function sendQueuedEmail(sender: EmailSender, payload: Record<strin
   const to = Array.isArray(payload.to) ? payload.to.map(String) : [];
   if (to.length === 0) throw new PermanentJobError("email without recipients");
   const { subject, html, text, inline } = renderEmail(payload.template as EmailTemplate, art);
+  // An answer goes to the person it speaks for, when the job names one (`queueEmail`'s `replyTo`).
+  const replyTo =
+    typeof payload.replyTo === "string" && z.email().safeParse(payload.replyTo).success ? payload.replyTo : null;
   await sender
     .send({
       subject,
       html,
       text,
       ...(inline.length > 0 ? { inline } : {}),
+      ...(replyTo ? { replyTo } : {}),
       to,
       idempotencyKey: String(payload.key),
       tags: [{ name: "kind", value: (payload.template as EmailTemplate).kind }],

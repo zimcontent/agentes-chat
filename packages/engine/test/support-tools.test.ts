@@ -1,4 +1,5 @@
 import { afterEach, expect, test } from "bun:test";
+import { createMemoryRateLimiter } from "@agenteschat/adapters";
 import { and, eq, schema } from "@agenteschat/db";
 import {
   type AgentRun,
@@ -7,6 +8,7 @@ import {
   createSupportToolSource,
   postPersonMessage,
   renderEmail,
+  SUPPORT_NOBODY,
   type ToolContext,
   toolPolicy,
 } from "../src";
@@ -61,7 +63,11 @@ const ctxOf = (run: AgentRun, toolUseId = "call-1") =>
 const queued = async () =>
   (await f.db.select().from(schema.outbox).where(eq(schema.outbox.kind, "email.send")))
     .filter((job) => (job.payload.template as { kind?: string } | undefined)?.kind === "support_request")
-    .map((job) => ({ to: (job.payload.to as string[])[0], template: job.payload.template }));
+    .map((job) => ({
+      to: (job.payload.to as string[])[0],
+      replyTo: job.payload.replyTo as string | undefined,
+      template: job.payload.template,
+    }));
 
 /** Bia, a member, asks the agent in the channel; the run her message started. */
 async function askedByBia() {
@@ -72,6 +78,32 @@ async function askedByBia() {
   });
   return { bia, run: await runOf(message.id) };
 }
+
+test("the approver is named as `send_feedback` names them: the person's own name", async () => {
+  f = await setup();
+  const { bia, run } = await askedByBia();
+  const asked = await (await toolOf()).approvers?.({ text: "It doesn't open." }, ctxOf(run), bia.id);
+  expect(asked).toMatchObject({ ok: true, approvers: { label: "bia", userIds: [bia.id] } });
+  // A call nobody is behind is refused with the same words the execute step uses.
+  const nobody = { ...ctxOf(run), runId: "", triggerMessageId: "" } as ToolContext;
+  const refusal = await (await toolOf()).approvers?.({ text: "By itself." }, nobody, null);
+  expect(refusal).toEqual({ ok: false, message: SUPPORT_NOBODY });
+});
+
+test("ten an hour, the same limit as the feedback form", async () => {
+  f = await setup();
+  const { run } = await askedByBia();
+  const limiter = createMemoryRateLimiter(() => Date.parse("2026-11-18T12:00:00Z"));
+  const limited = source({ rateLimiter: limiter });
+  const tool = await toolOf(limited);
+  for (let i = 0; i < 10; i++)
+    expect((await tool.execute({ text: `Problem ${i}.` }, ctxOf(run, `call-${i}`))).isError).toBeUndefined();
+  const over = await tool.execute({ text: "One too many." }, ctxOf(run, "call-over"));
+  expect(over.isError).toBe(true);
+  expect(over.content).toContain("too many requests in the last hour");
+  // Only the ten went: the eleventh queued nothing.
+  expect(await queued()).toHaveLength(10);
+});
 
 test("listed only where the server has a support address", async () => {
   expect(await source({ to: undefined }).tools({} as ToolContext)).toEqual([]);
@@ -101,6 +133,8 @@ test("a person asks: one email queued in their name, saying which agent wrote it
   const [sent, ...more] = await queued();
   expect(more).toEqual([]);
   expect(sent?.to).toBe(TO);
+  // An answer goes to them, by Reply.
+  expect(sent?.replyTo).toBe(bia.email);
   expect(sent?.template).toMatchObject({
     kind: "support_request",
     name: "bia",

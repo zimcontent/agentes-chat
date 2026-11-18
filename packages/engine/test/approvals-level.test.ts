@@ -89,6 +89,8 @@ const LIST_ISSUES = ours("list_issues", "issues:read");
 const POST_MESSAGE = ours("post_message");
 const UNKNOWN = ours("brand_new_tool");
 const REQUEST_APPROVAL = ours("request_approval", "", { sensitive: true });
+/** A summary to whoever runs the installation, in a person's name: asking is its job, at every level. */
+const CONTACT_SUPPORT = ours("contact_support", "", { sensitive: true });
 
 const HELD =
   "Not run: This is a merge: a person approves it first. To ask them, make the same call again with why set to your reason: it waits for their decision in the chat.";
@@ -151,6 +153,7 @@ const shop: ToolSource = {
     POST_MESSAGE,
     UNKNOWN,
     REQUEST_APPROVAL,
+    CONTACT_SUPPORT,
     RUN_CODE,
   ],
 };
@@ -306,7 +309,7 @@ describe("what never stops asking for", () => {
   });
 
   test("not the tools whose job is asking: the agent chose to ask", () => {
-    for (const name of ["request_approval", "request_permission", "send_feedback"]) {
+    for (const name of ["request_approval", "request_permission", "send_feedback", "contact_support"]) {
       expect({ name, covers: covers(ours(name, "", { sensitive: true })) }).toEqual({ name, covers: false });
     }
     expect(covers(shopTool("request_branch_push", "github:git.write", true))).toBe(false);
@@ -532,6 +535,27 @@ describe("never", () => {
     const listed = new Map((await tools().list(ctx)).map((t) => [t.name, t]));
     expect(requiresWhy(listed.get(REQUEST_APPROVAL.name))).toBe(true);
     expect(await outcome(ctx, REQUEST_APPROVAL)).toBe("asked");
+    expect(ran).toEqual([]);
+  });
+
+  test("a support request asks its person even at never: the level lifts asking, and this tool's job is asking", async () => {
+    await world("never");
+    const ctx = await runAs("person");
+    // Its card, at the level that asks nothing else.
+    expect(await outcome(ctx, CONTACT_SUPPORT)).toBe("asked");
+    expect(ran).toEqual([]);
+    expect(await f.db.select().from(schema.approvals)).toHaveLength(1);
+    const [card] = await f.db.select().from(schema.approvals);
+    expect(card).toMatchObject({ tool: "contact_support", status: "pending" });
+    // A routine's run and one its reading feeds never send it: it speaks for no person.
+    for (const [kind, authority] of [
+      ["routine", routine],
+      ["fed", fed],
+    ] as const) {
+      expect(toolPolicy(authority, CONTACT_SUPPORT, "never").action).toBe("refuse");
+      // Neither runs it: each says, in its own words, that the people decide.
+      expect(await outcome(await runAs(kind), CONTACT_SUPPORT)).toContain("the people decide");
+    }
     expect(ran).toEqual([]);
   });
 

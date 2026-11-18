@@ -488,6 +488,7 @@ export function buildEngine(o: EngineOptions) {
         clientCode: config.DOUG_CLIENT_CODE ?? null,
         publicUrl: config.PUBLIC_URL,
         version,
+        rateLimiter: adapters.rateLimiter,
       }),
       createReactToolSource({ pubsub: adapters.pubsub }),
       // A GIF or the agent's sticker when asked (ADR 0091): listed by the workspace's switches and the agent's.

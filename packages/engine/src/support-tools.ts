@@ -1,7 +1,9 @@
+import type { RateLimiter } from "@agenteschat/adapters";
 import { and, eq, schema } from "@agenteschat/db";
+import { namesLabel, namesOf } from "./approvals";
 import { getMembership } from "./organizations";
 import { personBehindCall } from "./requester";
-import { queueSupportEmail, SUPPORT_MAX, supportRequestedBy } from "./support";
+import { queueSupportEmail, SUPPORT_MAX, SUPPORT_NOBODY, SUPPORT_PER_HOUR } from "./support";
 import type { ToolDefinition, ToolOutput, ToolSource } from "./tools/types";
 
 const { agents, users } = schema;
@@ -10,10 +12,10 @@ export const CONTACT_SUPPORT_TOOL = "contact_support";
 
 /**
  * `contact_support`: a person asks the agent for help with the installation itself (something stopped working, a
- * setting doesn't apply), and the agent sends a summary to whoever runs it, by email, in that person's name. It leaves
- * the workspace and reaches the people who deployed this installation, so the person reads it on a card and approves
- * it first; only they do. Listed only where the server has a support address (`SUPPORT_EMAIL`), and never for a run
- * nobody is behind (a routine's, an agent's own).
+ * setting doesn't apply), and the agent sends a summary to whoever runs it, by email, in that person's name and with
+ * their address on Reply-To. It leaves the workspace and reaches the people who deployed this installation, so the
+ * person reads it on a card and approves it first; only they do, at every level of "Aprovações". Listed only where the
+ * server has a support address (`SUPPORT_EMAIL`), and never for a run nobody is behind (a routine's, an agent's own).
  */
 export function createSupportToolSource(deps: {
   /** Where a summary goes (`SUPPORT_EMAIL`); unset, the tool is not listed. */
@@ -24,6 +26,8 @@ export function createSupportToolSource(deps: {
   publicUrl: string;
   /** This server's version. */
   version: string;
+  /** The hour's limit, shared with the feedback form's own (`SUPPORT_PER_HOUR`). */
+  rateLimiter?: RateLimiter;
 }): ToolSource {
   const tool: ToolDefinition = {
     name: CONTACT_SUPPORT_TOOL,
@@ -43,13 +47,12 @@ export function createSupportToolSource(deps: {
     // In their name, so theirs alone to approve; a call nobody is behind has nobody to ask.
     async approvers(_input, ctx) {
       const person = await personBehindCall(ctx);
-      if (!person || !(await getMembership(ctx.db, person, ctx.orgId)))
-        return { ok: false, message: supportRequestedBy() };
+      if (!person || !(await getMembership(ctx.db, person, ctx.orgId))) return { ok: false, message: SUPPORT_NOBODY };
       return {
         ok: true,
         approvers: {
           userIds: [person],
-          label: supportRequestedBy(),
+          label: namesLabel(await namesOf(ctx.db, [person])),
           requestedBy: null,
           requesterDecides: false,
           required: true,
@@ -66,7 +69,13 @@ export function createSupportToolSource(deps: {
       const [user] = person
         ? await ctx.db.select({ name: users.name, email: users.email }).from(users).where(eq(users.id, person))
         : [];
-      if (!person || !member || !user) return { content: supportRequestedBy(), isError: true };
+      if (!person || !member || !user) return { content: SUPPORT_NOBODY, isError: true };
+      if (deps.rateLimiter && !(await deps.rateLimiter.consume(`support:${person}`, SUPPORT_PER_HOUR)).allowed) {
+        return {
+          content: "They sent too many requests in the last hour: nothing was sent. Tell them to try again later.",
+          isError: true,
+        };
+      }
       const [agent] = await ctx.db
         .select({ name: agents.name, handle: agents.handle })
         .from(agents)

@@ -61,6 +61,15 @@ export function stripInvisible(value: string): string {
   return dropInvisible(value.replace(LINE_BREAKING, " ")).replace(/\s+/g, " ").trim();
 }
 
+/**
+ * One line of visible text with its spacing kept as typed, for text whose own lines matter (`inertLines`): the
+ * controls go but the spaces between words stay.
+ */
+function stripInvisibleInPlace(value: string): string {
+  const kept = value.replace(/[\p{Zl}\p{Zp}]/gu, "\n").replace(/\p{Cc}/gu, (c) => (c === "\n" ? c : " "));
+  return dropInvisible(kept);
+}
+
 /** ".", ":", "@" or "\", or a character whose compatibility form is one ("．" "＠" "﹕"), or "。". */
 function isSeparator(c: string): boolean {
   return SEPARATORS.has(c.normalize("NFKC").replace("。", "."));
@@ -117,9 +126,13 @@ function breakLongRuns(text: string): string {
  * it for HTML): one line, at most `max` characters, nothing a mail client turns into a link or offers to
  * call, and no run of more than 30 characters without a break. Look-alike separators break like the ASCII
  * ones and keep their form, so "ｅｖｉｌ．ｃｏｍ" and "evil。com" link no more than evil.com does.
+ *
+ * `numbers: false` leaves digits as they were typed, for text a person asked to send as it is (a support
+ * request): a phone number or an order id there is a fact to read, not a number nobody may link.
  */
-export function inertText(value: string, max = 64): string {
-  const text = maskNumbers(stripInvisible(value).replace(MARK_FLOOD, "$1"));
+export function inertText(value: string, max = 64, { numbers = true }: { numbers?: boolean } = {}): string {
+  const mask = numbers ? maskNumbers : (s: string) => s;
+  const text = mask(stripInvisible(value).replace(MARK_FLOOD, "$1"));
   // Cut on grapheme boundaries, so an emoji or an accented letter stays whole.
   const parts = text.length > max ? Array.from(new Intl.Segmenter().segment(text), (s) => s.segment) : [];
   const cut =
@@ -140,12 +153,38 @@ export function inertText(value: string, max = 64): string {
           .replace(STRAY_JOINER, "")}…`
       : cut;
   // A cut through a date can leave seven of its digits, which are no date.
-  const chars = Array.from(maskNumbers(capped));
-  const broken = chars
+  return breakLongRuns(breakSeparators(mask(capped)));
+}
+
+/** A break after every ".", ":", "@" or "\" inside a token: what stops a client reading its word as a link. */
+function breakSeparators(text: string): string {
+  const chars = Array.from(text);
+  return chars
     .map((c, i) => {
       const next = chars[i + 1];
       return isSeparator(c) && next !== undefined && !CLOSING.test(next) ? `${c}${BREAK}` : c;
     })
     .join("");
-  return breakLongRuns(broken);
+}
+
+/**
+ * A person's own words for an email's body (a support request), kept as they wrote them: their line breaks stay,
+ * at most `max` characters in all, and no ".", ":" or "@" inside a word survives without a break after it, so a
+ * mail client links nothing. Nothing is masked and nothing cut to one line: they asked for these words to travel.
+ */
+export function inertLines(value: string, max = 64): string {
+  const lines = stripInvisibleInPlace(value.replace(/\r\n?/g, "\n").replace(MARK_FLOOD, "$1"))
+    .split("\n")
+    .map((line) => line.replace(/\t/g, " ").replace(/ {2,}/g, " ").trim())
+    // One blank line between paragraphs is enough; the ends carry none.
+    .filter((line, i, all) => line !== "" || (all[i - 1] !== "" && all.slice(i + 1).some((l) => l !== "")));
+  const text = breakSeparators(lines.join("\n"));
+  const points = Array.from(text);
+  if (points.length <= max) return text;
+  // Cut on grapheme boundaries and say that it was cut.
+  const parts = Array.from(new Intl.Segmenter().segment(text), (s) => s.segment);
+  return `${parts
+    .slice(0, Math.max(0, max - 1))
+    .join("")
+    .trimEnd()}…`;
 }
