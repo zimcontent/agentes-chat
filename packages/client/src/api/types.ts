@@ -2569,6 +2569,22 @@ export interface AgentTwins {
   off: boolean;
   syncedAt: string | null;
   missing: { orgName: string; kind: "connection" | "skill"; label: string }[];
+  /** A separate operation among its workspaces (ADR doug-0035): only its craft crosses. */
+  craftOnly?: boolean;
+}
+
+/**
+ * A separate operation (ADR doug-0035): the copies of this workspace's agents elsewhere carry only their craft, both
+ * ways; facts, decisions, notes, clients and connections stay in each company.
+ */
+export interface SeparateOperation {
+  on: boolean;
+  /** Names kept here by hand: clients, projects, people. */
+  names: string[];
+  /** Whether the person may change it (the owners). */
+  canEdit: boolean;
+  /** Connections here signed in with an account another workspace also uses. */
+  sharedSignIns: { id: string; label: string; workspaces: string[] }[];
 }
 
 /** What bringing did: what came, what was here already and what stayed behind, with why. */

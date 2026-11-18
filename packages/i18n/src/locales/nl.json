@@ -3675,7 +3675,20 @@
     "synced": "Overal dezelfde training, gecontroleerd {{when}}.",
     "syncing": "De training wordt samengevoegd. Dat duurt tot een minuut.",
     "missing": "Niet aangekomen in {{workspace}}: {{what}}.",
-    "failed": "Kon niet worden gewijzigd. Probeer het opnieuw."
+    "failed": "Kon niet worden gewijzigd. Probeer het opnieuw.",
+    "craftOnly": "Aparte onderneming: alleen het vakmanschap gaat heen en weer."
+  },
+  "separateOperation": {
+    "title": "Aparte onderneming",
+    "help": "De agents hier werken ook in je andere workspaces, als medewerkers van twee bedrijven. Alleen het vakmanschap gaat heen en weer: instructies, skills, lessen, regels en voorkeuren die niets van het andere bedrijf noemen. Feiten, besluiten, notities, klanten en verbindingen blijven bij elk bedrijf.",
+    "switch": "Alleen het vakmanschap gaat heen en weer",
+    "switchHelp": "Zodra dit aan staat, gaat wat al uit een ander bedrijf kwam binnen een minuut daarheen terug. Het origineel blijft waar het geleerd is.",
+    "ownersOnly": "Alleen eigenaren kunnen dit wijzigen.",
+    "names": "Namen van deze onderneming",
+    "namesHelp": "Klanten, projecten en mensen van deze onderneming, gescheiden door komma's. Niets wat een van hen noemt, bereikt een kopie in een andere workspace. De naam van de workspace en de klanten die de agents al kennen, tellen vanzelf mee.",
+    "namesExample": "Bijv. Bakkerij Aurora, Noordtoren",
+    "sharedSignIn": "{{label}} gebruikt dezelfde aanmelding als {{workspaces}}. Verbind het opnieuw met het eigen account van deze onderneming.",
+    "failed": "Opslaan mislukt. Probeer het opnieuw."
   },
   "ronda": {
     "title": "Ronde",

@@ -4008,6 +4008,22 @@ export const en = {
     syncing: "Bringing its training together. It takes up to a minute.",
     missing: "Didn't reach {{workspace}}: {{what}}.",
     failed: "Couldn't change it. Try again.",
+    craftOnly: "Separate operation: only the craft goes back and forth.",
+  },
+  separateOperation: {
+    title: "Separate operation",
+    help: "The agents here also work in your other workspaces, like people employed by two companies. Only the craft goes back and forth: instructions, skills, lessons, rules and preferences that name nothing of the other company. Facts, decisions, notes, clients and connections stay in each.",
+    switch: "Only the craft goes back and forth",
+    switchHelp:
+      "Once on, what already came from another company goes back to it within a minute. The original stays where it was learned.",
+    ownersOnly: "Only owners change it.",
+    names: "This operation's names",
+    namesHelp:
+      "Clients, projects and people of this operation, separated by commas. Nothing that names one of them reaches a copy in another workspace. The workspace's name and the clients its agents already know count on their own.",
+    namesExample: "E.g. Aurora Bakery, North Tower",
+    sharedSignIn:
+      "{{label}} uses the same sign-in as {{workspaces}}. Connect it again with this operation's own account.",
+    failed: "Couldn't save. Try again.",
   },
   ronda: {
     title: "Ronda",

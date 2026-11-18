@@ -3548,7 +3548,20 @@
     "synced": "Pelatihan sama di semua, dicek {{when}}.",
     "syncing": "Menggabungkan pelatihan. Butuh hingga satu menit.",
     "missing": "Tidak sampai ke {{workspace}}: {{what}}.",
-    "failed": "Tidak bisa diubah. Coba lagi."
+    "failed": "Tidak bisa diubah. Coba lagi.",
+    "craftOnly": "Operasi terpisah: hanya keahlian yang bolak-balik."
+  },
+  "separateOperation": {
+    "title": "Operasi terpisah",
+    "help": "Agen di sini juga bekerja di workspace Anda yang lain, seperti karyawan dua perusahaan. Hanya keahlian yang bolak-balik: instruksi, skill, pelajaran, aturan, dan preferensi yang tidak menyebut apa pun dari perusahaan lain. Fakta, keputusan, catatan, klien, dan koneksi tetap di masing-masing.",
+    "switch": "Hanya keahlian yang bolak-balik",
+    "switchHelp": "Setelah aktif, apa yang sudah datang dari perusahaan lain kembali ke sana dalam satu menit. Yang asli tetap di tempat ia dipelajari.",
+    "ownersOnly": "Hanya pemilik yang dapat mengubahnya.",
+    "names": "Nama operasi ini",
+    "namesHelp": "Klien, proyek, dan orang dari operasi ini, dipisahkan dengan koma. Apa pun yang menyebut salah satunya tidak sampai ke salinan di workspace lain. Nama workspace dan klien yang sudah dikenal agennya terhitung dengan sendirinya.",
+    "namesExample": "Mis.: Toko Roti Aurora, Menara Utara",
+    "sharedSignIn": "{{label}} memakai login yang sama dengan {{workspaces}}. Hubungkan lagi dengan akun milik operasi ini.",
+    "failed": "Tidak dapat menyimpan. Coba lagi."
   },
   "ronda": {
     "title": "Patroli",

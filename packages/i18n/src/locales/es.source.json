@@ -8992,6 +8992,39 @@
   "agentTwins.failed": {
     "value": "Couldn't change it. Try again."
   },
+  "agentTwins.craftOnly": {
+    "value": "Separate operation: only the craft goes back and forth."
+  },
+  "separateOperation.title": {
+    "value": "Separate operation"
+  },
+  "separateOperation.help": {
+    "value": "The agents here also work in your other workspaces, like people employed by two companies. Only the craft goes back and forth: instructions, skills, lessons, rules and preferences that name nothing of the other company. Facts, decisions, notes, clients and connections stay in each."
+  },
+  "separateOperation.switch": {
+    "value": "Only the craft goes back and forth"
+  },
+  "separateOperation.switchHelp": {
+    "value": "Once on, what already came from another company goes back to it within a minute. The original stays where it was learned."
+  },
+  "separateOperation.ownersOnly": {
+    "value": "Only owners change it."
+  },
+  "separateOperation.names": {
+    "value": "This operation's names"
+  },
+  "separateOperation.namesHelp": {
+    "value": "Clients, projects and people of this operation, separated by commas. Nothing that names one of them reaches a copy in another workspace. The workspace's name and the clients its agents already know count on their own."
+  },
+  "separateOperation.namesExample": {
+    "value": "E.g. Aurora Bakery, North Tower"
+  },
+  "separateOperation.sharedSignIn": {
+    "value": "{{label}} uses the same sign-in as {{workspaces}}. Connect it again with this operation's own account."
+  },
+  "separateOperation.failed": {
+    "value": "Couldn't save. Try again."
+  },
   "ronda.title": {
     "value": "Ronda"
   },

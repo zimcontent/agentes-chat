@@ -265,6 +265,7 @@ import type {
   SearchFilterInput,
   SearchHit,
   SecretRequest,
+  SeparateOperation,
   ServerTelemetry,
   SidebarItem,
   SidebarItems,
@@ -1490,6 +1491,9 @@ export function createHttpApi(options: TransportOptions = {}): HttpApi {
         request<AgentTwins>(`${org(orgId)}/agents/${enc(agentId)}/twins`, { json: { agentId: otherAgentId } }),
       leaveTwin: (orgId, agentId) =>
         request<AgentTwins>(`${org(orgId)}/agents/${enc(agentId)}/twins`, { method: "DELETE" }),
+      separateOperation: (orgId) => request<SeparateOperation>(`${org(orgId)}/separate-operation`),
+      setSeparateOperation: (orgId, input) =>
+        request<SeparateOperation>(`${org(orgId)}/separate-operation`, { method: "PUT", json: input }),
     },
     githubApp: {
       info: (orgId) => request<GitHubAppInfo>(`${org(orgId)}/github-app`),

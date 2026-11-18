@@ -365,6 +365,7 @@ import type {
   SearchKind,
   SecretBox,
   SecretRequest,
+  SeparateOperation,
   SeriesScope,
   ServerTelemetry,
   SetupStep,
@@ -1288,6 +1289,10 @@ export interface ApiClient {
     joinTwin(orgId: string, agentId: string, otherAgentId: string): Promise<AgentTwins>;
     /** Takes this copy out: trained here alone from now on. */
     leaveTwin(orgId: string, agentId: string): Promise<AgentTwins>;
+    /** Whether this workspace is a separate operation (ADR doug-0035). */
+    separateOperation(orgId: string): Promise<SeparateOperation>;
+    /** Owners: turns it on or off, or changes the names kept here. */
+    setSeparateOperation(orgId: string, input: { on?: boolean; names?: string[] }): Promise<SeparateOperation>;
   };
   githubApp: {
     /** Whether this server can install the GitHub App, the organization's installations, and the server's app. */

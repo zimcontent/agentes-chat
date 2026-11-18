@@ -3795,7 +3795,20 @@
     "synced": "Mismo entrenamiento en todos, revisado {{when}}.",
     "syncing": "Juntando el entrenamiento. Tarda hasta un minuto.",
     "missing": "No llegó a {{workspace}}: {{what}}.",
-    "failed": "No se pudo cambiar. Inténtalo de nuevo."
+    "failed": "No se pudo cambiar. Inténtalo de nuevo.",
+    "craftOnly": "Operación separada: solo el oficio va y viene."
+  },
+  "separateOperation": {
+    "title": "Operación separada",
+    "help": "Los agentes de aquí también trabajan en tus otros espacios de trabajo, como empleados de dos empresas. Solo el oficio va y viene: instrucciones, skills, lecciones, reglas y preferencias que no nombran nada de la otra empresa. Los hechos, decisiones, notas, clientes y conexiones se quedan en cada una.",
+    "switch": "Solo el oficio va y viene",
+    "switchHelp": "Al activarlo, lo que ya vino de otra empresa vuelve a ella en menos de un minuto. El original sigue donde se aprendió.",
+    "ownersOnly": "Solo los propietarios pueden cambiarlo.",
+    "names": "Nombres de esta operación",
+    "namesHelp": "Clientes, proyectos y personas de esta operación, separados por comas. Nada que nombre a uno de ellos llega a una copia en otro espacio de trabajo. El nombre del espacio de trabajo y los clientes que sus agentes ya conocen cuentan por sí solos.",
+    "namesExample": "Ej.: Panadería Aurora, Torre Norte",
+    "sharedSignIn": "{{label}} usa el mismo inicio de sesión que {{workspaces}}. Conéctalo de nuevo con la cuenta propia de esta operación.",
+    "failed": "No se pudo guardar. Inténtalo de nuevo."
   },
   "ronda": {
     "title": "Ronda",

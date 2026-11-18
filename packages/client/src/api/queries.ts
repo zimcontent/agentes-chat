@@ -2659,6 +2659,28 @@ export function useAgentTwins(orgId: string, agentId: string) {
   return useQuery({ queryKey: keys.agentTwins(orgId, agentId), queryFn: () => api.carry.twins(orgId, agentId) });
 }
 
+/** Whether this workspace is a separate operation (ADR doug-0035): what its agents carry to the owner's others. */
+export function useSeparateOperation(orgId: string, enabled = true) {
+  const api = useApi();
+  return useQuery({
+    queryKey: keys.separateOperation(orgId),
+    queryFn: () => api.carry.separateOperation(orgId),
+    enabled,
+  });
+}
+
+export function useSetSeparateOperation(orgId: string) {
+  const api = useApi();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (input: { on?: boolean; names?: string[] }) => api.carry.setSeparateOperation(orgId, input),
+    onSuccess: (view) => {
+      qc.setQueryData(keys.separateOperation(orgId), view);
+      return qc.invalidateQueries({ queryKey: ["org", orgId, "agent-twins"] });
+    },
+  });
+}
+
 /** Joins the agent with its copy in another workspace, or takes it out (`otherAgentId` null). */
 export function useSetAgentTwin(orgId: string, agentId: string) {
   const api = useApi();

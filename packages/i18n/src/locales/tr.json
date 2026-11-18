@@ -3661,7 +3661,20 @@
     "synced": "Hepsinde aynı eğitim, kontrol: {{when}}.",
     "syncing": "Eğitim birleştiriliyor. Bir dakikaya kadar sürer.",
     "missing": "{{workspace}} alanına ulaşmadı: {{what}}.",
-    "failed": "Değiştirilemedi. Tekrar dene."
+    "failed": "Değiştirilemedi. Tekrar dene.",
+    "craftOnly": "Ayrı işletme: yalnızca zanaat gidip gelir."
+  },
+  "separateOperation": {
+    "title": "Ayrı işletme",
+    "help": "Buradaki ajanlar, iki şirketin çalışanı gibi diğer çalışma alanlarınızda da çalışır. Yalnızca zanaat gidip gelir: diğer şirketten hiçbir şeyin adını anmayan talimatlar, skill'ler, dersler, kurallar ve tercihler. Olgular, kararlar, notlar, müşteriler ve bağlantılar her birinde kalır.",
+    "switch": "Yalnızca zanaat gidip gelir",
+    "switchHelp": "Açıldığında, başka bir şirketten zaten gelmiş olanlar bir dakika içinde oraya geri döner. Asıl kayıt öğrenildiği yerde kalır.",
+    "ownersOnly": "Bunu yalnızca sahipler değiştirebilir.",
+    "names": "Bu işletmenin adları",
+    "namesHelp": "Bu işletmenin müşterileri, projeleri ve kişileri, virgülle ayrılmış olarak. Bunlardan birinin adını anan hiçbir şey başka bir çalışma alanındaki kopyaya ulaşmaz. Çalışma alanının adı ve ajanlarının zaten tanıdığı müşteriler kendiliğinden sayılır.",
+    "namesExample": "Örn.: Aurora Fırını, Kuzey Kule",
+    "sharedSignIn": "{{label}}, {{workspaces}} ile aynı oturum açmayı kullanıyor. Bu işletmenin kendi hesabıyla yeniden bağlayın.",
+    "failed": "Kaydedilemedi. Tekrar deneyin."
   },
   "ronda": {
     "title": "Devriye",

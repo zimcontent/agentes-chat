@@ -108,6 +108,7 @@ import { MyFace, OrgLogoDialog, OrgMark } from "@/components/ProfilePhoto";
 import { KeyMismatch, KeyRefused, KeySite, ProviderKeySelect } from "@/components/ProviderKey";
 import { PortalClientsSection } from "@/components/portal/PortalClientsSection";
 import { RolesSection } from "@/components/roles/RolesSection";
+import { SeparateOperationCard } from "@/components/SeparateOperationCard";
 import { SkillsSection } from "@/components/Skills";
 import { StorageSection } from "@/components/StorageSettings";
 import { SupportSection } from "@/components/SupportSettings";
@@ -687,6 +688,7 @@ function GeneralSection() {
       <WorkspaceToolsCard />
 
       <TeamMemoryCard />
+      {!personal && <SeparateOperationCard />}
 
       <UsageStatisticsCard />
       {org.role === "owner" && !org.deletion && <DeleteWorkspaceCard />}
