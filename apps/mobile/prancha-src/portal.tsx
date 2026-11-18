@@ -73,7 +73,16 @@ const PLAN: PortalPlan = {
           comments: [{ id: "m1", by: "u1", text: "Pode usar o render novo", at: 1 }],
         }),
         card("l1", "Drive", { postOn: day(2) }),
-        card("l1", "Vídeo (standby)", { type: "reel", stage: "doing" }),
+        card("l1", "Carrossel obra entregue", {
+          type: "carousel",
+          stage: "doing",
+          done: true,
+          postOn: day(3),
+          files: [
+            { id: "c1", name: "obra-1.png" },
+            { id: "c2", name: "obra-2.png" },
+          ],
+        }),
         card("l1", "3720 Mockingbird Ln. - built to endure", { stage: "approval", postOn: day(4) }),
         card("l1", "Vídeo para TV", { type: "reel", stage: "posted", done: true }),
       ],

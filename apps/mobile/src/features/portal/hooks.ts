@@ -1,11 +1,15 @@
-import { useAuthConfig } from "@agenteschat/client";
+import type { PlanCard } from "@agenteschat/client";
+import { useAuthConfig, useSendForApproval } from "@agenteschat/client";
 import { can } from "@agenteschat/client/lib/permissions";
-import { portalErrorText } from "@agenteschat/client/lib/portal";
+import { portalClientName, portalErrorText } from "@agenteschat/client/lib/portal";
 import { portalHere } from "@agenteschat/client/lib/sidebar-items";
 import { useCallback } from "react";
 import { useTranslation } from "react-i18next";
+import { Alert } from "react-native";
 import { useOrg } from "@/providers/org";
 import { useToast } from "@/ui";
+import { useOrgId } from "../shared/hooks";
+import { sendInputOf } from "./model";
 import { type PortalWords, portalWords } from "./words";
 
 /**
@@ -48,4 +52,28 @@ export function usePortalFailed() {
     (error: unknown) => toast({ title: portalErrorText(t, error, i18n.language), icon: "x" }),
     [t, i18n.language, toast],
   );
+}
+
+/**
+ * "Subir para aprovação" for a card, on its screen and on the board: asked first (the client, how many files), then
+ * sent with what the card knows (`sendInputOf`, one press never sends twice); `onStarted` gets the send's job to follow.
+ */
+export function useSendCard(card: PlanCard, onStarted: (jobId: string) => void) {
+  const w = usePortalWords();
+  const orgId = useOrgId();
+  const failed = usePortalFailed();
+  const send = useSendForApproval(orgId);
+  const confirm = () =>
+    Alert.alert(w.sendTitle(portalClientName(card.client)), w.sendText(card.files.length), [
+      { text: w.cancel, style: "cancel" },
+      {
+        text: w.send,
+        onPress: () =>
+          send.mutate(sendInputOf(card, `${card.id}-${Date.now().toString(36)}`), {
+            onSuccess: (started) => onStarted(started.id),
+            onError: failed,
+          }),
+      },
+    ]);
+  return { confirm, pending: send.isPending };
 }

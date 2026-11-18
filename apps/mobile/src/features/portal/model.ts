@@ -141,6 +141,16 @@ export function coverOf(files: readonly PortalCardFile[]): { file: PortalCardFil
 export const sendProblemOf = (card: Pick<PortalCard, "type" | "files">) => portalSendProblem(card.type, card.files);
 
 /**
+ * A card ready to go up for approval from the board: the team's (To do or In production), marked done, with the
+ * files a send takes. The board's card then carries "Subir para aprovação" itself.
+ */
+export function readyToSend(card: Pick<PlanCard, "type" | "files" | "stage" | "done" | "material">) {
+  return (
+    !card.material && (card.stage === "todo" || card.stage === "doing") && card.done && sendProblemOf(card) === null
+  );
+}
+
+/**
  * The send a card makes, with what it already knows but its date: a post goes to the client without one, and gets it
  * when a person schedules it (ADR 9001, addendum 2026-11-17). `key`: one press never sends twice.
  */

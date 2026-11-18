@@ -1,6 +1,6 @@
 import type { PlanCard, PortalListKind, PortalPlan } from "@agenteschat/client";
 import { useMovePortalCard, usePortalLists, useSavePortalCard } from "@agenteschat/client";
-import { portalOrderAt, portalWhen } from "@agenteschat/client/lib/portal";
+import { portalClientName, portalOrderAt, portalWhen } from "@agenteschat/client/lib/portal";
 import { useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { FlatList, Pressable, RefreshControl, ScrollView, StyleSheet, TextInput, View } from "react-native";
@@ -18,7 +18,7 @@ import {
 } from "@/ui";
 import { useOrgId } from "../shared/hooks";
 import { pickOne } from "../shared/PickerSheet";
-import { usePortalFailed, usePortalRights, usePortalWords } from "./hooks";
+import { usePortalFailed, usePortalRights, usePortalWords, useSendCard } from "./hooks";
 import {
   BOARD,
   boardIndexAt,
@@ -28,6 +28,7 @@ import {
   listsFor,
   type PlanGroup,
   planGroups,
+  readyToSend,
   STAGE_COLOR,
 } from "./model";
 import { openCard } from "./parts";
@@ -292,6 +293,11 @@ function AddLabel({ label }: { label: string }) {
  * its task's number) and a line of what it holds (the post's date, a description, the checklist, comments, files).
  * No cover picture: the board is for reading the plan at a glance; the pictures are in the card when it opens.
  */
+/** A stage's color behind its pill: 16% of it. */
+const STAGE_TINT = "29";
+/** The card's lift off its list: a soft shadow under it. */
+const CARD_SHADOW = "0px 6px 16px -10px rgba(0, 0, 0, 0.55)";
+
 function BoardCard({
   w,
   card,
@@ -310,6 +316,10 @@ function BoardCard({
   const { i18n } = useTranslation();
   const { colors: c } = useTheme();
   const badges = cardBadges(card);
+  const toast = useToast();
+  const { changes } = usePortalRights();
+  const ready = changes && readyToSend(card);
+  const send = useSendCard(card, () => toast({ title: w.sending(portalClientName(card.client)), icon: "check" }));
   const day = material ? null : portalWhen(i18n.language, card.postOn);
   const stage = card.stage === "posted" ? w.status.published : w.columns[card.stage];
   const facts: { icon: IconName; text?: string; label: string }[] = [
@@ -361,27 +371,25 @@ function BoardCard({
       accessibilityHint={onMove ? w.moveCard : undefined}
       style={({ pressed }) => [
         styles.card,
-        { backgroundColor: paint.card, borderColor: paint.edge },
-        card.done ? styles.done : null,
+        { backgroundColor: paint.card, borderColor: paint.edge, boxShadow: CARD_SHADOW },
         pressed ? styles.pressed : null,
       ]}
     >
-      <View style={styles.cardIn}>
-        <Text variant="subhead">{card.title}</Text>
+      <View style={card.done && !ready ? styles.done : null}>
         {material && task === undefined && !card.done ? null : (
           <View style={styles.cardTop}>
             {material ? null : (
-              <View style={styles.stage}>
+              <View style={[styles.stage, { backgroundColor: `${STAGE_COLOR[card.stage]}${STAGE_TINT}` }]}>
                 <View style={[styles.stageDot, { backgroundColor: STAGE_COLOR[card.stage] }]} />
-                <Text variant="caption" tone="muted">
+                <Text variant="caption" style={[styles.stageWord, { color: c.ink }]}>
                   {stage}
                 </Text>
               </View>
             )}
             {card.done ? (
-              <View style={styles.stage}>
+              <View style={styles.doneMark}>
                 <Icon name="check" size={13} color={c.greenText} />
-                <Text variant="caption" style={{ color: c.greenText }}>
+                <Text variant="caption" style={[styles.stageWord, { color: c.greenText }]}>
                   {w.done}
                 </Text>
               </View>
@@ -393,8 +401,11 @@ function BoardCard({
             ) : null}
           </View>
         )}
+        <Text variant="subhead" style={styles.title}>
+          {card.title}
+        </Text>
         {facts.length > 0 ? (
-          <View style={styles.facts}>
+          <View style={[styles.facts, { borderTopColor: paint.edge }]}>
             {facts.map((f) => (
               <View key={f.icon} style={styles.fact}>
                 <Icon name={f.icon} size={13} color={c.muted} />
@@ -408,6 +419,18 @@ function BoardCard({
           </View>
         ) : null}
       </View>
+      {/* Done and with its files, the card goes up for approval from here, as from its own screen. */}
+      {ready ? (
+        <Button
+          variant="primary"
+          size="sm"
+          wide
+          icon="send"
+          label={w.send}
+          onPress={send.confirm}
+          loading={send.pending}
+        />
+      ) : null}
     </Pressable>
   );
 }
@@ -576,7 +599,7 @@ const styles = StyleSheet.create({
   pager: { flex: 1 },
   lists: { paddingHorizontal: BOARD.side, alignItems: "flex-start" },
   gap: { width: BOARD.gap },
-  list: { borderRadius: 12, overflow: "hidden" },
+  list: { borderRadius: 20, overflow: "hidden" },
   listHead: {
     flexDirection: "row",
     alignItems: "flex-start",
@@ -592,13 +615,35 @@ const styles = StyleSheet.create({
   cardsScroll: { flexGrow: 0, flexShrink: 1 },
   cards: { paddingHorizontal: 8, paddingBottom: 4, gap: 8 },
   listFoot: { height: 8 },
-  card: { borderRadius: 8, borderWidth: StyleSheet.hairlineWidth, overflow: "hidden" },
-  cardIn: { paddingHorizontal: 12, paddingVertical: 8, gap: 4 },
-  cardTop: { flexDirection: "row", alignItems: "center", flexWrap: "wrap", gap: 8 },
-  stage: { flexDirection: "row", alignItems: "center", gap: 4 },
-  stageDot: { width: 8, height: 8, borderRadius: 4 },
+  // Inside the list's 20, 8 in: 12 (rounded inside rounded).
+  card: { borderRadius: 12, borderWidth: StyleSheet.hairlineWidth, padding: 12, gap: 12 },
+  cardTop: { flexDirection: "row", alignItems: "center", flexWrap: "wrap", gap: 8, marginBottom: 8 },
+  // The stage as a pill of its own color, the card's first line: where the work is, at a glance.
+  stage: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    height: 22,
+    paddingLeft: 8,
+    paddingRight: 10,
+    borderRadius: 11,
+  },
+  stageWord: { fontWeight: "600" },
+  stageDot: { width: 7, height: 7, borderRadius: 3.5 },
+  doneMark: { flexDirection: "row", alignItems: "center", gap: 4 },
+  title: { fontWeight: "600" },
   task: { marginLeft: "auto" },
-  facts: { flexDirection: "row", flexWrap: "wrap", alignItems: "center", columnGap: 12, rowGap: 4, marginTop: 2 },
+  // What the card holds, apart from its title by a hairline.
+  facts: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    alignItems: "center",
+    columnGap: 12,
+    rowGap: 4,
+    marginTop: 10,
+    paddingTop: 8,
+    borderTopWidth: StyleSheet.hairlineWidth,
+  },
   fact: { flexDirection: "row", alignItems: "center", gap: 4 },
   done: { opacity: 0.6 },
   pressed: { opacity: 0.7 },

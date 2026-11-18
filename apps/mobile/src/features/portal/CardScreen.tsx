@@ -7,7 +7,6 @@ import {
   usePortalPlan,
   usePortalTasks,
   useSavePortalCard,
-  useSendForApproval,
 } from "@agenteschat/client";
 import { linkPill } from "@agenteschat/client/lib/link-pills";
 import {
@@ -24,7 +23,7 @@ import {
 } from "@agenteschat/client/lib/portal";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { ActivityIndicator, Alert, Pressable, RefreshControl, StyleSheet, TextInput, View } from "react-native";
+import { ActivityIndicator, Pressable, RefreshControl, StyleSheet, TextInput, View } from "react-native";
 import { Button, Chip, GroupedHeader, GroupedList, GroupedRow, Text, useFieldText } from "@/ui";
 import { router } from "@/ui/navigation";
 import { LinkPillText } from "../chat/LinkPillText";
@@ -32,16 +31,8 @@ import { Face } from "../shared/Face";
 import { useColors, useDirectory, useMeId, useOrgId, usePullRefresh, useWhen } from "../shared/hooks";
 import { PushedLargeTitle } from "../shared/PushedLargeTitle";
 import { PushedHeader, successHaptic } from "../shared/parts";
-import { usePortalFailed, usePortalRights, usePortalWords } from "./hooks";
-import {
-  allPlanCards,
-  commentsNewestFirst,
-  findItem,
-  listsFor,
-  otherTeamColumn,
-  sendInputOf,
-  sendProblemOf,
-} from "./model";
+import { usePortalFailed, usePortalRights, usePortalWords, useSendCard } from "./hooks";
+import { allPlanCards, commentsNewestFirst, findItem, listsFor, otherTeamColumn, sendProblemOf } from "./model";
 import { openLink, PostPanel } from "./PostPanel";
 import { FileStrip, StageChip } from "./parts";
 import type { PortalWords } from "./words";
@@ -197,9 +188,9 @@ function Actions({ w, card }: { w: PortalWords; card: PlanCard }) {
   const orgId = useOrgId();
   const failed = usePortalFailed();
   const { changes } = usePortalRights();
-  const send = useSendForApproval(orgId);
   const move = useMovePortalCardState(orgId, card.client);
   const [jobId, setJobId] = useState<string | null>(null);
+  const send = useSendCard(card, setJobId);
   const job = usePortalJob(orgId, jobId).data;
   const link = portalLink(card.link);
   if (!changes || card.material) {
@@ -209,18 +200,6 @@ function Actions({ w, card }: { w: PortalWords; card: PlanCard }) {
   const problemText =
     problem === "tooMany" ? w.sendProblem.tooMany(PORTAL_SEND_FILES) : problem ? w.sendProblem[problem] : null;
   const team = card.stage === "todo" || card.stage === "doing";
-  const confirmSend = () =>
-    Alert.alert(w.sendTitle(portalClientName(card.client)), w.sendText(card.files.length), [
-      { text: w.cancel, style: "cancel" },
-      {
-        text: w.send,
-        onPress: () =>
-          send.mutate(sendInputOf(card, `${card.id}-${Date.now().toString(36)}`), {
-            onSuccess: (started) => setJobId(started.id),
-            onError: failed,
-          }),
-      },
-    ]);
   return (
     <View style={styles.actions}>
       {job ? <SendState w={w} job={job} client={card.client} /> : null}
@@ -235,9 +214,9 @@ function Actions({ w, card }: { w: PortalWords; card: PlanCard }) {
             variant="primary"
             wide
             label={w.send}
-            onPress={confirmSend}
+            onPress={send.confirm}
             disabled={problem !== null}
-            loading={send.isPending}
+            loading={send.pending}
           />
         </>
       )}

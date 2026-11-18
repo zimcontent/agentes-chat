@@ -18,6 +18,7 @@ import {
   listsFor,
   otherTeamColumn,
   planGroups,
+  readyToSend,
   releaseDateOf,
   sendInputOf,
   sendProblemOf,
@@ -322,5 +323,25 @@ describe("the schedule as Trello's board on the phone", () => {
       expect(w.listOf(2, 9)).toContain("2");
     }
     expect(portalWords("pt-BR").addDescription).toBe("Adicione uma descrição mais detalhada…");
+  });
+});
+
+describe("a card ready to go up from the board", () => {
+  const base = {
+    type: "image" as const,
+    files: [{ id: "f", name: "a.png" }],
+    stage: "doing" as const,
+    done: true,
+    material: false,
+  };
+  test("the team's, done and with its files", () => {
+    expect(readyToSend(base)).toBe(true);
+    expect(readyToSend({ ...base, stage: "todo" })).toBe(true);
+  });
+  test("not while it is being made, once it was sent, without files, or as a material", () => {
+    expect(readyToSend({ ...base, done: false })).toBe(false);
+    expect(readyToSend({ ...base, stage: "approval" })).toBe(false);
+    expect(readyToSend({ ...base, files: [] })).toBe(false);
+    expect(readyToSend({ ...base, material: true })).toBe(false);
   });
 });
