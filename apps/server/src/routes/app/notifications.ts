@@ -62,6 +62,10 @@ export const NotificationSource = z.object({
     .string()
     .optional()
     .openapi({ description: "`plan_lent`: the plan's account (`POST …/ai-accounts/{id}/take-back`)." }),
+  companyRequestId: z
+    .string()
+    .optional()
+    .openapi({ description: "`company_request`: the company's request on the installation's page." }),
   label: z.string().optional(),
 });
 

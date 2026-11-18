@@ -26,6 +26,7 @@ import { recordAudit } from "./audit";
 import { caches } from "./cache";
 import { memberCardVia } from "./card-via";
 import { type ChatPrefs, chatPrefsOf, saveChatPrefs } from "./chat-prefs";
+import { deleteCompanyRequestsByEmail } from "./company-requests";
 import { invitationMailProof, invitationToken, inviteLinkToken, randomToken, safeEqual, sha256 } from "./crypto";
 import { restoreDms } from "./dms";
 import { earlyAccessLink, hasWorkspaceAllowance, recordFirstWorkspace, signupMode } from "./early-access";
@@ -1432,6 +1433,9 @@ export async function deleteAccount(
       .from(organizationMembers)
       .where(eq(organizationMembers.userId, userId))
       .orderBy(asc(organizationMembers.orgId));
+    // The person's own company request from the page goes with their address (LGPD): it is theirs, not the team's.
+    const [account] = await tx.select({ email: users.email }).from(users).where(eq(users.id, userId));
+    if (account?.email) await deleteCompanyRequestsByEmail(tx, [account.email]);
     // The lock of role changes, removals and a workspace's deletion, in a fixed order. Every workspace row is written
     // before the user row, as the purge writes them.
     for (const m of mine) await lockOrgMembers(tx, m.orgId);

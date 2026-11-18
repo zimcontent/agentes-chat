@@ -1,0 +1,65 @@
+import { afterEach, describe, expect, test } from "bun:test";
+import type { ClientOverrides } from "@agenteschat/modules";
+import { loadClient, overridesOf } from "@agenteschat/modules";
+import { browser, createTestServer, signUp, type TestServer } from "./harness";
+
+/**
+ * A client's customizations (ADR doug-0032): `clients/<DOUG_CLIENT_CODE>/` read at boot into `GET /api/instance` and
+ * `GET /api/app/me`, and nothing at all without a code.
+ */
+
+let t: TestServer;
+afterEach(async () => {
+  const current = t;
+  t = undefined as unknown as TestServer;
+  await current?.close();
+});
+
+/** The example this repository ships, read the way `start.ts` reads it at boot. */
+async function exampleClient(): Promise<ClientOverrides> {
+  const loaded = await loadClient("000");
+  if (!loaded) throw new Error("the example client didn't load");
+  return overridesOf(loaded);
+}
+
+const instance = async () => (await (await t.app.request("/api/instance")).json()) as Record<string, unknown>;
+
+describe("DOUG_CLIENT_CODE (ADR doug-0032)", () => {
+  test("without a code the server behaves as the shared code does", async () => {
+    t = await createTestServer();
+    // The key is absent, not null: a server with no client answers exactly as the build before it did.
+    expect(await instance()).toMatchObject({ name: "agentes.chat" });
+    expect(await instance()).not.toHaveProperty("client");
+    const web = browser(t);
+    await signUp(web, "ana@example.com");
+    const me = (await (await web("/api/app/me")).json()) as Record<string, unknown>;
+    expect(me).not.toHaveProperty("client");
+  });
+
+  test("the example client's overrides reach the apps, in /api/instance and in /me", async () => {
+    t = await createTestServer({ client: await exampleClient() });
+    expect(await instance()).toMatchObject({
+      client: { name: "Padaria Aurora", accent: "#C2410C" },
+    });
+    const web = browser(t);
+    await signUp(web, "ana@example.com");
+    const me = (await (await web("/api/app/me")).json()) as {
+      client: { name: string; accent: string } | null;
+    };
+    expect(me.client).toEqual({ name: "Padaria Aurora", accent: "#C2410C" });
+  });
+
+  test("what the apps read of a client carries its name and its color, and nothing else", async () => {
+    t = await createTestServer({ client: await exampleClient() });
+    const body = (await instance()) as { client: Record<string, unknown> };
+    // The two keys the apps know, exactly: no switch the server holds and no screen reads, and nothing a folder's
+    // `client.ts` may hold.
+    expect(Object.keys(body.client).sort()).toEqual(["accent", "name"]);
+    expect(JSON.stringify(body)).not.toContain("hiddenAgents");
+    expect(JSON.stringify(body)).not.toContain("client-000-exemplo");
+    const web = browser(t);
+    await signUp(web, "ana@example.com");
+    const me = (await (await web("/api/app/me")).json()) as { client: Record<string, unknown> };
+    expect(Object.keys(me.client).sort()).toEqual(["accent", "name"]);
+  });
+});

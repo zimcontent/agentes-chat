@@ -21,6 +21,7 @@ export * from "./api/types";
 export * from "./browser";
 export * from "./dashboards";
 export * from "./desktop";
+export * from "./lib/client-custom";
 export * from "./lib/doug-team";
 export * from "./media/brand";
 export * from "./media/inputs";

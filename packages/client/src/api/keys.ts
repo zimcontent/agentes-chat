@@ -10,6 +10,9 @@ export const keys = {
   jev: ["jev"] as const,
   /** The installation's GIPHY key (ADR 0091), not a workspace's: it stays when switching organizations. */
   gifKey: ["gif-key"] as const,
+  /** The company requests the installation's owner reads (`/api/app/companies`), a page at a time. */
+  companyRequests: (query: string) => ["companies", query] as const,
+  companyRequest: (id: string) => ["companies", id] as const,
   speechKey: ["speech-key"] as const,
   authConfig: ["auth-config"] as const,
   me: ["me"] as const,

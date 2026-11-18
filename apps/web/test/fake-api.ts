@@ -1482,6 +1482,7 @@ export function createFakeHttpApi(state: FakeState): Omit<HttpApi, FakedParts> {
         signIn: { email: true, google: false, github: true, apple: false },
         signup: "open",
         cloud: true,
+        // A server without client customizations (ADR doug-0032) sends no `client` key unless a test names one.
         ...state.instance,
       }),
       telemetry: async () => state.telemetry ?? null,
@@ -1584,6 +1585,25 @@ export function createFakeHttpApi(state: FakeState): Omit<HttpApi, FakedParts> {
         state.speechKey = { provider: null, hint: null, state: "off", envProviders: [] };
         state.media = { ...state.media, voiceAvailable: false };
         return state.speechKey;
+      },
+      companyRequests: async () => null,
+      companyRequest: async () => {
+        throw new ApiError(404, "not_found", "Not found");
+      },
+      setCompanyStatus: async () => {
+        throw new ApiError(404, "not_found", "Not found");
+      },
+      saveCompanyNotes: async () => {
+        throw new ApiError(404, "not_found", "Not found");
+      },
+      saveCompanyClientCode: async () => {
+        throw new ApiError(404, "not_found", "Not found");
+      },
+      deleteCompanyRequest: async () => {
+        throw new ApiError(404, "not_found", "Not found");
+      },
+      inviteCompany: async () => {
+        throw new ApiError(404, "not_found", "Not found");
       },
     },
     liveVoice: {

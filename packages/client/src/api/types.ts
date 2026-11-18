@@ -60,6 +60,58 @@ export interface GifKey {
 /** Who can turn voice into text on this server (ADR 0100). */
 export type SpeechProvider = "assemblyai" | "elevenlabs" | "soniox" | "groq" | "openai" | "local" | "deepinfra";
 
+/** What a company wants to automate, on the request form (`COMPANY_INTERESTS`). */
+export const COMPANY_INTERESTS = ["design", "video", "ads", "social", "code", "finance"] as const;
+export type CompanyInterest = (typeof COMPANY_INTERESTS)[number];
+/** A company's team size, on the request form. */
+export const COMPANY_TEAM_SIZES = ["1-5", "6-20", "21-50", "51-200", "200+"] as const;
+export type CompanyTeamSize = (typeof COMPANY_TEAM_SIZES)[number];
+/** A request's step in the team's list. */
+export const COMPANY_REQUEST_STATUSES = ["new", "talking", "invited", "deployed", "discarded"] as const;
+export type CompanyRequestStatus = (typeof COMPANY_REQUEST_STATUSES)[number];
+
+/**
+ * A company that asked for DougBot on the installation's page ("Quero o DougBot na minha empresa"), read by the
+ * installation's owner (`GET /api/app/companies`). The public form itself is `POST /api/companies`.
+ */
+export interface CompanyRequest {
+  id: string;
+  name: string;
+  email: string;
+  whatsapp: string;
+  company: string;
+  teamSize: string;
+  interests: string[];
+  message: string;
+  /** The page's language, for the confirmation email. */
+  locale: string;
+  status: CompanyRequestStatus;
+  /** Three digits once the company is a client, which its deployment reads. */
+  clientCode: string | null;
+  /** The team's own notes about it. */
+  notes: string;
+  /** When the address confirmed itself (double opt-in): only then is it in the list. */
+  confirmedAt: string | null;
+  /** A confirmed second form waiting for its link to be opened: when it was sent. */
+  pendingResendAt: string | null;
+  invitedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/** A page of the team's list (`GET /api/app/companies`), with how many requests are in each step. */
+export interface CompanyRequestPage {
+  requests: CompanyRequest[];
+  counts: { all: number; new: number; talking: number; invited: number; deployed: number; discarded: number };
+  next: string | null;
+}
+
+/** What the Invite did (`POST …/companies/{id}/invite`), as early access answers it. */
+export interface CompanyRequestInvite {
+  request: CompanyRequest;
+  outcome: "invited" | "resent" | "recent" | "allowed" | "already_invited" | "signed_up" | "invalid_email";
+}
+
 /**
  * The installation's speech engine, for its pinned owner on a server that isn't agentes.chat's own (`GET
  * /api/app/speech-key`, ADR 0100): with one, every workspace has voice messages (`OrgSettings.voiceAvailable`).
@@ -184,6 +236,11 @@ export interface AuthConfig {
   approvalPortal?: boolean;
   /** The server generates images and videos from a credit wallet (ADR doug-0011): the apps show Mídia. */
   zimMedia?: boolean;
+  /**
+   * The signed-in person is this server's installation owner, on a self-hosted server: Settings › Company requests
+   * (the companies that asked for DougBot on `/empresas`) is theirs. Absent on agents's own servers and from an older.
+   */
+  companyRequests?: boolean;
 }
 
 export interface ErrorReportsConfig {
@@ -262,6 +319,20 @@ export interface Instance {
    * server serves DougBot's own, or sends them to its own `TERMS_URL` and `PRIVACY_URL` (absent: an older server).
    */
   cloud?: boolean;
+  /**
+   * This server's client customizations (ADR doug-0032), from `clients/<DOUG_CLIENT_CODE>/config.json`: the name and
+   * color to show. Absent: a server with no client (and so is it on an older one), which answers exactly as the build
+   * does.
+   */
+  client?: ClientBrand;
+}
+
+/** A client's name and color, as `GET /api/instance` sends them (ADR doug-0032). */
+export interface ClientBrand {
+  /** What its apps call the product; null: the product's own name. */
+  name: string | null;
+  /** The color its apps highlight, `#rrggbb`; null: the product's own. */
+  accent: string | null;
 }
 
 /**
@@ -484,6 +555,11 @@ export interface Me {
   /** This installation's client code (`DOUG_CLIENT_CODE`), shown in Support; null or absent: none. Sign-in doesn't
    * carry it: only a signed-in person reads it. */
   clientCode?: string | null;
+  /**
+   * This server's client customizations (ADR doug-0032), from `clients/<DOUG_CLIENT_CODE>/config.json`. Absent: a
+   * server with no client (and so is it on an older one), which answers exactly as the build does.
+   */
+  client?: ClientBrand;
 }
 
 /**
@@ -7082,7 +7158,12 @@ export type NotificationKind =
    * `latest.names` the first things it is about and `count` how many, `latest.text` the whole sentence in the
    * person's language. `source.agentId`, `machineId` or `accountId` when it is about one. Done once fixed.
    */
-  | "team_watch";
+  | "team_watch"
+  /**
+   * A company asked for DougBot on the installation's page (`source.companyRequestId`, the company in `source.label`,
+   * `latest.title` the company and `latest.text` the person): the installation's owner, waiting. Never the form.
+   */
+  | "company_request";
 
 /** "O Gerente aprova por você" (ADR 0139 §2): what the person let the workspace's right hand approve. */
 export interface RightHandApprovals {
@@ -7178,6 +7259,8 @@ export interface NotificationSource {
   phoneId?: string;
   /** `browser_handoff`: the request (its chat card has the same id). */
   handoffId?: string;
+  /** `company_request`: the company's request on the installation's page. */
+  companyRequestId?: string;
   /** `change_request`: the proposal to decide. */
   proposalId?: string;
   /** `change_request` of a right hand's card of a workspace change (`messageId`): the action. */

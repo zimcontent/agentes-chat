@@ -196,6 +196,22 @@ const Me = z
       description:
         "This installation's client code (`DOUG_CLIENT_CODE`), shown in Support. Null: none. Never on the sign-in screen (`GET /auth-config`).",
     }),
+    client: z
+      .object({
+        name: z
+          .string()
+          .nullable()
+          .openapi({ description: "What this client's apps call the product; null: the product's own name." }),
+        accent: z
+          .string()
+          .nullable()
+          .openapi({ description: "The color its apps highlight, `#rrggbb`; null: the product's own." }),
+      })
+      .optional()
+      .openapi({
+        description:
+          "This server's client customizations (ADR doug-0032), from `clients/<DOUG_CLIENT_CODE>/config.json`. Absent: a server with no client, which answers exactly as the build does, and the apps show the product's own name, color and tools.",
+      }),
   })
   .openapi("Me");
 
@@ -212,6 +228,15 @@ const Created = z.object({
 /** Account, organizations, members and invitations. */
 export function accountRoutes(deps: AppDeps) {
   const { db, config } = deps;
+  /**
+   * The installation's owner on a self-hosted server: the person Settings › Company requests belongs to. A public
+   * route, so the session is read here and the owner checked; agentes.chat's own servers never answer true.
+   */
+  const signedInOwner = async (c: { req: { raw: Request } }): Promise<boolean> => {
+    if (isAgentesCloud(config.PUBLIC_URL)) return false;
+    const user = await sessionUser(deps.auth, c.req.raw.headers);
+    return Boolean(user && (await pinnedOwner(db)) === user.id);
+  };
   /** What decides a deletion's proof, read when it's asked: whether this server sends email now. */
   const proofDeps = () => ({
     db,
@@ -312,6 +337,8 @@ export function accountRoutes(deps: AppDeps) {
             : {}),
         };
       }),
+      // Absent, not null, on a server with no client: its answer is the build's own, byte for byte (ADR doug-0032).
+      ...(deps.client ? { client: { name: deps.client.name, accent: deps.client.accent } } : {}),
     };
   };
   /** What finishing a workspace's onboarding answers: where it opens (its right hand's DM) and `/me` as it is now. */
@@ -423,6 +450,10 @@ export function accountRoutes(deps: AppDeps) {
               description:
                 "One of agentes.chat's own servers (`cloud` in `GET /api/instance`): the apps show no About screen there, which every other server shows.",
             }),
+            companyRequests: z.boolean().openapi({
+              description:
+                "The signed-in person is this server's installation owner, on a self-hosted server: Settings › Company requests (the companies that asked for DougBot on `/empresas`) is theirs.",
+            }),
             turnstileSiteKey: z.string().nullable().openapi({
               description:
                 "The bot check's site key (`TURNSTILE_SITE_KEY`, ADR 0075): pages run Cloudflare Turnstile and send its token in `x-captcha-response`. Null: no check, and nothing loads from Cloudflare.",
@@ -470,6 +501,7 @@ export function accountRoutes(deps: AppDeps) {
           approvalPortal: Boolean(deps.adapters.approvalPortal),
           zimMedia: Boolean(deps.adapters.zimMedia),
           cloud: isAgentesCloud(config.PUBLIC_URL),
+          companyRequests: await signedInOwner(c),
           turnstileSiteKey: deps.adapters.humanCheck?.siteKey ?? null,
           errorReports: reportsTo(config.SENTRY_WEB_DSN),
           mobileErrorReports: reportsTo(config.SENTRY_MOBILE_DSN ?? config.SENTRY_WEB_DSN),
