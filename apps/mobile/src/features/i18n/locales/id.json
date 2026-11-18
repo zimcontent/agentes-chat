@@ -345,6 +345,8 @@
     "closed": "ditutup",
     "options": "Opsi",
     "profile": "Profil",
+    "call": "Telepon",
+    "toneGreen": "Hijau",
     "here_other": "{{count}} di sini",
     "headerAgent": "{{who}}. Buka profil",
     "headerChannel": "{{who}}. Opsi",

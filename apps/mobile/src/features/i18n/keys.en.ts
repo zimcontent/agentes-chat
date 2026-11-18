@@ -383,6 +383,10 @@ export const featureKeysEn = {
     closed: "closed",
     options: "Options",
     profile: "Profile",
+    /** The "…" sheet's call tile. */
+    call: "Call",
+    /** Chat look: my bubble's color, the brand's green. */
+    toneGreen: "In green",
     here_one: "{{count}} here",
     here_other: "{{count}} here",
     headerAgent: "{{who}}. Open the profile",

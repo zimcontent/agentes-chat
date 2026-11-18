@@ -358,6 +358,8 @@
     "closed": "kapalı",
     "options": "Seçenekler",
     "profile": "Profil",
+    "call": "Ara",
+    "toneGreen": "Yeşil",
     "here_one": "burada {{count}} kişi",
     "here_other": "burada {{count}} kişi",
     "headerAgent": "{{who}}. Profili aç",
