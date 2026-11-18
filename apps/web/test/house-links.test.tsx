@@ -16,7 +16,7 @@ afterEach(cleanup);
 describe("links read as ours, never the browser's blue", () => {
   test("the addresses inside the Terms and the Privacy Policy are house links", async () => {
     for (const kind of ["terms", "privacy"] as const) {
-      await renderPage(<LegalPage kind={kind} />, { api: createFakeApi(seedState({ me: null })) });
+      await renderPage(<LegalPage kind={kind} lang="pt-BR" />, { api: createFakeApi(seedState({ me: null })) });
       await settle();
       const links = [...document.querySelectorAll(".legal__doc a")];
       expect(links.length).toBeGreaterThan(0);

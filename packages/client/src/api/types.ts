@@ -257,7 +257,10 @@ export interface Instance {
   signup: "open" | "invite";
   /** No account yet, and the first one only through the owner link the setup printed (absent: false). */
   ownerClaim?: boolean;
-  /** One of agentes.chat's own servers: `/terms` and `/privacy` are agentes.chat Cloud's (absent: an older server). */
+  /**
+   * One of agentes.chat's own servers: `/terms` and `/privacy` are agentes.chat Cloud's documents there. Any other
+   * server serves DougBot's own, or sends them to its own `TERMS_URL` and `PRIVACY_URL` (absent: an older server).
+   */
   cloud?: boolean;
   /**
    * This server's client customizations (ADR doug-0023), from `clients/<DOUG_CLIENT_CODE>/config.json`: the name and
@@ -273,6 +276,57 @@ export interface ClientBrand {
   /** The color its apps highlight, `#rrggbb`; null: the product's own. */
   accent: string | null;
 }
+
+/**
+ * `GET /api/app/legal`: the company details the Terms of Use and the Privacy Policy fill in (`LEGAL_*`). A field the
+ * server has no setting for is null, and the page shows `[a preencher]` in its place. The documents' text is not here:
+ * it ships with the app, from `docs/legal/`.
+ */
+export interface LegalFacts {
+  companyName: string | null;
+  taxId: string | null;
+  address: string | null;
+  dpoName: string | null;
+  dpoEmail: string | null;
+  serverLocation: string | null;
+  logRetention: string | null;
+  /** Days the installation's database backups are kept, as the Privacy Policy says. */
+  backupRetentionDays: number;
+  /** Days a voice message's recording is kept, as the Privacy Policy says. */
+  voiceRetentionDays: number;
+  /** The pages carry the draft notice (`LEGAL_DRAFT`, or a company field they need is still empty). */
+  draft: boolean;
+  /** Database backups go to a bucket, so the Privacy Policy's backup paragraph applies. */
+  backup: boolean;
+  /** Where files are kept. */
+  storage: "s3" | "disk" | "database";
+  /** One of agentes.chat's own servers, where the usage report is not optional. */
+  telemetryForced: boolean;
+  /** Days a company's waiting-list request is kept; null: this server has no such form. */
+  companyRequestsRetentionDays: number | null;
+  /** Each optional outside service, on or off by its setting. Never a key or an address. */
+  services: Record<LegalService, boolean>;
+}
+
+/** The optional outside services the Privacy Policy's Annex II lists, each turned on by a setting of the server. */
+export type LegalService =
+  | "platformKey"
+  | "jev"
+  | "giphy"
+  | "email"
+  | "media"
+  | "speech"
+  | "push"
+  | "pushDirect"
+  | "pushRelay"
+  | "composio"
+  | "embeddings"
+  | "whatsapp"
+  | "errors"
+  | "billing"
+  | "support"
+  | "telemetry"
+  | "driveBackup";
 
 /** "Abrir no celular": a sign-in for the phone, single use, a few minutes long. */
 export interface PhoneSignIn {

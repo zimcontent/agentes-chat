@@ -24,7 +24,8 @@ describe("sign-up policy (self-host)", () => {
   });
 
   test("auth-config: no legal links or support address unless configured; password reset when email goes out", async () => {
-    // The test server's fake email sender delivers; people connect their own computers.
+    // The test server's fake email sender delivers; people connect their own computers. DougBot's own Terms and Privacy
+    // Policy (`docs/legal/`) are linked only on a server that names its company (`LEGAL_COMPANY_NAME`).
     expect(await (await browser(t)("/api/app/auth-config")).json()).toMatchObject({
       termsUrl: null,
       privacyUrl: null,

@@ -165,6 +165,7 @@ import type {
   JoinClaim,
   JoinRequest,
   LearnedSkill,
+  LegalFacts,
   LiveRoom,
   LiveSession,
   LiveSpeakerPick,
@@ -757,6 +758,7 @@ export function createHttpApi(options: TransportOptions = {}): HttpApi {
         }
       },
       instance: () => request<Instance>("/api/instance"),
+      legal: () => request<LegalFacts>("/api/app/legal"),
       telemetry: () => nullOn(404, () => request<ServerTelemetry>("/api/app/telemetry")),
       setTelemetry: (enabled) => request<ServerTelemetry>("/api/app/telemetry", { method: "PUT", json: { enabled } }),
       sendFeedback: (input) => request<void>("/api/app/feedback", { json: input }),

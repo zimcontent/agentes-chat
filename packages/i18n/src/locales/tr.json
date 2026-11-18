@@ -1826,6 +1826,7 @@
     "updated": "Son güncelleme: {{date}}",
     "contents": "Bu sayfada",
     "home": "Ana sayfaya git",
+    "draft": "Taslaktır, hukuki incelemeye tabidir. [Köşeli parantez] içindekiler henüz doldurulmamıştır.",
     "none": {
       "terms": "Bu sunucunun kullanım koşulları sayfası yok",
       "privacy": "Bu sunucunun gizlilik sayfası yok"
@@ -16974,6 +16975,7 @@
     "title": "Ayarlar",
     "account": {
       "plans": "Planlarınızın sınırları",
+      "legal": "Koşullar ve gizlilik",
       "device": "Bu cihazda",
       "activity": "Ajanların yaptıklarını her yanıtın altında göster",
       "activityHelp": "Kullandıkları araçlar ve ne kadar sürdüğü. Çalışırken ne yaptıklarını yine görürsünüz.",

@@ -51764,5 +51764,11 @@
       "one": "Add {{count}} file",
       "other": "Add {{count}} files"
     }
+  },
+  "legal.draft": {
+    "value": "Draft, subject to legal review. What is in [brackets] has not been filled in yet."
+  },
+  "settings.account.legal": {
+    "value": "Terms and privacy"
   }
 }
