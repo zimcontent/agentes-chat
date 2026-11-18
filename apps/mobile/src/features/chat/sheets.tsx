@@ -35,7 +35,7 @@ import { type ReactNode, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ActivityIndicator, Pressable, StyleSheet, View } from "react-native";
 import { serverUrl } from "@/lib/server";
-import { Button, CHROME_MAX_SCALE, Count, Icon, Locked, OPTION_ROW, PressScale, Text, useToast } from "@/ui";
+import { Button, CHROME_MAX_SCALE, Count, Icon, Locked, OPTION_ROW, Text, useToast } from "@/ui";
 import { router } from "@/ui/navigation";
 import { useMovesChannel } from "../categories/CategoryScreens";
 import { categoryHrefs } from "../categories/logic";
@@ -332,70 +332,8 @@ export function MessageActions(props: MessageActionsContext) {
 
 // ── "+" in the composer ──────────────────────────────────────────────────────
 
+/** What the conversation's "+" (the "Tudo" sheet, `AllSheet`) hands back to `onPlus`. */
 export type PlusPick = "camera" | "photos" | "file" | "media" | "mission" | "summary" | "remind";
-
-/**
- * The "+" of the chat: what goes with a message as tiles (camera, photos, file and, where they can be sent, the
- * GIFs and stickers, so the field itself only sends), then what to start here, in words.
- */
-export function PlusActions({ onPick, media = false }: { onPick: (pick: PlusPick) => void; media?: boolean }) {
-  const { t } = useTranslation();
-  const surface = useSurface();
-  const tiles: { key: PlusPick; icon: "camera" | "image" | "file" | "sticker"; label: string }[] = [
-    { key: "camera", icon: "camera", label: t("mobile.plus.camera") },
-    { key: "photos", icon: "image", label: t("mobile.plus.photos") },
-    { key: "file", icon: "file", label: t("mobile.plus.file") },
-    ...(media ? [{ key: "media" as const, icon: "sticker" as const, label: t("mobile.plus.media") }] : []),
-  ];
-  return (
-    <>
-      <View style={styles.tiles}>
-        {tiles.map((x) => (
-          <PressScale
-            key={x.key}
-            onPress={() => onPick(x.key)}
-            accessibilityRole="button"
-            accessibilityLabel={x.label}
-            style={styles.tileBtn}
-            contentStyle={styles.tileIn}
-          >
-            <View style={[styles.bigTile, surface]}>
-              <Icon name={x.icon} size={24} />
-            </View>
-            <Text variant="caption" tone="ink2" style={styles.bold}>
-              {x.label}
-            </Text>
-          </PressScale>
-        ))}
-      </View>
-      <ActionList
-        items={[
-          {
-            key: "mission",
-            icon: "target",
-            label: t("mobile.plus.mission"),
-            hint: t("mobile.plus.missionHint"),
-            onPress: () => onPick("mission"),
-          },
-          {
-            key: "summary",
-            icon: "sparkle",
-            label: t("mobile.plus.summary"),
-            hint: t("mobile.plus.summaryHint"),
-            onPress: () => onPick("summary"),
-          },
-          {
-            key: "remind",
-            icon: "clock",
-            label: t("mobile.plus.remind"),
-            hint: t("mobile.plus.remindHint"),
-            onPress: () => onPick("remind"),
-          },
-        ]}
-      />
-    </>
-  );
-}
 
 // ── ⋯ of a thread or a mission ───────────────────────────────────────────────
 
@@ -886,7 +824,6 @@ export function MissionSummaryView({ missionId }: { missionId: string }) {
 
 const styles = StyleSheet.create({
   grow: { flex: 1 },
-  bold: { fontWeight: "600" },
   preview: { flexDirection: "row", gap: 10, padding: 12, borderRadius: 14 },
   emorow: {
     flexDirection: "row",
@@ -900,8 +837,4 @@ const styles = StyleSheet.create({
   emoText: { fontSize: 26, lineHeight: 34 },
   // The action groups, divided as the menu divides them.
   groups: { gap: 12 },
-  tiles: { flexDirection: "row", justifyContent: "space-between" },
-  tileBtn: { flex: 1 },
-  tileIn: { alignItems: "center", gap: 8, paddingVertical: 6 },
-  bigTile: { width: 54, height: 54, borderRadius: 18, alignItems: "center", justifyContent: "center" },
 });

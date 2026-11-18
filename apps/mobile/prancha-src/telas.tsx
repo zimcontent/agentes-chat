@@ -59,6 +59,7 @@ import {
   RevisaoLista,
   RevisaoVideo,
 } from "./revisao";
+import { Tudo } from "./tudo";
 import { WhatsAppConversa, WhatsAppLista } from "./whatsapp";
 
 /** Sample photos served beside the board (`doug-mobile/fotos`): a person's and the groups' (JPG, as people send). */
@@ -1061,6 +1062,10 @@ export const TELAS: Record<string, () => ReactNode> = {
   login: Login,
   servidor: Servidor,
   inicio: () => <Inicio />,
+  /** "Tudo": from Início's "Mais", from a conversation's "+", and choosing the pins. */
+  tudo: () => <Tudo from="home" />,
+  "tudo-conversa": () => <Tudo from="conversation" />,
+  "tudo-editar": () => <Tudo from="home" editing />,
   /** The island resting as the signature, and grown into an agent's notice: with the camera's island, with a notch. */
   "ilha-camera": () => <IlhaCena kind="camera" />,
   "ilha-camera-aviso": () => <IlhaCena kind="camera" notice />,

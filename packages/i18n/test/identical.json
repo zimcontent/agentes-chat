@@ -4560,7 +4560,8 @@
       "photo.section",
       "chat.messagePlain",
       "drive.filter.type",
-      "vault.sheet.note"
+      "vault.sheet.note",
+      "homeTools.mission"
     ],
     "de": [
       "devices.status.offline",
@@ -4639,7 +4640,9 @@
       "threads.title",
       "roles.icons.person",
       "drive.order.short.name",
-      "vault.sheet.details"
+      "vault.sheet.details",
+      "homeTools.mission",
+      "homeTools.computer"
     ],
     "it": [
       "devices.status.offline",
@@ -4694,7 +4697,8 @@
       "find.filterWord.in",
       "connectors.accountTitle",
       "roles.icons.mail",
-      "vault.sheet.password"
+      "vault.sheet.password",
+      "homeTools.computer"
     ],
     "nl": [
       "devices.status.offline",
@@ -4782,7 +4786,8 @@
       "vault.home.items",
       "vault.sheet.site",
       "vault.sheet.details",
-      "agentLite.ai"
+      "agentLite.ai",
+      "homeTools.computer"
     ],
     "ja": [
       "devices.os.android",
