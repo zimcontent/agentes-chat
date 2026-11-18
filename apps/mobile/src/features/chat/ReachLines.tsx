@@ -3,6 +3,7 @@ import {
   type AgentAudience,
   type ForeignMailbox,
   type Message,
+  useAddChannelMember,
   useChannels,
   useRoles,
   useWidenAudience,
@@ -20,6 +21,7 @@ import {
 } from "@agenteschat/client/lib/audience";
 import { errorText } from "@agenteschat/client/lib/errors";
 import { agentGrammar } from "@agenteschat/client/lib/grammar";
+import { can } from "@agenteschat/client/lib/permissions";
 import { type ReachEntry, reachKey, reachOf, reachOpens } from "@agenteschat/client/lib/reach";
 import type { TFunction } from "i18next";
 import { useTranslation } from "react-i18next";
@@ -30,7 +32,7 @@ import { useDirectory, useMeId, useOrgId } from "../shared/hooks";
 import { tapHaptic } from "../shared/parts";
 import { boldRuns } from "./actions";
 import { ConsultPairRow, useConsultById } from "./ConsultGroup";
-import { useCardTop, useRhythm } from "./look";
+import { useCardTop } from "./look";
 
 const LIST_GAP = 8;
 
@@ -47,28 +49,18 @@ export function ReachLines({ message: m }: { message: Message }) {
   if (m.author.type !== "agent" || list.length === 0) return null;
   return (
     <View style={[styles.list, cardTop]}>
-      {list.map((e, i) => (
-        <Row key={e.agentId} entry={e} above={list[i - 1]} channelId={m.channelId} authorId={m.author.id ?? ""} />
+      {list.map((e) => (
+        <Row key={e.agentId} entry={e} channelId={m.channelId} authorId={m.author.id ?? ""} />
       ))}
     </View>
   );
 }
 
-function Row({
-  entry: e,
-  above,
-  channelId,
-  authorId,
-}: {
-  entry: ReachEntry;
-  above: ReachEntry | undefined;
-  channelId: string;
-  authorId: string;
-}) {
+function Row({ entry: e, channelId, authorId }: { entry: ReachEntry; channelId: string; authorId: string }) {
   const { t } = useTranslation();
-  const rhythm = useRhythm();
   const { colors } = useTheme();
   const orgId = useOrgId();
+  const { org } = useOrg();
   const dir = useDirectory();
   const channel = useChannels(orgId).data?.find((c) => c.id === channelId);
   // A DM isn't in the channel list: "in this conversation".
@@ -77,7 +69,12 @@ function Row({
   const g = agentGrammar(agent?.name ?? `@${e.handle}`);
   const handed = Boolean(e.consultationId);
   const talk = useConsultById(channelId, reachOpens(e) ? e.consultationId : undefined);
-  const talkAbove = useConsultById(channelId, above && reachOpens(above) ? above.consultationId : undefined);
+  // Who manages channels may add it here, as on the web: one handed over by direct message for not being in the
+  // channel, or one a private conversation kept out. A DM has no members to add.
+  const addable =
+    Boolean(channel) &&
+    ((handed && e.reason === "not_in_channel") || Boolean(e.private)) &&
+    can(org, "manage_channels");
   const runs = boldRuns(t(reachKey(e) as "reach.handed", { ...g, place }) as string);
   const detail = [
     !handed && e.outside ? t("reach.outside", { place }) : null,
@@ -85,18 +82,14 @@ function Row({
   ]
     .filter(Boolean)
     .join(" · ");
-  // Handed to it by direct message: the two agents talking, as the pair row that opens their conversation.
-  // Under another such line they stack as one group, as the list's quiet lines do: the part gap between them, past
-  // the room the one above keeps under it and the list's own gap.
+  // Handed to it by direct message: the two agents talking, as the pill that opens their conversation. The list's gap
+  // stands between it and what is above or under it.
   if (talk)
     return (
-      <ConsultPairRow
-        askerId={authorId}
-        channelId={channelId}
-        items={[talk]}
-        inline
-        gap={talkAbove ? rhythm.part - (rhythm.turn - rhythm.part) - LIST_GAP : undefined}
-      />
+      <View style={styles.talk}>
+        <ConsultPairRow askerId={authorId} channelId={channelId} items={[talk]} place="list" />
+        {addable ? <AddToChannel agentId={e.agentId} channelId={channelId} name={g.name} /> : null}
+      </View>
     );
   return (
     <View style={[styles.one, { backgroundColor: colors.raised, borderColor: colors.line2 }]}>
@@ -123,12 +116,36 @@ function Row({
       </View>
       {/* The action under the words, on their column: a long one ("Deixar Heitor Lima falar com ela") beside them
           squeezed the words into three cut lines. */}
-      {!handed && agent && e.userId ? (
-        <View style={styles.act}>
-          <AllowTalkAction agent={agent} userId={e.userId} />
+      {addable || (!handed && agent && e.userId) ? (
+        <View style={[styles.act, styles.acts]}>
+          {addable ? <AddToChannel agentId={e.agentId} channelId={channelId} name={g.name} /> : null}
+          {!handed && agent && e.userId ? <AllowTalkAction agent={agent} userId={e.userId} /> : null}
         </View>
       ) : null}
     </View>
+  );
+}
+
+/** "Adicionar ao grupo": the agent joins this channel, as the web's reach row offers. */
+function AddToChannel({ agentId, channelId, name }: { agentId: string; channelId: string; name: string }) {
+  const { t } = useTranslation();
+  const toast = useToast();
+  const add = useAddChannelMember(useOrgId());
+  return (
+    <RowAction
+      label={t("reach.add")}
+      disabled={add.isPending || add.isSuccess}
+      onPress={() => {
+        tapHaptic();
+        add.mutate(
+          { channelId, member: { agentId } },
+          {
+            onSuccess: () => toast({ title: t("reach.added", { name }) }),
+            onError: (error: unknown) => toast({ title: errorText(t, error), icon: "x" }),
+          },
+        );
+      }}
+    />
   );
 }
 
@@ -314,5 +331,9 @@ const styles = StyleSheet.create({
   words: { flexShrink: 1, minWidth: 0 },
   // The text column: the icon's 15 and the 8 after it.
   act: { paddingLeft: 15 + 8, alignItems: "flex-start" },
+  // Two actions side by side, 16 apart (`.ac-acts`), wrapping under each other when they don't fit.
+  acts: { flexDirection: "row", flexWrap: "wrap", columnGap: 16, rowGap: 8 },
+  // The pill and, under it on its left edge, Adicionar ao grupo.
+  talk: { alignItems: "flex-start", gap: 4 },
   detail: { marginTop: 2 },
 });

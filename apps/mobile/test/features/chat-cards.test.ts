@@ -68,15 +68,30 @@ describe("a reply's tools sit last", () => {
   });
 });
 
-describe("agents it asked first: one pair row right before the reply, never inside it", () => {
-  test("saved: the row sits before the reply's own row (which then shows its face and name), none in its body", () => {
+describe("agents it talked to: one round pill under the reply it belongs to", () => {
+  test("saved: the pill sits in the reply's body, right under its words, media and voice; the row keeps its grouping", () => {
     const row = source("MessageRow.tsx");
-    expect(ascending(at(row, ["const grouped = groupedIn && !pair;", "{pair}\n      {quote && !inBubble"]))).toBe(true);
-    const [bodyAt, endAt] = at(row, [
-      "<View style={[styles.body, { gap: rhythm.part }]}>",
-      "{foot}\n          </RowPartContext.Provider>\n          {hintNode}\n        </View>\n        {popNode}\n      </Pressable>",
-    ]);
-    expect(row.slice(bodyAt, endAt)).not.toContain("Consult");
+    expect(row).toContain("const grouped = groupedIn;");
+    expect(row).not.toContain("{pair}\n      {quote && !inBubble");
+    expect(
+      ascending(
+        at(row, [
+          "<View style={[styles.body, { gap: rhythm.part }]}>",
+          "{voiceOf(meta) ? <VoiceMessage message={m} /> : null}",
+          "{pair}",
+          "{foot}\n          </RowPartContext.Provider>",
+        ]),
+      ),
+    ).toBe(true);
+    const pill = source("ConsultGroup.tsx");
+    expect(pill).toContain("borderRadius: 999,");
+    expect(pill).toContain("borderWidth: StyleSheet.hairlineWidth,");
+    expect(pill).not.toContain("boxShadow");
+    expect(pill).toContain("accessibilityLabel={label}");
+    // How it went and its time never shrink; the names give way.
+    expect(pill).toContain('time: { fontVariant: ["tabular-nums"], flexShrink: 0 },');
+    expect(pill).toContain('from: { fontWeight: "600", flexShrink: 1 },');
+    expect(pill).toContain('name: { fontWeight: "600", flexShrink: 0.0001 },');
   });
 
   test("live: the working line carries the pair, the one asking and the one asked, while the turn works", () => {
@@ -115,9 +130,7 @@ describe("agents it asked first: one pair row right before the reply, never insi
 
   test("a hand-off by direct message is the same row on its reach line, left out of the reply's own row", () => {
     const reach = source("ReachLines.tsx");
-    expect(reach).toMatch(
-      /<ConsultPairRow\s+askerId=\{authorId\}\s+channelId=\{channelId\}\s+items=\{\[talk\]\}\s+inline\s/,
-    );
+    expect(reach).toContain('<ConsultPairRow askerId={authorId} channelId={channelId} items={[talk]} place="list" />');
     expect(reach).not.toContain("reach.see");
     // One older than the conversation's list goes back is loaded on its own, never the "Entregue ao" text.
     expect(source("ConsultGroup.tsx")).toContain(

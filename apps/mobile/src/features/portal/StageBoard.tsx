@@ -48,6 +48,8 @@ type TeamColumn = "todo" | "doing";
 const GHOST_SHADOW = "0px 18px 32px -12px rgba(0, 0, 0, 0.6)";
 /** The lists' first line on the board (`styles.lists`' top padding), and the ring around a list. */
 const LISTS_TOP = 12;
+/** Room under the lists, over the dots: a list's foot is never cut. */
+const LISTS_BOTTOM = 12;
 const RING = 2;
 
 /**
@@ -167,7 +169,7 @@ export function StageBoard({
               column={index}
               plan={plan}
               width={listWidth}
-              maxHeight={box.height}
+              maxHeight={Math.max(0, box.height - LISTS_TOP - LISTS_BOTTOM)}
               paint={paint}
               numbers={numbers}
               held={heldFrom && !held?.settling ? columnDrop(col.column, heldFrom) : null}
@@ -547,7 +549,12 @@ export function PostCard({
 
 const styles = StyleSheet.create({
   board: { flex: 1 },
-  lists: { paddingHorizontal: BOARD.side, paddingTop: 12, alignItems: "flex-start" },
+  lists: {
+    paddingHorizontal: BOARD.side,
+    paddingTop: LISTS_TOP,
+    paddingBottom: LISTS_BOTTOM,
+    alignItems: "flex-start",
+  },
   gap: { width: BOARD.gap },
   // The Cronograma's list: 20 round, and a 2 ring that shows only while a card can land in it.
   list: { borderRadius: 20, overflow: "hidden", borderWidth: RING },

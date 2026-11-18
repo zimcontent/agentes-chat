@@ -52,6 +52,7 @@ export const EventLine = memo(function EventLine({
         askerId={fold.consultation.agentId}
         channelId={message.channelId}
         items={[fold.consultation]}
+        place="line"
         gap={gap}
       />
     );
@@ -68,6 +69,7 @@ export const EventLine = memo(function EventLine({
         askerId={consulted.askerId}
         channelId={message.channelId}
         items={[pairItemOf(consulted.consultation)]}
+        place="line"
         gap={gap}
       />
     );

@@ -125,6 +125,7 @@ import { cacheContinued } from "./live";
 import {
   approvalIdOf,
   artifactsOf,
+  BUBBLES_FACE,
   CHAT_TEXT_MAX_SCALE,
   chatNameOf,
   chatTimeOf,
@@ -294,8 +295,8 @@ function RowBody({
   // The one an agent adds after its own reply carries the reply's run: the run's tools, questions and stop line
   // stay on the reply, never shown twice.
   const mediaAfter = isAgent && isMediaAfterReply(meta);
-  // It asked other agents first: one row right before it (its run's questions on the run's first message here, and
-  // the ones its `meta.consulted` names), so it shows its face and name again under that row.
+  // It talked to other agents for this reply: one pill under it (its run's questions on the run's first message here,
+  // and the ones its `meta.consulted` names).
   const reached = useMemo(() => reachHandoffs(m.meta), [m.meta]);
   const rhythm = useRhythm();
   const consults = useRunConsults(
@@ -309,7 +310,7 @@ function RowBody({
     isAgent && m.author.id && consults.length > 0 ? (
       <ConsultPairRow askerId={m.author.id} channelId={m.channelId} items={consults} />
     ) : null;
-  const grouped = groupedIn && !pair;
+  const grouped = groupedIn;
   // A question to another agent (in their DM) carries the asking run: its work shows on that run's reply.
   const ownWork = isAgent && Boolean(m.agentRunId) && !meta?.consultation && !mediaAfter;
   const steps = ownWork ? workStepsOf(meta) : null;
@@ -556,17 +557,19 @@ function RowBody({
       >
         {quote ? <QuotePlate reply={quote} onJump={onQuote} {...(solidInk ? { ink: solidInk } : {})} /> : null}
         <View style={bubbled ? styles.bubbleLine : undefined}>
-          <ClippedMessage id={m.id} behind={[look.fill ?? c.bubble]} ink={solidInk}>
-            <MessageText
-              body={body}
-              muted={m.local === "pending"}
-              selectable={false}
-              accent={accent}
-              channelRefs={channelRefsOf(m.meta)}
-              everyone={m.meta?.mentionsEveryone === true}
-              {...(solidInk ? { ink: solidInk } : {})}
-            />
-          </ClippedMessage>
+          <View style={bubbled ? styles.bubbleWords : undefined}>
+            <ClippedMessage id={m.id} behind={[look.fill ?? c.bubble]} ink={solidInk}>
+              <MessageText
+                body={body}
+                muted={m.local === "pending"}
+                selectable={false}
+                accent={accent}
+                channelRefs={channelRefsOf(m.meta)}
+                everyone={m.meta?.mentionsEveryone === true}
+                {...(solidInk ? { ink: solidInk } : {})}
+              />
+            </ClippedMessage>
+          </View>
           {myBubble && !m.local ? stamp : null}
         </View>
       </View>
@@ -696,7 +699,8 @@ function RowBody({
       {talker ? (
         <Text
           variant="caption"
-          tone="faint"
+          // In a bubble the quiet words take `muted`: `faint` is under 4.5:1 on the dark bubble's fill.
+          tone={inBubble ? "muted" : "faint"}
           numberOfLines={1}
           style={styles.shrink}
           accessibilityHint={t(talkerWaited(meta) ? "chat.notice.talkerWaitingTip" : "chat.notice.talkerTip")}
@@ -704,7 +708,7 @@ function RowBody({
           {t(talkerWaited(meta) ? "chat.notice.talkerWaiting" : "chat.notice.talker")}
         </Text>
       ) : null}
-      {helping ? <HelpingTag consultation={helping} channelId={m.channelId} /> : null}
+      {helping ? <HelpingTag consultation={helping} channelId={m.channelId} inBubble={inBubble} /> : null}
       {!reminder && !routine && !talker && !helping && agent?.role && !bubbled && !compact ? (
         <Text variant="caption" tone="faint" numberOfLines={1} style={styles.shrink}>
           {agent.role}
@@ -798,7 +802,6 @@ function RowBody({
   const nameOrWords = Boolean(inBubble || !grouped || pinLine || reportOpened || opener || words);
   return (
     <>
-      {pair}
       {quote && !inBubble ? <QuoteAbove look={look} reply={quote} onJump={onQuote} gap={rowGap} /> : null}
       <Pressable
         onPress={onTap}
@@ -834,7 +837,7 @@ function RowBody({
                 </View>
               ) : null
             ) : (
-              <Face who={m.author} size={compact ? 18 : bubbled ? 30 : 34} live={false} />
+              <Face who={m.author} size={compact ? 18 : bubbled ? BUBBLES_FACE : MSG_AVATAR} live={false} />
             )}
           </View>
         ) : null}
@@ -864,7 +867,7 @@ function RowBody({
                       {quote ? <QuotePlate reply={quote} onJump={onQuote} /> : null}
                       {opener}
                       <View style={styles.bubbleLine}>
-                        {words}
+                        <View style={styles.bubbleWords}>{words}</View>
                         <View style={styles.stamp}>
                           <Text variant="caption" tone="muted">
                             {when.time(m.createdAt)}
@@ -899,6 +902,8 @@ function RowBody({
             ) : null}
             {media ? <ChatMedia media={media} liveId={m.id} /> : null}
             {voiceOf(meta) ? <VoiceMessage message={m} /> : null}
+            {/* The agents it talked to for this reply: their pill right under what it said. */}
+            {pair}
             {isAgent && meta?.speedFallback === true ? <SpeedFallbackLine message={m} /> : null}
             {isAgent && standIn ? <ModelStandInLine message={m} text={standIn} /> : null}
             {(stopped || atLimit || providerCut) && m.agentRunId ? (
@@ -1237,13 +1242,21 @@ function Tag({
 }
 
 /** On a card this agent posted while answering another agent's question: "ajudando o Theo · Ver conversa". */
-function HelpingTag({ consultation: c, channelId }: { consultation: RunConsultation; channelId: string }) {
+function HelpingTag({
+  consultation: c,
+  channelId,
+  inBubble,
+}: {
+  consultation: RunConsultation;
+  channelId: string;
+  inBubble: boolean;
+}) {
   const { t } = useTranslation();
   const dir = useDirectory();
   const from = agentGrammar(dir.agentById.get(c.agentId)?.name ?? t("mobile.chat.someone"));
   return (
     <>
-      <Text variant="caption" tone="faint" numberOfLines={1} style={styles.shrink}>
+      <Text variant="caption" tone={inBubble ? "muted" : "faint"} numberOfLines={1} style={styles.shrink}>
         {withAgentFaces(
           t("chat.consultPanel.helping", { name: from.name, context: from.context }),
           [{ name: from.name, agentId: c.agentId }],
@@ -1384,10 +1397,16 @@ const BUBBLE_RUN: Record<RunPosition, { borderTopRightRadius?: number; borderBot
   end: { borderTopRightRadius: BUBBLE_JOIN, borderBottomRightRadius: BUBBLE_CUT },
 };
 
-/** Anyone else's bubble in `bubbles`: the same, on the left. */
+/**
+ * The corner of anyone else's first bubble beside their face: almost square, so the bubble comes out of whoever speaks
+ * (people asked for it, as WhatsApp's).
+ */
+const BUBBLE_POINT = 4;
+
+/** Anyone else's bubble in `bubbles`: the same, on the left, its run's first corner pointing at the face. */
 const OTHER_RUN: Record<RunPosition, { borderTopLeftRadius?: number; borderBottomLeftRadius?: number }> = {
-  solo: {},
-  start: { borderBottomLeftRadius: BUBBLE_JOIN },
+  solo: { borderTopLeftRadius: BUBBLE_POINT },
+  start: { borderTopLeftRadius: BUBBLE_POINT, borderBottomLeftRadius: BUBBLE_JOIN },
   mid: { borderTopLeftRadius: BUBBLE_JOIN, borderBottomLeftRadius: BUBBLE_JOIN },
   end: { borderTopLeftRadius: BUBBLE_JOIN },
 };
@@ -1415,13 +1434,18 @@ const styles = StyleSheet.create({
   slotMark: { marginTop: -1, justifyContent: "center" },
   whoTight: { marginBottom: 0 },
   // The time ends the words' line when it fits; a longer text pushes it to a line of its own, at the bubble's end.
+  // The words, then the time at the line's end (its `marginLeft: "auto"`), or on a line of its own under them. The
+  // words start on the bubble's left edge, under the name: with `flex-end` a line the time didn't fit beside slid to the
+  // right, out of line with the name.
   bubbleLine: {
     flexDirection: "row",
     flexWrap: "wrap",
-    justifyContent: "flex-end",
+    justifyContent: "flex-start",
     alignItems: "flex-end",
     columnGap: 8,
   },
+  // Never wider than the bubble's inside: the words wrap there (Yoga measures them so; the board's browser needs it).
+  bubbleWords: { flexShrink: 1, minWidth: 0, maxWidth: "100%" },
   bubbleEnd: { alignSelf: "flex-end" },
   retry: { fontWeight: "600", textDecorationLine: "underline" },
   stamp: { flexDirection: "row", alignItems: "center", gap: 4, height: 16, marginLeft: "auto" },

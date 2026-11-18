@@ -81,7 +81,8 @@ export const MessageText = memo(function MessageText({
             return (
               // biome-ignore lint/suspicious/noArrayIndexKey: the blocks of one text, in order
               <View key={i} style={styles.bullet}>
-                <Text variant={variant} tone="faint" style={[line, styles.mark, inked]} {...fit}>
+                {/* `muted`: a list's numbers are words, AA on every bubble's fill too. */}
+                <Text variant={variant} tone="muted" style={[line, styles.mark, inked]} {...fit}>
                   {b.ordinal ? `${b.ordinal}.` : "•"}
                 </Text>
                 <Text variant={variant} tone={tone} style={[line, styles.flex, inked]} {...fit}>

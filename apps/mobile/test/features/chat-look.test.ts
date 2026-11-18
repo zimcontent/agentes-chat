@@ -53,11 +53,55 @@ describe("the bubbles' colors", () => {
   });
 });
 
+describe("someone else's bubble", () => {
+  test("dark: a step past the glass, so it stands off the textured backdrop; light keeps the glass's step", () => {
+    const dark = appColors("dark");
+    expect(contrastOf(dark.bubbleTheirs, dark.bg)).toBeGreaterThan(contrastOf("#1A1A1A", dark.bg));
+    expect(appColors("light").bubbleTheirs).toBe(appColors("light").raised2);
+  });
+
+  test("its words, time and quiet words stay AA in both themes", () => {
+    for (const scheme of ["light", "dark"] as const) {
+      const c = appColors(scheme);
+      for (const ink of [c.ink, c.ink2, c.muted]) expect(contrastOf(ink, c.bubbleTheirs)).toBeGreaterThanOrEqual(4.5);
+    }
+  });
+
+  test("the quiet words inside a bubble take muted, not faint (under 4.5:1 on the dark fill)", async () => {
+    const dark = appColors("dark");
+    expect(contrastOf(dark.faint, dark.bubbleTheirs)).toBeLessThan(4.5);
+    const row = await read("chat/MessageRow.tsx");
+    expect(row).toContain('tone={inBubble ? "muted" : "faint"}');
+    expect(row).toContain("<HelpingTag consultation={helping} channelId={m.channelId} inBubble={inBubble} />");
+    expect(await read("chat/MessageText.tsx")).toContain(
+      '<Text variant={variant} tone="muted" style={[line, styles.mark, inked]}',
+    );
+  });
+
+  test("the words start under the name and never pass the bubble's edge", async () => {
+    const row = await read("chat/MessageRow.tsx");
+    expect(row).toContain('justifyContent: "flex-start",');
+    expect(row).not.toContain('justifyContent: "flex-end",\n    alignItems: "flex-end",\n    columnGap: 8');
+    expect(row).toContain('bubbleWords: { flexShrink: 1, minWidth: 0, maxWidth: "100%" },');
+    expect(row).toContain("<View style={styles.bubbleWords}>{words}</View>");
+  });
+});
+
 describe("the rows follow the same choice as the web", () => {
-  test("defaults: channels on the left, DMs in bubbles", () => {
-    expect(chatLookOf(undefined, false).style).toBe("left");
+  test("defaults: channels and DMs in bubbles; a person's own choice stays", () => {
+    expect(chatLookOf(undefined, false).style).toBe("bubbles");
+    expect(chatLookOf({}, false).style).toBe("bubbles");
     expect(chatLookOf(undefined, true).style).toBe("bubbles");
+    // Whoever picked another look keeps it, on the phone as on the web: never overridden.
+    expect(chatLookOf({ channelStyle: "left" }, false).style).toBe("left");
+    expect(chatLookOf({ channelStyle: "left" }, true).style).toBe("bubbles");
     expect(mineOnRight("left")).toBe(false);
+  });
+
+  test("the phone and the web read the same choice, through the same rule", async () => {
+    expect(await read("chat/look.ts")).toContain("chatLookOf(org?.chatPrefs, dm, isPersonal(org))");
+    const web = await Bun.file(new URL("../../../web/src/chat/look.ts", import.meta.url)).text();
+    expect(web).toContain("chatLookOf(org.chatPrefs, inDm, isPersonal(org))");
   });
 
   test("a personal workspace opens every conversation in bubbles; the person's choice wins (ADR 0159)", async () => {
@@ -117,7 +161,7 @@ describe("the rows follow the same choice as the web", () => {
     expect(await read("chat/QuoteLine.tsx")).toContain(
       "look.faces ? WORDS_START[look.style] : rowBodyInset(look).left",
     );
-    expect(await read("chat/ConsultGroup.tsx")).toContain("const inset = rowBodyInset(useRowLook());");
+    expect(await read("chat/ConsultGroup.tsx")).toContain("const inset = rowBodyInset(look);");
     expect(await read("chat/ChatScreen.tsx")).toContain("const quiet = quietInset(rowLook);");
     for (const file of [
       "chat/EventLine.tsx",

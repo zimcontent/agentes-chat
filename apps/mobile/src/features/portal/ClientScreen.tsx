@@ -365,7 +365,14 @@ const styles = StyleSheet.create({
   in: { paddingHorizontal: 16, paddingTop: 16, gap: 16 },
   intro: { paddingHorizontal: 16, paddingTop: 12 },
   // One row: the 28 mark, the name with its counts under it, "Agendar" at the end; 16 at the sides, 8 over and under.
-  head: { flexDirection: "row", alignItems: "center", gap: 10, paddingHorizontal: 16, paddingTop: 4, paddingBottom: 8 },
+  head: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    paddingHorizontal: 16,
+    paddingTop: 14,
+    paddingBottom: 12,
+  },
   headWords: { flex: 1, minWidth: 0 },
   headName: { fontWeight: "700" },
   headCounts: { flexDirection: "row", alignItems: "center", gap: 10, marginTop: 1 },

@@ -26,6 +26,7 @@ import { AgentAvatar } from "@/agent/AgentAvatar";
 import { useOrg } from "@/providers/org";
 import { GroupedHeader, GroupedList, GroupedRow, haptics, Icon, Segmented, Text, useTheme, useToast } from "@/ui";
 import {
+  BUBBLES_FACE,
   CHAT_TEXT,
   CHAT_TEXT_MAX_SCALE,
   chatNameOf,
@@ -107,7 +108,7 @@ function PreviewRow({ line, first, dm }: { line: Line; first: boolean; dm: boole
         )}
       </View>
     );
-  const faceSize = compact ? 18 : bubbled ? 30 : MSG_AVATAR;
+  const faceSize = compact ? 18 : bubbled ? BUBBLES_FACE : MSG_AVATAR;
   const face = line.mine ? (
     <Face who={{ type: "person", id: meId }} size={faceSize} live={false} />
   ) : (
@@ -630,7 +631,7 @@ const styles = StyleSheet.create({
   bubbleLine: {
     flexDirection: "row",
     flexWrap: "wrap",
-    justifyContent: "flex-end",
+    justifyContent: "flex-start",
     alignItems: "flex-end",
     columnGap: 8,
   },
