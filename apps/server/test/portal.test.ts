@@ -105,6 +105,7 @@ test("the overview counts each client's columns and the board puts every post in
       next: string | null;
       color: string | null;
       logo: string | null;
+      name: string | null;
     }[];
   };
   // The client with open work first; what is posted isn't open.
@@ -116,6 +117,7 @@ test("the overview counts each client's columns and the board puts every post in
     next: "2026-12-01T10:00:00-03:00",
     color: null,
     logo: null,
+    name: null,
   });
   expect(overview.clients[1]).toMatchObject({ open: 0, counts: { posted: 1 } });
 
@@ -600,6 +602,65 @@ test("a client's logo: stored here, named at the portal, served to members, and 
   expect((await api("/portal/clients/acme/logo", { method: "DELETE" })).status).toBe(204);
   expect(await logoOf()).toBeNull();
   expect((await owner(logo)).status).toBe(404);
+});
+
+test("a client's name and hiding are the team's: kept here, audited, out of every list until shown", async () => {
+  const portal = createFakeApprovalPortal({
+    items: [
+      item({ client: "teste-ajustes", id: "up-1", status: "approved" }),
+      item({ client: "acme", id: "up-2", status: "approved" }),
+    ],
+  });
+  const { api, owner, orgId } = await start(portal);
+  expect((await api("/portal/cards", { json: { client: "teste-ajustes", title: "Old test" } })).status).toBe(200);
+  type Overview = {
+    clients: { client: string; name: string | null }[];
+    hidden: { client: string; name: string | null }[];
+  };
+  const overview = async () => (await (await api("/portal")).json()) as Overview;
+  expect((await overview()).clients.map((c) => c.name)).toEqual([null, null]);
+
+  // A name, tidied; empty goes back to the slug's; too long is refused.
+  const named = await api("/portal/clients/acme/name", { method: "PUT", json: { name: "  ACME   Corp " } });
+  expect(await named.json()).toEqual({ name: "ACME Corp" });
+  expect((await overview()).clients.find((c) => c.client === "acme")?.name).toBe("ACME Corp");
+  expect((await api("/portal/clients/acme/name", { method: "PUT", json: { name: "x".repeat(61) } })).status).toBe(400);
+
+  // Hidden: out of the overview, the pipeline, what waits to be scheduled and each one's work.
+  expect((await api("/portal/clients/teste-ajustes/hidden", { method: "PUT", json: { hidden: true } })).status).toBe(
+    204,
+  );
+  const hiddenNow = await overview();
+  expect(hiddenNow.clients.map((c) => c.client)).toEqual(["acme"]);
+  expect(hiddenNow.hidden).toEqual([{ client: "teste-ajustes", name: null }]);
+  const pipeline = (await (await api("/portal/pipeline")).json()) as { entries: { client: string }[] };
+  expect(pipeline.entries.every((e) => e.client === "acme")).toBe(true);
+  const toSchedule = (await (await api("/portal/to-schedule")).json()) as { items: { client: string }[] };
+  expect(toSchedule.items.map((i) => i.client)).toEqual(["acme"]);
+  // Nothing changed at the portal.
+  expect((await portal.cards("teste-ajustes")).length).toBe(1);
+
+  // Shown again, everything comes back.
+  expect((await api("/portal/clients/teste-ajustes/hidden", { method: "PUT", json: { hidden: false } })).status).toBe(
+    204,
+  );
+  expect((await overview()).clients.map((c) => c.client).sort()).toEqual(["acme", "teste-ajustes"]);
+
+  const audit = (await (await api("/audit?kind=change")).json()) as { rows: { action: string }[] };
+  const actions = audit.rows.map((r) => r.action);
+  expect(actions).toContain("portal.client_renamed");
+  expect(actions).toContain("portal.client_hidden");
+  expect(actions).toContain("portal.client_shown");
+
+  // Another workspace's person can't touch it.
+  const other = browser(t);
+  await signUp(other, "stranger@example.com");
+  const stranger = await other(`/api/app/organizations/${orgId}/portal/clients/acme/name`, {
+    method: "PUT",
+    json: { name: "Mine" },
+  });
+  expect([403, 404]).toContain(stranger.status);
+  expect(owner).toBeDefined();
 });
 
 test("the portal is one workspace's: another on the same server doesn't see it, nor its clients", async () => {

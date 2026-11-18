@@ -45,6 +45,9 @@ export interface FakePortal {
   colors: Record<string, PortalClientColor>;
   /** Each client's logo: where it is read. */
   logos: Record<string, string>;
+  /** The name the team gave each client that has one, and the clients it hid (ADR 9001, addendum 2026-11-18). */
+  names: Record<string, string>;
+  hidden: Set<string>;
   /** The portal's own today (`YYYY-MM-DD`), which `mine` reads production dates against (default: this machine's). */
   day: string;
   jobs: Map<string, PortalJob>;
@@ -204,6 +207,8 @@ export function createFakePortal(
     labels: [],
     colors: {},
     logos: {},
+    names: {},
+    hidden: new Set(),
     day: `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`,
     jobs: new Map(),
     state: { stale: false, readAt: null, queued: 0 },
@@ -219,7 +224,10 @@ export function createFakePortal(
         const names = [
           ...new Set([...fake.clients, ...fake.cards.map((c) => c.client), ...fake.items.map((i) => i.client)]),
         ];
-        const clients = names.sort().map((client): PortalClientSummary => {
+        const clients = names
+          .sort()
+          .filter((client) => !fake.hidden.has(client))
+          .map((client): PortalClientSummary => {
           const counts = columnsOf(client);
           const dates = fake.items
             .filter((i) => i.client === client && i.status === "scheduled" && i.scheduledFor)
@@ -232,9 +240,11 @@ export function createFakePortal(
             next: dates[0] ?? null,
             color: fake.colors[client] ?? null,
             logo: fake.logos[client] ?? null,
+            name: fake.names[client] ?? null,
           };
         });
-        return clone({ clients, state: fake.state });
+        const hidden = [...fake.hidden].sort().map((client) => ({ client, name: fake.names[client] ?? null }));
+        return clone({ clients, hidden, state: fake.state });
       },
       board: async (_orgId, client) => {
         guard();
@@ -402,7 +412,8 @@ export function createFakePortal(
             link: i.link,
             updatedAt: 0,
           }));
-        return clone({ day: fake.day, state: fake.state, entries: [...fromCards, ...fromItems] });
+        const entries = [...fromCards, ...fromItems].filter((e) => !fake.hidden.has(e.client));
+        return clone({ day: fake.day, state: fake.state, entries });
       },
       tasks: async () => {
         guard();
@@ -481,6 +492,20 @@ export function createFakePortal(
         guard();
         if (color) fake.colors[client] = color;
         else delete fake.colors[client];
+      },
+      setClientName: async (orgId, client, name) => {
+        log("portal.setClientName", orgId, client, name);
+        guard();
+        const kept = name?.replace(/\s+/g, " ").trim() || null;
+        if (kept) fake.names[client] = kept;
+        else delete fake.names[client];
+        return { name: kept };
+      },
+      setClientHidden: async (orgId, client, hidden) => {
+        log("portal.setClientHidden", orgId, client, hidden);
+        guard();
+        if (hidden) fake.hidden.add(client);
+        else fake.hidden.delete(client);
       },
       setClientLogo: async (orgId, client, image) => {
         log("portal.setClientLogo", orgId, client, image?.contentType ?? null);

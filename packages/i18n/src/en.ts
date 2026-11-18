@@ -17144,6 +17144,15 @@ export const en = {
     change: {
       mergedWithoutAsking: "Merged in {{repo}} without asking",
       portalApprovedForClient: "Approved “{{title}}” for the client at the portal",
+      /** A change to how one of the approval portal's clients is known: {{client}} is its id. */
+      portalClient: {
+        renamed: "Renamed the client {{client}} at the portal",
+        hidden: "Removed the client {{client}} from the portal's lists",
+        shown: "Showed the client {{client}} again at the portal",
+        color: "Changed the client {{client}}'s colour at the portal",
+        logo: "Changed the client {{client}}'s logo at the portal",
+        logoRemoved: "Removed the client {{client}}'s logo at the portal",
+      },
       pattern: "{{verb}} {{area}}",
       approval: {
         approved: "Approved a request",
@@ -21473,6 +21482,25 @@ export const en = {
       remove: "Remove logo",
       saved: "Logo saved",
       removed: "Logo removed",
+    },
+    /**
+     * A client's name and its removal, kept on this side: the portal has no rename or delete for a client (ADR 9001,
+     * addendum 2026-11-18). Removing hides the client from every list; it comes back from "Hidden clients".
+     */
+    clientEdit: {
+      rename: "Rename client",
+      renameTitle: "Rename client",
+      /** {{id}}: the name the client's id reads as, what an empty name goes back to. */
+      renameHelp: "The name your team sees everywhere. Leave it empty to go back to “{{id}}”.",
+      name: "Name",
+      renamed: "Name saved",
+      hide: "Remove client",
+      hideTitle: "Remove “{{name}}”?",
+      hideText:
+        "It leaves every list and count here. Its posts and cards stay at the portal, and you can bring it back from Hidden clients.",
+      hidden: "“{{name}}” removed",
+      hiddenTitle: "Hidden clients",
+      show: "Show again",
     },
     /** The colour the team gives a client, so whose a card is reads at a glance. */
     clientColor: {
