@@ -78,6 +78,7 @@ import {
   RevisaoLista,
   RevisaoVideo,
 } from "./revisao";
+import { TarefasEquipe, TarefasEquipeAberta, TarefasEquipeVazia, TarefasMinhas } from "./tarefas";
 import { ConversaOpcoes, Tudo } from "./tudo";
 import { WhatsAppConversa, WhatsAppLista } from "./whatsapp";
 
@@ -1240,6 +1241,11 @@ export const TELAS: Record<string, () => ReactNode> = {
   "portal-agendar": PortalAgendar,
   "portal-agendar-post": PortalAgendarPost,
   "portal-postados-320": PortalCronogramaPostados320,
+  /** Tarefas opening on Equipe: who is doing what and what comes next; Minhas for who doesn't administer. */
+  "tarefas-equipe": TarefasEquipe,
+  "tarefas-equipe-aberta": TarefasEquipeAberta,
+  "tarefas-equipe-vazia": TarefasEquipeVazia,
+  "tarefas-minhas": TarefasMinhas,
   whatsapp: WhatsAppLista,
   "whatsapp-conversa": WhatsAppConversa,
   arquivos: Arquivos,
