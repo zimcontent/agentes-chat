@@ -7,7 +7,10 @@
 .data
 .claude
 coverage
-docs
+# docs/ stays out of the image, but the web app bundles the terms and privacy texts from docs/legal
+# (apps/web/src/legal/text.ts imports them with ?raw).
+docs/*
+!docs/legal
 deploy
 *.log
 # Backups as SELF_HOSTING.md takes them.
