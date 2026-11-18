@@ -764,7 +764,14 @@
       "confirmLead": "请稍候。",
       "confirmFailedTitle": "此链接未知或已过期",
       "confirmFailedLead": "请重新提交表单以获取新链接。",
-      "confirmAgain": "重新提交表单"
+      "confirmAgain": "重新提交表单",
+      "deleteTitle": "删除你的请求？",
+      "deleteLead": "这会删除该请求及其中的所有内容（包括同意），且无法恢复。如果你只想修改内容，请从邮件中重新提交表单。",
+      "deleteConfirm": "删除我的请求",
+      "deletedTitle": "请求已删除",
+      "deletedLead": "其中的一切都不在了。不再保留任何其他内容。",
+      "deleteFailedTitle": "此链接无法识别或已被使用",
+      "deleteFailedLead": "没有可用它删除的内容了，或者链接已过期。"
     },
     "interests": {
       "design": "设计",

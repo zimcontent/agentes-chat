@@ -405,6 +405,8 @@ export const EXTRA_COLUMNS = [
     "resend_token_hash" text,
     "resend_data" jsonb,
     "confirmed_updated_at" timestamp with time zone,
+    "delete_token_hash" text,
+    "delete_token_at" timestamp with time zone,
     "status" text NOT NULL DEFAULT 'new',
     "client_code" text,
     "notes" text NOT NULL DEFAULT '',
@@ -423,6 +425,9 @@ export const EXTRA_COLUMNS = [
   `ALTER TABLE "company_requests" ADD COLUMN IF NOT EXISTS "resend_token_hash" text`,
   `ALTER TABLE "company_requests" ADD COLUMN IF NOT EXISTS "resend_data" jsonb`,
   `ALTER TABLE "company_requests" ADD COLUMN IF NOT EXISTS "confirmed_updated_at" timestamp with time zone`,
+  // The delete link the confirmation email carries (the person's own erasure, apart from the team's token).
+  `ALTER TABLE "company_requests" ADD COLUMN IF NOT EXISTS "delete_token_hash" text`,
+  `ALTER TABLE "company_requests" ADD COLUMN IF NOT EXISTS "delete_token_at" timestamp with time zone`,
   // A request written before the confirmation existed counts as confirmed at its own date.
   `UPDATE "company_requests" SET "confirmed_at" = "created_at", "confirmed_updated_at" = "created_at"
      WHERE "confirmed_at" IS NULL`,
@@ -430,6 +435,8 @@ export const EXTRA_COLUMNS = [
   `CREATE UNIQUE INDEX IF NOT EXISTS "company_requests_client_code"
      ON "company_requests" ("client_code") WHERE "client_code" IS NOT NULL`,
   `CREATE UNIQUE INDEX IF NOT EXISTS "company_requests_confirm_token" ON "company_requests" ("confirm_token_hash")`,
+  `CREATE UNIQUE INDEX IF NOT EXISTS "company_requests_delete_token"
+     ON "company_requests" ("delete_token_hash") WHERE "delete_token_hash" IS NOT NULL`,
   `CREATE INDEX IF NOT EXISTS "company_requests_status" ON "company_requests" ("status", "created_at", "id")`,
   `CREATE INDEX IF NOT EXISTS "company_requests_created" ON "company_requests" ("created_at", "id")`,
   `CREATE INDEX IF NOT EXISTS "company_requests_retention" ON "company_requests" ("status", "updated_at")`,

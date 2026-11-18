@@ -778,7 +778,14 @@
       "confirmLead": "Bir saniye.",
       "confirmFailedTitle": "Bu bağlantı bilinmiyor ya da süresi dolmuş",
       "confirmFailedLead": "Yeni bir bağlantı için formu yeniden gönderin.",
-      "confirmAgain": "Formu yeniden gönder"
+      "confirmAgain": "Formu yeniden gönder",
+      "deleteTitle": "Talebinizi silmek istiyor musunuz?",
+      "deleteLead": "Bu, talebi ve içindeki her şeyi (rıza dahil) siler ve geri alınamaz. Yalnızca bir şeyleri değiştirmek istiyorsanız formu e-postanızdan yeniden gönderin.",
+      "deleteConfirm": "Talebimi sil",
+      "deletedTitle": "Talep silindi",
+      "deletedLead": "İçindeki her şey gitti. Başka bir şey saklanmıyor.",
+      "deleteFailedTitle": "Bu bağlantı bilinmiyor veya zaten kullanılmış",
+      "deleteFailedLead": "Onunla silinecek bir şey kalmadı ya da süresi doldu."
     },
     "interests": {
       "design": "Tasarım",

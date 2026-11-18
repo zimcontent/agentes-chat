@@ -194,7 +194,7 @@ This installation sends no usage report: sending is turned off by configuration 
 {{#if companyRequests}}
 This installation has a public form where a company asks to join the waiting list. The form collects the person's name, e-mail, WhatsApp, company, team size, interests and any note they write, and only counts with the consent given right there (Art. 7, I). The request is recorded only after the person confirms it from the e-mail they receive.
 
-The Provider is the controller of this data and uses it only to answer the request and arrange the contract. It is kept for {{companyRequestsRetentionDays}} days and then erased. Whoever sent it can delete the request at any time with the delete button in the confirmation e-mail, or ask the data protection officer ({{dpoEmailLink}}), and can withdraw consent the same way.
+The Provider is the controller of this data and uses it only to answer the request and arrange the contract. A request nobody confirms from the e-mail goes a few days after its link expires, never reaching the team. A confirmed request is kept for {{companyRequestsRetentionDays}} days with no activity and then erased, except one from a company the team invited or that became a client: that is the record of a relation that still stands. Whoever sent it can delete the request at any time with the delete link in the confirmation e-mail, which erases everything it holds, the consent included, or ask the data protection officer ({{dpoEmailLink}}), and can withdraw consent the same way.
 {{else}}
 This installation has no waiting-list form, and nothing is collected that way.
 {{/if}}

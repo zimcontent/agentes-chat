@@ -1,6 +1,7 @@
-# doug-0021: Companies ask for DougBot on the page, and the installation's owner keeps their requests
+# doug-0033: Companies ask for DougBot on the page, and the installation's owner keeps their requests
 
-Status: accepted. This instance's own. 2026-11-18. Builds on ADR 0078 (early access) and ADR 0180.
+Status: accepted. This instance's own. 2026-11-18. Builds on ADR 0078 (early access) and ADR 0180. Revised 2026-11-18:
+the person's own delete link (point 8), the address's daily email wall (point 4) and the sweep's two clocks.
 
 ## Context
 
@@ -23,8 +24,9 @@ servers are not where an installation is sold from, and the page and its route a
    name, email and WhatsApp, the company and its team-size band, what they want to automate (design, video, ads,
    social media, code, finance, each a code), a free field, the page's language, the consent (when it was given and for
    which notice), the team's own step (`new`, `talking`, `invited`, `deployed`, `discarded`), its notes, and the
-   client's code (`064`) once the company becomes one. A second form from the same address is kept apart until its own
-   confirmation (point 3); the team's step, notes and code never move.
+   client's code (`064`) once the company becomes one, and its delete link's hash (`delete_token_hash`, point 8). A
+   second form from the same address is kept apart until its own confirmation (point 3); the team's step, notes and
+   code never move.
 2. **A consent is required, and it is the LGPD's.** The form's checkbox is a field of its own (`consent: true`); without
    it the request is refused (`consent_required`) and nothing is kept. The row stores when it was given and the
    version of the notice (`COMPANY_CONSENT_VERSION`), so a later change to what the form promises is told apart. A
@@ -39,11 +41,18 @@ servers are not where an installation is sold from, and the page and its route a
    resolved one (`pt-BR`, `es`…); any tag it falls back from is taken (`en-US` reads English, `es-MX` Spanish), and an
    unknown one reads English, never a 400.
 4. **The public form is this server's page, the same checks as the waiting list.** `POST /api/companies` and the page
-   at `/empresas` ("Quero o DougBot na minha empresa"); a rate limit per address and in total, and Cloudflare
-   Turnstile's bot check when the server has one, both wired as the waiting list's are (ADR 0075). The address is
-   checked with `z.email()` on both sides, so `a,victim@x.com` and `a@b.co?cc=x` are refused by the form and by the
-   server. Neither the route nor the page is registered on agentes.chat's own servers (`!isAgentesCloud`): there the
-   form does not exist.
+   at `/empresas` ("Quero o DougBot na minha empresa"); a rate limit per address (10 an hour) and **in total, 200 an
+   hour across the installation**, with Cloudflare Turnstile's bot check where the server has one, all wired as the
+   waiting list's are (ADR 0075). The bot check is required by the route when the server has one (`humanCheckRefusal`),
+   and it is asked *before* the global count is spent, so a refused bot never takes a slot from a real form; without
+   one — a self-hosted server with no Turnstile key — the limits alone are what stands. The address is checked with
+   `z.email()` on both sides, so `a,victim@x.com` and `a@b.co?cc=x` are refused by the form and by the server. One
+   address gets at most three confirmation emails a day, over every request of it, counted by the rate limiter
+   (`companyEmailLimitKey`), so a flood meets a wall before any row's own window lets another through. Neither the
+   route nor the page is registered on agentes.chat's own servers (`!isAgentesCloud`): there the form does not exist,
+   and `/empresas` answers as a page that is not found. The installation's client code (`DOUG_CLIENT_CODE`, three
+   digits, "064") is the same code a company's request keeps once it becomes a client (point 7): it names which
+   installation a request came from, the one address a page is served at.
 5. **The team's list is the installation's pinned owner, on a self-hosted server.** Settings › Company requests reads it
    (`GET /api/app/companies`, one by id), moves its steps, saves notes, keeps the client's code, deletes a request, and
    invites through early access. Moving a request on, or inviting it, resolves its notice in the owner's inbox
@@ -55,14 +64,29 @@ servers are not where an installation is sold from, and the page and its route a
    company's language, and moves the request to `invited` with who sent it. An address that already has an account is
    allowed at once (the account makes a workspace) instead of being sent a link; inviting again within the window sends
    nothing new. A server that sends no email refuses it (`early_access.no_email`).
-7. **The client's code is the company's alone.** Three digits (`064`), set once the company is a client, which its
-   deployment reads. A unique index over the non-null codes holds it in the database, so two requests racing for the
-   same code never both get it: the loser is a `409` (`client_code_taken`).
+7. **The client's code is the company's alone.** Three digits (`064`), the same format as the installation's own
+   code (`DOUG_CLIENT_CODE`), set once the company is a client, which its deployment reads. A unique index over the
+   non-null codes holds it in the database, so two requests racing for the same code never both get it: the loser is
+   a `409` (`client_code_taken`).
 8. **The LGPD's erasure and retention.** `DELETE /api/app/companies/{id}` erases a request and everything it holds,
-   the consent included, for a company that asks to be forgotten. A person deleting their account takes their own
-   request with them (`deleteAccount` deletes by the account's address). A request the team never made a client or
-   invited, and left alone for `COMPANY_REQUESTS_RETENTION_DAYS` (365 by default; 0 keeps it forever), is deleted by
-   the worker: a record is kept only while the relation it stands for is real.
+   the consent included, for a company that asks to be forgotten; a person deleting their account takes their own
+   request with them (`deleteAccount` deletes by the account's address). Every notice about an erased request goes
+   with it — `clearCompanyNotifications` deletes the inbox rows rather than resolving them, so nothing the notice said
+   about the company survives the request it stood for.
+   The person who filled the form erases it themselves: the confirmation email carries a **delete link of its own**
+   (`/empresas?delete=<token>`), with its own token, apart from the confirmation's, good for `COMPANY_DELETE_TTL_MS`
+   (400 days, longer than the confirmation's 48 hours since it is what takes the data away and the person may come
+   back to it months later), its hash alone in the row and spent once. The page it opens asks first, and its button
+   posts to `POST /api/companies/delete`, so a mail scanner that only fetches the link never deletes anything. A link
+   issued for more than its lifetime, or one the sweep has outlived, answers `invalid_token` and erases nothing.
+   The worker's sweep (`sweepCompanyRequests`) takes a request on two clocks. First, **a request nobody confirmed goes
+   once its link expired** (`COMPANY_CONFIRM_TTL_MS`, 48 hours) **plus a week** (`COMPANY_UNCONFIRMED_GRACE_MS`), at
+   whatever step the team had put it: nothing reaches the team before the address confirms (point 3), so a row like
+   that is not a relation yet, and the sweep clears it whatever its status. Second, a confirmed request the team never
+   made a client or invited, and left alone for `COMPANY_REQUESTS_RETENTION_DAYS` (365 by default, `min(1)`), is
+   deleted: a record is kept only while the relation it stands for is real. The default and the value read as given;
+   a retention of 0 promised nothing to erase, so the setting no longer takes it. On agentes.chat Cloud the form does
+   not exist, so `legalFacts` reports no retention there and the Privacy Policy's section 12 is left out, as it says.
 
 ## Consequences
 
@@ -72,6 +96,9 @@ servers are not where an installation is sold from, and the page and its route a
   guideline to the Privacy Policy page is in the report that goes with this change.
 - The confirmation, the resend and the owner's notice are the repo's emails (`company_request_confirm`,
   `company_request_resend`, `company_request_owner`), in pt-BR and English; the other languages fall back to English,
-  as every email does.
+  as every email does. The confirmation's carries two links (confirm and delete), and the delete one is reissued with
+  every confirmation email, so only the latest works.
+- Two columns are added to `company_requests` by `EXTRA_COLUMNS`, outside the numbered migrations: `delete_token_hash`
+  and `delete_token_at`, with a partial unique index over the non-null hashes.
 - The client's code lives on the request; the deployment side reads it from there when it installs the company. Wiring
   that last step is the installer's, not this list's.

@@ -29,6 +29,19 @@ export async function requireUserIn(context: RouterContext, href: string, orgId:
  * this server's own `/termos` or `/privacidade` (the default for a server that names its company, `LEGAL_COMPANY_NAME`)
  * they are DougBot's documents (`own`); and with no page set, there is none (`none`), as before.
  */
+/**
+ * `/empresas`, the company request form: self-hosting's alone (ADR doug-0033). On agentes.chat Cloud the server serves
+ * no route (`registerCompanyRequests`) and no list, so the page is not offered either: it answers `false` there and the
+ * route reads it as a page that does not exist, the same on every other server that shows it.
+ */
+export async function showsCompanyRequests(context: RouterContext): Promise<boolean> {
+  const [instance, config] = await Promise.all([
+    context.queryClient.ensureQueryData(instanceQuery(context.api)),
+    context.queryClient.ensureQueryData(authConfigQuery(context.api)),
+  ]);
+  return !instance.cloud && !config.cloud;
+}
+
 export async function legalPage(context: RouterContext, kind: LegalKind): Promise<"cloud" | "own" | "none"> {
   const [instance, config] = await Promise.all([
     context.queryClient.ensureQueryData(instanceQuery(context.api)),

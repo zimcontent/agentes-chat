@@ -386,7 +386,8 @@ export function startWorkers(deps: WorkerDeps) {
     }
   });
 
-  // The LGPD's retention of the page's company requests: the ones the team never invited or made a client.
+  // The LGPD's retention of the page's company requests: the ones the team never invited or made a client. The
+  // address' confirmation is part of it: a request nobody confirmed goes once its link has expired.
   every("companyRequests", WORKER_INTERVALS_MS.companyRequests, async () => {
     const { swept } = await sweepCompanyRequests(db, deps.companyRequestsRetentionDays ?? 0);
     if (swept > 0) log.info("old company requests deleted", { swept });

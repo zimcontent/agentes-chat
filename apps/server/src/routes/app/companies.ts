@@ -1,13 +1,17 @@
 import {
   COMPANY_COMPANY_MAX,
   COMPANY_INTERESTS,
+  COMPANY_MAX_EMAILS_PER_ADDRESS_DAY,
   COMPANY_MESSAGE_MAX,
   COMPANY_NAME_MAX,
   COMPANY_STATUSES,
   COMPANY_TEAM_SIZES,
+  companyEmailLimitKey,
   companyRequestById,
+  companyRequestEmail,
   confirmCompanyRequest,
   deleteCompanyRequest,
+  deleteCompanyRequestByToken,
   EARLY_ACCESS_OUTCOMES,
   inviteCompanyRequest,
   isAgentesCloud,
@@ -43,6 +47,8 @@ const JOIN_TOTAL = { limit: 200, windowMs: 3600_000 };
 const CONFIRM_PER_IP = { limit: 30, windowMs: 3600_000 };
 /** The team's own reads and writes through this route. */
 const ADMIN_WRITES = { limit: 60, windowMs: 60_000 };
+/** A few emails an address a day, over every form and resend of it: one flood meets a wall, not a row's window. */
+const ADDRESS_EMAILS = { limit: COMPANY_MAX_EMAILS_PER_ADDRESS_DAY, windowMs: 24 * 3600_000 };
 
 const TeamSize = z.enum(COMPANY_TEAM_SIZES).openapi("CompanyTeamSize", {
   description: "A size band: `1-5`, `6-20`, `21-50`, `51-200`, `200+`.",
@@ -159,10 +165,35 @@ const confirm = createRoute({
   },
 });
 
+const erase = createRoute({
+  method: "post",
+  path: "/companies/delete",
+  tags: ["Public"],
+  summary: "Erase a company's request from its own delete link",
+  description:
+    "Public, from the page the delete link in the confirmation email opens (POST, so a mail scanner that only fetches the link deletes nothing). The link is the person's own token, good for longer than the confirmation's and spent once: it erases the request and everything it holds, the consent included, and every notice about it. An unknown or expired link (`invalid_token`) erases nothing. Not served on agentes.chat's own servers (404).",
+  request: {
+    body: {
+      required: true,
+      content: { "application/json": { schema: z.object({ token: z.string().max(64) }) } },
+    },
+  },
+  responses: {
+    200: {
+      description: "Erased",
+      content: { "application/json": { schema: z.object({ ok: z.literal(true) }) } },
+    },
+    400: errorResponse("Unknown or expired link (`invalid_token`) or bad body (`invalid_request`)"),
+    403: errorResponse("Not from our origin (`bad_origin`)"),
+    404: errorResponse("agentes.chat's own servers (`not_found`): the form is self-hosting's."),
+    429: errorResponse("Too many attempts (`rate_limited`)"),
+  },
+});
+
 /**
- * `POST /api/companies` and `/api/companies/confirm` (the public page), and from the apps the installation's list of
- * requests: `GET /api/app/companies` and one by id, with the team's moves (its step, its notes, its client's code),
- * the Delete that erases it and the Invite that sends it the early-access link.
+ * `POST /api/companies`, `/api/companies/confirm` and `/api/companies/delete` (the public page), and from the apps
+ * the installation's list of requests: `GET /api/app/companies` and one by id, with the team's moves (its step, its
+ * notes, its client's code), the Delete that erases it and the Invite that sends it the early-access link.
  *
  * The public part is self-hosting's alone: agentes.chat's own servers register no route and serve no page, so a
  * company that asks there finds nothing (`registerCompanyRequests` answers nothing when `isAgentesCloud`).
@@ -186,6 +217,13 @@ export function registerCompanyRequests(api: OpenAPIHono, deps: AppDeps) {
     const input = c.req.valid("json");
     if (!(await rateLimiter.consume("company-request:all", JOIN_TOTAL)).allowed)
       return apiError(c, 429, "rate_limited", "Too many requests. Try again later.");
+    // One address a few emails a day, whichever form or resend asks: the count spans every request of it, so a flood
+    // meets a wall even across several requests. Checked on the address as it will be stored, before any email goes;
+    // a form that still lands (a confirmed request's resend keeps apart) has spent one. The answer is the same either
+    // way, since the list is never probed, so a refused send is a 202 that mails nothing (like the row's own window).
+    const email = companyRequestEmail(input.email);
+    if (email && !(await rateLimiter.consume(companyEmailLimitKey(email), ADDRESS_EMAILS)).allowed)
+      return c.json({ ok: true as const }, 202);
     const ownerUserId = await pinnedOwner(deps.db);
     await joinCompanyRequests(deps.db, input, notifyOf(deps, ownerUserId));
     return c.json({ ok: true as const }, 202);
@@ -205,6 +243,19 @@ export function registerCompanyRequests(api: OpenAPIHono, deps: AppDeps) {
     return c.json({ ok: true as const }, 200);
   });
 
+  api.openapi(erase, async (c) => {
+    const origin = c.req.header("origin");
+    if (!origin || !allowedOrigins(config).has(origin))
+      return apiError(c, 403, "bad_origin", "Cross-origin request refused");
+    const ip = requestLimitIp(c.req.raw.headers, config.TRUSTED_PROXIES);
+    if (!(await rateLimiter.consume(`company-request-delete:${ip}`, CONFIRM_PER_IP)).allowed)
+      return apiError(c, 429, "rate_limited", "Too many requests. Try again later.");
+    const erased = await deleteCompanyRequestByToken(deps.db, c.req.valid("json").token);
+    if (!erased)
+      return apiError(c, 400, "invalid_token", "This link is unknown or expired. The request is already gone.");
+    return c.json({ ok: true as const }, 200);
+  });
+
   return api;
 }
 
@@ -219,7 +270,7 @@ const notifyOf = (deps: AppDeps, ownerUserId: string | null) => ({
 const Count = z.number().int().min(0);
 
 /**
- * The team's list of company requests, in Settings ("Empresas"), for the installation's pinned owner (ADR doug-0021):
+ * The team's list of company requests, in Settings ("Empresas"), for the installation's pinned owner (ADR doug-0033):
  * the requests, filtered and searched, each moved through its step, given notes and its client's code, deleted, and
  * invited through early access. A server without email refuses the Invite. The routes answer 404 to everyone else and
  * on agentes.chat itself, and live under `/api/app/companies`; the public form alone is `/api/companies`.

@@ -792,7 +792,14 @@
       "confirmLead": "Un momento.",
       "confirmFailedTitle": "Este enlace es desconocido o caducó",
       "confirmFailedLead": "Envía el formulario de nuevo para recibir otro enlace.",
-      "confirmAgain": "Enviar el formulario de nuevo"
+      "confirmAgain": "Enviar el formulario de nuevo",
+      "deleteTitle": "¿Eliminar tu solicitud?",
+      "deleteLead": "Esto elimina la solicitud y todo lo que guarda, incluido el consentimiento, y no se puede deshacer. Si solo querías cambiar algo, envía el formulario de nuevo desde tu correo.",
+      "deleteConfirm": "Eliminar mi solicitud",
+      "deletedTitle": "Solicitud eliminada",
+      "deletedLead": "Todo lo que guardaba se ha ido. No se guarda nada más.",
+      "deleteFailedTitle": "Este enlace es desconocido o ya se usó",
+      "deleteFailedLead": "No queda nada que eliminar con él, o ha caducado."
     },
     "interests": {
       "design": "Diseño",

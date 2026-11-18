@@ -778,7 +778,14 @@
       "confirmLead": "Een moment.",
       "confirmFailedTitle": "Deze link is onbekend of verlopen",
       "confirmFailedLead": "Stuur het formulier opnieuw om een nieuwe link te krijgen.",
-      "confirmAgain": "Formulier opnieuw sturen"
+      "confirmAgain": "Formulier opnieuw sturen",
+      "deleteTitle": "Je aanvraag verwijderen?",
+      "deleteLead": "Dit verwijdert de aanvraag en alles wat erin staat, de toestemming inbegrepen, en het kan niet ongedaan worden gemaakt. Wilde je alleen iets wijzigen, stuur het formulier dan opnieuw vanuit je e-mail.",
+      "deleteConfirm": "Mijn aanvraag verwijderen",
+      "deletedTitle": "Aanvraag verwijderd",
+      "deletedLead": "Alles wat erin stond is weg. Er wordt niets anders bewaard.",
+      "deleteFailedTitle": "Deze link is onbekend of al gebruikt",
+      "deleteFailedLead": "Er valt niets meer mee te verwijderen, of hij is verlopen."
     },
     "interests": {
       "design": "Design",

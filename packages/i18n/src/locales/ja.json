@@ -764,7 +764,14 @@
       "confirmLead": "少々お待ちください。",
       "confirmFailedTitle": "このリンクは不明か期限切れです",
       "confirmFailedLead": "新しいリンクを受け取るには、フォームをもう一度送信してください。",
-      "confirmAgain": "フォームを再送信"
+      "confirmAgain": "フォームを再送信",
+      "deleteTitle": "リクエストを削除しますか？",
+      "deleteLead": "リクエストとその内容すべて（同意を含む）を削除します。元には戻せません。変更だけが目的なら、メールからフォームを送り直してください。",
+      "deleteConfirm": "リクエストを削除",
+      "deletedTitle": "リクエストを削除しました",
+      "deletedLead": "内容はすべて消えました。ほかに何も保存されていません。",
+      "deleteFailedTitle": "このリンクは不明か、すでに使われています",
+      "deleteFailedLead": "削除できるものが残っていないか、期限が切れています。"
     },
     "interests": {
       "design": "デザイン",

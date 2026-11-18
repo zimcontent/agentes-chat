@@ -792,7 +792,14 @@
       "confirmLead": "Un momento.",
       "confirmFailedTitle": "Questo link è sconosciuto o scaduto",
       "confirmFailedLead": "Invia di nuovo il modulo per ricevere un nuovo link.",
-      "confirmAgain": "Invia di nuovo il modulo"
+      "confirmAgain": "Invia di nuovo il modulo",
+      "deleteTitle": "Eliminare la tua richiesta?",
+      "deleteLead": "Questo elimina la richiesta e tutto ciò che contiene, consenso compreso, e non si può annullare. Se volevi solo modificare qualcosa, invia di nuovo il modulo dalla tua e-mail.",
+      "deleteConfirm": "Elimina la mia richiesta",
+      "deletedTitle": "Richiesta eliminata",
+      "deletedLead": "Tutto ciò che conteneva è sparito. Non si conserva altro.",
+      "deleteFailedTitle": "Questo link è sconosciuto o già usato",
+      "deleteFailedLead": "Non resta nulla da eliminare con esso, oppure è scaduto."
     },
     "interests": {
       "design": "Design",

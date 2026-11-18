@@ -22,7 +22,8 @@ import { decodeCursor, encodeCursor } from "./cursor";
 import { type EarlyAccessOutcome, inviteEarlyAccess } from "./early-access";
 import { type EmailLocale, emailLocale, queueEmail } from "./email";
 import { ConflictError, isUniqueViolation, NotFoundError, ValidationError } from "./errors";
-import { notify, resolveNotifications } from "./notifications";
+import { clearCompanyNotifications, notify, resolveNotifications } from "./notifications";
+import { pinnedOwner } from "./organizations";
 
 /**
  * Companies that asked for DougBot on the installation's public page ("Quero o DougBot na minha empresa"), and the
@@ -54,13 +55,30 @@ export const COMPANY_NAME_MAX = 120;
 export const COMPANY_COMPANY_MAX = 120;
 export const COMPANY_NOTES_MAX = 4000;
 
-/** A confirmation email waits this long after the previous one, and one address gets at most this many. */
+/** A confirmation email waits this long after the previous one, and one request gets at most this many in that window. */
 export const COMPANY_RESEND_AFTER_MS = 2 * 60_000;
 export const COMPANY_MAX_SENDS = 5;
+/** The window `COMPANY_MAX_SENDS` counts in: a request gets at most that many confirmation emails a day. */
+export const COMPANY_SENDS_WINDOW_MS = 24 * 3600_000;
+/**
+ * Emails one *address* gets in a day, over every request of it: the confirmations and a second form's resends share
+ * it, so a flood meets a wall before any row's own window lets another through. Counted by the rate limiter, in the
+ * public routes (`companyEmailLimitKey`), which also keeps it across replicas.
+ */
+export const COMPANY_MAX_EMAILS_PER_ADDRESS_DAY = 3;
 /** A confirmation link works this long. */
 export const COMPANY_CONFIRM_TTL_MS = 48 * 3600_000;
+/** A week past its expired link, an unconfirmed request the sweep deletes: an address that comes back late keeps hope. */
+export const COMPANY_UNCONFIRMED_GRACE_MS = 7 * 24 * 3600_000;
+/**
+ * The delete link works this long: longer than the confirmation's, since it is what erases what was collected, and the
+ * person may come back to it months later. A request the sweep deletes answers its link the same as gone.
+ */
+export const COMPANY_DELETE_TTL_MS = 400 * 24 * 3600_000;
 /** What `randomToken()` makes: base64url, 32 characters for 24 bytes. */
 export const COMPANY_TOKEN = /^[A-Za-z0-9_-]{32}$/;
+/** The rate limit key of one address's confirmation emails (`RateLimiter.consume`): counted by the public routes. */
+export const companyEmailLimitKey = (email: string) => `company-request-addr:${email}`;
 
 /** Digits, spaces and `+ ( ) . -`: E.164 (`+5511912345678`) or a number as typed. */
 const PHONE = /^[\d\s()+.-]{8,40}$/;
@@ -153,6 +171,13 @@ const confirmUrl = (notify: CompanyNotify | null, token: string) =>
   `${(notify?.publicUrl ?? process.env.PUBLIC_URL ?? "").replace(/\/+$/, "")}/empresas?confirm=${token}`;
 
 /**
+ * The page a delete link opens: the same public page with `?delete=`, which asks before erasing (its button posts to
+ * `/api/companies/delete`, so a mail scanner that only fetches the URL deletes nothing).
+ */
+const deleteUrl = (notify: CompanyNotify | null, token: string) =>
+  `${(notify?.publicUrl ?? process.env.PUBLIC_URL ?? "").replace(/\/+$/, "")}/empresas?delete=${token}`;
+
+/**
  * Writes a company's request, or, when the address already asked, asks its owner to confirm what a second form
  * changes. A new request is `unconfirmed` until the link in its confirmation email is opened: the owner hears of it
  * then, never before, so an address that isn't the sender's plants nothing. A confirmed request's second form leaves
@@ -171,6 +196,7 @@ export async function joinCompanyRequests(
   if (!email) throw new ValidationError("Use um e-mail como nome@empresa.com", "invalid_email");
   const form = checkedForm(input);
   const token = randomToken();
+  const deleteToken = randomToken();
 
   return db.transaction(async (tx) => {
     const [entry] = await tx
@@ -184,6 +210,10 @@ export async function joinCompanyRequests(
         confirmTokenHash: sha256(token),
         confirmSentAt: now,
         confirmSends: 1,
+        // The one link that erases it is the person's own, and this is the only moment its token exists in clear: the
+        // row keeps its hash, the email carries it.
+        deleteTokenHash: sha256(deleteToken),
+        deleteTokenAt: now,
         createdAt: now,
         updatedAt: now,
       })
@@ -192,13 +222,14 @@ export async function joinCompanyRequests(
     if (entry) {
       await queueEmail(tx, {
         orgId: null,
-        key: `company-request-confirm:${entry.id}:1`,
+        key: `company-request-confirm:${entry.id}:${now.getTime()}`,
         to: [email],
         template: {
           kind: "company_request_confirm",
           locale: emailLocale(form.locale),
           company: form.company,
           url: confirmUrl(notifyOwner, token),
+          deleteUrl: deleteUrl(notifyOwner, deleteToken),
         },
       });
       return { added: true, id: entry.id };
@@ -207,20 +238,25 @@ export async function joinCompanyRequests(
     // The address went as the insert ran: the form is tried again, and answers like any other refusal.
     if (!row) throw new Error("company request vanished between insert and update");
     if (!row.confirmedAt) {
-      // Not confirmed yet: the form again replaces what it carried and gets a link of its own, rate-limited.
-      const sends = await claimConfirmSend(tx, row.id, now, token);
-      if (sends)
-        await queueEmail(tx, {
-          orgId: null,
-          key: `company-request-confirm:${row.id}:${sends}`,
-          to: [email],
-          template: {
-            kind: "company_request_confirm",
-            locale: emailLocale(form.locale),
-            company: form.company,
-            url: confirmUrl(notifyOwner, token),
-          },
-        });
+      // Not confirmed yet: the form again replaces what it carried and gets a link of its own, but only when the
+      // claim is taken. A refused claim (too soon, or the day's emails spent) changes nothing at all: the data that
+      // stands and the link that works stay as they were, so a second sender never overwrites a row it may not mail.
+      const claimed = await claimConfirmSend(tx, row.id, now, token, deleteToken);
+      if (!claimed) return { added: false, id: row.id };
+      await queueEmail(tx, {
+        orgId: null,
+        // Keyed by the moment, as a resend is: the send's number restarts with each day's window, so it alone would
+        // collide with the first email's and the outbox would hold the second back.
+        key: `company-request-confirm:${row.id}:${now.getTime()}`,
+        to: [email],
+        template: {
+          kind: "company_request_confirm",
+          locale: emailLocale(form.locale),
+          company: form.company,
+          url: confirmUrl(notifyOwner, token),
+          deleteUrl: deleteUrl(notifyOwner, deleteToken),
+        },
+      });
       await tx
         .update(companyRequests)
         .set({ ...form, updatedAt: now })
@@ -228,7 +264,8 @@ export async function joinCompanyRequests(
       return { added: false, id: row.id };
     }
     // Confirmed already: the form is kept apart, and only applies once its own link is opened.
-    const claimed = await claimResend(tx, row.id, now, token);
+    const resendToken = randomToken();
+    const claimed = await claimResend(tx, row.id, now, resendToken);
     if (claimed) {
       await tx
         .update(companyRequests)
@@ -242,7 +279,7 @@ export async function joinCompanyRequests(
           kind: "company_request_resend",
           locale: emailLocale(form.locale),
           company: form.company,
-          url: confirmUrl(notifyOwner, token),
+          url: confirmUrl(notifyOwner, resendToken),
         },
       });
     }
@@ -251,30 +288,43 @@ export async function joinCompanyRequests(
 }
 
 /**
- * Claims the right to send a confirmation email now: one per `COMPANY_RESEND_AFTER_MS`, at most `COMPANY_MAX_SENDS`.
- * Answers the send's number, or null when it may not go.
+ * Claims the right to send a confirmation email now: one per `COMPANY_RESEND_AFTER_MS`, and at most
+ * `COMPANY_MAX_SENDS` in a `COMPANY_SENDS_WINDOW_MS` day (the window restarts when a send a day or more after the
+ * previous one comes). The token of the email being sent, and that of its delete link, go in with the claim, so the
+ * link the email carries is the one that works and the previous one stops working. Answers the send's number, or null
+ * when the claim is refused (too soon, or the day's sends spent), in which case the caller changes nothing.
  */
-async function claimConfirmSend(tx: Executor, id: string, now: Date, token: string): Promise<number | null> {
+async function claimConfirmSend(
+  tx: Executor,
+  id: string,
+  now: Date,
+  token: string,
+  deleteToken: string,
+): Promise<{ sends: number } | null> {
+  const restart = or(
+    isNull(companyRequests.confirmSentAt),
+    lt(companyRequests.confirmSentAt, new Date(now.getTime() - COMPANY_SENDS_WINDOW_MS)),
+  );
   const [claimed] = await tx
     .update(companyRequests)
     .set({
       confirmTokenHash: sha256(token),
       confirmSentAt: now,
-      confirmSends: sql`${companyRequests.confirmSends} + 1`,
+      confirmSends: sql`case when ${restart} then 1 else ${companyRequests.confirmSends} + 1 end`,
+      deleteTokenHash: sha256(deleteToken),
+      deleteTokenAt: now,
     })
     .where(
       and(
         eq(companyRequests.id, id),
         isNull(companyRequests.confirmedAt),
-        lt(companyRequests.confirmSends, COMPANY_MAX_SENDS),
-        or(
-          isNull(companyRequests.confirmSentAt),
-          lt(companyRequests.confirmSentAt, new Date(now.getTime() - COMPANY_RESEND_AFTER_MS)),
-        ),
+        or(restart, lt(companyRequests.confirmSends, COMPANY_MAX_SENDS)),
+        // A row with no send yet (an old one) may send at once; the window only spaces out what came before.
+        lt(companyRequests.confirmSentAt, new Date(now.getTime() - COMPANY_RESEND_AFTER_MS)),
       ),
     )
     .returning({ sends: companyRequests.confirmSends });
-  return claimed ? claimed.sends : null;
+  return claimed ? { sends: claimed.sends } : null;
 }
 
 /** Claims a resend: one at a time, and never sooner than the previous one. */
@@ -601,10 +651,16 @@ export async function setCompanyStatus(db: Database, id: string, status: Company
   return companyRequestById(db, id);
 }
 
-/** The owner's notice of a request is done, wherever it lives (the team answered it by moving it on). */
+/**
+ * The owner's notice of a request is done (the team answered it by moving it on). The notice lives in the owner's
+ * oldest workspace alone (`announceCompanyRequest` puts it there), so only that workspace is swept: a second workspace
+ * of the owner's, or any other, never held a row for it.
+ */
 async function resolveOwnerNotice(db: Database, id: string): Promise<void> {
-  const orgs = await db.select({ id: schema.organizations.id }).from(schema.organizations);
-  for (const org of orgs) await resolveNotifications({ db }, org.id, { groupKey: `company_request:${id}` });
+  const owner = await pinnedOwner(db);
+  if (!owner) return;
+  const orgId = await ownerOrgId(db, owner);
+  if (orgId) await resolveNotifications({ db }, orgId, { groupKey: `company_request:${id}` });
 }
 
 /** Saves the team's notes about a company. */
@@ -642,14 +698,42 @@ export async function setCompanyClientCode(db: Database, id: string, code: strin
   return companyRequestById(db, id);
 }
 
-/** Deletes a request for good (the team's "Apagar", and the LGPD's right to erasure): everything it holds goes. */
+/**
+ * Deletes a request for good (the team's "Apagar", and the LGPD's right to erasure): everything it holds goes, and
+ * so does every notice about it, erased rather than resolved.
+ */
 export async function deleteCompanyRequest(db: Database, id: string): Promise<void> {
   const [row] = await db
     .delete(companyRequests)
     .where(eq(companyRequests.id, id))
     .returning({ id: companyRequests.id });
   if (!row) throw new NotFoundError("Nenhuma inscrição com este id");
+  await clearCompanyNotifications({ db }, [id]).catch((error) => logFailure("delete notices", error));
   await resolveOwnerNotice(db, id).catch((error) => logFailure("delete resolve", error));
+}
+
+/**
+ * The person who filled the form erases it themselves, with the delete link its confirmation email carries. The link
+ * is its own token, good for `COMPANY_DELETE_TTL_MS`, spent once. An unknown or expired token erases nothing and
+ * answers `false`; a request the retention sweep already took is gone, and reads as erased.
+ */
+export async function deleteCompanyRequestByToken(db: Database, token: string, now = new Date()): Promise<boolean> {
+  if (!COMPANY_TOKEN.test(token)) return false;
+  const hash = sha256(token);
+  const [row] = await db
+    .delete(companyRequests)
+    .where(
+      and(
+        eq(companyRequests.deleteTokenHash, hash),
+        isNotNull(companyRequests.deleteTokenAt),
+        // A link issued for more than its lifetime answers the same as an unknown one.
+        sql`${companyRequests.deleteTokenAt} > ${new Date(now.getTime() - COMPANY_DELETE_TTL_MS)}`,
+      ),
+    )
+    .returning({ id: companyRequests.id });
+  if (!row) return false;
+  await clearCompanyNotifications({ db }, [row.id]).catch((error) => logFailure("delete notices", error));
+  return true;
 }
 
 /** Deletes every request an address left (a person deleting their account), quietly: nothing to answer. */
@@ -660,22 +744,54 @@ export async function deleteCompanyRequestsByEmail(db: Executor, emails: readonl
     .delete(companyRequests)
     .where(inArray(companyRequests.email, wanted))
     .returning({ id: companyRequests.id });
+  await clearCompanyNotifications(
+    { db },
+    rows.map((r) => r.id),
+  ).catch((error) => logFailure("delete notices", error));
   return rows.length;
 }
 
 /**
  * Deletes the requests the team never acted on, past their retention: the ones still `new`, `talking` or `discarded`
  * that nothing touched for `days` (LGPD). An invitation or a client is kept: it is the record of a relation that
- * still stands. Job `company_requests.sweep`, and run directly by the tests.
+ * still stands. A request whose address never confirmed it goes as soon as its link has expired (the confirmation
+ * after `COMPANY_CONFIRM_TTL_MS`, plus a week's grace for anyone who comes back to it): nothing reaches the team
+ * before the address confirms, so a row like that is not a relation yet. Job `company_requests.sweep`, and run
+ * directly by the tests.
  */
 export async function sweepCompanyRequests(db: Database, days: number, now = new Date()): Promise<{ swept: number }> {
-  if (days <= 0) return { swept: 0 };
-  const cutoff = new Date(now.getTime() - days * 24 * 3600_000);
-  const rows = await db
-    .delete(companyRequests)
-    .where(and(inArray(companyRequests.status, [...SWEPT_STATUSES]), lt(companyRequests.updatedAt, cutoff)))
-    .returning({ id: companyRequests.id });
-  return { swept: rows.length };
+  // The unconfirmed go past their link's expiry whether or not a retention is set: they were never a request. A row
+  // always carries the moment its email was queued, so only a real link's expiry is what speaks; one without it is
+  // left for a person to look at, never deleted on a missing date.
+  const expired = new Date(now.getTime() - (COMPANY_CONFIRM_TTL_MS + COMPANY_UNCONFIRMED_GRACE_MS));
+  const gone: string[] = (
+    await db
+      .delete(companyRequests)
+      .where(
+        and(
+          isNull(companyRequests.confirmedAt),
+          isNotNull(companyRequests.confirmSentAt),
+          lt(companyRequests.confirmSentAt, expired),
+        ),
+      )
+      .returning({ id: companyRequests.id })
+  ).map((r) => r.id);
+  if (days > 0) {
+    const cutoff = new Date(now.getTime() - days * 24 * 3600_000);
+    const old = await db
+      .delete(companyRequests)
+      .where(
+        and(
+          inArray(companyRequests.status, [...SWEPT_STATUSES]),
+          isNotNull(companyRequests.confirmedAt),
+          lt(companyRequests.updatedAt, cutoff),
+        ),
+      )
+      .returning({ id: companyRequests.id });
+    gone.push(...old.map((r) => r.id));
+  }
+  await clearCompanyNotifications({ db }, gone).catch((error) => logFailure("sweep notices", error));
+  return { swept: gone.length };
 }
 
 export interface InviteCompanyResult {

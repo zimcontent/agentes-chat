@@ -778,7 +778,14 @@
       "confirmLead": "Einen Moment.",
       "confirmFailedTitle": "Dieser Link ist unbekannt oder abgelaufen",
       "confirmFailedLead": "Senden Sie das Formular erneut, um einen neuen Link zu erhalten.",
-      "confirmAgain": "Formular erneut senden"
+      "confirmAgain": "Formular erneut senden",
+      "deleteTitle": "Anfrage löschen?",
+      "deleteLead": "Das löscht die Anfrage und alles, was sie enthält, die Einwilligung eingeschlossen, und lässt sich nicht rückgängig machen. Wenn du nur etwas ändern wolltest, sende das Formular stattdessen erneut aus deiner E-Mail.",
+      "deleteConfirm": "Meine Anfrage löschen",
+      "deletedTitle": "Anfrage gelöscht",
+      "deletedLead": "Alles, was sie enthielt, ist weg. Sonst wird nichts aufbewahrt.",
+      "deleteFailedTitle": "Dieser Link ist unbekannt oder schon benutzt",
+      "deleteFailedLead": "Damit lässt sich nichts mehr löschen, oder er ist abgelaufen."
     },
     "interests": {
       "design": "Design",

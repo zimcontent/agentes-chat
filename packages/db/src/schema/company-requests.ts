@@ -72,6 +72,13 @@ export const companyRequests = pgTable(
     resendData: jsonb().$type<CompanyResend | null>(),
     /** When the data standing now was confirmed: the first form's, or a resend's. */
     confirmedUpdatedAt: timestamp({ withTimezone: true }),
+    /**
+     * The delete link its confirmation email carries: sha256 of the token (the token itself only ever in the email),
+     * and when it was made. Its own token, apart from the confirmation's: the two links do different things, and this
+     * one works for longer. The person who filled the form erases their own request with it, once.
+     */
+    deleteTokenHash: text(),
+    deleteTokenAt: timestamp({ withTimezone: true }),
     /** `new`, `talking`, `invited`, `deployed` (a client) or `discarded`, the team's own step (`REQUEST_STATUSES`). */
     status: text().notNull().default("new"),
     /**
@@ -92,6 +99,7 @@ export const companyRequests = pgTable(
     // Two companies never share the code their deployment reads (`064`).
     uniqueIndex("company_requests_client_code").on(t.clientCode).where(sql`${t.clientCode} is not null`),
     uniqueIndex("company_requests_confirm_token").on(t.confirmTokenHash),
+    uniqueIndex("company_requests_delete_token").on(t.deleteTokenHash).where(sql`${t.deleteTokenHash} is not null`),
     index("company_requests_status").on(t.status, t.createdAt, t.id),
     index("company_requests_created").on(t.createdAt, t.id),
     // The retention sweep (`sweepCompanyRequests`): the rows it may delete, by when they last moved.

@@ -3,6 +3,7 @@ import {
   and,
   type Database,
   desc,
+  type Executor,
   eq,
   gt,
   gte,
@@ -936,6 +937,29 @@ export async function clearIssueNotifications(deps: NotificationDeps, orgId: str
   for (const r of rows)
     await publishUserEvent(deps.pubsub, orgId, r.userId, { type: "notification.removed", id: r.id });
   for (const userId of new Set(rows.map((r) => r.userId))) await publishCounts(deps, orgId, userId);
+}
+
+/**
+ * A company's request is gone (the team deleted it, the person erased it, or the retention sweep took it): every
+ * notice about it goes with it, wherever it lives, live. Erased for good, never merely resolved: what the notice said
+ * about the company is not kept anywhere after the request it stood for. Named the company's request's own, apart from
+ * `clearChannelNotifications` and `clearIssueNotifications`, so a call site reads which one it means.
+ */
+export async function clearCompanyNotifications(
+  deps: { db: Executor; pubsub?: PubSub },
+  requestIds: readonly string[],
+) {
+  if (requestIds.length === 0) return;
+  const rows = await deps.db
+    .delete(notifications)
+    .where(inArray(sql`${notifications.source}->>'companyRequestId'`, [...requestIds]))
+    .returning({ id: notifications.id, orgId: notifications.orgId, userId: notifications.userId });
+  for (const r of rows)
+    await publishUserEvent(deps.pubsub, r.orgId, r.userId, { type: "notification.removed", id: r.id });
+  // A request lives in the owner's workspace alone, but each row is counted for whoever had one.
+  const people = new Map(rows.map((r) => [`${r.orgId}/${r.userId}`, r] as const));
+  for (const r of people.values())
+    await publishCounts({ db: deps.db as Database, pubsub: deps.pubsub }, r.orgId, r.userId);
 }
 
 /**

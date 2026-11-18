@@ -25,25 +25,42 @@ const PHONE = /^[\d\s()+.-]{8,40}$/;
 type FieldName = "name" | "company" | "email" | "whatsapp";
 const FIELD_ORDER: FieldName[] = ["name", "company", "email", "whatsapp"];
 
-type State = { step: "form" } | { step: "done" } | { step: "confirm" };
+type State =
+  | { step: "form" }
+  | { step: "done" }
+  | { step: "confirm" }
+  | { step: "delete" }
+  | { step: "deleted" }
+  | { step: "deleteFailed" };
 
 /**
  * "Quero o DougBot na minha empresa" (`/empresas`): the public form a company fills to ask for DougBot, with a
  * consent to the Privacy Policy and the bot check a public form gets. Answers nowhere in the app; the server keeps
  * the request for the team once the address confirms itself, and the team reads each one. `?confirm=<token>`, the
- * link its email carries, confirms it here (POST from this page, so a scanner that only fetches the link never does).
+ * link its email carries, confirms it here (POST from this page, so a scanner that only fetches the link never does);
+ * `?delete=<token>` is the person's own erasure, which this page asks about and erases on a POST, never on the open.
  */
 export function CompaniesPage() {
   const { t } = useTranslation();
-  const { confirm } = useSearch({ strict: false }) as { confirm?: string };
+  const { confirm, delete: deleteToken } = useSearch({ strict: false }) as { confirm?: string; delete?: string };
   useDocumentTitle(`${t("companies.page.title")} · DougBot`);
-  const [state, setState] = useState<State>(confirm ? { step: "confirm" } : { step: "form" });
+  const [state, setState] = useState<State>(
+    confirm ? { step: "confirm" } : deleteToken ? { step: "delete" } : { step: "form" },
+  );
 
   return (
     <AuthShell languages={false}>
       <div className="companies">
         {state.step === "confirm" && confirm ? (
           <ConfirmRequest token={confirm} onDone={() => setState({ step: "done" })} />
+        ) : state.step === "delete" && deleteToken ? (
+          <DeleteRequest
+            token={deleteToken}
+            onDeleted={() => setState({ step: "deleted" })}
+            onFailed={() => setState({ step: "deleteFailed" })}
+          />
+        ) : state.step === "deleted" || state.step === "deleteFailed" ? (
+          <DeleteOutcome failed={state.step === "deleteFailed"} onAgain={() => setState({ step: "form" })} />
         ) : (
           <>
             <header className="companies__head">
@@ -67,6 +84,67 @@ export function CompaniesPage() {
         )}
       </div>
     </AuthShell>
+  );
+}
+
+/**
+ * The delete link's page: it asks first, then erases on a POST to `/api/companies/delete` (a scanner that only fetches
+ * the link deletes nothing). An unknown or expired link says so, with a way back to the form.
+ */
+function DeleteRequest({ token, onDeleted, onFailed }: { token: string; onDeleted: () => void; onFailed: () => void }) {
+  const { t } = useTranslation();
+  const [pending, setPending] = useState(false);
+
+  const erase = async () => {
+    if (pending) return;
+    setPending(true);
+    try {
+      const res = await fetch("/api/companies/delete", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ token }),
+      });
+      if (res.ok) onDeleted();
+      else onFailed();
+    } catch {
+      onFailed();
+    } finally {
+      setPending(false);
+    }
+  };
+
+  return (
+    <>
+      <header className="companies__head">
+        <h1 className="auth__title">{t("companies.page.deleteTitle")}</h1>
+        <p className="auth__lead">{t("companies.page.deleteLead")}</p>
+      </header>
+      <div className="companies__done">
+        <Button variant="danger" onClick={erase} loading={pending} disabled={pending}>
+          {t("companies.page.deleteConfirm")}
+        </Button>
+      </div>
+    </>
+  );
+}
+
+/** What the delete link answered: erased, or a link that no longer works, with a way back to the form. */
+function DeleteOutcome({ failed, onAgain }: { failed: boolean; onAgain: () => void }) {
+  const { t } = useTranslation();
+  return (
+    <>
+      <header className="companies__head">
+        <h1 className="auth__title">
+          {failed ? t("companies.page.deleteFailedTitle") : t("companies.page.deletedTitle")}
+        </h1>
+        <p className="auth__lead">{failed ? t("companies.page.deleteFailedLead") : t("companies.page.deletedLead")}</p>
+      </header>
+      <div className="companies__done">
+        <Button variant="primary" onClick={onAgain}>
+          {t("companies.page.again")}
+        </Button>
+      </div>
+    </>
   );
 }
 

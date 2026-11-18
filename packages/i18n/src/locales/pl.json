@@ -806,7 +806,14 @@
       "confirmLead": "Chwileczkę.",
       "confirmFailedTitle": "Ten link jest nieznany lub wygasł",
       "confirmFailedLead": "Wyślij formularz ponownie, aby otrzymać nowy link.",
-      "confirmAgain": "Wyślij formularz ponownie"
+      "confirmAgain": "Wyślij formularz ponownie",
+      "deleteTitle": "Usunąć twoje zgłoszenie?",
+      "deleteLead": "To usuwa zgłoszenie i wszystko, co zawiera, łącznie ze zgodą, i nie da się tego cofnąć. Jeśli chciałeś tylko coś zmienić, wyślij formularz ponownie ze swojej wiadomości e-mail.",
+      "deleteConfirm": "Usuń moje zgłoszenie",
+      "deletedTitle": "Zgłoszenie usunięte",
+      "deletedLead": "Wszystko, co zawierało, przepadło. Nic więcej nie jest przechowywane.",
+      "deleteFailedTitle": "Ten link jest nieznany lub już użyty",
+      "deleteFailedLead": "Nie ma już czego nim usunąć albo wygasł."
     },
     "interests": {
       "design": "Design",

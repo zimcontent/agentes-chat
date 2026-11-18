@@ -2,12 +2,16 @@ import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import { type Database, eq, schema } from "@agenteschat/db";
 import { createTestDatabase } from "@agenteschat/db/testing";
 import {
+  COMPANY_CONFIRM_TTL_MS,
+  COMPANY_MAX_SENDS,
   COMPANY_MESSAGE_MAX,
   COMPANY_TOKEN,
+  COMPANY_UNCONFIRMED_GRACE_MS,
   companyRequestById,
   companyRequestEmail,
   confirmCompanyRequest,
   deleteCompanyRequest,
+  deleteCompanyRequestByToken,
   deleteCompanyRequestsByEmail,
   inviteCompanyRequest,
   joinCompanyRequests,
@@ -47,6 +51,17 @@ async function lastToken(db: Database, kind: "company_request_confirm" | "compan
     .map((t) => t?.url ?? "")
     .filter(Boolean);
   return new URL(urls.at(-1) ?? "https://x.test/empresas", "https://x.test").searchParams.get("confirm") ?? "";
+}
+
+/** The delete token of the latest confirmation email, as its own link carries it (its `?delete=`). */
+async function lastDeleteToken(db: Database): Promise<string> {
+  const jobs = await db.select().from(schema.outbox).where(eq(schema.outbox.kind, "email.send"));
+  const urls = jobs
+    .map((j) => (j.payload as { template?: { kind?: string; deleteUrl?: string } }).template)
+    .filter((t) => t?.kind === "company_request_confirm")
+    .map((t) => t?.deleteUrl ?? "")
+    .filter(Boolean);
+  return new URL(urls.at(-1) ?? "https://x.test/empresas", "https://x.test").searchParams.get("delete") ?? "";
 }
 
 describe("a company's request", () => {
@@ -130,13 +145,20 @@ describe("a company's request", () => {
   test("a second form before confirmation replaces what it carried and sends a new link, rate-limited", async () => {
     const now = new Date("2026-11-18T10:00:00Z");
     const first = await joinCompanyRequests(db, ANA, null, now);
-    // The same moment: no second email goes (the window).
+    // The same moment: the claim is refused (the window), and nothing changes at all, the data included.
     const again = await joinCompanyRequests(db, { ...ANA, company: "Aurora Bakery Ltda" }, null, now);
     expect(again).toEqual({ added: false, id: first.id });
     const mails = await db.select().from(schema.outbox).where(eq(schema.outbox.kind, "email.send"));
     expect(mails).toHaveLength(1);
-    // Its data still updates before confirmation.
+    expect((await companyRequestById(db, first.id)).company).toBe("Aurora Bakery");
+    // Past the window the claim goes, and the new data and a link of its own replace what stood, together.
+    const later = new Date(now.getTime() + 5 * 60_000);
+    expect(await joinCompanyRequests(db, { ...ANA, company: "Aurora Bakery Ltda" }, null, later)).toEqual({
+      added: false,
+      id: first.id,
+    });
     expect((await companyRequestById(db, first.id)).company).toBe("Aurora Bakery Ltda");
+    expect(await db.select().from(schema.outbox).where(eq(schema.outbox.kind, "email.send"))).toHaveLength(2);
   });
 
   test("the team's list pages, counts each step and finds a company, a person or an address", async () => {
@@ -221,6 +243,57 @@ describe("a company's request", () => {
     await expect(companyRequestById(db, id)).rejects.toMatchObject({ code: "not_found" });
   });
 
+  test("the person's own delete link erases the request, once, and an unknown or old one erases nothing", async () => {
+    const sent = new Date("2026-11-18T10:00:00Z");
+    await joinCompanyRequests(db, ANA, null, sent);
+    const token = await lastDeleteToken(db);
+    expect(COMPANY_TOKEN.test(token)).toBe(true);
+    // The team never deletes anything here: the link is the person's own. It erases, and spent once, answers false.
+    expect(await deleteCompanyRequestByToken(db, token, new Date(sent.getTime() + 3600_000))).toBe(true);
+    expect(await db.select().from(schema.companyRequests)).toEqual([]);
+    expect(await deleteCompanyRequestByToken(db, token)).toBe(false);
+    // An unknown token, and a malformed one, are refused.
+    expect(await deleteCompanyRequestByToken(db, "x".repeat(32))).toBe(false);
+    expect(await deleteCompanyRequestByToken(db, "short")).toBe(false);
+  });
+
+  test("the person's delete link has its own lifetime, longer than the confirmation's, and then stops", async () => {
+    const sent = new Date("2026-11-18T10:00:00Z");
+    await joinCompanyRequests(db, ANA, null, sent);
+    const token = await lastDeleteToken(db);
+    // A month on: the confirmation may be spent, but the delete link still works.
+    expect(await deleteCompanyRequestByToken(db, token, new Date(sent.getTime() + 30 * 24 * 3600_000))).toBe(true);
+  });
+
+  test("the person's delete link stops after its lifetime", async () => {
+    const { COMPANY_DELETE_TTL_MS } = await import("../src");
+    const sent = new Date("2026-11-18T10:00:00Z");
+    await joinCompanyRequests(db, ANA, null, sent);
+    const token = await lastDeleteToken(db);
+    expect(
+      await deleteCompanyRequestByToken(db, token, new Date(sent.getTime() + COMPANY_DELETE_TTL_MS + 3600_000)),
+    ).toBe(false);
+    expect(await db.select().from(schema.companyRequests)).toHaveLength(1);
+  });
+
+  test("a delete link stops working when a new confirmation email goes out for the same request", async () => {
+    const now = new Date("2026-11-18T10:00:00Z");
+    await joinCompanyRequests(db, ANA, null, now);
+    const first = await lastDeleteToken(db);
+    await joinCompanyRequests(
+      db,
+      { ...ANA, company: "Aurora Bakery Ltda" },
+      null,
+      new Date(now.getTime() + 5 * 60_000),
+    );
+    const second = await lastDeleteToken(db);
+    expect(second).not.toBe(first);
+    // The one the older email carried no longer erases.
+    expect(await deleteCompanyRequestByToken(db, first)).toBe(false);
+    expect(await deleteCompanyRequestByToken(db, second)).toBe(true);
+    expect(await db.select().from(schema.companyRequests)).toEqual([]);
+  });
+
   test("deleting an account's email takes the request that address left", async () => {
     await joinCompanyRequests(db, ANA, null);
     await joinCompanyRequests(db, { ...ANA, email: "other@example.com" }, null);
@@ -241,28 +314,142 @@ describe("a company's request", () => {
     expect(left).toEqual(["someone@other.com"]);
   });
 
-  test("the retention sweep deletes old requests that never became clients, and keeps the rest", async () => {
+  test("the retention sweep deletes old confirmed requests that never became clients, and keeps the rest", async () => {
     const old = new Date("2025-01-01T10:00:00Z");
-    const fresh = new Date("2026-11-18T10:00:00Z");
-    // Written a year before the sweep, so each moved last at `old` (a step set with `old` keeps it that way).
+    // Confirmed at `old`, so their confirmation's link is long spent by the sweep; only retention speaks for them.
+    const confirmAt = async (at: Date) =>
+      confirmCompanyRequest(db, await lastToken(db, "company_request_confirm"), null, at);
     const stale = await joinCompanyRequests(db, ANA, null, old);
+    await confirmAt(old);
     await setCompanyStatus(db, stale.id, "discarded", old);
     // A client of the same age stays, and one the team invited stays.
     const client = await joinCompanyRequests(db, { ...ANA, email: "client@example.com" }, null, old);
+    await confirmAt(old);
     await setCompanyStatus(db, client.id, "deployed", old);
     const invited = await joinCompanyRequests(db, { ...ANA, email: "invited@example.com" }, null, old);
+    await confirmAt(old);
     await setCompanyStatus(db, invited.id, "invited", old);
+    const fresh = new Date("2026-11-18T10:00:00Z");
     const swept = await sweepCompanyRequests(db, 365, fresh);
     expect(swept.swept).toBe(1);
     const left = (await db.select().from(schema.companyRequests)).map((r) => r.email).sort();
     expect(left).toEqual(["client@example.com", "invited@example.com"]);
-    // 0 keeps everything.
+    // 0 keeps everything, and the unconfirmed past their link are gone by then anyway (a test of their own).
     expect((await sweepCompanyRequests(db, 0, fresh)).swept).toBe(0);
+  });
+
+  test("a request its address never confirmed goes once its link expired, plus a week, whatever its step", async () => {
+    const sent = new Date("2026-11-01T10:00:00Z");
+    const { id } = await joinCompanyRequests(db, ANA, null, sent);
+    // The team moved it on in the meantime; that never confirms an address.
+    await setCompanyStatus(db, id, "talking", new Date(sent.getTime() + 3600_000));
+    // Before the link's own expiry and the week's grace are up, nothing goes.
+    const almost = new Date(sent.getTime() + COMPANY_CONFIRM_TTL_MS + COMPANY_UNCONFIRMED_GRACE_MS - 3600_000);
+    expect((await sweepCompanyRequests(db, 365, almost)).swept).toBe(0);
+    // Past it, the request goes, notices included.
+    const after = new Date(sent.getTime() + COMPANY_CONFIRM_TTL_MS + COMPANY_UNCONFIRMED_GRACE_MS + 3600_000);
+    expect((await sweepCompanyRequests(db, 365, after)).swept).toBe(1);
+    expect(await db.select().from(schema.companyRequests)).toEqual([]);
+  });
+
+  test("the sweep erases the notices of what it deletes", async () => {
+    const { userId, orgId } = await ownerIn(db);
+    const notify = { ownerUserId: userId, emailTo: null, publicUrl: "https://doug.example" };
+    const sent = new Date("2025-01-01T10:00:00Z");
+    const { id } = await joinCompanyRequests(db, ANA, notify, sent);
+    await confirmCompanyRequest(db, await lastToken(db, "company_request_confirm"), notify, sent);
+    await setCompanyStatus(db, id, "discarded", sent);
+    expect(await db.select().from(schema.notifications).where(eq(schema.notifications.orgId, orgId))).toHaveLength(1);
+    await sweepCompanyRequests(db, 365, new Date("2026-11-18T10:00:00Z"));
+    expect(await db.select().from(schema.notifications)).toEqual([]);
   });
 
   test("notes are kept and trimmed", async () => {
     const { id } = await joinCompanyRequests(db, ANA, null);
     expect((await setCompanyNotes(db, id, "  Falou com a Ana.  ")).notes).toBe("Falou com a Ana.");
+  });
+
+  test("an attacker filling the form for someone else's address changes nothing and mails nothing", async () => {
+    const now = new Date("2026-11-18T10:00:00Z");
+    // The real person asks first.
+    await joinCompanyRequests(db, ANA, null, now);
+    const victimToken = await lastToken(db, "company_request_confirm");
+    // An attacker sends the form for the same address at once: the claim is refused, so neither the data nor the
+    // link move, and no email goes to the victim.
+    const attack = await joinCompanyRequests(
+      db,
+      { ...ANA, company: "Attacker LLC", whatsapp: "+5511900000000" },
+      null,
+      now,
+    );
+    expect(attack.added).toBe(false);
+    const [row] = await db.select().from(schema.companyRequests);
+    expect(row?.company).toBe("Aurora Bakery");
+    expect(row?.whatsapp).toBe("+5511912345678");
+    // The victim's own link is the one that works.
+    expect(await confirmCompanyRequest(db, victimToken, null, now)).toMatchObject({ confirmed: true });
+    // One email, in all.
+    expect(await db.select().from(schema.outbox).where(eq(schema.outbox.kind, "email.send"))).toHaveLength(1);
+  });
+
+  test("past the window, an accepted claim brings the new data and a new link together", async () => {
+    const now = new Date("2026-11-18T10:00:00Z");
+    const { id } = await joinCompanyRequests(db, ANA, null, now);
+    const before = await lastDeleteToken(db);
+    const later = new Date(now.getTime() + 5 * 60_000);
+    expect(await joinCompanyRequests(db, { ...ANA, company: "Aurora Bakery Ltda" }, null, later)).toEqual({
+      added: false,
+      id,
+    });
+    expect((await companyRequestById(db, id)).company).toBe("Aurora Bakery Ltda");
+    expect(await lastDeleteToken(db)).not.toBe(before);
+  });
+
+  test("one request gets at most five confirmation emails a day, and the day resets a new send", async () => {
+    const start = new Date("2026-11-18T10:00:00Z");
+    await joinCompanyRequests(db, ANA, null, start);
+    // More forms, each past the two-minute window but inside a day: the fifth send is the last.
+    for (let i = 1; i < 8; i++) {
+      await joinCompanyRequests(db, ANA, null, new Date(start.getTime() + i * 5 * 60_000));
+    }
+    const mails = async () =>
+      (await db.select().from(schema.outbox).where(eq(schema.outbox.kind, "email.send"))).length;
+    expect(await mails()).toBe(COMPANY_MAX_SENDS);
+    // A whole day after the last send went, the window restarts and a new one goes.
+    const tomorrow = new Date(start.getTime() + 24 * 3600_000 + 60 * 60_000);
+    await joinCompanyRequests(db, ANA, null, tomorrow);
+    expect(await mails()).toBe(COMPANY_MAX_SENDS + 1);
+  });
+
+  test("deleting the request clears its notice for good, not merely resolving it", async () => {
+    const { userId, orgId } = await ownerIn(db);
+    const notify = { ownerUserId: userId, emailTo: null, publicUrl: "https://doug.example" };
+    const { id } = await joinCompanyRequests(db, ANA, notify);
+    await confirmCompanyRequest(db, await lastToken(db, "company_request_confirm"), notify);
+    expect(await db.select().from(schema.notifications).where(eq(schema.notifications.orgId, orgId))).toHaveLength(1);
+    // The team's Delete takes the request and the notice; nothing of the company is left in the inbox.
+    await deleteCompanyRequest(db, id);
+    expect(await db.select().from(schema.notifications)).toEqual([]);
+  });
+
+  test("the person's own delete takes the notice too", async () => {
+    const { userId, orgId } = await ownerIn(db);
+    const notify = { ownerUserId: userId, emailTo: null, publicUrl: "https://doug.example" };
+    await joinCompanyRequests(db, ANA, notify);
+    await confirmCompanyRequest(db, await lastToken(db, "company_request_confirm"), notify);
+    expect(await db.select().from(schema.notifications).where(eq(schema.notifications.orgId, orgId))).toHaveLength(1);
+    expect(await deleteCompanyRequestByToken(db, await lastDeleteToken(db))).toBe(true);
+    expect(await db.select().from(schema.notifications)).toEqual([]);
+  });
+
+  test("deleting a person's account takes the notices of the requests their address left too", async () => {
+    const { userId, orgId } = await ownerIn(db);
+    const notify = { ownerUserId: userId, emailTo: null, publicUrl: "https://doug.example" };
+    await joinCompanyRequests(db, ANA, notify);
+    await confirmCompanyRequest(db, await lastToken(db, "company_request_confirm"), notify);
+    expect(await db.select().from(schema.notifications).where(eq(schema.notifications.orgId, orgId))).toHaveLength(1);
+    await deleteCompanyRequestsByEmail(db, ["ana@aurorabakery.com"]);
+    expect(await db.select().from(schema.notifications)).toEqual([]);
   });
 });
 

@@ -1,5 +1,7 @@
 import { afterEach, beforeEach, expect, test } from "bun:test";
+import { createMemoryRateLimiter } from "@agenteschat/adapters";
 import { eq, schema } from "@agenteschat/db";
+import { COMPANY_MAX_EMAILS_PER_ADDRESS_DAY, companyEmailLimitKey } from "@agenteschat/engine";
 import {
   browser,
   createTestServer,
@@ -38,6 +40,14 @@ function lastConfirmToken(t: TestServer): string {
   const urls = t.email.sent
     .filter((m) => m.subject.includes("Confirme") || m.subject.includes("Confirm"))
     .map((m) => /confirm=([A-Za-z0-9_-]{32})/.exec(`${m.subject} ${m.text} ${m.html}`)?.[1] ?? "");
+  return urls.filter(Boolean).at(-1) ?? "";
+}
+
+/** The delete token the latest confirmation email carries (its own `?delete=` link). */
+function lastDeleteToken(t: TestServer): string {
+  const urls = t.email.sent
+    .filter((m) => m.subject.includes("Confirme") || m.subject.includes("Confirm"))
+    .map((m) => /delete=([A-Za-z0-9_-]{32})/.exec(`${m.subject} ${m.text} ${m.html}`)?.[1] ?? "");
   return urls.filter(Boolean).at(-1) ?? "";
 }
 
@@ -153,7 +163,7 @@ test("only our own origin may join", async () => {
   expect(await t.db.select().from(schema.companyRequests)).toEqual([]);
 });
 
-test("agentes.chat's own servers serve neither the form nor its confirmation", async () => {
+test("agentes.chat's own servers serve neither the form, its confirmation nor its delete", async () => {
   await t.close();
   t = await createTestServer({ env: { ALLOW_SIGNUP: "true", PUBLIC_URL: "https://app.agentes.chat" } });
   const res = await browser(t)("/api/companies", {
@@ -161,7 +171,61 @@ test("agentes.chat's own servers serve neither the form nor its confirmation", a
     origin: "https://app.agentes.chat",
   });
   expect(res.status).toBe(404);
+  const confirm = await browser(t)("/api/companies/confirm", {
+    json: { token: "x".repeat(32) },
+    origin: "https://app.agentes.chat",
+  });
+  expect(confirm.status).toBe(404);
+  const erase = await browser(t)("/api/companies/delete", {
+    json: { token: "x".repeat(32) },
+    origin: "https://app.agentes.chat",
+  });
+  expect(erase.status).toBe(404);
   expect(await t.db.select().from(schema.companyRequests)).toEqual([]);
+});
+
+test("the delete link in the confirmation email erases the request, once, on a POST from the page", async () => {
+  await browser(t)("/api/companies", { json: ana });
+  await t.drain();
+  const token = lastDeleteToken(t);
+  expect(token.length).toBe(32);
+  // It does not need the confirmation: the sender erases what they left even before it is confirmed.
+  const res = await browser(t)("/api/companies/delete", { json: { token } });
+  expect(res.status).toBe(200);
+  expect(await res.json()).toEqual({ ok: true });
+  expect(await t.db.select().from(schema.companyRequests)).toEqual([]);
+  // Spent once; an unknown or old one erases nothing.
+  expect((await browser(t)("/api/companies/delete", { json: { token } })).status).toBe(400);
+  expect((await browser(t)("/api/companies/delete", { json: { token: "x".repeat(32) } })).status).toBe(400);
+});
+
+test("the address's own wall: past its day's count the form is still answered 202 and mails nothing", async () => {
+  // The row's two-minute window binds first on one address, so this asks the limiter's rule directly with a clock of
+  // its own: three a day, then a day after the first lets a fourth through. The route spends this very key.
+  let clock = Date.UTC(2026, 10, 18, 10, 0, 0);
+  const limiter = createMemoryRateLimiter(() => clock);
+  const allowed = async () =>
+    (
+      await limiter.consume(companyEmailLimitKey("ana@aurorabakery.com"), {
+        limit: COMPANY_MAX_EMAILS_PER_ADDRESS_DAY,
+        windowMs: 24 * 3600_000,
+      })
+    ).allowed;
+  expect([await allowed(), await allowed(), await allowed()]).toEqual([true, true, true]);
+  expect(await allowed()).toBe(false);
+  // The next day's window: a new send goes.
+  clock += 24 * 3600_000 + 1;
+  expect(await allowed()).toBe(true);
+});
+
+test("the delete route is our own origin's alone, so another site can't erase by a link", async () => {
+  await browser(t)("/api/companies", { json: ana });
+  await t.drain();
+  const token = lastDeleteToken(t);
+  const evil = await browser(t)("/api/companies/delete", { json: { token }, origin: "https://evil.example" });
+  expect(evil.status).toBe(403);
+  expect(await errorCode(evil)).toBe("bad_origin");
+  expect(await t.db.select().from(schema.companyRequests)).toHaveLength(1);
 });
 
 /** The installation's owner: the first account. */
@@ -231,6 +295,21 @@ test("the owner deletes a request, and it is gone", async () => {
   expect(res.status).toBe(204);
   expect(await t.db.select().from(schema.companyRequests)).toEqual([]);
   expect((await b(`/api/app/companies/${id}`)).status).toBe(404);
+});
+
+test("the owner's Delete lifts the request's notice from their inbox too, not only resolving it", async () => {
+  const b = browser(t);
+  await owner(b);
+  const id = await confirmedRequest(t);
+  const [notice] = await t.db
+    .select()
+    .from(schema.notifications)
+    .where(eq(schema.notifications.kind, "company_request"));
+  expect(notice?.waiting).toBe(true);
+  await b(`/api/app/companies/${id}`, { method: "DELETE" });
+  expect(
+    await t.db.select().from(schema.notifications).where(eq(schema.notifications.kind, "company_request")),
+  ).toEqual([]);
 });
 
 test("a client's code belongs to one company: the second one is refused with 409", async () => {

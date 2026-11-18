@@ -205,12 +205,14 @@ export type EmailTemplate =
   | { kind: "early_access_allowed"; locale: EmailLocale; email: string; url: string }
   /**
    * Double opt-in for a company's request on the page, in the company's language: opening `url` confirms the
-   * address, and only then is the installation's owner told. Nothing is kept from it before that.
+   * address, and only then is the installation's owner told. Nothing is kept from it before that. `deleteUrl` is the
+   * person's own erasure, opened on the same page, which asks before it deletes (its own token, good for longer).
    */
-  | { kind: "company_request_confirm"; locale: EmailLocale; company: string; url: string }
+  | { kind: "company_request_confirm"; locale: EmailLocale; company: string; url: string; deleteUrl: string }
   /**
    * A confirmed request's second form asked to change something: `url` confirms the new data, which replaces the
-   * request's once opened. The row keeps the first form's consent.
+   * request's once opened. The row keeps the first form's consent. No delete link: the confirmed request's first
+   * email already carried the one that works.
    */
   | { kind: "company_request_resend"; locale: EmailLocale; company: string; url: string }
   /**
@@ -707,8 +709,10 @@ function docOf(t: EmailTemplate, sender: string | null): EmailDoc {
         c.headline,
         [
           { p: c.body(inertText(t.company)) },
-          { button: c.button, url: t.url },
+          // The person's own erasure, beside what confirms: the page it opens asks before deleting anything.
+          { button: c.button, url: t.url, also: { label: c.delete, url: t.deleteUrl, danger: true } },
           { p: c.next },
+          { p: c.deleteLead },
           { small: c.small },
           fallback(t.url),
         ],

@@ -1301,9 +1301,9 @@ export const envVars = {
     example: "you@example.com",
   },
   COMPANY_REQUESTS_RETENTION_DAYS: {
-    schema: z.coerce.number().int().min(0).default(365),
+    schema: z.coerce.number().int().min(1).default(365),
     description:
-      "Days a company's request from the page (`/empresas`) is kept after the team last moved it, while it is new, discarded or talking and never became a client (LGPD). After that it is deleted with everything it holds, the consent included; a request marked a client (`deployed`) and one already invited are kept. 0 = keep it forever.",
+      "Days a company's request from the page (`/empresas`) is kept after the team last moved it, while it is new, discarded or talking and never became a client (LGPD). After that it is deleted with everything it holds, the consent included; a request marked a client (`deployed`) and one already invited are kept, and so is one the person never confirmed past its link's expiry plus a week. At least 1: a value of 0 promised no retention at all, so the Policy's section 12 is left out. The form is self-hosting's own: agentes.chat's Cloud serves none, and the Policy says nothing of it there.",
     section: "Operator",
   },
   OPS_REPORT_EMAIL: {

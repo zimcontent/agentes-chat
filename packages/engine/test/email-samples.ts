@@ -131,12 +131,14 @@ export const EMAIL_SAMPLES: Record<string, EmailTemplate> = {
     locale: "en",
     company: "Aurora Bakery",
     url: `${APP}/empresas?confirm=5oQ9aWmK3TpLxVdRb8NsYeC1hJfAgZh0`,
+    deleteUrl: `${APP}/empresas?delete=Kp3vTz8bRnW2sQyL6mXj0AdCg4HeFuN1`,
   },
   "company_request_confirm.pt-BR": {
     kind: "company_request_confirm",
     locale: "pt-BR",
     company: "Padaria Aurora",
     url: `${APP}/empresas?confirm=5oQ9aWmK3TpLxVdRb8NsYeC1hJfAgZh0`,
+    deleteUrl: `${APP}/empresas?delete=Kp3vTz8bRnW2sQyL6mXj0AdCg4HeFuN1`,
   },
   "company_request_resend.en": {
     kind: "company_request_resend",

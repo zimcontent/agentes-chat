@@ -792,7 +792,14 @@
       "confirmLead": "Un instant.",
       "confirmFailedTitle": "Ce lien est inconnu ou expiré",
       "confirmFailedLead": "Renvoyez le formulaire pour recevoir un nouveau lien.",
-      "confirmAgain": "Renvoyer le formulaire"
+      "confirmAgain": "Renvoyer le formulaire",
+      "deleteTitle": "Supprimer votre demande ?",
+      "deleteLead": "Cela supprime la demande et tout ce qu'elle contient, consentement compris, sans retour en arrière. Si vous vouliez seulement modifier des choses, renvoyez le formulaire depuis votre e-mail.",
+      "deleteConfirm": "Supprimer ma demande",
+      "deletedTitle": "Demande supprimée",
+      "deletedLead": "Tout ce qu'elle contenait a disparu. Rien d'autre n'est conservé.",
+      "deleteFailedTitle": "Ce lien est inconnu ou déjà utilisé",
+      "deleteFailedLead": "Il ne reste rien à supprimer avec lui, ou il a expiré."
     },
     "interests": {
       "design": "Design",

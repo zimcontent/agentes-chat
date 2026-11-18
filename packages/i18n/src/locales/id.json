@@ -764,7 +764,14 @@
       "confirmLead": "Sebentar.",
       "confirmFailedTitle": "Tautan ini tidak dikenal atau kedaluwarsa",
       "confirmFailedLead": "Kirim formulir lagi untuk mendapat tautan baru.",
-      "confirmAgain": "Kirim formulir lagi"
+      "confirmAgain": "Kirim formulir lagi",
+      "deleteTitle": "Hapus permintaanmu?",
+      "deleteLead": "Ini menghapus permintaan dan semua yang tersimpan di dalamnya, termasuk persetujuan, dan tidak bisa dibatalkan. Kalau kamu hanya ingin mengubah sesuatu, kirim ulang formulir dari emailmu.",
+      "deleteConfirm": "Hapus permintaanku",
+      "deletedTitle": "Permintaan dihapus",
+      "deletedLead": "Semua yang tersimpan di dalamnya sudah hilang. Tidak ada lagi yang disimpan.",
+      "deleteFailedTitle": "Tautan ini tidak dikenal atau sudah dipakai",
+      "deleteFailedLead": "Tidak ada lagi yang bisa dihapus dengannya, atau sudah kedaluwarsa."
     },
     "interests": {
       "design": "Desain",

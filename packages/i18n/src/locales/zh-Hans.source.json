@@ -51970,6 +51970,27 @@
       },
       "confirmAgain": {
         "value": "Send the form again"
+      },
+      "deleteTitle": {
+        "value": "Delete your request?"
+      },
+      "deleteLead": {
+        "value": "This erases the request and everything it holds, the consent included, and it does not come back. If you only wanted changes, send the form again from your email instead."
+      },
+      "deleteConfirm": {
+        "value": "Delete my request"
+      },
+      "deletedTitle": {
+        "value": "Request deleted"
+      },
+      "deletedLead": {
+        "value": "Everything it held is gone. Nothing else is kept."
+      },
+      "deleteFailedTitle": {
+        "value": "This link is unknown or already used"
+      },
+      "deleteFailedLead": {
+        "value": "There's nothing left to delete with it, or it has expired."
       }
     },
     "list": {
