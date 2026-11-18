@@ -126,17 +126,29 @@ export const EMAIL_SAMPLES: Record<string, EmailTemplate> = {
     email: "rafa@estudio.design",
     url: `${APP}/onboarding`,
   },
-  "company_request_received.en": {
-    kind: "company_request_received",
+  "company_request_confirm.en": {
+    kind: "company_request_confirm",
     locale: "en",
     company: "Aurora Bakery",
-    url: `${APP}/empresas`,
+    url: `${APP}/empresas?confirm=5oQ9aWmK3TpLxVdRb8NsYeC1hJfAgZh0`,
   },
-  "company_request_received.pt-BR": {
-    kind: "company_request_received",
+  "company_request_confirm.pt-BR": {
+    kind: "company_request_confirm",
     locale: "pt-BR",
     company: "Padaria Aurora",
-    url: `${APP}/empresas`,
+    url: `${APP}/empresas?confirm=5oQ9aWmK3TpLxVdRb8NsYeC1hJfAgZh0`,
+  },
+  "company_request_resend.en": {
+    kind: "company_request_resend",
+    locale: "en",
+    company: "Aurora Bakery",
+    url: `${APP}/empresas?confirm=7nH2cPqW4ZvBsRkL9xTj0YmNa3UeFgD5`,
+  },
+  "company_request_resend.pt-BR": {
+    kind: "company_request_resend",
+    locale: "pt-BR",
+    company: "Padaria Aurora",
+    url: `${APP}/empresas?confirm=7nH2cPqW4ZvBsRkL9xTj0YmNa3UeFgD5`,
   },
   "company_request_owner.en": {
     kind: "company_request_owner",

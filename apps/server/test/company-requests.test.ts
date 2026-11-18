@@ -33,6 +33,19 @@ const ana = {
   consent: true,
 };
 
+/** The token the latest confirmation email carries. */
+function lastConfirmToken(t: TestServer): string {
+  const urls = t.email.sent
+    .filter((m) => m.subject.includes("Confirme") || m.subject.includes("Confirm"))
+    .map((m) => /confirm=([A-Za-z0-9_-]{32})/.exec(`${m.subject} ${m.text} ${m.html}`)?.[1] ?? "");
+  return urls.filter(Boolean).at(-1) ?? "";
+}
+
+/** Confirms the address through the public route, as its link's page does. */
+async function confirm(t: TestServer, token: string) {
+  return browser(t)("/api/companies/confirm", { json: { token } });
+}
+
 test("the public page joins: the request, a confirmation email in its language, never a list to probe", async () => {
   const res = await browser(t)("/api/companies", { json: ana });
   expect(res.status).toBe(202);
@@ -48,16 +61,56 @@ test("the public page joins: the request, a confirmation email in its language, 
   });
   expect(row?.interests).toEqual(["design", "video"]);
   expect(row?.consentAt).toBeInstanceOf(Date);
+  // Nothing confirmed yet: it is not in the team's list.
+  expect(row?.confirmedAt).toBeNull();
 
   await t.drain();
   expect(t.email.sent.map((m) => [m.to, m.subject])).toEqual([
-    [["ana@aurorabakery.com"], "Recebemos seu pedido do DougBot para Aurora Bakery"],
+    [["ana@aurorabakery.com"], "Confirme seu pedido do DougBot para Aurora Bakery"],
   ]);
 
-  // Sending it again updates the one request, and answers the same.
+  // Sending it again within the window updates the one request and mails nothing new.
+  const before = t.email.sent.length;
   const again = await browser(t)("/api/companies", { json: { ...ana, company: "Aurora Bakery Ltda" } });
   expect(again.status).toBe(202);
   expect(await t.db.select().from(schema.companyRequests)).toHaveLength(1);
+  await t.drain();
+  expect(t.email.sent).toHaveLength(before);
+});
+
+test("the address confirms itself, and only then is the request in the team's list", async () => {
+  await browser(t)("/api/companies", { json: ana });
+  await t.drain();
+  const token = lastConfirmToken(t);
+  expect(token.length).toBe(32);
+  const res = await confirm(t, token);
+  expect(res.status).toBe(200);
+  const [row] = await t.db.select().from(schema.companyRequests);
+  expect(row?.confirmedAt).toBeInstanceOf(Date);
+  // The link works once; an unknown one is refused.
+  expect((await confirm(t, token)).status).toBe(200);
+  expect((await confirm(t, "x".repeat(32))).status).toBe(400);
+});
+
+test("a raw browser tag reads as its language: en-US and es-MX are never refused with 400", async () => {
+  const en = await browser(t)("/api/companies", { json: { ...ana, email: "en@x.com", locale: "en-US" } });
+  expect(en.status).toBe(202);
+  const es = await browser(t)("/api/companies", { json: { ...ana, email: "es@x.com", locale: "es-MX" } });
+  expect(es.status).toBe(202);
+  // An unknown tag reads English, never a 400.
+  const xx = await browser(t)("/api/companies", { json: { ...ana, email: "xx@x.com", locale: "xx-YY" } });
+  expect(xx.status).toBe(202);
+  const rows = await t.db.select().from(schema.companyRequests).where(eq(schema.companyRequests.email, "en@x.com"));
+  expect(rows[0]?.locale).toBe("en");
+});
+
+test("an address a comma or a query breaks is refused by the server too", async () => {
+  const comma = await browser(t)("/api/companies", { json: { ...ana, email: "a,victim@x.com" } });
+  expect(comma.status).toBe(400);
+  expect(await errorCode(comma)).toBe("invalid_email");
+  const query = await browser(t)("/api/companies", { json: { ...ana, email: "a@b.co?cc=x" } });
+  expect(query.status).toBe(400);
+  expect(await errorCode(query)).toBe("invalid_email");
 });
 
 test("the consent is required, and a bad field is refused with its own code", async () => {
@@ -100,10 +153,33 @@ test("only our own origin may join", async () => {
   expect(await t.db.select().from(schema.companyRequests)).toEqual([]);
 });
 
+test("agentes.chat's own servers serve neither the form nor its confirmation", async () => {
+  await t.close();
+  t = await createTestServer({ env: { ALLOW_SIGNUP: "true", PUBLIC_URL: "https://app.agentes.chat" } });
+  const res = await browser(t)("/api/companies", {
+    json: ana,
+    origin: "https://app.agentes.chat",
+  });
+  expect(res.status).toBe(404);
+  expect(await t.db.select().from(schema.companyRequests)).toEqual([]);
+});
+
 /** The installation's owner: the first account. */
 async function owner(b: ReturnType<typeof browser>) {
   await signUp(b, "owner@doug.example");
   await (await b("/api/app/organizations", { json: { name: "Doug", context: "The team." } })).json();
+}
+
+/** A request confirmed through the public flow, its id. */
+async function confirmedRequest(t: TestServer, body = ana): Promise<string> {
+  await browser(t)("/api/companies", { json: body });
+  await t.drain();
+  await confirm(t, lastConfirmToken(t));
+  const [row] = await t.db
+    .select()
+    .from(schema.companyRequests)
+    .where(eq(schema.companyRequests.email, String(body.email).trim().toLowerCase()));
+  return row?.id ?? "";
 }
 
 test("the team's list is the installation owner's alone: 404 to everyone else, and to a signed-out call", async () => {
@@ -120,9 +196,7 @@ test("the team's list is the installation owner's alone: 404 to everyone else, a
 test("the owner reads, moves, notes, codes and invites a request", async () => {
   const b = browser(t);
   await owner(b);
-  await browser(t)("/api/companies", { json: ana });
-  const [row] = await t.db.select().from(schema.companyRequests);
-  const id = row?.id ?? "";
+  const id = await confirmedRequest(t);
 
   // The owner reads the list and the one.
   const page = (await (await b("/api/app/companies")).json()) as {
@@ -149,18 +223,27 @@ test("the owner reads, moves, notes, codes and invites a request", async () => {
   expect(answer.request.status).toBe("invited");
 });
 
+test("the owner deletes a request, and it is gone", async () => {
+  const b = browser(t);
+  await owner(b);
+  const id = await confirmedRequest(t);
+  const res = await b(`/api/app/companies/${id}`, { method: "DELETE" });
+  expect(res.status).toBe(204);
+  expect(await t.db.select().from(schema.companyRequests)).toEqual([]);
+  expect((await b(`/api/app/companies/${id}`)).status).toBe(404);
+});
+
 test("a client's code belongs to one company: the second one is refused with 409", async () => {
   const b = browser(t);
   await owner(b);
-  await browser(t)("/api/companies", { json: ana });
-  await browser(t)("/api/companies", { json: { ...ana, email: "bia@example.com" } });
-  const rows = await t.db.select().from(schema.companyRequests);
-  await b(`/api/app/companies/${rows[0]?.id}/client-code`, { method: "PUT", json: { clientCode: "064" } });
-  const taken = await b(`/api/app/companies/${rows[1]?.id}/client-code`, {
+  const first = await confirmedRequest(t);
+  const second = await confirmedRequest(t, { ...ana, email: "bia@example.com" });
+  await b(`/api/app/companies/${first}/client-code`, { method: "PUT", json: { clientCode: "064" } });
+  const taken = await b(`/api/app/companies/${second}/client-code`, {
     method: "PUT",
     json: { clientCode: "064" },
   });
-  expect(taken.status).toBe(400);
+  expect(taken.status).toBe(409);
   expect(await errorCode(taken)).toBe("client_code_taken");
 });
 
@@ -179,19 +262,39 @@ test("auth-config tells the installation owner their section, and nobody else", 
 });
 
 /** The `COMPANY_REQUESTS_NOTIFY_EMAIL` case: the owner hears it by email too, at the address the server was told. */
-test("with COMPANY_REQUESTS_NOTIFY_EMAIL the owner's email goes out too", async () => {
+test("with COMPANY_REQUESTS_NOTIFY_EMAIL the owner's email goes out once the address confirms", async () => {
   await t.close();
   t = await createTestServer({ env: { ALLOW_SIGNUP: "true", COMPANY_REQUESTS_NOTIFY_EMAIL: "team@doug.example" } });
   const b = browser(t);
   await owner(b);
   await browser(t)("/api/companies", { json: ana });
   await t.drain();
+  // Before the confirmation: only the company's own email went out.
+  expect(t.email.sent.filter((m) => m.to.includes("team@doug.example"))).toHaveLength(0);
+  await confirm(t, lastConfirmToken(t));
+  await t.drain();
   const toTeam = t.email.sent.filter((m) => m.to.includes("team@doug.example"));
   expect(toTeam).toHaveLength(1);
   expect(toTeam[0]?.subject).toBe("Aurora Bakery pediu o DougBot");
-  // The confirmation to the company went out too, in its language.
-  expect(t.email.sent.some((m) => m.to.includes("ana@aurorabakery.com"))).toBe(true);
-  // The owner's inbox row is waiting.
+  // The owner's inbox row is waiting now.
   const [n] = await t.db.select().from(schema.notifications).where(eq(schema.notifications.kind, "company_request"));
   expect(n?.waiting).toBe(true);
+});
+
+test("a resend of a confirmed request mails once, and the team keeps the old data until it is confirmed", async () => {
+  const b = browser(t);
+  await owner(b);
+  const id = await confirmedRequest(t);
+  const before = t.email.sent.length;
+  // A second form a few minutes later, past the window.
+  await browser(t)("/api/companies", { json: { ...ana, company: "Aurora Bakery Ltda" } });
+  await t.drain();
+  expect(t.email.sent.length).toBe(before + 1);
+  expect(t.email.sent.at(-1)?.subject).toBe("Confirme as mudanças no pedido do DougBot para Aurora Bakery Ltda");
+  const kept = (await (await b(`/api/app/companies/${id}`)).json()) as {
+    company: string;
+    pendingResendAt: string | null;
+  };
+  expect(kept.company).toBe("Aurora Bakery");
+  expect(kept.pendingResendAt).not.toBeNull();
 });
