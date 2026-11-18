@@ -1,0 +1,642 @@
+#!/usr/bin/env bash
+# doug-cliente: sobe, lista, para, inicia e remove os clientes do DougBot numa máquina
+# (uma stack Docker isolada por cliente, atrás de um Caddy só). Passo a passo: deploy/swas/README.md.
+#
+#   doug-cliente novo <codigo> <slug> "<nome>" [--imagem <tag>]
+#   doug-cliente lista
+#   doug-cliente parar <codigo>
+#   doug-cliente iniciar <codigo>
+#   doug-cliente backup <codigo>
+#   doug-cliente remover <codigo> [--apagar-dados] [--sim]
+#   doug-cliente cota [<codigo>]
+#
+# `--dry-run` (em qualquer comando) mostra o que seria feito sem escrever nada nem rodar o Docker.
+#
+# Ambiente:
+#   DOUG_CLIENTES_DIR        raiz dos clientes (padrão /opt/doug-clientes)
+#   DOUG_CADDY_DIR           pasta do Caddy (padrão: caddy/ ao lado deste script)
+#   DOUG_DOMINIO             domínio dos clientes (padrão dougbot.app)
+#   DOUG_IMAGE               imagem de `novo` (senão: a mais nova agentes-zim:doug-* desta máquina)
+#   DOUG_CLIENT_QUOTA_GB     cota de disco por cliente, em GB (padrão 40)
+#   DOUG_PORTA_INICIAL       primeira porta de loopback a tentar (padrão 3100)
+#   DOUG_PORTA_FINAL         última porta (padrão 3999)
+#   DOUG_HEALTH_TIMEOUT      segundos de espera pelo /api/health (padrão 240)
+#   DOUG_FILES_OWNER         dono de dados/files, o usuário da imagem (padrão 1000:1000)
+#
+# Contrato com doug-atualizar-clientes: pasta <raiz>/<codigo>-<slug>/ com compose.yml, .env e
+# dados/; registro em <raiz>/clientes.tsv (codigo slug nome porta imagem criado_em, sem cabeçalho);
+# projeto do Compose doug-<codigo>; serviços `agentes` e `postgres`.
+set -euo pipefail
+
+shopt -u patsub_replacement 2>/dev/null || true
+
+SCRIPT=$(readlink -f "${BASH_SOURCE[0]}")
+SWAS_DIR=$(dirname "$SCRIPT")
+RAIZ=${DOUG_CLIENTES_DIR:-/opt/doug-clientes}
+REGISTRO=$RAIZ/clientes.tsv
+CADDY_DIR=${DOUG_CADDY_DIR:-$SWAS_DIR/caddy}
+DOMINIO=${DOUG_DOMINIO:-dougbot.app}
+COTA_GB=${DOUG_CLIENT_QUOTA_GB:-40}
+PORTA_INICIAL=${DOUG_PORTA_INICIAL:-3100}
+PORTA_FINAL=${DOUG_PORTA_FINAL:-3999}
+SAUDE_S=${DOUG_HEALTH_TIMEOUT:-240}
+FILES_OWNER=${DOUG_FILES_OWNER:-1000:1000}
+REPO_IMAGEM=${DOUG_IMAGE_REPO:-agentes-zim}
+
+AJUDA=0
+DRY=0
+SIM=0
+APAGAR=0
+IMAGEM=${DOUG_IMAGE:-}
+POSICIONAIS=()
+
+diz() { printf '%s\n' "$*"; }
+passo() { printf '→ %s\n' "$*"; }
+aviso() { printf 'aviso: %s\n' "$*" >&2; }
+erro() {
+  printf 'doug-cliente: %s\n' "$*" >&2
+  exit 1
+}
+simula() { printf '[simulação] %s\n' "$*"; }
+
+uso() {
+  sed -n '2,/^set -euo/p' "$SCRIPT" | sed '$d' | sed 's/^# \{0,1\}//'
+}
+
+# ─── argumentos ──────────────────────────────────────────────────────────────
+
+ler_argumentos() {
+  while (($#)); do
+    case $1 in
+      --dry-run) DRY=1 ;;
+      --sim) SIM=1 ;;
+      --apagar-dados) APAGAR=1 ;;
+      --imagem)
+        (($# >= 2)) || erro "--imagem pede o nome da imagem"
+        IMAGEM=$2
+        shift
+        ;;
+      --imagem=*) IMAGEM=${1#--imagem=} ;;
+      -h | --ajuda | --help) AJUDA=1 ;;
+      -*) erro "opção desconhecida: $1 (veja doug-cliente --ajuda)" ;;
+      *) POSICIONAIS+=("$1") ;;
+    esac
+    shift
+  done
+}
+
+# ─── validação ───────────────────────────────────────────────────────────────
+
+RESERVADOS=" www app api admin mail caddy doug dougbot status suporte painel "
+
+valida_codigo() {
+  [[ $1 =~ ^[0-9]{3}$ ]] || erro "código inválido: \"$1\" (são 3 dígitos, como 064)"
+}
+
+valida_slug() {
+  [[ $1 =~ ^[a-z0-9]([a-z0-9-]{0,38}[a-z0-9])?$ ]] \
+    || erro "slug inválido: \"$1\" (letras minúsculas, números e hífen, de 1 a 40 caracteres, sem hífen nas pontas)"
+  [[ $RESERVADOS != *" $1 "* ]] || erro "o slug \"$1\" é reservado"
+}
+
+valida_nome() {
+  [[ -n $1 ]] || erro "o nome do cliente não pode ser vazio"
+  ((${#1} <= 80)) || erro "o nome do cliente passa de 80 caracteres"
+  [[ $1 != *[[:cntrl:]]* ]] || erro "o nome do cliente não pode ter tabulação nem quebra de linha"
+}
+
+# ─── registro (clientes.tsv) ─────────────────────────────────────────────────
+
+registro_tem() { # <coluna> <valor>
+  [[ -f $REGISTRO ]] || return 1
+  awk -F'\t' -v col="$1" -v val="$2" '$col == val { achou = 1 } END { exit !achou }' "$REGISTRO"
+}
+
+registro_linha() { # <codigo>
+  [[ -f $REGISTRO ]] || return 0
+  awk -F'\t' -v val="$1" '$1 == val { print; exit }' "$REGISTRO"
+}
+
+registro_acrescenta() { # codigo slug nome porta imagem
+  local agora
+  agora=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+  printf '%s\t%s\t%s\t%s\t%s\t%s\n' "$1" "$2" "$3" "$4" "$5" "$agora" >>"$REGISTRO"
+}
+
+registro_tira() { # <codigo>
+  local tmp
+  tmp=$(mktemp "$RAIZ/.clientes.XXXXXX")
+  awk -F'\t' -v val="$1" '$1 != val' "$REGISTRO" >"$tmp"
+  chmod 644 "$tmp"
+  mv "$tmp" "$REGISTRO"
+}
+
+# Lê um cliente do registro em CODIGO, SLUG, NOME, PORTA, IMAGEM, CRIADO e PASTA.
+carrega_cliente() { # <codigo>
+  local linha
+  valida_codigo "$1"
+  linha=$(registro_linha "$1")
+  [[ -n $linha ]] || erro "o cliente $1 não está em $REGISTRO (veja: doug-cliente lista)"
+  IFS=$'\t' read -r CODIGO SLUG NOME PORTA IMAGEM_REG CRIADO <<<"$linha"
+  PASTA=$RAIZ/$CODIGO-$SLUG
+}
+
+env_valor() { # <arquivo> <variável>
+  [[ -f $1 ]] || return 0
+  awk -v k="$2" 'index($0, k "=") == 1 { print substr($0, length(k) + 2); exit }' "$1"
+}
+
+# ─── Docker, Caddy ───────────────────────────────────────────────────────────
+
+tem_docker() { command -v docker >/dev/null 2>&1; }
+
+exige_docker() {
+  if ! tem_docker; then
+    ((DRY)) && return 0
+    erro "o Docker não está instalado (README: pré-requisitos)"
+  fi
+  docker compose version >/dev/null 2>&1 || {
+    ((DRY)) && return 0
+    erro "falta o plugin Compose v2 do Docker (docker compose)"
+  }
+}
+
+exige_comando() {
+  command -v "$1" >/dev/null 2>&1 || erro "falta o comando $1 nesta máquina"
+}
+
+compose() { # <codigo> <pasta> <argumentos do compose...>
+  local codigo=$1 pasta=$2
+  shift 2
+  docker compose -p "doug-$codigo" --project-directory "$pasta" -f "$pasta/compose.yml" --env-file "$pasta/.env" "$@"
+}
+
+compose_caddy() {
+  docker compose -f "$CADDY_DIR/compose.yml" "$@"
+}
+
+caddy_arquivo() { printf '%s/clientes/%s.caddy' "$CADDY_DIR" "$1"; }
+
+caddy_texto() { # codigo slug porta
+  cat <<EOF
+# doug-cliente: $1 $2 (escrito por doug-cliente; não edite à mão)
+$2.$DOMINIO {
+	request_body /mcp* {
+		max_size 128KiB
+	}
+	reverse_proxy 127.0.0.1:$3
+	handle_errors 502 503 504 {
+		header Cache-Control no-store
+		header Content-Type "text/plain; charset=utf-8"
+		respond "O DougBot já volta: o servidor não está respondendo agora. Tente de novo em instantes." 503
+	}
+}
+EOF
+}
+
+caddy_recarrega() {
+  compose_caddy up -d >/dev/null || return 1
+  compose_caddy exec -T caddy caddy reload --config /etc/caddy/Caddyfile --force >/dev/null
+}
+
+caddy_escreve() { # codigo slug porta
+  local arquivo existia=0 antigo=""
+  arquivo=$(caddy_arquivo "$2")
+  if [[ -e $arquivo ]]; then
+    grep -q "^# doug-cliente: $1 " "$arquivo" || erro "$arquivo já existe e não é do cliente $1"
+    existia=1
+    antigo=$(cat "$arquivo")
+  fi
+  mkdir -p "$CADDY_DIR/clientes"
+  caddy_texto "$1" "$2" "$3" >"$arquivo"
+  if ! caddy_recarrega; then
+    if ((existia)); then printf '%s\n' "$antigo" >"$arquivo"; else rm -f "$arquivo"; fi
+    erro "o Caddy não aceitou o endereço de $2 (voltei o arquivo ao que era). Veja: docker compose -f $CADDY_DIR/compose.yml logs caddy"
+  fi
+}
+
+caddy_tira() { # <slug>
+  local arquivo
+  arquivo=$(caddy_arquivo "$1")
+  [[ -e $arquivo ]] || return 0
+  rm -f "$arquivo"
+  caddy_recarrega || aviso "tirei $arquivo, mas o Caddy não recarregou; recarregue à mão (README)"
+}
+
+porta_ocupada() { # <porta>: algo já escuta nela neste host
+  (exec 3<>"/dev/tcp/127.0.0.1/$1") 2>/dev/null
+}
+
+porta_livre() {
+  local porta
+  for ((porta = PORTA_INICIAL; porta <= PORTA_FINAL; porta++)); do
+    registro_tem 4 "$porta" && continue
+    porta_ocupada "$porta" && continue
+    printf '%s' "$porta"
+    return 0
+  done
+  return 1
+}
+
+esperar_saude() { # <porta>
+  local porta=$1 limite=$((SECONDS + SAUDE_S))
+  while ((SECONDS < limite)); do
+    if curl -fsS --max-time 5 "http://127.0.0.1:$porta/api/health" >/dev/null 2>&1; then
+      return 0
+    fi
+    sleep "${DOUG_HEALTH_INTERVALO:-3}"
+  done
+  return 1
+}
+
+# Espera o Postgres do cliente aceitar conexões (usado antes de um backup).
+esperar_banco() { # <codigo> <pasta>
+  local limite=$((SECONDS + 90))
+  while ((SECONDS < limite)); do
+    if compose "$1" "$2" exec -T postgres pg_isready -h 127.0.0.1 -U agentes -d agentes >/dev/null 2>&1; then
+      return 0
+    fi
+    sleep "${DOUG_HEALTH_INTERVALO:-3}"
+  done
+  return 1
+}
+
+# ─── disco ───────────────────────────────────────────────────────────────────
+
+livre_kb() { # espaço livre onde a raiz fica (ou no primeiro diretório que existir acima dela)
+  local dir=$RAIZ
+  while [[ ! -d $dir && $dir != / ]]; do dir=$(dirname "$dir"); done
+  df -Pk "$dir" | awk 'NR == 2 { print $4 }'
+}
+
+usado_kb() { # <pasta do cliente>
+  [[ -d $1/dados ]] || {
+    printf 0
+    return
+  }
+  du -sk "$1/dados" 2>/dev/null | awk '{ print $1 }' || printf 0
+}
+
+# ─── novo ────────────────────────────────────────────────────────────────────
+
+# Preenche o modelo do .env: __NOME__ vira o valor.
+preenche_env() { # <porta>
+  local texto
+  texto=$(cat "$SWAS_DIR/cliente.env.example")
+  texto=${texto//__CODIGO__/$CODIGO}
+  texto=${texto//__IMAGEM__/$IMAGEM}
+  texto=${texto//__PUBLIC_URL__/https://$SLUG.$DOMINIO}
+  texto=${texto//__AGENTES_SECRET__/$(openssl rand -base64 48 | tr -d '\n')}
+  texto=${texto//__POSTGRES_PASSWORD__/$(openssl rand -hex 24 | tr -d '\n')}
+  texto=${texto//__OWNER_CLAIM_SHA256__/$CLAIM_HASH}
+  texto=${texto//__PORTA__/$1}
+  [[ $texto != *__*__* ]] || erro "o modelo cliente.env.example tem um campo que o instalador não preenche"
+  printf '%s\n' "$texto"
+}
+
+imagem_padrao() {
+  tem_docker || return 0
+  docker images --format '{{.Repository}}:{{.Tag}}' "$REPO_IMAGEM" 2>/dev/null | grep -m1 ":doug-" || true
+}
+
+cmd_novo() {
+  ((${#POSICIONAIS[@]} == 3)) || erro 'uso: doug-cliente novo <codigo> <slug> "<nome>"'
+  CODIGO=${POSICIONAIS[0]} SLUG=${POSICIONAIS[1]} NOME=${POSICIONAIS[2]}
+  valida_codigo "$CODIGO"
+  valida_slug "$SLUG"
+  valida_nome "$NOME"
+  if ((!DRY)); then
+    exige_comando openssl
+    exige_comando curl
+    exige_comando sha256sum
+  fi
+  exige_docker
+
+  local pasta=$RAIZ/$CODIGO-$SLUG
+  PASTA=$pasta
+
+  registro_tem 1 "$CODIGO" && erro "o código $CODIGO já é de outro cliente (veja: doug-cliente lista)"
+  registro_tem 2 "$SLUG" && erro "o slug $SLUG já é de outro cliente (veja: doug-cliente lista)"
+  local outra
+  for outra in "$RAIZ/$CODIGO"-*; do
+    [[ -e $outra && $outra != "$pasta" ]] && erro "já existe $outra, de outro slug com o código $CODIGO"
+  done
+  local existente=0
+  [[ -f $pasta/.env ]] && existente=1
+  if ((!existente)) && [[ -d $pasta/dados/postgres ]] && [[ -n $(ls -A "$pasta/dados/postgres" 2>/dev/null) ]]; then
+    erro "$pasta/dados/postgres já tem dados e o .env se foi: sem a senha o banco não abre. Confira o que houve antes de seguir"
+  fi
+
+  # A imagem.
+  [[ -n $IMAGEM ]] || IMAGEM=$(imagem_padrao)
+  [[ -n $IMAGEM ]] || erro "qual imagem? Passe --imagem agentes-zim:doug-<sha> ou DOUG_IMAGE (nenhuma agentes-zim:doug-* nesta máquina)"
+  if tem_docker && ! docker image inspect "$IMAGEM" >/dev/null 2>&1; then
+    erro "a imagem $IMAGEM não existe nesta máquina (docker images $REPO_IMAGEM)"
+  fi
+
+  # Disco: cabe a cota do cliente?
+  local livre
+  livre=$(livre_kb)
+  if ! awk -v livre="$livre" -v cota="$COTA_GB" 'BEGIN { exit !(livre >= cota * 1048576) }'; then
+    erro "falta disco: restam $((livre / 1048576)) GB livres e a cota de um cliente é ${COTA_GB} GB (DOUG_CLIENT_QUOTA_GB)"
+  fi
+
+  # A porta: a do .env se o cliente já foi começado, senão a primeira livre.
+  local porta
+  if ((existente)); then
+    porta=$(env_valor "$pasta/.env" DOUG_HOST_PORT)
+    [[ $porta =~ ^[0-9]+$ ]] || erro "$pasta/.env não tem DOUG_HOST_PORT"
+  else
+    porta=$(porta_livre) || erro "nenhuma porta livre entre $PORTA_INICIAL e $PORTA_FINAL"
+  fi
+
+  diz "Cliente $CODIGO ($SLUG) — $NOME"
+  diz "  endereço: https://$SLUG.$DOMINIO"
+  diz "  pasta:    $pasta"
+  diz "  porta:    127.0.0.1:$porta"
+  diz "  imagem:   $IMAGEM"
+
+  if ((DRY)); then
+    ((existente)) && simula "a pasta já foi começada: mantenho o .env e os segredos que ela tem"
+    simula "criar $pasta/dados/postgres e $pasta/dados/files (dono $FILES_OWNER)"
+    simula "copiar compose.cliente.yml para $pasta/compose.yml"
+    ((existente)) || simula "gerar $pasta/.env (chmod 600) com segredos de openssl rand"
+    simula "docker compose -p doug-$CODIGO up -d"
+    simula "esperar http://127.0.0.1:$porta/api/health por até ${SAUDE_S}s"
+    simula "escrever $(caddy_arquivo "$SLUG") e recarregar o Caddy"
+    simula "registrar o cliente em $REGISTRO"
+    return 0
+  fi
+
+  mkdir -p "$RAIZ"
+  trava
+  # Com a trava, outro `novo` pode ter chegado antes: confere de novo.
+  registro_tem 1 "$CODIGO" && erro "o código $CODIGO acabou de ser usado por outro cliente"
+  registro_tem 2 "$SLUG" && erro "o slug $SLUG acabou de ser usado por outro cliente"
+
+  passo "preparando a pasta"
+  mkdir -p "$pasta/dados/postgres" "$pasta/dados/files"
+  if ! chown "$FILES_OWNER" "$pasta/dados/files" 2>/dev/null; then
+    ((EUID == 0)) && erro "não consegui dar $pasta/dados/files ao usuário $FILES_OWNER"
+    aviso "sem root, não deu para ajustar o dono de dados/files; rode com sudo (README)"
+  fi
+  install -m 644 "$SWAS_DIR/compose.cliente.yml" "$pasta/compose.yml"
+
+  local link=$pasta/link-do-dono.txt
+  if ((existente)); then
+    passo "o .env desta pasta já existe: mantenho os segredos dele"
+  else
+    local token
+    token=$(openssl rand -base64 32 | tr '+/' '-_' | tr -d '=\n')
+    CLAIM_HASH=$(printf '%s' "$token" | sha256sum | awk '{ print $1 }')
+    umask 077
+    preenche_env "$porta" >"$pasta/.env.novo"
+    mv "$pasta/.env.novo" "$pasta/.env"
+    printf 'https://%s.%s/owner#claim=%s\n' "$SLUG" "$DOMINIO" "$token" >"$link"
+    umask 022
+    chmod 600 "$pasta/.env" "$link"
+  fi
+
+  passo "subindo a stack (docker compose -p doug-$CODIGO up -d)"
+  compose "$CODIGO" "$pasta" up -d
+
+  passo "esperando o /api/health (até ${SAUDE_S}s)"
+  esperar_saude "$porta" || erro "o cliente não respondeu em ${SAUDE_S}s. Veja: docker compose -p doug-$CODIGO logs; rodar este mesmo comando de novo continua de onde parou"
+
+  passo "publicando $SLUG.$DOMINIO no Caddy"
+  caddy_escreve "$CODIGO" "$SLUG" "$porta"
+
+  registro_acrescenta "$CODIGO" "$SLUG" "$NOME" "$porta" "$IMAGEM"
+  passo "registrado em $REGISTRO"
+
+  diz ""
+  diz "Pronto: https://$SLUG.$DOMINIO"
+  if [[ -f $link ]]; then
+    diz "O primeiro acesso, para a pessoa dona do espaço criar a conta (vale uma vez; fica em $link):"
+    diz "  $(cat "$link")"
+  fi
+}
+
+trava() {
+  if command -v flock >/dev/null 2>&1; then
+    exec 9>"$RAIZ/.trava"
+    flock -w 120 9 || erro "outro doug-cliente está rodando (trava em $RAIZ/.trava)"
+  fi
+}
+
+# ─── lista ───────────────────────────────────────────────────────────────────
+
+estado_de() { # <codigo> <pasta>
+  local n
+  [[ -f $2/compose.yml ]] || {
+    printf 'sem pasta'
+    return
+  }
+  tem_docker || {
+    printf '?'
+    return
+  }
+  n=$(compose "$1" "$2" ps --status running -q 2>/dev/null | wc -l | tr -d ' ') || n=?
+  case $n in
+    0) printf 'parado' ;;
+    '?') printf '?' ;;
+    1) printf 'parcial' ;;
+    *) printf 'no ar' ;;
+  esac
+}
+
+cmd_lista() {
+  ((${#POSICIONAIS[@]} == 0)) || erro "uso: doug-cliente lista"
+  if [[ ! -s $REGISTRO ]]; then
+    diz "Nenhum cliente em $REGISTRO."
+    return 0
+  fi
+  printf '%-6s %-24s %-30s %-6s %-9s %s\n' CÓDIGO SLUG NOME PORTA ESTADO IMAGEM
+  local codigo slug nome porta imagem criado
+  while IFS=$'\t' read -r codigo slug nome porta imagem criado || [[ -n ${codigo:-} ]]; do
+    [[ -z ${codigo:-} || $codigo == \#* ]] && continue
+    printf '%-6s %-24s %-30s %-6s %-9s %s\n' "$codigo" "$slug" "${nome:0:30}" "$porta" "$(estado_de "$codigo" "$RAIZ/$codigo-$slug")" "$imagem"
+  done <"$REGISTRO"
+}
+
+# ─── parar, iniciar ──────────────────────────────────────────────────────────
+
+pasta_pronta() {
+  [[ -f $PASTA/compose.yml && -f $PASTA/.env ]] || erro "faltam o compose.yml ou o .env em $PASTA"
+}
+
+cmd_parar() {
+  ((${#POSICIONAIS[@]} == 1)) || erro "uso: doug-cliente parar <codigo>"
+  carrega_cliente "${POSICIONAIS[0]}"
+  exige_docker
+  pasta_pronta
+  if ((DRY)); then
+    simula "docker compose -p doug-$CODIGO stop ($SLUG)"
+    return 0
+  fi
+  passo "parando $CODIGO ($SLUG)"
+  compose "$CODIGO" "$PASTA" stop
+  diz "Parado. Os dados continuam em $PASTA/dados; para voltar: doug-cliente iniciar $CODIGO"
+}
+
+cmd_iniciar() {
+  ((${#POSICIONAIS[@]} == 1)) || erro "uso: doug-cliente iniciar <codigo>"
+  carrega_cliente "${POSICIONAIS[0]}"
+  exige_docker
+  pasta_pronta
+  if ((DRY)); then
+    simula "docker compose -p doug-$CODIGO up -d ($SLUG) e esperar http://127.0.0.1:$PORTA/api/health"
+    return 0
+  fi
+  exige_comando curl
+  passo "iniciando $CODIGO ($SLUG)"
+  compose "$CODIGO" "$PASTA" up -d
+  esperar_saude "$PORTA" || erro "o cliente não respondeu em ${SAUDE_S}s. Veja: docker compose -p doug-$CODIGO logs"
+  diz "No ar: https://$SLUG.$DOMINIO"
+}
+
+# ─── backup, remover ─────────────────────────────────────────────────────────
+
+# Dump do banco do cliente em <raiz>/backups/. Escreve em DESTINO_BACKUP.
+faz_backup() { # <codigo> <slug> <pasta>
+  local destino parcial
+  mkdir -p "$RAIZ/backups"
+  chmod 700 "$RAIZ/backups"
+  destino=$RAIZ/backups/$1-$2-$(date +%Y%m%d-%H%M%S).dump
+  parcial=$destino.parcial
+  compose "$1" "$3" up -d postgres >/dev/null
+  esperar_banco "$1" "$3" || erro "o Postgres de $1 não ficou pronto: sem backup não removo nada"
+  umask 077
+  if ! compose "$1" "$3" exec -T postgres pg_dump -Fc -U agentes agentes >"$parcial" || [[ ! -s $parcial ]]; then
+    rm -f "$parcial"
+    erro "o backup do banco de $1 falhou: não removi nada"
+  fi
+  umask 022
+  mv "$parcial" "$destino"
+  DESTINO_BACKUP=$destino
+}
+
+cmd_backup() {
+  ((${#POSICIONAIS[@]} == 1)) || erro "uso: doug-cliente backup <codigo>"
+  carrega_cliente "${POSICIONAIS[0]}"
+  exige_docker
+  pasta_pronta
+  if ((DRY)); then
+    simula "pg_dump -Fc do banco de $CODIGO para $RAIZ/backups/$CODIGO-$SLUG-<data>.dump"
+    return 0
+  fi
+  faz_backup "$CODIGO" "$SLUG" "$PASTA"
+  diz "Backup: $DESTINO_BACKUP"
+  diz "Os arquivos do cliente (dados/files) não entram: copie $PASTA/dados/files à parte. O AGENTES_SECRET está em $PASTA/.env."
+}
+
+cmd_remover() {
+  ((${#POSICIONAIS[@]} == 1)) || erro "uso: doug-cliente remover <codigo> [--apagar-dados] [--sim]"
+  carrega_cliente "${POSICIONAIS[0]}"
+  exige_docker
+  pasta_pronta
+  [[ $PASTA == "$RAIZ"/[0-9][0-9][0-9]-* ]] || erro "pasta fora do padrão: $PASTA"
+
+  local destino_pasta=$RAIZ/removidos/$CODIGO-$SLUG-$(date +%Y%m%d-%H%M%S)
+  diz "Remover o cliente $CODIGO ($SLUG) — $NOME"
+  diz "  1. backup do banco em $RAIZ/backups/"
+  diz "  2. parar e derrubar a stack doug-$CODIGO"
+  diz "  3. tirar https://$SLUG.$DOMINIO do Caddy"
+  diz "  4. tirar o cliente de $REGISTRO"
+  if ((APAGAR)); then
+    diz "  5. APAGAR $PASTA, com todos os dados (também o .env, que fica copiado ao lado do backup)"
+  else
+    diz "  5. guardar $PASTA, com dados/ e .env, em $destino_pasta (nada é apagado)"
+  fi
+
+  if ((DRY)); then
+    simula "nada foi feito"
+    return 0
+  fi
+
+  local esperado="$SLUG"
+  ((APAGAR)) && esperado="APAGAR $SLUG"
+  if ((!SIM)); then
+    local resposta=""
+    printf 'Para confirmar, digite "%s": ' "$esperado" >&2
+    read -r resposta || true
+    [[ $resposta == "$esperado" ]] || erro "não confirmado: nada foi feito"
+  fi
+
+  mkdir -p "$RAIZ"
+  trava
+
+  passo "backup do banco"
+  faz_backup "$CODIGO" "$SLUG" "$PASTA"
+  diz "  $DESTINO_BACKUP"
+  if ((APAGAR)); then
+    install -m 600 "$PASTA/.env" "${DESTINO_BACKUP%.dump}.env"
+    diz "  ${DESTINO_BACKUP%.dump}.env (o AGENTES_SECRET, para ler as chaves do backup)"
+  fi
+
+  passo "derrubando a stack"
+  compose "$CODIGO" "$PASTA" down --remove-orphans
+
+  passo "tirando do Caddy"
+  caddy_tira "$SLUG"
+
+  registro_tira "$CODIGO"
+  passo "tirado de $REGISTRO"
+
+  if ((APAGAR)); then
+    rm -rf -- "$PASTA"
+    diz "Removido, com os dados. O backup está em $RAIZ/backups/."
+  else
+    mkdir -p "$RAIZ/removidos"
+    mv "$PASTA" "$destino_pasta"
+    diz "Removido. Os dados ficaram em $destino_pasta (apague à mão quando não precisar mais); o backup, em $RAIZ/backups/."
+  fi
+}
+
+# ─── cota ────────────────────────────────────────────────────────────────────
+
+cmd_cota() {
+  ((${#POSICIONAIS[@]} <= 1)) || erro "uso: doug-cliente cota [<codigo>]"
+  local so=${POSICIONAIS[0]:-}
+  [[ -z $so ]] || valida_codigo "$so"
+  if [[ ! -s $REGISTRO ]]; then
+    diz "Nenhum cliente em $REGISTRO."
+    return 0
+  fi
+  local acima=0 achou=0 codigo slug nome porta imagem criado kb situacao
+  printf '%-6s %-24s %10s %10s %6s  %s\n' CÓDIGO SLUG USADO COTA '%' SITUAÇÃO
+  while IFS=$'\t' read -r codigo slug nome porta imagem criado || [[ -n ${codigo:-} ]]; do
+    [[ -z ${codigo:-} || $codigo == \#* ]] && continue
+    [[ -z $so || $codigo == "$so" ]] || continue
+    achou=1
+    kb=$(usado_kb "$RAIZ/$codigo-$slug")
+    kb=${kb:-0}
+    situacao=$(awk -v kb="$kb" -v cota="$COTA_GB" 'BEGIN { p = kb / (cota * 1048576) * 100; print (p > 100 ? "ACIMA DA COTA" : (p >= 80 ? "perto do limite" : "ok")) }')
+    [[ $situacao == "ACIMA DA COTA" ]] && acima=1
+    awk -v c="$codigo" -v s="$slug" -v kb="$kb" -v cota="$COTA_GB" -v sit="$situacao" \
+      'BEGIN { printf "%-6s %-24s %7.2f GB %7.2f GB %5.0f%%  %s\n", c, s, kb / 1048576, cota, kb / (cota * 1048576) * 100, sit }'
+  done <"$REGISTRO"
+  [[ -z $so || $achou == 1 ]] || erro "o cliente $so não está em $REGISTRO"
+  ((EUID == 0)) || aviso "sem root, o Postgres dos clientes não é legível e o uso pode vir menor (use sudo)"
+  # 3: algum cliente passou da cota (para um alerta ler o código de saída).
+  ((acima == 0)) || return 3
+}
+
+# ─── principal ───────────────────────────────────────────────────────────────
+
+ler_argumentos "$@"
+COMANDO=${POSICIONAIS[0]:-ajuda}
+((AJUDA)) && COMANDO=ajuda
+POSICIONAIS=("${POSICIONAIS[@]:1}")
+
+case $COMANDO in
+  novo) cmd_novo ;;
+  lista) cmd_lista ;;
+  parar) cmd_parar ;;
+  iniciar) cmd_iniciar ;;
+  backup) cmd_backup ;;
+  remover) cmd_remover ;;
+  cota) cmd_cota ;;
+  ajuda) uso ;;
+  *) erro "comando desconhecido: $COMANDO (veja doug-cliente ajuda)" ;;
+esac
