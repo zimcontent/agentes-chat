@@ -524,7 +524,9 @@ export class GrokBrain extends CodexBrain {
 /**
  * The Antigravity brain (ADR 0143): Google's Antigravity CLI (`agy`) on the agent's computer with a person's Google
  * AI Pro or Ultra plan or a Gemini Enterprise seat, through the same `brain.turn` as Codex (`kind: "antigravity"`,
- * runner protocol 44, `brain-antigravity.ts` there). A person's messages wait for the turn's end.
+ * runner protocol 44, `brain-antigravity.ts` there). A person's messages reach the turn mid-way over the CLI's ACP
+ * server (`brain.steer`, ADR 0143 addendum 2026-11-18); a runner that runs it as `agy -p`, and the right hand's turns,
+ * answer `unsupported` and the messages wait for the turn's end.
  */
 export class AntigravityBrain extends CodexBrain {
   constructor(deps: CodexBrainDeps) {

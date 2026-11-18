@@ -18,6 +18,7 @@ import {
 } from "./accounts";
 import { AGY_CHAT_AGENT, AGY_NETWORK_COMMANDS, prepareAgyHome } from "./agy-home";
 import { LIMIT_TEXT } from "./brain";
+import { runAntigravityAcpTurn } from "./brain-antigravity-acp";
 import { type CodexBrainEvent, CodexThreads, chatFolder, codexProfileOf, codexThreadKey } from "./brain-codex";
 import { cursorPrompt } from "./brain-cursor";
 import { RunnerError } from "./errors";
@@ -57,7 +58,11 @@ import { agentSecrets } from "./secrets";
  * - A failed turn exits non-zero; a model or agent failure exits 3 with an `AGY_ERROR: {…}` line on stderr (its
  *   canonical status, HTTP or gRPC code, retryability): quota and rate limits are `plan_limit`, a refused sign-in
  *   `not_logged_in`.
- * - No live steering: `-p` takes nothing mid-turn (`brain.steer` answers `unsupported`).
+ * - Live steering: every turn but the right hand's runs over ACP (`agy acp`, `brain-antigravity-acp.ts`), which takes a
+ *   person's messages mid-turn; `-p` takes nothing mid-turn, so a turn handed back to it (an older CLI, a session it
+ *   couldn't start) and a `chat` turn answer `brain.steer` with `unsupported`.
+ * - Our server's tools are loaded up front (`eager`, `agyMcpConfig`), named as the run lists them: the CLI otherwise
+ *   loads an MCP server's tools on demand, and the model spent steps reading their schemas off disk first.
  */
 
 const KILL_GRACE_MS = 5000;
@@ -93,7 +98,7 @@ const OURS = new RegExp(`^(?:mcp[_.:/-]{1,2})?${CODEX_MCP_SERVER}(?:__|[_.:/-])[
 export const isOurAgyTool = (name: unknown) => typeof name === "string" && OURS.test(name);
 
 /** `--effort`: low, medium or high (`xhigh` and `max` as high); a slug that names its level (`…-high`) takes none. */
-const agyEffort = (effort?: BrainEffort, model?: string) =>
+export const agyEffort = (effort?: BrainEffort, model?: string) =>
   model && /-(?:low|medium|high|xhigh)$/.test(model)
     ? undefined
     : effort === "xhigh" || effort === "max"
@@ -264,12 +269,15 @@ export interface AntigravityTurnInput {
   effort?: BrainEffort;
   system: string;
   prompt: string;
-  mcp: { token: string };
+  /** `tools`: the run's tool names, space-separated (loaded up front, `agyMcpConfig`). */
+  mcp: { token: string; tools?: string };
   /** The account: its folder is the CLI's `HOME`, its chats are its own. */
   account: { id: string; home: string };
   profile?: CommandProfile;
   /** The team's right hand (`cwd` its empty `chatFolder`): killed at a tool of the CLI's own. */
   chat?: boolean;
+  /** The turn's agent (for `brain.steer`). */
+  agentId?: string;
 }
 
 export interface AntigravityTurnOptions {
@@ -288,6 +296,10 @@ export interface AntigravityTurnOptions {
   spawn?: Spawn;
   platform?: NodeJS.Platform;
   now?: () => number;
+  /** `agy -p` only, never ACP (tests of the `-p` turn). */
+  printOnly?: boolean;
+  /** Tests: the ACP turn's timings. */
+  acpTiming?: { wakeWaitMs?: number; wakeSettleMs?: number; silenceMs?: number; exitGraceMs?: number };
 }
 
 /** Runs one Antigravity turn and emits its events; ends with exactly one `done` or `error`. Never throws. */
@@ -301,7 +313,7 @@ export async function runAntigravityTurn(input: AntigravityTurnInput, opts: Anti
   // Only a work turn's commands may leave the sandbox for the network (`AGY_NETWORK_COMMANDS`).
   const profile = input.chat ? undefined : (input.profile ?? "work");
   try {
-    prepareAgyHome(input.account.home, opts.mcpCommand, profile);
+    prepareAgyHome(input.account.home, opts.mcpCommand, profile, input.mcp.tools?.split(" ").filter(Boolean));
     if (input.chat) {
       // Nothing of the workspace's own config (`.agents/`, `.gemini/`) in Lodi's folder.
       for (const name of [".agents", ".gemini"]) rmSync(path.join(input.cwd, name), { recursive: true, force: true });
@@ -328,6 +340,21 @@ export async function runAntigravityTurn(input: AntigravityTurnInput, opts: Anti
   const hold = opts.redact ? (opts.redactHold ?? 0) : 0;
 
   const system = input.chat ? input.system : [AGY_SANDBOX_NOTE, input.system].filter(Boolean).join("\n\n");
+  // Over ACP, so a person's messages reach the turn as it works; back to `-p` when that can't start.
+  if (!input.chat && !opts.printOnly) {
+    const acp = await runAntigravityAcpTurn({
+      input,
+      opts,
+      env,
+      system,
+      chatKey,
+      profile: profile ?? "work",
+      clean,
+      hold,
+      ...(opts.acpTiming ? { timing: opts.acpTiming } : {}),
+    });
+    if (acp === "ended") return;
+  }
   // Once a turn, a turn cut at a refused action goes on in the same conversation, told why (`agyDeniedNudge`).
   let nudge: string | null = null;
   // One retry, as a new chat, when the CLI doesn't have the conversation it was to resume.
@@ -624,10 +651,14 @@ export async function handleAntigravityBrainTurn(
         ...(req.effort ? { effort: req.effort } : {}),
         system: typeof req.system === "string" ? req.system : "",
         prompt: typeof req.prompt === "string" ? req.prompt : "",
-        mcp: { token: req.mcp.token },
+        mcp: {
+          token: req.mcp.token,
+          ...(typeof req.mcp.tools === "string" && req.mcp.tools ? { tools: req.mcp.tools.slice(0, 64_000) } : {}),
+        },
         account: { id: accountId, home: signIn.home },
         profile: codexProfileOf(req),
         ...(chat ? { chat } : {}),
+        agentId: String(req.agent.id),
       },
       {
         chats,

@@ -15,6 +15,7 @@ import type { Judge } from "./judge";
 import { insertMessage, type Message, messageView } from "./messages";
 import { notifyMissionApproval } from "./mission-tools";
 import { notifyQuestion } from "./notification-producers";
+import { progressWords } from "./progress-line";
 import {
   type AgentQuestionRow,
   ASK_USER_TOOL,
@@ -533,7 +534,8 @@ export async function invokeWithChip(
   const command = toolCommand(use.name, input);
   // The agent's line follows what it does now (ADR 0084 §10), beside the call, never in its way.
   if (def) void followWork(deps, ctx, def).catch(() => {});
-  const words = takeStepWords(where.runId);
+  // Its own words, else the line worded for it while it said nothing (`progress-line.ts`).
+  const words = takeStepWords(where.runId) ?? progressWords(where.runId);
   // What it wrote before staying quiet was never meant for people: shown, it would vanish with the pass.
   const said = use.name === PASS_TOOL ? undefined : words;
   await publishChannelEvent(deps.pubsub, {

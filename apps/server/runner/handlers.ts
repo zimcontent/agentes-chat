@@ -25,6 +25,7 @@ import type { AccountBrains } from "./account-brains";
 import type { AccountFolders, AccountGrant, AccountManager } from "./accounts";
 import { type BrainManager, brainKey } from "./brain";
 import { type AntigravityBrainTurnRequest, handleAntigravityBrainTurn } from "./brain-antigravity";
+import { steerAntigravityTurn } from "./brain-antigravity-acp";
 import { type CodexBrainEvent, type CodexBrainTurnRequest, handleCodexBrainTurn } from "./brain-codex";
 import type { CodexAppServers } from "./brain-codex-app";
 import { type CursorBrainTurnRequest, handleCursorBrainTurn } from "./brain-cursor";
@@ -1290,10 +1291,16 @@ async function doHostedTurn(
 }
 
 /**
- * Cursor, Grok and Antigravity turns in progress, by run: `brain.steer` answers `unsupported` for them (`agent -p`,
- * `grok -p` and `agy -p` take nothing mid-turn).
+ * Cursor, Grok and the right hand's Antigravity turns in progress, by run: `brain.steer` answers `unsupported` for
+ * them (`agent -p`, `grok -p` and `agy -p` take nothing mid-turn).
  */
 const turnOnlyRuns = new Map<string, "Cursor" | "Grok Build" | "Antigravity CLI">();
+
+/**
+ * Antigravity turns in progress over ACP, by run (`steerAntigravityTurn`): `no_turn` until the session is open,
+ * `unsupported` once the turn went back to `agy -p`.
+ */
+const agyRuns = new Set<string>();
 
 /** OpenCode turns in progress, by run: `no_turn` until the turn can take messages (`steerOpencodeTurn`). */
 const opencodeRuns = new Set<string>();
@@ -1326,6 +1333,14 @@ function doBrainSteer(
   if (turnOnly) return { status: "unsupported", reason: `${turnOnly} reads messages only between turns` };
   if (opencodeRuns.has(runId)) {
     return steerOpencodeTurn(String(req.agent.id), { runId, session, messages }) ?? { status: "no_turn" };
+  }
+  if (agyRuns.has(runId)) {
+    return (
+      steerAntigravityTurn(String(req.agent.id), { runId, session, messages }) ?? {
+        status: "unsupported",
+        reason: "Antigravity CLI reads messages only between turns here",
+      }
+    );
   }
   if (ctx.codex?.runs.has(runId)) {
     return ctx.codex.app
@@ -1418,6 +1433,7 @@ async function doCodexTurn(
     scope.emit?.({ type: "brain.event", runId, event });
   };
   if (opencode) opencodeRuns.add(runId);
+  else if (agy && !chat) agyRuns.add(runId);
   else if (cursor || grok || agy) turnOnlyRuns.set(runId, cursor ? "Cursor" : grok ? "Grok Build" : "Antigravity CLI");
   try {
     if (agy) {
@@ -1503,6 +1519,7 @@ async function doCodexTurn(
     codex.runs.delete(runId);
     turnOnlyRuns.delete(runId);
     opencodeRuns.delete(runId);
+    agyRuns.delete(runId);
   }
   signedOut(ctx, req, final);
   scope.emit?.({ type: "brain.done", runId });

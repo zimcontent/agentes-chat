@@ -161,3 +161,77 @@ test("a computer brain that tells its own call as it starts: the step line says 
   expect(steps).toMatchObject([{ tool: "Bash" }, { tool: "Grep" }]);
   expect((steps[1] as { said?: string }).said).toBeUndefined();
 });
+
+test("a computer brain that works without a word: after the quiet, a line of what it does stands as its step words", async () => {
+  const brain: Brain = {
+    kind: "claude_code",
+    async *run() {
+      yield { type: "tool_started", id: "r1", name: "Read" };
+      yield {
+        type: "tool_call",
+        id: "r1",
+        name: "Read",
+        input: { file_path: "qa/QA.md" },
+        executed: { content: "ok" },
+      };
+      // Quiet past the threshold: the line is worded meanwhile.
+      await new Promise((r) => setTimeout(r, 150));
+      yield { type: "tool_started", id: "g1", name: "Grep" };
+      yield { type: "tool_call", id: "g1", name: "Grep", input: { pattern: "frames" }, executed: { content: "" } };
+      yield { type: "text_delta", text: "Pronto." };
+      yield { type: "done", text: "Pronto." };
+    },
+  };
+  f = await setup({
+    contextTools: true,
+    reply: (req) =>
+      JSON.stringify(req.system).includes("status line shown in a chat")
+        ? { chunks: ["Conferindo o relatório de QA do vídeo"] }
+        : { chunks: ["ok"] },
+  });
+  const deps = { db: f.db, pubsub: f.pubsub, publicUrl: "https://agentes.chat" };
+  const paired = await pairMachine(deps, f.owner.id, f.org.id, {
+    name: "MacBook",
+    hostname: "mac",
+    os: "darwin",
+    arch: "arm64",
+    version: "0.8.0",
+    protocol: MACHINE_PROTOCOL_VERSION,
+    workspace: "/Users/w/agentes",
+    exec: true,
+  });
+  await f.db
+    .update(schema.agents)
+    .set({ machineId: paired.machineId, brain: "claude_code" })
+    .where(eq(schema.agents.id, f.agent.id));
+  const handlers = createJobHandlers({
+    ...f.jobDeps,
+    progressQuietMs: 0,
+    workTickMs: 20,
+    brains: { claude_code: () => brain },
+    machines: {
+      status: async (id): Promise<MachineStatus> => ({
+        id,
+        orgId: f.org.id,
+        name: "MacBook",
+        online: true,
+        execAllowed: true,
+        os: "darwin",
+        protocol: 8,
+        executors: { claude: { version: "2.1.300", loggedIn: true }, detectedAt: new Date().toISOString() },
+      }),
+    },
+  });
+  const events = f.listen(f.general.id);
+  await post("@dev o vídeo está pronto?");
+  await drainOutbox(f.db, handlers);
+
+  const steps = events.filter((e) => e.type === "agent.step") as unknown as { tool: string; said?: string }[];
+  expect(steps[0]).toMatchObject({ tool: "Read" });
+  expect(steps[0]?.said).toBeUndefined();
+  // Worded once, then it stands under the next step of its own.
+  expect(steps.filter((s) => s.said === "Conferindo o relatório de QA do vídeo").length).toBeGreaterThanOrEqual(2);
+  expect(steps.at(-1)).toMatchObject({ tool: "Grep", said: "Conferindo o relatório de QA do vídeo" });
+  // Never a message.
+  expect(await agentBodies()).toEqual(["Pronto."]);
+});
