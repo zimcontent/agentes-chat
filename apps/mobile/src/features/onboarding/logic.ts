@@ -2,6 +2,7 @@ import {
   ApiError,
   type BrandInput,
   type BrandView,
+  type DougTeamTemplate,
   type DougTemplateMember,
   type TeamTemplate,
   type WorkspaceMode,
@@ -106,18 +107,22 @@ export function orgNameFromEmail(email: string): string | null {
     .join(" ");
 }
 
-/** The Doug team's template id (docs/adr/doug-0020-time-doug.md): the first card of the gallery. */
+/** The Doug team's template id (docs/adr/doug-0030-time-doug.md): its card, apart from the gallery. */
 export const DOUG_TEMPLATE = "doug";
 
-/** The Doug template of a gallery, when the server has it; an older server's gallery has none (the old step shows). */
+/**
+ * The Doug template as the call with Doug answers it, when the server has one; an older server (no `doug`, or one with
+ * no members) has none and the old step shows.
+ */
 export const dougOf = (
-  templates: readonly TeamTemplate[],
-): (TeamTemplate & { members: DougTemplateMember[] }) | null => {
-  const t = templates.find((x) => x.id === DOUG_TEMPLATE);
-  return t?.members && t.members.length > 0 ? { ...t, members: t.members } : null;
-};
+  doug: DougTeamTemplate | null | undefined,
+): (TeamTemplate & { members: DougTemplateMember[] }) | null =>
+  doug?.members && doug.members.length > 0 ? { ...doug, members: doug.members } : null;
 
-/** The ready-made models other than the Doug team ("Outro modelo pronto"). */
+/**
+ * The ready-made models ("Outro modelo pronto"): the gallery as it comes, which never holds the Doug team. A server
+ * older than `?with=doug` may still list it, so it is dropped when it is there.
+ */
 export const otherTemplates = (templates: readonly TeamTemplate[]) => templates.filter((x) => x.id !== DOUG_TEMPLATE);
 
 /** The three ways to start the team (the first question of the team step), in this order. */

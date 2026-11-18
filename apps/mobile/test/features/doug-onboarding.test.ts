@@ -1,6 +1,6 @@
 import { expect, test } from "bun:test";
 import { readFileSync } from "node:fs";
-import { ApiError, type DougTemplateMember, type TeamTemplate } from "@agenteschat/client";
+import { ApiError, type DougTeamTemplate, type DougTemplateMember, type TeamTemplate } from "@agenteschat/client";
 import {
   type BrandForm,
   brandFormOf,
@@ -60,13 +60,18 @@ const MEMBERS = [
 const template = (id: string, members?: DougTemplateMember[]): TeamTemplate =>
   ({ id, name: id, sub: "", description: "", team: { agents: [] }, ...(members ? { members } : {}) }) as never;
 
-test("the Doug template is the gallery's `doug` with its members; the other models are the rest", () => {
-  const gallery = [template("doug", MEMBERS), template("padaria"), template("loja")];
-  expect(dougOf(gallery)?.members).toHaveLength(MEMBERS.length);
+test("the Doug template comes from the call with Doug; the other models are the gallery as it comes", () => {
+  // The card apart (`?with=doug`), never in the gallery: its `members` are the agents to check.
+  const doug = template("doug", MEMBERS) as DougTeamTemplate;
+  expect(dougOf(doug)?.members).toHaveLength(MEMBERS.length);
+  const gallery = [template("padaria"), template("loja")];
   expect(otherTemplates(gallery).map((x) => x.id)).toEqual(["padaria", "loja"]);
+  // A server older than `?with=doug` may still list it: the old models leave it out either way.
+  expect(otherTemplates([template("doug", MEMBERS), ...gallery]).map((x) => x.id)).toEqual(["padaria", "loja"]);
   // An older server (no Doug card, or one with no members) keeps the old step.
-  expect(dougOf([template("padaria")])).toBeNull();
-  expect(dougOf([template("doug", [])])).toBeNull();
+  expect(dougOf(null)).toBeNull();
+  expect(dougOf(undefined)).toBeNull();
+  expect(dougOf(template("doug", []) as DougTeamTemplate)).toBeNull();
   expect(phaseAfter("doug")).toBe("members");
   expect(phaseAfter("other")).toBe("other");
   expect(phaseAfter("scratch")).toBe("scratch");

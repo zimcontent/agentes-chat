@@ -124,13 +124,13 @@ leave: what a new workspace gets is the craft, never the data.
    to the ROSA, the SONY, the SOCIAL MEDIA and the CHESS.
    - **The step never traps anyone.** The brand is required only where the app that finishes the onboarding draws the
      step: it sends `holdBrand` and `saveOnboarding` answers 409 `onboarding.brand_pending` while the brand still
-     waits; `GET /me` says `brandPending` to that app alone. The web is that app: it sends `holdBrand: true` and draws
-     the step itself (its brands screens ship beside this team, so the step it holds for is the one it opens). An app
-     that knows nothing of the step (the phone as it was) sends no `holdBrand`, finishes the onboarding and opens the
-     workspace; the brand is then asked for in the DOUG's DM (`rightHandPrompt`'s "not set up yet"), so a workspace
-     that got its team never works on a piece without it. Once the onboarding is over, `brandPending` reads false (it
-     means "the onboarding still waits"); the brand skill is still written by the same route, and the DOUG asks for it
-     in the chat.
+     waits; `GET /me` says `brandPending` to that app alone. The web and the phone are both that app: each sends
+     `holdBrand: true` and draws the step itself (its brand screens ship beside this team, so the step it holds for is
+     the one it opens). An app that knows nothing of the step (an older build, or the desktop) sends no `holdBrand`,
+     finishes the onboarding and opens the workspace; the brand is then asked for in the DOUG's DM
+     (`rightHandPrompt`'s "not set up yet"), so a workspace that got its team never works on a piece without it. Once
+     the onboarding is over, `brandPending` reads false (it means "the onboarding still waits"); the brand skill is
+     still written by the same route, and the DOUG asks for it in the chat.
    - **The prompt asks, it does not write.** The DOUG has no tool that writes the brand: the line of its prompt names
      where the person fills it in (the onboarding's brand step, or with whoever manages the agents), and only appears
      to a person who may write it (`manage_agents`, the same right `PUT …/brand` asks for). Anyone else reads none of

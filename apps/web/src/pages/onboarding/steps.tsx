@@ -1,7 +1,6 @@
 import type { Agent } from "@agenteschat/client";
-import { keys, useApplyTeamTemplate, useRoutines, useTeamTemplates } from "@agenteschat/client";
+import { keys, useApplyTeamTemplate, useDougTemplate, useRoutines, useTeamTemplates } from "@agenteschat/client";
 import type { PlanOffer } from "@agenteschat/client/lib/billing";
-import { dougOf, isDougTemplate } from "@agenteschat/client/lib/doug-team";
 import { errorText } from "@agenteschat/client/lib/errors";
 import { firstJob } from "@agenteschat/client/lib/onboarding";
 import { isRightHand } from "@agenteschat/client/lib/right-hand";
@@ -38,25 +37,26 @@ import { lookOf } from "@/lib/look";
 
 /**
  * The templates, the one step 3 shows (`business`'s, else the first), and the person's pick among them. `doug`: the
- * Doug team, its card first on how a team starts (docs/adr/doug-0020-time-doug.md), null on an older server.
+ * Doug team, its card first on how a team starts (docs/adr/doug-0030-time-doug.md), null on an older server.
  *
- * The Doug team is taken out of `templates`: it is not a business's template, so neither the select nor the "time
- * pronto" step falls on it, and this is the one place that knows the gallery may still list it (the server is moving
- * it to a field of its own).
+ * The gallery never holds the Doug team: it is asked for apart, by the call with Doug (`useDougTemplate`), so neither
+ * the select nor the "time pronto" step falls on it, and the two calls' cache keys stay separate.
  */
 export function useTemplate(orgId: string | null, business: BusinessType | null, enabled: boolean) {
   const { i18n } = useTranslation();
-  const list = useTeamTemplates(orgId ?? "", i18n.language, orgId !== null && enabled);
+  const on = orgId !== null && enabled;
+  const list = useTeamTemplates(orgId ?? "", i18n.language, on);
+  const withDoug = useDougTemplate(orgId ?? "", i18n.language, on);
   const [picked, pick] = useState<string | null>(null);
-  const doug = dougOf(list.data ?? []);
-  const templates = (list.data ?? []).filter((x) => !isDougTemplate(x));
+  const templates = list.data ?? [];
   return {
     templates,
     chosen: templateFor(templates, picked, business),
-    doug,
+    doug: withDoug.data ?? null,
     pick,
     failed: list.isError,
-    loading: list.isPending,
+    // Both calls: the doug's card is the first one drawn, so the step waits for it as it waits for the gallery.
+    loading: list.isPending || withDoug.isPending,
   };
 }
 

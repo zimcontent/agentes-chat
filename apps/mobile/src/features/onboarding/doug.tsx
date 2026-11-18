@@ -455,7 +455,7 @@ function useBrandForm(orgId: string, locale: string) {
   const api = useApi();
   return useQuery({
     queryKey: ["org", orgId, "brand", locale] as const,
-    queryFn: () => api.agents.brand(orgId, locale),
+    queryFn: () => api.orgs.brand(orgId, locale),
     staleTime: 0,
   });
 }
@@ -540,7 +540,7 @@ export function BrandStep({
   };
   const save = useMutation({
     mutationFn: async () => {
-      await api.agents.saveBrand(orgId, brandInput(form));
+      await api.orgs.saveBrand(orgId, brandInput(form));
       // The workspace stops waiting for it: the onboarding moves on once `me` says so.
       await qc.invalidateQueries({ queryKey: keys.me });
     },

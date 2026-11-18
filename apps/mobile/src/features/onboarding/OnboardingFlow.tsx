@@ -1,4 +1,13 @@
-import { addDm, keys, meQuery, useApi, useAuthConfig, useTeamTemplates, type WorkspaceMode } from "@agenteschat/client";
+import {
+  addDm,
+  keys,
+  meQuery,
+  useApi,
+  useAuthConfig,
+  useDougTemplate,
+  useTeamTemplates,
+  type WorkspaceMode,
+} from "@agenteschat/client";
 import { firstName } from "@agenteschat/client/lib/format";
 import { agentGrammar } from "@agenteschat/client/lib/grammar";
 import { settingUp } from "@agenteschat/client/lib/guards";
@@ -167,14 +176,14 @@ export function OnboardingFlow({ onLeave, another }: { onLeave?: () => void; ano
   // Back on step 1, the workspace's own zone (saved on another visit, maybe on the web), never the phone's.
   const zone = pickedZone ?? settings.data?.timezone ?? phoneTimezone();
   const kind = business ?? aboutOf(t, context).business;
-  const templates = useTeamTemplates(
-    orgId ?? "",
-    i18n.language,
-    orgId !== null && (step === "business" || step === "team"),
-  );
-  // The Doug team is the gallery's first card; the old step's models are the others ("Outro modelo pronto").
-  const doug = dougOf(templates.data ?? []);
-  const chosen = templateFor(doug ? otherTemplates(templates.data ?? []) : (templates.data ?? []), template, kind);
+  const reading = orgId !== null && (step === "business" || step === "team");
+  const templates = useTeamTemplates(orgId ?? "", i18n.language, reading);
+  // The Doug team is not the gallery's: it is asked for apart, by the call with Doug (`?with=doug`), and the other
+  // models are the gallery as it comes ("Outro modelo pronto"). Its card is drawn first, so it waits for its answer.
+  const withDoug = useDougTemplate(orgId ?? "", i18n.language, reading);
+  const doug = dougOf(withDoug.data);
+  const others = otherTemplates(templates.data ?? []);
+  const chosen = templateFor(others, template, kind);
   const makeDoug = useDougTeam(orgId ?? "");
   // The right hand works while anything saves, the steps' own requests included.
   const mutating = useIsMutating();
@@ -233,7 +242,9 @@ export function OnboardingFlow({ onLeave, another }: { onLeave?: () => void; ano
       const { orgId: id, generalChannelId } = target;
       let done: Awaited<ReturnType<typeof finishOnboarding>>;
       try {
-        done = await finishOnboarding(api, id);
+        // The phone draws the brand step too ("Sua marca", docs/adr/doug-0030-time-doug.md), so it asks to be held by
+        // it: a team whose brand still waits answers 409 and the step comes, instead of the workspace opening without.
+        done = await finishOnboarding(api, id, true);
       } catch (e) {
         // The brand still waits (a team made on the web, or its answer lost here): `me` is read again so the flow
         // shows the brand's step, and the person is not left on a screen whose button can never work.
@@ -673,7 +684,7 @@ export function OnboardingFlow({ onLeave, another }: { onLeave?: () => void; ano
           <TeamStep
             orgId={orgId}
             team={team}
-            templates={doug ? otherTemplates(templates.data ?? []) : (templates.data ?? [])}
+            templates={others}
             chosen={chosen}
             listFailed={templates.isError}
             onRetryList={() => void templates.refetch()}

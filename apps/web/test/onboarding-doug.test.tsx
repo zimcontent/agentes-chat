@@ -3,7 +3,7 @@ import { setupDom } from "@agenteschat/ui/testing/dom";
 
 setupDom();
 
-import type { DougTemplateMember, TeamTemplate } from "@agenteschat/client";
+import type { DougTeamTemplate, DougTemplateMember, TeamTemplate } from "@agenteschat/client";
 import type { OnboardingStepId } from "@agenteschat/client/lib/onboarding";
 import { act, cleanup, fireEvent } from "@testing-library/react";
 import { BrandStep } from "@/pages/onboarding/BrandStep";
@@ -60,7 +60,7 @@ const member = (
 });
 
 /** The Doug team's template: the right hand, ROSA, and the QG de Tráfego (its MARK and two under it). */
-const DOUG: TeamTemplate = {
+const DOUG: DougTeamTemplate = {
   id: "doug",
   name: "Time Doug",
   sub: "Design, vídeo, tráfego, estratégia, social media, código e financeiro",
@@ -137,7 +137,9 @@ const atStart = (extra: Partial<FakeState> = {}) => {
       },
     ];
   state.context = "Padaria";
-  state.teamTemplates = [DOUG, AGENCY];
+  // As the server: the gallery is the business's alone, and the Doug team comes by the call with Doug (`?with=doug`).
+  state.teamTemplates = [AGENCY];
+  state.dougTemplate = DOUG;
   Object.assign(state, extra);
   return state;
 };

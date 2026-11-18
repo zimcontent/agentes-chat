@@ -36,6 +36,7 @@ import type {
   ConsultationConversation,
   Credential,
   DeviceAccount,
+  DougTeamTemplate,
   Edition,
   EmailChange,
   EndpointCheck,
@@ -61,6 +62,7 @@ import type {
   JoinApproval,
   JoinClaim,
   JoinRequest,
+  LegalFacts,
   Me,
   Member,
   MemberPresence,
@@ -113,6 +115,7 @@ import { ApiError } from "@agenteschat/client";
 import { moveInGroups } from "@agenteschat/client/lib/agent-groups";
 import { answersOthers, audienceOf, listsAllAgents } from "@agenteschat/client/lib/audience";
 import type { ChatPrefs } from "@agenteschat/client/lib/chat-look";
+import { DOUG_TEMPLATE } from "@agenteschat/client/lib/doug-team";
 import { ISSUES_VIEW_DEFAULT } from "@agenteschat/client/lib/issues-view";
 import { freeHandle, takenHandles } from "@agenteschat/client/lib/new-agent";
 import { stepIndex } from "@agenteschat/client/lib/onboarding";
@@ -143,6 +146,26 @@ import { createFakeThreads } from "./fakes/threads";
 import { createFakeWiki } from "./fakes/wiki";
 
 export const NOW = new Date("2026-10-14T13:44:00.000Z");
+/** `GET /api/app/legal`'s services on a fresh installation: every optional service off. */
+const NO_LEGAL_SERVICES: LegalFacts["services"] = {
+  platformKey: false,
+  jev: false,
+  giphy: false,
+  email: false,
+  media: false,
+  speech: false,
+  push: false,
+  pushDirect: false,
+  pushRelay: false,
+  composio: false,
+  embeddings: false,
+  whatsapp: false,
+  errors: false,
+  billing: false,
+  support: false,
+  telemetry: false,
+  driveBackup: false,
+};
 /** The brand's tones as the server sends them: ids fixed, words in pt-BR (the tests run in Portuguese). */
 const BRAND_TONES = [
   "proximo",
@@ -232,13 +255,15 @@ export interface FakeState {
   teamTemplates?: TeamTemplate[];
   /** The Doug team's card apart (`agents.dougTemplate`, docs/adr/doug-0030-time-doug.md; default none). */
   dougTemplate?: DougTeamTemplate;
+  /** Overrides `system.legal` (default: every field unset, as a fresh installation has them). */
+  legal?: Partial<LegalFacts>;
   /** `agents.applyTeamTemplate` refuses the Doug team with 409 `doug_team.made` (made meanwhile, another tab). */
   dougMade?: boolean;
   /** `artifacts.upload` refuses a file whose name contains this (the brand manual's failure). */
   uploadFails?: string;
   /** `orgs.brand` fails with this error (the brand step's own failed read). */
   brandError?: Error;
-  /** "Sua marca" (`agents.brand`/`agents.saveBrand`): what was saved, and whether the step waits (docs/adr/doug-0020-time-doug.md). */
+  /** "Sua marca" (`orgs.brand`/`orgs.saveBrand`): what was saved, and whether the step waits (docs/adr/doug-0030-time-doug.md). */
   brandState?: { brand: BrandView | null; pending: boolean };
   /** What a one-click proposed agent thinks with (default: what its draft suggested). */
   proposalAi?: "account" | "model" | "none";
@@ -755,6 +780,13 @@ function mediaSettings(state: FakeState): Pick<OrgSettings, MediaSetting> {
 }
 
 /** A small in-memory backend with the design's demo data ("Acme"). */
+/**
+ * The Doug team in a gallery a test set whole, as a server older than `?with=doug` would still list it: the field
+ * apart (`dougTemplate`) is what the current one sends (docs/adr/doug-0030-time-doug.md).
+ */
+const dougInGallery = (list: TeamTemplate[] | undefined): DougTeamTemplate | undefined =>
+  list?.find((x) => x.id === DOUG_TEMPLATE) as DougTeamTemplate | undefined;
+
 /**
  * A DM of mine with a message in it, so the sidebar's "Mensagens diretas" lists it (`ago`: minutes since that
  * message). The person's are from the seed's members, the agent's from its agents.
@@ -1484,6 +1516,24 @@ export function createFakeHttpApi(state: FakeState): Omit<HttpApi, FakedParts> {
         cloud: true,
         // A server without client customizations (ADR doug-0032) sends no `client` key unless a test names one.
         ...state.instance,
+      }),
+      legal: async () => ({
+        companyName: null,
+        taxId: null,
+        address: null,
+        dpoName: null,
+        dpoEmail: null,
+        serverLocation: null,
+        logRetention: null,
+        backupRetentionDays: 14,
+        voiceRetentionDays: 90,
+        draft: true,
+        backup: false,
+        storage: "database" as const,
+        telemetryForced: false,
+        companyRequestsRetentionDays: null,
+        ...state.legal,
+        services: { ...NO_LEGAL_SERVICES, ...state.legal?.services },
       }),
       telemetry: async () => state.telemetry ?? null,
       setTelemetry: async (enabled) => {
@@ -2612,9 +2662,16 @@ export function createFakeHttpApi(state: FakeState): Omit<HttpApi, FakedParts> {
         if (m) m.meta = { ...m.meta, actionCard: next };
         return { card: next };
       },
-      teamTemplates: async (orgId, locale) => {
-        log("agents.teamTemplates", orgId, locale);
-        return state.teamTemplates ?? [];
+      // As the server: the gallery never holds the Doug team, and `?with=doug` (`withDoug`) is the only call that
+      // gives it, apart (docs/adr/doug-0030-time-doug.md). A gallery set with the doug in it keeps working for the
+      // tests that predate the split, as an older server's would.
+      teamTemplates: async (orgId, locale, withDoug) => {
+        log("agents.teamTemplates", orgId, locale, ...(withDoug ? ["doug"] : []));
+        return (state.teamTemplates ?? []).filter((x) => x.id !== DOUG_TEMPLATE);
+      },
+      dougTemplate: async (orgId, locale) => {
+        log("agents.dougTemplate", orgId, locale);
+        return state.dougTemplate ?? dougInGallery(state.teamTemplates);
       },
       // As the server: the template's team is made at once (ADR 0155 §6).
       applyTeamTemplate: async (orgId, templateId, locale, handles) => {
@@ -2629,23 +2686,25 @@ export function createFakeHttpApi(state: FakeState): Omit<HttpApi, FakedParts> {
             );
           throw new ApiError(409, "doug_team.made", "Already made");
         }
-        const template = state.teamTemplates?.find((x) => x.id === templateId);
+        // The gallery's own templates, and the Doug team apart: it is never in the list the server sends.
+        const doug =
+          templateId === DOUG_TEMPLATE ? (state.dougTemplate ?? dougInGallery(state.teamTemplates)) : undefined;
+        const template = doug ?? state.teamTemplates?.find((x) => x.id === templateId);
         // The Doug team lists who it makes in `members` (the right hand makes none): the rest in `team.agents`.
-        const team =
-          templateId === "doug" && template?.members?.length
-            ? template.members
-                .filter((m) => !m.rightHand && (!handles || handles.includes(m.handle)))
-                .map((m) => ({
-                  name: m.name,
-                  handle: m.handle,
-                  role: m.role,
-                  instructions: m.line,
-                  appearance: null,
-                  channel: m.channel,
-                  routines: [],
-                  firstTask: null,
-                }))
-            : (template?.team.agents ?? []);
+        const team = doug?.members.length
+          ? doug.members
+              .filter((m) => !m.rightHand && (!handles || handles.includes(m.handle)))
+              .map((m) => ({
+                name: m.name,
+                handle: m.handle,
+                role: m.role,
+                instructions: m.line,
+                appearance: null,
+                channel: m.channel,
+                routines: [],
+                firstTask: null,
+              }))
+          : (template?.team.agents ?? []);
         const agentIds: string[] = [];
         for (const a of team) {
           agentIds.push(id("agent"));
@@ -2703,11 +2762,12 @@ export function createFakeHttpApi(state: FakeState): Omit<HttpApi, FakedParts> {
           messageId,
           state: "created",
           error: null,
-          ...(templateId === "doug"
+          ...(doug
             ? {
-                needsComputer: (template?.needsComputer ?? []).flatMap((handle) => {
-                  const m = template?.members?.find((x) => x.handle === handle);
-                  const agentId = agentIds[template?.members?.findIndex((x) => x.handle === handle) ?? -1];
+                needsComputer: doug.needsComputer.flatMap((handle) => {
+                  const at = doug.members.findIndex((x) => x.handle === handle);
+                  const m = doug.members[at];
+                  const agentId = agentIds[at];
                   return m && agentId ? [{ agentId, handle, name: m.name }] : [];
                 }),
                 brandPending: true,

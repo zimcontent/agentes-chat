@@ -80,8 +80,8 @@ import {
   RevisaoVideo,
 } from "./revisao";
 import { TarefasEquipe, TarefasEquipeAberta, TarefasEquipeVazia, TarefasMinhas } from "./tarefas";
-import { ConversaOpcoes, Tudo } from "./tudo";
 import { TimeDougComo, TimeDougMarca, TimeDougQuem } from "./time-doug";
+import { ConversaOpcoes, Tudo } from "./tudo";
 import { WhatsAppConversa, WhatsAppLista } from "./whatsapp";
 
 /** Sample photos served beside the board (`doug-mobile/fotos`): a person's and the groups' (JPG, as people send). */
