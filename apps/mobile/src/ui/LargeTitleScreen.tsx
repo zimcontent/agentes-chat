@@ -110,7 +110,9 @@ export function LargeTitleScreen({
   const options = useMemo<NativeStackNavigationOptions>(
     () => ({
       ...actionOptions,
-      title,
+      // Under the signature the bar names nothing: with an empty title view, iOS 26 drew the screen's name itself
+      // right under the logo (Início, Esperando por você, Portal). The screen still names itself to VoiceOver.
+      title: brand ? "" : title,
       // Folded, the bar's plain title stands (no fade to drive; set, not left out, as options merge); else it fades
       // in as the large one leaves.
       headerTitle: brand
