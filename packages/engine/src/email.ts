@@ -204,10 +204,15 @@ export type EmailTemplate =
   /** Early access for the account `email` already has (ADR 0078): it may make workspaces now, from `url`. */
   | { kind: "early_access_allowed"; locale: EmailLocale; email: string; url: string }
   /**
-   * The company that asked for DougBot on the page hears that the request arrived, in its language, with the
-   * company's name: no action, the team talks to it next.
+   * Double opt-in for a company's request on the page, in the company's language: opening `url` confirms the
+   * address, and only then is the installation's owner told. Nothing is kept from it before that.
    */
-  | { kind: "company_request_received"; locale: EmailLocale; company: string; url: string }
+  | { kind: "company_request_confirm"; locale: EmailLocale; company: string; url: string }
+  /**
+   * A confirmed request's second form asked to change something: `url` confirms the new data, which replaces the
+   * request's once opened. The row keeps the first form's consent.
+   */
+  | { kind: "company_request_resend"; locale: EmailLocale; company: string; url: string }
   /**
    * A new company's request, to the installation's owner where they asked to hear it: the company and how to reach
    * the person, with a link to the installation's list (`url`). Never the message they typed.
@@ -671,13 +676,35 @@ function docOf(t: EmailTemplate, sender: string | null): EmailDoc {
         { crew: ONBOARDING_CREW },
       );
     }
-    case "company_request_received": {
-      const c = w.companyRequestReceived;
+    case "company_request_confirm": {
+      const c = w.companyRequestConfirm;
       return doc(
         c.subject(inertText(t.company)),
         c.preheader,
         c.headline,
-        [{ p: c.body(inertText(t.company)) }, { p: c.next }, { button: c.button, url: t.url }, { small: c.small }],
+        [
+          { p: c.body(inertText(t.company)) },
+          { button: c.button, url: t.url },
+          { p: c.next },
+          { small: c.small },
+          fallback(t.url),
+        ],
+        c.why,
+      );
+    }
+    case "company_request_resend": {
+      const c = w.companyRequestResend;
+      return doc(
+        c.subject(inertText(t.company)),
+        c.preheader,
+        c.headline,
+        [
+          { p: c.body(inertText(t.company)) },
+          { button: c.button, url: t.url },
+          { p: c.next },
+          { small: c.small },
+          fallback(t.url),
+        ],
         c.why,
       );
     }
