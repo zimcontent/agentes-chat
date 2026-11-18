@@ -13,9 +13,9 @@ import { AgentFace } from "../shared/Face";
 import { useDirectory, useMeId, useOrgId } from "../shared/hooks";
 import { useWorkingNow } from "../shared/queries";
 import { agentTasksHref } from "../task-manager/logic";
-import { CREW_FACE, DOUG_FACE, DougPinnedCard, useDougWords } from "./DougPinnedCard";
+import { DOUG_FACE, DougPinnedCard, useDougWords } from "./DougPinnedCard";
 import type { ConversationRow } from "./logic";
-import { dougCardLine, dougCrew, dougGreetingFits } from "./logic";
+import { dougCardLine, dougGreetingFits } from "./logic";
 
 /**
  * Doug pinned on Início (docs/adr/doug-0016-doug-pinned.md): the right hand above the tools, in the site's chosen
@@ -38,7 +38,6 @@ export function DougPinned({ rows, waiting }: { rows: ConversationRow[]; waiting
   if (!doug || !canTalk(doug)) return null;
   const dm = rows.find((r) => r.kind === "dm" && r.with.type === "agent" && r.with.id === doug.id);
   const channelId = dm?.channelId ?? null;
-  const crew = dougCrew(work, doug.id);
   const working = new Set(work.filter((x) => x.agentId !== doug.id).map((x) => x.agentId)).size;
   const line = dougCardLine({ waiting, working });
   const status = line.waiting > 0 ? w.waiting(line.waiting) : w.nothingWaiting;
@@ -59,14 +58,13 @@ export function DougPinned({ rows, waiting }: { rows: ConversationRow[]; waiting
     can(org, "view_audit")
       ? router.navigate(`/settings/audit?agent=${doug.id}`)
       : router.navigate(agentTasksHref(doug.id, null));
-  const small = (ids: string[]) =>
-    ids.map((id) => ({ id, face: <AgentFace agentId={id} size={CREW_FACE} mode="run" /> }));
   return (
     <DougPinnedCard
       face={<AgentFace agentId={doug.id} size={DOUG_FACE} mode={working > 0 ? "run" : "idle"} />}
-      left={small(crew.left)}
-      right={small(crew.right)}
-      more={crew.more}
+      // Doug alone in the middle: the agents he coordinates aren't drawn around him (the owner's choice).
+      left={[]}
+      right={[]}
+      more={0}
       name={doug.name}
       status={status}
       greeting={dougGreetingFits(hello, status) ? hello : ""}

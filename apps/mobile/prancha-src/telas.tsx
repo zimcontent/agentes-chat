@@ -515,8 +515,6 @@ const TEAM: { a: AgentLookInput; mode: "idle" | "run" | "think" | "sleep"; state
 function DougFixado() {
   const w = useDougWords();
   const noop = () => {};
-  const crew = (list: AgentLookInput[]) =>
-    list.map((a) => ({ id: a.name ?? "", face: <AgentAvatar agent={a} size={CREW_FACE} mode="run" name={a.name} /> }));
   const card = (
     key: string,
     o: { left: AgentLookInput[]; right: AgentLookInput[]; more: number; waiting: number; greeting: string },
@@ -524,9 +522,9 @@ function DougFixado() {
     <DougPinnedCard
       key={key}
       face={<AgentAvatar agent={DOUG} size={DOUG_FACE} mode={o.right.length ? "run" : "idle"} name="Doug" />}
-      left={crew(o.left)}
-      right={crew(o.right)}
-      more={o.more}
+      left={[]}
+      right={[]}
+      more={0}
       name="Doug"
       status={o.waiting > 0 ? w.waiting(o.waiting) : w.nothingWaiting}
       greeting={o.greeting}

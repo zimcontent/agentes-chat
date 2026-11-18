@@ -17,6 +17,8 @@ const en = {
   now: "Now",
   tiles: { you: "Needs you", making: "In production", client: "With the client", schedule: "To schedule" },
   clients: "Clients",
+  asked: "Asked for changes",
+  seeAllClients: "See all clients",
   clientStatus: {
     adjusting: (n: number) => (n === 1 ? "1 adjustment asked" : `${n} adjustments asked`),
     late: (n: number) => `${n} late`,
@@ -224,6 +226,8 @@ const ptBR: PortalWords = {
   now: "Agora",
   tiles: { you: "Precisa de você", making: "Em produção", client: "Com o cliente", schedule: "Para agendar" },
   clients: "Clientes",
+  asked: "Pediram alterações",
+  seeAllClients: "Ver todos os clientes",
   clientStatus: {
     adjusting: (n: number) => (n === 1 ? "1 ajuste pedido" : `${n} ajustes pedidos`),
     late: (n: number) => (n === 1 ? "1 atrasada" : `${n} atrasadas`),
