@@ -18,10 +18,19 @@
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   }
 }
-.onb-brand__tones {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
+/* "Obrigatório" beside a label that is: quiet, after the word. */
+.onb-brand__req {
+  flex: none;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--faint);
+}
+/* The tones are a group of toggles (a fieldset, so screen readers hear the label): no border, no margin of its own. */
+fieldset.onb-brand__tones {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
 }
 /* A picked chip: the kit's chip button darkens its plate; its ring says it's on. */
 .onb-brand__tones .tp-chip[aria-pressed="true"] {
@@ -66,15 +75,15 @@
   align-self: start;
   display: grid;
   place-items: center;
-  width: 20px;
-  height: 20px;
+  width: var(--control-icon-lg);
+  height: var(--control-icon-lg);
   margin-top: 1px;
   color: var(--muted);
 }
 .onb-brand__drop-text {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: calc(var(--space-1) / 2);
   min-width: 0;
 }
 .onb-brand__drop-text b {
@@ -96,7 +105,7 @@
 .onb-brand__files {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: var(--space-1);
   margin: 0;
   padding: 0;
   list-style: none;
@@ -104,9 +113,9 @@
 .onb-brand__file {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--space-2);
   min-height: var(--control-h-sm);
-  padding: 0 8px 0 12px;
+  padding: 0 var(--space-2) 0 var(--space-3);
   border-radius: var(--radius-md);
   background: var(--plate);
   color: var(--muted);
@@ -130,14 +139,33 @@
   flex: none;
   display: grid;
   place-items: center;
-  width: 24px;
-  height: 24px;
+  width: var(--space-6);
+  height: var(--space-6);
   padding: 0;
   border: 0;
   border-radius: var(--radius-sm);
   background: transparent;
   color: var(--faint);
   cursor: pointer;
+}
+/* On touch, the ×'s target grows to 44 past its 24 plate, as a small button's does. */
+@media (pointer: coarse) {
+  .onb-brand__file-x {
+    position: relative;
+  }
+  .onb-brand__file-x::after {
+    content: "";
+    position: absolute;
+    inset: calc((var(--space-6) - var(--touch-target)) / 2) 0;
+  }
+}
+/* "Take it off?" in place of a file's state and ×, once the brand is saved: the words, then its two actions. */
+.onb-brand__file-ask {
+  flex: 1 1 auto;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  font-size: 12.5px;
+  color: var(--muted);
 }
 .onb-brand__file-x:hover {
   background: var(--raised);
@@ -150,7 +178,7 @@ html:not([data-pointer]) .onb-brand__file-x:focus-visible {
 /* The link's field and its "Add", one row. */
 .onb-brand__linkrow {
   display: flex;
-  gap: 8px;
+  gap: var(--space-2);
   align-items: center;
 }
 .onb-brand__linkrow .ac-input {

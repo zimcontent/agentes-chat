@@ -14,6 +14,7 @@
     "nextMonth": "다음 달",
     "chooseDate": "날짜 선택",
     "cancel": "취소",
+    "remove": "빼기",
     "save": "저장",
     "back": "뒤로",
     "continue": "계속",
@@ -1031,14 +1032,17 @@
         "lead": "지금 필요 없는 사람의 체크를 푸세요. 누구든 나중에 팀 › 새 에이전트에서 부를 수 있습니다.",
         "fixed": "유지",
         "teamOf_other": "그의 팀에 {{count}}명",
-        "agents_other": "팀에 에이전트 {{count}}명",
-        "skills_other": "직무 스킬 {{count}}개",
-        "routines_other": "준비된 루틴 {{count}}개 (켤 때까지 일시 중지)",
+        "countAgents_other": "팀의 에이전트",
+        "countSkills_other": "직무 스킬",
+        "skillsCount_other": "직무 스킬 {{count}}개",
+        "countRoutines_other": "준비된 루틴 (켤 때까지 일시 중지)",
         "note": "아무도 다른 회사의 기억, 고객, 파일을 가져오지 않습니다.",
         "qg": "{{channel}}에서",
         "needsComputer": "연결된 컴퓨터가 필요합니다",
         "connectComputer": "컴퓨터 사용",
-        "create": "팀 만들기"
+        "create": "팀 만들기",
+        "required": "필수",
+        "computerPending": "연결된 컴퓨터가 아직 없습니다: {{names}}."
       },
       "brand": {
         "title": "팀에게 당신의 브랜드를 가르치세요",
@@ -1059,10 +1063,14 @@
         "manualLink": "링크 붙여넣기",
         "manualLinkPlaceholder": "https://drive.google.com/…",
         "manualAdd": "추가",
-        "saved": "저장됨",
-        "later": "나중에",
+        "saved": "업로드됨",
         "madeTitle": "팀이 당신의 브랜드를 배웠습니다",
-        "made": "「{{company}} 브랜드」는 이제 ROSA, SONY, 소셜 미디어, CHESS가 읽는 스킬입니다."
+        "made": "「{{company}} 브랜드」는 이제 ROSA, SONY, 소셜 미디어, CHESS가 읽는 스킬입니다.",
+        "required": "필수",
+        "failed": "업로드되지 않았습니다: {{reason}}",
+        "missingCompany": "회사 이름을 입력하세요.",
+        "missingTone": "말투를 고르거나 직접 써 보세요.",
+        "removeSaved": "저장한 브랜드에서도 빠집니다. 뺄까요?"
       },
       "plan": {
         "title": "팀을 켜세요",

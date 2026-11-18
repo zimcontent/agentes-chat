@@ -25,6 +25,7 @@ export const ptBR = {
     nextMonth: "Próximo mês",
     chooseDate: "Escolher data",
     cancel: "Cancelar",
+    remove: "Remover",
     save: "Salvar",
     back: "Voltar",
     continue: "Continuar",
@@ -1114,20 +1115,27 @@ export const ptBR = {
         /** Sob as linhas do MARK: o QG de Tráfego que ele abre. `{{count}}`: quantos ele tem. */
         teamOf_one: "{{count}} no time dele",
         teamOf_other: "{{count}} no time dele",
-        /** O resumo ao lado da lista. */
-        agents_one: "{{count}} agente no time",
-        agents_other: "{{count}} agentes no time",
-        skills_one: "{{count}} skill de ofício",
-        skills_other: "{{count}} skills de ofício",
-        routines_one: "{{count}} rotina pronta (pausada até você ligar)",
-        routines_other: "{{count}} rotinas prontas (pausadas até você ligar)",
+        /** O que os marcados trazem, acima da lista: um nome sob o número (um `dt` antes do `dd`). */
+        countAgents_one: "agente no time",
+        countAgents_other: "agentes no time",
+        countSkills_one: "skill de ofício",
+        countSkills_other: "skills de ofício",
+        countRoutines_one: "rotina pronta, pausada até você ligar",
+        countRoutines_other: "rotinas prontas, pausadas até você ligar",
+        /** O chip no fim da linha: o que aquele agente traz, com o número. */
+        skillsCount_one: "{{count}} skill de ofício",
+        skillsCount_other: "{{count}} skills de ofício",
         note: "Nenhum chega com memória, cliente ou arquivo de outra empresa.",
         /** O canal em que o agente da linha trabalha: o QG dele. */
         qg: "no {{channel}}",
         /** O aviso no agente que só trabalha num computador, e o botão ao lado. */
         needsComputer: "precisa de um computador conectado",
         connectComputer: "Conectar computador",
+        /** O que ainda falta depois do time criado: os agentes que precisam de um computador, nomeados. */
+        computerPending: "Falta um computador conectado: {{names}}.",
         create: "Criar o time",
+        /** As caixas que precisam de resposta, ao lado dos nomes. */
+        required: "Obrigatório",
       },
       /**
        * "Ensine a sua marca ao time" (docs/adr/doug-0020-time-doug.md): o nome da empresa e o tom, obrigatórios, e o
@@ -1155,10 +1163,17 @@ export const ptBR = {
         manualLinkPlaceholder: "https://drive.google.com/…",
         /** O botão que guarda o link colado, ao lado do campo. */
         manualAdd: "Adicionar",
+        /** Ao lado do nome da empresa e do tom: o que a etapa não dispensa. */
+        required: "Obrigatório",
         /** Sob o título do arquivo, depois que ele está no Drive. */
-        saved: "Salvo",
-        /** O botão da própria etapa, sob Continuar: não salva nada e segue (o servidor ainda espera por ela). */
-        later: "Conto depois",
+        saved: "Enviado",
+        /** Um arquivo que não foi para o Drive, sob o nome dele. */
+        failed: "Não foi enviado: {{reason}}",
+        /** O que a etapa ainda espera, sob o botão que ainda não dá. */
+        missingCompany: "Diga o nome da empresa.",
+        missingTone: "Escolha um tom de voz ou escreva com as suas palavras.",
+        /** O × ao lado de um arquivo ou link, depois de a marca salva: ele sai da skill também. */
+        removeSaved: "Sai da marca salva também. Tirar?",
         /** A skill em que vira, depois de salva. */
         madeTitle: "O time aprendeu a sua marca",
         made: "“Marca {{company}}” agora é a skill que a ROSA, a SONY, o Social Media e o CHESS leem.",

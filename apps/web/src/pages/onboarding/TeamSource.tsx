@@ -264,6 +264,8 @@ export function useTeamSource(
     skip,
     /** Back to the question. */
     ask,
+    /** The step's own view, from the rail: how the team starts, its card still picked (the `who` stage's return). */
+    go: (next: Stage) => setStage(next),
     /** The view on screen, so the page tells "Quem entra" (a stage of this step) from the card. */
     stage: base,
     /** For the step's views (`TeamSource`) only. */

@@ -14,6 +14,7 @@
     "nextMonth": "下个月",
     "chooseDate": "选择日期",
     "cancel": "取消",
+    "remove": "去掉",
     "save": "保存",
     "back": "返回",
     "continue": "继续",
@@ -1031,14 +1032,17 @@
         "lead": "取消勾选你现在不需要的人。以后可以在 团队 › 新建 智能体 里叫任何人。",
         "fixed": "保留",
         "teamOf_other": "他的团队有 {{count}} 个",
-        "agents_other": "团队里有 {{count}} 个 智能体",
-        "skills_other": "{{count}} 项专业技能",
-        "routines_other": "{{count}} 个就绪例程（在你开启前暂停）",
+        "countAgents_other": "团队的智能体",
+        "countSkills_other": "专业技能",
+        "skillsCount_other": "{{count}} 项专业技能",
+        "countRoutines_other": "就绪例程（在你开启前暂停）",
         "note": "没有人带着别的公司的记忆、客户或文件。",
         "qg": "在 {{channel}}",
         "needsComputer": "需要一台已连接的电脑",
         "connectComputer": "使用电脑",
-        "create": "创建团队"
+        "create": "创建团队",
+        "required": "必填",
+        "computerPending": "还缺一台已连接的电脑：{{names}}。"
       },
       "brand": {
         "title": "把你的品牌教给团队",
@@ -1059,10 +1063,14 @@
         "manualLink": "粘贴链接",
         "manualLinkPlaceholder": "https://drive.google.com/…",
         "manualAdd": "添加",
-        "saved": "已保存",
-        "later": "以后再说",
+        "saved": "已上传",
         "madeTitle": "团队学会了你的品牌",
-        "made": "「{{company}} 品牌」现在是 ROSA、SONY、社交媒体和 CHESS 读取的技能。"
+        "made": "「{{company}} 品牌」现在是 ROSA、SONY、社交媒体和 CHESS 读取的技能。",
+        "required": "必填",
+        "failed": "未上传：{{reason}}",
+        "missingCompany": "填写公司名称。",
+        "missingTone": "选择一种语气，或用自己的话写。",
+        "removeSaved": "也会从已保存的品牌里去掉。去掉吗?"
       },
       "plan": {
         "title": "开启你的团队",

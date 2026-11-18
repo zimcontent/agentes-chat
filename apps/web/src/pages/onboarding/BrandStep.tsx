@@ -7,15 +7,17 @@ import {
   keys,
 } from "@agenteschat/client";
 import { errorText } from "@agenteschat/client/lib/errors";
-import { Button, ChipButton, Field, Icon, Input, Locked, Textarea } from "@agenteschat/ui";
+import { joinNames } from "@agenteschat/client/lib/format";
+import { Button, ChipButton, Field, Icon, Input, Locked, Skeleton, Textarea } from "@agenteschat/ui";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useRef, useState } from "react";
+import { useId, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useApi } from "@/api/context";
+import { ErrorState } from "@/components/Loading";
 import "./brand-step.css";
 
 /** What `GET …/brand` answers, as the step holds it (and what it keeps after a save). */
-interface BrandData {
+export interface BrandData {
   pending: boolean;
   brand: BrandView | null;
   skillId: string | null;
@@ -28,51 +30,96 @@ interface BrandData {
  * name and tone of voice are required, the site, the profile, the audience and the brand manual (a file, in the Drive,
  * or a link) optional. It saves the workspace skill "Marca <empresa>" (`orgs.saveBrand`), which ROSA, SONY, the Social
  * Media and CHESS read; the server refuses to finish the onboarding while it waits (`onboarding.brand_pending`).
+ *
+ * It mounts only once `GET …/brand` arrived, so its fields start from what was said and never overwrite a person's
+ * typing; a read that failed offers to try again.
  */
 export function BrandStep({
   orgId,
   state,
+  error,
+  onRetry,
+  computerNote,
+  onConnectComputer,
   onSaved,
 }: {
   orgId: string;
-  /** The step's data: the brand already said, the tones to tap, and whether it still waits. */
+  /** The step's data: the brand already said, the tones to tap, and whether it still waits. Absent while loading. */
   state: BrandData | undefined;
+  /** The read failed: the step says so and offers to try it again. */
+  error: unknown;
+  onRetry: () => void;
+  /** Agents of the team just made that only work on a computer, named here, the first step after the team: none yet. */
+  computerNote: { names: string[]; onConnect: () => void } | null;
+  onConnectComputer: () => void;
   /** Saved (or the workspace's brand already was): the step is answered. */
+  onSaved: () => void;
+}) {
+  // The read may be on its way, or have failed: its own states say it, never a blank form.
+  if (error)
+    return (
+      <div className="onb__answer">
+        <ErrorState error={error} onRetry={onRetry} />
+      </div>
+    );
+  if (state === undefined)
+    return (
+      <div className="onb__answer onb-brand" aria-hidden="true">
+        <div className="onb-brand__grid">
+          {[0, 1, 2, 3].map((i) => (
+            <Skeleton key={i} shape="block" height={64} />
+          ))}
+        </div>
+        <Skeleton shape="block" height={48} />
+        <Skeleton shape="block" height={112} />
+      </div>
+    );
+  return (
+    <BrandForm
+      orgId={orgId}
+      state={state}
+      computerNote={computerNote}
+      onConnectComputer={onConnectComputer}
+      onSaved={onSaved}
+    />
+  );
+}
+
+/** The step's form, once its data is here: the fields start from what the server had, never over what was typed. */
+function BrandForm({
+  orgId,
+  state,
+  computerNote,
+  onConnectComputer,
+  onSaved,
+}: {
+  orgId: string;
+  state: BrandData;
+  computerNote: { names: string[]; onConnect: () => void } | null;
+  onConnectComputer: () => void;
   onSaved: () => void;
 }) {
   const { t, i18n } = useTranslation();
   const api = useApi();
   const qc = useQueryClient();
-  const saved = state?.brand ?? null;
-  const [company, setCompany] = useState(() => brandFields(saved).company);
-  const [tones, setTones] = useState<ReadonlySet<string>>(() => new Set());
-  const [tone, setTone] = useState("");
-  const [site, setSite] = useState("");
-  const [instagram, setInstagram] = useState("");
-  const [audience, setAudience] = useState("");
-  const [files, setFiles] = useState<BrandView["files"]>([]);
-  const [links, setLinks] = useState<string[]>([]);
+  // The tone group's required mark, read out as its description (a fieldset takes no `aria-required`).
+  const requiredId = useId();
+  const saved = state.brand;
+  const had = brandFields(saved);
+  const [company, setCompany] = useState(had.company);
+  const [tones, setTones] = useState<ReadonlySet<string>>(had.tones);
+  const [tone, setTone] = useState(had.tone);
+  const [site, setSite] = useState(had.site);
+  const [instagram, setInstagram] = useState(had.instagram);
+  const [audience, setAudience] = useState(had.audience);
+  const [files, setFiles] = useState<BrandView["files"]>(had.files);
+  const [links, setLinks] = useState<string[]>(had.links);
   const [link, setLink] = useState("");
   const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
   const [linkOpen, setLinkOpen] = useState(false);
   // The person's own words: the field open, and a tone tapped before it stays picked only if both are used.
-  const [writing, setWriting] = useState(false);
-  const started = useRef(false);
-  // What the server had: `GET …/brand` is read once, and the fields start from it (a step gone back to).
-  useEffect(() => {
-    if (started.current || !state) return;
-    started.current = true;
-    const had = brandFields(saved);
-    setCompany(had.company);
-    setTones(had.tones);
-    setTone(had.tone);
-    setWriting(had.tone !== "");
-    setSite(had.site);
-    setInstagram(had.instagram);
-    setAudience(had.audience);
-    setFiles(had.files);
-    setLinks(had.links);
-  }, [state, saved]);
+  const [writing, setWriting] = useState(had.tone !== "");
   const tonePicked = [...tones];
   // A tapped tone asked for a written one of its own: what the person types is kept, an empty field is not.
   const custom = writing && tone.trim() !== "";
@@ -86,8 +133,12 @@ export function BrandStep({
     files: files.map((f) => f.id),
     links,
   };
-  // Required: a name and a tone (tapped or written). Everything else may stay empty.
-  const ready = brandMissing(input) === null;
+  // Required: a name and a tone (tapped or written). Everything else may stay empty; what's missing is said under the
+  // button, never only by a button that won't press.
+  const missing = brandMissing(input);
+  const ready = missing === null;
+  // A brand already saved: taking a file or a link off changes the skill too, so it asks first.
+  const savedSkill = saved !== null;
   const save = useMutation({
     meta: { silent: true },
     mutationFn: () => api.orgs.saveBrand(orgId, input),
@@ -97,11 +148,12 @@ export function BrandStep({
         pending: out.pending,
         brand: out.brand,
         skillId: out.skillId,
-        tones: state?.tones ?? [],
+        tones: state.tones,
       } satisfies BrandData);
       // The team's agents now read the skill: their pages and the team list say it.
       void qc.invalidateQueries({ queryKey: keys.agents(orgId) });
       void qc.invalidateQueries({ queryKey: keys.skills(orgId) });
+      // Only after the save, never before: the server still waits while the brand isn't saved.
       onSaved();
     },
   });
@@ -109,15 +161,18 @@ export function BrandStep({
   const addFiles = async (picked: FileList | null) => {
     if (!picked || picked.length === 0) return;
     setUploading(true);
-    try {
-      for (const file of [...picked]) {
+    setUploadError(null);
+    // Each file on its own: one that fails says why under the list, and the others still go.
+    for (const file of [...picked]) {
+      try {
         const kept = await api.artifacts.upload(orgId, file, { title: file.name });
         setFiles((was) => [...was, { id: kept.id, title: kept.title }]);
+      } catch (e) {
+        setUploadError(t("onboarding.flow.brand.failed", { reason: errorText(t, e, i18n.language) }));
       }
-    } finally {
-      setUploading(false);
-      if (filesInput.current) filesInput.current.value = "";
     }
+    setUploading(false);
+    if (filesInput.current) filesInput.current.value = "";
   };
   const addLink = () => {
     const text = link.trim();
@@ -126,18 +181,34 @@ export function BrandStep({
     setLink("");
     setLinkOpen(false);
   };
+  const removeFile = (id: string) => setFiles((was) => was.filter((f) => f.id !== id));
+  const removeLink = (value: string) => setLinks((was) => was.filter((x) => x !== value));
   return (
     <>
       <Locked when={save.isPending || uploading}>
         <div className="onb__answer onb-brand">
+          {/* What still waits after the team was made (an agent that only works on a computer, with none connected). */}
+          {computerNote && (
+            <p className="onb__status ac-iconline" role="status">
+              <Icon name="computer" size={14} />
+              <span>{t("onboarding.flow.who.computerPending", { names: joinNames(computerNote.names, t) })}</span>
+              <button type="button" className="ac-link onb__link" onClick={onConnectComputer}>
+                {t("onboarding.flow.who.connectComputer")}
+              </button>
+            </p>
+          )}
           <div className="onb-brand__grid">
-            <Field label={t("onboarding.flow.brand.company")}>
+            <Field
+              label={t("onboarding.flow.brand.company")}
+              labelAside={<span className="onb-brand__req">{t("onboarding.flow.brand.required")}</span>}
+            >
               <Input
                 value={company}
                 onChange={(e) => setCompany(e.target.value)}
                 placeholder={t("onboarding.flow.brand.companyPlaceholder")}
                 maxLength={120}
                 required
+                aria-required="true"
                 spellCheck={false}
                 autoFocus
               />
@@ -169,29 +240,43 @@ export function BrandStep({
               />
             </Field>
           </div>
-          <Field label={t("onboarding.flow.brand.tone")} group>
-            <div className="onb-brand__tones">
-              {(state?.tones ?? []).map((tone) => (
+          <Field
+            label={t("onboarding.flow.brand.tone")}
+            group
+            labelAside={<span className="onb-brand__req">{t("onboarding.flow.brand.required")}</span>}
+          >
+            {/* A group of toggles (a fieldset, so its label names it), the required mark read out too: a fieldset takes
+                no `aria-required` of its own, so it describes itself by the word, and the field for one's own tone
+                keeps the attribute itself. */}
+            <fieldset
+              className="onb-brand__tones"
+              aria-label={t("onboarding.flow.brand.tone")}
+              aria-describedby={requiredId}
+            >
+              <span id={requiredId} className="ac-visually-hidden">
+                {t("onboarding.flow.brand.required")}
+              </span>
+              {state.tones.map((word) => (
                 <ChipButton
-                  key={tone.id}
-                  aria-pressed={tones.has(tone.id)}
+                  key={word.id}
+                  aria-pressed={tones.has(word.id)}
                   className="tp-chip"
                   onClick={() =>
                     setTones((was) => {
                       const next = new Set(was);
-                      if (next.has(tone.id)) next.delete(tone.id);
-                      else next.add(tone.id);
+                      if (next.has(word.id)) next.delete(word.id);
+                      else next.add(word.id);
                       return next;
                     })
                   }
                 >
-                  {tone.label}
+                  {word.label}
                 </ChipButton>
               ))}
               <ChipButton aria-pressed={writing} className="tp-chip" icon="edit" onClick={() => setWriting((w) => !w)}>
                 {t("onboarding.flow.brand.toneOwn")}
               </ChipButton>
-            </div>
+            </fieldset>
             {writing && (
               <Textarea
                 className="onb-brand__own"
@@ -212,12 +297,14 @@ export function BrandStep({
             link={link}
             linkOpen={linkOpen}
             uploading={uploading}
+            // The brand already saved: what's taken off the list leaves the skill too, so it says before it goes.
+            savedSkill={savedSkill}
             onPick={() => filesInput.current?.click()}
-            onRemoveFile={(id) => setFiles((was) => was.filter((f) => f.id !== id))}
+            onRemoveFile={removeFile}
             onLinkOpen={() => setLinkOpen(true)}
             onLink={setLink}
             onAddLink={addLink}
-            onRemoveLink={(l) => setLinks((was) => was.filter((x) => x !== l))}
+            onRemoveLink={removeLink}
           />
           <input
             ref={filesInput}
@@ -227,6 +314,11 @@ export function BrandStep({
             accept=".pdf,.fig,.png,.jpg,.jpeg,.svg,.zip,.doc,.docx,.ppt,.pptx,.key"
             onChange={(e) => void addFiles(e.target.files)}
           />
+          {uploadError && (
+            <p className="onb__error" role="alert">
+              {uploadError}
+            </p>
+          )}
           {save.isError && (
             <p className="onb__error" role="alert">
               {errorText(t, save.error)}
@@ -235,23 +327,21 @@ export function BrandStep({
         </div>
       </Locked>
       <div className="onb__actions">
+        {/* What the step still waits for, said, so a button that can't press isn't a puzzle. */}
+        {!ready && (
+          <p className="onb__help">{t(`onboarding.flow.brand.missing${missing === "company" ? "Company" : "Tone"}`)}</p>
+        )}
         <Button
           variant="primary"
           block
           kbd={["↵"]}
           data-enter=""
-          disabled={!ready}
+          disabled={!ready || uploading}
           loading={save.isPending}
           onClick={() => save.mutate()}
         >
           {t("onboarding.actions.continue")}
         </Button>
-        {/* "Conto depois": it doesn't save, and the server keeps the step waiting (its finish says why). */}
-        <p className="onb__skip">
-          <button type="button" className="ac-link" disabled={save.isPending} onClick={onSaved}>
-            {t("onboarding.flow.brand.later")}
-          </button>
-        </p>
       </div>
     </>
   );
@@ -265,6 +355,7 @@ function BrandManual({
   link,
   linkOpen,
   uploading,
+  savedSkill,
   onPick,
   onRemoveFile,
   onLinkOpen,
@@ -279,6 +370,8 @@ function BrandManual({
   link: string;
   linkOpen: boolean;
   uploading: boolean;
+  /** The brand is saved: a file or a link taken off leaves the skill, so the × asks first. */
+  savedSkill: boolean;
   onPick: () => void;
   onRemoveFile: (id: string) => void;
   onLinkOpen: () => void;
@@ -288,6 +381,13 @@ function BrandManual({
 }) {
   const { t } = useTranslation();
   const any = files.length > 0 || links.length > 0;
+  // The × that asked "Take it off?", while the brand is saved: the row turns into the question.
+  const [asking, setAsking] = useState<string | null>(null);
+  const remove = (id: string, run: () => void) => {
+    if (savedSkill && asking !== id) return setAsking(id);
+    setAsking(null);
+    run();
+  };
   return (
     <div className="onb-brand__manual">
       <div className="onb-brand__drop">
@@ -315,29 +415,55 @@ function BrandManual({
             <li key={f.id} className="onb-brand__file">
               <Icon name="document" size={14} />
               <span className="onb-brand__file-name">{f.title}</span>
-              <span className="onb-brand__file-state">{t("onboarding.flow.brand.saved")}</span>
-              <button
-                type="button"
-                className="onb-brand__file-x"
-                aria-label={t("common.removeName", { name: f.title })}
-                onClick={() => onRemoveFile(f.id)}
-              >
-                <Icon name="close" size={14} />
-              </button>
+              {asking === f.id ? (
+                <span className="onb-brand__file-ask ac-actline">
+                  <span>{t("onboarding.flow.brand.removeSaved")}</span>
+                  <button type="button" className="ac-link" onClick={() => remove(f.id, () => onRemoveFile(f.id))}>
+                    {t("common.remove")}
+                  </button>
+                  <button type="button" className="ac-link" onClick={() => setAsking(null)}>
+                    {t("common.cancel")}
+                  </button>
+                </span>
+              ) : (
+                <>
+                  <span className="onb-brand__file-state">{t("onboarding.flow.brand.saved")}</span>
+                  <button
+                    type="button"
+                    className="onb-brand__file-x"
+                    aria-label={t("common.removeName", { name: f.title })}
+                    onClick={() => remove(f.id, () => onRemoveFile(f.id))}
+                  >
+                    <Icon name="close" size={14} />
+                  </button>
+                </>
+              )}
             </li>
           ))}
           {links.map((l) => (
             <li key={l} className="onb-brand__file">
               <Icon name="link" size={14} />
               <span className="onb-brand__file-name">{l}</span>
-              <button
-                type="button"
-                className="onb-brand__file-x"
-                aria-label={t("common.removeName", { name: l })}
-                onClick={() => onRemoveLink(l)}
-              >
-                <Icon name="close" size={14} />
-              </button>
+              {asking === l ? (
+                <span className="onb-brand__file-ask ac-actline">
+                  <span>{t("onboarding.flow.brand.removeSaved")}</span>
+                  <button type="button" className="ac-link" onClick={() => remove(l, () => onRemoveLink(l))}>
+                    {t("common.remove")}
+                  </button>
+                  <button type="button" className="ac-link" onClick={() => setAsking(null)}>
+                    {t("common.cancel")}
+                  </button>
+                </span>
+              ) : (
+                <button
+                  type="button"
+                  className="onb-brand__file-x"
+                  aria-label={t("common.removeName", { name: l })}
+                  onClick={() => remove(l, () => onRemoveLink(l))}
+                >
+                  <Icon name="close" size={14} />
+                </button>
+              )}
             </li>
           ))}
         </ul>

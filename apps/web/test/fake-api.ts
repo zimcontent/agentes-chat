@@ -230,6 +230,12 @@ export interface FakeState {
   me: Me | null;
   /** "Ver modelos de time" (`agents.teamTemplates`; default none). */
   teamTemplates?: TeamTemplate[];
+  /** `agents.applyTeamTemplate` refuses the Doug team with 409 `doug_team.made` (made meanwhile, another tab). */
+  dougMade?: boolean;
+  /** `artifacts.upload` refuses a file whose name contains this (the brand manual's failure). */
+  uploadFails?: string;
+  /** `orgs.brand` fails with this error (the brand step's own failed read). */
+  brandError?: Error;
   /** "Sua marca" (`agents.brand`/`agents.saveBrand`): what was saved, and whether the step waits (docs/adr/doug-0020-time-doug.md). */
   brandState?: { brand: BrandView | null; pending: boolean };
   /** What a one-click proposed agent thinks with (default: what its draft suggested). */
@@ -1832,6 +1838,7 @@ export function createFakeHttpApi(state: FakeState): Omit<HttpApi, FakedParts> {
       // As the server: the workspace's brand ("Sua marca"), the tones to tap, and whether the step waits.
       brand: async (orgId, locale) => {
         log("orgs.brand", orgId, locale);
+        if (state.brandError) throw state.brandError;
         return {
           pending: state.brandState?.pending ?? false,
           brand: state.brandState?.brand ?? null,
@@ -1852,10 +1859,17 @@ export function createFakeHttpApi(state: FakeState): Omit<HttpApi, FakedParts> {
           site: input.site ?? null,
           instagram: input.instagram ?? null,
           audience: input.audience ?? null,
-          files: [],
+          // As the server: the manual's files, each id given back with a title (the fake has the uploads' ids, not
+          // their names here, so the id stands as the title).
+          files: (input.files ?? []).map((fileId) => ({ id: fileId, title: fileId })),
           links: input.links ?? [],
         };
         state.brandState = { brand, pending: false };
+        // As the server: the workspace no longer waits, so `GET /me`'s `brandPending` goes too.
+        if (state.me)
+          state.me.organizations = state.me.organizations.map((o) =>
+            o.id === orgId && o.onboarding ? { ...o, onboarding: { ...o.onboarding, brandPending: false } } : o,
+          );
         return { skillId: id("skill"), brand, pending: false };
       },
       deletionCode: async (orgId) => {
@@ -2583,8 +2597,25 @@ export function createFakeHttpApi(state: FakeState): Omit<HttpApi, FakedParts> {
       // As the server: the template's team is made at once (ADR 0155 §6).
       applyTeamTemplate: async (orgId, templateId, locale, handles) => {
         log("agents.applyTeamTemplate", orgId, templateId, locale, ...(handles ? [handles] : []));
+        // Already made in this workspace (another tab, a reload): the server refuses with 409 `doug_team.made`.
+        if (templateId === "doug" && state.dougMade) throw new ApiError(409, "doug_team.made", "Already made");
         const template = state.teamTemplates?.find((x) => x.id === templateId);
-        const team = template?.team.agents ?? [];
+        // The Doug team lists who it makes in `members` (the right hand makes none): the rest in `team.agents`.
+        const team =
+          templateId === "doug" && template?.members?.length
+            ? template.members
+                .filter((m) => !m.rightHand && (!handles || handles.includes(m.handle)))
+                .map((m) => ({
+                  name: m.name,
+                  handle: m.handle,
+                  role: m.role,
+                  instructions: m.line,
+                  appearance: null,
+                  channel: m.channel,
+                  routines: [],
+                  firstTask: null,
+                }))
+            : (template?.team.agents ?? []);
         const agentIds: string[] = [];
         for (const a of team) {
           agentIds.push(id("agent"));
@@ -2629,7 +2660,30 @@ export function createFakeHttpApi(state: FakeState): Omit<HttpApi, FakedParts> {
           },
           createdAt: new Date().toISOString(),
         });
-        return { channelId, messageId, state: "created", error: null };
+        // The Doug team made here: the brand step waits for it (as the server answers and `GET /me` says).
+        if (templateId === "doug") {
+          state.brandState = { brand: state.brandState?.brand ?? null, pending: true };
+          if (state.me)
+            state.me.organizations = state.me.organizations.map((o) =>
+              o.id === orgId && o.onboarding ? { ...o, onboarding: { ...o.onboarding, brandPending: true } } : o,
+            );
+        }
+        return {
+          channelId,
+          messageId,
+          state: "created",
+          error: null,
+          ...(templateId === "doug"
+            ? {
+                needsComputer: (template?.needsComputer ?? []).flatMap((handle) => {
+                  const m = template?.members?.find((x) => x.handle === handle);
+                  const agentId = agentIds[template?.members?.findIndex((x) => x.handle === handle) ?? -1];
+                  return m && agentId ? [{ agentId, handle, name: m.name }] : [];
+                }),
+                brandPending: true,
+              }
+            : {}),
+        };
       },
       decideCostly: async (orgId, signalId, decision) => {
         log("agents.decideCostly", orgId, signalId, decision);
@@ -4312,7 +4366,11 @@ export function createFakeApi(state: FakeState = seedState(), options: { seed?: 
     () => state.me?.user.id ?? null,
   );
   const apps = createFakeApps((method, ...args) => state.calls.push({ method, args }), ctx.now);
-  const artifacts = createMockArtifacts(ctx, (method, ...args) => state.calls.push({ method, args }));
+  const artifacts = createMockArtifacts(
+    ctx,
+    (method, ...args) => state.calls.push({ method, args }),
+    () => state.uploadFails,
+  );
   state.drive = artifacts;
   const client: ApiClient = {
     ...http,

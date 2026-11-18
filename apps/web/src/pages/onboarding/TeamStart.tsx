@@ -46,11 +46,13 @@ export function TeamStart({
 }) {
   const { t } = useTranslation();
   const { start, pickStart, skip, link } = state;
-  const { chosen, doug } = template;
+  const { chosen, doug, loading } = template;
   const agents = chosen?.team.agents ?? [];
   const dougMembers = doug ? dougOrder(doug.members ?? []) : [];
-  // A server older than the Doug team has no card for it: "Start from scratch" is its pick, as it always was.
-  const pick: TeamStartPick = doug || start !== "doug" ? start : "scratch";
+  // A server older than the Doug team has no card for it: "Start from scratch" is its pick, as it always was, and any
+  // other pick the person makes still counts. While the gallery still loads, nothing is picked: neither card is, so
+  // the step never flashes "from scratch" first.
+  const pick: TeamStartPick | null = doug ? start : loading ? null : start === "doug" ? "scratch" : start;
   const grammar = agentGrammar(lodi.name);
   // A card's faces that hop as it's picked: each answers its own `playAgentReaction`.
   const faces = (card: TeamStartPick) => (i: number) => ({
@@ -65,47 +67,55 @@ export function TeamStart({
       <Locked when={skip.isPending}>
         <div className="onb__answer">
           <RadioGroup<TeamStartPick>
-            value={pick}
+            // Nothing picked while the gallery loads (a radio group needs one): the button waits for it, disabled.
+            value={pick ?? ("" as TeamStartPick)}
             onValueChange={pickStart}
             aria-label={t("onboarding.flow.team.start.title")}
             className="onb-start"
           >
-            {/* The Doug team, first and already picked (doug-0020): its faces, then its sentence. */}
-            {doug && (
-              <RadioCard
-                value="doug"
-                id="onb-start-doug"
-                checked={pick === "doug"}
-                title={t("onboarding.flow.team.start.doug")}
-                aside={
-                  <Chip tone="info" className="onb-start__badge">
-                    {t("onboarding.flow.team.start.dougBadge")}
-                  </Chip>
-                }
-                description={t("onboarding.flow.team.start.dougText")}
-                detail={
-                  <span className="onb-start__who">
-                    <span className="onb-start__faces">
-                      {dougMembers.map((a, i) => (
-                        <AgentAvatar
-                          key={a.handle}
-                          name={a.name}
-                          agent={{ name: a.name, handle: a.handle, role: a.role }}
-                          size="sm"
-                          {...dougFace(i)}
-                        />
-                      ))}
+            {/* The Doug team, first and already picked (doug-0020): its faces, then its sentence. While the gallery
+                still loads, its card's own shape, so nothing moves when it arrives. */}
+            {loading && !doug ? (
+              <div className="onb-start__ghost" aria-hidden="true">
+                <Skeleton shape="block" height={96} />
+              </div>
+            ) : (
+              doug && (
+                <RadioCard
+                  value="doug"
+                  id="onb-start-doug"
+                  checked={pick === "doug"}
+                  title={t("onboarding.flow.team.start.doug")}
+                  aside={
+                    <Chip tone="info" className="onb-start__badge">
+                      {t("onboarding.flow.team.start.dougBadge")}
+                    </Chip>
+                  }
+                  description={t("onboarding.flow.team.start.dougText")}
+                  detail={
+                    <span className="onb-start__who">
+                      <span className="onb-start__faces">
+                        {dougMembers.map((a, i) => (
+                          <AgentAvatar
+                            key={a.handle}
+                            name={a.name}
+                            agent={{ name: a.name, handle: a.handle, role: a.role }}
+                            size="sm"
+                            {...dougFace(i)}
+                          />
+                        ))}
+                      </span>
+                      <span className="onb-start__names">
+                        {joinNames(
+                          dougMembers.map((a) => a.name),
+                          t,
+                        )}{" "}
+                        · {t("onboarding.flow.team.start.dougWho", { count: dougMembers.length })}
+                      </span>
                     </span>
-                    <span className="onb-start__names">
-                      {joinNames(
-                        dougMembers.map((a) => a.name),
-                        t,
-                      )}{" "}
-                      · {t("onboarding.flow.team.start.dougWho", { count: dougMembers.length })}
-                    </span>
-                  </span>
-                }
-              />
+                  }
+                />
+              )
             )}
             <RadioCard
               value="template"
@@ -176,7 +186,7 @@ export function TeamStart({
           block
           kbd={["↵"]}
           data-enter=""
-          disabled={pick === "template" && !chosen}
+          disabled={pick === null || (pick === "template" && !chosen)}
           loading={skip.isPending}
           onClick={() => (pick === "doug" ? link.go("who") : pick === "template" ? link.go("template") : skip.mutate())}
         >
@@ -194,12 +204,12 @@ export function TeamStart({
 /**
  * The picked row's agents hop one after another (the agent engine's "up" reaction, as the first question's scene),
  * never on the view's first look: the Doug team comes picked. With reduced motion the reaction only changes the face
- * (the engine's own rule).
+ * (the engine's own rule). Nothing picked yet (the gallery still loading) hops nothing.
  */
-function useHops(start: TeamStartPick, count: number, dougCount: number, hasDoug: boolean) {
+function useHops(start: TeamStartPick | null, count: number, dougCount: number, hasDoug: boolean) {
   const shown = useRef(start);
   useEffect(() => {
-    if (shown.current === start) return;
+    if (shown.current === start || start === null) return;
     shown.current = start;
     const faces = start === "template" ? count : start === "doug" && hasDoug ? dougCount : 1;
     const timers = Array.from({ length: faces }, (_, i) =>

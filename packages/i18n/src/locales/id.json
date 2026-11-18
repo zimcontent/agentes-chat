@@ -14,6 +14,7 @@
     "nextMonth": "Bulan berikutnya",
     "chooseDate": "Pilih tanggal",
     "cancel": "Batal",
+    "remove": "Hapus",
     "save": "Simpan",
     "back": "Kembali",
     "continue": "Lanjutkan",
@@ -1031,14 +1032,17 @@
         "lead": "Hapus centang siapa yang belum Anda butuhkan sekarang. Anda bisa memanggil siapa pun nanti, di Tim › Agen baru.",
         "fixed": "Tetap",
         "teamOf_other": "{{count}} di timnya",
-        "agents_other": "{{count}} agen di tim",
-        "skills_other": "{{count}} skill keahlian",
-        "routines_other": "{{count}} rutinitas siap (dijeda sampai Anda menyalakannya)",
+        "countAgents_other": "agen di tim",
+        "countSkills_other": "skill keahlian",
+        "skillsCount_other": "{{count}} skill keahlian",
+        "countRoutines_other": "rutinitas siap, dijeda sampai Anda menyalakannya",
         "note": "Tidak ada yang datang dengan memori, klien, atau berkas dari perusahaan lain.",
         "qg": "di {{channel}}",
         "needsComputer": "butuh komputer yang terhubung",
         "connectComputer": "Pakai komputer",
-        "create": "Buat tim"
+        "create": "Buat tim",
+        "required": "Wajib",
+        "computerPending": "Masih perlu komputer terhubung: {{names}}."
       },
       "brand": {
         "title": "Ajarkan merek Anda ke tim",
@@ -1059,10 +1063,14 @@
         "manualLink": "Tempel tautan",
         "manualLinkPlaceholder": "https://drive.google.com/…",
         "manualAdd": "Tambah",
-        "saved": "Tersimpan",
-        "later": "Nanti saja",
+        "saved": "Terunggah",
         "madeTitle": "Tim sudah mempelajari merek Anda",
-        "made": "«Merek {{company}}» kini menjadi skill yang dibaca ROSA, SONY, Media Sosial, dan CHESS."
+        "made": "«Merek {{company}}» kini menjadi skill yang dibaca ROSA, SONY, Media Sosial, dan CHESS.",
+        "required": "Wajib",
+        "failed": "Gagal diunggah: {{reason}}",
+        "missingCompany": "Sebutkan nama perusahaan.",
+        "missingTone": "Pilih nada bicara atau tulis dengan kata-katamu.",
+        "removeSaved": "Ikut hilang dari merek tersimpan. Hapus?"
       },
       "plan": {
         "title": "Nyalakan timmu",

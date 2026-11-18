@@ -11,7 +11,7 @@
 .onb-who__list {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: var(--space-2);
   margin: 0;
   padding: 0;
   list-style: none;
@@ -43,14 +43,14 @@ label.onb-who__row:hover {
 .onb-who__group {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: var(--space-2);
 }
 .onb-who__team {
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  margin: 0 0 0 24px;
-  padding: 4px 0 4px var(--space-3);
+  gap: var(--space-1);
+  margin: 0 0 0 var(--space-6);
+  padding: var(--space-1) 0 var(--space-1) var(--space-3);
   border-left: 1px solid var(--line2);
   list-style: none;
 }
@@ -83,7 +83,7 @@ label.onb-who__row[data-small]:hover {
   align-items: center;
   gap: var(--space-2);
   margin-top: 1px;
-  padding-left: 24px;
+  padding-left: var(--space-6);
 }
 .onb-who__name {
   display: flex;
@@ -143,7 +143,8 @@ label.onb-who__row[data-small]:hover {
   border-radius: var(--radius-lg);
   background: var(--card-well);
 }
-/* The counts in one row of three on a wide box; on a phone the longest line takes the room it needs, not a sliver. */
+/* The three counts in a row on a wide box; on a phone they stack, each the number then its name, rather than two by
+   two with the third alone. */
 .onb-who__counts {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -151,18 +152,26 @@ label.onb-who__row[data-small]:hover {
   gap: var(--space-4);
   margin: 0;
 }
-@media (max-width: 400px) {
+@media (max-width: 560px) {
   .onb-who__counts {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-2);
+  }
+  .onb-who__counts > div {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: baseline;
+    gap: var(--space-3);
   }
 }
 .onb-who__counts > div {
   display: flex;
-  flex-direction: column-reverse;
-  gap: 2px;
+  flex-direction: column;
+  gap: calc(var(--space-1) / 2);
   min-width: 0;
 }
 .onb-who__counts dd {
+  order: -1;
   margin: 0;
   font-size: 24px;
   font-weight: 650;

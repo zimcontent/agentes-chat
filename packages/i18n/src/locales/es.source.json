@@ -35,6 +35,9 @@
   "common.cancel": {
     "value": "Cancel"
   },
+  "common.remove": {
+    "value": "Remove"
+  },
   "common.save": {
     "value": "Save"
   },
@@ -2621,24 +2624,6 @@
       "other": "{{count}} in its team"
     }
   },
-  "onboarding.flow.who.agents": {
-    "value": {
-      "one": "{{count}} agent on the team",
-      "other": "{{count}} agents on the team"
-    }
-  },
-  "onboarding.flow.who.skills": {
-    "value": {
-      "one": "{{count}} craft skill",
-      "other": "{{count}} craft skills"
-    }
-  },
-  "onboarding.flow.who.routines": {
-    "value": {
-      "one": "{{count}} ready routine (paused until you turn it on)",
-      "other": "{{count}} ready routines (paused until you turn them on)"
-    }
-  },
   "onboarding.flow.who.note": {
     "value": "None of them arrives with memory, a client or a file from another company."
   },
@@ -2650,6 +2635,30 @@
   },
   "onboarding.flow.who.connectComputer": {
     "value": "Use a computer"
+  },
+  "onboarding.flow.who.countAgents": {
+    "value": {
+      "one": "agent on the team",
+      "other": "agents on the team"
+    }
+  },
+  "onboarding.flow.who.countSkills": {
+    "value": {
+      "one": "craft skill",
+      "other": "craft skills"
+    }
+  },
+  "onboarding.flow.who.countRoutines": {
+    "value": {
+      "one": "ready routine, paused until you turn it on",
+      "other": "ready routines, paused until you turn them on"
+    }
+  },
+  "onboarding.flow.who.computerPending": {
+    "value": "Needs a computer connected: {{names}}."
+  },
+  "onboarding.flow.who.required": {
+    "value": "Required"
   },
   "onboarding.flow.who.create": {
     "value": "Create the team"
@@ -2711,14 +2720,26 @@
   "onboarding.flow.brand.saved": {
     "value": "Saved"
   },
-  "onboarding.flow.brand.later": {
-    "value": "Not now"
-  },
   "onboarding.flow.brand.madeTitle": {
     "value": "The team learned your brand"
   },
   "onboarding.flow.brand.made": {
     "value": "“Brand {{company}}” is now the skill ROSA, SONY, the Social Media and CHESS read."
+  },
+  "onboarding.flow.brand.required": {
+    "value": "Required"
+  },
+  "onboarding.flow.brand.failed": {
+    "value": "Not uploaded: {{reason}}"
+  },
+  "onboarding.flow.brand.missingCompany": {
+    "value": "Say the company's name."
+  },
+  "onboarding.flow.brand.missingTone": {
+    "value": "Pick a tone of voice or write your own."
+  },
+  "onboarding.flow.brand.removeSaved": {
+    "value": "Removes it from the saved brand too. Take it off?"
   },
   "onboarding.flow.plan.title": {
     "value": "Turn your team on"
@@ -52079,5 +52100,11 @@
   },
   "dougTeam.brand.tones.educativo": {
     "value": "Educational"
+  },
+  "onboarding.flow.who.skillsCount": {
+    "value": {
+      "one": "{{count}} craft skill",
+      "other": "{{count}} craft skills"
+    }
   }
 }

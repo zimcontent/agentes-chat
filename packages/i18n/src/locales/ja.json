@@ -14,6 +14,7 @@
     "nextMonth": "次の月",
     "chooseDate": "日付を選択",
     "cancel": "キャンセル",
+    "remove": "外す",
     "save": "保存",
     "back": "戻る",
     "continue": "続ける",
@@ -1031,14 +1032,17 @@
         "lead": "今いらない人のチェックを外してください。誰でも後から チーム › 新しいエージェント で呼べます。",
         "fixed": "固定",
         "teamOf_other": "彼のチームに{{count}}人",
-        "agents_other": "チームに{{count}}人のエージェント",
-        "skills_other": "{{count}} の職能スキル",
-        "routines_other": "{{count}} の準備済みルーティン(オンにするまで一時停止)",
+        "countAgents_other": "チームのエージェント",
+        "countSkills_other": "職能スキル",
+        "skillsCount_other": "職能スキル{{count}}",
+        "countRoutines_other": "準備済みルーティン(オンにするまで一時停止)",
         "note": "誰も他の会社の記憶、顧客、ファイルを持って来ません。",
         "qg": "{{channel}} で",
         "needsComputer": "接続されたコンピューターが必要です",
         "connectComputer": "コンピューターを使う",
-        "create": "チームを作成"
+        "create": "チームを作成",
+        "required": "必須",
+        "computerPending": "接続したコンピューターがまだありません: {{names}}。"
       },
       "brand": {
         "title": "チームにあなたのブランドを教える",
@@ -1059,10 +1063,14 @@
         "manualLink": "リンクを貼る",
         "manualLinkPlaceholder": "https://drive.google.com/…",
         "manualAdd": "追加",
-        "saved": "保存済み",
-        "later": "後で",
+        "saved": "アップロード済み",
         "madeTitle": "チームがあなたのブランドを学びました",
-        "made": "「{{company}} ブランド」は今、ROSA、SONY、SNS、CHESS が読むスキルです。"
+        "made": "「{{company}} ブランド」は今、ROSA、SONY、SNS、CHESS が読むスキルです。",
+        "required": "必須",
+        "failed": "アップロードされませんでした: {{reason}}",
+        "missingCompany": "会社名を入力してください。",
+        "missingTone": "語調を選ぶか、自分の言葉で書いてください。",
+        "removeSaved": "保存したブランドからも外れます。外しますか?"
       },
       "plan": {
         "title": "チームを動かしましょう",

@@ -23,6 +23,7 @@ export const en = {
     nextMonth: "Next month",
     chooseDate: "Choose a date",
     cancel: "Cancel",
+    remove: "Remove",
     save: "Save",
     back: "Back",
     continue: "Continue",
@@ -1167,20 +1168,27 @@ export const en = {
         /** Under the MARK's rows: the QG de Tráfego it opens. `{{count}}`: how many it holds. */
         teamOf_one: "{{count}} in its team",
         teamOf_other: "{{count}} in its team",
-        /** The summary beside the list. */
-        agents_one: "{{count}} agent on the team",
-        agents_other: "{{count}} agents on the team",
-        skills_one: "{{count}} craft skill",
-        skills_other: "{{count}} craft skills",
-        routines_one: "{{count}} ready routine (paused until you turn it on)",
-        routines_other: "{{count}} ready routines (paused until you turn them on)",
+        /** What the checked ones bring, above the list: a name under a number (a `dt` before its `dd`). */
+        countAgents_one: "agent on the team",
+        countAgents_other: "agents on the team",
+        countSkills_one: "craft skill",
+        countSkills_other: "craft skills",
+        countRoutines_one: "ready routine, paused until you turn it on",
+        countRoutines_other: "ready routines, paused until you turn them on",
+        /** The chip at a row's end: what that one agent brings, with its number. */
+        skillsCount_one: "{{count}} craft skill",
+        skillsCount_other: "{{count}} craft skills",
         note: "None of them arrives with memory, a client or a file from another company.",
         /** The channel a row's agent works in: its HQ. */
         qg: "in {{channel}}",
         /** The notice on an agent that only works on a computer, and the button beside it. */
         needsComputer: "needs a computer connected",
         connectComputer: "Use a computer",
+        /** What still waits after the team is made: the agents that need a computer, named. */
+        computerPending: "Needs a computer connected: {{names}}.",
         create: "Create the team",
+        /** The boxes that must be answered, beside their labels. */
+        required: "Required",
       },
       /**
        * "Ensine a sua marca ao time" (docs/adr/doug-0020-time-doug.md): the company's name and tone, required, and the
@@ -1208,10 +1216,17 @@ export const en = {
         manualLinkPlaceholder: "https://drive.google.com/…",
         /** The button that keeps the pasted link, beside its field. */
         manualAdd: "Add",
+        /** Beside the company's name and the tone: what the step can't be answered without. */
+        required: "Required",
         /** Under the file's title, once it's in the Drive. */
-        saved: "Saved",
-        /** The step's own button, under Continuar: it saves nothing and goes on (the server still waits for it). */
-        later: "Not now",
+        saved: "Uploaded",
+        /** A file that didn't go to the Drive, under its name. */
+        failed: "Not uploaded: {{reason}}",
+        /** What saves the step, and what it still waits for under a button that can't press yet. */
+        missingCompany: "Say the company's name.",
+        missingTone: "Pick a tone of voice or write your own.",
+        /** The × beside a file or a link, once the brand saved: it goes from the skill too. */
+        removeSaved: "Removes it from the saved brand too. Take it off?",
         /** The skill it becomes, once saved. */
         madeTitle: "The team learned your brand",
         made: "“Brand {{company}}” is now the skill ROSA, SONY, the Social Media and CHESS read.",
