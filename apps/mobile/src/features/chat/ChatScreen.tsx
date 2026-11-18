@@ -167,6 +167,7 @@ import { usePlanHold } from "../ai/parts";
 import { BrowserCard, BrowserRunCard } from "../browser/BrowserCard";
 import { OpenHandoffProvider } from "../browser/open";
 import { CallButton } from "../call/CallButton";
+import { AllSheet } from "../chats/AllSheet";
 import { threadTitle } from "../chats/logic";
 import { ImageMaking } from "../files/ImageMaking";
 import { chatHref, consultationHref, notificationHref } from "../links/logic";
@@ -260,7 +261,6 @@ import {
   type MessageActionsContext,
   MissionSummaryView,
   NewMissionForm,
-  PlusActions,
   type PlusPick,
   ThreadOptions,
 } from "./sheets";
@@ -1293,7 +1293,9 @@ function Chat({
     name: a.fileName ?? (a.type === "video" ? "video.mp4" : "photo.jpg"),
     type: a.mimeType ?? (a.type === "video" ? "video/mp4" : "image/jpeg"),
   });
-  const openPlus = () => sheet.open(<PlusActions media={mediaTabs.length > 0} onPick={(p) => void onPlus(p)} />);
+  // "Tudo" with this conversation's own rows: what to do here and what to attach, each through `onPlus`.
+  const openPlus = () =>
+    sheet.open(<AllSheet conversation={{ media: mediaTabs.length > 0, onPick: (p) => void onPlus(p) }} />);
   const onPlus = async (pick: PlusPick) => {
     // What opens next opens once the sheet is gone (`sheet.close` says when): the library, the camera and the files
     // picker presented over it while it slid out were taken away with it, and the app waited for an answer that never

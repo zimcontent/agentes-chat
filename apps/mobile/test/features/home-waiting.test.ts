@@ -1,6 +1,7 @@
 import { expect, test } from "bun:test";
 import { readFileSync } from "node:fs";
 import type { AgentWork } from "@agenteschat/client";
+import { FRONT_MAX, frontOf, toolsHere } from "../../src/features/chats/all-tools";
 import { waitingAgents } from "../../src/features/chats/waiting";
 
 // Início's "Esperando sua resposta" (docs/adr/doug-0014-latest-first.md): the agents whose work waits on you.
@@ -35,17 +36,15 @@ test("only the agents waiting on you, the one waiting longest first, and only th
   expect(waitingAgents([], listed)).toEqual([]);
 });
 
-test("Início: no large title, no greeting; the tools lead with Buscar and keep Drive and Agentes in Mais", () => {
+test("Início: no large title, no greeting; the tools lead with Buscar and keep Drive and Agentes in Tudo", () => {
   const src = (f: string) => readFileSync(new URL(`../../src/${f}`, import.meta.url), "utf8");
   expect(src("features/chats/ChatsScreen.tsx")).toContain("      bare\n");
-  const tools = src("features/chats/HomeTools.tsx");
-  // WhatsApp, Mídia, Buscar, Tarefas in front: Drive and Agentes come after them, so behind "Mais".
-  const order = ['key: "whatsapp"', 'key: "media"', 'key: "search"', 'key: "issues"', 'key: "drive"', 'key: "team"'];
-  const at = order.map((k) => tools.indexOf(k));
-  expect(at.every((i) => i > 0)).toBe(true);
-  expect([...at].sort((a, b) => a - b)).toEqual(at);
-  expect(tools).toContain("const FRONT = 4;");
-  expect(tools).toContain('href: "/new-agent"');
-  // The phone has no form for it: the tool asks the right hand.
-  expect(tools).toContain('if (tool?.key === "new-agent") createAgent();');
+  // WhatsApp, Mídia, Buscar, Tarefas in front before anyone pins: Drive and Agentes behind "Mais".
+  const tools = toolsHere({ whatsapp: true, media: true, portal: false, calendar: false, member: true, hidden: [] });
+  expect(frontOf(tools, null)).toEqual(["whatsapp", "media", "search", "issues"]);
+  expect(FRONT_MAX).toBe(4);
+  const sheet = src("features/chats/AllSheet.tsx");
+  expect(sheet).toContain('router.push("/new")');
+  // The phone has no form for a new agent: the tile asks the right hand.
+  expect(sheet).toContain("onPress: () => go(() => createAgent())");
 });
