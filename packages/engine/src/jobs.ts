@@ -1063,7 +1063,7 @@ export function createJobHandlers(deps: JobDeps): JobHandlers {
     [TEAM_HELLO_JOB]: async (job) => {
       await sayTeamHello(deps, orgOf(job), job.payload);
     },
-    // The Doug team's third-party skills, from their public links (docs/adr/doug-0020-time-doug.md).
+    // The Doug team's third-party skills, from their public links (docs/adr/doug-0030-time-doug.md).
     [DOUG_TEAM_SKILLS_JOB]: async (job) => {
       if (!deps.skills) throw new PermanentJobError("no skill store configured");
       const out = await installDougSkills(deps.skills, orgOf(job), job.payload);

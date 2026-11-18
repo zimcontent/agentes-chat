@@ -397,7 +397,7 @@ export async function unfinishedWorkspaces(db: Executor, userId: string) {
  * Saves how far a workspace's owner got in its onboarding: `step`, the furthest one reached, only moves forward;
  * `finished` ends it, for good. Anyone else is refused. Returns where it stands.
  *
- * The Doug team's brand step (docs/adr/doug-0020-time-doug.md) never traps anyone: it holds only the app that knows
+ * The Doug team's brand step (docs/adr/doug-0030-time-doug.md) never traps anyone: it holds only the app that knows
  * the step, by asking (`holdBrand`), and an app that knows nothing of it finishes. The workspace's record is kept
  * (`brandPending`), so the brand can still be asked for in the DM afterwards; the workspace opens either way.
  */

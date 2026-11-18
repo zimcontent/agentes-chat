@@ -24,7 +24,7 @@ export const ONBOARDING_STEPS = [
   "context",
   "import",
   "agents",
-  // The brand, after the Doug team (docs/adr/doug-0020-time-doug.md).
+  // The brand, after the Doug team (docs/adr/doug-0030-time-doug.md).
   "brand",
   "computer",
   "ai",

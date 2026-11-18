@@ -40,7 +40,7 @@ export const keys = {
   agentProposal: (orgId: string, messageId: string) => ["org", orgId, "agent-proposal", messageId] as const,
   actionCard: (orgId: string, messageId: string) => ["org", orgId, "action-card", messageId] as const,
   teamTemplates: (orgId: string, locale: string) => ["org", orgId, "team-templates", locale] as const,
-  /** The Doug team's card, apart from the gallery (docs/adr/doug-0020-time-doug.md); under `teamTemplates`. */
+  /** The Doug team's card, apart from the gallery (docs/adr/doug-0030-time-doug.md); under `teamTemplates`. */
   dougTemplate: (orgId: string, locale: string) => ["org", orgId, "team-templates", locale, "doug"] as const,
   team: (orgId: string) => ["org", orgId, "team"] as const,
   credentials: (orgId: string) => ["org", orgId, "credentials"] as const,

@@ -3,7 +3,7 @@ import { parseSkillMarkdown } from "../skills";
 import { AGENT_FILES, SKILL_FILES } from "./files.gen";
 
 /**
- * The Doug team's material (docs/adr/doug-0020-time-doug.md): the house's agents as templates, each one's trade with no
+ * The Doug team's material (docs/adr/doug-0030-time-doug.md): the house's agents as templates, each one's trade with no
  * client's data, and the house skills they use. Kept as Markdown beside this file (`agents/<handle>.md`,
  * `skills/<slug>/SKILL.md`) and built into `files.gen.ts` (`bun run doug-team:build`), read here once, typed.
  */

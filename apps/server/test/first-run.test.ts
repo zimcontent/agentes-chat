@@ -60,7 +60,7 @@ test("a personal workspace (ADR 0159): made with its mode, its templates are for
   const gallery = (await (await api("/team-templates?locale=en")).json()) as {
     templates: { id: string; team: { agents: { channel: string }[]; newChannels: string[] } }[];
   };
-  // The areas of a personal workspace, and no Doug team: an app asks for it apart (docs/adr/doug-0020-time-doug.md).
+  // The areas of a personal workspace, and no Doug team: an app asks for it apart (docs/adr/doug-0030-time-doug.md).
   expect(gallery.templates.map((x) => x.id)).toEqual(["life", "health", "studies", "home", "travel", "freelance"]);
   const personal = gallery.templates;
   expect(personal.every((x) => x.team.newChannels.length === 0)).toBe(true);
@@ -73,7 +73,7 @@ test("a personal workspace (ADR 0159): made with its mode, its templates are for
   expect(agents.filter((a) => !a.builtin).map((a) => a.handle)).toEqual(expect.arrayContaining(["clara", "duda"]));
 });
 
-test("the Doug team over HTTP (docs/adr/doug-0020-time-doug.md): the chosen agents, the brand step, then done", async () => {
+test("the Doug team over HTTP (docs/adr/doug-0030-time-doug.md): the chosen agents, the brand step, then done", async () => {
   t = await createTestServer();
   const owner = browser(t);
   await signUp(owner, "doug@example.com");
@@ -119,7 +119,7 @@ test("the Doug team over HTTP (docs/adr/doug-0020-time-doug.md): the chosen agen
   expect(((await again.json()) as { error: { code: string } }).error.code).toBe("doug_team.made");
 
   // The brand step: pending, the tones in the person's language. An app that draws the step asks to be held by it
-  // (`holdBrand`); one that knows nothing of it finishes (docs/adr/doug-0020-time-doug.md).
+  // (`holdBrand`); one that knows nothing of it finishes (docs/adr/doug-0030-time-doug.md).
   expect((await me())?.onboarding?.brandPending).toBe(true);
   const brand = (await (await api("/brand?locale=pt-BR")).json()) as {
     pending: boolean;

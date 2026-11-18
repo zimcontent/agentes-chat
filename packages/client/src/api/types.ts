@@ -1267,7 +1267,7 @@ export interface TeamProposalCard {
     skipped: ("skills" | "weekly" | "rightHand")[];
     noAi: string[];
     /**
-     * The Doug team's third-party skills that failed to install for good (docs/adr/doug-0020-time-doug.md): each by its
+     * The Doug team's third-party skills that failed to install for good (docs/adr/doug-0030-time-doug.md): each by its
      * slug, with the `code` the app says. Absent until the job reports one.
      */
     failedSkills?: { slug: string; code: string | null }[];
@@ -1287,7 +1287,7 @@ export interface TeamTemplate {
 }
 
 /**
- * The Doug team (docs/adr/doug-0020-time-doug.md): not a team template's card, which it outgrew, so the gallery gives
+ * The Doug team (docs/adr/doug-0030-time-doug.md): not a team template's card, which it outgrew, so the gallery gives
  * it apart, only to an app that asks (`?with=doug`). Every agent is listed, checked by default; `team` lists those that
  * become agents with every one checked.
  */
@@ -1298,7 +1298,7 @@ export interface DougTeamTemplate extends TeamTemplate {
   needsComputer: string[];
 }
 
-/** One agent of the Doug team's template, as the gallery lists it (docs/adr/doug-0020-time-doug.md). */
+/** One agent of the Doug team's template, as the gallery lists it (docs/adr/doug-0030-time-doug.md). */
 export interface DougTemplateMember {
   /** What `applyTeamTemplate`'s `handles` names, and what `dougKey` turns into the i18n key. */
   handle: string;
@@ -1326,7 +1326,7 @@ export interface BrandToneWord {
   label: string;
 }
 
-/** What the brand step sends (`PUT …/brand`, docs/adr/doug-0020-time-doug.md): `company` and a tone are required. */
+/** What the brand step sends (`PUT …/brand`, docs/adr/doug-0030-time-doug.md): `company` and a tone are required. */
 export interface BrandInput {
   company: string;
   /** Tones tapped from the list (`BRAND_TONES`); with `tone`, at least one of them is required. */
@@ -1342,7 +1342,7 @@ export interface BrandInput {
   links?: string[];
 }
 
-/** The workspace's brand ("Sua marca", docs/adr/doug-0020-time-doug.md), as the step shows it back. */
+/** The workspace's brand ("Sua marca", docs/adr/doug-0030-time-doug.md), as the step shows it back. */
 export interface BrandView {
   company: string;
   tones: string[];

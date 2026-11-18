@@ -1,5 +1,5 @@
 /**
- * `bun run doug-team:build` (docs/adr/doug-0020-time-doug.md): the Doug team's material, `src/doug-team/agents/*.md` and
+ * `bun run doug-team:build` (docs/adr/doug-0030-time-doug.md): the Doug team's material, `src/doug-team/agents/*.md` and
  * `src/doug-team/skills/<slug>/SKILL.md`, written into `src/doug-team/files.gen.ts` as text, so the server reads it
  * from its own bundle and never from a folder beside it. `test/doug-team.test.ts` fails while the generated file
  * differs from what this writes.

@@ -463,7 +463,7 @@ export const organizationSettings = pgTable("organization_settings", {
    */
   hiddenTools: text().array().notNull().default(sql`'{}'::text[]`),
   /**
-   * The Doug team made here (docs/adr/doug-0020-time-doug.md), null for none: its card, the agents it made by their
+   * The Doug team made here (docs/adr/doug-0030-time-doug.md), null for none: its card, the agents it made by their
    * template's handle, and whether the right hand took the DOUG's role (its instructions in `rightHandPrompt`). A
    * column of this instance's own (`EXTRA_COLUMNS`), outside the numbered migrations.
    */

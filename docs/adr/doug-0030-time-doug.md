@@ -1,4 +1,4 @@
-# doug-0020: The Doug team as a template, and the brand step of the onboarding
+# doug-0030: The Doug team as a template, and the brand step of the onboarding
 
 Status: accepted. This instance's own. 2026-11-18. Builds on ADR 0137 §10 (the right hand's team card), ADR 0155 §6
 (a template's team made at once), ADR 0159 (personal workspaces), ADR 0162 (the onboarding and the team's hello),
@@ -47,12 +47,22 @@ leave: what a new workspace gets is the craft, never the data.
      an admin gives it** (`manage_agents`): a member who may create agents (`create_agents`) makes the team but the
      DOUG's role is left out, named on the receipt (`skipped: rightHand`). The right hand's routines are likewise for
      who manages them.
+   - **The role is the DOUG's alone.** The record names the agent the team made on the right hand; the role reads only
+     while that id is this run's agent, and it is the workspace's right hand (`agents.builtin`). A workspace that
+     hands the right hand's mark to another agent afterwards (`makeRightHand`, ADR 0137's addendum) gets no DOUG's
+     instructions on it: the new right hand talks as itself, and the old one, no longer the right hand, isn't read as
+     one either. The mark and the DOUG are two facts, and the role needs both.
    - **A channel per HQ**: design, video, ads (the MARK and its nine, who report to it, `reports_to_agent_id`),
      strategy, social media, code and finance, named in the person's language (`dougTeam.channels.*`), with `-2` where
      the name is a private channel they aren't in, as the other templates do. A personal workspace (ADR 0159) makes
      **no channel**: its agents live in their DM with the person, and their routines report there (`target: dm`), as
      the personal templates do. A team's workspace gets the channels; one person's does not.
    - **Every routine is made paused.** The person turns on the ones they want; nothing runs on its own the first day.
+   - **A team made again leaves none of the last one's routines behind.** The right hand is never archived, so a
+     routine the last card put on it would outlive Desfazer and double itself in a new team. Before its own routines
+     are made, the ones the last card's receipt lists (`created.routineIds`) are deleted on the right hand (as any
+     deleted routine is: it never fires again, its history stays). The list is the card's own, not a name match: a
+     routine the right hand had before it is no business of this team's, whatever it is called.
    - **House skills** become the workspace's (one already there by that name is used as it is), each given to the
      agents that list it. Skills are an admin's, as on the team card: a member who makes the team gets the agents and
      the receipt says the skills wait for an admin.
@@ -64,11 +74,17 @@ leave: what a new workspace gets is the craft, never the data.
      repository, so a folder's skills come from one download) installs them after the card reads `created` and gives
      them to the right agents. The job **only installs once the card is `created`**: a card still `creating` (a job
      that ran while the team's transaction was open) throws, so the outbox reads it again; a card undone, denied or
-     replaced installs nothing. A network failure throws too, tried again later. The card is written `created` and the
-     job enqueued right after it, in the same code path (`useDougTeam`), so the only window is between those two
-     statements: the outbox can't see the job before it exists, and a job the outbox claimed in that window throws
-     `DougTeamNotReady` and comes back. The job's `dedupeKey` is `doug_team.skills:<cardId>:<url>`, so a second enqueue
-     of the same folder adds nothing.
+     replaced installs nothing. A network failure throws too, tried again later.
+   - **The window between `created` and `enqueue`.** The team is made in one transaction; the card is written
+     `created` right after it commits (`writeCard`), and the job of each folder is enqueued the next thing
+     `useDougTeam` does, in the same code path. So a job can never exist before `created` (the outbox can't see what
+     isn't there), and a job claimed in the narrow window is the one thing the guard must cover: it reads the card as
+     `created` and installs. The remaining danger is the opposite one — the process stopping between `created` and the
+     enqueue. Then the card reads `created` with no job and the third-party skills never arrive: the team, its agents
+     and its receipt are all there, and a person installs the missing skills from their links as they would any other.
+     A failure there costs an install, never the team. A job that runs while the card is still `creating` throws
+     `DougTeamNotReady`, and the outbox reads it again, so no try installs under a card that isn't final. The job's
+     `dedupeKey` is `doug_team.skills:<cardId>:<url>`, so a second enqueue of the same folder adds nothing.
    - **A skill a person already had stays theirs.** The job marks a skill it made with `metadata.dougTeam` (the card's
      id), and that mark alone is what Desfazer takes back. A skill the workspace had before the card, even installed
      from the same link, is only given to the agents: no mark, and its `metadata` untouched. The only skills it takes
@@ -85,6 +101,11 @@ leave: what a new workspace gets is the craft, never the data.
    - **A failure is on the receipt.** A skill that fails for good (the link holds no such skill now, or it is past the
      skill limits) is written to the card's `created.failedSkills` (`slug`, `code`), which the app shows; the others
      still install.
+   - **The slug is the skill's name.** The material names each third-party skill by its slug, and the thing that
+     decides whether it is the right one is that SKILL.md's own `name`: a folder the link holds under another name is
+     refused with `skill.name_mismatch`, never installed under the slug the workspace expects. The slug is the key
+     Desfazer, the card's lists and the agents' deliveries go by; a skill upstream renamed is a different skill, and
+     filing it under the team's slug would hand the agents something nobody reviewed under that name.
    - **Desfazer finds them all**, even from a job that failed halfway: the job marks each skill it made (or a repeat
      found as its own) with `metadata.dougTeam` (the card's id), and `undoTeam` removes the card's `created.skillIds`
      and every skill so marked, in one statement. Their ids also join the card's, so the receipt counts them; a repeat
@@ -103,11 +124,17 @@ leave: what a new workspace gets is the craft, never the data.
    to the ROSA, the SONY, the SOCIAL MEDIA and the CHESS.
    - **The step never traps anyone.** The brand is required only where the app that finishes the onboarding draws the
      step: it sends `holdBrand` and `saveOnboarding` answers 409 `onboarding.brand_pending` while the brand still
-     waits; `GET /me` says `brandPending` to that app alone. An app that knows nothing of the step (the web and the
-     phone as they were) sends no `holdBrand`, finishes the onboarding and opens the workspace; the brand is then
-     asked for in the DOUG's DM (`rightHandPrompt`'s "not set up yet"), so a workspace that got its team never works
-     on a piece without it. Once the onboarding is over, `brandPending` reads false (it means "the onboarding still
-     waits"); the brand skill is still written by the same route, and the DOUG asks for it in the chat.
+     waits; `GET /me` says `brandPending` to that app alone. The web is that app: it sends `holdBrand: true` and draws
+     the step itself (its brands screens ship beside this team, so the step it holds for is the one it opens). An app
+     that knows nothing of the step (the phone as it was) sends no `holdBrand`, finishes the onboarding and opens the
+     workspace; the brand is then asked for in the DOUG's DM (`rightHandPrompt`'s "not set up yet"), so a workspace
+     that got its team never works on a piece without it. Once the onboarding is over, `brandPending` reads false (it
+     means "the onboarding still waits"); the brand skill is still written by the same route, and the DOUG asks for it
+     in the chat.
+   - **The prompt asks, it does not write.** The DOUG has no tool that writes the brand: the line of its prompt names
+     where the person fills it in (the onboarding's brand step, or with whoever manages the agents), and only appears
+     to a person who may write it (`manage_agents`, the same right `PUT …/brand` asks for). Anyone else reads none of
+     it: they could do nothing with it.
    - **The prompt asks its own question.** `brandPending` is the step's and `GET /me`'s ("the onboarding still waits").
      The DOUG's prompt reads `brandMissing` instead: the team was made (`doug_team`) and the workspace has no skill
      marked `metadata.brand`, whatever the onboarding's date. A workspace whose onboarding ended without a brand, by an

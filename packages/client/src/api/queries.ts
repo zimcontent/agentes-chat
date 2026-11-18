@@ -1011,7 +1011,7 @@ export function useTeamTemplates(orgId: string, locale: string, enabled = true) 
 }
 
 /**
- * The Doug team's card (docs/adr/doug-0020-time-doug.md): not a gallery template, so it is asked for apart. `enabled`
+ * The Doug team's card (docs/adr/doug-0030-time-doug.md): not a gallery template, so it is asked for apart. `enabled`
  * false (an app that doesn't draw it) asks for nothing.
  */
 export function useDougTemplate(orgId: string, locale: string, enabled = true) {

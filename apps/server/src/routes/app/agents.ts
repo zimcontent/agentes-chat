@@ -1400,7 +1400,7 @@ export function agentRoutes(deps: AppDeps) {
 
   const TEMPLATE_IDS = [DOUG_TEMPLATE, ...TEAM_TEMPLATES] as const;
   /**
-   * The team templates' ids as the gallery gives them: without the Doug team (docs/adr/doug-0020-time-doug.md), which
+   * The team templates' ids as the gallery gives them: without the Doug team (docs/adr/doug-0030-time-doug.md), which
    * one of the business ones at a time and is asked for apart (`?with=doug`). `TEMPLATE_IDS` stays the addressable ones.
    */
   const GALLERY_IDS = [...TEAM_TEMPLATES, DOUG_TEMPLATE] as const;
@@ -1458,7 +1458,7 @@ export function agentRoutes(deps: AppDeps) {
       security,
       summary: 'The team templates ("See team templates"), in your language',
       description:
-        "The business types, in a team's workspace; in a personal one, the areas of the person's life instead, whose agents live in their DM with the person and make no channel (ADR 0159). Any template's id can be used in either mode. The Doug team (docs/adr/doug-0020-time-doug.md) is not one of them: it needs a screen of its own, so `?with=doug` gives it apart, in `doug`, with each of its agents to check or uncheck.",
+        "The business types, in a team's workspace; in a personal one, the areas of the person's life instead, whose agents live in their DM with the person and make no channel (ADR 0159). Any template's id can be used in either mode. The Doug team (docs/adr/doug-0030-time-doug.md) is not one of them: it needs a screen of its own, so `?with=doug` gives it apart, in `doug`, with each of its agents to check or uncheck.",
       request: {
         params: OrgParams,
         query: z.object({
@@ -1495,7 +1495,7 @@ export function agentRoutes(deps: AppDeps) {
       security,
       summary: 'Create a template\'s team at once ("Criar o time")',
       description:
-        "No model call, so it works on a billing hold too: the team is made, and its card in your DM with the right hand reads created, with Undo for a day (ADR 0155 §6). `state` is `pending` with the card's error when a step failed. `doug` (docs/adr/doug-0020-time-doug.md): the agents named in `handles` (every one when absent; `doug` is the right hand's role), a channel per HQ, every routine paused, the house skills given at once and the third-party ones installed after by a job; 400 `doug_team.unknown` for a handle it doesn't have, `doug_team.none` for none, 409 `doug_team.made` when this workspace already has it.",
+        "No model call, so it works on a billing hold too: the team is made, and its card in your DM with the right hand reads created, with Undo for a day (ADR 0155 §6). `state` is `pending` with the card's error when a step failed. `doug` (docs/adr/doug-0030-time-doug.md): the agents named in `handles` (every one when absent; `doug` is the right hand's role), a channel per HQ, every routine paused, the house skills given at once and the third-party ones installed after by a job; 400 `doug_team.unknown` for a handle it doesn't have, `doug_team.none` for none, 409 `doug_team.made` when this workspace already has it.",
       request: {
         params: OrgParams.extend({ templateId: z.enum(TEMPLATE_IDS) }),
         body: {
@@ -1579,7 +1579,7 @@ export function agentRoutes(deps: AppDeps) {
       security,
       summary: 'The workspace\'s brand ("Sua marca"), the tones to tap and whether the onboarding waits for it',
       description:
-        "docs/adr/doug-0020-time-doug.md: the brand step follows the Doug team in the onboarding and is required there (`pending` until `PUT …/brand`). `brand`: what was said, null before. Any member reads it.",
+        "docs/adr/doug-0030-time-doug.md: the brand step follows the Doug team in the onboarding and is required there (`pending` until `PUT …/brand`). `brand`: what was said, null before. Any member reads it.",
       request: { params: OrgParams, query: z.object({ locale: z.string().max(20).optional() }) },
       responses: {
         200: json(

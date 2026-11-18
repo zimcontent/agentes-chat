@@ -950,7 +950,7 @@ export const en = {
       context: "Context",
       import: "Bring your agents",
       agents: "Agents",
-      /** "Sua marca", after the Doug team (docs/adr/doug-0020-time-doug.md). */
+      /** "Sua marca", after the Doug team (docs/adr/doug-0030-time-doug.md). */
       brand: "Your brand",
       computer: "Computer",
       ai: "AI",
@@ -15530,7 +15530,7 @@ export const en = {
       undoExpired:
         "It is more than a day since this team was created, so it can't be undone here. Archive its agents on their pages.",
     },
-    /** The Doug team and its brand step (docs/adr/doug-0020-time-doug.md). */
+    /** The Doug team and its brand step (docs/adr/doug-0030-time-doug.md). */
     dougTeam: {
       made: "This workspace already has the Doug team. Undo the one it made, or add the agents you want one by one.",
       none: "Check at least one agent of the Doug team.",
@@ -21836,7 +21836,7 @@ export const en = {
       add_other: "Add {{count}} files",
     },
   },
-  /** The Doug team template (docs/adr/doug-0020-time-doug.md): the gallery's first card, its channels, each agent's words and hello, and the brand step's tones. */
+  /** The Doug team template (docs/adr/doug-0030-time-doug.md): the gallery's first card, its channels, each agent's words and hello, and the brand step's tones. */
   dougTeam: {
     name: "Doug Team",
     sub: "Design, video, ads, strategy, social media, code and finance",

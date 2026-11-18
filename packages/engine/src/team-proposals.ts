@@ -147,7 +147,7 @@ export interface TeamCreated {
   skipped: ("skills" | "weekly" | "rightHand")[];
   /** Agents with nothing to think with yet (the app opens Connect for them). */
   noAi: string[];
-  /** The Doug team's (docs/adr/doug-0020-time-doug.md): its agents that work on a computer, for the app's notice. */
+  /** The Doug team's (docs/adr/doug-0030-time-doug.md): its agents that work on a computer, for the app's notice. */
   needsComputer?: string[];
   /** The Doug team's: the right hand took the DOUG's role, which Desfazer takes back. */
   rightHandRole?: boolean;
@@ -560,7 +560,7 @@ export async function createTeam(deps: TeamDeps, userId: string, orgId: string, 
     throw new ConflictError("This team card expired", "team_proposal.expired");
   }
   const claimed: TeamProposalCard = { ...card, state: "creating", error: null };
-  // The Doug team is made by its own path (`useDougTeam`, docs/adr/doug-0020-time-doug.md): its card outgrew this
+  // The Doug team is made by its own path (`useDougTeam`, docs/adr/doug-0030-time-doug.md): its card outgrew this
   // one, and a card forged for it would make a plain team. Claimed and denied here, so nothing is left behind.
   if (card.params.template === DOUG_TEMPLATE) {
     if (!(await writeCard(deps, message, claimed, "pending"))) throw decided();
@@ -825,7 +825,7 @@ export async function undoTeam(deps: TeamDeps, userId: string, orgId: string, me
         if (!(e instanceof NotFoundError)) throw e;
       });
     }
-    // The card's skills, and any the job made and marked as this card's (docs/adr/doug-0020-time-doug.md): a job that
+    // The card's skills, and any the job made and marked as this card's (docs/adr/doug-0030-time-doug.md): a job that
     // failed halfway had added none to `skillIds` yet, so Desfazer finds them by `metadata.dougTeam`.
     const marked = sql`${skills.metadata}->>'dougTeam' = ${message.id}`;
     if (made.skillIds.length > 0) {
@@ -849,7 +849,7 @@ export async function undoTeam(deps: TeamDeps, userId: string, orgId: string, me
         if (!(e instanceof NotFoundError)) throw e;
       });
     }
-    // The Doug team's mark goes with it: the right hand's role, the brand step it asked for (doug-0020).
+    // The Doug team's mark goes with it: the right hand's role, the brand step it asked for (docs/adr/doug-0030-time-doug.md).
     if (card.params.template === DOUG_TEMPLATE) {
       await tx
         .update(schema.organizationSettings)

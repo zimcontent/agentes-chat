@@ -12,7 +12,7 @@ import {
 import { type Fixture, setup } from "./fixtures";
 
 /*
- * The Doug team's third-party skills (docs/adr/doug-0020-time-doug.md): installed after the card is created by a job,
+ * The Doug team's third-party skills (docs/adr/doug-0030-time-doug.md): installed after the card is created by a job,
  * marked as the card's, their license kept, updates off; a failure halfway is taken up by the next try and Desfazer
  * takes all of it back.
  */
@@ -302,6 +302,27 @@ describe("the skills job", () => {
     // Nor is any of it on the card's list: an undone card keeps none.
     const listed = (await cardOf(made.messageId)).created?.skillIds ?? [];
     expect(listed.filter((id) => jobSkillIds.includes(id))).toEqual([]);
+  });
+
+  test("a folder that names another skill than the one asked for is refused (`skill.name_mismatch`)", async () => {
+    f = await setup({ rightHand: true });
+    const made = await useDougTeam(deps(), f.owner.id, f.org.id, { handles: ["junin"] });
+    const [job] = await f.db.select().from(schema.outbox).where(eq(schema.outbox.kind, DOUG_TEAM_SKILLS_JOB));
+    if (!job) throw new Error("no job");
+    const items = job.payload.items as DougSkillItem[];
+    // Upstream renamed the skill: its folder is the same, its SKILL.md says another name.
+    const renamed = items.map((i) => ({ ...i, slug: `${i.slug}-renamed` }));
+    const gh = fakeGithub(repoOf(renamed));
+    const out = await installDougSkills(skillDeps(gh.fetch), f.org.id, asTheRepo(job.payload));
+    expect(out.installed).toEqual([]);
+    expect(out.given).toEqual([]);
+    // Each is on the receipt with the code, and none is in the workspace.
+    expect(out.failed.map((x) => x.code)).toEqual(items.map(() => "skill.name_mismatch"));
+    expect(out.failed.map((x) => x.slug).sort()).toEqual(items.map((i) => i.slug).sort());
+    const rows = await f.db.select().from(schema.skills).where(eq(schema.skills.orgId, f.org.id));
+    for (const item of items) expect(rows.some((r) => r.slug === item.slug)).toBe(false);
+    const card = await cardOf(made.messageId);
+    expect(card.created?.failedSkills?.map((x) => x.code)).toEqual(items.map(() => "skill.name_mismatch"));
   });
 
   test("a failure halfway: the next try takes up where it stopped, and Desfazer takes all of it back", async () => {

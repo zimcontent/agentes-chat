@@ -13,7 +13,7 @@ import { untrustedBlock } from "../untrusted";
 const { agentSkills, agents, organizationSettings, organizations, skills } = schema;
 
 /**
- * "Sua marca" (docs/adr/doug-0020-time-doug.md): the onboarding step that follows the Doug team, required there. What
+ * "Sua marca" (docs/adr/doug-0030-time-doug.md): the onboarding step that follows the Doug team, required there. What
  * the person says of the company becomes the workspace skill "Marca <empresa>" (`marca`), written in the sections the
  * agents that read a brand look for (ROSA, SONY, SOCIAL MEDIA, CHESS), and given to them.
  */
@@ -204,7 +204,7 @@ async function brandSkillRow(db: Database, orgId: string) {
 }
 
 /**
- * Gives the brand that already exists to the readers a workspace just gained (docs/adr/doug-0020-time-doug.md): a
+ * Gives the brand that already exists to the readers a workspace just gained (docs/adr/doug-0030-time-doug.md): a
  * team made again after Desfazer kept the brand skill (Desfazer removes only what the card made), so the new ROSA,
  * SONY, SOCIAL MEDIA and CHESS read it from the first piece. A no-op where there is no brand.
  */
@@ -234,7 +234,7 @@ export async function brandPending(db: Database, orgId: string) {
 
 /**
  * Whether the workspace has the Doug team and no brand yet, as the right hand's prompt reads it
- * (docs/adr/doug-0020-time-doug.md): a team made (`doug_team`), and no skill marked `metadata.brand`. It is the
+ * (docs/adr/doug-0030-time-doug.md): a team made (`doug_team`), and no skill marked `metadata.brand`. It is the
  * prompt's own question, so it stays true after the onboarding is over (`brandPending` means "the onboarding still
  * waits"): a workspace that got its team and took no brand keeps being asked for it in the DOUG's DM.
  */

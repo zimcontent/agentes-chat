@@ -493,7 +493,7 @@ describe("team templates", () => {
   test("six, in the person's language, each a team its card would propose", async () => {
     f = await setup({ rightHand: true });
     const list = await listTeamTemplates({ db: f.db }, f.owner.id, f.org.id, "pt-BR");
-    // The six, and no Doug team, which one app asks for apart (docs/adr/doug-0020-time-doug.md).
+    // The six, and no Doug team, which one app asks for apart (docs/adr/doug-0030-time-doug.md).
     expect(list.map((t) => t.id)).toEqual([...BUSINESS_TEMPLATES]);
     expect(TEAM_TEMPLATES).toEqual([...BUSINESS_TEMPLATES, ...PERSONAL_TEMPLATES]);
     const software = list.find((t) => t.id === "software");
@@ -579,7 +579,7 @@ describe("team templates", () => {
   });
 });
 
-describe("the Doug team's own card (docs/adr/doug-0020-time-doug.md)", () => {
+describe("the Doug team's own card (docs/adr/doug-0030-time-doug.md)", () => {
   /** A team card the bot proposes, forced to the Doug team's template as a forged one would be. */
   async function forgedDougCard(fx: Fixture, userId: string) {
     const lodi = await lodiOf(fx);

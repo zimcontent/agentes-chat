@@ -66,7 +66,7 @@ const KNOWN = {
   "team_proposal.decided": "errors.agentProposal.decided",
   "team_proposal.expired": "errors.agentProposal.expired",
   "team_proposal.undo_expired": "errors.teamProposal.undoExpired",
-  // The Doug team and its brand step (docs/adr/doug-0020-time-doug.md).
+  // The Doug team and its brand step (docs/adr/doug-0030-time-doug.md).
   "doug_team.made": "errors.dougTeam.made",
   "doug_team.none": "errors.dougTeam.none",
   "doug_team.unknown": "errors.dougTeam.unknown",

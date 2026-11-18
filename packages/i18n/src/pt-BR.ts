@@ -937,7 +937,7 @@ export const ptBR = {
       context: "Contexto",
       import: "Trazer seus agentes",
       agents: "Agentes",
-      /** "Sua marca", depois do Time Doug (docs/adr/doug-0020-time-doug.md). */
+      /** "Sua marca", depois do Time Doug (docs/adr/doug-0030-time-doug.md). */
       brand: "Sua marca",
       computer: "Computador",
       ai: "IA",
@@ -15497,7 +15497,7 @@ export const ptBR = {
       undoExpired:
         "Já passou um dia desde que este time foi criado, então não dá para desfazer aqui. Arquive os agentes nas páginas deles.",
     },
-    /** O Time Doug e o passo da marca (docs/adr/doug-0020-time-doug.md). */
+    /** O Time Doug e o passo da marca (docs/adr/doug-0030-time-doug.md). */
     dougTeam: {
       made: "Este workspace já tem o Time Doug. Desfaça o que ele criou, ou adicione os agentes que quiser, um por um.",
       none: "Marque pelo menos um agente do Time Doug.",
@@ -21746,7 +21746,7 @@ export const ptBR = {
       add_other: "Adicionar {{count}} arquivos",
     },
   },
-  /** The Doug team template (docs/adr/doug-0020-time-doug.md): the gallery's first card, its channels, each agent's words and hello, and the brand step's tones. */
+  /** The Doug team template (docs/adr/doug-0030-time-doug.md): the gallery's first card, its channels, each agent's words and hello, and the brand step's tones. */
   dougTeam: {
     name: "Time Doug",
     sub: "Design, vídeo, tráfego, estratégia, social media, código e financeiro",

@@ -9,14 +9,14 @@ import { setAgentBrain } from "../brain-settings";
 import { invalidateOrg } from "../cache";
 import { addChannelMember, CHANNEL_NAME_PATTERN, createChannel, joinChannel, unarchiveChannel } from "../channels";
 import type { ContextDeps } from "../context/summaries";
-import { ConflictError, ForbiddenError, ValidationError } from "../errors";
+import { ConflictError, ForbiddenError, NotFoundError, ValidationError } from "../errors";
 import { publishAgentsChanged, publishMessageCreated } from "../events";
 import { setAgentComputerTarget } from "../machines";
 import { getMessage, messageView } from "../messages";
 import { can, requirePermission } from "../organizations";
 import { enqueue } from "../outbox";
 import { personLocale } from "../requester";
-import { createRoutine } from "../routines";
+import { createRoutine, deleteRoutine } from "../routines";
 import { parseGithubUrl } from "../skills";
 import { billingHold, TEAM_HELLO_JOB } from "../standing";
 import {
@@ -48,7 +48,7 @@ import {
   dougSkills,
 } from "./index";
 
-const { agents, agentSkills, messages, organizationSettings, organizations, skills } = schema;
+const { agents, agentSkills, messages, organizationSettings, organizations, routines: routineRows, skills } = schema;
 
 /** `doug_team.skills`: a group of a template's third-party skills installed from their public links, after the team. */
 export const DOUG_TEAM_SKILLS_JOB = "doug_team.skills";
@@ -140,7 +140,7 @@ async function dougParams(
   const [org, taken] = await Promise.all([orgName(deps.db, at.orgId), takenHandles(deps.db, at.orgId)]);
   const t = (key: string) => serverText(locale, key, { org });
   // A personal workspace makes no channel: its agents live in their DM with the person (ADR 0159), and the routines
-  // report there too (docs/adr/doug-0020-time-doug.md §8).
+  // report there too (docs/adr/doug-0030-time-doug.md §8).
   if (personal) {
     const handles = new Map<string, string>();
     for (const a of chosen) {
@@ -296,6 +296,17 @@ export async function dougTeamOf(db: Database, orgId: string) {
   return row?.dougTeam ?? null;
 }
 
+/** The routines a card made, from its own receipt (`created.routineIds`), empty when it isn't there. */
+async function cardRoutineIds(db: Database, orgId: string, cardId: string) {
+  const [row] = await db
+    .select({
+      routineIds: sql<string[]>`coalesce(${messages.meta}->'actionCard'->'created'->'routineIds', '[]'::jsonb)`,
+    })
+    .from(messages)
+    .where(and(eq(messages.orgId, orgId), eq(messages.id, cardId)));
+  return Array.isArray(row?.routineIds) ? row.routineIds : [];
+}
+
 /**
  * The Doug team made here whose agents are still here, or null: an archived agent is gone (`doug_team.made` allows a
  * new team while none of the team's is left), and the brand step and the DOUG's role go with it.
@@ -400,7 +411,7 @@ function madeSkillGroups(chosen: readonly DougAgentTemplate[], byTemplate: Recor
 }
 
 /**
- * "Usar este modelo" on the Doug team (`POST …/team-templates/doug/use`, docs/adr/doug-0020-time-doug.md): the chosen
+ * "Usar este modelo" on the Doug team (`POST …/team-templates/doug/use`, docs/adr/doug-0030-time-doug.md): the chosen
  * agents (`handles`, every one when absent) made at once in one transaction, as the right hand's card in the person's
  * DM, which then reads created with Undo like any template's. No limit of the team card applies: the template is ours.
  * Each QG gets its channel; the QG de Tráfego's agents report to its MARK; every routine is made paused; the house
@@ -426,7 +437,7 @@ export async function useDougTeam(
     rightHandDm(deps.db, orgId, userId),
   ]);
   const at = { orgId, channelId: dm.id, personId: userId };
-  // A personal workspace's agents live in their DM with the person: no channel (ADR 0159, doug-0020 §8).
+  // A personal workspace's agents live in their DM with the person: no channel (ADR 0159, docs/adr/doug-0030-time-doug.md §8).
   const personal = await isPersonalWorkspace(deps.db, orgId);
   const { params, handles, routines, channelOf } = await dougParams(deps, at, chosen, locale, personal);
   // The DOUG is the workspace's right hand, whose role only an admin gives it (`manage_agents`): a member who may
@@ -516,7 +527,7 @@ export async function useDougTeam(
                 : { type: "schedule", phrase: r.cron, timezone: r.timezone },
               access: r.access,
               report: r.report,
-              // Every routine starts paused: the person turns on the ones they want (doug-0020).
+              // Every routine starts paused: the person turns on the ones they want (docs/adr/doug-0030-time-doug.md).
               paused: true,
             });
             out.routineIds.push(routine.id);
@@ -535,6 +546,34 @@ export async function useDougTeam(
       }
       if (rightHand) {
         out.byTemplate[DOUG_RIGHT_HAND] = lodi.id;
+        // A team made again (after Desfazer, or with every agent of the last one archived) must not leave the last
+        // one's routines on the right hand, which is never archived: the ones the last card made there go first. Their
+        // ids are the card's own list, so a routine the right hand had by another name is no business of this one.
+        const previous = await dougTeamOf(tx, orgId);
+        const made = previous ? await cardRoutineIds(tx, orgId, previous.cardId) : [];
+        if (made.length > 0) {
+          const theirs = await tx
+            .select({ id: routineRows.id, name: routineRows.name })
+            .from(routineRows)
+            .where(
+              and(
+                eq(routineRows.orgId, orgId),
+                eq(routineRows.agentId, lodi.id),
+                inArray(routineRows.id, made),
+                isNull(routineRows.deletedAt),
+              ),
+            );
+          for (const old of theirs) {
+            await raw
+              .transaction(async (sp) =>
+                deleteRoutine({ db: sp as unknown as Database, pubsub: events.pubsub }, userId, orgId, old.id),
+              )
+              .catch((error) => {
+                if (error instanceof ForbiddenError || error instanceof NotFoundError) return;
+                throw new StepError(old.name, error);
+              });
+          }
+        }
         // Its routines are for who manages the right hand's (its owner, or `manage_routines`): a savepoint each, so a
         // refusal leaves them out without undoing the team.
         let refused = false;
@@ -676,7 +715,7 @@ export async function useDougTeam(
   if (deps.pubsub && now) await publishMessageCreated(deps.pubsub, messageView(now));
   // A brand that already exists (a team made again after Desfazer) goes to the readers it just gained.
   await giveBrandToReaders(deps.db, orgId, made.byTemplate).catch(() => {});
-  // Only the hello in #general after it (doug-0020): the right hand, then each agent in the card's order.
+  // Only the hello in #general after it (docs/adr/doug-0030-time-doug.md): the right hand, then each agent in the card's order.
   if ((await billingHold(deps.db, orgId)) === null)
     await enqueue(deps.db, {
       orgId,

@@ -31,7 +31,7 @@ const lasting = (error: unknown) =>
   error instanceof NotFoundError;
 
 /**
- * `doug_team.skills` (docs/adr/doug-0020-time-doug.md): one folder's third-party skills of a Doug team, installed from
+ * `doug_team.skills` (docs/adr/doug-0030-time-doug.md): one folder's third-party skills of a Doug team, installed from
  * their public links through the same path as Settings › Skills' "From a GitHub link" (`importSkillFromUrl`, read
  * once for the folder, then `importPickedSkills`), each given to the agents that list it, its license kept in its
  * `metadata` and its updates left off so a change upstream never reaches a prompt without review. A skill it made is
@@ -92,10 +92,15 @@ export async function installDougSkills(deps: SkillDeps, orgId: string, payload:
     const lone = missing.filter((i) => !i.dir);
     let inFolder = missing.filter((i) => i.dir);
     let found = new Set<string>();
+    // What each folder of the link holds, by its path: the name its own SKILL.md gives it.
+    const named = new Map<string, string>();
     if (inFolder.length > 0) {
       try {
         const listed = await importSkillFromUrl(deps, userId, orgId, url, { list: true });
-        found = new Set("choices" in listed ? listed.choices.map((c) => c.path) : []);
+        if ("choices" in listed) {
+          found = new Set(listed.choices.map((c) => c.path));
+          for (const c of listed.choices) named.set(c.path, c.name);
+        }
       } catch (error) {
         if (!lasting(error)) throw error;
         // The folder can't be read as one (too many skills in it): each from its own link.
@@ -107,6 +112,7 @@ export async function installDougSkills(deps: SkillDeps, orgId: string, payload:
       try {
         const got = await importSkillFromUrl(deps, userId, orgId, item.source);
         if ("choices" in got) out.failed.push({ slug: item.slug, code: "skill.link_holds_several" });
+        else if (got.name !== item.slug) out.failed.push({ slug: item.slug, code: "skill.name_mismatch" });
         else installed.push({ item, skill: got });
       } catch (error) {
         if (!lasting(error)) throw error;
@@ -114,8 +120,14 @@ export async function installDougSkills(deps: SkillDeps, orgId: string, payload:
       }
     }
     if (inFolder.length > 0) {
-      const there = inFolder.filter((i) => found.has(i.dir));
-      for (const i of inFolder) if (!found.has(i.dir)) out.failed.push({ slug: i.slug, code: "skill.no_skill_md" });
+      // The slug is the key Desfazer, the card and the agents go by: a folder whose SKILL.md names another skill than
+      // the one the material asked for is refused, as a renamed skill upstream is not the one the team was made for.
+      const there: DougSkillItem[] = [];
+      for (const i of inFolder) {
+        if (!found.has(i.dir)) out.failed.push({ slug: i.slug, code: "skill.no_skill_md" });
+        else if (named.get(i.dir) !== i.slug) out.failed.push({ slug: i.slug, code: "skill.name_mismatch" });
+        else there.push(i);
+      }
       if (there.length > 0) {
         const got = await importPickedSkills(
           deps,

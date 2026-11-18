@@ -4,7 +4,7 @@ import { join } from "node:path";
 import { Glob } from "bun";
 
 /*
- * The Doug team's material is the house's craft with no client's data (docs/adr/doug-0020-time-doug.md): every file of
+ * The Doug team's material is the house's craft with no client's data (docs/adr/doug-0030-time-doug.md): every file of
  * src/doug-team/ is read and refused when it holds an email address, a phone number, an address outside GitHub, or a
  * name of the house's clients, people, companies and projects. The names are kept here only as SHA-256 hashes of the
  * word, or of two words in a row, in lower case with no accents, so this test publishes none of them.
@@ -147,8 +147,8 @@ describe("the Doug team's material", () => {
       for (const block of dougTeamBlocks(text)) await scan(file, block, hits, file);
     }
     await scan(
-      "docs/adr/doug-0020-time-doug.md",
-      await Bun.file(join(root, "docs/adr/doug-0020-time-doug.md")).text(),
+      "docs/adr/doug-0030-time-doug.md",
+      await Bun.file(join(root, "docs/adr/doug-0030-time-doug.md")).text(),
       hits,
     );
     expect(hits).toEqual([]);

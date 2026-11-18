@@ -265,7 +265,7 @@ async function orgName(db: Database, orgId: string) {
  * The gallery (`GET …/team-templates`), for who may create agents, read in the person's language and time zone: a
  * personal workspace's templates there (ADR 0159), the business ones anywhere else.
  *
- * The Doug team is not one of them (docs/adr/doug-0020-time-doug.md): it outgrew the team card's limits and needs a
+ * The Doug team is not one of them (docs/adr/doug-0030-time-doug.md): it outgrew the team card's limits and needs a
  * screen of its own, so a gallery that doesn't know it keeps working as before. `dougTemplateView` gives it apart,
  * only to an app that asks (`?with=doug`).
  */
@@ -416,7 +416,7 @@ export async function sayTeamHello(
       .from(agents)
       .where(and(eq(agents.orgId, orgId), isNull(agents.archivedAt)))
       .orderBy(asc(agents.createdAt));
-    // The Doug team names its agents (doug-0020): the job's list when it was just made, else the workspace's record of
+    // The Doug team names its agents (docs/adr/doug-0030-time-doug.md): the job's list when it was just made, else the workspace's record of
     // it (the hello after the first plan), so ROSA never reads as another template's Rosa.
     const named = dougGreeters(payload.doug);
     const recorded = named.length > 0 ? named : dougGreetersOf(await dougTeamOf(deps.db, orgId));

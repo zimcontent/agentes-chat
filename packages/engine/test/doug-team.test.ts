@@ -17,6 +17,7 @@ import {
   getBrand,
   installDougSkills,
   listTeamTemplates,
+  makeRightHand,
   parseGithubUrl,
   parseSkillMarkdown,
   RIGHT_HAND,
@@ -34,7 +35,7 @@ import { SKILL_FILES } from "../src/doug-team/files.gen";
 import { addMember, type Fixture, setup } from "./fixtures";
 
 /*
- * The Doug team (docs/adr/doug-0020-time-doug.md): the house's agents as one template, made at once, with the right
+ * The Doug team (docs/adr/doug-0030-time-doug.md): the house's agents as one template, made at once, with the right
  * hand as its DOUG, a channel per HQ, paused routines, the house skills, the third-party ones by a job, and the brand.
  */
 
@@ -289,6 +290,26 @@ describe("making it", () => {
     expect(await f.db.select().from(schema.outbox).where(eq(schema.outbox.kind, DOUG_TEAM_SKILLS_JOB))).toEqual([]);
   });
 
+  test("the manager's role is the DOUG's alone: another agent made the right hand afterwards gets none of it", async () => {
+    f = await setup({ rightHand: true });
+    await useDougTeam(deps(), f.owner.id, f.org.id, { handles: ["doug", "rosa"] });
+    const doug = [...(await agentsByHandle()).values()].find((a) => a.builtin === RIGHT_HAND);
+    const role = (agentId: string, handle: string) =>
+      rightHandPrompt(
+        { db: f.db },
+        { orgId: f.org.id, agent: { id: agentId, name: "Doug", handle }, personId: f.owner.id, inDm: true },
+      );
+    // While it is the workspace's right hand, the DOUG reads its role.
+    expect(await role(doug?.id ?? "", "doug")).toContain("# Your role in this workspace");
+    // A team agent becomes the right hand: the mark moves, the team's record still names the DOUG's id, and this new
+    // right hand is not it — it talks as itself, never with the DOUG's instructions.
+    const rosa = (await agentsByHandle()).get("rosa");
+    await makeRightHand({ db: f.db, pubsub: f.pubsub }, f.owner.id, f.org.id, rosa?.id ?? "");
+    const swapped = await role(rosa?.id ?? "", "rosa");
+    expect(swapped).not.toContain("# Your role in this workspace");
+    expect(swapped).not.toContain("operations manager");
+  });
+
   test("a member with create_agents but not manage_agents gets the team, never the workspace's right hand role", async () => {
     f = await setup({ rightHand: true });
     const member = await addMember(f.db, f.org.id, "member", "bia");
@@ -502,7 +523,8 @@ describe("the brand the DOUG asks for", () => {
       },
     );
     expect(asked).toContain("The workspace has no brand yet");
-    expect(asked).toContain("Offer to set it up before the first piece");
+    // The DOUG has no tool that writes the brand: it names the step where the person writes it.
+    expect(asked).toContain("you have no tool that writes it yourself");
     // Saved, the prompt stops asking for it.
     await saveBrand(deps(), f.owner.id, f.org.id, { company: "Acme", tones: ["direto"] });
     expect(await brandMissing(f.db, f.org.id)).toBe(false);
@@ -516,6 +538,29 @@ describe("the brand the DOUG asks for", () => {
       },
     );
     expect(settled).not.toContain("The workspace has no brand yet");
+  });
+
+  test("only who may write it is asked: a member without `manage_agents` is asked for no brand", async () => {
+    f = await setup({ rightHand: true });
+    await onboarding();
+    await useDougTeam(deps(), f.owner.id, f.org.id, { handles: ["doug", "rosa"] });
+    await saveOnboarding(f.db, f.owner.id, f.org.id, { finished: true });
+    const rightHand = [...(await agentsByHandle()).values()].find((a) => a.builtin === RIGHT_HAND);
+    const member = await addMember(f.db, f.org.id, "member", "bia");
+    const asked = (personId: string) =>
+      rightHandPrompt(
+        { db: f.db },
+        {
+          orgId: f.org.id,
+          agent: { id: rightHand?.id ?? "", name: "Doug", handle: "doug" },
+          personId,
+          inDm: true,
+        },
+      );
+    // `PUT …/brand` is an admin's: a member with no `manage_agents` has nothing to do with the line, so it isn't there.
+    expect(await asked(member.id)).not.toContain("The workspace has no brand yet");
+    // The owner manages agents, and reads it.
+    expect(await asked(f.owner.id)).toContain("The workspace has no brand yet");
   });
 
   test("no team, no ask: a workspace without the Doug team is asked for no brand", async () => {
@@ -656,6 +701,44 @@ describe("made once, and made again", () => {
     expect(again.state).toBe("created");
     expect(again.messageId).not.toBe(first.messageId);
     expect((await agentsByHandle()).has("sony")).toBe(true);
+  });
+
+  test("made again, the right hand's routines are not doubled: the last team's go before the new ones come", async () => {
+    f = await setup({ rightHand: true });
+    const first = await useDougTeam(deps(), f.owner.id, f.org.id, { handles: ["doug", "rosa"] });
+    const rightHand = [...(await agentsByHandle()).values()].find((a) => a.builtin === RIGHT_HAND);
+    const theirs = () =>
+      f.db
+        .select()
+        .from(schema.routines)
+        .where(and(eq(schema.routines.orgId, f.org.id), eq(schema.routines.agentId, rightHand?.id ?? "")));
+    const before = (await theirs()).filter((r) => r.deletedAt === null);
+    expect(before.length).toBeGreaterThan(0);
+    // Archive the team's one agent: nothing of it is left, so a new team may be made. The right hand is never
+    // archived, so its routines of the first team would still be there.
+    const rosa = (await agentsByHandle()).get("rosa");
+    await archiveAgent(f.db, f.owner.id, f.org.id, rosa?.id ?? "");
+    const again = await useDougTeam(deps(), f.owner.id, f.org.id, { handles: ["doug", "sony"] });
+    expect(again.state).toBe("created");
+    // One routine per name on the right hand: the first team's are gone (a repeat of the same name replaced them).
+    const live = (await theirs()).filter((r) => r.deletedAt === null);
+    const names = live.map((r) => r.name).sort();
+    expect(names).toEqual(before.map((r) => r.name).sort());
+    expect(new Set(names).size).toBe(names.length);
+    // The first team's are deleted, not moved: they never fire again.
+    expect(
+      (await theirs())
+        .filter((r) => r.deletedAt !== null)
+        .map((r) => r.name)
+        .sort(),
+    ).toEqual(before.map((r) => r.name).sort());
+    // The new card counts the right hand's routines it made, and none of the first card's: Desfazer of the second team
+    // takes nothing of the first's.
+    const second = (await cardOf(again.messageId)).created?.routineIds ?? [];
+    const liveIds = new Set(live.map((r) => r.id));
+    expect(second.filter((id) => liveIds.has(id)).sort()).toEqual([...liveIds].sort());
+    const firstRoutines = new Set(await cardOf(first.messageId).then((c) => c.created?.routineIds ?? []));
+    expect(second.filter((id) => firstRoutines.has(id))).toEqual([]);
   });
 
   test("a double click: one team, and no `denied` card left in the DM", async () => {

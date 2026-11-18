@@ -19,7 +19,7 @@ export const DOUG_TEMPLATE_ID = "doug";
 
 /**
  * The template the onboarding's team step shows: the one picked, else the business's, else the first. Never the Doug
- * team (docs/adr/doug-0020-time-doug.md): it is a screen of its own, with the brand step after it, so an app that
+ * team (docs/adr/doug-0030-time-doug.md): it is a screen of its own, with the brand step after it, so an app that
  * doesn't draw it stays out of it alike when it asked for it and when it is in the list.
  */
 export const templateFor = <T extends { id: string }>(
