@@ -1,0 +1,14 @@
+[Unit]
+Description=DougBot SWAS: atualiza todos os clientes para a imagem agentes-zim:doug-* mais recente
+After=docker.service network-online.target doug-atualizar.service
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+# Instalado por `install -m 0755 -o root -g root deploy/swas/doug-atualizar-clientes /usr/local/sbin/`: o serviço roda
+# como root, então o script não pode ser de um arquivo que outra conta altere. Ver deploy/swas/ATUALIZAR.md.
+ExecStart=/usr/local/sbin/doug-atualizar-clientes
+# Um cliente espera até 15 min pelo ponto de parada e 5 min pelo health (duas vezes, se voltar): sobra para dezenas.
+TimeoutStartSec=6h
+# Código de saída 1 ou 3 (algum cliente falhou ou voltou para a imagem anterior): o serviço aparece como falho, de propósito.
+Nice=10
