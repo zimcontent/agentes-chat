@@ -7,6 +7,8 @@ Wants=network-online.target
 
 [Service]
 Type=oneshot
+# Código de saída 1 ou 3 (algum cliente falhou, ficou sem iniciar, voltou para a imagem anterior ou foi pulado): o serviço
+# aparece como falho, de propósito. Um cliente parado de propósito não conta (a saída fica 0).
 # Instalado por `install -m 0755 -o root -g root deploy/swas/doug-atualizar-clientes /usr/local/sbin/`: o serviço roda
 # como root, então o script não pode ser de um arquivo que outra conta altere. Ver deploy/swas/ATUALIZAR.md.
 ExecStart=/usr/local/sbin/doug-atualizar-clientes
@@ -21,6 +23,4 @@ TimeoutStartSec=12h
 KillMode=mixed
 KillSignal=SIGTERM
 TimeoutStopSec=20min
-# Código de saída 1 ou 3 (algum cliente falhou, voltou para a imagem anterior ou foi pulado): o serviço aparece como
-# falho, de propósito.
 Nice=10
