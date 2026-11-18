@@ -1,0 +1,18 @@
+# Does the app open and stay open? The first screen of a fresh install (language, server or sign-in), then a minute
+# of nothing: an app that dies at launch or soon after fails here, before a build reaches a phone.
+appId: app.dougbot
+---
+- launchApp:
+    clearState: true
+- extendedWaitUntil:
+    visible: "(?i).*(sign in|entrar|continue|continuar|começar|get started|server|servidor|english|português|dougbot).*"
+    timeout: 90000
+- takeScreenshot: abriu
+- swipe:
+    direction: UP
+- waitForAnimationToEnd:
+    timeout: 30000
+- extendedWaitUntil:
+    visible: "(?i).*(sign in|entrar|continue|continuar|começar|get started|server|servidor|english|português|dougbot).*"
+    timeout: 30000
+- takeScreenshot: ainda-aberto
