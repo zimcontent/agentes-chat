@@ -1,5 +1,18 @@
-import { index, pgTable, text, timestamp, uniqueIndex, uuid } from "drizzle-orm/pg-core";
+import { sql } from "drizzle-orm";
+import { index, integer, jsonb, pgTable, text, timestamp, uniqueIndex, uuid } from "drizzle-orm/pg-core";
 import { users } from "./auth";
+
+/** What a form sent again after a confirmation carries, kept until its own link is opened. */
+export interface CompanyResend {
+  name: string;
+  company: string;
+  whatsapp: string;
+  teamSize: string;
+  interests: string[];
+  message: string;
+  locale: string;
+  sentAt: string;
+}
 
 /**
  * Companies that asked for DougBot on the installation's own page ("Quero o DougBot na minha empresa"): the team
@@ -33,15 +46,37 @@ export const companyRequests = pgTable(
     source: text().notNull().default("companies"),
     /**
      * The consent to keep and use this (LGPD): when it was given, and the version of the notice it was given for.
-     * Without it the row is never written.
+     * Without it the row is never written. Both stay as the first form gave them, so a later form never rewrites the
+     * consent the row was made under.
      */
     consentAt: timestamp({ withTimezone: true }).notNull(),
     consentVersion: text().notNull(),
+    /**
+     * Double opt-in: the request counts as confirmed once the link in the confirmation email is opened, and the
+     * installation's owner hears of it only then. Null until then.
+     */
+    confirmedAt: timestamp({ withTimezone: true }),
+    /** sha256 of the token in the latest confirmation link (the token itself is only in the email). */
+    confirmTokenHash: text(),
+    /** When the latest confirmation email was queued (its link expires `COMPANY_CONFIRM_TTL_MS` after). */
+    confirmSentAt: timestamp({ withTimezone: true }),
+    /** How many confirmation emails went out, capped so the form can't flood an inbox. */
+    confirmSends: integer().notNull().default(0),
+    /**
+     * A form sent again after this row was confirmed: when it was sent, what it carries, and sha256 of the token in
+     * its confirmation link. The row keeps the confirmed data until the person opens that link, and the consent taken
+     * the first time (`consentAt`, `consentVersion`) is never rewritten.
+     */
+    resendAt: timestamp({ withTimezone: true }),
+    resendTokenHash: text(),
+    resendData: jsonb().$type<CompanyResend | null>(),
+    /** When the data standing now was confirmed: the first form's, or a resend's. */
+    confirmedUpdatedAt: timestamp({ withTimezone: true }),
     /** `new`, `talking`, `invited`, `deployed` (a client) or `discarded`, the team's own step (`REQUEST_STATUSES`). */
     status: text().notNull().default("new"),
     /**
      * The client's code on this installation (`064`), kept once the company becomes one: the deployments take it
-     * when the workspace is made for them. Null until then.
+     * when the workspace is made for them. Null until then, and one company's alone.
      */
     clientCode: text(),
     /** What the team wrote about this company, for itself. */
@@ -54,7 +89,12 @@ export const companyRequests = pgTable(
   },
   (t) => [
     uniqueIndex("company_requests_email").on(t.email),
+    // Two companies never share the code their deployment reads (`064`).
+    uniqueIndex("company_requests_client_code").on(t.clientCode).where(sql`${t.clientCode} is not null`),
+    uniqueIndex("company_requests_confirm_token").on(t.confirmTokenHash),
     index("company_requests_status").on(t.status, t.createdAt, t.id),
     index("company_requests_created").on(t.createdAt, t.id),
+    // The retention sweep (`sweepCompanyRequests`): the rows it may delete, by when they last moved.
+    index("company_requests_retention").on(t.status, t.updatedAt),
   ],
 );

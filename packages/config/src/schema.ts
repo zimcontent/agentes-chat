@@ -1268,9 +1268,15 @@ export const envVars = {
   COMPANY_REQUESTS_NOTIFY_EMAIL: {
     schema: z.email().optional(),
     description:
-      "Where a company's request from the page (`/empresas`, \"Quero o DougBot na minha empresa\") is emailed the moment it arrives, to whoever runs this server. The installation's owner sees the same in the app, under Configurações › Pedidos de empresas. Needs email (`MILLIONSEND_API_KEY` or `SMTP_URL`); unset (default): only the app's notice.",
+      "Where a company's request from the page (`/empresas`, \"Quero o DougBot na minha empresa\") is emailed once its address is confirmed, to whoever runs this server. The installation's owner sees the same in the app, under Configurações › Pedidos de empresas. Needs email (`MILLIONSEND_API_KEY` or `SMTP_URL`); unset (default): only the app's notice.",
     section: "Operator",
     example: "you@example.com",
+  },
+  COMPANY_REQUESTS_RETENTION_DAYS: {
+    schema: z.coerce.number().int().min(0).default(365),
+    description:
+      "Days a company's request from the page (`/empresas`) is kept after the team last moved it, while it is new, discarded or talking and never became a client (LGPD). After that it is deleted with everything it holds, the consent included; a request marked a client (`deployed`) and one already invited are kept. 0 = keep it forever.",
+    section: "Operator",
   },
   OPS_REPORT_EMAIL: {
     schema: z
