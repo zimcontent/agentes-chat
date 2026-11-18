@@ -44,8 +44,15 @@ function agendaApi() {
   const state = seedState();
   const api = createFakeApi(state);
   let tasks: TeamAgendaTask[] = [
-    task(12, "Vídeo da Leticia: corte de 60 s para os Reels", "u-joao", { dueDate: day(2), project: { name: "Leticia", color: "green" } }),
-    task(14, "Vídeo da Fontes", "u-joao", { dueDate: day(0), priority: "high", project: { name: "Fontes", color: "blue" } }),
+    task(12, "Vídeo da Leticia: corte de 60 s para os Reels", "u-joao", {
+      dueDate: day(2),
+      project: { name: "Leticia", color: "green" },
+    }),
+    task(14, "Vídeo da Fontes", "u-joao", {
+      dueDate: day(0),
+      priority: "high",
+      project: { name: "Fontes", color: "blue" },
+    }),
     task(9, "Legendas do episódio 4 com o nome muito comprido do convidado especial da semana", "u-joao", {
       dueDate: day(-2),
       status: "todo",
@@ -105,9 +112,7 @@ describe("team agenda: each one's queue", () => {
     await settle(2);
     expect(moves).toEqual([{ assignee: { type: "person", id: "u-joao" }, taskId: "t-14", afterId: null }]);
     expect(titles("João").slice(0, 2)).toEqual(["Vídeo da Fontes", "Vídeo da Leticia: corte de 60 s para os Reels"]);
-    expect(document.querySelector(".team-agenda [aria-live]")?.textContent).toBe(
-      "A tarefa #14 agora está em 1 de 5.",
-    );
+    expect(document.querySelector(".team-agenda [aria-live]")?.textContent).toBe("A tarefa #14 agora está em 1 de 5.");
 
     const last = within(lane("João")).getByRole("button", { name: /Mover a tarefa #9 na fila/ });
     await act(async () => fireEvent.keyDown(last, { key: "ArrowDown" }));
