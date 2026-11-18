@@ -52,6 +52,9 @@ export const ONBOARDING_STEPS = [
   { id: "context", optional: false },
   { id: "import", optional: true },
   { id: "agents", optional: false },
+  // "Sua marca", shown and required only once the Doug team was chosen (docs/adr/doug-0020-time-doug.md): the
+  // workspace's `onboarding.brandPending` in `GET /me` says it still waits.
+  { id: "brand", optional: true },
   { id: "computer", optional: true },
   { id: "ai", optional: false },
   { id: "team", optional: true },

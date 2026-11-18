@@ -21137,5 +21137,122 @@
       "add_one": "{{count}} Datei hinzufügen",
       "add_other": "{{count}} Dateien hinzufügen"
     }
+  },
+  "dougTeam": {
+    "name": "Doug-Team",
+    "sub": "Design, Video, Anzeigen, Strategie, Social Media, Code und Finanzen",
+    "desc": "Das ganze Team des Hauses, jeder Agent mit seinem Handwerk, seinen Routinen und seinen Skills, mit einem Kanal für jede Zentrale.",
+    "lead": "Das Doug-Team für {{org}}, jede Zentrale in ihrem eigenen Kanal. Alle Routinen starten pausiert.",
+    "approvals": "Ausgaben, Veröffentlichungen und alles, was nach außen geht, warten auf dein Okay.",
+    "channels": {
+      "design": "zentrale-design",
+      "video": "zentrale-video",
+      "trafego": "zentrale-anzeigen",
+      "estrategia": "zentrale-strategie",
+      "social": "zentrale-social",
+      "codigo": "zentrale-code",
+      "financeiro": "zentrale-finanzen"
+    },
+    "agents": {
+      "doug": {
+        "role": "Leiter des Betriebs",
+        "line": "Koordiniert das Team, verfolgt Fristen, verteilt Anfragen, prüft Lieferungen und bittet im richtigen Moment um Freigabe.",
+        "hello": "Hallo. Ich halte das Team in Bewegung und bringe dir nur, was dich braucht."
+      },
+      "rosa": {
+        "role": "Art Directorin",
+        "line": "Macht Cover, Karussells, Posts, Stories, Thumbnails und Präsentationen auf Agenturniveau, immer im Stil der Kundenmarke.",
+        "hello": "Hallo. Cover, Karussells und Posts übernehme ich, immer im Stil der Marke."
+      },
+      "sony": {
+        "role": "Videoeditor",
+        "line": "Schneidet und animiert Videos auf Studioniveau, vom Rohmaterial bis zum freigegebenen Reel, immer im Stil der Kundenmarke.",
+        "hello": "Hallo. Schick mir das Rohmaterial, ich bringe dir das fertige Video."
+      },
+      "mark": {
+        "role": "Leiter der Anzeigenzentrale",
+        "line": "Betreut bezahlte Anzeigen von Anfang bis Ende mit dem Anzeigenteam und sagt, was ausgegeben wurde, was reinkam und was als Nächstes kommt.",
+        "hello": "Hallo. Ich leite das Anzeigenteam und sage dir, was ausgegeben wurde und was reinkam."
+      },
+      "analistaResultado": {
+        "role": "Ergebnisanalyst der Anzeigenzentrale",
+        "line": "Liest das Werbekonto und die echten Verkäufe, misst Kosten pro Verkauf, Rückfluss in die Kasse und Ermüdung und sagt, was gekürzt und was skaliert wird.",
+        "hello": "Hallo. Ich lese die Zahlen und sage, was gekürzt und was skaliert wird."
+      },
+      "copywriter": {
+        "role": "Texter der Anzeigenzentrale",
+        "line": "Schreibt Anzeigentexte, Titel, Beschreibungen, Hooks und kurze Skripte, nach Blickwinkel und nur mit belegten Aussagen.",
+        "hello": "Hallo. Anzeigentexte und Hooks übernehme ich, nur mit belegten Aussagen."
+      },
+      "diretorCriativo": {
+        "role": "Kreativdirektor der Anzeigenzentrale",
+        "line": "Macht aus Hypothesen und Texten Briefings für Video und Grafik, hält verschiedene Konzepte live und baut jedes Stück prüfbereit.",
+        "hello": "Hallo. Ich mache aus Ideen Briefings und prüfbereite Stücke."
+      },
+      "estrategistaMidia": {
+        "role": "Mediastratege der Anzeigenzentrale",
+        "line": "Baut die Struktur der Kampagnen, wählt die Tests der Woche und schreibt die Anweisungen zum Kürzen und Skalieren innerhalb der Obergrenze.",
+        "hello": "Hallo. Ich plane die Kampagnen und die Tests der Woche innerhalb der Obergrenze."
+      },
+      "financeiroTrafego": {
+        "role": "Finanzen der Anzeigenzentrale",
+        "line": "Rechnet jedes Projekt durch, hält die Tages- und Monatsgrenze, steuert das Budget und misst den echten Rückfluss in die Kasse.",
+        "hello": "Hallo. Ich halte das Budget unter der Grenze und messe den echten Rückfluss."
+      },
+      "humanizador": {
+        "role": "Letzter Schliff am Text",
+        "line": "Gibt dem Text den letzten Schliff, damit er menschlich klingt, ohne Fakten, Aussagen, Grenzen oder Format zu ändern.",
+        "hello": "Hallo. Ich gebe jedem Text den letzten Schliff, damit er menschlich klingt."
+      },
+      "operador": {
+        "role": "Operator der Anzeigenzentrale",
+        "line": "Führt im Werbekonto die freigegebenen Anweisungen eine nach der anderen aus und gibt das Ergebnis genau so zurück, wie es kam.",
+        "hello": "Hallo. Ich führe die freigegebenen Anweisungen im Werbekonto aus, eine nach der anderen."
+      },
+      "pesquisadorGrowth": {
+        "role": "Growth-Rechercheur der Anzeigenzentrale",
+        "line": "Recherchiert Hooks, Creatives und Anzeigenstrategien am Markt und macht aus den Funden Karten mit Testhypothesen.",
+        "hello": "Hallo. Ich recherchiere, was am Markt funktioniert, und bringe Hypothesen zum Testen."
+      },
+      "revisorPolitica": {
+        "role": "Richtlinienprüfer der Anzeigenzentrale",
+        "line": "Prüft jede Anzeige vor dem Start gegen die Regeln der Plattform, das Gesetz und die Aussagen des Projekts und sagt bestanden, Warnung oder gesperrt.",
+        "hello": "Hallo. Ich prüfe jede Anzeige gegen die Regeln, bevor sie startet."
+      },
+      "chess": {
+        "role": "Marketingstratege",
+        "line": "Liest die Marke und den Moment, recherchiert, was in der Nische funktioniert, und liefert Strategie und Text jedes Stücks, mit These, Hooks und dem Warum.",
+        "hello": "Hallo. Strategie und Text jedes Stücks übernehme ich, immer mit dem Warum."
+      },
+      "socialMedia": {
+        "role": "Social-Media-Manager",
+        "line": "Betreut den Kalender und die Kanäle der Marken, bringt Ideen für Inhalte, holt für jeden Post die Freigabe und plant, was freigegeben ist.",
+        "hello": "Hallo. Kalender und Kanäle übernehme ich, und nichts geht ohne Freigabe raus."
+      },
+      "junin": {
+        "role": "KI-Entwickler",
+        "line": "Baut und pflegt Websites, Seiten, Automationen und Integrationen der Firma, testet, veröffentlicht mit Okay und erklärt das Ergebnis in einfachen Worten.",
+        "hello": "Hallo. Websites, Seiten und Automationen übernehme ich, veröffentlicht nur mit deinem Okay."
+      },
+      "kiara": {
+        "role": "Finanzen",
+        "line": "Kümmert sich um Rechnungen, Mahnungen, Bankmeldungen, Fälligkeiten und Verkaufsberichte, immer mit Freigabe vor dem Senden.",
+        "hello": "Hallo. Rechnungen und Mahnungen übernehme ich, immer mit deinem Okay vor dem Senden."
+      }
+    },
+    "brand": {
+      "tones": {
+        "proximo": "Nahbar",
+        "profissional": "Professionell",
+        "divertido": "Witzig",
+        "inspirador": "Inspirierend",
+        "direto": "Direkt",
+        "acolhedor": "Herzlich",
+        "tecnico": "Technisch",
+        "sofisticado": "Edel",
+        "ousado": "Mutig",
+        "educativo": "Lehrreich"
+      }
+    }
   }
 }

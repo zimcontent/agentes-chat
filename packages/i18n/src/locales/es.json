@@ -21730,5 +21730,122 @@
       "add_many": "Agregar {{count}} archivos",
       "add_other": "Agregar {{count}} archivos"
     }
+  },
+  "dougTeam": {
+    "name": "Equipo Doug",
+    "sub": "Diseño, video, anuncios, estrategia, redes sociales, código y finanzas",
+    "desc": "Todo el equipo de la casa, cada agente con su oficio, sus rutinas y sus skills, con un canal para cada cuartel.",
+    "lead": "El equipo Doug para {{org}}, cada cuartel en su propio canal. Todas las rutinas empiezan en pausa.",
+    "approvals": "Los gastos, las publicaciones y los envíos hacia afuera esperan tu ok.",
+    "channels": {
+      "design": "cg-diseno",
+      "video": "cg-video",
+      "trafego": "cg-anuncios",
+      "estrategia": "cg-estrategia",
+      "social": "cg-redes",
+      "codigo": "cg-codigo",
+      "financeiro": "cg-finanzas"
+    },
+    "agents": {
+      "doug": {
+        "role": "Gerente de operaciones",
+        "line": "Coordina al equipo, sigue los plazos, reparte los pedidos, revisa las entregas y pide aprobación en el momento justo.",
+        "hello": "Hola. Hago que el equipo avance y te traigo solo lo que te necesita."
+      },
+      "rosa": {
+        "role": "Directora de arte",
+        "line": "Hace portadas, carruseles, posts, historias, miniaturas y presentaciones a nivel de agencia, siempre con la identidad de la marca del cliente.",
+        "hello": "Hola. Portadas, carruseles y posts quedan conmigo, siempre en la marca."
+      },
+      "sony": {
+        "role": "Editor de video",
+        "line": "Edita, corta y anima videos a nivel de productora, del material en bruto al Reel aprobado, siempre con la identidad de la marca del cliente.",
+        "hello": "Hola. Mándame el material en bruto y te devuelvo el video editado."
+      },
+      "mark": {
+        "role": "Líder del cuartel de anuncios",
+        "line": "Lleva los anuncios pagados de punta a punta con el equipo de anuncios y cuenta cuánto se gastó, cuánto entró y qué viene.",
+        "hello": "Hola. Lidero el equipo de anuncios y te cuento cuánto se gastó y cuánto entró."
+      },
+      "analistaResultado": {
+        "role": "Analista de resultados del cuartel de anuncios",
+        "line": "Lee la cuenta de anuncios y las ventas reales, mide el costo por venta, el retorno en caja y la fatiga, y dice qué cortar y qué escalar.",
+        "hello": "Hola. Leo los números y digo qué cortar y qué escalar."
+      },
+      "copywriter": {
+        "role": "Redactor del cuartel de anuncios",
+        "line": "Escribe textos, títulos, descripciones, ganchos y guiones cortos de los anuncios, por ángulo y solo con afirmaciones que tienen prueba.",
+        "hello": "Hola. Los textos y ganchos de los anuncios quedan conmigo, solo con afirmaciones probadas."
+      },
+      "diretorCriativo": {
+        "role": "Director creativo del cuartel de anuncios",
+        "line": "Convierte hipótesis y textos en briefs de video y arte, mantiene conceptos distintos al aire y arma cada pieza lista para revisar.",
+        "hello": "Hola. Convierto ideas en briefs y piezas listas para revisar."
+      },
+      "estrategistaMidia": {
+        "role": "Estratega de medios del cuartel de anuncios",
+        "line": "Arma la estructura de las campañas, elige las pruebas de la semana y escribe las órdenes de corte y escala dentro del tope.",
+        "hello": "Hola. Planifico las campañas y las pruebas de la semana dentro del tope."
+      },
+      "financeiroTrafego": {
+        "role": "Finanzas del cuartel de anuncios",
+        "line": "Hace las cuentas de cada proyecto, cuida el tope del día y del mes, controla el presupuesto y mide el retorno real en caja.",
+        "hello": "Hola. Mantengo el presupuesto dentro del tope y mido el retorno real."
+      },
+      "humanizador": {
+        "role": "Última pasada del texto",
+        "line": "Le da la última pasada al texto para que suene humano, sin cambiar hechos, afirmaciones, límites ni formato.",
+        "hello": "Hola. Le doy la última pasada a cada texto para que suene humano."
+      },
+      "operador": {
+        "role": "Operador del cuartel de anuncios",
+        "line": "Ejecuta en la cuenta de anuncios, una por una, las órdenes aprobadas y devuelve el resultado tal como llegó.",
+        "hello": "Hola. Ejecuto en la cuenta de anuncios las órdenes aprobadas, una por una."
+      },
+      "pesquisadorGrowth": {
+        "role": "Investigador de growth del cuartel de anuncios",
+        "line": "Investiga ganchos, creatividades y estrategias de anuncios en el mercado y convierte lo que encuentra en tarjetas de hipótesis de prueba.",
+        "hello": "Hola. Investigo lo que funciona en el mercado y traigo hipótesis para probar."
+      },
+      "revisorPolitica": {
+        "role": "Revisor de políticas del cuartel de anuncios",
+        "line": "Revisa cada anuncio antes de salir contra las reglas de la plataforma, la ley y las afirmaciones del proyecto, y dice pasa, avisa o bloquea.",
+        "hello": "Hola. Reviso cada anuncio contra las reglas antes de que salga."
+      },
+      "chess": {
+        "role": "Estratega de marketing",
+        "line": "Lee la marca y el momento, investiga lo que funciona en el nicho y entrega la estrategia y el texto de cada pieza, con tesis, ganchos y el porqué.",
+        "hello": "Hola. La estrategia y el texto de cada pieza quedan conmigo, siempre con el porqué."
+      },
+      "socialMedia": {
+        "role": "Community manager",
+        "line": "Lleva el calendario y las redes de las marcas, trae ideas de contenido, lleva cada post a aprobación y programa lo aprobado.",
+        "hello": "Hola. El calendario y las redes quedan conmigo, y nada sale sin aprobación."
+      },
+      "junin": {
+        "role": "Programador con IA",
+        "line": "Hace y mantiene los sitios, páginas, automatizaciones e integraciones de la empresa, prueba, publica con el ok y explica el resultado en palabras simples.",
+        "hello": "Hola. Sitios, páginas y automatizaciones quedan conmigo, publicados solo con tu ok."
+      },
+      "kiara": {
+        "role": "Finanzas",
+        "line": "Se encarga de facturas, cobros, alertas del banco, vencimientos e informes de ventas, siempre con aprobación antes de enviar.",
+        "hello": "Hola. Facturas y cobros quedan conmigo, siempre con tu ok antes de enviar."
+      }
+    },
+    "brand": {
+      "tones": {
+        "proximo": "Cercano",
+        "profissional": "Profesional",
+        "divertido": "Divertido",
+        "inspirador": "Inspirador",
+        "direto": "Directo",
+        "acolhedor": "Cálido",
+        "tecnico": "Técnico",
+        "sofisticado": "Sofisticado",
+        "ousado": "Audaz",
+        "educativo": "Educativo"
+      }
+    }
   }
 }

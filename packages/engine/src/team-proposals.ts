@@ -38,6 +38,7 @@ import { cardPlace, NO_PERSON_READS } from "./consultations";
 import type { ContextDeps } from "./context/summaries";
 import { publishDelivery } from "./delivery";
 import { openPersonAgentDm } from "./dms";
+import { DOUG_TEMPLATE } from "./doug-team";
 import { queuePlanWaiting } from "./email";
 import { ConflictError, ForbiddenError, NotFoundError, ValidationError } from "./errors";
 import { publishAgentsChanged, publishChannelEvent, publishMessageCreated } from "./events";
@@ -146,6 +147,10 @@ export interface TeamCreated {
   skipped: ("skills" | "weekly")[];
   /** Agents with nothing to think with yet (the app opens Connect for them). */
   noAi: string[];
+  /** The Doug team's (docs/adr/doug-0020-time-doug.md): its agents that work on a computer, for the app's notice. */
+  needsComputer?: string[];
+  /** The Doug team's: the right hand took the DOUG's role, which Desfazer takes back. */
+  rightHandRole?: boolean;
 }
 
 export interface TeamProposalCard {
@@ -245,7 +250,7 @@ export async function channelPlaces(db: Database, orgId: string, personId: strin
   return { existing, archived, outside, blocked, fresh: names.filter((n) => !existing.has(n)) };
 }
 
-const blockedError = (names: string[]) =>
+export const blockedError = (names: string[]) =>
   new ValidationError(
     `${names.map((n) => `#${n}`).join(", ")}: a channel you can't name here (private, or archived by someone else). Pick another name.`,
   );
@@ -424,7 +429,7 @@ export async function postTeamCard(
 }
 
 /** Writes the card if it is still in state `from` (two clicks at once: one wins), and tells the conversation. */
-async function writeCard(
+export async function writeCard(
   deps: { db: Database; pubsub?: PubSub },
   message: Pick<Message, "id" | "orgId" | "channelId" | "threadId">,
   card: TeamProposalCard,
@@ -490,7 +495,7 @@ export interface TeamDeps {
 }
 
 /** Runs `step`, naming it in the error that undoes everything. */
-class StepError extends Error {
+export class StepError extends Error {
   constructor(
     readonly step: string,
     readonly failure: unknown,
@@ -500,7 +505,7 @@ class StepError extends Error {
 }
 
 /** The failure as the card keeps it: the step, the English reason, and the code and status the app translates. */
-function teamFailure(step: string, error: unknown): NonNullable<TeamProposalCard["error"]> {
+export function teamFailure(step: string, error: unknown): NonNullable<TeamProposalCard["error"]> {
   const cause = error instanceof StepError ? error.failure : error;
   const status =
     cause instanceof ForbiddenError
@@ -523,7 +528,7 @@ function teamFailure(step: string, error: unknown): NonNullable<TeamProposalCard
     ...(coded.params ? { params: coded.params } : {}),
   };
 }
-const stepped = async <T>(step: string, run: () => Promise<T>) => {
+export const stepped = async <T>(step: string, run: () => Promise<T>) => {
   try {
     return await run();
   } catch (error) {
@@ -810,6 +815,18 @@ export async function undoTeam(deps: TeamDeps, userId: string, orgId: string, me
       await archiveChannel(tx, userId, orgId, id, events).catch((e) => {
         if (!(e instanceof NotFoundError)) throw e;
       });
+    }
+    // The Doug team's mark goes with it: the right hand's role, the brand step it asked for (doug-0020).
+    if (card.params.template === DOUG_TEMPLATE) {
+      await tx
+        .update(schema.organizationSettings)
+        .set({ dougTeam: null })
+        .where(
+          and(
+            eq(schema.organizationSettings.orgId, orgId),
+            sql`${schema.organizationSettings.dougTeam}->>'cardId' = ${message.id}`,
+          ),
+        );
     }
   });
   invalidateOrg(orgId);

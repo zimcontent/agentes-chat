@@ -1,0 +1,81 @@
+# doug-0020: The Doug team as a template, and the brand step of the onboarding
+
+Status: accepted. This instance's own. 2026-11-18. Builds on ADR 0137 §10 (the right hand's team card), ADR 0155 §6
+(a template's team made at once), ADR 0159 (personal workspaces), ADR 0162 (the onboarding and the team's hello),
+ADR 0053 (routines) and the skills of Settings › Skills (installs from a GitHub link, updates by themselves).
+
+## Context
+
+The team gallery offers six business templates and six personal ones, each a few agents of a line of instructions,
+one channel and one routine each, and a skill or two, inside the team card's limits (6 agents, 4 skills, a skill's
+body of 20,000 characters). This instance runs a team of its own that does real work every day: a manager, design,
+video, a paid ads HQ of ten, strategy, social media, code and finance. Each of its agents has instructions worked out
+in months of use, routines, house skills (how to edit a talking-head video, the ads HQ's manual) and skills other
+people publish. New workspaces asked to start from that team, not from a blank one, and the owner wants it to be the
+first choice of the onboarding.
+
+That team, as it runs here, also holds its clients' names, people, brands, accounts and numbers. None of that may
+leave: what a new workspace gets is the craft, never the data.
+
+## Decision
+
+1. **The material is the craft alone, kept in the repository.** `packages/engine/src/doug-team/` holds one Markdown
+   file per agent (`agents/<handle>.md`: name, handle, role, line, its drawing, its HQ team and who it reports to,
+   whether it needs a computer, its routines, its house skills, its third-party skills, then its instructions) and one
+   folder per house skill (`skills/<slug>/SKILL.md`). Every client fact was taken out when they were written: an agent
+   reads its client's brand, accounts and history from the workspace (the brand skill below, its memory, its
+   connections), never from its instructions.
+2. **Built in, read once.** `bun run doug-team:build` (`packages/engine/scripts/doug-team-build.ts`) writes the files
+   as text into `doug-team/files.gen.ts`, so the packaged server reads them from its own bundle and never from a
+   folder beside it; a test fails while the generated file differs from the material. `doug-team/index.ts` parses
+   them once (`dougAgents`, `dougSkills`).
+3. **A leak test by hash.** `packages/engine/test/doug-team-leak.test.ts` reads every file of `doug-team/` and fails on
+   an email address, a phone number, an address outside github.com and raw.githubusercontent.com, or a denied word: the
+   house's clients, people, companies and projects, kept only as SHA-256 hashes of the word (lower case, no accents)
+   and of two words in a row, so the test itself names none of them.
+4. **The template.** `doug` is the first card of the gallery in both modes, a team's workspace and a personal one, with
+   every agent listed (`members`) and checked by default; the person unchecks who they don't want. It doesn't fit the
+   team card's limits, so it has its own path (`doug-team/create.ts`, `useDougTeam`) that reuses the same calls
+   (`createAgent`, `createChannel`, `addChannelMember`, `createRoutine`, the skills' rows) in one transaction, and
+   posts the same card in the person's DM with the right hand, created, with Desfazer for a day (`undoTeam`).
+   - **The DOUG is the right hand.** No agent is made for it: the workspace records the team
+     (`organization_settings.doug_team`) and `rightHandPrompt` adds the DOUG's instructions as "# Your role in this
+     workspace", under the product's own block, which wins where they differ.
+   - **A channel per HQ**: design, video, ads (the MARK and its nine, who report to it, `reports_to_agent_id`),
+     strategy, social media, code and finance, named in the person's language (`dougTeam.channels.*`), with `-2` where
+     the name is a private channel they aren't in, as the other templates do. Personal workspaces get the channels
+     too: with ten agents in one HQ, a DM each would hide the HQ's conversation.
+   - **Every routine is made paused.** The person turns on the ones they want; nothing runs on its own the first day.
+   - **House skills** become the workspace's (one already there by that name is used as it is), each given to the
+     agents that list it. Skills are an admin's, as on the team card: a member who makes the team gets the agents and
+     the receipt says the skills wait for an admin.
+   - **Third-party skills** are installed from their public link, only ones published under an open license (MIT,
+     Apache-2.0 and the like; the material lists each one's license), through the same path as "From a GitHub link"
+     (`importSkillFromUrl`, `importPickedSkills`), set to update by themselves. They never hold the team up: a job
+     (`doug_team.skills`, one per folder of a repository, so a folder's skills come from one download) installs them
+     after and gives them to the right agents; a network failure is retried by the outbox; their ids join the card's,
+     so Desfazer removes them too; a team already undone installs nothing.
+   - **The computer notice.** The answer and the template say which chosen agents work on a computer
+     (`needs_computer`), for the app's notice and its "connect a computer" button.
+   - **Only the hello after it**: the team's hello job (ADR 0162) with one line per agent in its words
+     (`dougTeam.agents.*.hello`), the right hand first. Nothing else is posted.
+5. **The brand is a workspace skill, and its step is required.** When the Doug team was made during the onboarding,
+   "Sua marca" comes next (`brand`, after `agents` in the steps) and the onboarding can't finish until it is saved
+   (`saveOnboarding` refuses with `onboarding.brand_pending`; `GET /me` says `brandPending`). The company's name and a
+   tone of voice (tapped from a list, written, or both) are required; the site, Instagram, audience and the brand
+   manual's files (uploaded to the Drive first) and links are optional. `PUT …/brand` writes the workspace skill
+   "Marca <empresa>" (`marca`, a new version each time) in the sections the agents that read a brand look for (the
+   company and what it isn't, audience, tone of voice, visual identity, networks and formats, pillars, compliance,
+   the manual), with what wasn't said marked "A definir" for them to ask or propose instead of inventing, and gives it
+   to the ROSA, the SONY, the SOCIAL MEDIA and the CHESS.
+6. **Words.** The template's name, description, each agent's role, line and hello, the channels and the tones are in
+   `@agenteschat/i18n` (`dougTeam.*`), in every language through `bun run i18n:apply`. The instructions and skills stay
+   in Brazilian Portuguese, the language the team works in.
+
+## Consequences
+
+- A change to the team's craft is a change to the Markdown and `bun run doug-team:build`; the leak test runs on it.
+- A workspace makes the Doug team once (`doug_team.made`); after Desfazer it may make it again.
+- What the third-party skills hold is their authors'; they update from their links like any skill installed by link,
+  and a link that stops holding the skill leaves it as it was, logged.
+- The phone and web screens for the template's choices and the brand step use these routes; they are drawn apart.

@@ -60,9 +60,19 @@ test("a personal workspace (ADR 0159): made with its mode, its templates are for
   const gallery = (await (await api("/team-templates?locale=en")).json()) as {
     templates: { id: string; team: { agents: { channel: string }[]; newChannels: string[] } }[];
   };
-  expect(gallery.templates.map((x) => x.id)).toEqual(["life", "health", "studies", "home", "travel", "freelance"]);
-  expect(gallery.templates.every((x) => x.team.newChannels.length === 0)).toBe(true);
-  expect(gallery.templates.flatMap((x) => x.team.agents.map((a) => a.channel))).not.toContain("support");
+  // The Doug team first in either mode, with its HQs' channels (docs/adr/doug-0020-time-doug.md).
+  expect(gallery.templates.map((x) => x.id)).toEqual([
+    "doug",
+    "life",
+    "health",
+    "studies",
+    "home",
+    "travel",
+    "freelance",
+  ]);
+  const personal = gallery.templates.filter((x) => x.id !== "doug");
+  expect(personal.every((x) => x.team.newChannels.length === 0)).toBe(true);
+  expect(personal.flatMap((x) => x.team.agents.map((a) => a.channel))).not.toContain("support");
 
   const used = await api("/team-templates/life/use", { json: { locale: "en" } });
   expect(used.status).toBe(200);

@@ -413,6 +413,8 @@ export interface OrgOnboarding {
   step: OnboardingStepId;
   /** #general, where the onboarding puts the agents and posts the first message. */
   generalChannelId: string;
+  /** The Doug team was made and its brand step ("Sua marca") waits: finishing is refused until it is saved. */
+  brandPending?: boolean;
 }
 
 export interface Me {

@@ -21874,5 +21874,122 @@
       "add_many": "Ajouter {{count}} fichiers",
       "add_other": "Ajouter {{count}} fichiers"
     }
+  },
+  "dougTeam": {
+    "name": "Équipe Doug",
+    "sub": "Design, vidéo, publicité, stratégie, réseaux sociaux, code et finances",
+    "desc": "Toute l'équipe de la maison, chaque agent avec son métier, ses routines et ses skills, avec un canal pour chaque QG.",
+    "lead": "L'équipe Doug pour {{org}}, chaque QG dans son propre canal. Toutes les routines commencent en pause.",
+    "approvals": "Les dépenses, les publications et les envois vers l'extérieur attendent votre accord.",
+    "channels": {
+      "design": "qg-design",
+      "video": "qg-video",
+      "trafego": "qg-pub",
+      "estrategia": "qg-strategie",
+      "social": "qg-reseaux",
+      "codigo": "qg-code",
+      "financeiro": "qg-finances"
+    },
+    "agents": {
+      "doug": {
+        "role": "Responsable des opérations",
+        "line": "Coordonne l'équipe, suit les délais, répartit les demandes, relit les livraisons et demande l'approbation au bon moment.",
+        "hello": "Bonjour. Je fais avancer l'équipe et ne vous apporte que ce qui a besoin de vous."
+      },
+      "rosa": {
+        "role": "Directrice artistique",
+        "line": "Crée couvertures, carrousels, posts, stories, miniatures et présentations au niveau d'une agence, toujours dans l'identité de la marque du client.",
+        "hello": "Bonjour. Couvertures, carrousels et posts sont pour moi, toujours dans la marque."
+      },
+      "sony": {
+        "role": "Monteur vidéo",
+        "line": "Monte, coupe et anime des vidéos au niveau d'un studio, des rushs au Reel approuvé, toujours dans l'identité de la marque du client.",
+        "hello": "Bonjour. Envoyez-moi les rushs et je vous rends la vidéo montée."
+      },
+      "mark": {
+        "role": "Chef du QG publicité",
+        "line": "Gère les publicités payantes de bout en bout avec l'équipe pub et dit ce qui a été dépensé, ce qui est rentré et la suite.",
+        "hello": "Bonjour. Je dirige l'équipe pub et vous dis ce qui a été dépensé et ce qui est rentré."
+      },
+      "analistaResultado": {
+        "role": "Analyste des résultats du QG publicité",
+        "line": "Lit le compte publicitaire et les ventes réelles, mesure le coût par vente, le retour en caisse et la fatigue, et dit quoi couper et quoi accélérer.",
+        "hello": "Bonjour. Je lis les chiffres et dis quoi couper et quoi accélérer."
+      },
+      "copywriter": {
+        "role": "Rédacteur du QG publicité",
+        "line": "Écrit textes, titres, descriptions, accroches et scripts courts des publicités, par angle et seulement avec des affirmations prouvées.",
+        "hello": "Bonjour. Textes et accroches des publicités sont pour moi, seulement avec des preuves."
+      },
+      "diretorCriativo": {
+        "role": "Directeur de création du QG publicité",
+        "line": "Transforme hypothèses et textes en briefs vidéo et visuels, garde des concepts différents en ligne et prépare chaque pièce prête à relire.",
+        "hello": "Bonjour. Je transforme les idées en briefs et en pièces prêtes à relire."
+      },
+      "estrategistaMidia": {
+        "role": "Stratège média du QG publicité",
+        "line": "Monte la structure des campagnes, choisit les tests de la semaine et écrit les ordres de coupe et d'accélération dans le plafond.",
+        "hello": "Bonjour. Je planifie les campagnes et les tests de la semaine dans le plafond."
+      },
+      "financeiroTrafego": {
+        "role": "Finances du QG publicité",
+        "line": "Fait les comptes de chaque projet, tient le plafond du jour et du mois, contrôle le budget et mesure le vrai retour en caisse.",
+        "hello": "Bonjour. Je garde le budget dans le plafond et mesure le vrai retour."
+      },
+      "humanizador": {
+        "role": "Dernière relecture du texte",
+        "line": "Donne un dernier passage au texte pour qu'il sonne humain, sans changer faits, affirmations, limites ni format.",
+        "hello": "Bonjour. Je relis chaque texte une dernière fois pour qu'il sonne humain."
+      },
+      "operador": {
+        "role": "Opérateur du QG publicité",
+        "line": "Exécute dans le compte publicitaire, une par une, les ordres approuvés et renvoie le résultat tel qu'il est venu.",
+        "hello": "Bonjour. J'exécute les ordres approuvés dans le compte publicitaire, un par un."
+      },
+      "pesquisadorGrowth": {
+        "role": "Chercheur growth du QG publicité",
+        "line": "Cherche accroches, créations et stratégies publicitaires sur le marché et transforme ses trouvailles en fiches d'hypothèses à tester.",
+        "hello": "Bonjour. Je cherche ce qui marche sur le marché et apporte des hypothèses à tester."
+      },
+      "revisorPolitica": {
+        "role": "Contrôleur des règles du QG publicité",
+        "line": "Vérifie chaque publicité avant diffusion selon les règles de la plateforme, la loi et les affirmations du projet, et dit passe, alerte ou bloque.",
+        "hello": "Bonjour. Je vérifie chaque publicité selon les règles avant sa diffusion."
+      },
+      "chess": {
+        "role": "Stratège marketing",
+        "line": "Lit la marque et le moment, cherche ce qui marche dans la niche et livre la stratégie et le texte de chaque pièce, avec une thèse, des accroches et le pourquoi.",
+        "hello": "Bonjour. Stratégie et texte de chaque pièce sont pour moi, toujours avec le pourquoi."
+      },
+      "socialMedia": {
+        "role": "Community manager",
+        "line": "Tient le calendrier et les réseaux des marques, apporte des idées de contenu, fait approuver chaque post et programme ce qui est approuvé.",
+        "hello": "Bonjour. Calendrier et réseaux sont pour moi, et rien ne sort sans approbation."
+      },
+      "junin": {
+        "role": "Développeur assisté par IA",
+        "line": "Crée et maintient les sites, pages, automatisations et intégrations de l'entreprise, teste, publie avec l'accord et explique le résultat simplement.",
+        "hello": "Bonjour. Sites, pages et automatisations sont pour moi, publiés seulement avec votre accord."
+      },
+      "kiara": {
+        "role": "Finances",
+        "line": "S'occupe des factures, relances, alertes bancaires, échéances et rapports de ventes, toujours avec approbation avant l'envoi.",
+        "hello": "Bonjour. Factures et relances sont pour moi, toujours avec votre accord avant l'envoi."
+      }
+    },
+    "brand": {
+      "tones": {
+        "proximo": "Proche",
+        "profissional": "Professionnel",
+        "divertido": "Amusant",
+        "inspirador": "Inspirant",
+        "direto": "Direct",
+        "acolhedor": "Chaleureux",
+        "tecnico": "Technique",
+        "sofisticado": "Sophistiqué",
+        "ousado": "Audacieux",
+        "educativo": "Pédagogique"
+      }
+    }
   }
 }

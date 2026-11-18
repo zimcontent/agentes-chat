@@ -22458,5 +22458,122 @@
       "add_many": "Dodaj {{count}} plików",
       "add_other": "Dodaj {{count}} pliku"
     }
+  },
+  "dougTeam": {
+    "name": "Zespół Douga",
+    "sub": "Projekty, wideo, reklamy, strategia, media społecznościowe, kod i finanse",
+    "desc": "Cały zespół domu, każdy agent ze swoim fachem, rutynami i umiejętnościami, z kanałem dla każdej centrali.",
+    "lead": "Zespół Douga dla {{org}}, każda centrala we własnym kanale. Wszystkie rutyny startują wstrzymane.",
+    "approvals": "Wydatki, publikacje i wysyłki na zewnątrz czekają na twoją zgodę.",
+    "channels": {
+      "design": "centrala-projekty",
+      "video": "centrala-wideo",
+      "trafego": "centrala-reklamy",
+      "estrategia": "centrala-strategia",
+      "social": "centrala-social",
+      "codigo": "centrala-kod",
+      "financeiro": "centrala-finanse"
+    },
+    "agents": {
+      "doug": {
+        "role": "Kierownik operacji",
+        "line": "Koordynuje zespół, pilnuje terminów, rozdziela prośby, sprawdza efekty i prosi o akceptację we właściwym momencie.",
+        "hello": "Cześć. Pilnuję, żeby zespół działał, i przynoszę ci tylko to, co wymaga ciebie."
+      },
+      "rosa": {
+        "role": "Dyrektorka artystyczna",
+        "line": "Robi okładki, karuzele, posty, relacje, miniatury i prezentacje na poziomie agencji, zawsze w identyfikacji marki klienta.",
+        "hello": "Cześć. Okładki, karuzele i posty biorę na siebie, zawsze zgodnie z marką."
+      },
+      "sony": {
+        "role": "Montażysta wideo",
+        "line": "Montuje, tnie i animuje filmy na poziomie studia, od surowego materiału do zatwierdzonej rolki, zawsze w identyfikacji marki klienta.",
+        "hello": "Cześć. Wyślij mi surowy materiał, a oddam ci zmontowany film."
+      },
+      "mark": {
+        "role": "Szef centrali reklam",
+        "line": "Prowadzi płatne reklamy od początku do końca z zespołem reklam i mówi, ile wydano, ile wpłynęło i co dalej.",
+        "hello": "Cześć. Prowadzę zespół reklam i mówię ci, ile wydano i ile wpłynęło."
+      },
+      "analistaResultado": {
+        "role": "Analityk wyników centrali reklam",
+        "line": "Czyta konto reklamowe i prawdziwą sprzedaż, mierzy koszt sprzedaży, zwrot w kasie i zmęczenie i mówi, co wyciąć, a co skalować.",
+        "hello": "Cześć. Czytam liczby i mówię, co wyciąć, a co skalować."
+      },
+      "copywriter": {
+        "role": "Copywriter centrali reklam",
+        "line": "Pisze teksty, tytuły, opisy, haczyki i krótkie scenariusze reklam, według kąta i tylko z twierdzeniami, które mają dowód.",
+        "hello": "Cześć. Teksty i haczyki reklam biorę na siebie, tylko z twierdzeniami z dowodem."
+      },
+      "diretorCriativo": {
+        "role": "Dyrektor kreatywny centrali reklam",
+        "line": "Zamienia hipotezy i teksty w briefy wideo i grafiki, utrzymuje różne koncepcje w emisji i składa każdy materiał gotowy do przeglądu.",
+        "hello": "Cześć. Zamieniam pomysły w briefy i materiały gotowe do przeglądu."
+      },
+      "estrategistaMidia": {
+        "role": "Strateg mediowy centrali reklam",
+        "line": "Układa strukturę kampanii, wybiera testy tygodnia i pisze polecenia cięcia i skalowania w ramach limitu.",
+        "hello": "Cześć. Planuję kampanie i testy tygodnia w ramach limitu."
+      },
+      "financeiroTrafego": {
+        "role": "Finanse centrali reklam",
+        "line": "Liczy każdy projekt, pilnuje limitu dziennego i miesięcznego, kontroluje budżet i mierzy prawdziwy zwrot w kasie.",
+        "hello": "Cześć. Trzymam budżet w limicie i mierzę prawdziwy zwrot."
+      },
+      "humanizador": {
+        "role": "Ostatni szlif tekstu",
+        "line": "Robi ostatni szlif tekstu, żeby brzmiał jak człowiek, bez zmiany faktów, twierdzeń, limitów i formatu.",
+        "hello": "Cześć. Robię ostatni szlif każdego tekstu, żeby brzmiał jak człowiek."
+      },
+      "operador": {
+        "role": "Operator centrali reklam",
+        "line": "Wykonuje na koncie reklamowym zatwierdzone polecenia jedno po drugim i zwraca wynik dokładnie taki, jaki przyszedł.",
+        "hello": "Cześć. Wykonuję zatwierdzone polecenia na koncie reklamowym, jedno po drugim."
+      },
+      "pesquisadorGrowth": {
+        "role": "Badacz wzrostu centrali reklam",
+        "line": "Bada haczyki, kreacje i strategie reklamowe na rynku i zamienia to, co znajdzie, w karty hipotez do testów.",
+        "hello": "Cześć. Badam, co działa na rynku, i przynoszę hipotezy do testów."
+      },
+      "revisorPolitica": {
+        "role": "Kontroler zasad centrali reklam",
+        "line": "Sprawdza każdą reklamę przed emisją pod kątem zasad platformy, prawa i twierdzeń projektu i mówi przechodzi, ostrzeżenie albo blokada.",
+        "hello": "Cześć. Sprawdzam każdą reklamę pod kątem zasad przed emisją."
+      },
+      "chess": {
+        "role": "Strateg marketingu",
+        "line": "Czyta markę i moment, bada, co działa w niszy, i dostarcza strategię i tekst każdego materiału z tezą, haczykami i uzasadnieniem.",
+        "hello": "Cześć. Strategię i tekst każdego materiału biorę na siebie, zawsze z uzasadnieniem."
+      },
+      "socialMedia": {
+        "role": "Specjalista od mediów społecznościowych",
+        "line": "Prowadzi kalendarz i profile marek, przynosi pomysły na treści, zdobywa akceptację każdego posta i planuje to, co zatwierdzone.",
+        "hello": "Cześć. Kalendarz i profile biorę na siebie, a nic nie wychodzi bez akceptacji."
+      },
+      "junin": {
+        "role": "Programista z AI",
+        "line": "Tworzy i utrzymuje strony, podstrony, automatyzacje i integracje firmy, testuje, publikuje za zgodą i tłumaczy wynik prostymi słowami.",
+        "hello": "Cześć. Strony, podstrony i automatyzacje biorę na siebie, publikowane tylko za twoją zgodą."
+      },
+      "kiara": {
+        "role": "Finanse",
+        "line": "Zajmuje się fakturami, windykacją, alertami banku, terminami płatności i raportami sprzedaży, zawsze z akceptacją przed wysłaniem.",
+        "hello": "Cześć. Faktury i windykację biorę na siebie, zawsze z twoją zgodą przed wysłaniem."
+      }
+    },
+    "brand": {
+      "tones": {
+        "proximo": "Bliski",
+        "profissional": "Profesjonalny",
+        "divertido": "Zabawny",
+        "inspirador": "Inspirujący",
+        "direto": "Bezpośredni",
+        "acolhedor": "Ciepły",
+        "tecnico": "Techniczny",
+        "sofisticado": "Wyrafinowany",
+        "ousado": "Odważny",
+        "educativo": "Edukacyjny"
+      }
+    }
   }
 }

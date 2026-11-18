@@ -406,6 +406,11 @@ export async function saveOnboarding(
   const membership = await requireActiveMembership(db, userId, orgId);
   if (membership.role !== "owner") throw new ForbiddenError("Only the workspace's owner sets it up");
   const open = and(eq(organizations.id, orgId), isNull(organizations.onboardedAt));
+  // The Doug team's brand step is required (docs/adr/doug-0020-time-doug.md): no finish while it waits.
+  if (input.finished) {
+    const { brandPending } = await import("./doug-team/brand");
+    if (await brandPending(db, orgId)) throw new ConflictError("Save the brand first", "onboarding.brand_pending");
+  }
   if (input.finished) {
     await db.update(organizations).set({ onboardingStep: "done", onboardedAt: new Date() }).where(open);
   } else if (input.step) {

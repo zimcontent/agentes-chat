@@ -21068,5 +21068,122 @@
       "add_one": "{{count}} dosya ekle",
       "add_other": "{{count}} dosya ekle"
     }
+  },
+  "dougTeam": {
+    "name": "Doug Ekibi",
+    "sub": "Tasarım, video, reklam, strateji, sosyal medya, kod ve finans",
+    "desc": "Evin bütün ekibi, her ajan kendi zanaatı, rutinleri ve becerileriyle, her merkez için bir kanalla.",
+    "lead": "{{org}} için Doug ekibi, her merkez kendi kanalında. Bütün rutinler duraklatılmış olarak başlar.",
+    "approvals": "Harcama, yayın ve dışarıya gönderim onayınızı bekler.",
+    "channels": {
+      "design": "merkez-tasarim",
+      "video": "merkez-video",
+      "trafego": "merkez-reklam",
+      "estrategia": "merkez-strateji",
+      "social": "merkez-sosyal",
+      "codigo": "merkez-kod",
+      "financeiro": "merkez-finans"
+    },
+    "agents": {
+      "doug": {
+        "role": "Operasyon yöneticisi",
+        "line": "Ekibi koordine eder, son tarihleri izler, talepleri dağıtır, teslimleri gözden geçirir ve doğru anda onay ister.",
+        "hello": "Merhaba. Ekibi yürütürüm ve size yalnızca sizi gerektireni getiririm."
+      },
+      "rosa": {
+        "role": "Sanat yönetmeni",
+        "line": "Ajans seviyesinde kapak, karusel, gönderi, hikâye, küçük resim ve sunum hazırlar, her zaman müşterinin marka kimliğiyle.",
+        "hello": "Merhaba. Kapaklar, karuseller ve gönderiler bende, her zaman markaya uygun."
+      },
+      "sony": {
+        "role": "Video editörü",
+        "line": "Prodüksiyon şirketi seviyesinde video kurgular, keser ve canlandırır, ham görüntüden onaylı Reels'e kadar, her zaman müşterinin marka kimliğiyle.",
+        "hello": "Merhaba. Ham görüntüyü gönderin, kurgulanmış videoyu geri getireyim."
+      },
+      "mark": {
+        "role": "Reklam merkezinin lideri",
+        "line": "Ücretli reklamları reklam ekibiyle baştan sona yürütür ve ne kadar harcandığını, ne kadar girdiğini ve sırada ne olduğunu anlatır.",
+        "hello": "Merhaba. Reklam ekibini yönetir, ne harcandığını ve ne girdiğini anlatırım."
+      },
+      "analistaResultado": {
+        "role": "Reklam merkezinin sonuç analisti",
+        "line": "Reklam hesabını ve gerçek satışları okur, satış başına maliyeti, kasaya dönüşü ve yorgunluğu ölçer, neyin kesileceğini ve neyin büyütüleceğini söyler.",
+        "hello": "Merhaba. Rakamları okur, neyin kesileceğini ve neyin büyütüleceğini söylerim."
+      },
+      "copywriter": {
+        "role": "Reklam merkezinin metin yazarı",
+        "line": "Reklam metinlerini, başlıkları, açıklamaları, kancaları ve kısa senaryoları açıya göre ve yalnızca kanıtı olan iddialarla yazar.",
+        "hello": "Merhaba. Reklam metinleri ve kancalar bende, yalnızca kanıtlı iddialarla."
+      },
+      "diretorCriativo": {
+        "role": "Reklam merkezinin kreatif direktörü",
+        "line": "Hipotezleri ve metinleri video ve tasarım brifine çevirir, farklı konseptleri yayında tutar ve her parçayı incelemeye hazır kurar.",
+        "hello": "Merhaba. Fikirleri brife ve incelemeye hazır parçalara çeviririm."
+      },
+      "estrategistaMidia": {
+        "role": "Reklam merkezinin medya stratejisti",
+        "line": "Kampanyaların yapısını kurar, haftanın testlerini seçer ve tavan içinde kesme ve büyütme talimatlarını yazar.",
+        "hello": "Merhaba. Kampanyaları ve haftanın testlerini tavan içinde planlarım."
+      },
+      "financeiroTrafego": {
+        "role": "Reklam merkezinin finansı",
+        "line": "Her projenin hesabını yapar, günlük ve aylık tavanı korur, bütçeyi kontrol eder ve kasaya gerçek dönüşü ölçer.",
+        "hello": "Merhaba. Bütçeyi tavan içinde tutar ve gerçek dönüşü ölçerim."
+      },
+      "humanizador": {
+        "role": "Metnin son dokunuşu",
+        "line": "Gerçekleri, iddiaları, sınırları ve biçimi değiştirmeden metne insan gibi duyulsun diye son dokunuşu yapar.",
+        "hello": "Merhaba. Her metne insan gibi duyulsun diye son dokunuşu yaparım."
+      },
+      "operador": {
+        "role": "Reklam merkezinin operatörü",
+        "line": "Onaylanan talimatları reklam hesabında tek tek uygular ve sonucu tam geldiği gibi geri verir.",
+        "hello": "Merhaba. Onaylanan talimatları reklam hesabında tek tek uygularım."
+      },
+      "pesquisadorGrowth": {
+        "role": "Reklam merkezinin büyüme araştırmacısı",
+        "line": "Pazardaki kancaları, kreatifleri ve reklam stratejilerini araştırır ve bulduklarını test hipotezi kartlarına çevirir.",
+        "hello": "Merhaba. Pazarda işe yarayanı araştırır, test edilecek hipotezler getiririm."
+      },
+      "revisorPolitica": {
+        "role": "Reklam merkezinin politika denetçisi",
+        "line": "Her reklamı yayından önce platform kurallarına, yasaya ve projenin iddialarına göre kontrol eder ve geçer, uyarı ya da engel der.",
+        "hello": "Merhaba. Her reklamı yayından önce kurallara göre kontrol ederim."
+      },
+      "chess": {
+        "role": "Pazarlama stratejisti",
+        "line": "Markayı ve anı okur, nişte işe yarayanı araştırır ve her parçanın stratejisini ve metnini tez, kanca ve gerekçesiyle teslim eder.",
+        "hello": "Merhaba. Her parçanın stratejisi ve metni bende, her zaman gerekçesiyle."
+      },
+      "socialMedia": {
+        "role": "Sosyal medya yöneticisi",
+        "line": "Markaların takvimini ve hesaplarını yönetir, içerik fikirleri getirir, her gönderi için onay alır ve onaylananı planlar.",
+        "hello": "Merhaba. Takvim ve hesaplar bende, onaysız hiçbir şey çıkmaz."
+      },
+      "junin": {
+        "role": "Yapay zekâyla kod yazan geliştirici",
+        "line": "Şirketin sitelerini, sayfalarını, otomasyonlarını ve entegrasyonlarını yapar ve korur, test eder, onayla yayınlar ve sonucu sade bir dille anlatır.",
+        "hello": "Merhaba. Siteler, sayfalar ve otomasyonlar bende, yalnızca onayınızla yayınlanır."
+      },
+      "kiara": {
+        "role": "Finans",
+        "line": "Faturaları, tahsilatları, banka uyarılarını, vadeleri ve satış raporlarını yönetir, göndermeden önce her zaman onay alır.",
+        "hello": "Merhaba. Faturalar ve tahsilatlar bende, göndermeden önce her zaman onayınızla."
+      }
+    },
+    "brand": {
+      "tones": {
+        "proximo": "Samimi",
+        "profissional": "Profesyonel",
+        "divertido": "Eğlenceli",
+        "inspirador": "İlham verici",
+        "direto": "Dolaysız",
+        "acolhedor": "Sıcak",
+        "tecnico": "Teknik",
+        "sofisticado": "Zarif",
+        "ousado": "Cesur",
+        "educativo": "Öğretici"
+      }
+    }
   }
 }

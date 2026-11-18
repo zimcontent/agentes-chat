@@ -48,6 +48,8 @@ import {
   requesterOf,
 } from "./dispatch";
 import { isAgentOnlyDm } from "./dms";
+import { DOUG_TEAM_SKILLS_JOB } from "./doug-team/create";
+import { installDougSkills } from "./doug-team/skills-job";
 import { EDITOR_FINAL_JOB, EDITOR_SEND_JOB, runEditorFinal, runEditorSend } from "./editor-delivery";
 import {
   type EmailArt,
@@ -1060,6 +1062,12 @@ export function createJobHandlers(deps: JobDeps): JobHandlers {
     // The team says hi in #general once it can work (ADR 0162).
     [TEAM_HELLO_JOB]: async (job) => {
       await sayTeamHello(deps, orgOf(job), job.payload);
+    },
+    // The Doug team's third-party skills, from their public links (docs/adr/doug-0020-time-doug.md).
+    [DOUG_TEAM_SKILLS_JOB]: async (job) => {
+      if (!deps.skills) throw new PermanentJobError("no skill store configured");
+      const out = await installDougSkills(deps.skills, orgOf(job), job.payload);
+      if (out.failed.length > 0) deps.log?.warn("doug_team.skills: not installed", { failed: out.failed });
     },
     [FEEDBACK_JOB]: async (job) => {
       if (isFeedbackRelay((job.payload.feedback as Feedback | undefined)?.to)) {

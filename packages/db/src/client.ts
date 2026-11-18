@@ -92,6 +92,8 @@ export const EXTRA_COLUMNS = [
   `ALTER TABLE "machine_accounts" ADD COLUMN IF NOT EXISTS "stand_in_rank" integer`,
   // The sidebar's tools an admin took out of a workspace (`organization_settings.hidden_tools`).
   `ALTER TABLE "organization_settings" ADD COLUMN IF NOT EXISTS "hidden_tools" text[] NOT NULL DEFAULT '{}'::text[]`,
+  // The Doug team made here (`organization_settings.doug_team`, docs/adr/doug-0020-time-doug.md).
+  `ALTER TABLE "organization_settings" ADD COLUMN IF NOT EXISTS "doug_team" jsonb`,
   // WhatsApp numbers and their conversations (`schema/whatsapp.ts`).
   `CREATE TABLE IF NOT EXISTS "whatsapp_accounts" (
     "id" uuid PRIMARY KEY,

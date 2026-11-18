@@ -25,6 +25,7 @@
     "i18n:missing": "bun scripts/i18n.ts missing",
     "i18n:apply": "bun scripts/i18n.ts apply",
     "i18n:status": "bun scripts/i18n.ts status",
+    "doug-team:build": "bun packages/engine/scripts/doug-team-build.ts",
     "report:autonomy": "bun --env-file=.env apps/server/scripts/autonomy-report.ts",
     "smoke": "bun --env-file=.env scripts/smoke.ts",
     "composio:check": "bun --env-file=.env apps/server/scripts/composio-check.ts",

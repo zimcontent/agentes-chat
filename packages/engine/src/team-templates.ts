@@ -7,6 +7,8 @@ import { type AiStatusDeps, orgHasAi } from "./ai-status";
 import type { AgentAppearance } from "./appearance";
 import { addChannelMember, CHANNEL_NAME_PATTERN } from "./channels";
 import type { ContextDeps } from "./context/summaries";
+import { DOUG_RIGHT_HAND, dougAgents, dougKey } from "./doug-team";
+import { type DougTemplateView, dougTeamOf, dougTemplateView } from "./doug-team/create";
 import { publishMessageCreated } from "./events";
 import { firstName } from "./format";
 import { getMessage, insertMessage, messageView } from "./messages";
@@ -261,14 +263,15 @@ async function orgName(db: Database, orgId: string) {
 
 /**
  * The gallery (`GET …/team-templates`), for who may create agents, read in the person's language and time zone: a
- * personal workspace's templates there (ADR 0159), the business ones anywhere else.
+ * personal workspace's templates there (ADR 0159), the business ones anywhere else. The Doug team comes first in
+ * either mode (docs/adr/doug-0020-time-doug.md), with each of its agents to check or uncheck.
  */
 export async function listTeamTemplates(
   deps: { db: Database; context?: ContextDeps },
   userId: string,
   orgId: string,
   preferred?: string | null,
-): Promise<TeamTemplateView[]> {
+): Promise<(TeamTemplateView | DougTemplateView)[]> {
   await requirePermission(deps.db, userId, orgId, "create_agents");
   const [locale, org, taken, personal] = await Promise.all([
     personLocale(deps.db, userId, preferred),
@@ -279,7 +282,8 @@ export async function listTeamTemplates(
   const blocked = personal ? new Set<string>() : await blockedChannels(deps.db, orgId, userId, locale);
   // Read only: no card goes anywhere yet.
   const place = { orgId, channelId: "", personId: userId };
-  return Promise.all(
+  const doug = await dougTemplateView(deps, userId, orgId, locale);
+  const rest = await Promise.all(
     (personal ? PERSONAL_TEMPLATES : BUSINESS_TEMPLATES).map(async (id) => ({
       id,
       name: serverText(locale, `teamTemplates.${id}.name`),
@@ -288,6 +292,7 @@ export async function listTeamTemplates(
       team: await checkTeam(deps, place, templateInput(id, locale, org, taken, blocked), locale),
     })),
   );
+  return [doug, ...rest];
 }
 
 /**
@@ -343,6 +348,22 @@ export async function useTeamTemplate(
 /** Between two lines in #general: one after the other, as people type. */
 export const HELLO_GAP_MS = 1100;
 
+/** The Doug team's greeters in a hello's payload (`useDougTeam`): each agent with its template's handle. */
+const dougGreeters = (v: unknown) =>
+  (Array.isArray(v) ? v : []).flatMap((d) => {
+    const o = (d ?? {}) as Record<string, unknown>;
+    return typeof o.agentId === "string" && typeof o.key === "string" ? [{ agentId: o.agentId, key: o.key }] : [];
+  });
+
+/** The Doug team's agents as recorded on the workspace, in the template's order (the right hand greets apart). */
+function dougGreetersOf(team: { agents: Record<string, string> } | null) {
+  if (!team) return [];
+  return dougAgents().flatMap((t) => {
+    const agentId = team.agents[t.handle];
+    return agentId && t.handle !== DOUG_RIGHT_HAND ? [{ agentId, key: t.handle }] : [];
+  });
+}
+
 /** The template agent an agent is, by its handle (`iara-2` is Iara's), or null for any other. */
 const memberOf = (handle: string): Member | null => {
   const m = handle.replace(/-\d+$/, "");
@@ -394,8 +415,14 @@ export async function sayTeamHello(
       .from(agents)
       .where(and(eq(agents.orgId, orgId), isNull(agents.archivedAt)))
       .orderBy(asc(agents.createdAt));
+    // The Doug team names its agents (doug-0020): the job's list when it was just made, else the workspace's record of
+    // it (the hello after the first plan), so ROSA never reads as another template's Rosa.
+    const named = dougGreeters(payload.doug);
+    const recorded = named.length > 0 ? named : dougGreetersOf(await dougTeamOf(deps.db, orgId));
+    const doug = recorded.filter((d) => rows.some((a) => a.id === d.agentId && !a.builtin));
+    const dougIds = new Set(doug.map((d) => d.agentId));
     const made = rows.flatMap((a) => {
-      const member = a.builtin ? null : memberOf(a.handle);
+      const member = a.builtin || dougIds.has(a.id) ? null : memberOf(a.handle);
       return member ? [{ ...a, member, at: a.createdAt.getTime() }] : [];
     });
     // A team is made in one transaction, so its agents share a creation time: among them, their template's order.
@@ -403,8 +430,9 @@ export async function sayTeamHello(
       const group = made.filter((b) => b.at === a.at).map((b) => b.member);
       return (Object.values(TEAMS).find((team) => group.every((m) => team.includes(m))) ?? group).indexOf(a.member);
     };
-    const greeters = [
+    const greeters: { id: string; doug?: string }[] = [
       ...rows.filter((a) => a.builtin === "right_hand"),
+      ...doug.map((d) => ({ id: d.agentId, doug: d.key })),
       ...made.sort((a, b) => a.at - b.at || rank(a) - rank(b)),
     ];
     const now = Date.now();
@@ -412,7 +440,7 @@ export async function sayTeamHello(
       await enqueue(deps.db, {
         orgId,
         kind: TEAM_HELLO_JOB,
-        payload: { agentId: a.id, userId, how },
+        payload: { agentId: a.id, userId, how, ...(a.doug ? { doug: a.doug } : {}) },
         dedupeKey: `${TEAM_HELLO_JOB}:${orgId}:${a.id}`,
         runAt: new Date(now + i * HELLO_GAP_MS),
       });
@@ -425,8 +453,9 @@ export async function sayTeamHello(
     .select({ handle: agents.handle, builtin: agents.builtin })
     .from(agents)
     .where(and(eq(agents.id, agentId), eq(agents.orgId, orgId), isNull(agents.archivedAt)));
-  const member = agent && !agent.builtin ? memberOf(agent.handle) : null;
-  if (!agent || (!agent.builtin && !member)) return;
+  const doug = agent && !agent.builtin && typeof payload.doug === "string" ? payload.doug : null;
+  const member = agent && !agent.builtin && !doug ? memberOf(agent.handle) : null;
+  if (!agent || (!agent.builtin && !member && !doug)) return;
   const [said] = await deps.db
     .select({ id: messages.id })
     .from(messages)
@@ -440,14 +469,15 @@ export async function sayTeamHello(
     .limit(1);
   if (said) return;
   // A seat someone already gave it in #general keeps its own auto-reply.
-  const [seated] = member
-    ? await deps.db
-        .select({ agentId: channelMembers.agentId })
-        .from(channelMembers)
-        .where(and(eq(channelMembers.channelId, general.id), eq(channelMembers.agentId, agentId)))
-        .limit(1)
-    : [];
-  if (member && !seated)
+  const [seated] =
+    member || doug
+      ? await deps.db
+          .select({ agentId: channelMembers.agentId })
+          .from(channelMembers)
+          .where(and(eq(channelMembers.channelId, general.id), eq(channelMembers.agentId, agentId)))
+          .limit(1)
+      : [];
+  if ((member || doug) && !seated)
     await addChannelMember(deps.db, userId, orgId, general.id, { agentId, autoReply: false }, deps);
   const [[person], [computer], locale] = await Promise.all([
     deps.db.select({ name: users.name }).from(users).where(eq(users.id, userId)),
@@ -461,11 +491,14 @@ export async function sayTeamHello(
     how !== "paid" ? "created" : deps.workspaceComputer && computer?.state !== "ready" ? "starting" : "ready";
   const thinks =
     member !== null ||
+    doug !== null ||
     !deps.gateway ||
     (await orgHasAi({ db: deps.db, gateway: deps.gateway, machines: deps.machines }, orgId));
-  const body = member
-    ? serverText(locale, `teamTemplates.agents.${member}.hello`, { first: firstName(person?.name ?? "") })
-    : serverText(locale, `teamTemplates.hello.${thinks ? "lodi" : "lodiNoAi"}.${lodiWord}`);
+  const body = doug
+    ? serverText(locale, `dougTeam.agents.${dougKey(doug)}.hello`, { first: firstName(person?.name ?? "") })
+    : member
+      ? serverText(locale, `teamTemplates.agents.${member}.hello`, { first: firstName(person?.name ?? "") })
+      : serverText(locale, `teamTemplates.hello.${thinks ? "lodi" : "lodiNoAi"}.${lodiWord}`);
   const message = await insertMessage(deps.db, {
     orgId,
     channelId: general.id,

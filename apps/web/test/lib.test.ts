@@ -22,7 +22,6 @@ import {
   whenAt,
 } from "@agenteschat/client/lib/format";
 import { agentGrammar, isFeminineName } from "@agenteschat/client/lib/grammar";
-import { setupRow } from "@agenteschat/client/lib/setup-checklist";
 import {
   earlyAccessHeaders,
   earlyAccessState,
@@ -36,6 +35,7 @@ import {
 } from "@agenteschat/client/lib/guards";
 import { ONBOARDING_STEPS, stepIndex } from "@agenteschat/client/lib/onboarding";
 import { can } from "@agenteschat/client/lib/permissions";
+import { setupRow } from "@agenteschat/client/lib/setup-checklist";
 import {
   addressesIn,
   emailsFrom,
@@ -247,12 +247,18 @@ describe("text", () => {
       "context",
       "import",
       "agents",
+      "brand",
       "computer",
       "ai",
       "team",
       "done",
     ]);
-    expect(ONBOARDING_STEPS.filter((s) => s.optional).map((s) => s.id)).toEqual(["import", "computer", "team"]);
+    expect(ONBOARDING_STEPS.filter((s) => s.optional).map((s) => s.id)).toEqual([
+      "import",
+      "brand",
+      "computer",
+      "team",
+    ]);
   });
   test("password and amounts", () => {
     expect(passwordState("")).toBe("empty");

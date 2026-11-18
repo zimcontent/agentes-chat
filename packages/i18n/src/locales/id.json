@@ -20584,5 +20584,122 @@
       "more": "Tampilkan lebih banyak",
       "add_other": "Tambah {{count}} file"
     }
+  },
+  "dougTeam": {
+    "name": "Tim Doug",
+    "sub": "Desain, video, iklan, strategi, media sosial, kode, dan keuangan",
+    "desc": "Seluruh tim rumah, setiap agen dengan keahlian, rutinitas, dan skill-nya sendiri, dengan satu kanal untuk setiap markas.",
+    "lead": "Tim Doug untuk {{org}}, setiap markas di kanalnya sendiri. Semua rutinitas dimulai dalam keadaan dijeda.",
+    "approvals": "Pengeluaran, publikasi, dan pengiriman ke luar menunggu persetujuanmu.",
+    "channels": {
+      "design": "markas-desain",
+      "video": "markas-video",
+      "trafego": "markas-iklan",
+      "estrategia": "markas-strategi",
+      "social": "markas-sosial",
+      "codigo": "markas-kode",
+      "financeiro": "markas-keuangan"
+    },
+    "agents": {
+      "doug": {
+        "role": "Manajer operasional",
+        "line": "Mengoordinasi tim, memantau tenggat, membagi permintaan, meninjau hasil, dan meminta persetujuan di saat yang tepat.",
+        "hello": "Hai. Aku menjaga tim tetap jalan dan hanya membawa yang butuh kamu."
+      },
+      "rosa": {
+        "role": "Direktur seni",
+        "line": "Membuat sampul, carousel, postingan, story, thumbnail, dan presentasi setara agensi, selalu dalam identitas merek klien.",
+        "hello": "Hai. Sampul, carousel, dan postingan biar aku yang urus, selalu sesuai merek."
+      },
+      "sony": {
+        "role": "Editor video",
+        "line": "Mengedit, memotong, dan menganimasikan video setara rumah produksi, dari bahan mentah sampai Reels yang disetujui, selalu dalam identitas merek klien.",
+        "hello": "Hai. Kirim bahan mentahnya, aku kembalikan video yang sudah diedit."
+      },
+      "mark": {
+        "role": "Pemimpin markas iklan",
+        "line": "Mengurus iklan berbayar dari awal sampai akhir bersama tim iklan dan melaporkan berapa yang keluar, berapa yang masuk, dan apa berikutnya.",
+        "hello": "Hai. Aku memimpin tim iklan dan melaporkan berapa yang keluar dan yang masuk."
+      },
+      "analistaResultado": {
+        "role": "Analis hasil markas iklan",
+        "line": "Membaca akun iklan dan penjualan nyata, mengukur biaya per penjualan, pengembalian kas, dan kejenuhan, lalu bilang apa yang dipotong dan apa yang diperbesar.",
+        "hello": "Hai. Aku membaca angka dan bilang apa yang dipotong dan apa yang diperbesar."
+      },
+      "copywriter": {
+        "role": "Penulis naskah markas iklan",
+        "line": "Menulis teks, judul, deskripsi, hook, dan naskah pendek iklan, per sudut pandang dan hanya dengan klaim yang ada buktinya.",
+        "hello": "Hai. Teks dan hook iklan biar aku yang tulis, hanya dengan klaim yang terbukti."
+      },
+      "diretorCriativo": {
+        "role": "Direktur kreatif markas iklan",
+        "line": "Mengubah hipotesis dan teks menjadi brief video dan desain, menjaga konsep yang berbeda tetap tayang, dan menyiapkan tiap materi siap ditinjau.",
+        "hello": "Hai. Aku mengubah ide menjadi brief dan materi siap ditinjau."
+      },
+      "estrategistaMidia": {
+        "role": "Ahli strategi media markas iklan",
+        "line": "Menyusun struktur kampanye, memilih uji coba minggu ini, dan menulis perintah potong dan perbesar dalam batas anggaran.",
+        "hello": "Hai. Aku merencanakan kampanye dan uji coba minggu ini dalam batas anggaran."
+      },
+      "financeiroTrafego": {
+        "role": "Keuangan markas iklan",
+        "line": "Menghitung tiap proyek, menjaga batas harian dan bulanan, mengendalikan anggaran, dan mengukur pengembalian kas yang nyata.",
+        "hello": "Hai. Aku menjaga anggaran dalam batas dan mengukur pengembalian yang nyata."
+      },
+      "humanizador": {
+        "role": "Sentuhan terakhir pada teks",
+        "line": "Memberi sentuhan terakhir pada teks agar terdengar seperti manusia, tanpa mengubah fakta, klaim, batasan, atau format.",
+        "hello": "Hai. Aku memberi sentuhan terakhir agar setiap teks terdengar seperti manusia."
+      },
+      "operador": {
+        "role": "Operator markas iklan",
+        "line": "Menjalankan perintah yang disetujui di akun iklan satu per satu, lalu mengembalikan hasilnya persis seperti yang datang.",
+        "hello": "Hai. Aku menjalankan perintah yang disetujui di akun iklan, satu per satu."
+      },
+      "pesquisadorGrowth": {
+        "role": "Peneliti growth markas iklan",
+        "line": "Meneliti hook, materi kreatif, dan strategi iklan di pasar, lalu mengubah temuannya menjadi kartu hipotesis uji.",
+        "hello": "Hai. Aku meneliti yang berhasil di pasar dan membawa hipotesis untuk diuji."
+      },
+      "revisorPolitica": {
+        "role": "Peninjau kebijakan markas iklan",
+        "line": "Memeriksa tiap iklan sebelum tayang terhadap aturan platform, hukum, dan klaim proyek, lalu memberi lolos, peringatan, atau blokir.",
+        "hello": "Hai. Aku memeriksa setiap iklan terhadap aturan sebelum tayang."
+      },
+      "chess": {
+        "role": "Ahli strategi pemasaran",
+        "line": "Membaca merek dan momennya, meneliti yang berhasil di ceruknya, dan memberikan strategi dan teks tiap materi, lengkap dengan tesis, hook, dan alasannya.",
+        "hello": "Hai. Strategi dan teks tiap materi biar aku yang urus, selalu dengan alasannya."
+      },
+      "socialMedia": {
+        "role": "Pengelola media sosial",
+        "line": "Mengurus kalender dan akun media sosial merek, membawa ide konten, meminta persetujuan tiap postingan, dan menjadwalkan yang disetujui.",
+        "hello": "Hai. Kalender dan media sosial biar aku yang urus, dan tidak ada yang tayang tanpa persetujuan."
+      },
+      "junin": {
+        "role": "Pengembang dengan AI",
+        "line": "Membuat dan merawat situs, halaman, otomatisasi, dan integrasi perusahaan, menguji, menerbitkan dengan persetujuan, dan menjelaskan hasilnya dengan bahasa sederhana.",
+        "hello": "Hai. Situs, halaman, dan otomatisasi biar aku yang urus, terbit hanya dengan persetujuanmu."
+      },
+      "kiara": {
+        "role": "Keuangan",
+        "line": "Mengurus faktur, penagihan, peringatan bank, jatuh tempo, dan laporan penjualan, selalu dengan persetujuan sebelum dikirim.",
+        "hello": "Hai. Faktur dan penagihan biar aku yang urus, selalu dengan persetujuanmu sebelum dikirim."
+      }
+    },
+    "brand": {
+      "tones": {
+        "proximo": "Akrab",
+        "profissional": "Profesional",
+        "divertido": "Seru",
+        "inspirador": "Menginspirasi",
+        "direto": "Lugas",
+        "acolhedor": "Hangat",
+        "tecnico": "Teknis",
+        "sofisticado": "Elegan",
+        "ousado": "Berani",
+        "educativo": "Edukatif"
+      }
+    }
   }
 }

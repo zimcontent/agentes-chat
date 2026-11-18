@@ -2887,7 +2887,14 @@
       "appIcon.names.night",
       "onboarding.import.agenteschatName",
       "contextMenu.lookOurs",
-      "agentFront.ai"
+      "agentFront.ai",
+      "dougTeam.channels.design",
+      "dougTeam.channels.video",
+      "dougTeam.channels.trafego",
+      "dougTeam.channels.estrategia",
+      "dougTeam.channels.social",
+      "dougTeam.channels.codigo",
+      "dougTeam.channels.financeiro"
     ],
     "ko": [
       "channel.tooLong.fileName",
@@ -3087,7 +3094,14 @@
       "appIcon.names.night",
       "onboarding.import.agenteschatName",
       "contextMenu.lookOurs",
-      "agentFront.ai"
+      "agentFront.ai",
+      "dougTeam.channels.design",
+      "dougTeam.channels.video",
+      "dougTeam.channels.trafego",
+      "dougTeam.channels.estrategia",
+      "dougTeam.channels.social",
+      "dougTeam.channels.codigo",
+      "dougTeam.channels.financeiro"
     ],
     "zh-Hans": [
       "channel.tooLong.fileName",
@@ -3278,7 +3292,14 @@
       "appIcon.names.night",
       "onboarding.import.agenteschatName",
       "contextMenu.lookOurs",
-      "agentFront.ai"
+      "agentFront.ai",
+      "dougTeam.channels.design",
+      "dougTeam.channels.video",
+      "dougTeam.channels.trafego",
+      "dougTeam.channels.estrategia",
+      "dougTeam.channels.social",
+      "dougTeam.channels.codigo",
+      "dougTeam.channels.financeiro"
     ],
     "id": [
       "agentFront.ai",
@@ -4388,7 +4409,14 @@
       "portal.home.viewList",
       "appIcon.names.night",
       "onboarding.import.agenteschatName",
-      "contextMenu.lookOurs"
+      "contextMenu.lookOurs",
+      "dougTeam.channels.design",
+      "dougTeam.channels.video",
+      "dougTeam.channels.trafego",
+      "dougTeam.channels.estrategia",
+      "dougTeam.channels.social",
+      "dougTeam.channels.codigo",
+      "dougTeam.channels.financeiro"
     ]
   },
   "mobile-base": {

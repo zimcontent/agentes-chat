@@ -21316,5 +21316,122 @@
       "add_one": "{{count}} bestand toevoegen",
       "add_other": "{{count}} bestanden toevoegen"
     }
+  },
+  "dougTeam": {
+    "name": "Doug-team",
+    "sub": "Design, video, advertenties, strategie, sociale media, code en financiën",
+    "desc": "Het hele team van het huis, elke agent met zijn vak, zijn routines en zijn skills, met een kanaal voor elk hoofdkwartier.",
+    "lead": "Het Doug-team voor {{org}}, elk hoofdkwartier in een eigen kanaal. Alle routines starten gepauzeerd.",
+    "approvals": "Uitgaven, publicaties en alles wat naar buiten gaat wachten op je akkoord.",
+    "channels": {
+      "design": "hk-ontwerp",
+      "video": "hk-video",
+      "trafego": "hk-advertenties",
+      "estrategia": "hk-strategie",
+      "social": "hk-sociaal",
+      "codigo": "hk-code",
+      "financeiro": "hk-financien"
+    },
+    "agents": {
+      "doug": {
+        "role": "Operationeel manager",
+        "line": "Coördineert het team, volgt deadlines, verdeelt verzoeken, controleert opleveringen en vraagt op het juiste moment om goedkeuring.",
+        "hello": "Hoi. Ik houd het team in beweging en breng je alleen wat jou nodig heeft."
+      },
+      "rosa": {
+        "role": "Art director van het team",
+        "line": "Maakt covers, carrousels, posts, stories, thumbnails en presentaties op bureauniveau, altijd in de huisstijl van het merk van de klant.",
+        "hello": "Hoi. Covers, carrousels en posts zijn voor mij, altijd in de huisstijl."
+      },
+      "sony": {
+        "role": "Video-editor",
+        "line": "Monteert, knipt en animeert video's op studioniveau, van ruw materiaal tot goedgekeurde Reel, altijd in de huisstijl van het merk van de klant.",
+        "hello": "Hoi. Stuur me het ruwe materiaal en ik geef je de gemonteerde video terug."
+      },
+      "mark": {
+        "role": "Hoofd van het advertentiehoofdkwartier",
+        "line": "Regelt betaalde advertenties van begin tot eind met het advertentieteam en vertelt wat er is uitgegeven, wat er binnenkwam en wat er komt.",
+        "hello": "Hoi. Ik leid het advertentieteam en vertel je wat er is uitgegeven en binnenkwam."
+      },
+      "analistaResultado": {
+        "role": "Resultaatanalist van de advertenties",
+        "line": "Leest het advertentieaccount en de echte verkopen, meet kosten per verkoop, rendement in kas en vermoeidheid, en zegt wat er weg moet en wat opgeschaald wordt.",
+        "hello": "Hoi. Ik lees de cijfers en zeg wat weg moet en wat opgeschaald wordt."
+      },
+      "copywriter": {
+        "role": "Tekstschrijver van de advertenties",
+        "line": "Schrijft advertentieteksten, titels, beschrijvingen, haakjes en korte scripts, per invalshoek en alleen met beweringen die bewijs hebben.",
+        "hello": "Hoi. Advertentieteksten en haakjes zijn voor mij, alleen met bewezen beweringen."
+      },
+      "diretorCriativo": {
+        "role": "Creatief directeur van de advertenties",
+        "line": "Maakt van hypotheses en teksten briefings voor video en beeld, houdt verschillende concepten live en bouwt elk stuk klaar voor review.",
+        "hello": "Hoi. Ik maak van ideeën briefings en stukken klaar voor review."
+      },
+      "estrategistaMidia": {
+        "role": "Mediastrateeg van de advertenties",
+        "line": "Zet de structuur van de campagnes op, kiest de tests van de week en schrijft de opdrachten om te schrappen en op te schalen binnen het plafond.",
+        "hello": "Hoi. Ik plan de campagnes en de tests van de week binnen het plafond."
+      },
+      "financeiroTrafego": {
+        "role": "Financiën van de advertenties",
+        "line": "Rekent elk project door, bewaakt het dag- en maandplafond, beheert het budget en meet het echte rendement in kas.",
+        "hello": "Hoi. Ik houd het budget binnen het plafond en meet het echte rendement."
+      },
+      "humanizador": {
+        "role": "Laatste ronde over de tekst",
+        "line": "Gaat een laatste keer over de tekst zodat die menselijk klinkt, zonder feiten, beweringen, grenzen of vorm te veranderen.",
+        "hello": "Hoi. Ik ga een laatste keer over elke tekst zodat die menselijk klinkt."
+      },
+      "operador": {
+        "role": "Uitvoerder van de advertenties",
+        "line": "Voert in het advertentieaccount de goedgekeurde opdrachten een voor een uit en geeft het resultaat precies zo terug als het kwam.",
+        "hello": "Hoi. Ik voer de goedgekeurde opdrachten in het advertentieaccount een voor een uit."
+      },
+      "pesquisadorGrowth": {
+        "role": "Growth-onderzoeker van de advertenties",
+        "line": "Onderzoekt haakjes, creatives en advertentiestrategieën in de markt en maakt van wat hij vindt kaarten met testhypotheses.",
+        "hello": "Hoi. Ik onderzoek wat werkt in de markt en breng hypotheses om te testen."
+      },
+      "revisorPolitica": {
+        "role": "Beleidscontroleur van de advertenties",
+        "line": "Controleert elke advertentie voor die live gaat tegen de regels van het platform, de wet en de beweringen van het project, en zegt goed, waarschuwing of blokkeren.",
+        "hello": "Hoi. Ik controleer elke advertentie tegen de regels voor die live gaat."
+      },
+      "chess": {
+        "role": "Marketingstrateeg",
+        "line": "Leest het merk en het moment, onderzoekt wat werkt in de niche en levert de strategie en tekst van elk stuk, met een stelling, haakjes en het waarom.",
+        "hello": "Hoi. Strategie en tekst van elk stuk zijn voor mij, altijd met het waarom."
+      },
+      "socialMedia": {
+        "role": "Socialemediamanager",
+        "line": "Beheert de kalender en de kanalen van de merken, brengt contentideeën, laat elke post goedkeuren en plant wat is goedgekeurd.",
+        "hello": "Hoi. Kalender en kanalen zijn voor mij, en niets gaat eruit zonder goedkeuring."
+      },
+      "junin": {
+        "role": "Ontwikkelaar met AI",
+        "line": "Maakt en onderhoudt de sites, pagina's, automatiseringen en koppelingen van het bedrijf, test, publiceert met akkoord en legt het resultaat eenvoudig uit.",
+        "hello": "Hoi. Sites, pagina's en automatiseringen zijn voor mij, gepubliceerd alleen met je akkoord."
+      },
+      "kiara": {
+        "role": "Financiën",
+        "line": "Zorgt voor facturen, aanmaningen, bankmeldingen, vervaldata en verkooprapporten, altijd met goedkeuring voor het verzenden.",
+        "hello": "Hoi. Facturen en aanmaningen zijn voor mij, altijd met je akkoord voor het verzenden."
+      }
+    },
+    "brand": {
+      "tones": {
+        "proximo": "Persoonlijk",
+        "profissional": "Professioneel",
+        "divertido": "Grappig",
+        "inspirador": "Inspirerend",
+        "direto": "Direct",
+        "acolhedor": "Hartelijk",
+        "tecnico": "Technisch",
+        "sofisticado": "Verfijnd",
+        "ousado": "Gedurfd",
+        "educativo": "Leerzaam"
+      }
+    }
   }
 }

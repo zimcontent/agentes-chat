@@ -7,6 +7,7 @@ import {
   announceMembers,
   announceProfile,
   avatarFile,
+  brandPendingIn,
   CODE_LENGTH,
   can,
   canCreateWorkspace,
@@ -227,6 +228,10 @@ export function accountRoutes(deps: AppDeps) {
     ]);
     if (verified === null) return null;
     const onboardingOf = (orgId: string) => unfinished.find((u) => u.organization.id === orgId);
+    const brandWaits = await brandPendingIn(
+      db,
+      unfinished.map((u) => u.organization.id),
+    );
     const deletions = await workspaceDeletions(
       db,
       memberships.flatMap((m) => (m.standing?.deletionDueAt ? [m.orgId] : [])),
@@ -282,7 +287,13 @@ export function accountRoutes(deps: AppDeps) {
             ? { standing: { state: m.standing.state, reason: toldReason(m.standing), ...cloudNotice() } }
             : {}),
           ...(setup
-            ? { onboarding: { step: setup.organization.onboardingStep, generalChannelId: setup.general.id } }
+            ? {
+                onboarding: {
+                  step: setup.organization.onboardingStep,
+                  generalChannelId: setup.general.id,
+                  ...(brandWaits.has(m.orgId) ? { brandPending: true } : {}),
+                },
+              }
             : {}),
           ...(deleting
             ? {
@@ -1418,7 +1429,7 @@ export function accountRoutes(deps: AppDeps) {
       security,
       summary: "Save how far you got in setting up your workspace",
       description:
-        "Its owner only (403 for anyone else). `step`: the furthest step reached, saved as each one is passed (a skipped one counts); it only moves forward, so an earlier one changes nothing. `finished`: the onboarding is over, for good; the answer then says where the workspace opens (`rightHandId`) and carries `GET /me` as it is now. Until then the apps open the onboarding instead of the workspace (`onboarding` in `GET /me`).",
+        "Its owner only (403 for anyone else). `step`: the furthest step reached, saved as each one is passed (a skipped one counts); it only moves forward, so an earlier one changes nothing. `finished`: the onboarding is over, for good (409 `onboarding.brand_pending` while the Doug team's brand step waits, docs/adr/doug-0020-time-doug.md); the answer then says where the workspace opens (`rightHandId`) and carries `GET /me` as it is now. Until then the apps open the onboarding instead of the workspace (`onboarding` in `GET /me`).",
       request: {
         params: OrgParams,
         body: body(z.object({ step: z.enum(ONBOARDING_STEPS).optional(), finished: z.literal(true).optional() })),

@@ -21754,6 +21754,124 @@ export const en = {
       add_other: "Add {{count}} files",
     },
   },
+  /** The Doug team template (docs/adr/doug-0020-time-doug.md): the gallery's first card, its channels, each agent's words and hello, and the brand step's tones. */
+  dougTeam: {
+    name: "Doug Team",
+    sub: "Design, video, ads, strategy, social media, code and finance",
+    desc: "The house's whole team, each agent with its craft, its routines and its skills, with a channel for each HQ.",
+    lead: "The Doug team for {{org}}, each HQ in its own channel. Every routine starts paused.",
+    approvals: "Spending, publishing and sending anything outside wait for your ok.",
+    channels: {
+      design: "hq-design",
+      video: "hq-video",
+      trafego: "hq-ads",
+      estrategia: "hq-strategy",
+      social: "hq-social",
+      codigo: "hq-code",
+      financeiro: "hq-finance",
+    },
+    agents: {
+      doug: {
+        role: "Operations manager",
+        line: "Coordinates the team, follows deadlines, hands out requests, reviews deliveries and asks for approval at the right moment.",
+        hello: "Hi. I keep the team moving and bring you only what needs you.",
+      },
+      rosa: {
+        role: "Art director",
+        line: "Makes covers, carousels, posts, stories, thumbnails and decks at agency level, always in the client's brand.",
+        hello: "Hi. Covers, carousels and posts are on me, always in the brand.",
+      },
+      sony: {
+        role: "Video editor",
+        line: "Edits, cuts and animates videos at studio level, from the raw footage to the approved Reel, always in the client's brand.",
+        hello: "Hi. Send me the raw footage and I'll bring back the edited video.",
+      },
+      mark: {
+        role: "Head of the ads HQ",
+        line: "Runs paid ads end to end with the ads team and reports what was spent, what came in and what comes next.",
+        hello: "Hi. I lead the ads team and tell you what was spent and what came in.",
+      },
+      analistaResultado: {
+        role: "Results analyst of the ads HQ",
+        line: "Reads the ad account and real sales, measures cost per sale, cash return and fatigue, and says what to cut and what to scale.",
+        hello: "Hi. I read the numbers and say what to cut and what to scale.",
+      },
+      copywriter: {
+        role: "Copywriter of the ads HQ",
+        line: "Writes ad text, headlines, descriptions, hooks and short scripts, by angle and only with claims that have proof.",
+        hello: "Hi. Ad copy and hooks are on me, only with claims that have proof.",
+      },
+      diretorCriativo: {
+        role: "Creative director of the ads HQ",
+        line: "Turns hypotheses and copy into video and art briefs, keeps different concepts live and builds each piece ready for review.",
+        hello: "Hi. I turn ideas into briefs and pieces ready for review.",
+      },
+      estrategistaMidia: {
+        role: "Media strategist of the ads HQ",
+        line: "Sets up the campaign structure, picks the week's tests and writes the cut and scale orders within the cap.",
+        hello: "Hi. I plan the campaigns and the week's tests within the cap.",
+      },
+      financeiroTrafego: {
+        role: "Finance of the ads HQ",
+        line: "Does each project's math, keeps the daily and monthly cap, controls the budget and measures the real cash return.",
+        hello: "Hi. I keep the ad budget within the cap and measure the real return.",
+      },
+      humanizador: {
+        role: "Last pass on the copy",
+        line: "Gives the copy a last pass so it sounds like a person, without changing facts, claims, limits or format.",
+        hello: "Hi. I give every copy a last pass so it sounds like a person.",
+      },
+      operador: {
+        role: "Operator of the ads HQ",
+        line: "Carries out the approved orders in the ad account, one by one, and returns the result exactly as it came.",
+        hello: "Hi. I carry out the approved orders in the ad account, one by one.",
+      },
+      pesquisadorGrowth: {
+        role: "Growth researcher of the ads HQ",
+        line: "Researches hooks, creatives and ad strategies in the market and turns what it finds into test hypothesis cards.",
+        hello: "Hi. I research what works in the market and bring hypotheses to test.",
+      },
+      revisorPolitica: {
+        role: "Policy reviewer of the ads HQ",
+        line: "Checks each ad before it goes live against the platform's rules, the law and the project's claims, and says pass, warn or block.",
+        hello: "Hi. I check every ad against the rules before it goes live.",
+      },
+      chess: {
+        role: "Marketing strategist",
+        line: "Reads the brand and the moment, researches what works in the niche and delivers the strategy and copy of each piece, with a thesis, hooks and the why.",
+        hello: "Hi. Strategy and copy for each piece are on me, always with the why.",
+      },
+      socialMedia: {
+        role: "Social media manager",
+        line: "Owns the calendar and the brands' networks, brings content ideas, takes each post to approval and schedules what was approved.",
+        hello: "Hi. The calendar and the networks are on me, and nothing goes out without approval.",
+      },
+      junin: {
+        role: "Vibe coder",
+        line: "Builds and maintains the company's sites, pages, automations and integrations, tests, publishes with an ok and explains the result in plain words.",
+        hello: "Hi. Sites, pages and automations are on me, published only with your ok.",
+      },
+      kiara: {
+        role: "Finance",
+        line: "Takes care of invoices, collections, bank alerts, due dates and sales reports, always with approval before sending.",
+        hello: "Hi. Invoices and collections are on me, always with your ok before sending.",
+      },
+    },
+    brand: {
+      tones: {
+        proximo: "Friendly",
+        profissional: "Professional",
+        divertido: "Fun",
+        inspirador: "Inspiring",
+        direto: "Straightforward",
+        acolhedor: "Warm",
+        tecnico: "Technical",
+        sofisticado: "Sophisticated",
+        ousado: "Bold",
+        educativo: "Educational",
+      },
+    },
+  },
 };
 
 export type Translations = Widen<typeof en>;

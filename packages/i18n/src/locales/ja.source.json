@@ -51701,5 +51701,224 @@
       "one": "Add {{count}} file",
       "other": "Add {{count}} files"
     }
+  },
+  "dougTeam.name": {
+    "value": "Doug Team"
+  },
+  "dougTeam.sub": {
+    "value": "Design, video, ads, strategy, social media, code and finance"
+  },
+  "dougTeam.desc": {
+    "value": "The house's whole team, each agent with its craft, its routines and its skills, with a channel for each HQ."
+  },
+  "dougTeam.lead": {
+    "value": "The Doug team for {{org}}, each HQ in its own channel. Every routine starts paused."
+  },
+  "dougTeam.approvals": {
+    "value": "Spending, publishing and sending anything outside wait for your ok."
+  },
+  "dougTeam.channels.design": {
+    "value": "hq-design"
+  },
+  "dougTeam.channels.video": {
+    "value": "hq-video"
+  },
+  "dougTeam.channels.trafego": {
+    "value": "hq-ads"
+  },
+  "dougTeam.channels.estrategia": {
+    "value": "hq-strategy"
+  },
+  "dougTeam.channels.social": {
+    "value": "hq-social"
+  },
+  "dougTeam.channels.codigo": {
+    "value": "hq-code"
+  },
+  "dougTeam.channels.financeiro": {
+    "value": "hq-finance"
+  },
+  "dougTeam.agents.doug.role": {
+    "value": "Operations manager"
+  },
+  "dougTeam.agents.doug.line": {
+    "value": "Coordinates the team, follows deadlines, hands out requests, reviews deliveries and asks for approval at the right moment."
+  },
+  "dougTeam.agents.doug.hello": {
+    "value": "Hi. I keep the team moving and bring you only what needs you."
+  },
+  "dougTeam.agents.rosa.role": {
+    "value": "Art director"
+  },
+  "dougTeam.agents.rosa.line": {
+    "value": "Makes covers, carousels, posts, stories, thumbnails and decks at agency level, always in the client's brand."
+  },
+  "dougTeam.agents.rosa.hello": {
+    "value": "Hi. Covers, carousels and posts are on me, always in the brand."
+  },
+  "dougTeam.agents.sony.role": {
+    "value": "Video editor"
+  },
+  "dougTeam.agents.sony.line": {
+    "value": "Edits, cuts and animates videos at studio level, from the raw footage to the approved Reel, always in the client's brand."
+  },
+  "dougTeam.agents.sony.hello": {
+    "value": "Hi. Send me the raw footage and I'll bring back the edited video."
+  },
+  "dougTeam.agents.mark.role": {
+    "value": "Head of the ads HQ"
+  },
+  "dougTeam.agents.mark.line": {
+    "value": "Runs paid ads end to end with the ads team and reports what was spent, what came in and what comes next."
+  },
+  "dougTeam.agents.mark.hello": {
+    "value": "Hi. I lead the ads team and tell you what was spent and what came in."
+  },
+  "dougTeam.agents.analistaResultado.role": {
+    "value": "Results analyst of the ads HQ"
+  },
+  "dougTeam.agents.analistaResultado.line": {
+    "value": "Reads the ad account and real sales, measures cost per sale, cash return and fatigue, and says what to cut and what to scale."
+  },
+  "dougTeam.agents.analistaResultado.hello": {
+    "value": "Hi. I read the numbers and say what to cut and what to scale."
+  },
+  "dougTeam.agents.copywriter.role": {
+    "value": "Copywriter of the ads HQ"
+  },
+  "dougTeam.agents.copywriter.line": {
+    "value": "Writes ad text, headlines, descriptions, hooks and short scripts, by angle and only with claims that have proof."
+  },
+  "dougTeam.agents.copywriter.hello": {
+    "value": "Hi. Ad copy and hooks are on me, only with claims that have proof."
+  },
+  "dougTeam.agents.diretorCriativo.role": {
+    "value": "Creative director of the ads HQ"
+  },
+  "dougTeam.agents.diretorCriativo.line": {
+    "value": "Turns hypotheses and copy into video and art briefs, keeps different concepts live and builds each piece ready for review."
+  },
+  "dougTeam.agents.diretorCriativo.hello": {
+    "value": "Hi. I turn ideas into briefs and pieces ready for review."
+  },
+  "dougTeam.agents.estrategistaMidia.role": {
+    "value": "Media strategist of the ads HQ"
+  },
+  "dougTeam.agents.estrategistaMidia.line": {
+    "value": "Sets up the campaign structure, picks the week's tests and writes the cut and scale orders within the cap."
+  },
+  "dougTeam.agents.estrategistaMidia.hello": {
+    "value": "Hi. I plan the campaigns and the week's tests within the cap."
+  },
+  "dougTeam.agents.financeiroTrafego.role": {
+    "value": "Finance of the ads HQ"
+  },
+  "dougTeam.agents.financeiroTrafego.line": {
+    "value": "Does each project's math, keeps the daily and monthly cap, controls the budget and measures the real cash return."
+  },
+  "dougTeam.agents.financeiroTrafego.hello": {
+    "value": "Hi. I keep the ad budget within the cap and measure the real return."
+  },
+  "dougTeam.agents.humanizador.role": {
+    "value": "Last pass on the copy"
+  },
+  "dougTeam.agents.humanizador.line": {
+    "value": "Gives the copy a last pass so it sounds like a person, without changing facts, claims, limits or format."
+  },
+  "dougTeam.agents.humanizador.hello": {
+    "value": "Hi. I give every copy a last pass so it sounds like a person."
+  },
+  "dougTeam.agents.operador.role": {
+    "value": "Operator of the ads HQ"
+  },
+  "dougTeam.agents.operador.line": {
+    "value": "Carries out the approved orders in the ad account, one by one, and returns the result exactly as it came."
+  },
+  "dougTeam.agents.operador.hello": {
+    "value": "Hi. I carry out the approved orders in the ad account, one by one."
+  },
+  "dougTeam.agents.pesquisadorGrowth.role": {
+    "value": "Growth researcher of the ads HQ"
+  },
+  "dougTeam.agents.pesquisadorGrowth.line": {
+    "value": "Researches hooks, creatives and ad strategies in the market and turns what it finds into test hypothesis cards."
+  },
+  "dougTeam.agents.pesquisadorGrowth.hello": {
+    "value": "Hi. I research what works in the market and bring hypotheses to test."
+  },
+  "dougTeam.agents.revisorPolitica.role": {
+    "value": "Policy reviewer of the ads HQ"
+  },
+  "dougTeam.agents.revisorPolitica.line": {
+    "value": "Checks each ad before it goes live against the platform's rules, the law and the project's claims, and says pass, warn or block."
+  },
+  "dougTeam.agents.revisorPolitica.hello": {
+    "value": "Hi. I check every ad against the rules before it goes live."
+  },
+  "dougTeam.agents.chess.role": {
+    "value": "Marketing strategist"
+  },
+  "dougTeam.agents.chess.line": {
+    "value": "Reads the brand and the moment, researches what works in the niche and delivers the strategy and copy of each piece, with a thesis, hooks and the why."
+  },
+  "dougTeam.agents.chess.hello": {
+    "value": "Hi. Strategy and copy for each piece are on me, always with the why."
+  },
+  "dougTeam.agents.socialMedia.role": {
+    "value": "Social media manager"
+  },
+  "dougTeam.agents.socialMedia.line": {
+    "value": "Owns the calendar and the brands' networks, brings content ideas, takes each post to approval and schedules what was approved."
+  },
+  "dougTeam.agents.socialMedia.hello": {
+    "value": "Hi. The calendar and the networks are on me, and nothing goes out without approval."
+  },
+  "dougTeam.agents.junin.role": {
+    "value": "Vibe coder"
+  },
+  "dougTeam.agents.junin.line": {
+    "value": "Builds and maintains the company's sites, pages, automations and integrations, tests, publishes with an ok and explains the result in plain words."
+  },
+  "dougTeam.agents.junin.hello": {
+    "value": "Hi. Sites, pages and automations are on me, published only with your ok."
+  },
+  "dougTeam.agents.kiara.role": {
+    "value": "Finance"
+  },
+  "dougTeam.agents.kiara.line": {
+    "value": "Takes care of invoices, collections, bank alerts, due dates and sales reports, always with approval before sending."
+  },
+  "dougTeam.agents.kiara.hello": {
+    "value": "Hi. Invoices and collections are on me, always with your ok before sending."
+  },
+  "dougTeam.brand.tones.proximo": {
+    "value": "Friendly"
+  },
+  "dougTeam.brand.tones.profissional": {
+    "value": "Professional"
+  },
+  "dougTeam.brand.tones.divertido": {
+    "value": "Fun"
+  },
+  "dougTeam.brand.tones.inspirador": {
+    "value": "Inspiring"
+  },
+  "dougTeam.brand.tones.direto": {
+    "value": "Straightforward"
+  },
+  "dougTeam.brand.tones.acolhedor": {
+    "value": "Warm"
+  },
+  "dougTeam.brand.tones.tecnico": {
+    "value": "Technical"
+  },
+  "dougTeam.brand.tones.sofisticado": {
+    "value": "Sophisticated"
+  },
+  "dougTeam.brand.tones.ousado": {
+    "value": "Bold"
+  },
+  "dougTeam.brand.tones.educativo": {
+    "value": "Educational"
   }
 }

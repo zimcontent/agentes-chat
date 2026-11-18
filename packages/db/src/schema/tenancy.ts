@@ -19,7 +19,18 @@ import {
 import { users } from "./auth";
 
 /** The onboarding's steps, in order (the apps' `ONBOARDING_STEPS`, `packages/client/src/lib/onboarding.ts`). */
-export const ONBOARDING_STEPS = ["workspace", "context", "import", "agents", "computer", "ai", "team", "done"] as const;
+export const ONBOARDING_STEPS = [
+  "workspace",
+  "context",
+  "import",
+  "agents",
+  // The brand, after the Doug team (docs/adr/doug-0020-time-doug.md).
+  "brand",
+  "computer",
+  "ai",
+  "team",
+  "done",
+] as const;
 export type OnboardingStep = (typeof ONBOARDING_STEPS)[number];
 
 /** What opens when the app starts (ADR 0108; the apps' `StartPage`, `packages/client/src/api/types.ts`). */
