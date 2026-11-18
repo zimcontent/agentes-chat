@@ -2597,8 +2597,16 @@ export function createFakeHttpApi(state: FakeState): Omit<HttpApi, FakedParts> {
       // As the server: the template's team is made at once (ADR 0155 §6).
       applyTeamTemplate: async (orgId, templateId, locale, handles) => {
         log("agents.applyTeamTemplate", orgId, templateId, locale, ...(handles ? [handles] : []));
-        // Already made in this workspace (another tab, a reload): the server refuses with 409 `doug_team.made`.
-        if (templateId === "doug" && state.dougMade) throw new ApiError(409, "doug_team.made", "Already made");
+        // Already made in this workspace (another tab, a reload): the server refuses with 409 `doug_team.made`. It is
+        // made all the same, so its brand step waits, as `GET /me` reads once this page asks again.
+        if (templateId === "doug" && state.dougMade) {
+          state.brandState = { brand: state.brandState?.brand ?? null, pending: true };
+          if (state.me)
+            state.me.organizations = state.me.organizations.map((o) =>
+              o.id === orgId && o.onboarding ? { ...o, onboarding: { ...o.onboarding, brandPending: true } } : o,
+            );
+          throw new ApiError(409, "doug_team.made", "Already made");
+        }
         const template = state.teamTemplates?.find((x) => x.id === templateId);
         // The Doug team lists who it makes in `members` (the right hand makes none): the rest in `team.agents`.
         const team =

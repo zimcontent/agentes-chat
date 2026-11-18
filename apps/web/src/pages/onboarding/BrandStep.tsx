@@ -55,8 +55,10 @@ export function BrandStep({
   /** Saved (or the workspace's brand already was): the step is answered. */
   onSaved: () => void;
 }) {
-  // The read may be on its way, or have failed: its own states say it, never a blank form.
-  if (error)
+  // The read may be on its way, or have failed: its own states say it, never a blank form. A read that failed later,
+  // the brand already here, keeps the form: what it has is what the person typed over, and a step can't be lost to a
+  // refetch.
+  if (error && state === undefined)
     return (
       <div className="onb__answer">
         <ErrorState error={error} onRetry={onRetry} />
@@ -123,6 +125,9 @@ function BrandForm({
   const tonePicked = [...tones];
   // A tapped tone asked for a written one of its own: what the person types is kept, an empty field is not.
   const custom = writing && tone.trim() !== "";
+  // A link typed or pasted and left in its field, without "Adicionar": it counts as given, so the step never saves
+  // without what the person can see. The same for a tone written and then unclicked off its chip.
+  const typedLink = link.trim();
   const input: BrandInput = {
     company: company.trim(),
     tones: tonePicked,
@@ -131,7 +136,7 @@ function BrandForm({
     instagram: instagram.trim() || null,
     audience: audience.trim() || null,
     files: files.map((f) => f.id),
-    links,
+    links: typedLink && !links.includes(typedLink) ? [...links, typedLink] : links,
   };
   // Required: a name and a tone (tapped or written). Everything else may stay empty; what's missing is said under the
   // button, never only by a button that won't press.

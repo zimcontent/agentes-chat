@@ -63,7 +63,9 @@ export function WhoStep({
     }
     onOff(next);
   };
-  const empty = counts.agents === 0;
+  // Nothing to make: the right hand is here already, so a team of its own is an agent besides it, or the button can
+  // never be pressed (a person left with only the right hand going on to the brand and back would be stuck here).
+  const empty = counts.others === 0;
   return (
     <>
       <Locked when={pending}>

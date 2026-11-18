@@ -6,8 +6,9 @@ setupDom();
 import type { DougTemplateMember, TeamTemplate } from "@agenteschat/client";
 import type { OnboardingStepId } from "@agenteschat/client/lib/onboarding";
 import { act, cleanup, fireEvent } from "@testing-library/react";
+import { BrandStep } from "@/pages/onboarding/BrandStep";
 import { createFakeApi, type FakeState, fakeDevicesOf, GENERAL_ID, ORG_ID, seedState, withRightHand } from "./fake-api";
-import { renderApp, screen, settle } from "./render";
+import { renderApp, renderPage, screen, settle } from "./render";
 
 /*
  * The Doug team in the onboarding (docs/adr/doug-0020-time-doug.md), on the web: its card first on how a team starts,
@@ -223,6 +224,24 @@ describe('"Quem entra no seu time?"', () => {
     expect(connect).toBeTruthy();
   });
 
+  test("every box unchecked: there is no team to make, so the button waits and says why", async () => {
+    const state = atStart();
+    await howStart(state);
+    await click(button("Escolher quem entra"), 14);
+    // Uncheck ROSA, the MARK (its team with it) and the Operador, the right hand staying: nothing is left to create.
+    await click(rowOf("ROSA").querySelector("[role='checkbox']") as HTMLElement, 6);
+    await click(rowOf("MARK").querySelector("[role='checkbox']") as HTMLElement, 6);
+    // The right hand alone in the list, and the button can't press: the words say what it still waits for.
+    expect(document.querySelector(".onb-who__counts dd")?.textContent).toBe("1");
+    const create = button("Criar o time") as HTMLButtonElement;
+    expect(create.disabled).toBe(true);
+    expect(document.querySelector(".onb__help")?.textContent).toBe("Marque pelo menos um agente do Time Doug.");
+    // Pressing it anyway makes nothing: the step stays where it is.
+    await click(create, 10);
+    expect(calls(state, "agents.applyTeamTemplate")).toHaveLength(0);
+    expect(heading()).toBe("Quem entra no seu time?");
+  });
+
   test("Back goes to how the team starts, its card still picked", async () => {
     await howStart(atStart());
     await click(button("Escolher quem entra"), 14);
@@ -398,8 +417,8 @@ describe("making the Doug team", () => {
   });
 
   test("the brand step's note names the agents that need a computer, and its button opens the flow", async () => {
-    const state = brandPending(atStart());
-    // ROSA and Operador need one (the template says so); the state has none connected.
+    // The team made here, in this visit: ROSA and Operador need one (the template says so) and none is connected.
+    const state = atStart();
     await renderApp("/onboarding", { api: createFakeApi(state) });
     await settle(14);
     await click(button("Escolher quem entra"), 14);
@@ -411,15 +430,49 @@ describe("making the Doug team", () => {
     expect(note).toContain("ROSA");
   });
 
+  test("its Connect opens the app's own flow over the brand, never dropping the step", async () => {
+    // Made here, so the step after it keeps the agents it named (the answer's computers, not the template's).
+    await renderApp("/onboarding", { api: createFakeApi(atStart()) });
+    await settle(14);
+    await click(button("Escolher quem entra"), 14);
+    await click(button("Criar o time"), 20);
+    expect(heading()).toBe("Ensine a sua marca ao time");
+    // The note's own link ("Conecte um computador"), not the step's Continuar.
+    const connect = [...document.querySelectorAll(".onb-brand button")].find(
+      (b) => b.textContent === "Conectar computador",
+    ) as HTMLElement;
+    expect(connect).toBeTruthy();
+    await click(connect, 12);
+    // The Connect flow's chooser is over the step, which stays behind it: the brand's form is still there.
+    expect(screen().getByRole("dialog")).toBeTruthy();
+    expect(document.querySelector(".onb__title")?.textContent).toBe("Ensine a sua marca ao time");
+  });
+
+  test("the brand waiting with no team read yet: the rail is on its brand, never back on who joins", async () => {
+    // The server keeps the wait, and the agents read late (or are still the right hand's alone here).
+    const state = brandPending(atStart());
+    await renderApp("/onboarding", { api: createFakeApi(state) });
+    await settle(16);
+    expect(heading()).toBe("Ensine a sua marca ao time");
+    const steps = [...document.querySelectorAll(".onb__step")].map((s) => s.textContent ?? "");
+    expect(steps.some((s) => s.includes("Quem entra"))).toBe(false);
+    const brand = steps.find((s) => s.includes("Sua marca"));
+    expect(brand).toBeTruthy();
+    // "Seu time" carries no "Depois": the team was made, the brand is what waits, so the step is never read as skipped.
+    expect(steps.find((s) => s.includes("Seu time"))).not.toContain("Depois");
+  });
+
   test("409 `doug_team.made`: the step goes on as if this press made it, the error cleared", async () => {
-    const state = brandPending(atStart({ dougMade: true }));
+    // Made in another tab while this one was on "Quem entra": the server refuses, and `/me` says its brand waits.
+    const state = atStart({ dougMade: true });
     await renderApp("/onboarding", { api: createFakeApi(state) });
     await settle(14);
     await click(button("Escolher quem entra"), 14);
     await click(button("Criar o time"), 20);
-    // Made meanwhile: no error left behind, and the step went on (its agents read, `/me` read).
+    // Made meanwhile: no error left behind, and the step went on: the brand is next, as if this press had made it.
     expect(document.querySelector(".onb__error")).toBeNull();
     expect(calls(state, "agents.applyTeamTemplate")).toHaveLength(1);
+    expect(heading()).toBe("Ensine a sua marca ao time");
   });
 
   test("a second press while the team is being made never makes a second one", async () => {
@@ -559,6 +612,60 @@ describe('"Ensine a sua marca ao time"', () => {
     failing.brandError = undefined;
     await click(screen().getByRole("button", { name: "Tentar de novo" }), 10);
     expect((screen().getByLabelText("Nome da empresa") as HTMLInputElement).value).toBe("");
+  });
+
+  test("a pasted link and a written tone, never added by their buttons, go in the save all the same", async () => {
+    const state = brandWaits();
+    await renderApp("/onboarding", { api: createFakeApi(state) });
+    await settle(16);
+    await type("Nome da empresa", "Padaria Aurora");
+    // A link pasted into its field, and the person goes straight to Continuar: never pressed "Adicionar".
+    await click(button("Colar um link"), 4);
+    await type("Colar um link", "padariaaurora.com.br/marca");
+    // A tone written, its chip leaving the field open: what was typed counts.
+    await click(button("Escrever o seu"), 4);
+    await type("Nas suas palavras: como a marca fala", "Fala como vizinha de bairro");
+    await click(button("Continuar"), 16);
+    const [saved] = calls(state, "orgs.saveBrand");
+    expect(saved?.args[1]).toMatchObject({
+      company: "Padaria Aurora",
+      tone: "Fala como vizinha de bairro",
+      // The pasted link is in the save, not left behind in its field: the server takes it with the rest.
+      links: ["padariaaurora.com.br/marca"],
+    });
+  });
+
+  test("a read that fails after the brand was here keeps the form, never the error state", async () => {
+    // The step itself, its data in hand and a refetch that failed: what the person typed over stays on screen.
+    await renderPage(
+      <BrandStep
+        orgId={ORG_ID}
+        state={{
+          pending: true,
+          brand: {
+            company: "Padaria Aurora",
+            tones: ["divertido"],
+            tone: null,
+            site: null,
+            instagram: null,
+            audience: null,
+            files: [],
+            links: [],
+          },
+          skillId: null,
+          tones: [],
+        }}
+        error={new Error("offline")}
+        onRetry={() => {}}
+        computerNote={null}
+        onConnectComputer={() => {}}
+        onSaved={() => {}}
+      />,
+      { api: createFakeApi(seedState()) },
+    );
+    expect((screen().getByLabelText("Nome da empresa") as HTMLInputElement).value).toBe("Padaria Aurora");
+    expect(screen().queryByRole("button", { name: "Tentar de novo" })).toBeNull();
+    expect(screen().queryByRole("alert")).toBeNull();
   });
 
   test("an upload that fails says so under the list; the brand never saved, the step waits", async () => {

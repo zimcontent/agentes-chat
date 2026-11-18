@@ -124,9 +124,11 @@ export function railStepAt(f: {
   if (!f.created) return "name";
   if (!f.personal && !f.context) return "business";
   if (f.you && !f.about) return "you";
+  // The Doug team's brand waits: the server refuses to finish the onboarding until it is saved, so the step comes
+  // before anything the team's own data would say, a team read late (or made in another tab) included.
+  if (f.brandWaits) return "brand";
   // No team yet: who enters the Doug team, once its card is picked; else the team step itself.
   if (!f.team) return f.dougPicked ? "who" : "team";
-  if (f.brandWaits) return "brand";
   if (f.waitsForPlan) return "plan";
   if (f.ai && !f.thinks) return "ai";
   return f.people && !f.invited ? "people" : "open";
@@ -195,7 +197,8 @@ export function railState(f: {
   const you = funnel !== null;
   // The Doug team's two steps: "who" while its card is picked (no team yet), "brand" once it was made and its brand
   // still waits. A workspace that never picked it has neither.
-  const who = funnel !== null && !personal && f.team === 0 && f.dougPicked === true;
+  // "Quem entra" is the team's card being answered: a brand that waits says the team was made, so it is never there.
+  const who = funnel !== null && !personal && f.team === 0 && f.dougPicked === true && f.brandWaits !== true;
   const brand = funnel !== null && !personal && f.brandWaits === true;
   const steps = funnel
     ? railSteps({ plan: hasPlanStep, ai: true, personal, people, you, who, brand })

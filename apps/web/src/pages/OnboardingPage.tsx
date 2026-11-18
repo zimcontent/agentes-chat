@@ -196,6 +196,9 @@ export function OnboardingPage() {
   // for an AI again.
   const aiLaterSaved = passed !== undefined && stepIndex(passed) >= stepIndex("ai");
   const held = billingHoldOf(mine?.standing) === "payment";
+  // The Doug team's brand step waits (`GET /me`'s `onboarding.brandPending`, docs/adr/doug-0020-time-doug.md): the
+  // server refuses to finish until it is saved, so the rail is on it while its team's data may still be arriving.
+  const brandWaits = mine?.onboarding?.brandPending === true;
   // Back from paying, until the billing service lifts the hold: `/me` again meanwhile, as the hold's banner does.
   const paid = usePaidReturn(orgId ?? "", held);
   useQuery({ ...meQuery(api), enabled: paid, refetchInterval: PAID_POLL_MS });
@@ -248,7 +251,7 @@ export function OnboardingPage() {
       // step's own `who` stage (the team made from it has a team, so the step isn't there), and "Sua marca" while the
       // server says the brand still waits (`onboarding.brandPending`, `GET /me`).
       dougPicked: source.stage === "who",
-      brandWaits: mine?.onboarding?.brandPending === true,
+      brandWaits,
     });
   const reachedRail = railAt(picked);
   // Connected on its step in this visit, a team's AI step stays on screen (what was connected, the Connect dialog still
@@ -698,14 +701,15 @@ export function OnboardingPage() {
           : undefined,
     // The person's own step: the name they go by.
     you: me.data.user.name || undefined,
-    // The team in it. While it still waits and none was made (its own step, or "Quem entra" making it) there is no
-    // value: "Depois" belongs to the step left with no agents, once it was answered that way (a done step).
+    // The team in it. While it still waits and none was made (its own step, "Quem entra" making it, or the brand that
+    // waits for the team just made) there is no value: "Depois" belongs to the step left with no agents, once it was
+    // answered that way, never to a team that is on its way.
     team: team.length
       ? joinNames(
           team.map((a) => a.name),
           t,
         )
-      : step === "team" || step === "who"
+      : step === "team" || step === "who" || brandWaits
         ? undefined
         : t("onboarding.railValue.later"),
     plan: steps.includes("plan") && !held ? t("onboarding.railValue.on") : undefined,
@@ -1268,8 +1272,9 @@ function StepHost({
         {children}
       </AiHost>
     );
-  // The team and "Quem entra" (its computer flow), the person's step and the people's: the workspace's context.
-  if (org && (step === "people" || step === "team" || step === "who" || step === "you"))
+  // The team and "Quem entra" (its computer flow), "Sua marca" (the same flow, for the agents that need a computer),
+  // the person's step and the people's: the workspace's context.
+  if (org && (step === "people" || step === "team" || step === "who" || step === "brand" || step === "you"))
     return (
       <OrgProvider org={org} me={me}>
         {children}

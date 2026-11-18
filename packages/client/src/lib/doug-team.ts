@@ -45,11 +45,16 @@ export function dougHandles(members: readonly DougTemplateMember[], off: Readonl
     .map((m) => m.handle);
 }
 
-/** What "Quem entra no seu time?" counts under its list: the agents, the skills and the routines it would make. */
+/**
+ * What "Quem entra no seu time?" counts under its list: the agents, the skills and the routines it would make, and the
+ * ones checked besides the right hand (`others`, the team that would be made: with none of them there is nothing to
+ * create, the right hand being here already).
+ */
 export function dougCounts(members: readonly DougTemplateMember[], off: ReadonlySet<string>) {
   const kept = dougOrder(members).filter((m) => !off.has(m.handle));
   return {
     agents: kept.length,
+    others: kept.filter((m) => !m.rightHand).length,
     skills: kept.reduce((n, m) => n + m.skills, 0),
     routines: kept.reduce((n, m) => n + m.routines, 0),
   };
