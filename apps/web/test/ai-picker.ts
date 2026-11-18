@@ -58,12 +58,25 @@ const startsWith = (name: string | RegExp) => (typeof name === "string" ? new Re
 
 /**
  * Opens "Quem pensa" from the sentence under the agent's name (`button`: that cell's name, in English "Change who
- * thinks"). `name`: the dialog's name on the screen it opens on; at its limit that is "A conta da … está no limite".
+ * thinks"): the cell opens the model picker, whose "Mais opções" (`more`, in English "More options") is the full
+ * dialog. `name`: the dialog's name on the screen it opens on; at its limit that is "A conta da … está no limite".
  */
-export async function brainDialog(name: string | RegExp = /^Quem pensa/, button = "Mudar quem pensa") {
+export async function brainDialog(
+  name: string | RegExp = /^Quem pensa/,
+  button = "Mudar quem pensa",
+  more = button === "Mudar quem pensa" ? "Mais opções" : "More options",
+) {
   await clicked(screen().getByRole("button", { name: button }));
+  await clicked(within(pickerDialog()).getByRole("button", { name: more }));
   return screen().getByRole("dialog", { name });
 }
+
+/** The model picker the cell opens on the agent's page (`ModelPickerDialog`). */
+export const pickerDialog = () => {
+  const d = document.querySelector(".mp-dialog");
+  if (!(d instanceof HTMLElement)) throw new Error("the model picker isn't open");
+  return d;
+};
 
 /** The screen the dialog shows: its title as drawn (the dialog's name follows it). */
 export const brainScreen = (d: HTMLElement) => d.querySelector(".arrival-lede__title")?.textContent ?? "";

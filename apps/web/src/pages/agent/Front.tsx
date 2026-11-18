@@ -40,6 +40,8 @@ import { useTranslation } from "react-i18next";
 import { resourceName, useConnectedById } from "@/components/AccessLevels";
 import { AgentAvatar } from "@/components/AgentAvatar";
 import { AgentSetupCard } from "@/components/AgentSetup";
+import { useOpenAgentPanel } from "@/components/agent-panel-context";
+import { ModelPickerDialog } from "@/components/ai/ModelPicker";
 import { useOpenComputer } from "@/components/computer/open";
 import { NoAiChip } from "@/components/NoAi";
 import { useOrg } from "@/components/org-context";
@@ -67,7 +69,7 @@ const sameDay = (iso: string, now = new Date()) => new Date(iso).toDateString() 
 /**
  * The agent's page as it opens (docs/adr/doug-0017-agents-lean.md): who it is and how it is now, three ways to act
  * (Ligar, Tarefas, Ajustes), what it may use, its month, who it answers to, the AI it thinks with and its day. Every
- * setting is one click deeper, in Ajustes (`onOpen`, the tabbed page); changing its AI is the Painel de IA's.
+ * setting is one click deeper, in Ajustes (`onOpen`, the tabbed page); its AI changes in place, in the model picker.
  */
 export function AgentFront({
   agent,
@@ -360,6 +362,8 @@ function Facts({
     <BrainIcon kind={thinks.kind} size={14} />
   ) : null;
   const picksAi = viewer !== "member";
+  const [picking, setPicking] = useState(false);
+  const openPanel = useOpenAgentPanel();
 
   return (
     <Card className="agf-facts">
@@ -402,11 +406,7 @@ function Facts({
       {thinks?.text && (
         <FactRow
           label={t("agentFront.ai")}
-          onOpen={
-            picksAi
-              ? () => void navigate({ to: "/org/$orgId/ai", params: { orgId: org.id }, search: { agent: agent.id } })
-              : undefined
-          }
+          onOpen={picksAi ? () => setPicking(true) : undefined}
           openLabel={t("aiPanel.change")}
         >
           <span className="agf-chip" title={thinks.text === thinks.short ? undefined : thinks.text}>
@@ -414,6 +414,24 @@ function Facts({
             {thinks.short}
           </span>
         </FactRow>
+      )}
+      {/* The same picker a conversation has; "Mais opções" is the full "Quem pensa" in Ajustes (beside a
+          conversation, the picker opens it in the panel by itself). */}
+      {picking && (
+        <ModelPickerDialog
+          agent={agent}
+          onClose={() => setPicking(false)}
+          onMore={
+            openPanel
+              ? undefined
+              : () =>
+                  void navigate({
+                    to: "/org/$orgId/agents/$agentId",
+                    params: { orgId: org.id, agentId: agent.id },
+                    search: { tab: "settings", sec: "brain", brain: "more" },
+                  })
+          }
+        />
       )}
     </Card>
   );

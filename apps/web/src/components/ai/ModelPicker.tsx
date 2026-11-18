@@ -19,6 +19,7 @@ import {
   type PickerBefore,
   type PickerModel,
 } from "@agenteschat/client/lib/brain-picker";
+import { agentGrammar } from "@agenteschat/client/lib/grammar";
 import { can } from "@agenteschat/client/lib/permissions";
 import { modelStandInKey, planMeterText } from "@agenteschat/client/lib/plan-usage";
 import { planOf } from "@agenteschat/client/lib/plans";
@@ -28,6 +29,7 @@ import {
   BrainIcon,
   Button,
   cx,
+  Dialog,
   EffortPixels,
   EventPill,
   EventPillAction,
@@ -201,10 +203,58 @@ export function ModelStandInLine({
   );
 }
 
-function ModelPickerPanel({ agent, onClose }: { agent: Agent; onClose: () => void }) {
+function ModelPickerPanel({
+  agent,
+  onClose,
+  onMore,
+}: {
+  agent: Agent;
+  onClose: () => void;
+  onMore?: (() => void) | undefined;
+}) {
   const brain = useAgentBrain(useOrg().org.id, agent.id);
   if (!brain.data) return <div className="mp__loading" aria-busy="true" />;
-  return <PickerBody agent={agent} view={brain.data} onClose={onClose} />;
+  return <PickerBody agent={agent} view={brain.data} onClose={onClose} onMore={onMore} />;
+}
+
+/**
+ * The same picker in a dialog, where the agent's own page changes its AI ("Quem pensa" in Ajustes, the IA row of its
+ * front): the AIs as tiles, the account, the models and the effort, saved at once. `onMore` opens every other
+ * setting (accounts, the computer, the fallback), the full "Quem pensa".
+ */
+export function ModelPickerDialog({
+  agent,
+  onClose,
+  onMore,
+}: {
+  agent: Agent;
+  onClose: () => void;
+  onMore?: (() => void) | undefined;
+}) {
+  const { t } = useTranslation();
+  return (
+    <Dialog
+      open
+      onOpenChange={(open) => !open && onClose()}
+      title={t("aiPanel.dialog.title", agentGrammar(agent.name))}
+      closeLabel={t("common.close")}
+      width={440}
+      bare
+      className="arrival mp-dialog"
+    >
+      {/* Drawn as the popover is, the sky on top: its × sits on the sky, as on Connect's and Quem pensa's. */}
+      <Button
+        variant="ghost"
+        size="sm"
+        iconOnly
+        icon="close"
+        className="arrival-hero__close"
+        aria-label={t("common.close")}
+        onClick={onClose}
+      />
+      <ModelPickerPanel agent={agent} onClose={onClose} onMore={onMore} />
+    </Dialog>
+  );
 }
 
 /**
@@ -231,11 +281,14 @@ function PickerBody({
   view,
   onClose,
   target,
+  onMore,
 }: {
   agent: Agent;
   view: AgentBrain;
   onClose: () => void;
   target?: BrainTarget;
+  /** "Mais opções" where there is no agent panel to open (the agent's own page). */
+  onMore?: (() => void) | undefined;
 }) {
   const { t, i18n } = useTranslation();
   const { org } = useOrg();
@@ -476,14 +529,16 @@ function PickerBody({
       )}
       <div className="mp__foot">
         <small>{t("brain.picker.applies")}</small>
-        {openPanel && !target && (
+        {(onMore || openPanel) && !target && (
           <Button
             size="sm"
             variant="ghost"
             icon="settings"
             onClick={() => {
+              // `onMore` takes the place of this picker itself (the agent page's full "Quem pensa").
+              if (onMore) return onMore();
               onClose();
-              openPanel(agent.id, "settings", "brain:more");
+              openPanel?.(agent.id, "settings", "brain:more");
             }}
           >
             {t("brain.picker.more")}
