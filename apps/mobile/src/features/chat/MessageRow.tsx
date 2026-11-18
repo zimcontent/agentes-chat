@@ -1397,10 +1397,16 @@ const BUBBLE_RUN: Record<RunPosition, { borderTopRightRadius?: number; borderBot
   end: { borderTopRightRadius: BUBBLE_JOIN, borderBottomRightRadius: BUBBLE_CUT },
 };
 
-/** Anyone else's bubble in `bubbles`: the same, on the left. */
+/**
+ * The corner of anyone else's first bubble beside their face: almost square, so the bubble comes out of whoever speaks
+ * (people asked for it, as WhatsApp's).
+ */
+const BUBBLE_POINT = 4;
+
+/** Anyone else's bubble in `bubbles`: the same, on the left, its run's first corner pointing at the face. */
 const OTHER_RUN: Record<RunPosition, { borderTopLeftRadius?: number; borderBottomLeftRadius?: number }> = {
-  solo: {},
-  start: { borderBottomLeftRadius: BUBBLE_JOIN },
+  solo: { borderTopLeftRadius: BUBBLE_POINT },
+  start: { borderTopLeftRadius: BUBBLE_POINT, borderBottomLeftRadius: BUBBLE_JOIN },
   mid: { borderTopLeftRadius: BUBBLE_JOIN, borderBottomLeftRadius: BUBBLE_JOIN },
   end: { borderTopLeftRadius: BUBBLE_JOIN },
 };

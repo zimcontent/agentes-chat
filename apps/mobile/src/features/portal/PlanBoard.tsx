@@ -65,6 +65,8 @@ type Column = { kind: "list"; group: PlanGroup } | { kind: "add" } | { kind: "ne
 
 /** The dots' row under the lists. */
 const DOTS_H = 36;
+/** Room under the lists, over the dots, as `LISTS_TOP` over them: a list's foot is never cut. */
+const LISTS_BOTTOM = 12;
 /** Past this many lists the dots would crowd the row: one line says which list it is instead. */
 const DOTS_MAX = 14;
 /** The pick that means "in no list" (a list's id is never empty). */
@@ -337,7 +339,8 @@ export function PlanBoard({
       <EmptyState size="page" icon="calendar" title={w.noLists} subtitle={w.noListsText} />
     );
   }
-  const listHeight = box.height;
+  // The lists' box less the room over and under them: a list as tall as the box ran past its foot.
+  const listHeight = Math.max(0, box.height - LISTS_TOP - LISTS_BOTTOM);
   const heldList = held?.kind === "list" ? all.find((g) => g.id === held.id) : undefined;
   const heldCard = held?.kind === "card" ? all.flatMap((g) => g.cards).find((x) => x.id === held.id) : undefined;
   const listProps = (group: PlanGroup) => ({
@@ -1011,11 +1014,11 @@ export function BoardCard({
         ) : null}
       </View>
       {/* Done and with its files, the card goes up for approval from here, as from its own screen. */}
-      {/* Quiet on the board: a small gray pill at the card's start, the green kept for the card's own screen. */}
+      {/* Small on the board: the green pill at the card's start, not the card's whole width. */}
       {ready ? (
         <View style={styles.sendRow}>
           <Button
-            variant="secondary"
+            variant="primary"
             size="sm"
             icon="send"
             label={w.send}
@@ -1294,12 +1297,17 @@ const styles = StyleSheet.create({
   searchBox: { flex: 1, minWidth: 160 },
   // As tall and as round as the search beside it.
   plus: { width: 44, height: 44, borderRadius: 12, alignItems: "center", justifyContent: "center" },
-  lists: { paddingHorizontal: BOARD.side, paddingTop: 12, alignItems: "flex-start" },
+  lists: {
+    paddingHorizontal: BOARD.side,
+    paddingTop: LISTS_TOP,
+    paddingBottom: LISTS_BOTTOM,
+    alignItems: "flex-start",
+  },
   gap: { width: BOARD.gap },
   list: { borderRadius: 20, overflow: "hidden" },
   listBody: { flexShrink: 1 },
   hidden: { opacity: 0 },
-  ghost: { position: "absolute", top: 12, left: 0, borderRadius: 20 },
+  ghost: { position: "absolute", top: LISTS_TOP, left: 0, borderRadius: 20 },
   // The name's line centred on the 32 "…" beside it: 6 above a 20 line.
   listHead: {
     flexDirection: "row",
