@@ -47,6 +47,9 @@ function stub(bin: string, name: string, body: string) {
 //   never-ready, ignora-sinal, no-adr, dump-fails, migrate-fails, parado, ps-quebrado   folders (one per line)
 //   slow-up           the next `up -d` takes a while, once; slow-up-<n>: the n-th `up -d` of a client does
 //   up-falha-<n>      the n-th `up -d` of a client is refused (stderr says why)
+//   migrate-sinal     the migration drops the restart hold (the 30 minutes ran out); migrate-sinal-ignora: and the server
+//                     then ignores the signal, so `ready` never comes back
+//   removidos         the containers `docker rm -f` was asked to remove
 //   slow-dump         the next pg_dump takes a while, once; slow-migrate: the same for the migration
 //   dump-count        what each pg_dump found in the client's backups folder (the .dump files), one number per line
 //   stdin-calls       what every compose call had as stdin
@@ -101,9 +104,12 @@ case "$*" in
     mv "$DOUG_CLIENTES_DIR/clientes.novo" "$DOUG_CLIENTES_DIR/clientes.tsv"
   fi ;;
 "compose ps --format {{.Image}} agentes") cat "$state/ps-$here" 2>/dev/null || cat "$state/running-$here" ;;
-"compose run --rm --no-deps -T agentes migrate")
+"compose run --rm --name "*" --no-deps -T agentes migrate")
   if grep -qx "$here" "$state/migrate-fails" 2>/dev/null; then echo 'ERRO: relation "tarefas" already exists' >&2; exit 1; fi
+  if [[ -e $state/migrate-sinal ]]; then rm -f "$state/signaled-$here"; fi
+  if [[ -e $state/migrate-sinal-ignora ]]; then rm -f "$state/signaled-$here"; echo "$here" >>"$state/ignora-sinal"; fi
   if [[ -e $state/slow-migrate ]]; then rm -f "$state/slow-migrate"; touch "$state/migrate-started"; sleep 1.5; fi ;;
+"rm -f "*) echo "$3" >>"$state/removidos" ;;
 *) echo "docker: chamada inesperada: $*" >&2; exit 99 ;;
 esac
 `;
@@ -172,6 +178,8 @@ exec /usr/bin/awk "$@"
 const OLD = "agentes-zim:doug-aaa111";
 const NEW = "agentes-zim:doug-bbb222";
 const NEW_TAG = "agentes-zim_doug-bbb222";
+// the image inside a dump's name: no hyphens, so that the slug before it reads without doubt
+const DUMP_TAG = "agentes_zim_doug_bbb222";
 
 interface Cliente {
   codigo: string;
@@ -299,7 +307,7 @@ describe("deploy/swas/doug-atualizar-clientes", () => {
       expect(sobras(a, c)).toEqual([]);
       // the dump is under <raiz>/backups/<codigo>/, never in the tenant's dados/
       expect(a.backups(c)).toHaveLength(1);
-      expect(a.backups(c)[0]).toStartWith(`pre-${NEW_TAG}-`);
+      expect(a.backups(c)[0]).toStartWith(`pre-${c.slug}-${DUMP_TAG}-`);
       expect(existsSync(join(a.pasta(c), "dados", "backups"))).toBe(false);
       // notice, then the stopping point, then the dump, then the swap
       const c1x = todas(a.chamadas(), c);
@@ -466,8 +474,8 @@ describe("deploy/swas/doug-atualizar-clientes", () => {
     const pasta = a.pastaBackups(c1);
     mkdirSync(pasta, { recursive: true, mode: 0o700 });
     for (const dia of ["01", "02", "03", "04"])
-      writeFileSync(join(pasta, `pre-agentes-zim_doug-old${dia}-2025110${dia}-030000.dump`), "x");
-    writeFileSync(join(pasta, "falhou-antigo.dump"), "x");
+      writeFileSync(join(pasta, `pre-${c1.slug}-agentes_zim_doug_old${dia}-2025110${dia}-030000.dump`), "x");
+    writeFileSync(join(pasta, `falhou-${c1.slug}-antigo-20251001-030000.dump`), "x");
     const antes = readdirSync(pasta).sort();
     a.marca("dump-fails", `${c1.codigo}-${c1.slug}\n`);
     const { code, out } = a.rodar([NEW]);
@@ -490,20 +498,20 @@ describe("deploy/swas/doug-atualizar-clientes", () => {
     const pasta = a.pastaBackups(c1);
     mkdirSync(pasta, { recursive: true, mode: 0o700 });
     for (const dia of ["01", "02", "03", "04"]) {
-      const f = join(pasta, `pre-x-202511${dia}-030000.dump`);
+      const f = join(pasta, `pre-${c1.slug}-x-202511${dia}-030000.dump`);
       writeFileSync(f, "x");
       utimesSync(f, new Date(`2025-11-${dia}T03:00:00Z`), new Date(`2025-11-${dia}T03:00:00Z`));
     }
-    writeFileSync(join(pasta, "falhou-x-20251001-030000.dump"), "x");
+    writeFileSync(join(pasta, `falhou-${c1.slug}-x-20251001-030000.dump`), "x");
     writeFileSync(join(pasta, "outro-arquivo.txt"), "fica");
     writeFileSync(join(pasta, "manual-20251101-030000.dump"), "do instalador");
     writeFileSync(join(pasta, "remocao-20251101-030000.dump"), "do instalador");
     expect(a.rodar([NEW]).code).toBe(0);
     const ficou = readdirSync(pasta).sort();
     expect(ficou.filter((n) => n.startsWith("pre-"))).toHaveLength(3); // the new one and the two newest
-    expect(ficou).not.toContain("pre-x-20251101-030000.dump");
-    expect(ficou).not.toContain("pre-x-20251102-030000.dump");
-    expect(ficou).toContain("falhou-x-20251001-030000.dump");
+    expect(ficou).not.toContain(`pre-${c1.slug}-x-20251101-030000.dump`);
+    expect(ficou).not.toContain(`pre-${c1.slug}-x-20251102-030000.dump`);
+    expect(ficou).toContain(`falhou-${c1.slug}-x-20251001-030000.dump`);
     expect(ficou).toContain("outro-arquivo.txt");
     expect(ficou).toContain("manual-20251101-030000.dump");
     expect(ficou).toContain("remocao-20251101-030000.dump");
@@ -757,7 +765,7 @@ describe("deploy/swas/doug-atualizar-clientes", () => {
     const a = ambiente([c1]);
     writeFileSync(join(a.pasta(c1), ".env.atualizando.AbC123"), "DOUG_IMAGE=lixo\n");
     mkdirSync(a.pastaBackups(c1), { recursive: true, mode: 0o700 });
-    writeFileSync(join(a.pastaBackups(c1), "pre-x-20251101-030000.dump.parcial"), "x");
+    writeFileSync(join(a.pastaBackups(c1), `pre-${c1.slug}-x-20251101-030000.dump.parcial`), "x");
     writeFileSync(join(a.raiz, "clientes.tsv.atualizando.Zz9Yy8"), "lixo");
     // the operator's own files, with names that the old glob (`.env.??????`) would have taken
     writeFileSync(join(a.pasta(c1), ".env.backup"), "SEGREDO=do-operador\n");
@@ -767,7 +775,7 @@ describe("deploy/swas/doug-atualizar-clientes", () => {
     writeFileSync(join(a.pastaBackups(c1), "manual-20251101-030000.dump.parcial"), "do instalador, na mão");
     expect(a.rodar([NEW]).code).toBe(0);
     expect(existsSync(join(a.pasta(c1), ".env.atualizando.AbC123"))).toBe(false);
-    expect(a.backups(c1).some((n) => n.startsWith("pre-x-") && n.endsWith(".parcial"))).toBe(false);
+    expect(a.backups(c1).some((n) => n.startsWith(`pre-${c1.slug}-x-`) && n.endsWith(".parcial"))).toBe(false);
     expect(existsSync(join(a.raiz, "clientes.tsv.atualizando.Zz9Yy8"))).toBe(false);
     expect(readFileSync(join(a.pasta(c1), ".env.backup"), "utf8")).toBe("SEGREDO=do-operador\n");
     expect(readFileSync(join(a.pasta(c1), ".env.abcdef"), "utf8")).toBe("SEGREDO=outro\n");
@@ -1095,7 +1103,7 @@ describe("deploy/swas/doug-atualizar-clientes", () => {
       for (const c of [c1, c2]) {
         mkdirSync(a.pastaBackups(c), { recursive: true, mode: 0o700 });
         for (const dia of ["01", "02", "03"]) {
-          const f = join(a.pastaBackups(c), `falhou-x-202510${dia}-030000.dump`);
+          const f = join(a.pastaBackups(c), `falhou-${c.slug}-x-202510${dia}-030000.dump`);
           writeFileSync(f, "x");
           utimesSync(f, new Date(`2025-10-${dia}T03:00:00Z`), new Date(`2025-10-${dia}T03:00:00Z`));
         }
@@ -1106,10 +1114,10 @@ describe("deploy/swas/doug-atualizar-clientes", () => {
       // 001: three old + the new one = four, two stay (the new and the 3rd of October); 002 went well: its 3 become 2
       const f1 = a.backups(c1).filter((n) => n.startsWith("falhou-"));
       expect(f1).toHaveLength(2);
-      expect(f1).toContain("falhou-x-20251003-030000.dump");
+      expect(f1).toContain(`falhou-${c1.slug}-x-20251003-030000.dump`);
       expect(a.backups(c1)).toContain("manual-20251001-030000.dump");
       const f2 = a.backups(c2).filter((n) => n.startsWith("falhou-"));
-      expect(f2).toEqual(["falhou-x-20251002-030000.dump", "falhou-x-20251003-030000.dump"]);
+      expect(f2).toEqual([`falhou-${c2.slug}-x-20251002-030000.dump`, `falhou-${c2.slug}-x-20251003-030000.dump`]);
       expect(out).toContain("Backups de falha (falhou-*) apagados: 3 (ficam os 2 mais novos de cada cliente)");
       expect(out).toContain("apaguei 2 backup(s) de falha antigo(s)");
     });
@@ -1804,6 +1812,7 @@ exec /usr/bin/awk "$@"
   test("cliente que já está na imagem, com o registro velho: a coluna imagem é acertada (no --dry-run, só dita)", () => {
     // the .env says NEW and the server is healthy, but the registry still says OLD (a round that died after the mv)
     const a = ambiente([c1, c2], { env: (c) => envDe(c, c.codigo === "001" ? NEW : OLD) });
+    a.marca(`running-${c1.codigo}-${c1.slug}`, NEW); // and the container really runs it
     const seco = a.rodar(["--dry-run", NEW]);
     expect(seco.out).toContain("[simulação] o registro diz");
     expect(a.registro()).toContain(`\t${OLD}\t`);
@@ -1837,5 +1846,155 @@ exec /usr/bin/awk "$@"
     expect(readFileSync(join(a.raiz, "logs", rodada as string, "resumo.txt"), "utf8").split("\n")[1]).toStartWith(
       "Parados de propósito (1)",
     );
+  });
+  // ─── o seguimento da revisão ─────────────────────────────────────────────────────────────────────────────────────
+
+  describe("seguimento: dumps com o slug, aviso reconferido, migrate com nome, imagem que roda, disjuntor", () => {
+    const kills = (a: Ambiente, c: Cliente) => deste(a.chamadas(), c).filter((l) => l === "compose kill -s SIGUSR2 agentes");
+
+    test("a rotação filtra pelo slug: os dumps de outro slug com o mesmo código e os de antes do slug ficam", () => {
+      const a = ambiente([c1]);
+      const pasta = a.pastaBackups(c1);
+      mkdirSync(pasta, { recursive: true, mode: 0o700 });
+      const velhos = [
+        `pre-${c1.slug}-x-20250101-030000.dump`,
+        `pre-${c1.slug}-x-20250102-030000.dump`,
+        `pre-${c1.slug}-x-20250103-030000.dump`,
+        `pre-${c1.slug}-x-20250104-030000.dump`,
+      ];
+      const alheios = [
+        "pre-padaria-x-20250101-030000.dump", // another client that had this code (a prefix of this slug, even)
+        "pre-padaria-x-20250102-030000.dump",
+        "pre-padaria-x-20250103-030000.dump",
+        "pre-padaria-x-20250104-030000.dump",
+        "falhou-padaria-x-20250101-030000.dump",
+        "falhou-padaria-x-20250102-030000.dump",
+        "falhou-padaria-x-20250103-030000.dump",
+        "pre-agentes_zim_doug_old-20250101-030000.dump", // from before the name had the slug
+      ];
+      for (const f of [...velhos, ...alheios]) {
+        writeFileSync(join(pasta, f), "x");
+        utimesSync(join(pasta, f), new Date("2025-01-01T03:00:00Z"), new Date("2025-01-01T03:00:00Z"));
+      }
+      expect(a.rodar([NEW]).code).toBe(0);
+      const ficou = readdirSync(pasta);
+      for (const f of alheios) expect(ficou).toContain(f);
+      expect(ficou.filter((n) => n.startsWith(`pre-${c1.slug}-`))).toHaveLength(3);
+    });
+
+    test("o backup de uma troca que volta vira falhou-<slug>-…, e a contagem de falhas é do slug", () => {
+      const a = ambiente([c1]);
+      a.marca("unhealthy", `${c1.codigo}-${c1.slug} ${NEW}\n`);
+      expect(a.rodar([NEW]).code).toBe(3);
+      expect(a.backups(c1)).toHaveLength(1);
+      expect(a.backups(c1)[0]).toStartWith(`falhou-${c1.slug}-${DUMP_TAG}-`);
+    });
+
+    test("o aviso que cai durante a migração: o sinal é reenviado antes do up -d, sem refazer o backup", () => {
+      const a = ambiente([c1]);
+      a.marca("migrate-sinal", "1");
+      const { code, out } = a.rodar([NEW]);
+      expect(code).toBe(0);
+      expect(out).toContain("antes do up -d o health não diz restart: ready");
+      expect(out).toContain("Atualizados (1)");
+      const d = deste(a.chamadas(), c1);
+      expect(kills(a, c1)).toHaveLength(2);
+      expect(d.filter((l) => l.includes("pg_dump"))).toHaveLength(1);
+      // the second signal comes after the migration and before the up -d of the swap
+      const ultimoKill = d.lastIndexOf("compose kill -s SIGUSR2 agentes");
+      expect(ultimoKill).toBeGreaterThan(d.findIndex((l) => l.includes("migrate")));
+      expect(ultimoKill).toBeLessThan(d.indexOf("compose up -d"));
+    });
+
+    test("o aviso que não volta: no máximo 2 voltas e a troca segue", () => {
+      const a = ambiente([c1]);
+      a.marca("migrate-sinal-ignora", "1");
+      const { code, out } = a.rodar([NEW]);
+      expect(code).toBe(0);
+      expect(out).toContain("volta 1 de 2");
+      expect(out).toContain("volta 2 de 2");
+      expect(out).not.toContain("volta 3");
+      expect(out).toContain("depois de 2 voltas");
+      expect(kills(a, c1)).toHaveLength(3); // the first one + two
+      expect(deste(a.chamadas(), c1).filter((l) => l.includes("pg_dump"))).toHaveLength(1);
+      expect(a.env(c1)).toBe(envDe(c1, NEW));
+    });
+
+    test("o migrate leva um --name, e o prazo estourado remove esse contêiner", () => {
+      const a = ambiente([c1]);
+      a.marca("slow-migrate", "1");
+      a.rodar([NEW], { DOUG_MIGRATE_TIMEOUT_S: "1" });
+      const run = deste(a.chamadas(), c1).find((l) => l.startsWith("compose run "));
+      const nome = /--name (\S+)/.exec(run ?? "")?.[1];
+      expect(nome).toMatch(/^doug-001-migrate-\d+$/);
+      expect(readFileSync(join(a.state, "removidos"), "utf8").trim()).toBe(nome as string);
+    });
+
+    test("um migrate que termina (bem ou mal, sem prazo) não pede docker rm", () => {
+      const a = ambiente([c1]);
+      expect(a.rodar([NEW]).code).toBe(0);
+      expect(existsSync(join(a.state, "removidos"))).toBe(false);
+      const b = ambiente([c1]);
+      b.marca("migrate-fails", `${c1.codigo}-${c1.slug}\n`);
+      expect(b.rodar([NEW]).code).toBe(3);
+      expect(existsSync(join(b.state, "removidos"))).toBe(false);
+    });
+
+    test("o .env já na imagem nova mas o contêiner roda outra: é troca, não 'já atual'", () => {
+      const a = ambiente([c1], { env: (c) => envDe(c, NEW) });
+      a.marca(`running-${c1.codigo}-${c1.slug}`, OLD);
+      const { code, out } = a.rodar([NEW]);
+      expect(code).toBe(0);
+      expect(out).toContain("o servidor roda agentes-zim:doug-aaa111: trato como troca");
+      expect(out).toContain("Atualizados (1)");
+      expect(out).not.toContain("já está em");
+      expect(readFileSync(join(a.state, `running-${c1.codigo}-${c1.slug}`), "utf8").trim()).toBe(NEW);
+      expect(a.env(c1)).toBe(envDe(c1, NEW));
+      expect(a.backups(c1)).toHaveLength(1);
+    });
+
+    test("a troca de um .env já adiantado que falha volta para a imagem que rodava", () => {
+      const a = ambiente([c1], { env: (c) => envDe(c, NEW) });
+      a.marca(`running-${c1.codigo}-${c1.slug}`, OLD);
+      a.marca("unhealthy", `${c1.codigo}-${c1.slug} ${NEW}\n`);
+      expect(a.rodar([NEW]).code).toBe(3);
+      expect(a.env(c1)).toBe(envDe(c1, OLD));
+      expect(readFileSync(join(a.state, `running-${c1.codigo}-${c1.slug}`), "utf8").trim()).toBe(OLD);
+    });
+
+    test("com a imagem certa rodando, continua 'já atual'", () => {
+      const a = ambiente([c1], { env: (c) => envDe(c, NEW) });
+      a.marca(`running-${c1.codigo}-${c1.slug}`, NEW);
+      const { code, out } = a.rodar([NEW]);
+      expect(code).toBe(0);
+      expect(out).toContain("Já na imagem (1)");
+      expect(tocou(a, c1)).toBe(false);
+    });
+
+    test("DOUG_DISJUNTOR=0 sai com 2 e não toca em nada", () => {
+      const a = ambiente([c1]);
+      const r = a.rodar([NEW], { DOUG_DISJUNTOR: "0" });
+      expect(r.code).toBe(2);
+      expect(r.out).toContain("DOUG_DISJUNTOR=0 não é aceito");
+      expect(tocou(a, c1)).toBe(false);
+      expect(a.rodar([NEW], { DOUG_DISJUNTOR: "1" }).code).toBe(0);
+    });
+
+    test("um cliente recuperado de uma execução interrompida não conta para o disjuntor", () => {
+      const a = ambiente([c1, c2]);
+      const env = join(a.pasta(c1), ".env");
+      writeFileSync(`${env}.antes-atualizar`, envDe(c1, OLD));
+      writeFileSync(env, envDe(c1, NEW));
+      a.marca(`running-${c1.codigo}-${c1.slug}`, NEW);
+      a.marca("unhealthy", `${c1.codigo}-${c1.slug} ${NEW}\n`);
+      const { code, out } = a.rodar([NEW], { DOUG_DISJUNTOR: "1" });
+      expect(code).toBe(3);
+      expect(out).toContain("Voltaram para a anterior (1): 001-padaria-aurora");
+      expect(out).toContain("Atualizados (1): 002-cafe-sol");
+      expect(out).not.toContain("DISJUNTOR");
+      expect(a.env(c2)).toBe(envDe(c2, NEW));
+      // and it leaves no mark either: the next round tries it again
+      expect(readdirSync(join(a.raiz, "atualizacao", "marcas"))).toEqual([]);
+    });
   });
 });

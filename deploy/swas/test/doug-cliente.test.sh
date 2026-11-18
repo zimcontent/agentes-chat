@@ -936,7 +936,7 @@ rodar novo 064 padaria-aurora "Padaria Aurora" --imagem agentes-zim:doug-abc1234
 B=$DOUG_CLIENTES_DIR/backups/064
 mkdir -p "$B"
 chmod 700 "$B"
-for f in manual-padaria-aurora-20261001-100000.dump remocao-padaria-aurora-20261002-100000.dump remocao-padaria-aurora-20261002-100000.env remocao-padaria-aurora-20261002-100000-files.tar manual-padaria-aurora-20261120-100000.dump pre-20261001-100000.dump falhou-20261001-100000.dump; do
+for f in manual-padaria-aurora-20261001-100000.dump remocao-padaria-aurora-20261002-100000.dump remocao-padaria-aurora-20261002-100000.env remocao-padaria-aurora-20261002-100000-files.tar manual-padaria-aurora-20261120-100000.dump pre-20261001-100000.dump falhou-20261001-100000.dump pre-padaria-aurora-agentes_zim_doug_abc1234-20261001-100000.dump falhou-padaria-aurora-agentes_zim_doug_abc1234-20261002-100000.dump pre-padaria-aurora-agentes_zim_doug_abc1234-20261120-100000.dump; do
   echo x >"$B/$f"
 done
 rodar limpar-backups 064
@@ -946,14 +946,16 @@ rodar limpar-backups 064 --antes ontem
 rodar limpar-backups 064 --antes 2026-02-31
 [[ $CODIGO_SAIDA != 0 ]] && ok "limpar-backups recusa uma data que não existe" || falha "limpar-backups recusa uma data que não existe" "$SAIDA"
 rodar limpar-backups 064 --antes 2026-11-01 --dry-run
-[[ $CODIGO_SAIDA == 0 && $(ls "$B" | wc -l) == 7 ]] && contem "$SAIDA" "manual-padaria-aurora-20261001-100000.dump" && ok "--dry-run lista o que apagaria e não apaga" || falha "--dry-run lista o que apagaria e não apaga" "$SAIDA"
+[[ $CODIGO_SAIDA == 0 && $(ls "$B" | wc -l) == 10 ]] && contem "$SAIDA" "manual-padaria-aurora-20261001-100000.dump" && ok "--dry-run lista o que apagaria e não apaga" || falha "--dry-run lista o que apagaria e não apaga" "$SAIDA"
 echo "não" | "$SCRIPT" limpar-backups 064 --antes 2026-11-01 >"$TMP/saida" 2>&1
-[[ $? != 0 && $(ls "$B" | wc -l) == 7 ]] && ok "sem a confirmação, não apaga nada" || falha "sem a confirmação, não apaga nada" "$(cat "$TMP/saida")"
+[[ $? != 0 && $(ls "$B" | wc -l) == 10 ]] && ok "sem a confirmação, não apaga nada" || falha "sem a confirmação, não apaga nada" "$(cat "$TMP/saida")"
 rodar limpar-backups 064 --antes 2026-11-01 --sim
 [[ $CODIGO_SAIDA == 0 ]] && ok "limpar-backups --antes --sim termina bem" || falha "limpar-backups --antes --sim termina bem" "$SAIDA"
 [[ ! -e $B/manual-padaria-aurora-20261001-100000.dump && ! -e $B/remocao-padaria-aurora-20261002-100000.dump && ! -e $B/remocao-padaria-aurora-20261002-100000.env && ! -e $B/remocao-padaria-aurora-20261002-100000-files.tar ]] && ok "apaga o dump, o .env e o tar de antes da data" || falha "apaga o dump, o .env e o tar de antes da data" "$(ls "$B")"
 [[ -e $B/manual-padaria-aurora-20261120-100000.dump ]] && ok "guarda o que é da data ou depois" || falha "guarda o que é da data ou depois"
-[[ -e $B/pre-20261001-100000.dump && -e $B/falhou-20261001-100000.dump ]] && ok "não toca nos pre-* e falhou-* do doug-atualizar-clientes" || falha "não toca nos pre-* e falhou-* do doug-atualizar-clientes"
+[[ ! -e $B/pre-padaria-aurora-agentes_zim_doug_abc1234-20261001-100000.dump && ! -e $B/falhou-padaria-aurora-agentes_zim_doug_abc1234-20261002-100000.dump ]] && ok "apaga também os pre-<slug>-* e falhou-<slug>-* do doug-atualizar-clientes, de antes da data" || falha "apaga também os pre-<slug>-* e falhou-<slug>-*" "$(ls "$B")"
+[[ -e $B/pre-padaria-aurora-agentes_zim_doug_abc1234-20261120-100000.dump ]] && ok "e guarda o pre-<slug>-* da data ou depois" || falha "e guarda o pre-<slug>-* da data ou depois"
+[[ -e $B/pre-20261001-100000.dump && -e $B/falhou-20261001-100000.dump ]] && ok "os dumps de antes de o nome levar o slug não são de ninguém conhecido: ficam" || falha "os dumps de antes do slug ficam"
 echo "APAGAR padaria-aurora" | "$SCRIPT" remover 064 --apagar-dados >/dev/null 2>&1
 ls "$B"/remocao-padaria-aurora-*.dump >/dev/null 2>&1 && ok "o remover --apagar-dados deixa o dump em backups/ (é o que a guarda de LGPD limpa)" || falha "o remover --apagar-dados deixa o dump em backups/"
 rodar limpar-backups 064 --antes 2099-01-01 --sim
@@ -981,12 +983,21 @@ rodar novo 064 cafe-sol "Café Sol" --imagem agentes-zim:doug-abc1234 --reusar-c
 [[ $CODIGO_SAIDA == 0 ]] && ok "--reusar-codigo deixa outro cliente usar o código" || falha "--reusar-codigo deixa outro cliente usar o código" "$SAIDA"
 # Dois slugs no mesmo código: limpar por código recusa, e --slug limpa só o de um.
 rodar backup 064
-for f in manual-padaria-aurora-20200101-100000.dump manual-cafe-sol-20200101-100000.dump manual-cafe-sol-20200101-100000.env manual-loja-2020-20200101-100000.dump pre-20200101-100000.dump; do echo x >"$B/$f"; done
+for f in manual-padaria-aurora-20200101-100000.dump manual-cafe-sol-20200101-100000.dump manual-cafe-sol-20200101-100000.env manual-loja-2020-20200101-100000.dump pre-20200101-100000.dump pre-cafe-sol-agentes_zim_doug_abc-20200101-100000.dump falhou-cafe-sol-agentes_zim_doug_abc-20200101-100000.dump pre-padaria-aurora-agentes_zim_doug_abc-20200101-100000.dump; do echo x >"$B/$f"; done
 rodar limpar-backups 064 --antes 2021-01-01 --sim
 [[ $CODIGO_SAIDA != 0 ]] && contem "$SAIDA" "mais de um cliente" && contem "$SAIDA" "--slug" && [[ -e $B/manual-padaria-aurora-20200101-100000.dump && -e $B/manual-cafe-sol-20200101-100000.dump ]] && ok "limpar-backups recusa apagar pelo código quando há backups de mais de um cliente" || falha "limpar-backups recusa apagar pelo código quando há backups de mais de um cliente" "$SAIDA"
 rodar limpar-backups 064 --antes 2021-01-01 --slug cafe-sol --sim
 [[ $CODIGO_SAIDA == 0 && ! -e $B/manual-cafe-sol-20200101-100000.dump && ! -e $B/manual-cafe-sol-20200101-100000.env ]] && ok "--slug apaga os backups só desse cliente" || falha "--slug apaga os backups só desse cliente" "$SAIDA $(ls "$B")"
-[[ -e $B/manual-padaria-aurora-20200101-100000.dump && -e $B/manual-loja-2020-20200101-100000.dump && -e $B/pre-20200101-100000.dump ]] && ok "e deixa os de outro slug (inclusive um com ano no nome) e os pre-*" || falha "e deixa os de outro slug e os pre-*" "$(ls "$B")"
+[[ ! -e $B/pre-cafe-sol-agentes_zim_doug_abc-20200101-100000.dump && ! -e $B/falhou-cafe-sol-agentes_zim_doug_abc-20200101-100000.dump ]] && ok "--slug apaga também os pre-* e falhou-* desse cliente" || falha "--slug apaga também os pre-* e falhou-* desse cliente" "$(ls "$B")"
+[[ -e $B/manual-padaria-aurora-20200101-100000.dump && -e $B/manual-loja-2020-20200101-100000.dump && -e $B/pre-20200101-100000.dump && -e $B/pre-padaria-aurora-agentes_zim_doug_abc-20200101-100000.dump ]] && ok "e deixa os de outro slug (inclusive um com ano no nome e um pre-<outro slug>-*) e os de antes do slug" || falha "e deixa os de outro slug e os de antes do slug" "$(ls "$B")"
+# O dono de um pre-* também conta para o código reaproveitado.
+novo_ambiente donopre
+rodar novo 064 padaria-aurora "Padaria Aurora" --imagem agentes-zim:doug-abc1234
+mkdir -p "$DOUG_CLIENTES_DIR/backups/064"; chmod 700 "$DOUG_CLIENTES_DIR/backups/064"
+echo x >"$DOUG_CLIENTES_DIR/backups/064/pre-loja-lua-agentes_zim_doug_abc-20200101-100000.dump"
+rodar remover 064 --sim
+rodar novo 064 cafe-sol "Café Sol" --imagem agentes-zim:doug-abc1234
+[[ $CODIGO_SAIDA != 0 ]] && contem "$SAIDA" "backups de outro cliente" && contem "$SAIDA" "loja-lua" && ok "um pre-<slug>-* de outro cliente também impede reaproveitar o código" || falha "um pre-<slug>-* de outro cliente também impede reaproveitar o código" "$SAIDA"
 rodar limpar-backups 064 --antes 2021-01-01 --slug "Ruim Slug" --sim
 [[ $CODIGO_SAIDA != 0 ]] && contem "$SAIDA" "slug inválido" && ok "--slug inválido é recusado" || falha "--slug inválido é recusado" "$SAIDA"
 

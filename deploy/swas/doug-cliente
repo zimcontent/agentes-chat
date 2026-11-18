@@ -57,7 +57,8 @@
 # slug nome porta imagem criado_em, sem cabeçalho, 600); projeto do Compose doug-<codigo>; serviços
 # `agentes` e `postgres`; DOUG_IMAGE no .env; trava única <raiz>/.lock (600, flock obrigatório);
 # backups em <raiz>/backups/<codigo>/ (root, 700), fora de dados/: os deste script se chamam
-# manual-<slug>-<data> e remocao-<slug>-<data>; os do atualizador, pre-* e falhou-*, não são tocados.
+# manual-<slug>-<data> e remocao-<slug>-<data>; os do atualizador são pre-<slug>-<imagem>-<data> e
+# falhou-<slug>-<imagem>-<data>, e `limpar-backups` e `remover` também os cobrem.
 set -euo pipefail
 
 shopt -u patsub_replacement 2>/dev/null || true
@@ -1153,7 +1154,7 @@ cmd_iniciar() {
 # com o cliente e o que a cota mede). Os nomes deste script são manual-<slug>-<AAAAMMDD-HHMMSS> e
 # remocao-<slug>-<AAAAMMDD-HHMMSS> (mais .env e -files.tar ao lado): o slug diz de quem é, porque o
 # código de um cliente removido pode ser de outro depois. Os do doug-atualizar-clientes (pre-* e
-# falhou-*) têm outros nomes e a poda dele; este script não os toca.
+# falhou-*) levam o slug depois do tipo e a poda é dele; aqui só se leem (slug, dia) e se apagam com o cliente.
 pasta_backups() { # <codigo>
   mkdir -p "$RAIZ/backups/$1"
   chmod 700 "$RAIZ/backups" "$RAIZ/backups/$1"
@@ -1161,10 +1162,15 @@ pasta_backups() { # <codigo>
 
 # O nome de um arquivo de backup deste script em SLUG_DO_ARQUIVO e DIA (AAAAMMDD). O slug é
 # vazio nos de antes de o nome o ter. Devolve 1 para o que não é daqui.
+# Os do atualizador, pre-<slug>-<imagem>-<data>.dump e falhou-<slug>-..., têm a imagem entre o slug e a data, sem hífen
+# (o atualizador troca os hífens dela por _): o slug é o que vem antes dela.
 BACKUP_COM_SLUG='^(manual|remocao)-(.+)-([0-9]{8})-[0-9]{6}(\.dump|\.env|-files\.tar)$'
+BACKUP_DO_ATUALIZADOR='^(pre|falhou)-([a-z0-9-]+)-[A-Za-z0-9._]+-([0-9]{8})-[0-9]{6}\.dump$'
 BACKUP_SEM_SLUG='^(manual|remocao)-([0-9]{8})-[0-9]{6}(\.dump|\.env|-files\.tar)$'
 nome_de_backup() { # <nome do arquivo>
   if [[ $1 =~ $BACKUP_COM_SLUG ]]; then
+    SLUG_DO_ARQUIVO=${BASH_REMATCH[2]} DIA=${BASH_REMATCH[3]}
+  elif [[ $1 =~ $BACKUP_DO_ATUALIZADOR ]]; then
     SLUG_DO_ARQUIVO=${BASH_REMATCH[2]} DIA=${BASH_REMATCH[3]}
   elif [[ $1 =~ $BACKUP_SEM_SLUG ]]; then
     SLUG_DO_ARQUIVO="" DIA=${BASH_REMATCH[2]}
@@ -1430,7 +1436,7 @@ valida_data_antes() {
 # lado) de um código, o que for de antes da data: o prazo de guarda do README. Vale também para o
 # código de um cliente já removido, que é o caso de quem pede para esquecer os dados dele. Com
 # --slug, só os desse cliente; sem ele, se houver backups de mais de um cliente com o código, recusa
-# (apagar pelo código levaria os de outro cliente). Não toca nos pre-* e falhou-* do
+# (apagar pelo código levaria os de outro cliente). Cobre também os pre-* e falhou-* do
 # doug-atualizar-clientes, que ele mesmo poda.
 cmd_limpar_backups() {
   ((${#POSICIONAIS[@]} == 1)) || erro "uso: doug-cliente limpar-backups <codigo> --antes <AAAA-MM-DD> [--slug <slug>] [--sim]"
