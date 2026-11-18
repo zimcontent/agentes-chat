@@ -76,7 +76,10 @@ export function CallAction({
   );
 }
 
-/** Rings around the face that light with the voice: the site's lime glow, wider the louder it is. */
+const LIT_GLOW = "0px 0px 40px rgba(156, 250, 5, 0.35)";
+const QUIET_GLOW = "0px 0px 24px rgba(156, 250, 5, 0.18)";
+
+/** Rings around the face that light with the voice: the site's lime glow, lit or quiet. */
 function Rings({ level, size, children }: { level: number; size: number; children: ReactNode }) {
   const lit = level > 0.08;
   const ring = (grow: number, alpha: number) => ({
@@ -93,7 +96,8 @@ function Rings({ level, size, children }: { level: number; size: number; childre
         style={[
           styles.ring,
           ring(44, 0.55),
-          { boxShadow: `0px 0px ${20 + Math.round(level * 40)}px rgba(156, 250, 5, ${lit ? 0.35 : 0.18})` },
+          // Two fixed glows, never one rebuilt per audio level: a box shadow is a masked layer on iOS, made again on each change.
+          { boxShadow: lit ? LIT_GLOW : QUIET_GLOW },
         ]}
       />
       {children}

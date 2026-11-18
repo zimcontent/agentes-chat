@@ -16,12 +16,9 @@ export interface AppColors extends ThemeColors {
   bubble: string;
   /** Someone else's bubble: the glass's own step (the site's `.ac-msg__text`). */
   bubbleTheirs: string;
-  /** A bubble's 1 px rim and lit top line: mine in the lime, theirs in white. */
-  bubbleRim: string;
-  bubbleTheirsRim: string;
   /**
-   * The same rims as a plain 1 px border (`bubbleRim` is a box shadow): what the conversation's bubbles wear, since a
-   * box shadow on every row is an offscreen layer redrawn each frame on iOS.
+   * A bubble's 1 px rim as a plain border color (mine in the lime, theirs in white), never a box shadow: a box shadow
+   * on every row is an offscreen layer redrawn each frame on iOS (`surfaces.ts`).
    */
   bubbleEdge: string;
   bubbleTheirsEdge: string;
@@ -109,12 +106,6 @@ function fromDoug(scheme: Scheme): AppColors {
     // Someone else's bubble: on the dark stage well past the glass's step (#1A1A1A read as the textured backdrop
     // itself, the conversation ran together). Its words, time and quiet words in it (`muted`) stay AA.
     bubbleTheirs: dark ? "#2A2A2A" : t.palco3,
-    bubbleRim: dark
-      ? "inset 0px 1px 0px rgba(156, 250, 5, 0.1), inset 0px 0px 0px 1px rgba(156, 250, 5, 0.2)"
-      : "inset 0px 0px 0px 1px rgba(62, 107, 0, 0.18)",
-    bubbleTheirsRim: dark
-      ? "inset 0px 1px 0px rgba(255, 255, 255, 0.05), inset 0px 0px 0px 1px rgba(255, 255, 255, 0.047)"
-      : "inset 0px 0px 0px 1px rgba(10, 10, 10, 0.06)",
     bubbleEdge: dark ? "rgba(156, 250, 5, 0.22)" : "rgba(62, 107, 0, 0.2)",
     bubbleTheirsEdge: dark ? "rgba(255, 255, 255, 0.11)" : "rgba(10, 10, 10, 0.07)",
     amber: t.atencao,
