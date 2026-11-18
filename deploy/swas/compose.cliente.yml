@@ -1,7 +1,8 @@
 # Um cliente do DougBot: o servidor, o Postgres só dele (com pgvector) e uma rede só dele.
 # O doug-cliente copia este arquivo para /opt/doug-clientes/<codigo>-<slug>/compose.yml e
 # escreve o .env ao lado (de cliente.env.example). Não edite a cópia à mão: mude este modelo
-# e rode `doug-cliente novo` de novo ou copie por cima.
+# e rode `doug-cliente compose <codigo>`, que reinstala o compose.yml do cliente e acrescenta ao
+# .env as variáveis novas.
 #
 # Os dados ficam em ./dados (o Postgres em dados/postgres, os arquivos em dados/files), para a
 # cota de disco do cliente ser uma pasta só. A porta do servidor só abre no loopback: quem
@@ -31,6 +32,12 @@ services:
     mem_limit: "${DOUG_PG_MEMORY:-1g}"
     memswap_limit: "${DOUG_PG_MEMORY:-1g}"
     stop_grace_period: 30s
+    logging: &logs
+      # Sem teto, o log do contêiner cresce até encher o disco da máquina, de todos os clientes.
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   agentes:
     image: "${DOUG_IMAGE:?defina DOUG_IMAGE no .env}"
@@ -64,6 +71,7 @@ services:
     read_only: true
     tmpfs:
       - /tmp
+    logging: *logs
 
 networks:
   # A rede é só deste cliente: nenhum outro cliente enxerga o Postgres dele.

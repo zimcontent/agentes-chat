@@ -3,9 +3,10 @@
 # seu arquivo em clientes/<slug>.caddy, escrito e removido pelo doug-cliente; a lista de
 # clientes não fica neste arquivo.
 {
-	# A API de administração do Caddy, de onde vem o `caddy reload`. Na rede do host ela fica
-	# no loopback da máquina: só quem já tem conta nela a alcança.
-	admin localhost:2019
+	# A API de administração do Caddy, de onde vem o `caddy reload`, num socket Unix dentro de um
+	# volume que só o root do host alcança (caddy-admin em compose.yml): nenhuma porta de
+	# administração fica aberta na máquina, onde qualquer usuário local a alcançaria.
+	admin unix//run/caddy-admin/admin.sock|0600
 }
 
 import /etc/caddy/clientes/*.caddy
