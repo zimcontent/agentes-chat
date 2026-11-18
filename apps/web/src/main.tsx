@@ -6,7 +6,7 @@ import "./styles.css";
 import { authConfigQuery, createApiClient, createSnapshot, keys, type Me, meQuery, outbox } from "@agenteschat/client";
 import { ErrorBoundary } from "@agenteschat/client/lib/error-boundary";
 import { errorText } from "@agenteschat/client/lib/errors";
-import { holdSkies, installLiquidGlass, installTitleTips, trackInput } from "@agenteschat/ui";
+import { holdSkies, installLiquidGlass, installTitleTips, setClientProductName, trackInput } from "@agenteschat/ui";
 import { AppProviders, type AppServices } from "./app/providers";
 import { createQueryClient } from "./app/query-client";
 import { backToSignIn } from "./app/unauthorized";
@@ -56,6 +56,16 @@ void authConfig.then(
   (config) => startErrorReports(config.errorReports ?? null),
   () => startErrorReports(null),
 );
+// A server deployed for one client names the product in its own words (ADR doug-0020): its name is set before the
+// strings are built, so the tab's title and every string that says the product's name read it. Public and one request;
+// a server with no client, or one that doesn't answer, leaves the build's own name in place.
+await Promise.race([
+  api.system
+    .instance()
+    .then((instance) => setClientProductName(instance.client?.name))
+    .catch(() => setClientProductName(null)),
+  new Promise((resolve) => setTimeout(resolve, 1500)),
+]);
 // The language's file is the app's own too: index.html's boot fallback reloads or says so, and the error is reported.
 const i18n = await loadI18n(savedLocale()).catch((error: unknown) => {
   window.__agentesBootFailed?.();

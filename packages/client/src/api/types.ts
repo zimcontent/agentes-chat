@@ -252,6 +252,29 @@ export interface Instance {
   ownerClaim?: boolean;
   /** One of agentes.chat's own servers: `/terms` and `/privacy` are agentes.chat Cloud's (absent: an older server). */
   cloud?: boolean;
+  /**
+   * This server's client customizations (ADR doug-0020), from `clients/<DOUG_CLIENT_CODE>/config.json`: the name and
+   * color to show. Null: a server with none. Absent from an older server, which reads as none.
+   */
+  client: ClientBrand | null;
+}
+
+/** A client's name and color, as `GET /api/instance` sends them (ADR doug-0020). */
+export interface ClientBrand {
+  /** What its apps call the product; null: the product's own name. */
+  name: string | null;
+  /** The color its apps highlight, `#rrggbb`; null: the product's own. */
+  accent: string | null;
+}
+
+/** Everything a client declares (ADR doug-0020), as `GET /me` sends it. */
+export interface ClientCustom extends ClientBrand {
+  /** The sidebar's tools it turns off for every workspace on its server, by the apps' ids. */
+  hiddenTools: string[];
+  /** The agents it leaves out of its apps' lists, by handle. */
+  hiddenAgents: string[];
+  /** What the onboarding says on top of its rail; null: nothing extra. */
+  onboardingIntro: string | null;
 }
 
 /** "Abrir no celular": a sign-in for the phone, single use, a few minutes long. */
@@ -418,6 +441,11 @@ export interface OrgOnboarding {
 export interface Me {
   user: User;
   organizations: OrgSummary[];
+  /**
+   * This server's client customizations (ADR doug-0020), from `clients/<DOUG_CLIENT_CODE>/config.json`. Null: a
+   * server with none. Absent from an older server, which reads as none.
+   */
+  client?: ClientCustom | null;
 }
 
 /**

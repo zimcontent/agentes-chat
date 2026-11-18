@@ -1,5 +1,6 @@
-import { useApi, useMe } from "@agenteschat/client";
-import { Button, EmptyState } from "@agenteschat/ui";
+import { useApi, useClientLook, useMe } from "@agenteschat/client";
+import { brandText } from "@agenteschat/i18n/brand";
+import { Button, EmptyState, setClientProductName } from "@agenteschat/ui";
 import { createRootRouteWithContext, Link, Outlet, useRouter, useRouterState } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
@@ -63,11 +64,32 @@ function Root() {
   );
   return (
     <>
+      <ClientBrand />
       {inDesktopApp() && !inWorkspace && <DesktopDragStrip />}
       <ContextMenuHost />
       {deletion ? <AccountDeletingScreen dueAt={deletion.dueAt} /> : <Outlet />}
     </>
   );
+}
+
+/**
+ * This server's client customizations (ADR doug-0020), applied once they arrive: the product's name everywhere the app
+ * signs it (the signature, the tab's title, the strings it builds from then on: `setClientProductName`) and the
+ * highlight's color on the app's own `--db-verde-acento`-fed tokens. A server with no client draws nothing and changes
+ * nothing. Draws nothing at all: a side effect, kept in a component so it re-runs when `me` or the instance change.
+ */
+function ClientBrand() {
+  const { t } = useTranslation();
+  const client = useClientLook();
+  useEffect(() => {
+    setClientProductName(client.name);
+    const root = document.documentElement;
+    if (client.accent) root.style.setProperty("--client-accent", client.accent);
+    else root.style.removeProperty("--client-accent");
+    // The tab's title was built before the name arrived (index.html's, English): it is rebuilt in the language in use.
+    document.title = brandText(t("app.tabTitle"));
+  }, [client.name, client.accent, t]);
+  return null;
 }
 
 function NotFound() {

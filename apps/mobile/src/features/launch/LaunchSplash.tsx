@@ -1,3 +1,5 @@
+import { useClientLook } from "@agenteschat/client";
+import { productName } from "@agenteschat/client/lib/client-custom";
 import { useNetworkState } from "expo-network";
 import { type ReactNode, useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -64,6 +66,8 @@ export function LaunchSplash({
   const reduced = useReducedMotion();
   const { width, height } = useWindowDimensions();
   const insets = useSafeAreaInsets();
+  // This build's name, or the client's this server belongs to (ADR doug-0020).
+  const product = productName(useClientLook(), "DougBot");
   const network = useNetworkState();
   const offline = network.isConnected === false || network.isInternetReachable === false;
 
@@ -185,7 +189,7 @@ export function LaunchSplash({
       onLayout={onLayout}
       // One element for screen readers, except while it waits on the person: then its buttons are reachable.
       accessible={!asking}
-      accessibilityLabel={lineText ? `DougBot. ${lineText}` : "DougBot"}
+      accessibilityLabel={lineText ? `${product}. ${lineText}` : product}
       accessibilityLiveRegion="polite"
     >
       <Animated.View

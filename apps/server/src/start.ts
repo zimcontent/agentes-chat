@@ -91,7 +91,16 @@ import {
   vapidSubject,
   widenDmHowTos,
 } from "@agenteschat/engine";
-import { type AgentesModule, type Edition, type ModuleContext, resolveAdapters } from "@agenteschat/modules";
+import {
+  type AgentesModule,
+  ClientConfigError,
+  type ClientOverrides,
+  type Edition,
+  loadClient,
+  type ModuleContext,
+  overridesOf,
+  resolveAdapters,
+} from "@agenteschat/modules";
 import { createModelProviders, enableOpenRouterModels } from "@agenteschat/providers";
 import { createApp } from "./app";
 import { createAuth } from "./auth";
@@ -204,6 +213,20 @@ async function boot(
   release: string,
   errors: ErrorReporter,
 ) {
+  // This client's customizations (ADR doug-0020), read before anything serves: its config.json and, when it has one, its
+  // client.ts as one more module. No DOUG_CLIENT_CODE: none of it, and the server behaves as the shared code does.
+  let client: ClientOverrides | null = null;
+  try {
+    const loaded = await loadClient(config.DOUG_CLIENT_CODE);
+    if (loaded) {
+      client = overridesOf(loaded);
+      if (loaded.module) modules = [...modules, loaded.module];
+      log.info("client customizations", { code: loaded.code, dir: loaded.dir, module: loaded.module?.name ?? null });
+    }
+  } catch (error) {
+    if (error instanceof ClientConfigError) log.error("client customizations failed to load", { error: error.message });
+    throw error;
+  }
   log.info("starting agentes.chat", { version: release, edition, config: redactConfig(config) });
   log.info(
     "error reports",
@@ -569,6 +592,7 @@ async function boot(
     edition,
     version,
     modules,
+    client,
     draining: () => stopping,
     restart: () => restartHold.state(),
     moduleContext: ctx,

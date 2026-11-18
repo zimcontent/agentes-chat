@@ -1,4 +1,5 @@
-import { useIssues } from "@agenteschat/client";
+import { useClientLook, useIssues } from "@agenteschat/client";
+import { hiddenToolsWith } from "@agenteschat/client/lib/client-custom";
 import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { Pressable, StyleSheet, View } from "react-native";
@@ -84,8 +85,10 @@ export function HomeTools() {
     { key: "wiki", label: t("wiki.title"), href: "/wiki", icon: "book" },
     { key: "dashboards", label: t("mobile.me.dashboards"), href: "/dashboards", icon: "chart" },
   ];
-  // The tools an admin took out of the workspace for everyone (Settings › General) leave here too, as on the web.
-  const hidden = org?.hiddenTools ?? [];
+  // The tools an admin took out of the workspace for everyone (Settings › General), and the ones this server's client
+  // turns off for every workspace of its own (ADR doug-0020), leave here too, as on the web.
+  const client = useClientLook();
+  const hidden = hiddenToolsWith(client, org?.hiddenTools ?? []);
   const shown = tools.filter((tool) => !hidden.includes(tool.key));
   const front = shown.slice(0, FRONT);
   // Creating comes first in "Mais": the bar's "+" lives here now.

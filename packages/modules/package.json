@@ -16,7 +16,8 @@
     "@agenteschat/config": "workspace:*",
     "@agenteschat/db": "workspace:*",
     "@agenteschat/providers": "workspace:*",
-    "@hono/zod-openapi": "^1.6.3"
+    "@hono/zod-openapi": "^1.6.3",
+    "zod": "^4.6.5"
   },
   "devDependencies": {},
   "license": "AGPL-3.0-only"

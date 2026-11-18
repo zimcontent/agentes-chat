@@ -22,7 +22,7 @@ import zhHans from "./locales/zh-Hans.json";
 import { fillPluralGaps, type LocaleStrings } from "./plurals";
 import { ptBR } from "./pt-BR";
 
-export { BRAND_NAME, brandText, brandTree } from "./brand";
+export { BRAND_NAME, brandName, brandText, brandTree, setClientProductName } from "./brand";
 export { en, type Translations as Strings, type Translations } from "./en";
 export { fillPluralGaps, type LocaleStrings } from "./plurals";
 export { ptBR } from "./pt-BR";

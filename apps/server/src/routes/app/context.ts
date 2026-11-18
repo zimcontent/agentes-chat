@@ -18,6 +18,7 @@ import {
   type WhatsAppDeps,
   withComposio,
 } from "@agenteschat/engine";
+import type { ClientOverrides } from "@agenteschat/modules";
 import { OpenAPIHono, z } from "@hono/zod-openapi";
 import { createMiddleware } from "hono/factory";
 import { type Auth, type SessionUser, sessionUser, signInPageUrl } from "../../auth";
@@ -30,6 +31,11 @@ export interface AppDeps {
   auth: Auth;
   config: Config;
   adapters: Adapters;
+  /**
+   * This client's customizations (ADR doug-0020), from `clients/<code>/config.json` at boot: the name and color the
+   * apps show, the tools it turns off, the agents it leaves out, the onboarding's words. Null: the shared behavior.
+   */
+  client?: ClientOverrides | null;
   /** Wakes the in-process workers after something was enqueued (lower latency than the poll interval). */
   wakeWorkers?: () => void;
   /** Backend services (see `extras.ts`). */

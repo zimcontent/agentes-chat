@@ -127,6 +127,16 @@ export const envVars = {
     section: "Server",
     example: "2026.10.31.4",
   },
+  DOUG_CLIENT_CODE: {
+    schema: z
+      .string()
+      .regex(/^\d{3}$/, "must be three digits, such as 064")
+      .optional(),
+    description:
+      "Which client this server is one of: three digits naming the folder under `clients/` of the source it was built from (`clients/064/`, ADR doug-0020). Its `config.json` (the name and color the apps show, the features it turns on or off, the Team Doug agents it hides, the onboarding's extra texts) and its `client.ts` (an `AgentesModule`) load at boot; unset, none does, and every server behaves the same. The triggered build puts its client's folder in the image.",
+    section: "Server",
+    example: "064",
+  },
   // Mirror: PUBLIC_SOURCE_URL in packages/client/src/lib/about.ts.
   SOURCE_URL: {
     schema: z.url().default("https://github.com/agentes-chat/agentes-chat"),

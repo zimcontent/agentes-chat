@@ -3560,3 +3560,15 @@ html[data-theme]:not([data-pointer]) .sky-welcome__close:focus-visible {
 [data-theme] .sidebar:not([data-rail="true"]) .sidebar__working {
   padding: 2px var(--dg-s3) 0;
 }
+
+/* ── A client's highlight (ADR doug-0020) ──
+   A server deployed for one client paints its own color, set as `--client-accent` on <html> from its `config.json`
+   (`clients/<code>/config.json`, `product.accent`). It stands where the identity puts the green on the screen's own
+   accents (words, edges, the focus ring, `--accent-text`), never on the bots: a bot's color is its own. A server with no
+   client never sets the variable, so every rule here falls back to the identity's green. */
+html:root {
+  --client-accent: var(--db-verde-acento);
+  --accent-text: var(--client-accent);
+  --focus-color: var(--client-accent);
+  --ok: var(--client-accent);
+}

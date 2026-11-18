@@ -1,6 +1,6 @@
 import type { CSSProperties, HTMLAttributes } from "react";
+import { brandName } from "../brand/doug";
 import type { DougBotEstado } from "../brand/dougbot-avatar.js";
-import { BRAND_NAME } from "../brand/doug";
 import { cx } from "../cx";
 import { BotFace } from "./BotFace";
 
@@ -56,20 +56,39 @@ export interface LogoProps {
 }
 
 /**
+ * A name in the signature's two weights: the first word 800 and the rest 500 ("Doug" + "Bot"), the way the identity
+ * draws it. A client's name (ADR doug-0020) keeps that split at its first space, so "Padaria Aurora" reads "Padaria"
+ * 800 + "Aurora" 500.
+ */
+const SignatureName = ({ name }: { name: string }) => {
+  const at = name.indexOf(" ");
+  return at < 0 ? (
+    <b>{name}</b>
+  ) : (
+    <>
+      <b>{name.slice(0, at)}</b>
+      {name.slice(at)}
+    </>
+  );
+};
+
+/**
  * The signature (IDENTIDADE.md §3): the Doug close up and the name, side by side, live text in Manrope ("Doug" 800,
- * "Bot" 500, one color). No box, no seal, no shadow. Its accessible name is the brand's.
+ * "Bot" 500, one color). No box, no seal, no shadow. Its accessible name is the brand's: the client's, on a server
+ * deployed for one (ADR doug-0020).
  */
 export function Logo({ mono, size = 22, className, style }: LogoProps) {
+  const name = brandName();
   return (
     <span
       className={cx("ac-logo", "db-assina", mono && "ac-logo--mono", className)}
       style={{ "--t": `${size}px`, ...style } as CSSProperties}
       role="img"
-      aria-label={BRAND_NAME}
+      aria-label={name}
     >
       <DougMark />
       <span className="ac-logo__word" aria-hidden="true">
-        <b>Doug</b>Bot
+        <SignatureName name={name} />
       </span>
     </span>
   );

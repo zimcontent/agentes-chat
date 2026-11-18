@@ -33,6 +33,22 @@ const InstanceResponse = z
       description:
         "One of agentes.chat's own servers (`PUBLIC_URL` on agentes.chat): `/terms` and `/privacy` show agentes.chat Cloud's Terms and Privacy Policy.",
     }),
+    client: z
+      .object({
+        name: z
+          .string()
+          .nullable()
+          .openapi({ description: "What this client's apps call the product; null: the product's own name." }),
+        accent: z
+          .string()
+          .nullable()
+          .openapi({ description: "The color its apps highlight, `#rrggbb`; null: the product's own." }),
+      })
+      .nullable()
+      .openapi({
+        description:
+          "This server's client customizations (ADR doug-0020), from `clients/<DOUG_CLIENT_CODE>/config.json`. Null: a server with none, whose apps show the product's own name and color.",
+      }),
   })
   .openapi("Instance");
 
@@ -69,6 +85,7 @@ export function registerInstance(api: OpenAPIHono, deps: AppDeps, version: strin
         signup: open ? ("open" as const) : ("invite" as const),
         ownerClaim: users === 0 && Boolean(config.OWNER_CLAIM_SHA256),
         cloud: isAgentesCloud(config.PUBLIC_URL),
+        client: deps.client ? { name: deps.client.name, accent: deps.client.accent } : null,
       },
       200,
     );

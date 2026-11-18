@@ -1,6 +1,7 @@
 import {
   useApprovals,
   useChannels,
+  useClientLook,
   useDms,
   useMissionList,
   useNotificationCount,
@@ -9,6 +10,7 @@ import {
   useThreadList,
   useWorkingRuns,
 } from "@agenteschat/client";
+import { clientHiddenAgentIds } from "@agenteschat/client/lib/client-custom";
 import * as Notifications from "expo-notifications";
 import { useEffect, useMemo } from "react";
 import { useOrg } from "@/providers/org";
@@ -58,11 +60,14 @@ export function useHiddenAgents() {
   const orgId = useOrgId();
   const dir = useDirectory();
   const mine = useSidebarView(orgId).hiddenAgents;
+  const client = useClientLook();
   const hidden = useMemo(() => {
     const all = hiddenAgentIds(org, dir.agents);
     for (const id of mine ?? []) all.add(id);
+    // The agents this server's client leaves out of its apps' lists (ADR doug-0020), never the right hand.
+    for (const id of clientHiddenAgentIds(client, dir.agents)) all.add(id);
     return all;
-  }, [dir.agents, org, mine]);
+  }, [dir.agents, org, mine, client]);
   return { hidden, loading: dir.loading };
 }
 

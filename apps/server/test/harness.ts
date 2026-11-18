@@ -42,6 +42,7 @@ import {
   type ResolveHost,
   type ToolSource,
 } from "@agenteschat/engine";
+import type { ClientOverrides } from "@agenteschat/modules";
 import { PROVIDER_IDS } from "@agenteschat/providers";
 import { createFakeEmbeddings, createFakeProvider } from "@agenteschat/providers/testing";
 import { createApp } from "../src/app";
@@ -135,6 +136,11 @@ export async function createTestServer(
      * password reset). Flipping `t.email.delivers` later reaches only the routes that read it on each request.
      */
     emailDelivers?: boolean;
+    /**
+     * A client's customizations (ADR doug-0020), as `start.ts` reads them at boot (`overridesOf(await loadClient(code))`);
+     * absent: a server with none, as without `DOUG_CLIENT_CODE`.
+     */
+    client?: ClientOverrides | null;
   } = {},
 ) {
   const { db, close } = await createTestDatabase();
@@ -224,6 +230,7 @@ export async function createTestServer(
     edition: "selfhost",
     version: "test",
     modules: [],
+    client: options.client ?? null,
     pingDatabase: async () => {},
     appsFetchDocument:
       options.appsFetchDocument ??

@@ -1445,6 +1445,8 @@ export function createFakeHttpApi(state: FakeState): Omit<HttpApi, FakedParts> {
         signIn: { email: true, google: false, github: true, apple: false },
         signup: "open",
         cloud: true,
+        // A server without client customizations (ADR doug-0020) unless a test names one.
+        client: null,
         ...state.instance,
       }),
       telemetry: async () => state.telemetry ?? null,

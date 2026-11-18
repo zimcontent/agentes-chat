@@ -1,4 +1,4 @@
-import { useSettings, useUpdateSettings, useWhatsApp } from "@agenteschat/client";
+import { useClientLook, useSettings, useUpdateSettings, useWhatsApp } from "@agenteschat/client";
 import { can } from "@agenteschat/client/lib/permissions";
 import { WORKSPACE_TOOLS, type WorkspaceTool } from "@agenteschat/client/lib/sidebar-items";
 import { Card, CardHeader, Icon, Switch } from "@agenteschat/ui";
@@ -45,10 +45,17 @@ export function WorkspaceToolsCard() {
     settings.data?.hiddenTools ??
     org.hiddenTools ??
     [];
-  const tools = WORKSPACE_TOOLS.filter(
+  // The tools this server's client turns off for every workspace of its own (ADR doug-0020) aren't this admin's to
+  // turn back on: they leave the card, exactly as they left the sidebar.
+  const client = useClientLook();
+  const tools = (WORKSPACE_TOOLS as readonly WorkspaceTool[]).filter(
     (id) =>
-      id !== "threads" && (id !== "portal" || portal) && (id !== "media" || media) && (id !== "whatsapp" || whatsapp),
-  ) as WorkspaceTool[];
+      id !== "threads" &&
+      (id !== "portal" || portal) &&
+      (id !== "media" || media) &&
+      (id !== "whatsapp" || whatsapp) &&
+      !client.hiddenTools.includes(id),
+  );
   const label = (id: WorkspaceTool) =>
     id === "whatsapp" ? "WhatsApp" : id === "review" ? review.title : t(`shell.${id}`);
   const mark = (id: WorkspaceTool) =>

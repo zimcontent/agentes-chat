@@ -58,7 +58,7 @@ export {
   type BrainAgentLook,
   drawBrain,
 } from "./brain/portrait.js";
-export { BRAND_MARK_URL, BRAND_NAME, PIXEL_ART } from "./brand/doug";
+export { BRAND_MARK_URL, BRAND_NAME, brandName, PIXEL_ART, setClientProductName } from "./brand/doug";
 export {
   type DougBotEstado,
   type DougBotForma,

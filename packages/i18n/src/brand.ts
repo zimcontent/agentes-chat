@@ -13,15 +13,44 @@ export const BRAND_NAME = "DougBot";
 export const UPSTREAM_NAME = "agentes.chat";
 
 /**
+ * The name this server's client gives the product (`clients/<code>/config.json`, ADR doug-0020), set once by each app
+ * when it learns it (the web before its strings load). Null: the build's own name. Module state on purpose: every
+ * string and every signature goes through `brandText`/`brandName`, and passing the name through every call would leave
+ * the one the app doesn't know about still saying the build's name.
+ */
+let clientProductName: string | null = null;
+
+/** The product's name here: the client's, else this build's. */
+export const brandName = (): string => clientProductName ?? BRAND_NAME;
+
+/**
+ * Sets the client's name for everything drawn from now on (`brandName`, and the strings `brandTree` builds after it).
+ * Called by an app once it read `GET /me` or `GET /api/instance`; a server with no client leaves it as it is. A name
+ * equal to the build's, or blank, clears it.
+ */
+export function setClientProductName(name: string | null | undefined): void {
+  const next = name?.trim() || null;
+  clientProductName = next === BRAND_NAME ? null : next;
+}
+
+/**
  * The upstream name as a word: not after a letter, digit or one of `@ . / : -` (an email, a subdomain, a path, a
  * scheme) and not before a letter, digit, `/`, `-` or a dot that goes on (`agentes.chat.app`, `agentes.chat/x`). A
  * dot that ends the sentence is fine. The character before is captured, not looked behind, for old engines.
  */
 const UPSTREAM_WORD = /(^|[^\w@./:-])agentes\.chat(?![\w/-]|\.\w)/g;
 
-/** `text` with the product's name as this instance's, addresses left alone. */
+/**
+ * This build's name as a word, for a client's: the same rule, and a capital D so a lowercase address (`dougbot.app`)
+ * never matches.
+ */
+const BRAND_WORD = /(^|[^\w@./:-])DougBot(?![\w/-]|\.\w)/g;
+
+/** `text` with the product's name as this server's, addresses left alone. */
 export function brandText(text: string): string {
-  return text.includes(UPSTREAM_NAME) ? text.replace(UPSTREAM_WORD, `$1${BRAND_NAME}`) : text;
+  const name = brandName();
+  const branded = text.includes(UPSTREAM_NAME) ? text.replace(UPSTREAM_WORD, `$1${name}`) : text;
+  return name === BRAND_NAME ? branded : branded.replace(BRAND_WORD, `$1${name}`);
 }
 
 /**
