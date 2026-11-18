@@ -68,6 +68,8 @@ describe("run policy table", () => {
     expect(toolKind(builtIn("list_routines", "schedule:write")).kind).toBe("read");
     expect(toolKind(builtIn("create_routine", "schedule:write")).kind).toBe("elsewhere");
     expect(toolKind(builtIn("post_message")).kind).toBe("elsewhere");
+    // A client of the installation's own approval portal (docs/adr/doug-0022): elsewhere, never a routine's.
+    expect(toolKind(builtIn("portal_clients")).kind).toBe("elsewhere");
     expect(toolKind(builtIn("react")).kind).toBe("here");
     expect(toolKind(builtIn("hand_off")).kind).toBe("hand_off");
     // A tool the table doesn't know: a sensitive one asks a person, any other is only for a person's run.
