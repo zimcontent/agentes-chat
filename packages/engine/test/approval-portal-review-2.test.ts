@@ -14,6 +14,7 @@ import {
   upsertPortalClient,
 } from "../src";
 import { createJobHandlers } from "../src/jobs";
+import { drainOutbox } from "../src/outbox";
 import { SECRET, setup } from "./fixtures";
 
 // The third review of the installation's own approval portal (docs/adr/doug-0031-embedded-approval-portal.md): a
@@ -264,7 +265,16 @@ describe("the file's ranges (review 3, item 5)", () => {
     expect(rangePart("bytes=0-999999999", 20 * MiB)).toEqual({ start: 0, end: 8 * MiB - 1 });
     expect(rangePart("bytes=1-3", 10)).toEqual({ start: 1, end: 3 });
     expect(rangePart("bytes=10-", 10)).toBe("bad");
-    expect(rangePart("bytes=5-2", 10)).toBe("bad");
+  });
+
+  test("a range that ends before it starts, another unit, or no bytes at all is ignored: the whole file", () => {
+    // `bytes=5-2` takes nothing from the file: no range the server makes sense of, so `200` with all of it.
+    expect(rangePart("bytes=5-2", 10)).toBeNull();
+    // A unit that isn't `bytes` is not one this route answers.
+    expect(rangePart("items=0-5", 10)).toBeNull();
+    expect(rangePart("bytes=", 10)).toBeNull();
+    expect(rangePart("bytes=-", 10)).toBeNull();
+    expect(rangePart("bytes=a-b", 10)).toBeNull();
   });
 
   test("a multi-range header is ignored: the whole file, as the RFC allows", () => {
@@ -274,7 +284,8 @@ describe("the file's ranges (review 3, item 5)", () => {
   test("a suffix range asks for the last bytes of the file, at most as many as it has", () => {
     expect(rangePart("bytes=-3", 10)).toEqual({ start: 7, end: 9 });
     expect(rangePart("bytes=-50", 10)).toEqual({ start: 0, end: 9 });
-    expect(rangePart("bytes=-0", 10)).toBe("bad");
+    // A suffix of nothing takes nothing: no range, and the whole file.
+    expect(rangePart("bytes=-0", 10)).toBeNull();
   });
 
   test("a file read through the token's client answers just the part the range names, even an open one", async () => {
@@ -377,31 +388,36 @@ describe("the notice a send leaves is in its own transaction (review 3, item 7)"
 });
 
 describe("a workspace back from its hold tells its clients (review 3, 'se forem simples')", () => {
-  test("a post whose notice fell on the hold is queued again when the hold lifts", async () => {
+  test("a post whose notice fell on the hold is queued again when the hold lifts, by the real job", async () => {
     await makeClient("padaria-aurora", "Padaria Aurora");
     const upload = await portal.upload("reel.mp4", new Uint8Array([1]));
     const job = await portal.send({ client: "padaria-aurora", type: "reel", files: [upload], caption: "Um" });
+    const handlers = createJobHandlers({
+      ...f.jobDeps,
+      portalNotify: { db: f.db, publicUrl: PUBLIC_URL, secret: SECRET, email },
+    });
+    const run = () => drainOutbox(f.db, { [PORTAL_NOTIFY_JOB]: handlers[PORTAL_NOTIFY_JOB]! } as never);
     // On hold: the notice says `closed`, and nothing is recorded for the post.
     await setOrgStanding({ db: f.db }, f.org.id, { state: "hold", reason: "legal_hold", note: null, notice: "shown" });
-    const held = await announcePortalPost(
-      { db: f.db, publicUrl: PUBLIC_URL, secret: SECRET, email },
-      f.org.id,
-      job.item as string,
-      1,
-    );
-    expect(held).toMatchObject({ sent: 0, skipped: "closed" });
-    // The job ran and was consumed (as the worker would): nothing left for that post.
-    await f.db
-      .delete(schema.outbox)
+    await run();
+    const held = await f.db
+      .select()
+      .from(schema.outbox)
       .where(and(eq(schema.outbox.orgId, f.org.id), eq(schema.outbox.kind, PORTAL_NOTIFY_JOB)));
-    // The hold lifts: the post that waited is queued again, naming its client.
+    // The job ran and was consumed, as the worker marks it: nothing is waiting on that post any more.
+    expect(held.filter((j) => j.status === "pending")).toHaveLength(0);
+    // The hold lifts: the sweep queues the post again, naming its client and its version — a key of its own, which
+    // the consumed `postId:version` row no longer takes.
     await setOrgStanding({ db: f.db }, f.org.id, { state: "active", reason: null, note: null, notice: "shown" });
     const queued = await f.db
       .select()
       .from(schema.outbox)
       .where(and(eq(schema.outbox.orgId, f.org.id), eq(schema.outbox.kind, PORTAL_NOTIFY_JOB)));
-    expect(queued.filter((j) => j.dedupeKey === `portal.notify:${job.item}:v1`)).toHaveLength(1);
-    expect(queued[0]?.payload.client).toBe("padaria-aurora");
+    const pending = queued.filter((j) => j.status === "pending");
+    expect(pending).toHaveLength(1);
+    expect(pending[0]?.payload.client).toBe("padaria-aurora");
+    expect(pending[0]?.payload.resumed).toBe(true);
+    expect(String(pending[0]?.dedupeKey)).toStartWith(`portal.notify:resume:${job.item}:v1:`);
   });
 
   test("`queuePortalNoticesFor` names each waiting post and version, and skips a post already told of", async () => {

@@ -55,6 +55,11 @@ export interface PortalNoticeResult {
   retryAt?: Date;
   /** The client whose hour held the notice, when `skipped` is `recent`: the retry's key names it. */
   client?: string;
+  /**
+   * The contacts whose text didn't go while the rest of the notice did: the job queues a retry for them alone, so a
+   * gateway that refused one number doesn't keep the others from hearing of the post.
+   */
+  pending?: string[];
 }
 
 /** A notice for one client inside this of another is that same notice (`posts[]` joined), and never a second one. */
@@ -241,6 +246,11 @@ export async function announcePortalPost(
   /** The client the job names, when it does (`portal.notify`'s retry): what is told of is that client, whatever its
    * post became. Without it, the client is the one the post belongs to, as a send names it. */
   named?: string | null,
+  /**
+   * The contacts whose text is still owed (`PortalNoticeResult.pending`, a job's own retry): only they are told, by
+   * WhatsApp alone, and the client's hour is not read — this is the same notice finishing, not a second one.
+   */
+  onlyContacts?: readonly string[] | null,
 ): Promise<PortalNoticeResult> {
   void version;
   const now = deps.now?.() ?? new Date();
@@ -316,18 +326,23 @@ export async function announcePortalPost(
   // `portal.notify` jobs that arrive together (a send and a new version, or a retry and a send) line up instead of both
   // reading "no notice in the last hour" and both telling the client. Everything a database holds is written inside
   // the lock; the texts go after it commits, so no lock is held over the network.
+  const owed = onlyContacts?.length ? new Set(onlyContacts) : null;
   const settled = await deps.db.transaction(async (tx) => {
     await tx.execute(sql`select pg_advisory_xact_lock(hashtext(${`portal-notice:${orgId}:${clientId}`}))`);
     // How recent the client's last notice is, read under the lock: the job that comes second sees the first's rows and
-    // holds, where one that read before it would have told the client a second time.
-    const last = await lastNoticeAt(tx, orgId, clientId);
+    // holds, where one that read before it would have told the client a second time. A retry for the contacts whose
+    // text didn't go is this same notice finishing: the hour is its own and is not read again.
+    const last = owed ? null : await lastNoticeAt(tx, orgId, clientId);
     if (last && now.getTime() - last.getTime() < PORTAL_NOTICE_GROUP_MS) {
       const retryAt = new Date(last.getTime() + PORTAL_NOTICE_GROUP_MS);
       return { result: { sent: 0, skipped: "recent", retryAt, client: clientId } as PortalNoticeResult, texts: [] };
     }
-    const texts: { to: string; text: string; noticeIds: string[] }[] = [];
+    const texts: { contactId: string; to: string; text: string; noticeIds: string[] }[] = [];
     let sent = 0;
     for (const contact of client.contacts) {
+      // A retry for the contacts whose text is owed tells them alone: the e-mail of everyone else's notice already
+      // went, and the rows it wrote are what the hour reads.
+      if (owed && !owed.has(contact.id)) continue;
       const ways = payload(contact);
       if (ways.email) {
         try {
@@ -368,7 +383,7 @@ export async function announcePortalPost(
             })),
           );
         }
-        texts.push({ to: ways.whatsapp.to, text: ways.whatsapp.text, noticeIds });
+        texts.push({ contactId: contact.id, to: ways.whatsapp.to, text: ways.whatsapp.text, noticeIds });
         sent++;
       }
     }
@@ -377,6 +392,7 @@ export async function announcePortalPost(
   // The texts, once the hour is theirs: a number that may not start another conversation today leaves the notice for
   // the client's page, and the rows it would have written are taken back out, so it never reads as told by WhatsApp.
   let sent = settled.result.sent;
+  const pending: string[] = [];
   for (const text of settled.texts) {
     try {
       await deliverWhatsAppText(
@@ -399,14 +415,35 @@ export async function announcePortalPost(
           .delete(portalNotices)
           .where(and(eq(portalNotices.orgId, orgId), inArray(portalNotices.id, text.noticeIds)))
           .catch(() => undefined);
+      pending.push(text.contactId);
       deps.log?.warn("approval portal: a client's WhatsApp notice could not be sent", { postId, error: String(error) });
     }
+  }
+  // Nothing reached anyone while the notice had ways to go: the gateway is down, or refuses this number, and no
+  // contact had an address either. Every row this notice wrote was taken back out above, so the outbox's retry finds
+  // the client exactly as it was before: the same posts, no notice recorded, and the whole notice goes again with
+  // backoff. A notice where something did go is `done`, and whatever text is owed goes by the retry `jobs.ts` queues.
+  if (pending.length > 0 && sent === 0 && settled.texts.length > 0) {
+    throw new PortalTextsUnsent(pending.length);
   }
   return {
     ...settled.result,
     sent,
+    ...(pending.length > 0 ? { pending } : {}),
     skipped: sent === 0 && settled.result.skipped === null ? "none" : settled.result.skipped,
   };
+}
+
+/**
+ * Every text of a notice failed, while there were texts to send: a transient gateway (or a number that went away
+ * between the lock and the send), never one contact's own. Thrown out of `announcePortalPost` so the job fails and
+ * retries with backoff; the e-mail it queued is kept by its outbox key, so the retry tells the client once.
+ */
+export class PortalTextsUnsent extends Error {
+  constructor(readonly failed: number) {
+    super(`none of the ${failed} WhatsApp notices could be sent`);
+    this.name = "PortalTextsUnsent";
+  }
 }
 
 /**
@@ -416,15 +453,28 @@ export async function announcePortalPost(
 export const portalNotifyPostKey = (postId: string, version: number) => `portal.notify:${postId}:v${version}`;
 
 /**
- * When a workspace that was closed to work can work again: every post of its clients that waits there and that they
- * were never told of gets a `portal.notify` queued, so a hold that ended doesn't leave a client's posts silent (a
- * notice that fell on a hold answered `skipped: "closed"`, and nothing else would ever name it again).
+ * The key a notice swept back into the queue carries (`queuePortalNoticesFor`): the post, its version, and the moment
+ * the sweep ran, so a sweep never collides with the notice a send already left (`portalNotifyPostKey`, which that row
+ * of the outbox still holds as `done`/`failed`) nor with an earlier sweep. Nothing else reads it: a retry for the
+ * hour is still keyed by the client (`portal.notify:retry:<client>:<at>`, `jobs.ts`).
+ */
+export const portalNotifyResumeKey = (postId: string, version: number, at: Date) =>
+  `portal.notify:resume:${postId}:v${version}:${at.toISOString()}`;
+
+/**
+ * When a workspace that was closed to work can work again, when a client gets a link again, or when the sweep runs for
+ * any other reason: every post of its clients that waits there and that they were never told of gets a `portal.notify`
+ * queued, so a hold that ended (or a link that was missing) doesn't leave a client's posts silent — a notice that fell
+ * on a hold answered `skipped: "closed"`, one that fell on a stale link `skipped: "link"`, and nothing else would ever
+ * name either again.
  *
  * Read from `portal_notices`, which is what fresh means: a post whose waiting version is past the last one recorded
- * is one nobody was told of. The key is the same `portalNotifyPostKey`, so a notice already queued for that version
- * takes it. Answers how many jobs were queued.
+ * is one nobody was told of. The key names the moment of the sweep (`portalNotifyResumeKey`), never the send's own
+ * `postId:version`: that row is still in the outbox as `done`, and its dedupe key would swallow the sweep's job; a
+ * sweep is safe to repeat because `announcePortalPost` is idempotent per post version (`portal_notices`). Answers how
+ * many jobs were queued.
  */
-export async function queuePortalNoticesFor(db: Database, orgId: string): Promise<number> {
+export async function queuePortalNoticesFor(db: Database, orgId: string, now: Date = new Date()): Promise<number> {
   const waiting = await db
     .select({
       id: portalPosts.id,
@@ -442,13 +492,16 @@ export async function queuePortalNoticesFor(db: Database, orgId: string): Promis
   let queued = 0;
   for (const post of waiting) {
     if (post.version <= (post.notified ?? 0)) continue;
-    await enqueue(db, {
+    // Counted only when the row is really written: the same sweep run twice for the same moment takes the first
+    // row and writes no second (`enqueue` answers false), and a sweep again at another moment is a notice by
+    // `announcePortalPost`'s own per-version check.
+    const written = await enqueue(db, {
       orgId,
       kind: PORTAL_NOTIFY_JOB,
-      payload: { postId: post.id, version: post.version, client: post.client },
-      dedupeKey: portalNotifyPostKey(post.id, post.version),
+      payload: { postId: post.id, version: post.version, client: post.client, resumed: true },
+      dedupeKey: portalNotifyResumeKey(post.id, post.version, now),
     });
-    queued++;
+    if (written) queued++;
   }
   return queued;
 }

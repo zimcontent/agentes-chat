@@ -30,12 +30,15 @@ its own address, so a team can send a client a link and a client can approve wit
    (`packages/engine/src/approval-portal-clients.ts`) reads, in this order, the workspace holding the first
    `portal_clients` row, else the one whose watch already made a task of it (`issues.source` of type `portal`), else
    the installation's first workspace. `portalOrgId` (the embedded contract) and `portalBelongsTo` read that same
-   function, and the watch's own `portalHere`/`portalWorkspace` (`approval-portal-tasks.ts`) read the portal's task
-   first and the installation's first workspace after it — the same order for the cases that decide a workspace, so a
-   client made and a task the watch later makes never name different workspaces. `upsertPortalClient`,
-   `makeClientLink`, `revokeClientLink`, `removePortalClient`, the tool and every route of `…/portal-clients*` call
-   `portalBelongsTo`: another workspace on the same server answers `404 portal.off` on each, never gets a client or its
-   link, and its agents get no portal tool.
+   function, and so does every client, link and post of the embedded portal. The watch's own `portalHere`/
+   `portalWorkspace` (`approval-portal-tasks.ts`) is a narrower read: the portal's task first, the installation's
+   first workspace after it, and `portal_clients` never — a workspace with no client yet is one the watch has nothing
+   to put in step, so it reads only what its own work is on. The two agree wherever both have something to answer (a
+   workspace that made a client or whose watch made a task of it), and a task the watch made in the installation's
+   first workspace is always that workspace's, so a client made and a task the watch later makes never name different
+   workspaces. `upsertPortalClient`, `makeClientLink`, `revokeClientLink`, `removePortalClient`, the tool and every
+   route of `…/portal-clients*` call `portalBelongsTo`: another workspace on the same server answers `404 portal.off`
+   on each, never gets a client or its link, and its agents get no portal tool.
 4. **A client has its own link, and that link is the whole access.** The team adds a client (its name, its contacts,
    a colour) in Settings or with the `portal_clients` tool. Each client gets `<PUBLIC_URL>/p/<token>`, a token derived
    from the link's id and this server's `AGENTES_SECRET` (`portalClientToken`), so only its hash
@@ -91,9 +94,14 @@ its own address, so a team can send a client a link and a client can approve wit
      meanwhile — into one notice with them in `posts[]` (the email's list, the text's first line). A post that was
      answered since is never named, and never blocks the retry: `portal.notify` names the client for exactly this.
    - **Nothing goes** while the client has no live link (`skipped: "link"`), while the workspace is closed to work
-     (`skipped: "closed"`, `workRefusal`), or while its post is past deciding (`skipped: "answered"`). A workspace
-     back from its hold (`standingWritten`, back to `active`) queues a `portal.notify` for every waiting post nobody
-     was told of (`queuePortalNoticesFor`), so a notice that fell on the hold isn't lost.
+     (`skipped: "closed"`, `workRefusal`), or while its post is past deciding (`skipped: "answered"`). What a hold or
+     a missing link held back comes back: a workspace back from its hold (`standingWritten`, back to `active`) and a
+     client given a new link (`makeClientLink`, the case `skipped: "link"`) both sweep every waiting post nobody was
+     told of into a `portal.notify` (`queuePortalNoticesFor`), so neither leaves a client's posts silent. The sweep's
+     key names the moment it ran (`portalNotifyResumeKey`, `portal.notify:resume:<post>:v<version>:<at>`), never the
+     send's own `postId:version`: that row is still in the outbox as `done`, and the outbox's unique `dedupe_key`
+     would swallow the sweep's job. Repeating a sweep is safe and expected, because `announcePortalPost` is
+     idempotent per post and version, and `queuePortalNoticesFor` counts only the rows it really wrote.
    - The e-mail (`portal_ready`, its own words in every language the app has) goes to every contact with an address,
      in the client's own language: `portal_clients.locale`, picked in Settings, else the workspace owner's own
      (`personLocale`), else English — never one guessed from a contact's name. WhatsApp goes to every contact with a
@@ -103,18 +111,33 @@ its own address, so a team can send a client a link and a client can approve wit
      the person is on (`whatsapp_accounts.people`) — every number of the workspace for someone with
      `manage_connectors`; and a choice whose chooser may no longer use that number (`portal_notice_number_by`) tells
      nothing, as if none had been picked. A number starts no more conversations than the app itself allows
-     (`whatsapp.new_chats_limit`, through `deliverWhatsAppText`); a text that can't go takes back the rows its
-     decision wrote, so the client isn't read as told by WhatsApp, and still has the page and the e-mail.
+     (`whatsapp.new_chats_limit`, through `deliverWhatsAppText`).
+   - **A text that fails is owed again, and fails the job**: a notice whose texts all failed while it had texts to
+     send throws out of `announcePortalPost` (`PortalTextsUnsent`), so the job fails and the outbox retries it with
+     backoff. The e-mail was queued in the same transaction under `email:<key>` (an outbox dedupe key), so the retry
+     tells the client once, and the rows the failed texts wrote are already out, so the retry reads every post as not
+     yet told. A notice where only some texts failed stays `done`: the failed contact's rows are taken back out and a
+     `portal.notify` naming those contacts alone (`payload.contacts`, keyed by the client, the post, its version and
+     the contacts) tells them by WhatsApp when it comes back; a retry that fails again names what is still owed, and
+     one that never recovers stops at its own `maxAttempts`.
 9. **A file is read through the same token.** `GET /p/api/<token>/files/<fileId>` (a `fileId` that isn't a uuid is
    `404`, before any query) streams a post's file, whole or the part a `Range` asks for (`clientPortalFileRange`), so
    a video plays and jumps on a phone. An open range (`bytes=0-`) reads at most 8 MiB (`PORTAL_FILE_RANGE_BYTES`), so
-   a jump never pulls an hour of video at once; a part off the end is `416` with `Content-Range: bytes */<size>`; a
-   multi-range header is ignored (the whole file, `200`, as RFC 9110 allows a server to do). Every store's
+   a jump never pulls an hour of video at once; a part off the end is `416` with `Content-Range: bytes */<size>`. Every
+   other `Range` the server can't make sense of is ignored and the whole file answered `200`, as RFC 9110 lets it: a
+   multi-range header, a unit that isn't `bytes`, one with no numbers in it, and a range that ends before it starts
+   (`bytes=5-2`, which takes nothing from the file and is no `416`). Every store's
    `getRange` refuses a negative offset the same way (`RangeError`, `badBlobRange`), and one that answers `200` to a
-   ranged read (S3 behind a proxy) is cut here, so the part answered is always the one asked for. A file's bytes
+   ranged read (S3 behind a proxy) is cut here, so the part answered is always the one asked for; a bucket that answers
+   `416` to a part is `StorageError("range_not_satisfiable")`, which this route answers as the `416` it is, never as an
+   unexpected error. A file's bytes
    never change under its id, so the page may keep them for an hour. Its name goes in `Content-Disposition` as RFC 6266's two
    forms (`contentDisposition`): `filename*` with the name as UTF-8 percent-encoding, and a plain ASCII `filename` as
    the fallback, with control characters dropped, so a name with an emoji, CJK or a newline never breaks the header.
+   **The name never reaches the key**: an upload is kept at `orgs/<org>/portal/uploads/<id>` with the extension the
+   name ends in when it is one a key holds (`portalBlobExtension`, `[a-z0-9]{1,8}`, lowercased), and nothing else of
+   it — a fixed prefix and a uuid, so `../x.png` stays under the workspace's own folder, and the name the client
+   reads is the row's.
    A post's files count against the workspace's storage (`assertStorageRoom` in `keep`, and `storedBytes`).
 10. **The team's own portal is an agent's too.** With the embedded portal the agents' tools gain `portal_clients`
     (`packages/engine/src/approval-portal.ts`): it lists the clients, or makes one with its contacts and answers its

@@ -1,6 +1,6 @@
 import { timingSafeEqual } from "node:crypto";
 import type { BlobStore, PortalClientColor, PortalStatus, PortalType } from "@agenteschat/adapters";
-import { PORTAL_CLIENT_COLORS } from "@agenteschat/adapters";
+import { PORTAL_CLIENT_COLORS, StorageError } from "@agenteschat/adapters";
 import type { Database } from "@agenteschat/db";
 import { and, asc, desc, eq, inArray, isNull, schema, sql } from "@agenteschat/db";
 import { isAppLocale, LOCALE_CODES } from "@agenteschat/i18n/locale";
@@ -294,6 +294,11 @@ export async function makeClientLink(
   const id = Bun.randomUUIDv7();
   const token = portalClientToken(deps.secret, id);
   await db.insert(portalClientLinks).values({ id, orgId, clientId, tokenHash: sha256(token), createdBy: by });
+  // A client with no link was told nothing (a notice answers `skipped: "link"`, and nothing else would name it again):
+  // the posts waiting on it now, that nobody was told of, get their `portal.notify` queued as the new link is made.
+  // Loaded here: `portal-notices` imports this module's `clientLinkUrl`.
+  const { queuePortalNoticesFor } = await import("./portal-notices");
+  await queuePortalNoticesFor(db, orgId).catch(() => {});
   return `${deps.publicUrl.replace(/\/+$/, "")}/p/${token}`;
 }
 
@@ -717,7 +722,13 @@ export async function clientPortalFileRange(
     return whole ? { ...base, body: whole.body, size: whole.body.length, part: null } : null;
   }
   if (deps.blobs.getRange) {
-    const read = await deps.blobs.getRange(row.file.blobKey, part.start, part.end);
+    // A bucket that refuses the part (its own `416`) read the file as still being what it was when the row was
+    // written: the client is answered the `416` that part is, never a store's failure as an unexpected error.
+    const read = await deps.blobs.getRange(row.file.blobKey, part.start, part.end).catch((error: unknown) => {
+      if (error instanceof StorageError && error.code === "range_not_satisfiable") return "bad" as const;
+      throw error;
+    });
+    if (read === "bad") return "bad";
     return read ? { ...base, body: read.body, size: read.total, part } : null;
   }
   const whole = await deps.blobs.get(row.file.blobKey);
@@ -746,33 +757,43 @@ export async function clientPortalFileSize(
 }
 
 /**
- * A `Range` header against a file's size: the part, null (the whole: no header, or a multi-range one, which a server
- * may answer whole), or `"bad"` for a part off the end (a `416`, whose `Content-Range` reads `bytes *` and then
- * the size). An open range (`bytes=0-`, `bytes=-N`) ends at most `PORTAL_FILE_RANGE_BYTES` in, and the range spoken of
- * only its first value.
+ * A `Range` header against a file's size: the part, null (the whole file), or `"bad"` for a part off the end of it
+ * (a `416`, whose `Content-Range` reads `bytes *` and then the size).
+ *
+ * Anything the server doesn't understand is ignored and the whole file answered (`200`), as RFC 9110 lets it: a unit
+ * that isn't `bytes` (`items=0-5`), a header with no numbers in it (`bytes=`, `bytes=-`), a multi-range one
+ * (`bytes=0-1,4-5`: one part would answer something else than was asked), and a range that ends before it starts
+ * (`bytes=5-2`: no bytes can be taken from it). A part past the file's end is the `bad` a `416` answers. An open range
+ * (`bytes=0-`) and a suffix one (`bytes=-N`) end at most `PORTAL_FILE_RANGE_BYTES` past the start the range names.
  */
 export function rangePart(header: string | undefined, size: number): { start: number; end: number } | "bad" | null {
   if (!header) return null;
-  // A multi-range header (`bytes=0-1,4-5`) is ignored: the RFC 9110 lets a server answer the whole representation,
-  // and one part would silently answer something the caller didn't ask for.
+  // A multi-range header is ignored: the RFC 9110 lets a server answer the whole representation, and one part would
+  // silently answer something the caller didn't ask for.
   if (header.includes(",")) return null;
   const match = /^bytes=(\d*)-(\d*)$/.exec(header.trim());
-  if (!match || (!match[1] && !match[2])) return "bad";
+  // Another unit, or nothing a range can be made of: no range at all, and the whole file.
+  if (!match) return null;
+  if (!match[1] && !match[2]) return null;
   const last = size - 1;
   // `bytes=-N`: the last N bytes, as many as the file has (a suffix range asks for its own length and is never
   // shortened by the cap the way an open one is).
   if (!match[1]) {
     const wanted = Number(match[2]);
-    if (!Number.isFinite(wanted) || wanted <= 0) return "bad";
+    if (!Number.isInteger(wanted) || wanted <= 0) return null;
+    if (size === 0) return "bad";
     return { start: Math.max(0, size - wanted), end: last };
   }
   const start = Number(match[1]);
-  if (!Number.isFinite(start) || start < 0) return "bad";
-  const asked = match[2] ? Number(match[2]) : Number.POSITIVE_INFINITY;
-  if (Number.isNaN(asked)) return "bad";
-  // An open range (`bytes=0-`) is one read's cap; a closed one takes what it asks, up to its own cap as well.
+  if (!Number.isInteger(start)) return null;
+  // A closed range that ends before it starts takes nothing from the file: ignored as one the server doesn't make
+  // sense of, never the `416` a part past the end gets.
+  if (match[2] !== "" && Number(match[2]) < start) return null;
+  if (start >= size) return "bad";
+  // An open range (`bytes=0-`) is one read's cap; a closed one keeps what it asks, up to its own cap as well.
+  const asked = match[2] === "" ? Number.POSITIVE_INFINITY : Number(match[2]);
   const end = Math.min(asked, start + PORTAL_FILE_RANGE_BYTES - 1, last);
-  return start > end || start >= size ? "bad" : { start, end };
+  return { start, end };
 }
 
 // ---------- how the team knows a client ----------

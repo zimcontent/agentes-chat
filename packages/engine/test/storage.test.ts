@@ -9,6 +9,7 @@ import {
   createPostgresBlobStore,
   createS3BlobStore,
   StorageError,
+  s3Error,
 } from "@agenteschat/adapters";
 import { eq, rowsOf, schema, sql } from "@agenteschat/db";
 import {
@@ -136,6 +137,19 @@ describe("S3 client against the fake server", () => {
     expect(read?.total).toBe(10);
     // A part before the first byte is refused, as every store refuses it.
     await expect(store.getRange?.("a/long.mp4", -1, 4)).rejects.toThrow(RangeError);
+  });
+
+  test("a part past the object's end is the bucket's `416`, not an unexpected error", () => {
+    // S3 answers a part past the object's end with `416 InvalidRange`: the caller's range, whose `416` the portal's
+    // file route has to answer, never a failure of the bucket turned into an unexpected error.
+    const error = s3Error(
+      416,
+      "<Error><Code>InvalidRange</Code><Message>The requested range is not satisfiable</Message></Error>",
+    );
+    expect(error.code).toBe("range_not_satisfiable");
+    expect(error.status).toBe(416);
+    // One that comes without the code, only the status, is the same answer.
+    expect(s3Error(416, "").code).toBe("range_not_satisfiable");
   });
 });
 

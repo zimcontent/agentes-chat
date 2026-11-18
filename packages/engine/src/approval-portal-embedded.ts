@@ -52,6 +52,16 @@ export function portalContentType(name: string): string {
 export const isVideoFile = (name: string, contentType?: string | null) =>
   (contentType ?? portalContentType(name)).startsWith("video/");
 
+/**
+ * The extension a file's kept key ends with: the name's own, when it is one the storage's key can hold
+ * (`[a-z0-9]{1,8}`), and nothing otherwise. The name itself is never part of a key — it is a path a browser sent,
+ * and a key is one segment of the bucket's own prefix.
+ */
+export function portalBlobExtension(name: string): string {
+  const ext = /\.([a-z0-9]{1,8})$/i.exec(name.trim())?.[1]?.toLowerCase();
+  return ext ? `.${ext}` : "";
+}
+
 /** What a sent post still lacks. Never shown to the client (ADR 9001). */
 function missingOf(
   post: { type: string; caption: string; editor: string | null; scheduledFor: Date | null },
@@ -230,6 +240,10 @@ export function createEmbeddedApprovalPortal(deps: EmbeddedPortalDeps): Approval
    * Reads a file into the platform's storage, answering the id a send takes. Every file a post carries counts against
    * the workspace's storage (`limits.ts`), as anything else written there does: a workspace past its limit is refused
    * with the same `storage.full`/`storage.daily_full` a Drive upload gets, before a byte is written.
+   *
+   * The key is the upload's own id and its extension (`portalBlobExtension`), never the name: a name is what a browser
+   * sent, and a key is one segment under the workspace's prefix, so `../x.png` stays where it was put and the name the
+   * client reads travels in the row alone.
    */
   const keep = async (orgId: string, name: string, bytes: Uint8Array, contentType: string) => {
     if (bytes.byteLength > PORTAL_FILE_BYTES) throw new ApprovalPortalError(413, "That file is too large to send");
@@ -237,6 +251,7 @@ export function createEmbeddedApprovalPortal(deps: EmbeddedPortalDeps): Approval
       if (error instanceof ConflictError) throw new ApprovalPortalError(409, error.message);
       throw error;
     });
+    const id = Bun.randomUUIDv7();
     const [row] = await db
       .insert(portalUploads)
       .values({
@@ -244,7 +259,7 @@ export function createEmbeddedApprovalPortal(deps: EmbeddedPortalDeps): Approval
         name,
         contentType,
         size: bytes.byteLength,
-        blobKey: `${PORTAL_BLOB_PREFIX(orgId)}/uploads/${Bun.randomUUIDv7()}/${name}`,
+        blobKey: `${PORTAL_BLOB_PREFIX(orgId)}/uploads/${id}${portalBlobExtension(name)}`,
       })
       .returning();
     if (!row) throw new ApprovalPortalError(500, "The file could not be kept");

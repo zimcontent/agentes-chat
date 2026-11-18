@@ -102,7 +102,7 @@ import { enqueue, type JobHandlers, type OutboxJob, PermanentJobError } from "./
 import { checkParkedRun, EARLY_CHECK_JOB, scheduleParkedChecks } from "./parked-asks";
 import { PARTNER_WAITLIST_CONTACT_JOB, savePartnerWaitlistContact } from "./partner-waitlist";
 import { notifyPersonLimit, PERSON_LIMIT_JOB } from "./person-usage";
-import { announcePortalPost, PORTAL_NOTIFY_JOB, type PortalNoticeDeps } from "./portal-notices";
+import { announcePortalPost, PORTAL_NOTICE_GROUP_MS, PORTAL_NOTIFY_JOB, type PortalNoticeDeps } from "./portal-notices";
 import { deliverPush } from "./push";
 import { reachOf, settleReach } from "./reach";
 import { routineCreatorOf } from "./requester";
@@ -1086,13 +1086,45 @@ export function createJobHandlers(deps: JobDeps): JobHandlers {
     // gathers what landed meanwhile into one notice (`posts[]`), instead of a client being told post after post.
     [PORTAL_NOTIFY_JOB]: async (job) => {
       if (!deps.portalNotify) return;
+      const pending = Array.isArray(job.payload.contacts)
+        ? (job.payload.contacts as unknown[]).filter((id): id is string => typeof id === "string")
+        : null;
       const out = await announcePortalPost(
         deps.portalNotify,
         orgOf(job),
         String(job.payload.postId),
         Number(job.payload.version) || 1,
         typeof job.payload.client === "string" && job.payload.client ? job.payload.client : null,
+        pending?.length ? pending : null,
       );
+      // A contact's text that failed while the rest of the notice went out: those contacts are owed it, and the job
+      // queues the retry that tells them alone. A retry that fails again names whatever is still owed, so a gateway
+      // that comes back finishes the notice; one that never does stops with its own attempts (`maxAttempts`).
+      const owedTo = typeof job.payload.client === "string" && job.payload.client ? job.payload.client : null;
+      if (out.pending?.length && owedTo) {
+        await enqueue(deps.db, {
+          orgId: orgOf(job),
+          kind: PORTAL_NOTIFY_JOB,
+          payload: {
+            postId: String(job.payload.postId),
+            version: Number(job.payload.version) || 1,
+            client: owedTo,
+            contacts: out.pending,
+            resumed: true,
+          },
+          // The same contacts owed the same post never take two rows: a job that runs twice (a lease that lapsed)
+          // queues the retry once.
+          dedupeKey: `${PORTAL_NOTIFY_JOB}:text:${owedTo}:${String(job.payload.postId)}:v${
+            Number(job.payload.version) || 1
+          }:${[...out.pending].sort().join(",")}`,
+          runAt: new Date(Date.now() + PORTAL_NOTICE_GROUP_MS),
+          maxAttempts: 4,
+        });
+        deps.portalNotify.log?.warn("approval portal: a client's text is owed a retry", {
+          client: owedTo,
+          contacts: out.pending.length,
+        });
+      }
       if (out.skipped !== "recent" || !out.retryAt || !out.client) return;
       // One retry per client and window, and that retry names the client, not the post: by the end of the hour that
       // post may be answered, and what the client has to be told of is whatever is waiting then. A second post inside

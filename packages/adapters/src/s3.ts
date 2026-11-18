@@ -30,6 +30,8 @@ export type StorageErrorCode =
   | "network"
   | "not_found"
   | "invalid_endpoint"
+  /** The bucket refused the part a `Range` asked for (its `416`): the object is shorter than the caller believed. */
+  | "range_not_satisfiable"
   | "other";
 
 /** A storage failure with a code the app can explain ("The key was not accepted"…). */
@@ -112,6 +114,11 @@ export function s3Error(status: number, body: string): StorageError {
   if (REGION_CODES.includes(code) || status === 301) return new StorageError("region", text, status);
   if (code === "AccessDenied" || status === 403) return new StorageError("permission", text, status);
   if (code === "NoSuchKey" || status === 404) return new StorageError("not_found", text, status);
+  // A part past the object's end (`InvalidRange`): the caller's range, not a failure of the bucket, and it has to
+  // come back as the `416` it is rather than as an unexpected error.
+  if (code === "InvalidRange" || status === 416) {
+    return new StorageError("range_not_satisfiable", text, 416);
+  }
   return new StorageError("other", text, status);
 }
 

@@ -33,8 +33,9 @@ export interface EnqueueInput {
   maxAttempts?: number;
 }
 
-export async function enqueue(db: Executor, input: EnqueueInput): Promise<void> {
-  await db
+/** Answers whether the row was written: a job whose key another one already holds is not (`false`). */
+export async function enqueue(db: Executor, input: EnqueueInput): Promise<boolean> {
+  const rows = await db
     .insert(outbox)
     .values({
       orgId: input.orgId,
@@ -44,7 +45,9 @@ export async function enqueue(db: Executor, input: EnqueueInput): Promise<void> 
       nextAttemptAt: input.runAt ?? new Date(),
       maxAttempts: input.maxAttempts ?? 8,
     })
-    .onConflictDoNothing();
+    .onConflictDoNothing()
+    .returning({ id: outbox.id });
+  return rows.length > 0;
 }
 
 /**
