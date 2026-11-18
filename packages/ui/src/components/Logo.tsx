@@ -1,5 +1,5 @@
-import type { CSSProperties, HTMLAttributes } from "react";
-import { brandName } from "../brand/doug";
+import { type CSSProperties, type HTMLAttributes, useSyncExternalStore } from "react";
+import { brandName, subscribeBrand } from "../brand/doug";
 import type { DougBotEstado } from "../brand/dougbot-avatar.js";
 import { cx } from "../cx";
 import { BotFace } from "./BotFace";
@@ -75,10 +75,11 @@ const SignatureName = ({ name }: { name: string }) => {
 /**
  * The signature (IDENTIDADE.md §3): the Doug close up and the name, side by side, live text in Manrope ("Doug" 800,
  * "Bot" 500, one color). No box, no seal, no shadow. Its accessible name is the brand's: the client's, on a server
- * deployed for one (ADR doug-0023).
+ * deployed for one (ADR doug-0023), which it follows on its own (`subscribeBrand`) wherever it is drawn, since the
+ * name arrives after the first paint.
  */
 export function Logo({ mono, size = 22, className, style }: LogoProps) {
-  const name = brandName();
+  const name = useSyncExternalStore(subscribeBrand, brandName, brandName);
   return (
     <span
       className={cx("ac-logo", "db-assina", mono && "ac-logo--mono", className)}

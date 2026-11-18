@@ -23,14 +23,33 @@ let clientProductName: string | null = null;
 /** The product's name here: the client's, else this build's. */
 export const brandName = (): string => clientProductName ?? BRAND_NAME;
 
+/** Everything told when the name changes: a component that shows it asks again (`subscribeBrand`). */
+const listeners = new Set<() => void>();
+
 /**
  * Sets the client's name for everything drawn from now on (`brandName`, and the strings `brandTree` builds after it).
  * Called by an app once it read `GET /me` or `GET /api/instance`; a server with no client leaves it as it is. A name
- * equal to the build's, or blank, clears it.
+ * equal to the build's, or blank, clears it. Sets nothing when the name is already that one, so a component that
+ * re-reads it (a render, a second screen) never loops.
  */
 export function setClientProductName(name: string | null | undefined): void {
   const next = name?.trim() || null;
-  clientProductName = next === BRAND_NAME ? null : next;
+  const value = next === BRAND_NAME ? null : next;
+  if (value === clientProductName) return;
+  clientProductName = value;
+  for (const heard of listeners) heard();
+}
+
+/**
+ * Calls `heard` whenever the product's name changes, and stops when the returned function is called: what
+ * `useSyncExternalStore` takes, so a signature (`Logo`) redraws on its own once the client's name arrives, wherever
+ * it is on the screen and without a prop carrying it down.
+ */
+export function subscribeBrand(heard: () => void): () => void {
+  listeners.add(heard);
+  return () => {
+    listeners.delete(heard);
+  };
 }
 
 /**
@@ -46,11 +65,35 @@ const UPSTREAM_WORD = /(^|[^\w@./:-])agentes\.chat(?![\w/-]|\.\w)/g;
  */
 const BRAND_WORD = /(^|[^\w@./:-])DougBot(?![\w/-]|\.\w)/g;
 
-/** `text` with the product's name as this server's, addresses left alone. */
+/**
+ * `pattern`'s matches replaced by `name`, the captured character before kept. A function, never a `$`-template: a
+ * client's name is text a person typed, and `"Doces R$1"` or `"A & B $&"` in it must reach the screen as written,
+ * not be read as a replacement pattern.
+ */
+const renamed = (text: string, pattern: RegExp, name: string): string =>
+  text.replace(pattern, (_match, before: string) => `${before}${name}`);
+
+/** A character no name or string carries: it holds a client's name still while the pass looks for the others. */
+const KEPT = "\u0000";
+
+/**
+ * `text` with the product's name as this server's, addresses left alone.
+ *
+ * Applied twice, the text reads the same as once: the client's name already standing in it is held out, so a name
+ * that itself holds the build's (`DougBot Padaria`) is not renamed again by its own tail. The build's name is also
+ * renamed first, before the upstream pass writes the client's name in, which keeps a name that starts with the
+ * build's (`DougBot Padaria`) from being taken for one more. A string branded by the language files when they load
+ * and again for the tab's title is what needs it.
+ */
 export function brandText(text: string): string {
   const name = brandName();
-  const branded = text.includes(UPSTREAM_NAME) ? text.replace(UPSTREAM_WORD, `$1${name}`) : text;
-  return name === BRAND_NAME ? branded : branded.replace(BRAND_WORD, `$1${name}`);
+  const upstream = (text: string) => (text.includes(UPSTREAM_NAME) ? renamed(text, UPSTREAM_WORD, name) : text);
+  if (name === BRAND_NAME) return upstream(text);
+  // A text that carries the marker itself (a name is free text) takes the plain passes: one application is still exact.
+  if (text.includes(KEPT) || name.includes(KEPT)) return upstream(renamed(text, BRAND_WORD, name));
+  const parts = text.split(name);
+  const branded = upstream(renamed(parts.join(KEPT), BRAND_WORD, name));
+  return parts.length > 1 ? branded.split(KEPT).join(name) : branded;
 }
 
 /**

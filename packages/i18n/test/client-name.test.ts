@@ -44,4 +44,26 @@ describe("a client's name over this build's", () => {
       b: ["Café Sol's servers"],
     });
   });
+
+  test("a name with a `$` in it reaches the screen as typed: it is not read as a replacement pattern", () => {
+    setClientProductName("Doces R$1 & Cia $&");
+    expect(brandText("Welcome to agentes.chat")).toBe("Welcome to Doces R$1 & Cia $&");
+    expect(brandText("Open DougBot.")).toBe("Open Doces R$1 & Cia $&.");
+    // `$&` would stand for the whole match and `$1` for the captured character: neither does.
+    expect(brandText("agentes.chat")).toBe("Doces R$1 & Cia $&");
+  });
+
+  test("branding twice reads the same, also for a name that holds the build's own", () => {
+    setClientProductName("DougBot Padaria");
+    const once = brandText("Welcome to agentes.chat · DougBot is ready");
+    expect(once).toBe("Welcome to DougBot Padaria · DougBot Padaria is ready");
+    expect(brandText(once)).toBe(once);
+    expect(brandTree(brandTree({ a: "agentes.chat" }))).toEqual({ a: "DougBot Padaria" });
+  });
+
+  test("with no client, branding twice reads the same too", () => {
+    const once = brandText("Welcome to agentes.chat");
+    expect(once).toBe("Welcome to DougBot");
+    expect(brandText(once)).toBe(once);
+  });
 });

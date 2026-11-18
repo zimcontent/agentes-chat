@@ -2,7 +2,16 @@ import { describe, expect, test } from "bun:test";
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { ClientConfigError, clientsRoot, loadClient, overridesOf } from "../src/clients";
+import {
+  ACCENT_MIN_CONTRAST,
+  ACCENT_STAGES,
+  accentLegible,
+  ClientConfigError,
+  clientConfigSchema,
+  clientsRoot,
+  loadClient,
+  overridesOf,
+} from "../src/clients";
 
 /** A throwaway `clients/` root with `folders`, each `{ name: file }`. */
 function clientsDir(folders: Record<string, Record<string, string>>): string {
@@ -23,33 +32,30 @@ describe("a client's folder (ADR doug-0023)", () => {
     expect(await loadClient("  ")).toBeNull();
   });
 
-  test("the example this repository ships loads, with every kind of override", async () => {
+  test("the example this repository ships loads, with a name and a color", async () => {
     const root = clientsRoot();
     expect(root).toBeTruthy();
     const loaded = await loadClient("000", root);
     expect(loaded?.code).toBe("000");
     expect(loaded?.module?.name).toBe("client-000-exemplo");
     if (!loaded) throw new Error("the example client didn't load");
-    expect(overridesOf(loaded)).toEqual({
-      code: "000",
-      name: "Padaria Aurora",
-      accent: "#C2410C",
-      hiddenTools: ["wiki", "drive", "review"],
-      hiddenAgents: ["otto", "rui"],
-      onboardingIntro: expect.stringContaining("Padaria Aurora"),
-    });
+    expect(overridesOf(loaded)).toEqual({ code: "000", name: "Padaria Aurora", accent: "#C2410C" });
   });
 
   test("a code with no folder is an error, never a server that boots as if nothing was asked", async () => {
     const root = clientsDir({});
-    expect(loadClient("064", root)).rejects.toBeInstanceOf(ClientConfigError);
+    await expect(loadClient("064", root)).rejects.toBeInstanceOf(ClientConfigError);
   });
 
   test("a code that isn't three digits is refused before a folder is looked for", async () => {
     const root = clientsDir({ "06-x": { "config.json": "{}" } });
-    expect(loadClient("06", root)).rejects.toThrow(/three digits/);
-    expect(loadClient("0641", root)).rejects.toThrow(/three digits/);
-    expect(loadClient("abc", root)).rejects.toThrow(/three digits/);
+    await expect(loadClient("06", root)).rejects.toThrow(/three digits/);
+    await expect(loadClient("0641", root)).rejects.toThrow(/three digits/);
+    await expect(loadClient("abc", root)).rejects.toThrow(/three digits/);
+    // A path shaped like a code never reaches the filesystem: it isn't three digits.
+    await expect(loadClient("../x", root)).rejects.toThrow(/three digits/);
+    // `0640` is four digits, not a code: the folder is never looked for.
+    await expect(loadClient("0640", clientsDir({ "0640": { "config.json": "{}" } }))).rejects.toThrow(/three digits/);
   });
 
   test("a code names its folder alone or with its slug; two folders for one code are refused", async () => {
@@ -95,31 +101,53 @@ describe("a client's folder (ADR doug-0023)", () => {
     const loaded = await loadClient("064", root);
     expect(loaded?.module?.name).toBe("client-teste");
     if (!loaded) throw new Error("a client with only client.ts didn't load");
-    expect(overridesOf(loaded)).toEqual({
-      code: "064",
-      name: null,
-      accent: null,
-      hiddenTools: [],
-      hiddenAgents: [],
-      onboardingIntro: null,
-    });
+    expect(overridesOf(loaded)).toEqual({ code: "064", name: null, accent: null });
     rmSync(root, { recursive: true, force: true });
   });
 
-  test("features turned on are not a hiding; handles lose their @ and repeat once", async () => {
+  test("a switch no screen applies yet is refused by name, never held and never honored", async () => {
+    for (const [key, value] of [
+      ["features", { wiki: false }],
+      ["teamAgentsHidden", ["otto"]],
+      ["onboarding", { intro: "Bem-vindo" }],
+    ] as const) {
+      const root = clientsDir({
+        "064": { "config.json": JSON.stringify({ product: { name: "Padaria Aurora" }, [key]: value }) },
+      });
+      await expect(loadClient("064", root)).rejects.toThrow(new RegExp(`${key} isn't supported yet`));
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  test("a color under 3:1 on either of the two stages is refused: black and white are", () => {
+    for (const accent of ["#000000", "#ffffff"]) {
+      const parsed = clientConfigSchema.safeParse({ product: { accent } });
+      expect(parsed.success).toBe(false);
+      const messages = parsed.success ? [] : parsed.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`);
+      expect(messages.join("\n")).toMatch(/product\.accent: must stand at least 3:1 against both stages/);
+    }
+    // A color with enough separation from both is taken, and so is the one the example ships.
+    for (const accent of ["#C2410C", "#808080", "#1F7A45"])
+      expect(clientConfigSchema.safeParse({ product: { accent } }).success).toBe(true);
+  });
+
+  test("the schema says which key of a config.json it refuses, and only lets the name and the color in", async () => {
     const root = clientsDir({
-      "064": {
-        "config.json": JSON.stringify({
-          features: { wiki: false, drive: true },
-          teamAgentsHidden: ["@Otto", "otto", "Rui"],
-        }),
-      },
+      "064": { "config.json": JSON.stringify({ product: { name: "Café Sol" }, extra: true }) },
     });
-    const loaded = await loadClient("064", root);
-    if (!loaded) throw new Error("the client didn't load");
-    const overrides = overridesOf(loaded);
-    expect(overrides.hiddenTools).toEqual(["wiki"]);
-    expect(overrides.hiddenAgents).toEqual(["otto", "rui"]);
+    await expect(loadClient("064", root)).rejects.toThrow(/extra/);
     rmSync(root, { recursive: true, force: true });
+    // Exactly the two overrides: what the product's object holds, and nothing else.
+    const product = clientConfigSchema.shape.product.unwrap();
+    expect(Object.keys(product.shape).sort()).toEqual(["accent", "name"]);
+  });
+
+  test("the accent's contrast is measured on both of the identity's stages", () => {
+    expect(ACCENT_STAGES).toEqual(["#0a0a0a", "#f4f6f2"]);
+    expect(ACCENT_MIN_CONTRAST).toBe(3);
+    // 21:1: pure white on the dark stage and pure black on the light one, each fails on the other.
+    expect(accentLegible("#000000")).toBe(false);
+    expect(accentLegible("#ffffff")).toBe(false);
+    expect(accentLegible("#808080")).toBe(true);
   });
 });

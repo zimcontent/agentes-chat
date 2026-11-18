@@ -39,7 +39,47 @@ function folderOf(root: string, code: string): string | null {
 /** A color the apps may paint: `#rrggbb`. */
 const HEX = /^#[0-9a-fA-F]{6}$/;
 
-/** `config.json`: every override a client may declare. Strict: a misspelled key is a boot error, never a silent no-op. */
+/**
+ * The two stages the apps paint on: the identity's dark and light grounds (`dougbot-tokens.css`). The accent is read
+ * on both, so a client's color has to be legible on both, whatever theme the person is in.
+ */
+export const ACCENT_STAGES = ["#0a0a0a", "#f4f6f2"] as const;
+
+/** WCAG's floor for a focus ring and for a word that isn't body text (non-text contrast, 3:1). */
+export const ACCENT_MIN_CONTRAST = 3;
+
+/** WCAG's relative luminance of an `#rrggbb` color, each channel linearized as the formula says. */
+function luminance(hex: string): number {
+  const channel = (at: number) => {
+    const c = parseInt(hex.slice(at, at + 2), 16) / 255;
+    return c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
+  };
+  return 0.2126 * channel(1) + 0.7152 * channel(3) + 0.0722 * channel(5);
+}
+
+/** How many times lighter the lighter of two `#rrggbb` colors is than the darker (WCAG's contrast ratio, 1 to 21). */
+export function contrastRatio(a: string, b: string): number {
+  const light = Math.max(luminance(a), luminance(b));
+  const dark = Math.min(luminance(a), luminance(b));
+  return (light + 0.05) / (dark + 0.05);
+}
+
+/** Whether `color` stands out on both stages: its words and its ring are legible in the dark theme and in the light. */
+export const accentLegible = (color: string): boolean =>
+  ACCENT_STAGES.every((stage) => contrastRatio(color, stage) >= ACCENT_MIN_CONTRAST);
+
+/**
+ * An override this build declares in its schema but no screen applies yet: refused by name, instead of a setting the
+ * server would hold and never honor. Each one enters here with the screen that applies it, for every server, through
+ * the shared code (ADR doug-0023 §2 and §4).
+ */
+const notYet = (key: string) =>
+  `${key} isn't supported yet: an override enters with the screen that applies it for every server (ADR doug-0023)`;
+
+/**
+ * `config.json`: every override a client may declare. Strict: a misspelled key is a boot error, never a silent no-op.
+ * Today that is the product's name and the color the apps highlight, and nothing else (§2).
+ */
 export const clientConfigSchema = z
   .object({
     /**
@@ -50,31 +90,29 @@ export const clientConfigSchema = z
       .object({
         /** Shown where the apps sign the product (the signature and the tab's title). A line, at most 40 characters. */
         name: z.string().trim().min(1).max(40).optional(),
-        /** The highlight's color: `#rrggbb`, as an admin would pick it. */
-        accent: z.string().regex(HEX, "must be a color such as #C2410C").optional(),
+        /**
+         * The highlight's color: `#rrggbb`. It paints the highlighted words (`--accent-text`) and the focus ring
+         * (`--focus-color`), and nothing else, on both of the identity's stages. A color that falls under 3:1 on
+         * either of them (black, white) is refused: it would make the app's highlight unreadable in one theme or make
+         * the focus ring vanish.
+         */
+        accent: z
+          .string()
+          .regex(HEX, "must be a color such as #C2410C")
+          .refine(
+            accentLegible,
+            `must stand at least ${ACCENT_MIN_CONTRAST}:1 against both stages (${ACCENT_STAGES.join(" and ")})`,
+          )
+          .optional(),
       })
       .strict()
       .optional(),
-    /**
-     * The tools of the sidebar this client turns off for every workspace on its server, by the id the apps know
-     * (`media`, `whatsapp`, `review`, `portal`, `wiki`, `drive`, `routines`, `calendar`, `dashboards`, `team`,
-     * `issues`, `taskManager`): `false` takes one out, `true` is the default and changes nothing. An id the product
-     * doesn't know is ignored, as a workspace's own settings ignore one.
-     */
-    features: z.record(z.string().min(1).max(40), z.boolean()).optional(),
-    /**
-     * Handles of the agents this client leaves out of the apps' lists (`otto`, `rui`), for a client whose team is a
-     * subset of the ones the products ships. The right hand is never hidden: it is part of the workspace.
-     */
-    teamAgentsHidden: z.array(z.string().trim().min(1).max(32)).max(50).optional(),
-    /** What the onboarding says on top of its rail, in the client's own words. */
-    onboarding: z
-      .object({
-        /** A line or two greeting whoever sets the workspace up. At most 240 characters. */
-        intro: z.string().trim().min(1).max(240).optional(),
-      })
-      .strict()
-      .optional(),
+    /** A sidebar tool's switch: not supported yet, and a boot error rather than a setting nobody honors. */
+    features: z.never({ error: notYet("features") }).optional(),
+    /** The handles a client leaves out of its apps' lists: not supported yet (see `features`). */
+    teamAgentsHidden: z.never({ error: notYet("teamAgentsHidden") }).optional(),
+    /** The client's own line in the onboarding: not supported yet (see `features`). */
+    onboarding: z.never({ error: notYet("onboarding") }).optional(),
   })
   .strict();
 
@@ -187,8 +225,9 @@ export async function loadClient(code: string | undefined, root?: string | null)
 }
 
 /**
- * What `config.json` gives the apps, as the server holds it: the name and color to show, the tools this client turns
- * off, the agents it leaves out and the onboarding's own words. Absent client: no overrides at all.
+ * What `config.json` gives the apps, as the server holds it: the name and the color to show, and nothing else. The
+ * overrides this build refuses at boot (`features`, `teamAgentsHidden`, `onboarding`) enter here with the screen that
+ * applies them. Absent client: no overrides at all.
  */
 export interface ClientOverrides {
   /** The code, for logs and `/api/health`. */
@@ -197,24 +236,12 @@ export interface ClientOverrides {
   name: string | null;
   /** The highlight's color; null: the apps paint their own. */
   accent: string | null;
-  /** The tools this client turns off for every workspace (`features`' `false` entries, in the config's order). */
-  hiddenTools: string[];
-  /** Handles of the agents its apps leave out of their lists (never the right hand, which the apps always keep). */
-  hiddenAgents: string[];
-  /** What the onboarding says on top of its rail; null: nothing extra. */
-  onboardingIntro: string | null;
 }
 
 export function overridesOf(client: LoadedClient): ClientOverrides {
-  const { product, features, teamAgentsHidden, onboarding } = client.config;
   return {
     code: client.code,
-    name: product?.name ?? null,
-    accent: product?.accent ?? null,
-    hiddenTools: Object.entries(features ?? {})
-      .filter(([, on]) => !on)
-      .map(([id]) => id),
-    hiddenAgents: [...new Set((teamAgentsHidden ?? []).map((h) => h.replace(/^@/, "").toLowerCase()))],
-    onboardingIntro: onboarding?.intro ?? null,
+    name: client.config.product?.name ?? null,
+    accent: client.config.product?.accent ?? null,
   };
 }

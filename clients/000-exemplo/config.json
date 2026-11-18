@@ -2,15 +2,5 @@
   "product": {
     "name": "Padaria Aurora",
     "accent": "#C2410C"
-  },
-  "features": {
-    "wiki": false,
-    "drive": false,
-    "review": false,
-    "portal": true
-  },
-  "teamAgentsHidden": ["otto", "rui"],
-  "onboarding": {
-    "intro": "Bem-vindo à Padaria Aurora. Seu time de agentes já sabe o que a padaria faz: comece pelo nome do workspace."
   }
 }

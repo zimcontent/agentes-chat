@@ -1,6 +1,6 @@
-import { useApi, useClientLook, useMe } from "@agenteschat/client";
-import { brandText } from "@agenteschat/i18n/brand";
+import { instanceQuery, meQuery, useApi, useClientLook, useMe } from "@agenteschat/client";
 import { Button, EmptyState, setClientProductName } from "@agenteschat/ui";
+import { useQuery } from "@tanstack/react-query";
 import { createRootRouteWithContext, Link, Outlet, useRouter, useRouterState } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
@@ -80,15 +80,32 @@ function Root() {
  */
 function ClientBrand() {
   const { t } = useTranslation();
+  const api = useApi();
   const client = useClientLook();
+  // Both answers decide the look, and both start out empty: until they are here, a null name or color means "not
+  // read yet", not "none", and clearing the name the boot already set (main.tsx) would flash the build's own on the
+  // signature. The color set on `<html>` is the boot's too, so a cleared one also waits for the answers.
+  const instance = useQuery(instanceQuery(api));
+  const me = useQuery(meQuery(api));
+  const known = instance.isSuccess || me.isSuccess;
   useEffect(() => {
+    if (!known) return;
     setClientProductName(client.name);
     const root = document.documentElement;
-    if (client.accent) root.style.setProperty("--client-accent", client.accent);
-    else root.style.removeProperty("--client-accent");
+    // The variable paints the highlight; the attribute lets it reach a part of the page that themes itself
+    // (doug.css), and is absent on a server with no client, which keeps the identity's green everywhere.
+    if (client.accent) {
+      root.style.setProperty("--client-accent", client.accent);
+      root.dataset.clientAccent = "";
+    } else {
+      root.style.removeProperty("--client-accent");
+      delete root.dataset.clientAccent;
+    }
     // The tab's title was built before the name arrived (index.html's, English): it is rebuilt in the language in use.
-    document.title = brandText(t("app.tabTitle"));
-  }, [client.name, client.accent, t]);
+    // `t` already gives it under the client's name (the language files are branded when they load), so it is written
+    // as it is: `brandText` here would be a second pass, and a name that holds the build's own would grow.
+    document.title = t("app.tabTitle");
+  }, [known, client.name, client.accent, t]);
   return null;
 }
 

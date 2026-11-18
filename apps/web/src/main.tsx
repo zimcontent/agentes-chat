@@ -57,15 +57,13 @@ void authConfig.then(
   () => startErrorReports(null),
 );
 // A server deployed for one client names the product in its own words (ADR doug-0023): its name is set before the
-// strings are built, so the tab's title and every string that says the product's name read it. Public and one request;
-// a server with no client, or one that doesn't answer, leaves the build's own name in place.
-await Promise.race([
-  api.system
-    .instance()
-    .then((instance) => setClientProductName(instance.client?.name))
-    .catch(() => setClientProductName(null)),
-  new Promise((resolve) => setTimeout(resolve, 1500)),
+// strings are built, so the tab's title and every string that says the product's name read it. Public, one request,
+// and a server with no client or one that doesn't answer leaves the build's own name in place.
+const instance = await Promise.race([
+  api.system.instance().catch(() => null),
+  new Promise<null>((resolve) => setTimeout(() => resolve(null), 1500)),
 ]);
+setClientProductName(instance?.client?.name);
 // The language's file is the app's own too: index.html's boot fallback reloads or says so, and the error is reported.
 const i18n = await loadI18n(savedLocale()).catch((error: unknown) => {
   window.__agentesBootFailed?.();
@@ -106,8 +104,10 @@ const queryClient = createQueryClient({
   describeError: (error) => errorText(i18n.t, error, i18n.language),
 });
 
-// The answer above is the cache's: the sign-in guards don't ask again.
+// The answers above are the cache's: the sign-in guards don't ask again, and the first render's `useClientLook` reads
+// the client's name without a second request (no answer: nothing cached, and the query asks when it can).
 void queryClient.prefetchQuery({ ...authConfigQuery(api), queryFn: () => authConfig });
+if (instance) queryClient.setQueryData(keys.instance, instance);
 
 // The last lists and chats saved on this device show at once; everything revalidates as usual.
 const snapshot = createSnapshot(queryClient, snapshotStore);

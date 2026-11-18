@@ -47,11 +47,17 @@ describe("DOUG_CLIENT_CODE (ADR doug-0023)", () => {
     expect(me.client).toEqual({ name: "Padaria Aurora", accent: "#C2410C" });
   });
 
-  test("what the apps read of a client never carries a secret: only what config.json declares", async () => {
+  test("what the apps read of a client carries its name and its color, and nothing else", async () => {
     t = await createTestServer({ client: await exampleClient() });
-    const body = JSON.stringify(await instance());
-    // The config's own keys, and nothing a folder's client.ts may hold.
-    expect(body).not.toContain("hiddenAgents");
-    expect(body).not.toContain("client-000-exemplo");
+    const body = (await instance()) as { client: Record<string, unknown> };
+    // The two keys the apps know, exactly: no switch the server holds and no screen reads, and nothing a folder's
+    // `client.ts` may hold.
+    expect(Object.keys(body.client).sort()).toEqual(["accent", "name"]);
+    expect(JSON.stringify(body)).not.toContain("hiddenAgents");
+    expect(JSON.stringify(body)).not.toContain("client-000-exemplo");
+    const web = browser(t);
+    await signUp(web, "ana@example.com");
+    const me = (await (await web("/api/app/me")).json()) as { client: Record<string, unknown> };
+    expect(Object.keys(me.client).sort()).toEqual(["accent", "name"]);
   });
 });

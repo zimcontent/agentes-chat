@@ -1,6 +1,6 @@
 import { expect, test } from "bun:test";
 import { createHash } from "node:crypto";
-import { internalNotes, isPrivate } from "./check-boundaries";
+import { CLIENT_PACKAGES, clientImports, internalNotes, isPrivate } from "./check-boundaries";
 
 test("only the listed docs, the prototypes and the team's rules are forbidden here", () => {
   for (const path of [
@@ -76,4 +76,44 @@ test("a hashed word is caught in any case, alone or in a hyphenated name, never 
   expect(internalNotes("Same split as AcmeCorp's dashboard", words)).toHaveLength(1);
   expect(internalNotes("the acmecorp-cloud repo", words)).toHaveLength(1);
   expect(internalNotes("acmecorporation", words)).toEqual([]);
+});
+
+test("a client's client.ts may import the module API and the public packages, and its own files", () => {
+  const allowed = [
+    'import type { AgentesModule } from "@agenteschat/modules";',
+    'import { db } from "@agenteschat/db";',
+    'import { createRoute } from "@hono/zod-openapi";',
+    'import { z } from "zod";',
+    'import { helper } from "./helper";',
+    'import { other } from "./nested/other";',
+    'const m = await import("@agenteschat/adapters");',
+    'const p = require("@agenteschat/providers");',
+    'import { existsSync } from "node:fs";',
+  ].join("\n");
+  expect(clientImports([{ path: "clients/064/client.ts", text: allowed }])).toEqual([]);
+  // The list is the contract: what the example uses, and no package outside it.
+  expect(CLIENT_PACKAGES).toContain("@agenteschat/modules");
+});
+
+test("a client folder reaching past the module API is refused, with the line", () => {
+  const refused = [
+    'import { executor } from "../../packages/engine/src/executor";',
+    'import { thing } from "../064-outra/client";',
+    'import { private } from "@agenteschat/cloud";',
+    'import { ee } from "@agenteschat/ee";',
+    'import { x } from "some-other-package";',
+  ].join("\n");
+  const hits = clientImports([{ path: "clients/064/client.ts", text: refused }]);
+  expect(hits).toEqual([
+    "clients/064/client.ts:1: ../../packages/engine/src/executor",
+    "clients/064/client.ts:2: ../064-outra/client",
+    "clients/064/client.ts:3: @agenteschat/cloud",
+    "clients/064/client.ts:4: @agenteschat/ee",
+    "clients/064/client.ts:5: some-other-package",
+  ]);
+});
+
+test("the example this repository ships keeps to the module API", async () => {
+  const text = await Bun.file(new URL("../clients/000-exemplo/client.ts", import.meta.url).pathname).text();
+  expect(clientImports([{ path: "clients/000-exemplo/client.ts", text }])).toEqual([]);
 });

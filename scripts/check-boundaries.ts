@@ -1,8 +1,12 @@
 /**
- * Three rules for the public repository, run in CI via `bun run check:boundaries`:
+ * Rules for the public repository, run in CI via `bun run check:boundaries`:
  *
  * - The edition boundary (docs/adr/0002-editions-and-modules.md): open-source code under apps/ and
  *   packages/ must never import a Cloud-only package (`@agenteschat/cloud`) or an `@agenteschat/ee` module.
+ * - A client's folder (clients/<code>/, ADR doug-0023) extends only through the module API: its `client.ts` may
+ *   import `@agenteschat/modules` and the public packages named in CLIENT_PACKAGES, and nothing else -- never the
+ *   engine's internals, another client's folder or a private package -- so it can add through `AgentesModule` and
+ *   never change what the product does for every server.
  * - No private files: nothing under PRIVATE_PATHS may be tracked here.
  * - No internal notes: every file is public, comments included, so none may point at the maintainers'
  *   private docs (planning decision ids, progress logs, prototype screens) or name the team's other
@@ -27,6 +31,47 @@ export const PRIVATE_PATHS = [
 
 export function isPrivate(path: string): boolean {
   return PRIVATE_PATHS.some((p) => (p.endsWith("/") ? path.startsWith(p) : path === p));
+}
+
+/**
+ * What a client's `client.ts` may import (ADR doug-0023 §4): the module API it extends through, and the public packages
+ * a module's context is typed with. Anything else -- the engine's internals, the server's own routes, a private
+ * package, another client's folder -- is refused: a folder adds through `AgentesModule`, never by reaching inside.
+ */
+export const CLIENT_PACKAGES = [
+  "@agenteschat/modules",
+  "@agenteschat/adapters",
+  "@agenteschat/config",
+  "@agenteschat/db",
+  "@agenteschat/providers",
+  "@hono/zod-openapi",
+  "zod",
+] as const;
+
+/** A module specifier's package: `@scope/name` or `name`, with a subpath dropped. `./x` and `../x` have none. */
+function packageOf(specifier: string): string | null {
+  if (specifier.startsWith(".") || specifier.startsWith("/") || specifier.startsWith("node:")) return null;
+  const parts = specifier.split("/");
+  return specifier.startsWith("@") ? parts.slice(0, 2).join("/") || null : (parts[0] ?? null);
+}
+
+/** What a client folder's `{ path, text }` files import that they may not, as `path:line: specifier`. */
+export function clientImports(files: { path: string; text: string }[]): string[] {
+  const refused: string[] = [];
+  const imported = /(?:from\s+|import\s*\(\s*|require\s*\(\s*)["']([^"']+)["']/g;
+  for (const { path, text } of files) {
+    text.split("\n").forEach((line, i) => {
+      for (const [, specifier] of line.matchAll(imported)) {
+        // The folder's own code (`./x`, `./a/b`) is allowed; one that leaves it (`../x`) is not. So is a runtime's own
+        // builtin (`node:fs`), which reaches no part of this product.
+        if (/^\.\/?[^./]|^\.\/$/.test(specifier) || specifier === "." || specifier.startsWith("node:")) continue;
+        const name = packageOf(specifier);
+        if (name !== null && (CLIENT_PACKAGES as readonly string[]).includes(name)) continue;
+        refused.push(`${path}:${i + 1}: ${specifier}`);
+      }
+    });
+  }
+  return refused;
 }
 
 /** Public files that hold the patterns on purpose: this check, its samples and the ignore rule for local prototypes. */
@@ -109,6 +154,18 @@ if (import.meta.main) {
     }
   }
 
+  // A client's folder extends through the module API alone (ADR doug-0023 §4): what its `.ts` files import.
+  {
+    const files: { path: string; text: string }[] = [];
+    for await (const file of new Glob("clients/*/**/*.{ts,tsx,js,mjs}").scan({ dot: false })) {
+      if (file.includes("node_modules") || file.includes("/dist/")) continue;
+      files.push({ path: file, text: await Bun.file(file).text() });
+    }
+    for (const hit of clientImports(files)) {
+      violations.push(`${hit}: a client's folder may import only ${CLIENT_PACKAGES.join(", ")} and its own files`);
+    }
+  }
+
   const lsFiles = (...args: string[]) => {
     const git = Bun.spawnSync(["git", "ls-files", "-z", ...args]);
     if (!git.success) throw new Error(`git ls-files failed: ${git.stderr.toString()}`);
@@ -128,7 +185,9 @@ if (import.meta.main) {
   }
 
   if (violations.length > 0) {
-    console.error(`Open-source code must not depend on cloud/ or ee/:\n${violations.join("\n")}`);
+    console.error(
+      `Boundaries broken (cloud/ee, or a client folder reaching past the module API):\n${violations.join("\n")}`,
+    );
   }
   if (tracked.length > 0) {
     console.error(`Private files must not be tracked here (git rm --cached them):\n${tracked.join("\n")}`);

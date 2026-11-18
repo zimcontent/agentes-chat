@@ -5,12 +5,16 @@ import type { ModelProvider } from "@agenteschat/providers";
 import type { OpenAPIHono } from "@hono/zod-openapi";
 
 export {
+  ACCENT_MIN_CONTRAST,
+  ACCENT_STAGES,
+  accentLegible,
   CLIENT_CODE,
   type ClientConfig,
   ClientConfigError,
   type ClientOverrides,
   clientConfigSchema,
   clientsRoot,
+  contrastRatio,
   type LoadedClient,
   loadClient,
   overridesOf,
