@@ -425,6 +425,10 @@ dump_l=$(grep -n 'pg_dump' "$FAKE_LOG" | head -1 | cut -d: -f1)
 volta_l=$(grep -n 'compose -p doug-065 .* up -d agentes$' "$FAKE_LOG" | tail -1 | cut -d: -f1)
 [[ -n $stop_l && -n $dump_l && -n $volta_l ]] && ((stop_l < dump_l && dump_l < volta_l)) && ! grep -q 'compose -p doug-065 .* down' "$FAKE_LOG" && ok "backup que falha: o servidor é religado (up -d agentes) e nada é derrubado" || falha "backup que falha: o servidor é religado" "$stop_l $dump_l $volta_l"
 contem "$SAIDA" "religuei o servidor" && ok "a saída diz que religou o servidor" || falha "a saída diz que religou o servidor" "$SAIDA"
+# Cliente parado de propósito: se a remoção falhar, ele não volta ao ar sozinho.
+: >"$FAKE_LOG"
+FAKE_RUNNING=0 FAKE_DUMP_FAIL=1 rodar remover 065 --sim
+[[ $CODIGO_SAIDA != 0 ]] && ! grep -q 'compose -p doug-065 .* up -d agentes$' "$FAKE_LOG" && ! contem "$SAIDA" "religuei o servidor" && contem "$SAIDA" "já estava parado" && ok "remover que falha não religa um cliente que já estava parado" || falha "remover que falha não religa um cliente que já estava parado" "$SAIDA"
 # --apagar-dados.
 echo "segredo do arquivo do cliente" >"$DOUG_CLIENTES_DIR/065-cafe-sol/dados/files/nota.txt"
 rodar remover 065 --apagar-dados --dry-run

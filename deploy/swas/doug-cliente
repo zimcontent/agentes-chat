@@ -1318,8 +1318,16 @@ cmd_remover() {
   # O servidor para antes do dump: o que ele gravasse entre o dump e o `down` se perderia. O
   # Postgres fica no ar para o dump. Daqui até o `down`, qualquer falha (o backup, o tar, o proxy, o
   # próprio `down`) religa o servidor antes de sair: religa_ao_sair.
-  REMOVER_PARADO="$CODIGO|$PASTA"
-  trap religa_ao_sair EXIT
+  # Só religa o que estava no ar: um cliente parado de propósito (`parar`, uma suspensão) continua
+  # parado se a remoção falhar.
+  local rodando=""
+  rodando=$(compose "$CODIGO" "$PASTA" ps --status running -q agentes 2>/dev/null) || rodando=""
+  if [[ -n $rodando ]]; then
+    REMOVER_PARADO="$CODIGO|$PASTA"
+    trap religa_ao_sair EXIT
+  else
+    diz "  o servidor de $CODIGO já estava parado: se a remoção falhar, ele continua parado"
+  fi
   passo "parando o servidor (nada é gravado durante o backup)"
   compose "$CODIGO" "$PASTA" stop agentes || erro "não consegui parar o servidor de $CODIGO: nada foi removido"
   passo "backup do banco"
