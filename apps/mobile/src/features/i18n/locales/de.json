@@ -1202,7 +1202,9 @@
       "suggested": "Vorgeschlagen",
       "all": "Alle",
       "none": "Keine Zeitzone mit diesem Namen"
-    }
+    },
+    "groupAlerts": "Hinweise und Freigaben",
+    "groupLook": "Aussehen und Ton"
   },
   "delete": {
     "intro": "Das lässt sich nicht rückgängig machen.",
@@ -1571,7 +1573,11 @@
       "today": "heute um {{time}}",
       "tomorrow": "morgen um {{time}}",
       "later": "{{day}} um {{time}}"
-    }
+    },
+    "needsYou": "Wartet auf dich",
+    "running": "Arbeitet gerade",
+    "runningAll": "Alle ansehen",
+    "steps": "{{done}} von {{total}}"
   },
   "agentLite": {
     "uses": "Darf nutzen",
@@ -3124,5 +3130,14 @@
   "brand": {
     "basedOn": "Basiert auf DougBot von Codari Global, LLC · AGPL-3.0",
     "source": "Quellcode von DougBot"
+  },
+  "toSchedule": {
+    "title": "Bereit zum Planen",
+    "row": "Beitrag freigegeben, zum Planen tippen",
+    "untitled": "Beitrag ohne Titel",
+    "sheetTitle": "Beitrag planen",
+    "confirm": "Planen",
+    "when": "Erscheint {{when}}",
+    "past": "Wähle eine Zeit, die noch nicht vorbei ist"
   }
 }

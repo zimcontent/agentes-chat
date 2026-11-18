@@ -3,7 +3,7 @@ import { textOrMedia } from "@agenteschat/client/lib/media";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { StyleSheet, View } from "react-native";
-import { Button, Card, Filters, Icon, IconButton, type IconName, Locked, Text, useToast } from "@/ui";
+import { Button, Icon, type IconName, Locked, Text, useToast } from "@/ui";
 import { Face } from "../shared/Face";
 import { useColors, useOrgId, useWhen } from "../shared/hooks";
 import { previewOf } from "../shared/logic";
@@ -11,6 +11,7 @@ import { SheetTitle } from "../shared/PromptForm";
 import { ActionList, successHaptic, Tile, useSurface } from "../shared/parts";
 import { useSheet } from "../shared/SheetHost";
 import { TextArea } from "../shared/TextArea";
+import { DayTimePicker } from "./DayTimePicker";
 import {
   atDayTime,
   type ClockTime,
@@ -20,11 +21,9 @@ import {
   defaultCustom,
   deviceTimezone,
   isoWithOffset,
-  MINUTE_STEP,
   type ReminderPreset,
   reminderErrorKey,
   reminderPresets,
-  stepTime,
 } from "./logic";
 
 const PRESET_ICON: Record<ReminderPreset, IconName> = { inHour: "clock", tonight: "moon", tomorrowMorning: "sun" };
@@ -68,7 +67,6 @@ export function RemindSheet({
   const sheet = useSheet();
   const surface = useSurface();
   const whenLabel = useWhenLabel();
-  const { locale } = useWhen();
   const action = useReminderAction(orgId);
   const [text, setText] = useState(initialText);
   const [custom, setCustom] = useState<{ dayOffset: number; time: ClockTime } | null>(null);
@@ -114,7 +112,6 @@ export function RemindSheet({
 
   const customAt = custom ? atDayTime(days[custom.dayOffset] ?? now, custom.time) : null;
   const customCheck = customAt ? checkWhen(customAt, new Date()) : "ok";
-  const moveTime = (minutes: number) => setCustom((cur) => (cur ? { ...cur, time: stepTime(cur.time, minutes) } : cur));
 
   return (
     <>
@@ -163,44 +160,7 @@ export function RemindSheet({
       ) : (
         <>
           <Locked when={action.isPending} style={styles.custom}>
-            <Filters
-              items={days.map((d, i) => ({
-                key: String(i),
-                label:
-                  i === 0
-                    ? t("mobile.time.today")
-                    : i === 1
-                      ? t("mobile.remind.tomorrow")
-                      : new Intl.DateTimeFormat(locale, { weekday: "short", day: "numeric" })
-                          .format(d)
-                          .replace(".", ""),
-              }))}
-              value={String(custom.dayOffset)}
-              onChange={(key) => setCustom((cur) => (cur ? { ...cur, dayOffset: Number(key) } : cur))}
-            />
-            <Card>
-              <View style={styles.clock}>
-                <Stepper
-                  value={String(custom.time.hour).padStart(2, "0")}
-                  label={t("mobile.remind.hour")}
-                  lessLabel={t("mobile.remind.hourLess")}
-                  moreLabel={t("mobile.remind.hourMore")}
-                  onLess={() => moveTime(-60)}
-                  onMore={() => moveTime(60)}
-                />
-                <Text variant="display" tone="faint">
-                  :
-                </Text>
-                <Stepper
-                  value={String(custom.time.minute).padStart(2, "0")}
-                  label={t("mobile.remind.minute")}
-                  lessLabel={t("mobile.remind.minuteLess", { n: MINUTE_STEP })}
-                  moreLabel={t("mobile.remind.minuteMore", { n: MINUTE_STEP })}
-                  onLess={() => moveTime(-MINUTE_STEP)}
-                  onMore={() => moveTime(MINUTE_STEP)}
-                />
-              </View>
-            </Card>
+            <DayTimePicker days={days} value={custom} onChange={setCustom} />
           </Locked>
           <Text variant="small" tone={customCheck === "ok" ? "muted" : "danger"} style={styles.center}>
             {customAt
@@ -233,44 +193,9 @@ export function RemindSheet({
   );
 }
 
-/** "‹ 14 ›": a number with a step down and up (our buttons, no native picker). */
-export function Stepper({
-  value,
-  label,
-  lessLabel,
-  moreLabel,
-  onLess,
-  onMore,
-}: {
-  value: string;
-  label: string;
-  lessLabel: string;
-  moreLabel: string;
-  onLess: () => void;
-  onMore: () => void;
-}) {
-  return (
-    <View style={styles.stepper}>
-      <IconButton icon="back" label={lessLabel} onPress={onLess} />
-      <Text
-        variant="display"
-        style={styles.digits}
-        accessibilityLabel={`${label} ${value}`}
-        accessibilityLiveRegion="polite"
-      >
-        {value}
-      </Text>
-      <IconButton icon="right" label={moreLabel} onPress={onMore} />
-    </View>
-  );
-}
-
 const styles = StyleSheet.create({
   custom: { gap: 12 },
   grow: { flex: 1 },
   center: { textAlign: "center" },
   preview: { flexDirection: "row", gap: 10, padding: 12, borderRadius: 18 },
-  clock: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 4, paddingVertical: 12 },
-  stepper: { flexDirection: "row", alignItems: "center", gap: 2 },
-  digits: { minWidth: 48, textAlign: "center", fontVariant: ["tabular-nums"] },
 });

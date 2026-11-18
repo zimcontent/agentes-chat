@@ -7618,5 +7618,18 @@
   },
   "brand.source": {
     "value": "DougBot source code"
-  }
+  },
+  "activityNow.needsYou": "Needs you",
+  "activityNow.running": "Working now",
+  "activityNow.runningAll": "See all",
+  "activityNow.steps": "{{done}} of {{total}}",
+  "toSchedule.title": "Ready to schedule",
+  "toSchedule.row": "Approved post, tap to schedule",
+  "toSchedule.untitled": "Untitled post",
+  "toSchedule.sheetTitle": "Schedule post",
+  "toSchedule.confirm": "Schedule",
+  "toSchedule.when": "Goes out {{when}}",
+  "toSchedule.past": "Pick a time that hasn't passed yet",
+  "me.groupAlerts": "Alerts and approvals",
+  "me.groupLook": "Look and sound"
 }

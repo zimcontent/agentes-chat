@@ -1279,7 +1279,9 @@
       "suggested": "Sugeridas",
       "all": "Todas",
       "none": "No hay ninguna zona horaria con ese nombre"
-    }
+    },
+    "groupAlerts": "Avisos y aprobaciones",
+    "groupLook": "Apariencia y sonido"
   },
   "delete": {
     "intro": "No se puede deshacer.",
@@ -1657,7 +1659,11 @@
       "today": "hoy a las {{time}}",
       "tomorrow": "mañana a las {{time}}",
       "later": "{{day}} a las {{time}}"
-    }
+    },
+    "needsYou": "Te necesita",
+    "running": "Trabajando ahora",
+    "runningAll": "Ver todo",
+    "steps": "{{done}} de {{total}}"
   },
   "agentLite": {
     "uses": "Puede usar",
@@ -3240,5 +3246,14 @@
   "brand": {
     "basedOn": "Basado en DougBot de Codari Global, LLC · AGPL-3.0",
     "source": "Código fuente de DougBot"
+  },
+  "toSchedule": {
+    "title": "Listo para programar",
+    "row": "Publicación aprobada, toca para programar",
+    "untitled": "Publicación sin título",
+    "sheetTitle": "Programar publicación",
+    "confirm": "Programar",
+    "when": "Sale {{when}}",
+    "past": "Elige una hora que aún no haya pasado"
   }
 }

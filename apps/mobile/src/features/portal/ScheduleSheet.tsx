@@ -5,7 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { StyleSheet, View } from "react-native";
 import { Button, Card, Filters, GroupedList, GroupedRow, Icon, Locked, Sheet, Text, useToast } from "@/ui";
-import { Stepper } from "../reminders/RemindSheet";
+import { Stepper } from "../reminders/DayTimePicker";
 import { useColors, useOrgId } from "../shared/hooks";
 import { SheetTitle } from "../shared/PromptForm";
 import { successHaptic, Tile } from "../shared/parts";

@@ -1,7 +1,10 @@
 import {
   type AppNotification,
   type Approval,
+  keys,
+  type NotificationCount,
   type NotificationCounts,
+  type PortalItem,
   type Routine,
   useAiStatus,
   useNotificationAction,
@@ -16,6 +19,9 @@ import { mediaWord } from "@agenteschat/client/lib/media";
 import { latestText } from "@agenteschat/client/lib/message-body";
 import { canClearAll, teamWatchOf } from "@agenteschat/client/lib/notifications";
 import { usageLimitLine } from "@agenteschat/client/lib/person-usage";
+import { portalClientName } from "@agenteschat/client/lib/portal";
+import type { WorkItem } from "@agenteschat/client/lib/working";
+import { useQueryClient } from "@tanstack/react-query";
 import { useLocalSearchParams } from "expo-router";
 import type { TFunction } from "i18next";
 import { memo, useEffect, useMemo, useState } from "react";
@@ -27,6 +33,8 @@ import {
   Button,
   EmptyState,
   Filters,
+  GroupedList,
+  GroupedRow,
   type HeaderAction,
   HoldButton,
   type IconName,
@@ -45,9 +53,11 @@ import {
   useToast,
 } from "@/ui";
 import { router } from "@/ui/navigation";
+import { agoOf } from "../agents/logic";
+import { agoText, workTitle } from "../agents/work";
 import { approvalAction } from "../approvals/logic";
 import { ApprovalMark, ApprovalWhy, useApprovalSource, useApproveNow } from "../approvals/parts";
-import { WhenAsksLink } from "../approvals/when-asks";
+import { useWhenAsks, WhenAsksLink } from "../approvals/when-asks";
 import type { AskKind } from "../chat/ask-store";
 import { ASK_ICON, AskButtons } from "../chat/asks";
 import { dashboardWaitingCard } from "../dashboards/logic";
@@ -55,16 +65,20 @@ import { isDeviceNotice } from "../devices/logic";
 import { DeviceNoticeActions, DeviceNoticeCard } from "../devices/notices";
 import { notificationHref, notificationWebPath, routineHref } from "../links/logic";
 import { openWebPath } from "../links/open-web";
+import { useToSchedule } from "../portal/hooks";
+import { ScheduleOneSheet } from "../portal/ScheduleOneSheet";
 import { ChangeRequestCard } from "../right-hand/SettingsCard";
 import { AdminAskAdd } from "../shared/AdminAsk";
 import { AgentFace, Face } from "../shared/Face";
 import { useColors, useDirectory, useNow, useOrgId, usePullRefresh, useWhen } from "../shared/hooks";
 import { Tile } from "../shared/parts";
-import { useWaitingApprovals } from "../shared/queries";
+import { useWaitingApprovals, useWorkingNow } from "../shared/queries";
+import { SheetHostProvider, useSheet } from "../shared/SheetHost";
 import { RetryLine, TeamSkyEmpty } from "../shared/TeamSkyEmpty";
 import { useTabHeader } from "../shared/tabHeader";
 import { WaitingCard, WaitingSource } from "../shared/WaitingCard";
 import { UsageLimitActions } from "../usage/people";
+import { alongHref } from "../work-along/logic";
 import {
   type ActivityFilter,
   activitySections,
@@ -90,6 +104,15 @@ import { useNoticeTitle } from "./noticeTitle";
  * happened. Loading: rows of the list's own shape; a load that failed is one gray line over what was kept.
  */
 export function ActivityScreen() {
+  return (
+    // "Pronto para agendar" opens its sheet over the page.
+    <SheetHostProvider>
+      <ActivityPage />
+    </SheetHostProvider>
+  );
+}
+
+function ActivityPage() {
   const { t } = useTranslation();
   const orgId = useOrgId();
   // `?filter=waiting`: opened from Conversas' "Esperando você" (selects Esperando; each visit with it does).
@@ -107,6 +130,11 @@ export function ActivityScreen() {
   const counts = list.data?.pages[0]?.counts;
   const { waiting, days } = activitySections(items, filter);
   const waitingCount = Math.max(waiting.length, counts?.waiting ?? waiting.length);
+  useBadgeAgrees(orgId, list.data ? waitingCount : null);
+  // What agents are on right now (not what waits on you: that is a card above), under the decisions.
+  const running = useWorkingNow();
+  // Approved posts ready to schedule (the portal's, for who may schedule): their own section and count.
+  const toSchedule = useToSchedule().items;
   const pull = usePullRefresh(list.refetch);
   const tabHeader = useTabHeader();
   const clearAll = useClearAll(filter, counts, items);
@@ -133,7 +161,8 @@ export function ActivityScreen() {
       />
       {waiting.length > 0 ? (
         <>
-          <SectionHeader title={t("mobile.home.waiting")} count={waitingCount} />
+          {/* First what needs a decision: the count is the tab badge's own number. */}
+          <SectionHeader title={t("mobile.activityNow.needsYou")} count={waitingCount} />
           <LayoutAnimationConfig skipEntering skipExiting>
             <View style={styles.cards}>
               {waiting.map((n, i) => (
@@ -158,10 +187,17 @@ export function ActivityScreen() {
       ) : list.isError && !list.data ? (
         <RetryLine onRetry={() => void list.refetch()} />
       ) : filter !== "done" ? (
-        <AllClear />
+        // Nothing needs a decision; posts to schedule still do, so the clear sky waits for those too.
+        toSchedule.length === 0 ? (
+          <AllClear />
+        ) : null
       ) : days.length === 0 ? (
         <EmptyState size="inline" title={t("mobile.activity.noneDone")} />
       ) : null}
+      {/* Then approved posts ready to schedule: a tap opens the day and time. */}
+      {filter !== "done" && !list.isLoading ? <ToSchedule items={toSchedule} /> : null}
+      {/* Then what is running now, in Pedidos and Tudo (Feitas is history alone). */}
+      {filter !== "done" && !list.isLoading ? <RunningNow work={running} /> : null}
       {/* Kept rows under a load that failed: the line says so, what loaded stays readable. */}
       {list.isError && list.data && !list.isLoading ? <RetryLine onRetry={() => void list.refetch()} /> : null}
       {days.map(([group, groupItems]) => (
@@ -212,6 +248,8 @@ function WaitingCardView({ item: n, first = false }: { item: AppNotification; fi
   const onCard = request?.messageId ? waitingApprovals.filter((a) => a.messageId === request.messageId).length : 0;
   // Decided here when it stands for one request this person may decide; a card of several opens where they are.
   const decidable = card.kind === "approval" && request?.canDecide && onCard <= 1 ? request : null;
+  // "Mudar quando perguntar" on the foot line, only where it shows (no empty line under the decision).
+  const whenAsks = useWhenAsks(decidable ?? undefined);
   // Someone asking to join: who asked (the first names, how many in all), with their faces.
   const join = card.kind === "join" ? joinRequestLine(t, n) : null;
   const notice = useNoticeTitle(n);
@@ -238,9 +276,6 @@ function WaitingCardView({ item: n, first = false }: { item: AppNotification; fi
   const kind = dash ? { icon: "chart" as const, label: dash.kind } : kindOf(t, card.kind, n.source.screen);
   const left = card.expiresAt ? timeLeft(t, card.expiresAt, new Date(now)) : null;
   const place = placeOf(n);
-  const where = [place ? t("mobile.chats.waitIn", { where: place }) : null, when.short(n.updatedAt)]
-    .filter(Boolean)
-    .join(" · ");
   const button = found?.act
     ? (t as unknown as (key: string) => string)(found.act)
     : dash
@@ -254,13 +289,13 @@ function WaitingCardView({ item: n, first = false }: { item: AppNotification; fi
   // Whoever asks leads the card: an agent (with its sky), a person, or the people asking to join.
   const leading =
     who && who.type !== "agent" ? (
-      <Face who={who} size={36} live={false} />
+      <Face who={who} size={40} live={false} />
     ) : join ? (
       <View style={styles.faces}>
         {join.faces.map((face, i) => (
           // biome-ignore lint/suspicious/noArrayIndexKey: two names at most, and two people can share one
           <View key={`${i}-${face}`} style={i > 0 ? styles.overlap : undefined}>
-            <PersonAvatar name={face} size={30} />
+            <PersonAvatar name={face} size={join.faces.length > 1 ? 32 : 40} />
           </View>
         ))}
       </View>
@@ -275,8 +310,10 @@ function WaitingCardView({ item: n, first = false }: { item: AppNotification; fi
       onPress={href || web ? open : undefined}
       accessibilityLabel={[name, kind.label, title].filter(Boolean).join(", ")}
       expires={left !== null && card.expiresAt ? { createdAt: n.createdAt, expiresAt: card.expiresAt } : null}
-      where={where}
+      where={when.short(n.updatedAt)}
+      place={place ? t("mobile.chats.waitIn", { where: place }) : undefined}
       decision={decidable ? <ApproveHere approval={decidable} primary={first} /> : undefined}
+      footNote={decidable && whenAsks.shown ? <WhenAsksLink approval={decidable} /> : undefined}
       action={
         (href || web) && card.kind !== "limit"
           ? { label: button, onPress: open, variant: first ? "primary" : "secondary" }
@@ -328,34 +365,31 @@ function ApproveHere({ approval: a, primary }: { approval: Approval; primary: bo
   const { t } = useTranslation();
   const { approve, pending, high } = useApproveNow(a);
   return (
-    <View style={styles.decision}>
-      <AskButtons
-        primary={
-          high ? (
-            <HoldButton size="card" label={t("mobile.approval.hold")} onConfirm={() => approve()} />
-          ) : (
-            <Button
-              variant={primary ? "primary" : "secondary"}
-              size="card"
-              wide
-              label={approvalAction(a) === "draft" ? t("approval.approve.draft") : t("mobile.approval.approve")}
-              disabled={pending}
-              onPress={() => approve()}
-            />
-          )
-        }
-        secondary={
+    <AskButtons
+      primary={
+        high ? (
+          <HoldButton size="card" label={t("mobile.approval.hold")} onConfirm={() => approve()} />
+        ) : (
           <Button
-            variant="secondary"
+            variant={primary ? "primary" : "secondary"}
             size="card"
             wide
-            label={t("mobile.approval.refuse")}
-            onPress={() => router.push(`/approval/${a.id}?mode=refuse`)}
+            label={approvalAction(a) === "draft" ? t("approval.approve.draft") : t("mobile.approval.approve")}
+            disabled={pending}
+            onPress={() => approve()}
           />
-        }
-      />
-      <WhenAsksLink approval={a} />
-    </View>
+        )
+      }
+      secondary={
+        <Button
+          variant="secondary"
+          size="card"
+          wide
+          label={t("mobile.approval.refuse")}
+          onPress={() => router.push(`/approval/${a.id}?mode=refuse`)}
+        />
+      }
+    />
   );
 }
 
@@ -419,6 +453,102 @@ function AllClear() {
         </>
       ) : null}
     </Animated.View>
+  );
+}
+
+/** The badge of the tab reads the same number as the section: the inbox's count, set from what this page loaded. */
+function useBadgeAgrees(orgId: string, waiting: number | null) {
+  const qc = useQueryClient();
+  useEffect(() => {
+    if (waiting === null) return;
+    qc.setQueryData<NotificationCount>(keys.notificationCount(orgId), (prev) =>
+      prev && prev.waiting !== waiting ? { ...prev, waiting } : prev,
+    );
+  }, [qc, orgId, waiting]);
+}
+
+/**
+ * "Pronto para agendar" (ADR 9001, addendum 2026-11-17): approved posts nobody scheduled yet, the longest waiting
+ * first, for who may schedule them. A row says the post and "Publicação aprovada, toque para agendar"; a tap opens
+ * the day and time (`ScheduleOneSheet`). Its count is the one the tab's badge adds.
+ */
+function ToSchedule({ items }: { items: PortalItem[] }) {
+  const { t } = useTranslation();
+  const sheet = useSheet();
+  if (items.length === 0) return null;
+  return (
+    <View>
+      <SectionHeader title={t("mobile.toSchedule.title")} count={items.length} />
+      <View style={styles.panel}>
+        <GroupedList>
+          {items.map((item) => (
+            <GroupedRow
+              key={`${item.client}:${item.id}`}
+              icon="calendar"
+              tint="laranja"
+              label={item.title || t("mobile.toSchedule.untitled")}
+              labelLines={2}
+              sub={`${portalClientName(item.client)} · ${t("mobile.toSchedule.row")}`}
+              subLines={2}
+              chevron
+              onPress={() => sheet.open(<ScheduleOneSheet item={item} />)}
+            />
+          ))}
+        </GroupedList>
+      </View>
+    </View>
+  );
+}
+
+/** Rows of running work the page shows before "Ver tudo" (the task manager). */
+const RUNNING_SHOWN = 4;
+
+/**
+ * "Trabalhando agora": what agents are on now in the conversations the person is in (the work that waits on them is
+ * a card above), each with its face, what it does, who and since when, and its plan's steps; a tap opens it.
+ */
+function RunningNow({ work }: { work: WorkItem[] }) {
+  const { t } = useTranslation();
+  if (work.length === 0) return null;
+  return (
+    <View>
+      <SectionHeader
+        title={t("mobile.activityNow.running")}
+        count={work.length}
+        action={
+          work.length > RUNNING_SHOWN
+            ? { label: t("mobile.activityNow.runningAll"), onPress: () => router.push("/task-manager") }
+            : null
+        }
+      />
+      <View style={styles.panel}>
+        <GroupedList>
+          {work.slice(0, RUNNING_SHOWN).map((w) => (
+            <RunningRow key={w.key} work={w} />
+          ))}
+        </GroupedList>
+      </View>
+    </View>
+  );
+}
+
+function RunningRow({ work: w }: { work: WorkItem }) {
+  const { t } = useTranslation();
+  const dir = useDirectory();
+  const now = useNow();
+  const agent = dir.anyAgent(w.agentId);
+  const name = agent?.name ?? t("mobile.along.agent");
+  const since = t("mobile.teamNow.since", { ago: agoText(t, agoOf(w.since, now)) });
+  return (
+    <GroupedRow
+      leading={<AgentFace agentId={w.agentId} size={36} live={false} />}
+      label={workTitle(t, w)}
+      labelLines={2}
+      sub={`${name} · ${since}`}
+      {...(w.plan ? { value: t("mobile.activityNow.steps", { done: w.plan.done, total: w.plan.total }) } : {})}
+      chevron
+      onPress={() => router.push(alongHref(w, 0))}
+    />
   );
 }
 
@@ -660,6 +790,8 @@ const styles = StyleSheet.create({
   decision: { gap: 4 },
   // Cards 12 apart, at the screen's margin.
   cards: { gap: 12, paddingHorizontal: 16 },
+  // A grouped panel at the screen's margin (running work, posts to schedule).
+  panel: { paddingHorizontal: 16 },
   change: { paddingHorizontal: 16, paddingBottom: 12 },
   wpressed: { opacity: 0.85 },
   faces: { flexDirection: "row" },

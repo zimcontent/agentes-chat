@@ -1202,7 +1202,9 @@
       "suggested": "Voorgesteld",
       "all": "Alle",
       "none": "Geen tijdzone met die naam"
-    }
+    },
+    "groupAlerts": "Meldingen en goedkeuringen",
+    "groupLook": "Weergave en geluid"
   },
   "delete": {
     "intro": "Dit kan niet ongedaan worden.",
@@ -1571,7 +1573,11 @@
       "today": "vandaag om {{time}}",
       "tomorrow": "morgen om {{time}}",
       "later": "{{day}} om {{time}}"
-    }
+    },
+    "needsYou": "Wacht op jou",
+    "running": "Nu bezig",
+    "runningAll": "Alles bekijken",
+    "steps": "{{done}} van {{total}}"
   },
   "agentLite": {
     "uses": "Kan gebruiken",
@@ -3124,5 +3130,14 @@
   "brand": {
     "basedOn": "Gebaseerd op DougBot van Codari Global, LLC · AGPL-3.0",
     "source": "Broncode van DougBot"
+  },
+  "toSchedule": {
+    "title": "Klaar om in te plannen",
+    "row": "Bericht goedgekeurd, tik om in te plannen",
+    "untitled": "Bericht zonder titel",
+    "sheetTitle": "Bericht inplannen",
+    "confirm": "Inplannen",
+    "when": "Gaat live {{when}}",
+    "past": "Kies een tijd die nog niet voorbij is"
   }
 }

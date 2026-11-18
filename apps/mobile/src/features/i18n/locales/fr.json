@@ -1279,7 +1279,9 @@
       "suggested": "Suggérés",
       "all": "Tous",
       "none": "Aucun fuseau horaire à ce nom"
-    }
+    },
+    "groupAlerts": "Alertes et approbations",
+    "groupLook": "Apparence et son"
   },
   "delete": {
     "intro": "C'est irréversible.",
@@ -1657,7 +1659,11 @@
       "today": "aujourd'hui à {{time}}",
       "tomorrow": "demain à {{time}}",
       "later": "{{day}} à {{time}}"
-    }
+    },
+    "needsYou": "Vous attend",
+    "running": "En cours",
+    "runningAll": "Tout voir",
+    "steps": "{{done}} sur {{total}}"
   },
   "agentLite": {
     "uses": "Peut utiliser",
@@ -3240,5 +3246,14 @@
   "brand": {
     "basedOn": "Basé sur DougBot de Codari Global, LLC · AGPL-3.0",
     "source": "Code source de DougBot"
+  },
+  "toSchedule": {
+    "title": "Prêt à programmer",
+    "row": "Publication approuvée, touchez pour programmer",
+    "untitled": "Publication sans titre",
+    "sheetTitle": "Programmer la publication",
+    "confirm": "Programmer",
+    "when": "Publié {{when}}",
+    "past": "Choisissez une heure qui n’est pas encore passée"
   }
 }

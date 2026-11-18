@@ -56,6 +56,7 @@ import { Arquivos, Senhas, SenhasItem, SenhasLogins } from "./arquivos-senhas";
 import { IlhaCena } from "./ilha";
 import { Paineis, Paineis320, PaineisFormas } from "./paineis";
 import { PainelIa, PainelIa320, PainelIaFolha, PainelIaFolha320 } from "./painel-ia";
+import { Ajustes, AjustesSobre, Pendentes, PendentesAgendar, PendentesVazio } from "./pendentes-ajustes";
 import {
   PortalAgendar,
   PortalAgendarPost,
@@ -1227,6 +1228,12 @@ export const TELAS: Record<string, () => ReactNode> = {
   configuracoes: Configuracoes,
   aparencia: Aparencia,
   sobre: Sobre,
+  /** The real tab screens over a fake server: Pendentes (with requests, and clear) and Ajustes. */
+  pendentes: Pendentes,
+  "pendentes-vazio": PendentesVazio,
+  "pendentes-agendar": PendentesAgendar,
+  ajustes: Ajustes,
+  "ajustes-sobre": AjustesSobre,
   agente: Agente,
   time: Time,
   revisao: RevisaoLista,
