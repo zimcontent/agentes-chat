@@ -215,6 +215,10 @@ if (args[0] === "acp" && !args.includes("--login")) {
       me.done = true;
       return refuse(id, -32603, "Quota exceeded for Gemini 4 Argon. Resets in 2h 5m.");
     }
+    if (text.includes("VERIFY")) {
+      say(sid, "⚠ Verification Required");
+      return finish({ stopReason: "end_turn" });
+    }
     if (text.includes("HANG")) {
       me.cancel = () => finish({ stopReason: "cancelled" });
       return;

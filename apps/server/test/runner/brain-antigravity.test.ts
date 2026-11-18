@@ -1033,6 +1033,13 @@ test.skipIf(!posix)(
     const limited = await run(ctx, turn({ prompt: "LIMIT" }));
     expect(limited.find((e) => e.type === "limit")).toMatchObject({ resetsAt: expect.any(String) });
     expect(limited.at(-1)).toMatchObject({ type: "error", code: "plan_limit" });
+    // Google holding the account: its card's title is never the agent's answer.
+    const held = await run(ctx, turn({ runId: RUN.replace(/1$/, "4"), prompt: "VERIFY" }));
+    expect(held.at(-1)).toMatchObject({
+      type: "error",
+      code: "not_logged_in",
+      message: expect.stringContaining("verify this Gemini account"),
+    });
 
     const stop = new AbortController();
     const events: CodexBrainEvent[] = [];
