@@ -328,13 +328,20 @@ export async function carrySources(db: Database, userId: string, targetOrgId: st
 async function carryOAuthClient(deps: ConnectorDeps, targetOrgId: string, clientRowId: string) {
   const [source] = await deps.db.select().from(oauthClients).where(eq(oauthClients.id, clientRowId));
   if (!source) return null;
+  // Its own row of that same registration (a workspace may hold several with one issuer: oauth-mcp.ts).
   const own = () =>
     deps.db
       .select()
       .from(oauthClients)
-      .where(and(eq(oauthClients.orgId, targetOrgId), eq(oauthClients.issuer, source.issuer)));
+      .where(
+        and(
+          eq(oauthClients.orgId, targetOrgId),
+          eq(oauthClients.issuer, source.issuer),
+          eq(oauthClients.clientId, source.clientId),
+        ),
+      );
   const [existing] = await own();
-  if (existing) return existing.clientId === source.clientId ? existing.id : source.id;
+  if (existing) return existing.id;
   const id = crypto.randomUUID();
   const wrapper = deps.keyWrappers[0];
   if (!wrapper) throw new Error("no key wrapper");
@@ -361,13 +368,15 @@ async function carryOAuthClient(deps: ConnectorDeps, targetOrgId: string, client
       kekId: sealed?.kekId ?? null,
       scope: source.scope,
       tokenAuthMethod: source.tokenAuthMethod,
+      redirectUri: source.redirectUri,
+      clientName: source.clientName,
     })
     .onConflictDoNothing()
     .returning();
   if (row) return row.id;
-  // Registered here a moment ago by someone else's sign-in.
+  // Copied here a moment ago by someone else's sign-in, or the workspace registered its own for that address and name.
   const [raced] = await own();
-  return raced?.clientId === source.clientId ? raced.id : source.id;
+  return raced?.id ?? source.id;
 }
 
 /**

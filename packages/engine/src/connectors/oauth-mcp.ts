@@ -1,4 +1,5 @@
-import { and, type Database, eq, isNull, schema } from "@agenteschat/db";
+import { and, type Database, eq, inArray, isNull, schema } from "@agenteschat/db";
+import { BRAND_NAME } from "@agenteschat/i18n/brand";
 import { openSecret, sealSecret } from "../crypto";
 import { ValidationError } from "../errors";
 import { oneLine } from "../mail/text";
@@ -96,7 +97,7 @@ export async function probeMcpServer(
         jsonrpc: "2.0",
         id: 1,
         method: "initialize",
-        params: { protocolVersion: "2025-06-18", capabilities: {}, clientInfo: { name: "agentes.chat", version: "1" } },
+        params: { protocolVersion: "2025-06-18", capabilities: {}, clientInfo: { name: BRAND_NAME, version: "1" } },
       }),
     });
   } catch {
@@ -221,6 +222,11 @@ export function oauthScope(meta: AuthServerMetadata, scopes: string[]): string |
  * doesn't offer PKCE S256 or the registration fails; `NotApproved` when it
  * has OAuth but only takes clients it approved (no registration for us, or a
  * refused one).
+ *
+ * Only a registration made for this redirect URI and under this instance's name counts: a server sends the code
+ * back only to a redirect URI it registered (one made before this server's address changed is refused), and shows
+ * the name on its consent screen. Another one still in use stays as it is, for the connections that renew with it;
+ * one nobody uses is replaced in place.
  */
 export async function ensureOAuthClient(
   deps: McpOAuthDeps,
@@ -229,18 +235,34 @@ export async function ensureOAuthClient(
   meta: AuthServerMetadata,
   input: { redirectUri: string; scope: string | null },
 ): Promise<OAuthClientRow | NotApproved | null> {
-  const [existing] = await deps.db
+  const name = BRAND_NAME;
+  const rows = await deps.db
     .select()
     .from(oauthClients)
     .where(and(eq(oauthClients.orgId, orgId), eq(oauthClients.issuer, issuer)));
-  if (existing) {
-    const [inUse] = await deps.db
-      .select({ id: connectorConnections.id })
-      .from(connectorConnections)
-      .where(and(eq(connectorConnections.oauthClientId, existing.id), isNull(connectorConnections.revokedAt)))
-      .limit(1);
-    if (inUse) return existing;
-  }
+  const used = rows.length
+    ? new Set(
+        (
+          await deps.db
+            .select({ id: connectorConnections.oauthClientId })
+            .from(connectorConnections)
+            .where(
+              and(
+                inArray(
+                  connectorConnections.oauthClientId,
+                  rows.map((r) => r.id),
+                ),
+                isNull(connectorConnections.revokedAt),
+              ),
+            )
+        ).map((r) => r.id),
+      )
+    : new Set<string | null>();
+  const ours = (r: OAuthClientRow) => r.redirectUri === input.redirectUri && r.clientName === name;
+  const current = rows.find(ours);
+  if (current && used.has(current.id)) return current;
+  // The row a new registration goes in: ours, else one nobody renews with (registered for another address or name).
+  const existing = current ?? rows.find((r) => !used.has(r.id));
   const methods = meta.code_challenge_methods_supported;
   if (methods && !methods.includes("S256")) return null;
   // A server that takes a Client ID Metadata Document and that this server's admin listed (`MCP_CIMD_ISSUERS`): our
@@ -280,10 +302,13 @@ export async function ensureOAuthClient(
       }).catch(() => null);
       return { res, refusal: res && !res.ok ? await res.text().catch(() => "") : "" };
     };
-    let { res, refusal } = await register("agentes.chat");
+    let { res, refusal } = await register(name);
     // Calendly takes only letters, digits, hyphens and spaces in a client's name. The others keep the brand's,
     // the name people see on the consent screen.
-    if (res?.status === 400 && /\b(client_)?name\b/i.test(refusal)) ({ res, refusal } = await register("agentes chat"));
+    const plain = name.replace(/[^a-z0-9 -]+/gi, " ").trim();
+    if (res?.status === 400 && /\b(client_)?name\b/i.test(refusal) && plain && plain !== name) {
+      ({ res, refusal } = await register(plain));
+    }
     // RFC 7591: 400 for a redirect URI or metadata it won't take, 401 or 403 for a registration closed to us.
     if (res && [400, 401, 403].includes(res.status)) return { notApproved: true, ...refusalDetail(refusal) };
     if (!res?.ok) return null;
@@ -312,6 +337,8 @@ export async function ensureOAuthClient(
         kekId: sealed?.kekId ?? null,
         scope,
         tokenAuthMethod,
+        redirectUri: input.redirectUri,
+        clientName: name,
       })
       .where(eq(oauthClients.id, existing.id))
       .returning();
@@ -331,6 +358,8 @@ export async function ensureOAuthClient(
       kekId: sealed?.kekId ?? null,
       scope,
       tokenAuthMethod,
+      redirectUri: input.redirectUri,
+      clientName: name,
     })
     .onConflictDoNothing()
     .returning();
@@ -338,7 +367,14 @@ export async function ensureOAuthClient(
   const [raced] = await deps.db
     .select()
     .from(oauthClients)
-    .where(and(eq(oauthClients.orgId, orgId), eq(oauthClients.issuer, issuer)));
+    .where(
+      and(
+        eq(oauthClients.orgId, orgId),
+        eq(oauthClients.issuer, issuer),
+        eq(oauthClients.redirectUri, input.redirectUri),
+        eq(oauthClients.clientName, name),
+      ),
+    );
   return raced ?? null;
 }
 

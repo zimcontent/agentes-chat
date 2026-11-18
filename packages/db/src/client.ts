@@ -460,7 +460,16 @@ export const EXTRA_COLUMNS = [
   `ALTER TABLE "agents" ADD COLUMN IF NOT EXISTS "twin_off" boolean DEFAULT false NOT NULL`,
   `CREATE INDEX IF NOT EXISTS "agents_twin_id_index" ON "agents" ("twin_id")`,
   `ALTER TABLE "context_items" ADD COLUMN IF NOT EXISTS "twin_key" uuid`,
+  // Where agents working for a person use the browser: the server's computers or their own (ADR doug-0021).
+  `ALTER TABLE "organization_members" ADD COLUMN IF NOT EXISTS "browser_computer_id" uuid`,
   `CREATE INDEX IF NOT EXISTS "context_items_twin_key_index" ON "context_items" ("twin_key")`,
+  // An MCP server's OAuth client per redirect URI and name it was registered with (`schema/connectors.ts`): a new
+  // registration when either changes, the old one kept for the connections that renew with it. Rows registered before
+  // carry nulls, which never collide.
+  `ALTER TABLE "oauth_clients" ADD COLUMN IF NOT EXISTS "redirect_uri" text`,
+  `ALTER TABLE "oauth_clients" ADD COLUMN IF NOT EXISTS "client_name" text`,
+  `CREATE UNIQUE INDEX IF NOT EXISTS "oauth_clients_org_issuer_client" ON "oauth_clients" ("org_id", "issuer", "redirect_uri", "client_name")`,
+  `DROP INDEX IF EXISTS "oauth_clients_org_issuer"`,
   // The project's indexes for lookups that scanned whole tables (its migrations 0283_run_id_indexes and
   // 0285_query_sweep), built here ahead of them: Drizzle never runs a migration older than the last one it ran, so
   // those two can't come before the project's 0281 and 0282. Same names and IF NOT EXISTS, so when the migrations

@@ -199,9 +199,18 @@ export const oauthClients = pgTable(
      * registered before we chose, as `none`, and a secret it gave anyway goes in the form.
      */
     tokenAuthMethod: text(),
+    /**
+     * The redirect URI and the name it was registered with (this instance's own, `EXTRA_COLUMNS`). A server holds a
+     * client to the redirect URIs it registered, and shows its name on the consent screen: when either is no longer
+     * ours (the server's address or the product's name changed) we register again in a row of its own, and the
+     * connections still on the old row keep renewing with it (their refresh tokens belong to that client). Null:
+     * registered before these were kept.
+     */
+    redirectUri: text(),
+    clientName: text(),
     createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
   },
-  (t) => [uniqueIndex("oauth_clients_org_issuer").on(t.orgId, t.issuer)],
+  (t) => [uniqueIndex("oauth_clients_org_issuer_client").on(t.orgId, t.issuer, t.redirectUri, t.clientName)],
 );
 
 /**
