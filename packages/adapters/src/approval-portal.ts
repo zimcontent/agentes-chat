@@ -350,7 +350,12 @@ export interface ApprovalPortal {
    * else can say so: this server has no publishing service, and the bridge's portal may not hear from one. A post that
    * isn't `scheduled` is refused (`409`).
    */
-  markPublished(client: string, item: string, input: { at?: string | null; postUrl?: string | null }, by?: string): Promise<void>;
+  markPublished(
+    client: string,
+    item: string,
+    input: { at?: string | null; postUrl?: string | null },
+    by?: string,
+  ): Promise<void>;
 }
 
 /** The portal answered no, in its own words (safe to show a member: never a secret). */

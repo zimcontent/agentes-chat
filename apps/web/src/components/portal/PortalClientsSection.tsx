@@ -1,7 +1,17 @@
 import { type PortalClientAccount, type PortalClientColor, type PortalContact, useApi } from "@agenteschat/client";
 import { can } from "@agenteschat/client/lib/permissions";
 import { portalErrorText } from "@agenteschat/client/lib/portal";
-import { Button, Card, Dialog, DialogFooter, Field, Input, Select, SettingNote, SettingsSection } from "@agenteschat/ui";
+import {
+  Button,
+  Card,
+  Dialog,
+  DialogFooter,
+  Field,
+  Input,
+  Select,
+  SettingNote,
+  SettingsSection,
+} from "@agenteschat/ui";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";

@@ -301,9 +301,8 @@ import type {
   PortalCard,
   PortalCardInput,
   PortalClientAccount,
-  PortalClientsList,
-  PortalNoticeNumber,
   PortalClientColor,
+  PortalClientsList,
   PortalContact,
   PortalItem,
   PortalItemEdit,
@@ -313,6 +312,7 @@ import type {
   PortalList,
   PortalListKind,
   PortalMine,
+  PortalNoticeNumber,
   PortalOverview,
   PortalPipeline,
   PortalPlan,
@@ -1744,7 +1744,12 @@ export interface ApiClient {
     /** Sets the number the portal's notices go out as, or none with null. */
     setNoticeNumber(orgId: string, number: string | null): Promise<void>;
     /** Says a scheduled post is posted: `published`, at `at` (ISO; now when absent), with its address when known. */
-    markPublished(orgId: string, client: string, item: string, input?: { at?: string | null; postUrl?: string | null }): Promise<void>;
+    markPublished(
+      orgId: string,
+      client: string,
+      item: string,
+      input?: { at?: string | null; postUrl?: string | null },
+    ): Promise<void>;
   };
   /** Missions (ADR 0029): long work by the agent's executor on a connected computer, in one thread. */
   missions: {

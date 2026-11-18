@@ -5,16 +5,16 @@ import {
   announcePortalPost,
   clientDecision,
   createEmbeddedApprovalPortal,
+  createOrganization,
   listPortalClients,
   makeClientLink,
   portalBelongsTo,
   portalClientOfToken,
   portalOrgId,
   revokeClientLink,
+  sealSecret,
   setPortalNoticeNumber,
   upsertPortalClient,
-  createOrganization,
-  sealSecret,
 } from "../src";
 import { addUser, SECRET, setup } from "./fixtures";
 
@@ -86,7 +86,12 @@ describe("the portal belongs to one workspace (ADR 9001 §18)", () => {
     expect(await portalBelongsTo(f.db, f.org.id)).toBe(true);
     expect(await portalBelongsTo(f.db, other)).toBe(false);
     await expect(
-      upsertPortalClient({ db: f.db, publicUrl: PUBLIC_URL, secret: SECRET }, other, { client: "outra", name: "Outra" }, f.owner.id),
+      upsertPortalClient(
+        { db: f.db, publicUrl: PUBLIC_URL, secret: SECRET },
+        other,
+        { client: "outra", name: "Outra" },
+        f.owner.id,
+      ),
     ).rejects.toThrow();
     // The list is empty there: the portal's clients aren't its.
     expect(await listPortalClients({ db: f.db, publicUrl: PUBLIC_URL, secret: SECRET }, other)).toEqual([]);
@@ -104,7 +109,10 @@ describe("a client's link", () => {
     expect(made.link).toMatch(/^https:\/\/acme\.example\/p\//);
     expect(made.linkStale).toBe(false);
     // The same row read with another secret: the token made from it doesn't match what was kept.
-    const rows = await listPortalClients({ db: f.db, publicUrl: PUBLIC_URL, secret: "another-secret".padEnd(48, "y") }, f.org.id);
+    const rows = await listPortalClients(
+      { db: f.db, publicUrl: PUBLIC_URL, secret: "another-secret".padEnd(48, "y") },
+      f.org.id,
+    );
     expect(rows[0]?.link).toBeNull();
     expect(rows[0]?.linkStale).toBe(true);
     // A revoked link is `revoked`, not stale.
@@ -121,17 +129,29 @@ describe("saving a client", () => {
     const made = await makeClient("padaria-aurora", "Padaria Aurora", [{ name: "Ana", email: "ana@example.com" }]);
     expect(made.contacts).toHaveLength(1);
     // A change to the name alone (no `contacts` in the input) keeps them.
-    const changed = await upsertPortalClient(deps(), f.org.id, { client: "padaria-aurora", name: "Padaria Aurora Ltda" }, f.owner.id);
+    const changed = await upsertPortalClient(
+      deps(),
+      f.org.id,
+      { client: "padaria-aurora", name: "Padaria Aurora Ltda" },
+      f.owner.id,
+    );
     expect(changed.name).toBe("Padaria Aurora Ltda");
     expect(changed.contacts).toHaveLength(1);
     expect(changed.contacts[0]?.email).toBe("ana@example.com");
     // A save that says `contacts: []` does empty them.
-    const emptied = await upsertPortalClient(deps(), f.org.id, { client: "padaria-aurora", name: "Padaria Aurora", contacts: [] }, f.owner.id);
+    const emptied = await upsertPortalClient(
+      deps(),
+      f.org.id,
+      { client: "padaria-aurora", name: "Padaria Aurora", contacts: [] },
+      f.owner.id,
+    );
     expect(emptied.contacts).toEqual([]);
   });
 
   test("a contact's id is made on the server, and two saves never share one", async () => {
-    const one = await makeClient("padaria-aurora", "Padaria Aurora", [{ id: "fixed", name: "Ana", email: "ana@example.com" }]);
+    const one = await makeClient("padaria-aurora", "Padaria Aurora", [
+      { id: "fixed", name: "Ana", email: "ana@example.com" },
+    ]);
     const two = await makeClient("cafe-sol", "Cafe Sol", [{ id: "fixed", name: "Bea", email: "bea@example.com" }]);
     expect(one.contacts[0]?.id).not.toBe("fixed");
     expect(two.contacts[0]?.id).not.toBe("fixed");
@@ -168,17 +188,36 @@ describe("a client's notices (ADR doug-0022 §7)", () => {
     await makeClient("padaria-aurora", "Padaria Aurora", [{ name: "Ana", email: "ana@example.com" }]);
     const upload = await portal.upload("reel.mp4", new Uint8Array([1, 2]));
     const job = await portal.send({ client: "padaria-aurora", type: "reel", files: [upload], caption: "v1" });
-    const first = await announcePortalPost({ db: f.db, publicUrl: PUBLIC_URL, secret: SECRET, email }, f.org.id, job.item as string, 1);
+    const first = await announcePortalPost(
+      { db: f.db, publicUrl: PUBLIC_URL, secret: SECRET, email },
+      f.org.id,
+      job.item as string,
+      1,
+    );
     expect(first.sent).toBe(1);
     // The same version again: nothing new went out.
-    const again = await announcePortalPost({ db: f.db, publicUrl: PUBLIC_URL, secret: SECRET, email }, f.org.id, job.item as string, 1);
+    const again = await announcePortalPost(
+      { db: f.db, publicUrl: PUBLIC_URL, secret: SECRET, email },
+      f.org.id,
+      job.item as string,
+      1,
+    );
     expect(again.sent).toBe(0);
 
     // The client asks a change, the team puts a v2 up: the notice names it, past the one the client was told of.
-    await clientDecision({ db: f.db }, { orgId: f.org.id, client: "padaria-aurora" }, { postId: job.item as string, decision: "adjust", text: "Troca" });
+    await clientDecision(
+      { db: f.db },
+      { orgId: f.org.id, client: "padaria-aurora" },
+      { postId: job.item as string, decision: "adjust", text: "Troca" },
+    );
     const v2 = await portal.upload("reel-v2.mp4", new Uint8Array([3, 4]));
     await portal.newVersion("padaria-aurora", job.item as string, { files: [v2] });
-    const told = await announcePortalPost({ db: f.db, publicUrl: PUBLIC_URL, secret: SECRET, email }, f.org.id, job.item as string, 2);
+    const told = await announcePortalPost(
+      { db: f.db, publicUrl: PUBLIC_URL, secret: SECRET, email },
+      f.org.id,
+      job.item as string,
+      2,
+    );
     expect(told.sent).toBe(1);
     const emails = await f.db
       .select()
@@ -195,7 +234,12 @@ describe("a client's notices (ADR doug-0022 §7)", () => {
     const upload = await portal.upload("reel.mp4", new Uint8Array([1]));
     const job = await portal.send({ client: "padaria-aurora", type: "reel", files: [upload], caption: "Cap" });
     await revokeClientLink({ db: f.db }, f.org.id, "padaria-aurora");
-    const out = await announcePortalPost({ db: f.db, publicUrl: PUBLIC_URL, secret: SECRET, email }, f.org.id, job.item as string, 1);
+    const out = await announcePortalPost(
+      { db: f.db, publicUrl: PUBLIC_URL, secret: SECRET, email },
+      f.org.id,
+      job.item as string,
+      1,
+    );
     expect(out).toMatchObject({ sent: 0, skipped: "link" });
   });
 
@@ -207,7 +251,12 @@ describe("a client's notices (ADR doug-0022 §7)", () => {
     const gateway = createFakeWhatsAppGateway();
     // A connected number of the workspace, with nobody having chosen it: no WhatsApp, whatever else the workspace has.
     const number = await connectedNumber(f, "Comercial");
-    const waDeps = () => ({ db: f.db, publicUrl: PUBLIC_URL, secret: SECRET, whatsapp: { gateway, keyWrappers: [f.keyWrapper], pubsub: f.pubsub, hookBase: "https://acme.example" } });
+    const waDeps = () => ({
+      db: f.db,
+      publicUrl: PUBLIC_URL,
+      secret: SECRET,
+      whatsapp: { gateway, keyWrappers: [f.keyWrapper], pubsub: f.pubsub, hookBase: "https://acme.example" },
+    });
     const unchosen = await announcePortalPost(waDeps(), f.org.id, job.item as string, 1);
     expect(unchosen.sent).toBe(0);
     expect(gateway.last("send")).toBeUndefined();

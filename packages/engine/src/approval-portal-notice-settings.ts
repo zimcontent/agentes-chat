@@ -48,10 +48,14 @@ export async function setPortalNoticeNumber(db: Database, orgId: string, number:
           eq(whatsappAccounts.status, "connected"),
         ),
       );
-    if (!row) throw new NotFoundError("That number isn't a connected one of this workspace", "whatsapp.number_not_found");
+    if (!row)
+      throw new NotFoundError("That number isn't a connected one of this workspace", "whatsapp.number_not_found");
   }
   await db
     .insert(organizationSettings)
     .values({ orgId, portalNoticeNumber: number })
-    .onConflictDoUpdate({ target: organizationSettings.orgId, set: { portalNoticeNumber: number, updatedAt: new Date() } });
+    .onConflictDoUpdate({
+      target: organizationSettings.orgId,
+      set: { portalNoticeNumber: number, updatedAt: new Date() },
+    });
 }

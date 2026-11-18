@@ -24,7 +24,9 @@ function Root() {
   // A client's page of the installation's approval portal (docs/adr/doug-0022-embedded-approval-portal.md): no account,
   // so none of the signed-in app is asked for — no `useMe`, no push listener, no desktop bridge. It is only its own
   // page and its own `/p/api/<token>` data.
-  const isPortal = useRouterState({ select: (s) => s.location.pathname === "/p" || s.location.pathname.startsWith("/p/") });
+  const isPortal = useRouterState({
+    select: (s) => s.location.pathname === "/p" || s.location.pathname.startsWith("/p/"),
+  });
   if (isPortal) return <Outlet />;
   return <SignedIn />;
 }

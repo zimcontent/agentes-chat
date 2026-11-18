@@ -226,12 +226,12 @@ import type {
   PortalCard,
   PortalClientAccount,
   PortalClientsList,
-  PortalNoticeNumber,
   PortalItem,
   PortalJob,
   PortalLabel,
   PortalList,
   PortalMine,
+  PortalNoticeNumber,
   PortalOverview,
   PortalPipeline,
   PortalPlan,
@@ -2061,10 +2061,10 @@ export function createHttpApi(options: TransportOptions = {}): HttpApi {
         await request(`${org(orgId)}/portal-notices`, { method: "PUT", json: { number } });
       },
       markPublished: async (orgId, client, item, input = {}) => {
-        await request(
-          `${org(orgId)}/portal/clients/${enc(client)}/items/${enc(item)}/published`,
-          { method: "POST", json: input },
-        );
+        await request(`${org(orgId)}/portal/clients/${enc(client)}/items/${enc(item)}/published`, {
+          method: "POST",
+          json: input,
+        });
       },
     },
     missions: ((): HttpApi["missions"] => {

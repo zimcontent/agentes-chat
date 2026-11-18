@@ -134,6 +134,8 @@ export interface WorkerDeps {
   mail?: { deps: MailDeps; pollSeconds: number };
   /** The approval portal (ADR 9001): its cards and their tasks are kept in step; absent: no portal. */
   approvalPortal?: ApprovalPortal;
+  /** The portal is this server's own (docs/adr/doug-0022): a workspace with no client has nothing put in step. */
+  approvalPortalEmbedded?: boolean;
   /** The agent browser's live view (ADR 0040): expired handoffs are told to its viewers. */
   browserLive?: BrowserLive;
   /** Connected computers: plans stuck at their limit are read again there (`recheckStuckPlans`). */
@@ -509,7 +511,7 @@ export function startWorkers(deps: WorkerDeps) {
   const portal = deps.approvalPortal;
   if (portal) {
     every("portalTasks", WORKER_INTERVALS_MS.portalTasks, async () => {
-      const r = await portalTasksTick({ db, pubsub: deps.pubsub, log }, portal);
+      const r = await portalTasksTick({ db, pubsub: deps.pubsub, log, embedded: Boolean(deps.approvalPortalEmbedded) }, portal);
       if (r && r.created + r.toTasks + r.toCards + r.changes.length > 0) {
         log.info("approval portal: cards and tasks put in step", {
           created: r.created,

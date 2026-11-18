@@ -136,7 +136,9 @@ test("the portal's contract: a send becomes a post, a card is tied to it, the cl
   expect((await portal.cards("padaria-aurora")).find((c) => c.id === card.id)?.item).toBe(job.item);
 
   // The client's page shows the video and the caption, and marks it seen.
-  const before = await clientPortalPage(f.db, (await portalClientOfToken(f.db, token))!, false);
+  const mine = await portalClientOfToken(f.db, token);
+  if (!mine) throw new Error("the client's link names none");
+  const before = await clientPortalPage(f.db, mine, false);
   expect(before.waiting).toHaveLength(1);
   expect(before.waiting[0]).toMatchObject({
     title: "Reel de dezembro",
@@ -144,7 +146,7 @@ test("the portal's contract: a send becomes a post, a card is tied to it, the cl
     caption: "Nosso menu de dezembro",
   });
   expect(before.waiting[0]?.media).toHaveLength(1);
-  const seen = await clientPortalPage(f.db, (await portalClientOfToken(f.db, token))!, true);
+  const seen = await clientPortalPage(f.db, mine, true);
   expect(seen.waiting[0]?.status).toBe("seen");
 
   // The decision turns the post approved, and the workspace's watch reads it.
@@ -214,7 +216,9 @@ test("a client's file is read only through its own link, and nothing of another 
 
   const upload = await portal.upload("post.png", new Uint8Array([7, 7, 7]));
   const job = await portal.send({ client: "padaria-aurora", type: "image", files: [upload], caption: "Foto" });
-  const page = await clientPortalPage(f.db, (await portalClientOfToken(f.db, auroraToken))!, false);
+  const auroraClient = await portalClientOfToken(f.db, auroraToken);
+  if (!auroraClient) throw new Error("the client's link names none");
+  const page = await clientPortalPage(f.db, auroraClient, false);
   const fileId = page.waiting[0]?.media[0]?.id as string;
 
   const auroraRead = await clientPortalFile({ db: f.db, blobs }, { orgId: f.org.id, client: "padaria-aurora" }, fileId);

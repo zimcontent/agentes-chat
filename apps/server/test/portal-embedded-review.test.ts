@@ -1,7 +1,6 @@
 import { afterEach, expect, test } from "bun:test";
 import { eq, schema } from "@agenteschat/db";
-import { browser, createTestServer, seedOrg, signUp, type TestServer } from "./harness";
-import { type Browser } from "./harness";
+import { type Browser, browser, createTestServer, seedOrg, signUp, type TestServer } from "./harness";
 
 // The review's items on the server's side of the installation's own approval portal (docs/adr/
 // doug-0022-embedded-approval-portal.md): the portal is one workspace's, a file's name survives any character, a
@@ -37,7 +36,10 @@ async function secondWorkspace(owner: Browser, orgId: string) {
 const code = async (res: Response) => ((await res.json()) as { error: { code: string } }).error.code ?? "";
 
 /** A client of the workspace, its link's token, and the portal the server made for it. */
-async function aClient(api: (path: string, init?: Parameters<Browser>[1]) => Promise<Response>, client = "padaria-aurora") {
+async function aClient(
+  api: (path: string, init?: Parameters<Browser>[1]) => Promise<Response>,
+  client = "padaria-aurora",
+) {
   const saved = (await (
     await api(`/portal-clients/${client}`, { method: "PUT", json: { name: "Padaria Aurora" } })
   ).json()) as { client: { link: string } };
@@ -100,7 +102,13 @@ test("a decision's body past 64 KiB is refused before it is read", async () => {
   const { token } = await aClient(api);
   const portal = t.adapters.approvalPortal as NonNullable<typeof t.adapters.approvalPortal>;
   const upload = await portal.upload("reel.mp4", new Uint8Array([1]));
-  const job = await portal.send({ client: "padaria-aurora", type: "reel", files: [upload], title: "Reel", caption: "x" });
+  const job = await portal.send({
+    client: "padaria-aurora",
+    type: "reel",
+    files: [upload],
+    title: "Reel",
+    caption: "x",
+  });
   const res = await t.app.request(`/p/api/${token}/decide`, {
     method: "POST",
     headers: { "content-type": "application/json" },
@@ -127,7 +135,13 @@ test("a workspace on hold, suspended or being deleted closes its clients' page a
   const { token } = await aClient(api);
   const portal = t.adapters.approvalPortal as NonNullable<typeof t.adapters.approvalPortal>;
   const upload = await portal.upload("reel.mp4", new Uint8Array([1]));
-  const job = await portal.send({ client: "padaria-aurora", type: "reel", files: [upload], title: "Reel", caption: "x" });
+  const job = await portal.send({
+    client: "padaria-aurora",
+    type: "reel",
+    files: [upload],
+    title: "Reel",
+    caption: "x",
+  });
   expect((await t.app.request(`/p/api/${token}`)).status).toBe(200);
   // The operator holds the workspace: its clients' pages answer nothing, as a link that names none.
   await t.db
@@ -148,7 +162,13 @@ test("a scheduled post is marked posted by a person: `published`, with its date 
   const { token } = await aClient(api);
   const portal = t.adapters.approvalPortal as NonNullable<typeof t.adapters.approvalPortal>;
   const upload = await portal.upload("reel.mp4", new Uint8Array([1]));
-  const job = await portal.send({ client: "padaria-aurora", type: "reel", files: [upload], title: "Reel", caption: "x" });
+  const job = await portal.send({
+    client: "padaria-aurora",
+    type: "reel",
+    files: [upload],
+    title: "Reel",
+    caption: "x",
+  });
   // The client approves, and the team schedules it.
   await t.app.request(`/p/api/${token}/decide`, {
     method: "POST",
@@ -156,8 +176,11 @@ test("a scheduled post is marked posted by a person: `published`, with its date 
     body: JSON.stringify({ postId: job.item, decision: "approve" }),
   });
   expect(
-    (await api(`/portal/clients/padaria-aurora/items/${job.item}/schedule`, { json: { scheduledFor: "2099-12-05T10:00" } }))
-      .status,
+    (
+      await api(`/portal/clients/padaria-aurora/items/${job.item}/schedule`, {
+        json: { scheduledFor: "2099-12-05T10:00" },
+      })
+    ).status,
   ).toBe(204);
   const posted = await api(`/portal/clients/padaria-aurora/items/${job.item}/published`, {
     json: { postUrl: "https://example.com/p/1" },
@@ -168,15 +191,16 @@ test("a scheduled post is marked posted by a person: `published`, with its date 
   expect(item?.publishedAt).toBeTruthy();
   expect(item?.postUrl).toBe("https://example.com/p/1");
   // Only a scheduled post is marked posted: another try finds it out of `scheduled`.
-  expect(
-    (await api(`/portal/clients/padaria-aurora/items/${job.item}/published`, { json: {} })).status,
-  ).toBe(400);
+  expect((await api(`/portal/clients/padaria-aurora/items/${job.item}/published`, { json: {} })).status).toBe(400);
 });
 
 test("the clients' links are only in `links`, and only for who may manage the portal", async () => {
   const { api } = await start();
   await aClient(api);
-  const list = (await (await api("/portal-clients")).json()) as { clients: { link?: string }[]; links: Record<string, string> };
+  const list = (await (await api("/portal-clients")).json()) as {
+    clients: { link?: string }[];
+    links: Record<string, string>;
+  };
   expect(list.links["padaria-aurora"]).toMatch(/\/p\//);
   expect(list.clients[0]?.link).toBeUndefined();
 });

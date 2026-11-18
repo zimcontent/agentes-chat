@@ -13,6 +13,7 @@ import {
   type PortalType,
 } from "@agenteschat/adapters";
 import type { Database } from "@agenteschat/db";
+import { listPortalClients, upsertPortalClient } from "./approval-portal-clients";
 import {
   labelIdsByName,
   memberIdsByName,
@@ -21,7 +22,6 @@ import {
   planTool,
   portalPlan,
 } from "./approval-portal-plan";
-import { listPortalClients, upsertPortalClient } from "./approval-portal-clients";
 import { portalHere } from "./approval-portal-tasks";
 import { type ArtifactActor, type ArtifactDeps, artifactFile, storedFileOfArtifact } from "./artifacts";
 import { ValidationError } from "./errors";
@@ -772,7 +772,7 @@ async function runPeople(ctx: ToolContext): Promise<{ personId: string | null; m
  * isn't listed. It changes what the team keeps for a client, so a person is behind the run (`elsewhere`), and a
  * routine never reaches it.
  */
-function clientsTool(deps: PortalToolDeps, portal: ApprovalPortal): ToolDefinition {
+function clientsTool(deps: PortalToolDeps): ToolDefinition {
   return {
     name: PORTAL_CLIENTS_TOOL,
     description:
@@ -804,13 +804,12 @@ function clientsTool(deps: PortalToolDeps, portal: ApprovalPortal): ToolDefiniti
       additionalProperties: false,
     },
     describe: (input) => ({
-      title: str(input.client)
-        ? `Add or change ${str(input.client)} as a portal client`
-        : "List the portal's clients",
+      title: str(input.client) ? `Add or change ${str(input.client)} as a portal client` : "List the portal's clients",
     }),
     async execute(input, ctx) {
       // Only the installation's own portal has clients and links of its own here.
-      if (!deps.clients) return { content: "This server's portal is a bridge's: its clients live there.", isError: true };
+      if (!deps.clients)
+        return { content: "This server's portal is a bridge's: its clients live there.", isError: true };
       // The people behind a run: listing is a read, which any member on it may do; making a client, changing its
       // contacts or colour, and seeing its links are what `assign_work` is (ADR 0085), so a person without it is told
       // no rather than handed a client's address.
@@ -819,7 +818,8 @@ function clientsTool(deps: PortalToolDeps, portal: ApprovalPortal): ToolDefiniti
       const listing = !str(input.client);
       if (!mayChange && !(listing && people.membership)) {
         return {
-          content: "Adding a client or changing its contacts needs someone who gives agents work (assign_work) in this workspace.",
+          content:
+            "Adding a client or changing its contacts needs someone who gives agents work (assign_work) in this workspace.",
           isError: true,
         };
       }
@@ -857,8 +857,7 @@ function clientsTool(deps: PortalToolDeps, portal: ApprovalPortal): ToolDefiniti
           by,
         );
         return {
-          content:
-            `Client ${saved.client} (${saved.name}) is set.` + (saved.link ? ` Link: ${saved.link}` : ""),
+          content: `Client ${saved.client} (${saved.name}) is set.${saved.link ? ` Link: ${saved.link}` : ""}`,
         };
       } catch (error) {
         return failed(error);
@@ -900,7 +899,7 @@ export function createPortalToolSource(deps: PortalToolDeps): ToolSource {
         sendTool(deps, portal),
         versionTool(deps, portal),
         // The clients of the installation's own portal, and their links: only where this server keeps one.
-        ...(deps.clients ? [clientsTool(deps, portal)] : []),
+        ...(deps.clients ? [clientsTool(deps)] : []),
       ];
     },
   };

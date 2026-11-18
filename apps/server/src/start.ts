@@ -172,7 +172,10 @@ function approvalPortalAdapters(
 ) {
   if (config.APPROVAL_PORTAL_URL && config.APPROVAL_PORTAL_TOKEN) {
     return {
-      approvalPortal: createBridgeApprovalPortal({ url: config.APPROVAL_PORTAL_URL, token: config.APPROVAL_PORTAL_TOKEN }),
+      approvalPortal: createBridgeApprovalPortal({
+        url: config.APPROVAL_PORTAL_URL,
+        token: config.APPROVAL_PORTAL_TOKEN,
+      }),
     };
   }
   if (config.APPROVAL_PORTAL_URL) {
@@ -569,6 +572,7 @@ async function boot(
     approvalDigest: { publicUrl: config.PUBLIC_URL, afterHours: config.APPROVAL_REMINDER_HOURS },
     mail: { deps: engine.mail, pollSeconds: config.MAIL_POLL_SECONDS },
     approvalPortal: adapters.approvalPortal ?? undefined,
+    ...(adapters.approvalPortalEmbedded ? { approvalPortalEmbedded: true } : {}),
     browserLive: engine.browserLive,
     desktops: engine.desktops,
     machines: engine.machineHub,

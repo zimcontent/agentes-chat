@@ -42,7 +42,9 @@ test("a bridge's installation keeps its board and its send: the tools and the ro
   const card = await portal.createCard("acme", { title: "Reel de dezembro" });
   const board = await api("/portal/clients/acme");
   expect(board.status).toBe(200);
-  expect(((await board.json()) as { cards: { todo: { id: string }[] } }).cards.todo.map((c) => c.id)).toContain(card.id);
+  expect(((await board.json()) as { cards: { todo: { id: string }[] } }).cards.todo.map((c) => c.id)).toContain(
+    card.id,
+  );
   // The overview still reads the bridge's portal.
   expect((await api("/portal")).status).toBe(200);
 });

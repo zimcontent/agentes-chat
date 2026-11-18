@@ -55,6 +55,12 @@ export interface PortalTaskDeps {
   db: Database;
   pubsub?: PubSub;
   log?: { warn: (message: string, details?: Record<string, unknown>) => void };
+  /**
+   * The portal is this server's own (docs/adr/doug-0022-embedded-approval-portal.md): its clients are in this database,
+   * so a workspace that made none has nothing to put in step and the pass is skipped. Absent for a bridge's portal,
+   * whose clients live at the bridge: its cards and posts are always read.
+   */
+  embedded?: boolean;
 }
 
 interface Side {
@@ -149,10 +155,7 @@ export async function portalWorkspace(db: Database): Promise<string | null> {
  * (from a card before) keeps the pass going.
  */
 async function hasPortalClients(db: Database): Promise<boolean> {
-  const [client] = await db
-    .select({ id: schema.portalClients.id })
-    .from(schema.portalClients)
-    .limit(1);
+  const [client] = await db.select({ id: schema.portalClients.id }).from(schema.portalClients).limit(1);
   if (client) return true;
   const [task] = await db
     .select({ id: issues.id })
@@ -1011,9 +1014,10 @@ export function portalTasksTick(deps: PortalTaskDeps, portal: ApprovalPortal): P
   const tick = ticks.then(async () => {
     const orgId = await portalWorkspace(deps.db);
     if (!orgId) return null;
-    // A server whose portal has no client yet has nothing to put in step: the pass is a read of every card and post
-    // for nothing, every twenty seconds. Once a client is there (or a task of the portal is) the pass runs again.
-    if (!(await hasPortalClients(deps.db))) return null;
+    // A server whose own portal has no client yet has nothing to put in step: the pass is a read of every card and post
+    // for nothing, every twenty seconds. Once a client is there (or a task of the portal is) the pass runs again. A
+    // bridge's portal keeps reading, as it always did: its clients aren't in this database to be asked.
+    if (deps.embedded && !(await hasPortalClients(deps.db))) return null;
     const result = await syncPortalTasks(deps, portal, orgId);
     await announcePortalStages(deps, orgId, result.changes);
     // What the client wrote at the portal on an editor's post comes into its review, at the second they marked.

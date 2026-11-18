@@ -1,3 +1,4 @@
+import { eq, schema } from "@agenteschat/db";
 import {
   CLIENT_NOTE_MAX,
   clientDecision,
@@ -9,7 +10,6 @@ import {
   STANDING_COLUMNS,
   workRefusal,
 } from "@agenteschat/engine";
-import { eq, schema } from "@agenteschat/db";
 import type { OpenAPIHono } from "@hono/zod-openapi";
 import { z } from "zod";
 import { rangedResponse } from "../http/byte-range";
@@ -37,9 +37,17 @@ const ShortText = (max: number) => z.string().trim().max(max);
  * header can't hold them, and an answer that fails to build is a 500 for a file that is perfectly readable.
  */
 export function contentDisposition(name: string): string {
-  // Control characters, and the two that would end the value or open a parameter, never reach the header.
-  const clean = name.replace(/[\u0000-\u001f\u007f"\\]/g, "").trim() || "file";
-  const ascii = clean.replace(/[^\u0020-\u007e]/g, "_");
+  // Control characters (a newline, a tab, DEL), and the two that would end the value or open a parameter, never reach
+  // the header: each is read one character at a time, so the pattern holds no control character itself.
+  const kept = [...name].filter((ch) => {
+    const code = ch.codePointAt(0) ?? 0;
+    const control = code < 0x20 || code === 0x7f;
+    return !control && ch !== '"' && ch !== "\\";
+  });
+  const clean = kept.join("").trim() || "file";
+  const ascii = [...clean]
+    .map((ch) => ((ch.codePointAt(0) ?? 0) < 0x20 || (ch.codePointAt(0) ?? 0) > 0x7e ? "_" : ch))
+    .join("");
   const encoded = encodeURIComponent(clean).replace(
     /['()*]/g,
     (ch) => `%${ch.charCodeAt(0).toString(16).toUpperCase()}`,

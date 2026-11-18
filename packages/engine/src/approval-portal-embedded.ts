@@ -630,7 +630,9 @@ export function createEmbeddedApprovalPortal(deps: EmbeddedPortalDeps): Approval
             storageConfigId: u.storageConfigId,
           });
         }
-        await tx.delete(portalUploads).where(and(eq(portalUploads.orgId, orgId), inArray(portalUploads.id, input.files)));
+        await tx
+          .delete(portalUploads)
+          .where(and(eq(portalUploads.orgId, orgId), inArray(portalUploads.id, input.files)));
         if (cover) await tx.delete(portalUploads).where(eq(portalUploads.id, cover.id));
         // A card that is sent stays in its list, tied to the post it became (ADR 9001 §8).
         if (input.card) {
@@ -706,7 +708,9 @@ export function createEmbeddedApprovalPortal(deps: EmbeddedPortalDeps): Approval
             storageConfigId: u.storageConfigId,
           });
         }
-        await tx.delete(portalUploads).where(and(eq(portalUploads.orgId, orgId), inArray(portalUploads.id, input.files)));
+        await tx
+          .delete(portalUploads)
+          .where(and(eq(portalUploads.orgId, orgId), inArray(portalUploads.id, input.files)));
         const [turned] = await tx
           .update(portalPosts)
           .set({
@@ -716,13 +720,11 @@ export function createEmbeddedApprovalPortal(deps: EmbeddedPortalDeps): Approval
             updatedAt: new Date(),
           })
           .where(
-            and(
-              eq(portalPosts.id, post.id),
-              inArray(portalPosts.status, ["adjust_requested", "adjusting"] as const),
-            ),
+            and(eq(portalPosts.id, post.id), inArray(portalPosts.status, ["adjust_requested", "adjusting"] as const)),
           )
           .returning({ id: portalPosts.id });
-        if (!turned) throw new ApprovalPortalError(409, "a new version only goes up on a post the client asked a change on");
+        if (!turned)
+          throw new ApprovalPortalError(409, "a new version only goes up on a post the client asked a change on");
         const [made] = await tx
           .insert(portalJobs)
           .values({

@@ -60,7 +60,6 @@ import {
 } from "./email";
 import { forgetCodeEmail } from "./email-codes";
 import { type DecidedBy, publishListChanged, publishRouted } from "./events";
-import { announcePortalPost, PORTAL_NOTIFY_JOB, type PortalNoticeDeps } from "./portal-notices";
 import { executeRun, type RunExecutorDeps } from "./executor";
 import {
   FEEDBACK_FILE_PURGE_JOB,
@@ -103,6 +102,7 @@ import { enqueue, type JobHandlers, type OutboxJob, PermanentJobError } from "./
 import { checkParkedRun, EARLY_CHECK_JOB, scheduleParkedChecks } from "./parked-asks";
 import { PARTNER_WAITLIST_CONTACT_JOB, savePartnerWaitlistContact } from "./partner-waitlist";
 import { notifyPersonLimit, PERSON_LIMIT_JOB } from "./person-usage";
+import { announcePortalPost, PORTAL_NOTIFY_JOB, type PortalNoticeDeps } from "./portal-notices";
 import { deliverPush } from "./push";
 import { reachOf, settleReach } from "./reach";
 import { routineCreatorOf } from "./requester";
@@ -1084,7 +1084,12 @@ export function createJobHandlers(deps: JobDeps): JobHandlers {
     // has a number. Nothing when the post was answered while the job waited, or the client was told within the day.
     [PORTAL_NOTIFY_JOB]: async (job) => {
       if (!deps.portalNotify) return;
-      await announcePortalPost(deps.portalNotify, orgOf(job), String(job.payload.postId), Number(job.payload.version) || 1);
+      await announcePortalPost(
+        deps.portalNotify,
+        orgOf(job),
+        String(job.payload.postId),
+        Number(job.payload.version) || 1,
+      );
     },
     // Someone else let more people talk to an agent on a person's plan: that person's email (`planOpened`).
     [PLAN_OPENED_JOB]: async (job) => {

@@ -109,9 +109,7 @@ async function toldVersionOf(db: Database, orgId: string, client: string, postId
   const [row] = await db
     .select({ version: portalNotices.version })
     .from(portalNotices)
-    .where(
-      and(eq(portalNotices.orgId, orgId), eq(portalNotices.client, client), eq(portalNotices.postId, postId)),
-    )
+    .where(and(eq(portalNotices.orgId, orgId), eq(portalNotices.client, client), eq(portalNotices.postId, postId)))
     .orderBy(desc(portalNotices.version))
     .limit(1);
   return row?.version ?? 0;
@@ -262,8 +260,8 @@ export async function announcePortalPost(
 export const portalNotifyPostKey = (postId: string, version: number) => `portal.notify:${postId}:v${version}`;
 
 /** The window of an hour `at` belongs to: the notice one client's sends inside it become. */
-export const portalNoticeWindow = (at: Date) => new Date(Math.floor(at.getTime() / PORTAL_NOTICE_GROUP_MS) * PORTAL_NOTICE_GROUP_MS);
+export const portalNoticeWindow = (at: Date) =>
+  new Date(Math.floor(at.getTime() / PORTAL_NOTICE_GROUP_MS) * PORTAL_NOTICE_GROUP_MS);
 
 /** Where a client's notice for a window begins: the `at` of the window, for a test that reads the rows back. */
-export const portalNoticeWindowKey = (client: string, at: Date) =>
-  `${client}:${portalNoticeWindow(at).toISOString()}`;
+export const portalNoticeWindowKey = (client: string, at: Date) => `${client}:${portalNoticeWindow(at).toISOString()}`;

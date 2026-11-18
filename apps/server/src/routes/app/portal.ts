@@ -1244,7 +1244,12 @@ export function portalRoutes(deps: AppDeps) {
   const auditClient = async (
     orgId: string,
     userId: string,
-    action: "portal.client_created" | "portal.client_updated" | "portal.client_removed" | "portal.link_made" | "portal.link_revoked",
+    action:
+      | "portal.client_created"
+      | "portal.client_updated"
+      | "portal.client_removed"
+      | "portal.link_made"
+      | "portal.link_revoked",
     client: string,
     details: Record<string, unknown> = {},
   ) =>
@@ -1271,7 +1276,9 @@ export function portalRoutes(deps: AppDeps) {
           z.object({
             clients: z.array(PortalClient.omit({ link: true })),
             /** The clients' links, shown only to who may manage the portal (`assign_work`), by the client's id. */
-            links: z.record(z.string(), z.string()).openapi({ description: "Each client's live address; a client the caller can't manage is absent." }),
+            links: z
+              .record(z.string(), z.string())
+              .openapi({ description: "Each client's live address; a client the caller can't manage is absent." }),
           }),
         ),
         ...errors,
@@ -1289,10 +1296,7 @@ export function portalRoutes(deps: AppDeps) {
       const mayManage = can(membership, "assign_work");
       const links: Record<string, string> = {};
       for (const client of clients) if (mayManage && client.link) links[client.client] = client.link;
-      return c.json(
-        { clients: clients.map(({ link: _link, ...row }) => row), links },
-        200,
-      );
+      return c.json({ clients: clients.map(({ link: _link, ...row }) => row), links }, 200);
     },
   );
 

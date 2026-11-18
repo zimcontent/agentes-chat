@@ -525,8 +525,7 @@ export const en = {
       " is waiting for your OK. Open your page to watch it, read the caption, and approve it or ask for a change.",
     ],
     post: "Waiting for you",
-    version: (title: string, version: number) =>
-      version > 1 ? `${title} (new version, V${version})` : title,
+    version: (title: string, version: number) => (version > 1 ? `${title} (new version, V${version})` : title),
     button: "See and approve",
     why: (client: string) => `You got this email because ${client} asked for your approval on a post.`,
   },

@@ -18,11 +18,11 @@ import type {
   PortalClientColor,
   PortalClientSummary,
   PortalColumn,
-  PortalNoticeNumber,
   PortalItem,
   PortalJob,
   PortalLabel,
   PortalList,
+  PortalNoticeNumber,
   PortalState,
   PortalStatus,
   PortalTaskRef,
@@ -516,7 +516,7 @@ export function createFakePortal(
         log("portal.schedule", orgId, client, itemId, scheduledFor);
         guard();
         const item = fake.items.find((i) => i.client === client && i.id === itemId);
-        if (!item || item.status !== "approved") {
+        if (item?.status !== "approved") {
           throw new ApiError(400, "portal.refused", "Only an approved post can be scheduled");
         }
         if (item.released) throw new ApiError(400, "portal.refused", "This post was already released");
