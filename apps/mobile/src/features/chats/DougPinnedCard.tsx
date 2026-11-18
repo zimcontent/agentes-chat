@@ -1,7 +1,7 @@
 import { LinearGradient } from "expo-linear-gradient";
 import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
-import { Pressable, StyleSheet, View } from "react-native";
+import { Pressable, StyleSheet, useWindowDimensions, View } from "react-native";
 import { Button, Text, useTheme } from "@/ui";
 import { chosenBorder, chosenWash, PANEL_RADIUS } from "@/ui/surfaces";
 
@@ -13,6 +13,7 @@ const WORDS = {
     nothingWaiting: "Nada esperando você",
     waiting: (n: number) => (n === 1 ? "1 decisão esperando você" : `${n} decisões esperando você`),
     seeDecisions: "Ver as decisões",
+    decisions: "Decisões",
     talk: "Conversar",
     call: "Ligar",
     more: (n: number) => `+${n}`,
@@ -24,6 +25,7 @@ const WORDS = {
     nothingWaiting: "Nothing waiting on you",
     waiting: (n: number) => (n === 1 ? "1 decision waiting on you" : `${n} decisions waiting on you`),
     seeDecisions: "See the decisions",
+    decisions: "Decisions",
     talk: "Talk",
     call: "Call",
     more: (n: number) => `+${n}`,
@@ -89,6 +91,10 @@ export function DougPinnedCard({
   onStatus?: (() => void) | undefined;
 }) {
   const { colors, scheme } = useTheme();
+  // Under 390 points (13 mini, SE, 12 and 13 at 375) or with larger text, "Ver as decisões" is "Decisões": the three
+  // buttons keep one row instead of the last one dropping under the others.
+  const { width, fontScale } = useWindowDimensions();
+  const short = width < 390 || fontScale > 1.1;
   const crew = (list: readonly CrewFace[]) => list.map((c) => <View key={c.id}>{c.face}</View>);
   const doing = working > 0 ? words.coordinating(working) : words.ready;
   return (
@@ -139,7 +145,13 @@ export function DougPinnedCard({
         <View style={styles.main}>
           <Button variant="primary" size="sm" label={words.talk} onPress={onTalk} wide />
         </View>
-        <Button variant="secondary" size="sm" label={words.seeDecisions} onPress={onDecisions} />
+        <Button
+          variant="secondary"
+          size="sm"
+          label={short ? words.decisions : words.seeDecisions}
+          hint={words.seeDecisions}
+          onPress={onDecisions}
+        />
       </View>
     </View>
   );
