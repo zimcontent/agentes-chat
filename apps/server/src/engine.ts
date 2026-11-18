@@ -85,6 +85,7 @@ import {
   createSkillToolSource,
   createSpeechSettings,
   createStreamBroker,
+  createSupportToolSource,
   createTalker,
   createTeamStatusToolSource,
   createToolGateway,
@@ -478,6 +479,14 @@ export function buildEngine(o: EngineOptions) {
       // feedback (ADR 0160 §11, §12).
       createFeedbackToolSource({
         to: feedbackDestination(config),
+        version,
+        rateLimiter: adapters.rateLimiter,
+      }),
+      // A summary to whoever runs this installation, in a person's name: only where it has a support address.
+      createSupportToolSource({
+        to: config.SUPPORT_EMAIL ?? null,
+        clientCode: config.DOUG_CLIENT_CODE ?? null,
+        publicUrl: config.PUBLIC_URL,
         version,
         rateLimiter: adapters.rateLimiter,
       }),

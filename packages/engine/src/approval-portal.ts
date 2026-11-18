@@ -452,7 +452,7 @@ function cardTool(portal: ApprovalPortal): ToolDefinition {
   return {
     name: PORTAL_CARD_TOOL,
     description:
-      "Create, change or delete a card of the approval portal's board: a post the team still has to make (`todo`) or is making (`doing`). A card isn't at the portal yet: `send_for_approval` sends it. `action` `create` needs `client` and `title`; `update` and `delete` need `card`.",
+      "Create, change or delete a card of the approval portal's board: a post the team still has to make (`todo`) or is making (`doing`). A card isn't at the portal yet: `send_for_approval` sends it. `action` `create` needs `client` and `title`; `update` and `delete` need `card`. To move a card, `update` it with another `list` (it goes last there) and or a `position` in its list (1 is first); `state` moves it between to do and in production.",
     scope: "",
     inputSchema: {
       type: "object",
@@ -469,6 +469,13 @@ function cardTool(portal: ApprovalPortal): ToolDefinition {
         note: { type: "string", maxLength: 2000 },
         description: { type: "string", maxLength: 20000, description: "The brief: idea, script, references." },
         list: { type: "string", maxLength: 80, description: "The schedule's list by name (a week); made if new." },
+        position: {
+          type: "integer",
+          minimum: 1,
+          maximum: 1000,
+          description:
+            "Its place in its list, 1 first (in `list` when given). With none, a card moved to a list goes last.",
+        },
         produce_on: {
           type: "string",
           maxLength: 10,
@@ -513,14 +520,19 @@ function cardTool(portal: ApprovalPortal): ToolDefinition {
         if (fields.produceOn && !/^\d{4}-\d{2}-\d{2}$/.test(fields.produceOn)) {
           throw new ValidationError("`produce_on` is YYYY-MM-DD");
         }
+        const listName = str(input.list).trim();
+        const position = typeof input.position === "number" ? input.position : undefined;
         const listed = async (client: string) =>
-          str(input.list).trim() ? { list: (await portal.createList(client, str(input.list).trim())).id } : {};
+          listName ? (await portal.createList(client, listName)).id : undefined;
         if (input.action === "create") {
           const title = str(input.title).trim();
           if (!str(input.client) || !title) throw new ValidationError("create needs `client` and `title`");
+          const client = str(input.client);
+          const list = await listed(client);
+          const order = position === undefined ? undefined : await orderIn(portal, client, list ?? null, "", position);
           const card = await portal.createCard(
-            str(input.client),
-            { ...fields, ...(await listed(str(input.client))), title },
+            client,
+            { ...fields, ...(list ? { list } : {}), ...(order === undefined ? {} : { order }), title },
             by,
           );
           return { content: `Created card ${card.id} for ${card.client}: "${card.title}" (${card.state}).` };
@@ -530,21 +542,47 @@ function cardTool(portal: ApprovalPortal): ToolDefinition {
           await portal.deleteCard(str(input.card), by);
           return { content: `Deleted card ${str(input.card)}.` };
         }
-        const current = str(input.list).trim()
-          ? (await portal.cards()).find((c) => c.id === str(input.card))
-          : undefined;
-        if (str(input.list).trim() && !current) throw new ValidationError("no such card");
-        const card = await portal.updateCard(
-          str(input.card),
-          { ...fields, ...(current ? await listed(current.client) : {}) },
-          by,
-        );
+        // A move: another list (made if new) and or a place in the list. Its order is set between its new
+        // neighbours, as the apps' drag sets it.
+        const moving = Boolean(listName) || position !== undefined;
+        const current = moving ? (await portal.cards()).find((c) => c.id === str(input.card)) : undefined;
+        if (moving && !current) throw new ValidationError("no such card");
+        let place = {};
+        if (current) {
+          const list = (await listed(current.client)) ?? current.list;
+          place =
+            list !== current.list || position !== undefined
+              ? { list, order: await orderIn(portal, current.client, list, current.id, position) }
+              : {};
+        }
+        const card = await portal.updateCard(str(input.card), { ...fields, ...place }, by);
         return { content: `Card ${card.id} is now "${card.title}" (${card.state}).` };
       } catch (error) {
         return failed(error);
       }
     },
   };
+}
+
+/**
+ * The order that puts a card at `position` (1 first) among the other cards of `list` (null: no list), or last with
+ * none: halfway between its new neighbours, one past the end, one before the first.
+ */
+async function orderIn(
+  portal: ApprovalPortal,
+  client: string,
+  list: string | null,
+  cardId: string,
+  position: number | undefined,
+): Promise<number> {
+  const others = (await portal.cards())
+    .filter((c) => c.client === client && c.list === list && c.id !== cardId)
+    .sort((a, b) => a.order - b.order);
+  const at = position === undefined ? others.length : Math.max(0, Math.min(position - 1, others.length));
+  const before = others[at - 1]?.order;
+  const after = others[at]?.order;
+  if (before === undefined) return after === undefined ? 1 : after - 1;
+  return after === undefined ? before + 1 : (before + after) / 2;
 }
 
 function sendTool(deps: PortalToolDeps, portal: ApprovalPortal): ToolDefinition {
@@ -878,8 +916,8 @@ async function settled(portal: ApprovalPortal, job: PortalJob, waitMs = 20_000):
 }
 
 /**
- * The portal's tools for a run: listed only on a server with an approval portal. A routine gets the two that read;
- * the ones that change or send need a person behind the run.
+ * The portal's tools for a run: listed only on a server with an approval portal. A routine gets the two that read,
+ * its plan and card changes go to the run-policy table, and the sends need a person behind the run.
  */
 export function createPortalToolSource(deps: PortalToolDeps): ToolSource {
   return {
@@ -889,9 +927,11 @@ export function createPortalToolSource(deps: PortalToolDeps): ToolSource {
       if (!portal || !ctx.runId) return [];
       // Another workspace on this server is another operation: the portal's clients aren't its (ADR 9001 §18).
       if (!(await (deps.here ?? ((c) => portalHere(c.db as Database, c.orgId)))(ctx))) return [];
-      // A routine reads (it tells each person their day) and changes nothing here.
+      // A routine reads (it tells each person their day). Its plan and card changes are listed for the run-policy
+      // table to judge: refused to routines, but the right hand's own at "never" reach them (ADR 9005 §7). The
+      // sends to a client stay with runs a person is behind.
       const reads = [boardTool(portal), workTool(portal)];
-      if (ctx.background) return reads;
+      if (ctx.background) return [...reads, cardTool(portal), planTool(portal)];
       return [
         ...reads,
         cardTool(portal),

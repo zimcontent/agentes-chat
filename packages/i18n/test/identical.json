@@ -1,6 +1,7 @@
 {
   "app": {
     "pt-BR": [
+      "settings.support.whatsapp",
       "mediaGen.secondsValue",
       "usageViews.logins",
       "chat.wait.said",
@@ -339,6 +340,7 @@
       "onboarding.import.agenteschatName"
     ],
     "es": [
+      "settings.support.whatsapp",
       "mediaGen.audioKind",
       "mediaGen.nVideos",
       "mediaGen.nAudios",
@@ -634,6 +636,8 @@
       "contextMenu.lookOurs"
     ],
     "fr": [
+      "settings.section.support",
+      "settings.support.whatsapp",
       "mediaGen.audioKind",
       "mediaGen.nImages",
       "mediaGen.nAudios",
@@ -1113,6 +1117,8 @@
       "contextMenu.lookOurs"
     ],
     "de": [
+      "settings.section.support",
+      "settings.support.whatsapp",
       "mediaGen.audioKind",
       "mediaGen.video",
       "devices.iphone.steps.account",
@@ -1618,6 +1624,9 @@
       "contextMenu.lookOurs"
     ],
     "it": [
+      "settings.section.support",
+      "settings.support.email",
+      "settings.support.whatsapp",
       "mediaGen.audioKind",
       "mediaGen.input",
       "mediaGen.nVideos",
@@ -2036,6 +2045,8 @@
       "contextMenu.lookOurs"
     ],
     "nl": [
+      "settings.section.support",
+      "settings.support.whatsapp",
       "mediaGen.audioKind",
       "mediaGen.nVideos",
       "mediaGen.nAudios",
@@ -2690,6 +2701,7 @@
       "agentFront.ai"
     ],
     "ja": [
+      "settings.support.whatsapp",
       "channel.tooLong.fileName",
       "devices.system.android",
       "devices.system.ios",
@@ -2896,6 +2908,7 @@
       "agentFront.ai"
     ],
     "ko": [
+      "settings.support.whatsapp",
       "channel.tooLong.fileName",
       "devices.system.android",
       "devices.system.ios",
@@ -3096,6 +3109,7 @@
       "agentFront.ai"
     ],
     "zh-Hans": [
+      "settings.support.whatsapp",
       "channel.tooLong.fileName",
       "devices.system.android",
       "devices.system.ios",
@@ -3287,6 +3301,8 @@
       "agentFront.ai"
     ],
     "id": [
+      "settings.support.email",
+      "settings.support.whatsapp",
       "agentFront.ai",
       "mediaGen.audioKind",
       "mediaGen.input",
@@ -3639,6 +3655,7 @@
       "contextMenu.lookOurs"
     ],
     "tr": [
+      "settings.support.whatsapp",
       "mediaGen.nVideos",
       "mediaGen.video",
       "mediaGen.model",
@@ -3867,6 +3884,7 @@
       "contextMenu.lookOurs"
     ],
     "pl": [
+      "settings.support.whatsapp",
       "mediaGen.audioKind",
       "mediaGen.title",
       "mediaGen.model",
@@ -4208,6 +4226,7 @@
       "agentFront.ai"
     ],
     "ru": [
+      "settings.support.whatsapp",
       "channel.tooLong.fileName",
       "devices.system.android",
       "devices.system.ios",
@@ -4567,7 +4586,8 @@
       "photo.section",
       "chat.messagePlain",
       "drive.filter.type",
-      "vault.sheet.note"
+      "vault.sheet.note",
+      "homeTools.mission"
     ],
     "de": [
       "devices.status.offline",
@@ -4646,7 +4666,9 @@
       "threads.title",
       "roles.icons.person",
       "drive.order.short.name",
-      "vault.sheet.details"
+      "vault.sheet.details",
+      "homeTools.mission",
+      "homeTools.computer"
     ],
     "it": [
       "devices.status.offline",
@@ -4701,7 +4723,8 @@
       "find.filterWord.in",
       "connectors.accountTitle",
       "roles.icons.mail",
-      "vault.sheet.password"
+      "vault.sheet.password",
+      "homeTools.computer"
     ],
     "nl": [
       "devices.status.offline",
@@ -4789,7 +4812,8 @@
       "vault.home.items",
       "vault.sheet.site",
       "vault.sheet.details",
-      "agentLite.ai"
+      "agentLite.ai",
+      "homeTools.computer"
     ],
     "ja": [
       "devices.os.android",

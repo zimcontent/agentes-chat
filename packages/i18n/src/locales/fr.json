@@ -1878,6 +1878,7 @@
     "updated": "Dernière mise à jour le {{date}}",
     "contents": "Sur cette page",
     "home": "Aller à l'accueil",
+    "draft": "Brouillon, sous réserve d’un examen juridique. Ce qui est entre [crochets] n’a pas encore été renseigné.",
     "none": {
       "terms": "Ce serveur n'a pas de page de conditions",
       "privacy": "Ce serveur n'a pas de page de confidentialité"
@@ -14842,7 +14843,8 @@
       "vault_make_password": "Générer un mot de passe",
       "get_my_usage": "Voir mon utilisation",
       "send_feedback": "Envoyer un retour",
-      "offer_feedback": "Proposer de signaler un problème"
+      "offer_feedback": "Proposer de signaler un problème",
+      "contact_support": "Demander de l’aide au support"
     }
   },
   "toolReview": {
@@ -17508,6 +17510,7 @@
       "apps": "Applications d'IA",
       "approvals": "Approbations",
       "portal": "Clients du portail",
+      "support": "Support",
       "about": "À propos d’DougBot",
       "generalPersonal": "À propos de vous",
       "keysPersonal": "IA et applications",
@@ -17540,12 +17543,31 @@
       "apps": "Confiez des tâches aux agents depuis Claude, Cursor et d'autres apps.",
       "approvals": "Qui décide pour vous quand un agent demande votre approbation.",
       "portal": "Les clients qui approuvent vos publications, et le lien que chacun ouvre.",
+      "support": "Qui gère cette installation, et comment les joindre.",
       "about": "Qui le fait, sa licence et où trouver son code source.",
       "generalPersonal": "Ce que vos agents savent de vous, et comment fonctionne cet espace de travail.",
       "usagePersonal": "Combien d'IA vos agents utilisent, et votre abonnement.",
       "connectorsPersonal": "Vos applications et serveurs MCP, connectés une fois pour vos agents.",
       "membersPersonal": "Qui est ici avec vous.",
       "rolesPersonal": "Ce que chaque personne ici peut faire. Les propriétaires peuvent tout faire."
+    },
+    "support": {
+      "title": "Contacter le support",
+      "lead": "Les personnes qui gèrent cette installation, pour quand quelque chose dans le système ne marche pas.",
+      "email": "E-mail",
+      "whatsapp": "WhatsApp",
+      "client": "Cette installation",
+      "askTitle": "Demande de l'aide à {{name}}",
+      "askLead": "{{name}} écrit ce qui s'est passé et l'envoie au support en ton nom. Tu lis le message avant qu'il parte.",
+      "askStatus": "Ouvre la conversation avec les détails déjà saisis.",
+      "ask": "Demande de l'aide à {{name}}",
+      "draft": "{{name}}, j’ai besoin d’aide avec le système :",
+      "draftWith": "{{name}}, j’ai besoin d’aide avec le système ({{facts}}) :",
+      "draftVersion": "version du serveur {{version}}",
+      "draftClient": "installation n° {{code}}",
+      "draftPage": "sur la page {{page}}",
+      "draftAsk": "Envoie ça au support avec contact_support, en mon nom.",
+      "askNoEmail": "{{name}} ouvre la conversation avec les détails déjà dans le champ. Écris ce qui s’est passé et envoie."
     },
     "about": {
       "basedOn": "Basé sur <site>DougBot</site> de Codari Global, LLC · AGPL-3.0",
@@ -17557,6 +17579,7 @@
     "title": "Paramètres",
     "account": {
       "plans": "Limites de vos abonnements",
+      "legal": "Conditions et confidentialité",
       "device": "Sur cet appareil",
       "activity": "Montrer ce que les agents ont fait sous chaque réponse",
       "activityHelp": "Les outils utilisés et le temps que cela a pris. Pendant qu'ils travaillent, vous voyez toujours ce qu'ils font.",
@@ -18498,6 +18521,7 @@
         "settingCommitLine": "A ajusté la ligne des agents dans les commits",
         "sendingFeedback": "A demandé à envoyer un retour",
         "offeringFeedback": "A proposé de signaler un problème",
+        "askingSupport": "A demandé de l’aide au support",
         "deletingRoutine": "A supprimé une routine",
         "runningRoutine": "A lancé une routine maintenant",
         "proposingTeam": "A proposé une équipe",
@@ -18621,6 +18645,7 @@
       "settingCommitLine": "réglage de la ligne des agents dans les commits",
       "sendingFeedback": "prépare un retour",
       "offeringFeedback": "prépare un rapport",
+      "askingSupport": "demande de l’aide au support",
       "deletingRoutine": "suppression d'une routine",
       "runningRoutine": "lancement d'une routine maintenant",
       "proposingTeam": "proposition d'une équipe",

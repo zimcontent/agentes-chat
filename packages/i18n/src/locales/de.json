@@ -1826,6 +1826,7 @@
     "updated": "Zuletzt aktualisiert am {{date}}",
     "contents": "Auf dieser Seite",
     "home": "Zur Startseite",
+    "draft": "Entwurf, vorbehaltlich der rechtlichen Prüfung. Was in [Klammern] steht, ist noch nicht ausgefüllt.",
     "none": {
       "terms": "Dieser Server hat keine Seite mit Nutzungsbedingungen",
       "privacy": "Dieser Server hat keine Datenschutzseite"
@@ -14354,7 +14355,8 @@
       "vault_make_password": "Passwort erstellen",
       "get_my_usage": "Meine Nutzung anzeigen",
       "send_feedback": "Feedback senden",
-      "offer_feedback": "Problemmeldung anbieten"
+      "offer_feedback": "Problemmeldung anbieten",
+      "contact_support": "Support um Hilfe bitten"
     }
   },
   "toolReview": {
@@ -16969,6 +16971,7 @@
       "apps": "KI-Apps",
       "approvals": "Freigaben",
       "portal": "Portal-Kunden",
+      "support": "Support",
       "about": "Über DougBot",
       "generalPersonal": "Über dich",
       "keysPersonal": "KI und Apps",
@@ -17001,12 +17004,31 @@
       "apps": "Gib den Agenten Aufgaben aus Claude, Cursor und anderen Apps.",
       "approvals": "Wer für dich entscheidet, wenn ein Agent deine Freigabe braucht.",
       "portal": "Die Kunden, die deine Beiträge freigeben, und der Link, den jeder öffnet.",
+      "support": "Wer diese Installation betreibt und wie man sie erreicht.",
       "about": "Wer es macht, seine Lizenz und wo sein Quellcode liegt.",
       "generalPersonal": "Was deine Agenten über dich wissen und wie dieser Workspace funktioniert.",
       "usagePersonal": "Wie viel KI deine Agenten nutzen, und dein Tarif.",
       "connectorsPersonal": "Deine Apps und MCP-Server, einmal für deine Agenten verbunden.",
       "membersPersonal": "Wer mit dir hier ist.",
       "rolesPersonal": "Was jede Person hier tun kann. Inhaber können alles."
+    },
+    "support": {
+      "title": "Support erreichen",
+      "lead": "Die Menschen, die diese Installation betreiben, für den Fall, dass etwas im System nicht funktioniert.",
+      "email": "E-Mail",
+      "whatsapp": "WhatsApp",
+      "client": "Diese Installation",
+      "askTitle": "Bitte {{name}} um Hilfe",
+      "askLead": "{{name}} schreibt auf, was passiert ist, und schickt es in deinem Namen an den Support. Du liest die Nachricht, bevor sie rausgeht.",
+      "askStatus": "Öffnet das Gespräch mit den Angaben schon im Feld.",
+      "ask": "Bitte {{name}} um Hilfe",
+      "draft": "{{name}}, ich brauche Hilfe mit dem System:",
+      "draftWith": "{{name}}, ich brauche Hilfe mit dem System ({{facts}}):",
+      "draftVersion": "Serverversion {{version}}",
+      "draftClient": "Installation {{code}}",
+      "draftPage": "auf der Seite {{page}}",
+      "draftAsk": "Schick das mit contact_support an den Support, in meinem Namen.",
+      "askNoEmail": "{{name}} öffnet das Gespräch mit den Angaben schon im Feld. Schreib auf, was passiert ist, und sende es."
     },
     "about": {
       "basedOn": "Basiert auf <site>DougBot</site> von Codari Global, LLC · AGPL-3.0",
@@ -17018,6 +17040,7 @@
     "title": "Einstellungen",
     "account": {
       "plans": "Limits deiner Abos",
+      "legal": "Bedingungen und Datenschutz",
       "device": "Auf diesem Gerät",
       "activity": "Unter jeder Antwort zeigen, was Agenten getan haben",
       "activityHelp": "Die Tools, die sie genutzt haben, und wie lange es gedauert hat. Während sie arbeiten, siehst du weiterhin, was sie tun.",
@@ -17928,6 +17951,7 @@
         "settingCommitLine": "Die Zeile der Agenten in Commits angepasst",
         "sendingFeedback": "Um das Senden von Feedback gebeten",
         "offeringFeedback": "Angeboten, ein Problem zu melden",
+        "askingSupport": "Hat den Support um Hilfe gebeten",
         "deletingRoutine": "Eine Routine gelöscht",
         "runningRoutine": "Eine Routine jetzt ausgeführt",
         "proposingTeam": "Ein Team vorgeschlagen",
@@ -18051,6 +18075,7 @@
       "settingCommitLine": "Anpassen der Zeile der Agenten in Commits",
       "sendingFeedback": "Feedback vorbereiten",
       "offeringFeedback": "Bericht vorbereiten",
+      "askingSupport": "bittet den Support um Hilfe",
       "deletingRoutine": "Löschen einer Routine",
       "runningRoutine": "Ausführen einer Routine",
       "proposingTeam": "Vorschlagen eines Teams",

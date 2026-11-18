@@ -250,6 +250,10 @@ export const portalClientSettings = pgTable(
       .references(() => organizations.id, { onDelete: "cascade" }),
     client: text().notNull(),
     afterApprove: text().notNull().default("portal"),
+    /** The name the team shows for the client, when the portal's slug isn't it (ADR 9001, addendum 2026-11-18). */
+    displayName: text(),
+    /** When the team hid the client from every list (ADR 9001, addendum 2026-11-18); null: shown. */
+    hiddenAt: timestamp({ withTimezone: true }),
     updatedBy: text().references(() => users.id, { onDelete: "set null" }),
     updatedAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
   },

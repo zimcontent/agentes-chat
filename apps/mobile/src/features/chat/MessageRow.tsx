@@ -459,7 +459,8 @@ function RowBody({
       : roleColor
         ? nameInk(roleColor as AgentColorName, scheme === "dark")
         : undefined;
-  const solidInk = bubbled && look.tone === "strong" ? ON_SOLID : undefined;
+  // The words on my bubble: the green's own ink on Tom forte (`ownBubble`), the theme's otherwise.
+  const solidInk = look.ink ?? undefined;
   const quote = replyOf(meta);
   const myHandle = useMyHandle();
   const mentionsMe = !mine && mentionsReader({ body, meta }, myHandle);
@@ -549,13 +550,13 @@ function RowBody({
           bubbled ? lookRows.bubble : styles.bubble,
           styles.bubbleEnd,
           BUBBLE_RUN[run],
-          { backgroundColor: (bubbled && look.fill) || c.bubble },
-          bubbled && look.fill ? null : { boxShadow: c.bubbleRim },
+          // My bubble in every style: the brand's lime (`ownBubble`), its rim a border.
+          { backgroundColor: look.fill ?? c.bubble, borderColor: look.edge ?? c.bubbleEdge },
         ]}
       >
         {quote ? <QuotePlate reply={quote} onJump={onQuote} {...(solidInk ? { ink: solidInk } : {})} /> : null}
         <View style={bubbled ? styles.bubbleLine : undefined}>
-          <ClippedMessage id={m.id} behind={[(bubbled && look.fill) || c.bubble]} ink={solidInk}>
+          <ClippedMessage id={m.id} behind={[look.fill ?? c.bubble]} ink={solidInk}>
             <MessageText
               body={body}
               muted={m.local === "pending"}
@@ -854,7 +855,7 @@ function RowBody({
                               OTHER_RUN[run],
                               {
                                 backgroundColor: mentionsMe ? `${c.amber}21` : c.bubbleTheirs,
-                                boxShadow: c.bubbleTheirsRim,
+                                borderColor: mentionsMe ? `${c.amber}40` : c.bubbleTheirsEdge,
                               },
                             ]
                       }
@@ -1391,9 +1392,6 @@ const OTHER_RUN: Record<RunPosition, { borderTopLeftRadius?: number; borderBotto
   end: { borderTopLeftRadius: BUBBLE_JOIN },
 };
 
-/** Words and time on my solid bubble. */
-const ON_SOLID = "#ffffff";
-
 const styles = StyleSheet.create({
   // Readable turns: more room between turns, a quieter name and time.
   msg: {
@@ -1436,9 +1434,11 @@ const styles = StyleSheet.create({
   meEnd: { alignSelf: "flex-end" },
   bubble: {
     maxWidth: "100%",
-    paddingVertical: 10,
-    paddingHorizontal: 14,
+    paddingVertical: 9,
+    paddingHorizontal: 13,
     borderRadius: 20,
+    borderWidth: 1,
+    borderCurve: "continuous",
   },
   meFiles: { alignSelf: "stretch" },
   meStatus: { textAlign: "right" },

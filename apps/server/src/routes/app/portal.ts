@@ -23,6 +23,7 @@ import {
   portalBelongsTo,
   portalBoard,
   portalClientLogoFile,
+  portalClientNaming,
   portalClientSettingsOf,
   portalHere,
   portalLogoPath,
@@ -40,7 +41,9 @@ import {
   revokeClientLink,
   sendForApproval,
   setAfterApprove,
+  setPortalClientHidden,
   setPortalClientLogo,
+  setPortalClientName,
   setPortalNoticeNumber,
   startPortalAgent,
   syncPortalTasks,
@@ -324,8 +327,15 @@ export function portalRoutes(deps: AppDeps) {
                 next: z.string().nullable(),
                 color: z.enum(PORTAL_CLIENT_COLORS).nullable(),
                 logo: z.string().nullable().openapi({ description: "Where the client's logo is read; null: none." }),
+                name: z
+                  .string()
+                  .nullable()
+                  .openapi({ description: "The name the team gave the client; null: the one its id reads as." }),
               }),
             ),
+            hidden: z
+              .array(z.object({ client: z.string(), name: z.string().nullable() }))
+              .openapi({ description: "Clients the team hid: out of `clients` and every list, until shown again." }),
             state: State,
           }),
         ),
@@ -340,17 +350,21 @@ export function portalRoutes(deps: AppDeps) {
       const portal = adapters.approvalPortal;
       if (!portal) return portalOff(c);
       try {
-        return await (async () =>
-          c.json(
-            {
-              clients: (await portalOverview(portal)).map((summary) => ({
+        const [summaries, naming] = await Promise.all([portalOverview(portal), portalClientNaming(db, orgId)]);
+        return c.json(
+          {
+            clients: summaries
+              .filter((summary) => !naming.hidden.has(summary.client))
+              .map((summary) => ({
                 ...summary,
                 logo: summary.logo ? portalLogoPath(orgId, summary.client, summary.logo) : null,
+                name: naming.names.get(summary.client) ?? null,
               })),
-              state: await portal.state(),
-            },
-            200,
-          ))();
+            hidden: [...naming.hidden].sort().map((client) => ({ client, name: naming.names.get(client) ?? null })),
+            state: await portal.state(),
+          },
+          200,
+        );
       } catch (error) {
         return refused(c, error);
       }
@@ -754,7 +768,9 @@ export function portalRoutes(deps: AppDeps) {
       const { orgId } = c.req.valid("param");
       await requirePermission(db, c.get("user").id, orgId, "read");
       const out = await guarded(c, (portal) => portalPipeline(portal));
-      return out.ok ? c.json(out.value, 200) : out.response;
+      if (!out.ok) return out.response;
+      const { hidden } = await portalClientNaming(db, orgId);
+      return c.json({ ...out.value, entries: out.value.entries.filter((e) => !hidden.has(e.client)) }, 200);
     },
   );
 
@@ -774,7 +790,9 @@ export function portalRoutes(deps: AppDeps) {
       const { orgId } = c.req.valid("param");
       await requirePermission(db, c.get("user").id, orgId, "read");
       const out = await guarded(c, async (portal) => ({ items: await portalToSchedule(portal) }));
-      return out.ok ? c.json(out.value, 200) : out.response;
+      if (!out.ok) return out.response;
+      const { hidden } = await portalClientNaming(db, orgId);
+      return c.json({ items: out.value.items.filter((item) => !hidden.has(item.client)) }, 200);
     },
   );
 
@@ -843,8 +861,16 @@ export function portalRoutes(deps: AppDeps) {
       const out = await guarded(c, (portal) => myPortalWork(portal, user.id));
       if (!out.ok) return out.response;
       const work = out.value;
+      const { hidden } = await portalClientNaming(db, orgId);
+      const shown = <T extends { client: string }>(cards: T[]) => cards.filter((card) => !hidden.has(card.client));
       return c.json(
-        { day: work.today, late: work.late, today: work.today_, next: work.next, undated: work.undated },
+        {
+          day: work.today,
+          late: shown(work.late),
+          today: shown(work.today_),
+          next: shown(work.next),
+          undated: shown(work.undated),
+        },
         200,
       );
     },
@@ -1077,6 +1103,65 @@ export function portalRoutes(deps: AppDeps) {
     },
   );
 
+  /** A change to how a client is known (its colour, its logo), in the audit log like its name and hiding. */
+  const auditLook = (orgId: string, userId: string, client: string, action: string, details: Record<string, unknown>) =>
+    recordAudit(db, {
+      orgId,
+      actor: { type: "person", id: userId },
+      action,
+      target: { type: "portal_client", id: client },
+      details: { client, ...details },
+    });
+
+  // The portal has no rename or delete for a client: the team's name and hiding are kept here (ADR 9001, addendum
+  // 2026-11-18), and change nothing at the portal.
+  app.openapi(
+    createRoute({
+      method: "put",
+      path: "/organizations/{orgId}/portal/clients/{client}/name",
+      tags,
+      security,
+      summary: "Give a client the name the team shows, or back to the one its id reads as with null (assign_work)",
+      request: {
+        params: OrgParams.extend({ client: ClientId }),
+        body: body(z.object({ name: z.string().max(200).nullable() })),
+      },
+      responses: { 200: json(z.object({ name: z.string().nullable() })), ...errors, 404: off },
+    }),
+    async (c) => {
+      const { orgId, client } = c.req.valid("param");
+      const user = c.get("user");
+      await requireChangePermission(db, user.id, orgId, "assign_work");
+      if (!adapters.approvalPortal) return portalOff(c);
+      const name = await setPortalClientName(db, orgId, client, c.req.valid("json").name, user.id);
+      return c.json({ name }, 200);
+    },
+  );
+
+  app.openapi(
+    createRoute({
+      method: "put",
+      path: "/organizations/{orgId}/portal/clients/{client}/hidden",
+      tags,
+      security,
+      summary: "Hide a client from every list and count, or show it again (assign_work)",
+      description: "Nothing changes at the portal: its posts and cards stay there, and showing it brings them back.",
+      request: {
+        params: OrgParams.extend({ client: ClientId }),
+        body: body(z.object({ hidden: z.boolean() })),
+      },
+      responses: { ...noContent, ...errors, 404: off },
+    }),
+    async (c) => {
+      const { orgId, client } = c.req.valid("param");
+      const user = c.get("user");
+      await requireChangePermission(db, user.id, orgId, "assign_work");
+      if (!adapters.approvalPortal) return portalOff(c);
+      await setPortalClientHidden(db, orgId, client, c.req.valid("json").hidden, user.id);
+      return c.body(null, 204);
+    },
+  );
+
   app.openapi(
     createRoute({
       method: "put",
@@ -1092,9 +1177,13 @@ export function portalRoutes(deps: AppDeps) {
     }),
     async (c) => {
       const { orgId, client } = c.req.valid("param");
-      await requireChangePermission(db, c.get("user").id, orgId, "assign_work");
-      const out = await guarded(c, (portal) => portal.setClientColor(client, c.req.valid("json").color));
-      return out.ok ? c.body(null, 204) : out.response;
+      const user = c.get("user");
+      await requireChangePermission(db, user.id, orgId, "assign_work");
+      const { color } = c.req.valid("json");
+      const out = await guarded(c, (portal) => portal.setClientColor(client, color));
+      if (!out.ok) return out.response;
+      await auditLook(orgId, user.id, client, "portal.client_color_set", { color });
+      return c.body(null, 204);
     },
   );
 
@@ -1134,7 +1223,9 @@ export function portalRoutes(deps: AppDeps) {
       const out = await guarded(c, (portal) =>
         setPortalClientLogo({ blobs: adapters.platformBlobs, portal }, orgId, client, c.req.valid("json")),
       );
-      return out.ok ? c.json(out.value, 200) : out.response;
+      if (!out.ok) return out.response;
+      await auditLook(orgId, c.get("user").id, client, "portal.client_logo_set", {});
+      return c.json(out.value, 200);
     },
   );
 
@@ -1154,7 +1245,9 @@ export function portalRoutes(deps: AppDeps) {
       const out = await guarded(c, (portal) =>
         removePortalClientLogo({ blobs: adapters.platformBlobs, portal }, orgId, client),
       );
-      return out.ok ? c.body(null, 204) : out.response;
+      if (!out.ok) return out.response;
+      await auditLook(orgId, c.get("user").id, client, "portal.client_logo_removed", {});
+      return c.body(null, 204);
     },
   );
 

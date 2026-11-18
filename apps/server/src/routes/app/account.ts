@@ -191,6 +191,10 @@ const Me = z
         }),
     }),
     organizations: z.array(Organization),
+    clientCode: z.string().nullable().openapi({
+      description:
+        "This installation's client code (`DOUG_CLIENT_CODE`), shown in Support. Null: none. Never on the sign-in screen (`GET /auth-config`).",
+    }),
   })
   .openapi("Me");
 
@@ -260,6 +264,8 @@ export function accountRoutes(deps: AppDeps) {
             }
           : {}),
       },
+      // The installation's code, shown in Support: only a signed-in person reads it, never the sign-in screen.
+      clientCode: config.DOUG_CLIENT_CODE ?? null,
       organizations: memberships.map((m) => {
         const setup = onboardingOf(m.orgId);
         const deleting = deletions.get(m.orgId);
@@ -364,6 +370,20 @@ export function accountRoutes(deps: AppDeps) {
             supportEmail: z.string().nullable().openapi({
               description: "Where people write to whoever runs this server (SUPPORT_EMAIL): hold, suspension.",
             }),
+            support: z
+              .object({
+                email: z.string().nullable(),
+                whatsapp: z.string().nullable(),
+              })
+              .nullable()
+              .openapi({
+                description:
+                  "How people reach whoever runs this installation (`SUPPORT_EMAIL`, `SUPPORT_WHATSAPP`), shown in Support under the account; null: neither is set, and Support shows nothing.",
+              }),
+            clientCode: z.string().nullable().openapi({
+              description:
+                "Always null: a server from before this reached `GET /me` said it here, and a signed-in person reads it there now.",
+            }),
             feedback: z.boolean().openapi({
               description:
                 "The apps offer the feedback form (FEEDBACK_EMAIL is set, or FEEDBACK_RELAY is on): `POST /api/app/feedback`.",
@@ -427,6 +447,13 @@ export function accountRoutes(deps: AppDeps) {
       return c.json(
         {
           ...authUiConfig(config),
+          // Who runs the installation, for anyone: sign-in and the Support entry read it before a session exists.
+          support:
+            config.SUPPORT_EMAIL || config.SUPPORT_WHATSAPP
+              ? { email: config.SUPPORT_EMAIL ?? null, whatsapp: config.SUPPORT_WHATSAPP ?? null }
+              : null,
+          // The installation's code is for the people who use it, not for whoever opens the sign-in page.
+          clientCode: null,
           signupOpen: await signupOpen(db, config, users),
           firstRun: users === 0 && !ownerWaits,
           ownerClaim: users === 0 && Boolean(config.OWNER_CLAIM_SHA256),

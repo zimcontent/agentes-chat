@@ -19,6 +19,12 @@ export interface AppColors extends ThemeColors {
   /** A bubble's 1 px rim and lit top line: mine in the lime, theirs in white. */
   bubbleRim: string;
   bubbleTheirsRim: string;
+  /**
+   * The same rims as a plain 1 px border (`bubbleRim` is a box shadow): what the conversation's bubbles wear, since a
+   * box shadow on every row is an offscreen layer redrawn each frame on iOS.
+   */
+  bubbleEdge: string;
+  bubbleTheirsEdge: string;
   /** The only color for "waits on you" (requests, questions, what expires). */
   amber: string;
   /** Words in amber on an amber-tinted fill (a "Needs you" chip): darker in light, so they keep 4.5:1. */
@@ -107,6 +113,8 @@ function fromDoug(scheme: Scheme): AppColors {
     bubbleTheirsRim: dark
       ? "inset 0px 1px 0px rgba(255, 255, 255, 0.05), inset 0px 0px 0px 1px rgba(255, 255, 255, 0.047)"
       : "inset 0px 0px 0px 1px rgba(10, 10, 10, 0.06)",
+    bubbleEdge: dark ? "rgba(156, 250, 5, 0.22)" : "rgba(62, 107, 0, 0.2)",
+    bubbleTheirsEdge: dark ? "rgba(255, 255, 255, 0.06)" : "rgba(10, 10, 10, 0.07)",
     amber: t.atencao,
     amberInk: dark ? t.atencao : "#7A4700",
     chip: t.palco3,

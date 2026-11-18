@@ -1776,6 +1776,7 @@
     "updated": "最終更新日 {{date}}",
     "contents": "このページの内容",
     "home": "ホームページへ",
+    "draft": "ドラフトです。法務レビューを経る必要があります。[角かっこ]内の項目はまだ入力されていません。",
     "none": {
       "terms": "このサーバーには利用規約のページがありません",
       "privacy": "このサーバーにはプライバシーのページがありません"
@@ -13832,7 +13833,8 @@
       "vault_make_password": "パスワードを作成",
       "get_my_usage": "自分の使用量を表示",
       "send_feedback": "フィードバックを送信",
-      "offer_feedback": "問題の報告を提案"
+      "offer_feedback": "問題の報告を提案",
+      "contact_support": "サポートに助けを求める"
     }
   },
   "toolReview": {
@@ -16394,6 +16396,7 @@
       "apps": "AIアプリ",
       "approvals": "承認",
       "portal": "ポータルのクライアント",
+      "support": "サポート",
       "about": "DougBot について",
       "generalPersonal": "あなたについて",
       "keysPersonal": "AIとアプリ",
@@ -16426,12 +16429,31 @@
       "apps": "Claude、Cursor などのアプリからエージェントにタスクを頼めます。",
       "approvals": "エージェントがあなたの承認を求めたとき、代わりに決める人。",
       "portal": "投稿を承認するクライアントと、それぞれが開くリンク。",
+      "support": "このシステムの運営者と、連絡の取り方。",
       "about": "開発元、ライセンス、ソースコードの場所。",
       "generalPersonal": "エージェントがあなたについて知っていることと、このワークスペースの使い方。",
       "usagePersonal": "エージェントが使うAIの量と、あなたのプラン。",
       "connectorsPersonal": "あなたのアプリとMCPサーバー。一度接続すればエージェントが使えます。",
       "membersPersonal": "ここで一緒にいる人。",
       "rolesPersonal": "ここで各メンバーができること。オーナーはすべてできます。"
+    },
+    "support": {
+      "title": "サポートに連絡",
+      "lead": "このシステムの中でうまくいかないことがあったときの、運営者の窓口です。",
+      "email": "メール",
+      "whatsapp": "WhatsApp",
+      "client": "このインストール",
+      "askTitle": "{{name}}に助けを求める",
+      "askLead": "{{name}}が起きたことを書き留め、あなたの名前でサポートに送ります。送る前にあなたがメッセージを読みます。",
+      "askStatus": "詳細が入力済みの会話が開きます。",
+      "ask": "{{name}}に助けを求める",
+      "draft": "{{name}}さん、システムのことで助けが必要です:",
+      "draftWith": "{{name}}さん、システムのことで助けが必要です（{{facts}}）:",
+      "draftVersion": "サーバーのバージョン {{version}}",
+      "draftClient": "インストール {{code}}",
+      "draftPage": "ページ {{page}}",
+      "draftAsk": "これを contact_support で私の名前でサポートに送ってください。",
+      "askNoEmail": "{{name}}さんが詳細を入力欄に入れた状態で会話を開きます。起きたことを書いて送ってください。"
     },
     "about": {
       "basedOn": "Codari Global, LLC の <site>DougBot</site> をもとにしています · AGPL-3.0",
@@ -16443,6 +16465,7 @@
     "title": "設定",
     "account": {
       "plans": "あなたのプランの上限",
+      "legal": "利用規約とプライバシー",
       "device": "このデバイス",
       "activity": "各回答の下にエージェントの作業内容を表示",
       "activityHelp": "使ったツールとかかった時間。作業中は、何をしているかが引き続き表示されます。",
@@ -17333,6 +17356,7 @@
         "settingCommitLine": "コミットのエージェントの行を調整しました",
         "sendingFeedback": "フィードバックの送信を依頼しました",
         "offeringFeedback": "問題の報告を提案しました",
+        "askingSupport": "サポートに助けを求めました",
         "deletingRoutine": "ルーティンを削除しました",
         "runningRoutine": "ルーティンを今すぐ実行しました",
         "proposingTeam": "チームを提案しました",
@@ -17456,6 +17480,7 @@
       "settingCommitLine": "コミットのエージェントの行を調整中",
       "sendingFeedback": "フィードバックを準備中",
       "offeringFeedback": "報告を準備中",
+      "askingSupport": "サポートに助けを求めています",
       "deletingRoutine": "ルーティンを削除中",
       "runningRoutine": "ルーティンを今すぐ実行中",
       "proposingTeam": "チームを提案中",

@@ -3,6 +3,7 @@ import {
   ApiError,
   keys,
   useAiAccounts,
+  useAuthConfig,
   useSetAgentStyle,
   useSetShowActivity,
 } from "@agenteschat/client";
@@ -40,7 +41,7 @@ import {
 } from "@agenteschat/ui";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
-import { useEffect, useState, useSyncExternalStore } from "react";
+import { type ReactNode, useEffect, useState, useSyncExternalStore } from "react";
 import { useTranslation } from "react-i18next";
 import { useApi } from "@/api/context";
 import type { AuthResult } from "@/auth/client";
@@ -67,6 +68,15 @@ import { STORAGE_KEYS, sessionStore } from "@/lib/storage";
 import { type ThemePreference, useTheme } from "@/lib/theme";
 import { useToast } from "@/lib/toast";
 import { LanguageSelect } from "./LanguageSelect";
+
+/** An outside page in a new tab, in the house link style (as the About card's). */
+function Out({ href, children }: { href: string; children?: ReactNode }) {
+  return (
+    <a className="ac-link" href={href} target="_blank" rel="noopener noreferrer">
+      {children}
+    </a>
+  );
+}
 
 /**
  * Configurações › Sua conta: your profile in this workspace, your time zone, whether agents' work shows under their replies,
@@ -290,6 +300,7 @@ export function AccountSection() {
         </div>
         <AppIconDialog open={iconPicker} onClose={() => setIconPicker(false)} />
       </Card>
+      <LegalLinksCard />
       <Card aria-labelledby="account-delete" className="settings-danger">
         <CardHeader
           id="account-delete"
@@ -317,6 +328,38 @@ export function AccountSection() {
       <ProfileDialog focus={profile} onClose={() => setProfile(null)} />
       <OpenOnPhoneDialog open={phone} onClose={() => setPhone(false)} />
     </>
+  );
+}
+
+/**
+ * The legal links for a signed-in person: the Terms of Use and the Privacy Policy this server serves (`/termos` and
+ * `/privacidade`, `TERMS_URL` and `PRIVACY_URL`). Both open in a new tab, so the settings page stays where it is. A
+ * server that sets neither link (an old one) shows no card.
+ */
+function LegalLinksCard() {
+  const { t } = useTranslation();
+  const config = useAuthConfig().data;
+  const terms = config?.termsUrl;
+  const privacy = config?.privacyUrl;
+  if (!terms || !privacy) return null;
+  return (
+    <Card aria-labelledby="account-legal">
+      <CardHeader id="account-legal" icon="document" title={t("settings.account.legal")} />
+      <div className="settings-rows">
+        <PrefRow
+          id="account-terms"
+          icon="document"
+          label={t("auth.terms")}
+          control={<Out href={terms}>{t("auth.terms")}</Out>}
+        />
+        <PrefRow
+          id="account-privacy"
+          icon="shield"
+          label={t("auth.privacy")}
+          control={<Out href={privacy}>{t("auth.privacy")}</Out>}
+        />
+      </div>
+    </Card>
   );
 }
 

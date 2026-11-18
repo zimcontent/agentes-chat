@@ -345,6 +345,8 @@
     "closed": "닫힘",
     "options": "옵션",
     "profile": "프로필",
+    "call": "통화",
+    "toneGreen": "초록색",
     "here_other": "{{count}}명 참여 중",
     "headerAgent": "{{who}}. 프로필 열기",
     "headerChannel": "{{who}}. 옵션",
@@ -1120,7 +1122,9 @@
       "suggested": "추천",
       "all": "전체",
       "none": "그런 이름의 시간대가 없어요"
-    }
+    },
+    "groupAlerts": "알림 및 승인",
+    "groupLook": "모양 및 소리"
   },
   "delete": {
     "intro": "되돌릴 수 없어요.",
@@ -1412,7 +1416,28 @@
   },
   "homeTools": {
     "title": "도구",
-    "more": "더 보기"
+    "more": "더 보기",
+    "all": "전체",
+    "edit": "바로가기 편집",
+    "done": "완료",
+    "editHint": "탭해서 홈에 최대 4개 고정",
+    "full": "홈에 이미 4개가 있어요. 먼저 하나를 빼세요.",
+    "search": "대화, 파일, 사람 검색",
+    "searchTile": "검색",
+    "pinned": "홈에 고정됨",
+    "attach": "대화에 첨부",
+    "here": "이 대화에서",
+    "create": "만들기",
+    "newAgent": "새 에이전트",
+    "newChat": "새 대화",
+    "mission": "미션",
+    "summary": "요약",
+    "remind": "리마인더",
+    "calendar": "캘린더",
+    "people": "사람",
+    "computer": "컴퓨터",
+    "vault": "금고",
+    "settings": "설정"
   },
   "homeNow": {
     "working_other": "{{count}}명 작업 중",
@@ -1457,7 +1482,11 @@
       "today": "오늘 {{time}}",
       "tomorrow": "내일 {{time}}",
       "later": "{{day}} {{time}}"
-    }
+    },
+    "needsYou": "확인 필요",
+    "running": "지금 작업 중",
+    "runningAll": "모두 보기",
+    "steps": "{{total}}개 중 {{done}}개"
   },
   "agentLite": {
     "uses": "사용할 수 있는 것",
@@ -2972,5 +3001,14 @@
   "brand": {
     "basedOn": "Codari Global, LLC의 DougBot 기반 · AGPL-3.0",
     "source": "DougBot 소스 코드"
+  },
+  "toSchedule": {
+    "title": "예약 대기",
+    "row": "승인된 게시물, 탭하여 예약",
+    "untitled": "제목 없는 게시물",
+    "sheetTitle": "게시물 예약",
+    "confirm": "예약",
+    "when": "{{when}} 게시",
+    "past": "아직 지나지 않은 시간을 선택하세요"
   }
 }

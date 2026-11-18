@@ -143,6 +143,8 @@ const ELSEWHERE = new Set([
   "propose_event",
   // An email to whoever runs the server, in a person's name (ADR 0160 §11): only a run a person is behind sends it.
   "send_feedback",
+  // A summary to whoever runs this installation, in a person's name: only a run a person is behind sends it.
+  "contact_support",
   // A post leaves for a client's eyes (ADR 9001): only a run a person is behind sends it.
   "send_for_approval",
   "send_new_version",
@@ -259,6 +261,7 @@ const ASKS_ITSELF = new Set([
   "request_settings_change",
   "request_folder_access",
   "send_feedback",
+  "contact_support",
   "propose_event",
   "schedule_action",
 ]);

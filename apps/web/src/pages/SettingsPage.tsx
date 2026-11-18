@@ -42,6 +42,7 @@ import {
 } from "@agenteschat/client/lib/providers";
 import type { RoleTab } from "@agenteschat/client/lib/roles";
 import { settingsNav, settingsTabs } from "@agenteschat/client/lib/settings-nav";
+import { setSupportCameFrom } from "@agenteschat/client/lib/support";
 import { parseAmount } from "@agenteschat/client/lib/text";
 import { isPersonal, modeKey } from "@agenteschat/client/lib/workspace-mode";
 import {
@@ -71,7 +72,7 @@ import {
   Tabs,
   Textarea,
 } from "@agenteschat/ui";
-import { Link, useNavigate } from "@tanstack/react-router";
+import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { type ComponentProps, type ReactNode, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { AboutSection } from "@/components/AboutSettings";
@@ -108,6 +109,7 @@ import { PortalClientsSection } from "@/components/portal/PortalClientsSection";
 import { RolesSection } from "@/components/roles/RolesSection";
 import { SkillsSection } from "@/components/Skills";
 import { StorageSection } from "@/components/StorageSettings";
+import { SupportSection } from "@/components/SupportSettings";
 import { TeamMemoryCard } from "@/components/TeamMemory";
 import { OpenPrefsButton, useLocalServerHere } from "@/components/ThisMac";
 import { VoiceSettingsSection } from "@/components/VoiceSettings";
@@ -187,6 +189,7 @@ function Settings({
 }) {
   const { t } = useTranslation();
   const { org } = useOrg();
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
   const server = useAuthConfig().data;
   const visible = SETTINGS_SECTIONS.filter((s) => s.allowed(org, server));
   // A section a link names that this person can't open: their first one, their account, saying why. Opening the
@@ -238,6 +241,8 @@ function Settings({
         params={{ orgId: org.id, section: s.id }}
         className="settings__link"
         aria-current={s.id === marked ? "page" : undefined}
+        // Support's draft names the page the person came from: the one they left for it, its own excluded.
+        onClick={s.id === "support" && current !== "support" ? () => setSupportCameFrom(pathname) : undefined}
       >
         {s.id === "account" ? <MyFace size="xs" /> : <Icon name={s.icon} size={18} />}
         {entryName(s.id)}
@@ -272,6 +277,7 @@ function Settings({
       {current === "download" && <AppsDownloadSection />}
       {current === "approvals" && <ApprovalsSection />}
       {current === "apps" && <AiAppsSection />}
+      {current === "support" && <SupportSection />}
       {current === "general" && <GeneralSection />}
       {current === "members" && <MembersPage embedded />}
       {current === "invites" && <InvitesPage />}
