@@ -162,7 +162,7 @@ export interface AuthConfig {
    * the operator set, either one alone, each null when unset. Null (or absent, on a server older than it): no Support.
    */
   support?: { email: string | null; whatsapp: string | null } | null;
-  /** This installation's client code (`DOUG_CLIENT_CODE`), shown in Support; null or absent: none. */
+  /** A server from before the code moved to `GET /me` said it here; newer ones send none (`Me.clientCode`). */
   clientCode?: string | null;
   /** The server takes feedback (`POST /api/app/feedback`): the apps show the form; absent: a server too old to. */
   feedback?: boolean;
@@ -425,6 +425,9 @@ export interface OrgOnboarding {
 export interface Me {
   user: User;
   organizations: OrgSummary[];
+  /** This installation's client code (`DOUG_CLIENT_CODE`), shown in Support; null or absent: none. Sign-in doesn't
+   * carry it: only a signed-in person reads it. */
+  clientCode?: string | null;
 }
 
 /**

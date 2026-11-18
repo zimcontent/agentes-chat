@@ -1,9 +1,14 @@
-import { instanceQuery, useApi, useAuthConfig } from "@agenteschat/client";
+import { instanceQuery, useApi, useAuthConfig, useMe } from "@agenteschat/client";
 import { mayAsk } from "@agenteschat/client/lib/audience";
 import { rightHandOf } from "@agenteschat/client/lib/right-hand";
-import { supportContactOf, supportDraft, whatsAppHref } from "@agenteschat/client/lib/support";
+import {
+  type SupportDraftWords,
+  supportCameFrom,
+  supportContactOf,
+  supportDraft,
+  whatsAppHref,
+} from "@agenteschat/client/lib/support";
 import { useQuery } from "@tanstack/react-query";
-import { usePathname } from "expo-router";
 import { useTranslation } from "react-i18next";
 import { Linking, StyleSheet, View } from "react-native";
 import { useOrg } from "@/providers/org";
@@ -21,27 +26,45 @@ import { Page } from "./parts";
 export function SupportScreen() {
   const { t } = useTranslation();
   const config = useAuthConfig().data;
-  const contact = supportContactOf(config);
+  const contact = supportContactOf(config, useMe().data);
   const instance = useQuery(instanceQuery(useApi())).data;
   const dir = useDirectory();
   const org = useOrg();
-  const pathname = usePathname();
   const openDm = useOpenDm();
   const doug = rightHandOf(dir.agents);
   const askable = doug && mayAsk(org.org, doug);
+  // The draft speaks the app's language: the words come from `t()`, not from the guide's own English.
+  const words: SupportDraftWords = {
+    lead: ({ name, facts }) =>
+      facts === null ? t("settings.support.draft", { name }) : t("settings.support.draftWith", { name, facts }),
+    fact: ({ kind, value }) =>
+      kind === "version"
+        ? t("settings.support.draftVersion", { version: value })
+        : kind === "client"
+          ? t("settings.support.draftClient", { code: value })
+          : t("settings.support.draftPage", { page: value }),
+    ask: t("settings.support.draftAsk"),
+  };
   if (!contact) return <Page title={t("settings.section.support")} />;
   const { email, whatsapp, clientCode } = contact;
+  // Without a support address the agent has no `contact_support`: the card says what it does do, not an email.
+  const askLead = email
+    ? t("settings.support.askLead", { name: doug?.name ?? "" })
+    : t("settings.support.askNoEmail", { name: doug?.name ?? "" });
   const ask = () => {
     if (!askable || !doug) return;
     openDm(
       { agentId: doug.id },
       {
         compose: true,
+        // After whatever they were already writing there: the hand-off never erases their draft.
+        join: true,
         text: supportDraft({
           agentName: doug.name,
           version: instance?.version ?? null,
           clientCode: contact.clientCode,
-          page: pathname,
+          page: supportCameFrom(),
+          words,
         }),
       },
     );
@@ -78,12 +101,11 @@ export function SupportScreen() {
             <GroupedRow
               icon="agent"
               label={t("settings.support.ask", { name: doug.name })}
-              sub={t("settings.support.askStatus")}
+              sub={askLead}
               chevron
               onPress={ask}
             />
           </GroupedList>
-          <GroupedFooter>{t("settings.support.askLead", { name: doug.name })}</GroupedFooter>
         </>
       ) : null}
     </Page>

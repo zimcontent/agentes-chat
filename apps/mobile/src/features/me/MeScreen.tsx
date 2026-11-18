@@ -1,9 +1,10 @@
 import { useAuthConfig, useIssues, useMe, useOverview } from "@agenteschat/client";
 import { showsAbout } from "@agenteschat/client/lib/about";
-import { supportContactOf } from "@agenteschat/client/lib/support";
+import { setSupportCameFrom, supportContactOf } from "@agenteschat/client/lib/support";
 import { isPersonal, modeKey } from "@agenteschat/client/lib/workspace-mode";
 import { isAppLocale, localeInfo, readyLocales } from "@agenteschat/i18n/locale";
 import Constants from "expo-constants";
+import { usePathname } from "expo-router";
 import { useHeaderHeight } from "expo-router/react-navigation";
 import { type ReactNode, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -113,7 +114,9 @@ export function MeScreen({ tab = false }: { tab?: boolean }) {
   const issues = useIssues(org.orgId);
   const proposals = useOverview(org.orgId).data?.proposalsWaitingForMe ?? 0;
   const push = usePushSwitch().on;
-  const support = supportContactOf(useAuthConfig().data);
+  const support = supportContactOf(useAuthConfig().data, me.data);
+  // The page the person is on now: Support's draft names it as where they came from.
+  const pathname = usePathname();
   const about = showsAbout(useAuthConfig().data);
   const mine = meId ? dir.memberById.get(meId) : undefined;
   // How you appear (to yourself: hidden stays hidden), on your photo's corner (ADR 0084).
@@ -451,7 +454,11 @@ export function MeScreen({ tab = false }: { tab?: boolean }) {
                 icon="help"
                 label={t("settings.section.support")}
                 chevron
-                onPress={() => open("/me/support")}
+                // Support's draft names the page the person came from: the one they left for it.
+                onPress={() => {
+                  setSupportCameFrom(pathname);
+                  open("/me/support");
+                }}
               />
             ) : null}
             {about ? (

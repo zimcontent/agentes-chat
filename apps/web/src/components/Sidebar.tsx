@@ -28,6 +28,7 @@ import {
   useDeleteChannelCategory,
   useDms,
   useMachineOutages,
+  useMe,
   useMissionList,
   useNotificationCount,
   useOverview,
@@ -71,7 +72,7 @@ import { isRightHand, rightHandSeenKey } from "@agenteschat/client/lib/right-han
 import { SERVER_PLACE_ICON } from "@agenteschat/client/lib/server";
 import { inSidebarList, sidebarItemOrder, sidebarPlace } from "@agenteschat/client/lib/sidebar-items";
 import { AGENT_SORTS, sortAgents, splitPinned } from "@agenteschat/client/lib/sidebar-view";
-import { supportContactOf } from "@agenteschat/client/lib/support";
+import { setSupportCameFrom, supportContactOf } from "@agenteschat/client/lib/support";
 import { badgeCount, looksUnread } from "@agenteschat/client/lib/unread";
 import { isPersonal, modeKey } from "@agenteschat/client/lib/workspace-mode";
 import {
@@ -2600,7 +2601,8 @@ function AccountMenu({
 }) {
   const onTop = personal || head;
   const { t, i18n } = useTranslation();
-  const { org, me } = useOrg();
+  const { org, me: signedIn } = useOrg();
+  const me = useMe().data ?? signedIn;
   const dir = useDirectory(org.id);
   const navigate = useNavigate();
   const compact = useMediaQuery(COMPACT_QUERY);
@@ -2627,7 +2629,9 @@ function AccountMenu({
   }, []);
   const handle = dir.memberById.get(me.user.id)?.handle;
   // Where the operator lets people reach them (`SUPPORT_EMAIL`, `SUPPORT_WHATSAPP`): the account menu's Support entry.
-  const support = supportContactOf(useAuthConfig().data);
+  const support = supportContactOf(useAuthConfig().data, me);
+  // The page the person is on: what Support's draft names as where they came from.
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
   // How you appear to yourself, read as the members column reads it (hidden stays hidden), and your line.
   const shown = usePersonPresence(me.user.id);
   const picked = shown?.person.availability;
@@ -2644,6 +2648,11 @@ function AccountMenu({
     void (section
       ? navigate({ to: "/org/$orgId/settings/$section", params: { orgId: org.id, section } })
       : navigate({ to: "/org/$orgId/settings", params: { orgId: org.id } }));
+  // Support's draft names where the person came from: the page they were on when they opened its entry.
+  const openSupport = () => {
+    setSupportCameFrom(pathname);
+    openSettings("support");
+  };
   if (actions)
     actions.current = {
       status: () => setStatusOpen(true),
@@ -2816,7 +2825,7 @@ function AccountMenu({
         )}
         {/* Where the operator lets people reach them (`SUPPORT_EMAIL`, `SUPPORT_WHATSAPP`): nowhere otherwise. */}
         {support ? (
-          <MenuItem icon="question" onSelect={() => openSettings("support")}>
+          <MenuItem icon="question" onSelect={openSupport}>
             {t("settings.section.support")}
           </MenuItem>
         ) : null}

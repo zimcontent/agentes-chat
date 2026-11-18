@@ -3,6 +3,7 @@ import { showsAbout } from "@agenteschat/client/lib/about";
 import { can } from "@agenteschat/client/lib/permissions";
 import { personalSettingsShort } from "@agenteschat/client/lib/personal-view";
 import { settingsEntry, teamSettings } from "@agenteschat/client/lib/settings-nav";
+import { supportContactOf } from "@agenteschat/client/lib/support";
 import { isPersonal } from "@agenteschat/client/lib/workspace-mode";
 import type { IconName } from "@agenteschat/ui";
 
@@ -58,7 +59,7 @@ export const SETTINGS_SECTIONS: {
   {
     id: "support",
     icon: "question",
-    allowed: (_o, server) => Boolean(server?.support?.email || server?.support?.whatsapp),
+    allowed: (_o, server) => supportContactOf(server) !== null,
   },
   // The workspace's sections are for who runs it: a member keeps only their own (above) and what they use themselves
   // (the people, where a member who may not invite suggests someone (ADR 0090), connectors, computers, AI accounts).

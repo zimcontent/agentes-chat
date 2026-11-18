@@ -1,4 +1,5 @@
 import { type ComposerDraft, readDraftBook, withDraft } from "@agenteschat/client/lib/composer-drafts";
+import { joinDrafts } from "@agenteschat/client/lib/message-length";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { AuthClient } from "@/auth/client";
 import { STORAGE_KEYS, storage } from "@/lib/storage";
@@ -48,9 +49,17 @@ export function withComposerDraftsSignOut(auth: AuthClient): AuthClient {
  * shortly after typing settles, at once when the conversation closes or the page goes away. Sending clears it the
  * same way, with the text set to "".
  */
-export function useComposerDraft(userId: string, key: string, handed?: string) {
-  const [text, setText] = useState(() => handed ?? readComposerDraft(userId, key)?.text ?? "");
-  const pending = useRef<string | null>(handed ?? null);
+export function useComposerDraft(userId: string, key: string, handed?: string, options: { join?: boolean } = {}) {
+  // What the box starts with: the text handed over (after the draft left here, with `join`), or the draft left here.
+  const [start] = useState(() =>
+    handed === undefined
+      ? (readComposerDraft(userId, key)?.text ?? "")
+      : options.join
+        ? joinDrafts(handed, readComposerDraft(userId, key)?.text ?? "")
+        : handed,
+  );
+  const [text, setText] = useState(start);
+  const pending = useRef<string | null>(handed === undefined ? null : start);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const flush = useCallback(() => {
