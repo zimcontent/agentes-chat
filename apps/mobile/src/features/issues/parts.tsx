@@ -346,7 +346,7 @@ export const BoardCard = memo(function BoardCard({
 });
 
 /** A project's color as one flat tone, as the web's dot: the middle of the five its dither is drawn in. */
-const projectTone = (color: string) => bodyTones(color)[2];
+export const projectTone = (color: string) => bodyTones(color)[2];
 
 /** A project's dot in its color. No color: a hollow ring ("Sem projeto", "Todos os projetos"). */
 export function ProjectDot({ color }: { color?: string | null | undefined }) {

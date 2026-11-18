@@ -3,7 +3,7 @@ import { ptBR } from "@agenteschat/i18n/pt-BR";
 import { Slot } from "expo-router";
 import i18n from "i18next";
 import { initReactI18next } from "react-i18next";
-import { View } from "react-native";
+import { Platform, View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { FEATURES } from "@/features/i18n/locales";
@@ -29,6 +29,16 @@ if (!i18n.isInitialized) {
   });
 }
 
+/**
+ * `?w=320` lays every screen out in a phone that wide: a headless browser's window doesn't go under about 500, so a
+ * narrow window alone only crops the 390 phone.
+ */
+const narrow = (() => {
+  if (Platform.OS !== "web" || typeof location === "undefined") return null;
+  const w = Number(new URLSearchParams(location.search).get("w"));
+  return w >= 240 && w <= 1200 ? w : null;
+})();
+
 export default function PranchaLayout() {
   const ready = useAppFonts();
   if (!ready) return <View />;
@@ -36,7 +46,13 @@ export default function PranchaLayout() {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
         <ThemeProvider>
-          <Slot />
+          {narrow ? (
+            <View style={{ flex: 1, width: narrow, overflow: "hidden" }}>
+              <Slot />
+            </View>
+          ) : (
+            <Slot />
+          )}
         </ThemeProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>

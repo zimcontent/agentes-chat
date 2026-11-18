@@ -232,6 +232,7 @@ function AppStack() {
       <Stack.Screen name="me/appearance" options={{ ...pushed, ...scrollUnder }} />
       <Stack.Screen name="me/app-icon" options={{ ...pushed, ...scrollUnder }} />
       <Stack.Screen name="me/language" options={{ ...pushed, ...scrollUnder }} />
+      <Stack.Screen name="me/support" options={{ ...pushed, ...scrollUnder }} />
       <Stack.Screen name="me/about" options={{ ...pushed, ...scrollUnder }} />
       {/* The workspace's settings: its page under the sky (from Você), then each section on the grouped gray. */}
       <Stack.Screen name="settings/index" options={{ ...pushed, ...scrollUnder }} />

@@ -157,6 +157,13 @@ export interface AuthConfig {
   privacyUrl?: string | null;
   /** Where people write to whoever runs this server (a workspace on hold or suspended); null: not given. */
   supportEmail?: string | null;
+  /**
+   * How people reach whoever runs this installation (Support under the account): the address and the WhatsApp number
+   * the operator set, either one alone, each null when unset. Null (or absent, on a server older than it): no Support.
+   */
+  support?: { email: string | null; whatsapp: string | null } | null;
+  /** A server from before the code moved to `GET /me` said it here; newer ones send none (`Me.clientCode`). */
+  clientCode?: string | null;
   /** The server takes feedback (`POST /api/app/feedback`): the apps show the form; absent: a server too old to. */
   feedback?: boolean;
   /** It goes to the agentes.chat team, not to whoever runs this server: the form says so and takes pictures only. */
@@ -431,6 +438,9 @@ export interface OrgOnboarding {
 export interface Me {
   user: User;
   organizations: OrgSummary[];
+  /** This installation's client code (`DOUG_CLIENT_CODE`), shown in Support; null or absent: none. Sign-in doesn't
+   * carry it: only a signed-in person reads it. */
+  clientCode?: string | null;
   /**
    * This server's client customizations (ADR doug-0023), from `clients/<DOUG_CLIENT_CODE>/config.json`. Null: a
    * server with none. Absent from an older server, which reads as none.
@@ -8715,6 +8725,8 @@ export interface PortalClientSummary {
   color?: PortalClientColor | null;
   /** Where its logo is read (the server's own address); null or absent: none. */
   logo?: string | null;
+  /** The name the team gave it (ADR 9001, addendum 2026-11-18); null or absent: the one its id reads as. */
+  name?: string | null;
 }
 
 /**
@@ -8732,6 +8744,8 @@ export interface PortalState {
 /** Every client at a glance (`GET …/portal`). */
 export interface PortalOverview {
   clients: PortalClientSummary[];
+  /** Clients the team hid: in no list until shown again. Absent from a server that doesn't say. */
+  hidden?: { client: string; name: string | null }[];
   /** Absent from a server that doesn't say. */
   state?: PortalState;
 }

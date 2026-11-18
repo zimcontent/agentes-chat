@@ -3,6 +3,7 @@ import { showsAbout } from "@agenteschat/client/lib/about";
 import { can } from "@agenteschat/client/lib/permissions";
 import { personalSettingsShort } from "@agenteschat/client/lib/personal-view";
 import { settingsEntry, teamSettings } from "@agenteschat/client/lib/settings-nav";
+import { supportContactOf } from "@agenteschat/client/lib/support";
 import { isPersonal } from "@agenteschat/client/lib/workspace-mode";
 import type { IconName } from "@agenteschat/ui";
 
@@ -31,6 +32,7 @@ export type SettingsSection =
   | "import"
   | "media"
   | "voice"
+  | "support"
   | "about";
 
 /**
@@ -52,6 +54,13 @@ export const SETTINGS_SECTIONS: {
   { id: "approvals", icon: "approve", allowed: () => true },
   // AI apps (ADR 0119): each person connects their own, in this workspace.
   { id: "apps", icon: "link", allowed: () => true },
+  // Who runs this installation and how to reach them (`SUPPORT_EMAIL`, `SUPPORT_WHATSAPP`): for everyone, only where
+  // the operator set an address. A personal workspace keeps it as a tab of Your account.
+  {
+    id: "support",
+    icon: "question",
+    allowed: (_o, server) => supportContactOf(server) !== null,
+  },
   // The workspace's sections are for who runs it: a member keeps only their own (above) and what they use themselves
   // (the people, where a member who may not invite suggests someone (ADR 0090), connectors, computers, AI accounts).
   { id: "general", icon: "settings", allowed: (o) => can(o, "configure") },

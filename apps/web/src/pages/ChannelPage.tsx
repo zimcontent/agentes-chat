@@ -120,7 +120,7 @@ import { draftKeyOf } from "@agenteschat/client/lib/composer-drafts";
 import { type ConsultPairItem, consultsForLine } from "@agenteschat/client/lib/consult-group";
 import { consultationsOf } from "@agenteschat/client/lib/consultations";
 import { deviceWaitOf } from "@agenteschat/client/lib/devices";
-import { clearDraft, peekDraft } from "@agenteschat/client/lib/drafts";
+import { clearDraft, draftJoins, peekDraft } from "@agenteschat/client/lib/drafts";
 import { ErrorBoundary } from "@agenteschat/client/lib/error-boundary";
 import {
   errorCode,
@@ -877,10 +877,12 @@ function ChannelView({
   // ⌘K "Pedir a um agente" leaves the text for this DM's composer.
   const draftKey = chrome?.dmAgentId ? `agent:${chrome.dmAgentId}` : null;
   // What I typed and didn't send stays in this browser: switching conversations or reloading keeps it.
+  // Text another screen handed over (`join`) goes after what was typed here, so neither is lost.
   const [draft, setDraft] = useComposerDraft(
     me.user.id,
     draftKeyOf(channel.id, thread?.id),
     draftKey ? peekDraft(draftKey) : undefined,
+    { join: draftKey ? draftJoins(draftKey) : false },
   );
   // A first task handed with a blank at its end ("…para este cliente:"): a hint to finish it, gone at the first key.
   const [handed] = useState(() => (draftKey ? peekDraft(draftKey) : undefined));

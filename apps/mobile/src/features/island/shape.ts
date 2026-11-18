@@ -28,6 +28,9 @@ export function topKindOf(os: string, insetTop: number): TopKind {
 /** How far down the notch reaches. */
 export const notchHeight = (insetTop: number) => Math.max(insetTop - NOTCH_GAP, 0);
 
+/** Under the notch, the name starts this far below the status bar's line. */
+const NOTCH_NAME_GAP = 2;
+
 /** The signature's row under the camera or the notch: its Doug (21) with 4 above and 7 below. */
 export const BRAND_ROW = 32;
 /** Around the camera, the glass shows this much: the camera sits in it as a face in a round pill, 6 from its edges. */
@@ -62,7 +65,9 @@ export function brandBox(kind: TopKind, insetTop: number, barHeight = 44): Islan
     };
   }
   if (kind === "notch") {
-    const clear = notchHeight(insetTop);
+    // The name sits below the status bar's line, not right under the notch: there it was pressed against the top of
+    // the screen (the notch reaches only to the inset less 14), level with the clock.
+    const clear = insetTop + NOTCH_NAME_GAP;
     return { top: 0, w: BRAND_WIDTH, h: clear + BRAND_ROW, corner: 16, clear };
   }
   // Centered in the bar under the status bar (44 on an iPhone, 56 on Android).

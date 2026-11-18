@@ -58,13 +58,32 @@ export const PORTAL_STATUS_LOOK: Record<
   published: { tone: "done", icon: "check" },
 };
 
-/** A client's id as a name: the portal knows clients by a slug ("acme-foods" reads "Acme Foods"). */
-export const portalClientName = (client: string) =>
+/**
+ * The names the team gave clients (ADR 9001, addendum 2026-11-18), as the last overview read said them. One map for
+ * the app: the portal is one workspace's (§18), and every screen that names a client reads the overview, which keeps
+ * this up to date (`rememberPortalClientNames`).
+ */
+const teamNames = new Map<string, string>();
+
+/** Keeps the names an overview read carries, the visible clients' and the hidden ones'. */
+export function rememberPortalClientNames(overview: {
+  clients: readonly { client: string; name?: string | null }[];
+  hidden?: readonly { client: string; name: string | null }[];
+}) {
+  teamNames.clear();
+  for (const c of [...overview.clients, ...(overview.hidden ?? [])]) if (c.name) teamNames.set(c.client, c.name);
+}
+
+/** A client's id as it reads: the portal knows clients by a slug ("acme-foods" reads "Acme Foods"). */
+export const portalClientSlugName = (client: string) =>
   client
     .split("-")
     .filter(Boolean)
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
     .join(" ") || client;
+
+/** A client's name: the one the team gave it, else its id as it reads. */
+export const portalClientName = (client: string) => teamNames.get(client) ?? portalClientSlugName(client);
 
 /** Every client's counts added up, for the overview's line on top. */
 export function portalTotals(clients: readonly PortalClientSummary[]) {

@@ -121,6 +121,7 @@ export type ActivityKind =
   | "settingCommitLine"
   | "sendingFeedback"
   | "offeringFeedback"
+  | "askingSupport"
   | "deletingRoutine"
   | "runningRoutine"
   | "proposingTeam"
@@ -292,6 +293,7 @@ const BUILTIN: Record<string, ActivityKind> = {
   commit_co_author: "settingCommitLine",
   send_feedback: "sendingFeedback",
   offer_feedback: "offeringFeedback",
+  contact_support: "askingSupport",
   delete_routine: "deletingRoutine",
   run_routine_now: "runningRoutine",
   propose_team: "proposingTeam",

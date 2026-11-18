@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { BREAK, inertText } from "../src/email/inert";
+import { BREAK, inertLines, inertText } from "../src/email/inert";
 
 /** Mail text as a reader sees it: the hair spaces that keep typed text from linking left out. */
 const readable = (s: string) => s.replaceAll(BREAK, "");
@@ -130,5 +130,20 @@ describe("inertText", () => {
     const emoji = "\u{1f469}\u{1f3fd}\u200d\u{1f4bb}".repeat(31);
     expect(readable(inertText(emoji))).toBe(emoji);
     expect([...new Intl.Segmenter().segment(inertText(emoji))].map((s) => s.segment)).toContain(BREAK);
+  });
+});
+
+describe("inertLines", () => {
+  test("a log full of separators keeps its end: the limit counts what was written, not the breaks", () => {
+    const line = "at handler (file.ts:12:3) err.code=E_FAIL host.example.com\n";
+    const log = `${line.repeat(Math.floor(3990 / line.length))}FINAL ERROR LINE`;
+    expect(Array.from(log).length).toBeLessThan(4000);
+    const out = inertLines(log, 4000);
+    expect(out).toContain("FINAL ERROR LINE");
+    expect(out.endsWith("…")).toBe(false);
+  });
+
+  test("text over the limit is cut and says so", () => {
+    expect(inertLines("a".repeat(50), 10)).toBe(`${"a".repeat(9)}…`);
   });
 });
