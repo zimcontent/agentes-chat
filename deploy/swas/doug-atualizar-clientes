@@ -21,18 +21,25 @@
 #   3. prepara o .env novo ao lado e guarda o atual em .env.antes-atualizar;
 #   4. pede o ponto de parada (ADR doug-0005): SIGUSR2 ao servidor, só se ele conhece o aviso, e espera
 #      `restart: ready` no /api/health, até DOUG_PARADA_TIMEOUT_S; passado o limite troca assim mesmo;
-#   5. faz o backup do Postgres (`pg_dump -Fc`) em <raiz>/backups/<codigo>/, já com nada rodando; se o aviso já
-#      tem DOUG_AVISO_REENVIO_S (o servidor o solta sozinho em 30 min), reenvia o sinal, espera o `ready` e refaz o backup;
+#   5. faz o backup do Postgres (`pg_dump -Fc`) em <raiz>/backups/<codigo>/, já com nada rodando. O servidor solta o
+#      aviso sozinho em 30 min e um segundo SIGUSR2 não faz nada enquanto o aviso vale, então o script não mede tempo:
+#      depois do backup lê o health e, se `restart` não for `ready`, manda o sinal de novo (o aviso já tinha caído, e
+#      o sinal agora pega), espera o `ready`, apaga o primeiro backup e o refaz: o disco nunca guarda dois dumps;
 #   6. troca o .env (um mv), roda as migrações (`migrate`, que é idempotente) e `docker compose up -d`;
 #   7. espera o /api/health dizer `ok` e confere que o servidor roda a imagem nova, até DOUG_SAUDE_TIMEOUT_S;
 #   8. se não, volta para a imagem anterior (restaura o .env, `up -d`, espera o health de novo).
-# O health é lido pela porta do cliente no loopback (a de DOUG_HOST_PORT); sem porta publicada (proxy externo, em
-# que o proxy entra na rede do cliente), pelo próprio contêiner: `docker compose exec` com um fetch local.
+# A saída do migrate, do up -d, do kill e do restart vai para o log do cliente; migrate, pg_dump e up -d têm prazo
+# (DOUG_MIGRATE_TIMEOUT_S, DOUG_BACKUP_TIMEOUT_S, DOUG_UP_TIMEOUT_S): estourar é falha, e a volta age.
+# O health é lido pela porta do cliente no loopback (a de DOUG_HOST_PORT). O instalador SEMPRE publica
+# 127.0.0.1:<porta>:3000 e exige uma porta numérica no registro e no .env: o caminho sem porta (um `docker compose
+# exec` com um fetch local, o mesmo do HEALTHCHECK da imagem) é só uma defesa para um registro à mão, não um modo.
 # O banco NÃO é restaurado sozinho: se a versão nova migrou o esquema, o backup do passo 5 é o caminho de volta.
 #
 # Um cliente que falha não para os outros, mas DOUG_DISJUNTOR voltas ou falhas seguidas com a mesma imagem param a
 # rodada: a imagem é o problema, não o cliente. Um cliente que falhou ou voltou com uma imagem fica marcado e é
-# pulado nas próximas rodadas com ela (--forcar tenta de novo). Código de saída: 0 tudo certo (clientes parados de
+# pulado nas próximas rodadas com ela (--forcar tenta de novo). O disjuntor lembra entre rodadas: as marcas `voltou` e
+# `falhou` desta imagem contam desde o começo, e com DOUG_DISJUNTOR delas (sem --forcar) a rodada sai com 1 sem tocar em
+# ninguém. Código de saída: 0 tudo certo (clientes parados de
 # propósito só aparecem no resumo); 1 algum cliente falhou ou ficou sem iniciar; 3 nenhum falhou, mas algum voltou
 # para a imagem anterior ou foi pulado; 2 uso errado ou algo global (imagem inexistente, outra atualização rodando, a
 # instância principal em atualização).
@@ -48,15 +55,19 @@
 #   DOUG_DB_USER, DOUG_DB_NAME  usuário e banco do Postgres (padrão agentes e agentes)
 #   DOUG_PARADA_TIMEOUT_S    espera pelo ponto de parada (padrão 900, os 15 minutos da instância principal)
 #   DOUG_SAUDE_TIMEOUT_S     espera pelo health depois da troca e depois da volta (padrão 300)
+#   DOUG_MIGRATE_TIMEOUT_S   prazo do `migrate` (padrão 900; 0 sem prazo)
+#   DOUG_BACKUP_TIMEOUT_S    prazo do `pg_dump` (padrão 3600; 0 sem prazo)
+#   DOUG_UP_TIMEOUT_S        prazo de cada `docker compose up -d` (padrão 600; 0 sem prazo)
 #   DOUG_POLL_S              intervalo entre duas conferências (padrão 5)
 #   DOUG_FALHAS_SEGUIDAS     leituras seguidas sem resposta até dar o servidor por parado (padrão 3)
 #   DOUG_BACKUPS_GUARDADOS   quantos backups de atualizações boas (pre-*) ficam por cliente (padrão 3)
 #   DOUG_FALHOU_GUARDADOS    quantos backups de trocas que falharam (falhou-*) ficam por cliente (padrão 2)
 #   DOUG_FOLGA_GB            folga de disco, além do tamanho de dados/postgres, para fazer o dump (padrão 5)
-#   DOUG_AVISO_REENVIO_S     segundos depois do SIGUSR2 em que o aviso é reenviado antes da troca (padrão 1500)
-#   DOUG_DISJUNTOR           voltas ou falhas seguidas que param a rodada (padrão 2)
+#   DOUG_DISJUNTOR           voltas ou falhas com a mesma imagem (as marcas de antes e as desta rodada) que param a
+#                            rodada (padrão 2)
 #   DOUG_TRAVA_ESPERA_S      quanto esperar o doug-cliente soltar a trava de um cliente (padrão 0: não espera)
 #   DOUG_QUOTA_ESTRITA       1: passar da cota impede a atualização do cliente (padrão: só avisa)
+#   (as variáveis numéricas, de tempo ou de quantidade, têm de ser inteiros: um valor ruim sai com 2)
 #   DOUG_DONO_UID            dono esperado da pasta dos clientes e dos arquivos (padrão 0, root)
 #   DOUG_LOG_DIR             onde ficam os logs (padrão $DOUG_CLIENTES_DIR/logs)
 set -uo pipefail
@@ -73,12 +84,14 @@ BANCO_USUARIO=${DOUG_DB_USER:-agentes}
 BANCO_NOME=${DOUG_DB_NAME:-agentes}
 PARADA_S=${DOUG_PARADA_TIMEOUT_S:-900}
 SAUDE_S=${DOUG_SAUDE_TIMEOUT_S:-300}
+MIGRATE_S=${DOUG_MIGRATE_TIMEOUT_S:-900}
+BACKUP_S=${DOUG_BACKUP_TIMEOUT_S:-3600}
+UP_S=${DOUG_UP_TIMEOUT_S:-600}
 POLL_S=${DOUG_POLL_S:-5}
 FALHAS_LEITURAS=${DOUG_FALHAS_SEGUIDAS:-3}
 GUARDAR=${DOUG_BACKUPS_GUARDADOS:-3}
 FALHOU_GUARDADOS=${DOUG_FALHOU_GUARDADOS:-2}
 FOLGA_GB=${DOUG_FOLGA_GB:-5}
-REENVIO_S=${DOUG_AVISO_REENVIO_S:-1500}
 DISJUNTOR=${DOUG_DISJUNTOR:-2}
 TRAVA_ESPERA_S=${DOUG_TRAVA_ESPERA_S:-0}
 DONO_UID=${DOUG_DONO_UID:-0}
@@ -96,7 +109,8 @@ readonly R_ATUALIZOU=0 R_JA_ATUAL=10 R_VOLTOU=20 R_FALHOU=30 R_RECUSOU=31 R_PULO
 
 # O cliente em curso: o que o trap precisa para desfazer a troca se o script for morto no meio.
 C_CODIGO= C_DIR= C_ENV= C_GUARDA= C_NOVO= C_EM_CURSO= C_PORTA= C_PARCIAL=
-C_SINALIZADO=0 C_PRONTO=0 C_COMMITADO=0 C_RECRIADO=0 C_SINAL_EM=0
+C_SINALIZADO=0 C_PRONTO=0 C_COMMITADO=0 C_RECRIADO=0
+C_MOTIVO=
 LOG_ATUAL=
 BACKUP_FEITO=
 FALHOU_APAGADOS=0
@@ -244,6 +258,11 @@ registro_do_cliente() {
   awk -F'\t' -v OFS="$SEP" -v c="$1" '{ sub(/\r$/, "") } $1 "" == c "" { print $2, $4; exit }' "$REGISTRO"
 }
 
+# A coluna `imagem` de um cliente no registro (vazio se não há).
+registro_imagem_de() {
+  awk -F'\t' -v c="$1" '{ sub(/\r$/, "") } $1 "" == c "" { print $5; exit }' "$REGISTRO"
+}
+
 # A coluna `imagem` do registro, sob a trava do cliente. Nunca troca o arquivo por um resultado incompleto.
 registro_trocar_imagem() {
   local codigo=$1 imagem=$2 tmp antes depois
@@ -271,9 +290,28 @@ registro_trocar_imagem() {
 
 # ─── Docker ──────────────────────────────────────────────────────────────────
 
-# O compose do cliente em curso. Os descritores das travas não vazam para o Docker.
-compose() {
-  docker compose -p "doug-$C_CODIGO" --project-directory "$C_DIR" -f "$C_DIR/compose.yml" --env-file "$C_ENV" "$@" 6>&- 7>&- 8>&- 9>&-
+# O compose do cliente em curso, com um prazo em segundos no primeiro argumento (0: sem prazo). Os descritores das
+# travas não vazam para o Docker e o comando não lê a entrada do script. Um prazo estourado sai com 124.
+compose_prazo() {
+  local prazo=$1
+  shift
+  local -a antes=()
+  ((prazo > 0)) && antes=(timeout -k 10 "$prazo")
+  "${antes[@]+"${antes[@]}"}" docker compose -p "doug-$C_CODIGO" --project-directory "$C_DIR" -f "$C_DIR/compose.yml" \
+    --env-file "$C_ENV" "$@" 6>&- 7>&- 8>&- 9>&- </dev/null
+}
+compose() { compose_prazo 0 "$@"; }
+
+# O mesmo, com a saída (e o erro) no log do cliente em curso: é onde está a causa de uma falha. $1 prazo.
+compose_log() {
+  compose_prazo "$@" >>"${LOG_ATUAL:-/dev/null}" 2>&1
+}
+
+# O .env de um cliente criado antes do instalador atual pode não ter DOUG_UID, que o compose atual pede. O uid nunca é
+# calculado aqui: quem o escreve é o instalador.
+dica_uid() {
+  [[ -z $(env_valor "$C_ENV" DOUG_UID) ]] || return 0
+  diz "o .env deste cliente não tem DOUG_UID (criado antes do instalador atual?): rode \`doug-cliente compose $(limpo "$C_CODIGO")\`, que o acrescenta"
 }
 
 # A imagem em que o servidor do cliente roda de fato.
@@ -284,8 +322,9 @@ imagem_rodando() {
 }
 
 # Lê um caminho da API do servidor do cliente (C_PORTA) e imprime o corpo; 1 se a leitura falhar. Com porta publicada no
-# loopback, é um curl nela. Sem porta (o proxy entra na rede do cliente e nada é publicado no host), um fetch dentro do
-# contêiner, o mesmo que o HEALTHCHECK da imagem faz: `docker compose exec`, com o bun da imagem. $1 caminho, $2 limite (s).
+# loopback (o que o instalador sempre faz), é um curl nela. Sem porta (só um registro à mão: o instalador não o gera), um
+# fetch dentro do contêiner, o mesmo que o HEALTHCHECK da imagem faz: `docker compose exec`, com o bun da imagem, e a
+# entrada em /dev/null. $1 caminho, $2 limite (s).
 api_ler() {
   local caminho=$1 limite=${2:-5}
   if [[ -n $C_PORTA ]]; then
@@ -294,7 +333,7 @@ api_ler() {
   fi
   timeout "$((limite + 5))" docker compose -p "doug-$C_CODIGO" --project-directory "$C_DIR" -f "$C_DIR/compose.yml" --env-file "$C_ENV" \
     exec -T "$SERVICO_SERVIDOR" bun -e "fetch('http://127.0.0.1:' + (process.env.PORT || 3000) + '$caminho', { signal: AbortSignal.timeout($((limite * 1000))) }).then(async (r) => { process.exitCode = r.ok ? 0 : 1; process.stdout.write(await r.text()) }, () => { process.exitCode = 1 })" \
-    2>/dev/null 6>&- 7>&- 8>&- 9>&-
+    2>/dev/null 6>&- 7>&- 8>&- 9>&- </dev/null
 }
 
 saude() { api_ler /api/health 5; }
@@ -329,24 +368,44 @@ esperar_saude() {
   done
 }
 
-# Sobe o cliente com o .env como está e confere health e imagem. $1 imagem esperada.
+# Sobe o cliente com o .env como está e confere health e imagem. $1 imagem esperada. Em C_MOTIVO, por que falhou.
 subir_e_conferir() {
-  local esperada=$1 rodando
+  local esperada=$1 rodando rc
   C_RECRIADO=1
-  compose up -d >/dev/null 2>&1 || return 1
+  C_MOTIVO=
+  compose_log "$UP_S" up -d
+  rc=$?
+  if ((rc == 124 || rc == 137)); then
+    C_MOTIVO="o docker compose up -d estourou o prazo de ${UP_S}s (DOUG_UP_TIMEOUT_S)"
+    diz "$C_MOTIVO"
+    return 1
+  elif ((rc)); then
+    C_MOTIVO="o compose recusou o up -d (código $rc; a saída está neste log)"
+    diz "$C_MOTIVO"
+    dica_uid
+    return 1
+  fi
   C_SINALIZADO=0 # o contêiner novo não guarda o aviso: o servidor que o tinha foi recriado
-  esperar_saude "$SAUDE_S" || return 1
-  rodando=$(imagem_rodando) || return 1
+  if ! esperar_saude "$SAUDE_S"; then
+    C_MOTIVO="o servidor subiu, mas o /api/health não disse ok em ${SAUDE_S}s"
+    diz "$C_MOTIVO"
+    return 1
+  fi
+  if ! rodando=$(imagem_rodando); then
+    C_MOTIVO="não li a imagem em que o servidor roda (docker compose ps)"
+    diz "$C_MOTIVO"
+    return 1
+  fi
   if [[ $rodando != "$esperada" ]]; then
-    diz "o servidor roda $rodando, não $esperada"
+    C_MOTIVO="o servidor roda $rodando, não $esperada"
+    diz "$C_MOTIVO"
     return 1
   fi
 }
 
-# Manda o SIGUSR2 ao servidor e marca a hora: o aviso se solta sozinho em 30 minutos (ADR doug-0005).
+# Manda o SIGUSR2 ao servidor (ADR doug-0005). O aviso vale 30 minutos e, enquanto vale, um segundo sinal não faz nada.
 enviar_aviso() {
-  compose kill -s SIGUSR2 "$SERVICO_SERVIDOR" >/dev/null 2>&1 || return 1
-  C_SINAL_EM=$(date +%s)
+  compose_log 0 kill -s SIGUSR2 "$SERVICO_SERVIDOR" || return 1
   C_SINALIZADO=1
 }
 
@@ -409,20 +468,13 @@ esperar_parada() {
   esperar_pronto
 }
 
-# O aviso de troca vale 30 minutos (ADR doug-0005): se o backup, ou a espera, comeu quase todo o prazo, o servidor pode
-# soltá-lo antes do mv. Passado DOUG_AVISO_REENVIO_S desde o sinal, reenvia e espera o `ready` de novo. 0 se reenviou.
-renovar_aviso() {
-  local idade
-  ((C_SINALIZADO)) || return 1
-  idade=$(($(date +%s) - C_SINAL_EM))
-  ((idade >= REENVIO_S)) || return 1
-  diz "já passaram ${idade}s desde o aviso, que o servidor solta sozinho em 30 minutos: reenviando"
-  if ! enviar_aviso; then
-    diz "o servidor não recebeu o aviso de novo (parado?): troco sem esperar"
-    C_PRONTO=0
-    return 0
-  fi
-  esperar_pronto
+# O aviso ainda vale? O servidor o solta sozinho em 30 minutos (ADR doug-0005) e, solto, a chave `restart` some do
+# health; enquanto ele vale, o health diz `ready` quando nada roda. Só `ready` quer dizer que o backup que acabou de
+# sair foi feito com nada rodando e que nada volta a rodar até o mv.
+aviso_vale() {
+  local corpo
+  corpo=$(saude) || return 1
+  [[ $corpo =~ \"restart\"[[:space:]]*:[[:space:]]*\"ready\" ]]
 }
 
 # Tira o servidor do aviso de troca quando a troca não vai acontecer (ADR doug-0005: o aviso só acaba com um
@@ -430,7 +482,7 @@ renovar_aviso() {
 liberar_servidor() {
   ((C_SINALIZADO)) || return 0
   if ((C_PRONTO)); then
-    if compose restart "$SERVICO_SERVIDOR" >/dev/null 2>&1; then
+    if compose_log 0 restart "$SERVICO_SERVIDOR"; then
       diz "servidor reiniciado na mesma imagem: o aviso de troca acabou"
     else
       diz "AVISO: não reiniciei o servidor; o aviso de troca se solta sozinho em 30 minutos (ADR doug-0005)"
@@ -498,11 +550,17 @@ fazer_backup() {
     return 1
   fi
   C_PARCIAL=$parcial
-  if ! compose exec -T "$SERVICO_BANCO" pg_dump -Fc -U "$BANCO_USUARIO" "$BANCO_NOME" >"$parcial" 2>/dev/null \
-    || [[ ! -s $parcial ]]; then
+  local rc
+  compose_prazo "$BACKUP_S" exec -T "$SERVICO_BANCO" pg_dump -Fc -U "$BANCO_USUARIO" "$BANCO_NOME" >"$parcial" 2>>"${LOG_ATUAL:-/dev/null}"
+  rc=$?
+  if ((rc)) || [[ ! -s $parcial ]]; then
     rm -f "$parcial"
     C_PARCIAL=
-    diz "backup FALHOU: nada foi trocado"
+    if ((rc == 124 || rc == 137)); then
+      diz "backup FALHOU: o pg_dump estourou o prazo de ${BACKUP_S}s (DOUG_BACKUP_TIMEOUT_S): nada foi trocado"
+    else
+      diz "backup FALHOU: o pg_dump não deu um dump (código $rc; a saída está neste log): nada foi trocado"
+    fi
     return 1
   fi
   mv -f "$parcial" "$destino" || { rm -f "$parcial"; C_PARCIAL=; return 1; }
@@ -558,6 +616,17 @@ marca_gravar() { # codigo imagem resultado backup
   printf '%s\t%s\t%s\n' "$3" "$(hora)" "${4:-}" >"$(marca_arquivo "$1" "$2")"
 }
 
+# Quantos dos clientes dados (códigos) têm uma marca `voltou` ou `falhou` com esta imagem.
+marcas_desta_imagem() {
+  local nova=$1 n=0 c
+  shift
+  for c in "$@"; do
+    [[ $c =~ ^[0-9]{3}$ ]] || continue
+    case $(marca_de "$c" "$nova") in voltou | falhou) n=$((n + 1)) ;; esac
+  done
+  printf '%s' "$n"
+}
+
 marca_limpar() { find "$MARCAS" -maxdepth 1 -name "$1__*" -type f -delete 2>/dev/null; }
 
 # A trava do doug-cliente (`$RAIZ/.lock`, no descritor 8): 0 pegou, 1 está com outro, 2 não abriu.
@@ -586,7 +655,7 @@ ao_interromper() {
         diz "AVISO: não restaurei o .env; a cópia está em $C_GUARDA e a próxima rodada a restaura"
       fi
       if ((C_COMMITADO)); then
-        compose up -d >/dev/null 2>&1 && diz "servidor devolvido à imagem anterior" || diz "AVISO: o servidor pode estar na imagem nova"
+        compose_log "$UP_S" up -d && diz "servidor devolvido à imagem anterior" || diz "AVISO: o servidor pode estar na imagem nova"
       fi
     fi
     ((C_COMMITADO)) || liberar_servidor
@@ -646,7 +715,7 @@ _atualizar_um() {
   fi
 
   C_CODIGO=$codigo C_DIR=$dir C_ENV=$env C_GUARDA= C_NOVO= C_PARCIAL= C_PORTA=$porta_reg
-  C_SINALIZADO=0 C_PRONTO=0 C_COMMITADO=0 C_RECRIADO=0 C_SINAL_EM=0
+  C_SINALIZADO=0 C_PRONTO=0 C_COMMITADO=0 C_RECRIADO=0 C_MOTIVO=
   [[ -n $porta_reg ]] || diz "sem porta publicada: o health é lido de dentro do contêiner ($SERVICO_SERVIDOR)"
 
   # A trava do doug-cliente: ele não cria nem remove este cliente enquanto o script o toca.
@@ -671,6 +740,7 @@ _atualizar_um() {
   local vivos
   if ! vivos=$(compose ps --status running -q 2>/dev/null); then
     diz "FALHOU: não li o estado do cliente (docker compose ps)"
+    dica_uid
     return $R_RECUSOU
   fi
   if [[ -z $vivos ]]; then
@@ -733,6 +803,18 @@ _atualizar_um() {
     corpo=$(saude) || corpo=
     if [[ $corpo =~ \"status\"[[:space:]]*:[[:space:]]*\"ok\" ]]; then
       diz "já está em $nova (health ok)"
+      # Uma rodada que morreu depois do mv, ou um .env mexido à mão, deixa a coluna `imagem` do registro velha: acerta.
+      local no_registro
+      no_registro=$(registro_imagem_de "$codigo")
+      if [[ $no_registro != "$nova" ]]; then
+        if ((simular)); then
+          diz "[simulação] o registro diz \"$(limpo "$no_registro")\": gravaria $nova"
+        elif registro_trocar_imagem "$codigo" "$nova"; then
+          diz "o registro dizia \"$(limpo "$no_registro")\": agora diz $nova"
+        else
+          diz "AVISO: o registro não ganhou a imagem $nova (o clientes.tsv ficou como estava)"
+        fi
+      fi
       return $R_JA_ATUAL
     fi
     diz "FALHOU: o .env já tem $nova, mas o servidor não responde ok em /api/health"
@@ -793,17 +875,27 @@ _atualizar_um() {
     return $R_RECUSOU
   fi
 
-  # O aviso vale 30 minutos: se o backup comeu quase todo o prazo, o servidor pode já tê-lo solto e voltado a trabalhar.
-  # Reenvia o sinal e, com nada rodando de novo, refaz o backup, que ficou velho.
-  if renovar_aviso && ((C_PRONTO)); then
-    diz "o aviso foi renovado depois do backup: refazendo o backup com nada rodando"
+  # O aviso vale 30 minutos e um segundo sinal não faz nada enquanto ele vale, então não se mede o tempo: lê-se o health.
+  # Sem `ready` (a chave sumiu, o aviso já tinha caído; ou voltou `waiting`), manda o sinal de novo, espera o `ready` e
+  # refaz o backup, que ficou velho, apagando o primeiro antes: o disco nunca guarda dois dumps.
+  if ((C_SINALIZADO && C_PRONTO)) && ! aviso_vale; then
+    diz "depois do backup o health não diz restart: ready (o aviso de troca caiu?): mando o sinal de novo"
     local primeiro=$BACKUP_FEITO
-    if ! fazer_backup "$codigo" "$nova"; then
-      liberar_servidor
-      rm -f "$C_NOVO" "$guarda"
-      return $R_RECUSOU
+    if ! enviar_aviso; then
+      diz "o servidor não recebeu o aviso de novo (parado?): troco com o backup que tenho"
+    else
+      esperar_pronto
+      if ((C_PRONTO)); then
+        diz "refazendo o backup com nada rodando (o primeiro é apagado antes)"
+        rm -f -- "$primeiro"
+        BACKUP_FEITO=
+        if ! fazer_backup "$codigo" "$nova"; then
+          liberar_servidor
+          rm -f "$C_NOVO" "$guarda"
+          return $R_RECUSOU
+        fi
+      fi
     fi
-    rm -f -- "$primeiro"
   fi
 
   # O ponto sem volta barata: o mv do .env.
@@ -819,9 +911,21 @@ _atualizar_um() {
 
   # As migrações sempre rodam antes do up -d: `migrate` é idempotente (sem nada a fazer, não faz nada), e o `.env` pode
   # desligar as migrações do boot de várias formas (false, 0, off, no, n, disabled...).
-  local ok=1
+  local ok=1 rc
   diz "rodando as migrações antes de subir"
-  compose run --rm --no-deps -T "$SERVICO_SERVIDOR" migrate >/dev/null 2>&1 || { diz "as migrações falharam"; ok=0; }
+  C_MOTIVO=
+  compose_log "$MIGRATE_S" run --rm --no-deps -T "$SERVICO_SERVIDOR" migrate
+  rc=$?
+  if ((rc == 124 || rc == 137)); then
+    C_MOTIVO="a migração estourou o prazo de ${MIGRATE_S}s (DOUG_MIGRATE_TIMEOUT_S)"
+    diz "$C_MOTIVO"
+    ok=0
+  elif ((rc)); then
+    C_MOTIVO="a migração falhou (código $rc; a saída está neste log)"
+    diz "$C_MOTIVO"
+    dica_uid
+    ok=0
+  fi
   ((ok)) && { subir_e_conferir "$nova" || ok=0; }
 
   if ((ok)); then
@@ -838,7 +942,7 @@ _atualizar_um() {
     return $R_ATUALIZOU
   fi
 
-  diz "a versão nova não ficou saudável em ${SAUDE_S}s: voltando para $atual"
+  diz "a troca para $nova falhou (${C_MOTIVO:-motivo desconhecido}): voltando para $atual"
   guardar_backup_da_falha
   if ! restaurar_env "$guarda" "$env"; then
     diz "FALHOU: não restaurei o .env (cópia em $guarda; a próxima rodada a restaura). Backup: ${BACKUP_FEITO}"
@@ -908,10 +1012,20 @@ main() {
     return 2
   fi
 
-  if [[ ! $FOLGA_GB =~ ^[0-9]+$ || ! $REENVIO_S =~ ^[0-9]+$ || ! $FALHOU_GUARDADOS =~ ^[0-9]+$ ]]; then
-    echo "doug-atualizar-clientes: DOUG_FOLGA_GB, DOUG_AVISO_REENVIO_S e DOUG_FALHOU_GUARDADOS são números inteiros" >&2
-    return 2
-  fi
+  # Toda variável numérica é um inteiro: um valor ruim parava o script no meio de uma conta, com um cliente na mão.
+  local var nome_var alvo_var valor
+  for var in DOUG_CLIENT_QUOTA_GB:COTA_GB DOUG_PARADA_TIMEOUT_S:PARADA_S DOUG_SAUDE_TIMEOUT_S:SAUDE_S \
+    DOUG_MIGRATE_TIMEOUT_S:MIGRATE_S DOUG_BACKUP_TIMEOUT_S:BACKUP_S DOUG_UP_TIMEOUT_S:UP_S DOUG_POLL_S:POLL_S \
+    DOUG_FALHAS_SEGUIDAS:FALHAS_LEITURAS DOUG_BACKUPS_GUARDADOS:GUARDAR DOUG_FALHOU_GUARDADOS:FALHOU_GUARDADOS \
+    DOUG_FOLGA_GB:FOLGA_GB DOUG_DISJUNTOR:DISJUNTOR DOUG_TRAVA_ESPERA_S:TRAVA_ESPERA_S DOUG_DONO_UID:DONO_UID; do
+    nome_var=${var%%:*}
+    alvo_var=${var#*:}
+    valor=${!alvo_var}
+    if [[ ! $valor =~ ^[0-9]{1,9}$ ]]; then
+      echo "doug-atualizar-clientes: $nome_var tem de ser um número inteiro (veio \"$(limpo "$valor")\")" >&2
+      return 2
+    fi
+  done
   if ! command -v flock >/dev/null 2>&1; then
     echo "doug-atualizar-clientes: falta o comando flock (sem ele duas execuções se atropelariam)" >&2
     return 2
@@ -948,12 +1062,19 @@ main() {
   fi
 
   local nova
+  # Uma imagem é uma tag (`doug-abc123`), `repositório:tag` ou `repositório@sha256:…`: a mesma regra para a tag dada e
+  # para a lida do container principal. Nada com espaço, aspas, `;` ou um `-` na frente.
+  local regex_imagem='^[A-Za-z0-9][A-Za-z0-9_./:@-]*$'
   if [[ -n $tag ]]; then
-    [[ $tag =~ ^[A-Za-z0-9_./:-]+$ ]] || { echo "doug-atualizar-clientes: tag inválida: $tag" >&2; return 2; }
-    [[ $tag == *:* ]] && nova=$tag || nova=$REPO:$tag
+    [[ $tag =~ $regex_imagem ]] || { echo "doug-atualizar-clientes: tag inválida: $(limpo "$tag")" >&2; return 2; }
+    [[ $tag == *:* || $tag == *@* ]] && nova=$tag || nova=$REPO:$tag
   else
     nova=$(imagem_da_principal) || nova=
     [[ -n $nova ]] || { echo "doug-atualizar-clientes: não li a imagem do container $PRINCIPAL (passe a tag)" >&2; return 2; }
+    if [[ ! $nova =~ $regex_imagem ]]; then
+      echo "doug-atualizar-clientes: a imagem do container $PRINCIPAL não tem a forma de uma imagem (\"$(limpo "$nova")\"): passe a tag" >&2
+      return 2
+    fi
   fi
   if ! docker image inspect "$nova" >/dev/null 2>&1; then
     echo "doug-atualizar-clientes: a imagem $nova não existe nesta máquina" >&2
@@ -996,9 +1117,19 @@ main() {
     trap 'ao_interromper 129' HUP
   fi
 
+  # O disjuntor lembra entre rodadas: cada marca `voltou` ou `falhou` desta imagem, de um cliente que está no registro,
+  # já conta. Com DOUG_DISJUNTOR delas a imagem é o problema, e a rodada nem começa (--forcar passa por cima).
+  local seguidas=0
+  seguidas=$(marcas_desta_imagem "$nova" "${codigos[@]}")
+  if ((seguidas >= DISJUNTOR && forcar == 0)); then
+    echo "doug-atualizar-clientes: DISJUNTOR: $seguidas clientes já voltaram ou falharam com $nova (DOUG_DISJUNTOR=$DISJUNTOR): a imagem é o problema; não toquei em ninguém. --forcar tenta mesmo assim" >&2
+    return 1
+  fi
+  ((forcar == 0)) || seguidas=0
+
   diz "imagem nova: $nova; ${#linhas[@]} cliente(s)$([[ $simular == 1 ]] && echo ' (simulação)')"
   local -a atualizados=() ja=() voltaram=() falharam=() pulados=() parados=() desligados=()
-  local linha rc nome_curto seguidas=0 parou=
+  local linha rc nome_curto parou=
   for linha in "${linhas[@]}"; do
     IFS=$SEP read -r codigo slug porta <<<"$linha"
     nome_curto="$(limpo "$codigo")-$(limpo "$slug")"
@@ -1035,12 +1166,12 @@ main() {
   ((simular == 1)) && verbo="Seriam atualizados"
   resumo() {
     echo "Resumo ($(hora)): $nova"
+    echo "Parados de propósito (${#desligados[@]}): ${desligados[*]:-nenhum}"
     echo "$verbo (${#atualizados[@]}): ${atualizados[*]:-nenhum}"
     echo "Já na imagem (${#ja[@]}): ${ja[*]:-nenhum}"
     echo "Voltaram para a anterior (${#voltaram[@]}): ${voltaram[*]:-nenhum}"
     echo "Falharam (${#falharam[@]}): ${falharam[*]:-nenhum}"
     echo "Pulados (${#pulados[@]}): ${pulados[*]:-nenhum}"
-    echo "Parados de propósito (${#desligados[@]}): ${desligados[*]:-nenhum}"
     echo "Sem iniciar (${#parados[@]}): ${parados[*]:-nenhum}"
     echo "Backups de falha (falhou-*) apagados: $FALHOU_APAGADOS (ficam os $FALHOU_GUARDADOS mais novos de cada cliente)"
     [[ -z $parou ]] || echo "Parada: $parou"

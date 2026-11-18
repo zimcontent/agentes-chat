@@ -36,13 +36,20 @@ function stub(bin: string, name: string, body: string) {
 //   principal-state   what `systemctl is-active` says about the main instance's update
 //   port-<porta>      the folder that owns that port
 //   running-<pasta>   the image `up -d` last started; ps-<pasta> says another one to `compose ps`
-//   signaled-<pasta>  set by SIGUSR2, cleared by `up -d` and `restart` (a new container holds nothing)
+//   signaled-<pasta> the server's restart hold (apps/server/src/restart-hold.ts): the time, in ms, of the SIGUSR2 that
+//                     started it. While it holds (`aviso-prazo-ms`, 30 min by default), `restart` shows in /api/health
+//                     and a second SIGUSR2 does nothing; after it, the key is gone and a signal is accepted again.
+//                     Cleared by `up -d` and `restart` (a new container holds nothing). `signals` logs each signal as
+//                     accepted or ignored
 //   unhealthy         lines `<pasta> <imagem>` that never get healthy
 //   script-<pasta>    one health answer per line, used first: fail, waiting, ready, plain
 //   openapi-<pasta>   one answer of /api/openapi.json per line, used first: fail (curl's timeout), partial, plain
 //   never-ready, ignora-sinal, no-adr, dump-fails, migrate-fails, parado, ps-quebrado   folders (one per line)
 //   slow-up           the next `up -d` takes a while, once; slow-up-<n>: the n-th `up -d` of a client does
-//   slow-dump         the next pg_dump takes a while, once
+//   up-falha-<n>      the n-th `up -d` of a client is refused (stderr says why)
+//   slow-dump         the next pg_dump takes a while, once; slow-migrate: the same for the migration
+//   dump-count        what each pg_dump found in the client's backups folder (the .dump files), one number per line
+//   stdin-calls       what every compose call had as stdin
 //   df-livre-kb       the free KB that `df` says
 //   awk-falha         the awk that rewrites the registry fails
 //   tira-do-registro  a codigo that the next `up -d` takes out of the registry (a `remover` in the middle of a round)
@@ -55,11 +62,21 @@ if [[ $1 == compose && $2 == -p ]]; then
   set -- compose "\${@:10}"
 fi
 printf '%s\\n' "docker[$here] $*" >>"$state/calls"
+if [[ $here != - ]]; then printf '%s\\n' "$* stdin=$(readlink /proc/$$/fd/0)" >>"$state/stdin-calls"; fi
+now=$(( $(date +%s%N) / 1000000 ))
 case "$*" in
 "image inspect "*) grep -qx "$3" "$state/images" ;;
 "inspect --format {{.Config.Image}} agentes-chat-agentes-1") cat "$state/principal" 2>/dev/null || exit 1 ;;
-"compose kill -s SIGUSR2 agentes") touch "$state/signaled-$here" ;;
-"compose restart agentes") rm -f "$state/signaled-$here" ;;
+"compose kill -s SIGUSR2 agentes")
+  if [[ -e $state/kill-falha-depois && -s $state/signals ]]; then echo "Error: container is not running" >&2; exit 1; fi
+  prazo=$(cat "$state/aviso-prazo-ms" 2>/dev/null || echo 1800000)
+  if [[ -s $state/signaled-$here ]] && (( now < $(cat "$state/signaled-$here") + prazo )); then
+    echo "ignorado" >>"$state/signals"
+  else
+    echo "$now" >"$state/signaled-$here"; echo "aceito" >>"$state/signals"
+  fi
+  echo "stub-kill: SIGUSR2 entregue" ;;
+"compose restart agentes") rm -f "$state/signaled-$here"; echo "stub-restart: reiniciado" ;;
 "compose ps --status running -q")
   if grep -qx "$here" "$state/ps-quebrado" 2>/dev/null; then exit 1; fi
   grep -qx "$here" "$state/parado" 2>/dev/null || echo "cid-$here" ;;
@@ -69,10 +86,12 @@ case "$*" in
   apistub "$here" "$path" ;;
 "compose exec -T postgres pg_dump -Fc -U agentes agentes")
   if grep -qx "$here" "$state/dump-fails" 2>/dev/null; then echo "pg_dump: erro" >&2; exit 1; fi
+  ls "$DOUG_CLIENTES_DIR/backups/\${here%%-*}" 2>/dev/null | grep -c '[.]dump$' >>"$state/dump-count" || true
   if [[ -e $state/slow-dump ]]; then rm -f "$state/slow-dump"; touch "$state/dump-started"; sleep 1.5; fi
   echo "PGDMP de $here" ;;
 "compose up -d")
   n=$(( $(cat "$state/up-count-$here" 2>/dev/null || echo 0) + 1 )); echo "$n" >"$state/up-count-$here"
+  if [[ -e $state/up-falha-$n ]]; then echo "Error response from daemon: port is already allocated" >&2; exit 1; fi
   if [[ -e $state/slow-up ]]; then rm -f "$state/slow-up"; touch "$state/up-started"; sleep 1.5; fi
   if [[ -e $state/slow-up-$n ]]; then rm -f "$state/slow-up-$n"; touch "$state/up-started-$n"; sleep 1.5; fi
   sed -nE 's/^(export +)?DOUG_IMAGE=//p' "$dir/.env" | tail -n1 | tr -d "\\"'" >"$state/running-$here"
@@ -83,7 +102,8 @@ case "$*" in
   fi ;;
 "compose ps --format {{.Image}} agentes") cat "$state/ps-$here" 2>/dev/null || cat "$state/running-$here" ;;
 "compose run --rm --no-deps -T agentes migrate")
-  if grep -qx "$here" "$state/migrate-fails" 2>/dev/null; then exit 1; fi ;;
+  if grep -qx "$here" "$state/migrate-fails" 2>/dev/null; then echo 'ERRO: relation "tarefas" already exists' >&2; exit 1; fi
+  if [[ -e $state/slow-migrate ]]; then rm -f "$state/slow-migrate"; touch "$state/migrate-started"; sleep 1.5; fi ;;
 *) echo "docker: chamada inesperada: $*" >&2; exit 99 ;;
 esac
 `;
@@ -125,7 +145,10 @@ case $step in
   waiting) restart=',"restart":"waiting"' ;;
   ready) restart=',"restart":"ready"' ;;
   auto)
-    if [[ -e $state/signaled-$here ]] && ! grep -qx "$here" "$state/ignora-sinal" 2>/dev/null; then
+    now=$(( $(date +%s%N) / 1000000 ))
+    prazo=$(cat "$state/aviso-prazo-ms" 2>/dev/null || echo 1800000)
+    if [[ -s $state/signaled-$here ]] && (( now < $(cat "$state/signaled-$here") + prazo )) \
+      && ! grep -qx "$here" "$state/ignora-sinal" 2>/dev/null; then
       if grep -qx "$here" "$state/never-ready" 2>/dev/null; then restart=',"restart":"waiting"'; else restart=',"restart":"ready"'; fi
     fi ;;
 esac
@@ -238,8 +261,8 @@ function ambiente(clientes: Cliente[] = trio, opcoes: Opcoes = {}) {
       const p = join(raiz, "backups", c.codigo);
       return existsSync(p) ? readdirSync(p).sort() : [];
     },
-    rodar(args: string[] = [], extra: Record<string, string> = {}) {
-      const r = Bun.spawnSync(["bash", script, ...args], { env: ambienteDoScript(extra) });
+    rodar(args: string[] = [], extra: Record<string, string> = {}, entrada?: Uint8Array) {
+      const r = Bun.spawnSync(["bash", script, ...args], { env: ambienteDoScript(extra), stdin: entrada });
       return { code: r.exitCode, out: `${r.stdout}${r.stderr}` };
     },
   };
@@ -875,7 +898,7 @@ describe("deploy/swas/doug-atualizar-clientes", () => {
     c.marca("migrate-fails", `${c1.codigo}-${c1.slug}\n`);
     const r = c.rodar([NEW]);
     expect(r.code).toBe(3);
-    expect(r.out).toContain("as migrações falharam");
+    expect(r.out).toContain("a migração falhou");
     expect(c.env(c1)).toContain(`DOUG_IMAGE=${OLD}`);
   });
 
@@ -1229,39 +1252,93 @@ describe("deploy/swas/doug-atualizar-clientes", () => {
 
   // ─── o prazo de 30 minutos do aviso ──────────────────────────────────────────────────────────────────────────────
 
-  test("o aviso vale 30 min: passado o prazo antes do mv, o sinal é reenviado, o ready esperado de novo e o backup refeito", () => {
-    const a = ambiente([c1]);
-    a.marca("slow-dump", "1"); // the first dump eats the "time"; the limit for the test is 1 s
-    const { code, out } = a.rodar([NEW], { DOUG_AVISO_REENVIO_S: "1" });
-    expect(code).toBe(0);
-    expect(out).toContain("reenviando");
-    expect(out).toContain("refazendo o backup");
-    const t = todas(a.chamadas(), c1);
-    const idx = (re: RegExp) => t.flatMap((l, i) => (re.test(l) ? [i] : []));
-    const kills = idx(/kill -s SIGUSR2/);
-    const dumps = idx(/pg_dump/);
-    const up = t.findIndex((l) => l.endsWith("compose up -d"));
-    expect(kills).toHaveLength(2);
-    expect(dumps).toHaveLength(2);
-    // notice, ready, dump, notice again, ready again, dump again, then the swap
-    expect(kills[0] as number).toBeLessThan(dumps[0] as number);
-    expect(dumps[0] as number).toBeLessThan(kills[1] as number);
-    expect(kills[1] as number).toBeLessThan(dumps[1] as number);
-    expect(dumps[1] as number).toBeLessThan(up);
-    expect(t.slice(kills[1] as number, dumps[1] as number).some((l) => l.endsWith("health"))).toBe(true);
-    // the old dump is replaced by the new one
-    expect(a.backups(c1)).toHaveLength(1);
-    expect(a.env(c1)).toContain(`DOUG_IMAGE=${NEW}`);
-  });
+  // The stub models the server's hold (apps/server/src/restart-hold.ts): `restart` shows in /api/health while the notice
+  // holds, a second SIGUSR2 during it does nothing, the key goes away when it lets go by itself (30 min) and a signal
+  // after that is accepted. The test shrinks the 30 min to `aviso-prazo-ms`.
+  describe("o aviso de troca vale 30 min e um segundo sinal não o renova", () => {
+    const sinais = (a: Ambiente) =>
+      existsSync(join(a.state, "signals"))
+        ? readFileSync(join(a.state, "signals"), "utf8").split("\n").filter(Boolean)
+        : [];
+    const dumpsVistos = (a: Ambiente) =>
+      readFileSync(join(a.state, "dump-count"), "utf8").split("\n").filter(Boolean).map(Number);
 
-  test("dentro do prazo (o padrão, 25 min): um só sinal e um só backup", () => {
-    const a = ambiente([c1]);
-    a.marca("slow-dump", "1");
-    const { code, out } = a.rodar([NEW]);
-    expect(code).toBe(0);
-    expect(out).not.toContain("reenviando");
-    expect(deste(a.chamadas(), c1).filter((l) => l.includes("kill -s SIGUSR2"))).toHaveLength(1);
-    expect(deste(a.chamadas(), c1).filter((l) => l.includes("pg_dump"))).toHaveLength(1);
+    test("o aviso cai durante o backup: o health perde o restart, o sinal é aceito, o ready esperado e o backup refeito sem dois dumps no disco", () => {
+      const a = ambiente([c1]);
+      a.marca("aviso-prazo-ms", "1000");
+      a.marca("slow-dump", "1"); // the first dump outlives the notice
+      const { code, out } = a.rodar([NEW]);
+      expect(code).toBe(0);
+      expect(out).toContain("o health não diz restart: ready");
+      expect(out).toContain("refazendo o backup");
+      const t = todas(a.chamadas(), c1);
+      const idx = (re: RegExp) => t.flatMap((l, i) => (re.test(l) ? [i] : []));
+      const kills = idx(/kill -s SIGUSR2/);
+      const dumps = idx(/pg_dump/);
+      const up = t.findIndex((l) => l.endsWith("compose up -d"));
+      expect(kills).toHaveLength(2);
+      expect(dumps).toHaveLength(2);
+      // notice, ready, dump, health (the key is gone), notice again, ready again, dump again, then the swap
+      expect(kills[0] as number).toBeLessThan(dumps[0] as number);
+      expect(dumps[0] as number).toBeLessThan(kills[1] as number);
+      expect(kills[1] as number).toBeLessThan(dumps[1] as number);
+      expect(dumps[1] as number).toBeLessThan(up);
+      expect(t.slice(dumps[0] as number, kills[1] as number).some((l) => l.endsWith("health"))).toBe(true);
+      expect(t.slice(kills[1] as number, dumps[1] as number).some((l) => l.endsWith("health"))).toBe(true);
+      // the server took both: the second came after the first notice had let go
+      expect(sinais(a)).toEqual(["aceito", "aceito"]);
+      // never two dumps on the disk: the second pg_dump started with none (its .parcial is not a .dump)
+      expect(dumpsVistos(a)).toEqual([0, 0]);
+      expect(a.backups(c1)).toHaveLength(1);
+      expect(a.env(c1)).toContain(`DOUG_IMAGE=${NEW}`);
+    });
+
+    test("dentro do prazo (o padrão, 30 min): um só sinal, um só backup, nada de reenvio", () => {
+      const a = ambiente([c1]);
+      a.marca("slow-dump", "1");
+      const { code, out } = a.rodar([NEW]);
+      expect(code).toBe(0);
+      expect(out).not.toContain("mando o sinal de novo");
+      expect(deste(a.chamadas(), c1).filter((l) => l.includes("kill -s SIGUSR2"))).toHaveLength(1);
+      expect(deste(a.chamadas(), c1).filter((l) => l.includes("pg_dump"))).toHaveLength(1);
+      expect(sinais(a)).toEqual(["aceito"]);
+    });
+
+    test("um health que volta sem ready com o aviso ainda valendo: o sinal é ignorado pelo servidor, o ready é esperado e o backup refeito", () => {
+      const a = ambiente([c1]);
+      // the first read says ready; the one after the dump says waiting; the next says ready
+      a.marca(`script-${c1.codigo}-${c1.slug}`, "ready\nwaiting\nready\n");
+      const { code, out } = a.rodar([NEW]);
+      expect(code).toBe(0);
+      expect(out).toContain("refazendo o backup");
+      expect(sinais(a)).toEqual(["aceito", "ignorado"]);
+      expect(deste(a.chamadas(), c1).filter((l) => l.includes("pg_dump"))).toHaveLength(2);
+      expect(dumpsVistos(a)).toEqual([0, 0]);
+      expect(a.backups(c1)).toHaveLength(1);
+    });
+
+    test("sem ponto de parada no limite (o servidor trabalhando): troca assim mesmo, sem segundo sinal nem segundo backup", () => {
+      const a = ambiente([c1]);
+      a.marca("never-ready", `${c1.codigo}-${c1.slug}\n`);
+      const { code, out } = a.rodar([NEW]);
+      expect(code).toBe(0);
+      expect(out).toContain("o ponto de parada não veio");
+      expect(sinais(a)).toEqual(["aceito"]);
+      expect(deste(a.chamadas(), c1).filter((l) => l.includes("pg_dump"))).toHaveLength(1);
+    });
+
+    test("o segundo sinal não chega ao servidor (parado depois do backup): troca com o backup que há", () => {
+      const a = ambiente([c1]);
+      // the key is gone after the dump and the signal finds nobody: `compose kill` fails from then on
+      a.marca("aviso-prazo-ms", "1000");
+      a.marca("slow-dump", "1");
+      a.marca("kill-falha-depois", "1");
+      const { code, out } = a.rodar([NEW]);
+      expect(code).toBe(0);
+      expect(out).toContain("o servidor não recebeu o aviso de novo");
+      expect(a.backups(c1)).toHaveLength(1);
+      expect(deste(a.chamadas(), c1).filter((l) => l.includes("pg_dump"))).toHaveLength(1);
+    });
   });
 
   // ─── o script morto em cada ponto da troca ───────────────────────────────────────────────────────────────────────
@@ -1298,7 +1375,7 @@ describe("deploy/swas/doug-atualizar-clientes", () => {
       a.marca("never-ready", `${c1.codigo}-${c1.slug}\n`);
       const { code, out } = await matar(
         a,
-        { DOUG_PARADA_TIMEOUT_S: "60", DOUG_POLL_S: "0.05" },
+        { DOUG_PARADA_TIMEOUT_S: "60", DOUG_POLL_S: "1" },
         `signaled-${c1.codigo}-${c1.slug}`,
       );
       expect(code).toBe(143);
@@ -1442,5 +1519,323 @@ exec /usr/bin/awk "$@"
     expect(out).not.toContain("devolvido à imagem anterior");
     expect(readFileSync(join(a.state, `running-${c1.codigo}-${c1.slug}`), "utf8").trim()).toBe(NEW);
     expect(deste(a.chamadas(), c1).filter((l) => l === "compose up -d")).toHaveLength(1);
+  });
+
+  // ─── o disjuntor lembra entre rodadas ────────────────────────────────────────────────────────────────────────────
+
+  describe("o disjuntor lembra entre rodadas", () => {
+    const quatro = [...trio, c4];
+    const estragados = (cs: Cliente[]) => cs.map((c) => `${c.codigo}-${c.slug} ${NEW}`).join("\n");
+
+    test("duas rodadas com a mesma imagem: a segunda, com as marcas do limite, sai com 1 sem tocar em ninguém; --forcar passa por cima", () => {
+      const a = ambiente(quatro);
+      a.marca("unhealthy", estragados(quatro));
+      const primeira = a.rodar([NEW]);
+      expect(primeira.code).toBe(1);
+      expect(primeira.out).toContain("Voltaram para a anterior (2): 001-padaria-aurora 002-cafe-sol");
+      expect(primeira.out).toContain("Sem iniciar (2): 003-oficina-lua 004-livraria-mar");
+      const feitas = a.chamadas().length;
+
+      // the next night: 001 and 002 carry the mark, and that is already DOUG_DISJUNTOR of them: nobody is touched
+      const segunda = a.rodar([NEW]);
+      expect(segunda.code).toBe(1);
+      expect(segunda.out).toContain("DISJUNTOR");
+      expect(segunda.out).toContain("não toquei em ninguém");
+      expect(
+        a
+          .chamadas()
+          .slice(feitas)
+          .filter((l) => l.includes("compose")),
+      ).toEqual([]);
+      for (const c of quatro) expect(a.env(c)).toBe(envDe(c, OLD));
+      expect(a.registro()).not.toContain(NEW);
+
+      // another image has no marks: the round goes on (and here the new image is fine)
+      a.marca("images", `agentes-zim:doug-ddd444\n${NEW}\n${OLD}\n`);
+      expect(a.rodar(["doug-ddd444"]).code).toBe(0);
+
+      // --forcar goes over it: the marked client is tried again
+      const forcada = a.rodar(["--forcar", "--so", "001", NEW]);
+      expect(forcada.out).not.toContain("DISJUNTOR");
+      expect(deste(a.chamadas().slice(feitas), c1).some((l) => l.includes("pg_dump"))).toBe(true);
+    });
+
+    test("uma marca de antes e uma volta nesta rodada fazem o limite: os outros ficam sem iniciar", () => {
+      const a = ambiente(quatro);
+      a.marca("unhealthy", estragados([c1, c2]));
+      // first night: only 001 (one mark: under the limit of 2)
+      expect(a.rodar(["--so", "001", NEW]).code).toBe(3);
+      const feitas = a.chamadas().length;
+      // second night: 001 is skipped (its mark), 002 goes back (the second one) and the round stops
+      const { code, out } = a.rodar([NEW]);
+      expect(code).toBe(1);
+      expect(out).toContain("Pulados (1): 001-padaria-aurora");
+      expect(out).toContain("Voltaram para a anterior (1): 002-cafe-sol");
+      expect(out).toContain("Sem iniciar (2): 003-oficina-lua 004-livraria-mar");
+      expect(tocou(a, c3)).toBe(false);
+      expect(tocou(a, c4)).toBe(false);
+      expect(deste(a.chamadas().slice(feitas), c1).some((l) => l.includes("pg_dump"))).toBe(false);
+    });
+
+    test("marcas de uma imagem não contam para outra, nem as de um cliente que saiu do registro", () => {
+      const a = ambiente(quatro);
+      a.marca("unhealthy", estragados(quatro));
+      a.rodar([NEW]);
+      a.marca("images", `agentes-zim:doug-ddd444\n${NEW}\n${OLD}\n`);
+      expect(a.rodar(["doug-ddd444"]).out).not.toContain("DISJUNTOR");
+      // 001 and 002 leave the registry: their marks are no one's
+      const linhas = a
+        .registro()
+        .split("\n")
+        .filter((l) => !l.startsWith("001\t") && !l.startsWith("002\t"));
+      writeFileSync(join(a.raiz, "clientes.tsv"), linhas.join("\n"));
+      expect(a.rodar([NEW]).out).not.toContain("DISJUNTOR");
+    });
+  });
+
+  // ─── a causa da falha fica no log ────────────────────────────────────────────────────────────────────────────────
+
+  describe("a causa da falha", () => {
+    const logDe = (a: Ambiente, c: Cliente) => {
+      const logs = join(a.raiz, "logs");
+      const [rodada] = readdirSync(logs);
+      return readFileSync(join(logs, rodada as string, `${c.codigo}-${c.slug}.log`), "utf8");
+    };
+
+    test("a migração que falha: a saída do migrate vai para o log do cliente e o motivo é específico", () => {
+      const a = ambiente([c1]);
+      a.marca("migrate-fails", `${c1.codigo}-${c1.slug}\n`);
+      const { code, out } = a.rodar([NEW]);
+      expect(code).toBe(3);
+      expect(out).toContain("a troca para");
+      expect(out).toContain("a migração falhou");
+      expect(out).not.toContain("não ficou saudável em");
+      expect(logDe(a, c1)).toContain('ERRO: relation "tarefas" already exists');
+      expect(out).not.toContain('relation "tarefas"'); // the output is in the log, not on the terminal
+    });
+
+    test("o up -d recusado: o motivo é 'o compose recusou' e o erro do Docker está no log", () => {
+      const a = ambiente([c1]);
+      a.marca("up-falha-1", "1");
+      const { code, out } = a.rodar([NEW]);
+      expect(code).toBe(3);
+      expect(out).toContain("o compose recusou o up -d");
+      expect(out).not.toContain("não ficou saudável em");
+      expect(logDe(a, c1)).toContain("port is already allocated");
+      expect(a.env(c1)).toBe(envDe(c1, OLD));
+    });
+
+    test("health que não fica ok: o motivo diz isso, e não 'a migração' nem 'o compose'", () => {
+      const a = ambiente([c1]);
+      a.marca("unhealthy", `${c1.codigo}-${c1.slug} ${NEW}\n`);
+      const { out } = a.rodar([NEW]);
+      expect(out).toContain("o /api/health não disse ok em 1s");
+    });
+
+    test("a saída do kill, do restart e do pg_dump também vai para o log", () => {
+      const a = ambiente([c1]);
+      a.marca("dump-fails", `${c1.codigo}-${c1.slug}\n`);
+      const { code, out } = a.rodar([NEW]);
+      expect(code).toBe(1);
+      expect(out).not.toContain("stub-kill");
+      expect(out).not.toContain("stub-restart");
+      const log = logDe(a, c1);
+      expect(log).toContain("stub-kill: SIGUSR2 entregue");
+      expect(log).toContain("pg_dump: erro");
+      expect(log).toContain("stub-restart: reiniciado");
+    });
+
+    test("cliente sem DOUG_UID no .env: a falha do compose sugere `doug-cliente compose <codigo>`, sem calcular um uid", () => {
+      const a = ambiente([c1]);
+      a.marca("migrate-fails", `${c1.codigo}-${c1.slug}\n`);
+      const r = a.rodar([NEW]);
+      expect(r.out).toContain("`doug-cliente compose 001`");
+      expect(r.out).not.toContain("100001");
+      expect(a.env(c1)).not.toContain("DOUG_UID");
+
+      const b = ambiente([c1]);
+      b.marca("up-falha-1", "1");
+      expect(b.rodar([NEW]).out).toContain("`doug-cliente compose 001`");
+
+      const c = ambiente([c1]);
+      c.marca("ps-quebrado", `${c1.codigo}-${c1.slug}\n`);
+      expect(c.rodar([NEW]).out).toContain("`doug-cliente compose 001`");
+
+      // a client that has it: no hint
+      const d = ambiente([c1], { env: (x) => `${envDe(x, OLD)}DOUG_UID=100001\n` });
+      d.marca("migrate-fails", `${c1.codigo}-${c1.slug}\n`);
+      expect(d.rodar([NEW]).out).not.toContain("doug-cliente compose");
+    });
+  });
+
+  // ─── prazo nos comandos ──────────────────────────────────────────────────────────────────────────────────────────
+
+  describe("prazo no migrate, no pg_dump e no up -d", () => {
+    test("um up -d que estoura o prazo é falha: a volta age e o motivo diz o prazo", () => {
+      const a = ambiente([c1]);
+      a.marca("slow-up-1", "1"); // the swap hangs; the way back is quick
+      const { code, out } = a.rodar([NEW], { DOUG_UP_TIMEOUT_S: "1" });
+      expect(code).toBe(3);
+      expect(out).toContain("estourou o prazo de 1s (DOUG_UP_TIMEOUT_S)");
+      expect(out).toContain("VOLTOU");
+      expect(a.env(c1)).toBe(envDe(c1, OLD));
+      expect(deste(a.chamadas(), c1).filter((l) => l === "compose up -d")).toHaveLength(2);
+    });
+
+    test("uma migração que estoura o prazo é falha: o cliente volta, e o up -d da troca nem roda", () => {
+      const a = ambiente([c1]);
+      a.marca("slow-migrate", "1");
+      const { code, out } = a.rodar([NEW], { DOUG_MIGRATE_TIMEOUT_S: "1" });
+      expect(code).toBe(3);
+      expect(out).toContain("a migração estourou o prazo de 1s (DOUG_MIGRATE_TIMEOUT_S)");
+      expect(a.env(c1)).toBe(envDe(c1, OLD));
+      expect(deste(a.chamadas(), c1).filter((l) => l === "compose up -d")).toHaveLength(1); // the way back only
+    });
+
+    test("um pg_dump que estoura o prazo: o cliente não é tocado, nada fica pela metade e o servidor sai do aviso", () => {
+      const a = ambiente([c1]);
+      a.marca("slow-dump", "1");
+      const { code, out } = a.rodar([NEW], { DOUG_BACKUP_TIMEOUT_S: "1" });
+      expect(code).toBe(1);
+      expect(out).toContain("o pg_dump estourou o prazo de 1s (DOUG_BACKUP_TIMEOUT_S)");
+      expect(a.env(c1)).toBe(envDe(c1, OLD));
+      expect(a.backups(c1)).toEqual([]);
+      const d = deste(a.chamadas(), c1);
+      expect(d.some((l) => l.includes("migrate") || l === "compose up -d")).toBe(false);
+      expect(d).toContain("compose restart agentes");
+    });
+
+    test("com prazos folgados (e 0, sem prazo) nada muda", () => {
+      const a = ambiente([c1]);
+      expect(
+        a.rodar([NEW], { DOUG_UP_TIMEOUT_S: "600", DOUG_MIGRATE_TIMEOUT_S: "0", DOUG_BACKUP_TIMEOUT_S: "3600" }).code,
+      ).toBe(0);
+    });
+  });
+
+  // ─── sem porta: só uma defesa ────────────────────────────────────────────────────────────────────────────────────
+
+  test("nenhum docker compose lê a entrada do script: a entrada de cada chamada é /dev/null", () => {
+    for (const semPorta of [false, true]) {
+      const a = ambiente([c1], { semPorta });
+      const { code } = a.rodar([NEW], {}, new Uint8Array([10, 10, 10])); // the script's own stdin is a pipe with data
+      expect(code).toBe(0);
+      const linhas = readFileSync(join(a.state, "stdin-calls"), "utf8").split("\n").filter(Boolean);
+      expect(linhas.length).toBeGreaterThan(5);
+      if (semPorta) expect(linhas.some((l) => l.startsWith("compose exec -T agentes bun -e "))).toBe(true);
+      for (const l of linhas) expect(l.endsWith(" stdin=/dev/null")).toBe(true);
+    }
+  });
+
+  // ─── validações e o resumo ───────────────────────────────────────────────────────────────────────────────────────
+
+  describe("validações de entrada", () => {
+    const numericas = [
+      "DOUG_CLIENT_QUOTA_GB",
+      "DOUG_PARADA_TIMEOUT_S",
+      "DOUG_SAUDE_TIMEOUT_S",
+      "DOUG_MIGRATE_TIMEOUT_S",
+      "DOUG_BACKUP_TIMEOUT_S",
+      "DOUG_UP_TIMEOUT_S",
+      "DOUG_POLL_S",
+      "DOUG_FALHAS_SEGUIDAS",
+      "DOUG_BACKUPS_GUARDADOS",
+      "DOUG_FALHOU_GUARDADOS",
+      "DOUG_FOLGA_GB",
+      "DOUG_DISJUNTOR",
+      "DOUG_TRAVA_ESPERA_S",
+      "DOUG_DONO_UID",
+    ];
+
+    test("toda variável numérica ruim sai com 2, nomeando a variável, sem tocar em nada", () => {
+      const a = ambiente([c1]);
+      for (const nome of numericas) {
+        for (const ruim of ["abc", "1.5", "-1", "10s", "1 2"]) {
+          const r = a.rodar([NEW], { [nome]: ruim });
+          expect(r.code).toBe(2);
+          expect(r.out).toContain(`${nome} tem de ser um número inteiro`);
+        }
+      }
+      expect(a.chamadas()).toEqual([]);
+      expect(existsSync(join(a.raiz, "logs"))).toBe(false);
+    });
+
+    test("--help não depende do ambiente numérico ruim, e valores bons passam", () => {
+      const a = ambiente([c1]);
+      expect(a.rodar(["--help"], { DOUG_POLL_S: "abc" }).code).toBe(0);
+      expect(a.rodar([NEW], { DOUG_DISJUNTOR: "5", DOUG_BACKUPS_GUARDADOS: "7", DOUG_FALHAS_SEGUIDAS: "4" }).code).toBe(
+        0,
+      );
+    });
+
+    test("a imagem lida do container principal é validada como a tag; um digest com @sha256: serve", () => {
+      const digest = `agentes-zim@sha256:${"a1".repeat(32)}`;
+      const a = ambiente([c1]);
+      a.marca("images", `${digest}\n${OLD}\n${NEW}\n`);
+      a.marca("principal", digest);
+      const { code } = a.rodar();
+      expect(code).toBe(0);
+      expect(a.env(c1)).toContain(`DOUG_IMAGE=${digest}`);
+      expect(a.registro()).toContain(`\t${digest}\t`);
+
+      for (const ruim of [
+        "agentes-zim:doug-x; touch /tmp/pwn",
+        "agentes zim:doug",
+        "-rf",
+        'agentes-zim:"x"',
+        "$(id)",
+      ]) {
+        const b = ambiente([c1]);
+        b.marca("images", `${ruim}\n${OLD}\n`);
+        b.marca("principal", ruim);
+        const r = b.rodar();
+        expect(r.code).toBe(2);
+        expect(r.out).toContain("não tem a forma de uma imagem");
+        expect(tocou(b, c1)).toBe(false);
+      }
+      // a tag with `@` given by hand follows the same rule
+      const c = ambiente([c1]);
+      c.marca("images", `${digest}\n${OLD}\n`);
+      expect(c.rodar([digest]).code).toBe(0);
+      expect(c.rodar(["a;b"]).code).toBe(2);
+    });
+  });
+
+  test("cliente que já está na imagem, com o registro velho: a coluna imagem é acertada (no --dry-run, só dita)", () => {
+    // the .env says NEW and the server is healthy, but the registry still says OLD (a round that died after the mv)
+    const a = ambiente([c1, c2], { env: (c) => envDe(c, c.codigo === "001" ? NEW : OLD) });
+    const seco = a.rodar(["--dry-run", NEW]);
+    expect(seco.out).toContain("[simulação] o registro diz");
+    expect(a.registro()).toContain(`\t${OLD}\t`);
+    expect(a.registro()).not.toContain(`\t${NEW}\t`);
+
+    const { code, out } = a.rodar([NEW]);
+    expect(code).toBe(0);
+    expect(out).toContain("Já na imagem (1): 001-padaria-aurora");
+    expect(a.registro()).toContain(`001\tpadaria-aurora\tNome padaria-aurora\t3101\t${NEW}\t2026-11-01`);
+    expect(a.registro()).toContain(`002\tcafe-sol\tNome cafe-sol\t3102\t${NEW}\t2026-11-01`); // 002 was updated
+    expect(existsSync(join(a.raiz, "clientes.tsv.anterior"))).toBe(true);
+    expect(a.backups(c1)).toEqual([]);
+    // the registry's other columns are untouched: the same number of columns on every line
+    for (const l of a.registro().split("\n").filter(Boolean)) expect(l.split("\t")).toHaveLength(6);
+
+    // with the registry right already, no write at all
+    const antes = readFileSync(join(a.raiz, "clientes.tsv.anterior"), "utf8");
+    a.rodar([NEW]);
+    expect(readFileSync(join(a.raiz, "clientes.tsv.anterior"), "utf8")).toBe(antes);
+  });
+
+  test("o resumo começa por 'Parados de propósito', antes dos atualizados", () => {
+    const a = ambiente();
+    a.marca("parado", "002-cafe-sol\n");
+    const { out } = a.rodar([NEW]);
+    const resumo = out.slice(out.indexOf("Resumo ("));
+    const linhas = resumo.split("\n");
+    expect(linhas[1]).toBe("Parados de propósito (1): 002-cafe-sol");
+    expect(linhas[2]).toStartWith("Atualizados (");
+    const [rodada] = readdirSync(join(a.raiz, "logs"));
+    expect(readFileSync(join(a.raiz, "logs", rodada as string, "resumo.txt"), "utf8").split("\n")[1]).toStartWith(
+      "Parados de propósito (1)",
+    );
   });
 });

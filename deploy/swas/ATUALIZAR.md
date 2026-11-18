@@ -38,13 +38,26 @@ que existe na máquina". Este script não compila nada.
    link simbólico levaria a escrita do root para fora da pasta dele. Se o backup falhar, o cliente **não é tocado** e o
    servidor sai do aviso de troca (reiniciado na mesma imagem se nada rodava; senão o aviso se solta sozinho em 30
    minutos, ADR doug-0005).
-   **O prazo de 30 minutos do aviso.** O servidor solta o aviso sozinho em 30 min, e um backup grande pode comer boa
-   parte disso. O script mede o tempo desde o `SIGUSR2`; se passar de `DOUG_AVISO_REENVIO_S` (1500, 25 min) antes do
-   `mv`, reenvia o sinal, espera o `ready` de novo e **refaz o backup** (o primeiro ficou velho: o servidor pode ter
-   voltado a trabalhar enquanto o aviso estava solto) e apaga o anterior.
+   **O prazo de 30 minutos do aviso.** O servidor solta o aviso sozinho 30 min depois do primeiro `SIGUSR2`
+   (`apps/server/src/restart-hold.ts`): um segundo sinal **não faz nada enquanto o aviso vale**, e o prazo não se renova;
+   só depois que ele cai (a chave `restart` some do `/api/health`) um sinal novo é aceito. Um backup grande pode comer
+   boa parte dos 30 min, então o script **não mede tempo**: depois do backup e antes do `mv` lê o health. Com
+   `restart: ready`, nada voltou a rodar e a troca segue. Sem ele (a chave sumiu, o aviso já tinha caído, ou voltou
+   `waiting`), manda o sinal de novo, espera o `ready`, **apaga o primeiro backup** e **o refaz**: o disco nunca guarda
+   dois dumps. Se o sinal não chega ao servidor, troca com o backup que tem; se o ponto de parada nem veio da primeira
+   vez (o limite de `DOUG_PARADA_TIMEOUT_S`), a troca já seguia assim mesmo e não há segunda conferência.
 7. **Troca.** `mv` do `.env` novo; `docker compose run --rm --no-deps agentes migrate` **sempre**, antes do
    `docker compose up -d` (`migrate` é idempotente: sem nada a fazer, não faz nada; assim não importa de que jeito o
    `.env` desliga as migrações do boot: `false`, `0`, `off`, `no`, `n`, `disabled`, em qualquer caixa).
+   **Prazos.** `migrate`, `pg_dump` e cada `up -d` rodam sob `timeout` (`DOUG_MIGRATE_TIMEOUT_S` 900,
+   `DOUG_BACKUP_TIMEOUT_S` 3600, `DOUG_UP_TIMEOUT_S` 600; `0` tira o prazo). Estourar é falha como qualquer outra: um
+   `pg_dump` que estoura deixa o cliente intocado; um `migrate` ou `up -d` que estoura aciona a volta.
+   **A causa fica no log.** A saída do `migrate`, do `up -d`, do `kill`, do `restart` e o erro do `pg_dump` vão para o
+   log do cliente (`logs/atualizacao-<data>/<codigo>-<slug>.log`), e a mensagem diz o que falhou, de um destes jeitos:
+   "a migração falhou", "a migração estourou o prazo", "o compose recusou o up -d", "o docker compose up -d estourou o
+   prazo", "o servidor subiu, mas o /api/health não disse ok", "o servidor roda <outra imagem>". Um cliente criado antes
+   do instalador atual pode não ter `DOUG_UID` no `.env`, que o `compose.yml` atual pede: quando o compose falha e o
+   `.env` não o tem, o log sugere ``doug-cliente compose <codigo>``, que o acrescenta. **O script nunca calcula um uid.**
 8. **Health e imagem.** Espera `status: ok` em até 5 minutos e confere, com `docker compose ps`, que o servidor roda a
    imagem nova. Dando certo, a coluna `imagem` de `clientes.tsv` passa à imagem nova (por um arquivo ao lado e um `mv`;
    a cópia anterior fica em `clientes.tsv.anterior`; um disco cheio não trunca o registro) e os backups de trocas boas
@@ -55,15 +68,18 @@ que existe na máquina". Este script não compila nada.
    `pre-*`, e a imagem fica marcada. Esses são os que mais pesam e ninguém os apagaria: ficam só os
    `DOUG_FALHOU_GUARDADOS` (2) mais novos de cada cliente, e o resumo diz quantos foram apagados.
 
-### Como o health é lido (com e sem porta publicada)
+### Como o health é lido
 
-- **Com porta** (`DOUG_HOST_PORT` no `.env` e a mesma no registro): `curl http://127.0.0.1:<porta>/api/health`.
-- **Sem porta publicada** (o modo de proxy "externo", em que o proxy entra na rede do cliente e o upstream é o nome do
-  container: o `compose.yml` não tem `ports` e o `.env` não tem `DOUG_HOST_PORT`; a coluna `porta` do registro é `-`,
-  `0` ou vazia): o mesmo fetch que o `HEALTHCHECK` da imagem faz, por dentro, com
-  `docker compose exec -T agentes bun -e "fetch('http://127.0.0.1:' + (process.env.PORT || 3000) + '/api/health')…"`.
-  Serve para o `/api/health` e para o `/api/openapi.json`. Não depende da rede do host, de porta nem de firewall.
-  O servidor tem de estar rodando para o `exec` (antes e depois da troca é o mesmo caso: sem resposta, é "não responde").
+- **Pela porta do cliente no loopback** (`DOUG_HOST_PORT` no `.env` e a mesma no registro): `curl
+  http://127.0.0.1:<porta>/api/health`. **É o caminho de sempre**: o instalador SEMPRE publica
+  `127.0.0.1:${DOUG_HOST_PORT}:3000` (mesmo com o proxy externo, em que o proxy entra na rede do cliente) e o
+  `carrega_cliente` dele exige uma porta numérica.
+- **Sem porta** (a coluna `porta` do registro é `-`, `0` ou vazia, e o `.env` não tem `DOUG_HOST_PORT`): **só uma
+  defesa**, para um registro escrito à mão; o instalador não gera esse caso e ele não é um modo suportado. O script
+  então usa o mesmo fetch que o `HEALTHCHECK` da imagem faz, por dentro, com
+  `docker compose exec -T agentes bun -e "fetch('http://127.0.0.1:' + (process.env.PORT || 3000) + '/api/health')…"`,
+  que serve também para o `/api/openapi.json`. O servidor tem de estar rodando para o `exec`.
+- Todo `docker compose` do script (o `exec` inclusive) roda com a entrada em `/dev/null`: nenhum come a entrada do script.
 
 O **banco não é restaurado sozinho**. Se a versão nova já migrou o esquema antes de falhar, a imagem anterior pode não
 subir sobre ele: então o cliente aparece como *falhou* e o backup (caminho no log) é a volta.
@@ -83,7 +99,9 @@ rodava; senão o aviso acaba sozinho em 30 min). Se for morto sem trap (`SIGKILL
   troca interrompida não foi concluída; a próxima rodada tenta de novo).
 
 Um guarda igual ao `.env` (a morte veio antes do `mv`) só é removido. Um cliente que já está na imagem pedida **só conta como "já na imagem" se o health disser ok**; sem health
-ele *falha*.
+ele *falha*. Se ele já está na imagem mas a coluna `imagem` do `clientes.tsv` está velha (uma rodada que morreu depois do
+`mv`, ou um `.env` mexido à mão), o script a acerta, sob a trava do cliente e do mesmo jeito que numa troca (no `--dry-run`, só diz
+que o faria).
 
 ### Marcas e disjuntor
 
@@ -91,9 +109,14 @@ ele *falha*.
   `/opt/doug-clientes/atualizacao/marcas/`. Nas rodadas seguintes com a mesma imagem o cliente aparece em **Pulados**
   (sem tocar nele) até alguém olhar e rodar com `--forcar`. Uma troca boa apaga as marcas do cliente; marcas com mais de
   60 dias saem.
-- **Disjuntor:** `DOUG_DISJUNTOR` (2) voltas ou falhas seguidas, com a mesma imagem, **param a rodada**: a imagem é o
+- **Disjuntor:** `DOUG_DISJUNTOR` (2) voltas ou falhas, com a mesma imagem, **param a rodada**: a imagem é o
   problema, não os clientes. Os que sobram aparecem em **Sem iniciar**. Falhas antes de tocar no cliente (backup,
   permissões, imagem ausente…) não contam: não dizem nada sobre a imagem.
+  **Ele lembra entre rodadas.** Ao começar, o script conta as marcas `voltou` e `falhou` desta imagem (dos clientes que
+  estão no registro) e parte dessa contagem. Se ela já for `>= DOUG_DISJUNTOR` e não houver `--forcar`, a rodada
+  **sai com 1 sem tocar em ninguém**, com a mensagem do disjuntor: sem isso, a noite seguinte pularia os clientes
+  marcados e tentaria os outros com a imagem que já derrubou os primeiros. Com uma marca de antes e uma volta nesta
+  rodada, o limite de 2 também chega. `--forcar` zera a contagem (quem o usa já olhou a imagem).
 - A rodada também para se a atualização da instância principal (`doug-atualizar.service`) começar no meio dela, e nem
   começa se ela já estiver rodando (`systemctl is-active`).
 
@@ -115,15 +138,16 @@ de verdade: `--dry-run`, depois `--so <um cliente de teste>`.
 
 ### Saída e código de saída
 
-O fim da saída é o resumo (também em `resumo.txt`): **atualizados**, **já na imagem**, **voltaram para a anterior**,
-**falharam**, **pulados**, **parados de propósito** e **sem iniciar**, e quantos backups `falhou-*` foram apagados.
+O fim da saída é o resumo (também em `resumo.txt`). Começa pelos **parados de propósito** (quem está parado merece o
+olhar primeiro: ninguém o atualiza), e segue com **atualizados**, **já na imagem**, **voltaram para a anterior**,
+**falharam**, **pulados** e **sem iniciar**, e quantos backups `falhou-*` foram apagados.
 
 | Código | Significa |
 | --- | --- |
 | 0 | tudo certo (um cliente parado de propósito aparece no resumo e não muda o código) |
 | 1 | algum cliente **falhou** (sem backup, `.env` ilegível, permissões, imagem ausente, nem a anterior ficou saudável…) ou ficou **sem iniciar** (disjuntor) |
 | 3 | nenhum falhou, mas algum **voltou** para a imagem anterior ou foi **pulado** por uma marca |
-| 2 | uso errado ou algo global: imagem inexistente, registro ausente, `flock` ausente, outra atualização rodando, a instância principal se atualizando |
+| 2 | uso errado ou algo global: imagem inexistente ou com forma inválida, variável numérica que não é inteiro, registro ausente, `flock` ausente, outra atualização rodando, a instância principal se atualizando |
 
 Logs: `/opt/doug-clientes/logs/atualizacao-<data>/<codigo>-<slug>.log` e `resumo.txt`; pastas com mais de 60 dias saem.
 Sobras de execuções mortas são apagadas **só pelo prefixo do próprio script**: `.env.atualizando.*` na pasta do cliente,
@@ -131,6 +155,10 @@ Sobras de execuções mortas são apagadas **só pelo prefixo do próprio script
 `clientes.tsv.backup` ou um `manual-*.dump.parcial` do operador ficam como estão.
 
 ### Variáveis (todas opcionais)
+
+As numéricas (todas as de tempo, quantidade, GB e `DOUG_DONO_UID`) têm de ser **inteiros**: um valor ruim (`abc`,
+`1.5`, `-1`) faz o script sair com 2, dizendo qual, antes de tocar em qualquer cliente. A imagem (a tag dada ou a lida
+do container principal) tem de ter a forma de uma imagem: `tag`, `repositório:tag` ou `repositório@sha256:…`.
 
 | Variável | Padrão |
 | --- | --- |
@@ -143,14 +171,16 @@ Sobras de execuções mortas são apagadas **só pelo prefixo do próprio script
 | `DOUG_DB_USER`, `DOUG_DB_NAME` | `agentes`, `agentes` |
 | `DOUG_PARADA_TIMEOUT_S` | `900` |
 | `DOUG_SAUDE_TIMEOUT_S` | `300` |
+| `DOUG_MIGRATE_TIMEOUT_S` | `900` (`0` sem prazo) |
+| `DOUG_BACKUP_TIMEOUT_S` | `3600` (`0` sem prazo) |
+| `DOUG_UP_TIMEOUT_S` | `600` (`0` sem prazo; vale para cada `up -d`, o da troca e o da volta) |
 | `DOUG_POLL_S` | `5` |
 | `DOUG_FALHAS_SEGUIDAS` | `3` |
 | `DOUG_BACKUPS_GUARDADOS` | `3` (os `pre-*`) |
 | `DOUG_FALHOU_GUARDADOS` | `2` (os `falhou-*` mais novos de cada cliente) |
 | `DOUG_FOLGA_GB` | `5` (folga de disco, além de `dados/postgres`, para o dump) |
-| `DOUG_AVISO_REENVIO_S` | `1500` (reenvio do `SIGUSR2` antes do `mv`, aviso de 30 min) |
 | `DOUG_QUOTA_ESTRITA` | vazio (`1`: passar da cota impede a atualização do cliente) |
-| `DOUG_DISJUNTOR` | `2` |
+| `DOUG_DISJUNTOR` | `2` (marcas de antes e voltas desta rodada, com a mesma imagem) |
 | `DOUG_TRAVA_ESPERA_S` | `0` (a unidade põe `600`) |
 | `DOUG_DONO_UID` | `0` (root) |
 | `DOUG_LOG_DIR` | `$DOUG_CLIENTES_DIR/logs` |
