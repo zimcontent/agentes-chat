@@ -1,9 +1,9 @@
-import { LinearGradient } from "expo-linear-gradient";
-import type { ReactNode } from "react";
+import { type ReactNode, useId } from "react";
 import { useTranslation } from "react-i18next";
 import { Pressable, StyleSheet, useWindowDimensions, View } from "react-native";
+import Svg, { Circle, Defs, Mask, Pattern, RadialGradient, Rect, Stop, SvgXml } from "react-native-svg";
+import { iconSvg } from "@/brand/doug-icons.js";
 import { Button, Text, useTheme } from "@/ui";
-import { chosenBorder, chosenWash, PANEL_RADIUS } from "@/ui/surfaces";
 
 /** This fork's own words, in Portuguese and English (any other language reads English). */
 const WORDS = {
@@ -16,8 +16,6 @@ const WORDS = {
     decisions: "Decisões",
     talk: "Conversar",
     call: "Ligar",
-    more: (n: number) => `+${n}`,
-    moreLabel: (n: number) => (n === 1 ? "e mais 1 agente" : `e mais ${n} agentes`),
   },
   en: {
     coordinating: (n: number) => (n === 1 ? "Coordinating 1 agent" : `Coordinating ${n} agents`),
@@ -28,8 +26,6 @@ const WORDS = {
     decisions: "Decisions",
     talk: "Talk",
     call: "Call",
-    more: (n: number) => `+${n}`,
-    moreLabel: (n: number) => (n === 1 ? "and 1 more agent" : `and ${n} more agents`),
   },
 } as const;
 
@@ -41,15 +37,8 @@ export function useDougWords(): DougWords {
   return WORDS[i18n.language?.startsWith("pt") ? "pt" : "en"];
 }
 
-/** A small face beside Doug's: one agent he coordinates now. */
-export interface CrewFace {
-  id: string;
-  face: ReactNode;
-}
-
-/** Doug's face, the agents he coordinates now small on both sides. */
+/** Doug's icon beside his words. */
 export const DOUG_FACE = 48;
-export const CREW_FACE = 24;
 
 /**
  * The card itself, with its data in props: the app's Início and the board draw the same one. Compact: his face in the
@@ -58,9 +47,6 @@ export const CREW_FACE = 24;
  */
 export function DougPinnedCard({
   face,
-  left,
-  right,
-  more,
   name,
   status,
   greeting,
@@ -72,9 +58,6 @@ export function DougPinnedCard({
   onStatus,
 }: {
   face: ReactNode;
-  left: readonly CrewFace[];
-  right: readonly CrewFace[];
-  more: number;
   name: string;
   /** "Nada esperando você" or "N decisões esperando você". */
   status: string;
@@ -90,62 +73,46 @@ export function DougPinnedCard({
   /** The line itself, when something waits: Pendentes. */
   onStatus?: (() => void) | undefined;
 }) {
-  const { colors, scheme } = useTheme();
+  const { scheme } = useTheme();
   // Under 390 points (13 mini, SE, 12 and 13 at 375) or with larger text, "Ver as decisões" is "Decisões": the three
   // buttons keep one row instead of the last one dropping under the others.
   const { width, fontScale } = useWindowDimensions();
   const short = width < 390 || fontScale > 1.1;
-  const crew = (list: readonly CrewFace[]) => list.map((c) => <View key={c.id}>{c.face}</View>);
   const doing = working > 0 ? words.coordinating(working) : words.ready;
   return (
-    <View style={[styles.card, chosenBorder(scheme, PANEL_RADIUS)]}>
-      <LinearGradient
-        colors={chosenWash(scheme)}
-        start={{ x: 0.5, y: 0 }}
-        end={{ x: 0.5, y: 1 }}
-        style={[StyleSheet.absoluteFill, { borderRadius: PANEL_RADIUS - 1 }]}
-        pointerEvents="none"
-      />
+    <View style={styles.section}>
+      {/* No box: the brand's texture behind him, a lime glow and the site's dot grid fading out at the edges. */}
+      <DougTexture dark={scheme === "dark"} />
       <Pressable
         onPress={onTalk}
         accessibilityRole="button"
-        accessibilityLabel={`${name}, ${doing}${more > 0 ? `, ${words.moreLabel(more)}` : ""}`}
-        style={styles.faces}
+        accessibilityLabel={`${name}, ${doing}`}
+        style={styles.head}
       >
-        {crew(left)}
-        <View style={styles.doug}>{face}</View>
-        {crew(right)}
-        {more > 0 ? (
-          <View style={[styles.more, { borderColor: colors.glassEdge, backgroundColor: colors.raised }]}>
-            <Text variant="caption" tone="muted" style={styles.moreText}>
-              {words.more(more)}
-            </Text>
-          </View>
-        ) : null}
-      </Pressable>
-      {/* His name under his face, with what he is up to: the card says who it is. */}
-      <Pressable onPress={onTalk} accessibilityElementsHidden importantForAccessibility="no" style={styles.who}>
-        <Text variant="callout" style={styles.name} numberOfLines={1}>
-          {name}
-          <Text variant="footnote" tone="muted">{`  ·  ${doing}`}</Text>
-        </Text>
-      </Pressable>
-      <Pressable
-        onPress={onStatus}
-        disabled={!onStatus}
-        accessibilityRole={onStatus ? "button" : "text"}
-        style={styles.line}
-      >
-        <Text variant="subhead" style={styles.lineText}>
-          {greeting ? (
-            <Text variant="subhead" tone="muted">
-              {`${greeting} `}
-            </Text>
-          ) : null}
-          <Text variant="subhead" style={styles.status}>
-            {status}
+        {face}
+        <View style={styles.words}>
+          <Text variant="callout" style={styles.name} numberOfLines={1}>
+            {name}
+            <Text variant="footnote" tone="muted">{`  ·  ${doing}`}</Text>
           </Text>
-        </Text>
+          <Pressable
+            onPress={onStatus}
+            disabled={!onStatus}
+            accessibilityRole={onStatus ? "button" : "text"}
+            hitSlop={6}
+          >
+            <Text variant="subhead" numberOfLines={2}>
+              {greeting ? (
+                <Text variant="subhead" tone="muted">
+                  {`${greeting} `}
+                </Text>
+              ) : null}
+              <Text variant="subhead" style={styles.status}>
+                {status}
+              </Text>
+            </Text>
+          </Pressable>
+        </View>
       </Pressable>
       <View style={styles.actions}>
         <Button variant="secondary" size="sm" label={words.call} onPress={onCall} />
@@ -164,31 +131,69 @@ export function DougPinnedCard({
   );
 }
 
+/** Doug's own app icon (the lime ground, him peeking from the corner), drawn once: no animation, nothing per frame. */
+const DOUG_ICON_XML = iconSvg({ ground: "day", color: "green", face: "normal", pose: "peek" });
+
+export function DougIcon({ size = DOUG_FACE }: { size?: number }) {
+  return (
+    <View style={[styles.icon, { width: size, height: size, borderRadius: Math.round(size * 0.24) }]}>
+      <SvgXml xml={DOUG_ICON_XML} width={size} height={size} />
+    </View>
+  );
+}
+
+/**
+ * The section's backdrop: a soft lime glow behind Doug and the site's dot grid, both fading to nothing before the
+ * edges (both ellipses reach zero exactly at the section's sides), so there is no box. One static drawing the size of the section (which never changes while it shows).
+ */
+function DougTexture({ dark }: { dark: boolean }) {
+  const id = useId().replace(/[^a-zA-Z0-9]/g, "");
+  const lime = dark ? "#9CFA05" : "#5A9A00";
+  return (
+    <View
+      style={StyleSheet.absoluteFill}
+      pointerEvents="none"
+      accessibilityElementsHidden
+      importantForAccessibility="no"
+    >
+      <Svg width="100%" height="100%">
+        <Defs>
+          <RadialGradient id={`g${id}`} cx="50%" cy="50%" rx="50%" ry="50%" fx="22%" fy="40%">
+            <Stop offset="0" stopColor={lime} stopOpacity={dark ? 0.16 : 0.14} />
+            <Stop offset="1" stopColor={lime} stopOpacity={0} />
+          </RadialGradient>
+          <RadialGradient id={`f${id}`} cx="50%" cy="50%" rx="50%" ry="50%">
+            <Stop offset="0" stopColor="#FFFFFF" stopOpacity={1} />
+            <Stop offset="1" stopColor="#FFFFFF" stopOpacity={0} />
+          </RadialGradient>
+          <Pattern id={`d${id}`} width={14} height={14} patternUnits="userSpaceOnUse">
+            <Circle cx={7} cy={7} r={1} fill={dark ? "#FFFFFF" : "#0A0A0A"} fillOpacity={dark ? 0.1 : 0.08} />
+          </Pattern>
+          <Mask id={`m${id}`}>
+            <Rect x="0" y="0" width="100%" height="100%" fill={`url(#f${id})`} />
+          </Mask>
+        </Defs>
+        <Rect x="0" y="0" width="100%" height="100%" fill={`url(#g${id})`} />
+        <Rect x="0" y="0" width="100%" height="100%" fill={`url(#d${id})`} mask={`url(#m${id})`} />
+      </Svg>
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
-  card: { marginHorizontal: 16, marginTop: 12, paddingTop: 14, paddingBottom: 8, paddingHorizontal: 8, gap: 8 },
-  faces: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8 },
-  doug: { marginHorizontal: 4 },
-  more: {
-    height: CREW_FACE,
-    minWidth: CREW_FACE,
-    paddingHorizontal: 6,
-    borderRadius: CREW_FACE / 2,
-    borderWidth: StyleSheet.hairlineWidth * 2,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  moreText: { fontWeight: "600" },
-  who: { alignSelf: "center", paddingHorizontal: 4, marginTop: -2 },
-  name: { fontWeight: "700", textAlign: "center" },
-  line: { alignSelf: "center", paddingHorizontal: 4 },
-  lineText: { textAlign: "center" },
+  // No card: the section sits on the screen, its texture behind it.
+  section: { marginHorizontal: 16, marginTop: 8, paddingTop: 8, paddingBottom: 8, paddingHorizontal: 4, gap: 12 },
+  head: { flexDirection: "row", alignItems: "center", gap: 12 },
+  words: { flex: 1, minWidth: 0, gap: 2 },
+  icon: { overflow: "hidden" },
+  name: { fontWeight: "700" },
   status: { fontWeight: "600" },
   // Three buttons 8 apart: Ligar and Ver as decisões as wide as their words, Conversar takes the rest. On a narrow or
   // enlarged screen the last one goes under, centered, never cut.
   actions: {
     flexDirection: "row",
     flexWrap: "wrap",
-    justifyContent: "center",
+    justifyContent: "flex-start",
     alignItems: "center",
     columnGap: 8,
     rowGap: 8,
