@@ -1,5 +1,6 @@
 import { type LocaleState, useLocaleSync } from "@agenteschat/client/lib/locale-sync";
 import { resources } from "@agenteschat/i18n";
+import { BRAND_NAME, brandName, brandTree } from "@agenteschat/i18n/brand";
 import { loadStrings } from "@agenteschat/i18n/load";
 import {
   type AppLocale,
@@ -181,15 +182,61 @@ export async function loadI18n(lng: LocaleCode): Promise<I18n> {
   return instance;
 }
 
+/** The name each instance's bundles were branded to, so a second call with the same one does nothing. */
+const brandedTo = new WeakMap<I18n, string>();
+
+/**
+ * Every language already in the instance, renamed under the product's name as it is now (ADR doug-0032). The strings
+ * are branded when they load (`loadStrings`), which is before the boot knows whether this server has a client: a
+ * client's name has to reach the bundles that are already there too, or every string drawn before the next language
+ * change would still say the build's. `brandTree` reads the same text twice the same, so a language loaded after the
+ * name already carries it and this pass leaves it as it is.
+ *
+ * The bundle is replaced by a copy, never branded in place: the trees `loadStrings` builds share their unchanged
+ * branches with the language files, which every instance of the app in this process reads (`resources`, another
+ * instance in a test), and a name written into them would outlive this one. The store's own top level is replaced too,
+ * since `createI18n` initializes an instance over `resources` itself.
+ */
+export function rebrandLoaded(instance: I18n) {
+  const name = brandName();
+  // A server with no client: the bundles came out of `loadStrings` with the build's name, so there is nothing to do.
+  if (name === BRAND_NAME && !brandedTo.has(instance)) return;
+  if (brandedTo.get(instance) === name) return;
+  brandedTo.set(instance, name);
+  let changed = false;
+  const data = { ...instance.store.data };
+  for (const code of Object.keys(data)) {
+    const bundle = data[code]?.translation;
+    if (!bundle) continue;
+    // `brandTree` never writes into the tree it reads and hands back the same reference when nothing changes.
+    const branded = brandTree(bundle);
+    if (branded === bundle) continue;
+    data[code] = { ...data[code], translation: branded };
+    changed = true;
+  }
+  if (!changed) return;
+  instance.store.data = data;
+  // The screens on glass read their strings when they drew and listen for the language, not for the bundle (the hooks
+  // bind `languageChanged`): the name's arrival is announced as one, so they draw again under it — and the tab's title
+  // already written follows, since `translateTabTitle` listens to the same.
+  instance.emit("languageChanged", instance.language);
+}
+
 /**
  * The tab's default title in the app's language (index.html's is English). A page with its own title puts back the
  * one it found when it goes, which may be an earlier language's default: that one is swapped for today's wherever it
  * shows, so a page's own title stays, and so does the unread count in front of the default.
+ *
+ * `title: false` leaves the tab's own title alone: a boot that hasn't learnt whether this server has a client (its
+ * `GET /api/instance` in time, ADR doug-0032) writes nothing rather than the build's name over a page's, which a
+ * client's server would have to correct anyway. A language change writes it from then on.
  */
-export function translateTabTitle(instance: I18n) {
+export function translateTabTitle(instance: I18n, { title = true }: { title?: boolean } = {}) {
   const earlier = new Set<string>();
   let shown = instance.t("app.tabTitle");
-  document.title = shown;
+  // A boot that wrote no title starts writing one from its first language change: the reader has the app's own by then.
+  let writing = title;
+  if (title) document.title = shown;
   const swap = () => {
     for (const was of earlier) if (document.title.includes(was)) document.title = document.title.replace(was, shown);
   };
@@ -197,9 +244,12 @@ export function translateTabTitle(instance: I18n) {
     earlier.add(shown);
     shown = instance.t("app.tabTitle");
     earlier.delete(shown);
+    writing = true;
     swap();
   });
-  new MutationObserver(swap).observe(document.head, { subtree: true, childList: true, characterData: true });
+  new MutationObserver(() => {
+    if (writing) swap();
+  }).observe(document.head, { subtree: true, childList: true, characterData: true });
 }
 
 /** An instance with every language loaded at once (tests). */

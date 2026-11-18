@@ -6,7 +6,7 @@ import "./styles.css";
 import { authConfigQuery, createApiClient, createSnapshot, keys, type Me, meQuery, outbox } from "@agenteschat/client";
 import { ErrorBoundary } from "@agenteschat/client/lib/error-boundary";
 import { errorText } from "@agenteschat/client/lib/errors";
-import { holdSkies, installLiquidGlass, installTitleTips, trackInput } from "@agenteschat/ui";
+import { holdSkies, installLiquidGlass, installTitleTips, setClientProductName, trackInput } from "@agenteschat/ui";
 import { AppProviders, type AppServices } from "./app/providers";
 import { createQueryClient } from "./app/query-client";
 import { backToSignIn } from "./app/unauthorized";
@@ -14,7 +14,7 @@ import { createBetterAuthClient } from "./auth/better-auth";
 import { copyPillAddresses } from "./chat/link-pill-copy";
 import { ErrorScreen } from "./components/ErrorScreen";
 import { withComposerDraftsSignOut } from "./hooks/useComposerDraft";
-import { loadI18n, savedLocale, translateTabTitle } from "./i18n";
+import { loadI18n, rebrandLoaded, savedLocale, translateTabTitle } from "./i18n";
 import { accountInLink, followAccountChanges, takeAccountMove, watchAccount, withoutAccount } from "./lib/accounts";
 import { startAppIcon } from "./lib/app-icon";
 import {
@@ -57,6 +57,12 @@ void authConfig.then(
   () => startErrorReports(null),
 );
 // The language's file is the app's own too: index.html's boot fallback reloads or says so, and the error is reported.
+// The first screen waits for it, and for nothing else: a server deployed for one client (ADR doug-0032) is named
+// beside it, the strings load as they do on any server, and the name reaches them when its answer does.
+// Public, one request, asked before the language's file so both travel together: a server with a client sets the name, rebrands
+// the bundles already loaded (`rebrandLoaded`, which rewrites the tab's title too) and leaves its answer in the
+// cache. A server with no client, or one that doesn't answer, changes nothing at all.
+const instanceAnswer = api.system.instance();
 const i18n = await loadI18n(savedLocale()).catch((error: unknown) => {
   window.__agentesBootFailed?.();
   throw error;
@@ -96,8 +102,22 @@ const queryClient = createQueryClient({
   describeError: (error) => errorText(i18n.t, error, i18n.language),
 });
 
-// The answer above is the cache's: the sign-in guards don't ask again.
+// The answers above are the cache's: the sign-in guards don't ask again, and the first render's `useClientLook` reads
+// the client's name without a second request.
 void queryClient.prefetchQuery({ ...authConfigQuery(api), queryFn: () => authConfig });
+void instanceAnswer.then(
+  (instance) => {
+    queryClient.setQueryData(keys.instance, instance);
+    // The language's bundle was branded when it downloaded, before the answer was here (ADR doug-0032): the bundles
+    // already in the instance are branded again, so every string drawn from now on reads the client's name — and the
+    // tab's title, already written as the build's, follows. A second call (the render's `ClientBrand`) is a no-op.
+    if (instance.client?.name) {
+      setClientProductName(instance.client.name);
+      rebrandLoaded(i18n);
+    }
+  },
+  () => {},
+);
 
 // The last lists and chats saved on this device show at once; everything revalidates as usual.
 const snapshot = createSnapshot(queryClient, snapshotStore);

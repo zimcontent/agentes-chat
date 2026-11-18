@@ -195,6 +195,22 @@ const Me = z
       description:
         "This installation's client code (`DOUG_CLIENT_CODE`), shown in Support. Null: none. Never on the sign-in screen (`GET /auth-config`).",
     }),
+    client: z
+      .object({
+        name: z
+          .string()
+          .nullable()
+          .openapi({ description: "What this client's apps call the product; null: the product's own name." }),
+        accent: z
+          .string()
+          .nullable()
+          .openapi({ description: "The color its apps highlight, `#rrggbb`; null: the product's own." }),
+      })
+      .optional()
+      .openapi({
+        description:
+          "This server's client customizations (ADR doug-0032), from `clients/<DOUG_CLIENT_CODE>/config.json`. Absent: a server with no client, which answers exactly as the build does, and the apps show the product's own name, color and tools.",
+      }),
   })
   .openapi("Me");
 
@@ -301,6 +317,8 @@ export function accountRoutes(deps: AppDeps) {
             : {}),
         };
       }),
+      // Absent, not null, on a server with no client: its answer is the build's own, byte for byte (ADR doug-0032).
+      ...(deps.client ? { client: { name: deps.client.name, accent: deps.client.accent } } : {}),
     };
   };
   /** What finishing a workspace's onboarding answers: where it opens (its right hand's DM) and `/me` as it is now. */

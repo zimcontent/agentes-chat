@@ -1265,7 +1265,7 @@ export const envVars = {
       .regex(/^\d{3}$/, "must be a three-digit client code such as 064")
       .optional(),
     description:
-      "This installation's client code, on a server a team runs for one client. The apps show it in Support, and an agent's `contact_support` and its email carry it, so whoever answers knows which installation to look at. Unset (default): an installation of its own, with no code.",
+      "This installation's client code, on a server a team runs for one client. The apps show it in Support, and an agent's `contact_support` and its email carry it, so whoever answers knows which installation to look at. It also names the client's folder under `clients/` of the source it was built from (`clients/064/`, ADR doug-0032): its `config.json` (today the product's name and the color the apps highlight; a color under 3:1 on either of the identity's stages is refused) and its `client.ts` (an `AgentesModule`) load at boot. A code with no such folder boots without overrides. Unset (default): no folder loads, and every server behaves the same.",
     section: "Operator",
     example: "064",
   },
