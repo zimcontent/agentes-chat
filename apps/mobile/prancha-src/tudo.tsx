@@ -1,7 +1,10 @@
 import { StyleSheet, View } from "react-native";
 import { AllSheetView, type PillSection, type ToolShown } from "@/features/chats/AllSheet";
 import { type ToolKey, toolsHere } from "@/features/chats/all-tools";
-import { Glass, useTheme } from "@/ui";
+import { SheetTitle } from "@/features/shared/PromptForm";
+import { ActionList } from "@/features/shared/parts";
+import { QuickTiles } from "@/features/shared/QuickTiles";
+import { AgentAvatar, Glass, useTheme } from "@/ui";
 import { Inicio } from "./telas";
 
 /** The labels and what waits, as a busy team's phone has them (Agenda on, as it will be). */
@@ -96,6 +99,47 @@ export function Tudo({ from, editing = false }: { from: "conversation" | "home";
         </View>
       }
     />
+  );
+}
+
+/** The conversation's "…" over its DM (`ChannelOptions`): who it is, the quick tiles, the rest as a list. */
+export function ConversaOpcoes() {
+  const { colors, shadows } = useTheme();
+  const doug = { color: "sky", eyes: "round", id: "Doug BOSS", name: "Doug BOSS", role: "Chefe do time" } as const;
+  return (
+    <View style={StyleSheet.absoluteFill}>
+      <View style={[StyleSheet.absoluteFill, { backgroundColor: colors.scrim }]} />
+      <View style={[styles.sheet, { boxShadow: shadows.e3 }]}>
+        <Glass intensity={70} style={styles.surface}>
+          <View style={styles.grab}>
+            <View style={[styles.grabBar, { backgroundColor: colors.grabber }]} />
+          </View>
+          <View style={[styles.in, { gap: 16 }]}>
+            <SheetTitle
+              leading={<AgentAvatar agent={doug} size={36} />}
+              title="Doug BOSS"
+              subtitle="Chefe do time · disponível"
+            />
+            <QuickTiles
+              items={[
+                { key: "call", icon: "handset", label: "Ligar", accent: true, onPress: noop },
+                { key: "search", icon: "search", label: "Buscar", onPress: noop },
+                { key: "pins", icon: "pin", label: "Fixadas", count: 3, onPress: noop },
+                {
+                  key: "profile",
+                  leading: <AgentAvatar agent={doug} size={26} />,
+                  label: "Perfil",
+                  onPress: noop,
+                },
+              ]}
+            />
+            <ActionList
+              items={[{ key: "category", icon: "list", label: "Categoria", hint: "Sem categoria", onPress: noop }]}
+            />
+          </View>
+        </Glass>
+      </View>
+    </View>
   );
 }
 

@@ -81,6 +81,7 @@ import { lastPostedId } from "@agenteschat/client/lib/timeline";
 import { voiceOf } from "@agenteschat/client/lib/voice";
 import { waitingAway, waitingNotification } from "@agenteschat/client/lib/waiting";
 import { makingImage, stopsMovedOn } from "@agenteschat/client/lib/work";
+import type { HexColor } from "@agenteschat/ui/agent/engine";
 import { isIdHandle } from "@agenteschat/ui/names";
 import { KeyboardAwareLegendList } from "@legendapp/list/keyboard";
 import type { LegendListRef, OnViewableItemsChanged } from "@legendapp/list/react-native";
@@ -162,6 +163,7 @@ import {
 } from "@/ui";
 import { ComposerFloat, createComposerFloat, PILLS_ROOM } from "@/ui/Composer";
 import { router } from "@/ui/navigation";
+import { botColor } from "../agents/ProfileView";
 import { AgentSetupIntro, useSetupSteps } from "../agents/setup/SetupCard";
 import { usePlanHold } from "../ai/parts";
 import { BrowserCard, BrowserRunCard } from "../browser/BrowserCard";
@@ -200,10 +202,12 @@ import { AttachmentStrip, MAX_PENDING, type PendingFile } from "./AttachmentStri
 import { markRowId, receiptMessageId } from "./agent-receipts";
 import { AskStore } from "./ask-store";
 import { AskBar, AskProbes, AskStoreProvider, useAskWatch, useAwayAsk, WaitingHereBar } from "./asks";
+import { BRAND_GREEN } from "./backdrop";
 import { ChannelHello } from "./ChannelHello";
 import { ChannelMembersSheet } from "./ChannelMembers";
 import { ChannelPicker } from "./ChannelPicker";
 import { ChannelWelcome } from "./ChannelWelcome";
+import { ChatBackdrop } from "./ChatBackdrop";
 import { ChatSkeleton } from "./ChatSkeleton";
 import { type OpenedMessages, OpenedMessagesContext } from "./ClippedMessage";
 import { ConversationSwitcher } from "./ConversationSwitcher";
@@ -431,10 +435,9 @@ function Chat({
   const dmAgentId = dm?.with.type === "agent" ? dm.with.id : null;
   const dmAgent = dmAgentId ? dir.agentById.get(dmAgentId) : undefined;
   const rightHandId = useMemo(() => dir.agents.find(isRightHand)?.id, [dir.agents]);
-  const rowLook = useConversationLook(
-    Boolean(dm) || thread.data?.channelKind === "dm",
-    dmAgent ? agentLook(dmAgent).color : undefined,
-  );
+  const rowLook = useConversationLook(Boolean(dm) || thread.data?.channelKind === "dm");
+  // The conversation's accent: an agent's DM in its bot's own color (Doug's is the lime), everywhere else the lime.
+  const accent = useMemo(() => (dmAgent ? botColor(agentLook(dmAgent)) : null), [dmAgent]);
   const rhythm = CHAT_RHYTHM[rowLook.style];
   const quiet = quietInset(rowLook);
   // The right hand (ADR 0137): its own line and composer hint, no computer, and its greeting on top.
@@ -454,6 +457,12 @@ function Chat({
   const admin = can(useOrg().org, "administrator");
   const readable = member || admin;
   const roster = useRoster(orgId, channelId, Boolean(channel?.isMember) && !isThread);
+  const firstAgentId = roster.data?.find((r) => r.type === "agent")?.id ?? "";
+  const firstAgent = dir.agentById.get(firstAgentId);
+  const groupAccent = useMemo(
+    () => (firstAgent ? botColor(agentLook(firstAgent)) : BRAND_GREEN) as HexColor,
+    [firstAgent],
+  );
   // The computer this conversation's agents share, while turns wait for it: the bar's way into its line.
   const queueAgents = useMemo(
     () => (dmAgentId ? [dmAgentId] : (roster.data ?? []).filter((r) => r.type === "agent").map((r) => r.id)),
@@ -1724,6 +1733,7 @@ function Chat({
             onPins={openPins}
             onMembers={channel && !dm ? openMembers : undefined}
             onSearch={dm && searchPlace ? openSearch : undefined}
+            callable={!isThread && Boolean(dm || channel?.isMember)}
           />,
         );
   // Holding the pill: "Trocar de conversa". The pick swaps the conversation in place (the route's params; the
@@ -1873,7 +1883,8 @@ function Chat({
         }
         title={dm.with.name}
         subtitle={dmLine ?? dmDoing ?? subtitle}
-        color={dmAgentId ? agentLook(dmAgent).color : undefined}
+        // The bot's own color (Doug's lime), not the old engine's default sky: that made the pill blue.
+        color={accent ? (accent as HexColor) : undefined}
         working={Boolean(dmDoing)}
         // Reading far up, only the face stays (the screen is the messages); a new reply opens it again.
         collapsed={far && unseen.messages === 0}
@@ -1891,8 +1902,8 @@ function Chat({
         lead={<GroupPhoto icon={channel.icon} size={32} />}
         title={groupTitle(channel)}
         subtitle={roster.data ? t("mobile.chat.here", { count: roster.data.length }) : undefined}
-        // The channel's sky in the pill, as an agent's DM: the color of the first agent in it.
-        color={agentLook(dir.agentById.get(roster.data?.find((r) => r.type === "agent")?.id ?? "")).color}
+        // The channel's sky in the pill, as an agent's DM: the bot color of the first agent in it, else the lime.
+        color={groupAccent}
         trailing={
           roster.data && roster.data.length > 0 ? (
             <View style={styles.faces}>
@@ -2580,6 +2591,8 @@ function Chat({
         style={[styles.screen, { backgroundColor: c.bg }]}
         onTouchStart={touched ? undefined : () => setTouched(true)}
       >
+        {/* The texture under everything: the site's dot grid and a glow in the bot's color, the lime elsewhere. */}
+        <ChatBackdrop accent={accent} />
         {/* A clear bar on every conversation (DM, channel, thread): the band behind it is ours, below, so the
             system's scroll edge never makes one look different from another. */}
         <PushedHeader title={pill ?? title} plate solid={false} right={right} />
