@@ -8,6 +8,8 @@ import type {
   PortalColumn,
   PortalComment,
   PortalItem,
+  PortalLabel,
+  PortalLabelColor,
   PortalListKind,
   PortalPlan,
   PortalStatus,
@@ -76,6 +78,48 @@ export const boardColumns = (board: PortalBoard): BoardColumn[] =>
       ? { column, cards: board.cards[column], items: [] }
       : { column, cards: [], items: board.items[column] },
   );
+
+/** The two columns the team's own cards move between; the portal fills the others (the web's `TEAM_COLUMNS`). */
+export const isTeamColumn = (column: PortalBoardColumn): column is "todo" | "doing" =>
+  column === "todo" || column === "doing";
+
+/**
+ * The Quadro's columns on the phone, as Trello's board: every stage that holds something, in the web's order; for
+ * whoever may move cards, To do and In production always, so a card has somewhere to go.
+ */
+export const stageColumns = (board: PortalBoard, moves: boolean): BoardColumn[] =>
+  boardColumns(board).filter((c) => columnCount(c) > 0 || (moves && isTeamColumn(c.column)));
+
+/**
+ * What a column says while a card from `from` is held over the board: `drop`, it takes the card (the other team
+ * column); `home`, the card's own; `closed`, the portal's to fill, it takes none.
+ */
+export function columnDrop(column: PortalBoardColumn, from: "todo" | "doing"): "drop" | "home" | "closed" {
+  if (!isTeamColumn(column)) return "closed";
+  return column === from ? "home" : "drop";
+}
+
+/**
+ * A team card of the board as the schedule's card face draws it: its stage is the board's column (a move shows at
+ * once), its post date and portal link the schedule's when it has the card.
+ */
+export function boardCardOf(card: PortalCard, plan: PortalPlan | undefined): PlanCard {
+  const known = allPlanCards(plan).find((c) => c.id === card.id);
+  return { ...card, stage: card.state, postOn: known?.postOn ?? card.date, link: known?.link ?? null };
+}
+
+/** A client's counts on the Portal tab, only those above zero: what is open, with the client, sent back. */
+export function clientCounts(
+  summary: Pick<PortalClientSummary, "counts" | "open"> | undefined,
+): { key: "open" | "approval" | "adjusting"; count: number }[] {
+  if (!summary) return [];
+  const all = [
+    { key: "open" as const, count: summary.open },
+    { key: "approval" as const, count: summary.counts.approval ?? 0 },
+    { key: "adjusting" as const, count: summary.counts.adjusting ?? 0 },
+  ];
+  return all.filter((c) => c.count > 0);
+}
 
 /** How many things wait in a column. */
 export const columnCount = (c: Pick<BoardColumn, "cards" | "items">) => c.cards.length + c.items.length;
@@ -397,4 +441,69 @@ export function cardBadges(card: Pick<PlanCard, "checklist" | "comments" | "file
     files: card.files.length,
     described: card.description.trim().length > 0,
   };
+}
+
+/** A label's color, the web's (`[data-color]` in the portal's styles), the same in both themes. */
+export const LABEL_COLOR: Record<PortalLabelColor, string> = {
+  green: "#22a34a",
+  mint: "#2bb39a",
+  olive: "#7c8a2a",
+  yellow: "#d9a406",
+  wine: "#8e2a4a",
+  red: "#d93a3a",
+  purple: "#7b4bd6",
+  lilac: "#a78bda",
+  blue: "#2f7fe0",
+  gray: "#7d838f",
+};
+
+/** A card's labels as the board names them, in the card's order; a label the board no longer has is left out. */
+export function cardLabels(card: Pick<PlanCard, "labels">, labels: readonly PortalLabel[]): PortalLabel[] {
+  const byId = new Map(labels.map((l) => [l.id, l]));
+  return card.labels.flatMap((id) => byId.get(id) ?? []);
+}
+
+/** A card's labels with one put on or taken off. */
+export const toggledLabels = (on: readonly string[], id: string) =>
+  on.includes(id) ? on.filter((x) => x !== id) : [...on, id];
+
+/** One client's approved posts nobody released yet: what "Para agendar" lists (the server's list is every client's). */
+export const toScheduleOf = (items: readonly PortalItem[] | undefined, client: string): PortalItem[] =>
+  (items ?? []).filter((i) => i.client === client && i.status === "approved" && !i.released);
+
+/** A day as the portal writes it (`YYYY-MM-DD`), in this device's own calendar. */
+export function ymdOf(date: Date): string {
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+}
+
+/** The days a post may be scheduled for on the phone: today and the next ones; a day already chosen further out too. */
+export function scheduleDays(now: Date, count: number, keep: string | null = null): string[] {
+  const days = Array.from({ length: count }, (_, i) =>
+    ymdOf(new Date(now.getFullYear(), now.getMonth(), now.getDate() + i)),
+  );
+  if (keep && /^\d{4}-\d{2}-\d{2}$/.test(keep) && !days.includes(keep) && keep > (days[0] ?? "")) days.push(keep);
+  return days;
+}
+
+/** The minutes a time steps by on the phone (the reminders' own). */
+export const SCHEDULE_STEP = 15;
+
+/** A time of day (`HH:MM`) moved by `minutes`, around the clock. */
+export function stepClock(time: string, minutes: number): string {
+  const m = /^(\d{2}):(\d{2})$/.exec(time);
+  const at = m ? Number(m[1]) * 60 + Number(m[2]) : 0;
+  const total = (((at + minutes) % 1440) + 1440) % 1440;
+  return `${String(Math.floor(total / 60)).padStart(2, "0")}:${String(total % 60).padStart(2, "0")}`;
+}
+
+/**
+ * Where the phone's scheduling starts: the post's own date and time when it carries one still ahead (a date proposed
+ * for it), else tomorrow at 10:00, a time feeds read well at.
+ */
+export function scheduleStart(item: Pick<PortalItem, "scheduledFor">, now = new Date()): { day: string; time: string } {
+  const day = portalDayOf(item.scheduledFor);
+  const time = portalTimeOf(item.scheduledFor) ?? "10:00";
+  if (day && portalAhead(day, time, now)) return { day, time };
+  return { day: ymdOf(new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1)), time: "10:00" };
 }
