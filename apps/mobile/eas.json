@@ -47,6 +47,16 @@
       "env": {
         "APP_VARIANT": "production"
       }
+    },
+    "simulator": {
+      "extends": "base",
+      "env": {
+        "APP_VARIANT": "production"
+      },
+      "ios": {
+        "simulator": true
+      },
+      "withoutCredentials": true
     }
   },
   "submit": {

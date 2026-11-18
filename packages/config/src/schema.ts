@@ -33,7 +33,8 @@ export interface EnvVarDefinition {
     | "Push"
     | "Operator"
     | "Usage report"
-    | "Observability";
+    | "Observability"
+    | "Legal";
   /** Example value for docs. Never a real secret. */
   example?: string;
   /** Secret values are never logged and are masked in diagnostics. */
@@ -229,16 +230,16 @@ export const envVars = {
     section: "Sign-in",
   },
   TERMS_URL: {
-    schema: z.url().optional(),
+    schema: z.url({ protocol: /^https?$/ }).optional(),
     description:
-      "Your terms of service, linked on the sign-in and sign-up screens when `PRIVACY_URL` is set too, and where this server's /terms leads. Default on agentes.chat Cloud (https://app.agentes.chat): its /terms page.",
+      "Your terms of service, linked on the sign-in and sign-up screens when `PRIVACY_URL` is set too, and where this server's /terms leads. Default on agentes.chat Cloud (https://app.agentes.chat): its /terms page. Default when `LEGAL_COMPANY_NAME` is set: this server's own Terms, `/termos` (`docs/legal/`, the English at `/terms`). With neither, the sign-in screen links nothing.",
     section: "Sign-in",
     example: "https://example.com/terms",
   },
   PRIVACY_URL: {
-    schema: z.url().optional(),
+    schema: z.url({ protocol: /^https?$/ }).optional(),
     description:
-      "Your privacy policy, linked on the sign-in and sign-up screens together with `TERMS_URL`, and where this server's /privacy leads. Default on agentes.chat Cloud (https://app.agentes.chat): its /privacy page.",
+      "Your privacy policy, linked on the sign-in and sign-up screens together with `TERMS_URL`, and where this server's /privacy leads. Default on agentes.chat Cloud (https://app.agentes.chat): its /privacy page. Default when `LEGAL_COMPANY_NAME` is set: this server's own Privacy Policy, `/privacidade` (`docs/legal/`, the English at `/privacy`, with the Data Processing Addendum as an annex). With neither, the sign-in screen links nothing.",
     section: "Sign-in",
     example: "https://example.com/privacy",
   },
@@ -1114,6 +1115,13 @@ export const envVars = {
     section: "Storage",
     example: "/data/files",
   },
+  S3_BACKUP_BUCKET: {
+    schema: z.string().trim().min(1).optional(),
+    description:
+      "The bucket the `backup` service of the compose file writes its daily database dump to (`S3_ENDPOINT` and the other `S3_*` credentials are shared). The server itself writes nothing there: it reads this only so the Privacy Policy mentions backups when there are some.",
+    section: "Storage",
+    example: "doug-backups",
+  },
   S3_ENDPOINT: {
     schema: z.url().optional(),
     description:
@@ -1237,9 +1245,29 @@ export const envVars = {
   SUPPORT_EMAIL: {
     schema: z.email().optional(),
     description:
-      "Where people write to whoever runs this server, shown with a workspace's hold notice, its suspended screen and the workspace's own computer when something on it doesn't work. Unset (default): they are told to ask the people who run the server.",
+      "Where people write to whoever runs this server, shown with a workspace's hold notice, its suspended screen and the workspace's own computer when something on it doesn't work, and in Support under the account: Support shows only with this or `SUPPORT_WHATSAPP` set. It is also where an agent's `contact_support` call sends its summary. Unset (default): they are told to ask the people who run the server.",
     section: "Operator",
     example: "support@example.com",
+  },
+  SUPPORT_WHATSAPP: {
+    schema: z
+      .string()
+      .regex(/^\+?[0-9][0-9 ()-]{6,24}$/, "must be a phone number such as +55 11 99999-0000")
+      .optional(),
+    description:
+      "WhatsApp number people reach whoever runs this server at, shown in Support under the account. Write it with its country code (`SUPPORT_EMAIL`'s companion): the apps open it as a chat (`wa.me`). Unset (default): Support shows no WhatsApp line.",
+    section: "Operator",
+    example: "+55 11 99999-0000",
+  },
+  DOUG_CLIENT_CODE: {
+    schema: z
+      .string()
+      .regex(/^\d{3}$/, "must be a three-digit client code such as 064")
+      .optional(),
+    description:
+      "This installation's client code, on a server a team runs for one client. The apps show it in Support, and an agent's `contact_support` and its email carry it, so whoever answers knows which installation to look at. Unset (default): an installation of its own, with no code.",
+    section: "Operator",
+    example: "064",
   },
   FEEDBACK_EMAIL: {
     schema: z.email().optional(),
@@ -1380,6 +1408,67 @@ export const envVars = {
     schema: z.string().min(1).max(64).default("production"),
     description: "The environment error reports are filed under (`production`, `staging`).",
     section: "Observability",
+  },
+  LEGAL_DRAFT: {
+    schema: z.stringbool().default(true),
+    description:
+      'Whether the Terms of Use and the Privacy Policy (`/termos`, `/privacidade`) carry the "draft, subject to legal review" notice. Default `true`: set it to `false` once a lawyer has reviewed the documents. The notice also shows, whatever this says, while any of the `LEGAL_COMPANY_*`, `LEGAL_DPO_*` or `LEGAL_SERVER_LOCATION` fields is still unset.',
+    section: "Legal",
+  },
+  LEGAL_COMPANY_NAME: {
+    schema: z.string().trim().min(1).max(200).optional(),
+    description:
+      "Legal name of the company that runs this installation, shown in the published Terms of Use and Privacy Policy (`/termos`, `/privacidade`) and in the Data Processing Addendum. Setting it also makes those pages the sign-in screen's Terms and Privacy links, when `TERMS_URL` and `PRIVACY_URL` are not set. Unset (default): the pages show `[a preencher]` where it belongs, which is how they read as a draft.",
+    section: "Legal",
+    example: "Padaria Aurora Serviços Ltda.",
+  },
+  LEGAL_COMPANY_TAX_ID: {
+    schema: z.string().trim().min(1).max(40).optional(),
+    description: "The company's CNPJ, shown with its legal name in the Terms of Use. Unset (default): `[a preencher]`.",
+    section: "Legal",
+    example: "00.000.000/0001-00",
+  },
+  LEGAL_COMPANY_ADDRESS: {
+    schema: z.string().trim().min(1).max(300).optional(),
+    description:
+      "The company's registered address, shown with its legal name in the Terms of Use. Unset (default): `[a preencher]`.",
+    section: "Legal",
+    example: "Rua das Flores, 100, São Paulo, SP",
+  },
+  LEGAL_DPO_NAME: {
+    schema: z.string().trim().min(1).max(200).optional(),
+    description:
+      "Name of the company's data protection officer (encarregado, LGPD), shown in the Privacy Policy and in the rights it lists. Unset (default): `[a preencher]`.",
+    section: "Legal",
+    example: "Ana Lima",
+  },
+  LEGAL_DPO_EMAIL: {
+    schema: z.email().optional(),
+    description:
+      "The data protection officer's e-mail address, where people ask to exercise their LGPD rights. Shown in the Privacy Policy and as a link there. Unset (default): `[a preencher]`.",
+    section: "Legal",
+    example: "dpo@example.com",
+  },
+  LEGAL_SERVER_LOCATION: {
+    schema: z.string().trim().min(1).max(200).optional(),
+    description:
+      "Where the Customer's installation and its data sit, as the Privacy Policy says it (a country and region, or the data center). Unset (default): `[a preencher]`.",
+    section: "Legal",
+    example: "Brasil (São Paulo)",
+  },
+  LEGAL_BACKUP_RETENTION_DAYS: {
+    schema: z.coerce.number().int().min(0).default(14),
+    description:
+      "Days the Privacy Policy says the installation's database backups are kept. Keep it equal to the `backup` service's `BACKUP_RETENTION_DAYS`. 0 = the Privacy Policy gives no number and says backups are kept until the backup bucket's own rules delete them. The paragraph shows only when `S3_BACKUP_BUCKET` is set.",
+    section: "Legal",
+    example: "14",
+  },
+  LEGAL_LOG_RETENTION: {
+    schema: z.string().trim().min(1).max(120).optional(),
+    description:
+      "How long the Privacy Policy says this installation keeps its technical logs, in words (for example, `90 dias`). Unset (default): `[a preencher]`, since how long logs live depends on the server and the log collector.",
+    section: "Legal",
+    example: "90 dias",
   },
 } satisfies Record<string, EnvVarDefinition>;
 

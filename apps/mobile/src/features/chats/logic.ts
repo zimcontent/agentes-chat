@@ -612,6 +612,30 @@ export function dougCardLine({ waiting, working }: { waiting: number; working: n
   return { waiting: Math.max(0, waiting), working: Math.max(0, working) };
 }
 
+/**
+ * The agents around Doug on his pinned card: who works now besides him, each once, in the order their work came, at
+ * most `max` shown (alternating right and left of his face, so it stays centered) and the rest counted as "+N".
+ */
+export function dougCrew(
+  working: readonly { agentId: string }[],
+  dougId: string,
+  max = 4,
+): { left: string[]; right: string[]; more: number } {
+  const ids: string[] = [];
+  for (const w of working) if (w.agentId !== dougId && !ids.includes(w.agentId)) ids.push(w.agentId);
+  const shown = ids.slice(0, Math.max(0, max));
+  return {
+    left: shown.filter((_, i) => i % 2 === 1).reverse(),
+    right: shown.filter((_, i) => i % 2 === 0),
+    more: ids.length - shown.length,
+  };
+}
+
+/** The greeting goes before the card's one line only while both fit on it (a 390 phone's card holds about 40). */
+export const DOUG_LINE_ROOM = 40;
+export const dougGreetingFits = (greeting: string, status: string) =>
+  greeting.length > 0 && greeting.length + 1 + status.length <= DOUG_LINE_ROOM;
+
 /** Agentes' rows without the right hand's conversation while Doug is pinned above the list. */
 export function withoutPinnedAgent(rows: ConversationRow[], agentId: string | undefined): ConversationRow[] {
   if (!agentId) return rows;

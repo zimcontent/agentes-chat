@@ -1986,6 +1986,8 @@ export const en = {
     updated: "Last updated {{date}}",
     contents: "On this page",
     home: "Go to the home page",
+    /** `/termos` and `/privacidade`: the line over the text, which a lawyer still has to review. */
+    draft: "Draft, subject to legal review. What is in [brackets] has not been filled in yet.",
     /** `/terms` and `/privacy` on a server that has no page of its own for them. */
     none: {
       terms: "This server has no terms page",
@@ -14641,6 +14643,7 @@ export const en = {
       get_my_usage: "See my usage",
       send_feedback: "Send feedback",
       offer_feedback: "Offer to report a problem",
+      contact_support: "Ask support for help",
     },
   },
   toolReview: {
@@ -17164,6 +17167,15 @@ export const en = {
     change: {
       mergedWithoutAsking: "Merged in {{repo}} without asking",
       portalApprovedForClient: "Approved “{{title}}” for the client at the portal",
+      /** A change to how one of the approval portal's clients is known: {{client}} is its id. */
+      portalClient: {
+        renamed: "Renamed the client {{client}} at the portal",
+        hidden: "Removed the client {{client}} from the portal's lists",
+        shown: "Showed the client {{client}} again at the portal",
+        color: "Changed the client {{client}}'s colour at the portal",
+        logo: "Changed the client {{client}}'s logo at the portal",
+        logoRemoved: "Removed the client {{client}}'s logo at the portal",
+      },
       pattern: "{{verb}} {{area}}",
       approval: {
         approved: "Approved a request",
@@ -17347,6 +17359,7 @@ export const en = {
       voice: "Voice",
       apps: "AI apps",
       approvals: "Approvals",
+      support: "Support",
       about: "About DougBot",
       // A personal workspace's names (ADR 0159): General and Members in their own words.
       generalPersonal: "About you",
@@ -17381,6 +17394,7 @@ export const en = {
       voice: "Voice messages in conversations, and who turns voice into text.",
       apps: "Ask the agents for tasks from Claude, Cursor and other apps.",
       approvals: "Who decides for you when an agent asks for your approval.",
+      support: "Who runs this installation, and how to reach them.",
       about: "Who makes it, its license and where its source code is.",
       generalPersonal: "What your agents know about you, and how this workspace works.",
       usagePersonal: "How much AI your agents use, and your plan.",
@@ -17392,6 +17406,30 @@ export const en = {
      * The license's required attribution (AGPL-3.0 section 7(b), see NOTICE): translate it, but keep
      * "DougBot" and "Codari Global, LLC" and its meaning.
      */
+    support: {
+      title: "Reach support",
+      lead: "The people who run this installation, for something in the system that doesn't work.",
+      email: "Email",
+      whatsapp: "WhatsApp",
+      client: "This installation",
+      askTitle: "Ask {{name}} for help",
+      askLead:
+        "{{name}} writes down what happened and sends it to support, in your name. You read the message before it goes.",
+      askStatus: "Opens the conversation with the details already in the box.",
+      ask: "Ask {{name}} for help",
+      /** The message the box opens with: the person's, with the facts, then the ask that makes the agent send it. */
+      draft: "{{name}}, I need help with the system:",
+      draftWith: "{{name}}, I need help with the system ({{facts}}):",
+      draftVersion: "server version {{version}}",
+      draftClient: "installation {{code}}",
+      draftPage: "on the page {{page}}",
+      draftAsk: "Send this to support with contact_support, in my name.",
+      /**
+       * What the card says where the server takes no `contact_support` (no SUPPORT_EMAIL): {{name}} opens the
+       * conversation with the details in the box and writes it down, without promising an email to support.
+       */
+      askNoEmail: "{{name}} opens the conversation with the details in the box. Write what happened and send it.",
+    },
     about: {
       basedOn: "Based on <site>DougBot</site> by Codari Global, LLC · AGPL-3.0",
       version: "Version",
@@ -17402,6 +17440,8 @@ export const en = {
     title: "Settings",
     account: {
       plans: "Your plans' limits",
+      /** The Terms of Use and the Privacy Policy this server serves, opened in a new tab. */
+      legal: "Terms and privacy",
       device: "On this device",
       /** Yours in this workspace, on every device: the tool summary under each agent reply, off by default. */
       activity: "Show what agents did under each reply",
@@ -18367,6 +18407,7 @@ export const en = {
         settingCommitLine: "Adjusted the agents' line on commits",
         sendingFeedback: "Asked to send feedback",
         offeringFeedback: "Offered to report a problem",
+        askingSupport: "Asked support for help",
         deletingRoutine: "Deleted a routine",
         runningRoutine: "Ran a routine now",
         proposingTeam: "Proposed a team",
@@ -18491,6 +18532,7 @@ export const en = {
       settingCommitLine: "adjusting the agents' line on commits",
       sendingFeedback: "preparing feedback",
       offeringFeedback: "preparing a report",
+      askingSupport: "asking support for help",
       deletingRoutine: "deleting a routine",
       runningRoutine: "running a routine now",
       proposingTeam: "proposing a team",
@@ -21494,6 +21536,25 @@ export const en = {
       remove: "Remove logo",
       saved: "Logo saved",
       removed: "Logo removed",
+    },
+    /**
+     * A client's name and its removal, kept on this side: the portal has no rename or delete for a client (ADR 9001,
+     * addendum 2026-11-18). Removing hides the client from every list; it comes back from "Hidden clients".
+     */
+    clientEdit: {
+      rename: "Rename client",
+      renameTitle: "Rename client",
+      /** {{id}}: the name the client's id reads as, what an empty name goes back to. */
+      renameHelp: "The name your team sees everywhere. Leave it empty to go back to “{{id}}”.",
+      name: "Name",
+      renamed: "Name saved",
+      hide: "Remove client",
+      hideTitle: "Remove “{{name}}”?",
+      hideText:
+        "It leaves every list and count here. Its posts and cards stay at the portal, and you can bring it back from Hidden clients.",
+      hidden: "“{{name}}” removed",
+      hiddenTitle: "Hidden clients",
+      show: "Show again",
     },
     /** The colour the team gives a client, so whose a card is reads at a glance. */
     clientColor: {

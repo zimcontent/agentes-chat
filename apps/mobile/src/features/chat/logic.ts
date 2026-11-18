@@ -611,6 +611,20 @@ export function reactionPills(reactions: ReactionCount[] | undefined, meId: stri
     .filter((p) => p.people > 0 || p.agentIds.length > 0);
 }
 
+/**
+ * My own bubble in this conversation: the brand's lime, never an agent's or the workspace's color (that made every
+ * bubble blue, "sky" being the old engine's default agent color). `light` is the lime's wash with a lime rim (the
+ * site's `--own-bubble`), `strong` the green itself with its own ink. `ink` null: the theme's words.
+ */
+export function ownBubble(
+  tone: "light" | "strong",
+  c: { bubble: string; bubbleEdge: string; green: string; greenInk: string },
+): { fill: string; edge: string; ink: string | null } {
+  return tone === "strong"
+    ? { fill: c.green, edge: c.green, ink: c.greenInk }
+    : { fill: c.bubble, edge: c.bubbleEdge, ink: null };
+}
+
 /** My bubble: a tint of the deep end of the color on the page (stronger on a dark page), or the color a step darker. */
 export function bubbleFill(color: AgentColorName, tone: "light" | "strong", page: string, dark: boolean) {
   const deep = gradientOf(color)[1];

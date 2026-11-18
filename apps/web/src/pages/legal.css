@@ -30,6 +30,10 @@
   color: var(--muted);
   font-size: 13px;
 }
+/* The line over the document saying it is a draft: the kit's neutral notice, kept close under the title. */
+.legal__draft {
+  margin: 0;
+}
 .legal__toc ol {
   margin: 0;
   padding: 0;
@@ -67,4 +71,11 @@
   .legal__bar {
     padding: 16px 16px 0;
   }
+}
+/* The document's place while its company details load: a few lines, so the page does not jump when the text arrives. */
+.legal__loading {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-block: 8px;
 }

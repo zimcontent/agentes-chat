@@ -358,6 +358,8 @@
     "closed": "kapalı",
     "options": "Seçenekler",
     "profile": "Profil",
+    "call": "Ara",
+    "toneGreen": "Yeşil",
     "here_one": "burada {{count}} kişi",
     "here_other": "burada {{count}} kişi",
     "headerAgent": "{{who}}. Profili aç",
@@ -1200,7 +1202,9 @@
       "suggested": "Önerilenler",
       "all": "Tümü",
       "none": "Bu adla bir saat dilimi yok"
-    }
+    },
+    "groupAlerts": "Uyarılar ve onaylar",
+    "groupLook": "Görünüm ve ses"
   },
   "delete": {
     "intro": "Bunun geri dönüşü yok.",
@@ -1502,7 +1506,28 @@
   },
   "homeTools": {
     "title": "Araçlar",
-    "more": "Daha fazla"
+    "more": "Daha fazla",
+    "all": "Tümü",
+    "edit": "Kısayolları düzenle",
+    "done": "Bitti",
+    "editHint": "Ana sayfaya en fazla 4 sabitlemek için dokun",
+    "full": "Ana sayfada zaten 4 var. Önce birini kaldır.",
+    "search": "Sohbet, dosya, kişi ara",
+    "searchTile": "Ara",
+    "pinned": "ana sayfaya sabitlendi",
+    "attach": "Sohbete ekle",
+    "here": "Bu sohbette",
+    "create": "Oluştur",
+    "newAgent": "Yeni ajan",
+    "newChat": "Yeni sohbet",
+    "mission": "Görev",
+    "summary": "Özet",
+    "remind": "Hatırlatıcı",
+    "calendar": "Takvim",
+    "people": "Kişiler",
+    "computer": "Bilgisayar",
+    "vault": "Kasa",
+    "settings": "Ayarlar"
   },
   "homeNow": {
     "working_one": "{{count}} çalışıyor",
@@ -1548,7 +1573,11 @@
       "today": "bugün {{time}}",
       "tomorrow": "yarın {{time}}",
       "later": "{{day}} {{time}}"
-    }
+    },
+    "needsYou": "Seni bekliyor",
+    "running": "Şu an çalışıyor",
+    "runningAll": "Tümünü gör",
+    "steps": "{{done}}/{{total}}"
   },
   "agentLite": {
     "uses": "Kullanabilir",
@@ -3101,5 +3130,14 @@
   "brand": {
     "basedOn": "Codari Global, LLC'nin DougBot projesine dayanır · AGPL-3.0",
     "source": "DougBot kaynak kodu"
+  },
+  "toSchedule": {
+    "title": "Planlanmaya hazır",
+    "row": "Gönderi onaylandı, planlamak için dokun",
+    "untitled": "Başlıksız gönderi",
+    "sheetTitle": "Gönderiyi planla",
+    "confirm": "Planla",
+    "when": "{{when}} yayında",
+    "past": "Henüz geçmemiş bir saat seç"
   }
 }

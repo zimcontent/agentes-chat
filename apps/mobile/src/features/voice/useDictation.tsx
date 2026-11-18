@@ -17,6 +17,7 @@ import { useTranslation } from "react-i18next";
 import { ActivityIndicator, Alert, AppState, Linking, StyleSheet, View } from "react-native";
 import { useSharedValue } from "react-native-reanimated";
 import { authedFetch } from "@/lib/auth";
+import { caught, showCaught } from "@/lib/caught";
 import { placeKey } from "@/lib/server";
 import { serverOf } from "@/lib/server-choice";
 import { haptics, Icon, PressScale, Text, useTheme, useToast } from "@/ui";
@@ -189,7 +190,7 @@ export function useDictation(input: {
     }
   }, [channelId, orgId, reset, setPhase, stopRecorder]);
 
-  const tick = useCallback(() => {
+  const tickNow = useCallback(() => {
     const status = recorder.getStatus();
     // A call or Siri took the microphone: what was said is transcribed.
     if (!status.isRecording && status.durationMillis > 0) {
@@ -207,6 +208,15 @@ export function useDictation(input: {
     setSeconds((s) => (s === whole ? s : whole));
     if (ms.current >= VOICE_MAX_MS) void stop();
   }, [edge, inner, recorder, stop]);
+  const tick = useCallback(() => {
+    // Every 50 ms on a timer: whatever it throws stops the dictation, never the app (`showCaught`).
+    try {
+      tickNow();
+    } catch (error) {
+      stopTimer();
+      showCaught("dictation.tick", error);
+    }
+  }, [tickNow, stopTimer]);
 
   const start = useCallback(async () => {
     if (phaseRef.current !== "idle" || starting.current) return;
@@ -295,7 +305,7 @@ export function useDictation(input: {
     <PressScale
       to={0.9}
       haptic={false}
-      onPress={() => void (recording ? stop() : start())}
+      onPress={caught("dictation.press", () => void (recording ? stop() : start()))}
       accessibilityRole="button"
       accessibilityLabel={recording ? t("mobile.voice.stopDictating") : t("mobile.voice.dictate")}
       hitSlop={6}

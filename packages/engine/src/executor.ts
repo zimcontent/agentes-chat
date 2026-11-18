@@ -165,7 +165,7 @@ import { recordContextUse } from "./context/feedback";
 import { afterTurnDone, learnTags, reportLearnFailure } from "./context/learn";
 import { rulesForRun } from "./context/rules";
 import { memoryArmOf } from "./context/scorecard";
-import { type ContextDeps, ensureThreadSummary } from "./context/summaries";
+import { type ContextDeps, ensureThreadSummary, resolveSummaryModel } from "./context/summaries";
 import { EXPAND_TOOL, itemLabel, retrieveForRun } from "./context/tools";
 import { compactToolResults, cutOldToolSteps, cutResultIds, dropOldImages, fitContextWindow } from "./context-budget";
 import {
@@ -266,6 +266,7 @@ import { enqueue, PermanentJobError } from "./outbox";
 import { type OutsideMemo, personWords, runReadOutside } from "./outside";
 import { assertPersonUnderLimit } from "./person-usage";
 import { createProfiler, type StageTiming } from "./profile";
+import { createProgressLine, progressWords } from "./progress-line";
 import { ASK_USER_TOOL, QUESTION_MAX_CHARS, questionResult } from "./questions";
 import {
   endsWithSentinel,
@@ -472,6 +473,8 @@ export interface EngineDeps {
   /** Active time before the call count may move it: a quick run of many fast calls stays in the conversation. */
   workAutoMinMs?: number;
   workTickMs?: number;
+  /** A run that says nothing this long gets a line of what it does (`progress-line.ts`, `PROGRESS_QUIET_MS`). */
+  progressQuietMs?: number;
   /**
    * How long a run started on a person's message waits for their next one before its first model call
    * (`waitForBurst`, `ROUTER_QUIET_MS` on a server); absent: no wait.
@@ -4450,6 +4453,41 @@ async function executeRunInner(
   let earlyCode: { plan: BrainPlan; code: Promise<CodeSetup | null> } | null = null;
   const autoTick: ReturnType<typeof setInterval> | null =
     run.background || run.workId ? null : setInterval(() => void autoMove().catch(() => {}), deps.workTickMs ?? 5_000);
+  // A run that works without a word: a line of what it does, in the waiting row (`progress-line.ts`).
+  const contextDeps = deps.context;
+  const progress =
+    run.background || !contextDeps
+      ? null
+      : createProgressLine(
+          {
+            gateway: deps.gateway,
+            resolveModel: (orgId) => resolveSummaryModel(contextDeps, orgId),
+            ...(deps.progressQuietMs !== undefined ? { quietMs: deps.progressQuietMs } : {}),
+          },
+          run,
+          agent.name,
+          () => (transcript as Transcript).request ?? triggerText,
+        );
+  /** The run's latest step of its own: the tool its progress line stands under. */
+  let progressTool: string | undefined;
+  const progressTick: ReturnType<typeof setInterval> | null = progress
+    ? setInterval(
+        () =>
+          void progress
+            .tick()
+            .then((said) => {
+              if (!said || run.background) return;
+              return publishChannelEvent(deps.pubsub, {
+                type: "agent.step",
+                ...where,
+                tool: progressTool ?? "thinking",
+                said,
+              });
+            })
+            .catch(() => {}),
+        deps.workTickMs ?? 5_000,
+      )
+    : null;
   try {
     // A person who writes in a few messages gets one answer: what they add in the next seconds is read with the first.
     // A routed run skips it: the router already waited for the burst, its trigger is the last message of it.
@@ -4688,7 +4726,8 @@ async function executeRunInner(
       /** A call of its own (not ours through the bridge, which says its step as it starts) is the step line now. */
       const ownStep = (call: { id: string; name: string }) => {
         if (run.background || turnTools.some((t) => t.name === call.name)) return;
-        const said = takeStepWords(run.id);
+        progressTool = call.name;
+        const said = takeStepWords(run.id) ?? progressWords(run.id);
         void publishChannelEvent(deps.pubsub, {
           type: "agent.step",
           ...where,
@@ -4763,7 +4802,10 @@ async function executeRunInner(
               : {}),
           }),
           io,
-          deltas.push,
+          (text: string) => {
+            if (text.trim()) progress?.wrote();
+            deltas.push(text);
+          },
           {
             // Plan usage of a computer brain: tokens on the run, cost zero (the person's plan).
             onUsage: (u) =>
@@ -4807,6 +4849,7 @@ async function executeRunInner(
             },
             onExecuted: (call) => {
               executedNow.push(call);
+              progress?.step(call);
               // A brain that tells its calls only once they ended (Codex, an older runner) says the step now.
               if (!stepTold.delete(call.id)) ownStep(call);
               // The text it streams next is another model call's: never one reply with what it wrote before.
@@ -5914,6 +5957,8 @@ async function executeRunInner(
     live.close();
     offWork?.();
     if (autoTick) clearInterval(autoTick);
+    if (progressTick) clearInterval(progressTick);
+    progress?.close();
   }
 }
 

@@ -5,6 +5,7 @@ import type { ScreenKind } from "./types";
 export const keys = {
   health: ["health"] as const,
   instance: ["instance"] as const,
+  legal: ["legal"] as const,
   telemetry: ["telemetry"] as const,
   jev: ["jev"] as const,
   /** The installation's GIPHY key (ADR 0091), not a workspace's: it stays when switching organizations. */

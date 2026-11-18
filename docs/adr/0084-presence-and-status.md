@@ -94,3 +94,15 @@ work; "Ausente" told people an agent due back later was gone.
     viewer's own talk with it (`rightHandFor`). Its line never shows: it is one value for the whole agent, written by
     whichever run spoke last (`set_status` included), so it could carry someone else's private conversation. Out of
     office still says so to everyone.
+
+## Addendum (2026-11-18): a line of what a quiet agent does, in the waiting row
+
+The waiting row under a conversation says the agent's own words for its step: the first sentence it wrote before a
+call (`takeStepWords`). A brain that thinks without a word (Gemini through the Antigravity CLI) showed only a verb for
+minutes ("Pensando…", "Usando o terminal…") and people read it as stuck. When a run that isn't background work has
+said nothing of its own for 30 s and took new steps since, the org's cheap model words one line from the person's
+request and the run's latest steps (their inputs as data, `untrustedBlock`), in the request's language, at most one
+every 45 s (`progress-line.ts`). It goes out as the run's `agent.step` words and stands as the words of its next steps,
+its own and bridged, until the agent writes. Nothing is posted and nothing is stored: like the agent's own step words,
+it lives in the waiting row only. A failed or slow call says nothing. It counts as the org's call (`kind: "router"`),
+not the agent's.

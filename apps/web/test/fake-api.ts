@@ -62,6 +62,7 @@ import type {
   JoinApproval,
   JoinClaim,
   JoinRequest,
+  LegalFacts,
   Me,
   Member,
   MemberPresence,
@@ -200,6 +201,27 @@ function fakePlanAccount(money: boolean): PlanAccountUsage {
     ...(money ? { equivalentUsd: 92 } : {}),
   };
 }
+
+/** `GET /api/app/legal`'s services on a fresh installation: every optional service off. */
+const NO_LEGAL_SERVICES: LegalFacts["services"] = {
+  platformKey: false,
+  jev: false,
+  giphy: false,
+  email: false,
+  media: false,
+  speech: false,
+  push: false,
+  pushDirect: false,
+  pushRelay: false,
+  composio: false,
+  embeddings: false,
+  whatsapp: false,
+  errors: false,
+  billing: false,
+  support: false,
+  telemetry: false,
+  driveBackup: false,
+};
 
 export interface FakeState {
   me: Me | null;
@@ -395,6 +417,8 @@ export interface FakeState {
   edition?: Edition;
   /** Overrides `system.instance` (default: agentes.chat Cloud). */
   instance?: Partial<Instance>;
+  /** Overrides `system.legal` (default: every field unset, as a fresh installation has them). */
+  legal?: Partial<LegalFacts>;
   /** `agents.brainMachines`: the computers a new agent could think on ("Criar agente"); unset = none. */
   brainMachines?: BrainMachine[];
   /** `agents.newAgentSetup`: what a new agent starts thinking with; unset = none ("Automático"). */
@@ -1452,6 +1476,24 @@ export function createFakeHttpApi(state: FakeState): Omit<HttpApi, FakedParts> {
         signup: "open",
         cloud: true,
         ...state.instance,
+      }),
+      legal: async () => ({
+        companyName: null,
+        taxId: null,
+        address: null,
+        dpoName: null,
+        dpoEmail: null,
+        serverLocation: null,
+        logRetention: null,
+        backupRetentionDays: 14,
+        voiceRetentionDays: 90,
+        draft: true,
+        backup: false,
+        storage: "database" as const,
+        telemetryForced: false,
+        companyRequestsRetentionDays: null,
+        ...state.legal,
+        services: { ...NO_LEGAL_SERVICES, ...state.legal?.services },
       }),
       telemetry: async () => state.telemetry ?? null,
       setTelemetry: async (enabled) => {

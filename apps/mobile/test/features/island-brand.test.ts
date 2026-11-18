@@ -4,6 +4,7 @@ import {
   BRAND_ROW,
   brandBox,
   CAMERA,
+  notchHeight,
   noticeClear,
   noticeTop,
   topKindOf,
@@ -33,11 +34,18 @@ describe("DougBot's signature resting in the island", () => {
     expect(b.w).toBeLessThanOrEqual(160);
   });
 
-  test("hanging from the notch: flush with the screen's edge, the name under the notch", () => {
-    const b = brandBox("notch", 47);
-    expect(b.top).toBe(0);
-    expect(b.clear).toBe(33);
-    expect(b.h).toBe(33 + BRAND_ROW);
+  test("hanging from the notch: flush with the screen's edge, the name below the status bar's line", () => {
+    // iPhone X/XS (44), 11 (48), 12 to 14 and 13 Pro Max (47), 12/13 mini (50).
+    for (const inset of [44, 47, 48, 50]) {
+      const b = brandBox("notch", inset);
+      expect(b.top).toBe(0);
+      // Below the clock's line (the inset), never pressed against the notch.
+      expect(b.clear).toBeGreaterThanOrEqual(inset);
+      expect(b.clear).toBeGreaterThan(notchHeight(inset));
+      expect(b.h).toBe(b.clear + BRAND_ROW);
+      // Still inside the bar under it (44 tall), so it never reaches the screen's content.
+      expect(b.h).toBeLessThanOrEqual(inset + 44);
+    }
   });
 
   test("with neither, a pill centered in the bar under the status bar: 44 on an iPhone, 56 on Android", () => {

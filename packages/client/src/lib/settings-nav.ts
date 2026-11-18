@@ -11,6 +11,7 @@ export const SETTINGS_PARTS: Readonly<Record<string, string>> = {
   download: "account",
   approvals: "account",
   apps: "account",
+  support: "account",
   media: "general",
   voice: "general",
   billing: "usage",

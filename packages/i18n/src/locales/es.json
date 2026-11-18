@@ -1878,6 +1878,7 @@
     "updated": "Última actualización: {{date}}",
     "contents": "En esta página",
     "home": "Ir a la página de inicio",
+    "draft": "Borrador, sujeto a revisión jurídica. Lo que está entre [corchetes] aún no se ha completado.",
     "none": {
       "terms": "Este servidor no tiene página de términos",
       "privacy": "Este servidor no tiene página de privacidad"
@@ -14772,7 +14773,8 @@
       "vault_make_password": "Generar contraseña",
       "get_my_usage": "Ver mi uso",
       "send_feedback": "Enviar feedback",
-      "offer_feedback": "Ofrecer reportar un problema"
+      "offer_feedback": "Ofrecer reportar un problema",
+      "contact_support": "Pedir ayuda al soporte"
     }
   },
   "toolReview": {
@@ -17452,6 +17454,7 @@
       "voice": "Voz",
       "apps": "Apps de IA",
       "approvals": "Aprobaciones",
+      "support": "Soporte",
       "about": "Acerca de DougBot",
       "generalPersonal": "Sobre ti",
       "keysPersonal": "IA y apps",
@@ -17483,12 +17486,31 @@
       "voice": "Mensajes de voz en las conversaciones, y quién convierte la voz en texto.",
       "apps": "Pide tareas a los agentes desde Claude, Cursor y otras apps.",
       "approvals": "Quién decide por ti cuando un agente pide tu aprobación.",
+      "support": "Quién administra esta instalación y cómo contactarles.",
       "about": "Quién lo hace, su licencia y dónde está su código fuente.",
       "generalPersonal": "Lo que tus agentes saben de ti, y cómo funciona este espacio de trabajo.",
       "usagePersonal": "Cuánta IA usan tus agentes, y tu plan.",
       "connectorsPersonal": "Tus apps y servidores MCP, conectados una vez para tus agentes.",
       "membersPersonal": "Quién está aquí contigo.",
       "rolesPersonal": "Lo que cada persona de aquí puede hacer. Quien es propietario puede hacerlo todo."
+    },
+    "support": {
+      "title": "Contactar al soporte",
+      "lead": "Quienes administran esta instalación, para cuando algo del sistema no funciona.",
+      "email": "Correo",
+      "whatsapp": "WhatsApp",
+      "client": "Esta instalación",
+      "askTitle": "Pide ayuda a {{name}}",
+      "askLead": "{{name}} escribe lo que pasó y lo envía al soporte en tu nombre. Lees el mensaje antes de que salga.",
+      "askStatus": "Abre la conversación con los detalles ya escritos.",
+      "ask": "Pide ayuda a {{name}}",
+      "draft": "{{name}}, necesito ayuda con el sistema:",
+      "draftWith": "{{name}}, necesito ayuda con el sistema ({{facts}}):",
+      "draftVersion": "versión del servidor {{version}}",
+      "draftClient": "instalación {{code}}",
+      "draftPage": "en la página {{page}}",
+      "draftAsk": "Envía esto al soporte con contact_support, en mi nombre.",
+      "askNoEmail": "{{name}} abre la conversación con los detalles ya en el campo. Escribe lo que pasó y envíalo."
     },
     "about": {
       "basedOn": "Basado en <site>DougBot</site> de Codari Global, LLC · AGPL-3.0",
@@ -17500,6 +17522,7 @@
     "title": "Configuración",
     "account": {
       "plans": "Los límites de tus planes",
+      "legal": "Términos y privacidad",
       "device": "En este dispositivo",
       "activity": "Mostrar lo que hicieron los agentes debajo de cada respuesta",
       "activityHelp": "Las herramientas que usaron y cuánto tardaron. Mientras trabajan, sigues viendo lo que están haciendo.",
@@ -18430,6 +18453,7 @@
         "settingCommitLine": "Ajustó la línea de los agentes en los commits",
         "sendingFeedback": "Pidió enviar comentarios",
         "offeringFeedback": "Ofreció informar de un problema",
+        "askingSupport": "Pidió ayuda al soporte",
         "deletingRoutine": "Borró una rutina",
         "runningRoutine": "Ejecutó una rutina ahora",
         "proposingTeam": "Propuso un equipo",
@@ -18553,6 +18577,7 @@
       "settingCommitLine": "ajustando la línea de los agentes en los commits",
       "sendingFeedback": "preparando comentarios",
       "offeringFeedback": "preparando un informe",
+      "askingSupport": "pidiendo ayuda al soporte",
       "deletingRoutine": "borrando una rutina",
       "runningRoutine": "ejecutando una rutina ahora",
       "proposingTeam": "proponiendo un equipo",

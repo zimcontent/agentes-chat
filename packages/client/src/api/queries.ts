@@ -47,7 +47,7 @@ import {
 } from "../lib/notifications";
 import { workspaceUsesApi } from "../lib/plan-usage";
 import { learnPlanModels } from "../lib/plans";
-import { movedInPlan } from "../lib/portal";
+import { movedInPlan, rememberPortalClientNames } from "../lib/portal";
 import { setMyReaction } from "../lib/reactions";
 import { recentConversations } from "../lib/recent";
 import { replyOf } from "../lib/reply";
@@ -258,6 +258,9 @@ export const authConfigQuery = (api: ApiClient) =>
   queryOptions({ queryKey: keys.authConfig, queryFn: () => api.account.authConfig(), staleTime: 60_000 });
 export const instanceQuery = (api: ApiClient) =>
   queryOptions({ queryKey: keys.instance, queryFn: () => api.system.instance(), staleTime: 60_000 });
+/** The company details the legal pages fill in (`LEGAL_*`): they change only with the installation's settings. */
+export const legalFactsQuery = (api: ApiClient) =>
+  queryOptions({ queryKey: keys.legal, queryFn: () => api.system.legal(), staleTime: 60_000 });
 export const channelsQuery = (api: ApiClient, orgId: string) =>
   queryOptions({
     queryKey: keys.channels(orgId),
@@ -336,6 +339,7 @@ function onQueryEvent(cache: QueryCache, hash: string, types: readonly QueryEven
   };
 }
 export const useAuthConfig = () => useQuery(authConfigQuery(useApi()));
+export const useLegalFacts = () => useQuery(legalFactsQuery(useApi()));
 export const useHealth = () => {
   const api = useApi();
   return useQuery({ queryKey: keys.health, queryFn: () => api.system.health(), staleTime: 5 * 60_000 });
@@ -1828,8 +1832,13 @@ export function cacheAgentProposal(
  * only a UUID.
  */
 export const newClientId = (): string => {
-  if (typeof crypto.randomUUID === "function") return crypto.randomUUID();
-  const b = crypto.getRandomValues(new Uint8Array(16));
+  // Read off `globalThis`: a runtime with no `crypto` at all (the phone's Hermes before its shim) throws on the bare name.
+  const c = (globalThis as { crypto?: Partial<Crypto> }).crypto;
+  if (typeof c?.randomUUID === "function") return c.randomUUID();
+  const b = new Uint8Array(16);
+  // Only a duplicate guard, never a secret: with no random source at all, `Math.random` is enough.
+  if (typeof c?.getRandomValues === "function") c.getRandomValues(b);
+  else for (let i = 0; i < b.length; i++) b[i] = Math.floor(Math.random() * 256);
   b[6] = ((b[6] ?? 0) & 0x0f) | 0x40;
   b[8] = ((b[8] ?? 0) & 0x3f) | 0x80;
   const h = Array.from(b, (x) => x.toString(16).padStart(2, "0")).join("");
@@ -7463,7 +7472,12 @@ export const usePortalOverview = (orgId: string, enabled = true) => {
   const api = useApi();
   return useQuery({
     queryKey: keys.portalOverview(orgId),
-    queryFn: () => portalOf(api).overview(orgId),
+    queryFn: async () => {
+      const overview = await portalOf(api).overview(orgId);
+      // Every screen names a client through `portalClientName`: the team's names come with this read.
+      rememberPortalClientNames(overview);
+      return overview;
+    },
     enabled,
     refetchInterval: (q) => (isPortalOff(q.state.error) ? false : PORTAL_REFRESH_MS),
     retry: false,
@@ -7764,6 +7778,57 @@ export function useSetPortalClientColor(orgId: string) {
       if (context?.before) qc.setQueryData(keys.portalOverview(orgId), context.before);
     },
     onSettled: () => qc.invalidateQueries({ queryKey: keys.portalOverview(orgId) }),
+  });
+}
+
+/**
+ * The name the team shows for a client (`null`: back to its id's). It shows at once wherever the overview is read
+ * (ADR 9001, addendum 2026-11-18), and goes back if the server refuses.
+ */
+export function useSetPortalClientName(orgId: string) {
+  const api = useApi();
+  const qc = useQueryClient();
+  return useMutation({
+    meta: { silent: true },
+    mutationFn: ({ client, name }: { client: string; name: string | null }) => {
+      const set = portalOf(api).setClientName;
+      if (!set) throw new ApiError(404, "portal.off", "This server has no approval portal");
+      return set(orgId, client, name);
+    },
+    onMutate: async ({ client, name }) => {
+      await qc.cancelQueries({ queryKey: keys.portalOverview(orgId) });
+      const before = qc.getQueryData<PortalOverview>(keys.portalOverview(orgId));
+      const kept = name?.replace(/\s+/g, " ").trim() || null;
+      const now = qc.setQueryData<PortalOverview>(keys.portalOverview(orgId), (was) =>
+        was ? { ...was, clients: was.clients.map((c) => (c.client === client ? { ...c, name: kept } : c)) } : was,
+      );
+      if (now) rememberPortalClientNames(now);
+      return { before };
+    },
+    onError: (_error, _input, context) => {
+      if (!context?.before) return;
+      qc.setQueryData(keys.portalOverview(orgId), context.before);
+      rememberPortalClientNames(context.before);
+    },
+    onSettled: () => refreshPortal(qc, orgId),
+  });
+}
+
+/**
+ * Hides a client from every list and count, or shows it again (ADR 9001, addendum 2026-11-18). Nothing changes at
+ * the portal; every portal read is asked again, since each one leaves the hidden clients out.
+ */
+export function useSetPortalClientHidden(orgId: string) {
+  const api = useApi();
+  const qc = useQueryClient();
+  return useMutation({
+    meta: { silent: true },
+    mutationFn: ({ client, hidden }: { client: string; hidden: boolean }) => {
+      const set = portalOf(api).setClientHidden;
+      if (!set) throw new ApiError(404, "portal.off", "This server has no approval portal");
+      return set(orgId, client, hidden);
+    },
+    onSettled: () => refreshPortal(qc, orgId),
   });
 }
 

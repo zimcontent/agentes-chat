@@ -384,6 +384,8 @@
     "closed": "zamknięty",
     "options": "Opcje",
     "profile": "Profil",
+    "call": "Zadzwoń",
+    "toneGreen": "Na zielono",
     "here_one": "{{count}} tutaj",
     "here_few": "{{count}} tutaj",
     "here_many": "{{count}} tutaj",
@@ -1360,7 +1362,9 @@
       "suggested": "Sugerowane",
       "all": "Wszystkie",
       "none": "Brak strefy czasowej o tej nazwie"
-    }
+    },
+    "groupAlerts": "Alerty i akceptacje",
+    "groupLook": "Wygląd i dźwięk"
   },
   "delete": {
     "intro": "Tego nie da się cofnąć.",
@@ -1682,7 +1686,28 @@
   },
   "homeTools": {
     "title": "Narzędzia",
-    "more": "Więcej"
+    "more": "Więcej",
+    "all": "Wszystko",
+    "edit": "Edytuj skróty",
+    "done": "Gotowe",
+    "editHint": "Dotknij, by przypiąć do 4 na Start",
+    "full": "Start ma już 4. Najpierw odepnij jeden.",
+    "search": "Szukaj rozmów, plików, osób",
+    "searchTile": "Szukaj",
+    "pinned": "przypięte na Start",
+    "attach": "Dołącz do rozmowy",
+    "here": "W tej rozmowie",
+    "create": "Utwórz",
+    "newAgent": "Nowy agent",
+    "newChat": "Nowa rozmowa",
+    "mission": "Misja",
+    "summary": "Podsumowanie",
+    "remind": "Przypomnienie",
+    "calendar": "Kalendarz",
+    "people": "Osoby",
+    "computer": "Komputer",
+    "vault": "Sejf",
+    "settings": "Ustawienia"
   },
   "homeNow": {
     "working_one": "{{count}} pracuje",
@@ -1730,7 +1755,11 @@
       "today": "dziś o {{time}}",
       "tomorrow": "jutro o {{time}}",
       "later": "{{day}} o {{time}}"
-    }
+    },
+    "needsYou": "Czeka na ciebie",
+    "running": "Teraz pracuje",
+    "runningAll": "Zobacz wszystko",
+    "steps": "{{done}} z {{total}}"
   },
   "agentLite": {
     "uses": "Może używać",
@@ -3359,5 +3388,14 @@
   "brand": {
     "basedOn": "Na podstawie DougBot od Codari Global, LLC · AGPL-3.0",
     "source": "Kod źródłowy DougBot"
+  },
+  "toSchedule": {
+    "title": "Gotowe do zaplanowania",
+    "row": "Post zatwierdzony, dotknij, aby zaplanować",
+    "untitled": "Post bez tytułu",
+    "sheetTitle": "Zaplanuj post",
+    "confirm": "Zaplanuj",
+    "when": "Publikacja {{when}}",
+    "past": "Wybierz godzinę, która jeszcze nie minęła"
   }
 }

@@ -48,6 +48,8 @@ export {
   GroupedList,
   GroupedRow,
   type GroupedRowProps,
+  TILE_TINTS,
+  type TileTint,
 } from "./Grouped";
 export { HoldButton, type HoldButtonProps } from "./HoldButton";
 export { haptics } from "./haptics";

@@ -169,6 +169,7 @@ import type {
   JoinClaim,
   JoinRequest,
   LearnedSkill,
+  LegalFacts,
   LiveRoom,
   LiveSession,
   LiveSpeakerPick,
@@ -761,6 +762,7 @@ export function createHttpApi(options: TransportOptions = {}): HttpApi {
         }
       },
       instance: () => request<Instance>("/api/instance"),
+      legal: () => request<LegalFacts>("/api/app/legal"),
       telemetry: () => nullOn(404, () => request<ServerTelemetry>("/api/app/telemetry")),
       setTelemetry: (enabled) => request<ServerTelemetry>("/api/app/telemetry", { method: "PUT", json: { enabled } }),
       sendFeedback: (input) => request<void>("/api/app/feedback", { json: input }),
@@ -2040,6 +2042,13 @@ export function createHttpApi(options: TransportOptions = {}): HttpApi {
           method: "PUT",
           json: { afterApprove },
         }),
+      setClientName: (orgId, client, name) =>
+        request<{ name: string | null }>(`${org(orgId)}/portal/clients/${enc(client)}/name`, {
+          method: "PUT",
+          json: { name },
+        }),
+      setClientHidden: (orgId, client, hidden) =>
+        request<void>(`${org(orgId)}/portal/clients/${enc(client)}/hidden`, { method: "PUT", json: { hidden } }),
       setClientLogo: async (orgId, client, image) => {
         const path = `${org(orgId)}/portal/clients/${enc(client)}/logo`;
         if (image) await request<{ logo: string }>(path, { method: "PUT", json: image });

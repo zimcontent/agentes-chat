@@ -11,6 +11,8 @@ export interface ComposerRequest {
   text: string;
   /** When it was asked: tells two requests with the same text apart. */
   at: number;
+  /** After what the field already holds, instead of in its place: a hand-off never erases a draft someone was writing. */
+  join?: boolean;
 }
 
 let pending: ComposerRequest | null = null;
@@ -19,8 +21,8 @@ const changed = () => {
   for (const listener of listeners) listener();
 };
 
-export function requestComposerText(channelId: string, text: string): void {
-  pending = { channelId, text, at: Date.now() };
+export function requestComposerText(channelId: string, text: string, options: { join?: boolean } = {}): void {
+  pending = { channelId, text, at: Date.now(), ...(options.join ? { join: true } : {}) };
   changed();
 }
 

@@ -1892,6 +1892,8 @@ export const ptBR = {
     updated: "Atualizado em {{date}}",
     contents: "Nesta página",
     home: "Ir para o início",
+    /** `/termos` and `/privacidade`: the line over the text, which a lawyer still has to review. */
+    draft: "Rascunho, sujeito à revisão jurídica. O que está entre colchetes ainda não foi preenchido.",
     /** `/terms` and `/privacy` on a server that has no page of its own for them. */
     none: {
       terms: "Este servidor não tem página de termos",
@@ -14621,6 +14623,7 @@ export const ptBR = {
       get_my_usage: "Ver meu uso",
       send_feedback: "Enviar feedback",
       offer_feedback: "Oferecer um relato de problema",
+      contact_support: "Pedir ajuda ao suporte",
     },
   },
   toolReview: {
@@ -17074,6 +17077,14 @@ export const ptBR = {
     change: {
       mergedWithoutAsking: "Fez o merge em {{repo}} sem perguntar",
       portalApprovedForClient: "Aprovou “{{title}}” pelo cliente no portal",
+      portalClient: {
+        renamed: "Renomeou o cliente {{client}} no portal",
+        hidden: "Excluiu o cliente {{client}} das listas do portal",
+        shown: "Mostrou de novo o cliente {{client}} no portal",
+        color: "Mudou a cor do cliente {{client}} no portal",
+        logo: "Mudou o logo do cliente {{client}} no portal",
+        logoRemoved: "Removeu o logo do cliente {{client}} no portal",
+      },
       pattern: "{{verb}} {{area}}",
       approval: {
         approved: "Aprovou um pedido",
@@ -17255,6 +17266,7 @@ export const ptBR = {
       voice: "Voz",
       apps: "Apps de IA",
       approvals: "Aprovações",
+      support: "Suporte",
       about: "Sobre o DougBot",
       generalPersonal: "Sobre você",
       keysPersonal: "IA e apps",
@@ -17284,12 +17296,33 @@ export const ptBR = {
       voice: "Mensagens de voz nas conversas, e quem transforma a voz em texto.",
       apps: "Peça tarefas aos agentes pelo Claude, Cursor e outros apps.",
       approvals: "Quem decide por você quando um agente pede a sua aprovação.",
+      support: "Quem cuida desta instalação, e como falar com eles.",
       about: "Quem faz, a licença e onde está o código-fonte.",
       generalPersonal: "O que os seus agentes sabem de você, e como este workspace funciona.",
       usagePersonal: "Quanto de IA os seus agentes usam, e o seu plano.",
       connectorsPersonal: "Seus apps e servidores MCP, conectados uma vez para os seus agentes.",
       membersPersonal: "Quem está aqui com você.",
       rolesPersonal: "O que cada pessoa daqui pode fazer. Quem é dono pode tudo.",
+    },
+    support: {
+      title: "Falar com o suporte",
+      lead: "Quem cuida desta instalação, para quando algo do sistema não funciona.",
+      email: "E-mail",
+      whatsapp: "WhatsApp",
+      client: "Esta instalação",
+      askTitle: "Peça ajuda a {{name}}",
+      askLead:
+        "{{name}} escreve o que aconteceu e manda para o suporte no seu nome. Você lê a mensagem antes de ela ir.",
+      askStatus: "Abre a conversa com os detalhes já no campo.",
+      ask: "Peça ajuda a {{name}}",
+      /** A mensagem que o campo abre: a da pessoa, com os fatos, e o pedido que faz o agente enviar. */
+      draft: "{{name}}, preciso de ajuda com o sistema:",
+      draftWith: "{{name}}, preciso de ajuda com o sistema ({{facts}}):",
+      draftVersion: "versão do servidor {{version}}",
+      draftClient: "instalação {{code}}",
+      draftPage: "na página {{page}}",
+      draftAsk: "Manda isso para o suporte com a ferramenta contact_support, no meu nome.",
+      askNoEmail: "{{name}} abre a conversa com os detalhes já no campo. Escreva o que aconteceu e envie.",
     },
     about: {
       basedOn: "Baseado no <site>DougBot</site> da Codari Global, LLC · AGPL-3.0",
@@ -17301,6 +17334,8 @@ export const ptBR = {
     title: "Configurações",
     account: {
       plans: "Limites dos seus planos",
+      /** The Terms of Use and the Privacy Policy this server serves, opened in a new tab. */
+      legal: "Termos e privacidade",
       device: "Neste aparelho",
       /** Yours in this workspace, on every device: the tool summary under each agent reply, off by default. */
       activity: "Mostrar o que os agentes fizeram em cada resposta",
@@ -18275,6 +18310,7 @@ export const ptBR = {
         settingCommitLine: "Ajustou a linha dos agentes nos commits",
         sendingFeedback: "Pediu para enviar um feedback",
         offeringFeedback: "Ofereceu relatar um problema",
+        askingSupport: "Pediu ajuda ao suporte",
         deletingRoutine: "Apagou uma rotina",
         runningRoutine: "Rodou uma rotina agora",
         proposingTeam: "Propôs um time",
@@ -18398,6 +18434,7 @@ export const ptBR = {
       settingCommitLine: "ajustando a linha dos agentes nos commits",
       sendingFeedback: "preparando um feedback",
       offeringFeedback: "preparando um relato",
+      askingSupport: "pedindo ajuda ao suporte",
       deletingRoutine: "apagando uma rotina",
       runningRoutine: "rodando uma rotina agora",
       proposingTeam: "propondo um time",
@@ -21435,6 +21472,20 @@ export const ptBR = {
       remove: "Remover logo",
       saved: "Logo salva",
       removed: "Logo removida",
+    },
+    clientEdit: {
+      rename: "Renomear cliente",
+      renameTitle: "Renomear cliente",
+      renameHelp: "O nome que a equipe vê em todo lugar. Deixe vazio para voltar a “{{id}}”.",
+      name: "Nome",
+      renamed: "Nome salvo",
+      hide: "Excluir cliente",
+      hideTitle: "Excluir “{{name}}”?",
+      hideText:
+        "Ele sai de todas as listas e contagens daqui. Os posts e cartões continuam no portal, e dá para trazê-lo de volta em Clientes ocultos.",
+      hidden: "“{{name}}” excluído",
+      hiddenTitle: "Clientes ocultos",
+      show: "Mostrar de novo",
     },
     clientColor: {
       label: "Cor do cliente",

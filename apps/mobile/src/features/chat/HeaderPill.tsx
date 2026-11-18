@@ -274,7 +274,16 @@ export function HeaderPill({
               importantForAccessibility="no-hide-descendants"
               pointerEvents="none"
             >
-              <Text variant="callout" numberOfLines={1} maxFontSizeMultiplier={WORDS_MAX_SCALE} style={styles.title}>
+              {/* A name a little wider than the pill's room (an agent's DM with its tasks, computer and call) shrinks
+                  rather than losing its last letters to "…" (ui-polish 17). */}
+              <Text
+                variant="callout"
+                numberOfLines={1}
+                adjustsFontSizeToFit
+                minimumFontScale={0.8}
+                maxFontSizeMultiplier={WORDS_MAX_SCALE}
+                style={styles.title}
+              >
                 {title}
               </Text>
               {subtitle ? (
