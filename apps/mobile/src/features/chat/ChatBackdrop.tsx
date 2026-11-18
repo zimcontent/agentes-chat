@@ -1,5 +1,5 @@
 import { memo, useId } from "react";
-import { StyleSheet, View } from "react-native";
+import { StyleSheet, useWindowDimensions, View } from "react-native";
 import Svg, { Circle, Defs, Pattern, RadialGradient, Rect, Stop } from "react-native-svg";
 import { useTheme } from "@/ui";
 import { BACKDROP_DOT, BACKDROP_STEP, backdropTones } from "./backdrop";
@@ -15,14 +15,17 @@ export const ChatBackdrop = memo(function ChatBackdrop({ accent }: { accent?: st
   // Ids of their own: two conversations mounted at once (a push over another) never share a pattern.
   const id = useId().replace(/[^a-zA-Z0-9]/g, "");
   const half = BACKDROP_STEP / 2;
+  // Sized to the screen, not to the conversation: the conversation's box changes with every frame of the keyboard
+  // sliding, and a drawing sized to it would be drawn again on each one. The screen's size changes only on rotation.
+  const { width, height } = useWindowDimensions();
   return (
     <View
-      style={StyleSheet.absoluteFill}
+      style={[styles.fixed, { width, height }]}
       pointerEvents="none"
       accessibilityElementsHidden
       importantForAccessibility="no"
     >
-      <Svg width="100%" height="100%">
+      <Svg width={width} height={height}>
         <Defs>
           <Pattern id={`dots${id}`} width={BACKDROP_STEP} height={BACKDROP_STEP} patternUnits="userSpaceOnUse">
             <Circle cx={half} cy={half} r={BACKDROP_DOT} fill={tones.dot} fillOpacity={tones.dotOpacity} />
@@ -39,4 +42,8 @@ export const ChatBackdrop = memo(function ChatBackdrop({ accent }: { accent?: st
       </Svg>
     </View>
   );
+});
+
+const styles = StyleSheet.create({
+  fixed: { position: "absolute", top: 0, left: 0 },
 });
