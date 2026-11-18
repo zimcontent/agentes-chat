@@ -586,7 +586,8 @@ const styles = StyleSheet.create({
   comments: { gap: 8 },
   say: { gap: 8 },
   field: { minHeight: 64, maxHeight: 160, borderRadius: 12, paddingHorizontal: 12, paddingVertical: 10 },
-  described: { minHeight: 120, maxHeight: 320, textAlignVertical: "top" },
+  // The words stay where they were read (`descBox`'s insets) when the press opens them to edit.
+  described: { minHeight: 120, maxHeight: 320, textAlignVertical: "top", paddingHorizontal: 16, paddingVertical: 12 },
   descBox: { borderRadius: 12, paddingHorizontal: 16, paddingVertical: 12, minHeight: 48 },
   formActs: { flexDirection: "row", gap: 8 },
   pressed: { opacity: 0.7 },

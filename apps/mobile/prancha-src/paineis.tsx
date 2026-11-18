@@ -310,7 +310,7 @@ function Server({ width = 390, children }: { width?: number; children: ReactNode
           <ToastHost>
             {/* An iPhone's status bar and home indicator, which a browser has none of. */}
             <SafeAreaInsetsContext.Provider value={{ top: 47, bottom: 34, left: 0, right: 0 }}>
-              <View style={[styles.phone, { width }]}>{children}</View>
+              <View style={[styles.phone, { width, maxWidth: "100%" }]}>{children}</View>
             </SafeAreaInsetsContext.Provider>
           </ToastHost>
         </FixedOrg>

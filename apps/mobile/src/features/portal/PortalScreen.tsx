@@ -28,6 +28,7 @@ import {
   useTheme,
 } from "@/ui";
 import { router } from "@/ui/navigation";
+import { weights } from "@/ui/type-scale";
 import { useOrgId, usePullRefresh } from "../shared/hooks";
 import { RetryLine } from "../shared/TeamSkyEmpty";
 import { useTabHeader } from "../shared/tabHeader";
@@ -58,8 +59,9 @@ export function PortalScreen() {
   const entries = pipeline.data?.entries;
   // Início's "Alterações" with several clients asking: only them, until "Ver todos".
   const { alteracoes } = useLocalSearchParams<{ alteracoes?: string }>();
-  const onlyAsking = alteracoes === "1";
   const asking = (client: string) => (summaries.get(client)?.counts.adjusting ?? 0) > 0;
+  // A link kept after the changes were answered shows every client, never an empty list.
+  const onlyAsking = alteracoes === "1" && clients.some((c) => asking(c.client));
   // The pipeline knows what is late; until it answers, the overview's counts say the rest.
   const rows = entries
     ? pipelineClients(
@@ -90,20 +92,27 @@ export function PortalScreen() {
             <PortalNotice state={overview.data.state} />
             {entries && <Tiles entries={entries} />}
             <View>
-              <GroupedHeader aside={<HeaderCount count={shown.length} />}>
+              {/* Narrowed to who asked: the way back to every client is the header's right, where the count was. */}
+              <GroupedHeader
+                aside={
+                  onlyAsking ? (
+                    <Pressable
+                      onPress={() => router.setParams({ alteracoes: undefined })}
+                      accessibilityRole="button"
+                      hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                      style={({ pressed }) => [styles.seeAll, pressed ? styles.seeAllPressed : null]}
+                    >
+                      <Text variant="footnote" tone="muted" style={styles.seeAllWords}>
+                        {w.seeAllClients}
+                      </Text>
+                    </Pressable>
+                  ) : (
+                    <HeaderCount count={shown.length} />
+                  )
+                }
+              >
                 {onlyAsking ? w.asked : w.clients}
               </GroupedHeader>
-              {onlyAsking ? (
-                <Pressable
-                  onPress={() => router.setParams({ alteracoes: undefined })}
-                  accessibilityRole="button"
-                  style={styles.seeAll}
-                >
-                  <Text variant="footnote" tone="muted">
-                    {w.seeAllClients}
-                  </Text>
-                </Pressable>
-              ) : null}
               <View style={styles.cards}>
                 {shown.map(({ client, status, own }) => {
                   const summary = summaries.get(client);
@@ -250,7 +259,10 @@ const TILE_DOT: Record<(typeof PORTAL_FOCI)[number], string> = {
 };
 
 const styles = StyleSheet.create({
-  seeAll: { alignSelf: "flex-start", minHeight: 32, justifyContent: "center", marginBottom: 4 },
+  // The header count's line (`HeaderCount`): 20 above, 8 under, the words semibold so they read as a way on.
+  seeAll: { paddingTop: 20, paddingBottom: 8 },
+  seeAllWords: { fontWeight: weights.semibold },
+  seeAllPressed: { opacity: 0.6 },
   in: { paddingHorizontal: 16, gap: 16 },
   tiles: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
   tile: {

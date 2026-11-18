@@ -10,7 +10,7 @@ import { MeScreen } from "@/features/me/MeScreen";
 import { ScheduleOneSheet } from "@/features/portal/ScheduleOneSheet";
 import { SheetHostProvider } from "@/features/shared/SheetHost";
 import { FixedOrg } from "@/providers/org";
-import { ToastHost } from "@/ui";
+import { SheetSurface, ToastHost, useTheme } from "@/ui";
 import { TabBar } from "./telas";
 
 /*
@@ -265,7 +265,8 @@ function answers(kind: Sample): Answers {
     "account.unread": () => ({ organizations: [] }),
     "account.authConfig": () => ({ about: true, approvalPortal: true }),
     "portal.toSchedule": () => ({ items: empty ? [] : TO_SCHEDULE }),
-    "system.instance": () => ({}),
+    // A real version, so Sobre shows its row as a server answers it (an empty answer is the "…" of a load).
+    "system.instance": () => ({ version: "2026.11.18-rc.3 (654849194)" }),
   };
 }
 
@@ -338,12 +339,21 @@ export function PendentesAgendar() {
   return (
     <Server>
       <SheetHostProvider>
-        <View style={styles.sheet}>
-          <ScheduleOneSheet item={TO_SCHEDULE[0] as unknown as PortalItem} />
-        </View>
+        {/* The form sheet as the app presents it: its surface and colours (`SheetSurface`), not the bare page. */}
+        <SheetSurface>
+          <SheetPage>
+            <ScheduleOneSheet item={TO_SCHEDULE[0] as unknown as PortalItem} />
+          </SheetPage>
+        </SheetSurface>
       </SheetHostProvider>
     </Server>
   );
+}
+
+/** The sheet's own ground, read inside `SheetSurface` (a step above the screen in dark). */
+function SheetPage({ children }: { children: ReactNode }) {
+  const { colors } = useTheme();
+  return <View style={[styles.sheet, { backgroundColor: colors.bg }]}>{children}</View>;
 }
 
 export function Ajustes() {
@@ -364,6 +374,6 @@ export function AjustesSobre() {
 }
 
 const styles = StyleSheet.create({
-  phone: { flex: 1, width: 390, overflow: "hidden" },
-  sheet: { padding: 16, paddingTop: 64, gap: 12 },
+  phone: { flex: 1, width: 390, maxWidth: "100%", overflow: "hidden" },
+  sheet: { flex: 1, padding: 16, paddingTop: 64, gap: 12 },
 });

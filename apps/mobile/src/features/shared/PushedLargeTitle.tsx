@@ -74,7 +74,8 @@ export function PushedLargeTitle({
             {collapsed ? null : (
               <Animated.View entering={FadeIn.duration(200)} exiting={FadeOutUp.duration(180)}>
                 <Animated.View style={[styles.head, titleFade]}>
-                  <Text variant="display" accessibilityRole="header" numberOfLines={1}>
+                  {/* A long title (a card's, a file's) wraps rather than losing its words to "…" (ui-polish 17). */}
+                  <Text variant="display" accessibilityRole="header" numberOfLines={3}>
                     {title}
                   </Text>
                 </Animated.View>
