@@ -21428,6 +21428,7 @@ export const en = {
     copied: "Link copied",
     copyFailed: "Couldn't copy the link",
     revoked: "The link was revoked",
+    linkStale: "This link has to be made again: make a new one to send",
     newLink: "New link",
     revoke: "Revoke link",
   },

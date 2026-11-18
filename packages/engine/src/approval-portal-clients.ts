@@ -1,15 +1,16 @@
 import type { BlobStore, PortalClientColor, PortalStatus, PortalType } from "@agenteschat/adapters";
 import { PORTAL_CLIENT_COLORS } from "@agenteschat/adapters";
 import type { Database } from "@agenteschat/db";
-import { and, asc, desc, eq, inArray, isNull, schema } from "@agenteschat/db";
+import { and, asc, desc, eq, inArray, isNull, schema, sql } from "@agenteschat/db";
 import { portalClientToken, sha256 } from "./crypto";
 import { ConflictError, ForbiddenError, NotFoundError, ValidationError } from "./errors";
 
 const { portalClientLinks, portalClients, portalPostFiles, portalPostNotes, portalPosts } = schema;
+const { issues } = schema;
 
 /**
  * The clients of the installation's approval portal (docs/adr/doug-0020-embedded-approval-portal.md): each one has a
- * name, its contacts (an e-mail, a WhatsApp number, or both) and a link of its own, `<PUBLIC_URL>/portal/<token>`, with
+ * name, its contacts (an e-mail, a WhatsApp number, or both) and a link of its own, `<PUBLIC_URL>/p/<token>`, with
  * no account: the token is the whole of the access, good for one client of one workspace, and the team may revoke it.
  * The page it opens is rendered as its own, never by the app's signed-in routes.
  */
@@ -27,6 +28,39 @@ export const PORTAL_CLIENT_ID = /^[a-z0-9][a-z0-9-]{0,63}$/;
 const PORTAL_PHONE = /^\d{8,15}$/;
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
+/**
+ * The workspace holding the installation's portal: the one with clients, else the one the portal's own tasks already
+ * are in (`issues.source` of type `portal`), else the installation's first, as `portalOrgId` (approval-portal-embedded.ts)
+ * and `portalHere`/`portalWorkspace` (approval-portal-tasks.ts) answer it. One installation has one portal (ADR 9001
+ * §18), so a second workspace on the same server has none of it: no client, no link, no page. The three read the same
+ * two sources in the same order, so a client made and a task the watch later makes never name different workspaces.
+ */
+export async function portalWorkspaceOf(db: Database): Promise<string | null> {
+  const [held] = await db.select({ orgId: portalClients.orgId }).from(portalClients).limit(1);
+  if (held) return held.orgId;
+  const [tasks] = await db
+    .select({ orgId: issues.orgId })
+    .from(issues)
+    .where(sql`${issues.source}->>'type' = 'portal'`)
+    .limit(1);
+  if (tasks) return tasks.orgId;
+  const [first] = await db
+    .select({ id: schema.organizations.id })
+    .from(schema.organizations)
+    .orderBy(asc(schema.organizations.createdAt))
+    .limit(1);
+  return first?.id ?? null;
+}
+
+/**
+ * Whether this workspace is the installation's portal (ADR 9001 §18), read from `portalWorkspaceOf`: a client is
+ * never made, changed, linked or removed in another. The route and the tool both ask it before their change; a
+ * workspace with no portal answers as if the server had none (`portal.off`).
+ */
+export async function portalBelongsTo(db: Database, orgId: string): Promise<boolean> {
+  return (await portalWorkspaceOf(db)) === orgId;
+}
+
 export interface PortalContactView {
   id: string;
   name: string;
@@ -42,27 +76,39 @@ export interface PortalClientView {
   name: string;
   contacts: PortalContactView[];
   color: PortalClientColor | null;
-  /** The client's page's own link; null while it has none (revoked). */
+  /** The client's page's own link; null while it has none (revoked), or while its token no longer matches. */
   link: string | null;
   /** When the last link was revoked: the address answers nothing until a new one is made. */
   revoked: boolean;
+  /**
+   * A live link whose token no longer matches the hash kept with it: `AGENTES_SECRET` changed since it was made. The
+   * address opens nothing, so the team has to make a new one (`makeClientLink`); never shown as if it worked.
+   */
+  linkStale: boolean;
   createdAt: string;
 }
 
 const clientView = async (
   deps: { db: Database; publicUrl: string; secret: string },
   row: typeof portalClients.$inferSelect,
-): Promise<PortalClientView> => ({
-  id: row.id,
-  client: row.client,
-  name: row.name,
-  contacts: row.contacts,
-  color: (row.color as PortalClientColor | null) ?? null,
-  link: await clientLinkUrl(deps.db, deps.publicUrl, deps.secret, row.id),
-  revoked: Boolean((await lastLink(deps.db, row.id))?.revokedAt),
-  createdAt: row.createdAt.toISOString(),
-});
+): Promise<PortalClientView> => {
+  const last = await lastLink(deps.db, row.id);
+  const link = await clientLinkUrl(deps.db, deps.publicUrl, deps.secret, row.id);
+  return {
+    id: row.id,
+    client: row.client,
+    name: row.name,
+    contacts: row.contacts,
+    color: (row.color as PortalClientColor | null) ?? null,
+    link,
+    revoked: Boolean(last?.revokedAt),
+    // An unrevoked link that answers null: its token no longer matches.
+    linkStale: Boolean(last && !last.revokedAt && !link),
+    createdAt: row.createdAt.toISOString(),
+  };
+};
 
+/** The client's newest link, revoked or not: what `revoked` and `linkStale` are read from. */
 const lastLink = async (db: Database, clientId: string) =>
   (
     await db
@@ -73,7 +119,11 @@ const lastLink = async (db: Database, clientId: string) =>
       .limit(1)
   )[0] ?? null;
 
-/** The address a client's current, unrevoked link opens; null while it has none. */
+/**
+ * The address a client's current, unrevoked link opens; null while it has none, or while the token made from the row
+ * no longer matches the hash kept with it (`AGENTES_SECRET` changed since). An address that would open nothing is
+ * never shown: the team is told to make a new one instead (`PortalClientView.linkStale`).
+ */
 export async function clientLinkUrl(
   db: Database,
   publicUrl: string,
@@ -81,12 +131,16 @@ export async function clientLinkUrl(
   clientId: string,
 ): Promise<string | null> {
   const [link] = await db
-    .select({ id: portalClientLinks.id })
+    .select({ id: portalClientLinks.id, tokenHash: portalClientLinks.tokenHash })
     .from(portalClientLinks)
     .where(and(eq(portalClientLinks.clientId, clientId), isNull(portalClientLinks.revokedAt)))
     .orderBy(desc(portalClientLinks.createdAt))
     .limit(1);
-  return link ? `${publicUrl.replace(/\/+$/, "")}/portal/${portalClientToken(secret, link.id)}` : null;
+  if (!link) return null;
+  const token = portalClientToken(secret, link.id);
+  // The address is only worth showing while it would open the page: the same test `portalClientOfToken` makes.
+  if (sha256(token) !== link.tokenHash) return null;
+  return `${publicUrl.replace(/\/+$/, "")}/p/${token}`;
 }
 
 function contactOf(input: unknown): PortalContactView {
@@ -101,7 +155,9 @@ function contactOf(input: unknown): PortalContactView {
     throw new ValidationError("Type the WhatsApp number with its country code, digits only");
   }
   return {
-    id: typeof row.id === "string" && row.id ? row.id : Bun.randomUUIDv7(),
+    // Made here, never taken from the input: two clients can't share a contact's id, and a client's own numbers are
+    // what say who a contact is — its name, its address, its number.
+    id: Bun.randomUUIDv7(),
     name: name.slice(0, PORTAL_CONTACT_NAME_MAX),
     email: email || null,
     whatsapp: whatsapp || null,
@@ -137,8 +193,10 @@ export function slugOf(name: string): string {
 
 /**
  * Makes a client (or changes the one `client` names): a name, the contacts told when a post waits on them, a colour.
- * Who may: the route checks `assign_work` before it calls here. A new client starts with a link, so the team has one
- * to send the moment the client is there.
+ * Who may: the route checks `assign_work` before it calls here, and the workspace must be the portal's own
+ * (`portalBelongsTo`), so a second business on the same server never gets clients or their links. A new client starts
+ * with a link, so the team has one to send the moment the client is there. `contacts` is written only when the input
+ * carries it, so a change to the name or the colour alone keeps them as they are.
  */
 export async function upsertPortalClient(
   deps: { db: Database; publicUrl: string; secret: string },
@@ -147,6 +205,9 @@ export async function upsertPortalClient(
   by: string | null,
 ): Promise<PortalClientView> {
   const db = deps.db;
+  if (!(await portalBelongsTo(db, orgId))) {
+    throw new ForbiddenError("This workspace doesn't have the approval portal", "portal.off");
+  }
   const client = (input.client?.trim() || slugOf(input.name ?? "")).trim();
   if (!PORTAL_CLIENT_ID.test(client)) {
     throw new ValidationError("The client's id is lowercase letters, digits and hyphens (up to 64)");
@@ -162,7 +223,12 @@ export async function upsertPortalClient(
   if (existing) {
     const [row] = await db
       .update(portalClients)
-      .set({ name, contacts, ...(input.color !== undefined ? { color } : {}), updatedAt: new Date() })
+      .set({
+        name,
+        ...(input.contacts !== undefined ? { contacts } : {}),
+        ...(input.color !== undefined ? { color } : {}),
+        updatedAt: new Date(),
+      })
       .where(eq(portalClients.id, existing.id))
       .returning();
     if (!row) throw new NotFoundError("Client not found");
@@ -190,6 +256,9 @@ export async function makeClientLink(
   by: string | null,
 ): Promise<string> {
   const db = deps.db;
+  if (!(await portalBelongsTo(db, orgId))) {
+    throw new ForbiddenError("This workspace doesn't have the approval portal", "portal.off");
+  }
   await db
     .update(portalClientLinks)
     .set({ revokedAt: new Date() })
@@ -203,11 +272,14 @@ export async function makeClientLink(
   const id = Bun.randomUUIDv7();
   const token = portalClientToken(deps.secret, id);
   await db.insert(portalClientLinks).values({ id, orgId, clientId, tokenHash: sha256(token), createdBy: by });
-  return `${deps.publicUrl.replace(/\/+$/, "")}/portal/${token}`;
+  return `${deps.publicUrl.replace(/\/+$/, "")}/p/${token}`;
 }
 
 /** Revokes a client's link (by the client's id, "acme"): the address answers nothing until a new one is made. */
 export async function revokeClientLink(deps: { db: Database }, orgId: string, client: string) {
+  if (!(await portalBelongsTo(deps.db, orgId))) {
+    throw new ForbiddenError("This workspace doesn't have the approval portal", "portal.off");
+  }
   const found = await getPortalClient(deps.db, orgId, client);
   if (!found) return;
   await deps.db
@@ -222,11 +294,15 @@ export async function revokeClientLink(deps: { db: Database }, orgId: string, cl
     );
 }
 
-/** Every client of the workspace, with the address of each one's link (members read it). */
+/**
+ * Every client of the workspace, with the address of each one's link (members read it). Another workspace on the same
+ * server has none: the portal is one operation's (ADR 9001 §18).
+ */
 export async function listPortalClients(
   deps: { db: Database; publicUrl: string; secret: string },
   orgId: string,
 ): Promise<PortalClientView[]> {
+  if (!(await portalBelongsTo(deps.db, orgId))) return [];
   const rows = await deps.db
     .select()
     .from(portalClients)
@@ -235,11 +311,23 @@ export async function listPortalClients(
   return Promise.all(rows.map((row) => clientView(deps, row)));
 }
 
-/** The client behind a link's token, or null while the token names none (or the link was revoked). */
+/**
+ * How often a link's `last_used_at` is written: a page's opening, a decision and each of its files all go by the same
+ * token, so a phone playing a video would otherwise write a row per second. Five minutes is enough to see a link in
+ * use, and never more than one write per link in that window.
+ */
+export const PORTAL_LINK_TOUCH_MS = 5 * 60_000;
+
+/**
+ * The client behind a link's token, or null while the token names none (or the link was revoked). Opening it marks
+ * the link as used (`last_used_at`), at most once each `PORTAL_LINK_TOUCH_MS`: best effort, a failure says nothing about
+ * the page's own answer.
+ */
 export async function portalClientOfToken(db: Database, token: string) {
   const [row] = await db
     .select({
       linkId: portalClientLinks.id,
+      lastUsedAt: portalClientLinks.lastUsedAt,
       orgId: portalClients.orgId,
       id: portalClients.id,
       client: portalClients.client,
@@ -251,13 +339,18 @@ export async function portalClientOfToken(db: Database, token: string) {
     .innerJoin(portalClients, eq(portalClients.id, portalClientLinks.clientId))
     .where(and(eq(portalClientLinks.tokenHash, sha256(token)), isNull(portalClientLinks.revokedAt)));
   if (!row) return null;
-  // Best effort: said of the link each time the client opens its page.
-  await db.update(portalClientLinks).set({ lastUsedAt: new Date() }).where(eq(portalClientLinks.id, row.linkId));
+  const now = new Date();
+  if (!row.lastUsedAt || now.getTime() - row.lastUsedAt.getTime() >= PORTAL_LINK_TOUCH_MS) {
+    await db.update(portalClientLinks).set({ lastUsedAt: now }).where(eq(portalClientLinks.id, row.linkId));
+  }
   return row;
 }
 
 /** Removes a client with its links: its posts stay, for the team, but no page shows it. */
 export async function removePortalClient(db: Database, orgId: string, client: string) {
+  if (!(await portalBelongsTo(db, orgId))) {
+    throw new ForbiddenError("This workspace doesn't have the approval portal", "portal.off");
+  }
   await db.delete(portalClients).where(and(eq(portalClients.orgId, orgId), eq(portalClients.client, client)));
 }
 
@@ -282,7 +375,7 @@ export interface ClientPortalPost {
   version: number;
   /** A video plays; pictures are a carousel or a single image. */
   video: boolean;
-  /** Each file's id and kind, in order: `/portal/api/<token>/files/<id>`. */
+  /** Each file's id and kind, in order: `/p/api/<token>/files/<id>`. */
   media: { id: string; kind: "video" | "image" | "file"; name: string }[];
   /** A reel's cover, for the picture shown before it plays. */
   cover: string | null;
@@ -427,6 +520,11 @@ export const CLIENT_NOTE_MAX = 4000;
  * change asked (a note, maybe with a second of a video or a spot of a slide). Only a post waiting on this client takes
  * one, and only once: it turns `approved` or `adjust_requested`, and the workspace's own watch reads the change (and
  * the note) and carries them to the team's card and task, to whoever has the work, and to an agent that starts on it.
+ *
+ * The status moves by one statement that only touches a post still waiting on the client (`UPDATE … WHERE status IN
+ * (…) RETURNING`), so two decisions at once — a double tap, a retried request — never both go through: the first turns
+ * the post, the note is inserted only then, and the other finds no row and gets the same `portal.already_answered` a
+ * second decision gets. The two happen in one transaction, so a note is never kept for a decision the row refused.
  */
 export async function clientDecision(
   deps: { db: Database; wake?: () => void },
@@ -435,7 +533,7 @@ export async function clientDecision(
 ): Promise<{ status: PortalStatus; version: number }> {
   const db = deps.db;
   const [post] = await db
-    .select()
+    .select({ id: portalPosts.id, version: portalPosts.version })
     .from(portalPosts)
     .where(
       and(
@@ -445,9 +543,6 @@ export async function clientDecision(
       ),
     );
   if (!post) throw new NotFoundError("Post not found");
-  if (!WAITING.includes(post.status)) {
-    throw new ConflictError("This post was already answered", "portal.already_answered");
-  }
   const text = (input.text ?? "").trim().slice(0, CLIENT_NOTE_MAX);
   if (input.decision === "adjust" && !text) throw new ValidationError("Tell us what to change");
   const fraction = (v: number | null | undefined) =>
@@ -455,24 +550,34 @@ export async function clientDecision(
   const atSeconds =
     typeof input.atSeconds === "number" && Number.isFinite(input.atSeconds) ? Math.max(0, input.atSeconds) : null;
   const page = typeof input.page === "number" && Number.isInteger(input.page) ? Math.min(1000, input.page) : null;
-  await db.insert(portalPostNotes).values({
-    orgId: clientRow.orgId,
-    postId: post.id,
-    version: post.version,
-    atSeconds,
-    page,
-    x: fraction(input.x),
-    y: fraction(input.y),
-    text,
-    by: (input.by ?? null)?.slice(0, 120) || null,
-    kind: input.decision,
-  });
   const status: PortalStatus = input.decision === "approve" ? "approved" : "adjust_requested";
-  await db.update(portalPosts).set({ status, updatedAt: new Date() }).where(eq(portalPosts.id, post.id));
+  const version = post.version;
+  await db.transaction(async (tx) => {
+    const [turned] = await tx
+      .update(portalPosts)
+      .set({ status, updatedAt: new Date() })
+      .where(and(eq(portalPosts.id, post.id), inArray(portalPosts.status, WAITING)))
+      .returning({ version: portalPosts.version });
+    // The post left the client's hands meanwhile (another decision, or the team's answer): the same refusal a second
+    // decision gets, and nothing is written on it.
+    if (!turned) throw new ConflictError("This post was already answered", "portal.already_answered");
+    await tx.insert(portalPostNotes).values({
+      orgId: clientRow.orgId,
+      postId: post.id,
+      version: turned.version,
+      atSeconds,
+      page,
+      x: fraction(input.x),
+      y: fraction(input.y),
+      text,
+      by: (input.by ?? null)?.slice(0, 120) || null,
+      kind: input.decision,
+    });
+  });
   // The workspace's watch (`portalTasksTick`) sees the change and carries it on: the card's task follows, whoever has
   // it is told, and an agent starts on the change at once.
   deps.wake?.();
-  return { status, version: post.version };
+  return { status, version };
 }
 
 /** A post's file by its id, for the workspace's own routes (the token's client reads it through `clientPortalFile`). */

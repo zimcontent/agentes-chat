@@ -18,6 +18,7 @@ import {
 import { users } from "./auth";
 import { machineAccounts, machines } from "./machines";
 import { organizationMembers, organizations } from "./tenancy";
+import { whatsappAccounts } from "./whatsapp";
 
 /**
  * API keys of model providers, owned by the organization (BYOK). Never
@@ -462,6 +463,12 @@ export const organizationSettings = pgTable("organization_settings", {
    * packages/engine/src/sidebar-items.ts): one workspace's operation needs tools another doesn't. Empty: every tool.
    */
   hiddenTools: text().array().notNull().default(sql`'{}'::text[]`),
+  /**
+   * The workspace's own WhatsApp number the approval portal's notices go out as (docs/adr/
+   * doug-0020-embedded-approval-portal.md §7), one of `whatsapp_accounts`. Null: none, and the notices go by e-mail
+   * alone: a client's number is never texted from a number the workspace didn't pick here.
+   */
+  portalNoticeNumber: uuid().references(() => whatsappAccounts.id, { onDelete: "set null" }),
   /**
    * How much the workspace's agents ask before acting (ADR 0173 addendum 2026-11-15): what every agent without its
    * own choice (`agents.approvals_level_own`) uses. A workspace with no row here is at `risky`.

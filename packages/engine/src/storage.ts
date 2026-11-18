@@ -36,6 +36,7 @@ import { requirePermission } from "./organizations";
 import { enqueue } from "./outbox";
 
 const { storageConfigs, storageMigrations, artifacts, artifactVersions, skillFiles, voiceClips } = schema;
+const { portalPostFiles, portalUploads } = schema;
 
 type StorageConfigRow = typeof storageConfigs.$inferSelect;
 type MigrationRow = typeof storageMigrations.$inferSelect;
@@ -652,6 +653,22 @@ export const storedBytesQueries = (db: Executor, orgId: string) =>
       })
       .from(voiceClips)
       .where(and(eq(voiceClips.orgId, orgId), isNull(voiceClips.audioDeletedAt))),
+    // A post's files at the installation's own approval portal (docs/adr/doug-0020-embedded-approval-portal.md): each
+    // version's, and a file read and not yet sent. Its logo is a small name, as the workspace's is.
+    db
+      .select({
+        platform: sql<string>`coalesce(sum(${portalPostFiles.size}) filter (where ${portalPostFiles.storageConfigId} is null), 0)`,
+        own: sql<string>`coalesce(sum(${portalPostFiles.size}) filter (where ${portalPostFiles.storageConfigId} is not null), 0)`,
+      })
+      .from(portalPostFiles)
+      .where(eq(portalPostFiles.orgId, orgId)),
+    db
+      .select({
+        platform: sql<string>`coalesce(sum(${portalUploads.size}) filter (where ${portalUploads.storageConfigId} is null), 0)`,
+        own: sql<string>`coalesce(sum(${portalUploads.size}) filter (where ${portalUploads.storageConfigId} is not null), 0)`,
+      })
+      .from(portalUploads)
+      .where(eq(portalUploads.orgId, orgId)),
   ] as const;
 
 /**
@@ -663,10 +680,20 @@ export const storedBytesQueries = (db: Executor, orgId: string) =>
  * storages (`runMigration`) leaves where the files were.
  */
 export async function storedBytes(db: Executor, orgId: string): Promise<StoredBytes> {
-  const [[files], [skills], [voice]] = await Promise.all(storedBytesQueries(db, orgId));
+  const [[files], [skills], [voice], [postFiles], [uploads]] = await Promise.all(storedBytesQueries(db, orgId));
   return {
-    platformBytes: Number(files?.platform ?? 0) + Number(skills?.platform ?? 0) + Number(voice?.platform ?? 0),
-    ownBucketBytes: Number(files?.own ?? 0) + Number(skills?.own ?? 0) + Number(voice?.own ?? 0),
+    platformBytes:
+      Number(files?.platform ?? 0) +
+      Number(skills?.platform ?? 0) +
+      Number(voice?.platform ?? 0) +
+      Number(postFiles?.platform ?? 0) +
+      Number(uploads?.platform ?? 0),
+    ownBucketBytes:
+      Number(files?.own ?? 0) +
+      Number(skills?.own ?? 0) +
+      Number(voice?.own ?? 0) +
+      Number(postFiles?.own ?? 0) +
+      Number(uploads?.own ?? 0),
   };
 }
 

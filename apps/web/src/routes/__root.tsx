@@ -21,6 +21,15 @@ export const Route = createRootRouteWithContext<RouterContext>()({
 });
 
 function Root() {
+  // A client's page of the installation's approval portal (docs/adr/doug-0020-embedded-approval-portal.md): no account,
+  // so none of the signed-in app is asked for — no `useMe`, no push listener, no desktop bridge. It is only its own
+  // page and its own `/p/api/<token>` data.
+  const isPortal = useRouterState({ select: (s) => s.location.pathname === "/p" || s.location.pathname.startsWith("/p/") });
+  if (isPortal) return <Outlet />;
+  return <SignedIn />;
+}
+
+function SignedIn() {
   // agentes for Mac: the workspace has its title bar (org.$orgId.tsx); every other page drags from the top.
   const inWorkspace = useRouterState({ select: (s) => s.location.pathname.startsWith("/org/") });
   const router = useRouter();

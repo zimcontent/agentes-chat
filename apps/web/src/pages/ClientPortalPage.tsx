@@ -5,7 +5,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
  * The client's page of the installation's approval portal (docs/adr/doug-0020-embedded-approval-portal.md): a post
  * waiting on them, its video, pictures or carousel with the caption, and "Aprovar" or "Pedir ajuste" (with a note,
  * and on a video a second marked). It works on a phone first, and loads nothing of the app that is signed in: its only
- * data comes from `/portal/api/<token>`, read with the link's own token. Its words are the client's own, in pt-BR and
+ * data comes from `/p/api/<token>`, read with the link's own token. Its words are the client's own, in pt-BR and
  * English (the browser's), never the workspace's language, since a client has no account here.
  */
 
@@ -168,7 +168,7 @@ export function ClientPortalPage({ token }: { token: string }) {
   const [phase, setPhase] = useState<Phase>("loading");
   const [data, setData] = useState<PageData | null>(null);
   const w = WORDS[useMemo(clientLocale, [])];
-  const base = `/portal/api/${encodeURIComponent(token)}`;
+  const base = `/p/api/${encodeURIComponent(token)}`;
   useEffect(() => {
     document.documentElement.lang = clientLocale();
   }, []);

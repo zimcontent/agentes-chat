@@ -406,6 +406,20 @@ export const EXTRA_COLUMNS = [
   `CREATE INDEX IF NOT EXISTS "agent_runs_org_id_brain_session_id_index" ON "agent_runs" USING btree ("org_id","brain_session_id") WHERE "agent_runs"."brain_session_id" is not null`,
   `CREATE INDEX IF NOT EXISTS "agent_scopes_connection_id_index" ON "agent_scopes" USING btree ("connection_id") WHERE "agent_scopes"."connection_id" is not null`,
   // The approval portal kept in this server (docs/adr/doug-0020-embedded-approval-portal.md, `schema/portal.ts`).
+  // The WhatsApp number its notices go out as, and how long two notices of the same client wait to become one.
+  `ALTER TABLE "organization_settings" ADD COLUMN IF NOT EXISTS "portal_notice_number" uuid`,
+  `CREATE TABLE IF NOT EXISTS "portal_notices" (
+    "id" uuid PRIMARY KEY,
+    "org_id" uuid NOT NULL REFERENCES "organizations"("id") ON DELETE CASCADE,
+    "client" text NOT NULL,
+    "channel" text NOT NULL,
+    "contact_id" text,
+    "post_id" uuid,
+    "version" integer,
+    "at" timestamp with time zone NOT NULL DEFAULT now()
+  )`,
+  `CREATE INDEX IF NOT EXISTS "portal_notices_client" ON "portal_notices" ("org_id", "client", "at")`,
+  `CREATE INDEX IF NOT EXISTS "portal_notices_outcome" ON "portal_notices" ("org_id", "client", "channel", "contact_id", "at")`,
   `CREATE TABLE IF NOT EXISTS "portal_clients" (
     "id" uuid PRIMARY KEY,
     "org_id" uuid NOT NULL REFERENCES "organizations"("id") ON DELETE CASCADE,

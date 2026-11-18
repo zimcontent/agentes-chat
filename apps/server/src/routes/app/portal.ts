@@ -20,11 +20,13 @@ import {
   PORTAL_SEND_FILES,
   PORTAL_WHEN,
   personPortalReader,
+  portalBelongsTo,
   portalBoard,
   portalClientLogoFile,
   portalClientSettingsOf,
   portalHere,
   portalLogoPath,
+  portalNoticeSettingsOf,
   portalOverview,
   portalPipeline,
   portalPlan,
@@ -39,6 +41,7 @@ import {
   sendForApproval,
   setAfterApprove,
   setPortalClientLogo,
+  setPortalNoticeNumber,
   startPortalAgent,
   syncPortalTasks,
   TEAM_APPROVAL_NOTE,
@@ -1226,6 +1229,32 @@ export function portalRoutes(deps: AppDeps) {
   // that service). Every route below answers `404 portal.off` on a server with a bridge or with no portal.
   const ownPortal = () => Boolean(adapters.approvalPortalEmbedded && adapters.approvalPortal);
   const clientDeps = () => ({ db, publicUrl: config.PUBLIC_URL, secret: config.AGENTES_SECRET });
+  /**
+   * The portal is one workspace's (ADR 9001 §18, `portalBelongsTo`): every other workspace on the same server answers
+   * `404 portal.off` on each of these, so a second business never sees or makes a client of the first. Read on every
+   * request, not cached: a client made here is the workspace's from then on.
+   */
+  const itsPortal = async <C extends Context>(c: C, orgId: string) => {
+    if (!ownPortal() || !(await portalBelongsTo(db, orgId))) {
+      return portalOff(c);
+    }
+    return null;
+  };
+  /** What a change of a client or its link leaves in the log (audit.ts): who, what, and which one. */
+  const auditClient = async (
+    orgId: string,
+    userId: string,
+    action: "portal.client_created" | "portal.client_updated" | "portal.client_removed" | "portal.link_made" | "portal.link_revoked",
+    client: string,
+    details: Record<string, unknown> = {},
+  ) =>
+    recordAudit(db, {
+      orgId,
+      actor: { type: "person", id: userId },
+      action,
+      target: { type: "portal_client", id: client },
+      details,
+    });
 
   app.openapi(
     createRoute({
@@ -1235,19 +1264,35 @@ export function portalRoutes(deps: AppDeps) {
       security,
       summary: "The installation's portal clients, each with its contacts and its own link (members)",
       description:
-        "On a server that keeps its own approval portal (no bridge): each client the team makes work for, its name, its contacts told when a post waits on them, and the address of its link, `<PUBLIC_URL>/portal/<token>`. 404 `portal.off` when the portal is a bridge's or absent.",
+        "On a server that keeps its own approval portal (no bridge): each client the team makes work for, its name, its contacts told when a post waits on them, and the address of its link, `<PUBLIC_URL>/p/<token>`. 404 `portal.off` when the portal is a bridge's or absent.",
       request: { params: OrgParams },
       responses: {
-        200: json(z.object({ clients: z.array(PortalClient) })),
+        200: json(
+          z.object({
+            clients: z.array(PortalClient.omit({ link: true })),
+            /** The clients' links, shown only to who may manage the portal (`assign_work`), by the client's id. */
+            links: z.record(z.string(), z.string()).openapi({ description: "Each client's live address; a client the caller can't manage is absent." }),
+          }),
+        ),
         ...errors,
         404: off,
       },
     }),
     async (c) => {
       const { orgId } = c.req.valid("param");
-      if (!ownPortal()) return portalOff(c);
-      await requirePermission(db, c.get("user").id, orgId, "read");
-      return c.json({ clients: await listPortalClients(clientDeps(), orgId) }, 200);
+      const refused = await itsPortal(c, orgId);
+      if (refused) return refused;
+      const membership = await requirePermission(db, c.get("user").id, orgId, "read");
+      const clients = await listPortalClients(clientDeps(), orgId);
+      // A client's link is its own address: a member who may read the clients sees the names and contacts, and only
+      // someone who may manage the portal (`assign_work`) is given the links to send.
+      const mayManage = can(membership, "assign_work");
+      const links: Record<string, string> = {};
+      for (const client of clients) if (mayManage && client.link) links[client.client] = client.link;
+      return c.json(
+        { clients: clients.map(({ link: _link, ...row }) => row), links },
+        200,
+      );
     },
   );
 
@@ -1288,11 +1333,16 @@ export function portalRoutes(deps: AppDeps) {
     }),
     async (c) => {
       const { orgId, client } = c.req.valid("param");
-      if (!ownPortal()) return portalOff(c);
+      const refused = await itsPortal(c, orgId);
+      if (refused) return refused;
       const user = c.get("user");
       await requireChangePermission(db, user.id, orgId, "assign_work");
       const input = c.req.valid("json");
+      const existed = Boolean(await getPortalClient(db, orgId, client));
       const saved = await upsertPortalClient(clientDeps(), orgId, { client, ...input }, user.id);
+      await auditClient(orgId, user.id, existed ? "portal.client_updated" : "portal.client_created", client, {
+        name: saved.name,
+      });
       return c.json({ client: saved }, 200);
     },
   );
@@ -1309,9 +1359,13 @@ export function portalRoutes(deps: AppDeps) {
     }),
     async (c) => {
       const { orgId, client } = c.req.valid("param");
-      if (!ownPortal()) return portalOff(c);
-      await requireChangePermission(db, c.get("user").id, orgId, "assign_work");
+      const refused = await itsPortal(c, orgId);
+      if (refused) return refused;
+      const user = c.get("user");
+      await requireChangePermission(db, user.id, orgId, "assign_work");
+      const found = await getPortalClient(db, orgId, client);
       await removePortalClient(db, orgId, client);
+      if (found) await auditClient(orgId, user.id, "portal.client_removed", client, { name: found.name });
       return c.body(null, 204);
     },
   );
@@ -1324,7 +1378,7 @@ export function portalRoutes(deps: AppDeps) {
       security,
       summary: "Make a new link for a client, revoking the one before (assign_work)",
       description:
-        "The client's old address stops working as the new one is made. Answers the new address, `<PUBLIC_URL>/portal/<token>`, to copy and send.",
+        "The client's old address stops working as the new one is made. Answers the new address, `<PUBLIC_URL>/p/<token>`, to copy and send.",
       request: { params: OrgParams.extend({ client: z.string().regex(/^[a-z0-9][a-z0-9-]{0,63}$/) }) },
       responses: {
         200: json(z.object({ link: z.string() })),
@@ -1334,12 +1388,14 @@ export function portalRoutes(deps: AppDeps) {
     }),
     async (c) => {
       const { orgId, client } = c.req.valid("param");
-      if (!ownPortal()) return portalOff(c);
+      const refused = await itsPortal(c, orgId);
+      if (refused) return refused;
       const user = c.get("user");
       await requireChangePermission(db, user.id, orgId, "assign_work");
       const found = await getPortalClient(db, orgId, client);
       if (!found) return apiError(c, 404, "not_found", "No such client");
       const link = await makeClientLink(clientDeps(), orgId, found.id, user.id);
+      await auditClient(orgId, user.id, "portal.link_made", client);
       return c.json({ link }, 200);
     },
   );
@@ -1356,9 +1412,115 @@ export function portalRoutes(deps: AppDeps) {
     }),
     async (c) => {
       const { orgId, client } = c.req.valid("param");
-      if (!ownPortal()) return portalOff(c);
-      await requireChangePermission(db, c.get("user").id, orgId, "assign_work");
+      const refused = await itsPortal(c, orgId);
+      if (refused) return refused;
+      const user = c.get("user");
+      await requireChangePermission(db, user.id, orgId, "assign_work");
       await revokeClientLink({ db }, orgId, client);
+      await auditClient(orgId, user.id, "portal.link_revoked", client);
+      return c.body(null, 204);
+    },
+  );
+
+  // The number the portal's notices go out as, and the connected ones to pick from (docs/adr/doug-0020 §7).
+  app.openapi(
+    createRoute({
+      method: "get",
+      path: "/organizations/{orgId}/portal-notices",
+      tags,
+      security,
+      summary: "Which of the workspace's WhatsApp numbers tells the portal's clients, and the ones it may be (members)",
+      description:
+        "The approval portal's notices go out by e-mail to a client's contacts, and by WhatsApp from the number chosen here, when there is one: with none, nothing goes by WhatsApp. `numbers` are the workspace's connected numbers.",
+      request: { params: OrgParams },
+      responses: {
+        200: json(
+          z.object({
+            number: z.string().nullable(),
+            numbers: z.array(z.object({ id: z.string(), label: z.string(), phone: z.string().nullable() })),
+          }),
+        ),
+        ...errors,
+        404: off,
+      },
+    }),
+    async (c) => {
+      const { orgId } = c.req.valid("param");
+      const refused = await itsPortal(c, orgId);
+      if (refused) return refused;
+      await requirePermission(db, c.get("user").id, orgId, "read");
+      return c.json(await portalNoticeSettingsOf(db, orgId), 200);
+    },
+  );
+
+  app.openapi(
+    createRoute({
+      method: "put",
+      path: "/organizations/{orgId}/portal-notices",
+      tags,
+      security,
+      summary: "Set the number the portal's notices go out as, or none with null (assign_work)",
+      request: {
+        params: OrgParams,
+        body: body(z.object({ number: z.string().nullable() })),
+      },
+      responses: { ...noContent, ...errors, 404: off },
+    }),
+    async (c) => {
+      const { orgId } = c.req.valid("param");
+      const refused = await itsPortal(c, orgId);
+      if (refused) return refused;
+      const user = c.get("user");
+      await requireChangePermission(db, user.id, orgId, "assign_work");
+      await setPortalNoticeNumber(db, orgId, c.req.valid("json").number);
+      await recordAudit(db, {
+        orgId,
+        actor: { type: "person", id: user.id },
+        action: "portal.notice_number_set",
+        target: { type: "portal", id: orgId },
+        details: { number: c.req.valid("json").number },
+      });
+      return c.body(null, 204);
+    },
+  );
+
+  // A person says a scheduled post is out (the way out of `scheduled` that this server has no publisher for).
+  app.openapi(
+    createRoute({
+      method: "post",
+      path: "/organizations/{orgId}/portal/clients/{client}/items/{itemId}/published",
+      tags,
+      security,
+      summary: "Mark a scheduled post posted: when it went out, and where, when known (assign_work)",
+      description:
+        "A post approved and scheduled turns `published` here, with its date and (when the team wrote one) its address: this server has no publishing service, so a person says it went out. Only a `scheduled` post takes it.",
+      request: {
+        params: OrgParams.extend({ client: ClientId, itemId: ItemId }),
+        body: body(
+          z
+            .object({
+              at: z.string().max(40).nullable().optional(),
+              postUrl: z.string().url().max(2000).nullable().optional(),
+            })
+            .strict(),
+        ),
+      },
+      responses: { ...noContent, 502: unavailable, ...errors, 404: off },
+    }),
+    async (c) => {
+      const { orgId, client, itemId } = c.req.valid("param");
+      const user = c.get("user");
+      await requireChangePermission(db, user.id, orgId, "assign_work");
+      const input = c.req.valid("json");
+      const out = await guarded(c, (portal) => portal.markPublished(client, itemId, input, user.id));
+      if (!out.ok) return out.response;
+      await recordAudit(db, {
+        orgId,
+        actor: { type: "person", id: user.id },
+        action: "portal.published",
+        target: { type: "portal_post", id: `${client}/${itemId}` },
+        details: { ...(input.postUrl ? { postUrl: input.postUrl } : {}) },
+      });
       return c.body(null, 204);
     },
   );

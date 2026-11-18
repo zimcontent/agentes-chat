@@ -36,11 +36,16 @@ test("the team makes a client with a contact, gets a link, and changes the clien
   expect(client.name).toBe("Padaria Aurora");
   expect(client.color).toBe("teal");
   expect(client.contacts[0]?.email).toBe("ana@example.com");
-  expect(client.link).toMatch(/\/portal\/[A-Za-z0-9_-]{20,64}$/);
+  expect(client.link).toMatch(/\/p\/[A-Za-z0-9_-]{20,64}$/);
 
-  const list = (await (await api("/portal-clients")).json()) as { clients: { client: string; link: string | null }[] };
+  const list = (await (await api("/portal-clients")).json()) as {
+    clients: { client: string; link?: string | null }[];
+    links: Record<string, string>;
+  };
   expect(list.clients.map((c) => c.client)).toEqual(["padaria-aurora"]);
-  expect(list.clients[0]?.link).toBe(client.link);
+  // The list's rows carry no link of their own: an `assign_work` member is given them in `links`, by the client's id.
+  expect(list.clients[0]?.link).toBeUndefined();
+  expect(list.links["padaria-aurora"]).toBe(client.link);
 });
 
 test("a new link revokes the old address; a revoked link answers 404 on its page", async () => {
@@ -56,14 +61,14 @@ test("a new link revokes the old address; a revoked link answers 404 on its page
   const newToken = remade.link.split("/").at(-1) as string;
   expect(newToken).not.toBe(oldToken);
   // The client's own page: the old address opens nothing, the new one opens it.
-  expect((await t.app.request(`/portal/api/${oldToken}`)).status).toBe(404);
-  const page = await t.app.request(`/portal/api/${newToken}`);
+  expect((await t.app.request(`/p/api/${oldToken}`)).status).toBe(404);
+  const page = await t.app.request(`/p/api/${newToken}`);
   expect(page.status).toBe(200);
   expect((await page.json()) as { client: { name: string } }).toMatchObject({ client: { name: "Padaria Aurora" } });
 
   // Revoked: both answer nothing.
   expect((await api("/portal-clients/padaria-aurora/link", { method: "DELETE" })).status).toBe(204);
-  expect((await t.app.request(`/portal/api/${newToken}`)).status).toBe(404);
+  expect((await t.app.request(`/p/api/${newToken}`)).status).toBe(404);
   void owner;
 });
 
@@ -85,13 +90,13 @@ test("a client approves through its own page; the workspace's people are told", 
     caption: "Nosso menu",
   });
 
-  const page = (await (await t.app.request(`/portal/api/${token}`)).json()) as {
+  const page = (await (await t.app.request(`/p/api/${token}`)).json()) as {
     waiting: { id: string; title: string; video: boolean }[];
   };
   expect(page.waiting.map((p) => p.title)).toEqual(["Reel de dezembro"]);
   expect(page.waiting[0]?.video).toBe(true);
 
-  const decided = await t.app.request(`/portal/api/${token}/decide`, {
+  const decided = await t.app.request(`/p/api/${token}/decide`, {
     method: "POST",
     headers: { "content-type": "application/json" },
     body: JSON.stringify({ postId: job.item, decision: "approve" }),
@@ -100,7 +105,7 @@ test("a client approves through its own page; the workspace's people are told", 
   expect((await portal.items()).find((i) => i.id === job.item)?.status).toBe("approved");
 
   // A second decision is refused.
-  const again = await t.app.request(`/portal/api/${token}/decide`, {
+  const again = await t.app.request(`/p/api/${token}/decide`, {
     method: "POST",
     headers: { "content-type": "application/json" },
     body: JSON.stringify({ postId: job.item, decision: "approve" }),
@@ -122,15 +127,15 @@ test("a client's file is read only through its own link", async () => {
   const portal = t.adapters.approvalPortal as NonNullable<typeof t.adapters.approvalPortal>;
   const upload = await portal.upload("post.png", new Uint8Array([7, 7, 7]));
   await portal.send({ client: "padaria-aurora", type: "image", files: [upload], title: "Foto", caption: "x" });
-  const page = (await (await t.app.request(`/portal/api/${auroraToken}`)).json()) as {
+  const page = (await (await t.app.request(`/p/api/${auroraToken}`)).json()) as {
     waiting: { media: { id: string }[] }[];
   };
   const fileId = page.waiting[0]?.media[0]?.id as string;
 
-  expect((await t.app.request(`/portal/api/${auroraToken}/files/${fileId}`)).status).toBe(200);
+  expect((await t.app.request(`/p/api/${auroraToken}/files/${fileId}`)).status).toBe(200);
   // The other client's link doesn't reach it, nor a made-up token.
-  expect((await t.app.request(`/portal/api/${solToken}/files/${fileId}`)).status).toBe(404);
-  expect((await t.app.request(`/portal/api/not-a-real-token-at-all-0000/files/${fileId}`)).status).toBe(404);
+  expect((await t.app.request(`/p/api/${solToken}/files/${fileId}`)).status).toBe(404);
+  expect((await t.app.request(`/p/api/not-a-real-token-at-all-0000/files/${fileId}`)).status).toBe(404);
 });
 
 test("on a server with a bridge (not the embedded portal) the client routes answer portal.off", async () => {

@@ -44,7 +44,7 @@ export const portalClients = pgTable(
 );
 
 /**
- * A client's link (`<PUBLIC_URL>/portal/<token>`): the only way into its page, with no account. Only the token's hash
+ * A client's link (`<PUBLIC_URL>/p/<token>`): the only way into its page, with no account. Only the token's hash
  * is kept, so the address can be shown again while a copy of it isn't in the database.
  */
 export const portalClientLinks = pgTable(
@@ -302,4 +302,36 @@ export const portalUploads = pgTable(
     createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [index("portal_uploads_org").on(t.orgId, t.createdAt)],
+);
+
+/**
+ * A notice a client was sent (docs/adr/doug-0020-embedded-approval-portal.md §7): which client, by which way
+ * (`email`, `whatsapp`), to which of its contacts, about which post and version, and when. It is what the limits are
+ * read from: a contact hears about one post at most twice a day, and a notice for a client inside `PORTAL_NOTICE_GROUP_MS`
+ * of another is that one, whose `posts[]` it joins. A row is written only when something went out, so a client with no
+ * contact that reaches is never counted.
+ */
+export const portalNotices = pgTable(
+  "portal_notices",
+  {
+    id: uuid()
+      .primaryKey()
+      .$defaultFn(() => Bun.randomUUIDv7()),
+    orgId: uuid()
+      .notNull()
+      .references(() => organizations.id, { onDelete: "cascade" }),
+    /** The client's id (`portal_clients.client`). */
+    client: text().notNull(),
+    /** `email` or `whatsapp`: the way it went. */
+    channel: text().$type<"email" | "whatsapp">().notNull(),
+    /** The contact it reached (`portal_clients.contacts[].id`), when it was one. */
+    contactId: text(),
+    postId: uuid(),
+    version: integer(),
+    at: timestamp({ withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    index("portal_notices_client").on(t.orgId, t.client, t.at),
+    index("portal_notices_outcome").on(t.orgId, t.client, t.channel, t.contactId, t.at),
+  ],
 );

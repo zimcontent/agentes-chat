@@ -565,7 +565,7 @@ export const envVars = {
   APPROVAL_PORTAL_URL: {
     schema: z.url().optional(),
     description:
-      "Address of your own approval portal's bridge, optional: a small HTTP service you run next to a portal where your clients approve what the team made for them. With it and `APPROVAL_PORTAL_TOKEN`, the workspace gets the Portal page (each client's board: to do, in production, waiting for approval, adjustments, ready, posted) and agents get `send_for_approval`, which sends Drive files to the portal with no model in the way. It may be on your own network: only this server calls it. Unset (default): the installation gets its own portal kept in this server's database, served at `<PUBLIC_URL>/portal/<token>` (docs/adr/doug-0020-embedded-approval-portal.md), and every client's own page works with no extra service.",
+      "Address of your own approval portal's bridge, optional: a small HTTP service you run next to a portal where your clients approve what the team made for them. With it and `APPROVAL_PORTAL_TOKEN`, the workspace gets the Portal page (each client's board: to do, in production, waiting for approval, adjustments, ready, posted) and agents get `send_for_approval`, which sends Drive files to the portal with no model in the way. It may be on your own network: only this server calls it. Unset (default): the installation gets its own portal kept in this server's database, served at `<PUBLIC_URL>/p/<token>` (docs/adr/doug-0020-embedded-approval-portal.md), and every client's own page works with no extra service.",
     section: "Connectors",
     example: "http://127.0.0.1:8978",
   },

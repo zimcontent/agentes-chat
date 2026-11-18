@@ -143,6 +143,26 @@ export async function portalWorkspace(db: Database): Promise<string | null> {
 }
 
 /**
+ * Whether the installation's portal has a client at all (the portal's own tables, `approval-portal-clients.ts`): a
+ * workspace that made none has nothing to put in step, so `portalTasksTick` skips the pass instead of reading every
+ * card and post for nothing. A workspace whose portal is a bridge's makes no client here, and its task of the portal
+ * (from a card before) keeps the pass going.
+ */
+async function hasPortalClients(db: Database): Promise<boolean> {
+  const [client] = await db
+    .select({ id: schema.portalClients.id })
+    .from(schema.portalClients)
+    .limit(1);
+  if (client) return true;
+  const [task] = await db
+    .select({ id: issues.id })
+    .from(issues)
+    .where(sql`${issues.source}->>'type' = 'portal'`)
+    .limit(1);
+  return Boolean(task);
+}
+
+/**
  * Whether the installation's portal is this workspace's (ADR 9001 §18): its clients, cards and posts are one
  * operation's, so a second workspace on the same server (another business) never sees them, nor do its agents get
  * the portal's tools. Once a workspace holds the portal's tasks the answer can't change, so it is kept per database.
@@ -991,6 +1011,9 @@ export function portalTasksTick(deps: PortalTaskDeps, portal: ApprovalPortal): P
   const tick = ticks.then(async () => {
     const orgId = await portalWorkspace(deps.db);
     if (!orgId) return null;
+    // A server whose portal has no client yet has nothing to put in step: the pass is a read of every card and post
+    // for nothing, every twenty seconds. Once a client is there (or a task of the portal is) the pass runs again.
+    if (!(await hasPortalClients(deps.db))) return null;
     const result = await syncPortalTasks(deps, portal, orgId);
     await announcePortalStages(deps, orgId, result.changes);
     // What the client wrote at the portal on an editor's post comes into its review, at the second they marked.

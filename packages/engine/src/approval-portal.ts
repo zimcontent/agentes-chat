@@ -25,6 +25,7 @@ import { listPortalClients, upsertPortalClient } from "./approval-portal-clients
 import { portalHere } from "./approval-portal-tasks";
 import { type ArtifactActor, type ArtifactDeps, artifactFile, storedFileOfArtifact } from "./artifacts";
 import { ValidationError } from "./errors";
+import { can, getMembership, type Membership } from "./organizations";
 import { personBehindCall } from "./requester";
 import { reviewGate, reviewGateRefusal } from "./review-gate";
 import { replyThreadOf } from "./runs";
@@ -755,6 +756,17 @@ function workTool(portal: ApprovalPortal): ToolDefinition {
 export const PORTAL_CLIENTS_TOOL = "portal_clients";
 
 /**
+ * The people behind a run, as the tools read them: the person it acts for (their membership, for their permissions)
+ * and the agent's own. A run nobody is behind (`personBehindCall` null) has no membership, and a tool that needs one
+ * refuses: nothing reads a person's names or a client's address for a routine.
+ */
+async function runPeople(ctx: ToolContext): Promise<{ personId: string | null; membership: Membership | null }> {
+  const personId = await personBehindCall(ctx);
+  const membership = personId ? await getMembership(ctx.db as Database, personId, ctx.orgId) : null;
+  return { personId, membership };
+}
+
+/**
  * The installation's own portal's clients (docs/adr/doug-0020-embedded-approval-portal.md): make one with its contacts
  * and its link, or change it. Only on a server that keeps its own portal (`deps.clients`): on a bridge's, the tool
  * isn't listed. It changes what the team keeps for a client, so a person is behind the run (`elsewhere`), and a
@@ -764,7 +776,7 @@ function clientsTool(deps: PortalToolDeps, portal: ApprovalPortal): ToolDefiniti
   return {
     name: PORTAL_CLIENTS_TOOL,
     description:
-      "The installation's approval portal: its clients. With no `client`: every client, its contacts and the address of its own link (`<server>/portal/<token>`), which opens its page with no account. With `client`, a name and its contacts: makes the client or changes it, and answers its link; the team sends that link to the client, who then approves the posts at it. A contact is a name with an e-mail address and/or a WhatsApp number with the country code. Use it when a person asks to add a client or to get (or fix) a client's link.",
+      "The installation's approval portal: its clients. With no `client`: every client, its contacts and the address of its own link (`<server>/p/<token>`), which opens its page with no account. With `client`, a name and its contacts: makes the client or changes it, and answers its link; the team sends that link to the client, who then approves the posts at it. A contact is a name with an e-mail address and/or a WhatsApp number with the country code. Use it when a person asks to add a client or to get (or fix) a client's link.",
     scope: "",
     external: true,
     inputSchema: {
@@ -799,18 +811,31 @@ function clientsTool(deps: PortalToolDeps, portal: ApprovalPortal): ToolDefiniti
     async execute(input, ctx) {
       // Only the installation's own portal has clients and links of its own here.
       if (!deps.clients) return { content: "This server's portal is a bridge's: its clients live there.", isError: true };
+      // The people behind a run: listing is a read, which any member on it may do; making a client, changing its
+      // contacts or colour, and seeing its links are what `assign_work` is (ADR 0085), so a person without it is told
+      // no rather than handed a client's address.
+      const people = await runPeople(ctx);
+      const mayChange = people.membership ? can(people.membership, "assign_work") : false;
+      const listing = !str(input.client);
+      if (!mayChange && !(listing && people.membership)) {
+        return {
+          content: "Adding a client or changing its contacts needs someone who gives agents work (assign_work) in this workspace.",
+          isError: true,
+        };
+      }
       try {
-        if (!str(input.client)) {
+        if (listing) {
           const clients = await listPortalClients(
             { db: ctx.db as Database, publicUrl: deps.clients.publicUrl, secret: deps.clients.secret },
             ctx.orgId,
           );
           if (!clients.length) return { content: "The portal has no clients yet." };
+          // The link is a client's own address: shown only to someone who may manage the portal, and never a stale one.
           const text = clients
             .map(
               (c) =>
                 `- ${c.client} (${c.name})` +
-                (c.link ? `: ${c.link}` : ", its link was revoked") +
+                (c.link ? `: ${c.link}` : c.linkStale ? ", its link must be made again" : ", its link was revoked") +
                 (c.contacts.length
                   ? `\n  contacts: ${c.contacts.map((p) => `${p.name}${p.email ? ` <${p.email}>` : ""}${p.whatsapp ? ` +${p.whatsapp}` : ""}`).join("; ")}`
                   : ""),

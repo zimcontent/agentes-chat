@@ -18,6 +18,7 @@ import type {
   PortalClientColor,
   PortalClientSummary,
   PortalColumn,
+  PortalNoticeNumber,
   PortalItem,
   PortalJob,
   PortalLabel,
@@ -48,6 +49,9 @@ export interface FakePortal {
   logos: Record<string, string>;
   /** The installation's own portal's clients (docs/adr/doug-0020), by id. */
   accounts: Record<string, PortalClientAccount>;
+  /** The number the portal's notices go out as, and the connected ones to pick from (ADR doug-0020 §7). */
+  noticeNumber: string | null;
+  noticeNumbers: PortalNoticeNumber[];
   /** The portal's own today (`YYYY-MM-DD`), which `mine` reads production dates against (default: this machine's). */
   day: string;
   jobs: Map<string, PortalJob>;
@@ -201,6 +205,8 @@ export function createFakePortal(
   const fake: FakePortal = {
     clients: [],
     accounts: {},
+    noticeNumber: null,
+    noticeNumbers: [],
     cards: [],
     items: [],
     tasks: [],
@@ -530,7 +536,13 @@ export function createFakePortal(
       clients: async (orgId) => {
         log("portal.clients", orgId);
         guard();
-        return clone(Object.values(fake.accounts));
+        const accounts = Object.values(fake.accounts);
+        // The links only for who may manage: the fake gives them to everyone, as a server without a test person in mind
+        // would; a test of that rule reads the client routes themselves.
+        return clone({
+          clients: accounts.map(({ link: _link, ...rest }) => rest),
+          links: Object.fromEntries(accounts.filter((a) => a.link).map((a) => [a.client, a.link as string])),
+        });
       },
       saveClient: async (orgId, client, input) => {
         log("portal.saveClient", orgId, client, input);
@@ -547,8 +559,9 @@ export function createFakePortal(
             whatsapp: c.whatsapp ?? null,
           })),
           color: input.color ?? null,
-          link: before?.link ?? `https://test.example/portal/${hex().padEnd(24, "0")}`,
+          link: before?.link ?? `https://test.example/p/${hex().padEnd(24, "0")}`,
           revoked: false,
+          linkStale: false,
           createdAt: before?.createdAt ?? new Date().toISOString(),
         };
         fake.accounts[client] = account;
@@ -563,10 +576,11 @@ export function createFakePortal(
         log("portal.newClientLink", orgId, client);
         guard();
         const account = fake.accounts[client];
-        const link = `https://test.example/portal/${hex().padEnd(24, "0")}`;
+        const link = `https://test.example/p/${hex().padEnd(24, "0")}`;
         if (account) {
           account.link = link;
           account.revoked = false;
+          account.linkStale = false;
         }
         return link;
       },
@@ -577,7 +591,28 @@ export function createFakePortal(
         if (account) {
           account.link = null;
           account.revoked = true;
+          account.linkStale = false;
         }
+      },
+      noticeSettings: async (orgId) => {
+        log("portal.noticeSettings", orgId);
+        guard();
+        return clone({ number: fake.noticeNumber, numbers: fake.noticeNumbers });
+      },
+      setNoticeNumber: async (orgId, number) => {
+        log("portal.setNoticeNumber", orgId, number);
+        guard();
+        fake.noticeNumber = number;
+      },
+      markPublished: async (orgId, client, item, input = {}) => {
+        log("portal.markPublished", orgId, client, item, input);
+        guard();
+        const found = fake.items.find((i) => i.client === client && i.id === item);
+        if (!found) throw new ApiError(404, "not_found", "item not found");
+        if (found.status !== "scheduled") throw new ApiError(409, "conflict", "only a scheduled post is marked posted");
+        found.status = "published";
+        found.publishedAt = input.at ?? new Date().toISOString();
+        if (input.postUrl) found.postUrl = input.postUrl;
       },
     },
   };

@@ -21376,6 +21376,7 @@ export const ptBR = {
     copied: "Link copiado",
     copyFailed: "Não deu para copiar o link",
     revoked: "O link foi revogado",
+    linkStale: "O link precisa ser refeito: faça um novo para enviar",
     newLink: "Novo link",
     revoke: "Revogar link",
   },

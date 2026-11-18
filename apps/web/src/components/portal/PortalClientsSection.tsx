@@ -30,8 +30,11 @@ export function PortalClientsSection() {
     queryKey: key,
     queryFn: () => portal.clients(org.id),
   });
-  const [editing, setEditing] = useState<PortalClientAccount | "new" | null>(null);
-  const [removing, setRemoving] = useState<PortalClientAccount | null>(null);
+  // The clients' links come from the same answer, by the client's id, and only for who may manage the portal.
+  const links = clients.data?.links ?? {};
+  // The editor works with the list's rows (no `link`: that one comes from `links`, by the client's id).
+  const [editing, setEditing] = useState<ClientRow | "new" | null>(null);
+  const [removing, setRemoving] = useState<ClientRow | null>(null);
 
   const invalidate = () => queryClient.invalidateQueries({ queryKey: key });
   const fail = (error: unknown) => toast.show(portalErrorText(t, error, i18n.language), "error");
@@ -75,7 +78,7 @@ export function PortalClientsSection() {
     );
   };
 
-  const list = clients.data ?? [];
+  const list = clients.data?.clients ?? [];
 
   return (
     <div className="ac-groups portal-clients">
@@ -124,21 +127,23 @@ export function PortalClientsSection() {
                   <p className="portal-clients__quiet">{t("portalClients.noContacts")}</p>
                 )}
                 <div className="portal-clients__link">
-                  {client.link ? (
+                  {links[client.client] ? (
                     <>
                       <input
                         className="portal-clients__link-input"
                         readOnly
-                        value={client.link}
+                        value={links[client.client]}
                         aria-label={t("portalClients.link")}
                         onFocus={(e) => e.currentTarget.select()}
                       />
-                      <Button size="sm" icon="copy" onClick={() => copy(client.link as string)}>
+                      <Button size="sm" icon="copy" onClick={() => copy(links[client.client] as string)}>
                         {t("portalClients.copy")}
                       </Button>
                     </>
                   ) : (
-                    <span className="portal-clients__quiet">{t("portalClients.revoked")}</span>
+                    <span className="portal-clients__quiet">
+                      {client.linkStale ? t("portalClients.linkStale") : t("portalClients.revoked")}
+                    </span>
                   )}
                   {changes && (
                     <>
@@ -150,7 +155,7 @@ export function PortalClientsSection() {
                       >
                         {t("portalClients.newLink")}
                       </Button>
-                      {client.link && (
+                      {links[client.client] && (
                         <Button
                           size="sm"
                           variant="ghost"
@@ -202,6 +207,9 @@ export function PortalClientsSection() {
   );
 }
 
+/** A client as the list reads it: its link is in `links`, never on the row. */
+type ClientRow = Omit<PortalClientAccount, "link">;
+
 type Working = { id: string; name: string; email: string; whatsapp: string };
 
 /** A client's editor: its name, its contacts, its colour. */
@@ -211,7 +219,7 @@ function ClientEditorDialog({
   onSave,
   onClose,
 }: {
-  client: PortalClientAccount | null;
+  client: ClientRow | null;
   saving: boolean;
   onSave: (input: { client: string; name: string; contacts: PortalContact[]; color: PortalClientColor | null }) => void;
   onClose: () => void;

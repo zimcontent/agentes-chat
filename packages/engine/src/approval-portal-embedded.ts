@@ -1,8 +1,12 @@
 import type { ApprovalPortal, BlobStore, PortalCard, PortalItem, PortalJob, PortalState } from "@agenteschat/adapters";
 import { ApprovalPortalError, PORTAL_FILE_BYTES } from "@agenteschat/adapters";
-import type { Database } from "@agenteschat/db";
+import type { Database, Executor } from "@agenteschat/db";
 import { and, asc, desc, eq, inArray, schema } from "@agenteschat/db";
+import { portalWorkspaceOf } from "./approval-portal-clients";
+import { ConflictError } from "./errors";
+import { assertStorageRoom } from "./limits";
 import { enqueue } from "./outbox";
+import { portalNotifyPostKey } from "./portal-notices";
 
 const { portalCards, portalClients, portalJobs, portalLabels, portalLists, portalPostFiles, portalPostNotes } = schema;
 const { portalPosts, portalUploads } = schema;
@@ -62,25 +66,20 @@ export interface EmbeddedPortalDeps {
   db: Database;
   /** The installation's platform storage: a post's files and the clients' logos live there. */
   blobs: BlobStore;
-  /** Where a client's page is (`<PUBLIC_URL>/portal/<token>`) and what its links are derived from. */
+  /** Where a client's page is (`<PUBLIC_URL>/p/<token>`) and what its links are derived from. */
   publicUrl: string;
   secret: string;
   log?: { warn: (message: string, data?: Record<string, unknown>) => void };
 }
 
 /**
- * The portal's workspace: the one holding its rows, else the first of the installation. One installation has one
- * portal (ADR 9001 §18), so its clients are one workspace's.
+ * The portal's workspace: the one holding its rows, else the installation's first. One installation has one portal
+ * (ADR 9001 §18), so its clients are one workspace's. It is `portalWorkspaceOf` (approval-portal-clients.ts), which
+ * reads the portal's own rows and the tasks its watch made for them in the same order, so this function and
+ * `portalHere` never name different workspaces.
  */
 export async function portalOrgId(db: Database): Promise<string | null> {
-  const [held] = await db.select({ orgId: portalClients.orgId }).from(portalClients).limit(1);
-  if (held) return held.orgId;
-  const [first] = await db
-    .select({ id: schema.organizations.id })
-    .from(schema.organizations)
-    .orderBy(asc(schema.organizations.createdAt))
-    .limit(1);
-  return first?.id ?? null;
+  return portalWorkspaceOf(db);
 }
 
 /**
@@ -223,9 +222,17 @@ export function createEmbeddedApprovalPortal(deps: EmbeddedPortalDeps): Approval
     error: job.error,
   });
 
-  /** Reads a file into the platform's storage, answering the id a send takes. */
+  /**
+   * Reads a file into the platform's storage, answering the id a send takes. Every file a post carries counts against
+   * the workspace's storage (`limits.ts`), as anything else written there does: a workspace past its limit is refused
+   * with the same `storage.full`/`storage.daily_full` a Drive upload gets, before a byte is written.
+   */
   const keep = async (orgId: string, name: string, bytes: Uint8Array, contentType: string) => {
     if (bytes.byteLength > PORTAL_FILE_BYTES) throw new ApprovalPortalError(413, "That file is too large to send");
+    await assertStorageRoom(db, orgId, bytes.byteLength).catch((error: unknown) => {
+      if (error instanceof ConflictError) throw new ApprovalPortalError(409, error.message);
+      throw error;
+    });
     const [row] = await db
       .insert(portalUploads)
       .values({
@@ -242,9 +249,9 @@ export function createEmbeddedApprovalPortal(deps: EmbeddedPortalDeps): Approval
   };
 
   /** The uploads a send names, in its order, or a refusal. */
-  const uploadsOf = async (orgId: string, ids: string[]) => {
+  const uploadsOf = async (orgId: string, ids: string[], tx: Executor = db) => {
     const rows = ids.length
-      ? await db
+      ? await tx
           .select()
           .from(portalUploads)
           .where(and(eq(portalUploads.orgId, orgId), inArray(portalUploads.id, ids)))
@@ -257,10 +264,10 @@ export function createEmbeddedApprovalPortal(deps: EmbeddedPortalDeps): Approval
     });
   };
 
-  const jobForKey = async (orgId: string, key: string | undefined) =>
+  const jobForKey = async (orgId: string, key: string | undefined, tx: Executor = db) =>
     key
       ? ((
-          await db
+          await tx
             .select()
             .from(portalJobs)
             .where(and(eq(portalJobs.orgId, orgId), eq(portalJobs.key, key)))
@@ -273,7 +280,8 @@ export function createEmbeddedApprovalPortal(deps: EmbeddedPortalDeps): Approval
       orgId,
       kind: "portal.notify",
       payload: { postId, version },
-      dedupeKey: `portal.notify:${postId}:v${version}`,
+      // The same post and version tell once (`portalNotifyPostKey`, portal-notices.ts); a new version is another key.
+      dedupeKey: portalNotifyPostKey(postId, version),
     }).catch((error: unknown) => warn("approval portal: a client's notice could not be queued", { postId, error }));
 
   return {
@@ -577,70 +585,84 @@ export function createEmbeddedApprovalPortal(deps: EmbeddedPortalDeps): Approval
 
     send: async (input) => {
       const orgId = await org();
-      const before = await jobForKey(orgId, input.key);
-      if (before) return jobOf(before);
-      const uploads = await uploadsOf(orgId, input.files);
-      const cover = input.cover ? (await uploadsOf(orgId, [input.cover]))[0] : null;
-      const video = input.type === "reel" || uploads.some((u) => isVideoFile(u.name, u.contentType));
-      // A post's title: the send's own, else the card's it finishes, else its first file's name.
-      const title = input.title?.trim() || (await cardTitle(orgId, input.card)) || uploads[0]?.name || "";
-      const [post] = await db
-        .insert(portalPosts)
-        .values({
-          orgId,
-          client: input.client,
-          title,
-          type: input.type,
-          status: "sent",
-          caption: input.caption ?? "",
-          editor: input.editor ?? null,
-          video,
-          version: 1,
-          card: input.card ?? null,
-        })
-        .returning();
-      if (!post) throw new ApprovalPortalError(500, "The post could not be sent");
-      const files = [
-        ...uploads.map((u, position) => ({ u, position, role: "media" as const })),
-        ...(cover ? [{ u: cover, position: 0, role: "cover" as const }] : []),
-      ];
-      for (const { u, position, role } of files) {
-        await db.insert(portalPostFiles).values({
-          orgId,
-          postId: post.id,
-          version: 1,
-          position,
-          role,
-          name: u.name,
-          contentType: u.contentType,
-          size: u.size,
-          blobKey: u.blobKey,
-          storageConfigId: u.storageConfigId,
-        });
+      // One send per key, whatever arrives at the same moment: the job's `(org_id, key)` is unique, so a second
+      // request's insert loses and answers the first one's row instead of sending a second post. Without a key the
+      // insert always goes, as the contract says (a key is the caller's own way of making a send idempotent).
+      const [job] = await db.transaction(async (tx) => {
+        const before = input.key ? await jobForKey(orgId, input.key, tx) : null;
+        if (before) return [before];
+        const uploads = await uploadsOf(orgId, input.files, tx);
+        const cover = input.cover ? (await uploadsOf(orgId, [input.cover], tx))[0] : null;
+        const video = input.type === "reel" || uploads.some((u) => isVideoFile(u.name, u.contentType));
+        // A post's title: the send's own, else the card's it finishes, else its first file's name.
+        const title = input.title?.trim() || (await cardTitle(orgId, input.card, tx)) || uploads[0]?.name || "";
+        const [post] = await tx
+          .insert(portalPosts)
+          .values({
+            orgId,
+            client: input.client,
+            title,
+            type: input.type,
+            status: "sent",
+            caption: input.caption ?? "",
+            editor: input.editor ?? null,
+            video,
+            version: 1,
+            card: input.card ?? null,
+          })
+          .returning();
+        if (!post) throw new ApprovalPortalError(500, "The post could not be sent");
+        const files = [
+          ...uploads.map((u, position) => ({ u, position, role: "media" as const })),
+          ...(cover ? [{ u: cover, position: 0, role: "cover" as const }] : []),
+        ];
+        for (const { u, position, role } of files) {
+          await tx.insert(portalPostFiles).values({
+            orgId,
+            postId: post.id,
+            version: 1,
+            position,
+            role,
+            name: u.name,
+            contentType: u.contentType,
+            size: u.size,
+            blobKey: u.blobKey,
+            storageConfigId: u.storageConfigId,
+          });
+        }
+        await tx.delete(portalUploads).where(and(eq(portalUploads.orgId, orgId), inArray(portalUploads.id, input.files)));
+        if (cover) await tx.delete(portalUploads).where(eq(portalUploads.id, cover.id));
+        // A card that is sent stays in its list, tied to the post it became (ADR 9001 §8).
+        if (input.card) {
+          await tx
+            .update(portalCards)
+            .set({ item: post.id, updatedAt: new Date() })
+            .where(and(eq(portalCards.orgId, orgId), eq(portalCards.id, input.card)));
+        }
+        const [made] = await tx
+          .insert(portalJobs)
+          .values({
+            orgId,
+            state: "done",
+            client: input.client,
+            item: post.id,
+            title,
+            missing: missingOf(post, !!cover),
+            key: input.key ?? null,
+          })
+          // A second send at the same moment: the key already answered, so its row answers instead.
+          .onConflictDoNothing()
+          .returning();
+        return made ? [made] : [];
+      });
+      // The other request's row: the same key answers the send that landed.
+      if (!job) {
+        const first = input.key ? await jobForKey(orgId, input.key) : null;
+        if (!first) throw new ApprovalPortalError(500, "The send could not be kept");
+        return jobOf(first);
       }
-      await db.delete(portalUploads).where(and(eq(portalUploads.orgId, orgId), inArray(portalUploads.id, input.files)));
-      if (cover) await db.delete(portalUploads).where(eq(portalUploads.id, cover.id));
-      // A card that is sent stays in its list, tied to the post it became (ADR 9001 §8).
-      if (input.card) {
-        await db
-          .update(portalCards)
-          .set({ item: post.id, updatedAt: new Date() })
-          .where(and(eq(portalCards.orgId, orgId), eq(portalCards.id, input.card)));
-      }
-      const [job] = await db
-        .insert(portalJobs)
-        .values({
-          orgId,
-          state: "done",
-          client: input.client,
-          item: post.id,
-          title,
-          missing: missingOf(post, !!cover),
-          key: input.key ?? null,
-        })
-        .returning();
-      await notify(orgId, post.id, 1);
-      return jobOf(job ?? ({ ...post, id: post.id, state: "done" as const } as never));
+      await notify(orgId, job.item as string, 1);
+      return jobOf(job);
     },
 
     job: async (id) => {
@@ -654,56 +676,77 @@ export function createEmbeddedApprovalPortal(deps: EmbeddedPortalDeps): Approval
 
     newVersion: async (client, item, input) => {
       const orgId = await org();
-      const before = await jobForKey(orgId, input.key);
-      if (before) return jobOf(before);
-      const [post] = await db
-        .select()
-        .from(portalPosts)
-        .where(and(eq(portalPosts.orgId, orgId), eq(portalPosts.client, client), eq(portalPosts.id, item)));
-      if (!post) throw new ApprovalPortalError(404, "item not found");
-      if (post.status !== "adjust_requested" && post.status !== "adjusting") {
-        throw new ApprovalPortalError(409, "a new version only goes up on a post the client asked a change on");
+      // Idempotent by key, and one version per post waiting on the client: the post's row is turned in the same
+      // statement that reads its version, so a second send at the same moment (a retried request) finds the post
+      // already `adjusted` and is refused, as the contract's own second send would be.
+      const [job] = await db.transaction(async (tx) => {
+        const before = input.key ? await jobForKey(orgId, input.key, tx) : null;
+        if (before) return [before];
+        const [post] = await tx
+          .select()
+          .from(portalPosts)
+          .where(and(eq(portalPosts.orgId, orgId), eq(portalPosts.client, client), eq(portalPosts.id, item)));
+        if (!post) throw new ApprovalPortalError(404, "item not found");
+        if (post.status !== "adjust_requested" && post.status !== "adjusting") {
+          throw new ApprovalPortalError(409, "a new version only goes up on a post the client asked a change on");
+        }
+        const uploads = await uploadsOf(orgId, input.files, tx);
+        const version = post.version + 1;
+        for (const [position, u] of uploads.entries()) {
+          await tx.insert(portalPostFiles).values({
+            orgId,
+            postId: post.id,
+            version,
+            position,
+            role: "media",
+            name: u.name,
+            contentType: u.contentType,
+            size: u.size,
+            blobKey: u.blobKey,
+            storageConfigId: u.storageConfigId,
+          });
+        }
+        await tx.delete(portalUploads).where(and(eq(portalUploads.orgId, orgId), inArray(portalUploads.id, input.files)));
+        const [turned] = await tx
+          .update(portalPosts)
+          .set({
+            version,
+            status: "adjusted",
+            video: uploads.some((u) => isVideoFile(u.name, u.contentType)) || post.video,
+            updatedAt: new Date(),
+          })
+          .where(
+            and(
+              eq(portalPosts.id, post.id),
+              inArray(portalPosts.status, ["adjust_requested", "adjusting"] as const),
+            ),
+          )
+          .returning({ id: portalPosts.id });
+        if (!turned) throw new ApprovalPortalError(409, "a new version only goes up on a post the client asked a change on");
+        const [made] = await tx
+          .insert(portalJobs)
+          .values({
+            orgId,
+            state: "done",
+            client,
+            item: post.id,
+            title: post.title,
+            missing: [],
+            key: input.key ?? null,
+          })
+          .onConflictDoNothing()
+          .returning();
+        return made ? [made] : [];
+      });
+      if (!job) {
+        const first = input.key ? await jobForKey(orgId, input.key) : null;
+        if (!first) throw new ApprovalPortalError(500, "The version could not be kept");
+        return jobOf(first);
       }
-      const uploads = await uploadsOf(orgId, input.files);
-      const version = post.version + 1;
-      for (const [position, u] of uploads.entries()) {
-        await db.insert(portalPostFiles).values({
-          orgId,
-          postId: post.id,
-          version,
-          position,
-          role: "media",
-          name: u.name,
-          contentType: u.contentType,
-          size: u.size,
-          blobKey: u.blobKey,
-          storageConfigId: u.storageConfigId,
-        });
-      }
-      await db.delete(portalUploads).where(and(eq(portalUploads.orgId, orgId), inArray(portalUploads.id, input.files)));
-      await db
-        .update(portalPosts)
-        .set({
-          version,
-          status: "adjusted",
-          video: uploads.some((u) => isVideoFile(u.name, u.contentType)) || post.video,
-          updatedAt: new Date(),
-        })
-        .where(eq(portalPosts.id, post.id));
-      const [job] = await db
-        .insert(portalJobs)
-        .values({
-          orgId,
-          state: "done",
-          client,
-          item: post.id,
-          title: post.title,
-          missing: [],
-          key: input.key ?? null,
-        })
-        .returning();
-      await notify(orgId, post.id, version);
-      return jobOf(job as typeof portalJobs.$inferSelect);
+      // The notice names the version it tells about: read back from the post the transaction turned.
+      const version = job.item ? await postVersion(orgId, job.item) : null;
+      await notify(orgId, job.item as string, version ?? 1);
+      return jobOf(job);
     },
 
     editItem: async (client, item, edit) => {
@@ -736,20 +779,49 @@ export function createEmbeddedApprovalPortal(deps: EmbeddedPortalDeps): Approval
       if (post.status !== "approved") throw new ApprovalPortalError(409, "only an approved post is scheduled");
       if (post.released) throw new ApprovalPortalError(409, "this post was already released");
       // This server has no publishing service: a released post is `scheduled` at once, for the team to publish and
-      // say so (docs/adr/doug-0020-embedded-approval-portal.md).
+      // say so with `markPublished` (docs/adr/doug-0020-embedded-approval-portal.md).
       await db
         .update(portalPosts)
         .set({ released: true, scheduledFor: new Date(when), status: "scheduled", updatedAt: new Date() })
         .where(eq(portalPosts.id, post.id));
     },
+
+    markPublished: async (client, item, input) => {
+      const orgId = await org();
+      const [post] = await db
+        .select()
+        .from(portalPosts)
+        .where(and(eq(portalPosts.orgId, orgId), eq(portalPosts.client, client), eq(portalPosts.id, item)));
+      if (!post) throw new ApprovalPortalError(404, "item not found");
+      if (post.status !== "scheduled") throw new ApprovalPortalError(409, "only a scheduled post is marked posted");
+      const at = input.at ? new Date(input.at) : new Date();
+      if (Number.isNaN(at.getTime())) throw new ApprovalPortalError(400, "that isn't a date");
+      await db
+        .update(portalPosts)
+        .set({
+          status: "published",
+          publishedAt: at,
+          ...(input.postUrl !== undefined && input.postUrl !== null ? { postUrl: input.postUrl } : {}),
+          updatedAt: new Date(),
+        })
+        .where(eq(portalPosts.id, post.id));
+    },
   };
 
-  async function cardTitle(orgId: string, cardId: string | undefined) {
+  async function cardTitle(orgId: string, cardId: string | undefined, tx: Executor = db) {
     if (!cardId) return null;
-    const [card] = await db
+    const [card] = await tx
       .select({ title: portalCards.title })
       .from(portalCards)
       .where(and(eq(portalCards.orgId, orgId), eq(portalCards.id, cardId)));
     return card?.title ?? null;
+  }
+
+  async function postVersion(orgId: string, postId: string) {
+    const [post] = await db
+      .select({ version: portalPosts.version })
+      .from(portalPosts)
+      .where(and(eq(portalPosts.orgId, orgId), eq(portalPosts.id, postId)));
+    return post?.version ?? null;
   }
 }

@@ -24,6 +24,7 @@ export * from "./approval-covers";
 export * from "./approval-portal";
 export * from "./approval-portal-clients";
 export * from "./approval-portal-embedded";
+export * from "./approval-portal-notice-settings";
 export * from "./approval-portal-plan";
 export * from "./approval-portal-tasks";
 export * from "./approval-portal-watch";

@@ -55,7 +55,7 @@ test("a client gets a link, editable contacts and a colour; a new link revokes t
     contacts: [{ name: "Ana", email: "ana@example.com", whatsapp: "+55 11 99999-0000" }],
   });
   expect(made.client).toBe("padaria-aurora");
-  expect(made.link).toMatch(/^https:\/\/acme\.example\/portal\/[A-Za-z0-9_-]{20,64}$/);
+  expect(made.link).toMatch(/^https:\/\/acme\.example\/p\/[A-Za-z0-9_-]{20,64}$/);
   // The digits only, the country code first.
   expect(made.contacts[0]?.whatsapp).toBe("5511999990000");
   const first = made.link as string;
@@ -251,7 +251,7 @@ test("the clients a workspace lists come with their links; another workspace see
   await makeClient();
   const listed = await listPortalClients({ db: f.db, publicUrl: PUBLIC_URL, secret: SECRET }, f.org.id);
   expect(listed).toHaveLength(1);
-  expect(listed[0]?.link).toMatch(/\/portal\//);
+  expect(listed[0]?.link).toMatch(/\/p\//);
   // Another workspace has no clients: the portal is one workspace's (ADR 9001 §18).
   const other = await listPortalClients(
     { db: f.db, publicUrl: PUBLIC_URL, secret: SECRET },
@@ -290,7 +290,9 @@ test("a send queues the client's notice; the email kind is the client's own, and
     .select()
     .from(schema.outbox)
     .where(and(eq(schema.outbox.orgId, f.org.id), eq(schema.outbox.kind, "email.send")));
-  const one = emails.find((e) => String(e.payload.key).startsWith(`portal-notice:${job.item}:1:`));
+  // One email per client, contact and hour (`portal-notices.ts`): its key names the client, the hour's window and the
+  // contact, so a second send inside the window adds nothing.
+  const one = emails.find((e) => String(e.payload.key).startsWith("portal-notice:padaria-aurora:"));
   expect(one).toBeTruthy();
   expect(one && (one.payload.template as { kind: string }).kind).toBe("portal_ready");
 

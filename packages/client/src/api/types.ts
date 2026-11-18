@@ -8715,7 +8715,7 @@ export interface PortalContact {
 
 /**
  * A client of the installation's own approval portal (`GET …/portal-clients`): its name, its contacts and the address
- * of its own link (`<PUBLIC_URL>/portal/<token>`), which opens its page with no account.
+ * of its own link (`<PUBLIC_URL>/p/<token>`), which opens its page with no account.
  */
 export interface PortalClientAccount {
   id: string;
@@ -8724,10 +8724,33 @@ export interface PortalClientAccount {
   name: string;
   contacts: PortalContact[];
   color: PortalClientColor | null;
-  /** The client's page's own address; null while revoked. */
+  /**
+   * The client's page's own address; null while revoked, and null too when the token it derives no longer matches the
+   * hash kept with it (`AGENTES_SECRET` changed since): `linkStale` says so.
+   */
   link: string | null;
   revoked: boolean;
+  /** A live link whose token no longer matches (`AGENTES_SECRET` changed): it must be made again, never shown. */
+  linkStale: boolean;
   createdAt: string;
+}
+
+/**
+ * The clients the workspace reads from `GET …/portal-clients`: the names and contacts any member reads, and the links
+ * only someone who may manage the portal (`assign_work`) does, by the client's id. The routes answer `404 portal.off`
+ * on a workspace that isn't the installation's portal.
+ */
+export interface PortalClientsList {
+  clients: Omit<PortalClientAccount, "link">[];
+  /** Each client's live address, for who may manage the portal; a client the caller can't manage isn't here. */
+  links: Record<string, string>;
+}
+
+/** One of the workspace's connected WhatsApp numbers the portal's notices may go out as (ADR doug-0020 §7). */
+export interface PortalNoticeNumber {
+  id: string;
+  label: string;
+  phone: string | null;
 }
 
 /**
