@@ -50,7 +50,18 @@ import { Arquivos, Senhas, SenhasItem, SenhasLogins } from "./arquivos-senhas";
 import { IlhaCena } from "./ilha";
 import { Paineis, Paineis320, PaineisFormas } from "./paineis";
 import { PainelIa, PainelIa320, PainelIaFolha, PainelIaFolha320 } from "./painel-ia";
-import { PortalCartao, PortalCronograma, PortalCronograma320 } from "./portal";
+import {
+  PortalAgendar,
+  PortalAgendarPost,
+  PortalCartao,
+  PortalClientes,
+  PortalCronograma,
+  PortalCronograma320,
+  PortalCronogramaPostados320,
+  PortalPostados,
+  PortalQuadro,
+  PortalQuadro320,
+} from "./portal";
 import {
   RevisaoConversa,
   RevisaoDesign,
@@ -1141,6 +1152,13 @@ export const TELAS: Record<string, () => ReactNode> = {
   "portal-cronograma": PortalCronograma,
   "portal-cronograma-320": PortalCronograma320,
   "portal-cartao": PortalCartao,
+  "portal-quadro": PortalQuadro,
+  "portal-quadro-320": PortalQuadro320,
+  "portal-postados": PortalPostados,
+  "portal-clientes": PortalClientes,
+  "portal-agendar": PortalAgendar,
+  "portal-agendar-post": PortalAgendarPost,
+  "portal-postados-320": PortalCronogramaPostados320,
   whatsapp: WhatsAppLista,
   "whatsapp-conversa": WhatsAppConversa,
   arquivos: Arquivos,

@@ -234,7 +234,7 @@ export function RemindSheet({
 }
 
 /** "‹ 14 ›": a number with a step down and up (our buttons, no native picker). */
-function Stepper({
+export function Stepper({
   value,
   label,
   lessLabel,

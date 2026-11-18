@@ -4,6 +4,7 @@ import {
   usePortalBoard,
   usePortalComments,
   usePortalJob,
+  usePortalOverview,
   usePortalPlan,
   usePortalTasks,
   useSavePortalCard,
@@ -13,6 +14,8 @@ import {
   PORTAL_SEND_FILES,
   portalArticle,
   portalChecks,
+  portalClientColors,
+  portalClientLogos,
   portalClientName,
   portalLink,
   portalOrderAt,
@@ -24,7 +27,7 @@ import {
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ActivityIndicator, Pressable, RefreshControl, StyleSheet, TextInput, View } from "react-native";
-import { Button, Chip, GroupedHeader, GroupedList, GroupedRow, Text, useFieldText } from "@/ui";
+import { Button, Chip, GroupedHeader, GroupedList, GroupedRow, Icon, Text, useFieldText } from "@/ui";
 import { router } from "@/ui/navigation";
 import { LinkPillText } from "../chat/LinkPillText";
 import { Face } from "../shared/Face";
@@ -34,7 +37,7 @@ import { PushedHeader, successHaptic } from "../shared/parts";
 import { usePortalFailed, usePortalRights, usePortalWords, useSendCard } from "./hooks";
 import { allPlanCards, commentsNewestFirst, findItem, listsFor, otherTeamColumn, sendProblemOf } from "./model";
 import { openLink, PostPanel } from "./PostPanel";
-import { FileStrip, StageChip } from "./parts";
+import { ClientMark, FileStrip, StagePill } from "./parts";
 import type { PortalWords } from "./words";
 
 /**
@@ -78,9 +81,7 @@ export function CardScreen({ client, cardId }: { client: string; cardId: string 
       refreshControl={<RefreshControl refreshing={pull.refreshing} onRefresh={pull.onRefresh} />}
     >
       <View style={styles.page}>
-        <Text variant="subhead" tone="muted" style={styles.pad}>
-          {portalClientName(client)}
-        </Text>
+        <CardHead w={w} client={client} card={card} />
         <FileStrip files={card.files} />
         <View style={[styles.pad, styles.parts]}>
           <Description w={w} card={card} />
@@ -126,8 +127,6 @@ function Facts({ w, card, plan }: { w: PortalWords; card: PlanCard; plan: Portal
   return (
     <View>
       <GroupedList>
-        {card.material ? null : <GroupedRow label={w.stage} below={<Stage stage={card.stage} />} />}
-        <GroupedRow label={w.type} value={w.types[card.type]} />
         <GroupedRow
           label={w.list}
           value={listName}
@@ -171,10 +170,39 @@ function Facts({ w, card, plan }: { w: PortalWords; card: PlanCard; plan: Portal
   );
 }
 
-function Stage({ stage }: { stage: PlanCard["stage"] }) {
+/**
+ * Under the title, the board's own words for the card: the client's mark and name, the stage's pill (the Quadro's and
+ * the Cronograma's), the type, finished.
+ */
+function CardHead({ w, client, card }: { w: PortalWords; client: string; card: PlanCard }) {
+  const c = useColors();
+  const orgId = useOrgId();
+  const clients = usePortalOverview(orgId).data?.clients;
   return (
-    <View style={styles.chips}>
-      <StageChip stage={stage} />
+    <View style={[styles.pad, styles.head]}>
+      <View style={styles.headClient}>
+        <ClientMark
+          client={client}
+          logo={portalClientLogos(clients).get(client)}
+          color={portalClientColors(clients).get(client)}
+          size={20}
+        />
+        <Text variant="subhead" tone="muted" numberOfLines={1} style={styles.headName}>
+          {portalClientName(client)}
+        </Text>
+      </View>
+      <View style={styles.chips}>
+        {card.material ? null : <StagePill stage={card.stage} />}
+        <Chip label={w.types[card.type]} />
+        {card.done && !card.material ? (
+          <View style={styles.doneMark}>
+            <Icon name="check" size={13} color={c.greenText} />
+            <Text variant="caption" style={[styles.doneWord, { color: c.greenText }]}>
+              {w.done}
+            </Text>
+          </View>
+        ) : null}
+      </View>
     </View>
   );
 }
@@ -539,6 +567,11 @@ function Linked({ text, variant = "subhead" }: { text: string; variant?: "subhea
 }
 
 const styles = StyleSheet.create({
+  head: { gap: 10 },
+  headClient: { flexDirection: "row", alignItems: "center", gap: 8 },
+  headName: { flexShrink: 1 },
+  doneMark: { flexDirection: "row", alignItems: "center", gap: 4, height: 24 },
+  doneWord: { fontWeight: "600" },
   fill: { flex: 1 },
   center: { flex: 1, alignItems: "center", justifyContent: "center", padding: 32 },
   centerText: { textAlign: "center" },
