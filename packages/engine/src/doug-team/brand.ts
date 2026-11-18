@@ -194,9 +194,12 @@ async function brandSkillRow(db: Database, orgId: string) {
   if (live && (live.metadata as { brand?: unknown }).brand === true) return { row: live, live, other: null };
   // A live `marca` of another origin: the brand picks another slug, never overwriting it.
   if (live) return { row: null, live: null, other: live };
-  // A deleted one: it comes back with the brand if it was the brand, else it stays deleted and the brand gets `marca`.
-  const back = rows.find((r) => r.deletedAt) ?? null;
-  if (back && (back.metadata as { brand?: unknown }).brand === true) return { row: back, live: null, other: null };
+  // A deleted one: it comes back with the brand if it was the brand; else it stays deleted, and it still holds the
+  // slug (`skills_team_slug` is one per name), so the brand is written under another (`marca-2`).
+  const back = rows.find((r) => r.deletedAt && (r.metadata as { brand?: unknown }).brand === true);
+  if (back) return { row: back, live: null, other: null };
+  const gone = rows.find((r) => r.deletedAt) ?? null;
+  if (gone) return { row: null, live: null, other: gone };
   return { row: null, live: null, other: null };
 }
 
@@ -227,6 +230,33 @@ export async function giveBrandToReaders(db: Database, orgId: string, byTemplate
  */
 export async function brandPending(db: Database, orgId: string) {
   return (await brandPendingIn(db, [orgId])).has(orgId);
+}
+
+/**
+ * Whether the workspace has the Doug team and no brand yet, as the right hand's prompt reads it
+ * (docs/adr/doug-0020-time-doug.md): a team made (`doug_team`), and no skill marked `metadata.brand`. It is the
+ * prompt's own question, so it stays true after the onboarding is over (`brandPending` means "the onboarding still
+ * waits"): a workspace that got its team and took no brand keeps being asked for it in the DOUG's DM.
+ */
+export async function brandMissing(db: Database, orgId: string) {
+  const [row] = await db
+    .select({ dougTeam: organizationSettings.dougTeam })
+    .from(organizationSettings)
+    .where(eq(organizationSettings.orgId, orgId));
+  if (!row?.dougTeam) return false;
+  const [brand] = await db
+    .select({ id: skills.id })
+    .from(skills)
+    .where(
+      and(
+        eq(skills.orgId, orgId),
+        isNull(skills.ownerUserId),
+        isNull(skills.deletedAt),
+        sql`${skills.metadata}->>'brand' = 'true'`,
+      ),
+    )
+    .limit(1);
+  return !brand;
 }
 
 /** `brandPending` for several workspaces at once (`GET /me`). */

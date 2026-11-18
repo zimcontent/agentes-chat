@@ -413,7 +413,9 @@ export async function postTeamCard(
     },
   });
   if (deps.pubsub && announce) await publishMessageCreated(deps.pubsub, messageView(message));
-  // A newer team in the same conversation takes the place of the open ones before it (the person revised it).
+  // A newer team in the same conversation takes the place of the open ones before it (the person revised it). Only the
+  // ones before it: two cards posted at once (two clicks) would otherwise supersede each other, and neither would be
+  // made. The ids are v7, so they order like the times they were posted at.
   const older = await deps.db
     .select()
     .from(messages)
@@ -424,6 +426,7 @@ export async function postTeamCard(
         sql`${messages.meta}->'actionCard'->>'kind' = ${TEAM_PROPOSAL_CARD}`,
         sql`${messages.meta}->'actionCard'->>'state' = 'pending'`,
         sql`${messages.id} <> ${message.id}`,
+        sql`(${messages.createdAt}, ${messages.id}) < (${message.createdAt}, ${message.id})`,
       ),
     );
   for (const m of older) {

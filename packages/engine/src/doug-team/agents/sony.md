@@ -90,10 +90,10 @@ third_party_skills:
     source: https://github.com/greensock/gsap-skills/tree/aed9cfd3277740755f6bfc1155c7aa645403b760/skills/gsap-utils
     license: MIT
   - slug: ffmpeg-skill
-    source: https://github.com/kajisho5/ffmpeg-skill/tree/07c84812bb6b8d2b959586d13585ef01769a63d7
+    source: https://github.com/kajisho5/ffmpeg-skill/tree/07c84812bb6b8d2b959586d13585ef01769a63d7/
     license: MIT
   - slug: video-use
-    source: https://github.com/browser-use/video-use/tree/43cfc566833548093455c9d4a46bd69913b7e552
+    source: https://github.com/browser-use/video-use/tree/43cfc566833548093455c9d4a46bd69913b7e552/
     license: MIT
   - slug: watch
     source: https://github.com/bradautomates/claude-video/tree/03ceb42f7fa2c4439aca01752118044baabffb8f/skills/watch

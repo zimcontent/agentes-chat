@@ -222,7 +222,7 @@ third_party_skills:
     source: https://github.com/bradautomates/head-of-content/tree/d841dcff2e4d74a4c31cb3ed2de6c2184de3a970/.claude/skills/youtube-research
     license: MIT
   - slug: humanizer
-    source: https://github.com/blader/humanizer/tree/b48c832f0f809c1b5658edbb838c2521b72f2413
+    source: https://github.com/blader/humanizer/tree/b48c832f0f809c1b5658edbb838c2521b72f2413/
     license: MIT
 unresolved:
   - slug: brand-voice-analyzer

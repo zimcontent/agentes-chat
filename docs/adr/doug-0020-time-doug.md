@@ -64,7 +64,19 @@ leave: what a new workspace gets is the craft, never the data.
      repository, so a folder's skills come from one download) installs them after the card reads `created` and gives
      them to the right agents. The job **only installs once the card is `created`**: a card still `creating` (a job
      that ran while the team's transaction was open) throws, so the outbox reads it again; a card undone, denied or
-     replaced installs nothing. A network failure throws too, tried again later.
+     replaced installs nothing. A network failure throws too, tried again later. The card is written `created` and the
+     job enqueued right after it, in the same code path (`useDougTeam`), so the only window is between those two
+     statements: the outbox can't see the job before it exists, and a job the outbox claimed in that window throws
+     `DougTeamNotReady` and comes back. The job's `dedupeKey` is `doug_team.skills:<cardId>:<url>`, so a second enqueue
+     of the same folder adds nothing.
+   - **A skill a person already had stays theirs.** The job marks a skill it made with `metadata.dougTeam` (the card's
+     id), and that mark alone is what Desfazer takes back. A skill the workspace had before the card, even installed
+     from the same link, is only given to the agents: no mark, and its `metadata` untouched. The only skills it takes
+     over are those it made itself, either marked already or installed from the team's own link after the card was
+     posted (a repeat after a failure).
+   - **Desfazer during the job.** The job reads the card again once it has installed, and a card that was undone (or
+     denied, or replaced) meanwhile takes back what that try installed, with their deliveries to the agents: a slow
+     download never leaves a skill behind a card that no longer exists.
    - **Updates stay off.** A skill the job installs is left with `autoUpdate` off (the column's default), so an
      upstream change never reaches a prompt without review: an admin turns "Atualizar sozinha" on, as for any skill
      from a link.
@@ -74,9 +86,9 @@ leave: what a new workspace gets is the craft, never the data.
      skill limits) is written to the card's `created.failedSkills` (`slug`, `code`), which the app shows; the others
      still install.
    - **Desfazer finds them all**, even from a job that failed halfway: the job marks each skill it made (or a repeat
-     found) with `metadata.dougTeam` (the card's id), and `undoTeam` removes the card's `created.skillIds` and every
-     skill so marked, in one statement. Their ids also join the card's, so the receipt counts them; a repeat never
-     adds one twice.
+     found as its own) with `metadata.dougTeam` (the card's id), and `undoTeam` removes the card's `created.skillIds`
+     and every skill so marked, in one statement. Their ids also join the card's, so the receipt counts them; a repeat
+     never adds one twice, and a skill a person had before the card is never in either list.
    - **The computer notice.** The answer and the template say which chosen agents work on a computer
      (`needs_computer`), for the app's notice and its "connect a computer" button.
    - **Only the hello after it**: the team's hello job (ADR 0162) with one line per agent in its words
@@ -96,6 +108,11 @@ leave: what a new workspace gets is the craft, never the data.
      asked for in the DOUG's DM (`rightHandPrompt`'s "not set up yet"), so a workspace that got its team never works
      on a piece without it. Once the onboarding is over, `brandPending` reads false (it means "the onboarding still
      waits"); the brand skill is still written by the same route, and the DOUG asks for it in the chat.
+   - **The prompt asks its own question.** `brandPending` is the step's and `GET /me`'s ("the onboarding still waits").
+     The DOUG's prompt reads `brandMissing` instead: the team was made (`doug_team`) and the workspace has no skill
+     marked `metadata.brand`, whatever the onboarding's date. A workspace whose onboarding ended without a brand, by an
+     app that doesn't draw the step, keeps being asked for it in the DOUG's DM; saving the brand stops it. The two
+     predicates never replace one another.
 6. **Words.** The template's name, description, each agent's role, line and hello, the channels and the tones are in
    `@agenteschat/i18n` (`dougTeam.*`), in every language through `bun run i18n:apply`. The instructions and skills stay
    in Brazilian Portuguese, the language the team works in.
@@ -106,7 +123,9 @@ leave: what a new workspace gets is the craft, never the data.
   over the material, the `dougTeam.*` words and this ADR (`packages/engine/test/doug-team-leak.test.ts`).
 - A workspace makes the Doug team once while an agent of it is still here (`doug_team.made`); with every one archived,
   or after Desfazer, it may be made again (a brand that already exists goes to the readers the new team gains). A
-  double click is one team: the second waits on the workspace's advisory lock (`pg_advisory_xact_lock`) and is refused.
+  double click is one team: the second waits on the workspace's advisory lock (`pg_advisory_xact_lock`) and is refused;
+  the card it posted is deleted, so the DM shows one card, `created`, and no second one reading `denied`. The team card
+  only supersedes the open ones posted before it, so two clicks at once never knock each other out.
 - What the third-party skills hold is their authors'; each is installed from its pinned commit under its license, its
   updates off until an admin turns them on, and a link that stops holding the skill leaves it as it was, on the card's
   `failedSkills`.

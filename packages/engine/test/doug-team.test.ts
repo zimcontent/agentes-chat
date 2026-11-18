@@ -4,6 +4,7 @@ import { DOUG_TEAM_DIR, GENERATED, renderDougTeamFiles } from "../scripts/doug-t
 import {
   archiveAgent,
   BRAND_SKILL,
+  brandMissing,
   brandPending,
   DOUG_QGS,
   DOUG_TEAM_SKILLS_JOB,
@@ -83,6 +84,8 @@ describe("the material", () => {
       expect(a.routines.every((r) => r.paused && r.cron.split(" ").length === 5)).toBe(true);
       for (const s of a.thirdPartySkills) {
         expect(() => parseGithubUrl(s.source)).not.toThrow();
+        // Every link pins its commit: a full 40-hex SHA in `/tree/<sha>/`, never a branch upstream can move.
+        expect({ slug: s.slug, pinned: /tree\/[0-9a-f]{40}\//.test(s.source) }).toEqual({ slug: s.slug, pinned: true });
         expect(s.license).not.toBe("");
       }
     }
@@ -478,6 +481,49 @@ describe("the brand", () => {
   });
 });
 
+describe("the brand the DOUG asks for", () => {
+  test("without the brand, finishing the onboarding by an app that doesn't draw the step still leaves the prompt asking for it", async () => {
+    f = await setup({ rightHand: true });
+    await onboarding();
+    await useDougTeam(deps(), f.owner.id, f.org.id, { handles: ["doug", "rosa"] });
+    // The old app sends no `holdBrand`: the onboarding ends, and `brandPending` stops meaning anything (it is "the
+    // onboarding still waits"). The prompt's own question — no brand yet — stays true.
+    expect(await saveOnboarding(f.db, f.owner.id, f.org.id, { finished: true })).toMatchObject({ finished: true });
+    expect(await brandPending(f.db, f.org.id)).toBe(false);
+    expect(await brandMissing(f.db, f.org.id)).toBe(true);
+    const rightHand = [...(await agentsByHandle()).values()].find((a) => a.builtin === RIGHT_HAND);
+    const asked = await rightHandPrompt(
+      { db: f.db },
+      {
+        orgId: f.org.id,
+        agent: { id: rightHand?.id ?? "", name: "Doug", handle: "doug" },
+        personId: f.owner.id,
+        inDm: true,
+      },
+    );
+    expect(asked).toContain("The workspace has no brand yet");
+    expect(asked).toContain("Offer to set it up before the first piece");
+    // Saved, the prompt stops asking for it.
+    await saveBrand(deps(), f.owner.id, f.org.id, { company: "Acme", tones: ["direto"] });
+    expect(await brandMissing(f.db, f.org.id)).toBe(false);
+    const settled = await rightHandPrompt(
+      { db: f.db },
+      {
+        orgId: f.org.id,
+        agent: { id: rightHand?.id ?? "", name: "Doug", handle: "doug" },
+        personId: f.owner.id,
+        inDm: true,
+      },
+    );
+    expect(settled).not.toContain("The workspace has no brand yet");
+  });
+
+  test("no team, no ask: a workspace without the Doug team is asked for no brand", async () => {
+    f = await setup({ rightHand: true });
+    expect(await brandMissing(f.db, f.org.id)).toBe(false);
+  });
+});
+
 describe("the brand's traps", () => {
   test("a line break never opens a heading in the skill: free fields are one line and kept as data", async () => {
     f = await setup({ rightHand: true });
@@ -525,6 +571,38 @@ describe("the brand's traps", () => {
     expect(kept?.body).toBe("# Outra marca");
     expect(saved.skillId).not.toBe(other?.id);
     const brand = (await f.db.select().from(schema.skills).where(eq(schema.skills.id, saved.skillId)))[0];
+    expect(brand?.slug).toBe("marca-2");
+    expect(brand?.metadata.brand).toBe(true);
+  });
+
+  test("a deleted `marca` of another origin still holds the slug: the brand is written under `marca-2`, never back as `marca`", async () => {
+    f = await setup({ rightHand: true });
+    await onboarding();
+    await useDougTeam(deps(), f.owner.id, f.org.id, { handles: ["rosa"] });
+    // A deleted `marca` that isn't the brand: someone removed it, and it still holds the name (`skills_team_slug` is
+    // one row per name, deleted or not).
+    const [gone] = await f.db
+      .insert(schema.skills)
+      .values({
+        orgId: f.org.id,
+        slug: "marca",
+        name: "marca",
+        description: "Uma marca que não é a do Time Doug.",
+        body: "# Outra marca",
+        source: "manual",
+        deletedAt: new Date(),
+      })
+      .returning();
+    const saved = await saveBrand(deps(), f.owner.id, f.org.id, { company: "Acme", tones: ["direto"] });
+    // It isn't reused, and neither is it brought back: the brand is a new skill under a free slug.
+    expect(saved.skillId).not.toBe(gone?.id);
+    const [still] = await f.db
+      .select()
+      .from(schema.skills)
+      .where(eq(schema.skills.id, gone?.id ?? ""));
+    expect(still?.deletedAt).not.toBeNull();
+    expect(still?.body).toBe("# Outra marca");
+    const [brand] = await f.db.select().from(schema.skills).where(eq(schema.skills.id, saved.skillId));
     expect(brand?.slug).toBe("marca-2");
     expect(brand?.metadata.brand).toBe(true);
   });
@@ -578,5 +656,47 @@ describe("made once, and made again", () => {
     expect(again.state).toBe("created");
     expect(again.messageId).not.toBe(first.messageId);
     expect((await agentsByHandle()).has("sony")).toBe(true);
+  });
+
+  test("a double click: one team, and no `denied` card left in the DM", async () => {
+    f = await setup({ rightHand: true });
+    // Both clicks pass the first check at once; the transaction's advisory lock makes one wait, then refuse it. The
+    // card it posted is gone, so the person reads one card, created, and no second one reading `denied`.
+    const clicks = await Promise.allSettled([
+      useDougTeam(deps(), f.owner.id, f.org.id, { handles: ["rosa", "sony"] }),
+      useDougTeam(deps(), f.owner.id, f.org.id, { handles: ["rosa", "sony"] }),
+    ]);
+    const made = clicks.flatMap((c) => (c.status === "fulfilled" ? [c.value] : []));
+    expect(made).toHaveLength(1);
+    expect(made[0]?.state).toBe("created");
+    const cards = await f.db
+      .select()
+      .from(schema.messages)
+      .where(
+        and(
+          eq(schema.messages.orgId, f.org.id),
+          sql`${schema.messages.meta}->'actionCard'->'params'->>'template' = 'doug'`,
+        ),
+      );
+    const live = cards.filter((m) => m.deletedAt === null);
+    expect(live.map((m) => m.id)).toEqual([made[0]?.messageId ?? ""]);
+    expect(live.every((m) => (m.meta.actionCard as TeamProposalCard).state === "created")).toBe(true);
+    // The refused click's card, if it posted one at all, is gone.
+    expect(cards.filter((m) => m.deletedAt !== null).every((m) => m.id !== made[0]?.messageId)).toBe(true);
+    expect((await agentsByHandle()).has("rosa")).toBe(true);
+  });
+
+  test("choosing only the DOUG makes no team and locks nothing: the next team is made", async () => {
+    f = await setup({ rightHand: true });
+    // The right hand's role here (the workspace's own right hand, which is never archived): no agent is made for it.
+    const only = await useDougTeam(deps(), f.owner.id, f.org.id, { handles: ["doug"] });
+    expect(only.state).toBe("created");
+    expect((await cardOf(only.messageId)).created?.rightHandRole).toBe(true);
+    expect((await cardOf(only.messageId)).created?.agentIds).toEqual([]);
+    // Nothing of the team is left, so the workspace may make the team its agents: the DOUG alone is no team.
+    const rosa = await useDougTeam(deps(), f.owner.id, f.org.id, { handles: ["rosa"] });
+    expect(rosa.state).toBe("created");
+    expect(rosa.messageId).not.toBe(only.messageId);
+    expect((await agentsByHandle()).has("rosa")).toBe(true);
   });
 });

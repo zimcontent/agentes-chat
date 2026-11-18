@@ -40,7 +40,9 @@ const lasting = (error: unknown) =>
  * back (`pending`) throws, and the outbox reads it again; a network failure throws too (tried again later).
  *
  * A skill the workspace already has is only given, and marked when the team's own job or a repeat made it (so a
- * repeat after a failure takes up where it stopped, and Desfazer removes what that repeat brought too).
+ * repeat after a failure takes up where it stopped, and Desfazer removes what that repeat brought too): one a person
+ * installed before, even from the same link, keeps its `metadata` as it is and stays theirs. A card undone while this
+ * job ran takes back what it just installed, with the deliveries of it.
  */
 export async function installDougSkills(deps: SkillDeps, orgId: string, payload: Record<string, unknown>) {
   const cardId = String(payload.cardId ?? "");
@@ -54,6 +56,8 @@ export async function installDougSkills(deps: SkillDeps, orgId: string, payload:
       state: sql<string>`${messages.meta}->'actionCard'->>'state'`,
       // What a try before this one already put on the card: a repeat adds none of them again.
       listed: sql<string[]>`coalesce(${messages.meta}->'actionCard'->'created'->'skillIds', '[]'::jsonb)`,
+      // When the card was posted: a skill from this link made after it is this job's work (or a repeat's).
+      since: messages.createdAt,
     })
     .from(messages)
     .where(and(eq(messages.orgId, orgId), eq(messages.id, cardId)));
@@ -145,18 +149,29 @@ export async function installDougSkills(deps: SkillDeps, orgId: string, payload:
           .where(eq(skills.id, skill.id));
     }
   }
-  // A skill the workspace already has whose own job (or a repeat) made it: it is the team's too, so Desfazer takes it.
+  // A skill the workspace already has is given too; it is the team's — so Desfazer takes it back — only when one of
+  // this job's tries put it here: marked with this card, or installed from the team's own link after the card was
+  // posted (a repeat after a failure). One a person installed before, even from the same link, keeps its `metadata`
+  // as it is and stays theirs.
   for (const item of items) {
     const id = have.get(item.slug);
     if (!id || made.has(item.slug)) continue;
-    const [row] = await deps.db.select({ metadata: skills.metadata }).from(skills).where(eq(skills.id, id));
+    const [row] = await deps.db
+      .select({ metadata: skills.metadata, sourceUrl: skills.sourceUrl, createdAt: skills.createdAt })
+      .from(skills)
+      .where(eq(skills.id, id));
     const meta = row?.metadata ?? {};
-    if (meta.dougTeam === cardId) continue;
+    const marked = meta.dougTeam === cardId;
+    const ours = marked || (row?.sourceUrl === item.source && card !== undefined && row.createdAt > card.since);
+    if (!ours) continue;
+    // Counted on the receipt even when the mark was already there and the list missed it (a try that failed after
+    // marking it).
+    if (!listed.has(id)) fresh.add(id);
+    if (marked) continue;
     await deps.db
       .update(skills)
       .set({ metadata: { ...meta, dougTeam: cardId, ...(item.license ? { license: item.license } : {}) } })
       .where(eq(skills.id, id));
-    if (!listed.has(id)) fresh.add(id);
   }
   // Given only to the team's agents still here.
   const live = new Set(
@@ -186,11 +201,45 @@ export async function installDougSkills(deps: SkillDeps, orgId: string, payload:
       .onConflictDoUpdate({ target: [agentSkills.agentId, agentSkills.skillId], set: { enabled: true } });
     out.given.push(item.slug);
   }
+  // Desfazer during this job (a slow download): the card was undone after it was read, so what this try installed goes
+  // with it, and its deliveries too. The card's lists keep nothing of it either.
+  if (await undoneSince(deps, orgId, cardId)) {
+    await takeBackInstalled(deps, orgId, cardId);
+    return { installed: out.installed, given: [], failed: out.failed };
+  }
   // The card's own lists, merged under a row lock so two folders' jobs at once each add theirs: the skills Desfazer
   // takes back (`skillIds`) and the ones that failed for good (`failedSkills`, which the receipt shows with its code).
   if (fresh.size > 0 || out.failed.length > 0) await mergeCardCreated(deps, orgId, cardId, [...fresh], out.failed);
   if (out.given.length > 0) await publishAgentsChanged(deps.pubsub, orgId);
   return out;
+}
+
+/** Whether the card reads undone now (it may have been undone while the job installed its skills). */
+async function undoneSince(deps: SkillDeps, orgId: string, cardId: string) {
+  const [row] = await deps.db
+    .select({ state: sql<string>`${messages.meta}->'actionCard'->>'state'` })
+    .from(messages)
+    .where(and(eq(messages.orgId, orgId), eq(messages.id, cardId)));
+  return row?.state === "undone" || row?.state === "denied" || row?.state === "superseded";
+}
+
+/**
+ * What a card that was undone during its job installed: its skills marked with the card are deleted (as Desfazer would
+ * have), and their deliveries to the agents go with them.
+ */
+async function takeBackInstalled(deps: SkillDeps, orgId: string, cardId: string) {
+  const marked = sql`${skills.metadata}->>'dougTeam' = ${cardId}`;
+  const mine = await deps.db
+    .select({ id: skills.id })
+    .from(skills)
+    .where(and(eq(skills.orgId, orgId), marked, isNull(skills.deletedAt)));
+  if (mine.length === 0) return;
+  const ids = mine.map((s) => s.id);
+  await deps.db
+    .update(skills)
+    .set({ deletedAt: new Date() })
+    .where(and(eq(skills.orgId, orgId), inArray(skills.id, ids)));
+  await deps.db.delete(agentSkills).where(and(eq(agentSkills.orgId, orgId), inArray(agentSkills.skillId, ids)));
 }
 
 /** Adds to a created card's `created.skillIds` and `created.failedSkills`, reading it again under a row lock. */

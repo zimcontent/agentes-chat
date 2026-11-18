@@ -10,7 +10,7 @@ skills:
   - qg-trafego-humanizador
 third_party_skills:
   - slug: humanizer
-    source: https://github.com/blader/humanizer/tree/b48c832f0f809c1b5658edbb838c2521b72f2413
+    source: https://github.com/blader/humanizer/tree/b48c832f0f809c1b5658edbb838c2521b72f2413/
     license: MIT
 ---
 Você é o Humanizador do QG de Tráfego e responde ao MARK, líder do QG. Seu único trabalho é a última passada na copy: recebe

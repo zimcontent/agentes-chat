@@ -48,7 +48,7 @@ import {
   dougSkills,
 } from "./index";
 
-const { agents, agentSkills, organizationSettings, organizations, skills } = schema;
+const { agents, agentSkills, messages, organizationSettings, organizations, skills } = schema;
 
 /** `doug_team.skills`: a group of a template's third-party skills installed from their public links, after the team. */
 export const DOUG_TEAM_SKILLS_JOB = "doug_team.skills";
@@ -299,12 +299,17 @@ export async function dougTeamOf(db: Database, orgId: string) {
 /**
  * The Doug team made here whose agents are still here, or null: an archived agent is gone (`doug_team.made` allows a
  * new team while none of the team's is left), and the brand step and the DOUG's role go with it.
+ *
+ * The right hand's id is not one of the team's agents: it is the workspace's own right hand, which is never archived.
+ * Counting it would make a team of the DOUG alone look made forever, and the workspace could never make another.
  */
 async function liveDougTeam(db: Database, orgId: string) {
   const team = await dougTeamOf(db, orgId);
   if (!team) return null;
-  const ids = Object.values(team.agents);
-  if (ids.length === 0) return team;
+  const ids = Object.entries(team.agents)
+    .filter(([handle]) => handle !== DOUG_RIGHT_HAND)
+    .map(([, id]) => id);
+  if (ids.length === 0) return null;
   const [left] = await db
     .select({ id: agents.id })
     .from(agents)
@@ -436,7 +441,15 @@ export async function useDougTeam(
   const pending = (await getMessage(deps.db, orgId, card.id)) ?? card;
   const proposal = pending.meta.actionCard as TeamProposalCard;
   const claimed: TeamProposalCard = { ...proposal, state: "creating", error: null };
-  await writeCard(deps, pending, claimed, "pending");
+  // Claimed only while it is still open: a click that replaced this card with a newer one (two clicks at once) makes
+  // no team from it, and the card it posted goes, so the person reads one card and no second one reading `denied`.
+  if (!(await writeCard(deps, pending, claimed, "pending"))) {
+    await deps.db
+      .update(messages)
+      .set({ deletedAt: new Date() })
+      .where(and(eq(messages.orgId, orgId), eq(messages.id, card.id)));
+    throw new ConflictError("A newer click replaced this card", "team_proposal.decided");
+  }
   const events = holdEvents(deps.pubsub);
   type Made = Omit<TeamCreated, "noAi" | "skipped"> & { agents: Agent[]; byTemplate: Record<string, string> };
   let made: Made;
@@ -577,7 +590,16 @@ export async function useDougTeam(
     });
   } catch (error) {
     const step = error instanceof StepError ? error.step : members.map((a) => a.name).join(", ");
-    // A failure takes the card to a terminal state (`denied`, with its reason on the receipt), never leaves it
+    // A second click that got this far while the first was making the team: the team is made, once, from the first
+    // card, and this one leaves nothing behind — no second card reading `denied` in the person's DM.
+    if (error instanceof ConflictError && error.code === "doug_team.made") {
+      await deps.db
+        .update(messages)
+        .set({ deletedAt: new Date() })
+        .where(and(eq(messages.orgId, orgId), eq(messages.id, card.id)));
+      throw error;
+    }
+    // Any other failure takes the card to a terminal state (`denied`, with its reason on the receipt), never leaves it
     // `pending` or `creating` where another click would try again: the team is made once, from its own card.
     const back: TeamProposalCard = {
       ...claimed,

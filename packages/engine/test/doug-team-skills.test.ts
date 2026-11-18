@@ -212,6 +212,98 @@ describe("the skills job", () => {
     for (const item of items) expect((await skillBySlug(item.slug))?.deletedAt).not.toBeNull();
   });
 
+  test("a skill a person installed before is only given: Desfazer takes it back not, its `metadata` untouched", async () => {
+    f = await setup({ rightHand: true });
+    const made = await useDougTeam(deps(), f.owner.id, f.org.id, { handles: ["humanizador"] });
+    const [job] = await f.db.select().from(schema.outbox).where(eq(schema.outbox.kind, DOUG_TEAM_SKILLS_JOB));
+    if (!job) throw new Error("no job");
+    const items = job.payload.items as DougSkillItem[];
+    const humanizer = items.find((i) => i.slug === "humanizer");
+    if (!humanizer) throw new Error("no humanizer");
+    // The person installed `humanizer` before the team, from the very same link, with their own metadata.
+    const keptMeta = { title: "Humanizer", notes: "a pessoa escreveu isto" };
+    const [before] = await f.db
+      .insert(schema.skills)
+      .values({
+        orgId: f.org.id,
+        slug: "humanizer",
+        name: "humanizer",
+        description: "Deixa a copy com cara de gente.",
+        body: "# humanizer",
+        source: "url",
+        sourceUrl: humanizer.source,
+        metadata: keptMeta,
+        // Before the card: the job's own installs come after it (`createdAt` past the card).
+        createdAt: new Date(Date.now() - 3600_000),
+      })
+      .returning();
+    const gh = fakeGithub(repoOf(items));
+    // The job gives it to JUNIN and marks nothing: it is the person's, not the card's.
+    const out = await installDougSkills(skillDeps(gh.fetch), f.org.id, asTheRepo(job.payload));
+    expect(out.given).toContain("humanizer");
+    expect(out.installed).toEqual([]);
+    const [after] = await f.db
+      .select()
+      .from(schema.skills)
+      .where(eq(schema.skills.id, before?.id ?? ""));
+    expect(after?.metadata).toEqual(keptMeta);
+    expect(after?.deletedAt).toBeNull();
+    // The receipt counts none of it (the house skills the team made are its own; the person's `humanizer` isn't).
+    expect((await cardOf(made.messageId)).created?.skillIds ?? []).not.toContain(before?.id ?? "");
+    // Desfazer takes the team back, and the person's skill stays as it was, given to no one it isn't theirs to keep.
+    await undoTeam(deps(), f.owner.id, f.org.id, made.messageId);
+    const [still] = await f.db
+      .select()
+      .from(schema.skills)
+      .where(eq(schema.skills.id, before?.id ?? ""));
+    expect(still?.deletedAt).toBeNull();
+    expect(still?.metadata).toEqual(keptMeta);
+  });
+
+  test("Desfazer during the job: a card undone after it was read takes back what that try installed", async () => {
+    f = await setup({ rightHand: true });
+    const made = await useDougTeam(deps(), f.owner.id, f.org.id, { handles: ["humanizador"] });
+    const [job] = await f.db.select().from(schema.outbox).where(eq(schema.outbox.kind, DOUG_TEAM_SKILLS_JOB));
+    if (!job) throw new Error("no job");
+    const items = job.payload.items as DougSkillItem[];
+    const gh = fakeGithub(repoOf(items));
+    // The download is slow: the job reads the card as created, installs, and only then sees it undone. The fake
+    // fetch, standing for the slow download, undoes the card on the first request — after the job's read.
+    let undone = false;
+    const slow = async (url: string) => {
+      if (!undone) {
+        undone = true;
+        await undoTeam(deps(), f.owner.id, f.org.id, made.messageId);
+      }
+      return gh.fetch(url);
+    };
+    const out = await installDougSkills(skillDeps(slow), f.org.id, asTheRepo(job.payload));
+    // The try installed them and was told nothing: the card is undone, so they are gone, with their deliveries.
+    expect(out.installed.length).toBe(items.length);
+    for (const item of items) {
+      const row = await skillBySlug(item.slug);
+      expect(row?.deletedAt).not.toBeNull();
+    }
+    const [humanizador] = await f.db
+      .select()
+      .from(schema.agents)
+      .where(and(eq(schema.agents.orgId, f.org.id), eq(schema.agents.handle, "humanizador")));
+    // None of the job's skills is left given to it, nor any row of them.
+    const jobSkillIds = (await f.db.select().from(schema.skills).where(eq(schema.skills.orgId, f.org.id)))
+      .filter((s) => items.some((i) => i.slug === s.slug))
+      .map((s) => s.id);
+    const given = await f.db
+      .select()
+      .from(schema.agentSkills)
+      .where(
+        and(eq(schema.agentSkills.agentId, humanizador?.id ?? ""), inArray(schema.agentSkills.skillId, jobSkillIds)),
+      );
+    expect(given).toEqual([]);
+    // Nor is any of it on the card's list: an undone card keeps none.
+    const listed = (await cardOf(made.messageId)).created?.skillIds ?? [];
+    expect(listed.filter((id) => jobSkillIds.includes(id))).toEqual([]);
+  });
+
   test("a failure halfway: the next try takes up where it stopped, and Desfazer takes all of it back", async () => {
     f = await setup({ rightHand: true });
     const made = await useDougTeam(deps(), f.owner.id, f.org.id, { handles: ["junin"] });
