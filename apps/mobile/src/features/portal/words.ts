@@ -1,4 +1,4 @@
-import type { PortalColumn, PortalMissing, PortalStatus, PortalType } from "@agenteschat/client";
+import type { PortalClientColor, PortalColumn, PortalMissing, PortalStatus, PortalType } from "@agenteschat/client";
 
 /**
  * The approval portal's words on the phone (ADR 9001). This feature is this instance's own, so its words live beside
@@ -127,6 +127,45 @@ const en = {
   scheduled: (when: string) => `Released for ${when}.`,
   confirm: "Confirm",
   cancel: "Cancel",
+  /**
+   * A client's own sheet (ADR 9001, addendum 2026-11-18), from a long press or "…" on its card: its name and its
+   * removal are kept here (the portal has no rename or delete), its picture and colour at the portal.
+   */
+  clientEdit: {
+    title: "Edit client",
+    more: (name: string) => `Edit ${name}`,
+    name: "Name",
+    renameTitle: "Rename client",
+    renameIntro: (id: string) => `The name your team sees everywhere. Leave it empty to go back to “${id}”.`,
+    renamed: "Name saved.",
+    picture: "Picture",
+    choosePicture: "Choose from library",
+    removePicture: "Remove picture",
+    pictureSaved: "Picture saved.",
+    pictureRemoved: "Picture removed.",
+    pictureTooBig: "That picture is too big. Pick one under 2 MB.",
+    color: "Colour",
+    noColor: "No colour",
+    colors: {
+      green: "Green",
+      blue: "Blue",
+      navy: "Dark blue",
+      sky: "Light blue",
+      white: "White",
+      teal: "Teal",
+      yellow: "Yellow",
+      orange: "Orange",
+      red: "Red",
+      pink: "Pink",
+      purple: "Purple",
+      gray: "Gray",
+    } satisfies Record<PortalClientColor, string>,
+    remove: "Remove client",
+    removeTitle: (name: string) => `Remove “${name}”?`,
+    removeText:
+      "It leaves every list and count here. Its posts and cards stay at the portal, and it can be brought back from Hidden clients on the web.",
+    removed: (name: string) => `“${name}” removed.`,
+  },
   post: "Post",
   lastNote: "Last note",
   addCard: "Add a card",
@@ -331,6 +370,41 @@ const ptBR: PortalWords = {
   scheduled: (when: string) => `Liberado para ${when}.`,
   confirm: "Confirmar",
   cancel: "Cancelar",
+  clientEdit: {
+    title: "Editar cliente",
+    more: (name: string) => `Editar ${name}`,
+    name: "Nome",
+    renameTitle: "Renomear cliente",
+    renameIntro: (id: string) => `O nome que a equipe vê em todo lugar. Deixe vazio para voltar a “${id}”.`,
+    renamed: "Nome salvo.",
+    picture: "Foto",
+    choosePicture: "Escolher da galeria",
+    removePicture: "Remover foto",
+    pictureSaved: "Foto salva.",
+    pictureRemoved: "Foto removida.",
+    pictureTooBig: "Essa foto é grande demais. Escolha uma com menos de 2 MB.",
+    color: "Cor",
+    noColor: "Sem cor",
+    colors: {
+      green: "Verde",
+      blue: "Azul",
+      navy: "Azul-escuro",
+      sky: "Azul-claro",
+      white: "Branco",
+      teal: "Verde-água",
+      yellow: "Amarelo",
+      orange: "Laranja",
+      red: "Vermelho",
+      pink: "Rosa",
+      purple: "Roxo",
+      gray: "Cinza",
+    },
+    remove: "Excluir cliente",
+    removeTitle: (name: string) => `Excluir “${name}”?`,
+    removeText:
+      "Ele sai de todas as listas e contagens daqui. Os posts e cartões continuam no portal, e dá para trazê-lo de volta em Clientes ocultos, na web.",
+    removed: (name: string) => `“${name}” excluído.`,
+  },
   post: "Post",
   lastNote: "Última observação",
   addCard: "Adicionar cartão",

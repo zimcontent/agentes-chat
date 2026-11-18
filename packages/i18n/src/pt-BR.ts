@@ -17055,6 +17055,14 @@ export const ptBR = {
     change: {
       mergedWithoutAsking: "Fez o merge em {{repo}} sem perguntar",
       portalApprovedForClient: "Aprovou “{{title}}” pelo cliente no portal",
+      portalClient: {
+        renamed: "Renomeou o cliente {{client}} no portal",
+        hidden: "Excluiu o cliente {{client}} das listas do portal",
+        shown: "Mostrou de novo o cliente {{client}} no portal",
+        color: "Mudou a cor do cliente {{client}} no portal",
+        logo: "Mudou o logo do cliente {{client}} no portal",
+        logoRemoved: "Removeu o logo do cliente {{client}} no portal",
+      },
       pattern: "{{verb}} {{area}}",
       approval: {
         approved: "Aprovou um pedido",
@@ -21415,6 +21423,20 @@ export const ptBR = {
       remove: "Remover logo",
       saved: "Logo salva",
       removed: "Logo removida",
+    },
+    clientEdit: {
+      rename: "Renomear cliente",
+      renameTitle: "Renomear cliente",
+      renameHelp: "O nome que a equipe vê em todo lugar. Deixe vazio para voltar a “{{id}}”.",
+      name: "Nome",
+      renamed: "Nome salvo",
+      hide: "Excluir cliente",
+      hideTitle: "Excluir “{{name}}”?",
+      hideText:
+        "Ele sai de todas as listas e contagens daqui. Os posts e cartões continuam no portal, e dá para trazê-lo de volta em Clientes ocultos.",
+      hidden: "“{{name}}” excluído",
+      hiddenTitle: "Clientes ocultos",
+      show: "Mostrar de novo",
     },
     clientColor: {
       label: "Cor do cliente",

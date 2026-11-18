@@ -9,6 +9,7 @@ import { ErrorState, LoadingCards } from "@/components/Loading";
 import { useOrg } from "@/components/org-context";
 import { CardDetailDialog } from "@/components/portal/CardDetailDialog";
 import { ClientColorMenu } from "@/components/portal/client-color";
+import { HiddenClients } from "@/components/portal/client-edit";
 import { NewListDialog } from "@/components/portal/NewListDialog";
 import { PortalBoard } from "@/components/portal/PortalBoard";
 import { PortalNotices } from "@/components/portal/PortalNotices";
@@ -61,7 +62,7 @@ export function PortalPage() {
   const known = clients.map((c) => c.client);
   const actions = changes && !off && (client ? board.data : clients.length > 0) && (
     <>
-      {client && <ClientColorMenu client={client} />}
+      {client && <ClientColorMenu client={client} onHidden={() => go({})} />}
       <Button icon="send" title={t("portal.send")} onClick={() => setSending({ card: null })}>
         <span className="portal-act__words">{t("portal.send")}</span>
       </Button>
@@ -163,11 +164,14 @@ export function PortalPage() {
           {!client &&
             overview.data &&
             (clients.length === 0 ? (
-              <EmptyState size="page" agent={look} title={t("portal.empty.clients")}>
-                {t("portal.empty.clientsText")}
-              </EmptyState>
+              <>
+                <EmptyState size="page" agent={look} title={t("portal.empty.clients")}>
+                  {t("portal.empty.clientsText")}
+                </EmptyState>
+                {changes && <HiddenClients hidden={overview.data.hidden ?? []} />}
+              </>
             ) : (
-              <PortalOverview clients={clients} />
+              <PortalOverview clients={clients} hidden={changes ? (overview.data.hidden ?? []) : []} />
             ))}
           {client &&
             board.data &&

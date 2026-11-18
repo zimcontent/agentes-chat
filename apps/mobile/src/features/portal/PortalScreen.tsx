@@ -20,6 +20,7 @@ import {
   EmptyState,
   GroupedHeader,
   Icon,
+  IconButton,
   LargeTitleScreen,
   PULL_TINT,
   PullOrbit,
@@ -30,9 +31,11 @@ import {
 import { router } from "@/ui/navigation";
 import { weights } from "@/ui/type-scale";
 import { useOrgId, usePullRefresh } from "../shared/hooks";
+import { SheetHostProvider, useSheet } from "../shared/SheetHost";
 import { RetryLine } from "../shared/TeamSkyEmpty";
 import { useTabHeader } from "../shared/tabHeader";
-import { usePortalKnown, usePortalOn, usePortalWords } from "./hooks";
+import { ClientEditSheet } from "./ClientEditSheet";
+import { usePortalKnown, usePortalOn, usePortalRights, usePortalWords } from "./hooks";
 import { clientCounts, STAGE_COLOR, statusLine, summaryStatus } from "./model";
 import { ClientMark, CountChips, HeaderCount, openClient, PortalNotice } from "./parts";
 
@@ -40,9 +43,18 @@ import { ClientMark, CountChips, HeaderCount, openClient, PortalNotice } from ".
  * Portal (ADR 9001) as a tab: every client at a glance, as the web's overview. On top what waits on the team now (four
  * numbers across every client), then a card per client with its mark, its one most pressing line (in the waiting tone
  * when it waits on the team), its counts and its next post; who waits on the team first. A row opens the
- * client's board. Nothing here changes anything. Off where the server has no portal or the workspace turned it off.
+ * client's board; for who may change the portal, a long press or the card's "…" opens the client's own sheet (its name,
+ * picture, colour and removal, `ClientEditSheet`). Off where the server has no portal or the workspace turned it off.
  */
 export function PortalScreen() {
+  return (
+    <SheetHostProvider>
+      <Clients />
+    </SheetHostProvider>
+  );
+}
+
+function Clients() {
   const w = usePortalWords();
   const { i18n } = useTranslation();
   const orgId = useOrgId();
@@ -59,6 +71,9 @@ export function PortalScreen() {
   const entries = pipeline.data?.entries;
   // Início's "Alterações" with several clients asking: only them, until "Ver todos".
   const { alteracoes } = useLocalSearchParams<{ alteracoes?: string }>();
+  const { changes } = usePortalRights();
+  const sheet = useSheet();
+  const edit = changes ? (client: string) => sheet.open(<ClientEditSheet client={client} />) : undefined;
   const asking = (client: string) => (summaries.get(client)?.counts.adjusting ?? 0) > 0;
   // A link kept after the changes were answered shows every client, never an empty list.
   const onlyAsking = alteracoes === "1" && clients.some((c) => asking(c.client));
@@ -127,6 +142,7 @@ export function PortalScreen() {
                       next={portalWhen(i18n.language, next)}
                       logo={logos.get(client)}
                       color={colors.get(client)}
+                      onEdit={edit}
                     />
                   );
                 })}
@@ -150,6 +166,7 @@ function ClientCard({
   next,
   logo,
   color,
+  onEdit,
 }: {
   client: string;
   status: PortalClientStatus;
@@ -157,6 +174,8 @@ function ClientCard({
   next: string | null;
   logo: string | undefined;
   color: PortalClientColor | undefined;
+  /** Opens the client's own sheet; absent for who may not change the portal. */
+  onEdit: ((client: string) => void) | undefined;
 }) {
   const w = usePortalWords();
   const { colors: c } = useTheme();
@@ -166,7 +185,12 @@ function ClientCard({
   return (
     <Pressable
       onPress={() => openClient(client)}
+      onLongPress={onEdit ? () => onEdit(client) : undefined}
       accessibilityRole="button"
+      accessibilityActions={onEdit ? [{ name: "edit", label: w.clientEdit.more(name) }] : undefined}
+      onAccessibilityAction={(event) => {
+        if (event.nativeEvent.actionName === "edit") onEdit?.(client);
+      }}
       accessibilityLabel={[name, line, ...counts.map((k) => String(k.count)), next ? w.next(next) : null]
         .filter(Boolean)
         .join(", ")}
@@ -191,7 +215,11 @@ function ClientCard({
             </Text>
           </View>
         </View>
-        <Icon name="right" size={18} color={c.faint} />
+        {onEdit ? (
+          <IconButton icon="more" small label={w.clientEdit.more(name)} onPress={() => onEdit(client)} />
+        ) : (
+          <Icon name="right" size={18} color={c.faint} />
+        )}
       </View>
       {counts.length > 0 || next ? (
         <View style={[styles.cardFoot, { borderTopColor: c.line }]}>

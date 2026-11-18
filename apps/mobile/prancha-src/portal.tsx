@@ -12,12 +12,14 @@ import type {
 import { ApiProvider } from "@agenteschat/client";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { HeaderHeightContext } from "expo-router/react-navigation";
-import { type ReactNode, useState } from "react";
+import { type ReactNode, useEffect, useState } from "react";
 import { Platform, StyleSheet, View } from "react-native";
 import { CardScreen } from "@/features/portal/CardScreen";
+import { ClientEditSheet } from "@/features/portal/ClientEditSheet";
 import { ClientScreen } from "@/features/portal/ClientScreen";
 import { PortalScreen } from "@/features/portal/PortalScreen";
 import { ScheduleSheet } from "@/features/portal/ScheduleSheet";
+import { SheetHostProvider, useSheet } from "@/features/shared/SheetHost";
 import { FixedOrg } from "@/providers/org";
 import { ToastHost } from "@/ui";
 
@@ -255,7 +257,11 @@ const CLIENTS: PortalClientSummary[] = [
   },
   { client: "padaria-sol", counts: counts({ todo: 2 }), open: 2, next: day(6), color: null },
   { client: "zim", counts: counts({}), open: 0, next: null, color: "purple" },
+  // The test client the team removes (ADR 9001, addendum 2026-11-18), with a name of its own.
+  { client: "teste-ajustes", counts: counts({ todo: 1 }), open: 1, next: null, color: null, name: "Teste Ajustes" },
 ];
+/** Clients the team removed: out of every list until shown again. */
+const HIDDEN = new Set<string>();
 
 /** Everything not posted yet, from the clients' counts: one entry per piece of work, at its stage. */
 const PIPELINE = CLIENTS.flatMap((c) =>
@@ -378,7 +384,36 @@ function fakeApi(): ApiClient {
           PLAN.unlisted.push(made);
           return patchPlanCard(made, { ...input, list: input.list ?? null });
         },
-        overview: async () => ({ clients: CLIENTS }),
+        overview: async () => ({
+          clients: CLIENTS.filter((c) => !HIDDEN.has(c.client)),
+          hidden: [...HIDDEN].map((client) => ({
+            client,
+            name: CLIENTS.find((c) => c.client === client)?.name ?? null,
+          })),
+        }),
+        // A client's name, picture, colour and removal, kept as the server keeps them.
+        setClientName: async (_org: string, client: string, name: string | null) => {
+          await later();
+          const kept = name?.replace(/\s+/g, " ").trim() || null;
+          const found = CLIENTS.find((c) => c.client === client);
+          if (found) found.name = kept;
+          return { name: kept };
+        },
+        setClientHidden: async (_org: string, client: string, hidden: boolean) => {
+          await later();
+          if (hidden) HIDDEN.add(client);
+          else HIDDEN.delete(client);
+        },
+        setClientColor: async (_org: string, client: string, color: PortalClientSummary["color"]) => {
+          await later();
+          const found = CLIENTS.find((c) => c.client === client);
+          if (found) found.color = color ?? null;
+        },
+        setClientLogo: async (_org: string, client: string, image: { imageBase64: string } | null) => {
+          await later();
+          const found = CLIENTS.find((c) => c.client === client);
+          if (found) found.logo = image ? `data:image/png;base64,${image.imageBase64}` : null;
+        },
         toSchedule: async () => ({ items: structuredClone(BOARD.items.approved) }),
         schedule: async () => {
           await later();
@@ -462,6 +497,29 @@ export function PortalClientes() {
       <PortalScreen />
     </Server>
   );
+}
+
+/** A client's own sheet, opened over the Portal tab as a long press opens it (ADR 9001, addendum 2026-11-18). */
+export function PortalClienteEditar() {
+  return (
+    <Server>
+      <SheetHostProvider>
+        <PortalScreen />
+        <OpenOnce>{<ClientEditSheet client={CLIENT} />}</OpenOnce>
+      </SheetHostProvider>
+    </Server>
+  );
+}
+
+/** Opens its content in the screen's sheet once, as the press would. */
+function OpenOnce({ children }: { children: ReactNode }) {
+  const sheet = useSheet();
+  const [content] = useState(() => children);
+  useEffect(() => {
+    const timer = setTimeout(() => sheet.open(content), 600);
+    return () => clearTimeout(timer);
+  }, [sheet, content]);
+  return null;
 }
 
 export function PortalAgendar() {
