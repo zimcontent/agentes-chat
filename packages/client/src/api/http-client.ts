@@ -83,8 +83,9 @@ import type {
   BatchInviteResult,
   BlockState,
   BrainMachine,
-  Brand,
-  BrandState,
+  BrandInput,
+  BrandToneWord,
+  BrandView,
   BrowserHandoff,
   BrowserProfile,
   CalendarEvent,
@@ -836,9 +837,12 @@ export function createHttpApi(options: TransportOptions = {}): HttpApi {
         ),
       get: (orgId) => request<Organization>(org(orgId)),
       brand: (orgId, locale) =>
-        request<BrandState>(`${org(orgId)}/brand`, { ...(locale ? { query: { locale } } : {}) }),
-      saveBrand: (orgId, input) =>
-        request<{ skillId: string; brand: Brand; pending: boolean }>(`${org(orgId)}/brand`, {
+        request<{ pending: boolean; brand: BrandView | null; skillId: string | null; tones: BrandToneWord[] }>(
+          `${org(orgId)}/brand`,
+          { ...(locale ? { query: { locale } } : {}) },
+        ),
+      saveBrand: (orgId, input: BrandInput) =>
+        request<{ skillId: string; brand: BrandView; pending: boolean }>(`${org(orgId)}/brand`, {
           method: "PUT",
           json: input,
         }),
@@ -1078,7 +1082,7 @@ export function createHttpApi(options: TransportOptions = {}): HttpApi {
           needsComputer?: { agentId: string; handle: string; name: string }[];
           brandPending?: boolean;
         }>(`${org(orgId)}/team-templates/${enc(templateId)}/use`, {
-          json: { ...(locale ? { locale } : {}), ...(handles ? { handles: [...handles] } : {}) },
+          json: { ...(locale ? { locale } : {}), ...(handles ? { handles } : {}) },
         }),
       decideCostly: (orgId, signalId, decision) =>
         request<{ state: CostlyDecision }>(`${org(orgId)}/autonomy-proposals/${enc(signalId)}`, {

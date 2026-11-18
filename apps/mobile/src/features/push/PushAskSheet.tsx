@@ -1,9 +1,9 @@
 import { DEFAULT_APP_ICON } from "@agenteschat/client/lib/app-icons";
 import { exampleSenders } from "@agenteschat/client/lib/push-offer";
-import { SvgXml } from "react-native-svg";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Image, StyleSheet, View } from "react-native";
+import { SvgXml } from "react-native-svg";
 import { svgDoBot } from "@/brand/bots";
 import { pushPermission } from "@/lib/push";
 import { usePush } from "@/providers/push";

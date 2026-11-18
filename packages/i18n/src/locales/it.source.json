@@ -2243,6 +2243,9 @@
   "onboarding.stepNames.agents": {
     "value": "Agents"
   },
+  "onboarding.stepNames.brand": {
+    "value": "Your brand"
+  },
   "onboarding.stepNames.computer": {
     "value": "Computer"
   },
@@ -37726,31 +37729,34 @@
     "value": "It is more than a day since this team was created, so it can't be undone here. Archive its agents on their pages."
   },
   "errors.dougTeam.made": {
-    "value": "This workspace already has the Doug team."
+    "value": "This workspace already has the Doug team. Undo the one it made, or add the agents you want one by one."
   },
   "errors.dougTeam.none": {
-    "value": "Check at least one agent to join the team."
+    "value": "Check at least one agent of the Doug team."
   },
-  "errors.dougTeam.brandPending": {
-    "value": "Before finishing, teach the team your brand: the company's name and the tone of voice."
+  "errors.dougTeam.unknown": {
+    "value": "The Doug team has no {{handles}}."
   },
-  "errors.dougTeam.companyRequired": {
+  "errors.brand.pending": {
+    "value": "Save the brand before finishing. It's the step right after the team."
+  },
+  "errors.brand.companyRequired": {
     "value": "Say the company's name."
   },
-  "errors.dougTeam.toneRequired": {
-    "value": "Pick or write the tone of voice."
+  "errors.brand.toneRequired": {
+    "value": "Pick a tone of voice or write it in your own words."
   },
-  "errors.dougTeam.unknownTone": {
-    "value": "One of the tones picked no longer exists. Reload and pick again."
+  "errors.brand.unknownTone": {
+    "value": "That tone of voice isn't one of the options. Pick one from the list, or write it in your own words."
   },
-  "errors.dougTeam.invalidLink": {
-    "value": "That website or link doesn't look like a valid address. Check it and try again."
+  "errors.brand.invalidLink": {
+    "value": "That link doesn't look like a web address. Check it and try again."
   },
-  "errors.dougTeam.invalidInstagram": {
-    "value": "That Instagram profile doesn't look like a valid one: write @something."
+  "errors.brand.invalidInstagram": {
+    "value": "That doesn't look like an Instagram profile. Write @yourprofile or paste the profile's link."
   },
-  "errors.dougTeam.fileMissing": {
-    "value": "One of the manual's files isn't in your Drive anymore. Upload it again."
+  "errors.brand.fileMissing": {
+    "value": "One of the files you picked isn't in your Drive anymore. Choose it again."
   },
   "errors.agentProposal.decided": {
     "value": "Someone already decided this proposal."

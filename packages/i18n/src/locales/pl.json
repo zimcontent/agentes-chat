@@ -935,6 +935,7 @@
       "context": "Kontekst",
       "import": "Przenieś swoich agentów",
       "agents": "Agenci",
+      "brand": "Twoja marka",
       "computer": "Komputer",
       "ai": "AI",
       "team": "Zespół",
@@ -16392,7 +16393,10 @@
     "dougTeam": {
       "made": "Ta przestrzeń robocza ma już zespół Doug.",
       "none": "Zaznacz co najmniej jednego agenta do zespołu.",
-      "brandPending": "Przed zakończeniem naucz zespół swojej marki: nazwę firmy i ton głosu.",
+      "unknown": "Zespół Douga nie ma {{handles}}."
+    },
+    "brand": {
+      "pending": "Przed zakończeniem naucz zespół swojej marki: nazwę firmy i ton głosu.",
       "companyRequired": "Podaj nazwę firmy.",
       "toneRequired": "Wybierz lub napisz ton głosu.",
       "unknownTone": "Jeden z wybranych tonów już nie istnieje. Odśwież i wybierz ponownie.",

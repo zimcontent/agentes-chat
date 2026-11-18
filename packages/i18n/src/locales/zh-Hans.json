@@ -881,6 +881,7 @@
       "context": "背景信息",
       "import": "带上你的智能体",
       "agents": "智能体",
+      "brand": "你的品牌",
       "computer": "电脑",
       "ai": "AI",
       "team": "团队",
@@ -14836,7 +14837,10 @@
     "dougTeam": {
       "made": "这个工作区已经有 Doug 团队了。",
       "none": "至少勾选一个 智能体 加入团队。",
-      "brandPending": "结束之前，把品牌教给团队：公司名称和语气。",
+      "unknown": "Doug 团队没有 {{handles}}。"
+    },
+    "brand": {
+      "pending": "结束之前，把品牌教给团队：公司名称和语气。",
       "companyRequired": "请填写公司名称。",
       "toneRequired": "请选择或填写语气。",
       "unknownTone": "所选语气之一已不存在。请刷新后重新选择。",

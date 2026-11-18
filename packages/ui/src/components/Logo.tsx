@@ -1,6 +1,6 @@
 import type { CSSProperties, HTMLAttributes } from "react";
-import type { DougBotEstado } from "../brand/dougbot-avatar.js";
 import { BRAND_NAME } from "../brand/doug";
+import type { DougBotEstado } from "../brand/dougbot-avatar.js";
 import { cx } from "../cx";
 import { BotFace } from "./BotFace";
 

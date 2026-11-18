@@ -917,6 +917,7 @@
       "context": "Contexte",
       "import": "Amenez vos agents",
       "agents": "Agents",
+      "brand": "Votre marque",
       "computer": "Ordinateur",
       "ai": "IA",
       "team": "Équipe",
@@ -15858,7 +15859,10 @@
     "dougTeam": {
       "made": "Cet espace de travail a déjà l'équipe Doug.",
       "none": "Cochez au moins un agent pour rejoindre l'équipe.",
-      "brandPending": "Avant de terminer, apprenez votre marque à l'équipe : le nom de l'entreprise et le ton de voix.",
+      "unknown": "L'Équipe Doug n'a pas {{handles}}."
+    },
+    "brand": {
+      "pending": "Avant de terminer, apprenez votre marque à l'équipe : le nom de l'entreprise et le ton de voix.",
       "companyRequired": "Indiquez le nom de l'entreprise.",
       "toneRequired": "Choisissez ou écrivez le ton de voix.",
       "unknownTone": "Un des tons choisis n'existe plus. Rechargez et choisissez à nouveau.",

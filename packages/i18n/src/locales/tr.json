@@ -899,6 +899,7 @@
       "context": "Bağlam",
       "import": "Ajanlarınızı getirin",
       "agents": "Ajanlar",
+      "brand": "Markanız",
       "computer": "Bilgisayar",
       "ai": "Yapay zeka",
       "team": "Ekip",
@@ -15270,7 +15271,10 @@
     "dougTeam": {
       "made": "Bu çalışma alanında zaten Doug Ekibi var.",
       "none": "Ekibe katılması için en az bir ajanı işaretle.",
-      "brandPending": "Bitirmeden önce ekibine markanı öğret: şirket adı ve konuşma tonu.",
+      "unknown": "Doug Ekibi'nde {{handles}} yok."
+    },
+    "brand": {
+      "pending": "Bitirmeden önce ekibine markanı öğret: şirket adı ve konuşma tonu.",
       "companyRequired": "Şirket adını söyle.",
       "toneRequired": "Konuşma tonunu seç ya da yaz.",
       "unknownTone": "Seçilen tonlardan biri artık yok. Yeniden yükle ve tekrar seç.",

@@ -881,6 +881,7 @@
       "context": "Konteks",
       "import": "Bawa agenmu",
       "agents": "Agen",
+      "brand": "Merekmu",
       "computer": "Komputer",
       "ai": "AI",
       "team": "Tim",
@@ -14826,7 +14827,10 @@
     "dougTeam": {
       "made": "Ruang kerja ini sudah punya Tim Doug.",
       "none": "Centang setidaknya satu agen untuk masuk ke tim.",
-      "brandPending": "Sebelum selesai, ajarkan merek Anda ke tim: nama perusahaan dan nada bicara.",
+      "unknown": "Tim Doug tidak punya {{handles}}."
+    },
+    "brand": {
+      "pending": "Sebelum selesai, ajarkan merek Anda ke tim: nama perusahaan dan nada bicara.",
       "companyRequired": "Sebutkan nama perusahaan.",
       "toneRequired": "Pilih atau tulis nada bicara.",
       "unknownTone": "Salah satu nada yang dipilih sudah tidak ada. Muat ulang dan pilih lagi.",

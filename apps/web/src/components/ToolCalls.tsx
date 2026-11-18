@@ -1,4 +1,3 @@
-import { formatBytes } from "@agenteschat/client/lib/files";
 import {
   isScreenTool,
   type LiveWork,
@@ -10,6 +9,7 @@ import {
 } from "@agenteschat/client";
 import type { Activity, ActivityKind } from "@agenteschat/client/lib/activity";
 import { type FailureCause, failureCause } from "@agenteschat/client/lib/failure-cause";
+import { formatBytes } from "@agenteschat/client/lib/files";
 import { agentGrammar } from "@agenteschat/client/lib/grammar";
 import { simpleScreens } from "@agenteschat/client/lib/simple-mode";
 import {

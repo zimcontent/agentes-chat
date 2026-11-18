@@ -950,6 +950,8 @@ export const en = {
       context: "Context",
       import: "Bring your agents",
       agents: "Agents",
+      /** "Sua marca", after the Doug team (docs/adr/doug-0020-time-doug.md). */
+      brand: "Your brand",
       computer: "Computer",
       ai: "AI",
       team: "Team",
@@ -15607,15 +15609,20 @@ export const en = {
     },
     /** The Doug team and its brand step (docs/adr/doug-0020-time-doug.md). */
     dougTeam: {
-      made: "This workspace already has the Doug team.",
-      none: "Check at least one agent to join the team.",
-      brandPending: "Before finishing, teach the team your brand: the company's name and the tone of voice.",
+      made: "This workspace already has the Doug team. Undo the one it made, or add the agents you want one by one.",
+      none: "Check at least one agent of the Doug team.",
+      unknown: "The Doug team has no {{handles}}.",
+    },
+    brand: {
+      /** `onboarding.brand_pending`: the onboarding's "Sua marca" was still open when it tried to finish. */
+      pending: "Save the brand before finishing. It's the step right after the team.",
       companyRequired: "Say the company's name.",
-      toneRequired: "Pick or write the tone of voice.",
-      unknownTone: "One of the tones picked no longer exists. Reload and pick again.",
-      invalidLink: "That website or link doesn't look like a valid address. Check it and try again.",
-      invalidInstagram: "That Instagram profile doesn't look like a valid one: write @something.",
-      fileMissing: "One of the manual's files isn't in your Drive anymore. Upload it again.",
+      toneRequired: "Pick a tone of voice or write it in your own words.",
+      unknownTone:
+        "That tone of voice isn't one of the options. Pick one from the list, or write it in your own words.",
+      invalidLink: "That link doesn't look like a web address. Check it and try again.",
+      invalidInstagram: "That doesn't look like an Instagram profile. Write @yourprofile or paste the profile's link.",
+      fileMissing: "One of the files you picked isn't in your Drive anymore. Choose it again.",
     },
     agentProposal: {
       decided: "Someone already decided this proposal.",

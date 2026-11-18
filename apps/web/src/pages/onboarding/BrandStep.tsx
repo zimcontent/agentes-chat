@@ -1,11 +1,10 @@
 import {
-  BRAND_TONES,
-  type Brand,
   type BrandInput,
-  type BrandState,
+  type BrandView,
   brandFields,
   brandMissing,
   keys,
+  useBrand,
 } from "@agenteschat/client";
 import { errorText } from "@agenteschat/client/lib/errors";
 import { Button, ChipButton, Field, Icon, Input, Locked, Textarea } from "@agenteschat/ui";
@@ -14,6 +13,9 @@ import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useApi } from "@/api/context";
 import "./brand-step.css";
+
+/** What `GET …/brand` answers, as the step holds it (the hook's `data`, and what it keeps after a save). */
+type BrandData = NonNullable<ReturnType<typeof useBrand>["data"]>;
 
 /**
  * "Ensine a sua marca ao time" (docs/adr/doug-0020-time-doug.md), required once the Doug team was made: the company's
@@ -28,7 +30,7 @@ export function BrandStep({
 }: {
   orgId: string;
   /** The step's data: the brand already said, the tones to tap, and whether it still waits. */
-  state: BrandState | undefined;
+  state: BrandData | undefined;
   /** Saved (or the workspace's brand already was): the step is answered. */
   onSaved: () => void;
 }) {
@@ -42,7 +44,7 @@ export function BrandStep({
   const [site, setSite] = useState("");
   const [instagram, setInstagram] = useState("");
   const [audience, setAudience] = useState("");
-  const [files, setFiles] = useState<Brand["files"]>([]);
+  const [files, setFiles] = useState<BrandView["files"]>([]);
   const [links, setLinks] = useState<string[]>([]);
   const [link, setLink] = useState("");
   const [uploading, setUploading] = useState(false);
@@ -70,7 +72,7 @@ export function BrandStep({
   const custom = writing && tone.trim() !== "";
   const input: BrandInput = {
     company: company.trim(),
-    tones: tonePicked as BrandInput["tones"],
+    tones: tonePicked,
     tone: custom ? tone.trim() : null,
     site: site.trim() || null,
     instagram: instagram.trim() || null,
@@ -90,7 +92,7 @@ export function BrandStep({
         brand: out.brand,
         skillId: out.skillId,
         tones: state?.tones ?? [],
-      } satisfies BrandState);
+      } satisfies BrandData);
       // The team's agents now read the skill: their pages and the team list say it.
       void qc.invalidateQueries({ queryKey: keys.agents(orgId) });
       void qc.invalidateQueries({ queryKey: keys.skills(orgId) });
@@ -163,21 +165,21 @@ export function BrandStep({
           </div>
           <Field label={t("onboarding.flow.brand.tone")} group>
             <div className="onb-brand__tones">
-              {BRAND_TONES.map((id) => (
+              {(state?.tones ?? []).map((tone) => (
                 <ChipButton
-                  key={id}
-                  aria-pressed={tones.has(id)}
+                  key={tone.id}
+                  aria-pressed={tones.has(tone.id)}
                   className="tp-chip"
                   onClick={() =>
                     setTones((was) => {
                       const next = new Set(was);
-                      if (next.has(id)) next.delete(id);
-                      else next.add(id);
+                      if (next.has(tone.id)) next.delete(tone.id);
+                      else next.add(tone.id);
                       return next;
                     })
                   }
                 >
-                  {state?.tones.find((x) => x.id === id)?.label ?? id}
+                  {tone.label}
                 </ChipButton>
               ))}
               <ChipButton aria-pressed={writing} className="tp-chip" icon="edit" onClick={() => setWriting((w) => !w)}>
@@ -262,7 +264,7 @@ function BrandManual({
   onAddLink,
   onRemoveLink,
 }: {
-  files: Brand["files"];
+  files: BrandView["files"];
   links: string[];
   link: string;
   linkOpen: boolean;

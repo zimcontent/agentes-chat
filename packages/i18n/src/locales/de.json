@@ -899,6 +899,7 @@
       "context": "Kontext",
       "import": "Deine Agenten mitbringen",
       "agents": "Agenten",
+      "brand": "Deine Marke",
       "computer": "Computer",
       "ai": "KI",
       "team": "Team",
@@ -15333,7 +15334,10 @@
     "dougTeam": {
       "made": "Dieser Workspace hat das Doug-Team schon.",
       "none": "Hake mindestens einen Agenten für das Team an.",
-      "brandPending": "Bring dem Team vor dem Abschluss deine Marke bei: den Firmennamen und die Tonalität.",
+      "unknown": "Das Doug-Team hat {{handles}} nicht."
+    },
+    "brand": {
+      "pending": "Bring dem Team vor dem Abschluss deine Marke bei: den Firmennamen und die Tonalität.",
       "companyRequired": "Nenne den Firmennamen.",
       "toneRequired": "Wähle oder schreibe die Tonalität.",
       "unknownTone": "Einer der gewählten Töne gibt es nicht mehr. Lade neu und wähle erneut.",

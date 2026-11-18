@@ -119,9 +119,9 @@ import type {
   BrainKind,
   BrainMachine,
   BrainScope,
-  Brand,
   BrandInput,
-  BrandState,
+  BrandToneWord,
+  BrandView,
   BrowserHandoff,
   BrowserProfile,
   CalendarEvent,
@@ -736,13 +736,18 @@ export interface ApiClient {
     /** `mail`: the proof on its own email's link (ADR 0090); accepted with it, the address counts as confirmed. */
     acceptInvitation(token: string, mail?: string): Promise<{ orgId: string }>;
     settings(orgId: string): Promise<OrgSettings>;
-    /**
-     * "Sua marca" (docs/adr/doug-0020-time-doug.md): the brand, the tones to tap in `locale` and whether the onboarding
-     * waits for it. `pending`: the Doug team was made and the brand step hasn't been saved.
-     */
-    brand(orgId: string, locale?: string): Promise<BrandState>;
-    /** Saves the brand as the workspace skill "Marca <empresa>" (who manages agents). */
-    saveBrand(orgId: string, input: BrandInput): Promise<{ skillId: string; brand: Brand; pending: boolean }>;
+    /** The workspace's brand ("Sua marca"), the tones to tap and whether the onboarding waits for it. */
+    brand(
+      orgId: string,
+      locale?: string,
+    ): Promise<{
+      pending: boolean;
+      brand: BrandView | null;
+      skillId: string | null;
+      tones: BrandToneWord[];
+    }>;
+    /** Saves the brand as the workspace skill "Marca <empresa>", in one go (who manages agents). */
+    saveBrand(orgId: string, input: BrandInput): Promise<{ skillId: string; brand: BrandView; pending: boolean }>;
     updateSettings(
       orgId: string,
       input: Partial<Omit<OrgSettings, "name" | "autoModels" | ReadOnlyOrgSettings>> & {
@@ -894,7 +899,8 @@ export interface ApiClient {
     teamTemplates(orgId: string, locale?: string): Promise<TeamTemplate[]>;
     /**
      * "Criar o time": the template's team, made at once; its card in the person's DM with the right hand. The Doug
-     * team (`doug`) takes `handles`: the templates chosen, every one when absent (docs/adr/doug-0020-time-doug.md).
+     * team takes `handles` (every agent when absent; `members[].handle`), and answers with the agents that work on a
+     * computer and whether the onboarding's brand step waits (docs/adr/doug-0020-time-doug.md).
      */
     applyTeamTemplate(
       orgId: string,
@@ -906,9 +912,7 @@ export interface ApiClient {
       messageId: string;
       state: TeamProposalCard["state"];
       error: TeamProposalCard["error"] | null;
-      /** The Doug team only: its agents made that work on a computer, for the notice and Connect. */
       needsComputer?: { agentId: string; handle: string; name: string }[];
-      /** The Doug team only: the onboarding's brand step waits (`brand.save`). */
       brandPending?: boolean;
     }>;
     /** Decides an agent's proposal of costly work nobody asked for (ADR 0131): its card's `signalId`. */

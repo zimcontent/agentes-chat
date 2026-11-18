@@ -1215,23 +1215,24 @@ export interface TeamTemplate {
   sub: string;
   description: string;
   team: TeamPlan;
-  /** The Doug team only (docs/adr/doug-0020-time-doug.md): every agent to check or uncheck, all checked by default. */
+  /**
+   * The Doug team only (docs/adr/doug-0020-time-doug.md): every agent to check or uncheck, all checked by default.
+   * `team` lists those that become agents with every one checked.
+   */
   members?: DougTemplateMember[];
   /** The Doug team only: handles of the agents that work on a computer, for the notice. */
   needsComputer?: string[];
 }
 
-/** The Doug team's QGs, each a channel the team makes. */
-export type DougQg = "design" | "video" | "trafego" | "estrategia" | "social" | "codigo" | "financeiro";
-
-/** One agent of the Doug team's template, as "Quem entra no seu time?" lists it. */
+/** One agent of the Doug team's template, as the gallery lists it (docs/adr/doug-0020-time-doug.md). */
 export interface DougTemplateMember {
+  /** What `applyTeamTemplate`'s `handles` names, and what `dougKey` turns into the i18n key. */
   handle: string;
   name: string;
   role: string;
   line: string;
-  /** Its QG; null for the right hand. */
-  qg: DougQg | null;
+  /** Its HQ; null for the right hand. */
+  qg: string | null;
   /** The channel it would live in; null for the right hand. */
   channel: string | null;
   /** The template it reports to (`mark`), or null. */
@@ -1245,56 +1246,38 @@ export interface DougTemplateMember {
   skills: number;
 }
 
-/** The tones a brand may be given ("Sua marca"); the person may also write their own. */
-export const BRAND_TONES = [
-  "proximo",
-  "profissional",
-  "divertido",
-  "inspirador",
-  "direto",
-  "acolhedor",
-  "tecnico",
-  "sofisticado",
-  "ousado",
-  "educativo",
-] as const;
-export type BrandTone = (typeof BRAND_TONES)[number];
-
-/** A workspace's brand ("Sua marca"): what the person said, as the step shows it back. */
-export interface Brand {
-  company: string;
-  tones: BrandTone[];
-  /** The tone in the person's own words. */
-  tone: string | null;
-  site: string | null;
-  instagram: string | null;
-  audience: string | null;
-  /** Files of the brand manual, kept in the Drive. */
-  files: { id: string; title: string }[];
-  links: string[];
+/** A tone of voice to tap in the brand step, in the person's language. */
+export interface BrandToneWord {
+  id: string;
+  label: string;
 }
 
-/** `GET …/brand`: the brand, the tones to tap in the person's language, and whether the onboarding waits for it. */
-export interface BrandState {
-  pending: boolean;
-  brand: Brand | null;
-  /** The workspace skill `marca`, once saved. */
-  skillId: string | null;
-  tones: { id: BrandTone; label: string }[];
-}
-
-/** `PUT …/brand`: the company's name and a tone (tapped or written) are required. */
+/** What the brand step sends (`PUT …/brand`, docs/adr/doug-0020-time-doug.md): `company` and a tone are required. */
 export interface BrandInput {
   company: string;
-  tones?: BrandTone[];
+  /** Tones tapped from the list (`BRAND_TONES`); with `tone`, at least one of them is required. */
+  tones?: string[];
+  /** The tone in the person's own words. */
   tone?: string | null;
   site?: string | null;
   instagram?: string | null;
   audience?: string | null;
-  /** Drive files, uploaded first (`artifacts.upload`). */
+  /** Files of the brand manual, from `POST …/artifacts/files` first. */
   files?: string[];
-  /** Links to the brand manual. */
+  /** Links to the brand manual (a shared folder, a page). */
   links?: string[];
+}
+
+/** The workspace's brand ("Sua marca", docs/adr/doug-0020-time-doug.md), as the step shows it back. */
+export interface BrandView {
+  company: string;
+  tones: string[];
+  tone: string | null;
+  site: string | null;
+  instagram: string | null;
+  audience: string | null;
+  files: { id: string; title: string }[];
+  links: string[];
 }
 
 /** `meta.replyChips` of a right hand's question: answers to tap, each sent as the person's own message. */

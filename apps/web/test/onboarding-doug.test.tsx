@@ -202,7 +202,7 @@ describe('"Quem entra no seu time?"', () => {
 describe('"Ensine a sua marca ao time"', () => {
   /** The team made: `brandPending` says its brand step waits (`GET /me`), so the rail puts it next. */
   const brandWaits = () => {
-    const state = atStart({ brandPending: true });
+    const state = atStart({ brandState: { brand: null, pending: true } });
     if (state.me)
       state.me.organizations = [
         {
@@ -243,7 +243,7 @@ describe('"Ensine a sua marca ao time"', () => {
         links: [],
       },
     ]);
-    expect(state.brandPending).toBe(false);
+    expect(state.brandState?.pending).toBe(false);
   });
 
   test("a written tone answers it too, and the site, the profile, the audience and the manual are optional", async () => {
@@ -267,15 +267,18 @@ describe('"Ensine a sua marca ao time"', () => {
 
   test("a brand already said comes back filled in, so going back to it changes nothing", async () => {
     const state = brandWaits();
-    state.brand = {
-      company: "Padaria Aurora",
-      tones: ["divertido"],
-      tone: null,
-      site: "padariaaurora.com.br",
-      instagram: null,
-      audience: null,
-      files: [],
-      links: [],
+    state.brandState = {
+      pending: true,
+      brand: {
+        company: "Padaria Aurora",
+        tones: ["divertido"],
+        tone: null,
+        site: "padariaaurora.com.br",
+        instagram: null,
+        audience: null,
+        files: [],
+        links: [],
+      },
     };
     await renderApp("/onboarding", { api: createFakeApi(state) });
     await settle(16);

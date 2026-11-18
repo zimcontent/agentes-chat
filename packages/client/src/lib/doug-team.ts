@@ -1,4 +1,4 @@
-import type { Brand, BrandInput, BrandTone, DougQg, DougTemplateMember, TeamTemplate } from "../api/types";
+import type { BrandInput, BrandView, DougTemplateMember, TeamTemplate } from "../api/types";
 
 /**
  * The Doug team's template on the web and the phone (docs/adr/doug-0020-time-doug.md), platform-neutral: the id its
@@ -9,7 +9,7 @@ import type { Brand, BrandInput, BrandTone, DougQg, DougTemplateMember, TeamTemp
 export const DOUG_TEMPLATE = "doug";
 
 /** The QG de Tráfego's team (`team` of these in the material): its MARK holds them, each one uncheckable. */
-export const TRAFFIC_QG: DougQg = "trafego";
+export const TRAFFIC_QG = "trafego";
 
 /** Whether a template is the Doug team's (`members` says who it holds). */
 export const isDougTemplate = (t: { id: string } | null | undefined): boolean => t?.id === DOUG_TEMPLATE;
@@ -60,14 +60,10 @@ export const dougOf = (templates: readonly TeamTemplate[]): TeamTemplate | null 
   templates.find(isDougTemplate) ?? null;
 
 /** The QG an agent belongs to, for its row's channel ("no QG de Design"), or null for the right hand. */
-export const qgOf = (m: Pick<DougTemplateMember, "qg" | "channel">): DougQg | null => (m.channel ? m.qg : null);
+export const qgOf = (m: Pick<DougTemplateMember, "qg" | "channel">): string | null => (m.channel ? m.qg : null);
 
-/**
- * "Sua marca" (docs/adr/doug-0020-time-doug.md): the tones to tap, in the server's order (`BRAND_TONES`). Their words
- * come from the server, `GET …/brand` (`tones`), in the person's language; the ids are fixed here.
- */
-export { BRAND_TONES } from "../api/types";
-export type { Brand, BrandInput, BrandTone };
+/** "Sua marca" (docs/adr/doug-0020-time-doug.md): the shape the step saves and shows back, and its own helpers. */
+export type { BrandInput, BrandView };
 
 /**
  * What a brand's step needs before saving: a company's name and a tone, tapped or in the person's own words. Null when
@@ -81,7 +77,7 @@ export function brandMissing(input: Pick<BrandInput, "company" | "tones" | "tone
 }
 
 /** The brand as the step's fields start from a saved one (a step gone back to): every value, empty when unsaid. */
-export const brandFields = (b: Brand | null) => ({
+export const brandFields = (b: BrandView | null) => ({
   company: b?.company ?? "",
   tones: new Set<string>(b?.tones ?? []),
   tone: b?.tone ?? "",

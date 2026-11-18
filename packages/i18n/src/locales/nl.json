@@ -899,6 +899,7 @@
       "context": "Context",
       "import": "Breng je agents mee",
       "agents": "Agents",
+      "brand": "Je merk",
       "computer": "Computer",
       "ai": "AI",
       "team": "Team",
@@ -15397,7 +15398,10 @@
     "dougTeam": {
       "made": "Deze werkruimte heeft het Doug-team al.",
       "none": "Vink minstens één agent aan om in het team te komen.",
-      "brandPending": "Leer het team voor het einde jouw merk: de bedrijfsnaam en de toon van stem.",
+      "unknown": "Het Doug-team heeft geen {{handles}}."
+    },
+    "brand": {
+      "pending": "Leer het team voor het einde jouw merk: de bedrijfsnaam en de toon van stem.",
       "companyRequired": "Noem de bedrijfsnaam.",
       "toneRequired": "Kies of schrijf de toon van stem.",
       "unknownTone": "Een van de gekozen tonen bestaat niet meer. Laad opnieuw en kies weer.",

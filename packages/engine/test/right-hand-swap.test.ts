@@ -27,16 +27,14 @@ describe("makeRightHand", () => {
       { name: "Doug BOSS", handle: "boss", role: "Chefe de operações", instructions: "Cobre prazos toda sexta." },
       { model: "auto" },
     );
-    await f.db
-      .insert(schema.contextItems)
-      .values({
-        orgId,
-        kind: "note",
-        scopeType: "agent",
-        scopeId: boss.id,
-        agentId: boss.id,
-        content: "Ana prefere áudio.",
-      });
+    await f.db.insert(schema.contextItems).values({
+      orgId,
+      kind: "note",
+      scopeType: "agent",
+      scopeId: boss.id,
+      agentId: boss.id,
+      content: "Ana prefere áudio.",
+    });
     // Someone answered to the old right hand.
     await f.db.update(schema.agents).set({ reportsToAgentId: before }).where(eq(schema.agents.id, f.agent.id));
 
