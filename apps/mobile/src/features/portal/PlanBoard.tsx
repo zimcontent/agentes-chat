@@ -1,6 +1,6 @@
-import type { PlanCard, PortalList, PortalListKind, PortalPlan } from "@agenteschat/client";
+import type { PlanCard, PortalLabel, PortalList, PortalListKind, PortalPlan } from "@agenteschat/client";
 import { keys, useMovePortalCard, usePortalLists, useSavePortalCard } from "@agenteschat/client";
-import { portalClientName, portalOrderAt, portalWhen } from "@agenteschat/client/lib/portal";
+import { portalClientName, portalDayOf, portalOrderAt, portalWhen } from "@agenteschat/client/lib/portal";
 import { useQueryClient } from "@tanstack/react-query";
 import { type ComponentRef, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -40,7 +40,9 @@ import {
   boardPaint,
   boardQuery,
   cardBadges,
+  cardLabels,
   edgeScroll,
+  LABEL_COLOR,
   listShift,
   listSlotAt,
   listsFor,
@@ -49,10 +51,11 @@ import {
   type PlanGroup,
   planGroups,
   readyToSend,
-  STAGE_COLOR,
+  scheduleDays,
   searchGroups,
+  toggledLabels,
 } from "./model";
-import { openCard } from "./parts";
+import { openCard, StagePill } from "./parts";
 import type { PortalWords } from "./words";
 
 type Paint = ReturnType<typeof boardPaint>;
@@ -396,6 +399,7 @@ export function PlanBoard({
     paint,
     numbers,
     material: section === "materials",
+    labels: plan.labels,
     onMove: changes ? move : null,
     refreshing,
     onRefresh,
@@ -542,36 +546,73 @@ function Dots({
   paint: Paint;
   onPick: (index: number) => void;
 }) {
-  if (columns.length < 2) return <View style={styles.dots} />;
-  if (columns.length > DOTS_MAX) {
+  return (
+    <BoardDots
+      w={w}
+      at={at}
+      paint={paint}
+      onPick={onPick}
+      items={columns.map((col) => ({
+        key: columnKey(col),
+        name: col.kind === "add" || col.kind === "new" ? w.addList : (col.group.name ?? w.noList),
+        plus: col.kind !== "list",
+      }))}
+    />
+  );
+}
+
+/**
+ * The dots under a board (the Cronograma's lists, the Quadro's columns): one per column, the one in front long, a
+ * press going to it; a line of words past `DOTS_MAX`. `color`: a column's own dot color (the Quadro's stages).
+ */
+export function BoardDots({
+  w,
+  items,
+  at,
+  paint,
+  onPick,
+}: {
+  w: PortalWords;
+  items: { key: string; name: string; plus?: boolean; color?: string }[];
+  at: number;
+  paint: Paint;
+  onPick: (index: number) => void;
+}) {
+  if (items.length < 2) return <View style={styles.dots} />;
+  if (items.length > DOTS_MAX) {
     return (
       <View style={styles.dots}>
         <Text variant="footnote" style={{ color: paint.dot }}>
-          {w.listOf(at + 1, columns.length)}
+          {w.listOf(at + 1, items.length)}
         </Text>
       </View>
     );
   }
   return (
     <View style={styles.dots}>
-      {columns.map((col, i) => {
+      {items.map((item, i) => {
         const on = i === at;
-        const name = col.kind === "add" || col.kind === "new" ? w.addList : (col.group.name ?? w.noList);
-        const tint = on ? paint.dotOn : paint.dot;
+        const tint = on ? (item.color ?? paint.dotOn) : (item.color ?? paint.dot);
         return (
           <Pressable
-            key={columnKey(col)}
+            key={item.key}
             onPress={() => onPick(i)}
             hitSlop={{ top: 12, bottom: 12, left: 3, right: 3 }}
             accessibilityRole="button"
             accessibilityState={{ selected: on }}
-            accessibilityLabel={w.goToList(name)}
+            accessibilityLabel={w.goToList(item.name)}
             style={styles.dotHit}
           >
-            {col.kind === "add" || col.kind === "new" ? (
+            {item.plus ? (
               <Icon name="plus" size={10} color={tint} />
             ) : (
-              <View style={[styles.dot, on ? styles.dotOn : null, { backgroundColor: tint }]} />
+              <View
+                style={[
+                  styles.dot,
+                  on ? styles.dotOn : null,
+                  { backgroundColor: tint, opacity: item.color && !on ? 0.45 : 1 },
+                ]}
+              />
             )}
           </Pressable>
         );
@@ -603,6 +644,7 @@ function ListColumn({
   paint,
   numbers,
   material,
+  labels,
   onMove,
   refreshing,
   onRefresh,
@@ -619,6 +661,7 @@ function ListColumn({
   paint: Paint;
   numbers: Map<string, number>;
   material: boolean;
+  labels: readonly PortalLabel[];
   onMove: ((card: PlanCard) => void) | null;
   refreshing: boolean;
   onRefresh: () => void;
@@ -637,6 +680,16 @@ function ListColumn({
   const slid = useAnimatedStyle(() => ({ transform: [{ translateX: slide.value }] }));
   const [adding, setAdding] = useState(false);
   const [renaming, setRenaming] = useState(false);
+  // While the composer is open, a card just added comes into sight at the list's end, the field still open under it
+  // for the next one, as Trello's.
+  const cardsView = useRef<ComponentRef<typeof ScrollView>>(null);
+  const cardCount = group.cards.length;
+  // biome-ignore lint/correctness/useExhaustiveDependencies: runs again when a card lands in the list.
+  useEffect(() => {
+    if (!adding) return;
+    const t = setTimeout(() => cardsView.current?.scrollToEnd({ animated: true }), 60);
+    return () => clearTimeout(t);
+  }, [adding, cardCount]);
   const id = group.id;
   // One config for the gesture's life: a config that changes on every render resets the handler mid-drag (the web's
   // does), so the callbacks read the latest `lift` through a ref and the config changes only with `enabled`.
@@ -704,6 +757,7 @@ function ListColumn({
       <View style={[styles.listBody, hole ? styles.hidden : null]}>
         {lift && id ? <GestureDetector gesture={pan}>{head}</GestureDetector> : head}
         <ScrollView
+          ref={cardsView}
           style={styles.cardsScroll}
           contentContainerStyle={styles.cards}
           showsVerticalScrollIndicator={false}
@@ -719,6 +773,7 @@ function ListColumn({
               task={numbers.get(card.id)}
               material={material}
               onMove={onMove}
+              labels={labels}
             />
           ))}
         </ScrollView>
@@ -804,16 +859,17 @@ function AddLabel({ label }: { label: string }) {
  * its task's number) and a line of what it holds (the post's date, a description, the checklist, comments, files).
  * No cover picture: the board is for reading the plan at a glance; the pictures are in the card when it opens.
  */
-/** A stage's color behind its pill: 16% of it. */
-const STAGE_TINT = "29";
-
-function BoardCard({
+export function BoardCard({
   w,
   card,
   paint,
   task,
   material,
   onMove,
+  typeFirst = false,
+  dragged,
+  onAction,
+  labels = [],
 }: {
   w: PortalWords;
   card: PlanCard;
@@ -821,10 +877,19 @@ function BoardCard({
   task: number | undefined;
   material: boolean;
   onMove: ((card: PlanCard) => void) | null;
+  /** In a column that already names the stage (the Quadro): the pill says the type, in the stage's color. */
+  typeFirst?: boolean;
+  /** Set while the card is being dragged by a gesture around it: the press that ends the drag doesn't open it. */
+  dragged?: { current: boolean };
+  /** A screen reader's way to do what a drag does. */
+  onAction?: { label: string; hint: string; run: () => void } | null;
+  /** The board's labels: the card's show as colored bars over its title, as Trello's. */
+  labels?: readonly PortalLabel[];
 }) {
   const { i18n } = useTranslation();
   const { colors: c } = useTheme();
   const badges = cardBadges(card);
+  const tags = cardLabels(card, labels);
   const toast = useToast();
   const { changes } = usePortalRights();
   const ready = changes && readyToSend(card);
@@ -853,6 +918,8 @@ function BoardCard({
   const spoken = [
     card.title,
     material ? null : stage,
+    typeFirst ? w.types[card.type] : null,
+    ...tags.map((l) => l.name),
     card.done ? w.done : null,
     task !== undefined ? `#${task}` : null,
     ...facts.map((f) => f.label),
@@ -861,7 +928,17 @@ function BoardCard({
     .join(", ");
   return (
     <Pressable
-      onPress={() => openCard(card.client, card.id)}
+      onPress={() => {
+        if (!dragged?.current) openCard(card.client, card.id);
+      }}
+      {...(onAction
+        ? {
+            accessibilityActions: [{ name: "move", label: onAction.label }],
+            onAccessibilityAction: (e: { nativeEvent: { actionName: string } }) => {
+              if (e.nativeEvent.actionName === "move") onAction.run();
+            },
+          }
+        : {})}
       {...(onMove
         ? {
             onLongPress: () => {
@@ -877,7 +954,7 @@ function BoardCard({
         : {})}
       accessibilityRole="button"
       accessibilityLabel={spoken}
-      accessibilityHint={onMove ? w.moveCard : undefined}
+      accessibilityHint={onAction ? onAction.hint : onMove ? w.moveCard : undefined}
       style={({ pressed }) => [
         styles.card,
         { backgroundColor: paint.card, borderColor: paint.edge },
@@ -885,16 +962,22 @@ function BoardCard({
       ]}
     >
       <View style={card.done && !ready ? styles.done : null}>
+        {tags.length > 0 ? (
+          <View style={styles.labels}>
+            {tags.map((l) => (
+              <View key={l.id} style={[styles.label, { backgroundColor: LABEL_COLOR[l.color] }]}>
+                {l.name ? (
+                  <Text variant="caption" style={styles.labelWord}>
+                    {l.name}
+                  </Text>
+                ) : null}
+              </View>
+            ))}
+          </View>
+        ) : null}
         {material && task === undefined && !card.done ? null : (
           <View style={styles.cardTop}>
-            {material ? null : (
-              <View style={[styles.stage, { backgroundColor: `${STAGE_COLOR[card.stage]}${STAGE_TINT}` }]}>
-                <View style={[styles.stageDot, { backgroundColor: STAGE_COLOR[card.stage] }]} />
-                <Text variant="caption" style={[styles.stageWord, { color: c.ink }]}>
-                  {stage}
-                </Text>
-              </View>
-            )}
+            {material ? null : <StagePill stage={card.stage} {...(typeFirst ? { label: w.types[card.type] } : {})} />}
             {card.done ? (
               <View style={styles.doneMark}>
                 <Icon name="check" size={13} color={c.greenText} />
@@ -914,7 +997,7 @@ function BoardCard({
           {card.title}
         </Text>
         {facts.length > 0 ? (
-          <View style={[styles.facts, { borderTopColor: paint.edge }]}>
+          <View style={styles.facts}>
             {facts.map((f) => (
               <View key={f.icon} style={styles.fact}>
                 <Icon name={f.icon} size={13} color={c.muted} />
@@ -944,14 +1027,20 @@ function BoardCard({
   );
 }
 
-/** A long press's move: the lists of the card's own section in the app's sheet, the card at the chosen one's end. */
+/**
+ * A card's quick actions, on its long press, as Trello's: open it, move it to another list, put on or take off a
+ * label, set its post date, mark it finished (Trello's archive: a finished card stays in its list as history). Each
+ * runs once the menu is gone, so its own picker never lands under it.
+ */
 function useMoveCard(client: string, plan: PortalPlan) {
   const w = usePortalWords();
+  const { i18n } = useTranslation();
   const orgId = useOrgId();
   const toast = useToast();
   const failed = usePortalFailed();
   const move = useMovePortalCard(orgId, client);
-  return async (card: PlanCard) => {
+  const save = useSavePortalCard(orgId);
+  const toList = async (card: PlanCard) => {
     const lists = listsFor(plan, card);
     const options = [
       ...lists.map((l) => ({ key: l.id, label: l.name })),
@@ -969,6 +1058,82 @@ function useMoveCard(client: string, plan: PortalPlan) {
       { cardId: card.id, list, order: portalOrderAt(others, others.length) },
       { onSuccess: () => toast({ title: w.moved(name), icon: "check" }), onError: failed },
     );
+  };
+  const toLabel = async (card: PlanCard) => {
+    const key = await pickOne({
+      title: w.labelsTitle,
+      options: plan.labels.map((l) => ({
+        key: l.id,
+        label: l.name || w.labels,
+        sub: card.labels.includes(l.id) ? w.onCard : undefined,
+        leading: {
+          kind: "node" as const,
+          node: <View style={[styles.swatch, { backgroundColor: LABEL_COLOR[l.color] }]} />,
+        },
+      })),
+    });
+    if (key === null) return;
+    const label = plan.labels.find((l) => l.id === key);
+    const on = !card.labels.includes(key);
+    save.mutate(
+      { cardId: card.id, labels: toggledLabels(card.labels, key) },
+      {
+        onSuccess: () =>
+          toast({ title: on ? w.labelOn(label?.name ?? "") : w.labelOff(label?.name ?? ""), icon: "check" }),
+        onError: failed,
+      },
+    );
+  };
+  const toDate = async (card: PlanCard) => {
+    const now = new Date();
+    const days = scheduleDays(now, 21, portalDayOf(card.date));
+    const dayName = (d: string, i: number) =>
+      i === 0
+        ? w.today
+        : i === 1
+          ? w.tomorrow
+          : new Intl.DateTimeFormat(i18n.language, { weekday: "long", day: "numeric", month: "short" }).format(
+              new Date(Number(d.slice(0, 4)), Number(d.slice(5, 7)) - 1, Number(d.slice(8, 10))),
+            );
+    const key = await pickOne({
+      title: w.postOn,
+      options: [{ key: NO_LIST, label: w.noDate }, ...days.map((d, i) => ({ key: d, label: dayName(d, i) }))],
+      value: portalDayOf(card.date) ?? NO_LIST,
+    });
+    if (key === null) return;
+    const date = key === NO_LIST ? null : key;
+    if (date === portalDayOf(card.date)) return;
+    save.mutate(
+      { cardId: card.id, date },
+      {
+        onSuccess: () =>
+          toast({ title: date ? w.dateSet(portalWhen(i18n.language, date) ?? date) : w.dateCleared, icon: "check" }),
+        onError: failed,
+      },
+    );
+  };
+  return (card: PlanCard) => {
+    showActionSheet(w.cardActions(card.title), [
+      { label: w.openCard, onPress: () => openCard(card.client, card.id) },
+      { label: w.moveToList, onPress: () => void toList(card) },
+      ...(plan.labels.length > 0 ? [{ label: w.labels, onPress: () => void toLabel(card) }] : []),
+      ...(card.material ? [] : [{ label: w.postDate, onPress: () => void toDate(card) }]),
+      ...(card.material
+        ? []
+        : [
+            {
+              label: card.done ? w.reopen : w.markDone,
+              onPress: () =>
+                save.mutate(
+                  { cardId: card.id, done: !card.done },
+                  {
+                    onSuccess: () => toast({ title: card.done ? w.reopened : w.markedDone, icon: "check" }),
+                    onError: failed,
+                  },
+                ),
+            },
+          ]),
+    ]);
   };
 }
 
@@ -1159,33 +1324,31 @@ const styles = StyleSheet.create({
   cards: { paddingHorizontal: 8, paddingBottom: 4, gap: 8 },
   listFoot: { height: 8 },
   // Inside the list's 20, 8 in: 12 (rounded inside rounded).
-  card: { borderRadius: 12, borderWidth: StyleSheet.hairlineWidth, padding: 12, gap: 12 },
-  cardTop: { flexDirection: "row", alignItems: "center", flexWrap: "wrap", gap: 8, marginBottom: 8 },
-  // The stage as a pill of its own color, the card's first line: where the work is, at a glance.
-  stage: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-    height: 22,
-    paddingLeft: 8,
-    paddingRight: 10,
-    borderRadius: 11,
+  // Trello's density: 10 over and under, 12 at the sides.
+  card: {
+    borderRadius: 12,
+    borderWidth: StyleSheet.hairlineWidth,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    gap: 10,
   },
+  cardTop: { flexDirection: "row", alignItems: "center", flexWrap: "wrap", gap: 8, marginBottom: 6 },
+  // Labels as Trello's colored bars: the name inside in white, a bar alone when it has none.
+  labels: { flexDirection: "row", flexWrap: "wrap", gap: 4, marginBottom: 8 },
+  label: { minWidth: 40, minHeight: 8, borderRadius: 4, paddingHorizontal: 6, justifyContent: "center" },
+  labelWord: { color: "#FFFFFF", fontWeight: "700", lineHeight: 16 },
   stageWord: { fontWeight: "600" },
-  stageDot: { width: 7, height: 7, borderRadius: 3.5 },
   doneMark: { flexDirection: "row", alignItems: "center", gap: 4 },
   title: { fontWeight: "600" },
   task: { marginLeft: "auto" },
-  // What the card holds, apart from its title by a hairline.
+  // What the card holds, as Trello's badges: a quiet line under the title.
   facts: {
     flexDirection: "row",
     flexWrap: "wrap",
     alignItems: "center",
     columnGap: 12,
     rowGap: 4,
-    marginTop: 10,
-    paddingTop: 8,
-    borderTopWidth: StyleSheet.hairlineWidth,
+    marginTop: 8,
   },
   fact: { flexDirection: "row", alignItems: "center", gap: 4 },
   done: { opacity: 0.6 },
@@ -1193,6 +1356,7 @@ const styles = StyleSheet.create({
   // The plus lines up with the cards' words: the list's 8 to the card, the card's 12 to its words.
   addRow: { minHeight: 44, justifyContent: "center", paddingHorizontal: 20 },
   addLabel: { flexDirection: "row", alignItems: "center", gap: 8 },
+  swatch: { width: 28, height: 12, borderRadius: 4 },
   addList: { alignSelf: "flex-start" },
   form: { padding: 8, gap: 8 },
   field: { minHeight: 40, borderRadius: 8, borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: 12 },

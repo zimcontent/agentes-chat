@@ -50,6 +50,17 @@ export const panelSurface = (scheme: Scheme): Surface => (scheme === "dark" ? DA
 export const pillSurface = (scheme: Scheme): Surface => (scheme === "dark" ? DARK_PILL : LIGHT_PILL);
 export const chosenSurface = (scheme: Scheme): Surface => (scheme === "dark" ? DARK_CHOSEN : LIGHT_CHOSEN);
 
+/**
+ * The chosen card drawn with a border and no shadow (Doug pinned on Início): the same fill and the lime hairline as a
+ * 1 px border, so nothing outside the card is painted and nothing is composited per frame.
+ */
+export const chosenBorder = (scheme: Scheme, radius: number): ViewStyle => ({
+  backgroundColor: chosenSurface(scheme).backgroundColor,
+  borderWidth: 1,
+  borderColor: scheme === "dark" ? "rgba(156, 250, 5, 0.32)" : "rgba(62, 107, 0, 0.35)",
+  borderRadius: radius,
+});
+
 /** The lime's wash over a chosen card, from its top left corner (the site's radial light, as a gradient). */
 export const chosenWash = (scheme: Scheme): readonly [string, string] =>
   scheme === "dark"

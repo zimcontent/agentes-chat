@@ -4,6 +4,7 @@ import * as DocumentPicker from "expo-document-picker";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useToast } from "@/ui";
+import { filePart } from "../review/media";
 import { useOrgId } from "../shared/hooks";
 
 /** "Enviar arquivo" on the Drive: the system's file picker, then the file into the Drive, with no conversation. */
@@ -19,8 +20,8 @@ export function useDriveUpload(onSaved: () => unknown) {
     if (!a) return;
     setBusy(true);
     try {
-      // React Native's FormData sends `{ uri, name, type }` as a file part.
-      const file = { uri: a.uri, name: a.name, type: a.mimeType ?? "application/octet-stream" };
+      // Expo's fetch refuses React Native's `{ uri }` part: the part reads its bytes (`filePart`).
+      const file = filePart(a.uri, a.name, a.mimeType ?? "application/octet-stream");
       const saved = await api.artifacts.upload(orgId, file as unknown as Parameters<typeof api.artifacts.upload>[1]);
       toast({ title: t("files.uploaded", { name: saved.title }), icon: "check" });
       await onSaved();

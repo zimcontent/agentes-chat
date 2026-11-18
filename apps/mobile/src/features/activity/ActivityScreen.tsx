@@ -66,7 +66,7 @@ import { DeviceNoticeActions, DeviceNoticeCard } from "../devices/notices";
 import { notificationHref, notificationWebPath, routineHref } from "../links/logic";
 import { openWebPath } from "../links/open-web";
 import { useToSchedule } from "../portal/hooks";
-import { ScheduleSheet } from "../portal/ScheduleSheet";
+import { ScheduleOneSheet } from "../portal/ScheduleOneSheet";
 import { ChangeRequestCard } from "../right-hand/SettingsCard";
 import { AdminAskAdd } from "../shared/AdminAsk";
 import { AgentFace, Face } from "../shared/Face";
@@ -470,7 +470,7 @@ function useBadgeAgrees(orgId: string, waiting: number | null) {
 /**
  * "Pronto para agendar" (ADR 9001, addendum 2026-11-17): approved posts nobody scheduled yet, the longest waiting
  * first, for who may schedule them. A row says the post and "Publicação aprovada, toque para agendar"; a tap opens
- * the day and time (`ScheduleSheet`). Its count is the one the tab's badge adds.
+ * the day and time (`ScheduleOneSheet`). Its count is the one the tab's badge adds.
  */
 function ToSchedule({ items }: { items: PortalItem[] }) {
   const { t } = useTranslation();
@@ -491,7 +491,7 @@ function ToSchedule({ items }: { items: PortalItem[] }) {
               sub={`${portalClientName(item.client)} · ${t("mobile.toSchedule.row")}`}
               subLines={2}
               chevron
-              onPress={() => sheet.open(<ScheduleSheet item={item} />)}
+              onPress={() => sheet.open(<ScheduleOneSheet item={item} />)}
             />
           ))}
         </GroupedList>

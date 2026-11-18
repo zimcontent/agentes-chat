@@ -2,6 +2,7 @@ import { describe, expect, test } from "bun:test";
 import type { PlanCard, PortalBoard, PortalCard, PortalItem, PortalPlan } from "@agenteschat/client";
 import {
   BOARD,
+  boardCardOf,
   boardColumns,
   boardIndexAt,
   boardListWidth,
@@ -9,9 +10,12 @@ import {
   boardQuery,
   boardStep,
   cardBadges,
+  cardLabels,
   cardMatches,
   cardOfItem,
+  clientCounts,
   columnCount,
+  columnDrop,
   commentsNewestFirst,
   contrast,
   coverOf,
@@ -19,6 +23,8 @@ import {
   findItem,
   isClientSlug,
   isPortalId,
+  isTeamColumn,
+  LABEL_COLOR,
   listShift,
   listSlotAt,
   listsFor,
@@ -29,11 +35,18 @@ import {
   readyToSend,
   releaseDateOf,
   STAGE_COLOR,
+  scheduleDays,
+  scheduleStart,
   searchGroups,
   sendInputOf,
   sendProblemOf,
+  stageColumns,
   statusLine,
+  stepClock,
   summaryStatus,
+  toggledLabels,
+  toScheduleOf,
+  ymdOf,
 } from "../../src/features/portal/model";
 import { portalWords } from "../../src/features/portal/words";
 import { appColors } from "../../src/ui/palette";
@@ -459,5 +472,115 @@ describe("a card ready to go up from the board", () => {
     expect(readyToSend({ ...base, stage: "approval" })).toBe(false);
     expect(readyToSend({ ...base, files: [] })).toBe(false);
     expect(readyToSend({ ...base, material: true })).toBe(false);
+  });
+});
+
+describe("the Quadro as Trello's board on the phone", () => {
+  test("a column per stage that holds something; To do and In production always for who moves cards", () => {
+    const b = board({ adjusting: [item()] }, { todo: [], doing: [card({ state: "doing" })] });
+    expect(stageColumns(b, false).map((c) => c.column)).toEqual(["doing", "adjusting"]);
+    expect(stageColumns(b, true).map((c) => c.column)).toEqual(["todo", "doing", "adjusting"]);
+    expect(stageColumns(board(), false)).toEqual([]);
+    // Posted is its own tab, as on the web: never a column of the Quadro.
+    expect(stageColumns(board({ posted: [item()] }), true).map((c) => c.column)).toEqual(["todo", "doing"]);
+  });
+
+  test("only the other team column takes a held card; the portal's take none", () => {
+    expect(isTeamColumn("todo")).toBe(true);
+    expect(isTeamColumn("approval")).toBe(false);
+    expect(columnDrop("doing", "todo")).toBe("drop");
+    expect(columnDrop("todo", "todo")).toBe("home");
+    for (const col of ["approval", "adjusting", "approved", "scheduled"] as const) {
+      expect(columnDrop(col, "todo")).toBe("closed");
+      expect(columnDrop(col, "doing")).toBe("closed");
+    }
+  });
+
+  test("a team card takes its column as its stage, and the schedule's date and link when it has the card", () => {
+    const team = card({ id: "x", state: "doing", date: "2026-11-20T15:00:00Z" });
+    expect(boardCardOf(team, undefined)).toMatchObject({ stage: "doing", postOn: "2026-11-20T15:00:00Z", link: null });
+    const plan: PortalPlan = {
+      client: "acme-foods",
+      lists: [],
+      unlisted: [planCard({ id: "x", stage: "todo", postOn: "2026-11-22T15:00:00Z", link: "https://p/x" })],
+      loose: [],
+      labels: [],
+    };
+    // Moved on the board a moment ago: the column wins over the schedule's older stage.
+    expect(boardCardOf(team, plan)).toMatchObject({
+      stage: "doing",
+      postOn: "2026-11-22T15:00:00Z",
+      link: "https://p/x",
+    });
+  });
+
+  test("a client's counts on the Portal tab, only those above zero, in order", () => {
+    expect(clientCounts(undefined)).toEqual([]);
+    expect(clientCounts({ open: 9, counts: counts({ approval: 2, adjusting: 1 }) })).toEqual([
+      { key: "open", count: 9 },
+      { key: "approval", count: 2 },
+      { key: "adjusting", count: 1 },
+    ]);
+    expect(clientCounts({ open: 0, counts: counts({ approval: 3 }) })).toEqual([{ key: "approval", count: 3 }]);
+  });
+
+  test("the counts in words, in both languages", () => {
+    expect(portalWords("pt-BR").inApproval(2)).toBe("2 para aprovação");
+    expect(portalWords("pt-BR").inAdjust(1)).toBe("1 em ajuste");
+    expect(portalWords("en").inAdjust(3)).toBe("3 in adjustment");
+  });
+});
+
+describe("scheduling and the Cronograma's quick actions on the phone", () => {
+  test("only this client's approved posts nobody released yet are to schedule", () => {
+    const items = [
+      item({ id: "a", status: "approved" }),
+      item({ id: "b", status: "approved", released: true }),
+      item({ id: "c", status: "sent" }),
+      item({ id: "d", status: "approved", client: "other" }),
+    ];
+    expect(toScheduleOf(items, "acme-foods").map((i) => i.id)).toEqual(["a"]);
+    expect(toScheduleOf(undefined, "acme-foods")).toEqual([]);
+  });
+
+  test("the days offered start today, and keep a day already chosen further out", () => {
+    const now = new Date(2026, 10, 30, 12);
+    expect(scheduleDays(now, 3)).toEqual(["2026-11-30", "2026-12-01", "2026-12-02"]);
+    expect(scheduleDays(now, 2, "2027-01-15")).toEqual(["2026-11-30", "2026-12-01", "2027-01-15"]);
+    // A past day or junk is never offered.
+    expect(scheduleDays(now, 2, "2026-11-01")).toEqual(["2026-11-30", "2026-12-01"]);
+    expect(scheduleDays(now, 1, "soon")).toEqual(["2026-11-30"]);
+    expect(ymdOf(new Date(2026, 0, 5))).toBe("2026-01-05");
+  });
+
+  test("a time steps around the clock", () => {
+    expect(stepClock("10:00", 15)).toBe("10:15");
+    expect(stepClock("23:45", 15)).toBe("00:00");
+    expect(stepClock("00:00", -60)).toBe("23:00");
+    expect(stepClock("bad", 30)).toBe("00:30");
+  });
+
+  test("scheduling starts on the post's own date while it is ahead, else tomorrow at 10:00", () => {
+    const now = new Date(2026, 10, 17, 9);
+    expect(scheduleStart({ scheduledFor: "2026-11-20T14:30:00-03:00" }, now)).toEqual({
+      day: "2026-11-20",
+      time: "14:30",
+    });
+    expect(scheduleStart({ scheduledFor: "2026-11-01T14:30:00-03:00" }, now)).toEqual({
+      day: "2026-11-18",
+      time: "10:00",
+    });
+    expect(scheduleStart({ scheduledFor: null }, now)).toEqual({ day: "2026-11-18", time: "10:00" });
+  });
+
+  test("a card's labels in its order, a label put on and taken off", () => {
+    const labels = [
+      { id: "a", name: "Launch", color: "green" as const },
+      { id: "b", name: "Urgent", color: "red" as const },
+    ];
+    expect(cardLabels({ labels: ["b", "gone", "a"] }, labels).map((l) => l.id)).toEqual(["b", "a"]);
+    expect(toggledLabels(["a"], "b")).toEqual(["a", "b"]);
+    expect(toggledLabels(["a", "b"], "a")).toEqual(["b"]);
+    for (const color of Object.values(LABEL_COLOR)) expect(contrast(color, "#FFFFFF")).toBeGreaterThan(2);
   });
 });

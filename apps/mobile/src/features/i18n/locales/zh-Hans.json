@@ -345,6 +345,8 @@
     "closed": "已关闭",
     "options": "选项",
     "profile": "资料",
+    "call": "通话",
+    "toneGreen": "绿色",
     "here_other": "{{count}} 人在此",
     "headerAgent": "{{who}}。打开资料",
     "headerChannel": "{{who}}。选项",

@@ -7,7 +7,7 @@ import { StyleSheet, View } from "react-native";
 import { ActivityScreen } from "@/features/activity/ActivityScreen";
 import { AboutPage } from "@/features/me/AboutPage";
 import { MeScreen } from "@/features/me/MeScreen";
-import { ScheduleSheet } from "@/features/portal/ScheduleSheet";
+import { ScheduleOneSheet } from "@/features/portal/ScheduleOneSheet";
 import { SheetHostProvider } from "@/features/shared/SheetHost";
 import { FixedOrg } from "@/providers/org";
 import { ToastHost } from "@/ui";
@@ -339,7 +339,7 @@ export function PendentesAgendar() {
     <Server>
       <SheetHostProvider>
         <View style={styles.sheet}>
-          <ScheduleSheet item={TO_SCHEDULE[0] as unknown as PortalItem} />
+          <ScheduleOneSheet item={TO_SCHEDULE[0] as unknown as PortalItem} />
         </View>
       </SheetHostProvider>
     </Server>

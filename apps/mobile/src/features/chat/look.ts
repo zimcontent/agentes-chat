@@ -7,20 +7,23 @@ import {
   textSizeOf,
 } from "@agenteschat/client/lib/chat-look";
 import { isPersonal } from "@agenteschat/client/lib/workspace-mode";
-import type { AgentColorName } from "@agenteschat/ui/agent/engine";
 import { createContext, useCallback, useContext, useMemo, useState } from "react";
 import { type LayoutChangeEvent, StyleSheet, useWindowDimensions } from "react-native";
 import { useOrg } from "@/providers/org";
 import { useTheme } from "@/ui";
 import { keepSize, keptSize } from "./kept-sizes";
-import { BUBBLES_INSET, bubbleFill, CHAT_TEXT, quietInset } from "./logic";
+import { BUBBLES_INSET, CHAT_TEXT, ownBubble, quietInset } from "./logic";
 
 /** How this conversation's rows are drawn (`chatLookOf`, as on the web's `MessageLook`). */
 export interface RowLook {
   style: ChatStyle;
   tone: ChatTone;
-  /** My bubble in `bubbles`; null: the app's gray. */
+  /** My bubble (`ownBubble`): the lime's wash and its rim, or the green with its own ink (`strong`). Null outside a
+   * conversation: the theme's own bubble (`colors.bubble`). */
   fill: string | null;
+  edge: string | null;
+  /** The words on my bubble; null: the theme's. */
+  ink: string | null;
   /** False where the name says nothing (a DM's two speakers). */
   names: boolean;
   /** False where the sides say who spoke (`facesShown`, a DM with mine on the right): no face on the other side's rows. */
@@ -33,6 +36,8 @@ export const ROW_LOOK_DEFAULT: RowLook = {
   style: "comfortable",
   tone: "light",
   fill: null,
+  edge: null,
+  ink: null,
   names: true,
   faces: true,
   text: null,
@@ -41,18 +46,19 @@ export const RowLookContext = createContext<RowLook>(ROW_LOOK_DEFAULT);
 export const useRowLook = () => useContext(RowLookContext);
 
 /**
- * The conversation's look. My bubbles take the color of the agent I talk to, and the workspace's sky elsewhere. In a
- * personal workspace every conversation opens in bubbles, as a DM does (ADR 0159); the person's own choice wins.
+ * The conversation's look. My bubbles are the brand's lime everywhere (`ownBubble`: the wash, or the green itself
+ * with Tom forte). In a personal workspace every conversation opens in bubbles, as a DM does (ADR 0159); the
+ * person's own choice wins.
  */
-export function useConversationLook(dm: boolean, agentColor?: AgentColorName): RowLook {
+export function useConversationLook(dm: boolean): RowLook {
   const { org } = useOrg();
-  const { colors, scheme } = useTheme();
+  const { colors } = useTheme();
   const { style, tone } = chatLookOf(org?.chatPrefs, dm, isPersonal(org));
   const text = CHAT_TEXT[textSizeOf(org?.chatPrefs)];
-  const fill = bubbleFill(agentColor ?? "sky", tone, colors.bg, scheme === "dark");
+  const { fill, edge, ink } = ownBubble(tone, colors);
   return useMemo(
-    () => ({ style, tone, fill, names: !dm, faces: facesShown(style, dm), text }),
-    [style, tone, fill, dm, text],
+    () => ({ style, tone, fill, edge, ink, names: !dm, faces: facesShown(style, dm), text }),
+    [style, tone, fill, edge, ink, dm, text],
   );
 }
 
@@ -110,8 +116,17 @@ export const lookRows = StyleSheet.create({
   compactRow: { paddingLeft: 10, paddingRight: 12, gap: 6 },
   compactSlot: { width: 18, paddingTop: 1 },
   compactClock: { width: 34, textAlign: "right", lineHeight: 20, fontVariant: ["tabular-nums"] },
-  // As the phone's board draws them: 22 round, 10 and 15 inside (the turn's last corner cut to 8, `BUBBLE_RUN`).
-  bubble: { alignSelf: "flex-start", maxWidth: "100%", paddingVertical: 10, paddingHorizontal: 15, borderRadius: 22 },
+  // As the phone's board draws them: 22 round, 10 and 15 inside its 1 px rim (the turn's last corner cut to 8,
+  // `BUBBLE_RUN`). The rim is a border, never a box shadow: one on every row is an offscreen layer per frame on iOS.
+  bubble: {
+    alignSelf: "flex-start",
+    maxWidth: "100%",
+    paddingVertical: 9,
+    paddingHorizontal: 14,
+    borderRadius: 22,
+    borderWidth: 1,
+    borderCurve: "continuous",
+  },
   // An agent's words in its DM, with no bubble: the column's whole width, a little in from the screen's edge.
   bareRow: { paddingLeft: 16, paddingRight: 16 },
   bare: { alignSelf: "stretch", paddingHorizontal: 2, paddingTop: 2 },

@@ -345,6 +345,8 @@
     "closed": "닫힘",
     "options": "옵션",
     "profile": "프로필",
+    "call": "통화",
+    "toneGreen": "초록색",
     "here_other": "{{count}}명 참여 중",
     "headerAgent": "{{who}}. 프로필 열기",
     "headerChannel": "{{who}}. 옵션",

@@ -358,6 +358,8 @@
     "closed": "geschlossen",
     "options": "Optionen",
     "profile": "Profil",
+    "call": "Anrufen",
+    "toneGreen": "In Grün",
     "here_one": "{{count}} hier",
     "here_other": "{{count}} hier",
     "headerAgent": "{{who}}. Profil öffnen",

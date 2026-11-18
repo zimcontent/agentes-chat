@@ -1,3 +1,4 @@
+import type { HexColor } from "@agenteschat/ui/agent/engine";
 import type { ReactNode } from "react";
 import { useEffect, useRef, useState } from "react";
 import {
@@ -14,9 +15,12 @@ import { SvgXml } from "react-native-svg";
 import type { AgentLookInput } from "@/agent/looks";
 import { botDoAgente, corDoBot } from "@/brand/bots";
 import { DB_FONTES } from "@/brand/tokens";
+import { botColor } from "@/features/agents/ProfileView";
 import { AgentCallView } from "@/features/call/AgentCallView";
+import { ChatBackdrop } from "@/features/chat/ChatBackdrop";
 import { HeaderPill } from "@/features/chat/HeaderPill";
-import { DougPinnedCard, useDougWords } from "@/features/chats/DougPinnedCard";
+import { ownBubble } from "@/features/chat/logic";
+import { CREW_FACE, DOUG_FACE, DougPinnedCard, useDougWords } from "@/features/chats/DougPinnedCard";
 import { GlanceCard } from "@/features/chats/HomeGlance";
 import { CollapsibleSection } from "@/features/chats/HomeSection";
 import { ToolTile, WhatsAppMark } from "@/features/chats/HomeTools";
@@ -34,6 +38,8 @@ import {
   GroupedHeader,
   GroupedList,
   GroupedRow,
+  Icon,
+  IconButton,
   InkOrbit,
   ListRow,
   PersonAvatar,
@@ -51,7 +57,18 @@ import { IlhaCena } from "./ilha";
 import { Paineis, Paineis320, PaineisFormas } from "./paineis";
 import { PainelIa, PainelIa320, PainelIaFolha, PainelIaFolha320 } from "./painel-ia";
 import { Ajustes, AjustesSobre, Pendentes, PendentesAgendar, PendentesVazio } from "./pendentes-ajustes";
-import { PortalCartao, PortalCronograma, PortalCronograma320 } from "./portal";
+import {
+  PortalAgendar,
+  PortalAgendarPost,
+  PortalCartao,
+  PortalClientes,
+  PortalCronograma,
+  PortalCronograma320,
+  PortalCronogramaPostados320,
+  PortalPostados,
+  PortalQuadro,
+  PortalQuadro320,
+} from "./portal";
 import {
   RevisaoConversa,
   RevisaoDesign,
@@ -60,7 +77,7 @@ import {
   RevisaoLista,
   RevisaoVideo,
 } from "./revisao";
-import { Tudo } from "./tudo";
+import { ConversaOpcoes, Tudo } from "./tudo";
 import { WhatsAppConversa, WhatsAppLista } from "./whatsapp";
 
 /** Sample photos served beside the board (`doug-mobile/fotos`): a person's and the groups' (JPG, as people send). */
@@ -113,6 +130,7 @@ function Frame({
   scrolledBy,
   topInset,
   over,
+  behind,
 }: {
   title?: string;
   children?: ReactNode;
@@ -126,6 +144,8 @@ function Frame({
   topInset?: number;
   /** Drawn over everything (the island, the status bar, the camera). */
   over?: ReactNode;
+  /** Drawn under everything but the screen's color (a conversation's texture). */
+  behind?: ReactNode;
 }) {
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
@@ -165,6 +185,7 @@ function Frame({
   );
   return (
     <View style={[styles.fill, { backgroundColor: colors.bg }]}>
+      {behind}
       <View style={{ height: top }} />
       {header}
       {scroll ? (
@@ -176,6 +197,7 @@ function Frame({
       )}
       {bottom}
       {tabs ? <TabBar on={tabs} /> : null}
+      {over}
     </View>
   );
 }
@@ -358,15 +380,25 @@ export function Inicio({
     <Frame tabs="home" header={<TabHeader />} scrolledBy={scrolledBy} topInset={topInset} over={over}>
       {/* Doug pinned on top (docs/adr/doug-0016-doug-pinned.md), the same card the app draws. */}
       <DougPinnedCard
-        face={<AgentAvatar agent={DOUG} size={50} mode="run" name="Doug" />}
+        face={<AgentAvatar agent={DOUG} size={DOUG_FACE} mode="run" name="Doug" />}
+        left={[ROSA, MARK].map((a) => ({
+          id: a.name ?? "",
+          face: <AgentAvatar agent={a} size={CREW_FACE} mode="run" name={a.name} />,
+        }))}
+        right={[SONY, JUNIN].map((a) => ({
+          id: a.name ?? "",
+          face: <AgentAvatar agent={a} size={CREW_FACE} mode="run" name={a.name} />,
+        }))}
+        more={1}
         name="Doug"
-        status={w.coordinating(5)}
-        message={`Boa noite, Gabriel. ${w.decisions(2)}`}
-        primary={w.seeDecisions}
+        status={w.waiting(2)}
+        greeting=""
+        working={5}
         words={w}
-        live
-        onOpen={noop}
+        onTalk={noop}
         onCall={noop}
+        onDecisions={noop}
+        onStatus={noop}
       />
       <View style={styles.tools9}>
         {[
@@ -477,6 +509,42 @@ const TEAM: { a: AgentLookInput; mode: "idle" | "run" | "think" | "sleep"; state
   { a: JUNIN, mode: "run", state: "Trabalhando" },
   { a: NOVO, mode: "idle", state: "Disponível" },
 ];
+
+/** Doug pinned in its states: nothing waiting with the greeting and nobody working, one agent, many and a long count. */
+function DougFixado() {
+  const w = useDougWords();
+  const noop = () => {};
+  const crew = (list: AgentLookInput[]) =>
+    list.map((a) => ({ id: a.name ?? "", face: <AgentAvatar agent={a} size={CREW_FACE} mode="run" name={a.name} /> }));
+  const card = (
+    key: string,
+    o: { left: AgentLookInput[]; right: AgentLookInput[]; more: number; waiting: number; greeting: string },
+  ) => (
+    <DougPinnedCard
+      key={key}
+      face={<AgentAvatar agent={DOUG} size={DOUG_FACE} mode={o.right.length ? "run" : "idle"} name="Doug" />}
+      left={crew(o.left)}
+      right={crew(o.right)}
+      more={o.more}
+      name="Doug"
+      status={o.waiting > 0 ? w.waiting(o.waiting) : w.nothingWaiting}
+      greeting={o.greeting}
+      working={o.left.length + o.right.length + o.more}
+      words={w}
+      onTalk={noop}
+      onCall={noop}
+      onDecisions={noop}
+      {...(o.waiting > 0 ? { onStatus: noop } : {})}
+    />
+  );
+  return (
+    <Frame title="Doug fixado">
+      {card("calmo", { left: [], right: [], more: 0, waiting: 0, greeting: "Boa noite, Gabriel." })}
+      {card("um", { left: [], right: [SONY], more: 0, waiting: 1, greeting: "" })}
+      {card("muitos", { left: [ROSA, MARK], right: [SONY, JUNIN], more: 7, waiting: 12, greeting: "" })}
+    </Frame>
+  );
+}
 
 function Agentes() {
   return (
@@ -662,33 +730,65 @@ function Servidor() {
   );
 }
 
-type Msg = { who: AgentLookInput | "eu"; text: string; mode?: "run" | "think" };
+type Msg = { who: AgentLookInput | "eu"; text: string; mode?: "run" | "think"; time?: string };
 
-function Bubble({ m, dm = false }: { m: Msg; dm?: boolean }) {
+/** A bubble's time, at the end of its last line (the app's `stamp`). */
+function Stamp({ time, ink }: { time: string; ink?: string | null }) {
+  return (
+    <Text variant="caption" tone="muted" style={[styles.stamp, ink ? { color: ink } : null]}>
+      {time}
+    </Text>
+  );
+}
+
+function Bubble({ m, dm = false, tone = "light" }: { m: Msg; dm?: boolean; tone?: "light" | "strong" }) {
   const { colors } = useTheme();
-  if (m.who === "eu")
+  const time = m.time ?? "14:30";
+  if (m.who === "eu") {
+    // As the app's own: the brand's lime (`ownBubble`), its rim a border.
+    const own = ownBubble(tone, colors);
     return (
-      <View style={[styles.bubble, styles.mine, { backgroundColor: colors.bubble, boxShadow: colors.bubbleRim }]}>
-        <Text variant="body" style={styles.chatText}>
-          {m.text}
-        </Text>
+      <View style={[styles.bubble, styles.mine, { backgroundColor: own.fill, borderColor: own.edge }]}>
+        <View style={styles.bubbleLine}>
+          <Text variant="body" style={[styles.chatText, own.ink ? { color: own.ink } : null]}>
+            {m.text}
+          </Text>
+          <Stamp time={time} ink={own.ink} />
+        </View>
       </View>
     );
+  }
   return (
     <View style={styles.theirs}>
-      <AgentAvatar agent={m.who} size={32} mode={m.mode ?? "idle"} />
+      <AgentAvatar agent={m.who} size={30} mode={m.mode ?? "idle"} />
       <View
         style={[
           styles.bubble,
           styles.theirBubble,
-          { backgroundColor: colors.bubbleTheirs, boxShadow: colors.bubbleTheirsRim },
+          { backgroundColor: colors.bubbleTheirs, borderColor: colors.bubbleTheirsEdge },
         ]}
       >
         {/* A DM's bubble has no name: the header already says who it is (as the app's \`MessageRow\`). */}
         {dm ? null : <BotName a={m.who} />}
-        <Text variant="body" style={[styles.chatText, dm ? null : { marginTop: 4 }]}>
-          {m.text}
-        </Text>
+        <View style={[styles.bubbleLine, dm ? null : { marginTop: 2 }]}>
+          <Text variant="body" style={styles.chatText}>
+            {m.text}
+          </Text>
+          <Stamp time={time} />
+        </View>
+      </View>
+    </View>
+  );
+}
+
+/** The bar's buttons beside the pill, as the conversation's own (`barButtons`): the call, then "…". */
+function BarButtons() {
+  const { colors } = useTheme();
+  return (
+    <View style={styles.barSideRight}>
+      <View style={[styles.barCapsule, { backgroundColor: colors.glassSolid, borderColor: colors.line2 }]}>
+        <IconButton icon="handset" label="Ligar" onPress={() => {}} />
+        <IconButton icon="more" label="Opções" onPress={() => {}} />
       </View>
     </View>
   );
@@ -699,19 +799,41 @@ function Chat({
   msgs,
   extra,
   dm = false,
+  accent,
+  tone,
+  over,
 }: {
   header: ReactNode;
   msgs: Msg[];
   extra?: ReactNode;
   dm?: boolean;
+  /** The conversation's bot color (the texture's glow). */
+  accent?: string;
+  tone?: "light" | "strong";
+  over?: ReactNode;
 }) {
   const insets = useSafeAreaInsets();
+  const { colors } = useTheme();
   return (
     <Frame
       scroll
+      behind={<ChatBackdrop accent={accent ?? null} />}
+      over={over}
       header={
-        // The bar's back and actions are the system's (iOS 26 glass): the board draws the pill alone.
-        <View style={styles.chatHeader}>{header}</View>
+        // The bar's back and actions are the system's (iOS 26 glass): the board draws them beside the pill.
+        <View style={styles.chatHeader}>
+          <View
+            style={[
+              styles.barSideLeft,
+              styles.barBack,
+              { backgroundColor: colors.glassSolid, borderColor: colors.line2 },
+            ]}
+          >
+            <Icon name="back" size={20} color={colors.ink} />
+          </View>
+          {header}
+          <BarButtons />
+        </View>
       }
       bottom={
         <View style={{ paddingHorizontal: 16, paddingTop: 8, paddingBottom: Math.max(insets.bottom, 34) }}>
@@ -719,13 +841,13 @@ function Chat({
         </View>
       }
     >
-      <View style={{ paddingHorizontal: 16, paddingTop: 12, gap: 12 }}>
+      <View style={{ paddingHorizontal: 16, paddingTop: 12, gap: 8 }}>
         <View style={styles.dateWrap}>
           <Chip label="Hoje" />
         </View>
         {msgs.map((m, i) => (
           // biome-ignore lint/suspicious/noArrayIndexKey: a fixed sample
-          <Bubble key={i} m={m} dm={dm} />
+          <Bubble key={i} m={m} dm={dm} {...(tone ? { tone } : {})} />
         ))}
         {extra}
       </View>
@@ -733,12 +855,19 @@ function Chat({
   );
 }
 
-function Dm() {
+function Dm({ tone, over }: { tone?: "light" | "strong"; over?: ReactNode } = {}) {
+  const accent = botColor(DOUG);
   return (
     <Chat
       dm
+      accent={accent}
+      over={over}
+      {...(tone ? { tone } : {})}
       header={
         <HeaderPill
+          // The board's capsule is a little wider than the system's: the pill keeps clear of it.
+          extraActions={2}
+          color={accent as HexColor}
           lead={<AgentAvatar agent={DOUG} size={32} />}
           title="Doug BOSS"
           subtitle="Chefe do time · disponível"
@@ -746,10 +875,18 @@ function Dm() {
         />
       }
       msgs={[
-        { who: "eu", text: "Doug, como estão os grupos hoje?" },
-        { who: DOUG, text: "Tudo andando. A LEXEER aprovou o corte e a SONY já está exportando o 1080p." },
-        { who: DOUG, text: "A ROSA tem uma dúvida sobre a capa da ELMX: te mando as duas opções aqui." },
-        { who: "eu", text: "Manda!" },
+        { who: "eu", text: "Doug, como estão os grupos hoje?", time: "14:30" },
+        {
+          who: DOUG,
+          text: "Tudo andando. A LEXEER aprovou o corte e a SONY já está exportando o 1080p.",
+          time: "14:31",
+        },
+        {
+          who: DOUG,
+          text: "A ROSA tem uma dúvida sobre a capa da ELMX: te mando as duas opções aqui.",
+          time: "14:31",
+        },
+        { who: "eu", text: "Manda!", time: "14:32" },
       ]}
     />
   );
@@ -760,6 +897,8 @@ function Grupo() {
     <Chat
       header={
         <HeaderPill
+          extraActions={2}
+          color={botColor(SONY) as HexColor}
           lead={<GroupPhoto icon={foto("lexeer")} size={32} />}
           title="LEXEER"
           subtitle="6 aqui"
@@ -1063,6 +1202,8 @@ export const TELAS: Record<string, () => ReactNode> = {
   login: Login,
   servidor: Servidor,
   inicio: () => <Inicio />,
+  /** Doug pinned on Início in its states (docs/adr/doug-0016-doug-pinned.md). */
+  doug: DougFixado,
   /** "Tudo": from Início's "Mais", from a conversation's "+", and choosing the pins. */
   tudo: () => <Tudo from="home" />,
   "tudo-conversa": () => <Tudo from="conversation" />,
@@ -1075,7 +1216,11 @@ export const TELAS: Record<string, () => ReactNode> = {
   ligacao: () => <Ligacao />,
   chamando: () => <Ligacao ringing />,
   abas: Agentes,
-  dm: Dm,
+  dm: () => <Dm />,
+  /** My bubbles with Tom forte: the green itself, its own ink. */
+  "dm-forte": () => <Dm tone="strong" />,
+  /** The conversation's "…": the quick tiles (Ligar first) and the rest as a list. */
+  "conversa-opcoes": () => <Dm over={<ConversaOpcoes />} />,
   grupo: Grupo,
   composer: ComposerTela,
   execucao: Execucao,
@@ -1100,6 +1245,13 @@ export const TELAS: Record<string, () => ReactNode> = {
   "portal-cronograma": PortalCronograma,
   "portal-cronograma-320": PortalCronograma320,
   "portal-cartao": PortalCartao,
+  "portal-quadro": PortalQuadro,
+  "portal-quadro-320": PortalQuadro320,
+  "portal-postados": PortalPostados,
+  "portal-clientes": PortalClientes,
+  "portal-agendar": PortalAgendar,
+  "portal-agendar-post": PortalAgendarPost,
+  "portal-postados-320": PortalCronogramaPostados320,
   whatsapp: WhatsAppLista,
   "whatsapp-conversa": WhatsAppConversa,
   arquivos: Arquivos,
@@ -1169,12 +1321,33 @@ const styles = StyleSheet.create({
   cell: { width: "33.33%", alignItems: "center", gap: 6, paddingVertical: 10 },
   cellSmall: { width: "20%", alignItems: "center", gap: 6, paddingVertical: 6 },
   authHero: { alignItems: "center", paddingTop: 40, paddingBottom: 16 },
-  chatHeader: { alignItems: "center", paddingHorizontal: 16, paddingBottom: 8 },
+  // The pill centered on the screen's axis (as iOS centers a bar's title), the back and the buttons at the ends.
+  chatHeader: { alignItems: "center", justifyContent: "center", height: 52, paddingBottom: 8 },
+  barSideLeft: { position: "absolute", left: 12, top: 0 },
+  barSideRight: { position: "absolute", right: 12, top: 0 },
+  barBack: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    borderWidth: StyleSheet.hairlineWidth,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  barCapsule: { flexDirection: "row", borderRadius: 22, borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: 2 },
+  bubbleLine: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "flex-end",
+    alignItems: "flex-end",
+    columnGap: 8,
+  },
+  stamp: { marginLeft: "auto", lineHeight: 16 },
   dateWrap: { alignItems: "center" },
-  bubble: { paddingHorizontal: 16, paddingVertical: 12, borderRadius: 16, maxWidth: "82%" },
-  mine: { alignSelf: "flex-end", borderBottomRightRadius: 6 },
+  // The app's `lookRows.bubble`: 22 round, 9 and 14 inside a 1 px rim, the turn's last corner cut to 8.
+  bubble: { paddingHorizontal: 14, paddingVertical: 9, borderRadius: 22, borderWidth: 1, maxWidth: "82%" },
+  mine: { alignSelf: "flex-end", borderBottomRightRadius: 8 },
   theirs: { flexDirection: "row", alignItems: "flex-end", gap: 8 },
-  theirBubble: { borderBottomLeftRadius: 6, flexShrink: 1 },
+  theirBubble: { borderBottomLeftRadius: 8, flexShrink: 1 },
   chatText: { fontSize: 16, lineHeight: 24 },
   cardPad: { padding: 16 },
   stepMark: { width: 16, height: 16, alignItems: "center", justifyContent: "center" },

@@ -375,6 +375,10 @@ export const featureKeysPtBR = {
     closed: "fechada",
     options: "Opções",
     profile: "Perfil",
+    /** The "…" sheet's call tile. */
+    call: "Ligar",
+    /** Chat look: my bubble's color, the brand's green. */
+    toneGreen: "Em verde",
     here_one: "{{count}} aqui",
     here_other: "{{count}} aqui",
     headerAgent: "{{who}}. Abrir o perfil",

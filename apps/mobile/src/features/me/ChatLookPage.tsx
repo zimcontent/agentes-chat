@@ -26,7 +26,6 @@ import { AgentAvatar } from "@/agent/AgentAvatar";
 import { useOrg } from "@/providers/org";
 import { GroupedHeader, GroupedList, GroupedRow, haptics, Icon, Segmented, Text, useTheme, useToast } from "@/ui";
 import {
-  bubbleFill,
   CHAT_TEXT,
   CHAT_TEXT_MAX_SCALE,
   chatNameOf,
@@ -35,6 +34,7 @@ import {
   MSG_GAP,
   MSG_INSET,
   nameInk,
+  ownBubble,
 } from "../chat/logic";
 import { lookRows, RowLookContext, useRowLook } from "../chat/look";
 import { MessageText } from "../chat/MessageText";
@@ -48,9 +48,6 @@ const SAMPLE_AGENT = { color: SAMPLE_COLOR, eyes: "round", accessory: "none" } a
 const SAMPLE_NAME = "Ada";
 
 const EASE_OUT = Easing.bezier(0.23, 1, 0.32, 1);
-/** My words on a strong bubble. */
-const ON_SOLID = "#ffffff";
-
 interface Line {
   mine: boolean;
   text: string;
@@ -68,7 +65,7 @@ function PreviewRow({ line, first, dm }: { line: Line; first: boolean; dm: boole
   const dir = useDirectory();
   const meId = useMeId();
   const look = useRowLook();
-  const { style, tone } = look;
+  const { style } = look;
   const text = look.text ?? CHAT_TEXT[DEFAULT_TEXT_SIZE];
   const rhythm = CHAT_RHYTHM[style];
   const name = line.mine ? dir.nameOf({ type: "person", id: meId }) : SAMPLE_NAME;
@@ -78,7 +75,7 @@ function PreviewRow({ line, first, dm }: { line: Line; first: boolean; dm: boole
   // As the conversation draws it: a DM whose sides say who spoke has no face.
   const faced = !right && facesShown(style, dm);
   const top = first ? 0 : rhythm.turn;
-  const solid = bubbled && tone === "strong" && line.mine ? ON_SOLID : undefined;
+  const solid = line.mine ? (look.ink ?? undefined) : undefined;
   const words = <MessageText body={line.text} selectable={false} {...(solid ? { ink: solid } : {})} />;
   const nameSize = chatNameOf(text);
   const timeSize = chatTimeOf(text);
@@ -91,7 +88,10 @@ function PreviewRow({ line, first, dm }: { line: Line; first: boolean; dm: boole
     return (
       <View style={[styles.me, { marginTop: top }]}>
         <View
-          style={[bubbled ? lookRows.bubble : styles.bubble, { backgroundColor: (bubbled && look.fill) || c.bubble }]}
+          style={[
+            bubbled ? lookRows.bubble : styles.bubble,
+            { backgroundColor: look.fill ?? c.bubble, borderColor: look.edge ?? c.bubbleEdge },
+          ]}
         >
           <View style={bubbled ? styles.bubbleLine : undefined}>
             {words}
@@ -140,7 +140,7 @@ function PreviewRow({ line, first, dm }: { line: Line; first: boolean; dm: boole
       ) : null}
       <View style={styles.body}>
         {bubbled ? (
-          <View style={[lookRows.bubble, { backgroundColor: c.bubbleTheirs, boxShadow: c.bubbleTheirsRim }]}>
+          <View style={[lookRows.bubble, { backgroundColor: c.bubbleTheirs, borderColor: c.bubbleTheirsEdge }]}>
             {dm ? null : nameText}
             <View style={styles.bubbleLine}>
               {words}
@@ -176,9 +176,10 @@ function PreviewRow({ line, first, dm }: { line: Line; first: boolean; dm: boole
 function ChatPreview({ style, tone, size, dm }: { style: ChatStyle; tone: ChatTone; size: ChatTextSize; dm: boolean }) {
   const { t } = useTranslation();
   const c = useColors();
-  const { colors, scheme, reducedMotion } = useTheme();
-  const fill = bubbleFill(dm ? SAMPLE_COLOR : "sky", tone, colors.bg, scheme === "dark");
-  const look = { style, tone, fill, names: !dm, faces: facesShown(style, dm), text: CHAT_TEXT[size] };
+  const { colors, reducedMotion } = useTheme();
+  // As the conversation: my bubble in the brand's lime (`ownBubble`).
+  const own = ownBubble(tone, colors);
+  const look = { style, tone, ...own, names: !dm, faces: facesShown(style, dm), text: CHAT_TEXT[size] };
   const lines: Line[] = [
     { mine: true, text: t("settings.account.chat.sample.ask"), time: "14:30" },
     { mine: false, text: t("settings.account.chat.sample.answer"), time: "14:31" },
@@ -548,7 +549,8 @@ export function ChatLookPage() {
           <GroupedHeader
             hint={{
               name: t("common.about", { label: toneLabel }),
-              text: t(dm ? "settings.account.chat.toneDmsHelp" : "settings.account.chat.toneChannelsHelp"),
+              // Mine is the brand's green everywhere on the phone (`ownBubble`), not the web's agent color or blue.
+              text: t("mobile.chat.toneGreen"),
             }}
           >
             {toneLabel}
@@ -624,7 +626,7 @@ const styles = StyleSheet.create({
   name: { fontWeight: "600", flexShrink: 1 },
   compactLine: { flexDirection: "row", flexWrap: "wrap", alignItems: "baseline", columnGap: 6 },
   me: { paddingLeft: 64, paddingRight: 16, alignItems: "flex-end" },
-  bubble: { maxWidth: "100%", paddingVertical: 10, paddingHorizontal: 14, borderRadius: 20 },
+  bubble: { maxWidth: "100%", paddingVertical: 9, paddingHorizontal: 13, borderRadius: 20, borderWidth: 1 },
   bubbleLine: {
     flexDirection: "row",
     flexWrap: "wrap",

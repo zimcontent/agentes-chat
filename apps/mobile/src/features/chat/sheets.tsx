@@ -35,8 +35,9 @@ import { type ReactNode, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ActivityIndicator, Pressable, StyleSheet, View } from "react-native";
 import { serverUrl } from "@/lib/server";
-import { Button, CHROME_MAX_SCALE, Count, Icon, Locked, OPTION_ROW, Text, useToast } from "@/ui";
+import { Button, CHROME_MAX_SCALE, Icon, Locked, OPTION_ROW, Text, useToast } from "@/ui";
 import { router } from "@/ui/navigation";
+import { useCallAction } from "../call/CallButton";
 import { useMovesChannel } from "../categories/CategoryScreens";
 import { categoryHrefs } from "../categories/logic";
 import { setPinDraft } from "../dashboards/logic";
@@ -47,6 +48,7 @@ import { useColors, useDirectory, useEdition, useMeId, useNamesComputers, useOrg
 import { genderOf, previewOf } from "../shared/logic";
 import { SheetTitle } from "../shared/PromptForm";
 import { type ActionItem, ActionList, copyText, successHaptic, Tile, tapHaptic, useSurface } from "../shared/parts";
+import { type QuickTile, QuickTiles } from "../shared/QuickTiles";
 import { useSheet } from "../shared/SheetHost";
 import { TextArea } from "../shared/TextArea";
 
@@ -579,6 +581,7 @@ export function ChannelOptions({
   onPins,
   onMembers,
   onSearch,
+  callable = false,
 }: {
   channelId: string;
   title: string;
@@ -593,12 +596,15 @@ export function ChannelOptions({
   onMembers?: (() => void) | undefined;
   /** A DM: searching it (its header keeps the room for the name and the agent's own buttons). */
   onSearch?: (() => void) | undefined;
+  /** Calls are offered here (the header's call button): "Ligar" leads the tiles. */
+  callable?: boolean;
 }) {
   const { t } = useTranslation();
   const orgId = useOrgId();
   const sheet = useSheet();
   const pins = usePins(orgId, channelId);
   const count = pins.data?.length ?? 0;
+  const call = useCallAction(channelId, title, agentId);
   // A channel's sidebar category (ADR 0080), for whoever may move it.
   const moves = useMovesChannel(channelId);
   const channel = useChannels(orgId).data?.find((c) => c.id === channelId);
@@ -606,55 +612,59 @@ export function ChannelOptions({
   const categoryName = channel?.categoryId
     ? categories.data?.find((c) => c.id === channel.categoryId)?.name
     : undefined;
+  // What a conversation does most, as "Tudo"'s tiles: calling, finding, who is in, what is pinned, who it is.
+  const tiles: QuickTile[] = [
+    ...(callable
+      ? [
+          {
+            key: "call",
+            icon: "handset" as const,
+            label: t("mobile.chat.call"),
+            accent: true,
+            onPress: () => sheet.close(call.run),
+          },
+        ]
+      : []),
+    ...(onSearch
+      ? [{ key: "search", icon: "search" as const, label: t("mobile.homeTools.searchTile"), onPress: onSearch }]
+      : []),
+    ...(onMembers ? [{ key: "members", icon: "members" as const, label: t("shell.members"), onPress: onMembers }] : []),
+    { key: "pins", icon: "pin" as const, label: t("mobile.pins.title"), count, onPress: onPins },
+    ...(agentId
+      ? [
+          {
+            key: "profile",
+            leading: <AgentFace agentId={agentId} size={26} live={false} />,
+            label: t("mobile.chat.profile"),
+            onPress: () => {
+              sheet.close();
+              router.push(`/agent/${agentId}`);
+            },
+          },
+        ]
+      : []),
+  ];
+  const rest: ActionItem[] =
+    onMembers && moves
+      ? [
+          {
+            key: "category",
+            icon: "list" as const,
+            label: t("channelCategories.category"),
+            hint: categoryName ?? t("channelCategories.noCategory"),
+            onPress: () => {
+              sheet.close();
+              router.push(categoryHrefs.pick(channelId));
+            },
+          },
+        ]
+      : [];
   return (
     <>
       <SheetTitle leading={leading} title={title} {...(subtitle ? { subtitle } : {})} />
       {about}
-      <ActionList
-        items={[
-          ...(onSearch
-            ? [{ key: "search", icon: "search" as const, label: t("searchPage.searchHere"), onPress: onSearch }]
-            : []),
-          ...(onMembers
-            ? [{ key: "members", icon: "members" as const, label: t("shell.members"), onPress: onMembers }]
-            : []),
-          {
-            key: "pins",
-            icon: "pin",
-            label: t("mobile.pins.title"),
-            ...(pins.isSuccess && count === 0 ? { hint: t("mobile.pins.none") } : {}),
-            ...(count > 0 ? { trailing: <Count value={count} max={99} /> } : {}),
-            onPress: onPins,
-          },
-          ...(onMembers && moves
-            ? [
-                {
-                  key: "category",
-                  icon: "list" as const,
-                  label: t("channelCategories.category"),
-                  hint: categoryName ?? t("channelCategories.noCategory"),
-                  onPress: () => {
-                    sheet.close();
-                    router.push(categoryHrefs.pick(channelId));
-                  },
-                },
-              ]
-            : []),
-          ...(agentId
-            ? [
-                {
-                  key: "profile",
-                  leading: <AgentFace agentId={agentId} size={20} live={false} />,
-                  label: t("mobile.chat.profile"),
-                  onPress: () => {
-                    sheet.close();
-                    router.push(`/agent/${agentId}`);
-                  },
-                },
-              ]
-            : []),
-        ]}
-      />
+      <QuickTiles items={tiles} />
+      {rest.length > 0 ? <ActionList items={rest} /> : null}
     </>
   );
 }

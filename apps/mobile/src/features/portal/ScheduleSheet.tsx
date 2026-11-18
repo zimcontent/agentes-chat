@@ -1,48 +1,130 @@
-import { type PortalItem, useSchedulePortalItem } from "@agenteschat/client";
-import { portalClientName, portalErrorText, portalWhen } from "@agenteschat/client/lib/portal";
-import { useState } from "react";
+import type { PortalItem } from "@agenteschat/client";
+import { useSchedulePortalItem } from "@agenteschat/client";
+import { portalAhead, portalErrorText, portalSendDate, portalWhen } from "@agenteschat/client/lib/portal";
+import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { StyleSheet, View } from "react-native";
-import { Button, Locked, Text, useToast } from "@/ui";
-import { DayTimePicker } from "../reminders/DayTimePicker";
-import { useNow, useOrgId } from "../shared/hooks";
+import { Button, Card, Filters, GroupedList, GroupedRow, Icon, Locked, Sheet, Text, useToast } from "@/ui";
+import { Stepper } from "../reminders/DayTimePicker";
+import { useColors, useOrgId } from "../shared/hooks";
 import { SheetTitle } from "../shared/PromptForm";
 import { successHaptic, Tile } from "../shared/parts";
-import { useSheet } from "../shared/SheetHost";
 import { usePortalWords } from "./hooks";
-import { type SchedulePick, scheduleReady, scheduleSendOf, scheduleStart } from "./schedule";
+import { SCHEDULE_STEP, scheduleDays, scheduleStart, stepClock } from "./model";
+
+/** The days the sheet offers: today and the next four weeks. */
+const DAYS = 28;
 
 /**
- * "Agendar publicação" from Pendentes (ADR 9001): a day and a time on the app's own picker, then Agendar. The rules
- * are the web's `ScheduleDialog`: it starts on the post's proposed date while that is ahead, a time that passed can't
- * be confirmed (by this device's clock), and the portal, which reads the time in its own zone, has the last word: its
- * refusal shows here in its own words. Once scheduled the post leaves the list on the portal's next read.
+ * "Para agendar" (ADR 9001, addendum 2026-11-17) on the phone: the client's approved posts nobody released yet, each
+ * saying "Publicação aprovada, toque para agendar"; a press picks its day and time and confirms, as the web's
+ * `ScheduleDialog`. The day and time are the reminders' own picker (day chips, an hour and a minute stepper: no native
+ * picker). A time that already passed can't be confirmed (by this device's clock; the portal, in its own zone, has the
+ * last word, and its refusal shows here in its own words). Opened on one post (`start`), it goes straight to its form.
  */
-export function ScheduleSheet({ item }: { item: PortalItem }) {
+export function ScheduleSheet({
+  open,
+  items,
+  start,
+  onClose,
+}: {
+  open: boolean;
+  items: readonly PortalItem[];
+  /** The post to schedule at once (a card's "toque para agendar"); null: the list first. */
+  start: PortalItem | null;
+  onClose: () => void;
+}) {
+  const [picked, setPicked] = useState<PortalItem | null>(start);
+  // Each opening starts where it was asked to: on its post, or on the list.
+  useEffect(() => {
+    if (open) setPicked(start);
+  }, [open, start]);
+  return (
+    <Sheet open={open} onClose={onClose} solid>
+      <View style={styles.in}>
+        {picked ? (
+          <ScheduleForm
+            key={picked.id}
+            item={picked}
+            onBack={items.length > 1 && !start ? () => setPicked(null) : null}
+            onDone={onClose}
+          />
+        ) : (
+          <ScheduleList items={items} onPick={setPicked} />
+        )}
+      </View>
+    </Sheet>
+  );
+}
+
+function ScheduleList({ items, onPick }: { items: readonly PortalItem[]; onPick: (item: PortalItem) => void }) {
+  const w = usePortalWords();
+  const { i18n } = useTranslation();
+  const c = useColors();
+  return (
+    <>
+      <SheetTitle
+        leading={<Tile icon="calendar" />}
+        title={w.toSchedule}
+        subtitle={items.length > 0 ? w.toScheduleCount(items.length) : w.noneToSchedule}
+      />
+      {items.length > 0 ? (
+        <GroupedList>
+          {items.map((item) => {
+            const proposed = portalWhen(i18n.language, item.scheduledFor);
+            return (
+              <GroupedRow
+                key={item.id}
+                label={item.title}
+                labelLines={2}
+                sub={proposed ? `${w.tapToSchedule} · ${proposed}` : w.tapToSchedule}
+                subLines={2}
+                leading={<Icon name="calendar" size={20} color={c.amber} />}
+                chevron
+                onPress={() => onPick(item)}
+              />
+            );
+          })}
+        </GroupedList>
+      ) : null}
+    </>
+  );
+}
+
+function ScheduleForm({ item, onBack, onDone }: { item: PortalItem; onBack: (() => void) | null; onDone: () => void }) {
+  const w = usePortalWords();
   const { t, i18n } = useTranslation();
   const orgId = useOrgId();
-  const sheet = useSheet();
   const toast = useToast();
-  const w = usePortalWords();
   const schedule = useSchedulePortalItem(orgId);
-  // The days offered are fixed while the sheet is open; the minute turns, so "ahead" is read again.
-  const [start] = useState(() => scheduleStart(item));
-  const [pick, setPick] = useState<SchedulePick>(start.pick);
+  // The days are fixed while the sheet is open; "now" moves, so a time that was ahead may not be any more.
+  const first = useMemo(() => scheduleStart(item), [item]);
+  const days = useMemo(() => scheduleDays(new Date(), DAYS, first.day), [first.day]);
+  const [day, setDay] = useState(first.day);
+  const [time, setTime] = useState(first.time);
   const [error, setError] = useState<string | null>(null);
-  const now = new Date(useNow(30_000));
-  const send = scheduleSendOf(start.days, pick);
-  const ready = scheduleReady(start.days, pick, now);
-  const when = send ? (portalWhen(i18n.language, send, now) ?? send) : "";
+  const ahead = portalAhead(day, time, new Date());
+  const at = portalSendDate(day, time);
+  const when = portalWhen(i18n.language, at) ?? at;
+  const [hh, mm] = time.split(":");
+  const dayLabel = (d: string, i: number) => {
+    if (i === 0) return w.today;
+    if (i === 1) return w.tomorrow;
+    const date = new Date(Number(d.slice(0, 4)), Number(d.slice(5, 7)) - 1, Number(d.slice(8, 10)));
+    return new Intl.DateTimeFormat(i18n.language, { weekday: "short", day: "numeric", month: "short" })
+      .format(date)
+      .replace(/\./g, "");
+  };
   const submit = () => {
-    if (!send || !ready || schedule.isPending) return;
+    if (!ahead || schedule.isPending) return;
     setError(null);
     schedule.mutate(
-      { client: item.client, itemId: item.id, scheduledFor: send },
+      { client: item.client, itemId: item.id, scheduledFor: at },
       {
         onSuccess: () => {
-          sheet.close();
           successHaptic();
           toast({ title: w.scheduled(when), icon: "check" });
+          onDone();
         },
         onError: (failure) => setError(portalErrorText(t, failure, i18n.language)),
       },
@@ -50,48 +132,68 @@ export function ScheduleSheet({ item }: { item: PortalItem }) {
   };
   return (
     <>
-      <SheetTitle
-        leading={<Tile icon="calendar" />}
-        title={t("mobile.toSchedule.sheetTitle")}
-        subtitle={[portalClientName(item.client), item.title].filter(Boolean).join(" · ")}
-      />
-      <Locked when={schedule.isPending} style={styles.picker}>
-        <DayTimePicker
-          days={start.days}
-          value={pick}
-          onChange={(next) => {
+      <SheetTitle leading={<Tile icon="calendar" />} title={w.scheduleAction} subtitle={item.title} />
+      <Locked when={schedule.isPending} style={styles.form}>
+        <Filters
+          items={days.map((d, i) => ({ key: d, label: dayLabel(d, i) }))}
+          value={day}
+          onChange={(d) => {
             setError(null);
-            setPick(next);
+            setDay(d);
           }}
         />
+        <Card>
+          <View style={styles.clock}>
+            <Stepper
+              value={hh ?? "00"}
+              label={w.hour}
+              lessLabel={w.hourLess}
+              moreLabel={w.hourMore}
+              onLess={() => setTime((x) => stepClock(x, -60))}
+              onMore={() => setTime((x) => stepClock(x, 60))}
+            />
+            <Text variant="display" tone="faint">
+              :
+            </Text>
+            <Stepper
+              value={mm ?? "00"}
+              label={w.minute}
+              lessLabel={w.minuteLess(SCHEDULE_STEP)}
+              moreLabel={w.minuteMore(SCHEDULE_STEP)}
+              onLess={() => setTime((x) => stepClock(x, -SCHEDULE_STEP))}
+              onMore={() => setTime((x) => stepClock(x, SCHEDULE_STEP))}
+            />
+          </View>
+        </Card>
       </Locked>
-      <View accessibilityLiveRegion="polite">
-        <Text variant="small" tone={ready ? "muted" : "danger"} style={styles.center}>
-          {ready ? t("mobile.toSchedule.when", { when }) : t("mobile.toSchedule.past")}
-        </Text>
-        {/* The portal's own refusal, as it said it. */}
-        {error ? (
-          <Text variant="small" tone="danger" style={[styles.center, styles.error]} accessibilityRole="alert">
-            {error}
-          </Text>
-        ) : null}
-      </View>
+      <Text
+        variant="small"
+        tone={ahead && !error ? "muted" : "danger"}
+        style={styles.center}
+        accessibilityLiveRegion="polite"
+      >
+        {error ?? (ahead ? when : w.schedulePast)}
+      </Text>
+      <Text variant="footnote" tone="muted" style={styles.center}>
+        {w.scheduleText}
+      </Text>
       <Button
         variant="primary"
         wide
         icon="calendar"
-        label={t("mobile.toSchedule.confirm")}
+        label={w.scheduleConfirm}
         loading={schedule.isPending}
-        disabled={!ready || !send}
+        disabled={!ahead}
         onPress={submit}
       />
-      <Button variant="ghost" wide label={w.cancel} disabled={schedule.isPending} onPress={() => sheet.close()} />
+      {onBack ? <Button variant="ghost" wide label={w.back} disabled={schedule.isPending} onPress={onBack} /> : null}
     </>
   );
 }
 
 const styles = StyleSheet.create({
-  picker: { gap: 12 },
+  in: { gap: 12 },
+  form: { gap: 12 },
+  clock: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 4, paddingVertical: 8 },
   center: { textAlign: "center" },
-  error: { marginTop: 4 },
 });

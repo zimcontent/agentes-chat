@@ -358,6 +358,8 @@
     "closed": "gesloten",
     "options": "Opties",
     "profile": "Profiel",
+    "call": "Bellen",
+    "toneGreen": "In groen",
     "here_one": "{{count}} hier",
     "here_other": "{{count}} hier",
     "headerAgent": "{{who}}. Open het profiel",

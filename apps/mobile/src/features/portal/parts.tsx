@@ -12,6 +12,7 @@ import { Tile } from "../shared/parts";
 import { usePersonPhoto } from "../shared/photo";
 import { usePortalWords } from "./hooks";
 import { CLIENT_COLOR, coverOf, fileKind, STAGE_COLOR, STATUS_LOOK } from "./model";
+import type { PortalWords } from "./words";
 
 /** Opens a client's board, one card, or one post at the portal no card stands for. */
 export const openClient = (client: string) => router.push(`/portal/client/${encodeURIComponent(client)}`);
@@ -88,6 +89,63 @@ export function StageChip({ stage }: { stage: PortalColumn }) {
       label={stage === "posted" ? w.status.published : w.columns[stage]}
       leading={<View style={[styles.dot, { backgroundColor: STAGE_COLOR[stage] }]} />}
     />
+  );
+}
+
+/** A stage's color behind its pill: 16% of it. */
+const STAGE_TINT = "29";
+
+/**
+ * The board's pill (the Cronograma's and the Quadro's cards, a card's own screen): the stage's dot on a tint of its
+ * color, then a word, the stage's own unless `label` says another (the type, in a column that already names the stage).
+ */
+export function StagePill({ stage, label }: { stage: PortalColumn; label?: string }) {
+  const w = usePortalWords();
+  const c = useColors();
+  return (
+    <View style={[styles.pill, { backgroundColor: `${STAGE_COLOR[stage]}${STAGE_TINT}` }]}>
+      <View style={[styles.pillDot, { backgroundColor: STAGE_COLOR[stage] }]} />
+      <Text variant="caption" style={[styles.pillWord, { color: c.ink }]}>
+        {label ?? (stage === "posted" ? w.status.published : w.columns[stage])}
+      </Text>
+    </View>
+  );
+}
+
+/** A count's dot: what is open in the team's blue, what is with the client and what came back in their stages'. */
+const COUNT_DOT = {
+  open: STAGE_COLOR.doing,
+  approval: STAGE_COLOR.approval,
+  adjusting: STAGE_COLOR.adjusting,
+} as const;
+
+/**
+ * A client's counts (`clientCounts`) as small chips: a dot in the stage's color, the number and its words. Only what
+ * came back from the client (adjusting) takes the waiting tone.
+ */
+export function CountChips({
+  w,
+  counts,
+}: {
+  w: PortalWords;
+  counts: readonly { key: "open" | "approval" | "adjusting"; count: number }[];
+}) {
+  const c = useColors();
+  const words = { open: w.open, approval: w.inApproval, adjusting: w.inAdjust };
+  return (
+    <View style={styles.counts}>
+      {counts.map(({ key, count }) => {
+        const wait = key === "adjusting";
+        return (
+          <View key={key} style={[styles.count1, { backgroundColor: wait ? `${c.amber}22` : c.chip }]}>
+            <View style={[styles.pillDot, { backgroundColor: COUNT_DOT[key] }]} />
+            <Text variant="caption" style={[styles.countWord, { color: wait ? c.amberInk : c.ink2 }]}>
+              {words[key](count)}
+            </Text>
+          </View>
+        );
+      })}
+    </View>
   );
 }
 
@@ -186,6 +244,22 @@ export function PortalNotice({ state }: { state: PortalState | undefined }) {
 }
 
 const styles = StyleSheet.create({
+  // The stage as a pill of its own color: where the work is, at a glance.
+  pill: {
+    flexDirection: "row",
+    alignItems: "center",
+    alignSelf: "flex-start",
+    gap: 6,
+    height: 22,
+    paddingLeft: 8,
+    paddingRight: 10,
+    borderRadius: 11,
+  },
+  pillDot: { width: 7, height: 7, borderRadius: 3.5 },
+  pillWord: { fontWeight: "600" },
+  counts: { flexDirection: "row", flexWrap: "wrap", gap: 6 },
+  count1: { flexDirection: "row", alignItems: "center", gap: 6, height: 24, paddingHorizontal: 8, borderRadius: 8 },
+  countWord: { fontWeight: "600", fontVariant: ["tabular-nums"] },
   mark: { alignItems: "center", justifyContent: "center", borderWidth: StyleSheet.hairlineWidth },
   markText: { fontWeight: "700", letterSpacing: 0.3 },
   dot: { width: 8, height: 8, borderRadius: 4 },

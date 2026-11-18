@@ -345,6 +345,8 @@
     "closed": "終了",
     "options": "オプション",
     "profile": "プロフィール",
+    "call": "通話",
+    "toneGreen": "グリーン",
     "here_other": "{{count}}人が参加中",
     "headerAgent": "{{who}}。プロフィールを開く",
     "headerChannel": "{{who}}。オプション",

@@ -857,6 +857,12 @@
   "chat.profile": {
     "value": "Profile"
   },
+  "chat.call": {
+    "value": "Call"
+  },
+  "chat.toneGreen": {
+    "value": "In green"
+  },
   "chat.here": {
     "value": {
       "one": "{{count}} here",

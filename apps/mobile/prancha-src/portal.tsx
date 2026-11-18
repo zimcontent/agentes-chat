@@ -1,4 +1,13 @@
-import type { ApiClient, OrgSummary, PlanCard, PortalPlan } from "@agenteschat/client";
+import type {
+  ApiClient,
+  OrgSummary,
+  PlanCard,
+  PortalBoard,
+  PortalCard,
+  PortalClientSummary,
+  PortalItem,
+  PortalPlan,
+} from "@agenteschat/client";
 import { ApiProvider } from "@agenteschat/client";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { HeaderHeightContext } from "expo-router/react-navigation";
@@ -6,6 +15,8 @@ import { type ReactNode, useState } from "react";
 import { Platform, StyleSheet, View } from "react-native";
 import { CardScreen } from "@/features/portal/CardScreen";
 import { ClientScreen } from "@/features/portal/ClientScreen";
+import { PortalScreen } from "@/features/portal/PortalScreen";
+import { ScheduleSheet } from "@/features/portal/ScheduleSheet";
 import { FixedOrg } from "@/providers/org";
 import { ToastHost } from "@/ui";
 
@@ -66,13 +77,14 @@ const PLAN: PortalPlan = {
         card("l1", "Render e moodboard atualizado obras", {
           files: [{ id: "capa", name: "render.png" }],
           description: "Usar as fotos da obra da semana passada.",
+          labels: ["lb1", "lb3"],
           checklist: [
             { id: "a", text: "Render", done: true },
             { id: "b", text: "Moodboard", done: false },
           ],
           comments: [{ id: "m1", by: "u1", text: "Pode usar o render novo", at: 1 }],
         }),
-        card("l1", "Drive", { postOn: day(2) }),
+        card("l1", "Drive", { postOn: day(2), labels: ["lb2"] }),
         card("l1", "Carrossel obra entregue", {
           type: "carousel",
           stage: "doing",
@@ -103,8 +115,147 @@ const PLAN: PortalPlan = {
   // land behind it, out of sight).
   unlisted: [card(null, "Ideia: bastidores da obra", { type: "reel" }), card(null, "Post de Natal")],
   loose: [],
-  labels: [],
+  labels: [
+    { id: "lb1", name: "Lançamento", color: "green" },
+    { id: "lb2", name: "Urgente", color: "red" },
+    { id: "lb3", name: "", color: "blue" },
+  ],
 };
+
+/** A post at the portal, as the board lists it. */
+let posts = 0;
+const post = (title: string, over: Partial<PortalItem> = {}): PortalItem => ({
+  client: CLIENT,
+  id: `post-${++posts}`,
+  title,
+  type: "image",
+  status: "sent",
+  scheduledFor: null,
+  released: false,
+  publishedAt: null,
+  createdAt: null,
+  updatedAt: null,
+  editor: null,
+  caption: "",
+  files: 1,
+  video: false,
+  version: 1,
+  missing: [],
+  lastNote: null,
+  postUrl: null,
+  link: "",
+  ...over,
+});
+
+/** The team's own card on the board (To do, In production). */
+const team = (title: string, state: "todo" | "doing", over: Partial<PortalCard> = {}): PortalCard => {
+  const { stage: _s, postOn: _p, link: _l, ...rest } = card(null, title, { state, stage: state, ...over });
+  return rest;
+};
+
+const BOARD: PortalBoard = {
+  client: CLIENT,
+  cards: {
+    todo: [
+      team("Carrossel: 5 erros na reforma", "todo", { type: "carousel", date: day(4), files: [] }),
+      team("Reel depoimento cliente Moema", "todo", { type: "reel", date: day(6) }),
+      team("Story enquete acabamento", "todo", { type: "story" }),
+    ],
+    doing: [
+      team("Vídeo bastidores da obra", "doing", {
+        type: "reel",
+        date: day(2),
+        files: [{ id: "v1", name: "bastidores.mp4" }],
+        description: "Cortar em 30 s.",
+      }),
+      team("Antes e depois cozinha", "doing", {
+        date: day(3),
+        done: true,
+        files: [
+          { id: "a1", name: "antes.png" },
+          { id: "a2", name: "depois.png" },
+        ],
+      }),
+    ],
+  },
+  items: {
+    approval: [
+      post("3720 Mockingbird Ln. - built to endure", { type: "carousel", scheduledFor: day(4), files: 6 }),
+      post("Lançamento coleção verão", { status: "seen", scheduledFor: day(5), editor: "Ana" }),
+    ],
+    adjusting: [
+      post("Reel tour apartamento decorado", {
+        type: "reel",
+        status: "adjust_requested",
+        scheduledFor: day(1),
+        lastNote: { at: null, by: "Marina (cliente)", text: "Trocar a música e tirar o logo do final." },
+      }),
+    ],
+    approved: [
+      post("Post dia do arquiteto", { status: "approved", scheduledFor: day(2), missing: ["caption"] }),
+      post("Reel visita técnica com o engenheiro responsável pela obra", { type: "reel", status: "approved" }),
+    ],
+    scheduled: [post("Carrossel dicas de iluminação", { type: "carousel", status: "scheduled", scheduledFor: day(1) })],
+    posted: [
+      post("Reel entrega das chaves", { type: "reel", status: "published", publishedAt: day(-2), files: 1 }),
+      post("Fachada finalizada", { status: "published", publishedAt: day(-5) }),
+      post("Carrossel materiais", { type: "carousel", status: "published", publishedAt: day(-30), files: 8 }),
+    ],
+  },
+};
+
+const counts = (over: Partial<Record<string, number>>) => ({
+  todo: 0,
+  doing: 0,
+  approval: 0,
+  adjusting: 0,
+  approved: 0,
+  scheduled: 0,
+  posted: 0,
+  ...over,
+});
+
+/** Clients for the Portal tab: one with a lot waiting, a long name, a quiet one. */
+const CLIENTS: PortalClientSummary[] = [
+  {
+    client: CLIENT,
+    counts: counts({ todo: 3, doing: 2, approval: 2, adjusting: 1, approved: 1 }),
+    open: 9,
+    next: day(1),
+    color: "green",
+  },
+  { client: "casa-moema", counts: counts({ approval: 3, doing: 1 }), open: 4, next: day(3), color: "navy" },
+  {
+    client: "studio-arquitetura-e-interiores-ribeiro",
+    counts: counts({ todo: 1, approved: 2 }),
+    open: 3,
+    next: null,
+    color: "orange",
+  },
+  { client: "padaria-sol", counts: counts({ todo: 2 }), open: 2, next: day(6), color: null },
+  { client: "zim", counts: counts({}), open: 0, next: null, color: "purple" },
+];
+
+/** Everything not posted yet, from the clients' counts: one entry per piece of work, at its stage. */
+const PIPELINE = CLIENTS.flatMap((c) =>
+  (["todo", "doing", "approval", "adjusting", "approved"] as const).flatMap((stage) =>
+    Array.from({ length: c.counts[stage] }, (_, i) => ({
+      client: c.client,
+      kind: stage === "todo" || stage === "doing" ? ("card" as const) : ("post" as const),
+      id: `${c.client}-${stage}-${i}`,
+      title: "",
+      type: "image" as const,
+      stage,
+      members: [],
+      produceOn: null,
+      postOn: c.next,
+      late: false,
+      note: null,
+      link: null,
+      updatedAt: 0,
+    })),
+  ),
+);
 
 /** The portal's own time to answer: longer than a frame, as the real one over the network. */
 const later = () => new Promise((resolve) => setTimeout(resolve, 600));
@@ -119,6 +270,7 @@ function fakeApi(): ApiClient {
   const own: Record<string, unknown> = {
     account: new Proxy(
       {
+        authConfig: async () => ({ approvalPortal: true }),
         me: async () => ({ user: { id: "0198a4b2-0000-7000-8000-0000000000aa", name: "Gabriel" }, organizations: [] }),
       },
       { get: (t, k) => (k in t ? t[k as keyof typeof t] : empty()) },
@@ -160,14 +312,26 @@ function fakeApi(): ApiClient {
           PLAN.lists = PLAN.lists.filter((l) => l.id !== id);
           PLAN.unlisted.push(...(list?.cards ?? []).map((c) => ({ ...c, list: null })));
         },
-        board: async () => ({
-          client: CLIENT,
-          cards: { todo: [], doing: [] },
-          items: { approval: [], adjusting: [], approved: [], scheduled: [], posted: [] },
-        }),
-        overview: async () => ({
-          clients: [{ client: CLIENT, counts: {}, open: 30, next: null }],
-        }),
+        board: async () => structuredClone(BOARD),
+        // A team card moved between To do and In production, as the portal keeps it.
+        updateCard: async (_org: string, id: string, patch: { state?: "todo" | "doing" }) => {
+          await later();
+          const all = [...BOARD.cards.todo, ...BOARD.cards.doing];
+          const moved = all.find((c) => c.id === id);
+          if (moved && patch.state) {
+            BOARD.cards.todo = BOARD.cards.todo.filter((c) => c.id !== id);
+            BOARD.cards.doing = BOARD.cards.doing.filter((c) => c.id !== id);
+            BOARD.cards[patch.state].push({ ...moved, state: patch.state });
+          }
+          return moved;
+        },
+        overview: async () => ({ clients: CLIENTS }),
+        toSchedule: async () => ({ items: structuredClone(BOARD.items.approved) }),
+        schedule: async () => {
+          await later();
+          return {};
+        },
+        pipeline: async () => ({ day: "2026-11-17", entries: PIPELINE }),
         tasks: async () => [{ cardId: "card-1", id: "t1", number: 49 }],
       },
       { get: (t, k) => (k in t ? t[k as keyof typeof t] : empty()) },
@@ -211,6 +375,62 @@ export function PortalCronograma320() {
   return (
     <Server width={320}>
       <ClientScreen client={CLIENT} initialTab="plan" />
+    </Server>
+  );
+}
+
+export function PortalQuadro() {
+  return (
+    <Server>
+      <ClientScreen client={CLIENT} initialTab="board" />
+    </Server>
+  );
+}
+
+export function PortalQuadro320() {
+  return (
+    <Server width={320}>
+      <ClientScreen client={CLIENT} initialTab="board" />
+    </Server>
+  );
+}
+
+export function PortalPostados() {
+  return (
+    <Server>
+      <ClientScreen client={CLIENT} initialTab="posted" />
+    </Server>
+  );
+}
+
+export function PortalClientes() {
+  return (
+    <Server>
+      <PortalScreen />
+    </Server>
+  );
+}
+
+export function PortalAgendar() {
+  return (
+    <Server>
+      <ScheduleSheet open items={BOARD.items.approved} start={null} onClose={() => {}} />
+    </Server>
+  );
+}
+
+export function PortalAgendarPost() {
+  return (
+    <Server>
+      <ScheduleSheet open items={BOARD.items.approved} start={BOARD.items.approved[0] ?? null} onClose={() => {}} />
+    </Server>
+  );
+}
+
+export function PortalCronogramaPostados320() {
+  return (
+    <Server width={320}>
+      <ClientScreen client={CLIENT} initialTab="posted" />
     </Server>
   );
 }
