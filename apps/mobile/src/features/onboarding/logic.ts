@@ -36,7 +36,7 @@ export const stepFailedText = (t: TFunction, error: unknown, locale?: string) =>
   knownErrorText(t, error, locale) ?? t("mobile.onb.failed");
 
 /**
- * The workspace refusing to finish because its brand still waits (`onboarding.brand_pending`, docs/adr/doug-0020-time-
+ * The workspace refusing to finish because its brand still waits (`onboarding.brand_pending`, docs/adr/doug-0030-time-
  * doug.md): a team was made elsewhere (on the web, or its answer lost here), so `me` has to be read again and the
  * brand's step shown, or the person is stuck on a screen that can't go on.
  */

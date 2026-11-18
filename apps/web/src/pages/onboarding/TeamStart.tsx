@@ -73,7 +73,7 @@ export function TeamStart({
             aria-label={t("onboarding.flow.team.start.title")}
             className="onb-start"
           >
-            {/* The Doug team, first and already picked (doug-0020): its faces, then its sentence. While the gallery
+            {/* The Doug team, first and already picked (doug-0030): its faces, then its sentence. While the gallery
                 still loads, its card's own shape, so nothing moves when it arrives. */}
             {loading && !doug ? (
               <div className="onb-start__ghost" aria-hidden="true">
