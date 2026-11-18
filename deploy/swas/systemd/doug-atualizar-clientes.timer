@@ -1,0 +1,12 @@
+[Unit]
+Description=DougBot SWAS: atualiza os clientes toda madrugada
+
+[Timer]
+# 04:30 no horário da máquina, depois da atualização da instância principal; o atraso aleatório evita pico de disco.
+OnCalendar=*-*-* 04:30:00
+RandomizedDelaySec=10min
+# Se a máquina estava desligada na hora, atualiza assim que ligar.
+Persistent=true
+
+[Install]
+WantedBy=timers.target
