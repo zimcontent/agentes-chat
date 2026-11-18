@@ -232,11 +232,14 @@ import type {
   Poll,
   PortalBoard,
   PortalCard,
+  PortalClientAccount,
+  PortalClientsList,
   PortalItem,
   PortalJob,
   PortalLabel,
   PortalList,
   PortalMine,
+  PortalNoticeNumber,
   PortalOverview,
   PortalPipeline,
   PortalPlan,
@@ -2085,6 +2088,38 @@ export function createHttpApi(options: TransportOptions = {}): HttpApi {
             method: "DELETE",
           })
         ).card,
+      clients: async (orgId) => request<PortalClientsList>(`${org(orgId)}/portal-clients`),
+      saveClient: async (orgId, client, input) =>
+        (
+          await request<{ client: PortalClientAccount }>(`${org(orgId)}/portal-clients/${enc(client)}`, {
+            method: "PUT",
+            json: input,
+          })
+        ).client,
+      removeClient: async (orgId, client) => {
+        await request(`${org(orgId)}/portal-clients/${enc(client)}`, { method: "DELETE" });
+      },
+      newClientLink: async (orgId, client) =>
+        (
+          await request<{ link: string }>(`${org(orgId)}/portal-clients/${enc(client)}/link`, {
+            method: "POST",
+            json: {},
+          })
+        ).link,
+      revokeClientLink: async (orgId, client) => {
+        await request(`${org(orgId)}/portal-clients/${enc(client)}/link`, { method: "DELETE" });
+      },
+      noticeSettings: async (orgId) =>
+        request<{ number: string | null; numbers: PortalNoticeNumber[] }>(`${org(orgId)}/portal-notices`),
+      setNoticeNumber: async (orgId, number) => {
+        await request(`${org(orgId)}/portal-notices`, { method: "PUT", json: { number } });
+      },
+      markPublished: async (orgId, client, item, input = {}) => {
+        await request(`${org(orgId)}/portal/clients/${enc(client)}/items/${enc(item)}/published`, {
+          method: "POST",
+          json: input,
+        });
+      },
     },
     missions: ((): HttpApi["missions"] => {
       const one = (orgId: string, missionId: string) => `${org(orgId)}/missions/${enc(missionId)}`;

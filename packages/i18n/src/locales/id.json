@@ -16561,6 +16561,14 @@
         "credential": "kunci AI",
         "vault": "Vault",
         "other": "ruang kerja"
+      },
+      "portalClient": {
+        "renamed": "Mengganti nama klien {{client}} di portal",
+        "hidden": "Menyembunyikan klien {{client}} dari daftar portal",
+        "shown": "Menampilkan lagi klien {{client}} di portal",
+        "color": "Mengubah warna klien {{client}} di portal",
+        "logo": "Mengubah logo klien {{client}} di portal",
+        "logoRemoved": "Menghapus logo klien {{client}} di portal"
       }
     },
     "panel": {
@@ -16641,7 +16649,8 @@
       "about": "Tentang DougBot",
       "generalPersonal": "Tentang kamu",
       "keysPersonal": "AI dan aplikasi",
-      "membersPersonal": "Orang"
+      "membersPersonal": "Orang",
+      "portal": "Klien portal"
     },
     "advanced": "Lanjutan",
     "tab": {
@@ -16676,7 +16685,8 @@
       "usagePersonal": "Seberapa banyak AI yang dipakai agen-agenmu, dan paketmu.",
       "connectorsPersonal": "Aplikasi dan server MCP-mu, dihubungkan sekali untuk agen-agenmu.",
       "membersPersonal": "Siapa yang ada di sini bersamamu.",
-      "rolesPersonal": "Apa yang bisa dilakukan setiap orang di sini. Pemilik bisa melakukan semuanya."
+      "rolesPersonal": "Apa yang bisa dilakukan setiap orang di sini. Pemilik bisa melakukan semuanya.",
+      "portal": "Klien yang menyetujui postinganmu, dan tautan yang dibuka masing-masing."
     },
     "support": {
       "title": "Hubungi dukungan",
@@ -20798,6 +20808,19 @@
       "empty": "Belum ada file yang diunggah di Drive.",
       "more": "Tampilkan lebih banyak",
       "add_other": "Tambah {{count}} file"
+    },
+    "clientEdit": {
+      "rename": "Ganti nama klien",
+      "renameTitle": "Ganti nama klien",
+      "renameHelp": "Nama yang dilihat timmu di mana-mana. Kosongkan untuk kembali ke “{{id}}”.",
+      "name": "Nama",
+      "renamed": "Nama tersimpan",
+      "hide": "Hapus klien",
+      "hideTitle": "Hapus “{{name}}”?",
+      "hideText": "Klien ini keluar dari semua daftar dan hitungan di sini. Postingan dan kartunya tetap di portal, dan kamu bisa memunculkannya lagi dari Klien tersembunyi.",
+      "hidden": "“{{name}}” dihapus",
+      "hiddenTitle": "Klien tersembunyi",
+      "show": "Tampilkan lagi"
     }
   },
   "dougTeam": {
@@ -20916,5 +20939,43 @@
         "educativo": "Edukatif"
       }
     }
+  },
+  "portalClients": {
+    "title": "Klien portal",
+    "lead": "Setiap klien menyetujui postinganmu lewat tautannya sendiri, tanpa akun. Kontak klien diberi tahu lewat email dan WhatsApp saat ada postingan menunggu mereka.",
+    "add": "Tambah klien",
+    "addTitle": "Klien baru",
+    "edit": "Ubah",
+    "editTitle": "Klien",
+    "remove": "Hapus",
+    "removeTitle": "Hapus klien ini?",
+    "removeText": "Tautannya berhenti berfungsi dan postingannya hilang dari halamannya. Pekerjaannya tetap di papan.",
+    "loading": "Memuat…",
+    "empty": "Belum ada klien. Tambahkan satu untuk mendapat tautan yang bisa dikirim.",
+    "noContacts": "Belum ada kontak: tidak ada yang diberi tahu saat postingan menunggu.",
+    "id": "Id klien (huruf kecil, tanpa spasi)",
+    "name": "Nama",
+    "contactName": "Nama kontak",
+    "email": "Email",
+    "whatsapp": "WhatsApp dengan kode negara",
+    "addContact": "Tambah kontak",
+    "dropContact": "Hapus kontak",
+    "link": "Tautan klien",
+    "copy": "Salin tautan",
+    "copied": "Tautan disalin",
+    "copyFailed": "Tautan gagal disalin",
+    "revoked": "Tautan telah dicabut",
+    "linkStale": "Tautan ini harus dibuat ulang: buat tautan baru untuk dikirim",
+    "noticesTitle": "Pemberitahuan WhatsApp",
+    "noticesLead": "Kontak klien selalu diberi tahu lewat email. WhatsApp hanya keluar dari nomor yang kamu pilih di sini: tanpa nomor, tidak ada yang dikirim lewat WhatsApp, dan nomor pribadi siapa pun tidak dipakai.",
+    "noticesNumber": "Nomor yang memberi tahu",
+    "noticesNone": "Tidak ada: hanya email",
+    "noticesNoNumbers": "Belum ada nomor yang tersambung. Sambungkan satu di Pengaturan › WhatsApp untuk memberi tahu di sana juga.",
+    "locale": "Diberi tahu dalam {{language}}",
+    "localeLabel": "Bahasa",
+    "localeHint": "Bahasa email dan pesan yang diterima kontak klien ini. Tidak pernah ditebak dari nama; tanpa pilihan di sini, bahasanya bahasa timmu.",
+    "localeOwner": "Bahasa tim",
+    "newLink": "Tautan baru",
+    "revoke": "Cabut tautan"
   }
 }

@@ -52511,5 +52511,170 @@
       "one": "{{count}} craft skill",
       "other": "{{count}} craft skills"
     }
+  },
+  "audit.change.portalClient.renamed": {
+    "value": "Renamed the client {{client}} at the portal"
+  },
+  "audit.change.portalClient.hidden": {
+    "value": "Removed the client {{client}} from the portal's lists"
+  },
+  "audit.change.portalClient.shown": {
+    "value": "Showed the client {{client}} again at the portal"
+  },
+  "audit.change.portalClient.color": {
+    "value": "Changed the client {{client}}'s colour at the portal"
+  },
+  "audit.change.portalClient.logo": {
+    "value": "Changed the client {{client}}'s logo at the portal"
+  },
+  "audit.change.portalClient.logoRemoved": {
+    "value": "Removed the client {{client}}'s logo at the portal"
+  },
+  "settings.section.portal": {
+    "value": "Portal clients"
+  },
+  "settings.sectionText.portal": {
+    "value": "The clients who approve your posts, and the link each one opens."
+  },
+  "portalClients.title": {
+    "value": "Portal clients"
+  },
+  "portalClients.lead": {
+    "value": "Each client approves your posts at a link of its own, with no account. A client's contacts are told by e-mail and WhatsApp when a post waits on them."
+  },
+  "portalClients.add": {
+    "value": "Add client"
+  },
+  "portalClients.addTitle": {
+    "value": "New client"
+  },
+  "portalClients.edit": {
+    "value": "Edit"
+  },
+  "portalClients.editTitle": {
+    "value": "Client"
+  },
+  "portalClients.remove": {
+    "value": "Remove"
+  },
+  "portalClients.removeTitle": {
+    "value": "Remove this client?"
+  },
+  "portalClients.removeText": {
+    "value": "Its link stops working and its posts are no longer on its page. The work stays on the board."
+  },
+  "portalClients.loading": {
+    "value": "Loading…"
+  },
+  "portalClients.empty": {
+    "value": "No clients yet. Add one to get a link you can send."
+  },
+  "portalClients.noContacts": {
+    "value": "No contacts yet: nobody is told when a post waits."
+  },
+  "portalClients.id": {
+    "value": "Client id (lowercase, no spaces)"
+  },
+  "portalClients.name": {
+    "value": "Name"
+  },
+  "portalClients.contactName": {
+    "value": "Contact name"
+  },
+  "portalClients.email": {
+    "value": "E-mail"
+  },
+  "portalClients.whatsapp": {
+    "value": "WhatsApp with the country code"
+  },
+  "portalClients.addContact": {
+    "value": "Add contact"
+  },
+  "portalClients.dropContact": {
+    "value": "Remove contact"
+  },
+  "portalClients.link": {
+    "value": "Client link"
+  },
+  "portalClients.copy": {
+    "value": "Copy link"
+  },
+  "portalClients.copied": {
+    "value": "Link copied"
+  },
+  "portalClients.copyFailed": {
+    "value": "Couldn't copy the link"
+  },
+  "portalClients.revoked": {
+    "value": "The link was revoked"
+  },
+  "portalClients.linkStale": {
+    "value": "This link has to be made again: make a new one to send"
+  },
+  "portalClients.noticesTitle": {
+    "value": "WhatsApp notices"
+  },
+  "portalClients.noticesLead": {
+    "value": "A client's contacts are always told by e-mail. WhatsApp goes out only from the number you pick here: with none, nothing is sent on WhatsApp, and nobody's personal number is used."
+  },
+  "portalClients.noticesNumber": {
+    "value": "Number that tells them"
+  },
+  "portalClients.noticesNone": {
+    "value": "None: e-mail only"
+  },
+  "portalClients.noticesNoNumbers": {
+    "value": "No number connected yet. Connect one in Settings › WhatsApp to tell them there too."
+  },
+  "portalClients.locale": {
+    "value": "Told in {{language}}"
+  },
+  "portalClients.localeLabel": {
+    "value": "Language"
+  },
+  "portalClients.localeHint": {
+    "value": "The language of the e-mails and messages this client's contacts get. Never guessed from a name; the team's own when it isn't picked here."
+  },
+  "portalClients.localeOwner": {
+    "value": "The team's language"
+  },
+  "portalClients.newLink": {
+    "value": "New link"
+  },
+  "portalClients.revoke": {
+    "value": "Revoke link"
+  },
+  "portal.clientEdit.rename": {
+    "value": "Rename client"
+  },
+  "portal.clientEdit.renameTitle": {
+    "value": "Rename client"
+  },
+  "portal.clientEdit.renameHelp": {
+    "value": "The name your team sees everywhere. Leave it empty to go back to “{{id}}”."
+  },
+  "portal.clientEdit.name": {
+    "value": "Name"
+  },
+  "portal.clientEdit.renamed": {
+    "value": "Name saved"
+  },
+  "portal.clientEdit.hide": {
+    "value": "Remove client"
+  },
+  "portal.clientEdit.hideTitle": {
+    "value": "Remove “{{name}}”?"
+  },
+  "portal.clientEdit.hideText": {
+    "value": "It leaves every list and count here. Its posts and cards stay at the portal, and you can bring it back from Hidden clients."
+  },
+  "portal.clientEdit.hidden": {
+    "value": "“{{name}}” removed"
+  },
+  "portal.clientEdit.hiddenTitle": {
+    "value": "Hidden clients"
+  },
+  "portal.clientEdit.show": {
+    "value": "Show again"
   }
 }

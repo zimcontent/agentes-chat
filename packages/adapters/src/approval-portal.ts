@@ -344,6 +344,18 @@ export interface ApprovalPortal {
    * takes it to the publishing service, and the post turns `scheduled` once that service has it.
    */
   scheduleItem(client: string, item: string, when: string, by?: string): Promise<void>;
+  /**
+   * A person says a `scheduled` post is out: `published`, at `at` (ISO with an offset; now when absent), with the
+   * address it went to (`postUrl`, when the team wrote it somewhere). It is the way out of `scheduled` when nothing
+   * else can say so: this server has no publishing service, and the bridge's portal may not hear from one. A post that
+   * isn't `scheduled` is refused (`409`).
+   */
+  markPublished(
+    client: string,
+    item: string,
+    input: { at?: string | null; postUrl?: string | null },
+    by?: string,
+  ): Promise<void>;
 }
 
 /** The portal answered no, in its own words (safe to show a member: never a secret). */
@@ -775,6 +787,14 @@ export function createBridgeApprovalPortal(options: BridgePortalOptions): Approv
         timeoutMs: 60_000,
       });
     },
+    markPublished: async (client, item, input, by) => {
+      // A bridge from before the field says the post is out with an empty address: the team wrote none, and the
+      // portal's own side reads it as published at once.
+      await request(`/itens/${encodeURIComponent(client)}/${encodeURIComponent(item)}/publicado`, {
+        json: { publicado_em: input.at ?? null, url: input.postUrl ?? null, por: by },
+        timeoutMs: 60_000,
+      });
+    },
   };
 }
 
@@ -1073,6 +1093,15 @@ export function createFakeApprovalPortal(seed: { items?: PortalItem[]; cards?: P
       // As at a real portal: released at once, `scheduled` only when the publishing service has it.
       found.scheduledFor = when;
       found.released = true;
+    },
+    markPublished: async (client, item, input) => {
+      check();
+      const found = items.find((i) => i.client === client && i.id === item);
+      if (!found) throw new ApprovalPortalError(404, "item not found");
+      if (found.status !== "scheduled") throw new ApprovalPortalError(409, "only a scheduled post is marked posted");
+      found.status = "published";
+      found.publishedAt = input.at ?? new Date().toISOString();
+      found.postUrl = input.postUrl ?? found.postUrl;
     },
   };
   const keys = new Map<string, string>();

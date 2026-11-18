@@ -309,7 +309,10 @@ import type {
   PortalBoard,
   PortalCard,
   PortalCardInput,
+  PortalClientAccount,
   PortalClientColor,
+  PortalClientsList,
+  PortalContact,
   PortalItem,
   PortalItemEdit,
   PortalJob,
@@ -318,6 +321,7 @@ import type {
   PortalList,
   PortalListKind,
   PortalMine,
+  PortalNoticeNumber,
   PortalOverview,
   PortalPipeline,
   PortalPlan,
@@ -1768,6 +1772,44 @@ export interface ApiClient {
     addComment(orgId: string, cardId: string, text: string): Promise<PortalCard>;
     /** One's own, or any for who may give agents work. */
     deleteComment(orgId: string, cardId: string, commentId: string): Promise<PortalCard>;
+    /**
+     * The installation's own portal's clients (docs/adr/doug-0031-embedded-approval-portal.md): each with its contacts,
+     * and the address of its link for whoever may manage the portal (`assign_work`). Empty on a server that keeps a
+     * bridge's portal (`AuthConfig.approvalPortalEmbedded`), where the client routes answer 404 `portal.off`.
+     */
+    clients(orgId: string): Promise<PortalClientsList>;
+    /** Makes a client, or changes the one `client` names (its name, contacts, colour). */
+    saveClient(
+      orgId: string,
+      client: string,
+      input: {
+        name: string;
+        contacts?: PortalContact[];
+        color?: PortalClientColor | null;
+        /** The language its notices are written in; null: the workspace owner's own. */
+        locale?: string | null;
+      },
+    ): Promise<PortalClientAccount>;
+    /** Removes a client and its links. */
+    removeClient(orgId: string, client: string): Promise<void>;
+    /** A new link, revoking the one before: answers the address to send. */
+    newClientLink(orgId: string, client: string): Promise<string>;
+    /** Revokes a client's link: the address answers nothing from then on. */
+    revokeClientLink(orgId: string, client: string): Promise<void>;
+    /**
+     * The number the portal's notices go out as (`number`, one of `numbers`, or null: e-mail alone), and the workspace's
+     * connected numbers to pick from (docs/adr/doug-0031-embedded-approval-portal.md §7).
+     */
+    noticeSettings(orgId: string): Promise<{ number: string | null; numbers: PortalNoticeNumber[] }>;
+    /** Sets the number the portal's notices go out as, or none with null. */
+    setNoticeNumber(orgId: string, number: string | null): Promise<void>;
+    /** Says a scheduled post is posted: `published`, at `at` (ISO; now when absent), with its address when known. */
+    markPublished(
+      orgId: string,
+      client: string,
+      item: string,
+      input?: { at?: string | null; postUrl?: string | null },
+    ): Promise<void>;
   };
   /** Missions (ADR 0029): long work by the agent's executor on a connected computer, in one thread. */
   missions: {

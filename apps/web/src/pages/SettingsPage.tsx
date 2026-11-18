@@ -106,6 +106,7 @@ import { UsageTabs } from "@/components/PeopleUsage";
 import { ApiCard, PlanUsageCards } from "@/components/PlanUsage";
 import { MyFace, OrgLogoDialog, OrgMark } from "@/components/ProfilePhoto";
 import { KeyMismatch, KeyRefused, KeySite, ProviderKeySelect } from "@/components/ProviderKey";
+import { PortalClientsSection } from "@/components/portal/PortalClientsSection";
 import { RolesSection } from "@/components/roles/RolesSection";
 import { SkillsSection } from "@/components/Skills";
 import { StorageSection } from "@/components/StorageSettings";
@@ -285,6 +286,7 @@ function Settings({
       {current === "vault" && <VaultSection />}
       {current === "audit" && <AuditSection agent={agent} />}
       {current === "media" && <MediaSettingsSection />}
+      {current === "portal" && <PortalClientsSection />}
       {current === "voice" && (
         <div className="ac-groups">
           <LiveVoiceCard />

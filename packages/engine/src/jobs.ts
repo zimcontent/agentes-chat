@@ -104,6 +104,7 @@ import { enqueue, type JobHandlers, type OutboxJob, PermanentJobError } from "./
 import { checkParkedRun, EARLY_CHECK_JOB, scheduleParkedChecks } from "./parked-asks";
 import { PARTNER_WAITLIST_CONTACT_JOB, savePartnerWaitlistContact } from "./partner-waitlist";
 import { notifyPersonLimit, PERSON_LIMIT_JOB } from "./person-usage";
+import { announcePortalPost, PORTAL_NOTICE_GROUP_MS, PORTAL_NOTIFY_JOB, type PortalNoticeDeps } from "./portal-notices";
 import { deliverPush } from "./push";
 import { reachOf, settleReach } from "./reach";
 import { routineCreatorOf } from "./requester";
@@ -205,6 +206,8 @@ export interface JobDeps extends RunExecutorDeps {
   videoReviews?: VideoReviewDeps;
   /** WhatsApp numbers whose agent answers (job `whatsapp.agent_reply`); absent: no gateway, nothing to answer. */
   whatsapp?: WhatsAppAgentDeps;
+  /** The approval portal's notices to its clients (job `portal.notify`); absent: no embedded portal. */
+  portalNotify?: PortalNoticeDeps;
   /** The Vault's sources (job `vault.sync`, ADR 0144); absent: connections aren't read again. */
   vault?: VaultDeps;
   /** Connectors: job `org.delete` revokes a workspace's GitHub OAuth grants at GitHub before its rows go. */
@@ -1083,6 +1086,69 @@ export function createJobHandlers(deps: JobDeps): JobHandlers {
     },
     [PLAN_WAITING_JOB]: async (job) => {
       if (deps.emailArt) await sendPlanWaitingEmail(deps.db, deps.emailArt.home, orgOf(job), job.payload.step);
+    },
+    // The client of the approval portal is told a post (or its new version) waits on them (docs/adr/
+    // doug-0031-embedded-approval-portal.md): one email to each contact with an address, one text when the workspace
+    // has a number. Nothing when the client was told within the hour, or every waiting post was already told of.
+    // A notice that went out inside the hour holds this one: the job comes back when that hour ends (`retryAt`), and
+    // gathers what landed meanwhile into one notice (`posts[]`), instead of a client being told post after post.
+    [PORTAL_NOTIFY_JOB]: async (job) => {
+      if (!deps.portalNotify) return;
+      const pending = Array.isArray(job.payload.contacts)
+        ? (job.payload.contacts as unknown[]).filter((id): id is string => typeof id === "string")
+        : null;
+      const out = await announcePortalPost(
+        deps.portalNotify,
+        orgOf(job),
+        String(job.payload.postId),
+        Number(job.payload.version) || 1,
+        typeof job.payload.client === "string" && job.payload.client ? job.payload.client : null,
+        pending?.length ? pending : null,
+      );
+      // A contact's text that failed while the rest of the notice went out: those contacts are owed it, and the job
+      // queues the retry that tells them alone. A retry that fails again names whatever is still owed, so a gateway
+      // that comes back finishes the notice; one that never does stops with its own attempts (`maxAttempts`).
+      const owedTo = typeof job.payload.client === "string" && job.payload.client ? job.payload.client : null;
+      if (out.pending?.length && owedTo) {
+        await enqueue(deps.db, {
+          orgId: orgOf(job),
+          kind: PORTAL_NOTIFY_JOB,
+          payload: {
+            postId: String(job.payload.postId),
+            version: Number(job.payload.version) || 1,
+            client: owedTo,
+            contacts: out.pending,
+            resumed: true,
+          },
+          // The same contacts owed the same post never take two rows: a job that runs twice (a lease that lapsed)
+          // queues the retry once.
+          dedupeKey: `${PORTAL_NOTIFY_JOB}:text:${owedTo}:${String(job.payload.postId)}:v${
+            Number(job.payload.version) || 1
+          }:${[...out.pending].sort().join(",")}`,
+          runAt: new Date(Date.now() + PORTAL_NOTICE_GROUP_MS),
+          maxAttempts: 4,
+        });
+        deps.portalNotify.log?.warn("approval portal: a client's text is owed a retry", {
+          client: owedTo,
+          contacts: out.pending.length,
+        });
+      }
+      if (out.skipped !== "recent" || !out.retryAt || !out.client) return;
+      // One retry per client and window, and that retry names the client, not the post: by the end of the hour that
+      // post may be answered, and what the client has to be told of is whatever is waiting then. A second post inside
+      // the hour names the same window, and the first to set it takes it (the outbox's `(org_id, dedupe key)` index
+      // does the rest).
+      const retryAt = out.retryAt;
+      await enqueue(deps.db, {
+        orgId: orgOf(job),
+        kind: PORTAL_NOTIFY_JOB,
+        payload: { postId: String(job.payload.postId), version: Number(job.payload.version) || 1, client: out.client },
+        dedupeKey: `${PORTAL_NOTIFY_JOB}:retry:${out.client}:${retryAt.toISOString()}`,
+        runAt: retryAt,
+        // The retry ends the wait itself (a client told again, or nothing left to tell): a failure here retries as
+        // any job does, and a second try inside the same window is refused again and moves the job once more.
+        maxAttempts: 4,
+      });
     },
     // Someone else let more people talk to an agent on a person's plan: that person's email (`planOpened`).
     [PLAN_OPENED_JOB]: async (job) => {

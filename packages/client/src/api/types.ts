@@ -234,6 +234,11 @@ export interface AuthConfig {
   mobileErrorReports?: ErrorReportsConfig | null;
   /** The server has an approval portal (ADR 9001): the apps show Portal; absent or false: none. */
   approvalPortal?: boolean;
+  /**
+   * The portal is this server's own (docs/adr/doug-0031-embedded-approval-portal.md), not a bridge's: the workspace
+   * manages its clients and their links here (`GET …/portal-clients`). Absent from an older server.
+   */
+  approvalPortalEmbedded?: boolean;
   /** The server generates images and videos from a credit wallet (ADR doug-0011): the apps show Mídia. */
   zimMedia?: boolean;
   /**
@@ -8921,6 +8926,57 @@ export interface PortalClientSummary {
   logo?: string | null;
   /** The name the team gave it (ADR 9001, addendum 2026-11-18); null or absent: the one its id reads as. */
   name?: string | null;
+}
+
+/** A contact of a client, told when a post waits on them (the installation's own portal, docs/adr/doug-0031). */
+export interface PortalContact {
+  id: string;
+  name: string;
+  email: string | null;
+  /** Digits only, country code first. */
+  whatsapp: string | null;
+}
+
+/**
+ * A client of the installation's own approval portal (`GET …/portal-clients`): its name, its contacts and the address
+ * of its own link (`<PUBLIC_URL>/p/<token>`), which opens its page with no account.
+ */
+export interface PortalClientAccount {
+  id: string;
+  /** The id the board, the agents and the address call it by. */
+  client: string;
+  name: string;
+  contacts: PortalContact[];
+  color: PortalClientColor | null;
+  /**
+   * The client's page's own address; null while revoked, and null too when the token it derives no longer matches the
+   * hash kept with it (`AGENTES_SECRET` changed since): `linkStale` says so.
+   */
+  link: string | null;
+  revoked: boolean;
+  /** A live link whose token no longer matches (`AGENTES_SECRET` changed): it must be made again, never shown. */
+  linkStale: boolean;
+  /** The language its notices are written in (one of `LOCALE_CODES`); null: the workspace owner's own. */
+  locale: string | null;
+  createdAt: string;
+}
+
+/**
+ * The clients the workspace reads from `GET …/portal-clients`: the names and contacts any member reads, and the links
+ * only someone who may manage the portal (`assign_work`) does, by the client's id. The routes answer `404 portal.off`
+ * on a workspace that isn't the installation's portal.
+ */
+export interface PortalClientsList {
+  clients: Omit<PortalClientAccount, "link">[];
+  /** Each client's live address, for who may manage the portal; a client the caller can't manage isn't here. */
+  links: Record<string, string>;
+}
+
+/** One of the workspace's connected WhatsApp numbers the portal's notices may go out as (ADR doug-0031 §7). */
+export interface PortalNoticeNumber {
+  id: string;
+  label: string;
+  phone: string | null;
 }
 
 /**

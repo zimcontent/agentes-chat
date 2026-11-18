@@ -35,6 +35,8 @@ import { Route as DocsIndexRouteImport } from './routes/docs.index'
 import { Route as DocsSlugRouteImport } from './routes/docs.$slug'
 import { Route as InviteTokenRouteImport } from './routes/invite.$token'
 import { Route as OrgOrgIdRouteImport } from './routes/org.$orgId'
+import { Route as PIndexRouteImport } from './routes/p.index'
+import { Route as PTokenRouteImport } from './routes/p.$token'
 import { Route as OrgOrgIdIndexRouteImport } from './routes/org.$orgId.index'
 import { Route as OrgOrgIdAiRouteImport } from './routes/org.$orgId.ai'
 import { Route as OrgOrgIdApprovalsRouteImport } from './routes/org.$orgId.approvals'
@@ -206,6 +208,16 @@ const InviteTokenRoute = InviteTokenRouteImport.update({
 const OrgOrgIdRoute = OrgOrgIdRouteImport.update({
   id: '/org/$orgId',
   path: '/org/$orgId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PIndexRoute = PIndexRouteImport.update({
+  id: '/p/',
+  path: '/p/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PTokenRoute = PTokenRouteImport.update({
+  id: '/p/$token',
+  path: '/p/$token',
   getParentRoute: () => rootRouteImport,
 } as any)
 const OrgOrgIdIndexRoute = OrgOrgIdIndexRouteImport.update({
@@ -454,7 +466,9 @@ export interface FileRoutesByFullPath {
   '/docs/$slug': typeof DocsSlugRoute
   '/invite/$token': typeof InviteTokenRoute
   '/org/$orgId': typeof OrgOrgIdRouteWithChildren
+  '/p/$token': typeof PTokenRoute
   '/docs/': typeof DocsIndexRoute
+  '/p/': typeof PIndexRoute
   '/org/$orgId/ai': typeof OrgOrgIdAiRoute
   '/org/$orgId/approvals': typeof OrgOrgIdApprovalsRoute
   '/org/$orgId/calendar': typeof OrgOrgIdCalendarRoute
@@ -523,7 +537,9 @@ export interface FileRoutesByTo {
   '/dev/gallery': typeof DevGalleryRoute
   '/docs/$slug': typeof DocsSlugRoute
   '/invite/$token': typeof InviteTokenRoute
+  '/p/$token': typeof PTokenRoute
   '/docs': typeof DocsIndexRoute
+  '/p': typeof PIndexRoute
   '/org/$orgId/ai': typeof OrgOrgIdAiRoute
   '/org/$orgId/approvals': typeof OrgOrgIdApprovalsRoute
   '/org/$orgId/calendar': typeof OrgOrgIdCalendarRoute
@@ -594,7 +610,9 @@ export interface FileRoutesById {
   '/docs/$slug': typeof DocsSlugRoute
   '/invite/$token': typeof InviteTokenRoute
   '/org/$orgId': typeof OrgOrgIdRouteWithChildren
+  '/p/$token': typeof PTokenRoute
   '/docs/': typeof DocsIndexRoute
+  '/p/': typeof PIndexRoute
   '/org/$orgId/ai': typeof OrgOrgIdAiRoute
   '/org/$orgId/approvals': typeof OrgOrgIdApprovalsRoute
   '/org/$orgId/calendar': typeof OrgOrgIdCalendarRoute
@@ -666,7 +684,9 @@ export interface FileRouteTypes {
     | '/docs/$slug'
     | '/invite/$token'
     | '/org/$orgId'
+    | '/p/$token'
     | '/docs/'
+    | '/p/'
     | '/org/$orgId/ai'
     | '/org/$orgId/approvals'
     | '/org/$orgId/calendar'
@@ -735,7 +755,9 @@ export interface FileRouteTypes {
     | '/dev/gallery'
     | '/docs/$slug'
     | '/invite/$token'
+    | '/p/$token'
     | '/docs'
+    | '/p'
     | '/org/$orgId/ai'
     | '/org/$orgId/approvals'
     | '/org/$orgId/calendar'
@@ -805,7 +827,9 @@ export interface FileRouteTypes {
     | '/docs/$slug'
     | '/invite/$token'
     | '/org/$orgId'
+    | '/p/$token'
     | '/docs/'
+    | '/p/'
     | '/org/$orgId/ai'
     | '/org/$orgId/approvals'
     | '/org/$orgId/calendar'
@@ -876,7 +900,9 @@ export interface RootRouteChildren {
   DocsSlugRoute: typeof DocsSlugRoute
   InviteTokenRoute: typeof InviteTokenRoute
   OrgOrgIdRoute: typeof OrgOrgIdRouteWithChildren
+  PTokenRoute: typeof PTokenRoute
   DocsIndexRoute: typeof DocsIndexRoute
+  PIndexRoute: typeof PIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -1061,6 +1087,20 @@ declare module '@tanstack/react-router' {
       path: '/org/$orgId'
       fullPath: '/org/$orgId'
       preLoaderRoute: typeof OrgOrgIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/p/': {
+      id: '/p/'
+      path: '/p'
+      fullPath: '/p/'
+      preLoaderRoute: typeof PIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/p/$token': {
+      id: '/p/$token'
+      path: '/p/$token'
+      fullPath: '/p/$token'
+      preLoaderRoute: typeof PTokenRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/org/$orgId/': {
@@ -1484,7 +1524,9 @@ const rootRouteChildren: RootRouteChildren = {
   DocsSlugRoute: DocsSlugRoute,
   InviteTokenRoute: InviteTokenRoute,
   OrgOrgIdRoute: OrgOrgIdRouteWithChildren,
+  PTokenRoute: PTokenRoute,
   DocsIndexRoute: DocsIndexRoute,
+  PIndexRoute: PIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

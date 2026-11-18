@@ -412,6 +412,27 @@ export const EMAIL_SAMPLES: Record<string, EmailTemplate> = {
     orgName: "Souza Bakery",
     url: `${APP}/org/${ORG}/settings/apps`,
   },
+  /** The approval portal's client: a post (and a new version of another) waits on them at their own link. */
+  "portal_ready.en": {
+    kind: "portal_ready",
+    locale: "en",
+    clientName: "Aurora Bakery",
+    posts: [
+      { title: "December menu reel", version: 1 },
+      { title: "Holiday carousel", version: 2 },
+    ],
+    url: `${APP}/portal/T7xQ2mVb9KpL`,
+  },
+  "portal_ready.pt-BR": {
+    kind: "portal_ready",
+    locale: "pt-BR",
+    clientName: "Padaria Aurora",
+    posts: [
+      { title: "Reel do menu de dezembro", version: 1 },
+      { title: "Carrossel de fim de ano", version: 3 },
+    ],
+    url: `${APP}/portal/T7xQ2mVb9KpL`,
+  },
   /** An admin let everyone talk to an agent on its owner's plan that answered a person and a role. */
   "plan_opened.en": {
     kind: "plan_opened",

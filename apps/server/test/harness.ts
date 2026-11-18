@@ -30,6 +30,7 @@ import { testConfig } from "@agenteschat/config";
 import { eq, isNotNull, like, rowsOf, schema, sql, tracingLogger } from "@agenteschat/db";
 import { createTestDatabase } from "@agenteschat/db/testing";
 import {
+  createEmbeddedApprovalPortal,
   createFakeJudge,
   createFakeScheduleReader,
   createGifKey,
@@ -113,6 +114,12 @@ export async function createTestServer(
     errors?: ErrorReporter;
     /** The approval portal (ADR 9001); absent or null = none, as without its bridge. */
     approvalPortal?: ApprovalPortal | null;
+    /**
+     * The portal is this server's own (docs/adr/doug-0031-embedded-approval-portal.md), as `start.ts` makes it with no
+     * bridge: the clients' routes and the public page are mounted, and the client's notices are wired. Needs
+     * `approvalPortal` to be the embedded one (`createEmbeddedApprovalPortal`).
+     */
+    approvalPortalEmbedded?: boolean;
     /** The Zim Mídia service (ADR doug-0011); absent = no media generation. */
     zimMedia?: ZimMedia | null;
     /** GIF search (ADR 0091); absent = the fake provider (`createFakeGifs`), null = none, as without its key. */
@@ -185,7 +192,17 @@ export async function createTestServer(
     humanCheck: options.humanCheck ?? null,
     gifs,
     whatsapp: options.whatsapp ?? null,
-    approvalPortal: options.approvalPortal ?? null,
+    // The installation's own portal (docs/adr/doug-0031-embedded-approval-portal.md), as `start.ts` makes it with no
+    // bridge: it reads this database and keeps a post's files in the platform store. Made here, before the app is.
+    approvalPortal: options.approvalPortalEmbedded
+      ? createEmbeddedApprovalPortal({
+          db,
+          blobs: platformBlobs,
+          publicUrl: config.PUBLIC_URL,
+          secret: config.AGENTES_SECRET,
+        })
+      : (options.approvalPortal ?? null),
+    ...(options.approvalPortalEmbedded ? { approvalPortalEmbedded: true } : {}),
     zimMedia: options.zimMedia ?? null,
   };
   const provider = createFakeProvider(options.reply);

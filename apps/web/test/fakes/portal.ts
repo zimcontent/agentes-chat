@@ -14,6 +14,7 @@ import type {
   ApiClient,
   PlanCard,
   PortalCard,
+  PortalClientAccount,
   PortalClientColor,
   PortalClientSummary,
   PortalColumn,
@@ -21,6 +22,7 @@ import type {
   PortalJob,
   PortalLabel,
   PortalList,
+  PortalNoticeNumber,
   PortalState,
   PortalStatus,
   PortalTaskRef,
@@ -45,6 +47,11 @@ export interface FakePortal {
   colors: Record<string, PortalClientColor>;
   /** Each client's logo: where it is read. */
   logos: Record<string, string>;
+  /** The installation's own portal's clients (docs/adr/doug-0031), by id. */
+  accounts: Record<string, PortalClientAccount>;
+  /** The number the portal's notices go out as, and the connected ones to pick from (ADR doug-0031 §7). */
+  noticeNumber: string | null;
+  noticeNumbers: PortalNoticeNumber[];
   /** The name the team gave each client that has one, and the clients it hid (ADR 9001, addendum 2026-11-18). */
   names: Record<string, string>;
   hidden: Set<string>;
@@ -200,6 +207,9 @@ export function createFakePortal(
   const today = new Date();
   const fake: FakePortal = {
     clients: [],
+    accounts: {},
+    noticeNumber: null,
+    noticeNumbers: [],
     cards: [],
     items: [],
     tasks: [],
@@ -548,6 +558,88 @@ export function createFakePortal(
           throw new ApiError(400, "portal.refused", "Only a post waiting on the client's approval can be approved");
         }
         item.status = "approved";
+      },
+      clients: async (orgId) => {
+        log("portal.clients", orgId);
+        guard();
+        const accounts = Object.values(fake.accounts);
+        // The links only for who may manage: the fake gives them to everyone, as a server without a test person in mind
+        // would; a test of that rule reads the client routes themselves.
+        return clone({
+          clients: accounts.map(({ link: _link, ...rest }) => rest),
+          links: Object.fromEntries(accounts.filter((a) => a.link).map((a) => [a.client, a.link as string])),
+        });
+      },
+      saveClient: async (orgId, client, input) => {
+        log("portal.saveClient", orgId, client, input);
+        guard();
+        const before = fake.accounts[client];
+        const account: PortalClientAccount = {
+          id: before?.id ?? `acc-${hex()}`,
+          client,
+          name: input.name,
+          contacts: (input.contacts ?? []).map((c) => ({
+            id: c.id ?? `ct-${hex()}`,
+            name: c.name,
+            email: c.email ?? null,
+            whatsapp: c.whatsapp ?? null,
+          })),
+          color: input.color ?? null,
+          locale: input.locale ?? null,
+          link: before?.link ?? `https://test.example/p/${hex().padEnd(24, "0")}`,
+          revoked: false,
+          linkStale: false,
+          createdAt: before?.createdAt ?? new Date().toISOString(),
+        };
+        fake.accounts[client] = account;
+        return clone(account);
+      },
+      removeClient: async (orgId, client) => {
+        log("portal.removeClient", orgId, client);
+        guard();
+        delete fake.accounts[client];
+      },
+      newClientLink: async (orgId, client) => {
+        log("portal.newClientLink", orgId, client);
+        guard();
+        const account = fake.accounts[client];
+        const link = `https://test.example/p/${hex().padEnd(24, "0")}`;
+        if (account) {
+          account.link = link;
+          account.revoked = false;
+          account.linkStale = false;
+        }
+        return link;
+      },
+      revokeClientLink: async (orgId, client) => {
+        log("portal.revokeClientLink", orgId, client);
+        guard();
+        const account = fake.accounts[client];
+        if (account) {
+          account.link = null;
+          account.revoked = true;
+          account.linkStale = false;
+        }
+      },
+      noticeSettings: async (orgId) => {
+        log("portal.noticeSettings", orgId);
+        guard();
+        return clone({ number: fake.noticeNumber, numbers: fake.noticeNumbers });
+      },
+      setNoticeNumber: async (orgId, number) => {
+        log("portal.setNoticeNumber", orgId, number);
+        guard();
+        fake.noticeNumber = number;
+      },
+      markPublished: async (orgId, client, item, input = {}) => {
+        log("portal.markPublished", orgId, client, item, input);
+        guard();
+        const found = fake.items.find((i) => i.client === client && i.id === item);
+        if (!found) throw new ApiError(404, "not_found", "item not found");
+        if (found.status !== "scheduled") throw new ApiError(409, "conflict", "only a scheduled post is marked posted");
+        found.status = "published";
+        found.publishedAt = input.at ?? new Date().toISOString();
+        if (input.postUrl) found.postUrl = input.postUrl;
       },
     },
   };

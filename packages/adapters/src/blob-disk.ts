@@ -1,6 +1,6 @@
 import { chmod, mkdir, readdir, readFile, rm, writeFile } from "node:fs/promises";
 import { dirname, relative, resolve, sep } from "node:path";
-import type { BlobStore } from "./blob";
+import { type BlobStore, badBlobRange, readableRange } from "./blob";
 
 /**
  * Platform storage in a folder on this server's disk (`FILES_DIR`), for a
@@ -40,6 +40,25 @@ export function createDiskBlobStore(root: string): BlobStore {
       try {
         const [body, contentType] = await Promise.all([readFile(path), readFile(`${path}.type`, "utf8")]);
         return { body: new Uint8Array(body), contentType };
+      } catch (error) {
+        if (missing(error)) return null;
+        throw error;
+      }
+    },
+    async getRange(key, start, end) {
+      if (!readableRange(start, end)) throw badBlobRange(start, end);
+      const path = pathOf(key);
+      const file = Bun.file(path);
+      try {
+        const size = file.size;
+        const from = Math.min(start, Math.max(0, size - 1));
+        const to = Math.min(Math.max(from, end), Math.max(0, size - 1));
+        const [body, contentType] = await Promise.all([
+          // Only the part asked for is read off the disk: a player's jump to the last second never reads the whole file.
+          file.slice(from, to + 1).arrayBuffer(),
+          readFile(`${path}.type`, "utf8"),
+        ]);
+        return { body: new Uint8Array(body), contentType, total: size };
       } catch (error) {
         if (missing(error)) return null;
         throw error;

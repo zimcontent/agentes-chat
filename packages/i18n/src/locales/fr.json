@@ -17633,6 +17633,14 @@
         "credential": "une clé d'IA",
         "vault": "le Vault",
         "other": "l'espace de travail"
+      },
+      "portalClient": {
+        "renamed": "A renommé le client {{client}} sur le portail",
+        "hidden": "A retiré le client {{client}} des listes du portail",
+        "shown": "A de nouveau affiché le client {{client}} sur le portail",
+        "color": "A changé la couleur du client {{client}} sur le portail",
+        "logo": "A changé le logo du client {{client}} sur le portail",
+        "logoRemoved": "A retiré le logo du client {{client}} sur le portail"
       }
     },
     "panel": {
@@ -17713,7 +17721,8 @@
       "about": "À propos d’DougBot",
       "generalPersonal": "À propos de vous",
       "keysPersonal": "IA et applications",
-      "membersPersonal": "Personnes"
+      "membersPersonal": "Personnes",
+      "portal": "Clients du portail"
     },
     "advanced": "Avancé",
     "tab": {
@@ -17748,7 +17757,8 @@
       "usagePersonal": "Combien d'IA vos agents utilisent, et votre abonnement.",
       "connectorsPersonal": "Vos applications et serveurs MCP, connectés une fois pour vos agents.",
       "membersPersonal": "Qui est ici avec vous.",
-      "rolesPersonal": "Ce que chaque personne ici peut faire. Les propriétaires peuvent tout faire."
+      "rolesPersonal": "Ce que chaque personne ici peut faire. Les propriétaires peuvent tout faire.",
+      "portal": "Les clients qui approuvent vos publications, et le lien que chacun ouvre."
     },
     "support": {
       "title": "Contacter le support",
@@ -22100,6 +22110,19 @@
       "add_one": "Ajouter {{count}} fichier",
       "add_many": "Ajouter {{count}} fichiers",
       "add_other": "Ajouter {{count}} fichiers"
+    },
+    "clientEdit": {
+      "rename": "Renommer le client",
+      "renameTitle": "Renommer le client",
+      "renameHelp": "Le nom que votre équipe voit partout. Laissez vide pour revenir à « {{id}} ».",
+      "name": "Nom",
+      "renamed": "Nom enregistré",
+      "hide": "Retirer le client",
+      "hideTitle": "Retirer « {{name}} » ?",
+      "hideText": "Il quitte toutes les listes et tous les comptes d’ici. Ses publications et ses cartes restent sur le portail, et vous pouvez le faire revenir depuis Clients masqués.",
+      "hidden": "« {{name}} » retiré",
+      "hiddenTitle": "Clients masqués",
+      "show": "Afficher de nouveau"
     }
   },
   "dougTeam": {
@@ -22218,5 +22241,43 @@
         "educativo": "Pédagogique"
       }
     }
+  },
+  "portalClients": {
+    "title": "Clients du portail",
+    "lead": "Chaque client approuve vos publications sur son propre lien, sans compte. Ses contacts sont prévenus par e-mail et WhatsApp quand une publication les attend.",
+    "add": "Ajouter un client",
+    "addTitle": "Nouveau client",
+    "edit": "Modifier",
+    "editTitle": "Client",
+    "remove": "Retirer",
+    "removeTitle": "Retirer ce client ?",
+    "removeText": "Son lien cesse de fonctionner et ses publications quittent sa page. Le travail reste sur le tableau.",
+    "loading": "Chargement…",
+    "empty": "Pas encore de client. Ajoutez-en un pour avoir un lien à envoyer.",
+    "noContacts": "Pas encore de contact : personne n'est prévenu quand une publication attend.",
+    "id": "Id du client (minuscules, sans espaces)",
+    "name": "Nom",
+    "contactName": "Nom du contact",
+    "email": "E-mail",
+    "whatsapp": "WhatsApp avec l'indicatif du pays",
+    "addContact": "Ajouter un contact",
+    "dropContact": "Retirer le contact",
+    "link": "Lien du client",
+    "copy": "Copier le lien",
+    "copied": "Lien copié",
+    "copyFailed": "Impossible de copier le lien",
+    "revoked": "Le lien a été révoqué",
+    "linkStale": "Ce lien doit être refait : créez-en un nouveau à envoyer",
+    "noticesTitle": "Avis par WhatsApp",
+    "noticesLead": "Les contacts d’un client sont toujours prévenus par e-mail. Le WhatsApp ne part que du numéro que vous choisissez ici : sans aucun, rien n’est envoyé par WhatsApp, et le numéro personnel de quiconque n’est jamais utilisé.",
+    "noticesNumber": "Numéro qui prévient",
+    "noticesNone": "Aucun : e-mail seul",
+    "noticesNoNumbers": "Aucun numéro connecté pour l’instant. Connectez-en un dans Réglages › WhatsApp pour prévenir aussi par là.",
+    "locale": "Prévenu en {{language}}",
+    "localeLabel": "Langue",
+    "localeHint": "La langue des e-mails et des messages que reçoivent les contacts de ce client. Jamais devinée d’après un nom ; sans choix ici, c’est celle de l’équipe.",
+    "localeOwner": "La langue de l’équipe",
+    "newLink": "Nouveau lien",
+    "revoke": "Révoquer le lien"
   }
 }

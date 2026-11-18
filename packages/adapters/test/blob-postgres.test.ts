@@ -62,3 +62,17 @@ test("any other key is refused", async () => {
   }
   expect(await db.select().from(schema.blobs)).toEqual([]);
 });
+
+test("the part a range asks for, and the same refusal of one before the first byte", async () => {
+  const [org] = await db.insert(schema.organizations).values({ name: "Acme" }).returning();
+  if (!org) throw new Error("no org");
+  const store = createPostgresBlobStore(db);
+  await store.put(`orgs/${org.id}/reel.mp4`, bytes("0123456789"), { contentType: "video/mp4" });
+  expect(await store.getRange?.(`orgs/${org.id}/reel.mp4`, 2, 5)).toEqual({
+    body: bytes("2345"),
+    contentType: "video/mp4",
+    total: 10,
+  });
+  await expect(store.getRange?.(`orgs/${org.id}/reel.mp4`, -1, 4)).rejects.toThrow(RangeError);
+  await expect(store.getRange?.(`orgs/${org.id}/reel.mp4`, 5, 2)).rejects.toThrow(RangeError);
+});

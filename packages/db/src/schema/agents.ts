@@ -18,6 +18,7 @@ import {
 import { users } from "./auth";
 import { machineAccounts, machines } from "./machines";
 import { organizationMembers, organizations } from "./tenancy";
+import { whatsappAccounts } from "./whatsapp";
 
 /**
  * API keys of model providers, owned by the organization (BYOK). Never
@@ -462,6 +463,18 @@ export const organizationSettings = pgTable("organization_settings", {
    * packages/engine/src/sidebar-items.ts): one workspace's operation needs tools another doesn't. Empty: every tool.
    */
   hiddenTools: text().array().notNull().default(sql`'{}'::text[]`),
+  /**
+   * The workspace's own WhatsApp number the approval portal's notices go out as (docs/adr/
+   * doug-0031-embedded-approval-portal.md §7), one of `whatsapp_accounts`. Null: none, and the notices go by e-mail
+   * alone: a client's number is never texted from a number the workspace didn't pick here.
+   */
+  portalNoticeNumber: uuid().references(() => whatsappAccounts.id, { onDelete: "set null" }),
+  /**
+   * Who chose the number above: a choice whose author may no longer use that number (taken off its `people` list,
+   * with no `manage_connectors` to see every number) tells nothing, and the portal goes by e-mail alone until someone
+   * picks one again (`chosenNumber`, portal-notices.ts).
+   */
+  portalNoticeNumberBy: text().references(() => users.id, { onDelete: "set null" }),
   /**
    * The Doug team made here (docs/adr/doug-0030-time-doug.md), null for none: its card, the agents it made by their
    * template's handle, and whether the right hand took the DOUG's role (its instructions in `rightHandPrompt`). A

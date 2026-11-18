@@ -510,7 +510,14 @@ export function buildEngine(o: EngineOptions) {
       createPassToolSource(),
       createArtifactToolSource(artifacts),
       // The approval portal's board and `send_for_approval` (ADR 9001): listed only with a portal.
-      createPortalToolSource({ portal: adapters.approvalPortal ?? null, artifacts }),
+      createPortalToolSource({
+        portal: adapters.approvalPortal ?? null,
+        artifacts,
+        // On a server that keeps its own portal, an agent may add a client and answer its link (docs/adr/doug-0031).
+        ...(adapters.approvalPortalEmbedded
+          ? { clients: { publicUrl: config.PUBLIC_URL, secret: config.AGENTES_SECRET } }
+          : {}),
+      }),
       // Images and videos paid from the workspace's wallet (ADR doug-0011): listed only with the Zim Mídia service.
       createMediaGenerationToolSource(media),
       // A video an agent edited, sent for the team's review (docs/adr/doug-0007-video-review.md).
@@ -904,6 +911,27 @@ export function buildEngine(o: EngineOptions) {
     videoReviews,
     // The agent answering a WhatsApp number, with its own brain: its API model, or its plan on its computer.
     ...(whatsappAgent ? { whatsapp: whatsappAgent } : {}),
+    // The clients of the installation's own approval portal are told a post waits on them (docs/adr/
+    // doug-0031-embedded-approval-portal.md): e-mail, and a text from the workspace's number when it has one.
+    ...(adapters.approvalPortalEmbedded
+      ? {
+          portalNotify: {
+            db,
+            publicUrl: config.PUBLIC_URL,
+            secret: config.AGENTES_SECRET,
+            email: adapters.email,
+            whatsapp: adapters.whatsapp
+              ? {
+                  gateway: adapters.whatsapp,
+                  keyWrappers,
+                  pubsub: adapters.pubsub,
+                  hookBase: (config.WHATSAPP_HOOK_URL ?? config.PUBLIC_URL).replace(/\/+$/, ""),
+                }
+              : null,
+            log: o.log,
+          },
+        }
+      : {}),
     db,
     gateway,
     pubsub: adapters.pubsub,

@@ -12,34 +12,45 @@ import {
   approveForClient,
   can,
   cancelPortalTask,
+  getPortalClient,
+  listPortalClients,
+  makeClientLink,
   myPortalWork,
   PORTAL_COLUMNS,
   PORTAL_SEND_FILES,
   PORTAL_WHEN,
   personPortalReader,
+  portalBelongsTo,
   portalBoard,
   portalClientLogoFile,
   portalClientNaming,
   portalClientSettingsOf,
   portalHere,
   portalLogoPath,
+  portalNoticeActorOf,
+  portalNoticeSettingsOf,
   portalOverview,
   portalPipeline,
   portalPlan,
   portalTaskRefs,
   portalToSchedule,
   recordAudit,
+  removePortalClient,
   removePortalClientLogo,
   requireChangePermission,
   requirePermission,
+  revokeClientLink,
   sendForApproval,
   setAfterApprove,
   setPortalClientHidden,
   setPortalClientLogo,
   setPortalClientName,
+  setPortalNoticeNumber,
   startPortalAgent,
   syncPortalTasks,
   TEAM_APPROVAL_NOTE,
+  USER_LOCALES,
+  upsertPortalClient,
 } from "@agenteschat/engine";
 import { createRoute, z } from "@hono/zod-openapi";
 import type { Context } from "hono";
@@ -63,6 +74,23 @@ const tags = ["Approval portal"];
 export const PORTAL_SENDS_PER_PERSON = { limit: 30, windowMs: 60_000 };
 
 const Missing = z.enum(["cover", "caption", "editor", "date"]);
+/** A client of the installation's own portal, with its contacts and the address of its link (`docs/adr/doug-0031`). */
+const PortalClient = z
+  .object({
+    id: z.string(),
+    client: z.string(),
+    name: z.string(),
+    contacts: z.array(
+      z.object({ id: z.string(), name: z.string(), email: z.string().nullable(), whatsapp: z.string().nullable() }),
+    ),
+    color: z.enum(PORTAL_CLIENT_COLORS).nullable(),
+    /** The language its notices are written in; null: the workspace owner's own. */
+    locale: z.string().nullable(),
+    link: z.string().nullable().openapi({ description: "The client's page's own address; null while revoked." }),
+    revoked: z.boolean(),
+    createdAt: z.string(),
+  })
+  .openapi("PortalClient");
 const ClientId = z.string().regex(/^[a-z0-9][a-z0-9-]{0,63}$/);
 const CardId = z.string().regex(/^c-[0-9a-f]{6,32}$/);
 const ItemId = z.string().regex(/^[A-Za-z0-9][A-Za-z0-9_-]{0,80}$/);
@@ -204,7 +232,7 @@ const unavailable = errorResponse("The approval portal didn't answer");
  * give agents work (`assign_work`) changes cards and sends. 404 `portal.off` on a server with no portal.
  */
 export function portalRoutes(deps: AppDeps) {
-  const { db, adapters } = deps;
+  const { db, adapters, config } = deps;
   const app = createAppRouter(deps);
   app.use("/organizations/*", requireSession(deps.auth));
   app.use("/portal-logos/*", requireSession(deps.auth));
@@ -1289,6 +1317,320 @@ export function portalRoutes(deps: AppDeps) {
       if (out.value === null) return apiError(c, 404, "not_found", "No such comment");
       if (out.value === "forbidden") return apiError(c, 403, "forbidden", "That comment isn't yours");
       return c.json({ card: out.value }, 200);
+    },
+  );
+
+  // ---------- the installation's own portal: its clients and their links ----------
+
+  // Who may see the clients and their links: only where this server keeps its own portal (a bridge's clients live at
+  // that service). Every route below answers `404 portal.off` on a server with a bridge or with no portal.
+  const ownPortal = () => Boolean(adapters.approvalPortalEmbedded && adapters.approvalPortal);
+  const clientDeps = () => ({ db, publicUrl: config.PUBLIC_URL, secret: config.AGENTES_SECRET });
+  /**
+   * The portal is one workspace's (ADR 9001 §18, `portalBelongsTo`): every other workspace on the same server answers
+   * `404 portal.off` on each of these, so a second business never sees or makes a client of the first. Read on every
+   * request, not cached: a client made here is the workspace's from then on.
+   */
+  const itsPortal = async <C extends Context>(c: C, orgId: string) => {
+    if (!ownPortal() || !(await portalBelongsTo(db, orgId))) {
+      return portalOff(c);
+    }
+    return null;
+  };
+  /** What a change of a client or its link leaves in the log (audit.ts): who, what, and which one. */
+  const auditClient = async (
+    orgId: string,
+    userId: string,
+    action:
+      | "portal.client_created"
+      | "portal.client_updated"
+      | "portal.client_removed"
+      | "portal.link_made"
+      | "portal.link_revoked",
+    client: string,
+    details: Record<string, unknown> = {},
+  ) =>
+    recordAudit(db, {
+      orgId,
+      actor: { type: "person", id: userId },
+      action,
+      target: { type: "portal_client", id: client },
+      details,
+    });
+
+  app.openapi(
+    createRoute({
+      method: "get",
+      path: "/organizations/{orgId}/portal-clients",
+      tags,
+      security,
+      summary: "The installation's portal clients, each with its contacts and its own link (members)",
+      description:
+        "On a server that keeps its own approval portal (no bridge): each client the team makes work for, its name, its contacts told when a post waits on them, and the address of its link, `<PUBLIC_URL>/p/<token>`. 404 `portal.off` when the portal is a bridge's or absent.",
+      request: { params: OrgParams },
+      responses: {
+        200: json(
+          z.object({
+            clients: z.array(PortalClient.omit({ link: true })),
+            /** The clients' links, shown only to who may manage the portal (`assign_work`), by the client's id. */
+            links: z
+              .record(z.string(), z.string())
+              .openapi({ description: "Each client's live address; a client the caller can't manage is absent." }),
+          }),
+        ),
+        ...errors,
+        404: off,
+      },
+    }),
+    async (c) => {
+      const { orgId } = c.req.valid("param");
+      const refused = await itsPortal(c, orgId);
+      if (refused) return refused;
+      const membership = await requirePermission(db, c.get("user").id, orgId, "read");
+      const clients = await listPortalClients(clientDeps(), orgId);
+      // A client's link is its own address: a member who may read the clients sees the names and contacts, and only
+      // someone who may manage the portal (`assign_work`) is given the links to send.
+      const mayManage = can(membership, "assign_work");
+      const links: Record<string, string> = {};
+      for (const client of clients) if (mayManage && client.link) links[client.client] = client.link;
+      return c.json({ clients: clients.map(({ link: _link, ...row }) => row), links }, 200);
+    },
+  );
+
+  app.openapi(
+    createRoute({
+      method: "put",
+      path: "/organizations/{orgId}/portal-clients/{client}",
+      tags,
+      security,
+      summary: "Make a client, or change its name, contacts and colour (assign_work)",
+      description:
+        "The installation's own portal: a client's name, its contacts (each an `id`, a `name`, an `email` and/or a `whatsapp` with the country code) and a colour. A new client starts with a link of its own. What the team's clients are called by is `client` (lowercase letters, digits, hyphens).",
+      request: {
+        params: OrgParams.extend({ client: z.string().regex(/^[a-z0-9][a-z0-9-]{0,63}$/) }),
+        body: body(
+          z.object({
+            name: z.string().trim().min(1).max(80),
+            contacts: z
+              .array(
+                z.object({
+                  id: z.string().max(80).optional(),
+                  name: z.string().trim().min(1).max(80),
+                  email: z.string().trim().max(200).nullish(),
+                  whatsapp: z.string().trim().max(24).nullish(),
+                }),
+              )
+              .max(10)
+              .optional(),
+            color: z.enum(PORTAL_CLIENT_COLORS).nullable().optional(),
+            /** The language its notices are written in; null (or absent): the workspace owner's own. */
+            locale: z.enum(USER_LOCALES).nullable().optional(),
+          }),
+        ),
+      },
+      responses: {
+        200: json(z.object({ client: PortalClient })),
+        ...errors,
+        404: off,
+      },
+    }),
+    async (c) => {
+      const { orgId, client } = c.req.valid("param");
+      const refused = await itsPortal(c, orgId);
+      if (refused) return refused;
+      const user = c.get("user");
+      await requireChangePermission(db, user.id, orgId, "assign_work");
+      const input = c.req.valid("json");
+      const existed = Boolean(await getPortalClient(db, orgId, client));
+      const saved = await upsertPortalClient(clientDeps(), orgId, { client, ...input }, user.id);
+      await auditClient(orgId, user.id, existed ? "portal.client_updated" : "portal.client_created", client, {
+        name: saved.name,
+      });
+      return c.json({ client: saved }, 200);
+    },
+  );
+
+  app.openapi(
+    createRoute({
+      method: "delete",
+      path: "/organizations/{orgId}/portal-clients/{client}",
+      tags,
+      security,
+      summary: "Remove a client and its links (assign_work)",
+      request: { params: OrgParams.extend({ client: z.string().regex(/^[a-z0-9][a-z0-9-]{0,63}$/) }) },
+      responses: { ...noContent, ...errors, 404: off },
+    }),
+    async (c) => {
+      const { orgId, client } = c.req.valid("param");
+      const refused = await itsPortal(c, orgId);
+      if (refused) return refused;
+      const user = c.get("user");
+      await requireChangePermission(db, user.id, orgId, "assign_work");
+      const found = await getPortalClient(db, orgId, client);
+      await removePortalClient(db, orgId, client);
+      if (found) await auditClient(orgId, user.id, "portal.client_removed", client, { name: found.name });
+      return c.body(null, 204);
+    },
+  );
+
+  app.openapi(
+    createRoute({
+      method: "post",
+      path: "/organizations/{orgId}/portal-clients/{client}/link",
+      tags,
+      security,
+      summary: "Make a new link for a client, revoking the one before (assign_work)",
+      description:
+        "The client's old address stops working as the new one is made. Answers the new address, `<PUBLIC_URL>/p/<token>`, to copy and send.",
+      request: { params: OrgParams.extend({ client: z.string().regex(/^[a-z0-9][a-z0-9-]{0,63}$/) }) },
+      responses: {
+        200: json(z.object({ link: z.string() })),
+        ...errors,
+        404: off,
+      },
+    }),
+    async (c) => {
+      const { orgId, client } = c.req.valid("param");
+      const refused = await itsPortal(c, orgId);
+      if (refused) return refused;
+      const user = c.get("user");
+      await requireChangePermission(db, user.id, orgId, "assign_work");
+      const found = await getPortalClient(db, orgId, client);
+      if (!found) return apiError(c, 404, "not_found", "No such client");
+      const link = await makeClientLink(clientDeps(), orgId, found.id, user.id);
+      await auditClient(orgId, user.id, "portal.link_made", client);
+      return c.json({ link }, 200);
+    },
+  );
+
+  app.openapi(
+    createRoute({
+      method: "delete",
+      path: "/organizations/{orgId}/portal-clients/{client}/link",
+      tags,
+      security,
+      summary: "Revoke a client's link: the address answers nothing from then on (assign_work)",
+      request: { params: OrgParams.extend({ client: z.string().regex(/^[a-z0-9][a-z0-9-]{0,63}$/) }) },
+      responses: { ...noContent, ...errors, 404: off },
+    }),
+    async (c) => {
+      const { orgId, client } = c.req.valid("param");
+      const refused = await itsPortal(c, orgId);
+      if (refused) return refused;
+      const user = c.get("user");
+      await requireChangePermission(db, user.id, orgId, "assign_work");
+      await revokeClientLink({ db }, orgId, client);
+      await auditClient(orgId, user.id, "portal.link_revoked", client);
+      return c.body(null, 204);
+    },
+  );
+
+  // The number the portal's notices go out as, and the connected ones to pick from (docs/adr/doug-0031 §7).
+  app.openapi(
+    createRoute({
+      method: "get",
+      path: "/organizations/{orgId}/portal-notices",
+      tags,
+      security,
+      summary: "Which of the workspace's WhatsApp numbers tells the portal's clients, and the ones it may be (members)",
+      description:
+        "The approval portal's notices go out by e-mail to a client's contacts, and by WhatsApp from the number chosen here, when there is one: with none, nothing goes by WhatsApp. `numbers` are the workspace's connected numbers.",
+      request: { params: OrgParams },
+      responses: {
+        200: json(
+          z.object({
+            number: z.string().nullable(),
+            numbers: z.array(z.object({ id: z.string(), label: z.string(), phone: z.string().nullable() })),
+          }),
+        ),
+        ...errors,
+        404: off,
+      },
+    }),
+    async (c) => {
+      const { orgId } = c.req.valid("param");
+      const refused = await itsPortal(c, orgId);
+      if (refused) return refused;
+      await requirePermission(db, c.get("user").id, orgId, "read");
+      const actor = await portalNoticeActorOf(db, c.get("user").id, orgId);
+      return c.json(await portalNoticeSettingsOf(db, orgId, actor), 200);
+    },
+  );
+
+  app.openapi(
+    createRoute({
+      method: "put",
+      path: "/organizations/{orgId}/portal-notices",
+      tags,
+      security,
+      summary: "Set the number the portal's notices go out as, or none with null (assign_work)",
+      request: {
+        params: OrgParams,
+        body: body(z.object({ number: z.string().nullable() })),
+      },
+      responses: { ...noContent, ...errors, 404: off },
+    }),
+    async (c) => {
+      const { orgId } = c.req.valid("param");
+      const refused = await itsPortal(c, orgId);
+      if (refused) return refused;
+      const user = c.get("user");
+      await requireChangePermission(db, user.id, orgId, "assign_work");
+      const actor = await portalNoticeActorOf(db, user.id, orgId);
+      await setPortalNoticeNumber(db, orgId, c.req.valid("json").number, actor);
+      await recordAudit(db, {
+        orgId,
+        actor: { type: "person", id: user.id },
+        action: "portal.notice_number_set",
+        target: { type: "portal", id: orgId },
+        details: { number: c.req.valid("json").number },
+      });
+      return c.body(null, 204);
+    },
+  );
+
+  // A person says a scheduled post is out (the way out of `scheduled` that this server has no publisher for). The
+  // installation's own portal's alone: a bridge's portal publishes through its own publisher, and nothing here says a
+  // post of its went out.
+  app.openapi(
+    createRoute({
+      method: "post",
+      path: "/organizations/{orgId}/portal/clients/{client}/items/{itemId}/published",
+      tags,
+      security,
+      summary: "Mark a scheduled post posted: when it went out, and where, when known (assign_work)",
+      description:
+        "A post approved and scheduled turns `published` here, with its date and (when the team wrote one) its address: this server has no publishing service, so a person says it went out. Only a `scheduled` post takes it. The installation's own portal's alone: a bridge's answers `404 portal.off`.",
+      request: {
+        params: OrgParams.extend({ client: ClientId, itemId: ItemId }),
+        body: body(
+          z
+            .object({
+              at: z.string().max(40).nullable().optional(),
+              postUrl: z.string().url().max(2000).nullable().optional(),
+            })
+            .strict(),
+        ),
+      },
+      responses: { ...noContent, 502: unavailable, ...errors, 404: off },
+    }),
+    async (c) => {
+      const { orgId, client, itemId } = c.req.valid("param");
+      const refused = await itsPortal(c, orgId);
+      if (refused) return refused;
+      const user = c.get("user");
+      await requireChangePermission(db, user.id, orgId, "assign_work");
+      const input = c.req.valid("json");
+      const out = await guarded(c, (portal) => portal.markPublished(client, itemId, input, user.id));
+      if (!out.ok) return out.response;
+      await recordAudit(db, {
+        orgId,
+        actor: { type: "person", id: user.id },
+        action: "portal.published",
+        target: { type: "portal_post", id: `${client}/${itemId}` },
+        details: { ...(input.postUrl ? { postUrl: input.postUrl } : {}) },
+      });
+      return c.body(null, 204);
     },
   );
 

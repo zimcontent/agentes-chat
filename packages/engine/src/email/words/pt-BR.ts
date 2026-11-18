@@ -516,6 +516,20 @@ export const ptBR: Words = {
     table: (day) => `A tabela inteira: bun run report:autonomy --day ${day}`,
     why: "Você recebeu este e-mail porque este endereço está em OPS_REPORT_EMAIL neste servidor. Ele sai uma vez por dia.",
   },
+  portalReady: {
+    subject: (client) => `${client}: tem novidade para você aprovar`,
+    preheader: "Abra a sua página para ver, aprovar ou pedir um ajuste.",
+    headline: "Tem novidade para você aprovar",
+    body: (client) => [
+      "Uma publicação do ",
+      { b: client },
+      " está esperando o seu OK. Abra a sua página para assistir, ler a legenda e aprovar ou pedir um ajuste.",
+    ],
+    post: "Esperando você",
+    version: (title, version) => (version > 1 ? `${title} (nova versão, V${version})` : title),
+    button: "Ver e aprovar",
+    why: (client) => `Você recebeu este e-mail porque o ${client} pediu a sua aprovação em uma publicação.`,
+  },
   planOpened: {
     subject: (plan) => `Mais pessoas podem falar com seu agente pelo seu plano do ${plan}`,
     preheader: (plan) => `As conversas delas usam o seu plano do ${plan} e os limites dele.`,

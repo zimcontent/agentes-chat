@@ -1,5 +1,5 @@
 import { createHash, createHmac } from "node:crypto";
-import type { BlobStore } from "./blob";
+import { type BlobStore, badBlobRange, readableRange } from "./blob";
 
 /** The HTTP transport (global `fetch` by default; a fake S3 server in tests). */
 export type S3Fetch = (url: string, init: RequestInit) => Promise<Response>;
@@ -30,6 +30,8 @@ export type StorageErrorCode =
   | "network"
   | "not_found"
   | "invalid_endpoint"
+  /** The bucket refused the part a `Range` asked for (its `416`): the object is shorter than the caller believed. */
+  | "range_not_satisfiable"
   | "other";
 
 /** A storage failure with a code the app can explain ("The key was not accepted"…). */
@@ -112,6 +114,11 @@ export function s3Error(status: number, body: string): StorageError {
   if (REGION_CODES.includes(code) || status === 301) return new StorageError("region", text, status);
   if (code === "AccessDenied" || status === 403) return new StorageError("permission", text, status);
   if (code === "NoSuchKey" || status === 404) return new StorageError("not_found", text, status);
+  // A part past the object's end (`InvalidRange`): the caller's range, not a failure of the bucket, and it has to
+  // come back as the `416` it is rather than as an unexpected error.
+  if (code === "InvalidRange" || status === 416) {
+    return new StorageError("range_not_satisfiable", text, 416);
+  }
   return new StorageError("other", text, status);
 }
 
@@ -144,6 +151,8 @@ export function createS3BlobStore(
       payloadHash?: string;
       contentType?: string;
       timeoutMs?: number;
+      /** Extra request headers, signed on the request (S3's `Range`, for one). */
+      headers?: Record<string, string>;
     } = {},
   ): Promise<Response> {
     const { origin, host, path } = locate(settings, key);
@@ -155,6 +164,7 @@ export function createS3BlobStore(
       "x-amz-content-sha256": payloadHash,
       "x-amz-date": amzDate,
       ...(init.contentType ? { "content-type": init.contentType } : {}),
+      ...(init.headers ?? {}),
     };
     const names = Object.keys(headers).sort();
     const canonicalHeaders = names.map((n) => `${n}:${String(headers[n]).trim()}\n`).join("");
@@ -219,6 +229,34 @@ export function createS3BlobStore(
     },
     async stream(key) {
       return (await object(key, STREAM_TIMEOUT_MS))?.body ?? null;
+    },
+    async getRange(key, start, end) {
+      if (!readableRange(start, end)) throw badBlobRange(start, end);
+      // S3 answers a `Range` with just that part, so a player's jump reads a chunk and never the whole object.
+      const res = await send("GET", key, { headers: { range: `bytes=${start}-${end}` } });
+      if (res.status === 404) {
+        const err = await fail(res);
+        if (err.code === "not_found") return null;
+        throw err;
+      }
+      if (!res.ok) throw await fail(res);
+      // `Content-Range: bytes a-b/total` names the object's whole size; the part's length is its body.
+      const total = Number(/\/\s*(\d+)\s*$/.exec(res.headers.get("content-range") ?? "")?.[1]);
+      const body = new Uint8Array(await res.arrayBuffer());
+      // A bucket behind a proxy (or a store that ignores `Range`) may answer `200` with the whole object: the part is
+      // cut out here, so every store's `getRange` always answers the bytes it was asked for.
+      if (res.status !== 206) {
+        return {
+          body: body.subarray(start, end + 1),
+          contentType: res.headers.get("content-type") ?? "application/octet-stream",
+          total: body.length,
+        };
+      }
+      return {
+        body,
+        contentType: res.headers.get("content-type") ?? "application/octet-stream",
+        total: Number.isFinite(total) ? total : end + 1,
+      };
     },
     async delete(key) {
       const res = await send("DELETE", key);
