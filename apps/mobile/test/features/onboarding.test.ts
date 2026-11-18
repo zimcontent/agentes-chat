@@ -106,7 +106,8 @@ test("the phone's steps are the web's, read from the workspace's data (ADR 0162)
   expect(flow).toContain("railState({");
   expect(flow).toContain("funnel: null,");
   // Nothing is finished behind the person's back: only an answered workspace with no plan to wait for opens by itself.
-  expect(flow).toContain('if (!known || at !== "open" || opening.current) return;');
+  // (Nor while the Doug team's brand step waits: finishing is refused until it is saved.)
+  expect(flow).toContain('if (!known || at !== "open" || brandPending || opening.current) return;');
   expect(flow).toContain('void open("done");');
   expect(flow).toContain('onEnter={() => void open("skipped")}');
   // A step answered on the web meanwhile moves this one on as the app comes back, so it never makes a second team.

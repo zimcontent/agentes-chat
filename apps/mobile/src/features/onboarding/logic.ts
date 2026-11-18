@@ -1,5 +1,6 @@
-import type { WorkspaceMode } from "@agenteschat/client";
+import type { BrandInput, BrandView, DougTemplateMember, TeamTemplate, WorkspaceMode } from "@agenteschat/client";
 import { knownErrorText } from "@agenteschat/client/lib/errors";
+import type { RailStep } from "@agenteschat/client/lib/onboarding";
 import { platformZoneName } from "@agenteschat/client/lib/routines";
 import { webmailOf } from "@agenteschat/client/lib/text";
 import type { TFunction } from "i18next";
@@ -89,3 +90,126 @@ export function orgNameFromEmail(email: string): string | null {
     .map((w) => w.charAt(0).toLocaleUpperCase() + w.slice(1))
     .join(" ");
 }
+
+/** The Doug team's template id (docs/adr/doug-0020-time-doug.md): the first card of the gallery. */
+export const DOUG_TEMPLATE = "doug";
+
+/** The Doug template of a gallery, when the server has it; an older server's gallery has none (the old step shows). */
+export const dougOf = (
+  templates: readonly TeamTemplate[],
+): (TeamTemplate & { members: DougTemplateMember[] }) | null => {
+  const t = templates.find((x) => x.id === DOUG_TEMPLATE);
+  return t?.members && t.members.length > 0 ? { ...t, members: t.members } : null;
+};
+
+/** The ready-made models other than the Doug team ("Outro modelo pronto"). */
+export const otherTemplates = (templates: readonly TeamTemplate[]) => templates.filter((x) => x.id !== DOUG_TEMPLATE);
+
+/** The three ways to start the team (the first question of the team step), in this order. */
+export const TEAM_STARTS = ["doug", "other", "scratch"] as const;
+export type TeamStart = (typeof TEAM_STARTS)[number];
+
+/** The team step's own screens: how to start, who joins the Doug team, or the old gallery of models. */
+export type TeamPhase = "how" | "members" | "other";
+
+/** What the "how" button does next. */
+export const phaseAfter = (start: TeamStart): TeamPhase | "scratch" =>
+  start === "doug" ? "members" : start === "other" ? "other" : "scratch";
+
+/**
+ * The members the Doug team template lists as people to check: the right hand is fixed, the rest (the manager's
+ * HQ under it) can be unchecked one by one. `top` are the rows of the list, `under` each one's reports.
+ */
+export function memberTree(members: readonly DougTemplateMember[]) {
+  const handles = new Set(members.map((m) => m.handle));
+  const under = new Map<string, DougTemplateMember[]>();
+  const top: DougTemplateMember[] = [];
+  for (const m of members) {
+    if (m.reportsTo && handles.has(m.reportsTo)) under.set(m.reportsTo, [...(under.get(m.reportsTo) ?? []), m]);
+    else top.push(m);
+  }
+  return { top, under };
+}
+
+/** The handles the person keeps: every member but the ones unchecked, the right hand always. */
+export const keptHandles = (members: readonly DougTemplateMember[], unchecked: ReadonlySet<string>): string[] =>
+  members.filter((m) => m.rightHand || !unchecked.has(m.handle)).map((m) => m.handle);
+
+/** An agent besides the right hand is needed: with only the Doug, the team would still be empty. */
+export const hasAgents = (members: readonly DougTemplateMember[], kept: readonly string[]) =>
+  members.some((m) => !m.rightHand && kept.includes(m.handle));
+
+/** The kept agents that work on a computer, for the notice and its button. */
+export const computerMembers = (members: readonly DougTemplateMember[], kept: readonly string[]) =>
+  members.filter((m) => m.needsComputer && kept.includes(m.handle));
+
+/** A set with `handle` taken in or out. */
+export function toggled(set: ReadonlySet<string>, handle: string): Set<string> {
+  const next = new Set(set);
+  if (!next.delete(handle)) next.add(handle);
+  return next;
+}
+
+/** The brand step is a step of the rail once the team's brand waits: right after the team, before the plan. */
+export type FlowStep = RailStep | "brand";
+export const withBrand = (steps: readonly RailStep[], brandPending: boolean): FlowStep[] => {
+  if (!brandPending) return [...steps];
+  const at = steps.indexOf("team");
+  return at < 0 ? [...steps] : [...steps.slice(0, at + 1), "brand", ...steps.slice(at + 1)];
+};
+
+/**
+ * The step on screen: the brand, once the team exists and its brand still waits (the data reaches the plan or the
+ * opening), unless the person went back to a step they had done (`picked`).
+ */
+export const flowStepAt = (f: {
+  step: RailStep;
+  at: RailStep | "open";
+  brandPending: boolean;
+  picked: RailStep | null;
+}): FlowStep => (f.brandPending && f.picked === null && (f.at === "plan" || f.at === "open") ? "brand" : f.step);
+
+/** The brand step's form, as typed. */
+export interface BrandForm {
+  company: string;
+  tones: readonly string[];
+  tone: string;
+  site: string;
+  instagram: string;
+  audience: string;
+  files: readonly { id: string; title: string }[];
+  link: string;
+}
+
+/** The company's name and a tone (tapped or written) are the two things the step can't go on without. */
+export const brandReady = (f: Pick<BrandForm, "company" | "tones" | "tone">) =>
+  f.company.trim() !== "" && (f.tones.length > 0 || f.tone.trim() !== "");
+
+/** What `PUT …/brand` takes: only what was filled in. */
+export function brandInput(f: BrandForm): BrandInput {
+  const [tone, site, instagram, audience, link] = [f.tone, f.site, f.instagram, f.audience, f.link].map((v) =>
+    v.trim(),
+  );
+  return {
+    company: f.company.trim(),
+    ...(f.tones.length > 0 ? { tones: [...f.tones] } : {}),
+    ...(tone ? { tone } : {}),
+    ...(site ? { site } : {}),
+    ...(instagram ? { instagram } : {}),
+    ...(audience ? { audience } : {}),
+    ...(f.files.length > 0 ? { files: f.files.map((x) => x.id) } : {}),
+    ...(link ? { links: [link] } : {}),
+  };
+}
+
+/** The form a saved brand starts from, or the company's name alone for a first visit. */
+export const brandFormOf = (brand: BrandView | null | undefined, company: string): BrandForm => ({
+  company: brand?.company ?? company,
+  tones: brand?.tones ?? [],
+  tone: brand?.tone ?? "",
+  site: brand?.site ?? "",
+  instagram: brand?.instagram ?? "",
+  audience: brand?.audience ?? "",
+  files: brand?.files ?? [],
+  link: brand?.links[0] ?? "",
+});

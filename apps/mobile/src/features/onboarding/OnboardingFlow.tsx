@@ -28,7 +28,23 @@ import { openWebPath } from "../links/open-web";
 import { ZoneList } from "../me/AccountPage";
 import { chooseAction } from "../settings/parts";
 import { usePersonPhoto } from "../shared/photo";
-import { orgNameFromEmail, PURPOSES, phoneTimezone, stepFailedText, workspaceAnswer, zoneLabel } from "./logic";
+import { BrandStep, dougFailure, MembersStep, StartStep, useDougTeam } from "./doug";
+import {
+  dougOf,
+  flowStepAt,
+  orgNameFromEmail,
+  otherTemplates,
+  PURPOSES,
+  phaseAfter,
+  phoneTimezone,
+  stepFailedText,
+  type TeamPhase,
+  type TeamStart,
+  toggled,
+  withBrand,
+  workspaceAnswer,
+  zoneLabel,
+} from "./logic";
 import { PurposeScene } from "./PurposeScene";
 import { BusinessStep, PlanStep, TeamStep } from "./steps";
 
@@ -69,6 +85,13 @@ export function OnboardingFlow({ onLeave, another }: { onLeave?: () => void; ano
   const [business, setBusiness] = useState<BusinessType | null>(null);
   const [template, setTemplate] = useState<string | null>(null);
   const [name, setName] = useState("");
+  // The team step's own screens (docs/adr/doug-0020-time-doug.md): how to start, who joins the Doug team.
+  const [teamPhase, setTeamPhase] = useState<TeamPhase>("how");
+  const [start, setStart] = useState<TeamStart>("doug");
+  const [unchecked, setUnchecked] = useState<ReadonlySet<string>>(new Set());
+  // "Conectar computador" taps: the computer's own flow opens once the workspace does (it needs the workspace chosen).
+  const [wantsComputer, setWantsComputer] = useState(false);
+  const [dougFailed, setDougFailed] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   // The zone the person picked here, if they did; said in one line with Trocar beside it.
@@ -106,7 +129,7 @@ export function OnboardingFlow({ onLeave, another }: { onLeave?: () => void; ano
   const context = settings.data?.context?.trim() ?? "";
   // Made here as "For me", or one being set up that is.
   const personal = isPersonal(mine) || (created !== null && purpose === "personal");
-  const { steps, at, step, index } = railState({
+  const { steps, at, step } = railState({
     orgId,
     standing: mine?.standing,
     billingUrl: authConfig?.billingUrl,
@@ -116,6 +139,11 @@ export function OnboardingFlow({ onLeave, another }: { onLeave?: () => void; ano
     personal,
     funnel: null,
   });
+  // The Doug team made, its brand waits: "Sua marca" comes right after the team and the onboarding can't end without it.
+  const brandPending = mine?.onboarding?.brandPending === true;
+  const view = flowStepAt({ step, at, brandPending, picked });
+  const flowSteps = withBrand(steps, brandPending);
+  const flowIndex = flowSteps.indexOf(view);
   // Before the workspace exists, what it is for comes first.
   const asking = orgId === null && !forTeam;
   // Read once is enough: a refetch that fails later keeps the step on screen with what it read.
@@ -128,7 +156,10 @@ export function OnboardingFlow({ onLeave, another }: { onLeave?: () => void; ano
     i18n.language,
     orgId !== null && (step === "business" || step === "team"),
   );
-  const chosen = templateFor(templates.data ?? [], template, kind);
+  // The Doug team is the gallery's first card; the old step's models are the others ("Outro modelo pronto").
+  const doug = dougOf(templates.data ?? []);
+  const chosen = templateFor(doug ? otherTemplates(templates.data ?? []) : (templates.data ?? []), template, kind);
+  const makeDoug = useDougTeam(orgId ?? "");
   // The right hand works while anything saves, the steps' own requests included.
   const mutating = useIsMutating();
   const working = pending || mutating > 0;
@@ -185,6 +216,8 @@ export function OnboardingFlow({ onLeave, another }: { onLeave?: () => void; ano
       else if (dm) void qc.invalidateQueries({ queryKey: keys.dms(id) });
       if (how === "import") router.push("/settings/import");
       else router.push(chatHref(dm?.channelId ?? generalChannelId));
+      // The computer the person asked to connect while picking who joins, over the workspace that just opened.
+      if (wantsComputer && how !== "import") router.push("/settings/devices/connect");
     });
 
   /** Step 1: makes the workspace (or renames it, back here later), then the next step from its data. */
@@ -216,7 +249,7 @@ export function OnboardingFlow({ onLeave, another }: { onLeave?: () => void; ano
   // Everything answered and no plan to wait for (a server of one's own, or paid on the website meanwhile): it opens.
   const opening = useRef(false);
   useEffect(() => {
-    if (!known || at !== "open" || opening.current) return;
+    if (!known || at !== "open" || brandPending || opening.current) return;
     opening.current = true;
     void open("done");
   });
@@ -263,30 +296,41 @@ export function OnboardingFlow({ onLeave, another }: { onLeave?: () => void; ano
   const workspace = (mine?.name ?? orgName).trim();
   // The team joins the right hand on the sky once it is picked, and sleeps there until its plan.
   const crew =
-    step === "team" || step === "plan"
+    view === "team" || view === "plan"
       ? [
           { id: lodiLook.id, appearance: lodiLook, ...(working ? { mode: "run" as const } : {}) },
-          ...(team.length > 0 ? team : (chosen?.team.agents ?? [])).map((a) => ({
+          // The Doug team's own screens show its faces themselves: the sky keeps the right hand.
+          ...(team.length > 0 ? team : doug && teamPhase !== "other" ? [] : (chosen?.team.agents ?? [])).map((a) => ({
             id: a.handle,
             appearance: a.appearance,
-            ...(step === "plan" ? { mode: "sleep" as const } : {}),
+            ...(view === "plan" ? { mode: "sleep" as const } : {}),
           })),
         ]
       : null;
   // Back to the step before; from the first, back to the workspace the person came from (one made here waits for
   // them, as on the web).
-  const before = index > 0 ? steps[index - 1] : undefined;
-  const onBack = pending
-    ? undefined
-    : before
-      ? () => {
-          if (before === "name") setName(mine?.name ?? name);
-          setError(null);
-          setPicked(before);
-        }
-      : orgId === null && forTeam
-        ? () => setForTeam(false)
-        : onLeave;
+  const before = flowIndex > 0 ? flowSteps[flowIndex - 1] : undefined;
+  // On the team step's own screens, back goes to the screen before, then to the steps before it.
+  const dougScreens = view === "team" && doug !== null && team.length === 0;
+  const inTeamScreens = dougScreens && teamPhase !== "how";
+  const teamScreens = dougScreens && teamPhase !== "other";
+  const onBack =
+    pending || makeDoug.isPending
+      ? undefined
+      : inTeamScreens
+        ? () => {
+            setDougFailed(null);
+            setTeamPhase("how");
+          }
+        : before && before !== "brand"
+          ? () => {
+              if (before === "name") setName(mine?.name ?? name);
+              setError(null);
+              setPicked(before);
+            }
+          : orgId === null && forTeam
+            ? () => setForTeam(false)
+            : onLeave;
   const failedLine = error ? (
     <Text variant="small" tone="danger" accessibilityLiveRegion="polite" style={CENTER}>
       {error}
@@ -299,22 +343,26 @@ export function OnboardingFlow({ onLeave, another }: { onLeave?: () => void; ano
       progress={
         asking
           ? undefined
-          : `${t("onboarding.flow.stepOf", { n: index + 1, total: steps.length })} · ${t(`onboarding.flow.steps.${step}`)}`
+          : `${t("onboarding.flow.stepOf", { n: flowIndex + 1, total: flowSteps.length })} · ${view === "brand" ? t("mobile.dougOnb.step") : t(`onboarding.flow.steps.${view}`)}`
       }
       title={
         asking
           ? another
             ? t("mobile.onb.anotherPurpose")
             : t("onboarding.purpose.title")
-          : step === "name"
+          : view === "name"
             ? another
               ? t("mobile.onb.anotherTitle")
               : t("onboarding.workspace.title")
-            : step === "business"
+            : view === "business"
               ? t("agentSetup.firstRun.about.title", { org: workspace })
-              : step === "team"
-                ? t("onboarding.flow.team.title")
-                : t("onboarding.flow.plan.title")
+              : view === "brand"
+                ? t("mobile.dougOnb.brandTitle")
+                : view === "team"
+                  ? teamScreens
+                    ? t(teamPhase === "members" ? "mobile.dougOnb.membersTitle" : "mobile.dougOnb.howTitle")
+                    : t("onboarding.flow.team.title")
+                  : t("onboarding.flow.plan.title")
       }
       // The right hand's line for the step; the name's step says first what the e-mail suggested, or where this
       // workspace goes beside the one the person is in.
@@ -323,17 +371,22 @@ export function OnboardingFlow({ onLeave, another }: { onLeave?: () => void; ano
           ? another
             ? t("mobile.onb.anotherLead", { org: another })
             : t("onboarding.purpose.lead")
-          : step !== "name"
-            ? say
-            : another
-              ? t("mobile.onb.anotherLead", { org: another })
-              : suggested && name === suggested
-                ? t("mobile.onb.suggested", { domain: email.split("@")[1] ?? "", org: suggested })
-                : say
+          : view === "brand"
+            ? t("mobile.dougOnb.brandLead")
+            : teamScreens
+              ? t(teamPhase === "members" ? "mobile.dougOnb.membersLead" : "mobile.dougOnb.howLead")
+              : view !== "name"
+                ? say
+                : another
+                  ? t("mobile.onb.anotherLead", { org: another })
+                  : suggested && name === suggested
+                    ? t("mobile.onb.suggested", { domain: email.split("@")[1] ?? "", org: suggested })
+                    : say
       }
-      stepKey={asking ? "purpose" : step}
-      // The sentence of step 2 sits under the business list.
-      scrollToFocus={step === "business"}
+      stepKey={asking ? "purpose" : teamScreens ? `team-${teamPhase}` : view}
+      // The sentence of step 2 sits under the business list, and the brand's fields are low on a long screen.
+      scrollToFocus={view === "business" || view === "brand"}
+      toolbar={view === "brand"}
       onBack={onBack}
       agent={lodiLook}
       agentMode={working ? "run" : "idle"}
@@ -414,7 +467,7 @@ export function OnboardingFlow({ onLeave, another }: { onLeave?: () => void; ano
           {failedLine}
           {unconfirmed ? <ConfirmationNote email={email} /> : null}
         </>
-      ) : step === "name" ? (
+      ) : view === "name" ? (
         <>
           <Locked when={pending} keepKeyboard style={{ gap: 8 }}>
             <AuthField
@@ -477,7 +530,7 @@ export function OnboardingFlow({ onLeave, another }: { onLeave?: () => void; ano
           </Modal>
           {unconfirmed ? <ConfirmationNote email={email} /> : null}
         </>
-      ) : step === "business" && orgId ? (
+      ) : view === "business" && orgId ? (
         <BusinessStep
           orgId={orgId}
           context={context}
@@ -489,12 +542,48 @@ export function OnboardingFlow({ onLeave, another }: { onLeave?: () => void; ano
             setPicked(null);
           }}
         />
-      ) : step === "team" && orgId ? (
+      ) : view === "brand" && orgId ? (
+        <BrandStep orgId={orgId} company={workspace} onSaved={() => setPicked(null)} />
+      ) : view === "team" && orgId && doug && teamScreens && teamPhase === "how" ? (
+        <StartStep
+          doug={doug}
+          start={start}
+          onStart={setStart}
+          leaving={pending}
+          onNext={() => {
+            const next = phaseAfter(start);
+            // Nothing but the Doug: the workspace opens with its right hand, no team made.
+            if (next === "scratch") void open("skipped");
+            else setTeamPhase(next);
+          }}
+        />
+      ) : view === "team" && orgId && doug && teamScreens ? (
+        <MembersStep
+          doug={doug}
+          unchecked={unchecked}
+          onToggle={(handle) => setUnchecked((s) => toggled(s, handle))}
+          wantsComputer={wantsComputer}
+          onWantsComputer={setWantsComputer}
+          failed={dougFailed}
+          creating={makeDoug.isPending}
+          onCreate={(handles) => {
+            setDougFailed(null);
+            makeDoug.mutate(
+              { handles, locale: i18n.language },
+              {
+                // A step that failed: its reason here, and the same button tries again.
+                onSuccess: (out) => setDougFailed(dougFailure(t, out, i18n.language)),
+                onError: (e) => setDougFailed(stepFailedText(t, e, i18n.language)),
+              },
+            );
+          }}
+        />
+      ) : view === "team" && orgId ? (
         <>
           <TeamStep
             orgId={orgId}
             team={team}
-            templates={templates.data ?? []}
+            templates={doug ? otherTemplates(templates.data ?? []) : (templates.data ?? [])}
             chosen={chosen}
             listFailed={templates.isError}
             onRetryList={() => void templates.refetch()}
@@ -507,7 +596,7 @@ export function OnboardingFlow({ onLeave, another }: { onLeave?: () => void; ano
           />
           {failedLine}
         </>
-      ) : step === "plan" && orgId ? (
+      ) : view === "plan" && orgId ? (
         <>
           <PlanStep
             orgId={orgId}
