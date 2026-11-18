@@ -937,6 +937,8 @@ export const ptBR = {
       context: "Contexto",
       import: "Trazer seus agentes",
       agents: "Agentes",
+      /** "Sua marca", depois do Time Doug (docs/adr/doug-0020-time-doug.md). */
+      brand: "Sua marca",
       computer: "Computador",
       ai: "IA",
       team: "Time",
@@ -15491,6 +15493,22 @@ export const ptBR = {
     teamProposal: {
       undoExpired:
         "Já passou um dia desde que este time foi criado, então não dá para desfazer aqui. Arquive os agentes nas páginas deles.",
+    },
+    /** O Time Doug e o passo da marca (docs/adr/doug-0020-time-doug.md). */
+    dougTeam: {
+      made: "Este workspace já tem o Time Doug. Desfaça o que ele criou, ou adicione os agentes que quiser, um por um.",
+      none: "Marque pelo menos um agente do Time Doug.",
+      unknown: "O Time Doug não tem {{handles}}.",
+    },
+    brand: {
+      /** `onboarding.brand_pending`: o passo "Sua marca" ainda estava aberto ao tentar terminar. */
+      pending: "Salve a marca antes de terminar. É o passo logo depois do time.",
+      companyRequired: "Diga o nome da empresa.",
+      toneRequired: "Escolha um tom de voz ou escreva com as suas palavras.",
+      unknownTone: "Esse tom de voz não é uma das opções. Escolha um da lista, ou escreva com as suas palavras.",
+      invalidLink: "Esse link não parece um endereço de site. Confira e tente de novo.",
+      invalidInstagram: "Isso não parece um perfil do Instagram. Escreva @seuperfil ou cole o link do perfil.",
+      fileMissing: "Um dos arquivos que você escolheu não está mais no seu Drive. Escolha de novo.",
     },
     agentProposal: {
       decided: "Alguém já decidiu esta proposta.",

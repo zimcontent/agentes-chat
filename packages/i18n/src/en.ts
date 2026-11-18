@@ -950,6 +950,8 @@ export const en = {
       context: "Context",
       import: "Bring your agents",
       agents: "Agents",
+      /** "Sua marca", after the Doug team (docs/adr/doug-0020-time-doug.md). */
+      brand: "Your brand",
       computer: "Computer",
       ai: "AI",
       team: "Team",
@@ -15524,6 +15526,23 @@ export const en = {
     teamProposal: {
       undoExpired:
         "It is more than a day since this team was created, so it can't be undone here. Archive its agents on their pages.",
+    },
+    /** The Doug team and its brand step (docs/adr/doug-0020-time-doug.md). */
+    dougTeam: {
+      made: "This workspace already has the Doug team. Undo the one it made, or add the agents you want one by one.",
+      none: "Check at least one agent of the Doug team.",
+      unknown: "The Doug team has no {{handles}}.",
+    },
+    brand: {
+      /** `onboarding.brand_pending`: the onboarding's "Sua marca" was still open when it tried to finish. */
+      pending: "Save the brand before finishing. It's the step right after the team.",
+      companyRequired: "Say the company's name.",
+      toneRequired: "Pick a tone of voice or write it in your own words.",
+      unknownTone:
+        "That tone of voice isn't one of the options. Pick one from the list, or write it in your own words.",
+      invalidLink: "That link doesn't look like a web address. Check it and try again.",
+      invalidInstagram: "That doesn't look like an Instagram profile. Write @yourprofile or paste the profile's link.",
+      fileMissing: "One of the files you picked isn't in your Drive anymore. Choose it again.",
     },
     agentProposal: {
       decided: "Someone already decided this proposal.",

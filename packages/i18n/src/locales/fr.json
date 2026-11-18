@@ -917,6 +917,7 @@
       "context": "Contexte",
       "import": "Amenez vos agents",
       "agents": "Agents",
+      "brand": "Votre marque",
       "computer": "Ordinateur",
       "ai": "IA",
       "team": "Équipe",
@@ -15795,6 +15796,20 @@
     },
     "teamProposal": {
       "undoExpired": "Plus d'un jour s'est écoulé depuis la création de cette équipe, elle ne peut donc plus être annulée ici. Archive ses agents sur leurs pages."
+    },
+    "dougTeam": {
+      "made": "Cet espace de travail a déjà l'Équipe Doug. Annulez celle qu'elle a créée, ou ajoutez les agents que vous voulez, un par un.",
+      "none": "Cochez au moins un agent de l'Équipe Doug.",
+      "unknown": "L'Équipe Doug n'a pas {{handles}}."
+    },
+    "brand": {
+      "pending": "Enregistrez la marque avant de terminer. C'est l'étape juste après l'équipe.",
+      "companyRequired": "Dites le nom de l'entreprise.",
+      "toneRequired": "Choisissez un ton de voix ou écrivez-le avec vos mots.",
+      "unknownTone": "Ce ton de voix n'est pas une des options. Choisissez-en un dans la liste, ou écrivez-le avec vos mots.",
+      "invalidLink": "Ce lien ne ressemble pas à une adresse web. Vérifiez-le et réessayez.",
+      "invalidInstagram": "Cela ne ressemble pas à un profil Instagram. Écrivez @votreprofil ou collez le lien du profil.",
+      "fileMissing": "Un des fichiers que vous avez choisis n'est plus dans votre Drive. Choisissez-le à nouveau."
     },
     "agentProposal": {
       "decided": "Quelqu'un a déjà tranché cette proposition.",

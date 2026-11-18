@@ -881,6 +881,7 @@
       "context": "컨텍스트",
       "import": "에이전트 가져오기",
       "agents": "에이전트",
+      "brand": "브랜드",
       "computer": "컴퓨터",
       "ai": "AI",
       "team": "팀",
@@ -14713,6 +14714,20 @@
     },
     "teamProposal": {
       "undoExpired": "이 팀을 만든 지 하루가 넘어서 여기서는 되돌릴 수 없어요. 각 에이전트 페이지에서 보관하세요."
+    },
+    "dougTeam": {
+      "made": "이 워크스페이스에는 이미 Doug 팀이 있어요. 만든 것을 되돌리거나, 원하는 에이전트를 하나씩 추가하세요.",
+      "none": "Doug 팀의 에이전트를 하나 이상 선택하세요.",
+      "unknown": "Doug 팀에는 {{handles}}이(가) 없어요."
+    },
+    "brand": {
+      "pending": "끝내기 전에 브랜드를 저장하세요. 팀 바로 다음 단계예요.",
+      "companyRequired": "회사 이름을 알려주세요.",
+      "toneRequired": "말투를 고르거나 직접 써 주세요.",
+      "unknownTone": "그 말투는 선택지에 없어요. 목록에서 고르거나 직접 써 주세요.",
+      "invalidLink": "그 링크는 웹 주소가 아닌 것 같아요. 확인하고 다시 시도하세요.",
+      "invalidInstagram": "Instagram 프로필이 아닌 것 같아요. @내프로필 이라고 쓰거나 프로필 링크를 붙여넣으세요.",
+      "fileMissing": "고른 파일 중 하나가 더 이상 Drive에 없어요. 다시 골라 주세요."
     },
     "agentProposal": {
       "decided": "이미 누군가 이 제안을 결정했어요.",

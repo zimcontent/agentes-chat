@@ -899,6 +899,7 @@
       "context": "Bağlam",
       "import": "Ajanlarınızı getirin",
       "agents": "Ajanlar",
+      "brand": "Markanız",
       "computer": "Bilgisayar",
       "ai": "Yapay zeka",
       "team": "Ekip",
@@ -15212,6 +15213,20 @@
     },
     "teamProposal": {
       "undoExpired": "Bu ekip oluşturulalı bir günden fazla oldu, bu yüzden burada geri alınamaz. Ajanları kendi sayfalarından arşivle."
+    },
+    "dougTeam": {
+      "made": "Bu çalışma alanında zaten Doug Ekibi var. Oluşturduğunu geri alın, ya da istediğiniz ajanları tek tek ekleyin.",
+      "none": "Doug Ekibi'nden en az bir ajan seçin.",
+      "unknown": "Doug Ekibi'nde {{handles}} yok."
+    },
+    "brand": {
+      "pending": "Bitirmeden önce markayı kaydedin. Ekipten hemen sonraki adım.",
+      "companyRequired": "Şirketin adını söyleyin.",
+      "toneRequired": "Bir ses tonu seçin ya da kendi sözlerinizle yazın.",
+      "unknownTone": "Bu ses tonu seçeneklerden biri değil. Listeden birini seçin ya da kendi sözlerinizle yazın.",
+      "invalidLink": "Bu bağlantı bir web adresine benzemiyor. Kontrol edip tekrar deneyin.",
+      "invalidInstagram": "Bu bir Instagram profiline benzemiyor. @profiliniz yazın ya da profilin bağlantısını yapıştırın.",
+      "fileMissing": "Seçtiğiniz dosyalardan biri artık Drive'ınızda değil. Tekrar seçin."
     },
     "agentProposal": {
       "decided": "Bu öneri hakkında zaten biri karar verdi.",

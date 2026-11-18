@@ -899,6 +899,7 @@
       "context": "Kontext",
       "import": "Deine Agenten mitbringen",
       "agents": "Agenten",
+      "brand": "Deine Marke",
       "computer": "Computer",
       "ai": "KI",
       "team": "Team",
@@ -15275,6 +15276,20 @@
     },
     "teamProposal": {
       "undoExpired": "Seit der Erstellung dieses Teams ist mehr als ein Tag vergangen, daher lässt es sich hier nicht rückgängig machen. Archiviere die Agenten auf ihren Seiten."
+    },
+    "dougTeam": {
+      "made": "Dieser Arbeitsbereich hat das Doug-Team schon. Mach das rückgängig, was es angelegt hat, oder füge die Agenten einzeln hinzu, die du willst.",
+      "none": "Wähle mindestens einen Agenten des Doug-Teams.",
+      "unknown": "Das Doug-Team hat {{handles}} nicht."
+    },
+    "brand": {
+      "pending": "Speichere die Marke, bevor du fertig wirst. Das ist der Schritt direkt nach dem Team.",
+      "companyRequired": "Nenn den Namen der Firma.",
+      "toneRequired": "Wähle einen Tonfall oder schreib ihn mit eigenen Worten.",
+      "unknownTone": "Dieser Tonfall ist keine der Optionen. Wähle einen aus der Liste oder schreib ihn mit eigenen Worten.",
+      "invalidLink": "Dieser Link sieht nicht wie eine Webadresse aus. Prüf ihn und versuch es noch einmal.",
+      "invalidInstagram": "Das sieht nicht wie ein Instagram-Profil aus. Schreib @deinprofil oder füg den Link des Profils ein.",
+      "fileMissing": "Eine der gewählten Dateien ist nicht mehr in deinem Drive. Wähl sie noch einmal."
     },
     "agentProposal": {
       "decided": "Über diesen Vorschlag hat schon jemand entschieden.",

@@ -128,7 +128,7 @@ describe("making it", () => {
     // One right hand, no second DOUG.
     const builtin = [...agents.values()].filter((a) => a.builtin === RIGHT_HAND);
     expect(builtin).toHaveLength(1);
-    expect([...agents.keys()].filter((h) => h.startsWith("doug"))).toEqual([builtin[0]?.handle]);
+    expect([...agents.keys()].filter((h) => h.startsWith("doug"))).toEqual([builtin[0]?.handle ?? ""]);
     const rosa = agents.get("rosa");
     expect(rosa?.instructions).toContain("ROSA");
 
@@ -383,7 +383,18 @@ describe("the brand", () => {
       .from(schema.skills)
       .where(and(eq(schema.skills.orgId, f.org.id), eq(schema.skills.slug, BRAND_SKILL)));
     expect(skill?.metadata.title).toBe("Marca Acme");
-    for (const section of ["# Marca Acme", "## Público", "## Tom de voz", "## Identidade visual", "## Manual de marca"])
+    // Every section the agents that read a brand look for (ROSA, SONY, SOCIAL MEDIA, CHESS).
+    for (const section of [
+      "# Marca Acme",
+      "## Público",
+      "## Tom de voz",
+      "## Identidade visual",
+      "## Vídeo: som, trilha e níveis",
+      "## Redes e formatos",
+      "## Pilares de conteúdo",
+      "## Compliance e o que não citar",
+      "## Manual de marca",
+    ])
       expect(skill?.body).toContain(section);
     expect(skill?.body).toContain("próximo, direto");
     const agents = await agentsByHandle();

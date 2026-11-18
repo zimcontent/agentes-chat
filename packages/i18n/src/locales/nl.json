@@ -899,6 +899,7 @@
       "context": "Context",
       "import": "Breng je agents mee",
       "agents": "Agents",
+      "brand": "Je merk",
       "computer": "Computer",
       "ai": "AI",
       "team": "Team",
@@ -15339,6 +15340,20 @@
     },
     "teamProposal": {
       "undoExpired": "Er is meer dan een dag verstreken sinds dit team is gemaakt, dus het kan hier niet ongedaan worden gemaakt. Archiveer de agents op hun pagina's."
+    },
+    "dougTeam": {
+      "made": "Deze werkruimte heeft het Doug-team al. Maak ongedaan wat het heeft gemaakt, of voeg de agenten die je wilt één voor één toe.",
+      "none": "Vink minstens één agent van het Doug-team aan.",
+      "unknown": "Het Doug-team heeft geen {{handles}}."
+    },
+    "brand": {
+      "pending": "Sla het merk op voordat je afrondt. Het is de stap direct na het team.",
+      "companyRequired": "Noem de naam van het bedrijf.",
+      "toneRequired": "Kies een toon of schrijf hem in je eigen woorden.",
+      "unknownTone": "Die toon is geen van de opties. Kies er een uit de lijst, of schrijf hem in je eigen woorden.",
+      "invalidLink": "Die link lijkt geen webadres. Controleer hem en probeer het opnieuw.",
+      "invalidInstagram": "Dat lijkt geen Instagram-profiel. Schrijf @jouwprofiel of plak de link van het profiel.",
+      "fileMissing": "Een van de bestanden die je koos staat niet meer in je Drive. Kies het opnieuw."
     },
     "agentProposal": {
       "decided": "Iemand heeft al over dit voorstel beslist.",

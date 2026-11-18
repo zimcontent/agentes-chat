@@ -881,6 +881,7 @@
       "context": "背景信息",
       "import": "带上你的智能体",
       "agents": "智能体",
+      "brand": "你的品牌",
       "computer": "电脑",
       "ai": "AI",
       "team": "团队",
@@ -14783,6 +14784,20 @@
     },
     "teamProposal": {
       "undoExpired": "这个团队创建已超过一天，无法在这里撤销。请在各智能体的页面上归档它们。"
+    },
+    "dougTeam": {
+      "made": "这个工作区已经有 Doug 团队了。撤销它创建的，或者一个一个添加你想要的智能体。",
+      "none": "至少选择一个 Doug 团队的智能体。",
+      "unknown": "Doug 团队没有 {{handles}}。"
+    },
+    "brand": {
+      "pending": "完成前先保存品牌。这是团队之后的下一步。",
+      "companyRequired": "说出公司名称。",
+      "toneRequired": "选择一种语气，或用你自己的话写出来。",
+      "unknownTone": "那个语气不在选项里。从列表里选一个，或用你自己的话写出来。",
+      "invalidLink": "那个链接不像是网址。检查一下再试。",
+      "invalidInstagram": "那看起来不像 Instagram 主页。写 @你的主页，或粘贴主页的链接。",
+      "fileMissing": "你选的文件有一个已经不在你的 Drive 里了。请重新选择。"
     },
     "agentProposal": {
       "decided": "已经有人对这条建议做出了决定。",

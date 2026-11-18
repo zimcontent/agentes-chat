@@ -119,6 +119,9 @@ import type {
   BrainKind,
   BrainMachine,
   BrainScope,
+  BrandInput,
+  BrandToneWord,
+  BrandView,
   BrowserHandoff,
   BrowserProfile,
   CalendarEvent,
@@ -882,17 +885,36 @@ export interface ApiClient {
     ): Promise<{ card: TeamProposalCard }>;
     /** "Ver modelos de time": the templates in `locale`. */
     teamTemplates(orgId: string, locale?: string): Promise<TeamTemplate[]>;
-    /** "Criar o time": the template's team, made at once; its card in the person's DM with the right hand. */
+    /**
+     * "Criar o time": the template's team, made at once; its card in the person's DM with the right hand. The Doug
+     * team takes `handles` (every agent when absent; `members[].handle`), and answers with the agents that work on a
+     * computer and whether the onboarding's brand step waits (docs/adr/doug-0020-time-doug.md).
+     */
     applyTeamTemplate(
       orgId: string,
       templateId: string,
       locale?: string,
+      handles?: readonly string[],
     ): Promise<{
       channelId: string;
       messageId: string;
       state: TeamProposalCard["state"];
       error: TeamProposalCard["error"] | null;
+      needsComputer?: { agentId: string; handle: string; name: string }[];
+      brandPending?: boolean;
     }>;
+    /** The workspace's brand ("Sua marca"), the tones to tap and whether the onboarding waits for it. */
+    brand(
+      orgId: string,
+      locale?: string,
+    ): Promise<{
+      pending: boolean;
+      brand: BrandView | null;
+      skillId: string | null;
+      tones: BrandToneWord[];
+    }>;
+    /** Saves the brand as the workspace skill "Marca <empresa>", in one go (who manages agents). */
+    saveBrand(orgId: string, input: BrandInput): Promise<{ skillId: string; brand: BrandView; pending: boolean }>;
     /** Decides an agent's proposal of costly work nobody asked for (ADR 0131): its card's `signalId`. */
     decideCostly(orgId: string, signalId: string, decision: CostlyDecision): Promise<{ state: CostlyDecision }>;
     update(orgId: string, agentId: string, input: Partial<AgentInput>): Promise<Agent>;

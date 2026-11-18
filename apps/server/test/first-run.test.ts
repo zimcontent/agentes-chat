@@ -80,3 +80,75 @@ test("a personal workspace (ADR 0159): made with its mode, its templates are for
   const agents = ((await (await api("/agents")).json()) as { agents: AgentRow[] }).agents;
   expect(agents.filter((a) => !a.builtin).map((a) => a.handle)).toEqual(expect.arrayContaining(["clara", "duda"]));
 });
+
+test("the Doug team over HTTP (docs/adr/doug-0020-time-doug.md): the chosen agents, the brand step, then done", async () => {
+  t = await createTestServer();
+  const owner = browser(t);
+  await signUp(owner, "doug@example.com");
+  const created = (await (await owner("/api/app/organizations", { json: { name: "Acme" } })).json()) as {
+    organization: { id: string };
+  };
+  const orgId = created.organization.id;
+  const api = (path: string, init?: Parameters<typeof owner>[1]) =>
+    owner(`/api/app/organizations/${orgId}${path}`, init);
+  const me = async () =>
+    (
+      (await (await owner("/api/app/me")).json()) as {
+        organizations: { id: string; onboarding?: { brandPending?: boolean } }[];
+      }
+    ).organizations.find((o) => o.id === orgId);
+
+  // The gallery's first card, every agent listed, the right hand among them and marked as such.
+  const gallery = (await (await api("/team-templates?locale=pt-BR")).json()) as {
+    templates: { id: string; members?: { handle: string; qg: string | null; rightHand: boolean }[] }[];
+  };
+  const doug = gallery.templates[0];
+  expect(doug?.id).toBe("doug");
+  expect(doug?.members?.length).toBe(17);
+  expect(doug?.members?.find((m) => m.handle === "doug")?.rightHand).toBe(true);
+  expect(doug?.members?.find((m) => m.handle === "rosa")?.qg).toBe("design");
+
+  const used = await api("/team-templates/doug/use", { json: { handles: ["doug", "rosa"], locale: "pt-BR" } });
+  expect(used.status).toBe(200);
+  const card = (await used.json()) as { state: string; brandPending?: boolean; needsComputer: { handle: string }[] };
+  expect(card.state).toBe("created");
+  expect(card.brandPending).toBe(true);
+  expect(card.needsComputer.map((c) => c.handle)).toEqual(["rosa"]);
+  // Once: a second click is refused.
+  const again = await api("/team-templates/doug/use", { json: {} });
+  expect(again.status).toBe(409);
+  expect(((await again.json()) as { error: { code: string } }).error.code).toBe("doug_team.made");
+
+  // The brand step: pending, refused to finish, the tones in the person's language, then saved.
+  expect((await me())?.onboarding?.brandPending).toBe(true);
+  const brand = (await (await api("/brand?locale=pt-BR")).json()) as {
+    pending: boolean;
+    tones: { id: string; label: string }[];
+  };
+  expect(brand.pending).toBe(true);
+  expect(brand.tones).toHaveLength(10);
+  expect(brand.tones[0]?.label).toBe("Próximo");
+  const finished = await api("/onboarding", { method: "PATCH", json: { finished: true } });
+  expect(finished.status).toBe(409);
+  expect(((await finished.json()) as { error: { code: string } }).error.code).toBe("onboarding.brand_pending");
+  const noTone = await api("/brand", { method: "PUT", json: { company: "Acme" } });
+  expect(noTone.status).toBe(400);
+  expect(((await noTone.json()) as { error: { code: string } }).error.code).toBe("brand.tone_required");
+  const saved = await api("/brand", {
+    method: "PUT",
+    json: { company: "Acme", tones: ["direto"], site: "acme.com.br", instagram: "@acme" },
+  });
+  expect(saved.status).toBe(200);
+  const said = (await saved.json()) as {
+    skillId: string;
+    pending: boolean;
+    brand: { site: string; instagram: string };
+  };
+  expect(said.pending).toBe(false);
+  expect(said.brand).toMatchObject({ site: "https://acme.com.br/", instagram: "@acme" });
+  // Read back with what was said; the step no longer waits.
+  const read = (await (await api("/brand")).json()) as { pending: boolean; brand: { company: string } | null };
+  expect(read).toMatchObject({ pending: false, brand: { company: "Acme" } });
+  expect((await me())?.onboarding?.brandPending).toBeUndefined();
+  expect((await api("/onboarding", { method: "PATCH", json: { finished: true } })).status).toBe(200);
+});

@@ -881,6 +881,7 @@
       "context": "Konteks",
       "import": "Bawa agenmu",
       "agents": "Agen",
+      "brand": "Merekmu",
       "computer": "Komputer",
       "ai": "AI",
       "team": "Tim",
@@ -14773,6 +14774,20 @@
     },
     "teamProposal": {
       "undoExpired": "Sudah lebih dari sehari sejak tim ini dibuat, jadi tidak bisa dibatalkan di sini. Arsipkan agennya di halaman masing-masing."
+    },
+    "dougTeam": {
+      "made": "Ruang kerja ini sudah punya Tim Doug. Batalkan yang sudah dibuatnya, atau tambahkan agen yang kamu mau satu per satu.",
+      "none": "Pilih setidaknya satu agen Tim Doug.",
+      "unknown": "Tim Doug tidak punya {{handles}}."
+    },
+    "brand": {
+      "pending": "Simpan merek sebelum menyelesaikan. Itu langkah tepat setelah tim.",
+      "companyRequired": "Sebutkan nama perusahaannya.",
+      "toneRequired": "Pilih nada bicara atau tulis dengan kata-katamu sendiri.",
+      "unknownTone": "Nada bicara itu bukan salah satu pilihan. Pilih dari daftar, atau tulis dengan kata-katamu sendiri.",
+      "invalidLink": "Tautan itu sepertinya bukan alamat web. Periksa dan coba lagi.",
+      "invalidInstagram": "Itu sepertinya bukan profil Instagram. Tulis @profilmuk atau tempel tautan profilnya.",
+      "fileMissing": "Salah satu berkas yang kamu pilih sudah tidak ada di Drive-mu. Pilih lagi."
     },
     "agentProposal": {
       "decided": "Seseorang sudah memutuskan usulan ini.",

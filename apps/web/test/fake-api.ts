@@ -23,6 +23,7 @@ import type {
   AuthConfig,
   Availability,
   BrainMachine,
+  BrandView,
   CarrySource,
   Channel,
   ChannelCategory,
@@ -203,6 +204,8 @@ export interface FakeState {
   me: Me | null;
   /** "Ver modelos de time" (`agents.teamTemplates`; default none). */
   teamTemplates?: TeamTemplate[];
+  /** "Sua marca" (`agents.brand`/`agents.saveBrand`): what was saved, and whether the step waits (docs/adr/doug-0020-time-doug.md). */
+  brandState?: { brand: BrandView | null; pending: boolean };
   /** What a one-click proposed agent thinks with (default: what its draft suggested). */
   proposalAi?: "account" | "model" | "none";
   /** By agent: the mailboxes others gave it, which a wider audience would take (`agents.mailLoss`; default none). */
@@ -2523,8 +2526,8 @@ export function createFakeHttpApi(state: FakeState): Omit<HttpApi, FakedParts> {
         return state.teamTemplates ?? [];
       },
       // As the server: the template's team is made at once (ADR 0155 §6).
-      applyTeamTemplate: async (orgId, templateId, locale) => {
-        log("agents.applyTeamTemplate", orgId, templateId, locale);
+      applyTeamTemplate: async (orgId, templateId, locale, handles) => {
+        log("agents.applyTeamTemplate", orgId, templateId, locale, ...(handles ? [handles] : []));
         const template = state.teamTemplates?.find((x) => x.id === templateId);
         const team = template?.team.agents ?? [];
         const agentIds: string[] = [];
@@ -2572,6 +2575,46 @@ export function createFakeHttpApi(state: FakeState): Omit<HttpApi, FakedParts> {
           createdAt: new Date().toISOString(),
         });
         return { channelId, messageId, state: "created", error: null };
+      },
+      // As the server: the workspace's brand ("Sua marca"), the tones to tap, and whether the step waits.
+      brand: async (orgId, locale) => {
+        log("agents.brand", orgId, locale);
+        return {
+          pending: state.brandState?.pending ?? false,
+          brand: state.brandState?.brand ?? null,
+          skillId: state.brandState?.brand ? id("skill") : null,
+          tones: [
+            "proximo",
+            "profissional",
+            "divertido",
+            "inspirador",
+            "direto",
+            "acolhedor",
+            "tecnico",
+            "sofisticado",
+            "ousado",
+            "educativo",
+          ].map((tone) => ({ id: tone, label: tone })),
+        };
+      },
+      // As the server: what was said becomes the brand, and the step no longer waits; `company` and a tone are required.
+      saveBrand: async (orgId, input) => {
+        log("agents.saveBrand", orgId, input);
+        if (!input.company.trim()) throw new ApiError(400, "brand.company_required", "Say the company's name");
+        if ((input.tones ?? []).length === 0 && !input.tone?.trim())
+          throw new ApiError(400, "brand.tone_required", "Pick or write the tone of voice");
+        const brand: BrandView = {
+          company: input.company,
+          tones: input.tones ?? [],
+          tone: input.tone ?? null,
+          site: input.site ?? null,
+          instagram: input.instagram ?? null,
+          audience: input.audience ?? null,
+          files: [],
+          links: input.links ?? [],
+        };
+        state.brandState = { brand, pending: false };
+        return { skillId: id("skill"), brand, pending: false };
       },
       decideCostly: async (orgId, signalId, decision) => {
         log("agents.decideCostly", orgId, signalId, decision);
