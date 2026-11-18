@@ -106,7 +106,9 @@ function fromDoug(scheme: Scheme): AppColors {
     grouped: t.palco,
     // The person's own message: 14% of the lime over the glass's step, with a lime rim (dougbot.app's bubbles).
     bubble: dark ? "#2C3917" : "#E4F3C8",
-    bubbleTheirs: t.palco3,
+    // Someone else's bubble: on the dark stage a step past the glass's (#1A1A1A read as the textured backdrop
+    // itself, the conversation ran together), with the quiet words still AA on it (#8A8A8A at 4.6:1).
+    bubbleTheirs: dark ? "#222222" : t.palco3,
     bubbleRim: dark
       ? "inset 0px 1px 0px rgba(156, 250, 5, 0.1), inset 0px 0px 0px 1px rgba(156, 250, 5, 0.2)"
       : "inset 0px 0px 0px 1px rgba(62, 107, 0, 0.18)",
@@ -114,7 +116,7 @@ function fromDoug(scheme: Scheme): AppColors {
       ? "inset 0px 1px 0px rgba(255, 255, 255, 0.05), inset 0px 0px 0px 1px rgba(255, 255, 255, 0.047)"
       : "inset 0px 0px 0px 1px rgba(10, 10, 10, 0.06)",
     bubbleEdge: dark ? "rgba(156, 250, 5, 0.22)" : "rgba(62, 107, 0, 0.2)",
-    bubbleTheirsEdge: dark ? "rgba(255, 255, 255, 0.06)" : "rgba(10, 10, 10, 0.07)",
+    bubbleTheirsEdge: dark ? "rgba(255, 255, 255, 0.08)" : "rgba(10, 10, 10, 0.07)",
     amber: t.atencao,
     amberInk: dark ? t.atencao : "#7A4700",
     chip: t.palco3,
