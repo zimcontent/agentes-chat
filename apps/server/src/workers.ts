@@ -1,4 +1,4 @@
-import type { ApprovalPortal, ErrorReporter, PubSub } from "@agenteschat/adapters";
+import type { ApprovalPortal, ErrorReporter, LiveActivitySender, PubSub } from "@agenteschat/adapters";
 import { type Database, ensureMessagePartitions, schema } from "@agenteschat/db";
 import {
   type ArtifactDeps,
@@ -52,6 +52,7 @@ import {
   purgeApps,
   purgeDeletedArtifacts,
   purgeDeletedWikiPages,
+  purgeLiveActivities,
   queueApprovalDigests,
   reapRoutineRuns,
   recheckStuckPlans,
@@ -66,6 +67,7 @@ import {
   sweepFeedbackFiles,
   sweepWidgetDrafts,
   syncAllTwins,
+  syncLiveActivities,
   type VoiceDeps,
   wakeSnoozedNotifications,
 } from "@agenteschat/engine";
@@ -158,6 +160,8 @@ export interface WorkerDeps {
    * copies still sync, and what would need bringing is listed as missing.
    */
   carry?: CarryDeps;
+  /** Live Activities straight to Apple (docs/adr/doug-0021-lock-screen.md); absent: none to keep up. */
+  liveActivities?: LiveActivitySender | null;
   log: Logger;
   workerId?: string;
 }
@@ -230,6 +234,9 @@ export const WORKER_INTERVALS_MS = {
    * with something new are synced; the owner's agents of the same handle are joined every tenth tick.
    */
   agentTwins: 60_000,
+  /** Live Activities follow their runs (docs/adr/doug-0021-lock-screen.md): a change is on the lock screen by then. */
+  liveActivities: 5_000,
+  liveActivityPurge: 3600_000,
 };
 
 /**
@@ -446,6 +453,14 @@ export function startWorkers(deps: WorkerDeps) {
       const swept = await sweepFeedbackFiles(feedbackFiles);
       if (swept > 0) log.info("feedback files past their time swept", { files: swept });
     });
+  }
+
+  const liveSender = deps.liveActivities;
+  if (liveSender) {
+    every("liveActivities", WORKER_INTERVALS_MS.liveActivities, async () => {
+      await syncLiveActivities({ db, sender: liveSender });
+    });
+    every("liveActivityPurge", WORKER_INTERVALS_MS.liveActivityPurge, () => purgeLiveActivities(db));
   }
 
   every("wikiPurge", WORKER_INTERVALS_MS.wikiPurge, async () => {

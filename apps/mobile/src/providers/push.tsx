@@ -8,6 +8,8 @@ import { AppState } from "react-native";
 import { registerDeviceActions, runDeviceAction } from "@/features/devices/push";
 import { hrefForPush, notificationWebPath, pushAsNotification } from "@/features/links/logic";
 import { openWebPath } from "@/features/links/open-web";
+import { watchLiveActivities } from "@/features/live-activity";
+import { isBlockPress } from "@/features/push/actions";
 import { openWorkspace } from "@/features/server";
 import { pushOpens } from "@/lib/org-choice";
 import {
@@ -117,6 +119,17 @@ export function PushProvider({ children }: { children: ReactNode }) {
     if (ready) void registerDeviceActions(t);
   }, [ready, t]);
 
+  // Live Activities' push tokens reach the server, and one ended on the phone is told (docs/adr/doug-0021-lock-screen.md).
+  const apiRef = useRef(api);
+  apiRef.current = api;
+  useEffect(() => {
+    if (!ready) return;
+    return watchLiveActivities(
+      () => apiRef.current,
+      () => localeRef.current,
+    );
+  }, [ready]);
+
   // The system may hand the app a new token while it runs; it's registered again (ADR 0152, ADR 0178).
   useEffect(() => {
     if (!ready) return;
@@ -128,6 +141,8 @@ export function PushProvider({ children }: { children: ReactNode }) {
     if (!ready) return;
     const open = (response: Notifications.NotificationResponse | null) => {
       if (!response) return;
+      // A live block's button: sent on its own (`startPushButtons`), never a screen.
+      if (isBlockPress(response.actionIdentifier)) return;
       const id = response.notification.request.identifier;
       if (opened.has(id)) return;
       opened.add(id);

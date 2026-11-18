@@ -165,6 +165,7 @@ import type {
   JoinClaim,
   JoinRequest,
   LearnedSkill,
+  LiveActivityStart,
   LiveRoom,
   LiveSession,
   LiveSpeakerPick,
@@ -819,6 +820,11 @@ export function createHttpApi(options: TransportOptions = {}): HttpApi {
       register: (input) => request<void>("/api/app/push/devices", { json: input }),
       unregister: (token) => request<void>("/api/app/push/devices/forget", { json: { token } }),
       stale: async (ids) => (await request<{ stale: string[] }>("/api/app/push/stale", { json: { ids } })).stale,
+      liveActivityStart: (orgId, messageId, locale) =>
+        request<LiveActivityStart>(`${org(orgId)}/live-activities/start`, { query: { messageId, locale } }),
+      registerLiveActivity: (orgId, input) =>
+        request<void>(`${org(orgId)}/live-activities`, { method: "PUT", json: input }),
+      endLiveActivity: (token) => request<void>("/api/app/push/live-activities/end", { json: { token } }),
     },
     orgs: {
       create: (input) =>
@@ -1771,6 +1777,10 @@ export function createHttpApi(options: TransportOptions = {}): HttpApi {
         request<BlockState>(`${org(orgId)}/blocks/${enc(id)}/state`, { method: "PUT", json: { version, values } }),
       drawBlock: (orgId, id, version, name, options) =>
         request<BlockState>(`${org(orgId)}/blocks/${enc(id)}/draw`, { json: { version, name, options } }),
+      pressBlock: (orgId, id, input) =>
+        request<{ messageId: string | null; changed: boolean }>(`${org(orgId)}/blocks/${enc(id)}/press`, {
+          json: input,
+        }),
       poll: (orgId, id) => request<Poll>(`${org(orgId)}/polls/${enc(id)}`),
       vote: (orgId, id, options) =>
         request<Poll>(`${org(orgId)}/polls/${enc(id)}/vote`, { method: "PUT", json: { options } }),

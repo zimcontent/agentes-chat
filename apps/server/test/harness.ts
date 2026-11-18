@@ -17,6 +17,7 @@ import {
   type GifProvider,
   type HumanAction,
   type HumanCheck,
+  type LiveActivitySender,
   type MailAdapters,
   noPlatformCredentials,
   type S3Fetch,
@@ -108,6 +109,8 @@ export async function createTestServer(
     platformKind?: string;
     /** Browser push (ADR 0071); absent = a fake that records, null = off. */
     webPush?: WebPushSender | null;
+    /** Live Activities (docs/adr/doug-0021-lock-screen.md); absent or null = none, as through the push relay. */
+    liveActivities?: LiveActivitySender | null;
     /** Where error lines are reported (`createFakeErrorReporter`); absent = nowhere. */
     errors?: ErrorReporter;
     /** The approval portal (ADR 9001); absent or null = none, as without its bridge. */
@@ -174,6 +177,7 @@ export async function createTestServer(
     platformBlobs,
     push,
     webPush,
+    liveActivities: options.liveActivities ?? null,
     ...(options.mail ? { mail: options.mail } : {}),
     databases: options.databases ?? null,
     humanCheck: options.humanCheck ?? null,

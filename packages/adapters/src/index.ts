@@ -9,6 +9,7 @@ import type { MailAdapters } from "./mail";
 import type { Presence } from "./presence";
 import type { PubSub } from "./pubsub";
 import type { PushSender } from "./push";
+import type { LiveActivitySender } from "./push-apns";
 import type { RateLimiter } from "./rate-limiter";
 import type { SearchIndexResolver } from "./search";
 import type { VaultSources } from "./vault/source";
@@ -89,6 +90,11 @@ export interface Adapters {
   platformBlobs: BlobStore;
   /** Push to the phone app (`push.send` outbox job, ADR 0035); null/absent = no push. */
   push?: PushSender | null;
+  /**
+   * Live Activities on iPhones (docs/adr/doug-0021-lock-screen.md): only with the server's own APNs key, never
+   * through the push relay; null/absent = none.
+   */
+  liveActivities?: LiveActivitySender | null;
   /** Web Push to browsers (`push.send` outbox job, ADR 0071); null/absent = browsers get no push. */
   webPush?: WebPushSender | null;
   /** People's mailboxes for agents (ADR 0038); absent = no email connectors. */

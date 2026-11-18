@@ -222,6 +222,8 @@ import type {
   JoinClaim,
   JoinRequest,
   LearnedSkill,
+  LiveActivityInput,
+  LiveActivityStart,
   LiveRoom,
   LiveSession,
   LiveSessionInput,
@@ -611,6 +613,15 @@ export interface ApiClient {
      * body, not the path: an endpoint's encoded slashes don't survive every proxy.
      */
     unregister(token: string): Promise<void>;
+    /**
+     * What a Live Activity for a message I sent would follow (docs/adr/doug-0021-lock-screen.md): the run it started
+     * and what it shows first; `available` false when this server sends none (through the push relay).
+     */
+    liveActivityStart(orgId: string, messageId: string, locale: string): Promise<LiveActivityStart>;
+    /** Registers a Live Activity's push token for that run; the server then updates and ends it. */
+    registerLiveActivity(orgId: string, input: LiveActivityInput): Promise<void>;
+    /** A Live Activity ended on the phone: nothing more is sent to it. */
+    endLiveActivity(token: string): Promise<void>;
     /**
      * Of these notification ids (at most 100), the ones no longer open and unread for me (read, done, snoozed or
      * gone): a browser closes the notifications it still shows for them (clear on read, ADR 0071).
@@ -2024,6 +2035,15 @@ export interface ApiClient {
     setBlockState(orgId: string, id: string, version: number, values: Record<string, unknown>): Promise<BlockState>;
     /** A random pick the server makes once, for everyone. */
     drawBlock(orgId: string, id: string, version: number, name: string, options: string[]): Promise<BlockState>;
+    /**
+     * A block's button pressed away from the block (a notification's, docs/adr/doug-0021-lock-screen.md): the server
+     * runs it as a tap would. `clientId` keeps a press that arrives twice from sending twice.
+     */
+    pressBlock(
+      orgId: string,
+      id: string,
+      input: { version: number; key: string; clientId?: string | null },
+    ): Promise<{ messageId: string | null; changed: boolean }>;
     poll(orgId: string, id: string): Promise<Poll>;
     /** Replaces the viewer's marks in a vote; empty takes them back. */
     vote(orgId: string, id: string, options: number[]): Promise<Poll>;

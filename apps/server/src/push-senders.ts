@@ -3,6 +3,7 @@ import {
   createApnsPushSender,
   createFcmPushSender,
   createPhonePushSender,
+  type LiveActivitySender,
   type PushSender,
 } from "@agenteschat/adapters";
 import type { Config } from "@agenteschat/config";
@@ -33,14 +34,34 @@ export function apnsKeyGaps(config: PushConfig): string[] {
   return missing.length === Object.keys(set).length ? [] : missing;
 }
 
-/** The senders this server has credentials for: Firebase (Android, ADR 0152) and APNs (iPhone, ADR 0178). */
-export function directPushSenders(config: PushConfig): { android: PushSender | null; ios: PushSender | null } {
+/**
+ * The senders this server has credentials for: Firebase (Android, ADR 0152) and APNs (iPhone, ADR 0178), and with
+ * APNs the Live Activities' (docs/adr/doug-0021-lock-screen.md), on the same connection and provider token.
+ */
+export function directPushSenders(config: PushConfig): {
+  android: PushSender | null;
+  ios: PushSender | null;
+  liveActivities: LiveActivitySender | null;
+} {
   const account = config.FIREBASE_SERVICE_ACCOUNT;
   const key = apnsKeyOf(config);
+  const ios = key ? createApnsPushSender({ key, appIds: config.APNS_APP_IDS }) : null;
   return {
     android: account ? createFcmPushSender({ serviceAccount: account }) : null,
-    ios: key ? createApnsPushSender({ key, appIds: config.APNS_APP_IDS }) : null,
+    ios,
+    liveActivities: ios?.liveActivities ?? null,
   };
+}
+
+/**
+ * Live Activities go only straight to Apple: through the push relay (or with iPhone pushes off) there are none, and
+ * the app is told so before it starts one.
+ */
+export function liveActivitySender(
+  direct: { liveActivities: LiveActivitySender | null },
+  iosMode: "direct" | "relay" | "off",
+): LiveActivitySender | null {
+  return iosMode === "direct" ? direct.liveActivities : null;
 }
 
 /** The push relay's own sender (`PUSH_RELAY_SERVE`): both platforms it has credentials for, or null with neither. */

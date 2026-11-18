@@ -18,7 +18,7 @@ describe("phone push without the Apple key (ADR 0178)", () => {
     const c = config();
     expect(apnsKeyOf(c)).toBeNull();
     expect(apnsKeyGaps(c)).toEqual([]);
-    expect(directPushSenders(c)).toEqual({ android: null, ios: null });
+    expect(directPushSenders(c)).toEqual({ android: null, ios: null, liveActivities: null });
     expect(relayServeSender(directPushSenders(c))).toBeNull();
   });
 

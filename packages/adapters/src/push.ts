@@ -22,10 +22,24 @@ export interface PushMessage {
   /** The app's notification category (iOS `aps.category`): the buttons it shows on the lock screen. */
   category?: string;
   /**
+   * Buttons whose words come with the push (a live block's, docs/adr/doug-0021-lock-screen.md): the phone registers
+   * `category` with them as it shows the notification (the iPhone's notification service extension, Android's
+   * background task). `id` is what the press answers with.
+   */
+  actions?: PushAction[];
+  /**
    * iOS: the app the token belongs to (its bundle id, the APNs topic) and whether it is a development build,
    * whose tokens are the APNs sandbox's (ADR 0178). No topic: the sender's first app.
    */
   apns?: { topic?: string; sandbox?: boolean };
+}
+
+/** One button a push brings: its id (what a press answers with) and its words. */
+export interface PushAction {
+  id: string;
+  title: string;
+  /** Runs without opening the app (the phone unlocked first on an iPhone); otherwise the press opens it. */
+  background?: boolean;
 }
 
 export interface PushResult {
