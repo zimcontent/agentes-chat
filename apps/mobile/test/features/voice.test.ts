@@ -183,7 +183,9 @@ describe("dictation", () => {
 
 test("a tap that throws never closes the app: send and the microphone stop it (expo/expo#51880)", () => {
   const read = (path: string) => readFileSync(join(import.meta.dir, "../../src", path), "utf8");
-  expect(read("ui/Composer.tsx")).toMatch(/try \{\s*onSend\(value[^]*?showCaught\("composer\.send", error\);\s*return;/);
+  expect(read("ui/Composer.tsx")).toMatch(
+    /try \{\s*onSend\(value[\s\S]*?showCaught\("composer\.send", error\);\s*return;/,
+  );
   const d = read("features/voice/useDictation.tsx");
   expect(d).toMatch(/try \{\s*tickNow\(\);\s*\} catch \(error\) \{\s*stopTimer\(\);\s*showCaught\("dictation\.tick"/);
 });
