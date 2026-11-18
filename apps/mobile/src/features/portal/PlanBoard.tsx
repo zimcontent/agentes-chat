@@ -353,7 +353,7 @@ export function PlanBoard({
           hitSlop={4}
           style={({ pressed }) => [
             styles.plus,
-            { backgroundColor: c.raised, boxShadow: `0px 0px 0px 0.5px ${c.line2}` },
+            { backgroundColor: c.raised, borderWidth: StyleSheet.hairlineWidth, borderColor: c.line2 },
             pressed ? styles.pressed : null,
           ]}
         >
@@ -806,8 +806,6 @@ function AddLabel({ label }: { label: string }) {
  */
 /** A stage's color behind its pill: 16% of it. */
 const STAGE_TINT = "29";
-/** The card's lift off its list: a soft shadow under it. */
-const CARD_SHADOW = "0px 6px 16px -10px rgba(0, 0, 0, 0.55)";
 
 function BoardCard({
   w,
@@ -882,7 +880,7 @@ function BoardCard({
       accessibilityHint={onMove ? w.moveCard : undefined}
       style={({ pressed }) => [
         styles.card,
-        { backgroundColor: paint.card, borderColor: paint.edge, boxShadow: CARD_SHADOW },
+        { backgroundColor: paint.card, borderColor: paint.edge },
         pressed ? styles.pressed : null,
       ]}
     >
