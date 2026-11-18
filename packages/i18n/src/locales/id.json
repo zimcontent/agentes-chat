@@ -1776,6 +1776,7 @@
     "updated": "Terakhir diperbarui {{date}}",
     "contents": "Di halaman ini",
     "home": "Ke beranda",
+    "draft": "Draf, menunggu tinjauan hukum. Yang berada dalam [tanda kurung siku] belum diisi.",
     "none": {
       "terms": "Server ini tidak punya halaman ketentuan",
       "privacy": "Server ini tidak punya halaman privasi"
@@ -16516,6 +16517,7 @@
     "title": "Pengaturan",
     "account": {
       "plans": "Batas paketmu",
+      "legal": "Ketentuan dan privasi",
       "device": "Di perangkat ini",
       "activity": "Tampilkan yang dilakukan agen di bawah tiap balasan",
       "activityHelp": "Alat yang mereka pakai dan berapa lama prosesnya. Saat mereka bekerja, kamu tetap melihat apa yang sedang mereka lakukan.",

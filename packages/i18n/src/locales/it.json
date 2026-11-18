@@ -1878,6 +1878,7 @@
     "updated": "Ultimo aggiornamento: {{date}}",
     "contents": "In questa pagina",
     "home": "Vai alla home page",
+    "draft": "Bozza, soggetta a revisione legale. Ciò che è tra [parentesi quadre] non è ancora stato compilato.",
     "none": {
       "terms": "Questo server non ha una pagina dei termini",
       "privacy": "Questo server non ha una pagina sulla privacy"
@@ -17588,6 +17589,7 @@
     "title": "Impostazioni",
     "account": {
       "plans": "I limiti dei tuoi piani",
+      "legal": "Termini e privacy",
       "device": "Su questo dispositivo",
       "activity": "Mostra cosa hanno fatto gli agenti sotto ogni risposta",
       "activityHelp": "Gli strumenti che hanno usato e quanto tempo ci è voluto. Mentre lavorano, vedi comunque cosa stanno facendo.",

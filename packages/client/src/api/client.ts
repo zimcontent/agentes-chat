@@ -222,6 +222,7 @@ import type {
   JoinClaim,
   JoinRequest,
   LearnedSkill,
+  LegalFacts,
   LiveRoom,
   LiveSession,
   LiveSessionInput,
@@ -439,6 +440,8 @@ export interface ApiClient {
   system: {
     health(): Promise<Health>;
     instance(): Promise<Instance>;
+    /** The company details the legal pages fill in (`LEGAL_*`): public, nothing secret. */
+    legal(): Promise<LegalFacts>;
     /** `null` unless I am the installation's owner (and not on agentes.chat itself). */
     telemetry(): Promise<ServerTelemetry | null>;
     setTelemetry(enabled: boolean): Promise<ServerTelemetry>;

@@ -1890,6 +1890,8 @@ export const ptBR = {
     updated: "Atualizado em {{date}}",
     contents: "Nesta página",
     home: "Ir para o início",
+    /** `/termos` and `/privacidade`: the line over the text, which a lawyer still has to review. */
+    draft: "Rascunho, sujeito à revisão jurídica. O que está entre colchetes ainda não foi preenchido.",
     /** `/terms` and `/privacy` on a server that has no page of its own for them. */
     none: {
       terms: "Este servidor não tem página de termos",
@@ -17313,6 +17315,8 @@ export const ptBR = {
     title: "Configurações",
     account: {
       plans: "Limites dos seus planos",
+      /** The Terms of Use and the Privacy Policy this server serves, opened in a new tab. */
+      legal: "Termos e privacidade",
       device: "Neste aparelho",
       /** Yours in this workspace, on every device: the tool summary under each agent reply, off by default. */
       activity: "Mostrar o que os agentes fizeram em cada resposta",

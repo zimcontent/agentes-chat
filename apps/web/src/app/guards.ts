@@ -1,5 +1,4 @@
-import type { Me } from "@agenteschat/client";
-import { authConfigQuery, instanceQuery, meQuery } from "@agenteschat/client";
+import { authConfigQuery, instanceQuery, type Me, meQuery } from "@agenteschat/client";
 import type { LegalKind } from "@agenteschat/i18n/legal";
 import { redirect } from "@tanstack/react-router";
 import type { RouterContext } from "./router-context";
@@ -25,17 +24,22 @@ export async function requireUserIn(context: RouterContext, href: string, orgId:
 }
 
 /**
- * `/terms` and `/privacy`: agentes.chat Cloud's documents where the server says it is the Cloud (true). Any other
- * server sends them to its own page (`TERMS_URL`, `PRIVACY_URL`), or has none (false).
+ * `/terms`, `/privacy`, `/termos` and `/privacidade`. On agentes.chat Cloud (`cloud`) they are the Cloud's documents.
+ * Any other server sends each to its own page when `TERMS_URL` / `PRIVACY_URL` name one elsewhere; when the setting is
+ * this server's own `/termos` or `/privacidade` (the default for a server that names its company, `LEGAL_COMPANY_NAME`)
+ * they are DougBot's documents (`own`); and with no page set, there is none (`none`), as before.
  */
-export async function legalPage(context: RouterContext, kind: LegalKind): Promise<boolean> {
+export async function legalPage(context: RouterContext, kind: LegalKind): Promise<"cloud" | "own" | "none"> {
   const [instance, config] = await Promise.all([
     context.queryClient.ensureQueryData(instanceQuery(context.api)),
     context.queryClient.ensureQueryData(authConfigQuery(context.api)),
   ]);
-  if (instance.cloud) return true;
+  if (instance.cloud) return "cloud";
   const own = kind === "terms" ? config.termsUrl : config.privacyUrl;
-  // A page at this same address is this app's, which would land back here.
-  if (own && new URL(own, window.location.href).origin !== window.location.origin) throw redirect({ href: own });
-  return false;
+  if (!own) return "none";
+  const address = new URL(own, window.location.href);
+  if (address.origin !== window.location.origin) throw redirect({ href: own });
+  // This server's own address: DougBot's page where it is the default one (`/termos`, `/privacidade`). Any other path
+  // here is this app's `/terms` or `/privacy` again, which would land back here, and is no page, as it always was.
+  return address.pathname === (kind === "terms" ? "/termos" : "/privacidade") ? "own" : "none";
 }

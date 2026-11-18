@@ -181,6 +181,7 @@ export * from "./jev-key";
 export * from "./jobs";
 export * from "./judge";
 export * from "./key-line";
+export * from "./legal";
 export * from "./limits";
 export * from "./live-voice";
 export * from "./live-voice-prompt";
