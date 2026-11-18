@@ -8,6 +8,7 @@ import { Alert } from "react-native";
 import { useOrg } from "@/providers/org";
 import { router } from "@/ui/navigation";
 import { useCalls } from "../call/CallProvider";
+import { chatHref } from "../links/logic";
 import { useOpenDm } from "../new/useOpenDm";
 import { useDirectory, useMeId, useOrgId } from "../shared/hooks";
 import { useWorkingNow } from "../shared/queries";
@@ -44,7 +45,9 @@ export function DougPinned({ rows, waiting }: { rows: ConversationRow[]; waiting
   const first = myName.trim().split(/\s+/)[0] ?? "";
   const part = dayPart(new Date().getHours());
   const hello = first ? `${t(`mobile.home.greeting.${part}`, { name: first })}.` : "";
-  const open = () => void openDm({ agentId: doug.id });
+  // His conversation already in the list opens straight, as its row would (no server call that could fail without a
+  // word); only before the first one does the server open it.
+  const open = () => (channelId ? router.push(chatHref(channelId)) : void openDm({ agentId: doug.id }));
   const call = () => {
     if (!calls || !channelId) return open();
     if (voice.data?.state !== "ok")
