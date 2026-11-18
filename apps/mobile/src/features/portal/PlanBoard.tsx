@@ -440,10 +440,7 @@ export function PlanBoard({
           </ThemeColorsOverride>
         </View>
         {held?.kind === "list" ? (
-          <>
-            <View style={styles.dots} />
-            <Trash w={w} reduced={reduced} bottom={insets.bottom + 8} />
-          </>
+          <View style={styles.dots} />
         ) : (
           <Dots w={w} columns={columns} at={at} paint={paint} onPick={go} />
         )}
@@ -474,6 +471,9 @@ export function PlanBoard({
             ) : null}
           </DragOverlay>
         </ThemeColorsOverride>
+        {/* Over the held list: a list hangs down from the finger, and over the trash it used to hide it just as it
+            turned red. */}
+        {held?.kind === "list" ? <Trash w={w} reduced={reduced} bottom={insets.bottom + 8} /> : null}
       </DragBoard>
     </View>
   );
