@@ -784,7 +784,15 @@
       "doneLead": "Il team legge ogni richiesta e parla con ogni azienda su WhatsApp. Riceverai anche un’email.",
       "again": "Invia un’altra richiesta",
       "failed": "Impossibile inviare la richiesta. Riprova.",
-      "privacy": "Informativa sulla privacy"
+      "privacy": "Informativa sulla privacy",
+      "messageTooLong": "Questo è più lungo di quanto il modulo accetti. Accorcialo.",
+      "invalidField": "Controlla questa parte del modulo e riprova.",
+      "invalidEmail": "Usa un'e-mail come ana@azienda.it.",
+      "confirmTitle": "Conferma della tua e-mail…",
+      "confirmLead": "Un momento.",
+      "confirmFailedTitle": "Questo link è sconosciuto o scaduto",
+      "confirmFailedLead": "Invia di nuovo il modulo per ricevere un nuovo link.",
+      "confirmAgain": "Invia di nuovo il modulo"
     },
     "interests": {
       "design": "Design",
@@ -842,7 +850,13 @@
       "noEmail": "Questo server non invia email, quindi nessun invito può partire.",
       "codeTaken": "Un’altra azienda ha già questo codice.",
       "codeInvalid": "Il codice cliente ha tre cifre.",
-      "more": "Altro"
+      "more": "Altro",
+      "pendingConfirm": "Questo indirizzo ha un nuovo modulo da confermare: il team vede la richiesta com'era finché non viene confermata.",
+      "delete": "Elimina",
+      "deleteTitle": "Eliminare la richiesta di {{company}}?",
+      "deleteText": "Tutto ciò che contiene sparisce, il consenso compreso, e nulla torna. È ciò che chiede il GDPR quando un'azienda chiede di essere dimenticata.",
+      "deleted": "Richiesta eliminata.",
+      "notesTooLong": "Le note sono più lunghe di quanto ci stia qui. Accorciale."
     },
     "notice": {
       "title": "{{company}} ha chiesto DougBot",

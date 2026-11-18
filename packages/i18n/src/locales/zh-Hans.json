@@ -756,7 +756,15 @@
       "doneLead": "团队会阅读每一份申请，并通过 WhatsApp 与每家公司沟通。你也会收到一封邮件。",
       "again": "再发一份申请",
       "failed": "申请未能发送。请重试。",
-      "privacy": "隐私政策"
+      "privacy": "隐私政策",
+      "messageTooLong": "这比表单能接受的长，请缩短。",
+      "invalidField": "请检查表单的这一部分后重试。",
+      "invalidEmail": "请填写类似 ana@company.com 的邮箱。",
+      "confirmTitle": "正在确认你的邮箱…",
+      "confirmLead": "请稍候。",
+      "confirmFailedTitle": "此链接未知或已过期",
+      "confirmFailedLead": "请重新提交表单以获取新链接。",
+      "confirmAgain": "重新提交表单"
     },
     "interests": {
       "design": "设计",
@@ -814,7 +822,13 @@
       "noEmail": "此服务器不发送邮件，因此无法发出邀请。",
       "codeTaken": "另一家公司已使用此编号。",
       "codeInvalid": "客户编号是三位数字。",
-      "more": "更多"
+      "more": "更多",
+      "pendingConfirm": "这个地址有一份待确认的新表单：确认之前，团队看到的仍是原来的申请。",
+      "delete": "删除",
+      "deleteTitle": "删除 {{company}} 的申请？",
+      "deleteText": "其中的一切都会消失，包括同意记录，且无法恢复。这是企业在要求被遗忘时 LGPD 所要求的。",
+      "deleted": "申请已删除。",
+      "notesTooLong": "备注超过了这里的长度，请缩短。"
     },
     "notice": {
       "title": "{{company}} 申请了 DougBot",

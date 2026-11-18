@@ -756,7 +756,15 @@
       "doneLead": "チームが各依頼を読み、各社にWhatsAppで連絡します。メールも届きます。",
       "again": "もう一件送る",
       "failed": "依頼を送れませんでした。もう一度お試しください。",
-      "privacy": "プライバシーポリシー"
+      "privacy": "プライバシーポリシー",
+      "messageTooLong": "フォームが受け付ける長さを超えています。短くしてください。",
+      "invalidField": "フォームのこの部分を確認して、もう一度お試しください。",
+      "invalidEmail": "ana@company.com のようなメールアドレスを入力してください。",
+      "confirmTitle": "メールアドレスを確認しています…",
+      "confirmLead": "少々お待ちください。",
+      "confirmFailedTitle": "このリンクは不明か期限切れです",
+      "confirmFailedLead": "新しいリンクを受け取るには、フォームをもう一度送信してください。",
+      "confirmAgain": "フォームを再送信"
     },
     "interests": {
       "design": "デザイン",
@@ -814,7 +822,13 @@
       "noEmail": "このサーバーはメールを送らないため、招待を送れません。",
       "codeTaken": "別の会社がこのコードを使っています。",
       "codeInvalid": "顧客コードは3桁です。",
-      "more": "もっと見る"
+      "more": "もっと見る",
+      "pendingConfirm": "このアドレスには確認待ちの新しいフォームがあります。確認されるまで、チームにはこれまでの内容が見えます。",
+      "delete": "削除",
+      "deleteTitle": "{{company}} のリクエストを削除しますか？",
+      "deleteText": "同意を含め、保存されているものはすべて消え、元に戻りません。企業が忘れられることを求めたときにLGPDが求めることです。",
+      "deleted": "リクエストを削除しました。",
+      "notesTooLong": "メモがここに入る長さを超えています。短くしてください。"
     },
     "notice": {
       "title": "{{company}}がDougBotを依頼しました",

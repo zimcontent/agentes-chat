@@ -792,6 +792,9 @@ export const ptBR = {
       message: "Mais alguma coisa",
       messageExample: "Publicamos dois vídeos por semana à mão.",
       messageOptional: "Opcional",
+      messageTooLong: "Isto é maior do que o formulário aceita. Encurte.",
+      invalidField: "Confira esta parte do formulário e tente de novo.",
+      invalidEmail: "Use um e-mail como ana@empresa.com.",
       consent:
         "Concordo que o DougBot guarde estas respostas para falar comigo, como descrito na <link>Política de Privacidade</link>.",
       consentRequired: "Aceite a Política de Privacidade para continuar.",
@@ -800,6 +803,11 @@ export const ptBR = {
       doneTitle: "Seu pedido chegou",
       doneLead: "O time lê cada pedido e fala com cada empresa pelo WhatsApp. Você recebe um e-mail também.",
       again: "Enviar outro pedido",
+      confirmTitle: "Confirmando seu e-mail…",
+      confirmLead: "Um instante.",
+      confirmFailedTitle: "Este link é desconhecido ou venceu",
+      confirmFailedLead: "Envie o formulário de novo para receber um link novo.",
+      confirmAgain: "Enviar o formulário de novo",
       failed: "Não foi possível enviar o pedido. Tente de novo.",
       privacy: "Política de Privacidade",
     },
@@ -860,6 +868,14 @@ export const ptBR = {
       noEmail: "Este servidor não envia e-mail, então nenhum convite pode sair.",
       codeTaken: "Outra empresa já tem este código.",
       codeInvalid: "O código do cliente tem três dígitos.",
+      pendingConfirm:
+        "Este endereço tem um formulário novo para confirmar: o time vê o pedido como estava até a confirmação.",
+      delete: "Apagar",
+      deleteTitle: "Apagar o pedido da {{company}}?",
+      deleteText:
+        "Tudo o que ele guarda vai embora, o consentimento incluído, e nada volta. É o que a LGPD pede quando uma empresa pede para ser esquecida.",
+      deleted: "Pedido apagado.",
+      notesTooLong: "As notas são maiores do que cabem aqui. Encurte.",
     },
     notice: {
       title: "{{company}} pediu o DougBot",

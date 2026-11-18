@@ -770,7 +770,15 @@
       "doneLead": "Het team leest elk verzoek en praat met elk bedrijf via WhatsApp. Je krijgt ook een e-mail.",
       "again": "Nog een verzoek versturen",
       "failed": "Het verzoek kon niet worden verstuurd. Probeer het opnieuw.",
-      "privacy": "Privacybeleid"
+      "privacy": "Privacybeleid",
+      "messageTooLong": "Dit is langer dan het formulier aanneemt. Maak het korter.",
+      "invalidField": "Controleer dit deel van het formulier en probeer het opnieuw.",
+      "invalidEmail": "Gebruik een e-mailadres zoals ana@bedrijf.nl.",
+      "confirmTitle": "Je e-mailadres wordt bevestigd…",
+      "confirmLead": "Een moment.",
+      "confirmFailedTitle": "Deze link is onbekend of verlopen",
+      "confirmFailedLead": "Stuur het formulier opnieuw om een nieuwe link te krijgen.",
+      "confirmAgain": "Formulier opnieuw sturen"
     },
     "interests": {
       "design": "Design",
@@ -828,7 +836,13 @@
       "noEmail": "Deze server verstuurt geen e-mail, dus er kan geen uitnodiging uitgaan.",
       "codeTaken": "Een ander bedrijf heeft deze code al.",
       "codeInvalid": "De klantcode heeft drie cijfers.",
-      "more": "Meer"
+      "more": "Meer",
+      "pendingConfirm": "Dit adres heeft een nieuw formulier te bevestigen: het team ziet de aanvraag zoals die was tot die bevestigd is.",
+      "delete": "Verwijderen",
+      "deleteTitle": "De aanvraag van {{company}} verwijderen?",
+      "deleteText": "Alles wat erin staat gaat weg, de toestemming inbegrepen, en niets komt terug. Dat vraagt de AVG wanneer een bedrijf vergeten wil worden.",
+      "deleted": "Aanvraag verwijderd.",
+      "notesTooLong": "De notities zijn langer dan hier past. Maak ze korter."
     },
     "notice": {
       "title": "{{company}} vroeg DougBot aan",

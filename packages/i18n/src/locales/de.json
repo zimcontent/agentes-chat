@@ -770,7 +770,15 @@
       "doneLead": "Das Team liest jede Anfrage und spricht mit jedem Unternehmen per WhatsApp. Du bekommst auch eine E-Mail.",
       "again": "Weitere Anfrage senden",
       "failed": "Die Anfrage konnte nicht gesendet werden. Versuch es erneut.",
-      "privacy": "Datenschutzerklärung"
+      "privacy": "Datenschutzerklärung",
+      "messageTooLong": "Das ist länger, als das Formular annimmt. Kürzen Sie es.",
+      "invalidField": "Prüfen Sie diesen Teil des Formulars und versuchen Sie es erneut.",
+      "invalidEmail": "Geben Sie eine E-Mail wie ana@firma.de an.",
+      "confirmTitle": "Ihre E-Mail wird bestätigt…",
+      "confirmLead": "Einen Moment.",
+      "confirmFailedTitle": "Dieser Link ist unbekannt oder abgelaufen",
+      "confirmFailedLead": "Senden Sie das Formular erneut, um einen neuen Link zu erhalten.",
+      "confirmAgain": "Formular erneut senden"
     },
     "interests": {
       "design": "Design",
@@ -828,7 +836,13 @@
       "noEmail": "Dieser Server versendet keine E-Mail, also kann keine Einladung rausgehen.",
       "codeTaken": "Ein anderes Unternehmen hat diesen Code schon.",
       "codeInvalid": "Der Kundencode hat drei Ziffern.",
-      "more": "Mehr"
+      "more": "Mehr",
+      "pendingConfirm": "Diese Adresse hat ein neues Formular zum Bestätigen: Das Team sieht die Anfrage so, wie sie war, bis sie bestätigt ist.",
+      "delete": "Löschen",
+      "deleteTitle": "Die Anfrage von {{company}} löschen?",
+      "deleteText": "Alles, was sie enthält, geht, die Einwilligung eingeschlossen, und nichts kommt zurück. Das verlangt die DSGVO, wenn ein Unternehmen vergessen werden möchte.",
+      "deleted": "Anfrage gelöscht.",
+      "notesTooLong": "Die Notizen sind länger, als hier hineinpasst. Kürzen Sie sie."
     },
     "notice": {
       "title": "{{company}} hat DougBot angefragt",

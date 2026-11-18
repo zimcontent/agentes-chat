@@ -784,7 +784,15 @@
       "doneLead": "L’équipe lit chaque demande et parle à chaque entreprise sur WhatsApp. Vous recevrez aussi un e-mail.",
       "again": "Envoyer une autre demande",
       "failed": "Impossible d’envoyer la demande. Réessayez.",
-      "privacy": "Politique de confidentialité"
+      "privacy": "Politique de confidentialité",
+      "messageTooLong": "C'est plus long que ce que le formulaire accepte. Raccourcissez.",
+      "invalidField": "Vérifiez cette partie du formulaire et réessayez.",
+      "invalidEmail": "Utilisez un e-mail comme ana@entreprise.com.",
+      "confirmTitle": "Confirmation de votre e-mail…",
+      "confirmLead": "Un instant.",
+      "confirmFailedTitle": "Ce lien est inconnu ou expiré",
+      "confirmFailedLead": "Renvoyez le formulaire pour recevoir un nouveau lien.",
+      "confirmAgain": "Renvoyer le formulaire"
     },
     "interests": {
       "design": "Design",
@@ -842,7 +850,13 @@
       "noEmail": "Ce serveur n’envoie pas d’e-mail, donc aucune invitation ne peut partir.",
       "codeTaken": "Une autre entreprise a déjà ce code.",
       "codeInvalid": "Le code client a trois chiffres.",
-      "more": "Plus"
+      "more": "Plus",
+      "pendingConfirm": "Cette adresse a un nouveau formulaire à confirmer : l'équipe voit la demande telle qu'elle était jusqu'à la confirmation.",
+      "delete": "Supprimer",
+      "deleteTitle": "Supprimer la demande de {{company}} ?",
+      "deleteText": "Tout ce qu'elle contient disparaît, le consentement compris, et rien ne revient. C'est ce que demande la LGPD quand une entreprise demande à être oubliée.",
+      "deleted": "Demande supprimée.",
+      "notesTooLong": "Les notes sont plus longues que ce qui tient ici. Raccourcissez-les."
     },
     "notice": {
       "title": "{{company}} a demandé DougBot",

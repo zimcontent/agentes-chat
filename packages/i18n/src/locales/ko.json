@@ -756,7 +756,15 @@
       "doneLead": "팀이 모든 요청을 읽고 각 회사와 WhatsApp으로 이야기합니다. 이메일도 받게 됩니다.",
       "again": "요청 하나 더 보내기",
       "failed": "요청을 보내지 못했습니다. 다시 시도하세요.",
-      "privacy": "개인정보 처리방침"
+      "privacy": "개인정보 처리방침",
+      "messageTooLong": "양식이 받을 수 있는 길이보다 깁니다. 줄여 주세요.",
+      "invalidField": "양식의 이 부분을 확인하고 다시 시도해 주세요.",
+      "invalidEmail": "ana@company.com 같은 이메일을 입력해 주세요.",
+      "confirmTitle": "이메일을 확인하는 중…",
+      "confirmLead": "잠시만요.",
+      "confirmFailedTitle": "알 수 없거나 만료된 링크입니다",
+      "confirmFailedLead": "새 링크를 받으려면 양식을 다시 보내 주세요.",
+      "confirmAgain": "양식 다시 보내기"
     },
     "interests": {
       "design": "디자인",
@@ -814,7 +822,13 @@
       "noEmail": "이 서버는 이메일을 보내지 않으므로 초대를 보낼 수 없습니다.",
       "codeTaken": "다른 회사가 이 코드를 이미 씁니다.",
       "codeInvalid": "고객 코드는 세 자리입니다.",
-      "more": "더 보기"
+      "more": "더 보기",
+      "pendingConfirm": "이 주소에는 확인할 새 양식이 있습니다. 확인되기 전까지 팀은 이전 요청을 봅니다.",
+      "delete": "삭제",
+      "deleteTitle": "{{company}}의 요청을 삭제할까요?",
+      "deleteText": "동의를 포함해 저장된 모든 것이 사라지고 되돌릴 수 없습니다. 기업이 잊혀지기를 요청할 때 LGPD가 요구하는 일입니다.",
+      "deleted": "요청을 삭제했습니다.",
+      "notesTooLong": "메모가 여기에 들어갈 길이보다 깁니다. 줄여 주세요."
     },
     "notice": {
       "title": "{{company}}님이 DougBot을 요청했습니다",

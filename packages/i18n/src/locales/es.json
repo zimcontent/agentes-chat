@@ -784,7 +784,15 @@
       "doneLead": "El equipo lee cada solicitud y habla con cada empresa por WhatsApp. También recibirás un correo.",
       "again": "Enviar otra solicitud",
       "failed": "No se pudo enviar la solicitud. Inténtalo de nuevo.",
-      "privacy": "Política de Privacidad"
+      "privacy": "Política de Privacidad",
+      "messageTooLong": "Esto es más largo de lo que el formulario acepta. Acórtalo.",
+      "invalidField": "Revisa esta parte del formulario e inténtalo de nuevo.",
+      "invalidEmail": "Usa un correo como ana@empresa.com.",
+      "confirmTitle": "Confirmando tu correo…",
+      "confirmLead": "Un momento.",
+      "confirmFailedTitle": "Este enlace es desconocido o caducó",
+      "confirmFailedLead": "Envía el formulario de nuevo para recibir otro enlace.",
+      "confirmAgain": "Enviar el formulario de nuevo"
     },
     "interests": {
       "design": "Diseño",
@@ -842,7 +850,13 @@
       "noEmail": "Este servidor no envía correo, así que no puede salir ninguna invitación.",
       "codeTaken": "Otra empresa ya tiene este código.",
       "codeInvalid": "El código de cliente tiene tres dígitos.",
-      "more": "Más"
+      "more": "Más",
+      "pendingConfirm": "Esta dirección tiene un formulario nuevo por confirmar: el equipo ve la solicitud como estaba hasta que se confirme.",
+      "delete": "Eliminar",
+      "deleteTitle": "¿Eliminar la solicitud de {{company}}?",
+      "deleteText": "Todo lo que guarda se borra, el consentimiento incluido, y nada vuelve. Es lo que pide la LGPD cuando una empresa pide que la olviden.",
+      "deleted": "Solicitud eliminada.",
+      "notesTooLong": "Las notas son más largas de lo que cabe aquí. Acórtalas."
     },
     "notice": {
       "title": "{{company}} pidió DougBot",

@@ -798,7 +798,15 @@
       "doneLead": "Zespół czyta każde zgłoszenie i rozmawia z każdą firmą przez WhatsApp. Otrzymasz też e-mail.",
       "again": "Wyślij kolejne zgłoszenie",
       "failed": "Nie udało się wysłać zgłoszenia. Spróbuj ponownie.",
-      "privacy": "Polityka prywatności"
+      "privacy": "Polityka prywatności",
+      "messageTooLong": "To dłuższe, niż przyjmuje formularz. Skróć to.",
+      "invalidField": "Sprawdź tę część formularza i spróbuj ponownie.",
+      "invalidEmail": "Użyj adresu e-mail, np. ana@firma.pl.",
+      "confirmTitle": "Potwierdzanie e-maila…",
+      "confirmLead": "Chwileczkę.",
+      "confirmFailedTitle": "Ten link jest nieznany lub wygasł",
+      "confirmFailedLead": "Wyślij formularz ponownie, aby otrzymać nowy link.",
+      "confirmAgain": "Wyślij formularz ponownie"
     },
     "interests": {
       "design": "Design",
@@ -856,7 +864,13 @@
       "noEmail": "Ten serwer nie wysyła e-maili, więc zaproszenie nie może wyjść.",
       "codeTaken": "Inna firma ma już ten kod.",
       "codeInvalid": "Kod klienta ma trzy cyfry.",
-      "more": "Więcej"
+      "more": "Więcej",
+      "pendingConfirm": "Ten adres ma nowy formularz do potwierdzenia: zespół widzi prośbę taką, jaka była, dopóki nie zostanie potwierdzona.",
+      "delete": "Usuń",
+      "deleteTitle": "Usunąć prośbę od {{company}}?",
+      "deleteText": "Wszystko, co zawiera, znika, łącznie ze zgodą, i nic nie wraca. Tego wymaga RODO, gdy firma prosi, by o niej zapomnieć.",
+      "deleted": "Prośba usunięta.",
+      "notesTooLong": "Notatki są dłuższe, niż się tu mieszczą. Skróć je."
     },
     "notice": {
       "title": "{{company}} poprosiła o DougBot",

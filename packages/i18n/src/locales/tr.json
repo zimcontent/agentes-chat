@@ -770,7 +770,15 @@
       "doneLead": "Ekip her talebi okur ve her şirketle WhatsApp üzerinden konuşur. Ayrıca e-posta alacaksın.",
       "again": "Başka bir talep gönder",
       "failed": "Talep gönderilemedi. Tekrar dene.",
-      "privacy": "Gizlilik Politikası"
+      "privacy": "Gizlilik Politikası",
+      "messageTooLong": "Bu, formun kabul ettiğinden uzun. Kısaltın.",
+      "invalidField": "Formun bu bölümünü kontrol edip yeniden deneyin.",
+      "invalidEmail": "ana@sirket.com gibi bir e-posta yazın.",
+      "confirmTitle": "E-postanız onaylanıyor…",
+      "confirmLead": "Bir saniye.",
+      "confirmFailedTitle": "Bu bağlantı bilinmiyor ya da süresi dolmuş",
+      "confirmFailedLead": "Yeni bir bağlantı için formu yeniden gönderin.",
+      "confirmAgain": "Formu yeniden gönder"
     },
     "interests": {
       "design": "Tasarım",
@@ -828,7 +836,13 @@
       "noEmail": "Bu sunucu e-posta göndermiyor, bu yüzden davet gidemez.",
       "codeTaken": "Bu kodu başka bir şirket kullanıyor.",
       "codeInvalid": "Müşteri kodu üç hanelidir.",
-      "more": "Daha fazla"
+      "more": "Daha fazla",
+      "pendingConfirm": "Bu adreste onaylanacak yeni bir form var: onaylanana kadar ekip talebi eskisi gibi görür.",
+      "delete": "Sil",
+      "deleteTitle": "{{company}} talebi silinsin mi?",
+      "deleteText": "İçindeki her şey, onay dahil, gider ve geri gelmez. KVKK bir şirket unutulmak istediğinde bunu ister.",
+      "deleted": "Talep silindi.",
+      "notesTooLong": "Notlar buraya sığandan uzun. Kısaltın."
     },
     "notice": {
       "title": "{{company}} DougBot istedi",

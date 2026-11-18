@@ -800,6 +800,9 @@ export const en = {
       message: "Anything else",
       messageExample: "We post two videos a week by hand.",
       messageOptional: "Optional",
+      messageTooLong: "This is longer than the form takes. Shorten it.",
+      invalidField: "Check this part of the form and try again.",
+      invalidEmail: "Type an email like ana@company.com.",
       consent:
         "I agree that DougBot may keep these answers to get in touch, as described in the <link>Privacy Policy</link>.",
       consentRequired: "Accept the Privacy Policy to continue.",
@@ -808,6 +811,11 @@ export const en = {
       doneTitle: "Your request is with us",
       doneLead: "The team reads every request and talks to each company on WhatsApp. You'll get an email too.",
       again: "Send another request",
+      confirmTitle: "Confirming your email…",
+      confirmLead: "One moment.",
+      confirmFailedTitle: "This link is unknown or expired",
+      confirmFailedLead: "Send the form again to get a new link.",
+      confirmAgain: "Send the form again",
       failed: "Couldn't send the request. Try again.",
       privacy: "Privacy Policy",
     },
@@ -870,6 +878,14 @@ export const en = {
       noEmail: "This server sends no email, so no invitation can go out.",
       codeTaken: "Another company already has this code.",
       codeInvalid: "The client code has three digits.",
+      pendingConfirm:
+        "This address has a new form to confirm: the team sees the request as it was until it is confirmed.",
+      delete: "Delete",
+      deleteTitle: "Delete the request from {{company}}?",
+      deleteText:
+        "Everything it holds goes, the consent included, and nothing comes back. This is what the LGPD asks when a company asks to be forgotten.",
+      deleted: "Request deleted.",
+      notesTooLong: "The notes are longer than fit here. Shorten them.",
     },
     /** The inbox row and the push of a new request. */
     notice: {

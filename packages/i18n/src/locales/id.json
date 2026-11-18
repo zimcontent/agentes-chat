@@ -756,7 +756,15 @@
       "doneLead": "Tim membaca setiap permintaan dan menghubungi setiap perusahaan lewat WhatsApp. Kamu juga akan menerima email.",
       "again": "Kirim permintaan lain",
       "failed": "Permintaan tidak terkirim. Coba lagi.",
-      "privacy": "Kebijakan Privasi"
+      "privacy": "Kebijakan Privasi",
+      "messageTooLong": "Ini lebih panjang dari yang diterima formulir. Pendekkan.",
+      "invalidField": "Periksa bagian formulir ini dan coba lagi.",
+      "invalidEmail": "Gunakan email seperti ana@perusahaan.com.",
+      "confirmTitle": "Mengonfirmasi email Anda…",
+      "confirmLead": "Sebentar.",
+      "confirmFailedTitle": "Tautan ini tidak dikenal atau kedaluwarsa",
+      "confirmFailedLead": "Kirim formulir lagi untuk mendapat tautan baru.",
+      "confirmAgain": "Kirim formulir lagi"
     },
     "interests": {
       "design": "Desain",
@@ -814,7 +822,13 @@
       "noEmail": "Server ini tidak mengirim email, jadi undangan tidak bisa terkirim.",
       "codeTaken": "Perusahaan lain sudah memakai kode ini.",
       "codeInvalid": "Kode klien terdiri dari tiga digit.",
-      "more": "Lainnya"
+      "more": "Lainnya",
+      "pendingConfirm": "Alamat ini punya formulir baru untuk dikonfirmasi: tim melihat permintaan seperti sebelumnya sampai dikonfirmasi.",
+      "delete": "Hapus",
+      "deleteTitle": "Hapus permintaan dari {{company}}?",
+      "deleteText": "Semua isinya hilang, termasuk persetujuan, dan tidak ada yang kembali. Inilah yang diminta UU PDP saat perusahaan meminta dilupakan.",
+      "deleted": "Permintaan dihapus.",
+      "notesTooLong": "Catatan lebih panjang dari yang muat di sini. Pendekkan."
     },
     "notice": {
       "title": "{{company}} meminta DougBot",
