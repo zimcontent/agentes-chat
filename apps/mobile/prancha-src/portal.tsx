@@ -19,6 +19,7 @@ import { ClientEditSheet } from "@/features/portal/ClientEditSheet";
 import { ClientScreen } from "@/features/portal/ClientScreen";
 import { PortalScreen } from "@/features/portal/PortalScreen";
 import { ScheduleSheet } from "@/features/portal/ScheduleSheet";
+import { PickerHost } from "@/features/shared/PickerSheet";
 import { SheetHostProvider, useSheet } from "@/features/shared/SheetHost";
 import { FixedOrg } from "@/providers/org";
 import { ToastHost } from "@/ui";
@@ -443,6 +444,8 @@ function Server({ width = 390, children }: { width?: number; children: ReactNode
           <ToastHost>
             <HeaderHeightContext.Provider value={100}>
               <View style={[styles.phone, { width, maxWidth: "100%" }]}>{children}</View>
+              {/* The app's root host of action menus and pickers (a list's "…", a card held in place). */}
+              <PickerHost />
             </HeaderHeightContext.Provider>
           </ToastHost>
         </FixedOrg>
