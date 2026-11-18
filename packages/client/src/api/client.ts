@@ -489,6 +489,8 @@ export interface ApiClient {
     setCompanyStatus(id: string, status: CompanyRequestStatus): Promise<CompanyRequest>;
     saveCompanyNotes(id: string, notes: string): Promise<CompanyRequest>;
     saveCompanyClientCode(id: string, clientCode: string | null): Promise<CompanyRequest>;
+    /** Erases the request and everything it holds (LGPD): `DELETE …/companies/{id}`. */
+    deleteCompanyRequest(id: string): Promise<void>;
     /** Sends the company its early-access link: `early_access.no_email` (409) where the server sends no email. */
     inviteCompany(id: string): Promise<CompanyRequestInvite>;
   };

@@ -799,6 +799,7 @@ export function createHttpApi(options: TransportOptions = {}): HttpApi {
         request<CompanyRequest>(`/api/app/companies/${id}/notes`, { method: "PUT", json: { notes } }),
       saveCompanyClientCode: (id, clientCode) =>
         request<CompanyRequest>(`/api/app/companies/${id}/client-code`, { method: "PUT", json: { clientCode } }),
+      deleteCompanyRequest: (id) => request<void>(`/api/app/companies/${id}`, { method: "DELETE" }),
       inviteCompany: (id) =>
         request<CompanyRequestInvite>(`/api/app/companies/${id}/invite`, { method: "POST", json: {} }),
     },

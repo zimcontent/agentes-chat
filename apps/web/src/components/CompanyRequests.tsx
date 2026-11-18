@@ -2,6 +2,7 @@ import type { CompanyRequest, CompanyRequestStatus } from "@agenteschat/client";
 import {
   COMPANY_REQUEST_STATUSES,
   useCompanyRequests,
+  useDeleteCompanyRequest,
   useInviteCompany,
   useSaveCompanyClientCode,
   useSaveCompanyNotes,
@@ -15,6 +16,8 @@ import {
   CardHeader,
   Chip,
   type ChipTone,
+  Dialog,
+  DialogFooter,
   EmptyState,
   Field,
   Input,
@@ -25,7 +28,11 @@ import {
 } from "@agenteschat/ui";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { useToast } from "@/lib/toast";
 import "./company-requests.css";
+
+/** The team's notes' limit, the server's own (`COMPANY_NOTES_MAX`). */
+const NOTES_MAX = 4000;
 
 /** Each step as its chip's colour: a request waits (new), is being talked to, was invited, is a client, or is set aside. */
 const STATUS_TONE: Record<CompanyRequestStatus, ChipTone | undefined> = {
@@ -108,14 +115,17 @@ export function CompanyRequestsSection() {
 /** One request: what the person sent, the team's notes, its client's code, and the Invite. */
 function CompanyCard({ request: r }: { request: CompanyRequest }) {
   const { t } = useTranslation();
+  const toast = useToast();
   const setStatus = useSetCompanyStatus();
   const saveNotes = useSaveCompanyNotes();
   const saveCode = useSaveCompanyClientCode();
+  const remove = useDeleteCompanyRequest();
   const invite = useInviteCompany();
   const [notes, setNotes] = useState(r.notes);
   const [code, setCode] = useState(r.clientCode ?? "");
   const [said, setSaid] = useState<string | null>(null);
   const [codeError, setCodeError] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
   const notesSaved = useRef(r.notes);
 
   // A changed request (another step, other notes) keeps the fields in step with it.
@@ -192,6 +202,7 @@ function CompanyCard({ request: r }: { request: CompanyRequest }) {
             <p>{r.message}</p>
           </div>
         )}
+        {r.pendingResendAt && <p className="cr-said">{t("companies.list.pendingConfirm")}</p>}
         <div className="cr-row">
           <span className="cr-label">{t("companies.list.setStatus")}</span>
           <Segmented
@@ -205,14 +216,18 @@ function CompanyCard({ request: r }: { request: CompanyRequest }) {
             }))}
           />
         </div>
-        <Field label={t("companies.list.notes")}>
+        <Field
+          label={t("companies.list.notes")}
+          error={notes.length > NOTES_MAX ? t("companies.list.notesTooLong") : undefined}
+        >
           <Textarea
             rows={2}
             value={notes}
+            maxLength={NOTES_MAX}
             placeholder={t("companies.list.notesPlaceholder")}
             onChange={(e) => setNotes(e.target.value)}
             onBlur={() => {
-              if (notes.trim() !== r.notes) saveNotes.mutate({ id: r.id, notes });
+              if (notes.length <= NOTES_MAX && notes.trim() !== r.notes) saveNotes.mutate({ id: r.id, notes });
             }}
           />
         </Field>
@@ -259,6 +274,9 @@ function CompanyCard({ request: r }: { request: CompanyRequest }) {
                 {invite.isPending ? t("companies.list.inviting") : t("companies.list.invite")}
               </Button>
             )}
+            <Button variant="danger" onClick={() => setDeleting(true)}>
+              {t("companies.list.delete")}
+            </Button>
           </div>
         </div>
         {(said || r.invitedAt) && (
@@ -270,6 +288,34 @@ function CompanyCard({ request: r }: { request: CompanyRequest }) {
           </p>
         )}
       </div>
+      <Dialog
+        open={deleting}
+        onOpenChange={(o) => !o && setDeleting(false)}
+        title={t("companies.list.deleteTitle", { company: r.company })}
+        description={t("companies.list.deleteText")}
+        closeLabel={t("common.close")}
+        width={460}
+      >
+        <DialogFooter>
+          <Button onClick={() => setDeleting(false)}>{t("common.cancel")}</Button>
+          <Button
+            variant="danger"
+            loading={remove.isPending}
+            disabled={remove.isPending}
+            onClick={() =>
+              remove.mutate(r.id, {
+                onSuccess: () => {
+                  setDeleting(false);
+                  toast.show(t("companies.list.deleted"));
+                },
+                onError: (e) => setSaid(errorText(t, e)),
+              })
+            }
+          >
+            {t("companies.list.delete")}
+          </Button>
+        </DialogFooter>
+      </Dialog>
     </Card>
   );
 }

@@ -477,6 +477,20 @@ export const useSaveCompanyClientCode = () =>
     api.system.saveCompanyClientCode(input.id, input.clientCode),
   );
 
+/** Erases a request and everything it holds (LGPD): the list and the counts are read again. */
+export const useDeleteCompanyRequest = () => {
+  const api = useApi();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => api.system.deleteCompanyRequest(id),
+    onSuccess: (_done, id) => {
+      qc.removeQueries({ queryKey: keys.companyRequest(id) });
+      void qc.invalidateQueries({ predicate: (q) => q.queryKey[0] === "companies" && q.queryKey.length === 2 });
+    },
+    meta: { silent: true },
+  });
+};
+
 /** The Invite: its answer's outcome is the caller's to read (an email sent, one too recent, an account allowed). */
 export const useInviteCompany = () => {
   const api = useApi();

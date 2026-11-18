@@ -90,6 +90,10 @@ export interface CompanyRequest {
   clientCode: string | null;
   /** The team's own notes about it. */
   notes: string;
+  /** When the address confirmed itself (double opt-in): only then is it in the list. */
+  confirmedAt: string | null;
+  /** A confirmed second form waiting for its link to be opened: when it was sent. */
+  pendingResendAt: string | null;
   invitedAt: string | null;
   createdAt: string;
   updatedAt: string;

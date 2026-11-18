@@ -1561,6 +1561,9 @@ export function createFakeHttpApi(state: FakeState): Omit<HttpApi, FakedParts> {
       saveCompanyClientCode: async () => {
         throw new ApiError(404, "not_found", "Not found");
       },
+      deleteCompanyRequest: async () => {
+        throw new ApiError(404, "not_found", "Not found");
+      },
       inviteCompany: async () => {
         throw new ApiError(404, "not_found", "Not found");
       },
