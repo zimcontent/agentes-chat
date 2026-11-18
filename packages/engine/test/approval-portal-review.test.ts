@@ -1,16 +1,21 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import { createFakeEmailSender, createFakeWhatsAppGateway, createMemoryBlobStore } from "@agenteschat/adapters";
 import { and, eq, schema } from "@agenteschat/db";
+import type { ArtifactDeps, ToolContext } from "../src";
 import {
+  addChannelMember,
   announcePortalPost,
   clientDecision,
   createEmbeddedApprovalPortal,
   createOrganization,
+  createPortalToolSource,
   listPortalClients,
   makeClientLink,
+  PORTAL_CLIENTS_TOOL,
   portalBelongsTo,
   portalClientOfToken,
   portalOrgId,
+  postPersonMessage,
   revokeClientLink,
   sealSecret,
   setPortalNoticeNumber,
@@ -267,6 +272,84 @@ describe("a client's notices (ADR doug-0022 §7)", () => {
     const chosen = await announcePortalPost(waDeps(), f.org.id, job2.item as string, 1);
     expect(chosen.sent).toBe(1);
     expect(gateway.last("send")?.to).toBe("5511999990000@s.whatsapp.net");
+  });
+});
+
+/** The message each person wrote, so a tool's `triggerMessageId` names them (`personBehindCall`). */
+const messageOf = new Map<string, string>();
+async function speakAs(personId: string) {
+  // The owner adds them to #general, so their message is theirs to send.
+  await addChannelMember(f.db, f.owner.id, f.org.id, f.general.id, { userId: personId });
+  const message = await postPersonMessage({ db: f.db, pubsub: f.pubsub }, personId, f.org.id, f.general.id, {
+    body: "oi",
+  });
+  messageOf.set(personId, message.id);
+}
+
+/** A run id the tools read: no row names it, so a person is read from `triggerMessageId` (`personBehindCall`). */
+const SOME_RUN = Bun.randomUUIDv7();
+
+describe("the `portal_clients` tool", () => {
+  const toolCtx = (personId: string | null) =>
+    ({
+      orgId: f.org.id,
+      agentId: f.agent.id,
+      runId: SOME_RUN,
+      channelId: f.general.id,
+      triggerMessageId: personId ? (messageOf.get(personId) ?? null) : null,
+      db: f.db,
+    }) as unknown as ToolContext;
+
+  test("listing asks for the person behind the run; making a client needs their `assign_work`", async () => {
+    await makeClient("padaria-aurora", "Padaria Aurora");
+    await speakAs(f.owner.id);
+    const portal = createEmbeddedApprovalPortal({ db: f.db, blobs, publicUrl: PUBLIC_URL, secret: SECRET });
+    const source = createPortalToolSource({
+      portal,
+      artifacts: {} as ArtifactDeps,
+      here: async () => true,
+      clients: { publicUrl: PUBLIC_URL, secret: SECRET },
+    });
+    const tools = await source.tools(toolCtx(f.owner.id));
+    const tool = tools.find((t) => t.name === PORTAL_CLIENTS_TOOL);
+    if (!tool) throw new Error("the clients tool isn't listed on the installation's own portal");
+
+    // A person behind the run: it lists the clients, links and all, and makes one.
+    const listed = (await tool.execute({}, toolCtx(f.owner.id))) as { content: string; isError?: boolean };
+    expect(listed.isError).not.toBe(true);
+    expect(listed.content).toContain("padaria-aurora");
+    expect(listed.content).toContain("/p/");
+    const saved = (await tool.execute({ client: "cafe-sol", name: "Cafe Sol" }, toolCtx(f.owner.id))) as {
+      content: string;
+      isError?: boolean;
+    };
+    expect(saved.isError).not.toBe(true);
+    expect(saved.content).toContain("cafe-sol");
+
+    // Nobody behind the run (a routine): the tool refuses, and names nothing of the team's.
+    const nobody = (await tool.execute({}, toolCtx(null))) as { content: string; isError?: boolean };
+    expect(nobody.isError).toBe(true);
+    expect(nobody.content).not.toContain("padaria-aurora");
+    expect(nobody.content).not.toContain("/p/");
+  });
+
+  test("a workspace that isn't the portal's gets no clients and makes none", async () => {
+    await makeClient();
+    const other = await otherWorkspace();
+    const portal = createEmbeddedApprovalPortal({ db: f.db, blobs, publicUrl: PUBLIC_URL, secret: SECRET });
+    const source = createPortalToolSource({
+      portal,
+      artifacts: {} as ArtifactDeps,
+      here: async () => true,
+      clients: { publicUrl: PUBLIC_URL, secret: SECRET },
+    });
+    const tool = (await source.tools(toolCtx(f.owner.id))).find((t) => t.name === PORTAL_CLIENTS_TOOL);
+    if (!tool) throw new Error("no clients tool");
+    const out = (await tool.execute({ client: "x", name: "X" }, {
+      ...toolCtx(f.owner.id),
+      orgId: other,
+    } as unknown as ToolContext)) as { isError?: boolean };
+    expect(out.isError).toBe(true);
   });
 });
 

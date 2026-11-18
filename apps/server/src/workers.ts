@@ -511,7 +511,10 @@ export function startWorkers(deps: WorkerDeps) {
   const portal = deps.approvalPortal;
   if (portal) {
     every("portalTasks", WORKER_INTERVALS_MS.portalTasks, async () => {
-      const r = await portalTasksTick({ db, pubsub: deps.pubsub, log, embedded: Boolean(deps.approvalPortalEmbedded) }, portal);
+      const r = await portalTasksTick(
+        { db, pubsub: deps.pubsub, log, embedded: Boolean(deps.approvalPortalEmbedded) },
+        portal,
+      );
       if (r && r.created + r.toTasks + r.toCards + r.changes.length > 0) {
         log.info("approval portal: cards and tasks put in step", {
           created: r.created,
