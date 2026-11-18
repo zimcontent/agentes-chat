@@ -64,7 +64,7 @@ que existe na máquina". Este script não compila nada.
    são rotacionados (ficam `DOUG_BACKUPS_GUARDADOS`, 3). O `.env` antigo (`.env.antes-atualizar`) sai e o ponto sem volta
    deixa de valer **antes** de gravar o registro: uma morte depois do health bom não devolve o cliente à imagem anterior.
 9. **Volta.** Se não ficar saudável (ou rodar outra imagem, ou a migração falhar): restaura o `.env`, `up -d` na imagem
-   anterior, espera o health de novo. O backup dessa tentativa vira `falhou-<imagem>-<data>.dump`, fora da rotação de
+   anterior, espera o health de novo. O backup dessa tentativa vira `falhou-<slug>-<imagem>-<data>.dump`, fora da rotação de
    `pre-*`, e a imagem fica marcada. Esses são os que mais pesam e ninguém os apagaria: ficam só os
    `DOUG_FALHOU_GUARDADOS` (2) mais novos de cada cliente, e o resumo diz quantos foram apagados.
 
@@ -210,8 +210,8 @@ do container principal) tem de ter a forma de uma imagem: `tag`, `repositório:t
   antigo.
 - **Pastas do script**, criadas `0700` e de root: `backups/<codigo>/`, `atualizacao/marcas/`, `logs/`. `umask 077` no
   script todo. Os backups do `doug-cliente backup`/`remover` ficam em `backups/<codigo>/` também, com os nomes
-  `manual-<data>.dump` e `remocao-<data>.dump` (e `remocao-<data>.env`, `remocao-<data>-files.tar`); a rotação do
-  atualizador só mexe nos `pre-*.dump` e nos `falhou-*.dump`.
+  `manual-<slug>-<data>.dump` e `remocao-<slug>-<data>.dump` (e `remocao-<slug>-<data>.env`, `-files.tar`); a rotação do
+  atualizador só mexe nos `pre-<slug>-*.dump` e nos `falhou-<slug>-*.dump` do cliente em curso.
 
 ## O que muda para os computadores conectados (ADR doug-0005)
 
@@ -262,6 +262,30 @@ comandos de root para quem tiver a regra. Uma atualização parcial se faz como 
   `DOUG_IMAGE` no `.env`; se o instalador usar outros nomes, ajuste `DOUG_SERVER_SERVICE` e `DOUG_DB_SERVICE` na unidade.
   A imagem tem de ter o `bun` (a do DougBot tem: é o que o `HEALTHCHECK` usa), para o health sem porta publicada.
 
-## Quando um cliente sai
+## Dumps com o slug, e quando um cliente sai
 
-Os dumps `pre-*` e `falhou-*` que este script guarda em `$RAIZ/backups/<codigo>/` ainda não levam o slug no nome, e o `doug-cliente limpar-backups` só limpa os `manual-*` e `remocao-*`. Depois de `doug-cliente remover <codigo>`, apague à mão os `pre-*` e `falhou-*` desse código antes de reaproveitá-lo para outro cliente. Assim os dados de quem saiu não ficam no disco, e ninguém restaura um dump de outro cliente.
+Os dumps ficam em `$RAIZ/backups/<codigo>/` e se chamam `pre-<slug>-<imagem>-<data>.dump` (troca boa) e
+`falhou-<slug>-<imagem>-<data>.dump` (troca que falhou ou voltou). Na `<imagem>` os hífens viram `_`, para o slug ler-se
+sem dúvida. A rotação (`DOUG_BACKUPS_GUARDADOS`, `DOUG_FALHOU_GUARDADOS`) e a contagem do resumo filtram pelo slug: os
+dumps de outro cliente que já teve o mesmo código (`pre-padaria-…` ao lado de `pre-padaria-aurora-…`) nunca entram na conta.
+Dumps de antes de o nome levar o slug (`pre-<imagem>-<data>`) não são de ninguém conhecido: nada os poda nem os apaga; o
+operador os remove à mão uma vez.
+
+O `doug-cliente limpar-backups <codigo> --antes <data> [--slug <slug>]` apaga também os `pre-*` e `falhou-*` do slug, e o
+`novo` recusa reaproveitar um código cujos backups (incluindo `pre-*` e `falhou-*`) são de outro cliente. Depois de
+`doug-cliente remover`, esses dumps saem com o `limpar-backups` do prazo de guarda, sem apagar nada à mão.
+
+## Depois do migrate, a imagem que roda e o disjuntor
+
+- **Aviso reconferido:** o aviso de troca vale 30 minutos, e o migrate pode demorar. Logo antes do `up -d`, depois do
+  migrate, o script lê o health de novo; se `restart: ready` sumiu, reenvia o sinal e espera o `ready`, no máximo 2 voltas.
+  O backup não é refeito. Sem `ready` depois das 2 voltas, o `up -d` segue com um aviso no log.
+- **Migrate com nome:** o `docker compose run` do migrate leva `--name doug-<codigo>-migrate-<pid>`. Se o prazo
+  (`DOUG_MIGRATE_TIMEOUT_S`) estoura (124 ou 137), o script faz `docker rm -f` desse contêiner: matar o cliente do docker
+  não mata a migração, que seguiria rodando atrás da volta.
+- **"Já atual" confere a imagem que roda:** com o `.env` já na imagem pedida e o health ok, o script lê a imagem do
+  contêiner (`docker compose ps`). Se for outra, não diz "já atual": acerta o `.env` para a imagem que roda e faz a troca
+  normal, com backup e volta para a imagem que rodava se falhar.
+- **`DOUG_DISJUNTOR=0` é recusado** (saída 2): com 0 a rodada pararia antes de tocar em qualquer cliente. Use 1 ou mais.
+  Um cliente recuperado de uma execução interrompida (o `.env` restaurado e conferido) **não conta** para o disjuntor e
+  não deixa marca: não diz nada sobre a imagem nova.

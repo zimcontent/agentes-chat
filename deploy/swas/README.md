@@ -367,8 +367,8 @@ Os backups do `doug-cliente` (`manual-<slug>-<data>` do `backup`, `remocao-<slug
 levam o **slug** porque os backups são do código, e o código de um cliente removido pode ser dado a
 outro: o `novo` **recusa** um código cuja pasta de backups tenha os de outro slug, a menos que se passe
 `--reusar-codigo`, e o `limpar-backups` só apaga pelo código quando há um cliente só nele (com mais de
-um, é preciso dizer qual: `--slug`). Os `pre-*` e `falhou-*` da mesma pasta são do
-`doug-atualizar-clientes`, que os nomeia e os poda: o `doug-cliente` não mexe neles. Têm dados pessoais do
+um, é preciso dizer qual: `--slug`). Os `pre-<slug>-*` e `falhou-<slug>-*` da mesma pasta são do
+`doug-atualizar-clientes`, que os nomeia e os poda; o `limpar-backups` também os apaga pelo slug. Têm dados pessoais do
 cliente, e por isso precisam de um **prazo de guarda**: defina um (a sugestão do MVP é 30 dias depois
 da saída do cliente para `remocao-*`, e 90 dias para os `manual-*`; confirme com o contrato e com o
 jurídico), cumpra-o e apague depois dele.
@@ -388,9 +388,9 @@ jurídico), cumpra-o e apague depois dele.
   ```
 
   Lista o que é de antes da data e pede a confirmação (`LIMPAR 064`; `--sim` pula a pergunta, e
-  `--dry-run` só lista). Só mexe nos `manual-*` e `remocao-*` (com o `.env` e o tar que vão ao lado);
-  os `pre-*` e `falhou-*` são do `doug-atualizar-clientes`, que os poda. Com `--slug`, só os desse
-  cliente.
+  `--dry-run` só lista). Mexe nos `manual-*` e `remocao-*` (com o `.env` e o tar que vão ao lado) e nos
+  `pre-<slug>-*` e `falhou-<slug>-*` do `doug-atualizar-clientes` (os de antes de o nome levar o slug ficam). Com
+  `--slug`, só os desse cliente.
 
 ## Endpoint de modelo privado de um cliente
 
