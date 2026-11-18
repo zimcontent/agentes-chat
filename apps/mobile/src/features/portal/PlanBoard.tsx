@@ -4,16 +4,9 @@ import { portalClientName, portalDayOf, portalOrderAt, portalWhen } from "@agent
 import { useQueryClient } from "@tanstack/react-query";
 import { type ComponentRef, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Alert, FlatList, Pressable, RefreshControl, ScrollView, StyleSheet, TextInput, View } from "react-native";
-import { GestureDetector, usePanGesture } from "react-native-gesture-handler";
-import Animated, {
-  FadeIn,
-  FadeOut,
-  useAnimatedStyle,
-  useReducedMotion,
-  useSharedValue,
-  withTiming,
-} from "react-native-reanimated";
+import { Alert, Pressable, StyleSheet, TextInput, View } from "react-native";
+import { FlatList, type NativeGesture, RefreshControl, ScrollView } from "react-native-gesture-handler";
+import Animated, { FadeIn, FadeOut, useAnimatedRef, useAnimatedStyle, useReducedMotion } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
   Button,
@@ -32,6 +25,18 @@ import { appColors } from "@/ui/palette";
 import { ThemeColorsOverride } from "@/ui/theme";
 import { useOrgId } from "../shared/hooks";
 import { pickOne, showActionSheet } from "../shared/PickerSheet";
+import {
+  DragBoard,
+  DragCard,
+  DragListEnd,
+  DragListHead,
+  DragOverlay,
+  useBoardDrag,
+  useDragged,
+  useDragListBox,
+  useListSlide,
+  useOverTrash,
+} from "./BoardDrag";
 import { usePortalFailed, usePortalRights, usePortalWords, useSendCard } from "./hooks";
 import {
   BOARD,
@@ -41,10 +46,7 @@ import {
   boardQuery,
   cardBadges,
   cardLabels,
-  edgeScroll,
   LABEL_COLOR,
-  listShift,
-  listSlotAt,
   listsFor,
   orderAfterDrop,
   orderNudged,
@@ -67,13 +69,11 @@ const DOTS_H = 36;
 const DOTS_MAX = 14;
 /** The pick that means "in no list" (a list's id is never empty). */
 const NO_LIST = "";
-/** A long press on a list's name picks the list up (a card's own long press is 350 too, and is a separate target). */
-const HOLD_MS = 350;
-/** The trash at the board's foot while a list is held: the finger this close to the bottom is over it. */
-const TRASH_ZONE = 88;
+/** The trash at the board's foot while a list is held: the finger this far above its own bottom is over it. */
 const TRASH_H = 48;
-/** The held list's tilt, as Trello's. */
-const TILT = "3deg";
+const TRASH_REACH = 40;
+/** The lists' first line on the board (`styles.lists`' top padding): a list's cards box starts this far down plus its head. */
+const LISTS_TOP = 12;
 
 const columnKey = (col: Column) => (col.kind === "add" ? "+" : col.kind === "new" ? "new" : (col.group.id ?? "none"));
 
@@ -81,13 +81,17 @@ const columnKey = (col: Column) => (col.kind === "add" ? "+" : col.kind === "new
  * A client's schedule, or its materials, as Trello's app shows a board on a phone (ADR 9001): a search and "+" (a new
  * list, first) over the board; the lists side by side, one across the screen with the next one's edge in sight, a
  * swipe stopping on each; dots under them say which one is in front and take you to another. The board is light, the
- * lists and cards dark on it, in both themes. A card's press opens it, its long press moves it to another list; a
- * list's name renames it, its "…" holds the rest, and a long press on its name lifts it to drag it to another place
- * or onto the trash. Only whoever may change the board sees the ways to change it.
+ * lists and cards dark on it, in both themes.
+ *
+ * As Trello's: a card's tap opens it; held, it lifts and is dragged anywhere, in its list or to another, the board
+ * paging near its sides and a long list scrolling near its ends (`BoardDrag`); held and let go where it was, its quick
+ * actions. A list's head held lifts the list to another place or onto the trash; a tap on its name renames it, its "…"
+ * holds the rest. Only whoever may change the board sees the ways to change it; a screen reader moves cards and lists
+ * with their actions instead of a drag.
  */
 export function PlanBoard({
   client,
-  plan,
+  plan: livePlan,
   section,
   numbers,
   refreshing,
@@ -110,11 +114,13 @@ export function PlanBoard({
   const toast = useToast();
   const failed = usePortalFailed();
   const lists = usePortalLists(orgId, client);
+  const moveCard = useMovePortalCard(orgId, client);
   const reduced = useReducedMotion();
   const insets = useSafeAreaInsets();
   // The lists' own box, not the window's: a list fits what the board was given (a split screen, a sheet), and a list
   // is never taller than the room above the dots.
   const [box, setBox] = useState({ width: 0, height: 0 });
+  const [boardH, setBoardH] = useState(0);
   const listWidth = boardListWidth(box.width);
   const step = listWidth + BOARD.gap;
   const { changes } = usePortalRights();
@@ -122,26 +128,20 @@ export function PlanBoard({
   const [search, setSearch] = useState("");
   const [creating, setCreating] = useState(false);
   const [focus, setFocus] = useState<string | null>(null);
-  const pager = useRef<FlatList<Column>>(null);
-  const boardView = useRef<ComponentRef<typeof View>>(null);
-  const move = useMoveCard(client, plan);
+  const [boardScroll, setBoardScroll] = useState<NativeGesture | null>(null);
+  const pager = useRef<ComponentRef<typeof FlatList<Column>>>(null);
   const query = boardQuery(search);
+  const searching = query !== null;
+  const lists0 = creating ? 1 : 0;
+
+  // While anything is held the board draws the schedule as it was at the lift: a read landing mid-drag would move
+  // the cards under the finger. The drop's own change is drawn as soon as it is made.
+  const frozen = useRef<PortalPlan | null>(null);
+  const heldNow = useRef(false);
+  const plan = heldNow.current && frozen.current ? frozen.current : livePlan;
   const all = planGroups(plan, section);
   const ids = all.flatMap((g) => (g.id ? [g.id] : []));
-
-  // A held list: where it came from, the slot it would land in, whether it is over the trash. The gesture's callbacks
-  // read the ref (always the latest); the screen draws from the state.
-  const [held, setHeld] = useState<{ id: string; slot: number; trash: boolean } | null>(null);
-  const drag = useRef({ id: "", from: 0, slot: 0, trash: false, x: 0, y: 0, grab: 0, left: 0, top: 0, scroll: 0 });
-  const scrollX = useRef(0);
-  const ticker = useRef<ReturnType<typeof setInterval> | null>(null);
-  const ghostX = useSharedValue(0);
-  const ghostY = useSharedValue(0);
-
-  // While a list is held nothing changes place in the tree (a view taken out and put back loses the finger): the
-  // lists slide aside instead (`listShift`), and the order is saved on the drop.
-  const groups = held ? all : searchGroups(all, query, numbers, plan.labels);
-  const heldGroup = held ? all.find((g) => g.id === held.id) : undefined;
+  const groups = searchGroups(all, query, numbers, plan.labels);
   const columns: Column[] = [
     ...(creating ? [{ kind: "new" as const }] : []),
     ...groups.map((group) => ({ kind: "list" as const, group })),
@@ -149,6 +149,56 @@ export function PlanBoard({
   ];
   const go = (index: number, animated = true) =>
     pager.current?.scrollToOffset({ offset: Math.max(0, index) * step, animated });
+  const move = useMoveCard(client, plan);
+  // Dragging changes the board's order: only whoever may change it, and never on a search's cut of it or while a
+  // new list's name is being typed (the columns would not be the board's).
+  const drags = changes && !searching && !creating;
+
+  const drag = useBoardDrag({
+    pager,
+    droppable: columns.map((col) => col.kind === "list"),
+    orderable: true,
+    step,
+    width: box.width,
+    height: boardH,
+    lists0,
+    listCount: ids.length,
+    trashZone: insets.bottom + 8 + TRASH_H + TRASH_REACH,
+    reduced,
+    version: livePlan,
+    onCardDrop: ({ id, toL, toI }) => {
+      const col = columns[toL];
+      if (col?.kind !== "list") return false;
+      const others = col.group.cards.filter((x) => x.id !== id);
+      moveCard.mutate({ cardId: id, list: col.group.id, order: portalOrderAt(others, toI) }, { onError: failed });
+      return true;
+    },
+    onCardHold: (id) => {
+      const card = all.flatMap((g) => g.cards).find((x) => x.id === id);
+      if (card) move(card);
+    },
+    onListDrop: ({ id, slot, trash }) => {
+      const group = all.find((g) => g.id === id);
+      if (!group) return false;
+      if (trash) {
+        remove(group);
+        return false;
+      }
+      const next = orderAfterDrop(ids, id, slot);
+      if (next.join() === ids.join()) return false;
+      reorder(next);
+      go(slot + lists0);
+      return true;
+    },
+  });
+  const held = drag.held;
+  if (held && !held.settling) {
+    if (!heldNow.current) frozen.current = livePlan;
+    heldNow.current = true;
+  } else {
+    heldNow.current = false;
+    frozen.current = null;
+  }
 
   // A list just made comes into view as soon as the board has it (the portal puts a new one wherever it puts it).
   const focusAt = focus ? columns.findIndex((col) => col.kind === "list" && col.group.id === focus) : -1;
@@ -161,13 +211,6 @@ export function PlanBoard({
     }, 60);
     return () => clearTimeout(t);
   }, [focusAt]);
-
-  useEffect(
-    () => () => {
-      if (ticker.current) clearInterval(ticker.current);
-    },
-    [],
-  );
 
   /** A list the portal made: shown where the board has it, or said plainly when the portal's board doesn't list it. */
   const added = (list: PortalList) => {
@@ -187,7 +230,7 @@ export function PlanBoard({
     go(0);
   };
 
-  const remove = (group: PlanGroup) => {
+  function remove(group: PlanGroup) {
     if (!group.id) return;
     const id = group.id;
     const name = group.name ?? "";
@@ -207,12 +250,12 @@ export function PlanBoard({
           }),
       },
     ]);
-  };
+  }
 
-  const reorder = (next: string[] | null) => {
+  function reorder(next: string[] | null) {
     if (!next || next.join() === ids.join()) return;
     lists.order.mutate(next, { onError: failed });
-  };
+  }
 
   const menu = (group: PlanGroup, rename: () => void) => {
     if (!group.id) return;
@@ -241,99 +284,6 @@ export function PlanBoard({
     ]);
   };
 
-  // Moving a list: picked up by a long press on its name, dragged sideways (the board scrolls near its sides),
-  // dropped in its new place or on the trash.
-  const lists0 = creating ? 1 : 0;
-  const slotNow = () => {
-    const d = drag.current;
-    return listSlotAt(d.scroll - lists0 * step, d.x, step, ids.length);
-  };
-  const follow = () => {
-    const d = drag.current;
-    ghostX.value = d.x - d.grab;
-    const slot = slotNow();
-    const trash = d.y > box.height - TRASH_ZONE;
-    if (slot !== d.slot || trash !== d.trash) {
-      if (slot !== d.slot && !trash) haptics.selection();
-      if (trash && !d.trash) haptics.medium();
-      d.slot = slot;
-      d.trash = trash;
-      setHeld({ id: d.id, slot, trash });
-    }
-  };
-  const measureBoard = () =>
-    boardView.current?.measureInWindow((x, y) => {
-      drag.current.left = x;
-      drag.current.top = y;
-    });
-  const lift = (id: string, e: { x: number; absoluteX: number; absoluteY: number }) => {
-    const d = drag.current;
-    measureBoard();
-    const from = ids.indexOf(id);
-    Object.assign(d, {
-      id,
-      from,
-      slot: from,
-      trash: false,
-      grab: e.x,
-      scroll: scrollX.current,
-      x: e.absoluteX - d.left,
-      y: e.absoluteY - d.top,
-    });
-    ghostX.value = d.x - d.grab;
-    ghostY.value = 0;
-    haptics.medium();
-    setHeld({ id, slot: from, trash: false });
-    if (ticker.current) clearInterval(ticker.current);
-    ticker.current = setInterval(() => {
-      const end = Math.max(0, (columns.length - 1) * step);
-      const by = edgeScroll(d.x, box.width);
-      const next = Math.min(end, Math.max(0, d.scroll + by));
-      if (next === d.scroll) return;
-      d.scroll = next;
-      pager.current?.scrollToOffset({ offset: next, animated: false });
-      follow();
-    }, 16);
-  };
-  const dragTo = (e: { absoluteX: number; absoluteY: number; translationY: number }) => {
-    const d = drag.current;
-    if (!d.id) return;
-    d.x = e.absoluteX - d.left;
-    d.y = e.absoluteY - d.top;
-    ghostY.value = e.translationY;
-    follow();
-  };
-  const drop = (commit: boolean) => {
-    const d = drag.current;
-    if (ticker.current) clearInterval(ticker.current);
-    ticker.current = null;
-    if (!d.id) return;
-    const { id, slot, trash, from } = d;
-    d.id = "";
-    setHeld(null);
-    const group = all.find((g) => g.id === id);
-    if (!commit || !group) return;
-    if (trash) {
-      remove(group);
-      return;
-    }
-    if (slot !== from) {
-      haptics.success();
-      reorder(orderAfterDrop(ids, id, slot));
-    } else haptics.light();
-    go(slot + lists0);
-  };
-
-  const ghost = useAnimatedStyle(() => ({
-    transform: [
-      { translateX: ghostX.value },
-      { translateY: ghostY.value },
-      { rotate: reduced ? "0deg" : TILT },
-      { scale: reduced ? 1 : 1.03 },
-    ],
-  }));
-
-  const searching = query !== null;
   const toolbar = (all.length > 0 || changes) && (
     <View style={styles.toolbar}>
       <View style={styles.searchBox}>
@@ -388,14 +338,15 @@ export function PlanBoard({
     );
   }
   const listHeight = box.height;
-  const liftFor = (group: PlanGroup): Lift | null =>
-    changes && group.id && !searching && !creating ? { onLift: lift, onDrag: dragTo, onDrop: drop } : null;
+  const heldList = held?.kind === "list" ? all.find((g) => g.id === held.id) : undefined;
+  const heldCard = held?.kind === "card" ? all.flatMap((g) => g.cards).find((x) => x.id === held.id) : undefined;
   const listProps = (group: PlanGroup) => ({
     w,
     client,
     group,
     width: listWidth,
     maxHeight: listHeight,
+    step,
     paint,
     numbers,
     material: section === "materials",
@@ -407,102 +358,128 @@ export function PlanBoard({
   return (
     <View style={styles.board}>
       {toolbar}
-      <View
-        ref={boardView}
+      <DragBoard
+        engine={drag}
         style={[styles.pager, { backgroundColor: paint.board, paddingBottom: insets.bottom }]}
-        onLayout={measureBoard}
-        accessibilityLabel={searching ? w.found(groups.reduce((n, g) => n + g.cards.length, 0)) : undefined}
+        onLayout={(e) => setBoardH(e.nativeEvent.layout.height)}
       >
-        <ThemeColorsOverride colors={listColors}>
-          <FlatList
-            ref={pager}
-            horizontal
-            data={columns}
-            keyExtractor={columnKey}
-            renderItem={({ item }) =>
-              item.kind === "add" ? (
-                <AddList
-                  w={w}
-                  client={client}
-                  section={section}
-                  width={listWidth}
-                  paint={paint}
-                  first={false}
-                  onAdded={added}
-                />
-              ) : item.kind === "new" ? (
-                <AddList
-                  w={w}
-                  client={client}
-                  section={section}
-                  width={listWidth}
-                  paint={paint}
-                  first
-                  onAdded={(list) => {
-                    setCreating(false);
-                    added(list);
-                  }}
-                  onClose={() => setCreating(false)}
-                />
-              ) : (
-                // The held list stays where it is in the tree (its gesture lives in its head), drawn as the hole where
-                // it would land.
-                <ListColumn
-                  {...listProps(item.group)}
-                  hole={item.group.id && item.group.id === held?.id ? paint.hole : null}
-                  shift={
-                    held && item.group.id
-                      ? listShift(ids.indexOf(item.group.id), ids.indexOf(held.id), held.slot) * step
-                      : 0
-                  }
-                  lift={liftFor(item.group)}
-                  onMenu={changes && item.group.id ? menu : null}
-                />
-              )
-            }
-            ItemSeparatorComponent={Gap}
-            contentContainerStyle={styles.lists}
-            style={styles.pager}
-            onLayout={(e) => {
-              const { width, height } = e.nativeEvent.layout;
-              setBox((b) => (b.width === width && b.height === height ? b : { width, height }));
-            }}
-            showsHorizontalScrollIndicator={false}
-            snapToInterval={step}
-            decelerationRate="fast"
-            disableIntervalMomentum
-            scrollEnabled={!held}
-            keyboardShouldPersistTaps="handled"
-            scrollEventThrottle={32}
-            onScroll={(e) => {
-              scrollX.current = e.nativeEvent.contentOffset.x;
-              if (!drag.current.id) drag.current.scroll = scrollX.current;
-              setAt(boardIndexAt(e.nativeEvent.contentOffset.x, step, columns.length));
-            }}
-          />
-          {heldGroup ? (
-            <Animated.View
-              pointerEvents="none"
-              style={[styles.ghost, { width: listWidth, boxShadow: GHOST_SHADOW }, ghost]}
-            >
-              <ListColumn {...listProps(heldGroup)} maxHeight={listHeight * 0.8} lift={null} onMenu={menu} />
-            </Animated.View>
-          ) : null}
-        </ThemeColorsOverride>
-        {held ? (
+        <View
+          style={styles.pager}
+          accessibilityLabel={searching ? w.found(groups.reduce((n, g) => n + g.cards.length, 0)) : undefined}
+        >
+          <ThemeColorsOverride colors={listColors}>
+            <FlatList
+              ref={pager}
+              horizontal
+              data={columns}
+              keyExtractor={columnKey}
+              onGestureUpdate_CAN_CAUSE_INFINITE_RERENDER={(g) =>
+                setBoardScroll((now) => (now?.handlerTag === g.handlerTag ? now : g))
+              }
+              renderItem={({ item, index }) =>
+                item.kind === "add" ? (
+                  <AddList
+                    w={w}
+                    client={client}
+                    section={section}
+                    width={listWidth}
+                    paint={paint}
+                    first={false}
+                    onAdded={added}
+                  />
+                ) : item.kind === "new" ? (
+                  <AddList
+                    w={w}
+                    client={client}
+                    section={section}
+                    width={listWidth}
+                    paint={paint}
+                    first
+                    onAdded={(list) => {
+                      setCreating(false);
+                      added(list);
+                    }}
+                    onClose={() => setCreating(false)}
+                  />
+                ) : (
+                  // The held list stays where it is in the tree (its gesture lives in its head), drawn as the hole
+                  // where it would land.
+                  <ListColumn
+                    {...listProps(item.group)}
+                    column={index}
+                    listIndex={item.group.id ? ids.indexOf(item.group.id) : -1}
+                    hole={item.group.id && held?.kind === "list" && item.group.id === held.id ? paint.hole : null}
+                    cardDrag={drags}
+                    listDrag={drags && Boolean(item.group.id)}
+                    boardScroll={boardScroll}
+                    held={Boolean(held)}
+                    onMenu={changes && item.group.id ? menu : null}
+                  />
+                )
+              }
+              ItemSeparatorComponent={Gap}
+              contentContainerStyle={styles.lists}
+              style={styles.pager}
+              onLayout={(e) => {
+                const { width, height } = e.nativeEvent.layout;
+                setBox((b) => (b.width === width && b.height === height ? b : { width, height }));
+              }}
+              showsHorizontalScrollIndicator={false}
+              snapToInterval={step}
+              decelerationRate="fast"
+              disableIntervalMomentum
+              scrollEnabled={!held}
+              keyboardShouldPersistTaps="handled"
+              scrollEventThrottle={16}
+              onScroll={(e) => {
+                const x = e.nativeEvent.contentOffset.x;
+                drag.boardScrolled(x);
+                setAt(boardIndexAt(x, step, columns.length));
+              }}
+            />
+          </ThemeColorsOverride>
+        </View>
+        {held?.kind === "list" ? (
           <>
             <View style={styles.dots} />
-            <Trash w={w} over={held.trash} reduced={reduced} bottom={insets.bottom + 8} />
+            <Trash w={w} reduced={reduced} bottom={insets.bottom + 8} />
           </>
         ) : (
           <Dots w={w} columns={columns} at={at} paint={paint} onPick={go} />
         )}
-      </View>
+        <ThemeColorsOverride colors={listColors}>
+          <DragOverlay shadow={GHOST_SHADOW} radius={held?.kind === "list" ? 20 : 12}>
+            {heldList ? (
+              <ListColumn
+                {...listProps(heldList)}
+                maxHeight={listHeight * 0.8}
+                column={-1}
+                listIndex={-1}
+                cardDrag={false}
+                listDrag={false}
+                boardScroll={null}
+                held
+                onMenu={menu}
+              />
+            ) : heldCard ? (
+              <BoardCard
+                w={w}
+                card={heldCard}
+                paint={paint}
+                task={numbers.get(heldCard.id)}
+                material={section === "materials"}
+                onMove={null}
+                labels={plan.labels}
+              />
+            ) : null}
+          </DragOverlay>
+        </ThemeColorsOverride>
+      </DragBoard>
     </View>
   );
 }
 
-/** The held list's lift: a deeper shadow than a card's. */
+/** The lifted card's or list's shadow: the only shadow on the board, on the one thing in the air. */
 const GHOST_SHADOW = "0px 18px 32px -12px rgba(0, 0, 0, 0.6)";
 
 function Gap() {
@@ -510,8 +487,12 @@ function Gap() {
 }
 
 /** While a list is held: the trash at the board's foot, red when the list is over it. */
-function Trash({ w, over, reduced, bottom }: { w: PortalWords; over: boolean; reduced: boolean; bottom: number }) {
-  const red = "#DC2626";
+function Trash({ w, reduced, bottom }: { w: PortalWords; reduced: boolean; bottom: number }) {
+  const over = useOverTrash();
+  const look = useAnimatedStyle(() => ({
+    backgroundColor: over.value === 1 ? "#DC2626" : "#141414",
+    transform: [{ scale: over.value === 1 ? 1.08 : 1 }],
+  }));
   return (
     <Animated.View
       entering={reduced ? undefined : FadeIn.duration(140)}
@@ -520,14 +501,12 @@ function Trash({ w, over, reduced, bottom }: { w: PortalWords; over: boolean; re
       style={[styles.trashRow, { bottom }]}
       accessibilityLiveRegion="polite"
     >
-      <View
-        style={[styles.trash, { backgroundColor: over ? red : "#141414", transform: [{ scale: over ? 1.08 : 1 }] }]}
-      >
+      <Animated.View style={[styles.trash, look]}>
         <Icon name="trash" size={18} color="#FFFFFF" />
         <Text variant="subhead" style={styles.trashWord}>
           {w.dropToDelete}
         </Text>
-      </View>
+      </Animated.View>
     </Animated.View>
   );
 }
@@ -621,19 +600,12 @@ export function BoardDots({
   );
 }
 
-type Lift = {
-  onLift: (id: string, e: { x: number; absoluteX: number; absoluteY: number }) => void;
-  onDrag: (e: { absoluteX: number; absoluteY: number; translationY: number }) => void;
-  onDrop: (commit: boolean) => void;
-};
-/** A drag's end lets the name be pressed again a moment later (the press it ended on is not a rename). */
-const settle = (dragged: { current: boolean }) => setTimeout(() => (dragged.current = false), 300);
-
 type ListMenu = (group: PlanGroup, rename: () => void) => void;
 
 /**
- * One list: its name (a press renames it, a long press lifts it), its count and "…", its cards scrolling inside it,
- * and "Adicionar cartão" at its foot.
+ * One list: its head (a tap on the name renames it, the "…" holds the rest, a hold anywhere on it lifts the list), its
+ * cards scrolling inside it (each one dragged by itself), and "Adicionar cartão" at its foot. `column` -1: the copy in
+ * the air, which takes no part in the board's drag.
  */
 function ListColumn({
   w,
@@ -641,6 +613,7 @@ function ListColumn({
   group,
   width,
   maxHeight,
+  step,
   paint,
   numbers,
   material,
@@ -648,16 +621,21 @@ function ListColumn({
   onMove,
   refreshing,
   onRefresh,
-  lift,
+  column,
+  listIndex,
+  cardDrag,
+  listDrag,
+  boardScroll,
+  held,
   onMenu = null,
   hole = null,
-  shift = 0,
 }: {
   w: PortalWords;
   client: string;
   group: PlanGroup;
   width: number;
   maxHeight: number;
+  step: number;
   paint: Paint;
   numbers: Map<string, number>;
   material: boolean;
@@ -665,21 +643,25 @@ function ListColumn({
   onMove: ((card: PlanCard) => void) | null;
   refreshing: boolean;
   onRefresh: () => void;
-  lift: Lift | null;
+  /** Its column on the board, and its place among the lists (-1: not a list of the board). */
+  column: number;
+  listIndex: number;
+  cardDrag: boolean;
+  listDrag: boolean;
+  boardScroll: NativeGesture | null;
+  /** Something on the board is held: the list keeps still. */
+  held: boolean;
   onMenu?: ListMenu | null;
   /** Held: only its place shows, in this color. */
   hole?: string | null;
-  /** How far it slides aside while another list is held over its place (or, held, to where it would land). */
-  shift?: number;
 }) {
-  const reduced = useReducedMotion();
-  const slide = useSharedValue(0);
-  useEffect(() => {
-    slide.value = reduced ? shift : withTiming(shift, { duration: 180 });
-  }, [shift, reduced, slide]);
-  const slid = useAnimatedStyle(() => ({ transform: [{ translateX: slide.value }] }));
+  const live = column >= 0;
+  const listRef = useAnimatedRef<Animated.View>();
+  const slid = useListSlide(live ? listIndex : -1, step);
   const [adding, setAdding] = useState(false);
   const [renaming, setRenaming] = useState(false);
+  const [listScroll, setListScroll] = useState<NativeGesture | null>(null);
+  const dragged = useDragged();
   // While the composer is open, a card just added comes into sight at the list's end, the field still open under it
   // for the next one, as Trello's.
   const cardsView = useRef<ComponentRef<typeof ScrollView>>(null);
@@ -690,39 +672,15 @@ function ListColumn({
     const t = setTimeout(() => cardsView.current?.scrollToEnd({ animated: true }), 60);
     return () => clearTimeout(t);
   }, [adding, cardCount]);
+  // Its cards' box on the board, for the drag: kept as last laid out, and handed again when its column changes.
+  // The cards' box starts under the head, on the lists' first line; the cards 8 in from the list's sides.
+  const [headH, setHeadH] = useState(0);
+  const box = useDragListBox(column, live, cardsView, { top: LISTS_TOP + headH, left: 0, padX: 8, padTop: 0 });
+
   const id = group.id;
-  // One config for the gesture's life: a config that changes on every render resets the handler mid-drag (the web's
-  // does), so the callbacks read the latest `lift` through a ref and the config changes only with `enabled`.
-  const liftNow = useRef(lift);
-  liftNow.current = lift;
-  // The press that ends a drag isn't a press on the name (it would open the rename).
-  const dragged = useRef(false);
-  const enabled = Boolean(lift && id && !renaming);
-  const config = useMemo(
-    () => ({
-      enabled,
-      activateAfterLongPress: HOLD_MS,
-      runOnJS: true,
-      onActivate: (e: { x: number; absoluteX: number; absoluteY: number }) => {
-        dragged.current = true;
-        if (liftNow.current && id) liftNow.current.onLift(id, e);
-      },
-      onUpdate: (e: { absoluteX: number; absoluteY: number; translationY: number }) => liftNow.current?.onDrag(e),
-      onDeactivate: (e: { canceled: boolean }) => {
-        settle(dragged);
-        liftNow.current?.onDrop(!e.canceled);
-      },
-      onFinalize: (e: { canceled: boolean }) => {
-        if (!e.canceled) return;
-        settle(dragged);
-        liftNow.current?.onDrop(false);
-      },
-    }),
-    [enabled, id],
-  );
-  const pan = usePanGesture(config);
+  const scrollGestures = [boardScroll, listScroll];
   const head = (
-    <View style={styles.listHead}>
+    <View style={styles.listHead} onLayout={(e) => setHeadH(e.nativeEvent.layout.height)}>
       {renaming && id ? (
         <RenameField w={w} client={client} listId={id} name={group.name ?? ""} onClose={() => setRenaming(false)} />
       ) : (
@@ -747,35 +705,81 @@ function ListColumn({
           icon="more"
           small
           label={w.listActions(group.name ?? "")}
-          onPress={() => onMenu(group, () => setRenaming(true))}
+          onPress={() => !dragged.current && onMenu(group, () => setRenaming(true))}
         />
       ) : null}
     </View>
   );
   return (
-    <Animated.View style={[styles.list, { width, maxHeight, backgroundColor: hole ?? paint.list }, slid]}>
+    <Animated.View
+      ref={listRef}
+      collapsable={false}
+      style={[styles.list, { width, maxHeight, backgroundColor: hole ?? paint.list }, live ? slid : null]}
+    >
       <View style={[styles.listBody, hole ? styles.hidden : null]}>
-        {lift && id ? <GestureDetector gesture={pan}>{head}</GestureDetector> : head}
+        {live && listDrag && id ? (
+          <DragListHead
+            id={id}
+            column={column}
+            index={listIndex}
+            enabled={!renaming}
+            listRef={listRef}
+            scrollGestures={[boardScroll]}
+          >
+            {head}
+          </DragListHead>
+        ) : (
+          head
+        )}
         <ScrollView
           ref={cardsView}
           style={styles.cardsScroll}
           contentContainerStyle={styles.cards}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+          scrollEnabled={!held}
+          scrollEventThrottle={16}
+          onGestureUpdate_CAN_CAUSE_INFINITE_RERENDER={(g) =>
+            setListScroll((now) => (now?.handlerTag === g.handlerTag ? now : g))
+          }
+          {...box}
+          refreshControl={live ? <RefreshControl refreshing={refreshing} onRefresh={onRefresh} /> : undefined}
         >
-          {group.cards.map((card) => (
-            <BoardCard
-              key={card.id}
-              w={w}
-              card={card}
-              paint={paint}
-              task={numbers.get(card.id)}
-              material={material}
-              onMove={onMove}
-              labels={labels}
-            />
-          ))}
+          {group.cards.map((card, k) =>
+            live ? (
+              <DragCard
+                key={card.id}
+                id={card.id}
+                L={column}
+                k={k}
+                enabled={cardDrag && !renaming}
+                scrollGestures={scrollGestures}
+              >
+                <BoardCard
+                  w={w}
+                  card={card}
+                  paint={paint}
+                  task={numbers.get(card.id)}
+                  material={material}
+                  onMove={onMove}
+                  labels={labels}
+                  dragged={dragged}
+                />
+              </DragCard>
+            ) : (
+              <BoardCard
+                key={card.id}
+                w={w}
+                card={card}
+                paint={paint}
+                task={numbers.get(card.id)}
+                material={material}
+                onMove={null}
+                labels={labels}
+              />
+            ),
+          )}
+          {live ? <DragListEnd L={column} color={paint.slot} /> : null}
         </ScrollView>
         {onMove ? (
           adding ? (
@@ -879,7 +883,7 @@ export function BoardCard({
   onMove: ((card: PlanCard) => void) | null;
   /** In a column that already names the stage (the Quadro): the pill says the type, in the stage's color. */
   typeFirst?: boolean;
-  /** Set while the card is being dragged by a gesture around it: the press that ends the drag doesn't open it. */
+  /** Set while the card is being dragged by a gesture around it: the press that ends the drag opens nothing. */
   dragged?: { current: boolean };
   /** A screen reader's way to do what a drag does. */
   onAction?: { label: string; hint: string; run: () => void } | null;
@@ -941,11 +945,6 @@ export function BoardCard({
         : {})}
       {...(onMove
         ? {
-            onLongPress: () => {
-              haptics.selection();
-              onMove(card);
-            },
-            delayLongPress: HOLD_MS,
             accessibilityActions: [{ name: "move", label: w.moveCard }],
             onAccessibilityAction: (e: { nativeEvent: { actionName: string } }) => {
               if (e.nativeEvent.actionName === "move") onMove(card);
@@ -1019,7 +1018,9 @@ export function BoardCard({
           wide
           icon="send"
           label={w.send}
-          onPress={send.confirm}
+          onPress={() => {
+            if (!dragged?.current) send.confirm();
+          }}
           loading={send.pending}
         />
       ) : null}
@@ -1028,7 +1029,7 @@ export function BoardCard({
 }
 
 /**
- * A card's quick actions, on its long press, as Trello's: open it, move it to another list, put on or take off a
+ * A card's quick actions, when it is held and let go where it was (and a screen reader's "move"), as Trello's: open it, move it to another list, put on or take off a
  * label, set its post date, mark it finished (Trello's archive: a finished card stays in its list as history). Each
  * runs once the menu is gone, so its own picker never lands under it.
  */
