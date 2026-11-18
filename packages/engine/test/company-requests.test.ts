@@ -249,7 +249,7 @@ describe("a company's request", () => {
     const token = await lastDeleteToken(db);
     expect(COMPANY_TOKEN.test(token)).toBe(true);
     // The team never deletes anything here: the link is the person's own. It erases, and spent once, answers false.
-    expect(await deleteCompanyRequestByToken(db, token, new Date(sent.getTime() + 3600_000))).toBe(true);
+    expect(await deleteCompanyRequestByToken(db, token)).toBe(true);
     expect(await db.select().from(schema.companyRequests)).toEqual([]);
     expect(await deleteCompanyRequestByToken(db, token)).toBe(false);
     // An unknown token, and a malformed one, are refused.
