@@ -42,11 +42,13 @@ test("the two agents' line is always one line: the subject gives way first, the 
   expect(pair).toContain("numberOfLines={1} style={styles.subject}");
   // Its · goes with it: a subject with no room left leaves no lone dot.
   expect(pair).toContain("· $" + "{subject}");
-  const row = group.slice(group.indexOf("  row: {"), group.indexOf("},", group.indexOf("  row: {")));
+  const row = group.slice(group.indexOf("  pill: {"), group.indexOf("},", group.indexOf("  pill: {")));
+  expect(row).toContain("borderRadius: 999,");
   expect(row).not.toContain("flexWrap");
   // The names shrink only once the subject has none left: its share of any shrink dwarfs theirs.
   expect(group).toContain("subject: { flexShrink: 100000 },");
-  expect(group).toContain('name: { fontWeight: "600", flexShrink: 1 },');
+  expect(group).toContain('from: { fontWeight: "600", flexShrink: 1 },');
+  expect(group).toContain('name: { fontWeight: "600", flexShrink: 0.0001 },');
   expect(group).toContain('word: { fontWeight: "600", flexShrink: 0 },');
   expect(group).toContain('time: { fontVariant: ["tabular-nums"], flexShrink: 0 },');
 });

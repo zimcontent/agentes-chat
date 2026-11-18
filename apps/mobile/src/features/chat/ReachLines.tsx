@@ -32,7 +32,7 @@ import { useDirectory, useMeId, useOrgId } from "../shared/hooks";
 import { tapHaptic } from "../shared/parts";
 import { boldRuns } from "./actions";
 import { ConsultPairRow, useConsultById } from "./ConsultGroup";
-import { useCardTop, useRhythm } from "./look";
+import { useCardTop } from "./look";
 
 const LIST_GAP = 8;
 
@@ -49,26 +49,15 @@ export function ReachLines({ message: m }: { message: Message }) {
   if (m.author.type !== "agent" || list.length === 0) return null;
   return (
     <View style={[styles.list, cardTop]}>
-      {list.map((e, i) => (
-        <Row key={e.agentId} entry={e} above={list[i - 1]} channelId={m.channelId} authorId={m.author.id ?? ""} />
+      {list.map((e) => (
+        <Row key={e.agentId} entry={e} channelId={m.channelId} authorId={m.author.id ?? ""} />
       ))}
     </View>
   );
 }
 
-function Row({
-  entry: e,
-  above,
-  channelId,
-  authorId,
-}: {
-  entry: ReachEntry;
-  above: ReachEntry | undefined;
-  channelId: string;
-  authorId: string;
-}) {
+function Row({ entry: e, channelId, authorId }: { entry: ReachEntry; channelId: string; authorId: string }) {
   const { t } = useTranslation();
-  const rhythm = useRhythm();
   const { colors } = useTheme();
   const orgId = useOrgId();
   const { org } = useOrg();
@@ -80,7 +69,6 @@ function Row({
   const g = agentGrammar(agent?.name ?? `@${e.handle}`);
   const handed = Boolean(e.consultationId);
   const talk = useConsultById(channelId, reachOpens(e) ? e.consultationId : undefined);
-  const talkAbove = useConsultById(channelId, above && reachOpens(above) ? above.consultationId : undefined);
   // Who manages channels may add it here, as on the web: one handed over by direct message for not being in the
   // channel, or one a private conversation kept out. A DM has no members to add.
   const addable =
@@ -94,25 +82,13 @@ function Row({
   ]
     .filter(Boolean)
     .join(" · ");
-  // Handed to it by direct message: the two agents talking, as the pair row that opens their conversation.
-  // Under another such line they stack as one group, as the list's quiet lines do: the part gap between them, past
-  // the room the one above keeps under it and the list's own gap.
+  // Handed to it by direct message: the two agents talking, as the pill that opens their conversation. The list's gap
+  // stands between it and what is above or under it.
   if (talk)
     return (
-      <View>
-        <ConsultPairRow
-          askerId={authorId}
-          channelId={channelId}
-          items={[talk]}
-          inline
-          gap={talkAbove ? rhythm.part - (rhythm.turn - rhythm.part) - LIST_GAP : undefined}
-        />
-        {/* Under the line, on the words' column: the line keeps the two agents on its middle. */}
-        {addable ? (
-          <View style={styles.talkAct}>
-            <AddToChannel agentId={e.agentId} channelId={channelId} name={g.name} />
-          </View>
-        ) : null}
+      <View style={styles.talk}>
+        <ConsultPairRow askerId={authorId} channelId={channelId} items={[talk]} place="list" />
+        {addable ? <AddToChannel agentId={e.agentId} channelId={channelId} name={g.name} /> : null}
       </View>
     );
   return (
@@ -357,6 +333,7 @@ const styles = StyleSheet.create({
   act: { paddingLeft: 15 + 8, alignItems: "flex-start" },
   // Two actions side by side, 16 apart (`.ac-acts`), wrapping under each other when they don't fit.
   acts: { flexDirection: "row", flexWrap: "wrap", columnGap: 16, rowGap: 8 },
-  talkAct: { alignItems: "flex-start" },
+  // The pill and, under it on its left edge, Adicionar ao grupo.
+  talk: { alignItems: "flex-start", gap: 4 },
   detail: { marginTop: 2 },
 });

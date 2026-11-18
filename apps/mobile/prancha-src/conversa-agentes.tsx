@@ -54,7 +54,7 @@ const agent = (id: string, name: string, handle: string, role: string, color: st
   photo: null,
 });
 const AGENTS = [
-  agent(SOCIAL, "SOCIAL MEDIA", "social", "Social media da LEXEER", "violet"),
+  agent(SOCIAL, "SOCIAL MEDIA ( LEXEER )", "social", "Social media da LEXEER", "violet"),
   agent(SONY, "SONY", "sony", "Vídeo", "sky"),
   agent(DOUG, "Doug", "doug", "Chefe do time", "green"),
   agent(ROSA, "ROSA", "rosa", "Design", "rose"),

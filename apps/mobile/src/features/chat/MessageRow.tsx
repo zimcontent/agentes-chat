@@ -294,8 +294,8 @@ function RowBody({
   // The one an agent adds after its own reply carries the reply's run: the run's tools, questions and stop line
   // stay on the reply, never shown twice.
   const mediaAfter = isAgent && isMediaAfterReply(meta);
-  // It asked other agents first: one row right before it (its run's questions on the run's first message here, and
-  // the ones its `meta.consulted` names), so it shows its face and name again under that row.
+  // It talked to other agents for this reply: one pill under it (its run's questions on the run's first message here,
+  // and the ones its `meta.consulted` names).
   const reached = useMemo(() => reachHandoffs(m.meta), [m.meta]);
   const rhythm = useRhythm();
   const consults = useRunConsults(
@@ -309,7 +309,7 @@ function RowBody({
     isAgent && m.author.id && consults.length > 0 ? (
       <ConsultPairRow askerId={m.author.id} channelId={m.channelId} items={consults} />
     ) : null;
-  const grouped = groupedIn && !pair;
+  const grouped = groupedIn;
   // A question to another agent (in their DM) carries the asking run: its work shows on that run's reply.
   const ownWork = isAgent && Boolean(m.agentRunId) && !meta?.consultation && !mediaAfter;
   const steps = ownWork ? workStepsOf(meta) : null;
@@ -801,7 +801,6 @@ function RowBody({
   const nameOrWords = Boolean(inBubble || !grouped || pinLine || reportOpened || opener || words);
   return (
     <>
-      {pair}
       {quote && !inBubble ? <QuoteAbove look={look} reply={quote} onJump={onQuote} gap={rowGap} /> : null}
       <Pressable
         onPress={onTap}
@@ -902,6 +901,8 @@ function RowBody({
             ) : null}
             {media ? <ChatMedia media={media} liveId={m.id} /> : null}
             {voiceOf(meta) ? <VoiceMessage message={m} /> : null}
+            {/* The agents it talked to for this reply: their pill right under what it said. */}
+            {pair}
             {isAgent && meta?.speedFallback === true ? <SpeedFallbackLine message={m} /> : null}
             {isAgent && standIn ? <ModelStandInLine message={m} text={standIn} /> : null}
             {(stopped || atLimit || providerCut) && m.agentRunId ? (

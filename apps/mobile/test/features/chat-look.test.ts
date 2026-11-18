@@ -161,7 +161,7 @@ describe("the rows follow the same choice as the web", () => {
     expect(await read("chat/QuoteLine.tsx")).toContain(
       "look.faces ? WORDS_START[look.style] : rowBodyInset(look).left",
     );
-    expect(await read("chat/ConsultGroup.tsx")).toContain("const inset = rowBodyInset(useRowLook());");
+    expect(await read("chat/ConsultGroup.tsx")).toContain("const inset = rowBodyInset(look);");
     expect(await read("chat/ChatScreen.tsx")).toContain("const quiet = quietInset(rowLook);");
     for (const file of [
       "chat/EventLine.tsx",

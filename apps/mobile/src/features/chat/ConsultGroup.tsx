@@ -19,7 +19,7 @@ import {
   pairItemOf,
 } from "@agenteschat/client/lib/consult-group";
 import { consultSubject, consultTimeText, withoutRelayLine } from "@agenteschat/client/lib/consultations";
-import { namesText } from "@agenteschat/client/lib/format";
+import { joinNames, namesText } from "@agenteschat/client/lib/format";
 import type { agentGrammar } from "@agenteschat/client/lib/grammar";
 import { useQueryClient } from "@tanstack/react-query";
 import type { TFunction } from "i18next";
@@ -33,7 +33,7 @@ import { AgentFace } from "../shared/Face";
 import { useColors, useDirectory, useOrgId } from "../shared/hooks";
 import { usePresenceOf } from "../status/hooks";
 import { rowBodyInset } from "./logic";
-import { useRhythm, useRowLook } from "./look";
+import { useCardTop, useRowLook } from "./look";
 import { WaitMark } from "./WaitMark";
 
 /** A question's state in words, on the conversation's screen ("A Iris espera uma aprovação"). */
@@ -113,90 +113,108 @@ export function useConsultById(channelId: string, id: string | undefined): RunCo
 }
 
 /**
- * The slim row right before a reply whose agent asked other agents first, as on the web (`ConsultGroup.tsx`): the
- * asker's face and name, ⇄, the consulted agent's (several fold into stacked faces, "Atlas e mais 2"), then how long
- * it took, or while it runs "perguntando 42 s", or "não respondeu". Never what they said: a tap opens the two agents'
- * conversation on a screen of its own, read only (`ConsultationScreen`). The same row stands for an answer whose
- * reply is farther up or not here, and for a hand-off by direct message on a reach line (`inline`).
+ * When one agent talked to another (`ask_agent`, `tell_agent`): a small round pill under the message it belongs to,
+ * on the bubble's left edge. The asker's face and name, ⇄, the other agent's (several fold into stacked faces, "Atlas
+ * e mais 2"), then how long it took, or while it runs "perguntando 42 s", or "não respondeu". Never what they said: a
+ * tap opens the two agents' conversation on a screen of its own, read only (`ConsultationScreen`). The web draws the
+ * same facts as a line across its conversation, before the reply (`ConsultGroup.tsx`); on the phone the pill hangs
+ * under the reply whose run asked. `place`: in a message's body (`part`, a card's room above it), on its reach
+ * lines (`list`, the list spaces it), or alone where an answer's notice arrived (`line`, `gap` above it, on the rows'
+ * bodies).
  */
 export function ConsultPairRow({
   askerId,
   channelId,
   items,
-  inline = false,
+  place = "part",
   gap,
 }: {
   askerId: string;
   /** The conversation that asked: the screen opens from it. */
   channelId: string;
   items: readonly ConsultPairItem[];
-  /** Inside a message (its reach lines): it reaches past the row's body to the conversation's width. */
-  inline?: boolean;
-  /** Under what shows above it (a turn's, or a part's under another quiet line). Inline: its margin above. */
+  place?: "part" | "list" | "line";
+  /** `line`: its room above (a turn's, or a part's under another quiet line). */
   gap?: number;
 }) {
   const { t, i18n } = useTranslation();
-  const rhythm = useRhythm();
-  const inset = rowBodyInset(useRowLook());
+  const look = useRowLook();
+  const inset = rowBodyInset(look);
+  const cardTop = useCardTop();
   const dir = useDirectory();
   const c = useColors();
   // As the web's line (`.consult-pair`, its container under 420): on a phone's width the subject would be a letter and
-  // its "…" between two dots, so the line keeps the names, the word and the time.
+  // its "…", so the pill keeps the names, the word and the time.
   const roomy = useWindowDimensions().width >= SUBJECT_ROOM;
   const live = items.some((x) => x.status === "open");
   const now = useTick(live);
-  // The hand-off's run waits on me (its agent's work for me, ADR 0084 addendum): the row says so in amber, as on
-  // the web.
+  // The hand-off's run waits on me (its agent's work for me, ADR 0084 addendum): the pill says so in amber, as the
+  // web's row does.
   const presence = usePresenceOf();
   const only = items.length === 1 && items[0]?.status === "open" ? items[0] : undefined;
   const mine = only ? handoffAsk(presence.agent(only.consultedAgentId)?.work, only.consultedRunId) : null;
   const pair = consultPair(items, now, askerId, mine);
   if (!pair) return null;
-  // Blue at work, amber when it waits on me, quiet when it waits on someone else, the warning for what went unanswered.
+  // Blue at work, amber when it waits on me, the warning for what went unanswered, quiet otherwise. Never `faint` on
+  // the pill's fill: it is under 4.5:1 there.
   const tone =
     pair.tone === "live" ? c.agent : pair.tone === "bad" ? c.warn : pair.tone === "you" ? c.amberInk : c.muted;
   const nameOf = (id: string) => dir.agentById.get(id)?.name ?? t("mobile.chat.someone");
   const from = nameOf(askerId);
   const names = pair.faces.map((f) => nameOf(f.agentId));
   const to = names.length === 1 ? (names[0] ?? "") : namesText(t, names, 1);
-  // What the question a tap opens is about, between the names and how it went, as on the web.
+  // What the question a tap opens is about, between the names and how it went, where there is room for it.
   const opened = items.find((x) => x.id === pair.opens) ?? items[0];
   const subject = roomy ? consultSubject(opened?.question) : null;
-  // The whole question, which the row's one line cuts: for screen readers here, on the screen a tap opens.
+  // The whole question, which the pill leaves out: for screen readers here, on the screen a tap opens.
   const question = withoutRelayLine(opened?.question ?? "").trim();
   // An old reply's question with no id of its own has no conversation to open.
   const opens = openableConsultation(pair.opens);
-  // A row of several opens on all of them: the screen offers each agent's exchange.
+  // A pill of several opens on all of them: the screen offers each agent's exchange.
   const ids = items.map((x) => x.id);
+  const how = [
+    pair.word ? t(pair.word.key, pair.word.values) : null,
+    pair.seconds !== null ? consultTimeText(t, i18n.language, live, pair.seconds) : null,
+  ]
+    .filter(Boolean)
+    .join(" ");
+  const label = [
+    names.length === 1
+      ? t("chat.consultPanel.label", { from, to })
+      : t("chat.consultPair.labelMany", { from, to: joinNames(names, t) }),
+    how,
+  ]
+    .filter(Boolean)
+    .join(", ");
   return (
     <View
       style={[
-        styles.line,
-        inline
-          ? {
-              marginLeft: LINE_INSET - inset.left,
-              marginRight: LINE_INSET - inset.right,
-              // Between turns, as the list's own line: the turn's gap on both sides, of which the body's part is one.
-              marginTop: gap ?? rhythm.turn - rhythm.part,
-              marginBottom: rhythm.turn - rhythm.part,
-            }
-          : { marginTop: gap ?? rhythm.turn, paddingHorizontal: LINE_INSET },
+        styles.room,
+        place === "line"
+          ? { marginTop: gap ?? 0, paddingLeft: inset.left, paddingRight: inset.right }
+          : place === "part"
+            ? cardTop
+            : undefined,
       ]}
     >
-      <View style={[styles.rule, { backgroundColor: c.line }]} />
       <Pressable
         onPress={() => {
           if (opens) router.push(consultationHref(opens, channelId, ids));
         }}
         disabled={!opens}
         accessibilityRole="button"
+        accessibilityLabel={label}
         accessibilityHint={question || undefined}
-        // A 28-point row: 8 above and below gives it the 44-point target.
-        hitSlop={{ top: 8, bottom: 8 }}
-        style={({ pressed }) => [styles.row, pressed && { backgroundColor: c.plate }]}
+        // A 30-point pill: 7 above and below gives it the 44-point target.
+        hitSlop={{ top: 7, bottom: 7 }}
+        style={({ pressed }) => [
+          styles.pill,
+          { backgroundColor: c.bubbleTheirs, borderColor: c.bubbleTheirsEdge },
+          pressed && styles.pressed,
+        ]}
       >
         <AgentFace agentId={askerId} size={FACE} live={false} />
-        <Text variant="footnote" tone="ink2" numberOfLines={1} style={styles.name}>
+        <Text variant="footnote" tone="ink2" numberOfLines={1} style={styles.from}>
           {from}
         </Text>
         {pair.tone === "you" ? (
@@ -204,11 +222,17 @@ export function ConsultPairRow({
             <WaitMark size={8} />
           </View>
         ) : (
-          <Icon name="swap" size={13} color={pair.tone === "live" ? c.agent : c.faint} />
+          // In a view that keeps its size: the names give way, never the arrows.
+          <View style={styles.keep}>
+            <Icon name="swap" size={13} color={pair.tone === "live" ? c.agent : c.muted} />
+          </View>
         )}
         <View style={styles.faces}>
           {pair.faces.slice(0, 3).map((f, i) => (
-            <View key={f.agentId} style={[i > 0 && [styles.stacked, { borderColor: c.bg }], f.off && styles.off]}>
+            <View
+              key={f.agentId}
+              style={[i > 0 && [styles.stacked, { borderColor: c.bubbleTheirs }], f.off && styles.off]}
+            >
               <AgentFace
                 agentId={f.agentId}
                 size={FACE}
@@ -223,63 +247,66 @@ export function ConsultPairRow({
         </Text>
         {/* The subject carries its own ·: when it has no room left, the dot goes with it. */}
         {subject ? (
-          <Text variant="footnote" tone="faint" numberOfLines={1} style={styles.subject}>
+          <Text variant="footnote" tone="muted" numberOfLines={1} style={styles.subject}>
             {`· ${subject}`}
           </Text>
         ) : null}
         {pair.word || pair.seconds !== null ? (
-          <Text variant="footnote" tone="faint">
+          <Text variant="footnote" tone="muted" style={styles.keep}>
             ·
           </Text>
         ) : null}
         {pair.word ? (
-          <Text variant="footnote" style={[styles.word, { color: tone }]}>
+          <Text variant="footnote" numberOfLines={1} style={[styles.word, { color: tone }]}>
             {t(pair.word.key, pair.word.values)}
           </Text>
         ) : null}
         {pair.seconds !== null ? (
-          <Text variant="footnote" tone="faint" style={styles.time}>
+          <Text variant="footnote" tone="muted" numberOfLines={1} style={styles.time}>
             {consultTimeText(t, i18n.language, live, pair.seconds)}
           </Text>
         ) : null}
       </Pressable>
-      <View style={[styles.rule, { backgroundColor: c.line }]} />
     </View>
   );
 }
 
-/** The line's width from which the question's subject shows between the names and how it went (the web's 420). */
+/** The width from which the question's subject shows between the names and how it went (the web's 420). */
 const SUBJECT_ROOM = 420;
 /** The pair's faces. */
 const FACE = 18;
-/** The row's room at each end, where its press lights. */
-const ROW_INSET = 8;
-/** The line's ends, the conversation's "Novas" line's. */
-const LINE_INSET = 16;
 
 const styles = StyleSheet.create({
-  // Across the conversation, the two agents on its middle: a line, as the day and "Novas" are.
-  line: { flexDirection: "row", alignItems: "center" },
-  rule: { flex: 1, minWidth: 16, height: StyleSheet.hairlineWidth },
-  // Always one line: the subject gives way first ("…"), the names only once it has none left, the word and time never.
-  row: {
+  // A round pill as wide as what it says, on the bubble's left edge: 6 above and below, 10 at its ends, a hairline
+  // rim (a border, never a shadow: one on every row is an offscreen layer per frame on iOS).
+  pill: {
+    alignSelf: "flex-start",
+    maxWidth: "100%",
     flexDirection: "row",
-    justifyContent: "center",
     alignItems: "center",
     columnGap: 6,
-    minHeight: 28,
-    paddingHorizontal: ROW_INSET,
-    borderRadius: 10,
-    flexShrink: 1,
+    minHeight: 30,
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    borderRadius: 999,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderCurve: "continuous",
   },
-  // The names give way only once the subject has none left: its share of any shrink dwarfs theirs.
-  name: { fontWeight: "600", flexShrink: 1 },
+  pressed: { opacity: 0.7 },
+  // The whole width it is in, so the pill's `maxWidth` holds there (a reach line's column hugs its content).
+  room: { alignSelf: "stretch" },
+  // Always one line: the subject gives way first ("…"), then the asker's name, then the other's; how it went and its
+  // time never. The other's share of a shrink is next to nothing while the asker's name has room to give: a short name
+  // ("SONY") stays whole, not cut by a fraction of a point.
+  from: { fontWeight: "600", flexShrink: 1 },
+  name: { fontWeight: "600", flexShrink: 0.0001 },
   subject: { flexShrink: 100000 },
-  faces: { flexDirection: "row", alignItems: "center" },
+  faces: { flexDirection: "row", alignItems: "center", flexShrink: 0 },
   stacked: { marginLeft: -6, borderLeftWidth: 1.5, borderRadius: 6 },
   off: { opacity: 0.45 },
+  keep: { flexShrink: 0 },
   word: { fontWeight: "600", flexShrink: 0 },
   // The wait mark in the arrows' 13-point place, so the names don't move.
-  mark: { width: 13, height: 13, alignItems: "center", justifyContent: "center" },
+  mark: { width: 13, height: 13, alignItems: "center", justifyContent: "center", flexShrink: 0 },
   time: { fontVariant: ["tabular-nums"], flexShrink: 0 },
 });
