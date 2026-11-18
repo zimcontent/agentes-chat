@@ -1,19 +1,22 @@
 import { useAuthConfig, useIssues, useMe, useOverview } from "@agenteschat/client";
 import { showsAbout } from "@agenteschat/client/lib/about";
+import { setSupportCameFrom, supportContactOf } from "@agenteschat/client/lib/support";
 import { isPersonal, modeKey } from "@agenteschat/client/lib/workspace-mode";
 import { isAppLocale, localeInfo, readyLocales } from "@agenteschat/i18n/locale";
 import Constants from "expo-constants";
+import { usePathname } from "expo-router";
 import { useHeaderHeight } from "expo-router/react-navigation";
-import { type ReactNode, useEffect, useState } from "react";
+import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { Alert, Pressable, StyleSheet, View } from "react-native";
-import Animated, { Easing, FadeIn, FadeInUp } from "react-native-reanimated";
+import Animated from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { signOut } from "@/features/account";
 import { type SoundChoice, setSoundChoice, useSoundChoice } from "@/lib/sounds";
 import { useOrg } from "@/providers/org";
 import { WorkspaceSky } from "@/sky/Sky";
 import {
+  Count,
   GroupedFooter,
   GroupedHeader,
   GroupedList,
@@ -64,33 +67,25 @@ const open = (href: string) => router.push(href as never);
 
 /** The agents of yours Você lists before "Ver todos". */
 const AGENTS_SHOWN = 3;
-/** Your photo on the cover, unframed (framed faces stop at 52). */
-const PHOTO = 96;
+/** Your photo in the profile card, unframed. */
+const PHOTO = 64;
 /** The photo badge on its top corner and its glyph; its center sits on the photo's ring at 45°. */
-const PHOTO_BADGE = 30;
-const PHOTO_BADGE_ICON = 14;
+const PHOTO_BADGE = 24;
+const PHOTO_BADGE_ICON = 12;
 const PHOTO_BADGE_AT = ((PHOTO + 6) / 2) * (1 - Math.SQRT1_2) - PHOTO_BADGE / 2;
-/** How far the photo hangs below the sky. */
-const PHOTO_OVERLAP = 48;
-/** Your agents on the sky's horizon beside your photo: two on each side, unframed (the 24 size). */
-const HORIZON = 4;
-const HORIZON_FACE = 24;
-const EASE_OUT = Easing.bezier(0.23, 1, 0.32, 1);
-/** They rise onto the horizon once a session (the first Você opened), then simply stand there. */
-let horizonArrived = false;
 
 /**
- * Você, pushed from your avatar, as the phone's own settings: the bar reads "Você" with Editar on the right; the
- * workspace's sky as a band with your photo hanging from it (a tap changes it), your name, your @ and workspace; then
- * grouped lists on the grouped gray, one value per row. Status first (ADR 0084). The workspace as one row: where you
- * are, how many more and the unread elsewhere, opening the list by server (ADR 0154), with the workspace's settings
- * under it. Your agents, alive (a working one says what it does), "Ver todos" to the Agentes tab. Your work (Tarefas,
- * Propostas, Rotinas, Wiki, Drive, Painéis, Memória): what belongs to the workspace lives in Configurações, once. The
- * preferences; Sons and Aparência change in their row through the system's choice on iOS (a screen on Android, whose
- * dialog holds three buttons at most). Sair alone in red; the version is in Sobre. A settings page is opened many
- * times a day, so nothing here animates beyond the rows' press highlight and the platform's push. A personal workspace
- * (ADR 0159) is yours: no workspace name after your @, your face as its mark, and its work led by what its sidebar
- * keeps in sight (Routines, Drive), with Threads (no tab there) and Team (no row in Agents) in it.
+ * Você, the Ajustes tab's root and pushed from your avatar, as the phone's own settings: the bar reads "Você" with
+ * Editar on the right. On top, you as one card: your photo (a tap changes it) on the workspace's sky, your name, your @
+ * and workspace (a tap edits your account), and under it your status (ADR 0084). Then grouped lists on the grouped
+ * gray, one value per row, each kind of row on its own colored tile: the workspace as one row (where you are, how many
+ * more and the unread elsewhere, opening the list by server, ADR 0154) with the workspace's settings under it; your
+ * agents, alive; your work (Tarefas, Propostas, Rotinas, Wiki, Drive, Painéis, Memória); alerts and approvals; look
+ * and sound (Aparência, the app icon, Sons, the conversation, how agents talk, Idioma); Sobre; Sair alone in red. Sons,
+ * Aparência and Idioma change in their row through the app's picker. A settings page is opened many times a day, so
+ * nothing here animates beyond the rows' press highlight and the platform's push, and no list or card casts a shadow.
+ * A personal workspace (ADR 0159) is yours: no workspace name after your @, and its work led by what its sidebar keeps
+ * in sight (Routines, Drive), with Team (no row in Agents) in it.
  */
 /** `tab`: the Configurações tab's root (no back button; room for the tab bar under the list). */
 export function MeScreen({ tab = false }: { tab?: boolean }) {
@@ -112,6 +107,9 @@ export function MeScreen({ tab = false }: { tab?: boolean }) {
   const issues = useIssues(org.orgId);
   const proposals = useOverview(org.orgId).data?.proposalsWaitingForMe ?? 0;
   const push = usePushSwitch().on;
+  const support = supportContactOf(useAuthConfig().data, me.data);
+  // The page the person is on now: Support's draft names it as where they came from.
+  const pathname = usePathname();
   const about = showsAbout(useAuthConfig().data);
   const mine = meId ? dir.memberById.get(meId) : undefined;
   // How you appear (to yourself: hidden stays hidden), on your photo's corner (ADR 0084).
@@ -147,6 +145,7 @@ export function MeScreen({ tab = false }: { tab?: boolean }) {
     issues: (
       <GroupedRow
         key="issues"
+        tint="azul"
         icon="checkc"
         label={t("mobile.me.issues")}
         {...(withMe > 0 ? { value: t("mobile.me.issuesWithMe", { count: withMe }) } : {})}
@@ -158,31 +157,69 @@ export function MeScreen({ tab = false }: { tab?: boolean }) {
     proposals: (
       <GroupedRow
         key="proposals"
+        tint="laranja"
         icon="flag"
         label={t("shell.proposals")}
-        {...(proposals > 0 ? { value: t("mobile.me.proposalsWaiting", { count: proposals }) } : {})}
+        // With its count beside it, a 320 phone wraps the name rather than cutting it.
+        labelLines={2}
+        {...(proposals > 0 ? { valueLeading: <WaitingCount count={proposals} /> } : {})}
         chevron
         onPress={() => open("/proposals")}
       />
     ),
     routines: (
-      <GroupedRow key="routines" icon="clock" label={t("routines.title")} chevron onPress={() => open("/routines")} />
+      <GroupedRow
+        key="routines"
+        icon="clock"
+        tint="violeta"
+        label={t("routines.title")}
+        chevron
+        onPress={() => open("/routines")}
+      />
     ),
-    wiki: <GroupedRow key="wiki" icon="file" label={t("wiki.title")} chevron onPress={() => open("/wiki")} />,
-    drive: <GroupedRow key="drive" icon="doc" label={t("mobile.me.drive")} chevron onPress={() => open("/drive")} />,
+    wiki: (
+      <GroupedRow
+        key="wiki"
+        icon="file"
+        tint="turquesa"
+        label={t("wiki.title")}
+        chevron
+        onPress={() => open("/wiki")}
+      />
+    ),
+    drive: (
+      <GroupedRow
+        key="drive"
+        icon="doc"
+        tint="ciano"
+        label={t("mobile.me.drive")}
+        chevron
+        onPress={() => open("/drive")}
+      />
+    ),
     dashboards: (
       <GroupedRow
         key="dashboards"
         icon="chart"
+        tint="fucsia"
         label={t("mobile.me.dashboards")}
         chevron
         onPress={() => open("/dashboards")}
       />
     ),
     memory: (
-      <GroupedRow key="memory" icon="brain" label={t("mobile.memory.title")} chevron onPress={() => open("/memory")} />
+      <GroupedRow
+        key="memory"
+        icon="brain"
+        tint="rosa"
+        label={t("mobile.memory.title")}
+        chevron
+        onPress={() => open("/memory")}
+      />
     ),
-    team: <GroupedRow key="team" icon="members" label={t("team.title")} chevron onPress={() => open("/team")} />,
+    team: (
+      <GroupedRow key="team" icon="members" tint="azul" label={t("team.title")} chevron onPress={() => open("/team")} />
+    ),
   };
   const soundValue = sounds === "off" ? t("mobile.me.soundsOff") : styleLabel(sounds);
   const themeValue = t(`mobile.theme.${theme.preference}`);
@@ -251,46 +288,50 @@ export function MeScreen({ tab = false }: { tab?: boolean }) {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: insets.bottom + (tab ? TAB_BAR_ROOM : 24) }}
       >
-        {/* The workspace's sky as a band under the clear bar; your photo hangs from its bottom edge. */}
-        <View style={[styles.band, { height: insets.top + 62 + PHOTO_OVERLAP }]}>
-          <WorkspaceSky fade={0.4} style={StyleSheet.absoluteFill} />
-          <HorizonTeam ids={myAgents.slice(0, HORIZON).map((a) => a.id)} />
-        </View>
-        <View style={styles.cover}>
-          <Pressable
-            onPress={changePhoto}
-            disabled={uploading}
-            accessibilityRole="button"
-            accessibilityLabel={t("mobile.me.account.changePhoto")}
-            style={({ pressed }) => (pressed || uploading ? styles.pressed : null)}
-          >
-            <WithPresence size={PHOTO + 6} presence={myPresence} ring={c.grouped}>
-              <View style={[styles.ring, { borderColor: c.grouped }]}>
-                <PersonAvatar name={name || "?"} size={PHOTO} photo={photo} />
-              </View>
-            </WithPresence>
-            {/* A touch screen has no hover: the photo badge says the face changes it (presence keeps its corner). */}
-            <View
-              style={[styles.photoBadge, { backgroundColor: c.action, borderColor: c.grouped }]}
-              pointerEvents="none"
-            >
-              <Icon name="image" size={PHOTO_BADGE_ICON} color={c.onAction} />
-            </View>
-          </Pressable>
-          <Text variant="display2" style={styles.center}>
-            {name}
-          </Text>
-          {headline ? (
-            <Text variant="subhead" tone="muted" style={styles.center}>
-              {headline}
-            </Text>
-          ) : null}
-        </View>
-
-        <View style={styles.groups}>
-          <GroupedHeader>{t("mobile.me.status")}</GroupedHeader>
+        <View style={[styles.groups, { paddingTop: headerHeight + 8 }]}>
+          {/* You: your photo (a tap changes it), your name, your @ and workspace (a tap edits your account), then how
+              you appear (ADR 0084). */}
           <GroupedList>
-            <StatusRow />
+            <View key="profile" style={styles.profile}>
+              <WorkspaceSky fade={0.5} style={styles.profileSky} />
+              <Pressable
+                onPress={changePhoto}
+                disabled={uploading}
+                accessibilityRole="button"
+                accessibilityLabel={t("mobile.me.account.changePhoto")}
+                style={({ pressed }) => (pressed || uploading ? styles.pressed : null)}
+              >
+                <WithPresence size={PHOTO + 6} presence={myPresence} ring={c.raised}>
+                  <View style={[styles.ring, { borderColor: c.raised }]}>
+                    <PersonAvatar name={name || "?"} size={PHOTO} photo={photo} />
+                  </View>
+                </WithPresence>
+                {/* A touch screen has no hover: the photo badge says the face changes it. */}
+                <View
+                  style={[styles.photoBadge, { backgroundColor: c.action, borderColor: c.raised }]}
+                  pointerEvents="none"
+                >
+                  <Icon name="image" size={PHOTO_BADGE_ICON} color={c.onAction} />
+                </View>
+              </Pressable>
+              <Pressable
+                onPress={() => open("/me/account")}
+                accessibilityRole="button"
+                accessibilityLabel={[name, headline, t("mobile.me.edit")].filter(Boolean).join(", ")}
+                style={({ pressed }) => [styles.profileWords, pressed && styles.pressed]}
+              >
+                <View style={styles.grow}>
+                  <Text variant="title2">{name}</Text>
+                  {headline ? (
+                    <Text variant="subhead" tone="muted">
+                      {headline}
+                    </Text>
+                  ) : null}
+                </View>
+                <Icon name="right" size={18} color={c.faint} />
+              </Pressable>
+            </View>
+            <StatusRow key="status" />
           </GroupedList>
 
           <GroupedHeader>{t("mobile.me.workspace")}</GroupedHeader>
@@ -309,7 +350,8 @@ export function MeScreen({ tab = false }: { tab?: boolean }) {
             ) : null}
             <GroupedRow
               key="settings"
-              icon="home"
+              icon="sliders"
+              tint="azul"
               label={t("settings.title")}
               chevron
               onPress={() => open("/settings")}
@@ -339,11 +381,12 @@ export function MeScreen({ tab = false }: { tab?: boolean }) {
           <GroupedHeader>{t("mobile.me.work")}</GroupedHeader>
           <GroupedList>{(personal ? PERSONAL_WORK : TEAM_WORK).map((key) => work[key])}</GroupedList>
 
-          <GroupedHeader>{t("mobile.me.preferences")}</GroupedHeader>
+          <GroupedHeader>{t("mobile.me.groupAlerts")}</GroupedHeader>
           <GroupedList>
             <GroupedRow
               key="notifications"
               icon="bell"
+              tint="rosa"
               label={t("mobile.me.notifications")}
               {...(push === null ? {} : { value: push ? t("mobile.me.on") : t("mobile.me.off") })}
               chevron
@@ -355,6 +398,7 @@ export function MeScreen({ tab = false }: { tab?: boolean }) {
               <GroupedRow
                 key="approvals"
                 icon="shield"
+                tint="laranja"
                 label={t("settings.section.approvals")}
                 chevron
                 onPress={() => open("/me/approvals")}
@@ -365,6 +409,7 @@ export function MeScreen({ tab = false }: { tab?: boolean }) {
               <GroupedRow
                 key="start"
                 icon="home"
+                tint="azul"
                 label={t("mobile.me.start")}
                 value={startLabel}
                 chevron
@@ -376,48 +421,22 @@ export function MeScreen({ tab = false }: { tab?: boolean }) {
               <GroupedRow
                 key="activity"
                 icon="eye"
+                tint="turquesa"
                 label={t("mobile.me.activity")}
+                labelLines={2}
                 value={org.org.showActivity ? t("mobile.me.on") : t("mobile.me.off")}
                 chevron
                 onPress={() => open("/me/activity")}
               />
             ) : null}
-            {/* Likewise: a server from before the choice sends no `chatPrefs`. */}
-            {org.org?.chatPrefs !== undefined ? (
-              <GroupedRow
-                key="chat"
-                icon="text"
-                label={t("settings.account.chat.title")}
-                chevron
-                onPress={() => open("/me/chat-look")}
-              />
-            ) : null}
-            {/* Likewise: a server from before the choice sends no `agentStyle` (ADR 0147). */}
-            {org.org?.agentStyle !== undefined ? (
-              <GroupedRow
-                key="agentStyle"
-                icon="agent"
-                label={t("mobile.me.agentStyle")}
-                value={
-                  org.org.agentStyle === "technical"
-                    ? t("settings.account.agentStyleTechnical")
-                    : t("settings.account.agentStyleSimple")
-                }
-                chevron
-                onPress={() => open("/me/agent-style")}
-              />
-            ) : null}
-            <GroupedRow
-              key="sounds"
-              icon="sound"
-              label={t("mobile.me.sounds")}
-              value={soundValue}
-              menu
-              onPress={pickSound}
-            />
+          </GroupedList>
+
+          <GroupedHeader>{t("mobile.me.groupLook")}</GroupedHeader>
+          <GroupedList>
             <GroupedRow
               key="appearance"
               icon={theme.scheme === "dark" ? "moon" : "sun"}
+              tint="violeta"
               label={t("mobile.me.appearance")}
               value={themeValue}
               menu
@@ -435,13 +454,69 @@ export function MeScreen({ tab = false }: { tab?: boolean }) {
               />
             ) : null}
             <GroupedRow
+              key="sounds"
+              icon="sound"
+              tint="fucsia"
+              label={t("mobile.me.sounds")}
+              value={soundValue}
+              menu
+              onPress={pickSound}
+            />
+            {/* Likewise: a server from before the choice sends no `chatPrefs`. */}
+            {org.org?.chatPrefs !== undefined ? (
+              <GroupedRow
+                key="chat"
+                icon="text"
+                tint="ciano"
+                label={t("settings.account.chat.title")}
+                chevron
+                onPress={() => open("/me/chat-look")}
+              />
+            ) : null}
+            {/* Likewise: a server from before the choice sends no `agentStyle` (ADR 0147). */}
+            {org.org?.agentStyle !== undefined ? (
+              <GroupedRow
+                key="agentStyle"
+                icon="agent"
+                tint="amarelo"
+                label={t("mobile.me.agentStyle")}
+                labelLines={2}
+                value={
+                  org.org.agentStyle === "technical"
+                    ? t("settings.account.agentStyleTechnical")
+                    : t("settings.account.agentStyleSimple")
+                }
+                chevron
+                onPress={() => open("/me/agent-style")}
+              />
+            ) : null}
+            <GroupedRow
               key="language"
               icon="globe"
+              tint="turquesa"
               label={t("mobile.me.language")}
               value={isAppLocale(i18n.language) ? localeInfo(i18n.language).native : i18n.language}
               menu
               onPress={pickLanguage}
             />
+            {/* Who runs this installation (`SUPPORT_EMAIL`, `SUPPORT_WHATSAPP`): nowhere when neither is set. */}
+            {support ? (
+              <GroupedRow
+                key="support"
+                icon="help"
+                label={t("settings.section.support")}
+                chevron
+                // Support's draft names the page the person came from: the one they left for it.
+                onPress={() => {
+                  setSupportCameFrom(pathname);
+                  open("/me/support");
+                }}
+              />
+            ) : null}
+          </GroupedList>
+
+          <View style={styles.gapBig} />
+          <GroupedList>
             {about ? (
               <GroupedRow
                 key="about"
@@ -477,56 +552,7 @@ function StatusRow() {
     : presence === "online"
       ? t("presence.setStatus")
       : t(`presence.${presence}`);
-  return <GroupedRow icon="smile" label={label} chevron onPress={openStatus} />;
-}
-
-/**
- * Your agents standing on the sky's horizon, either side of your photo, alive (blinking, looking around, the one at
- * work running): the page is yours and so are they. The first time Você opens in a session they rise onto it in one
- * wave (the nearest first), a rare moment; after that they are just there. Reduced motion: a fade, no rise.
- */
-function HorizonTeam({ ids }: { ids: string[] }) {
-  const { reducedMotion } = useTheme();
-  const presence = usePresenceOf();
-  const [rise] = useState(() => !horizonArrived);
-  useEffect(() => {
-    horizonArrived = true;
-  }, []);
-  if (ids.length === 0) return null;
-  // Alternate sides from the photo outward: 0 and 1 nearest, 2 and 3 beyond them.
-  const left = ids.filter((_, i) => i % 2 === 0).reverse();
-  const right = ids.filter((_, i) => i % 2 === 1);
-  const enter = (i: number) =>
-    !rise
-      ? undefined
-      : reducedMotion
-        ? FadeIn.duration(200)
-        : FadeInUp.duration(420)
-            .delay(160 + i * 60)
-            .easing(EASE_OUT)
-            .withInitialValues({ opacity: 0, transform: [{ translateY: 10 }] });
-  const face = (id: string) => (
-    <Animated.View key={id} entering={enter(ids.indexOf(id))}>
-      <AgentFace
-        agentId={id}
-        size={HORIZON_FACE}
-        framed={false}
-        mode={presence.agent(id)?.presence === "working" ? "run" : "idle"}
-      />
-    </Animated.View>
-  );
-  return (
-    <View
-      style={styles.horizon}
-      pointerEvents="none"
-      accessibilityElementsHidden
-      importantForAccessibility="no-hide-descendants"
-    >
-      <View style={[styles.side, styles.sideLeft]}>{left.map(face)}</View>
-      <View style={styles.photoGap} />
-      <View style={styles.side}>{right.map(face)}</View>
-    </View>
-  );
+  return <GroupedRow icon="smile" tint="amarelo" label={label} chevron onPress={openStatus} />;
 }
 
 /** One of your agents: its face in its sky at 36, its name, what it does now (its orbit turning) or its role. */
@@ -546,6 +572,17 @@ function AgentRow({ agentId, name, role }: { agentId: string; name: string; role
   );
 }
 
+/** How many wait on you, as a small amber count before the chevron (the label keeps its words whole). */
+function WaitingCount({ count }: { count: number }) {
+  const { t } = useTranslation();
+  const c = useColors();
+  return (
+    <View accessible accessibilityLabel={t("mobile.me.proposalsWaiting", { count })}>
+      <Count value={count} max={99} inverted fill={c.amber} color={c.onAttention} />
+    </View>
+  );
+}
+
 /** What a working agent does, in words with its orbit, never a label. */
 function WorkingLine({ color, text }: { color: Parameters<typeof PixelOrbit>[0]["color"]; text: string }) {
   return (
@@ -560,21 +597,11 @@ function WorkingLine({ color, text }: { color: Parameters<typeof PixelOrbit>[0][
 
 const styles = StyleSheet.create({
   fill: { flex: 1 },
-  band: { overflow: "hidden" },
-  // The team stands on the band's bottom edge (the horizon), the photo's width (and its ring) kept clear between them.
-  horizon: {
-    position: "absolute",
-    left: 16,
-    right: 16,
-    bottom: 0,
-    flexDirection: "row",
-    alignItems: "flex-end",
-  },
-  side: { flex: 1, flexDirection: "row", gap: 16 },
-  sideLeft: { justifyContent: "flex-end" },
-  photoGap: { width: PHOTO + 6 + 40 },
-  cover: { alignItems: "center", gap: 6, marginTop: -PHOTO_OVERLAP, paddingHorizontal: 16 },
-  // A ring in the page's color lifts the photo off the sky.
+  // You, on top: the workspace's sky faint behind, your photo, your name and @, and Editar's way in (the chevron).
+  profile: { flexDirection: "row", alignItems: "center", gap: 16, padding: 16, overflow: "hidden" },
+  profileSky: { position: "absolute", top: 0, left: 0, right: 0, height: 72, opacity: 0.55 },
+  profileWords: { flex: 1, minWidth: 0, flexDirection: "row", alignItems: "center", gap: 8 },
+  // A ring in the card's color lifts the photo off the sky.
   ring: { borderRadius: 999, borderWidth: 3 },
   pressed: { opacity: 0.6 },
   photoBadge: {
@@ -584,13 +611,13 @@ const styles = StyleSheet.create({
     width: PHOTO_BADGE,
     height: PHOTO_BADGE,
     borderRadius: PHOTO_BADGE / 2,
-    borderWidth: 3,
+    borderWidth: 2,
     alignItems: "center",
     justifyContent: "center",
   },
-  center: { textAlign: "center" },
-  groups: { paddingHorizontal: SCREEN_X, paddingTop: 4 },
+  groups: { paddingHorizontal: SCREEN_X },
   gapBig: { height: 24 },
   working: { flexDirection: "row", alignItems: "center", gap: 4 },
+  grow: { flex: 1, minWidth: 0 },
   shrink: { flexShrink: 1, minWidth: 0 },
 });

@@ -40,6 +40,7 @@ import { useOrg } from "@/components/org-context";
 import { BoardColumn, BoardFrame, CardFace } from "./board-parts";
 import { CardDialog } from "./CardDialog";
 import { ClientDot, ClientMark, usePortalClientColors, usePortalClientLogos } from "./client-color";
+import { HiddenClients } from "./client-edit";
 import { MemberFaces, usePortalPeople, WhoFace } from "./members";
 import { StageLegend } from "./PlanLegend";
 import { type PortalSearch, usePortalSearch } from "./search";
@@ -82,7 +83,14 @@ const statusText = (t: TFunction, status: PortalClientStatus) =>
  * Every card is also a task of the workspace (ADR 9001): the pipeline says each one's number, "New task" makes a
  * card for any client from here (whoever may give agents work), and "See all tasks" goes to the tasks' own page.
  */
-export function PortalOverview({ clients }: { clients: PortalClientSummary[] }) {
+export function PortalOverview({
+  clients,
+  hidden,
+}: {
+  clients: PortalClientSummary[];
+  /** The clients the team hid, for who may show them again (empty for anyone else). */
+  hidden: readonly { client: string }[];
+}) {
   const { t } = useTranslation();
   const { org, me } = useOrg();
   const pipeline = usePortalPipeline(org.id);
@@ -167,6 +175,7 @@ export function PortalOverview({ clients }: { clients: PortalClientSummary[] }) 
           <PipelineBoard entries={shown} numbers={numbers} />
         )}
       </section>
+      <HiddenClients hidden={hidden} />
       <CardDialog
         open={creating}
         client={null}

@@ -345,6 +345,8 @@
     "closed": "終了",
     "options": "オプション",
     "profile": "プロフィール",
+    "call": "通話",
+    "toneGreen": "グリーン",
     "here_other": "{{count}}人が参加中",
     "headerAgent": "{{who}}。プロフィールを開く",
     "headerChannel": "{{who}}。オプション",
@@ -1120,7 +1122,9 @@
       "suggested": "おすすめ",
       "all": "すべて",
       "none": "その名前のタイムゾーンはありません"
-    }
+    },
+    "groupAlerts": "通知と承認",
+    "groupLook": "表示とサウンド"
   },
   "delete": {
     "intro": "元に戻すことはできません。",
@@ -1412,7 +1416,28 @@
   },
   "homeTools": {
     "title": "ツール",
-    "more": "その他"
+    "more": "その他",
+    "all": "すべて",
+    "edit": "ショートカットを編集",
+    "done": "完了",
+    "editHint": "タップしてホームに4つまで固定",
+    "full": "ホームにはすでに4つあります。先に1つ外してください。",
+    "search": "会話、ファイル、人を検索",
+    "searchTile": "検索",
+    "pinned": "ホームに固定",
+    "attach": "会話に添付",
+    "here": "この会話で",
+    "create": "作成",
+    "newAgent": "新しいエージェント",
+    "newChat": "新しい会話",
+    "mission": "ミッション",
+    "summary": "要約",
+    "remind": "リマインダー",
+    "calendar": "カレンダー",
+    "people": "メンバー",
+    "computer": "コンピューター",
+    "vault": "保管庫",
+    "settings": "設定"
   },
   "homeNow": {
     "working_other": "{{count}}人が作業中",
@@ -1457,7 +1482,11 @@
       "today": "今日 {{time}}",
       "tomorrow": "明日 {{time}}",
       "later": "{{day}} {{time}}"
-    }
+    },
+    "needsYou": "あなたの対応待ち",
+    "running": "作業中",
+    "runningAll": "すべて表示",
+    "steps": "{{done}}/{{total}}"
   },
   "agentLite": {
     "uses": "使えるもの",
@@ -2972,5 +3001,14 @@
   "brand": {
     "basedOn": "Codari Global, LLC の DougBot をベースにしています · AGPL-3.0",
     "source": "DougBotのソースコード"
+  },
+  "toSchedule": {
+    "title": "予約待ち",
+    "row": "承認済みの投稿、タップして予約",
+    "untitled": "無題の投稿",
+    "sheetTitle": "投稿を予約",
+    "confirm": "予約",
+    "when": "{{when}}に公開",
+    "past": "まだ過ぎていない時刻を選んでください"
   }
 }

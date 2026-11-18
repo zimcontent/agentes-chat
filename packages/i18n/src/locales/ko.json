@@ -13827,7 +13827,8 @@
       "vault_make_password": "비밀번호 생성",
       "get_my_usage": "내 사용량 조회",
       "send_feedback": "피드백 보내기",
-      "offer_feedback": "문제 신고 제안"
+      "offer_feedback": "문제 신고 제안",
+      "contact_support": "지원팀에 도움 요청하기"
     }
   },
   "toolReview": {
@@ -16386,6 +16387,7 @@
       "voice": "음성",
       "apps": "AI 앱",
       "approvals": "승인",
+      "support": "지원",
       "about": "DougBot 정보",
       "generalPersonal": "나에 대해",
       "keysPersonal": "AI와 앱",
@@ -16417,12 +16419,31 @@
       "voice": "대화의 음성 메시지와, 음성을 텍스트로 바꾸는 곳.",
       "apps": "Claude, Cursor 같은 앱에서 에이전트에게 작업을 맡겨요.",
       "approvals": "에이전트가 승인을 요청할 때 대신 결정하는 사람이에요.",
+      "support": "이 시스템을 운영하는 사람과 연락하는 방법.",
       "about": "만든 곳, 라이선스, 소스 코드 위치.",
       "generalPersonal": "에이전트가 나에 대해 아는 내용과 이 워크스페이스의 방식이에요.",
       "usagePersonal": "에이전트가 쓰는 AI의 양과 내 요금제예요.",
       "connectorsPersonal": "내 앱과 MCP 서버를 한 번 연결해 에이전트가 쓰게 해요.",
       "membersPersonal": "여기에 함께 있는 사람이에요.",
       "rolesPersonal": "여기 있는 사람마다 할 수 있는 일. 소유자는 모든 걸 할 수 있어요."
+    },
+    "support": {
+      "title": "지원팀에 연락",
+      "lead": "시스템에서 무언가 안 될 때 연락할, 이 시스템을 운영하는 사람들입니다.",
+      "email": "이메일",
+      "whatsapp": "WhatsApp",
+      "client": "이 설치",
+      "askTitle": "{{name}}에게 도움 요청",
+      "askLead": "{{name}}이(가) 무슨 일이 있었는지 적어 당신의 이름으로 지원팀에 보냅니다. 보내기 전에 당신이 메시지를 읽습니다.",
+      "askStatus": "세부 정보가 이미 입력된 대화가 열립니다.",
+      "ask": "{{name}}에게 도움 요청",
+      "draft": "{{name}}님, 시스템에 도움이 필요해요:",
+      "draftWith": "{{name}}님, 시스템에 도움이 필요해요 ({{facts}}):",
+      "draftVersion": "서버 버전 {{version}}",
+      "draftClient": "설치 {{code}}",
+      "draftPage": "페이지 {{page}}",
+      "draftAsk": "이 내용을 contact_support로 제 이름으로 지원팀에 보내 주세요.",
+      "askNoEmail": "{{name}}님이 자세한 내용이 입력된 대화를 엽니다. 무슨 일이 있었는지 적고 보내세요."
     },
     "about": {
       "basedOn": "Codari Global, LLC의 <site>DougBot</site> 기반 · AGPL-3.0",
@@ -17326,6 +17347,7 @@
         "settingCommitLine": "커밋의 에이전트 줄을 조정했어요",
         "sendingFeedback": "피드백 전송을 요청했어요",
         "offeringFeedback": "문제 보고를 제안했어요",
+        "askingSupport": "지원팀에 도움을 요청했어요",
         "deletingRoutine": "루틴을 삭제했어요",
         "runningRoutine": "루틴을 지금 실행했어요",
         "proposingTeam": "팀을 제안했어요",
@@ -17449,6 +17471,7 @@
       "settingCommitLine": "커밋의 에이전트 줄을 조정하는 중",
       "sendingFeedback": "피드백을 준비하는 중",
       "offeringFeedback": "보고를 준비하는 중",
+      "askingSupport": "지원팀에 도움을 요청하는 중",
       "deletingRoutine": "루틴을 삭제하는 중",
       "runningRoutine": "루틴을 지금 실행하는 중",
       "proposingTeam": "팀을 제안하는 중",

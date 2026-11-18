@@ -253,7 +253,7 @@ function Server({ children, width = 390 }: { children: ReactNode; width?: number
         <FixedOrg orgId={ORG} org={SUMMARY}>
           <ToastHost>
             <HeaderHeightContext.Provider value={100}>
-              <View style={[styles.phone, { width }]}>{children}</View>
+              <View style={[styles.phone, { width, maxWidth: "100%" }]}>{children}</View>
             </HeaderHeightContext.Provider>
           </ToastHost>
         </FixedOrg>

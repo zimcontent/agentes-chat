@@ -1506,6 +1506,29 @@
 .portal-home__part > .ac-grouphead {
   margin-bottom: var(--space-2);
 }
+/* The clients the team hid (ADR 9001, addendum 2026-11-18): one quiet row each, its name and "Show again". */
+.portal-hidden {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.portal-hidden__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  min-height: 44px;
+  border-bottom: 1px solid var(--line);
+}
+.portal-hidden__name {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--muted);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 /* The pipeline's own actions at its heading's end: the way to every task, "New task", then its two views. */
 .portal-home__acts {
   display: flex;

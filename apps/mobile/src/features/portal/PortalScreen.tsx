@@ -1,7 +1,8 @@
-import type { PortalPipelineEntry } from "@agenteschat/client";
+import type { PortalClientColor, PortalPipelineEntry } from "@agenteschat/client";
 import { isPortalOff, usePortalOverview, usePortalPipeline } from "@agenteschat/client";
 import {
   PORTAL_FOCI,
+  type PortalClientStatus,
   pipelineClients,
   pipelineNextPost,
   pipelineTiles,
@@ -12,13 +13,14 @@ import {
   portalWhen,
   sortPortalClients,
 } from "@agenteschat/client/lib/portal";
+import { useLocalSearchParams } from "expo-router";
 import { useTranslation } from "react-i18next";
-import { RefreshControl, StyleSheet, View } from "react-native";
+import { Pressable, RefreshControl, StyleSheet, View } from "react-native";
 import {
   EmptyState,
   GroupedHeader,
-  GroupedList,
-  GroupedRow,
+  Icon,
+  IconButton,
   LargeTitleScreen,
   PULL_TINT,
   PullOrbit,
@@ -26,20 +28,33 @@ import {
   Text,
   useTheme,
 } from "@/ui";
+import { router } from "@/ui/navigation";
+import { weights } from "@/ui/type-scale";
 import { useOrgId, usePullRefresh } from "../shared/hooks";
+import { SheetHostProvider, useSheet } from "../shared/SheetHost";
 import { RetryLine } from "../shared/TeamSkyEmpty";
 import { useTabHeader } from "../shared/tabHeader";
-import { usePortalKnown, usePortalOn, usePortalWords } from "./hooks";
-import { statusLine, summaryStatus } from "./model";
-import { ClientMark, HeaderCount, openClient, PortalNotice } from "./parts";
+import { ClientEditSheet } from "./ClientEditSheet";
+import { usePortalKnown, usePortalOn, usePortalRights, usePortalWords } from "./hooks";
+import { clientCounts, STAGE_COLOR, statusLine, summaryStatus } from "./model";
+import { ClientMark, CountChips, HeaderCount, openClient, PortalNotice } from "./parts";
 
 /**
  * Portal (ADR 9001) as a tab: every client at a glance, as the web's overview. On top what waits on the team now (four
- * numbers across every client), then a row per client with its mark, its one most pressing line (in the waiting tone
- * when it waits on the team), how many it has open and its next post; who waits on the team first. A row opens the
- * client's board. Nothing here changes anything. Off where the server has no portal or the workspace turned it off.
+ * numbers across every client), then a card per client with its mark, its one most pressing line (in the waiting tone
+ * when it waits on the team), its counts and its next post; who waits on the team first. A row opens the
+ * client's board; for who may change the portal, a long press or the card's "…" opens the client's own sheet (its name,
+ * picture, colour and removal, `ClientEditSheet`). Off where the server has no portal or the workspace turned it off.
  */
 export function PortalScreen() {
+  return (
+    <SheetHostProvider>
+      <Clients />
+    </SheetHostProvider>
+  );
+}
+
+function Clients() {
   const w = usePortalWords();
   const { i18n } = useTranslation();
   const orgId = useOrgId();
@@ -54,6 +69,14 @@ export function PortalScreen() {
   const logos = portalClientLogos(clients);
   const summaries = new Map(clients.map((c) => [c.client, c]));
   const entries = pipeline.data?.entries;
+  // Início's "Alterações" with several clients asking: only them, until "Ver todos".
+  const { alteracoes } = useLocalSearchParams<{ alteracoes?: string }>();
+  const { changes } = usePortalRights();
+  const sheet = useSheet();
+  const edit = changes ? (client: string) => sheet.open(<ClientEditSheet client={client} />) : undefined;
+  const asking = (client: string) => (summaries.get(client)?.counts.adjusting ?? 0) > 0;
+  // A link kept after the changes were answered shows every client, never an empty list.
+  const onlyAsking = alteracoes === "1" && clients.some((c) => asking(c.client));
   // The pipeline knows what is late; until it answers, the overview's counts say the rest.
   const rows = entries
     ? pipelineClients(
@@ -61,6 +84,7 @@ export function PortalScreen() {
         entries,
       ).map((r) => ({ client: r.client, status: r.status, own: r.entries as PortalPipelineEntry[] }))
     : sortPortalClients(clients).map((c) => ({ client: c.client, status: summaryStatus(c), own: null }));
+  const shown = onlyAsking ? rows.filter((r) => asking(r.client)) : rows;
   return (
     <LargeTitleScreen
       title={w.title}
@@ -83,37 +107,134 @@ export function PortalScreen() {
             <PortalNotice state={overview.data.state} />
             {entries && <Tiles entries={entries} />}
             <View>
-              <GroupedHeader aside={<HeaderCount count={rows.length} />}>{w.clients}</GroupedHeader>
-              <GroupedList>
-                {rows.map(({ client, status, own }) => {
+              {/* Narrowed to who asked: the way back to every client is the header's right, where the count was. */}
+              <GroupedHeader
+                aside={
+                  onlyAsking ? (
+                    <Pressable
+                      onPress={() => router.setParams({ alteracoes: undefined })}
+                      accessibilityRole="button"
+                      hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                      style={({ pressed }) => [styles.seeAll, pressed ? styles.seeAllPressed : null]}
+                    >
+                      <Text variant="footnote" tone="muted" style={styles.seeAllWords}>
+                        {w.seeAllClients}
+                      </Text>
+                    </Pressable>
+                  ) : (
+                    <HeaderCount count={shown.length} />
+                  )
+                }
+              >
+                {onlyAsking ? w.asked : w.clients}
+              </GroupedHeader>
+              <View style={styles.cards}>
+                {shown.map(({ client, status, own }) => {
                   const summary = summaries.get(client);
                   const next =
                     own && pipeline.data ? pipelineNextPost(own, pipeline.data.day) : (summary?.next ?? null);
-                  const nextWhen = portalWhen(i18n.language, next);
-                  const open = own ? own.length : (summary?.open ?? 0);
-                  const facts = [open > 0 ? w.open(open) : null, nextWhen ? w.next(nextWhen) : null].filter(
-                    (f): f is string => Boolean(f),
-                  );
                   return (
-                    <GroupedRow
+                    <ClientCard
                       key={client}
-                      label={portalClientName(client)}
-                      sub={statusLine(w, status)}
-                      subTone={portalStatusWaits(status) ? "amber" : "faint"}
-                      {...(facts.length > 0 ? { belowText: facts.join(" · ") } : {})}
-                      leading={<ClientMark client={client} logo={logos.get(client)} color={colors.get(client)} />}
-                      faint={status.kind === "idle"}
-                      chevron
-                      onPress={() => openClient(client)}
+                      client={client}
+                      status={status}
+                      counts={clientCounts(summary)}
+                      next={portalWhen(i18n.language, next)}
+                      logo={logos.get(client)}
+                      color={colors.get(client)}
+                      onEdit={edit}
                     />
                   );
                 })}
-              </GroupedList>
+              </View>
             </View>
           </>
         )}
       </View>
     </LargeTitleScreen>
+  );
+}
+
+/**
+ * A client on the Portal tab, as a card: its mark, its name and its one most pressing line (in the waiting tone when
+ * it waits on the team), then its counts as chips and its next post. A quiet client fades back. A press opens its board.
+ */
+function ClientCard({
+  client,
+  status,
+  counts,
+  next,
+  logo,
+  color,
+  onEdit,
+}: {
+  client: string;
+  status: PortalClientStatus;
+  counts: ReturnType<typeof clientCounts>;
+  next: string | null;
+  logo: string | undefined;
+  color: PortalClientColor | undefined;
+  /** Opens the client's own sheet; absent for who may not change the portal. */
+  onEdit: ((client: string) => void) | undefined;
+}) {
+  const w = usePortalWords();
+  const { colors: c } = useTheme();
+  const name = portalClientName(client);
+  const waits = portalStatusWaits(status);
+  const line = statusLine(w, status);
+  return (
+    <Pressable
+      onPress={() => openClient(client)}
+      onLongPress={onEdit ? () => onEdit(client) : undefined}
+      accessibilityRole="button"
+      accessibilityActions={onEdit ? [{ name: "edit", label: w.clientEdit.more(name) }] : undefined}
+      onAccessibilityAction={(event) => {
+        if (event.nativeEvent.actionName === "edit") onEdit?.(client);
+      }}
+      accessibilityLabel={[name, line, ...counts.map((k) => String(k.count)), next ? w.next(next) : null]
+        .filter(Boolean)
+        .join(", ")}
+      accessibilityHint={w.clientCard(name)}
+      style={({ pressed }) => [
+        styles.card,
+        { backgroundColor: c.raised, borderColor: waits ? `${c.amber}55` : c.line },
+        status.kind === "idle" ? styles.idle : null,
+        pressed ? styles.pressed : null,
+      ]}
+    >
+      <View style={styles.cardHead}>
+        <ClientMark client={client} logo={logo} color={color} size={44} />
+        <View style={styles.cardWords}>
+          <Text variant="body" style={styles.cardName}>
+            {name}
+          </Text>
+          <View style={styles.statusLine}>
+            {waits ? <View style={[styles.waitDot, { backgroundColor: c.amber }]} /> : null}
+            <Text variant="footnote" style={{ color: waits ? c.amberInk : c.muted }}>
+              {line}
+            </Text>
+          </View>
+        </View>
+        {onEdit ? (
+          <IconButton icon="more" small label={w.clientEdit.more(name)} onPress={() => onEdit(client)} />
+        ) : (
+          <Icon name="right" size={18} color={c.faint} />
+        )}
+      </View>
+      {counts.length > 0 || next ? (
+        <View style={[styles.cardFoot, { borderTopColor: c.line }]}>
+          {counts.length > 0 ? <CountChips w={w} counts={counts} /> : null}
+          {next ? (
+            <View style={styles.next}>
+              <Icon name="calendar" size={13} color={c.muted} />
+              <Text variant="caption" tone="muted">
+                {w.next(next)}
+              </Text>
+            </View>
+          ) : null}
+        </View>
+      ) : null}
+    </Pressable>
   );
 }
 
@@ -124,7 +245,7 @@ export function PortalScreen() {
  */
 function Tiles({ entries }: { entries: PortalPipelineEntry[] }) {
   const w = usePortalWords();
-  const { colors: c, shadows } = useTheme();
+  const { colors: c } = useTheme();
   const n = pipelineTiles(entries);
   return (
     <View>
@@ -137,11 +258,15 @@ function Tiles({ entries }: { entries: PortalPipelineEntry[] }) {
               key={key}
               accessible
               accessibilityLabel={`${w.tiles[key]}: ${n[key]}`}
-              style={[styles.tile, { backgroundColor: c.raised, boxShadow: shadows.e1 }]}
+              // Filled and edged, no shadow: four boxes side by side would be four offscreen layers on iOS.
+              style={[styles.tile, { backgroundColor: c.raised, borderColor: attention ? `${c.amber}66` : c.line }]}
             >
-              <Text variant="title2" style={[styles.num, attention ? { color: c.amber } : null]}>
-                {String(n[key])}
-              </Text>
+              <View style={styles.tileTop}>
+                <View style={[styles.tileDot, { backgroundColor: attention ? c.amber : TILE_DOT[key] }]} />
+                <Text variant="title2" style={[styles.num, attention ? { color: c.amber } : null]}>
+                  {String(n[key])}
+                </Text>
+              </View>
               <Text variant="footnote" tone="muted" numberOfLines={2}>
                 {w.tiles[key]}
               </Text>
@@ -153,9 +278,43 @@ function Tiles({ entries }: { entries: PortalPipelineEntry[] }) {
   );
 }
 
+/** Each number's dot, in the stage it counts (the board's colors). */
+const TILE_DOT: Record<(typeof PORTAL_FOCI)[number], string> = {
+  you: STAGE_COLOR.adjusting,
+  making: STAGE_COLOR.doing,
+  client: STAGE_COLOR.approval,
+  schedule: STAGE_COLOR.approved,
+};
+
 const styles = StyleSheet.create({
+  // The header count's line (`HeaderCount`): 20 above, 8 under, the words semibold so they read as a way on.
+  seeAll: { paddingTop: 20, paddingBottom: 8 },
+  seeAllWords: { fontWeight: weights.semibold },
+  seeAllPressed: { opacity: 0.6 },
   in: { paddingHorizontal: 16, gap: 16 },
   tiles: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
-  tile: { flexBasis: "48%", flexGrow: 1, borderRadius: 16, paddingHorizontal: 16, paddingVertical: 14, gap: 2 },
+  tile: {
+    flexBasis: "48%",
+    flexGrow: 1,
+    borderRadius: 16,
+    borderWidth: StyleSheet.hairlineWidth,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    gap: 2,
+  },
+  tileTop: { flexDirection: "row", alignItems: "center", gap: 8 },
+  tileDot: { width: 8, height: 8, borderRadius: 4 },
   num: { fontVariant: ["tabular-nums"] },
+  cards: { gap: 8 },
+  // A client as a card: 16 inside, 16 round, its edge amber while it waits on the team.
+  card: { borderRadius: 16, borderWidth: StyleSheet.hairlineWidth, padding: 16, gap: 12 },
+  cardHead: { flexDirection: "row", alignItems: "center", gap: 12 },
+  cardWords: { flex: 1, minWidth: 0, gap: 2 },
+  cardName: { fontWeight: "700" },
+  statusLine: { flexDirection: "row", alignItems: "center", gap: 6 },
+  waitDot: { width: 6, height: 6, borderRadius: 3 },
+  cardFoot: { gap: 8, paddingTop: 12, borderTopWidth: StyleSheet.hairlineWidth },
+  next: { flexDirection: "row", alignItems: "center", gap: 6 },
+  idle: { opacity: 0.6 },
+  pressed: { opacity: 0.7 },
 });

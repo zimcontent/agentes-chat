@@ -1,6 +1,7 @@
 import { Children, isValidElement, type ReactNode } from "react";
 import { type AccessibilityActionEvent, Pressable, StyleSheet, View } from "react-native";
 import Animated, { FadeIn, FadeOut, LayoutAnimationConfig, LinearTransition } from "react-native-reanimated";
+import { CORES_BOTS } from "../brand/tokens";
 import { haptics } from "./haptics";
 import { Icon, type IconName } from "./Icon";
 import { InfoHint, useInfoHint } from "./InfoHint";
@@ -21,6 +22,21 @@ const LEAD = 36;
 // 32 in the 36 column: 18 from the card's side and 10 from the row's top and bottom, so the tile sits square in its
 // corner of the card instead of hugging the top.
 const TILE = 32;
+
+/** The bots' colors a settings tile may take (the green is the Doug's and the main action's alone). */
+export const TILE_TINTS = {
+  azul: CORES_BOTS.azul,
+  ciano: CORES_BOTS.ciano,
+  turquesa: CORES_BOTS.turquesa,
+  violeta: CORES_BOTS.violeta,
+  fucsia: CORES_BOTS.fucsia,
+  rosa: CORES_BOTS.rosa,
+  laranja: CORES_BOTS.laranja,
+  amarelo: CORES_BOTS.amarelo,
+} as const;
+export type TileTint = keyof typeof TILE_TINTS;
+/** The glyph on a colored tile: the dark stage, 5:1 or more on every one of those colors, in both themes. */
+const TILE_INK = "#0A0A0A";
 
 /** How far a nested row (`tree`: a phone under its computer) moves in, and where its branch line runs. */
 const NEST = 24;
@@ -60,7 +76,7 @@ const nests = (props: unknown) => {
  * rows it draws nothing, never an empty card.
  */
 export function GroupedList({ children }: { children?: ReactNode }) {
-  const { colors: c, shadows, reducedMotion } = useTheme();
+  const { colors: c, reducedMotion } = useTheme();
   const items = Children.toArray(children).filter(isValidElement);
   if (items.length === 0) return null;
   return (
@@ -68,7 +84,8 @@ export function GroupedList({ children }: { children?: ReactNode }) {
     <LayoutAnimationConfig skipEntering skipExiting>
       <Animated.View
         layout={reducedMotion ? undefined : SLIDE}
-        style={[styles.list, { backgroundColor: c.raised, boxShadow: `${shadows.e1}, ${shadows.top}` }]}
+        // A hairline rim, no shadow: on iOS every box shadow is an offscreen layer, and a settings page holds many lists.
+        style={[styles.list, { backgroundColor: c.raised, borderColor: c.line }]}
       >
         {items.map((child, i) => (
           <Animated.View
@@ -198,6 +215,11 @@ export interface GroupedRowProps {
   belowText?: string;
   /** A rounded tile with this icon on the left. */
   icon?: IconName;
+  /**
+   * The tile in one of the bots' colors with a dark glyph, as the system's own settings color each kind of row (a
+   * settings home); without it the tile is the quiet gray of a list of options.
+   */
+  tint?: TileTint;
   /** Anything else on the left (an organization's tile). */
   leading?: ReactNode;
   /** The value on the right, faint ("Ligadas"). */
@@ -280,6 +302,7 @@ function Row({
   below,
   belowText,
   icon,
+  tint,
   leading,
   value,
   valueNote,
@@ -325,8 +348,8 @@ function Row({
           start at 64 in every row, so a list mixing tiles and faces reads as one column. */}
       {icon ? (
         <View style={styles.lead}>
-          <View style={[styles.tile, { backgroundColor: danger ? c.plate : c.sunken }]}>
-            <Icon name={icon} size={16} color={danger ? c.danger : c.ink2} />
+          <View style={[styles.tile, { backgroundColor: danger ? c.plate : tint ? TILE_TINTS[tint] : c.sunken }]}>
+            <Icon name={icon} size={16} color={danger ? c.danger : tint ? TILE_INK : c.ink2} />
           </View>
         </View>
       ) : null}
@@ -689,7 +712,7 @@ function StackedField({ label, hint, children, onPress }: Omit<GroupedFieldProps
 
 const styles = StyleSheet.create({
   marked: { fontWeight: "600" },
-  list: { borderRadius: 16, overflow: "hidden" },
+  list: { borderRadius: 16, borderWidth: 1, overflow: "hidden" },
   divider: { height: StyleSheet.hairlineWidth },
   header: { paddingTop: 20, paddingBottom: 8, paddingHorizontal: 16, letterSpacing: 0.4 },
   headerRoom: { paddingTop: 20, paddingBottom: 8, paddingHorizontal: 16 },

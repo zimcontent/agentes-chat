@@ -41,3 +41,14 @@ export function portalAdjusting(clients: readonly { client: string; counts: { ad
     .sort((a, b) => b.n - a.n);
   return { total: asking.reduce((sum, c) => sum + c.n, 0), clients: asking.slice(0, 3).map((c) => c.client) };
 }
+
+/**
+ * Where "Alterações" on Início opens: the one client who asked for changes, on its Quadro (the column of what is
+ * being adjusted is there); several, the Portal's list narrowed to them; none, the Portal.
+ */
+export function adjustmentsHref(clients: readonly { client: string; counts: { adjusting?: number } }[]): string {
+  const asking = clients.filter((c) => (c.counts.adjusting ?? 0) > 0);
+  const only = asking.length === 1 ? asking[0] : undefined;
+  if (only) return `/portal/client/${encodeURIComponent(only.client)}?tab=board`;
+  return asking.length > 1 ? "/portal?alteracoes=1" : "/portal";
+}

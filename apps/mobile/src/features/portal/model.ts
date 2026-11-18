@@ -8,6 +8,8 @@ import type {
   PortalColumn,
   PortalComment,
   PortalItem,
+  PortalLabel,
+  PortalLabelColor,
   PortalListKind,
   PortalPlan,
   PortalStatus,
@@ -77,6 +79,48 @@ export const boardColumns = (board: PortalBoard): BoardColumn[] =>
       : { column, cards: [], items: board.items[column] },
   );
 
+/** The two columns the team's own cards move between; the portal fills the others (the web's `TEAM_COLUMNS`). */
+export const isTeamColumn = (column: PortalBoardColumn): column is "todo" | "doing" =>
+  column === "todo" || column === "doing";
+
+/**
+ * The Quadro's columns on the phone, as Trello's board: every stage that holds something, in the web's order; for
+ * whoever may move cards, To do and In production always, so a card has somewhere to go.
+ */
+export const stageColumns = (board: PortalBoard, moves: boolean): BoardColumn[] =>
+  boardColumns(board).filter((c) => columnCount(c) > 0 || (moves && isTeamColumn(c.column)));
+
+/**
+ * What a column says while a card from `from` is held over the board: `drop`, it takes the card (the other team
+ * column); `home`, the card's own; `closed`, the portal's to fill, it takes none.
+ */
+export function columnDrop(column: PortalBoardColumn, from: "todo" | "doing"): "drop" | "home" | "closed" {
+  if (!isTeamColumn(column)) return "closed";
+  return column === from ? "home" : "drop";
+}
+
+/**
+ * A team card of the board as the schedule's card face draws it: its stage is the board's column (a move shows at
+ * once), its post date and portal link the schedule's when it has the card.
+ */
+export function boardCardOf(card: PortalCard, plan: PortalPlan | undefined): PlanCard {
+  const known = allPlanCards(plan).find((c) => c.id === card.id);
+  return { ...card, stage: card.state, postOn: known?.postOn ?? card.date, link: known?.link ?? null };
+}
+
+/** A client's counts on the Portal tab, only those above zero: what is open, with the client, sent back. */
+export function clientCounts(
+  summary: Pick<PortalClientSummary, "counts" | "open"> | undefined,
+): { key: "open" | "approval" | "adjusting"; count: number }[] {
+  if (!summary) return [];
+  const all = [
+    { key: "open" as const, count: summary.open },
+    { key: "approval" as const, count: summary.counts.approval ?? 0 },
+    { key: "adjusting" as const, count: summary.counts.adjusting ?? 0 },
+  ];
+  return all.filter((c) => c.count > 0);
+}
+
 /** How many things wait in a column. */
 export const columnCount = (c: Pick<BoardColumn, "cards" | "items">) => c.cards.length + c.items.length;
 
@@ -139,6 +183,16 @@ export function coverOf(files: readonly PortalCardFile[]): { file: PortalCardFil
 
 /** Why a card can't go for approval as it is (read from its files), or null: it can. */
 export const sendProblemOf = (card: Pick<PortalCard, "type" | "files">) => portalSendProblem(card.type, card.files);
+
+/**
+ * A card ready to go up for approval from the board: the team's (To do or In production), marked done, with the
+ * files a send takes. The board's card then carries "Subir para aprovação" itself.
+ */
+export function readyToSend(card: Pick<PlanCard, "type" | "files" | "stage" | "done" | "material">) {
+  return (
+    !card.material && (card.stage === "todo" || card.stage === "doing") && card.done && sendProblemOf(card) === null
+  );
+}
 
 /**
  * The send a card makes, with what it already knows but its date: a post goes to the client without one, and gets it
@@ -248,20 +302,133 @@ export function boardIndexAt(x: number, step: number, count: number): number {
 }
 
 /**
- * The board's three layers, as the desktop and Trello draw them: a light board, the lists a step darker, white cards
- * on them. Dark keeps the same order of steps: the board darkest, the lists above it, the cards above them.
+ * The board's three layers, as Trello draws a board: the board light, the lists dark on it, the cards a step lighter
+ * than their list, in both themes (the lists' words then read on the dark palette, `ThemeColorsOverride`). In dark the
+ * board is a step dimmer, still light, so it doesn't glare beside the dark bar. `dot`/`dotOn`: the dots under the
+ * lists, on the board; `hole`: where a held list would land; `slot`: where a held card would land, on a list.
  */
-export function boardPaint(
-  dark: boolean,
-  c: { bg: string; raised: string; raised2: string; bubble: string; line: string },
-): { board: string; list: string; card: string; edge: string } {
-  return dark
-    ? { board: c.bg, list: c.raised2, card: DARK_CARD, edge: c.line }
-    : { board: c.bg, list: c.bubble, card: c.raised, edge: c.line };
+export function boardPaint(dark: boolean): {
+  board: string;
+  list: string;
+  card: string;
+  edge: string;
+  dot: string;
+  dotOn: string;
+  hole: string;
+  slot: string;
+} {
+  return {
+    board: dark ? "#C9CEC2" : "#E3E7DE",
+    list: "#141414",
+    card: "#212121",
+    edge: "#333333",
+    dot: "#55594F",
+    dotOn: "#0A0A0A",
+    hole: "rgba(10, 10, 10, 0.16)",
+    slot: "rgba(255, 255, 255, 0.08)",
+  };
 }
 
-/** A card on a dark list: the step above the list's own. */
-const DARK_CARD = "#262626";
+/** WCAG's contrast ratio between two #RRGGBB colors. */
+export function contrast(a: string, b: string): number {
+  const lum = (hex: string) => {
+    const [r, g, bl] = [1, 3, 5].map((i) => {
+      const v = Number.parseInt(hex.slice(i, i + 2), 16) / 255;
+      return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4;
+    }) as [number, number, number];
+    return 0.2126 * r + 0.7152 * g + 0.0722 * bl;
+  };
+  const [x, y] = [lum(a), lum(b)].sort((m, n) => n - m) as [number, number];
+  return (x + 0.05) / (y + 0.05);
+}
+
+/**
+ * A search's words for the board: lower case, no accents, and a task's number on its own ("#49" or "49") as `task`.
+ * Empty: no search.
+ */
+export function boardQuery(text: string): { words: string; task: number | null } | null {
+  const words = fold(text.trim());
+  if (!words) return null;
+  const n = /^#?(\d{1,7})$/.exec(words);
+  return { words, task: n ? Number(n[1]) : null };
+}
+
+const fold = (text: string) => text.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase();
+
+/** Whether a card answers a search: its title, description, caption, a label's name, or its task's number. */
+export function cardMatches(
+  card: Pick<PlanCard, "title" | "description" | "caption" | "labels">,
+  query: { words: string; task: number | null },
+  task: number | undefined,
+  labelNames: ReadonlyMap<string, string>,
+): boolean {
+  if (query.task !== null && task === query.task) return true;
+  const words = query.words.replace(/^#/, "");
+  const said = [card.title, card.description, card.caption, ...card.labels.map((id) => labelNames.get(id) ?? "")];
+  return said.some((text) => fold(text).includes(words));
+}
+
+/** The board's lists for a search: only the cards that answer it, and only the lists that hold one. */
+export function searchGroups(
+  groups: readonly PlanGroup[],
+  query: { words: string; task: number | null } | null,
+  numbers: ReadonlyMap<string, number>,
+  labels: readonly { id: string; name: string }[],
+): PlanGroup[] {
+  if (!query) return [...groups];
+  const names = new Map(labels.map((l) => [l.id, l.name]));
+  return groups
+    .map((g) => ({ ...g, cards: g.cards.filter((c) => cardMatches(c, query, numbers.get(c.id), names)) }))
+    .filter((g) => g.cards.length > 0);
+}
+
+/** `ids` with `id` taken out and put back at `index` among the others: what a list dropped there makes the order. */
+export function orderAfterDrop(ids: readonly string[], id: string, index: number): string[] {
+  const rest = ids.filter((x) => x !== id);
+  if (rest.length === ids.length) return [...ids];
+  rest.splice(Math.max(0, Math.min(index, rest.length)), 0, id);
+  return rest;
+}
+
+/**
+ * Where a held list would land: the slot under the finger, from how far the board is scrolled (`scroll`), the
+ * finger's x on the board and the lists' step, held to the `count` lists that can move.
+ */
+export function listSlotAt(scroll: number, x: number, step: number, count: number): number {
+  "worklet";
+  if (count <= 0 || step <= 0) return 0;
+  return Math.min(count - 1, Math.max(0, Math.floor((scroll + x - BOARD.side + BOARD.gap / 2) / step)));
+}
+
+/**
+ * While the list at `from` is held over `slot`: how many places the list at `index` slides (-1 left, 1 right; the held
+ * one's hole goes all the way to `slot`), so the board shows the order the drop would make without moving anything.
+ */
+export function listShift(index: number, from: number, slot: number): number {
+  "worklet";
+  if (index < 0 || from < 0) return 0;
+  if (index === from) return slot - from;
+  if (from < slot && index > from && index <= slot) return -1;
+  if (slot < from && index >= slot && index < from) return 1;
+  return 0;
+}
+
+/** How close to the board's side a held list makes it scroll, and how far each frame. */
+export const BOARD_EDGE = { zone: 48, step: 12 } as const;
+
+/** The board's scroll each frame while a held list is at `x` on a board this wide: toward the side it is near. */
+export function edgeScroll(x: number, width: number): number {
+  if (x > width - BOARD_EDGE.zone) return BOARD_EDGE.step;
+  if (x < BOARD_EDGE.zone) return -BOARD_EDGE.step;
+  return 0;
+}
+
+/** A list one place to the left (-1) or right (1), for the menu and a screen reader: null at an end. */
+export function orderNudged(ids: readonly string[], id: string, by: -1 | 1): string[] | null {
+  const at = ids.indexOf(id);
+  if (at < 0 || at + by < 0 || at + by >= ids.length) return null;
+  return orderAfterDrop(ids, id, at + by);
+}
 
 /** What a card's face says at a glance: the checklist's progress, how many comments and files, a description. */
 export function cardBadges(card: Pick<PlanCard, "checklist" | "comments" | "files" | "description">): {
@@ -277,4 +444,69 @@ export function cardBadges(card: Pick<PlanCard, "checklist" | "comments" | "file
     files: card.files.length,
     described: card.description.trim().length > 0,
   };
+}
+
+/** A label's color, the web's (`[data-color]` in the portal's styles), the same in both themes. */
+export const LABEL_COLOR: Record<PortalLabelColor, string> = {
+  green: "#22a34a",
+  mint: "#2bb39a",
+  olive: "#7c8a2a",
+  yellow: "#d9a406",
+  wine: "#8e2a4a",
+  red: "#d93a3a",
+  purple: "#7b4bd6",
+  lilac: "#a78bda",
+  blue: "#2f7fe0",
+  gray: "#7d838f",
+};
+
+/** A card's labels as the board names them, in the card's order; a label the board no longer has is left out. */
+export function cardLabels(card: Pick<PlanCard, "labels">, labels: readonly PortalLabel[]): PortalLabel[] {
+  const byId = new Map(labels.map((l) => [l.id, l]));
+  return card.labels.flatMap((id) => byId.get(id) ?? []);
+}
+
+/** A card's labels with one put on or taken off. */
+export const toggledLabels = (on: readonly string[], id: string) =>
+  on.includes(id) ? on.filter((x) => x !== id) : [...on, id];
+
+/** One client's approved posts nobody released yet: what "Para agendar" lists (the server's list is every client's). */
+export const toScheduleOf = (items: readonly PortalItem[] | undefined, client: string): PortalItem[] =>
+  (items ?? []).filter((i) => i.client === client && i.status === "approved" && !i.released);
+
+/** A day as the portal writes it (`YYYY-MM-DD`), in this device's own calendar. */
+export function ymdOf(date: Date): string {
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+}
+
+/** The days a post may be scheduled for on the phone: today and the next ones; a day already chosen further out too. */
+export function scheduleDays(now: Date, count: number, keep: string | null = null): string[] {
+  const days = Array.from({ length: count }, (_, i) =>
+    ymdOf(new Date(now.getFullYear(), now.getMonth(), now.getDate() + i)),
+  );
+  if (keep && /^\d{4}-\d{2}-\d{2}$/.test(keep) && !days.includes(keep) && keep > (days[0] ?? "")) days.push(keep);
+  return days;
+}
+
+/** The minutes a time steps by on the phone (the reminders' own). */
+export const SCHEDULE_STEP = 15;
+
+/** A time of day (`HH:MM`) moved by `minutes`, around the clock. */
+export function stepClock(time: string, minutes: number): string {
+  const m = /^(\d{2}):(\d{2})$/.exec(time);
+  const at = m ? Number(m[1]) * 60 + Number(m[2]) : 0;
+  const total = (((at + minutes) % 1440) + 1440) % 1440;
+  return `${String(Math.floor(total / 60)).padStart(2, "0")}:${String(total % 60).padStart(2, "0")}`;
+}
+
+/**
+ * Where the phone's scheduling starts: the post's own date and time when it carries one still ahead (a date proposed
+ * for it), else tomorrow at 10:00, a time feeds read well at.
+ */
+export function scheduleStart(item: Pick<PortalItem, "scheduledFor">, now = new Date()): { day: string; time: string } {
+  const day = portalDayOf(item.scheduledFor);
+  const time = portalTimeOf(item.scheduledFor) ?? "10:00";
+  if (day && portalAhead(day, time, now)) return { day, time };
+  return { day: ymdOf(new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1)), time: "10:00" };
 }

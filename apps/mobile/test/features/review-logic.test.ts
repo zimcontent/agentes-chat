@@ -1,6 +1,15 @@
 import { describe, expect, test } from "bun:test";
 import { reviewLinksIn, type VideoReviewNote } from "@agenteschat/client";
-import { notesOf, pictureBox, reviewIdsOf, reviewOpen, ringsAt, unsentOf } from "../../src/features/review/logic";
+import {
+  FILE_PART_MAX_BYTES,
+  fitsFilePart,
+  notesOf,
+  pictureBox,
+  reviewIdsOf,
+  reviewOpen,
+  ringsAt,
+  unsentOf,
+} from "../../src/features/review/logic";
 
 const R = "11111111-2222-3333-4444-555555555555";
 const O = "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee";
@@ -61,5 +70,15 @@ describe("the phone's Revisor", () => {
     expect(reviewIdsOf(reviewLinksIn(body), "other-org", null)).toEqual([]);
     expect(reviewIdsOf([], O, { videoReview: { id: R, version: 1 } })).toEqual([R]);
     expect(reviewIdsOf(reviewLinksIn(body), O, { videoReview: { id: R } })).toEqual([R]);
+  });
+});
+
+describe("a file read into memory to upload (chat, Drive, WhatsApp)", () => {
+  test("up to 200 MB goes; past it the upload is refused before a byte is read; an unknown size is the server's", () => {
+    expect(fitsFilePart(FILE_PART_MAX_BYTES)).toBe(true);
+    expect(fitsFilePart(FILE_PART_MAX_BYTES + 1)).toBe(false);
+    expect(fitsFilePart(2 * 1024 * 1024 * 1024)).toBe(false);
+    expect(fitsFilePart(null)).toBe(true);
+    expect(fitsFilePart(undefined)).toBe(true);
   });
 });

@@ -3,7 +3,8 @@ import { NativeTabs } from "expo-router/native-tabs";
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { Platform } from "react-native";
-import { usePortalOn, usePortalWords } from "@/features/portal/hooks";
+import { usePortalOn, usePortalWords, useToSchedule } from "@/features/portal/hooks";
+import { pendingBadge } from "@/features/portal/schedule";
 import { useReviewWords } from "@/features/review/media";
 import { useUnreadConversations, useUnreadThreads, useWaitingCount } from "@/features/shared/queries";
 import { ALONG_STRIP, alongInAccessory } from "@/features/work-along/logic";
@@ -46,7 +47,8 @@ export default function TabsLayout() {
   const { colors } = useTheme();
   const unread = useUnreadConversations();
   const unreadThreads = useUnreadThreads();
-  const waiting = useWaitingCount();
+  // Pendentes' badge: what needs you plus approved posts ready to schedule, the counts of its two sections.
+  const waiting = pendingBadge(useWaitingCount(), useToSchedule().items.length);
   const reviewWords = useReviewWords();
   const portalWords = usePortalWords();
   const toReview = (useVideoReviews(useOrg().orgId).data ?? []).filter((r) => r.status === "in_review").length;

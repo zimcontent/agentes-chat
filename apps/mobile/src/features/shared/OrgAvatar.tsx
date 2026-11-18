@@ -1,5 +1,5 @@
+import { Image } from "expo-image";
 import { useMemo } from "react";
-import { Image } from "react-native";
 import { appHeaders, lastCookie } from "@/lib/auth";
 import { photoSource } from "@/lib/photo";
 import { placeKey } from "@/lib/server";
@@ -8,6 +8,8 @@ import { LogoMark } from "@/ui";
 
 /**
  * A workspace's face: its logo in the Doug's frame (rounded square), else DougBot's mark (the Doug, drawn by code).
+ * The logo is cached in memory and on disk (its address changes with its content) and drawn with no fade, as the bars
+ * and lists show it again and again.
  */
 export function OrgAvatar({
   logo,
@@ -29,6 +31,10 @@ export function OrgAvatar({
   return (
     <Image
       source={source}
+      cachePolicy="memory-disk"
+      recyclingKey={source.uri}
+      transition={0}
+      contentFit="cover"
       style={{ width: size, height: size, borderRadius: Math.round(size * 0.28) }}
       accessibilityIgnoresInvertColors
     />

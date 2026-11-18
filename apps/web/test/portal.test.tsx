@@ -279,8 +279,8 @@ describe("a client's board", () => {
   test("a client's colour: picked on its page, it marks the client and its work on the overview", async () => {
     const { state, portal } = await go("portal?client=acme-foods");
     const menu = await openMenu(within(main()).getByRole("button", { name: /Cor do cliente/ }));
-    // Twelve colours, "No colour", the way to the client's logo, and the two ways an approval goes on.
-    expect(within(menu).getAllByRole("menuitem")).toHaveLength(16);
+    // Twelve colours, "No colour", the client's logo and name, the two ways an approval goes on, and its removal.
+    expect(within(menu).getAllByRole("menuitem")).toHaveLength(18);
     expect(within(menu).getByRole("menuitem", { name: "Logo do cliente" })).toBeTruthy();
     await click(within(menu).getByRole("menuitem", { name: /Azul escuro/ }));
     expect(calls(state, "portal.setClientColor")).toEqual([[ORG_ID, "acme-foods", "navy"]]);
@@ -311,6 +311,40 @@ describe("a client's board", () => {
     expect(cards.every((el) => el.getAttribute("data-client-color") === "navy")).toBe(true);
     expect(cards.every((el) => el.querySelector(".portal-clientchip")?.textContent === "Acme Foods")).toBe(true);
     expect(cards[0]?.querySelector(".portal-clientchip")?.getAttribute("data-client-color")).toBe("navy");
+  });
+
+  test("a client renamed and removed from its page, then shown again from the overview's foot", async () => {
+    const { state, portal } = await go("portal?client=acme-foods");
+    await click(
+      within(await openMenu(within(main()).getByRole("button", { name: /Cor do cliente/ }))).getByRole("menuitem", {
+        name: "Renomear cliente",
+      }),
+    );
+    const field = screen().getByRole("textbox", { name: "Nome" }) as HTMLInputElement;
+    expect(field.value).toBe("Acme Foods");
+    await act(async () => fireEvent.change(field, { target: { value: "ACME Restaurantes" } }));
+    await click(screen().getByRole("button", { name: "Salvar" }));
+    expect(calls(state, "portal.setClientName")).toEqual([[ORG_ID, "acme-foods", "ACME Restaurantes"]]);
+    // The new name heads the page.
+    expect(within(main()).getByRole("heading", { name: "ACME Restaurantes" })).toBeTruthy();
+
+    await click(
+      within(await openMenu(within(main()).getByRole("button", { name: /Cor do cliente/ }))).getByRole("menuitem", {
+        name: "Excluir cliente",
+      }),
+    );
+    // Asked first, naming the client.
+    const ask = screen().getByRole("dialog", { name: "Excluir “ACME Restaurantes”?" });
+    await click(within(ask).getByRole("button", { name: "Excluir cliente" }));
+    expect(calls(state, "portal.setClientHidden")).toEqual([[ORG_ID, "acme-foods", true]]);
+    expect([...portal.hidden]).toEqual(["acme-foods"]);
+    // Back on the overview it is in no card, only among the hidden ones.
+    expect(main().querySelector('.portal-clientcard[href*="client=acme-foods"]')).toBeNull();
+    const hidden = within(main()).getByRole("region", { name: "Clientes ocultos" });
+    expect(within(hidden).getByText("ACME Restaurantes")).toBeTruthy();
+    await click(within(hidden).getByRole("button", { name: "Mostrar de novo" }));
+    expect(calls(state, "portal.setClientHidden").at(-1)).toEqual([ORG_ID, "acme-foods", false]);
+    expect(main().querySelector('.portal-clientcard[href*="client=acme-foods"]')).not.toBeNull();
   });
 
   test("a card moves between A produzir and Em produção from its menu", async () => {

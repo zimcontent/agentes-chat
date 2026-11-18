@@ -2,29 +2,54 @@ import { describe, expect, test } from "bun:test";
 import type { PlanCard, PortalBoard, PortalCard, PortalItem, PortalPlan } from "@agenteschat/client";
 import {
   BOARD,
+  boardCardOf,
   boardColumns,
   boardIndexAt,
   boardListWidth,
   boardPaint,
+  boardQuery,
   boardStep,
   cardBadges,
+  cardLabels,
+  cardMatches,
   cardOfItem,
+  clientCounts,
   columnCount,
+  columnDrop,
   commentsNewestFirst,
+  contrast,
   coverOf,
+  edgeScroll,
   findItem,
   isClientSlug,
   isPortalId,
+  isTeamColumn,
+  LABEL_COLOR,
+  listShift,
+  listSlotAt,
   listsFor,
+  orderAfterDrop,
+  orderNudged,
   otherTeamColumn,
   planGroups,
+  readyToSend,
   releaseDateOf,
+  STAGE_COLOR,
+  scheduleDays,
+  scheduleStart,
+  searchGroups,
   sendInputOf,
   sendProblemOf,
+  stageColumns,
   statusLine,
+  stepClock,
   summaryStatus,
+  toggledLabels,
+  toScheduleOf,
+  ymdOf,
 } from "../../src/features/portal/model";
 import { portalWords } from "../../src/features/portal/words";
+import { appColors } from "../../src/ui/palette";
 
 const counts = (over: Partial<Record<string, number>> = {}) => ({
   todo: 0,
@@ -289,13 +314,118 @@ describe("the schedule as Trello's board on the phone", () => {
     expect(boardIndexAt(100, step, 0)).toBe(0);
   });
 
-  test("light board, darker lists, white cards; dark keeps the steps in the same order", () => {
-    const c = { bg: "#F4F6F2", raised: "#FFFFFF", raised2: "#ECEFE8", bubble: "#E3E7DE", line: "#E1E4DC" };
-    expect(boardPaint(false, c)).toEqual({ board: "#F4F6F2", list: "#E3E7DE", card: "#FFFFFF", edge: "#E1E4DC" });
-    const d = { bg: "#0A0A0A", raised: "#121212", raised2: "#1A1A1A", bubble: "#212121", line: "#262626" };
-    const dark = boardPaint(true, d);
-    expect([dark.board, dark.list]).toEqual(["#0A0A0A", "#1A1A1A"]);
-    expect(dark.card > dark.list).toBe(true);
+  test("a light board with dark lists and cards in both themes, every word and mark legible", () => {
+    for (const dark of [false, true]) {
+      const p = boardPaint(dark);
+      const words = appColors("dark");
+      // The board light, the lists dark on it, the cards a step above their list.
+      expect(contrast(p.board, "#000000")).toBeGreaterThan(contrast(p.list, "#000000"));
+      expect(contrast(p.card, "#000000")).toBeGreaterThan(contrast(p.list, "#000000"));
+      for (const bg of [p.list, p.card]) {
+        expect(contrast(words.ink, bg)).toBeGreaterThanOrEqual(4.5);
+        expect(contrast(words.muted, bg)).toBeGreaterThanOrEqual(4.5);
+        expect(contrast(words.faint, bg)).toBeGreaterThanOrEqual(4.5);
+      }
+      // The dots on the board, and the list on the board's light (a count is at least 3:1).
+      expect(contrast(p.dotOn, p.board)).toBeGreaterThanOrEqual(4.5);
+      expect(contrast(p.dot, p.board)).toBeGreaterThanOrEqual(3);
+      expect(contrast(p.list, p.board)).toBeGreaterThanOrEqual(3);
+      // Each stage's dot stays 3:1 on a card.
+      for (const color of Object.values(STAGE_COLOR)) expect(contrast(color, p.card)).toBeGreaterThanOrEqual(3);
+    }
+  });
+
+  test("a search reads words without case or accents, and a task's number with or without #", () => {
+    expect(boardQuery("   ")).toBeNull();
+    expect(boardQuery("Lançamento")).toEqual({ words: "lancamento", task: null });
+    expect(boardQuery("#49")).toEqual({ words: "#49", task: 49 });
+    expect(boardQuery("49")).toEqual({ words: "49", task: 49 });
+  });
+
+  test("a card answers by title, description, caption, label or task number", () => {
+    const labels = new Map([["lb1", "Urgente"]]);
+    const c = planCard({ title: "Carrossel lançamento", description: "Fotos da obra", caption: "Nova coleção" });
+    const q = (text: string) => boardQuery(text) as NonNullable<ReturnType<typeof boardQuery>>;
+    expect(cardMatches(c, q("lancamento"), undefined, labels)).toBe(true);
+    expect(cardMatches(c, q("OBRA"), undefined, labels)).toBe(true);
+    expect(cardMatches(c, q("coleção"), undefined, labels)).toBe(true);
+    expect(cardMatches(c, q("urgente"), undefined, labels)).toBe(false);
+    expect(cardMatches({ ...c, labels: ["lb1"] }, q("urgente"), undefined, labels)).toBe(true);
+    expect(cardMatches(c, q("#49"), 49, labels)).toBe(true);
+    expect(cardMatches(c, q("49"), 49, labels)).toBe(true);
+    expect(cardMatches(c, q("#4"), 49, labels)).toBe(false);
+    expect(cardMatches(c, q("reel"), 49, labels)).toBe(false);
+  });
+
+  test("while searching the board keeps only the matching cards, and hides lists with none", () => {
+    const a = planCard({ id: "a", title: "Reel bastidores" });
+    const b = planCard({ id: "b", title: "Story enquete" });
+    const groups = [
+      { id: "l1", name: "Semana 1", cards: [a, b] },
+      { id: "l2", name: "Semana 2", cards: [b] },
+      { id: null, name: null, cards: [a] },
+    ];
+    const numbers = new Map([["b", 12]]);
+    expect(searchGroups(groups, null, numbers, [])).toEqual(groups);
+    const reel = searchGroups(groups, boardQuery("reel"), numbers, []);
+    expect(reel.map((g) => [g.id, g.cards.map((c) => c.id)])).toEqual([
+      ["l1", ["a"]],
+      [null, ["a"]],
+    ]);
+    expect(searchGroups(groups, boardQuery("#12"), numbers, []).map((g) => g.id)).toEqual(["l1", "l2"]);
+    expect(searchGroups(groups, boardQuery("nada"), numbers, [])).toEqual([]);
+  });
+
+  test("a list dropped somewhere takes that place among the others", () => {
+    const ids = ["a", "b", "c", "d"];
+    expect(orderAfterDrop(ids, "a", 2)).toEqual(["b", "c", "a", "d"]);
+    expect(orderAfterDrop(ids, "d", 0)).toEqual(["d", "a", "b", "c"]);
+    expect(orderAfterDrop(ids, "b", 1)).toEqual(ids);
+    expect(orderAfterDrop(ids, "b", 99)).toEqual(["a", "c", "d", "b"]);
+    expect(orderAfterDrop(ids, "b", -3)).toEqual(["b", "a", "c", "d"]);
+    expect(orderAfterDrop(ids, "zz", 0)).toEqual(ids);
+  });
+
+  test("the slot under a held list follows the finger and the board's scroll", () => {
+    const step = boardStep(390);
+    // The finger over the first list, the second, and past the last.
+    expect(listSlotAt(0, BOARD.side + 10, step, 4)).toBe(0);
+    expect(listSlotAt(0, BOARD.side + step + 10, step, 4)).toBe(1);
+    expect(listSlotAt(step * 2, BOARD.side + 10, step, 4)).toBe(2);
+    expect(listSlotAt(step * 9, 300, step, 4)).toBe(3);
+    expect(listSlotAt(0, -50, step, 4)).toBe(0);
+    expect(listSlotAt(0, 100, step, 0)).toBe(0);
+  });
+
+  test("while a list is held the others slide aside to show the order its drop makes", () => {
+    const ids = ["a", "b", "c", "d"];
+    for (const [from, slot] of [
+      [0, 2],
+      [3, 1],
+      [1, 1],
+      [2, 0],
+    ] as const) {
+      // Each list's place plus its slide is its place in the order the drop makes.
+      const after = orderAfterDrop(ids, ids[from] as string, slot);
+      ids.forEach((id, i) => {
+        expect(i + listShift(i, from, slot)).toBe(after.indexOf(id));
+      });
+    }
+    expect(listShift(-1, 0, 2)).toBe(0);
+  });
+
+  test("a held list near the board's side scrolls it that way, and in the middle it stays", () => {
+    expect(edgeScroll(380, 390)).toBeGreaterThan(0);
+    expect(edgeScroll(10, 390)).toBeLessThan(0);
+    expect(edgeScroll(195, 390)).toBe(0);
+  });
+
+  test("moving a list one place left or right, and nothing at an end", () => {
+    expect(orderNudged(["a", "b", "c"], "b", -1)).toEqual(["b", "a", "c"]);
+    expect(orderNudged(["a", "b", "c"], "b", 1)).toEqual(["a", "c", "b"]);
+    expect(orderNudged(["a", "b", "c"], "a", -1)).toBeNull();
+    expect(orderNudged(["a", "b", "c"], "c", 1)).toBeNull();
+    expect(orderNudged(["a", "b", "c"], "x", 1)).toBeNull();
   });
 
   test("a card's face counts its checklist, comments and files, and says when it has a description", () => {
@@ -322,5 +452,135 @@ describe("the schedule as Trello's board on the phone", () => {
       expect(w.listOf(2, 9)).toContain("2");
     }
     expect(portalWords("pt-BR").addDescription).toBe("Adicione uma descrição mais detalhada…");
+  });
+});
+
+describe("a card ready to go up from the board", () => {
+  const base = {
+    type: "image" as const,
+    files: [{ id: "f", name: "a.png" }],
+    stage: "doing" as const,
+    done: true,
+    material: false,
+  };
+  test("the team's, done and with its files", () => {
+    expect(readyToSend(base)).toBe(true);
+    expect(readyToSend({ ...base, stage: "todo" })).toBe(true);
+  });
+  test("not while it is being made, once it was sent, without files, or as a material", () => {
+    expect(readyToSend({ ...base, done: false })).toBe(false);
+    expect(readyToSend({ ...base, stage: "approval" })).toBe(false);
+    expect(readyToSend({ ...base, files: [] })).toBe(false);
+    expect(readyToSend({ ...base, material: true })).toBe(false);
+  });
+});
+
+describe("the Quadro as Trello's board on the phone", () => {
+  test("a column per stage that holds something; To do and In production always for who moves cards", () => {
+    const b = board({ adjusting: [item()] }, { todo: [], doing: [card({ state: "doing" })] });
+    expect(stageColumns(b, false).map((c) => c.column)).toEqual(["doing", "adjusting"]);
+    expect(stageColumns(b, true).map((c) => c.column)).toEqual(["todo", "doing", "adjusting"]);
+    expect(stageColumns(board(), false)).toEqual([]);
+    // Posted is its own tab, as on the web: never a column of the Quadro.
+    expect(stageColumns(board({ posted: [item()] }), true).map((c) => c.column)).toEqual(["todo", "doing"]);
+  });
+
+  test("only the other team column takes a held card; the portal's take none", () => {
+    expect(isTeamColumn("todo")).toBe(true);
+    expect(isTeamColumn("approval")).toBe(false);
+    expect(columnDrop("doing", "todo")).toBe("drop");
+    expect(columnDrop("todo", "todo")).toBe("home");
+    for (const col of ["approval", "adjusting", "approved", "scheduled"] as const) {
+      expect(columnDrop(col, "todo")).toBe("closed");
+      expect(columnDrop(col, "doing")).toBe("closed");
+    }
+  });
+
+  test("a team card takes its column as its stage, and the schedule's date and link when it has the card", () => {
+    const team = card({ id: "x", state: "doing", date: "2026-11-20T15:00:00Z" });
+    expect(boardCardOf(team, undefined)).toMatchObject({ stage: "doing", postOn: "2026-11-20T15:00:00Z", link: null });
+    const plan: PortalPlan = {
+      client: "acme-foods",
+      lists: [],
+      unlisted: [planCard({ id: "x", stage: "todo", postOn: "2026-11-22T15:00:00Z", link: "https://p/x" })],
+      loose: [],
+      labels: [],
+    };
+    // Moved on the board a moment ago: the column wins over the schedule's older stage.
+    expect(boardCardOf(team, plan)).toMatchObject({
+      stage: "doing",
+      postOn: "2026-11-22T15:00:00Z",
+      link: "https://p/x",
+    });
+  });
+
+  test("a client's counts on the Portal tab, only those above zero, in order", () => {
+    expect(clientCounts(undefined)).toEqual([]);
+    expect(clientCounts({ open: 9, counts: counts({ approval: 2, adjusting: 1 }) })).toEqual([
+      { key: "open", count: 9 },
+      { key: "approval", count: 2 },
+      { key: "adjusting", count: 1 },
+    ]);
+    expect(clientCounts({ open: 0, counts: counts({ approval: 3 }) })).toEqual([{ key: "approval", count: 3 }]);
+  });
+
+  test("the counts in words, in both languages", () => {
+    expect(portalWords("pt-BR").inApproval(2)).toBe("2 para aprovação");
+    expect(portalWords("pt-BR").inAdjust(1)).toBe("1 em ajuste");
+    expect(portalWords("en").inAdjust(3)).toBe("3 in adjustment");
+  });
+});
+
+describe("scheduling and the Cronograma's quick actions on the phone", () => {
+  test("only this client's approved posts nobody released yet are to schedule", () => {
+    const items = [
+      item({ id: "a", status: "approved" }),
+      item({ id: "b", status: "approved", released: true }),
+      item({ id: "c", status: "sent" }),
+      item({ id: "d", status: "approved", client: "other" }),
+    ];
+    expect(toScheduleOf(items, "acme-foods").map((i) => i.id)).toEqual(["a"]);
+    expect(toScheduleOf(undefined, "acme-foods")).toEqual([]);
+  });
+
+  test("the days offered start today, and keep a day already chosen further out", () => {
+    const now = new Date(2026, 10, 30, 12);
+    expect(scheduleDays(now, 3)).toEqual(["2026-11-30", "2026-12-01", "2026-12-02"]);
+    expect(scheduleDays(now, 2, "2027-01-15")).toEqual(["2026-11-30", "2026-12-01", "2027-01-15"]);
+    // A past day or junk is never offered.
+    expect(scheduleDays(now, 2, "2026-11-01")).toEqual(["2026-11-30", "2026-12-01"]);
+    expect(scheduleDays(now, 1, "soon")).toEqual(["2026-11-30"]);
+    expect(ymdOf(new Date(2026, 0, 5))).toBe("2026-01-05");
+  });
+
+  test("a time steps around the clock", () => {
+    expect(stepClock("10:00", 15)).toBe("10:15");
+    expect(stepClock("23:45", 15)).toBe("00:00");
+    expect(stepClock("00:00", -60)).toBe("23:00");
+    expect(stepClock("bad", 30)).toBe("00:30");
+  });
+
+  test("scheduling starts on the post's own date while it is ahead, else tomorrow at 10:00", () => {
+    const now = new Date(2026, 10, 17, 9);
+    expect(scheduleStart({ scheduledFor: "2026-11-20T14:30:00-03:00" }, now)).toEqual({
+      day: "2026-11-20",
+      time: "14:30",
+    });
+    expect(scheduleStart({ scheduledFor: "2026-11-01T14:30:00-03:00" }, now)).toEqual({
+      day: "2026-11-18",
+      time: "10:00",
+    });
+    expect(scheduleStart({ scheduledFor: null }, now)).toEqual({ day: "2026-11-18", time: "10:00" });
+  });
+
+  test("a card's labels in its order, a label put on and taken off", () => {
+    const labels = [
+      { id: "a", name: "Launch", color: "green" as const },
+      { id: "b", name: "Urgent", color: "red" as const },
+    ];
+    expect(cardLabels({ labels: ["b", "gone", "a"] }, labels).map((l) => l.id)).toEqual(["b", "a"]);
+    expect(toggledLabels(["a"], "b")).toEqual(["a", "b"]);
+    expect(toggledLabels(["a", "b"], "a")).toEqual(["b"]);
+    for (const color of Object.values(LABEL_COLOR)) expect(contrast(color, "#FFFFFF")).toBeGreaterThan(2);
   });
 });

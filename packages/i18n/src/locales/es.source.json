@@ -35339,6 +35339,9 @@
   "toolNames.label.offer_feedback": {
     "value": "Offer to report a problem"
   },
+  "toolNames.label.contact_support": {
+    "value": "Ask support for help"
+  },
   "toolReview.title": {
     "value": "Review what the agent can do on its own"
   },
@@ -41792,6 +41795,9 @@
   "settings.section.approvals": {
     "value": "Approvals"
   },
+  "settings.section.support": {
+    "value": "Support"
+  },
   "settings.section.about": {
     "value": "About agentes.chat"
   },
@@ -41873,6 +41879,9 @@
   "settings.sectionText.approvals": {
     "value": "Who decides for you when an agent asks for your approval."
   },
+  "settings.sectionText.support": {
+    "value": "Who runs this installation, and how to reach them."
+  },
   "settings.sectionText.about": {
     "value": "Who makes it, its license and where its source code is."
   },
@@ -41890,6 +41899,54 @@
   },
   "settings.sectionText.rolesPersonal": {
     "value": "What each person here can do. The owner can do everything."
+  },
+  "settings.support.title": {
+    "value": "Reach support"
+  },
+  "settings.support.lead": {
+    "value": "The people who run this installation, for something in the system that doesn't work."
+  },
+  "settings.support.email": {
+    "value": "Email"
+  },
+  "settings.support.whatsapp": {
+    "value": "WhatsApp"
+  },
+  "settings.support.client": {
+    "value": "This installation"
+  },
+  "settings.support.askTitle": {
+    "value": "Ask {{name}} for help"
+  },
+  "settings.support.askLead": {
+    "value": "{{name}} writes down what happened and sends it to support, in your name. You read the message before it goes."
+  },
+  "settings.support.askStatus": {
+    "value": "Opens the conversation with the details already in the box."
+  },
+  "settings.support.ask": {
+    "value": "Ask {{name}} for help"
+  },
+  "settings.support.draft": {
+    "value": "{{name}}, I need help with the system:"
+  },
+  "settings.support.draftWith": {
+    "value": "{{name}}, I need help with the system ({{facts}}):"
+  },
+  "settings.support.draftVersion": {
+    "value": "server version {{version}}"
+  },
+  "settings.support.draftClient": {
+    "value": "installation {{code}}"
+  },
+  "settings.support.draftPage": {
+    "value": "on the page {{page}}"
+  },
+  "settings.support.draftAsk": {
+    "value": "Send this to support with contact_support, in my name."
+  },
+  "settings.support.askNoEmail": {
+    "value": "{{name}} opens the conversation with the details in the box. Write what happened and send it."
   },
   "settings.about.basedOn": {
     "value": "Based on <site>agentes.chat</site> by Codari Global, LLC · AGPL-3.0"
@@ -44209,6 +44266,9 @@
   "chat.work.step.offeringFeedback": {
     "value": "Offered to report a problem"
   },
+  "chat.work.step.askingSupport": {
+    "value": "Asked support for help"
+  },
   "chat.work.step.deletingRoutine": {
     "value": "Deleted a routine"
   },
@@ -44568,6 +44628,9 @@
   },
   "chat.activity.offeringFeedback": {
     "value": "preparing a report"
+  },
+  "chat.activity.askingSupport": {
+    "value": "asking support for help"
   },
   "chat.activity.deletingRoutine": {
     "value": "deleting a routine"

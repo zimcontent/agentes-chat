@@ -14292,7 +14292,8 @@
       "vault_make_password": "Şifre oluştur",
       "get_my_usage": "Kullanımımı görüntüle",
       "send_feedback": "Geri bildirim gönder",
-      "offer_feedback": "Sorun bildirmeyi öner"
+      "offer_feedback": "Sorun bildirmeyi öner",
+      "contact_support": "Destekten yardım istemek"
     }
   },
   "toolReview": {
@@ -16906,6 +16907,7 @@
       "voice": "Ses",
       "apps": "Yapay zeka uygulamaları",
       "approvals": "Onaylar",
+      "support": "Destek",
       "about": "DougBot hakkında",
       "generalPersonal": "Hakkınızda",
       "keysPersonal": "Yapay zeka ve uygulamalar",
@@ -16937,12 +16939,31 @@
       "voice": "Konuşmalardaki sesli mesajlar ve sesi metne kimin dönüştürdüğü.",
       "apps": "Claude, Cursor ve diğer uygulamalardan ajanlara görev verin.",
       "approvals": "Bir ajan onayınızı istediğinde sizin yerinize kimin karar verdiği.",
+      "support": "Bu kurulumu yönetenler ve onlara nasıl ulaşılır.",
       "about": "Kimin yaptığı, lisansı ve kaynak kodunun yeri.",
       "generalPersonal": "Ajanlarınızın sizin hakkınızda bildikleri ve bu çalışma alanının nasıl işlediği.",
       "usagePersonal": "Ajanlarınızın ne kadar yapay zeka kullandığı ve planınız.",
       "connectorsPersonal": "Uygulamalarınız ve MCP sunucularınız, ajanlarınız için bir kez bağlanır.",
       "membersPersonal": "Burada sizinle kimler var.",
       "rolesPersonal": "Buradaki her kişinin neler yapabileceği. Sahip her şeyi yapabilir."
+    },
+    "support": {
+      "title": "Desteğe ulaş",
+      "lead": "Sistemde bir şey çalışmadığında, bu kurulumu yönetenler.",
+      "email": "E-posta",
+      "whatsapp": "WhatsApp",
+      "client": "Bu kurulum",
+      "askTitle": "{{name}}'dan yardım iste",
+      "askLead": "{{name}} ne olduğunu yazar ve senin adına desteğe gönderir. Mesaj gitmeden önce sen okursun.",
+      "askStatus": "Ayrıntılar alana yazılmış olarak konuşmayı açar.",
+      "ask": "{{name}}'dan yardım iste",
+      "draft": "{{name}}, sistemle ilgili yardıma ihtiyacım var:",
+      "draftWith": "{{name}}, sistemle ilgili yardıma ihtiyacım var ({{facts}}):",
+      "draftVersion": "sunucu sürümü {{version}}",
+      "draftClient": "kurulum {{code}}",
+      "draftPage": "sayfada {{page}}",
+      "draftAsk": "Bunu benim adıma contact_support ile desteğe gönder.",
+      "askNoEmail": "{{name}} sohbeti ayrıntılar alanda hazır açıyor. Ne olduğunu yaz ve gönder."
     },
     "about": {
       "basedOn": "Codari Global, LLC tarafından geliştirilen <site>DougBot</site> tabanlı · AGPL-3.0",
@@ -17860,6 +17881,7 @@
         "settingCommitLine": "Commit'lerdeki ajan satırını ayarladı",
         "sendingFeedback": "Geri bildirim göndermeyi istedi",
         "offeringFeedback": "Bir sorunu bildirmeyi önerdi",
+        "askingSupport": "Destekten yardım istedi",
         "deletingRoutine": "Bir rutini sildi",
         "runningRoutine": "Bir rutini şimdi çalıştırdı",
         "proposingTeam": "Bir ekip önerdi",
@@ -17983,6 +18005,7 @@
       "settingCommitLine": "commit'lerdeki ajan satırını ayarlıyor",
       "sendingFeedback": "geri bildirim hazırlıyor",
       "offeringFeedback": "bildirim hazırlıyor",
+      "askingSupport": "destekten yardım istiyor",
       "deletingRoutine": "bir rutini siliyor",
       "runningRoutine": "bir rutini şimdi çalıştırıyor",
       "proposingTeam": "bir ekip öneriyor",

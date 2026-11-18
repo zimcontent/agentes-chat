@@ -4,16 +4,18 @@ import {
   usePortalBoard,
   usePortalComments,
   usePortalJob,
+  usePortalOverview,
   usePortalPlan,
   usePortalTasks,
   useSavePortalCard,
-  useSendForApproval,
 } from "@agenteschat/client";
 import { linkPill } from "@agenteschat/client/lib/link-pills";
 import {
   PORTAL_SEND_FILES,
   portalArticle,
   portalChecks,
+  portalClientColors,
+  portalClientLogos,
   portalClientName,
   portalLink,
   portalOrderAt,
@@ -24,26 +26,18 @@ import {
 } from "@agenteschat/client/lib/portal";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { ActivityIndicator, Alert, Pressable, RefreshControl, StyleSheet, TextInput, View } from "react-native";
-import { Button, Chip, GroupedHeader, GroupedList, GroupedRow, Text, useFieldText } from "@/ui";
+import { ActivityIndicator, Pressable, RefreshControl, StyleSheet, TextInput, View } from "react-native";
+import { Button, Chip, GroupedHeader, GroupedList, GroupedRow, Icon, Text, useFieldText } from "@/ui";
 import { router } from "@/ui/navigation";
 import { LinkPillText } from "../chat/LinkPillText";
 import { Face } from "../shared/Face";
 import { useColors, useDirectory, useMeId, useOrgId, usePullRefresh, useWhen } from "../shared/hooks";
 import { PushedLargeTitle } from "../shared/PushedLargeTitle";
 import { PushedHeader, successHaptic } from "../shared/parts";
-import { usePortalFailed, usePortalRights, usePortalWords } from "./hooks";
-import {
-  allPlanCards,
-  commentsNewestFirst,
-  findItem,
-  listsFor,
-  otherTeamColumn,
-  sendInputOf,
-  sendProblemOf,
-} from "./model";
+import { usePortalFailed, usePortalRights, usePortalWords, useSendCard } from "./hooks";
+import { allPlanCards, commentsNewestFirst, findItem, listsFor, otherTeamColumn, sendProblemOf } from "./model";
 import { openLink, PostPanel } from "./PostPanel";
-import { FileStrip, StageChip } from "./parts";
+import { ClientMark, FileStrip, StagePill } from "./parts";
 import type { PortalWords } from "./words";
 
 /**
@@ -87,9 +81,7 @@ export function CardScreen({ client, cardId }: { client: string; cardId: string 
       refreshControl={<RefreshControl refreshing={pull.refreshing} onRefresh={pull.onRefresh} />}
     >
       <View style={styles.page}>
-        <Text variant="subhead" tone="muted" style={styles.pad}>
-          {portalClientName(client)}
-        </Text>
+        <CardHead w={w} client={client} card={card} />
         <FileStrip files={card.files} />
         <View style={[styles.pad, styles.parts]}>
           <Description w={w} card={card} />
@@ -135,8 +127,6 @@ function Facts({ w, card, plan }: { w: PortalWords; card: PlanCard; plan: Portal
   return (
     <View>
       <GroupedList>
-        {card.material ? null : <GroupedRow label={w.stage} below={<Stage stage={card.stage} />} />}
-        <GroupedRow label={w.type} value={w.types[card.type]} />
         <GroupedRow
           label={w.list}
           value={listName}
@@ -180,10 +170,39 @@ function Facts({ w, card, plan }: { w: PortalWords; card: PlanCard; plan: Portal
   );
 }
 
-function Stage({ stage }: { stage: PlanCard["stage"] }) {
+/**
+ * Under the title, the board's own words for the card: the client's mark and name, the stage's pill (the Quadro's and
+ * the Cronograma's), the type, finished.
+ */
+function CardHead({ w, client, card }: { w: PortalWords; client: string; card: PlanCard }) {
+  const c = useColors();
+  const orgId = useOrgId();
+  const clients = usePortalOverview(orgId).data?.clients;
   return (
-    <View style={styles.chips}>
-      <StageChip stage={stage} />
+    <View style={[styles.pad, styles.head]}>
+      <View style={styles.headClient}>
+        <ClientMark
+          client={client}
+          logo={portalClientLogos(clients).get(client)}
+          color={portalClientColors(clients).get(client)}
+          size={20}
+        />
+        <Text variant="subhead" tone="muted" numberOfLines={1} style={styles.headName}>
+          {portalClientName(client)}
+        </Text>
+      </View>
+      <View style={styles.chips}>
+        {card.material ? null : <StagePill stage={card.stage} />}
+        <Chip label={w.types[card.type]} />
+        {card.done && !card.material ? (
+          <View style={styles.doneMark}>
+            <Icon name="check" size={13} color={c.greenText} />
+            <Text variant="caption" style={[styles.doneWord, { color: c.greenText }]}>
+              {w.done}
+            </Text>
+          </View>
+        ) : null}
+      </View>
     </View>
   );
 }
@@ -197,9 +216,9 @@ function Actions({ w, card }: { w: PortalWords; card: PlanCard }) {
   const orgId = useOrgId();
   const failed = usePortalFailed();
   const { changes } = usePortalRights();
-  const send = useSendForApproval(orgId);
   const move = useMovePortalCardState(orgId, card.client);
   const [jobId, setJobId] = useState<string | null>(null);
+  const send = useSendCard(card, setJobId);
   const job = usePortalJob(orgId, jobId).data;
   const link = portalLink(card.link);
   if (!changes || card.material) {
@@ -209,18 +228,6 @@ function Actions({ w, card }: { w: PortalWords; card: PlanCard }) {
   const problemText =
     problem === "tooMany" ? w.sendProblem.tooMany(PORTAL_SEND_FILES) : problem ? w.sendProblem[problem] : null;
   const team = card.stage === "todo" || card.stage === "doing";
-  const confirmSend = () =>
-    Alert.alert(w.sendTitle(portalClientName(card.client)), w.sendText(card.files.length), [
-      { text: w.cancel, style: "cancel" },
-      {
-        text: w.send,
-        onPress: () =>
-          send.mutate(sendInputOf(card, `${card.id}-${Date.now().toString(36)}`), {
-            onSuccess: (started) => setJobId(started.id),
-            onError: failed,
-          }),
-      },
-    ]);
   return (
     <View style={styles.actions}>
       {job ? <SendState w={w} job={job} client={card.client} /> : null}
@@ -235,9 +242,9 @@ function Actions({ w, card }: { w: PortalWords; card: PlanCard }) {
             variant="primary"
             wide
             label={w.send}
-            onPress={confirmSend}
+            onPress={send.confirm}
             disabled={problem !== null}
-            loading={send.isPending}
+            loading={send.pending}
           />
         </>
       )}
@@ -560,6 +567,11 @@ function Linked({ text, variant = "subhead" }: { text: string; variant?: "subhea
 }
 
 const styles = StyleSheet.create({
+  head: { gap: 10 },
+  headClient: { flexDirection: "row", alignItems: "center", gap: 8 },
+  headName: { flexShrink: 1 },
+  doneMark: { flexDirection: "row", alignItems: "center", gap: 4, height: 24 },
+  doneWord: { fontWeight: "600" },
   fill: { flex: 1 },
   center: { flex: 1, alignItems: "center", justifyContent: "center", padding: 32 },
   centerText: { textAlign: "center" },
@@ -574,7 +586,8 @@ const styles = StyleSheet.create({
   comments: { gap: 8 },
   say: { gap: 8 },
   field: { minHeight: 64, maxHeight: 160, borderRadius: 12, paddingHorizontal: 12, paddingVertical: 10 },
-  described: { minHeight: 120, maxHeight: 320, textAlignVertical: "top" },
+  // The words stay where they were read (`descBox`'s insets) when the press opens them to edit.
+  described: { minHeight: 120, maxHeight: 320, textAlignVertical: "top", paddingHorizontal: 16, paddingVertical: 12 },
   descBox: { borderRadius: 12, paddingHorizontal: 16, paddingVertical: 12, minHeight: 48 },
   formActs: { flexDirection: "row", gap: 8 },
   pressed: { opacity: 0.7 },

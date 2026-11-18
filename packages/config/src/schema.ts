@@ -1238,9 +1238,29 @@ export const envVars = {
   SUPPORT_EMAIL: {
     schema: z.email().optional(),
     description:
-      "Where people write to whoever runs this server, shown with a workspace's hold notice, its suspended screen and the workspace's own computer when something on it doesn't work. Unset (default): they are told to ask the people who run the server.",
+      "Where people write to whoever runs this server, shown with a workspace's hold notice, its suspended screen and the workspace's own computer when something on it doesn't work, and in Support under the account: Support shows only with this or `SUPPORT_WHATSAPP` set. It is also where an agent's `contact_support` call sends its summary. Unset (default): they are told to ask the people who run the server.",
     section: "Operator",
     example: "support@example.com",
+  },
+  SUPPORT_WHATSAPP: {
+    schema: z
+      .string()
+      .regex(/^\+?[0-9][0-9 ()-]{6,24}$/, "must be a phone number such as +55 11 99999-0000")
+      .optional(),
+    description:
+      "WhatsApp number people reach whoever runs this server at, shown in Support under the account. Write it with its country code (`SUPPORT_EMAIL`'s companion): the apps open it as a chat (`wa.me`). Unset (default): Support shows no WhatsApp line.",
+    section: "Operator",
+    example: "+55 11 99999-0000",
+  },
+  DOUG_CLIENT_CODE: {
+    schema: z
+      .string()
+      .regex(/^\d{3}$/, "must be a three-digit client code such as 064")
+      .optional(),
+    description:
+      "This installation's client code, on a server a team runs for one client. The apps show it in Support, and an agent's `contact_support` and its email carry it, so whoever answers knows which installation to look at. Unset (default): an installation of its own, with no code.",
+    section: "Operator",
+    example: "064",
   },
   FEEDBACK_EMAIL: {
     schema: z.email().optional(),

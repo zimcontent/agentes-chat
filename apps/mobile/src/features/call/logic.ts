@@ -56,3 +56,29 @@ export function tilesOf(room: LiveRoom | null, me: string): Who[] {
   const ordered = [me, ...people.filter((id) => id !== me)];
   return [...ordered.map((id): Who => `person:${id}`), ...room.agentIds.map((id): Who => `agent:${id}`)];
 }
+
+/** What the conversation's call button does when pressed (`CallButton`). */
+export type CallPress = "open" | "join" | "call-agent" | "start" | "needs-key";
+
+/**
+ * The call button's press, from what is known: the call this phone is on, a call live here, an agent's DM, and
+ * whether the workspace's voice key works (`null` while asked). The button never hides: an agent's DM with no voice
+ * key says what is missing (`needs-key`); while the key is still being asked it calls as if it works (the call itself
+ * says so). A group opens "Chamada de voz", where people can call with no key.
+ */
+export function callPress({
+  inThisCall,
+  live,
+  dmAgent,
+  keyOk,
+}: {
+  inThisCall: boolean;
+  live: boolean;
+  dmAgent: boolean;
+  keyOk: boolean | null;
+}): CallPress {
+  if (inThisCall) return "open";
+  if (live) return "join";
+  if (dmAgent) return keyOk === false ? "needs-key" : "call-agent";
+  return "start";
+}

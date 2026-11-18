@@ -237,3 +237,30 @@ scheduled only by a person, by hand, and that what goes to the client carries no
   not released yet, across every client, the longest waiting first, and "Waiting on you" draws each with "Schedule",
   which opens the same dialog as the board (a day and a time, by hand). Only for who may give agents work
   (`assign_work`), in the workspace the portal is.
+
+## Addendum 2026-11-18: a client's name and removal are the team's, kept on this side
+
+The team asked to edit a client from its card: its name, its picture, and to delete it. The portal's API
+(`packages/adapters/src/approval-portal.ts`) knows a client only by its slug and has calls for its colour and its logo
+(`setClientColor`, `setClientLogo`, §13, §16) and nothing else: no create, no rename, no delete of a client. The apps
+list a client once the portal has a post or a card of it. So:
+
+- **Name.** The team's name for a client is kept here, per workspace and client, in `portal_client_settings`
+  (`display_name`, a column added through `EXTRA_COLUMNS` like the table itself): `PUT …/portal/clients/{client}/name`
+  (`assign_work`, audited as `portal.client_renamed`), one line of at most 60 characters, empty going back to the
+  slug's reading. The overview returns it (`name`), and the apps keep the last read's names
+  (`rememberPortalClientNames`), so `portalClientName` (and the initials drawn from it) says it on every screen. The
+  portal, its client page and the agents' tools keep the slug.
+- **Removal.** A client is hidden, not deleted: `PUT …/portal/clients/{client}/hidden` (`hidden_at`, audited as
+  `portal.client_hidden` and `portal.client_shown`). A hidden client leaves the overview's clients and every list and
+  count the apps read (pipeline, to schedule, each one's work); its posts and cards stay at the portal, untouched, and
+  its board still opens by its address. The overview lists it under `hidden`; the web shows "Hidden clients" at the
+  overview's foot, each with "Show again", for who may change the portal. The apps call this "Remove client" and say
+  in the confirmation, which names the client, that it can come back.
+- **Picture and colour** stay the portal's, now also set from the phone: a long press or "…" on a client's card on the
+  Portal tab opens its sheet (name, a picture from the photo library or none, colour, remove), for `assign_work`. A
+  change of colour or logo is now audited too (`portal.client_color_set`, `portal.client_logo_set`,
+  `portal.client_logo_removed`).
+- **Creating a client** is not offered, rather than faked: the portal would need a call that makes a tenant (its slug
+  and name, answering the slug) and a read that lists every tenant, even one with no post or card yet. Until it has
+  them, a new client is made at the portal itself and shows here with its first post or card.

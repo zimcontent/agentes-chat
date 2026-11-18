@@ -2016,6 +2016,13 @@ export function createHttpApi(options: TransportOptions = {}): HttpApi {
           method: "PUT",
           json: { afterApprove },
         }),
+      setClientName: (orgId, client, name) =>
+        request<{ name: string | null }>(`${org(orgId)}/portal/clients/${enc(client)}/name`, {
+          method: "PUT",
+          json: { name },
+        }),
+      setClientHidden: (orgId, client, hidden) =>
+        request<void>(`${org(orgId)}/portal/clients/${enc(client)}/hidden`, { method: "PUT", json: { hidden } }),
       setClientLogo: async (orgId, client, image) => {
         const path = `${org(orgId)}/portal/clients/${enc(client)}/logo`;
         if (image) await request<{ logo: string }>(path, { method: "PUT", json: image });
