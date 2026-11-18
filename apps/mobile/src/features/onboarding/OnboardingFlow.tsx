@@ -237,8 +237,11 @@ export function OnboardingFlow({ onLeave, another }: { onLeave?: () => void; ano
       } catch (e) {
         // The brand still waits (a team made on the web, or its answer lost here): `me` is read again so the flow
         // shows the brand's step, and the person is not left on a screen whose button can never work.
-        if (brandStillWaits(e)) await qc.invalidateQueries({ queryKey: keys.me });
-        throw e;
+        if (!brandStillWaits(e)) throw e;
+        // No failure to show: the brand's step comes, and once it is saved the flow may open again.
+        await qc.invalidateQueries({ queryKey: keys.me });
+        opening.current = false;
+        return;
       }
       const landing = how === "import" ? null : landingOf(how, personal);
       const dm =
@@ -366,6 +369,7 @@ export function OnboardingFlow({ onLeave, another }: { onLeave?: () => void; ano
             setDougFailed(null);
             // Leaving "who joins" for the way to start: the computer's ask was made for that list, so it goes with it.
             setWantsComputer(false);
+            keepComputerAsk(null);
             setTeamPhase("how");
           }
         : before && before !== "brand"

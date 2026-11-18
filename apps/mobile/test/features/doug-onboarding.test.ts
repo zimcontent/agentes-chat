@@ -166,9 +166,13 @@ test("a lost answer after the team is made reads `me` and the agents again, so a
   expect({ meReads, agentReads }).toEqual({ meReads: 2, agentReads: 2 });
   // The opening's `onboarding.brand_pending` is read before the error reaches the screen, so `me` is fresh by then.
   const parent = readFileSync(new URL("../../src/features/onboarding/OnboardingFlow.tsx", import.meta.url), "utf8");
-  const at = parent.indexOf("if (brandStillWaits(e))");
+  // No failure screen either: the brand's step comes, and the flow may open again once it is saved.
+  const at = parent.indexOf("if (!brandStillWaits(e)) throw e;");
   expect(at).toBeGreaterThan(0);
-  expect(parent.slice(at, at + 160)).toContain("invalidateQueries({ queryKey: keys.me })");
+  const branch = parent.slice(at, at + 260);
+  expect(branch).toContain("invalidateQueries({ queryKey: keys.me })");
+  expect(branch).toContain("opening.current = false;");
+  expect(branch).toContain("return;");
 });
 
 test("the brand's form lives above the step, so going back to the team and forward keeps what was typed", () => {

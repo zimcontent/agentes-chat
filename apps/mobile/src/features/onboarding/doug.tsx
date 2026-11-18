@@ -330,7 +330,12 @@ export function MembersStep({
     said.current.count = count;
   }, [count]);
   useEffect(() => {
-    if (Platform.OS !== "ios" || !failed || said.current.failed === failed) return;
+    if (!failed) {
+      // A failure that comes back with the same words is said again.
+      said.current.failed = null;
+      return;
+    }
+    if (Platform.OS !== "ios" || said.current.failed === failed) return;
     AccessibilityInfo.announceForAccessibility(failed);
     said.current.failed = failed;
   }, [failed]);
