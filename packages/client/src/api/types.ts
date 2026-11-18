@@ -176,7 +176,7 @@ export interface AuthConfig {
   /** The server has an approval portal (ADR 9001): the apps show Portal; absent or false: none. */
   approvalPortal?: boolean;
   /**
-   * The portal is this server's own (docs/adr/doug-0020-embedded-approval-portal.md), not a bridge's: the workspace
+   * The portal is this server's own (docs/adr/doug-0022-embedded-approval-portal.md), not a bridge's: the workspace
    * manages its clients and their links here (`GET …/portal-clients`). Absent from an older server.
    */
   approvalPortalEmbedded?: boolean;
@@ -8704,7 +8704,7 @@ export interface PortalClientSummary {
   logo?: string | null;
 }
 
-/** A contact of a client, told when a post waits on them (the installation's own portal, docs/adr/doug-0020). */
+/** A contact of a client, told when a post waits on them (the installation's own portal, docs/adr/doug-0022). */
 export interface PortalContact {
   id: string;
   name: string;
@@ -8746,7 +8746,7 @@ export interface PortalClientsList {
   links: Record<string, string>;
 }
 
-/** One of the workspace's connected WhatsApp numbers the portal's notices may go out as (ADR doug-0020 §7). */
+/** One of the workspace's connected WhatsApp numbers the portal's notices may go out as (ADR doug-0022 §7). */
 export interface PortalNoticeNumber {
   id: string;
   label: string;

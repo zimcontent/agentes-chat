@@ -12,7 +12,7 @@ const { portalCards, portalClients, portalJobs, portalLabels, portalLists, porta
 const { portalPosts, portalUploads } = schema;
 
 /**
- * The approval portal kept in this server (docs/adr/doug-0020-embedded-approval-portal.md): the same contract as the
+ * The approval portal kept in this server (docs/adr/doug-0022-embedded-approval-portal.md): the same contract as the
  * bridge (`ApprovalPortal`, ADR 9001), with every client, card, post and note in this database instead of another
  * service. An installation with no bridge of its own gets this one, so the Portal page, the agents' tools and the
  * clients' own links work out of the box.
@@ -779,7 +779,7 @@ export function createEmbeddedApprovalPortal(deps: EmbeddedPortalDeps): Approval
       if (post.status !== "approved") throw new ApprovalPortalError(409, "only an approved post is scheduled");
       if (post.released) throw new ApprovalPortalError(409, "this post was already released");
       // This server has no publishing service: a released post is `scheduled` at once, for the team to publish and
-      // say so with `markPublished` (docs/adr/doug-0020-embedded-approval-portal.md).
+      // say so with `markPublished` (docs/adr/doug-0022-embedded-approval-portal.md).
       await db
         .update(portalPosts)
         .set({ released: true, scheduledFor: new Date(when), status: "scheduled", updatedAt: new Date() })

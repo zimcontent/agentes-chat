@@ -4,7 +4,7 @@ import { browser, createTestServer, seedOrg, signUp, type TestServer } from "./h
 import { type Browser } from "./harness";
 
 // The review's items on the server's side of the installation's own approval portal (docs/adr/
-// doug-0020-embedded-approval-portal.md): the portal is one workspace's, a file's name survives any character, a
+// doug-0022-embedded-approval-portal.md): the portal is one workspace's, a file's name survives any character, a
 // decision's body is capped and limited, a workspace closed to work answers nothing of it, and a post marked posted
 // goes to `published`.
 

@@ -65,7 +65,7 @@ const Decision = z
   .strict();
 
 /**
- * The client's side of the approval portal (docs/adr/doug-0020-embedded-approval-portal.md): a page with no account,
+ * The client's side of the approval portal (docs/adr/doug-0022-embedded-approval-portal.md): a page with no account,
  * opened by the client's own link (`/p/<token>`), whose data is read at `/p/api/<token>`. The token is the
  * whole of the access, good for one client of one workspace; nothing of the app's signed-in routes is read here, and
  * nothing of the workspace but the client's own name and logo reaches the page. Each answer is `no-store`, and each

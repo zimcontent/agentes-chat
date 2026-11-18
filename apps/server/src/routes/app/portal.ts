@@ -69,7 +69,7 @@ const tags = ["Approval portal"];
 export const PORTAL_SENDS_PER_PERSON = { limit: 30, windowMs: 60_000 };
 
 const Missing = z.enum(["cover", "caption", "editor", "date"]);
-/** A client of the installation's own portal, with its contacts and the address of its link (`docs/adr/doug-0020`). */
+/** A client of the installation's own portal, with its contacts and the address of its link (`docs/adr/doug-0022`). */
 const PortalClient = z
   .object({
     id: z.string(),
@@ -1422,7 +1422,7 @@ export function portalRoutes(deps: AppDeps) {
     },
   );
 
-  // The number the portal's notices go out as, and the connected ones to pick from (docs/adr/doug-0020 §7).
+  // The number the portal's notices go out as, and the connected ones to pick from (docs/adr/doug-0022 §7).
   app.openapi(
     createRoute({
       method: "get",

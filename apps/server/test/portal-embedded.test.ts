@@ -1,7 +1,7 @@
 import { afterEach, expect, test } from "bun:test";
 import { type Browser, browser, createTestServer, seedOrg, signUp, type TestServer } from "./harness";
 
-// The approval portal kept in this server's own database (docs/adr/doug-0020-embedded-approval-portal.md): the team
+// The approval portal kept in this server's own database (docs/adr/doug-0022-embedded-approval-portal.md): the team
 // makes its clients and their links in Settings, and a client opens its own page with no account.
 
 let t: TestServer;

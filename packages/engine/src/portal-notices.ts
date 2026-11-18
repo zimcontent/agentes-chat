@@ -10,7 +10,7 @@ const { portalPosts, portalClients, portalNotices, organizationSettings, whatsap
 
 /**
  * The notices a client gets when there is something new to approve, or a new version of a post (docs/adr/
- * doug-0020-embedded-approval-portal.md): by e-mail to every contact with an address (the `portal_ready` email), and on
+ * doug-0022-embedded-approval-portal.md): by e-mail to every contact with an address (the `portal_ready` email), and on
  * WhatsApp from the number the workspace chose for the portal to every contact with a number, while it has one. The
  * words are the client's own share of the page, in pt-BR and English, with the client's own link.
  *
@@ -168,7 +168,7 @@ export async function announcePortalPost(
   const client = await clientOfPost(deps.db, orgId, post.client);
   if (!client) return { sent: 0, skipped: "client" };
   const url = await clientLinkUrl(deps.db, deps.publicUrl, deps.secret, client.id);
-  // No live link: the client's page wouldn't open, so a notice saying it is there helps no one (ADR doug-0020 §4).
+  // No live link: the client's page wouldn't open, so a notice saying it is there helps no one (ADR doug-0022 §4).
   if (!url) return { sent: 0, skipped: "link" };
   const waiting = await waitingPosts(deps.db, orgId, post.client);
   // What this notice gathers: every post of the client whose waiting version is past the one it was told of, oldest

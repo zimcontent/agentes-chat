@@ -57,7 +57,7 @@ import {
   allowsPrivateEndpoints,
   backfillMemoryTrust,
   composioUsageHook,
-  // The approval portal kept in this server's own database (docs/adr/doug-0020-embedded-approval-portal.md).
+  // The approval portal kept in this server's own database (docs/adr/doug-0022-embedded-approval-portal.md).
   createEmbeddedApprovalPortal,
   createGifKey,
   createLocalKeyWrapper,
@@ -158,7 +158,7 @@ export function applyBootSwitches(config: Config) {
  * that adds public modules (ADR 0002); only `modules` differ.
  */
 /**
- * The approval portal's adapters (ADR 9001, docs/adr/doug-0020-embedded-approval-portal.md): the installation's bridge
+ * The approval portal's adapters (ADR 9001, docs/adr/doug-0022-embedded-approval-portal.md): the installation's bridge
  * when it has one, else the portal kept in this server's own database. `APPROVAL_PORTAL_URL` without
  * `APPROVAL_PORTAL_TOKEN` is a misconfiguration, never a reason to fall back to the embedded one: the server says so
  * (a warning, once) and keeps the bridge's portal off, so nobody's surprise is another operation's portal. With both
@@ -296,7 +296,7 @@ async function boot(
   // say on the key wrappers; the GIF provider asks it on every call.
   let gifKey: GifKey | null = null;
   // The installation's own file store, made before the adapters that share it: the approval portal keeps a post's
-  // files there (docs/adr/doug-0020-embedded-approval-portal.md).
+  // files there (docs/adr/doug-0022-embedded-approval-portal.md).
   const platformBlobs = platformBlobStore(config, database.db);
   const defaults: Adapters = {
     search: createPostgresSearchResolver(database.db),
@@ -338,7 +338,7 @@ async function boot(
         ? createZimMedia({ url: config.ZIM_MEDIA_URL, secret: config.ZIM_MEDIA_SECRET })
         : null,
     // The approval portal (ADR 9001): through the installation's bridge when it has one, else the portal kept in this
-    // server's own database (docs/adr/doug-0020-embedded-approval-portal.md), so every installation has its own, served
+    // server's own database (docs/adr/doug-0022-embedded-approval-portal.md), so every installation has its own, served
     // at its own address. An address without its token is a setup mistake, not "no bridge": the server says so and
     // keeps the bridge's portal off, instead of quietly turning on the embedded one and reading another operation's
     // portal differently than expected. With both set nothing of the embedded one is made.

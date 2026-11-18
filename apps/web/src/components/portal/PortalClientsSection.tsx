@@ -10,7 +10,7 @@ import { useToast } from "@/lib/toast";
 import "@/pages/portal-clients.css";
 
 /**
- * The clients of the installation's own approval portal (docs/adr/doug-0020-embedded-approval-portal.md), in Settings:
+ * The clients of the installation's own approval portal (docs/adr/doug-0022-embedded-approval-portal.md), in Settings:
  * each client, its contacts (an e-mail, a WhatsApp number, or both) and the address of its own link, which opens its
  * page with no account. A person who may give agents work adds a client, edits its contacts, copies its link, makes a
  * new one (revoking the old), or removes the client. On a server whose portal is a bridge's the section isn't listed
@@ -185,7 +185,7 @@ export function PortalClientsSection() {
           </div>
         )}
       </SettingsSection>
-      {/* Which number tells the clients (ADR doug-0020 §7): e-mail always goes; WhatsApp only from a number the
+      {/* Which number tells the clients (ADR doug-0022 §7): e-mail always goes; WhatsApp only from a number the
           workspace picks here. With none, a client is never texted from a number nobody chose. */}
       <SettingsSection title={t("portalClients.noticesTitle")} description={t("portalClients.noticesLead")}>
         <Field label={t("portalClients.noticesNumber")}>

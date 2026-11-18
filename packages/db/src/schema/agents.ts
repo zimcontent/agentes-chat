@@ -465,7 +465,7 @@ export const organizationSettings = pgTable("organization_settings", {
   hiddenTools: text().array().notNull().default(sql`'{}'::text[]`),
   /**
    * The workspace's own WhatsApp number the approval portal's notices go out as (docs/adr/
-   * doug-0020-embedded-approval-portal.md §7), one of `whatsapp_accounts`. Null: none, and the notices go by e-mail
+   * doug-0022-embedded-approval-portal.md §7), one of `whatsapp_accounts`. Null: none, and the notices go by e-mail
    * alone: a client's number is never texted from a number the workspace didn't pick here.
    */
   portalNoticeNumber: uuid().references(() => whatsappAccounts.id, { onDelete: "set null" }),

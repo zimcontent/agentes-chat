@@ -354,7 +354,7 @@ export function createApp(options: AppOptions) {
     await next();
     if (!c.res.headers.has("cache-control")) c.res.headers.set("cache-control", "no-store");
   });
-  // The client's own page of the installation's approval portal (docs/adr/doug-0020-embedded-approval-portal.md): no
+  // The client's own page of the installation's approval portal (docs/adr/doug-0022-embedded-approval-portal.md): no
   // account, outside `/api/`, its whole access the link's token.
   if (options.services) registerPortalPublicRoutes(app, options.services);
   // A link a person opens in a browser that the API refuses: our page, never the JSON on screen (ADR 0157).

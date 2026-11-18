@@ -3,7 +3,7 @@ import { users } from "./auth";
 import { organizations } from "./tenancy";
 
 /**
- * The approval portal kept in this server (docs/adr/doug-0020-embedded-approval-portal.md): the clients a team makes
+ * The approval portal kept in this server (docs/adr/doug-0022-embedded-approval-portal.md): the clients a team makes
  * work for, the posts it sends them, the board's cards, the schedule's lists and labels. Only the installation's
  * portal workspace reads or writes them, and every row carries its `org_id`. Created by `EXTRA_COLUMNS`
  * (`packages/db/src/client.ts`), outside the numbered migrations, as every table of this instance's own features.
@@ -305,7 +305,7 @@ export const portalUploads = pgTable(
 );
 
 /**
- * A notice a client was sent (docs/adr/doug-0020-embedded-approval-portal.md §7): which client, by which way
+ * A notice a client was sent (docs/adr/doug-0022-embedded-approval-portal.md §7): which client, by which way
  * (`email`, `whatsapp`), to which of its contacts, about which post and version, and when. It is what the limits are
  * read from: a contact hears about one post at most twice a day, and a notice for a client inside `PORTAL_NOTICE_GROUP_MS`
  * of another is that one, whose `posts[]` it joins. A row is written only when something went out, so a client with no

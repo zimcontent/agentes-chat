@@ -9,7 +9,7 @@ const { portalClientLinks, portalClients, portalPostFiles, portalPostNotes, port
 const { issues } = schema;
 
 /**
- * The clients of the installation's approval portal (docs/adr/doug-0020-embedded-approval-portal.md): each one has a
+ * The clients of the installation's approval portal (docs/adr/doug-0022-embedded-approval-portal.md): each one has a
  * name, its contacts (an e-mail, a WhatsApp number, or both) and a link of its own, `<PUBLIC_URL>/p/<token>`, with
  * no account: the token is the whole of the access, good for one client of one workspace, and the team may revoke it.
  * The page it opens is rendered as its own, never by the app's signed-in routes.
@@ -516,7 +516,7 @@ export interface ClientDecision {
 export const CLIENT_NOTE_MAX = 4000;
 
 /**
- * The client's decision through the link's token (docs/adr/doug-0020-embedded-approval-portal.md): an approval, or a
+ * The client's decision through the link's token (docs/adr/doug-0022-embedded-approval-portal.md): an approval, or a
  * change asked (a note, maybe with a second of a video or a spot of a slide). Only a post waiting on this client takes
  * one, and only once: it turns `approved` or `adjust_requested`, and the workspace's own watch reads the change (and
  * the note) and carries them to the team's card and task, to whoever has the work, and to an agent that starts on it.

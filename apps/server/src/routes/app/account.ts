@@ -382,7 +382,7 @@ export function accountRoutes(deps: AppDeps) {
             }),
             approvalPortalEmbedded: z.boolean().openapi({
               description:
-                "The portal is this server's own (docs/adr/doug-0020-embedded-approval-portal.md), not a bridge's: the workspace manages its clients and their links here.",
+                "The portal is this server's own (docs/adr/doug-0022-embedded-approval-portal.md), not a bridge's: the workspace manages its clients and their links here.",
             }),
             zimMedia: z.boolean().openapi({
               description:

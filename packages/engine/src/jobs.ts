@@ -1080,7 +1080,7 @@ export function createJobHandlers(deps: JobDeps): JobHandlers {
       if (deps.emailArt) await sendPlanWaitingEmail(deps.db, deps.emailArt.home, orgOf(job), job.payload.step);
     },
     // The client of the approval portal is told a post (or its new version) waits on them (docs/adr/
-    // doug-0020-embedded-approval-portal.md): one email to each contact with an address, one text when the workspace
+    // doug-0022-embedded-approval-portal.md): one email to each contact with an address, one text when the workspace
     // has a number. Nothing when the post was answered while the job waited, or the client was told within the day.
     [PORTAL_NOTIFY_JOB]: async (job) => {
       if (!deps.portalNotify) return;

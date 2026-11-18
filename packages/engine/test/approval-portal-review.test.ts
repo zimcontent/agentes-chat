@@ -18,7 +18,7 @@ import {
 } from "../src";
 import { addUser, SECRET, setup } from "./fixtures";
 
-// The review's items of the installation's own approval portal (docs/adr/doug-0020-embedded-approval-portal.md):
+// The review's items of the installation's own approval portal (docs/adr/doug-0022-embedded-approval-portal.md):
 // the portal belongs to one workspace of the server, a client's link is only shown while its token still matches the
 // hash kept for it, saving a client without its contacts keeps them, and a post takes one decision however many
 // arrive at once. On PGlite, a memory file store and no network.
@@ -163,7 +163,7 @@ describe("the client's decision", () => {
   });
 });
 
-describe("a client's notices (ADR doug-0020 §7)", () => {
+describe("a client's notices (ADR doug-0022 §7)", () => {
   test("a v2 after an adjustment tells again; the same version tells once", async () => {
     await makeClient("padaria-aurora", "Padaria Aurora", [{ name: "Ana", email: "ana@example.com" }]);
     const upload = await portal.upload("reel.mp4", new Uint8Array([1, 2]));

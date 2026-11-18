@@ -405,7 +405,7 @@ export const EXTRA_COLUMNS = [
   `CREATE INDEX IF NOT EXISTS "agent_run_steps_tool_call_run_idx" ON "agent_run_steps" USING btree ("run_id","seq") WHERE "agent_run_steps"."kind" = 'tool_call'`,
   `CREATE INDEX IF NOT EXISTS "agent_runs_org_id_brain_session_id_index" ON "agent_runs" USING btree ("org_id","brain_session_id") WHERE "agent_runs"."brain_session_id" is not null`,
   `CREATE INDEX IF NOT EXISTS "agent_scopes_connection_id_index" ON "agent_scopes" USING btree ("connection_id") WHERE "agent_scopes"."connection_id" is not null`,
-  // The approval portal kept in this server (docs/adr/doug-0020-embedded-approval-portal.md, `schema/portal.ts`).
+  // The approval portal kept in this server (docs/adr/doug-0022-embedded-approval-portal.md, `schema/portal.ts`).
   // The WhatsApp number its notices go out as, and how long two notices of the same client wait to become one.
   `ALTER TABLE "organization_settings" ADD COLUMN IF NOT EXISTS "portal_notice_number" uuid`,
   `CREATE TABLE IF NOT EXISTS "portal_notices" (

@@ -292,7 +292,7 @@ export type EmailTemplate =
   /** An AI app or a personal token got access to the person's account in a workspace (ADR 0119), to that person. */
   | { kind: "app_connected"; locale: EmailLocale; appName: string; orgName: string; url: string; personal?: true }
   /**
-   * The approval portal's client (docs/adr/doug-0020-embedded-approval-portal.md): a post (or its new version) waits on
+   * The approval portal's client (docs/adr/doug-0022-embedded-approval-portal.md): a post (or its new version) waits on
    * them at their own link, with no account. `clientName` is the client's name ("Padaria Aurora"); `posts` lists what
    * waits (`title`, and a new version's `version`); `url` is the client's page.
    */

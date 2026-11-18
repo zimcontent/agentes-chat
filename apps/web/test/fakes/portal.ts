@@ -47,9 +47,9 @@ export interface FakePortal {
   colors: Record<string, PortalClientColor>;
   /** Each client's logo: where it is read. */
   logos: Record<string, string>;
-  /** The installation's own portal's clients (docs/adr/doug-0020), by id. */
+  /** The installation's own portal's clients (docs/adr/doug-0022), by id. */
   accounts: Record<string, PortalClientAccount>;
-  /** The number the portal's notices go out as, and the connected ones to pick from (ADR doug-0020 §7). */
+  /** The number the portal's notices go out as, and the connected ones to pick from (ADR doug-0022 §7). */
   noticeNumber: string | null;
   noticeNumbers: PortalNoticeNumber[];
   /** The portal's own today (`YYYY-MM-DD`), which `mine` reads production dates against (default: this machine's). */
