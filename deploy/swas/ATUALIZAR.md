@@ -121,7 +121,7 @@ Sobras de execuções mortas (`.env.XXXXXX`, `*.dump.parcial`, `clientes.tsv.XXX
 ## Travas e permissões (contrato com o instalador `doug-cliente`)
 
 - **Travas.** `$RAIZ/.atualizar.lock` impede duas atualizações ao mesmo tempo (a segunda sai com 2); o script **exige
-  `flock`** e sai com erro sem ele. `$RAIZ/.trava` é a trava do instalador (`doug-cliente novo`, `remover`): o
+  `flock`** e sai com erro sem ele. `$RAIZ/.lock` é a trava do instalador (`doug-cliente novo`, `remover`): o
   atualizador a pega **por cliente**, enquanto o toca, e a solta entre um e outro; com a trava de outro, o cliente fica
   para a próxima rodada (ou espera `DOUG_TRAVA_ESPERA_S`). Dentro da trava confere de novo que o cliente continua no
   registro com o mesmo slug e a mesma porta (um `remover` no meio da rodada o deixa em *pulados*).

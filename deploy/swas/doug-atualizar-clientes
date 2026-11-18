@@ -435,9 +435,9 @@ marca_gravar() { # codigo imagem resultado backup
 
 marca_limpar() { find "$MARCAS" -maxdepth 1 -name "$1__*" -type f -delete 2>/dev/null; }
 
-# A trava do doug-cliente (`$RAIZ/.trava`, no descritor 8): 0 pegou, 1 está com outro, 2 não abriu.
+# A trava do doug-cliente (`$RAIZ/.lock`, no descritor 8): 0 pegou, 1 está com outro, 2 não abriu.
 pegar_trava() {
-  exec 8>"$RAIZ/.trava" || return 2
+  exec 8>"$RAIZ/.lock" || return 2
   if ((TRAVA_ESPERA_S > 0)); then flock -w "$TRAVA_ESPERA_S" 8 || return 1; else flock -n 8 || return 1; fi
 }
 
@@ -503,8 +503,8 @@ _atualizar_um() {
     pegar_trava
     case $? in
       0) ;;
-      1) diz "FALHOU: o doug-cliente está com a trava ($RAIZ/.trava); fica para a próxima rodada"; return $R_RECUSOU ;;
-      *) diz "FALHOU: não abri a trava $RAIZ/.trava"; return $R_RECUSOU ;;
+      1) diz "FALHOU: o doug-cliente está com a trava ($RAIZ/.lock); fica para a próxima rodada"; return $R_RECUSOU ;;
+      *) diz "FALHOU: não abri a trava $RAIZ/.lock"; return $R_RECUSOU ;;
     esac
     local linha_atual
     linha_atual=$(registro_do_cliente "$codigo")
@@ -737,7 +737,7 @@ main() {
   fi
 
   # Duas atualizações ao mesmo tempo (o timer e uma à mão) se atropelariam. A trava de cada cliente, a mesma do
-  # doug-cliente (`$RAIZ/.trava`), é pega depois, cliente a cliente.
+  # doug-cliente (`$RAIZ/.lock`), é pega depois, cliente a cliente.
   if ((simular == 0)); then
     exec 9>"$RAIZ/.atualizar.lock" || { echo "doug-atualizar-clientes: não abri $RAIZ/.atualizar.lock" >&2; return 2; }
     if ! flock -n 9; then

@@ -791,7 +791,7 @@ describe("deploy/swas/doug-atualizar-clientes", () => {
 
   test("o doug-cliente com a trava de clientes: o cliente fica para a próxima rodada, sem ser tocado", async () => {
     const a = ambiente([c1, c2]);
-    const trava = join(a.raiz, ".trava");
+    const trava = join(a.raiz, ".lock");
     writeFileSync(trava, "");
     const dono = Bun.spawn(["flock", trava, "sleep", "20"]);
     try {
