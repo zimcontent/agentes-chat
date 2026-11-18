@@ -51,6 +51,24 @@ test("the two agents' line is always one line: the subject gives way first, the 
   expect(group).toContain('time: { fontVariant: ["tabular-nums"], flexShrink: 0 },');
 });
 
+test("on a phone's width the line leaves the subject out, as the web's under 420 (no '· …' between two dots)", () => {
+  const group = readFileSync(join(import.meta.dir, "../../src/features/chat/ConsultGroup.tsx"), "utf8");
+  expect(group).toContain("const SUBJECT_ROOM = 420;");
+  expect(group).toContain("const roomy = useWindowDimensions().width >= SUBJECT_ROOM;");
+  expect(group).toContain("const subject = roomy ? consultSubject(opened?.question) : null;");
+  const css = readFileSync(join(import.meta.dir, "../../../web/src/layout.css"), "utf8");
+  expect(css).toContain("@container (max-width: 420px) {\n  .consult-pair__subject {\n    display: none;");
+});
+
+test("a reach line offers Adicionar ao grupo where the web's does, for who manages channels", () => {
+  const reach = readFileSync(join(import.meta.dir, "../../src/features/chat/ReachLines.tsx"), "utf8");
+  expect(reach).toContain('((handed && e.reason === "not_in_channel") || Boolean(e.private)) &&');
+  expect(reach).toContain('can(org, "manage_channels")');
+  expect(reach).toContain('label={t("reach.add")}');
+  const web = readFileSync(join(import.meta.dir, "../../../web/src/components/ReachLines.tsx"), "utf8");
+  expect(web).toContain('((handed && e.reason === "not_in_channel") || e.private)');
+});
+
 test("two agents' conversation is a sheet over the one that asked, as the web's dialog", () => {
   const layout = readFileSync(join(import.meta.dir, "../../app/(app)/_layout.tsx"), "utf8");
   expect(layout).toContain('<Stack.Screen name="consultation/[id]" options={formSheet} />');

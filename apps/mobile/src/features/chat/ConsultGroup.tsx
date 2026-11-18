@@ -25,7 +25,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import type { TFunction } from "i18next";
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Pressable, StyleSheet, View } from "react-native";
+import { Pressable, StyleSheet, useWindowDimensions, View } from "react-native";
 import { Icon, Text } from "@/ui";
 import { router } from "@/ui/navigation";
 import { consultationHref } from "../links/logic";
@@ -140,6 +140,9 @@ export function ConsultPairRow({
   const inset = rowBodyInset(useRowLook());
   const dir = useDirectory();
   const c = useColors();
+  // As the web's line (`.consult-pair`, its container under 420): on a phone's width the subject would be a letter and
+  // its "…" between two dots, so the line keeps the names, the word and the time.
+  const roomy = useWindowDimensions().width >= SUBJECT_ROOM;
   const live = items.some((x) => x.status === "open");
   const now = useTick(live);
   // The hand-off's run waits on me (its agent's work for me, ADR 0084 addendum): the row says so in amber, as on
@@ -158,7 +161,7 @@ export function ConsultPairRow({
   const to = names.length === 1 ? (names[0] ?? "") : namesText(t, names, 1);
   // What the question a tap opens is about, between the names and how it went, as on the web.
   const opened = items.find((x) => x.id === pair.opens) ?? items[0];
-  const subject = consultSubject(opened?.question);
+  const subject = roomy ? consultSubject(opened?.question) : null;
   // The whole question, which the row's one line cuts: for screen readers here, on the screen a tap opens.
   const question = withoutRelayLine(opened?.question ?? "").trim();
   // An old reply's question with no id of its own has no conversation to open.
@@ -245,6 +248,8 @@ export function ConsultPairRow({
   );
 }
 
+/** The line's width from which the question's subject shows between the names and how it went (the web's 420). */
+const SUBJECT_ROOM = 420;
 /** The pair's faces. */
 const FACE = 18;
 /** The row's room at each end, where its press lights. */

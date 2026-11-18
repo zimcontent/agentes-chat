@@ -53,6 +53,7 @@ import { TAB_GLYPHS, type TabGlyph, tabGlyphSvg } from "@/ui/tabGlyphs";
 import { useTheme } from "@/ui/theme";
 import { AgentePerfil, TimeAgora } from "./agentes";
 import { Arquivos, Senhas, SenhasItem, SenhasLogins } from "./arquivos-senhas";
+import { ConversaAgentes } from "./conversa-agentes";
 import { IlhaCena } from "./ilha";
 import { Paineis, Paineis320, PaineisFormas } from "./paineis";
 import { PainelIa, PainelIa320, PainelIaFolha, PainelIaFolha320 } from "./painel-ia";
@@ -1250,6 +1251,8 @@ export const TELAS: Record<string, () => ReactNode> = {
   "tarefas-minhas": TarefasMinhas,
   whatsapp: WhatsAppLista,
   "whatsapp-conversa": WhatsAppConversa,
+  /** A group in bubbles with the app's own rows: two agents talking (the pair row, the reach lines). */
+  "conversa-agentes": ConversaAgentes,
   arquivos: Arquivos,
   senhas: Senhas,
   "senhas-item": SenhasItem,
